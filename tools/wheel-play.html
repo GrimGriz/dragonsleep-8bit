@@ -8,7 +8,8 @@
      tools/wheel-play.html?both       (the 3-across beside the 5)
      tools/wheel-play.html?scene      (his notion, 10-07: the big wheel the entrance at the lobstamonkee lighthouse; the small one
                                        appears on the ground in the next scene, and the party pops out of it and lands around it;
-                                       the exit spins counter-clockwise, his "can you spin opposite direction on exit")
+                                       the exit spins counter-clockwise, his "can you spin opposite direction on exit"; the party
+                                       stands round the big one and jumps in when it lands, his "have them jump in the big one please")
      A sheet's spin frame f is the wheel turned 7.5*f degrees clockwise, frame 4k resting json.rest[k] under the highlight; the fast
      part of a spin plays the blur row; rise column k goes from flush (row 0) to risen with rest[k] under the highlight. -->
 <style>
@@ -145,30 +146,32 @@
 
   // ---------------------------------------------------------------- the scene: the lighthouse entrance, then the party pops out
   var PARTY = [   // who pops out, where they land (squares round the small wheel, the middle at 3,3) and which way they face
-    { sheet: 'denny_p3', at: [5, 5], face: 0 }, { sheet: 'rascal_p2', at: [5, 1], face: 6 },     // their looks as js/mpmon.js names them
-    { sheet: 'goose_p1', at: [1, 5], face: 2 }, { sheet: 'beholda_p3', at: [1, 1], face: 0 }];
+    // their looks as js/mpmon.js names them; `at` their square in both scenes (just off the big wheel's rim, round the small one);
+    // `face` the way they face once out of the small one, `in1` toward the big one before they jump in
+    { sheet: 'denny_p3', at: [5, 5], face: 0, in1: 4 }, { sheet: 'rascal_p2', at: [5, 1], face: 6, in1: 2 },
+    { sheet: 'goose_p1', at: [1, 5], face: 2, in1: 6 }, { sheet: 'beholda_p3', at: [1, 1], face: 0, in1: 0 }];
   function scene(big, small, party) {
     document.getElementById('bar').style.display = 'none';
-    document.getElementById('lede').textContent = 'His notion: the big wheel is the entrance at the lobstamonkee lighthouse; the small one appears on the ground in the next scene, and the party pops out of it and lands around it. Click the wheel to set it going.';
+    document.getElementById('lede').textContent = 'His notion: the big wheel is the entrance at the lobstamonkee lighthouse, and the party jumps in; the small one appears on the ground in the next scene, and they pop out of it and land around it. Click the wheel to set it going.';
     var cv = document.createElement('canvas'), N = 7, x;
     var F1 = floor(N, 1), F2 = floor(N, 2);
     cv.width = F1.c.width; cv.height = F1.c.height + 60; cv.style.width = cv.width * Z + 'px';
     document.getElementById('stages').appendChild(cv); x = cv.getContext('2d');
     var OY = 50, mid = (N - 1) / 2;
     function at(F, gx, gy) { var c = F.center(gx, gy); return { x: c.x, y: c.y + OY }; }
-    var Wb = new Wheel(big), Ws = new Wheel(small), st = { name: 'one', t0: now(), fade: 0, pops: [] };
+    var Wb = new Wheel(big), Ws = new Wheel(small), st = { name: 'one', t0: now(), pops: [] };
     function setTitle(s) { title.textContent = s; }
     setTitle('THE LOBSTAMONKEE LIGHTHOUSE -- the entrance');
     function begin() {
       if (st.name !== 'one' || Wb.state !== 'flush') { if (st.name === 'end') restart(); return; }
       var pick = big.m.signs[Math.floor(Math.random() * 12)];
       st.name = 'one-go'; out.textContent = '';
-      Wb.activate(pick, function () {
-        setTitle('THE LOBSTAMONKEE LIGHTHOUSE -- the wheel lands on ' + NAMES[Wb.sign()].toUpperCase());
-        st.t0 = now(); st.name = 'fade-out';
+      Wb.activate(pick, function () {        // landed: in they jump, one after another (Griz, 10-07: "have them jump in the big one please")
+        setTitle('THE LOBSTAMONKEE LIGHTHOUSE -- ' + NAMES[Wb.sign()].toUpperCase() + ', and in they jump');
+        st.name = 'jumps'; st.jumps = party.map(function (P, i) { return now() + 0.5 + 0.35 * i; });
       });
     }
-    function restart() { Wb = new Wheel(big); Ws = new Wheel(small); st = { name: 'one', t0: now(), fade: 0, pops: [] }; setTitle('THE LOBSTAMONKEE LIGHTHOUSE -- the entrance'); }
+    function restart() { Wb = new Wheel(big); Ws = new Wheel(small); st = { name: 'one', t0: now(), pops: [] }; setTitle('THE LOBSTAMONKEE LIGHTHOUSE -- the entrance'); }
     cv.onclick = begin;
     function popOut() {
       st.name = 'pops'; st.t0 = now();
@@ -179,12 +182,34 @@
       x.drawImage(P.S.im, f * an.fw, an.y + face * an.fh, an.fw, an.fh, Math.round(px - an.ax), Math.round(py - an.ay), an.fw, an.fh);
     }
     function shadow(px, py, r) { x.fillStyle = 'rgba(10,8,16,0.45)'; x.beginPath(); x.ellipse(px, py, r, r / 2, 0, 0, Math.PI * 2); x.fill(); }
+    // a wheel's hub, the hole they go in and out by: its middle on the risen face and its half-axes
+    function hubOf(S, c0) { var A = 142 / 316 * S.m.squares * 32 * Math.SQRT2 / 2; return { x: c0.x, y: c0.y - S.m.lift, A: A, B: A / 2 }; }
+    // what is in the hole shows only above the hub's near rim
+    function clipHub(h) { x.beginPath(); x.moveTo(0, 0); x.lineTo(cv.width, 0); x.lineTo(cv.width, h.y); x.lineTo(h.x + h.A, h.y);
+      x.ellipse(h.x, h.y, h.A, h.B, 0, 0, Math.PI); x.lineTo(0, h.y); x.closePath(); x.clip(); }
+    // the party round the big wheel: standing, then a hop to its hub and down the hole
+    function partyAtBig(t) {
+      var h = hubOf(big, at(F1, mid, mid)), draws = [];
+      party.forEach(function (P, i) {
+        var home = at(F1, P.at[0], P.at[1]), tt = st.jumps ? t - st.jumps[i] : -1;
+        if (tt < 0) draws.push({ y: home.y, f: function () { shadow(home.x, home.y, 14); drawMascot(P, t, home.x, home.y, P.in1); } });
+        else if (tt < 0.55) {
+          var u = tt / 0.55, px = home.x + (h.x - home.x) * u, gy = home.y + (h.y - 6 - home.y) * u, z = 46 * 4 * u * (1 - u);
+          draws.push({ y: gy, f: function () { shadow(px, gy, 14 - 4 * u); drawMascot(P, tt, px, gy - z, P.in1); } });
+        } else if (tt < 0.8) {
+          var py = h.y - 6 + (tt - 0.55) / 0.25 * 66;
+          draws.push({ y: h.y, f: function () { x.save(); clipHub(h); drawMascot(P, tt, h.x, py, P.in1); x.restore(); } });
+        }
+      });
+      draws.sort(function (a, b) { return a.y - b.y; }).forEach(function (d) { d.f(); });
+      if (st.name === 'jumps' && t - st.jumps[st.jumps.length - 1] > 1.2) { st.name = 'fade-out'; st.t0 = t; }
+    }
     (function tick() {
       var t = now(), dt = t - st.t0;
       x.fillStyle = '#2b2e2b'; x.fillRect(0, 0, cv.width, cv.height);
-      if (st.name === 'one' || st.name === 'one-go' || st.name === 'fade-out') {
-        Wb.update(); x.drawImage(F1.c, 0, OY); Wb.draw(x, at(F1, mid, mid));
-        if (st.name === 'fade-out' && dt > 0.9) { var k = Math.min(1, (dt - 0.9) / 0.6); x.fillStyle = 'rgba(0,0,0,' + k + ')'; x.fillRect(0, 0, cv.width, cv.height);
+      if (st.name === 'one' || st.name === 'one-go' || st.name === 'jumps' || st.name === 'fade-out') {
+        Wb.update(); x.drawImage(F1.c, 0, OY); Wb.draw(x, at(F1, mid, mid)); partyAtBig(t); dt = t - st.t0;
+        if (st.name === 'fade-out') { var k = Math.min(1, dt / 0.6); x.fillStyle = 'rgba(0,0,0,' + k + ')'; x.fillRect(0, 0, cv.width, cv.height);
           if (k >= 1) { st.name = 'appear'; st.t0 = t; Ws.reveal = 0; Ws.a = Wb.a; setTitle('THE NEXT SCENE'); } }
       } else {
         Ws.update(); x.drawImage(F2.c, 0, OY);
@@ -195,17 +220,16 @@
         var c0 = at(F2, mid, mid);
         Ws.draw(x, c0);
         // the party: out of the hub (clipped by its near rim while they climb out), an arc to their square, then idle
-        var hubA = 142 / 316 * small.m.squares * 32 * Math.SQRT2 / 2, hubB = hubA / 2, lift = small.m.lift, hy = c0.y - lift;
+        var hb = hubOf(small, c0), hy = hb.y;
         var draws = [];
         st.pops.forEach(function (p) {
           var tt = t - p.t0, P = p.P, dst = at(F2, P.at[0], P.at[1]);
           if (tt < 0) return;
           if (tt < 0.25) {                       // climbing out of the hole
             var e = tt / 0.25, py = hy + 60 - e * 66;
-            draws.push({ y: hy, f: function () { x.save(); x.beginPath(); x.moveTo(0, 0); x.lineTo(cv.width, 0); x.lineTo(cv.width, hy); x.lineTo(c0.x + hubA, hy);
-              x.ellipse(c0.x, hy, hubA, hubB, 0, 0, Math.PI); x.lineTo(0, hy); x.closePath(); x.clip(); drawMascot(P, tt, c0.x, py, 0); x.restore(); } });
+            draws.push({ y: hy, f: function () { x.save(); clipHub(hb); drawMascot(P, tt, c0.x, py, 0); x.restore(); } });
           } else if (tt < 0.8) {                 // the hop to the square
-            var u = (tt - 0.25) / 0.55, px = c0.x + (dst.x - c0.x) * u, gy = hy - 6 + (dst.y - hy + 6) * u, h = 46 * 4 * u * (1 - u) + 6 * (1 - u);
+            var u = (tt - 0.25) / 0.55, px = c0.x + (dst.x - c0.x) * u, gy = hy - 6 + (dst.y - hy + 6) * u, h = 46 * 4 * u * (1 - u);
             draws.push({ y: gy, f: function () { shadow(px, gy, 10 + 4 * u); drawMascot(P, tt, px, gy - h, P.face); } });
           } else {
             var land = tt - 0.8, sq = land < 0.12 ? 2 : 0;
