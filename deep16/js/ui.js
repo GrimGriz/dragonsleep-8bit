@@ -38,6 +38,7 @@
   UI.saveOpts = function () { try { window.localStorage.setItem('deep16.opts', JSON.stringify(UI.opts)); } catch (e) { } };
   var qs = /[?&]menu=(window|ring)/.exec(location.search); if (qs) UI.opts.style = qs[1];
   D.PACE = UI.opts.pace;
+  if (D.STREAM) D.PACE = UI.STREAM_PACE = 2.5; // (the stream, 10-07, Griz: "the AI to take its turns about half current speed" -- twice the 1.25 default, a starting value only: the M menu's PACE row still sets D.PACE (optsChanged, below) and nothing here is saved; ?pace= below still wins)
   var pq = /[?&]pace=([0-9.]+)/.exec(location.search); if (pq && +pq[1] >= 0.5 && +pq[1] <= 3) D.PACE = +pq[1];
   // at rest: WINDOW holds its command window up (as Chrono Trigger does); RING stands on the grid ready to walk, and
   // the ring comes up on E over the hero (where the cursor starts a turn), a click on him, or Q (Griz, 09-27)

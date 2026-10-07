@@ -508,6 +508,7 @@
   // the log keeps { id, text } so an update replaces its own lines even after the screen's cards were cleared
   Battle.prototype.card = function (lines, life, id) {
     var round = this.round, ls = [].concat(lines), last = this.cards[this.cards.length - 1];
+    if (D.STREAM) ls = RU.streamLines(ls); // (the stream, 10-07: names and numbers, no dice -- js/rules.js RU.streamLines; &stream or ?gameshow, js/core.js D.STREAM)
     this.logEntries = (this.logEntries || []).filter(function (e) { return !id || e.id !== id; });
     ls.forEach(function (l) { if (l) this.logEntries.push({ id: id, text: 'R' + round + ' ' + window.DS.stripCodes(l) }); }, this);
     this.log = this.logEntries.map(function (e) { return e.text; });

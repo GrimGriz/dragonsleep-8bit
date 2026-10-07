@@ -247,7 +247,7 @@
   // whoever it was on: a taunted foe walks back to him for it
   MP.denim = function* (B, u, t) {
     spend(u);
-    B.card(['{y}' + u.name + '{/}: DENIM DAMAGE!  {g}(' + MP.denimDice(u.lvl) + ' on the first blow that lands' + (MP.denimPush(u.lvl) ? ', and it knocks ' + MP.denimPush(u.lvl) + ' ft back' : '') + '; ' + leftText(u) + '){/}'], 200); D.sfx('crit');
+    B.card(['{y}' + u.name + '{/}: DENIM DAMAGE!  {g}(' + (D.STREAM ? 'extra damage' : MP.denimDice(u.lvl)) + ' on the first blow that lands' + (MP.denimPush(u.lvl) ? ', and it knocks ' + MP.denimPush(u.lvl) + ' ft back' : '') + '; ' + leftText(u) + '){/}'], 200); D.sfx('crit');
     var hit = yield* blows(B, u, t, 'Denim Damage', MP.denimDice(u.lvl)), ft = MP.denimPush(u.lvl);
     if (hit && ft && standing(hit) && (hit.size || 1) <= 2 && !u.dead && u.hp > 0) yield* MP.shove(B, u, hit, ft, 'the denim knocks ' + nm(B, hit) + ' back');
   };

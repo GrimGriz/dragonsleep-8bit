@@ -595,7 +595,7 @@
     // successful save, the creature takes only half the damage, isn't knocked prone, and is pushed 5 feet out of the bulette's space" -- one roll of each, shared by those it comes down on; each type is hurt on its own, so
     // a resistance reads per type (B.hurt). It lands beside its mark, never in a hero's square, so no one is in its space to be pushed out of
     var abs = L.abs || ['dex'], parts = (L.dmg || [[L.dice, 'bludgeoning']]).map(function (p) { var r = D.roll(p[0]); return { type: p[1], r: r, txt: p[0] + ' ' + RU.fmtRolls(r.rolls) + ' = ' + r.total + ' ' + p[1] }; });
-    var tot = parts.reduce(function (a, p) { return a + p.r.total; }, 0), lines = ['{r}' + the(B, u) + '{/} leaps, and comes down on them like a falling wall!', '  ' + parts.map(function (p) { return p.txt; }).join('  +  ') + '  ' + abs.map(function (a) { return a.toUpperCase(); }).join(' or ') + ' DC ' + L.dc + (abs.length > 1 ? ' (their choice)' : '')], hurt = [];
+    var tot = parts.reduce(function (a, p) { return a + p.r.total; }, 0), lines = ['{r}' + the(B, u) + '{/} leaps, and comes down on them like a falling wall!', D.STREAM ? '' : '  ' + parts.map(function (p) { return p.txt; }).join('  +  ') + '  ' + abs.map(function (a) { return a.toUpperCase(); }).join(' or ') + ' DC ' + L.dc + (abs.length > 1 ? ' (their choice)' : '')], hurt = []; // (the stream's log keeps no dice line: js/rules.js RU.streamLines)
     yield 24;
     hit.forEach(function (w) {
       var ab = RU.bestSave(w, abs), sv = RU.save(w, ab, L.dc, false, null, tot), ev = ab === 'dex' && RU.evasion(w); // (the better of the two: RU.bestSave)

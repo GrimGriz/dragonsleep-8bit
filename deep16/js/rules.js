@@ -279,4 +279,69 @@
   RU.sneakDice = function (u) { return Math.ceil(u.lvl / 2) + 'd6'; };
   RU.fmtRolls = function (rolls) { return '[' + rolls.join(',') + ']'; };
   RU.sign = function (n) { return (n >= 0 ? '+' : '') + n; };
+
+  // ------------------------------------------------------------------ the stream's log (10-07, Griz, the Game Show lane's note: "no dice roll lines ... under the heart line, just
+  // Rascal and the HP, and under the group hug line, all 3 names and green HP numbers on one line")
+  // D.STREAM (js/core.js: `&stream` in the address, or ?gameshow): Battle.prototype.card runs every card's lines through RU.streamLines before the card is kept or drawn -- the one
+  // choke point, so no caller has a stream branch. What it makes of a card: the creatures one move touches become ONE line joined with " · ", each a name and a number (a heal
+  // "Rascal {n}+36{/}" in the green, a blow's damage "Goblin {r}-12{/}", a rider that matters beside it: PRONE, DOMINATED, "poisoned ended"); an attack's d20 line and its damage
+  // line become one line, the outcome and what it did ("HIT  Goblin -12"; "MISS"); any other roll line (a check, a save, a total) loses its dice expression, its rolls and the
+  // reasons riding on them. Prose that only has a dice word in it (the show's captions, "4d6 + WIS + 7") is left alone: a roll line is a dice expression followed by its rolls,
+  // or a d20 followed by its "=". Off, nothing here is read, so a fight's cards are what they were
+  var RE_D20 = /\bd20\s+(?:\[\d+(?:,\d+)*\]>)?\d+(?:\s*[+-]\s*\d+|\s+\{[a-z]\}[^{}]*\{\/\}|\s+\([^()]*\))*\s*=\s*/g;                          // d20 [5,3]>3 +7 (front) =
+  var ROLL = '\\b\\d*d\\d+(?:\\s*[+-]\\s*\\d+(?![\\dd]))*(?:\\s+\\{[a-z]\\}[^{}]*\\{\\/\\})*\\s*\\[(?:\\d+(?:,\\d+)*)?\\](?:\\s*[+-]\\s*\\d+(?![\\dd]))?(?:\\s+\\{[a-z]\\}[^{}]*\\{\\/\\})*';   // 5d6+5 +9 {g}(big heart){/} [6,4,5,6,1] {y}+4 affinity{/}
+  var RE_ROLLS = new RegExp(ROLL + '(?:\\s*\\+\\s*' + ROLL + ')*(?:\\s*=\\s*)?', 'g');                                                       // (and a second kind beside it: Ice Storm's "2d8 [2,7] + 4d6 [3,5,1,5] =")
+  var RE_DC = /\s+(?:STR|DEX|CON|INT|WIS|CHA) DC \d+/g, RE_VSDC = /\s*(?:(?:STR|DEX|CON|INT|WIS|CHA)(?: save)?)?\s+\d+ vs DC \d+/g, RE_TARGET = /^ {2}([^:{}]+): (.*)$/;   // (a save left as its total against its DC: "CON 9 vs DC 10")
+  var RE_INLINE = /(\b[A-Z][^:{}]*?): (?:\d+ )?-> \{r\}(\d+)\{\/\}/, RE_TOTAL = /\s+\{o\}\d+\{\/\} [a-z]+(?: \+ \{o\}\d+\{\/\} [a-z]+)*(?=\s|$)/;                       // (a creature and its damage inside a head line: Hot Take)
+  function streamPlain(l) {
+    if (typeof l !== 'string') return l;
+    var s = l.replace(RE_D20, '').replace(RE_ROLLS, '').replace(RE_DC, '').replace(RE_VSDC, '');
+    if (s === l) return l;
+    s = s.replace(/^( {2}[^:{}]+:) \d+ (?=\S)/, '$1 ').replace(/: {2,}/g, ': ');                                                            // (a save's bare total: "  The Ogre: 17 keeps its head")
+    var inl = s.replace(RE_INLINE, function (m, n, d) { return n + ' {r}' + (+d ? '-' : '') + d + '{/}'; });
+    if (inl !== s) s = inl.replace(RE_TOTAL, '');                                                                                            // (it said what it rolled in total; the creature says what it took)
+    return s.replace(/: \{n\}(\d+)\{\/\}/g, ' {n}+$1{/}').replace(/: \{r\}(\d+)\{\/\}(?: [a-z]+)?/g, ' {r}-$1{/}').replace(/ {3,}/g, '  ').replace(/\s+$/, ''); // (a heal or a blow in a head line: "on Fighter 7 +13", "squeezes the Ogre -27")
+  }
+  // what rides on a creature's line besides the number: a condition in capitals (PRONE, DOMINATED, FRIGHTENED) or a cure ("poisoned ended"), in the colour it had
+  function streamRiders(rest) {
+    var out = [], rx = /\{([a-z])\}([^{}]*)\{\/\}/g, m;
+    while ((m = rx.exec(rest))) {
+      var caps = m[2].match(/[A-Z]{3,}(?: [A-Z]{3,})*/g), fl = /^failed: ([a-z]+)$/.exec(m[2]);
+      if (caps) caps.forEach(function (c) { out.push(' {' + m[1] + '}' + c + '{/}'); });
+      else if (fl) out.push(' {' + m[1] + '}' + fl[1].toUpperCase() + '{/}');
+      else if (/ ended$/.test(m[2])) out.push(' {' + m[1] + '}' + m[2] + '{/}');
+    }
+    return out.join('');
+  }
+  // one creature's result line ("  Denny: 4d4+4 +7 (big heart) [1,2,1,4] = +19", "  The Wolf: d20 9 +2 = 11 failed: PRONE -> 11") as name + number
+  function streamTarget(l) {
+    var m = typeof l === 'string' ? RE_TARGET.exec(l) : null; if (!m) return null;
+    var d = /->\s*\{r\}(\d+)\{\/\}/.exec(m[2]) || (/\bd20\b/.test(m[2]) && /\{r\}(\d+)\{\/\}(?: \([^()]*\))?\s*$/.exec(m[2])), h = d ? null : /=\s*\{n\}\+(\d+)\{\/\}/.exec(m[2]); // (the arrow, or -- on a save's line -- the number last on it: the Leap's "  {r}13{/} (8 + 5)")
+    if (!d && !h) return null;
+    return { heal: !!h, text: m[1] + ' ' + (h ? '{n}+' + h[1] + '{/}' : '{r}' + (+d[1] ? '-' : '') + d[1] + '{/}') + streamRiders(m[2]) };
+  }
+  // a damage line under a blow ("1d8+4 [4]+4 = 8 bludgeoning  4d6 [2,1,5,6] bludgeoning  = 22"): what is left of it is the total at its end, or null if it is not one
+  function streamBlow(l) { var s = String(l), m = /\s=\s\{r\}(\d+)\{\/\}\s*$/.exec(s); return m && /^(?:\{[a-z]\})?\d/.test(s) ? +m[1] : null; }
+  RU.streamLines = function (ls) {
+    var out = [], run = [], isRun = [], dmg = false, who = /\{r\}([^{}]+)\{\/\}/.exec(String(ls[0])), at = who ? who[1] + ' ' : ''; // (the one a card's head names as struck: "{y}Denny{/} > {r}Ogre{/}  Greatclub", "{r}Denny{/}: CON save")
+    function flush() { if (run.length) { out.push('  ' + run.join(' · ')); isRun[out.length - 1] = true; run = []; } }
+    // an attack's card, [the head, its d20 line, its damage line]: the head, then ONE line -- the outcome words (HIT, CRITICAL, MISS, SHIELD +5), and the blow's total on the one it struck
+    var s1 = ls.length >= 2 ? String(ls[1]) : '';
+    if (/^d20 /.test(s1)) {
+      var outcome = [], rx = /\{[a-z]\}([^{}]*)\{\/\}/g, t, rest = [], total = null;
+      while ((t = rx.exec(s1))) if (/^(?:[A-Z]{3,}|the image bursts|a false image)/.test(t[1])) outcome.push(t[0]);
+      for (var j = 2; j < ls.length; j++) { var bj = total === null ? streamBlow(ls[j]) : null; if (bj !== null) total = bj; else rest.push(ls[j]); }
+      if (outcome.length) return [streamPlain(ls[0]), outcome.join('  ') + (total === null ? '' : '  ' + at + '{r}' + (total ? '-' : '') + total + '{/}')].concat(rest.map(streamPlain));
+    }
+    ls.forEach(function (l, i) {
+      var t = streamTarget(l), b = !t && i > 0 ? streamBlow(l) : null;
+      if (t) { run.push(t.text); if (!t.heal) dmg = true; return; }
+      flush();
+      out.push(b === null ? streamPlain(l) : at + '{r}' + (b ? '-' : '') + b + '{/}'); // (a save-or-bite card: "{r}Denny{/}: CON save ... SAVED", then the poison's dice line and its total)
+    });
+    flush();
+    // (a move's head said what it rolled in total; the lines under it say what each creature took)
+    if (dmg) out = out.map(function (l, i) { return isRun[i] || typeof l !== 'string' ? l : l.replace(RE_TOTAL, ''); });
+    return out;
+  };
 })();

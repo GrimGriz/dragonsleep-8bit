@@ -4,6 +4,10 @@
   var D = window.D16 = window.D16 || {};
   D.W = 480; D.H = 270;
   D.frame = 0;
+  // THE STREAM (10-07, Griz, the Game Show lane's log note: "for the stream we want: a. the AI to take its turns about half current speed, b. no dice roll lines"):
+  // D.STREAM, read once here -- `&stream` in the address, or the page is the show (?gameshow). On, the fight's pace starts at twice the default (js/ui.js, D.PACE) and the
+  // log keeps names and numbers, no dice (js/rules.js RU.streamLines, called from Battle.prototype.card). Off, every line and every wait is as it was
+  D.STREAM = /[?&](?:stream|gameshow)\b/.test(location.search);
 
   // ---------------------------------------------------------------- dice and rng
   D.seed = (Date.now() >>> 0);
