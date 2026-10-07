@@ -224,6 +224,7 @@
   function install(B) {
     if (B.su) return;
     var S = B.su = S0(); if (GS.run) GS.run.supplies = S;
+    var rs = GS.run && GS.run.resumed && GS.run.resumed.su; if (rs) Object.assign(S, JSON.parse(JSON.stringify(rs)));   // (a run resumed by its group's save, js/waves.js WV.save)
     S.auto = !!(GS.run && GS.run.auto);
     var inv = B.inv = B.inv || [], s = inv.filter(function (x) { return x.id === 'slingbullets'; })[0];
     if (!s) inv.push({ id: 'slingbullets', n: SU.START_AMMO });

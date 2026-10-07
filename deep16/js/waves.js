@@ -114,6 +114,32 @@
     var j = B.order.indexOf(u); if (j >= 0) B.order[j] = n;
     return n;
   }
+  // THE SAVE, by the group's name (10-07, Griz, after the show ran three hours and could not be kept: "Save and resume by group name would be great"): at each wave's
+  // start, a run played by hand (never &watch or &auto) writes where it stands -- the tier and the wave, the waves held, the XP and hit dice, the lamp, what each
+  // Mascot wears (WV.loot) with its hit points and specials, the pack (B.inv), the supplies (B.su) -- under deep16.gameshow.save.<GROUP>; CONTINUE on the title
+  // (js/gameshow.js) starts the run there. A game over leaves it: CONTINUE tries that wave again
+  var SAVE = 'deep16.gameshow.save.';
+  WV.saveKey = function (g) { return SAVE + String(g || '').toUpperCase(); };
+  WV.save = function (B, S) {
+    if (!S || S.ai) return false;
+    var su = B.su, rec = { v: 1, group: GS.group(), saved: new Date().toISOString(), tier: S.tier, wi: S.wi, held: S.held, count: S.count, xp: S.xp, hd: S.hd,
+      lampHP: S.lampHP, lampMax: S.lampMax, loot: WV.loot, inv: B.inv || [],
+      su: su ? { chest: su.chest, stash: su.stash, score10: su.score10, bonus: su.bonus, epic: su.epic, sent: su.sent, bed: su.bed, amulets: su.amulets } : null,
+      four: four(B).map(function (u) { return { k: u.mpmon, hp: u.hp, feats: u.feats }; }) };
+    try { rec = JSON.parse(JSON.stringify(rec)); } catch (e) { return false; }
+    return D.store.set(WV.saveKey(rec.group), rec);
+  };
+  WV.loadSave = function (g) { var r = D.store.get(WV.saveKey(g)); return r && r.v && r.tier ? r : null; };
+  // a resumed run as it was saved: the XP and hit dice, each Mascot's hit points and specials (after the rebuild has put its gear on)
+  function restore(B, S, RS) {
+    Object.keys(RS.xp || {}).forEach(function (k) { S.xp[k] = RS.xp[k]; });
+    Object.keys(RS.hd || {}).forEach(function (k) { S.hd[k] = RS.hd[k]; });
+    (RS.four || []).forEach(function (r) {
+      var u = four(B).filter(function (w) { return w.mpmon === r.k; })[0]; if (!u) return;
+      if (r.hp != null) u.hp = Math.max(1, Math.min(u.maxhp, r.hp));
+      if (r.feats) u.feats = Object.assign(u.feats || {}, r.feats);
+    });
+  }
   // a short rest (SRD 5.1: an hour, hit dice spent to heal): the fallen stand first (the Pocket DM's rest, his: "SRD + free rez for the fallen before the short rest
   // applies is good"), then their hit dice till whole or out; the specials back (MP.refill: both pools, the passives' uses)
   function shortRest(B, u, S) {
@@ -350,7 +376,10 @@
     var num = function (k) { var m = new RegExp('[?&]' + k + '=(\\d+)').exec(q); return m ? +m[1] : null; };
     var S = GS.run = { tier: Math.max(1, Math.min(99, num('tier') || 1)), wi: Math.max(0, (num('wave') || 1) - 1), count: 0, held: 0, xp: {}, hd: {}, foes: [], rest: null,
       ai: /[?&](auto|watch)\b/.test(q), auto: /[?&]auto\b/.test(q), oldwalk: /[?&]oldwalk\b/.test(q), end0: (/[?&]end=(lamp|wipe)\b/.exec(q) || [])[1] || null };
+    var RS = GS.resume; GS.resume = null;   // (CONTINUE on the title: the save it chose, js/gameshow.js)
+    if (RS) { S.tier = RS.tier; S.wi = RS.wi || 0; S.held = RS.held || 0; S.count = RS.count || 0; S.resumed = RS; WV.loot = JSON.parse(JSON.stringify(RS.loot || {})); B.inv = JSON.parse(JSON.stringify(RS.inv || [])); }
     S.lampHP = S.lampMax = num('lamp') || WV.CFG.lampHP(S.tier);
+    if (RS && RS.lampMax) { S.lampMax = RS.lampMax; S.lampHP = Math.max(1, Math.min(RS.lampMax, RS.lampHP || RS.lampMax)); }
     var st = B.gs; B.cine = false; st.mode = 'fight'; st.lock = null; st.clicks = [];
     // the play record (10-07, Griz: "is saving the stream fights a less than 5 minute fix?"): the whole run one fight in deep16.plays, kept at each round's top
     // (js/record.js, battle.js) and as the tab goes; R on the tester ladder saves it with the rest. Never a bench's
@@ -365,8 +394,9 @@
     four(B).forEach(function (u) {
       if (S.ai) { u.guest = true; u.classAI = true; }
       S.xp[u.mpmon] = R.XP_LEVEL[L0] || 0;
-      var n = L0 > 1 ? rebuild(B, u, L0) : u; S.hd[n.mpmon] = n.lvl || L0;
+      var n = L0 > 1 || RS ? rebuild(B, u, L0) : u; S.hd[n.mpmon] = n.lvl || L0;   // (a resumed run is made again whatever its tier: its gear goes on)
     });
+    if (RS) restore(B, S, RS);
     lampUp(B, S);
     if (WV.CFG.roadLight > 0) {
       WV.CFG.roadLamps.forEach(function (p, i) { B.lights.push({ id: 'road' + i, kind: 'map', x: p[0], y: p[1], bright: 5, dim: WV.CFG.roadLight, color: 'gold', flame: false }); }); // (bright on its own square, so the lantern reads lit; dim round it)
@@ -379,6 +409,7 @@
       if (S.tier === 10 && S.wi === 0) { B.card(['{y}PAST THE NINTH.{/}  The deep keeps coming: every tier from here, more of them.'], W(360)); yield W(90); }
       B.card(['{y}TIER ' + S.tier + '{/}  ' + waves.length + ' waves' + (S.tier >= 7 ? ', the last a boss' : '') + '.  Keep the lamp lit.'], W(360)); yield W(90);
       for (; S.wi < waves.length; S.wi++) {
+        WV.save(B, S);   // (where the run stands as this wave begins: CONTINUE on the title starts it here)
         var wave = waves[S.wi]; S.count++;
         D.music(wave.boss ? 'boss' : 'battle');
         yield* comeIn(B, S, wave);

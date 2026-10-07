@@ -3809,6 +3809,29 @@
         var bigE = SE ? SE.foes.filter(function (u) { return (u.size || 1) > 1; }).length : 0;
         okW('the east way in: tier 5 wave 2, ' + bigE + ' Large of ' + (SE ? SE.foes.length : 0) + ' over the causeway, in and rolled in ' + wE + ' frames (want under 700: the guard alone was 1200)', bigE === 4 && wE > 0 && wE < 700);
         errW('east');
+
+        // ---- THE SAVE (10-07, Griz: "Save and resume by group name would be great"): TESTGROUP's save -- tier 5, its second wave, ten held, Denny hurt and in his tier 2
+        // pieces, Rascal's too, 92 bullets and a crossbow in the pack, the score 3.9, the lamp at 100 of 140 -- resumed by CONTINUE's hand (GS.resume), played by hand
+        // (no &auto): all of it back, and the run's own save written as its wave begins; an &auto run writes none
+        var recS = { v: 1, group: 'TESTGROUP', tier: 5, wi: 1, held: 10, count: 10, xp: { denny: 6500, beholda: 6500, rascal: 6500, goose: 6500 }, hd: { denny: 3, beholda: 5, rascal: 5, goose: 5 },
+          lampHP: 100, lampMax: 140, loot: { denny: ['doubledenim', 'playbuttonknuckles'], rascal: ['thermidorplate', 'flamewarclaw'] },
+          inv: [{ id: 'slingbullets', n: 92 }, { id: 'lightcrossbow', n: 1 }], su: { chest: [], stash: [], score10: 39, bonus: {}, epic: [], sent: { 1: 9, 2: 1, 3: 0, 4: 0 }, bed: [], amulets: 0 },
+          four: [{ k: 'denny', hp: 30 }] };
+        Object.keys(memW).forEach(function (k) { if (/^deep16\.gameshow\.save\./.test(k)) delete memW[k]; });
+        memW['deep16.gameshow.save.TESTGROUP'] = JSON.stringify(recS);
+        var keyL = GSW.wave.saveKey(GSW.group()), seen0 = !!memW[keyL];
+        GSW.resume = GSW.wave.loadSave('testgroup'); D.seed = 1007;
+        var BS = lampFight('?gameshow&at=lamp&fast'), SS, wvS = -1;
+        var wS = stepW(BS, function () { SS = GSW.run; return SS && BS.su && !!memW[keyL]; }, 6000);
+        var d5 = BS.units.filter(function (u) { return u.mpmon === 'denny'; })[0], rz = BS.units.filter(function (u) { return u.mpmon === 'rascal'; })[0], svS = memW[keyL] ? JSON.parse(memW[keyL]) : null;
+        var acD = D.npc.build('denny:5+doubledenim', 5, 'party', { id: 'acd' }).baseAC, slS = (BS.inv || []).filter(function (x) { return x.id === 'slingbullets'; })[0];
+        okW('the save: TESTGROUP resumed at tier ' + (SS && SS.tier) + ' wave ' + (SS && SS.wi + 1) + ', ' + (SS && SS.held) + ' held; Denny L' + (d5 && d5.lvl) + ' ' + (d5 && d5.hp) + ' HP in ' + (d5 && d5.weapon.name) + ', AC ' + (d5 && d5.baseAC) + ' (want ' + acD + '); Rascal\'s ' + (rz && rz.weapon.name) + '; the lamp ' + (SS && SS.lamp && SS.lamp.hp) + '/' + (SS && SS.lampMax) + '; bullets ' + (slS && slS.n) + '; the score ' + (BS.su && BS.su.score10) + '; its own save as the wave begins ' + (svS ? 'tier ' + svS.tier + ' wave ' + (svS.wi + 1) + ', Denny ' + ((svS.four || []).filter(function (f) { return f.k === 'denny'; })[0] || {}).hp + ' HP' : 'none') + ' (none before: ' + !seen0 + ')',
+          !!SS && SS.tier === 5 && SS.wi === 1 && SS.held === 10 && d5 && d5.lvl === 5 && d5.hp === 30 && d5.weapon.name === 'Play-Button Knuckles' && d5.baseAC === acD && rz && rz.weapon.name === 'Flame War Claw' &&
+          SS.lamp.hp === 100 && SS.lampMax === 140 && slS && slS.n === 92 && BS.su.score10 === 39 && !seen0 && !!svS && svS.tier === 5 && svS.wi === 1 && svS.loot.denny.join() === 'doubledenim,playbuttonknuckles');
+        Object.keys(memW).forEach(function (k) { if (/^deep16\.gameshow\.save\./.test(k)) delete memW[k]; });
+        var BS2 = lampFight('?gameshow&at=lamp&fast&auto'), w2S = stepW(BS2, function () { return GSW.run && BS2.order.length > 4; }, 6000);
+        okW('the save: an &auto run writes none (' + Object.keys(memW).filter(function (k) { return /^deep16\.gameshow\.save\./.test(k); }).length + ' saves after its wave rolled at frame ' + w2S + ')', w2S > 0 && !Object.keys(memW).some(function (k) { return /^deep16\.gameshow\.save\./.test(k); }));
+        errW('save');
       }
     } catch (eW) { repW.errors.push(String(eW && eW.stack || eW).slice(0, 900)); }
     finally { D.store.get = stGW; D.store.set = stSW; D.scenes.length = 0; }

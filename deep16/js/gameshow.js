@@ -119,6 +119,7 @@
         if (hit === 'scores') { st.mode = st.mode === 'scores' ? 'title' : 'scores'; continue; }
         if (hit === 'name') { nameEdit(B); continue; }
         if (hit === 'tutorial') { st.tutorial = !st.tutorial; D.store.set(TUT, st.tutorial); D.sfx('cursor'); continue; }
+        if (hit === 'continue') { var sv = savedRun(st.name); if (sv) { GS.resume = sv; D.sfx('confirm'); break; } continue; }   // (the group's save: js/waves.js WV.save)
         if (st.mode === 'title' && !st.editing) {
           var sq = D.iso.pick(ck.x, ck.y, 0);
           if (sq && sq.x === ctr[0] && sq.y === ctr[1]) break;      // the circle's centre: the show begins
@@ -130,7 +131,7 @@
     }
     st.editing = false; D.store.set(NAME, st.name);
     // the tutorial first, when its toggle is on: each Mascot's lesson on this floor (js/gstutorial.js), before anyone jumps in
-    if (st.tutorial && GS.teach) {
+    if (st.tutorial && GS.teach && !GS.resume) {
       st.mode = 'tutorial'; st.lock = null;
       yield* GS.teach(B, { who: GS.TUTORIAL_WHO, home: [ctr[0], ctr[1]], fast: FAST });
       st.clicks = []; hold(B, ctr, 1);
@@ -288,6 +289,7 @@
     yield W(four.length * 21 + 60);
     G.setup(G.map, B.units);
     // the king's charge (his lines as he wrote them; round them, the seat's)
+    if (pyro && GS.resume) { B.card(['{y}' + GS.resume.group + '{/} are back at Third Lamp: tier ' + GS.resume.tier + ', wave ' + ((GS.resume.wi || 0) + 1) + '.'], W(300)); jumpIn(B, pyro, 0); if (ing) { st.ledger = null; B.lights = B.lights.filter(function (l) { return l.id !== 'ledger'; }); jumpIn(B, ing, 0); } yield W(120); pyro = null; ing = null; } // (a return: no speeches)
     if (pyro) {
       D.sfx('popup'); pyro.facing = 1;
       B.card(['{y}Pyro{/}: "The lamp is under heavy pressure, and Sólskaft is under attack on the surface. I am needed up there."'], W(420)); yield W(200);
@@ -440,6 +442,7 @@
     D.win8(ctx, x, y, w, h, on ? P('red', 1) : null); D.text(ctx, label, x + w / 2, y + Math.round(h / 2) - 4, on ? P('gold', 4) : P('bone', 1), 'center');
     BTN[id] = { x: x, y: y, w: w, h: h };
   }
+  function savedRun(g) { return GS.wave && GS.wave.loadSave ? GS.wave.loadSave(g) : null; }   // (the group's save, js/waves.js; read each frame on the title: one key)
   function titleHit(B, ck) {
     var sx = ck.x, sy = ck.y;
     for (var id in BTN) { var b = BTN[id]; if (b && sx >= b.x && sx <= b.x + b.w && sy >= b.y && sy <= b.y + b.h) return id; }
@@ -471,7 +474,9 @@
       button(ctx, 'name', 'GROUP: ' + (st.name || '') + (st.editing && (B.t >> 4) & 1 ? '_' : ''), 12, Hd - 34, 220, 18, st.editing);
       button(ctx, 'tutorial', 'TUTORIAL ' + (st.tutorial ? 'ON' : 'OFF'), 240, Hd - 34, 120, 18, !!st.tutorial);
       button(ctx, 'scores', 'HIGH SCORES', Wd - 112, Hd - 34, 100, 18);
-      if ((B.t >> 5) & 1) D.text(ctx, 'click the centre of the circle to begin', Wd / 2, Hd - 12, P('bone', 1), 'center');
+      var sv = !st.editing && savedRun(st.name);
+      if (sv) button(ctx, 'continue', 'CONTINUE: TIER ' + sv.tier + ' · WAVE ' + ((sv.wi || 0) + 1) + ' · ' + (sv.held || 0) + ' HELD', Wd / 2 - 110, Hd - 62, 220, 18, true);
+      if ((B.t >> 5) & 1) D.text(ctx, sv ? 'CONTINUE, or the centre of the circle to start over' : 'click the centre of the circle to begin', Wd / 2, Hd - 12, P('bone', 1), 'center');
       var cp = st.caption;
       if (cp && B.t - cp.t0 < cp.life) { var tw = Math.min(Wd - 20, D.textWidth(cp.s) + 16); D.win8(ctx, Wd / 2 - tw / 2, 70, tw, 18); D.text(ctx, cp.s, Wd / 2, 75, P('bone', 1), 'center'); }
     }
