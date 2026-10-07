@@ -112,6 +112,47 @@
       ctx.globalAlpha = 1;
     } });
   };
+  // ripples (Goose's FOUNTAIN, 10-07, Griz: "FOUNTAIN - multiple concentric circles out from him, smaller ripple versions under targets"): `ft` feet out, rings roll out over the floor
+  // from `src` one after another, quick at first and slowing as they spread, fading at the edge (the heal's greens); a little ripple -- three small rings, a flash at the centre --
+  // opens under each of `targets` as the first ring reaches its square. Drawn on the floor (depth -1: after the ground, under the walls' and the figures' sort): a ring passes
+  // beneath whoever stands in it. Never blocks. o.rings (4), o.gap (frames between rings, 7), o.travel (frames a ring takes to the edge, 30)
+  FX.ripples = function (src, targets, ft, o) {
+    o = o || {};
+    var N = o.rings || 4, GAP = o.gap || 7, TRAVEL = o.travel || 30, RMAX = (ft || 10) / 5 + 0.5, SMALL = 18, SGAP = 5; // (squares, as the bubble's and the bloom's reach: the squares whose centres are within it)
+    var CO = [P('orc', 3), P('orc', 3), P('orc', 2), P('accent', 1)], K = Math.SQRT2 * D.iso.TW / 2, KY = Math.SQRT2 * D.iso.TH / 2;
+    var a0 = FX.at(src), kids = [{ u: src, at: 0 }], last = GAP * (N - 1) + TRAVEL;
+    (targets || []).forEach(function (w) {
+      if (!w || w === src) return;
+      var b = FX.at(w), d = Math.hypot(b.gx - a0.gx, b.gy - a0.gy), k = 1 - Math.sqrt(Math.max(0, 1 - Math.min(1, d / RMAX))); // (where the first ring is when it is d out: ρ = RMAX (1 - (1 - k)²))
+      kids.push({ u: w, at: Math.round(k * TRAVEL) });
+    });
+    kids.forEach(function (c) { last = Math.max(last, c.at + SGAP * 2 + SMALL); });
+    return FX.add({ kind: 'ripples', depth: -1, dur: last + 2, draw: function (ctx) {
+      var t = this.t, s = scr(a0.gx, a0.gy, a0.gz), i, j;
+      ctx.save();
+      for (i = 0; i < N; i++) {
+        var k = (t - i * GAP) / TRAVEL; if (k <= 0 || k >= 1) continue;
+        var r = RMAX * (1 - (1 - k) * (1 - k)), al = Math.min(1, k * 8) * (1 - k * k);
+        if (i === 0) { ctx.globalAlpha = 0.11 * (1 - k); ctx.fillStyle = P('orc', 2); ctx.beginPath(); ctx.ellipse(s.x, s.y, r * K, r * KY, 0, 0, 7); ctx.fill(); } // (the pool the first ring leaves)
+        ctx.beginPath(); ctx.ellipse(s.x, s.y, r * K, r * KY, 0, 0, 7);
+        ctx.globalAlpha = 0.28 * al; ctx.strokeStyle = P('orc', 2); ctx.lineWidth = 5; ctx.stroke(); // (the soft edge under it)
+        ctx.globalAlpha = 0.9 * al; ctx.strokeStyle = CO[i % CO.length]; ctx.lineWidth = k < 0.65 ? 2 : 1; ctx.stroke();
+        ctx.globalAlpha = 0.5 * al; ctx.strokeStyle = P('bone', 2); ctx.lineWidth = 1; ctx.stroke(); // (a pale core along it)
+        if (k < 0.5) { ctx.globalAlpha = 0.6 * al; ctx.beginPath(); ctx.ellipse(s.x, s.y - 1, r * K, r * KY, 0, Math.PI * 1.1, Math.PI * 1.9); ctx.stroke(); } // (and a glint along the far edge)
+      }
+      kids.forEach(function (c) {
+        var p = FX.at(c.u), q = scr(p.gx, p.gy, p.gz), t0 = t - c.at;
+        if (t0 < 0 || t0 > SGAP * 2 + SMALL) return;
+        if (t0 < 8) { var g = 1 - t0 / 8; ctx.globalAlpha = 0.5 * g; ctx.fillStyle = P('orc', 3); ctx.beginPath(); ctx.ellipse(q.x, q.y, 7 + t0, 3.5 + t0 / 2, 0, 0, 7); ctx.fill(); ctx.globalAlpha = 0.9 * g; FX.px(ctx, q.x, q.y, P('bone', 2), 2); } // (the splash where the wave arrives)
+        for (j = 0; j < 3; j++) {
+          var kk = (t0 - j * SGAP) / SMALL; if (kk <= 0 || kk >= 1) continue;
+          var rr = 0.22 + 0.62 * (1 - (1 - kk) * (1 - kk)), aa = Math.min(1, kk * 6) * (1 - kk);
+          ctx.globalAlpha = 0.95 * aa; ctx.strokeStyle = j === 0 ? P('orc', 3) : j === 1 ? P('orc', 2) : P('accent', 1); ctx.lineWidth = j === 0 ? 2 : 1; ctx.beginPath(); ctx.ellipse(q.x, q.y, rr * K, rr * KY, 0, 0, 7); ctx.stroke();
+        }
+      });
+      ctx.restore();
+    } });
+  };
   FX.slash = function (u, color) {
     return FX.add({ kind: 'slash', dur: 14, draw: function (ctx) {
       var p = FX.at(u), s = scr(p.gx, p.gy, p.gz), k = this.t / this.dur;

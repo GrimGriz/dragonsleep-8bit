@@ -352,6 +352,20 @@
     popup: function (t) { [76, 83, 88].forEach(function (m, i) { tone(sfxBus, 'pulse', m, t + i * 0.05, 0.08, 0.12, 0.25); }); },
     // a two-fingered whistle, up and then down (DEEP16's Skylights: Hallvör calls the spiders down -- 10-05 evening, Griz: "can she whistle and call them?")
     whistle: function (t) { tone(sfxBus, 'triangle', 93, t, 0.16, 0.2, null, 4); tone(sfxBus, 'triangle', 98, t + 0.2, 0.32, 0.2, null, -9); },
+    // a goose's honk (DEEP16's Mascot Goose, 10-07, Griz: "HONK - try to goose honk with our music maker"): nasal and buzzy, two parts and a third -- a short "ha" that climbs into the long
+    // HONK, which falls, then a second honk, shorter and a little under. Each is a thin pulse (the reed) with a second a hair sharp over it (the rasp: the pair beat), a sawtooth an octave
+    // down for the body, and a breath of noise at the front
+    honk: function (t) {
+      function hn(at, m, d, vol, bend) {
+        tone(sfxBus, 'pulse', m, at, d, vol, 0.125, bend);
+        tone(sfxBus, 'pulse', m + 0.35, at, d, vol * 0.8, 0.25, bend);
+        tone(sfxBus, 'sawtooth', m - 12, at, d * 0.9, vol * 0.3, null, bend);
+        noise(sfxBus, at, Math.min(0.08, d * 0.5), vol * 0.5, 1700, 1.1);
+      }
+      hn(t, 66, 0.06, 0.1, 7);          // "ha": up
+      hn(t + 0.05, 73, 0.21, 0.15, -5); // HONK, falling
+      hn(t + 0.34, 71, 0.15, 0.13, -4); // the second, shorter and lower
+    },
     // ------------------------------------------------ the spells' voices (the spell animation pass, 09-28h; Griz: "one per element and
     // an additional alternate for special cases"): fire, frost and zap were here already; each element has its own now, and a
     // heavier second (…2) for the big ones and the signatures (a fireball's boom, the bolt's thunderclap, a sunburst's choir)

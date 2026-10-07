@@ -211,7 +211,7 @@
       var atk = landed ? u.weapon : Object.assign({}, u.weapon, { name: name, extra: extra, extraType: 'bludgeoning' });
       var hp0 = tgt.hp, dead0 = !!tgt.dead;
       yield* B.attack(u, tgt, atk);
-      if (!landed && (tgt.hp < hp0 || (!!tgt.dead && !dead0))) landed = tgt;
+      if (!landed && (tgt.hp < hp0 || (!!tgt.dead && !dead0))) { landed = tgt; if (extra && name === 'Denim Damage') denimVoice(); } // (the die landed with the blow: his call, spoken -- not on a miss)
       if (u.conds.hidden) delete u.conds.hidden;
     }
     return landed;
@@ -252,6 +252,10 @@
     B.card(lines, 360); yield 24;
     u.anim = 'idle';
   };
+  // the call, spoken (10-07, Griz: "DENIM DAMAGE - spoken (the way the cloaker easter egg was spoken) on damage popup"): a recorded clip as the darkness's lines and Hallvor's are
+  // (deep16/audio/denim_damage.mp3, made on his PC by tools/voice-clip.ps1: Windows' David voice, a touch deeper, a touch of echo), played as the extra damage lands with the blow;
+  // the browser's own voice only if the clip will not play (D.say, core.js). Silent on a bench page: no click has unlocked sound
+  function denimVoice() { var say = function () { if (D.say) D.say('Denim damage!', { pitch: 0.7, rate: 1.05 }); }; if (D.clip) D.clip('audio/denim_damage.mp3', function (ok) { if (!ok) say(); }); else say(); }
   // DENIM DAMAGE (Denny; an action, a special): his swings, the first to land +MP.denimDice (1d6; 3d6 at 5th, 5d6 at 9th) -- doubled on a critical -- and from 3rd
   // THE KNOCK, its reach: the one that blow lands on is shoved MP.denimPush ft straight back from him (Large or smaller; no save, as Repelling Blast's), off
   // whoever it was on: a taunted foe walks back to him for it
@@ -601,7 +605,7 @@
     spend(u); u.turn.action = 0;
     u.anim = healRow(u); u.animT = B.t; D.sfx('buff');
     yield 14;
-    FX.bloom(u.x, u.y, G.sphere(u.x, u.y, R0), 'heal');
+    FX.ripples(u, list, R0); // (10-07, Griz: "concentric circles out from him, smaller ripple versions under targets": js/fx.js; it was FX.bloom over the sphere's squares)
     yield 12;
     var lines = ['{y}' + u.name + '{/}: FOUNTAIN!  {g}(everyone within ' + R0 + ' ft: an ailment ended, and healing; ' + leftText(u) + '){/}'];
     list.forEach(function (w) {
@@ -680,7 +684,7 @@
   MP.honkTargets = function (B, u) { return MP.foes(B, u, 30).filter(function (w) { return !w.conds.deafened && !w.conds.mocked; }); };
   MP.honk = function* (B, u, t) {
     u.turn.bonus = 0; t.conds.mocked = { by: u.id, honk: true, till: { who: t.id, at: 'end', n: 1 } };
-    u.facing = B.faceTo(u, t); u.anim = rowOr(u, 'honk', 'attack'); u.animT = B.t; D.sfx('crit'); FX.ring(t, 'orc', 20);
+    u.facing = B.faceTo(u, t); u.anim = rowOr(u, 'honk', 'attack'); u.animT = B.t; D.sfx('honk'); FX.ring(t, 'orc', 20);
     B.card(['{y}' + u.name + '{/}: HONK!  {g}(' + nm(B, t) + ': its next swing at disadvantage; a free bonus action){/}'], 200);
     yield 16; u.anim = 'idle';
   };
@@ -1164,19 +1168,95 @@
     return l.map(function (it) { return !it || /potion|antitoxin/.test(it.id) ? it : Object.assign({}, it, { ok: false, why: 'no hands: she can only drink what is held to her' }); });
   };
 
-  // ------------------------------------------------------------------ the looks (js/looks.js): the bubble's reach on the floor and its film round her;
-  // a violet spiral over the dominated, a red flag over the taunted
+  // ------------------------------------------------------------------ the looks (js/looks.js): the bubble as one dome over its whole reach (its footprint on the floor here, its
+  // skin as a prop in the figures' sort, below); a violet spiral over the dominated, a red flag over the taunted
   var LK = D.looks, bubImg = null;
   function bubbleArt() { if (!bubImg && typeof Image !== 'undefined') { bubImg = new Image(); bubImg.src = 'art/vna-bubble.png'; } return bubImg && bubImg.complete && bubImg.naturalWidth ? bubImg : null; }
+  // THE DOME (10-07, Griz: "VNA BUBBLE - can we make it scale with the radius and end up like a dome?"): the bubble is ONE dome over the whole of its reach. Its footprint is the floor's
+  // ellipse (the reach in squares, R = r/5 + 0.5, as the rule counts it; half-axes rx, ry in the iso view), a hemisphere stands on it as high as the Globe's (js/looks.js: H = 0.72 rx,
+  // a little flattened), so 10 ft is a small dome and 30 ft a great one. It swells up from the bubble's maker over its first 16 frames (the rule has already taken hold)
+  var swells = typeof WeakMap !== 'undefined' ? new WeakMap() : null;
+  function swell(B, c) { if (!swells) return 1; var t0 = swells.get(c); if (t0 == null || t0 > B.t) { t0 = B.t || 0; swells.set(c, t0); } var k = Math.min(1, ((B.t || 0) - t0) / 16); return 1 - (1 - k) * (1 - k); }
+  function domeOf(B, b) {
+    var c = b.conds.vnaBubble, q = D.ui.unitPos(B, b), s = swell(B, c), R = (c.r / 5 + 0.5), rx = R * Math.SQRT2 * D.iso.TW / 2 * s, ry = R * Math.SQRT2 * D.iso.TH / 2 * s, H = rx * 0.72;
+    // the silhouette of the hemisphere in the iso view is the upper half of an ellipse rx wide and N = sqrt(ry^2 + H^2) tall (an ellipsoid under a parallel projection), over the footprint's front half
+    return { x: q.x, y: q.y, rx: rx, ry: ry, H: H, N: Math.sqrt(ry * ry + H * H), R: R, s: s, depth: q.depth - 0.6 + R * Math.SQRT2 + 0.7, gz: q.gz };
+  }
+  MP.domeArt = 0.5; // (how much of Griz's soap-film art shows through the skin; 0 none)
+  function drawDome(ctx, B, b) {
+    var g = domeOf(B, b), t = B.t || 0, x = g.x, y = g.y, rx = g.rx, ry = g.ry, N = g.N, H = g.H, i;
+    if (rx < 2) return;
+    function ring(k) { ctx.moveTo(x - rx * k, y); ctx.ellipse(x, y, rx * k, N * k, 0, Math.PI, 2 * Math.PI); ctx.ellipse(x, y, rx * k, ry * k, 0, 0, Math.PI); ctx.closePath(); } // (the silhouette, shrunk by k about the maker's feet)
+    function sil() { ctx.beginPath(); ring(1); }
+    function edge(th) { return { x: x + rx * Math.cos(th), y: y + (Math.sin(th) < 0 ? N : ry) * Math.sin(th) }; }
+    ctx.save(); ctx.lineJoin = 'round'; ctx.lineCap = 'round';
+    // the skin: a violet-pink wash, thicker toward the rim -- a glow laid in under the edge (the path clipped, its stroke widening in steps) so the middle stays clear for the friends under it
+    sil(); ctx.globalAlpha = 0.045 * g.s; ctx.fillStyle = '#d7a6ff'; ctx.fill();
+    var art = MP.domeArt > 0 && bubbleArt();
+    if (art) { // his bubble, grown to the dome: its soap-film rim and glints, stretched over the silhouette and let in only round the edge (three bands, each a step nearer the rim, so it thickens
+      // toward it and the middle stays clear: the VNA letters in the middle of the picture would be a great blur over the friends on a big dome)
+      [0.78, 0.86, 0.93].forEach(function (k) {
+        ctx.save(); ctx.beginPath(); ring(1); ring(k); ctx.clip('evenodd');
+        ctx.imageSmoothingEnabled = true; ctx.globalAlpha = MP.domeArt * 0.5 * g.s; ctx.drawImage(art, x - rx, y - N, 2 * rx, N + ry); ctx.restore();
+      });
+    }
+    ctx.save(); sil(); ctx.clip();
+    [[22, 0.04], [14, 0.05], [8, 0.07], [4, 0.1]].forEach(function (w) { sil(); ctx.globalAlpha = w[1] * g.s; ctx.lineWidth = w[0]; ctx.strokeStyle = '#e6b8ff'; ctx.stroke(); });
+    ctx.restore();
+    // the rim: round the whole silhouette, the far arc faint and the near (the floor's) brighter, its hue sliding round it, pink to violet, a flash of cool white in it
+    var seg = Math.max(24, Math.min(72, Math.round((rx + N) / 6)));
+    for (i = 0; i < seg; i++) {
+      var th0 = 2 * Math.PI * i / seg, th1 = 2 * Math.PI * (i + 1) / seg, a = edge(th0), c = edge(th1), far = Math.sin(th0 + Math.PI / seg) < 0;
+      var hue = 305 + 38 * Math.sin(th0 * 2 + t / 40), lit = 78 + 12 * Math.max(0, Math.sin(th0 * 3 - t / 25));
+      ctx.globalAlpha = (far ? 0.4 : 0.55) * g.s; ctx.strokeStyle = 'hsl(' + hue.toFixed(0) + ',90%,' + lit.toFixed(0) + '%)'; ctx.lineWidth = far ? 1.5 : 1;
+      ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(c.x, c.y); ctx.stroke();
+    }
+    // a band of light running up and down the dome: a line of latitude, its near half bright and its far half faint (the Globe's, in pink)
+    var k = 0.5 - 0.5 * Math.cos(((t % 300) / 300) * 2 * Math.PI), hb = H * (0.1 + 0.82 * k), w = Math.sqrt(Math.max(0, 1 - (hb / H) * (hb / H)));
+    ctx.lineWidth = 1; ctx.strokeStyle = '#ffd4f7'; ctx.globalAlpha = 0.2 * g.s; ctx.beginPath(); ctx.ellipse(x, y - hb, rx * w, ry * w, 0, Math.PI, 2 * Math.PI); ctx.stroke();
+    ctx.globalAlpha = 0.42 * g.s; ctx.beginPath(); ctx.ellipse(x, y - hb, rx * w, ry * w, 0, 0, Math.PI); ctx.stroke();
+    // the shine: a curve of white up on the left of the crown, and a small bright glint at its end
+    ctx.strokeStyle = '#ffffff'; ctx.lineWidth = Math.max(1.5, Math.min(4, rx / 45)); ctx.globalAlpha = 0.34 * g.s;
+    ctx.beginPath(); ctx.ellipse(x, y, rx * 0.86, N * 0.86, 0, Math.PI * 1.08, Math.PI * 1.36); ctx.stroke();
+    ctx.globalAlpha = 0.5 * g.s; ctx.lineWidth = Math.max(1, ctx.lineWidth * 0.6); ctx.beginPath(); ctx.ellipse(x, y, rx * 0.86, N * 0.86, 0, Math.PI * 1.41, Math.PI * 1.46); ctx.stroke();
+    // glints on the skin, a few for a small dome and more for a great one
+    var n = 3 + Math.round(g.R / 2);
+    for (i = 0; i < n; i++) {
+      var an = (t / 110 + i * 2.1) % (2 * Math.PI), tw = (t + i * 37) % 80; if (tw > 20) continue;
+      ctx.globalAlpha = Math.sin(Math.PI * tw / 20) * g.s; FX.star(ctx, x + Math.cos(an) * rx * (0.55 + 0.3 * ((i * 7) % 3) / 2), y - Math.abs(Math.sin(an + i)) * H * 0.8 - 4, FX.EL.arcane, 3);
+    }
+    ctx.restore();
+  }
+  if (LK && LK.props) {
+    var props0 = LK.props; LK.props = function (B) {
+      var out = props0.apply(this, arguments);
+      if (!D.ui || !D.ui.unitPos) return out;
+      (B.units || []).forEach(function (b) {
+        if (!MP.bubbleUp(b)) return;
+        // one translucent pass, AFTER every figure standing in it (depth: the front-most square inside the reach, plus 0.7) and faint enough that they read through it: a friend
+        // under the front of the skin is seen through it, one behind the dome through its far side; a figure past the front-most square is drawn after it, in front, as it should be
+        var g = domeOf(B, b); out.push({ depth: g.depth, gz: 0, layer: 2, draw: function (ctx) { drawDome(ctx, B, b); } });
+      });
+      return out;
+    };
+  }
   if (LK && LK.ground) {
     var ground0 = LK.ground; LK.ground = function (ctx, B) {
       ground0.apply(this, arguments);
       (B.units || []).forEach(function (b) {
         if (!MP.bubbleUp(b) || !D.ui || !D.ui.unitPos) return;
-        var q = D.ui.unitPos(B, b), rr = (b.conds.vnaBubble.r / 5 + 0.5) * Math.SQRT2, t = B.t || 0;
+        var q = D.ui.unitPos(B, b), s = swell(B, b.conds.vnaBubble), rr = (b.conds.vnaBubble.r / 5 + 0.5) * Math.SQRT2 * s, t = B.t || 0;
         ctx.save(); ctx.beginPath(); ctx.ellipse(q.x, q.y, rr * D.iso.TW / 2, rr * D.iso.TH / 2, 0, 0, 7);
         ctx.globalAlpha = 0.07; ctx.fillStyle = '#c58bff'; ctx.fill();
         ctx.globalAlpha = 0.45 + 0.15 * Math.sin(t / 15); ctx.strokeStyle = '#ffb3f0'; ctx.lineWidth = 1; ctx.setLineDash([4, 3]); ctx.lineDashOffset = -t / 5; ctx.stroke();
+        // a pink ring under the feet of each friend inside it, herself too: who is under the dome (the rule's own count: MP.bubbleOn)
+        ctx.setLineDash([]); ctx.fillStyle = '#ffb3f0';
+        (B.units || []).forEach(function (w) {
+          if (w.side !== b.side || !G.standing(w) || w.hp <= 0 || (w !== b && G.dist(b, w) > b.conds.vnaBubble.r)) return;
+          var p = w === b ? q : D.ui.unitPos(B, w), z = w.size || 1;
+          ctx.globalAlpha = (0.55 + 0.15 * Math.sin(t / 15 + p.x)) * s; ctx.beginPath(); ctx.ellipse(p.x, p.y, 13 * z, 6.5 * z, 0, 0, 7); ctx.stroke();
+          ctx.globalAlpha = 0.12 * s; ctx.fill();
+        });
         ctx.restore();
       });
       // Goose's lifeline: a green thread between the one tied and the one it runs to, the heal's green
@@ -1194,13 +1274,7 @@
       over0.apply(this, arguments);
       if (!u || u.hp <= 0 || u.dead) return;
       var c = u.conds || {}, t = B.t || 0, top = D.spr.unitTop(u), hx = p.x, hy = p.y - top - 6;
-      if (MP.bubbleUp(u)) {
-        var img = bubbleArt(), r = Math.max(18, top * 0.62), cy = p.y - top * 0.5, w = 1 + 0.03 * Math.sin(t / 7);
-        ctx.save(); ctx.imageSmoothingEnabled = true;
-        if (img) { ctx.globalAlpha = 0.55; ctx.drawImage(img, hx - r * w, cy - r / w, 2 * r * w, 2 * r / w); }
-        else { ctx.globalAlpha = 0.5; ctx.strokeStyle = '#ffd1f5'; ctx.lineWidth = 1; ctx.beginPath(); ctx.ellipse(hx, cy, r * w, r / w, 0, 0, 7); ctx.stroke(); }
-        ctx.restore();
-      }
+      // (the bubble's film round its maker is gone: the one dome over the whole reach is its skin now -- drawDome, above)
       if (c.dominated) { // a turning spiral over the head, violet and white, the gaze still in it
         ctx.save();
         for (var k = 0; k < 22; k++) {

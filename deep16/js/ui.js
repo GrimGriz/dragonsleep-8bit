@@ -1023,7 +1023,7 @@
           D.spr.draw(ctx, r.sheet, a, r.facing, a === 'idle' ? B.t + r.x * 7 + r.y * 13 : B.t - r.animT, s.x, s.y, a === 'idle' ? {} : { once: true });
         } });
       });
-      FX.list.forEach(function (f) { if (!f.screen) objs.push({ depth: 1e6, gz: 0, draw: function (c) { f.draw(c); } }); });
+      FX.list.forEach(function (f) { if (!f.screen) objs.push({ depth: f.depth != null ? f.depth : 1e6, gz: 0, draw: function (c) { f.draw(c); } }); }); // (f.depth: an effect that lies on the floor, FX.ripples at -1, is sorted in under the figures)
       DEFER = objs; WCTX = wx;
       fadeFaces(B);
       D.iso.draw(wx, objs, function (c) { overlay(c, B, hero); });
