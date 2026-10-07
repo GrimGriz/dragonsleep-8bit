@@ -42,7 +42,7 @@
   // rest rolls the class's die -- a d10 for both; Beholda's own hit points are a d8's)
   R.CLASSES.mpmon = { name: 'Mascot', hd: 10, saves: ['con', 'wis'], armor: [], weapons: ['natural'], primary: 'str', cast: 'wis', asi: {} };
   // THE SPECIALS by level (RULED 10-06, Griz: "3 at level 5, 4 at 7, 5 at 9 down to 1 move at lvl 1"): one more every two levels
-  MP.specialsAt = function (L) { return Math.max(1, Math.floor(((L || 1) + 1) / 2)); };
+  MP.specialsAt = function (L) { var p = MP.poolsAt(L); return p.B + p.A; }; // (both pools together: MP.poolsAt below, the two counts -- 10-07)
   // THE RACES: the body only, what every one of the kind has whatever its role (the shape of js/classes.js NPC.RACES, kept out of the Pocket DM's maker -- his
   // "we'll let them unlock the 3 as they are. Open to return after the game 'ships'"). `abil` is the race's increase, for the day one is made in the maker; the
   // named three keep their own scores. The EyeGregore floats (`floats`: the grid's flier today, u.flies; one layer, 5 ft, at most when height lands)
@@ -124,9 +124,17 @@
     if (b.cast) { u.castAb = b.cast; u.spellDC = 8 + u.prof + mod(u.abil[b.cast]); u.spellAtk = u.prof + mod(u.abil[b.cast]); } // (Rascal's CHA: js/magic.js M.mod reads castAb before the class's cast)
     return u;
   };
-  MP.left = function (u) { return (u.feats && u.feats.specials) || 0; };
-  function spend(u) { u.feats.specials = Math.max(0, MP.left(u) - 1); if (MP.hiveSpend) MP.hiveSpend(u); }
-  function leftText(u) { var n = MP.left(u); return n + ' special' + (n === 1 ? '' : 's') + ' left'; }
+  // THE TWO POOLS (RULED 10-07 as a trial, Griz: "bonus action specials and action spells get slots, i.e. lvl 3 from 2/1 to 2/2, lvl 4 to 3/2, 5 to 3/3" -- "we'll try
+  // it and see what the bench says"): a count of the specials that take the BONUS action (MP.POOL: Taunt, Baleful Gaze, Social Sharing, Heart to Heart) and one of
+  // those that take the ACTION (every other), each back on a short rest; one more each level in turn, the bonus first -- 1st 1/1, 2nd 2/1, 3rd 2/2 ... 9th 5/5 (the
+  // ends are the seat's reading). The free bonus moves (Monkey Flurry, Eye On It, Honk) spend nothing, as before. MP.left(u, 'B' | 'A'), or both with no pool
+  MP.POOL = { taunt: 'B', gaze: 'B', sharing: 'B', heart: 'B' };
+  MP.poolOf = function (k) { return MP.POOL[k] || 'A'; };
+  MP.poolsAt = function (L) { L = L || 1; return { B: Math.ceil((L + 1) / 2), A: Math.max(1, Math.floor((L + 1) / 2)) }; };
+  MP.left = function (u, p) { var f = (u && u.feats) || {}; return p === 'B' ? f.specialsB || 0 : p === 'A' ? f.specialsA || 0 : (f.specialsB || 0) + (f.specialsA || 0); };
+  MP.curKind = null; // (the special running: set by the wrap of each special below, so spend() knows its pool)
+  function spend(u) { var f = u.feats, p = MP.poolOf(MP.curKind); if (p === 'B') f.specialsB = Math.max(0, (f.specialsB || 0) - 1); else f.specialsA = Math.max(0, (f.specialsA || 0) - 1); if (MP.hiveSpend) MP.hiveSpend(u); }
+  function leftText(u) { return MP.left(u, 'B') + ' bonus / ' + MP.left(u, 'A') + ' action specials left'; }
 
   // ------------------------------------------------------------------ THE GROWTH: the numbers by level
   // Every special grows a step a level after it comes -- its power on the even levels, its reach on the odd (RULED 10-06 night, Griz, for Social Distancing:
@@ -154,7 +162,7 @@
   // (9th 6d8 in 40 ft: the first pass's 8d8 in 30). SPOTLIGHT (7): one friend Hasted, two at 8th; 30 ft, 60 at 9th
   MP.bubbleAC = function (L) { return Math.min(5, 1 + pw(L, 1)); };
   MP.bubbleR = function (L) { return 10 + 5 * rc(L, 1); };
-  MP.gazeDice = function (L) { return (1 + pw(L, 1)) + 'd8'; };
+  MP.gazeDice = function (L) { return (1 + pw(L, 1)) + 'd4'; }; // (d4s since 10-07, his "d4 instead of d8"; the AC it takes is MP.gazeAC, with Baleful Gaze below)
   MP.gazeRange = function (L) { return 30 + 15 * rc(L, 1); };
   MP.screenDice = function (L) { return (4 + pw(L, 5)) + 'd8'; };
   MP.screenLen = function (L) { return 30 + 5 * rc(L, 5); };
@@ -165,7 +173,7 @@
   // step (5th 4d6, 9th 6d6); 5 ft round, +5 a reach step (5th 15, 9th 25). SOCIAL DISTANCING (5): the 8 squares round him ("clears the 8 square donut around him when
   // he first gets it instead of a front-wave"), 2d8, +1d8 a power step; a ring more a reach step (7th 10 ft, 9th 15). GOING VIRAL (7): 3d8, 4d8 at 8th; three foes, four at 9th
   MP.shareDie = function (L) { return ['d4', 'd6', 'd8', 'd10', 'd12'][Math.min(4, pw(L, 1))]; };
-  MP.shareN = function (L) { return 1 + rc(L, 1); };
+  MP.shareN = function (L) { return Math.max(1, L || 1); }; // (one friend a level since 10-07, Griz: "one more recipient per level")
   MP.flameDice = function (L) { return (2 + pw(L, 1)) + 'd6'; };
   MP.flameR = function (L) { return 5 + 5 * rc(L, 1); };
   MP.flameGeo = function (L) { return { shape: 'sphere', range: 60, r: MP.flameR(L) }; };
@@ -235,8 +243,10 @@
     list.forEach(function (w) {
       if (RU.immuneTo(w, 'taunted', u)) { lines.push('  ' + Nm(B, w) + ': {g}pays him no mind{/}'); return; }
       var sv = RU.save(w, 'wis', dc, false, 'taunted');
-      lines.push('  ' + Nm(B, w) + ': ' + RU.saveText(sv) + ' ' + (sv.ok ? '{n}keeps its head{/}' : '{o}TAUNTED{/} {g}(only at Denny, till its turn ends){/}'));
-      if (!sv.ok) { w.conds.taunted = { by: u.id, name: u.name, till: { who: w.id, at: 'end', n: 1 }, endText: '{who} is no longer taunted.' }; FX.ring(w, 'red', 26); }
+      lines.push('  ' + Nm(B, w) + ': ' + RU.saveText(sv) + ' ' + (sv.ok ? '{n}keeps its head{/}' : '{o}TAUNTED{/} {g}(only at ' + u.name + ', till the end of his next turn){/}'));
+      // (till the end of HIS next turn -- RULED 10-07, Griz: "lasts until the end of denny's next turn, not foe current turn"; no save to end it early, "agreed": the end of this turn
+      // counts one, the end of the next the other)
+      if (!sv.ok) { w.conds.taunted = { by: u.id, name: u.name, till: { who: u.id, at: 'end', n: 2 }, endText: '{who} is no longer taunted.' }; FX.ring(w, 'red', 26); }
     });
     if (!list.length) lines.push('  {g}no foe near enough to hear it.{/}');
     B.card(lines, 360); yield 24;
@@ -294,16 +304,18 @@
     return true;
   };
 
-  // VNA BUBBLE (Beholda; a bonus action, a special): a bubble round her, MP.bubbleR ft (10; 20 at 5th, 30 at 9th); she and every friend inside +MP.bubbleAC AC (+1;
-  // a point more every even level, to +5 at 8th), till the start of her next turn -- MP's one round. It pops at once when she is stunned,
-  // incapacitated or down (MP: "drops immediately if Beholda is stunned"). Griz's bubble art draws it (art/vna-bubble.png, looks below)
+  // VNA BUBBLE (Beholda; an ACTION, a special, and CONCENTRATION -- RULED 10-07, Griz: "Concentration - and breaking concentration is the only thing that turns it off (action
+  // instead of bonus)"): a bubble round her, MP.bubbleR ft (10; 20 at 5th, 30 at 9th); she and every friend inside +MP.bubbleAC AC (+1; a point more every even level, to +5
+  // at 8th), for as long as she holds it: a blow's CON save lost (js/magic.js M.concCheck), or her down, stunned or incapacitated, and it is gone. Griz's bubble art draws it
+  // (art/vna-bubble.png, looks below)
   MP.bubble = function* (B, u) {
-    spend(u); u.turn.bonus = 0;
+    spend(u); u.turn.action = 0;
     var r = MP.bubbleR(u.lvl), ac = MP.bubbleAC(u.lvl);
-    u.conds.vnaBubble = { by: u.id, r: r, ac: ac, till: { who: u.id, at: 'start', n: 1 }, endText: '{who}\'s VNA Bubble lets go.' };
+    if (M.concentrate) M.concentrate(B, u, 'vnabubble', 'the VNA Bubble', function () { delete u.conds.vnaBubble; }); // (first: a concentration she held ends before this one starts)
+    u.conds.vnaBubble = { by: u.id, r: r, ac: ac };
     u.anim = D.spr.anim(u.sheet, 'cast') ? 'cast' : 'attack'; u.animT = B.t; D.sfx('buff');
     var inside = B.units.filter(function (w) { return w.side === u.side && standing(w) && (w === u || G.dist(u, w) <= r); });
-    B.card(['{y}' + u.name + '{/}: VNA BUBBLE!  {c}+' + ac + ' AC{/} to ' + inside.map(function (w) { return w === u ? 'herself' : w.name; }).join(', ') + '  {g}(' + r + ' ft, till her next turn; it pops if she is stunned; ' + leftText(u) + '){/}'], 320);
+    B.card(['{y}' + u.name + '{/}: VNA BUBBLE!  {c}+' + ac + ' AC{/} to ' + inside.map(function (w) { return w === u ? 'herself' : w.name; }).join(', ') + '  {g}(' + r + ' ft, while she holds her concentration; ' + leftText(u) + '){/}'], 320);
     FX.ring(u, 'violet', 40); FX.sparkle(u, 'violet', 18);
     yield 24;
   };
@@ -313,18 +325,18 @@
     var best = 0;
     (G.units || []).forEach(function (b) {
       if (!b.conds || !b.conds.vnaBubble) return;
-      if (!MP.bubbleUp(b)) { delete b.conds.vnaBubble; return; }
+      if (!MP.bubbleUp(b)) { delete b.conds.vnaBubble; if (b.conc && b.conc.id === 'vnabubble') delete b.conc; return; } // (down, stunned, held: her concentration goes with it)
       if (b.side !== u.side || (b !== u && G.dist(b, u) > b.conds.vnaBubble.r)) return;
       best = Math.max(best, b.conds.vnaBubble.ac);
     });
     return best;
   };
-  var ac0 = RU.ac; RU.ac = function (u) { return ac0.apply(this, arguments) + (u && u.conds && G.units ? MP.bubbleOn(u) : 0); };
+  var ac0 = RU.ac; RU.ac = function (u) { return ac0.apply(this, arguments) + (u && u.conds && G.units ? MP.bubbleOn(u) : 0) - (u && u.conds && u.conds.gazed ? u.conds.gazed.ac : 0); }; // (and a Baleful Gaze's mark takes it off: below)
 
-  // BALEFUL GAZE (Beholda; an action, a special): one creature she sees within MP.gazeRange ft (30; 60 at 5th, 90 at 9th) saves WIS (her DC: 8 + prof + WIS) --
-  // failed, MP.gazeDice psychic (1d8; 3d8 at 5th, 5d8 at 9th) and DOMINATED till the end of its next turn (that turn it goes at the nearest of its own side it can
-  // reach: MP.dominatedTurn); saved, half and its mind its own. A charm, by what it lays: one that cannot be charmed takes the damage only. MP's gaze inverted to
-  // damage against the Algorithm, 10 a point; the domination is the show's (Griz, 10-06: "mind domination high hp damage")
+  // BALEFUL GAZE (Beholda; a BONUS action, a special -- RULED 10-07, Griz: "No domination - d4 instead of d8, -AC (# scales with beholda level) of target until they
+  // make their saving throw (end of their turns) - bonus instead of action"): one creature she sees within MP.gazeRange ft (30; 60 at 5th, 90 at 9th) saves WIS (her
+  // DC: 8 + prof + WIS) -- failed, MP.gazeDice psychic (1d4; 3d4 at 5th, 5d4 at 9th) and GAZED: its AC MP.gazeAC lower (the seat's ladder: 1, 2 at 3rd, 3 at 6th, 4 at
+  // 9th), till it saves again at the end of one of its turns; saved, half and no mark. (The first pass's domination stays on THE BIG SCREEN only)
   // THE BIG SCREEN (Beholda, 5th; an action, a special): the projection -- her eye opens a cone (30 ft; 40 at 9th) at one she sees, and every foe in it saves as
   // above, MP.screenDice psychic (4d8 at 5th, 6d8 at 9th), set against a Fireball's 8d6 twice a day, with the domination on top
   MP.gazeTargets = function (B, u) { return MP.foes(B, u, MP.gazeRange(u.lvl), true); };
@@ -334,26 +346,34 @@
     return { sq: sq, foes: B.units.filter(function (w) { return G.hostile(u, w) && standing(w) && G.inArea(w, sq); }) };
   };
   function gazeRow(u) { return D.spr.anim(u.sheet, 'gaze') ? 'gaze' : D.spr.anim(u.sheet, 'cast') ? 'cast' : 'attack'; }
-  function* stare(B, u, list, dexpr, head) {
-    var r = D.roll(dexpr), dc = u.spellDC, hits = [], doms = [];
+  MP.gazeAC = function (L) { return 1 + Math.floor((L || 1) / 3); };
+  // the stare: the dice once, a WIS save each -- `mark` 'dominate' (the Big Screen) or 'gaze' (Baleful Gaze: the AC down till a save at its turn's end)
+  function* stare(B, u, list, dexpr, head, mark) {
+    var r = D.roll(dexpr), dc = u.spellDC, hits = [], doms = [], gaze = mark === 'gaze';
     var lines = [head + '  ' + dexpr + ' ' + RU.fmtRolls(r.rolls) + ' = {o}' + r.total + '{/} psychic  WIS DC ' + dc + '  {g}(' + leftText(u) + '){/}'];
     list.forEach(function (w) {
-      var proof = RU.immuneTo(w, 'charmed', u), sv = RU.save(w, 'wis', dc, false, proof ? null : 'charmed', r.total), n = sv.ok ? Math.floor(r.total / 2) : r.total;
-      lines.push('  ' + Nm(B, w) + ': ' + RU.saveText(sv) + ' ' + (sv.ok ? '{n}saved{/}' : '{o}failed{/}' + (proof ? ' {g}(its mind its own){/}' : ' {p}DOMINATED{/}')) + ' -> {r}' + n + '{/}');
+      var proof = !gaze && RU.immuneTo(w, 'charmed', u), sv = RU.save(w, 'wis', dc, false, gaze || proof ? null : 'charmed', r.total), n = sv.ok ? Math.floor(r.total / 2) : r.total;
+      lines.push('  ' + Nm(B, w) + ': ' + RU.saveText(sv) + ' ' + (sv.ok ? '{n}saved{/}' : '{o}failed{/}' + (gaze ? ' {p}AC -' + MP.gazeAC(u.lvl) + '{/} {g}(till it saves at its turn\'s end){/}' : proof ? ' {g}(its mind its own){/}' : ' {p}DOMINATED{/}')) + ' -> {r}' + n + '{/}');
       hits.push([w, n]); if (!sv.ok && !proof) doms.push(w);
     });
     if (!list.length) lines.push('  {g}no one in it.{/}');
     B.card(lines.slice(0, 8), 420);
     yield 20;
     hits.forEach(function (h) { if (!h[0].dead && h[0].hp > 0) B.hurt(h[0], h[1], 'psychic', { magic: true }); });
-    doms.forEach(function (w) { if (!w.dead && w.hp > 0) { w.conds.dominated = { by: u.id, name: u.name, till: { who: w.id, at: 'end', n: 1 }, endText: '{who} shakes off the gaze.' }; FX.ring(w, 'violet', 30); } });
+    doms.forEach(function (w) {
+      if (w.dead || w.hp <= 0) return;
+      if (gaze) { var g0 = w.conds.gazed; if (!g0 || g0.ac <= MP.gazeAC(u.lvl)) w.conds.gazed = { by: u.id, name: u.name, ac: MP.gazeAC(u.lvl), dc: dc }; FX.ring(w, 'violet', 30); return; } // (the bigger of two gazes holds; a new one sets its DC)
+      w.conds.dominated = { by: u.id, name: u.name, till: { who: w.id, at: 'end', n: 1 }, endText: '{who} shakes off the gaze.' }; FX.ring(w, 'violet', 30);
+    });
     yield 24;
   }
+  // GAZED: its AC down while it lasts (RU.ac below, with the bubble's), and a WIS save at the end of each of its turns to shake it (M.endTurn below)
+  MP.gazedOff = function (u) { var g = u && u.conds && u.conds.gazed; return g ? g.ac : 0; };
   MP.gaze = function* (B, u, t) {
-    spend(u); u.turn.action = 0;
+    spend(u); u.turn.bonus = 0;
     u.facing = B.faceTo(u, t); u.anim = gazeRow(u); u.animT = B.t; D.sfx('charm');
     FX.beam(u, t, 'psychic', { thin: true }); yield 18;
-    yield* stare(B, u, [t].filter(standing), MP.gazeDice(u.lvl), '{y}' + u.name + '{/}: BALEFUL GAZE at ' + nm(B, t));
+    yield* stare(B, u, [t].filter(standing), MP.gazeDice(u.lvl), '{y}' + u.name + '{/}: BALEFUL GAZE at ' + nm(B, t), 'gaze');
     u.anim = 'idle';
   };
   MP.screen = function* (B, u, t) {
@@ -362,7 +382,7 @@
     u.facing = B.faceTo(u, t); u.anim = gazeRow(u); u.animT = B.t; D.sfx('charm');
     if (FX.stream) FX.stream(u, c.sq, 'psychic'); else FX.beam(u, t, 'psychic');
     yield 24;
-    yield* stare(B, u, c.foes, MP.screenDice(u.lvl), '{y}' + u.name + '{/}: THE BIG SCREEN!  {p}(the projection: a ' + MP.screenLen(u.lvl) + '-ft cone){/}');
+    yield* stare(B, u, c.foes, MP.screenDice(u.lvl), '{y}' + u.name + '{/}: THE BIG SCREEN!  {p}(the projection: a ' + MP.screenLen(u.lvl) + '-ft cone){/}', 'dominate');
     u.anim = 'idle';
   };
 
@@ -598,7 +618,7 @@
   // levels, with a passive between these unlocking"; the seat's draft, "Those are good"): a free bonus move at 2nd, a passive at 3rd, a reaction at 6th -- each on a
   // mechanic the grid already has. The passives' and the reactions' uses are a fight's, back on a short rest with the specials (MP.refill): the proficiency bonus of each
   MP.has = function (u, sub, lvl) { return !!(u && u.cls === 'mpmon' && u.mpSub === sub && (u.lvl || 1) >= lvl); };
-  MP.refill = function (u) { var f = u.feats = u.feats || {}, p = 2 + Math.floor(((u.lvl || 1) - 1) / 4); f.specials = MP.specialsAt(u.lvl); f.lucky = p; f.eyeContact = p; f.hotTake = p; f.notToday = 1; }; // (Not Today: once a fight, by the draft)
+  MP.refill = function (u) { var f = u.feats = u.feats || {}, p = 2 + Math.floor(((u.lvl || 1) - 1) / 4), pl = MP.poolsAt(u.lvl); f.specialsB = pl.B; f.specialsA = pl.A; delete f.specials; f.lucky = p; f.eyeContact = p; f.hotTake = p; f.notToday = 1; }; // (Not Today: once a fight, by the draft)
 
   // MONKEY FLURRY (the Tank, 2nd; a bonus action, free): after he takes the Attack action, one more punch of the Monkey Fists (the monk's Martial Arts, SRD 5.1)
   MP.flurryOK = function (u) { var T = u.turn; return MP.has(u, 'tank', 2) && !!T && T.bonus > 0 && !!T.attackAction && !u.conds.incapacitated; };
@@ -814,11 +834,22 @@
     ms.forEach(function (w) { FX.sparkle(w, 'gold', 14); });
     B.card(['{y}THE HIVEMIND{/} cheers ' + giver.name + ': ' + MP.HIVE_WORDS[kind] + '  {g}-> ' + got.join(', ') + '{/}'], 280);
   };
-  function hivemind(B) {
-    if (!B || !B.units || B.mpHive === B.round) return;
-    B.mpHive = B.round;
-    B.units.filter(function (w) { return w.cls === 'mpmon' && (w.lvl || 1) >= 9 && standing(w) && RU.canAct(w); }).forEach(function (w) { MP.hiveGive(B, w); });
+  // WHEN it fires (RULED 10-07, Griz: "fires first party member turn first round of fight, dice roll off, highests fires and any nat20 roll other than highest also
+  // fires"): once a fight, at the first turn its side takes in the first round -- every 9th-level Mascot of that side standing rolls a d20, no bonus; the highest
+  // gives its boon (all of them on a tie: the seat's reading), and any other that rolled a natural 20 gives its own too. B.mpHive === B.round still holds it back
+  // (the galleries' staging marks it)
+  function hivemind(B, u) {
+    if (!B || !B.units || !u || B.round !== 1 || B.mpHive === B.round) return;
+    var done = B.mpHiveDone = B.mpHiveDone || {};
+    if (done[u.side]) return;
+    var nine = B.units.filter(function (w) { return w.cls === 'mpmon' && w.side === u.side && (w.lvl || 1) >= 9 && standing(w) && RU.canAct(w); });
+    if (!nine.length) return;
+    done[u.side] = true;
+    var rolls = nine.map(function (w) { return { w: w, r: D.d(20) }; }), top = Math.max.apply(null, rolls.map(function (e) { return e.r; }));
+    B.card(['{y}THE HIVEMIND{/}: the roll-off  ' + rolls.map(function (e) { return e.w.name + ' ' + (e.r === top ? '{y}' + e.r + '{/}' : e.r === 20 ? '{y}20{/}' : e.r); }).join(' · ')], 280);
+    rolls.forEach(function (e) { if (e.r === top || e.r === 20) MP.hiveGive(B, e.w); });
   }
+  MP.hivemind = hivemind; // (the galleries fire it on purpose)
   // the special that is running: its user, and the aim and the heat it took (opened by spend(), the special's own first step; closed by the wrap below)
   MP.cur = null;
   MP.hiveSpend = function (u) {
@@ -827,7 +858,7 @@
   };
   ['taunt', 'denim', 'cannonball', 'hug', 'bubble', 'gaze', 'screen', 'spotlight', 'sharing', 'flame', 'distancing', 'viral', 'heart', 'group', 'fountain', 'lifeline'].forEach(function (k) {
     var f0 = MP[k]; if (!f0) return;
-    MP[k] = function* () { var was = MP.cur; try { return yield* f0.apply(this, arguments); } finally { MP.cur = was; } };
+    MP[k] = function* () { var was = MP.cur, wk = MP.curKind; MP.curKind = k; try { return yield* f0.apply(this, arguments); } finally { MP.cur = was; MP.curKind = wk; } }; // (curKind: which pool its spend() draws on)
   });
   function aimOf(cur) { var h = cur.u.conds.hive; if (!cur.aim && h && h.aim) { delete h.aim; cur.aim = D.d(6); } return cur.aim; }
   function heatOf(cur) { var h = cur.u.conds.hive; if (!cur.heat && h && h.heat) { delete h.heat; cur.heat = D.d(6); return cur.heat; } return 0; }
@@ -859,8 +890,17 @@
   // both at a turn's start (js/grimoire.js M.onStart, every creature's): the round's Hivemind once, and the hug's squeeze on its own turn
   var onStart0 = M.onStart; M.onStart = function (B, u) {
     if (onStart0) onStart0.apply(this, arguments);
-    if (B) hivemind(B);
+    if (B) hivemind(B, u);
     if (B && u && u.cls === 'mpmon' && (u.holding || []).length) squeeze(B, u);
+  };
+  // a Baleful Gaze's mark: a WIS save at the end of each of its turns, against the DC it was laid with; made, the AC comes back
+  var endTurnG = M.endTurn; M.endTurn = function (B, u) {
+    if (endTurnG) endTurnG.apply(this, arguments);
+    var g = B && u && u.conds && u.conds.gazed;
+    if (!g || u.dead || u.hp <= 0) return;
+    var sv = RU.save(u, 'wis', g.dc, false, null);
+    B.card([(u.side === 'foe' ? '{r}The ' + B.shortName(u) + '{/}' : '{y}' + u.name + '{/}') + ' blinks off the gaze?  WIS ' + RU.saveText(sv) + ' vs DC ' + g.dc + '  ' + (sv.ok ? '{n}its AC back{/}' : '{p}still AC -' + g.ac + '{/}')], 220);
+    if (sv.ok) delete u.conds.gazed;
   };
 
   // ------------------------------------------------------------------ the AI's hand (js/tactics.js: TX.FIRST before the action, TX.ACTIONS among its plans, TX.AFTER after it)
@@ -876,7 +916,7 @@
   // the specials that are actions
   TX.ACTIONS.push(function (B, u, fs) {
     var T = u.turn;
-    if (u.cls !== 'mpmon' || MP.left(u) <= 0 || !T.action || T.attacksLeft || u.conds.incapacitated) return null;
+    if (u.cls !== 'mpmon' || MP.left(u, 'A') <= 0 || !T.action || T.attacksLeft || u.conds.incapacitated) return null;
     var plans = [], reach = G.reachOf(u);
     if (u.mpSub === 'tank') {
       fs.forEach(function (t) {
@@ -897,10 +937,14 @@
     }
     if (u.mpSub === 'buffs') {
       var dc = u.spellDC;
-      MP.gazeTargets(B, u).forEach(function (t) {
-        var pf = TX.pFail(t, 'wis', dc), d = TX.avg(MP.gazeDice(u.lvl)), dom = RU.immuneTo(t, 'charmed', u) ? 0 : pf * TX.dpr(t) * 1.5;
-        plans.push({ kind: 'special', why: 'BALEFUL GAZE at ' + t.name, score: TX.worth(pf * d + (1 - pf) * d / 2, t) + dom, go: function* () { yield* MP.gaze(B, u, t); } });
-      });
+      // the bubble (an action and concentration since 10-07): worth the blows it turns while she holds it -- a point of AC about one blow in twenty, on every
+      // friend inside a foe is on, over two rounds. Baleful Gaze is a bonus action now (TX.FIRST below)
+      if (!u.conds.vnaBubble) {
+        var rB = MP.bubbleR(u.lvl), acB = MP.bubbleAC(u.lvl), vB = 0;
+        var inB = B.units.filter(function (w) { return w.side === u.side && standing(w) && (w === u || G.dist(u, w) <= rB); });
+        inB.forEach(function (w) { B.units.forEach(function (f) { if (G.hostile(u, f) && standing(f) && G.dist(w, f) <= 30) vB += TX.dpr(f) * 0.05 * acB * 2 / Math.max(1, inB.length - 1); }); });
+        if (inB.length >= 2 && vB > 0) plans.push({ kind: 'special', why: 'VNA BUBBLE (' + inB.length + ' inside)', score: vB, go: function* () { yield* MP.bubble(B, u); } });
+      }
       if (u.lvl >= 5) MP.screenTargets(B, u).forEach(function (t) {
         var c = MP.screenCatch(B, u, t), d = TX.avg(MP.screenDice(u.lvl)), v = 0;
         if (c.foes.length < 2) return;
@@ -966,17 +1010,24 @@
   });
   // the bonus actions before the action: the bubble, else the eye on a foe her friends are on (Beholda); the taunt (Denny); the sharing (Rascal). The taunt is
   // kept back while it is his last special and there is no foe on a friend
-  function tauntWorth(B, u) { var tl = MP.tauntList(B, u), onF = tl.filter(function (w) { return nearFriends(B, u, w, 10); }); return MP.left(u) > 0 && onF.length > 0 && (tl.length >= 2 || MP.left(u) >= 2); }
+  function tauntWorth(B, u) { var tl = MP.tauntList(B, u), onF = tl.filter(function (w) { return nearFriends(B, u, w, 10); }); return MP.left(u, 'B') > 0 && onF.length > 0 && (tl.length >= 2 || MP.left(u, 'B') >= 2); }
   function eyeMark(B, u) { return MP.eyeTargets(B, u).filter(function (w) { return !w.conds.helped && nearFriends(B, u, w, 5); }).sort(function (a, b) { return b.hp - a.hp; })[0]; }
+  // Beholda's gaze (a bonus action since 10-07): the foe her friends are on, not marked already, the one with the most left to hit; with two or more bonus specials
+  // in hand, the hardest hitter in sight if none is on a friend yet
+  function gazeMark(B, u) {
+    if (MP.left(u, 'B') <= 0) return null;
+    var ts = MP.gazeTargets(B, u).filter(function (w) { return !(w.conds.gazed && w.conds.gazed.ac >= MP.gazeAC(u.lvl)); });
+    var on = ts.filter(function (w) { return nearFriends(B, u, w, 5); }).sort(function (a, b) { return b.hp - a.hp; })[0];
+    return on || (MP.left(u, 'B') >= 2 ? ts.sort(function (a, b) { return TX.dpr(b) - TX.dpr(a); })[0] || null : null);
+  }
   // Goose's honk: the foe near a friend of his that hits hardest
   function honkMark(B, u) { return MP.honkTargets(B, u).filter(function (w) { return nearFriends(B, u, w, 10) || G.dist(u, w) <= 10; }).sort(function (a, b) { return TX.dpr(b) - TX.dpr(a); })[0]; }
   // Goose's heart to heart: the one who needs it most (the down first), unless his last special is better kept for a group hug two or more want
   function heartFor(B, u) {
-    if (MP.left(u) <= 0) return null;
+    if (MP.left(u, 'B') <= 0) return null;
     var t = MP.heartTargets(B, u).map(function (w) { return { w: w, need: TX.healNeed(B, u, w) }; }).filter(function (e) { return e.need >= 1; }).sort(function (a, b) { return b.need - a.need || a.w.hp / a.w.maxhp - b.w.hp / b.w.maxhp; })[0];
     if (!t) return null;
-    var want = MP.groupCatch(B, u).filter(function (w) { return TX.healNeed(B, u, w) >= 1; }).length;
-    return MP.left(u) === 1 && want >= 2 && t.w.hp > 0 ? null : t.w;
+    return t.w; // (no keeping the last for a group hug since 10-07: the hug draws on the action pool, the heart on the bonus)
   }
   TX.FIRST.push(function* (B, u) {
     var T = u.turn;
@@ -987,18 +1038,14 @@
       return;
     }
     if (u.mpSub === 'buffs') {
-      if (MP.left(u) > 0 && !u.conds.vnaBubble) {
-        var r = MP.bubbleR(u.lvl), inside = B.units.filter(function (w) { return w.side === u.side && standing(w) && (w === u || G.dist(u, w) <= r); });
-        var pressed = inside.some(function (w) { return B.units.some(function (f) { return G.hostile(u, f) && standing(f) && G.dist(w, f) <= 30; }); });
-        if (inside.length >= 2 && pressed && !(MP.left(u) === 1 && MP.gazeTargets(B, u).length)) { yield* MP.bubble(B, u); return; }
-      }
+      var gm = gazeMark(B, u); if (gm) { yield* MP.gaze(B, u, gm); return; } // (the gaze first, a bonus special; else the free eye)
       var em = u.lvl >= 2 && eyeMark(B, u); if (em) yield* MP.eyeOnIt(B, u, em);
       return;
     }
     if (u.mpSub === 'tank') { if (tauntWorth(B, u)) yield* MP.taunt(B, u); return; }
-    if (u.mpSub === 'dps' && MP.left(u) > 0) {
+    if (u.mpSub === 'dps' && MP.left(u, 'B') > 0) {
       var sh = MP.shareTargets(B, u);
-      if (sh.length >= Math.min(2, MP.shareN(u.lvl)) && (MP.left(u) >= 2 || !MP.flameTargets(B, u).length)) yield* MP.sharing(B, u);
+      if (sh.length >= Math.min(2, MP.shareN(u.lvl))) yield* MP.sharing(B, u);
     }
   });
   // the bonus actions after it: the taunt he walked into reach of, else the flurry (Denny); the scuttle off a foe beside him (Rascal); the eye (Beholda)
@@ -1011,7 +1058,7 @@
       return;
     }
     if (u.mpSub === 'dps' && u.lvl >= 2 && MP.foes(B, u, 5).length && T.move >= 10 && !u.conds.restrained) { T.bonus = 0; T.disengaged = true; B.card(['{y}' + u.name + '{/} SCUTTLES: disengages, sideways like a lobster.'], 160); yield 8; return; }
-    if (u.mpSub === 'buffs' && u.lvl >= 2) { var em = eyeMark(B, u); if (em) yield* MP.eyeOnIt(B, u, em); }
+    if (u.mpSub === 'buffs') { var gm = gazeMark(B, u); if (gm) { yield* MP.gaze(B, u, gm); return; } var em = u.lvl >= 2 && eyeMark(B, u); if (em) yield* MP.eyeOnIt(B, u, em); }
     if (u.mpSub === 'heals') { var ht = heartFor(B, u); if (ht) { yield* MP.heart(B, u, ht); return; } var hk = u.lvl >= 2 && honkMark(B, u); if (hk) yield* MP.honk(B, u, hk); }
   });
 
@@ -1023,23 +1070,24 @@
   F.commands = function (B, u) {
     var out = cmd0(B, u);
     if (u.cls !== 'mpmon' || u.side !== 'party' || u.guest) return out;
-    var T = u.turn, L = u.lvl, act = T.action > 0 && !T.attacksLeft, bon = T.bonus > 0, n = MP.left(u), none = 'no specials left (a short rest brings them back)';
-    var whyA = function (list, nobody) { return n <= 0 ? none : !act ? 'the action is spent' : list && !list.length ? nobody : ''; };
-    var whyB = function (list, nobody, free) { return !free && n <= 0 ? none : !bon ? 'the bonus action is spent' : list && !list.length ? nobody : ''; };
+    var T = u.turn, L = u.lvl, act = T.action > 0 && !T.attacksLeft, bon = T.bonus > 0, nA = MP.left(u, 'A'), nB = MP.left(u, 'B');
+    var noneA = 'no action specials left (a short rest brings them back)', noneB = 'no bonus specials left (a short rest brings them back)'; // (the two pools, 10-07)
+    var whyA = function (list, nobody) { return nA <= 0 ? noneA : !act ? 'the action is spent' : list && !list.length ? nobody : ''; };
+    var whyB = function (list, nobody, free) { return !free && nB <= 0 ? noneB : !bon ? 'the bonus action is spent' : list && !list.length ? nobody : ''; };
     function add(id, label, cost, icon, why, note, aim, aimText) { out.push({ id: id, label: label, cost: cost, icon: icon, skill: true, ok: !why, why: why, note: note, aim: aim || null, aimText: aimText || null }); }
     if (u.mpSub === 'tank') {
       var rch = MP.inReach(B, u), tl = MP.tauntList(B, u), rr = G.reachOf(u);
-      add('mp-taunt', 'TAUNT', 'B', 'surge', whyB(tl, 'no foe within ' + MP.tauntR(L) + ' ft to hear it'), 'the ' + MP.tauntN(L) + ' nearest foes within ' + MP.tauntR(L) + ' ft: WIS DC ' + MP.tauntDC(u) + ' or they may go only at you, till their turn ends; ' + leftText(u));
+      add('mp-taunt', 'TAUNT', 'B', 'surge', whyB(tl, 'no foe within ' + MP.tauntR(L) + ' ft to hear it'), 'the ' + MP.tauntN(L) + ' nearest foes within ' + MP.tauntR(L) + ' ft: WIS DC ' + MP.tauntDC(u) + ' or they may go only at you, till the end of your next turn; ' + leftText(u));
       add('mp-denim', 'DENIM DAMAGE', 'A', 'attack', whyA(rch, 'no foe in reach'), 'your swings, +' + MP.denimDice(L) + ' on the first that lands (doubled on a critical)' + (MP.denimPush(L) ? '; it knocks that one ' + MP.denimPush(L) + ' ft back' : '') + '; ' + leftText(u), foeAim(rr, false, 'attack'), 'a foe in your reach');
       if (L >= 2) add('mp-flurry', 'MONKEY FLURRY', 'B', 'attack', !T.attackAction ? 'after you take the Attack action' : whyB(rch, 'no foe in reach', true), 'one more punch, free: a bonus action after the Attack action', foeAim(rr, false, 'attack'), 'a foe in your reach');
       if (L >= 5) { var lt = MP.leapTargets(B, u); add('mp-cannonball', 'CANNONBALL', 'A', 'dash', whyA(lt, 'no foe within a ' + MP.leap(L) + '-ft leap'), 'leap up to ' + MP.leap(L) + ' ft beside a foe: each foe beside you DEX DC ' + MP.tauntDC(u) + ' or ' + MP.cannonDice(L) + ' and prone (half on a save), then a swing; ' + leftText(u), foeAim(MP.leap(L) + 5, true), 'the foe to come down beside'); }
       if (L >= 7) { var ht = MP.hugTargets(B, u); add('mp-hug', 'LOBSTAH HUG', 'A', 'surge', whyA(ht, 'no foe beside you to hold'), 'a foe beside you, ' + (MP.hugSize(L) > 2 ? 'Huge' : 'Large') + ' or smaller: STR DC ' + MP.tauntDC(u) + ' or HELD -- squeezed for ' + MP.hugDice(L) + '+STR each of your turns, and it may go only at you; ' + leftText(u), foeAim(rr), 'a foe beside you to hold'); }
     }
     if (u.mpSub === 'buffs') {
-      add('mp-bubble', 'VNA BUBBLE', 'B', 'sacred', n <= 0 ? none : u.conds.vnaBubble ? 'the bubble is up' : !bon ? 'the bonus action is spent' : '', '+' + MP.bubbleAC(L) + ' AC to you and friends within ' + MP.bubbleR(L) + ' ft till your next turn (pops if you are stunned); ' + leftText(u));
+      add('mp-bubble', 'VNA BUBBLE', 'A', 'sacred', nA <= 0 ? noneA : u.conds.vnaBubble ? 'the bubble is up' : !act ? 'the action is spent' : '', '+' + MP.bubbleAC(L) + ' AC to you and friends within ' + MP.bubbleR(L) + ' ft while you hold your concentration; ' + leftText(u));
       if (L >= 2) { var et = MP.eyeTargets(B, u); add('mp-eye', 'EYE ON IT', 'B', 'sacred', whyB(et, 'no foe you see within 30 ft', true), 'a foe you see within 30 ft: the next swing your side makes at it has advantage (free: a bonus action)', foeAim(30, true, 'buff'), 'a foe you see within 30 ft'); }
       var gz = MP.gazeTargets(B, u);
-      add('mp-gaze', 'BALEFUL GAZE', 'A', 'sacred', whyA(gz, 'no foe you see within ' + MP.gazeRange(L) + ' ft'), 'one within ' + MP.gazeRange(L) + ' ft: WIS DC ' + u.spellDC + ' or ' + MP.gazeDice(L) + ' psychic and DOMINATED (it turns on its own side next turn); half on a save; ' + leftText(u), foeAim(MP.gazeRange(L), true), 'a foe you see within ' + MP.gazeRange(L) + ' ft');
+      add('mp-gaze', 'BALEFUL GAZE', 'B', 'sacred', whyB(gz, 'no foe you see within ' + MP.gazeRange(L) + ' ft'), 'one within ' + MP.gazeRange(L) + ' ft: WIS DC ' + u.spellDC + ' or ' + MP.gazeDice(L) + ' psychic and AC -' + MP.gazeAC(L) + ' till it saves at the end of a turn; half on a save; ' + leftText(u), foeAim(MP.gazeRange(L), true), 'a foe you see within ' + MP.gazeRange(L) + ' ft');
       if (L >= 5) { var sc = MP.screenTargets(B, u); add('mp-screen', 'THE BIG SCREEN', 'A', 'sacred', whyA(sc, 'no foe you see within ' + MP.screenLen(L) + ' ft'), 'a ' + MP.screenLen(L) + '-ft cone: each foe in it WIS DC ' + u.spellDC + ' or ' + MP.screenDice(L) + ' psychic and DOMINATED; half on a save; ' + leftText(u), { shape: 'cone', len: MP.screenLen(L), kind: 'save', el: 'psychic' }, 'a ' + MP.screenLen(L) + '-ft cone'); }
       if (L >= 7) { var st = MP.spotTargets(B, u); add('mp-spotlight', 'SPOTLIGHT', 'A', 'sacred', whyA(st, 'no friend you see within ' + MP.spotR(L) + ' ft'), (MP.spotN(L) > 1 ? MP.spotN(L) + ' friends' : 'a friend') + ' you see within ' + MP.spotR(L) + ' ft: HASTED till the end of their next turn (+2 AC, double speed, an attack more), no lethargy after; ' + leftText(u), { shape: 'allies', side: 'ally', range: MP.spotR(L), n: MP.spotN(L), see: true, kind: 'buff' }, (MP.spotN(L) > 1 ? MP.spotN(L) + ' friends' : 'a friend') + ' within ' + MP.spotR(L) + ' ft'); }
     }
@@ -1105,7 +1153,7 @@
     var s = line0.apply(this, arguments);
     if (u.cls !== 'mpmon') return s;
     var b = MP.BUILDS[u.mpmon], k = b ? MP.RACES[b.kind].name + ' ' + MP.SUBS[b.sub].name : '';
-    return [k + ' · ' + MP.left(u) + ' specials', s].filter(Boolean).join(', ');
+    return [k + ' · specials ' + MP.left(u, 'B') + ' bonus / ' + MP.left(u, 'A') + ' action', s].filter(Boolean).join(', ');
   };
 
   // ------------------------------------------------------------------ no hands (Beholda): a potion held to her, nothing she must hold herself
@@ -1190,7 +1238,7 @@
   if (PK && PK.shortRest) {
     var rest0 = PK.shortRest; PK.shortRest = function (c) {
       var r = rest0.apply(this, arguments);
-      if (c && c.cls === 'mpmon') { var f = c.feats = c.feats || {}; if (!(f.specials >= MP.specialsAt(c.lvl))) r.text += '; the specials back'; MP.refill(c); }
+      if (c && c.cls === 'mpmon') { var pl = MP.poolsAt(c.lvl); if (MP.left(c, 'B') < pl.B || MP.left(c, 'A') < pl.A) r.text += '; the specials back'; MP.refill(c); }
       return r;
     };
   }

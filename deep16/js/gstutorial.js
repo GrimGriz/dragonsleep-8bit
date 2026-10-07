@@ -37,7 +37,7 @@
     if (I.pressed('b')) st.skip = true;
     I.edge = {};                                                              // (the keys are the ghost's while it drives; X was read above)
     m.click = false; m.rclick = false; m.rbtn = false; m.wheel = 0; m.drag = null; m.panX = 0; m.panY = 0;
-    if (st.skip) { g.on = false; g.plan = []; if (B.req && B.req.turn) B.answer(null); return true; }
+    if (st.skip) { g.on = false; g.plan = []; if (B.req && B.req.turn) B.answer(null); else if (B.req && B.req.prompt) B.answer(B.req.prompt.opts[0].value); return true; }
     var s = g.plan[g.i], done = false, glide = false;
     if (s) {
       g.t++;
@@ -51,7 +51,7 @@
       else if (s.click) { m.click = true; g.rip = { x: g.x, y: g.y, t0: B.t }; done = true; }
       else if (s.until) { if (s.until() || g.t >= (s.max || 300)) done = true; }
       if (done) { g.i++; g.t = 0; g.idle = 0; }
-    } else if (B.req && B.req.turn && ++g.idle > 240) { g.idle = 0; B.answer({ stuck: true }); return true; }   // (the plan spent and the turn still open: on we go, and it is reported)
+    } else if (B.req && (B.req.turn || B.req.prompt) && ++g.idle > 240) { g.idle = 0; if (B.req.prompt) { if (st.rep) st.rep.stuck++; B.answer(B.req.prompt.opts[0].value); } else B.answer({ stuck: true }); return true; }   // (the plan spent and the turn or the question still open: on we go, and it is reported)
     var nx = Math.round(g.x), ny = Math.round(g.y);
     m.moved = glide && (nx !== g.mx || ny !== g.my) || (done && !!(s && s.go));
     g.mx = nx; g.my = ny; m.x = nx; m.y = ny; m.inside = true; m.inWin = false;   // (inWin off: the edge of the screen never scrolls under it)
@@ -120,6 +120,7 @@
   function kit(B, me, o, rep) {
     var st = B.gs, ctr = o.home, who = NAME[me.mpmon] || me.name, g = st.ghost;
     var T = { B: B, me: me, L: me.lvl || 1, ctr: ctr, foes: [], rep: rep };
+    st.rep = rep; // (the ghost reports a question it had to answer itself)
     // ---- the words: his, in his voice (the card's way, as Pyro's); a narrator's aside in green
     T.line = function (s) { return '{y}' + who + '{/}: "' + s + '"'; };
     T.say = function* (s, n) { yield* hold(T.line(s), n || readT(s)); rep.said++; };
@@ -184,6 +185,28 @@
     T.toUnit = function (u) { return { go: function () { var p = D.ui.unitPos(B, u); return { x: p.x, y: Math.round(p.y - D.spr.unitTop(u) * D.iso.zoom * 0.45) }; }, dur: W(40) }; };
     T.toBtn = function (id) { return { go: function () { var b = (B.buttons || []).filter(function (r) { var c = r.cmd || (r.list != null && B.list && B.list.items[r.list]); return c && (c.id === id || (c.cmd && c.cmd.id === id)); })[0]; return b ? { x: b.x + b.w / 2, y: b.y + b.h / 2 } : null; }, dur: W(34) }; };
     T.toEnd = function () { return { go: function () { var b = (B.buttons || []).filter(function (r) { return r.end; })[0]; return b ? { x: b.x + b.w / 2, y: b.y + b.h / 2 } : null; }, dur: W(44) }; };
+    T.toPrompt = function (i) { return { go: function () { var r = (B.promptRects || [])[i || 0]; return B.req && B.req.prompt && r ? { x: r.x + r.w / 2, y: r.y + r.h / 2 } : null; }, dur: W(34) }; };
+    T.asked = function () { return T.until(function () { return !!(B.req && B.req.prompt); }, 900); };
+    // a foe's blow with the question it raises put to the player -- a reaction's prompt, answered by the ghost's plan on the game's own buttons. `d20s` pins its d20s in
+    // turn (the rest of its dice a 1, as the lesson's soft dice), so the beat shows what the reaction does
+    T.react = function* (gen, plan, d20s) {
+      if (st.skip) return null;
+      var d0 = D.d, k20 = 0, ans = null;
+      if (d20s) D.d = function (n) { return D.battle === B ? (n === 20 ? d20s[Math.min(k20++, d20s.length - 1)] : 1) : d0.apply(this, arguments); };
+      g.plan = plan; g.i = 0; g.t = 0; g.idle = 0; g.on = true;
+      try {
+        var v;
+        for (var k = 0; k < 20000; k++) {
+          var r = gen.next(v); v = undefined; if (r.done) break;
+          var y = r.value;
+          if (y && y.prompt) { D.d = d0; v = yield y; ans = v; rep.steps.push('react:' + v); if (d20s) D.d = function (n) { return D.battle === B ? (n === 20 ? d20s[Math.min(k20++, d20s.length - 1)] : 1) : d0.apply(this, arguments); }; continue; }
+          if (y && y.turn) { v = { do: 'end' }; continue; }
+          if (y && y.aim) { v = null; continue; }
+          v = yield y;
+        }
+      } finally { D.d = d0; g.on = false; g.plan = []; }
+      return ans;
+    };
     T.ring = function () { return T.until(function () { return B.tool === 'menu' || !!B.list; }, 60); };
     T.aiming = function () { return T.until(function () { return B.tool === 'spell' || B.tool === 'attack'; }, 60); };
     // the ring opened on himself, a button on it, and one on the ring under it (SKILLS: the specials)
@@ -225,10 +248,10 @@
 
   // ------------------------------------------------------------------ DENNY, the Tank (the first lesson: his "build for denny as test")
   // the floor: the four on the circle's corners, Goose by the south rim; two goblins and a hobgoblin in at the door, after Goose. Turn one: the walk in
-  // between, TAUNT (the bonus action, his special), MONKEY FISTS (the action), END TURN; the goblins' turns (the taunted ones must come at him); turn two, the
-  // special handed back as a rest would: DENIM DAMAGE on the hobgoblin. His words are the seat's drafts (invented.json#gameshow-tutorial)
+  // between, TAUNT (a bonus special), MONKEY FISTS (the action), END TURN; the goblins' turns (the taunted ones must come at him); turn two, DENIM DAMAGE (an action
+  // special: the two pools since 10-07, one of each at 1st, so nothing is handed back) on the hobgoblin. His words are the seat's drafts (invented.json#gameshow-tutorial)
   GS.LESSONS.denny = function* (T) {
-    var B = T.B, me = T.me, L = T.L, n = MP.specialsAt(L), ctr = T.ctr, cs = [[ctr[0] - 2, ctr[1] - 2], [ctr[0] + 2, ctr[1] - 2], [ctr[0] - 2, ctr[1] + 2], [ctr[0] + 2, ctr[1] + 2]];
+    var B = T.B, me = T.me, L = T.L, pl = MP.poolsAt ? MP.poolsAt(L) : { B: 1, A: 1 }, ctr = T.ctr, cs = [[ctr[0] - 2, ctr[1] - 2], [ctr[0] + 2, ctr[1] - 2], [ctr[0] - 2, ctr[1] + 2], [ctr[0] + 2, ctr[1] + 2]];
     var bh = T.mascot('beholda'), rs = T.mascot('rascal'), gs = T.mascot('goose');
     // to places: the four on the corners, the camera on the south half of the room
     T.lock(-2, 2, 1.25);                                                      // (the scene a little low on the screen: his line and the cards over it, the ring clear of them, his corner clear of the bar)
@@ -248,13 +271,13 @@
     var c = yield* T.act([T.tell(feet), T.pause(70), T.toSq(spot[0], spot[1]), T.read(feet), T.click()]);
     if (!c) return; yield* T.exec(c);
     // TAUNT: himself for the ring, SKILLS, TAUNT
-    var tauntWhy = 'TAUNT is a bonus action, the blue B. The ' + MP.tauntN(L) + ' nearest that fail their save have to come at me, not at Goose. Use it when they\'re going for my friends.';
+    var tauntWhy = 'TAUNT is a bonus action, the blue B. The ' + MP.tauntN(L) + ' nearest that fail their save have to come at me, not at Goose, till the end of my next turn. Use it when they\'re going for my friends.';
     c = yield* T.act([T.tell('Click me and my ring comes up.'), T.pause(60)].concat(T.openRing(), [T.tell('My specials live under SKILLS.')], T.pick('skills', 50), [T.tell(tauntWhy), T.toBtn('mp-taunt'), T.read(tauntWhy), T.click()]));
     if (!c) return; yield* T.exec(c);
     var taunted = [g1, g2, hob].filter(function (w) { return w.conds.taunted; });
-    yield* T.say(n === 1 ? 'At this level that\'s my one special for the whole fight. A short rest brings it back.' : 'That\'s one of my ' + n + ' specials this fight. A short rest brings them back.');
+    yield* T.say('Specials come two ways: bonus ones and action ones. This fight I get ' + (pl.B === 1 ? 'one bonus' : pl.B + ' bonus') + ' and ' + (pl.A === 1 ? 'one action special' : pl.A + ' action specials') + ' -- that Taunt was ' + (pl.B === 1 ? 'my bonus one' : 'a bonus one') + '. A short rest brings them all back.');
     // MONKEY FISTS: ATTACK on the ring, then the goblin in front of him
-    var punch = 'My action\'s still here, the yellow A. ATTACK on the ring, then click who to punch. Monkey Fists: no special needed. Most turns, that\'s the job.';
+    var punch = 'My action\'s still here, the yellow A, and I\'m keeping my action special for the big one. So: ATTACK on the ring, then click who to punch. Monkey Fists, no special needed. Most turns, that\'s the job.';
     var mark = function () { return MP.inReach(B, me).filter(function (w) { return w !== hob; })[0] || MP.inReach(B, me)[0] || g2; };
     var mk = mark();
     c = yield* T.act([T.tell(punch), T.read(punch)].concat(T.openRing(), T.pick('attack', 30), [T.aiming(), T.toUnit(mk), T.pause(24), T.click()]));
@@ -266,11 +289,23 @@
     // their turns: the goblins (a taunted one may go only at him)
     yield* T.foeTurn(g1, { soft: true }); yield* T.foeTurn(g2, { soft: true });
     yield* T.say(taunted.length ? 'See? Taunted, they had to come at me. That\'s the job: they hit the denim, not my friends.' : 'They shook it off. It happens -- the dice are real out here. Next time, they won\'t.');
-    // turn two: the special back (and his hit points, as the bed's rest would), DENIM DAMAGE on the big one
-    MP.refill(me); me.hp = me.maxhp; me.conds = {}; delete me.proneLook; FX.sparkle(me, 'gold', 16); D.sfx('shine');
-    yield* T.note('(The tutorial hands Denny his special back. In the run, a short rest at the bed between waves does that.)');
+    // a REACTION, lent for a look (Griz, 10-07: "if you're in his tutorial, we gotta fake it enough so noobs get reactions (even though he won't be level yet)"):
+    // BODYGUARD, his 6th-level reaction, on for this beat only; the hobgoblin swings at Goose beside him, the game asks, the ghost clicks STEP IN -- the blow's d20s
+    // pinned 15 then 4, so the disadvantage shows: it keeps the 4
+    if (G.standing(hob) && gs && G.standing(gs) && G.dist(me, gs) <= 5 && G.dist(hob, gs) <= 5 && !B.gs.skip) {
+      yield* T.say('One more kind of move: a REACTION. It happens on THEIR turn, one a round -- the R on the bar.');
+      var bg0 = me.bodyguard; me.bodyguard = true; me.reaction = 1;
+      yield* T.note('(The tutorial lends Denny BODYGUARD, his reaction from 6th level, for a look.)');
+      var guard = 'When something swings at a friend right beside me, the game asks me. STEP IN, and its roll is at disadvantage: two dice, and it keeps the worse.';
+      var ma = MP.meleeOf(hob), stepped = null;
+      try { stepped = yield* T.react(B.attack(hob, gs, ma && ma.atk), [T.asked(), T.tell(guard), T.read(guard), T.toPrompt(0), T.pause(24), T.click()], [15, 4]); }
+      finally { me.bodyguard = bg0; }
+      if (B.gs.skip) return;
+      yield* T.say(stepped ? 'It rolled a 15 and a 4. With me in the way it had to keep the 4 -- a miss on Goose. That\'s a reaction: on their turn the game asks, and you answer.' : 'That\'s a reaction: on their turn the game asks, and you answer. One a round, so pick your moment.');
+    }
+    // turn two: DENIM DAMAGE on the big one, his action special
     T.begin();
-    var denim = 'DENIM DAMAGE is my other special, and it takes my action: a punch, and the first one that lands hits extra hard. Save it for the big one.';
+    var denim = 'DENIM DAMAGE is my action special: a punch, and the first one that lands hits extra hard. That\'s what I was keeping it for -- the big one.';
     var big = function () { return MP.inReach(B, me).indexOf(hob) >= 0 ? hob : MP.inReach(B, me)[0] || hob; };
     var bg = big();
     c = yield* T.act([T.tell(denim), T.read(denim)].concat(T.openRing(), T.pick('skills', 30), T.pick('mp-denim', 50), [T.aiming(), T.pause(20), T.toUnit(bg), T.pause(24), T.click()]));

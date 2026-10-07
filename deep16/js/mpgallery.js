@@ -61,10 +61,10 @@
     var p = prof(L);
     return k.name + ', ' + ROLE[u.mpmon] + '. HP ' + u.maxhp + ', AC ' + RU.ac(u) + ', speed ' + u.speed + (traits ? ' (' + traits + ')' : '') + '. STR ' + ab.str + ' DEX ' + ab.dex + ' CON ' + ab.con + ' INT ' + ab.int + ' WIS ' + ab.wis + ' CHA ' + ab.cha + '; proficiency +' + p + ', saves ' + b.saves.map(function (s) { return s.toUpperCase(); }).join(' and ') + '. ' +
       (w.name || 'the blow') + ' ' + sign(w.atk || 0) + ' to hit, ' + (w.dice || '') + sign(w.mod || 0) + (u.attacksBase > 1 ? ', ' + u.attacksBase + ' swings an Attack action' : '') + '. DC ' + (u.mpSub === 'tank' ? MP.tauntDC(u) : u.spellDC) + ' (' + key + '). ' +
-      MP.specialsAt(L) + ' special' + (MP.specialsAt(L) === 1 ? '' : 's') + ' a fight, back on a short rest; a passive\'s or a reaction\'s uses ' + p + ' a fight. ' +
+      'specials a fight: ' + MP.poolsAt(L).B + ' bonus and ' + MP.poolsAt(L).A + ' action, back on a short rest; a passive\'s or a reaction\'s uses ' + p + ' a fight. ' +
       (kit.length ? 'The kit at ' + nth(L) + ': ' + kit.join(', ') + '.' : '');
   }
-  function sheetNums(who, l) { return 'HP ' + hpAt(who, l) + ', ' + sign(hitAt(who, l)) + ' hit, DC ' + dcAt(who, l) + ', x' + MP.specialsAt(l); }
+  function sheetNums(who, l) { return 'HP ' + hpAt(who, l) + ', ' + sign(hitAt(who, l)) + ' hit, DC ' + dcAt(who, l) + ', specials ' + MP.poolsAt(l).B + '/' + MP.poolsAt(l).A; }
 
   // ------------------------------------------------------------------ the register: every ability, by Mascot and the level it comes at
   //   id · who · name · at (the level) · kind · button (the ring's id, for its rules line) · pin (the trigger pinned, said on the column)
@@ -79,7 +79,7 @@
       nums: function (l) { return sign(hitAt('denny', l)) + ', 1d8' + sign(statAt('denny', 'str', l)) + (l >= 5 ? ' x2' : ''); },
       run: function* (c) { c.stage([[c.dn, 0, 0], [c.hob, 1, 0], [c.bh, -2, 1]], c.dn); yield* c.swings(c.dn, c.hob); } },
     { id: 'taunt', who: 'denny', name: 'Taunt', at: 1, kind: 'bonus', button: 'mp-taunt',
-      words: function (L) { return 'He waggles his fingers by his ears -- come on, then. The ' + MP.tauntN(L) + ' nearest foes within ' + MP.tauntR(L) + ' ft that can hear him save WIS (DC ' + dcAt('denny', L) + ') or are TAUNTED till the end of their next turn: they go only at him if they can reach him, and swing at anyone else at disadvantage. No swing of its own: his action is still his. Here the hobgoblin and the two goblins by Beholda; then the near goblin takes its turn.'; },
+      words: function (L) { return 'He waggles his fingers by his ears -- come on, then. The ' + MP.tauntN(L) + ' nearest foes within ' + MP.tauntR(L) + ' ft that can hear him save WIS (DC ' + dcAt('denny', L) + ') or are TAUNTED till the end of HIS next turn, no save to end it sooner: they go only at him if they can reach him, and swing at anyone else at disadvantage. No swing of its own: his action is still his. Here the hobgoblin and the two goblins by Beholda; then the near goblin takes its turn.'; },
       nums: function (l) { return MP.tauntN(l) + ' foes in ' + MP.tauntR(l) + ' ft, DC ' + dcAt('denny', l); },
       run: function* (c) { c.stage([[c.dn, 0, 0], [c.hob, 1, 0], [c.bh, -2, 2], [c.gob[0], -2, 3], [c.gob[1], -3, 2]], c.dn); RU.startTurn(c.dn); yield* c.act(c.dn, MP.taunt(c.B, c.dn)); yield* c.turn(c.gob[0]); } },
     { id: 'denim', who: 'denny', name: 'Denim Damage', at: 1, kind: 'special', button: 'mp-denim',
@@ -110,14 +110,14 @@
       words: function (L, c) { var w = c.bh.weapon; return 'Her three dice swung on their chains, on her will: ' + sign(w.atk) + ' to hit (WIS), ' + w.dice + sign(w.mod) + ' bludgeoning. Here, at the hobgoblin.'; },
       nums: function (l) { return sign(hitAt('beholda', l)) + ', 1d8' + sign(statAt('beholda', 'wis', l)); },
       run: function* (c) { c.stage([[c.bh, 0, 0], [c.hob, 1, 0], [c.dn, -2, 1]], c.bh); yield* c.swings(c.bh, c.hob); } },
-    { id: 'bubble', who: 'beholda', name: 'The VNA Bubble', at: 1, kind: 'bonus', button: 'mp-bubble',
-      words: function (L) { return 'Her eye squeezes shut and flies open, and the film forms round her: she and every friend within ' + MP.bubbleR(L) + ' ft have +' + MP.bubbleAC(L) + ' AC till the start of her next turn. It pops at once if she is stunned, incapacitated or down. Here: the bubble over her and Denny, then a goblin looses at them.'; },
+    { id: 'bubble', who: 'beholda', name: 'The VNA Bubble', at: 1, kind: 'special', button: 'mp-bubble',
+      words: function (L) { return 'An action and her concentration (10-07): her eye squeezes shut and flies open, and the film forms round her -- she and every friend within ' + MP.bubbleR(L) + ' ft have +' + MP.bubbleAC(L) + ' AC for as long as she holds it. Only her concentration breaking ends it: a blow\'s CON save lost, or her down, stunned or incapacitated. Here: the bubble over her and Denny, then a goblin looses at them.'; },
       nums: function (l) { return '+' + MP.bubbleAC(l) + ' AC, ' + MP.bubbleR(l) + ' ft'; },
       run: function* (c) { c.stage([[c.dn, 0, 0], [c.bh, -1, 1], [c.gob[0], 6, 0]], c.bh); RU.startTurn(c.bh); yield* c.act(c.bh, MP.bubble(c.B, c.bh)); yield* c.turn(c.gob[0]); } },
-    { id: 'gaze', who: 'beholda', name: 'Baleful Gaze', at: 1, kind: 'special', button: 'mp-gaze',
-      words: function (L) { return 'The eye swells violet, the spiral in it: one creature she sees within ' + MP.gazeRange(L) + ' ft saves WIS (DC ' + dcAt('beholda', L) + ') -- failed, ' + withAvg(MP.gazeDice(L)) + ' psychic and DOMINATED till the end of its next turn (that turn it goes at the nearest of its own side it can reach); saved, half and its mind its own. One that cannot be charmed takes the damage only. Here the hobgoblin, a goblin beside it; then the hobgoblin\'s turn.'; },
-      nums: function (l) { return MP.gazeDice(l) + ', ' + MP.gazeRange(l) + ' ft, DC ' + dcAt('beholda', l); },
-      run: function* (c) { c.stage([[c.bh, 0, 0], [c.dn, -1, -1], [c.hob, 4, 0], [c.gob[0], 5, 0]], c.hob); RU.startTurn(c.bh); yield* c.act(c.bh, MP.gaze(c.B, c.bh, c.hob)); yield* c.turn(c.hob); } },
+    { id: 'gaze', who: 'beholda', name: 'Baleful Gaze', at: 1, kind: 'bonus', button: 'mp-gaze',
+      words: function (L) { return 'A bonus action (10-07): the eye swells violet, the spiral in it -- one creature she sees within ' + MP.gazeRange(L) + ' ft saves WIS (DC ' + dcAt('beholda', L) + '). Failed: ' + withAvg(MP.gazeDice(L)) + ' psychic and its AC ' + MP.gazeAC(L) + ' lower, till it makes the save again at the end of one of its turns. Saved: half, and no mark. No domination (the Big Screen keeps that). Here the hobgoblin; then its turn, and its save at the end.'; },
+      nums: function (l) { return MP.gazeDice(l) + ', AC -' + MP.gazeAC(l) + ', ' + MP.gazeRange(l) + ' ft, DC ' + dcAt('beholda', l); },
+      run: function* (c) { c.stage([[c.bh, 0, 0], [c.dn, -1, -1], [c.hob, 4, 0], [c.gob[0], 5, 0]], c.hob); RU.startTurn(c.bh); yield* c.act(c.bh, MP.gaze(c.B, c.bh, c.hob)); yield* c.turn(c.hob); D.magic.endTurn(c.B, c.hob); yield c.W(40); } },
     { id: 'eye', who: 'beholda', name: 'Eye On It', at: 2, kind: 'free', button: 'mp-eye',
       words: function () { return 'The four stalks swivel to a foe she sees within 30 ft, a star at each tip: the Help from 30 ft, free -- the next swing her side makes at it has advantage (spent on that swing; lapsed at her next turn). Here the hobgoblin, then Denny\'s swing at it.'; },
       run: function* (c) { c.stage([[c.bh, 0, 0], [c.dn, 3, 1], [c.hob, 4, 0]], c.hob); RU.startTurn(c.bh); yield* c.act(c.bh, MP.eyeOnIt(c.B, c.bh, c.hob)); yield* c.swings(c.dn, c.hob); } },
@@ -207,8 +207,8 @@
       run: function* (c) { c.stage([[c.gs, 0, 0], [c.rs, 3, 0], [c.dn, 0, 2], [c.gob[0], 4, 0]], c.gs); RU.startTurn(c.gs); yield* c.act(c.gs, MP.lifeline(c.B, c.gs, c.rs, c.dn)); yield* c.act(c.gob[0], c.B.attack(c.gob[0], c.rs, MP.meleeOf(c.gob[0]).atk), 19); } },
     // ---- THE HIVEMIND, 9th, the four
     { id: 'hivemind', who: null, name: 'The Hivemind', at: 9, kind: 'capstone',
-      words: function () { return 'At the start of each round, every 9th-level Mascot standing gives every Mascot on its side its role\'s boon, a token for that one\'s next special -- Denny\'s WARD (1d6 off every blow that lands on its user till the start of its next turn), Beholda\'s AIM (1d6 on the special\'s attack roll, or 1d6 off each save against it), Rascal\'s HEAT (1d6 more on its damage) -- and Goose\'s LOVE, 1d6 temporary hit points at once ("Denny\'s activation damage resist for the whole party 1d6, behold 1d6 to hit, rascal 1d6 damage, goose 1d6 temp hp"). Here a new round for the four, then Rascal\'s Social Flame takes the heat and the aim, the ward on him after.'; },
-      run: function* (c) { c.stage([[c.rs, 0, 0], [c.dn, -3, 3], [c.bh, -3, -3], [c.gs, -4, 0], [c.gob[0], 5, 0], [c.gob[1], 6, 1]], c.rs); c.B.round = 2; c.B.mpHive = 1; c.B.active = c.rs; D.magic.onStart(c.B, c.rs); yield c.W(90); RU.startTurn(c.rs); yield* c.act(c.rs, MP.flame(c.B, c.rs, c.gob[0])); } }
+      words: function () { return 'Once a fight, at the first turn its side takes in the first round, the 9th-level Mascots roll off -- a d20 each, no bonus; the highest gives every Mascot on its side its role\'s boon, and any other that rolled a natural 20 gives its own too ("fires first party member turn first round of fight, dice roll off, highests fires and any nat20 roll other than highest also fires"). The boons, a token for each one\'s next special: Denny\'s WARD (1d6 off every blow that lands on its user till the start of its next turn), Beholda\'s AIM (1d6 on the special\'s attack roll, or 1d6 off each save against it), Rascal\'s HEAT (1d6 more on its damage), Goose\'s LOVE (1d6 temporary hit points at once). Here the fight\'s first turn, Rascal\'s: the roll-off, then his Social Flame, taking the heat and the aim if they came.'; },
+      run: function* (c) { c.stage([[c.rs, 0, 0], [c.dn, -3, 3], [c.bh, -3, -3], [c.gs, -4, 0], [c.gob[0], 5, 0], [c.gob[1], 6, 1]], c.rs); c.B.round = 1; c.B.mpHive = null; c.B.mpHiveDone = null; c.B.active = c.rs; D.magic.onStart(c.B, c.rs); yield c.W(90); RU.startTurn(c.rs); yield* c.act(c.rs, MP.flame(c.B, c.rs, c.gob[0])); } }
   ];
   MG.ENTRIES = ENTRIES;
   var BY_ID = {}; ENTRIES.forEach(function (e) { BY_ID[e.id] = e; });

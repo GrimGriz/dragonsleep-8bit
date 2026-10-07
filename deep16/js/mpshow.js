@@ -71,18 +71,21 @@
     function logFrom(n) { return (B.log || []).slice(n).map(txt).join(' | '); }
 
     var BEATS = [
-      { id: 'bubble', name: 'The VNA Bubble', what: 'Beholda raises the bubble: +' + MP.bubbleAC(L) + ' AC to her and Denny till her next turn. Then a goblin looses at them, its d20 pinned at 11 -- 15, a hit on AC 14, turned by the bubble.', run: function* () {
+      { id: 'bubble', name: 'The VNA Bubble', what: 'An action and her concentration now: Beholda raises the bubble, +' + MP.bubbleAC(L) + ' AC to her and Denny while she holds it. Then a goblin looses at them, its d20 pinned at 11 -- 15, a hit on AC 14, turned by the bubble.', run: function* () {
         stage([[dn, 0, 0], [bh, -1, 1], [gob[0], 6, 0]], bh);
         RU.startTurn(bh); yield* act(bh, MP.bubble(B, bh));
         var lg = yield* turn(gob[0], 11, null), ac = 14 + MP.bubbleAC(L), turned = new RegExp('vs AC ' + ac + '\\s+MISS').test(lg);
         return [turned, 'AC ' + RU.ac(dn) + ' in the bubble; the goblin: ' + ((lg.match(/d20[^|]*(MISS|HIT)/) || ['no attack'])[0])];
       } },
-      { id: 'gaze', name: 'Baleful Gaze', what: 'Beholda\'s eye on the hobgoblin (given 60 HP to live through it): its save pinned at 2, the dice at their top -- ' + MP.gazeDice(L) + ' psychic and DOMINATED. On its turn it goes at the goblin beside it.', run: function* () {
+      { id: 'gaze', name: 'Baleful Gaze', what: 'A bonus action now (10-07): Beholda\'s eye on the hobgoblin (given 60 HP): its save pinned at 2, the dice at their top -- ' + MP.gazeDice(L) + ' psychic and its AC ' + MP.gazeAC(L) + ' lower, no domination. At the end of its turn it saves again: pinned at 2, still marked; then at 20, its AC back.', run: function* () {
         stage([[bh, 0, 0], [dn, -1, -1], [hob, 4, 0, 60], [gob[0], 5, 0, 30]], hob);
+        var ac0 = RU.ac(hob);
         RU.startTurn(bh); yield* act(bh, MP.gaze(B, bh, hob), null, 2, true);
-        var dom = !!hob.conds.dominated, g0 = gob[0].hp;
-        var lg = yield* turn(hob, 15, null), turned = /turns on/.test(lg) && gob[0].hp < g0;
-        return [dom && turned, 'dominated ' + dom + '; it turned on the goblin ' + turned + ' (' + g0 + ' -> ' + gob[0].hp + ' HP)'];
+        var ac1 = RU.ac(hob), bonus = bh.turn.bonus === 0 && bh.turn.action > 0, dom = !!hob.conds.dominated;
+        setPin(null, 2); D.magic.endTurn(B, hob); var held = !!hob.conds.gazed;
+        setPin(null, 20); D.magic.endTurn(B, hob); setPin(null, null); var back = !hob.conds.gazed && RU.ac(hob) === ac0;
+        yield W(60);
+        return [ac1 === ac0 - MP.gazeAC(L) && bonus && !dom && held && back, 'AC ' + ac0 + ' -> ' + ac1 + ' (the bonus action spent, the action kept ' + bonus + ', dominated ' + dom + '); a save of 2 keeps the mark ' + held + ', a 20 takes it off ' + back];
       } },
       { id: 'screen', name: 'The Big Screen', what: 'The projection: a 30-ft cone at the middle goblin of three (60 HP each), their saves pinned at 2 and the dice at their top -- ' + MP.screenDice(L) + ' psychic each, and every one DOMINATED.', run: function* () {
         stage([[bh, 0, 0], [dn, -1, 1], [gob[0], 3, 0, 60], [gob[1], 4, 1, 60], [gob[2], 4, -1, 60]], gob[0]);
@@ -264,9 +267,9 @@
         var n = (r0 - rs.hp) + (d0 - dn.hp), half = Math.floor(n / 2);
         return [tied && n > 0 && d0 - dn.hp === half && r0 - rs.hp === n - half, 'tied ' + tied + '; the blow ' + n + ': Rascal ' + r0 + ' -> ' + rs.hp + ', Denny ' + d0 + ' -> ' + dn.hp + ' (' + half + ' wanted down the line)'];
       } },
-      { id: 'hivemind', at: 9, name: 'The Hivemind', what: 'A new round, the four at 9th: THE HIVEMIND cheers each -- Denny\'s WARD, Beholda\'s AIM, Rascal\'s HEAT, a token each for every Mascot\'s next special, and Goose\'s LOVE, temporary hit points at once. Then Rascal\'s Social Flame takes the heat (1d6 more fire) and the aim (each save 1d6 harder: pinned at 16, it would have made it), and the ward is on him till his next turn.', run: function* () {
+      { id: 'hivemind', at: 9, name: 'The Hivemind', what: 'The fight\'s first turn, the four at 9th: THE HIVEMIND\'s roll-off (10-07: once a fight; the highest d20 gives its boon, and any other natural 20) -- all four pinned at 20, so all four cheer: Denny\'s WARD, Beholda\'s AIM, Rascal\'s HEAT, a token each for every Mascot\'s next special, and Goose\'s LOVE, temporary hit points at once. Then Rascal\'s Social Flame takes the heat (1d6 more fire) and the aim (each save 1d6 harder: pinned at 16, it would have made it), and the ward is on him till his next turn.', run: function* () {
         stage([[rs, 0, 0], [dn, -3, 3], [bh, -3, -3], [gs, -4, 0], [gob[0], 5, 0, 90], [gob[1], 6, 1, 90]], rs);
-        B.round = 2; B.mpHive = 1; D.magic.onStart(B, rs); yield W(80);
+        B.round = 1; B.mpHive = null; B.mpHiveDone = null; setPin(20, null, true); D.magic.onStart(B, rs); setPin(null, null); yield W(80);
         var all = [dn, bh, rs].every(function (w) { var h = w.conds.hive || {}; return h.ward && h.aim && h.heat; }) && [dn, bh, rs, gs].every(function (w) { return (w.temp || 0) > 0; });
         RU.startTurn(rs); yield* act(rs, MP.flame(B, rs, gob[0]), null, 16, true);
         var want = +MP.flameDice(L).split('d')[0] * 6 + 6, took = [gob[0], gob[1]].map(function (w) { return w.maxhp - w.hp; }), h = rs.conds.hive || {};

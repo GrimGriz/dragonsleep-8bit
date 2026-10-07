@@ -111,7 +111,7 @@
       if (det) res3.fights.push({ seed: 5000 + k3 * 7919, r: y3.r, rounds: y3.B.round, stand: y3.B.units.filter(function (u) { return !u.familiar && !u.dead && u.hp > 0; }).map(function (u) { return u.name + ' ' + u.hp + '/' + u.maxhp; }) });
       if (y3.r === 'lost') bw3++; else if (y3.r === 'won') hw3++;
       br3 += y3.rounds;
-      y3.B.units.forEach(function (u) { if (u.cls === 'mpmon') res3.left[u.name] = (res3.left[u.name] || 0) + ((u.feats && u.feats.specials) || 0); });
+      y3.B.units.forEach(function (u) { if (u.cls === 'mpmon') res3.left[u.name] = (res3.left[u.name] || 0) + D.mpmon.left(u); });
     }
     res3.band = [bw3, hw3, +(br3 / n).toFixed(1)];
     ['dealt', 'taken', 'down'].forEach(function (k) { res3[k] = JSON.parse(JSON.stringify(stats[k])); }); // (a copy: the duels count on after)
@@ -123,7 +123,7 @@
         res3.duel[m + '>' + h] = [mw, hw, +(rr / nd).toFixed(1)];
       });
     });
-    res3.specials = MSC.map(function (m) { var u = D.npc.build(m + ':' + L, L, 'foe', { id: 'sp' + m }); return u.feats.specials; });
+    res3.specials = MSC.map(function (m) { var u = D.npc.build(m + ':' + L, L, 'foe', { id: 'sp' + m }); return D.mpmon.left(u); });
     var pre3 = document.createElement('pre'); pre3.id = 'out'; pre3.textContent = 'BENCH16 ' + JSON.stringify(res3);
     document.body.appendChild(pre3);
     return;
@@ -3510,7 +3510,7 @@
         if (how === 'skip') { stepUntil(function () { return BS.req && BS.req.turn; }, 40000); D.input.edge = { b: true }; }
         var went = stepUntil(function () { return BS.gs.mode === 'go' || D.top() !== BS; }, 80000);
         var rT = D.gameshow.lastTeach, dn = rT && rT.who.denny;
-        if (how === 'play') okS('play: Denny\'s lesson -- ' + (dn ? dn.steps.join(', ') : 'no report') + ' (want move, mp-taunt, attack, end, mp-denim), ' + (dn ? dn.stuck : '?') + ' stuck, ' + (dn ? dn.said : '?') + ' lines, skipped ' + (rT && rT.skipped), !!dn && dn.steps.join(',') === 'move,mp-taunt,attack,end,mp-denim' && !dn.stuck && dn.said >= 5 && !rT.skipped);
+        if (how === 'play') okS('play: Denny\'s lesson -- ' + (dn ? dn.steps.join(', ') : 'no report') + ' (want move, mp-taunt, attack, end, react:true -- BODYGUARD lent for the reaction beat -- mp-denim), ' + (dn ? dn.stuck : '?') + ' stuck, ' + (dn ? dn.said : '?') + ' lines, skipped ' + (rT && rT.skipped), !!dn && dn.steps.join(',') === 'move,mp-taunt,attack,end,react:true,mp-denim' && !dn.stuck && dn.said >= 5 && !rT.skipped);
         else okS('skip: X on his first turn ends the lesson -- skipped ' + (rT && rT.skipped) + ', ' + (dn ? dn.steps.length : '?') + ' commands made', !!rT && rT.skipped && !!dn && dn.steps.length === 0);
         var now = BS.units.map(function (u) { return u.mpmon + '@' + u.x + ',' + u.y; }).join(' '), whole = BS.units.every(function (u) { return u.hp === u.maxhp && !u.dead; });
         okS(how + ': on to the jump in (' + BS.gs.mode + ', ' + went + ' frames), the four where they stood and whole (' + now + ' vs ' + was + ', ' + whole + '), the UI put back (' + D.ui.opts.style + ', the picture ' + (BS.paint === paint0S && BS.update === update0S) + ', cine ' + BS.cine + ', no ghost ' + !BS.gs.ghost + ')', went >= 0 && BS.gs.mode === 'go' && now === was && whole && BS.units.length === 4 && D.ui.opts.style === style0 && BS.paint === paint0S && BS.update === update0S && !BS.gs.ghost);
@@ -3548,8 +3548,10 @@
       var rowsM = [];
       [['denny', 1, 13, 14, 5], ['denny', 4, 40, 14, 6], ['denny', 9, 85, 14, 9], ['beholda', 1, 10, 14, 5], ['beholda', 4, 31, 14, 6], ['beholda', 9, 66, 14, 9]].forEach(function (r) {
         var u = D.npc.build(r[0] + ':' + r[1], r[1], 'party', { id: r[0] + r[1] });
-        rowsM.push(r[0] + ':' + r[1] + ' hp ' + u.maxhp + ' ac ' + u.baseAC + ' +' + u.weapon.atk + ' ' + u.weapon.dice + '+' + u.weapon.mod + ' x' + u.attacksBase + ' ' + u.feats.specials + 'sp');
-        okM(r[0] + ':' + r[1] + ': HP ' + u.maxhp + ' (want ' + r[2] + '), AC ' + u.baseAC + ' (' + r[3] + '), to hit +' + u.weapon.atk + ' (' + r[4] + '), specials ' + u.feats.specials + ' (' + Math.floor((r[1] + 1) / 2) + ')', u.maxhp === r[2] && u.baseAC === r[3] && u.weapon.atk === r[4] && u.feats.specials === Math.floor((r[1] + 1) / 2));
+        // (the specials in two pools since 10-07, RULED as a trial: bonus / action, one more each level in turn, the bonus first -- 1st 1/1, 4th 3/2, 9th 5/5)
+        var pw0 = { 1: '1/1', 4: '3/2', 9: '5/5' }[r[1]], pwN = MPM.left(u, 'B') + '/' + MPM.left(u, 'A');
+        rowsM.push(r[0] + ':' + r[1] + ' hp ' + u.maxhp + ' ac ' + u.baseAC + ' +' + u.weapon.atk + ' ' + u.weapon.dice + '+' + u.weapon.mod + ' x' + u.attacksBase + ' ' + pwN + 'sp');
+        okM(r[0] + ':' + r[1] + ': HP ' + u.maxhp + ' (want ' + r[2] + '), AC ' + u.baseAC + ' (' + r[3] + '), to hit +' + u.weapon.atk + ' (' + r[4] + '), specials ' + pwN + ' bonus/action (' + pw0 + ')', u.maxhp === r[2] && u.baseAC === r[3] && u.weapon.atk === r[4] && pwN === pw0);
       });
       var d5 = D.npc.build('denny:5', 5, 'party', { id: 'd5' }), b5 = D.npc.build('beholda:5', 5, 'party', { id: 'b5' });
       okM('Denny at 5: two swings, Monkey Fists ' + d5.weapon.dice + ' (both hands free: 1d8), climbs ' + !!d5.climbs + ', speed ' + d5.speed, d5.attacksBase === 2 && d5.weapon.dice === '1d8' && d5.climbs && d5.speed === 30);
@@ -3568,29 +3570,41 @@
       var B1 = mkB(['beholda:4', 'barley:4', 'aurdin:4'], ['goblin', 'goblin'], 4), bh = sideM(B1, 'party')[0], bar = sideM(B1, 'party')[1], aur = sideM(B1, 'party')[2];
       spotM(B1, bh, 8, 8); spotM(B1, bar, 10, 8); spotM(B1, aur, 16, 8);
       var acB = RUM.ac(bar), acA = RUM.ac(aur), acH = RUM.ac(bh); RUM.startTurn(bh); runM(MPM.bubble(B1, bh));
-      okM('VNA Bubble at 4: Barley 10 ft off ' + acB + ' -> ' + RUM.ac(bar) + ', herself ' + acH + ' -> ' + RUM.ac(bh) + ', Aurdin 40 ft off ' + acA + ' -> ' + RUM.ac(aur) + ', a special spent (' + bh.feats.specials + ' left), the bonus action ' + bh.turn.bonus,
-        RUM.ac(bar) === acB + 3 && RUM.ac(bh) === acH + 3 && RUM.ac(aur) === acA && bh.feats.specials === 1 && bh.turn.bonus === 0);
+      // (an action and her concentration since 10-07: "Concentration - and breaking concentration is the only thing that turns it off (action instead of bonus)")
+      okM('VNA Bubble at 4: Barley 10 ft off ' + acB + ' -> ' + RUM.ac(bar) + ', herself ' + acH + ' -> ' + RUM.ac(bh) + ', Aurdin 40 ft off ' + acA + ' -> ' + RUM.ac(aur) + ', an action special spent (' + MPM.left(bh, 'A') + ' left of 2), the action ' + bh.turn.action + ', the bonus kept ' + bh.turn.bonus + ', her concentration ' + (bh.conc && bh.conc.id),
+        RUM.ac(bar) === acB + 3 && RUM.ac(bh) === acH + 3 && RUM.ac(aur) === acA && MPM.left(bh, 'A') === 1 && bh.turn.action === 0 && bh.turn.bonus > 0 && !!bh.conc && bh.conc.id === 'vnabubble');
+      RUM.startTurn(bh); D.magic.onStart(B1, bh); var acNext = RUM.ac(bar);
+      D.d = function (s) { return s === 20 ? 2 : dM(s); }; D.magic.concCheck(B1, bh, 12); D.d = dM; var acBroke = RUM.ac(bar);
+      okM('the bubble holds into her next turn (Barley ' + acNext + ') and only her concentration breaking ends it: a blow\'s CON save of 2 -> Barley ' + acBroke + ' (want ' + acB + '), cond ' + !!bh.conds.vnaBubble + ', concentration ' + !!bh.conc, acNext === acB + 3 && acBroke === acB && !bh.conds.vnaBubble && !bh.conc);
+      RUM.startTurn(bh); runM(MPM.bubble(B1, bh));
       bh.conds.stunned = true; var acStun = RUM.ac(bar); delete bh.conds.stunned;
-      okM('stunned, the bubble pops: Barley ' + acStun + ' (want ' + acB + '), and it stays gone after (' + RUM.ac(bar) + ', cond ' + !!bh.conds.vnaBubble + ')', acStun === acB && RUM.ac(bar) === acB && !bh.conds.vnaBubble);
+      okM('stunned, the bubble pops: Barley ' + acStun + ' (want ' + acB + '), and it stays gone after (' + RUM.ac(bar) + ', cond ' + !!bh.conds.vnaBubble + ', concentration ' + !!bh.conc + ')', acStun === acB && RUM.ac(bar) === acB && !bh.conds.vnaBubble && !bh.conc);
 
-      // Baleful Gaze: failed -> Ld8 psychic and dominated; its turn goes at its own side
+      // Baleful Gaze (10-07, RULED: "No domination - d4 instead of d8, -AC (# scales with beholda level) of target until they make their saving throw (end of their
+      // turns) - bonus instead of action"): failed -> Ld4 psychic and its AC down by MP.gazeAC, a WIS save at the end of each of its turns to shake it
       var B2 = mkB(['beholda:4'], ['ogre', 'goblin'], 4), bg = sideM(B2, 'party')[0], og = sideM(B2, 'foe')[0], gb = sideM(B2, 'foe')[1];
       spotM(B2, bg, 4, 8); spotM(B2, og, 10, 8); spotM(B2, gb, 11, 8);
-      pin(2, 'max'); RUM.startTurn(bg); var hp0 = og.hp, n2 = (B2.log || []).length; runM(MPM.gaze(B2, bg, og));
-      okM('Baleful Gaze at 4 (dice max, the save a 2): the ogre ' + hp0 + ' -> ' + og.hp + ' (want -24: 3d8), dominated ' + !!og.conds.dominated, hp0 - og.hp === 24 && !!og.conds.dominated);
-      pin(15, 'max'); var gh0 = gb.hp; RUM.startTurn(og); var n2b = (B2.log || []).length; runM(D.ai.turn(B2, og)); var l2 = logSince(B2, n2b);
-      okM('the dominated ogre\'s turn: ' + (l2.filter(function (l) { return /DOMINATED/.test(l); })[0] || 'no dominated line').slice(0, 90) + '; the goblin ' + gh0 + ' -> ' + gb.hp + '; Beholda untouched ' + (bg.hp === bg.maxhp), l2.some(function (l) { return /turns on/.test(l); }) && gb.hp < gh0 && bg.hp === bg.maxhp);
-      D.d = dM;
+      var ogAC = RUM.ac(og); pin(2, 'max'); RUM.startTurn(bg); var hp0 = og.hp, n2 = (B2.log || []).length; runM(MPM.gaze(B2, bg, og));
+      okM('Baleful Gaze at 4 (dice max, the save a 2): the ogre ' + hp0 + ' -> ' + og.hp + ' (want -12: 3d4), AC ' + ogAC + ' -> ' + RUM.ac(og) + ' (want -' + MPM.gazeAC(4) + '), dominated ' + !!og.conds.dominated + ', the bonus spent ' + (bg.turn.bonus === 0) + ', the action kept ' + (bg.turn.action > 0) + ', a bonus special spent (' + MPM.left(bg, 'B') + ' of 3 left)',
+        hp0 - og.hp === 12 && RUM.ac(og) === ogAC - MPM.gazeAC(4) && !og.conds.dominated && bg.turn.bonus === 0 && bg.turn.action > 0 && MPM.left(bg, 'B') === 2);
+      pin(2, null); D.magic.endTurn(B2, og); var held2 = RUM.ac(og) === ogAC - MPM.gazeAC(4);
+      pin(20, null); D.magic.endTurn(B2, og); D.d = dM; var back2 = RUM.ac(og) === ogAC && !og.conds.gazed;
+      okM('the gazed ogre\'s end of turn: a WIS save of 2 keeps the mark ' + held2 + ', a 20 shakes it, its AC back ' + back2, held2 && back2);
       var B2b = mkB(['beholda:4'], ['goblin'], 4), bgb = sideM(B2b, 'party')[0], gbb = sideM(B2b, 'foe')[0]; spotM(B2b, bgb, 4, 8); spotM(B2b, gbb, 8, 8);
       gbb.condImmune = ['charmed']; pin(2, 'max'); RUM.startTurn(bgb); runM(MPM.gaze(B2b, bgb, gbb)); D.d = dM;
-      okM('a creature proof against charm takes the damage only: hp ' + gbb.hp + ', dominated ' + !!gbb.conds.dominated, !gbb.conds.dominated && (gbb.dead || gbb.hp < gbb.maxhp));
+      okM('a creature proof against charm is marked all the same (no charm in it now): hp ' + gbb.hp + ', gazed ' + !!gbb.conds.gazed, (gbb.dead || gbb.hp < gbb.maxhp) && (gbb.dead || !!gbb.conds.gazed));
 
       // Taunt: the brute goes at Denny though another is nearer and weaker; disadvantage at anyone else
       var B3 = mkB(['denny:4', 'aurdin:4'], ['ogre', 'goblin', 'goblin'], 4), dn = sideM(B3, 'party')[0], au = sideM(B3, 'party')[1], fo = sideM(B3, 'foe');
       spotM(B3, dn, 8, 8); spotM(B3, fo[0], 9, 8); spotM(B3, au, 9, 10); spotM(B3, fo[1], 10, 9); spotM(B3, fo[2], 7, 9);
-      pin(3, null); RUM.startTurn(dn); var sp3 = dn.feats.specials; runM(MPM.taunt(B3, dn)); D.d = dM;
+      pin(3, null); RUM.startTurn(dn); var sp3 = MPM.left(dn, 'B'), spA3 = MPM.left(dn, 'A'); runM(MPM.taunt(B3, dn)); D.d = dM;
       var tn = fo.filter(function (w) { return w.conds.taunted; }).length;
-      okM('Taunt at 4, a bonus action (saves a 3): taunted ' + tn + ' of 3 (' + MPM.tauntN(4) + ' within ' + MPM.tauntR(4) + ' ft), a special spent (' + sp3 + ' -> ' + dn.feats.specials + '), the bonus ' + dn.turn.bonus + ', the action kept ' + dn.turn.action, tn === 3 && dn.feats.specials === sp3 - 1 && dn.turn.bonus === 0 && dn.turn.action > 0);
+      okM('Taunt at 4, a bonus action (saves a 3): taunted ' + tn + ' of 3 (' + MPM.tauntN(4) + ' within ' + MPM.tauntR(4) + ' ft), a bonus special spent (' + sp3 + ' -> ' + MPM.left(dn, 'B') + ', the action ones ' + spA3 + ' -> ' + MPM.left(dn, 'A') + '), the bonus ' + dn.turn.bonus + ', the action kept ' + dn.turn.action, tn === 3 && MPM.left(dn, 'B') === sp3 - 1 && MPM.left(dn, 'A') === spA3 && dn.turn.bonus === 0 && dn.turn.action > 0);
+      // (till the end of HIS next turn, 10-07, RULED: "lasts until the end of denny's next turn, not foe current turn"; no save to end it sooner -- "agreed")
+      var tk = fo.filter(function (w) { return w.conds.taunted; }), tq = tk[0]; D.magic.endTurn(B3, tq); var a3 = tk.every(function (w) { return !!w.conds.taunted; });
+      D.magic.endTurn(B3, dn); var b3 = tk.every(function (w) { return !!w.conds.taunted; }); D.magic.endTurn(B3, dn); var c3 = tk.every(function (w) { return !w.conds.taunted; });
+      okM('the taunt holds past a foe\'s turn end ' + a3 + ' and the end of the turn it was used on ' + b3 + ', and lets go at the end of his next ' + c3, a3 && b3 && c3);
+      tk.forEach(function (w) { w.conds.taunted = { by: dn.id, name: dn.name, till: { who: dn.id, at: 'end', n: 2 } }; }); // (back on, for the turns below)
       var eT = RUM.edges(fo[0], au, fo[0].attacks[Object.keys(fo[0].attacks)[0]]), eD = RUM.edges(fo[0], dn, fo[0].attacks[Object.keys(fo[0].attacks)[0]]);
       okM('a taunted foe has disadvantage at Aurdin (' + eT.dis.join(', ') + ') and not at Denny (' + eD.dis.join(', ') + ')', eT.dis.some(function (x) { return /taunted/.test(x); }) && !eD.dis.some(function (x) { return /taunted/.test(x); }));
       var hitAu = 0, hitDn = 0, auHp = au.hp, dnHp = dn.hp; pin(19, null); RUM.startTurn(fo[2]); runM(D.ai.turn(B3, fo[2])); RUM.startTurn(fo[1]); runM(D.ai.turn(B3, fo[1])); D.d = dM;
@@ -3627,8 +3641,8 @@
         c0.map(function (c) { return c.id; }).join() === 'mp-taunt,mp-denim,mp-flurry,mp-cannonball' && c0.every(function (c) { return c.ok === (c.id !== 'mp-flurry'); }) && // (the Mascot, 10-06 night: Monkey Flurry free, after the Attack action)
         c1.map(function (c) { return c.id; }).join() === 'mp-bubble,mp-eye,mp-gaze,mp-screen' && c1.every(function (c) { return c.ok; }) && c0.concat(c1).every(function (c) { return c.id === 'mp-taunt' || c.id === 'mp-bubble' || !!c.aim; }));
       pin(2, 'max'); runM(FM.exec(B7, p7[1], { do: 'mp-gaze' }), 1); D.d = dM;
-      okM('BALEFUL GAZE from the ring: the goblin ' + (g7.dead ? 'falls' : g7.hp + ' hp') + ', ' + p7[1].feats.specials + ' special left', p7[1].feats.specials === 2 && (g7.dead || g7.hp < g7.maxhp));
-      p7[0].feats.specials = 0; RUM.startTurn(p7[0]);
+      okM('BALEFUL GAZE from the ring: the goblin ' + (g7.dead ? 'falls' : g7.hp + ' hp') + ', ' + MPM.left(p7[1], 'B') + ' bonus specials left (of 3)', MPM.left(p7[1], 'B') === 2 && (g7.dead || g7.hp < g7.maxhp));
+      p7[0].feats.specialsB = 0; p7[0].feats.specialsA = 0; RUM.startTurn(p7[0]);
       var gone = FM.commands(B7, p7[0]).filter(function (c) { return /^mp-/.test(c.id); });
       okM('none left: the specials greyed and why (' + (gone[0] && gone[0].why) + '), the free Monkey Flurry not by it', gone.every(function (c) { return c.id === 'mp-flurry' ? !/short rest/.test(c.why) : !c.ok && /short rest/.test(c.why); }));
       B7.inv = [{ id: 'potion', n: 1 }, { id: 'oil', n: 1 }]; p7[1].hp = Math.floor(p7[1].maxhp / 2); RUM.startTurn(p7[1]); var all7 = B7.itemList(p7[1]).filter(Boolean), it7 = all7.filter(function (x) { return x.ok; }).map(function (x) { return x.id; });
@@ -3636,9 +3650,17 @@
 
       // the Pocket DM: two seats on its roster, the specials back on its short rest
       var PKM = D.pocket, seats = PKM.STOCK.map(function (s) { return s.w; });
-      var c8 = { cls: 'mpmon', lvl: 5, hp: 10, maxhp: 50, con: 2, feats: { specials: 0 } }, r8 = PKM.shortRest(c8, 0, false, function () { return 0.5; });
-      okM('the Pocket DM: seats ' + seats.slice(-4).join(', ') + '; its short rest: ' + r8.text + ' (specials ' + c8.feats.specials + ')', seats.indexOf('denny') >= 0 && seats.indexOf('beholda') >= 0 && c8.feats.specials === 3);
+      var c8 = { cls: 'mpmon', lvl: 5, hp: 10, maxhp: 50, con: 2, feats: { specialsB: 0, specialsA: 0 } }, r8 = PKM.shortRest(c8, 0, false, function () { return 0.5; });
+      okM('the Pocket DM: seats ' + seats.slice(-4).join(', ') + '; its short rest: ' + r8.text + ' (specials ' + MPM.left(c8, 'B') + '/' + MPM.left(c8, 'A') + ', want 3/3)', seats.indexOf('denny') >= 0 && seats.indexOf('beholda') >= 0 && MPM.left(c8, 'B') === 3 && MPM.left(c8, 'A') === 3);
 
+      // the Hivemind's roll-off (10-07, RULED: "fires first party member turn first round of fight, dice roll off, highests fires and any nat20 roll other than highest
+      // also fires"): the four at 9th, the d20s pinned 14 / 7 / 12 / 3 -- Denny's WARD alone, once; a second party turn in round 1 and round 2's first fire nothing
+      var BH = mkB(['denny:9', 'beholda:9', 'rascal:9', 'goose:9'], ['goblin'], 9), ph = sideM(BH, 'party'), seqH = [14, 7, 12, 3], siH = 0;
+      ph.forEach(function (w) { w.conds = {}; w.temp = 0; }); BH.round = 1; BH.mpHive = null; BH.mpHiveDone = null;
+      D.d = function (s) { return s === 20 ? seqH[siH++ % 4] : dM(s); }; D.magic.onStart(BH, ph[0]); var afterH = ph.map(function (w) { return Object.keys(w.conds.hive || {}).join('+') || '-'; }).join(' ');
+      ph.forEach(function (w) { w.conds = {}; }); D.magic.onStart(BH, ph[1]); BH.round = 2; D.magic.onStart(BH, ph[2]); D.d = dM; var againH = ph.some(function (w) { return w.conds.hive; });
+      okM('the Hivemind at 9: the roll-off 14/7/12/3 gives ' + afterH + ' (want ward on all four: Denny\'s alone), and nothing again later in round 1 or in round 2 (' + !againH + ')', afterH === 'ward ward ward ward' && !againH);
+      okM('Social Sharing\'s friends: one a level -- ' + [1, 3, 5, 9].map(function (l) { return l + ':' + MPM.shareN(l); }).join(' '), MPM.shareN(1) === 1 && MPM.shareN(5) === 5 && MPM.shareN(9) === 9);
       // a whole fight, the class AI on both sides: no error, and the specials spent
       var B9 = mkB(['denny:5', 'beholda:5'], ['goblin', 'goblin', 'hobgoblin', 'hobgoblin'], 5), it9 = 0, st9;
       while (!B9.over() && it9++ < 200000) { st9 = B9.co.next(); if (st9.done) break; if (st9.value && st9.value.prompt) B9.co.next(st9.value.prompt.opts[0].value); }
@@ -3648,16 +3670,16 @@
       // RASCAL (10-06): the build by the lane's table (HP, AC, the DC and Fire Bolt on CHA), then his three specials by their rules with the dice pinned
       [['rascal', 1, 8, 14, 13], ['rascal', 4, 23, 14, 14], ['rascal', 5, 28, 14, 15], ['rascal', 9, 48, 14, 17]].forEach(function (r) {
         var u = D.npc.build('rascal:' + r[1], r[1], 'party', { id: 'r' + r[1] });
-        rowsM.push('rascal:' + r[1] + ' hp ' + u.maxhp + ' ac ' + u.baseAC + ' dc ' + u.spellDC + ' bolt +' + u.spellAtk + ' ' + u.feats.specials + 'sp');
+        rowsM.push('rascal:' + r[1] + ' hp ' + u.maxhp + ' ac ' + u.baseAC + ' dc ' + u.spellDC + ' bolt +' + u.spellAtk + ' ' + MPM.left(u, 'B') + '/' + MPM.left(u, 'A') + 'sp');
         okM('Rascal at ' + r[1] + ': HP ' + u.maxhp + ' (want ' + r[2] + '), AC ' + u.baseAC + ' (' + r[3] + '), DC ' + u.spellDC + ' (' + r[4] + ') on ' + u.castAb + ', Fire Bolt +' + u.spellAtk + ', known ' + (u.known || []).join() + ', Pinch ' + u.weapon.dice + ', climbs ' + !!u.climbs,
           u.maxhp === r[2] && u.baseAC === r[3] && u.spellDC === r[4] && u.castAb === 'cha' && u.spellAtk === r[4] - 8 && (u.known || []).indexOf('firebolt') >= 0 && u.weapon.dice === '1d6' && u.climbs);
       });
       // Social Sharing: a d8 at 5 to the friends within 30 ft (not the one 50 ft off), spent on the miss it turns
       var BR1 = mkB(['rascal:5', 'denny:5', 'aurdin:5'], ['hobgoblin'], 5), rs1 = sideM(BR1, 'party')[0], dR = sideM(BR1, 'party')[1], aR = sideM(BR1, 'party')[2], hR = sideM(BR1, 'foe')[0];
       spotM(BR1, rs1, 6, 8); spotM(BR1, dR, 8, 8); spotM(BR1, aR, 16, 8); spotM(BR1, hR, 9, 8);
-      RUM.startTurn(rs1); var spR = rs1.feats.specials; runM(MPM.sharing(BR1, rs1));
-      okM('Social Sharing at 5, a bonus action: Denny holds a ' + (dR.conds.inspired && dR.conds.inspired.die) + ' (want d8), Aurdin 50 ft off holds ' + (aR.conds.inspired ? 'one' : 'none') + ', a special spent (' + spR + ' -> ' + rs1.feats.specials + '), the bonus ' + rs1.turn.bonus + ', the action kept ' + rs1.turn.action,
-        dR.conds.inspired && dR.conds.inspired.die === 'd8' && !aR.conds.inspired && rs1.feats.specials === spR - 1 && rs1.turn.bonus === 0 && rs1.turn.action > 0);
+      RUM.startTurn(rs1); var spR = MPM.left(rs1, 'B'); runM(MPM.sharing(BR1, rs1));
+      okM('Social Sharing at 5, a bonus action: Denny holds a ' + (dR.conds.inspired && dR.conds.inspired.die) + ' (want d8), Aurdin 50 ft off holds ' + (aR.conds.inspired ? 'one' : 'none') + ', a bonus special spent (' + spR + ' -> ' + MPM.left(rs1, 'B') + '), the bonus ' + rs1.turn.bonus + ', the action kept' + rs1.turn.action,
+        dR.conds.inspired && dR.conds.inspired.die === 'd8' && !aR.conds.inspired && MPM.left(rs1, 'B') === spR - 1 && rs1.turn.bonus === 0 && rs1.turn.action > 0);
       pin(9, 'max'); RUM.startTurn(dR); var hh0 = hR.hp; runM(BR1.attack(dR, hR, dR.weapon)); D.d = dM;
       okM('the die at work: Denny\'s 9 + 7 on AC 18, the d8 at its top -> ' + (hR.hp < hh0 ? 'a hit' : 'a miss') + ' (' + hh0 + ' -> ' + hR.hp + '), the die ' + (dR.conds.inspired ? 'kept' : 'spent'), hR.hp < hh0 && !dR.conds.inspired);
       // Social Flame: 20 ft round the middle goblin at 5, 5d6 to each that fails
@@ -3692,23 +3714,23 @@
       okM('a fight at 5, Rascal and Denny against two goblins and two hobgoblins: over ' + B10.over() + ' in ' + B10.round + ' rounds, ' + used10 + ' of his specials used, ' + bolts10 + ' Fire Bolts, error ' + (D.lastError ? String(D.lastError).slice(0, 60) : 'none'), !!B10.over() && used10 >= 1 && !D.lastError);
       // his regular blow: with the specials spent and a goblin 30 ft off, the class AI flings Fire Bolt
       var BR5 = mkB(['rascal:5'], ['goblin'], 5), rs5 = sideM(BR5, 'party')[0], g5r = sideM(BR5, 'foe')[0]; spotM(BR5, rs5, 4, 8); spotM(BR5, g5r, 10, 8); g5r.hp = g5r.maxhp = 60;
-      rs5.feats.specials = 0; pin(15, 'max'); RUM.startTurn(rs5); var n5 = (BR5.log || []).length; runM(D.ai.turn(BR5, rs5)); D.d = dM;
+      rs5.feats.specialsB = 0; rs5.feats.specialsA = 0; pin(15, 'max'); RUM.startTurn(rs5); var n5 = (BR5.log || []).length; runM(D.ai.turn(BR5, rs5)); D.d = dM;
       var l5 = logSince(BR5, n5).join(' | ');
       okM('no specials left, a goblin 30 ft off: Rascal ' + (/Fire Bolt/.test(l5) ? 'flings Fire Bolt' : 'does not cast') + ' (' + l5.slice(0, 200) + '), the goblin ' + g5r.maxhp + ' -> ' + g5r.hp, /Fire Bolt/.test(l5) && g5r.hp < g5r.maxhp);
       // GOOSE (10-07): the build (HP as Rascal's, AC 14, his DC and the sling on WIS), the heals by their rules with the dice at their top, the honk, Not Today once a fight,
       // the lifeline's half, his buttons, the roster, a fight run whole and the sling when the specials are spent
       [['goose', 1, 8, 14, 13], ['goose', 4, 23, 14, 14], ['goose', 5, 28, 14, 15], ['goose', 9, 48, 14, 17]].forEach(function (r) {
         var u = D.npc.build('goose:' + r[1], r[1], 'party', { id: 'g' + r[1] });
-        rowsM.push('goose:' + r[1] + ' hp ' + u.maxhp + ' ac ' + u.baseAC + ' dc ' + u.spellDC + ' sling +' + u.weapon.atk + ' ' + u.feats.specials + 'sp');
+        rowsM.push('goose:' + r[1] + ' hp ' + u.maxhp + ' ac ' + u.baseAC + ' dc ' + u.spellDC + ' sling +' + u.weapon.atk + ' ' + MPM.left(u, 'B') + '/' + MPM.left(u, 'A') + 'sp');
         okM('Goose at ' + r[1] + ': HP ' + u.maxhp + ' (want ' + r[2] + '), AC ' + u.baseAC + ' (' + r[3] + '), DC ' + u.spellDC + ' (' + r[4] + '), the sling +' + u.weapon.atk + ' ' + u.weapon.dice + '+' + u.weapon.mod + ' ranged ' + u.weapon.ranged + ' (' + (u.weapon.range || []).join('/') + '), climbs ' + !!u.climbs + ', sheet ' + u.sheet,
           u.maxhp === r[2] && u.baseAC === r[3] && u.spellDC === r[4] && u.weapon.atk === r[4] - 8 && u.weapon.dice === '1d4' && u.weapon.ranged && u.weapon.range[0] === 30 && u.climbs && u.sheet === 'goose_p1');
       });
       // Heart to Heart: a bonus action, 3d6 + 4 + 5 at 5 to a friend 50 ft off (in his 60), the action kept; at 1 the same friend is past his 30 ft
       var BG1 = mkB(['goose:5', 'denny:5'], ['goblin'], 5), gs1 = sideM(BG1, 'party')[0], dG = sideM(BG1, 'party')[1], gG = sideM(BG1, 'foe')[0];
       spotM(BG1, gs1, 4, 8); spotM(BG1, dG, 14, 8); spotM(BG1, gG, 4, 14); dG.hp = 2;
-      pin(15, 'max'); RUM.startTurn(gs1); var spG = gs1.feats.specials; runM(MPM.heart(BG1, gs1, dG)); D.d = dM;
-      okM('Heart to Heart at 5 (dice max): Denny ' + GM.dist(gs1, dG) + ' ft off 2 -> ' + dG.hp + ' (want 29: 3d6 18 + WIS 4 + big heart 5), a special spent (' + spG + ' -> ' + gs1.feats.specials + '), the bonus ' + gs1.turn.bonus + ', the action kept ' + gs1.turn.action + ', reach ' + MPM.heartR(5) + ' ft, at 1 ' + MPM.heartR(1) + ' ft',
-        dG.hp === 29 && gs1.feats.specials === spG - 1 && gs1.turn.bonus === 0 && gs1.turn.action > 0 && MPM.heartR(5) === 60 && MPM.heartR(1) === 30);
+      pin(15, 'max'); RUM.startTurn(gs1); var spG = MPM.left(gs1, 'B'); runM(MPM.heart(BG1, gs1, dG)); D.d = dM;
+      okM('Heart to Heart at 5 (dice max): Denny ' + GM.dist(gs1, dG) + ' ft off 2 -> ' + dG.hp + ' (want 29: 3d6 18 + WIS 4 + big heart 5), a bonus special spent (' + spG + ' -> ' + MPM.left(gs1, 'B') + '), the bonus ' + gs1.turn.bonus + ', the action kept ' + gs1.turn.action + ', reach ' + MPM.heartR(5) + ' ft, at 1 ' + MPM.heartR(1) + ' ft',
+        dG.hp === 29 && MPM.left(gs1, 'B') === spG - 1 && gs1.turn.bonus === 0 && gs1.turn.action > 0 && MPM.heartR(5) === 60 && MPM.heartR(1) === 30);
       dG.hp = 0; dG.ko = true; pin(15, 'max'); RUM.startTurn(gs1); runM(MPM.heart(BG1, gs1, dG)); D.d = dM;
       okM('Heart to Heart on a friend down: Denny up at ' + dG.hp + ' (ko ' + !!dG.ko + ')', dG.hp === 27 && !dG.ko);
       // Group Hug: everyone within 25 ft at 5 (him too, not the friend 40 ft off), 3d4 + 4 + 5 each
@@ -3719,10 +3741,10 @@
         pG[0].hp === 24 && pG[1].hp === 24 && pG[2].hp === 24 && pG[3].hp === 3 && gs2.turn.action === 0);
       // Honk: a free bonus action -- the goblin's next swing at disadvantage, the mark spent by it
       var BG3 = mkB(['goose:2', 'rascal:2'], ['goblin'], 2), gs3 = sideM(BG3, 'party')[0], rG3 = sideM(BG3, 'party')[1], gG3 = sideM(BG3, 'foe')[0];
-      spotM(BG3, gs3, 4, 8); spotM(BG3, rG3, 8, 8); spotM(BG3, gG3, 9, 8); RUM.startTurn(gs3); var spH = gs3.feats.specials; runM(MPM.honk(BG3, gs3, gG3));
+      spotM(BG3, gs3, 4, 8); spotM(BG3, rG3, 8, 8); spotM(BG3, gG3, 9, 8); RUM.startTurn(gs3); var spH = MPM.left(gs3); runM(MPM.honk(BG3, gs3, gG3));
       var eH = RUM.edges(gG3, rG3, MPM.meleeOf(gG3).atk);
-      okM('Honk at 2: the goblin marked ' + !!gG3.conds.mocked + ', its swing at Rascal ' + (eH.dis.join(', ') || 'no disadvantage') + ', no special spent (' + spH + ' -> ' + gs3.feats.specials + '), the bonus ' + gs3.turn.bonus + ', the action kept ' + gs3.turn.action,
-        !!gG3.conds.mocked && eH.dis.indexOf('mocked') >= 0 && gs3.feats.specials === spH && gs3.turn.bonus === 0 && gs3.turn.action > 0);
+      okM('Honk at 2: the goblin marked ' + !!gG3.conds.mocked + ', its swing at Rascal ' + (eH.dis.join(', ') || 'no disadvantage') + ', no special spent (' + spH + ' -> ' + MPM.left(gs3) + '), the bonus ' + gs3.turn.bonus + ', the action kept ' + gs3.turn.action,
+        !!gG3.conds.mocked && eH.dis.indexOf('mocked') >= 0 && MPM.left(gs3) === spH && gs3.turn.bonus === 0 && gs3.turn.action > 0);
       // Fountain: poison and blindness ended, 1d8 + 5 at 5
       var BG4 = mkB(['goose:5', 'denny:5', 'rascal:5'], ['goblin'], 5), pG4 = sideM(BG4, 'party'), gs4 = pG4[0]; spotM(BG4, gs4, 6, 8); spotM(BG4, pG4[1], 8, 8); spotM(BG4, pG4[2], 6, 11); spotM(BG4, sideM(BG4, 'foe')[0], 6, 2);
       pG4[1].conds.poisoned = {}; pG4[2].conds.blinded = {}; pG4[1].hp = 5; pG4[2].hp = 5; pin(15, 'max'); RUM.startTurn(gs4); runM(MPM.fountain(BG4, gs4)); D.d = dM;
@@ -3738,7 +3760,7 @@
       spotM(BG6, gs6, 4, 8); spotM(BG6, rG6, 7, 8); spotM(BG6, dG6, 5, 10); spotM(BG6, sideM(BG6, 'foe')[0], 12, 8);
       RUM.startTurn(gs6); runM(MPM.lifeline(BG6, gs6, rG6, dG6)); var r6 = rG6.hp, d6h = dG6.hp; BG6.hurt(rG6, 11, 'slashing', {});
       var tookR = r6 - rG6.hp, tookD = d6h - dG6.hp; dG6.hp = 1; BG6.hurt(rG6, 10, 'slashing', {}); var cut6 = !rG6.conds.lifeline;
-      okM('Lifeline at 7: 11 on Rascal -> Rascal ' + tookR + ', Denny ' + tookD + ' (want 6 and 5); Denny at 1 takes the next half and drops: the tie lets go ' + cut6 + ', a special spent (' + gs6.feats.specials + ' left)', tookR === 6 && tookD === 5 && cut6 && gs6.feats.specials === 3);
+      okM('Lifeline at 7: 11 on Rascal -> Rascal ' + tookR + ', Denny ' + tookD + ' (want 6 and 5); Denny at 1 takes the next half and drops: the tie lets go ' + cut6 + ', an action special spent (' + MPM.left(gs6, 'A') + ' left of 4)', tookR === 6 && tookD === 5 && cut6 && MPM.left(gs6, 'A') === 3);
       // his buttons, the roster, a fight run whole, the sling
       var BG7 = mkB(['goose:5', 'denny:5'], ['goblin'], 5), gs7 = sideM(BG7, 'party')[0], dG7 = sideM(BG7, 'party')[1]; gs7.guest = false; gs7.classAI = false; spotM(BG7, gs7, 6, 8); spotM(BG7, dG7, 8, 8); spotM(BG7, sideM(BG7, 'foe')[0], 9, 8); RUM.startTurn(gs7);
       dG7.hp = 10; var c7 = FM.commands(BG7, gs7).filter(function (c) { return /^mp-/.test(c.id); });
@@ -3750,7 +3772,7 @@
       var heals11 = (B11.log || []).filter(function (l) { return /HEART TO HEART!|GROUP HUG!|FOUNTAIN!/.test(l); }).length, slings11 = (B11.log || []).filter(function (l) { return /Goose > .*Sling/.test(l); }).length;
       okM('a fight at 5, Goose and Denny against two goblins and two hobgoblins: over ' + B11.over() + ' in ' + B11.round + ' rounds, ' + heals11 + ' heals, ' + slings11 + ' sling shots, error ' + (D.lastError ? String(D.lastError).slice(0, 60) : 'none'), !!B11.over() && !D.lastError && heals11 + slings11 >= 1);
       var BG8 = mkB(['goose:5'], ['goblin'], 5), gs8 = sideM(BG8, 'party')[0], gG8 = sideM(BG8, 'foe')[0]; spotM(BG8, gs8, 4, 8); spotM(BG8, gG8, 10, 8); gG8.hp = gG8.maxhp = 60;
-      gs8.feats.specials = 0; pin(15, 'max'); RUM.startTurn(gs8); var n8 = (BG8.log || []).length; runM(D.ai.turn(BG8, gs8)); D.d = dM;
+      gs8.feats.specialsB = 0; gs8.feats.specialsA = 0; pin(15, 'max'); RUM.startTurn(gs8); var n8 = (BG8.log || []).length; runM(D.ai.turn(BG8, gs8)); D.d = dM;
       var l8 = logSince(BG8, n8).join(' | ');
       okM('no specials left, a goblin 30 ft off: Goose ' + (/Sling/.test(l8) ? 'slings' : 'does not sling') + ' (' + l8.slice(0, 160) + '), the goblin ' + gG8.maxhp + ' -> ' + gG8.hp, /Sling/.test(l8) && gG8.hp < gG8.maxhp);
       // a fight that ends inside a swing leaves no swinger behind (10-07, found by Goose's checks): an attack dropped mid-blow, then the next battle's Hivemind heat still
