@@ -530,7 +530,7 @@
     // the skylight broken (a defend fight, 10-04 night): the Edifice is breached, and it is lost
     if (this.units.some(function (u) { return u.object && u.breachLoses && (u.dead || u.hp <= 0); })) return 'lost';
     // (a foe turned wholly to stone -- Flesh to Stone's third failed save -- holds no fight open: it had stalled one for good, 10-01)
-    if (!this.alive('foe').filter(function (u) { return !u.summon && !u.dominated && !(u.conds.stoning && u.conds.stoning.done); }).length && !this.units.some(function (u) { return u.side === 'foe' && u.regenDown && !u.dead; }) && !(this.late || []).some(function (l) { return l.foes && l.foes.length && l.round !== Infinity; })) return 'won'; // (a troll down and knitting holds it open: 10-05) (so does a late wave of foes still to come: Battle.lateOut -- not one held for a call that never came, the Skylights' spiders, 10-05 evening)
+    if (!this.alive('foe').filter(function (u) { return !u.summon && !u.dominated && !u.conds.petrified && !(u.conds.stoning && u.conds.stoning.done); }).length && !this.units.some(function (u) { return u.side === 'foe' && u.regenDown && !u.dead; }) && !(this.late || []).some(function (l) { return l.foes && l.foes.length && l.round !== Infinity; })) return 'won'; // (a troll down and knitting holds it open: 10-05) (so does a late wave of foes still to come: Battle.lateOut -- not one held for a call that never came, the Skylights' spiders, 10-05 evening)
     // one who yields when he is beaten (the cleric at Deepholm's door): at half his hit points, standing, it is over (the
     // 8-bit battle's `yields`: a blow that drops him from above half to nothing kills him instead)
     if (this.units.some(function (u) { return u.side === 'foe' && u.yields && u.hp > 0 && u.hp <= u.maxhp / 2; })) return 'yielded';
@@ -545,7 +545,7 @@
     // (a familiar left alone keeps no fight going, and one sent to its pocket of the world got nobody out)
     // (nor do summoned creatures: they go when their caster's concentration does)
     // (nor a hero turned to stone -- Flesh to Stone's third failed save, the foe side's test above: it never acts again; a party all stone is a lost fight, 10-01)
-    if (!this.alive('party').filter(function (u) { return !u.object && !u.familiar && !u.summon && !u.ally && !u.dominated && !u.loose && !(u.conds && u.conds.stoning && u.conds.stoning.done); }).length) return this.reserve.length || (this.late || []).some(function (l) { return l.party; }) ? null : this.units.some(function (u) { return u.left && !u.familiar && !u.summon; }) ? 'escaped' : 'lost'; // (the party still behind the doors is no lost fight: Battle.lateOut, 10-05)
+    if (!this.alive('party').filter(function (u) { return !u.object && !u.familiar && !u.summon && !u.ally && !u.dominated && !u.loose && !(u.conds && (u.conds.petrified || (u.conds.stoning && u.conds.stoning.done))); }).length) return this.reserve.length || (this.late || []).some(function (l) { return l.party; }) ? null : this.units.some(function (u) { return u.left && !u.familiar && !u.summon; }) ? 'escaped' : 'lost'; // (the party still behind the doors is no lost fight: Battle.lateOut, 10-05)
     return null;
   };
   // the rest of the party out of the inn (the lone investigator's round-two help): onto the free squares nearest the fight's
@@ -2225,6 +2225,14 @@
       if (!ks.ok) { if (offSq) yield* this.knockOff(tgt, offSq, att); if (!tgt.noProne && !RU.immuneTo(tgt, 'prone')) tgt.conds.prone = true; D.sfx('hit'); }
       yield 24;
     }
+    // a blow that begins the stone (atk.petrify: { dc } -- the cockatrice's bite, SRD 5.1: "against being magically petrified ... begins to turn to stone and is restrained";
+    // the save again at the end of its next turn: js/grimoire.js M.stoneBegin, the grid's rules §2.7, 10-08)
+    if (atk.petrify && !tgt.dead && tgt.hp > 0 && !tgt.conds.petrified && !tgt.conds.stoning && !RU.immuneTo(tgt, 'petrified')) {
+      var pt = RU.save(tgt, 'con', atk.petrify.dc, false, 'petrified');
+      this.card(['{r}' + nameOf(tgt) + '{/}: CON save  ' + RU.saveText(pt) + ' vs DC ' + pt.dc + '  ' + (pt.ok ? '{n}SAVED{/}' : '{o}BEGINS TO TURN TO STONE{/} {g}(restrained; the save again at the end of its next turn){/}')]);
+      if (!pt.ok) D.magic.stoneBegin(this, tgt, { dc: atk.petrify.dc, by: att.id });
+      yield 30;
+    }
     // the chuul's tentacles on one it holds: CON or poisoned, and paralyzed while the poison lasts (a CON save each turn)
     if (atk.paralyze && !tgt.dead && tgt.hp > 0 && !tgt.conds.paralyzed && !RU.immuneTo(tgt, 'paralyzed') && !RU.immuneTo(tgt, 'poisoned')) {
       var ps = RU.save(tgt, 'con', atk.paralyze.dc, false, 'poisoned'); // (the chuul's poison: paralyzed while it lasts -- the save is against being poisoned)
@@ -2575,6 +2583,8 @@
       var vic = (u.holding && u.holding[0]) || u.master, half = Math.floor(n / 2);
       if (vic && !vic.dead && vic.hp > 0) { n -= half; FX.float('transfer', vic, D.PAL.ramps.violet[4]); this.hurt(vic, half, type); }
     }
+    // a statue (petrified, SRD 5.1: "resistance to all damage", "immune to poison" -- js/grimoire.js M.petrify, 10-08)
+    if (u.conds.petrified) { if (type === 'poison') { FX.float('immune: poison', u, D.PAL.ramps.silver[5]); return; } if (!resisted) { n = Math.floor(n / 2); resisted = true; FX.float('stone', u, D.PAL.ramps.silver[5]); } if (n <= 0) return; }
     // Stoneskin (SRD 5.1: "resistance to nonmagical bludgeoning, piercing, and slashing damage" -- 10-03: a magic blade or a spell's hail lands whole)
     if (!resisted && u.conds.stoneskin && /bludgeoning|piercing|slashing/.test(type || '') && !(src && src.magic)) { n = Math.floor(n / 2); resisted = true; FX.float('stoneskin', u, D.PAL.ramps.silver[5]); }
     // the class NPCs' wards (09-28, js/grimoire.js): Protection from Energy (one element halved), Protection from Poison, Rage (blades and

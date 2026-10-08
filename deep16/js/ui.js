@@ -1360,6 +1360,7 @@
         if ((B.darks || []).length && D.magic.inDark(B, u)) o.alpha = u.side === 'foe' ? 0.33 : 0.5; // (inside the darkness: a shape, if that -- 0.33, not 0.2: 10-01, Griz, "if that's always true it's fine 20% - if not let's bump to 33%" -- the dashed ring that marks one the hero can't see shows only on a hero's own turn, and the darkmantle beside Aurdin looked dead)
         // in the dark where no one of the party sees (torchdark 09-28): the player sees it still, grey and faint; by darkvision, grey
         if (B.dark && u.side === 'foe' && !down && !u.flash) { var ps = D.light.partySees(B, u); if (ps < 2) { o.alpha = Math.min(o.alpha == null ? 1 : o.alpha, ps === 1 ? 0.85 : 0.6); o.tint = R('stone', 3); o.tintAlpha = ps === 1 ? 0.3 : 0.5; } }
+        if (u.conds.petrified && !down) { anim = 'idle'; o.frame = 0; o.once = false; o.stone = true; } // (a statue: its first idle frame, still, in grey -- js/grimoire.js M.petrify, sprites.js, 10-08)
         var lt = D.looks && (!down || oilDown) && D.looks.tint(u, B); if (lt) { o.tint = lt[0]; o.tintAlpha = lt[1]; } // (stoneskin, barkskin, rage: js/looks.js)
         if (u.flash > 0) { var fe = u.flashEl && FX.EL && FX.EL[u.flashEl]; o.tint = fe ? fe.c[1] : R('bone', 2); o.tintAlpha = fe ? 0.55 : 0.85; } // (a blow of an element flashes its colour: js/looks.js)
         else if (u.conds.faerie && !down && !u.ethereal) { o.tint = R('violet', 5); o.tintAlpha = 0.25 + 0.15 * Math.sin(B.t / 7); }
@@ -2069,7 +2070,8 @@
     // stay out: noReact, metalEdge, recoiling, commanded, blindedBy, lethargic, frenzy (raging says it), turned and feared (frightened says it), killer, banished
     // (ethereal says it), the one-turn marks (acid, frosted, glassHand), guidance and resistance (a d4 on one roll), dangerSense (every barbarian's)
     var q = w.conds;
-    if (q.stoning) c.push(q.stoning.done ? '{o}stone{/}' : '{o}turning to stone ' + q.stoning.bad + '/3{/}');
+    if (q.stoning) c.push(q.stoning.done || q.petrified ? '{o}stone{/}' : q.stoning.once ? '{o}turning to stone{/}' : '{o}turning to stone ' + q.stoning.bad + '/3{/}');
+    if (q.exhaustion) c.push('{o}exhausted ' + q.exhaustion.n + '{/}'); // (js/rules.js RU.exhaust)
     if (q.frightened) c.push('{p}frightened{/}');
     if (q.hypnotized) c.push('{p}entranced{/}'); else if (q.charmed) c.push('{p}charmed{/}');
     if (q.laughing) c.push('{p}laughing{/}');

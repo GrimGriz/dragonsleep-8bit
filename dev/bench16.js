@@ -1526,6 +1526,52 @@
       }
       var l1 = domR8(7, [4, 15]), l1b = domR8(9, [4, 15, 10]);
       okR8('§2c Dominate Person\'s save at advantage shows both dice: ' + l1 + '; with Indomitable: ' + l1b, /WIS d20 \[4,15\]>15 /.test(l1) && /WIS d20 \[4,15\]>15, again 10 /.test(l1b));
+      // §2.7 PETRIFIED by the SRD: Flesh to Stone's third failed save leaves a statue on its square (it was an ethereal ghost, off the board): out of the fight, on the field
+      var B3 = mkR8('?npc=wizard:9&lvl=9&vs=fighter:7,cleric:9'), w3 = sideR8(B3, 'foe')[0], f3 = sideR8(B3, 'party')[0], g3 = sideR8(B3, 'party')[1];
+      f3.hp = f3.maxhp = 200; f3.conds = {}; w3.x = f3.x; w3.y = Math.max(0, f3.y - 6); D.rules.startTurn(w3); w3.slots[6] = 2; B3.active = w3;
+      D.d = function (n) { return n === 20 ? 1 : n; };
+      try { runR8(MR8.cast(B3, w3, 'fleshtostone', 6, f3)); for (var k3 = 0; k3 < 3; k3++) { B3.active = f3; MR8.onEnd(B3, f3); } } finally { D.d = d0R8; }
+      okR8('§2.7 Flesh to Stone, three failed: petrified ' + !!f3.conds.petrified + ', on the field ' + D.grid.present(f3) + ' (not ethereal ' + !f3.ethereal + '), out of the fight ' + !D.grid.standing(f3) + ', no turn ' + !D.rules.canAct(f3),
+        !!f3.conds.petrified && D.grid.present(f3) && !f3.ethereal && !D.grid.standing(f3) && !D.rules.canAct(f3));
+      var sl3 = { name: 'Longsword', atk: 5, dice: '1d8', mod: 3, type: 'slashing', reach: 5 }, e3 = D.rules.edges(w3, f3, sl3), h3 = f3.hp; B3.hurt(f3, 10, 'slashing'); var cut3 = h3 - f3.hp; h3 = f3.hp; B3.hurt(f3, 10, 'poison'); var poi3 = h3 - f3.hp;
+      var sv3 = D.rules.save(f3, 'dex', 5), sv3s = D.rules.save(f3, 'str', 5);
+      okR8('§2.7 the statue: a blow at it with advantage (' + e3.adv.join(', ') + '), 10 slashing does ' + cut3 + ', 10 poison ' + poi3 + ', a DEX save auto-fails ' + (!!sv3.auto && !sv3.ok) + ', STR ' + (!!sv3s.auto && !sv3s.ok) + ', proof against poisoned ' + D.rules.immuneTo(f3, 'poisoned'),
+        e3.adv.indexOf('stone') >= 0 && cut3 === 5 && poi3 === 0 && sv3.auto && !sv3.ok && sv3s.auto && !sv3s.ok && D.rules.immuneTo(f3, 'poisoned'));
+      g3.hp = 0; g3.ko = true; var ov3 = B3.over(); g3.hp = g3.maxhp = 60; g3.ko = false;
+      okR8('§2.7 one of ours stone and the other down: the fight is ' + ov3, ov3 === 'lost');
+      var c3 = g3; c3.x = f3.x + 1; c3.y = f3.y; D.rules.startTurn(c3); c3.slots[4] = 2; B3.active = c3;
+      var tok3 = MR8.targetOK(B3, c3, MR8.geo('greaterrestoration'), f3); runR8(MR8.cast(B3, c3, 'greaterrestoration', 5, f3));
+      okR8('§2.7 Greater Restoration reaches the statue ' + tok3 + ', and it is flesh again ' + (!f3.conds.petrified && D.grid.standing(f3)), tok3 && !f3.conds.petrified && D.grid.standing(f3));
+      // §2.7 the monsters' stoning (M.stoneBegin, atk.petrify -- the cockatrice's bite): a failed CON save, restrained and turning; one save at the end of its NEXT turn
+      function biteR8(qs, ownTurn) {
+        var Bx = mkR8('?npc=goblin&lvl=3&vs=fighter:3'), gx = sideR8(Bx, 'foe')[0], fx = sideR8(Bx, 'party')[0]; fx.hp = fx.maxhp = 200; fx.conds = {}; gx.x = fx.x; gx.y = fx.y - 1;
+        var bite = { name: 'Bite', atk: 3, dice: '1d4', mod: 1, type: 'piercing', reach: 5, petrify: { dc: 11 } }, q = qs.slice(), out = {};
+        D.d = function (n) { return n === 20 ? (q.length ? q.shift() : 10) : 1; };
+        try {
+          if (ownTurn) { Bx.active = fx; D.magic.stoneBegin(Bx, fx, { dc: 11, by: gx.id }); } else { D.rules.startTurn(gx); Bx.active = gx; runR8(Bx.attack(gx, fx, bite)); }
+          out.began = !!(fx.conds.stoning && fx.conds.restrained && fx.conds.restrained.kind === 'stone'); Bx.active = fx; MR8.onEnd(Bx, fx);
+          out.after1 = fx.conds.petrified ? 'stone' : fx.conds.stoning ? 'turning' : 'free'; Bx.active = fx; MR8.onEnd(Bx, fx);
+          out.after2 = fx.conds.petrified ? 'stone' : fx.conds.stoning ? 'turning' : 'free';
+        } finally { D.d = d0R8; }
+        return out;
+      }
+      var s4 = biteR8([18, 2, 2]), s5 = biteR8([18, 2, 15]), s6 = biteR8([2, 2], true);
+      okR8('§2.7 the stoning bite, its save failed: turning ' + s4.began + '; its next turn\'s end failed: ' + s4.after1 + '; saved instead: ' + s5.after1 + '; begun on its own turn: ' + s6.after1 + ' after that turn, ' + s6.after2 + ' after the next',
+        s4.began && s4.after1 === 'stone' && s5.after1 === 'free' && s6.after1 === 'turning' && s6.after2 === 'stone');
+      // §2.7 EXHAUSTION's six levels (RU.exhaust): checks, speed, attacks and saves, the maximum, no feet, dead; a skeleton is proof against it
+      var B7 = mkR8('?npc=skeleton&lvl=3&vs=fighter:3'), f7 = sideR8(B7, 'party')[0], k7 = sideR8(B7, 'foe')[0], lv = [];
+      f7.hp = f7.maxhp = 40; f7.speed = 30;
+      for (var x7 = 1; x7 <= 6; x7++) {
+        D.rules.exhaust(B7, f7, 1, 'the bench'); D.rules.startTurn(f7);
+        D.d = function (n) { return n === 20 ? 10 : n; }; var sv7 = D.rules.save(f7, 'wis', 5); D.d = d0R8;
+        lv.push(x7 + ': check ' + (D.rules.checkEdges(f7, 'str').dis.indexOf('exhaustion') >= 0 ? 'dis' : '-') + ', move ' + f7.turn.move + ', attack ' + (D.rules.edges(f7, k7, sl3).dis.indexOf('exhaustion') >= 0 ? 'dis' : '-') + ', save dice ' + sv7.rolls.length + ', max ' + f7.maxhp + (f7.dead ? ', DEAD' : ''));
+      }
+      var ok7 = /^1: check dis, move 30, attack -, save dice 1, max 40$/.test(lv[0]) && /^2: check dis, move 15, attack -, save dice 1, max 40$/.test(lv[1]) && /^3: check dis, move 15, attack dis, save dice 2, max 40$/.test(lv[2]) && /^4: [^,]*, move 15, attack dis, save dice 2, max 20$/.test(lv[3]) && /^5: [^,]*, move 0,/.test(lv[4]) && /DEAD$/.test(lv[5]);
+      okR8('§2.7 exhaustion by level -- ' + lv.join(' / ') + '; the skeleton proof against it ' + (D.rules.exhaust(B7, k7, 1) === 0 && !k7.conds.exhaustion), ok7 && !k7.conds.exhaustion);
+      // §2.7 the Berserker's Frenzy: its rage burns out (ten of its turns' starts), one level of exhaustion
+      var B8 = mkR8('?npc=goblin&lvl=3&vs=barbarian:3'), b8 = sideR8(B8, 'party')[0]; D.rules.startTurn(b8); B8.active = b8; D.features.rage(B8, b8); var fr8 = !!b8.conds.frenzy;
+      for (var t8 = 0; t8 < 10; t8++) MR8.tick(B8, b8, 'start');
+      okR8('§2.7 the Berserker (' + b8.subclass + ') frenzied ' + fr8 + '; the rage out ' + !b8.conds.raging + ': exhaustion ' + D.rules.exhaustion(b8), fr8 && !b8.conds.raging && D.rules.exhaustion(b8) === 1);
     } catch (eR8) { repR8.errors.push(String(eR8 && eR8.stack || eR8).slice(0, 900)); D.d = d0R8; }
     if (errs.length) repR8.errors = repR8.errors.concat(errs);
     var preR8 = document.createElement('pre'); preR8.id = 'out'; preR8.textContent = 'BENCH16 ' + JSON.stringify(repR8);

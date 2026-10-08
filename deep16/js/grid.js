@@ -16,7 +16,7 @@
   };
   // on the field: holds its space and can be seen (a hero who is down still lies there; an ethereal spider is elsewhere)
   G.present = function (u) { return !u.dead && !u.ethereal; };
-  G.standing = function (u) { return G.present(u) && (u.hp > 0 || !!u.regenDown); }; // (a troll down at 0 and knitting is still on the field to be struck -- fire or acid keeps it down: battle.js hurt, 10-05. It cannot act: RU.canAct reads its hit points)
+  G.standing = function (u) { return G.present(u) && (u.hp > 0 || !!u.regenDown) && !(u.conds && u.conds.petrified); }; // (a statue -- petrified, js/grimoire.js M.petrify, 10-08 -- holds its square but is out of the fight) // (a troll down at 0 and knitting is still on the field to be struck -- fire or acid keeps it down: battle.js hurt, 10-05. It cannot act: RU.canAct reads its hit points)
   // the creature on a square: the one standing on its ground first, else one hanging over it. `o` (optional, G.bodyAt): the asker's own body -- then a hanger whose height does not
   // meet the asker's is no occupant (10-05, Griz: "see about being under climbing heroes (and a giant falling on someone)" -- the SRD 5.1 gives a creature a space at its height, so a
   // square under one clinging or hanging high enough is free to stand on and pass under, and a hanger hangs on over one standing there; what a fall onto it does: battle.js landOn)

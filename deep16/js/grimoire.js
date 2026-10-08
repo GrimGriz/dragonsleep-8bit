@@ -1671,7 +1671,8 @@
     if (k === 'stone') {
       sc = byId(c.stoning.by); delete c.stoning;
       if (c.restrained && c.restrained.kind === 'stone') delete c.restrained;
-      if (c.banished && c.banished.stone) { delete c.banished; t.ethereal = false; } // (turned all the way to stone, and back)
+      if (c.petrified) { delete c.petrified; t.anim = 'idle'; t.animT = B.t; } // (turned all the way to stone, and back: M.petrify)
+      if (c.banished && c.banished.stone) { delete c.banished; t.ethereal = false; } // (the old record, from before 10-08)
       if (sc && sc.conc && sc.conc.id === 'fleshtostone') M.endConc(B, sc, 'it was undone');
       return 'the stone';
     }
@@ -1699,7 +1700,7 @@
   E.greaterrestoration = {
     summary: function () { return 'touch · ends one effect, the worst on them: the stoning Flesh to Stone began, a charm, a curse, a drain on strength or mind (Enfeeblement, Feeblemind), or a cut to the HP maximum (Harm)'; },
     cast: function* (B, u, t, slot, head) { var k = grAilment(t), what = k ? grEnd(B, t, k) : ''; FX.sparkle(t, 'gold', 16); B.card([head + ' on ' + t.name + ': ' + (what ? '{n}' + what + ' ended.{/}' : 'nothing to end.')]); yield 20; },
-    ai: function (B, u, e, slot, fs, allies) { var best = null; allies.forEach(function (w) { var k = G.standing(w) && !w.dominated && G.dist(u, w) <= 5 + u.turn.move ? grAilment(w) : ''; if (!k) return; var sc = TX().dpr(w) * ({ stone: 4, charm: 2.5, curse: 2, drain: 2, hpmax: 0.4 })[k] + 1; if (!best || sc > best.score) best = { score: sc, t: w }; }); if (!best) return null; var t = best.t, from = G.dist(u, t) > 5 ? D.ai.approach(u, t, G.reach(u, u.turn.move), 5) : null; return { score: best.score, t: t, from: from }; }
+    ai: function (B, u, e, slot, fs, allies) { var best = null; allies.forEach(function (w) { var k = (G.standing(w) || w.conds.petrified) && !w.dominated && G.dist(u, w) <= 5 + u.turn.move ? grAilment(w) : ''; if (!k) return; var sc = TX().dpr(w) * ({ stone: 4, charm: 2.5, curse: 2, drain: 2, hpmax: 0.4 })[k] + 1; if (!best || sc > best.score) best = { score: sc, t: w }; }); if (!best) return null; var t = best.t, from = G.dist(u, t) > 5 ? D.ai.approach(u, t, G.reach(u, u.turn.move), 5) : null; return { score: best.score, t: t, from: from }; }
   };
   E.insectplague = {
     summary: function (e) { return '20-ft sphere within 300 ft · swarming locusts: difficult; CON or ' + more('4d10', Math.max(0, e.slot - 5)) + ' piercing (half) as it forms, entering, or ending a turn there (concentration)'; },
@@ -2090,7 +2091,34 @@
     },
     ai: function (B, u, e, slot, fs) { var best = null, saved = (u.conc && u.conc.id === 'eyebite' && u.conc.saved) || {}; fs.forEach(function (t) { if (!M.targetOK(B, u, Object.assign({}, e.g, { side: 'foe' }), t) || t.conds.asleep || saved[t.id]) return; var sc = TX().pFail(t, 'wis', u.spellDC) * TX().dpr(t) * 1.6 * (e.g.again ? 1 : 1.8); if (!best || sc > best.score) best = { score: sc, t: t, keep: 8 }; }); return best; }
   };
-  // Flesh to Stone (SRD 5.1): CON or restrained; each of its turns' ends a CON save -- three failed, stone (out of the fight); three saved, free
+  // Flesh to Stone (SRD 5.1): CON or restrained; each of its turns' ends a CON save -- three failed, stone (petrified, M.petrify: out of the fight); three saved, free
+  // PETRIFIED (SRD 5.1, the condition -- the grid's rules §2.7, 10-08, the lanes window's order: the rules before the monsters that lay them, the basilisk among the bestiary's
+  // eleven): turned to stone where it stands, a statue on its square (no longer the ethereal ghost Flesh to Stone left): incapacitated, no move, unaware; attacks at it with
+  // advantage; STR and DEX saves failed; resistance to all damage; immune to poison and disease (js/rules.js, battle.js hurt). Out of the fight (grid.js G.standing): no
+  // one's target, and a side all stone has lost. Until Greater Restoration. `o.by` the one who laid it
+  M.petrify = function (B, u, o) {
+    o = o || {};
+    if (RU.immuneTo(u, 'petrified')) return false;
+    var st = u.conds.stoning; if (st) st.done = true; else u.conds.stoning = { by: o.by || null, done: true, dc: 0, bad: 0, good: 0 };
+    if (u.conds.restrained && u.conds.restrained.kind === 'stone') delete u.conds.restrained;
+    u.conds.petrified = { by: o.by || null };
+    delete u.conds.dodge; delete u.conds.hidden;
+    if (u.conc) M.endConc(B, u, 'turned to stone'); // (incapacitated: concentration ends, SRD 5.1)
+    if (u.ready) delete u.ready;
+    u.anim = 'idle'; u.animT = B.t;
+    B.card(['{o}' + Nm(B, u) + ' is stone.{/}'], 300);
+    return true;
+  };
+  // the monsters' stoning (SRD 5.1: the basilisk's Petrifying Gaze, the cockatrice's bite, the gorgon's breath, the medusa's gaze): a failed CON save, and it "begins to turn to stone
+  // and is restrained"; the save again at the end of its NEXT turn -- a success ends it, a failure petrifies (`once`: one save, M.onEnd). `o`: { dc, by }. A failure by 5 or more
+  // that petrifies at once (the medusa) is the caller's: M.petrify
+  M.stoneBegin = function (B, u, o) {
+    if (RU.immuneTo(u, 'petrified') || u.conds.petrified || u.conds.stoning) return false;
+    u.conds.restrained = { dc: 99, by: o.by || null, kind: 'stone' };
+    u.conds.stoning = { dc: o.dc, by: o.by || null, bad: 0, good: 0, once: true, skip: B.active === u };
+    FX.sparkle(u, 'stone', 12);
+    return true;
+  };
   E.fleshtostone = {
     summary: function () { return 'a creature within 60 ft · CON or restrained, turning to stone: three failed saves and it is stone (concentration)'; },
     cast: function* (B, u, t, slot, head, x) { var hit = false; yield* saveAll(B, u, [t], 'con', x.dc, null, '', false, head + ' on ' + nm(B, t), { skip: function (w) { return RU.immuneTo(w, 'petrified') ? 'stone will not take it' : ''; }, failText: 'stiffening', cond: function (w) { w.conds.restrained = { dc: 99, by: u.id, kind: 'stone' }; w.conds.stoning = { dc: x.dc, by: u.id, bad: 0, good: 0 }; hit = true; } }); if (hit) M.concentrate(B, u, 'fleshtostone', 'Flesh to Stone', function () { if (t.conds.stoning && !t.conds.stoning.done) { delete t.conds.stoning; if (t.conds.restrained && t.conds.restrained.kind === 'stone') delete t.conds.restrained; } }); },
@@ -2586,7 +2614,16 @@
     onEndE(B, u);
     var st = u.conds.stoning;
     // (the Globe of Invulnerability: nothing creeps up the creature in there)
-    if (st && !st.done && u.hp > 0 && !M.zoneShut(B, st, u, 'against the stone')) { var sv = RU.save(u, 'con', st.dc); if (sv.ok) st.good++; else st.bad++; B.card([Nm(B, u) + ' against the stone: CON ' + RU.saveText(sv) + '  ' + st.bad + ' failed, ' + st.good + ' saved'], 200); if (st.good >= 3) { delete u.conds.stoning; if (u.conds.restrained && u.conds.restrained.kind === 'stone') delete u.conds.restrained; } else if (st.bad >= 3) { st.done = true; u.conds.banished = { by: st.by, stone: true }; u.ethereal = true; B.card(['{o}' + Nm(B, u) + ' is stone.{/}'], 300); } }
+    // (a monster's stoning -- `once`, M.stoneBegin: the basilisk's gaze, the cockatrice's bite -- is one save at the end of its next turn; Flesh to Stone's is three and three)
+    if (st && !st.done && u.hp > 0 && !M.zoneShut(B, st, u, 'against the stone')) {
+      if (st.once && st.skip) st.skip = false; // (begun in its own turn: the save is at the end of the next one -- M.stoneBegin)
+      else {
+        var sv = RU.save(u, 'con', st.dc); if (sv.ok) st.good++; else st.bad++;
+        B.card([Nm(B, u) + ' against the stone: CON ' + RU.saveText(sv) + '  ' + (st.once ? (sv.ok ? '{n}the stone lets go{/}' : '{o}it takes hold{/}') : st.bad + ' failed, ' + st.good + ' saved')], 200);
+        if (st.good >= (st.once ? 1 : 3)) { delete u.conds.stoning; if (u.conds.restrained && u.conds.restrained.kind === 'stone') delete u.conds.restrained; }
+        else if (st.bad >= (st.once ? 1 : 3)) M.petrify(B, u, { by: st.by });
+      }
+    }
     var ps = u.conds.stunned; if (ps && ps.pws && u.hp > 0) { var s4 = RU.save(u, 'con', ps.dc); if (s4.ok) { delete u.conds.stunned; B.card([Nm(B, u) + ' shakes off the word.'], 200); } }
     var mz = u.conds.banished; if (mz && mz.maze) { var r = D.d(20) + D.mod(u.abil.int); if (r >= 20) { delete u.conds.banished; u.ethereal = false; B.card(['{p}' + Nm(B, u) + ' finds the way out of the maze.{/}'], 240); } }
   };

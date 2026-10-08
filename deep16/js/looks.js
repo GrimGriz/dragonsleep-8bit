@@ -677,7 +677,7 @@
   LK.tint = function (u, B) {
     var c = u.conds;
     if (u.hp <= 0) return c.oiled && !u.dead ? OIL_TINT(B) : null; // (down at 0: ui.js asks only for the oil -- 10-06)
-    if (c.stoneskin || c.stoning) return [P('stone', 5), 0.35];
+    if ((c.stoneskin || c.stoning) && !c.petrified) return [P('stone', 5), 0.35]; // (a statue is drawn grey, its own shading: js/ui.js o.stone, 10-08)
     if (c.barkskin) return [P('leather', 3), 0.3];
     // (a barbarian's Rage is a condition; a foe that rages when hurt -- rageOnHit, js/battle.js -- is a flag on the creature itself)
     if (c.raging || u.raging) return [P('red', 3), 0.12 + 0.08 * Math.sin(B.t / 6)];

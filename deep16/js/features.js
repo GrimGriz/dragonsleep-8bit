@@ -30,7 +30,7 @@
   RU.saveAdv = function (u, ab) { return (ab === 'str' && !!u.conds.raging) || (ab === 'dex' && u.cls === 'barbarian' && u.lvl >= 2 && !u.conds.blinded); };
   // (the rage begun: the AI's first thing, the player's RAGE -- F.commands below)
   // the rage as a condition: the damage, a minute, and what ends with it (Mindless Rage's suspended fear and charm come back: F.mindlessEnd)
-  F.rageCond = function (u) { return { dmg: u.lvl >= 16 ? 4 : u.lvl >= 9 ? 3 : 2, till: { who: u.id, at: 'start', n: 10 }, endText: '{who}\'s rage burns out.', onEnd: function (w) { F.mindlessEnd(w); } }; };
+  F.rageCond = function (u) { return { dmg: u.lvl >= 16 ? 4 : u.lvl >= 9 ? 3 : 2, till: { who: u.id, at: 'start', n: 10 }, endText: '{who}\'s rage burns out.', onEnd: function (w) { F.mindlessEnd(w); if (w.conds.frenzy) { delete w.conds.frenzy; if (!w.dead) RU.exhaust(D.battle, w, 1, 'the frenzy spent'); } } }; }; // (the Frenzy's price, SRD 5.1: "When your rage ends, you suffer one level of exhaustion" -- js/rules.js RU.exhaust, 10-08)
   // Mindless Rage (the Berserker, 6; SRD 5.1): while raging it cannot be charmed or frightened (js/rules.js RU.immuneTo), and a charm or a
   // fright it has when the rage begins is suspended for the rage's length (put by; it comes back when the rage ends, if what laid it still
   // holds: its caster on his feet, and his concentration where the spell needs it)

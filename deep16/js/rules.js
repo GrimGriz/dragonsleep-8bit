@@ -6,7 +6,7 @@
   var D = window.D16, G = D.grid;
   var RU = D.rules = {};
 
-  RU.canAct = function (u) { return !u.dead && u.hp > 0 && !u.ethereal && !u.conds.paralyzed && !u.conds.asleep && !u.conds.stunned && !u.conds.surprised && !u.conds.incapacitated; };
+  RU.canAct = function (u) { return !u.dead && u.hp > 0 && !u.ethereal && !u.conds.paralyzed && !u.conds.asleep && !u.conds.stunned && !u.conds.surprised && !u.conds.incapacitated && !u.conds.petrified; };
   // AC: armour, Shield, Shield of Faith; and the class NPCs' spells (09-28, js/grimoire.js): Barkskin's floor of 16, Haste's +2,
   // Slow's -2, Warding Bond's +1
   RU.ac = function (u) {
@@ -22,7 +22,8 @@
   RU.immuneTo = function (u, cond, by) { return !!(u && ((u.condImmune && (u.condImmune.all || (u.condImmune.indexOf && u.condImmune.indexOf(cond) >= 0))) || /* (condImmune { all: true }: a thing, the Edifice's skylight -- a giant's rock that knocks prone threw on it, 10-05 bench) */ (u.natureWard && by && /^(elemental|fey)$/.test(by.type) && /^(charmed|hypnotized|frightened|feared)$/.test(cond)) || (u.conds && u.conds.freeMove && /restrained|paralyzed|grappled/.test(cond))
     || (u.conds && u.conds.pfeg && by && OTHERWORLD.test(by.type || '') && FEAR_CHARM.test(cond))
     || (u.conds && u.conds.raging && u.subclass === 'Path of the Berserker' && u.lvl >= 6 && /^(charmed|hypnotized|frightened|feared)$/.test(cond)) // (Mindless Rage, the Berserker's 6: js/features.js F.mindless suspends what it had)
-    || (/^(charmed|hypnotized)$/.test(cond) && G.units && RU.inAura(u, 'devotion')))); }; // (Freedom of Movement: js/grimoire.js; Aura of Devotion: RU.auraOf below)
+    || (/^(charmed|hypnotized)$/.test(cond) && G.units && RU.inAura(u, 'devotion'))
+    || (u.conds && u.conds.petrified && /^(poisoned|diseased)$/.test(cond)))); }; // (petrified, SRD 5.1: "immune to poison and disease" -- js/grimoire.js M.petrify) // (Freedom of Movement: js/grimoire.js; Aura of Devotion: RU.auraOf below)
 
   // Evasion (SRD 5.1: the rogue's 7, the monk's 7): a DEX save for half -- none on a success, half on a failure; not while incapacitated
   // (the one test for the spells' saves, the breath weapons', the bolts': js/magic.js, js/grimoire.js, js/battle.js, js/ai.js)
@@ -32,7 +33,7 @@
   RU.evasion = function (u) {
     if (!u || !(u.evasion || ((u.cls === 'rogue' || u.cls === 'monk') && u.lvl >= 7)) || u.hp <= 0 || u.dead) return false; // (u.evasion: a stat block's -- the assassin's, SRD 5.1; 10-02)
     var c = u.conds || {};
-    return !(c.paralyzed || c.asleep || c.stunned || c.incapacitated);
+    return !(c.paralyzed || c.asleep || c.stunned || c.incapacitated || c.petrified);
   };
   // Countercharm (the bard's 6): until the end of his next turn, he and the friends within 30 ft who can hear him have advantage on saves
   // against being frightened or charmed -- js/features.js F.countercharm lays it on the bard; he must be able to act
@@ -41,13 +42,30 @@
   };
   var FRIGHT_CHARM = /^(frightened|feared|charmed|hypnotized)$/;
 
+  // EXHAUSTION (SRD 5.1, the condition's six levels; the grid's rules §2.7, 10-08, the lanes window's order -- the rules before what lays them): 1 disadvantage on ability
+  // checks (RU.checkEdges), 2 speed halved (RU.speedNow), 3 disadvantage on attack rolls and saving throws (RU.edges, RU.save), 4 hit point maximum halved, 5 speed 0, 6 death;
+  // each level with every one below it. Laid by the Berserker's Frenzy as the rage ends (js/features.js F.rageCond); a long rest takes one level away -- the grid carries no
+  // condition from one fight to the next (the climb's camp starts every hero clean: climb.js CL.rested), so here it lasts the fight
+  RU.EXHAUSTION = ['', 'disadvantage on ability checks', 'and its speed halved', 'and disadvantage on attacks and saves', 'and its hit point maximum halved', 'and its speed 0', 'dead'];
+  RU.exhaustion = function (u) { return (u && u.conds && u.conds.exhaustion && u.conds.exhaustion.n) || 0; };
+  RU.speedNow = function (u) { var x = RU.exhaustion(u); return x >= 5 ? 0 : x >= 2 ? Math.floor(u.speed / 2) : u.speed; };
+  RU.exhaust = function (B, u, n, why) {
+    if (!u || u.dead || RU.immuneTo(u, 'exhaustion')) return 0;
+    var was = RU.exhaustion(u), now = Math.min(6, was + (n || 1)), nm = u.side === 'foe' && B && B.shortName && !u.named ? 'The ' + B.shortName(u) : u.name;
+    if (now === was) return 0;
+    u.conds.exhaustion = { n: now };
+    if (now >= 4 && was < 4) { u.exhaustCut = Math.floor(u.maxhp / 2); u.maxhp -= u.exhaustCut; if (u.hp > u.maxhp) u.hp = u.maxhp; }
+    if (B) B.card(['{o}' + nm + ' is exhausted, level ' + now + (why ? ' (' + why + ')' : '') + '.{/}  {g}(' + RU.EXHAUSTION.slice(1, now + 1).join(', ') + '){/}'], 260);
+    if (now >= 6) { u.hp = 0; u.dead = true; u.ko = true; u.deadT = B ? B.t : 0; u.anim = 'hurt'; u.animT = B ? B.t : 0; if (u.side === 'party' && !u.summon && !u.familiar && !u.ally) u.slain = true; if (u.conc && D.magic) D.magic.endConc(B, u, 'dead'); }
+    return now - was;
+  };
   // can it get up off the floor (SRD 5.1: not with a speed of 0 -- paralyzed, stunned, asleep, restrained (a grapple is one here), incapacitated; not while
   // it laughs or dances): the turn's start asks (below), and so does a walk begun prone (grid.js G.reach)
-  RU.canRise = function (u) { var c = u.conds || {}; return !(c.laughing || c.dancing || c.paralyzed || c.stunned || c.asleep || c.restrained || c.incapacitated || u.speed === 0); };
+  RU.canRise = function (u) { var c = u.conds || {}; return !(c.laughing || c.dancing || c.paralyzed || c.stunned || c.asleep || c.restrained || c.incapacitated || c.petrified || RU.speedNow(u) === 0); };
   // up off the floor in the middle of a turn -- knocked flat on the way by an opportunity attack, or flat when it sets off (10-03, the stream: Vivian ran
   // on 20 ft lying down): standing "costs an amount of movement equal to half your speed" (SRD 5.1), paid from the walk if the walk has it; else it crawls (grid.js)
   RU.rise = function (B, u) {
-    var half = Math.floor(u.speed / 2);
+    var half = Math.floor(RU.speedNow(u) / 2);
     if (!u.conds.prone || u.hp <= 0 || !RU.canRise(u) || !u.turn || u.turn.move < half) return false;
     delete u.conds.prone; u.turn.move -= half;
     if (B) B.card(['{g}' + u.name + ' gets up (half the move).{/}'], 200);
@@ -55,7 +73,7 @@
   };
   // the turn's economy: MOVE (ft left), ACTION, BONUS, REACTION (the reaction comes back at the start of your own turn)
   RU.startTurn = function (u) {
-    u.turn = { move: u.speed, action: 1, bonus: 1, attacksLeft: 0, attackAction: false, sneakUsed: false, disengaged: false, spellAction: null, bonusSpell: false, moved: 0, freeObj: false, climbLeft: u.climbs || 0 }; // (climbLeft: the feet of face a climb speed may take this turn -- grid.js G.stepCost, battle.js moveAlong, 10-04 night) // (freeObj: the turn's one free hand on an object -- a torch dropped, put out or taken up)
+    u.turn = { move: RU.speedNow(u), action: 1, bonus: 1, attacksLeft: 0, attackAction: false, sneakUsed: false, disengaged: false, spellAction: null, bonusSpell: false, moved: 0, freeObj: false, climbLeft: u.climbs || 0 }; // (climbLeft: the feet of face a climb speed may take this turn -- grid.js G.stepCost, battle.js moveAlong, 10-04 night) // (freeObj: the turn's one free hand on an object -- a torch dropped, put out or taken up)
     u.reaction = 1;
     // the roper's tendrils cut or broken (battle.js tendrilGone, u.tendrilsLost): back at its turn, free, every one -- SRD 5.1, "can extrude a replacement tendril on its next turn"
     // (RULED 10-02, Griz: "go with SRD for combat"; the seat had read the extruding as its action, so a party that cut them all saw it walk in -- by the SRD it never has to)
@@ -71,7 +89,7 @@
     // nor with no speed to pay it with (SRD 5.1: you can't stand up if your speed is 0; Griz, 09-30: "getting up from prone is supposed to
     // cost movement"): paralyzed, stunned, asleep, restrained (a grapple is one here), or incapacitated (magic.js startTurn: no move)
     var noMove = !RU.canRise(u); /* (dancing: "must use all its movement to dance" -- none to stand with; a runner found it standing free, 10-01b) */
-    if (u.conds.prone && u.hp > 0 && !noMove) { delete u.conds.prone; u.turn.move = Math.floor(u.speed / 2); if (D.battle) D.battle.card(['{g}' + u.name + ' gets up (half the move).{/}'], 200); }
+    if (u.conds.prone && u.hp > 0 && !noMove) { delete u.conds.prone; u.turn.move = Math.floor(RU.speedNow(u) / 2); if (D.battle) D.battle.card(['{g}' + u.name + ' gets up (half the move).{/}'], 200); }
     delete u.conds.shield;
     D.grid.units.forEach(function (w) { if (w.conds.helped && w.conds.helped.by === u.id) delete w.conds.helped; if (w.conds.helpedCheck && w.conds.helpedCheck.by === u.id) delete w.conds.helpedCheck; }); // (a Help on a friend's check, unspent, lapses at the helper's turn: SRD 5.1)
     // Sacred Weapon lasts a minute: ten of his turns (and goes out if he fell)
@@ -122,8 +140,8 @@
     var resil = !!(u.resilient && ((D.battle && (D.battle.castLevel != null || D.battle.spellRun === u) && against !== 'concentration') || (against && /^(poison(ed)?|charmed|hypnotized|paralyzed)$/.test(against))));
     // Two Heads (SRD 5.1: the ettin has "advantage on saving throws against being blinded, charmed, deafened, frightened, stunned, and knocked unconscious" -- not on WIS and CON saves at large: 10-02 runner)
     var heads = !!(u.twoHeads && against && /^(blinded|charmed|hypnotized|deafened|frightened|feared|stunned|asleep|unconscious)$/.test(against));
-    var adv = !!adv0 || counter || pfp || pfg || resil || heads || (ab === 'dex' && (c.dodge || c.hasted || (c.dangerSense && !c.blinded))) || (ab === 'wis' && c.beacon) || !!(c.holyAura || c.foresight) || !!(RU.saveAdv && RU.saveAdv(u, ab)) || (ab === 'str' && !!c.enlarged && !c.enlarged.down), dis = !!dis0 || heightened || (ab === 'dex' && c.restrained) || !!(RU.saveDis && RU.saveDis(u, ab)) || (ab === 'str' && !!c.enlarged && !!c.enlarged.down); // (Enlarge: advantage on STR saves and checks, Reduce: disadvantage) // (the roper's grip on STR: js/traits.js)
-    if ((ab === 'str' || ab === 'dex') && (c.paralyzed || c.asleep || c.stunned || (u.hp <= 0 && !u.dead && !u.object))) return { rolls: [0], d20: 0, bonus: bonus, total: 0, dc: dc, ok: false, aura: 0, auto: true }; // (SRD 5.1: the paralyzed, the stunned, the unconscious -- not Hideous Laughter's incapacitated and prone, 10-02, Griz: "yes". At 0 and not dead is unconscious: a troll lying there knitting dodges no flask -- 10-05, Griz: "dead trolls can't dodge! :)")
+    var adv = !!adv0 || counter || pfp || pfg || resil || heads || (ab === 'dex' && (c.dodge || c.hasted || (c.dangerSense && !c.blinded))) || (ab === 'wis' && c.beacon) || !!(c.holyAura || c.foresight) || !!(RU.saveAdv && RU.saveAdv(u, ab)) || (ab === 'str' && !!c.enlarged && !c.enlarged.down), dis = !!dis0 || heightened || RU.exhaustion(u) >= 3 || (ab === 'dex' && c.restrained) || !!(RU.saveDis && RU.saveDis(u, ab)) || (ab === 'str' && !!c.enlarged && !!c.enlarged.down); // (Enlarge: advantage on STR saves and checks, Reduce: disadvantage) // (the roper's grip on STR: js/traits.js)
+    if ((ab === 'str' || ab === 'dex') && (c.paralyzed || c.asleep || c.stunned || c.petrified || (u.hp <= 0 && !u.dead && !u.object))) return { rolls: [0], d20: 0, bonus: bonus, total: 0, dc: dc, ok: false, aura: 0, auto: true }; // (SRD 5.1: the paralyzed, the stunned, the unconscious -- not Hideous Laughter's incapacitated and prone, 10-02, Griz: "yes". At 0 and not dead is unconscious: a troll lying there knitting dodges no flask -- 10-05, Griz: "dead trolls can't dodge! :)")
     var both = adv !== dis, r1 = D.d(20), r2 = both ? D.d(20) : null, d = both ? (adv ? Math.max(r1, r2) : Math.min(r1, r2)) : r1;
     var bl = c.blessed ? D.d(4) : 0; bonus += bl;
     // Bane (-1d4), Resistance (+1d4, once)
@@ -205,6 +223,8 @@
     if (tgt.conds.restrained && !tgt.conds.restrained.only) adv.push('restrained target');
     if (att.attached && att.riding && att.master === tgt) adv.push('attached'); // (the darkmantle on the one it rides: SRD 5.1, "has advantage on its attack rolls")
     if (tgt.conds.paralyzed || tgt.conds.asleep) adv.push(tgt.conds.asleep ? 'asleep' : 'paralyzed');
+    if (tgt.conds.petrified) adv.push('stone'); // (SRD 5.1 petrified: "attack rolls against the creature have advantage" -- js/grimoire.js M.petrify)
+    if (RU.exhaustion(att) >= 3) dis.push('exhaustion'); // (exhaustion's third level: RU.exhaust)
     if (tgt.conds.stunned) adv.push('stunned');
     if (tgt.conds.surprised && att.assassinate) adv.push('assassinate');
     // Pack Tactics (the rats, the wolves): advantage while an ally of the attacker who can act stands within 5 ft of the target
@@ -236,7 +256,7 @@
     if (tgt.hp <= 0 && !tgt.dead) adv.push('down'); // (SRD 5.1 unconscious: "Attack rolls against the creature have advantage" -- at any range; within 5 ft a hit is a critical, battle.js attack. Till 10-05 only within 5 ft, so a flask or a torch thrown at a troll lying at 0 met the prone's disadvantage alone)
     if (melee && G.flank(att, tgt, ax, ay)) adv.push('flanking');
     if (!melee) {
-      if (G.foesNear(att, ax == null ? att.x : ax, ay == null ? att.y : ay, 5).filter(function (w) { return w.hp > 0 && !w.conds.paralyzed && !w.conds.asleep && !w.conds.stunned && !w.conds.incapacitated; }).length) dis.push('in melee'); // (SRD 5.1: a hostile within 5 ft "who can see you and who isn't incapacitated" -- a troll lying at 0 is not: 10-05, his Scorching Ray beside one)
+      if (G.foesNear(att, ax == null ? att.x : ax, ay == null ? att.y : ay, 5).filter(function (w) { return w.hp > 0 && !w.conds.paralyzed && !w.conds.asleep && !w.conds.stunned && !w.conds.incapacitated && !w.conds.petrified; }).length) dis.push('in melee'); // (SRD 5.1: a hostile within 5 ft "who can see you and who isn't incapacitated" -- a troll lying at 0 is not: 10-05, his Scorching Ray beside one)
       if (atk.range && G.dist(att, tgt, ax, ay) > atk.range[0]) dis.push('long range');
     }
     return { adv: adv, dis: dis, net: adv.length && !dis.length ? 1 : dis.length && !adv.length ? -1 : 0, pen: pen, penWhy: penWhy };
@@ -253,6 +273,7 @@
     var c = (u && u.conds) || {}, adv = [], dis = [];
     if (c.enhanced && (c.enhanced.abil || 'con') === abil) adv.push('enhance ability');
     if (c.disAt && c.disAt.id === '*') dis.push(c.disAt.why || 'burning metal');
+    if (RU.exhaustion(u) >= 1) dis.push('exhaustion'); // (SRD 5.1, exhaustion's first level: RU.exhaust)
     if (c.helpedCheck) adv.push('help'); // (a friend's Help, SRD 5.1: "advantage on the next ability check it makes ... before the start of your next turn" -- 10-01c; spent by RU.spendHelp)
     return { adv: adv, dis: dis };
   };
