@@ -12,7 +12,7 @@
   function Nm(B, u) { return u.side === 'foe' ? (u.named ? B.shortName(u) : 'The ' + B.shortName(u)) : u.name; }
 
   // the traits a unit carries from its sheet (battle.js makeFoe copies these)
-  TR.FIELDS = ['earthGlide', 'rampage', 'charge', 'relentlessBeast', 'nimble', 'twoHeads', 'corrosive', 'jaunt', 'resilient', 'evasion', 'cunning', 'parry', 'rangedMulti', 'rockCatch', 'pounce', 'drinkLight', 'foretell', 'kneel', 'rise', 'gaze']; // (gaze: a petrifying gaze, the basilisk's and the medusa's -- below, 10-08) (pounce, drinkLight, foretell, kneel, rise: the Harbinger's, 10-08 -- below) // (resilient: the duergar's Resilience, SRD 5.1 -- rules.js RU.save; 10-02 runner) (rockCatch: the stone giant's Rock Catching, its DC -- battle.js attack, 10-08)
+  TR.FIELDS = ['earthGlide', 'rampage', 'charge', 'relentlessBeast', 'nimble', 'twoHeads', 'corrosive', 'jaunt', 'resilient', 'evasion', 'cunning', 'parry', 'rangedMulti', 'rockCatch', 'pounce', 'drinkLight', 'foretell', 'kneel', 'rise', 'gaze', 'legendary', 'legendaryResist', 'breath']; // (legendary, legendaryResist, breath: the rules before the bestiary's eleven -- below, 10-08) (gaze: a petrifying gaze, the basilisk's and the medusa's -- below, 10-08) (pounce, drinkLight, foretell, kneel, rise: the Harbinger's, 10-08 -- below) // (resilient: the duergar's Resilience, SRD 5.1 -- rules.js RU.save; 10-02 runner) (rockCatch: the stone giant's Rock Catching, its DC -- battle.js attack, 10-08)
 
   // ------------------------------------------------------------------ Duergar Resilience on a spell already running (SRD 5.1: "advantage on saving throws against poison, spells, and illusions")
   // rules.js RU.save reads B.castLevel only while a cast is under way. The saves a spell asks later -- Spirit Guardians at the start of the turn, a zone's, Web's, Moonbeam's, a wall's, the
@@ -405,5 +405,114 @@
       if (!u.conds.surprised && hand) { (u.turn.gazeAsk = u.turn.gazeAsk || []).push(m.id); return; }
       if (!u.conds.surprised && RU.canAct(u) && D.tactics.pFail(u, m.gaze.ab || 'con', m.gaze.dc) >= 0.34) M.avert(B, u, m); else M.gazeSave(B, u, m);
     });
+  };
+
+  // ------------------------------------------------------------------ LEGENDARY ACTIONS (SRD 5.1: "special actions ... outside its turn. Only one legendary action option can be used
+  // at a time and only at the end of another creature's turn. A creature regains its spent legendary actions at the start of its turn ... can't use them while incapacitated";
+  // the grid's rules, 10-08, Griz: "yes" -- the rule built before the aboleth comes): a sheet's `legendary: { n, acts: [{ name, cost, atk | detect | drain }] }` -- a blow (`atk`:
+  // its attack's key, at a foe in its reach or range that it sees), a Wisdom (Perception) check for the hidden (`detect`: the Search, its action kept), one it has charmed drained
+  // (`drain: { dice, type }`, the hit points back: the aboleth's Psychic Drain). After every other creature's turn (battle.js run) the AI takes one that does something, the most
+  // for its cost; none before its own first turn, none while it cannot act. LEGENDARY RESISTANCE (`legendaryResist: 3`, "If [it] fails a saving throw, it can choose to succeed
+  // instead"): the AI takes it on any failed save but concentration's
+  TR.legendary = function* (B, ended) {
+    var ls = B.units.filter(function (L) { return L !== ended && L.legendary && L.side === 'foe' && !L.dominated && G.standing(L) && RU.canAct(L) && L.acted && (L.legLeft || 0) > 0; });
+    for (var i = 0; i < ls.length; i++) {
+      var L = ls[i], pk = legPick(B, L); if (!pk) continue;
+      L.legLeft -= pk.act.cost || 1;
+      B.card(['{r}' + Nm(B, L) + '{/}: a legendary action -- {y}' + pk.act.name + '{/}' + ((pk.act.cost || 1) > 1 ? ' (costs ' + pk.act.cost + ')' : '') + '  {g}(' + L.legLeft + ' left this round){/}'], 220);
+      var a0 = B.active; B.active = L;
+      try { yield* legDo(B, L, pk); } finally { B.active = a0; }
+      if (B.over()) return;
+    }
+  };
+  function legPick(B, L) {
+    var best = null;
+    (L.legendary.acts || []).forEach(function (a) {
+      var c = a.cost || 1, t = null, v = 0; if (c > L.legLeft) return;
+      if (a.atk && L.attacks && L.attacks[a.atk]) {
+        var at = L.attacks[a.atk], rng = at.ranged ? at.range[1] : G.reachOf(L, at.reach);
+        t = B.units.filter(function (w) { return G.hostile(L, w) && G.standing(w) && !w.object && G.dist(L, w) <= rng && M.sees(B, L, w) && (!at.ranged || G.los(L, w).clear) && !RU.charmedBy(L, w); }).sort(function (p, q) { return p.hp - q.hp; })[0];
+        if (t) v = 2;
+      } else if (a.detect) { if (B.units.some(function (w) { return G.hostile(L, w) && G.standing(w) && w.conds.hidden; })) v = 1; }
+      else if (a.drain) { t = B.units.filter(function (w) { return G.standing(w) && w.conds.charmed && w.conds.charmed.by === L.id; })[0]; if (t) v = 3 * c; }
+      if (v > 0 && (!best || v / c > best.v / best.c)) best = { act: a, t: t, v: v, c: c };
+    });
+    return best;
+  }
+  function* legDo(B, L, p) {
+    var a = p.act;
+    if (a.atk) { yield* B.attack(L, p.t, L.attacks[a.atk]); L.anim = 'idle'; return; }
+    if (a.detect) { var a0 = L.turn ? L.turn.action : 0; yield* B.search(L); if (L.turn) L.turn.action = a0; return; }
+    if (a.drain) {
+      var r = D.roll(a.drain.dice), was = p.t.hp; B.hurt(p.t, r.total, a.drain.type || 'psychic', { magic: true }); var took = Math.max(0, was - p.t.hp), back = took ? B.heal(L, took) : 0;
+      B.card(['{r}' + Nm(B, L) + '{/} drains ' + Nm(B, p.t) + ': ' + a.drain.dice + ' = ' + r.total + ' ' + (a.drain.type || 'psychic') + (back ? ', and it heals ' + back : '')], 240);
+      FX.ring(p.t, 'violet', 24); yield 30;
+    }
+  }
+  var saveLR = RU.save;
+  RU.save = function (u, ab, dc, adv0, against) {
+    var r = saveLR.apply(this, arguments);
+    if (r && !r.ok && !r.careful && u && u.legendaryResist && (u.legResUsed || 0) < u.legendaryResist && u.side === 'foe' && !u.dominated && against !== 'concentration' && D.battle) {
+      u.legResUsed = (u.legResUsed || 0) + 1; r.ok = true; r.legendary = u.legendaryResist - u.legResUsed;
+    }
+    return r;
+  };
+
+  // ------------------------------------------------------------------ A BREATH (SRD 5.1, "Recharge 5-6" -- the winter wolf's Cold Breath, the gorgon's Petrifying Breath, a dragon's; the
+  // grid's rules, 10-08, Griz: "yes" -- one rule any sheet's `breath` reads, where each breath had been a creature's own code): `breath: { name, shape: 'cone' | 'line', ft, ab, dc,
+  // dice, type, stone, recharge }` -- its action; each creature in the area (magic.js M.area, from its own square) saves: the damage, half on a save (Evasion as ever), or with
+  // `stone` the stone begun (M.stoneBegin). Spent, it comes back on a d6 of `recharge` or more at the start of its turns. The AI breathes when it catches two of its foes and none of
+  // its friends, or one with nobody in its reach
+  M.breathAim = function (B, u) {
+    var br = u.breath, best = null;
+    B.units.forEach(function (w) {
+      if (!G.hostile(u, w) || !G.standing(w) || w.object || G.dist(u, w) > br.ft + 5) return;
+      var sq = M.area(u, { shape: br.shape || 'cone', len: br.ft }, w.x, w.y), foes = 0, friends = 0;
+      B.units.forEach(function (x) { if (x === u || !G.standing(x) || x.object || !G.inArea(x, sq)) return; if (G.hostile(u, x)) foes++; else friends++; });
+      if (foes && (!best || foes - 2 * friends > best.foes - 2 * best.friends)) best = { x: w.x, y: w.y, foes: foes, friends: friends };
+    });
+    return best;
+  };
+  M.breathe = function* (B, u, aim) {
+    var br = u.breath, sq = M.area(u, { shape: br.shape || 'cone', len: br.ft }, aim.x, aim.y), ab = br.ab || 'dex';
+    var ramp = br.stone ? 'stone' : br.type === 'cold' || br.type === 'lightning' ? 'glow' : br.type === 'poison' || br.type === 'acid' ? 'moss' : br.type === 'thunder' ? 'silver' : 'fire';
+    if (u.turn) u.turn.action = 0; u.breathSpent = true; u.anim = 'attack'; u.animT = B.t;
+    var caught = B.units.filter(function (w) { return w !== u && G.present(w) && (w.hp > 0 || w.regenDown) && !w.object && G.inArea(w, sq); });
+    FX.bloom(u.x, u.y, sq, ramp); D.sfx('crit'); yield { fx: 1 };
+    var dmg = br.dice ? D.roll(br.dice) : null, lines = ['{r}' + Nm(B, u) + '{/}: ' + (br.name || 'its breath').toUpperCase() + '  ' + (br.ft + '-ft ' + (br.shape || 'cone')) + '  ' + ab.toUpperCase() + ' DC ' + br.dc + (dmg ? '  ' + br.dice + ' = ' + dmg.total + ' ' + br.type : '')];
+    caught.forEach(function (w) {
+      var sv = RU.save(w, ab, br.dc, false, br.stone ? 'petrified' : null, dmg ? dmg.total : undefined), ev = ab === 'dex' && RU.evasion(w);
+      if (br.stone) { lines.push('  ' + Nm(B, w) + ': ' + RU.saveText(sv) + '  ' + (sv.ok ? '{n}holds{/}' : '{o}begins to turn to stone{/}')); if (!sv.ok) M.stoneBegin(B, w, { dc: br.dc, by: u.id }); return; }
+      var n = sv.ok ? (ev ? 0 : Math.floor(dmg.total / 2)) : (ev ? Math.floor(dmg.total / 2) : dmg.total);
+      lines.push('  ' + Nm(B, w) + ': ' + RU.saveText(sv) + '  ' + (sv.ok ? 'half' : 'full') + (ev ? ' (evasion)' : '') + ' -> ' + n);
+      if (n > 0) B.hurt(w, n, br.type);
+    });
+    if (!caught.length) lines.push('  {g}it catches no one{/}');
+    B.card(lines.slice(0, 8), 360); yield 30; u.anim = 'idle'; u.animT = B.t;
+  };
+  var turnBr = TR.turn;
+  TR.turn = function* (B, u) {
+    if (u.breath && !u.breathSpent && u.side === 'foe' && RU.canAct(u) && u.turn && u.turn.action) {
+      var aim = M.breathAim(B, u), inReach = B.units.some(function (w) { return G.hostile(u, w) && G.standing(w) && G.dist(u, w) <= G.reachOf(u); });
+      // (from where it stands, or from a square its move reaches where the breath would catch two and none of its own: it walks there first)
+      if (!(aim && !aim.friends && aim.foes >= 2) && u.turn.move > 0 && !u.conds.restrained) {
+        var rmB = G.reach(u, u.turn.move), x0 = u.x, y0 = u.y, bestB = null;
+        Object.keys(rmB).forEach(function (k) {
+          var e = rmB[k]; if (!e.stand || (e.x === x0 && e.y === y0)) return;
+          u.x = e.x; u.y = e.y; var a2 = M.breathAim(B, u); u.x = x0; u.y = y0;
+          if (a2 && !a2.friends && a2.foes >= 2 && (!bestB || a2.foes > bestB.a.foes || (a2.foes === bestB.a.foes && e.cost < bestB.e.cost))) bestB = { e: e, a: a2 };
+        });
+        if (bestB) { yield* B.moveAlong(u, G.path(rmB, bestB.e.x, bestB.e.y), { spend: true }); if (u.dead || u.hp <= 0 || !RU.canAct(u)) return true; aim = M.breathAim(B, u); }
+      }
+      if (aim && !aim.friends && (aim.foes >= 2 || !inReach)) yield* M.breathe(B, u, aim);
+    }
+    return yield* turnBr.apply(this, arguments);
+  };
+  // the turn's start: the legendary actions back; a spent breath's recharge rolled
+  var startLB = RU.startTurn;
+  RU.startTurn = function (u) {
+    startLB.apply(this, arguments);
+    if (u.legendary) u.legLeft = u.legendary.n || 3;
+    if (u.breath && u.breathSpent && !u.dead && u.hp > 0) { var rc = D.d(6), back = rc >= (u.breath.recharge || 5); if (back) u.breathSpent = false; if (D.battle) D.battle.card(['{g}' + Nm(D.battle, u) + ': ' + (u.breath.name || 'its breath') + (back ? ' is back' : ' not yet') + ' (d6 ' + rc + ', ' + (u.breath.recharge || 5) + '-6){/}'], 160); }
   };
 })();

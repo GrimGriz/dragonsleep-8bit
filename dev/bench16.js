@@ -1548,6 +1548,10 @@
       var fl4 = D.ui.flyer(B4) === f4, s4 = D.ui.stepLayer(B4, 1), z4 = B4.flyZ, g4 = GF.groundAt(f4, f4.x, f4.y), v4 = D.ui.valid(B4, f4, f4.x + 1, f4.y);
       okFL('the move tool: a flier ' + fl4 + ', a wheel up ' + s4 + ' -- the layer ' + (z4 - g4) / GF.map.def.step * 2.5 + ' ft up; a square beside it ' + v4, fl4 && s4 && z4 === g4 + L && v4 === 'ok');
       B4.req = null; B4.tool = 'move';
+      // the druid's Giant Bat (Wild Shape, 8th: js/features.js F.SHAPES `flies`): in its shape the move tool takes the wheel's layer too
+      var B5 = mkFL('?npc=goblin&lvl=8&vs=druid:8'), d5 = sideFL(B5, 'party')[0]; D.rules.startTurn(d5); B5.active = d5; d5.feats.wildShape = 2; runFL(D.features.wildShape(B5, d5, 'giantbat')); B5.req = { turn: d5 }; B5.tool = 'move'; B5.cache = null;
+      var bat5 = !!(d5.beast && d5.flies), fl5 = D.ui.flyer(B5) === d5, st5 = D.ui.stepLayer(B5, 1); B5.req = null;
+      okFL('the druid as a giant bat: wings ' + bat5 + ', the move tool a flier\'s ' + fl5 + ', the wheel lifts it ' + st5, bat5 && fl5 && st5);
     } catch (eFL) { repFL.errors.push(String(eFL && eFL.stack || eFL).slice(0, 900)); D.d = d0FL; }
     if (errs.length) repFL.errors = repFL.errors.concat(errs);
     var preFL = document.createElement('pre'); preFL.id = 'out'; preFL.textContent = 'BENCH16 ' + JSON.stringify(repFL);
@@ -1670,6 +1674,47 @@
       var R10 = window.DS.R, f7a = sideR8(mkR8('?npc=goblin&lvl=7&vs=fighter:7'), 'party')[0], f6a = sideR8(mkR8('?npc=goblin&lvl=6&vs=fighter:6'), 'party')[0];
       var st7 = R10.skill(f7a.src, 'Stealth', 'dex') - window.DS.mod(f7a.src.abil.dex), st6 = R10.skill(f6a.src, 'Stealth', 'dex') - window.DS.mod(f6a.src.abil.dex), wi7 = R10.skill(f7a.src, 'Insight', 'wis') - window.DS.mod(f7a.src.abil.wis);
       okR8('§2d Remarkable Athlete: a fighter of 7\'s Stealth over its DEX +' + st7 + ' (of 6: +' + st6 + '); a WIS check +' + wi7, st7 === 2 && st6 === 0 && wi7 === 0);
+      // LEGENDARY ACTIONS (js/traits.js TR.legendary; Griz, 10-08: "yes"): the room's &legend goblin, a fighter beside it -- none before its first turn; then three at the ends of
+      // others' turns (three swipes), a fourth none; back to three at its turn's start. Legendary Resistance: three failed saves become successes, a fourth fails; concentration's never
+      var B11 = mkR8('?npc=goblin&lvl=5&vs=fighter:5&legend'), L11 = sideR8(B11, 'foe')[0], f11 = sideR8(B11, 'party')[0];
+      f11.hp = f11.maxhp = 300; L11.hp = L11.maxhp = 300; L11.x = f11.x; L11.y = f11.y - 1; L11.acted = false; L11.legLeft = 3;
+      var n11 = (B11.log || []).length; runR8(D.traits.legendary(B11, f11)); var pre11 = (logR8(B11, n11).match(/a legendary action/g) || []).length;
+      D.rules.startTurn(L11); L11.legLeft = 3; n11 = (B11.log || []).length;
+      for (var k11 = 0; k11 < 4; k11++) runR8(D.traits.legendary(B11, f11));
+      var got11 = (logR8(B11, n11).match(/a legendary action -- A Swipe/g) || []).length, left11 = L11.legLeft; D.rules.startTurn(L11);
+      okR8('legendary actions: before its first turn ' + pre11 + '; after it, four turns\' ends: ' + got11 + ' swipes, ' + left11 + ' left; at its turn back to ' + L11.legLeft, pre11 === 0 && got11 === 3 && left11 === 0 && L11.legLeft === 3);
+      D.d = function (n) { return n === 20 ? 1 : n; };
+      var lr11 = []; try { for (var q11 = 0; q11 < 4; q11++) lr11.push(D.rules.save(L11, 'wis', 30).ok); var cc11 = D.rules.save(Object.assign(L11, { legResUsed: 0 }), 'con', 30, false, 'concentration').ok; } finally { D.d = d0R8; }
+      okR8('Legendary Resistance: four failed saves read ' + lr11.join(', ') + '; a concentration save ' + cc11, lr11.join() === 'true,true,true,false' && cc11 === false);
+      // Psychic Drain: one it has charmed, 3d6 (its top, 18), and its hit points back
+      L11.legLeft = 3; L11.hp = 200; f11.conds.charmed = { by: L11.id }; L11.legendary.acts.push({ name: 'Psychic Drain', cost: 2, drain: { dice: '3d6', type: 'psychic' } });
+      D.d = function (n) { return n; }; var fh11 = f11.hp; try { runR8(D.traits.legendary(B11, f11)); } finally { D.d = d0R8; }
+      okR8('Psychic Drain on the one it charmed: it took ' + (fh11 - f11.hp) + ', the goblin ' + L11.hp + ' (from 200), ' + L11.legLeft + ' left', fh11 - f11.hp === 18 && L11.hp === 218 && L11.legLeft === 1);
+      // A BREATH (js/traits.js M.breathe): the room's &breath=cold goblin, two fighters 10 ft before it -- it breathes (4d8 at its top, 32; their saves a 1), spent; a d6 of 4 keeps it
+      // spent, a 5 brings it back; the gorgon's (&breath=stone) begins the stone
+      var B12 = mkR8('?npc=goblin&lvl=5&vs=fighter:5,fighter:5&breath=cold'), w12 = sideR8(B12, 'foe')[0], ps12 = sideR8(B12, 'party');
+      w12.x = 8; w12.y = 6; ps12[0].x = 8; ps12[0].y = 8; ps12[1].x = 9; ps12[1].y = 8; ps12.forEach(function (x) { x.hp = x.maxhp = 200; x.conds = {}; }); D.grid.setup(D.grid.map, B12.units);
+      D.rules.startTurn(w12); B12.active = w12; var hp12 = ps12.map(function (x) { return x.hp; });
+      D.d = function (n) { return n === 20 ? 1 : n; }; try { runR8(D.traits.turn(B12, w12)); } finally { D.d = d0R8; }
+      var lost12 = ps12.map(function (x, i) { return hp12[i] - x.hp; });
+      okR8('the cold breath: the fighters lose ' + lost12.join(' and ') + ', spent ' + !!w12.breathSpent, lost12[0] === 32 && lost12[1] === 32 && w12.breathSpent);
+      D.d = function (n) { return n === 6 ? 4 : n; }; try { D.rules.startTurn(w12); } finally { D.d = d0R8; } var still12 = !!w12.breathSpent;
+      D.d = function (n) { return n === 6 ? 5 : n; }; try { D.rules.startTurn(w12); } finally { D.d = d0R8; }
+      okR8('the recharge: a 4 keeps it spent ' + still12 + ', a 5 brings it back ' + !w12.breathSpent, still12 && !w12.breathSpent);
+      var B13 = mkR8('?npc=goblin&lvl=5&vs=fighter:5,fighter:5&breath=stone'), w13 = sideR8(B13, 'foe')[0], ps13 = sideR8(B13, 'party');
+      w13.x = 8; w13.y = 6; ps13[0].x = 8; ps13[0].y = 9; ps13[1].x = 9; ps13[1].y = 9; ps13.forEach(function (x) { x.conds = {}; }); D.grid.setup(D.grid.map, B13.units);
+      D.rules.startTurn(w13); B13.active = w13; D.d = function (n) { return n === 20 ? 1 : n; }; try { runR8(D.traits.turn(B13, w13)); } finally { D.d = d0R8; }
+      okR8('the petrifying breath: both begin to turn to stone ' + ps13.map(function (x) { return !!(x.conds.stoning && x.conds.restrained); }).join(' and '), ps13.every(function (x) { return !!(x.conds.stoning && x.conds.restrained); }));
+      // and in whole fights, the AI on both sides (the room's ogre lent the cold breath and the legendary block, against three of 3rd level): it walks to where the cone takes two and
+      // breathes, and takes its legendary actions -- five seeds
+      var br14 = 0, lg14 = 0, rs14 = [];
+      for (var s14 = 1; s14 <= 5; s14++) {
+        D.seed = s14; var B14 = D.npcFight('?npc=ogre&vs=fighter:3,wizard:3,cleric:3&lvl=3&breath=cold&legend', { bench: true }); D.battle = B14; B14.enter();
+        B14.units.forEach(function (u) { if (u.side === 'party') { u.guest = true; u.classAI = true; } });
+        rs14.push(drive(B14)); var l14 = (B14.log || []).join('|'); if (/COLD BREATH/.test(l14)) br14++; lg14 += (l14.match(/a legendary action/g) || []).length;
+      }
+      D.seed = 0;
+      okR8('five whole fights (' + rs14.join(', ') + '): the ogre breathed in ' + br14 + ', legendary actions taken ' + lg14, br14 >= 3 && lg14 >= 5 && rs14.indexOf('error') < 0 && rs14.indexOf('stalled') < 0);
     } catch (eR8) { repR8.errors.push(String(eR8 && eR8.stack || eR8).slice(0, 900)); D.d = d0R8; }
     if (errs.length) repR8.errors = repR8.errors.concat(errs);
     var preR8 = document.createElement('pre'); preR8.id = 'out'; preR8.textContent = 'BENCH16 ' + JSON.stringify(repR8);

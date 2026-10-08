@@ -551,7 +551,7 @@
     var familiars = fams.map(function (k, i) { return vsl[i] && R.FAMILIARS[k] ? { kind: k, by: 'p' + i + '-' + vsl[i].split(':')[0] } : null; }).filter(Boolean);
     var map = get('map'), dark = /[?&]dark\b/.test(q) ? true : null;
     if (get('seed')) D.seed = +get('seed') | 0; // (&seed=<n>: a bench fight of that seed, roll for roll, with &watch -- dev/bench16.js mode=mascots names its seeds; 10-07)
-    return new D.Battle(Object.assign({ npc: { foes: foes, party: vsl.length ? vsl : null }, watch: /[?&]watch\b/.test(q), flyTest: /[?&]fly\b/.test(q), familiars: familiars, fightDef: D.classFight(L, { what: what, map: map && D.MAPS[map] ? map : null, dark: dark, defend: /[?&]defend\b/.test(q), doors: /[?&]doors\b/.test(q) }) }, o || {}));
+    return new D.Battle(Object.assign({ npc: { foes: foes, party: vsl.length ? vsl : null }, watch: /[?&]watch\b/.test(q), flyTest: /[?&]fly\b/.test(q), legendTest: /[?&]legend\b/.test(q), breathTest: get('breath'), familiars: familiars, fightDef: D.classFight(L, { what: what, map: map && D.MAPS[map] ? map : null, dark: dark, defend: /[?&]defend\b/.test(q), doors: /[?&]doors\b/.test(q) }) }, o || {}));
   };
   NPC.build = function (word, lvl, side, o) {
     // (a word, a spec, or { word, hpLeft, slotsLeft, featsLeft, ... }: the Pocket DM's carry between rungs rides on the word's spec)

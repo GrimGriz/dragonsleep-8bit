@@ -110,6 +110,11 @@
     var lent = (F.allies || []).map(function (f) { return self.makeFoe(Object.assign({ side: 'party', ally: true }, f)); }); // (ours for the fight, the brute's to run: the Skylights' stable fighters up the south road, the garrison behind the hatch -- 10-05)
     this.units = party.concat(foes, lent);
     if (this.o.flyTest) party.forEach(function (u) { if (!u.familiar) u.flies = true; }); // (&fly: the testing room's wings for the party -- flight at a height, 10-08)
+    // (&legend and &breath=cold|fire|lightning|stone: the testing room's first foe made legendary -- three actions, a blow and Detect, three Legendary Resistances -- or given a breath,
+    // the winter wolf's, a red's, a blue's, the gorgon's numbers; the rules before the monsters that use them, js/traits.js, 10-08)
+    var f0T = foes[0], brT = this.o.breathTest && { cold: { name: 'Cold Breath', shape: 'cone', ft: 15, ab: 'dex', dc: 12, dice: '4d8', type: 'cold', recharge: 5 }, fire: { name: 'Fire Breath', shape: 'cone', ft: 15, ab: 'dex', dc: 13, dice: '7d6', type: 'fire', recharge: 5 }, lightning: { name: 'Lightning Breath', shape: 'line', ft: 30, ab: 'dex', dc: 12, dice: '4d10', type: 'lightning', recharge: 5 }, stone: { name: 'Petrifying Breath', shape: 'cone', ft: 30, ab: 'con', dc: 13, stone: true, recharge: 5 } }[this.o.breathTest];
+    if (f0T && brT) f0T.breath = brT;
+    if (f0T && this.o.legendTest) { var mkT = Object.keys(f0T.attacks || {}).filter(function (k) { return !f0T.attacks[k].ranged; })[0]; f0T.legendary = { n: 3, acts: [{ name: 'A Swipe', cost: 1, atk: mkT }, { name: 'Detect', cost: 1, detect: true }] }; f0T.legendaryResist = 3; }
     // the pack: DEEP16 lends every ladder and climb party a crossbow and bolts (save.js armoury); inside the 8-bit game the party
     // carries only what it brought (Griz, 09-27: "unless the players bring crossbows/range, they shouldn't have one")
     var pack = JSON.parse(JSON.stringify(this.from.data.inv || [])).map(function (s) { return Array.isArray(s) ? { id: s[0], n: s[1] } : s; });
@@ -853,6 +858,7 @@
         else { if (G.aloft(u) && !u.floats) yield* this.flyTo(u, G.groundAt(u, u.x, u.y), true); yield* D.ai.turn(this, u); } // (the AI keeps to the surface: one aloft comes down first -- flight at a height, 10-08)
         this.active = null;
         this.flyCheck();
+        if (D.traits && D.traits.legendary && !this.over()) yield* D.traits.legendary(this, u); // (at the end of another creature's turn: a legendary action -- js/traits.js, 10-08)
         if (this.readyArmed()) yield* this.readyAfter({ turnOf: u }); // (one of us down by what no blow or spell of the turn told: a turn's-end save, the ring's spirits -- the readied healers, 10-02)
         if (D.familiar && !u.familiar) yield* D.familiar.after(this, u); // (his familiar's turn, right after his: js/familiar.js)
         yield* this.wave();
