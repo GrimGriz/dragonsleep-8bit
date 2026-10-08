@@ -49,7 +49,6 @@ PROPS TAIL (paste after the props head, in place of the COMMON TAIL): 16-bit pix
 
 ### Rows still missing on looks in hand (welcome, never blocking)
 
-- **The stone giant: a Catch Rock row.** BUILT 10-08 for both looks, with her Rock Catching (Griz: "make the unnecessary rock catch animation"; the rock caught is a mesh in her hand, `Giant_Rock`): off this list on his eyes (`js/eyes.js` eyes-rockcatch-1008, `deep16/?show=stonegiant,stonegiantm`).
 - **The troll: a Regrow row.**
 - **Prone** (the register's prone column says "someday"): the chuul, the crawler (the Warrens' herd), the ettercap, the otyugh, the landlord, the bulette, the owls, brown and snowy (Find Familiar), the giant boar, the clacker. Till then a prone figure plays its fall row's frame before last (`deep16/js/sprites.js` S.proneFrame).
 - **The three bugs' hurt row from the front and behind** (the stirge, the fire beetle, the giant centipede: S and N are in since 10-05, the hurt row still uses the side frames).
