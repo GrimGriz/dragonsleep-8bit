@@ -33,23 +33,30 @@
     cv.width = w; cv.height = h; var x = cv.getContext('2d', { willReadFrequently: true }), d;
     x.clearRect(0, 0, w, h); x.drawImage(img, sx, sy, w, h, 0, 0, w, h);
     try { d = x.getImageData(0, 0, w, h).data; } catch (e) { return (CACHE[key] = null); }
-    var reg = R.REGIONS[which] || R.REGIONS.body, pts = [], X, Y;
+    var reg = R.REGIONS[which] || R.REGIONS.body, pts = [], X, Y, ftop = h;
     for (Y = 0; Y < h; Y++) for (X = 0; X < w; X++) {
       var k = (Y * w + X) * 4, r = d[k], g = d[k + 1], b = d[k + 2];
       if (d[k + 3] < 200) continue;
+      if (Y < ftop) ftop = Y; // (the figure's top: where its mane should start)
       var on = reg.cols ? reg.cols.some(function (c) { return near(c, r, g, b); }) : !(r < 16 && g < 16 && b < 24);
       if (on) pts.push([X, Y, r, g, b]);
     }
     if (pts.length < 12) return (CACHE[key] = null);
-    if (reg.top) { // (the mane's colours shade his dark arms and legs too: keep the one stretch of them that holds the topmost, a one-pixel gap bridged)
-      var at = {}, top = 0, keep = [], seen = {}, queue;
-      pts.forEach(function (p, k) { at[p[0] + ',' + p[1]] = k; if (p[1] < pts[top][1]) top = k; });
-      queue = [top]; seen[top] = 1;
-      while (queue.length) {
-        var q = pts[queue.pop()]; keep.push(q);
-        for (var oy = -2; oy <= 2; oy++) for (var ox = -2; ox <= 2; ox++) { var nk = at[(q[0] + ox) + ',' + (q[1] + oy)]; if (nk != null && !seen[nk]) { seen[nk] = 1; queue.push(nk); } }
+    if (reg.top) { // (the mane's colours shade his dark arms and legs too: of the stretches of them -- a one-pixel gap bridged -- keep the one that
+      // scores best, its size less twice how far below the figure's top it starts. The topmost alone picked the arm he throws overhead in the
+      // Pounce's leap (frames 3 and 4, every facing: the harbinger, 10-08); the largest, nudged up, is the mane in every frame of his sheet)
+      var at = {}, seen = {}, best = null, bestSc = -1e9;
+      pts.forEach(function (p, k) { at[p[0] + ',' + p[1]] = k; });
+      for (var s0 = 0; s0 < pts.length; s0++) {
+        if (seen[s0]) continue;
+        var queue = [s0], keep = [], ymin = h; seen[s0] = 1;
+        while (queue.length) {
+          var q = pts[queue.pop()]; keep.push(q); if (q[1] < ymin) ymin = q[1];
+          for (var oy = -2; oy <= 2; oy++) for (var ox = -2; ox <= 2; ox++) { var nk = at[(q[0] + ox) + ',' + (q[1] + oy)]; if (nk != null && !seen[nk]) { seen[nk] = 1; queue.push(nk); } }
+        }
+        var sc = keep.length - 2 * (ymin - ftop); if (sc > bestSc) { bestSc = sc; best = keep; }
       }
-      pts = keep;
+      pts = best || [];
       if (pts.length < 12) return (CACHE[key] = null);
     }
     // the region's long line (its principal axis, as LK.knit finds a body's), the wave's start at the end that stands higher
