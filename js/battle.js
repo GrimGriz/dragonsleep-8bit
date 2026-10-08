@@ -163,7 +163,7 @@
     if (this.shake > 0) this.shake--;
     this.fx = this.fx.filter(function (p) { p.x += p.vx; p.y += p.vy; p.vy += p.g || 0; return --p.life > 0; });
     this.nums = this.nums.filter(function (n) { n.t++; return n.t < 50; });
-    this.foes.forEach(function (f) { if (f.flash > 0) f.flash--; if (f.dead && f.fade > 0) f.fade--; });
+    this.foes.forEach(function (f) { if (f.flash > 6 && !(f.off > 0)) f.ouch = 30; else if (f.ouch > 0) f.ouch--; if (f.flash > 0) f.flash--; if (f.dead && f.fade > 0) f.fade--; }); // (ouch: a blow's flash, not its own lunge's, holds a hurt pose half a second -- an NES sheet's, 10-08)
     this.heroes.forEach(function (u) { if (u.poseT > 0 && --u.poseT === 0) u.pose = null; });
     // the prone cue (10-06, the 8-bit battle lane §2.2; RULED 10-06, Griz: "2 for now as placeholder" -- 10-03: "we're not doing prone combat animations - they'll
     // have to pop-up and fall back prone or something"): a prone body lies fallen away from its enemy; acting (a hero's swing or cast, a foe's lunge) it pops up,
@@ -2031,16 +2031,20 @@
     this.foes.forEach(function (f) {
       if (f.dead && f.fade <= 0) return;
       var x = f.x + sx + (f.off || 0), y = f.y;
+      // (a foe with poses -- an NES sheet's, js/bestiary-art.js, 10-08: attack on its lunge, hurt after a blow, defeated as it fades; each set
+      // by its dx/dy so its feet stay where the ready pose's are. Prone, a mirror image and one that fled keep the ready pose)
+      var pz = f.art.poses, ps = !pz || f.lie > 0 ? null : f.dead ? (!f.fled && pz.defeated) : f.off > 0 ? pz.attack : f.ouch > 0 ? pz.hurt : null;
+      var pa = ps || f.art, px = x + (ps ? ps.dx : 0), py = y + (ps ? ps.dy : 0);
       if (f.dead) { // dissolve: drop rows
         var keep = f.fade / 24;
-        ctx.globalAlpha = keep; ctx.drawImage(f.art.img, 0, 0, f.art.w, Math.ceil(f.art.h * keep), x, y + f.art.h * (1 - keep), f.art.w, Math.ceil(f.art.h * keep)); ctx.globalAlpha = 1;
+        ctx.globalAlpha = keep; ctx.drawImage(pa.img, 0, 0, pa.w, Math.ceil(pa.h * keep), px, py + pa.h * (1 - keep), pa.w, Math.ceil(pa.h * keep)); ctx.globalAlpha = 1;
         return;
       }
       if (f.images > 0) { ctx.globalAlpha = 0.35; for (var k = 0; k < f.images; k++) ctx.drawImage(f.art.img, x + [-10, 10, 0][k], y + [4, -4, 8][k]); ctx.globalAlpha = 1; }
-      var img = (f.flash > 0 && (f.flash & 2)) ? f.art.flash : f.art.img;
+      var img = (f.flash > 0 && (f.flash & 2)) ? pa.flash : pa.img;
       if (f.conds.asleep || f.conds.paralyzed) { ctx.globalAlpha = 0.7; }
       if (f.conds.ethereal) { ctx.globalAlpha = 0.12 + 0.08 * ((DS.frame >> 3) & 1); } // in the rock: a shimmer where it went
-      drawFallen(ctx, img, x, y, f.art.w, f.art.h, f.lie, -1); // (prone: fallen, 10-06)
+      drawFallen(ctx, img, px, py, pa.w, pa.h, f.lie, -1); // (prone: fallen, 10-06)
       ctx.globalAlpha = 1;
       if (f.conds.asleep && ((DS.frame >> 4) & 1)) DS.text(ctx, 'z', x + f.art.w - 4, y - 2, '#B8B8F8');
       if (self.bright && f.m.traits && f.m.traits.lightSensitive && ((DS.frame >> 4) & 1)) DS.textCenter(ctx, 'DAZZLED', x + f.art.w / 2, y - 18, '#F8D878');
