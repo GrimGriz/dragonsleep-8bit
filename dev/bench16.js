@@ -1571,6 +1571,12 @@
       D.rules.startTurn(f7); B7.active = f7; runFL(B7.flyMove(f7, f7.x, f7.y, GF.groundAt(f7, f7.x, f7.y) + 2 * L)); var up7 = GF.aloft(f7);
       D.d = function (n) { return n; }; try { D.magic.endConc(B7, w7, 'the bench'); B7.flyCheck(); } finally { D.d = d0FL; }
       okFL('Fly: the fighter a target ' + ok7 + ', wings and 60 ft ' + wings7 + ', up 10 ft ' + up7 + '; the spell ended: wings ' + !!f7.flies + ', speed ' + f7.speed + ', on the ground ' + (f7.fz == null) + ', prone ' + !!f7.conds.prone, ok7 && wings7 && up7 && !f7.flies && f7.speed === 30 && f7.fz == null && !!f7.conds.prone);
+      // the Dash at a layer (SRD 5.1 Dash: "extra movement ... equals your speed", flying as walking; Griz, 10-08: "Dash applies to flight movement? If so, auto-ask dash on move
+      // click?"): 10 ft up and eight squares on -- past the 30 ft, inside the dash's 60 -- DASH THERE? is asked, and it flies there, the action spent
+      var B9 = mkFL('?npc=goblin&lvl=5&vs=fighter:5&fly'), f9 = sideFL(B9, 'party')[0]; f9.x = 4; f9.y = 8; GF.setup(GF.map, B9.units); D.rules.startTurn(f9); B9.active = f9;
+      var g9 = GF.groundAt(f9, f9.x, f9.y), asked9 = null, gen9 = B9.exec(f9, { do: 'dashmove', x: 11, y: 8, fz: g9 + 2 * L }), st9, v9;
+      for (var k9 = 0; k9 < 4000; k9++) { st9 = gen9.next(v9); v9 = undefined; if (st9.done) break; if (st9.value && st9.value.prompt) { asked9 = st9.value.prompt.title; v9 = st9.value.prompt.opts[0].value; } }
+      okFL('a dash at a layer: asked "' + asked9 + '"; at (' + f9.x + ',' + f9.y + '), ' + (f9.fz - g9) / GF.map.def.step * 2.5 + ' ft up, the action spent ' + (f9.turn.action === 0), /DASH THERE/.test(asked9 || '') && f9.x === 11 && GF.aloft(f9) && f9.turn.action === 0);
       // the druid's Giant Bat (Wild Shape, 8th: js/features.js F.SHAPES `flies`): in its shape the move tool takes the wheel's layer too
       var B5 = mkFL('?npc=goblin&lvl=8&vs=druid:8'), d5 = sideFL(B5, 'party')[0]; D.rules.startTurn(d5); B5.active = d5; d5.feats.wildShape = 2; runFL(D.features.wildShape(B5, d5, 'giantbat')); B5.req = { turn: d5 }; B5.tool = 'move'; B5.cache = null;
       var bat5 = !!(d5.beast && d5.flies), fl5 = D.ui.flyer(B5) === d5, st5 = D.ui.stepLayer(B5, 1); B5.req = null;

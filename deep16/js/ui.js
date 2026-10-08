@@ -100,7 +100,7 @@
   function reachCache(B, u) {
     var T = u.turn, key = u.x + ',' + u.y + ',' + T.move + ',' + T.action + ',' + T.bonus + ',' + T.attacksLeft + ',' + B.units.map(function (w) { return w.x + ':' + w.y + ':' + (w.dead || w.hp <= 0 ? 0 : RU.canAct(w) ? 1 : 2) + (w.ethereal ? 'e' : ''); }).join(';') + (B.webs || []).length;
     if (B.cache && B.cache.key === key) return B.cache;
-    var lz = UI.flyer(B) === u ? UI.layerZ(B, u) : null; if (lz != null) { key += ',fly' + lz; if (B.cache && B.cache.key === key) return B.cache; B.cache = { key: key, move: G.flyReach(u, lz, T.move), dash: null, hide: null, layer: lz }; return B.cache; } // (flight at a height, 10-08: the move at the layer -- no dash at a layer yet)
+    var lz = UI.flyer(B) === u ? UI.layerZ(B, u) : null; if (lz != null) { key += ',fly' + lz; if (B.cache && B.cache.key === key) return B.cache; var dashL = u.conds.restrained ? 0 : u.speed * D.Battle.dashes(u).length; B.cache = { key: key, move: G.flyReach(u, lz, T.move), dash: dashL ? G.flyReach(u, lz, T.move + dashL) : null, hide: null, layer: lz }; return B.cache; } // (flight at a height, 10-08: the move at the layer, and the dash's ring at it -- SRD 5.1 Dash, "extra movement ... equals your speed", flying as walking)
     var held = !!u.conds.restrained, dash = held ? 0 : u.speed * D.Battle.dashes(u).length; // (both dashes, where it has both: 10-04 -- the action's and a Cunning Action's)
     B.cache = { key: key + (held ? ',held' : ''), move: G.reach(u, held ? 0 : T.move), dash: dash ? G.reach(u, T.move + dash) : null, hide: null };
     return B.cache;
@@ -838,8 +838,10 @@
   // the move's square in the air (flight at a height; Griz, 10-08, on the pane: "See the way we're doing the rope climb with regard to altitude indication. when in the air, can we do
   // semitransparent around the white 'move here' square so you can tell it's an altitude move square"): a pale see-through column from the ground under the square up to the
   // layer, its two near faces filled faintly and its edges drawn, as the rope's rung draws the face it climbs
-  function airColumn(x, y, z) {
+  function airColumn(x, y, z, e, left) {
     var g = G.map.gz(x, y); if (z <= g) return;
+    var lp = D.iso.center(x, y, z), ls = D.iso.toScreen(lp.x, lp.y); // (its height and its move beside it, as the rope's rung: the Edifice's, 10-05 -- Griz, 10-08, "check the edifice climb")
+    LABELS.push({ x: ls.x + 18, y: ls.y - 4, text: (Math.round((z - g) / G.map.def.step / 2) * 5) + ' ft up' + (e && e.stand ? '  ' + (e.cost <= left ? '{n}' : '{o}') + e.cost + ' ft of move{/}' : ''), color: R('bone', 1) });
     var iso = D.iso, HW = iso.TW / 2, HH = iso.TH / 2, c = iso.center(x, y, 0), col = R('bone', 1);
     var P = function (v, zz) { return iso.toScreen(c.x + v[0], c.y + v[1] - zz); }, L = [-HW, 0], Bm = [0, HH], Rt = [HW, 0];
     var item = { depth: x + y + 0.45, gz: z, layer: 1, draw: function (cx) {
@@ -916,7 +918,7 @@
       }
       if (v === 'no' && (u.size || 1) > 1 && D.keeperPlay && D.keeperPlay.human(B, u)) { D.sfx('error'); return B.card(['{o}MOVE: ' + (D.keeperPlay.moveWhy(B, u, x, y) || 'not there') + '.{/}'], 160); } // (a big creature's refused pick says why)
       if (v === 'ok') { var fzC = UI.flyer(B) === u ? UI.layerZ(B, u) : null; if (fzC != null) { B.flyZ = null; return UI.command(B, u, { do: 'move', x: x, y: y, fz: fzC }); } return UI.command(B, u, { do: 'move', x: x, y: y }); } // (fz: the layer, flight at a height)
-      if (v === 'far') return UI.command(B, u, { do: 'dashmove', x: x, y: y });
+      if (v === 'far') { var fzD = UI.flyer(B) === u ? UI.layerZ(B, u) : null; if (fzD != null) { B.flyZ = null; return UI.command(B, u, { do: 'dashmove', x: x, y: y, fz: fzD }); } return UI.command(B, u, { do: 'dashmove', x: x, y: y }); } // (a dash at a layer: flight at a height, 10-08)
       if (v === 'rope') return UI.command(B, u, { do: 'ropeclimb', x: x, y: y });
       return;
     }
@@ -1904,7 +1906,7 @@
       }
       LAYERZ = rc.layer != null ? rc.layer : null; // (flight at a height: the squares at the layer)
       Object.keys(rc.move).forEach(function (k) { var e = rc.move[k]; if (e.stand && e.cost > 0) fillSq(ctx, e.x, e.y, R('glow', 1), 0.17); });
-      if (LAYERZ != null) { lineSq(ctx, cx, cy, R('bone', 1), 0.9, 1); airColumn(cx, cy, LAYERZ); } // (the square in the air: a pale column down to the ground under it, as the rope's rung shows its height -- Griz, 10-08)
+      if (LAYERZ != null) { lineSq(ctx, cx, cy, R('bone', 1), 0.9, 1); airColumn(cx, cy, LAYERZ, rc.move[cx + ',' + cy], T.move); } // (the square in the air: a pale column down to the ground under it, as the rope's rung shows its height -- Griz, 10-08)
       LAYERZ = null;
       // a rogue's places to try hiding (no foe she knows of sees her there plainly): always, as she moves (Griz, 09-27)
       // the ways out: a pale marker on each (set design, 09-27)
@@ -2033,7 +2035,11 @@
         if (!s1.ok) sb.push('{o}unseen by ' + u.name + ': ' + s1.why + '{/}'); else if (s1.dv) sb.push('{c}seen by darkvision{/}');
         if (!s2.ok) sb.push('{n}it cannot see ' + u.name + ': ' + s2.why + '{/}');
         if (sb.length) lines.push(sb.join('  '));
+      } else if (u && w !== u && !w.dead) { // (a friend's distance too, and whether the spell aimed reaches: Griz, 10-08, "trying to target flying ally with haste and bottom right card does not report distance like when i target the goblin?")
+        var dA = G.dist(u, w), gA = B.tool === 'spell' && B.spell && B.spell.g, rgA = gA && gA.shape === 'touch' ? 5 : gA && gA.range;
+        lines.push(dA + ' ft' + (rgA ? (dA <= rgA ? '  {n}in range{/}' : '  {o}out of range: ' + (gA.shape === 'touch' ? 'touch' : rgA + ' ft') + '{/}') : ''));
       }
+      if (G.aloft(w)) lines.push('{c}aloft{/}: ' + Math.round((w.fz - G.groundAt(w, w.x, w.y)) / G.map.def.step * 2.5) + ' ft up'); // (flight at a height, 10-08)
     } else if (u && B.tool === 'rope') { // (the Rope & Grapple's pick under the cursor: the throw and its DC -- 10-05, Griz: "go with +2 DC per 5 beyond 30")
       var rqT = D.Battle.ropeSq(B, u, B.cursor.x, B.cursor.y);
       lines.push(rqT ? (rqT.top ? '{y}tie the rope off here{/}: no roll' : '{y}throw the grapple up{/}: ' + rqT.ft + ' ft, {n}DEX DC ' + rqT.dc + '{/}  {g}(10 to 30 ft, 2 more each 5 ft past; 50 ft of rope){/}') : '{g}no top of a face the rope reaches from here{/}');

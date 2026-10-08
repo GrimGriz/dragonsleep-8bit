@@ -1499,9 +1499,10 @@
       case 'hooddown': T.freeObj = true; yield* D.light.hood(this, u, true); return;
       case 'hoodup': T.freeObj = true; yield* D.light.hood(this, u, false); return;
       case 'dashmove': {
-        var dsh = Battle.dashes(u), rmF = G.reach(u, T.move + u.speed * dsh.length), far = rmF[c.x + ',' + c.y], opts = [];
+        var flyD = c.fz != null && G.winged(u); // (at a layer: the flight's own reach, and the flight there -- flight at a height, 10-08)
+        var dsh = Battle.dashes(u), rmF = flyD ? G.flyReach(u, c.fz, T.move + u.speed * dsh.length) : G.reach(u, T.move + u.speed * dsh.length), far = rmF[c.x + ',' + c.y], opts = [];
         if (!far || u.conds.restrained || u.conds.dancing) return;
-        var fLsD = this.fallLines(u, G.path(rmF, c.x, c.y) || []); // (a drop or a tall climb on the way: said in the dash's own question -- NOT THAT FAR declines both)
+        var fLsD = flyD ? [] : this.fallLines(u, G.path(rmF, c.x, c.y) || []); // (a drop or a tall climb on the way: said in the dash's own question -- NOT THAT FAR declines both)
         var bName = (u.cls === 'rogue' && u.lvl >= 2) || u.cunning ? 'CUNNING DASH' : 'RETREAT DASH', bWhy = bName === 'CUNNING DASH' ? 'Cunning Action' : 'Expeditious Retreat';
         if (far.cost > T.move + u.speed) { if (dsh.length > 1) opts.push({ label: 'DASH + ' + bName + ' (action and bonus)', value: 'ab' }); } // (it takes both: 10-04, Griz -- the rogue and the 30 ft face)
         else {
@@ -1515,6 +1516,7 @@
         if (how.indexOf('b') >= 0) T.bonus = 0; if (how.indexOf('a') >= 0) T.action = 0;
         T.move += u.speed * how.length;
         this.card(['{y}' + u.name + '{/}' + (how === 'ab' ? ' dashes twice (Dash and ' + bWhy + ')' : (how === 'b' ? ' (' + bWhy + ')' : '') + ' dashes') + ': {c}+' + u.speed * how.length + ' ft{/}.']);
+        if (flyD) { yield* this.flyMove(u, c.x, c.y, c.fz); return; }
         var rm2 = G.reach(u, T.move), path2 = G.path(rm2, c.x, c.y);
         if (path2 && path2.length) yield* this.moveAlong(u, path2, { spend: true });
         return;
