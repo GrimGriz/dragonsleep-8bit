@@ -3,7 +3,7 @@
     python tools/goose-sheet.py
 
 Sources (gitignored; masters dev/visions/Goose/Goose1-3.png): deep16/_src/goose_grok_1.png (A, "sheet 1"), goose_grok_2.png (B, "sheet 1,
-his moves for a tactics game"), goose_grok_3.png (C, "sheet 2") -- Griz, 2026-10-06/07, from the paste in deep16-art-wanted.md "GOOSE, SHEET
+his moves for a tactics game"), goose_grok_3.png (C, "sheet 2") -- Griz, 2026-10-06/07, from the paste in deep16-art-in-hand.md "GOOSE, SHEET
 1". Each sheet is cut by its own row and number labels (tools/sheetrows.py; the boxes below were read off the sheets), then his picks are
 taken frame by frame, rows mixed across the sheets (Griz, 10-07, verbatim: "turn around C, idle C, hop B, sling B, cast B - with C5 in place
 of B4 with the extra claw out of his head, and A4 for #5, can we honk B 1, B2, A3, B4?, climb B 1-3, C4-6, flinch B1-2, A3, C4, fall B, prone
@@ -78,7 +78,7 @@ SHEETS = {
                     ('prone', (0, 1263, 1055, 1423), (1423, 1443), NUM(4))]),
 }
 # his moves from the front (D, sheet 3), from behind (E, sheet 4) and two heals side-on (F, sheet 5): GPT, Griz 10-07, from the pastes in
-# deep16-art-wanted.md "Goose and Rascal from the front and from behind" (deep16/_src/goose_gpt_3..5.png); their specs in tools/goose-fronts-spec.py
+# deep16-art-in-hand.md "Goose and Rascal from the front and from behind" (deep16/_src/goose_gpt_3..5.png); their specs in tools/goose-fronts-spec.py
 SHEETS.update(_load('goose_fronts_spec', os.path.join(ROOT, 'tools', 'goose-fronts-spec.py')).SHEETS)
 # loose bits moved by hand: letter -> row -> [(box x0 y0 x1 y1 on the sheet: every blob wholly inside it, the label it belongs to)]
 FIX = {'A': {'sling': [((690, 612, 760, 640), '4')]},        # the stone let fly (the nearest frame was 5's)

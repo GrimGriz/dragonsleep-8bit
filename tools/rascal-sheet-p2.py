@@ -4,7 +4,7 @@
 
 Sources (gitignored; masters in dev/visions/rascal/): deep16/_src/rascal_grok_2.png ("Rascal the Lobstamonkee Sprite Sheet1.png": sheet 1
 redone, the face as the felt's and the hat charcoal grey), rascal_grok_3.png ("Sheet2.png": sheet 2) and rascal_grok_4.png ("Rascal Social
-Sharing Sprite Sheet3.png": one row at a larger scale, a second take on the bow) -- Griz, 2026-10-07, from the pastes in deep16-art-wanted.md
+Sharing Sprite Sheet3.png": one row at a larger scale, a second take on the bow) -- Griz, 2026-10-07, from the pastes in deep16-art-in-hand.md
 "RASCAL, SHEET 1" and "RASCAL, SHEET 2". Each sheet is cut by its own row and number labels (tools/sheetrows.py, Goose's recipe; the boxes below
 were read off the sheets). The row maps are the pastes': turnaround -> idle by facing; Walk -> walk; Pinch -> attack; Social Sharing ->
 socialsharing; Social Flame -> socialflame; Climb -> climb; Flinch -> flinch; Fall -> hurt; Prone -> prone; Fire Bolt -> cast; Social
@@ -65,7 +65,7 @@ SHEETS = {
     '3': dict(file='rascal_grok_4.png', grey=30, far=60,
               text=[(60, 140, 1000, 230)],
               rows=[('sharing', (0, 226, 2172, 556), (556, 604), NUM(6))]),
-    # his moves from the front (sheet 4) and from behind (sheet 5): GPT, Griz 10-07, from the pastes in deep16-art-wanted.md "Goose and Rascal
+    # his moves from the front (sheet 4) and from behind (sheet 5): GPT, Griz 10-07, from the pastes in deep16-art-in-hand.md "Goose and Rascal
     # from the front and from behind" (deep16/_src/rascal_gpt_4.png, rascal_gpt_5.png). Front: the claw on the viewer's left; behind: on the right
     '4': dict(file='rascal_gpt_4.png', grey=30, far=60,
               text=[(0, 0, 1086, 52), (20, 68, 222, 101), (20, 248, 228, 281), (20, 438, 238, 471), (20, 624, 292, 657), (20, 808, 283, 841),

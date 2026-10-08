@@ -4,7 +4,7 @@
     python tools/hobgoblin-sheet.py check      (also the cut overlays, dev/visions/hobgoblin/cut-<look>-<n>.png)
 
 Sources (gitignored, the main checkout's -- a worktree reads them there): deep16/_src/Hobgoblin1..4.png and HobSergeant1..4.png -- Griz,
-2026-10-07, from the eight pastes in deep16-art-wanted.md "The hobgoblin and the hobgoblin sergeant" (his: "copy pasta for 3 and 4 please",
+2026-10-07, from the eight pastes in deep16-art-in-hand.md "The hobgoblin and the hobgoblin sergeant" (his: "copy pasta for 3 and 4 please",
 then "Hobgoblin and hobsergeant sheets are in _src"). Each look's sheet 1 is the side rows with its portrait and turnaround (the turnaround cut
 for the scale only), sheet 2 its tricks side-on (Martial Advantage, Climb), sheet 3 from the front, sheet 4 from behind. Each is cut by its
 own rows (tools/sheetrows.py); the boxes below were read off the sheets, and every row's frames are placed by its number labels' x, read off

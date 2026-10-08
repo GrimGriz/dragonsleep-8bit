@@ -4,7 +4,7 @@
     python tools/goblin-sheet.py check      (also the cut overlays, dev/visions/goblin/cut-<n>.png)
 
 Sources (gitignored, the main checkout's -- a worktree reads them there): deep16/_src/Goblin-GPT1.png .. Goblin-GPT4.png -- Griz, 2026-10-07,
-from the four pastes in deep16-art-wanted.md "The goblin, redone" (his: "Redoing goblins while we have an expanded art department, please the
+from the four pastes in deep16-art-in-hand.md "The goblin, redone" (his: "Redoing goblins while we have an expanded art department, please the
 copypasta for all the 16 bit sprite animation rows we'll need for them", then "Should be GPT Goblins in _src"). Sheet 1 the side rows (idle, walk,
 scimitar, shortbow, flinch, fall, prone; its portrait and turnaround not used), sheet 2 its tricks side-on (nimble escape, hide, climb), sheet 3
 from the front, sheet 4 from behind. Each is cut by its own row and number labels (tools/sheetrows.py; the boxes below were read off the sheets

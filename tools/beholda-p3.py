@@ -3,7 +3,7 @@
     python tools/beholda-p3.py
 
 Source (gitignored; the master is dev/visions/beholda/Beholda Pixel Sprite Sheet.png): deep16/_src/beholda_grok_2.png -- Griz, 2026-10-07,
-from the pastes in deep16-art-wanted.md "BEHOLDA, SHEET 2" and "BEHOLDA, SHEET 3", one sheet with all their rows. Cut by its own row and
+from the pastes in deep16-art-in-hand.md "BEHOLDA, SHEET 2" and "BEHOLDA, SHEET 3", one sheet with all their rows. Cut by its own row and
 number labels (tools/sheetrows.py; the boxes below were read off the sheet), then boxed down to game size, snapped to deep16/palette.json
 and outlined by the same pass as every sheet (tools/pixelate.py).
 

@@ -17,7 +17,7 @@ nine frames (a number twice), the second is dropped; the chief's javelin rows ar
 the `still` row: js/ui.js plays it for a foe that has not acted or been woken.
 
 THE SIDE ROWS RE-ROLLED (10-07, his: "bugbear GPT and bugbear chief GPT are in the _src now"): deep16/_src/Bugbear GPT.png and bugbear chief
-GPT.png, one sheet an image at about 2.5x game size (the pastes in deep16-art-wanted.md, "The bugbear"), give the side rows -- idle, walk,
+GPT.png, one sheet an image at about 2.5x game size (the pastes in deep16-art-in-hand.md, "The bugbear"), give the side rows -- idle, walk,
 morningstar, javelin, flinch, the fall from standing, a prone; the packed images keep the front, the back and the tricks, toned to the re-rolls'
 orange (TONE). The bugbear's re-roll drew three flinch frames (played 1 2 3 1); the chief's skipped the second swing it was asked for.
 
