@@ -139,6 +139,7 @@
     KeyM: 'menu', Tab: 'menu', KeyC: 'center', Home: 'center',
     KeyQ: 'ring',
     Minus: 'zoomout', NumpadSubtract: 'zoomout', Equal: 'zoomin', NumpadAdd: 'zoomin',
+    PageUp: 'layerup', PageDown: 'layerdown', BracketLeft: 'bracketl', BracketRight: 'bracketr', // (flight at a height: PageUp/PageDown and [ ] a flier's layer while its move is out -- js/ui.js UI.stepLayer, 10-08; the brackets' words are neutral, the one gallery reads them too)
     Backquote: 'stats',
     KeyP: 'play', KeyR: 'rec',
     Digit1: 'n1', Digit2: 'n2', Digit3: 'n3', Digit4: 'n4', Digit5: 'n5', Digit6: 'n6', Digit7: 'n7', Digit8: 'n8', Digit9: 'n9',
@@ -174,10 +175,10 @@
   // Y is END TURN (Space), X/square INFO (the right-click), start MENU, back and R3 recentre (C), the bumpers turn the
   // wheel and the triggers zoom, for a hand that would rather press than push
   var PADMAP = {
-    buttons: { 0: 'a', 1: 'b', 2: 'info', 3: 'end', 4: 'bumpl', 5: 'bumpr', 6: 'zoomout', // (the bumpers their own: on the ring they go as the d-pad, the right stick as a swipe -- js/ui.js ringStep, 10-06) 7: 'zoomin', 8: 'center', 9: 'menu',
+    buttons: { 0: 'a', 1: 'b', 2: 'info', 3: 'end', 4: 'bumpl', 5: 'bumpr', 6: 'zoomout', 7: 'zoomin', 8: 'center', 9: 'menu', // (the bumpers their own: on the ring they go as the d-pad, the right stick as a swipe -- js/ui.js ringStep, 10-06; 7, 8 and 9 had sat behind this note since, 10-08)
       10: 'drop', 11: 'center', 12: 'up', 13: 'down', 14: 'left', 15: 'right' },
     ls: { up: 'up', down: 'down', left: 'left', right: 'right' },
-    rs: { up: 'zoomin', down: 'zoomout', left: 'wheell', right: 'wheelr' },
+    rs: { up: 'rsup', down: 'rsdown', left: 'wheell', right: 'wheelr' }, // (up and down: the zoom, or a flier's layer while its move is out -- js/ui.js camera, 10-08)
     hint: {
       xbox: 'LEFT STICK cursor &middot; D-PAD along the grid &middot; A confirm &middot; B back &middot; RIGHT STICK &#9664;&#9654; the wheel, &#9650;&#9660; zoom &middot; L3 drop the wheel &middot; X inspect &middot; Y end turn &middot; START menu &middot; R3 recentre &middot; LB/RB the wheel &middot; LT/RT zoom',
       ps: 'LEFT STICK cursor &middot; D-PAD along the grid &middot; &#10005; confirm &middot; &#9675; back &middot; RIGHT STICK &#9664;&#9654; the wheel, &#9650;&#9660; zoom &middot; L3 drop the wheel &middot; &#9633; inspect &middot; &#9651; end turn &middot; OPTIONS menu &middot; R3 recentre &middot; L1/R1 the wheel &middot; L2/R2 zoom'

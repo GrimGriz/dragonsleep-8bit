@@ -34,6 +34,7 @@
   #dpad .hub { left: 44px; top: 44px; border-radius: 0; }
   .ab { position: relative; width: 132px; height: 96px; }
   .ab div { position: absolute; width: 58px; height: 58px; border-radius: 50%; font-size: 18px; font-weight: bold; }
+  .flyrow { display: none; } body.fly .flyrow { display: flex; } /* (a flier's layer, ▲ up 5 ft, ▼ down: flight at a height, 10-08) */
   .ab [data-btn=a] { right: 0; top: 0; }
   .ab [data-btn=b] { left: 0; top: 36px; }
   .pills { display: flex; gap: 8px; }
@@ -55,6 +56,7 @@
   <div class="cluster">
     <div id="dpad"><div data-d="up">&#9650;</div><div data-d="left">&#9664;</div><div class="hub"></div><div data-d="right">&#9654;</div><div data-d="down">&#9660;</div></div>
     <div class="pills"><div data-btn="zoomout">&minus;</div><div data-btn="zoomin">+</div><div data-tap="inspect">INFO</div></div>
+    <div class="pills flyrow"><div data-btn="layerup">&#9650;</div><div data-btn="layerdown">&#9660;</div></div>
   </div>
   <div id="turn">turn the phone sideways for a bigger board &middot; tap to point, tap again to act, drag to look, hold to inspect</div>
   <div class="cluster">
@@ -66,12 +68,12 @@
 <script src="../js/font.js?v=86706ebeb2"></script>
 <script src="../data/data.js?v=8e28a7f65b"></script>
 <script src="../js/rules.js?v=3e072e4788"></script>
-<script src="js/core.js?v=f38c3dec77"></script>
+<script src="js/core.js?v=8d06a861ab"></script>
 <script src="../js/audio.js?v=aa995a574f"></script>
 <script src="../js/pad.js?v=f136ba921e"></script>
 <script src="../js/menu.js?v=c4a497f993"></script>
 <script src="js/palette.js?v=9dc10bdb56"></script>
-<script src="js/iso.js?v=bdc0d36fb4"></script>
+<script src="js/iso.js?v=7e5a5a250d"></script>
 <script src="js/art.js?v=e1ce4cf012"></script>
 <script src="data/cavern.js?v=647c1a184a"></script>
 <script src="data/maps.js?v=91a442fc61"></script>
@@ -81,24 +83,24 @@
 <script src="data/spells.js?v=c2093ac973"></script>
 <script src="data/durations.js?v=2a9cff48b4"></script>
 <script src="data/fights.js?v=b28614887a"></script>
-<script src="data/foes.js?v=b5d6fb593c"></script>
+<script src="data/foes.js?v=ff000e14af"></script>
 <script src="data/summons.js?v=5d8c3d82cc"></script>
 <script src="data/features.js?v=f4d1a4f25e"></script>
-<script src="js/classes.js?v=3d18da09da"></script>
-<script src="js/grid.js?v=9556041883"></script>
+<script src="js/classes.js?v=3fc4ffe227"></script>
+<script src="js/grid.js?v=a988eac6eb"></script>
 <script src="js/rules.js?v=133340eebf"></script>
 <script src="js/fx.js?v=c3700ab855"></script>
 <script src="js/light.js?v=13b8df40b3"></script>
-<script src="js/magic.js?v=2921817854"></script>
+<script src="js/magic.js?v=31b1556b3c"></script>
 <script src="js/grimoire.js?v=6fe2b61093"></script>
 <script src="js/walls.js?v=6d4060aad0"></script>
-<script src="js/ai.js?v=ad2ac495df"></script>
+<script src="js/ai.js?v=17b4ee7e4e"></script>
 <script src="js/tactics.js?v=6142116b0c"></script>
 <script src="js/features.js?v=2d3e4132a7"></script>
 <script src="js/traits.js?v=754417c3e4"></script>
 <script src="js/familiar.js?v=0edf39243e"></script>
 <script src="js/icons.js?v=0552a709a1"></script>
-<script src="js/battle.js?v=007b9f0a70"></script>
+<script src="js/battle.js?v=0d14026f78"></script>
 <script src="js/ripple.js?v=c7f6a0db99"></script>
 <script src="js/looks.js?v=7d46785bc7"></script>
 <script src="js/oil.js?v=fdd29d85e2"></script>
@@ -107,7 +109,9 @@
 <script src="js/keeper.js?v=30681b6341"></script>
 <script src="js/keeperplay.js?v=4ee5976480"></script>
 <script src="js/keeperlog.js?v=e082ee5691"></script>
-<script src="js/ui.js?v=c90129ddb4"></script>
+<script src="js/ui.js?v=e221481637"></script>
+=======
+<script src="js/ui.js?v=e221481637"></script>
 <script src="js/view.js?v=2116b81b68"></script>
 <script src="js/ladder.js?v=f259224161"></script>
 <script src="js/record.js?v=9a681cb9b4"></script>

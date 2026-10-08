@@ -18,7 +18,7 @@
     // foesOf, or a fight stalls on one nobody will strike, 10-01 bench)
     // (blindsight perceives without sight -- SRD 5.1 -- so a hidden one inside its reach is known to it: the bulette's tremorsense under the road found no hidden Vivian 10 ft
     // off and the Breach never ended, 10-02)
-    var seen = B.units.filter(function (w) { return w.side !== u.side && G.standing(w) && !(w.riding && !w.attached) && w.id !== charmer && (((!w.conds.hidden || D.magic.inMirror(B, u, w) || (u.blindsight && G.dist(u, w) <= u.blindsight)) && D.magic.sees(B, u, w)) || G.dist(u, w) <= 5); }); // (the Mirror's eye: no hiding before it)
+    var seen = B.units.filter(function (w) { return w.side !== u.side && G.standing(w) && !(w.riding && !w.attached) && w.id !== charmer && (((!w.conds.hidden || D.magic.inMirror(B, u, w) || (u.blindsight && G.dist(u, w) <= u.blindsight && !(u.tremor && G.aloft(w)))) && D.magic.sees(B, u, w)) || G.dist(u, w) <= 5); }); // (the Mirror's eye: no hiding before it)
     if (seen.length) return seen;
     // nothing seen (inside a Darkness, blinded, the dark with no darkvision): it goes by ear -- toward the nearest it knows is there,
     // and swings or shoots at the unseen (the -4, the disadvantage). Nobody stands still all fight (the raid's stall, 09-28)

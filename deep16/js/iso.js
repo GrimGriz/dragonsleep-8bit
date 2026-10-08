@@ -490,6 +490,19 @@
     return bestZ || best;
   };
 
+  // the square under a screen point on the plane at height z (flight at a height, 10-08: a flier's move at a layer): each open square at z, or at its own height where that is
+  // higher (a roof above the layer is a roof), front-most wins
+  iso.pickAt = function (sx, sy, z0) {
+    var m = iso.map, best = null, bd = -1, z = iso.inWorld ? 1 : iso.zoom;
+    for (var i = 0; i < m.sq.length; i++) {
+      var s = m.sq[i];
+      if (!s.open) continue;
+      var c = iso.center(s.x, s.y, Math.max(z0, s.gz)), p = iso.toScreen(c.x, c.y);
+      if (Math.abs(sx + 0.5 - p.x) / (HW * z) + Math.abs(sy + 0.5 - p.y) / (HH * z) > 1) continue;
+      if (s.x + s.y > bd) { bd = s.x + s.y; best = s; }
+    }
+    return best;
+  };
   // the keyboard cursor: one square a press along the grid's own axes, as on the 8-bit map (up is y-1, right x+1), so
   // on screen up runs up-right, right down-right, down down-left, left up-left (Griz, 09-27: "follow the grid version").
   // One axis at a time reaches every square; stepping x and y together once left half the floor, a checkerboard, out.

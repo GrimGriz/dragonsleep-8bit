@@ -109,6 +109,7 @@
     if (this.o.embed && this.o.embed.revealed) foes.forEach(function (u) { u.hidden0 = false; }); // (seen coming: the roper under the ledger-lamp)
     var lent = (F.allies || []).map(function (f) { return self.makeFoe(Object.assign({ side: 'party', ally: true }, f)); }); // (ours for the fight, the brute's to run: the Skylights' stable fighters up the south road, the garrison behind the hatch -- 10-05)
     this.units = party.concat(foes, lent);
+    if (this.o.flyTest) party.forEach(function (u) { if (!u.familiar) u.flies = true; }); // (&fly: the testing room's wings for the party -- flight at a height, 10-08)
     // the pack: DEEP16 lends every ladder and climb party a crossbow and bolts (save.js armoury); inside the 8-bit game the party
     // carries only what it brought (Griz, 09-27: "unless the players bring crossbows/range, they shouldn't have one")
     var pack = JSON.parse(JSON.stringify(this.from.data.inv || [])).map(function (s) { return Array.isArray(s) ? { id: s[0], n: s[1] } : s; });
@@ -328,7 +329,7 @@
       roofGuard: !!f.roofGuard, noGlass: !!f.roofGuard, streetFirst: !!f.streetFirst, huntsClimbers: !!f.huntsClimbers, // (huntsClimbers: any of ours on a rope or a face first -- the Skylights' spiders, ai.js brute, 10-05 evening) // (the roof first and never the glass -- Hallvör; the street first while anyone it can see stands on it -- the trolls: ai.js brute, 10-05) // (nothing but the mission's target; guarding the one with that id; the rocks it carried -- the Skylights' giants and trolls, ai.js brute, 10-05)
       // senses (SRD 5.1; torchdark 09-28): how far it sees in the dark, or by blindsight (and blind past it: the oozes, the darkmantle),
       // and what it does with the dark itself (the darkmantle's aura, the duergar's Invisibility: ai.js brute)
-      darkvision: d.darkvision || 0, blindsight: d.blindsight || 0, blind: !!d.blind, truesight: d.truesight || 0, devilSight: !!d.devilSight,
+      darkvision: d.darkvision || 0, blindsight: d.blindsight || 0, tremor: !!d.tremor, blind: !!d.blind, truesight: d.truesight || 0, devilSight: !!d.devilSight,
       aura: d.darknessAura ? { used: false } : null, invis: d.invisibility ? { used: false, atWill: d.invisibility === 'atwill' } : null, glow: d.glow || null, // (glow: a creature that sheds light -- the will-o'-wisp; js/light.js L.carried)
       mirrorEye: !!d.mirrorEye // the Mirror's warlocks (RULED 09-28): no hiding or invisibility before her, in light (magic.js inMirror)
     };
@@ -491,6 +492,7 @@
     if (this.shakeT > 0) this.shakeT--;
     FX.update();
     this.units.forEach(function (u) { if (u.flash > 0) u.flash--; if (u.tween) { u.tween.t++; if (u.tween.t >= u.tween.dur) delete u.tween; } });
+    this.flyCheck(); // (a flier aloft that can no longer stay up falls: flight at a height, 10-08)
     this.cards = this.cards.filter(function (c) { return this.t - c.t0 < c.life; }, this);
     if (D.magic.laughTick) { if (this.req && this.req.scene) D.magic.laughHold(this); else D.magic.laughTick(this); } // (a gnoll's fit and its laughs on their beats, js/grimoire.js M.LAUGH -- held still under a cutscene beat, the egg's: the fight pauses)
     if (this.menu) { D.ui.menuInput(this); return; }
@@ -848,8 +850,9 @@
         this.active = u;
         if (u.side === 'party' && !u.guest && !u.ally) yield* this.heroTurn(u);
         else if (this.show && u.show) yield* D.show.turn(this, u); // (the test ground's director, js/show.js: the AI's turn with its nudges about it)
-        else yield* D.ai.turn(this, u);
+        else { if (G.aloft(u) && !u.floats) yield* this.flyTo(u, G.groundAt(u, u.x, u.y), true); yield* D.ai.turn(this, u); } // (the AI keeps to the surface: one aloft comes down first -- flight at a height, 10-08)
         this.active = null;
+        this.flyCheck();
         if (this.readyArmed()) yield* this.readyAfter({ turnOf: u }); // (one of us down by what no blow or spell of the turn told: a turn's-end save, the ring's spirits -- the readied healers, 10-02)
         if (D.familiar && !u.familiar) yield* D.familiar.after(this, u); // (his familiar's turn, right after his: js/familiar.js)
         yield* this.wave();
@@ -1302,6 +1305,7 @@
     var T = u.turn, self = this;
     switch (c.do) {
       case 'move': {
+        if (c.fz != null && G.winged(u)) { yield* this.flyMove(u, c.x, c.y, c.fz); return; } // (at a layer: flight at a height, 10-08)
         var rm = G.reach(u, T.move), path = G.path(rm, c.x, c.y);
         if (!path || !path.length || !rm[c.x + ',' + c.y].stand) return;
         if (!byAI(u)) { // (a hand's click that would fall, or risk it: asked first -- fallLines; and a climb that takes a check, a Rope & Grapple in the pack: USE GRAPPLE -- 10-04, Griz)
@@ -2679,6 +2683,55 @@
     if (D.magic.onHurt && u.hp > 0) D.magic.onHurt(this, u, n, type); // (a laughing one's save with advantage, a pattern broken: js/grimoire.js)
     if (u.hp > 0 && u.hang && u.hang.face && G.hanging(u) && !(src && src.fall) && took > 0 && !u.spiderClimb) this.clingSave(u, took); // (a clinging climber hit: the hold, or the fall -- 10-04 night; not one with Spider Climb, whose hold is no check's -- 10-05 night)
   };
+  // FLIGHT AT A HEIGHT (the grid's rules §2.17; RULED 10-08, Griz: "Where the mousewheel becomes the vertical selection - yes"; js/grid.js u.fz, G.flyReach): the move to
+  // (x, y) at the layer z -- up first, or down last, level between; a rise or a sink 5 ft of movement a 5 ft (SRD 5.1 Flying). On the ground under it again, it is on the surface
+  Battle.prototype.flyMove = function* (u, x, y, z) {
+    var T = u.turn, e = G.flyReach(u, z, T.move)[x + ',' + y];
+    if (!e || !e.stand) return false;
+    var cur = G.gzAt(u, u.x, u.y), tr = Math.max(cur, z), v = G.feetUp(z - cur), path = [];
+    if (x !== u.x || y !== u.y) { var f0 = u.fz; u.fz = tr; try { path = G.path(G.reach(u, T.move - v), x, y); } finally { u.fz = f0; } if (!path || !path.length) return false; }
+    if (z > cur) { T.move -= v; yield* this.flyTo(u, z); } else if (path.length) u.fz = tr;
+    if (path.length) yield* this.moveAlong(u, path, { spend: true });
+    if (z < cur && !u.dead && u.hp > 0 && G.winged(u) && T.move >= v) { T.move -= v; yield* this.flyTo(u, z); }
+    if (u.fz != null && u.fz <= G.groundAt(u, u.x, u.y)) u.fz = null; // (down on the ground there: on the surface again)
+    this.cache = null;
+    return true;
+  };
+  // up or down in place to z, a frame at a time (`land`: to the ground under it, and on the surface)
+  Battle.prototype.flyTo = function* (u, z, land) {
+    var z0 = G.gzAt(u, u.x, u.y), n = Math.max(4, Math.round(Math.abs(z - z0) / 4));
+    u.anim = 'walk'; u.animT = this.t;
+    for (var i = 1; i <= n; i++) { u.fz = z0 + (z - z0) * i / n; yield 1; }
+    u.fz = land || z <= G.groundAt(u, u.x, u.y) ? null : z; u.anim = 'idle'; u.animT = this.t;
+  };
+  // what brings a flier down (SRD 5.1 Flying Movement: "knocked prone, has its speed reduced to 0, or is otherwise deprived of the ability to move ... unless it has the ability to
+  // hover"): down or dead, wingless (a Wild Shape's bat gone back to a druid), prone, held, unable to act, no speed. A floater hovers while it stands (RULED 10-06: it floats)
+  Battle.flyWhy = function (u) {
+    if (u.fz == null || !G.aloft(u)) return null;
+    var c = u.conds || {};
+    if (u.dead || u.hp <= 0) return u.dead ? 'dead' : 'down';
+    if (u.floats) return null;
+    if (!u.flies) return 'no wings';
+    if (c.prone) return 'knocked prone';
+    if (c.restrained) return 'held';
+    if (c.paralyzed || c.stunned || c.asleep || c.incapacitated || c.petrified) return 'it cannot act';
+    if (u.speed === 0 || (RU.speedNow && RU.speedNow(u) === 0)) return 'no speed';
+    return null;
+  };
+  Battle.prototype.flyCheck = function () { var self = this; this.units.forEach(function (u) { if (u.fz == null) return; var why = Battle.flyWhy(u); if (why) self.flyFall(u, why); else if (!G.aloft(u) && !u.tween) u.fz = null; }); };
+  // the fall (SRD 5.1 Falling: 1d6 bludgeoning a 10 ft, prone), as the cling's: down the tween, onto whoever stands under (the cushion: landOn)
+  Battle.prototype.flyFall = function (u, why) {
+    var fz = u.fz, ft = Math.round((fz - G.groundAt(u, u.x, u.y)) / G.map.def.step) * 2.5;
+    u.fz = null; this.cache = null;
+    u.tween = { fx: u.x, fy: u.y, fz: fz, t: 0, dur: this.pace(STEP_FRAMES + 6, true), mode: 'drop' };
+    if (u.dead) return;
+    this.forced(u);
+    var onC = this.under(u), fd = ft >= 10 ? D.roll(Math.floor(ft / 10) + 'd6') : null;
+    this.card(['{o}' + nameOf(u) + ' falls ' + ft + ' ft from the air (' + why + ')' + (onC.length ? ' onto ' + onC.map(nameOf).join(' and ') + (fd ? ': ' + fd.total + ' bludgeoning, split,' : ',') + ' and lands prone.' : (fd ? ': ' + fd.total + ' bludgeoning, and lands prone.' : ', and lands prone.')) + '{/}'], 260);
+    if (onC.length) { this.landOn(u, ft, fd); return; }
+    if (!u.noProne && !RU.immuneTo(u, 'prone')) u.conds.prone = true;
+    if (fd) this.hurt(u, fd.total, 'bludgeoning', { fall: true });
+  };
   // a clinging climber hit (10-04 night, Griz: "SRD say anything about clinging climbers, cause I think dex saving throws on damage..." -- the SRD 5.1 has nothing for a climber; a flier
   // knocked prone or held still falls, and concentration's save is the shape taken): a Dexterity save, DC 10 or half the damage, whichever is higher, or it loses its hold and falls
   // the height it had climbed (1d6 a 10 ft, prone). Ours, not the SRD's; the fall's own damage asks no second save
@@ -2703,7 +2756,7 @@
   Battle.prototype.under = function (u) {
     var foot = G.foot(u);
     return this.units.filter(function (w) {
-      if (w === u || !G.present(w) || w.riding || (w.hang && G.hanging(w))) return false;
+      if (w === u || !G.present(w) || w.riding || (w.hang && G.hanging(w)) || G.aloft(w)) return false;
       return G.foot(w).some(function (q) { return foot.some(function (p) { return p[0] === q[0] && p[1] === q[1]; }); });
     });
   };
@@ -2985,7 +3038,7 @@
   };
   Battle.prototype.seenBy = function (w, u, hide) {
     var s = D.magic.seeWhy(this, w, u), l = G.los(w, u, undefined, undefined, hide); if (!s.ok || !l.clear || l.cover) return 0;
-    if (!this.dark || (w.blindsight && G.dist(w, u) <= w.blindsight) || (w.truesight && G.dist(w, u) <= w.truesight)) return 2;
+    if (!this.dark || (w.blindsight && G.dist(w, u) <= w.blindsight && !(w.tremor && G.aloft(u))) || (w.truesight && G.dist(w, u) <= w.truesight)) return 2;
     return s.dv || (D.light && D.light.levelOf(this, u) < 2) ? 1 : 2;
   };
   // ---- the neighbourhood (10-04, Griz: "the stealth roll hides outside of 15 feet of each opponent, that 15' divided into front and back (squares 1-3 front,
@@ -2999,7 +3052,7 @@
   Battle.prototype.nearOf = function (w, u) {
     var ring = G.foot(w).some(function (q) { return Math.max(Math.abs(q[0] - u.x), Math.abs(q[1] - u.y)) <= 1; });
     var c = ((w.size || 1) - 1) / 2, vx = u.x - (w.x + c), vy = u.y - (w.y + c), f = FACE_STEP[((w.facing || 0) % 8 + 8) % 8], fl = Math.hypot(f[0], f[1]), vl = Math.hypot(vx, vy) || 1;
-    var fwd = (vx * f[0] + vy * f[1]) / fl, lat = Math.abs(vx * f[1] - vy * f[0]) / fl, cone = fwd > 0 && lat <= fwd + 1e-6, all = !!(w.twoHeads || w.allAround || (w.blindsight && G.dist(w, u) <= w.blindsight));
+    var fwd = (vx * f[0] + vy * f[1]) / fl, lat = Math.abs(vx * f[1] - vy * f[0]) / fl, cone = fwd > 0 && lat <= fwd + 1e-6, all = !!(w.twoHeads || w.allAround || (w.blindsight && G.dist(w, u) <= w.blindsight && !(w.tremor && G.aloft(u))));
     // (blindsight has no front: within its range every square is the front, as the ettin's two heads -- echolocation, a tremor in the stone. 10-06, Griz: "blindsight like the
     // ettin or blindsight like the echolocation, dealer's choice" -- the seat's pick, the echolocation's: all round, but only as far as the sense reaches; past it, its eyes if any)
     if (!ring && !cone && !all) return null;

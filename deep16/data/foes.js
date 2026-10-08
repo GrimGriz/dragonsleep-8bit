@@ -503,7 +503,7 @@
     src: 'SRD 5.1 Grick (CR 2): its tentacles, then its beak only if they hit and at the one they hit (ai.js afterHit, 10-02; before, the beak went at anyone, hit or miss); resists bludgeoning, piercing and slashing from non-magical weapons (read: battle.js); Stone Camouflage as starting hidden (the fight\'s foe: hidden)'
   },
   bulette: {
-    name: 'Bulette', type: 'monstrosity', sheet: 'bulette_p2', cr: '5', ac: 17, hp: 94, speed: 40, size: 2, reach: 5, darkvision: 60, blindsight: 60,
+    name: 'Bulette', type: 'monstrosity', sheet: 'bulette_p2', cr: '5', ac: 17, hp: 94, speed: 40, size: 2, reach: 5, darkvision: 60, blindsight: 60, tremor: true, // (tremor: its 60 ft is the SRD's tremorsense -- nothing aloft, magic.js seeWhy, 10-08)
     abil: { str: 19, dex: 11, con: 21, int: 2, wis: 10, cha: 5 }, init: 0, perception: 16,
     saves: { str: 4, dex: 0, con: 5, int: -4, wis: 0, cha: -3 },
     attacks: { bite: { name: 'Bite', atk: 7, dice: '4d12', mod: 4, type: 'piercing', reach: 5 } },
@@ -573,7 +573,7 @@
   },
   // the made road's cut (deep.js S.elemental): "the cut's walls move"
   earthelemental: {
-    name: 'Earth Elemental', type: 'elemental', sheet: 'earthelemental_p2', cr: '5', ac: 17, hp: 126, speed: 30, size: 2, reach: 10, darkvision: 60, blindsight: 60,
+    name: 'Earth Elemental', type: 'elemental', sheet: 'earthelemental_p2', cr: '5', ac: 17, hp: 126, speed: 30, size: 2, reach: 10, darkvision: 60, blindsight: 60, tremor: true, // (tremorsense: magic.js seeWhy, 10-08)
     abil: { str: 20, dex: 8, con: 20, int: 5, wis: 10, cha: 5 }, init: -1, perception: 10,
     saves: { str: 5, dex: -1, con: 5, int: -3, wis: 0, cha: -3 },
     attacks: { slam: { name: 'Slam', atk: 8, dice: '2d8', mod: 5, type: 'bludgeoning', reach: 10 } },
@@ -674,7 +674,7 @@
   },
   // the xorns in the seam (deep.js S.xorn, leg three)
   xorn: {
-    name: 'Xorn', type: 'elemental', sheet: 'xorn_p1', cr: '5', ac: 19, hp: 73, speed: 20, size: 1, reach: 5, darkvision: 60, blindsight: 60,
+    name: 'Xorn', type: 'elemental', sheet: 'xorn_p1', cr: '5', ac: 19, hp: 73, speed: 20, size: 1, reach: 5, darkvision: 60, blindsight: 60, tremor: true, // (tremorsense: magic.js seeWhy, 10-08)
     abil: { str: 17, dex: 10, con: 22, int: 11, wis: 10, cha: 11 }, init: 0, perception: 16,
     saves: { str: 3, dex: 0, con: 6, int: 0, wis: 0, cha: 0 },
     attacks: { claw: { name: 'Claw', atk: 6, dice: '1d6', mod: 3, type: 'slashing', reach: 5 }, bite: { name: 'Bite', atk: 6, dice: '3d6', mod: 3, type: 'piercing', reach: 5 } },

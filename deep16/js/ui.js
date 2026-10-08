@@ -79,9 +79,26 @@
       if (sc.clip) { var a = D.clip(sc.clip); if (a) a.addEventListener('loadedmetadata', function () { if (isFinite(a.duration)) sc.frames = Math.max(sc.frames || 0, Math.ceil(a.duration * 60) + 40); }); }
     }
   };
+  // FLIGHT AT A HEIGHT (the grid's rules §2.17; RULED 10-08 on the lane's lean, Griz: "Where the mousewheel becomes the vertical selection - yes"): while a flier's move is out --
+  // the hand's turn, the move tool -- the wheel steps the layer it will fly at, 5 ft a step (PageUp/PageDown and [ ]; the pad's right stick up and down; the phone's ▲ ▼), and
+  // the camera goes with it; the move's squares, its path and the cursor are drawn at that layer, and a click flies there (battle.js flyMove). Anywhere else the wheel zooms.
+  // B.flyZ: the layer picked (null: where it is -- its own layer aloft, the surface on the ground)
+  UI.flyer = function (B) { var u = B.req && B.req.turn; return u && B.tool === 'move' && G.winged(u) && u.turn ? u : null; };
+  UI.layerZ = function (B, u) { if (B.flyZ != null && B.flyFor === u.id) return B.flyZ; return u.fz != null ? u.fz : null; };
+  UI.stepLayer = function (B, d) {
+    var u = UI.flyer(B); if (!u) return false;
+    var cur = G.gzAt(u, u.x, u.y), z0 = UI.layerZ(B, u), top = G.flyTop(u), lo = G.map.loZ != null ? G.map.loZ : 0, z = (z0 != null ? z0 : cur) + d * G.LAYER();
+    if (z > top || z < lo) { D.sfx('error'); return false; }
+    B.flyZ = z === cur && u.fz == null ? null : z; B.flyFor = u.id; B.cache = null;
+    D.iso.lookAt(u.x, u.y, z); D.sfx('cursor');
+    var up = (z - G.groundAt(u, u.x, u.y)) / G.map.def.step * 2.5;
+    B.card(['{c}FLY{/} ' + (B.flyZ == null ? 'on the ground' : up > 0 ? Math.round(up) + ' ft up' : Math.round(-up) + ' ft down') + '  {g}(wheel, PgUp/PgDn or [ ]: 5 ft a step; a rise or a sink costs its feet){/}'], 160, 'fly-layer');
+    return true;
+  };
   function reachCache(B, u) {
     var T = u.turn, key = u.x + ',' + u.y + ',' + T.move + ',' + T.action + ',' + T.bonus + ',' + T.attacksLeft + ',' + B.units.map(function (w) { return w.x + ':' + w.y + ':' + (w.dead || w.hp <= 0 ? 0 : RU.canAct(w) ? 1 : 2) + (w.ethereal ? 'e' : ''); }).join(';') + (B.webs || []).length;
     if (B.cache && B.cache.key === key) return B.cache;
+    var lz = UI.flyer(B) === u ? UI.layerZ(B, u) : null; if (lz != null) { key += ',fly' + lz; if (B.cache && B.cache.key === key) return B.cache; B.cache = { key: key, move: G.flyReach(u, lz, T.move), dash: null, hide: null, layer: lz }; return B.cache; } // (flight at a height, 10-08: the move at the layer -- no dash at a layer yet)
     var held = !!u.conds.restrained, dash = held ? 0 : u.speed * D.Battle.dashes(u).length; // (both dashes, where it has both: 10-04 -- the action's and a Cunning Action's)
     B.cache = { key: key + (held ? ',held' : ''), move: G.reach(u, held ? 0 : T.move), dash: dash ? G.reach(u, T.move + dash) : null, hide: null };
     return B.cache;
@@ -262,6 +279,9 @@
       cam.y += (push(D.H - 1 - m.y) - push(m.y)) * 0.75 / z;
     }
     if (m.panX || m.panY) { cam.x -= (m.panX || 0) / z; cam.y -= (m.panY || 0) / z; m.panX = m.panY = 0; }
+    var flU = UI.flyer(B); if (flU && free) { var dL = (m.wheel && m.inside && !overUI(B) ? (m.wheel < 0 ? 1 : -1) : 0) + (I.repeat('layerup') || I.repeat('bracketr') || I.pressed('rsup') ? 1 : 0) - (I.repeat('layerdown') || I.repeat('bracketl') || I.pressed('rsdown') ? 1 : 0); if (m.wheel && m.inside && !overUI(B)) m.wheel = 0; if (dL) UI.stepLayer(B, dL > 0 ? 1 : -1); } // (flight at a height, RULED 10-08: "Where the mousewheel becomes the vertical selection - yes")
+    else if (free && (I.pressed('rsup') || I.pressed('rsdown'))) UI.setZoom(I.pressed('rsdown') ? 1 : -1, null, null); // (the right stick's up and down zoom, as ever, while no flier's move is out)
+    if (typeof document !== 'undefined' && document.body) document.body.classList.toggle('fly', !!flU); // (the phone's ▲ ▼ beside the move card, deep16/index.html)
     if (free && (m.wheel || I.pressed('zoomout') || I.pressed('zoomin'))) UI.setZoom(m.wheel ? m.wheel : I.pressed('zoomout') ? 1 : -1, m.wheel && m.inside ? m.x : null, m.wheel && m.inside ? m.y : null);
     if (I.pressed('center')) { var a = B.active || (B.req && B.req.turn); if (a) B.focus(a); }
     // keep the cave in view; zoomed out past its size, centre it
@@ -469,7 +489,7 @@
     }
     // the mouse: over the menus, or on the grid
     B.hoverBtn = -1;
-    if (I.mouse.inside && !overUI(B) && I.mouse.moved) { var pu = UI.pickUnit(B, I.mouse.x, I.mouse.y, foeWanted(B, u)), rg = pu ? null : ropeRung(B, u, I.mouse.x, I.mouse.y), s = pu ? { x: pu.x, y: pu.y } : rg ? { x: rg.rope.foot[0], y: rg.rope.foot[1] } : D.iso.pick(I.mouse.x, I.mouse.y, G.map.gz(B.cursor.x, B.cursor.y)); B.hoverUnit = pu; B.ropePick = rg; if (s) { B.cursor.x = s.x; B.cursor.y = s.y; } } // (hoverUnit: a rider on a head the mouse is on -- underCursor; ropePick: a rung of a rope the mouse is on, the cursor at the rope's foot -- ropeRung, 10-04)
+    if (I.mouse.inside && !overUI(B) && I.mouse.moved) { var pu = UI.pickUnit(B, I.mouse.x, I.mouse.y, foeWanted(B, u)), rg = pu ? null : ropeRung(B, u, I.mouse.x, I.mouse.y), s = pu ? { x: pu.x, y: pu.y } : rg ? { x: rg.rope.foot[0], y: rg.rope.foot[1] } : UI.flyer(B) === u && UI.layerZ(B, u) != null ? D.iso.pickAt(I.mouse.x, I.mouse.y, UI.layerZ(B, u)) : D.iso.pick(I.mouse.x, I.mouse.y, G.map.gz(B.cursor.x, B.cursor.y)); B.hoverUnit = pu; B.ropePick = rg; if (s) { B.cursor.x = s.x; B.cursor.y = s.y; } } // (hoverUnit: a rider on a head the mouse is on -- underCursor; ropePick: a rung of a rope the mouse is on, the cursor at the rope's foot -- ropeRung, 10-04)
     if (I.mouse.inside) (B.buttons || []).forEach(function (b, i) { if (hit(b)) B.hoverBtn = i; });
     // hovering picks an icon only when the mouse moves onto it: a ring turning under a resting mouse, or a twitch
     // on the same icon, leaves the arrows' choice alone (Griz, 09-27: the arrows stopped working over the wheel)
@@ -705,7 +725,7 @@
       var ltA = !foe && !(x === u.x && y === u.y) && !G.occupant(x, y) && D.light.torchAt(B, x, y); // (a light on the floor beside the hero, nobody on it: the click takes it up, or steps there, asked -- as the grapple, 10-05)
       if (ltA && D.light.canTake(B, u, ltA).ok) return 'takelight';
       if (B.ropePick && x === B.ropePick.rope.foot[0] && y === B.ropePick.rope.foot[1] && !foe) return B.ropePick.ok ? 'rung' : 'no'; // (a rung of a rope the mouse is on: ropeRung, 10-04 night)
-      if (x === u.x && y === u.y && !foe) return 'self';
+      if (x === u.x && y === u.y && !foe && !(UI.flyer(B) === u && UI.layerZ(B, u) != null && UI.layerZ(B, u) !== G.gzAt(u, u.x, u.y))) return 'self'; // (at another layer: up or down in place, flight at a height)
       if (foe) return B.canHit(u, foe) && (T.attacksLeft || T.action || T.slamsLeft > 0) ? 'ok' : 'no'; // a crossbow reaches out to its long range (T.slamsLeft: the Keeper's second Slam out of the one action -- js/keeperplay.js)
       var rc = reachCache(B, u), k = x + ',' + y; // (the attack tool walks too: a step between swings is fair)
       if (rc.move[k] && rc.move[k].stand) return 'ok';
@@ -876,7 +896,7 @@
         return B.card(['{o}The ' + B.shortName(foe) + ' is out of ' + (u.weapon && u.weapon.ranged ? 'range' : 'reach') + ' (' + G.dist(u, foe) + ' ft).{/}'], 120);
       }
       if (v === 'no' && (u.size || 1) > 1 && D.keeperPlay && D.keeperPlay.human(B, u)) { D.sfx('error'); return B.card(['{o}MOVE: ' + (D.keeperPlay.moveWhy(B, u, x, y) || 'not there') + '.{/}'], 160); } // (a big creature's refused pick says why)
-      if (v === 'ok') return UI.command(B, u, { do: 'move', x: x, y: y });
+      if (v === 'ok') { var fzC = UI.flyer(B) === u ? UI.layerZ(B, u) : null; if (fzC != null) { B.flyZ = null; return UI.command(B, u, { do: 'move', x: x, y: y, fz: fzC }); } return UI.command(B, u, { do: 'move', x: x, y: y }); } // (fz: the layer, flight at a height)
       if (v === 'far') return UI.command(B, u, { do: 'dashmove', x: x, y: y });
       if (v === 'rope') return UI.command(B, u, { do: 'ropeclimb', x: x, y: y });
       return;
@@ -1377,8 +1397,9 @@
         else if (u.conds.paralyzed || u.conds.stunned) { o.tint = R('violet', 4); o.tintAlpha = 0.35; }
         else if (u.conds.restrained) { o.tint = R('bone', 1); o.tintAlpha = 0.3; }
         if (!u.ethereal && !(u.dead && !has('hurt')) && !(u.riding && (u.perch === 'shoulder' || u.perch === 'head' || u.perch === 'over'))) {
-          var s = u.size || 1;
-          ctx.fillStyle = 'rgba(10,8,16,.38)'; ctx.beginPath(); ctx.ellipse(p.x, p.y, 10 * s * sk + 1, 4 * s * sk + 1, 0, 0, 7); ctx.fill();
+          var s = u.size || 1, gp = p;
+          if (G.aloft(u) && !u.tween) { var gc = D.iso.center(u.x + (s - 1) / 2, u.y + (s - 1) / 2, G.groundAt(u, u.x, u.y)); gp = D.iso.toScreen(gc.x, gc.y); ctx.strokeStyle = 'rgba(214,220,232,.5)'; ctx.setLineDash([2, 3]); ctx.beginPath(); ctx.moveTo(gp.x, gp.y); ctx.lineTo(p.x, p.y); ctx.stroke(); ctx.setLineDash([]); } // (aloft: its shadow on the ground under it, a faint line up to it -- flight at a height, 10-08)
+          ctx.fillStyle = gp !== p ? 'rgba(6,5,10,.6)' : 'rgba(10,8,16,.38)'; ctx.beginPath(); ctx.ellipse(gp.x, gp.y, 10 * s * sk + 1, 4 * s * sk + 1, 0, 0, 7); ctx.fill();
         }
         // the party sees it, the one whose turn it is does not (10-01b, the bond -- Griz: "yes 3"): a quiet dashed ring at its feet, so the
         // player knows this hero's spells that want "a creature you can see" and its attacks are not for it from here (magic.js seeWhy)
@@ -1514,12 +1535,15 @@
 
   // the overlay: squares on the ledge are drawn after the ledge's tiles (deferred into the sort), the rest at once
   function onSq(x, y, fn) {
-    var z = G.map.gz(x, y);
+    var z = sqZ(x, y);
     if (z > 0 && DEFER) DEFER.push({ depth: x + y + 0.05, gz: z, layer: 0, draw: fn });
     else fn(WCTX || D.ctx);
   }
-  function fillSq(ctx, x, y, color, alpha, inset) { onSq(x, y, function (c) { D.iso.rhombus(c, x, y, G.map.gz(x, y), inset || 1); c.globalAlpha = alpha; c.fillStyle = color; c.fill(); c.globalAlpha = 1; }); }
-  function lineSq(ctx, x, y, color, alpha, inset) { onSq(x, y, function (c) { D.iso.rhombus(c, x, y, G.map.gz(x, y), inset == null ? 2 : inset); c.globalAlpha = alpha == null ? 1 : alpha; c.strokeStyle = color; c.lineWidth = 1; c.stroke(); c.globalAlpha = 1; }); }
+  // flight at a height (10-08): while LAYERZ is set, a square is drawn at the layer over the ground (the move's squares, its path, its cursor)
+  var LAYERZ = null;
+  function sqZ(x, y) { var g = G.map.gz(x, y); return LAYERZ != null ? Math.max(LAYERZ, g) : g; }
+  function fillSq(ctx, x, y, color, alpha, inset) { var zq = sqZ(x, y); onSq(x, y, function (c) { D.iso.rhombus(c, x, y, zq, inset || 1); c.globalAlpha = alpha; c.fillStyle = color; c.fill(); c.globalAlpha = 1; }); }
+  function lineSq(ctx, x, y, color, alpha, inset) { var zq = sqZ(x, y); onSq(x, y, function (c) { D.iso.rhombus(c, x, y, zq, inset == null ? 2 : inset); c.globalAlpha = alpha == null ? 1 : alpha; c.strokeStyle = color; c.lineWidth = 1; c.stroke(); c.globalAlpha = 1; }); }
   // ------------------------------------------------------------------ the webs in the round (Griz, 09-30: "compare your zoomed shot of
   // the ettercap to the grid right now - I think we need a bunch of webbing in the room" -- "compare with what we're using for the web
   // spell also" -- "the ground tiles look like they should change display when they form tetris pieces" -- "please do volumetric math
@@ -1783,7 +1807,7 @@
   // the path's dots are queued and drawn after the light pass (10-04, Griz: brighter, or not dimmed by the room's light): the overlay runs before D.light.pass,
   // so a dark room dimmed them; each is a 3x3 dot on a dark 5x5 backing, so the white reads on pale floor too
   var PATHDOTS = [];
-  function dotSq(x, y, color) { var p = D.iso.center(x, y, G.map.gz(x, y)), s = D.iso.toScreen(p.x, p.y); PATHDOTS.push({ x: s.x, y: s.y, color: color }); }
+  function dotSq(x, y, color) { var p = D.iso.center(x, y, sqZ(x, y)), s = D.iso.toScreen(p.x, p.y); PATHDOTS.push({ x: s.x, y: s.y, color: color }); }
   var LABELS = []; // (a few words pinned to a world point, drawn after the sort: the rung's height and cost -- 10-04 night)
   function drawLabels(c) { LABELS.forEach(function (l) { D.text(c, l.text, l.x, l.y, l.color); }); LABELS = []; }
   function drawPathDots(c) { PATHDOTS.forEach(function (d) { c.fillStyle = R('outline', 0); c.fillRect(d.x - 2, d.y - 2, 5, 5); c.fillStyle = d.color; c.fillRect(d.x - 1, d.y - 1, 3, 3); }); PATHDOTS = []; }
@@ -1859,7 +1883,10 @@
         var vv = UI.valid(B, u, cx, cy), okk = vv === 'ok' || vv === 'far';
         G.foot(u, cx, cy).forEach(function (q) { if (G.map.at(q[0], q[1])) { fillSq(ctx, q[0], q[1], okk ? R('moss', 2) : R('red', 3), 0.3, 2); lineSq(ctx, q[0], q[1], okk ? R('moss', 3) : R('red', 4), 0.95, 2); } });
       }
+      LAYERZ = rc.layer != null ? rc.layer : null; // (flight at a height: the squares at the layer)
       Object.keys(rc.move).forEach(function (k) { var e = rc.move[k]; if (e.stand && e.cost > 0) fillSq(ctx, e.x, e.y, R('glow', 1), 0.17); });
+      if (LAYERZ != null) lineSq(ctx, cx, cy, R('bone', 1), 0.9, 1);
+      LAYERZ = null;
       // a rogue's places to try hiding (no foe she knows of sees her there plainly): always, as she moves (Griz, 09-27)
       // the ways out: a pale marker on each (set design, 09-27)
       (B.exits || []).forEach(function (q) { lineSq(ctx, q[0], q[1], R('moss', 2), 0.7); }); // (plainer, 10-04: Griz's "Keeper Fight lacks fight escape" and the Wet's "not on wheel")
@@ -1877,7 +1904,7 @@
       // white within the move, green on the steps Longstrider's +10 ft pays for (the last 10 ft of the turn's move), yellow past the move
       if (e2 && e2.stand && !G.occupant(cx, cy, u)) {
         var pmap = rc.dash && rc.dash[cx + ',' + cy] && !rc.move[cx + ',' + cy] ? rc.dash : rc.move, walked = T.moved || 0, budget = T.move + walked, ls = u.conds.longstrider ? 10 : 0;
-        (G.path(pmap, cx, cy) || []).forEach(function (q) { var st = pmap[q[0] + ',' + q[1]], c = st ? st.cost : 0; dotSq(q[0], q[1], c > T.move ? R('gold', 4) : ls && walked + c > budget - ls ? R('orc', 3) : R('bone', 2)); }); // (the leaf green: the moss ramp is too dark to read as a dot)
+        LAYERZ = rc.layer != null ? rc.layer : null; (G.path(pmap, cx, cy) || []).forEach(function (q) { var st = pmap[q[0] + ',' + q[1]], c = st ? st.cost : 0; dotSq(q[0], q[1], c > T.move ? R('gold', 4) : ls && walked + c > budget - ls ? R('orc', 3) : R('bone', 2)); }); // (the leaf green: the moss ramp is too dark to read as a dot)
       }
       // on a gem: the ally across the foe lit hard, and the line through the foe between them
       (fs[cx + ',' + cy] || []).forEach(function (fe) {

@@ -889,7 +889,7 @@
   M.seeWhy = function (B, a, b) {
     if (!B || !a || !b || a === b) return { ok: true };
     // blindsight is not sight (SRD): the darkmantle in its own darkness, the oozes, the grimlock -- nothing on this list stops it, to its reach
-    if (a.blindsight && G.dist(a, b) <= a.blindsight) return { ok: true };
+    if (a.blindsight && G.dist(a, b) <= a.blindsight && !(a.tremor && G.aloft(b))) return { ok: true }; // (`tremor`: the sheet's blindsight is tremorsense -- nothing aloft is felt: the bulette, the xorn, the earth elemental; the grid's rules §2.7, 10-08)
     // Mirror's Gaze (RULED 09-28, invented.json #mirrors-gaze): the marked one cannot hide from her; unseen, it gains nothing against her
     if (b.conds && b.conds.marked && b.conds.marked.gaze && b.conds.marked.by === a.id) return { ok: true };
     if (a.conds && a.conds.blinded) return { ok: false, why: 'blinded' };

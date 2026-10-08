@@ -27,7 +27,7 @@
       if (u === except || !G.present(u) || u.riding || (u.flooding && u.kind === 'keeper')) continue; // (a familiar riding its wizard holds no square of its own; nor does the Keeper while it is the swirl about someone: js/keeper.js)
       var s = u.size || 1;
       if (x >= u.x && y >= u.y && x < u.x + s && y < u.y + s) {
-        var hangs = !!(u.hang && G.hanging(u));
+        var hangs = !!(u.hang && G.hanging(u)) || G.aloft(u); // (a flier aloft over the square, as a hanger: G.aloft, 10-08)
         if (o && o.h != null && (hangs || o.hangs) && !G.sharesZ(u, o)) continue;
         if (hangs) { if (!over) over = u; continue; }
         return u;
@@ -42,7 +42,35 @@
   // do u's body and the asker's (o) meet in height, at a square they share?
   G.sharesZ = function (u, o) { var st = G.map.def.step, lo = G.gzAt(u, u.x, u.y), hi = lo + G.bodyH(u) * st; return lo < o.z + o.h * st && o.z < hi; };
   G.hostile = function (a, b) { return a.side !== b.side; };
-  G.gzAt = function (u, x, y) { if (u && u.hang && x === u.x && y === u.y && G.hanging(u)) return u.hang.z; var z = 0; G.foot(u, x, y).forEach(function (p) { z = Math.max(z, G.map.gz(p[0], p[1])); }); return z; };
+  G.gzAt = function (u, x, y) { if (u && u.hang && x === u.x && y === u.y && G.hanging(u)) return u.hang.z; var z = G.groundAt(u, x, y); return u && u.fz != null ? Math.max(z, u.fz) : z; };
+  G.groundAt = function (u, x, y) { var z = 0; G.foot(u, x, y).forEach(function (p) { z = Math.max(z, G.map.gz(p[0], p[1])); }); return z; };
+  // FLIGHT AT A HEIGHT (the grid's rules §2.17; RULED 10-08 on the lane's lean, Griz: "Where the mousewheel becomes the vertical selection - yes"): a flier's own height, `u.fz`,
+  // absolute, in the map's drawing px (gz) -- null on the surface, where it goes over the tops as it always has; else the layer it holds, 5 ft a layer (two steps of 2.5 ft).
+  // G.gzAt reads it, so distance (G.dist, height as a diagonal), sight (G.los), who shares a square (G.occupant, G.sharesZ) and reach all see a flier where it is. At a layer
+  // it goes level over anything lower and not into anything higher (G.stepCost); rising or sinking 5 ft costs 5 ft of movement (SRD 5.1 Flying). It falls -- 1d6 a 10 ft,
+  // prone -- when knocked prone, held, its speed 0, or it cannot act or fly (battle.js flyCheck); a floater (`floats`: the EyeGregore, RULED 10-06 "is hover-float not fly")
+  // rises one layer at most over the ground it starts from, and hovers: it does not fall
+  G.LAYER = function () { return 2 * G.map.def.step; };
+  G.winged = function (u) { return !!(u && (u.flies || u.floats) && !u.dead && !(u.conds && (u.conds.restrained || u.conds.prone))); };
+  G.aloft = function (u) { return !!(u && u.fz != null && !u.dead && u.fz > G.groundAt(u, u.x, u.y)); };
+  // the feet of movement a rise or a sink of dz px costs (5 ft a layer, to the 5)
+  G.feetUp = function (dz) { return Math.ceil(Math.abs(dz) / G.map.def.step * 2.5 / 5) * 5; };
+  // the highest layer it may take from where it is: a floater one layer over its ground; a flier the map's `sky` (ft over its lowest ground) or 30 ft over its highest
+  G.flyTop = function (u) {
+    if (u.floats) return G.groundAt(u, u.x, u.y) + G.LAYER();
+    var m = G.map; if (m.loZ == null) { var lo = 1e9, hi = -1e9; for (var y = 0; y < m.h; y++) for (var x = 0; x < m.w; x++) { var s = m.at(x, y); if (s && s.walk) { var z = m.gz(x, y); lo = Math.min(lo, z); hi = Math.max(hi, z); } } m.loZ = lo; m.hiZ = hi; }
+    return m.def.sky != null ? m.loZ + m.def.sky / 2.5 * m.def.step : m.hiZ + 6 * G.LAYER();
+  };
+  // the move at a layer z: the squares it may end on, as G.reach's map -- flown level at the higher of where it is and z (it rises first, or sinks last), the rise or the sink
+  // in each cost; an end square only where its ground is not above z. Its own square too, for a rise or a sink in place
+  G.flyReach = function (u, z, budget) {
+    var cur = G.gzAt(u, u.x, u.y), tr = Math.max(cur, z), v = G.feetUp(z - cur), f0 = u.fz, out = {};
+    if (v > budget) return out;
+    u.fz = tr;
+    try { var rm = G.reach(u, budget - v); } finally { u.fz = f0; }
+    Object.keys(rm).forEach(function (k) { var e = rm[k]; out[k] = Object.assign({}, e, { cost: e.cost + v, stand: e.stand && G.groundAt(u, e.x, e.y) <= z, layer: z }); });
+    return out;
+  };
   // ROPES (10-04, Griz: "can we add rope and tiny grapple next?" -- "1 yes, and a roped face is gonna be a movement stopping point"): a rope hangs from the top of a face
   // (`at`, the square it is fixed on) down to the square at its foot (`foot`): the battle's B.ropes, [{ at, foot, hp, by }] -- a map's own `ropes: [[ax, ay, fx, fy]]`, and
   // what a Rope & Grapple sets (battle.js exec 'rope'). On a roped face a climb takes no check and cannot fall (SRD 5.1: the GM's check is for a surface "with few handholds"),
@@ -52,7 +80,7 @@
   G.hanging = function (u) { var h = u && u.hang, r = h && h.rope, foot = r ? r.foot : h && h.foot; return !!(h && (r ? !r.cut : !!h.face) && foot && u.x === foot[0] && u.y === foot[1]); }; // (on a rope, or clinging to a face part way up: u.hang.face -- a climb speed's cling, 10-04 night)
   // the rope a step from (x0, y0) to (x1, y1) goes along, if any: one end to the other, or from part way up it (a hanger) to either end
   G.ropeOn = function (u, x0, y0, x1, y1) {
-    if ((u.size || 1) > 1 || u.climbs || (u.flies && !(u.conds && (u.conds.restrained || u.conds.prone)))) return null; // (a climber or a flier goes up the face as it would without it)
+    if ((u.size || 1) > 1 || u.climbs || G.winged(u)) return null; // (a climber or a flier goes up the face as it would without it)
     if (u.hang && x0 === u.x && y0 === u.y && G.hanging(u)) { var hr = u.hang.rope; return (x1 === hr.at[0] && y1 === hr.at[1]) ? hr : null; }
     var rs = G.ropes();
     for (var i = 0; i < rs.length; i++) { var r = rs[i]; if (r.cut) continue; if ((r.at[0] === x0 && r.at[1] === y0 && r.foot[0] === x1 && r.foot[1] === y1) || (r.foot[0] === x0 && r.foot[1] === y0 && r.at[0] === x1 && r.at[1] === y1)) return r; }
@@ -107,7 +135,9 @@
   G.stepCost = function (u, x0, y0, x1, y1, o) {
     if (!G.canPass(u, x1, y1, o)) return Infinity;
     if (G.shellBars && !(o && o.ghost) && G.shellBars(u, x0, y0, x1, y1)) return Infinity; // (an Antilife Shell: js/walls.js)
-    if (u.flies && !(u.conds && (u.conds.restrained || u.conds.prone))) return 5; // (a flier -- a familiar owl or bat: no ledge too high, no ground slows it; a held one is restrained -- a grapple is one here, battle.js -- no `grappled` key to read)
+    if (u.fz != null && G.winged(u)) return G.groundAt(u, x1, y1) > u.fz ? Infinity : 5; // (holding a layer: level over anything lower, not into anything higher -- flight at a height, 10-08)
+    if (u.floats && G.winged(u)) return G.groundAt(u, x1, y1) - G.groundAt(u, x0, y0) > G.LAYER() ? Infinity : 5; // (a floater: up one layer at most, down any -- it hovers, RULED 10-06)
+    if (G.winged(u)) return 5; // (a flier -- a familiar owl or bat: no ledge too high, no ground slows it; a held one is restrained -- a grapple is one here, battle.js -- no `grappled` key to read)
     var dzS = G.gzAt(u, x1, y1) - G.gzAt(u, x0, y0), stS = G.map.def.step;
     // (a cliff: a map's `climb` -- the steps a body of one square may scale or drop, SRD 5.1 Climbing and Falling; up costs 1 extra foot a foot (G.stepCost below), and a Strength (Athletics) check, battle.js moveAlong; a drop of under 10 ft is free)
     var clS = G.map.def.climb, limS = u.climbs ? Infinity : (u.size || 1) > 1 ? G.bigLimit(u) : clS; // (a big body climbs its height and 5 ft by hand, or the map's `climbLarge` where set -- G.bigLimit; a one-square body, `climb`; one with a climb speed, any face)
@@ -185,12 +215,12 @@
   G.climbOn = function (u, x1, y1) { var f = u.hang && u.hang.face; if (!f) return false; if (x1 === f[0] && y1 === f[1]) return true; var st = G.map.def.step; return Math.max(Math.abs(x1 - f[0]), Math.abs(y1 - f[1])) <= 1 && Math.abs(G.map.gz(x1, y1) - G.map.gz(f[0], f[1])) <= st && Math.max(Math.abs(x1 - u.x), Math.abs(y1 - u.y)) <= 1; };
   // a step DOWN a cliff taken by climbing (10-04, the Edifice handoff: "a drop of 10 ft or more offers CLIMB DOWN beside DROP"; SRD 5.1 Climbing: a climb down costs what a climb up does): the number of
   // steps, else 0. Read only for a unit with `cdown` set (battle.js exec 'move', for the hand that chose it); anyone else steps off a face as a drop, as before
-  G.climbsDown = function (u, x0, y0, x1, y1) { var d = G.map && G.map.def; if (!(d && d.climb) || u.climbs || G.ropeOn(u, x0, y0, x1, y1) || (u.flies && !(u.conds && (u.conds.restrained || u.conds.prone)))) return 0; var n = Math.round((G.gzAt(u, x0, y0) - G.gzAt(u, x1, y1)) / d.step); return n > 1 ? n : 0; };
+  G.climbsDown = function (u, x0, y0, x1, y1) { var d = G.map && G.map.def; if (!(d && d.climb) || u.climbs || G.ropeOn(u, x0, y0, x1, y1) || G.winged(u)) return 0; var n = Math.round((G.gzAt(u, x0, y0) - G.gzAt(u, x1, y1)) / d.step); return n > 1 ? n : 0; };
   // a step up a cliff (more than one step of height, on a map that lets it be climbed): the number of steps it climbs, else 0. Each foot climbed costs an extra foot (SRD 5.1): a step is 2.5 ft,
   // so 5 ft of movement a step climbed, the square's own 5 folded in -- a 5 ft ledge 10, 10 ft 20, 15 ft 30, 30 ft 60, and a tall face takes the Dash (10-04, Griz: "it coming out a dash is correct,
   // adjust our cost to SRD"; it was the extra foot alone, 35 for 30 ft). Over 5 ft the climb is a Strength (Athletics) check (G.climbDC; battle.js moveAlong): a miss drops it back
   // prone, and over 10 ft is a fall. A creature with a climb speed (SRD 5.1: "doesn't need to spend extra movement"; `climbs` off its stat block, data/foes.js) pays nothing more and makes no check
-  G.climbsUp = function (u, x0, y0, x1, y1) { var d = G.map && G.map.def; if (!(d && d.climb) || u.climbs || G.ropeOn(u, x0, y0, x1, y1) || (u.flies && !(u.conds && (u.conds.restrained || u.conds.prone)))) return 0; var n = Math.round((G.gzAt(u, x1, y1) - G.gzAt(u, x0, y0)) / d.step); return n > 1 ? n : 0; };
+  G.climbsUp = function (u, x0, y0, x1, y1) { var d = G.map && G.map.def; if (!(d && d.climb) || u.climbs || G.ropeOn(u, x0, y0, x1, y1) || G.winged(u)) return 0; var n = Math.round((G.gzAt(u, x1, y1) - G.gzAt(u, x0, y0)) / d.step); return n > 1 ? n : 0; };
   // the check (10-04, Griz: "like an SRD DM would do" -- SRD 5.1: "at the GM's option, climbing a slippery vertical surface or one with few handholds requires a successful
   // Strength (Athletics) check"): a 5 ft ledge is pulled up onto, no check; over 5 ft, DC 10 for two steps and 2 more for each step above (7.5 ft 12, 10 ft 14, 15 ft 18, 30 ft 30). 0: none
   // a body bigger than Medium (10-04 night, Griz: "for creatures > medium their climbing 5 feet is their top 5 feet?" -- RULED on the build): its own height is a pull-up, so a Large
@@ -211,7 +241,7 @@
   // what a fall would cost an AI weighing the way (G.reach): a drop of 10 ft or more -- its d6s and the getting up; a climb that takes a check -- its odds of a miss, the move lost and,
   // over 10 ft, the fall. Movement in feet, for the reckoning only: the step itself still costs what G.stepCost says (10-04, the ogre: it should drop, but not for nothing)
   G.fallFear = function (u, x0, y0, x1, y1) {
-    var d = G.map.def; if (!d.climb || u.flies || u.climbs || G.ropeOn(u, x0, y0, x1, y1) || (u.hang && x0 === u.x && y0 === u.y && G.hanging(u))) return 0; // (a rope: no fall to fear)
+    var d = G.map.def; if (!d.climb || G.winged(u) || u.climbs || G.ropeOn(u, x0, y0, x1, y1) || (u.hang && x0 === u.x && y0 === u.y && G.hanging(u))) return 0; // (a rope: no fall to fear)
     var dz = (G.gzAt(u, x1, y1) - G.gzAt(u, x0, y0)) / d.step, ft = Math.abs(dz) * 2.5, fall = ft >= 10 ? 10 * Math.floor(ft / 10) + 10 : 0;
     if (dz < 0) return fall;
     var cs = G.climbsUp(u, x0, y0, x1, y1), dc = G.climbDC(cs, u, G.faceKind(x1, y1)); if (!dc) return 0;
@@ -240,7 +270,7 @@
     return Math.max(dx, dy, dz) * 5;
   };
   // does the map rise 10 ft (four steps) or more anywhere? (G.dist and the light read height only then: the flat maps pay nothing for it)
-  G.tall = function () { var m = G.map; if (!m || !m.def || !m.def.step) return false; if (m.tallK == null) { var lo = 1e9, hi = -1e9; for (var y = 0; y < m.h; y++) for (var x = 0; x < m.w; x++) { var s = m.at(x, y); if (s && s.walk) { var z = m.gz(x, y); lo = Math.min(lo, z); hi = Math.max(hi, z); } } m.tallK = hi - lo >= 4 * m.def.step; } return m.tallK; };
+  G.tall = function () { var m = G.map; if (!m || !m.def || !m.def.step) return false; if (G.units && G.units.some(G.aloft)) return true; if (m.tallK == null) { var lo = 1e9, hi = -1e9; for (var y = 0; y < m.h; y++) for (var x = 0; x < m.w; x++) { var s = m.at(x, y); if (s && s.walk) { var z = m.gz(x, y); lo = Math.min(lo, z); hi = Math.max(hi, z); } } m.tallK = hi - lo >= 4 * m.def.step; } return m.tallK; };
   // a creature's melee reach in feet, the one place it is read (Enlarge, 09-29: an enlarged creature reaches 5 ft further; reduced does
   // not go below its own). `base` is a weapon's own reach where it has one (a glaive, a giant's fist); ranged is nothing to do with it
   // (Enlarge and reach: the SRD 5.1 gives none -- +1d4, STR advantage, a size larger -- so the +5 ft is a house rule, off unless
@@ -297,7 +327,7 @@
   }
   // creature to creature: { clear, cover (0 or 2), why } -- the best line over both footprints
   G.los = function (a, b, ax, ay, hide) { // (hide: b is hiding -- a creature in the line is cover only if it is a size larger than b, SRD 5.1; 10-04)
-    var fa = G.foot(a, ax, ay), fb = G.foot(b), best = { clear: false, cover: 9, why: 'a wall' }, tl = G.tall(), zOf = function (u, p) { return u.hang && G.hanging && G.hanging(u) && p[0] === u.x && p[1] === u.y ? u.hang.z : G.map.gz(p[0], p[1]); };
+    var fa = G.foot(a, ax, ay), fb = G.foot(b), best = { clear: false, cover: 9, why: 'a wall' }, tl = G.tall(), zOf = function (u, p) { return u.hang && G.hanging && G.hanging(u) && p[0] === u.x && p[1] === u.y ? u.hang.z : u.fz != null ? Math.max(u.fz, G.map.gz(p[0], p[1])) : G.map.gz(p[0], p[1]); };
     fa.forEach(function (pa) {
       fb.forEach(function (pb) {
         var par = parapet(a, pa, b, pb); // (one at the lip, one clinging to the face under it: the lip is a low wall between them, half cover -- not the wall the floor test makes of it)

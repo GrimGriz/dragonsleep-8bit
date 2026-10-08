@@ -1506,6 +1506,54 @@
     document.body.appendChild(preH);
     return;
   }
+  // FLIGHT AT A HEIGHT (mode=flight1008; the grid's rules §2.17, RULED 10-08, Griz: "Where the mousewheel becomes the vertical selection - yes"): a flier's layer (u.fz), the move
+  // at it, its height in distance and reach, a body under it, the fall, the floater's one layer, tremorsense, the wheel's layer on the hand's move tool
+  if (get('mode', '') === 'flight1008') {
+    var repFL = { checks: [], errors: [] }, d0FL = D.d, GF = D.grid;
+    function okFL(what, v) { repFL.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function runFL(g) { var v, k = 0, st; while (g && k++ < 4000) { st = g.next(v); v = undefined; if (st.done) return st.value; if (st.value && st.value.prompt) v = st.value.prompt.opts[0].value; } }
+    function mkFL(q) { var Bx = D.npcFight(q, {}); D.battle = Bx; Bx.enter(); while (!Bx.order.length) Bx.co.next(); Bx.dark = false; return Bx; }
+    function sideFL(Bx, s) { return Bx.units.filter(function (u) { return u.side === s; }); }
+    function logFL(Bx, n) { return (Bx.log || []).slice(n).join(' | ').replace(/\{\/?[a-z]*\}/g, ''); }
+    try {
+      // the room: &fly gives the party wings. The fighter takes off 10 ft and flies two squares at that layer: 10 + 10 ft of its 30
+      var B1 = mkFL('?npc=goblin&lvl=5&vs=fighter:5&fly'), f1 = sideFL(B1, 'party')[0], g1 = sideFL(B1, 'foe')[0], L = GF.LAYER();
+      f1.x = 6; f1.y = 8; g1.x = 9; g1.y = 8; g1.hp = g1.maxhp = 200; D.rules.startTurn(f1); B1.active = f1; GF.setup(GF.map, B1.units);
+      var gr = GF.groundAt(f1, f1.x, f1.y), rm1 = GF.flyReach(f1, gr + 2 * L, f1.turn.move), own = rm1[f1.x + ',' + f1.y], two = rm1[(f1.x + 2) + ',' + f1.y];
+      okFL('the room\'s wings: flies ' + !!f1.flies + '; at 10 ft up, its own square costs ' + (own && own.cost) + ' (the rise), two squares on ' + (two && two.cost), !!f1.flies && own && own.cost === 10 && two && two.cost === 20);
+      runFL(B1.flyMove(f1, f1.x + 2, f1.y, gr + 2 * L));
+      okFL('flown: at (' + f1.x + ',' + f1.y + '), ' + (f1.fz - gr) / GF.map.def.step * 2.5 + ' ft up, aloft ' + GF.aloft(f1) + ', move left ' + f1.turn.move, f1.x === 8 && GF.aloft(f1) && f1.fz === gr + 2 * L && f1.turn.move === 10);
+      // over the goblin's next square, 10 ft up: 10 ft off by the height (a diagonal's rule), out of its 5 ft reach and out of the fighter's
+      var dist1 = GF.dist(g1, f1), hit1 = B1.canHit(g1, f1), hitF = B1.canHit(f1, g1);
+      okFL('10 ft over the square beside the goblin: ' + dist1 + ' ft apart, the goblin can hit it ' + hit1 + ', it can hit the goblin ' + hitF, dist1 === 10 && !hit1 && !hitF);
+      // a body walks in under it: the square under one aloft is free to stand on
+      var under1 = GF.canStand(g1, f1.x, f1.y);
+      okFL('the goblin may stand under it ' + under1, under1);
+      // knocked prone up there: it falls 10 ft -- 1d6 (its top, 6), prone, on the ground
+      f1.conds.prone = true; var h1 = f1.hp, n1 = (B1.log || []).length; D.d = function (n) { return n; }; try { B1.flyCheck(); } finally { D.d = d0FL; } var l1 = logFL(B1, n1);
+      okFL('prone aloft, it falls: on the ground ' + (f1.fz == null) + ', took ' + (h1 - f1.hp) + ', prone ' + !!f1.conds.prone + ' -- ' + l1.slice(0, 120), f1.fz == null && h1 - f1.hp === 6 && !!f1.conds.prone && /falls 10 ft from the air/.test(l1));
+      // the floater (an EyeGregore's `floats`): one layer up at most, no ledge over 5 ft, and it hovers when it is knocked down
+      var B2 = mkFL('?npc=goblin&lvl=5&vs=fighter:5&map=climbfloor'), f2 = sideFL(B2, 'party')[0]; f2.floats = true; f2.flies = true; D.rules.startTurn(f2); B2.active = f2;
+      var g2 = GF.groundAt(f2, f2.x, f2.y), top2 = GF.flyTop(f2), pr2 = null;
+      for (var y2 = 0; y2 < GF.map.h && !pr2; y2++) for (var x2 = 0; x2 < GF.map.w && !pr2; x2++) [[1, 0], [0, 1], [-1, 0], [0, -1]].forEach(function (dd) { var a = GF.map.at(x2, y2), c = GF.map.at(x2 + dd[0], y2 + dd[1]); if (!pr2 && a && c && a.walk && c.walk && c.gz - a.gz >= 4 * GF.map.def.step && !GF.occupant(x2 + dd[0], y2 + dd[1])) pr2 = [x2, y2, x2 + dd[0], y2 + dd[1], (c.gz - a.gz) / GF.map.def.step * 2.5]; });
+      var c2 = pr2 ? GF.stepCost(f2, pr2[0], pr2[1], pr2[2], pr2[3]) : null, f2b = Object.assign({}, f2, { floats: false }), c2b = pr2 ? GF.stepCost(f2b, pr2[0], pr2[1], pr2[2], pr2[3]) : null;
+      f2.fz = g2 + L; f2.conds.prone = true; B2.flyCheck(); var hov = f2.fz === g2 + L; delete f2.conds.prone; f2.fz = null;
+      okFL('the floater: its top ' + (top2 - g2) / GF.map.def.step * 2.5 + ' ft over its ground; up a ' + (pr2 && pr2[4]) + ' ft face ' + c2 + ' (a flier ' + c2b + '); prone 5 ft up it hovers ' + hov, top2 - g2 === L && c2 === Infinity && c2b === 5 && hov);
+      // tremorsense: a blinded bulette feels the fighter on the ground within 60 ft, not the one 10 ft up
+      var B3 = mkFL('?npc=bulette&lvl=5&vs=fighter:5,fighter:5&fly'), bu = sideFL(B3, 'foe')[0], pa = sideFL(B3, 'party'), w3 = pa[0], a3 = pa[1];
+      bu.conds.blinded = {}; w3.x = bu.x + 4; w3.y = bu.y; a3.x = bu.x; a3.y = bu.y + 4; a3.fz = GF.groundAt(a3, a3.x, a3.y) + 2 * L; GF.setup(GF.map, B3.units);
+      okFL('tremorsense (bulette ' + !!bu.tremor + '): the walker felt ' + D.magic.sees(B3, bu, w3) + ', the one 10 ft up ' + D.magic.sees(B3, bu, a3), bu.tremor && D.magic.sees(B3, bu, w3) && !D.magic.sees(B3, bu, a3));
+      // the hand's move tool: the wheel's layer (UI.stepLayer) -- up 5 ft, the move's squares at that layer, a click flies there
+      var B4 = mkFL('?npc=goblin&lvl=5&vs=fighter:5&fly'), f4 = sideFL(B4, 'party')[0]; f4.x = 6; f4.y = 8; GF.setup(GF.map, B4.units); D.rules.startTurn(f4); B4.active = f4; B4.req = { turn: f4 }; B4.tool = 'move'; B4.cache = null;
+      var fl4 = D.ui.flyer(B4) === f4, s4 = D.ui.stepLayer(B4, 1), z4 = B4.flyZ, g4 = GF.groundAt(f4, f4.x, f4.y), v4 = D.ui.valid(B4, f4, f4.x + 1, f4.y);
+      okFL('the move tool: a flier ' + fl4 + ', a wheel up ' + s4 + ' -- the layer ' + (z4 - g4) / GF.map.def.step * 2.5 + ' ft up; a square beside it ' + v4, fl4 && s4 && z4 === g4 + L && v4 === 'ok');
+      B4.req = null; B4.tool = 'move';
+    } catch (eFL) { repFL.errors.push(String(eFL && eFL.stack || eFL).slice(0, 900)); D.d = d0FL; }
+    if (errs.length) repFL.errors = repFL.errors.concat(errs);
+    var preFL = document.createElement('pre'); preFL.id = 'out'; preFL.textContent = 'BENCH16 ' + JSON.stringify(repFL);
+    document.body.appendChild(preFL);
+    return;
+  }
   // the grid's rules lane, 10-08 (mode=rules1008; the lanes window's order, his "1 yes"; handoff-2026-10-04-the-grids-rules.md §2d): each check failed on the code before it
   if (get('mode', '') === 'rules1008') {
     var repR8 = { checks: [], errors: [] }, d0R8 = D.d, MR8 = D.magic;
