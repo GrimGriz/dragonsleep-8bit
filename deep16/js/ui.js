@@ -1327,6 +1327,8 @@
         // hidden and would stand idle it keeps the row's last frame -- the crouch held; one that walks or strikes shows that, and one found stands up
         if (!down && u.conds.hidden && anim === 'idle' && has('hide')) { anim = 'hide'; o.frame = D.spr.anim(u.sheet, 'hide').frames - 1; o.once = false; }
         if (anim === 'idle' || anim === 'walk' || anim === 'slither' || anim === 'roost' || anim === 'braid' || anim === 'run' || anim === 'still' || anim === 'climb') t =u.conds.paralyzed || u.conds.asleep ? 0 : B.t + (u.id ? u.id.length * 7 : 0);
+        // (the Harbinger risen, 10-08: once he has stood to his full height -- js/traits.js, his `ascend` row -- he stands upright between blows, on his `uprightidle` row)
+        if (!down && u.upright && anim === 'idle' && has('uprightidle')) anim = 'uprightidle';
         // a hyena helpless with laughter rolls on the floor with it, for as long as it laughs (09-30; since 10-02 the hyenas caught by Aurdin's joke: js/grimoire.js M.hyena)
         if (!down && u.conds.laughing && has('rofl')) { anim = 'rofl'; o.once = false; t = B.t + (u.id ? u.id.length * 7 : 0); }
         // a gnoll's fit on its own row (10-02, Griz's order of its sheet's poses, beat by beat: js/grimoire.js M.LAUGH; the laughs fire there on the same beats)

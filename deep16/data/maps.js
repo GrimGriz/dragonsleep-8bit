@@ -495,7 +495,7 @@ window.D16.MAPS.snootroad = {
 
 // The Gnoll Hills (10-08, Griz: "see if deep16 can do a hilly battlemap"): open rolling country, the grid's heights on earth -- a crown four steps up in the
 // north-east, a lesser rise to the west, a shoulder south-east; every slope one step a square, so all of it is walked, none climbed (two steps would be a
-// cliff). Scrub and stones are rough going (r), standing stones on the crown and the west rise (P). The Harbinger's ground: he waits on the crown.
+// cliff). Scrub and stones are rough going (r), lone trees on the crown and the west rise (T; the stones were the cave legend's stalagmites -- his "why are there stalagmites coming out of the hills?"). The Harbinger's ground: he waits on the crown.
 window.D16.MAPS.gnollhills = {
   name: 'The Gnoll Hills',
   sub: 'on the walk north',
@@ -504,12 +504,12 @@ window.D16.MAPS.gnollhills = {
   rows: [
     '.....r......r....r....',
     '......................',
-    'r............Pr.......',
-    '....r...........P.....',
+    'r............Tr.......',
+    '....r...........T.....',
     '......r...............',
-    '...............P.....r',
+    '...............T.....r',
     '......r.r.............',
-    '...r.P.....r........r.',
+    '...r.T.....r........r.',
     '........r.....r.r.....',
     '.............r....r...',
     '......r..............r',

@@ -12,7 +12,7 @@
   function Nm(B, u) { return u.side === 'foe' ? (u.named ? B.shortName(u) : 'The ' + B.shortName(u)) : u.name; }
 
   // the traits a unit carries from its sheet (battle.js makeFoe copies these)
-  TR.FIELDS = ['earthGlide', 'rampage', 'charge', 'relentlessBeast', 'nimble', 'twoHeads', 'corrosive', 'jaunt', 'resilient', 'evasion', 'cunning', 'parry', 'rangedMulti', 'rockCatch', 'pounce', 'drinkLight', 'foretell', 'kneel']; // (pounce, drinkLight, foretell, kneel: the Harbinger's, 10-08 -- below) // (resilient: the duergar's Resilience, SRD 5.1 -- rules.js RU.save; 10-02 runner) (rockCatch: the stone giant's Rock Catching, its DC -- battle.js attack, 10-08)
+  TR.FIELDS = ['earthGlide', 'rampage', 'charge', 'relentlessBeast', 'nimble', 'twoHeads', 'corrosive', 'jaunt', 'resilient', 'evasion', 'cunning', 'parry', 'rangedMulti', 'rockCatch', 'pounce', 'drinkLight', 'foretell', 'kneel', 'rise']; // (pounce, drinkLight, foretell, kneel, rise: the Harbinger's, 10-08 -- below) // (resilient: the duergar's Resilience, SRD 5.1 -- rules.js RU.save; 10-02 runner) (rockCatch: the stone giant's Rock Catching, its DC -- battle.js attack, 10-08)
 
   // ------------------------------------------------------------------ Duergar Resilience on a spell already running (SRD 5.1: "advantage on saving throws against poison, spells, and illusions")
   // rules.js RU.save reads B.castLevel only while a cast is under way. The saves a spell asks later -- Spirit Guardians at the start of the turn, a zone's, Web's, Moonbeam's, a wall's, the
@@ -161,7 +161,22 @@
     if (!best) return;
     yield* AI.walkTo(B, u, best);
   }
+  // the Harbinger's rise (ours, 10-08: Griz handed it over -- "He's yours" -- and "Assuming ascend ties into upright"): the first turn he starts at half his
+  // hit points or under, he stands up to his full height -- his `ascend` row, the mirror ripple over him -- and from then on stands upright between blows
+  // (ui.js, his `uprightidle` row); standing, his reach is the rise's (15 ft) and his Drink Light is full again
+  function* rise(B, u) {
+    u.risen = true; u.anim = 'ascend'; u.animT = B.t; D.sfx('magic');
+    if (D.ripple) D.ripple(u, { region: 'body', dur: 90 });
+    B.card(['{r}' + Nm(B, u) + ' straightens, and keeps straightening.{/}  {g}Something far bigger than a gnoll stands up in him.{/}'], 320);
+    yield Math.max(40, D.spr.duration(u.sheet, 'ascend') || 60);
+    u.upright = true; u.anim = 'idle';
+    if (u.rise.reach) u.reach = u.rise.reach;
+    if (u.drinkLight) u.drinkLeft = u.drinkLight.uses;
+    B.card(['{g}(Upright: reach ' + G.reachOf(u) + ' ft' + (u.drinkLight ? ', Drink Light full again' : '') + '){/}'], 220);
+    yield 16;
+  }
   TR.turn = function* (B, u) {
+    if (u.rise && !u.risen && u.side === 'foe' && u.hp > 0 && u.hp <= u.maxhp * (u.rise.at || 0.5) && RU.canAct(u)) yield* rise(B, u);
     if (u.pounce && u.side === 'foe' && !u.ethereal) yield* hunt(B, u);
     if (u.dead || u.hp <= 0) return true;
     var j = u.jaunt;
