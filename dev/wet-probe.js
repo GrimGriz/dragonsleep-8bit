@@ -41,6 +41,9 @@
     var lq = g8(4, 7); // (10-08, Griz: "at the deepest pools edge could be the 7 row 39-40" -- the grid's (7, 40) the crate, (7, 39) the lamp)
     ok('the deep station\'s crate under it (a crate prop on (3, 7)), and its lamp on a post beside it at the pool\'s corner (a lamp prop on (4, 7), the grid\'s (7, 39) -- ' + JSON.stringify(lq) + ', the map light there bright 10 ft gold, none on the bucket: ' + (B.lights || []).filter(function (l) { return l.kind === 'map'; }).map(function (l) { return [l.x, l.y, l.bright, l.color].join('/'); }).join(' ') + ')',
       G.map.props.some(function (p) { return p.kind === 'crate' && p.sq === G.map.at(cq[0], cq[1]); }) && G.map.props.some(function (p) { return p.kind === 'lamp' && p.sq === G.map.at(lq[0], lq[1]); }) && (B.lights || []).some(function (l) { return l.kind === 'map' && l.x === lq[0] && l.y === lq[1] && l.bright === 10 && l.color === 'gold'; }) && !(B.lights || []).some(function (l) { return l.kind === 'map' && l.x === cq[0] && l.y === cq[1]; }));
+    // 10-08 (Griz: "1 - mine too, but why would it give no cover?"): the post is solid, and half cover across it (SRD 5.1: "a narrow tree trunk")
+    var pc = G.los({ x: lq[0] + 1, y: lq[1] + 1, size: 1 }, { x: lq[0] - 1, y: lq[1] - 1, size: 1 });
+    ok('the lamp post: nobody stands on its square (' + !G.canStand(lead, lq[0], lq[1]) + '), and a line across it is half cover: ' + JSON.stringify(pc), !G.canStand(lead, lq[0], lq[1]) && pc.clear && pc.cover === 2 && pc.why === 'the lamp post');
     var sf = function (x, y) { var p = g8(x, y); return G.solidFloor(p[0], p[1]); };
     ok('the pool and its rim are solid stone (noBurrowAt), the cave floor past them is not: (10,3) ' + sf(10, 3) + ', (6,5) ' + sf(6, 5) + ', (3,7) ' + sf(3, 7) + '; (13,5) ' + sf(13, 5) + ', (2,7) ' + sf(2, 7) + ', (20,11) ' + sf(20, 11),
       sf(10, 3) && sf(6, 5) && sf(3, 7) && !sf(13, 5) && !sf(2, 7) && !sf(20, 11));

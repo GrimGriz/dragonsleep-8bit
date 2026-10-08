@@ -278,6 +278,9 @@
   // the station's lamp: an iron lantern on a post, lit (the map's `lights` sits on this square, so the glow has a body -- 10-04, Griz: "the bucket glows like its a light")
   W.layLamp = function (B, at) {
     var sq = G.map.at(at[0], at[1]); if (!sq) return;
+    // its post stands: nobody stands on its square, and it is half cover as a stalagmite is (10-08, Griz: "1 - mine too, but why would it give no
+    // cover? Standing behind your ally gives your enemies cover" -- SRD 5.1, half cover: "a low wall, a large piece of furniture, a narrow tree trunk")
+    sq.walk = false; sq.pillar = true; sq.stands = 'the lamp post'; B.cache = null;
     G.map.props.push({ kind: 'lamp', sq: sq, depth: at[0] + at[1] + 0.4, gz: 0, draw: function (ctx) {
       var sh = D.SHEETS && D.SHEETS.wetlamp_p1;
       if (sh && sheetProp(ctx, 'wetlamp_p1', 'lit', Math.floor(B.t * sh.anims.lit.fps / 60), at, 0)) return;
