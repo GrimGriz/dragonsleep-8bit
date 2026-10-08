@@ -529,7 +529,7 @@
   // the spirit naga (deep.js S.naga, leg four): "Halfway over, the water stands up." It keeps to the black water (bound '~'),
   // bites at ten feet, and has the spell-weaver's routine (ai.js weaver): Hold once, lightning along the water
   naga: {
-    name: 'Spirit Naga', type: 'monstrosity', sheet: 'naga_p1', cr: '8', ac: 15, hp: 75, speed: 40, size: 2, reach: 10, darkvision: 60,
+    name: 'Spirit Naga', type: 'monstrosity', sheet: 'naga_p2', cr: '8', ac: 15, hp: 75, speed: 40, size: 2, reach: 10, darkvision: 60,
     abil: { str: 18, dex: 17, con: 14, int: 16, wis: 15, cha: 16 }, init: 3, perception: 12,
     saves: { str: 4, dex: 6, con: 5, int: 3, wis: 5, cha: 6 },
     attacks: { bite: { name: 'Bite', atk: 7, dice: '1d6', mod: 4, type: 'piercing', reach: 10, save: { ab: 'con', dc: 13, dice: '7d8', type: 'poison', half: true } } },
