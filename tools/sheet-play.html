@@ -3,7 +3,10 @@
 <title>Sheet player</title>
 <!-- A DEEP16 sprite sheet's rows, playing at their own fps, before a build plays them (Goose's first, 10-07).
      tools/sheet-play.html?sheet=goose_p1&ref=denny_p2&z=3   (ref: another sheet's idle beside each row, for size; z: the zoom; &face=6,2,0,4 the facings
-     shown, S SW W NW N NE E SE = 0..7) -->
+     shown, S SW W NW N NE E SE = 0..7)
+     &ripple=mane (or body): the mirror ripple drawn in code over every cell (deep16/js/ripple.js, 10-08); &tones=<ramp> what the mirrors show
+     and &bg=<ramp> the cells' ground, each a deep16/palette.json ramp (stone, moss, blue, fire...), as a map's floor; &every=3 &dur=0.9 seconds -->
+
 <style>
   body { background: #2b2e2b; color: #ddd; font: 13px system-ui, sans-serif; margin: 16px; }
   h1 { font-size: 16px; margin: 0 0 4px; } p { margin: 0 0 12px; color: #aaa; }
@@ -36,10 +39,17 @@
     b.x0 = Math.max(0, b.x0 - 2); b.y0 = Math.max(0, b.y0 - 2); b.x1 = Math.min(an.fw, b.x1 + 2);
     return (an._b = b);
   }
-  Promise.all([load(sheet), ref ? load(ref) : null]).then(function (r) {
+  var RIP = q.get('ripple'), EVERY = (+q.get('every') || 3) * 1000, DUR = (+q.get('dur') || 0.9) * 1000, TONES = null, BG = null;
+  function script(src) { return new Promise(function (ok) { var s = document.createElement('script'); s.src = src + '?v=' + Date.now(); s.onload = ok; s.onerror = ok; document.head.appendChild(s); }); }
+  var extra = !RIP && !q.get('bg') ? null : Promise.all([RIP ? script('../deep16/js/ripple.js') : null, fetch('../deep16/palette.json?v=' + Date.now()).then(function (r) { return r.json(); })]).then(function (x) {
+    var ramps = x[1].ramps, hx = function (h) { h = h.replace('#', ''); return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16)]; };
+    if (q.get('tones') && ramps[q.get('tones')]) TONES = ramps[q.get('tones')].map(hx);
+    if (q.get('bg') && ramps[q.get('bg')]) { var b = ramps[q.get('bg')]; BG = [b[Math.floor(b.length / 2) - 1] || b[0], b[Math.floor(b.length / 2)] || b[0]]; }
+  });
+  Promise.all([load(sheet), ref ? load(ref) : null, extra]).then(function (r) {
     var S = r[0], R = r[1], m = S.m, cells = [];
     document.getElementById('t').textContent = sheet;
-    document.getElementById('sub').textContent = (m.source || '') + ' -- ' + Object.keys(m.anims).length + ' rows, ' + Z + 'x' + (R ? '; ' + ref + "'s idle beside each, for size" : '');
+    document.getElementById('sub').textContent = (m.source || '') + ' -- ' + Object.keys(m.anims).length + ' rows, ' + Z + 'x' + (R ? '; ' + ref + "'s idle beside each, for size" : '') + (RIP ? '; the ' + RIP + ' ripple every ' + EVERY / 1000 + ' s, the mirrors showing ' + (q.get('tones') || 'silver') + (BG ? ' on ' + q.get('bg') : '') : '');
     Object.keys(m.anims).forEach(function (name) {
       var a = m.anims[name], row = document.createElement('div'); row.className = 'row';
       row.innerHTML = '<div class="name">' + name + '<br><span class="cap">' + a.frames + ' @ ' + a.fps + ' fps</span></div>';
@@ -55,11 +65,15 @@
     });
     var t0 = performance.now();
     (function tick(now) {
-      cells.forEach(function (k) {
+      cells.forEach(function (k, ci) {
         var an = k.an, i = k.still ? 0 : Math.floor((now - t0) / 1000 * an.fps) % an.frames, x = k.c.getContext('2d');
         x.imageSmoothingEnabled = false; x.clearRect(0, 0, k.c.width, k.c.height);
+        if (BG) { x.fillStyle = BG[1]; x.fillRect(0, 0, k.c.width, k.c.height); x.fillStyle = BG[0]; for (var gy = 0; gy < k.c.height; gy += 4 * Z) for (var gx = ((gy / (4 * Z)) & 1) * 4 * Z; gx < k.c.width; gx += 8 * Z) x.fillRect(gx, gy, Z, Z); } // (a map's floor: its ramp, flecked)
         x.fillStyle = '#5a5f5a'; x.fillRect(0, (an.ay + 1 - k.b.y0) * Z, k.c.width, Z);   // the foot line
         x.drawImage(k.src.im, i * an.fw, an.y + k.f * an.fh, an.fw, an.fh, -k.b.x0 * Z, -k.b.y0 * Z, an.fw * Z, an.fh * Z);
+        if (RIP && window.RIPPLE && !k.still) // (the wave, over the frame from its own pixels; each row a beat behind the one above)
+          window.RIPPLE.draw(x, k.src.im, i * an.fw, an.y + k.f * an.fh, an.fw, an.fh, -k.b.x0 * Z, -k.b.y0 * Z, Z, RIP, sheet + ':' + an.y + ':' + k.f + ':' + i,
+            { s: window.RIPPLE.phase(now - t0 - (ci >> 2) * 120, EVERY, DUR), tones: TONES });
       });
       requestAnimationFrame(tick);
     })(t0);
