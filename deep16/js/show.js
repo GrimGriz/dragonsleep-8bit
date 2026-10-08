@@ -265,6 +265,10 @@
       S.foes = B.units.filter(function (w) { return w.side === 'foe'; });
       S.mate.x = cx - 2; S.mate.y = cy + 1; S.mate.facing = 6; S.home = [cx, cy];
       S.foes.forEach(function (u) { u.show = true; u.bound = null; u.maxhp = u.hp; }); // (show: the ripple's mark, js/looks.js; bound to water, on a dry floor: let loose)
+      // &sheet=<name>: the creature wears that sheet -- a new sheet seen on the floor before anything is built to wear it (10-08, GreyFang's isometric
+      // views: Griz, "The sheets still need cutting and playback checks against the map"; `?rows=gnoll&sheet=greyfang_p1`)
+      var look = get('sheet');
+      if (look && D.SHEETS && D.SHEETS[look]) S.foes.forEach(function (u) { u.sheet = look; u.name = look.replace(/_p\d+$/, '').replace(/^./, function (c) { return c.toUpperCase(); }); });
       // (its `attack` row left out where every blow has a row of its own: there it is only the fallback, a copy -- the show's tally says the same)
       var copyOnly = function (u) { var ks = Object.keys(u.attacks || {}); return ks.length && ks.every(function (k) { var a = u.attacks[k]; return a.spell || D.spr.anim(u.sheet, String(a.name || k).toLowerCase().replace(/[^a-z]/g, '')); }); };
       S.foes.forEach(function (u) { SH.rowsOf(u.sheet).forEach(function (r) { if (!(r === 'attack' && copyOnly(u))) S.list.push({ u: u, row: r }); }); });

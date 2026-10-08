@@ -18,8 +18,13 @@ Prone, played in reverse (the sheet draws him lying then pushing up on an arm; t
 up backwards -- sprites.js S.proneRow, the hobgoblin's way). New rows, named here (not in pixelate.py): `volley` (the Hunter's Volley: its
 `release` is where the three arrows leave), `whirlwind` (Whirlwind Attack), `parry`, `backstep`; and `slash`. `longbow`'s `release` is the frame
 the string hand lets go (the arrow is gone from the bow: 10 of 13).
-Facings: NE, E and SE take the side rows as drawn, SW, W and NW mirrored; S takes the turnaround's Front still as its idle and N the Back
-still (one still, set into both idle frames); every other row plays side-on from S and N (as the twin's non-front rows do).
+Facings: E takes the side rows as drawn, W mirrored. His four isometric sheets (10-08, sheets 3-6: BOTTOM RIGHT, BOTTOM LEFT -- the last of two,
+its volley shooting the right way -- TOP LEFT, TOP RIGHT) give SE, SW, NW and NE their own drawings, no mirror, of the seven rows they carry:
+slash (and attack), volley, whirlwind, parry, backstep, prone, the fall (hurt); S borrows the bottom-right's and N the top-right's (ISO_NEAR).
+The rows they don't carry (walk, longbow, cast, climb, flinch) play side-on there, SW and NW mirrored. The idle: S the turnaround's Front
+still and N its Back (one still in both frames); each diagonal its sheet's standing still (STILLS: cut out first, then painted navy), the
+bottom-left -- which has none -- the bottom-right's mirrored. Each isometric sheet meets sheet 2 by height (the five rows' first frames, the
+guard) and is toned to sheet 2's same rows.
 Scale: the side idle stands HEIGHT px -- as tall as Talmok's (talmok_p1's side idle, 63 px with its outline); sheet 2 meets sheet 1 by the
 guard both draw (sheet 1's idle against the first frames of sheet 2's slash, parry and backstep, by area); the turnaround's Front still
 stands STILL_H by height (upright, against the rows' deep crouch: by area it stood 84 and a turn popped -- scales()). Colour: sheet 2 drew him warmer or cooler than sheet 1 (the most-played rows), so it is brought to
@@ -39,7 +44,14 @@ pix = _load('pix', os.path.join(ROOT, 'tools', 'pixelate.py'))
 SR = _load('sheetrows', os.path.join(ROOT, 'tools', 'sheetrows.py'))
 
 FILES = {1: os.path.join('Fresh', 'Greyfang_ Grizzled Veteran Ranger Sprite Sheet-1.png'),
-         2: os.path.join('Fresh', 'Greyfang’s extra moves sprite sheet-2.png')}     # (a curly apostrophe)
+         2: os.path.join('Fresh', 'Greyfang’s extra moves sprite sheet-2.png'),     # (a curly apostrophe)
+         # his four isometric sheets (10-08, Griz: "the art department is putting out sprites thinking this is a 2D game. It's now generating
+         # based on isometry"): sheet 2's moves from each screen diagonal, one sheet a view; the bottom-left is the last of two ("Use the last
+         # bottom-left image -- it corrects the Volley's firing direction": Greyfang isometric combat sprite sheet-2.png's volley shot right)
+         3: os.path.join('Fresh', 'Greyfang’s Isometric Combat Sprite Sheet-1.png'),   # BOTTOM RIGHT -> SE (a curly apostrophe)
+         4: os.path.join('Fresh', "GreyFang's Eight-Frame Bow Volley-5.png"),           # BOTTOM LEFT -> SW
+         5: os.path.join('Fresh', 'Greyfang Isometric Combat Sprite Sheet-3.png'),      # TOP LEFT (titled only GREYFANG) -> NW
+         6: os.path.join('Fresh', 'Greyfang isometric combat sprite sheet-4.png')}      # TOP RIGHT -> NE
 SRC = os.path.join(ROOT, 'deep16', '_src')                 # his sheets live in the main checkout (_src is not in git): a worktree reads them there
 if not os.path.exists(os.path.join(SRC, FILES[1])):
     _common = subprocess.run(['git', '-C', ROOT, 'rev-parse', '--git-common-dir'], capture_output=True, text=True).stdout.strip()
@@ -67,11 +79,60 @@ SHEETS = {
                 ('fall', (0, None, 1536, None), (787, 805), NUM(6), [191, 340, 492, 656, 822, 1003]),
                 ('parry', (0, None, 1536, None), (892, 911), NUM(6), [211, 369, 525, 698, 872, 1049]),
                 ('backstep', (0, None, 1536, None), (998, 1016), NUM(6), [205, 380, 573, 759, 954, 1134])]),
+  # the isometric four: the same seven rows each, the numbers' x off the seat's probe (10-08)
+  3: dict(text=[(0, 0, 600, 50), (0, 120, 180, 1024)],
+          rows=[('slash', (0, 119, 1536, None), (228, 245), NUM(6), [244, 403, 572, 730, 901, 1066]),
+                ('volley', (0, None, 1536, None), (359, 375), NUM(8), [244, 390, 544, 703, 864, 1024, 1203, 1358]),
+                ('whirlwind', (0, None, 1536, None), (495, 515), NUM(8), [246, 393, 565, 733, 908, 1082, 1259, 1430]),
+                ('parry', (0, None, 1536, None), (629, 647), NUM(6), [244, 412, 588, 762, 934, 1106]),
+                ('backstep', (0, None, 1536, None), (765, 782), NUM(6), [246, 416, 593, 764, 933, 1094]),
+                ('prone', (0, None, 1536, None), (864, 879), NUM(2), [262, 483]),
+                ('fall', (0, None, 1536, None), (989, 1005), NUM(6), [220, 373, 540, 718, 911, 1127])]),
+  4: dict(text=[(0, 0, 560, 50), (0, 60, 165, 1024), (0, 360, 174, 412)],      # (the last: "Whirlwind", its d past the column)
+          rows=[('slash', (0, 55, 1536, None), (178, 195), NUM(6), [261, 428, 600, 785, 986, 1164]),
+                ('volley', (0, None, 1536, None), (313, 330), NUM(8), [240, 402, 566, 725, 887, 1060, 1256, 1424]),
+                ('whirlwind', (0, None, 1536, None), (462, 479), NUM(8), [250, 410, 578, 747, 926, 1092, 1268, 1434]),
+                ('parry', (0, None, 1536, None), (606, 622), NUM(6), [249, 430, 600, 765, 967, 1147]),
+                ('backstep', (0, None, 1536, None), (744, 761), NUM(6), [248, 416, 598, 776, 962, 1148]),
+                ('prone', (0, None, 1536, None), (848, 864), NUM(2), [250, 472]),
+                ('fall', (0, None, 1536, None), (977, 993), NUM(6), [240, 414, 598, 776, 970, 1192])]),
+  5: dict(text=[(0, 0, 245, 55), (0, 140, 155, 1024), (0, 395, 172, 445)],
+          rows=[('slash', (0, 110, 1536, None), (236, 252), NUM(6), [236, 418, 626, 820, 1036, 1220]),
+                ('volley', (0, None, 1536, None), (369, 386), NUM(8), [228, 396, 568, 732, 904, 1112, 1276, 1422]),
+                ('whirlwind', (0, None, 1536, None), (500, 517), NUM(8), [240, 406, 583, 745, 929, 1080, 1282, 1454]),   # (6 nudged from 1111: its sword's trail, joined to him, has a thick crescent nearer 5's number)
+                ('parry', (0, None, 1536, None), (627, 644), NUM(6), [224, 394, 581, 736, 916, 1100]),
+                ('backstep', (0, None, 1536, None), (758, 774), NUM(6), [221, 406, 589, 773, 954, 1124]),
+                ('prone', (0, None, 1536, None), (856, 872), NUM(2), [244, 462]),
+                ('fall', (0, None, 1536, None), (978, 995), NUM(6), [214, 388, 562, 730, 919, 1119])]),
+  6: dict(text=[(0, 0, 510, 55), (0, 140, 162, 1024), (0, 415, 182, 470)],
+          rows=[('slash', (0, 128, 1536, None), (235, 253), NUM(6), [240, 418, 606, 780, 970, 1163]),
+                ('volley', (0, None, 1536, None), (365, 383), NUM(8), [242, 406, 568, 730, 898, 1055, 1240, 1408]),
+                ('whirlwind', (0, None, 1536, None), (494, 513), NUM(8), [244, 412, 570, 742, 919, 1092, 1260, 1426]),
+                ('parry', (0, None, 1536, None), (622, 640), NUM(6), [240, 410, 588, 758, 948, 1125]),
+                ('backstep', (0, None, 1536, None), (750, 770), NUM(6), [242, 410, 596, 771, 948, 1124]),
+                ('prone', (0, None, 1536, None), (854, 869), NUM(2), [246, 457]),
+                ('fall', (0, None, 1536, None), (977, 995), NUM(6), [242, 425, 602, 786, 984, 1182])]),
 }
+# the isometric sheets' standing stills (one figure, no number): the box it lies in -- cut out first, then painted navy so the slash row
+# below it (the top-left's, whose first two frames reach up beside it) doesn't take a piece of it
+STILLS = {3: [(620, 8, 756, 119)], 5: [(248, 5, 372, 135)], 6: [(530, 4, 628, 52), (508, 52, 628, 130)]}   # (boxes, joined: the top-right's title ends at x 520)
+ISO = {7: 3, 1: 4, 3: 5, 5: 6}            # facing (SE, SW, NW, NE) -> its isometric sheet, drawn as it faces (no mirror)
+ISO_NEAR = {0: 3, 4: 6}                   # S and N: the nearer three-quarter view (S the bottom-right's, N the top-right's) for the rows it has
+ISO_ROWS = {'attack': 'slash', 'slash': 'slash', 'volley': 'volley', 'whirlwind': 'whirlwind', 'parry': 'parry', 'backstep': 'backstep',
+            'prone': 'prone', 'hurt': 'fall'}       # engine row -> the isometric sheets' row; the rest (idle, walk, longbow, cast, climb, flinch) play side-on there
+ISO_GUARD = ['slash', 'volley', 'whirlwind', 'parry', 'backstep']   # first frames: the guard each view and sheet 2 both stand in (scale by height)
 SPLIT = {(2, 'fall'): 696, (2, 'parry'): 788}   # (sheet, row) -> the line between it and the row above, by hand where the two crowd: prone's feet end at 691 and fall 1's ears start at 701; fall's feet end at 784 and parry 2's dotted arc starts at 791
 ERASE = {}            # a number that touches a figure: its glyph painted navy before the cut
 BLANK = {1: [(0, 45, 298, 274)]}     # the portrait (the cut has no use for it)
-FIX = {2: {'volley': [((1046, 326, 1120, 372), '6')]}}   # loose bits by hand: volley 6's three arrows: a loose blob is dealt out pixel by pixel to the nearest body, and the heads lie nearer frame 7's
+FIX = {2: {'volley': [((1046, 326, 1120, 372), '6')]},   # loose bits by hand: volley 6's three arrows: a loose blob is dealt out pixel by pixel to the nearest body, and the heads lie nearer frame 7's
+       3: {'volley': [((1045, 262, 1135, 326), '6')]},      # the bottom-right's and top-right's volley 6: the arrows' heads lie nearer frame 7's feet
+       6: {'volley': [((1118, 248, 1178, 315), '6')]},
+       5: {'volley': [((980, 255, 1060, 318), '6')],        # the top-left's volley 6: its three arrows lie left of him, nearer frame 5
+           'backstep': [((500, 718, 550, 750), '3')]},      # and its backstep 3's speed lines, a speck of them dealt to 2
+       4: {'parry': [((875, 530, 932, 595), '5')],          # the bottom-left's parry 5: its swoosh, a speck of it dealt to 4
+           'whirlwind': [((826, 355, 902, 412), '5'),       # and its whirlwind 5's arc, whose tail reaches back to 4's sword;
+                         ((1160, 378, 1232, 430), '7'),     # 7's arc, both ends (its left tip met 6's sword)
+                         ((1305, 366, 1358, 424), '7')]}}
 CUT = {}
 TOUCH_OK = {}
 
@@ -86,7 +147,12 @@ FPS = {'idle': 4, 'walk': 10, 'longbow': 12, 'attack': 12, 'slash': 12, 'cast': 
        'volley': 12, 'whirlwind': 14, 'parry': 10, 'backstep': 12}
 RELEASE = {'longbow': 9, 'volley': 5}     # the frame the arrow(s) are gone from the string: js/battle.js times the shot by it (0-based)
 GUARD = [('slash', 0), ('parry', 0), ('backstep', 0)]      # sheet 2 frames that stand in sheet 1's idle guard
-TONE = {2: (0.886, 0.922, 1.026)}   # (pooled over the front, back and left stills: sheet 2's 80.9 67.0 47.8 to sheet 1's 71.7 61.8 49.0)
+TONE = {2: (0.886, 0.922, 1.026),   # (pooled over the front, back and left stills: sheet 2's 80.9 67.0 47.8 to sheet 1's 71.7 61.8 49.0)
+        # the isometric four drew him warmer again: each brought to sheet 2's same seven rows, toned (73.1 64.4 57.4), from its own --
+        3: (0.896, 0.976, 1.125),   # 81.6 66.0 51.0
+        4: (0.913, 1.006, 1.112),   # 80.1 64.0 51.6
+        5: (0.916, 0.960, 1.112),   # 79.8 67.1 51.6
+        6: (0.839, 0.887, 1.049)}   # 87.1 72.6 54.7
 HEIGHT = 60           # the side idle, standing px before the outline (Talmok's 63 with it)
 STILL_H = 67          # the turnaround's Front still, px before the outline (S 68, N 69 with it, the side idle 63): see scales()
 FH, AY = 112, 100
@@ -152,9 +218,21 @@ def cut(L, check=False):
     SR.label_xs = lambda a, x0, x1, y0, y1: hand.get((x0, y0)) or orig(a, x0, x1, y0, y1)
     over = [] if check else None
     path = os.path.join(SRC, FILES[L])
-    if L in ERASE or L in BLANK:
+    still_cut = None
+    if L in ERASE or L in BLANK or L in STILLS:
         img = np.asarray(Image.open(path).convert('RGB')).copy()
         navy = np.median(img.reshape(-1, 3)[::97], axis=0).astype(np.uint8)
+        if L in STILLS:                                           # the standing still: the figure in its box (specks under 6 px dropped)
+            m = SR.figure_mask(img.astype(np.int32))
+            keep = np.zeros_like(m)
+            for sx0, sy0, sx1, sy1 in STILLS[L]:
+                keep[sy0:sy1, sx0:sx1] = m[sy0:sy1, sx0:sx1]
+            klab, kn = ndimage.label(keep, structure=np.ones((3, 3)))
+            ksz = ndimage.sum(keep, klab, range(1, kn + 1))
+            keep = np.isin(klab, 1 + np.where(ksz >= 6)[0])
+            im, box = SR.rgba_crop(img.astype(np.int32), keep)
+            still_cut = [('still', im, box)]
+            img[keep] = navy
         for x0, y0, x1, y1 in ERASE.get(L, ()):
             box = img[y0:y1, x0:x1].astype(int)
             glyph = (box.mean(-1) > 140) | ((box[..., 2] >= box[..., 0]) & (box.mean(-1) > 50))
@@ -168,6 +246,8 @@ def cut(L, check=False):
                            overlay=over, tag='sheet %d' % L)
     finally:
         SR.label_xs = orig
+    if still_cut:
+        out['still'] = still_cut
     if check:
         d = os.path.join(ROOT, 'dev', 'visions', 'greyfang'); os.makedirs(d, exist_ok=True)
         over[0].save(os.path.join(d, 'cut-%d.png' % L))
@@ -199,16 +279,23 @@ def scales(c):
     print('  K: sheet 1 %.3f, sheet 2 %.3f (its guards %s against sheet 1\'s idle %.1f), turnaround %.3f; the side idle %d px (sheet), front still %.0f px, back still %.0f px'
           % (k1, k2, ' '.join('%.1f' % g for g in guards), idle, kt, HEIGHT,
              body(c[1]['turn'][0][1])[1] / kt, body(c[1]['turn'][2][1])[1] / kt))
-    return {1: k1, 2: k2, 't': kt}
+    K = {1: k1, 2: k2, 't': kt}
+    for L in ISO.values():                                    # each isometric view meets sheet 2 by height: the same rows' first frames, the guard
+        r = [body(c[L][row][0][1])[1] / body(c[2][row][0][1])[1] for row in ISO_GUARD]
+        K[L] = k2 * float(np.median(r))
+        print('  K: iso sheet %d %.3f (its guards against sheet 2\'s by height %s)' % (L, K[L], ' '.join('%.2f' % x for x in r)))
+    return K
 
 
 def main(check=False):
     c = {L: cut(L, check) for L in SHEETS}
     K = scales(c)
-    for L in c:
+    for L in (1, 2):
         print('  tone sheet %d stills:' % L, ' '.join('%s %s' % (nm, np.round(figure_mean(im), 1).tolist()) for nm, im, _ in c[L]['turn']))
     rowmean = lambda L, rows: np.round(np.mean([figure_mean(toned(im, TONE[L]) if L in TONE else im) for r in rows for _, im, _ in c[L][r]], axis=0), 1).tolist()
     print('  bow-in-hand rows, sheet 1 idle+walk %s against sheet 2 volley+backstep (toned) %s' % (rowmean(1, ['idle', 'walk']), rowmean(2, ['volley', 'backstep'])))
+    for L in ISO.values():
+        print('  tone iso sheet %d, its seven rows %s against sheet 2\'s same rows (toned) %s' % (L, rowmean(L, ISO_ROWS.values()), rowmean(2, ISO_ROWS.values())))
     small = {}
     def frames_of(L, row):
         if (L, row) not in small:
@@ -225,29 +312,38 @@ def main(check=False):
             if nm == name:
                 a = game_frame(im, K['t'])
                 return a, core_x(a), 0
+    def istill(L):                                            # an isometric sheet's standing still, at its sheet's scale
+        a = game_frame(c[L]['still'][0][1], K[L], TONE.get(L))
+        return a, core_x(a), 0
+    MIRROR = (1, 2, 3)                                        # the side rows face right: SW, W and NW take them mirrored
     src = {}
     for eng, (L, row) in ROWS.items():
         side = frames_of(L, row)
         if eng in REVERSED:
             side = side[::-1]
-        per = []
+        per = []                                              # per facing: (frames, mirrored?)
         for f in range(8):
+            iso = ISO.get(f, ISO_NEAR.get(f))
             if f in STILL.get(eng, {}):
-                st = still(STILL[eng][f])
-                per.append([st] * len(side))
+                per.append(([still(STILL[eng][f])] * len(side), False))
+            elif eng == 'idle' and f in ISO:                  # a diagonal stands as its view's still (the bottom-left has none: the bottom-right's, mirrored)
+                per.append(([istill(ISO[f])] * len(side), False) if ISO[f] in STILLS else ([istill(ISO[7])] * len(side), True))
+            elif eng in ISO_ROWS and iso:                     # a diagonal (and S, N, the nearer view) plays its own view's row, as drawn
+                fs = frames_of(iso, ISO_ROWS[eng])
+                per.append((fs[::-1] if eng in REVERSED else fs, False))
             else:
-                per.append(side)
+                per.append((side, f in MIRROR))
         src[eng] = per
     frames, sizes, lost = {}, {}, []
     for eng, per in src.items():
-        half = max(max(cx, a.shape[1] - cx) for fs in per for a, cx, _ in fs)    # each row its own width, about the middle (a mirror keeps the foot)
+        half = max(max(cx, a.shape[1] - cx) for fs, _ in per for a, cx, _ in fs)    # each row its own width, about the middle (a mirror keeps the foot)
         fw = max(96, int(np.ceil((2 * half + 4) / 8.0)) * 8)
         sizes[eng] = (fw, FH, fw // 2, AY)
         frames[eng] = []
-        for f, fs in enumerate(per):
+        for f, (fs, mirrored) in enumerate(per):
             row = []
             for a, cx, up in fs:
-                if f in (1, 2, 3):
+                if mirrored:
                     a, cx = a[:, ::-1], a.shape[1] - cx
                 fr, gone = place(a, cx, up, fw, fw // 2)
                 if gone:
@@ -268,7 +364,8 @@ def main(check=False):
         meta['anims'][row]['release'] = k
     s0 = frames['idle'][0][0]                       # (the panel's portrait centres on his face: his front still's first opaque row, twelve px down to the eyes -- ui.js, the twin's way)
     meta['face'] = int(AY - np.where(s0[..., 3].any(axis=1))[0][0] - 12)
-    meta['source'] = ('generated by Griz (2026-10-08: two GPT sheets -- the body and its rows, then the extra moves), cut by tools/greyfang-sheet.py')
+    meta['source'] = ('generated by Griz (2026-10-08: two GPT sheets -- the body and its rows, then the extra moves -- and four isometric sheets of '
+                      'the extra moves, one a diagonal), cut by tools/greyfang-sheet.py')
     json.dump(meta, open(meta_p, 'w'), indent=1)
     h = lambda fr: np.where(fr[..., 3].any(axis=1))[0]
     side = [h(fr) for fr in frames['idle'][6]]
@@ -322,6 +419,16 @@ def strips(frames, meta, d, z=3):
             if meta['anims'][eng].get('release') == i:
                 dr.rectangle([x, 0, x + fw - 1, H - 1], outline=(255, 90, 90, 255))
         cv.resize((W * z, H * z), Image.NEAREST).save(os.path.join(d, 'row-%s.png' % eng))
+    for eng in sorted(set(ISO_ROWS) | {'idle'}):                # every facing of a row with its isometric views: E, then SE, SW, NW, NE, then S and N
+        fw, order = meta['anims'][eng]['fw'], [6, 7, 1, 3, 5, 0, 4]
+        n = len(frames[eng][6])
+        cv = Image.new('RGBA', (fw * n + 4 * (n + 1), FH * len(order)), (70, 74, 70, 255))
+        dr = ImageDraw.Draw(cv)
+        for j, f in enumerate(order):
+            for i, fr in enumerate(frames[eng][f]):
+                cv.alpha_composite(Image.fromarray(fr, 'RGBA'), (4 + i * (fw + 4), j * FH))
+            dr.text((2, j * FH + 2), ['S', 'SW', 'W', 'NW', 'N', 'NE', 'E', 'SE'][f], fill=(255, 255, 255, 255))
+        cv.resize((cv.width * 2, cv.height * 2), Image.NEAREST).save(os.path.join(d, 'facings-%s.png' % eng))
     fw = meta['anims']['idle']['fw']
     cv = Image.new('RGBA', (fw * 16 + 40, FH), (70, 74, 70, 255))
     for f in range(8):
