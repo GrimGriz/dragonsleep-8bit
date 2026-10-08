@@ -493,6 +493,55 @@ window.D16.MAPS.snootroad = {
   wave: null
 };
 
+// The Gnoll Hills (10-08, Griz: "see if deep16 can do a hilly battlemap"): open rolling country, the grid's heights on earth -- a crown four steps up in the
+// north-east, a lesser rise to the west, a shoulder south-east; every slope one step a square, so all of it is walked, none climbed (two steps would be a
+// cliff). Scrub and stones are rough going (r), standing stones on the crown and the west rise (P). The Harbinger's ground: he waits on the crown.
+window.D16.MAPS.gnollhills = {
+  name: 'The Gnoll Hills',
+  sub: 'on the walk north',
+  step: 10,
+  ground: 'earth',
+  rows: [
+    '.....r......r....r....',
+    '......................',
+    'r............Pr.......',
+    '....r...........P.....',
+    '......r...............',
+    '...............P.....r',
+    '......r.r.............',
+    '...r.P.....r........r.',
+    '........r.....r.r.....',
+    '.............r....r...',
+    '......r..............r',
+    '......................',
+    '......................',
+    '......................',
+    '..............r..r....',
+    '......................'
+  ],
+  heights: [
+    '0000000000011111111000',
+    '0000000000112222221100',
+    '0000000001122333322110',
+    '0000000001123344332110',
+    '0000000001123344332110',
+    '0011111001122333322110',
+    '0111111101112222221100',
+    '0112221100011111111000',
+    '0112221100000011100000',
+    '0112221100000000000000',
+    '0111111100000001111100',
+    '0011111000000011111110',
+    '0000000000000011111110',
+    '0000000000000011111110',
+    '0000000000000001111100',
+    '0000000000000000000000'
+  ],
+  entry: [[9, 14], [10, 14], [11, 14], [12, 14], [10, 15], [11, 15]],
+  foes: [],
+  wave: null
+};
+
 // The Burial (the 8-bit game's `dwarf`, The One Law): worked stone under the old dwarf-hold, columns (the stalagmites
 // stand in), the lamp by the stair up at the back. The stair is the way out (exit): the wheelwright runs for it.
 window.D16.MAPS.burial = {

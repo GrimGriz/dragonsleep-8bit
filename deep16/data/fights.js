@@ -306,6 +306,11 @@
     { id: 'trollhole', bestiary: true, level: 5, map: 'cavern', name: 'The Troll Hole', sub: 'off the fourth leg',
       intro: 'It is already getting up again.', from: 'leg four of the highway (the troll hole)',
       foes: [{ id: 'troll1', kind: 'troll', at: [11, 4] }], wave: null },
+    // THE HARBINGER (10-08, Griz: "Try and get him 6/10 on a solo vs Aurdin Party 7 on the ladder"): the made gnoll alone on the crown of the Gnoll Hills,
+    // the ladder's party at 7th walking up from the south (data/foes.js harbinger; the bench: dev/bench16.py x fight=harbinger n=20)
+    { id: 'harbinger', bestiary: true, level: 7, map: 'gnollhills', name: 'The Harbinger', sub: 'the Gnoll Hills, on the walk north',
+      intro: 'On the crown of the hill a gnoll stands too still, and both its eyes are mirrors.', from: 'the Gnoll Hills (the Harbinger)',
+      foes: [{ id: 'harb1', kind: 'harbinger', at: [14, 3] }], wave: null },
     // THE SKYLIGHTS (10-05; the Edifice handoff's boss fight, a defend fight -- Griz, 10-04 night: "make the glass above the hole their target ... like they're trying to make entry
     // into the dwarven place and this is defend mission"; 10-05: "2 stone giants (each model) and 2 trolls and see how that goes"; "Have pyro come out followed by the party then the
     // doors lock behind them. Have the monsters come from the north road, the team pop out and then initiative. Have pyro say 'they're going for the skylights' when the first one
