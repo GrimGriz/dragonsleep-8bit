@@ -268,7 +268,7 @@
       // (its `attack` row left out where every blow has a row of its own: there it is only the fallback, a copy -- the show's tally says the same)
       var copyOnly = function (u) { var ks = Object.keys(u.attacks || {}); return ks.length && ks.every(function (k) { var a = u.attacks[k]; return a.spell || D.spr.anim(u.sheet, String(a.name || k).toLowerCase().replace(/[^a-z]/g, '')); }); };
       S.foes.forEach(function (u) { SH.rowsOf(u.sheet).forEach(function (r) { if (!(r === 'attack' && copyOnly(u))) S.list.push({ u: u, row: r }); }); });
-      D.iso.zoom = Math.max(D.iso.zoom || 1, 2.5); // (close in: a row is judged at the size of a figure, not of the floor -- the wheel takes it in or out)
+      S.zoom0 = D.iso.zoom || 1; // (close in, by its size: a row is judged at the size of a figure, not of the floor -- the wheel takes it in or out)
       S.list.sort(function (a, b) { return S.foes.indexOf(a.u) - S.foes.indexOf(b.u) || (a.row === 'idle' ? -1 : b.row === 'idle' ? 1 : 0); });
       B.req = null; B.co = loop();
     };
@@ -287,7 +287,9 @@
       var u = it.u; S.upAt = null;
       B.units = [S.mate, u]; S.foes.forEach(function (w) { if (w !== u) off(w); }); off(u); D.grid.setup(D.grid.map, B.units);
       var r = it.row, at = r === 'clamp' || r === 'latched' ? S.mate : u; // (the camera on where it will be: on the fighter's head for those two)
-      D.iso.lookAt(at.x, at.y, D.grid.map.gz(at.x, at.y));
+      if (S.lastKind !== u.kind) { S.lastKind = u.kind; var sz = Math.max(u.size || 1, r === 'clamp' || r === 'latched' ? 1 : 0); D.iso.zoom = Math.max(S.zoom0, sz >= 3 ? 1.0 : sz === 2 ? 1.4 : 2.4); } // (a new creature, its own closeness; within one, the wheel's is kept)
+      var up = (u.size || 1) >= 2 && at === u ? 0.5 : 0; // (a tall one: the camera half a square up the screen, so the head clears the card)
+      D.iso.lookAt(at.x - up, at.y - up, D.grid.map.gz(at.x, at.y));
       card(it);
       yield 12;
       if (r === 'hurt') { u.hp = 0; u.dead = true; u.deadT = B.t; u.anim = 'idle'; u.animT = B.t; }
