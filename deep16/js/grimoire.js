@@ -1634,7 +1634,7 @@
   // ------------------------------------------------------------------ 5th level
   E.contagion = {
     summary: function () { return 'touch: melee spell attack · poisoned by a disease; three failed CON saves and it takes hold (blinded); three saved, it is gone'; },
-    cast: function* (B, u, t, slot, head, x) { var dc = x.dc; yield* spellAttack(B, u, t, x.sp, x.g, '0', { onHit: function (w) { if (RU.immuneTo(w, 'poisoned')) return; w.conds.poisoned = { contagion: true }; w.conds.contagion = { dc: dc, bad: 0, good: 0 }; B.card(['{o}' + Nm(B, w) + ' is sick with it: poisoned.{/}'], 240); } }); },
+    cast: function* (B, u, t, slot, head, x) { var dc = x.dc; yield* spellAttack(B, u, t, x.sp, x.g, '0', { onHit: function (w) { if (RU.immuneTo(w, 'poisoned') || RU.immuneTo(w, 'diseased')) return; w.conds.poisoned = { contagion: true }; w.conds.contagion = { dc: dc, bad: 0, good: 0 }; B.card(['{o}' + Nm(B, w) + ' is sick with it: poisoned.{/}'], 240); } }); },
     ai: function (B, u, e, slot, fs) { var best = null; fs.forEach(function (t) { if (G.dist(u, t) > 5 + u.turn.move || RU.immuneTo(t, 'poisoned')) return; var from = G.dist(u, t) > 5 ? D.ai.approach(u, t, G.reach(u, u.turn.move), 5) : null; if (G.dist(u, t) > 5 && (!from || G.dist(u, t, from.x, from.y) > 5)) return; var sc = TX().pHit(u.spellAtk, RU.ac(t), 0) * TX().dpr(t) * 1.5; if (!best || sc > best.score) best = { score: sc, t: t, from: from }; }); return best; }
   };
   E.dispelevilandgood = {

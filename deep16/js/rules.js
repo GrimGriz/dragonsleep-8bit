@@ -23,7 +23,8 @@
     || (u.conds && u.conds.pfeg && by && OTHERWORLD.test(by.type || '') && FEAR_CHARM.test(cond))
     || (u.conds && u.conds.raging && u.subclass === 'Path of the Berserker' && u.lvl >= 6 && /^(charmed|hypnotized|frightened|feared)$/.test(cond)) // (Mindless Rage, the Berserker's 6: js/features.js F.mindless suspends what it had)
     || (/^(charmed|hypnotized)$/.test(cond) && G.units && RU.inAura(u, 'devotion'))
-    || (u.conds && u.conds.petrified && /^(poisoned|diseased)$/.test(cond)))); }; // (petrified, SRD 5.1: "immune to poison and disease" -- js/grimoire.js M.petrify) // (Freedom of Movement: js/grimoire.js; Aura of Devotion: RU.auraOf below)
+    || (u.conds && u.conds.petrified && /^(poisoned|diseased)$/.test(cond))
+    || (cond === 'diseased' && u.cls === 'paladin' && u.lvl >= 3))); }; // (Divine Health, SRD 5.1, the paladin's 3: "immune to disease" -- Contagion, js/grimoire.js; the grid's rules §2d, 10-08) // (petrified, SRD 5.1: "immune to poison and disease" -- js/grimoire.js M.petrify) // (Freedom of Movement: js/grimoire.js; Aura of Devotion: RU.auraOf below)
 
   // Evasion (SRD 5.1: the rogue's 7, the monk's 7): a DEX save for half -- none on a success, half on a failure; not while incapacitated
   // (the one test for the spells' saves, the breath weapons', the bolts': js/magic.js, js/grimoire.js, js/battle.js, js/ai.js)

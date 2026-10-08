@@ -409,7 +409,7 @@
   // expertise later (the rogue at 6) adds proficiency once more
   R.skill = function (h, name, ab) {
     var s = h.skills && h.skills[name], d = h.id && DS.DATA.heroes[h.id], p = R.prof(h.lvl);
-    if (s == null) return DS.mod(h.abil[ab]);
+    if (s == null) return DS.mod(h.abil[ab]) + (h.cls === 'fighter' && h.lvl >= 7 && /^(str|dex|con)$/.test(ab) ? Math.ceil(R.prof(h.lvl) / 2) : 0); // (Remarkable Athlete, SRD 5.1, the Champion's 7: half its proficiency, rounded up, to a STR, DEX or CON check it is not proficient in -- R.initBonus has the initiative; the grid's rules §2d, 10-08)
     var base = (d && d.expertise) || [], later = (h.expertise || []).filter(function (x) { return base.indexOf(x) < 0; });
     var grown = d && d.abil && d.abil[ab] != null ? DS.mod(h.abil[ab]) - DS.mod(d.abil[ab]) : 0; // an ability raised since level 2 raises its skills
     return s + (p - 2) * (base.indexOf(name) >= 0 ? 2 : 1) + (later.indexOf(name) >= 0 ? p : 0) + grown;
@@ -437,7 +437,7 @@
   R.PALADIN_SPELLS = ['bless', 'command', 'curewounds', 'shieldoffaith', 'divinefavor', 'heroism', 'lesserrestoration', 'aid', 'brandingsmite', 'magicweapon', 'revivify', 'daylight'];
   function spellData(id) { return DS.DATA.spells[id]; }
   // the Oath of Devotion's spells (SRD 5.1): Protection from Evil and Good and Sanctuary from 3, Lesser Restoration from 5 (Zone of
-  // Truth, its pair, isn't built; nor the 9th's). Both games (the 3rd's pair was the grid's alone till 09-28g)
+  // Truth, its pair, isn't built; nor the 9th's -- Beacon of Hope and Dispel Magic are grid-only spells, HELD in the 8-bit since 10-03; the grid's class paladin has them, js/classes.js). Both games (the 3rd's pair was the grid's alone till 09-28g)
   R.oathSpells = function (h) {
     if (h.cls !== 'paladin' || h.lvl < 3) return [];
     return ['protectionfromevilandgood', 'sanctuary'].concat(h.lvl >= 5 ? ['lesserrestoration'] : []);

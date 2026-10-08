@@ -49,7 +49,7 @@
     fighter: { prio: ['str', 'con', 'dex', 'wis', 'cha', 'int'], kit: { weapon: 'greatsword', armor: 'chainmail', alt: 'handaxe' }, style: 'gwf', sub: [3, 'Champion'], look: 'npcfighter_p0', asiAt: [4, 6, 8] },
     monk: { prio: ['dex', 'wis', 'con', 'str', 'int', 'cha'], kit: { weapon: 'shortsword', alt: 'dagger' }, sub: [3, 'Way of the Open Hand'], look: 'npcmonk_p0' },
     paladin: { prio: ['str', 'cha', 'con', 'wis', 'dex', 'int'], kit: { weapon: 'longsword', armor: 'chainmail', shield: 'shield', alt: 'handaxe' }, style: 'defense', sub: [3, 'Oath of Devotion'], look: 'npcpaladin_p0', prepares: 'cha', half: true,
-      always: { 3: ['protectionfromevilandgood', 'sanctuary'], 5: ['lesserrestoration'] },
+      always: { 3: ['protectionfromevilandgood', 'sanctuary'], 5: ['lesserrestoration'], 9: ['beaconofhope', 'dispelmagic'] }, // (the 9th's pair, SRD 5.1 -- the grid's rules §2d, 10-08; the 8-bit holds both as grid-only spells, js/rules.js R.oathSpells)
       spells: { 1: ['bless', 'command', 'shieldoffaith', 'divinefavor', 'heroism', 'curewounds'], 2: ['brandingsmite', 'magicweapon', 'aid'] } },
     ranger: { prio: ['dex', 'wis', 'con', 'str', 'int', 'cha'], kit: { weapon: 'longbow', armor: 'scalemail', alt: 'shortsword' }, style: 'archery', sub: [3, 'Hunter'], look: 'npcranger_p0',
       known: [0, 2, 3, 3, 4, 4, 5, 5, 6], spells: { 1: ['huntersmark', 'curewounds', 'fogcloud', 'longstrider', 'animalfriendship'], 2: ['spikegrowth', 'passwithouttrace', 'barkskin'], 3: ['conjureanimals'] } },

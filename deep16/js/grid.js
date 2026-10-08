@@ -168,14 +168,15 @@
     // (monsters' climb spots three apart along a face -- 10-05, Griz: "can we make the monsters valid wall climb spots 3 rows apart from each other?": a foe's step up a face, onto a face
     // square or the climb on from a cling, is no step where another foe clings within two squares of that square; its own face stays its own)
     if (u.side === 'foe' && G.map.def.climb && G.gzAt(u, x1, y1) - G.gzAt(u, x0, y0) > G.map.def.step && !(u.hang && u.hang.face && x1 === u.hang.face[0] && y1 === u.hang.face[1]) && G.units.some(function (w) { return w !== u && w.side === 'foe' && w.hang && w.hang.face && G.hanging(w) && Math.max(Math.abs(w.hang.face[0] - x1), Math.abs(w.hang.face[1] - y1)) < 3; })) return Infinity;
-    var cs = G.climbsUp(u, x0, y0, x1, y1); if (cs) c += cs * 5 - 5;
+    var ssw = u.subclass === 'Thief' && u.lvl >= 3; // (Second-Story Work, SRD 5.1, the Thief's 3: "climbing no longer costs you extra movement" -- the face's distance, 2.5 ft a step, as a climb speed's; the Athletics check stands. The grid's rules §2d, 10-08)
+    var cs = G.climbsUp(u, x0, y0, x1, y1); if (cs) c += (ssw ? Math.ceil(cs * 2.5 / 5) * 5 : cs * 5) - 5;
     // a creature with a climb speed (SRD 5.1: "doesn't need to spend extra movement to climb" -- the climb itself is still distance): 2.5 ft of movement a step, rounded up to the
     // 5, the square's own 5 folded in -- a 45 ft face is 45, not 5 (it was the square's 5 alone; 10-04 night, the Edifice: "the monster has to climb up the ediface")
     // ... and no more of it a turn than its climb speed (u.turn.climbLeft, rules.js startTurn): a face taller than that costs what this turn's climb can pay, and the climber hangs on it
     // part way (battle.js moveAlong: the cling) -- a troll at 10 ft a turn digs up the Edifice's 45 ft in five (10-04 night, Griz: "a slow climb speed, like they're forcefully digging their way into the walls")
     // ... and the way down the same (10-05 night, the spiders' handoff: a climber stepped off the Edifice's 45 ft lip for one square's cost -- the way down clings part way too, battle.js moveAlong)
     if (!cs && u.climbs && G.map.def.climb) { var csC = Math.abs(Math.round((G.gzAt(u, x1, y1) - G.gzAt(u, x0, y0)) / G.map.def.step)); if (csC > 1) { var hC = Math.ceil(csC * 2.5 / 5) * 5, budC = u.turn ? Math.floor(Math.min(u.turn.move, u.turn.climbLeft != null ? u.turn.climbLeft : u.climbs) / 5) * 5 : hC; if (budC < 5) return Infinity; c += Math.min(hC, budC) - 5; } }
-    var cd = u.cdown && G.climbsDown(u, x0, y0, x1, y1); if (cd) c += cd * 5 - 5; // (a hand that chose CLIMB DOWN: the same 5 ft a step down as up)
+    var cd = u.cdown && G.climbsDown(u, x0, y0, x1, y1); if (cd) c += (ssw ? Math.ceil(cd * 2.5 / 5) * 5 : cd * 5) - 5; // (a hand that chose CLIMB DOWN: the same 5 ft a step down as up)
     return c;
   };
   // a clinger's climb on: its own face square, or a square beside that at the face's height (10-05, Griz: "a troll is climbing and I move Aurdin to the edge (apparently the row it's

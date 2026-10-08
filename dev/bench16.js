@@ -1601,6 +1601,27 @@
         gA.averted && gA.cleared && !gA.sees && /unseen/.test(gA.myDis) && /unseen attacker/.test(gA.itsAdv) && gA.stone === 'free' && !gB.averted && gB.stone === 'turning');
       okR8('§2.7 the gaze, a player\'s hero: asked ' + gC.asked + ', LOOK AWAY ' + gC.averted + '; asked again, MEET IT on a 15: ' + gD.stone + '; the medusa\'s, a 2 (fails by 10): ' + gE.stone + '; 40 ft off: asked ' + gF.asked + ', looked away ' + gF.averted + ', ' + gF.stone,
         gC.asked && gC.averted && gC.stone === 'free' && gD.asked && gD.stone === 'free' && !gD.averted && gE.stone === 'stone' && !gF.asked && !gF.averted && gF.stone === 'free');
+      // §2d Second-Story Work (the Thief's 3): a step up a face costs its distance (2.5 ft a step, to the 5), a fighter's twice it; the same down by CLIMB DOWN
+      var B10 = mkR8('?npc=goblin&lvl=3&vs=rogue:3,fighter:3&map=climbfloor'), r10 = sideR8(B10, 'party').filter(function (u) { return u.cls === 'rogue'; })[0], f10 = sideR8(B10, 'party').filter(function (u) { return u.cls === 'fighter'; })[0], G10 = D.grid, pr10 = null;
+      for (var y10 = 0; y10 < G10.map.h && !pr10; y10++) for (var x10 = 0; x10 < G10.map.w && !pr10; x10++) [[1, 0], [-1, 0], [0, 1], [0, -1]].forEach(function (dd) { if (pr10) return; var cs = G10.climbsUp(f10, x10, y10, x10 + dd[0], y10 + dd[1]); if (cs >= 4 && !G10.occupant(x10 + dd[0], y10 + dd[1]) && !G10.occupant(x10, y10)) pr10 = [x10, y10, x10 + dd[0], y10 + dd[1], cs]; });
+      var cR10 = pr10 ? G10.stepCost(r10, pr10[0], pr10[1], pr10[2], pr10[3]) : -1, cF10 = pr10 ? G10.stepCost(f10, pr10[0], pr10[1], pr10[2], pr10[3]) : -1;
+      okR8('§2d Second-Story Work: a face of ' + (pr10 && pr10[4] * 2.5) + ' ft up -- the Thief (' + r10.subclass + ' ' + r10.lvl + ') pays ' + cR10 + ' ft, the fighter ' + cF10, pr10 && cR10 === Math.ceil(pr10[4] * 2.5 / 5) * 5 && cF10 === pr10[4] * 5);
+      // §2d Divine Health (the paladin's 3): immune to disease -- a cleric's Contagion lands on the fighter, not on the paladin
+      function contR8(word) {
+        var Bx = mkR8('?npc=cleric:9&lvl=9&vs=' + word), cx = sideR8(Bx, 'foe')[0], tx = sideR8(Bx, 'party')[0]; tx.hp = tx.maxhp = 200; tx.conds = {}; cx.x = tx.x; cx.y = tx.y - 1; D.rules.startTurn(cx); cx.slots[4] = 2; Bx.active = cx;
+        D.d = function (n) { return n === 20 ? 20 : 1; }; try { runR8(MR8.cast(Bx, cx, 'contagion', 5, tx)); } finally { D.d = d0R8; }
+        return !!tx.conds.contagion;
+      }
+      var cP10 = contR8('paladin:3'), cF11 = contR8('fighter:3');
+      okR8('§2d Divine Health: Contagion on a paladin of 3 takes ' + cP10 + ', on a fighter ' + cF11, !cP10 && cF11);
+      // §2d the Oath of Devotion's 9th (Beacon of Hope, Dispel Magic) on the grid's paladin of 9; not at 8
+      function oathR8(lv) { var Bx = mkR8('?npc=goblin&lvl=' + lv + '&vs=paladin:' + lv), px = sideR8(Bx, 'party')[0]; D.rules.startTurn(px); var ids = MR8.list(Bx, px).map(function (e) { return e.id; }); return ['beaconofhope', 'dispelmagic'].filter(function (k) { return ids.indexOf(k) >= 0; }).length; }
+      var o9 = oathR8(9), o8 = oathR8(8);
+      okR8('§2d the Devotion oath\'s 9th: of Beacon of Hope and Dispel Magic, a paladin of 9 has ' + o9 + ', of 8 ' + o8, o9 === 2 && o8 === 0);
+      // §2d Remarkable Athlete past initiative (the Champion's 7): half its proficiency to a STR, DEX or CON check it is not proficient in -- a fighter's Stealth
+      var R10 = window.DS.R, f7a = sideR8(mkR8('?npc=goblin&lvl=7&vs=fighter:7'), 'party')[0], f6a = sideR8(mkR8('?npc=goblin&lvl=6&vs=fighter:6'), 'party')[0];
+      var st7 = R10.skill(f7a.src, 'Stealth', 'dex') - window.DS.mod(f7a.src.abil.dex), st6 = R10.skill(f6a.src, 'Stealth', 'dex') - window.DS.mod(f6a.src.abil.dex), wi7 = R10.skill(f7a.src, 'Insight', 'wis') - window.DS.mod(f7a.src.abil.wis);
+      okR8('§2d Remarkable Athlete: a fighter of 7\'s Stealth over its DEX +' + st7 + ' (of 6: +' + st6 + '); a WIS check +' + wi7, st7 === 2 && st6 === 0 && wi7 === 0);
     } catch (eR8) { repR8.errors.push(String(eR8 && eR8.stack || eR8).slice(0, 900)); D.d = d0R8; }
     if (errs.length) repR8.errors = repR8.errors.concat(errs);
     var preR8 = document.createElement('pre'); preR8.id = 'out'; preR8.textContent = 'BENCH16 ' + JSON.stringify(repR8);
