@@ -835,6 +835,22 @@
   // the rung drawn (overlay): the face the rope hangs down, outlined, the rung across it at the height picked, and where the figure will hang -- a small rhombus at the foot's
   // square raised to the rung, the height and the cost beside it. Gold; red where the move will not take it. The face goes in the sort just after its own square's tile (as onSq
   // does), so the raised square's picture does not cover it; the rung's mark just after the rope, so it reads on top of it
+  // the move's square in the air (flight at a height; Griz, 10-08, on the pane: "See the way we're doing the rope climb with regard to altitude indication. when in the air, can we do
+  // semitransparent around the white 'move here' square so you can tell it's an altitude move square"): a pale see-through column from the ground under the square up to the
+  // layer, its two near faces filled faintly and its edges drawn, as the rope's rung draws the face it climbs
+  function airColumn(x, y, z) {
+    var g = G.map.gz(x, y); if (z <= g) return;
+    var iso = D.iso, HW = iso.TW / 2, HH = iso.TH / 2, c = iso.center(x, y, 0), col = R('bone', 1);
+    var P = function (v, zz) { return iso.toScreen(c.x + v[0], c.y + v[1] - zz); }, L = [-HW, 0], Bm = [0, HH], Rt = [HW, 0];
+    var item = { depth: x + y + 0.45, gz: z, layer: 1, draw: function (cx) {
+      cx.save(); cx.fillStyle = col; cx.strokeStyle = col; cx.lineWidth = 1;
+      [[L, Bm], [Bm, Rt]].forEach(function (f) { var a = P(f[0], z), b = P(f[1], z), b0 = P(f[1], g), a0 = P(f[0], g); cx.beginPath(); cx.moveTo(a.x, a.y); cx.lineTo(b.x, b.y); cx.lineTo(b0.x, b0.y); cx.lineTo(a0.x, a0.y); cx.closePath(); cx.globalAlpha = 0.12; cx.fill(); });
+      cx.globalAlpha = 0.55; cx.setLineDash([2, 2]); [L, Bm, Rt].forEach(function (v) { var a = P(v, z), a0 = P(v, g); cx.beginPath(); cx.moveTo(a.x, a.y); cx.lineTo(a0.x, a0.y); cx.stroke(); });
+      cx.setLineDash([]); cx.globalAlpha = 0.35; iso.rhombus(cx, x, y, g, 2); cx.stroke();
+      cx.restore();
+    } };
+    if (DEFER) DEFER.push(item); else item.draw(WCTX || D.ctx);
+  }
   function drawRung(B, u, rg) {
     var r = rg.rope, iso = D.iso, HW = iso.TW / 2, HH = iso.TH / 2, st = G.map.def.step, zt = G.map.gz(r.at[0], r.at[1]), zf = G.map.gz(r.foot[0], r.foot[1]), col = rg.ok ? R('gold', 3) : R('red', 4);
     var dx = r.foot[0] - r.at[0], dy = r.foot[1] - r.at[1], square = (dx === 1 && dy === 0) || (dx === 0 && dy === 1); // (a face shows toward +gx or +gy; a corner-wise foot has no one face)
@@ -1888,7 +1904,7 @@
       }
       LAYERZ = rc.layer != null ? rc.layer : null; // (flight at a height: the squares at the layer)
       Object.keys(rc.move).forEach(function (k) { var e = rc.move[k]; if (e.stand && e.cost > 0) fillSq(ctx, e.x, e.y, R('glow', 1), 0.17); });
-      if (LAYERZ != null) lineSq(ctx, cx, cy, R('bone', 1), 0.9, 1);
+      if (LAYERZ != null) { lineSq(ctx, cx, cy, R('bone', 1), 0.9, 1); airColumn(cx, cy, LAYERZ); } // (the square in the air: a pale column down to the ground under it, as the rope's rung shows its height -- Griz, 10-08)
       LAYERZ = null;
       // a rogue's places to try hiding (no foe she knows of sees her there plainly): always, as she moves (Griz, 09-27)
       // the ways out: a pale marker on each (set design, 09-27)
@@ -2220,7 +2236,7 @@
     D.text(ctx, 'END TURN', eb.x + eb.w / 2, eb.y + 2, R('bone', 1), 'center');
     var spellRing = B.list && B.list.kind === 'spells';
     D.hint(ctx, st === 'window' ? (B.tool === 'menu' ? 'up/down, E: choose   X: menu' : 'E: here   X: back to the commands') : spellRing ? 'left/right turns the ring, up/down the slot, E: choose' : B.tool === 'menu' || B.list ? 'left/right turns the ring, E: choose   X: close' : B.tool === 'move' ? 'X, Q or E on yourself: the ring   M: menu' : 'E: here   X: back', BX, BAR_Y + 6, R('accent', 2));
-    D.hint(ctx, UI.flyer(B) ? 'C recentre  M menu  wheel zoom  Shift+wheel or PgUp/PgDn: fly up or down' : 'C recentre  M menu  wheel or -/= zoom', BX, BAR_Y + 18, R('stone', 5)); // (a flier's move out: its height's keys -- flight at a height, 10-08)
+    D.hint(ctx, UI.flyer(B) ? 'C recentre  M menu  wheel zoom  Shift+wheel height' : 'C recentre  M menu  wheel or -/= zoom', BX, BAR_Y + 18, R('stone', 5)); // (a flier's move out: its height's keys -- flight at a height, 10-08)
   }
   function pip(ctx, x, y, label, lit, col) { // a small lit box round a letter; gives back its width
     var w = D.textWidth(label) + 3;

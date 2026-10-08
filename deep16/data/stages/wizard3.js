@@ -28,6 +28,15 @@
     fleshtostone: { tip: "Flesh to Stone restrains a foe at once, then stiffens it a little at each of its turns: three failed Con saves and it is stone, out of the fight. Concentrate and keep it safe.",
       foes: [F(0, 4, { con: 3 }), F(-2, 5), F(2, 5)], mate: { hp: 'full' }, target: function (c) { return c.foes[0]; },
       after: function* (c) { for (var i = 0; i < 3; i++) { yield 24; c.D.magic.onEnd(c.B, c.foes[0]); } } },
+    // (Fly, 10-08 -- the grid's rules, flight at a height: the friend touched rises 10 ft, glides a square level, hovers with its shadow under it, and comes down again)
+    fly: { tip: "Fly gives a willing creature you touch a flying speed of 60 ft. On its move, Shift+wheel (or PageUp/PageDown) picks its height, 5 ft a step. Keep your concentration: if the spell ends while it is up, it falls.",
+      mate: { hp: 'full' }, target: function (c) { return c.mate; },
+      after: function* (c, t) {
+        var B = c.B, G = c.D.grid, g = G.groundAt(t, t.x, t.y);
+        yield* B.flyTo(t, g + 2 * G.LAYER()); yield 20;
+        if (G.canPass(t, t.x + 1, t.y)) { if (!t.turn) c.D.rules.startTurn(t); yield* B.moveAlong(t, [[t.x + 1, t.y]], { noOA: true }); t.anim = 'idle'; }
+        yield 70; yield* B.flyTo(t, G.groundAt(t, t.x, t.y), true);
+      } },
     freezingsphere: { tip: "Freezing Sphere: a 60-ft ball of cold from a long way off. Drop it on a crowd that is far from your friends; Con saves halve it, so aim at foes with poor Constitution.",
       foes: crowd(-5, 7, { con: 3 }, PACK5), mate: { hp: 'full' }, pre: function* (c) { far(c); }, target: function (c) { return at(c, 0); } },
     globeofinvulnerability: { tip: "Globe of Invulnerability stops every spell of 5th level or lower cast from outside it. Raise it round your own casters when an enemy wizard is throwing fireballs, and fight from inside.",
