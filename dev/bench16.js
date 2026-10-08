@@ -3946,12 +3946,14 @@
         // pieces, Rascal's too, 92 bullets and a crossbow in the pack, the score 3.9, the lamp at 100 of 140 -- resumed by CONTINUE's hand (GS.resume), played by hand
         // (no &auto): all of it back, and the run's own save written as its wave begins; an &auto run writes none
         var recS = { v: 1, group: 'TESTGROUP', tier: 5, wi: 1, held: 10, count: 10, xp: { denny: 6500, beholda: 6500, rascal: 6500, goose: 6500 }, hd: { denny: 3, beholda: 5, rascal: 5, goose: 5 },
-          lampHP: 100, lampMax: 140, loot: { denny: ['doubledenim', 'playbuttonknuckles'], rascal: ['thermidorplate', 'flamewarclaw'] },
+          lampHP: 100, lampMax: 140, loot: { denny: ['doubledenim', 'playbuttonknuckles'], rascal: ['thermidorplate', 'flamewarclaw', 'gainsring'] }, gains: { rascal: { ab: 'cha', n: 3 } },
           inv: [{ id: 'slingbullets', n: 92 }, { id: 'lightcrossbow', n: 1 }], su: { chest: [], stash: [], score10: 39, bonus: {}, epic: [], sent: { 1: 9, 2: 1, 3: 0, 4: 0 }, bed: [], amulets: 0 },
           four: [{ k: 'denny', hp: 30 }] };
         Object.keys(memW).forEach(function (k) { if (/^deep16\.gameshow\.save\./.test(k)) delete memW[k]; });
         memW['deep16.gameshow.save.TESTGROUP'] = JSON.stringify(recS);
         var keyL = GSW.wave.saveKey('TESTGROUP'), keyO = GSW.wave.saveKey(GSW.group()), seen0 = !!memW[keyO]; // (a resumed run saves under its own group, whatever name is stored)
+        // (CONTINUE is a fresh page's: no ring's roll in WV.gains but the save's -- 10-08, the Game Show §16: the save had not kept it, so a CONTINUE'd Gains Ring gave nothing)
+        GSW.wave.gains = {}; var chaR = D.npc.build('rascal:5+thermidorplate+flamewarclaw+gainsring', 5, 'party', { id: 'chr' }).abil.cha;
         GSW.resume = GSW.wave.loadSave('testgroup'); D.seed = 1007;
         var BS = lampFight('?gameshow&at=lamp&fast'), SS, wvS = -1;
         var wS = stepW(BS, function () { SS = GSW.run; return SS && BS.su && memW[keyL] && (JSON.parse(memW[keyL]).four || []).length === 4; }, 6000);
@@ -3960,9 +3962,13 @@
         okW('the save: TESTGROUP resumed at tier ' + (SS && SS.tier) + ' wave ' + (SS && SS.wi + 1) + ', ' + (SS && SS.held) + ' held; Denny L' + (d5 && d5.lvl) + ' ' + (d5 && d5.hp) + ' HP in ' + (d5 && d5.weapon.name) + ', AC ' + (d5 && d5.baseAC) + ' (want ' + acD + '); Rascal\'s ' + (rz && rz.weapon.name) + '; the lamp ' + (SS && SS.lamp && SS.lamp.hp) + '/' + (SS && SS.lampMax) + '; bullets ' + (slS && slS.n) + '; the score ' + (BS.su && BS.su.score10) + '; its own save as the wave begins ' + (svS ? 'tier ' + svS.tier + ' wave ' + (svS.wi + 1) + ', Denny ' + ((svS.four || []).filter(function (f) { return f.k === 'denny'; })[0] || {}).hp + ' HP' : 'none') + ' (under TESTGROUP; none under the stored name ' + GSW.group() + ': ' + !memW[keyO] + ')',
           !!SS && SS.tier === 5 && SS.wi === 1 && SS.held === 10 && d5 && d5.lvl === 5 && d5.hp === 30 && d5.weapon.name === 'Play-Button Knuckles' && d5.baseAC === acD && rz && rz.weapon.name === 'Flame War Claw' &&
           SS.lamp.hp === 100 && SS.lampMax === 140 && slS && slS.n === 92 && BS.su.score10 === 39 && !seen0 && !memW[keyO] && !!svS && svS.group === 'TESTGROUP' && svS.four.length === 4 && svS.tier === 5 && svS.wi === 1 && svS.loot.denny.join() === 'doubledenim,playbuttonknuckles');
+        okW('the save keeps the Gains Ring roll: Rascal CHA ' + (rz && rz.abil.cha) + ' (want ' + (chaR + 3) + ': the ring +3 on ' + chaR + '), written again ' + JSON.stringify(svS && svS.gains), !!rz && rz.abil.cha === chaR + 3 && !!svS && !!svS.gains && !!svS.gains.rascal && svS.gains.rascal.n === 3);
         Object.keys(memW).forEach(function (k) { if (/^deep16\.gameshow\.save\./.test(k)) delete memW[k]; });
         var BS2 = lampFight('?gameshow&at=lamp&fast&auto'), w2S = stepW(BS2, function () { return GSW.run && BS2.order.length > 4; }, 6000);
         okW('the save: an &auto run writes none (' + Object.keys(memW).filter(function (k) { return /^deep16\.gameshow\.save\./.test(k); }).length + ' saves after its wave rolled at frame ' + w2S + ')', w2S > 0 && !Object.keys(memW).some(function (k) { return /^deep16\.gameshow\.save\./.test(k); }));
+        // (a fresh run after a CONTINUE'd one in the same page starts bare -- 10-08, the Game Show §16 "WV.loot never reset": the last run's gear and ring roll had stayed for the next)
+        var lootF = GSW.wave.loot || {}, gainF = GSW.wave.gains || {};
+        okW('a fresh run after it starts bare: worn ' + JSON.stringify(lootF) + ', rolls ' + JSON.stringify(gainF), w2S > 0 && !Object.keys(lootF).some(function (k) { return (lootF[k] || []).length; }) && !Object.keys(gainF).length);
         errW('save');
       }
     } catch (eW) { repW.errors.push(String(eW && eW.stack || eW).slice(0, 900)); }

@@ -123,7 +123,7 @@
   WV.save = function (B, S) {
     if (!S || S.ai) return false;
     var su = B.su, rec = { v: 1, group: S.group || GS.group(), saved: new Date().toISOString(), tier: S.tier, wi: S.wi, held: S.held, count: S.count, xp: S.xp, hd: S.hd,
-      lampHP: S.lampHP, lampMax: S.lampMax, loot: WV.loot, inv: B.inv || [],
+      lampHP: S.lampHP, lampMax: S.lampMax, loot: WV.loot, gains: WV.gains || {}, inv: B.inv || [],   // (gains: the Gains Ring's roll, js/supplies.js -- unsaved till 10-08, a CONTINUE'd ring gave nothing)
       su: su ? { chest: su.chest, stash: su.stash, score10: su.score10, bonus: su.bonus, epic: su.epic, sent: su.sent, bed: su.bed, amulets: su.amulets } : null,
       four: four(B).map(function (u) { return { k: u.mpmon, hp: u.hp, feats: u.feats }; }) };
     try { rec = JSON.parse(JSON.stringify(rec)); } catch (e) { return false; }
@@ -380,7 +380,8 @@
     // the run's own group, held from its start (10-07, found loading GANGOF4's save: the save went under whatever name was stored at that wave -- the title's
     // field changed mid-run would have written this run under another group)
     S.group = RS && RS.group ? RS.group : GS.group();
-    if (RS) { S.tier = RS.tier; S.wi = RS.wi || 0; S.held = RS.held || 0; S.count = RS.count || 0; S.resumed = RS; WV.loot = JSON.parse(JSON.stringify(RS.loot || {})); B.inv = JSON.parse(JSON.stringify(RS.inv || [])); }
+    if (RS) { S.tier = RS.tier; S.wi = RS.wi || 0; S.held = RS.held || 0; S.count = RS.count || 0; S.resumed = RS; WV.loot = JSON.parse(JSON.stringify(RS.loot || {})); WV.gains = JSON.parse(JSON.stringify(RS.gains || {})); B.inv = JSON.parse(JSON.stringify(RS.inv || [])); }
+    else { WV.loot = {}; WV.gains = {}; }   // (a fresh run starts bare: the last run's gear and ring roll stayed in the page for the next -- 10-08, the Game Show §16)
     S.lampHP = S.lampMax = num('lamp') || WV.CFG.lampHP(S.tier);
     if (RS && RS.lampMax) { S.lampMax = RS.lampMax; S.lampHP = Math.max(1, Math.min(RS.lampMax, RS.lampHP || RS.lampMax)); }
     var st = B.gs; B.cine = false; st.mode = 'fight'; st.lock = null; st.clicks = [];
