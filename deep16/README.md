@@ -552,6 +552,19 @@ otherwise, this stands.
 - **Doors:** `?mpshow` (5th: the core and the 2nd-3rd moves) and **`?mpshow&lvl=9`** (all 28 beats: the 6ths' reactions, the fourths, the
   Hivemind); Goose's alone: `?mpshow&lvl=7&only=heart,group,fountain,honk,nottoday,lifeline`. By hand:
   `?npc=goblin,goblin,hobgoblin,hobgoblin&vs=denny:5,goose:5&lvl=5`.
+- **The ring by cost, RING2 (10-08, Griz: *"what if the first ring had 'actions' and 'bonuses' that colored the ring yellow and light blue when
+  you click on them"*; *"menu option ring2 (default for mpmon ...)"*; `js/ui.js` cmds2): a Mascot's turn is on it under the default RING -- the
+  first ring MOVE, the blow (it wears its own icon: the fist, the claw, the dice, the sling), DENIM DAMAGE, then **ACTIONS** (the yellow ring:
+  every command that costs the action -- CANNONBALL beside DASH, DODGE, HELP, READY and ITEM -- the action skills counted in its label) and
+  **BONUSES** (the blue: TAUNT, the free moves, SCUTTLE one icon that opens to its three), SPELLS where there are any, END TURN; MONKEY FLURRY
+  pops up front after the Attack action. The M menu's MENU STYLE cycles RING / RING2 / WINDOW: RING2 puts the story party on it too, RING keeps
+  theirs (*"I don't think the class ones are monster party weird"*). **The kit register** (`MP.KIT`, `js/mpmon.js`; his *"go on that"*): one
+  record an ability -- its button, cost, pool, icon, targets, aim, rules line, the click's pick -- read by the ring, the exec, the pools and
+  the gallery; the generators and the growth functions as they were. **READY holds a special** (*"why can't I ready cannonball"*): the
+  foe-aimed action skills are on READY's wheel with no one in range yet, held for their own reach (the leap, the gaze, the flame, the ring
+  round Rascal), and spring at the one that comes, the skill paid then. **The AI holds** (*"the AI is readying actions 200 ft away"*): with
+  nothing worth doing a Mascot readies or dodges only when the nearest foe could be on it by its next turn, else it keeps the action; a
+  Denny down lets his taunts go. `mode=mpmon1006` checks each.
 
 ## Not in the POC
 

@@ -75,13 +75,13 @@
   Object.keys(MP.BUILDS).forEach(function (k) { var b = MP.BUILDS[k]; b.saves = MP.SUBS[b.sub].saves.slice(); }); // (the role's saves: Denny STR/CON, Beholda WIS/CHA, Rascal CHA/WIS, as they were)
   // the natural weapons and hides: items so every rule that reads a weapon or an armour reads them, kept off the maker's racks (noSell)
   var IT = DS.DATA.items, SRC = 'they live/beholda/deep16-translation.md; invented.json#mpmon';
-  IT.monkeyfists = { name: 'Monkey Fists', kind: 'weapon', price: 0, noSell: true, weapon: { dmg: '1d6', versatile: '1d8', type: 'bludgeoning', group: 'natural', kind: 'monkeyfists', props: ['versatile'] }, desc: 'Bare fists: 1d6 + STR, 1d8 with both hands free.', src: SRC };
-  IT.diceslam = { name: 'Dice Slam', kind: 'weapon', price: 0, noSell: true, weapon: { dmg: '1d8', type: 'bludgeoning', group: 'natural', kind: 'diceslam', props: [], abil: 'wis' }, desc: 'Her three dice swung on their chains, on her will: 1d8 + WIS.', src: SRC };
+  IT.monkeyfists = { name: 'Monkey Fists', kind: 'weapon', price: 0, noSell: true, weapon: { dmg: '1d6', versatile: '1d8', type: 'bludgeoning', group: 'natural', kind: 'monkeyfists', props: ['versatile'], icon: 'fist' }, desc: 'Bare fists: 1d6 + STR, 1d8 with both hands free.', src: SRC };
+  IT.diceslam = { name: 'Dice Slam', kind: 'weapon', price: 0, noSell: true, weapon: { dmg: '1d8', type: 'bludgeoning', group: 'natural', kind: 'diceslam', props: [], abil: 'wis', icon: 'dice' }, desc: 'Her three dice swung on their chains, on her will: 1d8 + WIS.', src: SRC };
   IT.denimjacket = { name: 'Denim Jacket', kind: 'armor', price: 0, noSell: true, armor: { base: 12, type: 'light' }, desc: 'Studded denim: AC 12 + DEX.', src: SRC };
   IT.eyehide = { name: 'EyeGregore Hide', kind: 'armor', price: 0, noSell: true, armor: { base: 12, type: 'natural' }, desc: 'Her fuzz is tougher than it looks: AC 12 + DEX.', src: SRC };
-  IT.pinch = { name: 'Pinch', kind: 'weapon', price: 0, noSell: true, weapon: { dmg: '1d6', type: 'slashing', group: 'natural', kind: 'pinch', props: [] }, desc: 'The giant claw, when something is on him: 1d6 + STR.', src: SRC };
+  IT.pinch = { name: 'Pinch', kind: 'weapon', price: 0, noSell: true, weapon: { dmg: '1d6', type: 'slashing', group: 'natural', kind: 'pinch', props: [], icon: 'claw' }, desc: 'The giant claw, when something is on him: 1d6 + STR.', src: SRC };
   IT.lobstershell = { name: 'Lobster Shell', kind: 'armor', price: 0, noSell: true, armor: { base: 12, type: 'natural' }, desc: 'The claw arm\'s shell and quick feet: AC 12 + DEX.', src: SRC };
-  IT.goosesling = { name: 'Sling', kind: 'weapon', price: 0, noSell: true, weapon: { dmg: '1d4', type: 'bludgeoning', group: 'natural', kind: 'goosesling', props: ['ranged'], range: [30, 120], abil: 'wis' }, desc: 'His old sling, a stone off the floor, slung on his heart: 1d4 + WIS, 30/120 ft (the SRD\'s sling).', src: SRC };
+  IT.goosesling = { name: 'Sling', kind: 'weapon', price: 0, noSell: true, weapon: { dmg: '1d4', type: 'bludgeoning', group: 'natural', kind: 'goosesling', props: ['ranged'], range: [30, 120], abil: 'wis', icon: 'sling' }, desc: 'His old sling, a stone off the floor, slung on his heart: 1d4 + WIS, 30/120 ft (the SRD\'s sling).', src: SRC };
   IT.goosefur = { name: 'Shaggy Fur', kind: 'armor', price: 0, noSell: true, armor: { base: 12, type: 'natural' }, desc: 'Charcoal fur and a hop that never stops: AC 12 + DEX.', src: SRC };
   // a weapon swung by an ability of its own (Dice Slam's WIS): the one line the shared rules need
   var wa0 = R.weaponAbil; R.weaponAbil = function (h, w) { return (w && w.weapon && w.weapon.abil) || wa0(h, w); };
@@ -131,7 +131,7 @@
   // it and see what the bench says"): a count of the specials that take the BONUS action (MP.POOL: Taunt, Baleful Gaze, Social Sharing, Heart to Heart) and one of
   // those that take the ACTION (every other), each back on a short rest; one more each level in turn, the bonus first -- 1st 1/1, 2nd 2/1, 3rd 2/2 ... 9th 5/5 (the
   // ends are the seat's reading). The free bonus moves (Monkey Flurry, Eye On It, Honk) spend nothing, as before. MP.left(u, 'B' | 'A'), or both with no pool
-  MP.POOL = { taunt: 'B', gaze: 'B', sharing: 'B', heart: 'B' };
+  MP.POOL = { taunt: 'B', gaze: 'B', sharing: 'B', heart: 'B' }; // (filled again from the kit register, MP.KIT below -- one record an ability, 10-08)
   MP.poolOf = function (k) { return MP.POOL[k] || 'A'; };
   MP.poolsAt = function (L) { L = L || 1; return { B: Math.ceil((L + 1) / 2), A: Math.max(1, Math.floor((L + 1) / 2)) }; };
   MP.left = function (u, p) { var f = (u && u.feats) || {}; return p === 'B' ? f.specialsB || 0 : p === 'A' ? f.specialsA || 0 : (f.specialsB || 0) + (f.specialsA || 0); };
@@ -831,7 +831,18 @@
     var r = hurtG.apply(B, a);
     if (g) notTodayAfter(B, g, u);
     if (u && u.conds && u.conds.lifeline && (u.dead || u.hp <= 0)) lifeCut(B, u, u.name + ' is down');
+    if (u && u.cls === 'mpmon' && (u.dead || u.hp <= 0)) MP.fell(B, u); // (a Denny down: his taunts let go -- 10-08)
     return r;
+  };
+  // a Mascot down: the taunts it laid let go (their clock ticks only at the end of ITS turns, and it has none now -- 10-08, Griz, his mirror match: "is my denny still taunted from the other
+  // dennys taunt before he died?"), and its brace with them
+  MP.fell = function (B, u) {
+    (B.units || []).forEach(function (w) {
+      var c = w.conds && w.conds.taunted; if (!c || c.by !== u.id) return;
+      delete w.conds.taunted;
+      if (!w.dead && w.hp > 0) B.card(['{g}' + Nm(B, w) + ' is no longer taunted: ' + u.name + ' is down.{/}'], 200);
+    });
+    if (u.conds) delete u.conds.braced;
   };
 
   // ------------------------------------------------------------------ THE HIVEMIND (9th, every Mascot: the capstone)
@@ -1019,8 +1030,11 @@
     if (e && (e.x !== u.x || e.y !== u.y)) yield* AI.walkTo(B, u, e);
     if (u.dead || u.hp <= 0 || B.over() || !u.turn.action) return true;
     var p = TX.plans(B, u)[0]; if (p && p.score > 0.5) { yield* p.go(); return true; } // (the walk may have brought something into reach)
-    if (!u.ready) yield* TX.readyUp(B, u);
-    if (u.turn.action > 0 && !u.ready) yield* B.exec(u, { do: 'dodge' });
+    // (10-08, Griz, his mirror match: "now the AI is readying actions 200 ft away": READY, or the Dodge, only where the nearest foe could be on it by its next turn -- within its double move
+    // and its reach; farther than that it holds where it stands, the action kept)
+    var soon = G.dist(u, near) <= 2 * (near.speed || 30) + G.reachOf(near) + 5;
+    if (soon && !u.ready) yield* TX.readyUp(B, u);
+    if (soon && u.turn.action > 0 && !u.ready) yield* B.exec(u, { do: 'dodge' });
     return true;
   });
   // the potion as a plan among the actions: a quarter of the hit points left, drink before the swing (his "drink when you are hurt")
@@ -1203,91 +1217,172 @@
     if (u.mpSub === 'heals') { var ht = heartFor(B, u); if (ht) { yield* MP.heart(B, u, ht); return; } var hk = u.lvl >= 2 && honkMark(B, u); if (hk) yield* MP.honk(B, u, hk); }
   });
 
-  // ------------------------------------------------------------------ the player's buttons (the ring's SKILLS: js/features.js F.commands / F.exec, wrapped as familiar.js does).
-  // Aimed as spells are (10-06 night, Griz: "the abilities weren't using the normal targeting - it had the menu popups again"): `aim` is the geometry js/ui.js
-  // aimCommand hands the spell aim -- the cursor, the reach or the area on the floor, the click -- and the click comes back here as { do, target }
+  // ------------------------------------------------------------------ THE KIT REGISTER (10-08; Griz, on each ability written in six places -- its numbers, its generator, its targets, its ring button,
+  // its exec case, its gallery entry: "go on that", "seems proper"): ONE RECORD AN ABILITY. The ring's buttons (F.commands), the click's exec (F.exec), the pool each special draws on (MP.POOL)
+  // and the gallery's name, level, kind and button (js/mpgallery.js) all read from here; the generators (MP.taunt ...), the growth functions and the AI's hand stay where they were.
+  //   id: the gallery's and the show's name for it · button: the ring's id ('mp-taunt') · key: the generator, MP[key], bound late (the Hivemind wrap replaces it) · who: the build it belongs to
+  //   at: the level it comes · kind: 'bonus' (a bonus special), 'special' (an action special), 'free' (a bonus move that spends nothing), 'passive', 'reaction', 'capstone' · cost 'A' | 'B'
+  //   pool: 'A' | 'B' | none -- what spend() draws on · icon: js/icons.js · pick: how the click's target is read -- 'self' (none asked), 'one' (the clicked, or the first that fits),
+  //   'point' (a point on the floor, or the clicked one), 'units' (the picks), 'lifeline' (two picks) · targets(B, u): who it may go to -- empty, the button is shut with `nobody(L)`
+  //   gate(B, u, T): a reason of its own it is shut, before the pool and the cost · can(u): asked again at the click · note(L, u): the rules line under the icon (the pool's count added)
+  //   aim(L, u): the spell geometry js/ui.js aimCommand hands the cursor · aimText(L) · ready: { range(L, u), see } -- a special that may be READIED with no one in range yet (10-08, Griz:
+  //   "why can't I ready cannonball"; the trigger's reach is its own: battle.js readyTargets) · front: true, always on the first ring; 'live', when it can be used (js/ui.js) · nope(L): the
+  //   card when the click found no one · label: the button's word where it is not the name in capitals · gallery: false keeps it off the gallery (the Gaze's second button)
   var cmd0 = F.commands, exec0 = F.exec;
   function foeAim(ft, see, kind) { return { shape: 'single', side: 'foe', range: ft, see: !!see, kind: kind || 'save', swing: kind === 'attack' && !see }; } // (swing: a blow in reach, seen or not -- js/magic.js targetOK; the darkmantle on Denny's head, 10-07)
+  function reach(L, u) { return G.reachOf(u); }
+  function sized(L) { return MP.hugSize(L) > 2 ? 'Huge' : 'Large'; }
+  function bigT(L) { return L >= 3 ? ' + ' + L + ' (big heart)' : ''; }
+  var SCUTTLE = { id: 'scuttle', label: 'SCUTTLE', icon: 'scuttle', cost: 'B', note: 'Dash, Disengage or Hide as a bonus action, free -- the rogue\'s Cunning Action, sideways like a lobster' };
+  MP.KIT = [
+    // ---- DENNY, the Tank
+    { id: 'taunt', button: 'mp-taunt', key: 'taunt', who: 'denny', sub: 'tank', name: 'Taunt', at: 1, kind: 'bonus', cost: 'B', pool: 'B', icon: 'taunt', pick: 'self',
+      targets: function (B, u) { return MP.tauntList(B, u); }, nobody: function (L) { return 'no foe within ' + MP.tauntR(L) + ' ft to hear it'; },
+      note: function (L, u) { return 'the ' + MP.tauntN(L) + ' nearest foes within ' + MP.tauntR(L) + ' ft: WIS DC ' + MP.tauntDC(u) + ' or they may go only at you, till the end of your next turn' + (MP.tauntDR(L) ? '; you brace, every blow on you ' + MP.tauntDR(L) + ' less till then' : ''); } },
+    { id: 'denim', button: 'mp-denim', key: 'denim', who: 'denny', sub: 'tank', name: 'Denim Damage', at: 1, kind: 'special', cost: 'A', pool: 'A', icon: 'denim', pick: 'one', front: true,
+      targets: function (B, u) { return MP.inReach(B, u); }, nobody: function () { return 'no foe in reach'; },
+      note: function (L) { return 'your swings, +' + MP.denimDice(L) + ' on the first that lands (doubled on a critical)' + (MP.denimPush(L) ? '; it knocks that one ' + MP.denimPush(L) + ' ft back' : ''); },
+      aim: function (L, u) { return foeAim(G.reachOf(u), false, 'attack'); }, aimText: function () { return 'a foe in your reach'; }, ready: { range: reach, see: false },
+      nope: function () { return 'Denim Damage: a foe in your reach.'; } },
+    { id: 'flurry', button: 'mp-flurry', key: 'flurry', who: 'denny', sub: 'tank', name: 'Monkey Flurry', at: 2, kind: 'free', cost: 'B', icon: 'fist', pick: 'one', front: 'live',
+      targets: function (B, u) { return MP.inReach(B, u); }, nobody: function () { return 'no foe in reach'; }, gate: function (B, u, T) { return !T.attackAction ? 'after you take the Attack action' : ''; }, can: function (u) { return MP.flurryOK(u); },
+      note: function () { return 'one more punch, free: a bonus action after the Attack action'; },
+      aim: function (L, u) { return foeAim(G.reachOf(u), false, 'attack'); }, aimText: function () { return 'a foe in your reach'; },
+      nope: function () { return 'Monkey Flurry: a foe in your reach, after the Attack action.'; } },
+    { id: 'standfirm', who: 'denny', sub: 'tank', name: 'Stand Firm', at: 3, kind: 'passive' },
+    { id: 'cannonball', button: 'mp-cannonball', key: 'cannonball', who: 'denny', sub: 'tank', name: 'Cannonball', at: 5, kind: 'special', cost: 'A', pool: 'A', icon: 'cannonball', pick: 'one',
+      targets: function (B, u) { return MP.leapTargets(B, u); }, nobody: function (L) { return 'no foe within a ' + MP.leap(L) + '-ft leap'; },
+      note: function (L, u) { return 'leap up to ' + MP.leap(L) + ' ft beside a foe: each foe beside you DEX DC ' + MP.tauntDC(u) + ' or ' + MP.cannonDice(L) + ' and prone (half on a save), then a swing'; },
+      aim: function (L) { return foeAim(MP.leap(L) + 5, true); }, aimText: function () { return 'the foe to come down beside'; }, ready: { range: function (L) { return MP.leap(L) + 5; }, see: true },
+      nope: function (L) { return 'Cannonball: a foe with room to come down beside it, within ' + MP.leap(L) + ' ft.'; } },
+    { id: 'bodyguard', who: 'denny', sub: 'tank', name: 'Bodyguard', at: 6, kind: 'reaction' },
+    { id: 'hug', button: 'mp-hug', key: 'hug', who: 'denny', sub: 'tank', name: 'Lobstah Hug', at: 7, kind: 'special', cost: 'A', pool: 'A', icon: 'hug', pick: 'one',
+      targets: function (B, u) { return MP.hugTargets(B, u); }, nobody: function () { return 'no foe beside you to hold'; },
+      note: function (L, u) { return 'a foe beside you, ' + sized(L) + ' or smaller: STR DC ' + MP.tauntDC(u) + ' or HELD -- squeezed for ' + MP.hugDice(L) + '+STR each of your turns, and it may go only at you'; },
+      aim: function (L, u) { return foeAim(G.reachOf(u)); }, aimText: function () { return 'a foe beside you to hold'; }, ready: { range: reach, see: false },
+      nope: function (L) { return 'Lobstah Hug: a foe beside you, ' + sized(L) + ' or smaller, not held already.'; } },
+    // ---- BEHOLDA, Buffs
+    { id: 'bubble', button: 'mp-bubble', key: 'bubble', who: 'beholda', sub: 'buffs', name: 'The VNA Bubble', label: 'VNA BUBBLE', at: 1, kind: 'special', cost: 'A', pool: 'A', icon: 'bubble', pick: 'self',
+      gate: function (B, u) { return u.conds.vnaBubble ? 'the bubble is up' : ''; },
+      note: function (L) { return '+' + MP.bubbleAC(L) + ' AC to you and friends within ' + MP.bubbleR(L) + ' ft while you hold your concentration'; } },
+    { id: 'eye', button: 'mp-eye', key: 'eyeOnIt', who: 'beholda', sub: 'buffs', name: 'Eye On It', at: 2, kind: 'free', cost: 'B', icon: 'eye', pick: 'one',
+      targets: function (B, u) { return MP.eyeTargets(B, u); }, nobody: function () { return 'no foe you see within 30 ft'; },
+      note: function () { return 'a foe you see within 30 ft: the next swing your side makes at it has advantage (free: a bonus action)'; },
+      aim: function () { return foeAim(30, true, 'buff'); }, aimText: function () { return 'a foe you see within 30 ft'; },
+      nope: function () { return 'Eye On It: a foe you see within 30 ft.'; } },
+    { id: 'gaze', button: 'mp-gaze', key: 'gaze', who: 'beholda', sub: 'buffs', name: 'Baleful Gaze', at: 1, kind: 'bonus', cost: 'B', pool: 'B', icon: 'gaze', pick: 'one',
+      targets: function (B, u) { return MP.gazeTargets(B, u); }, nobody: function (L) { return 'no foe you see within ' + MP.gazeRange(L) + ' ft'; }, gate: function (B, u, T) { return T.gazed ? 'one gaze a turn: you gazed already' : ''; },
+      note: function (L, u) { return 'one within ' + MP.gazeRange(L) + ' ft: WIS DC ' + u.spellDC + ' or ' + MP.gazeDice(L) + ' psychic and AC -' + MP.gazeAC(L) + ' till it saves at the end of a turn; half on a save'; },
+      aim: function (L) { return foeAim(MP.gazeRange(L), true); }, aimText: function (L) { return 'a foe you see within ' + MP.gazeRange(L) + ' ft'; },
+      nope: function (L) { return 'Baleful Gaze: a foe you see within ' + MP.gazeRange(L) + ' ft.'; } },
+    { id: 'gazea', button: 'mp-gazea', key: 'gazeA', who: 'beholda', sub: 'buffs', name: 'Baleful Gaze, by her action', label: 'BALEFUL GAZE: ACTION', at: 1, kind: 'special', cost: 'A', pool: 'A', icon: 'gaze', pick: 'one', gallery: false,
+      targets: function (B, u) { return MP.gazeTargets(B, u); }, nobody: function (L) { return 'no foe you see within ' + MP.gazeRange(L) + ' ft'; }, gate: function (B, u, T) { return T.gazed ? 'one gaze a turn: you gazed already' : ''; },
+      note: function (L, u) { return 'the same gaze with your action, an action special (one gaze a turn): WIS DC ' + u.spellDC + ' or ' + MP.gazeDice(L) + ' psychic and AC -' + MP.gazeAC(L); },
+      aim: function (L) { return foeAim(MP.gazeRange(L), true); }, aimText: function (L) { return 'a foe you see within ' + MP.gazeRange(L) + ' ft'; }, ready: { range: function (L) { return MP.gazeRange(L); }, see: true },
+      nope: function (L) { return 'Baleful Gaze: a foe you see within ' + MP.gazeRange(L) + ' ft.'; } },
+    { id: 'lucky', who: 'beholda', sub: 'buffs', name: 'Lucky Dice', at: 3, kind: 'passive' },
+    { id: 'screen', button: 'mp-screen', key: 'screen', who: 'beholda', sub: 'buffs', name: 'The Big Screen', at: 5, kind: 'special', cost: 'A', pool: 'A', icon: 'screen', pick: 'point',
+      targets: function (B, u) { return MP.screenTargets(B, u); }, nobody: function (L) { return 'no foe you see within ' + MP.screenLen(L) + ' ft'; },
+      note: function (L, u) { return 'a ' + MP.screenLen(L) + '-ft cone: each foe in it WIS DC ' + u.spellDC + ' or ' + MP.screenDice(L) + ' psychic and DOMINATED; half on a save'; },
+      aim: function (L) { return { shape: 'cone', len: MP.screenLen(L), kind: 'save', el: 'psychic' }; }, aimText: function (L) { return 'a ' + MP.screenLen(L) + '-ft cone'; }, ready: { range: function (L) { return MP.screenLen(L); }, see: true } },
+    { id: 'eyecontact', who: 'beholda', sub: 'buffs', name: 'Eye Contact', at: 6, kind: 'reaction' },
+    { id: 'spotlight', button: 'mp-spotlight', key: 'spotlight', who: 'beholda', sub: 'buffs', name: 'Spotlight', at: 7, kind: 'special', cost: 'A', pool: 'A', icon: 'spotlight', pick: 'units',
+      targets: function (B, u) { return MP.spotTargets(B, u); }, nobody: function (L) { return 'no friend you see within ' + MP.spotR(L) + ' ft'; },
+      note: function (L) { return (MP.spotN(L) > 1 ? MP.spotN(L) + ' friends' : 'a friend') + ' you see within ' + MP.spotR(L) + ' ft: HASTED till the end of their next turn (+2 AC, double speed, an attack more), no lethargy after'; },
+      aim: function (L) { return { shape: 'allies', side: 'ally', range: MP.spotR(L), n: MP.spotN(L), see: true, kind: 'buff' }; }, aimText: function (L) { return (MP.spotN(L) > 1 ? MP.spotN(L) + ' friends' : 'a friend') + ' within ' + MP.spotR(L) + ' ft'; } },
+    // ---- RASCAL, the DPS
+    { id: 'sharing', button: 'mp-sharing', key: 'sharing', who: 'rascal', sub: 'dps', name: 'Social Sharing', at: 1, kind: 'bonus', cost: 'B', pool: 'B', icon: 'hat', pick: 'units',
+      targets: function (B, u) { return MP.shareable(B, u); }, nobody: function () { return 'no friend within 30 ft'; },
+      note: function (L) { return 'the hat comes off, a bow: ' + (MP.shareN(L) > 1 ? MP.shareN(L) + ' dice, a ' + MP.shareDie(L) + ' each, among friends within 30 ft (click a friend again for another)' : 'a ' + MP.shareDie(L) + ' to a friend within 30 ft') + ', each for a roll that needs it'; },
+      aim: function (L) { return { shape: 'allies', side: 'ally', range: 30, n: MP.shareN(L), kind: 'buff', stack: true, others: true }; }, aimText: function (L) { return MP.shareN(L) > 1 ? MP.shareN(L) + ' dice among friends within 30 ft, again on a friend for another' : 'a friend within 30 ft'; } },
+    { id: 'flame', button: 'mp-flame', key: 'flame', who: 'rascal', sub: 'dps', name: 'Social Flame', at: 1, kind: 'special', cost: 'A', pool: 'A', icon: 'flame', pick: 'point',
+      targets: function (B, u) { return MP.flameTargets(B, u); }, nobody: function () { return 'no foe you see within 60 ft'; },
+      note: function (L, u) { return 'a ball of fire at a point within 60 ft, ' + MP.flameR(L) + ' ft round: everyone in it (friends too) DEX DC ' + u.spellDC + ' or ' + MP.flameDice(L) + ' fire, half on a save'; },
+      aim: function (L) { return { shape: 'sphere', range: 60, r: MP.flameR(L), see: true, kind: 'save', el: 'fire' }; }, aimText: function (L) { return 'a point within 60 ft (' + MP.flameR(L) + ' ft round it burns)'; }, ready: { range: function () { return 60; }, see: true } },
+    { id: 'scuttle', button: 'cdisengage', who: 'rascal', sub: 'dps', name: 'Scuttle', at: 2, kind: 'free', cost: 'B', icon: 'scuttle',
+      // (the three under one icon -- 10-08, Griz: "'scuttle' feels like the icon I should click on and have 3 come up rather than 3 scuttles in skills": `under`, js/ui.js foldUnder)
+      commands: function (B, u, T) {
+        var sw = !(T.bonus > 0) ? 'the bonus action is spent' : '', held = u.conds.restrained ? 'held fast' : '';
+        return [
+          { id: 'cdash', label: 'SCUTTLE: DASH', cost: 'B', icon: 'dash', skill: true, ok: !(sw || held), why: sw || held, note: 'a bonus action: your speed again (the rogue\'s Cunning Action)', under: SCUTTLE },
+          { id: 'cdisengage', label: 'SCUTTLE: DISENGAGE', cost: 'B', icon: 'disengage', skill: true, ok: !sw, why: sw, note: 'a bonus action: leaving reach provokes nothing this turn', under: SCUTTLE },
+          { id: 'hide', label: 'SCUTTLE: HIDE', cost: 'B', icon: 'hide', skill: true, ok: !sw, why: sw, note: 'a bonus action: try to hide', under: SCUTTLE }
+        ];
+      } },
+    { id: 'spicy', who: 'rascal', sub: 'dps', name: 'Spicy', at: 3, kind: 'passive' },
+    { id: 'distancing', button: 'mp-distancing', key: 'distancing', who: 'rascal', sub: 'dps', name: 'Social Distancing', at: 5, kind: 'special', cost: 'A', pool: 'A', icon: 'distancing', pick: 'self',
+      targets: function (B, u) { return MP.distCatch(B, u).foes; }, nobody: function (L) { return 'no foe within ' + MP.distR(L) + ' ft of you'; },
+      note: function (L, u) { return 'everyone within ' + MP.distR(L) + ' ft of you: WIS DC ' + u.spellDC + ' or ' + MP.distDice(L) + ' psychic, SHOVED out of the ring and FRIGHTENED of you till its turn ends; half on a save'; },
+      ready: { range: function (L) { return MP.distR(L); }, see: false } },
+    { id: 'hottake', who: 'rascal', sub: 'dps', name: 'Hot Take', at: 6, kind: 'reaction' },
+    { id: 'viral', button: 'mp-viral', key: 'viral', who: 'rascal', sub: 'dps', name: 'Going Viral', at: 7, kind: 'special', cost: 'A', pool: 'A', icon: 'viral', pick: 'one',
+      targets: function (B, u) { return MP.viralTargets(B, u); }, nobody: function () { return 'no foe you see within 120 ft'; },
+      note: function (L, u) { return 'fire that spreads foe to foe (' + MP.viralN(L) + ' of them, each within 30 ft of the last): DEX DC ' + u.spellDC + ' or ' + MP.viralDice(L) + ' fire, half on a save'; },
+      aim: function () { return foeAim(120, true); }, aimText: function () { return 'the first foe it catches, within 120 ft'; }, ready: { range: function () { return 120; }, see: true },
+      nope: function () { return 'Going Viral: a foe you see within 120 ft.'; } },
+    // ---- GOOSE, the Heals
+    { id: 'heart', button: 'mp-heart', key: 'heart', who: 'goose', sub: 'heals', name: 'Heart to Heart', at: 1, kind: 'bonus', cost: 'B', pool: 'B', icon: 'heart', pick: 'one',
+      targets: function (B, u) { return MP.heartTargets(B, u); }, nobody: function (L) { return 'no one hurt within ' + MP.heartR(L) + ' ft'; },
+      note: function (L) { return 'a friend you see within ' + MP.heartR(L) + ' ft, or you: ' + MP.heartDice(L) + ' + WIS' + bigT(L) + ' back, up again if down'; },
+      aim: function (L) { return { shape: 'single', side: 'ally', range: MP.heartR(L), kind: 'buff' }; }, aimText: function (L) { return 'a friend within ' + MP.heartR(L) + ' ft, or you'; },
+      nope: function (L) { return 'Heart to Heart: a friend you see within ' + MP.heartR(L) + ' ft who is hurt, or you.'; } },
+    { id: 'honk', button: 'mp-honk', key: 'honk', who: 'goose', sub: 'heals', name: 'Honk', at: 2, kind: 'free', cost: 'B', icon: 'honk', pick: 'one',
+      targets: function (B, u) { return MP.honkTargets(B, u); }, nobody: function () { return 'no foe within 30 ft that can hear you'; },
+      note: function () { return 'a foe within 30 ft: its next swing at disadvantage (free: a bonus action)'; },
+      aim: function () { return foeAim(30, false, 'buff'); }, aimText: function () { return 'a foe within 30 ft'; },
+      nope: function () { return 'Honk: a foe within 30 ft that can hear you.'; } },
+    { id: 'group', button: 'mp-group', key: 'group', who: 'goose', sub: 'heals', name: 'Group Hug', at: 1, kind: 'special', cost: 'A', pool: 'A', icon: 'group', pick: 'self',
+      targets: function (B, u) { return MP.groupCatch(B, u); }, nobody: function (L) { return 'no one hurt within ' + MP.groupR(L) + ' ft of you'; },
+      note: function (L) { return 'everyone within ' + MP.groupR(L) + ' ft of you, you too: ' + MP.groupDice(L) + ' + WIS' + bigT(L) + ' each, the down back up'; } },
+    { id: 'bigheart', who: 'goose', sub: 'heals', name: 'Big Heart', at: 3, kind: 'passive' },
+    { id: 'fountain', button: 'mp-fountain', key: 'fountain', who: 'goose', sub: 'heals', name: 'Fountain', at: 5, kind: 'special', cost: 'A', pool: 'A', icon: 'fountain', pick: 'self',
+      targets: function (B, u) { return MP.fountCatch(B, u); }, nobody: function (L) { return 'no one within ' + MP.fountR(L) + ' ft needs it'; },
+      note: function (L) { return 'everyone within ' + MP.fountR(L) + ' ft, you too: the worst of paralysis, blindness, poison or deafness ended, and ' + MP.fountDice(L) + bigT(L) + ' back'; } },
+    { id: 'nottoday', who: 'goose', sub: 'heals', name: 'Not Today', at: 6, kind: 'reaction' },
+    { id: 'lifeline', button: 'mp-lifeline', key: 'lifeline', who: 'goose', sub: 'heals', name: 'Lifeline', at: 7, kind: 'special', cost: 'A', pool: 'A', icon: 'lifeline', pick: 'lifeline',
+      targets: function (B, u) { var lf = MP.lifeTargets(B, u); return lf.length >= 2 ? lf : []; }, nobody: function (L) { return 'no friend within ' + MP.lifeR(L) + ' ft to tie'; },
+      note: function (L) { return 'tie a friend within ' + MP.lifeR(L) + ' ft to another, or to you: half of every blow on the first goes to the second, the fight long' + (MP.lifeWard(L) ? '; the first +1 AC and saves' : ''); },
+      aim: function (L) { return { shape: 'allies', side: 'ally', range: MP.lifeR(L), n: 2, see: true, kind: 'buff' }; }, aimText: function () { return 'the friend to tie, then who takes the half (one pick: you take it)'; } },
+    // ---- THE HIVEMIND, 9th, the four
+    { id: 'hivemind', who: null, name: 'The Hivemind', at: 9, kind: 'capstone' }
+  ];
+  MP.KIT_BY_ID = {}; MP.BUTTON = {}; MP.POOL = {};
+  MP.KIT.forEach(function (e) { MP.KIT_BY_ID[e.id] = e; if (e.button && e.key) MP.BUTTON[e.button] = e; if (e.key && e.pool === 'B') MP.POOL[e.key] = 'B'; });
+  // the ring's buttons, from the register (aimed as spells are -- 10-06 night, Griz: "the abilities weren't using the normal targeting - it had the menu popups again": `aim` is the geometry
+  // js/ui.js aimCommand hands the spell aim, and the click comes back to F.exec as { do, target }). Shut, in this order: its own gate, the pool, the cost, nobody to go to
   F.commands = function (B, u) {
     var out = cmd0(B, u);
     if (u.cls !== 'mpmon' || u.side !== 'party' || u.guest) return out;
-    var T = u.turn, L = u.lvl, act = T.action > 0 && !T.attacksLeft, bon = T.bonus > 0, nA = MP.left(u, 'A'), nB = MP.left(u, 'B');
+    var T = u.turn, L = u.lvl, act = T.action > 0 && !T.attacksLeft, bon = T.bonus > 0;
     var noneA = 'no action specials left (a short rest brings them back)', noneB = 'no bonus specials left (a short rest brings them back)'; // (the two pools, 10-07)
-    var whyA = function (list, nobody) { return nA <= 0 ? noneA : !act ? 'the action is spent' : list && !list.length ? nobody : ''; };
-    var whyB = function (list, nobody, free) { return !free && nB <= 0 ? noneB : !bon ? 'the bonus action is spent' : list && !list.length ? nobody : ''; };
-    function add(id, label, cost, icon, why, note, aim, aimText) { out.push({ id: id, label: label, cost: cost, icon: icon, skill: true, ok: !why, why: why, note: note, aim: aim || null, aimText: aimText || null }); }
-    if (u.mpSub === 'tank') {
-      var rch = MP.inReach(B, u), tl = MP.tauntList(B, u), rr = G.reachOf(u);
-      add('mp-taunt', 'TAUNT', 'B', 'surge', whyB(tl, 'no foe within ' + MP.tauntR(L) + ' ft to hear it'), 'the ' + MP.tauntN(L) + ' nearest foes within ' + MP.tauntR(L) + ' ft: WIS DC ' + MP.tauntDC(u) + ' or they may go only at you, till the end of your next turn' + (MP.tauntDR(L) ? '; you brace, every blow on you ' + MP.tauntDR(L) + ' less till then' : '') + '; ' + leftText(u));
-      add('mp-denim', 'DENIM DAMAGE', 'A', 'attack', whyA(rch, 'no foe in reach'), 'your swings, +' + MP.denimDice(L) + ' on the first that lands (doubled on a critical)' + (MP.denimPush(L) ? '; it knocks that one ' + MP.denimPush(L) + ' ft back' : '') + '; ' + leftText(u), foeAim(rr, false, 'attack'), 'a foe in your reach');
-      if (L >= 2) add('mp-flurry', 'MONKEY FLURRY', 'B', 'attack', !T.attackAction ? 'after you take the Attack action' : whyB(rch, 'no foe in reach', true), 'one more punch, free: a bonus action after the Attack action', foeAim(rr, false, 'attack'), 'a foe in your reach');
-      if (L >= 5) { var lt = MP.leapTargets(B, u); add('mp-cannonball', 'CANNONBALL', 'A', 'dash', whyA(lt, 'no foe within a ' + MP.leap(L) + '-ft leap'), 'leap up to ' + MP.leap(L) + ' ft beside a foe: each foe beside you DEX DC ' + MP.tauntDC(u) + ' or ' + MP.cannonDice(L) + ' and prone (half on a save), then a swing; ' + leftText(u), foeAim(MP.leap(L) + 5, true), 'the foe to come down beside'); }
-      if (L >= 7) { var ht = MP.hugTargets(B, u); add('mp-hug', 'LOBSTAH HUG', 'A', 'surge', whyA(ht, 'no foe beside you to hold'), 'a foe beside you, ' + (MP.hugSize(L) > 2 ? 'Huge' : 'Large') + ' or smaller: STR DC ' + MP.tauntDC(u) + ' or HELD -- squeezed for ' + MP.hugDice(L) + '+STR each of your turns, and it may go only at you; ' + leftText(u), foeAim(rr), 'a foe beside you to hold'); }
-    }
-    if (u.mpSub === 'buffs') {
-      add('mp-bubble', 'VNA BUBBLE', 'A', 'sacred', nA <= 0 ? noneA : u.conds.vnaBubble ? 'the bubble is up' : !act ? 'the action is spent' : '', '+' + MP.bubbleAC(L) + ' AC to you and friends within ' + MP.bubbleR(L) + ' ft while you hold your concentration; ' + leftText(u));
-      if (L >= 2) { var et = MP.eyeTargets(B, u); add('mp-eye', 'EYE ON IT', 'B', 'sacred', whyB(et, 'no foe you see within 30 ft', true), 'a foe you see within 30 ft: the next swing your side makes at it has advantage (free: a bonus action)', foeAim(30, true, 'buff'), 'a foe you see within 30 ft'); }
-      var gz = MP.gazeTargets(B, u);
-      add('mp-gaze', 'BALEFUL GAZE', 'B', 'sacred', T.gazed ? 'one gaze a turn: you gazed already' : whyB(gz, 'no foe you see within ' + MP.gazeRange(L) + ' ft'), 'one within ' + MP.gazeRange(L) + ' ft: WIS DC ' + u.spellDC + ' or ' + MP.gazeDice(L) + ' psychic and AC -' + MP.gazeAC(L) + ' till it saves at the end of a turn; half on a save; ' + leftText(u), foeAim(MP.gazeRange(L), true), 'a foe you see within ' + MP.gazeRange(L) + ' ft');
-      add('mp-gazea', 'BALEFUL GAZE: ACTION', 'A', 'sacred', T.gazed ? 'one gaze a turn: you gazed already' : whyA(gz, 'no foe you see within ' + MP.gazeRange(L) + ' ft'), 'the same gaze with your action, an action special (one gaze a turn): WIS DC ' + u.spellDC + ' or ' + MP.gazeDice(L) + ' psychic and AC -' + MP.gazeAC(L) + '; ' + leftText(u), foeAim(MP.gazeRange(L), true), 'a foe you see within ' + MP.gazeRange(L) + ' ft');
-      if (L >= 5) { var sc = MP.screenTargets(B, u); add('mp-screen', 'THE BIG SCREEN', 'A', 'sacred', whyA(sc, 'no foe you see within ' + MP.screenLen(L) + ' ft'), 'a ' + MP.screenLen(L) + '-ft cone: each foe in it WIS DC ' + u.spellDC + ' or ' + MP.screenDice(L) + ' psychic and DOMINATED; half on a save; ' + leftText(u), { shape: 'cone', len: MP.screenLen(L), kind: 'save', el: 'psychic' }, 'a ' + MP.screenLen(L) + '-ft cone'); }
-      if (L >= 7) { var st = MP.spotTargets(B, u); add('mp-spotlight', 'SPOTLIGHT', 'A', 'sacred', whyA(st, 'no friend you see within ' + MP.spotR(L) + ' ft'), (MP.spotN(L) > 1 ? MP.spotN(L) + ' friends' : 'a friend') + ' you see within ' + MP.spotR(L) + ' ft: HASTED till the end of their next turn (+2 AC, double speed, an attack more), no lethargy after; ' + leftText(u), { shape: 'allies', side: 'ally', range: MP.spotR(L), n: MP.spotN(L), see: true, kind: 'buff' }, (MP.spotN(L) > 1 ? MP.spotN(L) + ' friends' : 'a friend') + ' within ' + MP.spotR(L) + ' ft'); }
-    }
-    if (u.mpSub === 'dps') {
-      var sh = MP.shareable(B, u);
-      add('mp-sharing', 'SOCIAL SHARING', 'B', 'sacred', whyB(sh, 'no friend within 30 ft'), 'the hat comes off, a bow: ' + (MP.shareN(L) > 1 ? MP.shareN(L) + ' dice, a ' + MP.shareDie(L) + ' each, among friends within 30 ft (click a friend again for another)' : 'a ' + MP.shareDie(L) + ' to a friend within 30 ft') + ', each for a roll that needs it; ' + leftText(u), { shape: 'allies', side: 'ally', range: 30, n: MP.shareN(L), kind: 'buff', stack: true, others: true }, (MP.shareN(L) > 1 ? MP.shareN(L) + ' dice among friends within 30 ft, again on a friend for another' : 'a friend within 30 ft'));
-      var fl = MP.flameTargets(B, u);
-      add('mp-flame', 'SOCIAL FLAME', 'A', 'attack', whyA(fl, 'no foe you see within 60 ft'), 'a ball of fire at a point within 60 ft, ' + MP.flameR(L) + ' ft round: everyone in it (friends too) DEX DC ' + u.spellDC + ' or ' + MP.flameDice(L) + ' fire, half on a save; ' + leftText(u), { shape: 'sphere', range: 60, r: MP.flameR(L), see: true, kind: 'save', el: 'fire' }, 'a point within 60 ft (' + MP.flameR(L) + ' ft round it burns)');
-      if (L >= 5) { var dz = MP.distCatch(B, u).foes; add('mp-distancing', 'SOCIAL DISTANCING', 'A', 'surge', whyA(dz, 'no foe within ' + MP.distR(L) + ' ft of you'), 'everyone within ' + MP.distR(L) + ' ft of you: WIS DC ' + u.spellDC + ' or ' + MP.distDice(L) + ' psychic, SHOVED out of the ring and FRIGHTENED of you till its turn ends; half on a save; ' + leftText(u)); }
-      if (L >= 7) { var vt = MP.viralTargets(B, u); add('mp-viral', 'GOING VIRAL', 'A', 'attack', whyA(vt, 'no foe you see within 120 ft'), 'fire that spreads foe to foe (' + MP.viralN(L) + ' of them, each within 30 ft of the last): DEX DC ' + u.spellDC + ' or ' + MP.viralDice(L) + ' fire, half on a save; ' + leftText(u), foeAim(120, true), 'the first foe it catches, within 120 ft'); }
-      if (L >= 2) {
-        var sw = !bon ? 'the bonus action is spent' : '';
-        add('cdash', 'SCUTTLE: DASH', 'B', 'dash', sw || (u.conds.restrained ? 'held fast' : ''), 'a bonus action: your speed again (the rogue\'s Cunning Action)');
-        add('cdisengage', 'SCUTTLE: DISENGAGE', 'B', 'dash', sw, 'a bonus action: leaving reach provokes nothing this turn');
-        add('hide', 'SCUTTLE: HIDE', 'B', 'dash', sw, 'a bonus action: try to hide');
-      }
-    }
-    if (u.mpSub === 'heals') {
-      var bigT = L >= 3 ? ' + ' + L + ' (big heart)' : '', hh = MP.heartTargets(B, u);
-      add('mp-heart', 'HEART TO HEART', 'B', 'sacred', whyB(hh, 'no one hurt within ' + MP.heartR(L) + ' ft'), 'a friend you see within ' + MP.heartR(L) + ' ft, or you: ' + MP.heartDice(L) + ' + WIS' + bigT + ' back, up again if down; ' + leftText(u), { shape: 'single', side: 'ally', range: MP.heartR(L), kind: 'buff' }, 'a friend within ' + MP.heartR(L) + ' ft, or you');
-      if (L >= 2) { var hk = MP.honkTargets(B, u); add('mp-honk', 'HONK', 'B', 'surge', whyB(hk, 'no foe within 30 ft that can hear you', true), 'a foe within 30 ft: its next swing at disadvantage (free: a bonus action)', foeAim(30, false, 'buff'), 'a foe within 30 ft'); }
-      var gc = MP.groupCatch(B, u);
-      add('mp-group', 'GROUP HUG', 'A', 'sacred', whyA(gc, 'no one hurt within ' + MP.groupR(L) + ' ft of you'), 'everyone within ' + MP.groupR(L) + ' ft of you, you too: ' + MP.groupDice(L) + ' + WIS' + bigT + ' each, the down back up; ' + leftText(u));
-      if (L >= 5) { var fc = MP.fountCatch(B, u); add('mp-fountain', 'FOUNTAIN', 'A', 'sacred', whyA(fc, 'no one within ' + MP.fountR(L) + ' ft needs it'), 'everyone within ' + MP.fountR(L) + ' ft, you too: the worst of paralysis, blindness, poison or deafness ended, and ' + MP.fountDice(L) + bigT + ' back; ' + leftText(u)); }
-      if (L >= 7) { var lf = MP.lifeTargets(B, u); add('mp-lifeline', 'LIFELINE', 'A', 'sacred', whyA(lf.length >= 2 ? lf : [], 'no friend within ' + MP.lifeR(L) + ' ft to tie'), 'tie a friend within ' + MP.lifeR(L) + ' ft to another, or to you: half of every blow on the first goes to the second, the fight long' + (MP.lifeWard(L) ? '; the first +1 AC and saves' : '') + '; ' + leftText(u), { shape: 'allies', side: 'ally', range: MP.lifeR(L), n: 2, see: true, kind: 'buff' }, 'the friend to tie, then who takes the half (one pick: you take it)'); }
-    }
+    MP.KIT.forEach(function (e) {
+      if (e.who !== u.mpmon || L < e.at) return;
+      if (e.commands) { e.commands(B, u, T).forEach(function (c) { out.push(c); }); return; }
+      if (!e.button || !e.key) return;
+      var list = e.targets ? e.targets(B, u) : null, gate = e.gate ? e.gate(B, u, T) : '', dry = !!(e.pool && MP.left(u, e.pool) <= 0);
+      var why = gate ? gate : dry ? (e.pool === 'B' ? noneB : noneA) : e.cost === 'A' && !act ? 'the action is spent' : e.cost === 'B' && !bon ? 'the bonus action is spent' : list && !list.length ? e.nobody(L) : '';
+      var rdy = e.ready && e.cost === 'A' && !gate && !dry && act ? { range: e.ready.range(L, u), see: !!e.ready.see } : null; // (open to READY whoever is in range: the wheel reads it)
+      out.push({ id: e.button, label: e.label || e.name.toUpperCase(), cost: e.cost, icon: e.icon, skill: true, ok: !why, why: why, note: e.note(L, u) + (e.pool ? '; ' + leftText(u) : ''),
+        aim: e.aim ? e.aim(L, u) : null, aimText: e.aimText ? e.aimText(L) : null, ready: rdy, front: e.front || null });
+    });
     return out;
   };
+  // the click, from the register: the target read by the entry's `pick`
   F.exec = function* (B, u, c) {
-    if (!/^mp-/.test(c.do || '')) { yield* exec0(B, u, c); return; }
-    var t = c.target, L = u.lvl;
-    function one(list) { return t ? (list.indexOf(t) >= 0 ? t : null) : list[0] || null; } // (the one the click took, if the special will take it; none clicked -- a bench, a pad -- the first)
-    function pt(list) { return t && t.x != null && !t.side ? t : one(list); } // (a point on the floor, for an area)
-    function nope(msg) { D.sfx('error'); B.card(['{o}' + msg + '{/}'], 160); }
-    switch (c.do) {
-      case 'mp-taunt': yield* MP.taunt(B, u); return;
-      case 'mp-denim': t = one(MP.inReach(B, u)); if (t) yield* MP.denim(B, u, t); else nope('Denim Damage: a foe in your reach.'); return;
-      case 'mp-flurry': t = one(MP.inReach(B, u)); if (t && MP.flurryOK(u)) yield* MP.flurry(B, u, t); else nope('Monkey Flurry: a foe in your reach, after the Attack action.'); return;
-      case 'mp-cannonball': t = one(MP.leapTargets(B, u)); if (t) yield* MP.cannonball(B, u, t); else nope('Cannonball: a foe with room to come down beside it, within ' + MP.leap(L) + ' ft.'); return;
-      case 'mp-hug': t = one(MP.hugTargets(B, u)); if (t) yield* MP.hug(B, u, t); else nope('Lobstah Hug: a foe beside you, ' + (MP.hugSize(L) > 2 ? 'Huge' : 'Large') + ' or smaller, not held already.'); return;
-      case 'mp-bubble': yield* MP.bubble(B, u); return;
-      case 'mp-eye': t = one(MP.eyeTargets(B, u)); if (t) yield* MP.eyeOnIt(B, u, t); else nope('Eye On It: a foe you see within 30 ft.'); return;
-      case 'mp-gaze': t = one(MP.gazeTargets(B, u)); if (t) yield* MP.gaze(B, u, t); else nope('Baleful Gaze: a foe you see within ' + MP.gazeRange(L) + ' ft.'); return;
-      case 'mp-gazea': t = one(MP.gazeTargets(B, u)); if (t) yield* MP.gazeA(B, u, t); else nope('Baleful Gaze: a foe you see within ' + MP.gazeRange(L) + ' ft.'); return;
-      case 'mp-screen': t = pt(MP.screenTargets(B, u)); if (t) yield* MP.screen(B, u, t); return;
-      case 'mp-spotlight': yield* MP.spotlight(B, u, t && t.units); return;
-      case 'mp-sharing': yield* MP.sharing(B, u, t && t.units); return;
-      case 'mp-flame': t = pt(MP.flameTargets(B, u)); if (t) yield* MP.flame(B, u, t); return;
-      case 'mp-distancing': yield* MP.distancing(B, u); return;
-      case 'mp-viral': t = one(MP.viralTargets(B, u)); if (t) yield* MP.viral(B, u, t); else nope('Going Viral: a foe you see within 120 ft.'); return;
-      case 'mp-heart': t = one(MP.heartTargets(B, u)); if (t) yield* MP.heart(B, u, t); else nope('Heart to Heart: a friend you see within ' + MP.heartR(L) + ' ft who is hurt, or you.'); return;
-      case 'mp-honk': t = one(MP.honkTargets(B, u)); if (t) yield* MP.honk(B, u, t); else nope('Honk: a foe within 30 ft that can hear you.'); return;
-      case 'mp-group': yield* MP.group(B, u); return;
-      case 'mp-fountain': yield* MP.fountain(B, u); return;
-      case 'mp-lifeline': { // (the picks in order: the one tied, then who takes the half; one pick, he takes it)
+    var e = MP.BUTTON[c.do || ''];
+    if (!e) { yield* exec0(B, u, c); return; }
+    var t = c.target, L = u.lvl, list = e.targets ? e.targets(B, u) : [], fn = MP[e.key];
+    function one() { return t ? (list.indexOf(t) >= 0 ? t : null) : list[0] || null; } // (the one the click took, if the special will take it; none clicked -- a bench, a pad, a readied special sprung -- the first)
+    function nope() { D.sfx('error'); B.card(['{o}' + (e.nope ? e.nope(L) : e.name + ': no one to go to.') + '{/}'], 160); }
+    switch (e.pick) {
+      case 'self': yield* fn(B, u); return;
+      case 'one': { var w = one(); if (w && (!e.can || e.can(u))) yield* fn(B, u, w); else nope(); return; }
+      case 'point': { var p = t && t.x != null && !t.side ? t : one(); if (p) yield* fn(B, u, p); return; } // (a point on the floor, for an area; silent when nothing is there)
+      case 'units': yield* fn(B, u, t && t.units); return;
+      case 'lifeline': { // (the picks in order: the one tied, then who takes the half; one pick, he takes it)
         var ok = MP.lifeTargets(B, u), lu = (t && t.units ? t.units : t && t.side ? [t] : []).filter(function (w) { return ok.indexOf(w) >= 0; });
         if (!lu.length) lu = ok.filter(function (w) { return w !== u; }).slice(0, 1);
-        if (lu.length && (lu[1] || lu[0] !== u)) yield* MP.lifeline(B, u, lu[0], lu[1] || u); else nope('Lifeline: a friend to tie, then who takes the half (you, if only one).');
+        if (lu.length && (lu[1] || lu[0] !== u)) yield* fn(B, u, lu[0], lu[1] || u); else { D.sfx('error'); B.card(['{o}Lifeline: a friend to tie, then who takes the half (you, if only one).{/}'], 160); }
         return;
       }
     }
@@ -1298,7 +1393,6 @@
     var b = MP.BUILDS[u.mpmon], k = b ? MP.RACES[b.kind].name + ' ' + MP.SUBS[b.sub].name : '';
     return [k + ' · specials ' + MP.left(u, 'B') + ' bonus / ' + MP.left(u, 'A') + ' action', s].filter(Boolean).join(', ');
   };
-
   // ------------------------------------------------------------------ no hands (Beholda): a potion held to her, nothing she must hold herself
   var items0 = D.Battle.prototype.itemList;
   D.Battle.prototype.itemList = function (u) {

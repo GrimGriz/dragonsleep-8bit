@@ -988,7 +988,7 @@
     var slot = function (min) { for (var i = min - 1; i < (u.slots || []).length; i++) if (u.slots[i] > 0) return i + 1; return 0; };
     // a swing is only there to take with a foe in reach, or the feet left to walk to one (Lymen's second attack, 09-27)
     var foeNear = this.foeInReach(u), canWalk = T.move > 0 && !u.conds.restrained;
-    out.push({ id: 'attack', label: T.attacksLeft ? 'ATTACK (' + T.attacksLeft + ')' : 'ATTACK' + (u.attacks > 1 ? ' x' + u.attacks : ''), cost: 'A', ok: (T.attacksLeft > 0 || T.action > 0) && (foeNear || canWalk), why: foeNear || canWalk ? '' : 'no foe in reach, and no feet left', tool: 'attack' });
+    out.push({ id: 'attack', icon: (u.weapon && u.weapon.icon) || null, label: T.attacksLeft ? 'ATTACK (' + T.attacksLeft + ')' : 'ATTACK' + (u.attacks > 1 ? ' x' + u.attacks : ''), cost: 'A',ok: (T.attacksLeft > 0 || T.action > 0) && (foeNear || canWalk), why: foeNear || canWalk ? '' : 'no foe in reach, and no feet left', tool: 'attack' });
     if (u.conds.restrained) out.push({ id: 'breakfree', label: 'BREAK FREE', cost: 'A', ok: T.action > 0 && !T.attacksLeft, icon: 'free' });
     var spells = D.magic.list(this, u);
     if (spells.length) out.push({ id: 'spells', label: 'SPELLS', cost: 'A', ok: spells.some(function (e) { return e.ok; }), sub: 'spells', icon: 'spell' });
@@ -1590,8 +1590,9 @@
           if (!(u.speed > 0) || u.conds.restrained) return;
           rd.what = 'move'; rd.name = 'move';
         } else if (pk === 'cmd') { // a class feature or a plain action that takes the action (10-02, Griz: "1 - yes but not disengage"): Lay on Hands, a Channel Divinity, Help, Dodge, Hide ...
-          var cm = this.commands(u).filter(function (x) { return x.id === c.cmd && x.ok && x.cost === 'A'; })[0]; if (!cm) return;
+          var cm = this.commands(u).filter(function (x) { return x.id === c.cmd && (x.ok || x.ready) && x.cost === 'A'; })[0]; if (!cm) return; // (`ready`: a Mascot's special open to READY with no one in range yet -- js/mpmon.js, 10-08, Griz: "why can't I ready cannonball")
           rd.what = 'cmd'; rd.name = cm.label.toLowerCase(); rd.cmd = cm.id; rd.tool = cm.tool || null;
+          if (cm.ready) { rd.range = cm.ready.range; rd.see = !!cm.ready.see; } // (the trigger's reach is the special's own: readyTargets)
         } else if (pk === 'item') { // an item used (Griz: "Add usable items beyond potions as well")
           var itm = this.itemList(u).filter(function (x) { return x.id === c.item && x.ok; })[0]; if (!itm) return;
           rd.what = 'item'; rd.name = itm.name; rd.item = itm.id; rd.self = /^(bucket|light)$/.test(itm.use.effect);
@@ -2272,6 +2273,7 @@
     var self = this, wp = rd && rd.wp, g = rd && rd.id ? D.magic.geo(rd.id) : null;
     return this.units.filter(function (w) {
       if (!G.hostile(u, w) || !G.standing(w) || w.ethereal || w.under || (w.riding && !w.attached) || RU.charmedBy(u, w)) return false;
+      if (rd && rd.range) return G.dist(u, w) <= rd.range && (!rd.see || G.dist(u, w) <= 5 || (G.los(u, w).clear && D.magic.sees(self, u, w))); // (a readied special: its own reach, and sight where it aims by sight -- 10-08)
       if (g) return !!D.magic.targetOK(self, u, g, w);
       if (wp && wp.ranged) return G.dist(u, w) <= wp.range[1] && G.los(u, w).clear && (D.magic.sees(self, u, w) || G.dist(u, w) <= 5);
       return G.dist(u, w) <= G.reachOf(u, wp && wp.reach);
@@ -2291,7 +2293,7 @@
       var w = rs[i], rd = w.ready; if (!rd || w.reaction <= 0 || !RU.canAct(w)) continue; // (sprung already from inside another's strike -- a readied spell's own attack asks the hook again)
       var now = this.readyTargets(w, rd), fresh = now.filter(function (t) { return !(rd.had || {})[t.id]; });
       rd.had = {}; now.forEach(function (t) { rd.had[t.id] = 1; });
-      var sight = rd.what === 'spell' || (rd.wp && rd.wp.ranged), mvKey = about ? about.id + '@' + this.round + ':' + (this.active ? this.active.id : '') : null;
+      var sight = rd.what === 'spell' || (rd.wp && rd.wp.ranged) || !!rd.see, mvKey = about ? about.id + '@' + this.round + ':' + (this.active ? this.active.id : '') : null;
       var mover = !fresh.length && how === 'move' && sight && about && now.indexOf(about) >= 0 && rd.heldFor !== mvKey ? about : null;
       if (!fresh.length && !mover) continue;
       var foe = mover || (about && fresh.indexOf(about) >= 0 ? about : fresh[0]);
@@ -2315,7 +2317,7 @@
     if (rd.trigger === 'ally') return 'when a foe attacks one of us in sight';
     if (rd.trigger === 'down') return 'when one of us goes down';
     if (rd.trigger === 'cast') return 'when you see a foe cast a spell';
-    return 'when a foe comes ' + (rd.what === 'spell' || (rd.wp && rd.wp.ranged) ? 'into sight, or one in sight moves' : 'within reach');
+    return 'when a foe comes ' + (rd.what === 'spell' || (rd.wp && rd.wp.ranged) || rd.see ?'into sight, or one in sight moves' : 'within reach');
   };
   Battle.sawEffect = function (B, w, ef) { return !!(ef && ((ef.units || []).some(function (x) { return x === w || D.magic.sees(B, w, x); }) || (ef.sq || []).some(function (q) { return D.magic.seesSq(B, w, q[0], q[1]); }))); };
   Battle.nm = function (w, cap) { return w.side === 'foe' ? (w.named ? '' : cap ? 'The ' : 'the ') + shortName(w) : w.name; };
@@ -2355,7 +2357,7 @@
     try {
       if (byAI(w)) cmd = this.readyAuto(w, rd, ctx);
       else if (g && g.shape === 'self') cmd = yield { prompt: { who: w, title: w.name + ': THE READIED ' + rd.name.toUpperCase() + '?', lines: [ctx.why], opts: [{ label: 'CAST', value: { do: 'cast', target: w } }, { label: 'HOLD', value: null }] } };
-      else if ((rd.what === 'cmd' && !rd.tool) || (rd.what === 'item' && rd.self)) cmd = yield { prompt: { who: w, title: w.name + ': THE READIED ' + rd.name.toUpperCase() + '?', lines: [ctx.why], opts: [{ label: 'NOW', value: rd.what === 'item' ? { do: 'item', id: rd.item, target: w } : { do: rd.cmd } }, { label: 'HOLD', value: null }] } };
+      else if ((rd.what === 'cmd' && !rd.tool) || (rd.what === 'item' && rd.self)) cmd = yield { prompt: { who: w, title: w.name + ': THE READIED ' + rd.name.toUpperCase() + '?', lines: [ctx.why], opts: [{ label: 'NOW', value: rd.what === 'item' ? { do: 'item', id: rd.item, target: w } : { do: rd.cmd, target: rd.range ? ctx.foe : undefined } }, { label: 'HOLD', value: null }] } }; // (a readied special goes at the one that sprang it)
       else cmd = yield { aim: { who: w, rd: rd, ctx: ctx } };
       var fit = cmd && (rd.what === 'weapon' ? cmd.do === 'attack' && cmd.target : rd.what === 'move' ? cmd.do === 'move' : rd.what === 'cmd' ? cmd.do === rd.cmd : rd.what === 'item' ? cmd.do === 'item' && cmd.id === rd.item : cmd.do === 'cast');
       if (!fit) { if (!byAI(w)) this.card(['{g}' + w.name + ' holds the readied ' + rd.name + '.{/}'], 120); return false; }

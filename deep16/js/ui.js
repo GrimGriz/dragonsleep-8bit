@@ -34,9 +34,12 @@
   UI.opts = { help: false, style: 'ring', autoEnd: true, pace: 1.25, confirmEnd: 'idle' };
   UI.PACES = [1, 1.25, 1.5];
   UI.ASKS = ['idle', 'always', 'never'];
-  try { var o0 = JSON.parse(window.localStorage.getItem('deep16.opts') || 'null'); if (o0) { if (o0.style === 'window') UI.opts.style = 'window'; if (o0.autoEnd === false) UI.opts.autoEnd = false; if (UI.PACES.indexOf(o0.pace) >= 0) UI.opts.pace = o0.pace; if (UI.ASKS.indexOf(o0.confirmEnd) >= 0) UI.opts.confirmEnd = o0.confirmEnd; } } catch (e) { }
+  try { var o0 = JSON.parse(window.localStorage.getItem('deep16.opts') || 'null'); if (o0) { if (o0.style === 'window' || o0.style === 'ring2') UI.opts.style = o0.style;if (o0.autoEnd === false) UI.opts.autoEnd = false; if (UI.PACES.indexOf(o0.pace) >= 0) UI.opts.pace = o0.pace; if (UI.ASKS.indexOf(o0.confirmEnd) >= 0) UI.opts.confirmEnd = o0.confirmEnd; } } catch (e) { }
   UI.saveOpts = function () { try { window.localStorage.setItem('deep16.opts', JSON.stringify(UI.opts)); } catch (e) { } };
-  var qs = /[?&]menu=(window|ring)/.exec(location.search); if (qs) UI.opts.style = qs[1];
+  var qs = /[?&]menu=(window|ring2|ring)/.exec(location.search); if (qs) UI.opts.style = qs[1];
+  // RING2 (10-08, Griz: "what if the first ring had 'actions' and 'bonuses' that colored the ring yellow and light blue when you click on them"; "menu option ring2 (default for
+  // mpmon ...)"): the ring by cost -- see cmds2 below. A Mascot's turn is on it under RING (the default); RING2 chosen in the menu puts every class on it; WINDOW is the window
+  UI.styleOf = function (u) { var s = UI.opts.style; return s === 'window' ? 'window' : s === 'ring2' || (u && u.cls === 'mpmon') ? 'ring2' : 'ring'; };
   D.PACE = UI.opts.pace;
   if (D.STREAM) D.PACE = UI.STREAM_PACE = 2.5; // (the stream, 10-07, Griz: "the AI to take its turns about half current speed" -- twice the 1.25 default, a starting value only: the M menu's PACE row still sets D.PACE (optsChanged, below) and nothing here is saved; ?pace= below still wins)
   var pq = /[?&]pace=([0-9.]+)/.exec(location.search); if (pq && +pq[1] >= 0.5 && +pq[1] <= 3) D.PACE = +pq[1];
@@ -53,7 +56,7 @@
       if (B.cmdSel == null || B.cmdFor !== req.turn) { B.cmdSel = 0; B.cmdFor = req.turn; B.ringA = null; }
       // on the ring, the grid gives way to it once there's nothing left there: no step to take, no swing at a foe in reach
       // (Griz, 09-27: all the movement spent, or the last blow struck, and the ring comes up by itself)
-      if (UI.opts.style === 'ring' && B.tool === 'move' && gridDone(B, req.turn)) { B.tool = 'menu'; B.ringStill = false; }
+      if (UI.opts.style !== 'window' && B.tool === 'move' && gridDone(B, req.turn)) { B.tool = 'menu'; B.ringStill = false; }
       // READY's trigger asked (battle.js exec 'ready'): the wheel of what can be held for it
       if (B.readying && B.readying.who === req.turn) { B.tool = 'menu'; B.list = readyRing(B, req.turn); B.ringB = null; B.ringStill = false; B.clearCards(); B.card([D.keys('{y}READY{/}: ' + readyWhenText(B.readying.trigger) + ' -- what do you hold for it?  {g}X back{/}')], 100000); }
       else B.readying = null;
@@ -149,22 +152,72 @@
   // the Channel Divinity's options, one list of their own beside SPELLS (RULED 09-30, Griz: "should the channel divinity be a button similar to
   // spells?" -- "yes"): they draw on one use (u.feats.channel), and the list says how many are left
   var CHANNEL = { sacred: 1, turnundead: 1, turnunholy: 1, preservelife: 1, doubling: 1, showing: 1, holddoor: 1 };
+  // a command's `front` (10-08): true puts it on the first ring whatever its state (DENIM DAMAGE), 'live' only while it can be used (MONKEY FLURRY -- 10-07, Griz: "put denny's flurry on the
+  // bar when it activates for use please"; 10-08: "yes, with denim damage there and flurry popping up"); a class file places its own that way and this file names no class for it. `under`
+  // folds commands into one icon on whichever ring they land on -- SCUTTLE's DASH, DISENGAGE and HIDE (10-08, Griz: "'scuttle' feels like the icon I should click on and have 3 come up
+  // rather than 3 scuttles in skills"): { id, label, icon, cost } on each of them, js/mpmon.js
+  function fronted(x) { return x.front === true || (x.front === 'live' && x.ok); }
+  function foldUnder(list) {
+    var out = [], groups = {};
+    list.forEach(function (x) {
+      var un = x.under; if (!un) { out.push(x); return; }
+      var g = groups[un.id];
+      if (!g) { g = groups[un.id] = { id: un.id, label: un.label, cost: un.cost || x.cost, ok: false, why: '', sub: un.id, icon: un.icon || un.id, skill: !!x.skill, items: [], note: un.note || '' }; out.push(g); }
+      g.items.push(x); if (x.ok) g.ok = true;
+    });
+    out.forEach(function (g) { if (g.items && !g.ok) g.why = (g.items[0] && g.items[0].why) || 'nothing there to do now'; });
+    return out;
+  }
   UI.cmds = function (B, u) {
     if (D.keeperPlay && D.keeperPlay.human(B, u)) return D.keeperPlay.ring(B, u); // (?keeperfight&play=keeper: the Keeper's own ring -- js/keeperplay.js)
-    var c = B.commands(u), top = {}, sk = [], ac = [], cd = [], q = quickSpell(B, u), q2 = quickSpell(B, u, BESIDE), fr = !u.guest && (FRONT[u.cls] || (u.cls === 'mpmon' && 'mp-flurry'));
-    // (x.skill: a class feature's button from js/features.js F.commands -- Rage, the Channel Divinities, the subclasses' own)
-    c.forEach(function (x) { if (CHANNEL[x.id]) { cd.push(x); return; } if (fr && x.id === fr && (x.ok || u.cls !== 'mpmon')) { top.front = x; return; } /* (Denny's MONKEY FLURRY up front once he can use it, after the Attack action -- 10-07, Griz: "put denny's flurry on the bar when it activates for use please"; till then in SKILLS, greyed) */ if (SKILLS[x.id] || x.skill || (q && x.id === 'attack')) (SKILLS[x.id] || x.skill ? sk : ac).push(x); else if (ACTIONS[x.id]) ac.push(x); else top[x.id] = x; });
+    if (UI.styleOf(u) === 'ring2') return cmds2(B, u); // (the ring by cost: a Mascot's own, or anyone's under RING2 -- below)
+    var c = B.commands(u), top = {}, fronts = [], sk = [], ac = [], cd = [], q = quickSpell(B, u), q2 = quickSpell(B, u, BESIDE), fr = !u.guest && FRONT[u.cls];
+    // (x.skill: a class feature's button from js/features.js F.commands -- Rage, the Channel Divinities, the subclasses' own; a fronted one goes up front, the rest of the skills under SKILLS)
+    c.forEach(function (x) { if (CHANNEL[x.id]) { cd.push(x); return; } if ((fr && x.id === fr) || fronted(x)) { fronts.push(x); return; } if (SKILLS[x.id] || x.skill || (q && x.id === 'attack')) (SKILLS[x.id] || x.skill ? sk : ac).push(x); else if (ACTIONS[x.id]) ac.push(x); else top[x.id] = x; });
     if (q) top.attack = q;
     if (q2) top.beside = q2;
     var q3 = againSpell(B, u); if (q3 && !(q && q.id === q3.id) && !(q2 && q2.id === q3.id)) top.again = q3; // (Hunter's Mark moved: BESIDE has it already)
     var out = [{ id: 'move', label: 'MOVE', cost: 'M', ok: u.turn.move > 0 && !u.conds.restrained, tool: 'move', icon: 'move' }];
-    ['attack', 'beside', 'again', 'front', 'hide', 'breakfree', 'detach', 'breaktendril', 'takerope', 'bucketrope', 'barreltorch', 'passage', 'spells'].forEach(function (k) { if (top[k]) out.push(top[k]); }); // (detach: PULL IT OFF, the darkmantle -- 10-01, Griz: "Didn't see a pull it off out there"; breaktendril: BREAK THE TENDRIL, the roper's -- 10-02; takerope, bucketrope: TAKE THE ROPE and TAKE A ROPE, 10-04 night -- the first sat under ACTIONS where nothing listed it, Griz: "never managed to take up the hook")
+    ['attack', 'beside', 'again'].forEach(function (k) { if (top[k]) out.push(top[k]); });
+    fronts.forEach(function (x) { out.push(x); });
+    ['hide', 'breakfree', 'detach', 'breaktendril', 'takerope', 'bucketrope', 'barreltorch', 'passage', 'spells'].forEach(function (k) { if (top[k]) out.push(top[k]); }); // (detach: PULL IT OFF, the darkmantle -- 10-01, Griz: "Didn't see a pull it off out there"; breaktendril: BREAK THE TENDRIL, the roper's -- 10-02; takerope, bucketrope: TAKE THE ROPE and TAKE A ROPE, 10-04 night -- the first sat under ACTIONS where nothing listed it, Griz: "never managed to take up the hook")
     if (cd.length) { var left = (u.feats && u.feats.channel) || 0; out.push({ id: 'channel', label: 'CHANNEL DIVINITY (' + left + ')', cost: 'A', ok: cd.some(function (x) { return x.ok; }), why: left ? 'nothing there to do now' : 'spent (a short rest brings it back)', sub: 'channel', icon: 'sacred', items: cd }); }
+    sk = foldUnder(sk);
     if (sk.length) out.push(group('skills', 'SKILLS', sk));
     if (top.items) out.push(top.items);
     if (ac.length) out.push(group('actions', 'ACTIONS', ac));
     return out.concat([{ id: 'end', label: 'END TURN', cost: 'F', ok: true, icon: 'end' }]);
   };
+  // RING2 (10-08, Griz: "what if the first ring had 'actions' and 'bonuses' that colored the ring yellow and light blue when you click on them"; "menu option ring2 (default for mpmon --
+  // skeleton for playable AI mon?)"; the stream's four new players, 10-07, learning the kit in public): the first ring is MOVE, the swing and the bread and butter (the quick cantrip, the
+  // beside one, the again, the fronted features), the situational ones (HIDE, BREAK FREE, PULL IT OFF ...), SPELLS, then ACTIONS and BONUSES -- every command that costs the action on
+  // the one ring (the yellow A the bar counts), every one that costs the bonus action or is free on the other (the blue B) -- then END TURN. The two labels carry a Mascot's pools. The
+  // ring wears the colour while it is open (cmdRing). The classes keep the first ring under RING ("I don't think the class ones are monster party weird"); RING2 in the menu puts them on it
+  var FIRST2 = { attack: 1, hide: 1, breakfree: 1, detach: 1, breaktendril: 1, takerope: 1, bucketrope: 1, barreltorch: 1, passage: 1, spells: 1 };
+  function poolTag(u, p) { var MP = D.mpmon; if (!MP || u.cls !== 'mpmon' || !MP.left) return ''; var n = MP.left(u, p); return ' · ' + n + (n === 1 ? ' skill' : ' skills') + ' left'; }
+  function cmds2(B, u) {
+    var c = B.commands(u), top = {}, fronts = [], A = [], Bn = [], cd = [], q = quickSpell(B, u), q2 = quickSpell(B, u, BESIDE), fr = !u.guest && FRONT[u.cls];
+    c.forEach(function (x) {
+      if (CHANNEL[x.id]) { cd.push(x); return; }
+      if ((fr && x.id === fr) || fronted(x)) { fronts.push(x); return; }
+      if (q && x.id === 'attack') { A.push(x); return; } // (the cantrip in the swing's place: the weapon among the actions, as the first ring has it)
+      if (FIRST2[x.id] && !x.skill && !x.under) { top[x.id] = x; return; } // (a rogue's HIDE up front; a Mascot's SCUTTLE: HIDE under its icon with the bonuses)
+      (x.cost === 'A' ? A : Bn).push(x); // (cost 'B', 'F' and none: with the bonuses)
+    });
+    if (q) top.attack = q;
+    if (q2) top.beside = q2;
+    var q3 = againSpell(B, u); if (q3 && !(q && q.id === q3.id) && !(q2 && q2.id === q3.id)) top.again = q3;
+    if (cd.length) { var left = (u.feats && u.feats.channel) || 0; A.push({ id: 'channel', label: 'CHANNEL DIVINITY (' + left + ')', cost: 'A', ok: cd.some(function (x) { return x.ok; }), why: left ? 'nothing there to do now' : 'spent (a short rest brings it back)', sub: 'channel', icon: 'sacred', items: cd }); }
+    A = foldUnder(A); Bn = foldUnder(Bn);
+    var out = [{ id: 'move', label: 'MOVE', cost: 'M', ok: u.turn.move > 0 && !u.conds.restrained, tool: 'move', icon: 'move' }];
+    ['attack', 'beside', 'again'].forEach(function (k) { if (top[k]) out.push(top[k]); });
+    fronts.forEach(function (x) { out.push(x); });
+    ['hide', 'breakfree', 'detach', 'breaktendril', 'takerope', 'bucketrope', 'barreltorch', 'passage', 'spells'].forEach(function (k) { if (top[k]) out.push(top[k]); });
+    if (A.length) out.push({ id: 'actions', label: 'ACTIONS' + poolTag(u, 'A'), cost: 'A', ok: A.some(function (x) { return x.ok; }), why: 'nothing to do with the action now', sub: 'actions', icon: 'actions2', items: A, ring2: 'A', note: 'everything that costs the action, the yellow A on the bar' });
+    if (Bn.length) out.push({ id: 'bonuses', label: 'BONUSES' + poolTag(u, 'B'), cost: 'B', ok: Bn.some(function (x) { return x.ok; }), why: 'nothing to do with the bonus action now', sub: 'bonuses', icon: 'bonuses', items: Bn, ring2: 'B', note: 'everything that costs the bonus action, the blue B -- and the free moves' });
+    return out.concat([{ id: 'end', label: 'END TURN', cost: 'F', ok: true, icon: 'end' }]);
+  }
+  UI.cmds2 = cmds2;
 
   // ------------------------------------------------------------------ the camera: look where you like (the edge, a middle-drag), C comes back
   // the zoom steps: whole device pixels per art pixel at the backing scale (at 3x: 1, 2/3, 1/3), never under a third -- and on a floor too big to fit at that, the far steps
@@ -236,7 +289,8 @@
     // the features and plain actions that take the action (10-02, Griz: "1 - yes but not disengage ... you get to ready an action not store movement"): Lay on Hands, a
     // Channel Divinity, Help, Dodge, Hide ... -- not the swing (the weapon above), the spells, Dash (the MOVE is it), Disengage, nor what costs the bonus action
     var NOT = { attack: 1, spells: 1, ready: 1, end: 1, move: 1, dash: 1, disengage: 1, cdash: 1, cdisengage: 1, leave: 1, items: 1 };
-    B.commands(u).forEach(function (c) { if (c.cost === 'A' && c.ok && !NOT[c.id] && !c.sub) items.push({ kind: 'readypick', what: 'cmd', cmd: c.id, id: c.id, icon: c.icon || c.id, name: c.label, label: c.label, ok: true, note: c.note }); });
+    // (`ready` on a command: a Mascot's special that may be held with no one in range yet -- the trigger's reach is its own; js/mpmon.js, battle.js exec 'ready' -- 10-08, Griz: "why can't I ready cannonball and other Denny LM abilities that cost 1 action?")
+    B.commands(u).forEach(function (c) { if (c.cost === 'A' && (c.ok || c.ready) && !NOT[c.id] && !c.sub) items.push({ kind: 'readypick', what: 'cmd', cmd: c.id, id: c.id, icon: c.icon || c.id, name: c.label, label: c.label, ok: true, note: (c.ready ? 'held for one that comes within ' + c.ready.range + ' ft' + (c.ready.see ? ', in sight' : '') + ': ' : '') + c.note }); });
     // and an item (Griz: "Add usable items beyond potions as well"): a potion for the one who falls, a flask for the foe who comes
     if (B.itemList(u).some(function (e) { return e.ok && e.id !== 'rope'; })) items.push({ kind: 'readyitems', id: 'items', icon: 'item', name: 'ITEM', label: 'ITEM', ok: true, note: 'a potion, a flask, a light: used when it springs' });
     return { kind: 'ready', items: items, sel: 0, title: 'READY' };
@@ -463,7 +517,7 @@
       if (B.picks && B.picks.length) { D.sfx('cancel'); B.picks.pop(); return; }
       if (B.tool !== rest()) { D.sfx('cancel'); B.tool = rest(); B.spell = null; B.clearCards(); return; }
       // on the ring, X at rest calls the ring up (Griz, 09-27: backing out of a move should bring it); M/Tab the menu
-      if (UI.opts.style === 'ring') { D.sfx('popup'); B.tool = 'menu'; B.clearCards(); return; }
+      if (UI.opts.style !== 'window') { D.sfx('popup'); B.tool = 'menu'; B.clearCards(); return; }
       return UI.openMenu(B);
     }
     if (I.pressed('a')) actAt(B, u, B.cursor.x, B.cursor.y, true);
@@ -526,7 +580,7 @@
     B.card(['{y}' + c.label + '{/}: ' + (c.aimText || c.note || '') + D.keys('.  {g}X back{/}')], 100000);
   }
   function etherealAt(B, x, y) { return B.units.filter(function (w) { return w.ethereal && !(w.under && w.earthGlide) && x >= w.x && y >= w.y && x < w.x + w.size && y < w.y + w.size; })[0]; }
-  function pickCommand(B, u, c, idx) {
+  function pickCommand(B, u, c, idx, back) {
     if (idx != null) B.cmdSel = idx;
     if (!c) return;
     if (!c.ok) { D.sfx('error'); B.card(['{g}' + c.label + ': ' + (c.why || 'not now') + '.{/}'], 120); return; }
@@ -534,17 +588,17 @@
     D.sfx('confirm');
     if (c.aim) return aimCommand(B, u, c);
     if (c.id === 'end') return endTurn(B, u);
-    if (c.sub === 'spells' && UI.opts.style === 'ring') { B.list = levelRing(B, u); B.ringB = null; return; }
+    if (c.sub === 'spells' && UI.opts.style !== 'window') { B.list = levelRing(B, u); B.list.back = back || null; B.ringB = null; return; }
     if (c.items) { // SKILLS, ACTIONS: their commands as a list (a ring on the ring)
       var cl = c.items.map(function (x) { return { kind: 'cmd', cmd: x, id: x.id, icon: x.icon, name: x.label, label: x.label, cost: x.cost, ok: x.ok, why: x.why, note: x.note }; });
       var f0 = 0; cl.some(function (e, i) { if (e.ok) { f0 = i; return true; } return false; });
-      B.list = { kind: c.sub, items: cl, sel: f0, title: c.label }; B.ringB = null; B.ringStill = false;
+      B.list = { kind: c.sub, items: cl, sel: f0, title: c.label, ring2: c.ring2 || null, back: back || null }; B.ringB = null; B.ringStill = false; // (ring2: the wash the ring wears -- 'A' yellow, 'B' blue; cmdRing)
       return;
     }
     if (c.sub) {
       var items = c.sub === 'spells' ? D.magic.list(B, u).map(function (e) { e.kind = 'spell'; return e; }) : B.itemList(u).map(function (e) { e.kind = 'item'; return e; });
       var first = 0; items.some(function (e, i) { if (e.ok) { first = i; return true; } return false; });
-      B.list = { kind: c.sub, items: items, sel: first }; B.ringB = null;
+      B.list = { kind: c.sub, items: items, sel: first, back: back || null }; B.ringB = null;
       return;
     }
     if (c.tool) { B.tool = c.tool; B.clearCards(); if (c.tool === 'help') B.card(['{g}HELP: a foe beside you -- the next ally to swing at it has advantage; or a friend beside you -- shake a sleeper awake, or a hand out of a web or a grip.{/}'], 200); if (c.tool === 'torch') B.card([D.keys('{g}THROW TORCH: a square within 20 ft you can see. It lands and burns there.  X back{/}')], 100000); if (c.tool === 'detach') B.card([D.keys('{g}PULL IT OFF: click the friend it rides -- a STR check, an action.  X back{/}')], 100000); if (c.tool === 'breaktendril') B.card([D.keys('{g}BREAK THE TENDRIL: click the one it holds -- yourself, or a friend beside you -- a STR check, an action.  X back{/}')], 100000); return; }
@@ -562,7 +616,7 @@
   }
   function listInput(B, u) {
     var L = B.list, n = L.items.length, st = UI.opts.style, e = L.items[L.sel];
-    var ringy = st === 'ring', nextKey = ringy ? ['left', 'right'] : ['up', 'down'], slotKey = ringy ? ['down', 'up'] : ['left', 'right']; // [lower, higher]
+    var ringy = st !== 'window', nextKey = ringy ? ['left', 'right'] : ['up', 'down'], slotKey = ringy ? ['down', 'up'] : ['left', 'right']; // [lower, higher]
     var sel0 = L.sel, slot0 = e && e.slot;
     var ls = ringy ? ringStep() : I.repeat(nextKey[0]) || turnWheel() < 0 ? -1 : I.repeat(nextKey[1]) || turnWheel() > 0 ? 1 : 0; // (the ring's: ringStep)
     if (n && ls) L.sel = (L.sel + n + ls) % n;
@@ -585,7 +639,7 @@
     if (B.readying && (e.kind === 'readypick' || e.kind === 'spell' || e.kind === 'readyitem')) { var trg = B.readying.trigger; B.readying = null; D.sfx('confirm'); return UI.command(B, u, e.kind === 'spell' ? { do: 'ready', trigger: trg, what: 'spell', id: e.id, slot: e.slot } : e.kind === 'readyitem' ? { do: 'ready', trigger: trg, what: 'item', item: e.id } : { do: 'ready', trigger: trg, what: e.what, cmd: e.cmd }); }
     if (e.kind === 'readyitems') { D.sfx('confirm'); var ri = B.itemList(u).filter(function (x) { return x.ok && x.id !== 'rope'; }).map(function (x) { return Object.assign({}, x, { kind: 'readyitem', label: x.name.toUpperCase() + (x.n > 1 ? ' x' + x.n : '') }); }); B.list = { kind: 'items', items: ri, sel: 0, back: B.list, title: 'READY: ITEM' }; B.ringB = null; return; }
     if (e.kind === 'readylevels') { D.sfx('confirm'); var rl = readyLevels(B, u); rl.back = B.list; B.list = rl; B.ringB = null; return; }
-    if (e.kind === 'cmd') { B.list = null; return pickCommand(B, u, e.cmd); } // (it says its own confirm)
+    if (e.kind === 'cmd') { var back = B.list; B.list = null; return pickCommand(B, u, e.cmd, null, back); } // (it says its own confirm; `back`: a group inside a group -- SCUTTLE on the bonuses, ITEM on the actions -- comes back to this ring on X)
     D.sfx('confirm');
     if (e.kind === 'level') { var sp = e.spells.map(function (x) { x.kind = 'spell'; return x; }), f = 0; sp.some(function (x, k) { if (x.ok) { f = k; return true; } return false; }); B.list = { kind: 'spells', items: sp, sel: f, back: B.list, title: e.label }; B.ringC = null; return; }
     B.list = null;
@@ -937,7 +991,7 @@
         if (story) return []; // (inside the 8-bit game the fight is the story's: no way round it)
         return [{ label: 'RESTART THE FIGHT', value: 'restart' }].concat(B.o.onDone ? [] : [{ label: 'THE LADDER', value: 'ladder' }], [{ label: UI.backLabel(), value: 'out' }]);
       },
-      optsChanged: function (o) { UI.opts.style = o.style === 'window' ? 'window' : 'ring'; UI.opts.autoEnd = o.autoEnd !== false; if (UI.ASKS.indexOf(o.confirmEnd) >= 0) UI.opts.confirmEnd = o.confirmEnd; if (UI.PACES.indexOf(o.pace) >= 0) UI.opts.pace = D.PACE = o.pace; UI.saveOpts(); restyle(B); },
+      optsChanged: function (o) { UI.opts.style = o.style === 'window' ? 'window' : o.style === 'ring2' ? 'ring2' : 'ring';UI.opts.autoEnd = o.autoEnd !== false; if (UI.ASKS.indexOf(o.confirmEnd) >= 0) UI.opts.confirmEnd = o.confirmEnd; if (UI.PACES.indexOf(o.pace) >= 0) UI.opts.pace = D.PACE = o.pace; UI.saveOpts(); restyle(B); },
       run: function (kind, a, done) {
         if (kind === 'kofi') { try { window.open('https://ko-fi.com/grimgriz', '_blank'); } catch (e) { } }
         if (kind === 'exit') {
@@ -1058,7 +1112,7 @@
     if (B.cursor && G.map.at(B.cursor.x, B.cursor.y)) D.text(ctx, B.cursor.x + ',' + B.cursor.y, D.W - 5, 3, R('silver', 5), 'right');
     if (!B.cine) bar(ctx, B, hero);
     if (hero && UI.opts.style === 'window') cmdWindow(ctx, B, hero);
-    if (hero && UI.opts.style === 'ring') cmdRing(ctx, B, hero);
+    if (hero && UI.opts.style !== 'window') cmdRing(ctx, B, hero);
     if (hero && B.tool === 'spell' && B.spell && B.spell.g.shape === 'allies' && B.picks.length) castButton(ctx, B);
     var iw = B.inspect || (B.tool === 'spell' && B.spell && B.peek); if (iw) inspect(ctx, iw); // (B.peek: the one under the cursor while a spell is aimed)
     if (req && req.prompt) prompt(ctx, B, req.prompt);
@@ -1937,7 +1991,7 @@
       (flankSpots(B, u)[k] || []).forEach(function (fe) { lines.push('{y}flanking{/} the ' + B.shortName(fe.foe) + ' with ' + fe.ally.name + ': advantage in melee, both'); });
       if (u.cls === 'rogue') {
         var hs = hideSpots(B, u);
-        if (hs[k] === true) lines.push('{p}a place to try hiding{/}: outside every foe\'s watch, or where it cannot see her');
+        if (hs[k] === true) lines.push('{p}a place to try hiding{/}: outside every foe\'s watch, or where it cannot see you'); // (you, not her: Rascal hides too -- 10-07, Griz: "rascal getting girl pronouns for being a rogue?")
         else if (hs[k] === false) lines.push('{g}in plain sight of a foe here{/}');
       }
     }
@@ -2184,14 +2238,17 @@
     if (B[key] == null) B[key] = target;
     var dA = target - B[key]; while (dA > Math.PI) dA -= Math.PI * 2; while (dA < -Math.PI) dA += Math.PI * 2;
     if (!B.ringStill) B[key] += dA * 0.35; // (still while the mouse picks: it points where the icon is -- Griz, 09-27)
-    ctx.fillStyle = 'rgba(10,8,16,.35)'; ctx.beginPath(); ctx.ellipse(cx, cy, rx + 10, ry + 10, 0, 0, 7); ctx.fill();
+    // (ring2: the ACTIONS ring washed the action's yellow, the BONUSES ring the bonus action's blue -- 10-08, Griz: "colored the ring yellow and light blue when you click on them")
+    var r2 = B.list && B.list.ring2;
+    ctx.fillStyle = r2 === 'A' ? 'rgba(92,66,10,.55)' : r2 === 'B' ? 'rgba(12,52,100,.55)' : 'rgba(10,8,16,.35)'; ctx.beginPath(); ctx.ellipse(cx, cy, rx + 10, ry + 10, 0, 0, 7); ctx.fill();
+    if (r2) { ctx.save(); ctx.globalAlpha = 0.75; ctx.lineWidth = 1.5; ctx.strokeStyle = r2 === 'A' ? R('gold', 3) : R('glow', 1); ctx.beginPath(); ctx.ellipse(cx, cy, rx + 10, ry + 10, 0, 0, 7); ctx.stroke(); ctx.restore(); }
     var order = cmds.map(function (c, i) { var a = Math.PI / 2 + B[key] + i * Math.PI * 2 / n; return { c: c, i: i, x: cx + Math.cos(a) * rx, y: cy + Math.sin(a) * ry, z: Math.sin(a) }; });
     order.sort(function (a, b) { return a.z - b.z; });
     order.forEach(function (o) {
       var front = o.i === sel, s = front ? 2 : 1, ic = D.iconFor(o.c), bx = Math.round(o.x - 6 * s), by = Math.round(o.y - 6 * s);
       var r = { x: bx - 2, y: by - 2, w: 12 * s + 4, h: 12 * s + 4, cmd: B.list ? null : o.c, idx: o.i, list: B.list ? o.i : null };
       B.buttons.push(r); B.uiRects.push(r);
-      ctx.fillStyle = front ? R('gold', 1) : R('stone', 1); ctx.fillRect(bx - 2, by - 2, 12 * s + 4, 12 * s + 4);
+      ctx.fillStyle = front ? R('gold', 1) : r2 === 'A' ? R('gold', 0) : r2 === 'B' ? R('blue', 1) : R('stone', 1); ctx.fillRect(bx - 2, by - 2, 12 * s + 4, 12 * s + 4);
       ctx.strokeStyle = front ? R('gold', 4) : o.c.ok ? R('silver', 3) : R('stone', 3); ctx.strokeRect(bx - 1.5, by - 1.5, 12 * s + 3, 12 * s + 3);
       ctx.globalAlpha = o.c.ok ? 1 : 0.4; ctx.drawImage(ic, bx, by, 12 * s, 12 * s); ctx.globalAlpha = 1;
       if (o.c.kind === 'level') D.text(ctx, o.c.level ? String(o.c.level) : 'C', bx + 6 * s, by + 3 * s, R('outline', 0), 'center');
@@ -2270,7 +2327,7 @@
     var lv = B.units.filter(function (u) { return u.side === 'party'; }).map(function (u) { return u.lvl; });
     D.text(ctx, 'Level ' + (Math.min.apply(null, lv) === Math.max.apply(null, lv) ? lv[0] : Math.min.apply(null, lv) + '-' + Math.max.apply(null, lv)) + '.  ' + (B.intro || ''), D.W / 2, 150, R('accent', 2), 'center');
     if (B.canSwap) D.text(ctx, B.o.fixture ? '2: walk in from the 8-bit save instead' : '2: walk in as the fixture instead (the four at level 9; the fight is built for them)', D.W / 2, 164, R('silver', 5), 'center');
-    D.hint(ctx, 'menu: ' + UI.opts.style.toUpperCase() + (UI.opts.style === 'ring' ? ' (M or Tab, then MENU)' : ' (M or X/Esc, then MENU)'), D.W / 2, 194, R('stone', 5), 'center');
+    D.hint(ctx, 'menu: ' + UI.opts.style.toUpperCase() + (UI.opts.style !== 'window' ? ' (M or Tab, then MENU)' : ' (M or X/Esc, then MENU)'), D.W / 2, 194, R('stone', 5), 'center');
     if (B.dark) D.text(ctx, 'DARK GROUND: the four see by their lights and darkvision. You see it all: what they cannot is grey.', D.W / 2, 208, R('fire', 1), 'center');
     if ((B.t >> 5) & 1) D.hint(ctx, 'E to begin', D.W / 2, 180, R('glow', 2), 'center');
   }

@@ -87,7 +87,7 @@
     return {
       id: h.equip && h.equip.weapon, name: w.name, atk: R.attackBonus(h, w), dice: dm.dice, mod: dm.mod, type: dm.type, props: props, magic: !!(wd.bonus || wd.magic),
       finesse: props.indexOf('finesse') >= 0, gwf: !ranged && R.gwf(h, w), // (Great Weapon Fighting by the style, js/rules.js: 10-06; it was every fighter's)
-      ranged: ranged, range: ranged ? (wd.range || [80, 320]) : null, ammo: wd.ammo || null, loading: props.indexOf('loading') >= 0, fx: 'bolt',
+      ranged: ranged, range: ranged ? (wd.range || [80, 320]) : null, ammo: wd.ammo || null, loading: props.indexOf('loading') >= 0, fx: 'bolt', icon: wd.icon || null, // (icon: the ring's ATTACK wears the weapon's own -- Denny's fist, 10-08)
       // (the weapon's own magic works only for one bonded with it -- js/rules.js R.bonded, 10-06: a Flame Tongue unbonded is a longsword, a Mace of Disruption a mace)
       flame: bond ? wd.flame || null : null, // Flame Tongue: a bonus action lights it (battle.js IGNITE)
       // the 8-bit game's named weapons (09-28g, Griz: "make sure items are being loaded into the 16bit fights"): the Winnower's

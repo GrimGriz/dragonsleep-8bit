@@ -4226,7 +4226,44 @@
       var r9 = top9(rc9), dA = top9(dn9); dn9.turn.attackAction = true; dn9.turn.action = 0; var dB = top9(dn9);
       okM('the first ring: Rascal ' + r9.join(',') + ' | Denny before the Attack ' + dA.join(',') + ' | after it ' + dB.join(','),
         r9.indexOf('attack') >= 0 && r9.indexOf('firebolt') >= 0 && dA.indexOf('mp-flurry') < 0 && dB.indexOf('mp-flurry') >= 0);
-
+      // RING2 (10-08, Griz: "what if the first ring had 'actions' and 'bonuses' that colored the ring yellow and light blue when you click on them"; "menu option ring2 (default for mpmon ...)";
+      // "yes, with denim damage there and flurry popping up"): a Mascot's turn is on it under the default RING -- the first ring MOVE, ATTACK (the fist), DENIM DAMAGE, ACTIONS, BONUSES, END TURN;
+      // every action-cost command on the one ring, every bonus or free one on the other, the pools in the labels; the classes keep the old ring under RING and go to ring2 under RING2; SCUTTLE
+      // one icon with three under it (js/ui.js cmds2, foldUnder; js/mpmon.js MP.KIT)
+      var st0 = D.ui.opts.style; D.ui.opts.style = 'ring';
+      RUM.startTurn(dn9); var r2 = D.ui.cmds(B9, dn9), ids2 = r2.map(function (c) { return c.id; }), act2 = r2.filter(function (c) { return c.id === 'actions'; })[0], bon2 = r2.filter(function (c) { return c.id === 'bonuses'; })[0], atk2 = r2.filter(function (c) { return c.id === 'attack'; })[0];
+      okM('ring2, Denny at 5: ' + ids2.join(',') + ' | ACTIONS ' + (act2 ? act2.items.map(function (c) { return c.id; }).join(',') + ' (' + act2.label + ')' : 'none') + ' | BONUSES ' + (bon2 ? bon2.items.map(function (c) { return c.id; }).join(',') + ' (' + bon2.label + ')' : 'none') + ' | the fist: ' + (atk2 && atk2.icon),
+        D.ui.styleOf(dn9) === 'ring2' && ids2.indexOf('mp-denim') >= 0 && ids2.indexOf('skills') < 0 && !!act2 && !!bon2 && act2.items.every(function (c) { return c.cost === 'A'; }) && act2.items.some(function (c) { return c.id === 'mp-cannonball'; }) && act2.items.some(function (c) { return c.id === 'ready'; }) && bon2.items.every(function (c) { return c.cost !== 'A'; }) && bon2.items.some(function (c) { return c.id === 'mp-taunt'; }) && /skills? left/.test(act2.label) && /skills? left/.test(bon2.label) && !!atk2 && atk2.icon === 'fist');
+      var rr2 = D.ui.cmds(B9, rc9), rb2 = rr2.filter(function (c) { return c.id === 'bonuses'; })[0], sc2 = rb2 && rb2.items.filter(function (c) { return c.id === 'scuttle'; })[0], ratk = rr2.filter(function (c) { return c.id === 'attack'; })[0];
+      okM('ring2, Rascal: the first ring ' + rr2.map(function (c) { return c.id; }).join(',') + '; SCUTTLE one icon with ' + (sc2 ? sc2.items.map(function (c) { return c.id; }).join(',') : 'nothing') + ' under it; his claw: ' + (ratk && ratk.icon),
+        rr2.some(function (c) { return c.id === 'firebolt'; }) && !!sc2 && sc2.items.map(function (c) { return c.id; }).join() === 'cdash,cdisengage,hide' && !rb2.items.some(function (c) { return /^(cdash|cdisengage|hide)$/.test(c.id); }) && !!ratk && ratk.icon === 'claw');
+      var Bf = mkB(['fighter:5'], ['goblin'], 5), fi = sideM(Bf, 'party')[0]; fi.guest = false; fi.classAI = false; RUM.startTurn(fi);
+      var f1 = D.ui.cmds(Bf, fi).map(function (c) { return c.id; }); D.ui.opts.style = 'ring2'; var f2 = D.ui.cmds(Bf, fi).map(function (c) { return c.id; }); D.ui.opts.style = 'window'; var swS = D.ui.styleOf(dn9); D.ui.opts.style = st0;
+      okM('the classes keep their ring: a fighter under RING ' + f1.join(',') + '; under RING2 ' + f2.join(',') + '; WINDOW for a Mascot: ' + swS, f1.indexOf('skills') >= 0 && f1.indexOf('bonuses') < 0 && f2.indexOf('actions') >= 0 && f2.indexOf('bonuses') >= 0 && f2.indexOf('skills') < 0 && swS === 'window');
+      // a readied CANNONBALL (10-08, Griz: "why can't I ready cannonball and other Denny LM abilities that cost 1 action?"): on READY's wheel with no foe within the leap yet, held for the leap's
+      // reach, and sprung as the goblin walks within it -- NOW is the first answer; the leap lands on it, the pool pays once
+      var Br = mkB(['denny:5'], ['goblin'], 5), dr = sideM(Br, 'party')[0], gr = sideM(Br, 'foe')[0]; dr.guest = false; dr.classAI = false; dr.hp = dr.maxhp = 200; gr.hp = gr.maxhp = 100;
+      spotM(Br, dr, 2, 8); spotM(Br, gr, 12, 8); RUM.startTurn(dr); Br.active = dr; // (50 ft off: past the 20-ft leap)
+      var cbC = FM.commands(Br, dr).filter(function (c) { return c.id === 'mp-cannonball'; })[0], wheel = D.ui.readyRing(Br, dr).items.map(function (x) { return x.id; });
+      runM(Br.exec(dr, { do: 'ready', trigger: 'near', what: 'cmd', cmd: 'mp-cannonball' }));
+      var held = dr.ready && dr.ready.cmd === 'mp-cannonball' ? dr.ready.range : null, poolA0 = MPM.left(dr, 'A');
+      Br.active = gr; RUM.startTurn(gr); gr.x = 6; gr.y = 8; GM.setup(GM.map, Br.units); var gh0 = gr.hp; pin(2, 'max'); runM(Br.readyHook(gr, 'move')); D.d = dM; // (it walks to 20 ft: within the leap)
+      okM('a readied CANNONBALL: on the wheel ' + (wheel.indexOf('mp-cannonball') >= 0) + ' (the button ' + (cbC ? (cbC.ok ? 'open' : 'shut, ready ' + !!cbC.ready) : 'missing') + '), held for ' + held + ' ft, sprung as the goblin came to 20 ft: hp ' + gh0 + ' -> ' + gr.hp + ', prone ' + !!gr.conds.prone + ', the ready let go ' + !dr.ready + ', the action pool ' + poolA0 + ' -> ' + MPM.left(dr, 'A'),
+        wheel.indexOf('mp-cannonball') >= 0 && !!cbC && !cbC.ok && !!cbC.ready && held === MPM.leap(5) + 5 && gr.hp < gh0 && !dr.ready && MPM.left(dr, 'A') === poolA0 - 1);
+      // a Denny's fall lets his taunts go (10-08, Griz, his mirror match: "is my denny still taunted from the other dennys taunt before he died?")
+      var Bt = mkB(['denny:5'], ['goblin'], 5), dt = sideM(Bt, 'party')[0], gt = sideM(Bt, 'foe')[0]; spotM(Bt, dt, 8, 8); spotM(Bt, gt, 9, 8); RUM.startTurn(dt);
+      pin(2, 'max'); runM(MPM.taunt(Bt, dt)); D.d = dM; var tOn = !!gt.conds.taunted; Bt.hurt(dt, 999, 'bludgeoning', {});
+      okM('a Denny down: the goblin taunted before ' + tOn + ', after his fall ' + !!gt.conds.taunted + ' (hp ' + dt.hp + ')', tOn && !gt.conds.taunted && dt.hp <= 0);
+      // the AI holds at a distance (10-08, Griz, his mirror match: "now the AI is readying actions 200 ft away" -- the shooters, Rascal and Goose, readied at the hall's far end in his record):
+      // on Third Lamp's floor, Goose by Beholda with the goblin far down the hall, past his sling -- no READY, no Dodge, the action kept; with it within the sling, the shot (js/mpmon.js TX.IDLE)
+      var Ba = D.npcFight('?npc=goblin&vs=goose:5,beholda:5&map=lampcircle&lvl=5', { bench: true }); D.battle = Ba; Ba.enter(); while (!Ba.order.length) Ba.co.next(); Ba.round = 1;
+      var pa = sideM(Ba, 'party'), da = pa.filter(function (u) { return u.mpmon === 'goose'; })[0], ba = pa.filter(function (u) { return u.mpmon === 'beholda'; })[0], gb0 = sideM(Ba, 'foe')[0];
+      spotM(Ba, ba, 30, 7); spotM(Ba, da, 32, 7); spotM(Ba, gb0, 72, 7); GM.setup(GM.map, Ba.units); RUM.startTurn(da); Ba.active = da; var dFar = GM.dist(da, gb0), nA0 = (Ba.log || []).length;
+      runM(D.ai.turn(Ba, da)); var farL = logSince(Ba, nA0).join(' | '), farA = da.turn.action, farT = 'action ' + farA + ', ready ' + !!da.ready;
+      spotM(Ba, da, 32, 7); spotM(Ba, gb0, 41, 7); GM.setup(GM.map, Ba.units); delete da.ready; RUM.startTurn(da); Ba.active = da; var dNear = GM.dist(da, gb0), nA1 = (Ba.log || []).length;
+      runM(D.ai.turn(Ba, da)); var nearL = logSince(Ba, nA1).join(' | ');
+      okM('the AI holds at a distance: Goose with the goblin ' + dFar + ' ft off ' + (/readies|dodges/.test(farL) ? 'READIES OR DODGES' : 'holds') + ' (' + farL.slice(0, 90) + '; ' + farT + '); at ' + dNear + ' ft ' + (/readies/.test(nearL) ? 'readies (the station is dark: a foe he cannot see, but near)' : /Sling|HONK/.test(nearL) ? 'shoots' : 'does nothing') + ' (' + nearL.slice(0, 120) + ')', dFar > 120 && !/readies|dodges/.test(farL) && farA === 1 && /Sling|HONK|readies/.test(nearL));
+      D.battle = B9;
       // Social Sharing's dice stack (10-07, Griz, after the show: "Rascal cannot put more than one die on a friend ... ability dies with 5 dice he can't distribute"):
       // his picks Denny, Denny, Beholda and himself -- two on Denny, one on Beholda, none on him (the aim won't take him); Denny spends his one a roll
       var shG = FM.commands(B9, rc9).filter(function (c) { return c.id === 'mp-sharing'; })[0], selfOK = shG && D.magic.targetKind(B9, rc9, shG.aim, rc9);

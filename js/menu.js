@@ -791,7 +791,7 @@
   MN.gridRows = function (host) {
     var o = readOpts(), save = function () { try { window.localStorage.setItem(OPT_KEY, JSON.stringify(o)); } catch (e) { } if (host && host.optsChanged) host.optsChanged(o); };
     return [
-      { label: 'MENU STYLE', get: function () { return o.style.toUpperCase(); }, step: function (d) { o.style = cyc(['ring', 'window'], o.style, d); save(); } },
+      { label: 'MENU STYLE', get: function () { return o.style.toUpperCase(); }, step: function (d) { o.style = cyc(['ring', 'ring2', 'window'], o.style, d); save(); } }, // (RING2, 10-08: the ring by cost -- ACTIONS and BONUSES; a Mascot's default under RING; deep16/js/ui.js)
       { label: 'AUTO END TURN', get: function () { return o.autoEnd ? 'ON' : 'OFF'; }, step: function () { o.autoEnd = !o.autoEnd; save(); } },
       { label: 'END TURN ASKS', get: function () { return ASKW[o.confirmEnd] || 'IF IDLE'; }, step: function (d) { o.confirmEnd = cyc(ASKS, o.confirmEnd, d); save(); } },
       { label: 'AI + MESSAGE TIME', get: function () { return o.pace + 'x'; }, step: function (d) { o.pace = cyc(PACES, o.pace, d); save(); } }

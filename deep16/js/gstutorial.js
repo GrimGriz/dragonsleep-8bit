@@ -270,9 +270,9 @@
     var feet = 'First, the feet. The pale-blue squares are as far as I can walk. Point at one and the dots show my way; click, and I go. Right in front of the trouble.';
     var c = yield* T.act([T.tell(feet), T.pause(70), T.toSq(spot[0], spot[1]), T.read(feet), T.click()]);
     if (!c) return; yield* T.exec(c);
-    // TAUNT: himself for the ring, SKILLS, TAUNT
+    // TAUNT: himself for the ring, BONUSES (the blue ring -- ring2, a Mascot's own since 10-08), TAUNT
     var tauntWhy = 'TAUNT is a bonus action, the blue B. The ' + MP.tauntN(L) + ' nearest that fail their save have to come at me, not at Goose, till the end of my next turn. Use it when they\'re going for my friends.';
-    c = yield* T.act([T.tell('Click me and my ring comes up.'), T.pause(60)].concat(T.openRing(), [T.tell('My specials live under SKILLS.')], T.pick('skills', 50), [T.tell(tauntWhy), T.toBtn('mp-taunt'), T.read(tauntWhy), T.click()]));
+    c = yield* T.act([T.tell('Click me and my ring comes up.'), T.pause(60)].concat(T.openRing(), [T.tell('My bonus specials live on the blue ring, BONUSES. The yellow ring, ACTIONS, holds the action ones.')], T.pick('bonuses', 50),[T.tell(tauntWhy), T.toBtn('mp-taunt'), T.read(tauntWhy), T.click()]));
     if (!c) return; yield* T.exec(c);
     var taunted = [g1, g2, hob].filter(function (w) { return w.conds.taunted; });
     yield* T.say('Specials come two ways: bonus ones and action ones. This fight I get ' + (pl.B === 1 ? 'one bonus' : pl.B + ' bonus') + ' and ' + (pl.A === 1 ? 'one action special' : pl.A + ' action specials') + ' -- that Taunt was ' + (pl.B === 1 ? 'my bonus one' : 'a bonus one') + '. A short rest brings them all back.');
@@ -308,7 +308,7 @@
     var denim = 'DENIM DAMAGE is my action special: a punch, and the first one that lands hits extra hard. That\'s what I was keeping it for -- the big one.';
     var big = function () { return MP.inReach(B, me).indexOf(hob) >= 0 ? hob : MP.inReach(B, me)[0] || hob; };
     var bg = big();
-    c = yield* T.act([T.tell(denim), T.read(denim)].concat(T.openRing(), T.pick('skills', 30), T.pick('mp-denim', 50), [T.aiming(), T.pause(20), T.toUnit(bg), T.pause(24), T.click()]));
+    c = yield* T.act([T.tell(denim), T.read(denim)].concat(T.openRing(), T.pick('mp-denim', 50), [T.aiming(), T.pause(20), T.toUnit(bg), T.pause(24), T.click()]));
     if (!c) return; yield* T.exec(c);
     T.end();
     yield* T.say('That\'s me. Stand in front. Taunt the ones going for my friends. Denim the big one. Punch the rest.');

@@ -24,12 +24,41 @@
     end: ['..oooooooo..', '..oggggggo..', '...ogwwgo...', '....owwo....', '.....oo.....', '....owwo....', '...ogwwgo...', '..oggwwggo..', '..oggggggo..', '..oooooooo..', '............', '............'],
     back: ['............', '....o.......', '...oco......', '..occooooo..', '.occcccccco.', '..occooooco.', '...oco...co.', '....o...oco.', '.......occo.', '...ooooocco.', '...occcccoo.', '...ooooooo..'],
     torch: ['.....oo.....', '....oGGo....', '...oGwwGo...', '...oGRRGo...', '....oRRo....', '....oLLo....', '....oLlo....', '....oLlo....', '....oLlo....', '....oLlo....', '....oLlo....', '.....oo.....'],
-    lantern: ['.....oo.....', '....o..o....', '....oooo....', '...oLLLLo...', '..oLwwwwLo..', '..oLwGGwLo..', '..oLwRRwLo..', '..oLwGGwLo..', '..oLwwwwLo..', '...oLLLLo...', '....oooo....', '............']
+    lantern: ['.....oo.....', '....o..o....', '....oooo....', '...oLLLLo...', '..oLwwwwLo..', '..oLwGGwLo..', '..oLwRRwLo..', '..oLwGGwLo..', '..oLwwwwLo..', '...oLLLLo...', '....oooo....', '............'],
+    // THE MASCOTS' OWN (10-08, Griz: "Lobstamonkee Icons in general"): each kit's blow and each ability its own glyph -- the orange fist, the claw, the dice, the sling; the specials by what
+    // they look like on the floor (js/mpmon.js MP.KIT names them). F/f the fire ramp's orange, M/m the greens, b/B the blues, p pink -- BASE below
+    fist: ['............', '...oo.oo.oo.', '..oFFoFFoFFo', '..oFFFFFFFFo', '.ooFFFFFFFfo', 'oFFoFFFFFFfo', 'oFFFFFFFffo.', '.oFFFFFfffo.', '..oFFffffo..', '...offfffo..', '....ooooo...', '............'],
+    claw: ['............', '..oooo......', '.oRRRRo.....', 'oRRRRRRo....', 'oRRooRRRo...', '.oo..oRRRo..', '......oRRRoo', '...oooooRRRo', '..oRRRRRRRo.', '.oRRRRRRRo..', '..oooooo....', '............'],
+    dice: ['..o......o..', '..o.oooo.o..', '..ooowwwooo.', '..owwowwwwo.', '..owwwwowwo.', '..owowwwwwo.', '..owwwwwowo.', '..owwowwwwo.', '...oooooooo.', '............', '............', '............'],
+    sling: ['............', '.oo......oo.', '.oLo....oLo.', '..oLo..oLo..', '...oLooLo...', '....oLLo....', '....oLLo....', '...oLLLLo...', '..oLsSSLo...', '..oLSSSLo...', '...oooo.....', '............'],
+    taunt: ['....oooo....', '..ooGGGGoo..', '.oGGoRRoGGo.', 'oGGGoRRoGGGo', 'oGGGoRRoGGGo', 'oGGGoRRoGGGo', 'oGGGGooGGGGo', '.oGGoRRoGGo.', '.oGGGooGGGo.', '..ooGGGGoo..', '....oooo....', '............'],
+    denim: ['............', '..oo....oo..', '.obbo..obbo.', 'obbbbooBbbbo', 'obbBBBBBBbbo', 'obbBoBBoBbbo', 'obbBBBBBBbbo', '.ooBBBBBBoo.', '...oBBBBo...', '...oBBBBo...', '...oooooo...', '............'],
+    cannonball: ['............', '......oooo..', '.....oSSSSo.', '....oSsssSSo', '....oSssssSo', '..c.oSsssSSo', '.cc.oSSSSSSo', '..c..oSSSSo.', '......oooo..', '............', '............', '............'],
+    hug: ['............', '..oooooooo..', '.oFFoooooFo.', '.oFo.....oFo', '.oFo.oRo.oFo', 'oFFo.oRo.oFF', '.oFo.....oFo', '.oFFo...oFFo', '..oFFFFFFFo.', '...ooooooo..', '............', '............'],
+    bubble: ['....oooo....', '..ooVVVVoo..', '.oVVwwVVVVo.', 'oVVwVVVVVVVo', 'oVwVVVVVVVVo', 'oVVVVVVVVVVo', 'oVVVVVVVVVVo', 'oVVVVVVVVVvo', '.oVVVVVVvvo.', '..ooVVvvoo..', '....oooo....', '............'],
+    gaze: ['............', '............', '...oooooo...', '..oVVVVVVo..', '.oVVwooVVVo.', 'oVVwoVVoVVVo', '.oVVoooVVVo.', '..oVVVVVVo..', '...oooooo...', '............', '............', '............'],
+    screen: ['............', '.......ooo..', '..oo..oVVVo.', '.oVVooVVVVo.', 'oVwoVVVVVVVo', 'oVoVVVVVVVVo', 'oVwoVVVVVVVo', '.oVVooVVVVo.', '..oo..oVVVo.', '.......ooo..', '............', '............'],
+    eye: ['............', '.....o......', '....oGo.....', '..oooGooo...', '.oVVoGoVVo..', 'oVVoGGGoVVVo', '.oVVoGoVVo..', '..oooGooo...', '....oGo.....', '.....o......', '............', '............'],
+    spotlight: ['.....oo.....', '....oGGo....', '....oGGo....', '...oGGGGo...', '...oGggGo...', '..oGgggGGo..', '..oGggggGo..', '.oGgggggGGo.', '.oGgggggggo.', 'oGGGGGGGGGGo', '.oooooooooo.', '............'],
+    hat: ['............', '...oooooo...', '...osSSSso..', '...osSSSso..', '...osSSSso..', '...osGGGso..', '.ooosSSSsooo', 'oSSSSSSSSSSo', '.oooooooooo.', '............', '............', '............'],
+    flame: ['.....o......', '....oFo.....', '...oFFo.o...', '...oFFooFo..', '..oFFGFFFo..', '..oFGGGFFo..', '.oFFGwGGFFo.', '.oFGGwwGGFo.', '.oFFGGGGFfo.', '..oFFFFFfo..', '...oooooo...', '............'],
+    distancing: ['.....o......', '....ooo.....', '..ooVVVoo...', '.oVVoooVVo..', 'oVVo...oVVo.', 'oVo.....oVoo', 'oVVo...oVVo.', '.oVVoooVVo..', '..ooVVVoo...', '.....o......', '....ooo.....', '............'],
+    viral: ['............', '.o.......o..', 'oFo..o..oFo.', 'oFo.oFo.oFo.', '.ooooFoooo..', '...oFFFo....', '...oFGFo....', '..oFFGFFo...', '..oFGGGFo...', '...ooooo....', '............', '............'],
+    scuttle: ['............', '.cc.ooo.....', '....oFFo.oo.', '.cc.oFFFoFFo', '....oFFFFFFo', '.cc..oFFFFo.', '.....oFoFFo.', '....oFFooFFo', '....oFo..oo.', '.....o......', '............', '............'],
+    heart: ['............', '..ooo..ooo..', '.oMMMooMMMo.', 'oMmMMMMMMMMo', 'oMMMMMMMMMMo', 'oMMMMMMMMMMo', '.oMMMMMMMMo.', '..oMMMMMMo..', '...oMMMMo...', '....oMMo....', '.....oo.....', '............'],
+    group: ['............', '.oo.oo......', 'oMMoMMo.oooo', 'oMMMMMooMMMo', '.oMMMoomMMMo', '..oMo.oMMMo.', '...o...oMo..', '.oo.oo..o...', 'oMMoMMo.....', 'oMMMMMo.....', '.oMMMo......', '..oMo.......'],
+    honk: ['............', '...oooo.....', '..oFFFFo....', '.oFFFFFFoo..', '.oFFFFFFFFo.', '..oFFFFFFFo.', '...ooFFFoo.c', '.....ooo..cc', '..........c.', '............', '............', '............'],
+    fountain: ['............', '.....oo.....', '....oMMo....', '...oMMMMo...', '..oMMooMMo..', '.oMo....oMo.', 'oMo......oMo', '.oMo....oMo.', '..oMMooMMo..', '...oMMMMo...', '....oMMo....', '............'],
+    lifeline: ['............', '.oo......oo.', 'oMMo....oMMo', 'oMMo....oMMo', '.ooMoooMoo..', '...oMMMo....', '....ooo.....', '............', '............', '............', '............', '............'],
+    // RING2's two rings (js/ui.js cmds2): ACTIONS in the action's yellow, BONUSES a B in the bonus action's blue
+    actions2: ['.....oo.....', '....oGGo....', '...oGGGGo...', '.o...GG...o.', 'oGo..GG..oGo', 'oGGGGGGGGGGo', 'oGGGGGGGGGGo', 'oGo..GG..oGo', '.o...GG...o.', '...oGGGGo...', '....oGGo....', '.....oo.....'],
+    bonuses: ['....oooo....', '..ooCCCCoo..', '.oCCCCCCCCo.', 'oCCwwwwoCCCo', 'oCCwooowCCCo', 'oCCwwwwoCCCo', 'oCCwooowCCCo', 'oCCwwwwoCCCo', '.oCCCCCCCCo.', '..ooCCCCoo..', '....oooo....', '............']
   };
   function hex(c) { return c; }
   var BASE = function () {
     var P = D.PAL.ramps;
-    return { o: P.outline[0], w: P.bone[2], s: P.silver[6], S: P.silver[4], g: P.gold[3], G: P.gold[4], r: P.red[3], R: P.red[4], L: P.leather[3], l: P.leather[1], c: P.glow[1], C: P.glow[2], V: P.violet[4], v: P.violet[3] };
+    return { o: P.outline[0], w: P.bone[2], s: P.silver[6], S: P.silver[4], g: P.gold[3], G: P.gold[4], r: P.red[3], R: P.red[4], L: P.leather[3], l: P.leather[1], c: P.glow[1], C: P.glow[2], V: P.violet[4], v: P.violet[3],
+      F: P.fire[1], f: P.fire[0], M: P.moss[2], m: P.orc[3], b: P.blue[2], B: P.blue[3], p: P.accent[0] }; // (the Mascots' glyphs, 10-08: the fire ramp's orange, the greens, the blues, pink)
   };
   // element / effect recolours: which palette colours stand in for the star's violets or the flask's reds
   var TINT = {
