@@ -62,6 +62,9 @@
       var pr = !!u.conds.prone && !down;
       if (pr && !s.prone && D.spr.proneFrame(u.sheet) >= 0) see(B, u, 'prone');
       s.prone = pr;
+      var cl = !down && !!u.riding && u.perch === 'over' && !!D.spr.anim(u.sheet, 'clamp'); // (on a head: js/ui.js plays its Clamp row there, the darkmantle's -- 10-08)
+      if (cl && !s.clamp) see(B, u, 'clamp');
+      s.clamp = cl;
     });
   }
   // a sheet's `attack` row is only the fallback for a blow with no row of its own: where every one of the creature's attacks has its own (the
@@ -146,6 +149,41 @@
       try { yield* B.hide(u, true); } finally { D.d = d0; u.stealth = st0; }
       u.anim = 'idle'; u.animT = B.t;
     }
+    // one with a clamp row it has not shown by the end of its second turn (the darkmantle over a head, his sheet, 10-08): its Crush takes the head only with
+    // advantage on one Medium or smaller (js/battle.js attack, perch 'over'; js/ui.js plays the row there), and the watchers rarely give it that -- one Crush
+    // through the engine's own attack at the one it rides or the nearest such watcher in reach, the d20 pinned to a 20 and its edge set to advantage
+    var ck = Object.keys(u.attacks || {}).filter(function (k) { return u.attacks[k].attach && !u.attacks[k].stinger; })[0];
+    if (ck && D.spr.anim(u.sheet, 'clamp') && !(u.showSeen || {}).clamp && u.showTurns >= 2 && RU.canAct(u) && u.hp > 1 && !u.conds.prone && u.perch !== 'over') {
+      var ca = u.attacks[ck], cw = u.riding && u.master && !D.Battle.overMedium(u.master) ? u.master : B.units.filter(function (w) { return w.side === 'party' && D.grid.standing(w) && !w.familiar && !D.Battle.overMedium(w) && D.grid.dist(u, w) <= (ca.reach || 5); }).sort(function (a, b) { return D.grid.dist(u, a) - D.grid.dist(u, b); })[0];
+      if (cw) {
+        B.card(['{c}THE SHOW{/}: the ' + u.name + ' has not shown its clamp yet. Its ' + (ca.name || ck) + ' at ' + cw.name + ', the d20 pinned and with advantage, to see it take the head.'], 220);
+        var dk0 = D.d, ed0 = RU.edges; D.d = function (n) { return n === 20 ? 20 : dk0.apply(this, arguments); };
+        RU.edges = function (a) { var e = ed0.apply(this, arguments); if (a === u) { e.adv = (e.adv || []).concat(['the show']); e.dis = []; e.net = 1; } return e; };
+        try { yield* B.attack(u, cw, ca); } finally { D.d = dk0; RU.edges = ed0; }
+        u.anim = 'idle'; u.animT = B.t;
+      }
+    }
+    // one with a blow of its own row it has not shown by the end of its second turn, a watcher in its reach (the spirit naga casts every turn and never bit, 10-08):
+    // one swing through the engine's own attack, the dice as they fall -- a miss shows the row as well as a hit
+    var mk = Object.keys(u.attacks || {}).filter(function (k) { var a = u.attacks[k], r = String(a.name || k).toLowerCase().replace(/[^a-z]/g, ''); return !a.ranged && !a.spell && !a.needsHeld && D.spr.anim(u.sheet, r) && !(u.showSeen || {})[r]; })[0];
+    if (mk && u.showTurns >= 2 && RU.canAct(u) && !u.conds.prone && u.hp > 0 && !u.riding) {
+      var ma = u.attacks[mk], mreach = ma.reach || u.reach || 5, mwatch = B.units.filter(function (w) { return w.side === 'party' && D.grid.standing(w) && !w.familiar; });
+      var near = function () { return mwatch.filter(function (w) { return D.grid.dist(u, w) <= mreach; }).sort(function (a, b) { return D.grid.dist(u, a) - D.grid.dist(u, b); })[0]; };
+      var mw = near();
+      if (!mw && u.speed > 0 && !u.conds.restrained) { // (it keeps its distance -- a caster: up into reach first, by the shortest way)
+        var mrm = D.grid.reach(u, u.speed), mbest = null, mlen = Infinity;
+        Object.keys(mrm).forEach(function (k) {
+          var c = mrm[k]; if (!c.stand || !c.prev) return;
+          if (!mwatch.some(function (w) { return Math.max(Math.abs(w.x - c.x), Math.abs(w.y - c.y)) * 5 <= mreach; })) return;
+          var len = D.grid.path(mrm, c.x, c.y).length; if (len < mlen) { mlen = len; mbest = c; }
+        });
+        if (mbest) { yield* B.moveAlong(u, D.grid.path(mrm, mbest.x, mbest.y), { noOA: true }); u.anim = 'idle'; mw = near(); }
+      }
+      if (mw) {
+        B.card(['{c}THE SHOW{/}: the ' + u.name + ' has not shown its ' + String(ma.name || mk).toLowerCase() + ' yet. One at ' + mw.name + ', to see it.'], 200);
+        yield* B.attack(u, mw, ma); u.anim = 'idle'; u.animT = B.t;
+      }
+    }
     // one no one has hit by the end of its second turn (the watchers fight what is nearest; a roper stays back): a stone flung at it, through
     // the engine's own hurt, to see it flinch
     if (!(u.showSeen || {}).flinch && D.spr.anim(u.sheet, 'flinch') && u.showTurns >= 2 && u.hp > 1) {
@@ -206,6 +244,7 @@
     B.units.forEach(function (u) {
       if (u.side !== 'foe') return;
       u.show = true; u.maxhp = u.hp = u.hp * SH.HP; u.init = (u.init || 0) + 100; // (first in the order: its Still and Reveal before anyone wakes it)
+      if (u.bound) u.bound = null; // (bound to water -- the spirit naga, `bound: '~'` -- on a dry test ground it never moved: let loose for the show, 10-08)
       watch(u);
       B.showTally[u.sheet] = B.showTally[u.sheet] || {}; B.showKind[u.sheet] = u.kind;
       if (D.spr.anim(u.sheet, 'still')) see(B, u, 'still'); // (shown from the start till its first turn: js/ui.js)
