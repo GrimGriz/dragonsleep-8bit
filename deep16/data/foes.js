@@ -542,7 +542,7 @@
   },
   // the made road's cut (deep.js S.elemental): "the cut's walls move"
   earthelemental: {
-    name: 'Earth Elemental', type: 'elemental', sheet: 'earthelemental_p1', cr: '5', ac: 17, hp: 126, speed: 30, size: 2, reach: 10, darkvision: 60, blindsight: 60,
+    name: 'Earth Elemental', type: 'elemental', sheet: 'earthelemental_p2', cr: '5', ac: 17, hp: 126, speed: 30, size: 2, reach: 10, darkvision: 60, blindsight: 60,
     abil: { str: 20, dex: 8, con: 20, int: 5, wis: 10, cha: 5 }, init: -1, perception: 10,
     saves: { str: 5, dex: -1, con: 5, int: -3, wis: 0, cha: -3 },
     attacks: { slam: { name: 'Slam', atk: 8, dice: '2d8', mod: 5, type: 'bludgeoning', reach: 10 } },
