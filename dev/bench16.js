@@ -4302,6 +4302,28 @@
       Br.active = gr; RUM.startTurn(gr); gr.x = 6; gr.y = 8; GM.setup(GM.map, Br.units); var gh0 = gr.hp; pin(2, 'max'); runM(Br.readyHook(gr, 'move')); D.d = dM; // (it walks to 20 ft: within the leap)
       okM('a readied CANNONBALL: on the wheel ' + (wheel.indexOf('mp-cannonball') >= 0) + ' (the button ' + (cbC ? (cbC.ok ? 'open' : 'shut, ready ' + !!cbC.ready) : 'missing') + '), held for ' + held + ' ft, sprung as the goblin came to 20 ft: hp ' + gh0 + ' -> ' + gr.hp + ', prone ' + !!gr.conds.prone + ', the ready let go ' + !dr.ready + ', the action pool ' + poolA0 + ' -> ' + MPM.left(dr, 'A'),
         wheel.indexOf('mp-cannonball') >= 0 && !!cbC && !cbC.ok && !!cbC.ready && held === MPM.leap(5) + 5 && gr.hp < gh0 && !dr.ready && MPM.left(dr, 'A') === poolA0 - 1);
+      // a readied GROUP HUG (10-08, Griz: "Just checked and Goose can't ready Group Hug"): on READY's wheel with no one hurt (the Fountain too), held through a goblin's miss -- the reaction
+      // kept, the pool whole -- and sprung by its next swing at the fighter beside him: NOW is the first answer, the fighter mended, the pool paid once
+      var Bg = mkB(['goose:5', 'fighter'], ['goblin'], 5), goG = sideM(Bg, 'party').filter(function (u) { return u.mpmon === 'goose'; })[0], fiG = sideM(Bg, 'party').filter(function (u) { return u.cls === 'fighter'; })[0], gbG = sideM(Bg, 'foe')[0];
+      goG.guest = false; goG.classAI = false; fiG.hp = fiG.maxhp = 60; gbG.hp = gbG.maxhp = 100; spotM(Bg, goG, 8, 8); spotM(Bg, fiG, 9, 8); spotM(Bg, gbG, 10, 8); GM.setup(GM.map, Bg.units); RUM.startTurn(goG); Bg.active = goG;
+      var ghC = FM.commands(Bg, goG).filter(function (c) { return c.id === 'mp-group'; })[0], fnC = FM.commands(Bg, goG).filter(function (c) { return c.id === 'mp-fountain'; })[0], wheelG = D.ui.readyRing(Bg, goG).items.map(function (x) { return x.id; });
+      runM(Bg.exec(goG, { do: 'ready', trigger: 'ally', what: 'cmd', cmd: 'mp-group' }));
+      var rdG = !!(goG.ready && goG.ready.cmd === 'mp-group' && goG.ready.self), poolG = MPM.left(goG, 'A'), wpG = gbG.weapon || gbG.attacks[Object.keys(gbG.attacks)[0]];
+      Bg.active = gbG; RUM.startTurn(gbG); Bg.readySnap(); pin(1); runM(Bg.attack(gbG, fiG, wpG)); D.d = dM;
+      var heldG = !!goG.ready && goG.reaction > 0 && MPM.left(goG, 'A') === poolG && fiG.hp === 60;
+      pin(19, 'max'); runM(Bg.attack(gbG, fiG, wpG)); D.d = dM;
+      okM('a readied GROUP HUG: on the wheel ' + (wheelG.indexOf('mp-group') >= 0) + ', the Fountain ' + (wheelG.indexOf('mp-fountain') >= 0) + ' (the buttons shut with no one hurt: ' + !!(ghC && !ghC.ok && fnC && !fnC.ok) + '), readied ' + rdG + '; a miss: held ' + heldG + '; a hit: the fighter at ' + fiG.hp + '/60, the ready let go ' + !goG.ready + ', the action pool ' + poolG + ' -> ' + MPM.left(goG, 'A') + ' -- ' + logSince(Bg, 0).filter(function (l) { return /GROUP HUG|readied/.test(l); }).join(' | ').slice(0, 160),
+        wheelG.indexOf('mp-group') >= 0 && wheelG.indexOf('mp-fountain') >= 0 && !!ghC && !ghC.ok && !!fnC && !fnC.ok && rdG && heldG && !goG.ready && goG.reaction === 0 && MPM.left(goG, 'A') === poolG - 1 && logSince(Bg, 0).some(function (l) { return /GROUP HUG/.test(l); }));
+      // no command on a Mascot's rings in the spell's star (10-08, Griz, of Goose's: "i'd like the icon changed from the star one that we're using for spells"): RING, RING2 and READY's
+      // wheel at 9, every command's glyph its own (D.icon falls back to the star for a name it does not know; SPELLS keeps the star -- it is the spells)
+      var starI = D.icon('spell').toDataURL(), starred = [], stI = D.ui.opts.style;
+      ['denny', 'beholda', 'rascal', 'goose'].forEach(function (k) {
+        var Bi = mkB([k + ':9'], ['goblin'], 9), ui = sideM(Bi, 'party')[0]; ui.guest = false; ui.classAI = false; RUM.startTurn(ui); Bi.active = ui;
+        function chkI(list, d) { (list || []).forEach(function (c) { if (!c || c.kind === 'spell' || c.kind === 'level' || c.kind === 'item' || /^spells?$/.test(c.icon || c.id)) return; if (D.icon(c.icon || c.id).toDataURL() === starI) starred.push(k + ' ' + (c.label || c.id)); if (c.items && d < 3) chkI(c.items, d + 1); }); }
+        ['ring', 'ring2'].forEach(function (s) { D.ui.opts.style = s; Bi.cache = null; chkI(D.ui.cmds(Bi, ui), 0); }); D.ui.opts.style = stI;
+        chkI(D.ui.readyRing(Bi, ui).items, 0);
+      });
+      okM('the Mascots\' rings at 9: no command in the spell\'s star (' + (starred.length ? starred.filter(function (s, i) { return starred.indexOf(s) === i; }).join(', ') : 'none') + ')', !starred.length);
       // a Denny's fall lets his taunts go (10-08, Griz, his mirror match: "is my denny still taunted from the other dennys taunt before he died?")
       var Bt = mkB(['denny:5'], ['goblin'], 5), dt = sideM(Bt, 'party')[0], gt = sideM(Bt, 'foe')[0]; spotM(Bt, dt, 8, 8); spotM(Bt, gt, 9, 8); RUM.startTurn(dt);
       pin(2, 'max'); runM(MPM.taunt(Bt, dt)); D.d = dM; var tOn = !!gt.conds.taunted; Bt.hurt(dt, 999, 'bludgeoning', {});

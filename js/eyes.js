@@ -17,6 +17,9 @@
   var DS = window.DS = window.DS || {};
   var G1 = 'Eyes: first', G2 = 'Eyes: built this week', G3 = 'Eyes: built before, never seen';
   DS.EYES = {
+    'eyes-goose-ready-hug-1008': { pri: 2, group: G2, title: 'Goose readies GROUP HUG, and READY wears an hourglass, not the spell star (10-08)', pt: 'MPMon §6k (deep16/js/mpmon.js MP.KIT group, fountain `ready: { self }`; deep16/js/battle.js readySpring; deep16/js/icons.js ready) · eyes',
+      url: 'deep16/?npc=goblin,goblin,hobgoblin&vs=goose:5,denny:5&lvl=5&mascots&fresh=9',
+      look: 'Your "Goose can’t ready Group Hug" and "i’d like the icon changed from the star". On Goose’s turn, READY is an hourglass (gold sand, the action’s colour). READY, then a trigger (A FOE ATTACKS US, or ONE OF US DOWN), and the wheel holds GROUP HUG -- and the FOUNTAIN -- with nobody hurt yet. A miss on a friend leaves it held (reaction kept); the first blow that lands asks NOW, and the hug mends everyone round him.' },
     'eyes-gs-rats-east-1008': { pri: 2, group: G2, title: 'The Game Show, tier 1 wave 2: all three giant rats in over the causeway together (10-08)', pt: 'the Game Show §16 (deep16/js/battle.js walkIn, deep16/js/waves.js comeIn) · eyes',
       url: 'deep16/?gameshow&at=lamp&tier=1&wave=2&watch',
       look: 'Your rat that started in the north and ran past everyone to join the other two. The two goblins come up the west road; the three giant rats all come over the causeway from the east end and stand together there before initiative -- none set down on the west road. (Its own way in busy for a beat, the walk-in had handed it the first clear one in the whole file: the goblins road.)' },

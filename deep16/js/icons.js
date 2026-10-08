@@ -54,6 +54,8 @@
     honk: ['............', '...oooo.....', '..oFFFFo....', '.oFFFFFFoo..', '.oFFFFFFFFo.', '..oFFFFFFFo.', '...ooFFFoo.c', '.....ooo..cc', '..........c.', '............', '............', '............'],
     fountain: ['............', '.....oo.....', '....oMMo....', '...oMMMMo...', '..oMMooMMo..', '.oMo....oMo.', 'oMo......oMo', '.oMo....oMo.', '..oMMooMMo..', '...oMMMMo...', '....oMMo....', '............'],
     lifeline: ['............', '.oo......oo.', 'oMMo....oMMo', 'oMMo....oMMo', '.ooMoooMoo..', '...oMMMo....', '....ooo.....', '............', '............', '............', '............', '............'],
+    // READY: an hourglass, the action's gold running down -- held for the trigger (10-08, Griz: "i'd like the icon changed from the star one that we're using for spells"; it had no glyph)
+    ready: ['.oooooooooo.', '.oLLLLLLLLo.', '..owwwwwwo..', '..owGGGGwo..', '...oGGGGo...', '....oGGo....', '....oGGo....', '...owGGwo...', '..owwGGwwo..', '..oGGGGGGo..', '.oLLLLLLLLo.', '.oooooooooo.'],
     // RING2's two rings (js/ui.js cmds2): ACTIONS in the action's yellow, BONUSES a B in the bonus action's blue
     actions2: ['.....oo.....', '....oGGo....', '...oGGGGo...', '.o...GG...o.', 'oGo..GG..oGo', 'oGGGGGGGGGGo', 'oGGGGGGGGGGo', 'oGo..GG..oGo', '.o...GG...o.', '...oGGGGo...', '....oGGo....', '.....oo.....'],
     bonuses: ['....oooo....', '..ooCCCCoo..', '.oCCCCCCCCo.', 'oCCwwwwoCCCo', 'oCCwooowCCCo', 'oCCwwwwoCCCo', 'oCCwooowCCCo', 'oCCwwwwoCCCo', '.oCCCCCCCCo.', '..ooCCCCoo..', '....oooo....', '............']

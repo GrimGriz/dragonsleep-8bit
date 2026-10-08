@@ -1594,7 +1594,7 @@
         } else if (pk === 'cmd') { // a class feature or a plain action that takes the action (10-02, Griz: "1 - yes but not disengage"): Lay on Hands, a Channel Divinity, Help, Dodge, Hide ...
           var cm = this.commands(u).filter(function (x) { return x.id === c.cmd && (x.ok || x.ready) && x.cost === 'A'; })[0]; if (!cm) return; // (`ready`: a Mascot's special open to READY with no one in range yet -- js/mpmon.js, 10-08, Griz: "why can't I ready cannonball")
           rd.what = 'cmd'; rd.name = cm.label.toLowerCase(); rd.cmd = cm.id; rd.tool = cm.tool || null;
-          if (cm.ready) { rd.range = cm.ready.range; rd.see = !!cm.ready.see; } // (the trigger's reach is the special's own: readyTargets)
+          if (cm.ready) { rd.range = cm.ready.range; rd.see = !!cm.ready.see; rd.self = !!cm.ready.self; } // (the trigger's reach is the special's own: readyTargets; `self`, one centred on its user -- Group Hug, the Fountain: the reach is the user's own, 10-08)
         } else if (pk === 'item') { // an item used (Griz: "Add usable items beyond potions as well")
           var itm = this.itemList(u).filter(function (x) { return x.id === c.item && x.ok; })[0]; if (!itm) return;
           rd.what = 'item'; rd.name = itm.name; rd.item = itm.id; rd.self = /^(bucket|light)$/.test(itm.use.effect);
@@ -2381,6 +2381,9 @@
     w.turn = { move: rd.what === 'move' ? w.speed : 0, action: rd.what === 'move' ? 0 : 1, bonus: 0, attacksLeft: rd.what === 'weapon' ? 1 : 0, attackAction: rd.what === 'weapon', sneakUsed: false, disengaged: false, spellAction: null, bonusSpell: false, moved: 0, freeObj: false, readied: true };
     if (rd.what === 'weapon') w.weapon = rd.wp; // (the other weapon readied: in hand for the strike)
     try {
+      // (a readied special centred on its user -- Group Hug, the Fountain -- with no one it would mend now: held on for the next trigger, the reaction kept. 10-08, Griz: "Just checked
+      // and Goose can't ready Group Hug"; sprung on a miss it would have spent the special on nobody)
+      if (rd.what === 'cmd' && rd.self && !this.commands(w).some(function (x) { return x.id === rd.cmd && x.ok; })) return false;
       if (byAI(w)) cmd = this.readyAuto(w, rd, ctx);
       else if (g && g.shape === 'self') cmd = yield { prompt: { who: w, title: w.name + ': THE READIED ' + rd.name.toUpperCase() + '?', lines: [ctx.why], opts: [{ label: 'CAST', value: { do: 'cast', target: w } }, { label: 'HOLD', value: null }] } };
       else if ((rd.what === 'cmd' && !rd.tool) || (rd.what === 'item' && rd.self)) cmd = yield { prompt: { who: w, title: w.name + ': THE READIED ' + rd.name.toUpperCase() + '?', lines: [ctx.why], opts: [{ label: 'NOW', value: rd.what === 'item' ? { do: 'item', id: rd.item, target: w } : { do: rd.cmd, target: rd.range ? ctx.foe : undefined } }, { label: 'HOLD', value: null }] } }; // (a readied special goes at the one that sprang it)

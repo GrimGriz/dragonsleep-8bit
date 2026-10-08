@@ -1239,7 +1239,8 @@
   //   'point' (a point on the floor, or the clicked one), 'units' (the picks), 'lifeline' (two picks) · targets(B, u): who it may go to -- empty, the button is shut with `nobody(L)`
   //   gate(B, u, T): a reason of its own it is shut, before the pool and the cost · can(u): asked again at the click · note(L, u): the rules line under the icon (the pool's count added)
   //   aim(L, u): the spell geometry js/ui.js aimCommand hands the cursor · aimText(L) · ready: { range(L, u), see } -- a special that may be READIED with no one in range yet (10-08, Griz:
-  //   "why can't I ready cannonball"; the trigger's reach is its own: battle.js readyTargets) · front: true, always on the first ring; 'live', when it can be used (js/ui.js) · nope(L): the
+  //   "why can't I ready cannonball"; the trigger's reach is its own: battle.js readyTargets); ready: { self: true } -- one centred on its user, held for the trigger with no one
+  //   to aim at, and held on when it springs with no one to go to (10-08, Griz: "Just checked and Goose can't ready Group Hug") · front: true, always on the first ring; 'live', when it can be used (js/ui.js) · nope(L): the
   //   card when the click found no one · label: the button's word where it is not the name in capitals · gallery: false keeps it off the gallery (the Gaze's second button)
   var cmd0 = F.commands, exec0 = F.exec;
   function foeAim(ft, see, kind) { return { shape: 'single', side: 'foe', range: ft, see: !!see, kind: kind || 'save', swing: kind === 'attack' && !see }; } // (swing: a blow in reach, seen or not -- js/magic.js targetOK; the darkmantle on Denny's head, 10-07)
@@ -1346,11 +1347,11 @@
       nope: function () { return 'Honk: a foe within 30 ft that can hear you.'; } },
     { id: 'group', button: 'mp-group', key: 'group', who: 'goose', sub: 'heals', name: 'Group Hug', at: 1, kind: 'special', cost: 'A', pool: 'A', icon: 'group', pick: 'self',
       targets: function (B, u) { return MP.groupCatch(B, u); }, nobody: function (L) { return 'no one hurt within ' + MP.groupR(L) + ' ft of you'; },
-      note: function (L) { return 'everyone within ' + MP.groupR(L) + ' ft of you, you too: ' + MP.groupDice(L) + ' + WIS' + bigT(L) + ' each, the down back up'; } },
+      note: function (L) { return 'everyone within ' + MP.groupR(L) + ' ft of you, you too: ' + MP.groupDice(L) + ' + WIS' + bigT(L) + ' each, the down back up'; }, ready: { self: true } },
     { id: 'bigheart', who: 'goose', sub: 'heals', name: 'Big Heart', at: 3, kind: 'passive' },
     { id: 'fountain', button: 'mp-fountain', key: 'fountain', who: 'goose', sub: 'heals', name: 'Fountain', at: 5, kind: 'special', cost: 'A', pool: 'A', icon: 'fountain', pick: 'self',
       targets: function (B, u) { return MP.fountCatch(B, u); }, nobody: function (L) { return 'no one within ' + MP.fountR(L) + ' ft needs it'; },
-      note: function (L) { return 'everyone within ' + MP.fountR(L) + ' ft, you too: the worst of paralysis, blindness, poison or deafness ended, and ' + MP.fountDice(L) + bigT(L) + ' back'; } },
+      note: function (L) { return 'everyone within ' + MP.fountR(L) + ' ft, you too: the worst of paralysis, blindness, poison or deafness ended, and ' + MP.fountDice(L) + bigT(L) + ' back'; }, ready: { self: true } },
     { id: 'nottoday', who: 'goose', sub: 'heals', name: 'Not Today', at: 6, kind: 'reaction' },
     { id: 'lifeline', button: 'mp-lifeline', key: 'lifeline', who: 'goose', sub: 'heals', name: 'Lifeline', at: 7, kind: 'special', cost: 'A', pool: 'A', icon: 'lifeline', pick: 'lifeline',
       targets: function (B, u) { var lf = MP.lifeTargets(B, u); return lf.length >= 2 ? lf : []; }, nobody: function (L) { return 'no friend within ' + MP.lifeR(L) + ' ft to tie'; },
@@ -1374,7 +1375,7 @@
       if (!e.button || !e.key) return;
       var list = e.targets ? e.targets(B, u) : null, gate = e.gate ? e.gate(B, u, T) : '', dry = !!(e.pool && MP.left(u, e.pool) <= 0);
       var why = gate ? gate : dry ? (e.pool === 'B' ? noneB : noneA) : e.cost === 'A' && !act ? 'the action is spent' : e.cost === 'B' && !bon ? 'the bonus action is spent' : list && !list.length ? e.nobody(L) : '';
-      var rdy = e.ready && e.cost === 'A' && !gate && !dry && act ? { range: e.ready.range(L, u), see: !!e.ready.see } : null; // (open to READY whoever is in range: the wheel reads it)
+      var rdy = e.ready && e.cost === 'A' && !gate && !dry && act ? (e.ready.self ? { self: true } : { range: e.ready.range(L, u), see: !!e.ready.see }) : null; // (open to READY whoever is in range: the wheel reads it)
       out.push({ id: e.button, label: e.label || e.name.toUpperCase(), cost: e.cost, icon: e.icon, skill: true, ok: !why, why: why, note: e.note(L, u) + (e.pool ? '; ' + leftText(u) : ''),
         aim: e.aim ? e.aim(L, u) : null, aimText: e.aimText ? e.aimText(L) : null, ready: rdy, front: e.front || null });
     });
