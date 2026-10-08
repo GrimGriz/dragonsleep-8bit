@@ -959,6 +959,7 @@
     var gone = [];
     B.units.forEach(function (w) { if (w.conds.light && G.inArea(w, rec.sq)) { delete w.conds.light; gone.push(w.name + '\'s light'); } });
     D.sfx('magic'); FX.ring(u, 'violet', 44);
+    if (D.spr.anim(u.sheet, 'darkness')) { u.anim = 'darkness'; u.animT = B.t; } // (its Darkness row, played once: the darkmantle's sheet, 10-08)
     B.card(['{r}The ' + B.shortName(u) + '{/} pulls the dark in round itself: {p}15 ft of magical darkness{/} that goes where it goes' + (gone.length ? ', and ' + gone.join(', ') + ' goes out' : '') + '.  {g}(concentration){/}'], 420);
     yield 40;
     return true;

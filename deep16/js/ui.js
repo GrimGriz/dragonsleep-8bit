@@ -1292,6 +1292,8 @@
         if (!down && u.sheet === 'cloaker_p2' && !u.woken && anim === 'idle' && has('roost')) anim = 'roost';
         // the stirge latched on (10-05, Griz: "making it look like the stinger went in"): its own row, drawn at the shoulder of the one it drains
         if (!down && u.riding && u.attached && (anim === 'idle' || anim === 'walk') && has('latched')) anim = 'latched';
+        // the darkmantle over a head (battle.js mount, perch 'over'): its skirt shut round it, squeezing -- its Clamp row (his sheet, 10-08)
+        if (!down && u.riding && u.perch === 'over' && (anim === 'idle' || anim === 'walk') && has('clamp')) anim = 'clamp';
         // the ettercap sits braiding on its stump till it has had a turn or been hurt ("It stops braiding when it sees you": Griz's
         // idle sheet, 09-30); a creature that charges has come 20 ft and more this turn, and runs (the giant boar's sprint row)
         if (!down && !u.woken && !u.acted && anim === 'idle' && has('braid')) anim = 'braid';
@@ -1320,7 +1322,7 @@
           else if (has('hurt')) { anim = 'hurt'; o.once = true; if (pf >= 0 && u.proneLook) t += Math.ceil(pf * 60 / (D.spr.anim(u.sheet, 'hurt').fps || 8)); }
           else if (u.dead) { anim = 'idle'; o.alpha = Math.max(0, 1 - (B.t - u.deadT) / 50); o.tint = R('violet', 4); o.tintAlpha = 0.5; }
           else { anim = 'idle'; o.lie = true; }
-        } else if (anim === 'attack' || anim === 'cast' || anim === 'flinch' || anim === 'clack' || anim === 'burrow' || anim === 'reveal' || anim === 'reel' || /^(claw|bite|tendril|tentacles|beak|greatclub|rock|taunt|denimdamage|gaze|cannonball|socialsharing|socialflame|socialdistancing|honk|hottake|goingviral|spot|spotlight|guard|lobstahhug|grouphug|lifeline|scimitar|shortbow|nimble|hide|morningstar|javelin|ambush|catch)\d?$/.test(anim)) { o.once = true; if (!has(anim) || t > D.spr.duration(u.sheet, anim) + 6) { anim = 'idle'; o.once = false; } } // (back to idle, and idle loops: the flinch's once held its last frame on anyone struck who then did not act -- the landlord, 09-30g)
+        } else if (anim === 'attack' || anim === 'cast' || anim === 'flinch' || anim === 'clack' || anim === 'burrow' || anim === 'reveal' || anim === 'reel' || /^(claw|bite|tendril|tentacles|beak|greatclub|rock|taunt|denimdamage|gaze|cannonball|socialsharing|socialflame|socialdistancing|honk|hottake|goingviral|spot|spotlight|guard|lobstahhug|grouphug|lifeline|scimitar|shortbow|nimble|hide|morningstar|javelin|ambush|catch|engulf|digest|slam|battleaxe|crush|darkness)\d?$/.test(anim)) { o.once = true; if (!has(anim) || t > D.spr.duration(u.sheet, anim) + 6) { anim = 'idle'; o.once = false; } } // (back to idle, and idle loops: the flinch's once held its last frame on anyone struck who then did not act -- the landlord, 09-30g)
         // hiding (10-07, the goblin's Hide: its sheet's `hide` row, a crouch behind its shield): the row plays at the Hide (battle.js hide sets it, the once-rows above), and while it stays
         // hidden and would stand idle it keeps the row's last frame -- the crouch held; one that walks or strikes shows that, and one found stands up
         if (!down && u.conds.hidden && anim === 'idle' && has('hide')) { anim = 'hide'; o.frame = D.spr.anim(u.sheet, 'hide').frames - 1; o.once = false; }
