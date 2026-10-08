@@ -248,7 +248,6 @@
   // points, prone on its side and then up, Still before it has acted, Burrow under the floor, Clamp over a head and Latched at a shoulder (a fighter
   // stands by to be the head), the rest played as the engine plays them. &lvl= the fighter's, &ripple=body|mane as on ?show= (js/looks.js LK.ripple).
   // The fight that shows them in play is ?show= (above; dev/bench16.js mode=show calls SH.fight)
-  var GLOOPS = { idle: 1, walk: 1, run: 1, fly: 1, slither: 1, still: 1, roost: 1, braid: 1, sit: 1, clamp: 1, latched: 1, rofl: 1 };
   SH.rows = function (q) {
     var get = function (k) { var m = new RegExp('[?&]' + k + '=([^&]*)').exec(q); return m ? decodeURIComponent(m[1]) : null; };
     var L = Math.max(1, Math.min(9, +get('lvl') || 3)), kinds = (get('rows') || 'grick').split(',').filter(function (k) { return D.FOES[k]; });
