@@ -781,7 +781,7 @@ def build_galleries():
     g.npc('sabeth', 13, 9, 'innlady', dir='down')
     g.npc('ottilie', 15, 5, 'oldhand', dir='down')
     g.npc('wynn', 4, 9, 'oldhand', dir='down')
-    g.npc('dace', 25, 10, 'clerk', wander=1)
+    g.npc('dace', 25, 10, 'clerk', wander=1, cond='!flag:daceWith')   # off his square while he walks with the party (4fabec1)
     g.door(3, 8, 'keeper', 'pollardhouse', back='down'); g.door(10, 8, 'keeper', 'weighshed', back='down')
     save('galleries_g1', g, 'cave', 'The guano mine — the mouth', music='field', bg='plains', outside=True,
          exits={'south': {'to': 'world', 'tx': 23, 'ty': 11, 'dir': 'down'}, 'west': {'to': 'world', 'tx': 23, 'ty': 11, 'dir': 'down'},
@@ -864,6 +864,8 @@ def build_galleries():
     g.warp(3, 2, 'galleries_g2', 27, 5, 'down', sfx='stairs')
     # it drops on you once you're out in the big room, whichever way you came down (ladder or slide)
     g.trig('cloaker', 5, 8, 'cloaker', on='step', w=28, h=16, cond='!flag:cloakerDone')
+    # after the kill, Dace down again: THE CLOAK or THE PAGE (4fabec1)
+    g.trig('daceDeep', 5, 8, 'daceDeep', on='step', w=28, h=16, cond='flag:daceAfter & !flag:daceDone')
     g.sign(35, 19, 'A passage runs off into the dark, east. Not this adventure.', 'GalleriesModule/guano-galleries-DM.md §2 G4 (beyond: not mapped)')
     g.sign(11, 25, 'A passage runs off south. Not this adventure.', 'GalleriesModule/guano-galleries-DM.md §2 G4 (beyond: not mapped)')
     g.chest(25, 17, 'maul1', 1)
@@ -1415,6 +1417,7 @@ def build_highway():
     g.npc('lamp2a', 67, 8, 'dtrooper2', dir='right')
     g.npc('lamp2b', 73, 7, 'dtrooper', dir='left', idle=True)
     g.npc('lamp2c', 68, 11, 'dtrooper2', dir='down')
+    g.npc('lamp2prov', 74, 9, 'dclerk', dir='left', name='Gudrun Tallowmark')   # the Lamp Stores (4fabec1)
     g.trig('lampArrive2', 64, 10, 'lampArrive', 2, on='step', h=3, cond='!flag:lamp2')
     g.trig('tower2', 69, 5, 'lampTower', 2, on='use')
     g.trig('roper', 36, 7, 'roper', on='step', w=5, h=2, cond='!flag:roperDead')
