@@ -3896,6 +3896,13 @@
         SS.i = SS.ids.indexOf('firebolt'); SS.up = 0; SS.cl = null; OGB.act(BS, 'again'); runO(BS); var c9 = cardO(BS);
         OGB.act(BS, 'level', -1); runO(BS); var c1 = cardO(BS); OGB.act(BS, 'level', 1); runO(BS); var c5 = cardO(BS);
         okO('a cantrip steps its caster: Fire Bolt at the 9th, DOWN the 1st, UP the 5th', /CASTER AT 9th/.test(c9) && /CASTER AT 1st/.test(c1) && /CASTER AT 5th/.test(c5));
+        // the dice pinned for the cast (F lets them fall): an attack's d20 a 19, a foe's save a 2; and D.d put back after
+        var dO = D.d, hitsP = 0, failsP = 0;
+        SS.i = SS.ids.indexOf('firebolt'); SS.cl = null;
+        for (var pO = 0; pO < 3; pO++) { var preP = (BS.logEntries || []).slice(); OGB.act(BS, 'again'); runO(BS); if (/d20 19 /.test(since(BS, preP))) hitsP++; }
+        SS.i = SS.ids.indexOf('sacredflame');
+        for (var qO = 0; qO < 3; qO++) { var preQ = (BS.logEntries || []).slice(); OGB.act(BS, 'again'); runO(BS); if (/d20 2 [^|]*failed/.test(since(BS, preQ))) failsP++; }
+        okO('the dice pinned for the cast: Fire Bolt hits on a 19 (' + hitsP + ' of 3), the foe fails Sacred Flame on a 2 (' + failsP + ' of 3), the dice put back after (' + (D.d === dO) + ')', hitsP === 3 && failsP === 3 && D.d === dO);
         SS.i = 0; OGB.act(BS, 'step', -1); runO(BS);
         okO('LEFT from the first spell is the last (' + (SS.i + 1) + '/' + SS.ids.length + ')', SS.i === SS.ids.length - 1 && cardO(BS).indexOf(SS.ids.length + '/' + SS.ids.length) >= 0);
         // ---- an eyes row's door finds its entry (a row of the bench's own: the rows themselves come and go as he marks them)
@@ -3907,6 +3914,11 @@
         var BF = OGB.door('?gallery&shelf=features'); D.battle = BF; BF.enter(); runO(BF); var SF = BF.gallery;
         OGB.act(BF, 'step', -1); runO(BF); var lastF = SF.ids[SF.i];
         okO('FEATURES: the first and the last (' + SF.ids[0] + ', ' + lastF + ') shown, neither broke', SF.i === SF.ids.length - 1 && [SF.ids[0], lastF].every(function (id) { return SF.report[id] && !/^error/.test(SF.report[id].how); }));
+        SF.i = SF.ids.indexOf('sneakattack'); SF.add = 0; OGB.act(BF, 'again'); runO(BF); var lv0F = SF.lvAt;
+        OGB.act(BF, 'level', 1); OGB.act(BF, 'level', 1); runO(BF); var heroF = BF.units.filter(function (u) { return u.id === 'g-hero'; })[0];
+        okO('FEATURES: UP twice builds the Sneak Attack rogue at the 3rd (' + lv0F + ', ' + SF.lvAt + ', the hero at ' + (heroF && heroF.lvl) + '), the card says so', lv0F === 1 && SF.lvAt === 3 && heroF && heroF.lvl === 3 && /ROGUE AT 3rd/.test(cardO(BF)));
+        SF.i = SF.ids.indexOf('rage'); SF.add = 0; OGB.act(BF, 'again'); runO(BF);
+        okO('FEATURES: Rage carries BY LEVEL, only what changes (its 9th: +3 STR damage)', /BY LEVEL/.test(cardO(BF)) && /9th: \+3 STR damage/.test(cardO(BF)));
         // ---- MASCOTS: UP rebuilds the four a level higher; the last entry
         var BM = OGB.door('?gallery&shelf=mascots&lvl=5'); D.battle = BM; BM.enter(); runO(BM); var SM = BM.mpgallery;
         OGB.act(BM, 'level', 1); runO(BM);

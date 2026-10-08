@@ -15,6 +15,7 @@
 'use strict';
 (function () {
   var D = window.D16, I = D.input;
+  function ordinal(n) { return n + (n % 100 >= 11 && n % 100 <= 13 ? 'th' : ['th', 'st', 'nd', 'rd'][n % 10] || 'th'); }
   function onList(cls, id) { var c = D.npc.CLASSES[cls], sp = (c && c.spells) || {}; return Object.keys(sp).some(function (k) { return Array.isArray(sp[k]) && sp[k].indexOf(id) >= 0; }); }
   // who casts it: the druid for a druid's or ranger's spell that no wizard or cleric has; the cleric for a divine one; the wizard for the rest
   function casterOf(id) {
@@ -142,6 +143,19 @@
       return out;
     }
     S.restart = function () { return loop(); }; // (the one gallery starts the loop over at S.i: js/onegallery.js)
+    // the dice pinned for the cast in the one gallery (the lane's §3.4; RULED 10-06, CLAUDE.md's show rule: a thing to be seen, the dice pinned): an attack's
+    // d20 a 19 (a hit, not a crit), a foe's save a 2 -- the spell lands as it is meant to. F lets them fall (S.real). A friend's save, and everything outside the
+    // cast (a stage's own blow before or after it), rolls as ever
+    function* pinned(gen) {
+      if (!B.one || S.real) return yield* gen;
+      var d0 = D.d, sv0 = D.rules.save, saver = [];
+      D.rules.save = function (w) { saver.push(w); try { return sv0.apply(this, arguments); } finally { saver.pop(); } };
+      D.d = function (n) {
+        if (D.battle === B && n === 20) { var w = saver[saver.length - 1]; if (!w) return 19; if (w.side === 'foe') return 2; }
+        return d0.apply(this, arguments);
+      };
+      try { return yield* gen; } finally { D.d = d0; D.rules.save = sv0; }
+    }
     // B.card keeps three cards and lets the oldest go: a cast that says three things (Eldritch Blast, Moonbeam, Scorching Ray,
     // the mass heals, Meteor Swarm) would push the spell's own card off the screen mid-animation. This one stays, first, and the cast's
     // own cards take the other two places.
@@ -217,7 +231,7 @@
           if (f0 && f0.x != null) { var mx = Math.round((u.x + f0.x) / 2), my = Math.round((u.y + f0.y) / 2); D.iso.lookAt(mx, my, D.grid.map.gz(mx, my)); }
           yield 20;
           if (st && st.pre) yield* st.pre(c, t, e); // (what the scene needs first: a foe struck, a wall raised, a friend's blessing)
-          yield* B.exec(u, { do: 'cast', id: id, slot: S.slotAt || (st && st.slot ? st.slot : e.slot), target: t });
+          yield* pinned(B.exec(u, { do: 'cast', id: id, slot: S.slotAt || (st && st.slot ? st.slot : e.slot), target: t }));
           if (st && st.after) { yield 30; yield* st.after(c, t, e); } // (and what follows: the blow that lands on the sleeper)
         }
         yield 50;
@@ -296,11 +310,16 @@
       if (!w) throw new Error('no unit for ' + word);
       return place(w, x, y, facing);
     }
-    function stage(id, f) {
-      var st = STAGE[id] || {}, spec = { cls: f.cls, lvl: st.lvl || f.lvl, race: 'human' };
+    // the hero's spec at a level (the one gallery's UP/DOWN steps S.add levels above the feature's own, to its class's last: js/classes.js NPC.maxLvl)
+    function specAt(id, f, add) {
+      var st = STAGE[id] || {}, base = st.lvl || f.lvl, spec = { cls: f.cls, lvl: Math.min(Math.max(base, D.npc.maxLvl ? D.npc.maxLvl(f.cls) : 9), base + (add || 0)), race: 'human' };
       if (f.sub && f.sub !== 'The Mirror') spec.subclass = f.sub;
       if (f.cls === 'warlock') spec.pact = 'tome';
-      Object.assign(spec, SPEC[id] || {});
+      return Object.assign(spec, SPEC[id] || {});
+    }
+    function stage(id, f) {
+      var st = STAGE[id] || {}, spec = specAt(id, f, B.one ? S.add : 0);
+      S.lvAt = spec.lvl;
       var rows = st.foe == null ? 1 : st.foe, hero = place(D.npc.build(spec, spec.lvl, 'party', { id: 'g-hero' }), cx, cy, 4);
       var units = [], foes = [], skel = [], mate = null, wiz = null;
       if (st.mate !== null) {
@@ -336,8 +355,37 @@
       lines = lines.concat(D.wrap(desc, B.one ? B.one.wrapAt : 440)); // (the one gallery's column is narrower: js/onegallery.js)
       lines.push('{g}' + KIND_TAG[f.kind] + (/\bours\b|our own/i.test(f.src || '') ? ' · ours' : '') + '{/}');
       if (!B.one) lines.push('{g}left/right the next · up/down ten · E again{/}');
+      else { // (the one gallery: the hero's level, and BY LEVEL -- the ring's line for its button at each level from the feature's own, what changes said once)
+        lines.push('', '{c}THE ' + D.clsLabel(f.cls).toUpperCase() + ' AT ' + ordinal(S.lvAt || f.lvl) + ' LEVEL{/}');
+        var lad = featLadder(id, f);
+        if (lad.length) { lines.push('', '{c}BY LEVEL{/}'); lines = lines.concat(lad); }
+      }
       B.clearCards(); S.card = null;
       B.card(lines, 1e9, 'gallery'); S.card = B.cards[B.cards.length - 1];
+    }
+    S.ladders = {};
+    function featLadder(id, f) {
+      if (S.ladders[id]) return S.ladders[id].map(function (r) { return r; }).reduce(function (out, r) { return out.concat(ladLines(r)); }, []);
+      var cmd = f.kind === 'button' && f.cmd ? f.cmd.split(/\s+/)[0] : null, runs = [];
+      if (cmd) {
+        var base = specAt(id, f, 0).lvl, top = D.npc.maxLvl ? D.npc.maxLvl(f.cls) : 9;
+        for (var L = base; L <= top; L++) {
+          var say = '';
+          try { var w = D.npc.build(specAt(id, f, L - base), L, 'party', { id: 'g-lad' }); D.rules.startTurn(w); var e = B.commands(w).filter(function (x) { return x.id === cmd; })[0]; say = e ? String(e.note || '') : ''; } catch (x) { say = ''; }
+          if (!say) continue;
+          var last = runs[runs.length - 1]; if (last && last.say === say) last.b = L; else runs.push({ a: L, b: L, say: say });
+        }
+      }
+      if (runs.length < 2) runs = [];
+      var parts = runs.map(function (r) { return r.say.split(/ · |; |, /); });
+      var same = parts.length ? parts[0].filter(function (p) { return parts.every(function (ps) { return ps.indexOf(p) >= 0; }); }) : [];
+      runs.forEach(function (r, k) { var left = parts[k].filter(function (p) { return same.indexOf(p) < 0; }); if (left.length) r.say = left.join(' · '); });
+      S.ladders[id] = runs;
+      return featLadder(id, f);
+    }
+    function ladLines(r) {
+      var now = (S.lvAt || 0) >= r.a && (S.lvAt || 0) <= r.b, tag = (r.a === r.b ? ordinal(r.a) : ordinal(r.a) + '-' + ordinal(r.b)) + ': ' + D.typeText(r.say, true);
+      return D.wrap(tag, B.one.wrapAt - 10).map(function (x, k) { return (k ? '    ' : now ? '{c}> ' : '  ') + (now ? '{c}' + x + '{/}' : x); });
     }
     var card0 = B.card;
     B.card = function () {

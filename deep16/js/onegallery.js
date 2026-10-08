@@ -61,6 +61,7 @@
     var S = st(B), n = count(B); if (!n) return;
     S.i = ((S.i + d) % n + n) % n;
     if (B.one.shelf === 'spells') { S.up = 0; S.cl = null; }
+    if (B.one.shelf === 'features') S.add = 0;
     D.sfx('cursor'); restart(B);
   }
   var TIERS = [1, 5, 11, 17];
@@ -70,6 +71,12 @@
       var sp = D.magic.data(S.ids[S.i]);
       if (sp && sp.level) { var up0 = S.up || 0; S.up = Math.max(0, up0 + v); if (S.up === up0) { D.sfx('error'); return; } }
       else { var cur = S.cl || 9, k = TIERS.filter(function (t) { return t <= cur; }).length - 1, k2 = Math.max(0, Math.min(3, k + v)); if (k2 === k && S.cl) { D.sfx('error'); return; } S.cl = TIERS[k2]; }
+      D.sfx('cursor'); restart(B); return;
+    }
+    if (o.shelf === 'features') { // (the hero built that many levels above the feature's own, to its class's last: js/gallery.js specAt)
+      var f = D.FEATURES && D.FEATURES[S.ids[S.i]]; if (!f) { D.sfx('error'); return; }
+      var top = (D.npc.maxLvl ? D.npc.maxLvl(f.cls) : 9) - f.lvl, add0 = S.add || 0; S.add = Math.max(0, Math.min(top, add0 + v));
+      if (S.add === add0) { D.sfx('error'); return; }
       D.sfx('cursor'); restart(B); return;
     }
     if (o.shelf === 'mascots' && S.rebuild) {
@@ -171,7 +178,7 @@
     var o = B.one, n = o.listP.lines.length; if (row < 0 || row >= n) return;
     o.list = false; D.sfx('confirm');
     if (o.shelf === 'creatures') { OG.pending = '?gallery&shelf=creatures&rows=' + OG.kinds()[row] + carry(B); return; }
-    var S = st(B); S.i = row; if (o.shelf === 'spells') { S.up = 0; S.cl = null; }
+    var S = st(B); S.i = row; if (o.shelf === 'spells') { S.up = 0; S.cl = null; } if (o.shelf === 'features') S.add = 0;
     restart(B);
   }
 
@@ -190,7 +197,7 @@
     if (I.pressed('end')) { o.paused = !o.paused; D.sfx('cursor'); return; }
     if (o.paused) { if (I.repeat('bracketr')) frameStep(B, 1); else if (I.repeat('bracketl')) frameStep(B, -1); return; }
     if (I.pressed('verdict')) { verdict(B, !!I.held.shift); return; }
-    if (I.pressed('dice') && sh === 'creatures') { B.rowGallery.real = !B.rowGallery.real; D.sfx('confirm'); restart(B); return; }
+    if (I.pressed('dice') && (sh === 'creatures' || sh === 'spells')) { var SD = st(B); SD.real = !SD.real; D.sfx('confirm'); restart(B); return; }
     var shift = !!I.held.shift, d = I.repeat('right') ? 1 : I.repeat('left') ? -1 : 0;
     if (d) { if (o.list) o.list = false; step(B, shift ? d * 10 : d); return; }
     var lv = I.repeat('up') ? 1 : I.repeat('down') ? -1 : 0;
@@ -226,8 +233,8 @@
     var o = B.one, S = st(B), sh = o.shelf;
     if (o.list) return ['Click one: there it is.', 'Wheel scrolls. L or X: back.', '1-4 a shelf'];
     var last = o.paused ? 'PAUSED  [ ] a frame  SPACE on' : 'L list  1-4 shelf  SPACE pause';
-    if (sh === 'spells') { var sp = S && D.magic.data(S.ids[S.i]); return ['L/R spell  SHIFT ten  E again', sp && !sp.level ? "U/D the caster's level" : 'U/D the slot it is cast at', last]; }
-    if (sh === 'features') return ['L/R feature  SHIFT ten', 'E again', last];
+    if (sh === 'spells') { var sp = S && D.magic.data(S.ids[S.i]); return ['L/R spell  SHIFT ten  E again', (sp && !sp.level ? 'U/D caster level' : 'U/D the slot') + '  F dice: ' + (S && S.real ? 'fall' : 'pinned'), last]; }
+    if (sh === 'features') return ['L/R feature  SHIFT ten  E again', "U/D the hero's level", last];
     if (sh === 'mascots') return ['L/R ability  SHIFT ten  E again', 'U/D the level (' + (S ? S.L : '') + ')', last];
     return ['L/R row  , . turn  E again', 'SHIFT+E bare  F dice: ' + (S && S.real ? 'as they fall' : 'pinned'), o.paused ? last : 'L creatures  1-4  SPACE pause'];
   }
