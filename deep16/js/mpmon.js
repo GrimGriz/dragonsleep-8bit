@@ -424,12 +424,23 @@
       if (!rm || (best && !best.e)) return;
       var e = AI.approach(w, x, rm, me.reach); if (e && (!best || e.cost < best.d)) best = { x: x, d: e.cost, e: e };
     });
-    B.card(['{p}' + Nm(B, w) + '{/} is DOMINATED by ' + (c.name || 'the gaze') + ': ' + (best ? 'it turns on ' + nm(B, best.x) + '!' : 'no friend in its reach -- it stands, fighting what is in its head.')], 260);
+    // no friend it can reach this turn, walking or not: a ranged attack of its own at the nearest friend it sees within its long range, as every AI turn does with no one in
+    // its reach (ai.js brute); a rock only while it has one (a fight's `rocks`), none from a climbing face. (10-08, Griz: "Go ahead and fix it" -- it stood there, though it
+    // held a bow or a rock: and a dominated stone giant's rock at its fellow is the one way her Rock Catching comes up in a fight)
+    var shot = null;
+    if (!best && !(w.hang && G.hanging(w)) && (w.rocks == null || w.rocks > 0)) {
+      Object.keys(w.attacks || {}).map(function (k) { return w.attacks[k]; }).concat([w.weapon, w.alt]).forEach(function (a) {
+        if (shot || !a || !a.ranged || a.spell || !Array.isArray(a.range)) return;
+        var tg = B.units.filter(function (x) { return x !== w && x.side === w.side && standing(x) && G.dist(w, x) <= a.range[1] && D.magic.sees(B, w, x); }).sort(function (p, q) { return G.dist(w, p) - G.dist(w, q); })[0];
+        if (tg) shot = { x: tg, atk: a };
+      });
+    }
+    B.card(['{p}' + Nm(B, w) + '{/} is DOMINATED by ' + (c.name || 'the gaze') + ': ' + (best ? 'it turns on ' + nm(B, best.x) + '!' : shot ? 'it turns on ' + nm(B, shot.x) + ' from where it stands!' : 'no friend in its reach -- it stands, fighting what is in its head.')], 260);
     yield 18;
     if (best) {
       if (best.e) yield* AI.walkTo(B, w, best.e);
       if (standing(best.x) && !w.dead && w.hp > 0 && G.dist(w, best.x) <= me.reach) { T.action = 0; yield* B.attack(w, best.x, me.atk); }
-    }
+    } else if (shot) { T.action = 0; if (w.rocks != null) w.rocks--; yield* B.attack(w, shot.x, shot.atk); }
     w.anim = 'idle';
     return true;
   };

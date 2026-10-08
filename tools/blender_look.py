@@ -239,6 +239,27 @@ def write_points(ob, col, unshaded):
     return att
 
 
+def rock(name, r, seed=13, base='#7f7466', base2='#5c5348', squash=(1.12, 0.98, 0.84)):
+    """a loose rock, r across its middle (the stone giant's caught rock, 10-08): an icosphere roughed by noise and squashed so it lies like a stone,
+    flat-shaded so the facets read, painted a warm grey-brown (her skin is a cool grey: the two must part) with the toon material. Linked to the
+    scene; the caller parents it."""
+    import bmesh
+    import numpy as np
+    bm = bmesh.new(); bmesh.ops.create_icosphere(bm, subdivisions=2, radius=1.0)
+    noise.seed_set(seed)
+    for v in bm.verts:
+        n_ = noise.noise(v.co * 1.7 + Vector((3.1, 7.7, 1.3)))
+        v.co = Vector((v.co.x * squash[0], v.co.y * squash[1], v.co.z * squash[2])) * r * (1 + 0.2 * n_)
+    me = bpy.data.meshes.new(name); bm.to_mesh(me); bm.free()
+    for p in me.polygons:
+        p.use_smooth = False
+    ob = bpy.data.objects.new(name, me); bpy.context.scene.collection.objects.link(ob)
+    P = np.array([list(v.co) for v in me.vertices])
+    col, un = paint_points(P, dict(base=base, base2=base2, split=1.3, fine=0.10, blotch=0.22, blotch_scale=0.9 / max(r, 0.1), seed=seed))
+    write_points(ob, col, un); toon_material(ob)
+    return ob
+
+
 def carry(sc, base_me, col, flat):
     """the colours of a coarse mesh's faces onto every vertex of the fine one (the sculpt) that lies on it: nearest face (a BVH).
     Both meshes in the same local frame (MZ4250 ships his base mesh and the sculpt at the same place and scale)."""

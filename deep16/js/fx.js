@@ -30,6 +30,7 @@
   // spell's own travel: 'fire', 'frost', 'mote', 'wisp', 'glob', 'dart', 'orb', or 'beam' / 'ray' / 'jag' (FX.beam, FX.jag)
   FX.projectile = function (from, to, kind, o) {
     var cx0 = FX.ctx; o = o || {};
+    if (kind === 'rock') return rockShot(from, to);
     if (cx0 && cx0.travel && (kind === 'fire' || kind === 'bolt')) kind = cx0.travel;
     if (kind !== 'bolt' && (kind !== 'fire' || (cx0 && cx0.el))) return spellShot(from, to, kind, o.el || (cx0 && cx0.el) || (kind === 'fire' ? 'fire' : 'arcane'), o);
     var a = FX.at(from), b = FX.at(to), dist = Math.hypot(a.gx - b.gx, a.gy - b.gy), dur = Math.max(10, Math.round(dist * 3));
@@ -49,6 +50,22 @@
       }
     } });
   };
+  // a hurled rock (a giant's Rock: data/foes.js fx 'rock' -- 10-08, with the stone giant's catch; it flew as a crossbow bolt's speck before): a lump of the
+  // stone ramp turning in a high lob, from over the thrower's shoulder down to the target's chest, its shadow running along the ground under it
+  function rockShot(from, to) {
+    var a = FX.at(from), b = FX.at(to), dist = Math.hypot(a.gx - b.gx, a.gy - b.gy), dur = Math.max(12, Math.round(dist * 3.2));
+    var ha = D.spr.unitTop(from) * 0.9, hb = D.spr.unitTop(to) * 0.6, arc = 12 + dist * 2;
+    return FX.add({ kind: 'proj', blocking: true, dur: dur, draw: function (ctx) {
+      var t = this.t / this.dur, gx = a.gx + (b.gx - a.gx) * t, gy = a.gy + (b.gy - a.gy) * t, g0 = a.gz + (b.gz - a.gz) * t;
+      var s = scr(gx, gy, g0 + ha + (hb - ha) * t + Math.sin(t * Math.PI) * arc), sh = scr(gx, gy, g0), x = Math.round(s.x), y = Math.round(s.y);
+      ctx.globalAlpha = 0.35; ctx.fillStyle = P('outline', 0); ctx.fillRect(Math.round(sh.x) - 2, Math.round(sh.y) - 1, 5, 2); ctx.globalAlpha = 1;
+      ctx.fillStyle = P('outline', 0); ctx.fillRect(x - 3, y - 2, 7, 5); ctx.fillRect(x - 2, y - 3, 5, 7);
+      ctx.fillStyle = P('stone', 5); ctx.fillRect(x - 2, y - 2, 5, 5);
+      var k = Math.floor(this.t / 3) % 4, lx = k === 1 || k === 2 ? x + 1 : x - 2, ly = k >= 2 ? y : y - 2; // (the light corner turns: it tumbles)
+      ctx.fillStyle = P('stone', 7); ctx.fillRect(lx, ly, 2, 1); ctx.fillRect(lx + (lx > x ? 1 : 0), ly + 1, 1, 1);
+      ctx.fillStyle = P('stone', 3); ctx.fillRect(lx > x ? x - 2 : x + 1, ly > y - 2 ? y - 2 : y + 2, 2, 1);
+    } });
+  }
   // the fireball: the bead, then a bloom over every square of the template, square by square outward
   FX.bloom = function (cx, cy, squares, ramp, o) {
     o = o || {};

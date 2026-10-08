@@ -7271,7 +7271,7 @@
 }
 },
 "stonegiant_p1": {
-"image": "art/stonegiant_p1.png?v=9c1f8c2a40",
+"image": "art/stonegiant_p1.png?v=b18133b37a",
 "fw": 136,
 "fh": 170,
 "ax": 68,
@@ -7358,11 +7358,20 @@
 "ay": 189,
 "frames": 8,
 "fps": 8
+},
+"catch": {
+"y": 15216,
+"fw": 190,
+"fh": 180,
+"ax": 95,
+"ay": 161,
+"frames": 6,
+"fps": 10
 }
 }
 },
 "stonegiantm_p1": {
-"image": "art/stonegiantm_p1.png?v=5b445204e9",
+"image": "art/stonegiantm_p1.png?v=b5e00ec33b",
 "fw": 124,
 "fh": 172,
 "ax": 62,
@@ -7449,6 +7458,15 @@
 "ay": 190,
 "frames": 8,
 "fps": 8
+},
+"catch": {
+"y": 14592,
+"fw": 136,
+"fh": 194,
+"ax": 68,
+"ay": 172,
+"frames": 6,
+"fps": 10
 }
 }
 },

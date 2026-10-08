@@ -1997,6 +1997,23 @@
       return;
     }
     if (atk.noDamage) { if (o.onHit) o.onHit(tgt, crit); yield o.oa ? 18 : 26; att.anim = 'idle'; return; } // (a throw that only lands: the oil flask unlit coats, js/oil.js -- 10-05)
+    // Rock Catching (the stone giant, SRD 5.1: "If a rock or similar object is hurled at the giant, the giant can, with a successful DC 10 Dexterity saving throw, catch the missile and take
+    // no bludgeoning damage from it" -- a trait, not a reaction: every rock, as often as they come; data/foes.js `rockCatch`, the DC): a hurled rock (a giant's Rock, `hurled`) that hits one
+    // who has it is caught on the save -- no damage, and nothing the blow carries (a caught rock knocks no one down: the seat's reading, 10-08); she turns to the thrower and her CATCH row
+    // plays, the rock in her hand (built 10-08, Griz: "make the unnecessary rock catch animation"; the grid's rules §2.7 -- only a giant against a giant ever throws one at her). A miss
+    // is not asked: it does nothing either way
+    if (tgt.rockCatch && atk.hurled && !atk.spell && !tgt.dead && tgt.hp > 0) {
+      var rcs = RU.save(tgt, 'dex', tgt.rockCatch);
+      this.card(['{r}' + nameOf(tgt) + '{/}: DEX save  ' + RU.saveText(rcs) + ' vs DC ' + rcs.dc + '  ' + (rcs.ok ? '{n}CAUGHT{/}  {g}(Rock Catching: no damage){/}' : '{o}NOT CAUGHT{/}')], 300);
+      if (rcs.ok) {
+        this.turnTo(tgt, faceTo(tgt, att));
+        if (D.spr.anim(tgt.sheet, 'catch')) { tgt.anim = 'catch'; tgt.animT = this.t; }
+        D.sfx('bump'); FX.float('CAUGHT', tgt, D.PAL.ramps.silver[5]);
+        yield o.oa ? 18 : Math.max(26, (D.spr.duration(tgt.sheet, 'catch') || 0) + 4); att.anim = 'idle';
+        return;
+      }
+      yield 16;
+    }
     // damage
     if (tgt.hunterDef === 'multiattack') { (tgt.madHit = tgt.madHit || {})[att.id] = this.round + ':' + (this.active ? this.active.id : '-'); } // (Multiattack Defense: that one meets +4 AC for the rest of the turn)
     var dice = att.swarm && atk.halfHP && att.hp <= att.maxhp / 2 ? atk.halfHP : atk.dice; // a swarm at half its hit points bites for less

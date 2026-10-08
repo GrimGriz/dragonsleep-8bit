@@ -407,6 +407,21 @@ if MODE not in ('bend', 'diag'):
             dict(lean=L0 + 22, head=H0 + 8, twist=T0 - 16, wa=(-5, -15, -8), lift=Z0 - 4, fa=(0, -10, 0, 0, 0), fb=(0, 3, 0, 0, 10)),
             dict(lean=L0 + 10, twist=T0 - 8, wa=(0, -10, -14), lift=Z0 - 2, fa=(0, -6, 0, 0, 0)),
             dict(lean=L0 + 3, twist=T0 - 2, wa=(2, -5, -18), lift=Z0 - 0.8, fa=(0, -2, 0, 0, 0))]
+    # the catch (Rock Catching, SRD 5.1: "If a rock or similar object is hurled at the giant, the giant can, with a successful DC 10 Dexterity saving throw, catch
+    # the missile and take no bludgeoning damage from it" -- 10-08, Griz: "make the unnecessary rock catch animation"): the row starts as the rock arrives (js/battle.js
+    # plays it after the flight), so its first frame is the left hand already up and out to meet it, the rock at the palm; then the rock taken and the arm driven
+    # back by it, her weight thrown onto her heels; drawn in to the chest as the knees give; up again, hefted by her shoulder (hers to throw back); the arm let
+    # down with it. The club stays low in her right. CATCH_RK: where the rock sits each frame, from the left fist's middle in world axes (+X her left, -Y her front)
+    CATCH = [dict(lean=L0 - 5, head=H0 - 8, twist=T0 - 4, wa=(7, -13, 12), wb=(-6, -1, -17), lift=Z0 - 0.5, epolea=(0.7, 0.2, -1)),
+             dict(lean=L0 - 13, head=H0 - 10, twist=T0 + 9, wa=(10, -12, 3), wb=(-8, 2, -15), lift=Z0 - 2, shift=2.5, fb=(0, 3, 0, 0, 10), epolea=(0.8, 0.3, -1),
+                  club=(-0.6, 0.55, -0.45)),
+             dict(lean=L0 + 4, head=H0 + 5, twist=T0 + 6, wa=(4, -10, -6), wb=(-6, 0, -16), lift=Z0 - 4, shift=0.5, fb=(0, 3, 0, 0, 10), epolea=(0.9, 0.4, -0.5)),
+             dict(lean=L0 + 1, head=H0 + 5, twist=T0 + 8, wa=(9, -7, -7), lift=Z0 - 1.5, fb=(0, 1.5, 0, 0, 4), epolea=(0.8, 0.3, -1)),
+             dict(lean=L0 - 2, head=H0 + 3, twist=T0 + 6, wa=(11, -3, -7), lift=Z0 - 0.5, epolea=(0.6, 0.5, -1)),
+             dict(lean=L0, twist=T0 + 3, wa=(5, -5, -15), lift=Z0 - 0.3)]
+    # (the heft is weighed at her side, chest-high, not up by her ear, and the blow's frame has the rock out at the shoulder: a head-sized grey stone beside her
+    # head read as a second head from one side, and at her mouth from another -- the first two looks, 10-08)
+    CATCH_RK = [(0, -4.5, 1.5), (0.5, -3, 2), (-1, -3.5, 1), (0, -3, 2), (0.5, -1, 3.5), (0, -2.5, -2.5)]
 
     def row_flinch(i, n):
         """struck: thrown back on her heels, the head snapped back, the arms flung out and the club swung with them, then she settles."""
@@ -415,7 +430,7 @@ if MODE not in ('bend', 'diag'):
                       wa=lerp(WA, (9, 3, -9), p), wb=lerp(WB, (-9, 3, -9), p), club=tuple(lerp(CLUB0, (-0.6, 0.55, -0.2), p))), 0
 
     ROWS = [('IDLE', 8, True, row_idle, 'ik'), ('WALK', 8, True, row_walk, 'ik'), ('GREATCLUB', 8, False, blow(SMASH), 'ik'), ('GREATCLUB2', 8, False, blow(SWEEP), 'ik'),
-            ('ROCK', 8, False, blow(ROCK), 'ik'), ('FLINCH', 5, False, row_flinch, 'ik')]
+            ('ROCK', 8, False, blow(ROCK), 'ik'), ('FLINCH', 5, False, row_flinch, 'ik'), ('CATCH', 6, False, blow(CATCH), 'ik')]
     def bake(P):
         """a lying frame (gravity's `lie`) said again as limbs PLACED: each ankle, wrist, knee and elbow where the fall left it, so the poser page (which poses by placed limbs,
         not by `lie`) shows the same frame, with handles on every limb, and the page's parity with Blender holds."""
@@ -523,6 +538,11 @@ if MODE not in ('bend', 'diag'):
     if not OPT.get('noedits'):
         ROWS = R.with_edits(ROWS, OPT.get('edits', EDITS))
     ad = R.key_rows(ROWS); use = R.use
+    # the rock she catches: a stone about the size of her head, in her left fist only in the CATCH row's frames (the fist skins to the forearm: its middle is
+    # nine tenths of the way from the elbow to the knuckles, carried by LowerArm.L)
+    ROCK_OB = BL.rock('Giant_Rock', float(OPT.get('rockr', 4.2)), base=OPT.get('rockc', '#7f7466'), base2=OPT.get('rockc2', '#5c5348'))
+    FIST0 = V(J['elbowL']) + (V(J['handtipL']) - V(J['elbowL'])) * 0.9; FA_REST = arm_d.bones['LowerArm.L'].matrix_local.inverted()
+    R.carry_loose(ROCK_OB, ROWS, lambda row, i, pb: (pb['LowerArm.L'].matrix @ FA_REST @ FIST0 + Vector(CATCH_RK[i]), 1.0) if row == 'CATCH' else None, key='rock')
     use('IDLE'); bpy.context.scene.frame_set(1)
     log('rows: %s' % ', '.join(r_[0] for r_ in ROWS))
 

@@ -218,9 +218,12 @@
     saves: { str: 6, dex: 5, con: 8, int: 0, wis: 4, cha: -1 },
     attacks: {
       greatclub: { name: 'Greatclub', atk: 9, dice: '3d8', mod: 6, type: 'bludgeoning', reach: 15 },
-      rock: { name: 'Rock', atk: 9, dice: '4d10', mod: 6, type: 'bludgeoning', range: [60, 240], ranged: true, fx: 'bolt', prone: 17 }
+      rock: { name: 'Rock', atk: 9, dice: '4d10', mod: 6, type: 'bludgeoning', range: [60, 240], ranged: true, fx: 'rock', prone: 17, hurled: true } // (fx 'rock': a lump in a lob, js/fx.js -- a bolt's speck till 10-08; hurled: a rock a stone giant can catch)
     },
     multi: ['greatclub', 'greatclub'],
+    // Rock Catching (SRD 5.1: "If a rock or similar object is hurled at the giant, the giant can, with a successful DC 10 Dexterity saving throw, catch the missile and take no bludgeoning damage
+    // from it"): the DC, read by js/battle.js attack on a hurled rock that hits her -- her CATCH row (10-08, Griz: "make the unnecessary rock catch animation"; the grid's rules §2.7)
+    rockCatch: 10,
     src: 'SRD 5.1 Stone Giant (CR 7, Huge, greatclub reach 15 ft; Rock as a ranged attack, thrown when no one is in reach); content/monsters.json stonegiant; the rock knocks prone (STR 17)'
   },
   duergar: {

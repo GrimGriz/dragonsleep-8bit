@@ -1506,6 +1506,52 @@
     document.body.appendChild(preH);
     return;
   }
+  // the stone giant's Rock Catching and her CATCH row (mode=rockcatch1008; 10-08, Griz: "make the unnecessary rock catch animation"; the grid's rules §2.7): a fellow giant's
+  // Rock thrown at her, the d20s queued (the attack's, then her DEX save's, then any after; every other die its top face) -- caught on a save of 20 (no damage, her row, CAUGHT),
+  // not caught on a 2 (the rock's 46); a crossbow bolt is not a rock (not caught); a rock at one without the trait lands; the male's block carries it; both sheets have the row
+  if (get('mode', '') === 'rockcatch1008') {
+    var repRC = { checks: [], errors: [] }, d0RC = D.d;
+    function okRC(what, v) { repRC.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function runRC(g) { var v, k = 0, st; while (g && k++ < 4000) { st = g.next(v); v = undefined; if (st.done) return st.value; if (st.value && st.value.prompt) v = st.value.prompt.opts[0].value; } }
+    function pinRC(q) { q = q.slice(); D.d = function (n) { return n === 20 ? (q.length ? q.shift() : 20) : n; }; }
+    function mkRC(q) { var Bx = D.npcFight(q, {}); D.battle = Bx; Bx.enter(); while (!Bx.order.length) Bx.co.next(); Bx.dark = false; return Bx; }
+    function throwRC(q, d20s, pick) {
+      var Bx = mkRC(q), gs = Bx.units.filter(function (u) { return u.side === 'foe'; }), h = Bx.units.filter(function (u) { return u.side === 'party'; })[0], p = pick(gs, h);
+      p.tgt.hp = p.tgt.maxhp = 400; p.tgt.conds = {}; p.tgt.anim = 'idle'; D.rules.startTurn(p.by); Bx.active = p.by;
+      var n0 = (Bx.log || []).length, eRC0 = D.rules.edges(p.by, p.tgt, p.atk); pinRC(eRC0.net ? [d20s[0]].concat(d20s) : d20s); // (a throw at advantage or disadvantage rolls its d20 twice)
+      try { runRC(Bx.attack(p.by, p.tgt, p.atk)); } finally { D.d = d0RC; }
+      return { lost: 400 - p.tgt.hp, anim: p.tgt.anim, log: (Bx.log || []).slice(n0).join(' | ').replace(/\{\/?[a-z]*\}/g, '') };
+    }
+    try {
+      var rockAt = function (gs) { return { by: gs[1], tgt: gs[0], atk: gs[1].attacks.rock }; };
+      var c1 = throwRC('?npc=stonegiant,stonegiant&lvl=7&vs=fighter:7', [15, 20], rockAt);
+      okRC('a fellow\'s rock at her, the save a 20: she loses ' + c1.lost + ', plays ' + c1.anim + ', CAUGHT ' + /CAUGHT/.test(c1.log), c1.lost === 0 && /CAUGHT/.test(c1.log) && c1.anim === (D.spr.anim('stonegiant_p1', 'catch') ? 'catch' : 'idle'));
+      var c2 = throwRC('?npc=stonegiant,stonegiant&lvl=7&vs=fighter:7', [15, 2, 20], rockAt);
+      okRC('the save a 2 (DEX +5, DC 10): NOT CAUGHT ' + /NOT CAUGHT/.test(c2.log) + ', she loses ' + c2.lost + ' (4d10+6 at the top, 46)', /NOT CAUGHT/.test(c2.log) && c2.lost === 46);
+      var c3 = throwRC('?npc=stonegiant&lvl=7&vs=fighter:7', [15, 20], function (gs, h) { return { by: h, tgt: gs[0], atk: { name: 'Light Crossbow', atk: 5, dice: '1d8', mod: 2, type: 'piercing', range: [80, 320], ranged: true } }; });
+      okRC('a crossbow bolt at her is no rock: no save, she loses ' + c3.lost, c3.lost === 10 && !/CAUGHT/.test(c3.log));
+      var c4 = throwRC('?npc=stonegiant&lvl=7&vs=fighter:7', [15, 20], function (gs, h) { return { by: gs[0], tgt: h, atk: gs[0].attacks.rock }; });
+      okRC('her rock at the fighter (no Rock Catching): he loses ' + c4.lost, c4.lost === 46 && !/CAUGHT/.test(c4.log));
+      // dominated (the Big Screen, js/mpmon.js dominatedTurn), its move spent and its fellow 30 ft off, past the club's 15: before 10-08 it stood; now its rock at the fellow,
+      // the d20s queued (the throw's 15, the catch's save 20) -- caught. And with no friend in its long range either, it still stands
+      var BD = mkRC('?npc=stonegiant,stonegiant&lvl=7&vs=fighter:7&map=lampcircle'), gD = BD.units.filter(function (u) { return u.side === 'foe'; }), hD = BD.units.filter(function (u) { return u.side === 'party'; })[0];
+      gD[1].x = gD[0].x + 9; gD[1].y = gD[0].y; hD.x = gD[0].x; hD.y = gD[0].y + 12; gD[1].hp = gD[1].maxhp = 400;
+      D.rules.startTurn(gD[0]); BD.active = gD[0]; gD[0].turn.move = 0; gD[0].conds.dominated = { by: hD.id, name: 'the Big Screen', till: { who: gD[0].id, at: 'end', n: 1 } };
+      var dn0 = (BD.log || []).length, dft = D.grid.dist(gD[0], gD[1]), eD = D.rules.edges(gD[0], gD[1], gD[0].attacks.rock); pinRC(eD.net ? [15, 15, 20] : [15, 20]);
+      try { runRC(D.mpmon.dominatedTurn(BD, gD[0])); } finally { D.d = d0RC; }
+      var dl = (BD.log || []).slice(dn0).join(' | ').replace(/\{\/?[a-z]*\}/g, '');
+      okRC('dominated, its fellow ' + dft + ' ft off and no move: it throws its rock at the fellow ' + /from where it stands/.test(dl) + ', CAUGHT ' + /CAUGHT/.test(dl) + ', the fellow loses ' + (400 - gD[1].hp), dft > 15 && /from where it stands/.test(dl) && /CAUGHT/.test(dl) && gD[1].hp === 400);
+      gD[0].rocks = 0; gD[0].conds.dominated = { by: hD.id, name: 'the Big Screen', till: { who: gD[0].id, at: 'end', n: 1 } }; D.rules.startTurn(gD[0]); gD[0].turn.move = 0; dn0 = (BD.log || []).length;
+      runRC(D.mpmon.dominatedTurn(BD, gD[0])); dl = (BD.log || []).slice(dn0).join(' | ').replace(/\{\/?[a-z]*\}/g, '');
+      okRC('its rocks spent (a fight\'s `rocks`), nothing in club reach: it stands ' + /it stands, fighting/.test(dl), /it stands, fighting/.test(dl));
+      okRC('the male\'s block carries it: rockCatch ' + D.FOES.stonegiantm.rockCatch + ', his rock hurled ' + !!D.FOES.stonegiantm.attacks.rock.hurled, D.FOES.stonegiantm.rockCatch === 10 && D.FOES.stonegiantm.attacks.rock.hurled);
+      okRC('the CATCH row on both sheets: hers ' + !!D.spr.anim('stonegiant_p1', 'catch') + ', his ' + !!D.spr.anim('stonegiantm_p1', 'catch'), !!D.spr.anim('stonegiant_p1', 'catch') && !!D.spr.anim('stonegiantm_p1', 'catch'));
+    } catch (eRC) { repRC.errors.push(String(eRC && eRC.stack || eRC).slice(0, 900)); D.d = d0RC; }
+    if (errs.length) repRC.errors = repRC.errors.concat(errs);
+    var preRC = document.createElement('pre'); preRC.id = 'out'; preRC.textContent = 'BENCH16 ' + JSON.stringify(repRC);
+    document.body.appendChild(preRC);
+    return;
+  }
   // the grid's rules lane, built whole (mode=rules1006; 10-06, Griz: "take the grid's rules lane whole"; handoff-2026-10-04-the-grids-rules.md): each check failed on the code
   // before it (a byte-exact swap of the old files, the CLAUDE.md way). D.d pinned where a roll would make it dice: n === 20 gives the d20 asked, any other die its top face
   if (get('mode', '') === 'rules1006') {

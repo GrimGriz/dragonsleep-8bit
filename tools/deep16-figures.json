@@ -347,9 +347,9 @@
       }
     },
     "stonegiant": {
-      "_note": "the stone giant (SRD 5.1, Huge): MZ4250's printable Stone Giant, the female sculpt (Thingiverse; CC BY: deep16/CREDITS.md), fitted with a skeleton from her own weight groups and posed by tools/stonegiant-blend.py -- pipeline 1b's fifth, deep16/blender-monsters.md (10-04). The toon look, light 13, the lift on; grey stone skin, leather kilt, vest and bracers, linen leg wraps, the club of wood. size_by: the print base's disc, three squares. GREATCLUB an overhead smash, GREATCLUB2 a flat sweep, ROCK thrown overhand from her left hand (the engine draws the rock); PRONE over on her back, HURT the death, on her face. (Till then the Quaternius BlueDemon stood in.)",
+      "_note": "the stone giant (SRD 5.1, Huge): MZ4250's printable Stone Giant, the female sculpt (Thingiverse; CC BY: deep16/CREDITS.md), fitted with a skeleton from her own weight groups and posed by tools/stonegiant-blend.py -- pipeline 1b's fifth, deep16/blender-monsters.md (10-04). The toon look, light 13, the lift on; grey stone skin, leather kilt, vest and bracers, linen leg wraps, the club of wood. size_by: the print base's disc, three squares. GREATCLUB an overhead smash, GREATCLUB2 a flat sweep, ROCK thrown overhand from her left hand (the engine draws the rock); CATCH her Rock Catching (10-08), a rock caught in her left hand -- Giant_Rock, shown in that row alone (tools/blender_pose.py carry_loose); PRONE over on her back, HURT the death, on her face. (Till then the Quaternius BlueDemon stood in.)",
       "file": "stonegiant/stonegiant.blend",
-      "show": ["Giant_Body", "Giant_Club"],
+      "show": ["Giant_Body", "Giant_Club", "Giant_Rock"],
       "look": "toon:13",
       "lift": true,
       "floor": true,
@@ -367,15 +367,16 @@
         "flinch": "FLINCH",
         "hurt": "HURT",
         "prone": "PRONE",
-        "climb": "CLIMB"
+        "climb": "CLIMB",
+        "catch": "CATCH"
       },
-      "frames": {"idle": 8, "walk": 8, "greatclub": 8, "greatclub2": 8, "rock": 8, "flinch": 5, "hurt": 8, "prone": 6, "climb": 8},
-      "once": ["greatclub", "greatclub2", "rock", "flinch", "hurt", "prone"]
+      "frames": {"idle": 8, "walk": 8, "greatclub": 8, "greatclub2": 8, "rock": 8, "flinch": 5, "hurt": 8, "prone": 6, "climb": 8, "catch": 6},
+      "once": ["greatclub", "greatclub2", "rock", "flinch", "hurt", "prone", "catch"]
     },
     "stonegiantm": {
-      "_note": "the male stone giant (SRD 5.1, Huge): the stone giant's second look (10-04, Griz: \"2 yes\"), MZ4250's male sculpt beside the female (thing:4157322, CC BY), skeleton fitted from his own weight groups, posed by tools/stonegiantm-blend.py on tools/blender_pose.py -- the spiked club in both hands (grip2), the rock and the climb one-handed. The toon look, light 13, the lift on, the holdout floor; grey stone skin, a linen tunic and skirt, a sash, leather wraps, boots",
+      "_note": "the male stone giant (SRD 5.1, Huge): the stone giant's second look (10-04, Griz: \"2 yes\"), MZ4250's male sculpt beside the female (thing:4157322, CC BY), skeleton fitted from his own weight groups, posed by tools/stonegiantm-blend.py on tools/blender_pose.py -- the spiked club in both hands (grip2), the rock, the catch (10-08: GiantM_Rock in his left hand, that row alone) and the climb one-handed. The toon look, light 13, the lift on, the holdout floor; grey stone skin, a linen tunic and skirt, a sash, leather wraps, boots",
       "file": "stonegiantm/stonegiantm.blend",
-      "show": ["GiantM_Body", "GiantM_Club"],
+      "show": ["GiantM_Body", "GiantM_Club", "GiantM_Rock"],
       "look": "toon:13",
       "lift": true,
       "floor": true,
@@ -393,10 +394,11 @@
         "flinch": "FLINCH",
         "hurt": "HURT",
         "prone": "PRONE",
-        "climb": "CLIMB"
+        "climb": "CLIMB",
+        "catch": "CATCH"
       },
-      "frames": {"idle": 8, "walk": 8, "greatclub": 8, "greatclub2": 8, "rock": 8, "flinch": 5, "hurt": 8, "prone": 6, "climb": 8},
-      "once": ["greatclub", "greatclub2", "rock", "flinch", "hurt", "prone"]
+      "frames": {"idle": 8, "walk": 8, "greatclub": 8, "greatclub2": 8, "rock": 8, "flinch": 5, "hurt": 8, "prone": 6, "climb": 8, "catch": 6},
+      "once": ["greatclub", "greatclub2", "rock", "flinch", "hurt", "prone", "catch"]
     },
     "giantbat": {
       "_note": "the giant bat (SRD 5.1, Large): Quaternius Animated Monsters Bat, at two squares; it flies all the time.",

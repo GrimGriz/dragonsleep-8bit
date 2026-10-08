@@ -120,6 +120,21 @@
         yield* B.attack(u, tw, ra); u.anim = 'idle';
       }
     }
+    // one with a catch row it has not shown by the end of its second turn (the stone giant's Rock Catching, 10-08: in a fight only another giant ever throws a rock at
+    // her): a rock hurled at it through the engine's own attack -- a fellow's Rock where one stands (its own kind first), else the nearest watcher's stone -- with the
+    // d20 pinned to a 20, so the DEX save holds and the catch is seen (js/battle.js attack: CAUGHT, its row)
+    if (u.rockCatch && D.spr.anim(u.sheet, 'catch') && !(u.showSeen || {}).catch && u.showTurns >= 2 && u.hp > 1 && !u.conds.prone) {
+      var hurls = function (w) { return Object.keys(w.attacks || {}).filter(function (k) { return w.attacks[k].hurled; })[0]; };
+      var by = B.units.filter(function (w) { return w !== u && !w.dead && w.hp > 0 && hurls(w) && RU.canAct(w); }).sort(function (a, b) { return (a.kind === u.kind ? 0 : 1) - (b.kind === u.kind ? 0 : 1) || D.grid.dist(u, a) - D.grid.dist(u, b); })[0];
+      var ha = by ? by.attacks[hurls(by)] : { name: 'Stone', atk: 5, dice: '1d4', mod: 0, type: 'bludgeoning', range: [20, 60], ranged: true, fx: 'rock', hurled: true };
+      if (!by) by = B.units.filter(function (w) { return w.side === 'party' && D.grid.standing(w) && !w.familiar; }).sort(function (a, b) { return D.grid.dist(u, a) - D.grid.dist(u, b); })[0];
+      if (by) {
+        B.card(['{c}THE SHOW{/}: the ' + u.name + ' has not shown its catch yet. ' + (by.side === u.side ? 'A fellow giant' : by.name) + ' hurls a rock at it, the d20 pinned, to see it caught.'], 220);
+        var dc0 = D.d; D.d = function (n) { return n === 20 ? 20 : dc0.apply(this, arguments); };
+        try { yield* B.attack(by, u, ha); } finally { D.d = dc0; }
+        by.anim = 'idle'; u.anim = 'idle';
+      }
+    }
     // one with a hide row it has not shown twice by the end of its second turn (the goblin's crouch behind its shield, 10-07): its Hide through the engine's own Battle.hide -- the
     // bonus action, the d20 pinned to a 20 and its Stealth lifted past what any watcher's eyes could beat (the human rogue's passive Perception 18 and the front's +11 stood at 29 on
     // the first run: the dice must bring a Hide that holds, so that the row is seen held) -- one it already holds from the AI's own Hide is let go first (the watchers looked), and

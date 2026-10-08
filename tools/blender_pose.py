@@ -346,6 +346,36 @@ class Rig:
             ad.action_slot = act.slots[0]
         return act
 
+    def carry_loose(self, obj, rows, place, key='loose'):
+        """a loose thing some row holds now and then (the stone giant's caught rock, 10-08): `obj` rides the rig -- parented to it, not to a bone, so
+        render-sprites' turn and scale carry it -- where each frame puts it. Four numbers on the rig (<key>_x, _y, _z where it is, in the rig's space;
+        <key>_s its size), keyed on every frame of every row after key_rows, and drivers on obj that read them: a plain average, no Python, so they run
+        under --disable-autoexec. place(row, i, pose_bones) -> (a Vector in the rig's space, size) or None: not there, and then it shrinks to nothing
+        at the root bone's head, inside the body (out of every row's fitted frame and out of sight)."""
+        arm = self.arm; P_ = [key + s for s in ('_x', '_y', '_z', '_s')]
+        for p in P_:
+            arm[p] = 0.0
+        obj.parent = arm; obj.parent_type = 'OBJECT'; obj.matrix_parent_inverse = Matrix.Identity(4)
+        for path, idx, p in [('location', 0, P_[0]), ('location', 1, P_[1]), ('location', 2, P_[2])] + [('scale', i, P_[3]) for i in range(3)]:
+            fc = obj.driver_add(path, idx); dv = fc.driver; dv.type = 'AVERAGE'
+            for m in list(fc.modifiers):
+                fc.modifiers.remove(m)
+            v = dv.variables.new(); v.name = 'v'; v.type = 'SINGLE_PROP'
+            v.targets[0].id_type = 'OBJECT'; v.targets[0].id = arm; v.targets[0].data_path = '["%s"]' % p
+        scene = bpy.context.scene; shown = 0
+        for name, n, loop, fn, how in rows:
+            self.use(name)
+            for f in range(1, n + (1 if loop else 0) + 1):
+                scene.frame_set(f); bpy.context.view_layer.update()
+                pl = place(name, (f - 1) % n, arm.pose.bones)
+                if pl:
+                    at, s = pl; shown += 1
+                else:
+                    at, s = arm.pose.bones[self.ROOTS[0]].head.copy(), 1e-4
+                for p, val in zip(P_, (at.x, at.y, at.z, s)):
+                    arm[p] = float(val); arm.keyframe_insert('["%s"]' % p, frame=f)
+        print('%s %s: carried in %d frames' % (self.log, obj.name, shown))
+
     # ------------------------------------------------------------------ the poser page (tools/poser.html: Griz drags the feet and hands, 10-04)
     def with_edits(self, rows, path):
         """the rows, with any frame the poser page has set (a JSON file {row: {frame: P}}) in place of the script's own: the page's frames win."""
