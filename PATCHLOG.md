@@ -4,6 +4,7 @@ What landed, newest first, one line each: **date · commit · lane · one senten
 
 ## 2026-10-07
 
+- 2026-10-07 · `d30c674` · the menus · The fight menu's SKILLS page shows what the highlighted skill does, greyed or not, in the box under the list · *"I was trying to find the feat descrip for social flame"*
 - 2026-10-07 · `f4136a1` · MPMon · The Mascots' second-stab AI plays on either side (a band of Mascots as foes holds its formation too), the potions still the party's · *"spin up a mirror match of live lobstamonkee AI vs me-controlled lobstamonkee AI, Lvl 4"*
 - 2026-10-07 · `6d9b329` · the Game Show · Third Lamp's east hall opens into a cavern past the station, the road dressed stone through it to the causeway · *"while the road has to go all the way, the hallway can end/widen right after 3rd lamp (become cavernous instead of worked stone)"*
 - 2026-10-07 · `53fb12a` `5677eea` · MPMon · The Mascots' AI, the second stab (MP.AI2): the bubble raised as they come and stepped under before acting, Denny holding the front till it is up and taunting off her, the eye with the gaze by action, the honk, Rascal's hide, potions, Ready or Dodge for a Dash alone; the show bench's downs 27 to 14 over four runs · *"shield up, everyone under it"* · *"Denny would position in hallway for AOO of people and wait for beholda to bring the bubble up"*
