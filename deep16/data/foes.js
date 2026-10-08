@@ -725,7 +725,7 @@
     multi: 1, src: 'SRD 5.1 Ogre (CR 2, Large); content/monsters.json ogre (the king\'s road, leg one); the Javelin thrown +6 2d6+4 30/120 (SRD 5.1, when nothing is in reach: ai.js volley; 10-02 runner)'
   },
   ettin: {
-    name: 'Ettin', type: 'giant', sheet: 'ettin_p1', cr: '4', ac: 12, hp: 85, speed: 40, size: 2, reach: 5, darkvision: 60,
+    name: 'Ettin', type: 'giant', sheet: 'ettin_p2', cr: '4', ac: 12, hp: 85, speed: 40, size: 2, reach: 5, darkvision: 60,
     abil: { str: 21, dex: 8, con: 17, int: 6, wis: 10, cha: 8 }, init: -1, perception: 14,
     saves: { str: 5, dex: -1, con: 3, int: -2, wis: 0, cha: -1 },
     attacks: { axe: { name: 'Battleaxe', atk: 7, dice: '2d8', mod: 5, type: 'slashing', reach: 5 }, star: { name: 'Morningstar', atk: 7, dice: '2d8', mod: 5, type: 'piercing', reach: 5 } },
