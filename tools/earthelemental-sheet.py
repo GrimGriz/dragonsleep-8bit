@@ -27,8 +27,8 @@ Facings: NE, E and SE take the side rows (sheets 4 and 5) as drawn, SW, W and NW
 sheet's for idle, walk, slam (and attack), slam2 and flinch; sink, rise, fall and prone play side-on from S and N too (they read the same from
 any side). Every row keeps one frame count in every facing (every sheet came with the same counts: nothing fitted).
 Scale: sheet 1's side idle (hunched) stands HEIGHT px; its turnaround meets its side rows by its Right and Left stills against that idle, by
-area (the sheet drew its turnaround about 1.7 times its rows); the front sheet meets the turnaround by its idle against the Front still and
-the behind sheet by its idle against the Back still, by area -- all as before the re-roll, so S and N are unchanged. Sheet 4's side idle
+area (the sheet drew its turnaround about 1.7 times its rows); the front and behind sheets' idles stand HEIGHT px too, by height (10-08, his
+"stabilize his height": by area against the turnaround's Front and Back stills they had stood 113 and 120 px, a quarter over the side). Sheet 4's side idle
 stands HEIGHT px too (no turnaround to meet); sheet 5 meets sheet 4 by its standing frames (sink 1, rise 6, fall 1, by area) against sheet
 4's idle. Colour: each later sheet brought to sheet 1's per channel (TONE): the front's and behind's idles by their mean against the
 turnaround's Front and Back stills; the re-roll's side, warmer still, by its played mean at game size against the front's and behind's
@@ -218,8 +218,13 @@ def scales(c):
     k1 = med(c[1]['idle'], 1) / HEIGHT
     turn = {nm: body(im)[0] for nm, im, _ in c[1]['turn']}
     kt = k1 * (turn['right'] + turn['left']) / 2 / med(c[1]['idle'])
-    k2 = kt * med(c[2]['idle']) / turn['front']
-    k3 = kt * med(c[3]['idle']) / turn['back']
+    a2 = kt * med(c[2]['idle']) / turn['front']   # (by area against the turnaround, as first cut: the front stood 113 px and behind 120,
+    a3 = kt * med(c[3]['idle']) / turn['back']    # a quarter over the side's 90 -- it grew every time it turned toward or away)
+    # (since 10-08, Griz: "Please try to stabilize his height. I'd think bringing the front and back views down to the size of the rest would be the
+    # efficient approach": the front's and behind's idles stand the side idle's HEIGHT, by height)
+    k2 = med(c[2]['idle'], 1) / HEIGHT
+    k3 = med(c[3]['idle'], 1) / HEIGHT
+    print('  K by area against the turnaround (the first cut): the front %.3f, behind %.3f -- now by height, %.3f and %.3f' % (a2, a3, k2, k3))
     print('  K: sheet 1 %.3f, the turnaround %.3f (%.2f of its rows), the front %.3f, behind %.3f; sheet 1\'s side idle %d px (on the sheet '
           '%.0f), the turnaround standing %.0f px (Right) and %.0f (Front), from the front %.0f px, from behind %.0f px'
           % (k1, kt, kt / k1, k2, k3, HEIGHT, med(c[1]['idle'], 1), body(c[1]['turn'][1][1])[1] / kt, body(c[1]['turn'][0][1])[1] / kt,
