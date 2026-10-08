@@ -505,6 +505,10 @@
     win(ctx, 16, 50, 224, hh);
     text(ctx, this.h.name + ': SKILLS', 24, 57, C.gold);
     this.list.draw(ctx, 22, 72, 208, active, this.m.t, 24);
+    // what the one under the cursor does, in full, greyed or not (10-07, Griz, in a fight: "I was trying to find the feat descrip for social flame" -- a greyed
+    // entry's line is why not, so its words were nowhere): the ring's note, and E's word when it can be used
+    var cur = this.list.cur();
+    if (cur && this.ring) descBox(ctx, cur.value.note || '', cur.disabled ? '' : 'E: use it -- aimed as the ring aims.');
   };
 
   // ------------------------------------------------------------------ EQUIP: the places a body wears things (RULED 10-06: CLOAK "definite"; the places as items come; two rings)
