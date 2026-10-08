@@ -35,11 +35,11 @@
     ok('the pool ooze asleep in its puddle: not on the field', !unit(B, 'poolooze') && !!B.wet.sleepers.poolooze);
     ok('no start card: the fight\'s first beat is not the entry card (' + JSON.stringify(B.fight.noCards) + ')', B.fight.noCards === true);
     ok('a hero may not walk into the deep water, nor the pools: ' + G.canStand(lead, g8(6, 5)[0], g8(6, 5)[1]) + ', ' + G.canStand(lead, g8(20, 11)[0], g8(20, 11)[1]), !G.canStand(lead, g8(6, 5)[0], g8(6, 5)[1]) && !G.canStand(lead, g8(20, 11)[0], g8(20, 11)[1]));
-    ok('the bucket on its square (the 8-bit 13, 5): ' + JSON.stringify(B.wet.bucket && B.wet.bucket.at), B.wet.bucket && JSON.stringify(B.wet.bucket.at) === JSON.stringify(g8(13, 5)));
+    ok('the bucket on its square (the 8-bit 3, 7, by the stair since 10-08): ' + JSON.stringify(B.wet.bucket && B.wet.bucket.at), B.wet.bucket && JSON.stringify(B.wet.bucket.at) === JSON.stringify(g8(3, 7)));
     // 10-04 (Griz, the situations ear-file): the crate under the bucket and the lamp on it; the pool and its rim dressed stone
-    var cq = g8(13, 5);
-    var lq = g8(13, 3); // (10-06, Griz: the lamp "would go better at 3, 30" -- the grid's (3, 30) is the 8-bit's (13, 3))
-    ok('the deep station\'s crate under it (a crate prop on (13, 5)), and its lamp on a post two squares north (a lamp prop on (13, 3), the grid\'s (3, 30) -- ' + JSON.stringify(lq) + ', the map light there bright 10 ft gold, none on the bucket: ' + (B.lights || []).filter(function (l) { return l.kind === 'map'; }).map(function (l) { return [l.x, l.y, l.bright, l.color].join('/'); }).join(' ') + ')',
+    var cq = g8(3, 7);
+    var lq = g8(4, 7); // (10-08, Griz: "at the deepest pools edge could be the 7 row 39-40" -- the grid's (7, 40) the crate, (7, 39) the lamp)
+    ok('the deep station\'s crate under it (a crate prop on (3, 7)), and its lamp on a post beside it at the pool\'s corner (a lamp prop on (4, 7), the grid\'s (7, 39) -- ' + JSON.stringify(lq) + ', the map light there bright 10 ft gold, none on the bucket: ' + (B.lights || []).filter(function (l) { return l.kind === 'map'; }).map(function (l) { return [l.x, l.y, l.bright, l.color].join('/'); }).join(' ') + ')',
       G.map.props.some(function (p) { return p.kind === 'crate' && p.sq === G.map.at(cq[0], cq[1]); }) && G.map.props.some(function (p) { return p.kind === 'lamp' && p.sq === G.map.at(lq[0], lq[1]); }) && (B.lights || []).some(function (l) { return l.kind === 'map' && l.x === lq[0] && l.y === lq[1] && l.bright === 10 && l.color === 'gold'; }) && !(B.lights || []).some(function (l) { return l.kind === 'map' && l.x === cq[0] && l.y === cq[1]; }));
     var sf = function (x, y) { var p = g8(x, y); return G.solidFloor(p[0], p[1]); };
     ok('the pool and its rim are solid stone (noBurrowAt), the cave floor past them is not: (10,3) ' + sf(10, 3) + ', (6,5) ' + sf(6, 5) + ', (3,7) ' + sf(3, 7) + '; (13,5) ' + sf(13, 5) + ', (2,7) ' + sf(2, 7) + ', (20,11) ' + sf(20, 11),
@@ -55,8 +55,8 @@
     drain(D.wet.stepped(B, h3, [g8(8, 8)]));
     ok('the picture: spoke ' + B.wet.spoke + ', flag ' + B.flags8.landlordSpoke, B.wet.spoke && B.flags8.landlordSpoke);
     // the bucket, walked onto
-    var h4 = ours(B)[3]; put(h4, 13, 5);
-    drain(D.wet.stepped(B, h4, [g8(13, 5)]));
+    var h4 = ours(B)[3]; put(h4, 3, 7);
+    drain(D.wet.stepped(B, h4, [g8(3, 7)]));
     var bs = B.inv.filter(function (s) { return s.id === 'bucket'; })[0];
     ok('walked onto, the bucket is in the pack: x' + (bs && bs.n) + ', the square empty ' + !B.wet.bucket, bs && bs.n === 1 && !B.wet.bucket);
     // the landlord's patience: one at the edge of its water, four of its turns

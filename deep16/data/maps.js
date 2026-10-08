@@ -1062,7 +1062,7 @@ window.D16.MAPS.bog = {
 // D the landlord's deep water under the fall and ~ the three settling pools: deep water here (`deepWater`), as in the 8-bit -- nothing
 // walks in it; what lives in it (the landlord, bound to D; the jelly, a swimmer) moves there. = the plank bridges; y the cradles, the
 // crawler pens (timber cribs: the herd comes out of them); the stair up at the 8-bit's (1, 12-13) and the openings on the south edge
-// are the ways out. The bucket lies at the 8-bit's (13, 5), where its crate is (deep16/js/wet.js).
+// are the ways out. The bucket lies at the 8-bit's (3, 7), where its crate is, at the deepest pool's edge by the stair (deep16/js/wet.js; 10-08).
 // TURNED a quarter counter-clockwise on the screen (RULED 09-30b, Griz: "can you rotate the grid counter-clockwise"): the rows below
 // are the 8-bit map's own, north up; the grid is them turned, so the 8-bit's north lies to the upper left. The 8-bit square (x, y) is
 // the grid's (y, 43 - x); `from8` turns an 8-bit square (and a body `s` squares across) into the grid's -- the fight's triggers, pens,
@@ -1099,8 +1099,8 @@ window.D16.MAPS.bog = {
     name: 'The Wet',
     sub: 'the Warrens, the settling pools',
     dark: true, // (the 8-bit map's `dark`; its one light is the deep station's lamp on the crate, below)
-    lampAt: from8(13, 3), // (the deep station's lamp on its post, two squares north of the crate on the 8-bit -- the grid's (3, 30): deep16/js/wet.js W.layLamp draws it; 10-06, Griz: "the lantern - which sits at 5, 29 and I think would go better at 3, 30")
-    lights: [[from8(13, 3)[0], from8(13, 3)[1], 10, 'gold']], // (10-04, Griz: "put a light nearby the bucket ... a visible draw on the grid": the lamp's own light, bright 10 ft, dim 10 more -- on the lamp's square, not the bucket's: "the bucket glows like its a light" when it sat there)
+    lampAt: from8(4, 7), // (the deep station's lamp on its post at the pool's corner, beside the crate -- the grid's (7, 39): deep16/js/wet.js W.layLamp draws it; 10-08, Griz: "at the deepest pools edge could be the 7 row 39-40"; it was the grid's (3, 30), 10-06)
+    lights: [[from8(4, 7)[0], from8(4, 7)[1], 10, 'gold']], // (10-04, Griz: "put a light nearby the bucket ... a visible draw on the grid": the lamp's own light, bright 10 ft, dim 10 more -- on the lamp's square, not the bucket's: "the bucket glows like its a light" when it sat there)
     noBurrowAt: [rect8(3, 3, 10, 6)], // (10-04, Griz: "The tiles around the Landlords pool should be switched to solid stone": the pool and its rim, the 8-bit's x 3-12, y 3-8 -- dressed stone; nothing burrows under it or comes up through it)
     step: 10,
     deepWater: 'D~',

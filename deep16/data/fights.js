@@ -56,7 +56,7 @@
       spots: { jelly: [[21, 14], [22, 14], [23, 14], [24, 14], [22, 9]], poolooze: [[29, 13]] }, picture: [[7, 8], [8, 8], [9, 8], [10, 8]],
       // the herd comes in over the south edge, out of the dark (RULED 09-30c: "the fallen attracted crawlers should come in from the southern
       // edge, 1 west of aurdin's e-w coordinate, and 5 squares east of 'crawlerspawn1'"): just past the edge, off the grid
-      bucket: [13, 5], entrances: [[28, 19], [33, 19]], wave: null },
+      bucket: [3, 7], entrances: [[28, 19], [33, 19]], wave: null }, // (the bucket at the deepest pool's edge by the stair, the grid's (7, 40) -- 10-08; it was the 8-bit's (13, 5), past the landlord)
     // the expansion's (deep.js). The 8-bit game sizes them for its guests (EV.guestWeight: Pyro is worth two); the ladder
     // is the four, so each is sized hard for four by the DMG table (and says what the 8-bit game's list was)
     { id: 'cutseal', story: true, level: 5, map: 'camp', name: 'The Cut Seal', sub: 'the king\'s road, leg one', music: 'boss',

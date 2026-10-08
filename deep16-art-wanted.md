@@ -31,7 +31,7 @@ What the game still wears a stand-in for, or still draws flat in code. Nothing h
 
 ### Props wanted (things on the grid, not creatures; added 10-06; the deep station's three IN HAND 10-08)
 
-**In (10-08):** his GPT sheet, `deep16/_src/Props_TheWet_GPT.png` (all three on one page: the crate, the bucket, the lamp four times), cut by `tools/wetprops-sheet.py` into `wetcrate_p1`, `wetbucket_p1` and `wetlamp_p1` (lit, four frames of the flame) and drawn by `deep16/js/wet.js`; the code's flat drawings stand in only while the images load. Door: `deep16/?fight=wet&station`. The table and the head below are kept for a re-roll.
+**In (10-08):** his GPT sheet, `deep16/_src/Props_TheWet_GPT.png` (all three on one page: the crate, the bucket, the lamp four times), cut by `tools/wetprops-sheet.py` into `wetcrate_p1`, `wetbucket_p1` and `wetlamp_p1` (lit, four frames of the flame) and drawn by `deep16/js/wet.js`; the code's flat drawings stand in only while the images load. Door: `deep16/?fight=wet&station`. Since 10-08 the station stands at the deepest pool's corner by the stair -- the crate and bucket on the grid's (7, 40) (the 8-bit's (3, 7)), the lamp on (7, 39) -- on his *"at the deepest pools edge could be the 7 row 39-40"*; the squares in the table below are where it stood. The table and the head below are kept for a re-roll.
 
 Griz, 10-06, on the Wet's deep station in his situations ear file: *"Can find at a glance. All 3 are very very 2D, particularly the lantern"* -- then *"please also add to art wanted"*. Today the three are drawn in code as flat rectangles, front-on (`deep16/js/wet.js` `W.layCrate`, `W.layBucket`, `W.layLamp`): they read as stickers on the grid's diamond floor.
 

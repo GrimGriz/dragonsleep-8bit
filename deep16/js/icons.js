@@ -25,6 +25,10 @@
     back: ['............', '....o.......', '...oco......', '..occooooo..', '.occcccccco.', '..occooooco.', '...oco...co.', '....o...oco.', '.......occo.', '...ooooocco.', '...occcccoo.', '...ooooooo..'],
     torch: ['.....oo.....', '....oGGo....', '...oGwwGo...', '...oGRRGo...', '....oRRo....', '....oLLo....', '....oLlo....', '....oLlo....', '....oLlo....', '....oLlo....', '....oLlo....', '.....oo.....'],
     lantern: ['.....oo.....', '....o..o....', '....oooo....', '...oLLLLo...', '..oLwwwwLo..', '..oLwGGwLo..', '..oLwRRwLo..', '..oLwGGwLo..', '..oLwwwwLo..', '...oLLLLo...', '....oooo....', '............'],
+    // the Wet's bucket (10-08, Griz: "need a bucket icon instead of a potion"): the rope handle, the dark mouth, staves and two iron hoops
+    // the Rope & Grapple (10-08, Griz: "both torch and rope are still using flasks"): the grapple's tines, the line, the coil
+    rope: ['......oSoSoS', '.......oSSSo', '........oSo.', '........oSo.', '.......ogoo.', '..ooooogo...', '.oggLLggLo..', 'ogLooooLgo..', 'oLg....gLo..', 'ogLooooLgo..', '.oggLLggLo..', '..ooooooo...'],
+    bucket: ['...oooooo...', '..oggggggo..', '.ogo....ogo.', '.oooooooooo.', 'oLllllllllLo', 'oLLLLLLLLLLo', 'oSSSSSSSSSSo', '.oLLlLLlLLo.', '.oLLlLLlLLo.', '.oSSSSSSSSo.', '..oLlLLlLo..', '..oooooooo..'],
     // THE MASCOTS' OWN (10-08, Griz: "Lobstamonkee Icons in general"): each kit's blow and each ability its own glyph -- the orange fist, the claw, the dice, the sling; the specials by what
     // they look like on the floor (js/mpmon.js MP.KIT names them). F/f the fire ramp's orange, M/m the greens, b/B the blues, p pink -- BASE below
     fist: ['............', '...oo.oo.oo.', '..oFFoFFoFFo', '..oFFFFFFFFo', '.ooFFFFFFFfo', 'oFFoFFFFFFfo', 'oFFFFFFFffo.', '.oFFFFFfffo.', '..oFFffffo..', '...offfffo..', '....ooooo...', '............'],
@@ -89,6 +93,10 @@
       return D.icon('spell', { fire: 'fire', cold: 'cold', lightning: 'lightning', acid: 'acid', thunder: 'thunder', bludgeoning: 'cold', radiant: 'radiant' }[sp.el] || 'force');
     }
     if (e.kind === 'level') return D.icon('spell', ['thunder', 'cold', 'acid', 'lightning', 'fire', 'fire', 'force', 'force', 'force', 'force'][e.level] || 'force');
+    if (e.kind === 'item') { // (an item with a glyph of its own -- by its id, the torch, the lantern, the bucket; or by its use, the rope -- else the flask in its effect's colours)
+      var it = e.e || e, own = MAPS[it.id] ? it.id : it.use && MAPS[it.use.effect] ? it.use.effect : null;
+      if (own) return D.icon(own);
+    }
     if (e.kind === 'item') return D.icon('item', e.use && e.use.effect === 'heal' ? '' : e.use && e.use.effect);
     return D.icon(e.icon || e.id);
   };

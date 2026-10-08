@@ -79,12 +79,13 @@
     var E = B.o.embed || {}, mk = E.milker && ours(B).filter(function (w) { return w.id === E.milker; })[0], ld = ours(B)[0];
     if (mk && ld && ld !== mk) { var sx = ld.x, sy = ld.y; ld.x = mk.x; ld.y = mk.y; mk.x = sx; mk.y = sy; }
     if (mk && E.touched) { mk.conds.poisoned = { paralysis: true }; mk.conds.paralyzed = { save: 'con', dc: 13, by: 'harness', poison: true }; }
-    // the bucket on its square (the 8-bit's (13, 5)): unless the party carries it, or the landlord has had it. Carried, it is in one hand:
+    // the bucket on its square (the 8-bit's (3, 7), by the stair since 10-08): unless the party carries it, or the landlord has had it. Carried, it is in one hand:
     // whoever took it up (the 8-bit's lead at the station, or whoever walked onto it here), else the lead (RULED 09-30g, Griz: "Only the
     // character that picked up the bucket should be able to use it as an item")
     var has = (B.inv || []).some(function (s) { return s.id === 'bucket' && s.n > 0; });
     if (F.bucket) W.layCrate(B, F.bucket); // (the deep station's crate under the bucket -- 10-04, Griz: "a visible draw on the grid")
     if (B.map && B.map.def && B.map.def.lampAt) W.layLamp(B, B.map.def.lampAt); // (its lamp on a post beside the crate, the map's light on that square -- 10-04)
+    if (B.map && B.map.def && B.map.def.doors) W.layStair(B, B.map.def.doors); // (the stair up on its squares -- 10-08)
     if (!has && !f8.otyughFed && F.bucket) W.layBucket(B, F.bucket);
     if (has) { var cw = ours(B).filter(function (w) { return w.id === f8.bucketBy && w.hp > 0; })[0] || ours(B).filter(function (w) { return w.hp > 0; })[0]; if (cw) { B.wet.bucketBy = cw.id; B.flags8.bucketBy = cw.id; } }
     // in by the rim (the 8-bit's picture squares, 09-30g: "the 8-bit landlord trigger should pull them into the grid area at the trigger spot"):
@@ -95,15 +96,15 @@
     // the door `deep16/?fight=wet&station` (his eye on the deep station's props, 10-08): the lead beside the crate, and the first turn's
     // camera on the crate and its lamp (BP.focus below) -- not the party's walk-in at the far end of the map
     if (/[?&]station\b/.test(location.search) && F.bucket) {
-      var L = ours(B)[0], tx = F.bucket[0] - 1, ty = F.bucket[1] + 1, tq = G.map.at(tx, ty);
-      if (L && tq && tq.walk && !G.occupant(tx, ty)) { L.x = tx; L.y = ty; G.map.sorted = null; }
+      var L = ours(B)[0], spot = [[2, 0], [1, 1], [2, 1], [0, 1]].map(function (o) { return [F.bucket[0] + o[0], F.bucket[1] + o[1]]; }).filter(function (q) { var s = G.map.at(q[0], q[1]); return s && s.walk && !G.occupant(q[0], q[1]); })[0];
+      if (L && spot) { L.x = spot[0]; L.y = spot[1]; G.map.sorted = null; } // (beside it on the screen, clear of the crate and the lantern)
       B.wet.station = F.bucket.slice();
     }
   };
   var focus0 = BP.focus;
   BP.focus = function (u) {
     var st = on(this) && this.wet.station; if (!st) return focus0.apply(this, arguments);
-    this.wet.station = null; D.iso.lookAt(st[0] - 1, st[1], 0); D.iso.zoom = 2;
+    this.wet.station = null; D.iso.lookAt(st[0] + 1, st[1], 0); D.iso.zoom = 2;
   };
   W.WAKE = { landlord: 'The water under the fall heaves: the landlord rises, all eye-stalk and tentacle.', jelly: 'Something ochre heaves up out of the settling pool.', poolooze: 'The puddle at the pool\'s edge moves.', harness: 'The crawler tears loose of its harness.' };
   // the nearest square it may stand on, free of everyone
@@ -298,6 +299,52 @@
       ctx.fillStyle = '#6e4e2e'; ctx.fillRect(x - 10, y - 8, 20, 9);
       ctx.fillStyle = '#8a6840'; ctx.fillRect(x - 10, y - 8, 20, 2); ctx.fillRect(x - 10, y - 3, 20, 1); // the planks' edges
       ctx.fillStyle = '#3a2816'; ctx.fillRect(x - 1, y - 8, 2, 9); ctx.fillRect(x - 10, y - 5, 20, 1); // the nailed cross
+    } });
+  };
+  // the stair up, on the map's `doors` (10-08, Griz: "Exit tiles don't resemble stairs and probably should somehow"; the 8-bit's are `u`, stairs up).
+  // The grid turned the 8-bit's west edge to its near side, where the walls are cut to a stub (iso.js), and a flight climbing out toward the camera
+  // shows only its treads -- a striped slab. So it is drawn as a flight along the wall over the door squares, climbing toward their far end (-x),
+  // its risers and its side toward the camera: the shape that reads as a stair on this projection. Drawn once into a canvas in the map's stone,
+  // outlined as the props are; the squares' rules are unchanged (stand on one and LEAVE THE AREA? asks), and anyone on it is drawn over it.
+  W.STAIR = { steps: 6, rise: 5 };
+  W.layStair = function (B, doors) {
+    var xs = doors.map(function (p) { return p[0]; }), ys = doors.map(function (p) { return p[1]; });
+    var x0 = Math.min.apply(null, xs), x1 = Math.max.apply(null, xs) + 1, y0 = Math.min.apply(null, ys), y1 = Math.max.apply(null, ys) + 1;
+    var sq = G.map.at(x0, y0); if (!sq) return;
+    var n = W.STAIR.steps, rise = W.STAIR.rise, d = (x1 - x0) / n, img = null;
+    function wp(cx, cy, z) { return { x: (cx - cy) * D.iso.TW / 2, y: (cx + cy) * D.iso.TH / 2 - z }; } // (a corner of the grid, in world pixels)
+    function bake() {
+      var pts = [wp(x0, y0, n * rise), wp(x1, y0, 0), wp(x1, y1, 0), wp(x0, y1, 0), wp(x0, y1, n * rise), wp(x0, y0, 0)];
+      var ox = Math.floor(Math.min.apply(null, pts.map(function (p) { return p.x; }))) - 2, oy = Math.floor(Math.min.apply(null, pts.map(function (p) { return p.y; }))) - 2;
+      var W2 = Math.ceil(Math.max.apply(null, pts.map(function (p) { return p.x; }))) - ox + 3, H2 = Math.ceil(Math.max.apply(null, pts.map(function (p) { return p.y; }))) - oy + 3;
+      var cv = document.createElement('canvas'); cv.width = W2; cv.height = H2;
+      var cx = cv.getContext('2d'), st = D.iso.ramp('stone'), rgb = function (c) { return 'rgb(' + c[0] + ',' + c[1] + ',' + c[2] + ')'; };
+      function quad(q, c) { cx.fillStyle = rgb(c); cx.beginPath(); q.forEach(function (p, i) { if (i) cx.lineTo(p.x - ox, p.y - oy); else cx.moveTo(p.x - ox, p.y - oy); }); cx.closePath(); cx.fill(); }
+      for (var k = n - 1; k >= 0; k--) { // the high (far) end first; step k spans xa..xb, its top at (k + 1) rises
+        var xb = x1 - k * d, xa = xb - d, z = (k + 1) * rise;
+        quad([wp(xa, y1, 0), wp(xb, y1, 0), wp(xb, y1, z), wp(xa, y1, z)], st[3]);                    // its side (+y, lower left): the sawtooth
+        quad([wp(xb, y0, z - rise), wp(xb, y1, z - rise), wp(xb, y1, z), wp(xb, y0, z)], st[2]);      // its riser (+x, lower right)
+        quad([wp(xa, y0, z), wp(xb, y0, z), wp(xb, y1, z), wp(xa, y1, z)], st[4]);                    // its tread
+        var a = wp(xb, y0, z), b = wp(xb, y1, z); cx.strokeStyle = rgb(st[6]); cx.lineWidth = 1;   // its nosing, catching the light
+        cx.beginPath(); cx.moveTo(a.x - ox, a.y - oy + 0.5); cx.lineTo(b.x - ox, b.y - oy + 0.5); cx.stroke();
+      }
+      // the stone's grain (a fixed hash, so it never crawls), then the outline round the whole flight
+      var id = cx.getImageData(0, 0, W2, H2), px = id.data, ol = D.iso.ramp('outline')[0], solid = new Uint8Array(W2 * H2);
+      for (var i = 0; i < W2 * H2; i++) {
+        if (px[i * 4 + 3] < 128) continue; solid[i] = 1; px[i * 4 + 3] = 255;
+        var h = ((i * 2654435761) >>> 0) % 997 / 997, f = h < 0.08 ? 0.82 : h > 0.94 ? 1.1 : 0.96 + h * 0.08;
+        for (var c = 0; c < 3; c++) px[i * 4 + c] = Math.min(255, Math.round(px[i * 4 + c] * f));
+      }
+      for (var y = 0; y < H2; y++) for (var x = 0; x < W2; x++) {
+        var j = y * W2 + x; if (solid[j]) continue;
+        if ((x > 0 && solid[j - 1]) || (x < W2 - 1 && solid[j + 1]) || (y > 0 && solid[j - W2]) || (y < H2 - 1 && solid[j + W2])) { px[j * 4] = ol[0]; px[j * 4 + 1] = ol[1]; px[j * 4 + 2] = ol[2]; px[j * 4 + 3] = 255; }
+      }
+      cx.putImageData(id, 0, 0);
+      return { cv: cv, ox: ox, oy: oy };
+    }
+    G.map.props.push({ kind: 'stair', sq: sq, depth: x0 + y0 + 0.5, gz: 0, draw: function (ctx) {
+      if (!img) img = bake();
+      var s = D.iso.toScreen(img.ox, img.oy); ctx.drawImage(img.cv, s.x, s.y);
     } });
   };
   W.takeBucket = function (B, u) {

@@ -82,9 +82,9 @@
   DS.SITUATIONS = {
     // ---------------------------------------------------------------- the base game (round six's state, one quest undone)
     wet: { group: 'The base game', title: 'The Wet: the bucket and the landlord', pt: '§5 the wet · the landlord\'s pictures (new 10-01)', lvl: 4,
-      look: 'E on the crate below you for the bucket. Then E at the water (or walk round to the stone rim south of the pool): onto the wet\'s grid with every sleeper in it, and the landlord\'s first picture before anyone moves. USE the bucket there (ITEM, by the one who carries it) and four more pictures come, the clackers clacking.',
-      say: 'The Warrens\' wet. The crate below you holds the deep station\'s bucket; the landlord is in the water to the west, unfed.',
-      unset: ['otyughFed', 'landlordSpoke'], map: 'warrens_d', x: 13, y: 4, dir: 'down' },
+      look: 'E on the crate above you (at the deep pool\'s corner, by the stair since 10-08) for the bucket. Then E at the water (or walk round to the stone rim south of the pool): onto the wet\'s grid with every sleeper in it, and the landlord\'s first picture before anyone moves. USE the bucket there (ITEM, by the one who carries it) and four more pictures come, the clackers clacking.',
+      say: 'The Warrens\' wet. The crate above you holds the deep station\'s bucket; the landlord is in the water beyond it, unfed.',
+      unset: ['otyughFed', 'landlordSpoke'], map: 'warrens_d', x: 3, y: 8, dir: 'up' },
     // 10-03, Griz: "set me up with a level 3 party led by lymen, in silverton, with the gates down to the wet already opened type URL":
     // the ?lvl3 start (Winters' errands run, the four found, nothing else) plus the Warrens' way down -- Pete heard, the tally book met,
     // the five known, Skarn's gate open -- and nothing below done. base: 'lvl3' (DS.levelThree, not round six). &lead=lymen preselects him.

@@ -693,7 +693,7 @@ def build_warrens():
     # the channels between the pools, planked over by the deep-rate crews
     g.path([(10, 7), (13, 8)], 'B'); g.path([(18, 10), (19, 11)], 'B'); g.path([(26, 12), (27, 11)], 'B'); g.path([(32, 10), (33, 9)], 'B')
     g.path([(37, 9), (43, 8)], '~')                           # the seep, out the east edge
-    g.put(13, 5, 'k')                                         # the bucket station
+    g.put(3, 7, 'k')                                          # the bucket station, at the deepest pool's edge by the stair (10-08, Griz: "at the deepest pools edge could be the 7 row 39-40 just as easily and they wouldn't come down the stairs and walk way past him"; it was at (13, 5), past the landlord)
     for (x, y) in [(15, 6), (24, 16), (35, 6)]:
         g.put(x, y, 'y')                                       # deep-rate stations
     for (x, y) in [(12, 16), (19, 17), (27, 7), (31, 15)]:
@@ -715,7 +715,7 @@ def build_warrens():
         g.put(x, y, 'u')
     g.warp(1, 12, 'warrens_b', 12, 2, 'down'); g.warp(1, 13, 'warrens_b', 12, 2, 'down')
     g.warp(41, 27, 'warrens_c', 24, 2, 'down'); g.warp(42, 27, 'warrens_c', 24, 2, 'down')
-    g.trig('bucket', 13, 5, 'bucket', on='use')
+    g.trig('bucket', 3, 7, 'bucket', on='use')
     g.trig('landlord', 4, 2, 'landlord', on='use', w=9, h=7)
     g.trig('landlordStep', 7, 8, 'landlordNear', on='step', w=4, h=1, cond='!flag:otyughDead & !flag:otyughFed')  # (09-30g: onto the grid; fed or dead, only stone)
     for n, (x, y) in enumerate([(15, 6), (35, 6), (24, 16)]):
