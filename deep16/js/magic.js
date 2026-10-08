@@ -893,6 +893,7 @@
     // Mirror's Gaze (RULED 09-28, invented.json #mirrors-gaze): the marked one cannot hide from her; unseen, it gains nothing against her
     if (b.conds && b.conds.marked && b.conds.marked.gaze && b.conds.marked.by === a.id) return { ok: true };
     if (a.conds && a.conds.blinded) return { ok: false, why: 'blinded' };
+    if (a.conds && a.conds.averted && a.conds.averted.from.indexOf(b.id) >= 0) return { ok: false, why: 'eyes averted' }; // (from a gaze, till its next turn: js/traits.js M.avert, 10-08)
     if (a.truesight && G.dist(a, b) <= a.truesight) return { ok: true };
     if ((B.darks || []).length) {
       var k = obscuredBetween(B, a, b);

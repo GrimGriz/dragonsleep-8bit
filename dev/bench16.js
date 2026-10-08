@@ -1572,6 +1572,35 @@
       var B8 = mkR8('?npc=goblin&lvl=3&vs=barbarian:3'), b8 = sideR8(B8, 'party')[0]; D.rules.startTurn(b8); B8.active = b8; D.features.rage(B8, b8); var fr8 = !!b8.conds.frenzy;
       for (var t8 = 0; t8 < 10; t8++) MR8.tick(B8, b8, 'start');
       okR8('§2.7 the Berserker (' + b8.subclass + ') frenzied ' + fr8 + '; the rage out ' + !b8.conds.raging + ': exhaustion ' + D.rules.exhaustion(b8), fr8 && !b8.conds.raging && D.rules.exhaustion(b8) === 1);
+      // §2.7 A GAZE (the basilisk's, SRD 5.1 -- traits.js M.gazeAsk): a goblin lent the basilisk's gaze, 20 ft off. At the start of a turn: the AI with a poor CON looks away (and then
+      // cannot see it: its blow at disadvantage, the gazer's at it with advantage); with a good CON it meets it -- the save failed, the stone begins; a player's hero is asked;
+      // the medusa's failure by 5 is stone at once; 40 ft off, nothing
+      function gazeR8(o) {
+        var Bx = mkR8('?npc=goblin&lvl=5&vs=fighter:5'), gx = sideR8(Bx, 'foe')[0], fx = sideR8(Bx, 'party')[0];
+        fx.hp = fx.maxhp = 200; fx.conds = {}; gx.hp = gx.maxhp = 200; gx.x = fx.x; gx.y = Math.max(0, fx.y - (o.far ? 8 : 4));
+        gx.gaze = { range: 30, dc: 12, ab: 'con', stone: true, now5: !!o.now5, title: 'THE GAZE' }; fx.saves = Object.assign({}, fx.saves, { con: o.con });
+        if (!o.hand) fx.guest = true; // (a guest's turn is the AI's: battle.js run)
+        var n = (Bx.log || []).length, q = (o.d20 || []).slice(); D.d = function (k) { return k === 20 ? (q.length ? q.shift() : 10) : k; };
+        var out = {};
+        try {
+          Bx.active = fx; D.rules.startTurn(fx);
+          out.asked = !!(fx.turn.gazeAsk && fx.turn.gazeAsk.length);
+          if (out.asked) { var g = D.magic.gazeAsk(Bx, fx), st, v; for (var k = 0; k < 50; k++) { st = g.next(v); v = undefined; if (st.done) break; if (st.value && st.value.prompt) v = o.meet ? 1 : 0; } }
+          var sw = { name: 'Longsword', atk: 5, dice: '1d8', mod: 3, type: 'slashing', reach: 5 };
+          out.averted = !!(fx.conds.averted && fx.conds.averted.from.indexOf(gx.id) >= 0); out.sees = D.magic.sees(Bx, fx, gx);
+          out.myDis = D.rules.edges(fx, gx, sw).dis.join(', '); out.itsAdv = D.rules.edges(gx, fx, sw).adv.join(', ');
+          out.stone = fx.conds.petrified ? 'stone' : fx.conds.stoning ? 'turning' : 'free';
+          var gy0 = gx.y; gx.y = Math.max(0, fx.y - 9); gx.x = fx.x + 9; Bx.active = fx; D.rules.startTurn(fx); out.cleared = !fx.conds.averted; gx.y = gy0; gx.x = fx.x;
+          Bx.active = fx; D.rules.startTurn(fx); out.next = !!fx.conds.averted || !!(fx.turn.gazeAsk && fx.turn.gazeAsk.length) || fx.conds.stoning ? 'gazed again' : 'clear';
+        } finally { D.d = d0R8; }
+        out.log = logR8(Bx, n).slice(0, 200);
+        return out;
+      }
+      var gA = gazeR8({ con: -5 }), gB = gazeR8({ con: 9, d20: [1] }), gC = gazeR8({ con: 0, hand: true }), gD = gazeR8({ con: 0, hand: true, meet: true, d20: [15] }), gE = gazeR8({ con: 0, now5: true, hand: true, meet: true, d20: [2] }), gF = gazeR8({ con: -5, far: true });
+      okR8('§2.7 the gaze: the AI with CON -5 looks away ' + gA.averted + ', and sees again at its next turn out of reach ' + gA.cleared + ' (sees it ' + gA.sees + '; its blow: ' + gA.myDis + '; the gazer\'s: ' + gA.itsAdv + '); with CON +9 it meets it, a 1: ' + gB.stone + ' (looked away ' + gB.averted + ')',
+        gA.averted && gA.cleared && !gA.sees && /unseen/.test(gA.myDis) && /unseen attacker/.test(gA.itsAdv) && gA.stone === 'free' && !gB.averted && gB.stone === 'turning');
+      okR8('§2.7 the gaze, a player\'s hero: asked ' + gC.asked + ', LOOK AWAY ' + gC.averted + '; asked again, MEET IT on a 15: ' + gD.stone + '; the medusa\'s, a 2 (fails by 10): ' + gE.stone + '; 40 ft off: asked ' + gF.asked + ', looked away ' + gF.averted + ', ' + gF.stone,
+        gC.asked && gC.averted && gC.stone === 'free' && gD.asked && gD.stone === 'free' && !gD.averted && gE.stone === 'stone' && !gF.asked && !gF.averted && gF.stone === 'free');
     } catch (eR8) { repR8.errors.push(String(eR8 && eR8.stack || eR8).slice(0, 900)); D.d = d0R8; }
     if (errs.length) repR8.errors = repR8.errors.concat(errs);
     var preR8 = document.createElement('pre'); preR8.id = 'out'; preR8.textContent = 'BENCH16 ' + JSON.stringify(repR8);

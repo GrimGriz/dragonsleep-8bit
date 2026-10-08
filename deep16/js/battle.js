@@ -968,6 +968,7 @@
     // Irresistible Dance (10-01, Griz: "agree, player choice, ai takes irresistible seriously ;)"): the player's dancer is asked -- SHAKE IT OFF (the WIS
     // save, the action spent) or FIGHT ON (no save, the action kept, no move): js/grimoire.js M.danceAsk. The AI's dancer saves in M.onStart
     if (u.turn.danceAsk && D.magic.danceAsk) yield* D.magic.danceAsk(this, u);
+    if (u.turn.gazeAsk && D.magic.gazeAsk) yield* D.magic.gazeAsk(this, u); // (a gaze in reach at the turn's start -- LOOK AWAY or MEET IT: js/traits.js, 10-08)
     this.tool = 'move'; this.cursor = { x: u.x, y: u.y };
     while (true) {
       var cmd = yield { turn: u };

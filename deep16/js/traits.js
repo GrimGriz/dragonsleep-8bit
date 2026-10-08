@@ -12,7 +12,7 @@
   function Nm(B, u) { return u.side === 'foe' ? (u.named ? B.shortName(u) : 'The ' + B.shortName(u)) : u.name; }
 
   // the traits a unit carries from its sheet (battle.js makeFoe copies these)
-  TR.FIELDS = ['earthGlide', 'rampage', 'charge', 'relentlessBeast', 'nimble', 'twoHeads', 'corrosive', 'jaunt', 'resilient', 'evasion', 'cunning', 'parry', 'rangedMulti', 'rockCatch', 'pounce', 'drinkLight', 'foretell', 'kneel', 'rise']; // (pounce, drinkLight, foretell, kneel, rise: the Harbinger's, 10-08 -- below) // (resilient: the duergar's Resilience, SRD 5.1 -- rules.js RU.save; 10-02 runner) (rockCatch: the stone giant's Rock Catching, its DC -- battle.js attack, 10-08)
+  TR.FIELDS = ['earthGlide', 'rampage', 'charge', 'relentlessBeast', 'nimble', 'twoHeads', 'corrosive', 'jaunt', 'resilient', 'evasion', 'cunning', 'parry', 'rangedMulti', 'rockCatch', 'pounce', 'drinkLight', 'foretell', 'kneel', 'rise', 'gaze']; // (gaze: a petrifying gaze, the basilisk's and the medusa's -- below, 10-08) (pounce, drinkLight, foretell, kneel, rise: the Harbinger's, 10-08 -- below) // (resilient: the duergar's Resilience, SRD 5.1 -- rules.js RU.save; 10-02 runner) (rockCatch: the stone giant's Rock Catching, its DC -- battle.js attack, 10-08)
 
   // ------------------------------------------------------------------ Duergar Resilience on a spell already running (SRD 5.1: "advantage on saving throws against poison, spells, and illusions")
   // rules.js RU.save reads B.castLevel only while a cast is under way. The saves a spell asks later -- Spirit Guardians at the start of the turn, a zone's, Web's, Moonbeam's, a wall's, the
@@ -361,5 +361,49 @@
       if (!sv.ok) { u.conds.confused = { gibber: true, by: m.id }; u.reaction = 0; }
     });
     if (lines.length) B.card(lines, 300);
+  };
+
+  // ------------------------------------------------------------------ A GAZE (SRD 5.1: the basilisk's and the medusa's Petrifying Gaze; the grid's rules §2.7, 10-08 -- the rule built
+  // before the monsters that use it, the lanes window's order): a sheet's `gaze: { range, dc, ab, stone, now5, title }`. A creature that starts its turn within its range, the two
+  // seeing each other and the gazer not incapacitated, makes the save -- unless it averts its eyes (not when surprised): then it cannot see the gazer till the start of its next
+  // turn (magic.js seeWhy: its blows at the gazer at disadvantage, the gazer's at it with advantage). A failed save begins the stone (M.stoneBegin: restrained, the save again at
+  // the end of its next turn); with `now5` (the medusa) a failure by 5 or more is stone at once (M.petrify). The AI looks away when the save is lost one time in three or more; a
+  // player's hero is asked (M.gazeAsk, battle.js heroTurn). Not built: looking at it in the meantime forcing the save; the reflection in bright light turning it on itself
+  function gazersOf(B, u) {
+    return B.units.filter(function (m) { return m !== u && m.gaze && G.standing(m) && RU.canAct(m) && G.hostile(m, u) && G.dist(m, u) <= (m.gaze.range || 30) && M.sees(B, m, u) && M.sees(B, u, m); });
+  }
+  M.gazeSave = function (B, u, m) {
+    var g = m.gaze, ab = g.ab || 'con', sv = RU.save(u, ab, g.dc, false, g.stone ? 'petrified' : null), now = !!(g.now5 && !sv.ok && sv.total <= g.dc - 5);
+    B.card(['{p}' + Nm(B, m) + '\'s gaze{/} on ' + Nm(B, u) + ': ' + ab.toUpperCase() + ' ' + RU.saveText(sv) + ' vs DC ' + g.dc + '  ' + (sv.ok ? '{n}it holds{/}' : now ? '{o}stone at once{/}' : '{o}it begins to turn to stone{/}')], 260);
+    if (!sv.ok && g.stone) { if (now) M.petrify(B, u, { by: m.id }); else M.stoneBegin(B, u, { dc: g.dc, by: m.id }); }
+    return sv.ok;
+  };
+  M.avert = function (B, u, m) {
+    var av = u.conds.averted;
+    if (!av) av = u.conds.averted = { from: [], till: { who: u.id, at: 'start', n: 1 } };
+    if (av.from.indexOf(m.id) < 0) av.from.push(m.id);
+    B.card(['{g}' + Nm(B, u) + ' looks away from ' + (m.side === 'foe' && !m.named ? 'the ' + B.shortName(m) : m.name) + ' (it cannot be seen till the next turn).{/}'], 220);
+  };
+  M.gazeAsk = function* (B, u) {
+    var ids = (u.turn && u.turn.gazeAsk) || []; if (u.turn) u.turn.gazeAsk = null;
+    for (var i = 0; i < ids.length; i++) {
+      var m = B.units.filter(function (w) { return w.id === ids[i]; })[0];
+      if (!m || !G.standing(m) || u.dead || u.hp <= 0 || u.conds.stoning || u.conds.petrified) continue;
+      var nm = m.side === 'foe' && !m.named ? 'The ' + B.shortName(m) : m.name, g = m.gaze;
+      var look = yield { prompt: { who: u, title: u.name + ': ' + (g.title || 'THE GAZE'), lines: [nm + ' meets your eyes from ' + G.dist(m, u) + ' ft.', 'LOOK AWAY: no save; you cannot see it till your next turn (your blows at it at disadvantage, its blows at you with advantage).', 'MEET IT: ' + (g.ab || 'con').toUpperCase() + ' save, DC ' + g.dc + ', or begin to turn to stone.'], opts: [{ label: 'LOOK AWAY', value: 0 }, { label: 'MEET IT', value: 1 }] } };
+      if (look) M.gazeSave(B, u, m); else M.avert(B, u, m);
+    }
+  };
+  var onStartGz = M.onStart;
+  M.onStart = function (B, u) {
+    onStartGz.apply(this, arguments);
+    if (!B || !u || u.dead || u.hp <= 0 || u.object || !u.turn || u.conds.petrified) return;
+    var ms = gazersOf(B, u); if (!ms.length) return;
+    var hand = u.side === 'party' && !u.guest && !u.ally && RU.canAct(u); // (the player's own -- battle.js run gives it heroTurn -- asked at the turn's top)
+    ms.forEach(function (m) {
+      if (u.conds.stoning || u.conds.petrified) return;
+      if (!u.conds.surprised && hand) { (u.turn.gazeAsk = u.turn.gazeAsk || []).push(m.id); return; }
+      if (!u.conds.surprised && RU.canAct(u) && D.tactics.pFail(u, m.gaze.ab || 'con', m.gaze.dc) >= 0.34) M.avert(B, u, m); else M.gazeSave(B, u, m);
+    });
   };
 })();
