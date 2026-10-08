@@ -4257,7 +4257,7 @@
       // the AI holds at a distance (10-08, Griz, his mirror match: "now the AI is readying actions 200 ft away"): on Third Lamp's floor with the goblin far down the hall, a melee Mascot (Beholda,
       // the Dice Slam) holds -- no READY, no Dodge, the action kept -- while a shooter (Goose, the sling) readies at any distance: the shot springs on the first that comes into sight, and the
       // waves bench wiped without it (js/mpmon.js TX.IDLE); with the goblin near, the melee one readies too
-      var Ba = D.npcFight('?npc=goblin&vs=goose:5,beholda:5&map=lampcircle&lvl=5', { bench: true }); D.battle = Ba; Ba.enter(); while (!Ba.order.length) Ba.co.next(); Ba.round = 1;
+      var Ba = D.npcFight('?npc=goblin&vs=denny:5,goose:5,beholda:5&map=lampcircle&lvl=5', { bench: true }); D.battle = Ba; Ba.enter(); while (!Ba.order.length) Ba.co.next(); Ba.round = 1;
       var pa = sideM(Ba, 'party'), da = pa.filter(function (u) { return u.mpmon === 'goose'; })[0], ba = pa.filter(function (u) { return u.mpmon === 'beholda'; })[0], gb0 = sideM(Ba, 'foe')[0];
       spotM(Ba, ba, 30, 7); spotM(Ba, da, 32, 7); spotM(Ba, gb0, 72, 7); GM.setup(GM.map, Ba.units); var dFar = GM.dist(ba, gb0);
       RUM.startTurn(ba); Ba.active = ba; var nB0 = (Ba.log || []).length; runM(D.ai.turn(Ba, ba)); var farB = logSince(Ba, nB0).join(' | '), farBA = ba.turn.action;
@@ -4266,6 +4266,11 @@
       runM(D.ai.turn(Ba, ba)); var nearB = logSince(Ba, nB1).join(' | ');
       okM('the AI at a distance (' + dFar + ' ft): Beholda ' + (/readies|dodges/.test(farB) ? 'READIES OR DODGES' : 'holds, the action ' + farBA) + ' (' + farB.slice(0, 80) + '); Goose ' + (/readies the Sling/.test(farG) ? 'readies the sling' : 'does not ready') + ' (' + farG.slice(0, 80) + '); Beholda at ' + dNear + ' ft ' + (/readies|dodges/.test(nearB) ? 'readies or dodges' : /GAZE|Dice Slam/.test(nearB) ? 'acts (the gaze, or closes to swing)' : 'does nothing') + ' (' + nearB.slice(0, 100) + ')',
         dFar > 120 && !/readies|dodges/.test(farB) && farBA === 1 && /readies the Sling/.test(farG) && /readies|dodges|GAZE|Dice Slam/.test(nearB)); // (near, she sees it by her darkvision and acts: the gaze, the walk in -- the class turn's own plans before the idle hook)
+      // the Tank holds the front (RULED 10-08, Griz: "tank is tank protector type, not march off and die so your friends do too"): a Denim plan only where the walk brings the foe into his
+      // reach (mpmon.js reachFor) -- the goblin 45 ft off, past his move and reach, Denny keeps by Beholda (holdSquare, 15 ft) and readies there; no walk toward it
+      var dn = pa.filter(function (u) { return u.mpmon === 'denny'; })[0]; spotM(Ba, ba, 30, 7); spotM(Ba, dn, 31, 7); spotM(Ba, gb0, 41, 7); GM.setup(GM.map, Ba.units); delete dn.ready; RUM.startTurn(dn); Ba.active = dn; var dD = GM.dist(dn, gb0), nD = (Ba.log || []).length;
+      runM(D.ai.turn(Ba, dn)); var dnL = logSince(Ba, nD).join(' | '), dnB = GM.dist(dn, ba), dnG = GM.dist(dn, gb0);
+      okM('the Tank holds the front: Denny with the goblin ' + dD + ' ft off (past his move and reach) ends ' + dnB + ' ft from Beholda, ' + dnG + ' ft from the goblin, ' + (/DENIM/.test(dnL) ? 'a DENIM walk' : 'no Denim walk') + ' (' + dnL.slice(0, 100) + ')', dnB <= 15 && dnG >= 35 && !/DENIM/.test(dnL));
       D.battle = B9;
       // Social Sharing's dice stack (10-07, Griz, after the show: "Rascal cannot put more than one die on a friend ... ability dies with 5 dice he can't distribute"):
       // his picks Denny, Denny, Beholda and himself -- two on Denny, one on Beholda, none on him (the aim won't take him); Denny spends his one a roll

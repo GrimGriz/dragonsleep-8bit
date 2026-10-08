@@ -949,7 +949,7 @@
   function reachFor(B, u, t, ft) { // here, or a walk that brings t within ft: { e } (e null: from where it stands), or null
     if (G.dist(u, t) <= ft) return { e: null };
     if (!u.turn.move || u.conds.restrained || u.conds.grappled) return null;
-    var e = AI.approach(u, t, G.reach(u, u.turn.move), ft); return e ? { e: e } : null;
+    var e = AI.approach(u, t, G.reach(u, u.turn.move), ft); return e && G.dist(u, t, e.x, e.y) <= ft ? { e: e } : null; // (a square short of the reach is no reach: the Denim plan walked Denny off alone toward a foe at any distance -- RULED 10-08, Griz: "tank is tank protector type, not march off and die so your friends do too")
   }
   function* go(B, u, r) { if (r && r.e) yield* AI.walkTo(B, u, r.e); }
   function wpAvg(u) { var w = u.weapon || {}; return TX.avg(w.dice || '0') + (w.mod || 0); }
