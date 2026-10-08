@@ -1506,6 +1506,60 @@
     document.body.appendChild(preH);
     return;
   }
+  // thrown weapons run out (mode=thrown1008; the grid's rules §2.16, RULED 10-06, Griz: "pickup is bound to be a headache (art), they'll not use up ammo in 8-bit - gotta do it
+  // for pocket DM, do it"; battle.js spendThrow): a count on a foe's thrown attack and a class hero's kit, spent a throw, never picked up, gone from the choices at none
+  if (get('mode', '') === 'thrown1008') {
+    var repTW = { checks: [], errors: [] }, d0TW = D.d;
+    function okTW(what, v) { repTW.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function runTW(g) { var v, k = 0, st; while (g && k++ < 4000) { st = g.next(v); v = undefined; if (st.done) return st.value; if (st.value && st.value.prompt) v = st.value.prompt.opts[0].value; } }
+    function mkTW(q) { var Bx = D.npcFight(q, {}); D.battle = Bx; Bx.enter(); while (!Bx.order.length) Bx.co.next(); Bx.dark = false; return Bx; }
+    function sideTW(Bx, s) { return Bx.units.filter(function (u) { return u.side === s; }); }
+    function logTW(Bx, n) { return (Bx.log || []).slice(n).join(' | ').replace(/\{\/?[a-z]*\}/g, ''); }
+    // an AI's turns with its target out of reach and no feet to close: how many of each it throws
+    function aiTurnsTW(Bx, u, n) { for (var i = 0; i < n && !u.dead; i++) { D.rules.startTurn(u); Bx.active = u; runTW(D.ai.turn(Bx, u)); } }
+    try {
+      // the ogre's three javelins thrown at the fighter by hand: the third its last (the card says so), the javelin off its own sheet, the fourth refused; its fellow keeps
+      // all three (the sheet's attacks are every ogre's), and the bestiary's sheet still has it
+      var B1 = mkTW('?npc=ogre,ogre&lvl=5&vs=fighter:5'), o1 = sideTW(B1, 'foe')[0], o2 = sideTW(B1, 'foe')[1], f1 = sideTW(B1, 'party')[0], jav = o1.attacks.javelin;
+      f1.hp = f1.maxhp = 400; f1.conds = {}; o1.x = f1.x; o1.y = Math.max(0, f1.y - 5); D.rules.startTurn(o1); B1.active = o1;
+      var n1 = (B1.log || []).length; D.d = function (n) { return n === 20 ? 2 : 1; }; // (every throw a miss: the count, not the dice)
+      for (var t1 = 0; t1 < 3; t1++) runTW(B1.attack(o1, f1, jav));
+      var l1 = logTW(B1, n1), n1b = (B1.log || []).length; runTW(B1.attack(o1, f1, jav)); var l1b = logTW(B1, n1b); D.d = d0TW;
+      okTW('the ogre\'s javelins: count ' + jav.count + ', thrown ' + (o1.thrown || {}).Javelin + ', the last said ' + /has thrown its last javelin/.test(l1) + ', off its sheet ' + !o1.attacks.javelin + ', a fourth refused ' + /has no javelin left/.test(l1b),
+        jav.count === 3 && (o1.thrown || {}).Javelin === 3 && /has thrown its last javelin/.test(l1) && !o1.attacks.javelin && /has no javelin left/.test(l1b));
+      okTW('its fellow keeps its javelins ' + !!o2.attacks.javelin + ', the bestiary\'s ogre too ' + !!D.FOES.ogre.attacks.javelin + ', its greatclub stays ' + !!o1.attacks.club, !!o2.attacks.javelin && !!D.FOES.ogre.attacks.javelin && !!o1.attacks.club);
+      // the AI (the lane's find, 10-04: an ogre stuck on the climbing floor's tower threw every round): no feet, the fighter 40 ft off -- six turns, three javelins
+      var B2 = mkTW('?npc=ogre&lvl=5&vs=fighter:5'), o3 = sideTW(B2, 'foe')[0], f2 = sideTW(B2, 'party')[0];
+      f2.hp = f2.maxhp = 400; o3.x = f2.x; o3.y = Math.max(0, f2.y - 9); o3.speed = 0; var dist2 = D.grid.dist(o3, f2);
+      aiTurnsTW(B2, o3, 6);
+      okTW('the ogre\'s AI, ' + dist2 + ' ft off with no feet, six turns: javelins thrown ' + ((o3.thrown || {}).Javelin || 0), (o3.thrown || {}).Javelin === 3);
+      // the bandit captain's two daggers in one volley (its ranged Multiattack): both thrown, none left; its next turn no throw and no error
+      var B3 = mkTW('?npc=banditcaptain&lvl=3&vs=fighter:3'), c3 = sideTW(B3, 'foe')[0], f3 = sideTW(B3, 'party')[0];
+      f3.hp = f3.maxhp = 400; c3.x = f3.x; c3.y = Math.max(0, f3.y - 6); c3.speed = 0;
+      aiTurnsTW(B3, c3, 1); var th3 = (c3.thrown || {})['Thrown Dagger'] || 0; aiTurnsTW(B3, c3, 2);
+      okTW('the bandit captain\'s volley: ' + th3 + ' daggers in its first turn, ' + ((c3.thrown || {})['Thrown Dagger'] || 0) + ' after three, its melee dagger kept ' + !!c3.attacks.dagger, th3 === 2 && (c3.thrown || {})['Thrown Dagger'] === 2 && !!c3.attacks.dagger);
+      // the gnoll's one spear: thrown, its spear is gone too (the `twin`) -- the bite stays
+      var B4 = mkTW('?npc=gnoll&lvl=3&vs=fighter:3'), g4 = sideTW(B4, 'foe')[0], f4 = sideTW(B4, 'party')[0];
+      f4.hp = f4.maxhp = 400; g4.x = f4.x; g4.y = Math.max(0, f4.y - 4); D.rules.startTurn(g4); B4.active = g4; runTW(B4.attack(g4, f4, g4.attacks.throwspear));
+      okTW('the gnoll throws its spear: the throw gone ' + !g4.attacks.throwspear + ', its spear gone ' + !g4.attacks.spear + ', its bite kept ' + !!g4.attacks.bite + ', its longbow kept ' + !!g4.attacks.longbow, !g4.attacks.throwspear && !g4.attacks.spear && !!g4.attacks.bite && !!g4.attacks.longbow);
+      // the class heroes' kits (SRD 5.1): the barbarian's and the fighter's two handaxes, the sorcerer's two daggers; the paladin's and the bard's one
+      var B5 = mkTW('?npc=goblin&lvl=5&vs=barbarian:5,fighter:5,paladin:5,bard:5,sorcerer:5'), ps5 = sideTW(B5, 'party'), by5 = function (c) { return ps5.filter(function (u) { return u.cls === c; })[0]; };
+      var k5 = ['barbarian', 'fighter', 'paladin', 'bard', 'sorcerer'].map(function (c) { var a = by5(c).alt; return c + ' ' + (a && a.name) + ' x' + (a && a.count); }).join(', ');
+      okTW('the kits: ' + k5, by5('barbarian').alt.count === 2 && by5('fighter').alt.count === 2 && by5('paladin').alt.count === 1 && by5('bard').alt.count === 1 && by5('sorcerer').alt.count === 2);
+      // the paladin (Extra Attack: two swings) with one handaxe: the class AI's Attack action throws it once and stops; the alt put away
+      var g5 = sideTW(B5, 'foe')[0], p5 = by5('paladin'); g5.hp = g5.maxhp = 400; p5.x = g5.x; p5.y = Math.max(0, g5.y - 4); D.rules.startTurn(p5); B5.active = p5;
+      var n5 = (B5.log || []).length; D.d = function (n) { return n === 20 ? 2 : 1; }; runTW(D.tactics.swingAll(B5, p5, p5.alt, g5)); D.d = d0TW; var l5 = logTW(B5, n5);
+      okTW('the paladin\'s Attack action with one handaxe: thrown ' + ((p5.thrown || {}).Handaxe || 0) + ', the alt put away ' + !p5.alt + ' -- ' + l5.slice(0, 160), (p5.thrown || {}).Handaxe === 1 && !p5.alt && (l5.match(/Handaxe/g) || []).length >= 1);
+      // the barbarian's AI with no feet, the goblin 40 ft off: two handaxes, then none
+      var B6 = mkTW('?npc=goblin&lvl=5&vs=barbarian:5'), g6 = sideTW(B6, 'foe')[0], b5 = sideTW(B6, 'party')[0];
+      g6.hp = g6.maxhp = 400; g6.x = 3; g6.y = 6; b5.x = 11; b5.y = 6; b5.speed = 0; b5.classAI = true; var dist6 = D.grid.dist(b5, g6), n5b = (B6.log || []).length; aiTurnsTW(B6, b5, 4);
+      okTW('the barbarian\'s AI, no feet, the goblin ' + dist6 + ' ft off, four turns: handaxes thrown ' + ((b5.thrown || {}).Handaxe || 0) + ', the alt put away ' + !b5.alt + ' -- ' + logTW(B6, n5b).slice(0, 300),(b5.thrown || {}).Handaxe === 2 && !b5.alt);
+    } catch (eTW) { repTW.errors.push(String(eTW && eTW.stack || eTW).slice(0, 900)); D.d = d0TW; }
+    if (errs.length) repTW.errors = repTW.errors.concat(errs);
+    var preTW = document.createElement('pre'); preTW.id = 'out'; preTW.textContent = 'BENCH16 ' + JSON.stringify(repTW);
+    document.body.appendChild(preTW);
+    return;
+  }
   // the stone giant's Rock Catching and her CATCH row (mode=rockcatch1008; 10-08, Griz: "make the unnecessary rock catch animation"; the grid's rules §2.7): a fellow giant's
   // Rock thrown at her, the d20s queued (the attack's, then her DEX save's, then any after; every other die its top face) -- caught on a save of 20 (no damage, her row, CAUGHT),
   // not caught on a 2 (the rock's 46); a crossbow bolt is not a rock (not caught); a rock at one without the trait lands; the male's block carries it; both sheets have the row

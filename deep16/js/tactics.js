@@ -156,7 +156,7 @@
   }
   function isRanged(wp) { return !!(wp && wp.ranged); }
   // the Attack action's swings: Extra Attack, a loading weapon's one; Haste's one more, Slow's one only (js/grimoire.js)
-  function attacksWith(u, wp) { var n = wp.loading ? 1 : (u.attacksBase || (typeof u.attacks === 'number' ? u.attacks : 1) || 1); if (u.turn && u.turn.slowed) return 1; return n + (u.turn && u.turn.hasteAction ? 1 : 0); }
+  function attacksWith(u, wp) { var n = wp.loading ? 1 : (u.attacksBase || (typeof u.attacks === 'number' ? u.attacks : 1) || 1); if (u.turn && u.turn.slowed) return 1; return Math.min(D.Battle.thrownLeft(u, wp), n + (u.turn && u.turn.hasteAction ? 1 : 0)); } // (no more throws than handaxes: battle.js spendThrow)
   // one swing's worth at t from square (x, y): the hit chance with what the square gives (flank, the dark, long range), the
   // dice, a rogue's sneak, a smite in hand
   function swing(B, u, t, wp, x, y) {
@@ -214,7 +214,7 @@
     while (T.attacksLeft > 0 && !u.dead && u.hp > 0) {
       var t = first && t0 && G.standing(t0) && G.dist(u, t0) <= rng ? t0 : foesOf(B, u).filter(function (w) { return G.dist(u, w) <= rng && (!wp.ranged || G.los(u, w).clear); }).sort(function (a, b) { return a.hp - b.hp; })[0];
       first = false;
-      if (!t) break;
+      if (!t || B.thrownLeft(u, wp) <= 0) break; // (the handaxes all thrown: battle.js spendThrow)
       T.attacksLeft--;
       yield* B.attack(u, t, wp);
       if (u.conds.hidden) delete u.conds.hidden;

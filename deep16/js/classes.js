@@ -399,7 +399,7 @@
     if (h.cls === 'barbarian' && h.lvl >= 7) u.initAdv = true; // Feral Instinct (7): advantage on initiative (battle.js run); the surprise half is js/features.js F.feral
     u.facing = 1;
     // a second weapon to draw (the class AI's): a bow for the swordsman, a sword for the bowman, handaxes to throw
-    if (h.alt) { var h2 = Object.assign({}, h, { equip: Object.assign({}, h.equip, { weapon: h.alt, shield: DS.DATA.items[h.alt] && (DS.DATA.items[h.alt].weapon.props || []).indexOf('two-handed') >= 0 ? null : h.equip.shield }) }); u.alt = D.save.weaponOf(h2); if (NPC.THROWN[h.alt]) { u.alt.ranged = true; u.alt.thrown = true; u.alt.range = NPC.THROWN[h.alt]; } }
+    if (h.alt) { var h2 = Object.assign({}, h, { equip: Object.assign({}, h.equip, { weapon: h.alt, shield: DS.DATA.items[h.alt] && (DS.DATA.items[h.alt].weapon.props || []).indexOf('two-handed') >= 0 ? null : h.equip.shield }) }); u.alt = D.save.weaponOf(h2); if (NPC.THROWN[h.alt]) { u.alt.ranged = true; u.alt.thrown = true; u.alt.range = NPC.THROWN[h.alt]; u.alt.count = (C[h.cls] && C[h.cls].kit.alt === h.alt && NPC.THROWN_N[h.cls]) || 1; } }
     return u;
   };
   // a named foe of the bestiary built by its class (data/foes.js `build`: Torvald, Amara, Willem): the class unit, and everything the
@@ -434,7 +434,10 @@
   // alone till 09-28g; RULED then, Griz: "they have to be able to transfer back and forth from 16bit fights" -- they are js/rules.js
   // R.PALADIN_SPELLS / R.oathSpells now, one law for both games, and the 8-bit battle casts them)
   // thrown weapons read as ranged when thrown (SRD 5.1: the handaxe, the dagger 20/60)
-  NPC.THROWN = { handaxe: [20, 60], dagger: [20, 60] };
+  NPC.THROWN = { handaxe: [20, 60], dagger: [20, 60], spear: [20, 60], lighthammer: [20, 60] };
+  // how many it carries to throw (the grid's rules §2.16, RULED 10-06: a count, no pick-up -- battle.js spendThrow): the SRD 5.1 starting kit's -- the barbarian's and the
+  // fighter's two handaxes, the sorcerer's and the warlock's two daggers; one for any other (the bard's dagger, the paladin's and the monk's "any simple weapon")
+  NPC.THROWN_N = { barbarian: 2, fighter: 2, sorcerer: 2, warlock: 2 };
 
   // how high a class NPC goes: 9 (the heroes' cap), the druid 12 (09-29, Griz: "please complete druid to 12 (game probably gonna get to the big
   // boys at some point)"; 09-30: "the above 9's we're just prepping in case we have combat involving special NPCs"). The URL's lvl may say 12;

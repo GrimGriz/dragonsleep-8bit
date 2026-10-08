@@ -1851,6 +1851,7 @@
     o = o || {};
     if (!o.oa) this.noteHeard(att); // (the blow gives the square away: SRD 5.1, Hiding -- every swing and shot, the player's or the AI's; 10-01c)
     if (!tgt || tgt.dead || tgt.ethereal) return;
+    if (this.thrownLeft(att, atk) <= 0) { this.card(['{o}' + Battle.nm(att, true) + ' has no ' + atk.name.toLowerCase().replace(/^thrown /, '') + ' left to throw.{/}'], 120); return; } // (thrown weapons run out: spendThrow)
     // a two-handed weapon swung (or a bow drawn) with a torch in the other hand: the torch is let fall first, burning at the attacker's feet -- free, as letting go is (10-05, Griz:
     // "two handers holding a torch that drops when they attack"; light.js handsUsed: carried in one hand till then)
     if (att.torch && att.weapon && atk && !atk.spell && (atk === att.weapon || atk.name === att.weapon.name) && (att.weapon.props || []).indexOf('two-handed') >= 0) {
@@ -1866,6 +1867,7 @@
     }
     if (att.conds && att.conds.sanctuary && D.magic.unward) D.magic.unward(this, att, 'an attack'); // (SRD 5.1 Sanctuary: "If the warded creature makes an attack ... this spell ends" -- 10-03)
     if (att.turn) att.turn.attacked = (att.turn.attacked || 0) + 1; // (it struck at something this turn: a burrower dives after a bite, not after a turn of nothing -- ai.js diveAfter, 10-02)
+    this.spendThrow(att, atk); // (out of the hand, hit or miss)
     var self = this, melee = !atk.ranged && (!atk.spell || atk.touch), cid = 'atk' + (++this.cardSeq || (this.cardSeq = 1));
     this.turnTo(att, faceTo(att, tgt));
     // a spell's shot leaves at the height of the cast pose (the spell animation pass, 09-28h): the pose the cast began runs on
@@ -2250,6 +2252,8 @@
     o = o || {};
     var held = st.held, holder = st.by, t = held.conds.restrained && held.conds.restrained.tendril;
     if (!t || !G.standing(held) || !G.standing(holder) || held.conds.restrained.by !== holder.id) return;
+    if (this.thrownLeft(att, atk) <= 0) return;
+    this.spendThrow(att, atk); // (a handaxe thrown at a tendril is thrown: spendThrow)
     if (!o.oa && !o.ready) this.noteHeard(att);
     var melee = !atk.ranged, cid = 'atk' + (++this.cardSeq || (this.cardSeq = 1));
     if (held !== att) this.turnTo(att, faceTo(att, held));
@@ -2454,7 +2458,9 @@
   // sight: 'cast'; and the downs again). The readied ones go "right after the trigger finishes" (SRD 5.1)
   var attack0 = Battle.prototype.attack;
   Battle.prototype.attack = function* (att, tgt, atk, o) {
+    var throws0 = this.thrownLeft(att, atk);
     yield* attack0.call(this, att, tgt, atk, o);
+    if (throws0 > 0 && throws0 !== Infinity && !this.thrownLeft(att, atk)) this.card(['{g}(' + Battle.nm(att) + ' has thrown ' + (att.side === 'foe' && !att.named ? 'its' : 'the') + ' last ' + atk.name.toLowerCase().replace(/^thrown /, '') + '){/}'], 160); // (spendThrow)
     yield* this.readyForced();
     if (tgt && this.readyArmed()) yield* this.readyAfter({ kind: 'ally', foe: att, ally: tgt });
   };
@@ -2738,6 +2744,27 @@
   function packOf(B, id) { return B.inv.filter(function (x) { return x.id === id; })[0]; }
   Battle.prototype.ammoLeft = function (u) { var s = packOf(this, u.weapon.ammo); return s ? s.n : 0; };
   Battle.prototype.spendAmmo = function (u) { var s = packOf(this, u.weapon.ammo); if (s && s.n > 0) s.n--; };
+  // thrown weapons run out (the grid's rules §2.16; RULED 10-06, Griz: "pickup is bound to be a headache (art), they'll not use up ammo in 8-bit - gotta do it for pocket DM, do it"):
+  // a thrown attack's `count` -- a foe's sheet (the ogre's three javelins, data/foes.js), a class hero's kit (two handaxes, SRD 5.1: js/classes.js) -- is spent a throw and never
+  // picked up; with none left it is gone from the choices: off the unit's own sheet (and its `twin`, the melee of the one weapon: the gnoll's one spear), the class hero's alt
+  // put away. Spent in this fight only; the 8-bit battle spends none
+  Battle.thrownLeft = function (u, atk) {
+    if (!atk || atk.count == null || !atk.ranged || atk.spell) return Infinity;
+    return Math.max(0, atk.count - ((u.thrown || {})[atk.name] || 0));
+  };
+  Battle.prototype.thrownLeft = function (u, atk) { return Battle.thrownLeft(u, atk); };
+  Battle.prototype.spendThrow = function (u, atk) {
+    if (this.thrownLeft(u, atk) === Infinity) return;
+    u.thrown = u.thrown || {}; u.thrown[atk.name] = (u.thrown[atk.name] || 0) + 1;
+    if (this.thrownLeft(u, atk) > 0) return;
+    if (u.alt && u.alt.ranged && u.alt.name === atk.name) u.alt = null;
+    if (u.attacks && typeof u.attacks === 'object') { // (its own copy: the sheet's attacks are every one of its kind's)
+      var own = Object.assign({}, u.attacks);
+      Object.keys(own).forEach(function (k) { var a = own[k]; if (a && a.ranged && a.name === atk.name) delete own[k]; });
+      if (atk.twin) delete own[atk.twin];
+      u.attacks = own;
+    }
+  };
   Battle.prototype.gearOptions = function (u) {
     var R = window.DS.R, h = u.src, T = u.turn, B = this, out = [];
     if (!h || u.guest || !T || !h.equip) return out;

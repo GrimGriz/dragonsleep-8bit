@@ -283,7 +283,7 @@
   function readiable(e) { return !!(e && e.ok && e.g && e.g.time === 'A'); }
   function readyRing(B, u) {
     var items = [];
-    [['weapon', u.weapon], ['alt', u.alt]].forEach(function (p) { var wp = p[1]; if (wp && wp.name && !u.conds.disarmed) items.push({ kind: 'readypick', what: p[0], id: 'attack', icon: 'attack', name: wp.name.toUpperCase(), label: wp.name.toUpperCase(), ok: true, note: 'one ' + (wp.ranged ? 'shot' : 'swing') + ' at the one you pick when it springs' }); });
+    [['weapon', u.weapon], ['alt', u.alt]].forEach(function (p) { var wp = p[1]; if (wp && wp.name && !u.conds.disarmed) items.push({ kind: 'readypick', what: p[0], id: 'attack', icon: 'attack', name: wp.name.toUpperCase(), label: wp.name.toUpperCase(), ok: true, note: 'one ' + (wp.ranged ? 'shot' : 'swing') + ' at the one you pick when it springs' + (B.thrownLeft(u, wp) !== Infinity ? ' (' + B.thrownLeft(u, wp) + ' left to throw)' : '') }); }); // (battle.js spendThrow)
     // (no SPELLS after a bonus-action spell, cantrips too -- RULED 10-05, Griz: "Casting a spell with a bonus action means you can't ready a spell (other actions still ready-able)")
     if (!u.turn.bonusSpell && D.magic.list(B, u, { anyTarget: true }).some(readiable)) items.push({ kind: 'readylevels', id: 'spells', icon: 'spells', name: 'SPELLS', label: 'SPELLS', ok: true, note: 'cast now and held: the slot spent, and concentration' });
     if (u.speed > 0 && !u.conds.restrained) items.push({ kind: 'readypick', what: 'move', id: 'move', icon: 'move', name: 'MOVE', label: 'MOVE', ok: true, note: 'up to your speed, to the square you pick when it springs (the Dash, on a reaction)' });

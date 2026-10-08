@@ -513,7 +513,8 @@
     if (!visibleFrom(u, u.x, u.y, aimable()).some(function (w) { return G.dist(u, w) <= first.range[1]; })) return false;
     u.turn.action = 0;
     for (var i = 0; i < keys.length; i++) {
-      var atk = u.attacks[keys[i]], seen = visibleFrom(u, u.x, u.y, aimable()).filter(function (w) { return G.dist(u, w) <= atk.range[1]; });
+      var atk = u.attacks[keys[i]]; if (!atk) break; // (its last dagger thrown the throw before: battle.js spendThrow takes it off the sheet)
+      var seen = visibleFrom(u, u.x, u.y, aimable()).filter(function (w) { return G.dist(u, w) <= atk.range[1]; });
       if (!seen.length) break;
       yield* B.attack(u, seen.sort(function (p, q) { return RU.ac(p) - RU.ac(q) || p.hp - q.hp; })[0], atk);
       if (u.dead || u.hp <= 0) break;

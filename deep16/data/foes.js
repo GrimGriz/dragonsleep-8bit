@@ -230,7 +230,7 @@
     name: 'Duergar', type: 'humanoid', sheet: 'duergar_p0', cr: '1', ac: 16, hp: 26, speed: 25, size: 1, reach: 5, darkvision: 120, invisibility: true,
     abil: { str: 14, dex: 11, con: 14, int: 11, wis: 10, cha: 9 }, init: 0, perception: 10,
     saves: { str: 2, dex: 0, con: 2, int: 0, wis: 0, cha: -1 },
-    attacks: { warpick: { name: 'War Pick', atk: 4, dice: '1d8', mod: 2, type: 'piercing', reach: 5 }, javelin: { name: 'Javelin', atk: 4, dice: '1d6', mod: 2, type: 'piercing', range: [30, 120], ranged: true, enlarged: '2d6' } }, // (the javelin, SRD 5.1: 2d6 enlarged; ai.js brute grows it first -- 10-02)
+    attacks: { warpick: { name: 'War Pick', atk: 4, dice: '1d8', mod: 2, type: 'piercing', reach: 5 }, javelin: { name: 'Javelin', atk: 4, dice: '1d6', mod: 2, type: 'piercing', range: [30, 120], ranged: true, count: 2, enlarged: '2d6' } }, // (the javelin, SRD 5.1: 2d6 enlarged; ai.js brute grows it first -- 10-02)
     multi: 1, resist: ['poison'], enlarge: { dice: '2d8' }, lightSensitive: true, resilient: true, // (Duergar Resilience, SRD 5.1: advantage on saves against poison, spells, illusions, charm and paralysis -- js/rules.js RU.save; 10-02 runner)
     src: 'SRD 5.1 Duergar (CR 1): war pick; Enlarge once (an action: its pick hits for 2d8+2); Invisibility (an action, till it attacks, casts or grows: ai.js brute, torchdark 09-28); content/monsters.json duergar'
   },
@@ -310,7 +310,7 @@
     attacks: {
       spear: { name: 'Spear', atk: 4, dice: '1d6', mod: 2, type: 'piercing', reach: 5 },
       bite: { name: 'Bite', atk: 4, dice: '1d4', mod: 2, type: 'piercing', reach: 5 },
-      throwspear: { name: 'Thrown Spear', atk: 4, dice: '1d6', mod: 2, type: 'piercing', range: [20, 60], ranged: true },
+      throwspear: { name: 'Thrown Spear', atk: 4, dice: '1d6', mod: 2, type: 'piercing', range: [20, 60], ranged: true, count: 1, twin: 'spear' }, // (its one spear: thrown, it bites -- battle.js spendThrow)
       longbow: { name: 'Longbow', atk: 3, dice: '1d8', mod: 1, type: 'piercing', range: [150, 600], ranged: true }
     },
     multi: 1, rampage: true, src: 'SRD 5.1 Gnoll (CR 1/2): spear or bite; content/monsters.json gnoll; Rampage: dropping one on its turn, a bonus-action bite after half its speed (js/traits.js, 09-28); the longbow +3 1d8+1 150/600 (SRD 5.1, loosed when nothing is in reach: ai.js volley; 10-02 runner); the spear thrown +4 1d6+2 20/60 (SRD 5.1 "Spear. Melee or Ranged Weapon Attack ... range 5 ft. or range 20/60 ft."; volley picks the likelier of it and the bow, so the spear inside 20 ft; 10-02)'
@@ -741,7 +741,7 @@
     saves: { str: 2, dex: 2, con: 1, int: -1, wis: 0, cha: -1 },
     attacks: {
       morningstar: { name: 'Morningstar', atk: 4, dice: '2d8', mod: 2, type: 'piercing', reach: 5 },
-      javelin: { name: 'Javelin', atk: 4, dice: '1d6', mod: 2, type: 'piercing', range: [30, 120], ranged: true }
+      javelin: { name: 'Javelin', atk: 4, dice: '1d6', mod: 2, type: 'piercing', range: [30, 120], ranged: true, count: 2 }
     },
     multi: 1, surprise: '2d6', src: 'SRD 5.1 Bugbear (CR 1); content/monsters.json bugbear; the chief\'s sheet; the Javelin thrown +4 1d6+2 30/120 (SRD 5.1, when nothing is in reach: ai.js volley; 10-02 runner); its own look since 10-07, bugbear_p1 (his GPT sheet, tools/bugbear-sheet.py)'
   },
@@ -751,7 +751,7 @@
     saves: { str: 4, dex: -1, con: 3, int: -3, wis: -2, cha: -2 },
     attacks: {
       club: { name: 'Greatclub', atk: 6, dice: '2d8', mod: 4, type: 'bludgeoning', reach: 5 },
-      javelin: { name: 'Javelin', atk: 6, dice: '2d6', mod: 4, type: 'piercing', range: [30, 120], ranged: true }
+      javelin: { name: 'Javelin', atk: 6, dice: '2d6', mod: 4, type: 'piercing', range: [30, 120], ranged: true, count: 3 }
     },
     multi: 1, src: 'SRD 5.1 Ogre (CR 2, Large); content/monsters.json ogre (the king\'s road, leg one); the Javelin thrown +6 2d6+4 30/120 (SRD 5.1, when nothing is in reach: ai.js volley; 10-02 runner)'
   },
@@ -795,7 +795,7 @@
     attacks: {
       scimitar: { name: 'Scimitar', atk: 5, dice: '1d6', mod: 3, type: 'slashing', reach: 5 },
       dagger: { name: 'Dagger', atk: 5, dice: '1d4', mod: 3, type: 'piercing', reach: 5 },
-      throwndagger: { name: 'Thrown Dagger', atk: 5, dice: '1d4', mod: 3, type: 'piercing', range: [20, 60], ranged: true }
+      throwndagger: { name: 'Thrown Dagger', atk: 5, dice: '1d4', mod: 3, type: 'piercing', range: [20, 60], ranged: true, count: 2 }
     },
     multi: ['scimitar', 'scimitar', 'dagger'], rangedMulti: ['throwndagger', 'throwndagger'], parry: 2, src: 'SRD 5.1 Bandit Captain (CR 2); content/monsters.json banditcaptain (in the 8-bit game only as Hask\'s pattern; Hask\'s sheet); two daggers thrown +5 1d4+3 20/60 (SRD 5.1 "or ... two ranged attacks with its daggers": `rangedMulti`, ai.js volley, when nothing is in reach; 10-02)'
   },
