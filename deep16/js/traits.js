@@ -174,9 +174,64 @@
     if (u.drinkLight) u.drinkLeft = u.drinkLight.uses;
     B.card(['{g}(Upright: reach ' + G.reachOf(u) + ' ft' + (u.drinkLight ? ', Drink Light full again' : '') + '){/}'], 220);
     yield 16;
+    if (u.rise.call) {
+      var came = callPack(B, u, u.rise.call);
+      if (came.length) { D.sfx('run'); B.card(['{r}' + came.length + ' mirror hyenas spill out from behind ' + Nm(B, u).replace(/^The /, 'the ') + ' and run at you!{/}'], 300); yield 30; }
+    }
+  }
+  // his call (Griz, 10-08: "a hyena summons - maybe even mirror hyenas - with him rising and standing tall as they run past him to attack the party"): `n` of the
+  // `kind` out of the ground behind him -- the far side from the party -- each sliding out from his square and dealt into the order on its own roll (battle.js
+  // dealIn, as the brood's cocoons drop), the mirror ripple over each as it comes; `calledBy` ties the pack to him (his stance, TR.turn)
+  function callPack(B, u, c) {
+    var hs = AI.heroes(B, u).filter(function (w) { return G.standing(w); }), mx = u.x + (u.size - 1) / 2, my = u.y + (u.size - 1) / 2;
+    var cx = hs.length ? hs.reduce(function (a, w) { return a + w.x; }, 0) / hs.length : mx, cy = hs.length ? hs.reduce(function (a, w) { return a + w.y; }, 0) / hs.length : my + 1;
+    var dx = mx - cx, dy = my - cy, dl = Math.hypot(dx, dy) || 1, bx = mx + dx / dl * 2.5, by = my + dy / dl * 2.5, came = [], def = D.FOES[c.kind];
+    if (!def) return came;
+    for (var k = 0; k < (c.n || 1); k++) {
+      var h = B.makeFoe({ id: 'mh' + (B.mhN = (B.mhN || 0) + 1), kind: c.kind }), best = null, bd = Infinity;
+      for (var y = 0; y < G.map.h; y++) for (var x = 0; x < G.map.w; x++) {
+        if (!G.canStand(h, x, y)) continue;
+        var d = Math.hypot(x + (h.size - 1) / 2 - bx, y + (h.size - 1) / 2 - by);
+        if (d < bd) { bd = d; best = [x, y]; }
+      }
+      if (!best) break;
+      h.x = best[0]; h.y = best[1]; h.facing = u.facing || 0; h.anim = 'idle'; h.animT = B.t; h.flash = 0; h.reaction = 1; h.calledBy = u.id;
+      if (def.drawScale) h.drawScale = def.drawScale;
+      h.tween = { fx: mx - (h.size - 1) / 2, fy: my - (h.size - 1) / 2, fz: 0, t: 0, dur: B.pace(20, true) };
+      B.units.push(h); G.setup(G.map, B.units); came.push(h);
+      if (D.ripple) D.ripple(h, { region: 'body' });
+    }
+    if (came.length) B.dealIn(came);
+    return came;
+  }
+  // his stance once risen (the seat's call, 10-08 -- Griz: "Mode switch is hot, does it tactics change?"): while a hyena of his stands, he holds his ground on
+  // the crown -- no hunt, no step; with nobody in his reach he Kneels the nearest he can hold (Hold Person) and Foretells, the pack doing the running; with
+  // somebody in reach, his blows as ever. His pack gone, he hunts again
+  function* stand(B, u) {
+    if (G.foesNear(u, u.x, u.y, G.reachOf(u)).length) return false;
+    var T = u.turn, hs = AI.heroes(B, u).filter(function (w) { return G.standing(w) && !w.conds.paralyzed && G.dist(u, w) <= 60 && M.sees(B, u, w); });
+    hs.sort(function (a, b) { return G.dist(u, a) - G.dist(u, b); });
+    var g = M.geo('holdperson'), t = hs.filter(function (w) { return !g || M.targetOK(B, u, g, w); })[0];
+    if (t && T && T.action > 0 && u.slots && u.slots[1] > 0 && (u.known || []).indexOf('holdperson') >= 0) yield* B.exec(u, { do: 'cast', id: 'holdperson', slot: 2, target: t });
+    yield* foretellUp(B, u);
+    return true;
+  }
+  function* foretellUp(B, u) {
+    if (u.foretell && u.reaction > 0 && !u.ready && RU.canAct(u) && !u.dead && u.hp > 0 && !G.foesNear(u, u.x, u.y, G.reachOf(u)).length && AI.heroes(B, u).length) {
+      u.ready = { trigger: 'near', what: 'weapon', name: u.foretell.name, wp: u.foretell };
+      u.ready.had = B.readyHad(u, u.ready); B.readySnap();
+      u.anim = 'foretell'; u.animT = B.t;
+      B.card(['{r}' + Nm(B, u) + ' raises a hand and waits.{/}  {g}(Foretell: ' + u.foretell.name + ' at the first to step within ' + G.reachOf(u) + ' ft){/}'], 240);
+      yield 24;
+    }
   }
   TR.turn = function* (B, u) {
     if (u.rise && !u.risen && u.side === 'foe' && u.hp > 0 && u.hp <= u.maxhp * (u.rise.at || 0.5) && RU.canAct(u)) yield* rise(B, u);
+    if (u.upright && u.side === 'foe' && RU.canAct(u) && B.units.some(function (w) { return w.calledBy === u.id && !w.dead && w.hp > 0; })) { // (his stance: below)
+      if (u.dead || u.hp <= 0) return true;
+      if (yield* stand(B, u)) return true;
+      return false;
+    }
     if (u.pounce && u.side === 'foe' && !u.ethereal) yield* hunt(B, u);
     if (u.dead || u.hp <= 0) return true;
     var j = u.jaunt;
@@ -260,13 +315,7 @@
     // the Harbinger's Foretell (ours, 10-08: the Astra draft's pose -- Griz had "nothing for the foretell pose", the seat's call): a turn that ends with
     // no one in his reach, he holds the pose (its row loops) and readies Mirror Strike -- his reaction, at the first that steps within his reach
     // (battle.js readyHook / readySpring, as a hero's READY; it lapses at his next turn's start, rules.js)
-    if (u.foretell && u.reaction > 0 && !u.ready && RU.canAct(u) && !G.foesNear(u, u.x, u.y, G.reachOf(u)).length && AI.heroes(B, u).length) {
-      u.ready = { trigger: 'near', what: 'weapon', name: u.foretell.name, wp: u.foretell };
-      u.ready.had = B.readyHad(u, u.ready); B.readySnap();
-      u.anim = 'foretell'; u.animT = B.t;
-      B.card(['{r}' + Nm(B, u) + ' raises a hand and waits.{/}  {g}(Foretell: ' + u.foretell.name + ' at the first to step within ' + G.reachOf(u) + ' ft){/}'], 240);
-      yield 24;
-    }
+    yield* foretellUp(B, u);
   };
 
   // ------------------------------------------------------------------ the gibbering mouther (SRD 5.1; 10-06, Griz: "SRD what you can" -- it was a stun on a recharge, the 8-bit's
