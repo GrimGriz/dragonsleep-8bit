@@ -162,7 +162,7 @@
     // the volley and the whirlwind). Lupine (invented.json #greyfang): darkvision and keen hearing and smell, kept on his record, not a race in the maker's
     // list (the races are their own lane). The numbers are the seat's draft (STR 12, DEX 18, CON 14, INT 10, WIS 16, CHA 10; the SRD's average HP)
     greyfang: { name: 'GreyFang', named: true, cls: 'ranger', lvl: 11, maxLvl: 11, race: 'human', lupine: true, subclass: 'the Grey Road', look: 'greyfang_p1',
-      abil: { str: 12, dex: 18, con: 14, int: 10, wis: 16, cha: 10 }, equip: { weapon: 'longbow', armor: 'leather' }, alt: 'shortsword', style: 'archery' },
+      abil: { str: 12, dex: 18, con: 14, int: 10, wis: 16, cha: 10 }, equip: { weapon: 'greyfangbow', armor: 'leather' }, alt: 'shortsword', style: 'archery' }, // (his bow, the fight's reward: content/items.json greyfangbow -- Griz, 10-08: "Yes, have it equipped for the little benches")
     ingrith: { overlay: true, cls: 'cleric', lvl: 4, slots: [4, 3], subclass: 'Life Domain', race: 'dwarf', abil: { str: 12, dex: 10, con: 14, int: 13, wis: 16, cha: 13 },
       equip: { weapon: 'mace', armor: 'chainmail', shield: 'shield' }, hp: 31,
       known: ['sacredflame', 'guidance', 'curewounds', 'healingword', 'bless', 'shieldoffaith', 'aid', 'lesserrestoration', 'spiritualweapon'] }
