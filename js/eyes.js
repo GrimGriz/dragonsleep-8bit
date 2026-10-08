@@ -17,6 +17,9 @@
   var DS = window.DS = window.DS || {};
   var G1 = 'Eyes: first', G2 = 'Eyes: built this week', G3 = 'Eyes: built before, never seen';
   DS.EYES = {
+    'eyes-mirrorgnoll-1008': { pri: 2, group: G2, title: 'The made gnoll (the mirror-eyed gnoll): every row of your five sheets, from the side, the front and behind (10-08)', pt: 'the bestiary §9 (tools/mirrorgnoll-sheet.py; deep16/art/mirrorgnoll_p1) · eyes',
+      url: 'tools/sheet-play.html?sheet=mirrorgnoll_p1&ref=gnoll_p2&face=0,4,6,2&z=2',
+      look: 'Your "he looks great" saw the side rows; this is the finished cut. The sheet player, the house gnoll beside each row, facing S, N, E and W. S and N: idle, walk, backhand and flinch from your fresh front and back sheets, both eyes mirrors, every later sheet toned to the first sheet colour. BACKHAND2 is the other arm (back sheet 2): a second backhand in a turn plays it, or a dance trades the two. DRAIN: he drops into a low brace as the light arrives and rises as it goes into his eyes. No foe plays him yet: his kit is open, and the mane ripple is the SRD seat to code.' },
     'eyes-centipede-hurt-fb-1008': { pri: 2, group: G2, title: 'The giant centipede falls from the front and from behind: your hurt sheet on S and N (10-08)', pt: 'the bestiary §2.3 (tools/bugs-sheet.py HURT_FB; deep16/art/centipede_p1 hurt) · eyes',
       url: 'tools/sheet-play.html?sheet=centipede_p1&face=0,4,6&z=3',
       look: 'Your centipede sheet, the third of the bugs. The sheet player, facing S, N and E. Scroll to hurt: S and N are your sheet (it rears, rolls over and lies on its back with the pale belly up and the legs curled), E is the side fall still drawn in code. Each facing starts at the size of the code idle in that facing (the code draws its back a little smaller than its front). Does it sit with the code-drawn rows?' },
