@@ -142,7 +142,7 @@
     PageUp: 'layerup', PageDown: 'layerdown', BracketLeft: 'bracketl', BracketRight: 'bracketr', // (flight at a height: PageUp/PageDown and [ ] a flier's layer while its move is out -- js/ui.js UI.stepLayer, 10-08; the brackets' words are neutral, the one gallery reads them too)
     Backquote: 'stats',
     KeyP: 'play', KeyR: 'rec',
-    Comma: 'turnl', Period: 'turnr', KeyL: 'list', KeyF: 'dice', KeyV: 'verdict', ShiftLeft: 'shift', ShiftRight: 'shift', // (the one gallery's, js/onegallery.js, 10-08)
+    Comma: 'turnl', Period: 'turnr', KeyL: 'list', KeyF: 'dice', KeyV: 'verdict', KeyN: 'eyesnext', ShiftLeft: 'shift', ShiftRight: 'shift', // (the one gallery's, js/onegallery.js, 10-08)
     Digit1: 'n1', Digit2: 'n2', Digit3: 'n3', Digit4: 'n4', Digit5: 'n5', Digit6: 'n6', Digit7: 'n7', Digit8: 'n8', Digit9: 'n9',
     Numpad1: 'n1', Numpad2: 'n2', Numpad3: 'n3', Numpad4: 'n4', Numpad5: 'n5', Numpad6: 'n6', Numpad7: 'n7', Numpad8: 'n8', Numpad9: 'n9'
   };

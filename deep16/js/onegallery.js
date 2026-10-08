@@ -16,7 +16,7 @@
 (function () {
   var D = window.D16, I = D.input;
   var OG = D.oneGallery = {};
-  var COL = 150, LH = 9, STRIP = 2 * LH + 4, FOOT = 3 * LH + 5; // (the column's width and line: js/mpgallery.js's)
+  var COL = 150, LH = 9, STRIP = 3 * LH + 4, FOOT = 3 * LH + 5; // (the column's width and line: js/mpgallery.js's; the head: the shelves on two lines, the eyes waiting on the third)
   OG.COL = COL;
   OG.SHELVES = [
     { id: 'spells', name: 'SPELLS', req: 'gallery' }, { id: 'features', name: 'FEATURES', req: 'gallery' },
@@ -126,28 +126,46 @@
   function fbGet() { try { return JSON.parse(localStorage.getItem(FKEY) || '{}') || {}; } catch (e) { return {}; } }
   function fbPut(FB) { try { localStorage.setItem(FKEY, JSON.stringify(FB)); } catch (e) { /* (no store here: the mark is lost, the gallery goes on) */ } }
   function entryKey(B) { var o = B.one, S = st(B); if (!S) return null; if (o.shelf === 'creatures') { var it = S.list[S.i]; return it && it.u.kind; } return S.ids[S.i]; }
+  // every eyes row whose door opens a shelf at an entry: { id, q (its door's query), shelf, want (the entries it names) }, most wanted first
+  OG.galleryRows = function () {
+    var E = window.DS && window.DS.EYES; if (!E) return [];
+    if (OG._rows && OG._rowsOf === E) return OG._rows;
+    OG._rowsOf = E;
+    return (OG._rows = Object.keys(E).map(function (id) {
+      var u = String(E[id].url || ''), at = u.indexOf('deep16/?'); if (at < 0) return null;
+      var q = u.slice(at + 7); if (!/[?&](gallery|fxgallery|mpgallery)\b|[?&]rows=/.test(q) || /[?&]keeper\b/.test(q)) return null;
+      var sh = shelfOf(q), g = function (k) { var m = new RegExp('[?&]' + k + '=([^&]*)').exec(q); return m ? decodeURIComponent(m[1]) : null; };
+      var want = g({ spells: 'spell', features: 'feature', mascots: 'ability', creatures: 'rows' }[sh]) || g('only');
+      return want ? { id: id, q: q, shelf: sh, want: want.split(','), pri: E[id].pri || 3 } : null;
+    }).filter(Boolean).sort(function (a, b) { return a.pri - b.pri || (a.id < b.id ? -1 : 1); }));
+  };
   OG.eyesFor = function (B) {
-    var E = window.DS && window.DS.EYES, o = B.one, key = entryKey(B); if (!E || !key) return [];
+    var o = B.one, key = entryKey(B); if (!key) return [];
     if (o.eyesAt === key) return o.eyes;
     o.eyesAt = key; o.fb = null; // (the store read again for a new entry, not every frame)
-    return (o.eyes = Object.keys(E).filter(function (id) {
-      var u = String(E[id].url || ''), at = u.indexOf('deep16/?'); if (at < 0) return false;
-      var q = u.slice(at + 7); if (!/[?&](gallery|fxgallery|mpgallery)\b|[?&]rows=/.test(q) || /[?&]keeper\b/.test(q) || shelfOf(q) !== o.shelf) return false;
-      var g = function (k) { var m = new RegExp('[?&]' + k + '=([^&]*)').exec(q); return m ? decodeURIComponent(m[1]) : null; };
-      var want = g({ spells: 'spell', features: 'feature', mascots: 'ability', creatures: 'rows' }[o.shelf]) || g('only');
-      return !!want && want.split(',').indexOf(key) >= 0;
-    }));
+    return (o.eyes = OG.galleryRows().filter(function (r) { return r.shelf === o.shelf && r.want.indexOf(key) >= 0; }).map(function (r) { return r.id; }));
   };
+  function marked(FB, id) { var f = FB[id]; return !!(f && (f.v || f.note)); }
+  function waiting(B) { var FB = B.one.fb || (B.one.fb = fbGet()); return OG.galleryRows().filter(function (r) { return !marked(FB, r.id); }); }
+  // the eyes block at the head of the card (10-08, Griz: "so far only V i've noticed is 'more to scroll down'"): what this entry is waiting on his eye for, what
+  // should happen (the row's look), and its verdict
   function eyesLines(B) {
     var rs = OG.eyesFor(B), E = window.DS && window.DS.EYES; if (!rs.length) return [];
     var FB = B.one.fb || (B.one.fb = fbGet()), out = [], k0 = (B.one.eyeK || 0) % rs.length;
     rs.forEach(function (id, k) {
       var f = FB[id] || {}, v = VERDICTS.filter(function (x) { return x[0] === f.v; })[0];
-      out.push('');
-      D.wrap('{o}EYES' + (rs.length > 1 ? ' ' + (k + 1) + '/' + rs.length : '') + ':{/} ' + E[id].title, COL - 12).forEach(function (l) { out.push(l); });
-      out.push((k === k0 ? '{y}V{/} ' : '  ') + (v ? '{y}' + v[1] + '{/}' : '{g}no verdict yet{/}') + (k === k0 && rs.length > 1 ? '  {g}SHIFT+V next{/}' : ''));
+      D.wrap('{o}YOUR EYE' + (rs.length > 1 ? ' ' + (k + 1) + '/' + rs.length : '') + ':{/} ' + E[id].title, COL - 12).forEach(function (l) { out.push(l); });
+      D.wrap(String(E[id].look || ''), COL - 12).forEach(function (l) { out.push('{g}' + l + '{/}'); });
+      out.push((k === k0 ? '{y}V{/}: ' : '   ') + (v ? '{y}' + v[1] + '{/}' : 'no verdict yet') + (k === k0 && rs.length > 1 ? '  {g}SHIFT+V next{/}' : ''), '');
     });
     return out;
+  }
+  function nextEyes(B) { // N: the next entry waiting on his eye, whatever its shelf (the row's own door, so its own flags too)
+    var all = OG.galleryRows(); if (!all.length) { D.sfx('error'); return; }
+    var w = waiting(B), pool = w.length ? w : all, here = OG.eyesFor(B), at = -1;
+    pool.forEach(function (r, i) { if (here.indexOf(r.id) >= 0) at = i; });
+    var r = pool[(at + 1) % pool.length];
+    D.sfx('confirm'); OG.pending = r.q + carry(B);
   }
   function verdict(B, next) {
     var rs = OG.eyesFor(B); if (!rs.length) { D.sfx('error'); return; }
@@ -186,7 +204,7 @@
   function handle(B) {
     var o = B.one, m = I.mouse, over = !!(m.inside && m.x < COL), sh = o.shelf;
     if (over && m.click) {
-      if (m.y < STRIP) { m.click = false; shelf(B, (m.y < 2 + LH ? 0 : 2) + (m.x < COL / 2 ? 0 : 1)); return; }
+      if (m.y < STRIP) { m.click = false; if (m.y >= 2 + 2 * LH) nextEyes(B); else shelf(B, (m.y < 2 + LH ? 0 : 2) + (m.x < COL / 2 ? 0 : 1)); return; }
       if (o.list && m.y < D.H - FOOT) { m.click = false; pick(B, Math.floor((m.y - STRIP - 2) / LH) + o.listP.scroll); return; }
       if (o.list || sh !== 'mascots') { var P = o.list ? o.listP : o.panel; P.scroll += (m.y < D.H / 2 ? -1 : 1) * Math.max(1, (P.rows || 10) - 2); m.click = false; D.sfx('cursor'); return; }
     }
@@ -197,6 +215,7 @@
     if (I.pressed('end')) { o.paused = !o.paused; D.sfx('cursor'); return; }
     if (o.paused) { if (I.repeat('bracketr')) frameStep(B, 1); else if (I.repeat('bracketl')) frameStep(B, -1); return; }
     if (I.pressed('verdict')) { verdict(B, !!I.held.shift); return; }
+    if (I.pressed('eyesnext')) { nextEyes(B); return; }
     if (I.pressed('dice') && (sh === 'creatures' || sh === 'spells')) { var SD = st(B); SD.real = !SD.real; D.sfx('confirm'); restart(B); return; }
     var shift = !!I.held.shift, d = I.repeat('right') ? 1 : I.repeat('left') ? -1 : 0;
     if (d) { if (o.list) o.list = false; step(B, shift ? d * 10 : d); return; }
@@ -240,18 +259,22 @@
   }
   function column(ctx, B, P0) {
     var o = B.one, H = D.H, top = STRIP + 1, inner = H - top - FOOT - 2, rows = Math.max(1, Math.floor(inner / LH));
-    var P = o.list ? o.listP : P0, lines = o.list ? P.lines : P.lines.concat(eyesLines(B)), n = lines.length, maxS = Math.max(0, n - rows), bone = D.PAL.ramps.bone[1], rim = D.PAL.ramps.silver[3];
+    var P = o.list ? o.listP : P0, lines = o.list ? P.lines : eyesLines(B).concat(P.lines), n = lines.length, maxS = Math.max(0, n - rows), bone = D.PAL.ramps.bone[1], rim = D.PAL.ramps.silver[3];
     P.scroll = Math.max(0, Math.min(maxS, P.scroll || 0)); P.rows = rows; P.maxS = maxS;
     ctx.save();
     ctx.fillStyle = 'rgba(10,8,16,.9)'; ctx.fillRect(0, 0, COL, H);
     ctx.strokeStyle = rim; ctx.strokeRect(0.5, 0.5, COL - 1, H - 1);
     OG.SHELVES.forEach(function (s, k) { D.text(ctx, (s.id === o.shelf ? '{y}' : '{g}') + (k + 1) + ' ' + s.name + '{/}', 5 + (k % 2) * (COL / 2), 2 + Math.floor(k / 2) * LH, bone); });
+    var wt = waiting(B).length, all = OG.galleryRows().length;
+    D.text(ctx, all ? (wt ? '{o}YOUR EYE{/}: ' + wt + ' waiting  {y}N{/} next' : '{g}YOUR EYE: all ' + all + ' marked  N{/}') : '{g}YOUR EYE: nothing waiting{/}', 5, 2 + 2 * LH, bone);
     ctx.beginPath(); ctx.moveTo(1, STRIP - 0.5); ctx.lineTo(COL - 1, STRIP - 0.5); ctx.stroke();
     ctx.save(); ctx.beginPath(); ctx.rect(0, top, COL, inner); ctx.clip();
     for (var k = 0; k < rows && P.scroll + k < n; k++) if (lines[P.scroll + k]) D.text(ctx, lines[P.scroll + k], 5, top + 2 + k * LH, bone);
     ctx.restore();
-    if (P.scroll > 0) D.text(ctx, '{y}^{/}', COL - 10, top + 1, bone);
-    if (P.scroll < maxS) D.text(ctx, '{y}v{/}', COL - 10, H - FOOT - LH - 1, bone);
+    // (more above or below: a small triangle, not a letter -- a 'v' read as the V key, 10-08)
+    ctx.fillStyle = D.PAL.ramps.gold[3];
+    if (P.scroll > 0) { ctx.beginPath(); ctx.moveTo(COL - 11, top + 7); ctx.lineTo(COL - 5, top + 7); ctx.lineTo(COL - 8, top + 3); ctx.fill(); }
+    if (P.scroll < maxS) { var yb = H - FOOT - 4; ctx.beginPath(); ctx.moveTo(COL - 11, yb - 4); ctx.lineTo(COL - 5, yb - 4); ctx.lineTo(COL - 8, yb); ctx.fill(); }
     ctx.fillStyle = 'rgba(10,8,16,.96)'; ctx.fillRect(1, H - FOOT - 1, COL - 2, FOOT);
     ctx.strokeStyle = rim; ctx.beginPath(); ctx.moveTo(1, H - FOOT - 0.5); ctx.lineTo(COL - 1, H - FOOT - 0.5); ctx.stroke();
     keyLines(B).forEach(function (l, i) { D.text(ctx, '{g}' + D.keys(l) + '{/}', 4, H - FOOT + 1 + i * LH, bone); });

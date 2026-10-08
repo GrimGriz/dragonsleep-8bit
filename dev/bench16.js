@@ -3942,6 +3942,15 @@
         okO('FEATURES: UP twice builds the Sneak Attack rogue at the 3rd (' + lv0F + ', ' + SF.lvAt + ', the hero at ' + (heroF && heroF.lvl) + '), the card says so', lv0F === 1 && SF.lvAt === 3 && heroF && heroF.lvl === 3 && /ROGUE AT 3rd/.test(cardO(BF)));
         SF.i = SF.ids.indexOf('rage'); SF.add = 0; OGB.act(BF, 'again'); runO(BF);
         okO('FEATURES: Rage carries BY LEVEL, only what changes (its 9th: +3 STR damage)', /BY LEVEL/.test(cardO(BF)) && /9th: \+3 STR damage/.test(cardO(BF)));
+        // the passives shown with the dice pinned (10-08, Griz: "why not a scripted crit? dice pinned as in 3 (nice)")
+        function showF(id) { SF.i = SF.ids.indexOf(id); SF.add = 0; var pre = (BF.logEntries || []).slice(); OGB.act(BF, 'again'); runO(BF); return since(BF, pre); }
+        var fBC = showF('brutalcritical'), fIC = showF('improvedcritical'), fIN = showF('indomitable'), fUD = showF('unarmoreddefense_barbarian');
+        okO('FEATURES pinned: Brutal Critical a 20 and CRITICAL; the Champion a 19 and CRITICAL; Indomitable a 2, again a 19, SAVED; Unarmored Defense +0 a MISS at AC - 1, a HIT at AC',
+          /d20 20 [^|]*CRITICAL/.test(fBC) && /d20 19 [^|]*CRITICAL/.test(fIC) && /d20 2, again 19[^|]*SAVED/.test(fIN) && /\+0 = (\d+)\s+vs AC (\d+)\s+MISS/.test(fUD) && /\+0 = (\d+)\s+vs AC \1\s+HIT/.test(fUD.replace(/^[\s\S]*MISS/, '')));
+        var EYN = (window.DS = window.DS || {}).EYES = window.DS.EYES || {};
+        EYN['bench-n-1008'] = { pri: 1, title: 'the bench', url: 'deep16/?gallery&shelf=features&feature=rage&fresh=1', look: '' }; OGB._rows = null;
+        var rowN = OGB.galleryRows().filter(function (r) { return r.id === 'bench-n-1008'; })[0]; delete EYN['bench-n-1008']; OGB._rows = null;
+        okO('YOUR EYE: a row whose door is a shelf entry is found for N -- its shelf and entry (' + (rowN ? rowN.shelf + ' ' + rowN.want.join(',') : 'none') + ')', !!rowN && rowN.shelf === 'features' && rowN.want[0] === 'rage');
         // ---- MASCOTS: UP rebuilds the four a level higher; the last entry
         var BM = OGB.door('?gallery&shelf=mascots&lvl=5'); D.battle = BM; BM.enter(); runO(BM); var SM = BM.mpgallery;
         OGB.act(BM, 'level', 1); runO(BM);

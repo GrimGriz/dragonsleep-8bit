@@ -16,6 +16,18 @@
 (function () {
   var D = window.D16, I = D.input;
   function ordinal(n) { return n + (n % 100 >= 11 && n % 100 <= 13 ? 'th' : ['th', 'st', 'nd', 'rd'][n % 10] || 'th'); }
+  // the dice pinned while a demonstration runs in the one gallery (RULED 10-06, CLAUDE.md's show rule: a thing to be seen, the dice pinned; Griz, 10-08, on the
+  // feature shelf's Brutal Critical: "why not a scripted crit? dice pinned as in 3 (nice)"): pick({ who, save, k }) gives a d20's face -- or null, as it falls.
+  // RU.save is wrapped to know a save and its saver (k counts the saves, and the other d20s, apart); both are put back in the finally
+  function* pinWith(B, gen, pick) {
+    var d0 = D.d, sv0 = D.rules.save, saver = [], k = { save: 0, roll: 0 };
+    D.rules.save = function (w) { saver.push(w); try { return sv0.apply(this, arguments); } finally { saver.pop(); } };
+    D.d = function (n) {
+      if (D.battle === B && n === 20) { var w = saver[saver.length - 1], v = pick({ who: w || B.active, save: !!w, k: w ? k.save++ : k.roll++ }); if (v != null) return v; }
+      return d0.apply(this, arguments);
+    };
+    try { return yield* gen; } finally { D.d = d0; D.rules.save = sv0; }
+  }
   function onList(cls, id) { var c = D.npc.CLASSES[cls], sp = (c && c.spells) || {}; return Object.keys(sp).some(function (k) { return Array.isArray(sp[k]) && sp[k].indexOf(id) >= 0; }); }
   // who casts it: the druid for a druid's or ranger's spell that no wizard or cleric has; the cleric for a divine one; the wizard for the rest
   function casterOf(id) {
@@ -148,13 +160,7 @@
     // cast (a stage's own blow before or after it), rolls as ever
     function* pinned(gen) {
       if (!B.one || S.real) return yield* gen;
-      var d0 = D.d, sv0 = D.rules.save, saver = [];
-      D.rules.save = function (w) { saver.push(w); try { return sv0.apply(this, arguments); } finally { saver.pop(); } };
-      D.d = function (n) {
-        if (D.battle === B && n === 20) { var w = saver[saver.length - 1]; if (!w) return 19; if (w.side === 'foe') return 2; }
-        return d0.apply(this, arguments);
-      };
-      try { return yield* gen; } finally { D.d = d0; D.rules.save = sv0; }
+      return yield* pinWith(B, gen, function (r) { return !r.save ? 19 : r.who && r.who.side === 'foe' ? 2 : null; });
     }
     // B.card keeps three cards and lets the oldest go: a cast that says three things (Eldritch Blast, Moonbeam, Scorching Ray,
     // the mass heals, Meteor Swarm) would push the spell's own card off the screen mid-animation. This one stays, first, and the cast's
@@ -270,7 +276,11 @@
     hide: { foe: 3, nfoe: 1, mate: 'between' }, supremesneak: { foe: 3, nfoe: 1, mate: 'between' }, cunningaction: { foe: 3, nfoe: 1, mate: 'between' },
     steelwill: { foe: 0, mate: null, wiz: 1 }, mindlessrage: { foe: 0, mate: null, wiz: 1 },
     auraofprotection: { foe: 0, mate: 'whole', wiz: 1 }, auraofdevotion: { foe: 0, mate: 'whole', wiz: 1 }, wakeful: { foe: 0, mate: 'whole', wiz: 1 },
-    darkonesblessing: { foe: 3, foeHurt: 1 }, agonizingblast: { foe: 3 }, repellingblast: { foe: 3 }
+    darkonesblessing: { foe: 3, foeHurt: 1 }, agonizingblast: { foe: 3 }, repellingblast: { foe: 3 },
+    // (10-08, the one gallery: the passives that were a card only and can be shown -- a crit, a save rerolled, an AC a blow just misses)
+    brutalcritical: { mate: null }, improvedcritical: { mate: null },
+    dangersense: { foe: 0, mate: null, wiz: 1 }, indomitable: { foe: 0, mate: null, wiz: 1 },
+    unarmoreddefense_barbarian: { mate: null }, unarmoreddefense_monk: { mate: null }, fightingstyle_defense: { mate: null }
   };
   // what the hero is built from beyond its class and level (js/classes.js NPC.spec); the register's subclass is added
   var SPEC = {
@@ -519,8 +529,28 @@
       darkonesblessing: function* (c) { c.foes[0].hp = 1; yield* castTry(c, 'eldritchblast', 5); },
       agonizingblast: function* (c) { yield* castTry(c, 'eldritchblast', 5); }, repellingblast: function* (c) { yield* castTry(c, 'eldritchblast', 5); },
       pactofthetome: function* (c) { yield* castTry(c, 'sacredflame', 3); },
-      pactoftheblade: swings(5)
+      pactoftheblade: swings(5),
+      // (10-08, the one gallery: shown with the dice pinned -- FPIN below; with F's dice as they fall they show what the dice bring)
+      brutalcritical: swings(1), improvedcritical: swings(1),
+      dangersense: evasion, indomitable: wizCast('holdperson'),
+      unarmoreddefense_barbarian: acShow, unarmoreddefense_monk: acShow, fightingstyle_defense: acShow
     };
+    // an AC shown by the blow that just misses it, then the one that just meets it: the foe's bonus set to +0 and its d20 pinned to AC - 1, then AC (FPIN)
+    function* acShow(c) {
+      var foe = c.foes[0]; if (!foe) return;
+      var ac = D.rules.ac(c.hero); c.acPins = [Math.max(2, Math.min(19, ac - 1)), Math.max(2, Math.min(19, ac))];
+      yield* foeStrike(c, 2, { atk: 0, until: function () { return false; } });
+    }
+    // the dice the one gallery pins for a feature (the default: our blows and checks a 19, our saves a 19, a foe's save a 2, a foe's blow a 19), and a
+    // feature's own where its point is the die: Brutal Critical's 20, the Champion's 19 a crit, Indomitable's first save failed and its reroll made, an AC's two
+    var FPIN = {
+      brutalcritical: function (r) { return !r.save && r.who && r.who.side === 'party' ? 20 : undefined; },
+      improvedcritical: function (r) { return !r.save && r.who && r.who.side === 'party' ? 19 : undefined; },
+      indomitable: function (r) { return r.save && r.who && r.who.side === 'party' ? (r.k === 0 ? 2 : 19) : undefined; },
+      unarmoreddefense_barbarian: acPin, unarmoreddefense_monk: acPin, fightingstyle_defense: acPin
+    };
+    function acPin(r, c) { return !r.save && r.who && r.who.side === 'foe' && c.acPins && c.acPins.length ? c.acPins.shift() : undefined; }
+    function pick(c) { return function (r) { var f = FPIN[c.id], v = f ? f(r, c) : undefined; return v !== undefined ? v : r.save ? (r.who && r.who.side === 'foe' ? 2 : 19) : 19; }; }
 
     function* run(c) {
       var f = c.f, u = c.hero, n0 = (B.logEntries || []).length, pre = (B.logEntries || []).slice(), how = 'card', why = '';
@@ -551,7 +581,7 @@
         if (!f) {
           B.card(['{r}The feature register is not loaded.{/}', 'deep16/index.html wants  <script src="data/features.js">  after data/summons.js.'], 1e9, 'gallery'); S.card = B.cards[B.cards.length - 1];
         } else {
-          try { var c = stage(id, f); header(id, f); yield 20; yield* run(c); }
+          try { var c = stage(id, f); header(id, f); yield 20; if (B.one && !S.real) yield* pinWith(B, run(c), pick(c)); else yield* run(c); } // (the one gallery's dice pinned: F lets them fall)
           catch (err) {
             S.report[id] = { how: 'error: ' + String(err && err.stack || err).slice(0, 400), cards: 0 };
             B.card(['{r}' + f.name + ': something broke (' + String(err && err.message || err).slice(0, 90) + '){/}'], 1e9, 'gallery-why');
