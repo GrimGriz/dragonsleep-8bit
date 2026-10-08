@@ -681,7 +681,7 @@
     multi: 1, swims: true, src: 'SRD 5.1 Poisonous Snake (CR 1/8); content/monsters.json snake (the Glowseep)'
   },
   axebeak: {
-    name: 'Axe Beak', type: 'beast', sheet: 'axebeak_p1', cr: '1/4', ac: 11, hp: 19, speed: 50, size: 2, reach: 5,
+    name: 'Axe Beak', type: 'beast', sheet: 'axebeak_p2', cr: '1/4', ac: 11, hp: 19, speed: 50, size: 2, reach: 5,
     abil: { str: 14, dex: 12, con: 12, int: 2, wis: 10, cha: 5 }, init: 1, perception: 10,
     saves: { str: 2, dex: 1, con: 1, int: -4, wis: 0, cha: -3 },
     attacks: { beak: { name: 'Beak', atk: 4, dice: '1d8', mod: 2, type: 'slashing', reach: 5 } },
