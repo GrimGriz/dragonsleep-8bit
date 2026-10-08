@@ -28,6 +28,7 @@
   else if (/[?&]gameshow\b/.test(q) && D.gameshow) D.push(D.gameshow.make(q)); // the Monster Party Game Show: the lighthouse, the circles, Third Lamp (js/gameshow.js, 10-07)
   else if (/[?&]mpgallery\b/.test(q) && D.fxMascots) D.push(D.fxMascots(q)); // the Mascot gallery: the four's abilities one at a time, up/down the level (js/mpgallery.js, 10-07; also ?fxgallery&mascots)
   else if (/[?&]mpshow\b/.test(q) && D.mpshow) D.push(D.mpshow.make(q)); // Denny and Beholda, shown: the MPMon's specials one beat at a time (js/mpshow.js, 10-06)
+  else if (/[?&]rows=/.test(q)) D.push(D.show.rows(q)); // the row gallery: ?rows=cube -- every row of a sheet one at a time, left/right, up/down turns it, E again (js/show.js, 10-08)
   else if (/[?&]show=/.test(q)) D.push(D.show.fight(q)); // the test ground: ?show=grick -- every row of a creature's sheet, twice, in bright, dim and dark (js/show.js)
   else if (/[?&]npc=/.test(q)) D.push(D.npcFight(q, D.npcRecord(q))); // the class floor: ?npc=cleric,wizard&lvl=5 (&vs=fighter,rogue: a band instead of the four) (js/classes.js); recorded since 10-06
   else if (/[?&]keeperfight\b/.test(q) && D.keeper) D.push(D.keeper.fight(q)); // the Keeper of the Flooded Stair (js/keeper.js)

@@ -241,6 +241,81 @@
     B.finish = function* (res) { this.showReport = SH.report(this); this.card(this.showReport, 1e9); yield* D.Battle.prototype.finish.call(this, res); };
     return B;
   };
+  // ==================================================================== the row gallery (?rows=<creature>[,<creature>], 10-08 -- Griz: "I think shows would
+  // technically be more effective if you did it like the spell gallery now that you bring it up. Arrow keys to repeat the animation"): every row of a sheet,
+  // one at a time, as the engine draws it, on the class floor in good light -- left/right the row before or after, up/down turn it a facing (S, SW, W ...
+  // js/sprites.js S.FACINGS), E (or a click) play it again. No fight and no dice: a row that needs a moment gets it set by hand -- the fall at 0 hit
+  // points, prone on its side and then up, Still before it has acted, Burrow under the floor, Clamp over a head and Latched at a shoulder (a fighter
+  // stands by to be the head), the rest played as the engine plays them. &lvl= the fighter's, &ripple=body|mane as on ?show= (js/looks.js LK.ripple).
+  // The fight that shows them in play is ?show= (above; dev/bench16.js mode=show calls SH.fight)
+  var GLOOPS = { idle: 1, walk: 1, run: 1, fly: 1, slither: 1, still: 1, roost: 1, braid: 1, sit: 1, clamp: 1, latched: 1, rofl: 1 };
+  SH.rows = function (q) {
+    var get = function (k) { var m = new RegExp('[?&]' + k + '=([^&]*)').exec(q); return m ? decodeURIComponent(m[1]) : null; };
+    var L = Math.max(1, Math.min(9, +get('lvl') || 3)), kinds = (get('rows') || 'grick').split(',').filter(function (k) { return D.FOES[k]; });
+    if (!kinds.length) kinds = ['grick'];
+    var B = new D.Battle({ npc: { foes: kinds.slice(), party: ['fighter:' + L + ':human'] },
+      fightDef: D.classFight(L, { what: 'the row gallery', intro: 'Every row of its sheet, one at a time. Left/right the row, up/down turn it, E again.' }) });
+    B.showRipple = get('ripple');
+    var S = B.rowGallery = { list: [], i: 0, face: 7 };
+    var enter0 = B.enter;
+    B.enter = function () {
+      enter0.apply(this, arguments);
+      var cx = Math.floor(D.grid.map.w / 2), cy = Math.floor(D.grid.map.h / 2);
+      S.mate = B.units.filter(function (w) { return w.side === 'party' && !w.familiar; })[0];
+      S.foes = B.units.filter(function (w) { return w.side === 'foe'; });
+      S.mate.x = cx - 2; S.mate.y = cy + 1; S.mate.facing = 6; S.home = [cx, cy];
+      S.foes.forEach(function (u) { u.show = true; u.bound = null; u.maxhp = u.hp; }); // (show: the ripple's mark, js/looks.js; bound to water, on a dry floor: let loose)
+      // (its `attack` row left out where every blow has a row of its own: there it is only the fallback, a copy -- the show's tally says the same)
+      var copyOnly = function (u) { var ks = Object.keys(u.attacks || {}); return ks.length && ks.every(function (k) { var a = u.attacks[k]; return a.spell || D.spr.anim(u.sheet, String(a.name || k).toLowerCase().replace(/[^a-z]/g, '')); }); };
+      S.foes.forEach(function (u) { SH.rowsOf(u.sheet).forEach(function (r) { if (!(r === 'attack' && copyOnly(u))) S.list.push({ u: u, row: r }); }); });
+      D.iso.zoom = Math.max(D.iso.zoom || 1, 2.5); // (close in: a row is judged at the size of a figure, not of the floor -- the wheel takes it in or out)
+      S.list.sort(function (a, b) { return S.foes.indexOf(a.u) - S.foes.indexOf(b.u) || (a.row === 'idle' ? -1 : b.row === 'idle' ? 1 : 0); });
+      B.req = null; B.co = loop();
+    };
+    function off(u) { // (back to standing, whole, on its square: off any head, out of the floor, every mark gone)
+      if (u.riding) { var h = u.master; u.riding = false; u.attached = false; u.master = null; u.perch = null; if (h) { delete h.conds.attached; delete h.conds.blinded; } }
+      u.x = S.home[0]; u.y = S.home[1]; u.facing = S.face; u.hp = u.maxhp; u.conds = {}; u.dead = false; u.ko = false; u.deadT = null;
+      u.under = false; u.ethereal = false; u.proneLook = false; u.proneT = null; u.woken = true; u.acted = true; u.flash = 0; u.anim = 'idle'; u.animT = B.t;
+    }
+    function card(it) {
+      var a = D.spr.anim(it.u.sheet, it.row), n = a ? a.frames + ' frames at ' + (a.fps || 8) + ' fps' : 'its fall frame';
+      B.clearCards();
+      B.card(['{y}' + it.u.name.toUpperCase() + '  ' + (S.i + 1) + ' / ' + S.list.length + '   ' + it.row.toUpperCase() + '{/}  ' + n,
+        '{g}facing ' + D.spr.FACINGS[S.face] + '   left/right the row · up/down turn it · E again{/}'], 1e9, 'rows');
+    }
+    function* play(it) {
+      var u = it.u; S.upAt = null;
+      B.units = [S.mate, u]; S.foes.forEach(function (w) { if (w !== u) off(w); }); off(u); D.grid.setup(D.grid.map, B.units);
+      var r = it.row, at = r === 'clamp' || r === 'latched' ? S.mate : u; // (the camera on where it will be: on the fighter's head for those two)
+      D.iso.lookAt(at.x, at.y, D.grid.map.gz(at.x, at.y));
+      card(it);
+      yield 12;
+      if (r === 'hurt') { u.hp = 0; u.dead = true; u.deadT = B.t; u.anim = 'idle'; u.animT = B.t; }
+      else if (r === 'prone') { u.conds.prone = true; S.upAt = B.t + 100; } // (down on its side, then up again by itself -- the input below keeps the clock, so a key is never lost)
+      else if (r === 'still' || r === 'roost' || r === 'braid') { u.woken = false; u.acted = false; }
+      else if (r === 'burrow') { u.under = true; u.anim = 'burrow'; u.animT = B.t; }
+      else if (r === 'clamp' || r === 'latched') { S.mate.conds.attached = { by: u.id, dc: 13, head: r === 'clamp' }; B.mount(u, S.mate); }
+      else { u.anim = r; u.animT = B.t; }
+    }
+    function* loop() {
+      while (true) {
+        var it = S.list[S.i];
+        yield* play(it);
+        var v = yield { rows: true };
+        if (v === 'up' || v === 'down') { S.face = (S.face + (v === 'up' ? 1 : 7)) % 8; continue; } // (the same row, turned)
+        if (typeof v === 'number' && v) S.i = ((S.i + v) % S.list.length + S.list.length) % S.list.length;
+      }
+    }
+    return B;
+  };
+  var input0 = D.ui.input;
+  D.ui.input = function (B, req) {
+    if (!req.rows) return input0(B, req);
+    var S = B.rowGallery; if (S && S.upAt && B.t >= S.upAt) { S.upAt = null; delete S.list[S.i].u.conds.prone; } // (prone's get-up: the same row played back, js/sprites.js S.proneRow)
+    D.ui.camera(B);
+    var I = D.input, v = I.repeat('right') ? 1 : I.repeat('left') ? -1 : I.repeat('up') ? 'up' : I.repeat('down') ? 'down' : I.pressed('a') || I.mouse.click ? 0 : null;
+    if (v != null) { D.sfx(v === 0 ? 'confirm' : 'cursor'); B.answer(v); }
+  };
   SH.setup = function (B) {
     B.units.forEach(function (u) {
       if (u.side !== 'foe') return;
