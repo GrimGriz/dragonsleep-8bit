@@ -196,9 +196,12 @@
   function callPack(B, u, c) {
     var hs = AI.heroes(B, u).filter(function (w) { return G.standing(w); }), mx = u.x + (u.size - 1) / 2, my = u.y + (u.size - 1) / 2;
     var cx = hs.length ? hs.reduce(function (a, w) { return a + w.x; }, 0) / hs.length : mx, cy = hs.length ? hs.reduce(function (a, w) { return a + w.y; }, 0) / hs.length : my + 1;
-    var dx = mx - cx, dy = my - cy, dl = Math.hypot(dx, dy) || 1, bx = mx + dx / dl * 2.5, by = my + dy / dl * 2.5, came = [], def = D.FOES[c.kind];
+    var dx = mx - cx, dy = my - cy, dl = Math.hypot(dx, dy) || 1, came = [], def = D.FOES[c.kind];
     if (!def) return came;
     for (var k = 0; k < (c.n || 1); k++) {
+      // out at his flanks, left and right by turns, half a square behind him -- from behind his back on the crown they could not get past him and its trees,
+      // and parked there (Griz, 10-08: "they just park behind him most of the fight instead of being a swarm of attackers")
+      var side = k % 2 ? 1 : -1, far = 2 + Math.floor(k / 2), bx = mx + (-dy / dl) * side * far + dx / dl * 0.5, by = my + (dx / dl) * side * far + dy / dl * 0.5;
       var h = B.makeFoe({ id: 'mh' + (B.mhN = (B.mhN || 0) + 1), kind: c.kind }), best = null, bd = Infinity;
       for (var y = 0; y < G.map.h; y++) for (var x = 0; x < G.map.w; x++) {
         if (!G.canStand(h, x, y)) continue;
