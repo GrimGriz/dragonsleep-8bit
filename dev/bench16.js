@@ -1564,6 +1564,13 @@
       B6.req = { turn: f6 }; B6.tool = 'move'; B6.flyZ = null; f6.turn.move = 0; B6.cache = null; var st6 = D.ui.stepLayer(B6, 1);
       okFL('no move left: Shift+wheel up does nothing ' + !st6 + ' (the layer ' + B6.flyZ + ')', !st6 && B6.flyZ == null);
       B6.req = null;
+      // the Fly spell (10-08, Griz: "yes to fly spell"): the wizard's on the fighter -- wings, 60 ft; up 10 ft; the wizard's concentration broken, it falls
+      var B7 = mkFL('?npc=goblin&lvl=5&vs=wizard:5,fighter:5'), w7 = sideFL(B7, 'party').filter(function (u) { return u.cls === 'wizard'; })[0], f7 = sideFL(B7, 'party').filter(function (u) { return u.cls === 'fighter'; })[0];
+      w7.x = 6; w7.y = 8; f7.x = 7; f7.y = 8; GF.setup(GF.map, B7.units); D.rules.startTurn(w7); B7.active = w7; w7.slots[2] = 2;
+      var ok7 = D.magic.targetOK(B7, w7, D.magic.geo('fly'), f7); runFL(D.magic.cast(B7, w7, 'fly', 3, f7)); var wings7 = !!f7.flies && f7.speed === 60;
+      D.rules.startTurn(f7); B7.active = f7; runFL(B7.flyMove(f7, f7.x, f7.y, GF.groundAt(f7, f7.x, f7.y) + 2 * L)); var up7 = GF.aloft(f7);
+      D.d = function (n) { return n; }; try { D.magic.endConc(B7, w7, 'the bench'); B7.flyCheck(); } finally { D.d = d0FL; }
+      okFL('Fly: the fighter a target ' + ok7 + ', wings and 60 ft ' + wings7 + ', up 10 ft ' + up7 + '; the spell ended: wings ' + !!f7.flies + ', speed ' + f7.speed + ', on the ground ' + (f7.fz == null) + ', prone ' + !!f7.conds.prone, ok7 && wings7 && up7 && !f7.flies && f7.speed === 30 && f7.fz == null && !!f7.conds.prone);
       // the druid's Giant Bat (Wild Shape, 8th: js/features.js F.SHAPES `flies`): in its shape the move tool takes the wheel's layer too
       var B5 = mkFL('?npc=goblin&lvl=8&vs=druid:8'), d5 = sideFL(B5, 'party')[0]; D.rules.startTurn(d5); B5.active = d5; d5.feats.wildShape = 2; runFL(D.features.wildShape(B5, d5, 'giantbat')); B5.req = { turn: d5 }; B5.tool = 'move'; B5.cache = null;
       var bat5 = !!(d5.beast && d5.flies), fl5 = D.ui.flyer(B5) === d5, st5 = D.ui.stepLayer(B5, 1); B5.req = null;

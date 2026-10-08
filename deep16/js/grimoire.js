@@ -1242,6 +1242,23 @@
     },
     ai: function (B, u, e, slot, fs) { if (u.conc) return null; return TX().bestArea(B, u, e, fs, function (caught) { var sc = 0; caught.forEach(function (w) { if (w === u || w.conds.frightened || RU.immuneTo(w, 'frightened')) return; sc += (G.hostile(u, w) ? 1 : -1.5) * TX().pFail(w, 'wis', u.spellDC) * TX().dpr(w) * 1.6; }); return sc; }); }
   };
+  // Fly (SRD 5.1, 3rd, concentration; the grid's rules, 10-08 -- it had waited on flight, Griz: "yes to fly spell"): "You touch a willing creature. The target gains a flying
+  // speed of 60 feet for the duration. When the spell ends, the target falls if it is still aloft" -- its wings (u.flies: js/grid.js, the wheel's layer, battle.js flyMove), its
+  // speed 60 where it was less (on its own turn the feet it gains at once, the SRD's change of speeds), and both back when the concentration ends; a fall then is battle.js
+  // flyCheck's ("no wings"). The AI keeps to the surface: it does not cast it. Not built: a second creature from a 4th-level slot
+  E.fly = {
+    summary: function () { return 'touch · a willing creature flies, 60 ft (Shift+wheel its height); it falls if still up when the spell ends (concentration)'; },
+    cast: function* (B, u, t, slot, head) {
+      if (t.conds.flying) { B.card([head + ': ' + t.name + ' flies already.']); yield 16; return; }
+      var rec = t.conds.flying = { by: u.id, flies0: !!t.flies, speed0: t.speed };
+      t.flies = true; if (t.speed < 60) { if (t.turn && B.active === t) t.turn.move += 60 - t.speed; t.speed = 60; }
+      FX.ring(t, 'glow', 32); D.sfx('buff');
+      B.card([head + ' on ' + t.name + ': {c}it flies, 60 ft{/}  {g}(Shift+wheel or PgUp/PgDn its height while it moves; concentration){/}'], 260);
+      M.concentrate(B, u, 'fly', 'Fly', function () { if (t.conds.flying !== rec) return; delete t.conds.flying; t.flies = rec.flies0; t.speed = rec.speed0; if (t.turn && t.turn.move > t.speed) t.turn.move = t.speed; B.cache = null; if (B.flyCheck) B.flyCheck(); });
+      yield 24;
+    },
+    ai: function () { return null; }
+  };
   E.haste = {
     summary: function () { return 'a willing creature within 30 ft · +2 AC, advantage on DEX saves, double speed, one more attack each turn; a lost turn when it ends (concentration)'; },
     // (the doubled speed on the casting turn is movement a dancer ("must use all its movement to dance without leaving its space") or a restrained creature
