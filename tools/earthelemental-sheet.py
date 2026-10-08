@@ -1,14 +1,20 @@
-"""DEEP16 pipeline 2 (generated art): Griz's three GPT sheets of the earth elemental -> earthelemental_p2.
+"""DEEP16 pipeline 2 (generated art): Griz's GPT sheets of the earth elemental -> earthelemental_p2.
 
     python tools/earthelemental-sheet.py            (writes deep16/art/earthelemental_p2.png/.json)
     python tools/earthelemental-sheet.py check      (also the cut overlays, dev/visions/earthelemental/cut-<n>.png, the tone's means, and a
                                                      lineup beside the troll, the gnoll and the stand-in it replaces)
 
-Sources (gitignored, the main checkout's -- a worktree reads them there): deep16/_src/Fresh/Earth Elemental Animation Sheet-2.png (the side,
-asked 10-08 as "The stand-ins' first sheets", deep16-art-in-hand.md: a portrait, a turnaround labelled Front, Right, Back, Left ABOVE its stills,
-then rows facing RIGHT, numbered under each frame: idle 6, walk 8, slam 6, slam 2 6, sink 6 -- its 6 deliberately empty, under the floor --
-rise 6, flinch 4, fall 6, prone 2), then Front-Facing Earth Elemental Sprite Sheet-3.png (from the front) and Earth elemental back sprite
-sheet-6.png (from behind), each idle 6, walk 8, slam 6, slam 2 6, flinch 4, no turnaround ("The six's fronts and backs", the same file).
+Sources (gitignored, the main checkout's -- a worktree reads them there), all in deep16/_src/Fresh/:
+  1  Earth Elemental Animation Sheet-2.png -- the first side sheet (asked 10-08 as "The stand-ins' first sheets", deep16-art-in-hand.md): a
+     portrait, a turnaround labelled Front, Right, Back, Left ABOVE its stills, then rows facing RIGHT drawn small (its side idle 68 px tall,
+     so they played upscaled and soft). Since the re-roll only its turnaround and its side idle are cut: the go-between that sizes sheets 2 and 3.
+  2  Front-Facing Earth Elemental Sprite Sheet-3.png (from the front) and 3  Earth elemental back sprite sheet-6.png (from behind), each idle 6,
+     walk 8, slam 6, slam 2 6, flinch 4, no turnaround ("The six's fronts and backs", the same file).
+  4  Right-facing earth elemental sprite sheet-4.png and 5  Right-facing earth elemental sprite sheet-5.png -- Griz's re-roll of the side, drawn
+     larger (10-08), true side view facing right, no portrait or turnaround: sheet 4 idle 6, walk 8, slam 6, slam 2 6, flinch 4; sheet 5 sink 6
+     (its 6 deliberately empty, under the floor), rise 6, fall 6, prone 2. They replace every one of sheet 1's side rows. (Large Earth Elemental
+     Action Sprite Sheet-2.png and Side-View Earth Elemental Sprite Sheet-3.png, a three-quarter-view pair, are not cut: the paste asked a true
+     side view.)
 The earth elemental replaces the Blue Demon stand-in, earthelemental_p1 (left on disk).
 
 Rows (the paste's cut-as line): Slam -> `slam` and `attack` (the fallback); Slam 2 -> `slam2` (battle.js plays a row named for the attack,
@@ -17,13 +23,18 @@ what shows while it is under -- the bulette's burrow ends on its mound, tools/bu
 a few pebbles only, kept); Flinch -> flinch; Fall -> `hurt` (crumbling to a heap); Prone -> `prone` (on its back, then heaving up on one fist:
 played the other way, up on the fist then lying, so it lies at its last frame and gets up by playing it backwards -- the goblin's and the
 hobgoblin's way, deep16/js/sprites.js S.proneRow and S.proneFrame).
-Facings: NE, E and SE take the side rows as drawn, SW, W and NW mirrored; S takes the front sheet's rows and N the behind sheet's for idle,
-walk, slam (and attack), slam2 and flinch; sink, rise, fall and prone play side-on from S and N too (they read the same from any side).
-Every row keeps one frame count in every facing (the front and behind sheets came with sheet 1's counts: nothing fitted).
-Scale: the side idle (hunched) stands HEIGHT px; the turnaround meets the side rows by its Right and Left stills against the side idle, by
-area (the sheet drew its turnaround about 1.6 times its rows); the front sheet meets the turnaround by its idle against the Front still and
-the behind sheet by its idle against the Back still, by area. Colour: each later sheet brought to sheet 1's per channel (TONE) by its idle's
-mean against the turnaround's still of the same side.
+Facings: NE, E and SE take the side rows (sheets 4 and 5) as drawn, SW, W and NW mirrored; S takes the front sheet's rows and N the behind
+sheet's for idle, walk, slam (and attack), slam2 and flinch; sink, rise, fall and prone play side-on from S and N too (they read the same from
+any side). Every row keeps one frame count in every facing (every sheet came with the same counts: nothing fitted).
+Scale: sheet 1's side idle (hunched) stands HEIGHT px; its turnaround meets its side rows by its Right and Left stills against that idle, by
+area (the sheet drew its turnaround about 1.7 times its rows); the front sheet meets the turnaround by its idle against the Front still and
+the behind sheet by its idle against the Back still, by area -- all as before the re-roll, so S and N are unchanged. Sheet 4's side idle
+stands HEIGHT px too (no turnaround to meet); sheet 5 meets sheet 4 by its standing frames (sink 1, rise 6, fall 1, by area) against sheet
+4's idle. Colour: each later sheet brought to sheet 1's per channel (TONE): the front's and behind's idles by their mean against the
+turnaround's Front and Back stills; the re-roll's side, warmer still, by its played mean at game size against the front's and behind's
+idles as they play (see TONE).
+Kept from the first cut: sheet 1's side rows played at K 0.76 (an upscale, soft); the re-roll's play at K 1.84 and 2.35 (a downscale, crisp).
+The re-roll's walk is drawn smaller than its idle (as the front's and behind's are): one K per sheet keeps it so.
 """
 import os, sys, json, subprocess
 import importlib.util
@@ -40,7 +51,9 @@ SR = _load('sheetrows', os.path.join(ROOT, 'tools', 'sheetrows.py'))
 
 FILES = {1: os.path.join('Fresh', 'Earth Elemental Animation Sheet-2.png'),
          2: os.path.join('Fresh', 'Front-Facing Earth Elemental Sprite Sheet-3.png'),
-         3: os.path.join('Fresh', 'Earth elemental back sprite sheet-6.png')}
+         3: os.path.join('Fresh', 'Earth elemental back sprite sheet-6.png'),
+         4: os.path.join('Fresh', 'Right-facing earth elemental sprite sheet-4.png'),
+         5: os.path.join('Fresh', 'Right-facing earth elemental sprite sheet-5.png')}
 SRC = os.path.join(ROOT, 'deep16', '_src')                 # his sheets live in the main checkout (_src is not in git): a worktree reads them there
 if not os.path.exists(os.path.join(SRC, FILES[1])):
     _common = subprocess.run(['git', '-C', ROOT, 'rev-parse', '--git-common-dir'], capture_output=True, text=True).stdout.strip()
@@ -51,17 +64,9 @@ TURN = ['front', 'right', 'back', 'left']
 # per sheet: text boxes (a blob wholly inside one is lettering: the row names; every row's number strip is added below), the portrait,
 # and its rows: (row, band x0 y0 x1 y1, number strip y0 y1, names, the numbers' x off the probe)
 SHEETS = {
-  1: dict(text=[(0, 222, 100, 1024)], portrait=(0, 0, 378, 222),
+  1: dict(text=[(0, 222, 100, 1024)], portrait=(0, 0, 378, 222),        # (only the turnaround and the side idle: the scale's go-between)
           rows=[('turn', (380, 0, 1100, 222), (19, 36), TURN, [478, 643, 802, 973]),     # (its labels above the stills)
-                ('idle', (0, 222, 1536, None), (298, 309), NUM(6), [156, 322, 476, 617, 754, 888]),
-                ('walk', (0, None, 1536, None), (389, 400), NUM(8), [164, 299, 438, 573, 706, 856, 1031, 1173]),
-                ('slam', (0, None, 1536, None), (479, 489), NUM(6), [154, 310, 471, 646, 816, 978]),
-                ('slam2', (0, None, 1536, None), (570, 580), NUM(6), [171, 324, 492, 666, 829, 992]),
-                ('sink', (0, None, 1536, None), (646, 660), NUM(5), [164, 324, 492, 656, 818]),   # (its "6" stands over nothing: added empty)
-                ('rise', (0, None, 1536, None), (743, 754), NUM(6), [166, 324, 492, 648, 822, 990]),
-                ('flinch', (0, None, 1536, None), (828, 838), NUM(4), [157, 310, 464, 608]),
-                ('fall', (0, None, 1536, None), (909, 919), NUM(6), [170, 320, 476, 626, 776, 927]),
-                ('prone', (0, None, 1536, None), (997, 1008), NUM(2), [182, 348])]),
+                ('idle', (0, 222, 1536, None), (298, 309), NUM(6), [156, 322, 476, 617, 754, 888])]),
   2: dict(text=[(0, 0, 120, 1024)],
           rows=[('idle', (0, 0, 1536, None), (196, 211), NUM(6), [227, 444, 649, 856, 1065, 1276]),
                 ('walk', (0, None, 1536, None), (386, 404), NUM(8), [198, 376, 546, 713, 891, 1071, 1252, 1429]),
@@ -74,25 +79,49 @@ SHEETS = {
                 ('slam', (0, None, 1536, None), (607, 621), NUM(6), [223, 456, 682, 920, 1152, 1380]),
                 ('slam2', (0, None, 1536, None), (798, 812), NUM(6), [223, 457, 682, 920, 1148, 1379]),
                 ('flinch', (0, None, 1536, None), (984, 998), NUM(4), [223, 446, 662, 865])]),
+  # the re-roll's side sheets: each row name its own box (a walk's or a prone's first pebbles stand as far left as the longest name ends)
+  4: dict(text=[(0, 97, 90, 127), (0, 294, 98, 323), (0, 506, 98, 535), (0, 698, 121, 727), (0, 875, 114, 905)],
+          rows=[('idle', (0, 0, 1536, None), (196, 211), NUM(6), [228, 447, 650, 860, 1079, 1308]),
+                ('walk', (0, None, 1536, None), (388, 403), NUM(8), [199, 358, 519, 689, 866, 1046, 1226, 1416]),
+                ('slam', (0, None, 1536, None), (600, 616), NUM(6), [225, 452, 675, 898, 1151, 1391]),
+                ('slam2', (0, None, 1536, None), (794, 810), NUM(6), [228, 424, 658, 887, 1126, 1384]),
+                ('flinch', (0, None, 1536, None), (990, 1005), NUM(4), [228, 447, 664, 870])]),
+  5: dict(text=[(0, 153, 84, 181), (0, 399, 82, 426), (0, 666, 73, 694), (0, 881, 100, 907)],
+          rows=[('sink', (0, 0, 1536, None), (252, 272), NUM(5), [232, 468, 697, 932, 1165]),   # (its "6", at 1398, stands over nothing: added empty)
+                ('rise', (0, None, 1536, None), (521, 536), NUM(6), [225, 455, 692, 925, 1162, 1397]),
+                ('fall', (0, None, 1536, None), (785, 800), NUM(6), [223, 455, 681, 921, 1159, 1397]),
+                ('prone', (0, None, 1536, None), (986, 1000), NUM(2), [228, 538])]),
 }
 SPLIT = {}
 # loose bits by hand: sheet -> row -> [(box on the sheet: every blob wholly inside it, the label it belongs to)] -- a frame too small to seed
 # itself (the sinking's last pebbles, the rising's first)
-FIX = {1: {'sink': [((765, 615, 870, 645), '5')],          # (its last pebbles and the eyes' glint, a core of 58 px)
-           'rise': [((110, 700, 225, 740), '1')]}}         # (a few pebbles only, a core of 19 px: kept)
+FIX = {4: {'walk': [((963, 290, 982, 310), '6'), ((776, 362, 783, 368), '5')],     # (the re-roll's frames stand close: a stone flying between
+           'slam': [((1023, 518, 1034, 529), '4'), ((1023, 545, 1043, 567), '4'), ((781, 567, 797, 583), '3')],      # two was split down
+           'slam2': [((563, 699, 579, 716), '3'), ((781, 702, 798, 721), '3'), ((769, 719, 785, 735), '3'),           # the middle; each goes
+                     ((1005, 755, 1020, 772), '5')]},                                                                # whole to the frame
+       5: {'sink': [((589, 209, 611, 234), '3')],                                                                    # that held most of it)
+           'rise': [((1301, 458, 1325, 485), '6'), ((1066, 465, 1090, 491), '5')],
+           'fall': [((329, 691, 352, 718), '2')],
+           'prone': [((394, 873, 410, 890), '1'), ((389, 906, 413, 933), '1')]}}
 CUT = {}
 TOUCH_OK = {}
-EMPTY = {(1, 'sink'): 5}   # (sheet, row) -> where an empty frame goes: the sink's 6, under the floor
+EMPTY = {(5, 'sink'): 5}   # (sheet, row) -> where an empty frame goes: the sink's 6, under the floor
 
 # the engine's rows: (sheet, row) for the side; S and N as described in the head
+SIDE = (4, 5)              # the side sheets (sheet 1's rows are no longer played)
 FRONT, BACK = ('idle', 'walk', 'slam', 'slam2', 'flinch'), ('idle', 'walk', 'slam', 'slam2', 'flinch')   # sheet 2's rows for S, sheet 3's for N
-ROWS = {'idle': (1, 'idle'), 'walk': (1, 'walk'), 'attack': (1, 'slam'), 'slam': (1, 'slam'), 'slam2': (1, 'slam2'), 'burrow': (1, 'sink'),
-        'reveal': (1, 'rise'), 'flinch': (1, 'flinch'), 'hurt': (1, 'fall'), 'prone': (1, 'prone')}
+ROWS = {'idle': (4, 'idle'), 'walk': (4, 'walk'), 'attack': (4, 'slam'), 'slam': (4, 'slam'), 'slam2': (4, 'slam2'), 'burrow': (5, 'sink'),
+        'reveal': (5, 'rise'), 'flinch': (4, 'flinch'), 'hurt': (5, 'fall'), 'prone': (5, 'prone')}
+STAND5 = [('sink', 0), ('rise', -1), ('fall', 0)]   # sheet 5's standing frames, its scale against sheet 4's idle
 NEW = ['slam', 'slam2']   # this cutter's own rows (named here, not in pixelate.py)
 FPS = {'idle': 5, 'walk': 8, 'attack': 10, 'slam': 10, 'slam2': 10, 'burrow': 7, 'reveal': 7, 'flinch': 10, 'hurt': 7, 'prone': 6}
 # per channel, each later sheet's figure brought to sheet 1's: its idle's mean RGB against sheet 1's turnaround still of the same side
-TONE = {2: (0.905, 0.943, 1.038), 3: (0.933, 0.963, 1.013)}   # (the front's idle 104 84 63 to the Front still's 94 79 65; behind, 104 86 67 to
+TONE = {2: (0.905, 0.943, 1.038), 3: (0.933, 0.963, 1.013),   # (the front's idle 104 84 63 to the Front still's 94 79 65; behind, 104 86 67 to
                                                               # the Back still's 97 83 67 -- both drawn warmer, 10-08)
+        4: (0.876, 0.949, 1.095), 5: (0.815, 0.905, 1.036)}   # (the re-roll came warmer still -- 112 87 62 and 118 90 65 on the sheet. Fitted at
+        # GAME size, where it plays: the snapped pixels' mean, outline left out, brought to the front's and behind's idles as they play, 103 85 69
+        # -- sheet 4 by its idle, sheet 5 by its standing frames; untoned the side played 118 91 67 and 125 95 70. On the sheet's own means the
+        # tone came stronger, 0.83 0.90 1.06: these sheets are drawn larger and box down further, so their dark seams average out brighter)
 HEIGHT = 90           # the hunched side idle, standing px
 FH, AY = 140, 128
 
@@ -184,11 +213,17 @@ def scales(c):
     kt = k1 * (turn['right'] + turn['left']) / 2 / med(c[1]['idle'])
     k2 = kt * med(c[2]['idle']) / turn['front']
     k3 = kt * med(c[3]['idle']) / turn['back']
-    print('  K: the side rows %.3f, the turnaround %.3f (%.2f of the rows), the front %.3f, behind %.3f; the side idle %d px (on the sheet %.0f), '
-          'the turnaround standing %.0f px (Right) and %.0f (Front), from the front %.0f px, from behind %.0f px'
+    print('  K: sheet 1 %.3f, the turnaround %.3f (%.2f of its rows), the front %.3f, behind %.3f; sheet 1\'s side idle %d px (on the sheet '
+          '%.0f), the turnaround standing %.0f px (Right) and %.0f (Front), from the front %.0f px, from behind %.0f px'
           % (k1, kt, kt / k1, k2, k3, HEIGHT, med(c[1]['idle'], 1), body(c[1]['turn'][1][1])[1] / kt, body(c[1]['turn'][0][1])[1] / kt,
              med(c[2]['idle'], 1) / k2, med(c[3]['idle'], 1) / k3))
-    return {1: k1, 2: k2, 3: k3}
+    k4 = med(c[4]['idle'], 1) / HEIGHT                       # the re-roll's side idle stands where sheet 1's did
+    stand5 = float(np.median([body(c[5][row][i][1])[0] for row, i in STAND5]))
+    k5 = k4 * stand5 / med(c[4]['idle'])
+    print('  K: the re-roll\'s side, sheet 4 %.3f (its idle %d px, on the sheet %.0f; its walk %.0f px), sheet 5 %.3f (%.3f of sheet 4: its '
+          'standing frames %s px)' % (k4, HEIGHT, med(c[4]['idle'], 1), med(c[4]['walk'], 1) / k4, k5, k5 / k4,
+                                      '/'.join('%.0f' % (body(c[5][row][i][1])[1] / k5) for row, i in STAND5)))
+    return {1: k1, 2: k2, 3: k3, 4: k4, 5: k5}
 
 
 def main(check=False):
@@ -200,7 +235,12 @@ def main(check=False):
             m = mean_rgb(c[L]['idle'])
             print('  tone: sheet %d idle %s, the turnaround %s %s -> %s' % (L, np.round(m).astype(int), nm, np.round(ref).astype(int),
                                                                           tuple(round(float(x), 3) for x in ref / m)))
-        print('  side idle %s, turnaround right %s' % (np.round(mean_rgb(c[1]['idle'])).astype(int), np.round(mean_rgb(c[1]['turn'][1:2])).astype(int)))
+        ts = mean_rgb([c[1]['turn'][1], c[1]['turn'][3]])
+        for L, frs in ((4, c[4]['idle']), (5, [c[5][row][i] for row, i in STAND5])):
+            m = mean_rgb(frs)
+            print('  tone: sheet %d %s on the sheet, the turnaround right and left %s -> %s (TONE is fitted at game size instead: %s)'
+                  % (L, np.round(m).astype(int), np.round(ts).astype(int), tuple(round(float(x), 3) for x in ts / m), TONE[L]))
+        print('  sheet 1 side idle %s (its rows as they played before the re-roll)' % np.round(mean_rgb(c[1]['idle'])).astype(int))
     small = {}
     def frames_of(L, row):
         if (L, row) not in small:
@@ -221,9 +261,9 @@ def main(check=False):
             side = side[::-1]                            # up on a fist, then lying: it lies at its last frame and gets up by playing it backwards
         per = []
         for f in range(8):
-            if f == 0 and L == 1 and row in FRONT:
+            if f == 0 and L in SIDE and row in FRONT:
                 per.append(frames_of(2, row))
-            elif f == 4 and L == 1 and row in BACK:
+            elif f == 4 and L in SIDE and row in BACK:
                 per.append(frames_of(3, row))
             else:
                 per.append(side)
@@ -259,8 +299,8 @@ def main(check=False):
     meta = json.load(open(meta_p))
     for row, fps in FPS.items():
         meta['anims'][row]['fps'] = fps
-    meta['source'] = ('generated by Griz (2026-10-08: three GPT sheets -- the side with its turnaround, then one from the front and one '
-                      'from behind), cut by tools/earthelemental-sheet.py')
+    meta['source'] = ('generated by Griz (2026-10-08: GPT sheets -- the side with its turnaround, one from the front and one from behind, '
+                      'then the side re-rolled larger on two sheets), cut by tools/earthelemental-sheet.py')
     json.dump(meta, open(meta_p, 'w'), indent=1)
     if check:
         d = os.path.join(ROOT, 'dev', 'visions', 'earthelemental')
