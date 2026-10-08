@@ -8,6 +8,7 @@ how: nothing here is wanted. When a block on `deep16-art-wanted.md` comes back a
 
 ## BUILT FROM THE LIST (newest first)
 
+- 2026-10-08 · the made gnoll (the mirror-eyed gnoll; his name open), every row from the side, then from the front and from behind · his five GPT sheets: the Astra draft's two (`deep16/_src/Mirror-Eyed Gnoll Sprite Sheet1.png`, `Mirror-Eyed Gnoll Action Sprite Sheet2.png`; its prompts in `deep16/_src/oneeye/astra-draft-2026-10-08.md`), then `deep16/_src/Fresh/Hunched mirror-eyed gnoll sprite sheet-1.png` (the front), `Back-View Gnoll Animation Sprite Sheet-3.png` (behind) and `Back-view mirror-eyed gnoll sprite sheet-2.png` (its other-arm backhand, `backhand2`), cut by `tools/mirrorgnoll-sheet.py` into `mirrorgnoll_p1`, `895264c` `3cee785` · *"he looks great"* (asked in chat, not a block on the list: the front and back by the seat's lean, which he pasted)
 - 2026-10-08 · the giant centipede's hurt row, from the front and from behind · his GPT sheet (pasted in chat as a 2000 x 667 webp, filed `deep16/_src/Centipede front and back hurt sheet.webp`), cut by `tools/bugs-sheet.py` HURT_FB, `3a3f0e1` · *"I told it you were getting the centipede"* (its paste below, "The giant centipede's hurt row")
 - 2026-10-08 · the stirge's and the fire beetle's hurt row, from the front and from behind · his GPT sheets (`deep16/_src/Stirge front and back hurt sheet.png`, `Fire Beetle front and back hurt sheet.png`), cut by `tools/bugs-sheet.py` HURT_FB, `7a85cf3` · *"In for /deep16/art wanted"*
 - 2026-10-08 · the bugbear chief's Morningstar 2 (its backhand) · his one-row GPT re-roll (`deep16/_src/bugbear chief GPT backhand 2.png`), `tools/bugbear-sheet.py` chief3, `7a85cf3` · *"In for /deep16/art wanted"*
@@ -57,6 +58,7 @@ Everything that came back: the register first, then each ask's own section in th
 | ~~the garrison of Sólskaft: the Trooper and the Drill-sergeant (the Skylights; 10-05)~~ DONE 10-05 | LPC-composed as the 8-bit's dwarves: the troopers on `trooper_p0` (09-27), the sergeant on `drillsergeant_p0` (`tools/lpc-compose.py drillsergeant_full`, squashed, pixelated) | (Griz: "LPC the pop-op dwarves more like the NPC dwarves instead of Duergar") |
 | the duergar (an LPC grey dwarf, not generated) | `duergar_full` composed, squashed to a dwarf's build: idle, walk, war-pick swing, hurt, cast (Enlarge, Invisibility) | `tools/lpc-compose.py`, `lpc-squash.py`, `pixelate.py p0` | 10-04 | the LPC fall row |
 | **the Keeper** (the flooded stair; a fight of his own) | a generated sheet, `keeper_p2` (`keeperold`, `keeper_p1`, is the ladder's old one) | -- | 10-04 | immune to prone (SRD) |
+| the made gnoll (the mirror-eyed gnoll; his name open, his kit unruled) | 5: the body and its fall, the mirror powers (the Astra draft's), the front, two backs (`mirrorgnoll_p1`) | `tools/mirrorgnoll-sheet.py` | 10-08 | the fall's own frames |
 
 **The Edifice story battle (10-05, being built):** its band is the troll and/or the stone giants, both in hand with climb rows (3210a68); the party and Pyro are LPC. No art is wanted for it. If a boss wants a look of its own, it goes on the WANTED table.
 
