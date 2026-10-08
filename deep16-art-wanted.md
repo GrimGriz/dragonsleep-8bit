@@ -29,7 +29,9 @@ What the game still wears a stand-in for, or still draws flat in code. Nothing h
 | the axe beak | the Birb | a tall flightless beak |
 | the darkmantle | the Glub (hand-built; the SRD attach needed it) | a real sheet, or the Blender recipe |
 
-### Props wanted (things on the grid, not creatures; added 10-06)
+### Props wanted (things on the grid, not creatures; added 10-06; the deep station's three IN HAND 10-08)
+
+**In (10-08):** his GPT sheet, `deep16/_src/Props_TheWet_GPT.png` (all three on one page: the crate, the bucket, the lamp four times), cut by `tools/wetprops-sheet.py` into `wetcrate_p1`, `wetbucket_p1` and `wetlamp_p1` (lit, four frames of the flame) and drawn by `deep16/js/wet.js`; the code's flat drawings stand in only while the images load. Door: `deep16/?fight=wet&station`. The table and the head below are kept for a re-roll.
 
 Griz, 10-06, on the Wet's deep station in his situations ear file: *"Can find at a glance. All 3 are very very 2D, particularly the lantern"* -- then *"please also add to art wanted"*. Today the three are drawn in code as flat rectangles, front-on (`deep16/js/wet.js` `W.layCrate`, `W.layBucket`, `W.layLamp`): they read as stickers on the grid's diamond floor.
 
@@ -87,6 +89,7 @@ Everything that came back: the register first, then each ask's own section in th
 | the owls, brown and snowy (Find Familiar) | 2 each | `tools/owl-sheet.py` | 09-29 | someday |
 | the giant boar | 1 of 2 (the first has every row the grid plays) | `tools/boar-sheet.py` | 09-30 | someday |
 | the landlord's five pictures (the Wet's telepathy) | 5 stills from `dev/visions/` | `tools/visions.py` | 10-01 | -- |
+| the Wet's deep station: crate, bucket, lamp on its post | 1 GPT sheet, all three (`Props_TheWet_GPT.png`) | `tools/wetprops-sheet.py` | 10-08 | -- |
 | the clacker | 2 from Grok (`clacker_grok_2`, `clacker_grok_3` for the hook); GPT's first retired | `tools/clacker-sheet.py` | 10-01 | someday |
 | the xorn (pipeline 1b's first) | MZ4250's Xorn, 11 rows | `tools/xorn-blend.py` | 10-01 | its own row |
 | the roper (1b's second) | MZ4250's Roper 2025; still and reveal rows | `tools/roper-blend.py` | 10-01 | its own row |

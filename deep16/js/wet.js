@@ -92,6 +92,18 @@
     if (wake === 'rim' && !B.wet.spoke) B.wet.speakFirst = ours(B)[0] || null;
     var woke = B.units.filter(function (u) { return u.wet === wake; })[0];
     if (woke) B.card(['{r}' + W.WAKE[wake] + '{/}'], 360);
+    // the door `deep16/?fight=wet&station` (his eye on the deep station's props, 10-08): the lead beside the crate, and the first turn's
+    // camera on the crate and its lamp (BP.focus below) -- not the party's walk-in at the far end of the map
+    if (/[?&]station\b/.test(location.search) && F.bucket) {
+      var L = ours(B)[0], tx = F.bucket[0] - 1, ty = F.bucket[1] + 1, tq = G.map.at(tx, ty);
+      if (L && tq && tq.walk && !G.occupant(tx, ty)) { L.x = tx; L.y = ty; G.map.sorted = null; }
+      B.wet.station = F.bucket.slice();
+    }
+  };
+  var focus0 = BP.focus;
+  BP.focus = function (u) {
+    var st = on(this) && this.wet.station; if (!st) return focus0.apply(this, arguments);
+    this.wet.station = null; D.iso.lookAt(st[0] - 1, st[1], 0); D.iso.zoom = 2;
   };
   W.WAKE = { landlord: 'The water under the fall heaves: the landlord rises, all eye-stalk and tentacle.', jelly: 'Something ochre heaves up out of the settling pool.', poolooze: 'The puddle at the pool\'s edge moves.', harness: 'The crawler tears loose of its harness.' };
   // the nearest square it may stand on, free of everyone
@@ -231,11 +243,26 @@
     yield 20;
   };
 
+  // ------------------------------------------------------------------ the deep station's three props, from Griz's sheet (10-08)
+  // tools/wetprops-sheet.py cuts his one sheet into wetcrate_p1, wetbucket_p1 and wetlamp_p1 (lit, four frames of the flame), each on
+  // the square's middle (the lamp on its post's foot); `up` lifts a drawing (the bucket on the crate's top, the crate's `lift`). False
+  // while the image loads, and the code's own drawing below stands in (10-06, his ear file: "All 3 are very very 2D, particularly the lantern")
+  function sheetProp(ctx, name, row, f, at, up) {
+    var sh = D.SHEETS && D.SHEETS[name]; if (!sh) return false;
+    var im = D.images && D.images[sh.image]; if (!im || !im.naturalWidth) { if (D.spr && !im) D.spr.load(sh.image); return false; }
+    var iso = D.iso, c = iso.center(at[0], at[1], 0), s = iso.toScreen(c.x, c.y), a = sh.anims[row];
+    ctx.drawImage(im, (f % a.frames) * sh.fw, a.row * sh.fh, sh.fw, sh.fh, Math.round(s.x - sh.ax), Math.round(s.y - sh.ay - (up || 0)), sh.fw, sh.fh);
+    return true;
+  }
+  function onCrate(B, at) { var F = B.fight; return !!(F && F.bucket && F.bucket[0] === at[0] && F.bucket[1] === at[1]); }
+  function crateLift() { var sh = D.SHEETS && D.SHEETS.wetcrate_p1; return sh && sh.lift || 0; }
+
   // ------------------------------------------------------------------ the bucket: on its square, picked up by walking onto it
   W.layBucket = function (B, at) {
     var sq = G.map.at(at[0], at[1]); if (!sq) return;
     // (10-04, Griz: "double check the sprite we're using to make it more a visible draw on the grid": half again as big, lifted onto the crate, lit by its lamp)
     var p = { kind: 'bucket', sq: sq, depth: at[0] + at[1] + 0.45, gz: 0, draw: function (ctx) {
+      if (sheetProp(ctx, 'wetbucket_p1', 'bucket', 0, at, onCrate(B, at) ? crateLift() : 0)) return;
       var iso = D.iso, c = iso.center(at[0], at[1], 0), s = iso.toScreen(c.x, c.y), x = Math.round(s.x), y = Math.round(s.y) - 7;
       ctx.fillStyle = '#2a1a10'; ctx.fillRect(x - 7, y - 13, 14, 13);                        // the staves
       ctx.fillStyle = '#7a5634'; ctx.fillRect(x - 6, y - 13, 12, 12);
@@ -251,6 +278,8 @@
   W.layLamp = function (B, at) {
     var sq = G.map.at(at[0], at[1]); if (!sq) return;
     G.map.props.push({ kind: 'lamp', sq: sq, depth: at[0] + at[1] + 0.4, gz: 0, draw: function (ctx) {
+      var sh = D.SHEETS && D.SHEETS.wetlamp_p1;
+      if (sh && sheetProp(ctx, 'wetlamp_p1', 'lit', Math.floor(B.t * sh.anims.lit.fps / 60), at, 0)) return;
       var iso = D.iso, c = iso.center(at[0], at[1], 0), s = iso.toScreen(c.x, c.y), x = Math.round(s.x), y = Math.round(s.y), P = D.PAL.ramps, fl = 0.6 + 0.4 * Math.sin(B.t / 5 + at[0]);
       ctx.fillStyle = P.outline[0]; ctx.fillRect(x - 4, y - 2, 8, 2); ctx.fillRect(x - 1, y - 26, 2, 24);      // the foot and the post
       ctx.fillRect(x - 1, y - 28, 6, 1); ctx.fillRect(x + 4, y - 28, 1, 3);                                        // the arm and the hook
@@ -263,6 +292,7 @@
   W.layCrate = function (B, at) {
     var sq = G.map.at(at[0], at[1]); if (!sq) return;
     G.map.props.push({ kind: 'crate', sq: sq, depth: at[0] + at[1] + 0.4, gz: 0, draw: function (ctx) {
+      if (sheetProp(ctx, 'wetcrate_p1', 'crate', 0, at, 0)) return;
       var iso = D.iso, c = iso.center(at[0], at[1], 0), s = iso.toScreen(c.x, c.y), x = Math.round(s.x), y = Math.round(s.y);
       ctx.fillStyle = '#2a1a10'; ctx.fillRect(x - 11, y - 9, 22, 11);                        // the crate
       ctx.fillStyle = '#6e4e2e'; ctx.fillRect(x - 10, y - 8, 20, 9);
