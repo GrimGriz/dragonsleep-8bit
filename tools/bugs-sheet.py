@@ -11,8 +11,12 @@ take the side frames too (a first pass: a front and a back would be the next art
 Rows (every creature): idle 8, walk 8, attack 8, flinch 6, hurt 8 (the death; the engine plays `hurt` once at the end). The stirge adds
 `latched` 8: drawn at the shoulder of the one it is draining (js/ui.js plays it for an attached rider), the stinger in, the body swelling red.
 The fire beetle's glands glow in the picture and as a light on the floor (data/foes.js `glow`, SRD: bright 10 ft, dim 10 ft).
+Since 10-05 the rows bring a front (S) and a back (N) drawn here too (with_fb); since 10-08 the stirge's and the fire beetle's hurt from the front
+and behind are his GPT sheets, cut and pixelated (HURT_FB), and the centipede's hurt keeps its side frames till its sheet comes.
 """
 import os, sys, math
+import numpy as np
+from PIL import Image
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import codeart as ca
 from codeart import C
@@ -338,8 +342,85 @@ def stirge_fb(view, ph=0.0, flap=1.0, dive=0.0, fold=0.0, drop=0.0):
     return c.finish()
 
 
+# ------------------------------------------------------------------ the hurt row from the front and behind: his generated sheets (10-08)
+# Griz, 10-08, two GPT sheets for the art list's "the three bugs' hurt row from the front and behind" ("In for /deep16/art wanted"):
+# deep16/_src/Stirge front and back hurt sheet.png and Fire Beetle front and back hurt sheet.png, rows "Hurt Front" (S) and "Hurt Back" (N),
+# eight frames each, cut by tools/sheetrows.py on boxes read off the images. The side row stays drawn in code; the giant centipede has no
+# sheet yet and keeps its side frames. Each spec: text boxes, rows (facing, band x0 y0 x1 y1, label strip y0 y1), and K, image px a game px:
+# the figure's area in frame 1 (the bug as it stands, before the blow lands) against the code's own S idle's (the stirge 898 px, K 3.68 S and 3.72 N; the beetle 1220, 3.04 and 3.01),
+# measured on the pixelated frame, outline and all. The stirge flies: its sheet starts it only a little above the floor it lands on, so the
+# rise above the floor is stretched to start at its idle's height (19 px) and land where the sheet lands it.
+HURT_FB = {
+    'stirge': dict(file='Stirge front and back hurt sheet.png', K=3.70, lift=True,
+                   text=[(30, 190, 150, 272), (30, 500, 150, 580)],
+                   rows=[('S', (150, 105, 2172, 305), (316, 352)), ('N', (150, 415, 2172, 615), (627, 663))]),
+    'firebeetle': dict(file='Fire Beetle front and back hurt sheet.png', K=3.03, lift=False,
+                       text=[(25, 145, 300, 190), (25, 455, 280, 500)],
+                       rows=[('S', (30, 195, 1983, 362), (364, 398)), ('N', (30, 503, 1983, 666), (673, 712))]),
+}
+FLOOR = 85                                  # the idle's lowest row (AY 84, its outline under it): a corpse lies on it
+
+
+def _src_dir():
+    """his sheets live in the main checkout (_src is not in git): a worktree reads them there"""
+    d = os.path.join(ca.ROOT, 'deep16', '_src')
+    if os.path.isdir(d):
+        return d
+    import subprocess
+    common = subprocess.run(['git', '-C', ca.ROOT, 'rev-parse', '--git-common-dir'], capture_output=True, text=True).stdout.strip()
+    return os.path.join(os.path.dirname(os.path.abspath(os.path.join(ca.ROOT, common))), 'deep16', '_src')
+
+
+def _bottom(im):
+    a = np.asarray(im)[..., 3] > 0
+    return int(np.where(a.any(axis=1))[0][-1])
+
+
+def hurt_fb(name, idle):
+    """-> {'S': [8 frames], 'N': [8 frames]} from his sheet, or {} for a bug with none; `idle` the code's idle row with its S and N"""
+    if name not in HURT_FB:
+        return {}
+    import importlib.util
+    from scipy import ndimage
+
+    def load(nm):
+        spec = importlib.util.spec_from_file_location(nm, os.path.join(ca.ROOT, 'tools', nm + '.py'))
+        mod = importlib.util.module_from_spec(spec); spec.loader.exec_module(mod)
+        return mod
+    SR, pix = load('sheetrows'), load('pixelate')
+    h = HURT_FB[name]
+    names = [str(i + 1) for i in range(8)]
+    rows = SR.cut_sheet(os.path.join(_src_dir(), h['file']), dict(text=h['text'], rows=[(v, b, l, names) for v, b, l in h['rows']]),
+                        tag=name)
+    out = {}
+    for view, _, _ in h['rows']:
+        frs = rows[view]
+        floor = max(b[3] for _, _, b in frs)
+        ups = [(floor - b[3]) / h['K'] for _, _, b in frs]
+        if h['lift'] and ups[0] > 0:                     # from its idle's height above the floor, landing where the sheet lands it
+            ups = [u * (FLOOR - _bottom(idle[view][0])) / ups[0] for u in ups]
+        row = []
+        for (nm, im, box), up in zip(frs, ups):
+            w, hh = im.size
+            a = pix.pixelate(im.resize((max(1, round(w / h['K'])), max(1, round(hh / h['K']))), Image.BOX), 1, do_lift=False)
+            d = ndimage.distance_transform_edt(a[..., 3] > 0)
+            cx = float(np.where(d >= 0.7 * d.max())[1].mean())   # the body's thick middle: the wings and legs are thin
+            fr = np.zeros((FH, FW, 4), np.uint8)
+            bottom = np.where(a[..., 3].any(axis=1))[0][-1]
+            ox, oy = int(round(AX - cx)), int(round(FLOOR - up)) - bottom
+            ah, aw = a.shape[:2]
+            y0, x0, y1, x1 = max(0, oy), max(0, ox), min(FH, oy + ah), min(FW, ox + aw)
+            fr[y0:y1, x0:x1] = a[y0 - oy:y1 - oy, x0 - ox:x1 - ox]
+            if (fr[..., 3] > 0).sum() < (a[..., 3] > 0).sum():
+                raise SystemExit('%s hurt %s frame %s: cut off at the frame edge' % (name, view, nm))
+            row.append(Image.fromarray(fr, 'RGBA'))
+        out[view] = row
+    return out
+
+
 def with_fb(name, rows):
-    """Bring each row's front (S) and back (N) beside its side frames; hurt keeps the side frames (as the clacker's sheet)."""
+    """Bring each row's front (S) and back (N) beside its side frames; hurt takes his generated sheet's where there is one (10-08), else
+    keeps the side frames (as the clacker's sheet)."""
     out = {}
     for an, fr in rows.items():
         if an in ('hurt', 'latched'):
@@ -363,6 +444,9 @@ def with_fb(name, rows):
                 elif an == 'attack': d[v] = [stirge_fb(v, ph=i / n, dive=dv, fold=f) for i, (dv, f) in enumerate(zip([0, -.2, -.4, .5, 1, .8, .3, 0], [0, 0, 0, .3, .6, .4, 0, 0]))]
                 else: d[v] = [stirge_fb(v, ph=i / n, drop=dd) for i, dd in enumerate([0, 3, 4, 2, 1, 0])]
         out[an] = d
+    fb = hurt_fb(name, out['idle'])
+    if fb:
+        out['hurt'] = dict(side=out['hurt'], **fb)
     return out
 
 

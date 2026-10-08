@@ -833,7 +833,7 @@
 }
 },
 "bugbearchief_p2": {
-"image": "art/bugbearchief_p2.png?v=6c3c83a4a3",
+"image": "art/bugbearchief_p2.png?v=2a4edf7ef4",
 "fw": 96,
 "fh": 144,
 "ax": 48,
@@ -926,6 +926,15 @@
 "fw": 96,
 "fh": 144,
 "ax": 48,
+"ay": 132,
+"frames": 6,
+"fps": 12
+},
+"morningstar2": {
+"y": 11520,
+"fw": 120,
+"fh": 144,
+"ax": 60,
 "ay": 132,
 "frames": 6,
 "fps": 12
@@ -2229,7 +2238,7 @@
 }
 },
 "firebeetle_p1": {
-"image": "art/firebeetle_p1.png?v=70cd91d2ad",
+"image": "art/firebeetle_p1.png?v=41ee7cce6c",
 "fw": 96,
 "fh": 96,
 "ax": 48,
@@ -7206,7 +7215,7 @@
 }
 },
 "stirge_p1": {
-"image": "art/stirge_p1.png?v=0141b9e168",
+"image": "art/stirge_p1.png?v=184f8159c7",
 "fw": 96,
 "fh": 96,
 "ax": 48,

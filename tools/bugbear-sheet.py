@@ -19,8 +19,10 @@ the `still` row: js/ui.js plays it for a foe that has not acted or been woken.
 THE SIDE ROWS RE-ROLLED (10-07, his: "bugbear GPT and bugbear chief GPT are in the _src now"): deep16/_src/Bugbear GPT.png and bugbear chief
 GPT.png, one sheet an image at about 2.5x game size (the pastes in deep16-art-wanted.md, "The bugbear"), give the side rows -- idle, walk,
 morningstar, javelin, flinch, the fall from standing, a prone; the packed images keep the front, the back and the tricks, toned to the re-rolls'
-orange (TONE). The bugbear's re-roll drew three flinch frames (played 1 2 3 1); the chief's skipped the second swing it was asked for, so it
-has no `morningstar2` (its second blow plays the first's row again).
+orange (TONE). The bugbear's re-roll drew three flinch frames (played 1 2 3 1); the chief's skipped the second swing it was asked for.
+
+THE CHIEF'S SECOND SWING (10-08, his re-roll of that one row: deep16/_src/bugbear chief GPT backhand 2.png): `morningstar2`, the side frames
+from that sheet, the front and the back the first swing's; js/battle.js plays it for the chief's second blow of a turn (multi: two morningstars).
 """
 import os, sys, json, subprocess, tempfile
 import importlib.util
@@ -125,13 +127,17 @@ IMAGES['chief2'] = dict(file='bugbear chief GPT.png',
           ('s1.flinch', (130, 662, 1448, 781), (782, 799), NUM(4), [212, 369, 531, 697]),
           ('s1.fall', (130, 800, 1448, 929), (930, 947), NUM(6), [206, 386, 562, 765, 1056, 1311]),
           ('s1.prone', (130, 947, 1448, 1055), (1056, 1073), NUM(2), [235, 470])])   # (its javelin row is not cut: the chief has none)
+# the chief's second swing, his re-roll of that one row (10-08, "bugbear chief GPT backhand 2.png", for the art list's "Morningstar 2"): six
+# frames side-on, no labels but the numbers -- its second blow of the turn plays it (js/battle.js, a row named for the attack and numbered)
+IMAGES['chief3'] = dict(file='bugbear chief GPT backhand 2.png', text=[],
+    rows=[('s1.morningstar2', (20, 200, 2172, 540), (550, 600), NUM(6))])
 IMAGES['chief']['text'] += [(885, 876, 1176, 925), (915, 924, 1155, 937), (935, 1006, 1400, 1019), (785, 695, 910, 718)]   # (the last: sheet 4's
                                                             # "Morningstar (6)", its bracket in the band)   # sheet 4's flinch (drawn facing the viewer:
                                                             # unused, N plays the side flinch) and its numbers, the climb's numbers
 # the panels' border lines (rows, columns), painted navy before the cut: a figure touching one (the bugbear's prone, on its panel's floor)
 # would join it into one long blob, and sheetrows drops a long thin blob as a rule
 ERASE = {'bugbear': [(932, 934, 941, 944)]}                 # the back flinch's "1", fused to climb 1's raised hand
-BORDERS = {'bugbear2': ([], []), 'chief2': ([], []),
+BORDERS = {'bugbear2': ([], []), 'chief2': ([], []), 'chief3': ([], []),
            'bugbear': ([2, 3, 513, 514, 519, 520, 521, 1020, 1021], [2, 3, 4, 763, 764, 771, 772, 773, 1532, 1533]),
            'chief': ([485, 486, 1023], [0, 767, 768, 1534, 1535])}
 # the rest of the rows' frames by hand too, from the probe of the number labels (detection read a raised hand or a spear tip as a label)
@@ -210,6 +216,7 @@ LOOKS = {
         'walk': dict(side='chief2:s1.walk', S=('s3.walk', ['1', '2', '3', '4', '5', '6', '7', '8']),
                      N=('s4.walk', ['1', '2', '3', '4', '5', '6', '7', '8'])),
         'morningstar': dict(side='chief2:s1.morningstar', S='s3.morningstar', N='s4.morningstar'),
+        'morningstar2': dict(side='chief3:s1.morningstar2', S='s3.morningstar', N='s4.morningstar'),   # (from the front and behind, the first swing's)
         'attack': dict(side='chief2:s1.morningstar', S='s3.morningstar', N='s4.morningstar'),
         'ambush': dict(side='s2.ambush', S='s3.ambush', N='s4.ambush'),
         'still': dict(side='s2.lurk'),
@@ -222,10 +229,13 @@ LOOKS = {
 # chief's): the same body at the same size -- their idles stand straighter, about 54 and 52 px against the packed hunch's 49 and 50
 K['bugbear2'] = {'s1': K['bugbear']['s1'] * 105.5 / 41.8}
 K['chief2'] = {'s1': K['chief']['s1'] * 99.8 / 38.8}
+# the second swing's: its guard frames (1 and 6) against the first swing's (1 and 6) by area, 6.03 to 6.08 -- frame 1 about 50 px to their 48
+K['chief3'] = {'s1': 6.05}
 # the packed images' colour to the re-rolls' (they hold six facings of eight): the re-rolls drew the fur a more saturated orange (at game size,
 # the fur's mean 123/72/36 the bugbear's re-roll to 117/75/45 its packed front; the chief's 129/77/39 to 129/85/48): each channel times a factor,
 # the greys (the steel, the javelins' heads) left be
-TONE = {'bugbear': (1.046, 0.960, 0.805), 'chief': (1.000, 0.909, 0.810)}
+TONE = {'bugbear': (1.046, 0.960, 0.805), 'chief': (1.000, 0.909, 0.810),
+        'chief3': (1.105, 1.141, 1.201)}           # (the second swing's sheet drew it darker: its fur 115/68/34 to the first swing's 127/78/41)
 RELEASE = {'javelin': 3}                                     # the frame the javelin leaves on (frame 4, the arm thrown forward): js/battle.js
 FH, AY = 144, 132
 
