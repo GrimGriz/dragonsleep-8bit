@@ -339,10 +339,10 @@
   // the mirror hyena (10-08, ours): the SRD Giant Hyena as Mr. Ripples makes things -- mirror eyes (the Mirror's eye, as the Harbinger's) and the
   // ripple over its whole body; the Harbinger calls three as he rises (js/traits.js rise). The hyena's sheet drawn half again as big (Large)
   mirrorhyena: {
-    name: 'Mirror Hyena', type: 'beast', sheet: 'hyena_p2', cr: '1/2', ac: 12, hp: 30, speed: 50, size: 1, reach: 5, drawScale: 1.25,
+    name: 'Mirror Hyena', type: 'beast', sheet: 'hyena_p2', cr: '1/2', ac: 12, hp: 26, speed: 50, size: 1, reach: 5, drawScale: 1.25,
     abil: { str: 16, dex: 14, con: 14, int: 2, wis: 12, cha: 7 }, init: 2, perception: 13,
     saves: { str: 3, dex: 2, con: 2, int: -4, wis: 1, cha: -2 },
-    attacks: { bite: { name: 'Bite', atk: 3, dice: '1d4', mod: 2, type: 'piercing', reach: 5 } },
+    attacks: { bite: { name: 'Bite', atk: 3, dice: '1d6', mod: 2, type: 'piercing', reach: 5 } },
     multi: 1, rampage: true, packTactics: true, mirrorEye: true, ripple: { region: 'body', every: 130, dur: 54 }, // (Medium and Pack Tactics since the swarm, 10-08: Large, they could not get past him)
     src: 'the SRD 5.1 Giant Hyena made over by Mr. Ripples, ours (10-08): the mirror eyes, the ripple, the hyena sheet at 1.25; a swarm of four -- Medium, Pack Tactics, out at his flanks (Griz: "they just park behind him most of the fight instead of being a swarm of attackers"), lighter as his lever ("could making them mirrorhyena with different stats be the lever"): 26 HP, bite +3 1d6+2'
   },
