@@ -8,6 +8,13 @@ how: nothing here is wanted. When a block on `deep16-art-wanted.md` comes back a
 
 ## BUILT FROM THE LIST (newest first)
 
+- 2026-10-08 · the axe beak in the 8-bit: READY, ATTACK, HURT, DEFEATED · his unasked NES sheet (`deep16/_src/Fresh/Axe Beak NES Battle Sprite Sheet.png`), turned to Pix rows by `tools/nes-sheet.py` into `js/bestiary-art.js`, the poses drawn by `js/battle.js`, `db7cc75` · *"the code drawings are so-so and the 16 bit one looked so cool, please use new fancy and don't be surprised if its the only one"*
+- 2026-10-08 · the darkmantle, side, front, behind and its tricks (Clamp, Still) · `deep16/_src/Fresh/` sheets -5, -10, -11 and the unnumbered back, `tools/darkmantle-sheet.py` -> `darkmantle_p2`, `bc83f73` (a runner); Clamp and Darkness wired, the show's Clamp beat, `707328f` `c6ef270` · *"Keep them, there there if we don't use the still and the clamp is probably pretty cool"*
+- 2026-10-08 · the axe beak on the grid, side, front, behind · Fresh -6, -5, -9, `tools/axebeak-sheet.py` -> `axebeak_p2`, `31668b9` (a runner) · *"1 yes"* (runners)
+- 2026-10-08 · the spirit naga, side, front, behind · Fresh -4 (both), and -12 for behind in place of -7, `tools/naga-sheet.py` -> `naga_p2`, `cff8ce3` (a runner) · *"Use the last two images for naga back and ettin back: they correct the missing Idle frame and swapped Flinch weapons."*
+- 2026-10-08 · the ettin, side, front, behind · Fresh -1, -2, and -13 for behind in place of -8, `tools/ettin-sheet.py` -> `ettin_p2`, `36383ef` (a runner) · the same word
+- 2026-10-08 · the earth elemental, side, front, behind · Fresh -2, -3, -6, `tools/earthelemental-sheet.py` -> `earthelemental_p2`, `d1e1e50` (a runner); its SRD burrow 30 added so Earth Glide plays Sink and Rise, `707328f` · *"1 yes"* (runners)
+- 2026-10-08 · the gelatinous cube, side, front and behind (one sheet) · Fresh -3 and the Teal Jelly sheet -1, `tools/cube-sheet.py` -> `cube_p2`, `2ae3008` (a runner) · *"1 yes"* (runners)
 - 2026-10-08 · the made gnoll (the mirror-eyed gnoll; his name open), every row from the side, then from the front and from behind · his five GPT sheets: the Astra draft's two (`deep16/_src/Mirror-Eyed Gnoll Sprite Sheet1.png`, `Mirror-Eyed Gnoll Action Sprite Sheet2.png`; its prompts in `deep16/_src/oneeye/astra-draft-2026-10-08.md`), then `deep16/_src/Fresh/Hunched mirror-eyed gnoll sprite sheet-1.png` (the front), `Back-View Gnoll Animation Sprite Sheet-3.png` (behind) and `Back-view mirror-eyed gnoll sprite sheet-2.png` (its other-arm backhand, `backhand2`), cut by `tools/mirrorgnoll-sheet.py` into `mirrorgnoll_p1`, `895264c` `3cee785` · *"he looks great"* (asked in chat, not a block on the list: the front and back by the seat's lean, which he pasted)
 - 2026-10-08 · the giant centipede's hurt row, from the front and from behind · his GPT sheet (pasted in chat as a 2000 x 667 webp, filed `deep16/_src/Centipede front and back hurt sheet.webp`), cut by `tools/bugs-sheet.py` HURT_FB, `3a3f0e1` · *"I told it you were getting the centipede"* (its paste below, "The giant centipede's hurt row")
 - 2026-10-08 · the stirge's and the fire beetle's hurt row, from the front and from behind · his GPT sheets (`deep16/_src/Stirge front and back hurt sheet.png`, `Fire Beetle front and back hurt sheet.png`), cut by `tools/bugs-sheet.py` HURT_FB, `7a85cf3` · *"In for /deep16/art wanted"*
@@ -470,7 +477,7 @@ HEAD: THE GIANT CENTIPEDE -- its hurt row from the front and from behind. Attach
 16-bit pixel art animation sheet, SNES-era, crisp dark outline, readable at small size. Flat dark navy background. ONE sheet only, filling the whole image: no portrait, no turnaround, no title. Two rows, labelled Hurt Front and Hurt Back at the left, 8 frames each, numbered under each frame. Every frame stands apart with clear space around it: nothing overlaps a neighbour or a label. The same scale in every frame; the last frames lie on one floor line.
 ```
 
-### The stand-ins' first sheets (asked 10-08 at the split; BACK 10-08 in `deep16/_src/Fresh/`, not cut yet)
+### The stand-ins' first sheets (asked 10-08 at the split; BACK 10-08 in `deep16/_src/Fresh/`; CUT 10-08, BUILT FROM THE LIST above)
 
 Six of section 1's first sheets came back 10-08, every row asked, drawn by his art department into `deep16/_src/Fresh/` (moved here 10-08 by the comparing seat, a Code tab, config echo claude-opus-5-5; the front and the back of each are asked on `deep16-art-wanted.md` section 1b). Not cut yet: when a seat cuts one (pipeline 2, a `tools/<creature>-sheet.py` over `tools/sheetrows.py`), its line goes under BUILT FROM THE LIST with the commit. The cut-as lines under each paste are the cutter's map. Also in `Fresh/`, unasked: `Axe Beak NES Battle Sprite Sheet.png`, four large stills (READY, ATTACK, HURT, DEFEATED) in the 8-bit's manner; the 8-bit draws its axe beak in code (`js/bestiary-art.js` A.axebeak), so it waits on his word.
 
@@ -528,7 +535,7 @@ HEAD: THE DARKMANTLE -- a foe for a tactics game. A small squid-like cave creatu
 ```
 Cut as: Fly -> walk, Crush -> `crush` (it attaches and rides, `deep16/js/battle.js`), Darkness -> `darkness` (new: its Darkness Aura, `deep16/js/magic.js` castAura, plays no row today), Fall -> hurt, Prone -> prone. Small.
 
-### The six's fronts and backs (asked 10-08 as the wanted file's §1b, `587fdf2`; pulled 10-08 while they are drawn)
+### The six's fronts and backs (asked 10-08 as the wanted file's §1b, `587fdf2`; pulled 10-08 while drawn; all twelve back and CUT 10-08, BUILT FROM THE LIST above)
 
 Griz, 10-08: *"theoretically they're generating. Pull them from the art wanted."* The first nine came into `deep16/_src/Fresh/` the same hour (the cube's one sheet, the earth elemental's, the ettin's, the naga's and the axe beak's front and back); the darkmantle's three were still to come. The section as it stood, its pastes kept for a re-roll:
 
