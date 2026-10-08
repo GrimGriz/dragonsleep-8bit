@@ -1,4 +1,4 @@
-/* DRAGONSLEEP -- EYES: what is built and no person has seen on a screen yet, one row a thing, for situations.html (never loaded by the game).
+/* DRAGONSLEEP -- EYES: what is built and no person has seen on a screen yet, one row a thing, for situations.html (and read by DEEP16's one gallery since 10-08, deep16/js/onegallery.js: a row whose door is a shelf entry shows on its card, V marks it into situations' own store; never by the games themselves).
    RULED 2026-10-06 (Griz: "Bulk processing is good, but do like 6 items per page by any priority they might have"): the eyes lane's list
    lives here, one list, and situations.html shows it six a page, most wanted first, ahead of the story situations (js/situations.js).
    A row: { pri, group, title, pt (the lane and section it came from), look (what to try, and what should happen), url (its door, from the

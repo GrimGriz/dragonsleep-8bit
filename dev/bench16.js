@@ -3814,6 +3814,76 @@
     document.body.appendChild(preF);
     return;
   }
+  // the one gallery (mode=gallery1008; deep16/?gallery, js/onegallery.js; 10-08, the lane handoff-2026-10-08-the-one-gallery.md, Griz: "you spec sheet a gallery
+  // consolidation (into one tool) in service to 7 and we have a session build it"): every door lands on its shelf (the Keeper's scenes stay their own); SPELLS
+  // steps a slot and a cantrip's caster, and LEFT from the first is the last; FEATURES and MASCOTS show their first and last; MASCOTS' UP rebuilds the four;
+  // CREATURES plays the ettin's blow rows at the fighter, and in every facing the fighter stands in its reach; an eyes row's door finds its entry; nothing broke
+  if (get('mode', '') === 'gallery1008') {
+    var repO = { checks: [], errors: [] };
+    function okO(what, v) { repO.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function runO(B) { // the shelf's coroutine to its next wait, a prompt answered with its first option
+      for (var k = 0, v; B.co && k < 400000; k++) {
+        var r = B.co.next(v); v = undefined; if (r.done) return null;
+        var y = r.value;
+        if (y && y.prompt) { v = y.prompt.opts[0].value; continue; }
+        if (y && (y.gallery || y.mpgallery || y.rows)) { B.req = y; return y; }
+      }
+      return null;
+    }
+    function cardO(B) { var c = (B.cards || []).filter(function (x) { return x.id === 'gallery' || x.id === 'rows'; })[0]; return c ? c.lines.join(' | ') : B.mpgallery ? B.mpgallery.panel.lines.join(' | ') : ''; }
+    function since(B, pre) { return (B.logEntries || []).filter(function (e) { return pre.indexOf(e) < 0; }).map(function (e) { return e.text; }).join(' '); }
+    try {
+      var OGB = D.oneGallery;
+      if (!OGB) okO('the one gallery is loaded (js/onegallery.js)', false);
+      else {
+        D.lastError = null;
+        // ---- the doors
+        var doorsO = [['?gallery', 'spells'], ['?fxgallery', 'spells'], ['?fxgallery&features', 'features'], ['?gallery&shelf=features', 'features'], ['?mpgallery', 'mascots'],
+          ['?fxgallery&mascots', 'mascots'], ['?rows=ettin', 'creatures'], ['?gallery&shelf=creatures&rows=ettin', 'creatures']];
+        var gotO = doorsO.map(function (d) { var Bd = OGB.door(d[0]); if (Bd.mpgallery && Bd.mpgallery.teardown) Bd.mpgallery.teardown(); return d[0] + ' -> ' + (Bd.one ? Bd.one.shelf : 'none'); });
+        okO('every door on its shelf: ' + gotO.join(', '), doorsO.every(function (d, i) { return gotO[i] === d[0] + ' -> ' + d[1]; }));
+        okO('the Keeper scenes stay their own (?fxgallery&keeper is no shelf)', !OGB.door('?fxgallery&keeper').one);
+        // ---- SPELLS: the slot, the cantrip's caster, the wrap
+        D.seed = 1008; var BS = OGB.door('?gallery&spell=burninghands'); D.battle = BS; BS.enter(); runO(BS);
+        var SS = BS.gallery, at1 = SS.slotAt;
+        OGB.act(BS, 'level', 1); OGB.act(BS, 'level', 1); runO(BS);
+        okO('UP twice: Burning Hands cast at the 1st, then the 3rd (' + at1 + ', ' + SS.slotAt + '), the card says so, BY SLOT on it', at1 === 1 && SS.slotAt === 3 && /CAST AT 3rd/.test(cardO(BS)) && /BY SLOT/.test(cardO(BS)));
+        SS.i = SS.ids.indexOf('firebolt'); SS.up = 0; SS.cl = null; OGB.act(BS, 'again'); runO(BS); var c9 = cardO(BS);
+        OGB.act(BS, 'level', -1); runO(BS); var c1 = cardO(BS); OGB.act(BS, 'level', 1); runO(BS); var c5 = cardO(BS);
+        okO('a cantrip steps its caster: Fire Bolt at the 9th, DOWN the 1st, UP the 5th', /CASTER AT 9th/.test(c9) && /CASTER AT 1st/.test(c1) && /CASTER AT 5th/.test(c5));
+        SS.i = 0; OGB.act(BS, 'step', -1); runO(BS);
+        okO('LEFT from the first spell is the last (' + (SS.i + 1) + '/' + SS.ids.length + ')', SS.i === SS.ids.length - 1 && cardO(BS).indexOf(SS.ids.length + '/' + SS.ids.length) >= 0);
+        // ---- an eyes row's door finds its entry (a row of the bench's own: the rows themselves come and go as he marks them)
+        var EYO = (window.DS = window.DS || {}).EYES = window.DS.EYES || {};
+        EYO['bench-gallery1008'] = { pri: 3, title: 'the bench', url: 'deep16/?gallery&spell=' + SS.ids[SS.i] + '&fresh=1', look: '' }; BS.one.eyesAt = null;
+        var eyO = OGB.eyesFor(BS); delete EYO['bench-gallery1008']; BS.one.eyesAt = null;
+        okO('an eyes row whose door is this spell shows on its card (' + eyO.join(', ') + ')', eyO.indexOf('bench-gallery1008') >= 0);
+        // ---- FEATURES: the first and the last
+        var BF = OGB.door('?gallery&shelf=features'); D.battle = BF; BF.enter(); runO(BF); var SF = BF.gallery;
+        OGB.act(BF, 'step', -1); runO(BF); var lastF = SF.ids[SF.i];
+        okO('FEATURES: the first and the last (' + SF.ids[0] + ', ' + lastF + ') shown, neither broke', SF.i === SF.ids.length - 1 && [SF.ids[0], lastF].every(function (id) { return SF.report[id] && !/^error/.test(SF.report[id].how); }));
+        // ---- MASCOTS: UP rebuilds the four a level higher; the last entry
+        var BM = OGB.door('?gallery&shelf=mascots&lvl=5'); D.battle = BM; BM.enter(); runO(BM); var SM = BM.mpgallery;
+        OGB.act(BM, 'level', 1); runO(BM);
+        var onM = BM.units.filter(function (u) { return u.mpmon; }).map(function (u) { return u.mpmon; }), dupM = onM.filter(function (k, i) { return onM.indexOf(k) !== i; });
+        var lvM = SM.M && SM.M.denny ? SM.M.denny.lvl : null;
+        OGB.act(BM, 'step', -1); runO(BM); var lastM = SM.ids[SM.i], repM = SM.report[lastM + '@' + SM.L];
+        SM.teardown();
+        okO('MASCOTS: UP from 5 is 6 (' + SM.L + ', Denny at ' + lvM + '), none twice on the floor (' + onM.join(' ') + '); the last entry shown (' + lastM + ': ' + (repM && repM.how) + ')', SM.L === 6 && lvM === 6 && !dupM.length && repM && !/^error/.test(repM.how));
+        // ---- CREATURES: the ettin's blow rows at the fighter; the morningstar in every facing, the fighter in its reach
+        var BC = OGB.door('?gallery&shelf=creatures&rows=ettin'); D.battle = BC; BC.enter(); runO(BC); var SC = BC.rowGallery, stagedO = [];
+        SC.list.forEach(function (it, k) { SC.i = k; var pre = (BC.logEntries || []).slice(); OGB.act(BC, 'again'); runO(BC); if (/vs AC/.test(since(BC, pre))) stagedO.push(it.row); });
+        okO('CREATURES: the ettin rows played as blows (' + stagedO.join(', ') + '): the morningstar, the battleaxe and the flinch', ['morningstar', 'battleaxe', 'flinch'].every(function (r) { return stagedO.indexOf(r) >= 0; }));
+        SC.i = SC.list.map(function (it) { return it.row; }).indexOf('morningstar'); var facesO = [];
+        for (var fO = 0; fO < 8; fO++) { OGB.act(BC, 'again'); runO(BC); facesO.push(SC.face + ':' + D.grid.dist(SC.list[SC.i].u, SC.mate)); OGB.act(BC, 'turn', 1); }
+        okO('the morningstar turned through the eight facings, the fighter in its reach each time (facing:ft ' + facesO.join(' ') + ')', facesO.length === 8 && facesO.every(function (s) { return +s.split(':')[1] <= 5; }) && facesO.map(function (s) { return s.split(':')[0]; }).filter(function (f, i, a) { return a.indexOf(f) === i; }).length === 8);
+        okO('nothing logged an error' + (D.lastError ? ' (' + String(D.lastError.message || D.lastError).slice(0, 160) + ')' : ''), !D.lastError);
+      }
+    } catch (eO) { repO.errors.push(String(eO && eO.stack || eO).slice(0, 900)); }
+    var preO = document.createElement('pre'); preO.id = 'out'; preO.textContent = 'BENCH16 ' + JSON.stringify(repO);
+    document.body.appendChild(preO);
+    return;
+  }
   // the Mascot gallery (mode=mpgallery1007; deep16/?mpgallery, js/mpgallery.js; 10-07, Griz: "a gallery view of lobstamonkee abilities like the spell effect one
   // (repeats on click, advances on arrows) and to examine the current effects of the various abilities per level"): every entry run headless at 1st, 5th and 9th
   // in &auto -- each fires (or shows its sheet), none breaks, every fired entry leaves its lines in the log, the not-yet entries are exactly those past the level

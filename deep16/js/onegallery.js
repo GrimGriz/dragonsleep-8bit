@@ -109,6 +109,47 @@
     D.push(OG.door(q2));
   };
 
+  // what a script or a bench asks of a shelf, the keys' own moves (dev/bench16.js mode=gallery1008)
+  OG.act = function (B, what, v) { if (what === 'step') step(B, v); else if (what === 'level') level(B, v); else if (what === 'turn') turn(B, v); else restart(B); };
+
+  // ------------------------------------------------------------------ the eyes (the lane's §3.6; the eyes lane): a row of js/eyes.js whose door is this entry
+  // shows on the card, and V marks it -- works, broken, unclear, too hard, too easy, none -- into situations.html's own store on this device (the same origin),
+  // so its Save carries the verdict in his ear file; notes stay in situations
+  var FKEY = 'dsl-situations-feedback:v1', VERDICTS = [['works', 'works'], ['broken', 'broken'], ['unclear', 'unclear'], ['hard', 'too hard'], ['easy', 'too easy']]; // (situations.html's)
+  function fbGet() { try { return JSON.parse(localStorage.getItem(FKEY) || '{}') || {}; } catch (e) { return {}; } }
+  function fbPut(FB) { try { localStorage.setItem(FKEY, JSON.stringify(FB)); } catch (e) { /* (no store here: the mark is lost, the gallery goes on) */ } }
+  function entryKey(B) { var o = B.one, S = st(B); if (!S) return null; if (o.shelf === 'creatures') { var it = S.list[S.i]; return it && it.u.kind; } return S.ids[S.i]; }
+  OG.eyesFor = function (B) {
+    var E = window.DS && window.DS.EYES, o = B.one, key = entryKey(B); if (!E || !key) return [];
+    if (o.eyesAt === key) return o.eyes;
+    o.eyesAt = key; o.fb = null; // (the store read again for a new entry, not every frame)
+    return (o.eyes = Object.keys(E).filter(function (id) {
+      var u = String(E[id].url || ''), at = u.indexOf('deep16/?'); if (at < 0) return false;
+      var q = u.slice(at + 7); if (!/[?&](gallery|fxgallery|mpgallery)\b|[?&]rows=/.test(q) || /[?&]keeper\b/.test(q) || shelfOf(q) !== o.shelf) return false;
+      var g = function (k) { var m = new RegExp('[?&]' + k + '=([^&]*)').exec(q); return m ? decodeURIComponent(m[1]) : null; };
+      var want = g({ spells: 'spell', features: 'feature', mascots: 'ability', creatures: 'rows' }[o.shelf]) || g('only');
+      return !!want && want.split(',').indexOf(key) >= 0;
+    }));
+  };
+  function eyesLines(B) {
+    var rs = OG.eyesFor(B), E = window.DS && window.DS.EYES; if (!rs.length) return [];
+    var FB = B.one.fb || (B.one.fb = fbGet()), out = [], k0 = (B.one.eyeK || 0) % rs.length;
+    rs.forEach(function (id, k) {
+      var f = FB[id] || {}, v = VERDICTS.filter(function (x) { return x[0] === f.v; })[0];
+      out.push('');
+      D.wrap('{o}EYES' + (rs.length > 1 ? ' ' + (k + 1) + '/' + rs.length : '') + ':{/} ' + E[id].title, COL - 12).forEach(function (l) { out.push(l); });
+      out.push((k === k0 ? '{y}V{/} ' : '  ') + (v ? '{y}' + v[1] + '{/}' : '{g}no verdict yet{/}') + (k === k0 && rs.length > 1 ? '  {g}SHIFT+V next{/}' : ''));
+    });
+    return out;
+  }
+  function verdict(B, next) {
+    var rs = OG.eyesFor(B); if (!rs.length) { D.sfx('error'); return; }
+    var o = B.one; if (next) { o.eyeK = ((o.eyeK || 0) + 1) % rs.length; D.sfx('cursor'); return; }
+    var id = rs[(o.eyeK || 0) % rs.length], FB = fbGet(), f = FB[id] = FB[id] || {}, order = VERDICTS.map(function (x) { return x[0]; }).concat(['']);
+    f.v = order[(order.indexOf(f.v || '') + 1) % order.length]; f.at = new Date().toISOString();
+    fbPut(FB); o.fb = FB; D.sfx('confirm');
+  }
+
   // ------------------------------------------------------------------ the list (L): the shelf's entries, or on CREATURES the bestiary
   function names(B) {
     var o = B.one, S = st(B);
@@ -148,6 +189,7 @@
     if (I.pressed('b')) { if (o.list) { o.list = false; D.sfx('cursor'); } else if (o.from === 'pocket') location.href = location.pathname + '?pocket'; return; }
     if (I.pressed('end')) { o.paused = !o.paused; D.sfx('cursor'); return; }
     if (o.paused) { if (I.repeat('bracketr')) frameStep(B, 1); else if (I.repeat('bracketl')) frameStep(B, -1); return; }
+    if (I.pressed('verdict')) { verdict(B, !!I.held.shift); return; }
     if (I.pressed('dice') && sh === 'creatures') { B.rowGallery.real = !B.rowGallery.real; D.sfx('confirm'); restart(B); return; }
     var shift = !!I.held.shift, d = I.repeat('right') ? 1 : I.repeat('left') ? -1 : 0;
     if (d) { if (o.list) o.list = false; step(B, shift ? d * 10 : d); return; }
@@ -191,7 +233,7 @@
   }
   function column(ctx, B, P0) {
     var o = B.one, H = D.H, top = STRIP + 1, inner = H - top - FOOT - 2, rows = Math.max(1, Math.floor(inner / LH));
-    var P = o.list ? o.listP : P0, n = P.lines.length, maxS = Math.max(0, n - rows), bone = D.PAL.ramps.bone[1], rim = D.PAL.ramps.silver[3];
+    var P = o.list ? o.listP : P0, lines = o.list ? P.lines : P.lines.concat(eyesLines(B)), n = lines.length, maxS = Math.max(0, n - rows), bone = D.PAL.ramps.bone[1], rim = D.PAL.ramps.silver[3];
     P.scroll = Math.max(0, Math.min(maxS, P.scroll || 0)); P.rows = rows; P.maxS = maxS;
     ctx.save();
     ctx.fillStyle = 'rgba(10,8,16,.9)'; ctx.fillRect(0, 0, COL, H);
@@ -199,7 +241,7 @@
     OG.SHELVES.forEach(function (s, k) { D.text(ctx, (s.id === o.shelf ? '{y}' : '{g}') + (k + 1) + ' ' + s.name + '{/}', 5 + (k % 2) * (COL / 2), 2 + Math.floor(k / 2) * LH, bone); });
     ctx.beginPath(); ctx.moveTo(1, STRIP - 0.5); ctx.lineTo(COL - 1, STRIP - 0.5); ctx.stroke();
     ctx.save(); ctx.beginPath(); ctx.rect(0, top, COL, inner); ctx.clip();
-    for (var k = 0; k < rows && P.scroll + k < n; k++) if (P.lines[P.scroll + k]) D.text(ctx, P.lines[P.scroll + k], 5, top + 2 + k * LH, bone);
+    for (var k = 0; k < rows && P.scroll + k < n; k++) if (lines[P.scroll + k]) D.text(ctx, lines[P.scroll + k], 5, top + 2 + k * LH, bone);
     ctx.restore();
     if (P.scroll > 0) D.text(ctx, '{y}^{/}', COL - 10, top + 1, bone);
     if (P.scroll < maxS) D.text(ctx, '{y}v{/}', COL - 10, H - FOOT - LH - 1, bone);
