@@ -30,6 +30,9 @@ frame of sheet 2's foretell, mirrorstrike, kneel, overfill and ascend, by area);
 upright idle, by area; sheets 3 and 4 meet the turnaround by their idles against its front and its back, by area. The mirror eye and the cyan streaks are a pixel or two at game size: GLINT keeps them (a game pixel whose block
 on the sheet holds the glint takes the glint's colour) so the box filter doesn't wash them into the fur. Colour: each later sheet drew him
 warmer than sheet 1 (the most-played rows), so each is brought to sheet 1's per channel (TONE, the goose's and the bugbears' way).
+THE MANE RIPPLE READS THESE COLOURS (ec0206f): deep16/js/ripple.js finds his mane as the dark silver ramp (silver 0-3) at the top of
+the figure. A re-cut that moves TONE, the palette snap or the mane's colours can lose the mane: open the ripple's door after it
+(tools/sheet-play.html?sheet=mirrorgnoll_p1&face=6,0,4&ripple=mane&tones=moss&bg=moss&every=1.5) and see the wave still runs down the mane.
 """
 import os, sys, json, subprocess, tempfile
 import importlib.util
