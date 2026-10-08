@@ -323,7 +323,7 @@
   // growing him a step (a check above 3rd; failed, he OVERFILLS and it goes through); FORETELL, a turn ending with no one in his reach, he
   // readies Mirror Strike for the first to step in. The mirror eyes are the Mirror's (no hiding before him in light, magic.js inMirror).
   harbinger: {
-    name: 'Harbinger', type: 'monstrosity', sheet: 'mirrorgnoll_p1', cr: '13', ac: 18, hp: 180, speed: 40, size: 2, reach: 10, darkvision: 60,
+    name: 'Harbinger', type: 'monstrosity', sheet: 'mirrorgnoll_p1', cr: '13', ac: 18, hp: 155, speed: 40, size: 2, reach: 10, darkvision: 60,
     abil: { str: 24, dex: 14, con: 20, int: 10, wis: 14, cha: 17 }, init: 4, perception: 17,
     saves: { str: 7, dex: 2, con: 10, int: 0, wis: 7, cha: 8 },
     attacks: { backhand: { name: 'Backhand', atk: 11, dice: '2d10', mod: 7, type: 'bludgeoning', reach: 10 } },
@@ -331,20 +331,20 @@
     pounce: { dice: '3d10', dc: 17, min: 20 },
     drinkLight: { uses: 3, per: 10 }, // (uses a fight; per: hit points a level of the spell drunk)
     foretell: { name: 'Mirror Strike', atk: 11, dice: '3d10', mod: 7, type: 'piercing', reach: 10 },
-    kneel: true, rise: { at: 0.5, reach: 15, grow: 1.3, call: { kind: 'mirrorhyena', n: 2 } }, // (call: the mirror hyenas he calls as he stands -- Griz, 10-08: "I would have used it as a hyena summons - maybe even mirror hyenas - with him rising and standing tall as they run past him to attack the party") // (rise: at half his hit points he stands to his full height -- ascend, then upright; reach 15, Drink Light full again)
+    kneel: true, rise: { at: 0.5, reach: 15, grow: 1.3, call: { kind: 'mirrorhyena', n: 4 } }, // (call: the mirror hyenas he calls as he stands -- Griz, 10-08: "I would have used it as a hyena summons - maybe even mirror hyenas - with him rising and standing tall as they run past him to attack the party") // (rise: at half his hit points he stands to his full height -- ascend, then upright; reach 15, Drink Light full again)
     caster: { lvl: 9, ab: 'cha', dc: 15, atk: 7, slots: [0, 3], known: ['holdperson'] },
     ripple: { region: 'mane', every: 150, dur: 54, held: true, heldEvery: 90 }, // (the mirror ripple on his mane, frames at 60 Hz: deep16/js/ripple.js, the SRD seat's, 052e833 -- Griz, 10-08: "he's made by mr. ripples but is a lesser being -ripples will get it full body"; the Pounce ripples him whole, js/traits.js)
-    src: 'ours (10-08): the made gnoll, CR 13 Large monstrosity from SRD pieces -- tuned on the bench to win about 6 in 10 alone against the four at 7th (Griz: "Try and get him 6/10 on a solo vs Aurdin Party 7 on the ladder"; seeds 1-5 at n=20, with the rise, the pack and the reach fixed: 59 of 100 in the ladder fight on the Gnoll Hills at 180 HP, dev/bench16.py x fight=harbinger, about 8 rounds a fight) -- the lion\'s Pounce, Counterspell (Drink Light), Hold Person (Kneel), the Ready (Foretell); his five GPT sheets and the Pounce sheet, tools/mirrorgnoll-sheet.py'
+    src: 'ours (10-08): the made gnoll, CR 13 Large monstrosity from SRD pieces -- tuned on the bench to win about 6 in 10 alone against the four at 7th (Griz: "Try and get him 6/10 on a solo vs Aurdin Party 7 on the ladder"; seeds 1-5 at n=20, the pack of four lighter mirror hyenas: 41 of 100 in the ladder fight on the Gnoll Hills at 155 HP, about 6 rounds, 63 Kneels in 100 fights -- Griz: "knock off 100 HP and add hyenas ... until he\'s 4/10", then "I like 4 but he should be 150-160 HP") -- the lion\'s Pounce, Counterspell (Drink Light), Hold Person (Kneel), the Ready (Foretell); his five GPT sheets and the Pounce sheet, tools/mirrorgnoll-sheet.py'
   },
   // the mirror hyena (10-08, ours): the SRD Giant Hyena as Mr. Ripples makes things -- mirror eyes (the Mirror's eye, as the Harbinger's) and the
   // ripple over its whole body; the Harbinger calls three as he rises (js/traits.js rise). The hyena's sheet drawn half again as big (Large)
   mirrorhyena: {
-    name: 'Mirror Hyena', type: 'beast', sheet: 'hyena_p2', cr: '1', ac: 12, hp: 45, speed: 50, size: 2, reach: 5, drawScale: 1.5,
+    name: 'Mirror Hyena', type: 'beast', sheet: 'hyena_p2', cr: '1/2', ac: 12, hp: 26, speed: 50, size: 2, reach: 5, drawScale: 1.5,
     abil: { str: 16, dex: 14, con: 14, int: 2, wis: 12, cha: 7 }, init: 2, perception: 13,
     saves: { str: 3, dex: 2, con: 2, int: -4, wis: 1, cha: -2 },
-    attacks: { bite: { name: 'Bite', atk: 5, dice: '2d6', mod: 3, type: 'piercing', reach: 5 } },
+    attacks: { bite: { name: 'Bite', atk: 4, dice: '1d10', mod: 2, type: 'piercing', reach: 5 } },
     multi: 1, rampage: true, mirrorEye: true, ripple: { region: 'body', every: 130, dur: 54 },
-    src: 'SRD 5.1 Giant Hyena (CR 1, Large, Rampage), made over by Mr. Ripples (ours, 10-08): the mirror eyes, the ripple; the hyena sheet at 1.5'
+    src: 'the SRD 5.1 Giant Hyena (Large, Rampage) made over by Mr. Ripples, ours (10-08): the mirror eyes, the ripple, the hyena sheet at 1.5; lighter for a pack of four (Griz: "could making them mirrorhyena with different stats be the lever") -- 26 HP, bite +4 1d10+2'
   },
   hyena: {
     name: 'Hyena', type: 'beast', sheet: 'hyena_p2', cr: '0', ac: 11, hp: 5, speed: 50, size: 1, reach: 5,

@@ -48,6 +48,8 @@ def run(params, timeout=600):
     finally:
         try: os.remove(page)
         except OSError: pass
+        import shutil # (and the run's own Edge profile, ~20 MB: they were never removed, and a day of tuning left 3694 in %TEMP% -- the disk full, every bench and the gate
+        shutil.rmtree(prof, ignore_errors=True) # RED with "not enough space", 10-08)
     dom = p.stdout.decode('utf-8', 'replace')
     m = re.search(r'BENCH16 (\{.*\})', dom, re.S)
     if not m:

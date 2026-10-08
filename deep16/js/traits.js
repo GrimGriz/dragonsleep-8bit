@@ -116,9 +116,13 @@
 
   // ------------------------------------------------------------------ the Harbinger's Kneel (ours, 10-08; Griz: "Kneel can be Hold Person with flair of some kind"): the word
   // said, his `cast` row (the sheet's kneel), and on whoever the hold takes the mirror ripple runs head to foot
+  // the word, spoken (10-08, Griz: "can we voice his 'kneel' like we did denim damage"): a recorded clip, deep16/audio/kneel.mp3 (tools/voice-clip.ps1: Windows' David, a growl
+  // lower, slow, a hall's echo), the browser's own voice when it will not play -- as js/mpmon.js denimVoice
+  function kneelVoice() { var say = function () { if (D.say) D.say('Kneel.', { pitch: 0.4, rate: 0.8 }); }; if (D.clip) D.clip('audio/kneel.mp3', function (ok) { if (!ok) say(); }); else say(); }
   var castK = M.cast;
   M.cast = function* (B, u, id, slot, t) {
     if (!B || !u || !u.kneel || id !== 'holdperson') return yield* castK.apply(this, arguments);
+    kneelVoice();
     B.card(['{r}' + Nm(B, u) + ': "Kneel."{/}'], 200); yield 8;
     var held0 = {}; B.units.forEach(function (w) { if (w.conds && w.conds.paralyzed) held0[w.id] = 1; });
     var res = yield* castK.apply(this, arguments);

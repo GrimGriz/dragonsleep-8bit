@@ -1329,6 +1329,13 @@
         if (anim === 'idle' || anim === 'walk' || anim === 'slither' || anim === 'roost' || anim === 'braid' || anim === 'run' || anim === 'still' || anim === 'climb') t =u.conds.paralyzed || u.conds.asleep ? 0 : B.t + (u.id ? u.id.length * 7 : 0);
         // (the Harbinger risen, 10-08: once he has stood to his full height -- js/traits.js, his `ascend` row -- he stands upright between blows, on his `uprightidle` row)
         if (!down && u.upright && anim === 'idle' && has('uprightidle')) anim = 'uprightidle';
+        // (held by the Harbinger's Kneel, 10-08 -- Griz: "since they're paralyzed anyway": drawn kneeling, the look only (the hold is Hold Person's paralysis). A sheet's
+        // `kneel` frame of its fall row, or an LPC figure's fourth, on both knees with the head bowed; a sheet with neither stands held as before)
+        if (!down && anim === 'idle' && u.conds.paralyzed && u.conds.paralyzed.by && has('hurt')) {
+          var kb = B.units.filter(function (w) { return w.id === u.conds.paralyzed.by; })[0], kd = kb && D.FOES && D.FOES[kb.kind], kf = (D.SHEETS && D.SHEETS[u.sheet] || {}).kneel;
+          if (kf == null && /_p0$/.test(u.sheet)) kf = 3;
+          if (kd && kd.kneel && kf != null) { anim = 'hurt'; o.frame = kf; o.once = false; }
+        }
         // a hyena helpless with laughter rolls on the floor with it, for as long as it laughs (09-30; since 10-02 the hyenas caught by Aurdin's joke: js/grimoire.js M.hyena)
         if (!down && u.conds.laughing && has('rofl')) { anim = 'rofl'; o.once = false; t = B.t + (u.id ? u.id.length * 7 : 0); }
         // a gnoll's fit on its own row (10-02, Griz's order of its sheet's poses, beat by beat: js/grimoire.js M.LAUGH; the laughs fire there on the same beats)
@@ -2145,7 +2152,8 @@
     ctx.fillStyle = R('stone', 1); ctx.fillRect(4, BAR_Y + 4, 36, 38);
     ctx.save(); ctx.beginPath(); ctx.rect(4, BAR_Y + 4, 36, 38); ctx.clip();
     var face = u.rider || u.sheet, top = D.spr.top(face); // (a drider's portrait is its rider's face)
-    D.spr.draw(ctx, face, 'idle', 0, B.t, 22, BAR_Y + 6 + Math.min(top, u.size > 1 && !u.rider ? 30 : 44), { alpha: u.ethereal ? 0.3 : 1 });
+    var fc = D.SHEETS && D.SHEETS[face] && D.SHEETS[face].face; // (a sheet's `face`: px above its foot where the face is -- the box centred on it; the Harbinger's legs filled it, 10-08)
+    D.spr.draw(ctx, face, 'idle', 0, B.t, 22, BAR_Y + (fc != null ? 22 + fc : 6 + Math.min(top, u.size > 1 && !u.rider ? 30 : 44)), { alpha: u.ethereal ? 0.3 : 1 });
     ctx.restore();
     ctx.strokeStyle = u.side === 'foe' ? R('red', 3) : R('gold', 3); ctx.strokeRect(4.5, BAR_Y + 4.5, 35, 37);
     var cl = u.side === 'foe' ? 'foe' : u.cls ? (D.clsLabel(u.cls) + ' ' + u.lvl) : u.familiar ? 'familiar' : 'ally', clx = 44 + D.textWidth(u.name) + 6; // (a familiar has no class: it read "null 0", 10-02)

@@ -33,6 +33,8 @@ def main():
     url = 'file:///' + os.path.join(ROOT, 'situations.html').replace('\\', '/') + '?probe=' + str(os.getpid())
     p = subprocess.run([bench16.EDGE, '--headless=new', '--disable-gpu', '--no-first-run', '--allow-file-access-from-files'] + bench16.EXTRA +
                        ['--user-data-dir=' + prof, '--dump-dom', url], capture_output=True, timeout=120)
+    import shutil
+    shutil.rmtree(prof, ignore_errors=True) # (its Edge profile, once read: never removed before, 10-08 -- the disk filled with the benches')
     dom = H.unescape(p.stdout.decode('utf-8', 'replace'))
     if not dom.strip():
         print('no result (the browser printed nothing)'); return 1

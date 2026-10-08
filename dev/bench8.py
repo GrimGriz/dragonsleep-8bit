@@ -45,6 +45,8 @@ def run(params, timeout=300):
     finally:
         try: os.remove(page)
         except OSError: pass
+        import shutil
+        shutil.rmtree(prof, ignore_errors=True) # (the run's own Edge profile: never removed, they filled the disk with dev/bench16.py's, 10-08)
     dom = p.stdout.decode('utf-8', 'replace')
     m = re.search(r'BENCH8 (\{.*\})', dom, re.S)
     errs = re.findall(r'<pre>LOADERR ([^<]*)', dom) # (the catcher's <pre>: its own source, inline in the page, says LOADERR too)
