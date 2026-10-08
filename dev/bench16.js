@@ -1548,6 +1548,22 @@
       var fl4 = D.ui.flyer(B4) === f4, s4 = D.ui.stepLayer(B4, 1), z4 = B4.flyZ, g4 = GF.groundAt(f4, f4.x, f4.y), v4 = D.ui.valid(B4, f4, f4.x + 1, f4.y);
       okFL('the move tool: a flier ' + fl4 + ', a wheel up ' + s4 + ' -- the layer ' + (z4 - g4) / GF.map.def.step * 2.5 + ' ft up; a square beside it ' + v4, fl4 && s4 && z4 === g4 + L && v4 === 'ok');
       B4.req = null; B4.tool = 'move';
+      // the wheel (RULED 10-08, Griz on the pane: "Shift+wheel = height"): Shift+wheel steps the flier's layer, the plain wheel zooms; and down to the ground under it -- the square
+      // it is over is a move at the ground's layer (it had opened the ring: "trouble landing in the square I'm above"), and LAND on the ring
+      var B6 = mkFL('?npc=goblin&lvl=5&vs=fighter:5&fly'), f6 = sideFL(B6, 'party')[0]; f6.x = 6; f6.y = 8; GF.setup(GF.map, B6.units); D.rules.startTurn(f6); B6.active = f6; B6.req = { turn: f6 }; B6.tool = 'move'; B6.cache = null;
+      var mo = D.input.mouse, z6 = D.iso.zoom; mo.inside = true; mo.x = Math.floor(D.W / 2); mo.y = Math.floor(D.H / 3);
+      mo.wheel = -1; mo.wheelShift = true; D.ui.camera(B6); var sh6 = B6.flyZ, zs6 = D.iso.zoom;
+      B6.flyZ = null; mo.wheel = 1; mo.wheelShift = false; D.ui.camera(B6); var pl6 = B6.flyZ, zp6 = D.iso.zoom; D.iso.zoom = z6; mo.wheel = 0;
+      var g6 = GF.groundAt(f6, f6.x, f6.y);
+      okFL('Shift+wheel up: the layer ' + (sh6 != null ? (sh6 - g6) / GF.map.def.step * 2.5 + ' ft up' : 'none') + ', the zoom kept ' + (zs6 === z6) + '; the plain wheel: the layer ' + pl6 + ', the zoom moved ' + (zp6 !== z6), sh6 === g6 + L && zs6 === z6 && pl6 == null && zp6 !== z6);
+      runFL(B6.flyMove(f6, f6.x, f6.y, g6 + 2 * L)); B6.cache = null; B6.flyZ = g6; B6.flyFor = f6.id;
+      var vSelf = D.ui.valid(B6, f6, f6.x, f6.y), cmd6 = B6.commands(f6).filter(function (c) { return c.id === 'land'; })[0];
+      runFL(B6.exec(f6, { do: 'land' }));
+      okFL('aloft 10 ft: its own square at the ground\'s layer ' + vSelf + ' (a move, not the ring); LAND on the ring ' + (cmd6 && cmd6.label) + ' ok ' + (cmd6 && cmd6.ok) + '; landed ' + (f6.fz == null) + ', move left ' + f6.turn.move, vSelf === 'ok' && cmd6 && cmd6.ok && f6.fz == null && f6.turn.move === 10);
+      // no move left: Shift+wheel does nothing (the rise is paid from the move)
+      B6.req = { turn: f6 }; B6.tool = 'move'; B6.flyZ = null; f6.turn.move = 0; B6.cache = null; var st6 = D.ui.stepLayer(B6, 1);
+      okFL('no move left: Shift+wheel up does nothing ' + !st6 + ' (the layer ' + B6.flyZ + ')', !st6 && B6.flyZ == null);
+      B6.req = null;
       // the druid's Giant Bat (Wild Shape, 8th: js/features.js F.SHAPES `flies`): in its shape the move tool takes the wheel's layer too
       var B5 = mkFL('?npc=goblin&lvl=8&vs=druid:8'), d5 = sideFL(B5, 'party')[0]; D.rules.startTurn(d5); B5.active = d5; d5.feats.wildShape = 2; runFL(D.features.wildShape(B5, d5, 'giantbat')); B5.req = { turn: d5 }; B5.tool = 'move'; B5.cache = null;
       var bat5 = !!(d5.beast && d5.flies), fl5 = D.ui.flyer(B5) === d5, st5 = D.ui.stepLayer(B5, 1); B5.req = null;

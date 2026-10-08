@@ -1055,6 +1055,7 @@
       out.push({ id: 'cdash', label: 'DASH', cost: 'B', ok: !u.conds.restrained && !u.conds.dancing, why: u.conds.dancing ? 'dancing in place: no move to add a Dash to' : 'held fast: her speed is 0, and a Dash adds her speed', note: 'Cunning Action: +' + u.speed + ' ft this turn', icon: 'dash' });
       out.push({ id: 'cdisengage', label: 'DISENGAGE', cost: 'B', ok: !T.disengaged, note: 'Cunning Action: leaving reach provokes nothing', icon: 'disengage' });
     } else {
+      if (G.aloft(u) && G.winged(u)) { var ftLd = G.feetUp(u.fz - G.groundAt(u, u.x, u.y)); out.push({ id: 'land', label: 'LAND (' + ftLd + ' FT)', cost: 'F', icon: 'move', ok: T.move >= ftLd, why: 'the move left is ' + T.move + ' ft: coming down ' + ftLd + ' ft costs ' + ftLd, note: 'straight down to the ground under you' }); } // (flight at a height: Griz, 10-08, "trouble landing in the square I'm above")
       out.push({ id: 'dash', label: 'DASH', cost: 'A', ok: T.action > 0 && !T.attacksLeft && !u.conds.restrained && !u.conds.dancing, why: u.conds.dancing ? 'dancing in place: no move to add a Dash to' : u.conds.restrained ? 'held fast: the speed is 0, and a Dash adds your speed' : 'the action is spent', note: '+' + u.speed + ' ft this turn' });
       out.push({ id: 'disengage', label: 'DISENGAGE', cost: 'A', ok: T.action > 0 && !T.attacksLeft && !T.disengaged, note: 'leaving reach provokes nothing this turn' });
       // Expeditious Retreat (SRD 5.1: "as a bonus action on each of your turns until the spell ends, you can take the Dash action"): the mark
@@ -1492,6 +1493,7 @@
         }
         T.freeObj = true; D.light.pickUp(this, u, lxP, lyP); return;
       }
+      case 'land': { if (!G.aloft(u)) return; var ftL = G.feetUp(u.fz - G.groundAt(u, u.x, u.y)); if (T.move < ftL) return; T.move -= ftL; yield* this.flyTo(u, G.groundAt(u, u.x, u.y), true); this.cache = null; return; } // (a flier straight down: flight at a height, 10-08)
       case 'throwtorch': { yield* D.light.throwTorch(this, u, c.x, c.y); return; }
       case 'hooddown': T.freeObj = true; yield* D.light.hood(this, u, true); return;
       case 'hoodup': T.freeObj = true; yield* D.light.hood(this, u, false); return;

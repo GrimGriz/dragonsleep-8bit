@@ -156,7 +156,7 @@
     var t = D.frame - I.since[b];
     return t > 14 && t % 5 === 0;
   };
-  I.clear = function () { I.edge = {}; I.mouse.click = false; I.mouse.rclick = false; I.mouse.rbtn = false; I.mouse.moved = false; I.mouse.wheel = 0; };
+  I.clear = function () { I.edge = {}; I.mouse.click = false; I.mouse.rclick = false; I.mouse.rbtn = false; I.mouse.moved = false; I.mouse.wheel = 0; I.mouse.wheelShift = false; };
   // (D.typing: a name or a note being typed into a field over the canvas -- the Pocket DM's, deep16/js/pocket.js -- takes every key; the game hears none)
   window.addEventListener('keydown', function (e) {
     if (D.typing) return;
@@ -233,7 +233,7 @@
     });
     c.addEventListener('mouseleave', function () { I.mouse.inside = false; });
     document.addEventListener('mouseout', function (e) { if (!e.relatedTarget) { I.mouse.inWin = false; I.mouse.inside = false; } }); // off the window
-    c.addEventListener('wheel', function (e) { e.preventDefault(); at(e); I.mouse.wheel += e.deltaY > 0 ? 1 : e.deltaY < 0 ? -1 : 0; }, { passive: false });
+    c.addEventListener('wheel', function (e) { e.preventDefault(); at(e); var dv = e.deltaY || (e.shiftKey ? e.deltaX : 0); I.mouse.wheel += dv > 0 ? 1 : dv < 0 ? -1 : 0; I.mouse.wheelShift = !!e.shiftKey; /* (Shift+wheel: a flier's height -- js/ui.js; Windows sends it sideways, deltaX, 10-08) */ }, { passive: false });
     c.addEventListener('mousedown', function (e) {
       if (ghost()) return;
       at(e); e.preventDefault(); c.focus(); D.unlockAudio();
