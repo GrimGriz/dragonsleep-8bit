@@ -31,21 +31,30 @@
   // 1.25 by default; the M menu's PACE row cycles 1 / 1.25 / 1.5 and keeps it here with the rest; ?pace=1.5 in the address overrides it for that page only
   // END TURN ASKS (10-06, a pad player: "maybe a confirmation screen if you press end turn without having done anything? or have it available in settings to always
   // confirm end turn / only ask for confirmation if no other actions taken / never ask"; Griz: "yeah"): 'idle' asks only when nothing is done yet, the default
-  UI.opts = { help: false, style: 'ring', autoEnd: true, pace: 1.25, confirmEnd: 'idle' };
+  UI.opts = { help: false, style: 'ring', mpStyle: 'ring2', autoEnd: true, pace: 1.25, confirmEnd: 'idle' };
   UI.PACES = [1, 1.25, 1.5];
   UI.ASKS = ['idle', 'always', 'never'];
-  try { var o0 = JSON.parse(window.localStorage.getItem('deep16.opts') || 'null'); if (o0) { if (o0.style === 'window' || o0.style === 'ring2') UI.opts.style = o0.style;if (o0.autoEnd === false) UI.opts.autoEnd = false; if (UI.PACES.indexOf(o0.pace) >= 0) UI.opts.pace = o0.pace; if (UI.ASKS.indexOf(o0.confirmEnd) >= 0) UI.opts.confirmEnd = o0.confirmEnd; } } catch (e) { }
+  UI.STYLES = ['ring', 'ring2', 'window'];
+  try { var o0 = JSON.parse(window.localStorage.getItem('deep16.opts') || 'null'); if (o0) { if (o0.style === 'window' || o0.style === 'ring2') UI.opts.style = o0.style; if (UI.STYLES.indexOf(o0.mpStyle) >= 0) UI.opts.mpStyle = o0.mpStyle; if (o0.autoEnd === false) UI.opts.autoEnd = false; if (UI.PACES.indexOf(o0.pace) >= 0) UI.opts.pace = o0.pace; if (UI.ASKS.indexOf(o0.confirmEnd) >= 0) UI.opts.confirmEnd = o0.confirmEnd; } } catch (e) { }
   UI.saveOpts = function () { try { window.localStorage.setItem('deep16.opts', JSON.stringify(UI.opts)); } catch (e) { } };
-  var qs = /[?&]menu=(window|ring2|ring)/.exec(location.search); if (qs) UI.opts.style = qs[1];
+  var qs = /[?&]menu=(window|ring2|ring)/.exec(location.search); if (qs) UI.opts.style = UI.opts.mpStyle = qs[1];
   // RING2 (10-08, Griz: "what if the first ring had 'actions' and 'bonuses' that colored the ring yellow and light blue when you click on them"; "menu option ring2 (default for
-  // mpmon ...)"): the ring by cost -- see cmds2 below. A Mascot's turn is on it under RING (the default); RING2 chosen in the menu puts every class on it; WINDOW is the window
-  UI.styleOf = function (u) { var s = UI.opts.style; return s === 'window' ? 'window' : s === 'ring2' || (u && u.cls === 'mpmon') ? 'ring2' : 'ring'; };
+  // mpmon ...)"): the ring by cost -- see cmds2 below. A MASCOT GAME (a fight whose party holds a Mascot) keeps a menu setting of its own, UI.opts.mpStyle, RING2 by default;
+  // RING chosen there is the old ring (10-08, Griz: "no no - mascot games default to menu setting of ring two, not an overwrite" -- a Mascot had been put on RING2 under RING,
+  // whatever was chosen); any other fight reads UI.opts.style. Every read goes through UI.style(B), and the M menu's MENU STYLE row sets the one in force (js/menu.js)
+  UI.mascotGame = function (B) {
+    B = B || D.battle; if (!B || !B.units) return false;
+    if (!B.uiMascots) B.uiMascots = B.units.some(function (w) { return w.cls === 'mpmon' && w.side === 'party'; }); // (kept once true: the Game Show's four come onto the field after its opening)
+    return B.uiMascots;
+  };
+  UI.style = function (B) { var s = UI.mascotGame(B) ? UI.opts.mpStyle : UI.opts.style; return UI.STYLES.indexOf(s) >= 0 ? s : 'ring'; };
+  UI.styleOf = function (u, B) { return UI.style(B); };
   D.PACE = UI.opts.pace;
   if (D.STREAM) D.PACE = UI.STREAM_PACE = 2.5; // (the stream, 10-07, Griz: "the AI to take its turns about half current speed" -- twice the 1.25 default, a starting value only: the M menu's PACE row still sets D.PACE (optsChanged, below) and nothing here is saved; ?pace= below still wins)
   var pq = /[?&]pace=([0-9.]+)/.exec(location.search); if (pq && +pq[1] >= 0.5 && +pq[1] <= 3) D.PACE = +pq[1];
   // at rest: WINDOW holds its command window up (as Chrono Trigger does); RING stands on the grid ready to walk, and
   // the ring comes up on E over the hero (where the cursor starts a turn), a click on him, or Q (Griz, 09-27)
-  function rest() { return UI.opts.style === 'window' ? 'menu' : 'move'; }
+  function rest() { return UI.style() === 'window' ? 'menu' : 'move'; }
 
   // ------------------------------------------------------------------ requests
   UI.onRequest = function (B, req) {
@@ -56,7 +65,7 @@
       if (B.cmdSel == null || B.cmdFor !== req.turn) { B.cmdSel = 0; B.cmdFor = req.turn; B.ringA = null; }
       // on the ring, the grid gives way to it once there's nothing left there: no step to take, no swing at a foe in reach
       // (Griz, 09-27: all the movement spent, or the last blow struck, and the ring comes up by itself)
-      if (UI.opts.style !== 'window' && B.tool === 'move' && gridDone(B, req.turn)) { B.tool = 'menu'; B.ringStill = false; }
+      if (UI.style(B) !== 'window' && B.tool === 'move' && gridDone(B, req.turn)) { B.tool = 'menu'; B.ringStill = false; }
       // READY's trigger asked (battle.js exec 'ready'): the wheel of what can be held for it
       if (B.readying && B.readying.who === req.turn) { B.tool = 'menu'; B.list = readyRing(B, req.turn); B.ringB = null; B.ringStill = false; B.clearCards(); B.card([D.keys('{y}READY{/}: ' + readyWhenText(B.readying.trigger) + ' -- what do you hold for it?  {g}X back{/}')], 100000); }
       else B.readying = null;
@@ -170,7 +179,7 @@
   }
   UI.cmds = function (B, u) {
     if (D.keeperPlay && D.keeperPlay.human(B, u)) return D.keeperPlay.ring(B, u); // (?keeperfight&play=keeper: the Keeper's own ring -- js/keeperplay.js)
-    if (UI.styleOf(u) === 'ring2') return cmds2(B, u); // (the ring by cost: a Mascot's own, or anyone's under RING2 -- below)
+    if (UI.styleOf(u, B) === 'ring2') return cmds2(B, u); // (the ring by cost: a Mascot game's default, or anyone's under RING2 -- below)
     var c = B.commands(u), top = {}, fronts = [], sk = [], ac = [], cd = [], q = quickSpell(B, u), q2 = quickSpell(B, u, BESIDE), fr = !u.guest && FRONT[u.cls];
     // (x.skill: a class feature's button from js/features.js F.commands -- Rage, the Channel Divinities, the subclasses' own; a fronted one goes up front, the rest of the skills under SKILLS)
     c.forEach(function (x) { if (CHANNEL[x.id]) { cd.push(x); return; } if ((fr && x.id === fr) || fronted(x)) { fronts.push(x); return; } if (SKILLS[x.id] || x.skill || (q && x.id === 'attack')) (SKILLS[x.id] || x.skill ? sk : ac).push(x); else if (ACTIONS[x.id]) ac.push(x); else top[x.id] = x; });
@@ -448,7 +457,7 @@
   var AIMS = { rope: 1, torch: 1, item: 1, help: 1, lay: 1, detach: 1, breaktendril: 1 }; // (the aimed tools the right button puts away: turnInput)
   function turnInput(B, u) {
     if (B.readying && !B.list) { B.readying = null; B.clearCards(); } // (backed out of READY's wheel: nothing readied, nothing spent)
-    var st = UI.opts.style, any = I.pressed('a') || I.pressed('b') || I.pressed('end') || I.mouse.click;
+    var st = UI.style(B), any = I.pressed('a') || I.pressed('b') || I.pressed('end') || I.mouse.click;
     if (B.inspect && (any || I.mouse.rclick)) { B.inspect = null; return; }
     if (B.endAsk && B.endAsk === B.req && I.pressed('b')) { D.sfx('cancel'); B.endAsk = null; B.clearCards(); return; } // (X keeps the turn)
     if (I.pressed('end')) return endTurn(B, u);
@@ -518,7 +527,7 @@
       if (B.picks && B.picks.length) { D.sfx('cancel'); B.picks.pop(); return; }
       if (B.tool !== rest()) { D.sfx('cancel'); B.tool = rest(); B.spell = null; B.clearCards(); return; }
       // on the ring, X at rest calls the ring up (Griz, 09-27: backing out of a move should bring it); M/Tab the menu
-      if (UI.opts.style !== 'window') { D.sfx('popup'); B.tool = 'menu'; B.clearCards(); return; }
+      if (UI.style(B) !== 'window') { D.sfx('popup'); B.tool = 'menu'; B.clearCards(); return; }
       return UI.openMenu(B);
     }
     if (I.pressed('a')) actAt(B, u, B.cursor.x, B.cursor.y, true);
@@ -589,7 +598,7 @@
     D.sfx('confirm');
     if (c.aim) return aimCommand(B, u, c);
     if (c.id === 'end') return endTurn(B, u);
-    if (c.sub === 'spells' && UI.opts.style !== 'window') { B.list = levelRing(B, u); B.list.back = back || null; B.ringB = null; return; }
+    if (c.sub === 'spells' && UI.style(B) !== 'window') { B.list = levelRing(B, u); B.list.back = back || null; B.ringB = null; return; }
     if (c.items) { // SKILLS, ACTIONS: their commands as a list (a ring on the ring)
       var cl = c.items.map(function (x) { return { kind: 'cmd', cmd: x, id: x.id, icon: x.icon, name: x.label, label: x.label, cost: x.cost, ok: x.ok, why: x.why, note: x.note }; });
       var f0 = 0; cl.some(function (e, i) { if (e.ok) { f0 = i; return true; } return false; });
@@ -616,7 +625,7 @@
     return { kind: 'levels', items: items, sel: first };
   }
   function listInput(B, u) {
-    var L = B.list, n = L.items.length, st = UI.opts.style, e = L.items[L.sel];
+    var L = B.list, n = L.items.length, st = UI.style(B), e = L.items[L.sel];
     var ringy = st !== 'window', nextKey = ringy ? ['left', 'right'] : ['up', 'down'], slotKey = ringy ? ['down', 'up'] : ['left', 'right']; // [lower, higher]
     var sel0 = L.sel, slot0 = e && e.slot;
     var ls = ringy ? ringStep() : I.repeat(nextKey[0]) || turnWheel() < 0 ? -1 : I.repeat(nextKey[1]) || turnWheel() > 0 ? 1 : 0; // (the ring's: ringStep)
@@ -992,7 +1001,8 @@
         if (story) return []; // (inside the 8-bit game the fight is the story's: no way round it)
         return [{ label: 'RESTART THE FIGHT', value: 'restart' }].concat(B.o.onDone ? [] : [{ label: 'THE LADDER', value: 'ladder' }], [{ label: UI.backLabel(), value: 'out' }]);
       },
-      optsChanged: function (o) { UI.opts.style = o.style === 'window' ? 'window' : o.style === 'ring2' ? 'ring2' : 'ring';UI.opts.autoEnd = o.autoEnd !== false; if (UI.ASKS.indexOf(o.confirmEnd) >= 0) UI.opts.confirmEnd = o.confirmEnd; if (UI.PACES.indexOf(o.pace) >= 0) UI.opts.pace = D.PACE = o.pace; UI.saveOpts(); restyle(B); },
+      mascotGame: function () { return UI.mascotGame(B); }, // (the MENU STYLE row sets the Mascot games' own setting here -- js/menu.js gridRows)
+      optsChanged: function (o) { UI.opts.style = o.style === 'window' ? 'window' : o.style === 'ring2' ? 'ring2' : 'ring'; if (UI.STYLES.indexOf(o.mpStyle) >= 0) UI.opts.mpStyle = o.mpStyle; UI.opts.autoEnd = o.autoEnd !== false; if (UI.ASKS.indexOf(o.confirmEnd) >= 0) UI.opts.confirmEnd = o.confirmEnd; if (UI.PACES.indexOf(o.pace) >= 0) UI.opts.pace = D.PACE = o.pace; UI.saveOpts(); restyle(B); },
       run: function (kind, a, done) {
         if (kind === 'kofi') { try { window.open('https://ko-fi.com/grimgriz', '_blank'); } catch (e) { } }
         if (kind === 'exit') {
@@ -1112,8 +1122,8 @@
     // (0, 0) is the map's top corner; x grows down to the right, y down to the left -- he can say "4,1" and mean the seat's 4,1
     if (B.cursor && G.map.at(B.cursor.x, B.cursor.y)) D.text(ctx, B.cursor.x + ',' + B.cursor.y, D.W - 5, 3, R('silver', 5), 'right');
     if (!B.cine) bar(ctx, B, hero);
-    if (hero && UI.opts.style === 'window') cmdWindow(ctx, B, hero);
-    if (hero && UI.opts.style !== 'window') cmdRing(ctx, B, hero);
+    if (hero && UI.style(B) === 'window') cmdWindow(ctx, B, hero);
+    if (hero && UI.style(B) !== 'window') cmdRing(ctx, B, hero);
     if (hero && B.tool === 'spell' && B.spell && B.spell.g.shape === 'allies' && B.picks.length) castButton(ctx, B);
     var iw = B.inspect || (B.tool === 'spell' && B.spell && B.peek); if (iw) inspect(ctx, iw); // (B.peek: the one under the cursor while a spell is aimed)
     if (req && req.prompt) prompt(ctx, B, req.prompt);
@@ -2023,7 +2033,7 @@
     lines = lines.reduce(function (a, l) { return a.concat(D.textWidth(l) > D.W - 20 ? D.wrap(l, D.W - 20) : [l]); }, []);
     var ww = 0; lines.forEach(function (l) { ww = Math.max(ww, D.textWidth(l)); });
     var x = Math.max(2, D.W - ww - 12), y = BAR_Y - lines.length * 9 - 8;
-    if (UI.opts.style === 'window' && B.req && B.req.turn) x = 6;
+    if (UI.style(B) === 'window' && B.req && B.req.turn) x = 6;
     ctx.fillStyle = 'rgba(10,8,16,.82)'; ctx.fillRect(x, y, ww + 8, lines.length * 9 + 4);
     lines.forEach(function (l, i) { D.text(ctx, l, x + 4, y + 2 + i * 9, R('bone', 1)); });
   }
@@ -2147,7 +2157,7 @@
 
   // ------------------------------------------------------------------ the bottom bar: portrait, HP, BARM, the keys, END TURN
   function bar(ctx, B, hero) {
-    var u = hero || B.active, st = UI.opts.style;
+    var u = hero || B.active, st = UI.style(B);
     ctx.fillStyle = 'rgba(10,8,16,.9)'; ctx.fillRect(0, BAR_Y, D.W, D.H - BAR_Y);
     ctx.fillStyle = R('silver', 2); ctx.fillRect(0, BAR_Y, D.W, 1);
     if (!u) return;
@@ -2190,7 +2200,8 @@
     return w;
   }
   function costTag(c) { return c === 'A' ? '{y}A{/}' : c === 'B' ? '{c}B{/}' : c === 'M' ? '{c}M{/}' : ''; }
-  function slotText(e) { return e.kind !== 'spell' ? 'x' + e.n : e.level ? 'L' + e.slot + (e.levels.length > 1 ? ' <>' : '') : 'cantrip'; }
+  // (a row with no count says nothing: READY's picks in the WINDOW list read "xundefined" -- 10-08, Griz: "saying nothing is better than undefined")
+  function slotText(e) { return e.kind === 'spell' ? (e.level ? 'L' + e.slot + (e.levels.length > 1 ? ' <>' : '') : 'cantrip') : e.n != null ? 'x' + e.n : ''; }
 
   // a list (spells, items) as a popup: the BAR style's, and the WINDOW style's second window
   function listPopup(ctx, B, u, x, yBottom, w, win) {
@@ -2352,7 +2363,7 @@
     var lv = B.units.filter(function (u) { return u.side === 'party'; }).map(function (u) { return u.lvl; });
     D.text(ctx, 'Level ' + (Math.min.apply(null, lv) === Math.max.apply(null, lv) ? lv[0] : Math.min.apply(null, lv) + '-' + Math.max.apply(null, lv)) + '.  ' + (B.intro || ''), D.W / 2, 150, R('accent', 2), 'center');
     if (B.canSwap) D.text(ctx, B.o.fixture ? '2: walk in from the 8-bit save instead' : '2: walk in as the fixture instead (the four at level 9; the fight is built for them)', D.W / 2, 164, R('silver', 5), 'center');
-    D.hint(ctx, 'menu: ' + UI.opts.style.toUpperCase() + (UI.opts.style !== 'window' ? ' (M or Tab, then MENU)' : ' (M or X/Esc, then MENU)'), D.W / 2, 194, R('stone', 5), 'center');
+    D.hint(ctx, 'menu: ' + UI.style(B).toUpperCase() + (UI.style(B) !== 'window' ? ' (M or Tab, then MENU)' : ' (M or X/Esc, then MENU)'), D.W / 2, 194, R('stone', 5), 'center');
     if (B.dark) D.text(ctx, 'DARK GROUND: the four see by their lights and darkvision. You see it all: what they cannot is grey.', D.W / 2, 208, R('fire', 1), 'center');
     if ((B.t >> 5) & 1) D.hint(ctx, 'E to begin', D.W / 2, 180, R('glow', 2), 'center');
   }

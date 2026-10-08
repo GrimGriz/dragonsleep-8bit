@@ -786,12 +786,14 @@
   // uniformity)"): kept where the grid keeps them, localStorage deep16.opts, so a story fight reads them when it opens; a host holding the grid live
   // applies them at once (host.optsChanged). The volumes were one store already (js/audio.js ds8-audio)
   var OPT_KEY = 'deep16.opts', PACES = [1, 1.25, 1.5], ASKS = ['idle', 'always', 'never'], ASKW = { idle: 'IF IDLE', always: 'ALWAYS', never: 'NEVER' };
-  function readOpts() { var o = { help: false, style: 'ring', autoEnd: true, pace: 1.25, confirmEnd: 'idle' }; try { var s = JSON.parse(window.localStorage.getItem(OPT_KEY) || 'null'); if (s) Object.keys(o).forEach(function (k) { if (k in s) o[k] = s[k]; }); } catch (e) { } return o; }
+  function readOpts() { var o = { help: false, style: 'ring', mpStyle: 'ring2', autoEnd: true, pace: 1.25, confirmEnd: 'idle' }; try { var s = JSON.parse(window.localStorage.getItem(OPT_KEY) || 'null'); if (s) Object.keys(o).forEach(function (k) { if (k in s) o[k] = s[k]; }); } catch (e) { } return o; }
   function cyc(list, v, d) { var i = list.indexOf(v); return list[((i < 0 ? 0 : i) + d + list.length) % list.length]; }
   MN.gridRows = function (host) {
     var o = readOpts(), save = function () { try { window.localStorage.setItem(OPT_KEY, JSON.stringify(o)); } catch (e) { } if (host && host.optsChanged) host.optsChanged(o); };
+    // (a Mascot game keeps its own MENU STYLE, RING2 till changed -- 10-08, Griz: "mascot games default to menu setting of ring two, not an overwrite"; deep16/js/ui.js UI.style)
+    var sk = host && host.mascotGame && host.mascotGame() ? 'mpStyle' : 'style';
     return [
-      { label: 'MENU STYLE', get: function () { return o.style.toUpperCase(); }, step: function (d) { o.style = cyc(['ring', 'ring2', 'window'], o.style, d); save(); } }, // (RING2, 10-08: the ring by cost -- ACTIONS and BONUSES; a Mascot's default under RING; deep16/js/ui.js)
+      { label: 'MENU STYLE', get: function () { return String(o[sk] || 'ring').toUpperCase(); }, step: function (d) { o[sk] = cyc(['ring', 'ring2', 'window'], o[sk], d); save(); } }, // (RING2, 10-08: the ring by cost -- ACTIONS and BONUSES; deep16/js/ui.js)
       { label: 'AUTO END TURN', get: function () { return o.autoEnd ? 'ON' : 'OFF'; }, step: function () { o.autoEnd = !o.autoEnd; save(); } },
       { label: 'END TURN ASKS', get: function () { return ASKW[o.confirmEnd] || 'IF IDLE'; }, step: function (d) { o.confirmEnd = cyc(ASKS, o.confirmEnd, d); save(); } },
       { label: 'AI + MESSAGE TIME', get: function () { return o.pace + 'x'; }, step: function (d) { o.pace = cyc(PACES, o.pace, d); save(); } }
