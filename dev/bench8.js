@@ -1746,6 +1746,49 @@
         check('a poison cloud on the Periapt: "' + said9.slice(0, 120) + '"; on the others it hurts ("' + said10.slice(0, 60) + '")', /immune to poison/.test(said9) && !/\d+ damage/.test(said9) && /\d+ damage/.test(said10));
         b7.foes.forEach(function (f) { f.hp = 0; f.dead = true; }); drive({}, 1500);
       } finally { DS.rng = rng7; }
+    } else if (test === 'fixes1008') {
+      // the fix session's three in the 8-bit's own battle (10-08; the story and the Pocket DM lane §2.2-2.3; each check failed on the code before it, a byte-exact swap of the old
+      // files): the Cloak of Displacement by the SRD (Dace's thanks did nothing here); Uncanny Dodge's ask shows the whole blow, the extra dice too; the blade-captain's
+      // Darkness and Faerie Fire each at its own chance (`pickSpecial: "each"`), the other pickers at their old rate
+      var rngX = DS.rng, rollX = DS.roll;
+      function runX(gen) { var r = gen.next(); while (!r.done) r = gen.next(); return r.value; }
+      try {
+        // 1. the cloak on Aurdin, bonded: the ogre at disadvantage; a blow lands and it falters; his turn brings it back; stunned it is suppressed; not bonded it is a cloak
+        var hx = g.hero('aurdin'); hx.equip.cloak = 'cloakdisplacement'; hx.attuned = (hx.attuned || []).filter(function (id) { return id !== 'cloakdisplacement'; }).concat(['cloakdisplacement']);
+        T.startFight(['ogre']); for (var wX = 0; wX < 400 && !DS.find('battle'); wX++) T.step(1);
+        var bX = DS.find('battle'), oX = bX.foes[0], aX = bX.heroes.filter(function (x) { return x.h.id === 'aurdin'; })[0];
+        bX.intro = 0; aX.h.maxhp = aX.h.hp = 400; aX.conds = {}; oX.conds = {};
+        var c1 = bX.advantage(oX, aX, true); bX.hurt(aX, 3, 'bludgeoning', oX); var off = !!aX.conds.displaceOff, c2 = bX.advantage(oX, aX, true);
+        bX.turn(aX).next(); var c3 = bX.advantage(oX, aX, true);
+        aX.conds = { stunned: { rounds: 2 } }; var c4 = bX.advantage(oX, aX, true); aX.conds = {};
+        hx.attuned = hx.attuned.filter(function (id) { return id !== 'cloakdisplacement'; }); var c5 = bX.advantage(oX, aX, true);
+        check('the Cloak of Displacement on Aurdin: the ogre at ' + c1 + ' (want -1); a blow lands, it falters ' + off + ' and the ogre at ' + c2 + ' (want 0); his turn, ' + c3 + ' (want -1); stunned, ' + c4 + ' (want 1: suppressed, and the stunned are open to blows); not bonded, ' + c5 + ' (want 0)',
+          c1 === -1 && off && c2 === 0 && c3 === -1 && c4 === 1 && c5 === 0);
+        hx.equip.cloak = null;
+        bX.foes.forEach(function (f) { f.hp = 0; f.dead = true; }); drive({}, 1500);
+        // 2. Uncanny Dodge: the blade-captain's shortsword (1d6+4 and 2d6 poison) at Vivian, rogue 5 -- the ask names both, and halving takes half of each
+        T.startFight(['drowcaptain']); for (wX = 0; wX < 400 && !DS.find('battle'); wX++) T.step(1);
+        var bY = DS.find('battle'), cY = bY.foes[0], vY = bY.heroes.filter(function (x) { return x.h.id === 'vivian'; })[0];
+        bY.intro = 0; vY.h.maxhp = vY.h.hp = 400; vY.conds = {}; cY.conds = {}; vY.reaction = 1;
+        var asked = null, rolled = [];
+        bY.askReact = function* (t, title, opts) { asked = { title: title, right: opts[0].right }; return true; };
+        DS.roll = function (e, o) { var v = rollX(e, o); rolled.push([e, v]); return v; };
+        DS.rng = function () { return 0.9; }; // (every die near its top, the d20 a 19: a hit, no critical)
+        var hpY = vY.h.hp; runX(bY.foeAttack(cY, vY, cY.m.attacks.shortsword)); DS.rng = rngX; DS.roll = rollX;
+        var mainY = (rolled.filter(function (r) { return r[0] === cY.m.attacks.shortsword.dmg; })[0] || [])[1], xY = (rolled.filter(function (r) { return r[0] === cY.m.attacks.shortsword.extra; })[0] || [])[1];
+        var wantAll = (mainY || 0) + (xY || 0), wantHalf = Math.floor((mainY || 0) / 2) + Math.floor((xY || 0) / 2);
+        check('Uncanny Dodge asked "' + (asked && asked.title) + '" / "' + (asked && asked.right) + '" for ' + mainY + ' + ' + xY + ' poison (want ' + wantAll + ' damage, take ' + wantHalf + '); she lost ' + (hpY - vY.h.hp),
+          !!asked && mainY != null && xY != null && asked.title === 'UNCANNY DODGE? ' + wantAll + ' damage' && asked.right === 'take ' + wantHalf && hpY - vY.h.hp === wantHalf);
+        // 3. the blade-captain's specials: each by its own 30% (the other first half the time: about 0.255 a turn with both up; 0.3 alone) -- at random after the first's 30% they came 0.15;
+        // a plain picker (pickSpecial: true) keeps the first's chance for any of them
+        var mC = cY.m, spC = (mC.specials || []).slice(), N = 6000, nD = 0, nF = 0, nD1 = 0, nP = 0, iC;
+        for (iC = 0; iC < N; iC++) { var pk = bY.pickSpecial(mC, spC); if (pk && pk.id === 'darkness') nD++; else if (pk && pk.id === 'faeriefire') nF++; }
+        for (iC = 0; iC < N; iC++) if (bY.pickSpecial(mC, spC.filter(function (s) { return s.id === 'darkness'; }))) nD1++;
+        for (iC = 0; iC < N; iC++) if (bY.pickSpecial({ pickSpecial: true }, [{ id: 'a', chance: 0.4 }, { id: 'b' }])) nP++;
+        check('the blade-captain (' + mC.pickSpecial + '): Darkness ' + (nD / N).toFixed(3) + ' and Faerie Fire ' + (nF / N).toFixed(3) + ' of turns with both up (want about 0.255 each), Darkness alone ' + (nD1 / N).toFixed(3) + ' (want 0.3); a plain picker any ' + (nP / N).toFixed(3) + ' (want 0.4)',
+          nD / N > 0.22 && nD / N < 0.29 && nF / N > 0.22 && nF / N < 0.29 && nD1 / N > 0.27 && nD1 / N < 0.33 && nP / N > 0.37 && nP / N < 0.43);
+        bY.foes.forEach(function (f) { f.hp = 0; f.dead = true; }); drive({}, 1500);
+      } finally { DS.rng = rngX; DS.roll = rollX; }
     } else if (test === 'menu8fight1007') {
       // the 8-bit's in-fight menu acts as the grid's (10-07, Griz: "1 - you're the instance for it if its not too big of a job"): X on a hero's commands opens the one menu;
       // its ITEMS, MAGIC and SKILLS are this fight's own lists, lit by their cost (the action yellow, the bonus blue), and a pick is the turn's command -- the battle's own

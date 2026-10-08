@@ -33,7 +33,7 @@ ALL_SCRIPTS = [['dev/bench8.py', 'lymen'], ['dev/bench8.py', 'ingrith'], ['dev/b
                ['dev/bench8.py', 'menus1003'], # (a menu's title wraps inside its box: the reaction ask for every spell the 8-bit knows, 10-03)
                ['dev/loaderr-probe.py'], # (bench8.py hands back a script that failed to load though the page wrote its result -- the todo §6, 10-07)
                ['dev/bench8.py', 'menu1006'], # (the one menu, js/menu.js: every entry opens and draws, the panel's pick asked once, STATUS's two old bugs, ITEMS and GEAR hold the pack, the bonds -- 10-06)
-               ['dev/bench8.py', 'menu8fight1007'], # (the 8-bit's in-fight menu acts as the grid's: ITEMS, MAGIC and SKILLS the fight's own lists, lit by cost, a pick the turn's command -- 10-07)
+               ['dev/bench8.py', 'menu8fight1007'], ['dev/bench8.py', 'fixes1008'], # (the 8-bit's in-fight menu acts as the grid's: ITEMS, MAGIC and SKILLS the fight's own lists, lit by cost, a pick the turn's command -- 10-07)
                ['dev/bench8.py', 'wear1007'], # (the wearables' finds, 10-07: the Poison Periapt ends a poison carried to it -- R.ward, a rest reads it; the 8-bit's line for a blow of a type a worn thing bars says "immune", not "for 0")
                ['dev/bench8.py', 'battle1006'], # (the 8-bit battle lane, 10-06: the dice off the particles, the small SRD misses, the guest turn, the prone cue, the floor's last holes)
                ['dev/bench8.py', 'story1006'], # (the story walk, 10-06: the spine beat by beat, the journal's door there, in reach from Silverton and played to move the story; every flag read named in content/flags.json)

@@ -393,6 +393,8 @@
   // a cloak against spells (the King's Mantle, Pyro's: +5 to saving throws against spells, RULED 09-30b): both games add it when the
   // save is against a spell (the 8-bit battle's spellNow; the grid's B.spellNow, deep16/js/pyro.js)
   R.spellSave = function (h) { var c = h && h.equip && h.equip.cloak && R.bonded(h, h.equip.cloak) ? R.item(h.equip.cloak) : null; return (c && c.cloak && c.cloak.spellSave) || 0; };
+  // a Cloak of Displacement worn and bonded (SRD 5.1; the 8-bit battle's advantage reads it, as the grid's rules.js edges do -- 10-08, Dace's thanks had done nothing in the 8-bit)
+  R.displaced = function (h) { var c = h && h.equip && h.equip.cloak && R.bonded(h, h.equip.cloak) ? R.item(h.equip.cloak) : null; return !!(c && c.cloak && c.cloak.displacement); };
   R.saveBonus = function (h, ab) {
     var b = DS.mod(h.abil[ab]);
     if (h.saveProf && h.saveProf.indexOf(ab) >= 0) b += R.prof(h.lvl);

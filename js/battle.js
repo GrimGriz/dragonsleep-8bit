@@ -294,6 +294,9 @@
     if (t.conds.invisible && !a.conds.seeInvisible && !eyeA && !famSees && !t.conds.outlined) dis++;
     if (t.conds.outlined && !a.conds.blinded) adv++;
     if (t.conds.pfeg && otherworld(a)) dis++; // Protection from Evil and Good (SRD 5.1; 09-28g)
+    // the Cloak of Displacement (SRD 5.1: "creatures have disadvantage on attack rolls against you. If you take damage, the property ceases to function until the start of your
+    // next turn. This property is suppressed while you are incapacitated, restrained, or otherwise unable to move" -- the grid's since 09-28; the 8-bit's from 10-08: Dace's thanks)
+    if (isHero(t) && R.displaced(t.h) && !t.conds.displaceOff && !down(t) && !incap(t) && !t.conds.restrained && !t.conds.grappled && !t.conds.engulfed) dis++;
     if (this.blindTo(a) && typeof R.BLIND !== 'number') dis++; // shooting blind: the SRD's disadvantage (the -4 is the other switch)
     if (this.dark && !this.lit && this.seesDark(a) && !this.seesDark(t)) adv++; // unseen attacker (SRD): the one who sees in the dark on the one who does not
     if (a.conds.reckless) adv++;
@@ -357,6 +360,7 @@
     if (hr && hr.temp) { var soak = Math.min(hr.temp, n); hr.temp -= soak; n -= soak; u.soaked = (u.soaked || 0) + soak; }
     h.hp -= n;
     if (u.conds.asleep && n > 0) delete u.conds.asleep;
+    if (n > 0 && R.displaced(h)) u.conds.displaceOff = true; // (the cloak falters when a blow lands, till the wearer's turn -- the advantage above)
     if (n > 0 && h.hp > 0) this.laughHurt(u);
     if (h.hp <= 0) {
       if (h.feats.relentless && h.hp > -h.maxhp) { h.feats.relentless = 0; h.hp = 1; this.pendingMsg = h.name + ' refuses to fall!'; }
@@ -550,6 +554,7 @@
     this.active = u;
     // start-of-turn
     u.reaction = 1; // (the reaction window, 10-03: one reaction a round, back at the start of its turn -- SRD 5.1)
+    delete u.conds.displaceOff; // (a Cloak of Displacement works again from the wearer's own turn)
     yield* this.concSweep(); // (a caster helpless or down lets go -- concentration, 10-03)
     if (u.conds.heroism && isHero(u)) { // temporary HP at the start of each of its turns (playtest 09-26: it was there, but nothing showed it; a condition since 10-03)
       var hr0 = u.conds.heroism, gain = hr0.tempEach - (hr0.temp || 0);
@@ -765,10 +770,25 @@
     yield* this.say(nameOf(t) + ' raises a shield of force! +5 AC till ' + plain(t) + "'s next turn.", 36);
     return true;
   };
+  // a foe's special this turn, or null (foeTurn): the first one's chance, then one of them at random (`pickSpecial`) or the first. `pickSpecial: "each"`: each rolls its own
+  // chance, in a random order -- the blade-captain's Darkness and Faerie Fire, 30% each on its sheet, had come at the first's 30% and then one of the two, half as often
+  // as written (10-08, the walk's runner; the other pickers keep their old rate)
+  Battle.prototype.pickSpecial = function (m, specials) {
+    if (!specials.length) return null;
+    if (m.pickSpecial === 'each') {
+      var o = specials.slice();
+      for (var i = o.length - 1; i > 0; i--) { var j = Math.floor(DS.rng() * (i + 1)), s = o[i]; o[i] = o[j]; o[j] = s; }
+      for (var k = 0; k < o.length; k++) if (DS.rng() < (o[k].chance || 0.4)) return o[k];
+      return null;
+    }
+    return DS.rng() < (specials[0].chance || 0.4) ? (m.pickSpecial ? DS.pick(specials) : specials[0]) : null;
+  };
   // Uncanny Dodge (rogue 5; SRD 5.1): the reaction halves one attack's damage from an attacker she can see
-  Battle.prototype.dodgeReact = function* (t, f, dmg) {
+  // (xd: the attack's extra dice, rolled before the ask -- the prompt shows the whole blow and what halving leaves of it; 10-08, the walk's runner: it showed the main damage only)
+  Battle.prototype.dodgeReact = function* (t, f, dmg, xd) {
     if (!isHero(t) || t.h.cls !== 'rogue' || t.h.lvl < 5 || !this.canReact(t) || !this.sees(t, f)) return false;
-    var yes = t.guest || this.o.auto ? dmg >= 6 : yield* this.askReact(t, 'UNCANNY DODGE? ' + dmg + ' damage', [{ label: 'DODGE IT', value: true, right: 'take ' + Math.floor(dmg / 2) }, { label: 'TAKE IT', value: false }]);
+    var all = dmg + (xd || 0), half = Math.floor(dmg / 2) + Math.floor((xd || 0) / 2);
+    var yes = t.guest || this.o.auto ? all >= 6 : yield* this.askReact(t, 'UNCANNY DODGE? ' + all + ' damage', [{ label: 'DODGE IT', value: true, right: 'take ' + half }, { label: 'TAKE IT', value: false }]);
     if (!yes) return false;
     t.reaction = 0; DS.audio.sfx('run');
     return true;
@@ -1666,7 +1686,7 @@
       if (s.when === 'bloodied' && f.hp > f.maxhp / 2) return false;
       return true;
     });
-    var sp = specials.length && DS.rng() < (specials[0].chance || 0.4) ? (m.pickSpecial ? DS.pick(specials) : specials[0]) : null;
+    var sp = this.pickSpecial(m, specials);
     if (sp) { yield* this.special(f, sp); return; }
     var routine = m.multi || [Object.keys(m.attacks)[0]];
     if (m.choose) routine = DS.pick(m.choose);
@@ -1729,11 +1749,11 @@
     if (f.conds.raging && atk.rage) dmg += atk.rage;
     if (atk.halfHP && f.hp <= f.maxhp / 2) dmg = DS.roll(atk.halfHP, { crit: crit });
     // Uncanny Dodge (rogue 5): the reaction halves a blow from an attacker she can see (10-03: a reaction she spends and is asked for, as the grid's; it was automatic)
-    var dodge = '', dodged = false;
-    if (yield* this.dodgeReact(t, f, dmg)) { dmg = Math.floor(dmg / 2); dodge = ' (uncanny dodge: half)'; dodged = true; }
+    var dodge = '', dodged = false, xd = atk.extra ? DS.roll(atk.extra, { crit: crit }) : 0; // (the extra dice rolled before the ask, so it shows the whole blow -- 10-08)
+    if (yield* this.dodgeReact(t, f, dmg, xd)) { dmg = Math.floor(dmg / 2); dodge = ' (uncanny dodge: half)'; dodged = true; }
     t.soaked = 0;
     var dealt = this.hurt(t, dmg, atk.type, f);
-    if (atk.extra) { var xd = DS.roll(atk.extra, { crit: crit }); dealt += this.hurt(t, dodged ? Math.floor(xd / 2) : xd, atk.extraType || atk.type, f); } // (SRD 5.1 Uncanny Dodge: "halve the attack's damage against you" -- the extra dice too; 10-06, the story-and-the-pocket-dm handoff)
+    if (atk.extra) dealt += this.hurt(t, dodged ? Math.floor(xd / 2) : xd, atk.extraType || atk.type, f); // (SRD 5.1 Uncanny Dodge: "halve the attack's damage against you" -- the extra dice too; 10-06, the story-and-the-pocket-dm handoff)
     if (t.soaked) dodge += ' (heroism takes ' + t.soaked + ')';
     t.pose = 'hurt'; t.poseT = 24; this.shake = crit ? 10 : 5; if (crit) this.flashT = 8;
     DS.audio.sfx(crit ? 'crit' : 'hit');
