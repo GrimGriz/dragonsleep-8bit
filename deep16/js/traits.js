@@ -104,7 +104,7 @@
         B.card(['{r}' + Nm(B, m) + ' drinks the light{/} of ' + cn + '\'s ' + sp.name + (r ? '  (d20 ' + r + RU.sign(M.mod(m)) + ' = ' + tot + ' vs DC ' + (10 + lv) + ')' : '') + ' -- ' + (ok ? '{c}it goes out{/}' : '{o}too much: it overfills him and goes through{/}')], 280);
         yield Math.max(30, D.spr.duration(m.sheet, m.anim) || 40);
         if (ok) {
-          var k0 = D.spr.scaleOf(m); m.drawScale = Math.min(1.24, (m.drawScale || 1) * 1.07); D.spr.regrow(m, k0);
+          var k0 = D.spr.scaleOf(m); m.drinkGrow = Math.min(1.24, (m.drinkGrow || 1) * 1.07); m.drawScale = m.drinkGrow * (m.risen && m.rise ? m.rise.grow || 1 : 1); D.spr.regrow(m, k0);
           B.heal(m, m.drinkLight.per * lv);
         }
         m.anim = 'idle';
@@ -170,7 +170,14 @@
     B.card(['{r}' + Nm(B, u) + ' straightens, and keeps straightening.{/}  {g}Something far bigger than a gnoll stands up in him.{/}'], 320);
     yield Math.max(40, D.spr.duration(u.sheet, 'ascend') || 60);
     u.upright = true; u.anim = 'idle';
-    if (u.rise.reach) u.reach = u.rise.reach;
+    if (u.rise.grow) { var g0 = D.spr.scaleOf(u); u.drawScale = (u.drinkGrow || 1) * u.rise.grow; D.spr.regrow(u, g0); } // (his figure the Enlarge way -- eased, overshooting; his 2 x 2 stays: Griz, 10-08, "can you put the enlarge effect on - or should he become 9 square?")
+    if (u.rise.reach) { // (his reach, and his blows' own with it -- the unit's reach alone told the AI a hero 15 ft off was in reach while the Backhand still reached 10: he stood and
+      u.reach = u.rise.reach; // spent his action on nothing, round after round -- the bench's long tails, 10-08. His attacks are the sheet's own object, so his copy first)
+      u.attacks = JSON.parse(JSON.stringify(u.attacks || {}));
+      Object.keys(u.attacks).forEach(function (k) { var a = u.attacks[k]; if (!a.ranged && (a.reach || 5) < u.rise.reach) a.reach = u.rise.reach; });
+      if (u.foretell && !u.foretell.ranged) u.foretell.reach = Math.max(u.foretell.reach || 5, u.rise.reach);
+      if (u.weapon && !u.weapon.ranged) u.weapon = u.attacks[Object.keys(u.attacks).filter(function (k) { return u.attacks[k].name === u.weapon.name; })[0]] || u.weapon;
+    }
     if (u.drinkLight) u.drinkLeft = u.drinkLight.uses;
     B.card(['{g}(Upright: reach ' + G.reachOf(u) + ' ft' + (u.drinkLight ? ', Drink Light full again' : '') + '){/}'], 220);
     yield 16;

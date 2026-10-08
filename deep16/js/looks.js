@@ -922,6 +922,10 @@
     if (rp && rp.region && rp.every) { var a = run(rp.region, off, rp.every, rp.dur || R0.dur); if (a) return a; }
     var dm = u.dominated || (u.conds && u.conds.dominated), by = dm && B.units.filter(function (w) { return w.id === dm.by; })[0], bd = by && D.FOES && D.FOES[by.kind];
     if (bd && bd.ripple && bd.ripple.victims) { var v = run('body', off, bd.ripple.every || 110, bd.ripple.dur || R0.dur); if (v) return v; }
+    // (`held`: one it holds -- the Harbinger's Kneel, Hold Person -- ripples head to foot every `heldEvery` while the hold lasts; 10-08, Griz watching: "held by kneel with
+    // no mirror effect or indicator of hold")
+    var hl = u.conds && u.conds.paralyzed, hb = hl && hl.by && B.units.filter(function (w) { return w.id === hl.by; })[0], hd = hb && D.FOES && D.FOES[hb.kind];
+    if (hd && hd.ripple && hd.ripple.held) { var hv = run('body', off, hd.ripple.heldEvery || 90, hd.ripple.dur || R0.dur); if (hv) return hv; }
     if (B.showRipple && u.show) return run(B.showRipple, off, R0.every, R0.dur);
     return null;
   }
