@@ -236,7 +236,7 @@
   },
   // the rescue in the dens (events.js, quest `cull`): the roost overhead, and its one law -- no fire, no thunder
   giantbat: {
-    name: 'Giant Bat', type: 'beast', sheet: 'giantbat_p1', cr: '1/4', ac: 13, hp: 22, speed: 60, walk: 10, size: 2, reach: 5, blindsight: 60, // (walk: SRD 5.1 "Speed 10 ft., fly 60 ft." -- what a Wild Shape's bat walks when it cannot fly, 10-08)
+    name: 'Giant Bat', type: 'beast', sheet: 'giantbat_p1', cr: '1/4', ac: 13, hp: 22, speed: 60, walk: 10, fly: 60, size: 2, reach: 5, blindsight: 60, // (walk: SRD 5.1 "Speed 10 ft., fly 60 ft." -- what a Wild Shape's bat walks when it cannot fly, 10-08)
     abil: { str: 15, dex: 16, con: 11, int: 2, wis: 12, cha: 6 }, init: 3, perception: 11,
     saves: { str: 2, dex: 3, con: 0, int: -4, wis: 1, cha: -2 },
     attacks: { bite: { name: 'Bite', atk: 4, dice: '1d6', mod: 2, type: 'piercing', reach: 5 } },
@@ -436,7 +436,7 @@
   },
   // the three bugs of the 8-bit's Glowseep (10-05, Griz: "Let's try code drawn"; tools/bugs-sheet.py), SRD 5.1 blocks as content/monsters.json has them
   stirge: {
-    name: 'Stirge', type: 'beast', sheet: 'stirge_p1', cr: '1/8', ac: 14, hp: 2, speed: 40, size: 1, reach: 5, darkvision: 60,
+    name: 'Stirge', type: 'beast', sheet: 'stirge_p1', cr: '1/8', ac: 14, hp: 2, speed: 40, fly: 40, size: 1, reach: 5, darkvision: 60,
     abil: { str: 4, dex: 16, con: 11, int: 2, wis: 8, cha: 6 }, init: 3, perception: 9,
     saves: { str: -3, dex: 3, con: 0, int: -4, wis: -1, cha: -2 },
     attacks: { drain: { name: 'Blood Drain', atk: 5, dice: '1d4', mod: 3, type: 'piercing', reach: 5, attach: { dc: 1 }, rides: true, stinger: true } }, // (SRD 5.1: it attaches -- ai.js, a latched stirge drains 1d4+3 at the start of each of its turns and lets go at 10 drained; "a creature can use its action to detach it", so any check serves: dc 1)
@@ -523,7 +523,7 @@
     src: 'SRD 5.1 Bulette (CR 5, Large; burrow 40 ft: js/ai.js burrower, 10-01d; it bites and dives when it has the move left, 10-02, handoff-2026-10-01-the-tendrils-and-ready: js/ai.js diveAfter); content/monsters.json bulette (its Deadly Leap by the SRD since 10-02: DC 16 STR or DEX, the target chooses; 3d6+4 bludgeoning plus 3d6+4 slashing, two of them, half and no prone on a save; recharge 5-6; it lands beside its mark, so no one is in its space to push out)'
   },
   cloaker: {
-    name: 'Cloaker', type: 'aberration', sheet: 'cloaker_p2', cr: '8', ac: 14, hp: 78, speed: 40, size: 2, reach: 5, darkvision: 60,
+    name: 'Cloaker', type: 'aberration', sheet: 'cloaker_p2', cr: '8', ac: 14, hp: 78, speed: 40, fly: 40, size: 2, reach: 5, darkvision: 60,
     abil: { str: 17, dex: 15, con: 12, int: 13, wis: 12, cha: 14 }, init: 2, perception: 11,
     saves: { str: 3, dex: 2, con: 1, int: 1, wis: 1, cha: 2 },
     attacks: {
@@ -604,7 +604,7 @@
     src: 'SRD 5.1 Roper (CR 5, Large): four tendrils at 50 ft (grappled, restrained, escape DC 15; up to six held, one a tendril), then Reel (each one held pulled up to 25 ft straight toward it: js/ai.js reel), then the bite (10-01e, Griz: "we\'ve often been too lenient, 4 please" -- it had two, and each hit dragged its one all the way in); content/monsters.json roper; the tendril\'s grip weakens (disadvantage on STR checks and saves while held: js/traits.js, 09-28); each tendril a thing to strike (AC 20, 10 HP, immune to poison and psychic) or break (an action, a DC 15 STR check), and a tendril lost is one fewer to grab with till its next turn (10-02, handoff-2026-10-01-the-tendrils-and-ready: js/battle.js strikeTendril, exec breaktendril, tendrilGone; js/rules.js startTurn); no condition immunity (SRD 5.1: the 8-bit sheet\'s prone taken off, 10-02 runner)'
   },
   darkmantle: {
-    name: 'Darkmantle', type: 'monstrosity', sheet: 'darkmantle_p2', cr: '1/2', ac: 11, hp: 22, speed: 30, size: 1, reach: 5, blindsight: 60, blind: true, darknessAura: true,
+    name: 'Darkmantle', type: 'monstrosity', sheet: 'darkmantle_p2', cr: '1/2', ac: 11, hp: 22, speed: 30, fly: 30, size: 1, reach: 5, blindsight: 60, blind: true, darknessAura: true,
     abil: { str: 16, dex: 12, con: 13, int: 2, wis: 10, cha: 5 }, init: 1, perception: 10,
     saves: { str: 3, dex: 1, con: 1, int: -4, wis: 0, cha: -3 },
     attacks: { crush: { name: 'Crush', atk: 5, dice: '1d6', mod: 3, type: 'bludgeoning', reach: 5, attach: { dc: 13 }, rides: true } }, // (SRD 5.1, RULED 10-01 "go SRD": it attaches -- no grapple, no restraint; it rides the one it is on, battle.js mount; over the head, blinding, when it had advantage on a Medium or smaller; STR 13 to pull it off, an action -- the one it is on, or anyone beside)
@@ -851,7 +851,7 @@
     src: 'SRD 5.1 Swarm of Rats (CR 1/4); content/monsters.json ratswarm (the Warrens); condition immunities charmed, frightened, grappled, paralyzed, petrified, prone, restrained, stunned (SRD 5.1; the 8-bit sheet lacked charmed, petrified, stunned, 10-02 runner)', todo: 'sharing a creature\'s space is not read'
   },
   batswarm: {
-    name: 'Bat Swarm', type: 'beast', sheet: 'batswarm_p1', cr: '1/4', ac: 12, hp: 22, speed: 30, size: 1, reach: 5, blindsight: 60,
+    name: 'Bat Swarm', type: 'beast', sheet: 'batswarm_p1', cr: '1/4', ac: 12, hp: 22, speed: 30, fly: 30, size: 1, reach: 5, blindsight: 60,
     abil: { str: 5, dex: 15, con: 10, int: 2, wis: 12, cha: 4 }, init: 2, perception: 11,
     saves: { str: -3, dex: 2, con: 0, int: -4, wis: 1, cha: -3 },
     attacks: { bites: { name: 'Bites', atk: 4, dice: '2d4', halfHP: '1d4', mod: 0, type: 'piercing', reach: 5 } },

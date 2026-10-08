@@ -68,7 +68,13 @@
     if (v > budget) return out;
     u.fz = tr;
     try { var rm = G.reach(u, budget - v); } finally { u.fz = f0; }
-    Object.keys(rm).forEach(function (k) { var e = rm[k]; out[k] = Object.assign({}, e, { cost: e.cost + v, stand: e.stand && G.groundAt(u, e.x, e.y) <= z, layer: z }); });
+    Object.keys(rm).forEach(function (k) {
+      var e = rm[k], st = e.stand && G.groundAt(u, e.x, e.y) <= z;
+      // (sinking last, its body must be free where it ends -- at z, not only at the height it flew over at: 10-08, the flight bench, a giant bat flying in high sank onto
+      // Lymen's square at Lymen's height -- dev/bench16.js mode=flyrings1008)
+      if (st && z < tr) { var f1 = u.fz; u.fz = z > G.groundAt(u, e.x, e.y) ? z : null; try { st = G.canStand(u, e.x, e.y); } finally { u.fz = f1; } }
+      out[k] = Object.assign({}, e, { cost: e.cost + v, stand: st, layer: z });
+    });
     return out;
   };
   // ROPES (10-04, Griz: "can we add rope and tiny grapple next?" -- "1 yes, and a roped face is gonna be a movement stopping point"): a rope hangs from the top of a face

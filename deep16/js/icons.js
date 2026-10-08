@@ -26,6 +26,8 @@
     torch: ['.....oo.....', '....oGGo....', '...oGwwGo...', '...oGRRGo...', '....oRRo....', '....oLLo....', '....oLlo....', '....oLlo....', '....oLlo....', '....oLlo....', '....oLlo....', '.....oo.....'],
     lantern: ['.....oo.....', '....o..o....', '....oooo....', '...oLLLLo...', '..oLwwwwLo..', '..oLwGGwLo..', '..oLwRRwLo..', '..oLwGGwLo..', '..oLwwwwLo..', '...oLLLLo...', '....oooo....', '............'],
     // the Wet's bucket (10-08, Griz: "need a bucket icon instead of a potion"): the rope handle, the dark mouth, staves and two iron hoops
+    // a ring (10-08, the rings of flying's PUT ON -- js/flight-ai.js): a gold band, the stone on top
+    ring: ['.....oo.....', '....oCCo....', '...ooCCoo...', '..ogGooGgo..', '.ogo....ogo.', '.go......og.', '.go......og.', '.ogo....ogo.', '..ogGooGgo..', '...oggggo...', '....oooo....', '............'],
     // the Rope & Grapple (10-08, Griz: "both torch and rope are still using flasks"): the grapple's tines, the line, the coil
     rope: ['......oSoSoS', '.......oSSSo', '........oSo.', '........oSo.', '.......ogoo.', '..ooooogo...', '.oggLLggLo..', 'ogLooooLgo..', 'oLg....gLo..', 'ogLooooLgo..', '.oggLLggLo..', '..ooooooo...'],
     bucket: ['...oooooo...', '..oggggggo..', '.ogo....ogo.', '.oooooooooo.', 'oLllllllllLo', 'oLLLLLLLLLLo', 'oSSSSSSSSSSo', '.oLLlLLlLLo.', '.oLLlLLlLLo.', '.oSSSSSSSSo.', '..oLlLLlLo..', '..oooooooo..'],

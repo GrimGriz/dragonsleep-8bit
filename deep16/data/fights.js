@@ -324,6 +324,19 @@
       won: 'GREYFANG IS DEAD. THE HARBINGER IS GONE.',
       allies: [{ id: 'greyfang', kind: 'greyfang', side: 'party', ally: true, fated: true, at: [11, 7] }],
       foes: [{ id: 'harb1', kind: 'harbinger', at: [11, 1] }], wave: null },
+    // THE RINGS OF FLYING (10-08, the lanes window; Griz: "arrange a room we can throw on the ladder where the party gets rings of fly or flying rings (make them equip them
+    // themselves - announce after title card drops) against flying monsters and bench test for bugs"): a testing room on the ladder at 3 (at 5 Aurdin's Fireball ended it in three rounds; at 3 it runs five, the party winning most). The fliers fly here (`fliers`,
+    // js/flight-ai.js: their SRD fly speeds, data/foes.js `fly`); four Rings of Flying in the pack (`pack`; content/items.json ringofflying, ours), each put on by its
+    // wearer -- the free object interaction, PUT ON on the ring -- as the `announce` says once the title card goes. The bench: dev/bench16.py x fight=flyingrings n=20
+    // and mode=flyrings1008 (the quick gate). His door to play it: deep16/?fight=flyingrings (&watch: our four on the class AI)
+    { id: 'flyingrings', bestiary: true, level: 3, map: 'climbfloor', name: 'Rings of Flying', sub: 'the Climbing Floor: a testing room', fliers: true,
+      pack: [{ id: 'ringofflying', n: 4 }],
+      intro: 'Bats hang on every ledge, and stirges under them. Four rings in the pack.', from: 'a testing room for flight (10-08)', won: 'THE LEDGES ARE QUIET.',
+      announce: ['{y}RINGS OF FLYING{/}: four in the pack, one for each of you.', 'On your turn, PUT ON on the ring (free, as drawing a blade): a flying speed equal to your walk.',
+        'Then MOVE: Shift+wheel or [ ] picks your height, 5 ft a step. Knocked prone, held or slowed to 0 in the air, you fall.'],
+      foes: [{ id: 'gb1', kind: 'giantbat', at: [2, 2] }, { id: 'gb2', kind: 'giantbat', at: [10, 2] }, { id: 'gb3', kind: 'giantbat', at: [14, 3] }, { id: 'gb4', kind: 'giantbat', at: [18, 2] },
+        { id: 'st1', kind: 'stirge', at: [3, 4] }, { id: 'st2', kind: 'stirge', at: [7, 4] }, { id: 'st3', kind: 'stirge', at: [11, 4] }, { id: 'st4', kind: 'stirge', at: [13, 2] },
+        { id: 'st5', kind: 'stirge', at: [19, 4] }, { id: 'st6', kind: 'stirge', at: [22, 2] }], wave: null },
     // THE SKYLIGHTS (10-05; the Edifice handoff's boss fight, a defend fight -- Griz, 10-04 night: "make the glass above the hole their target ... like they're trying to make entry
     // into the dwarven place and this is defend mission"; 10-05: "2 stone giants (each model) and 2 trolls and see how that goes"; "Have pyro come out followed by the party then the
     // doors lock behind them. Have the monsters come from the north road, the team pop out and then initiative. Have pyro say 'they're going for the skylights' when the first one

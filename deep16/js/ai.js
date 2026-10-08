@@ -155,6 +155,7 @@
     else if (u.kind === 'drow') yield* drow(B, u);
     else if (u.kind === 'drider') yield* drider(B, u);
     else if (u.weave) yield* weaver(B, u);
+    else if (u.side === 'foe' && u.flies && B.fight && B.fight.fliers && D.flightAI) yield* D.flightAI.foeTurn(B, u); // (wings in a fight whose fliers fly: it keeps to the air -- js/flight-ai.js, 10-08)
     else if (u.side === 'foe') yield* brute(B, u);
     else yield* guest(B, u);
     if (u.side === 'foe' && D.traits && D.traits.after) yield* D.traits.after(B, u); // (the gnoll's Rampage, the goblin's Nimble Escape)
@@ -1415,6 +1416,7 @@
 
   // the helpers the class tactics share (js/tactics.js)
   AI.brute = brute; AI.wantsDark = function (B, u) { return wantsDark(B, u); };
+  AI.brute = brute; // (the flier's blows once it is in the air: js/flight-ai.js, 10-08)
   AI.heroes = heroes; AI.approach = approach; AI.walkTo = walkTo; AI.visibleFrom = visibleFrom; AI.eyesAt = eyesAt; AI.reachOf = reachOf; AI.the = the;
   function* guest(B, u) {
     var T = u.turn, fs = heroes(B, u), h = u.src || {}, f = u.feats || {};
