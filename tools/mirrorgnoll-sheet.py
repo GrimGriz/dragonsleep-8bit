@@ -1,25 +1,35 @@
-"""DEEP16 pipeline 2 (generated art): Griz's two GPT sheets of the mirror-eyed gnoll -> mirrorgnoll_p1.
+"""DEEP16 pipeline 2 (generated art): Griz's four GPT sheets of the mirror-eyed gnoll -> mirrorgnoll_p1.
 
     python tools/mirrorgnoll-sheet.py            (writes deep16/art/mirrorgnoll_p1.png/.json)
     python tools/mirrorgnoll-sheet.py check      (also the cut overlays, dev/visions/mirrorgnoll/cut-<n>.png, and a lineup beside the gnolls)
 
 Sources (gitignored, the main checkout's -- a worktree reads them there): deep16/_src/Mirror-Eyed Gnoll Sprite Sheet1.png and
 Mirror-Eyed Gnoll Action Sprite Sheet2.png -- Griz, 2026-10-08, drawn from the GPT "Astra" draft's two prompts
-(deep16/_src/oneeye/astra-draft-2026-10-08.md: its rows and its look). Not the Old One's vessel (Griz, 10-08: "he's not gonna be the old
+(deep16/_src/oneeye/astra-draft-2026-10-08.md: its rows and its look); then deep16/_src/Fresh/Hunched mirror-eyed gnoll sprite
+sheet-1.png (from the front) and Back-View Gnoll Animation Sprite Sheet-3.png (from behind; its sheet-2 dropped an idle frame and swung
+the other arm, and this re-roll fixed both), with Back-view mirror-eyed gnoll sprite sheet-2.png's backhand kept as the other arm's
+(Griz, 10-08: "if we want to make him do a dance, one has his arm out to one side and the other has the other arm out to a side ...
+That's why I thought we needed all 3") -- the seat's lean pasted (10-08: front and back, Idle 6, Walk 8, Backhand 6, Flinch 4, mirrors
+in both eyes). Not the Old One's vessel (Griz, 10-08: "he's not gonna be the old
 one's avatar - but maybe something the Old One did to another gnoll whilst about on his walk to the Doors"): a spotted gnoll with a mirror
-for an eye, no heart glass, no stars -- cut as drawn. His kit is not ruled; every row is cut, under the draft's names, for the kit to pick.
+for an eye, no heart glass, no stars -- cut as drawn. His kit is not ruled; every row is cut, under the draft's names, for the kit to pick
+(the draft's notes on how the game should play its rows are in the bestiary lane, ../handoff-2026-10-05-the-bestiary-after-the-bugs.md).
 
-Each sheet: a portrait and a turnaround (front, right, back, left), then rows facing RIGHT, labelled by number. Sheet 1: idle 6, walk 8,
+Sheets 1 and 2: a portrait and a turnaround (front, right, back, left), then rows facing RIGHT, labelled by number. Sheet 1: idle 6, walk 8,
 backhand 6, drain 8 (Drink Light), flinch 4, fall 8. Sheet 2: foretell 6, mirrorstrike 6 (numbered 1-5 and 8 by the generator), kneel 8,
-overfill 6, ascend 9 (two 7s), uprightidle 6 -- the last drawn from the FRONT, standing tall.
+overfill 6, ascend 9 (two 7s), uprightidle 6 -- the last three-quarters to the front, standing tall. Sheets 3 (the front) and 4 (behind):
+idle 6, walk 8, backhand 6, flinch 4, no turnaround.
 Facings: NE, E and SE take the side rows as drawn, SW, W and NW mirrored (the mirror eye swaps sides with them, as every gnoll's does);
-S takes the upright idle from the front, and walks as the turnaround's front still; N the turnaround's back still. The actions play
-side-on from S and N too (as the hobgoblin's climb and fall). `attack` is the backhand, `hurt` the fall; `prone` is the fall's two
+S takes sheet 3's rows and N sheet 4's for idle, walk, backhand (and attack) and flinch; the other rows play side-on from S and N too (as
+the hobgoblin's climb and fall). `backhand2` is the other arm: from behind sheet 5's (back sheet 2), from the front the front's backhand
+mirrored, side-on the side's (battle.js plays it on a backhand's second use in a turn, as the sergeant's longsword2; a dance can trade them).
+`attack` is the backhand, `hurt` the fall; `prone` is the fall's two
 going-down frames (his side, then the arm under him), got up from by playing them back (deep16/js/sprites.js S.proneRow, the hobgoblin's way).
 Scale: the side idle (hunched) stands HEIGHT px; sheet 2 meets sheet 1 by the hunched guard both draw (sheet 1's idle against the first
 frame of sheet 2's foretell, mirrorstrike, kneel, overfill and ascend, by area); the turnaround meets sheet 2 by its front against the
-upright idle, by area. The mirror eye and the cyan streaks are a pixel or two at game size: GLINT keeps them (a game pixel whose block
-on the sheet holds the glint takes the glint's colour) so the box filter doesn't wash them into the fur.
+upright idle, by area; sheets 3 and 4 meet the turnaround by their idles against its front and its back, by area. The mirror eye and the cyan streaks are a pixel or two at game size: GLINT keeps them (a game pixel whose block
+on the sheet holds the glint takes the glint's colour) so the box filter doesn't wash them into the fur. Colour: each later sheet drew him
+warmer than sheet 1 (the most-played rows), so each is brought to sheet 1's per channel (TONE, the goose's and the bugbears' way).
 """
 import os, sys, json, subprocess, tempfile
 import importlib.util
@@ -34,7 +44,9 @@ def _load(name, path):
 pix = _load('pix', os.path.join(ROOT, 'tools', 'pixelate.py'))
 SR = _load('sheetrows', os.path.join(ROOT, 'tools', 'sheetrows.py'))
 
-FILES = {1: 'Mirror-Eyed Gnoll Sprite Sheet1.png', 2: 'Mirror-Eyed Gnoll Action Sprite Sheet2.png'}
+FILES = {1: 'Mirror-Eyed Gnoll Sprite Sheet1.png', 2: 'Mirror-Eyed Gnoll Action Sprite Sheet2.png',
+         3: os.path.join('Fresh', 'Hunched mirror-eyed gnoll sprite sheet-1.png'), 4: os.path.join('Fresh', 'Back-View Gnoll Animation Sprite Sheet-3.png'),
+         5: os.path.join('Fresh', 'Back-view mirror-eyed gnoll sprite sheet-2.png')}
 SRC = os.path.join(ROOT, 'deep16', '_src')                 # his sheets live in the main checkout (_src is not in git): a worktree reads them there
 if not os.path.exists(os.path.join(SRC, FILES[1])):
     _common = subprocess.run(['git', '-C', ROOT, 'rev-parse', '--git-common-dir'], capture_output=True, text=True).stdout.strip()
@@ -61,6 +73,18 @@ SHEETS = {
                 ('overfill', (0, None, 1536, None), (742, 756), NUM(6), [241, 438, 648, 856, 1061, 1285]),
                 ('ascend', (0, None, 1536, None), (873, 887), NUM(9), [234, 398, 556, 724, 888, 1037, 1171, 1305, 1442]),
                 ('uprightidle', (0, None, 1536, None), (1006, 1019), NUM(6), [251, 458, 664, 876, 1079, 1289])]),
+  3: dict(text=[(0, 0, 170, 1024)],
+          rows=[('idle', (0, 0, 1536, None), (244, 261), NUM(6), [266, 492, 705, 915, 1130, 1345]),
+                ('walk', (0, None, 1536, None), (487, 504), NUM(8), [221, 399, 564, 732, 907, 1081, 1254, 1426]),
+                ('backhand', (0, None, 1536, None), (736, 752), NUM(6), [270, 484, 682, 929, 1161, 1371]),
+                ('flinch', (0, None, 1536, None), (982, 998), NUM(4), [309, 544, 775, 999])]),
+  4: dict(text=[(0, 0, 170, 1024)],
+          rows=[('idle', (0, 0, 1536, None), (246, 263), NUM(6), [268, 492, 709, 929, 1152, 1378]),
+                ('walk', (0, None, 1536, None), (487, 504), NUM(8), [219, 397, 573, 732, 907, 1085, 1260, 1427]),
+                ('backhand', (0, None, 1536, None), (735, 752), NUM(6), [270, 487, 730, 938, 1156, 1371]),
+                ('flinch', (0, None, 1536, None), (984, 1001), NUM(4), [294, 535, 760, 996])]),
+  5: dict(text=[(0, 0, 170, 1024)],                                       # (only its backhand: the other arm)
+          rows=[('backhand', (0, 506, 1536, None), (735, 752), NUM(6), [270, 487, 695, 928, 1155, 1366])]),   # (below the walk's numbers)
 }
 SPLIT = {(2, 'ascend'): 741,       # (sheet, row) -> the line between it and the row above, by hand where the two crowd: overfill's feet
          (2, 'uprightidle'): 872}  # end at 739 and ascend 9's head starts at 744; ascend's feet end at 870 and the upright heads start at 873
@@ -69,10 +93,6 @@ ERASE = {2: [(882, 871, 896, 889), (1299, 871, 1313, 889)]}   # ascend's "5" on 
 # painted navy whole before the cut: the portraits' last rows inside the first row's band (sheet 2's a red rule), and specks of ground shadow
 BLANK = {1: [(0, 276, 300, 287)],
          2: [(0, 266, 300, 284), (888, 379, 895, 381), (1091, 379, 1099, 381), (639, 626, 652, 629), (1034, 868, 1040, 869), (805, 442, 806, 443)]}
-# the second mirror (Griz, 10-08: "Can you make that front eye that's dark also mirror on this chap?"): only the turnaround's front shows
-# the amber eye (the side and three-quarter rows show the mirror's side), so its mirror disc (the box) is copied, flipped, onto the amber
-# eye (the centre: the disc's place mirrored about the muzzle, x 463) -- its glass and its glint only, the fur round it left
-SECOND_EYE = {2: [((470, 56, 484, 72), (450, 63))]}
 # loose bits by hand: sheet -> row -> [(box on the sheet: every blob wholly inside it, the label it belongs to)] -- the streaks' faint tips lie
 # nearer the next frame's tail than their own muzzle
 FIX = {1: {'drain': [((460, 694, 512, 722), '2'), ((628, 694, 682, 722), '3')]},
@@ -81,14 +101,18 @@ CUT = {}
 TOUCH_OK = {1: {'drain'}, 2: {'mirrorstrike'}}   # looked at: drain 2's streaks by drain 3's tail, mirrorstrike 3's claw by 4's tail, each cut right
 
 # the engine's rows: (sheet, row) for the side; S and N as described in the head
-ROWS = {'idle': (1, 'idle'), 'walk': (1, 'walk'), 'attack': (1, 'backhand'), 'backhand': (1, 'backhand'), 'drain': (1, 'drain'),
+FRONT, BACK = ('idle', 'walk', 'backhand', 'flinch'), ('idle', 'walk', 'backhand', 'flinch')   # sheet 3's rows for S, sheet 4's for N
+ROWS = {'idle': (1, 'idle'), 'walk': (1, 'walk'), 'attack': (1, 'backhand'), 'backhand': (1, 'backhand'), 'backhand2': (1, 'backhand'), 'drain': (1, 'drain'),
         'flinch': (1, 'flinch'), 'hurt': (1, 'fall'), 'prone': (1, 'fall'), 'foretell': (2, 'foretell'), 'mirrorstrike': (2, 'mirrorstrike'),
         'kneel': (2, 'kneel'), 'overfill': (2, 'overfill'), 'ascend': (2, 'ascend'), 'uprightidle': (2, 'uprightidle')}
 PRONE = [3, 4]        # the fall's frames 4 and 5 (an arm under him; on his side): lying at the last, got up from by playing it back
-NEW = ['backhand', 'drain', 'foretell', 'mirrorstrike', 'kneel', 'overfill', 'ascend', 'uprightidle']   # this cutter's own rows (named
+NEW = ['backhand', 'backhand2', 'drain', 'foretell', 'mirrorstrike', 'kneel', 'overfill', 'ascend', 'uprightidle']   # this cutter's own rows (named
                                                                                                          # here, not in pixelate.py)
-FPS = {'idle': 5, 'walk': 9, 'attack': 10, 'backhand': 10, 'drain': 8, 'flinch': 8, 'hurt': 8, 'prone': 8, 'foretell': 6,
+FPS = {'idle': 5, 'walk': 9, 'attack': 10, 'backhand': 10, 'backhand2': 10, 'drain': 8, 'flinch': 8, 'hurt': 8, 'prone': 8, 'foretell': 6,
        'mirrorstrike': 11, 'kneel': 7, 'overfill': 7, 'ascend': 6, 'uprightidle': 5}
+# per channel, each sheet's figure brought to sheet 1's: mean RGB against sheet 1's turnaround view of the same side (sheet 2's turnaround,
+# 111 74 56, to sheet 1's, 99 70 56; the front, 109 73 55, to its front; behind, 122 77 52 and 116 74 53, to its back, 99 70 58), 10-08
+TONE = {2: (0.893, 0.947, 1.0), 3: (0.907, 0.964, 1.033), 4: (0.813, 0.909, 1.11), 5: (0.859, 0.943, 1.085)}
 HEIGHT = 64           # the hunched side idle, standing px (the glory-seeker's 64; the house gnoll 60) -- his size is unruled
 FH, AY = 112, 100
 
@@ -99,8 +123,16 @@ def glint_mask(rgb):
     return (b - r > 50) & (g - r > 30) & ((r + g + b) / 3 > 140)
 
 
-def game_frame(im, k):
+def toned(im, f):
+    a = np.asarray(im).astype(float)
+    a[..., :3] = np.clip(a[..., :3] * np.array(f), 0, 255)
+    return Image.fromarray(a.astype(np.uint8), 'RGBA')
+
+
+def game_frame(im, k, tone=None):
     """a cut frame at game size, palette-snapped and outlined, its glint kept"""
+    if tone:
+        im = toned(im, tone)
     w, h = im.size
     small = im.resize((max(1, round(w / k)), max(1, round(h / k))), Image.BOX)
     a = pix.pixelate(small, 1, do_lift=False)
@@ -201,12 +233,13 @@ def cut(L, check=False):
     hand = {(r[1][0], r[1][1]): r[4] for r in rows}
     orig = SR.label_xs
     spec = dict(text=s['text'] + [(r[1][0], r[2][0] - 3, r[1][2], r[2][1] + 4) for r in rows],   # (a number's drop shadow runs past its strip)
-                portrait=s['portrait'],
                 rows=[(r[0], r[1], (r[1][1], r[2][1])) + tuple(r[3:4]) for r in rows])
+    if 'portrait' in s:
+        spec['portrait'] = s['portrait']
     SR.label_xs = lambda a, x0, x1, y0, y1: hand.get((x0, y0)) or orig(a, x0, x1, y0, y1)
     over = [] if check else None
     path = os.path.join(SRC, FILES[L])
-    if L in ERASE or L in BLANK or L in SECOND_EYE:
+    if L in ERASE or L in BLANK:
         img = np.asarray(Image.open(path).convert('RGB')).copy()
         navy = np.median(img.reshape(-1, 3)[::97], axis=0).astype(np.uint8)
         for x0, y0, x1, y1 in ERASE.get(L, ()):
@@ -215,11 +248,6 @@ def cut(L, check=False):
             img[y0:y1, x0:x1][glyph] = navy                                                         # navy and over the dark mane
         for x0, y0, x1, y1 in BLANK.get(L, ()):
             img[y0:y1, x0:x1] = navy
-        for (x0, y0, x1, y1), (cx, cy) in SECOND_EYE.get(L, ()):
-            disc = img[y0:y1, x0:x1][:, ::-1].copy()
-            glass = glint_mask(disc) | (disc.astype(int).mean(-1) >= 150) | ((disc[..., 2].astype(int) - disc[..., 0]) > 40)
-            ty, tx = cy - (y1 - y0) // 2, cx - (x1 - x0) // 2
-            img[ty:ty + (y1 - y0), tx:tx + (x1 - x0)][glass] = disc[glass]
         path = os.path.join(tempfile.gettempdir(), 'mirrorgnoll-sheet-%d.png' % L)
         Image.fromarray(img).save(path)
     try:
@@ -234,17 +262,22 @@ def cut(L, check=False):
 
 
 def scales(c):
-    """K per source (sheet px a game px): 1 and 2 the sheets' rows, 't2' sheet 2's turnaround"""
+    """K per sheet (sheet px a game px), the turnaround the go-between for the front and the back"""
     med = lambda frs, i=0: float(np.median([body(im)[i] for _, im, _ in frs]))
     k1 = med(c[1]['idle'], 1) / HEIGHT
     guard2 = float(np.median([body(c[2][r][0][1])[0] for r in ('foretell', 'mirrorstrike', 'kneel', 'overfill', 'ascend')]))
     k2 = k1 * guard2 / med(c[1]['idle'])
     turn2 = {nm: body(im)[0] for nm, im, _ in c[2]['turn']}
     kt = k2 * turn2['front'] / med(c[2]['uprightidle'])
+    k3 = kt * med(c[3]['idle']) / turn2['front']
+    k4 = kt * med(c[4]['idle']) / turn2['back']
+    guard = lambda L: float(np.median([body(c[L]['backhand'][i][1])[0] for i in (0, -1)]))   # (the backhand's first and last: the guard)
+    k5 = k4 * guard(5) / guard(4)
     up_h = med(c[2]['uprightidle'], 1) / k2
-    print('  K: sheet 1 %.2f, sheet 2 %.2f (its guard %.3f of sheet 1\'s), turnaround %.2f; the side idle %d px, upright %.0f px'
-          % (k1, k2, k2 / k1, kt, HEIGHT, up_h))
-    return {1: k1, 2: k2, 't2': kt}
+    print('  K: sheet 1 %.2f, sheet 2 %.2f (its guard %.3f of sheet 1\'s), turnaround %.2f, front %.2f, back %.2f; the side idle %d px, '
+          'upright %.0f px, from the front %.0f px, from behind %.0f px'
+          % (k1, k2, k2 / k1, kt, k3, k4, HEIGHT, up_h, med(c[3]['idle'], 1) / k3, med(c[4]['idle'], 1) / k4))
+    return {1: k1, 2: k2, 3: k3, 4: k4, 5: k5}
 
 
 def main(check=False):
@@ -258,21 +291,10 @@ def main(check=False):
             floor = max(b[3] for _, _, b in frs)
             out = []
             for nm, im, box in frs:
-                a = game_frame(im, K[L])
+                a = game_frame(im, K[L], TONE.get(L))
                 out.append((a, core_x(a), int(round((floor - box[3]) / K[L]))))
             small[(L, row)] = out
         return small[(L, row)]
-    turn = {nm: game_frame(im, K['t2']) for nm, im, _ in c[2]['turn']}
-    still = lambda nm: (turn[nm], core_x(turn[nm]), 0)
-    def breathe(t):
-        a, cx, up = t
-        a = np.pad(a, ((1, 0), (0, 0), (0, 0)))                   # (a row of room on top: the chest rises into it)
-        o = a.copy(); rows = np.where(a[..., 3].any(axis=1))[0]
-        mid = rows[0] + (rows[-1] - rows[0]) * 6 // 10
-        o[rows[0] - 1:mid] = a[rows[0]:mid + 1]
-        return (o, cx, up)
-    bob = lambda t, i: (t[0], t[1], t[2] + (i % 2))
-    front, back = still('front'), still('back')
     src = {}
     for eng, (L, row) in ROWS.items():
         side = frames_of(L, row)
@@ -280,12 +302,14 @@ def main(check=False):
             side = [side[i] for i in PRONE]
         per = []
         for f in range(8):
-            if eng == 'idle' and f == 0:
-                per.append(frames_of(2, 'uprightidle'))
-            elif eng == 'idle' and f == 4:
-                per.append([back, back, back, breathe(back), breathe(back), breathe(back)])
-            elif eng == 'walk' and f in (0, 4):
-                per.append([bob(front if f == 0 else back, i) for i in range(8)])
+            if eng == 'backhand2' and f == 0:
+                per.append([(a[:, ::-1], a.shape[1] - cx, up) for a, cx, up in frames_of(3, 'backhand')])
+            elif eng == 'backhand2' and f == 4:
+                per.append(frames_of(5, 'backhand'))
+            elif f == 0 and L == 1 and row in FRONT:
+                per.append(frames_of(3, row))
+            elif f == 4 and L == 1 and row in BACK:
+                per.append(frames_of(4, row))
             else:
                 per.append(side)
         counts = {len(s) for s in per}
@@ -318,8 +342,8 @@ def main(check=False):
     meta = json.load(open(meta_p))
     for row, fps in FPS.items():
         meta['anims'][row]['fps'] = fps
-    meta['source'] = ('generated by Griz (2026-10-08: two GPT sheets from the Astra draft -- the body and its fall, the mirror powers), '
-                      'cut by tools/mirrorgnoll-sheet.py')
+    meta['source'] = ('generated by Griz (2026-10-08: two GPT sheets from the Astra draft -- the body and its fall, the mirror powers -- '
+                      'then one from the front and one from behind), cut by tools/mirrorgnoll-sheet.py')
     json.dump(meta, open(meta_p, 'w'), indent=1)
     if check:
         d = os.path.join(ROOT, 'dev', 'visions', 'mirrorgnoll')
@@ -327,7 +351,7 @@ def main(check=False):
 
 
 def lineup(frames, path):
-    """the house gnoll, the glory-seeker and him, facing E and S, at 4x on a grey floor (his size, for Griz's eye)"""
+    """the house gnoll, the glory-seeker and him (E, S, N, upright), the troll, at 4x on a grey floor (his size, for Griz's eye)"""
     def first(name, anim, f):
         m = json.load(open(os.path.join(ROOT, 'deep16', 'art', name + '.json')))
         im = np.asarray(Image.open(os.path.join(ROOT, 'deep16', 'art', name + '.png')).convert('RGBA'))
@@ -335,7 +359,7 @@ def lineup(frames, path):
         y = an['y'] + f * an['fh']
         return im[y:y + an['fh'], 0:an['fw']], an['ax'], an['ay']
     figs = [first('gnoll_p2', 'idle', 6), first('gloryseeker_p2', 'idle', 6), first('mirrorgnoll_p1', 'idle', 6),
-            first('mirrorgnoll_p1', 'idle', 0), first('mirrorgnoll_p1', 'uprightidle', 6), first('troll_p1', 'idle', 6)]
+            first('mirrorgnoll_p1', 'idle', 0), first('mirrorgnoll_p1', 'idle', 4), first('mirrorgnoll_p1', 'uprightidle', 6), first('troll_p1', 'idle', 6)]
     W = sum(a.shape[1] for a, _, _ in figs) + 10 * len(figs)
     top = max(ay for _, _, ay in figs); H = top + max(a.shape[0] - ay for a, _, ay in figs)
     canvas = np.zeros((H, W, 4), np.uint8); canvas[..., :3] = (70, 74, 70); canvas[..., 3] = 255
