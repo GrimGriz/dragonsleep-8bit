@@ -29,6 +29,16 @@ def main():
             if not re.match(r'^(https?:)?//', s) and not os.path.exists(os.path.normpath(os.path.join(os.path.dirname(path), s))):
                 bad.append('%s: %s is not on disk' % (page, s))
         print('ok   %s: %d scripts, no marker line, none twice' % (page, len(srcs)) if not any(b.startswith(page) for b in bad) else 'FAIL %s' % page)
+    # a script on disk the page never loads (10-08: a rebase that took the upstream page dropped js/flight-ai.js's tag, and the room ran without it -- the bench
+    # caught it RED, this catches it first). js/eyes.js is situations.html's (and the one gallery's, from deep16/index.html), not the 8-bit page's
+    NOT_LOADED_OK = {'index.html': ['js/eyes.js']}
+    for page, d in [('index.html', 'js'), ('deep16/index.html', 'deep16/js')]:
+        text = open(os.path.join(ROOT, page), encoding='utf-8').read()
+        srcs = set(s.split('?')[0] for s in re.findall(r'<script src="([^"]+)"', text))
+        rel = os.path.relpath(os.path.join(ROOT, d), os.path.dirname(os.path.join(ROOT, page))).replace('\\', '/')
+        for fn in sorted(os.listdir(os.path.join(ROOT, d))):
+            if fn.endswith('.js') and rel + '/' + fn not in srcs and rel + '/' + fn not in NOT_LOADED_OK.get(page, []):
+                bad.append('%s never loads %s/%s' % (page, rel, fn))
     for d in ['js', 'deep16/js']:
         for fn in sorted(os.listdir(os.path.join(ROOT, d))):
             if not fn.endswith('.js'):
