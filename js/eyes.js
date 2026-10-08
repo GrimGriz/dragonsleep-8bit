@@ -17,6 +17,9 @@
   var DS = window.DS = window.DS || {};
   var G1 = 'Eyes: first', G2 = 'Eyes: built this week', G3 = 'Eyes: built before, never seen';
   DS.EYES = {
+    'eyes-mascot-menu-style-1008': { pri: 2, group: G2, title: 'A Mascot game keeps its own MENU STYLE: RING2 till you change it, RING the old ring (10-08)', pt: 'MPMon §6k (deep16/js/ui.js UI.style, UI.mascotGame; js/menu.js MENU STYLE) · eyes',
+      url: 'deep16/?npc=goblin,goblin,hobgoblin&vs=goose:5,denny:5&lvl=5&mascots&fresh=12',
+      look: 'Your "mascot games default to menu setting of ring two, not an overwrite". M, OPTIONS: MENU STYLE reads RING2 here. Set it to RING and Denny and Goose are on the old ring (SKILLS, no ACTIONS/BONUSES); WINDOW is the window, and READY’s list there has no "xundefined" column. A class fight (the tester ladder) keeps its own setting.' },
     'eyes-gallery-slots-1008': { pri: 2, group: G2, title: 'The one gallery: a spell at three slots, UP to step it (10-08)', pt: 'the one gallery §3.5 (deep16/js/onegallery.js; deep16/js/gallery.js headerOne)',
       url: 'deep16/?gallery&spell=burninghands&fresh=1',
       look: 'Burning Hands, cast at 1st. The column down the left: the four shelves at its head, the card, BY SLOT from 1st (3d6) to 9th (11d6). UP twice: cast at 3rd, 5d6, the marker on 3rd. LEFT/RIGHT the next spell, SHIFT with them ten, L the list (click one), 1-4 or a click on the head the shelves. A cantrip (Fire Bolt) steps the caster instead: 1st, 5th, 11th, 17th.' },

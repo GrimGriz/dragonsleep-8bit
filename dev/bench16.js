@@ -4547,13 +4547,16 @@
       // no command on a Mascot's rings in the spell's star (10-08, Griz, of Goose's: "i'd like the icon changed from the star one that we're using for spells"): RING, RING2 and READY's
       // wheel at 9, every command's glyph its own (D.icon falls back to the star for a name it does not know; SPELLS keeps the star -- it is the spells)
       var starI = D.icon('spell').toDataURL(), starred = [], stI = D.ui.opts.style, stM = D.ui.opts.mpStyle;
-      ['denny', 'beholda', 'rascal', 'goose'].forEach(function (k) {
+      var mkI = mkM, KI = ['denny', 'beholda', 'rascal', 'goose', 'barbarian', 'bard', 'cleric', 'druid', 'fighter', 'monk', 'paladin', 'ranger', 'rogue', 'sorcerer', 'warlock', 'wizard'];
+      KI.forEach(function (k, ki) {
+        if (ki === 4) mkM = mkI + 100; // (the classes on seeds of their own)
         var Bi = mkB([k + ':9'], ['goblin'], 9), ui = sideM(Bi, 'party')[0]; ui.guest = false; ui.classAI = false; RUM.startTurn(ui); Bi.active = ui;
         function chkI(list, d) { (list || []).forEach(function (c) { if (!c || c.kind === 'spell' || c.kind === 'level' || c.kind === 'item' || /^spells?$/.test(c.icon || c.id)) return; if (D.icon(c.icon || c.id).toDataURL() === starI) starred.push(k + ' ' + (c.label || c.id)); if (c.items && d < 3) chkI(c.items, d + 1); }); }
         ['ring', 'ring2'].forEach(function (s) { D.ui.opts.style = D.ui.opts.mpStyle = s; Bi.cache = null; chkI(D.ui.cmds(Bi, ui), 0); }); D.ui.opts.style = stI; D.ui.opts.mpStyle = stM;
         chkI(D.ui.readyRing(Bi, ui).items, 0);
       });
-      okM('the Mascots\' rings at 9: no command in the spell\'s star (' + (starred.length ? starred.filter(function (s, i) { return starred.indexOf(s) === i; }).join(', ') : 'none') + ')', !starred.length);
+      mkM = mkI + 4;
+      okM('the Mascots\' and the classes\' rings at 9: no command in the spell\'s star (' + (starred.length ? starred.filter(function (s, i) { return starred.indexOf(s) === i; }).join(', ') : 'none') + ')', !starred.length);
       // a hidden Mascot in half cover is searched for (10-08, the fix session's probe on the AI lane's duel): Rascal, his own, hidden behind a stalagmite from a goblin that sees him
       // over it -- the goblin's Search rolls against him (his Stealth held low, the search's die at its top: found). Its own seed: mkM is put back after it, the fights below keep theirs
       var mkH = mkM, Bh = mkB(['rascal:4'], ['goblin'], 4), rh = sideM(Bh, 'party')[0], gh = sideM(Bh, 'foe')[0], spotH = null; rh.guest = false; rh.classAI = false;

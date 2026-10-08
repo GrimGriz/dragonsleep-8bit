@@ -831,7 +831,7 @@
     if (u.cls === 'druid' && u.lvl >= 2 && !u.beast) out.push({ id: 'wildshape', label: 'WILD SHAPE', cost: 'A', icon: 'skills', skill: true, ok: act && feat(u, 'wildShape'),
       why: !feat(u, 'wildShape') ? 'no shape left (a short rest brings two back)' : 'the action is spent', note: 'a beast\'s shape (' + F.beastsFor(u).map(function (k) { return D.FOES[k].name.toLowerCase(); }).join(', ') + '): its hit points take the blows first, no spells; ' + ((u.feats && u.feats.wildShape) || 0) + ' left (short rest)' });
     if (u.cls === 'druid' && u.beast && !u.beast.morph) out.push({ id: 'unshape', label: 'OWN SHAPE', cost: 'B', icon: 'skills', skill: true, ok: T.bonus > 0, why: 'the bonus action is spent', note: 'back to the druid (the beast\'s hit points left behind)' });
-    if (u.cls === 'cleric' && u.lvl >= 2 && u.subclass === 'Life Domain') out.push({ id: 'preservelife', label: 'PRESERVE LIFE', cost: 'A', icon: 'heal', skill: true, ok: act && chan(u) && F.lifeLow(B, u).length > 0,
+    if (u.cls === 'cleric' && u.lvl >= 2 && u.subclass === 'Life Domain') out.push({ id: 'preservelife', label: 'PRESERVE LIFE', cost: 'A', icon: 'sacred', skill: true, ok: act && chan(u) && F.lifeLow(B, u).length > 0,
       why: !chan(u) ? CHAN_WHY : !act ? 'the action is spent' : 'nobody within 30 ft is under half', note: 'heal ' + 5 * u.lvl + ' HP among friends within 30 ft, the lowest first, none past half its maximum' });
     if (u.cls === 'cleric' && u.lvl >= 2) out.push({ id: 'turnundead', label: 'TURN UNDEAD', cost: 'A', icon: 'sacred', skill: true, ok: act && chan(u) && F.undeadNear(B, u).length > 0,
       why: !chan(u) ? CHAN_WHY : !act ? 'the action is spent' : 'no undead within 30 ft', note: 'the dead within 30 ft: WIS DC ' + u.spellDC + ' or turned' + (u.lvl >= 5 ? ' (the weakest destroyed)' : '') });
@@ -848,7 +848,7 @@
       var fl = u.lvl >= 2 && feat(u, 'ki'), besideN = foesBeside(B, u).length;
       out.push({ id: 'flurry', label: fl ? 'FLURRY OF BLOWS' : 'BONUS STRIKE', cost: 'B', icon: 'attack', skill: true, ok: !!T.attackAction && T.bonus > 0 && besideN > 0 && !u.conds.disarmed,
         why: !T.attackAction ? 'after the Attack action' : T.bonus <= 0 ? 'the bonus action is spent' : 'no foe beside you', note: fl ? '1 ki: two unarmed strikes at foes beside you; ' + ((u.feats && u.feats.ki) || 0) + ' ki left' : 'Martial Arts: one unarmed strike' + (u.lvl >= 2 ? ' (no ki left)' : '') });
-      if (u.lvl >= 6 && u.subclass === 'Way of the Open Hand') out.push({ id: 'wholeness', label: 'WHOLENESS OF BODY', cost: 'A', icon: 'heal', skill: true, ok: act && feat(u, 'wholeness') && u.hp < u.maxhp,
+      if (u.lvl >= 6 && u.subclass === 'Way of the Open Hand') out.push({ id: 'wholeness', label: 'WHOLENESS OF BODY', cost: 'A', icon: 'secondwind', skill: true, ok: act && feat(u, 'wholeness') && u.hp < u.maxhp,
         why: !feat(u, 'wholeness') ? 'used (a long rest brings it back)' : !act ? 'the action is spent' : 'unhurt', note: 'heal yourself ' + 3 * u.lvl + ' HP, once a long rest' });
     }
     if (F.unholy(u)) out.push({ id: 'turnunholy', label: 'TURN THE UNHOLY', cost: 'A', icon: 'sacred', skill: true, ok: act && chan(u) && F.unholyNear(B, u).length > 0,
