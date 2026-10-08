@@ -636,6 +636,102 @@
     yield* B.attack(tgt, att, tgt.weapon, { oa: true, answer: true }); // (a blow back, not an opportunity attack: Escape the Horde is not asked)
   };
 
+  // ------------------------------------------------------------------ the Grey Road (GreyFang's; the ranger's archetype, 3; ours, 10-08): the pit-master's way --
+  // guard the one beside you, give the ground you choose, answer from the bow. Griz, 10-08: "If we do not already have a subclass option for folks to choose, please
+  // invent one based on this fellow"; "Turn it aside is good"; "Clear the ring as 'sweep the ring' attack up to 3 within 5 ft, DC15 dex save or prone"; Large or
+  // smaller, "less the rules lawyers try to trip a dragon". The words: invented.json #the-grey-road. Rows: his sheet's parry, backstep, climb, volley, whirlwind.
+  // PIT-WISE (3) is rules.js RU.riseCost (up for 5 ft) and grid.js stepCost (a climb costs no extra, Second-Story Work's way); the rest is here
+  function meleeIn(w) { if (w.conds.disarmed) return null; return w.weapon && w.weapon.name && !w.weapon.ranged ? w.weapon : w.alt && w.alt.name && !w.alt.ranged ? w.alt : null; }
+  function bowIn(w) { if (w.conds.disarmed) return null; return w.weapon && w.weapon.ranged && !w.weapon.thrown ? w.weapon : w.alt && w.alt.ranged && !w.alt.thrown ? w.alt : null; }
+  function avgDice(s) { var m = /^(\d+)d(\d+)/.exec(String(s || '')); return m ? +m[1] * (+m[2] + 1) / 2 : 0; }
+  // TURN IT ASIDE (3): a creature he can see attacks one within 5 ft of him while he holds a melee weapon -- his reaction adds his WIS (1 at least) to that
+  // one's AC against it. battle.js attack asks after the roll, and only when the bonus turns the hit (as Parry and Shield are taken): { w, bonus } or null
+  F.turnAside = function (B, att, tgt, atk, total, ac) {
+    var best = null;
+    B.units.forEach(function (w) {
+      if (best || w === tgt || w === att || w.side !== tgt.side || !sub(w, 'the Grey Road', 3) || w.reaction <= 0 || !G.standing(w) || !RU.canAct(w)) return;
+      if (G.dist(w, tgt) > 5 || !meleeIn(w) || !M.sees(B, w, att)) return;
+      var bonus = Math.max(1, D.mod(w.abil.wis));
+      if (total < ac + bonus) best = { w: w, bonus: bonus };
+    });
+    return best;
+  };
+  // GIVE GROUND (7): a foe steps within his reach -- his reaction takes him 5 ft away without provoking; out of its reach after it, his next bow shot at it
+  // before his next turn ends has advantage (battle.js attack reads u.gaveGround). battle.js moveAlong asks it after every step. The AI's call (the seat's):
+  // he gives ground only with a bow to answer from and no friend beside him to guard -- there the reaction is Turn It Aside's
+  F.giveGround = function* (B, mover, from) {
+    var ws = B.units.filter(function (w) { return w !== mover && G.hostile(w, mover) && sub(w, 'the Grey Road', 7) && w.reaction > 0 && G.standing(w) && RU.canAct(w) && !w.conds.prone && !w.conds.grappled && !w.conds.restrained && !(w.hang && G.hanging(w)) && RU.speedNow(w) > 0; });
+    for (var i = 0; i < ws.length; i++) {
+      var w = ws[i], r = G.reachOf(w, (meleeIn(w) || {}).reach);
+      if (!(G.dist(mover, w) <= r && G.dist(mover, w, from.x, from.y) > r) || !bowIn(w) || mover.dead || mover.hp <= 0) continue; // (this step brought it into his reach)
+      if (B.units.some(function (a) { return a !== w && a.side === w.side && G.standing(a) && !a.familiar && G.dist(a, w) <= 5; })) continue;
+      var mr = G.reachOf(mover), rm = G.reach(w, 5, { upright: true }), d0 = G.dist(w, mover), pick = null;
+      Object.keys(rm).forEach(function (k) {
+        var e = rm[k]; if (!e.stand || (e.x === w.x && e.y === w.y)) return;
+        var d = G.dist(w, mover, e.x, e.y), sc = (d > mr ? 100 : 0) + d;
+        if (d > d0 && (!pick || sc > pick.sc)) pick = { x: e.x, y: e.y, out: d > mr, sc: sc };
+      });
+      if (!pick) continue;
+      w.reaction = 0; D.sfx('run');
+      B.card(['{y}' + Nm(B, w) + '{/} gives ground!  {g}(the reaction: 5 ft back, no opening' + (pick.out ? '; the bow has the next shot at ' + nm(B, mover) : '') + '){/}'], 220);
+      if (!w.turn) w.turn = { move: 0, action: 0, bonus: 0 };
+      yield* B.moveAlong(w, [[pick.x, pick.y]], { noOA: true, gait: 'backstep', keepFacing: true, noGive: true });
+      w.facing = D.spr.facingFor(mover.x - w.x, mover.y - w.y); w.anim = 'idle';
+      if (pick.out) w.gaveGround = { on: mover.id, till: B.round + 1 };
+    }
+  };
+  // THE 11TH (GreyFang's, past the class's 9 by name): the action, one of two (the class AI weighs them beside the Attack action: js/tactics.js TX.ACTIONS) --
+  // SWEEP THE RING: a melee attack at each of up to three within 5 ft, and each one it hits, Large or smaller, makes a DC 15 DEX save or falls prone (his whirlwind row);
+  // COVERING VOLLEY: up to three arrows, a ranged attack each at a different foe within 10 ft of a friend he can see; each one hit has disadvantage on its next attack
+  // roll before his next turn (his volley row; battle.js attack reads conds.covered)
+  F.SWEEP_DC = 15;
+  var onWeaponHitGR = M.onWeaponHit;
+  M.onWeaponHit = function* (B, att, tgt, atk, crit) {
+    if (onWeaponHitGR) yield* onWeaponHitGR(B, att, tgt, atk, crit);
+    if (atk.sweep && !tgt.dead && tgt.hp > 0 && !tgt.conds.prone && !tgt.noProne && !RU.immuneTo(tgt, 'prone') && (tgt.size || 1) <= 2) {
+      var sv = RU.save(tgt, 'dex', F.SWEEP_DC);
+      B.card(['  {o}swept{/}: ' + nm(B, tgt) + ' DEX ' + RU.saveText(sv) + ' vs DC ' + F.SWEEP_DC + '  ' + (sv.ok ? '{n}keeps its feet{/}' : '{o}PRONE{/}')], 200);
+      if (!sv.ok) tgt.conds.prone = true;
+      yield 8;
+    }
+    if (atk.cover && !tgt.dead && tgt.hp > 0) { tgt.conds.covered = { by: att.id, till: { who: att.id, at: 'start', n: 1 } }; B.card(['  {c}covered{/}: ' + nm(B, tgt) + "'s next attack at disadvantage"], 160); }
+  };
+  if (TX && TX.ACTIONS) TX.ACTIONS.push(function (B, u, fs) {
+    var T = u.turn;
+    if (!sub(u, 'the Grey Road', 11) || !T || !T.action || T.attacksLeft) return null;
+    var out = [], sw = meleeIn(u), bw = bowIn(u);
+    var hitWorth = function (wp, t) { var e = RU.edges(u, t, wp); return TX.pHit(wp.atk + (e.pen || 0), RU.ac(t), e.net) * (avgDice(wp.dice) + (wp.mod || 0)); };
+    if (sw) {
+      var ring = fs.filter(function (t) { return G.standing(t) && G.dist(u, t) <= 5; }).sort(function (a, b) { return a.hp - b.hp; }).slice(0, 3);
+      if (ring.length >= 2) {
+        var ss = 0; ring.forEach(function (t) { var p = hitWorth(sw, t); ss += TX.worth(p, t) + ((t.size || 1) <= 2 && !t.conds.prone && !RU.immuneTo(t, 'prone') ? (p > 0 ? 0.6 : 0) * TX.pFail(t, 'dex', F.SWEEP_DC) * TX.dpr(t) * 0.4 : 0); });
+        out.push({ kind: 'sweep', score: ss, why: 'sweeps the ring (' + ring.length + ')', go: function* () {
+          T.action = 0; B.card(['{y}' + u.name + '{/}: SWEEP THE RING  {g}(a blow at each, up to three within 5 ft; DEX ' + F.SWEEP_DC + ' or down){/}'], 220);
+          var a = Object.assign({}, sw, { row: 'whirlwind', sweep: true }), first = true;
+          for (var i = 0; i < ring.length; i++) { var t = ring[i]; if (u.dead || u.hp <= 0 || !G.standing(t) || G.dist(u, t) > 5) continue; yield* B.attack(u, t, a, first ? {} : { ride: true }); first = false; }
+          u.anim = 'idle';
+        } });
+      }
+    }
+    if (bw && !fs.some(function (t) { return G.standing(t) && G.dist(u, t) <= 5; })) { // (a bow beside a foe shoots at disadvantage: the volley is for the open)
+      var best = null;
+      B.units.forEach(function (a) {
+        if (a === u || a.side !== u.side || !G.standing(a) || a.familiar || !M.sees(B, u, a)) return;
+        var near = fs.filter(function (t) { return G.standing(t) && G.dist(a, t) <= 10 && G.dist(u, t) <= bw.range[1] && G.los(u, t).clear && M.sees(B, u, t); }).sort(function (x, y) { return TX.dpr(y) - TX.dpr(x); }).slice(0, 3);
+        if (near.length < 2) return;
+        var vs = 0; near.forEach(function (t) { var p = hitWorth(bw, t); vs += TX.worth(p, t) + (p > 0 ? 0.6 : 0) * TX.dpr(t) * 0.25; });
+        if (!best || vs > best.score) best = { score: vs, a: a, near: near };
+      });
+      if (best) out.push({ kind: 'volley', score: best.score, why: 'covers ' + best.a.name + ' (' + best.near.length + ' arrows)', go: function* () {
+        T.action = 0; B.card(['{y}' + u.name + '{/}: COVERING VOLLEY  {g}(three arrows round ' + best.a.name + '; each one hit attacks at disadvantage){/}'], 220);
+        var a = Object.assign({}, bw, { row: 'volley', cover: true }), first = true;
+        for (var i = 0; i < best.near.length; i++) { var t = best.near[i]; if (u.dead || u.hp <= 0 || !G.standing(t)) continue; yield* B.attack(u, t, a, first ? {} : { ride: true }); first = false; }
+        u.anim = 'idle';
+      } });
+    }
+    return out.length ? out : null;
+  });
+
   // ------------------------------------------------------------------ the Rimeglass (Willem's; the wizard's tradition, 2): illusion with the
   // cold in it. RIME DOUBLES (2): a blow that breaks one of his false images (Mirror Image) breaks rime over the one who struck -- its
   // speed 10 ft less till its next turn is over (battle.js attack calls it)

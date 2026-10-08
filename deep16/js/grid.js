@@ -198,7 +198,7 @@
     // (monsters' climb spots three apart along a face -- 10-05, Griz: "can we make the monsters valid wall climb spots 3 rows apart from each other?": a foe's step up a face, onto a face
     // square or the climb on from a cling, is no step where another foe clings within two squares of that square; its own face stays its own)
     if (u.side === 'foe' && G.map.def.climb && G.gzAt(u, x1, y1) - G.gzAt(u, x0, y0) > G.map.def.step && !(u.hang && u.hang.face && x1 === u.hang.face[0] && y1 === u.hang.face[1]) && G.units.some(function (w) { return w !== u && w.side === 'foe' && w.hang && w.hang.face && G.hanging(w) && Math.max(Math.abs(w.hang.face[0] - x1), Math.abs(w.hang.face[1] - y1)) < 3; })) return Infinity;
-    var ssw = u.subclass === 'Thief' && u.lvl >= 3; // (Second-Story Work, SRD 5.1, the Thief's 3: "climbing no longer costs you extra movement" -- the face's distance, 2.5 ft a step, as a climb speed's; the Athletics check stands. The grid's rules §2d, 10-08)
+    var ssw = (u.subclass === 'Thief' || u.subclass === 'the Grey Road') && u.lvl >= 3; // (the Grey Road's PIT-WISE, 3, ours 10-08, the same: climbing costs no extra movement) (Second-Story Work, SRD 5.1, the Thief's 3: "climbing no longer costs you extra movement" -- the face's distance, 2.5 ft a step, as a climb speed's; the Athletics check stands. The grid's rules §2d, 10-08)
     var cs = G.climbsUp(u, x0, y0, x1, y1); if (cs) c += (ssw ? Math.ceil(cs * 2.5 / 5) * 5 : cs * 5) - 5;
     // a creature with a climb speed (SRD 5.1: "doesn't need to spend extra movement to climb" -- the climb itself is still distance): 2.5 ft of movement a step, rounded up to the
     // 5, the square's own 5 folded in -- a 45 ft face is 45, not 5 (it was the square's 5 alone; 10-04 night, the Edifice: "the monster has to climb up the ediface")
@@ -249,7 +249,7 @@
     return Math.round(miss * (30 + (ft > 10 ? fall : 0)));
   };
   G.reach = function (u, budget, o) {
-    if (G.prone(u, o) && D.rules && D.rules.canRise(u)) { var half = Math.floor(u.speed / 2); if (budget >= half) return reach0.call(this, u, budget - half, Object.assign({}, o, { upright: true })); }
+    if (G.prone(u, o) && D.rules && D.rules.canRise(u)) { var half = D.rules.riseCost ? D.rules.riseCost(u) : Math.floor(u.speed / 2); if (budget >= half) return reach0.call(this, u, budget - half, Object.assign({}, o, { upright: true })); }
     return reach0.apply(this, arguments);
   };
   G.path = function (rm, x, y) {

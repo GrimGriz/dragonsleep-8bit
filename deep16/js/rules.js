@@ -65,11 +65,14 @@
   RU.canRise = function (u) { var c = u.conds || {}; return !(c.laughing || c.dancing || c.paralyzed || c.stunned || c.asleep || c.restrained || c.incapacitated || c.petrified || RU.speedNow(u) === 0); };
   // up off the floor in the middle of a turn -- knocked flat on the way by an opportunity attack, or flat when it sets off (10-03, the stream: Vivian ran
   // on 20 ft lying down): standing "costs an amount of movement equal to half your speed" (SRD 5.1), paid from the walk if the walk has it; else it crawls (grid.js)
+  // what standing costs it: half its speed (SRD 5.1), or 5 ft for a ranger of the Grey Road (PIT-WISE, 3; ours, 10-08 -- js/features.js, the
+  // Grey Road). grid.js G.reach, ai.js and battle.js ask it too
+  RU.riseCost = function (u) { return u.subclass === 'the Grey Road' && u.lvl >= 3 ? Math.min(5, Math.floor(RU.speedNow(u) / 2)) : Math.floor(RU.speedNow(u) / 2); };
   RU.rise = function (B, u) {
-    var half = Math.floor(RU.speedNow(u) / 2);
+    var half = RU.riseCost(u);
     if (!u.conds.prone || u.hp <= 0 || !RU.canRise(u) || !u.turn || u.turn.move < half) return false;
     delete u.conds.prone; u.turn.move -= half;
-    if (B) B.card(['{g}' + u.name + ' gets up (half the move).{/}'], 200);
+    if (B) B.card(['{g}' + u.name + ' gets up (' + (half < Math.floor(RU.speedNow(u) / 2) ? half + ' ft of the move: pit-wise' : 'half the move') + ').{/}'], 200);
     return true;
   };
   // the turn's economy: MOVE (ft left), ACTION, BONUS, REACTION (the reaction comes back at the start of your own turn)

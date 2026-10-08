@@ -52,7 +52,7 @@
       always: { 3: ['protectionfromevilandgood', 'sanctuary'], 5: ['lesserrestoration'], 9: ['beaconofhope', 'dispelmagic'] }, // (the 9th's pair, SRD 5.1 -- the grid's rules §2d, 10-08; the 8-bit holds both as grid-only spells, js/rules.js R.oathSpells)
       spells: { 1: ['bless', 'command', 'shieldoffaith', 'divinefavor', 'heroism', 'curewounds'], 2: ['brandingsmite', 'magicweapon', 'aid'] } },
     ranger: { prio: ['dex', 'wis', 'con', 'str', 'int', 'cha'], kit: { weapon: 'longbow', armor: 'scalemail', alt: 'shortsword' }, style: 'archery', sub: [3, 'Hunter'], look: 'npcranger_p0',
-      known: [0, 2, 3, 3, 4, 4, 5, 5, 6], spells: { 1: ['huntersmark', 'curewounds', 'fogcloud', 'longstrider', 'animalfriendship'], 2: ['spikegrowth', 'passwithouttrace', 'barkskin'], 3: ['conjureanimals'] } },
+      known: [0, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7], spells: { 1: ['huntersmark', 'curewounds', 'fogcloud', 'longstrider', 'animalfriendship'], 2: ['spikegrowth', 'passwithouttrace', 'barkskin'], 3: ['conjureanimals'] } },
     rogue: { prio: ['dex', 'con', 'wis', 'int', 'cha', 'str'], kit: { weapon: 'rapier', armor: 'leather', alt: 'shortbow' }, sub: [3, 'Thief'], look: 'npcrogue_p0', expertise: ['Stealth', 'Perception'] },
     // metamagic (SRD 5.1, 3rd: two options; a third at 10, a fourth at 17): the generic sorcerer knows Quickened and Twinned; Careful and
     // Heightened are built (js/features.js) for a spec that lists them -- { cls: 'sorcerer', metamagic: ['careful', 'heightened'] }
@@ -156,6 +156,13 @@
     pyro: { name: 'Pyro', named: true, cls: 'fighter', lvl: 12, maxLvl: 12, race: 'dwarf', subclass: 'Champion', look: 'pyro_p0', script: 'measure',
       abil: { str: 20, dex: 14, con: 16, int: 11, wis: 13, cha: 15 }, hp: 112, noPrecast: true,
       equip: { weapon: 'mace', offhand: 'macedisruption', armor: 'kingsplate', shield: null, cloak: 'kingsmantle' } },
+    // GreyFang (TarlynsPit/wiki/greyfang.md: the wolf-headed Lupine of the Gemorax fragment, a survivor of Rhollor's people from the Orc War, who runs the
+    // fighting pit dug at the bunker-converted building and the Promenade's errands -- Griz, 10-08). A ranger of our own way, the Grey Road (Griz, 10-08: "If we
+    // do not already have a subclass option for folks to choose, please invent one based on this fellow"), at 11 by name as Pyro is at 12 (his sheets carry
+    // the volley and the whirlwind). Lupine (invented.json #greyfang): darkvision and keen hearing and smell, kept on his record, not a race in the maker's
+    // list (the races are their own lane). The numbers are the seat's draft (STR 12, DEX 18, CON 14, INT 10, WIS 16, CHA 10; the SRD's average HP)
+    greyfang: { name: 'GreyFang', named: true, cls: 'ranger', lvl: 11, maxLvl: 11, race: 'human', lupine: true, subclass: 'the Grey Road', look: 'greyfang_p1',
+      abil: { str: 12, dex: 18, con: 14, int: 10, wis: 16, cha: 10 }, equip: { weapon: 'longbow', armor: 'leather' }, alt: 'shortsword', style: 'archery' },
     ingrith: { overlay: true, cls: 'cleric', lvl: 4, slots: [4, 3], subclass: 'Life Domain', race: 'dwarf', abil: { str: 12, dex: 10, con: 14, int: 13, wis: 16, cha: 13 },
       equip: { weapon: 'mace', armor: 'chainmail', shield: 'shield' }, hp: 31,
       known: ['sacredflame', 'guidance', 'curewounds', 'healingword', 'bless', 'shieldoffaith', 'aid', 'lesserrestoration', 'spiritualweapon'] }
@@ -254,6 +261,7 @@
       known: [], feats: {}, conds: {}, subclass: sub, saveProf: RC.saves.slice(), style: spec.style && (R.STYLE_FOR[cls] || []).indexOf(spec.style) >= 0 ? spec.style : c.style || null, // (the Pocket DM's maker picks one, 10-06; R.style gives none before the class's level)
       skills: {}, expertise: [], race: spec.race || 'human', npc: true, alt: 'alt' in spec ? spec.alt : (c.kit.alt || null),
       land: spec.land || (cls === 'druid' ? 'underdark' : null), // (a druid's circle land: the generic druid's is the Pit's Underdark, 09-29)
+      lupine: !!spec.lupine, // (GreyFang's people, 10-08: NPC.unit gives the senses)
       script: spec.script || null // (a named one's own turn: js/pyro.js)
     };
     if (spec.loot) NPC.wear(h, spec.loot); // (the Pocket DM's winnings: `+item` on the word, worn where the class may -- 10-02)
@@ -383,6 +391,7 @@
     if (race.fey) u.fey = true; // (Fey Ancestry: no magic puts it to sleep)
     if (race.savage) u.savage = true;
     if (h.mirrorEye) u.mirrorEye = true;
+    if (h.lupine) { u.darkvision = Math.max(u.darkvision || 0, 60); u.keenSenses = true; u.raceName = 'Lupine'; } // (a Lupine, GreyFang's people, 10-08: darkvision 60, keen hearing and smell -- battle.js search)
     u.metamagic = h.metamagic || null; u.hunterDef = h.hunterDef || null; u.pact = h.pact || null; u.tome = h.tome || null; // (js/features.js reads them)
     // Pact of the Blade (SRD 5.1): proficient with the pact weapon while she wields it, and it counts as magical
     if (h.pact === 'blade' && u.weapon) { u.weapon = Object.assign({}, u.weapon, { magic: true, pact: true, name: u.weapon.name + ' (pact)' }); if (!R.isProfWeapon(h, R.weaponOf(h))) u.weapon.atk += R.prof(h.lvl); }
@@ -394,7 +403,7 @@
     if (h.cls === 'barbarian' && h.lvl >= 2) u.conds.dangerSense = true;
     // the Circle of the Land (SRD 5.1): Land's Stride (6) -- nonmagical difficult ground costs nothing (grid.js stepCost), advantage on the save
     // against magically made plants (Entangle); Nature's Ward (10) -- no poison, no disease, and no elemental or fey charms or frightens it
-    if (h.cls === 'druid' && h.lvl >= 6) u.landsStride = true;
+    if ((h.cls === 'druid' && h.lvl >= 6) || (h.cls === 'ranger' && h.lvl >= 8)) u.landsStride = true; // (the ranger's own Land's Stride, SRD 5.1, 8th: the same words -- no ranger had it, found 10-08 building GreyFang)
     if (h.cls === 'druid' && h.lvl >= 10) { u.natureWard = true; u.immune = (u.immune || []).concat(['poison']); u.condImmune = (u.condImmune || []).concat(['poisoned', 'diseased']); }
     if (h.cls === 'barbarian' && h.lvl >= 7) u.initAdv = true; // Feral Instinct (7): advantage on initiative (battle.js run); the surprise half is js/features.js F.feral
     u.facing = 1;

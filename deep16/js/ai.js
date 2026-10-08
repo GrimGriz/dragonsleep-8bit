@@ -80,7 +80,7 @@
     // flat and able: up first, half the speed (SRD 5.1), whether or not it walks after -- the walk stood it for the same cost, but a foe with its target already in reach never walked,
     // so it never stood, and fought prone all fight at disadvantage (10-05, Griz: "why trolls like fighting prone so much instead of standing when they aren't moving anywhere?" -- on the
     // fix, "seems like correct strategy in most cases"). A knitted troll stands here too; one hanging, held or restrained cannot (rules.js RU.canRise)
-    if (u.conds.prone && RU.canRise(u) && u.turn && u.turn.move >= Math.floor(u.speed / 2) && !(u.hang && G.hanging(u))) {
+    if (u.conds.prone && RU.canRise(u) && u.turn && u.turn.move >= RU.riseCost(u) && !(u.hang && G.hanging(u))) {
       RU.rise(B, u);
       if (u.knit && D.looks) { yield D.looks.knitRise(u); delete u.knit; } // (a knitted troll up off the ground before it walks: its death row played back -- js/looks.js, 10-08)
     }

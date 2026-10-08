@@ -19,6 +19,8 @@ QUICK_FIGHTS = [
     {'foes': 'cleric:9,wizard:9', 'lvl': '9', 'n': '4', 'seed': '1'},
     {'foes': 'goblin,goblin,goblin', 'vs': 'wizard,wizard,wizard', 'lvl': '5', 'n': '4', 'seed': '1'},
     {'foes': 'harbinger', 'lvl': '7', 'n': '3', 'seed': '1'},   # (the Harbinger alone against the four at 7th, 10-08: his Pounce, Drink Light, Foretell, Kneel run without an error)
+    {'foes': 'harbinger', 'vs': 'greyfang:11,fighter:7,cleric:7,wizard:7', 'lvl': '7', 'n': '2', 'seed': '3'},   # (GreyFang and the Grey Road against him, 10-08: Turn It Aside, Give Ground, Sweep the Ring run without an error)
+    {'foes': 'gnoll,gnoll,gnoll,gnoll', 'vs': 'greyfang:11,fighter:7', 'lvl': '7', 'n': '2', 'seed': '5'},   # (his Covering Volley round the fighter)
 ]
 QUICK_MODES = ['rulings0930', 'doorfloor1006', 'features', 'mpmon1006', 'mpgallery1007', 'gstutorial1007', 'gswaves1007', 'gssupplies1007', 'charms', 'walls', 'familiar', 'globe1001c', 'ring1001c', 'sleep1001c', 'tendrils1002', 'ready1002', 'ready1002b', 'ready1005', 'skyshow', 'dispel1002', 'joke1002', 'pocket1002', 'fixes1003', 'lazy1003', 'rules1003', 'drawfloor1003', 'rungs1004', 'edifice1004', 'fixes1005', 'under1005', 'oil1005', 'torch1005', 'skylights1005', 'spiders1005', 'rules1006', 'looks1007', 'menus1007', 'goblinhide1007', 'rockcatch1008', 'thrown1008', 'rules1008', 'flight1008', 'gallery1008']
 ALL_MODES = ['mpmon1006', 'mpgallery1007', 'gstutorial1007', 'gswaves1007', 'gssupplies1007', 'doorfloor1006', 'items', 'lantern', 'ledgerlamp', 'druid12', 'rulings0930', 'featurewalk', 'ring0930', 'campcast', 'druidlast', 'charms',

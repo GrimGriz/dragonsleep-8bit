@@ -983,7 +983,7 @@
       var cmd = yield { turn: u };
       // prone at END TURN with the half to stand: it stands, as any player would have (10-04 night, Griz: "if prone at end turn with movement left stand to stand from prone, stand?" --
       // the fighter fell off the arch sill six turns running and lay there with 15 ft unspent every time; SRD 5.1: standing is half the speed, from the turn's movement)
-      if (cmd && cmd.do === 'end' && u.conds.prone && u.hp > 0 && RU.canRise(u) && u.turn.move >= Math.floor(u.speed / 2)) RU.rise(this, u);
+      if (cmd && cmd.do === 'end' && u.conds.prone && u.hp > 0 && RU.canRise(u) && u.turn.move >= RU.riseCost(u)) RU.rise(this, u);
       if (!cmd || cmd.do === 'end') break;
       yield* this.exec(u, cmd);
       yield* this.wave();
@@ -1656,7 +1656,7 @@
     var T = u.turn;
     // the gait: a sheet with a `slither` row plays it for a move of three squares or more, its walk for less (the grick, 10-02, Griz: "can we
     // do the old one for 1-2 squares and the new if they're going 3 squares or more" -- coiled and swaying for a step or two, laid flat to go far)
-    var gait = path.length >= 3 && D.spr.anim(u.sheet, 'slither') ? 'slither' : 'walk';
+    var gait = o && o.gait && D.spr.anim(u.sheet, o.gait) ? o.gait : path.length >= 3 && D.spr.anim(u.sheet, 'slither') ? 'slither' : 'walk'; // (o.gait: a step of a row's own -- the Grey Road's Give Ground plays `backstep`, 10-08)
     u.anim = gait;
     // flat when it sets off: it gets up for half its speed if the walk has it, else it crawls (grid.js G.prone, rules.js RU.rise; SRD 5.1)
     if (u.conds.prone && o && o.spend && !u.ethereal) RU.rise(this, u);
@@ -1703,7 +1703,7 @@
           }
         }
       }
-      u.facing = D.spr.facingFor(nx - u.x, ny - u.y);
+      if (!(o && o.keepFacing)) u.facing = D.spr.facingFor(nx - u.x, ny - u.y); // (o.keepFacing: a step back that keeps its face to the foe -- Give Ground, 10-08)
       var wasIn = D.magic.webAt(this, u), stepFrom = { x: u.x, y: u.y }; // (stepFrom: the square it left -- the Keeper's readied wall asks which way it stepped along the stair; the tween is gone by then in the page's frame loop)
       var csN = G.climbsUp(u, u.x, u.y, nx, ny), kindN = G.faceKind(nx, ny), cDC = G.climbDC(csN, u, kindN), z0 = G.gzAt(u, u.x, u.y), z1 = G.gzAt(u, nx, ny), stZ = G.map.def.step;
       // up a face: up it first and then over the lip; off one: out over the edge and then down (10-04, Griz: "can we move them vertical"); a longer step for a taller face (ui.js unitPos)
@@ -1821,6 +1821,8 @@
       // the Keeper's readied Ice Wall (js/keeper.js, 10-03): one of ours stepping toward the exit springs it
       if (this.kp && this.kp.ready && D.keeper) yield* D.keeper.watch(this, u, stepFrom);
       // a readied strike (exec 'ready', 10-02): one that steps within a readier's reach, or into its sight, gets it -- and held, stunned or put down by it, walks no farther
+      // GIVE GROUND (the Grey Road, 7; ours, 10-08): a Grey Road ranger this step brought within reach of steps 5 ft back, the reaction (js/features.js F.giveGround)
+      if (D.features && D.features.giveGround && !u.ethereal && !(o && o.noGive)) { yield* D.features.giveGround(this, u, stepFrom); if (u.hp <= 0 || u.dead) { u.anim = 'idle'; return; } }
       if (this.units.some(function (w) { return w.ready && w.reaction > 0; })) { yield* this.readyHook(u, 'move'); if (u.hp <= 0 || u.dead) { u.anim = 'idle'; return; } if (u.conds.restrained || u.conds.paralyzed || u.conds.stunned || u.conds.asleep) { u.anim = 'idle'; if (o && o.spend) T.move = 0; return; } u.anim = gait; }
     }
     u.anim = 'idle';
@@ -1882,13 +1884,15 @@
     var self = this, melee = !atk.ranged && (!atk.spell || atk.touch), cid = 'atk' + (++this.cardSeq || (this.cardSeq = 1));
     this.turnTo(att, faceTo(att, tgt));
     // a spell's shot leaves at the height of the cast pose (the spell animation pass, 09-28h): the pose the cast began runs on
-    var posing = atk.spell && (att.anim === 'attack' || att.anim === 'cast') && this.t - (att.animT || 0) < (D.spr.duration(att.sheet, att.anim) || 18);
+    // (o.ride: a blow riding the one before it in one move -- the Grey Road's Sweep the Ring and Covering Volley, 10-08: the row plays once, its second and third blows land on it)
+    var posing = !!o.ride || (atk.spell && (att.anim === 'attack' || att.anim === 'cast') && this.t - (att.animT || 0) < (D.spr.duration(att.sheet, att.anim) || 18));
     // (a spell's shot, or a floating weapon sent at its mark, from the cast pose where the sheet has one)
     if (!posing) { att.anim = atk.spell && (!melee || atk.spirit) && D.spr.anim(att.sheet, 'cast') ? 'cast' : 'attack'; att.animT = this.t; }
     // a row of its own for the blow, where the sheet has one (10-01d, the xorn first: Griz, "since this is prototype, go fancy"): the
     // attack's name (claw, bite), and its second and third use in a turn the numbered rows (claw2, claw3: a blow from each of its arms)
     if (!posing && att.anim === 'attack' && atk.name) {
-      var rk = String(atk.name).toLowerCase().replace(/[^a-z]/g, ''), rt = att.turn || {}, rn = ((rt.rowN = rt.rowN || {})[rk] = (rt.rowN[rk] || 0) + 1);
+      // (atk.row: a blow that names its row -- Sweep the Ring plays `whirlwind`, 10-08)
+      var rk = atk.row || String(atk.name).toLowerCase().replace(/[^a-z]/g, ''), rt = att.turn || {}, rn = ((rt.rowN = rt.rowN || {})[rk] = (rt.rowN[rk] || 0) + 1);
       var rw = rn > 1 && D.spr.anim(att.sheet, rk + rn) ? rk + rn : rk;
       if (rk && D.spr.anim(att.sheet, rw)) att.anim = rw;
       // (Surprise Attack's blow: a foe with it, its first melee blow of round one, plays its ambush row -- the bugbears' sheets, 10-07)
@@ -1906,13 +1910,18 @@
     // (a blow from a row that names its release frame -- the goblin's shortbow, 10-07: the arrow leaves as the bow hand opens, not 10 ticks in; and since 10-08 a melee row's too,
     // the Harbinger's pounce landing on its frame 6. A melee row with no release still strikes 10 ticks in)
     var rel = !atk.spell && D.spr.anim(att.sheet, att.anim), relT = rel && rel.release != null ? Math.ceil(rel.release * 60 / (rel.fps || 8)) : 0;
-    if (!o.oa) yield atk.spell && !melee ? Math.max(4, Math.round((D.spr.duration(att.sheet, att.anim) || 18) * 0.55) - (this.t - att.animT)) : relT ? Math.max(4, relT - (this.t - att.animT)) : 10;
+    if (o.ride) yield 4; // (riding the blow before it: no new wind-up)
+    else if (!o.oa) yield atk.spell && !melee ? Math.max(4, Math.round((D.spr.duration(att.sheet, att.anim) || 18) * 0.55) - (this.t - att.animT)) : relT ? Math.max(4, relT - (this.t - att.animT)) : 10;
     if (!melee) { FX.projectile(att, tgt, atk.fx || 'bolt'); yield { fx: 1 }; }
     var los = G.los(att, tgt), cover = melee && G.dist(att, tgt) <= 5 ? 0 : los.cover;
     var ac = RU.ac(tgt) + cover, e = RU.edges(att, tgt, atk);
     // the Hunter's Defensive Tactics (ranger 7; js/classes.js u.hunterDef): Escape the Horde -- an opportunity attack against it is at
     // disadvantage; Multiattack Defense -- once a creature has hit it, that one's later attacks this turn meet AC +4
     if (o.oa && !o.answer && tgt.hunterDef === 'horde') { e.dis.push('escape the horde'); e.net = e.adv.length && !e.dis.length ? 1 : e.dis.length && !e.adv.length ? -1 : 0; }
+    // the Grey Road (ours, 10-08; js/features.js): GIVE GROUND's shot -- out of its reach, his next bow shot at that one before his next turn ends has advantage;
+    // COVERING VOLLEY's arrow -- one it hit attacks at disadvantage, once, before the archer's next turn (conds.covered, gone at his turn's start)
+    if (!melee && !atk.spell && att.gaveGround && att.gaveGround.on === tgt.id) { if (this.round <= att.gaveGround.till) { e.adv.push('gave ground'); e.net = e.adv.length && !e.dis.length ? 1 : e.dis.length && !e.adv.length ? -1 : 0; } delete att.gaveGround; }
+    if (att.conds.covered && !atk.save) { e.dis.push('covered'); e.net = e.adv.length && !e.dis.length ? 1 : e.dis.length && !e.adv.length ? -1 : 0; delete att.conds.covered; }
     var madAC = tgt.hunterDef === 'multiattack' && tgt.madHit && tgt.madHit[att.id] === this.round + ':' + (this.active ? this.active.id : '-') ? 4 : 0;
     ac += madAC;
     // Fighting Style: Protection (SRD 5.1: "When a creature you can see attacks a target other than you that is within 5 feet of you, you can use
@@ -1997,6 +2006,17 @@
       tgt.reaction = 0; FX.ring(tgt, 'silver', 26); D.sfx('bump');
       ac += tgt.parry; hit = false; crit = false;
       line += '  {c}PARRY +' + tgt.parry + '{/}';
+    }
+    // TURN IT ASIDE (the Grey Road, 3; ours, 10-08 -- Griz: "Turn it aside is good"): a Grey Road ranger within 5 ft of the one attacked, holding a
+    // melee weapon and seeing the attacker, adds his WIS to its AC against the blow -- his reaction, taken when it turns the hit (js/features.js F.turnAside)
+    if (hit && nat !== 20 && D.features && D.features.turnAside) {
+      var ta = D.features.turnAside(this, att, tgt, atk, total, ac);
+      if (ta && (byAI(ta.w) || (yield { prompt: { who: ta.w, title: ta.w.name + ': TURN IT ASIDE?', lines: [nameOf(att) + "'s " + total + ' would hit ' + nameOf(tgt) + ' (AC ' + ac + ').', '+' + ta.bonus + ' AC makes it ' + (ac + ta.bonus) + ': a miss. (the reaction)'], opts: [{ label: 'TURN IT', value: true }, { label: 'LET IT LAND', value: false }] } }))) {
+        ta.w.reaction = 0; FX.ring(tgt, 'silver', 22); D.sfx('bump');
+        if (D.spr.anim(ta.w.sheet, 'parry')) { ta.w.facing = D.spr.facingFor(att.x - ta.w.x, att.y - ta.w.y); ta.w.anim = 'parry'; ta.w.animT = this.t; }
+        ac += ta.bonus; hit = false; crit = false;
+        line += '  {c}' + shortName(ta.w).toUpperCase() + ' TURNS IT ASIDE +' + ta.bonus + '{/}';
+      }
     }
     D.sfx(crit ? 'crit' : hit ? 'hit' : 'miss');
     this.card([head, line + '  ' + (crit ? '{y}CRITICAL{/}' : hit ? '{n}HIT{/}' : '{g}MISS{/}') + why], 300, cid);
@@ -3103,7 +3123,8 @@
       // session's probe on the AI lane's duel: Vivian, 25 ft off in the bright with a clear line, never rolled against Rascal hidden in a stalagmite's half cover, his or the AI's)
       var sw = D.magic.seeWhy(self, u, w), lw = G.los(u, w, undefined, undefined, true);
       if (!w.conds.hidden || !G.hostile(u, w) || !G.standing(w) || !sw.ok || !lw.clear) return;
-      var n = self.nearOf(u, w), bonus = n && n.bonus ? n.bonus : 0, held = self.stealthRoll(w).total, r = D.d(20), tot = r + (u.perception - 10) + bonus, got = tot > held;
+      // (u.keenSenses: keen hearing and smell, GreyFang's, 10-08 -- advantage on the roll)
+      var n = self.nearOf(u, w), bonus = n && n.bonus ? n.bonus : 0, held = self.stealthRoll(w).total, r = u.keenSenses ? Math.max(D.d(20), D.d(20)) : D.d(20), tot = r + (u.perception - 10) + bonus, got = tot > held;
       any = true;
       self.card(['{y}' + nameOf(u) + '{/} searches: Perception d20 ' + r + ' ' + RU.sign(u.perception - 10) + (bonus ? ' +' + bonus + ' (' + n.side + ')' : '') + ' = ' + tot + ' against ' + nameOf(w) + "'s Stealth " + held + '  ' + (got ? '{o}FOUND{/}' : '{n}nothing{/}')], 200);
       if (got) { delete w.conds.hidden; delete w.hidTotal; }
