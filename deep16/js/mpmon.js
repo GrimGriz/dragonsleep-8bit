@@ -991,7 +991,7 @@
   // the formation, before the action (AI2): Rascal and Goose, with no foe on them, step under the bubble when it is up -- or to within 10 ft of Beholda while she
   // has it to raise -- and act from there (his "shield up, everyone under it"; they shoot from inside: Fire Bolt 120 ft, the sling 30). Denny holds the front
   TX.FIRST.push(function* (B, u) {
-    if (!MP.AI2 || u.cls !== 'mpmon' || u.side !== 'party' || u.mpSub === 'tank' || u.mpSub === 'buffs') return;
+    if (!MP.AI2 || u.cls !== 'mpmon' || u.mpSub === 'tank' || u.mpSub === 'buffs') return;
     var T = u.turn; if (!T.move || u.conds.restrained || MP.foes(B, u, 5).length) return;
     var b = beholdaOf(B, u); if (!b) return;
     var up = bubbleOn(B, u), R = up ? up.conds.vnaBubble.r : (MP.left(b, 'A') > 0 && MP.foes(B, b, 60).length ? 10 : 0);
@@ -1009,8 +1009,8 @@
   // nothing worth doing with the action (js/tactics.js TX.IDLE): a potion if hurt; else hold the formation, then READY (the class turn's: a cantrip, a bow, the swing)
   // or Dodge. Denny closes as the class turn does -- the Dash too -- once the bubble is up, or with no Beholda to wait on
   TX.IDLE.push(function* (B, u, fs) {
-    if (!MP.AI2 || u.cls !== 'mpmon' || u.side !== 'party') return false;
-    if (yield* drink(B, u, 0.5)) return true;
+    if (!MP.AI2 || u.cls !== 'mpmon') return false; // (either side: a band of Mascots against ours plays the same -- the mirror match, 10-07)
+    if (u.side === 'party' && (yield* drink(B, u, 0.5))) return true; // (the potions are the party's pack)
     var near = fs.slice().sort(function (a, b) { return G.dist(u, a) - G.dist(u, b); })[0];
     if (!near) return false;
     var b = beholdaOf(B, u);
