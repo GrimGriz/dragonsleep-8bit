@@ -46,7 +46,7 @@
     var NB = this.o.npc;
     // (a word -- 'talmok:5:grown' -- or a spec the camp made up for the morning, js/camp.js o.ours; its id is the camp's)
     if (NB && NB.party) party = NB.party.map(function (w, i) { return D.npc.build(w, F.level, 'party', { id: typeof w === 'string' ? 'p' + i + '-' + String(w).split(':')[0].split('.')[0].split('+')[0] : w.id || ('p' + i + '-' + String(w.word || 'x').split(':')[0].split('.')[0].split('+')[0]) }); }).filter(Boolean); // (a `~` code or a `+item` word keeps a short id: js/classes.js NPC.spec, 10-02)
-    if (NB && (this.o.bench || this.o.watch)) party.forEach(function (u) { u.guest = true; u.classAI = true; });
+    if ((NB && (this.o.bench || this.o.watch)) || (this.o.watch && this.o.ladder)) party.forEach(function (u) { u.guest = true; u.classAI = true; }); // (and a ladder fight's &watch, 10-08: its four as the bench runs them)
     // the wizard's familiar, if the save has one and he is here (Find Familiar: js/familiar.js)
     var famData = this.o.familiar ? { flags: { familiar: this.o.familiar } } : NB ? null : this.from.data; // (the camp's pick for our four: o.familiar)
     // a rung's own familiar (data/fights.js `familiar`) when the save brings none: the Bat Swarms' bat on the four's wizard (10-02, Griz: "slap a familiar bat on
