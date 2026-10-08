@@ -776,7 +776,7 @@
     multi: 1, src: 'SRD 5.1 Grimlock (CR 1/4): blind, blindsight 30 ft (nothing past it: light.js seesBy), stone camouflage (it starts hidden); content/monsters.json grimlock (leg three)'
   },
   cube: {
-    name: 'Gelatinous Cube', type: 'ooze', sheet: 'cube_p1', cr: '2', ac: 6, hp: 84, speed: 15, size: 2, reach: 5, blindsight: 60, blind: true,
+    name: 'Gelatinous Cube', type: 'ooze', sheet: 'cube_p2', cr: '2', ac: 6, hp: 84, speed: 15, size: 2, reach: 5, blindsight: 60, blind: true,
     abil: { str: 14, dex: 3, con: 20, int: 1, wis: 6, cha: 1 }, init: -4, perception: 8,
     saves: { str: 2, dex: -4, con: 5, int: -5, wis: -2, cha: -5 },
     attacks: {
