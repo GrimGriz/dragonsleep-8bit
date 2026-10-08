@@ -192,7 +192,7 @@
       seat(B, us, e[1]).forEach(function (u, i) {
         var from = e[1].from[i % e[1].from.length];
         u.from0 = from.slice();
-        file.push({ u: u, from: from, to: [u.x, u.y], face: D.spr.facingFor(e[0] === 'west' ? 1 : -1, 0) });
+        file.push({ u: u, from: from, froms: e[1].from, to: [u.x, u.y], face: D.spr.facingFor(e[0] === 'west' ? 1 : -1, 0) }); // (froms: its own end's ways in, never the other end's -- 10-08)
         made.push(u);
       });
     });

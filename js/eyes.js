@@ -17,6 +17,9 @@
   var DS = window.DS = window.DS || {};
   var G1 = 'Eyes: first', G2 = 'Eyes: built this week', G3 = 'Eyes: built before, never seen';
   DS.EYES = {
+    'eyes-gs-rats-east-1008': { pri: 2, group: G2, title: 'The Game Show, tier 1 wave 2: all three giant rats in over the causeway together (10-08)', pt: 'the Game Show §16 (deep16/js/battle.js walkIn, deep16/js/waves.js comeIn) · eyes',
+      url: 'deep16/?gameshow&at=lamp&tier=1&wave=2&watch',
+      look: 'Your rat that started in the north and ran past everyone to join the other two. The two goblins come up the west road; the three giant rats all come over the causeway from the east end and stand together there before initiative -- none set down on the west road. (Its own way in busy for a beat, the walk-in had handed it the first clear one in the whole file: the goblins road.)' },
     'eyes-harbinger-rise-1008': { pri: 2, group: G2, title: 'The Harbinger rises: four mirror hyenas swarming, his Enlarge growth, Kneel spoken and the held kneeling (10-08)', pt: 'the bestiary §11 (js/traits.js rise, callPack, stand, kneelVoice; js/ui.js the kneel look; js/looks.js ripple.held) · eyes',
       url: 'deep16/?fight=harbinger&seed=636293&watch',
       look: 'A bench fight, roll for roll (seed 636293: he wins on 59 HP in round 7). Round 1 he Pounces down onto the party; round 3 he rises -- half again bigger, the Enlarge way -- and four mirror hyenas spill out at his flanks and swarm Barley, then hunt Vivian across the hills; rounds 5 and 6 he says Kneel (the voice) and Vivian kneels -- drawn on her knees, violet, the mirror crossing her while she is held -- and he Foretells. His portrait in the bottom bar shows his face.' },

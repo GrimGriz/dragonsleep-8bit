@@ -3803,7 +3803,13 @@
           w1 >= 0 && lampF && lampF.x === tw[0] && lampF.y === tw[1] && lampF.hp === 60 && BF.units.indexOf(lampF) >= 0 && SF.foes.length === 3 && SF.foes.every(function (u) { return u.kind === 'goblin' && u.from0[0] === 0 && u.mission === 'lamp'; }));
         var h1 = stepW(BF, function () { return SF.held >= 1; }, 40000, weak);
         okW('flow: wave 1 held, the XP fudged to the tier -- ' + JSON.stringify(SF.xp) + ' (want 139 each: 300 x 150 / 325)', h1 >= 0 && ['denny', 'beholda', 'rascal', 'goose'].every(function (k) { return SF.xp[k] === 139; }));
-        var w2 = stepW(BF, function () { return SF.wi === 1 && SF.foes.length && SF.foes.every(function (u) { return BF.units.indexOf(u) >= 0; }) && BF.order.length > 5; }, 30000, weak);
+        // (where each of wave 2's foes is first set down -- 10-08, Griz: "one of the rats in the game show (tier 1 wave 2/2) starts from the north and runs past everyone to join
+        // the other 2": its own way in a beat busy, Battle.walkIn gave it the file's first clear one, the goblins' west road)
+        var firstW = {};
+        var w2 = stepW(BF, function () { return SF.wi === 1 && SF.foes.length && SF.foes.every(function (u) { return BF.units.indexOf(u) >= 0; }) && BF.order.length > 5; }, 30000,
+          function (b) { weak(b); b.units.forEach(function (u) { if (u.gsSide && !firstW[u.id]) firstW[u.id] = { side: u.gsSide, x: u.x, kind: u.kind }; }); });
+        var strayW = Object.keys(firstW).filter(function (id) { var f = firstW[id]; return id.indexOf('gs2-') === 0 && (f.side === 'east' ? f.x < 70 : f.x > 12); });
+        okW('flow: wave 2 comes in each by its own end (' + Object.keys(firstW).filter(function (id) { return id.indexOf('gs2-') === 0; }).map(function (id) { return firstW[id].kind + ' ' + firstW[id].side + '@' + firstW[id].x; }).join(', ') + ')', !strayW.length);
         var fourW = BF.units.filter(function (u) { return u.mpmon; }), inOrd = fourW.filter(function (u) { return BF.order.indexOf(u) >= 0; });
         var bedW = GSW.wave.bed, cotsW = GSW.wave.cots || [], bedOK = !!bedW && !!D.grid.map.at(bedW[0], bedW[1]) && D.grid.map.at(bedW[0], bedW[1]).walk && !cotsW.some(function (c) { return c[0] === bedW[0] && c[1] === bedW[1]; });
         okW('flow: the bed ' + bedW + ' on the floor beside the cots (' + cotsW.join(' ') + ')', bedOK && cotsW.length === 3);

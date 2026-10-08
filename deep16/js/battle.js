@@ -589,7 +589,7 @@
     var out = [], p = to; while (p && !(p[0] === u.x && p[1] === u.y)) { out.unshift(p); p = prev[key(p[0], p[1])]; }
     return out;
   };
-  // walk a file of them in: each { u, from, to, face }, the next set down on its `from` once that is clear, a step each a beat (the Skylights' waves, Battle.arrive; the garrison
+  // walk a file of them in: each { u, from, to, face, froms? -- its own other ways in }, the next set down on its `from` once that is clear, a step each a beat (the Skylights' waves, Battle.arrive; the garrison
   // out of the hatch, Battle.hatchOut -- 10-05)
   Battle.prototype.walkIn = function* (file, look) {
     var self = this, U = this.units, pending = file.slice(), going = [], guard = 0;
@@ -601,7 +601,9 @@
     while ((pending.length || going.length) && guard++ < 150) {
       var nx0 = pending[0];
       if (nx0) { var hx = nx0.u.x, hy = nx0.u.y; nx0.u.x = nx0.from[0]; nx0.u.y = nx0.from[1];
-        if (!G.canStand(nx0.u, nx0.u.x, nx0.u.y)) { var frA = froms.filter(function (q) { return G.canStand(nx0.u, q[0], q[1]); })[0]; if (frA) { nx0.from = frA; nx0.u.x = frA[0]; nx0.u.y = frA[1]; } } // (its way in blocked: another of the file's)
+        // (its way in blocked: another of the file's -- its own `froms` when it has them, the nearest first. 10-08, Griz: "one of the rats in the game show (tier 1 wave 2/2) starts
+        // from the north and runs past everyone to join the other 2": the file's first clear way in was the goblins' west road, and a rat walked the whole hall)
+        if (!G.canStand(nx0.u, nx0.u.x, nx0.u.y)) { var f0 = nx0.from, frA = (nx0.froms || froms).filter(function (q) { return G.canStand(nx0.u, q[0], q[1]); }).sort(function (a, b) { return Math.hypot(a[0] - f0[0], a[1] - f0[1]) - Math.hypot(b[0] - f0[0], b[1] - f0[1]); })[0]; if (frA) { nx0.from = frA; nx0.u.x = frA[0]; nx0.u.y = frA[1]; } }
         if (G.canStand(nx0.u, nx0.u.x, nx0.u.y)) {
           pending.shift(); U.push(nx0.u); (nx0.riders || []).forEach(function (r) { U.push(r); });
           retarget(nx0); nx0.u.anim = 'idle'; nx0.u.animT = self.t; nx0.steps = Battle.route(nx0.u, nx0.to) || []; nx0.held = 0; going.push(nx0);
