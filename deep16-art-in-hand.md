@@ -527,3 +527,279 @@ HEAD: THE DARKMANTLE -- a foe for a tactics game. A small squid-like cave creatu
 16-bit pixel art animation sheet, SNES-era action RPG style, crisp dark outline, readable at small size. Flat dark navy background (a deep blue, not grey and not black). ONE sheet only, filling the whole image: no other panels. Top left: one large portrait. Beside it a turnaround of four stills labelled Front, Right, Back, Left. Below: labelled rows of frames, each row's name at its left, every frame in side view facing right, numbered 1 to N under each frame -- every number used once, none skipped, one drawing for each number. Every frame stands apart with clear space around it: nothing overlaps a neighbour or a label. The same scale in every row; every frame in the air at the same height above one baseline, but Fall and Prone on the ground. No scenery except what a row names.
 ```
 Cut as: Fly -> walk, Crush -> `crush` (it attaches and rides, `deep16/js/battle.js`), Darkness -> `darkness` (new: its Darkness Aura, `deep16/js/magic.js` castAura, plays no row today), Fall -> hurt, Prone -> prone. Small.
+
+### The six's fronts and backs (asked 10-08 as the wanted file's §1b, `587fdf2`; pulled 10-08 while they are drawn)
+
+Griz, 10-08: *"theoretically they're generating. Pull them from the art wanted."* The first nine came into `deep16/_src/Fresh/` the same hour (the cube's one sheet, the earth elemental's, the ettin's, the naga's and the axe beak's front and back); the darkmantle's three were still to come. The section as it stood, its pastes kept for a re-roll:
+
+
+Six first sheets came back 10-08 in `deep16/_src/Fresh/`, every row asked (their pastes moved to `deep16-art-in-hand.md`, "The stand-ins' first sheets"). Side rows play in six facings of eight; facing S and N they play the side rows until these come. The goblin's way: a row aimed at someone or walking somewhere is asked from the front and from behind; Fall and Prone stay side-on (a body on the floor reads from any side), and so do the rows that read the same from any side (sinking, rising, a ring of darkness, a churn inside). Every row keeps its sheet-1 frame count in every facing. ATTACH the Fresh sheet named.
+
+#### The gelatinous cube, from the front and from behind (one sheet)
+ATTACH `deep16/_src/Fresh/Gelatinous Cube Animation Sheet-3.png`
+```text
+Attached: the gelatinous cube's sprite sheet. Draw it again exactly: the same creature, the same pixel style, the same colours, the same size as the attached sheet's turnaround. A ten-foot cube of clear, faintly teal jelly, its edges and corners catching the light; inside it hang a skull and bones, a ribcage, a rusted sword, a scatter of gold coins and an old boot. No face, no eyes, no limbs.
+
+HEAD: THE GELATINOUS CUBE -- two moves seen from the front and from behind, for a tactics game. Rows: Slide Front (8: it slides toward the viewer, its near face bulging and wobbling, the things inside lagging behind; animate in place, not travelling across the sheet); Engulf Front (8: its near face bulges out and surges toward the viewer over a space as big as a man, then closes and draws back in, swollen -- do not draw what it takes); Slide Back (8: it slides away from the viewer, its far face leading and its near face trailing and wobbling; animate in place); Engulf Back (8: its far face bulges out and surges away from the viewer over a space as big as a man, then closes and draws back in, swollen -- do not draw what it takes).
+
+16-bit pixel art animation sheet, SNES-era action RPG style, crisp dark outline, readable at small size. Flat dark navy background (a deep blue, not grey and not black). ONE sheet only, filling the whole image: no other panels, no portrait, no turnaround, no title. Four labelled rows of frames, each row's name at its left, numbered 1 to N under each frame -- every number used once, none skipped, one drawing for each number. Every frame stands apart with clear space around it: nothing overlaps a neighbour or a label. The same scale in every row and the same as the attached sheet's turnaround, the bottom of every frame on one baseline. No scenery.
+```
+Cut as: Slide Front -> walk and Engulf Front -> `engulf` facing S, the Backs facing N, the diagonals the side rows; Idle, Digest, Flinch and Fall side-on in every facing (the seat's call: a cube reads the same from any side but where it surges). Scale by area against the Fresh turnaround.
+
+#### The earth elemental, from the front
+ATTACH `deep16/_src/Fresh/Earth Elemental Animation Sheet-2.png`
+```text
+Attached: the earth elemental's sprite sheet. Draw it again exactly: the same creature, the same pixel style, the same colours, the same size as the attached sheet's turnaround. A hulking giant of living rock and earth, twice a man's height: great boulder shoulders, a small stone head with two amber eyes glowing deep in its cracks, thick arms ending in fists of stone, its legs spreading into heaps of rubble where they meet the ground, moss on its stones; clods of earth and pebbles fall from it as it moves.
+
+HEAD: THE EARTH ELEMENTAL -- its moves seen from the FRONT, for a tactics game: in every frame it faces the viewer, as the turnaround's Front view does, so its RIGHT fist is on the viewer's LEFT. Rows: Idle (6: standing heavy and still, stones grinding, a trickle of dirt falling); Walk (8: a slow heavy stride toward the viewer, dust shaking off it with each step; animate in place, not travelling across the sheet); Slam (6: its right fist, on the viewer's left, swings down toward the viewer); Slam 2 (6: its second blow in the same breath: its left fist, on the viewer's right, swings across toward the viewer); Flinch (4: struck, chips of stone fly off it and it rocks back, then steadies).
+
+16-bit pixel art animation sheet, SNES-era action RPG style, crisp dark outline, readable at small size. Flat dark navy background (a deep blue, not grey and not black). ONE sheet only, filling the whole image: no other panels, no portrait, no turnaround, no title. Labelled rows of frames, each row's name at its left, every frame facing the viewer, numbered 1 to N under each frame -- every number used once, none skipped, one drawing for each number. Every frame stands apart with clear space around it: nothing overlaps a neighbour or a label. The same scale in every row and the same as the attached sheet's turnaround, feet on one baseline. No scenery.
+```
+
+#### The earth elemental, from behind
+ATTACH `deep16/_src/Fresh/Earth Elemental Animation Sheet-2.png`
+```text
+Attached: the earth elemental's sprite sheet. Draw it again exactly: the same creature, the same pixel style, the same colours, the same size as the attached sheet's turnaround. A hulking giant of living rock and earth, twice a man's height: great boulder shoulders, a small stone head with two amber eyes glowing deep in its cracks, thick arms ending in fists of stone, its legs spreading into heaps of rubble where they meet the ground, moss on its stones; clods of earth and pebbles fall from it as it moves.
+
+HEAD: THE EARTH ELEMENTAL -- its moves seen from BEHIND, for a tactics game: in every frame its back is to the viewer and it faces away, as the turnaround's Back view does -- the Flinch too -- so its RIGHT fist is on the viewer's RIGHT and its eyes do not show. Rows: Idle (6: standing heavy and still, stones grinding, a trickle of dirt falling); Walk (8: a slow heavy stride away from the viewer, dust shaking off it with each step; animate in place, not travelling across the sheet); Slam (6: its right fist, on the viewer's right, swings down away from the viewer); Slam 2 (6: its second blow in the same breath: its left fist, on the viewer's left, swings across away from the viewer); Flinch (4: struck, chips of stone fly off its back and it rocks forward, then steadies, still facing away).
+
+16-bit pixel art animation sheet, SNES-era action RPG style, crisp dark outline, readable at small size. Flat dark navy background (a deep blue, not grey and not black). ONE sheet only, filling the whole image: no other panels, no portrait, no turnaround, no title. Labelled rows of frames, each row's name at its left, every frame seen from behind, its back to the viewer, numbered 1 to N under each frame -- every number used once, none skipped, one drawing for each number. Every frame stands apart with clear space around it: nothing overlaps a neighbour or a label. The same scale in every row and the same as the attached sheet's turnaround, feet on one baseline. No scenery.
+```
+Cut as: the front's rows play facing S, the behind's facing N, the diagonals the side rows; Sink, Rise, Fall and Prone side-on in every facing. Scale by area against the Fresh turnaround.
+
+#### The ettin, from the front
+ATTACH `deep16/_src/Fresh/Two-Headed Ettin Battle Sprite Sheet-1.png`
+```text
+Attached: the ettin's sprite sheet. Draw it again exactly: the same creature, the same pixel style, the same colours, the same size as the attached sheet's turnaround. A hulking two-headed giant twice a man's height: ONE body with two arms and two legs, and two heads side by side at the shoulders -- on its right the dark-haired scowling head, on its left the fair-haired, tusked, roaring one; dirty patched hide armour with a skull on the belt, bare thick arms with iron bracers; a heavy battleaxe in its right hand and a spiked morningstar in its left.
+
+HEAD: THE ETTIN -- its moves seen from the FRONT, for a tactics game: in every frame it faces the viewer, as the turnaround's Front view does, so the battleaxe and the dark-haired head are on the viewer's LEFT and the morningstar and the fair-haired head on the viewer's RIGHT. Rows: Idle (6: the two heads turn and snarl at each other, then both glare at the viewer); Walk (8: a heavy lumbering stride toward the viewer, both weapons swinging; animate in place, not travelling across the sheet); Battleaxe (6: the right arm chops the battleaxe down toward the viewer, then back); Morningstar (6: the left arm swings the morningstar across toward the viewer, then back); Flinch (4: struck, it rocks back with both heads roaring, then steadies).
+
+16-bit pixel art animation sheet, SNES-era action RPG style, crisp dark outline, readable at small size. Flat dark navy background (a deep blue, not grey and not black). ONE sheet only, filling the whole image: no other panels, no portrait, no turnaround, no title. Labelled rows of frames, each row's name at its left, every frame facing the viewer, numbered 1 to N under each frame -- every number used once, none skipped, one drawing for each number. Every frame stands apart with clear space around it: nothing overlaps a neighbour or a label. The same scale in every row and the same as the attached sheet's turnaround, feet on one baseline. No scenery.
+```
+
+#### The ettin, from behind
+ATTACH `deep16/_src/Fresh/Two-Headed Ettin Battle Sprite Sheet-1.png`
+```text
+Attached: the ettin's sprite sheet. Draw it again exactly: the same creature, the same pixel style, the same colours, the same size as the attached sheet's turnaround. A hulking two-headed giant twice a man's height: ONE body with two arms and two legs, and two heads side by side at the shoulders -- on its right the dark-haired scowling head, on its left the fair-haired, tusked, roaring one; dirty patched hide armour with a skull on the belt, bare thick arms with iron bracers; a heavy battleaxe in its right hand and a spiked morningstar in its left.
+
+HEAD: THE ETTIN -- its moves seen from BEHIND, for a tactics game: in every frame its back is to the viewer and it faces away, as the turnaround's Back view does -- the Flinch too -- so the battleaxe and the back of the dark-haired head are on the viewer's RIGHT and the morningstar and the fair-haired head on the viewer's LEFT; no faces show. Rows: Idle (6: the two heads turn toward each other in profile and snarl, then both face away again); Walk (8: a heavy lumbering stride away from the viewer, both weapons swinging; animate in place, not travelling across the sheet); Battleaxe (6: the right arm chops the battleaxe down away from the viewer, then back); Morningstar (6: the left arm swings the morningstar across away from the viewer, then back); Flinch (4: struck from behind, it lurches forward with both heads thrown back, then steadies, still facing away).
+
+16-bit pixel art animation sheet, SNES-era action RPG style, crisp dark outline, readable at small size. Flat dark navy background (a deep blue, not grey and not black). ONE sheet only, filling the whole image: no other panels, no portrait, no turnaround, no title. Labelled rows of frames, each row's name at its left, every frame seen from behind, its back to the viewer, numbered 1 to N under each frame -- every number used once, none skipped, one drawing for each number. Every frame stands apart with clear space around it: nothing overlaps a neighbour or a label. The same scale in every row and the same as the attached sheet's turnaround, feet on one baseline. No scenery.
+```
+Cut as: the front's rows play facing S, the behind's facing N, the diagonals the side rows; Fall and Prone side-on. Scale by area against the Fresh turnaround.
+
+#### The spirit naga, from the front
+ATTACH `deep16/_src/Fresh/Spirit Naga animation sprite sheet-4.png`
+```text
+Attached: the spirit naga's sprite sheet. Draw it again exactly: the same creature, the same pixel style, the same colours, the same size as the attached sheet's turnaround. A great serpent whose head has a human face: a long body of black scales banded with dull red, and at its end a gaunt man's face with sunken cheeks, burning red eyes and long lank black hair, a serpent's long fangs in its man's mouth -- no human torso, no arms, no hands.
+
+HEAD: THE SPIRIT NAGA -- its moves seen from the FRONT, for a tactics game: in every frame it faces the viewer, as the turnaround's Front view does, its face toward the viewer and its coils behind and below it. Rows: Idle (6: coiled, its upper body raised and swaying, the head turning slowly); Slither (8: gliding toward the viewer in S-curves, the head held high; animate in place, not travelling across the sheet); Bite (6: it draws its head back, its man's mouth gaping wide on the long fangs, and strikes toward the viewer, then recoils); Cast (6: it rears up high, its eyes flare red and a dark violet light gathers round its head, then fades); Flinch (4: struck, it recoils with a hiss, then steadies).
+
+16-bit pixel art animation sheet, SNES-era action RPG style, crisp dark outline, readable at small size. Flat dark navy background (a deep blue, not grey and not black). ONE sheet only, filling the whole image: no other panels, no portrait, no turnaround, no title. Labelled rows of frames, each row's name at its left, every frame facing the viewer, numbered 1 to N under each frame -- every number used once, none skipped, one drawing for each number. Every frame stands apart with clear space around it: nothing overlaps a neighbour or a label. The same scale in every row and the same as the attached sheet's turnaround, the bottom of every frame on one baseline. No scenery.
+```
+
+#### The spirit naga, from behind
+ATTACH `deep16/_src/Fresh/Spirit Naga animation sprite sheet-4.png`
+```text
+Attached: the spirit naga's sprite sheet. Draw it again exactly: the same creature, the same pixel style, the same colours, the same size as the attached sheet's turnaround. A great serpent whose head has a human face: a long body of black scales banded with dull red, and at its end a gaunt man's face with sunken cheeks, burning red eyes and long lank black hair, a serpent's long fangs in its man's mouth -- no human torso, no arms, no hands.
+
+HEAD: THE SPIRIT NAGA -- its moves seen from BEHIND, for a tactics game: in every frame its back is to the viewer and it faces away, as the turnaround's Back view does -- the Flinch too -- the back of its head and its long black hair toward the viewer, its face hidden. Rows: Idle (6: coiled, its upper body raised and swaying, the head turning slowly); Slither (8: gliding away from the viewer in S-curves, the head held high; animate in place, not travelling across the sheet); Bite (6: it draws its head back and strikes away from the viewer, then recoils); Cast (6: it rears up high and a dark violet light gathers round its head, then fades); Flinch (4: struck from behind, it jerks and its coils tighten, then it steadies, still facing away).
+
+16-bit pixel art animation sheet, SNES-era action RPG style, crisp dark outline, readable at small size. Flat dark navy background (a deep blue, not grey and not black). ONE sheet only, filling the whole image: no other panels, no portrait, no turnaround, no title. Labelled rows of frames, each row's name at its left, every frame seen from behind, its back to the viewer, numbered 1 to N under each frame -- every number used once, none skipped, one drawing for each number. Every frame stands apart with clear space around it: nothing overlaps a neighbour or a label. The same scale in every row and the same as the attached sheet's turnaround, the bottom of every frame on one baseline. No scenery.
+```
+Cut as: the front's rows play facing S, the behind's facing N, the diagonals the side rows; Fall and Prone side-on. Cast is asked from the front and behind (the seat's call: a 10th-level caster, it is the row it plays most). Scale by area against the Fresh turnaround.
+
+#### The axe beak, from the front
+ATTACH `deep16/_src/Fresh/Axe Beak Animation Sheet-6.png`
+```text
+Attached: the axe beak's sprite sheet. Draw it again exactly: the same creature, the same pixel style, the same colours, the same size as the attached sheet's turnaround. A tall flightless bird the size of a horse: long powerful pale legs with big clawed feet, a long neck, stubby useless wings, shaggy brown feathers with a paler throat, and a huge, heavy, hooked yellow-orange beak.
+
+HEAD: THE AXE BEAK -- its moves seen from the FRONT, for a tactics game: in every frame it faces the viewer, as the turnaround's Front view does, the beak pointing toward the viewer. Rows: Idle (6: shifting from foot to foot, its head bobbing, its beak clacking); Run (8: a fast long-legged run toward the viewer, the neck stretched out forward; animate in place, not travelling across the sheet); Beak (6: it rears its head back and chops its heavy beak down toward the viewer, then back); Flinch (4: struck, it squawks and jerks back, feathers flying, then steadies).
+
+16-bit pixel art animation sheet, SNES-era action RPG style, crisp dark outline, readable at small size. Flat dark navy background (a deep blue, not grey and not black). ONE sheet only, filling the whole image: no other panels, no portrait, no turnaround, no title. Labelled rows of frames, each row's name at its left, every frame facing the viewer, numbered 1 to N under each frame -- every number used once, none skipped, one drawing for each number. Every frame stands apart with clear space around it: nothing overlaps a neighbour or a label. The same scale in every row and the same as the attached sheet's turnaround, feet on one baseline. No scenery.
+```
+
+#### The axe beak, from behind
+ATTACH `deep16/_src/Fresh/Axe Beak Animation Sheet-6.png`
+```text
+Attached: the axe beak's sprite sheet. Draw it again exactly: the same creature, the same pixel style, the same colours, the same size as the attached sheet's turnaround. A tall flightless bird the size of a horse: long powerful pale legs with big clawed feet, a long neck, stubby useless wings, shaggy brown feathers with a paler throat, and a huge, heavy, hooked yellow-orange beak.
+
+HEAD: THE AXE BEAK -- its moves seen from BEHIND, for a tactics game: in every frame its back is to the viewer and it faces away, as the turnaround's Back view does -- the Flinch too -- its tail feathers toward the viewer, the beak hidden behind its head. Rows: Idle (6: shifting from foot to foot, its head bobbing); Run (8: a fast long-legged run away from the viewer, the neck stretched out forward; animate in place, not travelling across the sheet); Beak (6: it rears its head back and chops its beak down away from the viewer, then back); Flinch (4: struck from behind, it squawks and jerks, feathers flying, then steadies, still facing away).
+
+16-bit pixel art animation sheet, SNES-era action RPG style, crisp dark outline, readable at small size. Flat dark navy background (a deep blue, not grey and not black). ONE sheet only, filling the whole image: no other panels, no portrait, no turnaround, no title. Labelled rows of frames, each row's name at its left, every frame seen from behind, its back to the viewer, numbered 1 to N under each frame -- every number used once, none skipped, one drawing for each number. Every frame stands apart with clear space around it: nothing overlaps a neighbour or a label. The same scale in every row and the same as the attached sheet's turnaround, feet on one baseline. No scenery.
+```
+Cut as: the front's rows play facing S, the behind's facing N, the diagonals the side rows; Fall and Prone side-on. Scale by area against the Fresh turnaround.
+
+#### The darkmantle, its tricks (side-on)
+ATTACH `deep16/_src/Fresh/Darkmantle Cave Creature Sprite Sheet-5.png`
+```text
+Attached: the darkmantle's sprite sheet. Draw it again exactly: the same creature, the same pixel style, the same colours, the same size as the attached sheet's frames. A small squid-like cave creature: a dark purple-grey conical mantle pointed at the top, two small gold eyes near its base, and below them a ring of tentacles joined by a web of skin that spreads wide like a skirt.
+
+HEAD: THE DARKMANTLE -- two more rows for a tactics game, every frame in side view facing right. Rows: Clamp (4: it rides on someone's head: its skirt wrapped shut into a tight round bag below its eyes, closed round a head-sized space, the tentacles gripping and squeezing in a slow pulse -- do not draw the head or the one it rides; the bag is empty air); Still (4: on the ground, perfectly still: its skirt and tentacles drawn tight down round its base, its eyes shut, its colour dulled to the grey-brown of cave rock, so the whole of it reads as a stalagmite, a cone of stone rising from the floor; the frames differ only by a faint glint of damp sliding down it).
+
+16-bit pixel art animation sheet, SNES-era action RPG style, crisp dark outline, readable at small size. Flat dark navy background (a deep blue, not grey and not black). ONE sheet only, filling the whole image: no other panels, no portrait, no turnaround, no title. Two labelled rows of frames, each row's name at its left, numbered 1 to N under each frame -- every number used once, none skipped, one drawing for each number. Every frame stands apart with clear space around it: nothing overlaps a neighbour or a label. The same scale in every row and the same as the attached sheet's frames. No scenery.
+```
+Cut as: Clamp -> `clamp` (new: ANIM_ORDER and FPS; `deep16/js/ui.js` plays it for a darkmantle riding over a head, `u.perch === 'over'` -- today it sits on the head in its hovering idle); Still -> `still` (False Appearance; no wiring: ui.js plays a sheet's `still` for a foe that has not acted or been woken), its frames on the floor while the idle hovers. Both side-on in every facing.
+
+#### The darkmantle, from the front
+ATTACH `deep16/_src/Fresh/Darkmantle Cave Creature Sprite Sheet-5.png`
+```text
+Attached: the darkmantle's sprite sheet. Draw it again exactly: the same creature, the same pixel style, the same colours, the same size as the attached sheet's turnaround. A small squid-like cave creature: a dark purple-grey conical mantle pointed at the top, two small gold eyes near its base, and below them a ring of tentacles joined by a web of skin that spreads wide like a skirt. It flies by rippling its skirt.
+
+HEAD: THE DARKMANTLE -- its moves seen from the FRONT, for a tactics game: in every frame it faces the viewer, as the turnaround's Front view does, both gold eyes toward the viewer. Rows: Idle (6: hovering in the air, its webbed skirt rippling slowly); Fly (8: gliding toward the viewer through the air, the skirt pulsing; animate in place, not travelling across the sheet); Crush (6: it drops toward the viewer, spreads its skirt wide and clamps it shut round empty air in front of it, squeezing -- do not draw the foe); Flinch (4: struck, it jerks back with its skirt snapping shut, then spreads again).
+
+16-bit pixel art animation sheet, SNES-era action RPG style, crisp dark outline, readable at small size. Flat dark navy background (a deep blue, not grey and not black). ONE sheet only, filling the whole image: no other panels, no portrait, no turnaround, no title. Labelled rows of frames, each row's name at its left, every frame facing the viewer, numbered 1 to N under each frame -- every number used once, none skipped, one drawing for each number. Every frame stands apart with clear space around it: nothing overlaps a neighbour or a label. The same scale in every row and the same as the attached sheet's turnaround; every frame in the air at the same height above one baseline. No scenery.
+```
+
+#### The darkmantle, from behind
+ATTACH `deep16/_src/Fresh/Darkmantle Cave Creature Sprite Sheet-5.png`
+```text
+Attached: the darkmantle's sprite sheet. Draw it again exactly: the same creature, the same pixel style, the same colours, the same size as the attached sheet's turnaround. A small squid-like cave creature: a dark purple-grey conical mantle pointed at the top, two small gold eyes near its base, and below them a ring of tentacles joined by a web of skin that spreads wide like a skirt. It flies by rippling its skirt.
+
+HEAD: THE DARKMANTLE -- its moves seen from BEHIND, for a tactics game: in every frame its back is to the viewer and it faces away, as the turnaround's Back view does -- the Flinch too -- so its eyes do not show. Rows: Idle (6: hovering in the air, its webbed skirt rippling slowly); Fly (8: gliding away from the viewer through the air, the skirt pulsing; animate in place, not travelling across the sheet); Crush (6: it drops away from the viewer, spreads its skirt wide and clamps it shut round empty air beyond it, squeezing -- do not draw the foe); Flinch (4: struck from behind, it jerks with its skirt snapping shut, then spreads again, still facing away).
+
+16-bit pixel art animation sheet, SNES-era action RPG style, crisp dark outline, readable at small size. Flat dark navy background (a deep blue, not grey and not black). ONE sheet only, filling the whole image: no other panels, no portrait, no turnaround, no title. Labelled rows of frames, each row's name at its left, every frame seen from behind, its back to the viewer, numbered 1 to N under each frame -- every number used once, none skipped, one drawing for each number. Every frame stands apart with clear space around it: nothing overlaps a neighbour or a label. The same scale in every row and the same as the attached sheet's turnaround; every frame in the air at the same height above one baseline. No scenery.
+```
+Cut as: the front's rows play facing S, the behind's facing N, the diagonals the side rows; Darkness (a ring round it), Fall and Prone side-on. Scale by area against the Fresh turnaround.
+
+### Prone rows for looks in hand, as one paste (pulled 10-08 to the chat)
+
+Griz, 10-08: *"If there's anything else in the art-wanted sheet, please pull it out and show me here."* The nine one-row asks of the wanted file's §3 made one paste in his new shape (the attached paragraph, a HEAD each, one tail) and handed to him in chat; if they do not come back, the paste goes back on the wanted file. The paste:
+
+ATTACH, in this order: `deep16/_src/chuul_grok_1.webp`, `crawler_grok_1.webp`, `ettercap_grok_1.png`, `otyugh_grok_1.webp`, `bulette_grok_1.jpg`, `owl_grok_1.jpg`, `snowyowl_grok_1.jpg`, `boar_grok_1.webp`, `clacker_grok_2.jpg`
+```text
+Attached: nine sprite sheets from the same game, in this order -- 1 the chuul, 2 the crawler, 3 the ettercap, 4 the otyugh, 5 the bulette, 6 the brown owl, 7 the snowy owl, 8 the giant boar, 9 the clacker. Each HEAD below asks one more row for one of them: draw that creature again exactly -- the same creature, the same pixel style, the same colours, the same size as its frames in its attached sheet -- in side view facing right.
+
+HEAD 1 -- THE CHUUL (attached sheet 1), a hulking lobster-like creature with two great pincers and a cluster of tentacles round its mouth. Rows: Prone (2: knocked flat but alive and struggling: flipped onto its back with its legs and pincers waving, then rolling back onto its legs).
+
+HEAD 2 -- THE CRAWLER (attached sheet 2), a long many-legged crawling worm with a cluster of long tentacles round its mouth. Rows: Prone (2: knocked flat but alive and struggling: flipped onto its back with its many legs waving, then twisting back over onto its legs).
+
+HEAD 3 -- THE ETTERCAP (attached sheet 3), a hunched spider-like humanoid with long clawed arms and a fanged mouth. Rows: Prone (2: knocked flat but alive and struggling: lying on its back, then rolling over and pushing itself up on its claws).
+
+HEAD 4 -- THE OTYUGH (attached sheet 4), a bloated round body on three thick legs, a huge toothy mouth, two long grasping tentacles with spiked ends, and a third stalk bearing its eyes. Rows: Prone (2: knocked flat but alive and struggling: tipped over on its side with its tentacles flailing, then righting itself on its three legs).
+
+HEAD 5 -- THE BULETTE (attached sheet 5), a massive armoured burrowing beast with a crested back, a huge shark-like mouth and short powerful clawed legs. Rows: Prone (2: knocked flat but alive and struggling: rolled onto its side with its legs kicking, then heaving itself back onto its feet).
+
+HEAD 6 -- THE OWL (attached sheet 6), a brown owl. Rows: Prone (2: knocked out of the air but alive: sprawled on the ground with its wings spread flat, then flapping back up off the ground).
+
+HEAD 7 -- THE SNOWY OWL (attached sheet 7), a white snowy owl flecked with dark spots. Rows: Prone (2: knocked out of the air but alive: sprawled on the ground with its wings spread flat, then flapping back up off the ground).
+
+HEAD 8 -- THE GIANT BOAR (attached sheet 8), a huge bristling wild boar with long curved tusks. Rows: Prone (2: knocked flat but alive and struggling: on its side with its legs kicking, then scrambling back onto its feet).
+
+HEAD 9 -- THE CLACKER (attached sheet 9), a tall hunched hook horror with a vulture's beaked head, a plated grey-green hide and a huge curved bone hook for each forearm. Rows: Prone (2: knocked flat but alive and struggling: fallen on its side with its hooks scraping the ground, then pushing itself up on one hook).
+
+Draw each HEAD above as its own separate image, in the order given: one creature an image, never two in one image. Every image: 16-bit pixel art animation sheet, SNES-era action RPG style, crisp dark outline, readable at small size. Flat dark navy background (a deep blue, not grey and not black). ONE row only: no portrait, no turnaround, no title, no other panels. The row's name at its left, its frames numbered under each one -- every number used once, one drawing for each number -- every frame apart from its neighbour. Drawn at exactly the size of its attached sheet's frames, not larger. No scenery.
+```
+Cut as: Prone -> the sheet's `prone` row (`S.proneRow`), or its frame into `S.PRONE`. Side-on in every facing.
+
+The nine as they stood on the wanted file, one block each, for a re-roll one at a time:
+
+
+Today a figure without a prone frame stands while prone (`deep16/js/sprites.js` S.proneFrame). Each block asks for the one row; attach the sheet named, so it is drawn to match.
+
+##### The chuul
+ATTACH `deep16/_src/chuul_grok_1.webp`
+```text
+Attached: the chuul's sprite sheet. Draw it again exactly: the same creature, the same pixel style, the same colours, the same size as its frames in the attached sheet. A hulking lobster-like creature with two great pincers and a cluster of tentacles round its mouth.
+
+HEAD: THE CHUUL -- one more row for a tactics game, in side view facing right. Rows: Prone (2: knocked flat but alive and struggling: flipped onto its back with its legs and pincers waving, then rolling back onto its legs).
+
+16-bit pixel art animation sheet, SNES-era action RPG style, crisp dark outline, readable at small size. Flat dark navy background (a deep blue, not grey and not black). ONE row only: no portrait, no turnaround, no title, no other panels. The row's name at its left, its frames numbered under each one -- every number used once, one drawing for each number -- every frame apart from its neighbour. Drawn at exactly the size of the attached sheet's frames, not larger. No scenery.
+```
+
+##### The crawler (the Warrens' herd)
+ATTACH `deep16/_src/crawler_grok_1.webp`
+```text
+Attached: the crawler's sprite sheet. Draw it again exactly: the same creature, the same pixel style, the same colours, the same size as its frames in the attached sheet. A long many-legged crawling worm with a cluster of long tentacles round its mouth.
+
+HEAD: THE CRAWLER -- one more row for a tactics game, in side view facing right. Rows: Prone (2: knocked flat but alive and struggling: flipped onto its back with its many legs waving, then twisting back over onto its legs).
+
+16-bit pixel art animation sheet, SNES-era action RPG style, crisp dark outline, readable at small size. Flat dark navy background (a deep blue, not grey and not black). ONE row only: no portrait, no turnaround, no title, no other panels. The row's name at its left, its frames numbered under each one -- every number used once, one drawing for each number -- every frame apart from its neighbour. Drawn at exactly the size of the attached sheet's frames, not larger. No scenery.
+```
+
+##### The ettercap
+ATTACH `deep16/_src/ettercap_grok_1.png`
+```text
+Attached: the ettercap's sprite sheet. Draw it again exactly: the same creature, the same pixel style, the same colours, the same size as its frames in the attached sheet. A hunched spider-like humanoid with long clawed arms and a fanged mouth.
+
+HEAD: THE ETTERCAP -- one more row for a tactics game, in side view facing right. Rows: Prone (2: knocked flat but alive and struggling: lying on its back, then rolling over and pushing itself up on its claws).
+
+16-bit pixel art animation sheet, SNES-era action RPG style, crisp dark outline, readable at small size. Flat dark navy background (a deep blue, not grey and not black). ONE row only: no portrait, no turnaround, no title, no other panels. The row's name at its left, its frames numbered under each one -- every number used once, one drawing for each number -- every frame apart from its neighbour. Drawn at exactly the size of the attached sheet's frames, not larger. No scenery.
+```
+
+##### The otyugh (and the landlord, who wears its sheet)
+ATTACH `deep16/_src/otyugh_grok_1.webp`
+```text
+Attached: the otyugh's sprite sheet. Draw it again exactly: the same creature, the same pixel style, the same colours, the same size as its frames in the attached sheet. A bloated round body on three thick legs, a huge toothy mouth, two long grasping tentacles with spiked ends, and a third stalk bearing its eyes.
+
+HEAD: THE OTYUGH -- one more row for a tactics game, in side view facing right. Rows: Prone (2: knocked flat but alive and struggling: tipped over on its side with its tentacles flailing, then righting itself on its three legs).
+
+16-bit pixel art animation sheet, SNES-era action RPG style, crisp dark outline, readable at small size. Flat dark navy background (a deep blue, not grey and not black). ONE row only: no portrait, no turnaround, no title, no other panels. The row's name at its left, its frames numbered under each one -- every number used once, one drawing for each number -- every frame apart from its neighbour. Drawn at exactly the size of the attached sheet's frames, not larger. No scenery.
+```
+
+##### The bulette
+ATTACH `deep16/_src/bulette_grok_1.jpg`
+```text
+Attached: the bulette's sprite sheet. Draw it again exactly: the same creature, the same pixel style, the same colours, the same size as its frames in the attached sheet. A massive armoured burrowing beast with a crested back, a huge shark-like mouth and short powerful clawed legs.
+
+HEAD: THE BULETTE -- one more row for a tactics game, in side view facing right. Rows: Prone (2: knocked flat but alive and struggling: rolled onto its side with its legs kicking, then heaving itself back onto its feet).
+
+16-bit pixel art animation sheet, SNES-era action RPG style, crisp dark outline, readable at small size. Flat dark navy background (a deep blue, not grey and not black). ONE row only: no portrait, no turnaround, no title, no other panels. The row's name at its left, its frames numbered under each one -- every number used once, one drawing for each number -- every frame apart from its neighbour. Drawn at exactly the size of the attached sheet's frames, not larger. No scenery.
+```
+
+##### The brown owl (Find Familiar)
+ATTACH `deep16/_src/owl_grok_1.jpg`
+```text
+Attached: the owl's sprite sheet. Draw it again exactly: the same bird, the same pixel style, the same colours, the same size as its frames in the attached sheet. A brown owl.
+
+HEAD: THE OWL -- one more row for a tactics game, in side view facing right. Rows: Prone (2: knocked out of the air but alive: sprawled on the ground with its wings spread flat, then flapping back up off the ground).
+
+16-bit pixel art animation sheet, SNES-era action RPG style, crisp dark outline, readable at small size. Flat dark navy background (a deep blue, not grey and not black). ONE row only: no portrait, no turnaround, no title, no other panels. The row's name at its left, its frames numbered under each one -- every number used once, one drawing for each number -- every frame apart from its neighbour. Drawn at exactly the size of the attached sheet's frames, not larger. No scenery.
+```
+
+##### The snowy owl (Find Familiar)
+ATTACH `deep16/_src/snowyowl_grok_1.jpg`
+```text
+Attached: the snowy owl's sprite sheet. Draw it again exactly: the same bird, the same pixel style, the same colours, the same size as its frames in the attached sheet. A white snowy owl flecked with dark spots.
+
+HEAD: THE SNOWY OWL -- one more row for a tactics game, in side view facing right. Rows: Prone (2: knocked out of the air but alive: sprawled on the ground with its wings spread flat, then flapping back up off the ground).
+
+16-bit pixel art animation sheet, SNES-era action RPG style, crisp dark outline, readable at small size. Flat dark navy background (a deep blue, not grey and not black). ONE row only: no portrait, no turnaround, no title, no other panels. The row's name at its left, its frames numbered under each one -- every number used once, one drawing for each number -- every frame apart from its neighbour. Drawn at exactly the size of the attached sheet's frames, not larger. No scenery.
+```
+
+##### The giant boar
+ATTACH `deep16/_src/boar_grok_1.webp`
+```text
+Attached: the giant boar's sprite sheet. Draw it again exactly: the same beast, the same pixel style, the same colours, the same size as its frames in the attached sheet. A huge bristling wild boar with long curved tusks.
+
+HEAD: THE GIANT BOAR -- one more row for a tactics game, in side view facing right. Rows: Prone (2: knocked flat but alive and struggling: on its side with its legs kicking, then scrambling back onto its feet).
+
+16-bit pixel art animation sheet, SNES-era action RPG style, crisp dark outline, readable at small size. Flat dark navy background (a deep blue, not grey and not black). ONE row only: no portrait, no turnaround, no title, no other panels. The row's name at its left, its frames numbered under each one -- every number used once, one drawing for each number -- every frame apart from its neighbour. Drawn at exactly the size of the attached sheet's frames, not larger. No scenery.
+```
+
+##### The clacker
+ATTACH `deep16/_src/clacker_grok_2.jpg`
+```text
+Attached: the clacker's sprite sheet. Draw it again exactly: the same creature, the same pixel style, the same colours, the same size as its frames in the attached sheet. A tall hunched hook horror with a vulture's beaked head, a plated grey-green hide and a huge curved bone hook for each forearm.
+
+HEAD: THE CLACKER -- one more row for a tactics game, in side view facing right. Rows: Prone (2: knocked flat but alive and struggling: fallen on its side with its hooks scraping the ground, then pushing itself up on one hook).
+
+16-bit pixel art animation sheet, SNES-era action RPG style, crisp dark outline, readable at small size. Flat dark navy background (a deep blue, not grey and not black). ONE row only: no portrait, no turnaround, no title, no other panels. The row's name at its left, its frames numbered under each one -- every number used once, one drawing for each number -- every frame apart from its neighbour. Drawn at exactly the size of the attached sheet's frames, not larger. No scenery.
+```
+
+Cut as: Prone -> the sheet's `prone` row (`S.proneRow`), or its frame into `S.PRONE`.
+
+### What was on the wanted file and not a paste (moved 10-08, on the same word)
+
+### Not for the generator (the code's own)
+
+- **The will-o'-wisp's Variable Illumination** on screen (bright 5-20 ft; its light field is `tools/wisp-sheet.py`).
+- **A hero turned to stone** (the basilisk's gaze, Flesh to Stone's): a stone-grey tint over the hero's held frame, left standing as a statue. Today Flesh to Stone sets a creature stoned all the way aside as `banished` (`deep16/js/grimoire.js`, Greater Restoration's undo), with no statue drawn (probed 10-08).
+
+### How a sheet should come back
+
+**Special moves before detailed attacks (10-01d).** Griz: *"It's important for us to do the special move ones - like burrow and Earth Glide more than detailed attacks"*. A row for a special move (going under, coming up, a hide's reveal) outranks a second attack row; the grid has the hooks (js/ai.js burrower, still and reveal).
+
+What the cutter needs from a sheet (the gnoll sheets were right): a turnaround of stills (front, right, back, left), then rows of frames all facing right in side view; every frame apart from its neighbours; one scale for the whole sheet. One sheet an image: a file of several sheets came back as one packed image with soft frames (the bugbear, 10-07).
+
+**To add an ask:** copy the nearest block above and change the head; keep its tail whole. A creature's later sheets (from the front, from behind, its tricks) follow the goblin's and the hobgoblin's in `deep16-art-in-hand.md`.
