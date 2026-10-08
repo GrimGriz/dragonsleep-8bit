@@ -306,12 +306,13 @@
       if (s.tree) m.props.push({ kind: 'tree', sq: s, depth: s.x + s.y + 0.5, gz: s.gz, img: D.art.tree(D.hash('t' + s.x + ',' + s.y)) });
       if (s.block) m.props.push({ kind: 'block', sq: s, depth: s.x + s.y + 0.5, gz: 0, img: blockCanvas(m, s) });
       if (s.cocoon) m.props.push({ kind: 'cocoon', sq: s, depth: s.x + s.y + 0.5, gz: s.gz, img: D.art.cocoon(D.hash('c' + s.x + ',' + s.y)) });
+      // (a rough square's stones stand at its own height -- on a raised square they had sunk under it: the Gnoll Hills' scrub showed no rough ground, 10-08)
       if (s.ch === 'r') {
         for (var k = 0; k < 3; k++) {
           var r = h2(s.x * 7 + k, s.y * 13, seed);
           if (r < 0.45) continue;
           var ox = (h2(s.x, s.y + k * 3, seed + 1) - 0.5) * 0.7, oy = (h2(s.x + k * 5, s.y, seed + 2) - 0.5) * 0.7;
-          m.props.push({ kind: 'stone', sq: s, fx: s.x + 0.5 + ox, fy: s.y + 0.5 + oy, depth: s.x + s.y + 0.5 + ox + oy, gz: 0, img: D.art.rubble(D.hash('r' + s.x + ',' + s.y + ',' + k)) });
+          m.props.push({ kind: 'stone', sq: s, fx: s.x + 0.5 + ox, fy: s.y + 0.5 + oy, depth: s.x + s.y + 0.5 + ox + oy, gz: s.gz || 0, img: D.art.rubble(D.hash('r' + s.x + ',' + s.y + ',' + k)) });
         }
       }
     });
