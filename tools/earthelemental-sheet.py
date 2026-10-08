@@ -34,7 +34,11 @@ stands HEIGHT px too (no turnaround to meet); sheet 5 meets sheet 4 by its stand
 turnaround's Front and Back stills; the re-roll's side, warmer still, by its played mean at game size against the front's and behind's
 idles as they play (see TONE).
 Kept from the first cut: sheet 1's side rows played at K 0.76 (an upscale, soft); the re-roll's play at K 1.84 and 2.35 (a downscale, crisp).
-The re-roll's walk is drawn smaller than its idle (as the front's and behind's are): one K per sheet keeps it so.
+FIT (the ettin cutter's way, tools/ettin-sheet.py): a row drawn smaller than its own sheet's idle meets that idle by AREA, the median of its
+frames' sqrt-area against the idle's -- not by height: a walk leans forward and a swing crouches, so their heights read short even at the
+right size. Fitted: every sheet's walk (the side's 0.85 of its idle, the front's 0.89, behind's 0.81) and behind's slam, slam2 and flinch
+(0.92, 0.90, 0.85); the rest are within 5% of their idles (the front's slams and flinch, the side's slams and flinch) and keep their sheet's K.
+Sheet 5 has no idle and its rows sink, rise and fall: one K.
 """
 import os, sys, json, subprocess
 import importlib.util
@@ -113,6 +117,9 @@ FRONT, BACK = ('idle', 'walk', 'slam', 'slam2', 'flinch'), ('idle', 'walk', 'sla
 ROWS = {'idle': (4, 'idle'), 'walk': (4, 'walk'), 'attack': (4, 'slam'), 'slam': (4, 'slam'), 'slam2': (4, 'slam2'), 'burrow': (5, 'sink'),
         'reveal': (5, 'rise'), 'flinch': (4, 'flinch'), 'hurt': (5, 'fall'), 'prone': (5, 'prone')}
 STAND5 = [('sink', 0), ('rise', -1), ('fall', 0)]   # sheet 5's standing frames, its scale against sheet 4's idle
+# the rows that meet their own sheet's idle by area (see the head): more than about 8% under it. Behind's slam is on the line (0.920, its
+# standing frames 0.94 and 0.91) and goes with its slam2 (0.899), the two blows of one Multiattack played back to back
+FIT = {2: ('walk',), 3: ('walk', 'slam', 'slam2', 'flinch'), 4: ('walk',)}
 NEW = ['slam', 'slam2']   # this cutter's own rows (named here, not in pixelate.py)
 FPS = {'idle': 5, 'walk': 8, 'attack': 10, 'slam': 10, 'slam2': 10, 'burrow': 7, 'reveal': 7, 'flinch': 10, 'hurt': 7, 'prone': 6}
 # per channel, each later sheet's figure brought to sheet 1's: its idle's mean RGB against sheet 1's turnaround still of the same side
@@ -226,9 +233,23 @@ def scales(c):
     return {1: k1, 2: k2, 3: k3, 4: k4, 5: k5}
 
 
+def fits(c, K):
+    """(sheet, row) -> its size against its own sheet's idle, by area (the median of its frames' sqrt-area over the idle's), for FIT's rows"""
+    med = lambda frs, i=0: float(np.median([body(im)[i] for _, im, _ in frs]))
+    every = {(L, row): med(c[L][row]) / med(c[L]['idle']) for L in (2, 3, 4) for row in c[L]}
+    print('  rows against their idle, by area: ' + '; '.join('sheet %d %s' % (L, ', '.join('%s %.3f%s' % (r, v, '*' if r in FIT.get(L, ()) else '')
+                                                           for (l, r), v in every.items() if l == L and r != 'idle')) for L in (2, 3, 4)) + '  (* fitted)')
+    f = {(L, row): every[(L, row)] for L in FIT for row in FIT[L]}
+    for (L, row), v in f.items():
+        print('  FIT sheet %d %s: K %.3f -> %.3f, standing %.0f px -> %.0f px (its idle %.0f)'
+              % (L, row, K[L], K[L] * v, med(c[L][row], 1) / K[L], med(c[L][row], 1) / (K[L] * v), med(c[L]['idle'], 1) / K[L]))
+    return f
+
+
 def main(check=False):
     c = {L: cut(L, check) for L in SHEETS}
     K = scales(c)
+    fit = fits(c, K)
     if check:
         tf, tb = mean_rgb(c[1]['turn'][0:1]), mean_rgb(c[1]['turn'][2:3])
         for L, ref, nm in ((2, tf, 'front'), (3, tb, 'back')):
@@ -246,10 +267,11 @@ def main(check=False):
         if (L, row) not in small:
             frs = c[L][row]
             floor = max(b[3] for _, _, b in frs)
+            k = K[L] * fit.get((L, row), 1.0)
             out = []
             for nm, im, box in frs:
-                a = game_frame(im, K[L], TONE.get(L))
-                out.append((a, core_x(a), int(round((floor - box[3]) / K[L]))))
+                a = game_frame(im, k, TONE.get(L))
+                out.append((a, core_x(a), int(round((floor - box[3]) / k))))
             if (L, row) in EMPTY:
                 out.insert(EMPTY[(L, row)], (None, 0.0, 0))
             small[(L, row)] = out
