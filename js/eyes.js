@@ -17,6 +17,9 @@
   var DS = window.DS = window.DS || {};
   var G1 = 'Eyes: first', G2 = 'Eyes: built this week', G3 = 'Eyes: built before, never seen';
   DS.EYES = {
+    'eyes-centipede-hurt-fb-1008': { pri: 2, group: G2, title: 'The giant centipede falls from the front and from behind: your hurt sheet on S and N (10-08)', pt: 'the bestiary §2.3 (tools/bugs-sheet.py HURT_FB; deep16/art/centipede_p1 hurt) · eyes',
+      url: 'tools/sheet-play.html?sheet=centipede_p1&face=0,4,6&z=3',
+      look: 'Your centipede sheet, the third of the bugs. The sheet player, facing S, N and E. Scroll to hurt: S and N are your sheet (it rears, rolls over and lies on its back with the pale belly up and the legs curled), E is the side fall still drawn in code. Each facing starts at the size of the code idle in that facing (the code draws its back a little smaller than its front). Does it sit with the code-drawn rows?' },
     'eyes-chief-ms2-1008': { pri: 2, group: G2, title: 'The bugbear chief swings twice: its second blow on your MORNINGSTAR 2 row (10-08)', pt: 'the bestiary §6.3 (tools/bugbear-sheet.py chief3; deep16/art/bugbearchief_p2 morningstar2) · eyes',
       url: 'deep16/?show=bugbearchief&fresh=1',
       look: 'Your re-roll of the one row ("bugbear chief GPT backhand 2"). Two chiefs on the test ground, two morningstar blows a turn each: the first is the overhead smash as before, the second now your flat sweep, the morningstar thrown out at arm length and back to guard. Seen from the front or from behind, the second blow plays the first swing again (your sheet drew it side-on only). Is it the same size and colour as the first swing? Your sheet drew it a shade darker, so it was toned to match.' },

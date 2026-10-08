@@ -12,7 +12,7 @@ Rows (every creature): idle 8, walk 8, attack 8, flinch 6, hurt 8 (the death; th
 `latched` 8: drawn at the shoulder of the one it is draining (js/ui.js plays it for an attached rider), the stinger in, the body swelling red.
 The fire beetle's glands glow in the picture and as a light on the floor (data/foes.js `glow`, SRD: bright 10 ft, dim 10 ft).
 Since 10-05 the rows bring a front (S) and a back (N) drawn here too (with_fb); since 10-08 the stirge's and the fire beetle's hurt from the front
-and behind are his GPT sheets, cut and pixelated (HURT_FB), and the centipede's hurt keeps its side frames till its sheet comes.
+and behind are his GPT sheets, cut and pixelated (HURT_FB) -- the centipede's too, the same night.
 """
 import os, sys, math
 import numpy as np
@@ -345,8 +345,8 @@ def stirge_fb(view, ph=0.0, flap=1.0, dive=0.0, fold=0.0, drop=0.0):
 # ------------------------------------------------------------------ the hurt row from the front and behind: his generated sheets (10-08)
 # Griz, 10-08, two GPT sheets for the art list's "the three bugs' hurt row from the front and behind" ("In for /deep16/art wanted"):
 # deep16/_src/Stirge front and back hurt sheet.png and Fire Beetle front and back hurt sheet.png, rows "Hurt Front" (S) and "Hurt Back" (N),
-# eight frames each, cut by tools/sheetrows.py on boxes read off the images. The side row stays drawn in code; the giant centipede has no
-# sheet yet and keeps its side frames. Each spec: text boxes, rows (facing, band x0 y0 x1 y1, label strip y0 y1), and K, image px a game px:
+# eight frames each, cut by tools/sheetrows.py on boxes read off the images. The side row stays drawn in code; the giant centipede's sheet
+# came the same night (below). Each spec: text boxes, rows (facing, band x0 y0 x1 y1, label strip y0 y1), and K, image px a game px:
 # the figure's area in frame 1 (the bug as it stands, before the blow lands) against the code's own S idle's (the stirge 898 px, K 3.68 S and 3.72 N; the beetle 1220, 3.04 and 3.01),
 # measured on the pixelated frame, outline and all. The stirge flies: its sheet starts it only a little above the floor it lands on, so the
 # rise above the floor is stretched to start at its idle's height (19 px) and land where the sheet lands it.
@@ -357,6 +357,13 @@ HURT_FB = {
     'firebeetle': dict(file='Fire Beetle front and back hurt sheet.png', K=3.03, lift=False,
                        text=[(25, 145, 300, 190), (25, 455, 280, 500)],
                        rows=[('S', (30, 195, 1983, 362), (364, 398)), ('N', (30, 503, 1983, 666), (673, 712))]),
+    # the centipede's, the same night from the paste on the art list (his "I told it you were getting the centipede"): the image he pasted in
+    # chat (2000 x 667 webp) filed as deep16/_src/Centipede front and back hurt sheet.webp; a PNG of it in its place cuts the same. K a view
+    # each: the code draws its back smaller than its front (its S idle 1223 px, its N 1069) where his two rows share one scale, so one K
+    # would jump the size as the fall starts in one facing; each view's frame 1 to its own idle (S 3.19, N 3.79)
+    'centipede': dict(file='Centipede front and back hurt sheet.webp', K={'S': 3.19, 'N': 3.79}, lift=False,
+                      text=[(15, 18, 210, 50), (15, 340, 192, 373)],
+                      rows=[('S', (50, 65, 2000, 286), (289, 319)), ('N', (50, 375, 2000, 600), (604, 634))]),
 }
 FLOOR = 85                                  # the idle's lowest row (AY 84, its outline under it): a corpse lies on it
 
@@ -395,14 +402,15 @@ def hurt_fb(name, idle):
     out = {}
     for view, _, _ in h['rows']:
         frs = rows[view]
+        k = h['K'][view] if isinstance(h['K'], dict) else h['K']
         floor = max(b[3] for _, _, b in frs)
-        ups = [(floor - b[3]) / h['K'] for _, _, b in frs]
+        ups = [(floor - b[3]) / k for _, _, b in frs]
         if h['lift'] and ups[0] > 0:                     # from its idle's height above the floor, landing where the sheet lands it
             ups = [u * (FLOOR - _bottom(idle[view][0])) / ups[0] for u in ups]
         row = []
         for (nm, im, box), up in zip(frs, ups):
             w, hh = im.size
-            a = pix.pixelate(im.resize((max(1, round(w / h['K'])), max(1, round(hh / h['K']))), Image.BOX), 1, do_lift=False)
+            a = pix.pixelate(im.resize((max(1, round(w / k)), max(1, round(hh / k))), Image.BOX), 1, do_lift=False)
             d = ndimage.distance_transform_edt(a[..., 3] > 0)
             cx = float(np.where(d >= 0.7 * d.max())[1].mean())   # the body's thick middle: the wings and legs are thin
             fr = np.zeros((FH, FW, 4), np.uint8)
