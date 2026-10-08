@@ -236,7 +236,7 @@
   },
   // the rescue in the dens (events.js, quest `cull`): the roost overhead, and its one law -- no fire, no thunder
   giantbat: {
-    name: 'Giant Bat', type: 'beast', sheet: 'giantbat_p1', cr: '1/4', ac: 13, hp: 22, speed: 60, size: 2, reach: 5, blindsight: 60,
+    name: 'Giant Bat', type: 'beast', sheet: 'giantbat_p1', cr: '1/4', ac: 13, hp: 22, speed: 60, walk: 10, size: 2, reach: 5, blindsight: 60, // (walk: SRD 5.1 "Speed 10 ft., fly 60 ft." -- what a Wild Shape's bat walks when it cannot fly, 10-08)
     abil: { str: 15, dex: 16, con: 11, int: 2, wis: 12, cha: 6 }, init: 3, perception: 11,
     saves: { str: 2, dex: 3, con: 0, int: -4, wis: 1, cha: -2 },
     attacks: { bite: { name: 'Bite', atk: 4, dice: '1d6', mod: 2, type: 'piercing', reach: 5 } },

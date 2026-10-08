@@ -1577,6 +1577,11 @@
       var g9 = GF.groundAt(f9, f9.x, f9.y), asked9 = null, gen9 = B9.exec(f9, { do: 'dashmove', x: 11, y: 8, fz: g9 + 2 * L }), st9, v9;
       for (var k9 = 0; k9 < 4000; k9++) { st9 = gen9.next(v9); v9 = undefined; if (st9.done) break; if (st9.value && st9.value.prompt) { asked9 = st9.value.prompt.title; v9 = st9.value.prompt.opts[0].value; } }
       okFL('a dash at a layer: asked "' + asked9 + '"; at (' + f9.x + ',' + f9.y + '), ' + (f9.fz - g9) / GF.map.def.step * 2.5 + ' ft up, the action spent ' + (f9.turn.action === 0), /DASH THERE/.test(asked9 || '') && f9.x === 11 && GF.aloft(f9) && f9.turn.action === 0);
+      // a flier that cannot fly walks at its walking speed (Griz, 10-08: "1 yes"): a Fly'd fighter prone, 30 (not 60); then up and flying, 60
+      var B10 = mkFL('?npc=goblin&lvl=5&vs=wizard:5,fighter:5'), w10 = sideFL(B10, 'party').filter(function (u) { return u.cls === 'wizard'; })[0], f10 = sideFL(B10, 'party').filter(function (u) { return u.cls === 'fighter'; })[0];
+      w10.x = 6; w10.y = 8; f10.x = 7; f10.y = 8; GF.setup(GF.map, B10.units); D.rules.startTurn(w10); B10.active = w10; w10.slots[2] = 2; runFL(D.magic.cast(B10, w10, 'fly', 3, f10));
+      f10.conds.prone = true; var sp10 = D.rules.speedNow(f10); delete f10.conds.prone; var fl10 = D.rules.speedNow(f10);
+      okFL('Fly\'s fighter prone goes at ' + sp10 + ' (its walk), up at ' + fl10 + ' (its flight)', sp10 === 30 && fl10 === 60);
       // the druid's Giant Bat (Wild Shape, 8th: js/features.js F.SHAPES `flies`): in its shape the move tool takes the wheel's layer too
       var B5 = mkFL('?npc=goblin&lvl=8&vs=druid:8'), d5 = sideFL(B5, 'party')[0]; D.rules.startTurn(d5); B5.active = d5; d5.feats.wildShape = 2; runFL(D.features.wildShape(B5, d5, 'giantbat')); B5.req = { turn: d5 }; B5.tool = 'move'; B5.cache = null;
       var bat5 = !!(d5.beast && d5.flies), fl5 = D.ui.flyer(B5) === d5, st5 = D.ui.stepLayer(B5, 1); B5.req = null;

@@ -838,11 +838,12 @@
   // the move's square in the air (flight at a height; Griz, 10-08, on the pane: "See the way we're doing the rope climb with regard to altitude indication. when in the air, can we do
   // semitransparent around the white 'move here' square so you can tell it's an altitude move square"): a pale see-through column from the ground under the square up to the
   // layer, its two near faces filled faintly and its edges drawn, as the rope's rung draws the face it climbs
-  function airColumn(x, y, z, e, left) {
+  function airColumn(x, y, z, e, left, v) {
     var g = G.map.gz(x, y); if (z <= g) return;
     var lp = D.iso.center(x, y, z), ls = D.iso.toScreen(lp.x, lp.y); // (its height and its move beside it, as the rope's rung: the Edifice's, 10-05 -- Griz, 10-08, "check the edifice climb")
-    LABELS.push({ x: ls.x + 18, y: ls.y - 4, text: (Math.round((z - g) / G.map.def.step / 2) * 5) + ' ft up' + (e && e.stand ? '  ' + (e.cost <= left ? '{n}' : '{o}') + e.cost + ' ft of move{/}' : ''), color: R('bone', 1) });
-    var iso = D.iso, HW = iso.TW / 2, HH = iso.TH / 2, c = iso.center(x, y, 0), col = R('bone', 1);
+    LABELS.push({ x: ls.x + 18, y: ls.y - 4, text: (Math.round((z - g) / G.map.def.step / 2) * 5) + ' ft up' + (v === 'no' ? '  {o}out of reach{/}' : v === 'far' && e ? '  {y}' + e.cost + ' ft: a dash{/}' : e && e.stand ? '  ' + (e.cost <= left ? '{n}' : '{o}') + e.cost + ' ft of move{/}' : ''), color: R('bone', 1) });
+    var colC = v === 'no' ? R('red', 4) : v === 'far' ? R('gold', 2) : null;
+    var iso = D.iso, HW = iso.TW / 2, HH = iso.TH / 2, c = iso.center(x, y, 0), col = colC || R('bone', 1);
     var P = function (v, zz) { return iso.toScreen(c.x + v[0], c.y + v[1] - zz); }, L = [-HW, 0], Bm = [0, HH], Rt = [HW, 0];
     var item = { depth: x + y + 0.45, gz: z, layer: 1, draw: function (cx) {
       cx.save(); cx.fillStyle = col; cx.strokeStyle = col; cx.lineWidth = 1;
@@ -1906,7 +1907,7 @@
       }
       LAYERZ = rc.layer != null ? rc.layer : null; // (flight at a height: the squares at the layer)
       Object.keys(rc.move).forEach(function (k) { var e = rc.move[k]; if (e.stand && e.cost > 0) fillSq(ctx, e.x, e.y, R('glow', 1), 0.17); });
-      if (LAYERZ != null) { lineSq(ctx, cx, cy, R('bone', 1), 0.9, 1); airColumn(cx, cy, LAYERZ, rc.move[cx + ',' + cy], T.move); } // (the square in the air: a pale column down to the ground under it, as the rope's rung shows its height -- Griz, 10-08)
+      if (LAYERZ != null) airColumn(cx, cy, LAYERZ, rc.move[cx + ',' + cy] || (rc.dash && rc.dash[cx + ',' + cy]), T.move, UI.valid(B, u, cx, cy)); // (the cursor itself is drawn at the layer below, red where it cannot go -- Griz, 10-08) // (the square in the air: a pale column down to the ground under it, as the rope's rung shows its height -- Griz, 10-08)
       LAYERZ = null;
       // a rogue's places to try hiding (no foe she knows of sees her there plainly): always, as she moves (Griz, 09-27)
       // the ways out: a pale marker on each (set design, 09-27)
@@ -1977,7 +1978,9 @@
     var clW = clingOf(B); if (clW) drawRung(B, u, { rope: { at: clW.hang.face, foot: clW.hang.foot }, z: clW.hang.z, ok: true, cling: true }); // (a figure clinging to a face, the mouse on it: the face, its height, the same gold -- clingOf, 10-05)
     // the cursor: red where the current thing can't go
     var s0 = G.map.at(cx, cy);
+    var lzC = tool === 'move' && UI.flyer(B) === u ? UI.layerZ(B, u) : null; if (lzC != null) LAYERZ = lzC; // (a flier's move at a layer: the cursor at the layer, red where it cannot go -- Griz, 10-08, "when out of autodash move square becomes red to explain why clicking fails to move you")
     if (s0 && s0.open) { var v = UI.valid(B, u, cx, cy); lineSq(ctx, cx, cy, v === 'no' ? R('red', 4) : v === 'cut' ? R('fire', 2) : v === 'far' || v === 'rope' || v === 'rung' || v === 'take' || v === 'takelight' ? R('gold', 2) : v === 'self' ? R('gold', 4) : R('bone', 2), 1, 1); }
+    LAYERZ = null;
   }
 
   // ------------------------------------------------------------------ the initiative strip, the cards, the tooltip

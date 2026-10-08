@@ -1713,6 +1713,7 @@
       var csN = G.climbsUp(u, u.x, u.y, nx, ny), kindN = G.faceKind(nx, ny), cDC = G.climbDC(csN, u, kindN), z0 = G.gzAt(u, u.x, u.y), z1 = G.gzAt(u, nx, ny), stZ = G.map.def.step;
       // up a face: up it first and then over the lip; off one: out over the edge and then down (10-04, Griz: "can we move them vertical"); a longer step for a taller face (ui.js unitPos)
       var cliffM = z1 - z0 > stZ ? 'climb' : z0 - z1 > stZ ? 'drop' : null, stF = STEP_FRAMES + (cliffM ? 2 * Math.round(Math.abs(z1 - z0) / stZ) : 0);
+      if (G.winged(u) && (u.fz != null || u.flies) && !u.floats) { stF = Math.max(3, Math.round(stF / 2)); cliffM = null; } // (a flier's step twice a walker's pace, over any ledge without a climb: Griz, 10-08, "so flight looks faster than walking")
       // a rope (grid.js G.ropeOn): along it, no check and no fall, up the face or out over the edge and down it; off one part way up, down it first and then the step
       var rpS = G.ropeOn(u, u.x, u.y, nx, ny), hung0 = !!(u.hang && G.hanging(u));
       if (rpS) cliffM = z1 > z0 ? 'climb' : 'ropedown'; else if (hung0) cliffM = 'climb';

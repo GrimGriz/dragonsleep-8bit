@@ -1251,10 +1251,10 @@
     cast: function* (B, u, t, slot, head) {
       if (t.conds.flying) { B.card([head + ': ' + t.name + ' flies already.']); yield 16; return; }
       var rec = t.conds.flying = { by: u.id, flies0: !!t.flies, speed0: t.speed };
-      t.flies = true; if (t.speed < 60) { if (t.turn && B.active === t) t.turn.move += 60 - t.speed; t.speed = 60; }
+      t.flies = true; if (t.speed < 60) { if (t.turn && B.active === t) t.turn.move += 60 - t.speed; rec.walk0 = t.walkSpeed; t.walkSpeed = t.speed; t.speed = 60; } // (walkSpeed: on the ground, prone, it crawls at its own -- rules.js RU.speedNow)
       FX.ring(t, 'glow', 32); D.sfx('buff');
       B.card([head + ' on ' + t.name + ': {c}it flies, 60 ft{/}  {g}(Shift+wheel or PgUp/PgDn its height while it moves; concentration){/}'], 260);
-      M.concentrate(B, u, 'fly', 'Fly', function () { if (t.conds.flying !== rec) return; delete t.conds.flying; t.flies = rec.flies0; t.speed = rec.speed0; if (t.turn && t.turn.move > t.speed) t.turn.move = t.speed; B.cache = null; if (B.flyCheck) B.flyCheck(); });
+      M.concentrate(B, u, 'fly', 'Fly', function () { if (t.conds.flying !== rec) return; delete t.conds.flying; t.flies = rec.flies0; t.speed = rec.speed0; t.walkSpeed = rec.walk0; if (t.turn && t.turn.move > t.speed) t.turn.move = t.speed; B.cache = null; if (B.flyCheck) B.flyCheck(); });
       yield 24;
     },
     ai: function () { return null; }
