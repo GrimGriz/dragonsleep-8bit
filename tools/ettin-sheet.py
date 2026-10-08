@@ -6,12 +6,16 @@
 Sources (gitignored, the main checkout's -- a worktree reads them there): deep16/_src/Fresh/Two-Headed Ettin Battle Sprite Sheet-1.png (the
 side rows), Front-facing ettin sprite sheet-2.png (from the front) and Ettin back-view flinch sprite fix-13.png (from behind: his re-roll of the
 whole sheet, which replaces Ettin Back Sprite Sheet-8.png, whose Flinch swapped the weapons -- -8 is not read) -- Griz, 2026-10-08, from the
-pastes in deep16-art-in-hand.md, "The stand-ins' first sheets" (#### The ettin) and "The six's fronts and backs".
+pastes in deep16-art-in-hand.md, "The stand-ins' first sheets" (#### The ettin) and "The six's fronts and backs"; then Ettin battleaxe and
+morningstar animation-1.png (sheet 4: his re-roll of the side Battleaxe row alone, 10-08 -- one row, Battleaxe 6, the axe in the right hand
+and the star in the left in every frame, whatever its name says), which plays in place of sheet 1's.
 
 Sheet 1: a portrait (dropped as lettering) and a turnaround (front, right, back, left: cut for the scale only), then rows facing RIGHT,
 labelled by number: idle 6, walk 8, battleaxe 6, morningstar 6, flinch 4, fall 6, prone 2. Sheets 2 (the front) and 3 (behind): idle 6,
 walk 8, battleaxe 6, morningstar 6, flinch 4, no turnaround -- every row the side's frame count, so no frame is repeated or dropped.
-Cut as drawn, a slip of the generator's kept: sheet 1's battleaxe 4 (the chop at its lowest) has a second axe in the star's hand.
+Sheet 1's battleaxe 4 (the chop at its lowest) has a second axe in the star's hand, so the side battleaxe (and attack) is sheet 4's; sheet 1's
+row is still cut (its raised axe is painted out of the walk's band that way, REACH below), and played nowhere. Sheet 4 meets sheet 1 by its
+guard (its first and last frames, the rest pose) against sheet 1's side idle, by area, and is toned to sheet 1 per channel.
 Facings: NE, E and SE take the side rows as drawn, SW, W and NW mirrored (the axe and the star change hands with them, and the heads change
 sides, as every mirrored sheet's do); S takes sheet 2's rows and N sheet 3's for idle, walk, battleaxe (and attack), morningstar and flinch;
 the fall (`hurt`) and the prone play side-on from S and N too. Rows: `battleaxe` and `morningstar` are named for the attacks (battle.js plays a
@@ -44,7 +48,7 @@ pix = _load('pix', os.path.join(ROOT, 'tools', 'pixelate.py'))
 SR = _load('sheetrows', os.path.join(ROOT, 'tools', 'sheetrows.py'))
 
 FILES = {1: os.path.join('Fresh', 'Two-Headed Ettin Battle Sprite Sheet-1.png'), 2: os.path.join('Fresh', 'Front-facing ettin sprite sheet-2.png'),
-         3: os.path.join('Fresh', 'Ettin back-view flinch sprite fix-13.png')}
+         3: os.path.join('Fresh', 'Ettin back-view flinch sprite fix-13.png'), 4: os.path.join('Fresh', 'Ettin battleaxe and morningstar animation-1.png')}
 SRC = os.path.join(ROOT, 'deep16', '_src')                 # his sheets live in the main checkout (_src is not in git): a worktree reads them there
 if not os.path.exists(os.path.join(SRC, FILES[1])):
     _common = subprocess.run(['git', '-C', ROOT, 'rev-parse', '--git-common-dir'], capture_output=True, text=True).stdout.strip()
@@ -76,6 +80,8 @@ SHEETS = {
                 ('battleaxe', (0, None, 1536, None), (600, 615), NUM(6), [246, 462, 675, 897, 1109, 1327]),
                 ('morningstar', (0, None, 1536, None), (789, 805), NUM(6), [248, 462, 699, 923, 1150, 1361]),
                 ('flinch', (0, None, 1536, None), (982, 997), NUM(4), [248, 487, 714, 945])]),
+  4: dict(text=[(0, 350, 240, 400)],                                      # (one row: the side battleaxe, re-rolled)
+          rows=[('battleaxe', (0, 0, 2172, None), (483, 514), NUM(6), [368, 677, 995, 1298, 1632, 1956])]),
 }
 SPLIT = {(3, 'battleaxe'): 393}   # (sheet, row) -> the line between it and the row above, by hand: battleaxe 2's axe head rises to 398, past
                                   # the walk numbers' middle (402); the walk's feet end at 390 (the numbers between are lettering either way)
@@ -94,13 +100,14 @@ TOUCH_OK = {}
 
 # the engine's rows: (sheet 1's row) for the side; S and N as described in the head
 FRONT = BACK = ('idle', 'walk', 'battleaxe', 'morningstar', 'flinch')   # sheet 2's rows for S, sheet 3's for N
-ROWS = {'idle': 'idle', 'walk': 'walk', 'attack': 'battleaxe', 'battleaxe': 'battleaxe', 'morningstar': 'morningstar', 'flinch': 'flinch',
-        'hurt': 'fall', 'prone': 'prone'}
+ROWS = {'idle': 'idle', 'walk': 'walk', 'attack': (4, 'battleaxe'), 'battleaxe': (4, 'battleaxe'), 'morningstar': 'morningstar',
+        'flinch': 'flinch', 'hurt': 'fall', 'prone': 'prone'}   # (sheet 1's row, or (sheet, row): the battleaxe is the re-roll's)
 NEW = ['battleaxe']   # this cutter's own row (named here, not in pixelate.py; `morningstar` is there already)
 FPS = {'idle': 5, 'walk': 8, 'attack': 10, 'battleaxe': 10, 'morningstar': 10, 'flinch': 8, 'hurt': 8, 'prone': 8}
 # per channel, each later sheet's figure brought to sheet 1's: mean RGB against sheet 1's turnaround view of the same side (the front's idle,
 # 108.8 71.2 48.7, to the turnaround's Front, 101.3 69.1 51.4; behind, 105.4 69.1 48.1, to its Back, 95.3 64.9 48.9 -- both came warmer), 10-08
-TONE = {2: (0.932, 0.970, 1.055), 3: (0.904, 0.939, 1.016)}
+# and the re-rolled side battleaxe's guard (frames 1 and 6), 108.8 73.7 56.3, to sheet 1's side idle, 97.3 67.7 52.5 (warmer and brighter), 10-08
+TONE = {2: (0.932, 0.970, 1.055), 3: (0.904, 0.939, 1.016), 4: (0.894, 0.918, 0.933)}
 FIT = (2, 3)          # the sheets whose rows meet their own idle by area (fits below)
 HEIGHT = 98           # the side idle, standing px
 FH, AY = 148, 136
@@ -223,7 +230,12 @@ def scales(c):
     print('  K: sheet 1 %.3f, turnaround %.3f (the side rows %.3f of it; against its Right they would be %.3f), front %.3f, back %.3f; '
           'idle standing: side %d px, from the front %.0f px, from behind %.0f px'
           % (k1, kt, k1 / kt, med(c[1]['idle']) / turn['right'], k2, k3, HEIGHT, med(c[2]['idle'], 1) / k2, med(c[3]['idle'], 1) / k3))
-    return {1: k1, 2: k2, 3: k3}
+    guard4 = float(np.median([body(c[4]['battleaxe'][i][1])[0] for i in (0, -1)]))   # (the re-roll's first and last: the guard)
+    k4 = k1 * guard4 / med(c[1]['idle'])
+    print('  K: sheet 4 (the re-rolled side battleaxe) %.3f -- its guard against the side idle by area; against sheet 1\'s own battleaxe 1 it '
+          'would be %.3f; its guard stands %.0f px' % (k4, k1 * guard4 / body(c[1]['battleaxe'][0][1])[0],
+                                                      float(np.median([body(c[4]['battleaxe'][i][1])[1] for i in (0, -1)])) / k4))
+    return {1: k1, 2: k2, 3: k3, 4: k4}
 
 
 def fits(c):
@@ -252,8 +264,9 @@ def main(check=False):
             small[(L, row)] = out
         return small[(L, row)]
     src = {}
-    for eng, row in ROWS.items():
-        side = frames_of(1, row)
+    for eng, by in ROWS.items():
+        L, row = by if isinstance(by, tuple) else (1, by)
+        side = frames_of(L, row)
         if eng == 'prone':
             side = side[::-1]                            # pushing up, then lying: it lies at its last frame and gets up by playing it backwards
         per = []
