@@ -17,6 +17,12 @@
   var DS = window.DS = window.DS || {};
   var G1 = 'Eyes: first', G2 = 'Eyes: built this week', G3 = 'Eyes: built before, never seen';
   DS.EYES = {
+    'eyes-gallery-slots-1008': { pri: 2, group: G2, title: 'The one gallery: a spell at three slots, UP to step it (10-08)', pt: 'the one gallery §3.5 (deep16/js/onegallery.js; deep16/js/gallery.js headerOne)',
+      url: 'deep16/?gallery&spell=burninghands&fresh=1',
+      look: 'Burning Hands, cast at 1st. The column down the left: the four shelves at its head, the card, BY SLOT from 1st (3d6) to 9th (11d6). UP twice: cast at 3rd, 5d6, the marker on 3rd. LEFT/RIGHT the next spell, SHIFT with them ten, L the list (click one), 1-4 or a click on the head the shelves. A cantrip (Fire Bolt) steps the caster instead: 1st, 5th, 11th, 17th.' },
+    'eyes-gallery-staged-1008': { pri: 2, group: G2, title: 'The one gallery, CREATURES: a blow row played at a fighter, turned two ways (10-08)', pt: 'the one gallery §3.5 (deep16/js/show.js SH.rows stageFor)',
+      url: 'deep16/?gallery&shelf=creatures&rows=ettin&fresh=1',
+      look: 'The ettin. RIGHT to MORNINGSTAR: a fighter stands in its reach and the swing lands on it (the card in the column says so). Press the full stop twice: the ettin turns and the fighter walks round to stay in front of it. FLINCH: the fighter swings at it. SHIFT+E plays a row bare, F lets the dice fall, SPACE pauses mid-swing and [ ] step a frame. L on this shelf is the bestiary: click one.' },
     'eyes-search-cover-1008': { pri: 2, group: G2, title: 'Search finds a hider in half cover: the Rascal and Vivian duel that never ended ends (10-08)', pt: 'the AI and the dark §5 (deep16/js/battle.js search) · eyes',
       url: 'deep16/?npc=rascal:4&vs=vivian:4&lvl=4&watch&seed=1220',
       look: 'The duel that ran 20,001 rounds on the bench. Both hide early; from round 2 Vivian SEARCHES and now rolls against Rascal behind the stalagmite (it had said "no one hidden in sight" while she could see him over it) -- FOUND, and the fight goes on to its end in about five rounds. The same search now finds your own hidden Mascot behind cover when a foe looks for him.' },

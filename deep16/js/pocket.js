@@ -760,9 +760,7 @@
     var rows = [['THE LADDER', 'the story\'s fights, rung by rung, the four at each level', function () { location.href = '?ladder'; }],
       ['THE TESTER LADDER', 'Talmok, Willem, Katarina and Torvald; you watch, or play (P) and it is recorded', function () { location.href = '?ladder&party=ours'; }],
       ['THE CLIMB', 'one party from level 1 to 9, your own picks at each level', function () { location.href = '?climb'; }],
-      ['THE SPELL GALLERY', 'every spell on the grid, cast in turn', function () { location.href = '?fxgallery'; }],
-      ['THE FEATURE GALLERY', 'every class feature, fired in turn', function () { location.href = '?fxgallery&features'; }],
-      ['THE MASCOT GALLERY', 'the four Mascots\' abilities one at a time, up/down the level', function () { location.href = '?mpgallery'; }],
+      ['THE GALLERY', 'spells, features, the Mascots and every creature\'s rows: one door, one set of keys (X comes back here)', function () { location.href = '?gallery&from=pocket'; }], // (the three galleries as one, js/onegallery.js, 10-08)
       ['TEST RUNS', 'the page that builds any URL of the game, row by row', function () { self.open('../test-runs.html'); }],
       ['SITUATIONS', 'twenty places in the 8-bit story to stand, one step short', function () { self.open('../situations.html'); }],
       ['EVERY URL', 'URLS.md: the whole list, with what each does', function () { self.open('https://github.com/GrimGriz/dragonsleep-8bit/blob/main/URLS.md'); }],

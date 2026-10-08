@@ -256,7 +256,8 @@
     var B = new D.Battle({ npc: { foes: kinds.slice(), party: ['fighter:' + L + ':human'] },
       fightDef: D.classFight(L, { what: 'the row gallery', intro: 'Every row of its sheet, one at a time. Left/right the row, up/down turn it, E again.' }) });
     B.showRipple = get('ripple');
-    var S = B.rowGallery = { list: [], i: 0, face: 7 };
+    var S = B.rowGallery = { list: [], i: 0, face: 7, bare: false, real: false };
+    S.restart = function () { return loop(); }; // (the one gallery starts the loop over at S.i: js/onegallery.js)
     var enter0 = B.enter;
     B.enter = function () {
       enter0.apply(this, arguments);
@@ -281,20 +282,75 @@
       u.x = S.home[0]; u.y = S.home[1]; u.facing = S.face; u.hp = u.maxhp; u.conds = {}; u.dead = false; u.ko = false; u.deadT = null;
       u.under = false; u.ethereal = false; u.proneLook = false; u.proneT = null; u.woken = true; u.acted = true; u.flash = 0; u.anim = 'idle'; u.animT = B.t;
     }
-    function card(it) {
+    function card(it, how) {
       var a = D.spr.anim(it.u.sheet, it.row), n = a ? a.frames + ' frames at ' + (a.fps || 8) + ' fps' : 'its fall frame';
       B.clearCards();
+      if (B.one) { // (the one gallery's column, js/onegallery.js: no key line here, it has its own)
+        var ls = ['{y}' + it.u.name.toUpperCase() + '{/}', (S.i + 1) + ' / ' + S.list.length + '   {y}' + it.row.toUpperCase() + '{/}', '{g}' + n + '{/}', '{g}facing ' + D.spr.FACINGS[S.face] + '{/}'];
+        if (how) { ls.push(''); ls = ls.concat(D.wrap(how, B.one.wrapAt).map(function (l) { return '{c}' + l + '{/}'; })); }
+        B.card(ls, 1e9, 'rows'); return;
+      }
       B.card(['{y}' + it.u.name.toUpperCase() + '  ' + (S.i + 1) + ' / ' + S.list.length + '   ' + it.row.toUpperCase() + '{/}  ' + n,
         '{g}facing ' + D.spr.FACINGS[S.face] + '   left/right the row · up/down turn it · E again{/}'], 1e9, 'rows');
     }
+    // ---- the staging (the one gallery, 10-08 -- Griz: "The row gallery didn't make the connection of setting up victims of abilities it to effects it wanted to show"):
+    // a row that is the look of a blow is played as that blow, through the engine's own attack, at the fighter set on the square it wants along the way the creature
+    // faces (in reach for a swing, 20-30 ft off for a shot); the flinch is the fighter's blow at it, the catch a stone hurled at it (the d20 pinned, so the save
+    // holds), the hide its Hide. B.show lands every blow at or from it, as on the test ground, and keeps everyone above 0 -- F lets the dice fall instead (S.real)
+    var STEP = [[1, 1], [0, 1], [-1, 1], [-1, 0], [-1, -1], [0, -1], [1, -1], [1, 0]]; // (js/sprites.js S.FACINGS' order: S, SW, W, NW, N, NE, E, SE)
+    var STONE = { name: 'Stone', atk: 5, dice: '1d4', mod: 0, type: 'bludgeoning', range: [20, 60], ranged: true, fx: 'rock', hurled: true }; // (the show's, SH.turn)
+    function rowName(a, k) { return String(a.name || k).toLowerCase().replace(/[^a-z]/g, ''); }
+    function blowFor(u, r) { // the blow a row is the look of: the one of its own name, or for `attack` the first blow with no row of its own
+      var ks = Object.keys(u.attacks || {}).filter(function (k) { return !u.attacks[k].spell && !u.attacks[k].needsHeld; });
+      var own = ks.filter(function (k) { return rowName(u.attacks[k], k) === r; })[0];
+      if (own) return u.attacks[own];
+      if (r !== 'attack') return null;
+      var plain = ks.filter(function (k) { return !D.spr.anim(u.sheet, rowName(u.attacks[k], k)); })[0];
+      return plain ? u.attacks[plain] : ks[0] ? u.attacks[ks[0]] : null;
+    }
+    function standIn(u, a) { // the fighter on the square the blow wants, straight out from the way the creature faces
+      var d = STEP[S.face], m = S.mate, sz = u.size || 1, reach = a.reach || u.reach || 5, far = a.ranged ? Math.min(30, (a.range && a.range[0]) || 30) : reach;
+      for (var k = 1; k <= 14; k++) {
+        var x = S.home[0] + d[0] * k + (d[0] > 0 ? sz - 1 : 0), y = S.home[1] + d[1] * k + (d[1] > 0 ? sz - 1 : 0);
+        if (x >= u.x && x < u.x + sz && y >= u.y && y < u.y + sz) continue;
+        if (!D.grid.canStand(m, x, y)) continue;
+        m.x = x; m.y = y; var ft = D.grid.dist(u, m);
+        if (a.ranged ? ft >= far || k === 14 : ft <= reach) { D.grid.setup(D.grid.map, B.units); u.facing = S.face; m.facing = B.faceTo(m, u); return true; }
+      }
+      return false;
+    }
+    function* fire(gen) { var v; for (var k = 0; k < 20000; k++) { var r = gen.next(v); v = undefined; if (r.done) return r.value; var y = r.value; if (y && y.prompt) { v = y.prompt.opts[0].value; continue; } v = yield y; } }
+    function* blow(att, tgt, a, d20) { // one blow through the engine's own attack, as the show lands it (or as the dice fall: S.real)
+      var show0 = B.show, d0 = D.d; B.show = !S.real;
+      if (d20) D.d = function (n) { return n === 20 ? d20 : d0.apply(this, arguments); };
+      B.active = att; D.rules.startTurn(att);
+      try { yield* fire(B.attack(att, tgt, a)); } finally { B.show = show0; D.d = d0; B.active = null; }
+      yield 40;
+    }
+    function stageFor(u, r) {
+      var a = blowFor(u, r), m = S.mate, nm = function (x) { return String(x.name || 'blow'); };
+      if (a) return { say: 'Its ' + nm(a) + ' at the fighter, ' + (a.ranged ? 'from across the floor' : 'in its reach') + ': the blow lands.', go: function* () { if (standIn(u, a)) yield* blow(u, m, a); else { u.anim = r; u.animT = B.t; } } };
+      if (r === 'flinch') return { say: "The fighter's blow at it: it flinches.", go: function* () { if (standIn(u, { reach: 5 })) yield* blow(m, u, m.weapon); } };
+      if (r === 'catch' && u.rockCatch) return { say: 'A stone hurled at it, the d20 pinned so the save holds: it catches it.', go: function* () { if (standIn(u, { ranged: true, range: [20, 60] })) { m.facing = B.faceTo(m, u); yield* blow(m, u, STONE, 20); } } };
+      if (r === 'hide' && B.hide) return { say: 'Its Hide, the d20 pinned and a Stealth no eye beats: the row held while it stays hidden.', go: function* () {
+        D.rules.startTurn(u); if (u.turn) u.turn.bonus = 1;
+        var d0 = D.d, st0 = u.stealth; D.d = function (n) { return n === 20 ? 20 : d0.apply(this, arguments); }; u.stealth = 40;
+        try { yield* fire(B.hide(u, true)); } finally { D.d = d0; u.stealth = st0; }
+        yield 40; } };
+      return null;
+    }
     function* play(it) {
       var u = it.u; S.upAt = null;
-      B.units = [S.mate, u]; S.foes.forEach(function (w) { if (w !== u) off(w); }); off(u); D.grid.setup(D.grid.map, B.units);
+      B.units = [S.mate, u]; S.foes.forEach(function (w) { if (w !== u) off(w); }); off(u);
+      var mt = S.mate; mt.x = S.home[0] - 2; mt.y = S.home[1] + 1; mt.facing = 6; mt.hp = mt.maxhp; mt.conds = {}; mt.dead = false; mt.ko = false; mt.anim = 'idle'; mt.animT = B.t; // (the fighter back where it stood, whole)
+      D.grid.setup(D.grid.map, B.units);
       var r = it.row, at = r === 'clamp' || r === 'latched' ? S.mate : u; // (the camera on where it will be: on the fighter's head for those two)
       if (S.lastKind !== u.kind) { S.lastKind = u.kind; var sz = Math.max(u.size || 1, r === 'clamp' || r === 'latched' ? 1 : 0); D.iso.zoom = Math.max(S.zoom0, sz >= 3 ? 1.0 : sz === 2 ? 1.4 : 2.4); } // (a new creature, its own closeness; within one, the wheel's is kept)
       var up = (u.size || 1) >= 2 && at === u ? 0.5 : 0; // (a tall one: the camera half a square up the screen, so the head clears the card)
       D.iso.lookAt(at.x - up, at.y - up, D.grid.map.gz(at.x, at.y));
-      card(it);
+      var sg = B.one && !S.bare ? stageFor(u, r) : null; S.bare = false; // (the one gallery stages a row with what it is the look of: SHIFT+E plays it bare)
+      card(it, sg ? sg.say + (S.real ? ' (the dice as they fall: F pins them)' : '') : B.one ? 'The row alone.' : null);
+      if (sg) { yield 12; yield* sg.go(); return; }
       yield 12;
       if (r === 'hurt') { u.hp = 0; u.dead = true; u.deadT = B.t; u.anim = 'idle'; u.animT = B.t; }
       else if (r === 'prone') { u.conds.prone = true; S.upAt = B.t + 100; } // (down on its side, then up again by itself -- the input below keeps the clock, so a key is never lost)

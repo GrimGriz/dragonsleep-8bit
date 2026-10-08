@@ -241,7 +241,7 @@
     B.paint = function (ctx) {
       var cs = this.cards; this.cards = [];
       try { paint0.apply(this, arguments); } finally { this.cards = cs; }
-      cardsRight(ctx, this); column(ctx);
+      cardsRight(ctx, this); if (!this.one) column(ctx); // (in the one gallery, js/onegallery.js, its column draws this panel under the shelves)
     };
     // the column scrolls every frame, a demonstration running or not: the wheel over it, or a click on it (its top half up, its bottom half down);
     // both are spent here, so the floor's zoom and the show's own click list never see them
@@ -398,6 +398,7 @@
         S.i = ((next % S.ids.length) + S.ids.length) % S.ids.length;
       }
     }
+    S.restart = function () { return loop(); }; // (the one gallery starts the loop over at S.i, S.L: js/onegallery.js)
     return { loop: loop, stage: stage, ctx: ctx };
   }
 

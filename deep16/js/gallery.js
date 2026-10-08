@@ -90,9 +90,10 @@
     // the card: the spell's name, what the 8-bit game says of it (where it says anything), the rules line the ring shows, the keys.
     // B.card does not wrap a line, so the description and the rules line are wrapped here, at a width that leaves the card inside the screen
     function header(id, sp, e, u, st) {
-      var wrapAt = 440, rules = '';
+      var wrapAt = B.one ? B.one.wrapAt : 440, rules = ''; // (the one gallery's column is narrower: js/onegallery.js)
       try { rules = e ? D.magic.summary(e, u) : ''; } catch (x) { rules = ''; }
       var lines = ['{y}' + (S.i + 1) + ' / ' + S.ids.length + '   ' + sp.name.toUpperCase() + '{/}' + (sp.level ? '  (level ' + sp.level + ')' : '  (cantrip)')];
+      if (B.one) return headerOne(D.wrap('{y}' + (S.i + 1) + '/' + S.ids.length + '  ' + sp.name.toUpperCase() + '{/}', wrapAt).concat(['{g}' + (sp.level ? 'level ' + sp.level : 'cantrip') + '{/}']), sp, e, u, st, rules, wrapAt);
       // the creature types they name show as their glyphs (Griz, 09-29), and "(inspect)" once after both when any is named
       var desc = D.typeText(sp.desc || '', true); rules = D.typeText(rules, true);
       if (/\{:/.test(desc + rules)) { if (rules) rules += ' (inspect)'; else desc += ' {g}(inspect){/}'; }
@@ -103,6 +104,44 @@
       B.clearCards(); S.card = null;
       B.card(lines, 1e9, 'gallery'); S.card = B.cards[B.cards.length - 1];
     }
+    // the one gallery's card (?gallery, js/onegallery.js, 10-08 -- Griz: "the raise level of character (shows expanding spell radius, etc) that might should go in
+    // the spell effect gallery"): what the 8-bit says, the rules line at the slot it is cast at, the TIP, and BY SLOT -- the rules line at every slot from the
+    // spell's own to the 9th, a run of the same said once -- or, for a cantrip, BY THE CASTER'S LEVEL (1, 5, 11, 17: its dice grow with the caster). Up/down
+    // steps it (S.up, S.cl); the column draws it, so no key line here
+    function headerOne(lines, sp, e, u, st, rules, wrapAt) {
+      var desc = D.typeText(sp.desc || '', true); rules = D.typeText(rules, true);
+      if (desc) lines = lines.concat(D.wrap(desc, wrapAt));
+      if (e && e.ok) lines.push('', sp.level ? '{c}CAST AT ' + nth(S.slotAt || sp.level) + ' LEVEL{/}' : '{c}THE CASTER AT ' + nth(u.lvl) + ' LEVEL{/}');
+      if (rules) lines = lines.concat(D.wrap(rules, wrapAt).map(function (l) { return '{g}' + l + '{/}'; }));
+      if (st && st.tip) { lines.push(''); lines = lines.concat(D.wrap('TIP: ' + st.tip, wrapAt).map(function (l) { return '{c}' + l + '{/}'; })); }
+      var lad = e && e.ok ? ladder(sp, e, u, wrapAt) : [];
+      if (lad.length) { lines.push('', sp.level ? '{c}BY SLOT{/}' : "{c}BY THE CASTER'S LEVEL{/}"); lines = lines.concat(lad); }
+      B.clearCards(); S.card = null;
+      B.card(lines, 1e9, 'gallery'); S.card = B.cards[B.cards.length - 1];
+    }
+    function nth(n) { return n + (n % 100 >= 11 && n % 100 <= 13 ? 'th' : ['th', 'st', 'nd', 'rd'][n % 10] || 'th'); }
+    var TIERS = [1, 5, 11, 17];
+    function ladder(sp, e, u, wrapAt) {
+      var steps = [], lv0 = u.lvl;
+      try {
+        if (sp.level) { for (var s = sp.level; s <= 9; s++) if ((e.levels || []).indexOf(s) >= 0) steps.push({ k: s, now: s === (S.slotAt || sp.level), say: D.magic.summary(Object.assign({}, e, { slot: s }), u) }); }
+        else { var tNow = TIERS.filter(function (t) { return t <= lv0; }).pop() || 1; TIERS.forEach(function (t) { u.lvl = t; steps.push({ k: t, now: t === tNow, say: D.magic.summary(e, u) }); }); }
+      } catch (x) { steps = []; } finally { u.lvl = lv0; }
+      var runs = [];
+      steps.forEach(function (st2) { var last = runs[runs.length - 1]; if (last && last.say === st2.say) { last.b = st2.k; last.now = last.now || st2.now; } else runs.push({ a: st2.k, b: st2.k, say: st2.say, now: st2.now }); });
+      if (runs.length < 2) return []; // (the same at every slot: nothing to step through)
+      // only what changes from slot to slot: a part of the rules line (split at its dots) that every run says alike is the rules line's, above
+      var parts = runs.map(function (r) { return String(r.say).split(' · '); });
+      var same = parts[0].filter(function (p) { return parts.every(function (ps) { return ps.indexOf(p) >= 0; }); });
+      runs.forEach(function (r, k) { var left = parts[k].filter(function (p) { return same.indexOf(p) < 0; }); r.say = left.length ? left.join(' · ') : r.say; });
+      var out = [];
+      runs.forEach(function (r) {
+        var tag = (r.a === r.b ? nth(r.a) : nth(r.a) + '-' + nth(r.b)) + ': ' + D.typeText(r.say, true);
+        D.wrap(tag, wrapAt - 10).forEach(function (x, k) { out.push((k ? '    ' : r.now ? '{c}> ' : '  ') + (r.now ? '{c}' + x + '{/}' : x)); });
+      });
+      return out;
+    }
+    S.restart = function () { return loop(); }; // (the one gallery starts the loop over at S.i: js/onegallery.js)
     // B.card keeps three cards and lets the oldest go: a cast that says three things (Eldritch Blast, Moonbeam, Scorching Ray,
     // the mass heals, Meteor Swarm) would push the spell's own card off the screen mid-animation. This one stays, first, and the cast's
     // own cards take the other two places.
@@ -151,12 +190,17 @@
         var P = S.units.filter(function (w) { return w.side === 'party'; }), byCls = {}; P.forEach(function (w) { byCls[w.cls] = w; });
         var u = byCls[casterOf(id)] || P[0], mate = P[3], pals = P.filter(function (w) { return w !== u && w !== mate; });
         u.known = [id]; u.slots = [4, 3, 3, 3, 2, 1, 1, 1, 1]; u.slotsMax = u.slots.slice();
+        if (B.one) u.lvl = sp.level ? 9 : (S.cl || 9); // (the one gallery: a cantrip at the caster's level up/down steps -- 1, 5, 11, 17 -- else the gallery's 9th)
         if (!keep || !round) mate.hp = Math.floor(mate.maxhp / 3); // (a heal wants someone hurt)
         B.round = 1; D.rules.startTurn(u);
         var foes = S.units.filter(function (w) { return w.side === 'foe'; });
         var st = (D.SPELLSTAGE || {})[id] || null, c = { B: B, S: S, D: D, id: id, u: u, mate: mate, pals: pals, foes: foes, cx: cx0(), cy: cy0() };
         if (st) { yield* applyStage(c, st); foes = c.foes; }
         var e = D.magic.list(B, u).filter(function (x) { return x.id === id; })[0];
+        // (the one gallery: the slot up/down asks for, from the stage's own or the lowest -- S.up steps above it, held to the slots the caster has)
+        var base = st && st.slot ? st.slot : e && e.slot;
+        S.slotAt = null;
+        if (B.one && e && sp.level) { var lv = (e.levels || []).filter(function (s2) { return s2 >= base; }); S.up = Math.max(0, Math.min(S.up || 0, lv.length - 1)); S.slotAt = lv[S.up] || base; }
         header(id, sp, e, u, st);
         if (!e || !e.ok) { B.card(['{r}' + sp.name + ': not castable here (' + (e ? e.why : 'no entry') + '){/}'], 1e9, 'gallery-why'); }
         else {
@@ -173,7 +217,7 @@
           if (f0 && f0.x != null) { var mx = Math.round((u.x + f0.x) / 2), my = Math.round((u.y + f0.y) / 2); D.iso.lookAt(mx, my, D.grid.map.gz(mx, my)); }
           yield 20;
           if (st && st.pre) yield* st.pre(c, t, e); // (what the scene needs first: a foe struck, a wall raised, a friend's blessing)
-          yield* B.exec(u, { do: 'cast', id: id, slot: st && st.slot ? st.slot : e.slot, target: t });
+          yield* B.exec(u, { do: 'cast', id: id, slot: S.slotAt || (st && st.slot ? st.slot : e.slot), target: t });
           if (st && st.after) { yield 30; yield* st.after(c, t, e); } // (and what follows: the blow that lands on the sleeper)
         }
         yield 50;
@@ -236,6 +280,7 @@
     var B = new D.Battle({ gallery: true, npc: { party: ['fighter:9'], foes: ['fighter:9'] },
       fightDef: D.classFight(9, { what: 'the feature gallery', intro: 'Every class feature on the grid, one after another.' }) });
     var S = B.gallery = { features: true, i: start, ids: ids, auto: auto, report: {}, card: null };
+    S.restart = function () { return loop(); }; // (the one gallery starts the loop over at S.i: js/onegallery.js)
     var enter0 = B.enter, cx = 0, cy = 0;
     B.enter = function () {
       enter0.apply(this, arguments);
@@ -286,10 +331,11 @@
     // ---- the card: the feature's name, its class and level, its words (B.card does not wrap a line: wrapped here, as the spell mode's)
     function header(id, f) {
       var desc = D.typeText(f.words, true), lines = ['{y}' + (S.i + 1) + ' / ' + S.ids.length + '   ' + f.name.toUpperCase() + '{/}  (' + D.clsLabel(f.cls) + ' ' + f.lvl + (f.sub ? ', ' + f.sub : '') + ')'];
+      if (B.one) lines = D.wrap('{y}' + (S.i + 1) + '/' + S.ids.length + '  ' + f.name.toUpperCase() + '{/}', B.one.wrapAt).concat(D.wrap('{g}' + D.clsLabel(f.cls) + ' ' + f.lvl + (f.sub ? ', ' + f.sub : '') + '{/}', B.one.wrapAt));
       if (/\{:/.test(desc)) desc += ' {g}(inspect){/}';
-      lines = lines.concat(D.wrap(desc, 440));
+      lines = lines.concat(D.wrap(desc, B.one ? B.one.wrapAt : 440)); // (the one gallery's column is narrower: js/onegallery.js)
       lines.push('{g}' + KIND_TAG[f.kind] + (/\bours\b|our own/i.test(f.src || '') ? ' · ours' : '') + '{/}');
-      lines.push('{g}left/right the next · up/down ten · E again{/}');
+      if (!B.one) lines.push('{g}left/right the next · up/down ten · E again{/}');
       B.clearCards(); S.card = null;
       B.card(lines, 1e9, 'gallery'); S.card = B.cards[B.cards.length - 1];
     }
