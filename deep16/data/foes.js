@@ -315,6 +315,27 @@
     },
     multi: 1, rampage: true, src: 'SRD 5.1 Gnoll (CR 1/2): spear or bite; content/monsters.json gnoll; Rampage: dropping one on its turn, a bonus-action bite after half its speed (js/traits.js, 09-28); the longbow +3 1d8+1 150/600 (SRD 5.1, loosed when nothing is in reach: ai.js volley; 10-02 runner); the spear thrown +4 1d6+2 20/60 (SRD 5.1 "Spear. Melee or Ranged Weapon Attack ... range 5 ft. or range 20/60 ft."; volley picks the likelier of it and the bow, so the spear inside 20 ft; 10-02)'
   },
+  // the Harbinger (10-08, Griz: "He's yours my dude. Take the seat."): the made gnoll -- a gnoll Mr. Ripples thumbed on his walk to the Doors,
+  // his mirror eyes in both sockets (TarlynsPit/wiki/the-trickster.md, the making). Ours, from SRD pieces; his kit by the seat on his leans
+  // (..\handoff-2026-10-05-the-bestiary-after-the-bugs.md §9-§11): Backhand twice (the second on `backhand2`); POUNCE, the SRD lion's shape --
+  // 20 ft of his turn and the first blow is the leap, its hit on the row's frame 6 (js/traits.js, battle.js); KNEEL, Hold Person with the
+  // word said (the `cast` row is his kneel); DRINK LIGHT, his reaction -- a spell cast within 60 ft drunk as a Counterspell, healing him and
+  // growing him a step (a check above 3rd; failed, he OVERFILLS and it goes through); FORETELL, a turn ending with no one in his reach, he
+  // readies Mirror Strike for the first to step in. The mirror eyes are the Mirror's (no hiding before him in light, magic.js inMirror).
+  harbinger: {
+    name: 'Harbinger', type: 'monstrosity', sheet: 'mirrorgnoll_p1', cr: '13', ac: 18, hp: 320, speed: 40, size: 2, reach: 10, darkvision: 60,
+    abil: { str: 24, dex: 14, con: 20, int: 10, wis: 14, cha: 17 }, init: 4, perception: 17,
+    saves: { str: 7, dex: 2, con: 10, int: 0, wis: 7, cha: 8 },
+    attacks: { backhand: { name: 'Backhand', atk: 11, dice: '2d10', mod: 7, type: 'bludgeoning', reach: 10 } },
+    multi: 3, mirrorEye: true, condImmune: ['charmed', 'frightened'],
+    pounce: { dice: '3d10', dc: 17, min: 20 },
+    drinkLight: { uses: 3, per: 10 }, // (uses a fight; per: hit points a level of the spell drunk)
+    foretell: { name: 'Mirror Strike', atk: 11, dice: '3d10', mod: 7, type: 'piercing', reach: 10 },
+    kneel: true,
+    caster: { lvl: 9, ab: 'cha', dc: 15, atk: 7, slots: [0, 3], known: ['holdperson'] },
+    ripple: { region: 'mane', every: 150, dur: 54 }, // (the mirror ripple on his mane, frames at 60 Hz: deep16/js/ripple.js, the SRD seat's, 052e833 -- Griz, 10-08: "he's made by mr. ripples but is a lesser being -ripples will get it full body"; the Pounce ripples him whole, js/traits.js)
+    src: 'ours (10-08): the made gnoll, CR 13 Large monstrosity from SRD pieces -- tuned on the bench to win about 6 in 10 alone against the four at 7th (Griz: "Try and get him 6/10 on a solo vs Aurdin Party 7 on the ladder"; dev/bench16.py harbinger lvl=7 n=20 seeds 1-5: 62 of 100) -- the lion\'s Pounce, Counterspell (Drink Light), Hold Person (Kneel), the Ready (Foretell); his five GPT sheets and the Pounce sheet, tools/mirrorgnoll-sheet.py'
+  },
   hyena: {
     name: 'Hyena', type: 'beast', sheet: 'hyena_p2', cr: '0', ac: 11, hp: 5, speed: 50, size: 1, reach: 5,
     abil: { str: 11, dex: 13, con: 12, int: 2, wis: 12, cha: 5 }, init: 1, perception: 13,

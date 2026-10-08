@@ -12,7 +12,7 @@
   function Nm(B, u) { return u.side === 'foe' ? (u.named ? B.shortName(u) : 'The ' + B.shortName(u)) : u.name; }
 
   // the traits a unit carries from its sheet (battle.js makeFoe copies these)
-  TR.FIELDS = ['earthGlide', 'rampage', 'charge', 'relentlessBeast', 'nimble', 'twoHeads', 'corrosive', 'jaunt', 'resilient', 'evasion', 'cunning', 'parry', 'rangedMulti', 'rockCatch']; // (resilient: the duergar's Resilience, SRD 5.1 -- rules.js RU.save; 10-02 runner) (rockCatch: the stone giant's Rock Catching, its DC -- battle.js attack, 10-08)
+  TR.FIELDS = ['earthGlide', 'rampage', 'charge', 'relentlessBeast', 'nimble', 'twoHeads', 'corrosive', 'jaunt', 'resilient', 'evasion', 'cunning', 'parry', 'rangedMulti', 'rockCatch', 'pounce', 'drinkLight', 'foretell', 'kneel']; // (pounce, drinkLight, foretell, kneel: the Harbinger's, 10-08 -- below) // (resilient: the duergar's Resilience, SRD 5.1 -- rules.js RU.save; 10-02 runner) (rockCatch: the stone giant's Rock Catching, its DC -- battle.js attack, 10-08)
 
   // ------------------------------------------------------------------ Duergar Resilience on a spell already running (SRD 5.1: "advantage on saving throws against poison, spells, and illusions")
   // rules.js RU.save reads B.castLevel only while a cast is under way. The saves a spell asks later -- Spirit Guardians at the start of the turn, a zone's, Web's, Moonbeam's, a wall's, the
@@ -71,6 +71,63 @@
       if (!sv.ok && tgt.hp > 0 && !tgt.noProne) tgt.conds.prone = true;
       yield 16;
     }
+    // the Harbinger's Pounce (ours, 10-08, the SRD lion's shape): the blow battle.js played on his `pounce` row -- 20 ft of his turn, the leap, the hit
+    // on the row's frame 6 (its `release`; Griz: "Frame 6 is impact -- trigger damage and the target's prone animation there") -- more dice, and STR or
+    // prone (ui.js lays the target down as the flag flips); the mirror ripple runs over him as he lands (D.ripple, js/looks.js)
+    if (att.pounce && att.anim === 'pounce' && att.turn && !att.turn.pounced && !tgt.dead && tgt.hp > 0) {
+      att.turn.pounced = true;
+      var pc = att.pounce, pr = D.roll(pc.dice, { crit: crit }), psv = RU.save(tgt, 'str', pc.dc);
+      var pdown = !psv.ok && !tgt.noProne && !(RU.immuneTo && RU.immuneTo(tgt, 'prone'));
+      if (D.ripple) D.ripple(att, { region: 'body' });
+      B.card(['{r}' + Nm(B, att) + ' pounces!{/}  ' + pc.dice + ' [' + pr.rolls.join(',') + '] = ' + pr.total + '  STR ' + RU.saveText(psv) + ' vs DC ' + pc.dc + '  ' + (pdown ? '{o}KNOCKED DOWN{/}' : '{n}keeps their feet{/}')], 300);
+      B.hurt(tgt, pr.total, atk.type, { magic: !!atk.magic });
+      if (pdown && tgt.hp > 0) tgt.conds.prone = true;
+      yield 16;
+    }
+  };
+
+  // ------------------------------------------------------------------ the Harbinger's Drink Light (ours, 10-08; Griz: "The Mirror drains the Castegut girls magic - I think that one
+  // where he grows larger should be a counterspell/heal"): his reaction, at a levelled spell a creature he can see casts within 60 ft -- drunk as a Counterspell would take it (3rd
+  // level and under at once; higher, his CHA check against 10 + its level), and he heals 'per' a level of it and grows a step (S.regrow, to 1.24 at most); failed, he OVERFILLS --
+  // the light goes through him and the spell is cast. 'uses' a fight. Asked ahead of every Counterspell (grimoire.js M.counterAsk)
+  var ca0 = M.counterAsk;
+  M.counterAsk = function* (B, u, id, slot, g) {
+    var sp = M.data(id), lv = (sp && sp.level) || 0;
+    if (B && B.units && sp && lv >= 1 && !(g && (g.free || g.again || g.move)) && !(u.turn && u.turn.readied)) {
+      var m = B.units.filter(function (w) { return w !== u && w.drinkLight && G.hostile(u, w) && G.standing(w) && w.reaction > 0 && RU.canAct(w) && (w.drinkLeft == null ? w.drinkLight.uses : w.drinkLeft) > 0 && G.dist(w, u) <= 60 && M.sees(B, w, u) && !RU.charmedBy(w, u); })[0];
+      if (m) {
+        m.reaction = 0; m.drinkLeft = (m.drinkLeft == null ? m.drinkLight.uses : m.drinkLeft) - 1;
+        var ok = lv <= 3, r = 0, tot = 0;
+        if (!ok) { r = D.d(20); tot = r + M.mod(m); ok = tot >= 10 + lv; }
+        var cn = u.side === 'foe' ? 'the ' + B.shortName(u) : u.name;
+        m.anim = ok ? 'drain' : 'overfill'; m.animT = B.t; D.sfx('magic'); FX.ring(m, 'silver', 30);
+        B.card(['{r}' + Nm(B, m) + ' drinks the light{/} of ' + cn + '\'s ' + sp.name + (r ? '  (d20 ' + r + RU.sign(M.mod(m)) + ' = ' + tot + ' vs DC ' + (10 + lv) + ')' : '') + ' -- ' + (ok ? '{c}it goes out{/}' : '{o}too much: it overfills him and goes through{/}')], 280);
+        yield Math.max(30, D.spr.duration(m.sheet, m.anim) || 40);
+        if (ok) {
+          var k0 = D.spr.scaleOf(m); m.drawScale = Math.min(1.24, (m.drawScale || 1) * 1.07); D.spr.regrow(m, k0);
+          B.heal(m, m.drinkLight.per * lv);
+        }
+        m.anim = 'idle';
+        if (ok) return true;
+      }
+    }
+    return ca0 ? yield* ca0.apply(this, arguments) : false;
+  };
+
+  // ------------------------------------------------------------------ the Harbinger's Kneel (ours, 10-08; Griz: "Kneel can be Hold Person with flair of some kind"): the word
+  // said, his `cast` row (the sheet's kneel), and on whoever the hold takes the mirror ripple runs head to foot
+  var castK = M.cast;
+  M.cast = function* (B, u, id, slot, t) {
+    if (!B || !u || !u.kneel || id !== 'holdperson') return yield* castK.apply(this, arguments);
+    B.card(['{r}' + Nm(B, u) + ': "Kneel."{/}'], 200); yield 8;
+    var held0 = {}; B.units.forEach(function (w) { if (w.conds && w.conds.paralyzed) held0[w.id] = 1; });
+    var res = yield* castK.apply(this, arguments);
+    B.units.forEach(function (w) {
+      if (!w.conds || !w.conds.paralyzed || w.conds.paralyzed.by !== u.id || held0[w.id]) return;
+      if (D.ripple) D.ripple(w, { region: 'body', dur: 80 });
+      B.card(['{o}' + w.name + ' kneels.{/}'], 200);
+    });
+    return res;
   };
   // ------------------------------------------------------------------ Relentless (the giant boar, once): a blow of 10 or less that would drop it leaves 1
   TR.refuse = function (B, u, n) {
@@ -84,7 +141,29 @@
 
   // ------------------------------------------------------------------ before its turn: the broodmother's jaunt (bloodied, once: into the rock
   // for four of her turns, then out beside the weakest, and the bite)
+  // the Harbinger's hunt (ours, 10-08, the seat's call): before his routine, the softest he can see -- a spell-caster first, then the fewest hit
+  // points -- if 20 ft or more off and reachable this turn, he goes to them, so his first blow is the Pounce (battle.js; the routine's blows then
+  // fall on the one in reach with the fewest hit points). Nobody to hunt, or one already in his reach: his routine as it is
+  function* hunt(B, u) {
+    var T = u.turn, min = u.pounce.min || 20;
+    if (!T || !(T.move >= min) || u.conds.prone || u.conds.restrained || u.conds.grappled || u.holding && u.holding.length || !RU.canAct(u)) return;
+    var hs = AI.heroes(B, u).filter(function (w) { return G.standing(w) && !w.ethereal && !w.under && M.sees(B, u, w); });
+    if (!hs.length) return;
+    var soft = function (w) { return ((w.known || []).length ? 0 : 1000) + w.hp; };
+    var t = hs.slice().sort(function (a, b) { return soft(a) - soft(b); })[0], reach = G.reachOf(u);
+    if (G.dist(u, t) <= reach) return;
+    var rm = G.reach(u, T.move), best = null;
+    Object.keys(rm).forEach(function (k) {
+      var e = rm[k];
+      if (!e.stand || e.cost < min || G.dist(u, t, e.x, e.y) > reach) return;
+      if (!best || e.cost < best.cost) best = e;
+    });
+    if (!best) return;
+    yield* AI.walkTo(B, u, best);
+  }
   TR.turn = function* (B, u) {
+    if (u.pounce && u.side === 'foe' && !u.ethereal) yield* hunt(B, u);
+    if (u.dead || u.hp <= 0) return true;
     var j = u.jaunt;
     if (!j) return false;
     if (u.ethereal && u.jauntLeft > 0) {
@@ -162,6 +241,16 @@
           if (!u.dead && u.hp > 0) yield* B.hide(u, true);
         }
       }
+    }
+    // the Harbinger's Foretell (ours, 10-08: the Astra draft's pose -- Griz had "nothing for the foretell pose", the seat's call): a turn that ends with
+    // no one in his reach, he holds the pose (its row loops) and readies Mirror Strike -- his reaction, at the first that steps within his reach
+    // (battle.js readyHook / readySpring, as a hero's READY; it lapses at his next turn's start, rules.js)
+    if (u.foretell && u.reaction > 0 && !u.ready && RU.canAct(u) && !G.foesNear(u, u.x, u.y, G.reachOf(u)).length && AI.heroes(B, u).length) {
+      u.ready = { trigger: 'near', what: 'weapon', name: u.foretell.name, wp: u.foretell };
+      u.ready.had = B.readyHad(u, u.ready); B.readySnap();
+      u.anim = 'foretell'; u.animT = B.t;
+      B.card(['{r}' + Nm(B, u) + ' raises a hand and waits.{/}  {g}(Foretell: ' + u.foretell.name + ' at the first to step within ' + G.reachOf(u) + ' ft){/}'], 240);
+      yield 24;
     }
   };
 

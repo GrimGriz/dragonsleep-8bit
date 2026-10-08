@@ -1881,9 +1881,16 @@
       // (Martial Advantage's blow: the drilled lunge where the sheet has one, a melee blow while an ally who can act stands by the target and the
       // turn's Martial Advantage is unspent -- hit or miss, the drill shows either way; its dice are the hit's, below. The hobgoblins' sheets, 10-07)
       if (att.martial && melee && !(att.turn && att.turn.martialUsed) && D.spr.anim(att.sheet, 'martial') && this.units.some(function (w) { return w !== att && w.side === att.side && G.standing(w) && RU.canAct(w) && G.dist(w, tgt) <= 5; })) att.anim = 'martial';
+      // (the Harbinger's Pounce, 10-08: the first melee blow of a turn he has moved 20 ft or more is the leap -- his `pounce` row, the hit on its frame 6 (the row's `release`, below);
+      // js/traits.js lands it; the mirror ripple runs over him as he leaves the ground)
+      if (att.pounce && melee && att.turn && !att.turn.pounceTried && (att.turn.moved || 0) >= (att.pounce.min || 20) && D.spr.anim(att.sheet, 'pounce')) {
+        att.turn.pounceTried = true; att.anim = 'pounce';
+        if (D.ripple) D.ripple(att, { region: 'body' });
+      }
     }
-    // (a shot from a row that names its release frame -- the goblin's shortbow, 10-07: the arrow leaves as the bow hand opens, not 10 ticks in)
-    var rel = !melee && !atk.spell && D.spr.anim(att.sheet, att.anim), relT = rel && rel.release != null ? Math.ceil(rel.release * 60 / (rel.fps || 8)) : 0;
+    // (a blow from a row that names its release frame -- the goblin's shortbow, 10-07: the arrow leaves as the bow hand opens, not 10 ticks in; and since 10-08 a melee row's too,
+    // the Harbinger's pounce landing on its frame 6. A melee row with no release still strikes 10 ticks in)
+    var rel = !atk.spell && D.spr.anim(att.sheet, att.anim), relT = rel && rel.release != null ? Math.ceil(rel.release * 60 / (rel.fps || 8)) : 0;
     if (!o.oa) yield atk.spell && !melee ? Math.max(4, Math.round((D.spr.duration(att.sheet, att.anim) || 18) * 0.55) - (this.t - att.animT)) : relT ? Math.max(4, relT - (this.t - att.animT)) : 10;
     if (!melee) { FX.projectile(att, tgt, atk.fx || 'bolt'); yield { fx: 1 }; }
     var los = G.los(att, tgt), cover = melee && G.dist(att, tgt) <= 5 ? 0 : los.cover;

@@ -49,7 +49,8 @@ SR = _load('sheetrows', os.path.join(ROOT, 'tools', 'sheetrows.py'))
 
 FILES = {1: 'Mirror-Eyed Gnoll Sprite Sheet1.png', 2: 'Mirror-Eyed Gnoll Action Sprite Sheet2.png',
          3: os.path.join('Fresh', 'Hunched mirror-eyed gnoll sprite sheet-1.png'), 4: os.path.join('Fresh', 'Back-View Gnoll Animation Sprite Sheet-3.png'),
-         5: os.path.join('Fresh', 'Back-view mirror-eyed gnoll sprite sheet-2.png')}
+         5: os.path.join('Fresh', 'Back-view mirror-eyed gnoll sprite sheet-2.png'),
+         6: os.path.join('Fresh', 'Mirror gnoll pounce attack sprite sheet-1.png')}
 SRC = os.path.join(ROOT, 'deep16', '_src')                 # his sheets live in the main checkout (_src is not in git): a worktree reads them there
 if not os.path.exists(os.path.join(SRC, FILES[1])):
     _common = subprocess.run(['git', '-C', ROOT, 'rev-parse', '--git-common-dir'], capture_output=True, text=True).stdout.strip()
@@ -86,6 +87,11 @@ SHEETS = {
                 ('walk', (0, None, 1536, None), (487, 504), NUM(8), [219, 397, 573, 732, 907, 1085, 1260, 1427]),
                 ('backhand', (0, None, 1536, None), (735, 752), NUM(6), [270, 487, 730, 938, 1156, 1371]),
                 ('flinch', (0, None, 1536, None), (984, 1001), NUM(4), [294, 535, 760, 996])]),
+  6: dict(text=[(0, 0, 110, 1024)],                                       # the Pounce from every side: front, back, right, LEFT (drawn)
+          rows=[('pf', (0, 0, 1536, None), (262, 280), NUM(8), [195, 383, 569, 747, 922, 1093, 1271, 1442]),
+                ('pb', (0, None, 1536, None), (514, 534), NUM(8), [192, 383, 573, 747, 924, 1094, 1272, 1442]),
+                ('pr', (0, None, 1536, None), (737, 758), NUM(8), [194, 379, 556, 734, 912, 1087, 1264, 1441]),
+                ('pl', (0, None, 1536, None), (965, 984), NUM(8), [195, 383, 563, 751, 924, 1097, 1277, 1449])]),
   5: dict(text=[(0, 0, 170, 1024)],                                       # (only its backhand: the other arm)
           rows=[('backhand', (0, 506, 1536, None), (735, 752), NUM(6), [270, 487, 695, 928, 1155, 1366])]),   # (below the walk's numbers)
 }
@@ -101,21 +107,25 @@ BLANK = {1: [(0, 276, 300, 287)],
 FIX = {1: {'drain': [((460, 694, 512, 722), '2'), ((628, 694, 682, 722), '3')]},
        2: {'mirrorstrike': [((784, 427, 822, 447), '3')]}}
 CUT = {}
-TOUCH_OK = {1: {'drain'}, 2: {'mirrorstrike'}}   # looked at: drain 2's streaks by drain 3's tail, mirrorstrike 3's claw by 4's tail, each cut right
+TOUCH_OK = {1: {'drain'}, 2: {'mirrorstrike'}, 6: {'pf', 'pb', 'pl'}}   # (6: a foot at the next frame's impact dust)   # looked at: drain 2's streaks by drain 3's tail, mirrorstrike 3's claw by 4's tail, each cut right
 
 # the engine's rows: (sheet, row) for the side; S and N as described in the head
 FRONT, BACK = ('idle', 'walk', 'backhand', 'flinch'), ('idle', 'walk', 'backhand', 'flinch')   # sheet 3's rows for S, sheet 4's for N
 ROWS = {'idle': (1, 'idle'), 'walk': (1, 'walk'), 'attack': (1, 'backhand'), 'backhand': (1, 'backhand'), 'backhand2': (1, 'backhand'), 'drain': (1, 'drain'),
         'flinch': (1, 'flinch'), 'hurt': (1, 'fall'), 'prone': (1, 'fall'), 'foretell': (2, 'foretell'), 'mirrorstrike': (2, 'mirrorstrike'),
-        'kneel': (2, 'kneel'), 'overfill': (2, 'overfill'), 'ascend': (2, 'ascend'), 'uprightidle': (2, 'uprightidle')}
+        'pounce': (6, 'pr'), 'kneel': (2, 'kneel'), 'cast': (2, 'kneel'), 'overfill': (2, 'overfill'), 'ascend': (2, 'ascend'), 'uprightidle': (2, 'uprightidle')}
+# (cast: his Kneel, Hold Person's pose -- magic.js M.cast plays a sheet's `cast` row)
 PRONE = [3, 4]        # the fall's frames 4 and 5 (an arm under him; on his side): lying at the last, got up from by playing it back
-NEW = ['backhand', 'backhand2', 'drain', 'foretell', 'mirrorstrike', 'kneel', 'overfill', 'ascend', 'uprightidle']   # this cutter's own rows (named
+NEW = ['backhand', 'backhand2', 'pounce', 'drain', 'foretell', 'mirrorstrike', 'kneel', 'overfill', 'ascend', 'uprightidle']   # this cutter's own rows (named
                                                                                                          # here, not in pixelate.py)
-FPS = {'idle': 5, 'walk': 9, 'attack': 10, 'backhand': 10, 'backhand2': 10, 'drain': 8, 'flinch': 8, 'hurt': 8, 'prone': 8, 'foretell': 6,
+FPS = {'cast': 7, 'idle': 5, 'walk': 9, 'attack': 10, 'backhand': 10, 'backhand2': 10, 'pounce': 10, 'drain': 8, 'flinch': 8, 'hurt': 8, 'prone': 8, 'foretell': 6,
        'mirrorstrike': 11, 'kneel': 7, 'overfill': 7, 'ascend': 6, 'uprightidle': 5}
 # per channel, each sheet's figure brought to sheet 1's: mean RGB against sheet 1's turnaround view of the same side (sheet 2's turnaround,
 # 111 74 56, to sheet 1's, 99 70 56; the front, 109 73 55, to its front; behind, 122 77 52 and 116 74 53, to its back, 99 70 58), 10-08
-TONE = {2: (0.893, 0.947, 1.0), 3: (0.907, 0.964, 1.033), 4: (0.813, 0.909, 1.11), 5: (0.859, 0.943, 1.085)}
+TONE = {2: (0.893, 0.947, 1.0), 3: (0.907, 0.964, 1.033), 4: (0.813, 0.909, 1.11), 5: (0.859, 0.943, 1.085),
+        6: (0.888, 0.958, 1.05)}   # (the Pounce: each row's guard frames against sheet 1's turnaround view of its side, averaged)
+IMPACT = 5            # the Pounce's frame 6 (0-based 5): "Frame 6 is impact -- trigger damage and the target's prone animation there;
+                      # frames 7-8 follow through and recover" (Griz, 10-08)
 HEIGHT = 64           # the hunched side idle, standing px (the glory-seeker's 64; the house gnoll 60) -- his size is unruled
 FH, AY = 112, 100
 
@@ -280,7 +290,13 @@ def scales(c):
     print('  K: sheet 1 %.2f, sheet 2 %.2f (its guard %.3f of sheet 1\'s), turnaround %.2f, front %.2f, back %.2f; the side idle %d px, '
           'upright %.0f px, from the front %.0f px, from behind %.0f px'
           % (k1, k2, k2 / k1, kt, k3, k4, HEIGHT, up_h, med(c[3]['idle'], 1) / k3, med(c[4]['idle'], 1) / k4))
-    return {1: k1, 2: k2, 3: k3, 4: k4, 5: k5}
+    # sheet 6 (the Pounce): each row's first frame stands as that side's guard -- the front's and the back's against sheets 3 and 4's
+    # idles, the right's and the left's against the turnaround's side views; one scale for the sheet, their median
+    k6s = [k3 * body(c[6]['pf'][0][1])[0] / med(c[3]['idle']), k4 * body(c[6]['pb'][0][1])[0] / med(c[4]['idle']),
+           kt * body(c[6]['pr'][0][1])[0] / turn2['right'], kt * body(c[6]['pl'][0][1])[0] / turn2['left']]
+    k6 = float(np.median(k6s))
+    print('  K6 (the Pounce) by front, back, right, left: %s -> %.2f' % (', '.join('%.2f' % k for k in k6s), k6))
+    return {1: k1, 2: k2, 3: k3, 4: k4, 5: k5, 6: k6}
 
 
 def main(check=False):
@@ -305,7 +321,11 @@ def main(check=False):
             side = [side[i] for i in PRONE]
         per = []
         for f in range(8):
-            if eng == 'backhand2' and f == 0:
+            if eng == 'pounce' and f in (0, 4):
+                per.append(frames_of(6, 'pf' if f == 0 else 'pb'))
+            elif eng == 'pounce' and f in (1, 2, 3):                     # the left as drawn (the loop mirrors the west side, so mirror it first)
+                per.append([(a[:, ::-1], a.shape[1] - cx, up) for a, cx, up in frames_of(6, 'pl')])
+            elif eng == 'backhand2' and f == 0:
                 per.append([(a[:, ::-1], a.shape[1] - cx, up) for a, cx, up in frames_of(3, 'backhand')])
             elif eng == 'backhand2' and f == 4:
                 per.append(frames_of(5, 'backhand'))
@@ -345,6 +365,7 @@ def main(check=False):
     meta = json.load(open(meta_p))
     for row, fps in FPS.items():
         meta['anims'][row]['fps'] = fps
+    meta['anims']['pounce']['release'] = IMPACT    # (frame 6 lands: the blow, the target's fall -- Griz, 10-08)
     meta['source'] = ('generated by Griz (2026-10-08: two GPT sheets from the Astra draft -- the body and its fall, the mirror powers -- '
                       'then one from the front and one from behind), cut by tools/mirrorgnoll-sheet.py')
     json.dump(meta, open(meta_p, 'w'), indent=1)
