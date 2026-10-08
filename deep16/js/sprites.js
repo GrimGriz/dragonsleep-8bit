@@ -83,6 +83,9 @@
     var n = Math.floor(t * (a.fps || 8) / 60), fr = o && o.frame != null ? Math.max(0, Math.min(a.frames - 1, o.frame)) : o && o.once ? Math.min(a.frames - 1, n) : n % a.frames; // (o.frame: one frame by number -- the prone, ui.js)
     return { img: S.rock(name, D.images[sh.image]), sx: fr * fw, sy: (a.y != null ? a.y : a.row * sh.fh) + (facing % 8) * fh, fw: fw, fh: fh, ax: ax, ay: ay };
   }
+  // the frame S.draw would draw for these arguments: { img, sx, sy, fw, fh, ax, ay }, or null while the sheet is on its way (the mirror ripple
+  // reads it to lay its scales over the same pixels: js/looks.js LK.ripple, 10-08)
+  S.frameAt = function (name, anim, facing, t, o) { var sh = D.SHEETS && D.SHEETS[name]; return sh && S.has(name) ? frameOf(sh, anim, facing, t, o, name) : null; };
   // a creature made of the cavern's own stone (10-01e, Griz approving "browser recolor with new field"): drawn in the map's stone where
   // the map names one (data/maps.js `stone`; js/iso.js iso.ramp) -- the sheet's brown stone ramp swapped, colour for colour, for the
   // map's (the eye, the throat, the teeth are other ramps and stay), once per sheet and stone, so the roper's disguise matches the

@@ -902,6 +902,52 @@
     }
     ctx.globalAlpha = 1;
   }
+  // ------------------------------------------------------------------ the mirror ripple
+  // (10-08, Griz: "have him ripple mirrors - see the way people described the first movie Mystique's transformation"; "that's just a thing we
+  // can apply to everything now?"; of the harbinger, "Gonna cry if he doesn't apply your effect to the pounce"; of a dominator, "we mightcould
+  // use the effect on the victim"). deep16/js/ripple.js lays the scales over the frame just drawn, from its own pixels; this decides who
+  // ripples, when, and what the mirrors show: the floor round the figure's feet, read off the canvas, so whatever the light lays over the
+  // figure it lays over the mirrors too. Who:
+  //   D.ripple(u, { region, dur })              one pass now (the harbinger's Pounce, at the leap and the land)
+  //   a foe's def ripple: { region, every, dur }  a pass every `every` frames on its own (the harbinger's mane; Mr. Ripples, the body)
+  //   a foe's def ripple: { victims: true }       whoever it has dominated ripples, the whole body, while it lasts
+  //   B.showRipple ('body' or 'mane')           every shown creature (deep16/?show=...&ripple=body, js/show.js)
+  LK.RIPPLE = { dur: 54, every: 150 }; // (frames at 60 Hz: a pass in 0.9 s, one every 2.5 s)
+  D.ripple = function (u, o) { var B = D.battle; if (!u || !B) return; o = o || {}; u.rippleOnce = { t0: B.t, dur: o.dur || LK.RIPPLE.dur, region: o.region || 'body' }; };
+  function ripplePass(B, u) { // { region, s } for the pass running over u now, or null
+    var R0 = LK.RIPPLE, off = String(u.id).split('').reduce(function (h, ch) { return (h * 31 + ch.charCodeAt(0)) % 997; }, 7), q; // (its own beat: two of a kind never ripple together)
+    var run = function (region, t0, every, dur) { var k = ((B.t - t0) % every + every) % every; return k < dur ? { region: region, s: -0.5 + 2.1 * k / dur } : null; };
+    if (u.rippleOnce) { q = (B.t - u.rippleOnce.t0) / u.rippleOnce.dur; if (q >= 0 && q < 1) return { region: u.rippleOnce.region, s: -0.5 + 2.1 * q }; if (q >= 1) u.rippleOnce = null; }
+    var def = D.FOES && D.FOES[u.kind], rp = def && def.ripple;
+    if (rp && rp.region && rp.every) { var a = run(rp.region, off, rp.every, rp.dur || R0.dur); if (a) return a; }
+    var dm = u.dominated || (u.conds && u.conds.dominated), by = dm && B.units.filter(function (w) { return w.id === dm.by; })[0], bd = by && D.FOES && D.FOES[by.kind];
+    if (bd && bd.ripple && bd.ripple.victims) { var v = run('body', off, bd.ripple.every || 110, bd.ripple.dur || R0.dur); if (v) return v; }
+    if (B.showRipple && u.show) return run(B.showRipple, off, R0.every, R0.dur);
+    return null;
+  }
+  var ripCv = null;
+  function rippleTones(ctx, B, u, x, y) { // the floor round its feet, dark to light, and a brightened top for the glint; read again every half second
+    var c = u.rippleTones; if (c && B.t - c.at < 30) return c.tones;
+    var m = ctx.getTransform(), X = Math.round(m.a * (x - 14) + m.c * y + m.e), Y = Math.round(m.b * x + m.d * (y + 1) + m.f), W = Math.max(4, Math.round(28 * m.a)), H = Math.max(2, Math.round(6 * m.d)), d;
+    try { d = ctx.getImageData(Math.max(0, X), Math.max(0, Y), W, H).data; } catch (e) { u.rippleTones = { at: B.t, tones: null }; return null; }
+    var px = [];
+    for (var i = 0; i < d.length; i += 4) if (d[i + 3] > 200) px.push([d[i], d[i + 1], d[i + 2]]);
+    if (px.length < 6) { u.rippleTones = { at: B.t, tones: null }; return null; } // (off the canvas, or nothing under it: the mirrors stay silver)
+    px.sort(function (a, b) { return (a[0] * 3 + a[1] * 6 + a[2]) - (b[0] * 3 + b[1] * 6 + b[2]); });
+    var tones = [0.04, 0.2, 0.4, 0.6, 0.8, 0.96].map(function (f) { return px[Math.floor(f * (px.length - 1))]; });
+    var top = tones[tones.length - 1]; tones.push([Math.round(top[0] + (255 - top[0]) * 0.55), Math.round(top[1] + (255 - top[1]) * 0.55), Math.round(top[2] + (255 - top[2]) * 0.55)]);
+    u.rippleTones = { at: B.t, tones: tones };
+    return tones;
+  }
+  // drawn over the figure (js/ui.js, just after it, with the same arguments the figure was drawn with)
+  LK.ripple = function (ctx, B, u, anim, t, x, y, o) {
+    if (!window.RIPPLE || (o && o.alpha != null && o.alpha < 0.9) || (o && o.lie)) return;
+    var pass = ripplePass(B, u); if (!pass) return;
+    var m = ctx.getTransform(), sx0 = m.a * x + m.c * y + m.e; if (sx0 < -120 || sx0 > ctx.canvas.width + 120) return; // (off the screen: nothing to draw)
+    var f = D.spr.frameAt && D.spr.frameAt(u.sheet, anim, u.facing || 0, t, o); if (!f) return;
+    var tones = rippleTones(ctx, B, u, x, y);
+    window.RIPPLE.draw(ctx, f.img, f.sx, f.sy, f.fw, f.fh, Math.round(x - f.ax), Math.round(y - f.ay), 1, pass.region, u.sheet + ':' + f.sx + ':' + f.sy + ':' + pass.region, { s: pass.s, tones: tones });
+  };
   // ------------------------------------------------------------------ a troll knitting up from 0
   // (10-08, Griz: "Make the row out of what we have and pretend you see wounds healing or something" -- no sheet for it, no Regrow row: "we don't" need one). At its
   // turn a troll down at 0 knits (js/ai.js, u.knit): it lies as it fell, on its death row's last frame, while three wounds across its body close from their ends in to

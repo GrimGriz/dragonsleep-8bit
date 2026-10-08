@@ -8,7 +8,8 @@
    showing the tones round him, a glint on the brightest), edge-on again, then fur. The tones are what the mirrors show -- the map's colours,
    passed by the caller (the game: the floor's ramp under him; tools/sheet-play.html: a palette ramp by name); a sheet's colours are baked, so
    the reflection is the code's. Read off the frame's own pixels, as js/looks.js LK.knit reads the troll's hide. No game dependencies:
-   tools/sheet-play.html loads this file as it is (&ripple=mane). Not loaded by the game yet: a foe that wears it is a later build. */
+   tools/sheet-play.html loads this file as it is (&ripple=mane); the game loads it before js/looks.js, whose LK.ripple decides who ripples,
+   when, and what the mirrors show (the floor under the figure, read off the canvas). */
 'use strict';
 (function () {
   var R = window.RIPPLE = {};
@@ -27,7 +28,7 @@
   // end), v (0..1 top to bottom of the region), j (its own beat's offset), px: [[x, y, r, g, b]...] its pixels }], cached by key; null if too small
   function scales(img, sx, sy, w, h, which, key) {
     if (CACHE[key] !== undefined) return CACHE[key];
-    if (!img || !img.naturalWidth) return null; // (not cached: the sheet is still on its way)
+    if (!img || !(img.naturalWidth || img.width)) return null; // (not cached: the sheet is still on its way; a canvas is a frame too -- the roper's recoloured stone)
     if (!cv) cv = document.createElement('canvas');
     cv.width = w; cv.height = h; var x = cv.getContext('2d', { willReadFrequently: true }), d;
     x.clearRect(0, 0, w, h); x.drawImage(img, sx, sy, w, h, 0, 0, w, h);

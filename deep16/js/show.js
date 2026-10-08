@@ -6,6 +6,7 @@
                                        (its blindsight: the sonar), a wizard with a snake (the tongue), a dwarf fighter (darkvision), a human rogue
                                        (by the room's lamp alone). &lvl= the watchers' level (3); &stone=brown|grey (the test ground is slate); several
                                        creatures: ?show=grick,xorn
+                                       &ripple=body|mane: every shown creature ripples mirrors every 2.5 s (js/looks.js LK.ripple, 10-08)
 
    The director (the seat's calls, 10-02: a test, never a rule of the game) --
      * the creature goes first, so its Still and its Reveal play before anyone can wake it;
@@ -234,7 +235,7 @@
       from: 'js/show.js (10-02)', won: 'THE SHOW IS OVER.', lost: 'THE SHOW WENT WRONG.', foes: [], wave: null, noFlee: true };
     var B = new D.Battle(Object.assign({ npc: { foes: foes, party: ['wizard:' + L, 'wizard:' + L, 'fighter:' + L + ':dwarf', 'rogue:' + L + ':human'] }, watch: true,
       familiars: [{ kind: 'bat', by: 'p0-wizard' }, { kind: 'snake', by: 'p1-wizard' }], fightDef: F }, o || {}));
-    B.show = true; B.showTally = {}; B.showKind = {};
+    B.show = true; B.showTally = {}; B.showKind = {}; B.showRipple = get('ripple'); // (&ripple=body|mane: js/looks.js LK.ripple)
     var enter0 = B.enter;
     B.enter = function () { enter0.apply(this, arguments); SH.setup(this); };
     B.finish = function* (res) { this.showReport = SH.report(this); this.card(this.showReport, 1e9); yield* D.Battle.prototype.finish.call(this, res); };
