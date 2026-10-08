@@ -17,6 +17,9 @@
   var DS = window.DS = window.DS || {};
   var G1 = 'Eyes: first', G2 = 'Eyes: built this week', G3 = 'Eyes: built before, never seen';
   DS.EYES = {
+    'eyes-search-cover-1008': { pri: 2, group: G2, title: 'Search finds a hider in half cover: the Rascal and Vivian duel that never ended ends (10-08)', pt: 'the AI and the dark §5 (deep16/js/battle.js search) · eyes',
+      url: 'deep16/?npc=rascal:4&vs=vivian:4&lvl=4&watch&seed=1220',
+      look: 'The duel that ran 20,001 rounds on the bench. Both hide early; from round 2 Vivian SEARCHES and now rolls against Rascal behind the stalagmite (it had said "no one hidden in sight" while she could see him over it) -- FOUND, and the fight goes on to its end in about five rounds. The same search now finds your own hidden Mascot behind cover when a foe looks for him.' },
     'eyes-goose-ready-hug-1008': { pri: 2, group: G2, title: 'Goose readies GROUP HUG, and READY wears an hourglass, not the spell star (10-08)', pt: 'MPMon §6k (deep16/js/mpmon.js MP.KIT group, fountain `ready: { self }`; deep16/js/battle.js readySpring; deep16/js/icons.js ready) · eyes',
       url: 'deep16/?npc=goblin,goblin,hobgoblin&vs=goose:5,denny:5&lvl=5&mascots&fresh=9',
       look: 'Your "Goose can’t ready Group Hug" and "i’d like the icon changed from the star". On Goose’s turn, READY is an hourglass (gold sand, the action’s colour). READY, then a trigger (A FOE ATTACKS US, or ONE OF US DOWN), and the wheel holds GROUP HUG -- and the FOUNTAIN -- with nobody hurt yet. A miss on a friend leaves it held (reaction kept); the first blow that lands asks NOW, and the hug mends everyone round him.' },

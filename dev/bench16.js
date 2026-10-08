@@ -4410,6 +4410,22 @@
         chkI(D.ui.readyRing(Bi, ui).items, 0);
       });
       okM('the Mascots\' rings at 9: no command in the spell\'s star (' + (starred.length ? starred.filter(function (s, i) { return starred.indexOf(s) === i; }).join(', ') : 'none') + ')', !starred.length);
+      // a hidden Mascot in half cover is searched for (10-08, the fix session's probe on the AI lane's duel): Rascal, his own, hidden behind a stalagmite from a goblin that sees him
+      // over it -- the goblin's Search rolls against him (his Stealth held low, the search's die at its top: found). Its own seed: mkM is put back after it, the fights below keep theirs
+      var mkH = mkM, Bh = mkB(['rascal:4'], ['goblin'], 4), rh = sideM(Bh, 'party')[0], gh = sideM(Bh, 'foe')[0], spotH = null; rh.guest = false; rh.classAI = false;
+      for (var yh = 0; yh < GM.map.h; yh++) for (var xh = 0; xh < GM.map.w; xh++) {
+        if (spotH || !GM.canStand(rh, xh, yh) || (xh === gh.x && yh === gh.y)) continue;
+        var oxh = rh.x, oyh = rh.y; rh.x = xh; rh.y = yh; var lh = GM.los(gh, rh, undefined, undefined, true), dh = GM.dist(gh, rh), sh = D.magic.seeWhy(Bh, gh, rh).ok; rh.x = oxh; rh.y = oyh;
+        if (dh >= 15 && lh.clear && lh.cover && sh) spotH = [xh, yh];
+      }
+      var foundH = null, logH = '';
+      if (spotH) {
+        rh.x = spotH[0]; rh.y = spotH[1]; GM.setup(GM.map, Bh.units); rh.conds.hidden = { src: 'bench' }; rh.hidTotal = 15; var stH = rh.stealth; rh.stealth = -30;
+        RUM.startTurn(gh); Bh.active = gh; var nH = (Bh.log || []).length; pin(20, 'max'); runM(Bh.search(gh)); D.d = dM; rh.stealth = stH;
+        foundH = !rh.conds.hidden; logH = logSince(Bh, nH).join(' | ').slice(0, 160);
+      }
+      mkM = mkH;
+      okM('Search: Rascal hidden in half cover at ' + spotH + ' (the goblin sees him over it: ' + (spotH ? !!D.magic.sees(Bh, gh, rh) : '-') + ') found ' + foundH + ' -- ' + logH, !!spotH && foundH === true);
       // a Denny's fall lets his taunts go (10-08, Griz, his mirror match: "is my denny still taunted from the other dennys taunt before he died?")
       var Bt = mkB(['denny:5'], ['goblin'], 5), dt = sideM(Bt, 'party')[0], gt = sideM(Bt, 'foe')[0]; spotM(Bt, dt, 8, 8); spotM(Bt, gt, 9, 8); RUM.startTurn(dt);
       pin(2, 'max'); runM(MPM.taunt(Bt, dt)); D.d = dM; var tOn = !!gt.conds.taunted; Bt.hurt(dt, 999, 'bludgeoning', {});

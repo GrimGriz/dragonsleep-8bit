@@ -3029,7 +3029,10 @@
     var sweep = [1, 2, 1, 0, -1, -2, -1, 0];
     for (var si = 0; si < sweep.length; si++) { u.facing = ((f0 + sweep[si]) % 8 + 8) % 8; yield 9; }
     this.units.forEach(function (w) {
-      if (!w.conds.hidden || !G.hostile(u, w) || !G.standing(w) || !self.seenBy(u, w, true)) return;
+      // (in sight, cover or none: a hider behind a stalagmite is what a search is for -- seenBy asks for no cover, the watch's reach, and the search had asked it too. 10-08, the fix
+      // session's probe on the AI lane's duel: Vivian, 25 ft off in the bright with a clear line, never rolled against Rascal hidden in a stalagmite's half cover, his or the AI's)
+      var sw = D.magic.seeWhy(self, u, w), lw = G.los(u, w, undefined, undefined, true);
+      if (!w.conds.hidden || !G.hostile(u, w) || !G.standing(w) || !sw.ok || !lw.clear) return;
       var n = self.nearOf(u, w), bonus = n && n.bonus ? n.bonus : 0, held = self.stealthRoll(w).total, r = D.d(20), tot = r + (u.perception - 10) + bonus, got = tot > held;
       any = true;
       self.card(['{y}' + nameOf(u) + '{/} searches: Perception d20 ' + r + ' ' + RU.sign(u.perception - 10) + (bonus ? ' +' + bonus + ' (' + n.side + ')' : '') + ' = ' + tot + ' against ' + nameOf(w) + "'s Stealth " + held + '  ' + (got ? '{o}FOUND{/}' : '{n}nothing{/}')], 200);
