@@ -220,7 +220,11 @@
         // (the one gallery: the slot up/down asks for, from the stage's own or the lowest -- S.up steps above it, held to the slots the caster has)
         var base = st && st.slot ? st.slot : e && e.slot;
         S.slotAt = null;
-        if (B.one && e && sp.level) { var lv = (e.levels || []).filter(function (s2) { return s2 >= base; }); S.up = Math.max(0, Math.min(S.up || 0, lv.length - 1)); S.slotAt = lv[S.up] || base; }
+        if (B.one && e && sp.level) {
+          var lv = (e.levels || []).filter(function (s2) { return s2 >= base; });
+          if (S.wantSlot) { var wi = lv.indexOf(S.wantSlot); if (wi >= 0) S.up = wi; S.wantSlot = null; } // (a click on a BY SLOT line: js/onegallery.js)
+          S.up = Math.max(0, Math.min(S.up || 0, lv.length - 1)); S.slotAt = lv[S.up] || base;
+        }
         header(id, sp, e, u, st);
         if (!e || !e.ok) { B.card(['{r}' + sp.name + ': not castable here (' + (e ? e.why : 'no entry') + '){/}'], 1e9, 'gallery-why'); }
         else {

@@ -200,13 +200,43 @@
     restart(B);
   }
 
+  // a click on a BY SLOT / BY LEVEL / BY THE CASTER'S LEVEL line (10-08, Griz: "whats to navigate 'by slot' since the arrows are busy - mouseclick doesn't seem
+  // to do it"): the line's level read off its own text -- a run's first, "3rd-5th: ..." is the 3rd; a wrapped line's own start found above it
+  function ladderAt(B, y) {
+    var o = B.one; if (o.list) return null;
+    var P = o.shelf === 'mascots' ? B.mpgallery.panel : o.panel, lines = eyesLines(B).concat(P.lines), i = Math.floor((y - STRIP - 3) / LH) + (P.scroll || 0);
+    if (i < 0 || i >= lines.length) return null;
+    var plain = function (l) { return window.DS && window.DS.stripCodes ? window.DS.stripCodes(String(l || '')) : String(l || '').replace(/\{[^}]*\}/g, ''); };
+    var num = null, step = /^\s*>?\s*(\d+)(?:st|nd|rd|th)?(?:-\d+(?:st|nd|rd|th)?)?:/;
+    for (var k = i; k >= 0; k--) {
+      var t = plain(lines[k]), mm = step.exec(t);
+      if (/^BY (SLOT|LEVEL|THE CASTER'S LEVEL)\s*$/.test(t.trim())) return num == null ? null : { n: num, by: t.trim() };
+      if (mm) { if (num == null) num = +mm[1]; continue; }
+      if (/^ {4}\S/.test(t)) continue; // (a wrapped line of a step)
+      return null;
+    }
+    return null;
+  }
+  function jumpLevel(B, r) {
+    var o = B.one, S = st(B);
+    if (o.shelf === 'mascots') { if (r.n === S.L) { D.sfx('error'); return; } level(B, r.n - S.L); return; }
+    if (o.shelf === 'spells') { if (r.by === 'BY SLOT') S.wantSlot = r.n; else S.cl = r.n; }
+    else if (o.shelf === 'features') S.add = Math.max(0, r.n - ((S.lvAt || 0) - (S.add || 0)));
+    else { D.sfx('error'); return; }
+    D.sfx('cursor'); restart(B);
+  }
+
   // ------------------------------------------------------------------ the keys, read every frame whether the shelf waits or plays (not under a prompt or the menu)
   function handle(B) {
     var o = B.one, m = I.mouse, over = !!(m.inside && m.x < COL), sh = o.shelf;
     if (over && m.click) {
       if (m.y < STRIP) { m.click = false; if (m.y >= 2 + 2 * LH) nextEyes(B); else shelf(B, (m.y < 2 + LH ? 0 : 2) + (m.x < COL / 2 ? 0 : 1)); return; }
       if (o.list && m.y < D.H - FOOT) { m.click = false; pick(B, Math.floor((m.y - STRIP - 2) / LH) + o.listP.scroll); return; }
-      if (o.list || sh !== 'mascots') { var P = o.list ? o.listP : o.panel; P.scroll += (m.y < D.H / 2 ? -1 : 1) * Math.max(1, (P.rows || 10) - 2); m.click = false; D.sfx('cursor'); return; }
+      var lad = ladderAt(B, m.y); if (lad) { m.click = false; jumpLevel(B, lad); return; }
+      // (a click on the little triangles, the top or the foot of the text, scrolls it a page; anywhere else on the column, nothing)
+      var P = o.list ? o.listP : sh === 'mascots' ? B.mpgallery.panel : o.panel, topY = STRIP + 1, footY = D.H - FOOT;
+      if (m.y < topY + LH) P.scroll -= Math.max(1, (P.rows || 10) - 2); else if (m.y >= footY - LH - 2 && m.y < footY) P.scroll += Math.max(1, (P.rows || 10) - 2);
+      m.click = false; return;
     }
     if (over && m.wheel && (o.list || sh !== 'mascots')) { var P2 = o.list ? o.listP : o.panel; P2.scroll += m.wheel > 0 ? 3 : -3; m.wheel = 0; }
     for (var n = 1; n <= OG.SHELVES.length; n++) if (I.pressed('n' + n)) { shelf(B, n - 1); return; }
@@ -287,6 +317,9 @@
     var o = B.one = { shelf: id, req: OG.SHELVES.filter(function (s) { return s.id === id; })[0].req, q: q, wrapAt: COL - 12, list: false, paused: false,
       from: /[?&]from=pocket\b/.test(q) ? 'pocket' : null, panel: { lines: [], scroll: 0 }, listP: { lines: [], scroll: 0 }, head: null };
     if (id === 'creatures') { var rk = /[?&]rows=([a-z0-9,]+)/.exec(q); if (rk) OG.lastRows = rk[1]; }
+    // the page's line under the screen says the gallery's keys, not a fight's (10-08, Griz: "Note the menu below the visible gallery")
+    var hint = document.getElementById('hint');
+    if (hint) hint.innerHTML = 'THE GALLERY &middot; LEFT/RIGHT the entry (SHIFT ten) &middot; UP/DOWN the slot or level, or click a BY line &middot; , . turn &middot; E again &middot; SPACE pause, [ ] a frame &middot; L list &middot; N your eye &middot; V verdict &middot; F dice &middot; 1-4 or click a shelf &middot; WHEEL zoom &middot; X back';
     var paint0 = B.paint, update0 = B.update;
     B.paint = function (ctx) {
       if (o.shelf === 'mascots') { paint0.apply(this, arguments); column(ctx, this, this.mpgallery.panel); return; } // (its own cards drawn right of the column already)
