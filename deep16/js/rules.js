@@ -136,7 +136,7 @@
     if (!res.ok && u.cls === 'fighter' && u.feats && u.feats.indomitable) {
       u.feats.indomitable = 0;
       var again = D.d(20);
-      res.indomitable = again; res.d20 = again; res.total = again + bonus; res.ok = res.total >= dc;
+      res.first = res.d20; res.indomitable = again; res.d20 = again; res.total = again + bonus; res.ok = res.total >= dc; // (first: the die it had kept, for the line -- RU.saveText)
     }
     // Dark One's Own Luck (the Fiend warlock's 6; SRD 5.1): once a short rest, a d10 on the roll, after it is seen and before it is felt.
     // Taken at once, without asking, when the save fails by 10 or less and the failure matters -- a save against a condition (`against`),
@@ -264,7 +264,9 @@
     if (sv.careful) return '{c}spared{/} (Careful Spell)';
     var bits = []; if (sv.aura) bits.push('aura +' + sv.aura); if (sv.bless) bits.push('bless +' + sv.bless); if (sv.bane) bits.push('bane -' + sv.bane); if (sv.resist) bits.push('resistance +' + sv.resist);
     if (sv.counter) bits.push(sv.counter === 2 ? 'advantage: steel will' : 'advantage: countercharm'); if (sv.heightened) bits.push('disadvantage: heightened'); if (sv.pfp) bits.push('advantage: protection from poison'); if (sv.resil) bits.push('advantage: duergar resilience'); if (sv.heads) bits.push('advantage: two heads'); if (sv.luck) bits.push('dark one\'s own luck +' + sv.luck);
-    return 'd20 ' + (sv.indomitable ? sv.rolls[0] + ', again ' + sv.indomitable : sv.d20) + ' ' + RU.sign(sv.bonus) + (bits.length ? ' {y}(' + bits.join(', ') + '){/}' : '') + ' = ' + sv.total;
+    // (both dice when it rolled two, as an attack's line shows them: the cast's own advantage -- Dominate's "it is being fought" -- had read as one die in the gallery; the grid's rules §2c, 10-08)
+    var kept = sv.indomitable ? sv.first : sv.d20, die = sv.rolls && sv.rolls.length === 2 ? '[' + sv.rolls.join(',') + ']>' + kept : kept; // (and Indomitable's reroll after the die it had kept, not after the first rolled)
+    return 'd20 ' + die + (sv.indomitable ? ', again ' + sv.indomitable : '') + ' ' + RU.sign(sv.bonus) + (bits.length ? ' {y}(' + bits.join(', ') + '){/}' : '') + ' = ' + sv.total;
   };
   RU.d20 = function (net) {
     var a = D.d(20);

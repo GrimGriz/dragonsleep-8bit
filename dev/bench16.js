@@ -1506,6 +1506,32 @@
     document.body.appendChild(preH);
     return;
   }
+  // the grid's rules lane, 10-08 (mode=rules1008; the lanes window's order, his "1 yes"; handoff-2026-10-04-the-grids-rules.md §2d): each check failed on the code before it
+  if (get('mode', '') === 'rules1008') {
+    var repR8 = { checks: [], errors: [] }, d0R8 = D.d, MR8 = D.magic;
+    function okR8(what, v) { repR8.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function runR8(g) { var v, k = 0, st; while (g && k++ < 4000) { st = g.next(v); v = undefined; if (st.done) return st.value; if (st.value && st.value.prompt) v = st.value.prompt.opts[0].value; } }
+    function mkR8(q) { var Bx = D.npcFight(q, {}); D.battle = Bx; Bx.enter(); while (!Bx.order.length) Bx.co.next(); Bx.dark = false; return Bx; }
+    function sideR8(Bx, s) { return Bx.units.filter(function (u) { return u.side === s; }); }
+    function logR8(Bx, n) { return (Bx.log || []).slice(n).join(' | ').replace(/\{\/?[a-z]*\}/g, ''); }
+    try {
+      // §2c a save with two dice shows both (the gallery's Dominate Person read as one die: the cast's "it is being fought" advantage was rolled, never shown). A foe
+      // wizard's Dominate Person on our fighter, the d20s 4 then 15: the line reads [4,15]>15
+      // (a fighter of 7, and one of 9 whose Indomitable rolls again: the line had shown the first die rolled, not the one kept)
+      function domR8(fl, q) {
+        var Bx = mkR8('?npc=wizard:9&lvl=9&vs=fighter:' + fl), w = sideR8(Bx, 'foe')[0], f = sideR8(Bx, 'party')[0];
+        f.hp = f.maxhp = 400; f.conds = {}; w.x = f.x; w.y = Math.max(0, f.y - 6); D.rules.startTurn(w); w.slots[4] = 2; Bx.active = w;
+        q = q.slice(); D.d = function (n) { return n === 20 ? (q.length ? q.shift() : 10) : n; };
+        var n = (Bx.log || []).length; try { runR8(MR8.cast(Bx, w, 'dominateperson', 5, f)); } finally { D.d = d0R8; } return ((logR8(Bx, n).match(/WIS d20 [^|]*?vs DC \d+/) || [])[0]) || '';
+      }
+      var l1 = domR8(7, [4, 15]), l1b = domR8(9, [4, 15, 10]);
+      okR8('§2c Dominate Person\'s save at advantage shows both dice: ' + l1 + '; with Indomitable: ' + l1b, /WIS d20 \[4,15\]>15 /.test(l1) && /WIS d20 \[4,15\]>15, again 10 /.test(l1b));
+    } catch (eR8) { repR8.errors.push(String(eR8 && eR8.stack || eR8).slice(0, 900)); D.d = d0R8; }
+    if (errs.length) repR8.errors = repR8.errors.concat(errs);
+    var preR8 = document.createElement('pre'); preR8.id = 'out'; preR8.textContent = 'BENCH16 ' + JSON.stringify(repR8);
+    document.body.appendChild(preR8);
+    return;
+  }
   // thrown weapons run out (mode=thrown1008; the grid's rules §2.16, RULED 10-06, Griz: "pickup is bound to be a headache (art), they'll not use up ammo in 8-bit - gotta do it
   // for pocket DM, do it"; battle.js spendThrow): a count on a foe's thrown attack and a class hero's kit, spent a throw, never picked up, gone from the choices at none
   if (get('mode', '') === 'thrown1008') {
