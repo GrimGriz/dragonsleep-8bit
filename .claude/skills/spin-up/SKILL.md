@@ -36,7 +36,7 @@ git -C .claude/worktrees/branch checkout --detach origin/<branch>        # after
 
 then `preview_start {name: "dragonsleep-branch"}`. **Check it is the branch, not main**, before you show him anything: compare a changed file's stamp, e.g. `grep -o 'js/battle.js?v=[^"]*' .claude/worktrees/branch/deep16/index.html` against what the pane fetches (`fetch('/deep16/index.html?fresh=1')` in `javascript_tool`), or fetch a file only one side has. (10-03: the branch read `da673c4dd2`, main `06a1740b7a`; a file only on main came back 404.)
 
-**The doors:** `URLS.md` has every one (`?at=<situation>`, `?lvl3`, `deep16/?ladder`, `?pocket`, `?npc=...`, `?show=<creature>`, `?fxgallery`, `?mpgallery` -- the Mascots' kits by level, 10-07). Also `deep16/?keeperfight&play=keeper|party`, `&watch&seed=N`, `&log`. **Add `&fresh=N`** (any new N) every time: the pane's browser caches `index.html` and serves the old scripts.
+**The doors:** `URLS.md` has every one (`?at=<situation>`, `?lvl3`, `deep16/?ladder`, `?pocket`, `?npc=...`, `?show=<creature>`, **`deep16/?gallery`** -- the one gallery since 10-08: spells, features, the Mascots and every creature's rows as four shelves on one key map, N to the next thing waiting on his eye, V to mark it; `?fxgallery`, `?mpgallery` and `?rows=<creature>` open their shelf). Also `deep16/?keeperfight&play=keeper|party`, `&watch&seed=N`, `&log`. **Add `&fresh=N`** (any new N) every time: the pane's browser caches `index.html` and serves the old scripts.
 
 **A foe played by a human:** `deep16/play-as-foe.md` (the Keeper's mode, as a recipe).
 
