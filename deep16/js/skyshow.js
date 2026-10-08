@@ -51,7 +51,7 @@
     function fresh(u) {
       var o = orig.filter(function (x) { return x.u === u; })[0];
       u.hp = u.maxhp; u.temp = 0; u.conds = {}; u.dead = false; u.ko = false; u.burned = false;
-      ['hang', 'regenDown', 'tween', 'ready', 'conc', 'away', 'whistled', 'axeOut', 'torch', 'oilBurnt'].forEach(function (k) { delete u[k]; });
+      ['hang', 'regenDown', 'knit', 'tween','ready', 'conc', 'away', 'whistled', 'axeOut', 'torch', 'oilBurnt'].forEach(function (k) { delete u[k]; });
       if (o) { u.rocks = o.rocks; u.roofGuard = o.roofGuard; u.noGlass = o.noGlass; u.guard = o.guard; u.ownFlask = o.ownFlask; if (o.web) u.web = Object.assign({}, o.web); if (o.slots) u.slots = o.slots.slice(); if (o.feats) u.feats = Object.assign({}, o.feats); }
       u.reaction = 1; u.anim = 'idle'; u.animT = B.t; u.flash = 0;
       if (D.light && D.light.regrip) D.light.regrip(u);

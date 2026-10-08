@@ -2636,7 +2636,7 @@
       // (burned since the start of its last turn -- this blow's fire or acid, or an earlier one's: dead at once, RULED 10-06, Griz: "if hp drops to 0 while burning = true,
       // trigger troll death")
       else if (u.regen > 0 && u.burned) { u.dead = true; u.deadT = this.t; this.card(['{y}The ' + shortName(u) + ' falls, burning. It will not knit: it is dead.{/}'], 300); if (u.holding && u.holding.length) this.release(u); }
-      else if (u.regen > 0) { u.regenDown = true; u.conds.prone = true; this.card(['{y}The ' + shortName(u) + ' falls -- and starts to knit.{/}  {g}(fire or acid before its turn, and it is dead){/}'], 300); if (u.holding && u.holding.length) this.release(u); }
+      else if (u.regen > 0) { u.regenDown = true; u.conds.prone = true; delete u.knit;this.card(['{y}The ' + shortName(u) + ' falls -- and starts to knit.{/}  {g}(fire or acid before its turn, and it is dead){/}'], 300); if (u.holding && u.holding.length) this.release(u); }
       else { u.dead = true; u.deadT = this.t; this.card(['{y}' + (u.named ? '' : 'The ') + shortName(u) + ' falls.{/}']); /* (a named foe -- The Keeper -- has its own article: "The The Keeper falls", 10-02) */ if (u.holding && u.holding.length) this.release(u); }
       // a darkmantle down off the one it rode, or off one who went down, now -- not at the coroutine's next step: the blow that ends the fight leaves no
       // next step, and the one it rode kept "attached" and "blinded" (10-01, the roper window's bench: Barley and Vivian, their darkmantles dead)

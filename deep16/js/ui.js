@@ -1305,6 +1305,14 @@
         // prone (10-01b; the frame is sprites.js S.proneFrame): a figure with a frame for it falls to it when it goes prone, lies there while
         // prone -- crawling, striking, whatever it does -- and gets up through the same frames backwards when the prone ends. Going down
         // from prone, the fall goes on from where it lies
+        // a troll knitting up from 0 (ai.js u.knit; 10-08, Griz: "Make the row out of what we have and pretend you see wounds healing or something"): it lies as it fell, its
+        // death row's last frame, while the wounds close (js/looks.js LK.knit), and gets up through that row played back when its prone ends -- the prone look follows
+        // its prone without the prone row's own fall and get-up, which stood it up out of the death pose and knocked it over backwards before it rose
+        if (!down && u.knit && has('hurt')) {
+          var kl = D.spr.anim(u.sheet, 'hurt').frames - 1, kup = D.looks ? D.looks.knitUp(B, u) : kl;
+          if (kup >= kl) delete u.knit; else { anim = 'hurt'; o.frame = kup < 0 ? kl : kl - 1 - kup; o.once = false; }
+          u.proneLook = !!u.conds.prone; u.proneT = null;
+        }
         var pf = D.spr.proneFrame(u.sheet), prow = D.spr.proneRow(u.sheet); // (prow: its own `prone` row, or its death row -- sprites.js S.proneRow, 10-02)
         if (pf >= 0 && !down && !!u.conds.prone !== !!u.proneLook) { u.proneLook = !!u.conds.prone; u.proneT = B.t; }
         if (down) {
@@ -1382,6 +1390,7 @@
         var hw = 10 * (u.size || 1) * sk, tall = D.spr.unitTop(u);
         obj.shown = down || u.ethereal ? null : { anim: anim, t: t, once: !!o.once, frame: o.frame, x: p.x, y: p.y, k: sk, box: [p.x - hw, p.y - tall, p.x + hw, p.y] };
         if (u.rider && !down) D.spr.drawRider(ctx, u, anim, t, p.x, p.y, o);
+        if (u.knit && !down && D.looks && D.looks.knit) D.looks.knit(ctx, B, u, p); // (a troll's wounds closing as it lies knitting: js/looks.js)
         if (sk !== 1) ctx.restore();
         if (D.looks && (!down || oilDown) && !u.ethereal) D.looks.over(ctx, B, u, p); // (the marks of its conditions: js/looks.js; down, the oil's alone)
         if (!u.dead && !u.ethereal && (!u.riding || u.attached)) { // (a darkmantle on someone keeps its bar, over it)

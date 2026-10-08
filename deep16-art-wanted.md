@@ -49,7 +49,6 @@ PROPS TAIL (paste after the props head, in place of the COMMON TAIL): 16-bit pix
 
 ### Rows still missing on looks in hand (welcome, never blocking)
 
-- **The troll: a Regrow row.**
 - **Prone** (the register's prone column says "someday"): the chuul, the crawler (the Warrens' herd), the ettercap, the otyugh, the landlord, the bulette, the owls, brown and snowy (Find Familiar), the giant boar, the clacker. Till then a prone figure plays its fall row's frame before last (`deep16/js/sprites.js` S.proneFrame).
 - **The three bugs' hurt row from the front and behind** (the stirge, the fire beetle, the giant centipede: S and N are in since 10-05, the hurt row still uses the side frames).
 - **The will-o'-wisp's Variable Illumination** on screen (bright 5-20 ft; its light field is `tools/wisp-sheet.py`).
@@ -93,7 +92,7 @@ Everything that came back: the register first, then each ask's own section in th
 | the xorn (pipeline 1b's first) | MZ4250's Xorn, 11 rows | `tools/xorn-blend.py` | 10-01 | its own row |
 | the roper (1b's second) | MZ4250's Roper 2025; still and reveal rows | `tools/roper-blend.py` | 10-01 | its own row |
 | the grick (1b's third) | MZ4250's Grick on its own rig; walk and slither, still, reveal | `tools/grick-blend.py` | 10-02 | frame 3 of its death |
-| the troll (1b's fourth) | MZ4250's Troll Updated, a biped on its own rig | `tools/troll-blend.py` | 10-04 | its own row |
+| the troll (1b's fourth) | MZ4250's Troll Updated, a biped on its own rig; no Regrow row is wanted (Griz, 10-08: "we don't"): its knitting up from 0 is its death row played back, the wounds drawn closing in code (`deep16/js/looks.js` LK.knit) | `tools/troll-blend.py` | 10-04 | its own row |
 | the stone giants, her and him (1b's fifth; two looks, one at random) | MZ4250's female and male Stone Giant (thing:4157322, CC BY): idle, walk, greatclub, greatclub2, rock, flinch, hurt, prone; Griz's poser frames in greatclub, prone and hurt | `tools/stonegiant-blend.py`, `tools/stonegiantm-blend.py` | 10-04 | its own row |
 | the will-o'-wisp, the stirge, the fire beetle, the giant centipede (**drawn in code**, 10-05) | `wisp_p1`, `stirge_p1`, `firebeetle_p1`, `centipede_p1`: idle, walk, attack, flinch, hurt; the stirge's `latched` row | `tools/wisp-sheet.py`, `tools/bugs-sheet.py`, `tools/codeart.py` | 10-05 | the hurt row (they die on their backs) |
 | the goblin (the Game Show's first wave, and the wagon's glamour) | 4 GPT sheets, `goblin_p2`: idle, walk, scimitar, shortbow, nimble, hide, climb, flinch, hurt, prone; S and N their own | `tools/goblin-sheet.py` | 10-07 | its own row |
@@ -418,7 +417,7 @@ HEAD: THE KEEPER (a serpent of living water) -- the flooded dwarven stair. A ser
 
 HEAD: DUERGAR (grey dwarves) -- the deep. Bald grey-skinned dwarves with pale eyes, dark iron scale armour, a war pick and javelins. Rows: Idle (8), Walk (8), Attack (war pick, 8), Throw (javelin, 6), Enlarge (grows to twice his height, 6), Fade (turns invisible, 6), Hurt (6), Death (8).
 
-HEAD: TROLL -- the dwarven road. Tall and lanky, rubbery green hide, long arms dragging clawed hands, a long nose, lank dark hair. Large. Rows: Idle (8), Walk (8), Claws (8), Bite (6), Regrow (a wound closing, 6), Hurt (6), Death (burning, 8).
+HEAD: TROLL -- the dwarven road. Tall and lanky, rubbery green hide, long arms dragging clawed hands, a long nose, lank dark hair. Large. Rows: Idle (8), Walk (8), Claws (8), Bite (6), Hurt (6), Death (burning, 8).
 
 HEAD: STONE GIANT -- the deep. Lean and hairless, grey skin like carved stone, heavy brow. Huge: much taller than a man. Rows: Idle (8), Walk (8), Club (8), Throw Rock (8), Catch Rock (6), Hurt (6), Death (8).
 

@@ -902,6 +902,73 @@
     }
     ctx.globalAlpha = 1;
   }
+  // ------------------------------------------------------------------ a troll knitting up from 0
+  // (10-08, Griz: "Make the row out of what we have and pretend you see wounds healing or something" -- no sheet for it, no Regrow row: "we don't" need one). At its
+  // turn a troll down at 0 knits (js/ai.js, u.knit): it lies as it fell, on its death row's last frame, while three wounds across its body close from their ends in to
+  // nothing, a pale fleck at each closing tip, for LK.KNIT frames; when its prone ends (its stand, ai.js -- or a walk that stands it) it gets up through the death row
+  // played back (js/ui.js reads LK.knitUp), never the prone row's fall and get-up. The wounds are laid on the lying frame once a facing, off its own pixels: across
+  // the body's long line, two pixels inside its outline
+  LK.KNIT = 48; // (frames at 60 Hz the wounds take to close; ai.js holds the turn for them)
+  LK.knitRise = function (u) { var a = D.spr.anim(u.sheet, 'hurt'); return a ? Math.ceil((a.frames - 1) * 60 / (a.fps || 8)) : 0; }; // (how long the get-up takes)
+  // how far into the get-up it is, in the death row's frames back from its last (-1: still lying); the get-up starts when the prone ends, and not before the wounds have closed
+  LK.knitUp = function (B, u) {
+    var kn = u.knit, a = D.spr.anim(u.sheet, 'hurt'); if (!kn || !a) return -1;
+    if (kn.up == null && !u.conds.prone) kn.up = Math.max(B.t, kn.t0 + LK.KNIT);
+    return kn.up == null || B.t < kn.up ? -1 : Math.floor((B.t - kn.up) * (a.fps || 8) / 60);
+  };
+  var KNITAT = {}, knitCv = null;
+  function knitCuts(u, face) { // the wounds on the lying frame, in the frame's own pixels: { ax, ay, cuts: [{ o: the middle, a: [[x, y]...] out one way, b: the other }] }, or null
+    var name = u.sheet, sh = D.SHEETS && D.SHEETS[name], a = sh && sh.anims.hurt; if (!a || !D.spr.has(name)) return null;
+    var key = name + ':' + face; if (KNITAT[key] !== undefined) return KNITAT[key];
+    var img = D.images && D.images[sh.image]; if (!img || !img.naturalWidth) return null; // (not cached: the sheet is still on its way)
+    var w = a.fw || sh.fw, h = a.fh || sh.fh, ax0 = a.ax != null ? a.ax : sh.ax, ay0 = a.ay != null ? a.ay : sh.ay, d, x, y, k;
+    if (!knitCv) knitCv = document.createElement('canvas');
+    knitCv.width = w; knitCv.height = h; var kx = knitCv.getContext('2d', { willReadFrequently: true });
+    kx.clearRect(0, 0, w, h); kx.drawImage(img, (a.frames - 1) * w, (a.y != null ? a.y : a.row * sh.fh) + face * h, w, h, 0, 0, w, h);
+    try { d = kx.getImageData(0, 0, w, h).data; } catch (e) { return (KNITAT[key] = null); }
+    var m = new Uint8Array(w * h); // (its hide alone: green -- not the blue hair, the brown loincloth or the dark outline)
+    for (k = 0; k < w * h; k++) { var r = d[k * 4], g = d[k * 4 + 1], b = d[k * 4 + 2]; m[k] = d[k * 4 + 3] > 40 && g > 40 && g >= r && g >= b ? 1 : 0; }
+    var inn = function (x, y) { if (x < 2 || y < 2 || x >= w - 3 || y >= h - 3) return false; for (var j = -2; j <= 2; j++) for (var i = -2; i <= 2; i++) if (Math.abs(i) + Math.abs(j) <= 2 && !m[(y + j) * w + x + i]) return false; return true; };
+    var sx = 0, sy = 0, n = 0, pts = [];
+    for (y = 0; y < h; y++) for (x = 0; x < w; x++) if (inn(x, y)) { sx += x; sy += y; n++; pts.push(x, y); }
+    if (n < 30) return (KNITAT[key] = null);
+    var cx = sx / n, cy = sy / n, xx = 0, yy = 0, xy = 0;
+    for (k = 0; k < pts.length; k += 2) { var dx = pts[k] - cx, dy = pts[k + 1] - cy; xx += dx * dx; yy += dy * dy; xy += dx * dy; }
+    var ang = 0.5 * Math.atan2(2 * xy, xx - yy), ux = Math.cos(ang), uy = Math.sin(ang), len = Math.sqrt(Math.max(1, (xx * ux * ux + yy * uy * uy + 2 * xy * ux * uy) / n)); // (the body's long line, and its spread along it)
+    var cuts = [-0.7, 0.05, 0.75].map(function (f, i) {
+      var tx = cx + ux * len * f, ty = cy + uy * len * f, best = 0, bd = 1e9, q;
+      for (q = 0; q < pts.length; q += 2) { var d = (pts[q] - tx) * (pts[q] - tx) + (pts[q + 1] - ty) * (pts[q + 1] - ty); if (d < bd) { bd = d; best = q; } }
+      var ox = pts[best], oy = pts[best + 1], ca = ang + Math.PI / 2 + (i - 1) * 0.45, vx = Math.cos(ca), vy = Math.sin(ca), one = [], two = [];
+      for (var s = 1; s <= 8; s++) { // (out from the middle each way, across the body, as far as it stays on the hide)
+        var ax = Math.round(ox + vx * s), ay = Math.round(oy + vy * s), bx = Math.round(ox - vx * s), by = Math.round(oy - vy * s);
+        if (one.length === s - 1 && inn(ax, ay)) one.push([ax, ay]);
+        if (two.length === s - 1 && inn(bx, by)) two.push([bx, by]);
+      }
+      return { o: [ox, oy], a: one, b: two };
+    });
+    return (KNITAT[key] = { ax: ax0, ay: ay0, cuts: cuts });
+  }
+  // drawn over the figure (js/ui.js, just after it): the wounds while it lies knitting, each closing on its own beat; nothing once it is getting up
+  LK.knit = function (ctx, B, u, p) {
+    var kn = u.knit; if (!kn || LK.knitUp(B, u) >= 0) return;
+    var q = (B.t - kn.t0) / LK.KNIT; if (q < 0 || q >= 1.2) return;
+    var kc = knitCuts(u, (u.facing || 0) % 8); if (!kc) return;
+    var x0 = Math.round(p.x - kc.ax), y0 = Math.round(p.y - kc.ay);
+    var dot = function (pt, c) { ctx.fillStyle = c; ctx.fillRect(x0 + pt[0], y0 + pt[1], 1, 1); };
+    ctx.save();
+    kc.cuts.forEach(function (c, i) {
+      var qi = Math.max(0, Math.min(1, (q - i * 0.12) / 0.7)), open = 1 - qi * qi * (3 - 2 * qi), n = Math.round(Math.max(c.a.length, c.b.length) * open), s;
+      var cut = function (pt, c1) { dot([pt[0], pt[1] + 1], P('red', 1)); dot([pt[0] + 1, pt[1] + 1], P('red', 1)); dot(pt, c1); dot([pt[0] + 1, pt[1]], P('red', 3)); }; // (two pixels wide, on a dark lip below)
+      if (open > 0.03) { glow(ctx, x0 + c.o[0], y0 + c.o[1], P('orc', 3), 2 + 4 * open, 0.12 + 0.1 * Math.sin(B.t / 3 + i)); cut(c.o, P('red', 4)); }
+      for (s = 0; s < n; s++) [c.a[s], c.b[s]].forEach(function (pt) { // (the cut: a wet red line, brightest at its middle, its closing tips pale)
+        if (!pt) return;
+        if (s === n - 1) { dot(pt, P('orc', 3)); dot([pt[0] + 1, pt[1]], P('bone', 0)); return; }
+        cut(pt, s < 2 ? P('red', 4) : P('red', 3));
+      });
+      if (qi > 0.8 && qi < 1) { ctx.globalAlpha = (1 - qi) / 0.2; dot(c.o, P('bone', 1)); dot([c.o[0], c.o[1] - 2 - Math.round((qi - 0.8) * 20)], P('orc', 3)); ctx.globalAlpha = 1; } // (shut: a glint, and a spark rising off it)
+    });
+    ctx.restore();
+  };
   function orbit(ctx, x, y, E, n, t, r) { for (var i = 0; i < n; i++) { var a = t / 12 + i * Math.PI * 2 / n, ox = x + Math.cos(a) * r, oy = y + Math.sin(a) * r * 0.35; glow(ctx, ox, oy, E.c[2], 3, 0.3); px(ctx, ox, oy, E.c[i % 2 ? 1 : 0], 2); } }
   function bubbles(ctx, x, y, E, t) { for (var i = 0; i < 3; i++) { var ph = (t * 0.5 + i * 9) % 26; ctx.globalAlpha = 1 - ph / 26; var bx = x - 6 + i * 6 + Math.sin(ph / 4 + i) * 2, by = y - ph; px(ctx, bx - 1, by, E.c[0]); px(ctx, bx + 1, by, E.c[0]); px(ctx, bx, by - 1, E.c[0]); px(ctx, bx, by + 1, E.c[0]); } ctx.globalAlpha = 1; }
 })();
