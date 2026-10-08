@@ -563,7 +563,8 @@ otherwise, this stands.
   the gallery; the generators and the growth functions as they were. **READY holds a special** (*"why can't I ready cannonball"*): the
   foe-aimed action skills are on READY's wheel with no one in range yet, held for their own reach (the leap, the gaze, the flame, the ring
   round Rascal), and spring at the one that comes, the skill paid then. **The AI holds** (*"the AI is readying actions 200 ft away"*): with
-  nothing worth doing a Mascot readies or dodges only when the nearest foe could be on it by its next turn, else it keeps the action; a
+  nothing worth doing a melee Mascot readies or dodges only when the nearest foe could be on it by its next turn, else it keeps the action;
+  a shooter still readies at any distance, the shot sprung on the first foe into sight (the waves bench wiped at tier 3 without it); a
   Denny down lets his taunts go. `mode=mpmon1006` checks each.
 
 ## Not in the POC

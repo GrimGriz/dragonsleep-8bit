@@ -4254,15 +4254,18 @@
       var Bt = mkB(['denny:5'], ['goblin'], 5), dt = sideM(Bt, 'party')[0], gt = sideM(Bt, 'foe')[0]; spotM(Bt, dt, 8, 8); spotM(Bt, gt, 9, 8); RUM.startTurn(dt);
       pin(2, 'max'); runM(MPM.taunt(Bt, dt)); D.d = dM; var tOn = !!gt.conds.taunted; Bt.hurt(dt, 999, 'bludgeoning', {});
       okM('a Denny down: the goblin taunted before ' + tOn + ', after his fall ' + !!gt.conds.taunted + ' (hp ' + dt.hp + ')', tOn && !gt.conds.taunted && dt.hp <= 0);
-      // the AI holds at a distance (10-08, Griz, his mirror match: "now the AI is readying actions 200 ft away" -- the shooters, Rascal and Goose, readied at the hall's far end in his record):
-      // on Third Lamp's floor, Goose by Beholda with the goblin far down the hall, past his sling -- no READY, no Dodge, the action kept; with it within the sling, the shot (js/mpmon.js TX.IDLE)
+      // the AI holds at a distance (10-08, Griz, his mirror match: "now the AI is readying actions 200 ft away"): on Third Lamp's floor with the goblin far down the hall, a melee Mascot (Beholda,
+      // the Dice Slam) holds -- no READY, no Dodge, the action kept -- while a shooter (Goose, the sling) readies at any distance: the shot springs on the first that comes into sight, and the
+      // waves bench wiped without it (js/mpmon.js TX.IDLE); with the goblin near, the melee one readies too
       var Ba = D.npcFight('?npc=goblin&vs=goose:5,beholda:5&map=lampcircle&lvl=5', { bench: true }); D.battle = Ba; Ba.enter(); while (!Ba.order.length) Ba.co.next(); Ba.round = 1;
       var pa = sideM(Ba, 'party'), da = pa.filter(function (u) { return u.mpmon === 'goose'; })[0], ba = pa.filter(function (u) { return u.mpmon === 'beholda'; })[0], gb0 = sideM(Ba, 'foe')[0];
-      spotM(Ba, ba, 30, 7); spotM(Ba, da, 32, 7); spotM(Ba, gb0, 72, 7); GM.setup(GM.map, Ba.units); RUM.startTurn(da); Ba.active = da; var dFar = GM.dist(da, gb0), nA0 = (Ba.log || []).length;
-      runM(D.ai.turn(Ba, da)); var farL = logSince(Ba, nA0).join(' | '), farA = da.turn.action, farT = 'action ' + farA + ', ready ' + !!da.ready;
-      spotM(Ba, da, 32, 7); spotM(Ba, gb0, 41, 7); GM.setup(GM.map, Ba.units); delete da.ready; RUM.startTurn(da); Ba.active = da; var dNear = GM.dist(da, gb0), nA1 = (Ba.log || []).length;
-      runM(D.ai.turn(Ba, da)); var nearL = logSince(Ba, nA1).join(' | ');
-      okM('the AI holds at a distance: Goose with the goblin ' + dFar + ' ft off ' + (/readies|dodges/.test(farL) ? 'READIES OR DODGES' : 'holds') + ' (' + farL.slice(0, 90) + '; ' + farT + '); at ' + dNear + ' ft ' + (/readies/.test(nearL) ? 'readies (the station is dark: a foe he cannot see, but near)' : /Sling|HONK/.test(nearL) ? 'shoots' : 'does nothing') + ' (' + nearL.slice(0, 120) + ')', dFar > 120 && !/readies|dodges/.test(farL) && farA === 1 && /Sling|HONK|readies/.test(nearL));
+      spotM(Ba, ba, 30, 7); spotM(Ba, da, 32, 7); spotM(Ba, gb0, 72, 7); GM.setup(GM.map, Ba.units); var dFar = GM.dist(ba, gb0);
+      RUM.startTurn(ba); Ba.active = ba; var nB0 = (Ba.log || []).length; runM(D.ai.turn(Ba, ba)); var farB = logSince(Ba, nB0).join(' | '), farBA = ba.turn.action;
+      RUM.startTurn(da); Ba.active = da; var nA0 = (Ba.log || []).length; runM(D.ai.turn(Ba, da)); var farG = logSince(Ba, nA0).join(' | ');
+      spotM(Ba, ba, 30, 7); spotM(Ba, gb0, 39, 7); GM.setup(GM.map, Ba.units); delete ba.ready; RUM.startTurn(ba); Ba.active = ba; var dNear = GM.dist(ba, gb0), nB1 = (Ba.log || []).length;
+      runM(D.ai.turn(Ba, ba)); var nearB = logSince(Ba, nB1).join(' | ');
+      okM('the AI at a distance (' + dFar + ' ft): Beholda ' + (/readies|dodges/.test(farB) ? 'READIES OR DODGES' : 'holds, the action ' + farBA) + ' (' + farB.slice(0, 80) + '); Goose ' + (/readies the Sling/.test(farG) ? 'readies the sling' : 'does not ready') + ' (' + farG.slice(0, 80) + '); Beholda at ' + dNear + ' ft ' + (/readies|dodges/.test(nearB) ? 'readies or dodges' : /GAZE|Dice Slam/.test(nearB) ? 'acts (the gaze, or closes to swing)' : 'does nothing') + ' (' + nearB.slice(0, 100) + ')',
+        dFar > 120 && !/readies|dodges/.test(farB) && farBA === 1 && /readies the Sling/.test(farG) && /readies|dodges|GAZE|Dice Slam/.test(nearB)); // (near, she sees it by her darkvision and acts: the gaze, the walk in -- the class turn's own plans before the idle hook)
       D.battle = B9;
       // Social Sharing's dice stack (10-07, Griz, after the show: "Rascal cannot put more than one die on a friend ... ability dies with 5 dice he can't distribute"):
       // his picks Denny, Denny, Beholda and himself -- two on Denny, one on Beholda, none on him (the aim won't take him); Denny spends his one a roll

@@ -1030,10 +1030,12 @@
     if (e && (e.x !== u.x || e.y !== u.y)) yield* AI.walkTo(B, u, e);
     if (u.dead || u.hp <= 0 || B.over() || !u.turn.action) return true;
     var p = TX.plans(B, u)[0]; if (p && p.score > 0.5) { yield* p.go(); return true; } // (the walk may have brought something into reach)
-    // (10-08, Griz, his mirror match: "now the AI is readying actions 200 ft away": READY, or the Dodge, only where the nearest foe could be on it by its next turn -- within its double move
-    // and its reach; farther than that it holds where it stands, the action kept)
+    // (10-08, Griz, his mirror match: "now the AI is readying actions 200 ft away": a blade or the Dodge readied only where the nearest foe could be on it by its next turn -- within its
+    // double move and its reach; farther than that a melee Mascot holds where it stands, the action kept. A SHOOTER readies at any distance: the shot springs on the first foe that
+    // comes into sight, a free blow -- the waves bench, 10-08: with the shooters held back too the four wiped at tier 3 on seed 1007, where before they ran to the cap)
     var soon = G.dist(u, near) <= 2 * (near.speed || 30) + G.reachOf(near) + 5;
-    if (soon && !u.ready) yield* TX.readyUp(B, u);
+    var shot = !!((u.weapon && u.weapon.ranged) || (u.alt && u.alt.ranged && !u.conds.disarmed) || (TX.caster(u) && !u.turn.bonusSpell && M.list(B, u, { anyTarget: true }).some(function (x) { return x.ok && x.level === 0 && x.g && /^(attack|rays)$/.test(x.g.shape) && x.g.time === 'A'; })));
+    if ((shot || soon) && !u.ready) yield* TX.readyUp(B, u);
     if (soon && u.turn.action > 0 && !u.ready) yield* B.exec(u, { do: 'dodge' });
     return true;
   });

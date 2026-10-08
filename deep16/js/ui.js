@@ -208,7 +208,8 @@
     if (q2) top.beside = q2;
     var q3 = againSpell(B, u); if (q3 && !(q && q.id === q3.id) && !(q2 && q2.id === q3.id)) top.again = q3;
     if (cd.length) { var left = (u.feats && u.feats.channel) || 0; A.push({ id: 'channel', label: 'CHANNEL DIVINITY (' + left + ')', cost: 'A', ok: cd.some(function (x) { return x.ok; }), why: left ? 'nothing there to do now' : 'spent (a short rest brings it back)', sub: 'channel', icon: 'sacred', items: cd }); }
-    A = foldUnder(A); Bn = foldUnder(Bn);
+    var skillsFirst = function (a, b) { return (b.skill ? 1 : 0) - (a.skill ? 1 : 0); }; // (the skills lead each ring, the plain actions and the free odds and ends after -- PUT AWAY was the front of the blue ring, 10-08)
+    A = foldUnder(A).sort(skillsFirst); Bn = foldUnder(Bn).sort(skillsFirst);
     var out = [{ id: 'move', label: 'MOVE', cost: 'M', ok: u.turn.move > 0 && !u.conds.restrained, tool: 'move', icon: 'move' }];
     ['attack', 'beside', 'again'].forEach(function (k) { if (top[k]) out.push(top[k]); });
     fronts.forEach(function (x) { out.push(x); });
