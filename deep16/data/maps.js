@@ -542,6 +542,56 @@ window.D16.MAPS.gnollhills = {
   wave: null
 };
 
+// GreyFang's pit -- A STAND-IN (10-08): the fighting pit he runs, dug into the ground at the bunker-converted building in Tarlyn's Pit (TarlynsPit/wiki/greyfang.md,
+// "Role in Tarlyn's Pit"). Not the real ground: the town's map is the maps lane's (Griz, 10-08: "Yes, but it goes in the map lane - might have to pull the whole
+// town map out of our collective heads first"); this only lets his story fight be built and benched. A sand floor 40 ft by 30, four terraces of 2.5 ft up to the
+// rim all round (10 ft deep, every step walked -- the crowd's tiers), the party on the floor with him, the Harbinger on the north rim (data/fights.js greyfang)
+window.D16.MAPS.greyfangpit = {
+  name: "GreyFang's Pit",
+  sub: "Tarlyn's Pit, the bunker yard (a stand-in)",
+  step: 10,
+  ground: 'earth',
+  rows: [
+    '......................',
+    '......................',
+    '......................',
+    '......................',
+    '......................',
+    '......................',
+    '......................',
+    '......................',
+    '......................',
+    '......................',
+    '......................',
+    '......................',
+    '......................',
+    '......................',
+    '......................',
+    '......................'
+  ],
+  heights: [
+    '4444444444444444444444',
+    '4444444444444444444444',
+    '4444333333333333334444',
+    '4444322222222222234444',
+    '4444321111111111234444',
+    '4444321000000001234444',
+    '4444321000000001234444',
+    '4444321000000001234444',
+    '4444321000000001234444',
+    '4444321000000001234444',
+    '4444321000000001234444',
+    '4444321111111111234444',
+    '4444322222222222234444',
+    '4444333333333333334444',
+    '4444444444444444444444',
+    '4444444444444444444444'
+  ],
+  entry: [[9, 9], [10, 9], [11, 9], [12, 9], [10, 10], [11, 10]],
+  foes: [],
+  wave: null
+};
+
 // The Burial (the 8-bit game's `dwarf`, The One Law): worked stone under the old dwarf-hold, columns (the stalagmites
 // stand in), the lamp by the stair up at the back. The stair is the way out (exit): the wheelwright runs for it.
 window.D16.MAPS.burial = {

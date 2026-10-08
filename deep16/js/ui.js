@@ -1291,7 +1291,8 @@
         if (onR) { var L1 = ropeLine(onR); if (isFoot(onR, fx, fy)) { fx = L1[0]; fy = L1[1]; } if (hangR === onR && isFoot(onR, tx, ty)) { tx = L1[0]; ty = L1[1]; } }
       }
       gx = fx + (tx - fx) * kxy; gy = fy + (ty - fy) * kxy;
-      gz = tw.mode === 'slip' ? tw.fz + tw.peak * (k < 0.6 ? k / 0.6 : Math.pow(1 - (k - 0.6) / 0.4, 2)) : tw.fz + (gz - tw.fz) * kz;
+      // ('hurl': up and over on an arc to where it lands -- a body flung, js/trophy.js, 10-08)
+      gz = tw.mode === 'slip' ? tw.fz + tw.peak * (k < 0.6 ? k / 0.6 : Math.pow(1 - (k - 0.6) / 0.4, 2)) : tw.mode === 'hurl' ? tw.fz + (gz - tw.fz) * k + (tw.peak || 0) * 4 * k * (1 - k) : tw.fz + (gz - tw.fz) * kz;
     }
     var c = D.iso.center(gx + (s - 1) / 2, gy + (s - 1) / 2, gz), p = D.iso.toScreen(c.x, c.y), dep = gx + gy + (s - 1) + 0.6;
     if (onR) dep = Math.max(dep, onR.foot[0] + onR.foot[1] + 0.4); // (in front of the rope, ropeObjs: its foot's depth + 0.3)
@@ -1370,7 +1371,8 @@
         var pf = D.spr.proneFrame(u.sheet), prow = D.spr.proneRow(u.sheet); // (prow: its own `prone` row, or its death row -- sprites.js S.proneRow, 10-02)
         if (pf >= 0 && !down && !!u.conds.prone !== !!u.proneLook) { u.proneLook = !!u.conds.prone; u.proneT = B.t; }
         if (down) {
-          if (prow === 'prone' && u.proneLook) { anim = 'prone'; o.frame = pf; } // (down while it lies: it stays as it lies)
+          if (u.headless && has('headless')) { anim = 'headless'; o.once = true; } // (GreyFang's end, js/trophy.js, 10-08: his Fall without the head, its last frame held)
+          else if (prow === 'prone' && u.proneLook) { anim = 'prone'; o.frame = pf; } // (down while it lies: it stays as it lies)
           else if (has('hurt')) { anim = 'hurt'; o.once = true; if (pf >= 0 && u.proneLook) t += Math.ceil(pf * 60 / (D.spr.anim(u.sheet, 'hurt').fps || 8)); }
           else if (u.dead) { anim = 'idle'; o.alpha = Math.max(0, 1 - (B.t - u.deadT) / 50); o.tint = R('violet', 4); o.tintAlpha = 0.5; }
           else { anim = 'idle'; o.lie = true; }

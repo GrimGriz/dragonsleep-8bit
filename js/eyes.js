@@ -17,6 +17,15 @@
   var DS = window.DS = window.DS || {};
   var G1 = 'Eyes: first', G2 = 'Eyes: built this week', G3 = 'Eyes: built before, never seen';
   DS.EYES = {
+    'eyes-greyfang-pit-1008': { pri: 1, group: G2, title: 'GreyFang’s pit: the Harbinger hunts him, and the ending -- the revive, the trophy, the escape (10-08)', pt: 'the bestiary §11 (deep16/data/fights.js greyfang; js/trophy.js; data/maps.js greyfangpit, a stand-in) · eyes',
+      url: 'deep16/?fight=greyfang&watch&seed=2&fresh=1',
+      look: 'The four at 7th and GreyFang in his pit (a stand-in bowl: the town is the maps lane’s), all AI. CAUGHT OFF GUARD: the Harbinger leaps on GreyFang first and he goes down by round 3. When the Harbinger falls: the camera in on him, the mirrors turn ("Not yet. You were sent for something."), the ripple, he stands up whole, leaps to GreyFang, the blow and a flash, the headless body flung across the screen onto the sand, his bow beside it; then the Harbinger over the north rim and gone, the hyenas with him, and GREYFANG IS DEAD. THE HARBINGER IS GONE. The words are drafts.' },
+    'eyes-greyfang-sheet-1008': { pri: 2, group: G2, title: 'GreyFang’s sheet: side rows, four isometric views, the headless fall (10-08)', pt: 'the bestiary §11 (tools/greyfang-sheet.py; deep16/art/greyfang_p1) · eyes',
+      url: 'deep16/?gallery&shelf=creatures&rows=greyfang&fresh=1',
+      look: 'Every row, UP/DOWN to turn him. SE, SW, NW and NE play their own isometric drawings of slash, volley, whirlwind, parry, backstep, prone and the fall; walk, the longbow, cast, climb and flinch are still side-on there (the art list §6 asks for them). HEADLESS is his Fall without the head, the bow beside him at the end.' },
+    'eyes-greyroad-1008': { pri: 2, group: G2, title: 'The Grey Road at work: GreyFang beside three heroes against the Harbinger (10-08)', pt: 'the bestiary §11 (deep16/js/features.js the Grey Road) · eyes',
+      url: 'deep16/?npc=harbinger&vs=greyfang:11,fighter:7,cleric:7,wizard:7&lvl=7&watch&seed=3&fresh=1',
+      look: 'GreyFang, ranger 11 of the Grey Road. Watch the cards for TURNS IT ASIDE (his reaction for a friend beside him: a hit turned to a miss, his parry row), GIVES GROUND (5 ft back, his backstep row, the next bow shot with advantage) and SWEEP THE RING (his whirlwind row once, a blow at each beside him, DEX 15 or prone).' },
     'eyes-mascot-menu-style-1008': { pri: 2, group: G2, title: 'A Mascot game keeps its own MENU STYLE: RING2 till you change it, RING the old ring (10-08)', pt: 'MPMon §6k (deep16/js/ui.js UI.style, UI.mascotGame; js/menu.js MENU STYLE) · eyes',
       url: 'deep16/?npc=goblin,goblin,hobgoblin&vs=goose:5,denny:5&lvl=5&mascots&fresh=12',
       look: 'Your "mascot games default to menu setting of ring two, not an overwrite". M, OPTIONS: MENU STYLE reads RING2 here. Set it to RING and Denny and Goose are on the old ring (SKILLS, no ACTIONS/BONUSES); WINDOW is the window, and READY’s list there has no "xundefined" column. A class fight (the tester ladder) keeps its own setting.' },

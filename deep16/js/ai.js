@@ -1357,6 +1357,7 @@
       if (B.taunt && B.taunt.rounds.indexOf(B.round) >= 0 && G.standing(B.taunt.u) && !atk.needsHeld) pool = pool.filter(function (w) { return w === B.taunt.u; });
       var tauntAt = !atk.needsHeld && u.conds.taunted && D.mpmon && D.mpmon.tauntTarget(B, u, pool); if (tauntAt) pool = [tauntAt]; // (taunted: js/mpmon.js)
       if (u.kind === 'cloaker' && !atk.needsHeld) { var vp = pool.filter(function (w) { return w.vital && G.dist(u, w) <= G.reachOf(u, atk.reach); }); if (vp.length) pool = vp; } // (the one it hunts, in reach: him first -- 10-01c)
+      if (B.fight && B.fight.quarry && !atk.needsHeld) { var qp = pool.filter(function (w) { return w.id === B.fight.quarry && G.dist(u, w) <= G.reachOf(u, atk.reach); }); if (qp.length) pool = qp; } // (a fight's quarry, in reach: him first -- GreyFang in his pit, 10-08: "The Harbinger hunts him down")
       if (u.missionOnly && !atk.needsHeld) pool = B.units.filter(function (w) { return w.object && w.id === u.mission && G.standing(w); }); // (nothing but the window: 10-05)
       if (u.noGlass) pool = pool.filter(function (w) { return !w.object; }); // (the roof guard strikes no glass -- 10-05)
       var t = pool.filter(function (w) { return G.dist(u, w) <= G.reachOf(u, atk.reach); }).sort(function (a, b) {

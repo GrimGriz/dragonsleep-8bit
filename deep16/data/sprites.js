@@ -3494,7 +3494,7 @@
 }
 },
 "greyfang_p1": {
-"image": "art/greyfang_p1.png?v=e4c5fdf61e",
+"image": "art/greyfang_p1.png?v=916c2357c0",
 "fw": 96,
 "fh": 112,
 "ax": 48,
@@ -3628,6 +3628,15 @@
 "ay": 100,
 "frames": 6,
 "fps": 12
+},
+"headless": {
+"y": 12544,
+"fw": 208,
+"fh": 112,
+"ax": 104,
+"ay": 100,
+"frames": 6,
+"fps": 8
 }
 },
 "face": 55,

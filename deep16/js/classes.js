@@ -418,6 +418,8 @@
     var spec = Object.assign({ id: f.id }, NPC.NAMED[d.build], { hp: d.hp, name: d.name });
     var u = NPC.unit(NPC.sheet(spec), 'foe', { id: f.id, sheet: d.sheet, named: d.named });
     u.kind = f.kind; u.i8 = f.i8; u.cr = d.cr; u.named = !!d.named;
+    if (f.side) u.side = f.side; u.ally = !!f.ally; // (a fight's own ally built by its class: GreyFang in his pit, 10-08 -- battle.js gives allies the party's side)
+    if (f.fated) u.fated = true; // (fated: goes down at 0, never dies in the fight -- his end is the story's, js/trophy.js; battle.js hurt)
     u.x = f.at ? f.at[0] : 0; u.y = f.at ? f.at[1] : 0; u.facing = 1; u.speed = d.speed || u.speed; // (where the fight stands it, as makeFoe does)
     u.hidden0 = !!f.hidden; u.traces = !!f.traces; u.ethereal = !!f.ethereal;
     u.yields = !!d.yields; u.flees = !!d.flees && !(B.fight && (B.fight.noFlee || B.fight.runWhenHurt));

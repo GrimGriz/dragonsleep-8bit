@@ -154,7 +154,9 @@
     var hs = AI.heroes(B, u).filter(function (w) { return G.standing(w) && !w.ethereal && !w.under && M.sees(B, u, w); });
     if (!hs.length) return;
     var soft = function (w) { return ((w.known || []).length ? 0 : 1000) + w.hp; };
-    var t = hs.slice().sort(function (a, b) { return soft(a) - soft(b); })[0], reach = G.reachOf(u);
+    // (a fight's quarry, standing and seen, before anyone soft: GreyFang in his pit -- 10-08, Griz: "The Harbinger hunts him down"; data/fights.js greyfang)
+    var qy = B.fight && B.fight.quarry && hs.filter(function (w) { return w.id === B.fight.quarry; })[0];
+    var t = qy || hs.slice().sort(function (a, b) { return soft(a) - soft(b); })[0], reach = G.reachOf(u);
     if (G.dist(u, t) <= reach) return;
     var rm = G.reach(u, T.move), best = null;
     Object.keys(rm).forEach(function (k) {

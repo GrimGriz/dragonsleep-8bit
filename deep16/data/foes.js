@@ -315,6 +315,17 @@
     },
     multi: 1, rampage: true, src: 'SRD 5.1 Gnoll (CR 1/2): spear or bite; content/monsters.json gnoll; Rampage: dropping one on its turn, a bonus-action bite after half its speed (js/traits.js, 09-28); the longbow +3 1d8+1 150/600 (SRD 5.1, loosed when nothing is in reach: ai.js volley; 10-02 runner); the spear thrown +4 1d6+2 20/60 (SRD 5.1 "Spear. Melee or Ranged Weapon Attack ... range 5 ft. or range 20/60 ft."; volley picks the likelier of it and the bow, so the spear inside 20 ft; 10-02)'
   },
+  // GreyFang (10-08): the Lupine of the Gemorax fragment, ranger 11 of the Grey Road -- built by his class from js/classes.js NPC.NAMED greyfang (his bow, the
+  // Grey Road, his Lupine senses), so a fight can stand him on either side; his story fight lends him to the party (data/fights.js greyfang, an ally). The
+  // numbers below are what the build gives, for whatever reads a bestiary block (the Pocket DM's list); the build is what fights
+  greyfang: {
+    named: true, name: 'GreyFang', type: 'humanoid', sheet: 'greyfang_p1', cr: '8', ac: 15, speed: 30, size: 1, reach: 5,
+    abil: { str: 12, dex: 18, con: 14, int: 10, wis: 16, cha: 10 }, init: 4, perception: 17, darkvision: 60,
+    saves: { str: 5, dex: 8, con: 2, int: 0, wis: 3, cha: 0 },
+    attacks: { bow: { name: "GreyFang's Bow +1", atk: 11, dice: '1d8', mod: 5, type: 'piercing', ranged: true, range: [150, 600] }, sword: { name: 'Shortsword', atk: 8, dice: '1d6', mod: 4, type: 'piercing', reach: 5 } },
+    multi: ['bow', 'bow'], build: 'greyfang',
+    src: 'ours, 10-08: TarlynsPit/wiki/greyfang.md; js/classes.js NPC.NAMED greyfang (ranger 11, the Grey Road); invented.json #greyfang'
+  },
   // the Harbinger (10-08, Griz: "He's yours my dude. Take the seat."): the made gnoll -- a gnoll Mr. Ripples thumbed on his walk to the Doors,
   // his mirror eyes in both sockets (TarlynsPit/wiki/the-trickster.md, the making). Ours, from SRD pieces; his kit by the seat on his leans
   // (..\handoff-2026-10-05-the-bestiary-after-the-bugs.md §9-§11): Backhand twice (the second on `backhand2`); POUNCE, the SRD lion's shape --

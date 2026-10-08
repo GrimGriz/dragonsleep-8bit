@@ -140,10 +140,34 @@ TOUCH_OK = {}
 ROWS = {'idle': (1, 'idle'), 'walk': (1, 'walk'), 'longbow': (1, 'bow'), 'attack': (2, 'slash'), 'slash': (2, 'slash'), 'cast': (1, 'cast'),
         'climb': (2, 'climb'), 'flinch': (1, 'hurt'), 'hurt': (2, 'fall'), 'prone': (2, 'prone'), 'volley': (2, 'volley'),
         'whirlwind': (2, 'whirlwind'), 'parry': (2, 'parry'), 'backstep': (2, 'backstep')}
+ROWS['headless'] = (2, 'headless')
+# THE HEADLESS ROW (10-08, the Harbinger's story fight -- Griz: "I was thinking a headless sprite falling across the screen onto the grid prone"; "you're
+# kinda the GreyFang sprite guy, no window better suited to finish him off"): his side Fall, each frame's head cleared away by hand -- the box the head fills
+# on sheet 2 (x0, y0, x1, y1), every figure pixel in it gone but the dropped bow's (frame 6: orange, in the box's lower right). No blood: the hood's edge
+# is the cut, and the outline pass draws it. js/trophy.js plays it as the body falls onto the grid, and holds its last frame
+HEADLESS = [(186, 694, 226, 732), (343, 708, 378, 741), (512, 718, 550, 751), (673, 732, 707, 768), (836, 733, 880, 773), (1016, 745, 1058, 776)]
+
+
+def headless(im, box, hb):
+    a = np.asarray(im).copy()
+    x0, y0, x1, y1 = hb[0] - box[0], hb[1] - box[1], hb[2] - box[0], hb[3] - box[1]
+    x0, y0, x1, y1 = max(0, x0), max(0, y0), min(a.shape[1], x1), min(a.shape[0], y1)
+    reg = a[y0:y1, x0:x1].astype(int)
+    r, g, b = reg[..., 0], reg[..., 1], reg[..., 2]
+    yy, xx = np.mgrid[0:reg.shape[0], 0:reg.shape[1]]
+    bow = (r > 140) & (g < 130) & (b < 90) & (r - g > 50) & (xx > reg.shape[1] * 0.7) & (yy > reg.shape[0] * 0.5)
+    a[y0:y1, x0:x1, 3][~bow] = 0
+    lab, n = ndimage.label(a[..., 3] > 0, structure=np.ones((3, 3)))   # (the scraps the cut leaves, under 6 px, go too)
+    if n:
+        sz = ndimage.sum(a[..., 3] > 0, lab, range(1, n + 1))
+        a[..., 3][np.isin(lab, 1 + np.where(sz < 6)[0])] = 0
+    return Image.fromarray(a, 'RGBA')
+
+
 REVERSED = {'prone'}                      # played backwards: the sheet's lying-then-pushing-up, so he lies at the last frame
 STILL = {'idle': {0: 'front', 4: 'back'}}      # facing -> the turnaround's still, for this row (the other rows play side-on from S and N)
-NEW = ['slash', 'volley', 'whirlwind', 'parry', 'backstep']    # this cutter's own rows (named here, not in pixelate.py)
-FPS = {'idle': 4, 'walk': 10, 'longbow': 12, 'attack': 12, 'slash': 12, 'cast': 8, 'climb': 8, 'flinch': 10, 'hurt': 8, 'prone': 8,
+NEW = ['slash', 'volley', 'whirlwind', 'parry', 'backstep', 'headless']    # this cutter's own rows (named here, not in pixelate.py)
+FPS = {'headless': 8, 'idle': 4, 'walk': 10, 'longbow': 12, 'attack': 12, 'slash': 12, 'cast': 8, 'climb': 8, 'flinch': 10, 'hurt': 8, 'prone': 8,
        'volley': 12, 'whirlwind': 14, 'parry': 10, 'backstep': 12}
 RELEASE = {'longbow': 9, 'volley': 5}     # the frame the arrow(s) are gone from the string: js/battle.js times the shot by it (0-based)
 GUARD = [('slash', 0), ('parry', 0), ('backstep', 0)]      # sheet 2 frames that stand in sheet 1's idle guard
@@ -248,6 +272,8 @@ def cut(L, check=False):
         SR.label_xs = orig
     if still_cut:
         out['still'] = still_cut
+    if L == 2 and 'fall' in out:                                  # his `headless` row: the side Fall with the head taken away (below)
+        out['headless'] = [(nm, headless(im, box, HEADLESS[i]), box) for i, (nm, im, box) in enumerate(out['fall'])]
     if check:
         d = os.path.join(ROOT, 'dev', 'visions', 'greyfang'); os.makedirs(d, exist_ok=True)
         over[0].save(os.path.join(d, 'cut-%d.png' % L))

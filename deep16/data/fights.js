@@ -311,6 +311,19 @@
     { id: 'harbinger', bestiary: true, level: 7, map: 'gnollhills', name: 'The Harbinger', sub: 'the Gnoll Hills, on the walk north',
       intro: 'On the crown of the hill a gnoll stands too still, and both its eyes are mirrors.', from: 'the Gnoll Hills (the Harbinger)',
       foes: [{ id: 'harb1', kind: 'harbinger', at: [14, 3] }], wave: null },
+    // GREYFANG'S PIT (10-08, the GreyFang window): the story fight -- the Harbinger comes for GreyFang in his own pit, in public (TarlynsPit/wiki/greyfang.md, the
+    // rulings of 10-08: "The Harbinger hunts him down"; GreyFang "is not going to make it"). The four at 7th (Griz, 10-08: "7th is good") and GreyFang lent to them
+    // (data/foes.js greyfang, built as ranger 11 of the Grey Road; `fated`: at 0 he goes down, never dies in the fight); the Harbinger hunts him first (`quarry`,
+    // js/traits.js). Downed, the Harbinger is not done: `trophy` plays the ending (js/trophy.js) -- Griz, 10-08: "presently leaning toward direct old one
+    // intervention after apparent party victory - cutscene type Harbinger revive, obtain trophy, escape"; the body "a headless sprite falling across the screen
+    // onto the grid prone". The reward his bow (content/items.json greyfangbow: "Yes"), for the 8-bit to give when it sends this fight. The map a stand-in
+    // (data/maps.js greyfangpit: the town is the maps lane's)
+    { id: 'greyfang', story: true, ladder: false, level: 7, map: 'greyfangpit', name: "GreyFang's Pit", sub: "Tarlyn's Pit, the bunker yard", music: 'boss',
+      intro: 'The crowd on the tiers goes quiet. On the north rim a gnoll stands too still, and both its eyes are mirrors. It is looking at GreyFang.',
+      from: "Tarlyn's Pit (GreyFang's pit)", quarry: 'greyfang', surprised: 'party', trophy: true, reward: 'greyfangbow', // (surprised: he comes for GreyFang before anyone moves)
+      won: 'GREYFANG IS DEAD. THE HARBINGER IS GONE.',
+      allies: [{ id: 'greyfang', kind: 'greyfang', side: 'party', ally: true, fated: true, at: [11, 7] }],
+      foes: [{ id: 'harb1', kind: 'harbinger', at: [11, 1] }], wave: null },
     // THE SKYLIGHTS (10-05; the Edifice handoff's boss fight, a defend fight -- Griz, 10-04 night: "make the glass above the hole their target ... like they're trying to make entry
     // into the dwarven place and this is defend mission"; 10-05: "2 stone giants (each model) and 2 trolls and see how that goes"; "Have pyro come out followed by the party then the
     // doors lock behind them. Have the monsters come from the north road, the team pop out and then initiative. Have pyro say 'they're going for the skylights' when the first one

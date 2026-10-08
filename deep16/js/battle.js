@@ -823,7 +823,8 @@
     // whoever does not notice is caught unaware -- no turn in the first round, no reactions till then
     // inside the 8-bit game its scene has already said who saw whom (the 8-bit battle's `surprised`: the watch that missed
     // the blades, the roper's grab, the crept-up raid), so that side loses the first round and nothing is rolled here
-    var sur = this.o.embed && this.o.embed.surprised;
+    // (a story fight's own `surprised` at its door or on the bench: GreyFang's pit, 10-08 -- the Harbinger comes for him before anyone can move)
+    var sur = (this.o.embed && this.o.embed.surprised) || (!this.o.embed && this.isStory() && this.fight.surprised) || null;
     if (sur === 'party' || sur === 'foes') {
       var side = sur === 'party' ? 'party' : 'foe';
       this.units.forEach(function (w) { if (w.side === side && w.hp > 0) w.conds.surprised = true; });
@@ -2017,7 +2018,7 @@
     // melee weapon and seeing the attacker, adds his WIS to its AC against the blow -- his reaction, taken when it turns the hit (js/features.js F.turnAside)
     if (hit && nat !== 20 && D.features && D.features.turnAside) {
       var ta = D.features.turnAside(this, att, tgt, atk, total, ac);
-      if (ta && (byAI(ta.w) || (yield { prompt: { who: ta.w, title: ta.w.name + ': TURN IT ASIDE?', lines: [nameOf(att) + "'s " + total + ' would hit ' + nameOf(tgt) + ' (AC ' + ac + ').', '+' + ta.bonus + ' AC makes it ' + (ac + ta.bonus) + ': a miss. (the reaction)'], opts: [{ label: 'TURN IT', value: true }, { label: 'LET IT LAND', value: false }] } }))) {
+      if (ta && (byAI(ta.w) || ta.w.ally || (yield { prompt: { who: ta.w, title: ta.w.name + ': TURN IT ASIDE?', lines: [nameOf(att) + "'s " + total + ' would hit ' + nameOf(tgt) + ' (AC ' + ac + ').', '+' + ta.bonus + ' AC makes it ' + (ac + ta.bonus) + ': a miss. (the reaction)'], opts: [{ label: 'TURN IT', value: true }, { label: 'LET IT LAND', value: false }] } }))) {
         ta.w.reaction = 0; FX.ring(tgt, 'silver', 22); D.sfx('bump');
         if (D.spr.anim(ta.w.sheet, 'parry')) { ta.w.facing = D.spr.facingFor(att.x - ta.w.x, att.y - ta.w.y); ta.w.anim = 'parry'; ta.w.animT = this.t; }
         ac += ta.bonus; hit = false; crit = false;
@@ -2664,7 +2665,7 @@
     // outright"); Death Ward's 1 HP still does, below. In a story fight the game is over (RULED 10-06, Griz: "This should probably go in both, and force a game-over reload in
     // story fights"). Foes fall at 0 as ever
     var past = hp0 > 0 ? n - hp0 : n;
-    if (u.hp <= 0 && u.side === 'party' && !u.object && !u.familiar && !u.summon && !u.ally && !u.conds.deathWard && !u.dead && past >= u.maxhp) {
+    if (u.hp <= 0 && u.side === 'party' && !u.object && !u.familiar && !u.summon && !u.ally && !u.conds.deathWard && !u.dead && !u.fated && past >= u.maxhp) {
       var story = this.isStory();
       u.hp = 0; u.dead = true; u.slain = true; u.ko = true; u.deadT = this.t; u.anim = 'hurt'; u.animT = this.t; delete u.conds.ablaze;
       D.sfx('ko'); FX.ring(u, 'red', 30); if (D.light && D.light.fell) D.light.fell(this, u);
@@ -2693,7 +2694,7 @@
       if (D.traits && D.traits.onDown) D.traits.onDown(this, this.active, u); // (the gnoll's Rampage)
       D.sfx(u.side === 'party' ? 'ko' : 'die');
       if (u.familiar && D.familiar && D.familiar.vanish) D.familiar.vanish(this, u); // (a familiar at 0 HP is gone, not down: SRD 5.1)
-      else if (u.ally) { u.dead = true; u.deadT = this.t; delete u.conds.ablaze; if (u.holding && u.holding.length) this.release(u); this.card(['{r}' + u.name + ' is cut down.{/}']); } // (one of ours the fight lent -- the Hex's men, the garrison: it dies as a foe does, 10-05)
+      else if (u.ally && !u.fated) { u.dead = true; u.deadT = this.t; delete u.conds.ablaze; if (u.holding && u.holding.length) this.release(u); this.card(['{r}' + u.name + ' is cut down.{/}']); } // (one of ours the fight lent -- the Hex's men, the garrison: it dies as a foe does, 10-05)
       else if (u.side === 'party' && !u.object) { u.ko = true; delete u.conds.ablaze; D.light.fell(this, u); this.card(['{r}' + u.name + ' goes down.{/}' + (D.light.torchAt(this, u.x, u.y) ? '  {g}The torch burns beside ' + u.name + '.{/}' : '')]); } // (the name, never "him")
       else if (u.object) { u.dead = true; u.deadT = this.t; this.breached = true; D.sfx('crit'); this.card(['{r}' + u.name.charAt(0).toUpperCase() + u.name.slice(1) + ' gives way!{/}  {g}(the Edifice is breached){/}'], 300); }
       // a troll at 0 is down, not dead (SRD 5.1 Regeneration: "The troll dies only if it starts its turn with 0 hit points and doesn't regenerate"; acid or fire stops it -- 10-05,
