@@ -5607,6 +5607,14 @@
       okD(fl.foes.join() === [kBarb, kSF, kSF].join() && fl.mine === 3 && fl.units.join() === '12', 'a CR 3 table: the newest unit whole (' + PK.foesText(fl.foes) + '), and the CR 0 hyenas not alone on a table with nothing left');
       var fl2 = PD.fill(pk, 'hexfloor', 32);
       okD(PK.sum8(fl2.foes) === 32 && fl2.mine === 7 && fl2.units.join() === '12,13,11' && fl2.foes.slice(0, 7).join() === [kBarb, kSF, kSF, 'hyena', 'hyena', 'goblin', 'goblin'].join(), 'a CR 4 table: the three units newest first (the barbarian\'s, the hyenas, the goblins), then CR 1/2 rolled (' + PK.foesText(fl2.foes) + ')');
+      // a unit that has fought on a ladder goes to the back of the line (10-09b, Griz: "Once a unit is used in a ladder, treat it as 'used' or 'purchased last'"), and the
+      // builder puts units already in a slot behind the rest
+      pk.result = { lines: [] }; var cpU0 = cp.purse; pk.afterFight('won', { units: [12] }, { kinds: [kBarb, kSF, kSF] }); cp.purse = cpU0;
+      var ord = PD.newest(cp).map(function (u) { return u.id; }).join(), flU = PD.fill(pk, 'hexfloor', 24);
+      okD(ord === '13,11,12' && flU.units.join() === '13,11' && flU.units.indexOf(12) < 0, 'after the barbarian\'s unit fights on a ladder it is last in line (' + ord + '): a CR 3 table now takes the hyenas and the goblins first (' + PK.foesText(flU.foes) + ')');
+      cp.units.forEach(function (u) { delete u.usedAt; });
+      var bk = PD.placed([{ units: [12] }]), flB = PD.fill(pk, 'hexfloor', 24, bk);
+      okD(PD.newest(cp, bk).map(function (u) { return u.id; }).join() === '13,11,12' && flB.units.indexOf(12) < 0, 'the builder: a unit already in a slot stands behind the rest for the next slot');
       var lf = pk.ladderFoes(['ogre', 'hobgoblin'], 'hexfloor');
       okD(PK.sum8(lf) === 20 && lf.indexOf('hyena') >= 0 && lf.indexOf('goblin') >= 0 && lf.indexOf(kBarb) < 0, 'the dial\'s ladder: a rolled CR 2 1/2 is the units that fit (the hyenas, the goblins; the CR 3 one does not), the rest rolled (' + PK.foesText(lf) + ')');
       // g. the built ladder: two slots are two rungs and no trial; five are four and the trial; the rungs are the slots

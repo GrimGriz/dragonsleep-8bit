@@ -60,8 +60,15 @@
     var sp = Math.floor(cp / 10), c = cp % 10, s = String(sp).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
     return (neg ? '-' : '') + s + ' sp' + (c ? ' ' + c + ' cp' : '');
   };
-  // the units newest first (his "from most recently created units first")
-  PD.newest = function (cp) { return cp.units.slice().sort(function (a, b) { return (b.at - a.at) || (b.id - a.id); }); };
+  // the units in the order a table takes them: the newest first (his "from most recently created units first"), and a unit that has fought on a ladder at the back of
+  // the line, the longest ago used first (10-09b, Griz: "Once a unit is used in a ladder, treat it as 'used' or 'purchased last'"); `back` (the builder's) puts units
+  // already in a slot behind the rest, by the slot, so five slots built in a row don't all take the same newest unit
+  PD.newest = function (cp, back) {
+    back = back || {};
+    var rank = function (u) { return back[u.id] != null ? 1e15 + back[u.id] : (u.usedAt || 0); };
+    return cp.units.slice().sort(function (a, b) { var ra = rank(a), rb = rank(b); if (!ra !== !rb) return ra ? 1 : -1; if (ra && rb && ra !== rb) return ra - rb; return (b.at - a.at) || (b.id - a.id); });
+  };
+  PD.placed = function (plan, skip) { var back = {}; (plan || []).forEach(function (s, i) { if (i !== skip) (s.units || []).forEach(function (id) { if (back[id] == null) back[id] = i; }); }); return back; };
   function water(mapId) { var def = D.MAPS[mapId]; return !!def && def.rows.join('').indexOf('~') >= 0; }
   function fits(kind, mapId) { var f = D.FOES[kind]; return !!f && !(f.bound && !water(mapId)); }
 
@@ -119,9 +126,9 @@
   // a table at a CR, filled from the units first (his 4: "fills CR with units first, from most recently created units first"): each unit whole, the newest first, while its
   // CR fits what is left and its heads fit the floor's room; each unit once a table, never spent; the rest rolled from the DM's pot. The dial's own ladder (his 3: "their stored
   // units replace randomly assigned units on the ladder") is the same at the rung's rolled CR: the units take the place of rolled foes, the CR the same
-  PD.fill = function (pk, mapId, cr8) {
+  PD.fill = function (pk, mapId, cr8, back) {
     var cp = PD.camp(pk.st), room = PK.roomOn(mapId), rem = cr8, take = [], used = [];
-    PD.newest(cp).forEach(function (u) {
+    PD.newest(cp, back).forEach(function (u) {
       var ks = PD.unitKinds(u), c = PD.unitCR8(u);
       if (!ks.length || c > rem || take.length + ks.length > room || !ks.every(function (k) { return fits(k, mapId); })) return;
       if (c === 0 && rem === 0) return; // (a unit of CR 0s rides with a table that has CR to fill, not on its own)
@@ -140,8 +147,8 @@
     var slot = run.plan[run.trial ? 4 : run.rung - 1]; if (!slot) return false;
     var map = this.mapIds().indexOf(slot.map) >= 0 ? slot.map : this.randomMap();
     var fresh = this.rerolling || !slot.foes || !slot.foes.length || map !== slot.map;
-    var f = fresh ? PD.fill(this, map, slot.cr8) : { foes: slot.foes.slice(), mine: slot.mine || 0 };
-    this.fightMap = run.map = map; this.foes = run.foes = f.foes; run.mine = f.mine;
+    var f = fresh ? PD.fill(this, map, slot.cr8) : { foes: slot.foes.slice(), mine: slot.mine || 0, units: (slot.units || []).slice() };
+    this.fightMap = run.map = map; this.foes = run.foes = f.foes; run.mine = f.mine; run.units = f.units;
     return true;
   };
   PD.startPlan = function (pk) {
@@ -156,8 +163,10 @@
   // what a ladder fight pays the DM (his: "double the CR of the ladder encounter for each fight on the ladder"): won or lost, twice the table's CR in silver
   Pocket.prototype.afterFight = function (res, run, info) {
     if (!this.st.dm || !run || (res !== 'won' && res !== 'lost')) return;
-    var cp = PD.camp(this.st), pay = PK.sum8(info.kinds) * PD.CP8 * 2;
+    var cp = PD.camp(this.st), pay = PK.sum8(info.kinds) * PD.CP8 * 2, now = Date.now();
     cp.purse += pay;
+    // the units that fought go to the back of the line, in the order they stood (his "treat it as 'used' or 'purchased last'")
+    (run.units || []).forEach(function (id, i) { var u = cp.units.filter(function (x) { return x.id === id; })[0]; if (u) u.usedAt = now + i; });
     if (this.result) (this.result.lines = this.result.lines || []).push('The DM\'s purse: +' + PD.fmt(pay) + ' (twice the table\'s CR) -- ' + PD.fmt(cp.purse) + ' now');
   };
 
@@ -337,13 +346,13 @@
     if (!rs.length) D.text(ctx, 'none: buy in the shops, and they wait here', lx + 6, 50, P('stone', 5));
     if (rs.length > per) D.text(ctx, 'wheel: ' + (from + 1) + '-' + Math.min(rs.length, from + per) + ' of ' + rs.length, lx, 44 + per * 14 + 2, P('stone', 5));
     // the units
-    D.text(ctx, '{y}YOUR UNITS{/}  ' + us.length + ' · newest first', rx, 34, P('bone', 1));
+    D.text(ctx, '{y}YOUR UNITS{/}  ' + us.length + ' · in the order a table takes them', rx, 34, P('bone', 1));
     var per2 = 7, from2 = Math.min(this.scroll2 || 0, Math.max(0, us.length - per2)); this.scroll2 = from2; // (two lines a unit: its name whole, then its CR, its heads and UNBIND)
     us.slice(from2, from2 + per2).forEach(function (u, k) {
       var yy = 44 + k * 24;
       ctx.fillStyle = 'rgba(20,16,30,.9)'; ctx.fillRect(rx, yy, rw, 22); ctx.strokeStyle = P('stone', 3); ctx.strokeRect(rx + 0.5, yy + 0.5, rw - 1, 21);
       D.text(ctx, cut(PD.unitName(u), rw - 8), rx + 4, yy + 3, P('bone', 1));
-      D.text(ctx, 'CR ' + PK.fmt8(PD.unitCR8(u)) + '  {g}' + u.members.length + ' head' + (u.members.length === 1 ? '' : 's') + '{/}', rx + 4, yy + 12, P('gold', 4));
+      D.text(ctx, 'CR ' + PK.fmt8(PD.unitCR8(u)) + '  {g}' + u.members.length + ' head' + (u.members.length === 1 ? '' : 's') + (u.usedAt ? ' · fought: last' : '') + '{/}', rx + 4, yy + 12, P('gold', 4));
       self.btn(ctx, 'UNBIND', rx + rw - 48, yy + 10, 46, 11, function () { var g = PD.unbind(st, u.id); if (g) { self.keep(); self.say(PD.unitName(g) + ': receipts again', 240); } }, { small: true });
     });
     if (!us.length) D.text(ctx, 'none yet: pick receipts and BIND AS UNIT', rx + 6, 50, P('stone', 5));
@@ -374,8 +383,8 @@
       var def = D.MAPS[id], yy = 36 + i * 16, ci = cp.mapCR[id] == null ? dflt : cp.mapCR[id], struck = cp.strike.indexOf(id) >= 0, full = cp.plan.length >= PD.SLOTS;
       self.btn(ctx, cut(def.name || id, 124), 14, yy, 132, 14, function () {
         if (cp.plan.length >= PD.SLOTS) { D.sfx('error'); self.say('all ' + PD.SLOTS + ' slots are full: clear one on the right', 240); return; }
-        var cr8 = PK.VALUES[ci], f = PD.fill(self, id, cr8);
-        cp.plan.push({ map: id, cr8: cr8, foes: f.foes, mine: f.mine }); self.keep();
+        var cr8 = PK.VALUES[ci], f = PD.fill(self, id, cr8, PD.placed(cp.plan)); // (units already in a slot go behind the rest: his 'used' rule, 10-09b)
+        cp.plan.push({ map: id, cr8: cr8, foes: f.foes, mine: f.mine, units: f.units }); self.keep();
         self.say((cp.plan.length === 5 ? 'THE TRIAL' : 'RUNG ' + cp.plan.length) + ': ' + (def.name || id) + ', ' + PK.foesText(f.foes) + (f.mine ? ' (' + f.mine + ' yours)' : ''), 300);
       }, { small: true, dis: full, why: 'all ' + PD.SLOTS + ' slots are full: clear one on the right' });
       if (def.dark) D.text(ctx, '{p}D{/}', 150, yy + 3, P('violet', 5));
@@ -402,7 +411,7 @@
         D.text(ctx, '{g}CR ' + PK.fmt8(PK.sum8(sl.foes || [])) + (sl.mine ? '  ' + sl.mine + ' yours' : '') + '{/}', px + 6, yy + 9, P('stone', 5));
         D.text(ctx, cut(PK.foesText(sl.foes || []), pw - 12), px + 6, yy + 18, P('bone', 1));
         self.btn(ctx, 'x', px + pw - 18, yy - 2, 12, 11, function () { cp.plan.splice(i, 1); self.keep(); }, { small: true });
-        self.btn(ctx, 'R', px + pw - 32, yy - 2, 12, 11, function () { var f = PD.fill(self, sl.map, sl.cr8); sl.foes = f.foes; sl.mine = f.mine; self.keep(); }, { small: true }); // (filled again: the units as they stand now, a fresh roll for the rest)
+        self.btn(ctx, 'R', px + pw - 32, yy - 2, 12, 11, function () { var f = PD.fill(self, sl.map, sl.cr8, PD.placed(cp.plan, i)); sl.foes = f.foes; sl.mine = f.mine; sl.units = f.units; self.keep(); }, { small: true }); // (filled again: the units as they stand now, a fresh roll for the rest)
       })(i);
     }
     D.text(ctx, '{g}R{/} fills it again  ·  {g}x{/} clears it', px + 6, 196, P('stone', 5));
