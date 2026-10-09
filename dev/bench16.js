@@ -5406,7 +5406,7 @@
         var memKeep = mem['deep16.pocket'], tm0 = PQ.mapIds()[0];
         PQ.st.party = [{ custom: 1 }, { custom: 0 }, { w: 'barley', lvl: 5, loot: ['ringofprotection'] }]; PQ.st.run = { rung: 2, trial: false, won: 1, map: tm0, foes: ['goblin', 'goblin'] }; PQ.keep();
         clicked = null; var tName = PQ.saveTable(), tFile = PK.tableFile(PQ.st);
-        okP(clicked && /^pocket-dm-table-.*\.json$/.test(clicked.name) && tName === clicked.name && tFile.kind === 'pocket-table' && tFile.roster.length === 2 && tFile.party.length === 3 && tFile.party[2].loot[0] === 'ringofprotection' && tFile.run && tFile.run.rung === 2 && tFile.pyro, 'SAVE TABLE: one file, the seats with their winnings, the two made, Pyro, the ladder at rung 2 (' + (clicked && clicked.name) + ')');
+        okP(clicked && /^pocket-dm-campaign-.*\.json$/.test(clicked.name) && tName === clicked.name && tFile.kind === 'pocket-campaign' && tFile.roster.length === 2 && tFile.party.length === 3 && tFile.party[2].loot[0] === 'ringofprotection' && tFile.run && tFile.run.rung === 2 && tFile.pyro, 'SAVE CAMPAIGN (SAVE TABLE till 10-09): one file, the seats with their winnings, the two made, Pyro, the ladder at rung 2 (' + (clicked && clicked.name) + ')');
         mem['deep16.pocket'] = JSON.stringify({ roster: [{ code: other.code, name: other.name, cls: other.cls, lvl: other.lvl, made: 2 }], fights: [], party: null, run: null });
         var PT = new D.Pocket(); PT.enter(); PT.ask = function () { return true; };
         var tIn = PT.takeFile(JSON.stringify(tFile)), tSeat = PT.st.party || [];
@@ -5415,7 +5415,7 @@
         okP(tNo && tNo.declined && PT.st.run && PT.st.run.rung === 2, 'a ladder under way is not put away when he says no');
         var tRos = PT.takeFile(JSON.stringify({ game: 'DRAGONSLEEP', kind: 'pocket-roster', v: 1, roster: [mine], pyro: false }));
         okP(tRos && tRos.had === 1 && PT.st.run && PT.st.run.rung === 2, 'LOAD TABLE takes a roster file of 10-03\'s the roster\'s way, the ladder untouched');
-        okP(PT.takeFile('{"game":"DRAGONSLEEP","kind":"saves","keys":{}}') === null && /not a Pocket DM table or roster/.test(PT.msg && PT.msg.text), 'an 8-bit save is taken for neither');
+        okP(PT.takeFile('{"game":"DRAGONSLEEP","kind":"saves","keys":{}}') === null && /not a Pocket DM campaign or roster/.test(PT.msg && PT.msg.text), 'an 8-bit save is taken for neither');
         PT.msg = null; PT.fire({ dis: true, why: 'no fights kept yet: START one', fn: function () { } });
         okP(PT.msg && /no fights kept yet/.test(PT.msg.text), 'a greyed button says why when pressed (' + (PT.msg && PT.msg.text) + ')');
         mem['deep16.pocket'] = memKeep; PQ.st = PK.load(); clicked = null;
@@ -5540,6 +5540,137 @@
     if (errs.length) repP.errors = repP.errors.concat(errs);
     var preP = document.createElement('pre'); preP.id = 'out'; preP.textContent = 'BENCH16 ' + JSON.stringify(repP);
     document.body.appendChild(preP);
+    return;
+  }
+  // THE DM'S POCKET DM (mode=pocketdm1009; 10-09, Griz: "if you click the throne and then the right lamp and then the left lamp, it takes you to the DM's Pocket DM";
+  // "each of the icons (and humanoids) is it's own shop and CR is in silver"; "they start with 1000 and get double the CR of the ladder encounter for each fight on the
+  // ladder"; "build a ladder ... fills CR with units first, from most recently created units first"; the notes file and the three eggs): js/pocketdm.js, on a stand-in store
+  if (get('mode', '') === 'pocketdm1009') {
+    var repD = { checks: [], errors: [] }, okD = function (c, s) { repD.checks.push((c ? 'ok   ' : 'FAIL ') + s); };
+    var memD = {}, stG = D.store.get, stS = D.store.set, aClkD = HTMLAnchorElement.prototype.click, dlD = [], push0D = D.push, m0D = D.input.mouse, cv0D = D.canvas;
+    D.store.get = function (k) { return memD[k] ? JSON.parse(memD[k]) : null; }; D.store.set = function (k, v) { memD[k] = JSON.stringify(v); return true; };
+    HTMLAnchorElement.prototype.click = function () { dlD.push({ name: this.download, href: this.href }); };
+    var cvD = document.createElement('canvas'); cvD.width = D.W; cvD.height = D.H; var cxD = cvD.getContext('2d'); if (!D.canvas) D.canvas = cvD;
+    var click = function (pk, x, y) { D.input.mouse = Object.assign({}, m0D || {}, { x: x, y: y, inside: true, inWin: true, click: true, moved: false, wheel: 0 }); try { pk.update(); } finally { D.input.mouse = Object.assign({}, m0D || {}, { click: false }); } };
+    var drawOK = function (pk, what) { try { pk.draw(cxD); return true; } catch (eDr) { repD.errors.push('draw ' + what + ': ' + String(eDr && eDr.stack || eDr).slice(0, 400)); return false; } };
+    try {
+      D.seed = seed0 * 7919;
+      var PK = D.pocket, PD = D.pocketdm, MPd = D.mpmon;
+      okD(!!PD && typeof PD.fill === 'function', 'js/pocketdm.js loads (D.pocketdm)');
+      // a. the door: the high seat, the right lamp, the left lamp; another order does nothing; the same three put it away
+      var pk = new D.Pocket(); pk.enter(); pk.screen = 'title';
+      click(pk, 240, 90); click(pk, 150, 95); click(pk, 330, 95); var wrong = !!pk.st.dm;
+      pk.seq = 0; click(pk, 240, 90); click(pk, 330, 95); click(pk, 150, 95);
+      okD(!wrong && pk.st.dm === true && pk.egg && pk.egg.id === 'dm' && JSON.parse(memD['deep16.pocket']).dm === true, 'the door: throne, left, right does nothing; throne, right, left opens the DM\'s table, its egg up, and it is kept');
+      pk.egg = null;
+      // b. no locks at the DM's table
+      var es = PK.entries(pk.st), ws = es.map(function (e) { return e.w; });
+      okD(PK.cap(pk.st) === 12 && ws.indexOf('greyfang') >= 0 && es.filter(function (e) { return e.w === 'pyro'; })[0].locked === false && ['denny', 'beholda', 'rascal', 'goose'].every(function (w) { return ws.indexOf(w) >= 0; }), 'the DM\'s roster: the cap 12, GreyFang, Pyro unlocked, the four Mascots');
+      var stR = { roster: [], fights: [], party: [], pyro: false }, esR = PK.entries(stR).map(function (e) { return e.w; });
+      okD(PK.cap(stR) === 8 && esR.indexOf('greyfang') < 0 && esR.indexOf('goose') < 0 && PK.entries(stR).filter(function (e) { return e.w === 'pyro'; })[0].locked, 'the release edition\'s: the cap 8, no GreyFang, no Mascot, Pyro locked');
+      var uGF = D.npc.build('greyfang:7', 7, 'party', { id: 'p0-greyfang' });
+      okD(uGF && uGF.lvl === 7 && uGF.side === 'party', 'GreyFang builds at 7 for the party (' + (uGF && uGF.name) + ')');
+      var potDM = PK.pot(['barley:5'], 'hexfloor', true), potR = PK.pot(['barley:5'], 'hexfloor');
+      okD(potDM.indexOf('talmok') >= 0 && potDM.indexOf('keeperold') < 0 && potR.indexOf('talmok') < 0 && PK.pot(['greyfang:7'], 'hexfloor', true).indexOf('greyfang') < 0, 'the DM\'s pot has the story\'s named (Talmok), never the old Keeper, and not one of the party');
+      // c. the five shops: every creature with a CR on one shelf, priced 100 sp a CR, cheapest first
+      var shelved = {}; PD.SHOPS.forEach(function (sh) { PD.shelf(sh).forEach(function (k) { shelved[k] = (shelved[k] || 0) + 1; }); });
+      var want = Object.keys(D.FOES).filter(function (k) { var f = D.FOES[k]; return f && !/^fam_/.test(k) && !f.object && PD.OUT.indexOf(k) < 0 && PK.cr8(f.cr) > 0; });
+      okD(PD.SHOPS.length === 5 && want.every(function (k) { return shelved[k] === 1; }) && Object.keys(shelved).length === want.length, 'five shops, each of the ' + want.length + ' creatures with a CR on exactly one (beasts ' + PD.shelf(PD.SHOPS[0]).length + ', monstrosities ' + PD.shelf(PD.SHOPS[1]).length + ', humanoids ' + PD.shelf(PD.SHOPS[2]).length + ', giants ' + PD.shelf(PD.SHOPS[3]).length + ', the rest ' + PD.shelf(PD.SHOPS[4]).length + ')');
+      okD(PD.fmt(PD.price('goblin')) === '25 sp' && PD.fmt(PD.price('guard')) === '12 sp 5 cp' && PD.fmt(PD.price('hobgoblin')) === '50 sp' && PD.fmt(PD.price('drow')) === '500 sp' && PD.fmt(PD.START) === '1,000 sp', 'the prices: a goblin (1/4) 25 sp, a guard (1/8) 12 sp 5 cp, a hobgoblin (1/2) 50 sp, the drow captain (5) 500 sp; the purse starts at 1,000 sp');
+      var hum = PD.shelf(PD.SHOPS[2]), sorted = hum.every(function (k, i) { return !i || PD.price(hum[i - 1]) <= PD.price(k); }), dear = PD.shelf(PD.SHOPS[2], 'dear'), byN = PD.shelf(PD.SHOPS[2], 'name').map(function (k) { return D.FOES[k].name; });
+      okD(sorted && dear.every(function (k, i) { return !i || PD.price(dear[i - 1]) >= PD.price(k); }) && byN.every(function (n, i) { return !i || byN[i - 1] <= n; }), 'a shelf is priced top to bottom, cheapest first (' + D.FOES[hum[0]].name + ' to ' + D.FOES[hum[hum.length - 1]].name + '); the dearest first and by name on SORT');
+      // d. buying: the purse pays, the receipt is a unit; the purse refuses past itself; a unit let go is paid back
+      var cp = PD.camp(pk.st); cp.purse = PD.START; cp.units = [];
+      var b1 = PD.buy(pk.st, 'goblin'); var afterB = cp.purse;
+      cp.purse = 100; var b2 = PD.buy(pk.st, 'drow'); cp.purse = afterB;
+      okD(b1.ok && afterB === PD.START - 250 && cp.units.length === 1 && cp.units[0].kind === 'goblin' && !b2.ok && /purse holds/.test(b2.why), 'BUY: a goblin for 25 sp leaves 975 sp and a unit; a drow captain past a 10 sp purse is refused (' + b2.why + ')');
+      var gone = PD.dismiss(pk.st, cp.units[0].id);
+      okD(gone && cp.units.length === 0 && cp.purse === PD.START, 'LET GO: the unit goes back to its shop for what was paid');
+      // e. the random ladder: each rolled foe whose CR a unit has is that unit, the newest first, each once a rung
+      cp.units = [{ id: 1, kind: 'worg', at: 1000, paid: 500 }, { id: 2, kind: 'goblin', at: 3000, paid: 250 }, { id: 3, kind: 'drowling', at: 2000, paid: 250 }];
+      var sw = PD.swap(pk.st, ['wolf', 'wolf', 'wolf', 'hobgoblin', 'ogre'], 'hexfloor');
+      okD(sw.foes.join() === 'goblin,drowling,wolf,worg,ogre' && sw.mine === 3 && PK.sum8(sw.foes) === PK.sum8(['wolf', 'wolf', 'wolf', 'hobgoblin', 'ogre']), 'the swap: three wolves (1/4) are the goblin (newest), the drowling, a wolf; the hobgoblin (1/2) is the worg; the ogre stays; the CR the same (' + sw.foes.join(', ') + ')');
+      // f. a built slot: the CR filled from the units first, the newest first, the rest rolled
+      var fl = PD.fill(pk, 'hexfloor', 8);
+      okD(fl.foes[0] === 'goblin' && fl.foes[1] === 'drowling' && fl.foes[2] === 'worg' && fl.mine === 3 && PK.sum8(fl.foes) === 8, 'a CR 1 slot: the goblin, the drowling, the worg (1/4 + 1/4 + 1/2) and nothing rolled (' + PK.foesText(fl.foes) + ')');
+      var fl2 = PD.fill(pk, 'hexfloor', 24);
+      okD(fl2.mine === 3 && PK.sum8(fl2.foes) === 24 && fl2.foes.slice(0, 3).join() === 'goblin,drowling,worg', 'a CR 3 slot: the three units, then CR 2 rolled (' + PK.foesText(fl2.foes) + ')');
+      // g. the built ladder: two slots are two rungs and no trial; five are four and the trial; the rungs are the slots
+      var m2 = pk.mapIds()[1], m3 = pk.mapIds()[2];
+      pk.st.party = [{ w: 'barley', lvl: 5, loot: [] }, { w: 'aurdin', lvl: 5, loot: [] }]; pk.cache = {};
+      cp.plan = [{ map: m2, cr8: 8, foes: ['goblin', 'drowling', 'worg'], mine: 3 }, { map: m3, cr8: 16, foes: ['ogre'], mine: 0 }];
+      var sp2 = PD.startPlan(pk), run2 = pk.st.run;
+      okD(sp2 && run2.plan.length === 2 && pk.lastRung(run2) === 2 && !pk.hasTrial(run2) && run2.map === m2 && run2.foes.join() === 'goblin,drowling,worg' && pk.rungName(run2) === 'RUNG 1 OF 2', 'FIGHT YOUR LADDER: rung 1 of 2 is the first slot, its floor and its foes');
+      pk.nextRung();
+      okD(run2.rung === 2 && run2.map === m3 && run2.foes.join() === 'ogre', 'the next rung is the second slot');
+      pk.rerolling = true; pk.st.run.rung = 1; pk.planRung(pk.st.run); pk.rerolling = false;
+      okD(PK.sum8(pk.st.run.foes) === 8 && pk.st.run.foes[0] === 'goblin', 'REROLL THE RUNG on a built one fills it again: the units first (' + PK.foesText(pk.st.run.foes) + ')');
+      cp.plan = [0, 1, 2, 3, 4].map(function (i) { return { map: m2, cr8: 4 + i * 4, foes: ['hobgoblin'], mine: 0 }; }); pk.st.run = null; PD.startPlan(pk);
+      okD(pk.lastRung(pk.st.run) === 4 && pk.hasTrial(pk.st.run), 'five slots: four rungs and the trial');
+      pk.st.run.trial = true; pk.planRung(pk.st.run);
+      okD(pk.st.run.foes.join() === 'hobgoblin' && pk.st.run.map === m2, 'the trial is the fifth slot');
+      // h. the purse takes in twice a ladder fight's CR in silver, won or lost; a fight off the ladder pays nothing
+      var pu0 = cp.purse; pk.result = { lines: [] }; pk.afterFight('lost', pk.st.run, { kinds: ['ogre'] });
+      var pu1 = cp.purse; pk.afterFight('won', null, { kinds: ['ogre'] });
+      okD(pu1 - pu0 === 2 * 16 * PD.CP8 && cp.purse === pu1 && /\+400 sp/.test(pk.result.lines[0] || ''), 'a lost ogre (CR 2) on the ladder pays 400 sp ("' + (pk.result.lines[0] || '') + '"); a fight off the ladder pays nothing');
+      // i. three floors struck from the random draw
+      cp.strike = pk.mapIds().slice(0, 3); var hitS = 0; for (var si = 0; si < 300; si++) if (cp.strike.indexOf(pk.randomMap()) >= 0) hitS++;
+      okD(hitS === 0, 'three floors struck: 300 random draws never land on them');
+      // j. the knobs ride into the fight and its URL
+      pk.st.knobs = { fly: true, legend: true, breath: 'fire', dark: true }; pk.st.run = null; pk.foes = ['goblin']; pk.fightMap = 'hexfloor';
+      var gotB = null; D.push = function (B) { gotB = B; };
+      try { pk.launch(); } finally { D.push = push0D; }
+      okD(gotB && gotB.o.flyTest === true && gotB.o.legendTest === true && gotB.o.breathTest === 'fire' && gotB.o.fightDef.dark === true && /&fly&legend&breath=fire&dark/.test(pk.lastQ), 'the knobs: the party flies, a legendary foe, a fire breath, the dark -- in the fight and its URL (' + pk.lastQ + ')');
+      // k. SAVE CAMPAIGN carries the campaign and the Mascots let in; a table file of 10-06's still loads
+      pk.st.mascots = { denny: true }; var tf = PK.tableFile(pk.st);
+      okD(tf.kind === 'pocket-campaign' && tf.camp && tf.camp.units.length === 3 && tf.camp.strike.length === 3 && tf.mascots.denny, 'the campaign file: kind pocket-campaign, the units, the struck floors, the Mascots let in');
+      var pk2 = new D.Pocket(); memD['deep16.pocket'] = JSON.stringify({ roster: [], fights: [], party: null, run: null }); pk2.enter(); pk2.ask = function () { return true; };
+      var tIn = pk2.takeFile(JSON.stringify(tf)), tOld = pk2.takeFile(JSON.stringify(Object.assign({}, tf, { kind: 'pocket-table', camp: undefined, mascots: undefined })));
+      okD(tIn && pk2.st.camp && pk2.st.camp.units.length === 3 && pk2.st.mascots.denny && tOld && !tOld.declined && pk2.st.camp.units.length === 3, 'LOAD CAMPAIGN takes the units and the Mascots; a table file of 10-06 still loads and leaves them');
+      // l. the eggs: Beholda on the release edition's first campaign saved (not the DM's), Denny on the first character made, Goose on the first notes saved
+      var pk3 = new D.Pocket(); memD['deep16.pocket'] = JSON.stringify({ roster: [], fights: [], party: null, run: null }); pk3.enter();
+      pk3.st.dm = true; pk3.saveTable(); var dmNo = !(pk3.st.mascots && pk3.st.mascots.beholda) && !pk3.egg;
+      pk3.st.dm = false; pk3.saveTable(); var bEgg = pk3.egg && pk3.egg.id === 'beholda'; pk3.egg = null; pk3.saveTable();
+      okD(dmNo && bEgg && pk3.st.mascots.beholda && !pk3.egg && /^pocket-dm-campaign-/.test(dlD[dlD.length - 1].name), 'Beholda: not at the DM\'s table; the release edition\'s first SAVE CAMPAIGN lets her in with her egg; the second, no egg');
+      pk3.makeNew(0, null); pk3.mk.name = 'Testa'; pk3.saveMade(); var dEgg = pk3.egg && pk3.egg.id === 'denny'; pk3.egg = null;
+      pk3.makeNew(1, null); pk3.saveMade();
+      okD(dEgg && pk3.st.mascots.denny && !pk3.egg && pk3.st.roster.length === 2, 'Denny: the first character made lets him in with his egg; the second, no egg');
+      pk3.st.feedback = { draft: '   ' }; var fbNone = pk3.saveFeedback();
+      pk3.st.feedback.draft = 'the ogre stood still on rung 2'; dlD.length = 0; var fbName = pk3.saveFeedback(), gEgg = pk3.egg && pk3.egg.id === 'goose'; pk3.egg = null;
+      var fbFile = null; try { fbFile = PD.feedbackFile(pk3); } catch (eF) { repD.errors.push('feedbackFile: ' + eF); }
+      pk3.saveFeedback();
+      okD(fbNone === null && /^hero_situations_feedback-\d{4}-\d\d-\d\d-\d{4}Z\.json$/.test(fbName || '') && dlD[0] && dlD[0].name === fbName && gEgg && pk3.st.mascots.goose && !pk3.egg, 'SITUATIONS: nothing typed saves nothing; the first notes saved write ' + fbName + ' and let Goose in with the egg; the next, no egg');
+      okD(fbFile && fbFile.kind === 'hero-situations-feedback' && fbFile.notes === 'the ogre stood still on rung 2' && fbFile.campaign && Array.isArray(fbFile.campaign.party) && fbFile.campaign.roster.length === 2 && fbFile.edition === 'release' && fbFile.campaign.mascots.goose, 'the notes file: the words, the party and roster, the edition, the Mascots let in');
+      var esG = PK.entries(pk3.st).map(function (e) { return e.w; });
+      okD(esG.indexOf('goose') >= 0 && esG.indexOf('denny') >= 0 && esG.indexOf('beholda') >= 0 && esG.indexOf('rascal') < 0, 'the release roster now shows Denny, Beholda and Goose, and not Rascal');
+      // m. USEFULS' SITUATIONS opens the notes, not the page; every new screen draws
+      pk3.go('useful'); drawOK(pk3, 'useful'); var sit = pk3.btns.filter(function (b) { return b.label === 'SITUATIONS'; })[0]; if (sit) pk3.fire(sit);
+      okD(sit && pk3.screen === 'feedback', 'USEFULS: SITUATIONS opens the notes box');
+      var drew = ['feedback'].map(function (s) { pk3.go(s); return drawOK(pk3, s); }); pk3.dropField();
+      pk.st.dm = true; var screensD = ['title', 'camp', 'units', 'build', 'doors', 'cr'];
+      screensD.forEach(function (s) { pk.go(s); drew.push(drawOK(pk, s)); });
+      PD.SHOPS.forEach(function (sh) { pk.shop = sh.id; pk.go('shop'); drew.push(drawOK(pk, 'shop ' + sh.id)); });
+      ['dm', 'release', 'denny', 'beholda', 'goose'].forEach(function (e) { pk.go('title'); PD.egg(pk, e); pk.t += 60; drew.push(drawOK(pk, 'egg ' + e)); pk.egg = null; });
+      okD(drew.every(Boolean), 'every new screen draws: the notes, the title at the DM\'s, CAMPAIGN, THE UNITS, BUILD, DOORS, the foes with the knobs, the five shops, the five eggs');
+      okD(PD.DOORS.length >= 30 && PD.DOORS.every(function (r) { return r[0] && r[1] && r[2]; }) && /\?fight=greyfang$/.test(PD.doorUrl('?fight=greyfang')), 'DOORS: ' + PD.DOORS.length + ' doors, each a name, a link and what it does');
+      // n. the front door's OPTIONS rows, and MENU TYPE in the grid
+      var fr = window.DS.MENU.gridRows(null, true).map(function (r) { return r.label; }), fi = window.DS.MENU.gridRows(null, false).map(function (r) { return r.label; });
+      okD(fr[0] === 'GRID SCALE' && fr[1] === 'MENU TYPE' && fr.indexOf('MENU STYLE') < 0 && fi[0] === 'MENU STYLE', 'OPTIONS on the front door: GRID SCALE and MENU TYPE in MENU STYLE\'s place (' + fr.join(', ') + ')');
+      var U = D.ui, mB = { units: [{ cls: 'mpmon', side: 'party' }] }, cB = { units: [{ cls: 'fighter', side: 'party' }] }, menu0 = U.opts.menu, url0 = U.urlMenu; U.urlMenu = null;
+      U.opts.menu = null; var s0 = U.style(mB) + '/' + U.style(cB); U.opts.menu = 'ring'; var s1 = U.style(mB) + '/' + U.style(cB); U.opts.menu = 'window'; var s2 = U.style(mB) + '/' + U.style(cB);
+      U.opts.menu = menu0; U.urlMenu = url0;
+      okD(s0 === U.opts.mpStyle + '/' + U.opts.style && s1 === 'ring/ring' && s2 === 'window/window', 'MENU TYPE: the map decides (' + s0 + '); RING puts the Mascot game on the ring too (' + s1 + '); WINDOW, both (' + s2 + ')');
+      // o. the ladders: VILLAINS on the combat ladder, HEROES on the tester's; R saves the record on the combat ladder too
+      memD['deep16.plays'] = JSON.stringify([{ fight: 'f0', started: 's0', steps: [], log: ['x'] }]); dlD.length = 0;
+      var lad = new D.Ladder({}); lad.enter(); var ladOK = drawOK({ draw: function (c) { lad.draw(c); } }, 'ladder');
+      D.input.edge = { rec: true }; lad.update(); D.input.edge = {};
+      var lad2 = new D.Ladder({ party: 'ours' }); lad2.enter(); drawOK({ draw: function (c) { lad2.draw(c); } }, 'tester ladder');
+      okD(ladOK && lad.swapBtn && lad2.swapBtn && /^deep16-play-record-/.test(lad.saved || '') && dlD.length === 1, 'the ladders: VILLAINS top left on the combat ladder, HEROES on the tester\'s; R saves the record on the combat ladder (' + lad.saved + ')');
+    } catch (eD) { repD.errors.push(String(eD && eD.stack || eD).slice(0, 900)); }
+    finally { D.store.get = stG; D.store.set = stS; HTMLAnchorElement.prototype.click = aClkD; D.push = push0D; D.input.mouse = m0D; D.canvas = cv0D; }
+    if (errs.length) repD.errors = repD.errors.concat(errs);
+    var preD = document.createElement('pre'); preD.id = 'out'; preD.textContent = 'BENCH16 ' + JSON.stringify(repD);
+    document.body.appendChild(preD);
     return;
   }
   // the lazy sheets (mode=lazy1003; 10-03, Griz: "4 yes"): no sheet fetched before a scene asks; a fight asks for its own and neither

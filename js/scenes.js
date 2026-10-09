@@ -141,13 +141,14 @@
     // 09-29, Griz: "add at least 'combat ladder' (deep16) if not both that and 'playtester ladder' to the 8bit homescreen menu please." The first is the DEEP16 ladder, the combat engine's fifty fights; the second is the tester ladder where the player runs our four. Both leave for deep16/. Six rows are 86 tall, so the frame rides at y 124 and ends at 210, clear of the credit lines at 218.
     this.menu = new DS.Menu({
       // (the Pocket DM, 10-02: a seventh row, so the frame rides at y 112 and still ends at 210)
-      items: [{ label: 'NEW GAME', value: 'new' }, { label: 'CONTINUE', value: 'load', color: any ? null : '#C8D0E8' }, /* (open with no saves too: IMPORT SAVES is behind it -- 10-01b) */ { label: 'COMBAT LADDER', value: 'ladder' }, { label: 'PLAYTESTER LADDER', value: 'tester' }, { label: 'POCKET DM (ALPHA)', value: 'pocket' }, { label: 'CREDITS', value: 'credits' }, { label: '♥ SUPPORT THE EXPANSION', value: 'kofi', color: '#F8A4C0' }],
+      // (10-09, Griz: "pull the playtester ladder option and put OPTIONS in its slot" -- the tester ladder is VILLAINS on the combat ladder's page now, deep16/js/ladder.js)
+      items: [{ label: 'NEW GAME', value: 'new' }, { label: 'CONTINUE', value: 'load', color: any ? null : '#C8D0E8' }, /* (open with no saves too: IMPORT SAVES is behind it -- 10-01b) */ { label: 'COMBAT LADDER', value: 'ladder' }, { label: 'OPTIONS', value: 'options' }, { label: 'POCKET DM (ALPHA)', value: 'pocket' }, { label: 'CREDITS', value: 'credits' }, { label: '♥ SUPPORT THE EXPANSION', value: 'kofi', color: '#F8A4C0' }],
       x: 44, y: 112, w: 168, rowH: 12, cancelable: false,
       onSelect: function (it) {
         if (it.value === 'new') DS.push(new LeadSelect());
         if (it.value === 'load') DS.push(new SlotScene(false));
         if (it.value === 'ladder') location.href = 'deep16/?ladder';
-        if (it.value === 'tester') location.href = 'deep16/?ladder&party=ours';
+        if (it.value === 'options') DS.push(new FrontOptions(self));
         if (it.value === 'pocket') location.href = 'deep16/?pocket';
         if (it.value === 'credits') DS.push(new Credits());
         if (it.value === 'kofi') DS.openKofi();
@@ -163,6 +164,14 @@
     DS.textCenter(ctx, 'a world by GrimGriz', 128, 218, '#9C9C9C');
     DS.textCenter(ctx, 'SRD 5.1 rules · CC BY 4.0', 128, 229, '#6C6C84');
   };
+  // the front door's OPTIONS (js/menu.js MN.openOptions): the night behind it, the page alone; DONE or X pops it back to the title
+  function FrontOptions(title) {
+    var self = this; this.kind = 'options'; this.opaque = true; this.title = title;
+    this.m = DS.MENU.openOptions({ close: function () { DS.pop(self); }, run: function (kind, a, done) { if (kind === 'kofi') DS.openKofi(); if (done) done(); } });
+  }
+  DS.FrontOptions = FrontOptions;
+  FrontOptions.prototype.update = function () { this.title.t++; this.m.update(I); };
+  FrontOptions.prototype.draw = function (ctx) { drawNightScene(ctx, this.title.stars, this.title.t); this.m.draw(ctx); };
   function drawNightScene(ctx, stars, t) {
     var g = ctx.createLinearGradient(0, 0, 0, 240); g.addColorStop(0, '#04061a'); g.addColorStop(0.55, '#141a44'); g.addColorStop(1, '#1a1030');
     ctx.fillStyle = g; ctx.fillRect(0, 0, 256, 240);

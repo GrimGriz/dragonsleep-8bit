@@ -23,6 +23,10 @@
   PK.DISCORD = 'https://discord.gg/VDxa5hkA3x';
   PK.MAIL = 'grimgriz@gmail.com';
   PK.CAP = 8;
+  // THE DM'S POCKET DM (10-09, Griz: "the DM's Pocket DM where the cool new stuff in URLs and the stuff in test runs unlocks"; the door and its screens: js/pocketdm.js):
+  // no locks at that table -- the cap at 12, Pyro without the trial, the story's named on the shelves; st.dm is the switch, the front stays the release edition
+  PK.cap = function (st) { return st && st.dm ? 12 : PK.CAP; };
+  PK.kingOpen = function (st) { return !!(st && (st.pyro || st.dm)); };
 
   // ------------------------------------------------------------------ the store
   PK.load = function () {
@@ -46,7 +50,7 @@
     { w: 'pyro', lo: 12, hi: 12, king: true }
   ];
   PK.entries = function (st) {
-    var out = PK.STOCK.map(function (s) { return { kind: 'stock', w: s.w, lo: s.lo, hi: s.hi || PK.CAP, grown: !!s.grown, locked: !!s.king && !st.pyro, king: !!s.king }; });
+    var out = PK.STOCK.filter(function (s) { return !s.dm || st.dm; }).map(function (s) { return { kind: 'stock', w: s.w, lo: s.lo, hi: Math.min(s.hi || 12, PK.cap(st)), grown: !!s.grown, locked: !!s.king && !PK.kingOpen(st), king: !!s.king }; }); // (s.dm: on the DM's roster only -- GreyFang, js/pocketdm.js)
     st.roster.forEach(function (c, i) { out.push({ kind: 'custom', i: i, code: c.code, name: c.name }); });
     out.push({ kind: 'new' });
     return out;
@@ -58,7 +62,7 @@
     if (slot.custom != null) { var c = st.roster[slot.custom]; return c ? c.code : null; }
     if (slot.w === 'new' || slot.w === '?') return null;
     var s = PK.STOCK.filter(function (x) { return x.w === slot.w; })[0] || { lo: 1 };
-    var L = s.king ? 12 : Math.max(s.lo, Math.min(PK.CAP, slot.lvl || s.lo));
+    var L = s.king ? 12 : Math.max(s.lo, Math.min(s.hi || 12, PK.cap(st), slot.lvl || s.lo));
     return slot.w + ':' + L + (s.grown ? ':grown' : '') + (slot.loot || []).map(function (id) { return '+' + id; }).join('');
   };
   PK.specOf = function (st, slot) { var w = PK.wordOf(st, slot); return w ? NPC.spec(w) : null; };
@@ -94,13 +98,13 @@
   // out: the story's named (Talmok, Torvald, Hask, the Keeper), the familiars, CR 0; Willem and Amara only when not in the party ("throw in
   // willem and amara if they aren't in the player's party"); a thing bound to water only where the map has water
   PK.NAMED_OUT = ['talmok', 'torvald', 'hask', 'keeper', 'keeperold']; // (keeperold: the ladder's old Keeper, data/foes.js -- 10-03)
-  PK.pot = function (partyWords, mapId) {
+  PK.pot = function (partyWords, mapId, dm) {
     var keys = (partyWords || []).map(PK.baseKey), def = D.MAPS[mapId], water = def ? def.rows.join('').indexOf('~') >= 0 : false;
     return Object.keys(D.FOES).filter(function (k) {
       var f = D.FOES[k];
       if (!f || /^fam_/.test(k) || PK.cr8(f.cr) <= 0) return false;
-      if (PK.NAMED_OUT.indexOf(k) >= 0) return false;
-      if ((k === 'willem' || k === 'amara') && keys.indexOf(k) >= 0) return false;
+      if (k === 'keeperold' || (!dm && PK.NAMED_OUT.indexOf(k) >= 0)) return false; // (dm: the DM's table deals the story's named too -- the old Keeper never: the new one stands)
+      if ((k === 'willem' || k === 'amara' || dm) && keys.indexOf(k) >= 0) return false; // (no one fights themself: at the DM's table GreyFang or Talmok in the party is out of the pot)
       if (f.bound && !water) return false;
       return true;
     });
@@ -224,10 +228,12 @@
   };
 
   // ------------------------------------------------------------------ the query (every fight a URL)
-  PK.query = function (foes, words, L, mapId, watch) {
+  PK.query = function (foes, words, L, mapId, watch, kn) {
     var q = '?npc=' + foes.join(',') + '&vs=' + words.join(',') + '&lvl=' + L;
     if (mapId) q += '&map=' + mapId;
     if (watch) q += '&watch';
+    kn = kn || {}; // (the DM's knobs, as the class floor reads them: js/classes.js D.npcFight)
+    if (kn.fly) q += '&fly'; if (kn.legend) q += '&legend'; if (kn.breath) q += '&breath=' + kn.breath; if (kn.dark === true) q += '&dark';
     return q;
   };
   PK.url = function (q) { return location.origin + location.pathname + q; };
@@ -253,7 +259,7 @@
   // a write that fails says so (10-03, Griz: "failed save should report"): a character made or a roster brought in stays on the screen for this visit and can go to a
   // file (SAVE ROSTER), but a reload would lose it -- the message outlasts the screen it was set on
   Pocket.prototype.keep = function () { this.st.mapId = this.mapSel; this.st.crI = this.crI; this.st.foes = this.foes; this.st.watch = this.watch; var ok = PK.save(this.st); if (!ok) this.failSay(); return ok; };
-  Pocket.prototype.failSay = function () { this.msg = { text: 'NOT SAVED: this browser\'s storage is full or shut. SAVE TABLE to a file.', t: 480, sticky: true, bad: true }; };
+  Pocket.prototype.failSay = function () { this.msg = { text: 'NOT SAVED: this browser\'s storage is full or shut. SAVE CAMPAIGN to a file.', t: 480, sticky: true, bad: true }; };
   Pocket.prototype.go = function (screen) { this.dropField(); this.screen = screen; this.ksel = 0; this.scroll = 0; this.msg = this.msg && this.msg.sticky ? this.msg : null; this.cache = {}; };
 
   // a field over the canvas (a name, the notes): the game hears no key while it has the focus (core.js D.typing)
@@ -329,10 +335,12 @@
   Pocket.prototype.update = function () {
     this.t++;
     if (this.msg && this.msg.t > 0) this.msg.t--;
+    if (this.egg) { this.eggUpdate(); return; } // (an egg on the screen holds the table till it is let go: js/pocketdm.js)
     var s = this.screen;
     if (I.pressed('b') && !D.typing) { this.back(); return; }
+    if (s === 'title' && this.titleClick()) return; // (the throne and the two lamps: js/pocketdm.js)
     if (this.readButtons()) return;
-    if (s === 'map' || s === 'fights' || s === 'maker' || s === 'useful') {
+    if (s === 'map' || s === 'fights' || s === 'maker' || s === 'useful' || this.scrolls(s)) {
       var w = I.mouse.wheel; if (w) { this.scroll = Math.max(0, this.scroll + w); }
     }
     if (s === 'cr' && this.drag && I.mouse.inside) {
@@ -344,6 +352,7 @@
   Pocket.prototype.back = function () {
     var s = this.screen;
     D.sfx('cancel');
+    if (this.backMore(s)) return; // (the DM's screens and the notes: js/pocketdm.js)
     if (s === 'title') { location.href = '../'; return; }
     if (s === 'useful' || s === 'party' || s === 'fights') { this.keep(); this.go('title'); return; }
     if (s === 'maker') { if (this.mk && this.mk.step > 1) this.mk.step--; else this.go('party'); return; }
@@ -354,6 +363,15 @@
     this.go('title');
   };
   Pocket.prototype.say = function (text, frames) { this.msg = { text: text, t: frames || 180 }; };
+  // the hooks js/pocketdm.js fills: the DM's door on the title, its screens, the eggs
+  Pocket.prototype.titleClick = function () { return false; };
+  Pocket.prototype.backMore = function () { return false; };
+  Pocket.prototype.scrolls = function () { return false; };
+  Pocket.prototype.drawMore = function () { };
+  Pocket.prototype.drawTitleDM = function () { };
+  Pocket.prototype.drawKnobs = function () { };
+  Pocket.prototype.eggUpdate = function () { this.egg = null; };
+  Pocket.prototype.drawEgg = function () { };
 
   // ------------------------------------------------------------------ the party's sheets, cached a frame at a time
   Pocket.prototype.sheets = function () {
@@ -366,7 +384,7 @@
   };
   Pocket.prototype.levels = function () { return this.sheets().filter(function (s) { return s.h; }).map(function (s) { return s.h.lvl; }); };
   Pocket.prototype.words = function () { var self = this; return this.st.party.map(function (slot) { return PK.wordOf(self.st, slot); }).filter(Boolean); };
-  Pocket.prototype.ready = function () { var self = this; return this.st.party.length > 0 && this.st.party.every(function (slot) { if (slot.custom != null) return !!self.st.roster[slot.custom]; var e = PK.STOCK.filter(function (x) { return x.w === slot.w; })[0]; return !!e && !(e.king && !self.st.pyro); }); };
+  Pocket.prototype.ready = function () { var self = this; return this.st.party.length > 0 && this.st.party.every(function (slot) { if (slot.custom != null) return !!self.st.roster[slot.custom]; var e = PK.STOCK.filter(function (x) { return x.w === slot.w; })[0]; return !!e && !(e.king && !PK.kingOpen(self.st)) && !(e.dm && !self.st.dm); }); };
   Pocket.prototype.topLevel = function () { var L = 1; this.levels().forEach(function (x) { L = Math.max(L, x); }); return Math.min(12, L); };
 
   // ------------------------------------------------------------------ the CR dial, and the foes it rolls
@@ -375,17 +393,20 @@
     return null;
   };
   Pocket.prototype.mapIds = function () { return Object.keys(D.MAPS).filter(function (id) { var d = D.MAPS[id]; return d && d.rows && d.entry && id !== 'wet' && id !== 'testground' && id !== 'floodstair-old' && !d.from8; }); }; // (floodstair-old: the ladder's copy of the old stair, data/maps.js -- the table's Flooded Stair is the new one, 10-03; a floor with no entry takes no party: the Gate Floor, js/view.js, is the figures' display, and a ladder's trial drew it 10-03 and froze setting the field)
-  Pocket.prototype.randomMap = function () { var ids = this.mapIds(); return ids[Math.floor(D.rand() * ids.length)]; };
+  // (at the DM's table the floors the campaign struck are never drawn -- his "your limited number of ladder map exclusions": js/pocketdm.js)
+  Pocket.prototype.randomMap = function () { var ids = this.mapIds(), cp = this.st && this.st.dm && this.st.camp, s = cp && cp.strike || [], ok = ids.filter(function (id) { return s.indexOf(id) < 0; }); if (ok.length) ids = ok; return ids[Math.floor(D.rand() * ids.length)]; };
+  // a ladder's foes as rolled, handed to the DM's table (js/pocketdm.js: the campaign's units take the places of rolled ones of their CR); the release edition keeps the roll
+  Pocket.prototype.ladderFoes = function (kinds) { return kinds; };
   Pocket.prototype.reroll = function () {
     var mapId = this.fightMap || this.mapFor() || 'hexfloor';
-    var pot = PK.pot(this.words(), mapId), target = PK.VALUES[Math.max(0, this.crI)];
+    var pot = PK.pot(this.words(), mapId, this.st.dm), target = PK.VALUES[Math.max(0, this.crI)];
     this.foes = PK.roll(target, pot, PK.roomOn(mapId));
     this.keep();
   };
   Pocket.prototype.setCR = function (i) { this.crI = Math.max(0, Math.min(PK.VALUES.length - 1, i)); this.reroll(); D.sfx('cursor'); };
   // the dial's first setting for this party: the smallest stop that reads HARD
   Pocket.prototype.defaultCR = function () {
-    var levels = this.levels(), mapId = this.mapFor() || 'hexfloor', pot = PK.pot(this.words(), mapId), room = PK.roomOn(mapId);
+    var levels = this.levels(), mapId = this.mapFor() || 'hexfloor', pot = PK.pot(this.words(), mapId, this.st.dm), room = PK.roomOn(mapId);
     for (var i = 0; i < PK.VALUES.length; i++) { var kinds = PK.roll(PK.VALUES[i], pot, room); var d = PK.diff(levels, kinds); if (d.label === 'HARD' || d.label === 'DEADLY') return i; }
     return 5;
   };
@@ -401,15 +422,15 @@
     var self = this, run = this.st.run, mapId = this.fightMap || this.mapFor() || this.randomMap(), L = this.topLevel();
     if (!this.foes || !this.foes.length) this.reroll();
     this.fightMap = mapId;
-    var words = this.words(), kinds = this.foes.slice(), d = PK.diff(this.levels(), kinds);
-    var q = PK.query(kinds, words, L, mapId, this.watch);
-    var name = run ? (run.trial ? 'THE TRIAL' : 'RUNG ' + run.rung + ' OF 4') : 'THE POCKET DM', sub = PK.foesText(kinds) + ' -- ' + d.label.toLowerCase() + (d.deadlyX > 1 ? ' x' + d.deadlyX : '');
-    var def = D.classFight(L, { id: 'pocket', what: PK.foesText(kinds), map: mapId, name: name, sub: sub, music: run && run.trial ? 'boss' : undefined,
+    var words = this.words(), kinds = this.foes.slice(), d = PK.diff(this.levels(), kinds), kn = this.knobs() || {};
+    var q = PK.query(kinds, words, L, mapId, this.watch, kn);
+    var name = run ? this.rungName(run) : 'THE POCKET DM', sub = PK.foesText(kinds) + ' -- ' + d.label.toLowerCase() + (d.deadlyX > 1 ? ' x' + d.deadlyX : '');
+    var def = D.classFight(L, { id: 'pocket', what: PK.foesText(kinds), map: mapId, name: name, sub: sub, music: run && run.trial ? 'boss' : undefined, dark: kn.dark != null ? kn.dark : undefined,
       intro: run && run.trial ? 'The last of it. Everything the dark could spare, at once. Win this and the king himself will walk with you.' : 'The Pocket DM sets the table: ' + PK.foesText(kinds) + ', on ' + (D.MAPS[mapId].name || mapId) + '.',
       won: run && run.trial ? 'THE TRIAL IS PASSED.' : 'THE TABLE IS CLEARED.', lost: 'THE DARK KEEPS THEM.' });
     var started = new Date().toISOString();
     this.before = JSON.parse(JSON.stringify({ run: run, party: this.st.party, roster: this.st.roster }));
-    var B = new D.Battle({ npc: { foes: kinds, party: this.fightWords() }, watch: this.watch, fightDef: def, pocket: true,
+    var B = new D.Battle({ npc: { foes: kinds, party: this.fightWords() }, watch: this.watch, fightDef: def, pocket: true, flyTest: !!kn.fly, legendTest: !!kn.legend, breathTest: kn.breath || null, // (the class floor's knobs, set on the DM's foes screen: js/pocketdm.js)
       record: { fight: 'pocket', name: name + ': ' + PK.foesText(kinds), level: L },
       onDone: function (res, why) { if (B.rec) D.rec.finish(B, res); if (why && why.broke) self.floor(why.broke, false); else self.done(res, B, { q: q, kinds: kinds, mapId: mapId, d: d, started: started }); } });
     this.lastQ = q;
@@ -454,6 +475,7 @@
         if (run.trial) { this.st.pyro = true; this.st.run = null; this.result.unlocked = true; }
       }
     }
+    this.afterFight(res, run, info);
     this.cache = {};
     this.keep();
     this.go('result');
@@ -461,30 +483,41 @@
   };
 
   // ------------------------------------------------------------------ the ladder (his: "auto-fill the next map with a reasonable increase in CR (randomly generated 4-rung ladder)")
+  // (a ladder of the DM's own making -- run.plan, his "build a ladder", js/pocketdm.js -- has as many rungs as it has slots, the fifth its trial)
+  Pocket.prototype.lastRung = function (run) { return run && run.plan ? Math.max(1, Math.min(4, run.plan.length)) : 4; };
+  Pocket.prototype.hasTrial = function (run) { return !run || !run.plan || run.plan.length >= 5; };
+  Pocket.prototype.rungName = function (run) { return run.trial ? 'THE TRIAL' : 'RUNG ' + run.rung + ' OF ' + this.lastRung(run); };
+  // hooks the DM's table fills (js/pocketdm.js): the knobs a fight takes, what a fight's end pays, a planned rung's table
+  Pocket.prototype.knobs = function () { return null; };
+  Pocket.prototype.afterFight = function () { };
+  Pocket.prototype.planRung = function () { return false; };
   Pocket.prototype.startRun = function () {
     var self = this, levels = this.levels();
     this.st.run = { rung: 1, trial: false, base8: PK.VALUES[Math.max(0, this.crI)], carry: null, hd: levels.map(function (L) { return L; }), arcane: levels.map(function () { return false; }), won: 0, startedAt: Date.now(), foes: this.foes, map: this.fightMap || this.mapFor() || this.randomMap() };
     this.fightMap = this.st.run.map;
+    this.foes = this.st.run.foes = this.ladderFoes(this.foes || [], this.st.run.map);
     this.keep();
   };
   // the next rung's table: the CR about 1.3 times the last, a map drawn fresh
   Pocket.prototype.nextRung = function () {
     var run = this.st.run; if (!run) return;
     run.rung++;
+    if (this.planRung(run)) { this.keep(); return; }
     var target = Math.max(1, Math.round(run.base8 * Math.pow(1.3, run.rung - 1)));
     this.fightMap = run.map = this.randomMap();
-    var pot = PK.pot(this.words(), run.map);
-    this.foes = run.foes = PK.roll(target, pot, PK.roomOn(run.map));
+    var pot = PK.pot(this.words(), run.map, this.st.dm);
+    this.foes = run.foes = this.ladderFoes(PK.roll(target, pot, PK.roomOn(run.map)), run.map);
     this.keep();
   };
   // the trial: double deadly, the smallest table that reads so (his: "give them a 'long rest for the trial' after the fourth win and then do your double deadly")
   Pocket.prototype.setTrial = function () {
     var run = this.st.run; if (!run) return;
     run.trial = true; run.carry = null; run.hd = this.levels().map(function (L) { return L; }); run.arcane = run.hd.map(function () { return false; });
+    if (this.planRung(run)) { this.keep(); return; }
     this.fightMap = run.map = this.randomMap();
-    var pot = PK.pot(this.words(), run.map), levels = this.levels(), room = Math.max(PK.roomOn(run.map), 6), kinds = null;
+    var pot = PK.pot(this.words(), run.map, this.st.dm), levels = this.levels(), room = Math.max(PK.roomOn(run.map), 6), kinds = null;
     for (var i = 0; i < PK.VALUES.length && !kinds; i++) { for (var t = 0; t < 6 && !kinds; t++) { var k = PK.roll(PK.VALUES[i], pot, room); if (PK.diff(levels, k).ratio >= 2) kinds = k; } }
-    this.foes = run.foes = kinds || PK.roll(PK.VALUES[PK.VALUES.length - 1], pot, room);
+    this.foes = run.foes = this.ladderFoes(kinds || PK.roll(PK.VALUES[PK.VALUES.length - 1], pot, room), run.map);
     this.keep();
   };
   // after a loss: the party as it went in, and a fresh table for the same step -- a lost trial rerolls as the trial, double deadly (10-03: it rolled a
@@ -492,8 +525,8 @@
   Pocket.prototype.rerollRung = function () {
     this.restore();
     var run = this.st.run;
-    if (run && run.trial) this.setTrial();
-    else if (run) { run.rung--; this.nextRung(); }
+    this.rerolling = true; // (a planned rung refills its random part: js/pocketdm.js planRung)
+    try { if (run && run.trial) this.setTrial(); else if (run) { run.rung--; this.nextRung(); } } finally { this.rerolling = false; }
     this.go('cr');
   };
   Pocket.prototype.restCard = function () {
@@ -579,21 +612,26 @@
   // save"; "where am i supposed to save to?"; RULED "yes to 1 & 2"): the seats with their winnings, the made characters, Pyro, and the ladder under way, to a .json and back -- SAVE
   // TABLE / LOAD TABLE on the title (reachable mid-ladder) and on THE PARTY. The ladder still keeps itself in this browser between visits (deep16.pocket); the file is how it goes
   // to another browser, the live site from a local one, or past a cleared storage. LOAD TABLE takes a roster file (10-03's) too: its characters are added, as LOAD ROSTER did
-  PK.TABLE_KIND = 'pocket-table';
+  // SAVE CAMPAIGN (10-09, Griz: "Would it be accurate to call it 'Save Campaign' if it stores your party, your units, and your limited number of ladder map exclusions?"):
+  // the same file, named for what it now carries -- the DM's purse, units, struck floors and built ladder (st.camp) and the Mascots let in (st.mascots) with the rest;
+  // a table file of 10-06's (kind pocket-table) still loads
+  PK.TABLE_KIND = 'pocket-table'; PK.CAMPAIGN_KIND = 'pocket-campaign';
   PK.tableFile = function (st) {
     var copy = function (v) { return v == null ? null : JSON.parse(JSON.stringify(v)); };
-    return { game: 'DRAGONSLEEP', kind: PK.TABLE_KIND, v: 1, at: new Date().toISOString(), party: copy(st.party), roster: copy(st.roster) || [], pyro: !!st.pyro, run: copy(st.run),
-      mapId: st.mapId || null, crI: st.crI == null ? -1 : st.crI, foes: copy(st.foes) };
+    return { game: 'DRAGONSLEEP', kind: PK.CAMPAIGN_KIND, v: 2, at: new Date().toISOString(), party: copy(st.party), roster: copy(st.roster) || [], pyro: !!st.pyro, run: copy(st.run),
+      mapId: st.mapId || null, crI: st.crI == null ? -1 : st.crI, foes: copy(st.foes), camp: copy(st.camp), mascots: copy(st.mascots) };
   };
+  Pocket.prototype.onCampaignSaved = function () { }; // (js/pocketdm.js: the first campaign made lets Beholda in)
   Pocket.prototype.saveTable = function () {
     this.keep(); // (the screen's own picks -- the map, the dial, the foes -- onto the store first)
     var st = this.st, d = new Date(), pad = function (n) { return (n < 10 ? '0' : '') + n; };
-    var name = 'pocket-dm-table-' + d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()) + '-' + pad(d.getHours()) + pad(d.getMinutes()) + '.json';
+    var name = 'pocket-dm-campaign-' + d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()) + '-' + pad(d.getHours()) + pad(d.getMinutes()) + '.json';
     try {
       var a = document.createElement('a'), url = URL.createObjectURL(new Blob([JSON.stringify(PK.tableFile(st), null, 1)], { type: 'application/json' }));
       a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove();
       setTimeout(function () { URL.revokeObjectURL(url); }, 4000);
-      this.say('saved the table' + (st.run ? ' and the ladder at ' + (st.run.trial ? 'the trial' : 'rung ' + st.run.rung) : '') + ' to ' + name + ' -- where your browser puts downloads', 420);
+      this.say('saved the campaign' + (st.run ? ' and the ladder at ' + (st.run.trial ? 'the trial' : 'rung ' + st.run.rung) : '') + ' to ' + name + ' -- where your browser puts downloads', 420);
+      this.onCampaignSaved();
       return name;
     } catch (e) { this.msg = { text: 'could not write the file: ' + e, t: 300, bad: true }; return null; }
   };
@@ -607,7 +645,7 @@
   Pocket.prototype.takeFile = function (text) {
     var file = null; try { file = JSON.parse(text); } catch (e) { /* (not JSON) */ }
     if (file && file.game === 'DRAGONSLEEP' && file.kind === PK.FILE_KIND) return this.takeRoster(text);
-    if (!file || file.game !== 'DRAGONSLEEP' || file.kind !== PK.TABLE_KIND || !Array.isArray(file.roster)) { this.msg = { text: 'that file is not a Pocket DM table or roster', t: 300, bad: true }; return null; }
+    if (!file || file.game !== 'DRAGONSLEEP' || (file.kind !== PK.TABLE_KIND && file.kind !== PK.CAMPAIGN_KIND) || !Array.isArray(file.roster)) { this.msg = { text: 'that file is not a Pocket DM campaign or roster', t: 300, bad: true }; return null; }
     var st = this.st, here = st.run, ask = this.ask || function (q) { return window.confirm(q); };
     if (here && JSON.stringify(here) !== JSON.stringify(file.run || null) && !ask('A ladder is under way here (' + (here.trial ? 'the trial' : 'rung ' + here.rung) + '). Put it away for the file\'s ' + (file.run ? 'ladder (' + (file.run.trial ? 'the trial' : 'rung ' + file.run.rung) + ')' : 'table, with no ladder') + '?')) { this.say('kept the ladder here; nothing taken', 240); return { declined: true }; }
     // the roster: each of the file's characters found here (the same word and name) or added; its seats re-pointed to where each now stands
@@ -622,13 +660,15 @@
     var seats = Array.isArray(file.party) ? file.party.map(function (s) { if (!s) return null; if (s.custom == null) return JSON.parse(JSON.stringify(s)); var j = at[s.custom]; return j >= 0 ? Object.assign(JSON.parse(JSON.stringify(s)), { custom: j }) : null; }).filter(Boolean) : null;
     if (seats && seats.length) st.party = seats;
     if (file.pyro) st.pyro = true;
+    if (file.camp && typeof file.camp === 'object') st.camp = JSON.parse(JSON.stringify(file.camp)); // (the DM's purse, units, struck floors, built ladder)
+    if (file.mascots && typeof file.mascots === 'object') { st.mascots = st.mascots || {}; Object.keys(file.mascots).forEach(function (k) { if (file.mascots[k]) st.mascots[k] = true; }); } // (let in, never let out)
     st.run = file.run || null; st.mapId = file.mapId || null; st.crI = file.crI == null ? -1 : file.crI; st.foes = file.foes || null;
     this.mapSel = st.mapId; this.crI = st.crI; this.foes = st.run ? st.run.foes : st.foes; this.fightMap = st.run ? st.run.map : null;
     if (st.run && this.mapIds().indexOf(st.run.map) < 0) { this.fightMap = st.run.map = this.randomMap(); } // (as at the door: a floor the table no longer deals draws a fresh one)
     this.cache = {};
     var res = { added: added, bad: bad, seats: st.party ? st.party.length : 0, run: st.run ? (st.run.trial ? 'trial' : st.run.rung) : null, saved: this.keep() };
     if (this.screen !== 'title' && this.screen !== 'party') this.go('title'); // (before the line: a screen change clears what is said)
-    if (res.saved) this.say('the table brought in: ' + res.seats + ' at the table' + (added ? ', ' + added + ' new to the roster' : '') + (bad ? ', ' + bad + ' would not build' : '') + (st.run ? ', the ladder at ' + (st.run.trial ? 'the trial' : 'rung ' + st.run.rung) : ''), 360);
+    if (res.saved) this.say('the campaign brought in: ' + res.seats + ' at the table' + (added ? ', ' + added + ' new to the roster' : '') + (bad ? ', ' + bad + ' would not build' : '') + (st.run ? ', the ladder at ' + (st.run.trial ? 'the trial' : 'rung ' + st.run.rung) : ''), 360);
     return res;
   };
   Pocket.prototype.copy = function (text, what) {
@@ -648,7 +688,7 @@
     var abil = {}; NPC.ABIL.forEach(function (k) { abil[k] = sp && sp.abil ? sp.abil[k] : 10; });
     // (the code keeps the scores with the race's numbers in: take them back out for the dials)
     if (sp && sp.abil) { var rc = NPC.RACES[sp.race] || NPC.RACES.human; Object.keys(rc.abil).forEach(function (k) { abil[k] -= rc.abil[k]; }); }
-    this.mk = { step: 1, slot: slotIndex, editing: custom ? this.st.party[slotIndex].custom : null, cls: sp ? sp.cls : 'fighter', race: sp ? sp.race : 'human', abil: abil, lvl: sp ? Math.min(PK.CAP, sp.lvl) : 1,
+    this.mk = { step: 1, slot: slotIndex, editing: custom ? this.st.party[slotIndex].custom : null, cls: sp ? sp.cls : 'fighter', race: sp ? sp.race : 'human', abil: abil, lvl: sp ? Math.min(PK.cap(this.st), sp.lvl) : 1,
       equip: sp ? Object.assign({}, sp.equip) : null, alt: sp ? sp.alt : undefined, known: sp && sp.known ? sp.known.slice() : null, name: sp ? sp.name : '', tab: 'weapon', spellTab: 0,
       style: sp ? sp.style || NPC.CLASSES[sp.cls].style || null : null };
     if (!this.mk.equip) this.kitUp();
@@ -710,7 +750,7 @@
   };
   Pocket.prototype.levelSlot = function (i, dir) {
     var slot = this.st.party[i], e = PK.STOCK.filter(function (x) { return x.w === slot.w; })[0]; if (!e || e.king) return;
-    var L = Math.max(e.lo, Math.min(e.hi || PK.CAP, (slot.lvl || e.lo) + dir));
+    var L = Math.max(e.lo, Math.min(e.hi || 12, PK.cap(this.st), (slot.lvl || e.lo) + dir));
     if (L === slot.lvl) { D.sfx('error'); return; }
     slot.lvl = L; this.cache = {}; this.keep(); D.sfx('cursor');
   };
@@ -718,7 +758,7 @@
   // ------------------------------------------------------------------ drawing
   Pocket.prototype.draw = function (ctx) {
     this.btns = [];
-    drawHall(ctx, this.t, this.screen === 'title' ? 1 : 0.42);
+    drawHall(ctx, this.t, this.screen === 'title' ? 1 : 0.42, this.st.dm);
     var s = this.screen;
     if (s === 'title') this.drawTitle(ctx);
     else if (s === 'useful') this.drawUseful(ctx);
@@ -730,7 +770,9 @@
     else if (s === 'rest') this.drawRest(ctx);
     else if (s === 'fights') this.drawFights(ctx);
     else if (s === 'notes') this.drawNotes(ctx);
+    else this.drawMore(ctx, s);
     if (this.msg && this.msg.t > 0) { var mw = D.textWidth(this.msg.text) + 16; D.win8(ctx, (D.W - mw) / 2, D.H - 30, mw, 16); D.text(ctx, this.msg.text, D.W / 2, D.H - 26, this.msg.bad ? P('red', 4) : P('gold', 4), 'center'); }
+    if (this.egg) this.drawEgg(ctx);
     this.placeField();
   };
   function head(ctx, title, sub) {
@@ -739,18 +781,20 @@
   }
   Pocket.prototype.drawTitle = function (ctx) {
     var self = this;
+    if (this.st.dm) D.text(ctx, '{y}THE DM\'S{/}', D.W / 2, 12, P('gold', 4), 'center'); // (the DM's table: js/pocketdm.js)
     ctx.save(); ctx.translate(D.W / 2, 22); ctx.scale(3, 3); D.text(ctx, 'POCKET DM', 0, 0, P('gold', 4), 'center'); ctx.restore();
-    D.text(ctx, '{o}alpha{/}', D.W / 2 + 92, 20, P('fire', 1));
-    D.text(ctx, 'any party, any map, any CR -- every fight a URL', D.W / 2, 50, P('bone', 1), 'center');
-    // (the buttons stand to the right, so the stone and the light on it stay in view)
-    var w = 150, x = D.W - w - 22, y = 132, n = this.st.fights.length; // (y 150 till 10-06: up a row for the table's file)
+    D.text(ctx, this.st.dm ? '{y}behind the screen{/}' : '{o}alpha{/}', D.W / 2 + 92, 20, P('fire', 1));
+    D.text(ctx, this.st.dm ? 'every creature, every door, a campaign of your own' : 'any party, any map, any CR -- every fight a URL', D.W / 2, 50, P('bone', 1), 'center');
+    // (the buttons stand to the right, so the stone and the light on it stay in view; the column starts under the right lamp, whose head is one of the DM's three)
+    var w = 150, x = D.W - w - 22, y = 120, n = this.st.fights.length; // (y 150 till 10-06, 132 till 10-09: up for the campaign's two rows)
     this.btn(ctx, this.st.run ? 'THE LADDER: ' + (this.st.run.trial ? 'THE TRIAL' : 'RUNG ' + this.st.run.rung) : 'START', x, y, w, 18, function () { if (self.st.run) { self.foes = self.st.run.foes; self.fightMap = self.st.run.map; self.go('cr'); } else self.go('party'); }, { pri: true });
     this.btn(ctx, 'FIGHTS' + (n ? '  (' + n + ')' : ''), x, y + 22, w, 16, function () { self.go('fights'); }, { dis: !n, why: 'no fights kept yet: START one' });
     this.btn(ctx, 'USEFULS', x, y + 41, w, 16, function () { self.go('useful'); });
     this.btn(ctx, 'THE 8-BIT GAME', x, y + 60, w, 16, function () { location.href = '../'; });
-    // the whole table to a file and back, here where a ladder under way can reach it (10-06: PK.tableFile)
-    this.btn(ctx, 'SAVE TABLE', x, y + 79, 73, 15, function () { self.saveTable(); });
-    this.btn(ctx, 'LOAD TABLE', x + 77, y + 79, 73, 15, function () { self.loadTable(); });
+    // the whole campaign to a file and back, here where a ladder under way can reach it (10-06: PK.tableFile; SAVE TABLE till 10-09)
+    this.btn(ctx, 'SAVE CAMPAIGN', x, y + 79, w, 15, function () { self.saveTable(); });
+    this.btn(ctx, 'LOAD CAMPAIGN', x, y + 96, w, 15, function () { self.loadTable(); });
+    this.drawTitleDM(ctx);
     D.text(ctx, 'Solskaft: the oath-stone of the Silversands, under the Sunshaft. At noon the light lands here.', D.W / 2, 243, P('stone', 5), 'center');
     D.hint(ctx, 'up/down choose · E go · X the 8-bit game · the Discord: ' + PK.DISCORD.replace('https://', ''), D.W / 2, 256, P('stone', 4), 'center');
   };
@@ -762,7 +806,7 @@
       ['THE CLIMB', 'one party from level 1 to 9, your own picks at each level', function () { location.href = '?climb'; }],
       ['THE GALLERY', 'spells, features, the Mascots and every creature\'s rows: one door, one set of keys (X comes back here)', function () { location.href = '?gallery&from=pocket'; }], // (the three galleries as one, js/onegallery.js, 10-08)
       ['TEST RUNS', 'the page that builds any URL of the game, row by row', function () { self.open('../test-runs.html'); }],
-      ['SITUATIONS', 'twenty places in the 8-bit story to stand, one step short', function () { self.open('../situations.html'); }],
+      ['SITUATIONS', 'what you noticed, in your own words: a notes file of its own', function () { self.go('feedback'); }], // (10-09, Griz: "a 'notes' pop-up that saves as a separate file called hero_situations_feedback"; "No on opening the situations page": js/pocketdm.js)
       ['EVERY URL', 'URLS.md: the whole list, with what each does', function () { self.open('https://github.com/GrimGriz/dragonsleep-8bit/blob/main/URLS.md'); }],
       ['THE DISCORD', PK.DISCORD, function () { self.open(PK.DISCORD); }]];
     var y = 40;
@@ -772,11 +816,11 @@
   // the party: the slots across, arrows above and below (his words), the level beneath
   Pocket.prototype.drawParty = function (ctx) {
     var self = this, st = this.st, sh = this.sheets(), n = st.party.length;
-    head(ctx, 'THE PARTY', n + ' of 6 · arrows cycle the roster · the ? makes a new one · level cap ' + PK.CAP + (st.pyro ? ' · Pyro at his 12' : ''));
+    head(ctx, 'THE PARTY', n + ' of 6 · arrows cycle the roster · the ? makes a new one · level cap ' + PK.cap(st) + (PK.kingOpen(st) ? ' · Pyro at his 12' : ''));
     var cw = 70, gap = 6, x0 = Math.round((D.W - (n * cw + (n - 1) * gap)) / 2), top = 40;
     sh.forEach(function (s, i) {
       var x = x0 + i * (cw + gap), slot = s.slot, isNew = slot.w === 'new', e = isNew ? null : PK.STOCK.filter(function (q) { return q.w === slot.w; })[0];
-      var locked = !!(e && e.king && !st.pyro), custom = slot.custom != null;
+      var locked = !!(e && e.king && !PK.kingOpen(st)), custom = slot.custom != null;
       self.btn(ctx, '^', x + cw / 2 - 12, top, 24, 11, function () { self.cycle(i, -1); }, { small: true });
       ctx.fillStyle = 'rgba(20,16,30,.9)'; ctx.fillRect(x, top + 13, cw, 118);
       ctx.strokeStyle = locked ? P('stone', 2) : isNew ? P('gold', 2) : P('stone', 3); ctx.strokeRect(x + 0.5, top + 13.5, cw - 1, 117);
@@ -807,8 +851,8 @@
     this.btn(ctx, '+ a seat', 96, 200, 70, 14, function () { if (st.party.length < 6) { st.party.push({ w: 'new' }); self.cache = {}; self.keep(); } }, { dis: n >= 6 });
     if (st.roster.length) D.text(ctx, st.roster.length + ' of your own on the roster (cycle to them)', 180, 203, P('stone', 5));
     this.btn(ctx, 'BACK', 20, 236, 60, 15, function () { self.back(); });
-    this.btn(ctx, 'SAVE TABLE', 88, 236, 114, 15, function () { self.saveTable(); }); // (the whole table's file, 10-06: PK.tableFile; SAVE ROSTER till then, greyed with no character of your own)
-    this.btn(ctx, 'LOAD TABLE', 208, 236, 114, 15, function () { self.loadTable(); }); // (a table file, or a roster file of 10-03's)
+    this.btn(ctx, 'SAVE CAMPAIGN', 88, 236, 114, 15, function () { self.saveTable(); }); // (the whole campaign's file, 10-06: PK.tableFile; SAVE ROSTER till then, greyed with no character of your own; SAVE TABLE till 10-09)
+    this.btn(ctx, 'LOAD CAMPAIGN', 208, 236, 114, 15, function () { self.loadTable(); }); // (a campaign or table file, or a roster file of 10-03's)
     this.btn(ctx, 'NEXT: THE MAP', D.W - 150, 236, 130, 15, function () { if (self.st.run) { self.st.run = null; } self.go('map'); }, { pri: true, dis: !ready, why: 'every seat wants someone in it: arrows cycle the roster, the ? makes one' });
     if (!ready) D.text(ctx, 'every seat wants a character (a locked one cannot come)', D.W / 2, 222, P('fire', 1), 'center');
     else D.hint(ctx, 'E on a card\'s arrows cycles · X back', D.W / 2, 222, P('stone', 4), 'center');
@@ -843,10 +887,10 @@
       this.btn(ctx, 'ALL TENS', 300, y + 117, 70, 13, function () { NPC.ABIL.forEach(function (k) { m.abil[k] = 10; }); }, { small: true });
       this.btn(ctx, 'THE ARRAY', 376, y + 117, 76, 13, function () { var c = NPC.CLASSES[m.cls]; c.prio.forEach(function (k, i) { m.abil[k] = [15, 14, 13, 12, 10, 8][i]; }); }, { small: true });
     } else if (step === 3) {
-      D.text(ctx, 'the level, 1 to ' + PK.CAP + ' (ability score improvements come with it, +2 to the class\'s first)', D.W / 2, y, P('silver', 5), 'center');
+      D.text(ctx, 'the level, 1 to ' + PK.cap(this.st) + ' (ability score improvements come with it, +2 to the class\'s first)', D.W / 2, y, P('silver', 5), 'center');
       this.btn(ctx, '<', 190, y + 20, 20, 16, function () { if (m.lvl > 1) m.lvl--; else D.sfx('error'); });
       ctx.save(); ctx.translate(240, y + 18); ctx.scale(2, 2); D.text(ctx, String(m.lvl), 0, 0, P('gold', 4), 'center'); ctx.restore();
-      this.btn(ctx, '>', 270, y + 20, 20, 16, function () { if (m.lvl < PK.CAP) m.lvl++; else D.sfx('error'); });
+      this.btn(ctx, '>', 270, y + 20, 20, 16, function () { if (m.lvl < PK.cap(self.st)) m.lvl++; else D.sfx('error'); });
       if (h) {
         var lines = ['HP ' + h.maxhp + ' (a max hit die a level)  ·  AC ' + R.ac(h) + '  ·  proficiency +' + R.prof(h.lvl), 'scores: ' + NPC.ABIL.map(function (k) { return k.toUpperCase() + ' ' + h.abil[k]; }).join('  ')];
         if (h.subclass) lines.push(h.subclass);
@@ -949,8 +993,8 @@
     if (this.crI < 0) this.crI = this.defaultCR();
     if (!this.foes) this.reroll();
     var fk = (this.foes || []).join(); if (this.foesAsked !== fk) { this.foesAsked = fk; D.spr.prefetch((this.foes || []).map(function (k) { return D.FOES[k] && D.FOES[k].sheet; })); } // (the table's foes fetched behind while it is set: js/sprites.js, 10-03)
-    var title = run ? (run.trial ? 'THE TRIAL' : 'RUNG ' + run.rung + ' OF 4') : 'THE FOES';
-    head(ctx, title, run ? (run.trial ? 'double deadly: win it and Pyro joins the roster' : 'the table set for you; a short rest between rungs') : 'the CR is the sum of theirs; the reading is the DMG\'s for this party');
+    var title = run ? this.rungName(run) : 'THE FOES';
+    head(ctx, title, run ? (run.trial ? (run.plan ? 'the last slot of your ladder, after a long rest' : 'double deadly: win it and Pyro joins the roster') : run.plan ? 'your ladder\'s rung: your units first, the rest rolled' : 'the table set for you; a short rest between rungs') : 'the CR is the sum of theirs; the reading is the DMG\'s for this party');
     // the dial
     var sx = 60, sw = D.W - 120, sy = 40;
     ctx.fillStyle = P('stone', 2); ctx.fillRect(sx, sy + 6, sw, 3);
@@ -975,8 +1019,9 @@
     if (!run || this.lossMenu) this.btn(ctx, 'REROLL', 60, wy, 80, 15, function () { self.reroll(); });
     this.btn(ctx, 'WATCH: ' + (this.watch ? 'ON' : 'OFF'), 150, wy, 100, 15, function () { self.watch = !self.watch; self.keep(); }, { on: this.watch, small: true });
     D.text(ctx, this.watch ? 'the class AI runs your side too; you watch' : 'you run your side', 258, wy + 4, P('stone', 5));
+    this.drawKnobs(ctx); // (the DM's: fly, legendary, breath, dark -- js/pocketdm.js)
     // the URL
-    var q = PK.query(kinds, this.words(), this.topLevel(), mapId === '?' ? null : mapId, this.watch), url = PK.url(q);
+    var q = PK.query(kinds, this.words(), this.topLevel(), mapId === '?' ? null : mapId, this.watch, this.knobs()), url = PK.url(q);
     D.text(ctx, 'the URL (E on it copies):', 60, 156, P('stone', 5));
     this.btn(ctx, url.length > 68 ? url.slice(0, 66) + '..' : url, 60, 166, D.W - 120, 14, function () { self.copy(url, 'the URL'); }, { small: true });
     // the ways in
@@ -986,7 +1031,7 @@
       this.btn(ctx, 'QUIT THE LADDER', 90, 236, 120, 15, function () { self.st.run = null; self.keep(); self.go('title'); });
       var pLine = (run.carry || []).map(function (c, i) { var s = self.sheets()[i]; return c && s && s.h ? s.h.name + ' ' + c.hp + '/' + c.maxhp : null; }).filter(Boolean).join('  ·  ');
       if (pLine) D.text(ctx, pLine, D.W / 2, 200, P('bone', 1), 'center');
-      D.text(ctx, 'won ' + (run.won || 0) + ' of ' + (run.trial ? '4, and now the trial' : '4'), D.W / 2, 212, P('silver', 5), 'center');
+      var nR = this.lastRung(run); D.text(ctx, 'won ' + (run.won || 0) + ' of ' + (run.trial ? nR + ', and now the trial' : nR), D.W / 2, 212, P('silver', 5), 'center');
     } else {
       this.btn(ctx, 'FIGHT', D.W - 90, 236, 70, 15, function () { self.launch(); }, { pri: true, dis: !kinds.length });
       this.btn(ctx, 'THE LADDER: 4 RUNGS FROM HERE', D.W - 300, 236, 200, 15, function () { self.startRun(); self.launch(); }, { dis: !kinds.length });
@@ -1004,9 +1049,13 @@
     r.end.forEach(function (e) { D.text(ctx, (e.down ? '{r}' : '{y}') + e.name + '{/}  ' + e.hp + '/' + e.maxhp + (e.down ? '  down' : ''), D.W / 2, yy, P('bone', 1), 'center'); yy += 10; });
     if (r.loot) { yy += 4; D.text(ctx, '{y}' + r.loot.name + ' finds ' + DS.DATA.items[r.loot.item].name + '.{/}', D.W / 2, yy, P('gold', 4), 'center'); yy += 10; }
     if (r.unlocked) { yy += 4; D.text(ctx, '{y}Pyronimus, King of Solskaft, will walk with you.{/} He is on the roster now, at his 12, with his own gear.', D.W / 2, yy, P('gold', 4), 'center'); yy += 10; }
+    (r.lines || []).forEach(function (l) { yy += 2; D.text(ctx, l, D.W / 2, yy, P('gold', 4), 'center'); yy += 10; }); // (what the DM's purse took in: js/pocketdm.js afterFight)
     var by = y + h - 22;
-    if (run && won) {
-      if (run.rung < 4) this.btn(ctx, 'SHORT REST FOR THE WICKED', x + 20, by, 190, 15, function () { self.restCard(); self.go('rest'); }, { pri: true });
+    if (run && won && !run.trial && run.rung >= this.lastRung(run) && !this.hasTrial(run)) {
+      // a ladder of the DM's making with no fifth slot ends at its last rung
+      this.btn(ctx, 'THE LADDER IS CLIMBED', x + 20, by, 190, 15, function () { self.st.run = null; self.keep(); self.go(self.st.dm ? 'camp' : 'title'); }, { pri: true });
+    } else if (run && won) {
+      if (!run.trial && run.rung < this.lastRung(run)) this.btn(ctx, 'SHORT REST FOR THE WICKED', x + 20, by, 190, 15, function () { self.restCard(); self.go('rest'); }, { pri: true });
       else this.btn(ctx, 'LONG REST FOR THE TRIAL', x + 20, by, 190, 15, function () { self.setTrial(); self.rest = { long: true }; self.go('rest'); }, { pri: true });
       this.btn(ctx, 'QUIT THE LADDER', x + w - 140, by, 120, 15, function () { self.st.run = null; self.keep(); self.go('title'); });
     } else if (run) {
@@ -1146,10 +1195,12 @@
     hallCv = cv;
     return cv;
   }
-  function drawHall(ctx, t, bright) {
+  function drawHall(ctx, t, bright, dm) {
     ctx.drawImage(hallStill(), 0, 0);
     // the lamps' flames
     [150, 330].forEach(function (lx, i) { var f = ((t >> 3) + i) & 1; ctx.fillStyle = f ? '#F8D878' : '#FCA044'; ctx.fillRect(lx - 3, 92, 7, 8); ctx.fillStyle = 'rgba(248,160,68,.10)'; ctx.fillRect(lx - 14, 80, 29, 34); });
+    // the DM's table (js/pocketdm.js): the high seat taken -- its rim gold, a breath of light on it
+    if (dm) { var gl = 0.35 + Math.sin(t / 30) * 0.12; ctx.strokeStyle = 'rgba(248,214,122,' + gl + ')'; ctx.strokeRect(222.5, 55.5, 35, 67); ctx.fillStyle = 'rgba(248,214,122,' + (gl * 0.25) + ')'; ctx.fillRect(227, 70, 26, 36); }
     // the beam: the skylight's noon down onto the stone (as the 8-bit's drawBeam: lighter, brighter at the top, pooled where it lands)
     ctx.save(); ctx.globalCompositeOperation = 'lighter';
     var x0 = 212, x1 = 268, y0 = 0, y1 = 176, spread = 14;

@@ -220,9 +220,9 @@
   GS.teach = function* (B, o) {
     o = o || {};
     var st = B.gs, keep = B.units.map(function (u) { return { u: u, x: u.x, y: u.y, f: u.facing }; }), ui = D.ui.opts;
-    var opts0 = { style: ui.style, autoEnd: ui.autoEnd, confirmEnd: ui.confirmEnd }, cine0 = B.cine, paint0 = B.paint, lock0 = st.lock;
+    var opts0 = { style: ui.style, menu: ui.menu, autoEnd: ui.autoEnd, confirmEnd: ui.confirmEnd }, cine0 = B.cine, paint0 = B.paint, lock0 = st.lock;
     var report = GS.lastTeach = { who: {}, skipped: false };
-    ui.style = 'ring'; ui.autoEnd = false; ui.confirmEnd = 'never';
+    ui.style = 'ring'; ui.menu = null; ui.autoEnd = false; ui.confirmEnd = 'never'; // (menu: a MENU TYPE set on the title would put the lesson's ring away -- 10-09)
     st.ghost = ghost(); st.skip = false; st.say = null; st.clicks = [];
     // (the fight's cards held back and drawn under his line; the aimed-at one's sheet, B.peek, left off: it sat over his words)
     B.paint = function (ctx) { var cs = this.cards, pk = this.peek; this.cards = []; this.peek = null; try { paint0.apply(this, arguments); } finally { this.cards = cs; this.peek = pk; } paintLesson(ctx, this); };
@@ -237,7 +237,7 @@
     } finally {
       report.skipped = !!st.skip;
       st.ghost = null; st.say = null; st.skip = false; st.clicks = []; st.lock = lock0;
-      ui.style = opts0.style; ui.autoEnd = opts0.autoEnd; ui.confirmEnd = opts0.confirmEnd;
+      ui.style = opts0.style; ui.menu = opts0.menu; ui.autoEnd = opts0.autoEnd; ui.confirmEnd = opts0.confirmEnd;
       B.paint = paint0; B.cine = cine0; B.req = null; B.list = null; B.tool = 'move'; B.spell = null; B.picks = [];
       foes.forEach(function (w) { if (B.units.indexOf(w) >= 0 && !w.dead) FX.sparkle(w, 'gold', 10); });
       B.units = keep.map(function (h) { var u = h.u; u.x = h.x; u.y = h.y; u.facing = h.f; u.conds = {}; u.hp = u.maxhp = u.gMax || u.maxhp; u.temp = 0; u.dead = false; u.ko = false; u.anim = 'idle'; u.animT = B.t; delete u.tween; delete u.holding; if (u.mpmon) MP.refill(u); return u; });

@@ -786,30 +786,49 @@
   // uniformity)"): kept where the grid keeps them, localStorage deep16.opts, so a story fight reads them when it opens; a host holding the grid live
   // applies them at once (host.optsChanged). The volumes were one store already (js/audio.js ds8-audio)
   var OPT_KEY = 'deep16.opts', PACES = [1, 1.25, 1.5, 2, 2.5, 3, 4], ASKS = ['idle', 'always', 'never'], ASKW = { idle: 'IF IDLE', always: 'ALWAYS', never: 'NEVER' };
-  function readOpts() { var o = { help: false, style: 'ring', mpStyle: 'ring2', autoEnd: true, pace: 1.25, confirmEnd: 'idle' }; try { var s = JSON.parse(window.localStorage.getItem(OPT_KEY) || 'null'); if (s) Object.keys(o).forEach(function (k) { if (k in s) o[k] = s[k]; }); } catch (e) { } return o; }
+  function readOpts() { var o = { help: false, style: 'ring', mpStyle: 'ring2', autoEnd: true, pace: 1.25, confirmEnd: 'idle', menu: null, scale: 0 }; try { var s = JSON.parse(window.localStorage.getItem(OPT_KEY) || 'null'); if (s) Object.keys(o).forEach(function (k) { if (k in s) o[k] = s[k]; }); } catch (e) { } return o; }
   function cyc(list, v, d) { var i = list.indexOf(v); return list[((i < 0 ? 0 : i) + d + list.length) % list.length]; }
-  MN.gridRows = function (host) {
+  // the front door's two (10-09, Griz: "OPTIONS button on the front door with a slider for a default &scale= value - translated into resolution sizes if possible (and
+  // music off, a default 'menu type' select that is originally 'let the map decide' and overrides the mascots using Ring2 by default if it is set to ring 1"): GRID SCALE,
+  // read by deep16/js/main.js where the address has no &scale= (0 AUTO: the grid fits the window); MENU TYPE, read by deep16/js/ui.js UI.style (null: the map decides)
+  var MENUW = { ring: 'RING', ring2: 'RING2', window: 'WINDOW' }, SCALE_MAX = 8;
+  MN.gridRows = function (host, front) {
     var o = readOpts(), save = function () { try { window.localStorage.setItem(OPT_KEY, JSON.stringify(o)); } catch (e) { } if (host && host.optsChanged) host.optsChanged(o); };
-    // (a Mascot game keeps its own MENU STYLE, RING2 till changed -- 10-08, Griz: "mascot games default to menu setting of ring two, not an overwrite"; deep16/js/ui.js UI.style)
-    var sk = host && host.mascotGame && host.mascotGame() ? 'mpStyle' : 'style';
-    return [
-      { label: 'MENU STYLE', get: function () { return String(o[sk] || 'ring').toUpperCase(); }, step: function (d) { o[sk] = cyc(['ring', 'ring2', 'window'], o[sk], d); save(); } }, // (RING2, 10-08: the ring by cost -- ACTIONS and BONUSES; deep16/js/ui.js)
+    // (a Mascot game keeps its own MENU STYLE, RING2 till changed -- 10-08, Griz: "mascot games default to menu setting of ring two, not an overwrite"; deep16/js/ui.js UI.style;
+    // a MENU TYPE set on the title is the one in force everywhere, so the row changes that)
+    var sk = o.menu && MENUW[o.menu] ? 'menu' : host && host.mascotGame && host.mascotGame() ? 'mpStyle' : 'style';
+    var first = front ? [
+      { label: 'GRID SCALE', key: 'scale', get: function () { return o.scale ? o.scale + 'X' : 'AUTO'; }, step: function (d) { o.scale = clamp((o.scale | 0) + d, 0, SCALE_MAX); save(); }, scale: function () { return o.scale | 0; } },
+      { label: 'MENU TYPE', key: 'menu', get: function () { return MENUW[o.menu] || 'LET THE MAP DECIDE'; }, step: function (d) { o.menu = cyc([null, 'ring', 'ring2', 'window'], MENUW[o.menu] ? o.menu : null, d); save(); } }
+    ] : [
+      { label: 'MENU STYLE', get: function () { return String(o[sk] || 'ring').toUpperCase(); }, step: function (d) { o[sk] = cyc(['ring', 'ring2', 'window'], o[sk], d); save(); } } // (RING2, 10-08: the ring by cost -- ACTIONS and BONUSES; deep16/js/ui.js)
+    ];
+    return first.concat([
       { label: 'AUTO END TURN', get: function () { return o.autoEnd ? 'ON' : 'OFF'; }, step: function () { o.autoEnd = !o.autoEnd; save(); } },
       { label: 'END TURN ASKS', get: function () { return ASKW[o.confirmEnd] || 'IF IDLE'; }, step: function (d) { o.confirmEnd = cyc(ASKS, o.confirmEnd, d); save(); } },
       { label: 'AI + MESSAGE TIME', get: function () { return o.pace + 'x'; }, step: function (d) { o.pace = cyc(PACES, o.pace, d); save(); } }
-    ];
+    ]);
   };
-  function OptionsPage(m) { this.m = m; this.grid = MN.gridRows(m.host); this.list = new List({ visible: 12 }); this.refresh(); }
+  // o.front: the 8-bit title's OPTIONS (MN.openOptions), GRID SCALE and MENU TYPE in MENU STYLE's place
+  function OptionsPage(m, o) { this.m = m; this.front = !!(o && o.front); this.grid = MN.gridRows(m.host, this.front); this.list = new List({ visible: 12 }); this.refresh(); }
   OptionsPage.prototype.rows = function () {
-    var A = DS.audio || {}, extra = this.grid;
-    return [{ label: 'MUSIC', right: Math.round((A.musicVol || 0) * 10), value: { k: 'music' } }, { label: 'SOUND', right: Math.round((A.sfxVol || 0) * 10), value: { k: 'sound' } }]
+    var A = DS.audio || {}, extra = this.grid, mv = Math.round((A.musicVol || 0) * 10);
+    return [{ label: 'MUSIC', right: mv ? 'ON  ' + mv : 'OFF', value: { k: 'music' } }, { label: 'SOUND', right: Math.round((A.sfxVol || 0) * 10), value: { k: 'sound' } }]
       .concat(extra.map(function (o) { return { label: o.label, right: o.get(), value: { k: 'opt', o: o } }; }))
       .concat([{ label: 'SUPPORT THE EXPANSION', value: { k: 'kofi' }, color: C.pink }, { label: 'DONE', value: { k: 'done' } }]);
   };
   OptionsPage.prototype.refresh = function () { this.list.set(this.rows()); };
+  // MUSIC: E turns it off, and back on where it was (his "music off", 10-09); left/right the volume as before
+  var musicWas = 0.55;
+  OptionsPage.prototype.musicToggle = function () {
+    var A = DS.audio; if (!A) return;
+    if (A.musicVol > 0) { musicWas = A.musicVol; A.musicVol = 0; } else A.musicVol = musicWas || 0.55;
+    if (A.setVolumes) A.setVolumes(); if (A.savePrefs) A.savePrefs();
+    this.refresh();
+  };
   OptionsPage.prototype.step = function (v, d) {
     var A = DS.audio;
-    if (v.k === 'music' && A) { A.musicVol = clamp(Math.round((A.musicVol + d * 0.1) * 10) / 10, 0, 1); if (A.setVolumes) A.setVolumes(); if (A.savePrefs) A.savePrefs(); }
+    if (v.k === 'music' && A) { A.musicVol = clamp(Math.round((A.musicVol + d * 0.1) * 10) / 10, 0, 1); if (A.musicVol > 0) musicWas = A.musicVol; if (A.setVolumes) A.setVolumes(); if (A.savePrefs) A.savePrefs(); }
     if (v.k === 'sound' && A) { A.sfxVol = clamp(Math.round((A.sfxVol + d * 0.1) * 10) / 10, 0, 1); if (A.setVolumes) A.setVolumes(); if (A.savePrefs) A.savePrefs(); }
     if (v.k === 'opt') v.o.step(d);
     this.refresh();
@@ -825,6 +844,7 @@
     if (r !== 'pick') return;
     if (v.k === 'kofi') this.m.act('kofi');
     else if (v.k === 'done') this.m.pop();
+    else if (v.k === 'music') this.musicToggle();
     else this.step(v, 1);
   };
   OptionsPage.prototype.draw = function (ctx, active) {
@@ -832,7 +852,34 @@
     win(ctx, 28, 30, 200, 36 + n * 13);
     text(ctx, 'OPTIONS', 36, 37, C.gold);
     this.list.draw(ctx, 34, 51, 186, active, this.m.t, 13);
-    footer(ctx, '◀ ▶ adjust  (rows 3-6: the 16-bit fights)', 52 + n * 13);
+    footer(ctx, '◀ ▶ adjust  (rows 3-' + (this.grid.length + 2) + ': the 16-bit fights)', 52 + n * 13);
+    // the row under the cursor, said: the scale as a slider and its pixels, the menu type, the music
+    var cur = this.list.cur(), v = cur && cur.value, o = v && v.o;
+    if (o && o.key === 'scale') {
+      var s = o.scale(), tx = 22, tw = 212, stops = SCALE_MAX + 1;
+      win(ctx, 4, 196, 248, 40);
+      ctx.fillStyle = '#3c3c64'; ctx.fillRect(tx, 205, tw, 2);
+      for (var i = 0; i < stops; i++) { var sx = tx + Math.round(i * tw / (stops - 1)); ctx.fillStyle = i === s ? C.gold : MID; ctx.fillRect(sx - (i === s ? 2 : 0), 202 - (i === s ? 1 : 0), i === s ? 5 : 1, i === s ? 9 : 7); }
+      var big = s && window.screen && (480 * s > window.screen.width * (window.devicePixelRatio || 1) || 270 * s > window.screen.height * (window.devicePixelRatio || 1));
+      text(ctx, s ? s + 'X: ' + 480 * s + ' x ' + 270 * s + ' pixels' + (big ? ', bigger than this screen' : '') : 'AUTO: the grid fits the window', 10, 214, s ? C.tan : C.green);
+      text(ctx, 'the 16-bit fights\' size, unless a link says &scale=', 10, 224, C.grey);
+    } else if (o && o.key === 'menu') {
+      win(ctx, 4, 196, 248, 40);
+      wrap(MENUW[readOpts().menu] ? 'Every 16-bit fight on ' + MENUW[readOpts().menu] + ', the Mascot games too.' : 'Each fight its own: the classes on the ring, a Mascot game on RING2 -- the fight\'s M menu changes either.', 236).slice(0, 3).forEach(function (l, i) { text(ctx, l, 10, 203 + i * 10, C.tan); });
+    } else if (v && v.k === 'music') {
+      win(ctx, 4, 196, 248, 40);
+      text(ctx, 'E turns the music off, and back on where it was', 10, 203, C.tan);
+      text(ctx, '◀ ▶ the volume', 10, 213, C.grey);
+    }
+  };
+  // the title's OPTIONS (10-09: in the PLAYTESTER LADDER's place on the 8-bit's front door, his "pull the playtester ladder option and put OPTIONS in its slot"): the
+  // page alone, no party panel behind it; DONE or X closes it and the host's close pops the scene (js/scenes.js FrontOptions)
+  MN.openOptions = function (host) {
+    var m = Object.create(Menu.prototype); // (not new Menu: its Root reads the host's party, and the title has none)
+    m.host = host; m.t = 0; m.pages = []; m.toast = null; m.busy = false; m.closed = false; m.hits = [];
+    m.root = { mode: null, draw: function () { }, update: function () { m.close(); }, drawPick: function () { } };
+    m.push(new OptionsPage(m, { front: true }));
+    return m;
   };
 
   // ------------------------------------------------------------------ CREDITS: the game's, and the notes from the making that sat on STATUS (his "4 - I lean yes so hard")

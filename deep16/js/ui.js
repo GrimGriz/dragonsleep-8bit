@@ -35,9 +35,12 @@
   UI.PACES = [1, 1.25, 1.5, 2, 2.5, 3, 4]; // (2 to 4 slower still, 10-08, Griz: "Can you add me longer lag (greater AI speed variables in the option section of the menu)" -- js/menu.js PACES the same)
   UI.ASKS = ['idle', 'always', 'never'];
   UI.STYLES = ['ring', 'ring2', 'window'];
-  try { var o0 = JSON.parse(window.localStorage.getItem('deep16.opts') || 'null'); if (o0) { if (o0.style === 'window' || o0.style === 'ring2') UI.opts.style = o0.style; if (UI.STYLES.indexOf(o0.mpStyle) >= 0) UI.opts.mpStyle = o0.mpStyle; if (o0.autoEnd === false) UI.opts.autoEnd = false; if (UI.PACES.indexOf(o0.pace) >= 0) UI.opts.pace = o0.pace; if (UI.ASKS.indexOf(o0.confirmEnd) >= 0) UI.opts.confirmEnd = o0.confirmEnd; } } catch (e) { }
+  try { var o0 = JSON.parse(window.localStorage.getItem('deep16.opts') || 'null'); if (o0) { if (o0.style === 'window' || o0.style === 'ring2') UI.opts.style = o0.style; if (UI.STYLES.indexOf(o0.mpStyle) >= 0) UI.opts.mpStyle = o0.mpStyle; if (o0.autoEnd === false) UI.opts.autoEnd = false; if (UI.PACES.indexOf(o0.pace) >= 0) UI.opts.pace = o0.pace; if (UI.ASKS.indexOf(o0.confirmEnd) >= 0) UI.opts.confirmEnd = o0.confirmEnd; if (UI.STYLES.indexOf(o0.menu) >= 0) UI.opts.menu = o0.menu; if (o0.scale >= 1 && o0.scale <= 9) UI.opts.scale = o0.scale | 0; } } catch (e) { }
   UI.saveOpts = function () { try { window.localStorage.setItem('deep16.opts', JSON.stringify(UI.opts)); } catch (e) { } };
-  var qs = /[?&]menu=(window|ring2|ring)/.exec(location.search); if (qs) UI.opts.style = UI.opts.mpStyle = qs[1];
+  // MENU TYPE (10-09, Griz: "a default 'menu type' select that is originally 'let the map decide' and overrides the mascots using Ring2 by default if it is set to ring 1"):
+  // the 8-bit title's OPTIONS (js/menu.js) sets UI.opts.menu -- unset, LET THE MAP DECIDE (the classes their style, a Mascot game its own, RING2 by default); RING, RING2
+  // or WINDOW, that menu in every fight, the Mascot games too. &menu= in the address still wins, for that page only (UI.urlMenu: not saved)
+  var qs = /[?&]menu=(window|ring2|ring)/.exec(location.search); if (qs) UI.urlMenu = qs[1];
   // RING2 (10-08, Griz: "what if the first ring had 'actions' and 'bonuses' that colored the ring yellow and light blue when you click on them"; "menu option ring2 (default for
   // mpmon ...)"): the ring by cost -- see cmds2 below. A MASCOT GAME (a fight whose party holds a Mascot) keeps a menu setting of its own, UI.opts.mpStyle, RING2 by default;
   // RING chosen there is the old ring (10-08, Griz: "no no - mascot games default to menu setting of ring two, not an overwrite" -- a Mascot had been put on RING2 under RING,
@@ -47,7 +50,7 @@
     if (!B.uiMascots) B.uiMascots = B.units.some(function (w) { return w.cls === 'mpmon' && w.side === 'party'; }); // (kept once true: the Game Show's four come onto the field after its opening)
     return B.uiMascots;
   };
-  UI.style = function (B) { var s = UI.mascotGame(B) ? UI.opts.mpStyle : UI.opts.style; return UI.STYLES.indexOf(s) >= 0 ? s : 'ring'; };
+  UI.style = function (B) { var s = UI.urlMenu || (UI.STYLES.indexOf(UI.opts.menu) >= 0 ? UI.opts.menu : UI.mascotGame(B) ? UI.opts.mpStyle : UI.opts.style); return UI.STYLES.indexOf(s) >= 0 ? s : 'ring'; };
   UI.styleOf = function (u, B) { return UI.style(B); };
   D.PACE = UI.opts.pace;
   if (D.STREAM) D.PACE = UI.STREAM_PACE = 2.5; // (the stream, 10-07, Griz: "the AI to take its turns about half current speed" -- twice the 1.25 default, a starting value only: the M menu's PACE row still sets D.PACE (optsChanged, below) and nothing here is saved; ?pace= below still wins)
@@ -1044,7 +1047,7 @@
         return [{ label: 'RESTART THE FIGHT', value: 'restart' }].concat(B.o.onDone ? [] : [{ label: 'THE LADDER', value: 'ladder' }], [{ label: UI.backLabel(), value: 'out' }]);
       },
       mascotGame: function () { return UI.mascotGame(B); }, // (the MENU STYLE row sets the Mascot games' own setting here -- js/menu.js gridRows)
-      optsChanged: function (o) { UI.opts.style = o.style === 'window' ? 'window' : o.style === 'ring2' ? 'ring2' : 'ring'; if (UI.STYLES.indexOf(o.mpStyle) >= 0) UI.opts.mpStyle = o.mpStyle; UI.opts.autoEnd = o.autoEnd !== false; if (UI.ASKS.indexOf(o.confirmEnd) >= 0) UI.opts.confirmEnd = o.confirmEnd; if (UI.PACES.indexOf(o.pace) >= 0) UI.opts.pace = D.PACE = o.pace; UI.saveOpts(); restyle(B); },
+      optsChanged: function (o) { UI.opts.style = o.style === 'window' ? 'window' : o.style === 'ring2' ? 'ring2' : 'ring'; if (UI.STYLES.indexOf(o.mpStyle) >= 0) UI.opts.mpStyle = o.mpStyle; UI.opts.menu = UI.STYLES.indexOf(o.menu) >= 0 ? o.menu : null; UI.opts.autoEnd = o.autoEnd !== false; if (UI.ASKS.indexOf(o.confirmEnd) >= 0) UI.opts.confirmEnd = o.confirmEnd; if (UI.PACES.indexOf(o.pace) >= 0) UI.opts.pace = D.PACE = o.pace; UI.saveOpts(); restyle(B); },
       run: function (kind, a, done) {
         if (kind === 'kofi') { try { window.open('https://ko-fi.com/grimgriz', '_blank'); } catch (e) { } }
         if (kind === 'exit') {

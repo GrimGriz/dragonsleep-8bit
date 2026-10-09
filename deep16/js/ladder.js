@@ -115,10 +115,14 @@
       return;
     }
     var inBtn = function (b) { return mm.click && b && mm.x >= b.x && mm.x < b.x + b.w && mm.y >= b.y && mm.y < b.y + b.h; };
+    // VILLAINS on the combat ladder, HEROES on the tester ladder (10-09, Griz: "Do 'Villains' button on combat ladder page and 'heroes' button on playtester ladder page"):
+    // each the other's door, top left -- the 8-bit title's PLAYTESTER LADDER row is OPTIONS now
+    if (inBtn(this.swapBtn)) { D.sfx('confirm'); this.save(); location.href = this.ours ? '?ladder' : '?ladder&party=ours'; return; }
     if (this.ours && (I.pressed('play') || inBtn(this.playBtn))) { this.play = !this.play; D.sfx('confirm'); this.save(); return; }
-    if (this.ours && (I.pressed('rec') || inBtn(this.recBtn))) { this.saved = D.rec.save(); this.cleared = null; D.sfx(this.saved ? 'confirm' : 'error'); return; }
-    // C, or the button top right, once a save has been made (its slot is the climb's on the plain ladder): the saved fights leave the browser, after a question
-    if (this.ours && D.rec.clearable() && (I.pressed('center') || inBtn(this.clrBtn))) { D.sfx('popup'); this.clearing = true; return; }
+    // R: the record to a file, on both ladders since 10-09 (his "add the download and clear fight history stuff from playtester ladder to the combat ladder")
+    if (I.pressed('rec') || inBtn(this.recBtn)) { this.saved = D.rec.save(); this.cleared = null; D.sfx(this.saved ? 'confirm' : 'error'); return; }
+    // C, or the CLEAR RECORD button, once a save has been made (on the combat ladder C is the climb's: the button only), after a question
+    if (D.rec.clearable() && ((this.ours && I.pressed('center')) || inBtn(this.clrBtn))) { D.sfx('popup'); this.clearing = true; return; }
     var s0 = this.sel;
     if (I.repeat('up')) this.sel = Math.min(9, this.sel + 1);
     if (I.repeat('down')) this.sel = Math.max(this.lo, this.sel - 1);
@@ -194,18 +198,24 @@
       if (h.slots) D.text(ctx, h.slots, bx + 6, yy + 18, P('accent', 2));
     });
     D.hint(ctx, 'up/down or ' + this.lo + '-9 choose  ·  left/right: a rung with more fights  ·  E ' + (this.ours ? (this.play ? 'play' : 'watch') : 'fight') + '  ·  X back', D.W / 2, D.H - 12, P('stone', 5), 'center');
+    // P (the tester ladder: play or watch) and R, the record to a file (both ladders since 10-09) -- each a click or a tap too: a tester on a phone has no keys
+    var n = D.rec.count(), x0 = bx + 6, x1 = x0, w1 = 0;
+    this.playBtn = null;
+    if (this.ours) { w1 = D.text(ctx, '{y}P{/} ' + (this.play ? '{y}YOU PLAY{/}' : 'you watch'), x0, 240, P('silver', 5)); x1 = x0 + w1 + 14; this.playBtn = { x: x0 - 3, y: 237, w: w1 + 6, h: 12 }; }
+    var w2 = D.text(ctx, '{y}R{/} save ' + n + ' recorded fight' + (n === 1 ? '' : 's'), x1, 240, P('silver', 5));
+    this.recBtn = { x: x1 - 3, y: 237, w: w2 + 6, h: 12 };
+    ctx.strokeStyle = P('stone', 3); if (this.playBtn) ctx.strokeRect(this.playBtn.x + 0.5, this.playBtn.y + 0.5, this.playBtn.w - 1, this.playBtn.h - 1); ctx.strokeRect(this.recBtn.x + 0.5, this.recBtn.y + 0.5, this.recBtn.w - 1, this.recBtn.h - 1);
+    if (this.saved) D.text(ctx, '{g}saved: ' + String(this.saved).replace(/^deep16-play-record-/, '') + '{/}', bx + 6, 249, P('accent', 2)); // (the name's front dropped: the whole of it ran off the screen's edge)
+    else if (this.cleared) D.text(ctx, '{g}' + (this.cleared.kept ? 'cleared ' + this.cleared.gone + ', kept ' + this.cleared.kept + ' newer' : 'record cleared: ' + this.cleared.gone + ' fight' + (this.cleared.gone === 1 ? '' : 's')) + '{/}', bx + 6, 249, P('accent', 2)); // (short: the line ends at the screen's edge)
+    // the other ladder, top left: VILLAINS (our four, the tester ladder) from the heroes', HEROES back
+    var sb = this.swapBtn = { x: 32, y: 4, w: 98, h: 20 };
+    ctx.fillStyle = this.ours ? P('gold', 1) : P('red', 1); ctx.fillRect(sb.x, sb.y, sb.w, sb.h); ctx.strokeStyle = this.ours ? P('gold', 4) : P('red', 4); ctx.strokeRect(sb.x + 0.5, sb.y + 0.5, sb.w - 1, sb.h - 1);
+    D.hint(ctx, this.ours ? '{y}HEROES{/}' : '{r}VILLAINS{/}', sb.x + sb.w / 2, sb.y + 2, P('bone', 1), 'center');
+    D.text(ctx, this.ours ? 'the four heroes\' ladder' : 'our four: the tester ladder', sb.x + sb.w / 2, sb.y + 11, P('stone', 5), 'center');
+    var nc = D.rec.clearable(); this.clrBtn = null;
     if (this.ours) {
-      // P: play or watch; R: the record to a file (each a click or a tap too: a tester on a phone has no keys)
-      var n = D.rec.count(), x0 = bx + 6;
-      var w1 = D.text(ctx, '{y}P{/} ' + (this.play ? '{y}YOU PLAY{/}' : 'you watch'), x0, 240, P('silver', 5)), x1 = x0 + w1 + 14;
-      var w2 = D.text(ctx, '{y}R{/} save ' + n + ' recorded fight' + (n === 1 ? '' : 's'), x1, 240, P('silver', 5));
-      this.playBtn = { x: x0 - 3, y: 237, w: w1 + 6, h: 12 }; this.recBtn = { x: x1 - 3, y: 237, w: w2 + 6, h: 12 };
-      ctx.strokeStyle = P('stone', 3); ctx.strokeRect(this.playBtn.x + 0.5, this.playBtn.y + 0.5, this.playBtn.w - 1, this.playBtn.h - 1); ctx.strokeRect(this.recBtn.x + 0.5, this.recBtn.y + 0.5, this.recBtn.w - 1, this.recBtn.h - 1);
-      if (this.saved) D.text(ctx, '{g}saved: ' + String(this.saved).replace(/^deep16-play-record-/, '') + '{/}', bx + 6, 249, P('accent', 2)); // (the name's front dropped: the whole of it ran off the screen's edge)
-      else if (this.cleared) D.text(ctx, '{g}' + (this.cleared.kept ? 'cleared ' + this.cleared.gone + ', kept ' + this.cleared.kept + ' newer' : 'record cleared: ' + this.cleared.gone + ' fight' + (this.cleared.gone === 1 ? '' : 's')) + '{/}', bx + 6, 249, P('accent', 2)); // (short: the line ends at the screen's edge)
       // (no climb: the climb is the four heroes'; its slot top right holds CLEAR RECORD once a save is made)
-      this.climbBtn = null; this.clrBtn = null;
-      var nc = D.rec.clearable();
+      this.climbBtn = null;
       if (nc && !this.card) {
         var kb = this.clrBtn = { x: D.W - 104, y: 4, w: 98, h: 20 };
         ctx.fillStyle = P('red', 1); ctx.fillRect(kb.x, kb.y, kb.w, kb.h); ctx.strokeStyle = P('red', 4); ctx.strokeRect(kb.x + 0.5, kb.y + 0.5, kb.w - 1, kb.h - 1);
@@ -218,14 +228,22 @@
     ctx.fillStyle = P('violet', 1); ctx.fillRect(cb.x, cb.y, cb.w, cb.h); ctx.strokeStyle = P('violet', 4); ctx.strokeRect(cb.x + 0.5, cb.y + 0.5, cb.w - 1, cb.h - 1);
     D.hint(ctx, '{p}THE CLIMB{/}  (C)', cb.x + cb.w / 2, cb.y + 2, P('bone', 1), 'center');
     D.text(ctx, cl ? 'level ' + cl.level + ', run ' + cl.run : 'one party, 1 to 9', cb.x + cb.w / 2, cb.y + 10, P('stone', 5), 'center');
+    // CLEAR RECORD beside the climb once a save is made (C is the climb's here: the button only)
+    if (nc && !this.card) {
+      var kc = this.clrBtn = { x: cb.x - 84, y: 4, w: 80, h: 20 };
+      ctx.fillStyle = P('red', 1); ctx.fillRect(kc.x, kc.y, kc.w, kc.h); ctx.strokeStyle = P('red', 4); ctx.strokeRect(kc.x + 0.5, kc.y + 0.5, kc.w - 1, kc.h - 1);
+      D.hint(ctx, '{r}CLEAR RECORD{/}', kc.x + kc.w / 2, kc.y + 2, P('bone', 1), 'center');
+      D.text(ctx, nc + ' saved fight' + (nc === 1 ? '' : 's'), kc.x + kc.w / 2, kc.y + 11, P('stone', 5), 'center');
+    }
     if (this.card) this.drawCard(ctx);
     if (this.leaving) this.drawLeave(ctx);
+    if (this.clearing) this.drawClear(ctx);
   };
   Ladder.prototype.drawLeave = function (ctx) {
     var lw = 300, lx = (D.W - lw) / 2;
     box(ctx, lx, 104, lw, 46);
     D.text(ctx, '{y}LEAVE THE LADDER?{/}', D.W / 2, 112, P('gold', 4), 'center');
-    D.text(ctx, 'back to the 8-bit game (its title has both ladders)', D.W / 2, 124, P('bone', 1), 'center');
+    D.text(ctx, 'back to the 8-bit game\'s title', D.W / 2, 124, P('bone', 1), 'center'); // (its title has the combat ladder; this page's VILLAINS / HEROES the other, 10-09)
     D.hint(ctx, '{g}E leave  ·  X stay{/}', D.W / 2, 137, P('accent', 2), 'center');
   };
   Ladder.prototype.drawClear = function (ctx) {

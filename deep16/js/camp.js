@@ -443,7 +443,10 @@
     // the climb: the gear chosen here goes with the party from now on
     if (this.o.climb) { this.o.climb.keep(data.party); this.st.equip = {}; this.save(); }
     // (who went down in it, for the climb's campfire: the DM's hands bring them back -- climb.js)
-    var fb = new D.Battle({ ladder: true, climb: !!this.o.climb, fight: this.F.id, data: data, torch: data.torchBy, torchKind: data.torchKind, onDone: function (res, why) {
+    // (the combat ladder's fights are recorded too since 10-09 -- his "add the download and clear fight history stuff from playtester ladder to the combat ladder": R saves them
+    // there; the climb keeps no record, as before)
+    var fb = new D.Battle({ ladder: true, climb: !!this.o.climb, fight: this.F.id, data: data, torch: data.torchBy, torchKind: data.torchKind, record: this.o.climb ? null : { fight: this.F.id, name: this.F.name, level: this.L }, onDone: function (res, why) {
+      if (fb.rec) D.rec.finish(fb, res);
       var down = (fb.units || []).filter(function (u) { return u.side === 'party' && !u.guest && (u.ko || u.hp <= 0); }).map(function (u) { return u.id; });
       self.leave(res, Object.assign({ down: down }, why || {}));
     } });

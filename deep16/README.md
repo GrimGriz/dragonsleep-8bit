@@ -409,6 +409,18 @@ the pages beside the game, the Discord) and THE 8-BIT GAME; the 8-bit title has 
 - **Bench:** `python dev/bench16.py x mode=pocket1002` (in `dev/check.py`'s gate): the words, a `~` code round-tripped, the ASIs with the level,
   the pot and the roll summing to its CR, the DMG reading, the rests, the winnings by class, a fight by the Pocket's words with a carry, and a
   table of Large and Huge foes seated whole (`battle.js seatBand` honours a footprint now).
+- **10-09 (`js/pocketdm.js`; Griz: *"the current front face is 'release edition' with this secret tester feedback area the shape the front will likely
+  eventually take"*):** SAVE TABLE is **SAVE CAMPAIGN** (kind `pocket-campaign`; a `pocket-table` file still loads). USEFULS' **SITUATIONS** is a notes
+  box (`st.feedback`) whose SAVE writes `hero_situations_feedback-<UTC>.json` -- the words, the party and roster, the ladder, the DM's campaign, the
+  last five fights. **The eggs** (`PD.EGGS`, `MP.unlock`, once a save): Denny on the first character made, Beholda on the release edition's first
+  SAVE CAMPAIGN, Goose on the first notes saved. **The DM's table** (`st.dm`; its door on the title is in the code and the lane, not here): the cap 12,
+  Pyro without the trial, GreyFang and every Mascot on the roster, the story's named in the dial's pot (`PK.pot(..., dm)`), the class floor's knobs
+  on the foes screen (`Pocket.knobs`: `flyTest`, `legendTest`, `breathTest`, the dark), DOORS (`PD.DOORS`), and **THE CAMPAIGN** (`st.camp`): five
+  shops by creature type (`PD.SHOPS`, `PD.shelf`) at 100 sp a CR (`PD.price`, the purse in copper: 1/8 is 12 sp 5 cp), a purse of 1000 sp that takes
+  in twice a ladder fight's CR won or lost (`Pocket.afterFight`), the units newest first (`PD.newest`; LET GO pays one back), the dial's ladder
+  swapping units in for rolled foes of their CR (`PD.swap`, `Pocket.ladderFoes`), three floors struck from every random draw (`randomMap`), and
+  BUILD THE LADDER -- five slots, four rungs and the trial, each a floor at its CR filled units-first (`PD.fill`, `run.plan`, `Pocket.planRung`;
+  `lastRung` / `hasTrial` size a built ladder). **Bench:** `mode=pocketdm1009` (in the quick gate).
 
 ## MPMon, the Monster Party Monster -- `js/mpmon.js` (10-06)
 

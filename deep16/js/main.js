@@ -11,6 +11,9 @@
   var D = window.D16, q = location.search;
   var sc = /[?&]scale=(\d)/.exec(q);
   if (sc) D.forceScale = +sc[1];
+  // the default scale (10-09, Griz: "OPTIONS button on the front door with a slider for a default &scale= value - translated into resolution sizes"): the 8-bit
+  // title's OPTIONS keeps it in deep16.opts (js/menu.js GRID SCALE); &scale= still wins, and a story fight inside the 8-bit (?embed) fits its frame as ever
+  else if (!/[?&]embed\b/.test(q)) { try { var so = JSON.parse(window.localStorage.getItem('deep16.opts') || 'null'); if (so && so.scale >= 1 && so.scale <= 9) D.forceScale = so.scale | 0; } catch (e) { } }
   // &hscale=N (10-08, Griz, on drawing height at true scale: "not the fight but the map, try it on the ediface"): every map's heights drawn N times as tall for this
   // page -- a map's `step`, the px a 2.5 ft step is drawn (10 on most: 5 ft is 20 px, a figure about 50). The rules read feet through the same number (js/grid.js:
   // G.dist, G.LAYER, the falls), so only the picture changes. A look, not a ruling: the maps keep their own steps
