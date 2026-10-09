@@ -1,0 +1,21 @@
+{
+ "image": "art/face_harbinger.png",
+ "fw": 112,
+ "fh": 100,
+ "ax": 56,
+ "ay": 98,
+ "top": 2,
+ "anims": {
+  "idle": {
+   "y": 0,
+   "fw": 112,
+   "fh": 100,
+   "ax": 56,
+   "ay": 98,
+   "frames": 1,
+   "fps": 6
+  }
+ },
+ "face": 48,
+ "source": "the big face off Mirror-Eyed Gnoll Action Sprite Sheet2.png (Griz, 10-08), cut by tools/faces-sheet.py"
+}

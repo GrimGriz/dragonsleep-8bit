@@ -9,6 +9,7 @@
   function get(k, d) { var m = new RegExp('[?&]' + k + '=([^&]*)').exec(q); return m ? decodeURIComponent(m[1]) : d; }
   D.sfx = function () {}; D.music = function () {}; D.clip = function (u, done) { if (done) done(); };
   D.spr.offline = true; // (10-03, the lazy sheets: the fights here are never drawn, so no sheet is fetched and no fight waits on one -- mode=lazy1003 turns it back on)
+  if (get('callN', '') !== '') D.CALL_N = +get('callN'); // (the Harbinger's pack held at a size for the pre-bench, 10-08: js/traits.js nCall)
   D.PACE = +get('pace', 1); // (10-01: the pace is for people watching -- the AI's waits and message times, battle.js Battle.prototype.pace; this drives the coroutine and never waits, so it is unaffected either way: pace=1.5 in the query proves it; 1 by default)
   var L = +get('lvl', 5), n = +get('n', 10), seed0 = +get('seed', 1), foes = get('foes', 'fighter').split(','), vs = get('vs', ''), wantLog = get('log', '');
   var errs = [], stats = { won: 0, lost: 0, other: 0, rounds: 0, dealt: {}, taken: {}, casts: {}, down: {}, fights: [] };
@@ -5666,7 +5667,7 @@
     if (D.lastError) errs.push('lastError: ' + String(D.lastError.stack || D.lastError).slice(0, 400));
     if (res === 'won') stats.won++; else if (res === 'lost') stats.lost++; else stats.other++;
     stats.rounds += B.round;
-    stats.fights.push(res + ' R' + B.round + (B.climbSaid ? ' [one climbed]' : '') + ' ' + B.units.map(function (u) { return u.name + ' ' + Math.max(0, u.hp) + '/' + u.maxhp; }).join(', ')); // ([one climbed]: a fight's climbLine fired -- the Skylights, 10-05)
+    stats.fights.push(res + ' R' + B.round + (B.climbSaid ? ' [one climbed]' : '') + (B.trophyGF != null ? (B.trophyGF ? ' [GreyFang up at the win]' : ' [GreyFang down at the win]') : '') + ' ' + B.units.map(function (u) { return u.name + ' ' + Math.max(0, u.hp) + '/' + u.maxhp; }).join(', ')); // ([one climbed]: a fight's climbLine fired -- the Skylights, 10-05)
     var pty = B.units.filter(function (u) { return u.side === 'party'; });
     stats.left = (stats.left || 0) + pty.reduce(function (s, u) { return s + Math.max(0, u.hp); }, 0) / Math.max(1, pty.reduce(function (s, u) { return s + u.maxhp; }, 0));
     stats.downs = (stats.downs || 0) + pty.filter(function (u) { return u.hp <= 0; }).length;

@@ -320,7 +320,9 @@
     // (data/maps.js greyfangpit: the town is the maps lane's)
     { id: 'greyfang', story: true, ladder: false, level: 7, map: 'greyfangpit', name: "GreyFang's Pit", sub: "Tarlyn's Pit, the bunker yard", music: 'boss',
       intro: 'The crowd on the tiers goes quiet. On the north rim a gnoll stands too still, and both its eyes are mirrors. It is looking at GreyFang.',
-      from: "Tarlyn's Pit (GreyFang's pit)", quarry: 'greyfang', surprised: 'party', trophy: true, reward: 'greyfangbow', // (surprised: he comes for GreyFang before anyone moves)
+      // (the weight, 10-08, Griz: "for the story battle he has to get stomped, funner if they can have GreyFang up when he's dead": no surprise round and no hunt in
+      // the fight -- the hunt is the ending's (`hunted`, js/trophy.js) -- so the four and GreyFang win 19 of 20, GreyFang standing at every one (the Harbinger as built)
+      from: "Tarlyn's Pit (GreyFang's pit)", hunted: 'greyfang', trophy: true, reward: 'greyfangbow',
       won: 'GREYFANG IS DEAD. THE HARBINGER IS GONE.',
       allies: [{ id: 'greyfang', kind: 'greyfang', side: 'party', ally: true, fated: true, at: [11, 7] }],
       foes: [{ id: 'harb1', kind: 'harbinger', at: [11, 1] }], wave: null },

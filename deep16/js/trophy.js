@@ -80,13 +80,13 @@
       if (S.dim > 0) { ctx.globalAlpha = Math.min(0.85, S.dim); ctx.fillStyle = '#05040a'; ctx.fillRect(0, 0, W, H); ctx.globalAlpha = 1; }
       if (S.face) { // a face close: the sprite's head at the middle of the screen, big (its `face`: px above the foot), and the eyes' flare
         var fc = S.face, sh = D.SHEETS && D.SHEETS[fc.sheet], fy = (sh && sh.face) || 50, sc = fc.s || 6;
-        ctx.save(); ctx.translate(Math.round(W / 2), Math.round(H / 2 + fy * sc)); ctx.scale(sc, sc);
+        ctx.save(); ctx.translate(Math.round(W / 2), Math.round(H / 2 + fy * sc)); ctx.scale(fc.flip ? -sc : sc, sc);
         D.spr.draw(ctx, fc.sheet, fc.anim || 'idle', fc.facing || 0, 0, 0, 0, { frame: fc.frame || 0 });
         ctx.restore();
         if (fc.flare > 0) { // the eyes: on each mirror the sprite has, a white star and a glow (the mirrors catching)
           var k = fc.flare, eyes = eyeSpots(fc.sheet, fc.anim || 'idle', fc.facing || 0), ox = W / 2, oy = H / 2 + fy * sc;
           eyes.forEach(function (e) {
-            var x = ox + e[0] * sc, y = oy + e[1] * sc, r = 6 + k * 22;
+            var x = ox + (fc.flip ? -e[0] : e[0]) * sc, y = oy + e[1] * sc, r = 6 + k * 22;
             ctx.globalAlpha = Math.min(1, k) * 0.4; ctx.fillStyle = '#ffffff'; ctx.beginPath(); ctx.ellipse(x, y, sc * 2.4, sc * 1.8, 0, 0, 7); ctx.fill();
             ctx.globalAlpha = Math.min(1, k); ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 2;
             ctx.beginPath(); ctx.moveTo(x - r, y); ctx.lineTo(x + r, y); ctx.moveTo(x, y - r * 0.55); ctx.lineTo(x, y + r * 0.55); ctx.stroke();
@@ -116,26 +116,36 @@
   }
 
   function* ending(B) {
-    var F = B.fight, h = B.units.filter(function (u) { return u.kind === 'harbinger'; })[0], g = B.units.filter(function (u) { return u.id === (F.quarry || 'greyfang'); })[0];
+    var F = B.fight, h = B.units.filter(function (u) { return u.kind === 'harbinger'; })[0], g = B.units.filter(function (u) { return u.id === (F.hunted || F.quarry || 'greyfang'); })[0]; // (hunted: the ending's own, when the fight's AI hunts no one)
     if (!h || !g) return;
     B.trophyDone = true; B.clearCards && B.clearCards();
+    if (D.spr.ensure) D.spr.ensure(['face_harbinger', 'face_greyfang']); // (the big faces fetched now: the sheets come when asked, and the first close-up is ten seconds off)
     var cine0 = B.cine; B.cine = true; // (no turn strip and no bar over the picture: the show's way, js/gameshow.js)
     var S = stage(B), gAlive = g.hp > 0 && !g.dead, ground = G.groundAt(h, h.x, h.y);
+    B.trophyGF = gAlive; // (whether he stood at the win: the bench's fight line says it -- dev/bench16.js)
     h.cine = true; g.cine = true; // (the flight rules let them be: battle.js Battle.flyWhy)
     try {
       // ---- the stillness
       yield* camOn(B, h, 1.5, 34);
       B.card(['{y}The Harbinger lies still. The crowd on the tiers lets out its breath.{/}'], 1e9, 'trophy'); yield 60;
-      // ---- the mirrors: over his whole body, faster and faster -- up off the ground, standing, rising into the air
-      B.card(['{v}The mirrors in its eyes turn over, and something else looks out of them.{/}'], 1e9, 'trophy');
+      // ---- the mirrors: on the body first, while it lies (Griz, 10-08: "start the mirror effect while he's still down please"), slow passes, then the word
       D.sfx('encounter');
-      var gaps = [34, 28, 23, 19, 16, 13, 11, 9, 8, 7, 6, 5, 5, 4, 4, 3, 3, 3, 2, 2], stood = false, lift = 0;
+      for (var cp = 0; cp < 3; cp++) { if (D.ripple) D.ripple(h, { region: 'body', dur: 56 }); D.sfx('bump'); yield 62 - cp * 8; }
+      B.card(['{v}Mirrors run over the body, and over again. Something else is looking out of it now.{/}'], 1e9, 'trophy');
+      // ... over his whole body, faster and faster -- up off the ground, standing, rising into the air
+      var gaps = [30, 24, 19, 16, 13, 11, 9, 8, 7, 6, 5, 5, 4, 4, 3, 3, 3, 2, 2], stood = false, lift = 0, knelt = [];
       for (var p = 0; p < gaps.length; p++) {
         if (D.ripple) D.ripple(h, { region: 'body', dur: Math.max(10, gaps[p] * 2) });
         if (p % 3 === 0) D.sfx('bump');
-        if (p === 3 && !stood) { // up from the dead: his Ascend row, whole again
+        if (p === 2 && !stood) { // up from the dead: his Ascend row, whole again
           stood = true; h.dead = false; h.ko = false; h.slain = false; h.hp = h.maxhp; h.conds = {}; h.deadT = null; h.flash = 0;
           if (D.spr.anim(h.sheet, 'ascend')) { h.anim = 'ascend'; h.animT = B.t; }
+        }
+        if (p === 4 && !knelt.length) { // and the ring of mirrors out over the pit: every one of them held, on their knees (Griz, 10-08: "We need to put the players under
+          // dominate (or something to explain their stunned inactivity lack of initiative), maybe AOE mirror effect when he rises?") -- the look of his Kneel (ui.js: held by
+          // him, drawn kneeling), let go before the win is read
+          B.units.forEach(function (w) { if (w.side === 'party' && !w.dead && w.hp > 0 && !w.object && !w.familiar) { w.conds.paralyzed = { by: h.id, cine: true }; knelt.push(w); if (D.ripple) D.ripple(w, { region: 'body', dur: 50 }); } });
+          D.sfx('crit'); B.card(['{v}A ring of mirrors runs out of it across the pit, and every one of them goes down on their knees.{/}'], 1e9, 'trophy');
         }
         for (var q = 0; q < gaps[p]; q++) {
           if (stood && p >= 7) { lift = Math.min(64, lift + 0.9 + (p - 7) * 0.12); h.fz = ground + Math.round(lift); } // (off the ground, slow and then quicker)
@@ -150,19 +160,27 @@
       for (fl = 0; fl < 22; fl++) { S.flash = 0.9 * (1 - fl / 22); yield 1; }
       S.flash = 0;
       // ---- the drop: back to the ground, into a cloud of dust and mirror glints
+      // (on his Pounce row's landing -- its frame 6 is the impact, the dust the sheet draws round his feet -- the mirrors over him and it: Griz, 10-08, "can you try the
+      // pounce land with mirror 'dust clouds' it comes with")
+      var pf = D.spr.anim(h.sheet, 'pounce'), pT = pf ? 60 / (pf.fps || 10) : 6;
+      if (pf) { h.anim = 'pounce'; h.animT = B.t - Math.round(3 * pT); }
       for (var dz = 0; dz < 9; dz++) { lift = Math.max(0, lift - (6 + dz * 2)); h.fz = ground + Math.round(lift); yield 1; }
-      h.fz = null; D.sfx('hit'); B.shakeT = 16; mirrorCloud(h);
+      h.fz = null; D.sfx('hit'); B.shakeT = 16;
+      if (pf) { h.anim = 'pounce'; h.animT = B.t - Math.round(((pf.release != null ? pf.release : 5)) * pT); }
+      if (D.ripple) D.ripple(h, { region: 'body', dur: 34 }); mirrorCloud(h);
+      yield Math.round(3 * pT) + 4; h.anim = 'idle';
       yield* camOn(B, h, 1.5, 18);
-      yield 22;
+      yield 16;
       // ---- his face: "The Mane is mine."
       for (var df = 0; df < 16; df++) { S.dim = df / 16 * 0.8; yield 1; }
-      S.face = { sheet: h.sheet, anim: 'idle', facing: 0, s: 3, flare: 0 };
-      for (var zf = 0; zf < 20; zf++) { S.face.s = 3 + ease(zf / 20) * 4; yield 1; } // (in on it: 3x to 7x)
+      for (var fw8 = 0; fw8 < 120 && D.spr.ready && !D.spr.ready(['face_harbinger', 'face_greyfang']); fw8++) yield 1; // (the faces not come yet: a moment's wait, two seconds at most)
+      S.face = { sheet: 'face_harbinger', s: 1.2, flare: 0 }; // (the big face off his sheet -- Griz, 10-08: "I remember a lot of the art sheets starting with a big ole face in the top left..")
+      for (var zf = 0; zf < 22; zf++) { S.face.s = 1.2 + ease(zf / 22) * 1.5; yield 1; } // (in on it)
       word('audio/the_mane_is_mine.mp3', 'The Mane is mine.');
       B.card(['{v}"The Mane is mine."{/}'], 1e9, 'trophy');
       for (var ef = 0; ef < 40; ef++) { S.face.flare = ef < 8 ? ef / 8 : Math.max(0, 1 - (ef - 8) / 32); yield 1; }
       yield 30;
-      for (zf = 0; zf < 14; zf++) { S.face.s = 7 - ease(zf / 14) * 3; S.dim = 0.8 * (1 - zf / 14); yield 1; }
+      for (zf = 0; zf < 14; zf++) { S.face.s = 2.7 - ease(zf / 14) * 1.2; S.dim = 0.8 * (1 - zf / 14); yield 1; }
       S.face = null; S.dim = 0;
       // ---- the Pounce onto GreyFang
       B.clearCards && B.clearCards();
@@ -204,11 +222,11 @@
       // ---- their faces
       B.card(['{v}High over the pit, it looks GreyFang in the eye.{/}'], 1e9, 'trophy');
       for (df = 0; df < 12; df++) { S.dim = df / 12 * 0.55; yield 1; }
-      S.face = { sheet: h.sheet, anim: 'idle', facing: 0, s: 3 };
-      for (zf = 0; zf < 18; zf++) { S.face.s = 3 + ease(zf / 18) * 4; yield 1; }
+      S.face = { sheet: 'face_harbinger', s: 1.2 };
+      for (zf = 0; zf < 18; zf++) { S.face.s = 1.2 + ease(zf / 18) * 1.5; yield 1; }
       yield 50;
-      S.face = { sheet: g.sheet, anim: 'idle', facing: 0, s: 7 };
-      yield 54;
+      S.face = { sheet: 'face_greyfang', s: 2.7, flip: true }; // (his, turned to look back at it)
+      yield 60;
       // ---- the flash: the trophy taken
       D.sfx('crit');
       for (fl = 0; fl < 6; fl++) { S.flash = fl / 6; yield 1; }
@@ -248,6 +266,7 @@
       B.clearCards && B.clearCards();
     } finally {
       S.end(); B.cine = cine0; h.unseen = false; g.unseen = false; delete h.cine; delete g.cine;
+      B.units.forEach(function (w) { if (w.conds && w.conds.paralyzed && w.conds.paralyzed.cine) delete w.conds.paralyzed; }); // (the held, let go)
     }
   }
 

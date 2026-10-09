@@ -189,18 +189,35 @@
     yield 16;
     if (u.rise.call) {
       var came = callPack(B, u, u.rise.call);
+      // (and they laugh as they come: a chorus of them, deep -- Griz, 10-08: "is it possible to do a hyena laugh in a deep voice (or a chorus of them instead of him) for the ascend
+      // move hyena summon"; deep16/audio/hyena_chorus.mp3, four laughing voices pitched down and staggered, tools/voice-clip.ps1 and ffmpeg)
+      if (came.length && D.clip) D.clip('audio/hyena_chorus.mp3', function () { });
       if (came.length) { D.sfx('run'); B.card(['{r}' + came.length + ' mirror hyenas spill out from behind ' + Nm(B, u).replace(/^The /, 'the ') + ' and run at you!{/}'], 300); yield 30; }
     }
   }
   // his call (Griz, 10-08: "a hyena summons - maybe even mirror hyenas - with him rising and standing tall as they run past him to attack the party"): `n` of the
   // `kind` out of the ground behind him -- the far side from the party -- each sliding out from his square and dealt into the order on its own roll (battle.js
   // dealIn, as the brood's cocoons drop), the mirror ripple over each as it comes; `calledBy` ties the pack to him (his stance, TR.turn)
+  // THE PACK READ OFF THE PARTY (10-08, Griz: "Hypothesize dynamic party assessment determine #of mirror hyena"; "we'll hope the dynamic hyenas do the trick. feels like they
+  // might need a special ability as an extra lever, let's prebench without"): a fight that says callN: 'read' (none yet -- a non-story Harbinger with GreyFang or others, as an
+  // egg) calls as many as the pre-bench says for the party's STRENGTH, the sum of its members' levels (dev/harbinger-pack.py: the class floor, 10 fights a cell, aimed at the
+  // rung's ruled 47 of 100; [strength, hyenas], between the points by a line). It only bites from 20 to 32: under 20 he wins with none, over 32 he loses with 8 -- the cap
+  // (Griz, 10-08: "do not exceed 8 hyena") -- which is where a special ability would be the lever. The hills rung keeps its own 4 (ruled on the hills, where he is stronger)
+  TR.PACK_TABLE = [[11, 0], [18, 0], [20, 0], [24, 2], [28, 6], [32, 6], [36, 8], [39, 8]];
+  TR.packFor = function (B, u) {
+    var s = 0; B.units.forEach(function (w) { if (w.side === 'party' && !w.familiar && !w.summon && !w.object) s += w.lvl || 1; });
+    var T = TR.PACK_TABLE, n = T[0][1];
+    for (var i = 0; i < T.length; i++) { if (s >= T[i][0]) n = T[i][1]; if (i && s >= T[i - 1][0] && s < T[i][0]) n = T[i - 1][1] + (T[i][1] - T[i - 1][1]) * (s - T[i - 1][0]) / (T[i][0] - T[i - 1][0]); }
+    return Math.max(0, Math.min(8, Math.round(n)));
+  };
   function callPack(B, u, c) {
     var hs = AI.heroes(B, u).filter(function (w) { return G.standing(w); }), mx = u.x + (u.size - 1) / 2, my = u.y + (u.size - 1) / 2;
     var cx = hs.length ? hs.reduce(function (a, w) { return a + w.x; }, 0) / hs.length : mx, cy = hs.length ? hs.reduce(function (a, w) { return a + w.y; }, 0) / hs.length : my + 1;
     var dx = mx - cx, dy = my - cy, dl = Math.hypot(dx, dy) || 1, came = [], def = D.FOES[c.kind];
     if (!def) return came;
-    for (var k = 0; k < (c.n || 1); k++) {
+    var nCall = D.CALL_N != null ? D.CALL_N : B.fight && B.fight.callN === 'read' ? TR.packFor(B, u) : B.fight && B.fight.callN != null ? B.fight.callN : (c.n || 1); // (D.CALL_N: the bench's, the pre-bench of the pack size; 'read': off the party, TR.packFor)
+    // (callN, a fight's own pack size -- `pack` is flight-ai.js's: GreyFang's pit -- and where a count read off the party will come in)
+    for (var k = 0; k < nCall; k++) {
       // out at his flanks, left and right by turns, half a square behind him -- from behind his back on the crown they could not get past him and its trees,
       // and parked there (Griz, 10-08: "they just park behind him most of the fight instead of being a swarm of attackers")
       var side = k % 2 ? 1 : -1, far = 2 + Math.floor(k / 2), bx = mx + (-dy / dl) * side * far + dx / dl * 0.5, by = my + (dx / dl) * side * far + dy / dl * 0.5;

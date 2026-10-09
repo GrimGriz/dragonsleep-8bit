@@ -289,7 +289,8 @@
     return {
       // the creature type (RULED 09-28: on every sheet) and the challenge rating (Turn Undead's destroying reads it)
       id: f.id, kind: f.kind, name: f.name || d.name, fname: !!f.name, i8: f.i8, side: f.side || 'foe', ally: !!f.ally, hatch: !!f.hatch, free: !!f.free, sheet: d.sheet, type: d.type || null, cr: d.cr, rider: d.rider || null, x: f.at ? f.at[0] : 0, y: f.at ? f.at[1] : 0, facing: 1, // (a fight's own name for it: the Skylights' giants, 10-05; side 'party' with `ally`: one of ours the brute runs -- the Hex's stable fighters, the garrison behind the hatch (`hatch`: held till it opens); `free`: no mission)
-      hp: d.hp, maxhp: d.hp, baseAC: d.ac, speed: d.speed, size: d.size, reach: d.reach, abil: d.abil, saves: d.saves,
+      // (f.hp: a fight's own number for one -- GreyFang's pit, where the Harbinger is there to be stomped, 10-08)
+      hp: f.hp || d.hp, maxhp: f.hp || d.hp, baseAC: d.ac, speed: d.speed, size: d.size, reach: d.reach, abil: d.abil, saves: d.saves,
       // (athletics: the block's own skill -- the stone giant's +12 never reached the unit, so his Shove rolled STR's +6: 10-05 night, the Skylights show's find)
       init: d.init, perception: d.perception, athletics: d.athletics != null ? d.athletics : undefined, attacks: d.attacks, multi: d.multi, jaunt: d.jaunt, faerie: d.faerieFire ? JSON.parse(JSON.stringify(d.faerieFire)) : null,
       fey: !!d.fey, webWalker: !!d.webWalker, regen: d.regen || 0, conds: {}, lvl: 5, inorganic: !!d.inorganic, // (inorganic: stone, crystal or metal -- Shatter's save at disadvantage, js/magic.js; 10-06)

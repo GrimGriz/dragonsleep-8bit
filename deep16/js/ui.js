@@ -1458,7 +1458,8 @@
         obj.shown = down || u.ethereal ? null : { anim: anim, t: t, once: !!o.once, frame: o.frame, x: p.x, y: p.y, k: sk, box: [p.x - hw, p.y - tall, p.x + hw, p.y] };
         if (u.rider && !down) D.spr.drawRider(ctx, u, anim, t, p.x, p.y, o);
         if (u.knit && !down && D.looks && D.looks.knit) D.looks.knit(ctx, B, u, p); // (a troll's wounds closing as it lies knitting: js/looks.js)
-        if (!down && !wet && !u.ethereal && D.looks && D.looks.ripple) D.looks.ripple(ctx, B, u, an0, t, p.x, p.y - lift, body); // (the mirror ripple, over the figure just drawn: js/looks.js, 10-08)
+        // ((!down || u.cine): one a cutscene holds ripples where it lies too -- the Harbinger's body, GreyFang's end, 10-08: "start the mirror effect while he's still down please")
+        if ((!down || u.cine) && !wet && !u.ethereal && D.looks && D.looks.ripple) D.looks.ripple(ctx, B, u, an0, t, p.x, p.y - lift, body); // (the mirror ripple, over the figure just drawn: js/looks.js, 10-08)
         if (sk !== 1) ctx.restore();
         if (D.looks && (!down || oilDown) && !u.ethereal) D.looks.over(ctx, B, u, p); // (the marks of its conditions: js/looks.js; down, the oil's alone)
         if (!u.dead && !u.ethereal && (!u.riding || u.attached)) { // (a darkmantle on someone keeps its bar, over it)
