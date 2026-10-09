@@ -561,7 +561,9 @@
       var ds = diffs(D.SHEETS.keeper_p1, M.sheet);
       ok('its art (sprites.js keeper_p1, the snake stand-in) against main\'s: ' + said(ds) + ' (' + (D.SHEETS.keeper_p1 || {}).image + ')', !ds.length);
       var rung = D.fightsAt(3).map(function (f) { return f.id; }), read = rung.map(function (id) { return id === 'keeper-ladder' ? 'keeper' : id; });
-      ok('the level-3 rung, keeper-ladder in the old keeper\'s place, is main\'s (' + rung.join(',') + ' / main ' + (M.rung3 || []).join(',') + ')', rung.indexOf('keeper') < 0 && rung.indexOf('keeper-ladder') >= 0 && read.join() === (M.rung3 || []).join());
+      // (a rung added since main's pinned ref is not this check's: the Rings of Flying room went on at 3 on 10-08 -- the order of main's own, keeper-ladder in the old keeper's place, is)
+      var since = read.filter(function (id) { return (M.rung3 || []).indexOf(id) < 0; }), readOld = read.filter(function (id) { return (M.rung3 || []).indexOf(id) >= 0; });
+      ok('the level-3 rung, keeper-ladder in the old keeper\'s place, is main\'s (' + rung.join(',') + ' / main ' + (M.rung3 || []).join(',') + (since.length ? '; added since: ' + since.join(',') : '') + ')', rung.indexOf('keeper') < 0 && rung.indexOf('keeper-ladder') >= 0 && readOld.join() === (M.rung3 || []).join());
       // the ladder's battle: the old foe on the old stair, the party at main's entry, and nothing of js/keeper.js set
       var BL = new D.Battle({ ladder: true, fight: 'keeper-ladder', bench: true }); D.battle = BL; BL.enter();
       var kL = BL.units.filter(function (u) { return u.kind === 'keeperold'; })[0], HL = ours(BL), sh = BL.sheets(), lit = D.light.carried(kL).filter(function (l) { return l.kind === 'keeperglow'; });

@@ -327,6 +327,7 @@ window.D16.MAPS.roost = {
   sub: 'the galleries, under the roost',
   dark: true, // torchdark (09-28): dark ground (the 8-bit map's `dark`), no light of its own
   step: 10,
+  sky: 20, // the roost's ceiling, 20 ft over the floor: a flier rises no higher (js/grid.js G.flyTop; 10-08, the fliers fight by fight -- Griz: "Lean with you against one big switch")
   rows: [
     '##################',
     '#####........#####',

@@ -78,7 +78,7 @@
       intro: 'A cavern off the south side of the road, and a smell in it like a butcher\'s yard in summer. Big grey-green shapes, a lot of arms.',
       from: 'the 8-bit game: deep.js S.trolls (two trolls). Fire or acid stops the knitting', won: 'SOMEBODY SHOULD BURN THEM.',
       foes: [{ id: 'troll1', kind: 'troll', at: [6, 2] }, { id: 'troll2', kind: 'troll', at: [13, 5] }], wave: null },
-    { id: 'rescue', story: true, level: 2, map: 'roost', name: 'The Rescue', sub: 'the dens, under the roost', roost: true,
+    { id: 'rescue', story: true, level: 2, map: 'roost', name: 'The Rescue', sub: 'the dens, under the roost', roost: true, fliers: true, // (fliers: the bats fly, under the roost's 20 ft -- js/flight-ai.js, 10-08)
       intro: 'Down the side gallery a drive has gone wrong: a driver pinned in the dark, and the giant bats have turned. No fire under the roost. Blades and nerve.',
       from: 'the 8-bit game: events.js S.rescue (the cull; four giant bats). The roost\'s one law: fire and thunder are greyed', won: 'THE DRIVER COMES UP ALIVE.',
       foes: [{ id: 'bat1', kind: 'giantbat', at: [5, 1] }, { id: 'bat2', kind: 'giantbat', at: [11, 1] }, { id: 'bat3', kind: 'giantbat', at: [2, 5] }, { id: 'bat4', kind: 'giantbat', at: [13, 5] }], wave: null },
@@ -288,7 +288,7 @@
       intro: 'The floor of the lower works moves: two swarms of rats, and two of the big ones driving them.',
       from: 'the 8-bit game\'s warrens_c table (rat swarms, giant rats)', won: 'THE FLOOR IS ONLY FLOOR.',
       foes: [{ id: 'rs1', kind: 'ratswarm', at: [7, 3] }, { id: 'rs2', kind: 'ratswarm', at: [11, 5] }, { id: 'r1', kind: 'giantrat', at: [4, 5] }, { id: 'r2', kind: 'giantrat', at: [14, 5] }], wave: null },
-    { id: 'batswarms', bestiary: true, level: 1, map: 'roost', name: 'Bat Swarms', sub: 'the galleries, under the roost', roost: true, familiar: 'bat', // (Aurdin's bat on the ladder, its blindsight in the dark: Griz, 10-02 -- lost ~5 in 6 without it) (one swarm since 10-06, Griz: "one swarm" -- two at level 1 were still lost most nights: the grid's rules §2.7)
+    { id: 'batswarms', bestiary: true, level: 1, map: 'roost', name: 'Bat Swarms', sub: 'the galleries, under the roost', roost: true, fliers: true, familiar: 'bat', // (Aurdin's bat on the ladder, its blindsight in the dark: Griz, 10-02 -- lost ~5 in 6 without it) (one swarm since 10-06, Griz: "one swarm" -- two at level 1 were still lost most nights: the grid's rules §2.7)
       intro: 'Something has woken a corner of the roost: a cloud of bats and one of the giant ones. No fire under the roost.',
       from: 'the 8-bit game\'s g3 table (giant bats; the swarms from the galleries)', won: 'THE ROOST SETTLES.',
       foes: [{ id: 'bs1', kind: 'batswarm', at: [8, 3] }, { id: 'gb', kind: 'giantbat', at: [8, 1] }], wave: null },

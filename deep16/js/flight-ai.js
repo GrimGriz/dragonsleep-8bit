@@ -64,7 +64,7 @@
   }
 
   // ------------------------------------------------------------------ where to fly to strike: a square and a layer in the move from which reach covers one of hs
-  //   the nearest four of hs; for each, 5 ft over its height (pref 0), level with it (1), 10 ft over (2); the cheapest by cost + 3 a preference. None this turn: the
+  //   the nearest four of hs; for each, 5 ft over its height (pref 0), 10 ft over (1), level with it (2); the cheapest by cost + 8 a preference. None this turn: the
   //   square at 5 ft over the nearest that comes closest to it. Returns { x, y, z } or null
   FA.spotFor = function (B, u, hs, rch) {
     var L = G.LAYER(), top = G.flyTop(u), budget = (u.turn && u.turn.move) || 0, best = null;
@@ -72,13 +72,13 @@
     function distAt(t, x, y, z) { var f0 = u.fz; u.fz = z > G.groundAt(u, x, y) ? z : null; try { return G.dist(u, t, x, y); } finally { u.fz = f0; } }
     near.forEach(function (t) {
       var tz = G.gzAt(t, t.x, t.y);
-      [tz + L, tz, tz + 2 * L].forEach(function (z, pref) {
+      [tz + L, tz + 2 * L, tz].forEach(function (z, pref) { // (the air first: on a flat floor the ground was 2 ft cheaper than the rise, and the roost's bats walked -- 10-08, the flight bench)
         if (z > top) return;
         var rm = G.flyReach(u, z, budget);
         Object.keys(rm).forEach(function (k) {
           var c = rm[k]; if (!c.stand) return;
           if (distAt(t, c.x, c.y, z) > rch) return;
-          var score = c.cost + pref * 3;
+          var score = c.cost + pref * 8;
           if (!best || score < best.score) best = { x: c.x, y: c.y, z: z, score: score };
         });
       });

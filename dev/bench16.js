@@ -3910,28 +3910,34 @@
     function okF(what, v) { repF.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
     try {
       var tallyF = {}, roundsF = [], ringsF = 0, turnsF = 0, foesUpF = 0, heroesUpF = 0, badAir = [], badGround = [], badShare = [], overPut = [], errsF = [];
-      for (var sF = 1; sF <= 8; sF++) {
+      var RUNSF = []; for (var s0 = 1; s0 <= 8; s0++) RUNSF.push(['flyingrings', s0]);
+      ['rescue', 'batswarms'].forEach(function (fid) { for (var s1 = 1; s1 <= 4; s1++) RUNSF.push([fid, s1]); }); // (the roost's two, their fliers flying since 10-08: the same watch, no rings)
+      var otherUpF = 0;
+      for (var qF = 0; qF < RUNSF.length; qF++) {
+        var fidF = RUNSF[qF][0], sF = RUNSF[qF][1];
         D.seed = sF * 7919 + 104729; D.lastError = null;
-        var BF8 = new D.Battle({ ladder: true, fight: 'flyingrings', bench: true }); D.battle = BF8; BF8.enter();
+        var BF8 = new D.Battle({ ladder: true, fight: fidF, bench: true }); D.battle = BF8; BF8.enter();
         BF8.units.forEach(function (u) { if (u.side === 'party') { u.guest = true; u.classAI = true; } });
         var upF = {}, actedF = {}, vF, gF = 0, rF, lastF = null;
         while (BF8.co && gF++ < 400000 && (BF8.round || 0) <= 60) {
-          try { rF = BF8.co.next(vF); } catch (eF) { errsF.push('seed ' + sF + ': ' + String(eF && eF.stack || eF).slice(0, 500)); break; }
+          try { rF = BF8.co.next(vF); } catch (eF) { errsF.push(fidF + ' seed ' + sF + ': ' + String(eF && eF.stack || eF).slice(0, 500)); break; }
           vF = undefined; if (rF.done) break; var yF = rF.value;
           if (BF8.active && BF8.active.side === 'party') actedF[BF8.active.id] = true;
           if (BF8.flyCheck) BF8.flyCheck(); // (the game runs it every frame: the bench, every step)
           var airF = BF8.units.filter(function (u) { return D.grid.aloft(u); });
           airF.forEach(function (u) {
             upF[u.id] = u.side;
-            if (!D.grid.winged(u) && !u.hang && !(u.riding)) badAir.push('seed ' + sF + ' R' + BF8.round + ' ' + u.id + ' aloft without wings');
-            if (D.grid.groundAt(u, u.x, u.y) > u.fz) badGround.push('seed ' + sF + ' ' + u.id + ' under the ground at ' + u.x + ',' + u.y);
+            if (!D.grid.winged(u) && !u.hang && !(u.riding)) badAir.push(fidF + ' seed ' + sF + ' R' + BF8.round + ' ' + u.id + ' aloft without wings');
+            if (D.grid.groundAt(u, u.x, u.y) > u.fz) badGround.push(fidF + ' seed ' + sF + ' ' + u.id + ' under the ground at ' + u.x + ',' + u.y);
           });
-          var turnF = BF8.active !== lastF; lastF = BF8.active; // (two in one place only between turns: a flier passes through its friends' squares on the way, as anyone may)
-          if (turnF) for (var iF = 0; iF < airF.length; iF++) for (var jF = iF + 1; jF < airF.length; jF++) { var a = airF[iF], b = airF[jF]; if (!a.riding && !b.riding && a.fz === b.fz && D.grid.dist(a, b) === 0) badShare.push('seed ' + sF + ' ' + a.id + ' and ' + b.id); }
+          // (two in one place, neither of them the one moving: a flier passes through its friends' squares on the way, as anyone may -- and a turn's first step can run
+          // before the bench sees the turn change, so the mover is left out, not the step)
+          for (var iF = 0; iF < airF.length; iF++) for (var jF = iF + 1; jF < airF.length; jF++) { if (airF[iF] === BF8.active || airF[jF] === BF8.active) continue; var a = airF[iF], b = airF[jF]; if (!a.riding && !b.riding && a.fz === b.fz && D.grid.dist(a, b) === 0) badShare.push(fidF + ' seed ' + sF + ' ' + a.id + ' and ' + b.id); }
           if (typeof yF === 'number' || !yF) continue; if (yF.fx || yF.entry || yF.scene) continue;
           if (yF.prompt) { vF = yF.prompt.opts[0].value; continue; } if (yF.turn) { vF = { do: 'end' }; continue; }
         }
-        var resF = BF8.result || ((BF8.round || 0) > 60 || gF >= 400000 ? 'stalled' : 'none'); tallyF[resF] = (tallyF[resF] || 0) + 1; roundsF.push(BF8.round);
+        var resF = BF8.result || ((BF8.round || 0) > 60 || gF >= 400000 ? 'stalled' : 'none'); tallyF[resF] = (tallyF[resF] || 0) + 1; roundsF.push(fidF === 'flyingrings' ? BF8.round : fidF.slice(0, 3) + BF8.round);
+        if (fidF !== 'flyingrings') { Object.keys(upF).forEach(function (k) { if (upF[k] === 'foe') otherUpF++; }); if (D.lastError) errsF.push(fidF + ' seed ' + sF + ' lastError: ' + String(D.lastError.message || D.lastError).slice(0, 200)); continue; }
         var partyF = BF8.units.filter(function (u) { return u.side === 'party' && !u.familiar; });
         partyF.forEach(function (u) { if (actedF[u.id]) { turnsF++; if (u.ringFly) ringsF++; } });
         var leftF = (BF8.inv || []).filter(function (x) { return x.id === 'ringofflying'; })[0], putF = partyF.filter(function (u) { return u.ringFly; }).length;
@@ -3940,11 +3946,19 @@
         if (D.lastError) errsF.push('seed ' + sF + ' lastError: ' + String(D.lastError.message || D.lastError).slice(0, 200));
       }
       var endsF = Object.keys(tallyF).map(function (k) { return k + ' ' + tallyF[k]; }).join(', ');
-      okF('eight fights end (' + endsF + '; rounds ' + roundsF.join(' ') + ')', !tallyF.stalled && !tallyF.none && !errsF.length);
+      okF('the room\'s eight and the roost\'s eight end (' + endsF + '; rounds ' + roundsF.join(' ') + ')', !tallyF.stalled && !tallyF.none && !errsF.length);
       okF('every hero who had a turn put on a ring (' + ringsF + ' of ' + turnsF + '), and the pack never gave more than its four (' + (overPut.join('; ') || 'ok') + ')', ringsF === turnsF && turnsF > 0 && !overPut.length);
-      okF('the fliers took to the air (' + foesUpF + ' foes aloft over the eight)', foesUpF > 0);
+      okF('the fliers took to the air (' + foesUpF + ' foes aloft in the room, ' + otherUpF + ' in the roost\'s fights)', foesUpF > 0 && otherUpF > 0);
       okF('nobody aloft without wings, under the ground, or sharing a place at one height (' + (badAir.concat(badGround, badShare).slice(0, 3).join('; ') || 'none') + ')', !badAir.length && !badGround.length && !badShare.length);
       okF('nothing threw (' + (errsF.slice(0, 2).join(' | ') || 'none') + ')', !errsF.length);
+      // the sink, set up by hand (the bench's first find, 10-08: a giant bat flying in high sank onto Lymen at his height -- js/grid.js G.flyReach): a hero hovering
+      // 10 ft up, a Large flier 15 ft over him and five squares off; at the hero's height no square its body would share with his may stand
+      D.seed = 108; var BU8 = new D.Battle({ ladder: true, fight: 'flyingrings', bench: true }); D.battle = BU8; BU8.enter();
+      var hU = BU8.units.filter(function (u) { return u.side === 'party' && !u.familiar; })[0], bU = BU8.units.filter(function (u) { return u.kind === 'giantbat'; })[0], LU = D.grid.LAYER();
+      BU8.units = [hU, bU]; hU.flies = true; bU.flies = true; hU.x = 9; hU.y = 11; bU.x = 8; bU.y = 6; D.grid.setup(D.grid.map, BU8.units);
+      var gU = D.grid.groundAt(hU, 9, 11); hU.fz = gU + 2 * LU; bU.fz = D.grid.groundAt(bU, 8, 6) + 3 * LU; D.rules.startTurn(bU);
+      var rmU = D.grid.flyReach(bU, hU.fz, 60), clashU = Object.keys(rmU).filter(function (k) { var c = rmU[k]; return c.stand && 9 >= c.x && 9 < c.x + 2 && 11 >= c.y && 11 < c.y + 2; });
+      okF('a Large flier sinking to a hovering hero\'s height is offered no square its body would share with his (' + (clashU.join(' ') || 'none') + ' of ' + Object.keys(rmU).length + ' in reach)', Object.keys(rmU).length > 0 && !clashU.length);
       repF.checks.push('note heroes aloft at some point over the eight: ' + heroesUpF);
     } catch (eF2) { repF.errors.push(String(eF2 && eF2.stack || eF2).slice(0, 900)); }
     var preF = document.createElement('pre'); preF.id = 'out'; preF.textContent = 'BENCH16 ' + JSON.stringify(repF);
