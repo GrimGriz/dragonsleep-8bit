@@ -20,6 +20,14 @@
     Object.keys(D.MAPS || {}).forEach(function (k) { var m = D.MAPS[k]; if (m && m.step) m.step = Math.max(1, Math.round(m.step * D.hscale)); });
     if (D.iso.setWall) D.iso.setWall(Math.round(D.iso.WALL * D.hscale)); // (the far walls rise with them, and the Edifice's painted walls under the glass go as deep again: js/iso.js)
   }
+  // the Harbinger's switches, the bench's own (dev/bench16.js; 10-08), so a bench's seed watched on the class floor plays as it was benched: &callN=read reads the party (his pack,
+  // his toying, his mirror double -- js/traits.js TR.reads), &callN=N holds his pack at N; &dbl= the double forced at a share (0 none); &toy=1|0; &laugh=1|0 (the mirror hyenas' at a fall)
+  var hq = function (k) { var m = new RegExp('[?&]' + k + '=([a-z0-9.]+)').exec(q); return m ? m[1] : null; };
+  if (hq('callN') != null) D.CALL_N = hq('callN') === 'read' ? 'read' : +hq('callN');
+  if (hq('dbl') != null) D.DOUBLE_FRAC = +hq('dbl');
+  if (hq('toy') != null) D.TOY = hq('toy') === '1';
+  if (hq('laugh') != null) D.LAUGH = hq('laugh') === '1';
+  if (/[?&]rise\b/.test(q)) D.RISE_NOW = true; // (a show: he starts his first turn at his rise -- the pack, the double, at once)
   D.initCanvas();
   D.initMouse();
   D.initTouch(); // a phone: the pad, and the canvas read for a finger (?touch forces it)

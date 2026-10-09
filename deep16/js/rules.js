@@ -60,6 +60,27 @@
     if (now >= 6) { u.hp = 0; u.dead = true; u.ko = true; u.deadT = B ? B.t : 0; u.anim = 'hurt'; u.animT = B ? B.t : 0; if (u.side === 'party' && !u.summon && !u.familiar && !u.ally) u.slain = true; if (u.conc && D.magic) D.magic.endConc(B, u, 'dead'); }
     return now - was;
   };
+  // THE FEAR SCALE (10-08, Griz, the GreyFang window: "No fear scale currently exists in the game, check SRD, there's frightened and then more severe versions / panicked might
+  // be the top"): the d20 SRD's ladder -- fear effects are cumulative, a shaken one shaken again is frightened, a frightened one made afraid again is panicked -- read through SRD
+  // 5.1's own words where it has them. 1 SHAKEN (the d20 SRD's: -2 on attack rolls, saving throws and ability checks; 5.1 has no such step), 2 FRIGHTENED (5.1's condition,
+  // conds.frightened: disadvantage on attacks and checks, never a step nearer the one it fears), 3 PANICKED (5.1's own word, Eyebite's: frightened, and the Dash away on each of its
+  // turns -- conds.feared, M.mustFlee). Each level with every one below it, as exhaustion's: the -2 rides all three. conds.fearScale { n, by, dc }: laid a level at a time
+  // (RU.fearUp: the mirror hyenas' laugh, js/traits.js); the frightened and feared it lays are marked `scale` and are its own to take back; a WIS save at the end of each of its
+  // turns takes a level away (js/traits.js afterTurn -- the seat's call: 5.1's way out of a fear is a Wisdom save)
+  RU.FEAR = ['', 'shaken', 'frightened', 'panicked'];
+  RU.fearLvl = function (u) { return (u && u.conds && u.conds.fearScale && u.conds.fearScale.n) || 0; };
+  RU.shaken = function (u) { return RU.fearLvl(u) >= 1 && !RU.immuneTo(u, 'frightened') ? 2 : 0; }; // (proof against fear for now -- Mindless Rage -- the scale lies still under it)
+  RU.fearSet = function (u, n, by, dc) {
+    var c = u.conds, fs = c.fearScale;
+    n = Math.max(0, Math.min(3, n));
+    if (!n) { delete c.fearScale; } else c.fearScale = { n: n, by: by != null ? by : fs && fs.by, dc: dc != null ? dc : fs && fs.dc };
+    var src = c.fearScale && c.fearScale.by;
+    if (RU.immuneTo(u, 'frightened')) n = Math.min(n, 1); // (raging: nothing laid, the level kept for after)
+    if (n >= 2 && (!c.frightened || c.frightened.scale)) c.frightened = { by: src, scale: true }; else if (n < 2 && c.frightened && c.frightened.scale) delete c.frightened;
+    if (n >= 3 && (!c.feared || c.feared.scale)) c.feared = { by: src, scale: true }; else if (n < 3 && c.feared && c.feared.scale) delete c.feared;
+    return n;
+  };
+  RU.fearUp = function (u, by, dc) { return RU.fearSet(u, RU.fearLvl(u) + 1, by, dc); };
   // can it get up off the floor (SRD 5.1: not with a speed of 0 -- paralyzed, stunned, asleep, restrained (a grapple is one here), incapacitated; not while
   // it laughs or dances): the turn's start asks (below), and so does a walk begun prone (grid.js G.reach)
   RU.canRise = function (u) { var c = u.conds || {}; return !(c.laughing || c.dancing || c.paralyzed || c.stunned || c.asleep || c.restrained || c.incapacitated || c.petrified || RU.speedNow(u) === 0); };
@@ -150,8 +171,10 @@
     var bl = c.blessed ? D.d(4) : 0; bonus += bl;
     // Bane (-1d4), Resistance (+1d4, once)
     var bn = c.baned ? D.d(4) : 0; bonus -= bn;
+    var shk = RU.shaken(u); bonus -= shk; // (the fear scale's -2, above)
     var rs = c.resistance ? D.d(4) : 0; if (rs) { bonus += rs; delete c.resistance; }
     var res = { rolls: both ? [r1, r2] : [r1], d20: d, bonus: bonus, total: d + bonus, dc: dc, ok: d + bonus >= dc, aura: RU.aura(u), bless: bl, bane: bn, resist: rs, counter: counter && adv && !dis ? counter : 0, heightened: heightened ? 1 : 0, pfp: pfp && adv && !dis ? 1 : 0, resil: resil && adv && !dis ? 1 : 0, heads: heads && adv && !dis ? 1 : 0 };
+    if (shk) res.shaken = shk;
     // Bardic Inspiration (js/features.js): the die on a save it would turn
     if (!res.ok && c.inspired && D.features) { var ins = D.features.inspire(u, dc - res.total); if (ins) { res.bonus += ins; res.total += ins; res.ok = res.total >= dc; res.bless = (res.bless || 0) + ins; } }
     // Indomitable (fighter 9): a failed save is rolled again, once a day -- taken at once, and said so
@@ -263,6 +286,7 @@
       if (G.foesNear(att, ax == null ? att.x : ax, ay == null ? att.y : ay, 5).filter(function (w) { return w.hp > 0 && !w.conds.paralyzed && !w.conds.asleep && !w.conds.stunned && !w.conds.incapacitated && !w.conds.petrified; }).length) dis.push('in melee'); // (SRD 5.1: a hostile within 5 ft "who can see you and who isn't incapacitated" -- a troll lying at 0 is not: 10-05, his Scorching Ray beside one)
       if (atk.range && G.dist(att, tgt, ax, ay) > atk.range[0]) dis.push('long range');
     }
+    if (RU.shaken(att)) { pen -= RU.shaken(att); penWhy = (penWhy ? penWhy + ', ' : '') + RU.FEAR[RU.fearLvl(att)]; } // (the fear scale's -2: RU.FEAR)
     return { adv: adv, dis: dis, net: adv.length && !dis.length ? 1 : dis.length && !adv.length ? -1 : 0, pen: pen, penWhy: penWhy };
   };
   // Protection from Poison (SRD 5.1): "advantage on saving throws against being poisoned". Asked of a save by what it is against: 'poisoned'
@@ -287,7 +311,7 @@
   RU.saveText = function (sv) {
     if (sv.auto) return '{o}auto-fail{/} (held, asleep or down)';
     if (sv.careful) return '{c}spared{/} (Careful Spell)';
-    var bits = []; if (sv.aura) bits.push('aura +' + sv.aura); if (sv.bless) bits.push('bless +' + sv.bless); if (sv.bane) bits.push('bane -' + sv.bane); if (sv.resist) bits.push('resistance +' + sv.resist);
+    var bits = []; if (sv.aura) bits.push('aura +' + sv.aura); if (sv.bless) bits.push('bless +' + sv.bless); if (sv.bane) bits.push('bane -' + sv.bane); if (sv.shaken) bits.push('fear -' + sv.shaken); if (sv.resist) bits.push('resistance +' + sv.resist);
     if (sv.legendary != null) bits.push('LEGENDARY RESISTANCE: it succeeds instead, ' + sv.legendary + ' left'); // (js/traits.js, 10-08)
     if (sv.counter) bits.push(sv.counter === 2 ? 'advantage: steel will' : 'advantage: countercharm'); if (sv.heightened) bits.push('disadvantage: heightened'); if (sv.pfp) bits.push('advantage: protection from poison'); if (sv.resil) bits.push('advantage: duergar resilience'); if (sv.heads) bits.push('advantage: two heads'); if (sv.luck) bits.push('dark one\'s own luck +' + sv.luck);
     // (both dice when it rolled two, as an attack's line shows them: the cast's own advantage -- Dominate's "it is being fought" -- had read as one die in the gallery; the grid's rules §2c, 10-08)

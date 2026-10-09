@@ -9,7 +9,11 @@
   function get(k, d) { var m = new RegExp('[?&]' + k + '=([^&]*)').exec(q); return m ? decodeURIComponent(m[1]) : d; }
   D.sfx = function () {}; D.music = function () {}; D.clip = function (u, done) { if (done) done(); };
   D.spr.offline = true; // (10-03, the lazy sheets: the fights here are never drawn, so no sheet is fetched and no fight waits on one -- mode=lazy1003 turns it back on)
-  if (get('callN', '') !== '') D.CALL_N = +get('callN'); // (the Harbinger's pack held at a size for the pre-bench, 10-08: js/traits.js nCall)
+  if (get('callN', '') !== '') D.CALL_N = get('callN') === 'read' ? 'read' : +get('callN'); // (the Harbinger's pack held at a size for the pre-bench, or 'read' off the party, 10-08: js/traits.js nCall)
+  if (get('reads', '') !== '') D.READS = get('reads') === '1'; // (the levers read off the party while the pack is held at callN -- dev/harbinger-pack.py)
+  if (get('dbl', '') !== '') D.DOUBLE_FRAC = +get('dbl'); // (his mirror double forced on at a share, 0 off -- js/traits.js mirrorDouble)
+  if (get('toy', '') !== '') D.TOY = get('toy') === '1'; // (his toying forced on or off -- js/traits.js toying)
+  if (get('laugh', '') !== '') D.LAUGH = get('laugh') === '1'; // (the mirror hyenas' laugh at a fall, on or off -- js/traits.js packLaugh)
   D.PACE = +get('pace', 1); // (10-01: the pace is for people watching -- the AI's waits and message times, battle.js Battle.prototype.pace; this drives the coroutine and never waits, so it is unaffected either way: pace=1.5 in the query proves it; 1 by default)
   var L = +get('lvl', 5), n = +get('n', 10), seed0 = +get('seed', 1), foes = get('foes', 'fighter').split(','), vs = get('vs', ''), wantLog = get('log', '');
   var errs = [], stats = { won: 0, lost: 0, other: 0, rounds: 0, dealt: {}, taken: {}, casts: {}, down: {}, fights: [] };

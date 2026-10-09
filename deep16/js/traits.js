@@ -12,7 +12,7 @@
   function Nm(B, u) { return u.side === 'foe' ? (u.named ? B.shortName(u) : 'The ' + B.shortName(u)) : u.name; }
 
   // the traits a unit carries from its sheet (battle.js makeFoe copies these)
-  TR.FIELDS = ['earthGlide', 'rampage', 'charge', 'relentlessBeast', 'nimble', 'twoHeads', 'corrosive', 'jaunt', 'resilient', 'evasion', 'cunning', 'parry', 'rangedMulti', 'rockCatch', 'pounce', 'drinkLight', 'foretell', 'kneel', 'rise', 'gaze', 'legendary', 'legendaryResist', 'breath']; // (legendary, legendaryResist, breath: the rules before the bestiary's eleven -- below, 10-08) (gaze: a petrifying gaze, the basilisk's and the medusa's -- below, 10-08) (pounce, drinkLight, foretell, kneel, rise: the Harbinger's, 10-08 -- below) // (resilient: the duergar's Resilience, SRD 5.1 -- rules.js RU.save; 10-02 runner) (rockCatch: the stone giant's Rock Catching, its DC -- battle.js attack, 10-08)
+  TR.FIELDS = ['earthGlide', 'rampage', 'charge', 'relentlessBeast', 'nimble', 'twoHeads', 'corrosive', 'jaunt', 'resilient', 'evasion', 'cunning', 'parry', 'rangedMulti', 'rockCatch', 'pounce', 'drinkLight', 'foretell', 'kneel', 'rise', 'gaze', 'legendary', 'legendaryResist', 'breath', 'laugh', 'toy', 'double']; // (laugh: the mirror hyenas' at a fall; toy, double: the Harbinger's levers on a party read -- below, 10-08) (legendary, legendaryResist, breath: the rules before the bestiary's eleven -- below, 10-08) (gaze: a petrifying gaze, the basilisk's and the medusa's -- below, 10-08) (pounce, drinkLight, foretell, kneel, rise: the Harbinger's, 10-08 -- below) // (resilient: the duergar's Resilience, SRD 5.1 -- rules.js RU.save; 10-02 runner) (rockCatch: the stone giant's Rock Catching, its DC -- battle.js attack, 10-08)
 
   // ------------------------------------------------------------------ Duergar Resilience on a spell already running (SRD 5.1: "advantage on saving throws against poison, spells, and illusions")
   // rules.js RU.save reads B.castLevel only while a cast is under way. The saves a spell asks later -- Spirit Guardians at the start of the turn, a zone's, Web's, Moonbeam's, a wall's, the
@@ -77,9 +77,10 @@
     if (att.pounce && att.anim === 'pounce' && att.turn && !att.turn.pounced && !tgt.dead && tgt.hp > 0) {
       att.turn.pounced = true;
       var pc = att.pounce, pr = D.roll(pc.dice, { crit: crit }), psv = RU.save(tgt, 'str', pc.dc);
+      if (att.dmgFrac) pr.total = Math.max(1, Math.floor(pr.total * att.dmgFrac)); // (his mirror double's share: below)
       var pdown = !psv.ok && !tgt.noProne && !(RU.immuneTo && RU.immuneTo(tgt, 'prone'));
       if (D.ripple) D.ripple(att, { region: 'body' });
-      B.card(['{r}' + Nm(B, att) + ' pounces!{/}  ' + pc.dice + ' [' + pr.rolls.join(',') + '] = ' + pr.total + '  STR ' + RU.saveText(psv) + ' vs DC ' + pc.dc + '  ' + (pdown ? '{o}KNOCKED DOWN{/}' : '{n}keeps their feet{/}')], 300);
+      B.card(['{r}' + Nm(B, att) + ' pounces!{/}  ' + pc.dice + ' [' + pr.rolls.join(',') + ']' + (att.dmgFrac ? ' {g}x' + TR.fracName(att.dmgFrac) + '{/}' : '') + ' = ' + pr.total + '  STR ' + RU.saveText(psv) + ' vs DC ' + pc.dc + '  ' + (pdown ? '{o}KNOCKED DOWN{/}' : '{n}keeps their feet{/}')], 300);
       B.hurt(tgt, pr.total, atk.type, { magic: !!atk.magic });
       if (pdown && tgt.hp > 0) tgt.conds.prone = true;
       yield 16;
@@ -170,7 +171,17 @@
   // the Harbinger's rise (ours, 10-08: Griz handed it over -- "He's yours" -- and "Assuming ascend ties into upright"): the first turn he starts at half his
   // hit points or under, he stands up to his full height -- his `ascend` row, the mirror ripple over him -- and from then on stands upright between blows
   // (ui.js, his `uprightidle` row); standing, his reach is the rise's (15 ft) and his Drink Light is full again
+  // his laugh as he rises (10-08, Griz: "Can you string the laugh you made for him in front of the hyena chorus playing? Him on cast, them on effect?"): the deep chorus made for the rise
+  // (deep16/audio/hyena_chorus.mp3, four laughing voices pitched down and staggered -- tools/voice-clip.ps1 and ffmpeg) is his now, on the Ascend; the pack's own laughs (the eggs' synth,
+  // TR.packLaugh) come in as it spills out, once his has ended (a clip that will not play has ended at once; 3 s at the most)
+  function hisLaugh() {
+    var L = { done: false, then: null }, end = function () { if (L.done) return; L.done = true; if (L.then) { var f = L.then; L.then = null; f(); } };
+    if (D.clip) D.clip('audio/hyena_chorus.mp3', end); else end();
+    setTimeout(end, 3000);
+    return L;
+  }
   function* rise(B, u) {
+    var his = hisLaugh();
     u.risen = true; u.upright = true; u.anim = 'ascend'; u.animT = B.t; D.sfx('magic'); // (upright from the start: when the row ends he stands -- a frame of the old crouch had shown between, 10-08: "a quick frame of him crouch between ascend and standing idle")
     if (D.ripple) D.ripple(u, { region: 'body', dur: 90 });
     B.card(['{r}' + Nm(B, u) + ' straightens, and keeps straightening.{/}  {g}Something far bigger than a gnoll stands up in him.{/}'], 320);
@@ -189,13 +200,48 @@
     yield 16;
     if (u.rise.call) {
       var came = callPack(B, u, u.rise.call);
-      // (and they laugh as they come: a chorus of them, deep -- Griz, 10-08: "is it possible to do a hyena laugh in a deep voice (or a chorus of them instead of him) for the ascend
-      // move hyena summon"; deep16/audio/hyena_chorus.mp3, four laughing voices pitched down and staggered, tools/voice-clip.ps1 and ffmpeg)
-      // (10-08 again, Griz: "hold onto it and try running 3 or 4 of the hyena laugh we already have from the easter egg (iirc) as a chorus": the eggs' synth laughs -- js/audio.js
-      // cackle, Hideous Laughter's hyena; gnollaugh, Aurdin's joke; cackle2 -- four, staggered. TR.PACK_LAUGH 'voices' brings back the voice chorus, kept)
-      if (came.length) TR.packLaugh();
+      // (and they laugh as they come, after his -- Griz, 10-08: "hold onto it and try running 3 or 4 of the hyena laugh we already have from the easter egg (iirc) as a chorus": the eggs'
+      // synth laughs, js/audio.js -- cackle, Hideous Laughter's hyena; gnollaugh, Aurdin's joke; cackle2 -- four, staggered; his own, above)
+      if (came.length) { if (his.done) TR.packLaugh(); else his.then = TR.packLaugh; }
       if (came.length) { D.sfx('run'); B.card(['{r}' + came.length + ' mirror hyenas spill out from behind ' + Nm(B, u).replace(/^The /, 'the ') + ' and run at you!{/}'], 300); yield 30; }
     }
+    if (u.double && (D.DOUBLE_FRAC != null ? D.DOUBLE_FRAC > 0 : TR.reads(B) && TR.strength(B) > (u.double.over || 32))) yield* mirrorDouble(B, u);
+  }
+  // HIS MIRROR DOUBLE (10-08, Griz: "I like your mirror image for him - but instead of 'which one is him' it's from the mirror realm and has purple in the eyes (by code?) and does some
+  // fraction (1/2, 1/4 - not variable by party threat) of HP and attack damage"): on a party read too strong for his pack (strength over `double.over`: the four at 9th, the four and
+  // GreyFang -- the pre-bench had him losing those with 8), as he stands one of him steps out of the mirror beside him: his blows, his Pounce and his Foretell at `frac` of their damage
+  // (battle.js attack, the Pounce above: dmgFrac), `frac` of his hit points; no Kneel, no Drink Light, no rise and no call of its own, the brute's turn; its eyes the mirror realm's purple
+  // (js/sprites.js S.eyed, by code off his sheet). It breaks when he falls (TR.afterTurn)
+  TR.fracName = function (f) { return f === 0.5 ? '1/2' : f === 0.25 ? '1/4' : f === 0.75 ? '3/4' : String(f); };
+  TR.voidSheet = function (base) {
+    var nm = base + '_void';
+    if (!D.SHEETS[nm] && D.SHEETS[base]) D.SHEETS[nm] = Object.assign({}, D.SHEETS[base], { eyes: 'violet' });
+    return D.SHEETS[nm] ? nm : base;
+  };
+  function* mirrorDouble(B, u) {
+    var fr = D.DOUBLE_FRAC != null ? D.DOUBLE_FRAC : (u.double.frac || 0.5), s = u.size || 1;
+    var h = B.makeFoe({ id: 'hd' + (B.hdN = (B.hdN || 0) + 1), kind: u.kind }), best = null, bd = Infinity;
+    var hs = AI.heroes(B, u).filter(function (w) { return G.standing(w); }), cx = hs.length ? hs.reduce(function (a, w) { return a + w.x; }, 0) / hs.length : u.x, cy = hs.length ? hs.reduce(function (a, w) { return a + w.y; }, 0) / hs.length : u.y + 2;
+    for (var y = 0; y < G.map.h; y++) for (var x = 0; x < G.map.w; x++) {
+      if (!G.canStand(h, x, y) || Math.max(Math.abs(x - u.x), Math.abs(y - u.y)) > s + 1) continue;
+      var d = Math.hypot(x - u.x, y - u.y) * 3 + Math.hypot(x - cx, y - cy); // (beside him, on the party's side of him)
+      if (d < bd) { bd = d; best = [x, y]; }
+    }
+    if (!best) return;
+    h.name = 'Mirror ' + h.name; h.mirrorDouble = true; h.doubleOf = u.id; h.dmgFrac = fr;
+    h.hp = h.maxhp = Math.max(1, Math.round(u.maxhp * fr));
+    h.double = null; h.toy = null; h.rise = null; h.kneel = false; h.drinkLight = null; h.risen = true; h.upright = true;
+    h.known = []; h.slots = [0, 0]; h.slotsMax = [0, 0]; h.classAI = false;
+    h.reach = u.reach; h.attacks = JSON.parse(JSON.stringify(u.attacks || {})); h.weapon = h.attacks[Object.keys(h.attacks)[0]]; if (u.foretell) h.foretell = JSON.parse(JSON.stringify(u.foretell));
+    h.sheet = TR.voidSheet(u.sheet); h.drawScale = u.drawScale;
+    h.x = best[0]; h.y = best[1]; h.facing = u.facing || 0; h.anim = 'idle'; h.animT = B.t; h.flash = 0; h.reaction = 1;
+    h.tween = { fx: u.x, fy: u.y, fz: 0, t: 0, dur: B.pace(24, true) };
+    B.units.push(h); G.setup(G.map, B.units);
+    if (D.ripple) { D.ripple(h, { region: 'body', dur: 90 }); D.ripple(u, { region: 'body', dur: 60 }); }
+    FX.sparkle(h, 'violet', 26); D.sfx('magic');
+    B.card(['{r}The mirror in him opens, and another of him steps out of it.{/}  {p}Its eyes are purple.{/}', '{g}(the Mirror Harbinger: ' + TR.fracName(fr) + ' of his hit points, ' + h.hp + '; ' + TR.fracName(fr) + ' of his damage){/}'], 360);
+    B.dealIn([h]);
+    yield 40;
   }
   // his call (Griz, 10-08: "a hyena summons - maybe even mirror hyenas - with him rising and standing tall as they run past him to attack the party"): `n` of the
   // `kind` out of the ground behind him -- the far side from the party -- each sliding out from his square and dealt into the order on its own roll (battle.js
@@ -204,15 +250,18 @@
   // might need a special ability as an extra lever, let's prebench without"): a fight that says callN: 'read' (none yet -- a non-story Harbinger with GreyFang or others, as an
   // egg) calls as many as the pre-bench says for the party's STRENGTH, the sum of its members' levels (dev/harbinger-pack.py: the class floor, 10 fights a cell, aimed at the
   // rung's ruled 47 of 100; [strength, hyenas], between the points by a line). It only bites from 20 to 32: under 20 he wins with none, over 32 he loses with 8 -- the cap
-  // (Griz, 10-08: "do not exceed 8 hyena") -- which is where a special ability would be the lever. The hills rung keeps its own 4 (ruled on the hills, where he is stronger)
-  TR.PACK_LAUGH = 'synth';
-  TR.packLaugh = function () {
-    if (TR.PACK_LAUGH === 'voices') { if (D.clip) D.clip('audio/hyena_chorus.mp3', function () { }); return; }
-    ['cackle', 'gnollaugh', 'cackle2', 'cackle'].forEach(function (id, i) { setTimeout(function () { D.sfx(id); }, i * 190 + (i % 2 ? 40 : 0)); });
+  // (Griz, 10-08: "do not exceed 8 hyena") -- which is where a special ability would be the lever: his toying under it and his mirror double over it (TR.turn, rise), and the pack's
+  // laugh at a fall (TR.afterTurn). The hills rung keeps its own 4 (ruled on the hills, where he is stronger); a party is read only where a fight says so (TR.reads)
+  TR.packLaugh = function (ids) {
+    (ids || ['cackle', 'gnollaugh', 'cackle2', 'cackle']).forEach(function (id, i) { setTimeout(function () { D.sfx(id); }, i * 190 + (i % 2 ? 40 : 0)); });
   };
-  TR.PACK_TABLE = [[11, 0], [18, 0], [20, 0], [24, 2], [28, 6], [32, 6], [36, 8], [39, 8]];
+  TR.reads = function (B) { return D.CALL_N === 'read' || !!D.READS || !!(B && B.fight && B.fight.callN === 'read'); }; // (D.READS: the pre-bench's -- the levers by strength, the pack held at its size)
+  TR.strength = function (B) { var s = 0; B.units.forEach(function (w) { if (w.side === 'party' && !w.familiar && !w.summon && !w.object && !w.look) s += w.lvl || 1; }); return s; };
+  // (the table again with the levers in, 10-08 evening -- dev/harbinger-pack.py reads=1, 10 fights a cell: the laugh made the pack bite harder mid-way, 4 at 28 and 32 where it was 6;
+  // the double brings 36 and 39 to 6 where 8 had lost; GreyFang and Lymen land at 0 with his toying, 6 of 10 his; GreyFang alone is his at any count, toying or not)
+  TR.PACK_TABLE = [[11, 0], [18, 0], [20, 0], [24, 2], [28, 4], [32, 4], [36, 6], [39, 6]];
   TR.packFor = function (B, u) {
-    var s = 0; B.units.forEach(function (w) { if (w.side === 'party' && !w.familiar && !w.summon && !w.object) s += w.lvl || 1; });
+    var s = TR.strength(B);
     var T = TR.PACK_TABLE, n = T[0][1];
     for (var i = 0; i < T.length; i++) { if (s >= T[i][0]) n = T[i][1]; if (i && s >= T[i - 1][0] && s < T[i][0]) n = T[i - 1][1] + (T[i][1] - T[i - 1][1]) * (s - T[i - 1][0]) / (T[i][0] - T[i - 1][0]); }
     return Math.max(0, Math.min(8, Math.round(n)));
@@ -222,7 +271,7 @@
     var cx = hs.length ? hs.reduce(function (a, w) { return a + w.x; }, 0) / hs.length : mx, cy = hs.length ? hs.reduce(function (a, w) { return a + w.y; }, 0) / hs.length : my + 1;
     var dx = mx - cx, dy = my - cy, dl = Math.hypot(dx, dy) || 1, came = [], def = D.FOES[c.kind];
     if (!def) return came;
-    var nCall = D.CALL_N != null ? D.CALL_N : B.fight && B.fight.callN === 'read' ? TR.packFor(B, u) : B.fight && B.fight.callN != null ? B.fight.callN : (c.n || 1); // (D.CALL_N: the bench's, the pre-bench of the pack size; 'read': off the party, TR.packFor)
+    var cn = D.CALL_N != null ? D.CALL_N : B.fight && B.fight.callN != null ? B.fight.callN : (c.n || 1), nCall = cn === 'read' ? TR.packFor(B, u) : +cn || 0; // (D.CALL_N: the bench's -- a size held for the pre-bench, or 'read'; 'read': off the party, TR.packFor)
     // (callN, a fight's own pack size -- `pack` is flight-ai.js's: GreyFang's pit -- and where a count read off the party will come in)
     for (var k = 0; k < nCall; k++) {
       // out at his flanks, left and right by turns, half a square behind him -- from behind his back on the crown they could not get past him and its trees,
@@ -265,8 +314,37 @@
       yield 24;
     }
   }
+  // HE TOYS WITH A FEW (10-08, Griz: "I also like the small party adjustment being a script to use the lesser used powers more often"): on a party read too weak for him (strength under
+  // `toy.under` -- GreyFang alone, GreyFang and Lymen: the pre-bench had him winning those with no pack at all), till he rises he plays with them -- no hunt, so no Pounce; while he holds
+  // none, his turn is a Kneel (Hold Person, while the slots last) on the nearest he can hold, and a Foretell; while he holds one, he circles and Foretells, no blow; the slots spent, his blows
+  // at the ones standing free (AI.heroes spares the ones he holds, below). Risen, he is done playing
+  function toying(B, u) { return !!(u.toy && !u.risen && u.side === 'foe' && !u.dominated && (D.TOY != null ? !!D.TOY : TR.reads(B) && TR.strength(B) < (u.toy.under || 20))); }
+  function* toy(B, u) {
+    var T = u.turn;
+    if (!B.toyed) { B.toyed = true; B.card(['{r}' + Nm(B, u) + ' looks the party over, and smiles.{/}  {g}(so few: he means to play with them){/}'], 300); yield 30; }
+    var holds = B.units.some(function (w) { return w.conds.paralyzed && w.conds.paralyzed.by === u.id && w.hp > 0; });
+    if (holds) {
+      B.card(['{r}' + Nm(B, u) + ' circles the one who kneels, in no hurry.{/}'], 220); yield 20;
+      yield* foretellUp(B, u);
+      return true;
+    }
+    var hs = AI.heroes(B, u).filter(function (w) { return G.standing(w) && !w.conds.paralyzed && G.dist(u, w) <= 60 && M.sees(B, u, w); });
+    hs.sort(function (a, b) { return G.dist(u, a) - G.dist(u, b); });
+    var g = M.geo('holdperson'), t = hs.filter(function (w) { return !g || M.targetOK(B, u, g, w); })[0];
+    if (t && T && T.action > 0 && u.slots && u.slots[1] > 0 && (u.known || []).indexOf('holdperson') >= 0) {
+      yield* B.exec(u, { do: 'cast', id: 'holdperson', slot: 2, target: t });
+      yield* foretellUp(B, u);
+      return true;
+    }
+    return false; // (the slots spent: his routine, with no hunt)
+  }
+  var heroes0 = AI.heroes;
+  AI.heroes = function (B, u) { var hs = heroes0.apply(this, arguments); return u && u.toyNow ? hs.filter(function (w) { return !(w.conds.paralyzed && w.conds.paralyzed.by === u.id); }) : hs; };
   TR.turn = function* (B, u) {
+    if (D.RISE_NOW && u.rise && !u.risen && u.hp > 0) u.hp = Math.min(u.hp, Math.floor(u.maxhp * (u.rise.at || 0.5))); // (&rise, a show: js/main.js)
     if (u.rise && !u.risen && u.side === 'foe' && u.hp > 0 && u.hp <= u.maxhp * (u.rise.at || 0.5) && RU.canAct(u)) yield* rise(B, u);
+    u.toyNow = toying(B, u);
+    if (u.toyNow) { if (u.dead || u.hp <= 0) return true; return yield* toy(B, u); }
     if (u.upright && u.side === 'foe' && RU.canAct(u) && B.units.some(function (w) { return w.calledBy === u.id && !w.dead && w.hp > 0; })) { // (his stance: below)
       if (u.dead || u.hp <= 0) return true;
       if (yield* stand(B, u)) return true;
@@ -293,6 +371,82 @@
       yield 24; return true;
     }
     return false;
+  };
+  // ------------------------------------------------------------------ after every creature's turn (battle.js run): the pack's laugh at a fall, the fear scale's turn-end save, the
+  // Harbinger's mirror double broken with him
+  // THE PACK'S LAUGH (10-08, Griz, the GreyFang window: "For the hyena I was thinking something like reaction to party member falling prone, play one laugh, beat, play the others - when
+  // the others go everyone makes an intimidation check or gets one level on the fear scale"): one of the party on the ground -- knocked prone, or dropped (SRD 5.1: the unconscious are
+  // prone too) -- and a creature with a `laugh` standing that sees it (the mirror hyena, data/foes.js): after the turn it fell in, the nearest of them laughs, a beat, and the rest take it
+  // up; a lone one's laugh is only a laugh. As the rest go, every one of the party standing who hears it (not deafened, not proof against fear: Mindless Rage, Heroism) saves WIS against
+  // the laugh's DC (the "intimidation check": 5.1 resists a fright with a Wisdom save, so Countercharm's advantage counts) or goes a level up the fear scale (js/rules.js RU.FEAR), afraid of
+  // the one that laughed first. Once a round (the seat's call: a pack that laughed at every fall would climb the ladder in a turn); a fall is seen again once the fallen one is up
+  function laughers(B) { return B.units.filter(function (w) { return w.laugh && w.side === 'foe' && G.standing(w) && RU.canAct(w) && !w.dominated && !w.left; }); }
+  function* packLaugh(B) {
+    var L = laughers(B), seen = B.fellSeen || (B.fellSeen = {}), fell = [];
+    B.units.forEach(function (w) {
+      if (w.side !== 'party' || w.object || w.look || w.dead || !G.present(w)) return;
+      if (!(w.hp <= 0 || w.conds.prone)) { delete seen[w.id]; return; }
+      if (!seen[w.id]) { seen[w.id] = true; fell.push(w); }
+    });
+    if (!fell.length || L.length < 2 || B.laughRound === B.round || (D.LAUGH != null && !D.LAUGH)) return;
+    var f = fell[0], by = L.filter(function (h) { return M.sees(B, h, f); }).sort(function (a, b) { return G.dist(a, f) - G.dist(b, f); })[0];
+    if (!by) return;
+    B.laughRound = B.round;
+    var dc = by.laugh.dc || 13, rest = L.filter(function (h) { return h !== by; });
+    B.focus(by); by.facing = B.faceTo(by, f); if (D.spr.anim(by.sheet, 'rofl')) { by.anim = 'rofl'; by.animT = B.t; }
+    D.sfx('cackle'); FX.float('HA', by, D.PAL.ramps.violet[5]);
+    B.card(['{r}' + Nm(B, by) + ' laughs at ' + f.name + ' on the ground.{/}'], 200);
+    yield 40; // (the beat)
+    TR.packLaugh(['gnollaugh', 'cackle2', 'cackle', 'gnollaugh'].slice(0, Math.min(4, rest.length)));
+    rest.forEach(function (h, i) { if (i < 6) FX.float('HA', h, D.PAL.ramps.violet[4]); if (D.spr.anim(h.sheet, 'rofl')) { h.anim = 'rofl'; h.animT = B.t; } });
+    var lines = ['{r}The pack takes it up' + (rest.length > 1 ? ', ' + (rest.length + 1) + ' of them' : '') + '.{/}  {g}WIS DC ' + dc + ', or a step up the fear scale{/}'];
+    B.units.forEach(function (w) {
+      if (w.side !== 'party' || w.object || w.look || w.familiar || !G.standing(w) || !G.present(w)) return;
+      if (w.conds.deafened) { lines.push('  ' + w.name + ': {n}hears none of it{/} (deafened)'); return; }
+      if (w.conds.heroism || RU.immuneTo(w, 'frightened', by)) { lines.push('  ' + w.name + ': {n}fearless{/}'); return; }
+      if (RU.fearLvl(w) >= 3) { lines.push('  ' + w.name + ': {o}panicked already{/}'); return; }
+      var sv = RU.save(w, 'wis', dc, false, 'frightened');
+      if (sv.ok) { lines.push('  ' + w.name + ': WIS ' + RU.saveText(sv) + '  {n}holds{/}'); return; }
+      var n = RU.fearUp(w, by.id, dc); (B.laughFresh = B.laughFresh || {})[w.id] = true; // (not saved off at the end of a turn it was laid in: fearKeep)
+      lines.push('  ' + w.name + ': WIS ' + RU.saveText(sv) + '  {o}' + RU.FEAR[n].toUpperCase() + '{/}');
+    });
+    B.card(lines.slice(0, 9), 360);
+    yield 44;
+    L.forEach(function (h) { if (h.anim === 'rofl') { h.anim = 'idle'; h.animT = B.t; } });
+  }
+  // the fear scale kept: one afraid of a laugher that is gone fears the nearest of the rest; none of them left standing, the fear goes (and at the end of its own turn, the WIS save
+  // that takes a level away -- rules.js RU.FEAR)
+  function fearKeep(B, ended) {
+    var L = null;
+    B.units.forEach(function (w) {
+      var fs = w.conds.fearScale; if (!fs) return;
+      var src = B.units.filter(function (h) { return h.id === fs.by; })[0];
+      if (!src || !G.standing(src) || src.left) {
+        L = L || laughers(B);
+        var nx = L.slice().sort(function (a, b) { return G.dist(a, w) - G.dist(b, w); })[0];
+        if (!nx) { RU.fearSet(w, 0); if (G.standing(w)) B.card(['{g}' + w.name + ' breathes again: the laughing is done.{/}'], 200); return; }
+        RU.fearSet(w, fs.n, nx.id);
+      } else RU.fearSet(w, fs.n); // (the frightened and feared it lays, back if a sweep took them)
+    });
+    var es = ended && ended.conds && ended.conds.fearScale;
+    if (es && ended.hp > 0 && !ended.dead && !(B.laughFresh && B.laughFresh[ended.id])) {
+      var sv = RU.save(ended, 'wis', es.dc || 13, false, 'frightened'), was = es.n;
+      if (sv.ok) RU.fearSet(ended, was - 1);
+      B.card([Nm(B, ended) + ', ' + RU.FEAR[was] + ': WIS ' + RU.saveText(sv) + ' vs DC ' + (es.dc || 13) + '  ' + (sv.ok ? '{n}' + (was > 1 ? 'STEADIER: ' + RU.FEAR[was - 1] : 'STEADY AGAIN') + '{/}' : '{g}still ' + RU.FEAR[was] + '{/}')], 240);
+    }
+    B.laughFresh = null;
+  }
+  TR.afterTurn = function* (B, ended) {
+    // the mirror double breaks with him
+    B.units.forEach(function (h) {
+      if (!h.mirrorDouble || h.dead) return;
+      var m = B.units.filter(function (w) { return w.id === h.doubleOf; })[0];
+      if (m && !m.dead && m.hp > 0) return;
+      h.hp = 0; h.dead = true; h.left = true; h.deadT = B.t; FX.sparkle(h, 'violet', 30); D.sfx('crit');
+      B.card(['{p}The Mirror Harbinger breaks like glass and is gone.{/}'], 240);
+    });
+    if (B.units.some(function (w) { return w.laugh; })) yield* packLaugh(B);
+    fearKeep(B, ended);
   };
   // ------------------------------------------------------------------ after its routine: the gnoll's Rampage, the goblin's Nimble Escape
   TR.after = function* (B, u) {

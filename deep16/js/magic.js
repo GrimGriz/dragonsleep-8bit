@@ -1006,7 +1006,7 @@
     var look = function (ab) {
       var ce = RU.checkEdges(u, ab), s = ab === 'str';
       var adv = !!(s && en0 && !en0.down) || ce.adv.length > 0, dis = !!(u.conds.poisoned || u.conds.frightened || (s && r.weak) || (s && en0 && en0.down)) || ce.dis.length > 0; // (weak: the tendril's disadvantage is on STR checks -- SRD 5.1 -- not on the Acrobatics way out; it had both, 10-02)
-      var bonus = D.mod(u.abil[ab]) + (u.cls === 'fighter' || (!s && u.cls === 'rogue') ? u.prof : 0);
+      var bonus = D.mod(u.abil[ab]) + (u.cls === 'fighter' || (!s && u.cls === 'rogue') ? u.prof : 0) - RU.shaken(u); // (the fear scale's -2: rules.js RU.FEAR)
       return { ce: ce, adv: adv, dis: dis, bonus: bonus, worth: bonus + (adv && !dis ? 5 : dis && !adv ? -5 : 0) };
     };
     var ls = look('str'), ld = look('dex'), useDex = !!grip && ld.worth > ls.worth, lk = useDex ? ld : ls, ce = lk.ce, adv = lk.adv, dis = lk.dis;

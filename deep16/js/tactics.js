@@ -116,7 +116,7 @@
       if (ab === 'dex' && !grip) return;
       var ce = RU.checkEdges(u, ab), s = ab === 'str';
       var adv = !!(s && en0 && !en0.down) || ce.adv.length > 0, dis = !!(u.conds.poisoned || u.conds.frightened || (s && r.weak) || (s && en0 && en0.down)) || ce.dis.length > 0;
-      var bonus = D.mod(u.abil[ab]) + (u.cls === 'fighter' || (!s && u.cls === 'rogue') ? u.prof : 0);
+      var bonus = D.mod(u.abil[ab]) + (u.cls === 'fighter' || (!s && u.cls === 'rogue') ? u.prof : 0) - RU.shaken(u);
       var p = clamp((21 - (r.dc - bonus)) / 20, 0, 1); p = adv && !dis ? 1 - (1 - p) * (1 - p) : dis && !adv ? p * p : p;
       if (p > best) best = p;
     });

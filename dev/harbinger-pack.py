@@ -12,6 +12,11 @@ A party's STRENGTH is the sum of its members' levels (a named one at its own: Gr
 (dev/bench16.py harbinger vs=... lvl=...) with his pack held at each size (`callN`, js/traits.js nCall); for each party the size whose Harbinger wins come
 nearest TARGET is its point, and the points, made never to fall as strength rises, are the table js/traits.js TR.PACK_TABLE reads (printed at the end, to paste).
 Rerun it when the Harbinger, the mirror hyena or the classes change.
+
+Since 10-08 evening it benches with his levers in (`reads=1`: js/traits.js TR.reads -- his toying under strength 20, his mirror double over 32 at the record's share, and the
+mirror hyenas' laugh at a fall, which is always theirs). Griz: "For the hyena I was thinking something like reaction to party member falling prone ..."; "I like your mirror image
+for him - but ... some fraction (1/2, 1/4 - not variable by party threat) of HP and attack damage"; "I also like the small party adjustment being a script to use the lesser used
+powers more often".
 """
 import sys, os, json
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -38,7 +43,7 @@ def main(argv):
     for name, vs, lvl, power in PARTIES:
         hw = {}
         for c in COUNTS:
-            r = bench16.run({'foes': 'harbinger', 'vs': vs, 'lvl': str(lvl), 'n': n, 'seed': '1', 'callN': str(c)}, timeout=1800)
+            r = bench16.run({'foes': 'harbinger', 'vs': vs, 'lvl': str(lvl), 'n': n, 'seed': '1', 'callN': str(c), 'reads': '1'}, timeout=1800)
             if not isinstance(r, dict) or r.get('error') or r.get('errors'):
                 print('  %s, pack %d: FAILED %s' % (name, c, str((r or {}).get('errors') or (r or {}).get('error'))[:200]), flush=True)
                 hw[c] = None; continue

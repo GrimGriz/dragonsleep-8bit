@@ -906,7 +906,7 @@
   function* shoveOff(B, u, w) {
     var T = u.turn; if (!T.action || (w.size || 1) > (u.size || 1) + 1) return false;
     T.shoves = (T.shoves || 0) + 1; u.facing = B.faceTo(u, w); u.anim = 'attack'; u.animT = B.t;
-    var rA = d20e(RU.checkEdges(u, 'str')), bA = G.athletics(u), tA = rA + bA, bS = G.athletics(w), bD = acrobatics(w), dex = bD > bS, rW = d20e(RU.checkEdges(w, dex ? 'dex' : 'str')), tW = rW + (dex ? bD : bS), won = tA > tW, x0 = w.x, y0 = w.y;
+    var rA = d20e(RU.checkEdges(u, 'str')), bA = G.athletics(u) - RU.shaken(u), tA = rA + bA, bS = G.athletics(w) - RU.shaken(w), bD = acrobatics(w) - RU.shaken(w), dex = bD > bS, rW = d20e(RU.checkEdges(w, dex ? 'dex' : 'str')), tW = rW + (dex ? bD : bS), won = tA > tW, x0 = w.x, y0 = w.y;
     B.card(['{r}' + the(B, u) + '{/} > {y}' + w.name + '{/}  SHOVE', 'Athletics d20 ' + rA + ' ' + RU.sign(bA) + ' = ' + tA + '  vs ' + (dex ? 'Acrobatics' : 'Athletics') + ' d20 ' + rW + ' ' + RU.sign(dex ? bD : bS) + ' = ' + tW + '  ' + (won ? '{n}SHOVED{/}' : '{g}HOLDS{/}')], 300);
     D.sfx(won ? 'hit' : 'miss'); yield 20;
     if (won) {

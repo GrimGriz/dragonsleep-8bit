@@ -81,7 +81,7 @@
     var a = sh.anims[anim] || sh.anims.idle;
     var fw = a.fw || sh.fw, fh = a.fh || sh.fh, ax = a.ax != null ? a.ax : sh.ax, ay = a.ay != null ? a.ay : sh.ay;
     var n = Math.floor(t * (a.fps || 8) / 60), fr = o && o.frame != null ? Math.max(0, Math.min(a.frames - 1, o.frame)) : o && o.once ? Math.min(a.frames - 1, n) : n % a.frames; // (o.frame: one frame by number -- the prone, ui.js)
-    return { img: S.rock(name, D.images[sh.image]), sx: fr * fw, sy: (a.y != null ? a.y : a.row * sh.fh) + (facing % 8) * fh, fw: fw, fh: fh, ax: ax, ay: ay };
+    return { img: S.rock(name, sh.eyes ? S.eyed(name, sh, D.images[sh.image]) : D.images[sh.image]), sx: fr * fw, sy: (a.y != null ? a.y : a.row * sh.fh) + (facing % 8) * fh, fw: fw, fh: fh, ax: ax, ay: ay };
   }
   // the frame S.draw would draw for these arguments: { img, sx, sy, fw, fh, ax, ay }, or null while the sheet is on its way (the mirror ripple
   // reads it to lay its scales over the same pixels: js/looks.js LK.ripple, 10-08)
@@ -103,6 +103,35 @@
     for (var p = 0; p < px.length; p += 4) { if (!px[p + 3]) continue; var s = swap[(px[p] << 16) | (px[p + 1] << 8) | px[p + 2]]; if (s) { px[p] = s[0]; px[p + 1] = s[1]; px[p + 2] = s[2]; } }
     cx.putImageData(id, 0, 0);
     return (rockCv[key] = cv);
+  };
+  // a sheet's mirror eyes in another colour (10-08, Griz, of the Harbinger's double: "from the mirror realm and has purple in the eyes (by code?)"): a sheet entry with `eyes` (a ramp of
+  // the palette: js/traits.js TR.voidSheet lays one over his sheet as mirrorgnoll_p1_void) is drawn from its image with the mirror's pale pixels in the upper part of each figure -- the
+  // eyes, as js/trophy.js eyeSpots finds them -- laid in that ramp, light for light; made once a name, when the image has come
+  var eyedCv = {};
+  S.eyed = function (name, sh, img) {
+    if (!img || !img.naturalWidth) return img;
+    if (eyedCv[name]) return eyedCv[name];
+    var cv = document.createElement('canvas'), W = cv.width = img.naturalWidth, H = cv.height = img.naturalHeight, cx = cv.getContext('2d'); cx.drawImage(img, 0, 0);
+    var id = cx.getImageData(0, 0, W, H), px = id.data, rp = (D.PAL.ramps[sh.eyes] || D.PAL.ramps.violet).map(function (c) { var v = parseInt(c.slice(1), 16); return [v >> 16, (v >> 8) & 255, v & 255]; });
+    var to = [rp[rp.length - 2], rp[rp.length - 1], [214, 140, 255]], done = {}; // (the mid, the light, and a glint: the mirror's white as a bright purple; done: a cell two rows share, once)
+    Object.keys(sh.anims).forEach(function (k) {
+      var a = sh.anims[k], fw = a.fw || sh.fw, fh = a.fh || sh.fh, ay = a.ay != null ? a.ay : sh.ay, y0 = a.y != null ? a.y : a.row * sh.fh;
+      for (var f = 0; f < a.frames; f++) for (var fc = 0; fc < 8; fc++) {
+        var ox = f * fw, oy = y0 + fc * fh, top = -1, x, y;
+        if (oy + fh > H || ox + fw > W || done[ox + ',' + oy]) continue;
+        done[ox + ',' + oy] = 1;
+        for (y = 0; y < fh && top < 0; y++) for (x = 0; x < fw; x++) if (px[((oy + y) * W + ox + x) * 4 + 3]) { top = y; break; }
+        if (top < 0) continue;
+        for (y = top; y < top + (ay - top) * 0.6; y++) for (x = 0; x < fw; x++) {
+          var i = ((oy + y) * W + ox + x) * 4, hi = y < top + (ay - top) * 0.3; // (side-on his eye's glint is the palette's warm white: taken in the head's own band only, above the teeth)
+          if (!px[i + 3] || !((px[i + 2] > 190 && px[i + 1] > 170 && px[i + 2] >= px[i]) || (hi && px[i] > 235 && px[i + 1] > 235 && px[i + 2] > 235))) continue;
+          var l = (px[i] + px[i + 1] + px[i + 2]) / 3, c = to[l > 240 ? 2 : l > 215 ? 1 : 0];
+          px[i] = c[0]; px[i + 1] = c[1]; px[i + 2] = c[2];
+        }
+      }
+    });
+    cx.putImageData(id, 0, 0);
+    return (eyedCv[name] = cv);
   };
   S.draw = function (ctx, name, anim, facing, t, x, y, o) {
     var sh = D.SHEETS && D.SHEETS[name];

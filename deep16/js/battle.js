@@ -863,6 +863,7 @@
         this.active = null;
         this.flyCheck();
         if (D.traits && D.traits.legendary && !this.over()) yield* D.traits.legendary(this, u); // (at the end of another creature's turn: a legendary action -- js/traits.js, 10-08)
+        if (D.traits && D.traits.afterTurn && !this.over()) yield* D.traits.afterTurn(this, u); // (the mirror hyenas' laugh at a fall, the fear scale's turn-end save, the Harbinger's double -- js/traits.js, 10-08)
         if (this.readyArmed()) yield* this.readyAfter({ turnOf: u }); // (one of us down by what no blow or spell of the turn told: a turn's-end save, the ring's spirits -- the readied healers, 10-02)
         if (D.familiar && !u.familiar) yield* D.familiar.after(this, u); // (his familiar's turn, right after his: js/familiar.js)
         yield* this.wave();
@@ -2078,6 +2079,7 @@
     if (att.conds.raging && strBlow) { dmg += att.conds.raging.dmg || 2; parts.push('{o}rage +' + (att.conds.raging.dmg || 2) + '{/}'); }
     if (att.conds.enlarged && !atk.spell) { var en = D.roll('1d4', { crit: crit }); dmg += att.conds.enlarged.down ? -en.total : en.total; parts.push((att.conds.enlarged.down ? '{g}reduced -' : '{o}enlarged +') + en.total + '{/}'); dmg = Math.max(1, dmg); }
     if (att.conds.enfeebled && strBlow && !atk.spell) { var cut0 = Math.ceil(dmg / 2); dmg -= cut0; parts.push('{g}enfeebled -' + cut0 + '{/}'); }
+    if (att.dmgFrac && !atk.spell) { var cutM = dmg - Math.max(1, Math.floor(dmg * att.dmgFrac)); dmg -= cutM; parts.push('{g}the mirror share ' + D.traits.fracName(att.dmgFrac) + ' -' + cutM + '{/}'); } // (the Harbinger's mirror double: js/traits.js mirrorDouble, 10-08)
     // Sneak Attack: once a turn, a finesse or ranged weapon, with advantage or an ally at the target's side
     var sneaked = false;
     if (att.cls === 'rogue' && att.turn && !att.turn.sneakUsed && (atk.finesse || atk.ranged) && e.net >= 0) {

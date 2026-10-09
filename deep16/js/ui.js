@@ -2140,7 +2140,7 @@
     var q = w.conds;
     if (q.stoning) c.push(q.stoning.done || q.petrified ? '{o}stone{/}' : q.stoning.once ? '{o}turning to stone{/}' : '{o}turning to stone ' + q.stoning.bad + '/3{/}');
     if (q.exhaustion) c.push('{o}exhausted ' + q.exhaustion.n + '{/}'); // (js/rules.js RU.exhaust)
-    if (q.frightened) c.push('{p}frightened{/}');
+    if (q.fearScale) c.push('{p}' + RU.FEAR[q.fearScale.n] + '{/}'); else if (q.frightened) c.push('{p}frightened{/}'); // (the fear scale: shaken, frightened, panicked -- js/rules.js RU.FEAR)
     if (q.hypnotized) c.push('{p}entranced{/}'); else if (q.charmed) c.push('{p}charmed{/}');
     if (q.laughing) c.push('{p}laughing{/}');
     if (q.confused) c.push('{p}confused{/}');

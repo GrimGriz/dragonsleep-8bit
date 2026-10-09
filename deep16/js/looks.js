@@ -718,7 +718,7 @@
     if (c.hasted) { E = FX.EL.cold; for (var i = 0; i < 3; i++) { var ph = (t * 1.5 + i * 7) % 20; ctx.globalAlpha = 1 - ph / 20; px(ctx, p.x - 8 + i * 8, p.y - 4 - ph * 0.5, E.c[1], 2); } ctx.globalAlpha = 1; }
     if (c.slowed || c.lethargic) { E = FX.EL.thunder; var dp = (t * 0.3) % 24; ctx.globalAlpha = 1 - dp / 24; px(ctx, p.x + 6, p.y - top * 0.6 + dp, E.c[2], 2); ctx.globalAlpha = 1; }
     // frightened: sweat and a shiver
-    if (c.frightened || c.feared || c.turned) { E = FX.EL.shadow; for (var f = 0; f < 2; f++) { var fp = (t * 0.8 + f * 10) % 20; ctx.globalAlpha = 1 - fp / 20; px(ctx, hx - 7 + f * 14, hy + 6 + fp * 0.6, FX.EL.cold.c[1], 2); } ctx.globalAlpha = 1; }
+    if (c.frightened || c.feared || c.turned || c.fearScale) { E = FX.EL.shadow; for (var f = 0; f < 2; f++) { var fp = (t * 0.8 + f * 10) % 20; ctx.globalAlpha = 1 - fp / 20; px(ctx, hx - 7 + f * 14, hy + 6 + fp * 0.6, FX.EL.cold.c[1], 2); } ctx.globalAlpha = 1; }
     // charmed, hypnotized, confused, laughing, commanded: pink turning over the head
     if (c.charmed || c.hypnotized || c.confused || c.laughing || c.commanded) { E = FX.EL.charm; for (var s2 = 0; s2 < 6; s2++) { var an = t / 8 + s2 * 0.9, r = 2 + s2 * 1.1; px(ctx, hx + Math.cos(an) * r, hy + Math.sin(an) * r * 0.5, s2 % 2 ? E.c[1] : E.c[2], 2); } }
     // stunned: stars round the head
