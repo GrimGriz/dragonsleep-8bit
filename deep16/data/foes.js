@@ -346,7 +346,7 @@
     caster: { lvl: 9, ab: 'cha', dc: 15, atk: 7, slots: [0, 3], known: ['holdperson'] },
     // (his two levers on a party read -- a fight's callN: 'read', js/traits.js TR.reads -- 10-08, Griz: "the small party adjustment being a script to use the lesser used powers more often";
     // "from the mirror realm and has purple in the eyes ... some fraction (1/2, 1/4 - not variable by party threat) of HP and attack damage": under `under` he toys, over `over` his mirror double)
-    toy: { under: 20 }, double: { over: 32, frac: 0.25 }, // (frac: a quarter, the seat's call on the bench -- the four at 9th with 8 hyenas, 20 fights a cell: party wins 15 with none, 11 at 1/4, 8 at 1/2)
+    toy: { under: 20 }, double: { over: 32, frac: 0.25 }, // (frac: a quarter, RULED -- Griz, 10-08: "1/4 looks great"; the four at 9th with 8 hyenas, 20 fights a cell: party wins 15 with none, 11 at 1/4, 8 at 1/2)
     ripple: { region: 'mane', every: 150, dur: 54, held: true, heldEvery: 90 }, // (the mirror ripple on his mane, frames at 60 Hz: deep16/js/ripple.js, the SRD seat's, 052e833 -- Griz, 10-08: "he's made by mr. ripples but is a lesser being -ripples will get it full body"; the Pounce ripples him whole, js/traits.js)
     src: 'ours (10-08): the made gnoll, CR 13 Large monstrosity from SRD pieces -- tuned on the bench to win about 6 in 10 alone against the four at 7th (Griz: "Try and get him 6/10 on a solo vs Aurdin Party 7 on the ladder"; seeds 1-5 at n=20, the swarm of four mirror hyenas at 34 HP and bite +5 2d4+2, his 155 HP, the ladder fight on the Gnoll Hills: 47 of 100 against the four at 7th (about 7 rounds, 17 Kneels), 18 at 8th, 6 at 9th, dev/bench16.py x fight=harbinger flvl=N -- Griz: "Do Mirror Hyena bite +5 for 2d4+2 and call it good") -- the lion\'s Pounce, Counterspell (Drink Light), Hold Person (Kneel), the Ready (Foretell); his five GPT sheets and the Pounce sheet, tools/mirrorgnoll-sheet.py'
   },
@@ -358,7 +358,7 @@
     saves: { str: 3, dex: 2, con: 2, int: -4, wis: 1, cha: -2 },
     attacks: { bite: { name: 'Bite', atk: 5, dice: '2d4', mod: 2, type: 'piercing', reach: 5 } },
     multi: 1, rampage: true, packTactics: true, mirrorEye: true, ripple: { region: 'body', every: 130, dur: 54 }, // (Medium and Pack Tactics since the swarm, 10-08: Large, they could not get past him)
-    laugh: { dc: 13 }, // (the pack's laugh at one of the party on the ground: WIS or a step up the fear scale -- js/traits.js packLaugh, rules.js RU.FEAR; Griz, 10-08: "reaction to party member falling prone, play one laugh, beat, play the others")
+    laugh: { dc: 13 }, // (the pack's laugh at one of the party on the ground: WIS or a step up the fear scale; dc for the pair that starts it, +1 a hyena past two -- js/traits.js packLaugh, rules.js RU.FEAR; Griz, 10-08: "reaction to party member falling prone, play one laugh, beat, play the others")
     src: 'the SRD 5.1 Giant Hyena made over by Mr. Ripples, ours (10-08): the mirror eyes, the ripple, the hyena sheet at 1.25; a swarm of four -- Medium, Pack Tactics, out at his flanks (Griz: "they just park behind him most of the fight instead of being a swarm of attackers"), lighter as his lever ("could making them mirrorhyena with different stats be the lever"): 34 HP (three quarters of the giant hyena), bite +5 2d4+2 (Griz: "Do Mirror Hyena bite +5 for 2d4+2 and call it good")'
   },
   hyena: {

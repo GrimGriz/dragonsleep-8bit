@@ -258,8 +258,9 @@
   TR.reads = function (B) { return D.CALL_N === 'read' || !!D.READS || !!(B && B.fight && B.fight.callN === 'read'); }; // (D.READS: the pre-bench's -- the levers by strength, the pack held at its size)
   TR.strength = function (B) { var s = 0; B.units.forEach(function (w) { if (w.side === 'party' && !w.familiar && !w.summon && !w.object && !w.look) s += w.lvl || 1; }); return s; };
   // (the table again with the levers in, 10-08 evening -- dev/harbinger-pack.py reads=1, 10 fights a cell: the laugh made the pack bite harder mid-way, 4 at 28 and 32 where it was 6;
-  // the double brings 36 and 39 to 6 where 8 had lost; GreyFang and Lymen land at 0 with his toying, 6 of 10 his; GreyFang alone is his at any count, toying or not)
-  TR.PACK_TABLE = [[11, 0], [18, 0], [20, 0], [24, 2], [28, 4], [32, 4], [36, 6], [39, 6]];
+  // the double brings 36 and 39 to 6 where 8 had lost; GreyFang and Lymen land at 0 with his toying, 6 of 10 his; GreyFang alone is his at any count, toying or not -- RULED, Griz:
+  // "It should stay hopeless."; and once more with the laugh's DC up a hyena past two -- "+1 DC for each additional hyena (more scary)": 39 back to 8, the rest as they were)
+  TR.PACK_TABLE = [[11, 0], [18, 0], [20, 0], [24, 2], [28, 4], [32, 4], [36, 6], [39, 8]];
   TR.packFor = function (B, u) {
     var s = TR.strength(B);
     var T = TR.PACK_TABLE, n = T[0][1];
@@ -378,7 +379,8 @@
   // the others go everyone makes an intimidation check or gets one level on the fear scale"): one of the party on the ground -- knocked prone, or dropped (SRD 5.1: the unconscious are
   // prone too) -- and a creature with a `laugh` standing that sees it (the mirror hyena, data/foes.js): after the turn it fell in, the nearest of them laughs, a beat, and the rest take it
   // up; a lone one's laugh is only a laugh. As the rest go, every one of the party standing who hears it (not deafened, not proof against fear: Mindless Rage, Heroism) saves WIS against
-  // the laugh's DC (the "intimidation check": 5.1 resists a fright with a Wisdom save, so Countercharm's advantage counts) or goes a level up the fear scale (js/rules.js RU.FEAR), afraid of
+  // the laugh's DC -- 13 for the pair it takes, 1 more for each past two (Griz, 10-08: "+1 DC for each additional hyena (more scary)") -- (the "intimidation check": 5.1 resists a fright
+  // with a Wisdom save, so Countercharm's advantage counts) or goes a level up the fear scale (js/rules.js RU.FEAR), afraid of
   // the one that laughed first. Once a round (the seat's call: a pack that laughed at every fall would climb the ladder in a turn); a fall is seen again once the fallen one is up
   function laughers(B) { return B.units.filter(function (w) { return w.laugh && w.side === 'foe' && G.standing(w) && RU.canAct(w) && !w.dominated && !w.left; }); }
   function* packLaugh(B) {
@@ -392,7 +394,7 @@
     var f = fell[0], by = L.filter(function (h) { return M.sees(B, h, f); }).sort(function (a, b) { return G.dist(a, f) - G.dist(b, f); })[0];
     if (!by) return;
     B.laughRound = B.round;
-    var dc = by.laugh.dc || 13, rest = L.filter(function (h) { return h !== by; });
+    var rest = L.filter(function (h) { return h !== by; }), dc = (by.laugh.dc || 13) + Math.max(0, L.length - 2); // (+1 for each past the pair that starts it -- Griz, 10-08: "+1 DC for each additional hyena (more scary)")
     B.focus(by); by.facing = B.faceTo(by, f); if (D.spr.anim(by.sheet, 'rofl')) { by.anim = 'rofl'; by.animT = B.t; }
     D.sfx('cackle'); FX.float('HA', by, D.PAL.ramps.violet[5]);
     B.card(['{r}' + Nm(B, by) + ' laughs at ' + f.name + ' on the ground.{/}'], 200);
