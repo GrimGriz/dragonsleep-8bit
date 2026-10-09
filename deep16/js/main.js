@@ -15,7 +15,11 @@
   // page -- a map's `step`, the px a 2.5 ft step is drawn (10 on most: 5 ft is 20 px, a figure about 50). The rules read feet through the same number (js/grid.js:
   // G.dist, G.LAYER, the falls), so only the picture changes. A look, not a ruling: the maps keep their own steps
   var hsc = /[?&]hscale=([0-9.]+)/.exec(q);
-  if (hsc && +hsc[1] > 0) Object.keys(D.MAPS || {}).forEach(function (k) { var m = D.MAPS[k]; if (m && m.step) m.step = Math.max(1, Math.round(m.step * +hsc[1])); });
+  if (hsc && +hsc[1] > 0) {
+    D.hscale = +hsc[1];
+    Object.keys(D.MAPS || {}).forEach(function (k) { var m = D.MAPS[k]; if (m && m.step) m.step = Math.max(1, Math.round(m.step * D.hscale)); });
+    if (D.iso.setWall) D.iso.setWall(Math.round(D.iso.WALL * D.hscale)); // (the far walls rise with them, and the Edifice's painted walls under the glass go as deep again: js/iso.js)
+  }
   D.initCanvas();
   D.initMouse();
   D.initTouch(); // a phone: the pad, and the canvas read for a finger (?touch forces it)

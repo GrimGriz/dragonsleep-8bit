@@ -8,6 +8,7 @@
   var WALL = 84;       // how far a far wall rises above the floor it faces (px) before it goes into the dark
   var STUB = 9;        // the near walls, cut: Diablo's trick, so the room is seen through them
   var iso = D.iso = { TW: TW, TH: TH, WALL: WALL };
+  iso.setWall = function (w) { WALL = w; iso.WALL = w; }; // (&hscale: the far walls rise with the heights -- js/main.js, 10-08)
 
   // square centre in world pixels (the rhombus's middle), at elevation gz
   iso.center = function (gx, gy, gz) { return { x: (gx - gy) * HW, y: (gx + gy) * HH + HH - (gz || 0) }; };
@@ -196,9 +197,10 @@
             // ramp, lighter at the glass and darker toward the floor, a darker course every 0.19 of a square running along the wall; the north face lit a step over the west, as a raised
             // square's two faces are; a corner tile shows both, the nearer wall at each pixel. The tint, the gloss and the silver edge below go over it as over the orchard; a tile touching
             // the Sunshaft's circle and its rim keeps what it had
-            var nbN = m.at(s.x, s.y - 1), nbW = m.at(s.x - 1, s.y), nbN2 = m.at(s.x, s.y - 2), nbW2 = m.at(s.x - 2, s.y), wB = 1.16; // (the band runs two rows deep: a 15 ft wall, where one row read as 7.5 -- 10-05, Griz: "sonnet had the notion right, but that looks at most 7.5 ft, aiming for 15")
+            var nbN = m.at(s.x, s.y - 1), nbW = m.at(s.x - 1, s.y), nbN2 = m.at(s.x, s.y - 2), nbW2 = m.at(s.x - 2, s.y), wB = 1.16 * (D.hscale || 1); // (&hscale: as deep again, so it still reads as 15 ft under heights drawn N times as tall -- 10-08, Griz: "make the 3rd floor orchard look like a 3rd floor orchard under glass") (the band runs two rows deep: a 15 ft wall, where one row read as 7.5 -- 10-05, Griz: "sonnet had the notion right, but that looks at most 7.5 ft, aiming for 15")
             var isG = function (t) { return !!(t && t.ch === 'G'); };
-            var dN = !isG(nbN) ? fy2 : !isG(nbN2) ? 1 + fy2 : 9, dW = !isG(nbW) ? fx2 : !isG(nbW2) ? 1 + fx2 : 9; // (tiles from the wall, the pixel's own fraction in: the edge row 0..1, the second 1..2)
+            var back = function (dx, dy, f) { for (var k = 1; k <= 5; k++) if (!isG(m.at(s.x - dx * k, s.y - dy * k))) return k - 1 + f; return 9; }; // (rows back to the wall, up to five for a deeper band)
+            var dN = back(0, 1, fy2), dW = back(1, 0, fx2); // (tiles from the wall, the pixel's own fraction in: the edge row 0..1, the second 1..2, and on)
             var wNd = dN < wB ? dN / wB : 9, wWd = dW < wB ? dW / wB : 9, wD = Math.min(wNd, wWd);
             var shNx = sh ? Math.max(s.x - sh[0], 0, sh[0] - s.x - 1) : 9, shNy = sh ? Math.max(s.y - sh[1], 0, sh[1] - s.y - 1) : 9;
             if (wD < 1 && !inShaft && !rimS && (!sh || Math.hypot(shNx, shNy) >= sh[2] + 0.22)) {
