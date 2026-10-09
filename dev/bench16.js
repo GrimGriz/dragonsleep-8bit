@@ -5572,39 +5572,53 @@
       okD(uGF && uGF.lvl === 7 && uGF.side === 'party', 'GreyFang builds at 7 for the party (' + (uGF && uGF.name) + ')');
       var potDM = PK.pot(['barley:5'], 'hexfloor', true), potR = PK.pot(['barley:5'], 'hexfloor');
       okD(potDM.indexOf('talmok') >= 0 && potDM.indexOf('keeperold') < 0 && potR.indexOf('talmok') < 0 && PK.pot(['greyfang:7'], 'hexfloor', true).indexOf('greyfang') < 0, 'the DM\'s pot has the story\'s named (Talmok), never the old Keeper, and not one of the party');
-      // c. the five shops: every creature with a CR on one shelf, priced 100 sp a CR, cheapest first
+      // c. the five shops: every creature on one shelf (CR 0 too, at 10 sp: his "CR 0 at 10 SP or something"), priced 100 sp a CR, cheapest first
       var shelved = {}; PD.SHOPS.forEach(function (sh) { PD.shelf(sh).forEach(function (k) { shelved[k] = (shelved[k] || 0) + 1; }); });
-      var want = Object.keys(D.FOES).filter(function (k) { var f = D.FOES[k]; return f && !/^fam_/.test(k) && !f.object && PD.OUT.indexOf(k) < 0 && PK.cr8(f.cr) > 0; });
-      okD(PD.SHOPS.length === 5 && want.every(function (k) { return shelved[k] === 1; }) && Object.keys(shelved).length === want.length, 'five shops, each of the ' + want.length + ' creatures with a CR on exactly one (beasts ' + PD.shelf(PD.SHOPS[0]).length + ', monstrosities ' + PD.shelf(PD.SHOPS[1]).length + ', humanoids ' + PD.shelf(PD.SHOPS[2]).length + ', giants ' + PD.shelf(PD.SHOPS[3]).length + ', the rest ' + PD.shelf(PD.SHOPS[4]).length + ')');
-      okD(PD.fmt(PD.price('goblin')) === '25 sp' && PD.fmt(PD.price('guard')) === '12 sp 5 cp' && PD.fmt(PD.price('hobgoblin')) === '50 sp' && PD.fmt(PD.price('drow')) === '500 sp' && PD.fmt(PD.START) === '1,000 sp', 'the prices: a goblin (1/4) 25 sp, a guard (1/8) 12 sp 5 cp, a hobgoblin (1/2) 50 sp, the drow captain (5) 500 sp; the purse starts at 1,000 sp');
+      var want = Object.keys(D.FOES).filter(function (k) { var f = D.FOES[k]; return f && !/^fam_/.test(k) && !f.object && PD.OUT.indexOf(k) < 0; });
+      okD(PD.SHOPS.length === 5 && want.every(function (k) { return shelved[k] === 1; }) && Object.keys(shelved).length === want.length && shelved.hyena === 1, 'five shops, each of the ' + want.length + ' creatures on exactly one, the CR 0s too (beasts ' + PD.shelf(PD.SHOPS[0]).length + ', monstrosities ' + PD.shelf(PD.SHOPS[1]).length + ', humanoids ' + PD.shelf(PD.SHOPS[2]).length + ', giants ' + PD.shelf(PD.SHOPS[3]).length + ', the rest ' + PD.shelf(PD.SHOPS[4]).length + ')');
+      okD(PD.fmt(PD.price('hyena')) === '10 sp' && PD.fmt(PD.price('goblin')) === '25 sp' && PD.fmt(PD.price('guard')) === '12 sp 5 cp' && PD.fmt(PD.price('hobgoblin')) === '50 sp' && PD.fmt(PD.price('drow')) === '500 sp' && PD.fmt(PD.START) === '1,000 sp', 'the prices: a hyena (CR 0) 10 sp, a goblin (1/4) 25 sp, a guard (1/8) 12 sp 5 cp, a hobgoblin (1/2) 50 sp, the drow captain (5) 500 sp; the purse starts at 1,000 sp');
       var hum = PD.shelf(PD.SHOPS[2]), sorted = hum.every(function (k, i) { return !i || PD.price(hum[i - 1]) <= PD.price(k); }), dear = PD.shelf(PD.SHOPS[2], 'dear'), byN = PD.shelf(PD.SHOPS[2], 'name').map(function (k) { return D.FOES[k].name; });
       okD(sorted && dear.every(function (k, i) { return !i || PD.price(dear[i - 1]) >= PD.price(k); }) && byN.every(function (n, i) { return !i || byN[i - 1] <= n; }), 'a shelf is priced top to bottom, cheapest first (' + D.FOES[hum[0]].name + ' to ' + D.FOES[hum[hum.length - 1]].name + '); the dearest first and by name on SORT');
-      // d. buying: the purse pays, the receipt is a unit; the purse refuses past itself; a unit let go is paid back
-      var cp = PD.camp(pk.st); cp.purse = PD.START; cp.units = [];
-      var b1 = PD.buy(pk.st, 'goblin'); var afterB = cp.purse;
-      cp.purse = 100; var b2 = PD.buy(pk.st, 'drow'); cp.purse = afterB;
-      okD(b1.ok && afterB === PD.START - 250 && cp.units.length === 1 && cp.units[0].kind === 'goblin' && !b2.ok && /purse holds/.test(b2.why), 'BUY: a goblin for 25 sp leaves 975 sp and a unit; a drow captain past a 10 sp purse is refused (' + b2.why + ')');
-      var gone = PD.dismiss(pk.st, cp.units[0].id);
-      okD(gone && cp.units.length === 0 && cp.purse === PD.START, 'LET GO: the unit goes back to its shop for what was paid');
-      // e. the random ladder: each rolled foe whose CR a unit has is that unit, the newest first, each once a rung
-      cp.units = [{ id: 1, kind: 'worg', at: 1000, paid: 500 }, { id: 2, kind: 'goblin', at: 3000, paid: 250 }, { id: 3, kind: 'drowling', at: 2000, paid: 250 }];
-      var sw = PD.swap(pk.st, ['wolf', 'wolf', 'wolf', 'hobgoblin', 'ogre'], 'hexfloor');
-      okD(sw.foes.join() === 'goblin,drowling,wolf,worg,ogre' && sw.mine === 3 && PK.sum8(sw.foes) === PK.sum8(['wolf', 'wolf', 'wolf', 'hobgoblin', 'ogre']), 'the swap: three wolves (1/4) are the goblin (newest), the drowling, a wolf; the hobgoblin (1/2) is the worg; the ogre stays; the CR the same (' + sw.foes.join(', ') + ')');
-      // f. a built slot: the CR filled from the units first, the newest first, the rest rolled
-      var fl = PD.fill(pk, 'hexfloor', 8);
-      okD(fl.foes[0] === 'goblin' && fl.foes[1] === 'drowling' && fl.foes[2] === 'worg' && fl.mine === 3 && PK.sum8(fl.foes) === 8, 'a CR 1 slot: the goblin, the drowling, the worg (1/4 + 1/4 + 1/2) and nothing rolled (' + PK.foesText(fl.foes) + ')');
-      var fl2 = PD.fill(pk, 'hexfloor', 24);
-      okD(fl2.mine === 3 && PK.sum8(fl2.foes) === 24 && fl2.foes.slice(0, 3).join() === 'goblin,drowling,worg', 'a CR 3 slot: the three units, then CR 2 rolled (' + PK.foesText(fl2.foes) + ')');
+      // d. buying makes receipts; receipts picked (a click, shift+click a run, ctrl+click one more or less, E on a row) and bound are ONE unit at their CR summed (his:
+      // "I went to the store and got Visiting Barbarian and two stable fighters - that was supposed to make a 'unit'"); UNBIND gives them back; LET GO pays a receipt back
+      var byName = function (n) { return Object.keys(D.FOES).filter(function (k) { return D.FOES[k].name === n; })[0]; }, kBarb = byName('Visiting Barbarian'), kSF = byName('Stable Fighter');
+      var cp = PD.camp(pk.st); cp.purse = PD.START; cp.units = []; cp.bought = [];
+      var b1 = PD.buy(pk.st, kBarb), b2 = PD.buy(pk.st, kSF), b3 = PD.buy(pk.st, kSF), b4 = PD.buy(pk.st, 'goblin'), afterB = cp.purse;
+      cp.purse = 100; var bNo = PD.buy(pk.st, 'drow'); cp.purse = afterB;
+      okD(b1.ok && b2.ok && b3.ok && b4.ok && afterB === PD.START - 2000 - 500 - 500 - 250 && cp.bought.length === 4 && cp.units.length === 0 && !bNo.ok && /purse holds/.test(bNo.why), 'BUY: a Visiting Barbarian, two Stable Fighters and a goblin are four receipts and no unit, 675 sp left; a drow captain past a 10 sp purse is refused');
+      var msD = function (o) { D.input.mouse = Object.assign({}, m0D || {}, { click: false, shift: false, ctrl: false }, o); };
+      pk.picked = {}; pk.anchor = null; var rsD = cp.bought;
+      msD({ click: true }); PD.pick(pk, rsD, 0); var s1 = Object.keys(pk.picked).length;
+      msD({ click: true, shift: true }); PD.pick(pk, rsD, 2); var s2 = Object.keys(pk.picked).length;
+      msD({ click: true, ctrl: true }); PD.pick(pk, rsD, 1); var s3 = Object.keys(pk.picked).length;
+      msD({}); PD.pick(pk, rsD, 1); var s4 = Object.keys(pk.picked).length;
+      msD({ click: true }); PD.pick(pk, rsD, 3); var s5 = Object.keys(pk.picked).length;
+      msD({ click: true }); PD.pick(pk, rsD, 0); msD({ click: true, shift: true }); PD.pick(pk, rsD, 2); msD({});
+      okD(s1 === 1 && s2 === 3 && s3 === 2 && s4 === 3 && s5 === 1 && Object.keys(pk.picked).length === 3 && !pk.picked[rsD[3].id], 'picking: a click one (1), shift+click to the third a run (3), ctrl+click drops the second (2), E adds it back (3), a click alone one again (1)');
+      var ids0 = Object.keys(pk.picked).map(Number), u1 = PD.bind(pk.st, ids0);
+      okD(u1 && u1.members.length === 3 && PD.unitCR8(u1) === 24 && PD.unitName(u1) === 'a Visiting Barbarian, 2 Stable Fighters' && cp.units.length === 1 && cp.bought.length === 1 && cp.bought[0].kind === 'goblin', 'BIND AS UNIT: one unit, ' + PD.unitName(u1) + ', CR ' + PK.fmt8(PD.unitCR8(u1)) + '; the goblin still a receipt');
+      var ub = PD.unbind(pk.st, u1.id);
+      okD(ub && cp.units.length === 0 && cp.bought.length === 4, 'UNBIND: the three are receipts again');
+      var gone = PD.dismiss(pk.st, cp.bought.filter(function (r) { return r.kind === 'goblin'; })[0].id);
+      okD(gone && cp.bought.length === 3 && cp.purse === afterB + 250, 'LET GO: a receipt goes back to its shop for what was paid');
+      // e. the units on a table: whole, the newest first, while their CR fits; a unit of CR 0s rides with a table that has CR left; the dial's ladder the same at its rolled CR
+      cp.bought = []; cp.units = [{ id: 11, members: [{ kind: 'goblin', paid: 250 }, { kind: 'goblin', paid: 250 }], at: 1000 }, { id: 12, members: [{ kind: kBarb, paid: 2000 }, { kind: kSF, paid: 500 }, { kind: kSF, paid: 500 }], at: 3000 }, { id: 13, members: [{ kind: 'hyena', paid: 100 }, { kind: 'hyena', paid: 100 }], at: 2000 }];
+      var fl = PD.fill(pk, 'hexfloor', 24);
+      okD(fl.foes.join() === [kBarb, kSF, kSF].join() && fl.mine === 3 && fl.units.join() === '12', 'a CR 3 table: the newest unit whole (' + PK.foesText(fl.foes) + '), and the CR 0 hyenas not alone on a table with nothing left');
+      var fl2 = PD.fill(pk, 'hexfloor', 32);
+      okD(PK.sum8(fl2.foes) === 32 && fl2.mine === 7 && fl2.units.join() === '12,13,11' && fl2.foes.slice(0, 7).join() === [kBarb, kSF, kSF, 'hyena', 'hyena', 'goblin', 'goblin'].join(), 'a CR 4 table: the three units newest first (the barbarian\'s, the hyenas, the goblins), then CR 1/2 rolled (' + PK.foesText(fl2.foes) + ')');
+      var lf = pk.ladderFoes(['ogre', 'hobgoblin'], 'hexfloor');
+      okD(PK.sum8(lf) === 20 && lf.indexOf('hyena') >= 0 && lf.indexOf('goblin') >= 0 && lf.indexOf(kBarb) < 0, 'the dial\'s ladder: a rolled CR 2 1/2 is the units that fit (the hyenas, the goblins; the CR 3 one does not), the rest rolled (' + PK.foesText(lf) + ')');
       // g. the built ladder: two slots are two rungs and no trial; five are four and the trial; the rungs are the slots
       var m2 = pk.mapIds()[1], m3 = pk.mapIds()[2];
       pk.st.party = [{ w: 'barley', lvl: 5, loot: [] }, { w: 'aurdin', lvl: 5, loot: [] }]; pk.cache = {};
-      cp.plan = [{ map: m2, cr8: 8, foes: ['goblin', 'drowling', 'worg'], mine: 3 }, { map: m3, cr8: 16, foes: ['ogre'], mine: 0 }];
+      cp.plan = [{ map: m2, cr8: 8, foes: ['goblin', 'goblin', 'hyena', 'hyena', 'worg'], mine: 4 }, { map: m3, cr8: 16, foes: ['ogre'], mine: 0 }];
       var sp2 = PD.startPlan(pk), run2 = pk.st.run;
-      okD(sp2 && run2.plan.length === 2 && pk.lastRung(run2) === 2 && !pk.hasTrial(run2) && run2.map === m2 && run2.foes.join() === 'goblin,drowling,worg' && pk.rungName(run2) === 'RUNG 1 OF 2', 'FIGHT YOUR LADDER: rung 1 of 2 is the first slot, its floor and its foes');
+      okD(sp2 && run2.plan.length === 2 && pk.lastRung(run2) === 2 && !pk.hasTrial(run2) && run2.map === m2 && run2.foes.join() === 'goblin,goblin,hyena,hyena,worg' && pk.rungName(run2) === 'RUNG 1 OF 2', 'FIGHT YOUR LADDER: rung 1 of 2 is the first slot, its floor and its foes');
       pk.nextRung();
       okD(run2.rung === 2 && run2.map === m3 && run2.foes.join() === 'ogre', 'the next rung is the second slot');
       pk.rerolling = true; pk.st.run.rung = 1; pk.planRung(pk.st.run); pk.rerolling = false;
-      okD(PK.sum8(pk.st.run.foes) === 8 && pk.st.run.foes[0] === 'goblin', 'REROLL THE RUNG on a built one fills it again: the units first (' + PK.foesText(pk.st.run.foes) + ')');
+      okD(PK.sum8(pk.st.run.foes) === 8 && pk.st.run.foes.slice(0, 4).join() === 'hyena,hyena,goblin,goblin', 'REROLL THE RUNG on a built one fills it again: the units first (' + PK.foesText(pk.st.run.foes) + ')');
       cp.plan = [0, 1, 2, 3, 4].map(function (i) { return { map: m2, cr8: 4 + i * 4, foes: ['hobgoblin'], mine: 0 }; }); pk.st.run = null; PD.startPlan(pk);
       okD(pk.lastRung(pk.st.run) === 4 && pk.hasTrial(pk.st.run), 'five slots: four rungs and the trial');
       pk.st.run.trial = true; pk.planRung(pk.st.run);
@@ -5643,6 +5657,11 @@
       okD(fbFile && fbFile.kind === 'hero-situations-feedback' && fbFile.notes === 'the ogre stood still on rung 2' && fbFile.campaign && Array.isArray(fbFile.campaign.party) && fbFile.campaign.roster.length === 2 && fbFile.edition === 'release' && fbFile.campaign.mascots.goose, 'the notes file: the words, the party and roster, the edition, the Mascots let in');
       var esG = PK.entries(pk3.st).map(function (e) { return e.w; });
       okD(esG.indexOf('goose') >= 0 && esG.indexOf('denny') >= 0 && esG.indexOf('beholda') >= 0 && esG.indexOf('rascal') < 0, 'the release roster now shows Denny, Beholda and Goose, and not Rascal');
+      // Rascal on the first unit bound (his "Creating first 'unit' ;)"), by THE UNITS' own button
+      var cp3 = PD.camp(pk3.st); PD.buy(pk3.st, 'goblin'); PD.buy(pk3.st, 'hyena'); pk3.picked = {}; cp3.bought.forEach(function (r) { pk3.picked[r.id] = true; });
+      pk3.go('units'); drawOK(pk3, 'units (to bind)'); var bindB = pk3.btns.filter(function (b) { return /^BIND AS UNIT/.test(b.label); })[0]; if (bindB) pk3.fire(bindB);
+      var rEgg = pk3.egg && pk3.egg.id === 'rascal'; pk3.egg = null; PD.buy(pk3.st, 'goblin'); pk3.picked = {}; pk3.picked[cp3.bought[0].id] = true; pk3.go('units'); drawOK(pk3, 'units'); bindB = pk3.btns.filter(function (b) { return /^BIND AS UNIT/.test(b.label); })[0]; if (bindB) pk3.fire(bindB);
+      okD(bindB && rEgg && !pk3.egg && cp3.units.length === 2 && PD.unitName(cp3.units[0]) === 'a Goblin, a Hyena' && PK.entries(pk3.st).some(function (e) { return e.w === 'rascal'; }), 'Rascal: the first BIND AS UNIT lets him in with his egg (' + (cp3.units[0] && PD.unitName(cp3.units[0])) + '); the second, no egg');
       // m. USEFULS' SITUATIONS opens the notes, not the page; every new screen draws
       pk3.go('useful'); drawOK(pk3, 'useful'); var sit = pk3.btns.filter(function (b) { return b.label === 'SITUATIONS'; })[0]; if (sit) pk3.fire(sit);
       okD(sit && pk3.screen === 'feedback', 'USEFULS: SITUATIONS opens the notes box');
@@ -5650,8 +5669,8 @@
       pk.st.dm = true; var screensD = ['title', 'camp', 'units', 'build', 'doors', 'cr'];
       screensD.forEach(function (s) { pk.go(s); drew.push(drawOK(pk, s)); });
       PD.SHOPS.forEach(function (sh) { pk.shop = sh.id; pk.go('shop'); drew.push(drawOK(pk, 'shop ' + sh.id)); });
-      ['dm', 'release', 'denny', 'beholda', 'goose'].forEach(function (e) { pk.go('title'); PD.egg(pk, e); pk.t += 60; drew.push(drawOK(pk, 'egg ' + e)); pk.egg = null; });
-      okD(drew.every(Boolean), 'every new screen draws: the notes, the title at the DM\'s, CAMPAIGN, THE UNITS, BUILD, DOORS, the foes with the knobs, the five shops, the five eggs');
+      ['dm', 'release', 'denny', 'beholda', 'rascal', 'goose'].forEach(function (e) { pk.go('title'); PD.egg(pk, e); pk.t += 60; drew.push(drawOK(pk, 'egg ' + e)); pk.egg = null; });
+      okD(drew.every(Boolean), 'every new screen draws: the notes, the title at the DM\'s, CAMPAIGN, THE UNITS, BUILD, DOORS, the foes with the knobs, the five shops, the six eggs');
       okD(PD.DOORS.length >= 30 && PD.DOORS.every(function (r) { return r[0] && r[1] && r[2]; }) && /\?fight=greyfang$/.test(PD.doorUrl('?fight=greyfang')), 'DOORS: ' + PD.DOORS.length + ' doors, each a name, a link and what it does');
       // n. the front door's OPTIONS rows, and MENU TYPE in the grid
       var fr = window.DS.MENU.gridRows(null, true).map(function (r) { return r.label; }), fi = window.DS.MENU.gridRows(null, false).map(function (r) { return r.label; });

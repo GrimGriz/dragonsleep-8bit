@@ -237,7 +237,7 @@
     c.addEventListener('mousedown', function (e) {
       if (ghost()) return;
       at(e); e.preventDefault(); c.focus(); D.unlockAudio();
-      if (e.button === 0) I.mouse.click = true;
+      if (e.button === 0) { I.mouse.click = true; I.mouse.shift = !!e.shiftKey; I.mouse.ctrl = !!(e.ctrlKey || e.metaKey); } // (shift and ctrl with the click: the Pocket DM's receipts pick that way, 10-09 -- js/pocketdm.js)
       if (e.button === 1) I.mouse.drag = { x: I.mouse.x, y: I.mouse.y }; // the middle button drags the view
       if (e.button === 2) { I.mouse.rclick = true; I.mouse.rbtn = true; } // (rbtn: the mouse's own right button -- it puts the wheel down and backs out of an aimed spell, ui.js; the pad's INFO and a long press set rclick alone, and inspect)
     });

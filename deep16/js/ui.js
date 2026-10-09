@@ -1047,7 +1047,7 @@
         return [{ label: 'RESTART THE FIGHT', value: 'restart' }].concat(B.o.onDone ? [] : [{ label: 'THE LADDER', value: 'ladder' }], [{ label: UI.backLabel(), value: 'out' }]);
       },
       mascotGame: function () { return UI.mascotGame(B); }, // (the MENU STYLE row sets the Mascot games' own setting here -- js/menu.js gridRows)
-      optsChanged: function (o) { UI.opts.style = o.style === 'window' ? 'window' : o.style === 'ring2' ? 'ring2' : 'ring'; if (UI.STYLES.indexOf(o.mpStyle) >= 0) UI.opts.mpStyle = o.mpStyle; UI.opts.menu = UI.STYLES.indexOf(o.menu) >= 0 ? o.menu : null; UI.opts.autoEnd = o.autoEnd !== false; if (UI.ASKS.indexOf(o.confirmEnd) >= 0) UI.opts.confirmEnd = o.confirmEnd; if (UI.PACES.indexOf(o.pace) >= 0) UI.opts.pace = D.PACE = o.pace; UI.saveOpts(); restyle(B); },
+      optsChanged: function (o) { var was = [UI.opts.style, UI.opts.mpStyle, UI.opts.menu].join(); UI.opts.style = o.style === 'window' ? 'window' : o.style === 'ring2' ? 'ring2' : 'ring'; if (UI.STYLES.indexOf(o.mpStyle) >= 0) UI.opts.mpStyle = o.mpStyle; UI.opts.menu = UI.STYLES.indexOf(o.menu) >= 0 ? o.menu : null; if ([UI.opts.style, UI.opts.mpStyle, UI.opts.menu].join() !== was) UI.urlMenu = null; /* (a MENU STYLE picked in the fight wins over the page's &menu=, 10-09) */ UI.opts.autoEnd = o.autoEnd !== false; if (UI.ASKS.indexOf(o.confirmEnd) >= 0) UI.opts.confirmEnd = o.confirmEnd; if (UI.PACES.indexOf(o.pace) >= 0) UI.opts.pace = D.PACE = o.pace; UI.saveOpts(); restyle(B); },
       run: function (kind, a, done) {
         if (kind === 'kofi') { try { window.open('https://ko-fi.com/grimgriz', '_blank'); } catch (e) { } }
         if (kind === 'exit') {

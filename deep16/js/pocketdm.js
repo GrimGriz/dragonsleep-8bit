@@ -8,15 +8,18 @@
    THE CAMPAIGN (his: "each of the icons (and humanoids) is it's own shop and CR is in silver, i.e. 50 silver = 1/2 CR and the creatures are priced top to bottom
    (or otherwise sortable). Store the receipts of what they purchase as a 'unit' at that CR value"; "one store can be 'aberrations, oozes, etc.'"; "they start
    with 1000 and get double the CR of the ladder encounter for each fight on the ladder (always able to create units)"): five shops by the creature's type, 100 sp
-   a CR (1/8 is 12 sp 5 cp -- the purse is kept in copper), the units newest first. THE LADDER (his: "a ladder button, where their stored units replace randomly
-   assigned units on the ladder" -- "3 - yes", the units never spent, each once a rung, the newest first; "build a ladder. Next to each map a CR up/down, when you
-   click the map it puts it in the next available slot of your campaign ladder, fills CR with units first, from most recently created units first"): five slots,
-   four rungs and the trial; three floors struck from the random draw ("4 - yes": his "limited number of ladder map exclusions").
+   a CR (1/8 is 12 sp 5 cp -- the purse is kept in copper; CR 0 is 10 sp, his "CR 0 at 10 SP or something"). A purchase is a receipt; receipts picked (click, shift+
+   click, ctrl+click) and bound are one UNIT, its CR theirs summed (his: "Visiting Barbarian and two stable fighters - that was supposed to make a 'unit'"). THE
+   LADDER (his: "a ladder button, where their stored units replace randomly assigned units on the ladder" -- "3 - yes"; "build a ladder. Next to each map a CR
+   up/down, when you click the map it puts it in the next available slot of your campaign ladder, fills CR with units first, from most recently created units
+   first"): a table's CR filled with whole units, the newest first, never spent, each once a table; five slots, four rungs and the trial; three floors struck
+   from the random draw ("4 - yes": his "limited number of ladder map exclusions").
    BOTH EDITIONS: USEFULS' SITUATIONS opens a notes box that saves hero_situations_feedback-<UTC>.json, the campaign's particulars in it ("separate from the
    campaign file (but includes pertinent information from the campaign file)"; "No on opening the situations page ... we'll just see what they notice enough to
    type about"). THE EGGS, a Mascot each (10-06 night: "'make your own character the first time' = unlock denny"; 10-09: "Making a campaign should unlock Beholda
    when you haven't bothered to do the 3 clicks"; Goose: "let this unlock a lobstamonkee - flash an easter egg the first time they've actually typed something in
-   and pressed the save button" -- "Goose is the only one I personally can't select at the moment"): js/mpmon.js MP.unlock keeps them in st.mascots. */
+   and pressed the save button" -- "Goose is the only one I personally can't select at the moment"; Rascal: "Creating first 'unit' ;)"): js/mpmon.js MP.unlock keeps
+   them in st.mascots. */
 'use strict';
 (function () {
   var D = window.D16, I = D.input, PK = D.pocket, Pocket = D.Pocket, MP = D.mpmon;
@@ -32,16 +35,26 @@
   // ------------------------------------------------------------------ the campaign's store (st.camp, kept with the rest in deep16.pocket and in SAVE CAMPAIGN's file)
   PD.START = 10000;          // the purse at the start: 1000 sp, in copper
   PD.CP8 = 125;              // an eighth of a CR in copper: 100 sp a CR, so 50 sp is 1/2 and 12 sp 5 cp is 1/8
+  PD.CP0 = 100;              // a CR 0 creature: 10 sp (10-09, Griz: "CR 0 at 10 SP or something, should be able to include them")
   PD.SLOTS = 5;              // the built ladder: four rungs and the trial
   PD.STRIKES = 3;            // the floors the random draw may be kept off
+  // THE RECEIPTS AND THE UNITS (10-09, Griz, on the first cut: "I went to the store and got Visiting Barbarian and two stable fighters - that was supposed to make a
+  // 'unit'. click, shift click and ctrl click to select units then a 'bind as unit' button?"): a purchase is a receipt (c.bought); receipts picked and bound are ONE
+  // unit (c.units: { id, members: [{ kind, paid }], at }), its CR the sum of theirs -- the unit is what a ladder takes, whole
   PD.camp = function (st) {
     var c = st.camp = st.camp && typeof st.camp === 'object' ? st.camp : {};
     if (typeof c.purse !== 'number') c.purse = PD.START;
-    c.units = Array.isArray(c.units) ? c.units : []; c.strike = Array.isArray(c.strike) ? c.strike : []; c.plan = Array.isArray(c.plan) ? c.plan : [];
+    c.bought = Array.isArray(c.bought) ? c.bought : []; c.units = Array.isArray(c.units) ? c.units : [];
+    // (the first cut's units were single purchases: those are receipts, to bind)
+    if (c.units.some(function (u) { return u && u.kind && !u.members; })) { c.bought = c.bought.concat(c.units.filter(function (u) { return u && u.kind && !u.members; })); c.units = c.units.filter(function (u) { return u && u.members; }); }
+    c.strike = Array.isArray(c.strike) ? c.strike : []; c.plan = Array.isArray(c.plan) ? c.plan : [];
     c.mapCR = c.mapCR && typeof c.mapCR === 'object' ? c.mapCR : {}; c.next = c.next || 1;
     return c;
   };
-  PD.price = function (kind) { var f = D.FOES[kind]; return f ? PK.cr8(f.cr) * PD.CP8 : 0; };
+  PD.price = function (kind) { var f = D.FOES[kind]; if (!f) return 0; var e = PK.cr8(f.cr); return e > 0 ? e * PD.CP8 : PD.CP0; };
+  PD.unitCR8 = function (u) { return PK.sum8((u.members || []).map(function (m) { return m.kind; })); };
+  PD.unitKinds = function (u) { return (u.members || []).map(function (m) { return m.kind; }); };
+  PD.unitName = function (u) { return PK.foesText(PD.unitKinds(u)); };
   PD.fmt = function (cp) {
     cp = Math.round(cp || 0); var neg = cp < 0; cp = Math.abs(cp);
     var sp = Math.floor(cp / 10), c = cp % 10, s = String(sp).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
@@ -64,7 +77,7 @@
   PD.OUT = ['keeperold', 'stonegiantm']; // (the ladder's old Keeper; the stone giant's second look, the same block -- one of each on the shelf)
   PD.shelf = function (shop, sort) {
     var out = Object.keys(D.FOES).filter(function (k) {
-      var f = D.FOES[k]; if (!f || /^fam_/.test(k) || f.object || PD.OUT.indexOf(k) >= 0 || PK.cr8(f.cr) <= 0) return false; // (CR 0 costs nothing and fills nothing: off the shelves)
+      var f = D.FOES[k]; if (!f || /^fam_/.test(k) || f.object || PD.OUT.indexOf(k) >= 0) return false; // (CR 0 on the shelves since his 10-09, at 10 sp: a hyena in a unit)
       return shop.types ? shop.types.indexOf(f.type) >= 0 : TYPED.indexOf(f.type) < 0;
     });
     var nm = function (k) { return String(D.FOES[k].name || k); };
@@ -73,45 +86,53 @@
       : function (a, b) { return PD.price(a) - PD.price(b) || (nm(a) < nm(b) ? -1 : 1); });
     return out;
   };
+  // a purchase is a receipt, to bind into a unit
   PD.buy = function (st, kind) {
     var cp = PD.camp(st), cost = PD.price(kind);
     if (!D.FOES[kind] || cost <= 0) return { ok: false, why: 'not for sale' };
     if (cp.purse < cost) return { ok: false, why: 'the purse holds ' + PD.fmt(cp.purse) + ': ' + D.FOES[kind].name + ' is ' + PD.fmt(cost) };
-    cp.purse -= cost; var u = { id: cp.next++, kind: kind, at: Date.now(), paid: cost }; cp.units.push(u);
-    return { ok: true, unit: u };
+    cp.purse -= cost; var r = { id: cp.next++, kind: kind, at: Date.now(), paid: cost }; cp.bought.push(r);
+    return { ok: true, receipt: r };
   };
-  // a unit let go goes back to its shop for what was paid (the seat's call: the purse is a limit on how many at once, not a tax)
+  // a receipt let go goes back to its shop for what was paid (the seat's call: the purse is a limit on how many at once, not a tax)
   PD.dismiss = function (st, id) {
+    var cp = PD.camp(st), r = cp.bought.filter(function (x) { return x.id === id; })[0]; if (!r) return null;
+    cp.bought = cp.bought.filter(function (x) { return x !== r; }); cp.purse += r.paid || PD.price(r.kind); return r;
+  };
+  // BIND AS UNIT: the receipts picked become one unit (in the order bought); UNBIND gives them back as receipts
+  PD.bind = function (st, ids) {
+    var cp = PD.camp(st), pick = cp.bought.filter(function (x) { return ids.indexOf(x.id) >= 0; });
+    if (!pick.length) return null;
+    cp.bought = cp.bought.filter(function (x) { return pick.indexOf(x) < 0; });
+    var u = { id: cp.next++, members: pick.map(function (x) { return { kind: x.kind, paid: x.paid }; }), at: Date.now() };
+    cp.units.push(u);
+    return u;
+  };
+  PD.unbind = function (st, id) {
     var cp = PD.camp(st), u = cp.units.filter(function (x) { return x.id === id; })[0]; if (!u) return null;
-    cp.units = cp.units.filter(function (x) { return x !== u; }); cp.purse += u.paid || PD.price(u.kind); return u;
+    cp.units = cp.units.filter(function (x) { return x !== u; });
+    u.members.forEach(function (m) { cp.bought.push({ id: cp.next++, kind: m.kind, at: Date.now(), paid: m.paid }); });
+    return u;
   };
 
   // ------------------------------------------------------------------ the units on a ladder
-  // the random ladder (his 3): each rolled foe whose CR a unit has is that unit -- the newest first, each unit once a rung, never spent; the reading stays the DMG's
-  PD.swap = function (st, kinds, mapId) {
-    var cp = PD.camp(st), used = {}, units = PD.newest(cp), n = 0;
-    var out = kinds.map(function (k) {
-      var c = PK.cr8((D.FOES[k] || {}).cr);
-      var u = units.filter(function (x) { return !used[x.id] && D.FOES[x.kind] && PK.cr8(D.FOES[x.kind].cr) === c && fits(x.kind, mapId); })[0];
-      if (!u) return k;
-      used[u.id] = true; n++; return u.kind;
-    });
-    return { foes: out, mine: n };
-  };
-  // a slot of the built ladder (his 4): the CR filled from the units first, the newest first, as many as fit it and the floor's room; the rest rolled from the DM's pot
+  // a table at a CR, filled from the units first (his 4: "fills CR with units first, from most recently created units first"): each unit whole, the newest first, while its
+  // CR fits what is left and its heads fit the floor's room; each unit once a table, never spent; the rest rolled from the DM's pot. The dial's own ladder (his 3: "their stored
+  // units replace randomly assigned units on the ladder") is the same at the rung's rolled CR: the units take the place of rolled foes, the CR the same
   PD.fill = function (pk, mapId, cr8) {
-    var cp = PD.camp(pk.st), room = PK.roomOn(mapId), rem = cr8, take = [];
+    var cp = PD.camp(pk.st), room = PK.roomOn(mapId), rem = cr8, take = [], used = [];
     PD.newest(cp).forEach(function (u) {
-      var f = D.FOES[u.kind]; if (!f || take.length >= room) return;
-      var c = PK.cr8(f.cr); if (c <= 0 || c > rem || !fits(u.kind, mapId)) return;
-      take.push(u.kind); rem -= c;
+      var ks = PD.unitKinds(u), c = PD.unitCR8(u);
+      if (!ks.length || c > rem || take.length + ks.length > room || !ks.every(function (k) { return fits(k, mapId); })) return;
+      if (c === 0 && rem === 0) return; // (a unit of CR 0s rides with a table that has CR to fill, not on its own)
+      take = take.concat(ks); rem -= c; used.push(u.id);
     });
     var rest = rem > 0 && take.length < room ? PK.roll(rem, PK.pot(pk.words(), mapId, true), room - take.length) : [];
-    return { foes: take.concat(rest), mine: take.length };
+    return { foes: take.concat(rest), mine: take.length, units: used };
   };
   Pocket.prototype.ladderFoes = function (kinds, mapId) {
-    if (!this.st.dm) return kinds;
-    var r = PD.swap(this.st, kinds, mapId); if (this.st.run) this.st.run.mine = r.mine;
+    if (!this.st.dm || !PD.camp(this.st).units.length) return kinds;
+    var r = PD.fill(this, mapId, PK.sum8(kinds)); if (this.st.run) { this.st.run.mine = r.mine; this.st.run.units = r.units; }
     return r.foes;
   };
   Pocket.prototype.planRung = function (run) {
@@ -181,7 +202,7 @@
     var cp = PD.camp(this.st), x = 22, w = 110, y = 120;
     this.btn(ctx, 'CAMPAIGN', x, y, w, 18, function () { self.go('camp'); }, { pri: true });
     this.btn(ctx, 'DOORS', x, y + 22, w, 16, function () { self.go('doors'); });
-    D.text(ctx, '{y}' + PD.fmt(cp.purse) + '{/}  ' + cp.units.length + ' unit' + (cp.units.length === 1 ? '' : 's'), x + w / 2, y + 44, P('bone', 1), 'center');
+    D.text(ctx, '{y}' + PD.fmt(cp.purse) + '{/}  ' + cp.units.length + ' unit' + (cp.units.length === 1 ? '' : 's') + (cp.bought.length ? ' {g}+' + cp.bought.length + '{/}' : ''), x + w / 2, y + 44, P('bone', 1), 'center');
   };
 
   // ------------------------------------------------------------------ the screens: the campaign, a shop, the units, the builder, the doors, the notes
@@ -226,9 +247,10 @@
     });
     // the units
     var us = PD.newest(cp), uy = 116;
-    var uHead = 'THE UNITS  ' + us.length + (us.length ? ', newest first: ' : ' -- buy some in a shop'), uRoom = D.W - 130 - 20 - D.textWidth(uHead);
-    D.text(ctx, '{y}THE UNITS{/}  ' + us.length + (us.length ? ', newest first: ' + cut(us.slice(0, 8).map(function (u) { return nameOf(u.kind) + ' (' + crOf(u.kind) + ')'; }).join(', '), uRoom) : ' -- buy some in a shop'), 20, uy + 3, P('bone', 1)); // (cut short of THE UNITS button)
-    this.btn(ctx, 'THE UNITS', D.W - 110, uy, 90, 14, function () { self.scroll = 0; self.go('units'); }, { dis: !us.length, why: 'no units yet: buy one in a shop' });
+    var nb = cp.bought.length, uTail = us.length ? ', newest first: ' + us.slice(0, 4).map(function (u) { return PD.unitName(u) + ' (CR ' + PK.fmt8(PD.unitCR8(u)) + ')'; }).join('; ') : nb ? ' -- bind your receipts into one' : ' -- buy in a shop, then bind';
+    var uHead = 'THE UNITS  ' + us.length + (nb ? ' (' + nb + ' receipt' + (nb === 1 ? '' : 's') + ' to bind)' : ''), uRoom = D.W - 130 - 20 - D.textWidth(uHead);
+    D.text(ctx, '{y}THE UNITS{/}  ' + us.length + (nb ? ' {g}(' + nb + ' receipt' + (nb === 1 ? '' : 's') + ' to bind){/}' : '') + cut(uTail, uRoom), 20, uy + 3, P('bone', 1)); // (cut short of THE UNITS button)
+    this.btn(ctx, 'THE UNITS', D.W - 110, uy, 90, 14, function () { self.scroll = 0; self.scroll2 = 0; self.go('units'); }, { dis: !us.length && !nb, why: 'nothing bought yet: buy in a shop, then bind' });
     // the ladder of your own
     var ly = 136;
     D.text(ctx, '{y}YOUR LADDER{/}  ' + cp.plan.length + ' of ' + PD.SLOTS + ' slots' + (cp.plan.length ? '' : ' -- BUILD it: a floor, a CR, your units first'), 20, ly, P('bone', 1));
@@ -256,7 +278,7 @@
     head(ctx, sh.name, sh.sub + ' · the purse: ' + PD.fmt(cp.purse));
     ctx.drawImage(icon(sh.icon), 0, 0, 12, 12, 14, 4, 24, 24);
     var from = Math.min(this.scroll, Math.max(0, list.length - per)); this.scroll = from;
-    var have = {}; cp.units.forEach(function (u) { have[u.kind] = (have[u.kind] || 0) + 1; });
+    var have = {}; cp.bought.forEach(function (r) { have[r.kind] = (have[r.kind] || 0) + 1; }); cp.units.forEach(function (u) { PD.unitKinds(u).forEach(function (k) { have[k] = (have[k] || 0) + 1; }); });
     // two kinds of one name on a shelf (the trooper and the trooper with the crossbow) are told apart by their first blow
     var nmN = {}; list.forEach(function (k) { var n = D.FOES[k].name; nmN[n] = (nmN[n] || 0) + 1; });
     var label = function (k) { var f = D.FOES[k], a = f.attacks && f.attacks[Object.keys(f.attacks)[0]]; return nmN[f.name] > 1 && a ? f.name + ' (' + a.name + ')' : f.name; };
@@ -265,7 +287,7 @@
       var yy = 44 + i * 15, cost = PD.price(k), f = D.FOES[k];
       self.btn(ctx, 'BUY  ' + PD.fmt(cost), 14, yy, 92, 13, function () {
         var r = PD.buy(st, k);
-        if (r.ok) { self.keep(); self.say('bought ' + (/^[aeiou]/i.test(f.name) ? 'an ' : 'a ') + f.name + ' for ' + PD.fmt(cost) + ' -- ' + PD.fmt(PD.camp(st).purse) + ' left', 240); }
+        if (r.ok) { self.keep(); self.say('bought ' + (/^[aeiou]/i.test(f.name) ? 'an ' : 'a ') + f.name + ' for ' + PD.fmt(cost) + ' -- ' + PD.fmt(PD.camp(st).purse) + ' left; BIND makes your receipts a unit', 240); }
         else { D.sfx('error'); self.say(r.why, 300); }
       }, { small: true, dis: cp.purse < cost, why: 'the purse holds ' + PD.fmt(cp.purse) + ': a ladder fight pays twice its CR' });
       D.text(ctx, cut(label(k), 180), 112, yy + 3, P('bone', 1));
@@ -277,26 +299,70 @@
     var si = SORTS.map(function (s) { return s[0]; }).indexOf(sort);
     this.btn(ctx, 'BACK', 20, 236, 60, 15, function () { self.back(); });
     this.btn(ctx, SORTS[si < 0 ? 0 : si][1], 88, 236, 130, 15, function () { self.shopSort = SORTS[(si + 1) % SORTS.length][0]; self.scroll = 0; }, { small: true });
-    this.btn(ctx, 'THE UNITS (' + cp.units.length + ')', 224, 236, 110, 15, function () { self.scroll = 0; self.go('units'); }, { dis: !cp.units.length, why: 'no units yet' });
+    this.btn(ctx, 'BIND (' + cp.bought.length + ')', 224, 236, 110, 15, function () { self.scroll = 0; self.scroll2 = 0; self.go('units'); }, { dis: !cp.bought.length && !cp.units.length, why: 'nothing bought yet' }); // (to THE UNITS, where receipts bind)
     var j = PD.SHOPS.indexOf(sh);
     this.btn(ctx, 'NEXT SHOP >', D.W - 110, 236, 90, 15, function () { self.shop = PD.SHOPS[(j + 1) % PD.SHOPS.length].id; self.scroll = 0; });
   };
-  // the units: the receipts, newest first; one let go goes back to its shop for what was paid
+  // THE UNITS: the receipts on the left, picked as a file list picks (a click one, shift+click a run from the last, ctrl+click adds or drops one; E on a row
+  // adds or drops it, for the keys and a pad), BIND AS UNIT makes them one; the units on the right, newest first, each UNBIND back to receipts
+  PD.pick = function (pk, list, i) {
+    var m = I.mouse, id = list[i].id, sel = pk.picked = pk.picked || {}, mouse = !!m.click;
+    if (mouse && m.shift && pk.anchor != null && list[pk.anchor]) {
+      if (!m.ctrl) Object.keys(sel).forEach(function (k) { delete sel[k]; });
+      for (var j = Math.min(pk.anchor, i); j <= Math.max(pk.anchor, i); j++) sel[list[j].id] = true;
+      return;
+    }
+    if (!mouse || m.ctrl) { if (sel[id]) delete sel[id]; else sel[id] = true; }
+    else { Object.keys(sel).forEach(function (k) { delete sel[k]; }); sel[id] = true; }
+    pk.anchor = i;
+  };
+  Pocket.prototype.wheelTo = function (w) { if (this.screen === 'units' && I.mouse.x >= 244) { this.scroll2 = Math.max(0, (this.scroll2 || 0) + w); return true; } return false; };
   Pocket.prototype.drawUnits = function (ctx) {
-    var self = this, st = this.st, cp = PD.camp(st), us = PD.newest(cp), per = 12;
-    head(ctx, 'THE UNITS', us.length + ' · newest first · on a ladder each takes the place of a rolled foe of its CR · the purse: ' + PD.fmt(cp.purse));
-    var from = Math.min(this.scroll, Math.max(0, us.length - per)); this.scroll = from;
-    us.slice(from, from + per).forEach(function (u, i) {
-      var yy = 38 + i * 15, d = new Date(u.at), when = (d.getMonth() + 1) + '-' + d.getDate() + ' ' + (d.getHours() < 10 ? '0' : '') + d.getHours() + ':' + (d.getMinutes() < 10 ? '0' : '') + d.getMinutes();
-      D.text(ctx, '{g}#' + u.id + '{/}', 14, yy + 3, P('stone', 5));
-      D.text(ctx, cut(nameOf(u.kind), 170), 50, yy + 3, P('bone', 1));
-      D.text(ctx, 'CR ' + crOf(u.kind), 230, yy + 3, P('gold', 4));
-      D.text(ctx, '{g}' + PD.fmt(u.paid || PD.price(u.kind)) + '  ' + when + '{/}', 290, yy + 3, P('stone', 5));
-      self.btn(ctx, 'LET GO', D.W - 70, yy, 56, 13, function () { var g = PD.dismiss(st, u.id); if (g) { self.keep(); self.say(nameOf(g.kind) + ' goes back to the shop: +' + PD.fmt(g.paid || PD.price(g.kind)), 240); } }, { small: true });
+    var self = this, st = this.st, cp = PD.camp(st), rs = cp.bought, us = PD.newest(cp), per = 12, sel = this.picked = this.picked || {};
+    Object.keys(sel).forEach(function (k) { if (!rs.some(function (r) { return String(r.id) === k; })) delete sel[k]; });
+    var ids = rs.filter(function (r) { return sel[r.id]; }).map(function (r) { return r.id; }), pickedKinds = rs.filter(function (r) { return sel[r.id]; }).map(function (r) { return r.kind; });
+    head(ctx, 'THE UNITS', 'click one · shift+click a run · ctrl+click one more or less · then BIND AS UNIT · purse ' + PD.fmt(cp.purse));
+    // the receipts
+    var lx = 10, lw = 228, rx = 246, rw = D.W - rx - 10;
+    D.text(ctx, '{y}THE RECEIPTS{/}  ' + rs.length + (ids.length ? '  {g}' + ids.length + ' picked: CR ' + PK.fmt8(PK.sum8(pickedKinds)) + '{/}' : ''), lx, 34, P('bone', 1));
+    var from = Math.min(this.scroll, Math.max(0, rs.length - per)); this.scroll = from;
+    rs.slice(from, from + per).forEach(function (r, k) {
+      var i = from + k, yy = 44 + k * 14, on = !!sel[r.id];
+      self.btn(ctx, '', lx, yy, lw, 13, function () { PD.pick(self, rs, i); }, { on: on, small: true });
+      D.text(ctx, (on ? '{y}x{/}' : '{g}.{/}'), lx + 5, yy + 3, P('bone', 1));
+      D.text(ctx, cut(nameOf(r.kind), 128), lx + 16, yy + 3, on ? P('stone', 1) : P('bone', 1));
+      D.text(ctx, 'CR ' + crOf(r.kind), lx + 150, yy + 3, on ? P('stone', 1) : P('gold', 4));
+      D.text(ctx, PD.fmt(r.paid || PD.price(r.kind)), lx + lw - 4, yy + 3, on ? P('stone', 1) : P('stone', 5), 'right');
     });
-    if (!us.length) D.text(ctx, 'no units yet: buy them in the campaign\'s shops', D.W / 2, 80, P('stone', 5), 'center');
-    if (us.length > per) D.text(ctx, 'wheel: ' + (from + 1) + '-' + Math.min(us.length, from + per) + ' of ' + us.length, 14, 38 + per * 15 + 2, P('stone', 5));
+    if (!rs.length) D.text(ctx, 'none: buy in the shops, and they wait here', lx + 6, 50, P('stone', 5));
+    if (rs.length > per) D.text(ctx, 'wheel: ' + (from + 1) + '-' + Math.min(rs.length, from + per) + ' of ' + rs.length, lx, 44 + per * 14 + 2, P('stone', 5));
+    // the units
+    D.text(ctx, '{y}YOUR UNITS{/}  ' + us.length + ' · newest first', rx, 34, P('bone', 1));
+    var per2 = 7, from2 = Math.min(this.scroll2 || 0, Math.max(0, us.length - per2)); this.scroll2 = from2; // (two lines a unit: its name whole, then its CR, its heads and UNBIND)
+    us.slice(from2, from2 + per2).forEach(function (u, k) {
+      var yy = 44 + k * 24;
+      ctx.fillStyle = 'rgba(20,16,30,.9)'; ctx.fillRect(rx, yy, rw, 22); ctx.strokeStyle = P('stone', 3); ctx.strokeRect(rx + 0.5, yy + 0.5, rw - 1, 21);
+      D.text(ctx, cut(PD.unitName(u), rw - 8), rx + 4, yy + 3, P('bone', 1));
+      D.text(ctx, 'CR ' + PK.fmt8(PD.unitCR8(u)) + '  {g}' + u.members.length + ' head' + (u.members.length === 1 ? '' : 's') + '{/}', rx + 4, yy + 12, P('gold', 4));
+      self.btn(ctx, 'UNBIND', rx + rw - 48, yy + 10, 46, 11, function () { var g = PD.unbind(st, u.id); if (g) { self.keep(); self.say(PD.unitName(g) + ': receipts again', 240); } }, { small: true });
+    });
+    if (!us.length) D.text(ctx, 'none yet: pick receipts and BIND AS UNIT', rx + 6, 50, P('stone', 5));
+    if (us.length > per2) D.text(ctx, 'wheel: ' + (from2 + 1) + '-' + Math.min(us.length, from2 + per2) + ' of ' + us.length, rx, 44 + per2 * 24 + 2, P('stone', 5));
+    D.text(ctx, 'on a ladder a unit fights whole, at the sum of its CRs, your newest first · E on a receipt adds or drops it', D.W / 2, 224, P('stone', 5), 'center');
     this.btn(ctx, 'BACK', 20, 236, 60, 15, function () { self.back(); });
+    this.btn(ctx, ids.length ? 'BIND AS UNIT (' + ids.length + ': CR ' + PK.fmt8(PK.sum8(pickedKinds)) + ')' : 'BIND AS UNIT', 88, 236, 170, 15, function () {
+      var u = PD.bind(st, ids); if (!u) return;
+      self.picked = {}; self.anchor = null;
+      var rascal = MP && MP.unlock ? MP.unlock(st, 'rascal') : false; // (the first unit bound: Rascal -- his 10-09, "Creating first 'unit' ;)")
+      self.keep(); self.say('one unit: ' + PD.unitName(u) + ', CR ' + PK.fmt8(PD.unitCR8(u)), 300);
+      if (rascal) PD.egg(self, 'rascal');
+    }, { pri: true, dis: !ids.length, why: 'pick a receipt or more first: a click, shift+click, ctrl+click' });
+    this.btn(ctx, 'LET GO', 264, 236, 70, 15, function () {
+      var back = 0, n = 0; ids.forEach(function (id) { var g = PD.dismiss(st, id); if (g) { back += g.paid || PD.price(g.kind); n++; } });
+      self.picked = {}; self.anchor = null; self.keep(); self.say(n + ' back to the shops: +' + PD.fmt(back), 240);
+    }, { dis: !ids.length, why: 'pick the receipts to let go first', small: true });
+    this.btn(ctx, ids.length === rs.length && rs.length ? 'NONE' : 'ALL', 340, 236, 50, 15, function () { var all = ids.length !== rs.length; self.picked = {}; if (all) rs.forEach(function (r) { self.picked[r.id] = true; }); }, { dis: !rs.length, small: true });
+    this.btn(ctx, 'THE SHOPS', D.W - 86, 236, 70, 15, function () { self.back(); }, { small: true });
   };
   // the builder (his: "Next to each map a CR up/down, when you click the map it puts it in the next available slot of your campaign ladder"), and the strikes
   Pocket.prototype.drawBuild = function (ctx) {
@@ -406,7 +472,7 @@
         party: sh.map(function (s) { return s.h ? { name: s.h.name, cls: s.h.cls, lvl: s.h.lvl, word: PK.wordOf(st, s.slot) } : null; }).filter(Boolean),
         roster: (st.roster || []).map(function (c) { return { name: c.name, cls: c.cls, lvl: c.lvl, code: c.code }; }), pyro: !!st.pyro, mascots: st.mascots || {},
         ladder: run ? { rung: run.trial ? 'trial' : run.rung, won: run.won || 0, map: run.map, foes: run.foes, built: !!run.plan } : null,
-        dm: cp ? { purse: PD.fmt(cp.purse), units: (cp.units || []).map(function (u) { return u.kind; }), strike: cp.strike || [], ladder: (cp.plan || []).map(function (s) { return s.map + ' CR ' + PK.fmt8(s.cr8); }) } : null
+        dm: cp ? { purse: PD.fmt(cp.purse), units: (cp.units || []).map(function (u) { return PD.unitName(u) + ' (CR ' + PK.fmt8(PD.unitCR8(u)) + ')'; }), receipts: (cp.bought || []).map(function (r) { return r.kind; }), strike: cp.strike || [], ladder: (cp.plan || []).map(function (s) { return s.map + ' CR ' + PK.fmt8(s.cr8); }) } : null
       },
       fights: fights.map(function (f) { return { at: new Date(f.t).toISOString(), result: f.result, rounds: f.rounds, foes: f.foes, cr: f.cr, diff: f.diff, map: f.mapName, party: f.party, rung: f.rung, notes: f.notes || '' }; })
     };
@@ -456,6 +522,7 @@
     release: { title: 'THE RELEASE EDITION', lines: ['The high seat is empty again.', '{g}Your campaign keeps; the DM\'s screens wait behind the same three.{/}'], sfx: 'cancel' },
     denny: { who: 'denny', title: 'DENNY JOINS THE ROSTER', lines: ['A Lobstamonkee in a denim jacket drops off the high seat.', '"Somebody new at the table? Make room. DENIM DAMAGE!"', '{g}Denny is on the roster now: cycle a seat at THE PARTY.{/}'], sfx: 'levelup', clip: 'audio/denim_damage.mp3' },
     beholda: { who: 'beholda', title: 'BEHOLDA JOINS THE ROSTER', lines: ['An eye opens in the Sunshaft\'s light, and floats down to the stone.', '"A whole campaign, saved? Oh, I have to watch this one."', '{g}Beholda is on the roster now: cycle a seat at THE PARTY.{/}'], sfx: 'levelup' },
+    rascal: { who: 'rascal', title: 'RASCAL JOINS THE ROSTER', lines: ['A Lobstamonkee pops up from between the receipts, grinning.', '"A unit of villains? Every unit needs a rascal."', '{g}Rascal is on the roster now: cycle a seat at THE PARTY.{/}'], sfx: 'levelup' },
     goose: { who: 'goose', title: 'GOOSE JOINS THE ROSTER', lines: ['HONK.', '"You wrote it down! Somebody reads these, you know."', '{g}Goose is on the roster now: cycle a seat at THE PARTY.{/}'], sfx: 'honk' }
   };
   PD.egg = function (pk, id) {

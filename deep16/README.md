@@ -413,14 +413,17 @@ the pages beside the game, the Discord) and THE 8-BIT GAME; the 8-bit title has 
   eventually take"*):** SAVE TABLE is **SAVE CAMPAIGN** (kind `pocket-campaign`; a `pocket-table` file still loads). USEFULS' **SITUATIONS** is a notes
   box (`st.feedback`) whose SAVE writes `hero_situations_feedback-<UTC>.json` -- the words, the party and roster, the ladder, the DM's campaign, the
   last five fights. **The eggs** (`PD.EGGS`, `MP.unlock`, once a save): Denny on the first character made, Beholda on the release edition's first
-  SAVE CAMPAIGN, Goose on the first notes saved. **The DM's table** (`st.dm`; its door on the title is in the code and the lane, not here): the cap 12,
+  SAVE CAMPAIGN, Goose on the first notes saved, Rascal on the first unit bound. **The DM's table** (`st.dm`; its door on the title is in the code and the lane, not here): the cap 12,
   Pyro without the trial, GreyFang and every Mascot on the roster, the story's named in the dial's pot (`PK.pot(..., dm)`), the class floor's knobs
   on the foes screen (`Pocket.knobs`: `flyTest`, `legendTest`, `breathTest`, the dark), DOORS (`PD.DOORS`), and **THE CAMPAIGN** (`st.camp`): five
-  shops by creature type (`PD.SHOPS`, `PD.shelf`) at 100 sp a CR (`PD.price`, the purse in copper: 1/8 is 12 sp 5 cp), a purse of 1000 sp that takes
-  in twice a ladder fight's CR won or lost (`Pocket.afterFight`), the units newest first (`PD.newest`; LET GO pays one back), the dial's ladder
-  swapping units in for rolled foes of their CR (`PD.swap`, `Pocket.ladderFoes`), three floors struck from every random draw (`randomMap`), and
-  BUILD THE LADDER -- five slots, four rungs and the trial, each a floor at its CR filled units-first (`PD.fill`, `run.plan`, `Pocket.planRung`;
-  `lastRung` / `hasTrial` size a built ladder). **Bench:** `mode=pocketdm1009` (in the quick gate).
+  shops by creature type (`PD.SHOPS`, `PD.shelf`) at 100 sp a CR (`PD.price`, the purse in copper: 1/8 is 12 sp 5 cp, CR 0 10 sp), a purse of
+  1000 sp that takes in twice a ladder fight's CR won or lost (`Pocket.afterFight`); a purchase is a receipt (`camp.bought`), and receipts picked on
+  THE UNITS (a click one, shift+click a run, ctrl+click one more or less: `PD.pick`, `core.js` `I.mouse.shift` / `ctrl`) and bound are one unit at
+  their CRs summed (`PD.bind`, `PD.unbind`; 10-09b, his: *"Visiting Barbarian and two stable fighters - that was supposed to make a 'unit'"*); a
+  table's CR is filled with whole units newest first, the rest rolled (`PD.fill`) -- the dial's ladder at each rung's rolled CR (`Pocket.ladderFoes`)
+  and BUILD THE LADDER's five slots, four rungs and the trial, each a floor at its CR (`run.plan`, `Pocket.planRung`; `lastRung` / `hasTrial` size a
+  built ladder); three floors struck from every random draw (`randomMap`). Rascal's egg: the first unit bound. **Bench:** `mode=pocketdm1009` (in the
+  quick gate).
 
 ## MPMon, the Monster Party Monster -- `js/mpmon.js` (10-06)
 

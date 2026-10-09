@@ -341,7 +341,7 @@
     if (s === 'title' && this.titleClick()) return; // (the throne and the two lamps: js/pocketdm.js)
     if (this.readButtons()) return;
     if (s === 'map' || s === 'fights' || s === 'maker' || s === 'useful' || this.scrolls(s)) {
-      var w = I.mouse.wheel; if (w) { this.scroll = Math.max(0, this.scroll + w); }
+      var w = I.mouse.wheel; if (w && !this.wheelTo(w)) { this.scroll = Math.max(0, this.scroll + w); } // (wheelTo: a screen of two lists takes it for the one under the mouse, js/pocketdm.js)
     }
     if (s === 'cr' && this.drag && I.mouse.inside) {
       var d = this.drag; if (!I.held || !I.mouse.inWin) { this.drag = null; }
@@ -367,6 +367,7 @@
   Pocket.prototype.titleClick = function () { return false; };
   Pocket.prototype.backMore = function () { return false; };
   Pocket.prototype.scrolls = function () { return false; };
+  Pocket.prototype.wheelTo = function () { return false; };
   Pocket.prototype.drawMore = function () { };
   Pocket.prototype.drawTitleDM = function () { };
   Pocket.prototype.drawKnobs = function () { };
