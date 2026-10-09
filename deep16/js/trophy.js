@@ -119,7 +119,7 @@
     var F = B.fight, h = B.units.filter(function (u) { return u.kind === 'harbinger'; })[0], g = B.units.filter(function (u) { return u.id === (F.hunted || F.quarry || 'greyfang'); })[0]; // (hunted: the ending's own, when the fight's AI hunts no one)
     if (!h || !g) return;
     B.trophyDone = true; B.clearCards && B.clearCards();
-    if (D.spr.ensure) D.spr.ensure(['face_harbinger', 'face_greyfang']); // (the big faces fetched now: the sheets come when asked, and the first close-up is ten seconds off)
+    if (D.spr.ensure) D.spr.ensure(['face_harbinger', 'face_greyfang', 'face_harbinger_hurt', 'face_greyfang_hurt']); // (the big faces fetched now: the sheets come when asked, and the first close-up is ten seconds off)
     var cine0 = B.cine; B.cine = true; // (no turn strip and no bar over the picture: the show's way, js/gameshow.js)
     var S = stage(B), gAlive = g.hp > 0 && !g.dead, ground = G.groundAt(h, h.x, h.y);
     B.trophyGF = gAlive; // (whether he stood at the win: the bench's fight line says it -- dev/bench16.js)
@@ -173,7 +173,7 @@
       yield 16;
       // ---- his face: "The Mane is mine."
       for (var df = 0; df < 16; df++) { S.dim = df / 16 * 0.8; yield 1; }
-      for (var fw8 = 0; fw8 < 120 && D.spr.ready && !D.spr.ready(['face_harbinger', 'face_greyfang']); fw8++) yield 1; // (the faces not come yet: a moment's wait, two seconds at most)
+      for (var fw8 = 0; fw8 < 120 && D.spr.ready && !D.spr.ready(['face_harbinger', 'face_greyfang', 'face_harbinger_hurt', 'face_greyfang_hurt']); fw8++) yield 1; // (the faces not come yet: a moment's wait, two seconds at most)
       S.face = { sheet: 'face_harbinger', s: 1.0, flare: 0 }; // (the big face off his sheet -- Griz, 10-08: "I remember a lot of the art sheets starting with a big ole face in the top left..")
       for (var zf = 0; zf < 22; zf++) { S.face.s = 1.0 + ease(zf / 22) * 1.1; yield 1; } // (in on it)
       word('audio/the_mane_is_mine.mp3', 'The Mane is mine.');
@@ -222,10 +222,10 @@
       // ---- their faces
       B.card(['{v}High over the pit, it looks GreyFang in the eye.{/}'], 1e9, 'trophy');
       for (df = 0; df < 12; df++) { S.dim = df / 12 * 0.55; yield 1; }
-      S.face = { sheet: 'face_harbinger', s: 1.0 };
+      S.face = { sheet: 'face_harbinger_hurt', s: 1.0 }; // (the battered faces up there: the fight's wear on both -- his two close-ups, 10-08)
       for (zf = 0; zf < 18; zf++) { S.face.s = 1.0 + ease(zf / 18) * 1.1; yield 1; }
       yield 50;
-      S.face = { sheet: 'face_greyfang', s: 2.1 }; // (his, looking back at it: the front face he drew, 10-08)
+      S.face = { sheet: 'face_greyfang_hurt', s: 2.1 }; // (his, looking back at it, worn out, one eye swollen shut)
       yield 60;
       // ---- the flash: the trophy taken
       D.sfx('crit');

@@ -36,6 +36,10 @@ FACES = {
     # gnoll's sheet 2 box (0, 20, 300, 285), its amber eye (171, 125, 194, 141) painted over): mirror_eye stays for a portrait that needs it
     'face_greyfang': (os.path.join('Fresh', 'Greyfang, the grizzled wolfkin ranger.png'), (0, 0, 1254, 1254), []),
     'face_harbinger': (os.path.join('Fresh', 'Harbinger, the Mirror Gnoll.png'), (0, 0, 1254, 1254), []),
+    # (and two battered, close, dropped after: the Harbinger bloodied, teeth bared; GreyFang worn out, an eye swollen shut -- the seat's call, the sky's face to
+    # face after the fight; the clean faces for the Mane, he is just stood up whole)
+    'face_harbinger_hurt': (os.path.join('Fresh', 'Battered Mirror-Eyed Gnoll Close-Up-2.png'), (0, 0, 1254, 1254), []),
+    'face_greyfang_hurt': (os.path.join('Fresh', 'Exhausted Wolfkin Ranger Face Close-Up-1.png'), (0, 0, 1254, 1254), []),
 }
 
 

@@ -1,0 +1,21 @@
+{
+ "image": "art/face_greyfang_hurt.png",
+ "fw": 128,
+ "fh": 124,
+ "ax": 64,
+ "ay": 122,
+ "top": 2,
+ "anims": {
+  "idle": {
+   "y": 0,
+   "fw": 128,
+   "fh": 124,
+   "ax": 64,
+   "ay": 122,
+   "frames": 1,
+   "fps": 6
+  }
+ },
+ "face": 60,
+ "source": "the big face off Fresh\\Exhausted Wolfkin Ranger Face Close-Up-1.png (Griz, 10-08), cut by tools/faces-sheet.py"
+}
