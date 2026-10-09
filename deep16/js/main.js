@@ -11,6 +11,11 @@
   var D = window.D16, q = location.search;
   var sc = /[?&]scale=(\d)/.exec(q);
   if (sc) D.forceScale = +sc[1];
+  // &hscale=N (10-08, Griz, on drawing height at true scale: "not the fight but the map, try it on the ediface"): every map's heights drawn N times as tall for this
+  // page -- a map's `step`, the px a 2.5 ft step is drawn (10 on most: 5 ft is 20 px, a figure about 50). The rules read feet through the same number (js/grid.js:
+  // G.dist, G.LAYER, the falls), so only the picture changes. A look, not a ruling: the maps keep their own steps
+  var hsc = /[?&]hscale=([0-9.]+)/.exec(q);
+  if (hsc && +hsc[1] > 0) Object.keys(D.MAPS || {}).forEach(function (k) { var m = D.MAPS[k]; if (m && m.step) m.step = Math.max(1, Math.round(m.step * +hsc[1])); });
   D.initCanvas();
   D.initMouse();
   D.initTouch(); // a phone: the pad, and the canvas read for a finger (?touch forces it)
