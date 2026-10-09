@@ -29,11 +29,13 @@ if not os.path.exists(os.path.join(SRC, 'Mirror-Eyed Gnoll Action Sprite Sheet2.
     _common = subprocess.run(['git', '-C', ROOT, 'rev-parse', '--git-common-dir'], capture_output=True, text=True).stdout.strip()
     SRC = os.path.join(os.path.dirname(os.path.abspath(os.path.join(ROOT, _common))), 'deep16', '_src')
 
-HEIGHT = 96          # px tall at game size (the screen is 270: a close-up at 2x stands most of its height)
+HEIGHT = 120         # px tall at game size (the screen is 270: a close-up at 2x stands most of its height)
 FACES = {
-    # name: (source sheet, the portrait's box on it, boxes whose amber is painted as a mirror)
-    'face_greyfang': (os.path.join('Fresh', 'Greyfang_ Grizzled Veteran Ranger Sprite Sheet-1.png'), (0, 45, 298, 274), []),
-    'face_harbinger': ('Mirror-Eyed Gnoll Action Sprite Sheet2.png', (0, 20, 300, 285), [(171, 125, 194, 141)]),
+    # name: (source, the portrait's box on it, boxes whose amber is painted as a mirror). Since 10-08 evening his own two front faces, drawn for these
+    # close-ups -- the Harbinger's with both mirrors. The first cut was the sheets' side portraits (GreyFang's sheet 1 box (0, 45, 298, 274); the made
+    # gnoll's sheet 2 box (0, 20, 300, 285), its amber eye (171, 125, 194, 141) painted over): mirror_eye stays for a portrait that needs it
+    'face_greyfang': (os.path.join('Fresh', 'Greyfang, the grizzled wolfkin ranger.png'), (0, 0, 1254, 1254), []),
+    'face_harbinger': (os.path.join('Fresh', 'Harbinger, the Mirror Gnoll.png'), (0, 0, 1254, 1254), []),
 }
 
 

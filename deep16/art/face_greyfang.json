@@ -1,21 +1,21 @@
 {
  "image": "art/face_greyfang.png",
  "fw": 128,
- "fh": 100,
+ "fh": 124,
  "ax": 64,
- "ay": 98,
+ "ay": 122,
  "top": 2,
  "anims": {
   "idle": {
    "y": 0,
    "fw": 128,
-   "fh": 100,
+   "fh": 124,
    "ax": 64,
-   "ay": 98,
+   "ay": 122,
    "frames": 1,
    "fps": 6
   }
  },
- "face": 48,
- "source": "the big face off Fresh\\Greyfang_ Grizzled Veteran Ranger Sprite Sheet-1.png (Griz, 10-08), cut by tools/faces-sheet.py"
+ "face": 60,
+ "source": "the big face off Fresh\\Greyfang, the grizzled wolfkin ranger.png (Griz, 10-08), cut by tools/faces-sheet.py"
 }

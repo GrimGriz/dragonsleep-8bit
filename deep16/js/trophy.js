@@ -48,7 +48,7 @@
     var c = document.createElement('canvas'); c.width = f.fw; c.height = f.fh; var g = c.getContext('2d'); g.drawImage(f.img, f.sx, f.sy, f.fw, f.fh, 0, 0, f.fw, f.fh);
     var d = g.getImageData(0, 0, f.fw, f.fh).data, top = f.fh, pts = [];
     for (var y = 0; y < f.fh; y++) for (var x = 0; x < f.fw; x++) if (d[(y * f.fw + x) * 4 + 3] > 0) { top = Math.min(top, y); }
-    for (y = top; y < top + (f.ay - top) * 0.45; y++) for (x = 0; x < f.fw; x++) { var i = (y * f.fw + x) * 4; if (d[i + 3] > 0 && d[i + 2] > 190 && d[i + 1] > 170 && d[i + 2] >= d[i]) pts.push([x, y]); }
+    for (y = top; y < top + (f.ay - top) * 0.6; y++) for (x = 0; x < f.fw; x++) { var i = (y * f.fw + x) * 4; if (d[i + 3] > 0 && d[i + 2] > 190 && d[i + 1] > 170 && d[i + 2] >= d[i]) pts.push([x, y]); }
     if (!pts.length) return (EYES[key] = []);
     var mx = pts.reduce(function (s, p) { return s + p[0]; }, 0) / pts.length, L = pts.filter(function (p) { return p[0] <= mx; }), R = pts.filter(function (p) { return p[0] > mx; });
     var mean = function (ps) { return ps.length ? [ps.reduce(function (s, p) { return s + p[0]; }, 0) / ps.length - f.ax, ps.reduce(function (s, p) { return s + p[1]; }, 0) / ps.length - f.ay] : null; };
@@ -174,13 +174,13 @@
       // ---- his face: "The Mane is mine."
       for (var df = 0; df < 16; df++) { S.dim = df / 16 * 0.8; yield 1; }
       for (var fw8 = 0; fw8 < 120 && D.spr.ready && !D.spr.ready(['face_harbinger', 'face_greyfang']); fw8++) yield 1; // (the faces not come yet: a moment's wait, two seconds at most)
-      S.face = { sheet: 'face_harbinger', s: 1.2, flare: 0 }; // (the big face off his sheet -- Griz, 10-08: "I remember a lot of the art sheets starting with a big ole face in the top left..")
-      for (var zf = 0; zf < 22; zf++) { S.face.s = 1.2 + ease(zf / 22) * 1.5; yield 1; } // (in on it)
+      S.face = { sheet: 'face_harbinger', s: 1.0, flare: 0 }; // (the big face off his sheet -- Griz, 10-08: "I remember a lot of the art sheets starting with a big ole face in the top left..")
+      for (var zf = 0; zf < 22; zf++) { S.face.s = 1.0 + ease(zf / 22) * 1.1; yield 1; } // (in on it)
       word('audio/the_mane_is_mine.mp3', 'The Mane is mine.');
       B.card(['{v}"The Mane is mine."{/}'], 1e9, 'trophy');
       for (var ef = 0; ef < 40; ef++) { S.face.flare = ef < 8 ? ef / 8 : Math.max(0, 1 - (ef - 8) / 32); yield 1; }
       yield 30;
-      for (zf = 0; zf < 14; zf++) { S.face.s = 2.7 - ease(zf / 14) * 1.2; S.dim = 0.8 * (1 - zf / 14); yield 1; }
+      for (zf = 0; zf < 14; zf++) { S.face.s = 2.1 - ease(zf / 14) * 1.0; S.dim = 0.8 * (1 - zf / 14); yield 1; }
       S.face = null; S.dim = 0;
       // ---- the Pounce onto GreyFang
       B.clearCards && B.clearCards();
@@ -222,10 +222,10 @@
       // ---- their faces
       B.card(['{v}High over the pit, it looks GreyFang in the eye.{/}'], 1e9, 'trophy');
       for (df = 0; df < 12; df++) { S.dim = df / 12 * 0.55; yield 1; }
-      S.face = { sheet: 'face_harbinger', s: 1.2 };
-      for (zf = 0; zf < 18; zf++) { S.face.s = 1.2 + ease(zf / 18) * 1.5; yield 1; }
+      S.face = { sheet: 'face_harbinger', s: 1.0 };
+      for (zf = 0; zf < 18; zf++) { S.face.s = 1.0 + ease(zf / 18) * 1.1; yield 1; }
       yield 50;
-      S.face = { sheet: 'face_greyfang', s: 2.7, flip: true }; // (his, turned to look back at it)
+      S.face = { sheet: 'face_greyfang', s: 2.1 }; // (his, looking back at it: the front face he drew, 10-08)
       yield 60;
       // ---- the flash: the trophy taken
       D.sfx('crit');
