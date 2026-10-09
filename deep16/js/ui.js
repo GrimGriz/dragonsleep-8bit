@@ -32,7 +32,7 @@
   // END TURN ASKS (10-06, a pad player: "maybe a confirmation screen if you press end turn without having done anything? or have it available in settings to always
   // confirm end turn / only ask for confirmation if no other actions taken / never ask"; Griz: "yeah"): 'idle' asks only when nothing is done yet, the default
   UI.opts = { help: false, style: 'ring', mpStyle: 'ring2', autoEnd: true, pace: 1.25, confirmEnd: 'idle' };
-  UI.PACES = [1, 1.25, 1.5];
+  UI.PACES = [1, 1.25, 1.5, 2, 2.5, 3, 4]; // (2 to 4 slower still, 10-08, Griz: "Can you add me longer lag (greater AI speed variables in the option section of the menu)" -- js/menu.js PACES the same)
   UI.ASKS = ['idle', 'always', 'never'];
   UI.STYLES = ['ring', 'ring2', 'window'];
   try { var o0 = JSON.parse(window.localStorage.getItem('deep16.opts') || 'null'); if (o0) { if (o0.style === 'window' || o0.style === 'ring2') UI.opts.style = o0.style; if (UI.STYLES.indexOf(o0.mpStyle) >= 0) UI.opts.mpStyle = o0.mpStyle; if (o0.autoEnd === false) UI.opts.autoEnd = false; if (UI.PACES.indexOf(o0.pace) >= 0) UI.opts.pace = o0.pace; if (UI.ASKS.indexOf(o0.confirmEnd) >= 0) UI.opts.confirmEnd = o0.confirmEnd; } } catch (e) { }
@@ -51,7 +51,7 @@
   UI.styleOf = function (u, B) { return UI.style(B); };
   D.PACE = UI.opts.pace;
   if (D.STREAM) D.PACE = UI.STREAM_PACE = 2.5; // (the stream, 10-07, Griz: "the AI to take its turns about half current speed" -- twice the 1.25 default, a starting value only: the M menu's PACE row still sets D.PACE (optsChanged, below) and nothing here is saved; ?pace= below still wins)
-  var pq = /[?&]pace=([0-9.]+)/.exec(location.search); if (pq && +pq[1] >= 0.5 && +pq[1] <= 3) D.PACE = +pq[1];
+  var pq = /[?&]pace=([0-9.]+)/.exec(location.search); if (pq && +pq[1] >= 0.5 && +pq[1] <= 5) D.PACE = +pq[1];
   // at rest: WINDOW holds its command window up (as Chrono Trigger does); RING stands on the grid ready to walk, and
   // the ring comes up on E over the hero (where the cursor starts a turn), a click on him, or Q (Griz, 09-27)
   function rest() { return UI.style() === 'window' ? 'menu' : 'move'; }

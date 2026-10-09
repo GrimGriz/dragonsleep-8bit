@@ -2742,6 +2742,7 @@
   // hover"): down or dead, wingless (a Wild Shape's bat gone back to a druid), prone, held, unable to act, no speed. A floater hovers while it stands (RULED 10-06: it floats)
   Battle.flyWhy = function (u) {
     if (u.fz == null || !G.aloft(u)) return null;
+    if (u.cine) return null; // (held up by a cutscene, whatever it is: GreyFang's end, js/trophy.js -- the Harbinger floating, GreyFang carried into the sky, 10-08)
     var c = u.conds || {};
     if (u.dead || u.hp <= 0) return u.dead ? 'dead' : 'down';
     if (u.floats) return null;

@@ -785,7 +785,7 @@
   // the grid's own rows (deep16/js/ui.js UI.opts; Griz, 10-06: "OPTIONS - doesn't include ai message speed or end turn asks (even if greyed for menu
   // uniformity)"): kept where the grid keeps them, localStorage deep16.opts, so a story fight reads them when it opens; a host holding the grid live
   // applies them at once (host.optsChanged). The volumes were one store already (js/audio.js ds8-audio)
-  var OPT_KEY = 'deep16.opts', PACES = [1, 1.25, 1.5], ASKS = ['idle', 'always', 'never'], ASKW = { idle: 'IF IDLE', always: 'ALWAYS', never: 'NEVER' };
+  var OPT_KEY = 'deep16.opts', PACES = [1, 1.25, 1.5, 2, 2.5, 3, 4], ASKS = ['idle', 'always', 'never'], ASKW = { idle: 'IF IDLE', always: 'ALWAYS', never: 'NEVER' };
   function readOpts() { var o = { help: false, style: 'ring', mpStyle: 'ring2', autoEnd: true, pace: 1.25, confirmEnd: 'idle' }; try { var s = JSON.parse(window.localStorage.getItem(OPT_KEY) || 'null'); if (s) Object.keys(o).forEach(function (k) { if (k in s) o[k] = s[k]; }); } catch (e) { } return o; }
   function cyc(list, v, d) { var i = list.indexOf(v); return list[((i < 0 ? 0 : i) + d + list.length) % list.length]; }
   MN.gridRows = function (host) {
