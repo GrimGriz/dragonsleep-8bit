@@ -1582,6 +1582,14 @@
       w10.x = 6; w10.y = 8; f10.x = 7; f10.y = 8; GF.setup(GF.map, B10.units); D.rules.startTurn(w10); B10.active = w10; w10.slots[2] = 2; runFL(D.magic.cast(B10, w10, 'fly', 3, f10));
       f10.conds.prone = true; var sp10 = D.rules.speedNow(f10); delete f10.conds.prone; var fl10 = D.rules.speedNow(f10);
       okFL('Fly\'s fighter prone goes at ' + sp10 + ' (its walk), up at ' + fl10 + ' (its flight)', sp10 === 30 && fl10 === 60);
+      // the layer's step keeps the view on the square under the mouse (it had gone back to the flier: Griz, 10-08, "I lose my spot"); and a flier's fall onto a goblin: the
+      // goblin shoved out to the nearest square, unhurt and standing; the flier's whole fall (1d6 at its top, 6) and prone (Griz, 10-08: "remove the non SRD damage in it")
+      var B11 = mkFL('?npc=goblin&lvl=5&vs=fighter:5&fly'), f11 = sideFL(B11, 'party')[0], g11 = sideFL(B11, 'foe')[0]; f11.x = 6; f11.y = 8; g11.x = 9; g11.y = 8; g11.hp = g11.maxhp = 50; GF.setup(GF.map, B11.units); D.rules.startTurn(f11); B11.active = f11; B11.req = { turn: f11 }; B11.tool = 'move'; B11.cache = null;
+      var zA = GF.groundAt(f11, 9, 8), cA = D.iso.center(9, 8, zA), sA = D.iso.toScreen(cA.x, cA.y); D.ui.stepLayer(B11, 1); var cB = D.iso.center(9, 8, B11.flyZ), sB = D.iso.toScreen(cB.x, cB.y); B11.req = null;
+      okFL('Shift+wheel up with the mouse on a square 15 ft off: it stays at (' + sA.x + ',' + sA.y + ') -> (' + sB.x + ',' + sB.y + ')', sA.x === sB.x && Math.abs(sA.y - sB.y) <= 1);
+      f11.x = 9; f11.y = 8; f11.fz = GF.groundAt(f11, 9, 8) + 2 * L; GF.setup(GF.map, B11.units); f11.conds.prone = true; var gh11 = g11.hp, fh11 = f11.hp;
+      D.d = function (n) { return n; }; try { B11.flyCheck(); } finally { D.d = d0FL; }
+      okFL('a flier\'s fall onto the goblin: the goblin at (' + g11.x + ',' + g11.y + ') lost ' + (gh11 - g11.hp) + ', prone ' + !!g11.conds.prone + '; the flier lost ' + (fh11 - f11.hp) + ', prone ' + !!f11.conds.prone, (g11.x !== 9 || g11.y !== 8) && gh11 === g11.hp && !g11.conds.prone && fh11 - f11.hp === 6 && !!f11.conds.prone);
       // the druid's Giant Bat (Wild Shape, 8th: js/features.js F.SHAPES `flies`): in its shape the move tool takes the wheel's layer too
       var B5 = mkFL('?npc=goblin&lvl=8&vs=druid:8'), d5 = sideFL(B5, 'party')[0]; D.rules.startTurn(d5); B5.active = d5; d5.feats.wildShape = 2; runFL(D.features.wildShape(B5, d5, 'giantbat')); B5.req = { turn: d5 }; B5.tool = 'move'; B5.cache = null;
       var bat5 = !!(d5.beast && d5.flies), fl5 = D.ui.flyer(B5) === d5, st5 = D.ui.stepLayer(B5, 1); B5.req = null;

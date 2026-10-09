@@ -2761,8 +2761,8 @@
     if (u.dead) return;
     this.forced(u);
     var onC = this.under(u), fd = ft >= 10 ? D.roll(Math.floor(ft / 10) + 'd6') : null;
-    this.card(['{o}' + nameOf(u) + ' falls ' + ft + ' ft from the air (' + why + ')' + (onC.length ? ' onto ' + onC.map(nameOf).join(' and ') + (fd ? ': ' + fd.total + ' bludgeoning, split,' : ',') + ' and lands prone.' : (fd ? ': ' + fd.total + ' bludgeoning, and lands prone.' : ', and lands prone.')) + '{/}'], 260);
-    if (onC.length) { this.landOn(u, ft, fd); return; }
+    this.card(['{o}' + nameOf(u) + ' falls ' + ft + ' ft from the air (' + why + ')' + (onC.length ? ' onto ' + onC.map(nameOf).join(' and ') + (fd ? ': ' + fd.total + ' bludgeoning,' : ',') + ' and lands prone.' : (fd ? ': ' + fd.total + ' bludgeoning, and lands prone.' : ', and lands prone.')) + '{/}'], 260);
+    if (onC.length) this.landOn(u, ft, null, { srd: true }); // (those under: shoved out, unhurt -- landOn's `srd`; the faller's whole fall below)
     if (!u.noProne && !RU.immuneTo(u, 'prone')) u.conds.prone = true;
     if (fd) this.hurt(u, fd.total, 'bludgeoning', { fall: true });
   };
@@ -2796,13 +2796,14 @@
   };
   // (fd: the fall's dice, rolled once by the caller; split -- the cushion takes the half rounded up, the faller the rest, and the faller lands prone: Griz, 10-05, on the cushion taking it all,
   // "little harsh, split damage?"; then that evening "I think the giant should still prone")
-  Battle.prototype.landOn = function (u, ft, fd) {
-    var under = this.under(u), half = fd ? Math.ceil(fd.total / 2) : 0, rest = fd ? Math.floor(fd.total / 2) : 0;
+  // (`o.srd`: a flier's fall, 10-08 -- those under shoved out to the nearest square, no damage, no prone; the faller's own fall its caller's)
+  Battle.prototype.landOn = function (u, ft, fd, o) {
+    var srd = !!(o && o.srd), under = this.under(u), half = fd && !srd ? Math.ceil(fd.total / 2) : 0, rest = fd && !srd ? Math.floor(fd.total / 2) : 0;
     for (var i = 0; i < under.length; i++) {
       var w = under[i], to = Battle.shoveSq(w, u);
-      this.card(['{o}' + nameOf(u) + ' comes down on ' + nameOf(w) + (fd ? ': ' + half + ' of the ' + fd.total + ' bludgeoning' : '') + ' -- ' + nameOf(w) + ' is shoved out from under, flat' + (to ? ', to the nearest open square.' : ', with nowhere to go.') + '{/}'], 260); D.sfx('hit');
+      this.card(['{o}' + nameOf(u) + ' comes down on ' + nameOf(w) + (fd ? ': ' + half + ' of the ' + fd.total + ' bludgeoning' : '') + ' -- ' + nameOf(w) + ' is shoved out from under' + (srd ? '' : ', flat') + (to ? ', to the nearest open square.' : ', with nowhere to go.') + '{/}'], 260); D.sfx('hit');
       if (half) this.hurt(w, half, 'bludgeoning', { fall: true });
-      if (!w.noProne && !RU.immuneTo(w, 'prone')) w.conds.prone = true;
+      if (!srd && !w.noProne && !RU.immuneTo(w, 'prone')) w.conds.prone = true;
       if (to) { w.tween = { fx: w.x, fy: w.y, fz: G.gzAt(w, w.x, w.y), t: 0, dur: this.pace(STEP_FRAMES + 4, true) }; w.x = to[0]; w.y = to[1]; w.anim = 'idle'; this.forced(w); }
     }
     if (under.length && rest > 0) this.hurt(u, rest, 'bludgeoning', { fall: true }); // (the faller's half)

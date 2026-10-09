@@ -92,7 +92,7 @@
     // (a rise or a sink is paid from the move: none it cannot pay -- Griz, 10-08, on the pane: "Using movement/fly speed, and shift+wheel doing nothing if fly speed = 0?")
     if (G.feetUp(z - cur) > u.turn.move && Math.abs(z - cur) > Math.abs((z0 != null ? z0 : cur) - cur)) { D.sfx('error'); return false; }
     B.flyZ = z === cur && u.fz == null ? null : z; B.flyFor = u.id; B.cache = null;
-    D.iso.lookAt(u.x, u.y, z); D.sfx('cursor');
+    D.iso.cam.y -= z - (z0 != null ? z0 : cur); D.sfx('cursor'); // (the view up or down by the height alone: the square under the mouse stays under it -- iso.center draws a height that much higher)
     var up = (z - G.groundAt(u, u.x, u.y)) / G.map.def.step * 2.5;
     B.card(['{c}FLY{/} ' + (B.flyZ == null ? 'on the ground' : up > 0 ? Math.round(up) + ' ft up' : Math.round(-up) + ' ft down') + '  {g}(Shift+wheel, PgUp/PgDn or [ ]: 5 ft a step; a rise or a sink costs its feet; LAND on the ring){/}'], 160, 'fly-layer');
     return true;
