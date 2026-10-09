@@ -139,7 +139,7 @@
         if (p % 3 === 0) D.sfx('bump');
         if (p === 2 && !stood) { // up from the dead: his Ascend row, whole again
           stood = true; h.dead = false; h.ko = false; h.slain = false; h.hp = h.maxhp; h.conds = {}; h.deadT = null; h.flash = 0;
-          if (D.spr.anim(h.sheet, 'ascend')) { h.anim = 'ascend'; h.animT = B.t; }
+          h.upright = true; if (D.spr.anim(h.sheet, 'ascend')) { h.anim = 'ascend'; h.animT = B.t; } // (upright from the start: no crouch between the row and the stand)
         }
         if (p === 4 && !knelt.length) { // and the ring of mirrors out over the pit: every one of them held, on their knees (Griz, 10-08: "We need to put the players under
           // dominate (or something to explain their stunned inactivity lack of initiative), maybe AOE mirror effect when he rises?") -- the look of his Kneel (ui.js: held by

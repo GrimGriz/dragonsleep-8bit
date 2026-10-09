@@ -171,7 +171,7 @@
   // hit points or under, he stands up to his full height -- his `ascend` row, the mirror ripple over him -- and from then on stands upright between blows
   // (ui.js, his `uprightidle` row); standing, his reach is the rise's (15 ft) and his Drink Light is full again
   function* rise(B, u) {
-    u.risen = true; u.anim = 'ascend'; u.animT = B.t; D.sfx('magic');
+    u.risen = true; u.upright = true; u.anim = 'ascend'; u.animT = B.t; D.sfx('magic'); // (upright from the start: when the row ends he stands -- a frame of the old crouch had shown between, 10-08: "a quick frame of him crouch between ascend and standing idle")
     if (D.ripple) D.ripple(u, { region: 'body', dur: 90 });
     B.card(['{r}' + Nm(B, u) + ' straightens, and keeps straightening.{/}  {g}Something far bigger than a gnoll stands up in him.{/}'], 320);
     yield Math.max(40, D.spr.duration(u.sheet, 'ascend') || 60);
@@ -191,7 +191,9 @@
       var came = callPack(B, u, u.rise.call);
       // (and they laugh as they come: a chorus of them, deep -- Griz, 10-08: "is it possible to do a hyena laugh in a deep voice (or a chorus of them instead of him) for the ascend
       // move hyena summon"; deep16/audio/hyena_chorus.mp3, four laughing voices pitched down and staggered, tools/voice-clip.ps1 and ffmpeg)
-      if (came.length && D.clip) D.clip('audio/hyena_chorus.mp3', function () { });
+      // (10-08 again, Griz: "hold onto it and try running 3 or 4 of the hyena laugh we already have from the easter egg (iirc) as a chorus": the eggs' synth laughs -- js/audio.js
+      // cackle, Hideous Laughter's hyena; gnollaugh, Aurdin's joke; cackle2 -- four, staggered. TR.PACK_LAUGH 'voices' brings back the voice chorus, kept)
+      if (came.length) TR.packLaugh();
       if (came.length) { D.sfx('run'); B.card(['{r}' + came.length + ' mirror hyenas spill out from behind ' + Nm(B, u).replace(/^The /, 'the ') + ' and run at you!{/}'], 300); yield 30; }
     }
   }
@@ -203,6 +205,11 @@
   // egg) calls as many as the pre-bench says for the party's STRENGTH, the sum of its members' levels (dev/harbinger-pack.py: the class floor, 10 fights a cell, aimed at the
   // rung's ruled 47 of 100; [strength, hyenas], between the points by a line). It only bites from 20 to 32: under 20 he wins with none, over 32 he loses with 8 -- the cap
   // (Griz, 10-08: "do not exceed 8 hyena") -- which is where a special ability would be the lever. The hills rung keeps its own 4 (ruled on the hills, where he is stronger)
+  TR.PACK_LAUGH = 'synth';
+  TR.packLaugh = function () {
+    if (TR.PACK_LAUGH === 'voices') { if (D.clip) D.clip('audio/hyena_chorus.mp3', function () { }); return; }
+    ['cackle', 'gnollaugh', 'cackle2', 'cackle'].forEach(function (id, i) { setTimeout(function () { D.sfx(id); }, i * 190 + (i % 2 ? 40 : 0)); });
+  };
   TR.PACK_TABLE = [[11, 0], [18, 0], [20, 0], [24, 2], [28, 6], [32, 6], [36, 8], [39, 8]];
   TR.packFor = function (B, u) {
     var s = 0; B.units.forEach(function (w) { if (w.side === 'party' && !w.familiar && !w.summon && !w.object) s += w.lvl || 1; });
