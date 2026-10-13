@@ -67,8 +67,8 @@
     var l0 = g.flags.torchBy === lh.id && g.flags.torchKind === 'lantern' && !!lh.equip.torch;
     DS.run(function* () { yield* DS.EV.warp('warrens_d', 2, 12, 'right'); }); pump(200);
     var l1 = g.map === 'warrens_d' && g.flags.torchBy === lh.id && !!lh.equip.torch;
-    DS.EV.longRest(); var l2 = !g.flags.torchBy && !lh.equip.torch && g.count('lantern') === 1;
-    check('a lantern lit (' + lh.name + ') stays lit down the stair to the wet, and a rest puts it away (09-30e): ' + [l0, l1, l2].join(',') + ', the pack x' + g.count('lantern'), l0 && l1 && l2);
+    DS.EV.longRest(); var l2 = g.flags.torchBy === lh.id && !!lh.equip.torch && g.count('lantern') === 0; // (RE-RULED 10-13, Griz: "1 - yes": a rest keeps a lantern lit; 09-30e put it away)
+    check('a lantern lit (' + lh.name + ') stays lit down the stair to the wet, and through a rest (10-13): ' + [l0, l1, l2].join(',') + ', the pack x' + g.count('lantern'), l0 && l1 && l2);
     DS.run(function* () { yield* DS.EV.useFieldItem('lantern', lh); }); pump(200); // (lit again, for EQUIP's LIGHT)
     // (the one menu since 10-06, js/menu.js: EQUIP's LIGHT row, then its one choice)
     var seen = [], pp = g.party; g.party = [lh];
