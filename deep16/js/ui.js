@@ -454,11 +454,28 @@
       var p = u.riding && u.master ? perchPos(B, u, z) : unitPos(B, u), s = u.size || 1, top = (u.hp > 0 ? D.spr.unitTop(u) : 16) * z, hw = (s > 1 ? 30 : 11) * Math.max(1, D.spr.scaleOf(u)) * z; // (a rider where it is drawn: on the head, at the shoulder)
       var lf = !u.riding && lyingFrame(u), lm = lf && D.spr.frameMask(u.sheet, lf[0], u.facing || 0, lf[1]), lk = D.spr.scaleOf(u) * z; // (lying flat: the frame it lies at, its pixels as drawn -- sprites.js S.frameMask, 10-05)
       var onLie = !!lm && D.spr.frameHit(lm, (mx - p.x) / lk, (my - p.y) / lk, 2);
-      if (!onLie && !(mx >= p.x - hw && mx <= p.x + hw && my >= p.y - top && my <= p.y + 5 * z)) return;
+      if (!onLie && !(mx >= p.x - hw && mx <= p.x + hw && my >= p.y - top && my <= p.y + 5 * z) && !(s > 1 && !u.riding && UI.inCube(UI.cubeHull(B, u), mx, my))) return;
       if (p.depth > bd) { bd = p.depth; best = u; }
       if (want && want(u) && p.depth > pd) { pd = p.depth; pick = u; }
     });
     return pick || best;
+  };
+  // a creature bigger than Medium is picked anywhere in its space as a cube -- its footprint, as tall as it is wide (SRD 5.1's space; grid.js G.bodyH, the body reach reads
+  // too): a Large one 10 ft each way, a Huge one 15. Its eight corners as drawn, the outline round them (10-13, eyes §2d: the giant bat took a click only at its middle;
+  // Griz: "size appropriate, think giants are 15. Unless a reason not to, 4-square takes up a 4-square cube for targeting")
+  UI.cubeHull = function (B, u) {
+    var s = u.size || 1, gx = u.drawAt ? u.drawAt.x : u.x, gy = u.drawAt ? u.drawAt.y : u.y, z0 = G.gzAt(u, gx, gy), z1 = z0 + G.bodyH(u) * ((G.map && G.map.def && G.map.def.step) || 10), pts = [];
+    [gx - 0.5, gx + s - 0.5].forEach(function (x) { [gy - 0.5, gy + s - 0.5].forEach(function (y) { [z0, z1].forEach(function (zz) { var c = D.iso.center(x, y, zz); pts.push(D.iso.toScreen(c.x, c.y)); }); }); });
+    pts.sort(function (a, b) { return a.x - b.x || a.y - b.y; });
+    var cross = function (o, a, b) { return (a.x - o.x) * (b.y - o.y) - (a.y - o.y) * (b.x - o.x); }, lo = [], up = [];
+    pts.forEach(function (q) { while (lo.length >= 2 && cross(lo[lo.length - 2], lo[lo.length - 1], q) <= 0) lo.pop(); lo.push(q); });
+    pts.slice().reverse().forEach(function (q) { while (up.length >= 2 && cross(up[up.length - 2], up[up.length - 1], q) <= 0) up.pop(); up.push(q); });
+    return lo.slice(0, -1).concat(up.slice(0, -1)); // (the outline, counter-clockwise on the screen's axes)
+  };
+  UI.inCube = function (hull, x, y) {
+    if (!hull || hull.length < 3) return false;
+    for (var i = 0; i < hull.length; i++) { var a = hull[i], b = hull[(i + 1) % hull.length]; if ((b.x - a.x) * (y - a.y) - (b.y - a.y) * (x - a.x) < 0) return false; }
+    return true;
   };
   // the frame a figure lies at, as unitObj draws it -- prone on a sheet with a fall frame, or down at 0 (its own prone row if it lay there already,
   // else its death row's last frame): [anim, frame], or null for one on its feet

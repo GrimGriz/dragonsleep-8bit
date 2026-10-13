@@ -1721,6 +1721,18 @@
         var pkB = new D.Pocket(); pkB.enter(); pkB.st.dm = false; pkB.screen = 'party'; pkB.back(); var bB = pkB.screen;
         okF('THE PARTY AT THE DM\'S TABLE: BACK to ' + bA + ', the forward button to ' + nA + ' (the ladder under way kept ' + runA + '); the release edition\'s BACK to ' + bB, bA === 'camp' && nA === 'camp' && runA && bB === 'title');
       } finally { D.store.get = sgPk; D.store.set = ssPk; D.input.mouse = m0Pk; D.canvas = cv0Pk; }
+      // 5g. A BIG ONE PICKED BY ITS CUBE (eyes §2d): a stone giant (Huge) takes a click anywhere in its 15 ft cube as drawn -- here near the cube's side corner, outside the
+      // old box round its foot point; a goblin (Medium) keeps the old box
+      var BG = mkF('?npc=stonegiant&lvl=9&vs=fighter:9'), gG = sideF(BG, 'foe')[0], UIg = D.ui, hullG = [], ptG = null, inOld = null;
+      (function () { var sG = gG.size, z0 = D.grid.gzAt(gG, gG.x, gG.y), z1 = z0 + D.grid.bodyH(gG) * D.grid.map.def.step; [gG.x - 0.5, gG.x + sG - 0.5].forEach(function (x) { [gG.y - 0.5, gG.y + sG - 0.5].forEach(function (y) { [z0, z1].forEach(function (zz) { var c = D.iso.center(x, y, zz); hullG.push(D.iso.toScreen(c.x, c.y)); }); }); }); })(); // (the cube's eight corners, projected here, not by the code under test)
+      if (hullG && hullG.length >= 3) {
+        var cxG = 0, cyG = 0; hullG.forEach(function (q) { cxG += q.x / hullG.length; cyG += q.y / hullG.length; });
+        var pG0 = UIg.unitPos(BG, gG), topQ = hullG.slice().sort(function (a, b) { return Math.abs(b.x - pG0.x) - Math.abs(a.x - pG0.x); })[0]; ptG = { x: cxG + (topQ.x - cxG) * 0.85, y: cyG + (topQ.y - cyG) * 0.85 };
+        var pG = UIg.unitPos(BG, gG), zG = D.iso.zoom, topG = D.spr.unitTop(gG) * zG; inOld = ptG.y >= pG.y - topG && ptG.y <= pG.y + 5 * zG && Math.abs(ptG.x - pG.x) <= 30 * Math.max(1, D.spr.scaleOf(gG)) * zG;
+      }
+      var pickG = ptG ? UIg.pickUnit(BG, ptG.x, ptG.y) : null;
+      okF('A BIG ONE PICKED BY ITS CUBE: the stone giant (size ' + gG.size + ', its corners projected) clicked near its side corner ' + (ptG ? Math.round(ptG.x) + ',' + Math.round(ptG.y) : '-') + (inOld ? ' (INSIDE the old box: no test)' : ' (outside the old box)') + ': picked ' + (pickG ? pickG.name : 'nothing'),
+        !!ptG && inOld === false && pickG === gG);
       // 6. HASTE BY THE SRD (the grid's rules §2h; Denny under the Spotlight): its action of its own -- one weapon attack, Dash, Disengage, Hide or an object -- beside the turn's
       function hasteF() {
         var Bh = mkF('?npc=goblin&lvl=5&vs=paladin:5'), ph = sideF(Bh, 'party')[0], gh = sideF(Bh, 'foe')[0], ok0 = false;
