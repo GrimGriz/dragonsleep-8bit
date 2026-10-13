@@ -573,7 +573,7 @@
   }
   function gridDone(B, u) {
     var T = u.turn;
-    if ((T.attacksLeft > 0 || T.action > 0) && B.foeInReach(u)) return false;
+    if ((T.attacksLeft > 0 || T.action > 0 || T.hasteAction > 0) && B.foeInReach(u)) return false;
     if (T.move > 0 && !u.conds.restrained) { var rc = reachCache(B, u); if (Object.keys(rc.move).some(function (k) { return rc.move[k].stand && rc.move[k].cost > 0; })) return false; }
     return true;
   }
@@ -731,7 +731,7 @@
       if (ltA && D.light.canTake(B, u, ltA).ok) return 'takelight';
       if (B.ropePick && x === B.ropePick.rope.foot[0] && y === B.ropePick.rope.foot[1] && !foe) return B.ropePick.ok ? 'rung' : 'no'; // (a rung of a rope the mouse is on: ropeRung, 10-04 night)
       if (x === u.x && y === u.y && !foe && !(UI.flyer(B) === u && UI.layerZ(B, u) != null && UI.layerZ(B, u) !== G.gzAt(u, u.x, u.y))) return 'self'; // (at another layer: up or down in place, flight at a height)
-      if (foe) return B.canHit(u, foe) && (T.attacksLeft || T.action || T.slamsLeft > 0) ? 'ok' : 'no'; // a crossbow reaches out to its long range (T.slamsLeft: the Keeper's second Slam out of the one action -- js/keeperplay.js)
+      if (foe) return B.canHit(u, foe) && (T.attacksLeft || T.action || T.hasteAction || T.slamsLeft > 0) ? 'ok' : 'no'; // a crossbow reaches out to its long range (T.slamsLeft: the Keeper's second Slam out of the one action -- js/keeperplay.js)
       var rc = reachCache(B, u), k = x + ',' + y; // (the attack tool walks too: a step between swings is fair)
       if (rc.move[k] && rc.move[k].stand) return 'ok';
       if (rc.dash && rc.dash[k] && rc.dash[k].stand) return 'far';
@@ -2244,7 +2244,7 @@
     if (!hero) { D.text(ctx, u.under ? 'under the ground...' : u.ethereal ? 'moving unseen...' : 'its turn', BX, BAR_Y + 16, R('accent', 2)); return; }
     var T = u.turn, px = clx + D.textWidth(cl) + 6;
     // BARM: bonus, action, reaction, move (the feet left) -- lit while there's one to spend (Griz, 09-27: "BARM #" after the class)
-    [['B', T.bonus > 0, R('glow', 2)], ['A', T.action > 0 || T.attacksLeft > 0, R('gold', 3)], ['R', u.reaction > 0, R('violet', 4)], ['M ' + T.move, T.move > 0, R('glow', 1)]]
+    [['B', T.bonus > 0, R('glow', 2)], ['A', T.action > 0 || T.attacksLeft > 0 || T.hasteAction > 0, R('gold', 3)], ['R', u.reaction > 0, R('violet', 4)], ['M ' + T.move, T.move > 0, R('glow', 1)]]
       .forEach(function (p) { px += pip(ctx, px, BAR_Y + 2, p[0], p[1], p[2]) + 2; });
     // END TURN in the bottom-right corner
     var eb = { x: BX + 3 * BP, y: BAR_Y + 30, w: BP - 2, h: 11, end: true };

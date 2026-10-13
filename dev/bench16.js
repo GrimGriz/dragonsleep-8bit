@@ -1682,6 +1682,26 @@
       var shareW = pathW && gW.x === clW.x && gW.y === clW.y;
       okF('A WALK AFTER A SPRING: ' + (pathW ? 'the goblin set off ' + pathW[0] + ' for ' + pathW[3] + '; the cleric landed there (' + sprungW + '); the goblin stopped at ' + gW.x + ',' + gW.y + (shareW ? ' -- ON THE CLERIC' : '') + ', prone ' + !!gW.conds.prone : 'no open line found'),
         !!pathW && sprungW && !shareW && gW.x === pathW[2][0] && gW.y === pathW[2][1] && !gW.conds.prone);
+      // 6. HASTE BY THE SRD (the grid's rules §2h; Denny under the Spotlight): its action of its own -- one weapon attack, Dash, Disengage, Hide or an object -- beside the turn's
+      function hasteF() {
+        var Bh = mkF('?npc=goblin&lvl=5&vs=paladin:5'), ph = sideF(Bh, 'party')[0], gh = sideF(Bh, 'foe')[0], ok0 = false;
+        for (var dy = -1; dy <= 1 && !ok0; dy++) for (var dx = -1; dx <= 1 && !ok0; dx++) { var x = gh.x + dx, y = gh.y + dy; if ((dx || dy) && D.grid.canStand(ph, x, y)) { ph.x = x; ph.y = y; ok0 = Bh.canHit(ph, gh); } }
+        gh.maxhp = gh.hp = 999; ph.conds.hasted = { by: ph.id }; D.rules.startTurn(ph); Bh.active = ph; return { B: Bh, p: ph, g: gh, T: ph.turn, ok: ok0 };
+      }
+      function cmdH(h, id) { return h.B.commands(h.p).filter(function (c) { return c.id === id; })[0] || {}; }
+      var h1 = hasteF(), ha0 = h1.T.hasteAction; runF(h1.B.exec(h1.p, { do: 'dash' })); var aC1 = cmdH(h1, 'attack'), nH = (h1.B.log || []).length;
+      runF(h1.B.exec(h1.p, { do: 'attack', target: h1.g })); var sw1 = (logF(h1.B, nH).match(/Paladin 5 > Goblin/g) || []).length;
+      okF('HASTE: DASH with the action, then ' + aC1.label + ' ' + aC1.ok + ' -- one swing (' + sw1 + '), Haste\'s action spent ' + (h1.T.hasteAction === 0) + ', no more ATTACK (' + !cmdH(h1, 'attack').ok + ')',
+        h1.ok && ha0 === 1 && aC1.ok === true && aC1.label === 'ATTACK (HASTE)' && sw1 === 1 && h1.T.hasteAction === 0 && h1.T.attacksLeft === 0 && !cmdH(h1, 'attack').ok);
+      var h2 = hasteF(), n2 = (h2.B.log || []).length, k2 = 0;
+      while (cmdH(h2, 'attack').ok && k2++ < 6) runF(h2.B.exec(h2.p, { do: 'attack', target: h2.g }));
+      var sw2 = (logF(h2.B, n2).match(/Paladin 5 > Goblin/g) || []).length;
+      okF('HASTE: the Attack action, then Haste\'s -- ' + sw2 + ' swings in all (want 3: Extra Attack\'s two, Haste\'s one)', sw2 === 3);
+      var h3 = hasteF(); h3.T.action = 0; var dC3 = cmdH(h3, 'dash'), mv3 = h3.T.move; runF(h3.B.exec(h3.p, { do: 'dash' }));
+      var shC3 = cmdH(h3, 'shove');
+      okF('HASTE: the action spent on a spell, DASH by Haste\'s (' + dC3.ok + '): speed ' + h3.p.speed + ', the move ' + mv3 + ' -> ' + h3.T.move + ' (want +' + 2 * h3.p.speed + '; ' + logF(h3.B, 0).split(' | ').filter(function (l) { return /dash/i.test(l); }).join(' / ') + '), Haste\'s spent ' + (h3.T.hasteAction === 0), dC3.ok === true && h3.T.move === mv3 + 2 * h3.p.speed && h3.T.hasteAction === 0); // (the Dash adds the speed Haste doubled: SRD 5.1, "after applying any modifiers")
+      var h4 = hasteF(); h4.T.action = 0; runF(h4.B.exec(h4.p, { do: 'shove', target: h4.g, how: 'push' }));
+      okF('HASTE: no shove with Haste\'s action ("one weapon attack only") -- Haste\'s action still there ' + (h4.T.hasteAction === 1), h4.T.hasteAction === 1 && !(h4.T.attacksLeft > 0));
     } catch (eF) { repF.errors.push(String(eF && eF.stack || eF).slice(0, 900)); D.d = d0F; }
     if (errs.length) repF.errors = repF.errors.concat(errs);
     var preF = document.createElement('pre'); preF.id = 'out'; preF.textContent = 'BENCH16 ' + JSON.stringify(repF);

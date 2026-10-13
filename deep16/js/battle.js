@@ -1010,7 +1010,7 @@
     var slot = function (min) { for (var i = min - 1; i < (u.slots || []).length; i++) if (u.slots[i] > 0) return i + 1; return 0; };
     // a swing is only there to take with a foe in reach, or the feet left to walk to one (Lymen's second attack, 09-27)
     var foeNear = this.foeInReach(u), canWalk = T.move > 0 && !u.conds.restrained;
-    out.push({ id: 'attack', icon: (u.weapon && u.weapon.icon) || null, label: T.attacksLeft ? 'ATTACK (' + T.attacksLeft + ')' : 'ATTACK' + (u.attacks > 1 ? ' x' + u.attacks : ''), cost: 'A',ok: (T.attacksLeft > 0 || T.action > 0) && (foeNear || canWalk), why: foeNear || canWalk ? '' : 'no foe in reach, and no feet left', tool: 'attack' });
+    out.push({ id: 'attack', icon: (u.weapon && u.weapon.icon) || null, label: T.attacksLeft ? 'ATTACK (' + T.attacksLeft + ')' : !T.action && T.hasteAction ? 'ATTACK (HASTE)' : 'ATTACK' + (u.attacks > 1 ? ' x' + u.attacks : ''), cost: 'A',ok: (T.attacksLeft > 0 || T.action > 0 || T.hasteAction > 0) && (foeNear || canWalk), why: foeNear || canWalk ? '' : 'no foe in reach, and no feet left', tool: 'attack' });
     // SKIP ATTACK: the attacks left this turn let go, free -- Lymen's second on the rope had no one in reach and no way to put it down (10-13, the grid's rules §2h;
     // Griz: "No way to cancel left over attack player can't figure out how to spend"). It holds no turn open (ui.js spent): the auto end passes over it
     if (T.attacksLeft > 0) out.push({ id: 'skipattack', icon: 'back', label: 'SKIP ATTACK', cost: 'F', ok: true, why: '', note: 'the attack' + (T.attacksLeft > 1 ? 's' : '') + ' left this turn go unspent' });
@@ -1027,7 +1027,7 @@
     // HIDE sits on the rogue's first ring (Griz, 09-27: "Rogues gonna hide allatime"): Cunning Action's bonus action from
     // level 2, and the action when the bonus is gone (or before level 2, as the tabletop's Hide action)
     var cun = u.cls === 'rogue' && u.lvl >= 2 && T.bonus > 0;
-    if (u.cls === 'rogue') out.push({ id: 'hide', label: 'HIDE', cost: cun ? 'B' : 'A', ok: !u.conds.hidden && !(u.conds.restrained || u.conds.attached) && (cun || (T.action > 0 && !T.attacksLeft)), why: u.conds.hidden ? 'already hidden' : u.conds.restrained || u.conds.attached ? 'held fast: nowhere to hide' : 'the action is spent', note: (cun ? 'Cunning Action: ' : '') + 'Stealth against their eyes' });
+    if (u.cls === 'rogue') out.push({ id: 'hide', label: 'HIDE', cost: cun ? 'B' : 'A', ok: !u.conds.hidden && !(u.conds.restrained || u.conds.attached) && (cun || (Battle.acts(T) && !T.attacksLeft)), why: u.conds.hidden ? 'already hidden' : u.conds.restrained || u.conds.attached ? 'held fast: nowhere to hide' : 'the action is spent', note: (cun ? 'Cunning Action: ' : '') + 'Stealth against their eyes' });
     // Flame Tongue: a bonus action lights it or puts it out (not under the roost: its one law is no fire)
     if (u.weapon && u.weapon.flame) {
       var roostF = this.fight && this.fight.roost && !u.conds.ablaze;
@@ -1069,8 +1069,8 @@
       out.push({ id: 'cdisengage', label: 'DISENGAGE', cost: 'B', ok: !T.disengaged, note: 'Cunning Action: leaving reach provokes nothing', icon: 'disengage' });
     } else {
       if (G.aloft(u) && G.winged(u)) { var ftLd = G.feetUp(u.fz - G.groundAt(u, u.x, u.y)); out.push({ id: 'land', label: 'LAND (' + ftLd + ' FT)', cost: 'F', icon: 'move', ok: T.move >= ftLd, why: 'the move left is ' + T.move + ' ft: coming down ' + ftLd + ' ft costs ' + ftLd, note: 'straight down to the ground under you' }); } // (flight at a height: Griz, 10-08, "trouble landing in the square I'm above")
-      out.push({ id: 'dash', label: 'DASH', cost: 'A', ok: T.action > 0 && !T.attacksLeft && !u.conds.restrained && !u.conds.dancing, why: u.conds.dancing ? 'dancing in place: no move to add a Dash to' : u.conds.restrained ? 'held fast: the speed is 0, and a Dash adds your speed' : 'the action is spent', note: '+' + u.speed + ' ft this turn' });
-      out.push({ id: 'disengage', label: 'DISENGAGE', cost: 'A', ok: T.action > 0 && !T.attacksLeft && !T.disengaged, note: 'leaving reach provokes nothing this turn' });
+      out.push({ id: 'dash', label: 'DASH', cost: 'A', ok: Battle.acts(T) && !T.attacksLeft && !u.conds.restrained && !u.conds.dancing, why: u.conds.dancing ? 'dancing in place: no move to add a Dash to' : u.conds.restrained ? 'held fast: the speed is 0, and a Dash adds your speed' : 'the action is spent', note: '+' + u.speed + ' ft this turn' });
+      out.push({ id: 'disengage', label: 'DISENGAGE', cost: 'A', ok: Battle.acts(T) && !T.attacksLeft && !T.disengaged, note: 'leaving reach provokes nothing this turn' });
       // Expeditious Retreat (SRD 5.1: "as a bonus action on each of your turns until the spell ends, you can take the Dash action"): the mark
       // js/grimoire.js sets each turn (T.bonusDash) while the spell holds -- a second DASH, for the bonus action
       if (T.bonusDash && u.conds.retreat) out.push({ id: 'cdash', label: 'RETREAT DASH', cost: 'B', ok: T.bonus > 0 && !u.conds.restrained && !u.conds.dancing, why: u.conds.dancing ? 'dancing in place: no move to add a Dash to' : u.conds.restrained ? 'held fast: the speed is 0, and a Dash adds your speed' : 'the bonus action is spent', note: 'Expeditious Retreat: +' + u.speed + ' ft this turn', icon: 'dash' });
@@ -1466,7 +1466,7 @@
         if (u.conds.disarmed) { this.card(['{o}' + u.name + ' has dropped the weapon (the turn is spent picking it up).{/}'], 200); return; }
         // (the quiver empty: checked before the Attack is opened, so the shot that cannot be made costs nothing -- it took Vivian's action in the Grick Den, 10-13)
         if (u.weapon.ammo && !this.ammoLeft(u)) { yield* this.emptyQuiver(u); return; }
-        if (!T.attacksLeft) { if (!T.action) return; T.action = 0; T.attackAction = true; T.attacksLeft = T.slowed ? 1 : u.attacks + (T.hasteAction ? 1 : 0); } // (Haste's one more, Slow's one: js/grimoire.js)
+        if (!Battle.openAttack(u)) return; // (the action's attacks -- Slow's one -- else Haste's one: js/grimoire.js)
         T.attacksLeft--;
         if (u.weapon.ammo) this.spendAmmo(u);
         if (c.target.tendril) yield* this.strikeTendril(u, c.target, u.weapon); // (the roper's tendril on a friend, or on you: tendrilOn, 10-02)
@@ -1546,9 +1546,9 @@
       case 'leave': { yield* this.leave(u); return; }
       case 'ignite': T.bonus = 0; u.conds.ablaze = true; D.sfx('fire'); FX.sparkle(u, 'fire', 18); this.card(['{y}' + u.name + '{/} speaks the word: the ' + u.weapon.name + ' {o}bursts into flame{/} (+' + u.weapon.flame + ' fire on a hit).']); return;
       case 'douse': T.bonus = 0; delete u.conds.ablaze; this.card(['{y}' + u.name + '{/} speaks the word again: the blade goes dark.']); return;
-      case 'dash': if (u.conds.restrained || u.conds.dancing) return; D.sfx('run'); T.action = 0; var dsh = u.carrying ? Math.floor(u.speed / 10) * 5 : u.speed; T.move += dsh; this.card(['{y}' + u.name + '{/} dashes: {c}+' + dsh + ' ft{/}' + (u.carrying ? ' (carrying: half)' : '') + '.']); return;
+      case 'dash': if (u.conds.restrained || u.conds.dancing) return; D.sfx('run'); Battle.payAction(T); var spD = Math.floor(u.speed * (u.conds.hasted ? 2 : 1) / (u.conds.slowed ? 2 : 1)), dsh = u.carrying ? Math.floor(spD / 10) * 5 : spD; T.move += dsh; this.card(['{y}' + u.name + '{/} dashes: {c}+' + dsh + ' ft{/}' + (u.carrying ? ' (carrying: half)' : '') + '.']); return; // (SRD 5.1 Dash: "your speed, after applying any modifiers" -- Haste's double, Slow's half: 10-13)
       case 'cdash': if (u.conds.restrained || u.conds.dancing) return; D.sfx('run'); T.bonus = 0; T.move += u.speed; this.card(['{y}' + u.name + '{/} (' + ((u.cls === 'rogue' && u.lvl >= 2) || u.cunning ? 'Cunning Action' : 'Expeditious Retreat') + ') dashes: {c}+' + u.speed + ' ft{/}.']); return;
-      case 'disengage': D.sfx('run'); T.action = 0; T.disengaged = true; this.card(['{y}' + u.name + '{/} disengages: leaving reach provokes nothing this turn.']); return;
+      case 'disengage': D.sfx('run'); Battle.payAction(T); T.disengaged = true; this.card(['{y}' + u.name + '{/} disengages: leaving reach provokes nothing this turn.']); return;
       case 'cdisengage': D.sfx('run'); T.bonus = 0; T.disengaged = true; this.card(['{y}' + u.name + '{/} (Cunning Action) disengages.']); return;
       case 'sacred': {
         D.sfx('buff');
@@ -1570,7 +1570,7 @@
         var offW = Battle.knockSq(u, sw), how = c.how;
         if (!how) how = byAI(u) ? 'push' : yield { prompt: { who: u, title: u.name + ': SHOVE ' + (sw.side === 'foe' ? Battle.nm(sw, true) : sw.name).toUpperCase() + '?', lines: ['One attack of your Attack action: your Athletics against its Athletics or Acrobatics.' + (offW ? ' Pushed, it goes over the edge: ' + offW.ft + ' ft down.' : '')], opts: [{ label: offW ? 'PUSH -- OVER THE EDGE' : 'PUSH 5 FT AWAY', value: 'push' }, { label: 'KNOCK PRONE', value: 'prone' }, { label: 'NOT NOW', value: 0 }] } };
         if (!how) return;
-        if (!T.attacksLeft) { if (!T.action) return; T.action = 0; T.attackAction = true; T.attacksLeft = T.slowed ? 1 : u.attacks + (T.hasteAction ? 1 : 0); }
+        if (!Battle.openAttack(u, true)) { if (T.hasteAttack) this.card(['{o}The attack Haste gives is a weapon attack: no shove with it.{/}'], 160); return; } // (a shove is an attack of the Attack action, not Haste's: "one weapon attack only")
         T.attacksLeft--;
         yield* D.ai.shoveOff(this, u, sw, { how: how, paid: true });
         return;
@@ -1876,6 +1876,20 @@
       }
     }
     u.anim = 'idle';
+  };
+  // HASTE (SRD 5.1: "an additional action on each of its turns. That action can be used only to take the Attack (one weapon attack only), Dash, Disengage, Hide, or Use
+  // an Object action"): T.hasteAction, its own action beside the turn's (js/grimoire.js startTurn) -- till 10-13 it was one swing more inside the Attack action, so a
+  // spell or a special and then a blow, or a Dash, got nothing (the grid's rules §2h; Denny under Beholda's Spotlight, his 10-12 note: "DIdn't seem like the spotlight
+  // haste gave denny and extra attack"). Battle.acts: an action that Haste's may stand in for is there; payAction spends the turn's own first
+  Battle.acts = function (T) { return T.action > 0 || T.hasteAction > 0; };
+  Battle.payAction = function (T) { if (T.action > 0) T.action = 0; else T.hasteAction = 0; };
+  // the Attack opened: by the action (its attacks, or Slow's one), else by Haste's (one weapon attack). notHaste: a shove, which Haste's action cannot be
+  Battle.openAttack = function (u, notHaste) {
+    var T = u.turn;
+    if (T.attacksLeft) return !(notHaste && T.hasteAttack);
+    if (T.action) { T.action = 0; T.attackAction = true; T.hasteAttack = false; T.attacksLeft = T.slowed ? 1 : u.attacks; return true; }
+    if (T.hasteAction && !notHaste) { T.hasteAction = 0; T.hasteAttack = true; T.attacksLeft = 1; return true; }
+    return false;
   };
   // the length of a walk's path it may still take from step i: through squares it may pass, to the last one it may stand on before the first it may not (moveAlong, 10-13)
   Battle.pathLeft = function (u, path, i) {
@@ -2930,7 +2944,7 @@
   Battle.prototype.gearOptions = function (u) {
     var R = window.DS.R, h = u.src, T = u.turn, B = this, out = [];
     if (!h || u.guest || !T || !h.equip) return out;
-    var busy = T.action > 0 && !T.attacksLeft ? '' : 'the action is spent', cur = R.item(h.equip.weapon);
+    var busy = Battle.acts(T) && !T.attacksLeft ? '' : 'the action is spent', cur = R.item(h.equip.weapon); // (Haste's action may Use an Object: 10-13)
     var curTwo = cur && cur.weapon && (cur.weapon.props || []).indexOf('two-handed') >= 0;
     this.inv.forEach(function (s) {
       var it = window.DS.DATA.items[s.id];
@@ -2953,7 +2967,7 @@
     var R = window.DS.R, h = u.src, B = this;
     function give(id) { if (!id) return; var s = packOf(B, id); if (s) s.n++; else B.inv.push({ id: id, n: 1 }); }
     function take(id) { var s = packOf(B, id); if (s) s.n--; }
-    u.turn.action = 0; D.sfx('confirm');
+    Battle.payAction(u.turn); D.sfx('confirm');
     if (o.kind === 'weapon') { give(h.equip.weapon); take(o.id); h.equip.weapon = o.id; delete u.conds.ablaze; } // sheathed: the flame goes out
     if (o.kind === 'shieldoff') { give(h.equip.shield); h.equip.shield = null; }
     if (o.kind === 'shieldon') { take(o.id); h.equip.shield = o.id; }
@@ -3285,7 +3299,7 @@
   // on each of its turns" -- and never reads its level for it. T.hid: one Hide to a turn, whichever action paid it -- 10-07, Griz: "4 yes")
   Battle.prototype.hide = function* (u, bonus) {
     var T = u.turn;
-    if (T.bonus > 0 && (bonus || u.nimble || u.cunning || (u.cls === 'rogue' && u.lvl >= 2))) T.bonus = 0; else T.action = 0; // a rogue's Cunning Action from level 2 (or a stat block's: the Spy; the goblin's Nimble Escape); the Hide action before -- and for anyone else, whatever its level (every bestiary foe is made at 5, makeFoe0: its level is no Cunning Action -- 10-07, Griz: "4 please fix")
+    if (T.bonus > 0 && (bonus || u.nimble || u.cunning || (u.cls === 'rogue' && u.lvl >= 2))) T.bonus = 0; else Battle.payAction(T); // a rogue's Cunning Action from level 2 (or a stat block's: the Spy; the goblin's Nimble Escape); the Hide action before -- and for anyone else, whatever its level (every bestiary foe is made at 5, makeFoe0: its level is no Cunning Action -- 10-07, Griz: "4 please fix")
     T.hid = true;
     D.sfx('run');
     var foes = this.units.filter(function (w) { return G.hostile(u, w) && G.standing(w) && RU.canAct(w); }), self = this; // (whoever is against her: a rogue NPC hides from the four)

@@ -206,7 +206,7 @@
   function* swingAll(B, u, wp, t0) {
     var T = u.turn;
     if (u.dead || u.hp <= 0) return;
-    if (!T.attacksLeft) { if (!T.action) return; T.action = 0; T.attackAction = true; T.attacksLeft = attacksWith(u, wp); }
+    if (!T.attacksLeft) { if (!T.action) return; T.action = 0; T.attackAction = true; T.attacksLeft = attacksWith(u, wp); T.hasteAction = 0; } // (the AI takes Haste's one with its Attack: attacksWith counts it)
     var keep = u.weapon; u.weapon = wp;
     var rng = wp.ranged ? wp.range[1] : G.reachOf(u, wp.reach), first = true;
     // Reckless Attack (the barbarian, 2): advantage on its STR swings this turn, and at it till its next (js/features.js decides)

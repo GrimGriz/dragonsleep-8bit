@@ -793,7 +793,8 @@
     });
   }
   // SPOTLIGHT (Buffs): MP.spotN friends she sees within MP.spotR ft (one within 30; two at 8th; within 60 at 9th) are HASTED till the end of their next turn -- +2 AC,
-  // advantage on DEX saves, double speed and one more attack in the Attack action (js/grimoire.js Haste's own `hasted`) -- and no lethargy after: the light goes off
+  // advantage on DEX saves, double speed and an action more -- one weapon attack, Dash, Disengage, Hide or an object (js/grimoire.js Haste's own `hasted`; the action its own since
+  // 10-13, battle.js Battle.openAttack: Denny under it got nothing after a special, his 10-12 note) -- and no lethargy after: the light goes off
   MP.spotTargets = function (B, u) { return B.units.filter(function (w) { return w !== u && w.side === u.side && standing(w) && !w.familiar && !w.conds.hasted && G.dist(u, w) <= MP.spotR(u.lvl) && M.sees(B, u, w); }); };
   MP.spotlight = function* (B, u, picks) {
     var ok = MP.spotTargets(B, u), list = (picks && picks.length ? picks.filter(function (w) { return ok.indexOf(w) >= 0; }) : ok.sort(function (a, b) { return TX.dpr(b) - TX.dpr(a); })).slice(0, MP.spotN(u.lvl));
@@ -1302,7 +1303,7 @@
     { id: 'eyecontact', who: 'beholda', sub: 'buffs', name: 'Eye Contact', at: 6, kind: 'reaction' },
     { id: 'spotlight', button: 'mp-spotlight', key: 'spotlight', who: 'beholda', sub: 'buffs', name: 'Spotlight', at: 7, kind: 'special', cost: 'A', pool: 'A', icon: 'spotlight', pick: 'units',
       targets: function (B, u) { return MP.spotTargets(B, u); }, nobody: function (L) { return 'no friend you see within ' + MP.spotR(L) + ' ft'; },
-      note: function (L) { return (MP.spotN(L) > 1 ? MP.spotN(L) + ' friends' : 'a friend') + ' you see within ' + MP.spotR(L) + ' ft: HASTED till the end of their next turn (+2 AC, double speed, an attack more), no lethargy after'; },
+      note: function (L) { return (MP.spotN(L) > 1 ? MP.spotN(L) + ' friends' : 'a friend') + ' you see within ' + MP.spotR(L) + ' ft: HASTED till the end of their next turn (+2 AC, double speed, an action more: one weapon attack, Dash, Disengage or Hide), no lethargy after'; },
       aim: function (L) { return { shape: 'allies', side: 'ally', range: MP.spotR(L), n: MP.spotN(L), see: true, kind: 'buff' }; }, aimText: function (L) { return (MP.spotN(L) > 1 ? MP.spotN(L) + ' friends' : 'a friend') + ' within ' + MP.spotR(L) + ' ft'; } },
     // ---- RASCAL, the DPS
     { id: 'sharing', button: 'mp-sharing', key: 'sharing', who: 'rascal', sub: 'dps', name: 'Social Sharing', at: 1, kind: 'bonus', cost: 'B', pool: 'B', icon: 'hat', pick: 'units',
