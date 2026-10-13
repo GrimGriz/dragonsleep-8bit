@@ -1685,6 +1685,20 @@
       // 5b. THE NORTH CUT'S BACK ROW (the maps §2b): foes are seated only where a walk reaches the party -- none behind the crate wall
       var BC = mkF('?npc=goblin,goblin,goblin,goblin,goblin,goblin&lvl=5&vs=fighter:5&map=cut'), fC = sideF(BC, 'foe'), backC = fC.filter(function (w) { return w.y <= 1; });
       okF('THE NORTH CUT: ' + fC.length + ' goblins seated at ' + fC.map(function (w) { return w.x + ',' + w.y; }).join(' ') + ' -- behind the crates: ' + backC.length + ' (want 0)', fC.length === 6 && !backC.length && BC.map && BC.map.def && BC.map.def.name === 'The North Cut');
+      // 5c. THE RING OF FLYING ON EQUIP'S RING ROW (the menus §2.3): in the pack in a fight it is a choice on EQUIP's RING row, free; put on it fills a ring finger and gives wings;
+      // one worn when the fight begins flies from the first round; no bond asked
+      var BRf = mkF('?npc=goblin&lvl=5&vs=fighter:5'), uRf = sideF(BRf, 'party')[0];
+      BRf.inv = (BRf.inv || []).concat([{ id: 'ringofflying', n: 1 }]); uRf.src.equip.ring = null; uRf.src.equip.ring2 = null;
+      D.rules.startTurn(uRf); BRf.active = uRf; BRf.req = { turn: uRf };
+      var hostRf = null, foRf = []; try { D.ui.openMenu(BRf); hostRf = BRf.menu && BRf.menu.m && BRf.menu.m.host; foRf = hostRf && hostRf.fightEquip ? hostRf.fightEquip() : []; } catch (eRf) { repF.errors.push('menu: ' + eRf); }
+      var optRf = foRf.filter(function (o) { return o.slot === 'ring' && /Ring of Flying/.test(o.label); })[0]; BRf.menu = null;
+      if (optRf && optRf.cmd) runF(BRf.exec(uRf, { do: optRf.cmd.id, item: optRf.cmd.item }));
+      okF('THE RING OF FLYING: on EQUIP\'s RING row (' + !!optRf + (optRf ? ', ' + optRf.short : '') + '); put on -- wings ' + !!uRf.flies + ', on the finger ' + uRf.src.equip.ring + ', free (the action ' + uRf.turn.action + ')',
+        !!optRf && optRf.ok === true && !!uRf.flies && uRf.src.equip.ring === 'ringofflying' && uRf.turn.action === 1);
+      var dRf = D.save.fixture(5); dRf.party[0].equip.ring = 'ringofflying';
+      var BRw = new D.Battle({ embed: { canRun: true }, data: dRf, npc: { foes: ['goblin'] }, fightDef: D.classFight(5) }); D.battle = BRw; BRw.enter();
+      var wRf = BRw.units.filter(function (w) { return w.side === 'party' && w.src && w.src.equip && w.src.equip.ring === 'ringofflying'; })[0];
+      okF('THE RING OF FLYING worn when the fight begins: ' + (wRf ? wRf.name + ' flies ' + !!wRf.flies : 'no one wears it') + '; a bond asked ' + !!window.DS.DATA.items.ringofflying.attune, !!wRf && !!wRf.flies && !window.DS.DATA.items.ringofflying.attune);
       // 6. HASTE BY THE SRD (the grid's rules §2h; Denny under the Spotlight): its action of its own -- one weapon attack, Dash, Disengage, Hide or an object -- beside the turn's
       function hasteF() {
         var Bh = mkF('?npc=goblin&lvl=5&vs=paladin:5'), ph = sideF(Bh, 'party')[0], gh = sideF(Bh, 'foe')[0], ok0 = false;

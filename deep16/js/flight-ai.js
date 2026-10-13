@@ -19,6 +19,7 @@
   var D = window.D16, G = D.grid, RU = D.rules, FX = D.fx, Battle = D.Battle;
   var FA = D.flightAI = {};
   function item(id) { return window.DS && DS.DATA && DS.DATA.items ? DS.DATA.items[id] : null; }
+  FA.finger = function (u) { var e = u.src && u.src.equip; return !e ? 'ring' : !e.ring ? 'ring' : !e.ring2 ? 'ring2' : null; }; // (the ring finger free for one: two rings at most)
   FA.ringsIn = function (B) { return (B.inv || []).filter(function (x) { var it = x.n > 0 && item(x.id); return !!(it && it.ring && it.ring.fly); }); };
 
   // ------------------------------------------------------------------ the fight's own: the pack, the wings
@@ -30,6 +31,9 @@
       F.pack.forEach(function (p) { var h = inv.filter(function (x) { return x.id === p.id; })[0]; if (h) h.n = (h.n || 0) + p.n; else inv.push({ id: p.id, n: p.n }); });
     }
     if (F.fliers) this.units.forEach(function (u) { var d = u.side === 'foe' && u.kind && D.FOES[u.kind]; if (d && d.fly) { u.flies = true; u.speed = Math.max(u.speed || 0, d.fly); } });
+    // a Ring of Flying already worn -- on a ring finger by the camp's EQUIP or the save's -- has its wings from the first round (10-13, the menus §2.3; Griz: "should use
+    // standard equip ring interface (but make the not the binding type i think)": a ring slot like any ring, and no bond, as content/items.json has it)
+    this.units.forEach(function (u) { if (u.side !== 'party' || u.flies || !u.src || !u.src.equip) return; var id = [u.src.equip.ring, u.src.equip.ring2].filter(function (x) { var it = x && item(x); return !!(it && it.ring && it.ring.fly); })[0]; if (id) { u.flies = true; u.ringFly = id; } });
     return r;
   };
 
@@ -38,11 +42,11 @@
   Battle.prototype.commands = function (u) {
     var out = cmds0.apply(this, arguments);
     if (u && u.side === 'party' && !u.flies && !u.floats && !u.familiar && !u.beast && !u.object) {
-      var rg = FA.ringsIn(this)[0], T = u.turn || {};
+      var rg = FA.ringsIn(this)[0], T = u.turn || {}, fing = FA.finger(u);
       if (rg) {
         var it = item(rg.id);
-        out.push({ id: 'puton', label: 'PUT ON ' + it.name.toUpperCase(), cost: 'F', icon: 'ring', item: rg.id, ok: !T.freeObj && RU.canAct(u),
-          why: T.freeObj ? 'the free object interaction is spent this turn' : 'not now',
+        out.push({ id: 'puton', label: 'PUT ON ' + it.name.toUpperCase(), cost: 'F', icon: 'ring', item: rg.id, slot: fing || 'ring', ok: !T.freeObj && RU.canAct(u) && !!fing,
+          why: !fing ? 'a ring on each hand already' : T.freeObj ? 'the free object interaction is spent this turn' : 'not now',
           note: 'free, as drawing a blade: a flying speed of ' + (u.speed || 30) + ' ft while you wear it -- with MOVE out, Shift+wheel or [ ] picks your height (' + rg.n + ' in the pack)' });
       }
     }
@@ -57,7 +61,9 @@
     var T = u.turn; if (!T || T.freeObj || u.flies) return;
     var rg = (B.inv || []).filter(function (x) { return x.n > 0 && x.id === (c.item || (FA.ringsIn(B)[0] || {}).id); })[0]; if (!rg) return;
     var it = item(rg.id); if (!it || !it.ring || !it.ring.fly) return;
+    var fing = FA.finger(u); if (!fing) return;
     rg.n--; T.freeObj = true; u.flies = true; u.ringFly = rg.id;
+    if (u.src && u.src.equip) u.src.equip[fing] = rg.id; // (on a ring finger, as EQUIP shows it: the standard ring -- 10-13)
     D.sfx('buff'); if (FX && FX.ring) FX.ring(u, 'glow', 24);
     B.card(['{y}' + u.name + '{/} puts on the ' + it.name + '.  {g}(wings: a flying speed of ' + (u.speed || 30) + ' ft; with MOVE out, Shift+wheel or [ ] picks the height){/}'], 300);
     yield 20;

@@ -1031,6 +1031,7 @@
         if (!gu) return [];
         var out = B.gearOptions(gu).map(function (o) { o.cost = 'A'; return o; }), LIGHTS = { droptorch: 1, throwtorch: 1, dousetorch: 1, hooddown: 1, hoodup: 1, pickuptorch: 1, barreltorch: 1 }; // (a change of gear: the action)
         B.commands(gu).forEach(function (c) {
+          if (c.id === 'puton') out.push({ kind: 'cmd', slot: c.slot || 'ring', cmd: c, cost: c.cost, label: window.DS.DATA.items[c.item] ? window.DS.DATA.items[c.item].name : c.label, short: COSTW[c.cost], note: COSTW[c.cost] + ': ' + c.note, ok: c.ok, why: c.why }); // (a Ring of Flying from the pack: EQUIP's RING row, the standard ring -- 10-13, js/flight-ai.js)
           if (c.id === 'putaway' || c.id === 'drawweapon') out.push({ kind: 'cmd', slot: 'weapon', cmd: c, cost: c.cost, label: c.id === 'putaway' ? '(put it away)' : '(draw it)', short: COSTW[c.cost], note: COSTW[c.cost] + ': ' + c.note, ok: c.ok, why: c.why });
           if (LIGHTS[c.id]) out.push({ kind: 'cmd', slot: 'light', cmd: c, cost: c.cost, label: '(' + c.label.toLowerCase() + ')', short: COSTW[c.cost], note: COSTW[c.cost] + ': ' + c.note, ok: c.ok, why: c.why });
         });
