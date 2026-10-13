@@ -192,7 +192,7 @@
     yield DS.say(L('g.joins', { name: h.name, lvl: h.lvl }));
     return true;
   };
-  EV.longRest = function () { EV.torchOut(true); G().party.forEach(function (h) { if (h.conds.aid) { h.maxhp -= h.conds.aid; delete h.conds.aid; } delete h.conds.mageArmor; h.bondsBefore = (h.attuned || []).slice(); R.refresh(h, true); }); }; // (bondsBefore: the morning's sheet says what the night bonded, EV.bonds)
+  EV.longRest = function () { EV.torchOut(); G().party.forEach(function (h) { if (h.conds.aid) { h.maxhp -= h.conds.aid; delete h.conds.aid; } delete h.conds.mageArmor; h.bondsBefore = (h.attuned || []).slice(); R.refresh(h, true); }); }; // (bondsBefore: the morning's sheet says what the night bonded, EV.bonds)
   EV.rest = function* (song) {
     var g = G();
     yield DS.fade(1, 24);
@@ -376,8 +376,9 @@
   };
   // the field torch goes out: at a rest, or leaving the map (the hour is up; nothing is said)
   // (a lantern or the Ledger-Lamp does not go out leaving the map: lit, it stays in the hand till a rest or EQUIP's LIGHT puts it away --
-  // RULED 09-30d, Griz: "I don't mind torches working that way, but using a lantern should stick"; 09-30e: "let the rest put the light away".
-  // `all`: put away whatever is lit -- the rest (EV.longRest) and EQUIP's LIGHT)
+  // RULED 09-30d, Griz: "I don't mind torches working that way, but using a lantern should stick"; 09-30e: "let the rest put the light away" -- RE-RULED 10-13: a
+  // lantern or the lamp stays lit through a rest, a torch goes out (his 10-12 note: "Ledger Lamp un-equips on sleeping at the first lamp"; Griz: "1 - yes").
+  // `all`: put away whatever is lit -- EQUIP's LIGHT)
   EV.torchOut = function (all) { var g = G(); if (!g.flags.torchBy || (!all && R.hooded(g.flags.torchKind))) return; g.party.forEach(function (h) { delete h.equip.torch; }); if (R.hooded(g.flags.torchKind)) g.give(g.flags.torchKind, 1); delete g.flags.torchBy; delete g.flags.torchKind; }; // (a lantern is not spent: put away, back in the pack; nor the Ledger-Lamp, 09-30: back as 'ledgerlamp')
   // (t: the one the menu's party panel already chose -- the cursor kicked into the panel, 10-06 js/menu.js; else the old ON WHOM? asks)
   EV.fieldCast = function* (h, sp, t0) {

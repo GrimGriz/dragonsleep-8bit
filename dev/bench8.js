@@ -1892,6 +1892,11 @@
       check('one lit in a hand and one in the pack, saved and loaded: ' + n2L + ' in the pack, the lit one ' + (lit2 ? 'kept' : 'GONE') + ' (want 0, kept)', n2L === 0 && lit2);
       gL2 = DS.G; delete gL2.flags.torchBy; delete gL2.flags.torchKind; gL2.give('ledgerlamp', 1); tripL(); var n3L = DS.G.count('ledgerlamp');
       check('one in the pack, saved and loaded: ' + n3L + ' (want 1: left alone)', n3L === 1);
+      // a night's rest (RE-RULED 10-13, Griz: "1 - yes"): the Ledger-Lamp in a hand stays lit; a torch goes out
+      var gR = DS.G, hR = gR.party[0]; gR.take('ledgerlamp', gR.count('ledgerlamp')); gR.flags.torchBy = hR.id; gR.flags.torchKind = 'ledgerlamp'; hR.equip.torch = 1;
+      DS.EV.longRest(); var keptR = gR.flags.torchKind === 'ledgerlamp' && gR.flags.torchBy === hR.id && hR.equip.torch === 1 && gR.count('ledgerlamp') === 0;
+      gR.flags.torchKind = 'torch'; DS.EV.longRest(); var outR = !gR.flags.torchBy && !hR.equip.torch;
+      check('A NIGHT\'S REST: the Ledger-Lamp still in ' + hR.name + '\'s hand ' + keptR + ' (none put in the pack); a torch out ' + outR, keptR && outR);
     } else if (test === 'fixes1013') {
       // the bug-fix seat's 8-bit checks (10-13): a paladin's level-up names what opens, not "learns"; the Elixir of Health by the SRD in the field; walking into a person talks
       var R8 = DS.R, ly = R8.makeHero('lymen', 2), m3 = R8.levelUp(ly).join(' / '), m4 = R8.levelUp(ly).join(' / '), m5 = R8.levelUp(ly).join(' / ');
