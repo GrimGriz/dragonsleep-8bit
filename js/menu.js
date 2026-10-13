@@ -340,6 +340,7 @@
         if (u.effect === 'learn') { var w = host.whyNot(id, h); return w || true; }
         if (u.target === 'revive') return h.ko ? true : h.name + ' is not down.';
         if (u.effect === 'heal') return h.hp < h.maxhp ? true : h.name + ' is unhurt.';
+        if (u.effect === 'cure') { var cc = h.conds || {}; return cc.poisoned || cc.paralyzed || cc.blinded || cc.deafened ? true : h.name + ' has nothing to cure.'; } // (the Elixir of Health in the field: 10-13)
         return h.ko ? h.name + ' is down.' : true;
       },
       then: function (h) { m.act('item', { id: id, h: h }, function () { self.refresh(); }); } });

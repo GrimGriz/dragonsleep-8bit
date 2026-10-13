@@ -333,6 +333,11 @@
       g.take(id, 1); var hr = EV.fieldHeal(h, DS.roll(use.dice)); DS.audio.sfx('heal');
       yield DS.say(L('g.healed', { name: h.name, n: hr.n }));
       if (hr.woke) yield DS.say(L('g.comesRound', { name: h.name }));
+    } else if (use.effect === 'cure') { // (the Elixir of Health out of a fight too, by the SRD -- RULED 10-13, Griz: "SRD, didn't realize it was that good"; a poison carried out of a fight, and what rides on it)
+      var cc = h.conds || {}, ills = ['poisoned', 'paralyzed', 'blinded', 'deafened'].filter(function (k) { return cc[k]; });
+      if (!ills.length) { yield DS.say(L('g.nothingToCure', { name: h.name })); return; }
+      g.take(id, 1); ills.forEach(function (k) { delete cc[k]; }); Object.keys(cc).forEach(function (k) { var v = cc[k]; if (v && typeof v === 'object' && v.linked === 'poisoned') delete cc[k]; }); DS.audio.sfx('heal');
+      yield DS.say(L('g.cured', { name: h.name }));
     } else if (use.effect === 'revive') {
       if (!h.ko) { yield DS.say(L('g.notDown', { name: h.name })); return; }
       g.take(id, 1); h.ko = false; h.hp = use.hp || 1; DS.audio.sfx('heal');

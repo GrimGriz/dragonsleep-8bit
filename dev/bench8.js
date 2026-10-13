@@ -1892,6 +1892,28 @@
       check('one lit in a hand and one in the pack, saved and loaded: ' + n2L + ' in the pack, the lit one ' + (lit2 ? 'kept' : 'GONE') + ' (want 0, kept)', n2L === 0 && lit2);
       gL2 = DS.G; delete gL2.flags.torchBy; delete gL2.flags.torchKind; gL2.give('ledgerlamp', 1); tripL(); var n3L = DS.G.count('ledgerlamp');
       check('one in the pack, saved and loaded: ' + n3L + ' (want 1: left alone)', n3L === 1);
+    } else if (test === 'fixes1013') {
+      // the bug-fix seat's 8-bit checks (10-13): a paladin's level-up names what opens, not "learns"; the Elixir of Health by the SRD in the field; walking into a person talks
+      var R8 = DS.R, ly = R8.makeHero('lymen', 2), m3 = R8.levelUp(ly).join(' / '), m4 = R8.levelUp(ly).join(' / '), m5 = R8.levelUp(ly).join(' / ');
+      check('LYMEN LEVELS UP, 3: "' + m3.slice(0, 160) + '" -- no "learns" (want none: he prepares from the whole list)', !/learns/.test(m3) && !/learns/.test(m4));
+      check('LYMEN LEVELS UP, 5: "' + (m5.match(/can prepare level 2[^/]*/) || ['(no line)'])[0] + '" (want the 2nd-level spells named)', /can prepare level 2 spells now: .*Aid/.test(m5) && !/learns/.test(m5));
+      var au = R8.makeHero('aurdin', 2), ma = R8.levelUp(au).join(' / ');
+      check('AURDIN LEVELS UP, 3 (a wizard copies into his book): ' + (ma.match(/learns[^/]*/) || ['(no learns)'])[0], /learns/.test(ma) || !(DS.DATA.heroes.aurdin.levels && DS.DATA.heroes.aurdin.levels[3] && DS.DATA.heroes.aurdin.levels[3].learn));
+      var hE = g.party[0]; hE.conds = { poisoned: { linked: null }, blinded: true, deafened: true }; g.give('elixir', 2); var nE0 = g.count('elixir');
+      DS.run(function* () { yield* DS.EV.useFieldItem('elixir', hE); }); for (var kE = 0; kE < 300 && DS.scriptActive(); kE++) { var tE = DS.top(); if (tE && tE.kind === 'dialog') { if (tE.chars < tE.pageLen()) tE.chars = tE.pageLen(); T.tapf('a'); } else T.step(1); }
+      var leftE = Object.keys(hE.conds), nE1 = g.count('elixir');
+      DS.run(function* () { yield* DS.EV.useFieldItem('elixir', hE); }); for (kE = 0; kE < 300 && DS.scriptActive(); kE++) { var tE2 = DS.top(); if (tE2 && tE2.kind === 'dialog') { if (tE2.chars < tE2.pageLen()) tE2.chars = tE2.pageLen(); T.tapf('a'); } else T.step(1); }
+      check('THE ELIXIR IN THE FIELD: poisoned, blinded, deafened -> ' + (leftE.join(',') || 'none') + ', one drunk (' + nE0 + ' -> ' + nE1 + '); again with nothing to cure: ' + g.count('elixir') + ' left (want ' + nE1 + ')', !leftE.length && nE1 === nE0 - 1 && g.count('elixir') === nE1);
+      // walking into a person: a Silverton NPC with an open square below it, the lead there, a step up
+      var F8 = DS.field; F8.load(DS.DATA.config.start.map, DS.DATA.config.start.x, DS.DATA.config.start.y, 'down');
+      var nP = F8.npcs.filter(function (n) { return !n.hidden && !n.wander && DS.DATA.npcs[n.id] && F8.free(n.x, n.y + 1, 'player'); })[0], talked = false;
+      if (nP) {
+        g.x = nP.x; g.y = nP.y + 1; g.dir = 'up'; F8.lastBump = null; DS.paused = false;
+        F8.tryMove('up'); for (var kP = 0; kP < 30; kP++) { if (DS.top() && DS.top().kind === 'dialog') { talked = true; break; } T.step(1); }
+        for (kP = 0; kP < 300 && (DS.scriptActive() || (DS.top() && DS.top().kind !== 'field')); kP++) { var tP = DS.top(); if (tP && (tP.kind === 'dialog' || tP.kind === 'menu')) { if (tP.kind === 'dialog' && tP.chars < tP.pageLen()) tP.chars = tP.pageLen(); T.tapf(tP.kind === 'menu' ? 'b' : 'a'); } else T.step(1); }
+        DS.paused = true;
+      }
+      check('WALKING INTO A PERSON: ' + (nP ? nP.id + ' at ' + nP.x + ',' + nP.y + ' -- a step into them ' + (talked ? 'opens the talk' : 'does NOT open the talk') : 'no person found to walk into'), !!nP && talked);
     } else if (test === 'migrate') {
       // an older save: Ingrith a fighter with a heals counter, hurt; DS.startFrom walks her on as the cleric she is
       DS.EV.addGuest('ingrith');

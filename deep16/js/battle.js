@@ -2769,7 +2769,7 @@
       D.sfx(u.side === 'party' ? 'ko' : 'die');
       if (u.familiar && D.familiar && D.familiar.vanish) D.familiar.vanish(this, u); // (a familiar at 0 HP is gone, not down: SRD 5.1)
       else if (u.ally && !u.fated) { u.dead = true; u.deadT = this.t; delete u.conds.ablaze; if (u.holding && u.holding.length) this.release(u); this.card(['{r}' + u.name + ' is cut down.{/}']); } // (one of ours the fight lent -- the Hex's men, the garrison: it dies as a foe does, 10-05)
-      else if (u.side === 'party' && !u.object) { u.ko = true; delete u.conds.ablaze; D.light.fell(this, u); this.card(['{r}' + u.name + ' goes down.{/}' + (D.light.torchAt(this, u.x, u.y) ? '  {g}The torch burns beside ' + u.name + '.{/}' : '')]); } // (the name, never "him")
+      else if (u.side === 'party' && !u.object) { u.ko = true; delete u.conds.ablaze; D.light.fell(this, u); var ltF = D.light.torchAt(this, u.x, u.y); this.card(['{r}' + u.name + ' goes down.{/}' + (ltF ? '  {g}The ' + D.light.word(ltF) + ' burns where ' + u.name + ' fell.{/}' : '')]); } // (the name, never "him"; the light by its own word -- "The torch burns beside Aurdin" was the Ledger-Lamp on his own square, the Breach 10-11)
       else if (u.object) { u.dead = true; u.deadT = this.t; this.breached = true; D.sfx('crit'); this.card(['{r}' + u.name.charAt(0).toUpperCase() + u.name.slice(1) + ' gives way!{/}  {g}(the Edifice is breached){/}'], 300); }
       // a troll at 0 is down, not dead (SRD 5.1 Regeneration: "The troll dies only if it starts its turn with 0 hit points and doesn't regenerate"; acid or fire stops it -- 10-05,
       // Griz: "i think the regen is there it's just turning off when they die"): it lies there, still a target, and gets up at its turn unless it burned (ai.js AI.turn)
@@ -3122,10 +3122,11 @@
     if (use.effect === 'heal') { var r = D.roll(use.dice), got = this.heal(w, r.total); this.card(['{y}' + u.name + '{/} ' + who + ' a ' + it.name + ': ' + use.dice + ' ' + RU.fmtRolls(r.rolls) + ' = {n}' + r.total + '{/}' + (got < r.total ? ' (' + got + ' to full)' : '')]); FX.sparkle(w, 'moss', 12); }
     if (use.effect === 'revive') { this.heal(w, use.hp || 1); this.card(['{y}' + u.name + '{/} works the ' + it.name + ' on ' + w.name + ': up, on ' + w.hp + ' HP.']); }
     if (use.effect === 'antitoxin' || use.effect === 'cure') {
-      // the elixir cures paralysis too, as the 8-bit battle's does (09-28g)
-      var had = !!w.conds.poisoned, stiff = use.effect === 'cure' && !!w.conds.paralyzed;
-      delete w.conds.poisoned; if (stiff) delete w.conds.paralyzed;
-      this.card(['{y}' + u.name + '{/} ' + who + ' the ' + it.name + (had || stiff ? ': the ' + (had && stiff ? 'poison and the paralysis go' : had ? 'poison goes' : 'paralysis goes') + ' out.' : ': nothing to cure.')]); FX.sparkle(w, 'moss', 10);
+      // the Elixir of Health by the SRD (RULED 10-13, Griz: "SRD, didn't realize it was that good"): any disease, and the blinded, deafened, paralyzed and poisoned
+      // conditions -- the grid's one disease (Contagion) and the blinding and deafness by Heal's own (js/grimoire.js M.cureSick). The antitoxin as it was
+      var gone = []; if (w.conds.poisoned) { delete w.conds.poisoned; gone.push('the poison'); }
+      if (use.effect === 'cure') { if (w.conds.paralyzed) { delete w.conds.paralyzed; gone.push('the paralysis'); } gone = gone.concat(D.magic.cureSick ? D.magic.cureSick(w) : []); }
+      this.card(['{y}' + u.name + '{/} ' + who + ' the ' + it.name + (gone.length ? ': ' + (gone.length > 1 ? gone.slice(0, -1).join(', ') + ' and ' + gone[gone.length - 1] : gone[0]) + ' gone.' : ': nothing to cure.')]); FX.sparkle(w, 'moss', 10);
     }
     if (use.effect === 'fortify') {
       w.fortified = true; w.maxhp += 5; w.hp += 5; if (w.saves) w.saves.con += 1;

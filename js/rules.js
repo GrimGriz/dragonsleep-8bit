@@ -141,8 +141,14 @@
       var want = h.lvl * Math.max(1, c.hd + DS.mod(h.abil.con)), base = h.maxhp - ((h.conds && h.conds.aid) || 0); // CON counts back to level 1
       if (base < want) { h.hp += want - base; h.maxhp += want - base; }
     }
-    var nlearn = msgs.length;
-    if (lu.learn) lu.learn.forEach(function (s) { if (h.known.indexOf(s) < 0) { h.known.push(s); msgs.push(h.name + ' learns ' + DS.DATA.spells[s].name + '.'); } });
+    var nlearn = msgs.length, wholeList = h.cls === 'paladin'; // (one who prepares from the whole class list, R.prepPool: nothing is "learned" -- what opens is a spell level)
+    if (lu.learn) lu.learn.forEach(function (s) { if (h.known.indexOf(s) < 0) { h.known.push(s); if (!wholeList) msgs.push(h.name + ' learns ' + DS.DATA.spells[s].name + '.'); } });
+    // a new spell level for a whole-list preparer: the spells it opens (10-13, the level-up pick §6 -- "Lymen learns Heroism" after a rung, when he had prepared it since 2nd;
+    // Griz: "Pretty sure I did the ladder and it said Lymen learned heroism after, even though he had it to prep before the fight")
+    if (wholeList && h.slotsMax.length > oldMax.length) {
+      var nL = h.slotsMax.length, oathL = R.oathSpells(h), opens = R.PALADIN_SPELLS.filter(function (id) { var sp = DS.DATA.spells[id]; return sp && sp.level === nL && !sp.ritual && oathL.indexOf(id) < 0; });
+      if (opens.length) msgs.push(h.name + ' can prepare level ' + nL + ' spells now: ' + opens.map(function (id) { return DS.DATA.spells[id].name; }).join(', ') + '.');
+    }
     if (h.prepared && msgs.length > nlearn) msgs.push('New spells are prepared after a long rest.'); // (SRD: the day is chosen on waking)
     if (lu.subclass) { h.subclass = lu.subclass; msgs.push(h.name + ': ' + lu.subclass + '.'); }
     if (lu.choose) { h.pendingChoice = lu.choose; msgs.push(h.name + ' has a choice to make.'); }

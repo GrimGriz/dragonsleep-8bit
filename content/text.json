@@ -34,6 +34,7 @@
   "g.chalk": { "t": "You draw the threshold line and say the words over it. No promises made.", "src": "the-lab/pit-maps/shops-silverton.json pin 33 (threshold line, drawn and said over)" },
   "g.noSlots": { "t": "No spell slots left.", "src": "invented: connective" },
   "g.cured": { "t": "{name} is cleansed.", "src": "invented: connective" },
+  "g.nothingToCure": { "t": "{name} has nothing to cure.", "src": "invented: connective (the Elixir of Health in the field, 10-13)" },
   "g.mageArmor": { "t": "{name}: mage armor. AC {ac} until the next long rest.", "src": "SRD 5.1 (Mage Armor)" },
   "g.mageArmorNone": { "t": "Everyone standing wears armor. Mage Armor has no one to take it.", "src": "SRD 5.1 (Mage Armor: a willing creature who isn't wearing armor); playtest 09-25 round four s15-2" },
   "g.aid": { "t": "Aid: {who} gain {n} max HP until the next long rest.", "src": "SRD 5.1 (Aid)" },

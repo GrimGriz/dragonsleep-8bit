@@ -295,11 +295,12 @@
       return;
     }
     if (!this.free(nx, ny, 'player')) {
-      // walking into something you can use (a gate, the mark, the stair, a sign, a chest) uses it, same as Z;
-      // holding the direction afterwards doesn't fire it again until you step away or press toward it anew
+      // walking into something you can use (a gate, the mark, the stair, a sign, a chest) uses it, same as Z -- and walking into a person talks to them (RULED 10-13,
+      // Griz: "7 - yes", on "Over most of the game, running into something with the arrow keys no long opens the text box (have to hit enter)"; a person never, since
+      // 09-23); holding the direction afterwards doesn't fire it again until you step away or press toward it anew
       var key = m.id + ':' + nx + ',' + ny;
-      var usable = this.triggerAt(nx, ny, 'use') || this.signAt(nx, ny) || this.chestAt(nx, ny);
-      if (usable && !this.npcAt(nx, ny) && (I.pressed(d) || this.lastBump !== key)) {
+      var usable = this.triggerAt(nx, ny, 'use') || this.signAt(nx, ny) || this.chestAt(nx, ny) || this.npcAt(nx, ny);
+      if (usable && (I.pressed(d) || this.lastBump !== key)) {
         this.lastBump = key;
         this.interact();
         return;

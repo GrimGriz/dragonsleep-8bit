@@ -59,6 +59,7 @@
   function hearSkip(w) { return cantHear(w) ? 'cannot hear it' : ''; }
   // the sicknesses Heal and Mass Heal end (SRD 5.1: blindness, deafness, every disease): Contagion is the grid's one disease -- its poison, and
   // the blinding it came to. Says what went, for the card
+  M.cureSick = cureSick; // (the Elixir of Health too: battle.js item 'cure', 10-13)
   function cureSick(w) {
     var c = w.conds, gone = [];
     if (c.blinded || c.blindedBy) { delete c.blinded; delete c.blindedBy; gone.push('blindness'); }

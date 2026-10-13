@@ -1699,6 +1699,18 @@
       var BRw = new D.Battle({ embed: { canRun: true }, data: dRf, npc: { foes: ['goblin'] }, fightDef: D.classFight(5) }); D.battle = BRw; BRw.enter();
       var wRf = BRw.units.filter(function (w) { return w.side === 'party' && w.src && w.src.equip && w.src.equip.ring === 'ringofflying'; })[0];
       okF('THE RING OF FLYING worn when the fight begins: ' + (wRf ? wRf.name + ' flies ' + !!wRf.flies : 'no one wears it') + '; a bond asked ' + !!window.DS.DATA.items.ringofflying.attune, !!wRf && !!wRf.flies && !window.DS.DATA.items.ringofflying.attune);
+      // 5d. THE ELIXIR OF HEALTH BY THE SRD (the grid's rules §2h, RULED 10-13): poisoned, paralyzed, blinded, deafened and the disease, all gone
+      var BE = mkF('?npc=goblin&lvl=5&vs=fighter:5,cleric:5'), uE = sideF(BE, 'party')[0], wE = sideF(BE, 'party')[1];
+      wE.x = uE.x + 1; wE.y = uE.y; if (!D.grid.canStand(wE, wE.x, wE.y)) { wE.x = uE.x; wE.y = uE.y + 1; }
+      BE.inv = [{ id: 'elixir', n: 1 }]; wE.conds = { poisoned: { by: 'x' }, paralyzed: { by: 'x' }, blinded: { by: 'x' }, deafened: { by: 'x' }, contagion: { by: 'x' } };
+      D.rules.startTurn(uE); BE.active = uE; var nE = (BE.log || []).length; runF(BE.exec(uE, { do: 'item', id: 'elixir', target: wE }));
+      var leftE = ['poisoned', 'paralyzed', 'blinded', 'deafened', 'contagion'].filter(function (k) { return wE.conds[k]; });
+      okF('THE ELIXIR OF HEALTH: on the cleric -- left ' + (leftE.join(',') || 'none') + ' (' + logF(BE, nE).slice(0, 110) + ')', !leftE.length && (BE.inv[0].n === 0));
+      // 5e. THE FALL LINE (the grid's rules §2h, the Breach 10-11): the light on the fallen one's square is named by its own word
+      var BL = mkF('?npc=goblin&lvl=5&vs=fighter:5'), uL = sideF(BL, 'party')[0];
+      uL.torch = D.light.make('ledgerlamp', false); D.light.regrip(uL); var nL = (BL.log || []).length;
+      BL.hurt(uL, uL.hp + 5, 'bludgeoning', sideF(BL, 'foe')[0]); var lL = logF(BL, nL);
+      okF('THE FALL LINE: ' + (lL.match(/goes down\.[^|]*/) || ['(no line)'])[0], /The Ledger-Lamp burns where Fighter 5 fell/.test(lL) && !/torch burns beside/.test(lL));
       // 6. HASTE BY THE SRD (the grid's rules §2h; Denny under the Spotlight): its action of its own -- one weapon attack, Dash, Disengage, Hide or an object -- beside the turn's
       function hasteF() {
         var Bh = mkF('?npc=goblin&lvl=5&vs=paladin:5'), ph = sideF(Bh, 'party')[0], gh = sideF(Bh, 'foe')[0], ok0 = false;

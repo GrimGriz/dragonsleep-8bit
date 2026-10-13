@@ -1623,8 +1623,8 @@
       t.fortified = true; t.h.maxhp += 5; t.h.hp += 5;
       DS.audio.sfx('heal'); this.elemBurst(t, 'heal', 'rise'); this.num(t, 5, '#58F898');
       yield* this.say(nameOf(t) + ' eats ' + it.name + '. +2 CON and +5 HP for the fight.', 46);
-    } else if (use.effect === 'cure') {
-      delete t.conds.poisoned; delete t.conds.paralyzed;
+    } else if (use.effect === 'cure') { // (the Elixir of Health by the SRD, RULED 10-13: blinded and deafened too; the 8-bit lays no disease)
+      delete t.conds.poisoned; delete t.conds.paralyzed; delete t.conds.blinded; delete t.conds.deafened;
       DS.audio.sfx('heal');
       yield* this.say(nameOf(t) + ' is cured.', 36);
     }
