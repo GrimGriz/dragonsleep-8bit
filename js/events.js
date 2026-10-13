@@ -72,6 +72,7 @@
     var p = EV.pickGroup(zone), m = F().map.src;
     if (!p.list.length) return;
     if (p.grp.flee && DS.rng() < p.grp.flee) { yield DS.say(L(p.grp.fleeText || 'w.nightcrewGone')); return; }
+    if (EV.guestsSitOut) yield* EV.guestsSitOut({});
     var res = yield DS.battle({ enemies: p.list, bg: p.Z.bg || m.bg, music: p.Z.music, roost: !!m.roost, zone: zone, dark: EV.darkHere(), torch: G().flags.torchBy || null });
     if (res === 'lose') return;
     yield* EV.afterBattle();
@@ -87,6 +88,7 @@
   EV.fight = function* (enemies, o) {
     var m = F().map.src;
     o = Object.assign({ enemies: enemies, bg: m.bg, roost: !!m.roost, dark: EV.darkHere(), torch: G().flags.torchBy || null }, o || {});
+    if (EV.guestsSitOut) yield* EV.guestsSitOut(o); // (a fallen guest sits it out, and is said to: js/deep.js)
     var res = yield DS.battle(o);
     if (res !== 'lose' && !o.lossOk) yield* EV.afterBattle();
     return res;

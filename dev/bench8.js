@@ -1836,6 +1836,51 @@
       // result written as ever -- dev/loaderr-probe.py wants the throw handed back
       var sL = document.createElement('script'); sL.textContent = 'throw new Error("the bench\'s own load error (loaderr1007)")'; document.body.appendChild(sL);
       check('the page writes its result after a script threw on load', true);
+    } else if (test === 'escorts1013') {
+      // the escorts and the save (10-13, the road §7g; Griz: "1 - yes, existing saves be derned (or mended post fix?)"): Brann and Hedda through a save and a load, standing
+      // and down; the Raid won lets them go whether they stood or lay down; a save already past the Raid that still carries them comes back without them
+      var EVe = DS.EV, Se = DS.SCRIPTS, base8 = DS.battle;
+      DS.battle = function (o) { return { start: function (script) { var self = this; self.finished = true; self.result = 'win'; pending.push(function () { script.resume(self, 'win'); }); } }; };
+      function freshE(n) { T.newGame('barley'); DS.paused = true; DS.lastError = null; DS.situation(DS.G, { base: 'lake', spine: n }); DS.G.party.forEach(function (h) { delete h.pendingChoice; }); return DS.G; }
+      function keysE() { return (DS.G.guests || []).map(function (x) { return x.id + (x.h.ko ? '(down)' : ''); }).join(','); }
+      function tripE() { DS.saveGame(3); DS.startFrom(DS.loadSlot(3)); DS.paused = true; }
+      var saidE = [];
+      function playE(gen) {
+        var fin = false; DS.run(gen, function () { fin = true; });
+        for (var s = 0; s < 6000; s++) {
+          var tp = DS.top(), k = tp && tp.kind, menu = (k === 'dialog' || k === 'menu' || k === 'popup') ? tp.menu : null;
+          if (k === 'dialog') { var pgE = tp.pages && tp.pages[tp.p]; if (pgE) { var tE = DS.stripCodes(pgE.lines.join(' ')); if (saidE[saidE.length - 1] !== tE) saidE.push(tE); } }
+          if (DS.lastError) break;
+          if (menu) { menu.i = Math.max(0, menu.items.findIndex(function (it) { return !it.disabled; })); T.tapf('a'); }
+          else if (k === 'dialog') { if (tp.chars < tp.pageLen()) tp.chars = tp.pageLen(); T.tapf('a'); }
+          else if (k === 'check') { if (tp.t > 60) T.tapf('a'); else T.step(4); }
+          else if (k && k !== 'field' && k !== 'flash') { T.tapf('a'); T.step(2); }
+          else T.step(1);
+          if (fin && !DS.scriptActive() && (!k || k === 'field')) break;
+        }
+        return fin;
+      }
+      function raidE() { DS.G.flags.surfaceCall = 1; DS.G.map = 'highway_3'; DS.G.x = 56; DS.G.y = 11; tripE(); return playE(function* () { yield* Se.raid(); }); }
+      try {
+        freshE(15); var e0 = keysE(); tripE(); var e1 = keysE();
+        check('the muster\'s two through a save and a load: ' + e0 + ' -> ' + e1 + ' (want brann,hedda both times)', e0 === 'brann,hedda' && e1 === 'brann,hedda');
+        DS.G.guests.forEach(function (x) { x.h.ko = true; x.h.hp = 0; }); tripE(); var e2 = keysE();
+        check('down in the Giant\'s Camp, through a save and a load: ' + e2 + ' (want brann(down),hedda(down): still walking with you, sitting out till a lamp)', e2 === 'brann(down),hedda(down)');
+        var r1 = raidE(), e3 = keysE();
+        check('the Raid won with them down: ' + (r1 ? 'played' : 'NOT FINISHED') + ', after it ' + (e3 || '(none)') + ' (want none: they stay at the lamp)', r1 && !!DS.G.flags.raidWon && e3 === '');
+        freshE(15); DS.G.guests = []; var r2 = raidE();
+        EVe.addGuest('brann'); EVe.addGuest('hedda'); var e4 = keysE();
+        check('the Raid won without them: ' + (r2 ? 'played' : 'NOT FINISHED') + '; a muster after it gives ' + (e4 || '(none)') + ' (want none: their orders end at the lamp)', r2 && e4 === '');
+        freshE(16); DS.G.guests = [{ id: 'brann', h: EVe.guestSheet('brann') }, { id: 'hedda', h: EVe.guestSheet('hedda') }]; tripE(); var e5 = keysE();
+        check('a save past the Raid still carrying them, loaded: ' + (e5 || '(none)') + ' (want none: mended)', e5 === '');
+        freshE(15); DS.G.guests.forEach(function (x) { x.h.ko = true; x.h.hp = 0; }); DS.G.map = 'highway_3'; DS.G.x = 20; DS.G.y = 11; tripE();
+        saidE = []; playE(function* () { yield* EVe.fight(['goblin'], {}); }); var s1 = saidE.filter(function (t) { return /still down/.test(t); });
+        saidE = []; playE(function* () { yield* EVe.fight(['goblin'], {}); }); var s2 = saidE.filter(function (t) { return /still down/.test(t); });
+        EVe.longRest(); DS.G.guests[0].h.ko = true; DS.G.guests[0].h.hp = 0;
+        saidE = []; playE(function* () { yield* EVe.fight(['goblin'], {}); }); var s3 = saidE.filter(function (t) { return /still down/.test(t); });
+        check('a fight with both down says so once: "' + (s1[0] || '(nothing)') + '"; the next fight ' + (s2.length ? 'again' : 'quiet') + '; after a night, Brann down again: "' + (s3[0] || '(nothing)') + '"',
+          s1.length === 1 && /^Brann and Hedda: still down/.test(s1[0]) && !s2.length && s3.length === 1 && /^Brann: still down/.test(s3[0]));
+      } finally { DS.battle = base8; }
     } else if (test === 'migrate') {
       // an older save: Ingrith a fighter with a heals counter, hurt; DS.startFrom walks her on as the cleric she is
       DS.EV.addGuest('ingrith');

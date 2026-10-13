@@ -469,11 +469,16 @@
     if (o.wounded) { h.wounded = true; h.hp = Math.max(1, Math.round(h.maxhp / 3)); } // Halldor: a third of himself, and he won't sit out
     return h;
   };
+  // a guest whose orders end with the story walks with no one past it: Brann and Hedda hold Third Lamp once the Raid is won (deep.escortsStay) -- not by a muster
+  // after it, and not off a save that still carries them (mended as it loads, DS.startFrom below). 10-13, the road §7g: his 10-12 save had them past Third Lamp;
+  // Griz: "1 - yes, existing saves be derned (or mended post fix?)"
+  var GUEST_UNTIL = { brann: 'raidWon', hedda: 'raidWon' };
+  function guestDone(key) { var f = GUEST_UNTIL[key]; return !!(f && G().flags[f]); }
   EV.addGuest = function (id, key, o) {
     var g = G();
     key = key || id;
     g.guests = g.guests || [];
-    if (g.guests.some(function (x) { return x.id === key; })) return;
+    if (guestDone(key) || g.guests.some(function (x) { return x.id === key; })) return;
     g.guests.push({ id: key, h: EV.guestSheet(id, key, o) });
   };
   // a save made while a guest walked by an older sheet (Ingrith was a fighter with a heals counter till 09-28g, RULED: "she's meant
@@ -481,6 +486,7 @@
   var baseStartFrom = DS.startFrom;
   DS.startFrom = function (data) {
     baseStartFrom(data);
+    G().guests = (G().guests || []).filter(function (x) { var done = guestDone(x.id); if (done) console.warn('save: ' + x.id + "'s orders ended (" + GUEST_UNTIL[x.id] + '): no longer with you'); return !done; });
     (G().guests || []).forEach(function (x) {
       var d = DS.DATA.heroes[x.h.id];
       if (!d || (x.h.cls === d.cls && x.h.lvl === d.level)) return; // (or a sheet since grown: Pyro to 12, 09-30)
@@ -949,9 +955,21 @@
   EV.longRest = function () {
     baseLongRest2();
     (G().guests || []).forEach(function (x) {
-      x.h.ko = false; x.h.conds = {}; R.refresh(x.h, true); if (x.h.healer) x.h.feats.heals = x.h.healer;
+      x.h.ko = false; x.h.conds = {}; delete x.h.sitTold; R.refresh(x.h, true); if (x.h.healer) x.h.feats.heals = x.h.healer;
       if (x.h.wounded) x.h.hp = Math.max(1, Math.round(x.h.maxhp / 3)); // a night on a cot doesn't mend Halldor; a kit or a paladin's hands does
     });
+  };
+  // ...and says so, once, at the first fight a fallen guest sits out: a guest down is not a guest lost (10-13, the road §7g -- Brann and Hedda fell in the Giant's
+  // Camp on 10-12 and sat out the Drain, the Seam and the Raid with nothing said; his note: "you lose the dwarven guests ... if you save and load")
+  EV.guestsSitOut = function* (o) {
+    if (o && (o.solo != null || o.noGuests)) return;
+    var gs = G().guests || [];
+    gs.forEach(function (x) { if (!x.h.ko && x.h.hp > 0) delete x.h.sitTold; }); // (up again by a kit or a revive: a fall after it is told again)
+    var out = gs.filter(function (x) { return (x.h.ko || x.h.hp <= 0) && !x.h.sitTold; });
+    if (!out.length) return;
+    out.forEach(function (x) { x.h.sitTold = true; });
+    var nm = out.map(function (x) { return x.h.name; }), list = nm.length === 1 ? nm[0] : nm.slice(0, -1).join(', ') + ' and ' + nm[nm.length - 1];
+    yield DS.say(L('deep.guestsSitOut', { names: list }));
   };
   // Revivify in the field: a diamond, and a fallen friend
   var baseFieldCast = EV.fieldCast;
