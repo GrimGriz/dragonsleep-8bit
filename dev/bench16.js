@@ -1692,6 +1692,26 @@
       var B2 = mk13('?npc=goblin&lvl=5&vs=vivian:5,barley:5,fighter:5'), vv = side13(B2, 'party')[0], ba = side13(B2, 'party')[1], f2 = side13(B2, 'party')[2];
       var wantV = vv.src && vv.src.skills && vv.src.skills.Acrobatics != null ? R13.skill(vv.src, 'Acrobatics', 'dex') : null, wantB = ba.src && ba.src.skills && ba.src.skills.Athletics != null ? R13.skill(ba.src, 'Athletics', 'str') : null;
       ok13('ACROBATICS: Vivian ' + vv.acrobatics + ' (her sheet ' + wantV + '), Barley Athletics ' + ba.athletics + ' (his sheet ' + wantB + '), a fighter by class ' + f2.acrobatics + ' (want none: the guess)', wantV != null && vv.acrobatics === wantV && wantB != null && ba.athletics === wantB && f2.acrobatics == null);
+      // HEIGHT (10-13, his "1 yes" on reach between bodies): a Huge stone giant on a floor 10 to 12.5 ft below a ledge, its head at the lip, is 5 ft from a fighter on the ledge; a
+      // goblin on that same low floor beside the ledge is 10 ft from him, as it always was (two of one size read as before)
+      var B6 = mk13('?npc=stonegiant,goblin&lvl=8&vs=fighter:8&map=edifice'), g6 = kind13(B6, 'stonegiant'), gb6 = kind13(B6, 'goblin'), f6 = side13(B6, 'party')[0], m6 = G13.map, s6 = m6.def.step, h6 = null;
+      // (a stretch of open floor, 5 by 4, one height: the top three rows of its right two columns raised 10 ft for this check alone -- the map's own ledges are 45 ft or a step)
+      for (var y6 = 1; y6 < m6.h - 5 && !h6; y6++) for (var x6 = 1; x6 < m6.w - 6 && !h6; x6++) {
+        var z6 = m6.gz(x6, y6), ok6 = true;
+        for (var j6 = 0; j6 < 4 && ok6; j6++) for (var i6 = 0; i6 < 5 && ok6; i6++) { var c6 = m6.at(x6 + i6, y6 + j6); if (!c6 || !c6.walk || m6.gz(x6 + i6, y6 + j6) !== z6) ok6 = false; }
+        if (ok6) h6 = { x: x6, y: y6, z: z6 };
+      }
+      if (!h6) ok13('HEIGHT: a stretch of open floor on the Edifice', false);
+      else {
+        var gz06 = m6.gz, X6 = h6.x, Y6 = h6.y, Z6 = h6.z;
+        m6.gz = function (x, y) { return x >= X6 + 3 && x < X6 + 5 && y >= Y6 && y < Y6 + 3 ? Z6 + 4 * s6 : gz06.call(m6, x, y); };
+        try {
+          g6.x = X6; g6.y = Y6; f6.x = X6 + 3; f6.y = Y6 + 2; gb6.x = X6 + 2; gb6.y = Y6 + 3; // (the goblin diagonal to the fighter's square, on the low floor)
+          var gbOK = m6.at(gb6.x, gb6.y) && m6.at(gb6.x, gb6.y).walk && m6.gz(gb6.x, gb6.y) === Z6;
+          var dG6 = G13.dist(f6, g6), dB6 = G13.dist(f6, gb6);
+          ok13('HEIGHT: a ledge 10 ft over the floor -- the giant (15 ft tall) below it ' + dG6 + ' ft from the fighter on it, a goblin on the floor beside it ' + dB6 + ' ft (want 5 and 10; the goblin on the low floor ' + !!gbOK + ')', dG6 === 5 && dB6 === 10 && !!gbOK);
+        } finally { m6.gz = gz06; }
+      }
       // THE EDGE: a bugbear shoves a fighter standing at a drop of 10 ft or more; won, over he goes -- the fall's dice and prone, no save past the contest
       var B3 = mk13('?npc=bugbear&lvl=8&vs=fighter:8&map=edifice'), bb = kind13(B3, 'bugbear'), f3 = side13(B3, 'party')[0], m3 = G13.map, st3 = m3.def.step, e3 = null;
       [[1, 0], [-1, 0], [0, 1], [0, -1]].forEach(function (dv) {
@@ -1708,6 +1728,40 @@
         try { run13(D.ai.shoveOff(B3, bb, f3)); } finally { D.d = d013; }
         var l3 = log13(B3, n3);
         ok13('THE EDGE: shoved from ' + e3.slice(0, 2) + ', he lands at ' + f3.x + ',' + f3.y + ', hp 200 to ' + f3.hp + ', prone ' + !!f3.conds.prone + ' (want the square below, the fall dice, prone): ' + l3.slice(0, 220), f3.x === e3[0] + e3[2] && f3.y === e3[1] + e3[3] && f3.hp < 200 && !!f3.conds.prone && /over the edge/.test(l3));
+      }
+      // SHOVE, a hero's (10-13, his "2 yes"): on the ring beside a foe; KNOCK PRONE drops it, PUSH moves it 5 ft; at an edge, over it goes
+      var B7 = mk13('?npc=goblin&lvl=5&vs=fighter:5'), g7 = kind13(B7, 'goblin'), f7 = side13(B7, 'party')[0], o7 = open13(4, 3);
+      if (!o7) ok13('SHOVE: an open stretch of the class floor', false);
+      else {
+        f7.x = o7[0]; f7.y = o7[1] + 1; g7.x = o7[0] + 1; g7.y = o7[1] + 1; g7.conds = {}; D.rules.startTurn(f7); B7.active = f7;
+        var cm7 = (B7.commands(f7) || []).filter(function (c) { return c.id === 'shove'; })[0], q7 = [20, 1];
+        D.d = function (n) { return n === 20 ? (q7.length ? q7.shift() : 10) : 1; };
+        try { run13(B7.exec(f7, { do: 'shove', target: g7, how: 'prone' })); } finally { D.d = d013; }
+        var pr7 = !!g7.conds.prone, at7 = [g7.x, g7.y]; g7.conds = {}; D.rules.startTurn(f7); q7 = [20, 1];
+        D.d = function (n) { return n === 20 ? (q7.length ? q7.shift() : 10) : 1; };
+        try { run13(B7.exec(f7, { do: 'shove', target: g7, how: 'push' })); } finally { D.d = d013; }
+        ok13('SHOVE: on the ring ' + !!(cm7 && cm7.ok) + '; KNOCK PRONE -- prone ' + pr7 + ' where it stood ' + (at7[0] === o7[0] + 1) + '; PUSH -- from ' + (o7[0] + 1) + ' to ' + g7.x + ' (want on, true, true, 5 ft on)', !!(cm7 && cm7.ok) && pr7 && at7[0] === o7[0] + 1 && g7.x === o7[0] + 2 && g7.y === o7[1] + 1);
+      }
+      var B8 = mk13('?npc=goblin,bugbear&lvl=8&vs=fighter:8,wizard:8&map=edifice'), g8 = kind13(B8, 'goblin'), bb8 = kind13(B8, 'bugbear'), f8 = side13(B8, 'party')[0], w8 = side13(B8, 'party')[1], m8 = G13.map, st8 = m8.def.step, e8 = null;
+      [[1, 0], [-1, 0], [0, 1], [0, -1]].forEach(function (dv) {
+        for (var y8 = 1; y8 < m8.h - 1 && !e8; y8++) for (var x8 = 1; x8 < m8.w - 1 && !e8; x8++) {
+          var lo8 = m8.at(x8 + dv[0], y8 + dv[1]), bk8 = m8.at(x8 - dv[0], y8 - dv[1]);
+          if (lo8 && lo8.walk && lo8.ch !== '~' && bk8 && bk8.walk && m8.gz(x8, y8) - m8.gz(x8 + dv[0], y8 + dv[1]) >= 4 * st8 && m8.gz(x8 - dv[0], y8 - dv[1]) === m8.gz(x8, y8) && G13.canStand(g8, x8, y8) && G13.canStand(f8, x8 - dv[0], y8 - dv[1])) e8 = [x8, y8, dv[0], dv[1]];
+        }
+      });
+      if (!e8) ok13('SHOVE: a ledge on the Edifice', false);
+      else {
+        // (a hero at the edge's back, the goblin on the edge: PUSH, and the goblin goes over)
+        bb8.x = 1; bb8.y = 1; w8.x = 2; w8.y = 1; f8.x = e8[0] - e8[2]; f8.y = e8[1] - e8[3]; g8.x = e8[0]; g8.y = e8[1]; g8.hp = g8.maxhp = 200; D.rules.startTurn(f8); B8.active = f8; var q8 = [20, 1], n8 = (B8.log || []).length;
+        D.d = function (n) { return n === 20 ? (q8.length ? q8.shift() : 10) : 1; };
+        try { run13(B8.exec(f8, { do: 'shove', target: g8, how: 'push' })); } finally { D.d = d013; }
+        var gOff = g8.x === e8[0] + e8[2] && g8.y === e8[1] + e8[3] && g8.hp < 200;
+        // (then the AI's own: the bugbear behind the wizard at the same edge, a match for her at Athletics -- its turn shoves her over before it swings)
+        g8.dead = true; f8.x = 3; f8.y = 1; bb8.x = e8[0] - e8[2]; bb8.y = e8[1] - e8[3]; w8.x = e8[0]; w8.y = e8[1]; w8.hp = w8.maxhp = 200; w8.conds = {}; bb8.athletics = 9; bb8.conds = {}; var n8b = (B8.log || []).length; q8 = [20, 1];
+        D.d = function (n) { return n === 20 ? (q8.length ? q8.shift() : 10) : 1; };
+        try { B8.active = bb8; run13(D.ai.turn(B8, bb8)); } finally { D.d = d013; }
+        var l8b = log13(B8, n8b), wOff = w8.x === e8[0] + e8[2] && w8.y === e8[1] + e8[3] && w8.hp < 200 && /SHOVE/.test(l8b);
+        ok13('SHOVE AT AN EDGE: the fighter shoves the goblin over ' + gOff + ' (' + log13(B8, n8).slice(0, 70) + '); the bugbear AI shoves the wizard over ' + wOff + ' (' + l8b.slice(0, 90) + ')', gOff && wOff);
       }
       // THE PUDDING: three bites eat plain armour and a plain weapon through, gone from the sheet the 8-bit reads back; magic armour never; a Magic Weapon cast after two bites holds
       var B4 = mk13('?npc=pudding&lvl=5&vs=fighter:5,paladin:5'), pu = kind13(B4, 'pudding'), f4 = side13(B4, 'party')[0], pa = side13(B4, 'party')[1];

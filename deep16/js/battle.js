@@ -1093,6 +1093,10 @@
     var helpFoe = this.units.some(function (w) { return G.hostile(u, w) && G.standing(w) && G.dist(u, w) <= 5; }), helpMate = this.units.some(function (w) { return Battle.helpable(u, w); });
     if (helpFoe || helpMate)
       out.push({ id: 'help', label: 'HELP', cost: 'A', ok: T.action > 0 && !T.attacksLeft, tool: 'help', note: helpFoe && helpMate ? 'a foe beside you: the next ally to swing at it has advantage; a friend beside you: wake a sleeper, a hand out of a web or a grip' : helpFoe ? 'the next ally to swing at a foe beside you has advantage' : 'a friend beside you: wake a sleeper, a hand out of a web or a grip' });
+    // SHOVE (SRD 5.1, Shoving a Creature: one attack of the Attack action, at one in your reach no more than one size larger; your Athletics against its Athletics or Acrobatics, its
+    // pick; won, it is knocked prone or pushed 5 ft away -- over an edge of 10 ft or more, it falls. 10-13, Griz: "2 yes", a hero's SHOVE; ai.js shoveOff)
+    var shoveT = this.units.some(function (w) { return G.hostile(u, w) && G.standing(w) && !w.object && G.dist(u, w) <= G.reachOf(u) && Battle.sizeCat(w) <= Battle.sizeCat(u) + 1; });
+    if (shoveT) out.push({ id: 'shove', label: 'SHOVE', cost: 'A', ok: (T.action > 0 || T.attacksLeft > 0) && !u.conds.restrained, why: u.conds.restrained ? 'held fast' : 'no attack left', tool: 'shove', note: 'one attack of the Attack action: a foe in your reach, no more than one size larger, pushed 5 ft away (off an edge, it falls) or knocked prone -- your Athletics against its Athletics or Acrobatics' });
     // PULL IT OFF (SRD 5.1 Darkmantle: "A creature can detach the darkmantle by making a successful DC 13 Strength check as an action" -- any creature, not only
     // the one it rides; 10-01, Griz: "allies can strength check detach per SRD, I could only find the 'help' part"): a friend beside you with one riding on
     var pulls = Battle.pullable(u, this.units);
@@ -1221,7 +1225,7 @@
   // the edge a blow from `from` would knock `u` off (10-05, the male giant's rocks): the square 5 ft straight back from the thrower's middle, open, free, and 10 ft or more below where
   // u stands -- { at, ft } -- or nothing (no edge there: the rock only knocks prone, as the SRD has it). One square's body; one hanging on a rope or a face is not standing on an edge
   Battle.knockSq = function (from, u) {
-    if ((u.size || 1) > 1 || (u.hang && G.hanging(u))) return null;
+    if ((u.size || 1) > 1 || (u.hang && G.hanging(u)) || G.aloft(u)) return null; // (one aloft is not standing on an edge: pushed, it moves in the air -- 10-13)
     var fs = from.size || 1, cx = from.x + (fs - 1) / 2, cy = from.y + (fs - 1) / 2, ddx = u.x - cx, ddy = u.y - cy, sx = Math.abs(ddx) < 0.5 ? 0 : Math.sign(ddx), sy = Math.abs(ddy) < 0.5 ? 0 : Math.sign(ddy);
     if (!sx && !sy) return null;
     var px = u.x + sx, py = u.y + sy, s = G.map.at(px, py), st = G.map.def.step, drop = G.map.gz(u.x, u.y) - G.map.gz(px, py);
@@ -1552,6 +1556,17 @@
         return;
       }
       case 'dodge': D.sfx('bump'); T.action = 0; u.conds.dodge = true; this.card(['{y}' + u.name + '{/} dodges: attacks against at disadvantage till the next turn.']); return;
+      case 'shove': { // (the SRD's Shove, a hero's -- 10-13: the push, over an edge a fall, or prone; ai.js shoveOff rolls it)
+        var sw = c.target; if (!sw || sw.dead || sw.hp <= 0 || !G.hostile(u, sw)) return;
+        if (Battle.sizeCat(sw) > Battle.sizeCat(u) + 1 || G.dist(u, sw) > G.reachOf(u)) { this.card(['{o}Shove: a foe in your reach, no more than one size larger.{/}'], 160); return; }
+        var offW = Battle.knockSq(u, sw), how = c.how;
+        if (!how) how = byAI(u) ? 'push' : yield { prompt: { who: u, title: u.name + ': SHOVE ' + (sw.side === 'foe' ? Battle.nm(sw, true) : sw.name).toUpperCase() + '?', lines: ['One attack of your Attack action: your Athletics against its Athletics or Acrobatics.' + (offW ? ' Pushed, it goes over the edge: ' + offW.ft + ' ft down.' : '')], opts: [{ label: offW ? 'PUSH -- OVER THE EDGE' : 'PUSH 5 FT AWAY', value: 'push' }, { label: 'KNOCK PRONE', value: 'prone' }, { label: 'NOT NOW', value: 0 }] } };
+        if (!how) return;
+        if (!T.attacksLeft) { if (!T.action) return; T.action = 0; T.attackAction = true; T.attacksLeft = T.slowed ? 1 : u.attacks + (T.hasteAction ? 1 : 0); }
+        T.attacksLeft--;
+        yield* D.ai.shoveOff(this, u, sw, { how: how, paid: true });
+        return;
+      }
       case 'help': {
         if (!c.target) return;
         D.sfx('buff');

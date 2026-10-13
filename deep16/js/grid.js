@@ -72,7 +72,9 @@
       var e = rm[k], st = e.stand && G.groundAt(u, e.x, e.y) <= z;
       // (sinking last, its body must be free where it ends -- at z, not only at the height it flew over at: 10-08, the flight bench, a giant bat flying in high sank onto
       // Lymen's square at Lymen's height -- dev/bench16.js mode=flyrings1008)
-      if (st && z < tr) { var f1 = u.fz; u.fz = z > G.groundAt(u, e.x, e.y) ? z : null; try { st = G.canStand(u, e.x, e.y); } finally { u.fz = f1; } }
+      // (and rising or sinking in place: its own square is G.reach's start, standable as given -- 10-13, the flight bench once reach read bodies' heights: Aurdin rose in his own
+      // square into Vivian hanging over it at the height he rose to)
+      if (st && (z < tr || (e.x === u.x && e.y === u.y && z !== cur))) { var f1 = u.fz; u.fz = z > G.groundAt(u, e.x, e.y) ? z : null; try { st = G.canStand(u, e.x, e.y); } finally { u.fz = f1; } }
       out[k] = Object.assign({}, e, { cost: e.cost + v, stand: st, layer: z });
     });
     return out;
@@ -279,7 +281,14 @@
     var dx = Math.max(0, bx - (ax + as - 1), ax - (bx + bs - 1)), dy = Math.max(0, by - (ay + as - 1), ay - (by + bs - 1));
     // height counts as a diagonal does (10-04, Griz: "height as distance for vis and opportunity attack?"): the larger of the across and the up, the up in whole 5 ft (a step is
     // 2.5 ft, rounded down -- a 5 ft ledge is still beside the floor under it, a 10 ft tower's top is 10 ft from its foot). Read only where a map rises 10 ft or more (G.tall)
-    var dz = G.tall() ? Math.floor(Math.abs(G.gzAt(a, ax, ay) - G.gzAt(b, bx, by)) / G.map.def.step / 2) : 0;
+    // (10-13, Griz: "Confirm units are taking up vertical as well at footprint, particularly with regard to the edifice fight (did barley have to be 5 ft from the giants feet 15 feet
+    // down when its head was next to him?)", then "1 yes": the up is measured between the two bodies, each as tall as its size -- G.bodyH, a creature's space a cube (SRD 5.1) --
+    // not foot to foot. Bodies that meet in height are level; else 5 ft for touching and 5 more for each whole 5 ft between. Two of one size read as they always did)
+    var dz = 0;
+    if (G.tall()) {
+      var st = G.map.def.step, za = G.gzAt(a, ax, ay), zb = G.gzAt(b, bx, by), ha = G.bodyH(a) * st, hb = G.bodyH(b) * st;
+      if (!(za < zb + hb && zb < za + ha)) dz = 1 + Math.floor((zb >= za + ha ? zb - (za + ha) : za - (zb + hb)) / st / 2);
+    }
     return Math.max(dx, dy, dz) * 5;
   };
   // does the map rise 10 ft (four steps) or more anywhere? (G.dist and the light read height only then: the flat maps pay nothing for it)

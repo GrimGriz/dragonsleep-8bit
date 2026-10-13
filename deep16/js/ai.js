@@ -905,15 +905,17 @@
   // (Athletics) or Dexterity (Acrobatics), the target's choice -- the better here; won, it is pushed 5 ft away -- or knocked prone where it cannot be pushed; a tie leaves it as it was)
   function acrobatics(w) { return w.acrobatics != null ? w.acrobatics : D.mod(w.abil ? w.abil.dex : 10) + ({ rogue: 1, monk: 1 }[w.cls] ? w.prof || 0 : 0); } // (the classes that have the skill to pick, as G.athletics reads its own)
   function d20e(e) { return e.dis.length && !e.adv.length ? Math.min(D.d(20), D.d(20)) : e.adv.length && !e.dis.length ? Math.max(D.d(20), D.d(20)) : D.d(20); }
-  function* shoveOff(B, u, w) {
-    var T = u.turn; if (!T.action || (w.size || 1) > (u.size || 1) + 1) return false;
+  function* shoveOff(B, u, w, o) {
+    o = o || {}; // (o.paid: a hero's SHOVE has paid its attack already -- battle.js exec 'shove'; o.how 'prone': knocked down, not pushed)
+    var T = u.turn; if ((!T.action && !o.paid) || (w.size || 1) > (u.size || 1) + 1) return false;
     T.shoves = (T.shoves || 0) + 1; u.facing = B.faceTo(u, w); u.anim = 'attack'; u.animT = B.t;
     var rA = d20e(RU.checkEdges(u, 'str')), bA = G.athletics(u) - RU.shaken(u), tA = rA + bA, bS = G.athletics(w) - RU.shaken(w), bD = acrobatics(w) - RU.shaken(w), dex = bD > bS, rW = d20e(RU.checkEdges(w, dex ? 'dex' : 'str')), tW = rW + (dex ? bD : bS), won = tA > tW, x0 = w.x, y0 = w.y;
-    B.card(['{r}' + the(B, u) + '{/} > {y}' + w.name + '{/}  SHOVE', 'Athletics d20 ' + rA + ' ' + RU.sign(bA) + ' = ' + tA + '  vs ' + (dex ? 'Acrobatics' : 'Athletics') + ' d20 ' + rW + ' ' + RU.sign(dex ? bD : bS) + ' = ' + tW + '  ' + (won ? '{n}SHOVED{/}' : '{g}HOLDS{/}')], 300);
+    B.card([(u.side === 'foe' ? '{r}' + the(B, u) : '{y}' + u.name) + '{/} > ' + (w.side === 'foe' ? '{r}' + the(B, w) : '{y}' + w.name) + '{/}  SHOVE', 'Athletics d20 ' + rA + ' ' + RU.sign(bA) + ' = ' + tA + '  vs ' + (dex ? 'Acrobatics' : 'Athletics') + ' d20 ' + rW + ' ' + RU.sign(dex ? bD : bS) + ' = ' + tW + '  ' + (won ? '{n}SHOVED{/}' : '{g}HOLDS{/}')], 300);
     D.sfx(won ? 'hit' : 'miss'); yield 20;
     // (pushed 5 ft away over an edge of 10 ft or more, it goes over and falls: the SRD's shove and the SRD's fall, 1d6 a 10 ft and prone, no save past the contest -- 10-13, Griz:
     // "any shove off a ledge sounds closest to SRD"; "be sure acrobatics is added to the dex save and yes" -- Battle.knockSq and knockOff, as the male giant's rocks have it)
-    var offS = won ? D.Battle.knockSq(u, w) : null;
+    var offS = won && o.how !== 'prone' ? D.Battle.knockSq(u, w) : null;
+    if (won && o.how === 'prone') { if (!w.noProne && !RU.immuneTo(w, 'prone')) { w.conds.prone = true; B.card(['{o}' + w.name + ' is knocked flat.{/}'], 200); } yield 16; u.anim = 'idle'; return false; }
     if (offS) { yield* B.knockOff(w, offS, u); if (!w.dead && w.hp > 0 && !w.noProne && !RU.immuneTo(w, 'prone')) w.conds.prone = true; if (B.readyForced) yield* B.readyForced(); yield 16; }
     else if (won) {
       var s = u.size || 1; D.magic.push(B, { x: u.x + (s - 1) / 2, y: u.y + (s - 1) / 2 }, w, 1);
@@ -925,6 +927,12 @@
     return won && (w.x !== x0 || w.y !== y0);
   }
   // what is left of the Attack action after a shove: the rest of its blows -- nothing but the window takes the glass alone -- after a walk with what move is left
+  function edgeShove(B, u, hs) {
+    if (u.object || u.swarm || !routineOf(u).some(function (k) { var a = u.attacks && u.attacks[k]; return a && !a.ranged; })) return null;
+    var mine = G.athletics(u), Bt = D.Battle;
+    return hs.filter(function (w) { return !w.object && G.standing(w) && G.dist(u, w) <= G.reachOf(u) && Bt.sizeCat(w) <= Bt.sizeCat(u) + 1 && Bt.knockSq(u, w) && mine >= Math.max(G.athletics(w), acrobatics(w)); })
+      .sort(function (a, b) { return Bt.knockSq(u, b).ft - Bt.knockSq(u, a).ft; })[0] || null;
+  }
   function* afterShove(B, u) {
     var T = u.turn, rest = routineOf(u).slice(T.shoves || 0); T.action = 0;
     var pool = function (atk) { return u.missionOnly ? B.units.filter(function (w) { return w.object && w.id === u.mission && G.standing(w); }) : heroes(B, u).filter(function (w) { return usableOn(u, atk, w) && !(u.noGlass && w.object); }); };
@@ -1074,6 +1082,9 @@
   }
   function* brute(B, u) {
     var T = u.turn, hs = heroes(B, u), grudge = false;
+    // one of ours at an edge with a drop of 10 ft or more straight behind it, in reach: the SRD's Shove first, one attack of the routine, and over it goes; the rest of the routine
+    // after it (afterShove). Only where its Athletics is a match for the other's best (10-13, Griz: "2 yes", the AI's shove at an edge)
+    if (T.action && !T.shoves && !u.noShove) { var edgeW = edgeShove(B, u, hs); if (edgeW) { yield* shoveOff(B, u, edgeW); if (u.dead || u.hp <= 0) return; } }
     if (T.shoves) { yield* afterShove(B, u); return; } // (a shove from the face took part of its Attack action: the rest of it, and nothing else -- 10-05 night)
     // a scripted run (a fight's foe `chase`: the Skylights' first trolls after the street's people in round 1 -- 10-05, Griz: "have the first trolls chase the civilians more"): no one of ours
     // in its reach, it runs -- the Dash -- for its square, and that is its turn

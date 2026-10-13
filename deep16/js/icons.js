@@ -10,6 +10,7 @@
     dash: ['............', '.......oooo.', '......oLLLo.', '......oLLo..', '......oLLo..', '.cc...oLLLoo', '......oLLLLo', '.ccc..oLLLLo', '......ollllo', '..cc..oooooo', '............', '............'],
     disengage: ['............', '....oooo....', '...occcco...', '..occoocco..', '.oo.o..occo.', 'o.cco...oco.', '.occo...oco.', '..oco..occo.', '...o..occo..', '.....occo...', '.....ooo....', '............'],
     dodge: ['............', '..ooooooo...', '.occccccco..', '..ooooooco..', '.....ooco...', '..ooococo...', '.occccoco...', '..ooooooo...', '....ooooooo.', '...occcccco.', '....ooooooo.', '............'],
+    shove: ['............', '..o....o....', '.owo..owo...', '.owwo.owwo..', '.owwwoowwwo.', '.owwwwowwwwo', '.owwwoowwwo.', '.owwo.owwo..', '.owo..owo...', '..o....o....', '............', '............'], // (the SRD's Shove, a push: 10-13)
     help: ['....o.o.....', '...owowo.o..', '...owowoowo.', '.o.owowowo..', 'owoowwwwwo..', '.owowwwwwo..', '..owwwwwwo..', '..owwwwwo...', '...owwwwo...', '...owwwo....', '....ooo.....', '............'],
     search: ['............', '............', '...oooooo...', '..oVVVVVVo..', '.oVwwwwwwVo.', 'oVwwwooowwVo', '.oVwwwwwwVo.', '..oVVVVVVo..', '...oooooo...', '............', '............', '............'],
     hide: ['............', '............', '...oooooo...', '..oVVVVVVo..', '.oVVwwwwVVo.', 'oVVwwoowwVVo', '.oVVwwwwVVo.', '..oVVVVVVo..', '...oooooo...', '.oooooooooo.', '............', '............'],
