@@ -2,6 +2,11 @@
 
 What landed, newest first, one line each: **date · commit · lane · one sentence · his word** when there is one. **A line is a line** (RULED 10-06, on a consult and its fork: 20 of the first 55 ran past 400 characters): the hash, one sentence of what, his words verbatim; the files, the numbers and the why are the bolt's and the commit's. The lines before this rule stand as written. A lane is a live handoff at `..\handoff-*.md`, named by its title (the table at the head of the todo is the list); "the house" is the gate, the build and the repo. When an item lands it is cut from its lane and from `..\dragonsleep-todo-2026-10-03.md` and written here (RULED 2026-10-06, Griz: *"I'm on board"*). The story of each line is in the bolt (`..\weaving-room\dragonsleep-8bit.md`); before 2026-10-03, `git log` and the bolt are the record. A line is never edited once written. A ruling that something stays as it is gets a line too, marked `ruled`.
 
+## 2026-10-13
+- 2026-10-13 · `bf8522e` · the Monster Party Game Show · The rest between waves lets go of a ready still held, and the waves' otyugh walks the road instead of churning on it (`mode=gswaves1007`, RED on the old code) · *"Better to nip bugs when we can, proceed with readied monster party short rest thing"*
+- 2026-10-13 · `92e09ee` · the bestiary · The art list's §7: the gnoll's longbow, and the Cut Seal camp's hide tents, bones and fire · *"add bow to art wanted"*
+- 2026-10-13 · ruled · MPMon · The Mascots' notes wait in their lane, paused for a rework of their action economy and what each ability is worth · *"All the lobstamonkee stuff goes in its lane and on pause re: priorities for now"*
+
 ## 2026-10-09
 - 2026-10-09 · `35f4668` · the Pocket DM and the races · A unit that has fought on a ladder goes to the back of the line, and in BUILD a unit already in a slot stands behind the rest · *"Once a unit is used in a ladder, treat it as 'used' or 'purchased last'"*
 - 2026-10-09 · `2d19e2e` · the Pocket DM and the races · A purchase is a receipt, and receipts picked by click, shift+click and ctrl+click bind into one unit at their CRs summed, which a table's CR takes whole, newest first; CR 0 on the shelves at 10 sp; Rascal on the first unit bound · *"click, shift click and ctrl click to select units then a 'bind as unit' button?"* · *"3 Creating first 'unit' ;)"*
