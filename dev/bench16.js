@@ -1733,6 +1733,20 @@
       var pickG = ptG ? UIg.pickUnit(BG, ptG.x, ptG.y) : null;
       okF('A BIG ONE PICKED BY ITS CUBE: the stone giant (size ' + gG.size + ', its corners projected) clicked near its side corner ' + (ptG ? Math.round(ptG.x) + ',' + Math.round(ptG.y) : '-') + (inOld ? ' (INSIDE the old box: no test)' : ' (outside the old box)') + ': picked ' + (pickG ? pickG.name : 'nothing'),
         !!ptG && inOld === false && pickG === gG);
+      // 5h. DACE'S LIGHT (the AI and the dark §8): Dace, the 8-bit's guest, beside a friend in the dark, the cloaker within the light's bright reach -- his turn is Light on
+      // someone's gear (never at the cloaker), and the cloaker recoils
+      var dDc = D.save.fixture(5); dDc.guests = [D.save.guest('dace')];
+      var BDc = new D.Battle({ embed: { canRun: true, dark: true }, data: dDc, npc: { foes: ['cloaker'] }, fightDef: D.classFight(5) }); D.battle = BDc; BDc.enter(); while (!BDc.order.length) BDc.co.next(); BDc.dark = true;
+      var dc = BDc.units.filter(function (w) { return w.side === 'party' && /dace/i.test(w.id + ' ' + w.name); })[0], clk = sideF(BDc, 'foe')[0], frD = sideF(BDc, 'party').filter(function (w) { return w !== dc; })[0];
+      var knowsL = !!(dc && (dc.known || []).indexOf('light') >= 0), placedD = false;
+      if (dc && clk && frD) {
+        for (var yD = 2; yD < D.grid.map.h - 2 && !placedD; yD++) for (var xD = 2; xD < D.grid.map.w - 6 && !placedD; xD++) {
+          if (D.grid.canStand(frD, xD, yD) && D.grid.canStand(dc, xD - 1, yD) && D.grid.canStand(clk, xD + 3, yD)) { frD.x = xD; frD.y = yD; dc.x = xD - 1; dc.y = yD; clk.x = xD + 3; clk.y = yD; placedD = true; }
+        }
+        dc.guest = true; dc.classAI = true; clk.recoiled = false; D.rules.startTurn(dc); BDc.active = dc; var nDc = (BDc.log || []).length; runF(D.ai.turn(BDc, dc)); var lDc = logF(BDc, nDc);
+      }
+      okF('DACE\'S LIGHT: knows it ' + knowsL + ', placed ' + placedD + '; his turn: ' + (lDc || '').slice(0, 150) + ' -- the cloaker recoiled ' + !!(clk && clk.recoiled),
+        knowsL && placedD && /LIGHT on/i.test(lDc || '') && !!clk.recoiled);
       // 6. HASTE BY THE SRD (the grid's rules §2h; Denny under the Spotlight): its action of its own -- one weapon attack, Dash, Disengage, Hide or an object -- beside the turn's
       function hasteF() {
         var Bh = mkF('?npc=goblin&lvl=5&vs=paladin:5'), ph = sideF(Bh, 'party')[0], gh = sideF(Bh, 'foe')[0], ok0 = false;

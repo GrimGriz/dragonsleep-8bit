@@ -488,10 +488,28 @@
     });
     return best;
   };
-  // Mage Armor, Light, the rest that do nothing worth an action in a fight
+  // Mage Armor, the rest that do nothing worth an action in a fight (Light has its own, below, when a light-hater is near: 10-13)
   EV.mageArmor = function (B, u, e, slot, fs, allies) {
     if (B.round > 1 || u.conds.mageArmor || u.armored) return null;
     return { score: 2, t: u };
+  };
+  // Light, when it is worth an action: on a friend's gear or one's own, touched, so a light-hater not yet shaken by light stands within its bright 20 ft (+2.5, the reach
+  // M.brighten reads) -- it recoils, loses its next turn and fights at disadvantage in the light (js/magic.js). 10-13, the AI and the dark §8: Dace at the cloaker walked up and
+  // stabbed it; Griz: "we're aiming for him to cast light (which means he'll have to target a party member with it)", "Light is on allies or items, casting in cloaker
+  // fight /= cast at cloaker". The best one to carry it is the friend whose light catches the most of them; never under a roost
+  EV.light = function (B, u, e, slot, fs, allies) {
+    if (B.fight && B.fight.roost) return null;
+    var shy = fs.filter(function (t) { return t.lightSensitive && !t.recoiled && G.standing(t); });
+    if (!shy.length) return null;
+    var best = null;
+    allies.concat(allies.indexOf(u) < 0 ? [u] : []).forEach(function (w) {
+      if (!G.standing(w) || G.dist(u, w) > 5 || (w.conds && w.conds.light)) return;
+      var caught = shy.filter(function (t) { return Math.hypot(t.x + ((t.size || 1) - 1) / 2 - w.x, t.y + ((t.size || 1) - 1) / 2 - w.y) * 5 <= 22.5 && !M.globeShuts(B, u, e.g, t); });
+      if (!caught.length) return;
+      var s = caught.reduce(function (a, t) { return a + TX.dpr(t) * 1.3; }, 0);
+      if (!best || s > best.score) best = { score: s, t: w };
+    });
+    return best;
   };
   // Daylight: the light-haters caught in it, and a Darkness it would burn away
   EV.daylight = function (B, u, e, slot, fs) {

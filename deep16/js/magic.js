@@ -518,10 +518,10 @@
       } else if (id === 'light') {
         // SRD 5.1: on an object (his staff, her blade): bright 20 ft, dim 20 more, an hour -- it goes where they go
         w2.conds.light = { by: u.id, from: B.castFrom || null, lv: 0 }; // (from and lv: where it was cast from, for a Globe of Invulnerability -- light.js L.map)
-        yield* M.brighten(B, u, 'light', head + ' on ' + (w2 === u ? 'his own gear' : w2.name) + ': a steady light, {y}bright 20 ft{/} and dim 20 more.', { x: w2.x, y: w2.y, bright: 20 });
+        yield* M.brighten(B, u, 'light', head + ' on ' + (w2 === u ? u.name + "'s own gear" : w2.name) + ': a steady light, {y}bright 20 ft{/} and dim 20 more.', { x: w2.x, y: w2.y, bright: 20 });
       } else if (id === 'continualflame') {
         w2.conds.continualFlame = { by: u.id, from: B.castFrom || null, lv: 2 }; if (w2.src) { w2.src.conds = w2.src.conds || {}; w2.src.conds.continualFlame = (w2.src.equip && w2.src.equip.weapon) || true; } // (on the weapon in hand; it never goes out: the 8-bit sheet keeps it, js/embed.js)
-        yield* M.brighten(B, u, 'flame', head + ' on ' + (w2 === u ? 'his own gear' : w2.name) + ': a flame with no heat in it, {o}bright 20 ft{/} and dim 20 more, that will not go out.', { x: w2.x, y: w2.y, bright: 20 });
+        yield* M.brighten(B, u, 'flame', head + ' on ' + (w2 === u ? u.name + "'s own gear" : w2.name) + ': a flame with no heat in it, {o}bright 20 ft{/} and dim 20 more, that will not go out.', { x: w2.x, y: w2.y, bright: 20 });
       } else if (id === 'darkvision') {
         w2.conds.darkvision = { by: u.id, had: w2.darkvision || 0 }; w2.darkvision = Math.max(w2.darkvision || 0, 60); // (had: the sight it had before, given back inside a globe the spell was cast from outside of -- 10-01c)
         B.card([head + ' on ' + w2.name + ': the dark opens out to {c}60 ft{/}, grey and plain.']);
