@@ -1605,6 +1605,77 @@
     document.body.appendChild(preFL);
     return;
   }
+  // the grid's rules lane, 10-13 (mode=rules1013; his answers to the notes window, handoff-2026-10-04-the-grids-rules.md §2h): big through small and a creature's space as difficult
+  // terrain, the sheet's own Acrobatics, a shove over an edge, the pudding's third bite. Each check failed on the code before it but the Magic Weapon guard, which held already
+  if (get('mode', '') === 'rules1013') {
+    var rep13 = { checks: [], errors: [] }, d013 = D.d, M13 = D.magic, G13 = D.grid, R13 = window.DS.R;
+    function ok13(what, v) { rep13.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function run13(g) { var v, k = 0, st; while (g && k++ < 4000) { st = g.next(v); v = undefined; if (st.done) return st.value; if (st.value && st.value.prompt) v = st.value.prompt.opts[0].value; } }
+    function mk13(q) { var Bx = D.npcFight(q, {}); D.battle = Bx; Bx.enter(); while (!Bx.order.length) Bx.co.next(); Bx.dark = false; return Bx; }
+    function side13(Bx, s) { return Bx.units.filter(function (u) { return u.side === s; }); }
+    function kind13(Bx, k) { return Bx.units.filter(function (u) { return u.kind === k; })[0]; }
+    function log13(Bx, n) { return (Bx.log || []).slice(n).join(' | ').replace(/\{\/?[a-z]*\}/g, ''); }
+    // an open stretch of floor, w by h, all one height, for placing (the top-left square)
+    function open13(w, h) { var m = G13.map; for (var y = 1; y + h < m.h; y++) for (var x = 1; x + w < m.w; x++) { var z = m.gz(x, y), good = true; for (var j = 0; j < h && good; j++) for (var i = 0; i < w && good; i++) { var s = m.at(x + i, y + j); if (!s || !s.walk || m.gz(x + i, y + j) !== z) good = false; } if (good) return [x, y]; } return null; }
+    try {
+      // SIZE: a Huge stone giant passes through a cleric (Medium, two sizes from it) and may not stop there; a fighter may not pass an ogre (Large, one size). An ally's square costs double
+      var B1 = mk13('?npc=stonegiant,ogre&lvl=5&vs=fighter:5,cleric:5,rogue:5'), gi = kind13(B1, 'stonegiant'), og = kind13(B1, 'ogre'), fi = side13(B1, 'party')[0], cl = side13(B1, 'party')[1], ro = side13(B1, 'party')[2];
+      var o1 = open13(5, 7);
+      if (!o1) ok13('SIZE: an open stretch of the class floor to place them on', false);
+      else {
+        var X = o1[0], Y = o1[1];
+        gi.x = X; gi.y = Y; cl.x = X + 3; cl.y = Y + 1; ro.x = X; ro.y = Y + 5; fi.x = X + 1; fi.y = Y + 5; og.x = X + 2; og.y = Y + 5;
+        var passG = G13.canPass(gi, X + 1, Y), standG = G13.canStand(gi, X + 1, Y), costG = G13.stepCost(gi, X, Y, X + 1, Y), passF = G13.canPass(fi, X + 2, Y + 5);
+        ok13('SIZE: the giant through the cleric -- may pass ' + passG + ', may stop there ' + standG + ', the step ' + costG + ' ft (want true, false, 10); the fighter through the ogre ' + passF + ' (want false)', passG && !standG && costG === 10 && !passF);
+        var costA = G13.stepCost(fi, fi.x, fi.y, X, Y + 5), costE = G13.stepCost(fi, fi.x, fi.y, fi.x, fi.y - 1);
+        ok13('DIFFICULT: into the rogue beside him ' + costA + ' ft, onto the open floor ' + costE + ' ft (want 10 and 5)', costA === 10 && costE === 5);
+      }
+      // ACROBATICS: the sheet's own skill on the grid unit (Vivian lists it, Barley his Athletics); a class sheet without it keeps the class's guess
+      var B2 = mk13('?npc=goblin&lvl=5&vs=vivian:5,barley:5,fighter:5'), vv = side13(B2, 'party')[0], ba = side13(B2, 'party')[1], f2 = side13(B2, 'party')[2];
+      var wantV = vv.src && vv.src.skills && vv.src.skills.Acrobatics != null ? R13.skill(vv.src, 'Acrobatics', 'dex') : null, wantB = ba.src && ba.src.skills && ba.src.skills.Athletics != null ? R13.skill(ba.src, 'Athletics', 'str') : null;
+      ok13('ACROBATICS: Vivian ' + vv.acrobatics + ' (her sheet ' + wantV + '), Barley Athletics ' + ba.athletics + ' (his sheet ' + wantB + '), a fighter by class ' + f2.acrobatics + ' (want none: the guess)', wantV != null && vv.acrobatics === wantV && wantB != null && ba.athletics === wantB && f2.acrobatics == null);
+      // THE EDGE: a bugbear shoves a fighter standing at a drop of 10 ft or more; won, over he goes -- the fall's dice and prone, no save past the contest
+      var B3 = mk13('?npc=bugbear&lvl=8&vs=fighter:8&map=edifice'), bb = kind13(B3, 'bugbear'), f3 = side13(B3, 'party')[0], m3 = G13.map, st3 = m3.def.step, e3 = null;
+      [[1, 0], [-1, 0], [0, 1], [0, -1]].forEach(function (dv) {
+        for (var y3 = 1; y3 < m3.h - 1 && !e3; y3++) for (var x3 = 1; x3 < m3.w - 1 && !e3; x3++) {
+          var lo3 = m3.at(x3 + dv[0], y3 + dv[1]), bk3 = m3.at(x3 - dv[0], y3 - dv[1]);
+          if (lo3 && lo3.walk && lo3.ch !== '~' && bk3 && bk3.walk && m3.gz(x3, y3) - m3.gz(x3 + dv[0], y3 + dv[1]) >= 4 * st3 && m3.gz(x3 - dv[0], y3 - dv[1]) === m3.gz(x3, y3) && G13.canStand(f3, x3, y3) && G13.canStand(bb, x3 - dv[0], y3 - dv[1])) e3 = [x3, y3, dv[0], dv[1]];
+        }
+      });
+      if (!e3) ok13('THE EDGE: a ledge on the Edifice to shove from', false);
+      else if (!D.ai.shoveOff) ok13('THE EDGE: the shove reachable (ai.js AI.shoveOff)', false);
+      else {
+        bb.x = e3[0] - e3[2]; bb.y = e3[1] - e3[3]; f3.x = e3[0]; f3.y = e3[1]; f3.conds = {}; f3.hp = f3.maxhp = 200; D.rules.startTurn(bb); B3.active = bb;
+        var q3 = [20, 1], n3 = (B3.log || []).length; D.d = function (n) { return n === 20 ? (q3.length ? q3.shift() : 10) : 1; };
+        try { run13(D.ai.shoveOff(B3, bb, f3)); } finally { D.d = d013; }
+        var l3 = log13(B3, n3);
+        ok13('THE EDGE: shoved from ' + e3.slice(0, 2) + ', he lands at ' + f3.x + ',' + f3.y + ', hp 200 to ' + f3.hp + ', prone ' + !!f3.conds.prone + ' (want the square below, the fall dice, prone): ' + l3.slice(0, 220), f3.x === e3[0] + e3[2] && f3.y === e3[1] + e3[3] && f3.hp < 200 && !!f3.conds.prone && /over the edge/.test(l3));
+      }
+      // THE PUDDING: three bites eat plain armour and a plain weapon through, gone from the sheet the 8-bit reads back; magic armour never; a Magic Weapon cast after two bites holds
+      var B4 = mk13('?npc=pudding&lvl=5&vs=fighter:5,paladin:5'), pu = kind13(B4, 'pudding'), f4 = side13(B4, 'party')[0], pa = side13(B4, 'party')[1];
+      f4.hp = f4.maxhp = pa.hp = pa.maxhp = 300; pu.x = f4.x + 1; pu.y = f4.y; var arm4 = f4.src && f4.src.equip ? f4.src.equip.armor : null, n4 = (B4.log || []).length;
+      for (var k4 = 0; k4 < 3; k4++) run13(M13.onWeaponHit(B4, pu, f4, pu.attacks.pseudopod, false));
+      var noArm = R13.ac(Object.assign({}, f4.src, { equip: Object.assign({}, f4.src.equip, { armor: null }) }));
+      ok13('THE PUDDING: the fighter in ' + arm4 + ', bitten three times: armoured ' + !!f4.armored + ', on his sheet ' + f4.src.equip.armor + ', AC ' + f4.baseAC + ' (want none, none, ' + noArm + ')', !!arm4 && !f4.armored && !f4.src.equip.armor && f4.baseAC === noArm && /eaten through/.test(log13(B4, n4)));
+      pa.src.equip.armor = 'chainmail1'; pa.armored = true; var ac4 = pa.baseAC;
+      for (var j4 = 0; j4 < 3; j4++) run13(M13.onWeaponHit(B4, pu, pa, pu.attacks.pseudopod, false));
+      ok13('THE PUDDING: magic armour (chain mail +1), bitten three times: AC ' + ac4 + ' to ' + pa.baseAC + ', still worn ' + pa.src.equip.armor, pa.baseAC === ac4 && pa.src.equip.armor === 'chainmail1');
+      var wid4 = f4.src.equip.weapon;
+      for (var i4 = 0; i4 < 3; i4++) run13(M13.onWeaponHit(B4, f4, pu, f4.weapon, false));
+      ok13('THE PUDDING: his ' + wid4 + ' strikes it three times: on his sheet ' + f4.src.equip.weapon + ', in his hand ' + f4.weapon.name + ' (want none, his fists)', !!wid4 && !f4.src.equip.weapon && /unarmed|fist/i.test(f4.weapon.name));
+      var B5 = mk13('?npc=pudding&lvl=5&vs=fighter:5,paladin:5'), p5 = kind13(B5, 'pudding'), f5 = side13(B5, 'party')[0], a5 = side13(B5, 'party')[1];
+      f5.hp = f5.maxhp = 300; p5.x = f5.x + 1; p5.y = f5.y; a5.x = f5.x; a5.y = f5.y + 1;
+      for (var i5 = 0; i5 < 2; i5++) run13(M13.onWeaponHit(B5, f5, p5, f5.weapon, false));
+      D.rules.startTurn(a5); a5.slots[2] = Math.max(a5.slots[2] || 0, 2); B5.active = a5; run13(M13.cast(B5, a5, 'magicweapon', 2, f5));
+      var mw5 = !!f5.weapon.magic; run13(M13.onWeaponHit(B5, f5, p5, f5.weapon, false)); var held5 = f5.weapon.corroded || 0, kept5 = !!f5.src.equip.weapon;
+      if (M13.endConc) M13.endConc(B5, a5, 'bench');
+      ok13('THE PUDDING: two bites, then Magic Weapon (magic ' + mw5 + '): the third strike eats nothing (' + held5 + ' bites on it), the blade kept ' + kept5 + '; the spell gone, it is the two-bite blade again (' + (f5.weapon.corroded || 0) + ', magic ' + !!f5.weapon.magic + ')', mw5 && held5 <= 2 && kept5 && (f5.weapon.corroded || 0) === 2 && !f5.weapon.magic);
+    } catch (e13) { rep13.errors.push(String(e13 && e13.stack || e13).slice(0, 900)); D.d = d013; }
+    if (errs.length) rep13.errors = rep13.errors.concat(errs);
+    var pre13 = document.createElement('pre'); pre13.id = 'out'; pre13.textContent = 'BENCH16 ' + JSON.stringify(rep13);
+    document.body.appendChild(pre13);
+    return;
+  }
   // the grid's rules lane, 10-08 (mode=rules1008; the lanes window's order, his "1 yes"; handoff-2026-10-04-the-grids-rules.md §2d): each check failed on the code before it
   if (get('mode', '') === 'rules1008') {
     var repR8 = { checks: [], errors: [] }, d0R8 = D.d, MR8 = D.magic;

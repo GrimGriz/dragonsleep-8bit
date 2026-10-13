@@ -135,9 +135,12 @@
     if (wallBars(u, x, y)) return false;
     if (o && o.ghost) return true;
     var f = G.foot(u, x, y), bz = G.bodyAt(u, x, y);
-    for (var i = 0; i < f.length; i++) { var w = G.occupant(f[i][0], f[i][1], u, bz); if (w && G.hostile(u, w)) return false; }
+    for (var i = 0; i < f.length; i++) { var w = G.occupant(f[i][0], f[i][1], u, bz); if (w && G.hostile(u, w) && !G.passBy(u, w)) return false; }
     return true;
   };
+  // through a foe two sizes from yours (SRD 5.1, Moving Around Other Creatures: "you can move through a hostile creature's space only if the creature is at least two sizes larger or
+  // smaller than you" -- 10-13, Griz, on "You'd think the giant could step over rats due to size differences": "seems like that'd be SRD"); never to end there (G.canStand)
+  G.passBy = function (u, w) { var sc = D.Battle && D.Battle.sizeCat; return !!sc && Math.abs(sc(u) - sc(w)) >= 2; };
   G.stepCost = function (u, x0, y0, x1, y1, o) {
     if (!G.canPass(u, x1, y1, o)) return Infinity;
     if (G.shellBars && !(o && o.ghost) && G.shellBars(u, x0, y0, x1, y1)) return Infinity; // (an Antilife Shell: js/walls.js)
@@ -161,6 +164,10 @@
     if (u.bound) { for (var j = 0; j < f.length; j++) if (u.bound.indexOf(G.map.at(f[j][0], f[j][1]).ch) < 0) return Infinity; }
     var extra = G.extraAt ? G.extraAt(u, x1, y1) : 0; // (Wall of Thorns, Plant Growth: 4 ft of movement a foot -- 20 more a square; js/walls.js)
     if (u.conds && u.conds.freeMove) return 5 + extra; // (Freedom of Movement: no ground slows it; the thorns are the wall's, not the ground's)
+    // another creature's space is difficult terrain (SRD 5.1, Moving Around Other Creatures: "Remember that another creature's space is difficult terrain for you" -- 10-13, Griz: "yes
+    // difficult terrain"): a friend's, or a foe's passed two sizes from yours (G.passBy), at the height the body would be (one hanging high over the square is not in it). Not an
+    // object's (the lamp, the skylight), and not for a flier, which has returned above
+    for (var c = 0; c < f.length; c++) { var oc = G.occupant(f[c][0], f[c][1], u, G.bodyAt(u, x1, y1)); if (oc && !oc.object) return 10 + extra; }
     for (var i = 0; i < f.length; i++) { var s = G.map.at(f[i][0], f[i][1]); if ((s.difficult && !(u.bound && u.bound.indexOf(s.ch) >= 0) && !(u.swims && (s.ch === '~' || s.deep)) && !u.landsStride) || (!u.webWalker && D.magic && D.battle && D.magic.webbed(D.battle, f[i][0], f[i][1])) || (D.magic && D.battle && D.magic.icy && D.magic.icy(D.battle, f[i][0], f[i][1])) || (D.magic && D.battle && D.magic.rough && D.magic.rough(D.battle, f[i][0], f[i][1], u))) return 10 + extra; } // (a web, the ice of a Sleet Storm, a spell's ground: grease, vines, spikes, the guardians' ring)
     return 5 + extra;
   };

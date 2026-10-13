@@ -909,7 +909,11 @@
     var rA = d20e(RU.checkEdges(u, 'str')), bA = G.athletics(u) - RU.shaken(u), tA = rA + bA, bS = G.athletics(w) - RU.shaken(w), bD = acrobatics(w) - RU.shaken(w), dex = bD > bS, rW = d20e(RU.checkEdges(w, dex ? 'dex' : 'str')), tW = rW + (dex ? bD : bS), won = tA > tW, x0 = w.x, y0 = w.y;
     B.card(['{r}' + the(B, u) + '{/} > {y}' + w.name + '{/}  SHOVE', 'Athletics d20 ' + rA + ' ' + RU.sign(bA) + ' = ' + tA + '  vs ' + (dex ? 'Acrobatics' : 'Athletics') + ' d20 ' + rW + ' ' + RU.sign(dex ? bD : bS) + ' = ' + tW + '  ' + (won ? '{n}SHOVED{/}' : '{g}HOLDS{/}')], 300);
     D.sfx(won ? 'hit' : 'miss'); yield 20;
-    if (won) {
+    // (pushed 5 ft away over an edge of 10 ft or more, it goes over and falls: the SRD's shove and the SRD's fall, 1d6 a 10 ft and prone, no save past the contest -- 10-13, Griz:
+    // "any shove off a ledge sounds closest to SRD"; "be sure acrobatics is added to the dex save and yes" -- Battle.knockSq and knockOff, as the male giant's rocks have it)
+    var offS = won ? D.Battle.knockSq(u, w) : null;
+    if (offS) { yield* B.knockOff(w, offS, u); if (!w.dead && w.hp > 0 && !w.noProne && !RU.immuneTo(w, 'prone')) w.conds.prone = true; if (B.readyForced) yield* B.readyForced(); yield 16; }
+    else if (won) {
       var s = u.size || 1; D.magic.push(B, { x: u.x + (s - 1) / 2, y: u.y + (s - 1) / 2 }, w, 1);
       if (B.readyForced) yield* B.readyForced(); // (shoved into a readier's reach: the readied strikes, the grid's rules §2.5)
       if (w.x === x0 && w.y === y0 && !(w.hang && G.hanging(w)) && !w.noProne && !RU.immuneTo(w, 'prone')) { w.conds.prone = true; B.card(['{o}' + w.name + ' has nowhere to go: knocked flat instead.{/}'], 200); }
@@ -1417,6 +1421,7 @@
   // the helpers the class tactics share (js/tactics.js)
   AI.brute = brute; AI.wantsDark = function (B, u) { return wantsDark(B, u); };
   AI.brute = brute; // (the flier's blows once it is in the air: js/flight-ai.js, 10-08)
+  AI.shoveOff = shoveOff; // (the SRD's Shove, for the bench: mode=rules1013, a shove over an edge)
   AI.heroes = heroes; AI.approach = approach; AI.walkTo = walkTo; AI.visibleFrom = visibleFrom; AI.eyesAt = eyesAt; AI.reachOf = reachOf; AI.the = the;
   function* guest(B, u) {
     var T = u.turn, fs = heroes(B, u), h = u.src || {}, f = u.feats || {};

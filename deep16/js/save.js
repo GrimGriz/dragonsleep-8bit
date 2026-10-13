@@ -128,6 +128,9 @@
       weapon: wp, attacksBase: R.attacksPerTurn(h), attacks: wp.loading ? 1 : R.attacksPerTurn(h), crit: R.critRange(h), spellDC: R.spellDC(h), spellAtk: R.spellAtk(h),
       saves: { str: R.saveBonus(h, 'str'), dex: R.saveBonus(h, 'dex'), con: R.saveBonus(h, 'con'), int: R.saveBonus(h, 'int'), wis: R.saveBonus(h, 'wis'), cha: R.saveBonus(h, 'cha') },
       stealth: R.skill(h, 'Stealth', 'dex'), perception: 10 + R.skill(h, 'Perception', 'wis'), src: h,
+      // the sheet's own Athletics and Acrobatics where it has them (a shove's contest, a grip's escape -- 10-13, Griz: "be sure acrobatics is added to the dex save"); without, the
+      // class's guess stands (grid.js G.athletics, ai.js acrobatics, magic.js breakFree)
+      athletics: h.skills && h.skills.Athletics != null ? R.skill(h, 'Athletics', 'str') : undefined, acrobatics: h.skills && h.skills.Acrobatics != null ? R.skill(h, 'Acrobatics', 'dex') : undefined,
       // what he sees the dark by (torchdark 09-28): his blood (the 8-bit sheet's race: Lymen the half-orc, the dwarves), or the
       // Darkvision spell cast on him that day (the 8-bit's conds, till the long rest)
       darkvision: Math.max(D.light ? D.light.raceDV((DS.DATA.heroes[h.id] || {}).race) : 0, h.conds && h.conds.darkvision ? 60 : 0),
