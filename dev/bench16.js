@@ -1682,6 +1682,9 @@
       var shareW = pathW && gW.x === clW.x && gW.y === clW.y;
       okF('A WALK AFTER A SPRING: ' + (pathW ? 'the goblin set off ' + pathW[0] + ' for ' + pathW[3] + '; the cleric landed there (' + sprungW + '); the goblin stopped at ' + gW.x + ',' + gW.y + (shareW ? ' -- ON THE CLERIC' : '') + ', prone ' + !!gW.conds.prone : 'no open line found'),
         !!pathW && sprungW && !shareW && gW.x === pathW[2][0] && gW.y === pathW[2][1] && !gW.conds.prone);
+      // 5b. THE NORTH CUT'S BACK ROW (the maps §2b): foes are seated only where a walk reaches the party -- none behind the crate wall
+      var BC = mkF('?npc=goblin,goblin,goblin,goblin,goblin,goblin&lvl=5&vs=fighter:5&map=cut'), fC = sideF(BC, 'foe'), backC = fC.filter(function (w) { return w.y <= 1; });
+      okF('THE NORTH CUT: ' + fC.length + ' goblins seated at ' + fC.map(function (w) { return w.x + ',' + w.y; }).join(' ') + ' -- behind the crates: ' + backC.length + ' (want 0)', fC.length === 6 && !backC.length && BC.map && BC.map.def && BC.map.def.name === 'The North Cut');
       // 6. HASTE BY THE SRD (the grid's rules §2h; Denny under the Spotlight): its action of its own -- one weapon attack, Dash, Disengage, Hide or an object -- beside the turn's
       function hasteF() {
         var Bh = mkF('?npc=goblin&lvl=5&vs=paladin:5'), ph = sideF(Bh, 'party')[0], gh = sideF(Bh, 'foe')[0], ok0 = false;

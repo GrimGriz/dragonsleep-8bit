@@ -251,6 +251,13 @@
     var taken = {}, pts = [];
     party.forEach(function (u) { taken[u.x + ',' + u.y] = 1; });
     for (var y = 0; y < m.h; y++) for (var x = 0; x < m.w; x++) { var q = m.at(x, y); if (q && q.walk) pts.push([x, y]); }
+    // only where a walk reaches the party: a pocket sealed off -- the North Cut's back row behind its crate wall, where Halldor's unit hides in the story -- seats no one
+    // (10-13, the maps §2b: the Visiting Barbarian stood there nine rounds, "paces: it cannot get at anyone"; Griz: "row of stalagmites block the row farthest from party spawn")
+    var reach = {}, fr = party.map(function (u) { return [u.x, u.y]; }).filter(function (p) { var q = m.at(p[0], p[1]); return q && q.walk; });
+    fr.forEach(function (p) { reach[p[0] + ',' + p[1]] = 1; });
+    while (fr.length) { var p0 = fr.shift(); [[1, 0], [-1, 0], [0, 1], [0, -1]].forEach(function (d) { var nx = p0[0] + d[0], ny = p0[1] + d[1], k = nx + ',' + ny, q = m.at(nx, ny); if (!reach[k] && q && q.walk) { reach[k] = 1; fr.push([nx, ny]); } }); }
+    var reached = pts.filter(function (p) { return reach[p[0] + ',' + p[1]]; });
+    if (reached.length) pts = reached;
     var cx = (m.w - 1) / 2;
     pts.sort(function (a, b) { return a[1] - b[1] || Math.abs(a[0] - cx) - Math.abs(b[0] - cx); });
     // (a Large or Huge one needs its whole footprint on open ground, and none of it taken: the Pocket DM seats the bestiary here too -- 10-02)
