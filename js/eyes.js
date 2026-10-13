@@ -17,18 +17,12 @@
   var DS = window.DS = window.DS || {};
   var G1 = 'Eyes: first', G2 = 'Eyes: built this week', G3 = 'Eyes: built before, never seen';
   DS.EYES = {
-    'eyes-dm-door-1009': { pri: 2, group: G2, title: 'The DM’s Pocket DM, behind the three clicks you named (10-09)', pt: 'the Pocket DM and the races §2d (deep16/js/pocketdm.js) · eyes',
-      url: 'deep16/?pocket&fresh=1',
-      look: 'On the Pocket DM’s title, your three clicks, in your order (this page is public: the order is in the lane, not here). Each thing clicked answers (a flare, a glint) and nothing says the order. The third opens THE DM’S POCKET DM: its card, the high seat’s rim gold, CAMPAIGN and DOORS on the left with the purse under them. THE PARTY there: GreyFang, Pyro without the trial, all four Mascots, levels to 12. The same three put it away (THE RELEASE EDITION).' },
     'eyes-units-1009b': { pri: 1, group: G2, title: 'THE CAMPAIGN again: receipts bound into units, CR 0 at 10 sp, Rascal on the first unit (10-09b)', pt: 'the Pocket DM and the races §2d (deep16/js/pocketdm.js) · eyes',
       url: 'deep16/?pocket&fresh=1',
       look: 'At the DM’s table (the row above), CAMPAIGN: the purse 1,000 sp and five shops with icons (BEASTS, MONSTROSITIES, HUMANOIDS, GIANTS, ABERRATIONS, OOZES, ETC.). A shop is priced cheapest at the top (SORT: dearest first, or by name; CR 0 at 10 sp); BUY makes a receipt. THE UNITS: pick receipts (a click one, shift+click a run, ctrl+click one more or less) and BIND AS UNIT makes them one unit at their CRs summed (a Visiting Barbarian and two Stable Fighters: one CR 3 unit); UNBIND gives them back; LET GO pays receipts back. BUILD THE LADDER: each floor has a CR with < >; a click on a floor puts it in the next of five slots, filled with your units whole, newest first, as their CR fits, and the rest rolled (R fills a slot again); STRIKE keeps up to three floors out of every random draw. FIGHT YOUR LADDER: the rungs are your slots, the fifth the trial; every ladder fight pays the purse twice its CR, won or lost. On the dial’s own ladder (THE LADDER: 4 RUNGS FROM HERE) each rung’s rolled CR is filled the same way: your units first, the rest rolled. A unit that has fought on a ladder goes to the back of the line (THE UNITS says "fought: last"), and in BUILD a unit already in a slot stands behind the rest for the next. The first unit you bind brings RASCAL JOINS THE ROSTER.' },
     'eyes-dm-knobs-doors-1009': { pri: 2, group: G2, title: 'The DM’s foes screen: the class floor’s knobs; and DOORS (10-09)', pt: 'the Pocket DM and the races §2d (deep16/js/pocketdm.js) · eyes',
       url: 'deep16/?pocket&fresh=1',
       look: 'At the DM’s table, the foes screen has PARTY FLIES, LEGENDARY FOE, BREATH (cold, fire, lightning, stone) and DARK (the map’s, on, off) under the URL, and the URL carries them. DOORS (on the title’s left): 34 of URLS.md’s doors, each opening in a tab of its own.' },
-    'eyes-situations-notes-1009': { pri: 1, group: G2, title: 'SITUATIONS: the notes box and its own file, and Goose’s egg (10-09)', pt: 'the Pocket DM and the races §2d (deep16/js/pocketdm.js) · eyes',
-      url: 'deep16/?pocket&fresh=1',
-      look: 'USEFULS, SITUATIONS: a box for what you noticed, no page opened. Type something and SAVE: hero_situations_feedback-<the UTC time>.json downloads with your party and campaign in it, and the first time GOOSE JOINS THE ROSTER (the honk). Goose is then on THE PARTY’s arrows. Saving with nothing typed says so and saves nothing.' },
     'eyes-eggs-denny-beholda-1009': { pri: 2, group: G2, title: 'Denny’s egg (the first character made) and Beholda’s (the first campaign saved) (10-09)', pt: 'the Pocket DM and the races §2d (deep16/js/pocketdm.js) · eyes',
       url: 'deep16/?pocket&fresh=1',
       look: 'In the release edition: MAKE a character on a ? seat and SAVE it: DENNY JOINS THE ROSTER, and his "Denim damage!". SAVE CAMPAIGN on the title: BEHOLDA JOINS THE ROSTER (not at the DM’s table: there she is already in). Each once a browser; if one is on your roster already, a private window shows the egg.' },
@@ -229,6 +223,21 @@
       look: 'Every row of the grick\'s sheet, twice, in bright, dim and dark. Change the end of the address to roper or xorn for theirs.' },
     'eyes-pads': { pri: 3, group: G3, title: 'A game pad', pt: 'eyes §2.9 · the Pocket DM and the races §2.15',
       url: 'deep16/?npc=goblin,goblin&lvl=3',
-      look: 'With an Xbox or PlayStation pad: the right stick zooms, left-right brings up the wheel and runs it, the left stick moves the cursor; A confirm, B back, Y end turn. (A key or a click first: the browser won\'t start the sound for a pad press.)' }
+      look: 'With an Xbox or PlayStation pad: the right stick zooms, left-right brings up the wheel and runs it, the left stick moves the cursor; A confirm, B back, Y end turn. (A key or a click first: the browser won\'t start the sound for a pad press.)' },
+    'eyes-leave-together-1013': { pri: 1, group: G2, title: 'Leaving a fight together (10-13)', pt: 'the grid’s rules §2h (deep16/js/battle.js heldBack, leave, escapeEnd; js/tactics.js TX.retreatTurn)',
+      url: 'deep16/?npc=goblin,goblin,goblin&lvl=3',
+      look: 'Let one of the party go down, then walk another to a pale square at the edge: LEAVE THE FIGHT is greyed and says “Your allies refuse -- not while … is down!” (paralyzed, grappled, held fast and the rest the same). Get the fallen one up and the first one out begins the retreat. Inside the 8-bit, the guests then make for the way out, and one beside a friend who falls after picks them up and carries them out at half speed; a story guest left on the floor loses the fight, a trooper is left with a word.' },
+    'eyes-shove-1013': { pri: 2, group: G2, title: 'SHOVE on the ring, for anyone (10-13)', pt: 'the grid’s rules §2h (deep16/js/battle.js exec shove, js/ai.js shoveOff)',
+      url: 'deep16/?npc=goblin,goblin&lvl=3',
+      look: 'Walk beside a goblin: SHOVE is on the ring (a double arrow) and outlines the foes in your reach, orange where one stands at an edge with a drop behind it. Click one: PUSH 5 FT AWAY (or OVER THE EDGE) or KNOCK PRONE is asked, then your Athletics against its Athletics or Acrobatics. Won: pushed 5 ft, or knocked flat; over an edge it falls, 1d6 a 10 ft, and lands prone.' },
+    'eyes-height-reach-1013': { pri: 2, group: G2, title: 'Reach between bodies’ heights: the Skylights’ giants at the lip (10-13)', pt: 'the grid’s rules §2h (deep16/js/grid.js G.dist)',
+      url: 'deep16/?fight=edifice',
+      look: 'When a stone giant clings below the lip with her head at it, whoever stands on the lip beside her head is 5 ft from her: a swing or a readied blow reaches her, and she reaches you. (On 10-10 Barley’s READY never sprang and he dropped 45 ft to reach her.) The AI giants now also shove someone standing at an edge before they swing.' },
+    'eyes-pudding-1013': { pri: 3, group: G2, title: 'The black pudding’s third bite (10-13)', pt: 'the grid’s rules §2h (deep16/js/traits.js)',
+      url: 'deep16/?npc=pudding&lvl=5',
+      look: 'A fighter in plain armour fights the pudding: each bite of its pseudopod eats 1 AC for the fight, and the third eats the armour through -- gone, the AC without it. A plain weapon that strikes it three times comes apart (fists after). Magic armour is never eaten; a weapon under Magic Weapon holds while the spell does.' },
+    'eyes-gs-readies-1013': { pri: 3, group: G2, title: 'The Game Show: a ready let go at the rest, and the otyugh on the road (10-13)', pt: 'the Monster Party Game Show §17 (deep16/js/waves.js)',
+      url: 'deep16/?gameshow&at=lamp&tier=8&wave=2',
+      look: 'A ready held when a wave is won is gone after the short rest: it never fires in the next wave. At tier 8 wave 2 the otyugh walks the road to the lamp instead of churning in place.' },
   };
 })();
