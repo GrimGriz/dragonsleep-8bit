@@ -1622,6 +1622,19 @@
         var kept = (D.store.get('deep16.plays') || []).filter(function (f) { return f.fight === 'fix1013-' + res && f.started === started; })[0];
         okF('THE RECORD: a fight inside the 8-bit ' + res + ' -- recorded ' + (kept ? kept.result : '(nothing)') + ' (want ' + res + ')', !!kept && kept.result === res);
       });
+      // 2. THE EMPTY QUIVER (the grid's rules §2h, Vivian in the Grick Den): the shot costs nothing, the dagger in the pack is offered, taking it is the action, NOT NOW keeps it
+      [false, true].forEach(function (take) {
+        var BQ = mkF('?npc=goblin&lvl=5&vs=rogue:5'), vq = sideF(BQ, 'party')[0], gq = sideF(BQ, 'foe')[0];
+        vq.src.equip.weapon = 'shortbow'; vq.weapon = D.save.weaponOf(vq.src);
+        BQ.inv = BQ.inv.filter(function (s) { return s.id !== 'arrows'; }).concat([{ id: 'dagger', n: 1 }]);
+        D.rules.startTurn(vq); BQ.active = vq;
+        var gQ = BQ.exec(vq, { do: 'attack', target: gq }), stQ = gQ.next(), askQ = stQ.value && stQ.value.prompt, labQ = askQ ? askQ.opts.map(function (o) { return o.label; }).join(' / ') : '(no prompt)';
+        if (askQ) { var dgQ = askQ.opts.filter(function (o) { return /DAGGER/.test(o.label); })[0]; stQ = gQ.next(take && dgQ ? dgQ.value : false); }
+        while (!stQ.done) stQ = gQ.next();
+        var Tq = vq.turn;
+        okF('THE EMPTY QUIVER, ' + (take ? 'the dagger taken' : 'NOT NOW') + ': asked "' + (askQ ? askQ.title : '') + '" ' + labQ + '; the action ' + Tq.action + ', attacks left ' + (Tq.attacksLeft || 0) + ', in hand ' + vq.weapon.name,
+          !!askQ && /DAGGER/.test(labQ) && /NOT NOW/.test(labQ) && !(Tq.attacksLeft > 0) && (take ? Tq.action === 0 && /dagger/i.test(vq.weapon.name) : Tq.action === 1 && /shortbow/i.test(vq.weapon.name)));
+      });
     } catch (eF) { repF.errors.push(String(eF && eF.stack || eF).slice(0, 900)); D.d = d0F; }
     if (errs.length) repF.errors = repF.errors.concat(errs);
     var preF = document.createElement('pre'); preF.id = 'out'; preF.textContent = 'BENCH16 ' + JSON.stringify(repF);

@@ -1461,8 +1461,9 @@
         if (!c.target || c.target.dead || c.target.hp <= 0) return; // (no target: nothing is spent -- a stray command burned Katarina's action 09-29)
         if (RU.charmedBy(u, c.target)) { this.card(['{o}' + u.name + ' is charmed: no raising a hand to ' + (c.target.side === 'foe' ? Battle.nm(c.target) : c.target.name) + '.{/}'], 200); return; }
         if (u.conds.disarmed) { this.card(['{o}' + u.name + ' has dropped the weapon (the turn is spent picking it up).{/}'], 200); return; }
+        // (the quiver empty: checked before the Attack is opened, so the shot that cannot be made costs nothing -- it took Vivian's action in the Grick Den, 10-13)
+        if (u.weapon.ammo && !this.ammoLeft(u)) { yield* this.emptyQuiver(u); return; }
         if (!T.attacksLeft) { if (!T.action) return; T.action = 0; T.attackAction = true; T.attacksLeft = T.slowed ? 1 : u.attacks + (T.hasteAction ? 1 : 0); } // (Haste's one more, Slow's one: js/grimoire.js)
-        if (u.weapon.ammo && !this.ammoLeft(u)) { this.card(['{o}' + u.name + ' has no ' + this.itemName(u.weapon.ammo).toLowerCase() + ' left.{/}'], 120); return; }
         T.attacksLeft--;
         if (u.weapon.ammo) this.spendAmmo(u);
         if (c.target.tendril) yield* this.strikeTendril(u, c.target, u.weapon); // (the roper's tendril on a friend, or on you: tendrilOn, 10-02)
@@ -2868,6 +2869,16 @@
   Battle.prototype.itemName = function (id) { var it = window.DS.DATA.items[id]; return it ? it.name : id; };
   function packOf(B, id) { return B.inv.filter(function (x) { return x.id === id; })[0]; }
   Battle.prototype.ammoLeft = function (u) { var s = packOf(this, u.weapon.ammo); return s ? s.n : 0; };
+  // a shot with the quiver empty: said, nothing spent, and -- the action still whole -- another weapon offered, the swap the action as ever (10-13, the grid's rules §2h, Vivian
+  // in the Grick Den; Griz: "warning bow is empty before weapon switch, offer weapon switch without arrow costing action on empty quiver (weapon switch would burn action)")
+  Battle.prototype.emptyQuiver = function* (u) {
+    var B = this, msg = u.name + ' has no ' + this.itemName(u.weapon.ammo).toLowerCase() + ' left for the ' + u.weapon.name + '.';
+    var opts = byAI(u) ? [] : this.gearOptions(u).filter(function (o) { var wd = o.kind === 'weapon' && o.ok && window.DS.DATA.items[o.id].weapon; return wd && !(wd.ammo && !(packOf(B, wd.ammo) || {}).n); });
+    if (!opts.length) { this.card(['{o}' + msg + '{/}'], 160); return; }
+    var ans = yield { prompt: { who: u, title: u.name + ': THE QUIVER IS EMPTY', lines: [msg, 'Take up another weapon instead? The swap is the action.'],
+      opts: opts.map(function (o) { return { label: o.label.toUpperCase(), value: o }; }).concat([{ label: 'NOT NOW', value: false }]) } };
+    if (ans) this.swapGear(u, ans);
+  };
   Battle.prototype.spendAmmo = function (u) { var s = packOf(this, u.weapon.ammo); if (s && s.n > 0) s.n--; };
   // thrown weapons run out (the grid's rules §2.16; RULED 10-06, Griz: "pickup is bound to be a headache (art), they'll not use up ammo in 8-bit - gotta do it for pocket DM, do it"):
   // a thrown attack's `count` -- a foe's sheet (the ogre's three javelins, data/foes.js), a class hero's kit (two handaxes, SRD 5.1: js/classes.js) -- is spent a throw and never
