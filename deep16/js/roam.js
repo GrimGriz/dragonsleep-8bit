@@ -123,10 +123,10 @@
     var R0 = B.roam = { token: lead, members: members, rest: members.slice(1), form: {}, fw: [-1, 0], mode: 'walk', steps: 0, encIn: 0, clicks: [], keys: [], flags: {}, fights: 0, log: [], last: null, cut: null, msg: null };
     members.slice(1).forEach(function (u, i) { R0.form[u.id] = stored[u.id] || R.FORM0[i] || [-(i + 1), 0]; });
     if (/[?&]watch\b/.test(R.q)) members.forEach(function (u) { u.guest = true; u.classAI = true; }); // (&watch: the class tactics run the four, as the bench does)
-    // the light: the party's carried torch (&light=none | torch | lantern), in the first free hand in the marching order (js/light.js handForLight)
+    // the light: the party's carried torch (&light=none | torch | lantern), in the first free hand in the marching order (js/light.js handsFree, then handForLight)
     var lw = (/[?&]light=([a-z]+)/.exec(R.q) || [])[1] || 'torch';
     if (lw !== 'none' && !members.some(function (u) { return u.torch && u.torch.lit; })) {
-      var bearer = members.filter(function (u) { return L.handForLight(u); })[0] || lead;
+      var bearer = members.filter(function (u) { return L.handsFree(u) > 0; })[0] || members.filter(function (u) { return L.handForLight(u); })[0] || lead; // (a free hand first: a two-hander drops it to swing)
       bearer.torch = lw === 'lantern' ? L.make('lantern', false) : { lit: true, kind: 'torch' }; L.regrip(bearer);
     }
     R0.encIn = R.ENC || R.resetEnc(R0);
