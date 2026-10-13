@@ -1635,6 +1635,23 @@
         okF('THE EMPTY QUIVER, ' + (take ? 'the dagger taken' : 'NOT NOW') + ': asked "' + (askQ ? askQ.title : '') + '" ' + labQ + '; the action ' + Tq.action + ', attacks left ' + (Tq.attacksLeft || 0) + ', in hand ' + vq.weapon.name,
           !!askQ && /DAGGER/.test(labQ) && /NOT NOW/.test(labQ) && !(Tq.attacksLeft > 0) && (take ? Tq.action === 0 && /dagger/i.test(vq.weapon.name) : Tq.action === 1 && /shortbow/i.test(vq.weapon.name)));
       });
+      // 3. THE ATTACK LEFT (the grid's rules §2h, Lymen on the Skylights' rope): a troll down at 0 and knitting takes a blow (it knits on); SKIP ATTACK lets the second go;
+      // with nobody in reach and nothing else to spend, the turn is still spent (the auto end), SKIP ATTACK holding nothing open
+      var BT = mkF('?npc=troll&lvl=5&vs=paladin:5'), pT = sideF(BT, 'party')[0], tT = sideF(BT, 'foe')[0], GT = D.grid, placed = false;
+      for (var dyT = -1; dyT <= (tT.size || 1) && !placed; dyT++) for (var dxT = -1; dxT <= (tT.size || 1) && !placed; dxT++) {
+        var xT = tT.x + dxT, yT = tT.y + dyT; if (!GT.canStand(pT, xT, yT)) continue; var ox = pT.x, oy = pT.y; pT.x = xT; pT.y = yT; if (BT.canHit(pT, tT)) placed = true; else { pT.x = ox; pT.y = oy; }
+      }
+      tT.hp = 0; tT.regenDown = true; tT.conds.prone = true; D.rules.startTurn(pT); BT.active = pT;
+      var inR = BT.foeInReach(pT), atkC = (BT.commands(pT).filter(function (c) { return c.id === 'attack'; })[0] || {}), nT = (BT.log || []).length;
+      runF(BT.exec(pT, { do: 'attack', target: tT })); var lT = logF(BT, nT), TT = pT.turn;
+      okF('THE ATTACK LEFT: the troll down and knitting, beside him (' + placed + '): in reach ' + inR + ', ATTACK ' + atkC.ok + '; the blow ' + (/Paladin 5 > Troll|> Troll/.test(lT) ? 'struck' : 'NOT struck') + ', attacks left ' + TT.attacksLeft + ', the troll ' + (tT.dead ? 'dead' : tT.regenDown ? 'knitting' : 'up') + ' (' + lT.slice(0, 80) + ')',
+        placed && inR && atkC.ok === true && /> Troll/.test(lT) && TT.attacksLeft === 1 && !tT.dead && tT.regenDown);
+      var skC = BT.commands(pT).filter(function (c) { return c.id === 'skipattack'; })[0];
+      runF(BT.exec(pT, { do: 'skipattack' }));
+      okF('SKIP ATTACK on the ring with one left (' + !!(skC && skC.ok) + '), taken: attacks left ' + TT.attacksLeft + ', no SKIP after (' + !BT.commands(pT).some(function (c) { return c.id === 'skipattack'; }) + ')',
+        !!(skC && skC.ok) && TT.attacksLeft === 0 && !BT.commands(pT).some(function (c) { return c.id === 'skipattack'; }));
+      TT.attacksLeft = 1; TT.move = 0; TT.bonus = 0; tT.dead = true; delete tT.regenDown; var spT = D.ui && D.ui.spent ? D.ui.spent(BT, pT) : window.UI && UI.spent ? UI.spent(BT, pT) : null;
+      okF('THE AUTO END with an attack left and nobody to spend it on: spent ' + spT + ' (want true: SKIP ATTACK holds no turn open)', spT === true);
     } catch (eF) { repF.errors.push(String(eF && eF.stack || eF).slice(0, 900)); D.d = d0F; }
     if (errs.length) repF.errors = repF.errors.concat(errs);
     var preF = document.createElement('pre'); preF.id = 'out'; preF.textContent = 'BENCH16 ' + JSON.stringify(repF);

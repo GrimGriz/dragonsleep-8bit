@@ -378,7 +378,7 @@
     if (!go) return;
     var x = B.cursor.x, y = B.cursor.y, w = occ(x, y);
     if (rd.what === 'weapon') {
-      var foe = (w && G.hostile(u, w) && !w.dead && w.hp > 0 ? w : null) || D.Battle.riderOn(u, w, B.units) || D.Battle.tendrilOn(u, w, B.units);
+      var foe = (w && G.hostile(u, w) && !w.dead && (w.hp > 0 || !!w.regenDown) ? w : null) || D.Battle.riderOn(u, w, B.units) || D.Battle.tendrilOn(u, w, B.units);
       if (foe && B.canHit(u, foe)) return UI.command(B, u, { do: 'attack', target: foe });
       D.sfx('error'); return B.card(['{o}' + (foe ? 'The ' + B.shortName(foe) + ' is out of ' + (u.weapon && u.weapon.ranged ? 'range' : 'reach') + ' (' + G.dist(u, foe) + ' ft)' : 'Not a foe there') + '.  X holds it.{/}'], 120);
     }
@@ -488,7 +488,7 @@
     if (I.pressed('end')) return endTurn(B, u);
     // AUTO END: every command grey and no step left to take -- a beat to see it, then the turn passes (X holds it)
     if (UI.opts.autoEnd && !B.list && B.tool !== 'spell' && B.autoHold !== B.req && spent(B, u)) {
-      if (B.autoFor !== B.req) { B.autoFor = B.req; B.autoT = B.t; B.card([D.keys('{g}Nothing left to spend: the turn passes.  X holds it{/}')], 50); }
+      if (B.autoFor !== B.req) { B.autoFor = B.req; B.autoT = B.t; B.card([D.keys('{g}' + (u.turn.attacksLeft > 0 ? 'No foe in reach for the attack left: it goes unspent, and the turn passes.' : 'Nothing left to spend: the turn passes.') + '  X holds it{/}')], 50); } // (the attack left named: Lymen's on the rope passed unsaid, 10-13)
       if (I.pressed('b')) { B.autoHold = B.req; B.clearCards(); return; }
       if (B.t - B.autoT >= 45 || I.pressed('a')) return UI.command(B, u, { do: 'end' });
     }
@@ -585,7 +585,7 @@
     // is (10-05, Griz: "have viv move and end up on a rope with her bonus action left ... used bonus dash and it auto-ended her turn before i spent the bonus dash movement")
     var mvH = T.move + D.Battle.dashes(u).length * (u.speed || 30); // (a Dash still open -- the action's, or Cunning Action's bonus -- is more rope to climb: not spent; 10-05, Griz: "not if they have dash action or dash bonus action of course")
     if (mvH >= 5 && !u.conds.restrained && u.hang && u.hang.rope && G.hanging(u) && (D.Battle.ropeSteps(u.hang.rope, u.hang.z, true, mvH) > 0 || D.Battle.ropeSteps(u.hang.rope, u.hang.z, false, mvH) > 0)) return false;
-    return !B.commands(u).some(function (c) { return c.ok && c.id !== 'putaway' && c.id !== 'drawweapon'; }); // (PUT AWAY and DRAW hold no turn open: free and nearly always there -- 10-05)
+    return !B.commands(u).some(function (c) { return c.ok && c.id !== 'putaway' && c.id !== 'drawweapon' && c.id !== 'skipattack'; }); // (PUT AWAY and DRAW hold no turn open: free and nearly always there -- 10-05; nor SKIP ATTACK, 10-13)
   }
   UI.spent = spent; // (the bench's: dev/bench16.js mode=edifice1004)
   function turnWheel() { return I.repeat('wheell') || I.repeat('bumpl') ? -1 : I.repeat('wheelr') || I.repeat('bumpr') ? 1 : 0; } // the pad's right stick or bumpers, on the wheel (the window's list)
@@ -711,7 +711,7 @@
 
   // is (x, y) somewhere the current tool can act? 'ok' | 'no' | 'self' | 'far' (a dash away)
   UI.valid = function (B, u, x, y) {
-    var tool = B.tool, w = occ(x, y), foe = w && G.hostile(u, w) && !w.dead && w.hp > 0 ? w : null, T = u.turn, s = G.map.at(x, y);
+    var tool = B.tool, w = occ(x, y), foe = w && G.hostile(u, w) && !w.dead && (w.hp > 0 || !!w.regenDown) ? w : null, T = u.turn, s = G.map.at(x, y);
     // the attack cued: a darkmantle riding a friend -- or riding you -- is struck at through that square (10-01, Griz: "attack cued looking for target, ally
     // square you normally can't attack"; battle.js mount)
     if (!foe && tool === 'attack') foe = D.Battle.riderOn(u, w, B.units) || D.Battle.tendrilOn(u, w, B.units); // (... or the roper's tendril on a friend, or on you -- 10-02)
@@ -897,7 +897,7 @@
   // a square a torch may be thrown to: open, within 20 ft, in line (not the thrower's own)
   UI.throwSq = function (u, x, y) { var s = G.map.at(x, y); return !!(s && s.open && !(x === u.x && y === u.y) && Math.max(Math.abs(x - u.x), Math.abs(y - u.y)) * 5 <= 20 && G.losPoint(u.x, u.y, x, y)); };
   function actAt(B, u, x, y, byKey) {
-    var T = u.turn, tool = B.tool, w = occ(x, y), foe = w && G.hostile(u, w) && !w.dead && w.hp > 0 ? w : null, v = UI.valid(B, u, x, y);
+    var T = u.turn, tool = B.tool, w = occ(x, y), foe = w && G.hostile(u, w) && !w.dead && (w.hp > 0 || !!w.regenDown) ? w : null, v = UI.valid(B, u, x, y);
     if (!foe && tool === 'attack') foe = D.Battle.riderOn(u, w, B.units) || D.Battle.tendrilOn(u, w, B.units); // (a darkmantle riding a friend, or you: struck at through the square -- UI.valid; the roper's tendril the same, 10-02)
     if (!foe && (tool === 'move' || tool === 'menu')) foe = hoveredRider(B, u, x, y); // (the mouse on it: the click is on it -- UI.valid)
     if (tool === 'detach') { if (v === 'ok') return UI.command(B, u, { do: 'detach', target: D.Battle.riderOn(u, w, B.units) }); return B.card(['{o}Pull it off: a friend beside you with a darkmantle on.{/}'], 120); }

@@ -1011,6 +1011,9 @@
     // a swing is only there to take with a foe in reach, or the feet left to walk to one (Lymen's second attack, 09-27)
     var foeNear = this.foeInReach(u), canWalk = T.move > 0 && !u.conds.restrained;
     out.push({ id: 'attack', icon: (u.weapon && u.weapon.icon) || null, label: T.attacksLeft ? 'ATTACK (' + T.attacksLeft + ')' : 'ATTACK' + (u.attacks > 1 ? ' x' + u.attacks : ''), cost: 'A',ok: (T.attacksLeft > 0 || T.action > 0) && (foeNear || canWalk), why: foeNear || canWalk ? '' : 'no foe in reach, and no feet left', tool: 'attack' });
+    // SKIP ATTACK: the attacks left this turn let go, free -- Lymen's second on the rope had no one in reach and no way to put it down (10-13, the grid's rules §2h;
+    // Griz: "No way to cancel left over attack player can't figure out how to spend"). It holds no turn open (ui.js spent): the auto end passes over it
+    if (T.attacksLeft > 0) out.push({ id: 'skipattack', icon: 'back', label: 'SKIP ATTACK', cost: 'F', ok: true, why: '', note: 'the attack' + (T.attacksLeft > 1 ? 's' : '') + ' left this turn go unspent' });
     if (u.conds.restrained) out.push({ id: 'breakfree', label: 'BREAK FREE', cost: 'A', ok: T.action > 0 && !T.attacksLeft, icon: 'free' });
     var spells = D.magic.list(this, u);
     if (spells.length) out.push({ id: 'spells', label: 'SPELLS', cost: 'A', ok: spells.some(function (e) { return e.ok; }), sub: 'spells', icon: 'spell' });
@@ -1458,7 +1461,7 @@
         return;
       }
       case 'attack': {
-        if (!c.target || c.target.dead || c.target.hp <= 0) return; // (no target: nothing is spent -- a stray command burned Katarina's action 09-29)
+        if (!c.target || c.target.dead || (c.target.hp <= 0 && !c.target.regenDown)) return; // (no target: nothing is spent -- a stray command burned Katarina's action 09-29. A troll down at 0 and knitting is a target: blows change nothing but fire or acid, and a player may spend one there -- 10-13, Griz: "should have been able to burn unspendable attack on non-fire/non-acid down troll")
         if (RU.charmedBy(u, c.target)) { this.card(['{o}' + u.name + ' is charmed: no raising a hand to ' + (c.target.side === 'foe' ? Battle.nm(c.target) : c.target.name) + '.{/}'], 200); return; }
         if (u.conds.disarmed) { this.card(['{o}' + u.name + ' has dropped the weapon (the turn is spent picking it up).{/}'], 200); return; }
         // (the quiver empty: checked before the Attack is opened, so the shot that cannot be made costs nothing -- it took Vivian's action in the Grick Den, 10-13)
@@ -1487,6 +1490,10 @@
       } // (c: the oil flask's square, c.x/c.y, when it is thrown at the ground -- js/oil.js)
       case 'breakfree': { yield* D.magic.breakFree(this, u); return; }
       case 'droptorch': T.freeObj = true; D.light.dropTorch(this, u); return;
+      case 'skipattack': { // (the attacks left this turn let go: SKIP ATTACK on the ring)
+        if (!T.attacksLeft) return;
+        T.attacksLeft = 0; D.sfx('cancel'); this.card(['{y}' + u.name + '{/} lets the attack left go.'], 160); return;
+      }
       case 'putaway': { // (the ring's PUT AWAY, 10-05: the weapon kept on u.sheathed, an unarmed strike in its place -- the save's equip untouched)
         if (u.sheathed || !u.weapon || !u.weapon.id || T.freeObj) return;
         T.freeObj = true; u.sheathed = u.weapon; u.weapon = D.save.weaponOf(Object.assign({}, u.src, { equip: Object.assign({}, u.src.equip, { weapon: null }) }));
@@ -3314,7 +3321,7 @@
   // ------------------------------------------------------------------ the camera: snap to a unit; recentre only when it nears the edge
   Battle.prototype.foeInReach = function (u) {
     var self = this;
-    return this.units.some(function (w) { return G.hostile(u, w) && G.standing(w) && !w.dead && w.hp > 0 && self.canHit(u, w); });
+    return this.units.some(function (w) { return G.hostile(u, w) && G.standing(w) && !w.dead && self.canHit(u, w); }); // (G.standing: a troll down at 0 and knitting is still a target -- 10-13)
   };
   // can u's weapon reach w from where u stands? A ranged one (a hero's crossbow) out to its long range, if it can see w
   Battle.prototype.canHit = function (u, w) {
