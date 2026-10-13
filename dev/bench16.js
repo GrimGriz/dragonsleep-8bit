@@ -1886,7 +1886,7 @@
   if (get('mode', '') === 'roam1013') {
     var repW = { checks: [], errors: [], encounters: [] }, GW = D.grid, memW = {}, stGW = D.store.get, stSW = D.store.set;
     function okW(what, v) { repW.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
-    function driveW(g, until, cap) { var v, k = 0, st; while (k++ < (cap || 20000)) { if (until && until()) return true; st = g.next(v); v = undefined; if (st.done) return !!(until && until()); if (st.value && st.value.prompt) v = st.value.prompt.opts[0].value; } return !!(until && until()); }
+    function driveW(g, until, cap) { var v, k = 0, st; while (k++ < (cap || 20000)) { if (until && until()) return true; st = g.next(v); v = undefined; if (st.done) return !!(until && until()); if (typeof st.value === 'number' && D.battle) D.battle.t += Math.max(1, st.value); if (st.value && st.value.prompt) v = st.value.prompt.opts[0].value; } return !!(until && until()); } // (the frames a yield waits pass on the fight's clock: the approach walks by it)
     D.store.get = function (k) { return memW[k] ? JSON.parse(memW[k]) : null; }; D.store.set = function (k, v) { memW[k] = JSON.stringify(v); return true; };
     try {
       D.seed = +get('seed', 1013);
@@ -1895,15 +1895,32 @@
       for (var yW = 0; yW < rwB.length; yW++) for (var xW = 0; xW < rwB[0].length; xW++) if (rwA[yW][xW] !== rwB[yW][xW]) ndW++;
       okW('the whole Wet from the 8-bit rows: ' + rwA[0].length + ' x ' + rwA.length + ', the Settling\'s ' + rwB[0].length + ' columns square for square (' + ndW + ' differ)', rwA[0].length === 30 && rwA.length === 44 && ndW === 0);
       okW('one token on the floor (' + RW.token.name + '), three inside it', BW.units.length === 1 && RW.rest.length === 3);
+      // the light rides in the token: the bearer inside it, the token's square lit (his play, 10-13: the floor went dark round Barley)
+      var bearIn = RW.rest.filter(function (u) { return u.torch; })[0];
+      okW('the light rides in the token (' + (bearIn ? bearIn.name + '\'s, inside it' : 'the token\'s own') + '; the token\'s square ' + D.light.name(D.light.levelAt(BW, RW.token.x, RW.token.y)) + ')', D.light.levelAt(BW, RW.token.x, RW.token.y) > 0);
+      // the whole party on the M menu out of a fight, and Aurdin takes up the lantern while Barley leads
+      RW.members.forEach(function (u) { u.guest = false; }); // (the watch makes the four guests; the menu's party is the four as a player has them)
+      D.ui.openMenu(BW); var hostW = BW.menu.m.host, auW = hostW.party().filter(function (h) { return h.name === 'Aurdin'; })[0];
+      if (auW && hostW.light(auW)) hostW.run('light-off', { h: auW }, function () { });
+      if (auW) hostW.run('item', { id: 'lantern', h: auW }, function () { });
+      var auLight = auW && hostW.light(auW);
+      okW('the M menu out of a fight has all four (' + hostW.party().map(function (h) { return h.name; }).join(',') + '), and Aurdin takes up the lantern (' + (auLight ? auLight.name : 'none') + ')', hostW.party().length === 4 && !hostW.fight && auLight && auLight.id === 'lantern');
+      hostW.close(); RW.members.forEach(function (u) { u.guest = true; });
       var tkW = RW.token; RW.form.probe = [1, 0]; RW.fw = [0, -1]; var s1W = D.roam.slot(RW, { id: 'probe' }); RW.fw = [1, 0]; var s2W = D.roam.slot(RW, { id: 'probe' }); delete RW.form.probe;
       okW('a slot one ahead lies ahead whichever way the token faces (' + s1W + ' facing -y, ' + s2W + ' facing +x, from ' + tkW.x + ',' + tkW.y + ')', s1W[0] === tkW.x && s1W[1] === tkW.y - 1 && s2W[0] === tkW.x + 1 && s2W[1] === tkW.y);
       // an encounter by the step count, out in the cave
       var walk0W = GW.map.sq.filter(function (s) { return s.walk; }).length;
       tkW.x = 12; tkW.y = 30; RW.fw = [0, -1]; GW.setup(GW.map, BW.units); RW.encIn = 1; RW.path = [[12, 29]];
-      var foughtW = driveW(BW.co, function () { return RW.mode === 'fight' && BW.order.length; }, 4000);
+      // (a lurker's group fights at once: the seed is chosen for walkers, which come in first -- the approach, RULED 10-13. The step count spends one roll on the
+      // next count, then the 8-bit's pick)
+      for (var sW = 1; sW < 500; sW++) { D.seed = sW; D.rint(13); var pkW = D.roam.pick('warrens_d', {}); if (pkW && !pkW.list.some(function (k) { return D.roam.LURK[k]; })) break; }
+      D.seed = sW;
+      var spotW = driveW(BW.co, function () { return RW.approach || RW.mode === 'fight'; }, 4000), apW = RW.approach;
+      okW('the step count rolls a group in the zone, seen ' + (RW.last && RW.last.distFt) + ' ft off and coming (' + (RW.last && RW.last.who) + ', ' + (RW.last && RW.last.how) + ')', spotW && !!apW);
+      var foughtW = driveW(BW.co, function () { return RW.mode === 'fight' && BW.order.length; }, 6000);
       var L1W = RW.last || {}, CW = RW.cut, foesW = BW.units.filter(function (u) { return u.side === 'foe'; });
-      okW('the step count rolls a fight in the zone (' + (L1W.who || 'none') + ', ' + L1W.how + ')', foughtW && foesW.length > 0);
-      okW('its distance is inside the party\'s sight (' + L1W.distFt + ' ft; the party sees ' + L1W.sightFar + ' ft)', L1W.distFt > 0 && L1W.distFt <= L1W.sightFar);
+      okW('they walk in and the fight starts where they meet (' + L1W.contactFt + ' ft: within reach and a move)', foughtW && foesW.length > 0 && L1W.contactFt <= Math.max.apply(null, foesW.map(function (u) { return (u.reach || 5) + Math.max(u.speed || 30, u.fly || 0); })) && L1W.contactFt < L1W.distFt);
+      okW('it was spotted inside the party\'s sight (' + L1W.distFt + ' ft; the party sees ' + L1W.sightFar + ' ft)', L1W.distFt > 0 && L1W.distFt <= L1W.sightFar);
       var inWW = function (u) { return CW && u.x >= CW.win.x0 && u.x <= CW.win.x1 && u.y >= CW.win.y0 && u.y <= CW.win.y1; };
       okW('the four out of the token and on the ground, the foes too (' + BW.units.length + ' on the field)', RW.members.every(function (u) { return BW.units.indexOf(u) >= 0 && inWW(u); }) && foesW.every(inWW));
       var outW = CW ? GW.map.sq.filter(function (s) { return !(s.x >= CW.win.x0 && s.x <= CW.win.x1 && s.y >= CW.win.y0 && s.y <= CW.win.y1); }) : [];
@@ -1938,7 +1955,7 @@
         var homeW = driveW(BW.co, function () { return D.top() === BW && RW.mode === 'walk' && GW.map === BW.map; }, 4000);
         okW('and back on the Wet, its sleepers spent (' + Object.keys(RW.flags).join(',') + ')', homeW && RW.flags['done:jelly']);
       } else okW('the jelly\'s row pulls the Settling in', false);
-      repW.encounters = RW.log.map(function (e) { return e.who + ' ' + e.how + ' ' + e.distFt + ' ft (sees ' + e.sightFar + '), ground ' + e.win.w + 'x' + e.win.h + ', ' + e.ways + ' ways, spill off ' + e.spill.map(function (s) { return s.off; }).join('') + ', ' + e.ms + ' ms'; });
+      repW.encounters = RW.log.map(function (e) { return e.who + ' ' + e.how + ' ' + e.distFt + ' ft (sees ' + e.sightFar + ')' + (e.win ? ', met at ' + e.contactFt + ' ft, ground ' + e.win.w + 'x' + e.win.h + ', ' + e.ways + ' ways, spill off ' + e.spill.map(function (s) { return s.off; }).join('') : ', no fight') + ', ' + e.ms + ' ms'; });
     } catch (eW) { repW.errors.push(String(eW && eW.stack || eW).slice(0, 900)); }
     D.store.get = stGW; D.store.set = stSW;
     if (errs.length) repW.errors = repW.errors.concat(errs);

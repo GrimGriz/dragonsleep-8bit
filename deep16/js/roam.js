@@ -77,7 +77,7 @@
     q = q || '';
     var num = function (k, d) { var m = new RegExp('[?&]' + k + '=(\\d+)').exec(q); return m ? +m[1] : d; };
     R.def = R.wholeWet();
-    R.q = q; R.PAD = num('pad', 4); R.FAR = num('far', 60); R.ENC = num('enc', 0);
+    R.q = q; R.PAD = num('pad', 4); R.FAR = num('far', 0); R.ENC = num('enc', 0); // (&far=0: no cap -- RULED 10-13 with the approach, his "1 yes")
     var lvl = num('lvl', 5), useSave = /[?&]save\b/.test(q);
     var F = { map: 'wetwhole', foes: [], level: lvl, dark: !/[?&]lit\b/.test(q), entry: null };
     var o = useSave ? { fightDef: F } : { fightDef: F, ladder: true, level: lvl };
@@ -130,6 +130,15 @@
       bearer.torch = lw === 'lantern' ? L.make('lantern', false) : { lit: true, kind: 'torch' }; L.regrip(bearer);
     }
     R0.encIn = R.ENC || R.resetEnc(R0);
+    // the whole party on the M menu out of a fight (ui.js gridHost's hooks): any of the four EQUIPs, takes up a light, drinks a potion; ORDER is the formation on the floor
+    // (Griz, 10-13: "Gonna have to see the whole party menu on menu even when it's in party token mode, and even if barley is front man should be able to have Aurdin
+    // equip a lantern"). The test's own four carry no lantern, so the pack gets one Hooded Lantern for it (a save walks in with its own pack)
+    B.menuCalm = function () { return (R0.mode === 'walk' || R0.mode === 'order') && !R0.approach; };
+    B.menuUnits = function () { return B.menuCalm() ? R0.members : B.units; };
+    B.menuOrder = function () { R0.keys.push('order'); };
+    B.menuAct = function (kind, a, unitOf) { return R.menuAct(B, kind, a, unitOf); };
+    B.menuClosed = function () { R.regear(B); };
+    if (!/[?&]save\b/.test(R.q) && !(B.inv || []).some(function (s) { return s.id === 'lantern' && s.n > 0; })) (B.inv = B.inv || []).push({ id: 'lantern', n: 1 });
     // in by the stair up, where the 8-bit's warp from the Warrens' second floor lands (warrens_b to warrens_d (2, 12))
     var e = R.def.entry[0]; lead.x = e[0]; lead.y = e[1]; lead.facing = D.spr.facingFor(0, -1); R0.fw = [0, -1]; // (in off the stair walking the 8-bit's east: the grid's -y)
     R.into(B, R0.rest);
@@ -176,9 +185,15 @@
     while (true) {
       var t = R0.token;
       if (R0.mode === 'over') { yield 1; continue; }
+      // a group on its way in (RULED 10-13, Griz: "1 yes" -- the approach before the fight): it walks at its own speed while the token walks or stands, and
+      // the fight starts where they meet (R.tickApproach)
+      if (R0.approach) {
+        var ap = R.tickApproach(B);
+        if (ap === 'engage') { var A0 = R0.approach; yield* R.engage(B, A0.foes, false, A0.why); continue; }
+      }
       var k = R0.keys.shift();
-      if (k === 'order') { yield* R.order(B); continue; }
-      if (k === 'fight') { yield* R.encounter(B, 'asked'); continue; }
+      if (k === 'order') { if (R0.approach) { D.sfx('miss'); B.card(['{g}Not with them coming.{/}'], 120); } else yield* R.order(B); continue; }
+      if (k === 'fight') { if (R0.approach) { var A1 = R0.approach; yield* R.engage(B, A1.foes, false, 'yours'); } else yield* R.encounter(B, 'asked'); continue; }
       var ck = R0.clicks.shift();
       if (ck) {
         var sq = D.iso.pick(ck.x, ck.y, 0);
@@ -221,7 +236,8 @@
       return 'door';
     }
     var trig = R.triggerAt(B, p8[0], p8[1], 'step');
-    if (trig) { yield* R.fire(B, trig, [t.x, t.y]); return 'trigger'; }
+    if (trig) { R.dropApproach(B); yield* R.fire(B, trig, [t.x, t.y]); return 'trigger'; }
+    if (R0.approach) return null; // (one group at a time: no count while one is coming)
     if (R.zoneAt(B, t.x, t.y)) {
       R0.encIn -= 1;
       if (R0.encIn <= 0) { R0.encIn = R.resetEnc(R0); yield* R.encounter(B, 'steps'); return 'fight'; }
@@ -310,7 +326,7 @@
       u.x = x0; u.y = y0;
       if ((u.darkvision || 0) > dv) { dv = u.darkvision; dvBy = u.name; }
     });
-    var v = new Array(m.w * m.h), cap = R.FAR, far = 0;
+    var v = new Array(m.w * m.h), cap = R.FAR || 9999, far = 0;
     for (var y = 0; y < m.h; y++) for (var x = 0; x < m.w; x++) {
       var i = y * m.w + x, s = m.sq[i]; v[i] = 0;
       if (!s.open) continue;
@@ -379,23 +395,78 @@
     var distFt = placed.length ? Math.min.apply(null, placed.map(function (u) { return G.dist(t, u); })) : 0;
     placed.forEach(function (u) { B.units.push(u); });
     G.setup(G.map, B.units);
-    // the spill: the token's party out onto their formation, as near as the floor allows
-    var spill = R.spill(B, taken);
-    // the ground: both sides, a margin, the floor's open edges past it the ways out
-    var win = R.cutGround(B, R.PAD);
     var ms = Math.round((window.performance || Date).now() - t0);
     var names = {}; placed.forEach(function (u) { var nm = B.shortName(u); names[nm] = (names[nm] || 0) + 1; });
     var who = Object.keys(names).map(function (k) { return (names[k] > 1 ? names[k] + ' ' : 'a ') + k + (names[k] > 1 ? 's' : ''); }).join(' and ');
     var sees = sight.lightBy ? sight.lightBy + ' ' + sight.lightFt + ' ft' : 'no light';
     if (sight.dv) sees += ', ' + sight.dvBy + '\'s darkvision ' + sight.dv + ' ft';
-    R0.last = { why: why, who: who, kinds: placed.map(function (u) { return u.kind; }), spot: spot, distFt: distFt, how: how, sightFar: sight.far, lightFt: sight.lightFt, dv: sight.dv, lurk: lurk, spill: spill, win: win, exits: B.exits.length, ways: win.ways, ms: ms, at: [t.x, t.y] };
+    R0.last = { why: why, who: who, kinds: placed.map(function (u) { return u.kind; }), spot: spot, distFt: distFt, how: how, sightFar: sight.far, lightFt: sight.lightFt, dv: sight.dv, lurk: lurk, ms: ms, at: [t.x, t.y] };
     R0.log.push(R0.last); R0.sightV = sight.v; // (the map's picture of what they saw: R.paintMap)
     D.sfx('encounter');
-    B.card(['{r}ENCOUNTER{/}: ' + who + ', ' + how + ' -- ' + distFt + ' ft off.', '{g}The party sees ' + sight.far + ' ft from here (' + sees + ').{/}', '{g}The ground: ' + win.w + ' x ' + win.h + ' squares, ' + win.ways + ' way' + (win.ways === 1 ? '' : 's') + ' out (' + B.exits.length + ' pale squares on its edge).{/}'], 560);
     B.focus(placed[0] || t);
-    yield 70;
-    var o = yield* R.fight(B, placed, lurk);
+    // lying in wait, or a square of its own: the fight is now. Walking in: the approach, the fight where they meet
+    if (lurk || (set && set.at)) {
+      B.card(['{r}ENCOUNTER{/}: ' + who + ', ' + how + ' -- ' + distFt + ' ft off.'], 300);
+      yield 40;
+      yield* R.engage(B, placed, lurk, why);
+      return;
+    }
+    R0.approach = { foes: placed, why: why, t: B.t, rolled: false, seenAt: distFt };
+    B.card(['{r}ENCOUNTER{/}: ' + who + ', ' + how + ' -- ' + distFt + ' ft off, and coming.', '{g}The party sees ' + sight.far + ' ft from here (' + sees + ').{/}', '{g}F: the fight now, at this range. Or walk: out of their sight, they may lose you.{/}'], 480);
+    yield 30;
+  };
+  // the fight where they meet: the token's party out onto its formation, the ground cut round both sides, initiative
+  R.engage = function* (B, foes, lurk, why) {
+    var R0 = B.roam, t = R0.token, L0 = R0.last || {};
+    R0.approach = null;
+    foes = foes.filter(function (u) { return !u.dead && B.units.indexOf(u) >= 0; });
+    if (!foes.length) return;
+    foes.forEach(function (u) { u.facing = D.spr.facingFor(t.x - u.x, t.y - u.y); u.anim = 'idle'; u.animT = B.t; });
+    L0.contactFt = Math.min.apply(null, foes.map(function (u) { return G.dist(t, u); })); L0.started = why;
+    // the spill: the token's party out onto their formation, as near as the floor allows
+    L0.spill = R.spill(B, {});
+    // the ground: both sides, a margin, the floor's open edges past it the ways out
+    var win = L0.win = R.cutGround(B, R.PAD); L0.exits = B.exits.length; L0.ways = win.ways;
+    B.card(['{r}THE FIGHT{/}: ' + L0.contactFt + ' ft between them' + (why === 'yours' ? ' -- yours to open' : '') + '.', '{g}The ground: ' + win.w + ' x ' + win.h + ' squares, ' + win.ways + ' way' + (win.ways === 1 ? '' : 's') + ' out (' + B.exits.length + ' pale squares on its edge).{/}'], 420);
+    yield 50;
+    var o = yield* R.fight(B, foes, lurk);
     yield* R.after(B, o);
+  };
+  // the approach, each time the script looks (a frame, or a step's eight): each of them walks at its speed, the token's walking pace for 30 ft; the
+  // fight when one comes within its own reach and a move of the token; out of all their sight, the party's Stealth (a group check: half of them) against
+  // their best passive Perception, once a break -- lost, they go
+  R.tickApproach = function (B) {
+    var R0 = B.roam, A = R0.approach, t = R0.token, dt = B.t - A.t; A.t = B.t;
+    var live = A.foes.filter(function (u) { return !u.dead && B.units.indexOf(u) >= 0; });
+    if (!live.length) { R0.approach = null; return null; }
+    if (dt > 0) live.forEach(function (u) {
+      var sp = Math.max(u.speed || 30, (u.fly || 0));
+      u.racc = (u.racc || 0) + dt * (sp / 30) / STEP;
+      while (u.racc >= 1) {
+        u.racc -= 1;
+        var path = D.Battle.route(u, [t.x, t.y], false), nx = path && path[0];
+        if (!nx || (nx[0] === t.x && nx[1] === t.y) || !G.canStand(u, nx[0], nx[1])) { u.racc = 0; break; }
+        u.tween = { fx: u.x, fy: u.y, fz: 0, t: 0, dur: STEP, mode: null }; u.facing = D.spr.facingFor(nx[0] - u.x, nx[1] - u.y);
+        if (u.anim !== 'walk') { u.anim = 'walk'; u.animT = B.t; }
+        u.x = nx[0]; u.y = nx[1];
+      }
+    });
+    if (live.some(function (u) { return G.dist(u, t) <= (u.reach || 5) + Math.max(u.speed || 30, u.fly || 0); })) return 'engage';
+    var seen = live.some(function (u) { return G.losPoint(u.x, u.y, t.x, t.y) && L.seesBy(B, u, t).ok; });
+    if (seen) { A.rolled = false; return null; }
+    if (A.rolled) return null;
+    A.rolled = true;
+    var pp = Math.max.apply(null, live.map(function (u) { return u.perception || 10; })), ok = 0, lines = [];
+    R0.members.filter(function (u) { return u.hp > 0; }).forEach(function (u) { var r = D.d(20) + (u.stealth || 0); if (r >= pp) ok++; lines.push(u.name + ' ' + r); });
+    var n = R0.members.filter(function (u) { return u.hp > 0; }).length, got = ok * 2 >= n;
+    B.card(['{y}OUT OF THEIR SIGHT{/}: the party\'s Stealth against their passive Perception ' + pp + ' (' + lines.join(', ') + ')', got ? '{n}They lose you.{/}' : '{o}They heard you: still coming.{/}'], 360);
+    if (got) R.dropApproach(B);
+    return got ? 'lost' : null;
+  };
+  R.dropApproach = function (B) {
+    var R0 = B.roam, A = R0.approach; if (!A) return;
+    B.units = B.units.filter(function (u) { return A.foes.indexOf(u) < 0; }); G.setup(G.map, B.units); B.cache = null;
+    R0.approach = null;
   };
 
   // the spill: each of the rest from the token onto its formation slot, or the nearest square the token can walk to (not through a wall,
@@ -546,21 +617,97 @@
     return back;
   };
 
+  // ------------------------------------------------------------------ the menu out of a fight (ui.js gridHost's hooks): what the 8-bit's field menu does, on the grid's units
+  // a light taken up in that hero's hand (one each, as on the grid), a potion drunk, a kit on one who is down; spells and skills out of a fight are the 8-bit's
+  R.menuAct = function (B, kind, a, unitOf) {
+    var R0 = B.roam, it = a && a.id ? window.DS.DATA.items[a.id] : null, u = a && a.h ? unitOf(a.h) : null;
+    var take = function () { var s = (B.inv || []).filter(function (x) { return x.id === a.id; })[0]; if (s) s.n--; };
+    if (kind === 'item' && it && it.use) {
+      var who = u || R0.token, eff = it.use.effect;
+      if (eff === 'light') {
+        if (who.torch) { B.card(['{g}' + who.name + ' has a light in hand already.{/}'], 160); return true; }
+        who.torch = a.id === 'torch' ? { lit: true, kind: 'torch' } : L.make(a.id, false); L.regrip(who); take(); D.sfx('confirm');
+        B.card(['{y}' + who.name + '{/} takes up the ' + it.name + ', lit.'], 200); return true;
+      }
+      if (eff === 'heal') {
+        if (!u || u.hp <= 0) { B.card(['{g}' + (u ? u.name + ' is down: a kit first.' : 'Whom?') + '{/}'], 160); return true; }
+        var hn = D.roll(it.use.dice).total, was = u.hp; u.hp = Math.min(u.maxhp, u.hp + hn); take(); D.sfx('heal');
+        B.card(['{y}' + u.name + '{/} drinks the ' + it.name + ': +' + (u.hp - was) + ' HP (' + u.hp + '/' + u.maxhp + ').'], 220); return true;
+      }
+      if (eff === 'revive') {
+        if (!u || u.hp > 0) { B.card(['{g}' + (u ? u.name + ' is not down.' : 'Whom?') + '{/}'], 160); return true; }
+        u.hp = it.use.hp || 1; u.ko = false; take(); D.sfx('heal'); B.card(['{y}' + u.name + '{/} is up (' + u.hp + ' HP).'], 200); return true;
+      }
+      B.card(['{g}' + it.name + ': not out of a fight in the test.{/}'], 200); return true;
+    }
+    if (kind === 'light-off' && u && u.torch) {
+      var lt = u.torch, id = L.kindOf(lt) === 'lantern' ? (lt.item || 'lantern') : null; delete u.torch; L.regrip(u);
+      if (id) { var s2 = (B.inv || []).filter(function (x) { return x.id === id; })[0]; if (s2) s2.n++; else (B.inv = B.inv || []).push({ id: id, n: 1 }); }
+      B.card(['{y}' + u.name + '{/} ' + (id ? 'puts the lantern away.' : 'puts the torch out (spent).')], 200); return true;
+    }
+    if (kind === 'cast' || kind === 'skill') { B.card(['{g}Spells and skills out of a fight are the 8-bit\'s: not in the test.{/}'], 220); return true; }
+    return false;
+  };
+  // after the menu: each hero's gear read again off the sheet EQUIP changed (battle.js swapGear's own lines: the weapon in hand, the attacks, the AC and Mage Armor)
+  R.regear = function (B) {
+    var Rr = window.DS.R;
+    B.roam.members.forEach(function (u) {
+      var h = u.src; if (!h || !h.equip) return;
+      var n = D.save.unitOf(h, !!u.guest, B.fight);
+      ['offhand', 'displacement', 'resist', 'immune', 'condImmune', 'saves', 'attacksBase', 'crit', 'spellDC', 'spellAtk', 'stealth', 'perception'].forEach(function (k) { if (n[k] !== undefined) u[k] = n[k]; });
+      delete u.sheathed; u.weapon = D.save.weaponOf(h); u.attacks = u.weapon.loading ? 1 : u.attacksBase;
+      if (Rr.armored(h) && u.conds.mageArmor) delete u.conds.mageArmor;
+      var ac = Rr.ac(h); if (u.conds.mageArmor && !Rr.armored(h)) ac = Math.max(ac, 13 + D.mod(u.abil.dex));
+      u.baseAC = ac; u.armored = Rr.armored(h);
+      L.regrip(u);
+    });
+  };
+  // the token carries the whole party's lights and eyes (10-13, his play: the torch went to Aurdin, inside the token, and the floor went dark round Barley): what
+  // lights the floor (js/light.js L.all) and what the player sees greyed (L.partyMap) count the four riding in it as standing on its square
+  R.riding = function (B) { var R0 = B && B.roam; return R0 && R0.mode !== 'fight' && R0.mode !== 'order' && R0.rest.length ? R0 : null; };
+  var all0 = L.all;
+  L.all = function (B) {
+    var out = all0.apply(this, arguments), R0 = R.riding(B); if (!R0) return out;
+    var t = R0.token;
+    R0.rest.forEach(function (u) { var x0 = u.x, y0 = u.y; u.x = t.x; u.y = t.y; L.carried(u).forEach(function (l) { out.push(l); }); u.x = x0; u.y = y0; });
+    return out;
+  };
+  var pm0 = L.partyMap;
+  L.partyMap = function (B) {
+    var R0 = R.riding(B); if (!R0) return pm0.apply(this, arguments);
+    var t = R0.token, keep = R0.rest.map(function (u) { return [u, u.x, u.y]; }), U = B.units;
+    R0.rest.forEach(function (u) { u.x = t.x; u.y = t.y; });
+    B.units = U.concat(R0.rest.filter(function (u) { return U.indexOf(u) < 0; }));
+    try { return pm0.apply(this, arguments); } finally { B.units = U; keep.forEach(function (k) { k[0].x = k[1]; k[0].y = k[2]; }); }
+  };
+
   // ------------------------------------------------------------------ ORDER in token mode: out round the lead, moved, back in (out of a fight only)
   R.order = function* (B) {
     var R0 = B.roam, t = R0.token, sel = null;
     R0.mode = 'order'; R0.clicks = []; R0.keys = [];
     var spill = R.spill(B, {});
-    B.card(['{y}ORDER{/}: the formation round ' + t.name + ' (facing the way the token walked).', '{g}Click one of them, then a square within two of the leader. O when done.{/}'], 100000, 'roamorder');
+    B.card(['{y}ORDER{/}: the formation round ' + t.name + ' (facing the way the token walked).', '{g}Click one of them, then a square within two of the leader -- or the leader, to put that one in front. O or M ORDER when done.{/}'], 100000, 'roamorder');
     while (true) {
       var k = R0.keys.shift();
       if (k === 'order') break;
       var ck = R0.clicks.shift();
+      t = R0.token;
       if (ck) {
         var sq = D.iso.pick(ck.x, ck.y, 0);
         if (sq) {
           var who = R0.rest.filter(function (u) { return u.x === sq.x && u.y === sq.y; })[0];
           if (who) { sel = who; R0.sel = who; D.sfx('confirm'); }
+          else if (sel && sq.x === t.x && sq.y === t.y) {
+            // the front man changed: the one picked takes the leader's square and becomes the token, the old leader steps to its place (the 8-bit's ORDER: the first leads)
+            var ox = sel.x, oy = sel.y;
+            sel.tween = { fx: sel.x, fy: sel.y, fz: 0, t: 0, dur: 6, mode: null }; t.tween = { fx: t.x, fy: t.y, fz: 0, t: 0, dur: 6, mode: null };
+            sel.x = t.x; sel.y = t.y; sel.facing = t.facing; t.x = ox; t.y = oy;
+            R0.token = sel; R0.members = [sel].concat(R0.members.filter(function (u) { return u !== sel; })); R0.rest = R0.members.slice(1);
+            R0.form[t.id] = R.toForm(R0, t); delete R0.form[sel.id];
+            sel = null; R0.sel = null; G.setup(G.map, B.units); D.sfx('confirm');
+            B.cards = B.cards.filter(function (c) { return c.id !== 'roamorder'; });
+            B.card(['{y}ORDER{/}: ' + R0.token.name + ' leads now.', '{g}Click one of them, then a square within two of the leader -- or the leader, to put that one in front. O or M ORDER when done.{/}'], 100000, 'roamorder');
+          }
           else if (sel && Math.max(Math.abs(sq.x - t.x), Math.abs(sq.y - t.y)) <= 2 && G.canStand(sel, sq.x, sq.y)) {
             sel.tween = { fx: sel.x, fy: sel.y, fz: 0, t: 0, dur: 6, mode: null }; sel.x = sq.x; sel.y = sq.y; G.setup(G.map, B.units); D.sfx('confirm');
           } else D.sfx('miss');
@@ -612,7 +759,7 @@
       ctx.save(); ctx.strokeStyle = 'rgba(240,210,140,0.55)'; ctx.lineWidth = 1; ctx.setLineDash([4, 3]);
       ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.lineTo(c.x, c.y); ctx.lineTo(d.x, d.y); ctx.closePath(); ctx.stroke(); ctx.restore();
     }
-    if (R0.mode === 'walk' || R0.mode === 'order') {
+    if ((R0.mode === 'walk' || R0.mode === 'order') && !B.menu) {
       var z = R.zoneAt(B, R0.token.x, R0.token.y), p8 = R.def.to8(R0.token.x, R0.token.y);
       D.text(ctx, 'THE ROAM -- the Wet, ' + G.map.w + ' x ' + G.map.h + '   8-bit square ' + p8[0] + ',' + p8[1] + (z ? '   next fight in ' + R0.encIn + ' steps' : '   (no random fights here)'), 6, D.H - 30, '#e8d8a0');
       D.text(ctx, R0.mode === 'order' ? 'ORDER: click one, then a square near the leader -- O when done' : 'click: walk   arrows: step   O: formation   F: a fight now   L: the floor map', 6, D.H - 20, '#9a94a8');

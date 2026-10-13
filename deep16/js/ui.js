@@ -1003,7 +1003,10 @@
       return p;
     }
     function unitOf(h) { var c = cache.filter(function (x) { return x.p === h; })[0]; return c ? c.u : null; }
-    function heroes(guest) { return B.units.filter(function (u) { return u.side === 'party' && !u.object && u.src && u.src.equip && !u.summon && !u.familiar && !!u.guest === guest; }); }
+    // (B.menuUnits / menuCalm / menuAct / menuClosed / menuOrder: a host of the grid's own that walks out of a fight -- the roam's party token, js/roam.js 10-13, Griz:
+    // "Gonna have to see the whole party menu on menu even when it's in party token mode, and even if barley is front man should be able to have Aurdin equip a lantern")
+    var calm = !!(B.menuCalm && B.menuCalm());
+    function heroes(guest) { return (B.menuUnits ? B.menuUnits() : B.units).filter(function (u) { return u.side === 'party' && !u.object && u.src && u.src.equip && !u.summon && !u.familiar && !!u.guest === guest; }); }
     // the grid's own figures for the panel and STATUS (10-07, the menus lane §2.2: "the grid's own sheets could stand in"): the hero's sheet standing, facing out, its
     // head and shoulders in the panel's 20x32 (as the old PARTY panel cut it) and head to foot in STATUS's 32x48; drawn once its image is in, null till then
     var figs = {};
@@ -1019,7 +1022,7 @@
       // the ring's own lists for the hero whose turn it is (10-07, the menus lane §2.1 and his find on the grid's menu: "doesn't work for items, skills, or magic"):
       // ITEMS, MAGIC and SKILLS show what the ring would, lit as the ring lights it, each with the ring's why; a pick goes to the ring's own flow -- the aim on the
       // floor, the tool, the command -- and the menu closes on it, never a popup
-      fight: { hero: turn,
+      fight: calm ? null : { hero: turn,
         ring: function (kind) {
           if (!gu) return [];
           if (kind === 'items') { var fastI = gu.subclass === 'Thief' && gu.turn.bonus > 0; return B.itemList(gu).map(function (e) { e.cost = e.cost || (e.id !== 'rope' && fastI ? 'B' : 'A'); return e; }); } // (its cost, for the menu's colour: Fast Hands the bonus -- battle.js commands' ITEM)
@@ -1073,7 +1076,9 @@
       },
       mascotGame: function () { return UI.mascotGame(B); }, // (the MENU STYLE row sets the Mascot games' own setting here -- js/menu.js gridRows)
       optsChanged: function (o) { var was = [UI.opts.style, UI.opts.mpStyle, UI.opts.menu].join(); UI.opts.style = o.style === 'window' ? 'window' : o.style === 'ring2' ? 'ring2' : 'ring'; if (UI.STYLES.indexOf(o.mpStyle) >= 0) UI.opts.mpStyle = o.mpStyle; UI.opts.menu = UI.STYLES.indexOf(o.menu) >= 0 ? o.menu : null; if ([UI.opts.style, UI.opts.mpStyle, UI.opts.menu].join() !== was) UI.urlMenu = null; /* (a MENU STYLE picked in the fight wins over the page's &menu=, 10-09) */ UI.opts.autoEnd = o.autoEnd !== false; if (UI.ASKS.indexOf(o.confirmEnd) >= 0) UI.opts.confirmEnd = o.confirmEnd; if (UI.PACES.indexOf(o.pace) >= 0) UI.opts.pace = D.PACE = o.pace; UI.saveOpts(); restyle(B); },
+      order: calm && B.menuOrder ? function () { B.menuOrder(); } : null,
       run: function (kind, a, done) {
+        if (calm && B.menuAct && B.menuAct(kind, a, unitOf)) { done(); return; }
         if (kind === 'kofi') { try { window.open('https://ko-fi.com/grimgriz', '_blank'); } catch (e) { } }
         if (kind === 'exit') {
           B.menu = null;
@@ -1083,7 +1088,7 @@
         }
         done();
       },
-      close: function () { B.menu = null; }
+      close: function () { B.menu = null; if (calm && B.menuClosed) B.menuClosed(); }
     };
   }
   UI.openMenu = function (B) { D.sfx('popup'); B.menu = { m: window.DS.MENU.open(gridHost(B)) }; };

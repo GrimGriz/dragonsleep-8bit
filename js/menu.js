@@ -242,7 +242,7 @@
       else this.choose({ title: 'EQUIP WHOM?', ok: function () { return true; }, then: function (h) { m.push(new EquipPage(m, h)); } });
     }
     if (v === 'status') this.choose({ title: 'WHOSE STATUS?', guests: true, ok: function () { return true; }, then: function (h) { m.push(new StatusPage(m, h)); } });
-    if (v === 'order') m.push(new OrderPage(m));
+    if (v === 'order') { if (host.order) { m.close(); host.order(); } else m.push(new OrderPage(m)); } // (a host that sets the order on its own floor -- the grid's party token, deep16/js/roam.js: they pop out round the leader)
     if (v === 'journal') m.push(new JournalPage(m));
     if (v === 'save') m.act('save');
     if (v === 'options') m.push(new OptionsPage(m));
