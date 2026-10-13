@@ -199,11 +199,13 @@
     if (this.o.record && !this.rec) REC.start(this, this.o.record);
     return enter0.apply(this, arguments);
   };
-  // the fight's end closes its record where no door of its own does (10-06: ?fight=, ?npc= and the story inside the 8-bit have no onDone -- the ladder, the
-  // climb and the Pocket DM finish theirs there -- so their records stood 'unfinished' at the last round's checkpoint; Griz's Skylights of 10-05 is one)
+  // the fight's end closes its record where no door of its own does (10-06: ?fight= and ?npc= have no onDone -- the ladder, the climb and the Pocket DM finish
+  // theirs there -- so their records stood 'unfinished' at the last round's checkpoint; Griz's Skylights of 10-05 is one). The story inside the 8-bit HAS an
+  // onDone (js/embed.js E.done, which hands the fight back and never finished the record): every story fight he played to 10-12, won or run from, read
+  // 'unfinished' (10-13, the road §7g; Griz: "a lot of story fights I ran from, fix if broken") -- so an embedded fight closes its record here too
   var finish0 = P.finish;
   P.finish = function* (o) {
-    if (this.rec && !this.rec.done && typeof this.o.onDone !== 'function') { try { REC.finish(this, o || 'ended'); } catch (e) { /* (the record must never stop the fight's end) */ } }
+    if (this.rec && !this.rec.done && (typeof this.o.onDone !== 'function' || this.o.embed)) { try { REC.finish(this, o || 'ended'); } catch (e) { /* (the record must never stop the fight's end) */ } }
     return yield* finish0.apply(this, arguments);
   };
   // the tab closed, reloaded or sent away mid-fight: the fight as far as it went (REC.checkpoint)

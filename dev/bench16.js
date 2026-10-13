@@ -1605,6 +1605,29 @@
     document.body.appendChild(preFL);
     return;
   }
+  // the bug-fix seat, 10-13 (mode=fix1013; his notes of 10-09 to 10-12, filed by lane, and his answers of 10-13): each check failed on the code before it
+  if (get('mode', '') === 'fix1013') {
+    var repF = { checks: [], errors: [] }, d0F = D.d;
+    function okF(what, v) { repF.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function runF(g) { var v, k = 0, st; while (g && k++ < 6000) { st = g.next(v); v = undefined; if (st.done) return st.value; if (st.value && st.value.prompt) v = st.value.prompt.opts[0].value; } }
+    function mkF(q) { var Bx = D.npcFight(q, {}); D.battle = Bx; Bx.enter(); while (!Bx.order.length) Bx.co.next(); Bx.dark = false; return Bx; }
+    function sideF(Bx, s) { return Bx.units.filter(function (u) { return u.side === s; }); }
+    function logF(Bx, n) { return (Bx.log || []).slice(n).join(' | ').replace(/\{\/?[a-z]*\}/g, ''); }
+    try {
+      // 1. THE RECORD (the road §7g): a story fight inside the 8-bit -- an embed with the 8-bit's onDone -- closes its record with its result, run from or won
+      ['escaped', 'won'].forEach(function (res) {
+        var dR = D.save.fixture(5), BR = new D.Battle({ embed: { canRun: true }, data: dR, npc: { foes: ['goblin'] }, fightDef: D.classFight(5), onDone: function () { }, record: { fight: 'fix1013-' + res, name: 'the record test', level: 5 } });
+        D.battle = BR; BR.enter(); while (!BR.order.length) BR.co.next();
+        var started = BR.rec && BR.rec.started; runF(BR.finish(res));
+        var kept = (D.store.get('deep16.plays') || []).filter(function (f) { return f.fight === 'fix1013-' + res && f.started === started; })[0];
+        okF('THE RECORD: a fight inside the 8-bit ' + res + ' -- recorded ' + (kept ? kept.result : '(nothing)') + ' (want ' + res + ')', !!kept && kept.result === res);
+      });
+    } catch (eF) { repF.errors.push(String(eF && eF.stack || eF).slice(0, 900)); D.d = d0F; }
+    if (errs.length) repF.errors = repF.errors.concat(errs);
+    var preF = document.createElement('pre'); preF.id = 'out'; preF.textContent = 'BENCH16 ' + JSON.stringify(repF);
+    document.body.appendChild(preF);
+    return;
+  }
   // leaving a fight together, 10-13 (mode=leave1013; his rulings in the grid's rules lane §2h): no one out while one of the four lies down or bound, the AI's own of ours following
   // the first out, the fallen picked up and carried, and who may be left on the floor. Each check failed on the code before it
   if (get('mode', '') === 'leave1013') {
