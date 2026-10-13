@@ -854,7 +854,8 @@
     this.btn(ctx, 'BACK', 20, 236, 60, 15, function () { self.back(); });
     this.btn(ctx, 'SAVE CAMPAIGN', 88, 236, 114, 15, function () { self.saveTable(); }); // (the whole campaign's file, 10-06: PK.tableFile; SAVE ROSTER till then, greyed with no character of your own; SAVE TABLE till 10-09)
     this.btn(ctx, 'LOAD CAMPAIGN', 208, 236, 114, 15, function () { self.loadTable(); }); // (a campaign or table file, or a roster file of 10-03's)
-    this.btn(ctx, 'NEXT: THE MAP', D.W - 150, 236, 130, 15, function () { if (self.st.run) { self.st.run = null; } self.go('map'); }, { pri: true, dis: !ready, why: 'every seat wants someone in it: arrows cycle the roster, the ? makes one' });
+    if (st.dm) this.btn(ctx, 'TO THE CAMPAIGN', D.W - 150, 236, 130, 15, function () { self.keep(); self.go('camp'); }, { pri: true }); // (the DM's table: THE PARTY is the campaign's, and the release's map-then-CR flow is not -- js/pocketdm.js backMore, 10-13)
+    else this.btn(ctx, 'NEXT: THE MAP', D.W - 150, 236, 130, 15, function () { if (self.st.run) { self.st.run = null; } self.go('map'); }, { pri: true, dis: !ready, why: 'every seat wants someone in it: arrows cycle the roster, the ? makes one' });
     if (!ready) D.text(ctx, 'every seat wants a character (a locked one cannot come)', D.W / 2, 222, P('fire', 1), 'center');
     else D.hint(ctx, 'E on a card\'s arrows cycles · X back', D.W / 2, 222, P('stone', 4), 'center');
   };

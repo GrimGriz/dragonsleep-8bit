@@ -1711,6 +1711,16 @@
       uL.torch = D.light.make('ledgerlamp', false); D.light.regrip(uL); var nL = (BL.log || []).length;
       BL.hurt(uL, uL.hp + 5, 'bludgeoning', sideF(BL, 'foe')[0]); var lL = logF(BL, nL);
       okF('THE FALL LINE: ' + (lL.match(/goes down\.[^|]*/) || ['(no line)'])[0], /The Ledger-Lamp burns where Fighter 5 fell/.test(lL) && !/torch burns beside/.test(lL));
+      // 5f. THE PARTY AT THE DM'S TABLE (the Pocket DM §2e): BACK and its forward button go back to the campaign, a ladder under way kept; the release edition's as it was
+      var memPk = {}, sgPk = D.store.get, ssPk = D.store.set, m0Pk = D.input.mouse, cv0Pk = D.canvas, cvPk = document.createElement('canvas'); cvPk.width = D.W; cvPk.height = D.H; var cxPk = cvPk.getContext('2d');
+      D.store.get = function (k) { return memPk[k] ? JSON.parse(memPk[k]) : null; }; D.store.set = function (k, v) { memPk[k] = JSON.stringify(v); return true; }; if (!D.canvas) D.canvas = cvPk;
+      try {
+        var clickPk = function (pk, x, y) { D.input.mouse = Object.assign({}, m0Pk || {}, { x: x, y: y, inside: true, inWin: true, click: true, moved: false, wheel: 0 }); try { pk.update(); } finally { D.input.mouse = Object.assign({}, m0Pk || {}, { click: false }); } };
+        var pkA = new D.Pocket(); pkA.enter(); pkA.st.dm = true; pkA.st.run = { rung: 2 }; pkA.screen = 'party'; pkA.back(); var bA = pkA.screen;
+        pkA.screen = 'party'; pkA.draw(cxPk); clickPk(pkA, D.W - 85, 243); var nA = pkA.screen, runA = !!pkA.st.run;
+        var pkB = new D.Pocket(); pkB.enter(); pkB.st.dm = false; pkB.screen = 'party'; pkB.back(); var bB = pkB.screen;
+        okF('THE PARTY AT THE DM\'S TABLE: BACK to ' + bA + ', the forward button to ' + nA + ' (the ladder under way kept ' + runA + '); the release edition\'s BACK to ' + bB, bA === 'camp' && nA === 'camp' && runA && bB === 'title');
+      } finally { D.store.get = sgPk; D.store.set = ssPk; D.input.mouse = m0Pk; D.canvas = cv0Pk; }
       // 6. HASTE BY THE SRD (the grid's rules §2h; Denny under the Spotlight): its action of its own -- one weapon attack, Dash, Disengage, Hide or an object -- beside the turn's
       function hasteF() {
         var Bh = mkF('?npc=goblin&lvl=5&vs=paladin:5'), ph = sideF(Bh, 'party')[0], gh = sideF(Bh, 'foe')[0], ok0 = false;

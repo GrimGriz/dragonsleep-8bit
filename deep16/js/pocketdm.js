@@ -219,6 +219,8 @@
     if (s === 'camp' || s === 'doors') { this.keep(); this.go('title'); return true; }
     if (s === 'shop' || s === 'units' || s === 'build') { this.keep(); this.go('camp'); return true; }
     if (s === 'feedback') { this.keep(); this.go('useful'); return true; }
+    // THE PARTY at the DM's table is the campaign's: back to it, never the title (10-13, the Pocket DM §2e; Griz: "party button on DM's pocket should stay in Campaign flow")
+    if (s === 'party' && this.st.dm) { this.keep(); this.go('camp'); return true; }
     return false;
   };
   Pocket.prototype.scrolls = function (s) { return s === 'shop' || s === 'units' || s === 'build' || s === 'doors'; };
