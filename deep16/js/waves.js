@@ -188,7 +188,9 @@
     var file = [], made = [], k = 0;
     [['west', WEST], ['east', EAST]].forEach(function (e) {
       var kinds = wave[e[0]] || []; if (!kinds.length) return;
-      var us = kinds.map(function (kind) { var u = B.makeFoe({ id: 'gs' + S.count + '-' + (k++) + '-' + kind, kind: kind }); u.mission = 'lamp'; u.gsSide = e[0]; return u; });
+      // (a foe bound to its pool -- the otyugh's sheet, `bound: '~'` -- walks the road here: "out of the water", the wave's card says; Third Lamp has no pool on the road, and
+      // seated there it churned in place five rounds -- 10-13, Griz: "otyugh churns in the pool in the hallway...?")
+      var us = kinds.map(function (kind) { var u = B.makeFoe({ id: 'gs' + S.count + '-' + (k++) + '-' + kind, kind: kind }); u.mission = 'lamp'; u.gsSide = e[0]; delete u.bound; return u; });
       seat(B, us, e[1]).forEach(function (u, i) {
         var from = e[1].from[i % e[1].from.length];
         u.from0 = from.slice();
@@ -288,7 +290,9 @@
     B.units = B.units.filter(function (u) { return u.side !== 'foe' && !u.summon; });
     ['grounds', 'auras', 'wards', 'spirits', 'darks', 'zones', 'beads', 'walls', 'shells', 'oils'].forEach(function (k) { if (B[k]) B[k] = []; });
     B.webs = (B.webs || []).filter(function (w) { return w.ground; }); B.wallMap = null; B.lightMap = null;
-    party.forEach(function (u) { if (u.conc && D.magic && D.magic.endConc) D.magic.endConc(B, u, 'rest'); u.conds = {}; u.temp = kind === 'long' ? 0 : u.temp; });
+    // (and a ready still held: let go with the rest, as at its holder's next turn -- 10-13, Griz: "readied actions from previous battle (ethereal spider) went off the
+    // following round after short rest (Rascal 'going viral')"; a readied spell's held magic went with the concentration just above)
+    party.forEach(function (u) { if (u.conc && D.magic && D.magic.endConc) D.magic.endConc(B, u, 'rest'); u.conds = {}; u.temp = kind === 'long' ? 0 : u.temp; delete u.ready; });
     if (kind === 'short') {
       lines.push('{y}SHORT REST{/} at the cots.');
       party.forEach(function (u) { lines.push(u.name + ': ' + shortRest(B, u, S)); });

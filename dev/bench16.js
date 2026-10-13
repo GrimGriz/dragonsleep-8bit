@@ -4274,11 +4274,15 @@
           w1 >= 0 && lampF && lampF.x === tw[0] && lampF.y === tw[1] && lampF.hp === 60 && BF.units.indexOf(lampF) >= 0 && SF.foes.length === 3 && SF.foes.every(function (u) { return u.kind === 'goblin' && u.from0[0] === 0 && u.mission === 'lamp'; }));
         var h1 = stepW(BF, function () { return SF.held >= 1; }, 40000, weak);
         okW('flow: wave 1 held, the XP fudged to the tier -- ' + JSON.stringify(SF.xp) + ' (want 139 each: 300 x 150 / 325)', h1 >= 0 && ['denny', 'beholda', 'rascal', 'goose'].every(function (k) { return SF.xp[k] === 139; }));
+        // (a ready still held when the wave is won goes with the hour -- 10-13, Griz: "readied actions from previous battle (ethereal spider) went off the following round after
+        // short rest (Rascal 'going viral')": planted on the four as the wave is held, a trigger nothing springs, and read at the frame the short rest is written, before any turn)
+        var plantW = BF.units.filter(function (u) { return u.mpmon; }), atRestW = null;
+        plantW.forEach(function (u) { u.ready = { what: 'weapon', name: 'a bench mark', trigger: 'bench' }; });
         // (where each of wave 2's foes is first set down -- 10-08, Griz: "one of the rats in the game show (tier 1 wave 2/2) starts from the north and runs past everyone to join
         // the other 2": its own way in a beat busy, Battle.walkIn gave it the file's first clear one, the goblins' west road)
         var firstW = {};
         var w2 = stepW(BF, function () { return SF.wi === 1 && SF.foes.length && SF.foes.every(function (u) { return BF.units.indexOf(u) >= 0; }) && BF.order.length > 5; }, 30000,
-          function (b) { weak(b); b.units.forEach(function (u) { if (u.gsSide && !firstW[u.id]) firstW[u.id] = { side: u.gsSide, x: u.x, kind: u.kind }; }); });
+          function (b) { weak(b); b.units.forEach(function (u) { if (u.gsSide && !firstW[u.id]) firstW[u.id] = { side: u.gsSide, x: u.x, kind: u.kind }; }); if (!atRestW && lg(b, /SHORT REST/).length) atRestW = plantW.filter(function (u) { return u.ready; }).map(function (u) { return u.mpmon; }); });
         var strayW = Object.keys(firstW).filter(function (id) { var f = firstW[id]; return id.indexOf('gs2-') === 0 && (f.side === 'east' ? f.x < 70 : f.x > 12); });
         okW('flow: wave 2 comes in each by its own end (' + Object.keys(firstW).filter(function (id) { return id.indexOf('gs2-') === 0; }).map(function (id) { return firstW[id].kind + ' ' + firstW[id].side + '@' + firstW[id].x; }).join(', ') + ')', !strayW.length);
         var fourW = BF.units.filter(function (u) { return u.mpmon; }), inOrd = fourW.filter(function (u) { return BF.order.indexOf(u) >= 0; });
@@ -4286,6 +4290,7 @@
         okW('flow: the bed ' + bedW + ' on the floor beside the cots (' + cotsW.join(' ') + ')', bedOK && cotsW.length === 3);
         okW('flow: the short rest (' + lg(BF, /SHORT REST/).length + '), then wave 2 rolls with all four back on the field and in the order (' + inOrd.length + ' of ' + fourW.length + ', ' + w2 + ' frames), its foes from both ends (' + SF.foes.map(function (u) { return u.kind + '@' + u.from0[0]; }).join(' ') + ')',
           w2 >= 0 && lg(BF, /SHORT REST/).length === 1 && fourW.length === 4 && inOrd.length === 4 && SF.foes.some(function (u) { return u.from0[0] === 0; }) && SF.foes.some(function (u) { return u.from0[0] === 82; }));
+        okW('flow: a ready held when wave 1 was won is let go at the short rest (still holding at the rest: ' + (atRestW ? atRestW.join(', ') || 'none' : 'the rest never seen') + '; want none of ' + plantW.length + ')', plantW.length === 4 && !!atRestW && !atRestW.length);
         // after the wave in his order (10-07: "do the token combine - walk around to the chest, check in with chat - then walk to bed and interact as party token"), and the lanterns
         var lampsW = D.grid.map.props.filter(function (p) { return p.kind === 'roadlamp'; }).length, lightsW = BF.lights.filter(function (l) { return /^road/.test(l.id); }).length;
         okW('flow: after the wave the token went ' + (SF.trail || []).join(' > ') + ' (want gather > lamp > chest > bed > scatter), the chest shut again ' + !(D.circles.chestOpen && D.circles.chestOpen(BF)) + '; the road\'s lanterns on the floor ' + lampsW + ', their lights ' + lightsW + ' (want 8 and 8)',
@@ -4295,6 +4300,14 @@
         okW('flow: the long rest -- ' + lg(BF, /LEVEL UP/).join(' ').slice(0, 120) + ' -- the four at 2 and whole (' + lv.join(', ') + '), XP ' + JSON.stringify(SF.xp) + ', the lamp ' + SF.lamp.hp + '/' + SF.lampMax + ' (want 80), tier 2 under way (' + t2 + ' frames)',
           t2 >= 0 && BF.units.filter(function (u) { return u.mpmon && u.lvl === 2 && u.hp === u.maxhp; }).length === 4 && ['denny', 'beholda', 'rascal', 'goose'].every(function (k) { return SF.xp[k] === 300; }) && SF.lamp.hp === 80 && SF.lampMax === 80 && lg(BF, /LONG REST/).length === 1);
         errW('flow');
+        // ---- THE OTYUGH ON THE ROAD (10-13, Griz: "otyugh churns in the pool in the hallway...?": bound to water by its sheet, seated on Third Lamp's road at tier 8 wave 2
+        // -- "An otyugh and a chuul out of the water" -- where every step cost it Infinity, so it churned in no pool five rounds)
+        D.seed = 1013;
+        var BO = lampFight('?gameshow&at=lamp&fast&auto&tier=8&wave=2'), SO = null, otW = null;
+        var o1 = stepW(BO, function () { SO = GSW.run; otW = SO && SO.foes.filter(function (u) { return u.kind === 'otyugh'; })[0]; return !!otW && BO.units.indexOf(otW) >= 0 && BO.order.length > 4; }, 20000);
+        var openO = otW ? [[1, 0], [-1, 0], [0, 1], [0, -1]].filter(function (d) { return isFinite(D.grid.stepCost(otW, otW.x, otW.y, otW.x + d[0], otW.y + d[1])); }).length : 0;
+        okW('the show\'s otyugh walks the road: seated at ' + (otW ? otW.x + ',' + otW.y : '-') + ', bound ' + (otW ? JSON.stringify(otW.bound || null) : '-') + ', ' + openO + ' of the 4 squares beside it a step away (' + o1 + ' frames)', o1 >= 0 && !!otW && !otW.bound && openO > 0);
+        errW('otyugh');
         // ---- LAMP, then WIPE: each to the villain's walk, GAME OVER and the score
         ['lamp', 'wipe'].forEach(function (how) {
           D.seed = 2007;
