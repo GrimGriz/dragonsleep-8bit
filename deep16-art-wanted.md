@@ -306,3 +306,30 @@ HEAD 2 -- GREYFANG from the top-right, seen from behind: isometric three-quarter
 Draw each HEAD above as its own separate image, in the order given: one sheet an image, never two sheets in one image. Every sheet: 16-bit pixel art animation sheet, SNES-era action RPG style, crisp dark outline, readable at small size. Isometric three-quarter view from above, the camera looking down at about thirty degrees, as in a tactics game, as in the attached sheet. Flat dark navy background (a deep blue, not grey and not black). ONE sheet filling the whole image: no portrait, no other panels, no title. Labelled rows of frames, each row's name at its left, numbered 1 to N under each frame -- every number used once, none skipped, one drawing for each number. Every frame faces the way its HEAD says; a walk is animated in place, not travelling across the sheet. Every frame stands apart with clear space around it: nothing overlaps a neighbour or a label. The same scale as the attached sheet in every row and on both sheets, the bottom of every frame on one baseline. No scenery.
 ```
 Cut as: Idle -> idle, Walk -> walk, Bow -> longbow (release on frame 7), Hurt -> flinch, Cast -> cast, Climb -> climb; HEAD 1 plays SE, S and E (SW and W mirrored), HEAD 2 NE and N (NW mirrored); Climb from HEAD 2 in every facing. `tools/greyfang-sheet.py` takes them beside his combat sheets (ISO; his four combat views stay as drawn). The idle replaces the diagonals' standing stills.
+
+## 7. Rows and props for looks in hand (added 10-13, the notes window)
+
+His words: *"add bow to art wanted"* (10-13, on his 10-09 *"Gnolls with longbows look like they throw javelins tho"*) and *"'hide tents, bones, a fire' - needed props"* (10-11, the Cut Seal's camp).
+
+### The gnoll's longbow (today its bow plays the thrown spear's row)
+ATTACH `deep16/_src/gnoll_grok_1.png`
+```text
+Attached: a gnoll from this game's sheet. Draw the same gnoll exactly -- the same hyena-headed build, face, hide, gear and colours, in the same pixel style -- now carrying a longbow and a quiver of arrows at its hip, in the two views below.
+
+HEAD 1 -- THE GNOLL from the bottom-right: isometric three-quarter view from above, every frame facing toward the bottom-right corner of the image. Rows: Idle (4: standing hunched, the longbow low in one hand, breathing); Bow (10: it pulls an arrow from the quiver at its hip, nocks it, draws to the cheek, looses on frame 7 -- the arrow gone from the string -- and lowers the bow).
+
+HEAD 2 -- THE GNOLL from the top-right, seen from behind: isometric three-quarter view from above, every frame facing toward the top-right corner of the image, rows only. Rows: Idle (4: as HEAD 1, seen from behind); Bow (10: the same draw and loose toward the top-right, looses on frame 7).
+
+Draw each HEAD above as its own separate image, in the order given: one sheet an image, never two sheets in one image. Every sheet: 16-bit pixel art animation sheet, SNES-era action RPG style, crisp dark outline, readable at small size. Isometric three-quarter view from above, the camera looking down at about thirty degrees, as in a tactics game, as in the attached sheet. Flat dark navy background (a deep blue, not grey and not black). ONE sheet filling the whole image: no portrait, no other panels, no title. Labelled rows of frames, each row's name at its left, numbered 1 to N under each frame -- every number used once, none skipped, one drawing for each number. Every frame faces the way its HEAD says; a walk is animated in place, not travelling across the sheet. Every frame stands apart with clear space around it: nothing overlaps a neighbour or a label. The same scale as the attached sheet in every row and on both sheets, the bottom of every frame on one baseline. No scenery.
+```
+Cut as: Bow -> longbow (release on frame 7), Idle to register the look against the attached sheet; HEAD 1 plays SE, S and E (SW and W mirrored), HEAD 2 NE and N (NW mirrored). `tools/gnoll-sheet.py` takes it beside the grok sheets; the thrown spear keeps its throw row (the SRD gnoll's spear, 20/60 ft).
+
+### The Cut Seal's camp: hide tents, bones, a fire (today: stalagmites stand in for the tents, `deep16/data/maps.js` `camp`)
+```text
+PROPS, THE GOBLIN CAMP (one image):
+
+HEAD: PROPS, THE GOBLIN CAMP -- a goblin war camp in a cavern deep underground, behind a broken dwarven wall. Draw each thing alone, each labelled beside it: Tent A (1: a low lean-to of stitched animal hides, patched and greasy, over crooked wooden poles lashed with sinew, its open side facing the lower left); Tent B (1: a smaller, sagging hide tent, a ragged hide flap for a door, facing the lower right); Bones (1: a scattered heap of gnawed bones on the ground, a big skull among them); Fire (6: a campfire in a ring of rough stones, a few logs, flames that flicker and lick upward, a little smoke -- the six frames loop).
+
+16-bit pixel art props, SNES-era, crisp dark outline, readable at small size. Isometric view from above at three-quarters, the floor tiles diamonds twice as wide as they are tall; light from the upper left. Flat dark navy background (a deep blue, not grey and not black). ONE sheet only, filling the whole image: no other panels, no title. Each thing labelled beside it, the fire's frames numbered 1 to 6 under each frame -- every number used once, none skipped. The same scale for all: a tent stands on two floor diamonds side by side and fills them, the bones and the fire each on one diamond, with clear space around each. No characters, no floor drawn, no labels on the props.
+```
+Cut as: the tents and the bones stills, the fire a looping prop row, by `tools/gsprops-sheet.py`'s way (registered by the lower silhouette, not the glow); the camp map's stand-in stalagmites become the tents.
