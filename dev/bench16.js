@@ -1747,6 +1747,12 @@
       }
       okF('DACE\'S LIGHT: knows it ' + knowsL + ', placed ' + placedD + '; his turn: ' + (lDc || '').slice(0, 150) + ' -- the cloaker recoiled ' + !!(clk && clk.recoiled),
         knowsL && placedD && /LIGHT on/i.test(lDc || '') && !!clk.recoiled);
+      // 5i. BARLEY'S FLAIL IN THE CAMP (the menus §2.8): set down, his own weapon heads EQUIP's weapon list, marked yours -- not 18th of 20 below the fold
+      var FC5 = D.FIGHTS.filter(function (f) { return f.level === 5; })[0] || D.FIGHTS[0], CC = new D.Camp(5, FC5, function () { }, null); CC.enter();
+      var bC = CC.hero('barley'), ownC = bC && bC.equip.weapon; CC.setEquip(bC, 'weapon', null); bC = CC.hero('barley');
+      CC.mode = 'item'; CC.pick = { hero: 'barley', slot: 'weapon' }; CC.sel = 0; CC.top = 0;
+      var rowsC = CC.list().rows, atC = -1; rowsC.forEach(function (r, i) { if (atC < 0 && ownC && window.DS.DATA.items[ownC] && r.label.indexOf(window.DS.DATA.items[ownC].name) === 0) atC = i; });
+      okF('BARLEY\'S FLAIL IN THE CAMP: ' + (ownC ? window.DS.DATA.items[ownC].name : '(none)') + ' set down -- row ' + (atC + 1) + ' of ' + rowsC.length + ' ("' + (atC >= 0 ? rowsC[atC].label : '') + '")', !!ownC && atC >= 0 && atC < 3 && /\(yours\)/.test(rowsC[atC].label));
       // 6. HASTE BY THE SRD (the grid's rules §2h; Denny under the Spotlight): its action of its own -- one weapon attack, Dash, Disengage, Hide or an object -- beside the turn's
       function hasteF() {
         var Bh = mkF('?npc=goblin&lvl=5&vs=paladin:5'), ph = sideF(Bh, 'party')[0], gh = sideF(Bh, 'foe')[0], ok0 = false;

@@ -265,11 +265,14 @@
         var h2 = this.hero(this.pick.hero), slot = this.pick.slot, cur = h2.equip[slot], rows = [];
         if (cur) rows.push({ label: '(take it off)', right: withItem(h2, slot, null), act: function () { self.setEquip(h2, slot, null); }, hero: h2.id });
         if (cur) rows.push({ label: item(cur).name + '  (worn)', right: withItem(h2, slot, cur), ok: false, why: 'already worn', hero: h2.id, desc: item(cur).desc });
-        Object.keys(this.avail).sort().forEach(function (id) {
+        // (the hero's own -- the kit the rung dealt for that place -- first, marked yours: Barley's flail, set down, sorted 18th of 20 by its id below the list's fold;
+        // 10-13, the menus §2.8, his note: "Unequipping Barleys custom weapon doesn't make it available to re-equip on the combat ladder camp menu")
+        var baseH = ((this.base && this.base.party) || []).filter(function (b) { return b.id === h2.id; })[0], own = baseH && baseH.equip ? baseH.equip[slot] : null;
+        Object.keys(this.avail).sort(function (a, b) { return (b === own) - (a === own) || (a < b ? -1 : a > b ? 1 : 0); }).forEach(function (id) {
           var it = item(id);
           if (!it || !self.avail[id] || !fits(it, slot) || !canWear(h2, it)) return;
           var why = slot === 'shield' && twoHanded(h2.equip.weapon) ? R.weaponOf(h2).name + ' takes both hands' : '';
-          rows.push({ label: it.name, right: withItem(h2, slot, id), ok: !why, why: why, act: function () { self.setEquip(h2, slot, id); }, hero: h2.id, desc: it.desc });
+          rows.push({ label: it.name + (id === own ? '  (yours)' : ''), right: withItem(h2, slot, id), ok: !why, why: why, act: function () { self.setEquip(h2, slot, id); }, hero: h2.id, desc: it.desc });
         });
         if (!rows.length) rows.push({ label: '(nothing here ' + h2.name + ' can use)', ok: false, why: 'the armoury has nothing for that slot' });
         return { title: h2.name.toUpperCase() + ': ' + slot.toUpperCase(), rows: rows };
@@ -478,6 +481,7 @@
       if (I.repeat('down')) this.sel = (this.sel + 1) % n;
     }
     var hitRow = -1, m = I.mouse;
+    if (n && m.wheel && m.inside && m.x >= PX) { this.sel = Math.max(0, Math.min(n - 1, this.sel + (m.wheel > 0 ? 1 : -1))); m.wheel = 0; } // (the wheel over the list scrolls it, 10-13)
     if (m.inside && this.rowRects) this.rowRects.forEach(function (r) { if (m.x >= r.x && m.x < r.x + r.w && m.y >= r.y && m.y < r.y + r.h) hitRow = r.i; });
     if (m.moved && hitRow >= 0) this.sel = hitRow;
     if (this.sel !== s0) D.sfx('cursor');
@@ -548,7 +552,7 @@
       D.text(ctx, r.label, PX + 7, ry + 1, dim ? P('stone', 5) : i === self.sel ? P('gold', 4) : P('bone', 1));
       if (r.right) D.text(ctx, fit(r.right, PW - 20 - D.textWidth(r.label), true), PX + PW - 7, ry + 1, dim ? P('stone', 4) : P('stone', 6), 'right'); // (the right-hand words give way to the label, cut from the left)
     });
-    if (L.rows.length > VIS) D.text(ctx, (this.top + 1) + '-' + Math.min(L.rows.length, this.top + VIS) + ' of ' + L.rows.length, PX + PW - 7, PY + 5, P('stone', 5), 'right');
+    if (L.rows.length > VIS) D.text(ctx, (this.top > 0 ? '▲ ' : '') + (this.top + 1) + '-' + Math.min(L.rows.length, this.top + VIS) + ' of ' + L.rows.length + (this.top + VIS < L.rows.length ? ' ▼' : ''), PX + PW - 7, PY + 5, P('gold', 4), 'right'); // (more above or below, said in gold with its arrow: the rows past the fold went unseen, 10-13)
     // the chosen row's words
     var desc = D.keys(row ? (row.ok === false && row.why ? '{o}' + row.why + '{/}' + (row.desc ? '  ' + row.desc : '') : row.desc || '') : ''); // (D.keys: a phone reads A and B, not E and X)
     // as many lines as the room under the list gives (the torch's words ran past four and were cut on a phone: Griz, 09-29)

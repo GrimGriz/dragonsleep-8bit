@@ -466,7 +466,10 @@
           setPin: function (id) { if (id) { G.flags.pin = id; DS.audio.sfx('confirm'); } else { delete G.flags.pin; DS.audio.sfx('cancel'); } }
         };
       },
-      exits: function () { return [{ label: 'TO THE TITLE', value: 'title', warn: 'Unsaved progress is lost.' }]; },
+      // (EXIT: the title, and -- where a save may be made -- a save first, then the title. 10-13, the road §7g, his "Exit to where? The load screen maybe. Yikes.": it
+      // went to the title and lost what was unsaved, under a heading that asked where)
+      exits: function () { return (this.canSave && this.canSave() ? [{ label: 'SAVE, THEN LEAVE', value: 'save' }] : []).concat([{ label: 'TO THE TITLE', value: 'title', warn: 'Unsaved progress is lost.' }]); },
+      exitTitle: 'QUIT TO THE TITLE?',
       run: function (kind, a, done) {
         DS.run(function* () {
           if (kind === 'item') yield* DS.EV.useFieldItem(a.id, a.h || null);
@@ -476,6 +479,7 @@
           else if (kind === 'light-off') { DS.EV.torchOut(true); DS.audio.sfx('confirm'); }
           else if (kind === 'kofi') DS.openKofi();
           else if (kind === 'exit') {
+            if (a && a.to === 'save') { var svS = new SlotScene(true); yield W8.scene(svS); if (!/^Saved/.test(svS.msg || '')) return; } // (SAVE, THEN LEAVE: backed out of the slots, nobody leaves)
             // (from inside a fight, the fight's own scripts and the one that started it are waiting on this menu: end them, or the field
             // would think a script still runs and never take a step again)
             if (fight) DS.scripts.forEach(function (s) { s.done = true; });
@@ -508,7 +512,7 @@
     var self = this;
     this.menu = new DS.Menu({
       items: [{ label: 'BUY', value: 'buy', disabled: !def.items || !def.items.length }, { label: 'SELL', value: 'sell', disabled: def.buys === false }, { label: 'LEAVE', value: 'leave' }],
-      x: 4, y: 58, w: 64, rowH: 12, pad: 7,
+      x: 4, y: 68, w: 64, rowH: 12, pad: 7, // (y: the greeting's window grew to three lines, 10-13)
       onSelect: function (it) { DS.run(function* () { self.menu.active = false; yield* self.go(it.value); self.menu.active = true; }); },
       onCancel: function () { DS.pop(self); }
     });
@@ -521,7 +525,7 @@
     if (what === 'buy') {
       while (true) {
         var items = this.def.items.map(function (id) { var it = DS.DATA.items[id], p = self.price(id); return { label: it.name, right: p + ' sp', value: id, disabled: p > G.silver }; });
-        var id = yield DS.choose({ items: items, x: 70, y: 58, w: 182, visible: 9, rowH: 12, drawExtra: function (ctx, m) { self.drawWho(ctx, m); } });
+        var id = yield DS.choose({ items: items, x: 70, y: 68, w: 182, visible: 9, rowH: 12, drawExtra: function (ctx, m) { self.drawWho(ctx, m); } });
         if (!id) return;
         var it = DS.DATA.items[id], p = this.price(id), n = 1;
         if (it.kind === 'use' || it.stack) { n = yield DS.qty({ max: Math.min(99, Math.floor(G.silver / p)), price: p, label: it.name }); if (!n) continue; }
@@ -552,7 +556,7 @@
         var inv = G.inv.filter(function (s) { var it = DS.DATA.items[s.id]; return it.kind !== 'key' && it.price > 0 && (d.buysKind ? d.buysKind.indexOf(it.kind) >= 0 : it.kind !== 'part'); })
           .map(function (s) { var it = DS.DATA.items[s.id]; return { label: it.name + ' x' + s.n, right: offer(it) + ' sp', value: s.id }; });
         if (!inv.length) { this.msg = d.nothingText || 'You have nothing I want.'; return; }
-        var sid = yield DS.choose({ items: inv, x: 70, y: 58, w: 182, visible: 9, rowH: 12 });
+        var sid = yield DS.choose({ items: inv, x: 70, y: 68, w: 182, visible: 9, rowH: 12 });
         if (!sid) return;
         var sit = DS.DATA.items[sid], cnt = G.count(sid), k = 1;
         if (cnt > 1) { k = yield DS.qty({ max: cnt, price: offer(sit), label: sit.name }); if (!k) continue; }
@@ -577,13 +581,14 @@
     }
   };
   Shop.prototype.update = function () { this.menu.update(); };
+  Shop.LINES = 3; // (what the keeper's window holds at 190 px: dev/bench8.py fixes1013 checks every shop's words against it)
   Shop.prototype.draw = function (ctx) {
     var G = DS.G, d = this.def;
-    DS.win(ctx, 4, 4, 248, 50);
+    DS.win(ctx, 4, 4, 248, 60); // (three lines for the keeper's words: Dagny's and Percy's greetings lost their ends at two -- 10-13, the road §7g, his "(cuts off) - check Percy also")
     if (d.look) ctx.drawImage(DS.walker(DS.LOOKS[d.look]).down[(DS.frame >> 5) & 1], 12, 12, 32, 32);
     DS.text(ctx, d.name, 52, 10, '#F8D878');
     DS.text(ctx, d.keeper || '', 52, 21, '#9C9C9C');
-    DS.wrap(this.msg, 190).slice(0, 2).forEach(function (l, i) { DS.text(ctx, l, 52, 32 + i * 10, '#F8F8F8'); });
+    DS.wrap(this.msg, 190).slice(0, Shop.LINES).forEach(function (l, i) { DS.text(ctx, l, 52, 32 + i * 10, '#F8F8F8'); });
     DS.win(ctx, 4, 170, 64, 22);
     DS.text(ctx, '◆' + G.silver, 10, 177, '#F8F8F8');
     this.menu.draw(ctx);

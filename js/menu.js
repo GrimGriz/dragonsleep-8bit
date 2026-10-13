@@ -924,7 +924,7 @@
   ExitPage.prototype.draw = function (ctx, active) {
     var n = this.list.items.length, cur = this.list.cur(), warn = cur && cur.value && cur.value.warn;
     win(ctx, 48, 60, 160, 26 + n * 12 + (warn ? 22 : 0));
-    text(ctx, 'LEAVE FOR WHERE?', 56, 67, C.gold);
+    text(ctx, this.m.host.exitTitle || 'LEAVE FOR WHERE?', 56, 67, C.gold); // (the 8-bit's: QUIT TO THE TITLE? -- 10-13)
     this.list.draw(ctx, 54, 81, 146, active, this.m.t);
     if (warn) wrap(warn, 144).slice(0, 2).forEach(function (l, i) { text(ctx, l, 56, 85 + n * 12 + i * 10, C.red); });
   };

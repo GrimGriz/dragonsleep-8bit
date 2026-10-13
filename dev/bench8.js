@@ -1914,6 +1914,17 @@
         DS.paused = true;
       }
       check('WALKING INTO A PERSON: ' + (nP ? nP.id + ' at ' + nP.x + ',' + nP.y + ' -- a step into them ' + (talked ? 'opens the talk' : 'does NOT open the talk') : 'no person found to walk into'), !!nP && talked);
+      // the shopkeepers' words fit the keeper's window (the road §7g: "Toll-Grille - A Diamond, for the ones who... (cuts off) - check Percy also")
+      var linesS = (DS.Shop && DS.Shop.LINES) || 2, longS = [];
+      Object.keys(DS.DATA.shops).forEach(function (sid) { var d = DS.DATA.shops[sid]; ['greeting', 'nothingText', 'thanks', 'boughtText'].forEach(function (k) { [].concat(d[k] || []).forEach(function (t) { var n = DS.wrap(String(t), 190).length; if (n > linesS) longS.push(sid + '.' + k + ' ' + n); }); }); });
+      check('THE SHOPKEEPERS\' WORDS: every greeting and reply in ' + linesS + ' lines -- too long: ' + (longS.join(', ') || 'none'), !longS.length);
+      // EXIT on the 8-bit's menu: QUIT TO THE TITLE?, a save first where one may be made, and backing out of the slots leaves no one at the title
+      F8.load(DS.DATA.config.start.map, DS.DATA.config.start.x, DS.DATA.config.start.y, 'down'); DS.paused = false;
+      var fmX = new DS.FieldMenu({}), hX = fmX.m.host, exX = hX.exits().map(function (e) { return e.label; }), titled = false;
+      DS.push(fmX); hX.run('exit', { to: 'save' }, function () { }); for (var kX = 0; kX < 20 && !(DS.top() && DS.top().kind === 'slots'); kX++) T.step(1);
+      var slotsX = DS.top() && DS.top().kind === 'slots'; if (slotsX) DS.top().menu.onCancel(); for (kX = 0; kX < 20; kX++) T.step(1);
+      titled = DS.scenes.some(function (s) { return s.kind === 'title'; }); DS.paused = true;
+      check('EXIT: "' + hX.exitTitle + '" -- ' + exX.join(' / ') + '; SAVE, THEN LEAVE opens the slots (' + slotsX + '), backed out of: at the title ' + titled + ' (want false)', hX.exitTitle === 'QUIT TO THE TITLE?' && exX[0] === 'SAVE, THEN LEAVE' && slotsX && !titled);
     } else if (test === 'migrate') {
       // an older save: Ingrith a fighter with a heals counter, hurt; DS.startFrom walks her on as the cleric she is
       DS.EV.addGuest('ingrith');
