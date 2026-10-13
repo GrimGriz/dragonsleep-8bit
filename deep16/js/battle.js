@@ -1698,8 +1698,11 @@
     u.anim = gait;
     // flat when it sets off: it gets up for half its speed if the walk has it, else it crawls (grid.js G.prone, rules.js RU.rise; SRD 5.1)
     if (u.conds.prone && o && o.spend && !u.ethereal) RU.rise(this, u);
-    var fell = false;
+    var fell = false, shifted = false;
     for (var i = 0; i < path.length; i++) {
+      // bodies moved in front of it on the last step (a readied leap, Give Ground): the way on is cut to what it may still walk -- through squares it may pass, to the last
+      // one it may stand on before a block (10-13, the grid's rules §2h: Denny's readied Cannonball landed him on the last square of the xorn's walk, and the xorn walked onto it)
+      if (shifted) { shifted = false; var keepP = u.ethereal ? path.length : Battle.pathLeft(u, path, i); if (keepP < path.length) { path = path.slice(0, keepP); if (i >= path.length) break; } }
       var nx = path[i][0], ny = path[i][1], cost = G.stepCost(u, u.x, u.y, nx, ny, { ghost: u.ethereal });
       if (fell && o && o.spend && T.move < cost) { u.anim = 'idle'; return; } // (knocked down on the way and up again, or crawling: the walk runs out short of the square)
       // leaving a hostile's reach without Disengage provokes, right before the step
@@ -1862,10 +1865,26 @@
       if (this.kp && this.kp.ready && D.keeper) yield* D.keeper.watch(this, u, stepFrom);
       // a readied strike (exec 'ready', 10-02): one that steps within a readier's reach, or into its sight, gets it -- and held, stunned or put down by it, walks no farther
       // GIVE GROUND (the Grey Road, 7; ours, 10-08): a Grey Road ranger this step brought within reach of steps 5 ft back, the reaction (js/features.js F.giveGround)
-      if (D.features && D.features.giveGround && !u.ethereal && !(o && o.noGive)) { yield* D.features.giveGround(this, u, stepFrom); if (u.hp <= 0 || u.dead) { u.anim = 'idle'; return; } }
-      if (this.units.some(function (w) { return w.ready && w.reaction > 0; })) { yield* this.readyHook(u, 'move'); if (u.hp <= 0 || u.dead) { u.anim = 'idle'; return; } if (u.conds.restrained || u.conds.paralyzed || u.conds.stunned || u.conds.asleep) { u.anim = 'idle'; if (o && o.spend) T.move = 0; return; } u.anim = gait; }
+      if (D.features && D.features.giveGround && !u.ethereal && !(o && o.noGive)) { yield* D.features.giveGround(this, u, stepFrom); if (u.hp <= 0 || u.dead) { u.anim = 'idle'; return; } shifted = true; }
+      if (this.units.some(function (w) { return w.ready && w.reaction > 0; })) {
+        var proneR = !!u.conds.prone;
+        yield* this.readyHook(u, 'move'); shifted = true;
+        if (u.hp <= 0 || u.dead) { u.anim = 'idle'; return; } if (u.conds.restrained || u.conds.paralyzed || u.conds.stunned || u.conds.asleep) { u.anim = 'idle'; if (o && o.spend) T.move = 0; return; }
+        // knocked flat by the readied thing (the Cannonball): it stands for half its speed if the walk has that much, else crawls, as after an opportunity attack (10-13)
+        if (!proneR && u.conds.prone && o && o.spend && !u.ethereal) { RU.rise(this, u); fell = true; }
+        u.anim = gait;
+      }
     }
     u.anim = 'idle';
+  };
+  // the length of a walk's path it may still take from step i: through squares it may pass, to the last one it may stand on before the first it may not (moveAlong, 10-13)
+  Battle.pathLeft = function (u, path, i) {
+    for (var j = i; j < path.length; j++) {
+      if (j === path.length - 1 ? G.canStand(u, path[j][0], path[j][1]) : G.canPass(u, path[j][0], path[j][1])) continue;
+      for (var k = j - 1; k >= i; k--) if (G.canStand(u, path[k][0], path[k][1])) return k + 1;
+      return i;
+    }
+    return path.length;
   };
   // Invisibility and Mislead end for one who attacks or casts (SRD); the caster's concentration goes with them (Greater
   // Invisibility, the duergar's own, keep on: theirs has no `ends`)

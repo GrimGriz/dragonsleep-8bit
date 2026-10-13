@@ -1664,6 +1664,24 @@
       okF('THE PACK AT A BIG FLOOR: the Skylights ' + (bakedP ? 'baked a frame late' : 'entered at once (NOT the case under test)') + '; counted as it began ' + i0P + ', handed back as gains: ' + (gainP.join(', ') || 'none'),
         bakedP && /"potion":3/.test(i0P) && /"ledgerlamp":1/.test(i0P) && !gainP.length);
       if (BP) { var kP = D.scenes.indexOf(BP); if (kP >= 0) D.scenes.splice(kP, 1); } D.embed.B = EB0; D.ctx = ctxP; D.canvas = canP;
+      // 5. A WALK AFTER A SPRING (the grid's rules §2h: the xorn onto Denny's square): a readied leap lands one of ours on the last square of a foe's walk and knocks it flat --
+      // the foe stands (half its speed) and walks on only to the square before, never onto the one who landed there
+      var BW = mkF('?npc=goblin&lvl=5&vs=fighter:5,cleric:5'), gW = sideF(BW, 'foe')[0], clW = sideF(BW, 'party')[1], fiW = sideF(BW, 'party')[0], GW = D.grid, pathW = null;
+      for (var yW = 1; yW < GW.map.h - 1 && !pathW; yW++) for (var xW = 1; xW < GW.map.w - 1 && !pathW; xW++) [[1, 0], [-1, 0], [0, 1], [0, -1]].forEach(function (d) {
+        if (pathW) return; var sq = [0, 1, 2, 3].map(function (k) { return [xW + d[0] * k, yW + d[1] * k]; });
+        if (sq.every(function (q) { return GW.canStand(gW, q[0], q[1]) && [fiW, clW].every(function (w) { return Math.max(Math.abs(w.x - q[0]), Math.abs(w.y - q[1])) > 3; }); })) pathW = sq;
+      });
+      var hookW = BW.readyHook, sprungW = false;
+      if (pathW) {
+        gW.x = pathW[0][0]; gW.y = pathW[0][1]; var lastW = pathW[3];
+        clW.ready = { name: 'Cannonball', what: 'special' }; clW.reaction = 1;
+        BW.readyHook = function* (who) { if (sprungW || who !== gW) return; sprungW = true; clW.x = lastW[0]; clW.y = lastW[1]; gW.conds.prone = true; clW.reaction = 0; };
+        D.rules.startTurn(gW); BW.active = gW; runF(BW.moveAlong(gW, pathW.slice(1), { spend: true }));
+      }
+      BW.readyHook = hookW; delete clW.ready;
+      var shareW = pathW && gW.x === clW.x && gW.y === clW.y;
+      okF('A WALK AFTER A SPRING: ' + (pathW ? 'the goblin set off ' + pathW[0] + ' for ' + pathW[3] + '; the cleric landed there (' + sprungW + '); the goblin stopped at ' + gW.x + ',' + gW.y + (shareW ? ' -- ON THE CLERIC' : '') + ', prone ' + !!gW.conds.prone : 'no open line found'),
+        !!pathW && sprungW && !shareW && gW.x === pathW[2][0] && gW.y === pathW[2][1] && !gW.conds.prone);
     } catch (eF) { repF.errors.push(String(eF && eF.stack || eF).slice(0, 900)); D.d = d0F; }
     if (errs.length) repF.errors = repF.errors.concat(errs);
     var preF = document.createElement('pre'); preF.id = 'out'; preF.textContent = 'BENCH16 ' + JSON.stringify(repF);
