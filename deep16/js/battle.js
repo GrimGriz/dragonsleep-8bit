@@ -554,7 +554,7 @@
     // (a familiar left alone keeps no fight going, and one sent to its pocket of the world got nobody out)
     // (nor do summoned creatures: they go when their caster's concentration does)
     // (nor a hero turned to stone -- Flesh to Stone's third failed save, the foe side's test above: it never acts again; a party all stone is a lost fight, 10-01)
-    if (!this.alive('party').filter(function (u) { return !u.object && !u.familiar && !u.summon && !u.ally && !u.dominated && !u.loose && !(u.conds && (u.conds.petrified || (u.conds.stoning && u.conds.stoning.done))); }).length) return this.reserve.length || (this.late || []).some(function (l) { return l.party; }) ? null : this.units.some(function (u) { return u.left && !u.familiar && !u.summon; }) ? 'escaped' : 'lost'; // (the party still behind the doors is no lost fight: Battle.lateOut, 10-05)
+    if (!this.alive('party').filter(function (u) { return !u.object && !u.familiar && !u.summon && !u.ally && !u.dominated && !u.loose && !(u.conds && (u.conds.petrified || (u.conds.stoning && u.conds.stoning.done))); }).length) return this.reserve.length || (this.late || []).some(function (l) { return l.party; }) ? null : this.units.some(function (u) { return u.left && !u.familiar && !u.summon; }) ? this.escapeEnd() : 'lost'; // (the party still behind the doors is no lost fight: Battle.lateOut, 10-05)
     return null;
   };
   // the rest of the party out of the inn (the lone investigator's round-two help): onto the free squares nearest the fight's
@@ -857,6 +857,8 @@
         var u = this.order[i];
         if (u.dead || u.away) continue; // (u.away: off the field on its way somewhere -- Pyro up the stair inside, js/pyro.js, 10-05)
         this.active = u;
+        this.carryCheck(); // (a carrier fallen, or the carried up again: set down -- 10-13)
+        if (u.carriedBy) { this.active = null; continue; } // (carried: no turn of its own)
         if (u.side === 'party' && !u.guest && !u.ally) yield* this.heroTurn(u);
         else if (this.show && u.show) yield* D.show.turn(this, u); // (the test ground's director, js/show.js: the AI's turn with its nudges about it)
         else { if (G.aloft(u) && !u.floats && !(this.fight && this.fight.fliers && u.flies)) yield* this.flyTo(u, G.groundAt(u, u.x, u.y), true); yield* D.ai.turn(this, u); } // (the AI keeps to the surface: one aloft comes down first -- flight at a height, 10-08)
@@ -944,6 +946,9 @@
 
   Battle.prototype.finish = function* (o) {
     this.result = o;
+    // a trooper left lying when the party got out (escapeEnd): a word for each, and the 8-bit lets them go (embed.js leftBehind -- 10-13, his: "continue with sad note on 'troop' NPCs")
+    var lb = o === 'escaped' ? this.units.filter(function (u) { return u.leftBehind; }) : [];
+    if (lb.length) { this.card(lb.map(function (u) { return '{g}' + u.name + ' is left where they fell. No one goes back.{/}'; }), 320); yield 40; }
     this.rideSync(); // (a rider whose hold ended on the last blow comes off before the fight is read: what the 8-bit's sheet saves after sees no darkmantle's blindness)
     if (D.magic && D.magic.globeLift) D.magic.globeLift(this); // (what a Globe of Invulnerability held off anyone is put back on, the globes gone: what the 8-bit's sheet saves after sees the creature whole -- js/grimoire.js, 10-01c)
     // the glamour broken: the riders are what they were all along (the wagon yard's children)
@@ -1070,7 +1075,8 @@
     // out the way the party came in (the fight's entry squares): the tabletop's walking off the table (Griz, 09-27: the climb's escape)
     // (inside the 8-bit game, only where its own battle had RUN: this.o.embed.canRun)
     if (!(this.o.embed && this.o.embed.canRun === false) && (this.exits || []).length) {
-      if (this.onExit(u)) out.push({ id: 'leave', label: 'LEAVE THE FIGHT', cost: 'M', icon: 'back', ok: T.move >= 5 && !u.conds.restrained, why: u.conds.restrained ? 'held fast' : 'no move left', note: 'out the way you came in' + (this.fight.oneLeavesAll ? ', and the party goes too' : '') + ': a foe beside you gets its swing' });
+      var hbL = this.heldBack(u); // (no one out while one of the four lies down or bound -- 10-13, his: "your allies refuse - not while Aurdin is paralyzed!")
+      if (this.onExit(u)) out.push({ id: 'leave', label: 'LEAVE THE FIGHT', cost: 'M', icon: 'back', ok: T.move >= 5 && !u.conds.restrained && !hbL, why: hbL ? Battle.refuseText(hbL) : u.conds.restrained ? 'held fast' : 'no move left', note: 'out the way you came in' + (this.fight.oneLeavesAll ? ', and the party goes too' : '') + ': a foe beside you gets its swing' });
       // (10-04, Griz: "Keeper Fight lacks fight escape", and the Wet at level 3, "not on wheel": off a way out the command still shows, greyed, and says where to go)
       else out.push({ id: 'leave', label: 'LEAVE THE FIGHT', cost: 'M', icon: 'back', ok: false, why: 'not from here: walk to one of the pale squares at the edge first (' + this.exits.length + ' way' + (this.exits.length === 1 ? '' : 's') + ' out)', note: 'out the way you came in' });
     }
@@ -1528,7 +1534,7 @@
       case 'leave': { yield* this.leave(u); return; }
       case 'ignite': T.bonus = 0; u.conds.ablaze = true; D.sfx('fire'); FX.sparkle(u, 'fire', 18); this.card(['{y}' + u.name + '{/} speaks the word: the ' + u.weapon.name + ' {o}bursts into flame{/} (+' + u.weapon.flame + ' fire on a hit).']); return;
       case 'douse': T.bonus = 0; delete u.conds.ablaze; this.card(['{y}' + u.name + '{/} speaks the word again: the blade goes dark.']); return;
-      case 'dash': if (u.conds.restrained || u.conds.dancing) return; D.sfx('run'); T.action = 0; T.move += u.speed; this.card(['{y}' + u.name + '{/} dashes: {c}+' + u.speed + ' ft{/}.']); return;
+      case 'dash': if (u.conds.restrained || u.conds.dancing) return; D.sfx('run'); T.action = 0; var dsh = u.carrying ? Math.floor(u.speed / 10) * 5 : u.speed; T.move += dsh; this.card(['{y}' + u.name + '{/} dashes: {c}+' + dsh + ' ft{/}' + (u.carrying ? ' (carrying: half)' : '') + '.']); return;
       case 'cdash': if (u.conds.restrained || u.conds.dancing) return; D.sfx('run'); T.bonus = 0; T.move += u.speed; this.card(['{y}' + u.name + '{/} (' + ((u.cls === 'rogue' && u.lvl >= 2) || u.cunning ? 'Cunning Action' : 'Expeditious Retreat') + ') dashes: {c}+' + u.speed + ' ft{/}.']); return;
       case 'disengage': D.sfx('run'); T.action = 0; T.disengaged = true; this.card(['{y}' + u.name + '{/} disengages: leaving reach provokes nothing this turn.']); return;
       case 'cdisengage': D.sfx('run'); T.bonus = 0; T.disengaged = true; this.card(['{y}' + u.name + '{/} (Cunning Action) disengages.']); return;
@@ -1805,6 +1811,7 @@
       }
       u.tween = { fx: u.x, fy: u.y, fz: z0, t: 0, dur: this.pace(stF, true), mode: cliffM }; // (an AI-run unit's step is paced with its wait, below, so the walk keeps to its beat)
       u.x = nx; u.y = ny;
+      if (u.carrying) this.carryAlong(u); // (one carried out of the fight rides along: pickUp, 10-13)
       var dropFt = G.map.def.climb && !u.flies && !u.climbs && !rpS && !hung0 ? (z0 - z1) / stZ * 2.5 : 0; // (a drop down a cliff: SRD 5.1 Falling -- 1d6 bludgeoning for every 10 feet, and it lands prone; one with a climb speed climbs down, as one on a rope does)
       if (csD && !csDmiss) dropFt = 0; // (climbed down: no fall)
       if (u.hang && !G.hanging(u)) delete u.hang; // (off the rope: at its top, or stepped away from its foot)
@@ -2910,8 +2917,62 @@
   // ------------------------------------------------------------------ leaving: out the way the party came in. Stepping off the map leaves any foe's reach,
   // so its opportunity attack comes first (unless the hero disengaged); then the hero is out of the fight, not dead
   Battle.prototype.onExit = function (u) { return (this.exits || []).some(function (q) { return q[0] === u.x && q[1] === u.y; }); };
+  // LEAVING TOGETHER (10-13, Griz: "grid fights no escape per char unless no down, no bound - 'your allies refuse - not while Aurdin is paralyzed!'"; the guests go "When the
+  // first party member escapes"; "I like your guest grabs a fallen hero, but that'll be like 'if falls after first party member escaped while he was up' logics"; "Fallen guests fail
+  // at story NPCs, continue with sad note on 'troop' NPCs"; "4 - yes to both": bound is paralyzed, restrained, grappled, stunned, petrified or in a tendril's grip, and the Wet's
+  // and the Keeper's one-out-all-out keep theirs). No one steps out while one of the four lies down or bound; once one is out, ours run by the AI follow (js/tactics.js
+  // TX.retreatTurn), picking up whoever falls after and carrying them out at half speed; at the end a story guest or one of the four left on the floor loses the fight, a trooper is
+  // left behind with a word
+  Battle.isHero = function (u) { return u.side === 'party' && !u.ally && !u.summon && !u.familiar && !u.object && !(u.src && u.src.guest); }; // (one of the four: not the 8-bit's guest, not a fight's ally)
+  var TROOP = /^(trooper|trooperxbow|drillsergeant|stablefighter|guard)$/; // (the 8-bit's troopers, the Skylights' garrison and Bloodsnout's men; the street's folk by their ids)
+  Battle.isTroop = function (u) { return !Battle.isHero(u) && ((u.src && u.src.id === 'trooper') || TROOP.test(u.kind || '') || /^folk/.test(u.id || '')); };
+  Battle.boundBy = function (u) {
+    var c = u.conds || {}, r = c.restrained;
+    if (c.paralyzed) return 'paralyzed';
+    if (c.petrified || (c.stoning && c.stoning.done)) return 'turned to stone';
+    if (c.stunned) return 'stunned';
+    if (r) return r.weak || r.tendril ? 'in a tendril\'s grip' : r.grapple || r.kind === 'tentacles' ? 'grappled' : 'held fast';
+    return null;
+  };
+  // the first of the four who holds the rest: down and not carried, or bound (the one asking never holds itself)
+  Battle.prototype.heldBack = function (u) {
+    if (this.fight && this.fight.oneLeavesAll) return null;
+    var w = this.units.filter(function (x) { return x !== u && Battle.isHero(x) && !x.left && !x.dead && !x.carriedBy && (x.hp <= 0 || Battle.boundBy(x)); })[0];
+    return w ? { who: w, why: w.hp <= 0 ? 'down' : Battle.boundBy(w) } : null;
+  };
+  Battle.refuseText = function (hb) { return 'Your allies refuse -- not while ' + hb.who.name + ' is ' + hb.why + '!'; };
+  // the fight over because the party got out: anyone of ours left lying on the floor
+  Battle.prototype.escapeEnd = function () {
+    if (this.fight && this.fight.oneLeavesAll) return 'escaped';
+    var behind = this.units.filter(function (x) { return x.side === 'party' && !x.left && !x.dead && x.hp <= 0 && !x.summon && !x.familiar && !x.object && !x.loose && !x.dominated && !x.carriedBy; });
+    if (behind.some(function (x) { return !Battle.isTroop(x); })) return 'lost';
+    behind.forEach(function (x) { x.leftBehind = true; });
+    return 'escaped';
+  };
+  // carrying one who fell (SRD 5.1: a creature you grapple moves with you, your speed halved -- an unconscious one resists nothing): the pick-up is the carrier's action, the
+  // carried rides on its square (G.occupant passes it by) and goes out with it
+  Battle.prototype.carriedOf = function (u) { return u.carrying ? this.units.filter(function (x) { return x.id === u.carrying; })[0] || null : null; };
+  Battle.prototype.pickUp = function* (u, w) {
+    var T = u.turn; T.action = 0; u.carrying = w.id; w.carriedBy = u.id; T.move = Math.floor(T.move / 10) * 5;
+    w.tween = { fx: w.x, fy: w.y, fz: G.gzAt(w, w.x, w.y), t: 0, dur: this.pace(10, true) }; w.x = u.x; w.y = u.y;
+    D.sfx('confirm'); this.card(['{y}' + u.name + '{/} picks up ' + w.name + ' to carry out.  {g}(half speed, carrying){/}'], 220); yield 20;
+  };
+  Battle.prototype.carryAlong = function (u) { var w = this.carriedOf(u); if (!w || w.left || w.dead) { delete u.carrying; return; } w.x = u.x; w.y = u.y; w.tween = u.tween ? Object.assign({}, u.tween) : null; };
+  // set down: the carrier fallen, or the carried up again -- on the nearest free square
+  Battle.prototype.setDown = function (u) {
+    var c = u.carriedBy && this.units.filter(function (x) { return x.id === u.carriedBy; })[0];
+    delete u.carriedBy; if (c) delete c.carrying;
+    if (!G.canStand(u, u.x, u.y)) { for (var r = 1; r < 6; r++) { var sq = null; for (var dy = -r; dy <= r && !sq; dy++) for (var dx = -r; dx <= r && !sq; dx++) if (G.canStand(u, u.x + dx, u.y + dy)) sq = [u.x + dx, u.y + dy]; if (sq) { u.x = sq[0]; u.y = sq[1]; break; } } }
+    this.card(['{g}' + u.name + ' is set down.{/}'], 160);
+  };
+  Battle.prototype.carryCheck = function () {
+    var self = this;
+    this.units.forEach(function (u) { if (!u.carriedBy) return; var c = self.units.filter(function (x) { return x.id === u.carriedBy; })[0]; if (!c || c.dead || c.hp <= 0 || u.hp > 0) self.setDown(u); });
+  };
   Battle.prototype.leave = function* (u) {
     var T = u.turn;
+    var hb = this.heldBack(u);
+    if (hb) { D.sfx('miss'); this.card(['{o}' + Battle.refuseText(hb) + '{/}'], 260); yield 20; return; }
     if (!T.disengaged) {
       var prov = this.units.filter(function (w) { return G.hostile(u, w) && G.standing(w) && RU.canAct(w) && w.reaction > 0 && !w.ethereal && G.dist(w, u) <= G.reachOf(w) && !(w.weapon && w.weapon.ranged); });
       for (var k = 0; k < prov.length; k++) {
@@ -2925,8 +2986,11 @@
     }
     T.move = 0; u.left = true; u.dead = true; u.deadT = this.t; delete u.conds.ablaze;
     if (u.conc) D.magic.endConc(this, u, 'out of the fight');
+    var cw = this.carriedOf(u); delete u.carrying;
+    if (cw) { cw.left = true; cw.dead = true; cw.deadT = this.t; delete cw.carriedBy; } // (the one carried goes out with the carrier)
+    if (Battle.isHero(u) && !this.retreat) this.retreat = { by: u.id, round: this.round }; // (the first of the four out: ours run by the AI follow, js/tactics.js TX.retreatTurn)
     D.sfx('run');
-    if (!this.fight.noCards) this.card(['{y}' + u.name + '{/} gets out the way the party came in' + (this.fight.oneLeavesAll ? ', and the party goes too' : '') + '.  {g}(out of the fight){/}']); // (the wet asked already: no card -- 09-30e)
+    if (!this.fight.noCards) this.card(['{y}' + u.name + '{/} gets out the way the party came in' + (cw ? ', carrying ' + cw.name : '') + (this.fight.oneLeavesAll ? ', and the party goes too' : '') + '.  {g}(out of the fight){/}']); // (the wet asked already: no card -- 09-30e)
     yield 30;
   };
 

@@ -139,6 +139,7 @@
     (d.party || []).forEach(function (r) {
       var h = (all.filter(function (x) { return x.id === r.id; })[0] || {}).h;
       if (!h) return;
+      if (r.leftBehind && r.guest && DS.EV && DS.EV.dropGuest) { DS.EV.dropGuest(r.id); return; } // (a trooper left lying when the party got out of the grid's fight: no longer with you -- 10-13)
       h.conds = h.conds || {};
       // Aid cast in the fight: the 8-bit game's own Aid, lifted at the next long rest (EV.longRest)
       if (r.drained) h.maxhp = Math.max(1, h.maxhp - r.drained); // (the Settling: the crawlers fed on him while he was down -- max HP, for good, 09-30b; the grid's maxhp is already the less)

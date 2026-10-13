@@ -616,6 +616,39 @@
     if (plans[0] && plans[0].score > 0.5) yield* plans[0].go();
     else { B.card(['{g}' + u.name + ' makes for the way out.{/}']); yield 16; }
   }
+  // THE PARTY LEAVING (10-13, Griz: the guests go "When the first party member escapes"; "I like your guest grabs a fallen hero, but that'll be like 'if falls after first party
+  // member escaped while he was up' logics"): one of ours run by the AI, once one of the four is out (battle.js leave, B.retreat). A friend down beside it is picked up and carried
+  // (battle.js pickUp: its action, half speed after), the four first; one down farther off is gone to; else the way out -- Disengage with a foe in reach, Dash without -- and out
+  // from an exit square, if no one of the four still lies there uncarried (battle.js heldBack)
+  function exitDist(B, x, y) { return Math.min.apply(null, (B.exits || []).map(function (q) { return Math.max(Math.abs(q[0] - x), Math.abs(q[1] - y)); }).concat([999])); }
+  function fallenOf(B, u) { return B.units.filter(function (w) { return w !== u && w.side === 'party' && !w.left && !w.dead && w.hp <= 0 && !w.carriedBy && !w.summon && !w.familiar && !w.object && G.present(w) && (w.size || 1) <= (u.size || 1); }); }
+  TX.retreatTurn = function* (B, u) {
+    var T = u.turn, Bt = D.Battle;
+    if (u.hp <= 0 || u.dead) return;
+    B.focus(u);
+    if (!RU.canAct(u)) return;
+    if (u.carrying) T.move = Math.floor(T.move / 10) * 5; // (carrying: half its speed, SRD 5.1's grapple)
+    if (!B.carriedOf(u)) {
+      var fl = fallenOf(B, u).sort(function (a, b) { return (Bt.isHero(b) ? 1 : 0) - (Bt.isHero(a) ? 1 : 0) || G.dist(u, a) - G.dist(u, b); });
+      var near = fl.filter(function (w) { return G.dist(u, w) <= 5; })[0];
+      if (!near && fl.length && T.action) {
+        var w0 = fl[0], rx = G.reach(u, T.move), best = null, bd = Infinity;
+        Object.keys(rx).forEach(function (k) { var e = rx[k]; if (!e.stand) return; var d = G.dist(u, w0, e.x, e.y); if (d < bd || (d === bd && best && e.cost < best.cost)) { bd = d; best = e; } });
+        if (best) { yield* walk(B, u, best); if (u.dead || u.hp <= 0) return; }
+        if (G.dist(u, w0) <= 5) near = w0;
+        else { B.card(['{g}' + u.name + ' makes for ' + w0.name + '.{/}'], 160); yield 12; return; }
+      }
+      if (near && T.action) yield* B.pickUp(u, near);
+    }
+    if (u.dead || u.hp <= 0) return;
+    var foeNear = B.units.some(function (w) { return G.hostile(u, w) && G.standing(w) && RU.canAct(w) && G.dist(w, u) <= G.reachOf(w); });
+    if (T.action) yield* B.exec(u, { do: foeNear ? 'disengage' : 'dash' });
+    var rx2 = G.reach(u, T.move), go = null, gd = Infinity;
+    Object.keys(rx2).forEach(function (k) { var e = rx2[k]; if (!e.stand) return; var d = exitDist(B, e.x, e.y) * 10 + e.cost / 10; if (d < gd) { gd = d; go = e; } });
+    if (go && (go.x !== u.x || go.y !== u.y)) { yield* walk(B, u, go); if (u.dead || u.hp <= 0) return; }
+    if (B.onExit(u) && !B.heldBack(u)) yield* B.leave(u);
+    else { B.card(['{g}' + u.name + ' makes for the way out' + (B.carriedOf(u) ? ', carrying ' + B.carriedOf(u).name : '') + '.{/}'], 160); yield 12; }
+  };
   // nowhere to run (SRD 5.1 Fear: "must take the Dash action and move away from you by the safest available route on each of its turns,
   // unless there is nowhere to move"): held fast, or no square the Dash could reach that is farther from the one it fears than where it stands
   TX.cornered = function (B, u) {

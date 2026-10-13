@@ -82,7 +82,7 @@
         // (the bat-wing pie's +5 is the fight's alone, as the 8-bit battle's finish() takes it back: never read there as Aid)
         var mx = u.maxhp - (u.fortified ? 5 : 0);
         // (drained: max HP the herd took, for good -- js/wet.js. 09-30d: its note sat mid-line from 09-30b and cut slots, feats, mageArmor and left out of every report)
-        return { id: u.id, guest: !!u.guest, hp: Math.max(0, Math.min(u.hp, mx)), maxhp: mx, drained: u.drained || 0, slots: (u.slots || []).slice(), feats: u.feats || {}, mageArmor: !!u.conds.mageArmor, left: !!u.left,
+        return { id: u.id, guest: !!u.guest, hp: Math.max(0, Math.min(u.hp, mx)), maxhp: mx, drained: u.drained || 0, slots: (u.slots || []).slice(), feats: u.feats || {}, mageArmor: !!u.conds.mageArmor, left: !!u.left, leftBehind: !!u.leftBehind, // (a trooper left lying when the party got out: battle.js escapeEnd, 10-13)
           equip: u.src && u.src.equip ? JSON.parse(JSON.stringify(u.src.equip)) : null, // (EQUIP in the fight crosses back: RULED 09-28)
           // torchdark (09-28): the day's Darkvision and a Continual Flame stay on him; a torch still burning in his hand walks out with him
           darkvision: !!u.conds.darkvision, continualFlame: !!(u.conds.continualFlame || (u.src && u.src.conds && u.src.conds.continualFlame)), torch: u.torch && u.torch.lit && u.hp > 0 ? (u.torch.kind === 'lantern' ? (u.torch.item || 'lantern') : 'torch') : false }; // (09-29: which light, so the field keeps a lantern as a lantern; 09-30: the Ledger-Lamp goes back as 'ledgerlamp', its pack id)

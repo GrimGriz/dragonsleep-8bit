@@ -126,6 +126,8 @@
     if (u.conds.dominated && D.mpmon && (yield* D.mpmon.dominatedTurn(B, u))) { D.magic.endTurn(B, u); u.anim = 'idle'; return; }
     // a word of Command it must obey (js/grimoire.js): halted, grovelling, or away from the one who spoke, and nothing more
     if (u.turn.lost) { if (u.turn.fleeFrom) yield* D.magic.flee(B, u); yield 20; D.magic.endTurn(B, u); u.anim = 'idle'; return; }
+    // the party leaving (10-13, his: the guests go "When the first party member escapes"): one of ours run by the AI, not one of the four, follows the first out -- js/tactics.js TX.retreatTurn
+    if (B.retreat && !(B.fight && B.fight.oneLeavesAll) && u.side === 'party' && !D.Battle.isHero(u) && !u.summon && !u.familiar && !u.object && D.tactics.retreatTurn) { yield* D.tactics.retreatTurn(B, u); if (!u.left) D.magic.endTurn(B, u); u.anim = 'idle'; return; }
     // Fear's run (js/grimoire.js): any creature under it Dashes away from the one it fears
     if (D.magic.mustFlee && D.magic.mustFlee(u) && !u.classAI && (yield* D.tactics.fleeFear(B, u))) { D.magic.endTurn(B, u); u.anim = 'idle'; return; } // (cornered: it fights after all, js/tactics.js TX.cornered)
     if (u.conds.restrained && !(u.conds.restrained.ice && D.keeper)) { // (not the Keeper's ice: it breaks out in js/keeper.js, a bonus action and then its action) a web: tear at it first. A grip -- the class AI weighs the escape, cutting the roper's tendril, or fighting from where it is (js/tactics.js freeHow, 10-02)

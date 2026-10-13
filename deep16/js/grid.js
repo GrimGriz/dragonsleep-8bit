@@ -24,7 +24,7 @@
     var over = null;
     for (var i = 0; i < G.units.length; i++) {
       var u = G.units[i];
-      if (u === except || !G.present(u) || u.riding || (u.flooding && u.kind === 'keeper')) continue; // (a familiar riding its wizard holds no square of its own; nor does the Keeper while it is the swirl about someone: js/keeper.js)
+      if (u === except || !G.present(u) || u.riding || u.carriedBy || (u.flooding && u.kind === 'keeper')) continue; // (a familiar riding its wizard holds no square of its own; nor does the Keeper while it is the swirl about someone: js/keeper.js; nor one carried out of a fight, battle.js pickUp)
       var s = u.size || 1;
       if (x >= u.x && y >= u.y && x < u.x + s && y < u.y + s) {
         var hangs = !!(u.hang && G.hanging(u)) || G.aloft(u); // (a flier aloft over the square, as a hanger: G.aloft, 10-08)

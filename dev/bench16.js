@@ -1605,6 +1605,64 @@
     document.body.appendChild(preFL);
     return;
   }
+  // leaving a fight together, 10-13 (mode=leave1013; his rulings in the grid's rules lane §2h): no one out while one of the four lies down or bound, the AI's own of ours following
+  // the first out, the fallen picked up and carried, and who may be left on the floor. Each check failed on the code before it
+  if (get('mode', '') === 'leave1013') {
+    var repL = { checks: [], errors: [] }, d0L = D.d, GL = D.grid, BtL = D.Battle;
+    function okL(what, v) { repL.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function runL(g) { var v, k = 0, st; while (g && k++ < 6000) { st = g.next(v); v = undefined; if (st.done) return st.value; if (st.value && st.value.prompt) v = st.value.prompt.opts[0].value; } }
+    function mkL(q) { var Bx = D.npcFight(q, {}); D.battle = Bx; Bx.enter(); while (!Bx.order.length) Bx.co.next(); Bx.dark = false; return Bx; }
+    function sideL(Bx, s) { return Bx.units.filter(function (u) { return u.side === s; }); }
+    function logL(Bx, n) { return (Bx.log || []).slice(n).join(' | ').replace(/\{\/?[a-z]*\}/g, ''); }
+    function exitDistL(Bx, u) { return Math.min.apply(null, Bx.exits.map(function (q) { return Math.max(Math.abs(q[0] - u.x), Math.abs(q[1] - u.y)); })); }
+    // an exit square with an open square beside it, toward the middle (for the one carried, or one to stand beside)
+    function exitL(Bx, u) { for (var i = 0; i < Bx.exits.length; i++) { var q = Bx.exits[i], mx = GL.map.w / 2, my = GL.map.h / 2, sx = Math.sign(mx - q[0]), sy = Math.sign(my - q[1]); if (GL.canStand(u, q[0], q[1]) && GL.canStand(u, q[0] + sx, q[1] + sy)) return { at: q, in: [q[0] + sx, q[1] + sy] }; } return null; }
+    function farL(Bx, u) { var best = null, bd = -1; for (var y = 1; y < GL.map.h - 1; y++) for (var x = 1; x < GL.map.w - 1; x++) { if (!GL.canStand(u, x, y)) continue; var d = exitDistL(Bx, { x: x, y: y }); if (d > bd) { bd = d; best = [x, y]; } } if (best) { u.x = best[0]; u.y = best[1]; } } // (a foe set as far from every way out as the floor allows)
+    try {
+      var hasL = typeof BtL.isHero === 'function' && typeof D.battle !== 'undefined';
+      // REFUSE: the fighter on a way out, the cleric down -- then paralyzed -- then well
+      var B1 = mkL('?npc=goblin&lvl=5&vs=fighter:5,cleric:5'), fi = sideL(B1, 'party')[0], cl = sideL(B1, 'party')[1], go1 = sideL(B1, 'foe')[0], ex1 = exitL(B1, fi);
+      farL(B1, go1); fi.x = ex1.at[0]; fi.y = ex1.at[1]; cl.x = ex1.in[0]; cl.y = ex1.in[1]; D.rules.startTurn(fi); B1.active = fi;
+      cl.hp = 0; var cmd1 = (B1.commands(fi) || []).filter(function (c) { return c.id === 'leave'; })[0] || {}, n1 = (B1.log || []).length;
+      runL(B1.leave(fi)); var l1 = logL(B1, n1), stayed1 = !fi.left;
+      okL('REFUSE: the cleric down -- LEAVE greyed (' + cmd1.ok + ': ' + cmd1.why + '), and the leave itself refused: still in ' + stayed1 + ' (' + l1.slice(0, 90) + ')', cmd1.ok === false && /allies refuse -- not while .* is down/.test(cmd1.why || '') && stayed1 && /Your allies refuse -- not while .* is down!/.test(l1));
+      cl.hp = cl.maxhp; cl.conds.paralyzed = { by: 'x' }; D.rules.startTurn(fi); var n1b = (B1.log || []).length; runL(B1.leave(fi));
+      okL('REFUSE: the cleric paralyzed -- ' + logL(B1, n1b).slice(0, 80), !fi.left && /not while .* is paralyzed!/.test(logL(B1, n1b)));
+      delete cl.conds.paralyzed; D.rules.startTurn(fi); runL(B1.leave(fi));
+      okL('REFUSE: the cleric well, the fighter goes: out ' + !!fi.left + ', the retreat begun by ' + (B1.retreat && B1.retreat.by), !!fi.left && !!B1.retreat && B1.retreat.by === fi.id);
+      // FOLLOW and CARRY: Brann (the 8-bit's guest, run by the AI) follows the fighter out; the cleric falls after, beside him -- he picks her up and carries her out
+      var B2 = mkL('?npc=goblin&lvl=5&vs=fighter:5,cleric:5,brann:5'), f2 = sideL(B2, 'party')[0], c2 = sideL(B2, 'party')[1], br = sideL(B2, 'party')[2], g2 = sideL(B2, 'foe')[0], e2 = exitL(B2, f2);
+      br.guest = true; br.classAI = true; if (br.src && !br.src.guest) br.src = Object.assign({}, br.src, { guest: true }); // (as the 8-bit sends him: its guest sheet)
+      farL(B2, g2); f2.x = e2.at[0]; f2.y = e2.at[1]; br.x = Math.floor(GL.map.w / 2); br.y = Math.floor(GL.map.h / 2) + 2; c2.x = br.x + 1; c2.y = br.y;
+      if (!GL.canStand(br, br.x, br.y)) { var sq2 = null; for (var yy = 1; yy < GL.map.h - 1 && !sq2; yy++) for (var xx = 1; xx < GL.map.w - 2 && !sq2; xx++) if (GL.canStand(br, xx, yy) && GL.canStand(c2, xx + 1, yy) && (xx !== g2.x || yy !== g2.y)) sq2 = [xx, yy]; if (sq2) { br.x = sq2[0]; br.y = sq2[1]; c2.x = br.x + 1; c2.y = br.y; } }
+      D.rules.startTurn(f2); B2.active = f2; runL(B2.leave(f2));
+      var d0 = exitDistL(B2, br), n2 = (B2.log || []).length; B2.active = br; runL(D.ai.turn(B2, br)); var l2 = logL(B2, n2), d1 = br.left ? 0 : exitDistL(B2, br);
+      okL('FOLLOW: the fighter out, Brann makes for the way out -- ' + d0 + ' squares from it, now ' + d1 + (br.left ? ' (out)' : '') + ': ' + l2.slice(0, 120), !!f2.left && d1 < d0 && /dashes|disengages/.test(l2));
+      // (back where he stood, his turn again: the cleric falls beside him)
+      br.left = false; br.dead = false; c2.hp = 0;
+      var sq2b = null; for (var y2 = 1; y2 < GL.map.h - 1 && !sq2b; y2++) for (var x2 = 1; x2 < GL.map.w - 2 && !sq2b; x2++) if (exitDistL(B2, { x: x2, y: y2 }) >= 5 && GL.canStand(br, x2, y2) && GL.canStand(c2, x2 + 1, y2) && Math.max(Math.abs(g2.x - x2), Math.abs(g2.y - y2)) > 3) sq2b = [x2, y2];
+      if (sq2b) { br.x = sq2b[0]; br.y = sq2b[1]; c2.x = br.x + 1; c2.y = br.y; } // (well in from every way out: the pick-up, then half a walk)
+      var n2b = (B2.log || []).length; B2.active = br; runL(D.ai.turn(B2, br)); var l2b = logL(B2, n2b);
+      okL('CARRY: the cleric down beside him, Brann picks her up -- carrying ' + br.carrying + ', carried by ' + c2.carriedBy + ', on his square ' + (c2.x === br.x && c2.y === br.y) + ': ' + l2b.slice(0, 120), br.carrying === c2.id && c2.carriedBy === br.id && c2.x === br.x && c2.y === br.y && /picks up/.test(l2b));
+      br.x = e2.at[0]; br.y = e2.at[1]; c2.x = br.x; c2.y = br.y; B2.active = br; runL(D.ai.turn(B2, br));
+      okL('CARRY: on a way out, his next turn takes them both out -- Brann out ' + !!br.left + ', the cleric out ' + !!c2.left + ', the fight ' + B2.over(), !!br.left && !!c2.left && B2.over() === 'escaped');
+      // THE END: who is left on the floor when the rest got out
+      var B3 = mkL('?npc=goblin&lvl=5&vs=fighter:5,cleric:5,brann:5'), f3 = sideL(B3, 'party')[0], c3 = sideL(B3, 'party')[1], b3 = sideL(B3, 'party')[2];
+      b3.guest = true; b3.classAI = true; if (b3.src && !b3.src.guest) b3.src = Object.assign({}, b3.src, { guest: true });
+      f3.left = true; f3.dead = true; c3.left = true; c3.dead = true; b3.hp = 0; var ov3a = B3.over();
+      var k3 = b3.kind; b3.kind = 'trooper'; if (b3.src) b3.src = Object.assign({}, b3.src, { id: 'trooper' }); var ov3b = B3.over(), lb3 = !!b3.leftBehind; b3.kind = k3;
+      c3.left = false; c3.dead = false; c3.hp = 0; b3.hp = b3.maxhp; b3.left = true; b3.dead = true; var ov3c = B3.over();
+      okL('THE END: a story guest left on the floor -- ' + ov3a + ' (want lost); a trooper -- ' + ov3b + ', left behind ' + lb3 + ' (want escaped, true); one of the four -- ' + ov3c + ' (want lost)', ov3a === 'lost' && ov3b === 'escaped' && lb3 && ov3c === 'lost');
+      // THE WET AND THE KEEPER: one out, all out, as before -- no refusal there
+      var B4 = mkL('?npc=goblin&lvl=5&vs=fighter:5,cleric:5'), f4 = sideL(B4, 'party')[0], c4 = sideL(B4, 'party')[1], e4 = exitL(B4, f4);
+      B4.fight.oneLeavesAll = true; f4.x = e4.at[0]; f4.y = e4.at[1]; c4.hp = 0; D.rules.startTurn(f4); B4.active = f4; runL(B4.leave(f4));
+      okL('ONE OUT, ALL OUT: with the cleric down the fighter still goes (' + !!f4.left + '), the fight ' + B4.over(), !!f4.left && B4.over() === 'escaped');
+    } catch (eL) { repL.errors.push(String(eL && eL.stack || eL).slice(0, 900)); D.d = d0L; }
+    if (errs.length) repL.errors = repL.errors.concat(errs);
+    var preL = document.createElement('pre'); preL.id = 'out'; preL.textContent = 'BENCH16 ' + JSON.stringify(repL);
+    document.body.appendChild(preL);
+    return;
+  }
   // the grid's rules lane, 10-13 (mode=rules1013; his answers to the notes window, handoff-2026-10-04-the-grids-rules.md §2h): big through small and a creature's space as difficult
   // terrain, the sheet's own Acrobatics, a shove over an edge, the pudding's third bite. Each check failed on the code before it but the Magic Weapon guard, which held already
   if (get('mode', '') === 'rules1013') {
