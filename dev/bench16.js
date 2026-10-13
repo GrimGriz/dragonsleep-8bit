@@ -1652,6 +1652,18 @@
         !!(skC && skC.ok) && TT.attacksLeft === 0 && !BT.commands(pT).some(function (c) { return c.id === 'skipattack'; }));
       TT.attacksLeft = 1; TT.move = 0; TT.bonus = 0; tT.dead = true; delete tT.regenDown; var spT = D.ui && D.ui.spent ? D.ui.spent(BT, pT) : window.UI && UI.spent ? UI.spent(BT, pT) : null;
       okF('THE AUTO END with an attack left and nobody to spend it on: spent ' + spT + ' (want true: SKIP ATTACK holds no turn open)', spT === true);
+      // 4. THE PACK AT A BIG FLOOR (the road §7g, his two Ledger-Lamps): the Skylights inside the 8-bit bakes its 60x39 floor a frame late; the pack as the fight began is
+      // counted all the same, and a pack the fight never touched comes back as it went in -- nothing handed over as a gain
+      var ctxP = D.ctx, canP = D.canvas, cvP = document.createElement('canvas'); cvP.width = D.W || 400; cvP.height = D.H || 240; if (!D.ctx) D.ctx = cvP.getContext('2d'); if (!D.canvas) D.canvas = cvP;
+      var sP = D.save.fixture(8); sP.inv = [{ id: 'potion', n: 3 }, { id: 'ledgerlamp', n: 1 }, { id: 'oil', n: 2 }];
+      var EB0 = D.embed.B; D.embed.B = null; D.embed.start({ type: 'ds8:fight', fight: 'edifice', save: sP, opts: { canRun: false } });
+      var BP = D.embed.B, bakedP = !!(BP && BP.baking), i0P = JSON.stringify(D.embed.inv0 || {});
+      if (BP && BP.baking) { BP.baking = false; BP.enter(); }
+      var i1P = {}; ((BP && BP.inv) || []).forEach(function (s) { i1P[s.id] = (i1P[s.id] || 0) + s.n; });
+      var gainP = Object.keys(i1P).filter(function (id) { return i1P[id] > ((D.embed.inv0 || {})[id] || 0); });
+      okF('THE PACK AT A BIG FLOOR: the Skylights ' + (bakedP ? 'baked a frame late' : 'entered at once (NOT the case under test)') + '; counted as it began ' + i0P + ', handed back as gains: ' + (gainP.join(', ') || 'none'),
+        bakedP && /"potion":3/.test(i0P) && /"ledgerlamp":1/.test(i0P) && !gainP.length);
+      if (BP) { var kP = D.scenes.indexOf(BP); if (kP >= 0) D.scenes.splice(kP, 1); } D.embed.B = EB0; D.ctx = ctxP; D.canvas = canP;
     } catch (eF) { repF.errors.push(String(eF && eF.stack || eF).slice(0, 900)); D.d = d0F; }
     if (errs.length) repF.errors = repF.errors.concat(errs);
     var preF = document.createElement('pre'); preF.id = 'out'; preF.textContent = 'BENCH16 ' + JSON.stringify(repF);

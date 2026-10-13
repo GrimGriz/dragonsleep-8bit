@@ -1881,6 +1881,17 @@
         check('a fight with both down says so once: "' + (s1[0] || '(nothing)') + '"; the next fight ' + (s2.length ? 'again' : 'quiet') + '; after a night, Brann down again: "' + (s3[0] || '(nothing)') + '"',
           s1.length === 1 && /^Brann and Hedda: still down/.test(s1[0]) && !s2.length && s3.length === 1 && /^Brann: still down/.test(s3[0]));
       } finally { DS.battle = base8; }
+    } else if (test === 'lamp1013') {
+      // the one Ledger-Lamp (10-13, the road §7g, his "ended up with two ledger lamps also"; Griz: "those are rare items we must account for carefully"): a save that came out
+      // of the Skylights with its pack doubled (deep16/js/embed.js E.inv0) loads with one -- two in the pack, or one lit and one in the pack
+      function tripL() { DS.saveGame(3); DS.startFrom(DS.loadSlot(3)); DS.paused = true; }
+      g.give('ledgerlamp', 2); tripL(); var n1L = DS.G.count('ledgerlamp');
+      check('two Ledger-Lamps in the pack, saved and loaded: ' + n1L + ' (want 1)', n1L === 1);
+      var gL2 = DS.G, hL = gL2.party[0]; gL2.flags.torchBy = hL.id; gL2.flags.torchKind = 'ledgerlamp'; hL.equip.torch = 1; gL2.give('ledgerlamp', 1);
+      tripL(); var n2L = DS.G.count('ledgerlamp'), lit2 = DS.G.flags.torchKind === 'ledgerlamp' && !!DS.G.flags.torchBy;
+      check('one lit in a hand and one in the pack, saved and loaded: ' + n2L + ' in the pack, the lit one ' + (lit2 ? 'kept' : 'GONE') + ' (want 0, kept)', n2L === 0 && lit2);
+      gL2 = DS.G; delete gL2.flags.torchBy; delete gL2.flags.torchKind; gL2.give('ledgerlamp', 1); tripL(); var n3L = DS.G.count('ledgerlamp');
+      check('one in the pack, saved and loaded: ' + n3L + ' (want 1: left alone)', n3L === 1);
     } else if (test === 'migrate') {
       // an older save: Ingrith a fighter with a heals counter, hurt; DS.startFrom walks her on as the cleric she is
       DS.EV.addGuest('ingrith');

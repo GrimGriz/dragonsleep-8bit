@@ -487,6 +487,10 @@
   DS.startFrom = function (data) {
     baseStartFrom(data);
     G().guests = (G().guests || []).filter(function (x) { var done = guestDone(x.id); if (done) console.warn('save: ' + x.id + "'s orders ended (" + GUEST_UNTIL[x.id] + '): no longer with you'); return !done; });
+    // there is one Ledger-Lamp: a save that came out of the Skylights with its pack doubled (deep16/js/embed.js E.inv0, mended 10-13 -- his two lamps) keeps the one
+    // lit, or one in the pack
+    var gL = G(), litL = gL.flags.torchKind === 'ledgerlamp' && gL.flags.torchBy ? 1 : 0, nL = gL.count('ledgerlamp');
+    if (nL + litL > 1) { gL.take('ledgerlamp', nL + litL - 1); console.warn('save: ' + (nL + litL) + ' Ledger-Lamps: one kept'); }
     (G().guests || []).forEach(function (x) {
       var d = DS.DATA.heroes[x.h.id];
       if (!d || (x.h.cls === d.cls && x.h.lvl === d.level)) return; // (or a sheet since grown: Pyro to 12, 09-30)

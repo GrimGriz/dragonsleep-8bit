@@ -62,8 +62,11 @@
     try { ((m.save && m.save.party) || []).forEach(function (h) { lv8 = Math.max(lv8, +(h && (h.lvl || h.level)) || 0); }); } catch (e) { lv8 = 0; } // (the units are dealt at the enter: the level from the save the 8-bit sent)
     B.o.record = { fight: m.fight || 'embed', name: (fd8 ? fd8.name : 'The 8-bit: ' + ((list || []).join(', ') || 'a fight')) + ' (inside the 8-bit)', level: lv8 || null };
     D.push(B);
-    E.inv0 = counts(B.inv); // (the pack as the fight began: only what the party brought, no loan here)
-    if (B.lampReturned) E.inv0[B.lampReturned] = Math.max(0, (E.inv0[B.lampReturned] || 0) - 1); // (a lantern nobody could take up went into the pack: the 8-bit game's pack does not have it yet, so the seam hands it over as a gain)
+    // (the pack as the fight began: only what the party brought, no loan here -- counted off the save the 8-bit sent, not B.inv, which a big floor's bake (D.push,
+    // Battle.bakes) builds a frame later: the Skylights' 60x39 counted an empty pack and handed every stack back as a gain, doubled -- 10-13, his two Ledger-Lamps
+    // (the road §7g; Griz: "those are rare items we must account for carefully"). A lantern nobody could take up goes into the fight's pack at the enter, and so reads
+    // as a gain, as it must: the 8-bit game's pack does not have it)
+    E.inv0 = counts(((m.save && m.save.inv) || []).map(function (s) { return Array.isArray(s) ? { id: s[0], n: s[1] } : s; }));
     D.canvas.focus();
   };
   // the 8-bit square the party walked off a grid at, where the grid is an 8-bit map turned or framed (its `to8`): the one who left by a way out. The Wet sets its own
