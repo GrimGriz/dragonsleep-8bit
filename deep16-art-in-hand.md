@@ -8,6 +8,10 @@ how: nothing here is wanted. When a block on `deep16-art-wanted.md` comes back a
 
 ## BUILT FROM THE LIST (newest first)
 
+- 2026-10-14 · the water elemental's missing views (ART-51, from the facings package `deep16/_src/outbox/ART-FACINGS-2026-10-14/` and its own zip): S, E, N, the back-right's Whelm/Flinch/Fall and a re-rolled rear Slam · `deep16/_src/waterelemental/ART-51/`, `tools/waterelemental-sheet.py` -> `waterelemental_p2`, `0d74be5` (a runner) · *"water elemental art is in"*
+- 2026-10-14 · the ogre's missing views (ART-22, the facings package): S, E, N · `deep16/_src/ogre/ART-22/`, `tools/ogre-sheet.py` -> `ogre_p2`, `6590102` `800b15b` (a runner) · *"Ogre zip landed"*
+- 2026-10-14 · the grimlock's missing views (ART-23, the facings package): S, E, N · `deep16/_src/grimlock/ART-23/`, `tools/grimlock-sheet.py` -> `grimlock_p2`, `dbe0fbd` (a runner) · *"more zips in the fresh"*
+- 2026-10-14 · the goblin's missing views (ART-24, the facings package): SE and NE every row, S and N for Fall, Prone, Hide · `deep16/_src/goblin/ART-24/`, `tools/goblin-sheet.py` -> `goblin_p2`, `f4f53ad` (a runner) · *"more zips in the fresh"*
 - 2026-10-14 · the water elemental, two isometric views (ART-08: three of its four pages; the Whelm/Flinch/Fall page from behind is owed) · `deep16/_src/waterelemental/`, `tools/waterelemental-sheet.py` -> `waterelemental_p2`, `a31c89a` (a runner); a foe in the spirit naga's place at the Black Water, two of them · *"Naga Swap (might need 2 or more to approx CR) go"*
 - 2026-10-14 · the ogre, two isometric views (ART-06, four pages) · `deep16/_src/ogre/`, `tools/ogre-sheet.py` -> `ogre_p2`, `344235d` (a runner) · *"go with those 5 (if we have what we need for the ogre)"*; *"there's two ogre variants floating around... if one is missing pieces ignore for now"* (the brown one, `ogre/other-generator/`, not read)
 - 2026-10-14 · the grimlock, two isometric views (ART-07, four pages) · `deep16/_src/grimlock/`, `tools/grimlock-sheet.py` -> `grimlock_p2` (Lurk is its `still`), `4f93939` (a runner) · the same word
