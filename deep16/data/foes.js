@@ -624,7 +624,7 @@
     src: 'SRD 5.1 Ochre Jelly (CR 2, Large): Split on slashing or lightning, like the pudding; content/monsters.json ochrejelly; condition immunities blinded, charmed, deafened, exhaustion, frightened, prone (SRD 5.1; the 8-bit sheet had blinded, frightened, prone, asleep -- asleep kept; 10-02 runner)'
   },
   grayooze: {
-    name: 'Gray Ooze', type: 'ooze', sheet: 'grayooze_p1', cr: '1/2', ac: 8, hp: 22, speed: 10, climbs: 10, size: 1, reach: 5, blindsight: 60, blind: true,
+    name: 'Gray Ooze', type: 'ooze', sheet: 'grayooze_p2', cr: '1/2', ac: 8, hp: 22, speed: 10, climbs: 10, size: 1, reach: 5, blindsight: 60, blind: true,
     abil: { str: 12, dex: 6, con: 16, int: 1, wis: 6, cha: 2 }, init: -2, perception: 8,
     saves: { str: 1, dex: -2, con: 3, int: -5, wis: -2, cha: -4 },
     attacks: { pseudopod: { name: 'Pseudopod', atk: 3, dice: '1d6', mod: 1, type: 'bludgeoning', extra: '2d6', extraType: 'acid', reach: 5 } },
