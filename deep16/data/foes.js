@@ -245,7 +245,7 @@
   },
   // the drain cut (deep.js S.drainCut): two black puddings. Slashing or lightning splits one (at 10 HP or more)
   pudding: {
-    name: 'Black Pudding', type: 'ooze', sheet: 'pudding_p1', small: 'puddingm_p1', cr: '4', ac: 7, hp: 85, speed: 20, climbs: 20, size: 2, reach: 5, blindsight: 60, blind: true,
+    name: 'Black Pudding', type: 'ooze', sheet: 'pudding_p2', small: 'puddingm_p2', cr: '4', ac: 7, hp: 85, speed: 20, climbs: 20, size: 2, reach: 5, blindsight: 60, blind: true,
     abil: { str: 16, dex: 5, con: 16, int: 1, wis: 6, cha: 1 }, init: -3, perception: 8,
     saves: { str: 3, dex: -3, con: 3, int: -5, wis: -2, cha: -5 },
     attacks: { pseudopod: { name: 'Pseudopod', atk: 5, dice: '1d6', mod: 3, type: 'bludgeoning', extra: '4d8', extraType: 'acid', reach: 5 } },
