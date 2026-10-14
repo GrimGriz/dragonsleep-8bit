@@ -2366,6 +2366,14 @@
       driveZ(D.roam.after(BJ, 'won', { zone: 'warrens_d' }, []), null, 3000);
       var offJ = restJ.map(function (u) { return Math.max(Math.abs(u.x - bJ.x), Math.abs(u.y - bJ.y)); }), spent = BJ.t - t0J;
       okZ('the gather in the works\' corridor: all beside the lead (' + offJ.join(',') + ' off), and no stall (' + spent + ' frames)', offJ.every(function (d) { return d <= 1; }) && spent < 400);
+      // a wall face in front of the party cut while it hides them (10-14, his pane: "insufficient transparency by policy at present pane location" -- the cave behind the works
+      // corridor's north wall, 8-bit (28, 18)): the faces in that column cut while the token is there, whole again when it walks off
+      var occ = function () { if (D.roam.occlude) D.roam.occlude(BJ); }, faceAt = function (x, y) { var s = BJ.map.at(x, y); return s && s.rock; };
+      RJ.mode = 'walk'; putJ(at8(28, 18)); var band = [], tq = RJ.token;
+      for (var dx2 = 1; dx2 <= 13; dx2++) for (var dy2 = 0; dy2 <= 13; dy2++) { var sm = dx2 + dy2; if (sm >= 1 && sm <= 13 && Math.abs(dx2 - dy2) <= 1) { var sq2 = BJ.map.at(tq.x + dx2, tq.y + dy2); if (sq2 && !sq2.open && (sq2.rock === 'far' || sq2.occCut)) band.push([sq2.x, sq2.y]); } }
+      occ(); var cutNow = band.filter(function (q) { return faceAt(q[0], q[1]) === 'near'; }).length;
+      putJ([12, 30]); occ(); var backNow = band.filter(function (q) { return faceAt(q[0], q[1]) === 'far'; }).length;
+      okZ('a face in front of the party cut while it hides them: ' + band.length + ' in the token\'s column behind the works corridor, cut ' + cutNow + ', whole again once it walks off ' + backNow, band.length > 0 && cutNow === band.length && backNow === band.length);
     } catch (eZ) { repZ.errors.push(String(eZ && eZ.stack || eZ).slice(0, 900)); }
     D.store.get = stGZ; D.store.set = stSZ; IZ.held.up = false; IZ.held.left = false;
     if (errs.length) repZ.errors = repZ.errors.concat(errs);

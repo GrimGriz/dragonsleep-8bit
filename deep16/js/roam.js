@@ -96,12 +96,36 @@
     m.works.walls.forEach(function (w) {
       var s = w.s, x = s.x, y = s.y, r = w.rock0;
       if (inside) r = fl(x - 1, y) || fl(x, y - 1) || fl(x - 1, y - 1) ? 'near' : fl(x + 1, y) || fl(x, y + 1) || fl(x + 1, y + 1) ? 'far' : w.rock0;
+      if (s.occCut) { s.occWas = r; return; } // (cut for the party behind it, R.occlude: what it is under the cut changes, the cut holds)
       if (s.rock === r) return;
       if (s.rock === 'fill' && !m.props.some(function (p) { return p.kind === 'rock' && p.sq === s; })) m.props.push({ kind: 'rock', sq: s, depth: s.x + s.y, gz: 0 });
       s.rock = r; for (var dy = -1; dy <= 1; dy++) for (var dx = -1; dx <= 1; dx++) dirty[(x + dx) + ',' + (y + dy)] = 1;
     });
     Object.keys(dirty).forEach(function (k) { if (m.rockImgs) delete m.rockImgs[k]; }); // (a wall's picture reads its neighbours' cut: js/iso.js rockCanvas, made again when next seen)
     m.sorted = null;
+  };
+  // a wall face between the eye and the party, cut while they are behind it (10-14, Griz: "insufficient transparency by policy at present pane location"): the grid cuts a wall
+  // to a stub only where open floor lies behind it (js/iso.js classifyRock), so a thick wall between two open places stands whole toward the nearer -- and at height 2 a whole
+  // face rises 168 px, enough to hide the party three squares behind it (his pane: the works corridor's north wall, the party in the cave beyond). Each frame the faces whose
+  // column covers one of the party on the screen -- in front of them by up to the face's height in squares, within a square of their line -- are cut, and stand again when
+  // nobody is behind them. Walking, the token; in a fight, each of the four on the floor
+  R.occlude = function (B) {
+    var m = B.map, R0 = B.roam; if (!m || !m.sq || !R0 || !R0.token) return;
+    var who = R0.mode === 'fight' ? R0.members.filter(function (u) { return u.hp > 0 && B.units.indexOf(u) >= 0; }) : [R0.token];
+    var key = who.map(function (u) { return u.x + ',' + u.y; }).join(';') + '|' + !!(m.works && m.works.on) + '|' + (D.iso.WALL || 84);
+    if (m.occKey === key) return; m.occKey = key;
+    var depth = Math.ceil(((D.iso.WALL || 84) + 40) / (D.iso.TH / 2)), cut = {}, dirty = {};
+    who.forEach(function (u) {
+      for (var dx = -1; dx <= depth + 1; dx++) for (var dy = -1; dy <= depth + 1; dy++) {
+        var s = dx + dy; if (s < 1 || s > depth || Math.abs(dx - dy) > 1) continue;
+        var q = m.at(u.x + dx, u.y + dy); if (q && !q.open && (q.rock === 'far' || q.occCut)) cut[q.x + ',' + q.y] = q;
+      }
+    });
+    var mark = function (q) { for (var yy = -1; yy <= 1; yy++) for (var xx = -1; xx <= 1; xx++) dirty[(q.x + xx) + ',' + (q.y + yy)] = 1; };
+    (m.occCut || []).forEach(function (q) { if (!cut[q.x + ',' + q.y]) { q.rock = q.occWas; delete q.occCut; delete q.occWas; mark(q); } });
+    Object.keys(cut).forEach(function (k) { var q = cut[k]; if (!q.occCut) { q.occWas = q.rock; q.rock = 'near'; q.occCut = true; mark(q); } });
+    m.occCut = Object.keys(cut).map(function (k) { return cut[k]; });
+    Object.keys(dirty).forEach(function (k) { if (m.rockImgs) delete m.rockImgs[k]; });
   };
   // the mark on the face of its wall toward the landing, while the works' walls stand whole: the Keeper's own glyph (js/keeper.js, the floodstair's), cold and breathing, sheared
   // onto the wall's plane -- the face between the rune square and the landing runs along the grid's y, down to the left on the screen
@@ -162,7 +186,7 @@
         if (R0.mode === 'order' && m.rclick && m.inside) R0.keys.push('turn'); // (a right click in ORDER: the formation as it stands facing the next way -- Griz, 10-13: "rightclick shows the ordering in different facings")
       }
       if (R0 && I.pressed('list')) R.showMap = !R.showMap; // (L: the floor map -- the whole Wet, what they saw, the ground and its ways out)
-      if (R0) R.works(this, R.inWorks(this)); // (the works' walls whole while the party is in them)
+      if (R0) { R.works(this, R.inWorks(this)); R.occlude(this); } // (the works' walls whole while the party is in them; a wall face in front of the party cut while it hides them)
       return update0.apply(this, arguments);
     };
     B.paint = function (ctx) {
