@@ -3427,6 +3427,72 @@
     document.body.appendChild(preO);
     return;
   }
+  // the campfire (mode=campfire1014; 10-14, Griz: "Let's difficult terrain, 1d6 fire damage enter or start turn, and ignite nearby flamable (oiled squares) campfires as a matter
+  // of principle", then "adjacent oiled trolls, not adjacent unoiled trolls (unless they walk on it -(more than adjacent))" -- js/oil.js, the campfire): the Cut Seal camp's fire is
+  // difficult ground; 1d6 fire to step into it, once a turn, and to start a turn in it; a troll beside it unoiled takes nothing, coated beside it catches (5 fire, the coat gone),
+  // and walked in beside it coated catches the same; oil poured beside it lights, oil two squares off does not; the cursor line says so; the giant's camp and the rest have theirs
+  if (get('mode', '') === 'campfire1014') {
+    var repCf = { checks: [], errors: [] }, d0Cf = D.d;
+    function okCf(what, v) { repCf.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function mkCf(q) { var Bx = D.npcFight(q, {}); D.battle = Bx; Bx.enter(); while (!Bx.order.length) Bx.co.next(); Bx.dark = false; return Bx; }
+    function logCf(Bx, n) { return (Bx.log || []).slice(n).join(' | '); }
+    try {
+      D.seed = 1014;
+      var GC = D.grid, MC = D.magic, OC = D.oil;
+      var Bc = mkCf('?npc=troll&lvl=5&vs=fighter:5&map=camp'), ftC = Bc.units.filter(function (u) { return u.side === 'party'; })[0], trC = Bc.units.filter(function (u) { return u.side === 'foe'; })[0];
+      var fq = GC.map.at(9, 6);
+      okCf('the camp\'s fire at (9, 6): a campfire ' + !!fq.campfire + ', difficult ' + !!fq.difficult + ', walkable ' + !!fq.walk + ', the map\'s campfires ' + JSON.stringify(GC.map.campfires),
+        fq.campfire && fq.difficult && fq.walk && JSON.stringify(GC.map.campfires) === '[[9,6]]');
+      ftC.x = 7; ftC.y = 6; trC.x = 14; trC.y = 9; delete ftC.tween; delete trC.tween;
+      var cIn = GC.stepCost(ftC, 8, 6, 9, 6), cBy = GC.stepCost(ftC, 8, 6, 8, 7);
+      okCf('a step into the fire costs ' + cIn + ' ft, a step beside it ' + cBy + ' ft (difficult ground)', cIn === 10 && cBy === 5);
+      // a. stepping in: 1d6 fire (the die pinned to 4), once a turn
+      ftC.hp = ftC.max = 60; Bc.round = 1; Bc.active = ftC;
+      D.d = function (n) { return n === 6 ? 4 : d0Cf(n); };
+      ftC.x = 8; ftC.y = 6; var n0 = (Bc.log || []).length, h0 = ftC.hp;
+      ftC.x = 9; MC.stepInto(Bc, ftC);
+      var h1 = ftC.hp, lg1 = logCf(Bc, n0);
+      okCf('the fighter steps into the campfire: ' + h0 + ' -> ' + h1 + ' hp -- ' + lg1.slice(0, 120), h0 - h1 === 4 && /steps into the campfire: 1d6/.test(lg1));
+      ftC.x = 8; MC.stepInto(Bc, ftC); ftC.x = 9; MC.stepInto(Bc, ftC);
+      okCf('out and back in on the same turn: once a turn (' + ftC.hp + ' hp)', ftC.hp === h1);
+      // b. starting a turn in it
+      Bc.round = 2; n0 = (Bc.log || []).length; MC.onStart(Bc, ftC);
+      var lg2 = logCf(Bc, n0);
+      okCf('the fighter starts the next turn in the campfire: ' + h1 + ' -> ' + ftC.hp + ' hp -- ' + lg2.slice(0, 100), h1 - ftC.hp === 4 && /starts its turn in the campfire/.test(lg2));
+      ftC.x = 7; ftC.y = 6;
+      // c. a troll beside it, no oil on it: nothing at its turn's start
+      trC.x = 10; trC.y = 6; Bc.round = 3; Bc.active = trC; n0 = (Bc.log || []).length;
+      MC.onStart(Bc, trC);
+      var lg3 = logCf(Bc, n0);
+      okCf('a troll beside the fire, unoiled, starts its turn there: no fire (' + (lg3.match(/campfire[^|]*/) || ['none'])[0] + ')', !/campfire/.test(lg3));
+      // d. the same troll coated where it stands: the oil catches at once -- 5 fire, the coat gone
+      var hT = trC.hp; n0 = (Bc.log || []).length; OC.coat(Bc, trC);
+      var lg4 = logCf(Bc, n0);
+      okCf('the troll coated beside the fire: ' + hT + ' -> ' + trC.hp + ' hp, the coat ' + (trC.conds.oiled ? 'still on' : 'gone') + ' -- ' + (lg4.match(/The campfire catches[^|]*/) || ['no catch'])[0],
+        hT - trC.hp === OC.BURN && !trC.conds.oiled && /The campfire catches the oil/.test(lg4));
+      // e. coated away from it, then walked in beside it: catches as it comes
+      trC.x = 14; trC.y = 9; OC.coat(Bc, trC);
+      var stillOn = !!trC.conds.oiled; hT = trC.hp; Bc.round = 4; Bc.active = trC;
+      trC.x = 10; trC.y = 7; MC.stepInto(Bc, trC);
+      okCf('coated far off (still on ' + stillOn + '), then walked in beside the fire: ' + hT + ' -> ' + trC.hp + ' hp, the coat ' + (trC.conds.oiled ? 'still on' : 'gone'), stillOn && hT - trC.hp === OC.BURN && !trC.conds.oiled);
+      // f. oil on the ground: beside the fire it lights; two squares off it does not
+      Bc.active = ftC; var oB = OC.spill(Bc, 8, 5, false, ftC), oF = OC.spill(Bc, 7, 8, false, ftC);
+      okCf('oil poured beside the fire (8, 5) lights: ' + (oB && oB.lit != null) + '; two squares off (7, 8): ' + (oF && oF.lit != null), oB && oB.lit != null && oF && oF.lit == null);
+      // g. the cursor line
+      var ln = OC.lineAt(Bc, 9, 6) || '';
+      okCf('the square under the cursor says so: ' + ln.slice(0, 90), /a campfire/.test(ln) && /1d6 fire/.test(ln));
+      D.d = d0Cf;
+      // h. the other campfires, as a matter of principle: the giant's camp and the rest
+      var mg = D.iso.load(D.MAPS.giantcamp), mr = D.iso.load(D.MAPS.restcamp);
+      okCf('the giant\'s camp\'s fire ' + JSON.stringify(mg.campfires) + ' and the rest\'s ' + JSON.stringify(mr.campfires) + ', difficult ' + !!mg.at(9, 6).difficult + ' ' + !!mr.at(10, 6).difficult,
+        JSON.stringify(mg.campfires) === '[[9,6]]' && JSON.stringify(mr.campfires) === '[[10,6]]' && mg.at(9, 6).difficult && mr.at(10, 6).difficult);
+    } catch (eCf) { repCf.errors.push(String(eCf && eCf.stack || eCf).slice(0, 900)); }
+    D.d = d0Cf;
+    if (errs.length) repCf.errors = repCf.errors.concat(errs);
+    var preCf = document.createElement('pre'); preCf.id = 'out'; preCf.textContent = 'BENCH16 ' + JSON.stringify(repCf);
+    document.body.appendChild(preCf);
+    return;
+  }
   // 10-05's fixes (mode=fixes1005; Griz: "i think the regen is there it's just turning off when they die"; "yes, thought it was there" -- Divine Smite's +1d8; "just OR if there's
   // already in sight"): a troll at 0 down, not dead, up at its turn; burned, dead at its turn; the fight held open while one lies knitting; the class AI's fire bolt at one down; the
   // smite's +1d8 on the undead; a readied bow springing when a foe already in sight moves, and a held one not asked again in the same move

@@ -299,6 +299,7 @@ window.D16.MAPS.giantcamp = {
   name: 'The Giant\'s Camp',
   sub: 'the king\'s road, leg three',
   dark: true, lights: [[9, 6, 20, 'fire']], // torchdark (09-28): dark ground; the duergar's fire
+  fire: [9, 6], // the duergar's campfire (10-14: a map's campfire draws the goblin camp's fire and burns -- js/circles.js, js/oil.js)
   step: 10,
   rows: [
     '####################',
@@ -384,6 +385,7 @@ window.D16.MAPS.restcamp = {
   name: 'The Rest',
   sub: 'the king\'s road, past Torvald',
   dark: true, lights: [[10, 6, 20, 'fire']], // torchdark (09-28): dark ground; the party's own fire, where it lay down
+  fire: [10, 6], // the party's campfire (10-14: a map's campfire draws the goblin camp's fire and burns -- js/circles.js, js/oil.js)
   step: 10,
   rows: [
     '########====########',

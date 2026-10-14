@@ -35,6 +35,7 @@
     w.conds.oiled = { till: { who: w.id, at: 'end', n: OIL.DRY }, endText: 'The oil on {who} has dried.' };
     FX.sparkle(w, 'leather', 10);
     B.card(['  {o}' + nm(w) + ' is covered in oil{/}: the next fire on it burns 5 more  {g}(a minute){/}'], 260);
+    catchCoat(B, w); // (coated beside a campfire: it catches at once -- the campfire, below)
   };
   // oil on a square (a miss, a throw at the ground): a pool there, lit at once by a lit flask or a flame already on it
   OIL.spill = function (B, x, y, lit, by, missed) {
@@ -42,7 +43,7 @@
     var o = OIL.at(B, x, y);
     if (!o) { o = { x: x, y: y, lit: null, by: by && by.id }; B.oils = (B.oils || []).concat([o]); }
     B.card(['  ' + (missed ? 'The flask shatters on the ground there' : 'The oil spreads over the square') + (o.lit != null ? ' -- into the fire already burning.' : '.')], 220);
-    if (o.lit == null && (lit || flameOn(B, x, y))) OIL.light(B, o);
+    if (o.lit == null && (lit || flameOn(B, x, y) || fireBeside([[x, y]]))) OIL.light(B, o);
     return o;
   };
   function flameOn(B, x, y) { return (B.lights || []).some(function (l) { return l.flame && l.kind !== 'lantern' && Math.round(l.x) === x && Math.round(l.y) === y; }); }
@@ -75,6 +76,35 @@
   M.onEnd = function (B, u) { var r = onEnd0.apply(this, arguments); var o = litOn(B, u)[0]; if (o) burn(B, o, u, 'ends its turn in the burning oil'); return r; };
   var stepInto0 = M.stepInto;
   M.stepInto = function (B, u) { var stop = stepInto0.apply(this, arguments); var o = litOn(B, u)[0]; if (o) burn(B, o, u, 'steps into the burning oil'); return stop || u.hp <= 0; };
+  // ------------------------------------------------------------------ the campfire (10-14, Griz: "Let's difficult terrain, 1d6 fire damage enter or start turn, and ignite
+  // nearby flamable (oiled squares) campfires as a matter of principle"; then "adjacent oiled trolls, not adjacent unoiled trolls (unless they walk on it -(more than adjacent))").
+  // A map's `fire` (js/circles.js, the goblin camp's sheet; G.map.campfires) is a campfire on its square: difficult ground (circles.js marks the square); 1d6 fire to a creature
+  // that steps into it or starts its turn in it, once a turn as the burning oil's (a body hanging over it, aloft or under the ground is not in it); oil on the ground on it or
+  // beside it catches (OIL.spill); and a creature coated in oil in it or beside it catches -- the coat's 5 fire, the SRD's "additional 5 fire damage from the burning oil", the
+  // coat gone -- as it steps there, starts its turn there or is coated there. One beside it with no oil on it takes nothing.
+  OIL.CAMP = '1d6';
+  function fireBeside(sq) { return (G.map.campfires || []).some(function (f) { return sq.some(function (q) { return Math.abs(f[0] - q[0]) <= 1 && Math.abs(f[1] - q[1]) <= 1; }); }); }
+  function outOfIt(w) { return !w || w.dead || w.object || !G.standing(w) || w.under || (w.hang && G.hanging(w)) || G.aloft(w); }
+  function campBurn(B, w, how) {
+    if (outOfIt(w) || !(G.map.campfires || []).length || !G.inArea(w, G.map.campfires)) return;
+    if (w.campBurnt === key(B)) return; w.campBurnt = key(B);
+    var r = D.roll(OIL.CAMP);
+    FX.sparkle(w, 'fire', 12);
+    B.card([nm(w) + ' ' + how + ': 1d6 ' + RU.fmtRolls(r.rolls) + ' = {r}' + r.total + '{/} fire'], 240);
+    B.hurt(w, r.total, 'fire');
+  }
+  function catchCoat(B, w) {
+    if (outOfIt(w) || !w.conds || !w.conds.oiled || (w.immune && w.immune.indexOf('fire') >= 0) || !fireBeside(G.foot(w))) return;
+    delete w.conds.oiled; FX.sparkle(w, 'fire', 16);
+    B.card(['{o}The campfire catches the oil on ' + nm(w) + ':{/} {r}' + OIL.BURN + '{/} fire'], 260);
+    B.hurt(w, OIL.BURN, 'fire', { oilBurn: true });
+  }
+  OIL.campBurn = campBurn; OIL.catchCoat = catchCoat; // (dev/bench16.js mode=campfire1014)
+  var onStartC = M.onStart;
+  M.onStart = function (B, u) { var r = onStartC.apply(this, arguments); campBurn(B, u, 'starts its turn in the campfire'); catchCoat(B, u); return r; };
+  var stepIntoC = M.stepInto;
+  M.stepInto = function (B, u) { var stop = stepIntoC.apply(this, arguments); if (u.hp > 0) { campBurn(B, u, 'steps into the campfire'); catchCoat(B, u); } return stop || u.hp <= 0; };
+
   // fire reaching the ground lights the oil there: wherever fire burns a web (a torch landing, a fire spell's area, fire on one standing in it -- magic.js, light.js, battle.js hurt)
   var burnWebs0 = M.burnWebs;
   M.burnWebs = function (B, sq) { var r = burnWebs0 ? burnWebs0.apply(this, arguments) : undefined; OIL.lightIn(B, sq); return r; };
@@ -113,7 +143,8 @@
   };
   // what the square under the cursor holds (ui.js, the line at the bottom right)
   OIL.lineAt = function (B, x, y) {
-    var o = OIL.at(B, x, y); if (!o) return null;
+    var o = OIL.at(B, x, y);
+    if (!o) return (G.map.campfires || []).some(function (f) { return f[0] === x && f[1] === y; }) ? '{o}a campfire{/}: difficult ground, 1d6 fire to whoever steps into it or starts a turn in it, once a turn  {g}(oil beside it catches, on the ground or on a body){/}' : null;
     if (o.lit == null) return '{y}oil on the ground{/}  {g}(a torch or any fire on it lights it: 2 rounds, 5 fire to enter it or end a turn in it){/}';
     return '{o}burning oil{/}: 5 fire to whoever enters it or ends a turn in it, once a turn  {g}(round ' + (B.round - o.lit + 1) + ' of 2){/}';
   };

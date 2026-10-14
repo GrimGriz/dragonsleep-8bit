@@ -204,7 +204,8 @@
   //   `rubble: true | [[gx, gy]]`      broken stone (Scatter A or B by the square) on the map's `r` -- every one, or those named -- where a
   //                                     wall or the road was broken through (Griz, 10-14: "they're for when walls get broken through mainly"),
   //                                     drawn for iso.js's loose stones; the rough ground's rules unchanged
-  //   `fire: [gx, gy]`                 a campfire in its ring of stones, a look on the floor; its light is the map's `lights` entry
+  //   `fire: [gx, gy]`                 a campfire in its ring of stones: difficult ground that burns (js/oil.js, the campfire); its light is the
+  //                                     map's `lights` entry
   //   `bones: [[gx, gy]]`              gnawed bones on the floor, a look
   var RUBBLE = 'rubble_p1', CAMP = 'goblincamp_p1';
   function standProp(sq, sheet, row, gx, gy, front) {     // front: the square nearest the camera, for the sort
@@ -239,7 +240,7 @@
         m.props.push(flatProp(s, RUBBLE, D.hash('scatter' + s.x + ',' + s.y) % 2 ? 'scatterB' : 'scatterA'));
       });
     }
-    if (def.fire) { var fs = m.at(def.fire[0], def.fire[1]); if (fs) m.props.push(standProp(fs, CAMP, 'fire', def.fire[0], def.fire[1], fs)); }
+    if (def.fire) { var fs = m.at(def.fire[0], def.fire[1]); if (fs) { fs.difficult = true; fs.campfire = true; m.campfires = [[fs.x, fs.y]]; m.props.push(standProp(fs, CAMP, 'fire', def.fire[0], def.fire[1], fs)); } }   // (its rules: js/oil.js, the campfire)
     (def.bones || []).forEach(function (b) { var bs = m.at(b[0], b[1]); if (bs) m.props.push(flatProp(bs, CAMP, 'bones')); });
     m.props = m.props.filter(function (p) {                // (the stalagmite a tent or heap stands for, the loose stones the scatter is drawn for)
       return !((p.kind === 'pillar' && taken[key(p.sq.x, p.sq.y)]) || (p.kind === 'stone' && drop[key(p.sq.x, p.sq.y)]));
