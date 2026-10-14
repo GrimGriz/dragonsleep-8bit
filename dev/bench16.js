@@ -2008,8 +2008,9 @@
       // wading onto the stair's first row: the Keeper, from the ledge
       RW.members.forEach(function (u) { u.hp = u.maxhp; u.ko = false; u.conds = {}; });
       var nearW = defW.from8(20, 21); tkW = RW.token; tkW.x = nearW[0]; tkW.y = nearW[1]; GW.setup(GW.map, BW.units); RW.path = [wadeSq];
-      var kW = driveW(BW.co, function () { return D.top() !== BW; }, 2000), bK = D.top();
-      if (kW && bK !== BW) { bK.enter(); okW('wading onto the first row pulls the Keeper in, from the ledge (' + (bK.fight && bK.fight.id) + ', start ' + (bK.o.start || 'ledge') + ')', bK.fight && bK.fight.id === 'keeper' && (bK.o.start || 'ledge') === 'ledge'); D.pop(); bK.o.onDone('escaped'); driveW(BW.co, function () { return D.top() === BW && RW.mode === 'walk' && !RW.pulling; }, 2000); driveW(BW.co, null, 50); }
+      // (since 10-14 the row asks first -- the 8-bit's ROPE THEM OUT / WADE IN / LEAVE, Griz: "no pop-up where you can now wade in": WADE IN answered here)
+      var askedW = null, kW = (function () { var v, k = 0, st; while (k++ < 2000) { if (D.top() !== BW) return true; st = BW.co.next(v); v = undefined; if (st.done) return false; if (typeof st.value === 'number') BW.t += Math.max(1, st.value); if (st.value && st.value.prompt) { askedW = st.value.prompt.title; v = 1; } } return D.top() !== BW; })(), bK = D.top();
+      if (kW && bK !== BW) { bK.enter(); okW('wading onto the first row asks first (' + askedW + '), and WADE IN pulls the Keeper in, from the ledge (' + (bK.fight && bK.fight.id) + ', start ' + (bK.o.start || 'ledge') + ')', askedW === 'THE FLOODED STAIR' && bK.fight && bK.fight.id === 'keeper' && (bK.o.start || 'ledge') === 'ledge'); D.pop(); bK.o.onDone('escaped'); driveW(BW.co, function () { return D.top() === BW && RW.mode === 'walk' && !RW.pulling; }, 2000); driveW(BW.co, null, 50); }
       else okW('wading onto the first row pulls the Keeper in', false);
       // E at the rune: the 8-bit's ask, and a hand on it -- the Keeper by the rune (driveW answers a prompt with its first choice: PUT A HAND ON IT)
       var byMark = defW.from8(22, 20); tkW.x = byMark[0]; tkW.y = byMark[1]; RW.fw = [-1, 0]; GW.setup(GW.map, BW.units); RW.groups = [];
@@ -2163,6 +2164,45 @@
       };
       var f1 = feed(), f2 = feed(), eachFed = Math.floor(window.DS.R.fedPool() / 4);
       okZ('the landlord fed: +' + (f1 || []).join(',') + ' each (want ' + eachFed + ', a quarter again its XP), the second time +' + (f2 || []).join(','), f1 && f1.every(function (x) { return x === eachFed; }) && f2 && f2.every(function (x) { return x === 0; }));
+      // the drowned stair's first row asks before anyone wades in (10-14, Griz: "I note no pop-up where you can now wade in ... and so didn't get to test rope without fight"):
+      // LEAVE stays on the landing; ROPE THEM OUT, the Keeper asleep, hauls the five from there, no fight
+      var askZ = function (val) { var v, k = 0, st, asked = null; while (k++ < 400) { if (D.top() !== BZ) break; st = BZ.co.next(v); v = undefined; if (st.done) break; if (typeof st.value === 'number') BZ.t += Math.max(1, st.value); if (st.value && st.value.prompt) { v = asked ? st.value.prompt.opts[0].value : val; asked = asked || st.value.prompt.title; } } return asked; };
+      resetZ(); RZ.groups = []; RZ.members.forEach(function (u) { u.hp = u.maxhp; u.ko = false; });
+      var landZ = at8(20, 21), wadeZ = at8(19, 21); putZ(landZ); driveZ(BZ.co, null, 20);
+      RZ.path = [wadeZ]; var a1 = askZ(2), at1 = [RZ.token.x, RZ.token.y];
+      okZ('a step onto the first row asks (' + a1 + '); LEAVE: still on the landing (' + at1 + ' for ' + landZ + '), no fight (' + (D.top() === BZ) + ')', a1 === 'THE FLOODED STAIR' && at1[0] === landZ[0] && at1[1] === landZ[1] && D.top() === BZ);
+      RZ.path = [wadeZ]; var a2 = askZ(0), at2 = [RZ.token.x, RZ.token.y];
+      okZ('and ROPE THEM OUT, the Keeper asleep: the five up (' + !!RZ.flags.fiveRecovered + ', x' + cntZ('fivetokens') + '), no fight (' + (D.top() === BZ) + '), hauled from the landing (' + at2 + ')', a2 === 'THE FLOODED STAIR' && RZ.flags.fiveRecovered && cntZ('fivetokens') === 1 && D.top() === BZ && at2[0] === landZ[0] && at2[1] === landZ[1]);
+      resetZ();
+      // the hand-off out of a pulled-in fight (10-14, Griz: "Noticed handoff issues between fight and out of fight (used crossbow in fight, dagger equipped after)" -- "Check landlord
+      // handoff as well"): in the Settling Vivian takes up the crossbow (the action), Aurdin's Mage Armor holds, the herd drains Barley 5, the torch-bearer's torch goes out;
+      // back on the floor each is so, and the pack is the floor's own changed by what was done in there -- not refilled by the fight's loan (bolts 3 stay 3)
+      while (D.top() !== BZ && D.scenes.length > 1) D.pop(); D.battle = BZ; GZ.setup(BZ.map, BZ.units); RZ.mode = 'walk'; // (whatever an earlier check left on top: each stands alone)
+      var viv = RZ.members.filter(function (u) { return u.id === 'vivian'; })[0], aur = RZ.members.filter(function (u) { return u.id === 'aurdin'; })[0], bar = RZ.members.filter(function (u) { return u.id === 'barley'; })[0];
+      var bearer = RZ.members.filter(function (u) { return u.torch; })[0];
+      var setN = function (id, n) { var s = (BZ.inv || []).filter(function (x) { return x.id === id; })[0]; if (s) s.n = n; else BZ.inv.push({ id: id, n: n }); };
+      setN('bolts', 3); setN('lightcrossbow', 1); delete aur.conds.mageArmor;
+      var ck0 = cntZ('candleknife'), xb0 = cntZ('lightcrossbow'), mh0b = bar.maxhp, wv0 = viv.src.equip.weapon;
+      var gH = D.roam.pullIn(BZ, 'wet', { id: 'landlordStep' }, at8(8, 8)), inTorch = null;
+      for (var kH = 0; kH < 400 && D.top() === BZ; kH++) gH.next();
+      var bH = D.top();
+      if (bH !== BZ) {
+        bH.enter();
+        var vH = bH.units.filter(function (u) { return u.id === 'vivian'; })[0], aH = bH.units.filter(function (u) { return u.id === 'aurdin'; })[0], bHu = bH.units.filter(function (u) { return u.id === 'barley'; })[0], tH = bearer && bH.units.filter(function (u) { return u.id === bearer.id; })[0];
+        inTorch = !!(tH && tH.torch);
+        vH.turn = { action: 1, bonus: 1, move: 30, moved: 0 }; bH.swapGear(vH, { kind: 'weapon', id: 'lightcrossbow' });
+        aH.conds.mageArmor = true; bHu.drained = 5; bHu.maxhp -= 5; if (tH) { delete tH.torch; D.light.regrip(tH); }
+        D.pop(); bH.o.onDone('escaped'); driveZ(gH, null, 2000);
+      }
+      okZ('Vivian\'s crossbow, taken up in the Settling, comes out with her (the sheet ' + wv0 + ' to ' + viv.src.equip.weapon + ', in hand ' + (viv.weapon && viv.weapon.id) + '); the candle-knife stowed in the pack (+' + (cntZ('candleknife') - ck0) + '), the crossbow out of it (' + (cntZ('lightcrossbow') - xb0) + ')',
+        viv.src.equip.weapon === 'lightcrossbow' && viv.weapon && viv.weapon.id === 'lightcrossbow' && cntZ('candleknife') - ck0 === 1 && cntZ('lightcrossbow') - xb0 === -1);
+      okZ('the fight\'s loan stays in it: bolts ' + cntZ('bolts') + ' (want 3, not its 20)', cntZ('bolts') === 3);
+      okZ('the torch went in with ' + (bearer && bearer.name) + ' (' + inTorch + ') and, put out in there, is out here (' + !!(bearer && bearer.torch) + '); Aurdin\'s Mage Armor holds (' + !!aur.conds.mageArmor + '); Barley drained 5 for good (' + mh0b + ' to ' + bar.maxhp + ')',
+        bearer && inTorch && !bearer.torch && aur.conds.mageArmor && bar.maxhp === mh0b - 5);
+      // a swap in a fight on the floor itself (the same sheet, the same pack): still in hand after the gather and the menu
+      var viv2 = viv; viv2.turn = { action: 1, bonus: 1, move: 30, moved: 0 }; RZ.mode = 'fight';
+      BZ.swapGear(viv2, { kind: 'weapon', id: 'candleknife' }); driveZ(D.roam.after(BZ, 'won', { zone: 'warrens_d' }, []), null, 600); D.roam.regear(BZ);
+      okZ('and a swap on the floor holds through the gather and the menu (' + viv2.src.equip.weapon + ', in hand ' + (viv2.weapon && viv2.weapon.id) + ')', viv2.src.equip.weapon === 'candleknife' && viv2.weapon && viv2.weapon.id === 'candleknife');
     } catch (eZ) { repZ.errors.push(String(eZ && eZ.stack || eZ).slice(0, 900)); }
     D.store.get = stGZ; D.store.set = stSZ; IZ.held.up = false; IZ.held.left = false;
     if (errs.length) repZ.errors = repZ.errors.concat(errs);

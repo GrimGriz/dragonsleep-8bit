@@ -111,7 +111,7 @@
     if (!B || !B.roam || !B.map || !B.map.works || !B.map.works.on) return out;
     var rq = R.def.from8(R.RUNE8[0], R.RUNE8[1]), gz = B.map.gz(rq[0] + 1, rq[1]), fx = rq[0] + 0.5, fy = rq[1];
     out.push({ roamRune: true, depth: rq[0] + rq[1] + 0.9, gz: gz, layer: 1, draw: function (ctx) {
-      var iso = D.iso, c = iso.center(fx, fy, gz + 22), sc = iso.toScreen(c.x, c.y), glow = 0.55 + 0.25 * Math.sin(B.t / 22), C = FX.el('cold').c, x = Math.round(sc.x), y = Math.round(sc.y);
+      var iso = D.iso, c = iso.center(fx, fy, gz + 22 * (D.hscale || 1)), sc = iso.toScreen(c.x, c.y), glow = 0.55 + 0.25 * Math.sin(B.t / 22), C = FX.el('cold').c, x = Math.round(sc.x), y = Math.round(sc.y); // (its height in feet under height 2, as js/keeper.js's: the desk, 10-14)
       ctx.save(); ctx.translate(x, y); ctx.transform(1, -iso.TH / iso.TW, 0, 1, 0, 0);
       ctx.globalAlpha = 0.25 * glow + 0.1; ctx.fillStyle = C[1]; ctx.beginPath(); ctx.ellipse(0, 0, 13, 11, 0, 0, 7); ctx.fill();
       ctx.globalAlpha = glow + 0.2; ctx.strokeStyle = C[0]; ctx.lineWidth = 1;
@@ -287,7 +287,15 @@
         R0.path = went ? [went] : null; if (!went) t.facing = D.spr.facingFor(dir[0], dir[1]);
       }
       if (R0.path && R0.path.length) {
-        var to = R0.path.shift();
+        var to = R0.path[0];
+        // the drowned stair's first row asks before anyone wades in (10-14, Griz: "I note no pop-up where you can now wade in ... and so didn't get to test rope without fight"): the
+        // 8-bit's ROPE THEM OUT / WADE IN / LEAVE, from the landing -- WADE IN goes in and the Keeper is there; the rope hauls from where they stand; LEAVE stays. Once an arrow press
+        if (R.wadeAsk(B, to)) {
+          R0.path = null; t.anim = 'idle'; t.animT = B.t; t.facing = D.spr.facingFor(to[0] - t.x, to[1] - t.y);
+          if (!dk || R0.pressed !== dk) { R0.pressed = dk || null; yield* R.stairScene(B, { id: 'stair' }, to); } else yield 1;
+          continue;
+        }
+        R0.path.shift();
         if (!G.canStand(t, to[0], to[1])) { R0.path = null; yield 1; continue; }
         yield* R.step(B, t, to);
         var ev = yield* R.arrive(B);
@@ -316,10 +324,7 @@
       return 'door';
     }
     var trig = R.triggerAt(B, p8[0], p8[1], 'step');
-    if (R.isWade(t.x, t.y) && !R0.flags.keeperDone && !R0.flags.fiveRecovered && !R0.spent.stair) {
-      B.card(R.wrap([R.say8(R.awake(R0.flags) ? 'w.wadeAwake' : 'w.wade')]), 260); yield 30;
-      yield* R.pullIn(B, 'keeper', { id: 'stair' }, [t.x, t.y], 'ledge'); return 'trigger';
-    }
+    if (R.wadeAsk(B, [t.x, t.y])) { yield* R.stairScene(B, { id: 'stair' }, [t.x, t.y]); return 'trigger'; } // (come onto the row some other way: it asks there)
     if (trig) { yield* R.fire(B, trig, [t.x, t.y]); return 'trigger'; }
     if (R.tracking(R0).length) return null; // (no count while a group is coming: one that lost the party holds nothing up)
     if (R.zoneAt(B, t.x, t.y)) {
@@ -423,6 +428,12 @@
     if (a === 1) { B.card(R.wrap([R.say8(awake ? 'w.wadeAwake' : 'w.wade')]), 260); yield 30; yield* R.pullIn(B, 'keeper', trig, at, 'ledge'); }
   };
   R.awake = function (f) { return !!(f.keeperAwake && !f.keeperDone); };
+  // a square of the drowned stair's first row, its water as yet unsettled: the stair's USE stands there (its cond: the stair flooded), the five not up, the Keeper not beaten
+  R.wadeAsk = function (B, sq) {
+    var R0 = B.roam, f = R0.flags, s = G.map.at(sq[0], sq[1]);
+    if (!s || s.ch !== '~' || !R.isWade(sq[0], sq[1]) || f.keeperDone || f.fiveRecovered || R0.spent.stair) return false;
+    var p = R.def.to8(sq[0], sq[1]); return !!R.triggerAt(B, p[0], p[1], 'use');
+  };
   // the bucket at the deep station's crate (js/events.js S.bucket): taken up into the pack, in the hand of the one who took it -- the Settling reads both (js/wet.js)
   R.bucketScene = function* (B, trig, at) {
     var R0 = B.roam, f = R0.flags;
@@ -439,7 +450,8 @@
   };
   R.pullIn0 = function* (B, which, trig, at, start, how) {
     var R0 = B.roam, done = null, hp = {};
-    R0.members.forEach(function (u) { hp[u.id] = { hp: u.hp, ko: !!u.ko, slots: (u.slots || []).slice(), feats: JSON.parse(JSON.stringify(u.feats || {})) }; });
+    // (and the light in each hand, and what lasts past a fight -- Mage Armor, the day's Darkvision, a Continual Flame: 10-14, his "check landlord handoff as well")
+    R0.members.forEach(function (u) { hp[u.id] = { hp: u.hp, ko: !!u.ko, slots: (u.slots || []).slice(), feats: JSON.parse(JSON.stringify(u.feats || {})), torch: u.torch ? JSON.parse(JSON.stringify(u.torch)) : null, conds: R.lasting(u.conds) }; });
     var o = Object.assign({}, R.party0, { fightDef: null, fight: which === 'keeper' ? 'keeper' : 'wet', onDone: function (res) { done = res || 'out'; } });
     // the floor's own state goes in with them, as the 8-bit's seam sends it (js/embed.js): the flags it has set (the landlord fed, who holds the bucket, the dead) and the
     // pack as it stands (the bucket in it) -- and comes back out below (10-13, his play: "they did the bucket then left the zone, and the bucket refreshed and was triggered again")
@@ -456,7 +468,12 @@
     b.enter = function () {
       e0.apply(this, arguments);
       // the four as they walked: their hit points from the floor
-      this.units.forEach(function (u) { var h = hp[u.id]; if (h && u.side === 'party') { u.hp = Math.min(u.maxhp, h.hp); if (u.hp <= 0) u.ko = true; u.slots = h.slots.slice(); u.feats = JSON.parse(JSON.stringify(h.feats)); } }); // (and the slots and the uses they spent on the floor)
+      this.units.forEach(function (u) {
+        var h = hp[u.id]; if (!h || u.side !== 'party') return;
+        u.hp = Math.min(u.maxhp, h.hp); if (u.hp <= 0) u.ko = true; u.slots = h.slots.slice(); u.feats = JSON.parse(JSON.stringify(h.feats)); // (and the slots and the uses they spent on the floor)
+        Object.assign(u.conds, h.conds); if (h.torch) u.torch = JSON.parse(JSON.stringify(h.torch)); else delete u.torch; L.regrip(u); // (the light as each carried it on the floor)
+      });
+      this.roamInv0 = R.counts(this.inv); // (the pack as this fight holds it at the start, its loan in it: what comes back is the change from here -- R.packBack)
       // seated by the formation (Griz, 10-13: "'order' gonna have to be passed to every grid fight"): the lead on the trigger's square in the Settling (as the 8-bit's
       // seam puts him, embed.at -- the Settling's squares are the floor's own), on the map's way in at the Keeper's; each of the rest on its slot round the lead the way
       // the token faced, or the nearest open square to it
@@ -494,9 +511,19 @@
     while (!done) yield 1; // (the floor waits under it: only the top scene runs -- js/core.js)
     // back on the floor: the four's hit points as the fight left them; the trigger spent if the fight was won
     D.battle = B; G.setup(B.map, B.units); D.iso.map = B.map;
-    (b.units || []).forEach(function (u) { var w = R0.members.filter(function (m) { return m.id === u.id; })[0]; if (w) { w.hp = Math.max(0, u.hp); w.ko = w.hp <= 0; w.conds = {}; w.slots = (u.slots || []).slice(); w.feats = JSON.parse(JSON.stringify(u.feats || {})); } });
+    // each of the four as that fight left them (the 8-bit seam's own crossings, js/embed.js): hit points, slots and uses; what lasts (Mage Armor, Darkvision, a Continual Flame);
+    // the max HP the herd drained, for good; EQUIP done in there (a weapon drawn, a shield slung -- 10-14, his "used crossbow in fight, dagger equipped after": a swap in a pulled-in
+    // fight wrote only that fight's copy of the sheet, while its pack came back whole with the stowed weapon in it); the light still lit in a hand
+    (b.units || []).forEach(function (u) {
+      var w = R0.members.filter(function (m) { return m.id === u.id; })[0]; if (!w) return;
+      if (u.drained) { w.maxhp = Math.max(1, w.maxhp - u.drained); if (w.src) w.src.maxhp = Math.max(1, w.src.maxhp - u.drained); w.drained = (w.drained || 0) + u.drained; }
+      w.hp = Math.max(0, Math.min(w.maxhp, u.hp)); w.ko = w.hp <= 0; w.conds = R.lasting(u.conds); w.slots = (u.slots || []).slice(); w.feats = JSON.parse(JSON.stringify(u.feats || {}));
+      if (w.src && u.src && u.src.equip) ['weapon', 'shield', 'armor'].forEach(function (k) { if (k in u.src.equip) w.src.equip[k] = u.src.equip[k]; });
+      if (u.torch && u.torch.lit !== false && u.hp > 0) w.torch = JSON.parse(JSON.stringify(u.torch)); else delete w.torch;
+    });
     Object.assign(R0.flags, b.flags8 || {}); // (what it set: otyughFed, bucketBy, heard:r-stream, landlordSpoke, the dead -- the rim's trigger reads otyughFed and otyughDead)
-    if (b.inv) B.inv = JSON.parse(JSON.stringify(b.inv)); // (the pack as the fight left it: the bucket taken up or gone into the water, a potion drunk)
+    R.packBack(B, b); // (the pack: what that fight used or found -- the bucket taken up or gone into the water, a potion drunk, a weapon stowed -- not its loan)
+    R.regear(B); // (each figure's weapon and AC read again off the sheet EQUIP changed)
     // what fell in there (the Settling's own count, js/wet.js W.killed -- the three by name, each crawler; the Keeper's fight by kind): XP banked and the tally kept; won, the spoils
     // (the Settling counts a walk-out with something dead behind it a win, as the 8-bit's does)
     var ids8 = which === 'wet' ? (b.enemies8 || (done === 'fed' && D.wet && D.wet.killed && b.wet ? D.wet.killed(b) : []))
@@ -532,6 +559,22 @@
     if (which === 'keeper' && done === 'won') yield* R.five(B, how === 'rope' ? 'w.ropeOut' : 'w.keeperGone');
   };
   R.standing = function (R0) { return R0.members.filter(function (u) { return u.hp > 0 && !u.dead; }); };
+  // what a condition-set keeps past a fight (the 8-bit's finish clears the rest; js/embed.js carries these): Mage Armor till the long rest, the day's Darkvision, a Continual Flame
+  R.LASTING = ['mageArmor', 'darkvision', 'continualFlame', 'aid'];
+  R.lasting = function (c) { var o = {}; R.LASTING.forEach(function (k) { if (c && c[k]) o[k] = JSON.parse(JSON.stringify(c[k])); }); return o; };
+  R.counts = function (inv) { var c = {}; (inv || []).forEach(function (s) { var id = Array.isArray(s) ? s[0] : s.id, n = Array.isArray(s) ? s[1] : s.n; c[id] = (c[id] || 0) + (n || 0); }); return c; };
+  // a pulled-in fight's pack handed back as the change it made (js/embed.js's inv0 and inv1): what it used gone, what it found or stowed added, never below none -- so the
+  // loan every grid fight not opened from inside the 8-bit lends (js/save.js SV.armoury: a crossbow, bolts, arrows, a rope) never comes back as the floor's. A lantern set down
+  // and left burning there is taken up as it ends, as the seam's
+  R.packBack = function (B, b) {
+    var c0 = b.roamInv0 || {}, c1 = R.counts(b.inv);
+    (b.lights || []).forEach(function (l) { if (l.kind === 'lantern' && l.item) c1[l.item] = (c1[l.item] || 0) + 1; });
+    var ids = Object.keys(c0).concat(Object.keys(c1)).filter(function (id, i, a) { return a.indexOf(id) === i; });
+    ids.forEach(function (id) {
+      var d = (c1[id] || 0) - (c0[id] || 0); if (!d) return;
+      if (d > 0) R.give(B, id, d); else { var s = (B.inv || []).filter(function (x) { return x.id === id; })[0]; if (s) s.n = Math.max(0, s.n + d); }
+    });
+  };
 
   // ------------------------------------------------------------------ what the fights pay (RULED 10-14, Griz: "perfect for the roam seat", on the desk's lean -- his "1. Roam should do
   // the xp rewards when it goes back to party token?" and "2. We got really fancy-ish (compare with SRD) to allow parties to flee random encounters on the grid"): each foe's XP
