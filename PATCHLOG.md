@@ -2,6 +2,17 @@
 
 What landed, newest first, one line each: **date · commit · lane · one sentence · his word** when there is one. **A line is a line** (RULED 10-06, on a consult and its fork: 20 of the first 55 ran past 400 characters): the hash, one sentence of what, his words verbatim; the files, the numbers and the why are the bolt's and the commit's. The lines before this rule stand as written. A lane is a live handoff at `..\handoff-*.md`, named by its title (the table at the head of the todo is the list); "the house" is the gate, the build and the repo. When an item lands it is cut from its lane and from `..\dragonsleep-todo-2026-10-03.md` and written here (RULED 2026-10-06, Griz: *"I'm on board"*). The story of each line is in the bolt (`..\weaving-room\dragonsleep-8bit.md`); before 2026-10-03, `git log` and the bolt are the record. A line is never edited once written. A ruling that something stays as it is gets a line too, marked `ruled`.
 
+## 2026-10-14
+- 2026-10-14 · `58df0d5` · the one gallery · GreyFang's card in the gallery can be marked and N walks on past him (a named foe built by its class keeps the bestiary word it was asked by) · *"check the gallery mechanism for feedback - several addressed, couldn't greyfang or the 'n' after as no way to feedback on him"*
+- 2026-10-14 · `ea13a30` · the bestiary · The new blows (pseudopod, bites, spittle, spiked bone club) play once, and the mouther turns and plays its Spittle row before the glob flies
+- 2026-10-14 · `344235d` · the bestiary · The ogre wears the art desk's yellow ogre, two isometric views (`ogre_p2`) · *"go with those 5 (if we have what we need for the ogre)"*
+- 2026-10-14 · `4f93939` · the bestiary · The grimlock wears its own two-view sheet, its Lurk the crouch it holds till it acts (`grimlock_p2`) · *"go with those 5"*
+- 2026-10-14 · `90fcfff` · the bestiary · The gibbering mouther wears its own sheet with a Spittle row (`mouther_p2`) · *"go with those 5"*
+- 2026-10-14 · `0a0eb07` · the bestiary · The gray ooze wears its own sheet, a slate puddle with a climb (`grayooze_p2`) · *"go with those 5"*
+- 2026-10-14 · `70da2cc` · the bestiary · The ochre jelly and its Split halves wear their own sheets (`ochrejelly_p2`, `ochrejellym_p2`) · *"go with those 5"*
+- 2026-10-14 · `6eafe8e` · the bestiary · The black pudding and its Split halves wear their own sheets (`pudding_p2`, `puddingm_p2`) · *"found the pudding"*
+- 2026-10-14 · `9c40078` · the house · `deep16/_src/Fresh` is the inbox again: every used sheet sorted to `_src/<creature>/` and the ten cutters that read Fresh read there, their art byte-identical · *"Everything we've done through Fresh should have been moved to _src or whatever so the Fresh could have remained the inbox. I'd like to sort that out and do it proper."*
+
 ## 2026-10-13
 - 2026-10-13 · `2a40752` · the road · A lantern or the Ledger-Lamp stays lit through a night's rest, a torch goes out (re-ruling 09-30e) · *"1 - yes"*
 - 2026-10-13 · `4b8a63b` · the road · The keepers' words in the shop window run to three lines (Dagny's and Percy's were cut), and the 8-bit menu's EXIT asks QUIT TO THE TITLE? with SAVE, THEN LEAVE first · *"13 - yes"*
