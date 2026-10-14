@@ -334,6 +334,19 @@
       });
       G.setup(m, this.units);
     };
+    // a peaceful bucket (Griz, 10-13: "Peaceful bucket should re-assemble the party token"): the landlord fed and nothing else up -- no ooze or jelly woken, no
+    // crawler roused -- and the Settling is over at the next turn that waits on a player (after the landlord's pictures), the party back into the token where it stands
+    if (which === 'wet') {
+      var up0 = b.update;
+      b.update = function () {
+        var r = up0.apply(this, arguments);
+        if (!done && this.flags8 && this.flags8.otyughFed && this.req && this.req.turn && this.units && !this.units.some(function (u) { return u.side === 'foe' && !u.dead && u.hp > 0 && !u.dormant && !u.fed && !u.left; })) {
+          if (D.top() === this) D.pop();
+          done = 'fed';
+        }
+        return r;
+      };
+    }
     B.card(['{r}' + (which === 'keeper' ? 'THE KEEPER OF THE FLOODED STAIR' : 'THE SETTLING') + '{/}: its own fight, pulled in.'], 200);
     D.sfx('encounter'); yield 40;
     R.stats.pull = (R.stats.pull || 0) + 1;
@@ -361,7 +374,8 @@
       }
     }
     B.focus(R0.token);
-    B.card(['{y}Back on the Wet{/} (' + done + ').'], 200);
+    B.card(done === 'fed' ? ['{y}The landlord settles under the water.{/}', '{g}The party gathers into ' + R0.token.name + '.{/}'] : ['{y}Back on the Wet{/} (' + done + ').'], 260);
+    if (done === 'fed') { FX.ring(R0.token, 'glow', 22); D.sfx('popup'); }
     if (!R.standing(R0).length) { R0.mode = 'over'; B.card(['{r}The party has fallen.{/}  R to walk the Wet again.'], 100000); }
   };
   R.standing = function (R0) { return R0.members.filter(function (u) { return u.hp > 0 && !u.dead; }); };

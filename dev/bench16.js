@@ -1992,6 +1992,13 @@
         var homeW = driveW(BW.co, function () { return D.top() === BW && RW.mode === 'walk' && GW.map === BW.map; }, 4000);
         okW('out of the Settling over its edge at ' + edgeW + ': back on the Wet a square past it (' + [RW.token.x, RW.token.y] + '), off the Settling\'s ground', homeW && RW.token.x >= wWd && Math.max(Math.abs(RW.token.x - edgeW[0]), Math.abs(RW.token.y - edgeW[1])) <= 1);
         okW('the landlord fed in there stays fed out here (otyughFed ' + !!RW.flags.otyughFed + '): its rim fires no more', RW.flags.otyughFed && !D.roam.triggerAt(BW, 8, 8, 'step'));
+        // a peaceful bucket (Griz, 10-13: "Peaceful bucket should re-assemble the party token"): the landlord fed, nothing else up -- the Settling ends at the next player's turn
+        var gPW = D.roam.pullIn(BW, 'wet', { id: 'landlordStep' }, defW.from8(8, 8)), stP = null;
+        for (var kP = 0; kP < 400 && D.top() === BW; kP++) stP = gPW.next();
+        var bP = D.top();
+        if (bP !== BW) { bP.enter(); bP.flags8 = Object.assign(bP.flags8 || {}, { otyughFed: 1 }); bP.units.forEach(function (u) { if (u.wet === 'landlord') u.fed = true; }); bP.baking = false; bP.req = { turn: bP.units.filter(function (u) { return u.side === 'party'; })[0] }; bP.update(); }
+        var backP = D.top() === BW; for (kP = 0; kP < 400; kP++) { stP = gPW.next(); if (stP.done) break; }
+        okW('a peaceful bucket ends the Settling, the party back in one token (' + (backP ? 'back on the floor' : 'still in it') + ')', bP !== BW && backP && stP && stP.done && BW.units.filter(function (u) { return u.side === 'party'; }).length === 1);
       } else okW('the landlord\'s rim pulls the Settling in', false);
       repW.encounters = RW.log.map(function (e) { return e.who + ' ' + e.how + ' ' + e.distFt + ' ft (sees ' + e.sightFar + ')' + (e.spill ? ', met at ' + e.contactFt + ' ft, spill off ' + e.spill.map(function (s) { return s.off; }).join('') : ', no fight') + ', ' + e.ms + ' ms'; });
     } catch (eW) { repW.errors.push(String(eW && eW.stack || eW).slice(0, 900)); }
