@@ -87,6 +87,13 @@ No sorcerer, bard, druid or ranger casts in the game yet. Their spells are judge
 - **Ice Storm on the grid deals its 2d8 bludgeoning and 4d6 cold each as its own kind**: *"yes; it is a bug"* (built 10-03: deep16/js/magic.js area()).
 - **Sleet Storm: the fall costs no action, and the foe fights on from the ice**: *"yes"*. And no new art for it: *"we're not making new animations for attacking from prone, players might see them pop up and fall back prone and that's fine"*.
 
+## Ours, not the SRD's (10-14)
+
+Not in the counts above (they are the SRD's 319). Griz: *"I need to add a custom spell and its effects. Searing Scourge - it's 'like' burning hands magically, but tendrils of fire and the wizard twirls - lvl 2 with 1d6 to all creatures in the surrounding 8 tiles (works with sculpt). Signature variant "Deathhand's Searing Scourge" - 1d4 fire and 1d4 necrotic to all creatures in the surrounding 8 tiles (works with sculpt)"*; his answers the same day: DEX half; *"1d6 per slot - deathhand's goes from 1d4 to 1d6 then 1d6 per slot"*; *"Deathhand is Garland Rosen, Tarlyn's old adventuring pal ... Pocket DM can include, in game Aurdin will find spell sheet or easter egg spell sheet when I figure out the trigger for him to do so"*; the 8-bit *"do 1 and 2"*.
+
+- **Searing Scourge** (2nd, evocation, wizard): BUILT, both games. Every creature within 5 ft of the caster (the grid's `around`: eight squares round a Medium caster), 1d6 fire, DEX half, +1d6 a slot; Sculpt Spells spares friends. The 8-bit: the foe in front and up to two beside it, no picker. On the Pocket DM's wizard list; the sheet `sheet_searingscourge` is ready and given nowhere (his trigger). **Au** by the sheet.
+- **Deathhand's Searing Scourge** (2nd, evocation, wizard): BUILT, both games. 1d4 fire + 1d4 necrotic, DEX half; 3rd 1d6 + 1d6, then +1d6 of each a slot (`upDie`, `up2`: js/rules.js R.slotDice). The same reach and Sculpt. Pocket DM; the easter-egg sheet `sheet_deathhandsscourge` is ready and given nowhere.
+
 ## Still open
 
 - Nothing from 09-28's list: all ruled 09-28g (above). The four subclasses are the seat's drafts, standing as approved: his word to redirect any of them.

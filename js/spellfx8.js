@@ -64,10 +64,43 @@
     var prev = this.spellNow, sfx0 = sp.sfx;
     this.spellNow = sp; this.spellShown = false; this.spellRay = 0;
     if (!sp.sfx) sp.sfx = voiceOf(sp);
-    flare(this, u, elOf(sp));
+    if (sp.target === 'around') scourge(this, u, sp); // (no flare at the hands: they are at his sides, and nothing is drawn over him)
+    else flare(this, u, elOf(sp));
     try { return yield* cast0.apply(this, arguments); }
     finally { this.spellNow = prev; if (sfx0 === undefined) delete sp.sfx; else sp.sfx = sfx0; }
   };
+
+  // Searing Scourge (ours, not the SRD's; 10-14, Griz: "'like' burning hands magically, but tendrils of fire and the wizard twirls"): the caster turns twice
+  // round (js/battle.js drawSpun, his arms at his sides -- Griz, on the grid's first look: "lower it and don't overlay the wizard"), a short tendril whips out
+  // low from the hand on its side each way round him as he turns past it, and one lashes all the way to each foe it takes (Battle.aroundFoes); nothing of it
+  // is drawn over his sprite. Deathhand's twines a necrotic strand through every one (his arm: "made it all magical necrotic")
+  function lash(dot, x0, y0, x1, y1, q, t, cols, nec) {
+    var L = Math.hypot(x1 - x0, y1 - y0), n = Math.max(6, Math.round(L * q / 1.2)), nx = -(y1 - y0) / (L || 1), ny = (x1 - x0) / (L || 1);
+    for (var j = 0; j <= n; j++) {
+      var s = j / n * q, w = Math.sin(s * 9 - t * 0.7) * 3 * s, bx = x0 + (x1 - x0) * s, by = y0 + (y1 - y0) * s - Math.sin(s * Math.PI) * 2;
+      dot(bx + nx * w, by + ny * w, j > n - 2 ? cols[2] : j % 3 ? cols[0] : cols[1], j < n * 0.6 ? 2 : 1);
+      if (nec) dot(bx - nx * w * 0.8, by - ny * w * 0.8, nec[j % 3], 1);
+    }
+  }
+  function scourge(B, u, sp) {
+    var cols = ELEM.fire, nec = sp.el2 === 'necrotic' ? ELEM.necrotic : null, foes = B.aroundFoes ? B.aroundFoes() : [];
+    u.spin = 36;
+    add(B, { dur: 44, draw: function (ctx, t) {
+      var x0 = u.x, y0 = u.y, cx = x0 + 8, cy = y0 + 15; // (his hips: the 8-bit hero is 16 by 24)
+      var dot = function (x, y, c, w) { if (x >= x0 - 1 && x <= x0 + 16 && y >= y0 && y <= y0 + 24) return; px(ctx, x, y, c, w); };
+      for (var i = 0; i < 8; i++) { // the whirl: a short tendril each way round him, as he turns past it
+        var k = (t - i * 4) / 16; if (k <= 0 || k >= 1) continue;
+        var a = Math.PI - i * Math.PI / 4, side = Math.cos(a) < -0.1 ? -1 : Math.cos(a) > 0.1 ? 1 : (i % 4 ? 1 : -1), hx = cx + side * 9;
+        lash(dot, hx, cy, hx + Math.cos(a) * 14, cy + 4 + Math.sin(a) * 7, Math.sin(k * Math.PI), t + i, cols, nec);
+      }
+      foes.forEach(function (f, i) { // the long ones, to each foe it takes, from the hand on their side
+        var k = (t - 10 - i * 5) / 22; if (k <= 0 || k >= 1) return;
+        var e = B.posOf(f), q = Math.min(1, k * 2.2) * (k > 0.8 ? (1 - k) / 0.2 : 1), hx = cx + (e.x < cx ? -9 : 9), ey = f.y + f.art.h - 4;
+        lash(dot, hx, cy, e.x, ey, q, t, cols, nec);
+        if (k > 0.4 && k < 0.7) { px(ctx, e.x, ey, cols[2], 4); px(ctx, e.x, ey, '#F8F8F8', 2); }
+      });
+    } });
+  }
 
   // the travel: a spell's bolt is its own shot, quick (the battle waits ten frames on it)
   var bolt0 = BP.bolt;

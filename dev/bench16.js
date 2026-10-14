@@ -1837,6 +1837,98 @@
     document.body.appendChild(preL);
     return;
   }
+  // Searing Scourge and Deathhand's, 10-14 (mode=scourge1014; ours, not the SRD's -- Griz: "tendrils of fire and the wizard twirls - lvl 2 with 1d6 to all creatures in
+  // the surrounding 8 tiles (works with sculpt)"; the variant "1d4 fire and 1d4 necrotic", "goes from 1d4 to 1d6 then 1d6 per slot"; DEX half): the eight squares, the dice
+  // by slot (and the SRD's own unchanged), the cast with the dice pinned -- the ring caught, the far one not, a friend sculpted by an evoker and burned by a sorcerer --
+  // both kinds of the variant, the ring's click, the AI's pick and its walk in
+  if (get('mode', '') === 'scourge1014') {
+    var repS = { checks: [], errors: [] }, d0S = D.d, MS = D.magic, GS_ = D.grid;
+    function okS(what, v) { repS.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function runS(g) { var v, k = 0, st; while (g && k++ < 4000) { st = g.next(v); v = undefined; if (st.done) return st.value; if (st.value && st.value.prompt) v = st.value.prompt.opts[0].value; } }
+    function mkS(q) { var Bx = D.npcFight(q, {}); D.battle = Bx; Bx.enter(); while (!Bx.order.length) Bx.co.next(); Bx.dark = false; return Bx; }
+    function sideS(Bx, s) { return Bx.units.filter(function (u) { return u.side === s; }); }
+    // an open stretch of floor, w by h, all one height (its top-left square)
+    function openS(w, h) { var m = GS_.map; for (var y = 1; y + h < m.h; y++) for (var x = 1; x + w < m.w; x++) { var z = m.gz(x, y), good = true; for (var j = 0; j < h && good; j++) for (var i = 0; i < w && good; i++) { var s = m.at(x + i, y + j); if (!s || !s.walk || m.gz(x + i, y + j) !== z) good = false; } if (good) return [x, y]; } return null; }
+    // the stage: the caster at (X+2, Y+2), five foes round him (NW N NE W SW), the friend east of him, a sixth foe 10 ft north, the rest of the party well off; all at 50 hp
+    function stageS(Bx, cs, X, Y) {
+      var fs = sideS(Bx, 'foe'), ps = sideS(Bx, 'party'), mate = ps.filter(function (w) { return w !== cs; })[0], rest = ps.filter(function (w) { return w !== cs && w !== mate; });
+      var ring = [[1, 1], [2, 1], [3, 1], [1, 2], [1, 3]];
+      cs.x = X + 2; cs.y = Y + 2; mate.x = X + 3; mate.y = Y + 2;
+      fs.forEach(function (w, i) { var p = i < 5 ? ring[i] : [2, 0 - (i - 5)]; w.x = X + p[0]; w.y = Y + p[1]; w.hp = w.maxhp = 50; w.conds = {}; w.saves = { str: -1, dex: -1, con: -1, int: -1, wis: -1, cha: -1 }; });
+      rest.forEach(function (w, i) { w.x = X + 5 + i; w.y = Y + 6; });
+      mate.hp = mate.maxhp = 50; cs.hp = cs.maxhp = Math.max(cs.maxhp, 30);
+      GS_.setup(GS_.map, Bx.units);
+      return { fs: fs, mate: mate };
+    }
+    try {
+      var spS = MS.data('searingscourge'), spD = MS.data('deathhandsscourge');
+      okS('DATA: both spells on the grid -- ' + (spS && spS.name) + ' (' + MS.geo('searingscourge').shape + '), ' + (spD && spD.name) + ' (' + MS.geo('deathhandsscourge').shape + '), fire and ' + (spD && spD.el2) + ', DEX half',
+        !!(spS && spD) && MS.geo('searingscourge').shape === 'around' && MS.geo('deathhandsscourge').shape === 'around' && spS.save === 'dex' && spS.half && spD.save === 'dex' && spD.half && spD.el === 'fire' && spD.el2 === 'necrotic');
+      // the dice by slot: the plain 1d6 +1d6 a slot; Deathhand's 1d4 + 1d4, both d6 from the 3rd, then +1d6 each; and the SRD's own as they were
+      var wz = { lvl: 9 }, byS = [2, 3, 4, 5].map(function (s) { return MS.dice(spS, wz, s); }), byD = [2, 3, 4, 5].map(function (s) { return MS.dice(spD, wz, s) + '+' + MS.dice2(spD, s); });
+      okS('DICE: Searing Scourge at 2nd-5th ' + byS.join(' ') + ' (want 1d6 2d6 3d6 4d6); Deathhand\'s ' + byD.join(' ') + ' (want 1d4+1d4 1d6+1d6 2d6+2d6 3d6+3d6)', byS.join(' ') === '1d6 2d6 3d6 4d6' && byD.join(' ') === '1d4+1d4 1d6+1d6 2d6+2d6 3d6+3d6');
+      var bh = [1, 3].map(function (s) { return MS.dice(MS.data('burninghands'), wz, s); }), ist = MS.dice(MS.data('icestorm'), wz, 5) + '+' + MS.dice2(MS.data('icestorm'), 5);
+      okS('DICE: the SRD\'s own unchanged -- Burning Hands at 1st and 3rd ' + bh.join(' ') + ', Ice Storm at 5th ' + ist + ' (want 3d6 5d6, 3d8+4d6)', bh.join(' ') === '3d6 5d6' && ist === '3d8+4d6');
+      // THE RING: eight squares round one of man size, never his own; twelve round a Large
+      var B1 = mkS('?npc=goblin,goblin,goblin,goblin,goblin,goblin&lvl=5&vs=wizard:5,fighter:5,cleric:5'), o1 = openS(8, 8);
+      if (!o1) okS('an open stretch of the class floor', false);
+      else {
+        var X = o1[0], Y = o1[1], wzd = sideS(B1, 'party')[0], st1 = stageS(B1, wzd, X, Y), sq1 = MS.area(wzd, MS.geo('searingscourge'), X, Y);
+        var own = sq1.some(function (q) { return q[0] === wzd.x && q[1] === wzd.y; }), big = { x: X + 2, y: Y + 2, size: 2 }, sqL = MS.around(big, big.x, big.y);
+        okS('THE RING: ' + sq1.length + ' squares round the wizard (want 8), his own among them ' + own + ' (want false); round a Large ' + sqL.length + ' (want 12)', sq1.length === 8 && !own && sqL.length === 12);
+        okS('SCULPT: an evoker sculpts both (M.sculpts ' + MS.sculpts(wzd, 'searingscourge') + ', ' + MS.sculpts(wzd, 'deathhandsscourge') + ')', MS.sculpts(wzd, 'searingscourge') && MS.sculpts(wzd, 'deathhandsscourge'));
+        // THE RING'S CLICK: his own square and a square of it take the spell, a square 10 ft off does not
+        wzd.known = ['searingscourge']; wzd.slots = [4, 3, 3, 0, 0, 0, 0, 0, 0]; B1.active = wzd; D.rules.startTurn(wzd);
+        var e1 = MS.list(B1, wzd).filter(function (x) { return x.id === 'searingscourge'; })[0];
+        B1.spell = { id: 'searingscourge', slot: 2, g: e1.g, sp: e1.sp, n: 1, name: e1.name }; B1.tool = 'spell'; B1.picks = [];
+        var vOwn = D.ui.valid(B1, wzd, wzd.x, wzd.y), vIn = D.ui.valid(B1, wzd, X + 1, Y + 1), vOut = D.ui.valid(B1, wzd, X + 2, Y - 1);
+        okS('THE CLICK: his own square ' + vOwn + ', a square of the ring ' + vIn + ', one 15 ft off ' + vOut + ' (want ok ok no); the rules line "' + MS.summary(e1, wzd) + '"', vOwn === 'ok' && vIn === 'ok' && vOut === 'no' && /every square round you/.test(MS.summary(e1, wzd)));
+        B1.spell = null; B1.tool = null;
+        // THE CAST: every save failed, the dice at their top -- the five round him take 6, the one 10 ft off nothing, the friend sculpted out, the caster untouched
+        D.d = function (n) { return n === 20 ? 1 : n; };
+        try { runS(B1.exec(wzd, { do: 'cast', id: 'searingscourge', slot: 2, target: { x: wzd.x, y: wzd.y } })); } finally { D.d = d0S; }
+        var lost1 = st1.fs.map(function (w) { return 50 - w.hp; });
+        okS('THE CAST (an evoker, 2nd): the five round him lost ' + lost1.slice(0, 5).join(',') + ' (want 6 each), the one 10 ft off ' + lost1[5] + ' (want 0), the friend ' + (50 - st1.mate.hp) + ' (want 0: sculpted), the wizard ' + (wzd.maxhp - wzd.hp) + ' (want 0), his facing back where it began ' + wzd.facing,
+          lost1.slice(0, 5).every(function (x) { return x === 6; }) && lost1[5] === 0 && st1.mate.hp === 50 && wzd.hp === wzd.maxhp);
+        // a sorcerer has no Sculpt Spells: the friend burns
+        var st2 = stageS(B1, wzd, X, Y); wzd.subclass = 'none'; D.rules.startTurn(wzd); wzd.slots = [4, 3, 3, 0, 0, 0, 0, 0, 0];
+        D.d = function (n) { return n === 20 ? 1 : n; };
+        try { runS(B1.exec(wzd, { do: 'cast', id: 'searingscourge', slot: 3, target: { x: wzd.x, y: wzd.y } })); } finally { D.d = d0S; wzd.subclass = 'School of Evocation'; }
+        okS('NO SCULPT (no evoker, 3rd slot, 2d6): the friend lost ' + (50 - st2.mate.hp) + ' (want 12), a foe round him ' + (50 - st2.fs[0].hp) + ' (want 12)', st2.mate.hp === 38 && st2.fs[0].hp === 38);
+        // DEATHHAND'S: fire and necrotic, each its own; at the 3rd both d6
+        var st3 = stageS(B1, wzd, X, Y); wzd.known = ['deathhandsscourge']; wzd.slots = [4, 3, 3, 0, 0, 0, 0, 0, 0]; D.rules.startTurn(wzd);
+        var n3 = (B1.log || []).length;
+        D.d = function (n) { return n === 20 ? 1 : n; };
+        try { runS(B1.exec(wzd, { do: 'cast', id: 'deathhandsscourge', slot: 2, target: { x: wzd.x, y: wzd.y } })); } finally { D.d = d0S; }
+        var log3 = (B1.log || []).slice(n3).join(' | ').replace(/\{\/?[a-z]*\}/g, '');
+        okS('DEATHHAND\'S at 2nd: a foe round him lost ' + (50 - st3.fs[0].hp) + ' (want 8: 4 fire + 4 necrotic), the card names both (' + /fire \+ \d+ necrotic/.test(log3) + '), the friend ' + (50 - st3.mate.hp) + ' (want 0)', st3.fs[0].hp === 42 && /fire \+ \d+ necrotic/.test(log3) && st3.mate.hp === 50);
+        var st4 = stageS(B1, wzd, X, Y); wzd.slots = [4, 3, 3, 0, 0, 0, 0, 0, 0]; D.rules.startTurn(wzd);
+        D.d = function (n) { return n === 20 ? 1 : n; };
+        try { runS(B1.exec(wzd, { do: 'cast', id: 'deathhandsscourge', slot: 3, target: { x: wzd.x, y: wzd.y } })); } finally { D.d = d0S; }
+        okS('DEATHHAND\'S at 3rd: a foe round him lost ' + (50 - st4.fs[0].hp) + ' (want 12: 1d6 fire + 1d6 necrotic at their top)', st4.fs[0].hp === 38);
+      }
+      // THE AI: a wizard of the AI's with three goblins round it casts it where it stands; one with them 20 ft off walks in first
+      var B5 = mkS('?npc=goblin,goblin,goblin&lvl=5&vs=wizard:5'), o5 = openS(7, 7);
+      if (!o5) okS('THE AI: an open stretch', false);
+      else {
+        var w5 = sideS(B5, 'party')[0], f5 = sideS(B5, 'foe'), X5 = o5[0], Y5 = o5[1];
+        w5.known = ['searingscourge']; w5.slots = [4, 3, 3, 0, 0, 0, 0, 0, 0]; w5.x = X5 + 3; w5.y = Y5 + 4;
+        [[2, 3], [3, 3], [4, 3]].forEach(function (p, i) { f5[i].x = X5 + p[0]; f5[i].y = Y5 + p[1]; });
+        GS_.setup(GS_.map, B5.units); B5.active = w5; D.rules.startTurn(w5);
+        var pl5 = D.tactics.spellPlansFor(B5, w5).filter(function (p) { return p.id === 'searingscourge'; })[0];
+        var ev5 = D.tactics.EVAL['shape:around'](B5, w5, MS.list(B5, w5).filter(function (x) { return x.id === 'searingscourge'; })[0], 2, D.tactics.foesOf(B5, w5), []);
+        okS('THE AI, foes round it: on its plans ' + !!pl5 + (pl5 ? ' (' + pl5.score.toFixed(1) + ')' : '') + ', from where it stands ' + !!(ev5 && !ev5.from) + ', catching ' + (ev5 ? ev5.caught.length : 0) + ' (want 3)', !!ev5 && !ev5.from && ev5.caught.length === 3);
+        [[2, 0], [3, 0], [4, 0]].forEach(function (p, i) { f5[i].x = X5 + p[0]; f5[i].y = Y5 + p[1]; });
+        w5.x = X5 + 3; w5.y = Y5 + 4; GS_.setup(GS_.map, B5.units); D.rules.startTurn(w5);
+        var ev6 = D.tactics.EVAL['shape:around'](B5, w5, MS.list(B5, w5).filter(function (x) { return x.id === 'searingscourge'; })[0], 2, D.tactics.foesOf(B5, w5), []);
+        okS('THE AI, foes 20 ft off: it walks in first -- from ' + (ev6 && ev6.from ? ev6.from.x + ',' + ev6.from.y : 'nowhere') + ', catching ' + (ev6 ? ev6.caught.length : 0) + ' (want a square beside them, 2 or 3)', !!(ev6 && ev6.from && ev6.caught.length >= 2));
+      }
+    } catch (eS) { repS.errors.push(String(eS && eS.stack || eS).slice(0, 900)); D.d = d0S; }
+    if (errs.length) repS.errors = repS.errors.concat(errs);
+    var preS = document.createElement('pre'); preS.id = 'out'; preS.textContent = 'BENCH16 ' + JSON.stringify(repS);
+    document.body.appendChild(preS);
+    return;
+  }
   // the grid's rules lane, 10-13 (mode=rules1013; his answers to the notes window, handoff-2026-10-04-the-grids-rules.md §2h): big through small and a creature's space as difficult
   // terrain, the sheet's own Acrobatics, a shove over an edge, the pudding's third bite. Each check failed on the code before it but the Magic Weapon guard, which held already
   if (get('mode', '') === 'rules1013') {

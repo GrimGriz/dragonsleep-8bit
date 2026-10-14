@@ -5,6 +5,7 @@
    shape: attack (one spell attack) · rays / darts (N shots at chosen targets) · splash (one creature, and one beside it)
           · single (one creature) · touch (an adjacent ally or yourself) · allies (up to N within range) · self
           · sphere (r ft, at a point within range) · cube (size ft) · cone (len ft, from you) · line (len ft x 5, from you)
+          · around (the squares within 5 ft of you, not yours: ours, Searing Scourge 10-14)
           · reaction (asked for, never cast from the list) · none (no use in this fight)
    time: A action, B bonus action.  conc: concentration.  side: foe / ally / any.
    see: its SRD words say "that you can see" -- of the creature, or of the point (10-02, the runner's register; js/magic.js M.targetOK, M.inRange). A spell
@@ -42,6 +43,10 @@
   // Hold Person (SRD 5.1): a humanoid within 60 ft, WIS or paralyzed, a save again at the end of each of its turns
   holdperson: { see: true, shape: 'single', side: 'foe', range: 60, time: 'A', conc: true, only: 'humanoid' },
   shatter: { shape: 'sphere', range: 60, r: 10, time: 'A' },
+  // Searing Scourge and Deathhand's (ours, not the SRD's -- 10-14, Griz: "tendrils of fire and the wizard twirls - lvl 2 with 1d6 to all creatures in the
+  // surrounding 8 tiles (works with sculpt)"): `around`, every square within 5 ft of the caster's own, never the caster; js/magic.js M.around
+  searingscourge: { shape: 'around', time: 'A' },
+  deathhandsscourge: { shape: 'around', time: 'A' },
   mistystep: { see: true, shape: 'teleport', range: 30, time: 'B' },
   fireball: { shape: 'sphere', range: 150, r: 20, time: 'A' },
   lightningbolt: { shape: 'line', len: 100, time: 'A' },

@@ -365,6 +365,23 @@
   }
   function areaDamage(B, u, e, slot, fs) { return e.sp.dmg ? TX.bestArea(B, u, e, fs, function (caught, sq) { return TX.areaWorth(B, u, e, slot, caught) + (e.sp.el === 'fire' ? webBurnWorth(B, u, sq) : 0); }) : null; }
   EV['shape:sphere'] = areaDamage; EV['shape:cone'] = areaDamage; EV['shape:line'] = areaDamage; EV['shape:wave'] = areaDamage;
+  // round the caster (Searing Scourge, ours -- 10-14): where it stands, or from a square its move reaches first (the walk is the plan's `from`): what is caught
+  // round it there (TX.areaWorth: foes' worth, friends' cost unless it sculpts), less what standing among more foes than it stands among now would cost it
+  EV['shape:around'] = function (B, u, e, slot, fs) {
+    if (!e.sp.dmg) return null;
+    var rm = G.reach(u, u.turn.move), spots = [null], best = null;
+    var exposed = function (x, y) { return fs.reduce(function (s, w) { return s + (G.standing(w) && G.dist(u, w, x, y) <= G.reachOf(w) ? TX.dpr(w) : 0); }, 0); };
+    var here = exposed(u.x, u.y);
+    Object.keys(rm).forEach(function (k) { var r = rm[k]; if (r.stand && !(r.x === u.x && r.y === u.y)) spots.push(r); });
+    spots.forEach(function (p) {
+      var x = p ? p.x : u.x, y = p ? p.y : u.y, sq = M.around(u, x, y);
+      var caught = B.units.filter(function (w) { return w !== u && G.present(w) && w.hp > 0 && G.inArea(w, sq) && G.dist(u, w, x, y) <= 5 && !M.globeShuts(B, u, e.g, w); });
+      if (!caught.some(function (w) { return G.hostile(u, w); })) return;
+      var sc = TX.areaWorth(B, u, e, slot, caught) - (p ? Math.max(0, exposed(x, y) - here) * 0.6 + p.cost * 0.01 : 0);
+      if (!best || sc > best.score) best = { score: sc, t: { x: x, y: y }, caught: caught, from: p };
+    });
+    return best;
+  };
   // Sleep: the pool against the weakest in the sphere
   EV.sleep = function (B, u, e, slot, fs) {
     var pool = avg((e.g.pool + e.g.poolUp * Math.max(0, slot - 1)) + 'd8');

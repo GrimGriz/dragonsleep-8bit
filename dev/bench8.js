@@ -1930,6 +1930,44 @@
       var slotsX = DS.top() && DS.top().kind === 'slots'; if (slotsX) DS.top().menu.onCancel(); for (kX = 0; kX < 20; kX++) T.step(1);
       titled = DS.scenes.some(function (s) { return s.kind === 'title'; }); DS.paused = true;
       check('EXIT: "' + hX.exitTitle + '" -- ' + exX.join(' / ') + '; SAVE, THEN LEAVE opens the slots (' + slotsX + '), backed out of: at the title ' + titled + ' (want false)', hX.exitTitle === 'QUIT TO THE TITLE?' && exX[0] === 'SAVE, THEN LEAVE' && slotsX && !titled);
+    } else if (test === 'scourge1014') {
+      // Searing Scourge in the 8-bit (ours; 10-14, Griz: "do 1 and 2" -- the grid's eight squares, here the foe in front and up to two beside it, no picker): the sheet
+      // copied into Aurdin's book, the three it takes of four, one roll for all; Deathhand's two dice, d6 each from the 3rd; the twirl's frames set
+      var roll0S = DS.roll, scene0S = DS.W8.scene, rollsS = [];
+      DS.roll = function (e, o) { rollsS.push(e); return roll0S(e, o); };
+      function runS(gen) { var s, v; DS.W8.scene = function (sc) { return { __sc: sc }; }; try { do { s = gen.next(v); v = s.value && s.value.__sc ? (sc0S(s.value.__sc)) : undefined; } while (!s.done); } finally { DS.W8.scene = scene0S; } return s.value; }
+      function sc0S(sc) { return sc.kind === 'target' ? sc.list[0] : sc.kind === 'menu' ? (sc.menu.items.filter(function (x) { return !x.disabled; })[0] || {}).value : undefined; }
+      try {
+        // the sheet: Aurdin, a wizard with 2nd-level slots, copies it, and the sheet is spent
+        var hA = g.party.filter(function (x) { return x.id === 'aurdin'; })[0];
+        hA.slotsMax = [4, 3, 3]; hA.slots = [4, 3, 3]; hA.known = (hA.known || []).filter(function (id) { return id !== 'searingscourge' && id !== 'deathhandsscourge'; });
+        g.give('sheet_searingscourge', 1); g.give('sheet_deathhandsscourge', 1);
+        var whyA = DS.EV.learnWhy('sheet_searingscourge', hA);
+        ['sheet_searingscourge', 'sheet_deathhandsscourge'].forEach(function (sid) {
+          DS.run(function* () { yield* DS.EV.useFieldItem(sid, hA); });
+          for (var kL = 0; kL < 300 && DS.scriptActive(); kL++) { var tL = DS.top(); if (tL && tL.kind === 'dialog') { if (tL.chars < tL.pageLen()) tL.chars = tL.pageLen(); T.tapf('a'); } else T.step(1); }
+        });
+        if (hA.prepared && hA.prepared.indexOf('searingscourge') < 0) hA.prepared.push('searingscourge', 'deathhandsscourge'); // (prepared at the next long rest: the fight below wants them today)
+        check('THE SHEETS: Aurdin may copy ("' + whyA + '", want ""), both copied (' + (hA.known.indexOf('searingscourge') >= 0) + ', ' + (hA.known.indexOf('deathhandsscourge') >= 0) + '), both spent (' + g.count('sheet_searingscourge') + ', ' + g.count('sheet_deathhandsscourge') + ' left)',
+          whyA === '' && hA.known.indexOf('searingscourge') >= 0 && hA.known.indexOf('deathhandsscourge') >= 0 && !g.count('sheet_searingscourge') && !g.count('sheet_deathhandsscourge'));
+        T.startFight(['ogre', 'ogre', 'ogre', 'ogre']);
+        for (var wS = 0; wS < 400 && !DS.find('battle'); wS++) T.step(1);
+        var bS = DS.find('battle'), AS = bS.heroes.filter(function (x) { return x.h.id === 'aurdin'; })[0]; bS.intro = 0;
+        var castable = DS.R.spellList(AS.h, 'battle').map(function (sp) { return sp.id; });
+        check('ON HIS LIST IN A FIGHT: Searing Scourge ' + (castable.indexOf('searingscourge') >= 0) + ', Deathhand\'s ' + (castable.indexOf('deathhandsscourge') >= 0), castable.indexOf('searingscourge') >= 0 && castable.indexOf('deathhandsscourge') >= 0);
+        bS.foes.forEach(function (f) { f.hp = f.maxhp = 400; f.m = Object.assign({}, f.m, { saves: Object.assign({}, f.m.saves, { dex: -30 }) }); });
+        var front = bS.frontFoe(), took = bS.aroundFoes();
+        rollsS = []; AS.h.slots = [4, 3, 3]; runS(bS.castSpell(AS, DS.DATA.spells.searingscourge, { actions: 1, bonus: 1, surged: false, sneakUsed: false }));
+        var lostS = bS.foes.map(function (f) { return 400 - f.hp; }), hitS = lostS.filter(function (x) { return x > 0; }).length, spun = AS.spin;
+        check('SEARING SCOURGE at 2nd: ' + hitS + ' of four burned (want 3: the front one first -- ' + (took[0] === front) + '), lost ' + lostS.join(',') + ', rolled ' + rollsS.filter(function (e) { return /d6$/.test(e); }).join(',') + ' (want one 1d6 for all), a 2nd-level slot spent (' + AS.h.slots[1] + ' left), the twirl set (' + spun + ' frames left)',
+          hitS === 3 && took[0] === front && took.every(function (f) { return 400 - f.hp > 0; }) && rollsS.filter(function (e) { return e === '1d6'; }).length === 1 && AS.h.slots[1] === 2 && spun > 0);
+        bS.foes.forEach(function (f) { f.hp = 400; }); rollsS = []; AS.h.slots = [4, 3, 3];
+        runS(bS.castSpell(AS, DS.DATA.spells.deathhandsscourge, { actions: 1, bonus: 1, surged: false, sneakUsed: false }));
+        var rollsD2 = rollsS.slice(); bS.foes.forEach(function (f) { f.hp = 400; }); rollsS = []; AS.h.slots = [4, 0, 3];
+        runS(bS.castSpell(AS, DS.DATA.spells.deathhandsscourge, { actions: 1, bonus: 1, surged: false, sneakUsed: false }));
+        check('DEATHHAND\'S: at 2nd rolled ' + rollsD2.filter(function (e) { return /^\d+d\d+$/.test(e) && e !== '1d20'; }).join(',') + ' (want 1d4,1d4), at 3rd ' + rollsS.filter(function (e) { return /^\d+d\d+$/.test(e) && e !== '1d20'; }).join(',') + ' (want 1d6,1d6); the front one ' + (400 - front.hp) + ' lost, fire and necrotic',
+          rollsD2.filter(function (e) { return e === '1d4'; }).length === 2 && rollsS.filter(function (e) { return e === '1d6'; }).length === 2 && front.hp < 400);
+      } finally { DS.roll = roll0S; DS.W8.scene = scene0S; }
     } else if (test === 'migrate') {
       // an older save: Ingrith a fighter with a heals counter, hurt; DS.startFrom walks her on as the cleric she is
       DS.EV.addGuest('ingrith');

@@ -14,7 +14,8 @@
   function kiDC(u) { return 8 + u.prof + D.mod(u.abil.wis); }
 
   // ------------------------------------------------------------------ the wizard: Sculpt Spells (evocation 2), Potent Cantrip (6)
-  var EVOCATION = ['fireball', 'lightningbolt', 'burninghands', 'thunderwave', 'shatter', 'icestorm', 'coneofcold', 'magicmissile', 'daylight', 'light', 'dancinglights', 'firebolt', 'rayoffrost', 'shockinggrasp', 'sacredflame', 'produceflame', 'flameblade', 'gustofwind', 'calllightning', 'spiritualweapon', 'continualflame', 'guidingbolt'];
+  var EVOCATION = ['fireball', 'lightningbolt', 'burninghands', 'thunderwave', 'shatter', 'icestorm', 'coneofcold', 'magicmissile', 'daylight', 'light', 'dancinglights', 'firebolt', 'rayoffrost', 'shockinggrasp', 'sacredflame', 'produceflame', 'flameblade', 'gustofwind', 'calllightning', 'spiritualweapon', 'continualflame', 'guidingbolt',
+    'searingscourge', 'deathhandsscourge']; // (ours, evocations by his word -- 10-14, Griz: "works with sculpt")
   M.sculpts = function (u, id) { return u.subclass === 'School of Evocation' && u.lvl >= 2 && EVOCATION.indexOf(id) >= 0; };
   M.sculpted = function (u, id, sp, caught) {
     if (!M.sculpts(u, id)) return [];

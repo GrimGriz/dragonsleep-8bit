@@ -714,7 +714,7 @@
     if (g.shape === 'self') return UI.command(B, u, { do: 'cast', id: e.id, slot: e.slot, target: u });
     B.tool = 'spell';
     if (g.shape === 'allies' && e.id === 'bless' && (!u.conds.blessed)) B.picks = [u]; // Bless takes the caster by default; click him again to leave him out
-    var how = { attack: 'a foe in sight within ' + g.range + ' ft', rays: n + ' rays: click a foe for each (the same foe again is fine)', darts: n + ' darts: click a foe for each (the same foe again is fine)', splash: 'a foe within ' + g.range + ' ft (one beside it is caught too)', single: (g.side === 'foe' ? 'a foe' : 'an ally') + ' within ' + g.range + ' ft', touch: 'yourself, or an ally beside you', allies: 'up to ' + n + ' allies within ' + g.range + ' ft (click to add or drop; CAST, or E off a target, casts with fewer)', sphere: 'a point within ' + g.range + ' ft (the ' + g.r + '-ft sphere shows)', cube: 'a point within ' + g.range + ' ft', cone: 'aim the ' + g.len + '-ft cone', line: 'aim the ' + g.len + '-ft line', teleport: 'a square you can see within 30 ft' }[g.shape] || '';
+    var how = { attack: 'a foe in sight within ' + g.range + ' ft', rays: n + ' rays: click a foe for each (the same foe again is fine)', darts: n + ' darts: click a foe for each (the same foe again is fine)', splash: 'a foe within ' + g.range + ' ft (one beside it is caught too)', single: (g.side === 'foe' ? 'a foe' : 'an ally') + ' within ' + g.range + ' ft', touch: 'yourself, or an ally beside you', allies: 'up to ' + n + ' allies within ' + g.range + ' ft (click to add or drop; CAST, or E off a target, casts with fewer)', sphere: 'a point within ' + g.range + ' ft (the ' + g.r + '-ft sphere shows)', cube: 'a point within ' + g.range + ' ft', cone: 'aim the ' + g.len + '-ft cone', line: 'aim the ' + g.len + '-ft line', around: 'every square round you (shown): click yourself or one of them', teleport: 'a square you can see within 30 ft' }[g.shape] || '';
     if (g.effects) how = 'a creature within ' + g.range + ' ft, or an empty square in the area of a spell (that spell)'; // (Dispel Magic: M.effectsAt, 10-02)
     B.clearCards(); B.card(['{y}' + e.name.toUpperCase() + (e.level ? ' (L' + e.slot + ')' : '') + '{/}: ' + how + D.keys('.  {g}X back{/}')], 100000);
   }
@@ -767,6 +767,7 @@
       if (g.shape === 'sphere' || g.shape === 'cube') return M.inRange(u, g, x, y) ? 'ok' : 'no';
       if (g.shape === 'wall') return M.area(u, g, x, y).length ? 'ok' : 'no';
       if (g.shape === 'cone' || g.shape === 'line' || g.shape === 'wave') return M.area(u, g, x, y).length ? 'ok' : 'no';
+      if (g.shape === 'around') return G.foot(u).concat(M.area(u, g, x, y)).some(function (q) { return q[0] === x && q[1] === y; }) ? 'ok' : 'no'; // (round the caster: himself or a square of it -- Searing Scourge, 10-14)
       if (g.shape === 'teleport') return B.mistyTargets(u, g.range, g.see).some(function (q) { return q[0] === x && q[1] === y; }) ? 'ok' : 'no';
       if (g.shape === 'allies' && B.picks.length && !(w && M.targetOK(B, u, g, w))) return 'self';
       if (spellTarget(B, u, g, x, y)) return 'ok';
@@ -979,6 +980,7 @@
         return;
       }
       if (g.effects && !w) return cast({ x: x, y: y }); // (the spell on that empty square: Dispel Magic, M.effectsAt)
+      if (g.shape === 'around') return cast({ x: u.x, y: u.y }); // (always round the caster, wherever the click)
       if (g.shape === 'sphere' || g.shape === 'cube' || g.shape === 'cone' || g.shape === 'line' || g.shape === 'wave' || g.shape === 'wall' || g.shape === 'teleport') return cast({ x: x, y: y });
       return cast(spellTarget(B, u, g, x, y) || w || (M.guessDark(B, u, g, x, y) ? { x: x, y: y, size: 1, dark: true, name: 'the dark' } : null)); // (the guess: whoever stands there, or the dark itself)
     }
@@ -1986,7 +1988,7 @@
     if (tool === 'item') B.units.forEach(function (w) { if (B.itemTargetOK(u, B.itemId, w)) G.foot(w).forEach(function (q) { lineSq(ctx, q[0], q[1], G.hostile(u, w) ? R('red', 4) : R('moss', 2), 0.9); }); });
     if (tool === 'spell') {
       var S = B.spell, g = S.g, M = D.magic, harm = S.sp.kind === 'save' || S.sp.kind === 'attack' || S.sp.kind === 'auto';
-      if (g.shape === 'sphere' || g.shape === 'cube' || g.shape === 'cone' || g.shape === 'line' || g.shape === 'wave' || g.shape === 'wall') {
+      if (g.shape === 'sphere' || g.shape === 'cube' || g.shape === 'cone' || g.shape === 'line' || g.shape === 'wave' || g.shape === 'wall' || g.shape === 'around') {
         var col = S.id === 'wallofstone' ? R('stone', 3) : S.id === 'wallofthorns' || S.id === 'conjureanimals' || S.id === 'conjurewoodlandbeings' ? R('moss', 2) : S.id === 'windwall' ? R('bone', 2) : S.id === 'web' ? R('bone', 1) : S.id === 'sleep' ? R('violet', 4) : S.sp.el === 'cold' || S.sp.el === 'lightning' ? R('glow', 1) : R('fire', 1);
         // (the Globe of Invulnerability, SRD 5.1: "the area within the barrier is excluded from the areas affected by such spells" -- a square the spell, cast now, could not reach is not tinted.
         // M.globed, js/grimoire.js, asks the globe against the spell's own level (S.sp.level, not the slot), from where the caster would cast it: where he stands, or, for a spell used again

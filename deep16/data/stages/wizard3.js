@@ -109,6 +109,19 @@
     weird: { tip: "Weird frightens every foe in a 30-ft sphere that fails a Wisdom save, then each takes 4d10 psychic at each turn's end until it saves. Cast it on a crowd, concentrate, and keep out of the sphere.",
       foes: crowd(0, 8, { wis: 3 }, PACK5), mate: { hp: 'full' },
       target: function (c) { return at(c, 0); },
-      after: function* (c) { for (var i = 0; i < 2; i++) { yield 20; c.D.magic.onEnd(c.B, c.foes[i]); } } }
+      after: function* (c) { for (var i = 0; i < 2; i++) { yield 20; c.D.magic.onEnd(c.B, c.foes[i]); } } },
+    // ours, not the SRD's (10-14, Griz: "tendrils of fire and the wizard twirls ... to all creatures in the surrounding 8 tiles (works with sculpt)"): the caster
+    // in the middle of the floor with five foes round him and his friend on the east square (sculpted out: the gallery's wizard is an evoker), a sixth foe 15 ft
+    // off and out of it, the other two friends stood clear
+    searingscourge: { slot: 2, tip: "Searing Scourge: you twirl and fire lashes every square round you, 5 ft. Step into the middle of a crowd and spin; an evoker sculpts up to three friends out of it (1 + the spell's level).",
+      foes: [F(-1, 1), F(0, 1), F(1, 1), F(-1, 0), F(-1, -1), F(0, 3)], mate: { hp: 'full' }, pre: function* (c) { ringed(c); }, target: function (c) { return { x: c.cx, y: c.cy }; } },
+    deathhandsscourge: { slot: 2, tip: "Deathhand's Searing Scourge: Garland Rosen's own, one hand fire and one hand death -- 1d4 fire and 1d4 necrotic round you, 1d6 of each from a 3rd-level slot. An evoker sculpts friends out of it as from the plain one.",
+      foes: [F(-1, 1), F(0, 1), F(1, 1), F(-1, 0), F(-1, -1), F(0, 3)], mate: { hp: 'full' }, pre: function* (c) { ringed(c); }, target: function (c) { return { x: c.cx, y: c.cy }; } }
   });
+  // the caster at the stage's centre, the friend on the square east of him, the other two friends 20 ft off to the south-east (the foes' squares are the entry's)
+  function ringed(c) {
+    var u = c.u; u.x = c.cx; u.y = c.cy; u.facing = 0; c.mate.x = c.cx + 1; c.mate.y = c.cy;
+    c.pals.forEach(function (w, i) { w.x = c.cx + 3 + i; w.y = c.cy + 4; });
+    c.D.grid.setup(c.D.grid.map, c.B.units); c.D.iso.lookAt(c.cx, c.cy, c.D.grid.map.gz(c.cx, c.cy));
+  }
 })();

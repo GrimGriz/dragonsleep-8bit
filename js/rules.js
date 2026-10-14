@@ -432,6 +432,14 @@
     Object.keys(sp.scale).forEach(function (lv) { if (h.lvl >= +lv) d = sp.scale[lv]; });
     return d;
   };
+  // a levelled spell's dice cast `up` slots above its own level: the SRD's At Higher Levels, `upDice` more of its die a slot. Ours (10-14, Griz, Deathhand's
+  // Searing Scourge: "deathhand's goes from 1d4 to 1d6 then 1d6 per slot"): `upDie` -- the first slot above turns the dice to that die, and each slot past
+  // it adds `upDice` -- and `up2`, the second die (`dmg2`) grows the same way. Both games read it: js/battle.js (the 8-bit), deep16/js/magic.js M.dice / M.dice2
+  R.slotDice = function (expr, sp, up) {
+    if (!expr || !(up > 0) || !sp.upDice) return expr;
+    return expr.replace(/^(\d+)d(\d+)/, function (m, n, d) { return sp.upDie ? (+n + sp.upDice * (up - 1)) + 'd' + sp.upDie : (+n + sp.upDice * up) + 'd' + d; });
+  };
+  R.slotDice2 = function (sp, up) { return sp.dmg2 && sp.up2 ? R.slotDice(sp.dmg2, sp, up) : sp.dmg2; };
   // ---------------------------------------------------------------- the day's spells (SRD 5.1; AMENDED 09-27, Griz: the casters
   // choose, "spell section to pre-save-post-sleep"). A wizard prepares INT modifier + his level from his spellbook (h.known); a
   // paladin CHA modifier + half his level from the whole paladin list, and nothing at level 1; both only of levels they have

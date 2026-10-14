@@ -71,7 +71,7 @@
   M.cast = function* (B, u, id, slot, t) {
     var L = LK.of(id), prev = FX.ctx;
     FX.ctx = { id: id, el: L.el, dmgEl: L.dmgEl, travel: L.travel, caster: u, shape: L.shape, sky: L.sky };
-    FX.flare(u, L.el);
+    if (L.shape !== 'around') FX.flare(u, L.el); // (not Searing Scourge's: his hands are at his sides, and nothing is drawn over him -- Griz, 10-14: "don't overlay the wizard"; FX.scourge)
     if (L.reach && t) (t.units ? t.units : [t]).forEach(function (w) { if (w && w !== u && w.sheet) FX.reach(u, w, L.el); });
     // Beacon of Hope, 09-29 (Griz: "for beacon of hope can we get a sunbeam coming down on the caster"). The spell is a self cast, so
     // nothing reaches anyone by itself: a sunbeam comes down on the caster, and the gold drifts out to each ally in 30 ft who will
@@ -98,7 +98,7 @@
   FX.bloom = function (cx, cy, squares, ramp) {
     var c = FX.ctx;
     if (c && c.dmgEl && DEFAULT_RAMPS[ramp || 'fire']) ramp = c.dmgEl;
-    var f = bloom0.call(this, cx, cy, squares, ramp, { core: !(c && /^(cone|line|wave)$/.test(c.shape)) });
+    var f = bloom0.call(this, cx, cy, squares, ramp, { core: !(c && /^(cone|line|wave|around)$/.test(c.shape)) }); // (around: its heart is the caster, and the tendrils have been -- FX.scourge)
     if (!c || !c.caster || !squares || !squares.length) return f;
     var ls = LK.landSound(c.id); if (ls) D.sfx(ls);
     var u = c.caster, el = c.dmgEl || c.el;

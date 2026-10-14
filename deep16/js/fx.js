@@ -453,4 +453,48 @@
       ctx.globalAlpha = 1;
     } });
   };
+  // Searing Scourge (ours, 10-14, Griz: "'like' burning hands magically, but tendrils of fire and the wizard twirls"): the caster turns twice round from facing
+  // f0 (js/magic.js area: eight steps of three frames, then eight of two, his arms at his sides -- Griz, on the first look: "lower it and don't overlay the
+  // wizard - his hands can be at his sides when he twirls in those frames"), and at the step that faces each square round him a tendril of flame whips out of
+  // the hand on that side, low, swings wide of him and lashes along the floor to burst there; the second turn lashes them again. Nothing of it is drawn over
+  // his figure (a lash to a square behind him goes behind him). Deathhand's (el2, his necrotic arm -- Griz: "can grid do one hand purple (necro) one hand fire
+  // in that few frames?"): each hand lashes every square as it swings past it, his right hand fire and his left death, so a fire tendril and a purple one go
+  // out from his two sides at once and sweep round with him
+  FX.scourge = function (u, squares, el, el2, f0) {
+    var E = FX.el(el), E2 = el2 && EL[el2] ? EL[el2] : null, s = u.size || 1, ox = u.x + (s - 1) / 2, oy = u.y + (s - 1) / 2, ls = [];
+    var FIRE = { rim: E.c[3], a: E.c[0], b: E.c[1], tip: E.c[0], ember: E.c[1], E: E };
+    var DARK = E2 ? { rim: E2.c[3], a: P('violet', 5), b: E2.c[1], tip: E2.c[0], ember: E2.c[0], E: E2 } : FIRE;
+    var step = function (f) { return ((f - f0 - 1) % 8 + 8) % 8 + 1; }; // (the step of a turn, 1..8, at which he faces f)
+    squares.forEach(function (q, i) {
+      var fq = D.spr.facingFor(q[0] - ox, q[1] - oy), w = function () { return RND() * 6.28; };
+      if (!E2) { var k = step(fq); ls.push({ q: q, at: k * 3 - 2, w: w(), i: i, C: FIRE, life: 20 }, { q: q, at: 24 + step(fq) * 2 - 1, w: w(), two: true, i: i + 1, C: FIRE, life: 20 }); return; }
+      // (his right hand points two facings on from where he faces, his left two back: each lashes the square as it comes round to it)
+      var kR = step(fq - 2), kL = step(fq + 2);
+      ls.push({ q: q, at: kR * 3 - 2, w: w(), hand: 2, C: FIRE, life: 14 }, { q: q, at: kL * 3 - 2, w: w(), hand: 6, C: DARK, life: 14 },
+        { q: q, at: 24 + kR * 2 - 1, w: w(), hand: 2, C: FIRE, life: 14, two: true }, { q: q, at: 24 + kL * 2 - 1, w: w(), hand: 6, C: DARK, life: 14, two: true });
+    });
+    return FX.add({ kind: 'scourge', dur: 62, draw: function (ctx) {
+      var b = body(u), t = this.t, hw = Math.max(5, b.top * 0.17) * s, hy = b.y - b.top * 0.38;
+      var mine = function (x, y) { return Math.abs(x - b.x) <= hw && y >= b.y - b.top && y <= b.y + 1; }; // (his figure's box: nothing drawn there)
+      var dot = function (x, y, c, w) { if (!mine(x, y)) px(ctx, x, y, c, w); };
+      ls.forEach(function (l) {
+        var k = (t - l.at) / l.life; if (k <= 0 || k >= 1) return;
+        var c0 = D.iso.center(l.q[0], l.q[1], D.iso.map.gz(l.q[0], l.q[1])), e0 = D.iso.toScreen(c0.x, c0.y), ex = e0.x, ey = e0.y - 3; // (low: along the floor)
+        var vx, vy, hx, hy2;
+        if (l.hand != null) { var fo = FACE_OFF[((u.facing || 0) + l.hand) % 8]; vx = fo[0] / 7; vy = fo[1] / 3; hx = b.x + vx * (hw + 2); hy2 = hy + vy * 4; } // (that hand where it is now, as he turns)
+        else { vx = Math.abs(ex - b.x) > 3 ? Math.sign(ex - b.x) : (l.i % 2 ? 1 : -1); vy = 0; hx = b.x + vx * (hw + 1); hy2 = hy; } // (the hand at his side toward it)
+        var reach = Math.min(1, k * 2.6) * (k > 0.7 ? (1 - k) / 0.3 : 1), L = Math.hypot(ex - hx, ey - hy2), C = l.C;
+        var nx = -(ey - hy2) / (L || 1), ny = (ex - hx) / (L || 1), pts = [], n = Math.max(10, Math.round(L * reach / 0.6)); // (a rope of flame, not a dotted line)
+        for (var j = 0; j <= n; j++) {
+          var sj = j / n * reach, wv = Math.sin(sj * 8 - t * 0.6 + l.w) * 4 * sj * (l.two ? 0.7 : 1), bow = Math.sin(sj * Math.PI);
+          var bx = hx + (ex - hx) * sj + vx * bow * 9, by = hy2 + (ey - hy2) * sj + vy * bow * 4 - bow * 3, f = j / n; // (it swings wide of him on its side, and stays low)
+          pts.push({ x: bx + nx * wv, y: by + ny * wv, w: f < 0.35 ? 3 : f < 0.75 ? 2 : 1, f: f, j: j });
+        }
+        pts.forEach(function (p) { dot(p.x, p.y, C.rim, p.w + 1); }); // the dark rim under it
+        pts.forEach(function (p) { dot(p.x, p.y, p.f > 0.92 ? C.tip : (p.j + t) % 5 < 2 ? C.a : C.b, p.w); }); // the bright core, flickering down its length
+        if (k > 0.3) pts.forEach(function (p) { if (p.j % 7 === 3) dot(p.x + Math.sin(t * 0.5 + p.j) * 2, p.y - (k - 0.3) * 12, C.ember, 1); }); // embers shed off it, rising
+        if (reach >= 1 && k < 0.55 && !mine(ex, ey)) { glow(ctx, ex, ey, C.E.c[1], 6, 0.4); star(ctx, Math.round(ex), Math.round(ey), C.E, 3 + Math.round(k * 6)); }
+      });
+    } });
+  };
 })();

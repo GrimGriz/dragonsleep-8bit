@@ -161,6 +161,7 @@
     if (this.intro > 0) this.intro--;
     if (this.flashT > 0) this.flashT--;
     if (this.shake > 0) this.shake--;
+    this.heroes.forEach(function (u) { if (u.spin > 0) u.spin--; }); // (a twirl's frames: drawSpun)
     this.fx = this.fx.filter(function (p) { p.x += p.vx; p.y += p.vy; p.vy += p.g || 0; return --p.life > 0; });
     this.nums = this.nums.filter(function (n) { n.t++; return n.t < 50; });
     this.foes.forEach(function (f) { if (f.flash > 6 && !(f.off > 0)) f.ouch = 30; else if (f.ouch > 0) f.ouch--; if (f.flash > 0) f.flash--; if (f.dead && f.fade > 0) f.fade--; }); // (ouch: a blow's flash, not its own lunge's, holds a hurt pose half a second -- an NES sheet's, 10-08)
@@ -181,6 +182,11 @@
   function drawFallen(ctx, img, x, y, w, h, t, away) {
     if (!(t > 0)) { ctx.drawImage(img, x, y); return; }
     ctx.save(); ctx.translate(Math.round(x + w / 2 - away * t * h / 2), Math.round(y + h - t * w / 2)); ctx.rotate(away * t * Math.PI / 2); ctx.drawImage(img, -w / 2, -h); ctx.restore();
+  }
+  // a sprite turning round on the spot, t frames of the turn left: drawn through its own mirror, narrowed as it shows its edge (two turns in 36 frames)
+  function drawSpun(ctx, img, x, y, w, t) {
+    var k = Math.cos(t * 0.35); if (Math.abs(k) < 0.2) k = k < 0 ? -0.2 : 0.2;
+    ctx.save(); ctx.translate(Math.round(x + w / 2), 0); ctx.scale(k, 1); ctx.drawImage(img, -w / 2, y); ctx.restore();
   }
   Battle.prototype.wait = function (n) { return W8.frames(n); };
   Battle.prototype.say = function* (t, frames) {
@@ -900,11 +906,19 @@
   };
   // the foe in front (the rightmost edge: the one nearest the party's line), the one a guest swings at and aims a cone or a line at
   Battle.prototype.frontFoe = function () { return this.liveFoes().slice().sort(function (a, b) { return (b.x + b.art.w) - (a.x + a.art.w); })[0] || null; };
+  // what a spell round the caster takes in a fight with no squares (Searing Scourge, ours -- 10-14, Griz: the grid's "surrounding 8 tiles", here "the foe in front
+  // and up to two beside it"): the front foe and the two nearest it, as a cone's two are found
+  Battle.prototype.aroundFoes = function () {
+    var t0 = this.frontFoe(); if (!t0) return [];
+    var rest = this.liveFoes().filter(function (f) { return f !== t0; });
+    rest.sort(function (a, b) { return Math.abs(a.y - t0.y) + Math.abs(a.x - t0.x) - (Math.abs(b.y - t0.y) + Math.abs(b.x - t0.x)); });
+    return [t0].concat(rest.slice(0, 2));
+  };
   // a caster's best area for a group: damaging, a cone, a line or every foe, a slot for it, not a reaction or a bonus action, and under a roost no fire or
   // thunder; the highest level first, all the foes before a cone or a line at a tie (the walker's hand, dev/bench8.js areaSpell)
   Battle.prototype.areaSpell = function (h) {
     var roost = this.o.roost;
-    return R.spellList(h, 'battle').filter(function (sp) { return sp.level > 0 && sp.dmg && /^(cone|line|enemies)$/.test(sp.target) && !sp.reaction && !sp.bonus && R.lowestSlot(h, sp.level) && !(roost && (sp.el === 'fire' || sp.el === 'thunder')); })
+    return R.spellList(h, 'battle').filter(function (sp) { return sp.level > 0 && sp.dmg && /^(cone|line|enemies|around)$/.test(sp.target) && !sp.reaction && !sp.bonus && R.lowestSlot(h, sp.level) && !(roost && (sp.el === 'fire' || sp.el === 'thunder')); })
       .sort(function (a, c) { return c.level - a.level || (c.target === 'enemies') - (a.target === 'enemies'); })[0] || null;
   };
   // a cleric guest's turn (Ingrith, RULED 09-28g: "she's meant to be Cleric"; Life Domain, the SRD's, INFERENCE invented.json
@@ -1101,7 +1115,7 @@
       // the bonus action (09-28g): a bonus-action spell wants it free; after one, the action's spell may only be a cantrip
       var noBonus = sp.bonus && st && !st.bonus, onlyCantrip = st && st.bonusSpell && sp.level > 0 && !sp.bonus && sp.id !== 'smite', noSlot = sp.level > 0 && !lv;
       var dis = noSlot || banned || noBonus || onlyCantrip;
-      return { label: sp.name, value: sp, lv: lv, right: banned ? 'ROOST' : noBonus ? 'bonus' : sp.level === 0 ? '—' : 'L' + (lv || sp.level), disabled: dis,
+      return { label: sp.short || sp.name /* (short: a name too long for the column -- Deathhand's, 10-14) */, value: sp, lv: lv, right: banned ? 'ROOST' : noBonus ? 'bonus' : sp.level === 0 ? '—' : 'L' + (lv || sp.level), disabled: dis,
         why: banned ? 'the roost overhead: no fire, no thunder' : noBonus ? 'the bonus action is spent' : onlyCantrip ? 'after a bonus-action spell, only a cantrip' : noSlot ? 'no slot of level ' + sp.level + ' or higher' : '' };
     });
   };
@@ -1355,7 +1369,8 @@
         rest.sort(function (a, b) { return Math.abs(a.y - t0.y) + Math.abs(a.x - t0.x) - (Math.abs(b.y - t0.y) + Math.abs(b.x - t0.x)); });
         targets = targets.concat(rest.slice(0, cnt));
       }
-    } else if (sp.target === 'enemies') targets = this.liveFoes();
+    } else if (sp.target === 'around') targets = this.aroundFoes(); // (Searing Scourge: round the caster -- the foe in front and up to two beside it, no picker; 10-14, Griz: "do 1 and 2")
+    else if (sp.target === 'enemies') targets = this.liveFoes();
     else if (sp.target === 'ally') {
       var unarmored = sp.buff === 'mageArmor' ? function (x) { return !down(x) && !R.armored(x.h); } : null; // Mage Armor: an unarmored ally only
       if (unarmored && !this.heroes.some(unarmored)) { yield* this.say('No one here goes unarmored. Mage Armor has no one to take it.', 40); return false; }
@@ -1463,8 +1478,8 @@
         var s = this.save(t, sp.save, dc, { poison: sp.el === 'poison', charm: sp.cond === 'charmed', dis: sp.id === 'shatter' && !!(t.m && t.m.traits && t.m.traits.inorganic) }); // (Shatter: "a creature made of inorganic material such as stone, crystal, or metal has disadvantage on the saving throw" -- the earth elemental's trait `inorganic`; 10-06)
         var potent = sp.level === 0 && h.cls === 'wizard' && h.lvl >= 6; // Potent Cantrip: a save still takes half
         var dexp = sp.level === 0 ? R.cantripDice(sp, h) : sp.dmg;
-        var upd = function (e) { return e.replace(/^(\d+)d/, function (m0, nn) { return (parseInt(nn, 10) + up * (sp.upDice || 0)) + 'd'; }); };
-        if (!rolled) rolled = { d1: dexp ? DS.roll(upd(dexp)) : 0, d2: sp.dmg2 ? DS.roll(sp.dmg2) : 0 };
+        var upd = function (e) { return R.slotDice(e, sp, up); }; // (the dice at the slot: js/rules.js -- a die that steps up, a second die that grows, 10-14)
+        if (!rolled) rolled = { d1: dexp ? DS.roll(upd(dexp)) : 0, d2: sp.dmg2 ? DS.roll(R.slotDice2(sp, up)) : 0 };
         var dmgT = rolled.d1, dmg2 = rolled.d2;
         if (s.success) { dmgT = sp.half || potent ? Math.floor(dmgT / 2) : 0; dmg2 = sp.half || potent ? Math.floor(dmg2 / 2) : 0; }
         var dealt = dmgT ? this.hurt(t, dmgT, sp.el, { magicWeapon: true }) : 0;
@@ -2080,6 +2095,7 @@
       if (pose === 'ko') { ctx.drawImage(spr.ko, x - 4, y + 8); return; }
       if (u.images > 0) { ctx.globalAlpha = 0.35; for (var k = 0; k < u.images; k++) ctx.drawImage(spr[pose], x + [-8, 8, -4][k], y + [2, -2, 4][k]); ctx.globalAlpha = 1; } // (Mirror Image: his doubles about him, as a foe's phantasms are drawn -- 10-02)
       if (u.conds.paralyzed) { drawFallen(ctx, spr[pose], x, y, 16, 24, u.lie, 1); ctx.globalAlpha = 0.4; ctx.fillStyle = '#6888FC'; ctx.fillRect(x, y, 16, 24); ctx.globalAlpha = 1; }
+      else if (u.spin > 0 && !(u.lie > 0)) drawSpun(ctx, spr[pose === 'cast' ? 'stand' : pose], x, y, 16, u.spin); // (a twirl: Searing Scourge's caster turning round, his arms at his sides -- js/spellfx8.js, 10-14)
       else drawFallen(ctx, spr[pose], x, y, 16, 24, u.lie, 1); // (prone: fallen, 10-06)
       if (self.doorWardOn) { ctx.globalAlpha = 0.28 + 0.16 * Math.sin(DS.frame / 5 + u.idx); ctx.drawImage(sheenOf(spr[pose]), x, y); ctx.globalAlpha = 1; if (((DS.frame >> 2) + u.idx * 3) % 11 === 0) { ctx.fillStyle = '#F8F8F8'; ctx.fillRect(x + 3 + (DS.frame % 9), y + 4 + (DS.frame % 13), 1, 1); } }
       if (u.conds.engulfed) { ctx.fillStyle = '#1a1a24'; ctx.fillRect(x - 1, y - 1, 18, 14); }

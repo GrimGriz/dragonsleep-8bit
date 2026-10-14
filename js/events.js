@@ -289,7 +289,7 @@
       h.prepared = h.prepared.filter(function (id) { return pool.indexOf(id) >= 0; }).slice(0, n);
       var rows = pool.map(function (id) {
         var sp = DS.DATA.spells[id], on = h.prepared.indexOf(id) >= 0;
-        return { label: (on ? '■ ' : '□ ') + sp.name, right: 'L' + sp.level, value: id, color: on ? null : '#C8D0E8', desc: sp.desc };
+        return { label: (on ? '■ ' : '□ ') + (sp.short || sp.name), right: 'L' + sp.level, value: id, color: on ? null : '#C8D0E8', desc: sp.desc };
       });
       R.oathSpells(h).forEach(function (id) { var sp = DS.DATA.spells[id]; rows.push({ label: '◆ ' + sp.name, right: 'OATH', value: id, disabled: true, desc: L('g.prepOath', { spell: sp.name }) }); });
       R.ritualsOf(h).forEach(function (id) { var sp = DS.DATA.spells[id]; rows.push({ label: '◆ ' + sp.name, right: 'RITUAL', value: id, disabled: true, desc: L('g.prepRitual', { spell: sp.name }) }); });

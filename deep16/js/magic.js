@@ -34,9 +34,11 @@
     var d = sp.dmg;
     if (sp.scale) Object.keys(sp.scale).forEach(function (lv) { if (u.lvl >= +lv) d = sp.scale[lv]; });
     if (sp.level === 0 && u.lvl >= 11 && d) d = d.replace(/^(\d+)d/, function (m, n) { return (+n + 1) + 'd'; });
-    if (sp.upDice && up(sp, slot)) d = d.replace(/^(\d+)d/, function (m, n) { return (+n + sp.upDice * up(sp, slot)) + 'd'; });
+    if (sp.upDice && up(sp, slot)) d = window.DS.R.slotDice(d, sp, up(sp, slot)); // (js/rules.js: a die that steps up first -- `upDie`, Deathhand's, 10-14)
     return d;
   };
+  // the second die of its own kind (Ice Storm's cold, Deathhand's necrotic) at the slot: it grows only where the spell says so (`up2`, js/rules.js)
+  M.dice2 = function (sp, slot) { return sp.dmg2 ? window.DS.R.slotDice2(sp, up(sp, slot)) : null; };
 
   // ------------------------------------------------------------------ the list: every spell the hero knows, and whether it can be cast now
   var AIMED = { single: 1, attack: 1, rays: 1, splash: 1, allies: 1, touch: 1 }; // (the shapes that take a creature: the picker's, ui.js)
@@ -105,6 +107,7 @@
         return e.id === 'sleep' ? (g.pool + g.poolUp * Math.max(0, e.slot - 1)) + 'd8 HP of sleep, ' + g.r + '-ft sphere within ' + g.range + ' ft' : g.r + '-ft sphere within ' + g.range + ' ft · ' + save + ' · ' + d + (sp.dmg2 ? ' + ' + sp.dmg2 : '') + ' ' + sp.el;
       case 'cube': return g.size + '-ft cube within ' + g.range + ' ft · DEX or restrained' + conc;
       case 'wave': return '15-ft cube out from you · CON half · ' + d + ' thunder, a failed save pushed 10 ft';
+      case 'around': return 'every square round you (5 ft) · ' + save + ' · ' + d + ' ' + sp.el + (sp.dmg2 ? ' + ' + M.dice2(sp, e.slot) + ' ' + sp.el2 : '');
       case 'single': return e.id === 'holdmonster' ? 'a foe within 90 ft · WIS or paralyzed' + conc : e.id === 'holdperson' ? 'a humanoid within 60 ft · WIS or paralyzed' + conc : 'an ally within ' + g.range + ' ft · +2 AC' + conc;
       case 'allies': return 'up to ' + n + ' within ' + g.range + ' ft · ' + (e.id === 'bless' ? '+1d4 to attacks and saves' + conc : '+' + 5 * Math.max(1, e.slot - 1) + ' max HP');
       case 'self': return ({ seeinvisibility: 'you see the invisible for the fight', mislead: 'invisible (till you attack or cast), and a false double' + conc, passwithouttrace: '+10 Stealth to all of yours within 30 ft' + conc }[e.id]) || '+1d4 radiant on weapon hits' + conc;
@@ -151,6 +154,7 @@
     if (g.shape === 'sphere') return M.inRange(u, g, cx, cy) ? G.sphere(cx, cy, g.r) : [];
     if (g.shape === 'cube') { var n = g.size / 5, x0 = cx - Math.floor((n - 1) / 2), y0 = cy - Math.floor((n - 1) / 2); return M.inRange(u, g, cx, cy) ? G.cube(x0, y0, n) : []; }
     if (g.shape === 'wave') return M.wave(u, g, cx, cy);
+    if (g.shape === 'around') return M.around(u, u.x, u.y); // (wherever the cursor is: it is always round the caster)
     if (g.shape === 'cone') return aimed(u, cx, cy, g.len, true);
     if (g.shape === 'line') return aimed(u, cx, cy, g.len, false);
     return [];
@@ -162,6 +166,16 @@
     var sx = Math.abs(dx) > 2 * Math.abs(dy) ? Math.sign(dx) : Math.abs(dy) > 2 * Math.abs(dx) ? 0 : Math.sign(dx);
     var sy = Math.abs(dy) > 2 * Math.abs(dx) ? Math.sign(dy) : Math.abs(dx) > 2 * Math.abs(dy) ? 0 : Math.sign(dy);
     return [sx, sy];
+  };
+  // the squares round a creature (Searing Scourge, ours -- 10-14, Griz: "the surrounding 8 tiles"): every open one within 5 ft of its space were it standing at
+  // (x, y), not its own; eight for one of man size, twelve for a Large. (x, y) other than where it stands: the AI weighing a square to walk to first
+  M.around = function (u, x, y) {
+    var s = u.size || 1, out = [];
+    for (var yy = y - 1; yy <= y + s; yy++) for (var xx = x - 1; xx <= x + s; xx++) {
+      if (xx >= x && xx < x + s && yy >= y && yy < y + s) continue;
+      var q = G.map.at(xx, yy); if (q && q.open && G.losPoint(x, y, xx, yy)) out.push([xx, yy]);
+    }
+    return out;
   };
   M.wave = function (u, g, cx, cy) {
     var d = M.waveDir(u, cx, cy), n = g.size / 5, out = [];
@@ -331,7 +345,7 @@
     var head = '{y}' + u.name + '{/}: ' + sp.name.toUpperCase() + (sp.level ? ' (L' + slot + ')' : '');
     var dc = u.spellDC, n = up(sp, slot);
     if (u.famPerk) dc += (id === 'web' ? u.famPerk('webDC') : 0) + (window.DS.R.CHARM_SPELLS.indexOf(id) >= 0 ? u.famPerk('charmDC') : 0); // (the spider's and the snake's, js/familiar.js)
-    if (g.shape !== 'self' && g.shape !== 'touch') { var at = t && t.x != null ? { x: t.x, y: t.y, size: 1 } : t && t.units ? t.units[0] : t; if (at) u.facing = B.faceTo(u, at); }
+    if (g.shape !== 'self' && g.shape !== 'touch' && g.shape !== 'around') { var at = t && t.x != null ? { x: t.x, y: t.y, size: 1 } : t && t.units ? t.units[0] : t; if (at) u.facing = B.faceTo(u, at); }
     u.anim = D.spr.anim(u.sheet, 'cast') ? 'cast' : 'attack'; u.animT = B.t; // (a caster's own pose where the sheet has one: the spell animation pass, 09-28h)
     D.sfx(M.sound(sp));
     yield Math.max(10, Math.round((D.spr.duration(u.sheet, u.anim) || 18) * 0.55)); // (the release at the height of the cast pose)
@@ -455,8 +469,8 @@
         if (!sv.ok) B.hurt(w, r1.total, 'acid', MAGIC); else if (potent) B.hurt(w, Math.floor(r1.total / 2), 'acid', MAGIC);
       });
       B.card(lines2, 360); yield 30;
-    } else if (g.shape === 'sphere' || g.shape === 'cube' || g.shape === 'cone' || g.shape === 'line' || g.shape === 'wave') {
-      yield* area(B, u, id, sp, g, slot, t.x, t.y, head);
+    } else if (g.shape === 'sphere' || g.shape === 'cube' || g.shape === 'cone' || g.shape === 'line' || g.shape === 'wave' || g.shape === 'around') {
+      yield* area(B, u, id, sp, g, slot, t && t.x != null ? t.x : u.x, t && t.y != null ? t.y : u.y, head);
     } else if (g.shape === 'single') {
       if (id === 'holdmonster' && t.type === 'undead') { B.card([head + ' on the ' + B.shortName(t) + ': {g}the dead are not held{/}  (SRD 5.1: "no effect on undead")']); FX.ring(t, 'violet', 20); } // (10-06)
       else if (id === 'holdmonster' || id === 'holdperson') {
@@ -560,9 +574,16 @@
     var sq = M.area(u, g, cx, cy), dc = u.spellDC;
     var ramp = id === 'daylight' || id === 'dancinglights' ? 'bone' : id === 'fogcloud' || id === 'sleetstorm' ? 'silver' : id === 'stinkingcloud' ? 'acid' : sp.el === 'cold' || sp.el === 'lightning' ? 'glow' : sp.el === 'thunder' ? 'silver' : sp.el === 'force' ? 'bone' : 'fire';
     if (g.shape === 'sphere' || g.shape === 'cube') { FX.projectile(u, { x: cx, y: cy, size: 1 }, 'fire'); yield { fx: 1 }; }
-    var fromMe = g.shape === 'cone' || g.shape === 'line' || g.shape === 'wave';
+    var fromMe = g.shape === 'cone' || g.shape === 'line' || g.shape === 'wave' || g.shape === 'around';
+    // the caster twirls (10-14, Griz: "tendrils of fire and the wizard twirls"): twice round, eight facings a turn, and a tendril lashes out to each square round
+    // him at the step that faces it (FX.scourge, js/fx.js); he ends facing as he began
+    if (g.shape === 'around') {
+      var f0 = u.facing || 0; if (FX.scourge) FX.scourge(u, sq, sp.el, sp.el2, f0);
+      u.anim = 'idle'; u.animT = B.t; // (his arms at his sides as he turns -- Griz, on the first look: "his hands can be at his sides when he twirls in those frames")
+      for (var tw = 1; tw <= 16; tw++) { u.facing = (f0 + tw) % 8; yield tw <= 8 ? 3 : 2; }
+    }
     FX.bloom(fromMe ? u.x : cx, fromMe ? u.y : cy, sq, ramp);
-    var caught = B.units.filter(function (w) { return G.present(w) && (w.hp > 0 || w.regenDown) && G.inArea(w, sq) && (!w.object || id === 'shatter'); }); // (an object -- the Skylights' glass -- is caught by Shatter alone: SRD 5.1, "A nonmagical object that isn't being worn or carried also takes the damage"; a Fireball ignites flammables and hurts creatures. 10-05, Griz: "SRD only shatter is even nicer") // (a troll down and knitting is caught too: a fireball burns it where it lies -- 10-05)
+    var caught = B.units.filter(function (w) { return G.present(w) && (w.hp > 0 || w.regenDown) && G.inArea(w, sq) && (!w.object || id === 'shatter') && (g.shape !== 'around' || G.dist(u, w) <= 5); }); // (round the caster: within 5 ft as bodies stand -- one aloft or on the ledge over the square is out of it, G.dist with the heights) // (an object -- the Skylights' glass -- is caught by Shatter alone: SRD 5.1, "A nonmagical object that isn't being worn or carried also takes the damage"; a Fireball ignites flammables and hurts creatures. 10-05, Griz: "SRD only shatter is even nicer") // (a troll down and knitting is caught too: a fireball burns it where it lies -- 10-05)
     // the Globe of Invulnerability (SRD 5.1: "the area within the barrier is excluded from the areas affected by such spells"): those inside it, the
     // caster outside, are not caught; the card says so
     var inGlobe = M.globed ? caught.filter(function (w) { return M.globed(B, u, w, sp.level); }) : [];
@@ -649,12 +670,12 @@
         B.card(['{p}The webs melt away.{/}' + (freed.length ? '  {o}' + freed.join(', ') + ' ' + (freed.length > 1 ? 'are' : 'is') + ' free.{/}' : '')], 360);
       });
     } else {
-      var dd = M.dice(sp, u, slot), r = D.roll(dd), r2 = sp.dmg2 ? D.roll(sp.dmg2) : null, tot = r.total + (r2 ? r2.total : 0), ab = sp.save || 'dex';
+      var dd = M.dice(sp, u, slot), dd2 = M.dice2(sp, slot), r = D.roll(dd), r2 = dd2 ? D.roll(dd2) : null, tot = r.total + (r2 ? r2.total : 0), ab = sp.save || 'dex';
       // Elemental Affinity (the Draconic sorcerer at 6): + CHA to a spell of the ancestry's element
       var aff = M.affinity ? M.affinity(u, sp.el) : 0; tot += aff;
       // a second die of its own kind (Ice Storm's 4d6 cold beside its 2d8 bludgeoning, SRD 5.1 -- 10-03, Griz: "yes; it is a bug": it all landed as the first kind)
       var d1 = r.total + aff, d2 = r2 ? r2.total : 0;
-      lines.push(head + '  ' + dd + ' ' + RU.fmtRolls(r.rolls) + (r2 ? ' + ' + sp.dmg2 + ' ' + RU.fmtRolls(r2.rolls) : '') + (aff ? ' {y}+' + aff + ' affinity{/}' : '') + (r2 ? ' = {o}' + d1 + '{/} ' + sp.el + ' + {o}' + d2 + '{/} ' + sp.el2 : ' = {o}' + tot + '{/} ' + sp.el) + '  ' + ab.toUpperCase() + ' DC ' + dc);
+      lines.push(head + '  ' + dd + ' ' + RU.fmtRolls(r.rolls) + (r2 ? ' + ' + dd2 + ' ' + RU.fmtRolls(r2.rolls) : '') + (aff ? ' {y}+' + aff + ' affinity{/}' : '') + (r2 ? ' = {o}' + d1 + '{/} ' + sp.el + ' + {o}' + d2 + '{/} ' + sp.el2 : ' = {o}' + tot + '{/} ' + sp.el) + '  ' + ab.toUpperCase() + ' DC ' + dc);
       var hits = [];
       // Sculpt Spells (the evoker, SRD 5.1 wizard 2): up to 1 + the spell's level of his own in an evocation are spared -- they save, and
       // take nothing where a save would halve it (js/features.js M.sculpted)
