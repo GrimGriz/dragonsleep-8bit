@@ -88,6 +88,9 @@
   // paid, hurt, slots, uses, what lasts, EQUIP), who holds the light, the pack as the change since the party walked on (a fight's inv0 and inv1), the flags, the kill tally,
   // the purse. Refused or crashed, the 8-bit's own Wet stands under it, as a fight falls back to the 8-bit battle. Not after the drain (the drained stair is the 8-bit's till
   // the grid has it), nor with &noroam in the address
+  // the wizard's familiar (Find Familiar, js/familiar.js) back from the grid, a fight's or the floor's (10-14, Griz: "familiars aren't properly handled"): fallen there, it is
+  // gone till the ritual calls it back; else what it has left
+  function famBack(g, f) { if (f && g.flags.familiar) { if (f.gone) { g.flags.familiarGone = g.flags.familiar.kind; delete g.flags.familiar; } else g.flags.familiar.hp = f.hp; } }
   DS.roam8 = {
     on: function () { var f = DS.G.flags; return !/[?&]noroam\b/.test(location.search) && !(f.stairHook && !f.keeperWater); },
     enter: function* () {
@@ -113,6 +116,7 @@
       Object.keys(i0).forEach(function (id) { var used = i0[id] - (i1[id] || 0), have = g.count(id); if (used > 0 && have > 0) g.take(id, Math.min(used, have)); });
       Object.keys(i1).forEach(function (id) { var got = (i1[id] || 0) - (i0[id] || 0); if (got > 0) g.give(id, got); });
       Object.keys(d.flags || {}).forEach(function (k) { g.flags[k] = d.flags[k]; });
+      famBack(g, d.familiar); // (after the flags: the floor's copy of flags.familiar is as it walked on)
       if (d.kills) g.kills = d.kills; if (d.silver != null) g.silver = d.silver;
       if (d.order) { var ord = d.order; g.party.sort(function (a, b) { var ia = ord.indexOf(a.id), ib = ord.indexOf(b.id); return (ia < 0 ? 99 : ia) - (ib < 0 ? 99 : ib); }); } // (a leader changed by ORDER on the floor leads the 8-bit's party too)
       if (d.warn && d.warn.length) console.warn('THE ROAM, the pack at the stairs: ' + d.warn.join('; '));
@@ -201,8 +205,7 @@
       else if (hoodedLit) g.give(lk, 1);
       if (!r.torch) delete h.equip.torch;
     });
-    // the wizard's familiar (Find Familiar, js/familiar.js): fallen on the grid, it is gone till the ritual calls it back
-    if (d.familiar && g.flags.familiar) { if (d.familiar.gone) { g.flags.familiarGone = g.flags.familiar.kind; delete g.flags.familiar; } else g.flags.familiar.hp = d.familiar.hp; }
+    famBack(g, d.familiar);
     // the pack: what the fight used is gone (a potion drunk, a bolt loosed), never below none. The party fights with only
     // what it brought (no crossbow lent here, Griz 09-27)
     var i0 = d.inv0 || {}, i1 = d.inv1 || {};

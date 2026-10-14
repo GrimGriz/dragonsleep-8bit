@@ -2465,6 +2465,36 @@
       var nCh = (BJ.log || []).length; RJ.keys.push('use'); driveZ(BJ.co, null, 80); var empty = (BJ.log || []).slice(nCh).some(function (l) { return /Empty/.test(l); });
       okZ('the Wet\'s chest on the floor (' + !!chZ + '), its square closed (' + !(chS && chS.walk) + '): opened beside it, the greater potion (+' + (gp1 - gp0) + ') and its flag (' + !!RJ.flags[key] + '); again, empty (' + empty + ')',
         !!chZ && chS && !chS.walk && gp1 - gp0 === 1 && RJ.flags[key] === 1 && empty);
+      // the wizard's familiar on the floor (10-14, Griz: "familiars aren't properly handled"): Aurdin's owl from the 8-bit's save, Barley leading -- folded into the token
+      // with Aurdin (the code before left it riding the square he last stood on), out with him at a spill and on his square, home at the fold; fallen in a pulled-in fight,
+      // the floor has it fallen; out by the stair up, the message says gone (js/embed.js famBack: the 8-bit's flags.familiar to familiarGone -- bench8 roam8)
+      while (D.scenes.length > 1) D.pop();
+      var saveF = D.save.fixture(3); saveF.flags = { familiar: { kind: 'owl', by: 'aurdin', hp: 1 } };
+      var outF = null, roF = D.embed && D.embed.roamOut; if (D.embed) D.embed.roamOut = function (m) { outF = m; };
+      var BF = D.roam.make('?roam=wet&watch', { save: saveF, opts: { at8: [2, 12], dir: 'right', dark: true } }); D.scenes.length = 0; D.push(BF); D.battle = BF; BF.enter();
+      var RF = BF.roam, auF = RF.members.filter(function (u) { return u.id === 'aurdin'; })[0], famF = RF.fam || BF.units.filter(function (u) { return u.familiar; })[0];
+      var in0 = [!!famF, !!famF && BF.units.indexOf(famF) >= 0, RF.token.id];
+      D.roam.spill(BF, {}); var sp1 = [!!famF && BF.units.indexOf(famF) >= 0, !!famF && !!famF.riding, !!famF && famF.x === auF.x && famF.y === auF.y];
+      D.roam.into(BF, RF.rest); var in2 = !!famF && BF.units.indexOf(famF) >= 0;
+      okZ('Aurdin\'s owl on the floor (' + in0[0] + ', ' + RF.token.name + ' leading): folded into the token with him, not left on the floor (' + !in0[1] + '); out with him at a spill (' + sp1[0] + '), riding him (' + sp1[1] + ', on his square ' + sp1[2] + '); home at the fold (' + !in2 + ')',
+        in0[0] && in0[2] !== 'aurdin' && !in0[1] && sp1[0] && sp1[1] && sp1[2] && !in2);
+      var gF = D.roam.pullIn(BF, 'keeper', { id: 'stair' }, at8(19, 21), 'ledge'), seatF = null;
+      for (var kF = 0; kF < 400 && D.top() === BF; kF++) gF.next();
+      var bF = D.top();
+      if (bF !== BF) {
+        bF.enter(); var fuF = bF.units.filter(function (u) { return u.familiar; })[0]; seatF = fuF ? fuF.hp : null;
+        if (fuF) { fuF.hp = 0; fuF.dead = true; }
+        bF.units.forEach(function (u) { if (u.kind === 'keeper') { u.hp = 0; u.dead = true; } });
+        D.pop(); bF.o.onDone('won'); driveZ(gF, null, 2000);
+      }
+      okZ('in the Keeper\'s fight it is seated as the floor has it (hp ' + seatF + '); fallen there, the floor has it fallen (hp ' + (famF && famF.hp) + ') and off the floor (' + !(famF && BF.units.indexOf(famF) >= 0) + ')',
+        seatF === 1 && famF && famF.hp === 0 && BF.units.indexOf(famF) < 0);
+      D.battle = BF; RF.mode = 'walk'; RF.groups = [];
+      var upF = D.roam.def.stairUp[0], nbF = null; for (var yF = -1; yF <= 1 && !nbF; yF++) for (var xF = -1; xF <= 1 && !nbF; xF++) if ((xF || yF) && GZ.canStand(RF.token, upF[0] + xF, upF[1] + yF)) nbF = [upF[0] + xF, upF[1] + yF];
+      RF.token.x = nbF[0]; RF.token.y = nbF[1]; RF.token.tween = null; GZ.setup(GZ.map, BF.units); RF.path = [upF.slice()];
+      driveZ(BF.co, function () { return !!outF; }, 600);
+      okZ('out by the stair up: the message carries the familiar gone (' + JSON.stringify(outF && outF.familiar) + ')', !!outF && !!outF.familiar && outF.familiar.gone === true);
+      if (D.embed) D.embed.roamOut = roF;
     } catch (eZ) { repZ.errors.push(String(eZ && eZ.stack || eZ).slice(0, 900)); }
     D.store.get = stGZ; D.store.set = stSZ; IZ.held.up = false; IZ.held.left = false; window.DS.autoPicks = apZ;
     if (errs.length) repZ.errors = repZ.errors.concat(errs);

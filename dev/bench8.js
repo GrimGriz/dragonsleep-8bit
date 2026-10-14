@@ -2128,6 +2128,17 @@
           check('back from the grid out by the stair up: the frame gone (' + !document.getElementById('d16') + '), on warrens_b (' + (DS.field.map && DS.field.map.id) + '); Barley\'s XP +' + (barR.xp - xpR0) + ', a potion drunk (' + (potR0 - g.count('potion')) + '), the ichor +' + (g.count('crawlerichor') - ichR0) + ', jellyDead ' + g.flags.jellyDead + ', crawlers ' + g.kills.crawler + ', the purse ' + g.silver + ', the light ' + g.flags.torchBy + ' (' + g.flags.torchKind + '), the lead ' + g.party[0].id,
             !document.getElementById('d16') && DS.field.map && DS.field.map.id === 'warrens_b' && barR.xp === xpR0 + 300 && g.count('potion') === Math.max(0, potR0 - 1) && g.count('crawlerichor') === ichR0 + 2 && g.flags.jellyDead === 1 && g.kills.crawler === 5 && g.silver === 123 && g.flags.torchBy === 'barley' && g.flags.torchKind === 'lantern' && g.party[0].id === 'aurdin');
         }
+        // the familiar back from the floor (10-14, Griz: "familiars aren't properly handled"): the floor's word on it applied as a fight's is (js/embed.js famBack), after
+        // the flags -- fallen there, gone till the ritual calls it back; alive, kept
+        var tbF = f8.torchBy, tkF = f8.torchKind;
+        f8.familiar = { kind: 'owl', by: 'aurdin', hp: 1 }; delete f8.familiarGone;
+        DS.roam8.apply({ party: [], flags: { familiar: { kind: 'owl', by: 'aurdin', hp: 1 } }, familiar: { gone: true, hp: 0 } });
+        var goneF = !f8.familiar && f8.familiarGone === 'owl';
+        f8.familiar = { kind: 'owl', by: 'aurdin', hp: 1 }; delete f8.familiarGone;
+        DS.roam8.apply({ party: [], flags: {}, familiar: { gone: false, hp: 1 } });
+        var keptF = !!f8.familiar && f8.familiar.hp === 1 && !f8.familiarGone;
+        delete f8.familiar; delete f8.familiarGone; if (tbF) f8.torchBy = tbF; if (tkF) f8.torchKind = tkF;
+        check('the familiar back from the floor: fallen there, gone till the ritual calls it back (' + goneF + '); alive, kept (' + keptF + ')', goneF && keptF);
       } finally { window.setTimeout = set0R; window.clearTimeout = clr0R; var stR = document.getElementById('d16'); if (stR) stR.parentNode.removeChild(stR); }
     } else if (test === 'payout1014') {
       // a won fight's payout, lifted into js/rules.js (10-14, the party-token map lane §6d: R.tally, R.spoils, R.shareXP -- one copy the grid's roam pays by too): the same

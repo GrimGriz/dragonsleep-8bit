@@ -215,6 +215,7 @@
     members.forEach(function (u) { u.wings = R.ringWings(u) || !!u.flies; u.flies = false; u.fz = 0; });
     var R0 = B.roam = { token: lead, members: members, rest: members.slice(1), form: {}, fw: [-1, 0], mode: 'walk', steps: 0, encIn: 0, clicks: [], keys: [], flags: {}, fights: 0, log: [], last: null, cut: null, msg: null, groups: [], spent: {} }; // (spent: the floor's triggers done with -- the roam's own marks, apart from the 8-bit's flags)
     members.slice(1).forEach(function (u, i) { R0.form[u.id] = stored[u.id] || R.FORM0[i] || [-(i + 1), 0]; });
+    R0.fam = B.units.filter(function (u) { return u.familiar && u.side === 'party'; })[0] || null; // (the wizard's familiar, if the save brought one: R.famPlace)
     // the purse, the kill tally and the XP banked till the next gather (R.pay): the save's own, or the fixture's none
     var data0 = (B.from && B.from.data) || {}; R0.silver = data0.silver || 0; R0.kills = JSON.parse(JSON.stringify(data0.kills || {})); R0.xpBank = 0;
     if (R.emb) R0.flags = JSON.parse(JSON.stringify(data0.flags || {})); // (inside the 8-bit: its flags, all of them, and back out at the door)
@@ -259,7 +260,18 @@
   R.RATE = 2;
   R.resetEnc = function (R0) { var Z = window.DS.DATA.encounters.warrens_d, r = (Z && Z.rate) || [18, 40]; return (r[0] + D.rint(r[1] - r[0] + 1)) * R.RATE; };
   // off the floor and into the token (no walk: the setup's and the formation's quiet return)
-  R.into = function (B, list) { list.forEach(function (u) { var j = B.units.indexOf(u); if (j >= 0) B.units.splice(j, 1); }); G.setup(G.map, B.units); B.cache = null; };
+  R.into = function (B, list) { list.forEach(function (u) { var j = B.units.indexOf(u); if (j >= 0) B.units.splice(j, 1); }); R.famPlace(B, true); G.setup(G.map, B.units); B.cache = null; };
+  // the wizard's familiar on the floor (10-14, Griz: "familiars aren't properly handled"): it rides its wizard (deep16/js/familiar.js FM.unit: its square is his), so it is on
+  // the floor while he is -- on his shoulder or at his feet when he leads, folded into the token with him when he walks inside it (it was left riding the square he last
+  // stood on), out with him at a spill -- and home on him at every fold (home). Fallen, it stays off the floor; its hit points go back with the party (R.leaveFloor)
+  R.famPlace = function (B, home) {
+    var R0 = B.roam, f = R0 && R0.fam; if (!f) return;
+    var m = f.master, on = !!m && B.units.indexOf(m) >= 0 && f.hp > 0 && !f.dead, j = B.units.indexOf(f);
+    if (home && f.hp > 0 && !f.dead) f.riding = true;
+    if (!on && j >= 0) B.units.splice(j, 1);
+    if (on && j < 0) { f.riding = true; B.units.push(f); }
+  };
+  R.famOut = function (R0) { var f = R0.fam; return f ? { gone: f.hp <= 0 || !!f.dead, hp: Math.max(0, f.hp) } : null; }; // (as a fight's result.familiar: deep16/js/embed.js)
   R.zoneAt = function (B, x, y) {
     var M8 = R.def.src8, p = R.def.to8(x, y);
     for (var i = 0; i < (M8.zones || []).length; i++) { var z = M8.zones[i], r = z.rect; if (p[0] >= r[0] && p[1] >= r[1] && p[0] < r[0] + r[2] && p[1] < r[1] + r[3] && R.cond(z.cond, B.roam.flags)) return z.zone; }
@@ -632,6 +644,8 @@
     var base0 = o.ladder ? D.save.fixture(Math.min(9, R.party0.level)) : R.emb ? R.emb.save : D.save.load().data; delete o.ladder;
     o.data = JSON.parse(JSON.stringify(base0));
     o.data.flags = Object.assign({}, o.data.flags || {}, R0.flags);
+    var fam0 = R.famOut(R0); // (the familiar goes in as the floor has it: its hit points now, or not at all once it fell -- the fight's own FM.unit reads flags.familiar)
+    if (fam0 && o.data.flags.familiar) { if (fam0.gone) delete o.data.flags.familiar; else o.data.flags.familiar = Object.assign({}, o.data.flags.familiar, { hp: fam0.hp }); }
     // each sheet as it walks: the level and the XP the floor's fights paid (R.pay), not the fixture's fresh copy
     o.data.party = (o.data.party || []).map(function (h) { var w = R0.members.filter(function (u) { return u.id === h.id && u.src; })[0]; return w ? JSON.parse(JSON.stringify(w.src)) : h; });
     o.data.inv = JSON.parse(JSON.stringify(B.inv || []));
@@ -701,6 +715,8 @@
       if (w.src && u.src && u.src.equip) ['weapon', 'shield', 'armor'].forEach(function (k) { if (k in u.src.equip) w.src.equip[k] = u.src.equip[k]; });
       if (u.torch && u.torch.lit !== false && u.hp > 0) w.torch = JSON.parse(JSON.stringify(u.torch)); else delete w.torch;
     });
+    var famB = (b.units || []).filter(function (u) { return u.familiar && u.side === 'party'; })[0];
+    if (R0.fam && famB) R0.fam.hp = Math.max(0, famB.dead ? 0 : famB.hp); // (the familiar as that fight left it: hurt, or fallen and off the floor -- R.famPlace)
     Object.assign(R0.flags, b.flags8 || {}); // (what it set: otyughFed, bucketBy, heard:r-stream, landlordSpoke, the dead -- the rim's trigger reads otyughFed and otyughDead)
     R.packBack(B, b); // (the pack: what that fight used or found -- the bucket taken up or gone into the water, a potion drunk, a weapon stowed -- not its loan)
     R.regear(B); // (each figure's weapon and AC read again off the sheet EQUIP changed)
@@ -803,7 +819,8 @@
       return { id: h.key || h.id, guest: !!h.guest, sheet: h, torch: u.torch && u.torch.lit !== false && u.hp > 0 ? (L.kindOf(u.torch) === 'lantern' ? (u.torch.item || 'lantern') : 'torch') : false };
     });
     var msg = { type: 'd16:roam', result: result, exit8: at ? R.def.to8(at[0], at[1]) : null, party: party, inv0: R0.inv0 || {}, inv1: inv1, flags: JSON.parse(JSON.stringify(R0.flags)),
-      kills: JSON.parse(JSON.stringify(R0.kills || {})), silver: R0.silver, warn: hb.warn, order: R0.members.map(function (u) { return u.src ? (u.src.key || u.src.id) : u.id; }) };
+      kills: JSON.parse(JSON.stringify(R0.kills || {})), silver: R0.silver, warn: hb.warn, order: R0.members.map(function (u) { return u.src ? (u.src.key || u.src.id) : u.id; }),
+      familiar: R.famOut(R0) }; // (as a fight hands it back: js/embed.js famBack)
     R.lastOut = msg;
     if (D.embed && D.embed.roamOut) D.embed.roamOut(msg);
     yield 1;
@@ -1165,6 +1182,7 @@
       FX.sparkle(u, 'glow', 8);
       out.push({ id: u.id, slot: sl, at: best, off: Math.max(Math.abs(best[0] - sl[0]), Math.abs(best[1] - sl[1])) });
     });
+    R.famPlace(B); // (the familiar out with its wizard)
     G.setup(G.map, B.units); B.cache = null;
     return out;
   };
