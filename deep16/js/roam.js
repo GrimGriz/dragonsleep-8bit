@@ -316,7 +316,7 @@
   // ------------------------------------------------------------------ the script: walk, the formation, the fights
   R.script = function* (B) {
     var R0 = B.roam;
-    B.card(['{y}THE WET{/}, the whole floor (' + G.map.w + ' x ' + G.map.h + ' squares): one token, the party inside it.', '{g}Click to walk, or the arrows. O: the formation. F: a fight now.{/}'], 420);
+    B.card(['{y}THE WET{/}, the whole floor (' + G.map.w + ' x ' + G.map.h + ' squares): one token, the party inside it.', '{g}Click to walk, or the arrows. O: the formation.' + (R.emb ? '' : ' F: a fight now.') + '{/}'], 420);
     while (true) {
       var t = R0.token;
       if (R0.mode === 'over') { yield 1; continue; }
@@ -333,7 +333,9 @@
       if (k === 'save') { if (R.canSave(B)) yield* R.save(B); continue; }
       if (k === 'act') { if (!trk.length) yield* R.act(B); else { R0.acts = []; D.sfx('miss'); B.card(['{g}Not with them coming.{/}'], 120); } continue; }
       if (k === 'use') { var un = R.useNear(B); if (un && !trk.length) yield* R.fire(B, un.trig, un.sq); else D.sfx('miss'); continue; }
-      if (k === 'fight') { if (trk.length) yield* R.engage(B, trk[0], false, 'yours'); else yield* R.encounter(B, 'asked'); continue; }
+      // (F: a group coming, the fight now at this range -- its card says so; nothing coming, a fight called up, the test door's alone -- 10-14, his play inside the game: "why
+      // could i hit 'f' just then?", a Gray Ooze called up out of nothing on the real floor)
+      if (k === 'fight') { if (trk.length) yield* R.engage(B, trk[0], false, 'yours'); else if (!R.emb) yield* R.encounter(B, 'asked'); continue; }
       var ck = R0.clicks.shift();
       if (ck) {
         // a click walks a short way only (10-14, Griz: "trying to get the hand pop-up by clicking on the rune is hilarious. Click to move only on squares within x ft (30-50?)":
@@ -1696,7 +1698,7 @@
     if ((R0.mode === 'walk' || R0.mode === 'order') && !B.menu) {
       var p8 = R.def.to8(R0.token.x, R0.token.y); // (no step count shown: a random fight comes unannounced -- 10-14, Griz: "removing the step warning regarding random encounters")
       D.text(ctx, 'THE ROAM -- the Wet, ' + G.map.w + ' x ' + G.map.h + '   8-bit square ' + p8[0] + ',' + p8[1], 6, D.H - 30, '#e8d8a0');
-      D.text(ctx, R0.mode === 'order' ? 'ORDER (facing ' + R.faceName(R0.fw) + '): click one, then a lit square, or the leader to lead -- right click turns -- O when done' : 'click: walk   arrows: step   O: formation   F: a fight now   L: the floor map' + (function () { var un = R.useNear(B); return un ? '   E: ' + (R.USE_NAME[un.trig.id] || un.trig.id) : ''; })(), 6, D.H - 20, '#9a94a8');
+      D.text(ctx, R0.mode === 'order' ? 'ORDER (facing ' + R.faceName(R0.fw) + '): click one, then a lit square, or the leader to lead -- right click turns -- O when done' : 'click: walk   arrows: step   O: formation' + (R.tracking(R0).length ? '   F: the fight now' : R.emb ? '' : '   F: a fight now') + '   L: the floor map' + (function () { var un = R.useNear(B); return un ? '   E: ' + (R.USE_NAME[un.trig.id] || un.trig.id) : ''; })(), 6, D.H - 20, '#9a94a8');
     }
     if (R.showMap) R.paintMap(ctx, B, D.W - G.map.w * 4 - 6, 22, 4);
     if (R0.mode === 'order' && R0.sel) { var s = D.iso.center(R0.sel.x, R0.sel.y, 0), p = D.iso.toScreen(s.x, s.y); ctx.strokeStyle = '#ffe080'; ctx.strokeRect(p.x - 8, p.y - 30, 16, 32); }

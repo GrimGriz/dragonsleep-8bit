@@ -2539,6 +2539,11 @@
       driveZ(BH.co, function () { return RH.mode === 'walk' && !RH.resume; }, 200);
       okZ('the tent from the M menu: the 8-bit\'s own, the same way (' + hT.kind + ': ' + JSON.stringify(aT) + '), and the floor walking again (' + RH.mode + ')', hT.kind === 'act' && aT.kind === 'item' && aT.id === 'tent' && aT.h === 'aurdin' && RH.mode === 'walk');
       outH = [];
+      // F inside the game (10-14, his play: "why could i hit 'f' just then?" -- the test door's own key had called up a Gray Ooze on the real floor): with nothing coming it
+      // calls up nothing (a group coming, F still opens that fight at the range, as its card says); on the test door it is still a fight now
+      var fH0 = RH.fights; RH.groups = []; RH.keys.push('fight'); driveZ(BH.co, null, 80);
+      okZ('F inside the game with nothing coming: no fight called up (' + (RH.fights - fH0) + ' more, ' + RH.mode + ')', RH.fights === fH0 && RH.mode === 'walk');
+      if (RH.mode !== 'walk') { RH.groups = []; RH.mode = 'walk'; BH.units = BH.units.filter(function (u) { return u.side !== 'foe'; }); D.roam.into(BH, RH.rest); }
       var atC = D.roam.def.from8(15, 6), trC = D.roam.useAt(BH, atC[0], atC[1]), nbC = null;
       for (var yC = -1; yC <= 1 && !nbC; yC++) for (var xC = -1; xC <= 1 && !nbC; xC++) if ((xC || yC) && GZ.canStand(RH.token, atC[0] + xC, atC[1] + yC)) nbC = [atC[0] + xC, atC[1] + yC];
       RH.token.x = nbC[0]; RH.token.y = nbC[1]; RH.token.tween = null; GZ.setup(GZ.map, BH.units);
