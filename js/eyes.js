@@ -275,5 +275,8 @@
     'eyes-campfire-1014': { pri: 2, group: G2, title: 'The campfire burns, and catches the oil beside it (10-14)', pt: 'the grid’s rules (deep16/js/oil.js, the campfire; deep16/js/circles.js `fire`)',
       url: 'deep16/?npc=troll&vs=fighter:5&lvl=5&map=camp&fresh=1',
       look: 'The camp’s fire: the cursor on it reads a campfire. Walk the fighter into it: difficult ground (10 ft), 1d6 fire, once a turn; end there and the next turn starts with 1d6 more. With the troll standing beside the fire, it takes nothing for being there; throw the Oil Flask at it (ITEMS): a hit coats it and the fire catches the oil at once, 5 fire, the coat gone. A flask thrown at the ground beside the fire lights at once; one two squares off lies there unlit.' },
+    'eyes-landlord-food-1014': { pri: 2, group: G2, title: 'The Landlord says “Food.” over its bucket picture (10-14)', pt: 'his ask (the party-token map lane §7; deep16/js/wet.js W.speak)',
+      url: '?at=wet',
+      look: 'Take the bucket from the crate (E), then go to the water: on the grid the Landlord’s first picture flashes, a bucket on a rope, and a deep voice says “Food.” (the Harbinger’s Kneel voice, with an echo). The card reads “A picture in …’s head, and one word with it: food.” Sound on: click the page once first.' },
   };
 })();

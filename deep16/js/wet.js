@@ -236,11 +236,16 @@
   var heroTurn0 = BP.heroTurn;
   BP.heroTurn = function* (u) { if (on(this)) yield* W.first(this); yield* heroTurn0.apply(this, arguments); };
   // the first time: a picture of a bucket, in the head of whoever is nearest the water (the canon)
+  // its one word, with the bucket's picture (10-14, Griz: "I want to add a 'food' the Landlord bucket flash ... like we did kneel for the harbinger"; the SRD
+  // otyugh's Limited Telepathy: simple messages and images): deep16/audio/food.mp3 (tools/voice-clip.ps1, Kneel's recipe: David, -5 semitones, slow 0.85, a 220 ms
+  // echo), the browser's own voice when it will not play -- as js/traits.js kneelVoice
+  function landlordVoice() { var say = function () { if (D.say) D.say('Food.', { pitch: 0.4, rate: 0.8 }); }; if (D.clip) D.clip('audio/food.mp3', function (ok) { if (!ok) say(); }); else say(); }
   W.speak = function* (B, w) {
     B.wet.spoke = true; B.flags8.landlordSpoke = 1;
     D.sfx('magic');
+    landlordVoice();
     yield { scene: { draw: W.picture('bucket'), frames: 200 } };
-    B.card(['{p}A picture, not a word, in ' + w.name + '\'s head: a bucket, lowered on a rope. It is hungry, and it is patient.{/}'], 420);
+    B.card(['{p}A picture in ' + w.name + '\'s head, and one word with it: food. A bucket, lowered on a rope. It is hungry, and it is patient.{/}'], 420);
     yield 20;
   };
 
