@@ -91,17 +91,18 @@ window.D16.MAPS.pool = {
 };
 
 // Leg one of the king's road: the cut seal and the camp behind it (the 8-bit game's S.cutSeal). The warded wall lies
-// broken at the neck (rubble); beyond, hide tents (the stalagmites stand in for them: they block and give cover),
+// broken at the neck (rubble); beyond, hide tents (goblincamp_p1 since 10-14, js/circles.js: two lean-tos on two squares each, two small tents; they block and give cover), the goblins' fire and their bones,
 // a shelf of rock at the back where the chief keeps his bedding.
 window.D16.MAPS.camp = {
   name: 'The Cut Seal',
   sub: 'the king\'s road, leg one: the camp',
   dark: true, lights: [[9, 6, 20, 'fire']], // torchdark (09-28): dark ground; the goblins' fire
+  tents: [[3, 2, 'a'], [14, 2, 'a'], [6, 5, 'b'], [13, 5, 'b']], fire: [9, 6], bones: [[4, 5], [16, 4]], rubble: true, // the road's props (10-14, the art desk's ART-59 and ART-60): a lean-to on (3, 2)-(3, 3) and (14, 2)-(14, 3), the warded wall's rubble at the neck
   step: 10, climb: 2, // the ledge's 5 ft face can be climbed (10 ft of movement, no check: a body pulls itself up a 5 ft ledge) or dropped, the ramp still the free way up -- 10-04, Griz: "2 - Agreed" (handoff-2026-10-04-climbing-the-other-maps.md; the bench: no fight on it changed)
   rows: [
     '####################',
     '##.......LLLL.....##',
-    '#......../LLL......#',
+    '#..P...../LLL.P....#',
     '#..P..........P....#',
     '#..................#',
     '#.....P......P.....#',
@@ -720,6 +721,7 @@ window.D16.MAPS.breach = {
   name: 'The Breach',
   sub: 'the king\'s road, leg two',
   dark: true, // torchdark (09-28): dark ground (the 8-bit map's `dark`), no light of its own
+  rubble: true, heaps: [[16, 6, 'b']], // the road's props (10-14, the art desk's ART-59): the made road's slabs thrown about, one big block leaning in a heap
   step: 10,
   rows: [
     '########====########',

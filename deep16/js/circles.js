@@ -9,7 +9,12 @@
    map's circle risen. It is drawn on the ground (under the walls, the props and everyone standing on it) and its squares are floor.
 
    A map's `tower: [gx, gy]` stands a lamp tower on that square (the 8-bit game's lampTower: Third Lamp's, "a tower burning"): dwarf-
-   cut stone, its lamp lit at the top, half cover like a stalagmite. Its light is the map's own `lights` entry. */
+   cut stone, its lamp lit at the top, half cover like a stalagmite. Its light is the map's own `lights` entry. Since 10-14 it is the art
+   desk's drawing, lamptower_p1 (tools/roadprops-sheet.py; the code-drawn tower only while the sheet loads); `tower: [gx, gy, 'dark']`
+   stands it gone out (the 8-bit's lampTowerDark).
+
+   The road's props (10-14, the art desk's ART-59 and ART-60, deep16-art-wanted.md §8; the party-token map lane §7): a map's `tents`,
+   `heaps`, `rubble`, `fire` and `bones` (below, "the road's props"). */
 'use strict';
 (function () {
   var D = window.D16, iso = D.iso;
@@ -113,14 +118,17 @@
     TOWER = { canvas: cv, ax: cx, ay: by, top: top };
     return TOWER;
   }
+  var TOWER_SHEET = 'lamptower_p1';
   function towerProp(m, at, B) {
     var sq = m.at(at[0], at[1]);
     return { kind: 'tower', sq: sq, depth: at[0] + at[1] + 0.5, gz: sq.gz, draw: function (ctx) {
+      var out = at[2] === 'dark' || !!(D.battle && D.battle.lampOut), sh = D.SHEETS && D.SHEETS[TOWER_SHEET];   // (out: the game show's end, js/gameshow.js)
+      if (sh && sheetAt(ctx, TOWER_SHEET, out ? 'dark' : 'lit', out ? 0 : Math.floor(now() * sh.anims.lit.fps + at[0] * 1.7) % sh.anims.lit.frames, at[0], at[1], sq.gz)) return;
       var T = towerCanvas(), p = iso.center(at[0], at[1], sq.gz), s = iso.toScreen(p.x, p.y), x0 = Math.round(s.x - T.ax), y0 = Math.round(s.y - T.ay);
       ctx.drawImage(T.canvas, x0, y0);
       var t = Date.now() / 16, fl = Math.sin(t / 5 + at[0]) + Math.sin(t / 3.1);
       var gx = x0 + T.ax, gy = y0 + T.top - 16;                                                  // the glass: gold, the flame in it
-      if (D.battle && D.battle.lampOut) { ctx.fillStyle = P('silver', 1); ctx.fillRect(gx - 6, gy, 12, 12); return; }   // (out: the game show's end, js/gameshow.js)
+      if (out) { ctx.fillStyle = P('silver', 1); ctx.fillRect(gx - 6, gy, 12, 12); return; }
       ctx.fillStyle = P('gold', 3); ctx.fillRect(gx - 6, gy, 5, 12); ctx.fillRect(gx, gy, 6, 12);
       ctx.fillStyle = P('gold', 4); ctx.fillRect(gx - 6, gy, 1, 12);
       ctx.fillStyle = P('fire', 1); ctx.fillRect(gx - 3, gy + 4 - (fl > 0.8 ? 1 : 0), 6, 7);
@@ -138,11 +146,17 @@
   // along its y for the squares `b` names. The chest plays by D.circles.chest(B, what): 'thump', something lands in it from above (then
   // shut again); 'open', the lid up on its glow (opened flickers until it is closed); 'close', the lid down. Its glow is the
   // sheet's own, no light on the field: a light is the fight's (sight, js/light.js), and a second one over the tower's drew the floor blue.
-  function sheetCell(ctx, name, row, f, sq) {
-    var sh = D.SHEETS && D.SHEETS[name]; if (!sh) return;
-    var im = D.images && D.images[sh.image]; if (!im || !im.naturalWidth) { if (D.spr && !im) D.spr.load(sh.image); return; }
-    var p = iso.center(sq.x, sq.y, sq.gz), s = iso.toScreen(p.x, p.y);
-    ctx.drawImage(im, f * sh.fw, sh.anims[row].row * sh.fh, sh.fw, sh.fh, Math.round(s.x - sh.ax), Math.round(s.y - sh.ay), sh.fw, sh.fh);
+  function sheetCell(ctx, name, row, f, sq) { sheetAt(ctx, name, row, f, sq.x, sq.y, sq.gz); }
+  // a prop sheet's frame with its anchor on the point (gx, gy) of the grid (a square's middle, or between two: Tent A's); false while the
+  // sheet or its picture is not in yet. A frame off the canvas being drawn is skipped (the road's big floors, iso.draw's own bound).
+  function sheetAt(ctx, name, row, f, gx, gy, gz) {
+    var sh = D.SHEETS && D.SHEETS[name]; if (!sh) return false;
+    var im = D.images && D.images[sh.image]; if (!im || !im.naturalWidth) { if (D.spr && !im) D.spr.load(sh.image); return false; }
+    var p = iso.center(gx, gy, gz), s = iso.toScreen(p.x, p.y), x0 = Math.round(s.x - sh.ax), y0 = Math.round(s.y - sh.ay);
+    var vw = iso.inWorld ? D.W / iso.zoom : D.W, vh = iso.inWorld ? D.H / iso.zoom : D.H;
+    if (x0 >= vw || y0 >= vh || x0 + sh.fw <= 0 || y0 + sh.fh <= 0) return true;
+    ctx.drawImage(im, f * sh.fw, sh.anims[row].row * sh.fh, sh.fw, sh.fh, x0, y0, sh.fw, sh.fh);
+    return true;
   }
   var CHEST = 'gschest_p1';
   function chestFrame(st, sh) {      // the row and frame to draw now; a row played out goes on to the next it names
@@ -179,6 +193,75 @@
     return { kind: 'cot', sq: sq, depth: sq.x + sq.y + 0.5, gz: sq.gz, draw: function (ctx) { sheetCell(ctx, sheet, row, 0, sq); } };
   }
 
+  // ------------------------------------------------------------------ the road's props (10-14): the art desk's ART-59 and ART-60
+  // tools/roadprops-sheet.py cuts rubble_p1 (scatterA, scatterB: flat, ankle high; heapA-C: waist high) and goblincamp_p1 (tentA on two
+  // squares, tentB on one, bones, the fire's six frames). A map names them:
+  //   `tents: [[gx, gy, 'a'|'b']]`     a hide tent: 'a' on (gx, gy) and the square in front of it, (gx, gy + 1) -- its ridge along the
+  //                                     grid's y, its open end to the lower left; 'b' on its one square, its flap to the lower right
+  //   `heaps: [[gx, gy, 'a'|'b'|'c']]` a waist-high heap of fallen stone on its square
+  //                                     Both stand in the way (half cover, as a stalagmite); the map's rows give their squares `P` and the
+  //                                     prop is drawn for its stalagmite.
+  //   `rubble: true | [[gx, gy]]`      broken stone (Scatter A or B by the square) on the map's `r` -- every one, or those named -- where a
+  //                                     wall or the road was broken through (Griz, 10-14: "they're for when walls get broken through mainly"),
+  //                                     drawn for iso.js's loose stones; the rough ground's rules unchanged
+  //   `fire: [gx, gy]`                 a campfire in its ring of stones, a look on the floor; its light is the map's `lights` entry
+  //   `bones: [[gx, gy]]`              gnawed bones on the floor, a look
+  var RUBBLE = 'rubble_p1', CAMP = 'goblincamp_p1';
+  function standProp(sq, sheet, row, gx, gy, front) {     // front: the square nearest the camera, for the sort
+    return { kind: 'roadprop', sq: sq, depth: front.x + front.y + 0.5, gz: sq.gz, draw: function (ctx) {
+      var sh = D.SHEETS && D.SHEETS[sheet], a = sh && sh.anims[row];
+      sheetAt(ctx, sheet, row, a && a.frames > 1 ? Math.floor(now() * a.fps + gx * 1.3 + gy * 0.7) % a.frames : 0, gx, gy, sq.gz);
+    } };
+  }
+  function flatProp(sq, sheet, row) {                      // on the ground: drawn before anyone standing on the square or beside it
+    return { kind: 'roadprop', sq: sq, depth: sq.x + sq.y, layer: -1, gz: sq.gz, draw: function (ctx) { sheetAt(ctx, sheet, row, 0, sq.x, sq.y, sq.gz); } };
+  }
+  function roadProps(m, def) {
+    if (!(def.tents || def.heaps || def.rubble || def.fire || def.bones)) return;
+    var taken = {}, drop = {}, key = function (x, y) { return x + ',' + y; };
+    function stand(sq, what) { sq.walk = false; sq.pillar = true; sq.stands = what; taken[key(sq.x, sq.y)] = 1; }
+    (def.tents || []).forEach(function (t) {
+      var sq = m.at(t[0], t[1]); if (!sq) return;
+      if (t[2] === 'b') { stand(sq, 'a hide tent'); m.props.push(standProp(sq, CAMP, 'tentB', t[0], t[1], sq)); return; }
+      var fq = m.at(t[0], t[1] + 1) || sq;
+      stand(sq, 'a hide tent'); stand(fq, 'a hide tent');
+      m.props.push(standProp(sq, CAMP, 'tentA', t[0], t[1] + 0.5, fq));
+    });
+    (def.heaps || []).forEach(function (h) {
+      var sq = m.at(h[0], h[1]); if (!sq) return;
+      stand(sq, 'a heap of fallen stone'); m.props.push(standProp(sq, RUBBLE, 'heap' + String(h[2] || 'a').toUpperCase(), h[0], h[1], sq));
+    });
+    if (def.rubble) {
+      var named = def.rubble === true ? null : def.rubble.map(function (q) { return key(q[0], q[1]); });
+      m.sq.forEach(function (s) {
+        if (s.ch !== 'r' || (named && named.indexOf(key(s.x, s.y)) < 0)) return;
+        drop[key(s.x, s.y)] = 1;
+        m.props.push(flatProp(s, RUBBLE, D.hash('scatter' + s.x + ',' + s.y) % 2 ? 'scatterB' : 'scatterA'));
+      });
+    }
+    if (def.fire) { var fs = m.at(def.fire[0], def.fire[1]); if (fs) m.props.push(standProp(fs, CAMP, 'fire', def.fire[0], def.fire[1], fs)); }
+    (def.bones || []).forEach(function (b) { var bs = m.at(b[0], b[1]); if (bs) m.props.push(flatProp(bs, CAMP, 'bones')); });
+    m.props = m.props.filter(function (p) {                // (the stalagmite a tent or heap stands for, the loose stones the scatter is drawn for)
+      return !((p.kind === 'pillar' && taken[key(p.sq.x, p.sq.y)]) || (p.kind === 'stone' && drop[key(p.sq.x, p.sq.y)]));
+    });
+    m.sorted = null;
+  }
+  // the lazy sheets (js/sprites.js S.gate, 10-03): a fight on a map that stands the tower or the road's props asks for their sheets with
+  // its figures, so its first frame waits for them and its first draw fetches nothing (dev/bench16.js mode=lazy1003 fights on the breach)
+  C.propSheets = function (def) {
+    var out = [];
+    if (def.tower) out.push(TOWER_SHEET);
+    if (def.tents || def.fire || def.bones) out.push(CAMP);
+    if (def.rubble || def.heaps) out.push(RUBBLE);
+    return out;
+  };
+  var sheets0 = D.Battle.prototype.sheets;
+  D.Battle.prototype.sheets = function () {
+    var r = sheets0.apply(this, arguments), def = this.map && this.map.def;
+    if (def) C.propSheets(def).forEach(function (n) { if (r.now.indexOf(n) < 0) r.now.push(n); r.soon = r.soon.filter(function (s) { return s !== n; }); });
+    return r;
+  };
+
   // a map's tower: on its square at load, standing (not walked through; half cover, as a stalagmite); its chest and its cots the same way
   var load0 = iso.load;
   iso.load = function (def) {
@@ -191,6 +274,7 @@
       m.sq.forEach(function (s) { if (s.ch === 'y') { s.stands = 'a cot'; m.props.push(cotProp(s, isB(s) ? 'b' : 'a', def.cots.sheet || 'gsbed_p1')); } });
       m.sorted = null;
     }
+    roadProps(m, def);
     return m;
   };
 
