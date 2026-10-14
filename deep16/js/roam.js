@@ -1490,8 +1490,8 @@
       ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.lineTo(c.x, c.y); ctx.lineTo(d.x, d.y); ctx.closePath(); ctx.stroke(); ctx.restore();
     }
     if ((R0.mode === 'walk' || R0.mode === 'order') && !B.menu) {
-      var z = R.zoneAt(B, R0.token.x, R0.token.y), p8 = R.def.to8(R0.token.x, R0.token.y);
-      D.text(ctx, 'THE ROAM -- the Wet, ' + G.map.w + ' x ' + G.map.h + '   8-bit square ' + p8[0] + ',' + p8[1] + (z ? '   next fight in ' + R0.encIn + ' steps' : '   (no random fights here)'), 6, D.H - 30, '#e8d8a0');
+      var p8 = R.def.to8(R0.token.x, R0.token.y); // (no step count shown: a random fight comes unannounced -- 10-14, Griz: "removing the step warning regarding random encounters")
+      D.text(ctx, 'THE ROAM -- the Wet, ' + G.map.w + ' x ' + G.map.h + '   8-bit square ' + p8[0] + ',' + p8[1], 6, D.H - 30, '#e8d8a0');
       D.text(ctx, R0.mode === 'order' ? 'ORDER (facing ' + R.faceName(R0.fw) + '): click one, then a lit square, or the leader to lead -- right click turns -- O when done' : 'click: walk   arrows: step   O: formation   F: a fight now   L: the floor map' + (function () { var un = R.useNear(B); return un ? '   E: ' + (R.USE_NAME[un.trig.id] || un.trig.id) : ''; })(), 6, D.H - 20, '#9a94a8');
     }
     if (R.showMap) R.paintMap(ctx, B, D.W - G.map.w * 4 - 6, 22, 4);
