@@ -2067,6 +2067,21 @@
       okZ('still held after: no second hand on it (' + (again ? 'asked again' : 'once') + ')', !again);
       if (again) { D.top().enter(); D.pop(); }
       IZ.held.up = false; IZ.held.left = false; driveZ(BZ.co, null, 20);
+      // e. a group coming holds while a card holds the script (his "fight now teleports staling opponents to you"): the encounter's card is 30 frames, and the first look after it
+      // moves a crawler one square, not the card's three; a fast one's two squares in a look slide from where it was
+      RZ.groups = []; BZ.units = BZ.units.filter(function (u) { return u.side === 'party'; }); putZ([8, 24]); RZ.fw = [0, -1];
+      driveZ(D.roam.encounter(BZ, 'test', { list: ['crawler'] }), null, 400);
+      var gTe = RZ.groups[0], uTe = gTe && gTe.foes[0], p0e = uTe && [uTe.x, uTe.y];
+      if (gTe) D.roam.tickGroups(BZ);
+      var mvE = uTe ? Math.max(Math.abs(uTe.x - p0e[0]), Math.abs(uTe.y - p0e[1])) : -1;
+      RZ.groups = []; BZ.units = BZ.units.filter(function (u) { return u.side === 'party'; });
+      driveZ(D.roam.encounter(BZ, 'test', { list: ['giantbat'] }), null, 400);
+      var gBe = RZ.groups[0], uBe = gBe && gBe.foes[0], b0e = uBe && [uBe.x, uBe.y];
+      if (gBe) { D.roam.tickGroups(BZ); BZ.t += 8; D.roam.tickGroups(BZ); }
+      var twE = uBe && uBe.tween, mvB = uBe ? Math.max(Math.abs(uBe.x - b0e[0]), Math.abs(uBe.y - b0e[1])) : -1;
+      okZ('a group coming holds while the encounter\'s card holds: the first look moves the crawler ' + mvE + ' square (want 1, not the card\'s 3)', gTe && mvE === 1);
+      okZ('the giant bat (fly 60) two squares a look, its slide from where the look found it (moved ' + mvB + ', from ' + (twE ? twE.fx + ',' + twE.fy : 'none') + ', want the square before both)', gBe && twE && Math.max(Math.abs(uBe.x - twE.fx), Math.abs(uBe.y - twE.fy)) >= 2);
+      RZ.groups = []; BZ.units = BZ.units.filter(function (u) { return u.side === 'party'; }); GZ.setup(GZ.map, BZ.units);
       // c. the five: the rope, the Keeper asleep -- the tokens, the threshold's line, the stock's fork at six crawlers
       var cntZ = function (id) { var s = (BZ.inv || []).filter(function (x) { return x.id === id; })[0]; return s ? s.n : 0; };
       var resetZ = function () { ['keeperAwake', 'keeperDone', 'fiveRecovered', 'stockDead'].forEach(function (k) { delete RZ.flags[k]; }); RZ.spent = {}; var s = (BZ.inv || []).filter(function (x) { return x.id === 'fivetokens'; })[0]; if (s) s.n = 0; };

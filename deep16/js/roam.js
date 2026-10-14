@@ -787,7 +787,9 @@
   R.tickGroups = function (B) {
     var R0 = B.roam, t = R0.token, hit = null;
     R0.groups.slice().forEach(function (g) {
-      var dt = B.t - g.t; g.t = B.t;
+      // (a look spends a step's frames at most: while a card, a prompt or the menu holds the script, the floor holds too -- 10-14, his "fight now teleports staling opponents to
+      // you": the encounter's card held the script 30 frames, the first look after spent them all at once, and the group jumped three squares as F opened the fight)
+      var dt = Math.min(B.t - g.t, STEP); g.t = B.t;
       var live = R.live(B, g);
       if (!live.length) { R0.groups = R0.groups.filter(function (x) { return x !== g; }); return; }
       var seen = live.some(function (u) { return G.losPoint(u.x, u.y, t.x, t.y) && L.seesBy(B, u, t).ok; });
@@ -795,13 +797,13 @@
       // (the hold is a round's time -- 6 of the token's steps, a step's 8 frames each, walked or stood: a party standing still is still come for)
       if (g.stall > 0 && dt > 0) { g.stall = Math.max(0, g.stall - dt / STEP); dt = 0; }
       if (dt > 0 && !(g.stall > 0)) live.forEach(function (u) {
-        var sp = Math.max(u.speed || 30, (u.fly || 0));
+        var sp = Math.max(u.speed || 30, (u.fly || 0)), x0 = u.x, y0 = u.y;
         u.racc = (u.racc || 0) + dt * (sp / 30) / STEP;
         while (u.racc >= 1) {
           u.racc -= 1;
           var path = R.pathToward(u, t), nx = path && path[0];
           if (!nx || (nx[0] === t.x && nx[1] === t.y) || !G.canStand(u, nx[0], nx[1])) { u.racc = 0; break; }
-          u.tween = { fx: u.x, fy: u.y, fz: 0, t: 0, dur: STEP, mode: null }; u.facing = D.spr.facingFor(nx[0] - u.x, nx[1] - u.y);
+          u.tween = { fx: x0, fy: y0, fz: 0, t: 0, dur: STEP, mode: null }; u.facing = D.spr.facingFor(nx[0] - u.x, nx[1] - u.y); // (from where this look found it: a fast one's two squares slide, not jump)
           if (u.anim !== 'walk') { u.anim = 'walk'; u.animT = B.t; }
           u.x = nx[0]; u.y = nx[1];
         }
