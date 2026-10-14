@@ -520,35 +520,95 @@
     var st = (q.steps || []).filter(function (s) { return DS.cond(s['if']); });
     return st[0] || null;
   };
-  // every way off a map: warps, door-warps and walked-off edges
+  // every way off a map: warps, door-warps and walked-off edges (cond: open only while it holds; use: a door bumped from beside it, not stood on)
   function links(mid) {
     var src = DS.DATA.maps[mid], out = [];
-    (src.warps || []).forEach(function (w) { out.push({ to: w.to, x: w.x, y: w.y, tx: w.tx, ty: w.ty }); });
-    (src.triggers || []).forEach(function (t) { if (t.script === 'warp' && t.to) out.push({ to: t.to, x: t.x, y: t.y, tx: t.tx, ty: t.ty }); });
+    (src.warps || []).forEach(function (w) { out.push({ to: w.to, x: w.x, y: w.y, tx: w.tx, ty: w.ty, cond: w.cond }); });
+    (src.triggers || []).forEach(function (t) { if (t.script === 'warp' && t.to) { var r = t.rect || [t.x, t.y, 1, 1]; out.push({ to: t.to, x: r[0], y: r[1], rect: r, use: t.on === 'use', tx: t.tx, ty: t.ty, cond: t.cond }); } });
     var ex = src.exits || {};
     Object.keys(ex).forEach(function (e) { out.push({ to: ex[e].to, edge: e, tx: ex[e].tx, ty: ex[e].ty }); });
     return out;
   }
-  function nextHop(from, to) {
-    if (from === to) return to;
-    var prev = {}, q = [from]; prev[from] = null;
-    while (q.length) {
-      var m = q.shift();
-      if (m === to) break;
-      links(m).forEach(function (l) { if (!(l.to in prev) && DS.DATA.maps[l.to]) { prev[l.to] = m; q.push(l.to); } });
+  // the way the arrow points is a way the party can walk (10-14, Griz: "arrows point the way to things as if there weren't locked gates"): each map walked from where the
+  // party comes into it, by the tiles as the save has them -- the drawn rows, then the flag tiles whose condition holds (applyFlagTiles' rule), the map on screen as it stands now --
+  // to a way out that is open (a warp's or a door's `cond`). The bug-fix seat, 10-14; dev/bench8.py fixes1014
+  // ... and a gate the party opens by using it (a trigger's `opens`, tools/mapgen.py: Skarn's once he is satisfied, the highway gate when the king leads) is walked through while it
+  // would open; one that would not stays shut, and the journal's step names who opens it
+  var drawnTiles = {};
+  function passOf(mid, F) {
+    var src = DS.DATA.maps[mid], door = {};
+    (src.triggers || []).forEach(function (t) { if (t.opens && t.on === 'use' && DS.cond(t.cond) && DS.cond(t.opens)) { var r = t.rect || [t.x, t.y, 1, 1]; for (var yy = r[1]; yy < r[1] + r[3]; yy++) for (var xx = r[0]; xx < r[0] + r[2]; xx++) door[xx + ',' + yy] = 1; } });
+    if (F && F.map.id === mid) { var lm = F.map; return { w: lm.w, h: lm.h, ok: function (x, y) { var t = lm.at(x, y); return !!(t && DS.TILES[t] && (DS.TILES[t].pass || door[x + ',' + y])); }, at: function (x, y) { return lm.at(x, y); } }; }
+    var b = drawnTiles[mid];
+    if (!b) {
+      b = drawnTiles[mid] = { w: 0, h: src.rows.length, t: [] };
+      src.rows.forEach(function (r) { b.w = Math.max(b.w, r.length); });
+      for (var y = 0; y < b.h; y++) for (var x = 0; x < b.w; x++) { var L = src.legend[src.rows[y][x] || ' ']; b.t.push(typeof L === 'string' ? L : L ? L.tile : 'void'); }
     }
-    if (!(to in prev)) return null;
-    var cur = to;
-    while (prev[cur] !== from && prev[cur] != null) cur = prev[cur];
-    return cur;
+    var over = {};
+    (src.flagTiles || []).forEach(function (ft) { if (DS.cond(ft.cond)) over[ft.x + ',' + ft.y] = ft.tile; });
+    var at = function (x, y) { if (x < 0 || y < 0 || x >= b.w || y >= b.h) return null; return over[x + ',' + y] || b.t[y * b.w + x]; };
+    return { w: b.w, h: b.h, at: at, ok: function (x, y) { var t = at(x, y); return !!(t && DS.TILES[t] && (DS.TILES[t].pass || door[x + ',' + y])); } };
   }
+  function walkFrom(P, sx, sy) { // every square reached on foot from (sx, sy)
+    var R = {}, st = [[sx, sy]];
+    if (!P.ok(sx, sy)) return R;
+    R[sx + ',' + sy] = 1;
+    while (st.length) {
+      var c = st.pop();
+      [[1, 0], [-1, 0], [0, 1], [0, -1]].forEach(function (d) { var nx = c[0] + d[0], ny = c[1] + d[1], k = nx + ',' + ny; if (!R[k] && P.ok(nx, ny)) { R[k] = 1; st.push([nx, ny]); } });
+    }
+    return R;
+  }
+  function besideIn(R, x, y) { return R[x + ',' + y] || R[(x + 1) + ',' + y] || R[(x - 1) + ',' + y] || R[x + ',' + (y + 1)] || R[x + ',' + (y - 1)]; }
+  // where a way out is taken from, if the walk reaches it (an edge: its reached square nearest (px, py))
+  function linkFrom(l, R, P, px, py) {
+    if (l.cond && !DS.cond(l.cond)) return null;
+    if (l.edge) {
+      var best = null, bd = 1e9;
+      Object.keys(R).forEach(function (k) {
+        var p = k.split(','), x = +p[0], y = +p[1];
+        if (!(l.edge === 'west' ? x === 0 : l.edge === 'east' ? x === P.w - 1 : l.edge === 'north' ? y === 0 : y === P.h - 1)) return;
+        var d = Math.abs(x - px) + Math.abs(y - py); if (d < bd) { bd = d; best = { x: x, y: y }; }
+      });
+      return best;
+    }
+    var r = l.rect || [l.x, l.y, 1, 1];
+    for (var yy = r[1]; yy < r[1] + r[3]; yy++) for (var xx = r[0]; xx < r[0] + r[2]; xx++) if (l.use ? besideIn(R, xx, yy) : R[xx + ',' + yy]) return { x: xx, y: yy };
+    return null;
+  }
+  // the target reached: stood on, beside it, or across a counter from it
+  function goalIn(R, P, p) {
+    if (!p) return false;
+    if (besideIn(R, p.x, p.y)) return true;
+    return [[1, 0], [-1, 0], [0, 1], [0, -1]].some(function (d) { var t = P.at(p.x + d[0], p.y + d[1]); return t && DS.TILES[t] && DS.TILES[t].talk && R[(p.x + 2 * d[0]) + ',' + (p.y + 2 * d[1])]; });
+  }
+  // the fewest maps to the target, each hop walked; at the same count, the way out nearest the party first. Returns the first way out, 'here' when the target is on this map and
+  // reached on foot, or null when no open way leads there
+  function route(F, step, gx, gy) {
+    var from = F.map.id, starts = [], seen = {}, P0 = passOf(from, F), R0 = walkFrom(P0, gx, gy);
+    F.pinChain = null; // (the maps walked, for the bench)
+    if (step.map === from && goalIn(R0, P0, stepPoint(from, step, F))) return 'here';
+    links(from).forEach(function (l) { var pos = DS.DATA.maps[l.to] && linkFrom(l, R0, P0, gx, gy); if (pos) starts.push({ m: l.to, x: l.tx, y: l.ty, first: pos, d: Math.abs(pos.x - gx) + Math.abs(pos.y - gy), via: null }); });
+    var q = starts.sort(function (a, b) { return a.d - b.d; }), qi = 0;
+    seen[from + ':' + gx + ',' + gy] = 1;
+    while (qi < q.length) {
+      var s = q[qi++], k = s.m + ':' + s.x + ',' + s.y;
+      if (seen[k]) continue; seen[k] = 1;
+      var P = passOf(s.m, F), R = walkFrom(P, s.x, s.y);
+      if (s.m === step.map && goalIn(R, P, stepPoint(s.m, step, s.m === from ? F : null))) { F.pinChain = []; for (var c = s; c; c = c.via) F.pinChain.unshift(c.m + '@' + c.x + ',' + c.y); return s.first; }
+      links(s.m).forEach(function (l) { if (DS.DATA.maps[l.to] && !seen[l.to + ':' + l.tx + ',' + l.ty] && linkFrom(l, R, P, s.x, s.y)) q.push({ m: l.to, x: l.tx, y: l.ty, first: s.first, via: s }); });
+    }
+    return null;
+  }
+  DS.pinRoute = route; // (for the bench)
   // where the step's target stands on its own map (live NPC position when it's this map)
   function stepPoint(mid, step, F) {
     var src = DS.DATA.maps[mid];
     if (step.npc) {
       if (F && F.map.id === mid) {
         var n = F.npcs.filter(function (x) { return x.id === step.npc && !x.hidden; })[0];
-        return n ? { px: n.px, py: n.py, npc: true } : null;
+        return n ? { px: n.px, py: n.py, npc: true, x: n.x, y: n.y } : null;
       }
       var d = (src.npcs || []).filter(function (x) { return x.id === step.npc; })[0];
       return d ? { x: d.x, y: d.y } : null;
@@ -562,35 +622,14 @@
     if (step.at) return { x: step.at[0], y: step.at[1] };
     return null;
   }
-  function edgeTile(m, edge, px, py) { // the walkable edge tile nearest the player
-    var best = null, bd = 1e9;
-    for (var i = 0; i < (edge === 'north' || edge === 'south' ? m.w : m.h); i++) {
-      var x = edge === 'west' ? 0 : edge === 'east' ? m.w - 1 : i, y = edge === 'north' ? 0 : edge === 'south' ? m.h - 1 : i;
-      var t = m.at(x, y);
-      if (!t || !DS.TILES[t].pass) continue;
-      var d = Math.abs(x - px) + Math.abs(y - py);
-      if (d < bd) { bd = d; best = { x: x, y: y }; }
-    }
-    return best;
-  }
   Field.prototype.pinPoint = function () {
     var q = DS.pinnedQuest(), step = q && DS.questStep(q), G = DS.G, m = this.map;
     if (!step || !step.map || !DS.DATA.maps[step.map]) return null;
-    if (step.map === m.id) return stepPoint(m.id, step, this);
-    var hop = nextHop(m.id, step.map);
-    if (!hop) return null;
-    // aim for where the hop map's own onward link (or the target) sits, so the right gate gets the marker
-    var goal;
-    if (hop === step.map) goal = stepPoint(hop, step);
-    else { var h2 = nextHop(hop, step.map), l2 = links(hop).filter(function (l) { return l.to === h2 && !l.edge; })[0]; goal = l2 ? { x: l2.x, y: l2.y } : null; }
-    var best = null, bs = 1e9, self = this;
-    links(m.id).filter(function (l) { return l.to === hop; }).forEach(function (l) {
-      var pos = l.edge ? edgeTile(self.map, l.edge, G.x, G.y) : { x: l.x, y: l.y };
-      if (!pos) return;
-      var s = (goal ? Math.abs(l.tx - goal.x) + Math.abs(l.ty - goal.y) : 0) + 0.3 * (Math.abs(pos.x - G.x) + Math.abs(pos.y - G.y));
-      if (s < bs) { bs = s; best = pos; }
-    });
-    return best;
+    // the walk once a step of the party's, a change of the step, or a flag set (a gate opened), not every frame
+    var key = m.id + ':' + G.x + ',' + G.y + ':' + q.id + ':' + (q.steps || []).indexOf(step) + ':' + Object.keys(G.flags).length + ':' + ((DS.frame / 60) | 0);
+    if (this.pinKey !== key) { this.pinKey = key; this.pinWay = route(this, step, G.x, G.y); }
+    if (this.pinWay === 'here') return stepPoint(m.id, step, this); // (the person read live: the marker bobs over them as they walk)
+    return this.pinWay; // (null: no open way there -- the journal's line says what is wanted)
   };
   Field.prototype.drawPin = function (ctx, cx, cy) {
     if (this.hidePlayer || DS.find('battle')) return;

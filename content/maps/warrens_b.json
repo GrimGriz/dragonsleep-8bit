@@ -162,7 +162,8 @@
 ],
 "on": "use",
 "script": "skarnGate",
-"cond": "!flag:skarnGateOpen"
+"cond": "!flag:skarnGateOpen",
+"opens": "flag:skarnOk"
 }
 ],
 "flagTiles": [

@@ -1930,6 +1930,40 @@
       var slotsX = DS.top() && DS.top().kind === 'slots'; if (slotsX) DS.top().menu.onCancel(); for (kX = 0; kX < 20; kX++) T.step(1);
       titled = DS.scenes.some(function (s) { return s.kind === 'title'; }); DS.paused = true;
       check('EXIT: "' + hX.exitTitle + '" -- ' + exX.join(' / ') + '; SAVE, THEN LEAVE opens the slots (' + slotsX + '), backed out of: at the title ' + titled + ' (want false)', hX.exitTitle === 'QUIT TO THE TITLE?' && exX[0] === 'SAVE, THEN LEAVE' && slotsX && !titled);
+    } else if (test === 'fixes1014') {
+      // the bug-fix seat's 8-bit checks (10-14): the quest arrow -- the halls' handoff to the Keeper's Water while Halldor mends; the arrow's way walked, a gate shut or open
+      var QS = DS.DATA.quests.filter(function (x) { return x.id === 'halls'; })[0], fl = g.flags;
+      fl.pyroTrusts = 1; fl.captainHome = 1; delete fl.halldorUp; delete fl.waterAsked; delete fl.keeperWater; delete fl.petition;
+      var hs1 = DS.questStep(QS); fl.waterAsked = 1; var hs2 = DS.questStep(QS); fl.keeperWater = 1; var hs3 = DS.questStep(QS); fl.halldorUp = 1; var hs4 = DS.questStep(QS);
+      var nm = function (s) { return s ? s.map + ':' + (s.npc || s.trig) : '-'; };
+      check('THE HALLS WHILE HALLDOR MENDS: ' + [hs1, hs2, hs3, hs4].map(nm).join(' -> ') + ' (want solskaft:ragna -> warrens_d:holdStair -> solskaft:halldorBunk -> solskaft:halldor)',
+        nm(hs1) === 'solskaft:ragna' && nm(hs2) === 'warrens_d:holdStair' && nm(hs3) === 'solskaft:halldorBunk' && nm(hs4) === 'solskaft:halldor');
+      delete fl.waterAsked; delete fl.keeperWater; delete fl.halldorUp;
+      // the arrow walks its way: a pinned step past Skarn's gate (the flooded stair in warrens_d), the party in warrens_b where it comes in from the mouth camp
+      var inB = null; (DS.DATA.maps.warrens_a.warps || []).concat(Object.keys(DS.DATA.maps.warrens_a.exits || {}).map(function (e) { return DS.DATA.maps.warrens_a.exits[e]; })).forEach(function (l) { if (l.to === 'warrens_b' && !inB) inB = [l.tx, l.ty]; });
+      DS.DATA.quests.push({ id: 'pin1014', name: 'the arrow test', show: '', done: 'flag:pin1014done', steps: [{ map: 'warrens_d', trig: 'stair', where: 'the test' }] }); fl.pin = 'pin1014';
+      var F14 = DS.field, pins = [], pts = [];
+      [['shut, Skarn not satisfied', {}], ['shut, Skarn satisfied', { skarnOk: 1 }], ['open', { skarnOk: 1, skarnGateOpen: 1 }]].forEach(function (c) {
+        delete fl.skarnOk; delete fl.skarnGateOpen; Object.keys(c[1]).forEach(function (k) { fl[k] = c[1][k]; });
+        F14.load('warrens_b', inB[0], inB[1], 'down'); g.x = inB[0]; g.y = inB[1]; F14.pinKey = null;
+        var p = F14.pinPoint(); pts.push(p ? p.x + ',' + p.y : 'none'); pins.push(c[0] + ': ' + (p ? (p.npc ? 'npc ' : '') + p.x + ',' + p.y + ' via ' + (F14.pinChain || []).join(' > ') : 'no arrow'));
+      });
+      check('THE ARROW AND SKARN\'S GATE (the road §7g: "arrows point the way to things as if there weren\'t locked gates"): in warrens_b at ' + inB + ', the flooded stair pinned -- ' + pins.join(' | ') + ' (want: shut, the way round; satisfied or open, through it)',
+        pts[0] !== 'none' && pts[0] !== pts[2] && pts[1] === pts[2] && pts[2] !== 'none');
+      DS.DATA.quests.pop(); delete fl.pin; delete fl.skarnOk; delete fl.skarnGateOpen;
+      // ... and the arrow still shows down the spine: every beat's quests, the party at Silverton's start (the story walk, story1006, reaches each pinned door from there)
+      var noPin = [], swept = 0, shown = 0, cs = DS.DATA.config.start;
+      for (var nB = 0; nB <= 21; nB++) {
+        if (nB === 3) continue; // (the seam: no save stands between beats 3 and 4 -- story1006)
+        T.newGame('barley'); DS.paused = true; DS.situation(DS.G, { base: 'lake', spine: nB }); var gB = DS.G, pin0 = gB.flags.pin;
+        DS.DATA.quests.forEach(function (qB) {
+          if (!DS.cond(qB.show) || DS.cond(qB.done)) return; var stB = DS.questStep(qB); if (!stB || !stB.map) return;
+          gB.flags.pin = qB.id; DS.field.load(cs.map, cs.x, cs.y, 'down'); gB.x = cs.x; gB.y = cs.y; DS.field.pinKey = null; swept++;
+          var pB = DS.field.pinPoint(); if (pB) shown++; else if (qB.id === pin0) noPin.push(nB + ':' + qB.id + ' (' + stB.map + ':' + (stB.npc || stB.trig || stB.door || stB.at) + ')');
+        });
+        gB.flags.pin = pin0;
+      }
+      check('THE ARROW DOWN THE SPINE: ' + shown + ' of ' + swept + ' shown quest steps have an arrow from Silverton\'s start; a beat\'s pinned quest with none: ' + (noPin.join(', ') || 'none'), !noPin.length);
     } else if (test === 'scourge1014') {
       // Searing Scourge in the 8-bit (ours; 10-14, Griz: "do 1 and 2" -- the grid's eight squares, here the foe in front and up to two beside it, no picker): the sheet
       // copied into Aurdin's book, the three it takes of four, one roll for all; Deathhand's two dice, d6 each from the 3rd; the twirl's frames set

@@ -639,7 +639,7 @@ def build_warrens():
     g.warp(13, 27, 'warrens_a', 15, 5, 'down')
     for x in (7, 21, 27):
         g.put(x, 27, '#')
-    g.trig('skarngate', 17, 19, 'skarnGate', on='use', w=2, h=1, cond='!flag:skarnGateOpen')
+    g.trig('skarngate', 17, 19, 'skarnGate', on='use', w=2, h=1, cond='!flag:skarnGateOpen', opens='flag:skarnOk')  # (opens: the arrow's walk goes through it while this holds -- js/world.js passOf, 10-14)
     g.flagtile(17, 19, 'gateOpen', 'flag:skarnGateOpen'); g.flagtile(18, 19, 'gateOpen', 'flag:skarnGateOpen')
     g.put(17, 27, '#')
     g.warp(12, 1, 'warrens_d', 2, 12, 'right')
@@ -1270,7 +1270,7 @@ def build_deep():
         g.put(39, y, '_')
         g.flagtile(38, y, 'gateOpen', 'flag:roadOpen')
     g.put(37, 9, 'l'); g.put(37, 13, 'l')
-    g.trig('highwayGate', 38, 10, 'highwayGate', on='use', h=3, cond='!flag:roadOpen')
+    g.trig('highwayGate', 38, 10, 'highwayGate', on='use', h=3, cond='!flag:roadOpen', opens='flag:pyroLeads & !flag:captainHome')  # (the king at the gate opens it: js/deep.js S.highwayGate; the arrow's walk, 10-14)
     g.trig('muster', 35, 10, 'muster', on='step', w=3, h=3, cond='flag:wordBelow & !flag:mustered')   # beat 6: the season musters at the gate
     g.npc('smith', 6, 5, 'dsmith', dir='down')
     g.npc('gatewatch', 36, 11, 'dtrooper', dir='left')

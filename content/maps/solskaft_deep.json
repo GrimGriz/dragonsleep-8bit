@@ -223,7 +223,8 @@
 ],
 "on": "use",
 "script": "highwayGate",
-"cond": "!flag:roadOpen"
+"cond": "!flag:roadOpen",
+"opens": "flag:pyroLeads & !flag:captainHome"
 },
 {
 "id": "muster",
