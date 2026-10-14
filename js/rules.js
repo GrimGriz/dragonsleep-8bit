@@ -134,19 +134,19 @@
     for (var i = 0; i < h.slotsMax.length; i++) h.slots[i] = (h.slots[i] || 0) + (h.slotsMax[i] - (oldMax[i] || 0));
     var d = DS.DATA.heroes[h.id];
     var lu = (d.levels && d.levels[h.lvl]) || {};
-    var asks = []; // (what this level gives that the player chooses, the build's default already taken: R.ask below, the level-up pick -- 10-14)
-    if (lu.expertise) { h.expertise = (h.expertise || []).concat(lu.expertise); msgs.push('Expertise: ' + lu.expertise.join(', ') + '.'); asks.push({ kind: 'expertise', need: lu.expertise.length, took: lu.expertise.slice() }); }
+    var asks = [], said = []; // (what this level gives that the player chooses, the build's default already taken: R.ask below, the level-up pick -- 10-14; `said`, its lines)
+    if (lu.expertise) { h.expertise = (h.expertise || []).concat(lu.expertise); said.push('Expertise: ' + lu.expertise.join(', ') + '.'); msgs.push(said[said.length - 1]); asks.push({ kind: 'expertise', need: lu.expertise.length, took: lu.expertise.slice() }); }
     if (lu.asi || h.lvl === 4) {
       var asi = lu.asi || c.asi, parts = [], got = {};
       Object.keys(asi).forEach(function (k) { var to = Math.min(20, h.abil[k] + asi[k]); got[k] = to - h.abil[k]; h.abil[k] = to; parts.push(k.toUpperCase() + ' +' + asi[k]); });
       asks.push({ kind: 'asi', need: 2, took: got });
-      msgs.push('Ability scores: ' + parts.join(', ') + '.');
+      said.push('Ability scores: ' + parts.join(', ') + '.'); msgs.push(said[said.length - 1]);
       var want = h.lvl * Math.max(1, c.hd + DS.mod(h.abil.con)), base = h.maxhp - ((h.conds && h.conds.aid) || 0); // CON counts back to level 1
       if (base < want) { h.hp += want - base; h.maxhp += want - base; }
     }
     var nlearn = msgs.length, wholeList = h.cls === 'paladin'; // (one who prepares from the whole class list, R.prepPool: nothing is "learned" -- what opens is a spell level)
     var tookN = [], tookC = [], book = h.cls === 'wizard'; // (a wizard's two for the book and his cantrip at 4 are his to choose: the sheet's are the default)
-    if (lu.learn) lu.learn.forEach(function (s) { if (h.known.indexOf(s) < 0) { h.known.push(s); (DS.DATA.spells[s].level ? tookN : tookC).push(s); if (!wholeList) msgs.push(h.name + ' learns ' + DS.DATA.spells[s].name + '.'); } });
+    if (lu.learn) lu.learn.forEach(function (s) { if (h.known.indexOf(s) < 0) { h.known.push(s); (DS.DATA.spells[s].level ? tookN : tookC).push(s); if (!wholeList) { msgs.push(h.name + ' learns ' + DS.DATA.spells[s].name + '.'); if (book) said.push(msgs[msgs.length - 1]); } } });
     if (book && lu.learn) {
       var nN = lu.learn.filter(function (s) { return DS.DATA.spells[s] && DS.DATA.spells[s].level; }).length, nC = lu.learn.length - nN;
       if (nN) asks.push({ kind: 'spells', need: nN, took: tookN });
@@ -160,8 +160,11 @@
     }
     if (h.prepared && msgs.length > nlearn) msgs.push('New spells are prepared after a long rest.'); // (SRD: the day is chosen on waking)
     if (lu.subclass) { h.subclass = lu.subclass; msgs.push(h.name + ': ' + lu.subclass + '.'); }
-    if (lu.choose === 'archetype') { asks.push({ kind: 'archetype', need: 1, took: null }); msgs.push(h.name + ' has a choice to make.'); } // (no default: RULED 09-24, the player's choice)
+    if (lu.choose === 'archetype') { asks.push({ kind: 'archetype', need: 1, took: null }); said.push(h.name + ' has a choice to make.'); msgs.push(said[said.length - 1]); } // (no default: RULED 09-24, the player's choice)
     if (asks.length) R.ask(h, h.lvl, asks);
+    // (the lines that told the build's picks, and one that says what is to choose: R.gainXP shows that one in their place, the pick page next -- 10-14, Griz: "all the old
+    // level up text played before picker opened"; the climb's and the ladder's cards read the lines as they were)
+    msgs.asked = said; msgs.chooses = asks.length ? R.choosesLine(h, asks) : '';
     (lu.feats || []).forEach(function (t) { msgs.push(t); });
     if (h.cls === 'paladin') { h.feats.lay = (h.feats.lay || 0) + 5; if (h.lvl === 3) h.feats.channel = 1; }
     if (h.cls === 'rogue' && h.lvl % 2 === 1) msgs.push('Sneak Attack is now ' + R.sneakDice(h.lvl) + '.');
@@ -176,7 +179,11 @@
     var cap = R.cap();
     if (h.lvl >= cap) { h.xp = R.XP_LEVEL[cap]; return msgs; } // at the cap nothing banks (so the chuul isn't a jump to 9)
     h.xp += xp;
-    while (h.lvl < cap && h.xp >= R.XP_LEVEL[h.lvl + 1]) msgs = msgs.concat(R.levelUp(h));
+    while (h.lvl < cap && h.xp >= R.XP_LEVEL[h.lvl + 1]) {
+      var m = R.levelUp(h), asked = m.asked || [], put = false;
+      m.forEach(function (x) { if (asked.indexOf(x) < 0) msgs.push(x); else if (!put) { put = true; msgs.push(m.chooses); } }); // (the pick page follows: what is to choose, not the build's picks)
+      if (m.chooses && !put) msgs.push(m.chooses);
+    }
     if (h.lvl >= cap) h.xp = R.XP_LEVEL[cap];
     return msgs;
   };
@@ -225,6 +232,33 @@
     'haste', 'slow', 'hypnoticpattern', 'fear', 'vampirictouch', 'blink', 'protectionfromenergy', 'dispelmagic', 'stinkingcloud', 'sleetstorm', 'counterspell',
     'searingscourge', 'deathhandsscourge'];
   R.WIZARD_CANTRIPS = ['firebolt', 'acidsplash', 'light', 'rayoffrost', 'shockinggrasp', 'chilltouch', 'poisonspray', 'truestrike', 'dancinglights'];
+  // the subclass a class chooses, the SRD's and ours (10-14, the level-up pick §5, routed 10-08 from the GreyFang window; Griz, 10-14: "better build it for the
+  // pocket DM as well, there are actual choices to work with"): `at` the class level it comes, `word` the SRD's name for it, the options with their `id` (the
+  // Pocket DM's code word keeps it) and a line of what each does on the grid (deep16/js/features.js, grimoire.js, battle.js). A class not here has the SRD's
+  // one alone (deep16/js/classes.js NPC.CLASSES[c].sub). The 8-bit's four read their own sheet's (content/heroes.json archetypes: Vivian's)
+  R.SUBCLASSES = {
+    barbarian: { at: 3, word: 'PRIMAL PATH', opts: [
+      { id: 'berserker', name: 'Path of the Berserker', srd: true, desc: 'Frenzy: raging, a bonus-action attack each turn. At 6, Mindless Rage: no charm or fear while raging.' },
+      { id: 'sand', name: 'Path of the Sand', desc: "Talmok's, the pit's own. First Blood: hurt and not raging, the reaction starts a rage. Down in the Sand: raging, once a turn a melee hit puts one Large or smaller down on a failed STR save. At 6, Answer Back: one who misses in melee gets a blow back." }] },
+    cleric: { at: 1, word: 'DIVINE DOMAIN', opts: [
+      { id: 'life', name: 'Life Domain', srd: true, desc: 'Disciple of Life: a healing spell heals 2 + its level more. At 2, Preserve Life (Channel Divinity); at 6, healing others heals the cleric too; at 8, Divine Strike.' },
+      { id: 'window', name: 'the Window', desc: "Kat's: the menders of Tronupholen. The Hand on the Neck: a bonus-action touch, and the first blow to land on that one is rolled again. At 2, The Doubling; at 6, The Showing (Channel Divinity). Illusions always prepared." },
+      { id: 'vigil', name: 'the Vigil', desc: "Torvald's: the Ward of the Dormant. Keeper's Ward: a bonus action, the next damage to one within 30 ft cut by 1d8 + level. At 2, Hold the Door (Channel Divinity); at 6, Wakeful: no magic sleep nearby. Wards always prepared." }] },
+    ranger: { at: 3, word: 'RANGER ARCHETYPE', opts: [
+      { id: 'hunter', name: 'Hunter', srd: true, desc: "Colossus Slayer: once a turn, 1d8 more to a foe that is already hurt." },
+      { id: 'greyroad', name: 'the Grey Road', desc: "GreyFang's, the pit-master's way. Turn It Aside: the reaction adds WIS to the AC of one within 5 ft. Pit-Wise: rising and climbing cost less. At 7, Give Ground: the reaction steps back from a foe, and the next bow shot at it has advantage." }] },
+    rogue: { at: 3, word: 'ROGUISH ARCHETYPE', opts: [
+      { id: 'thief', name: 'Thief', srd: true, desc: 'Fast Hands: using an item is a bonus action. At 9, Supreme Sneak.' },
+      { id: 'cutthroat', name: 'Cutthroat', desc: "The game's own (Vivian's other road). Opening Cut: in the first round, advantage on a foe that hasn't acted yet, and a hit on it is a critical." }] },
+    warlock: { at: 1, word: 'OTHERWORLDLY PATRON', opts: [
+      { id: 'fiend', name: 'The Fiend', srd: true, desc: "Dark One's Blessing: a foe it drops gives temporary HP. At 6, Dark One's Own Luck." },
+      { id: 'mirror', name: 'The Mirror', desc: "Amara's. The Mirror's eye: nothing hides or goes invisible before the warlock, in light. Its own list: Glass Whisper and Command; Mirror Image and Detect Thoughts at 3; Hypnotic Pattern and Clairvoyance at 5." }] },
+    wizard: { at: 2, word: 'ARCANE TRADITION', opts: [
+      { id: 'evocation', name: 'School of Evocation', srd: true, desc: 'Sculpt Spells: an evocation spares the friends caught in it. At 6, Potent Cantrip: a cantrip saved against still does half.' },
+      { id: 'rimeglass', name: 'the Rimeglass', desc: "Willem's: illusion with the cold in it. Rime Doubles: a blow that breaks a Mirror Image slows the one who struck by 10 ft. At 6, Rime Step: an illusion cast, and the wizard is 10 ft off, away from the foes." }] }
+  };
+  // an option by its id or its name, for a class
+  R.subOpt = function (cls, key) { var s = R.SUBCLASSES[cls]; return s ? s.opts.filter(function (o) { return o.id === key || o.name === key; })[0] || null : null; };
   // a spell the story game gives only as a page (Griz, 10-06: "storygame some come by collecting pages only (find familiar, etc)"): the lane's list until the road
   // lane's walk decides -- every spell sheet in the world (content/items.json, `use.effect` 'learn'), Counterspell (his quest sheet) and Find Familiar (Ned's page).
   // The ladder and the climb offer them all ("ladder for sure")
@@ -239,6 +273,11 @@
     if (h.picks && !h.picks.length) delete h.picks;
     if (h.picks) h.pendingChoice = R.asking(h, 'archetype') ? 'archetype' : 'pick';
     else delete h.pendingChoice;
+  };
+  // "Aurdin chooses ability scores, two spells and a cantrip next." (a hero's name, no pronoun)
+  R.choosesLine = function (h, asks) {
+    var w = asks.map(function (a) { return a.kind === 'asi' ? 'ability scores' : a.kind === 'spells' ? (a.need === 1 ? 'a spell' : a.need === 2 ? 'two spells' : a.need + ' spells') : a.kind === 'cantrip' ? (a.need === 1 ? 'a cantrip' : a.need + ' cantrips') : a.kind === 'expertise' ? 'Expertise' : 'an archetype'; });
+    return h.name + ' chooses ' + (w.length > 1 ? w.slice(0, -1).join(', ') + ' and ' + w[w.length - 1] : w[0]) + ' next.';
   };
   R.picksDue = function (h) { return !!(h && h.pendingChoice && h.picks && h.picks.length); };
   R.chosen = function (h, lvl, kind) { return !!(h.chose && h.chose[lvl] && h.chose[lvl][kind] != null); };
@@ -269,7 +308,7 @@
         return { id: k, name: k, max: 1, desc: h.name + "'s proficiency counts twice for " + k + '.' + (k === 'Stealth' ? ' (HIDE reads Stealth.)' : '') };
       });
     }
-    if (ask.kind === 'archetype') return (d.archetypes || []).map(function (a) { return { id: a.name, name: a.name, desc: a.desc || '', max: 1 }; });
+    if (ask.kind === 'archetype') return (d.archetypes || ((R.SUBCLASSES[h.cls] || {}).opts) || []).map(function (a) { return { id: a.name, name: a.name, desc: a.desc || '', max: 1 }; }); // (a sheet's own, else the class's: R.SUBCLASSES)
     return [];
   };
   // the default marks: { id: n }

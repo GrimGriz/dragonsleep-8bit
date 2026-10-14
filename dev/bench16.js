@@ -3466,6 +3466,30 @@
         names.join(',') === 'Barley,Aurdin,Vivian,Lymen' && !!lu.summary && /Learns/.test(sumC) && sC.party.every(function (h) { return h.lvl === 4 && !h.pendingChoice; }));
       okLp('THE LADDER OFFERS THE PAGE-ONLY SPELLS (grease ' + (ladderRows.indexOf('grease') >= 0) + ') and Aurdin took it for Web (' + (auC.known.indexOf('grease') >= 0) + ', ' + (auC.known.indexOf('web') < 0) + ')',
         ladderRows.indexOf('grease') >= 0 && auC.known.indexOf('grease') >= 0 && auC.known.indexOf('web') < 0);
+      // d. the Pocket DM's maker picks the subclass on THE LEVEL (10-14, Griz: "better build it for the pocket DM as well, there are actual choices to work with"):
+      // the SRD's and ours from the class's level, a click on ours makes the sheet that, the word keeps it, an old word is the SRD's
+      var NPCx = D.npc, cvLp = document.createElement('canvas'); cvLp.width = D.W; cvLp.height = D.H; var cxLp = cvLp.getContext('2d');
+      var PKl = new D.Pocket(); PKl.enter(); PKl.makeNew(0, null); PKl.mk.cls = 'ranger'; PKl.kitUp(); PKl.mk.step = 3;
+      function btnsLp() { PKl.btns = []; PKl.drawMaker(cxLp); return PKl.btns.map(function (b) { return b.label; }); }
+      PKl.mk.lvl = 2; var at2 = btnsLp(), sh2 = PKl.mkSheet();
+      PKl.mk.lvl = 3; var at3 = btnsLp(), shH = PKl.mkSheet();
+      var grey = PKl.btns.filter(function (b) { return b.label === 'the Grey Road *'; })[0]; if (grey) grey.fn();
+      var shG = PKl.mkSheet(), codeG = NPCx.code(PKl.mkSpec()), back = NPCx.sheet(NPCx.decode(codeG)), oldW = codeG.replace(/\.greyroad$/, '');
+      okLp('THE MAKER: a ranger at 2 is offered no subclass yet (' + (at2.indexOf('Hunter') < 0) + ', sheet ' + sh2.subclass + '); at 3 Hunter and the Grey Road (' + (at3.indexOf('Hunter') >= 0 && at3.indexOf('the Grey Road *') >= 0) + '), the SRD\'s by default (' + shH.subclass + ')',
+        at2.indexOf('Hunter') < 0 && !sh2.subclass && at3.indexOf('Hunter') >= 0 && at3.indexOf('the Grey Road *') >= 0 && shH.subclass === 'Hunter');
+      okLp('THE GREY ROAD clicked: the sheet ' + shG.subclass + ', the word ' + codeG.slice(-30) + ', read back ' + back.subclass + '; a word made before it is the SRD\'s (' + NPCx.sheet(NPCx.decode(oldW)).subclass + ')',
+        shG.subclass === 'the Grey Road' && /\.greyroad$/.test(codeG) && back.subclass === 'the Grey Road' && NPCx.sheet(NPCx.decode(oldW)).subclass === 'Hunter');
+      PKl.mk.cls = 'cleric'; PKl.kitUp(); PKl.mk.lvl = 3; btnsLp(); PKl.mk.known = ['sacredflame'];
+      var win = PKl.btns.filter(function (b) { return b.label === 'the Window *'; })[0]; if (win) win.fn();
+      var infoW = PKl.spellInfo(), shW = PKl.mkSheet();
+      okLp('A CLERIC at 3, the Window: the sheet ' + shW.subclass + ', the spells start again from the class\'s own (' + (PKl.mk.known === null) + '), always ready ' + JSON.stringify(infoW && infoW.always) + ' (the domain\'s built ones: Blur, not the Life Domain\'s Bless)',
+        shW.subclass === 'the Window' && PKl.mk.known === null && infoW && infoW.always.indexOf('blur') >= 0 && infoW.always.indexOf('bless') < 0);
+      PKl.mk.cls = 'warlock'; PKl.kitUp(); PKl.mk.lvl = 3; btnsLp();
+      var mir = PKl.btns.filter(function (b) { return b.label === 'The Mirror *'; })[0]; if (mir) mir.fn();
+      var shM = PKl.mkSheet();
+      okLp('A WARLOCK, the Mirror: ' + shM.subclass + ', the Mirror\'s eye ' + !!shM.mirrorEye, shM.subclass === 'The Mirror' && shM.mirrorEye);
+      var rowsR = RL.pickRows({ id: 'npc-rogue3', cls: 'rogue', lvl: 3, abil: {}, skills: {} }, { lvl: 3 }, { kind: 'archetype', need: 1, took: null }, {}).map(function (r) { return r.id; });
+      okLp('THE PICK PAGE for a rogue with no sheet of its own offers the class\'s: ' + rowsR.join('/'), rowsR.join('/') === 'Thief/Cutthroat');
     } catch (eLp) { repLp.errors.push(String(eLp && eLp.stack || eLp).slice(0, 900)); }
     D.ctx = ctx0Lp; window.DS.autoPicks = auto0Lp;
     if (errs.length) repLp.errors = repLp.errors.concat(errs);

@@ -2037,6 +2037,10 @@
         var kinds1 = rec1 ? rec1.asks.map(function (x) { return x.kind + ':' + x.need; }).join(',') : 'none';
         check('AURDIN 3 -> 4 asks ' + kinds1 + ' (want asi:2,spells:2,cantrip:1), the pair and the cantrip taken already (' + ['web', 'shatter', 'dancinglights'].every(function (id) { return a1.known.indexOf(id) >= 0; }) + '), flagged ' + a1.pendingChoice,
           kinds1 === 'asi:2,spells:2,cantrip:1' && ['web', 'shatter', 'dancinglights'].every(function (id) { return a1.known.indexOf(id) >= 0; }) && a1.pendingChoice === 'pick' && rec1.lvl === 4);
+        // (his find, 10-14: "all the old level up text played before picker opened" -- the lines say what is to choose, not the build's picks)
+        var saidA = linesA.join(' | ');
+        check('THE LEVEL-UP LINES before the page: "' + saidA + '" -- no "learns", no "Ability scores", one "chooses ... next"',
+          !/learns|Ability scores/.test(saidA) && /Aurdin chooses ability scores, two spells and a cantrip next\./.test(saidA) && /is now level 4/.test(saidA));
         R8.autoPicks(a1);
         check('NO ONE TO ASK: the build\'s picks stand (web ' + (a1.known.indexOf('web') >= 0) + ', shatter ' + (a1.known.indexOf('shatter') >= 0) + '), nothing left asked (' + !a1.picks + ', ' + !a1.pendingChoice + ')',
           a1.known.indexOf('web') >= 0 && a1.known.indexOf('shatter') >= 0 && !a1.picks && !a1.pendingChoice);

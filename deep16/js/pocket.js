@@ -693,12 +693,12 @@
     if (sp && sp.abil) { var rc = NPC.RACES[sp.race] || NPC.RACES.human; Object.keys(rc.abil).forEach(function (k) { abil[k] -= rc.abil[k]; }); }
     this.mk = { step: 1, slot: slotIndex, editing: custom ? this.st.party[slotIndex].custom : null, cls: sp ? sp.cls : 'fighter', race: sp ? sp.race : 'human', abil: abil, lvl: sp ? Math.min(PK.cap(this.st), sp.lvl) : 1,
       equip: sp ? Object.assign({}, sp.equip) : null, alt: sp ? sp.alt : undefined, known: sp && sp.known ? sp.known.slice() : null, name: sp ? sp.name : '', tab: 'weapon', spellTab: 0,
-      style: sp ? sp.style || NPC.CLASSES[sp.cls].style || null : null };
+      style: sp ? sp.style || NPC.CLASSES[sp.cls].style || null : null, sub: sp && sp.subclass ? sp.subclass : null };
     if (!this.mk.equip) this.kitUp();
     this.go('maker');
   };
   // (the class's own kit -- and its own fighting style, the maker's STYLE tab picks another: 10-06)
-  Pocket.prototype.kitUp = function () { var c = NPC.CLASSES[this.mk.cls]; this.mk.equip = { weapon: c.kit.weapon, armor: c.kit.armor || null, shield: c.kit.shield || null, ring: null, cloak: null }; this.mk.alt = c.kit.alt || null; this.mk.known = null; this.mk.style = c.style || null; };
+  Pocket.prototype.kitUp = function () { var c = NPC.CLASSES[this.mk.cls]; this.mk.equip = { weapon: c.kit.weapon, armor: c.kit.armor || null, shield: c.kit.shield || null, ring: null, cloak: null }; this.mk.alt = c.kit.alt || null; this.mk.known = null; this.mk.style = c.style || null; this.mk.sub = null; };
   Pocket.prototype.mkSpec = function () {
     var m = this.mk, rc = NPC.RACES[m.race] || NPC.RACES.human, abil = {};
     NPC.ABIL.forEach(function (k) { abil[k] = m.abil[k] + (rc.abil[k] || 0); });
@@ -706,6 +706,7 @@
     if (m.style && (R.STYLE_FOR[m.cls] || []).indexOf(m.style) >= 0) sp.style = m.style;
     if (m.known) sp.known = m.known.slice();
     if (NPC.CLASSES[m.cls].pact) sp.pact = NPC.CLASSES[m.cls].pact;
+    var sc = R.SUBCLASSES[m.cls]; if (m.sub && sc && m.lvl >= sc.at && R.subOpt(m.cls, m.sub)) sp.subclass = m.sub; // (the subclass picked on THE LEVEL, 10-14; none picked: the SRD's)
     return sp;
   };
   Pocket.prototype.mkSheet = function () { try { return NPC.sheet(this.mkSpec()); } catch (e) { return null; } };
@@ -900,6 +901,27 @@
         if (h.subclass) lines.push(h.subclass);
         if (h.slotsMax && h.slotsMax.length) lines.push('slots ' + h.slotsMax.map(function (n, i) { return (i + 1) + ':' + n; }).join(' '));
         lines.forEach(function (l, i) { D.text(ctx, l, D.W / 2, y + 48 + i * 11, P('bone', 1), 'center'); });
+      }
+      // the subclass with the level (10-14, the level-up pick §5; Griz: "better build it for the pocket DM as well, there are actual choices to work with"): the
+      // SRD's and ours from the class's level (js/rules.js R.SUBCLASSES), the one picked lit and its line under; a class with the SRD's one alone shows it above.
+      // A caster's spells start again from the class's own on a change (a domain's, a patron's own list)
+      var scl = R.SUBCLASSES[m.cls];
+      if (scl) {
+        var yS = y + 100;
+        D.text(ctx, '{y}' + scl.word + '{/}' + (m.lvl >= scl.at ? '' : '  {g}(chosen at ' + R.CLASSES[m.cls].name.toLowerCase() + ' ' + scl.at + '){/}'), 30, yS, P('bone', 1));
+        if (m.lvl >= scl.at) {
+          var curS = (h && h.subclass) || scl.opts[0].name, bw = Math.floor((D.W - 60) / scl.opts.length) - 6;
+          scl.opts.forEach(function (o, i) {
+            self.btn(ctx, o.name + (o.srd ? '' : ' *'), 30 + i * (bw + 6), yS + 12, bw, 13, function () {
+              if (curS === o.name) return;
+              m.sub = o.srd ? null : o.name;
+              if (R.CLASSES[m.cls].caster) m.known = null;
+            }, { on: curS === o.name, small: true });
+          });
+          var oc = R.subOpt(m.cls, curS), yD = yS + 32;
+          if (oc) D.wrap(oc.desc, D.W - 60).slice(0, 4).forEach(function (w) { D.text(ctx, w, 30, yD, P('bone', 2)); yD += 10; });
+          D.text(ctx, '* ours, not the SRD\'s', 30, yS + 76, P('stone', 5));
+        }
       }
     } else if (step === 4) {
       // the fighting style beside the gear, from the class's level (SRD 5.1: the fighter at 1, the paladin and the ranger at 2; 10-06, Griz:

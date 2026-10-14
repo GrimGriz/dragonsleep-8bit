@@ -532,13 +532,16 @@
     if (known) sp.known = known;
     if (C[cls].pact) sp.pact = C[cls].pact;
     if (f[7] && (R.STYLE_FOR[cls] || []).indexOf(f[7]) >= 0) sp.style = f[7]; // (the fighting style picked, 10-06: a word made before it has none, and fights by the class's)
+    var so = f[8] && R.subOpt && R.subOpt(cls, f[8]); // (the subclass picked, 10-14 -- js/rules.js R.SUBCLASSES: a word made before it has none, and is the SRD's)
+    if (so && lvl >= R.SUBCLASSES[cls].at) sp.subclass = so.name;
     return sp;
   };
   NPC.code = function (sp) {
     var ab = sp.abil ? NPC.ABIL.map(function (k) { return sp.abil[k]; }).join('-') : '';
     var eq = sp.equip || {}, gear = NPC.GEAR.map(function (k) { return k === 'alt' ? (sp.alt || '') : (eq[k] || ''); }).join('_');
     var name = String(sp.name || '').replace(/[^A-Za-z0-9 \-']/g, '').replace(/'/g, '').trim().replace(/ +/g, '_');
-    return '~' + [sp.cls, sp.lvl, sp.race || 'human', ab, gear, name, (sp.known || []).join('-'), sp.style || ''].join('.').replace(/\.+$/, '');
+    var so = sp.subclass && R.subOpt ? R.subOpt(sp.cls, sp.subclass) : null;
+    return '~' + [sp.cls, sp.lvl, sp.race || 'human', ab, gear, name, (sp.known || []).join('-'), sp.style || '', so && !so.srd ? so.id : ''].join('.').replace(/\.+$/, '');
   };
   // the class floor from a URL: ?npc=cleric,wizard&lvl=5 -- those against the four at that level; &vs=fighter,rogue -- a band instead
   // of the four (yours to run); an entry like higertha or druid:3:dwarf names one (NPC.spec); &watch -- your side run by the class
