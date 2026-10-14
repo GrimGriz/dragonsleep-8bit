@@ -2355,6 +2355,16 @@
       var bW2 = D.top(); if (bW2 !== BJ) { bW2.enter(); D.pop(); bW2.o.onDone('escaped'); driveZ(gW, null, 2000); }
       var saidW2 = (BJ.log || []).slice(nS2).join(' | ');
       okZ('the Settling in and out without a seam: no card going in (' + !/THE SETTLING/.test(saidW2) + '), none back (' + !/Back on the Wet/.test(saidW2) + '), in at once (' + kW2 + ' steps)', bW2 !== BJ && !/THE SETTLING/.test(saidW2) && !/Back on the Wet/.test(saidW2) && kW2 <= 3);
+      // the gather in a corridor (10-14, his pane: "just had a huge stall in the pane on regroup"): the lead at the end of the works' one-square corridor, the three strung out behind
+      // -- they walk through each other to its side, no stall
+      var corr = function (c8) { return at8(c8, 22); }, bJ = RJ.members.filter(function (u) { return u.id === 'barley'; })[0];
+      var restJ = RJ.members.filter(function (u) { return u !== bJ; });
+      RJ.members.forEach(function (u) { u.hp = u.maxhp; u.ko = false; });
+      var c0 = corr(33); bJ.x = c0[0]; bJ.y = c0[1]; restJ.forEach(function (u, i) { var c = corr(29 - i); u.x = c[0]; u.y = c[1]; });
+      RJ.members = [bJ].concat(restJ); RJ.mode = 'fight'; var t0J = BJ.t;
+      driveZ(D.roam.after(BJ, 'won', { zone: 'warrens_d' }, []), null, 3000);
+      var offJ = restJ.map(function (u) { return Math.max(Math.abs(u.x - bJ.x), Math.abs(u.y - bJ.y)); }), spent = BJ.t - t0J;
+      okZ('the gather in the works\' corridor: all beside the lead (' + offJ.join(',') + ' off), and no stall (' + spent + ' frames)', offJ.every(function (d) { return d <= 1; }) && spent < 400);
     } catch (eZ) { repZ.errors.push(String(eZ && eZ.stack || eZ).slice(0, 900)); }
     D.store.get = stGZ; D.store.set = stSZ; IZ.held.up = false; IZ.held.left = false;
     if (errs.length) repZ.errors = repZ.errors.concat(errs);

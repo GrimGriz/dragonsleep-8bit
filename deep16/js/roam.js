@@ -1164,17 +1164,22 @@
       // the floor when the lead had walked off from the fight); the fallen carried in
       var walkers = R0.members.filter(function (u) { return u !== lead && u.hp > 0; }).map(function (w) { return { w: w, path: D.Battle.route(w, meet2, false) || [] }; });
       R0.members.forEach(function (u) { if (u !== lead && u.hp <= 0) FX.sparkle(u, 'glow', 12); });
+      // (one of ours in the way is walked through -- allies may; in a corridor the first to reach the lead stood on the only square beside it and the rest waited out the cap,
+      // a long stall in his pane, 10-14 -- a foe in the way is walked round once; a step in which nobody moves ends the walk)
       for (var gs = 0; gs < 90 && walkers.some(function (k) { return k.path.length; }); gs++) {
+        var moved = 0;
         walkers.forEach(function (k) {
           var nx = k.path[0]; if (!nx) return;
           if ((nx[0] === meet2[0] && nx[1] === meet2[1]) || Math.max(Math.abs(k.w.x - meet2[0]), Math.abs(k.w.y - meet2[1])) <= 1) { k.path = []; return; } // (beside the lead: in)
-          var oc = G.occupant(nx[0], nx[1], k.w); if (oc && oc !== k.w) return; // (another in the way: it waits a step)
-          k.path.shift();
+          var oc = G.occupant(nx[0], nx[1], k.w);
+          if (oc && oc !== k.w && oc.side !== 'party') { if (k.rerouted) { k.path = []; return; } k.rerouted = true; k.path = D.Battle.route(k.w, meet2, true) || []; return; }
+          k.path.shift(); moved++;
           k.w.tween = { fx: k.w.x, fy: k.w.y, fz: G.gzAt(k.w, k.w.x, k.w.y), t: 0, dur: STEP, mode: null }; k.w.facing = D.spr.facingFor(nx[0] - k.w.x, nx[1] - k.w.y);
           if (k.w.anim !== 'walk') { k.w.anim = 'walk'; k.w.animT = B.t; }
           k.w.x = nx[0]; k.w.y = nx[1];
         });
         G.setup(G.map, B.units);
+        if (!moved && !walkers.some(function (k) { return k.rerouted && k.path.length; })) break;
         yield STEP;
       }
       walkers.forEach(function (k) { k.w.anim = 'idle'; k.w.animT = B.t; });
