@@ -3436,7 +3436,7 @@
     function KLp(b) { return { pressed: function (x) { return x === b; }, repeat: function (x) { return x === b; } }; }
     function rowLp(pg, id) { for (var t = 0; t < pg.tabs.length; t++) { pg.tab = t; pg.list.i = 0; pg.refresh(); for (var i = 0; i < pg.list.items.length; i++) { var it = pg.list.items[i]; if (it.value && it.value.id === id) { pg.list.i = i; pg.list.fix(); return true; } } } return false; }
     function hitLp(m, id) { if (!rowLp(m.top(), id)) return false; m.update(KLp('a')); return true; }
-    function confLp(m) { var pg = m.top(); pg.list.i = pg.list.items.length - 1; pg.list.fix(); m.update(KLp('a')); if (m.toast) m.update(KLp('a')); }
+    function confLp(m) { var pg = m.top(); pg.list.i = pg.list.items.findIndex(function (it) { return it.confirm; }); pg.list.fix(); m.update(KLp('a')); if (m.toast) m.update(KLp('a')); }
     try {
       var RL = window.DS.R;
       okLp('D.levelPicks is there (' + typeof D.levelPicks + ')', typeof D.levelPicks === 'function');

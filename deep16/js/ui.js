@@ -1091,7 +1091,7 @@
   function menuKeys() {
     var mo = I.mouse || {}, x = mo.x - UI.MENU_X, y = mo.y - UI.MENU_Y;
     return { pressed: function (b) { return I.pressed(b); }, repeat: function (b) { return I.repeat(b); },
-      mouse: { x: x, y: y, moved: !!mo.moved, click: !!mo.click && x >= 0 && y >= 0 && x < 256 && y < 240, rclick: !!mo.rclick } };
+      mouse: { x: x, y: y, moved: !!mo.moved, click: !!mo.click && x >= 0 && y >= 0 && x < 256 && y < 240, rclick: !!mo.rclick, wheel: mo.inside ? (mo.wheel || 0) : 0 } }; // (the wheel too: the one menu scrolls its rows, 10-14)
   }
   UI.menuKeys = menuKeys; // (the climb's level-up pick drives the one menu with the grid's keys too, 10-14)
   // the hero whose turn it is, for EQUIP (a guest's gear is its own)

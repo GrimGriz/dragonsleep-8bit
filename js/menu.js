@@ -71,6 +71,13 @@
     this.scroll = clamp(this.scroll, 0, Math.max(0, this.items.length - this.vis));
   };
   List.prototype.cur = function () { return this.items[this.i]; };
+  // the mouse wheel: the rows scroll, the cursor kept in sight (10-14, Griz on the pick page: "mousewheel in spell selection")
+  List.prototype.wheel = function (n) {
+    var s0 = this.scroll; this.scroll = clamp(this.scroll + n, 0, Math.max(0, this.items.length - this.vis));
+    if (this.i < this.scroll) this.i = this.scroll;
+    if (this.i >= this.scroll + this.vis) this.i = this.scroll + this.vis - 1;
+    if (this.scroll !== s0) sfx('cursor');
+  };
   // 'pick' | 'back' | null
   List.prototype.update = function (k) {
     var n = this.items.length, old = this.i;
@@ -144,7 +151,10 @@
       if (ms.click && hit) k = MN.keyAlso(k, 'a');
       else if (ms.rclick) k = MN.keyAlso(k, 'b');
     }
+    // (a click or a right click lets a message go, as E or X does -- 10-14, Griz: "right-click as esc after confirmation click text shows (also on misclick for spell choice)")
+    if (this.toast && k.mouse && (k.mouse.click || k.mouse.rclick)) k = MN.keyAlso(k, 'a');
     if (this.toast) { if (k.pressed('a') || k.pressed('b')) { sfx('confirm'); var th = this.toast.then; this.toast = null; if (th) th(); } return; }
+    if (k.mouse && k.mouse.wheel && this.root.mode !== 'pick') { var tw = this.top(); if (tw && tw.list && tw.list.wheel) tw.list.wheel(k.mouse.wheel > 0 ? 1 : -1); } // (the wheel scrolls the page's rows, 10-14)
     if (this.root.mode === 'pick') { this.root.update(k); return; } // (the cursor kicked into the panel, over whatever page asked)
     this.top().update(k);
   };
@@ -509,6 +519,8 @@
     this.tab = 0;
     this.tabs.some(function (t, i) { if (t.g.rows.some(function (r) { return (t.lv == null || r.lv === t.lv) && t.g.marks[r.id]; })) { self.tab = i; return true; } return false; });
     this.refresh();
+    // (CONFIRM is the top row -- 10-14, Griz: "confirm at the top for spell selection" -- the cursor on it when the build's picks stand, else on the first choice)
+    this.list.i = this.ready() ? 0 : Math.min(1, this.list.items.length - 1); this.list.fix();
   }
   PickPage.prototype.ready = function () { return this.groups.every(function (g) { return marksOf(g) === g.need; }); };
   PickPage.prototype.refresh = function () {
@@ -524,7 +536,7 @@
       items.push(it);
     });
     var ok = this.ready();
-    items.push({ label: 'CONFIRM', confirm: true, color: ok ? C.gold : C.white, disabled: !ok, right: ok ? '' : this.short(), rightColor: C.dim, desc: '' });
+    items.unshift({ label: 'CONFIRM', confirm: true, color: ok ? C.gold : C.white, disabled: !ok, right: ok ? '' : this.short(), rightColor: C.dim, desc: '' });
     var i0 = this.list.i; this.list.set(items); this.list.i = Math.min(i0, items.length - 1); this.list.fix();
   };
   // what is still to choose, in a word
@@ -579,6 +591,10 @@
     }), this.tab, 8, 22, Math.min(240, this.tabs.length * 60));
     if (g) { text(ctx, fit(pickNeedWord(g), 186), 10, 38, C.pale); right(ctx, marksOf(g) + ' of ' + g.need, 246, 38, marksOf(g) === g.need ? C.green : C.gold); }
     this.list.draw(ctx, 10, 52, 234, active, this.m.t, 12, 8); // (a gutter for the mark, clear of the cursor)
+    if (this.list.scroll > 0 && this.ready()) { // (scrolled past CONFIRM: it stands at the top while the count is met -- "or appears at top when valid")
+      ctx.fillStyle = '#2c3070'; ctx.fillRect(150, 6, 76, 12); text(ctx, 'CONFIRM ▲', 156, 9, C.gold);
+      HITS.push({ list: this.list, k: 0, owner: OWNER, x: 150, y: 6, w: 76, h: 12 });
+    }
     var def = this.groups.some(function (x) { return x.ask.took != null; }); // (an archetype comes with nothing marked: the player's choice, RULED 09-24)
     text(ctx, '◆', 10, 184, C.gold); text(ctx, def ? 'marked  ·  the build\'s picks come marked' : 'marked  ·  nothing comes marked: yours to choose', 20, 184, C.dim);
     var cur = this.list.cur();
