@@ -136,7 +136,7 @@
     var lu = (d.levels && d.levels[h.lvl]) || {};
     var asks = [], said = []; // (what this level gives that the player chooses, the build's default already taken: R.ask below, the level-up pick -- 10-14; `said`, its lines)
     if (lu.expertise) { h.expertise = (h.expertise || []).concat(lu.expertise); said.push('Expertise: ' + lu.expertise.join(', ') + '.'); msgs.push(said[said.length - 1]); asks.push({ kind: 'expertise', need: lu.expertise.length, took: lu.expertise.slice() }); }
-    if (lu.asi || h.lvl === 4) {
+    if (lu.asi || R.asiLevels(h.cls).indexOf(h.lvl) >= 0) { // (the class's levels for a sheet that does not name one: Brann at 6, 10-14 -- "I just clicked brann from L5 to L6 and expected choices")
       var asi = lu.asi || c.asi, parts = [], got = {};
       Object.keys(asi).forEach(function (k) { var to = Math.min(20, h.abil[k] + asi[k]); got[k] = to - h.abil[k]; h.abil[k] = to; parts.push(k.toUpperCase() + ' +' + asi[k]); });
       asks.push({ kind: 'asi', need: 2, took: got });
@@ -266,6 +266,52 @@
     if (id === 'counterspell' || id === 'findfamiliar') return true;
     var its = DS.DATA.items || {};
     return Object.keys(its).some(function (k) { var u = its[k] && its[k].use; return u && u.effect === 'learn' && u.spell === id; });
+  };
+  // the class's ability score improvement levels (SRD 5.1: 4, 8, 12, 16, 19; the fighter's 6 and 14 too, the rogue's 10). A hero's own sheet names its
+  // own at its levels (content/heroes.json `asi`); one whose sheet names none at a level takes the class's increase there (R.CLASSES[c].asi), the default
+  R.ASI_AT = { fighter: [4, 6, 8, 12, 14, 16, 19], rogue: [4, 8, 10, 12, 16, 19], _: [4, 8, 12, 16, 19] };
+  R.asiLevels = function (cls) { return R.ASI_AT[cls] || R.ASI_AT._; };
+  // the picks in a word (the Pocket DM's cards carry a hero's picks into the fight's URL, 10-14): '+^' + level + a letter for the kind + ':' + the values --
+  // '^6a:con2', '^4s:shatter-blur', '^4c:light', '^6e:Insight-Sleight_of_Hand', '^3r:Cutthroat' (a space as _)
+  var PICK_L = { asi: 'a', spells: 's', cantrip: 'c', expertise: 'e', archetype: 'r' };
+  R.picksWord = function (picks) {
+    var out = [];
+    Object.keys(picks || {}).map(Number).sort(function (a, b) { return a - b; }).forEach(function (L) {
+      var ch = picks[L] || {};
+      Object.keys(PICK_L).forEach(function (k) {
+        var v = ch[k]; if (v == null) return;
+        var s = k === 'asi' ? Object.keys(v).filter(function (x) { return v[x] > 0; }).map(function (x) { return x + v[x]; }).join('-') : k === 'archetype' ? String(v).replace(/ /g, '_') : v.map(function (x) { return String(x).replace(/ /g, '_'); }).join('-');
+        out.push('^' + L + PICK_L[k] + ':' + s);
+      });
+    });
+    return out;
+  };
+  R.picksParse = function (parts) {
+    var picks = null, K = {}; Object.keys(PICK_L).forEach(function (k) { K[PICK_L[k]] = k; });
+    (parts || []).forEach(function (p) {
+      var m = /^\^(\d+)([ascer]):(.*)$/.exec(p); if (!m) return;
+      var L = +m[1], k = K[m[2]], s = m[3], v;
+      if (k === 'asi') { v = {}; s.split('-').forEach(function (x) { var mm = /^(str|dex|con|int|wis|cha)([12])$/.exec(x); if (mm) v[mm[1]] = +mm[2]; }); }
+      else if (k === 'archetype') v = s.replace(/_/g, ' ');
+      else v = s ? s.split('-').map(function (x) { return x.replace(/_/g, ' '); }) : [];
+      picks = picks || {}; (picks[L] = picks[L] || {})[k] = v;
+    });
+    return picks;
+  };
+  // a hero made at a level (R.makeHero: the build's picks taken) given the player's instead, level by level -- each swap against what that level took
+  // (h.chose); an archetype still waiting is chosen
+  R.repick = function (h, picks) {
+    Object.keys(picks || {}).map(Number).sort(function (a, b) { return a - b; }).forEach(function (L) {
+      if (L > h.lvl) return;
+      var ch = picks[L] || {}, made = (h.chose && h.chose[L]) || {}, asks = [], c = {};
+      if (ch.archetype != null) {
+        var recA = (h.picks || []).filter(function (r) { return r.asks.some(function (a) { return a.kind === 'archetype'; }); })[0];
+        if (recA) R.applyPick(h, recA, { archetype: ch.archetype }); else h.subclass = ch.archetype;
+      }
+      ['asi', 'spells', 'cantrip', 'expertise'].forEach(function (k) { if (ch[k] != null && made[k] != null) { asks.push({ kind: k, need: 0, took: made[k] }); c[k] = ch[k]; } });
+      if (asks.length) R.applyPick(h, { lvl: L, asks: asks }, c);
+    });
+    R.pendSync(h);
   };
   R.ask = function (h, lvl, asks) { (h.picks = h.picks || []).push({ lvl: lvl, asks: asks }); R.pendSync(h); };
   R.asking = function (h, kind) { return (h.picks || []).some(function (p) { return p.asks.some(function (a) { return a.kind === kind; }); }); };

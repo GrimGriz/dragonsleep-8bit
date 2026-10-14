@@ -3488,6 +3488,37 @@
       var mir = PKl.btns.filter(function (b) { return b.label === 'The Mirror *'; })[0]; if (mir) mir.fn();
       var shM = PKl.mkSheet();
       okLp('A WARLOCK, the Mirror: ' + shM.subclass + ', the Mirror\'s eye ' + !!shM.mirrorEye, shM.subclass === 'The Mirror' && shM.mirrorEye);
+      // e. a Pocket card's level arrow asks that level's choices (10-14, Griz: "I just clicked brann from L5 to L6 and expected choices"): Brann's fighter increase
+      // at 6 (the class's level -- his sheet names none), the page over the table, the pick in the card's word and on the sheet the fight builds; Aurdin's spells
+      var b5L = RL.makeHero('brann', 5), b6L = RL.makeHero('brann', 6);
+      okLp('BRANN AT 6 has the fighter\'s increase: STR ' + b5L.abil.str + ' -> ' + b6L.abil.str, b6L.abil.str === Math.min(20, b5L.abil.str + 2));
+      var PKP = D.pocket, PKc = new D.Pocket(); PKc.enter(); PKc.st.dm = true; PKc.st.party[0] = { w: 'brann', lvl: 5, loot: [] }; PKc.st.party[1] = { w: 'aurdin', lvl: 3, loot: [] };
+      PKc.levelSlot(0, 1); var pmB = PKc.pm, pgB = pmB && pmB.top();
+      okLp('THE CARD 5 -> 6: the pick page over the table (' + !!pmB + '), Brann\'s scores, the build\'s ' + (pgB ? JSON.stringify(pgB.groups[0].marks) : '-') + ' marked', !!pmB && pgB.h.id === 'brann' && JSON.stringify(pgB.groups[0].marks) === '{"str":2}');
+      if (pmB) { hitLp(pmB, 'str'); hitLp(pmB, 'con'); hitLp(pmB, 'con'); confLp(pmB); }
+      var slB = PKc.st.party[0], wB = PKP.wordOf(PKc.st, slB), shB = PKP.sheetOf(PKP.specOf(PKc.st, slB));
+      okLp('CON +2 FOR STR: the page gone (' + !PKc.pm + '), the card\'s word ' + wB + ', its sheet STR ' + shB.abil.str + ' (want ' + b5L.abil.str + '), CON ' + shB.abil.con + ' (want ' + (b5L.abil.con + 2) + '), max HP ' + shB.maxhp + ' (want ' + (b6L.maxhp + 6 * (DS.mod(b5L.abil.con + 2) - DS.mod(b5L.abil.con))) + ')',
+        !PKc.pm && /\+\^6a:con2$/.test(wB) && shB.abil.str === b5L.abil.str && shB.abil.con === b5L.abil.con + 2 && shB.maxhp === b6L.maxhp + 6 * (DS.mod(b5L.abil.con + 2) - DS.mod(b5L.abil.con)));
+      PKc.levelSlot(1, 1); var pmA = PKc.pm;
+      if (pmA) { hitLp(pmA, 'web'); hitLp(pmA, 'blur'); confLp(pmA); }
+      var slA = PKc.st.party[1], wA = PKP.wordOf(PKc.st, slA), shA = PKP.sheetOf(PKP.specOf(PKc.st, slA));
+      okLp('AURDIN\'S CARD 3 -> 4: Blur for Web -- the word ' + wA + ', the book: blur ' + (shA.known.indexOf('blur') >= 0) + ', web ' + (shA.known.indexOf('web') >= 0) + ', the day ' + (shA.prepared || []).length + ' of ' + RL.prepCount(shA),
+        !!pmA && /\^4s:shatter-blur/.test(wA) && shA.known.indexOf('blur') >= 0 && shA.known.indexOf('web') < 0 && (shA.prepared || []).length === RL.prepCount(shA));
+      PKc.levelSlot(1, -1);
+      okLp('BACK TO 3: his level-4 picks go with it (' + JSON.stringify(slA.picks) + ', the word ' + PKP.wordOf(PKc.st, slA) + ')', !slA.picks[4] && !/\^4/.test(PKP.wordOf(PKc.st, slA)));
+      // f. the maker's ability increases on THE LEVEL (a fighter at 6: 4 and 6), each on the pick page; and a named card (Talmok, grown) asks its increase past its register
+      PKl.mk.cls = 'fighter'; PKl.kitUp(); PKl.mk.lvl = 6; PKl.mk.step = 3; var labsF = btnsLp().filter(function (l) { return /^L\d+ /.test(l); });
+      var sF0 = PKl.mkSheet(), b4 = PKl.btns.filter(function (b) { return /^L4 /.test(b.label); })[0]; if (b4) b4.fn();
+      var pmF = PKl.pm; if (pmF) { hitLp(pmF, 'str'); hitLp(pmF, 'con'); hitLp(pmF, 'con'); confLp(pmF); }
+      var sF = PKl.mkSheet(), wF = NPCx.code(PKl.mkSpec()), sF2 = NPCx.sheet(NPCx.spec(wF));
+      okLp('THE MAKER\'S INCREASES (a fighter at 6): ' + labsF.join(', ') + '; L4 to CON +2 on the page (' + !!pmF + '): STR ' + sF0.abil.str + ' -> ' + sF.abil.str + ', CON ' + sF0.abil.con + ' -> ' + sF.abil.con + '; the word ' + wF.slice(-12) + ' builds it back (CON ' + sF2.abil.con + ')',
+        labsF.length === 2 && !!pmF && sF.abil.con === sF0.abil.con + 2 && sF.abil.str === sF0.abil.str - 2 && /\+\^4a:con2$/.test(wF) && sF2.abil.con === sF.abil.con && JSON.stringify(PKl.mk.picks) === '{"4":{"asi":{"con":2}}}');
+      var PKt = new D.Pocket(); PKt.enter(); PKt.st.dm = true; PKt.st.party[0] = { w: 'talmok', lvl: 3, loot: [] };
+      var tal3 = PKP.sheetOf(PKP.specOf(PKt.st, PKt.st.party[0])); PKt.levelSlot(0, 1); var pmT = PKt.pm;
+      if (pmT) { hitLp(pmT, 'str'); hitLp(pmT, 'dex'); hitLp(pmT, 'dex'); confLp(pmT); }
+      var wT = PKP.wordOf(PKt.st, PKt.st.party[0]), tal4 = PKP.sheetOf(PKP.specOf(PKt.st, PKt.st.party[0]));
+      okLp('TALMOK\'S CARD 3 -> 4 asks his increase (' + !!pmT + '): DEX ' + tal3.abil.dex + ' -> ' + tal4.abil.dex + ', STR ' + tal3.abil.str + ' -> ' + tal4.abil.str + ', the word ' + wT,
+        !!pmT && tal4.abil.dex === tal3.abil.dex + 2 && tal4.abil.str === tal3.abil.str && /talmok:4:grown\+\^4a:dex2/.test(wT));
       var rowsR = RL.pickRows({ id: 'npc-rogue3', cls: 'rogue', lvl: 3, abil: {}, skills: {} }, { lvl: 3 }, { kind: 'archetype', need: 1, took: null }, {}).map(function (r) { return r.id; });
       okLp('THE PICK PAGE for a rogue with no sheet of its own offers the class\'s: ' + rowsR.join('/'), rowsR.join('/') === 'Thief/Cutthroat');
     } catch (eLp) { repLp.errors.push(String(eLp && eLp.stack || eLp).slice(0, 900)); }

@@ -241,10 +241,15 @@
     // A named one's register numbers stand at its register's level; built past it (spec.away: that level), the ones after it come
     // on top (09-28h: Talmok's STR 16 is 18 at 4 and 20 at 8)
     // (spec.asis: the Pocket DM's own character -- the scores typed in are its level-1 numbers, and the ASIs come with the level, 10-02)
+    // (the player's own at a level -- spec.picks[at].asi, the Pocket DM's maker and its cards, 10-14 -- in place of the class's first; each level's increase
+    // kept on the sheet, h.asiAt, for the pick page's default)
+    var asiAt = {};
     (spec.abil ? (spec.away ? (c.asiAt || [4, 8]).filter(function (at) { return at > spec.away; }) : spec.asis ? (c.asiAt || [4, 8]) : []) : c.asiAt || [4, 8]).forEach(function (at) {
       if (lvl < at) return;
-      var left = 2;
-      c.prio.forEach(function (k) { var room = 20 - abil[k], g = Math.min(room, left); if (g > 0) { abil[k] += g; left -= g; } });
+      var mine = spec.picks && spec.picks[at] && spec.picks[at].asi, got = {};
+      if (mine) Object.keys(mine).forEach(function (k) { if (abil[k] == null) return; var g = Math.max(0, Math.min(20 - abil[k], mine[k])); if (g > 0) { abil[k] += g; got[k] = g; } });
+      else { var left = 2; c.prio.forEach(function (k) { var room = 20 - abil[k], g = Math.min(room, left); if (g > 0) { abil[k] += g; left -= g; got[k] = g; } }); }
+      asiAt[at] = got;
     });
     var con = DS.mod(abil.con), hd = RC.hd;
     var hp = spec.maxhp ? lvl * Math.max(1, hd + con) : hd + con + (lvl - 1) * (hd / 2 + 1 + con);
@@ -262,6 +267,7 @@
       skills: {}, expertise: [], race: spec.race || 'human', npc: true, alt: 'alt' in spec ? spec.alt : (c.kit.alt || null),
       land: spec.land || (cls === 'druid' ? 'underdark' : null), // (a druid's circle land: the generic druid's is the Pit's Underdark, 09-29)
       lupine: !!spec.lupine, // (GreyFang's people, 10-08: NPC.unit gives the senses)
+      asiAt: asiAt, // (each level's ability increase as it was taken: the Pocket DM's pick page marks it, 10-14)
       script: spec.script || null // (a named one's own turn: js/pyro.js)
     };
     if (spec.loot) NPC.wear(h, spec.loot); // (the Pocket DM's winnings: `+item` on the word, worn where the class may -- 10-02)
@@ -463,8 +469,10 @@
   // '~' is a character of the player's own making, the whole sheet in the word (NPC.decode)
   NPC.spec = function (word, lvl) {
     var plus = String(word).split('+'), raw = plus[0], loot = plus.slice(1).filter(Boolean);
+    var pk = loot.filter(function (p) { return p.charAt(0) === '^'; }); loot = loot.filter(function (p) { return p.charAt(0) !== '^'; }); // (a card's level picks, js/rules.js R.picksWord: 10-14)
     var sp = raw.charAt(0) === '~' ? NPC.decode(raw) : spec0(raw, lvl);
     if (sp && loot.length) sp.loot = (sp.loot || []).concat(loot);
+    if (sp && pk.length && R.picksParse) sp.picks = R.picksParse(pk);
     return sp;
   };
   function spec0(word, lvl) {
@@ -494,6 +502,8 @@
       h.attacks = d.attacks; if (d.resist) h.resist = d.resist.slice(); h.guest = true; h.key = id;
       if (d.script) h.script = d.script; if (d.surgeAI) h.surgeAI = true;
     }
+    // (the player's own picks a level gave, from the card -- js/rules.js R.repick against what the build took; the day's spells refilled: 10-14)
+    if (sp.picks && R.repick) { R.repick(h, sp.picks); if (h.prepared && R.prepCount(h)) h.prepared = R.prepFill(h, D.save.spell); }
     if (sp.loot) NPC.wear(h, sp.loot);
     NPC.carry(h, sp);
     return h;
@@ -518,6 +528,7 @@
   // (10-06: the worn places beyond these six are appended -- js/rules.js R.PLACES: the second ring, the feet, the neck -- so a code made before them still decodes: a short code has nothing there)
   NPC.GEAR = ['weapon', 'armor', 'shield', 'alt', 'ring', 'cloak', 'ring2', 'feet', 'neck'];
   NPC.decode = function (code) {
+    var parts = String(code).split('+'), picks = R.picksParse ? R.picksParse(parts.slice(1)) : null; code = parts[0]; // (a made one's level picks ride after its word: 10-14)
     var f = String(code).slice(1).split('.'), cls = (f[0] || '').toLowerCase();
     if (!C[cls]) return null;
     var lvl = Math.max(1, Math.min(NPC.maxLvl(cls), +f[1] || 1)), race = NPC.RACES[(f[2] || '').toLowerCase()] ? (f[2] || '').toLowerCase() : 'human';
@@ -534,6 +545,7 @@
     if (f[7] && (R.STYLE_FOR[cls] || []).indexOf(f[7]) >= 0) sp.style = f[7]; // (the fighting style picked, 10-06: a word made before it has none, and fights by the class's)
     var so = f[8] && R.subOpt && R.subOpt(cls, f[8]); // (the subclass picked, 10-14 -- js/rules.js R.SUBCLASSES: a word made before it has none, and is the SRD's)
     if (so && lvl >= R.SUBCLASSES[cls].at) sp.subclass = so.name;
+    if (picks) sp.picks = picks;
     return sp;
   };
   NPC.code = function (sp) {
@@ -541,7 +553,8 @@
     var eq = sp.equip || {}, gear = NPC.GEAR.map(function (k) { return k === 'alt' ? (sp.alt || '') : (eq[k] || ''); }).join('_');
     var name = String(sp.name || '').replace(/[^A-Za-z0-9 \-']/g, '').replace(/'/g, '').trim().replace(/ +/g, '_');
     var so = sp.subclass && R.subOpt ? R.subOpt(sp.cls, sp.subclass) : null;
-    return '~' + [sp.cls, sp.lvl, sp.race || 'human', ab, gear, name, (sp.known || []).join('-'), sp.style || '', so && !so.srd ? so.id : ''].join('.').replace(/\.+$/, '');
+    return '~' + [sp.cls, sp.lvl, sp.race || 'human', ab, gear, name, (sp.known || []).join('-'), sp.style || '', so && !so.srd ? so.id : ''].join('.').replace(/\.+$/, '')
+      + (sp.picks && R.picksWord ? R.picksWord(sp.picks).map(function (p) { return '+' + p; }).join('') : ''); // (its level picks, after the word: 10-14)
   };
   // the class floor from a URL: ?npc=cleric,wizard&lvl=5 -- those against the four at that level; &vs=fighter,rogue -- a band instead
   // of the four (yours to run); an entry like higertha or druid:3:dwarf names one (NPC.spec); &watch -- your side run by the class

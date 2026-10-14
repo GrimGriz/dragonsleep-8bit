@@ -63,7 +63,8 @@
     if (slot.w === 'new' || slot.w === '?') return null;
     var s = PK.STOCK.filter(function (x) { return x.w === slot.w; })[0] || { lo: 1 };
     var L = s.king ? 12 : Math.max(s.lo, Math.min(s.hi || 12, PK.cap(st), slot.lvl || s.lo));
-    return slot.w + ':' + L + (s.grown ? ':grown' : '') + (slot.loot || []).map(function (id) { return '+' + id; }).join('');
+    var pk = slot.picks && DS.R.picksWord ? DS.R.picksWord(slot.picks).filter(function (w0) { return +/^\^(\d+)/.exec(w0)[1] <= L; }) : []; // (its level picks: js/rules.js R.picksWord, 10-14)
+    return slot.w + ':' + L + (s.grown ? ':grown' : '') + (slot.loot || []).concat(pk).map(function (id) { return '+' + id; }).join('');
   };
   PK.specOf = function (st, slot) { var w = PK.wordOf(st, slot); return w ? NPC.spec(w) : null; };
   // a sheet for the card (the 8-bit's shape: hp, equip, abil...), and its figure
@@ -336,6 +337,7 @@
     this.t++;
     if (this.msg && this.msg.t > 0) this.msg.t--;
     if (this.egg) { this.eggUpdate(); return; } // (an egg on the screen holds the table till it is let go: js/pocketdm.js)
+    if (this.pm) { this.pm.update(D.ui.menuKeys()); return; } // (a card's level picks: the one pick page holds the table till CONFIRM, 10-14)
     var s = this.screen;
     if (I.pressed('b') && !D.typing) { this.back(); return; }
     if (s === 'title' && this.titleClick()) return; // (the throne and the two lamps: js/pocketdm.js)
@@ -693,12 +695,12 @@
     if (sp && sp.abil) { var rc = NPC.RACES[sp.race] || NPC.RACES.human; Object.keys(rc.abil).forEach(function (k) { abil[k] -= rc.abil[k]; }); }
     this.mk = { step: 1, slot: slotIndex, editing: custom ? this.st.party[slotIndex].custom : null, cls: sp ? sp.cls : 'fighter', race: sp ? sp.race : 'human', abil: abil, lvl: sp ? Math.min(PK.cap(this.st), sp.lvl) : 1,
       equip: sp ? Object.assign({}, sp.equip) : null, alt: sp ? sp.alt : undefined, known: sp && sp.known ? sp.known.slice() : null, name: sp ? sp.name : '', tab: 'weapon', spellTab: 0,
-      style: sp ? sp.style || NPC.CLASSES[sp.cls].style || null : null, sub: sp && sp.subclass ? sp.subclass : null };
+      style: sp ? sp.style || NPC.CLASSES[sp.cls].style || null : null, sub: sp && sp.subclass ? sp.subclass : null, picks: sp && sp.picks ? JSON.parse(JSON.stringify(sp.picks)) : null };
     if (!this.mk.equip) this.kitUp();
     this.go('maker');
   };
   // (the class's own kit -- and its own fighting style, the maker's STYLE tab picks another: 10-06)
-  Pocket.prototype.kitUp = function () { var c = NPC.CLASSES[this.mk.cls]; this.mk.equip = { weapon: c.kit.weapon, armor: c.kit.armor || null, shield: c.kit.shield || null, ring: null, cloak: null }; this.mk.alt = c.kit.alt || null; this.mk.known = null; this.mk.style = c.style || null; this.mk.sub = null; };
+  Pocket.prototype.kitUp = function () { var c = NPC.CLASSES[this.mk.cls]; this.mk.equip = { weapon: c.kit.weapon, armor: c.kit.armor || null, shield: c.kit.shield || null, ring: null, cloak: null }; this.mk.alt = c.kit.alt || null; this.mk.known = null; this.mk.style = c.style || null; this.mk.sub = null; this.mk.picks = null; };
   Pocket.prototype.mkSpec = function () {
     var m = this.mk, rc = NPC.RACES[m.race] || NPC.RACES.human, abil = {};
     NPC.ABIL.forEach(function (k) { abil[k] = m.abil[k] + (rc.abil[k] || 0); });
@@ -706,8 +708,20 @@
     if (m.style && (R.STYLE_FOR[m.cls] || []).indexOf(m.style) >= 0) sp.style = m.style;
     if (m.known) sp.known = m.known.slice();
     if (NPC.CLASSES[m.cls].pact) sp.pact = NPC.CLASSES[m.cls].pact;
-    var sc = R.SUBCLASSES[m.cls]; if (m.sub && sc && m.lvl >= sc.at && R.subOpt(m.cls, m.sub)) sp.subclass = m.sub; // (the subclass picked on THE LEVEL, 10-14; none picked: the SRD's)
+    var sc = R.SUBCLASSES[m.cls]; if (m.sub && sc && m.lvl >= sc.at && R.subOpt(m.cls, m.sub)) sp.subclass = m.sub;
+    if (m.picks) { var pp = {}; Object.keys(m.picks).forEach(function (L) { if (+L <= m.lvl) pp[L] = m.picks[L]; }); if (Object.keys(pp).length) sp.picks = pp; } // (the increases picked on THE LEVEL, 10-14) // (the subclass picked on THE LEVEL, 10-14; none picked: the SRD's)
     return sp;
+  };
+  // a made one's increase at a level, on the one pick page (10-14): the scratch sheet at that level, the increase it takes now marked; the pick kept on the maker
+  Pocket.prototype.askMakerAsi = function (at) {
+    var m = this.mk, self = this, R8 = DS.R, sp = this.mkSpec(); sp.lvl = at;
+    var h = null; try { h = NPC.sheet(sp); } catch (e) { h = null; }
+    var got = h && h.asiAt && h.asiAt[at]; if (!got) { D.sfx('error'); return; }
+    h.picks = [{ lvl: at, asks: [{ kind: 'asi', need: 2, took: got }] }]; R8.pendSync(h);
+    this.pm = DS.MENU.openPicks({ party: function () { return [h]; }, close: function () { } }, [h], {}, function () {
+      self.pm = null;
+      var ch = h.chose && h.chose[at]; if (ch && ch.asi) { m.picks = m.picks || {}; m.picks[at] = { asi: ch.asi }; }
+    });
   };
   Pocket.prototype.mkSheet = function () { try { return NPC.sheet(this.mkSpec()); } catch (e) { return null; } };
   // the mundane racks, by what the class may use (his: "generic kits per class"; the plus-ones are winnings)
@@ -757,6 +771,34 @@
     var L = Math.max(e.lo, Math.min(e.hi || 12, PK.cap(this.st), (slot.lvl || e.lo) + dir));
     if (L === slot.lvl) { D.sfx('error'); return; }
     slot.lvl = L; this.cache = {}; this.keep(); D.sfx('cursor');
+    if (slot.picks) Object.keys(slot.picks).forEach(function (k) { if (+k > L) delete slot.picks[k]; }); // (a level given back takes its picks with it)
+    if (dir > 0) this.askLevel(i, L);
+  };
+  // a card's level up asks that level's choices (10-14, Griz: "I just clicked brann from L5 to L6 and expected choices"): the 8-bit's heroes and guests, made by
+  // js/rules.js R.makeHero, on the one pick page (js/menu.js MN.openPicks) where the grid's M menu stands, as the climb asks them -- every spell offered (the
+  // ladders' rule), one not on the grid greyed; what is chosen rides the card's word (slot.picks). A named one of the class floor keeps its register's
+  Pocket.prototype.askLevel = function (i, L) {
+    var slot = this.st.party[i], self = this, R8 = DS.R, sp = PK.specOf(this.st, slot), h = null, rec = null;
+    if (!sp || !R8.picksDue) return;
+    if (sp.hero) { // (an 8-bit hero or guest, made by R.makeHero: the level's asks as the 8-bit's level-up leaves them)
+      var d = DS.DATA.heroes[sp.hero]; if (!d || L <= d.level) return; // (at or below its start a hero is drawn as it starts: nothing a level gave)
+      h = R8.makeHero(sp.hero, L - 1); if (slot.picks) R8.repick(h, slot.picks);
+      h.picks = null; R8.pendSync(h); h.xp = R8.XP_LEVEL[L]; R8.levelUp(h);
+      rec = (h.picks || []).filter(function (r) { return r.lvl === L; })[0];
+    } else { // (one of the class floor's named, made by NPC.sheet: the level's ability increase, past its register's level)
+      h = PK.sheetOf(sp); var got = h && h.asiAt && h.asiAt[L];
+      if (got) rec = { lvl: L, asks: [{ kind: 'asi', need: 2, took: got }] };
+    }
+    if (!rec) return;
+    h.picks = [rec]; R8.pendSync(h);
+    var kinds = rec.asks.map(function (a) { return a.kind; });
+    this.pm = DS.MENU.openPicks({ party: function () { return [h]; }, close: function () { } }, [h], { built: D.climb.built }, function () {
+      self.pm = null;
+      var ch = (h.chose && h.chose[L]) || {}, keep = {};
+      kinds.forEach(function (k) { if (ch[k] != null) keep[k] = ch[k]; });
+      slot.picks = slot.picks || {}; slot.picks[L] = keep;
+      self.cache = {}; self.keep();
+    });
   };
 
   // ------------------------------------------------------------------ drawing
@@ -777,6 +819,7 @@
     else this.drawMore(ctx, s);
     if (this.msg && this.msg.t > 0) { var mw = D.textWidth(this.msg.text) + 16; D.win8(ctx, (D.W - mw) / 2, D.H - 30, mw, 16); D.text(ctx, this.msg.text, D.W / 2, D.H - 26, this.msg.bad ? P('red', 4) : P('gold', 4), 'center'); }
     if (this.egg) this.drawEgg(ctx);
+    if (this.pm) { ctx.fillStyle = 'rgba(4,3,10,.6)'; ctx.fillRect(0, 0, D.W, D.H); D.ui.drawMenu(ctx, this.pm); } // (a card's level picks, over the table)
     this.placeField();
   };
   function head(ctx, title, sub) {
@@ -892,7 +935,7 @@
       this.btn(ctx, 'ALL TENS', 300, y + 117, 70, 13, function () { NPC.ABIL.forEach(function (k) { m.abil[k] = 10; }); }, { small: true });
       this.btn(ctx, 'THE ARRAY', 376, y + 117, 76, 13, function () { var c = NPC.CLASSES[m.cls]; c.prio.forEach(function (k, i) { m.abil[k] = [15, 14, 13, 12, 10, 8][i]; }); }, { small: true });
     } else if (step === 3) {
-      D.text(ctx, 'the level, 1 to ' + PK.cap(this.st) + ' (ability score improvements come with it, +2 to the class\'s first)', D.W / 2, y, P('silver', 5), 'center');
+      D.text(ctx, 'the level, 1 to ' + PK.cap(this.st) + ' (ability score improvements come with it: the class\'s first, or yours below)', D.W / 2, y, P('silver', 5), 'center');
       this.btn(ctx, '<', 190, y + 20, 20, 16, function () { if (m.lvl > 1) m.lvl--; else D.sfx('error'); });
       ctx.save(); ctx.translate(240, y + 18); ctx.scale(2, 2); D.text(ctx, String(m.lvl), 0, 0, P('gold', 4), 'center'); ctx.restore();
       this.btn(ctx, '>', 270, y + 20, 20, 16, function () { if (m.lvl < PK.cap(self.st)) m.lvl++; else D.sfx('error'); });
@@ -905,9 +948,20 @@
       // the subclass with the level (10-14, the level-up pick §5; Griz: "better build it for the pocket DM as well, there are actual choices to work with"): the
       // SRD's and ours from the class's level (js/rules.js R.SUBCLASSES), the one picked lit and its line under; a class with the SRD's one alone shows it above.
       // A caster's spells start again from the class's own on a change (a domain's, a patron's own list)
+      // the ability increases the level gives (10-14, the level-up pick: "Pocket has leveling choices"): each level's as taken -- the class's first until one is
+      // picked -- a button that opens the one pick page for it (js/menu.js), +2 to one or +1 to two
+      var ats = h && h.asiAt ? Object.keys(h.asiAt).map(Number).sort(function (a, b) { return a - b; }) : [];
+      if (ats.length) {
+        var xA = 30 + D.text(ctx, '{y}ABILITY INCREASES{/}', 30, y + 96, P('bone', 1)) + 8;
+        ats.forEach(function (at) {
+          var g = h.asiAt[at], lab = 'L' + at + ' ' + (Object.keys(g).map(function (k) { return k.toUpperCase() + '+' + g[k]; }).join(' ') || '--'), bw2 = D.textWidth(lab) + 12;
+          self.btn(ctx, lab, xA, y + 93, bw2, 13, function () { self.askMakerAsi(at); }, { small: true, on: !!(m.picks && m.picks[at]) });
+          xA += bw2 + 6;
+        });
+      }
       var scl = R.SUBCLASSES[m.cls];
       if (scl) {
-        var yS = y + 100;
+        var yS = y + 112;
         D.text(ctx, '{y}' + scl.word + '{/}' + (m.lvl >= scl.at ? '' : '  {g}(chosen at ' + R.CLASSES[m.cls].name.toLowerCase() + ' ' + scl.at + '){/}'), 30, yS, P('bone', 1));
         if (m.lvl >= scl.at) {
           var curS = (h && h.subclass) || scl.opts[0].name, bw = Math.floor((D.W - 60) / scl.opts.length) - 6;
@@ -919,8 +973,8 @@
             }, { on: curS === o.name, small: true });
           });
           var oc = R.subOpt(m.cls, curS), yD = yS + 32;
-          if (oc) D.wrap(oc.desc, D.W - 60).slice(0, 4).forEach(function (w) { D.text(ctx, w, 30, yD, P('bone', 2)); yD += 10; });
-          D.text(ctx, '* ours, not the SRD\'s', 30, yS + 76, P('stone', 5));
+          if (oc) D.wrap(oc.desc, D.W - 60).slice(0, 3).forEach(function (w) { D.text(ctx, w, 30, yD, P('bone', 2)); yD += 10; });
+          D.text(ctx, '* ours, not the SRD\'s', 30, yS + 64, P('stone', 5));
         }
       }
     } else if (step === 4) {
