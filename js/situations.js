@@ -205,6 +205,25 @@
       map: 'gulch', x: 33, y: 8, dir: 'right',
       prep: function (G) { var a = hero(G, 'aurdin'); if (!a) return; ['searingscourge', 'deathhandsscourge'].forEach(function (id) { if (a.known.indexOf(id) < 0) a.known.push(id); if (a.prepared && a.prepared.indexOf(id) < 0) a.prepared.push(id); }); },
       start: function* () { yield* EV().fight(['gnoll', 'gnoll', 'gnoll', 'gnoll'], { bg: 'cavern', canRun: false }); } },
+    // the level-up pick (10-14): the four a few XP short of the next level; two gnolls put them over, and after the fight's lines the field opens the pick page
+    levelup4: { group: 'Tests (the level-up pick)', title: 'The level-up pick: the four to level 4 (10-14)', pt: 'the level-up pick', lvl: 3,
+      look: 'Two gnolls; the win takes all four to level 4. After the fight\'s lines the pick page opens over the field, a page a hero: Barley\'s scores (STR +2 marked), Aurdin\'s scores, two spells for the book and a cantrip (Web, Shatter and Dancing Lights marked; a tab a spell level, left/right; a spell marked "grid" on the right is cast in the story\'s grid fights, not yet in an 8-bit one), Vivian\'s scores, Lymen\'s. E marks and unmarks, X takes the last mark back, CONFIRM goes on (one press keeps what is marked; short of the count it says what is missing). No grease, Mirror Image, Hideous Laughter, Counterspell or the scourges: those come as pages in the story. Try a swap, then look at MAGIC and STATUS.',
+      say: 'A test: the level-up pick. Win this fight and choose.',
+      map: 'gulch', x: 33, y: 8, dir: 'right',
+      prep: function (G) { G.party.forEach(function (h) { h.xp = DS.R.XP_LEVEL[4] - 20; }); },
+      start: function* () { yield* EV().fight(['gnoll', 'gnoll'], { bg: 'cavern', canRun: false }); } },
+    levelup3: { group: 'Tests (the level-up pick)', title: 'The level-up pick: Vivian\'s archetype at 3 (10-14)', pt: 'the level-up pick', lvl: 2,
+      look: 'Two gnolls; the win takes all four to level 3. The pick page asks Vivian\'s archetype (Thief or Cutthroat, nothing marked: her choice -- each one\'s line in the box below) where the old question used to come, and Aurdin\'s two new spells (Scorching Ray and Rope Trick marked).',
+      say: 'A test: Vivian chooses her archetype on the pick page.',
+      map: 'gulch', x: 33, y: 8, dir: 'right',
+      prep: function (G) { G.party.forEach(function (h) { h.xp = DS.R.XP_LEVEL[3] - 20; }); },
+      start: function* () { yield* EV().fight(['gnoll', 'gnoll'], { bg: 'cavern', canRun: false }); } },
+    levelup6: { group: 'Tests (the level-up pick)', title: 'The level-up pick: level 6 -- Expertise, Barley\'s third increase (10-14)', pt: 'the level-up pick', base: 'lake', lvl: 5,
+      look: 'Two gnolls; the win takes all four to level 6. Vivian\'s Expertise (Stealth and Deception marked; two of the skills she is proficient in), Barley\'s third ability increase (the fighter\'s at 6), Aurdin\'s two (Tiny Hut and Stinking Cloud marked; 3rd level on its tab). Lymen has nothing to choose at 6: no page for him.',
+      say: 'A test: the level-up pick at 6.',
+      map: 'gulch', x: 33, y: 8, dir: 'right',
+      prep: function (G) { G.party.forEach(function (h) { h.xp = DS.R.XP_LEVEL[6] - 20; }); },
+      start: function* () { yield* EV().fight(['gnoll', 'gnoll'], { bg: 'cavern', canRun: false }); } },
     xorns: { group: 'The burrowers (DEEP16)', title: 'The xorns at the Seam', pt: 'Earth Glide · the first Blender monster (new 10-01)', lvl: 8,
       url: 'deep16/?npc=xorn,xorn&lvl=8&map=seamwall',
       look: 'Two xorns. Within 15 ft they walk to you; farther, they sink into the floor and nothing shows where they went, then rise beside someone: a claw from each arm and the bite. One that dies settles half into the floor. Add &watch to the URL to watch both sides play.' },
@@ -224,12 +243,12 @@
     for (var i = 0; i < (s.spine || 0); i++) STEPS[i](G, f);
     set(f, s.flags || {});
     (s.unset || []).forEach(function (k) { delete f[k]; });
-    // Vivian's archetype: the field would ask at once and talk over the situation's opening, so it is chosen here (&rogue=cutthroat)
+    // Vivian's archetype: the field would ask at once and talk over the situation's opening, so it is chosen here (&rogue=cutthroat); the level's other picks
+    // keep the build's (R.makeHero settled them; the pick page, js/rules.js R.settlePicks, 10-14)
     G.party.forEach(function (h) {
-      if (h.pendingChoice !== 'archetype') return;
+      if (!R.asking(h, 'archetype')) return;
       var opts = (DS.DATA.heroes[h.id].archetypes || []).map(function (o) { return o.name; });
-      h.subclass = opts.filter(function (n) { return rog && n.toLowerCase() === rog[1].toLowerCase(); })[0] || opts[0];
-      delete h.pendingChoice;
+      R.settlePicks(h, { archetype: opts.filter(function (n) { return rog && n.toLowerCase() === rog[1].toLowerCase(); })[0] || opts[0] });
     });
     (s.give || []).forEach(function (it) { if (DS.DATA.items[it[0]]) G.give(it[0], it[1]); });
     if (s.prep) s.prep(G);

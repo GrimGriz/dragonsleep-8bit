@@ -2019,6 +2019,84 @@
         check('DEATHHAND\'S: at 2nd rolled ' + rollsD2.filter(function (e) { return /^\d+d\d+$/.test(e) && e !== '1d20'; }).join(',') + ' (want 1d4,1d4), at 3rd ' + rollsS.filter(function (e) { return /^\d+d\d+$/.test(e) && e !== '1d20'; }).join(',') + ' (want 1d6,1d6); the front one ' + (400 - front.hp) + ' lost, fire and necrotic',
           rollsD2.filter(function (e) { return e === '1d4'; }).length === 2 && rollsS.filter(function (e) { return e === '1d6'; }).length === 2 && front.hp < 400);
       } finally { DS.roll = roll0S; DS.W8.scene = scene0S; }
+    } else if (test === 'levelpick1014') {
+      // THE LEVEL-UP PICK (10-14, the level-up pick lane; Griz: "this will be taking over that function and including all class level choices (at least the 4 for the
+      // game for now)", "1-3 lean"): the level-up takes the build's picks and leaves each an ask; no one to ask keeps today's pair; the field opens the one pick page
+      // (js/scenes.js PickScene, js/menu.js MN.openPicks) for every hero with a choice; the page offers only the pool (no page-only spell, nothing known, nothing past
+      // his slots), the build's marked, CONFIRM refused short of the count; each swap lands on the sheet and a load keeps it; Vivian's archetype and Expertise on it
+      var R8 = DS.R, auto0 = DS.autoPicks;
+      function upTo(h, n) { h.xp = R8.XP_LEVEL[n]; return R8.gainXP(h, 0); }
+      function K(b) { return { pressed: function (x) { return x === b; }, repeat: function (x) { return x === b; } }; }
+      function rowAt(pg, id) { for (var t = 0; t < pg.tabs.length; t++) { pg.tab = t; pg.list.i = 0; pg.refresh(); for (var i = 0; i < pg.list.items.length; i++) { var it = pg.list.items[i]; if (it.value && it.value.id === id) { pg.list.i = i; pg.list.fix(); return true; } } } return false; }
+      function hitRow(m, id) { var pg = m.top(); if (!rowAt(pg, id)) return false; m.update(K('a')); return true; }
+      function confirmP(m) { var pg = m.top(); pg.list.i = pg.list.items.length - 1; pg.list.fix(); m.update(K('a')); }
+      function allRows(pg) { var ids = []; pg.groups.forEach(function (gr) { gr.rows.forEach(function (r) { ids.push(r.id); }); }); return ids; }
+      try {
+        // 1. the level-up leaves the asks, the defaults taken; no one to ask keeps them
+        var a1 = R8.makeHero('aurdin', 3), linesA = upTo(a1, 4), rec1 = (a1.picks || [])[0];
+        var kinds1 = rec1 ? rec1.asks.map(function (x) { return x.kind + ':' + x.need; }).join(',') : 'none';
+        check('AURDIN 3 -> 4 asks ' + kinds1 + ' (want asi:2,spells:2,cantrip:1), the pair and the cantrip taken already (' + ['web', 'shatter', 'dancinglights'].every(function (id) { return a1.known.indexOf(id) >= 0; }) + '), flagged ' + a1.pendingChoice,
+          kinds1 === 'asi:2,spells:2,cantrip:1' && ['web', 'shatter', 'dancinglights'].every(function (id) { return a1.known.indexOf(id) >= 0; }) && a1.pendingChoice === 'pick' && rec1.lvl === 4);
+        R8.autoPicks(a1);
+        check('NO ONE TO ASK: the build\'s picks stand (web ' + (a1.known.indexOf('web') >= 0) + ', shatter ' + (a1.known.indexOf('shatter') >= 0) + '), nothing left asked (' + !a1.picks + ', ' + !a1.pendingChoice + ')',
+          a1.known.indexOf('web') >= 0 && a1.known.indexOf('shatter') >= 0 && !a1.picks && !a1.pendingChoice);
+        var a5 = R8.makeHero('aurdin', 5), v3 = R8.makeHero('vivian', 3);
+        check('A HERO MADE AT A LEVEL: Aurdin at 5 knows the sheet\'s (' + ['scorchingray', 'ropetrick', 'web', 'shatter', 'dancinglights', 'fireball', 'lightningbolt'].every(function (id) { return a5.known.indexOf(id) >= 0; }) + '), nothing asked (' + !a5.picks + '); Vivian at 3 still waits on her archetype (' + v3.pendingChoice + ', ' + v3.subclass + ')',
+          ['scorchingray', 'ropetrick', 'web', 'shatter', 'dancinglights', 'fireball', 'lightningbolt'].every(function (id) { return a5.known.indexOf(id) >= 0; }) && !a5.picks && v3.pendingChoice === 'archetype' && v3.subclass === null);
+        // 2. the field: four heroes level, the page opens over it
+        DS.autoPicks = false;
+        g.party = [R8.makeHero('barley', 3), R8.makeHero('aurdin', 3), R8.makeHero('vivian', 2), R8.makeHero('lymen', 3)];
+        var bar = g.party[0], aur = g.party[1], viv = g.party[2], lym = g.party[3];
+        var str0 = bar.abil.str, con0 = bar.abil.con;
+        upTo(bar, 4); upTo(aur, 4); upTo(viv, 3); upTo(lym, 4);
+        var hp4 = bar.maxhp;
+        for (var wP = 0; wP < 60 && !(DS.top() && DS.top().kind === 'picks'); wP++) T.step(1);
+        var scP = DS.top(), mP = scP && scP.m;
+        check('THE FIELD OPENS THE PICK PAGE: ' + (scP && scP.kind) + ', first ' + (mP && mP.top().h.name) + ' (want Barley)', scP && scP.kind === 'picks' && mP.top().h === bar);
+        // Barley: STR +2 marked; CON +2 instead
+        var pgB = mP.top(), marksB = JSON.stringify(pgB.groups[0].marks);
+        hitRow(mP, 'str'); hitRow(mP, 'con'); hitRow(mP, 'con'); confirmP(mP);
+        var toastB = mP.toast ? mP.toast.lines.join(' ') : ''; mP.update(K('a'));
+        check('BARLEY\'S SCORES: the build\'s ' + marksB + ' marked (want {"str":2}); CON +2 taken: STR ' + bar.abil.str + ' (want ' + str0 + '), CON ' + bar.abil.con + ' (want ' + (con0 + 2) + '), max HP ' + hp4 + ' -> ' + bar.maxhp + ' (want +4); "' + toastB + '"',
+          marksB === '{"str":2}' && bar.abil.str === str0 && bar.abil.con === con0 + 2 && bar.maxhp === hp4 + 4 * (DS.mod(con0 + 2) - DS.mod(con0)) && /CON \+2/.test(toastB));
+        // Aurdin: the pool, the build's marked; Web out, Blur in
+        var pgA = mP.top(), idsA = allRows(pgA), spA = pgA.groups.filter(function (x) { return x.ask.kind === 'spells'; })[0];
+        var pageOnly = idsA.filter(function (id) { return R8.pageOnly(id); }), knownIn = idsA.filter(function (id) { return aur.known.indexOf(id) >= 0 && ['web', 'shatter', 'dancinglights'].indexOf(id) < 0; });
+        var tooHigh = spA.rows.filter(function (r) { return r.lv > 2; }).map(function (r) { return r.id; });
+        check('AURDIN\'S PAGE (' + (pgA.h === aur) + '): tabs ' + pgA.tabs.map(function (t) { return t.label; }).join('/') + '; ' + spA.rows.length + ' spells offered, page-only among them ' + JSON.stringify(pageOnly) + ', known ' + JSON.stringify(knownIn) + ', past his 2nd ' + JSON.stringify(tooHigh) + '; marked ' + JSON.stringify(spA.marks),
+          pgA.h === aur && !pageOnly.length && !knownIn.length && !tooHigh.length && spA.rows.length >= 10 && JSON.stringify(spA.marks) === '{"web":1,"shatter":1}' && pgA.tabs[0].label === 'SCORES');
+        hitRow(mP, 'web'); confirmP(mP);
+        var refused = mP.toast ? mP.toast.lines.join(' ') : '', stillA = mP.top() === pgA; mP.update(K('a'));
+        hitRow(mP, 'blur'); confirmP(mP);
+        var toastA = mP.toast ? mP.toast.lines.join(' ') : ''; mP.update(K('a'));
+        check('ONE SHORT, CONFIRM SAYS SO ("' + refused + '", the page stays ' + stillA + '); Blur for Web: web ' + (aur.known.indexOf('web') >= 0) + ', blur ' + (aur.known.indexOf('blur') >= 0) + ', shatter ' + (aur.known.indexOf('shatter') >= 0) + ', the cantrip ' + (aur.known.indexOf('dancinglights') >= 0) + '; chose ' + JSON.stringify(aur.chose && aur.chose[4]),
+          /Not yet: 1 more/.test(refused) && stillA && aur.known.indexOf('web') < 0 && aur.known.indexOf('blur') >= 0 && aur.known.indexOf('shatter') >= 0 && aur.known.indexOf('dancinglights') >= 0 && JSON.stringify(aur.chose[4].spells) === '["shatter","blur"]');
+        // Vivian: her archetype, nothing marked; Cutthroat
+        var pgV = mP.top(), arV = pgV.groups[0], noneV = !Object.keys(arV.marks).length;
+        confirmP(mP); var refusedV = mP.toast ? mP.toast.lines.join(' ') : ''; mP.update(K('a'));
+        hitRow(mP, 'Cutthroat'); confirmP(mP); mP.update(K('a'));
+        check('VIVIAN\'S ARCHETYPE on the page (' + (pgV.h === viv) + ', ' + arV.ask.kind + ', rows ' + arV.rows.map(function (r) { return r.id; }).join('/') + ', none marked ' + noneV + '); CONFIRM refused first ("' + refusedV + '"); she is a ' + viv.subclass + ', flag ' + viv.pendingChoice,
+          pgV.h === viv && noneV && arV.ask.kind === 'archetype' && arV.rows.length === 2 && /Not yet/.test(refusedV) && viv.subclass === 'Cutthroat' && !viv.pendingChoice && !viv.picks);
+        // Lymen: one press keeps the build's
+        var lymA = JSON.stringify(lym.abil); confirmP(mP); mP.update(K('a'));
+        for (var wQ = 0; wQ < 10 && DS.top() && DS.top().kind === 'picks'; wQ++) T.step(1);
+        check('LYMEN KEEPS THE BUILD\'S WITH ONE PRESS (' + (JSON.stringify(lym.abil) === lymA) + '); the page closes on the field (' + (DS.top() && DS.top().kind) + '); nothing asked (' + g.party.every(function (h) { return !h.pendingChoice && !h.picks; }) + ')',
+          JSON.stringify(lym.abil) === lymA && DS.top() === DS.field && g.party.every(function (h) { return !h.pendingChoice && !h.picks; }));
+        // 3. a load keeps the choice: the sheet's pair is not filled back in
+        R8.migrate(aur);
+        check('A LOAD KEEPS HIS CHOICE: web ' + (aur.known.indexOf('web') >= 0) + ' (want false), blur ' + (aur.known.indexOf('blur') >= 0), aur.known.indexOf('web') < 0 && aur.known.indexOf('blur') >= 0);
+        // 4. Vivian's Expertise at 6; Barley's third increase at 6; an old save's waiting archetype comes back as an ask
+        var v5 = R8.makeHero('vivian', 5); R8.settlePicks(v5, { archetype: 'Thief' }); upTo(v5, 6);
+        var recV = (v5.picks || [])[0], askE = recV && recV.asks.filter(function (x) { return x.kind === 'expertise'; })[0], ins0 = R8.skill(v5, 'Insight', 'wis');
+        var rowsE = askE ? R8.pickRows(v5, recV, askE, { pages: true }).map(function (r) { return r.id; }) : [];
+        R8.applyPick(v5, recV, { expertise: ['Insight', 'Acrobatics'] });
+        check('VIVIAN AT 6: Expertise asked (' + (askE && askE.took.join('+')) + ' the build\'s), offered ' + rowsE.join('/') + '; Insight and Acrobatics taken: Insight ' + ins0 + ' -> ' + R8.skill(v5, 'Insight', 'wis') + ', Stealth no longer twice (' + (v5.expertise.indexOf('Stealth') < 0) + ')',
+          askE && rowsE.indexOf('Sleight of Hand') < 0 && rowsE.indexOf('Insight') >= 0 && R8.skill(v5, 'Insight', 'wis') === ins0 + R8.prof(6) && v5.expertise.indexOf('Stealth') < 0 && !v5.picks);
+        var b5 = R8.makeHero('barley', 5); upTo(b5, 6);
+        check('BARLEY AT 6 asks his third increase (' + ((b5.picks || [])[0] || { asks: [] }).asks.map(function (x) { return x.kind; }).join(',') + ')', b5.picks && b5.picks[0].asks[0].kind === 'asi');
+        var old = R8.makeHero('vivian', 3); delete old.picks; old.pendingChoice = 'archetype'; R8.migrate(old);
+        check('AN OLDER SAVE\'S WAITING ARCHETYPE becomes an ask (' + R8.asking(old, 'archetype') + ', flag ' + old.pendingChoice + ')', R8.asking(old, 'archetype') && old.pendingChoice === 'archetype');
+      } finally { DS.autoPicks = auto0; }
     } else if (test === 'migrate') {
       // an older save: Ingrith a fighter with a heals counter, hurt; DS.startFrom walks her on as the cleric she is
       DS.EV.addGuest('ingrith');

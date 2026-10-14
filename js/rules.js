@@ -90,6 +90,7 @@
     h.subclass = d.subclassStart || null;
     R.refresh(h, true);
     while (level && h.lvl < level) { h.xp = R.XP_LEVEL[h.lvl + 1]; R.levelUp(h); }
+    R.settlePicks(h); // (a hero made at a level stands with the build's picks; an archetype still waits, as it always has)
     h.hp = h.maxhp;
     if (R.prepCount(h)) h.prepared = R.prepDefault(h); // a caster walks in with the build's day prepared
     return h;
@@ -133,16 +134,24 @@
     for (var i = 0; i < h.slotsMax.length; i++) h.slots[i] = (h.slots[i] || 0) + (h.slotsMax[i] - (oldMax[i] || 0));
     var d = DS.DATA.heroes[h.id];
     var lu = (d.levels && d.levels[h.lvl]) || {};
-    if (lu.expertise) { h.expertise = (h.expertise || []).concat(lu.expertise); msgs.push('Expertise: ' + lu.expertise.join(', ') + '.'); }
+    var asks = []; // (what this level gives that the player chooses, the build's default already taken: R.ask below, the level-up pick -- 10-14)
+    if (lu.expertise) { h.expertise = (h.expertise || []).concat(lu.expertise); msgs.push('Expertise: ' + lu.expertise.join(', ') + '.'); asks.push({ kind: 'expertise', need: lu.expertise.length, took: lu.expertise.slice() }); }
     if (lu.asi || h.lvl === 4) {
-      var asi = lu.asi || c.asi, parts = [];
-      Object.keys(asi).forEach(function (k) { h.abil[k] = Math.min(20, h.abil[k] + asi[k]); parts.push(k.toUpperCase() + ' +' + asi[k]); });
+      var asi = lu.asi || c.asi, parts = [], got = {};
+      Object.keys(asi).forEach(function (k) { var to = Math.min(20, h.abil[k] + asi[k]); got[k] = to - h.abil[k]; h.abil[k] = to; parts.push(k.toUpperCase() + ' +' + asi[k]); });
+      asks.push({ kind: 'asi', need: 2, took: got });
       msgs.push('Ability scores: ' + parts.join(', ') + '.');
       var want = h.lvl * Math.max(1, c.hd + DS.mod(h.abil.con)), base = h.maxhp - ((h.conds && h.conds.aid) || 0); // CON counts back to level 1
       if (base < want) { h.hp += want - base; h.maxhp += want - base; }
     }
     var nlearn = msgs.length, wholeList = h.cls === 'paladin'; // (one who prepares from the whole class list, R.prepPool: nothing is "learned" -- what opens is a spell level)
-    if (lu.learn) lu.learn.forEach(function (s) { if (h.known.indexOf(s) < 0) { h.known.push(s); if (!wholeList) msgs.push(h.name + ' learns ' + DS.DATA.spells[s].name + '.'); } });
+    var tookN = [], tookC = [], book = h.cls === 'wizard'; // (a wizard's two for the book and his cantrip at 4 are his to choose: the sheet's are the default)
+    if (lu.learn) lu.learn.forEach(function (s) { if (h.known.indexOf(s) < 0) { h.known.push(s); (DS.DATA.spells[s].level ? tookN : tookC).push(s); if (!wholeList) msgs.push(h.name + ' learns ' + DS.DATA.spells[s].name + '.'); } });
+    if (book && lu.learn) {
+      var nN = lu.learn.filter(function (s) { return DS.DATA.spells[s] && DS.DATA.spells[s].level; }).length, nC = lu.learn.length - nN;
+      if (nN) asks.push({ kind: 'spells', need: nN, took: tookN });
+      if (nC) asks.push({ kind: 'cantrip', need: nC, took: tookC });
+    }
     // a new spell level for a whole-list preparer: the spells it opens (10-13, the level-up pick §6 -- "Lymen learns Heroism" after a rung, when he had prepared it since 2nd;
     // Griz: "Pretty sure I did the ladder and it said Lymen learned heroism after, even though he had it to prep before the fight")
     if (wholeList && h.slotsMax.length > oldMax.length) {
@@ -151,7 +160,8 @@
     }
     if (h.prepared && msgs.length > nlearn) msgs.push('New spells are prepared after a long rest.'); // (SRD: the day is chosen on waking)
     if (lu.subclass) { h.subclass = lu.subclass; msgs.push(h.name + ': ' + lu.subclass + '.'); }
-    if (lu.choose) { h.pendingChoice = lu.choose; msgs.push(h.name + ' has a choice to make.'); }
+    if (lu.choose === 'archetype') { asks.push({ kind: 'archetype', need: 1, took: null }); msgs.push(h.name + ' has a choice to make.'); } // (no default: RULED 09-24, the player's choice)
+    if (asks.length) R.ask(h, h.lvl, asks);
     (lu.feats || []).forEach(function (t) { msgs.push(t); });
     if (h.cls === 'paladin') { h.feats.lay = (h.feats.lay || 0) + 5; if (h.lvl === 3) h.feats.channel = 1; }
     if (h.cls === 'rogue' && h.lvl % 2 === 1) msgs.push('Sneak Attack is now ' + R.sneakDice(h.lvl) + '.');
@@ -187,14 +197,135 @@
     // an older save's Aurdin had fewer; nothing is taken away, a sheet's spell included)
     var dd = DS.DATA.heroes[h.id];
     if (dd && dd.levels && h.known && !h.guest) {
-      var due = (dd.spells || []).slice(); for (var lv = 2; lv <= h.lvl; lv++) due = due.concat((dd.levels[lv] && dd.levels[lv].learn) || []);
+      // (a level whose spells the player chose keeps his choice: the sheet's pair for it is not due -- 10-14, the level-up pick)
+      var due = (dd.spells || []).slice(); for (var lv = 2; lv <= h.lvl; lv++) if (!R.chosen(h, lv, 'spells')) due = due.concat((dd.levels[lv] && dd.levels[lv].learn) || []);
       due.forEach(function (s) { if (DS.DATA.spells[s] && h.known.indexOf(s) < 0) h.known.push(s); });
     }
     var d = DS.DATA.heroes[h.id], arch = (d && d.archetypes) || [];
-    if (arch.length && h.lvl >= 3 && !arch.some(function (a) { return a.name === h.subclass; })) { h.subclass = null; h.pendingChoice = 'archetype'; }
+    if (arch.length && h.lvl >= 3 && !arch.some(function (a) { return a.name === h.subclass; })) { h.subclass = null; if (!R.asking(h, 'archetype')) R.ask(h, 3, [{ kind: 'archetype', need: 1, took: null }]); }
+    R.pendSync(h);
     if (!h.attuned) { h.attuned = []; R.attune(h); } // (10-06: an older save's heroes keep what works on them now -- bonded on load)
   };
   R.isArch = function (h, name) { return h.subclass === name; };
+
+  // ---------------------------------------------------------------- the level-up pick (10-14, the level-up pick lane; Griz: "this will be taking over that function and
+  // including all class level choices (at least the 4 for the game for now)"; the screen's shape his 10-06 "4 - lean", the build's picks his 10-14 "1-3 lean").
+  // What a level gives that the player chooses -- the ability scores at 4 and 8 (the fighter's at 6), a wizard's two spells a level and his cantrip at 4, the
+  // rogue's Expertise at 6 and her archetype at 3 (the climb's rule since 09-27, deep16/js/climb.js, now read from the sheet's levels) -- R.levelUp takes the
+  // build's default at once, so the AI, the benches, the ladder's card and any path that never asks keep today's numbers, and leaves an ask on the sheet:
+  // `h.picks`, one record a level { lvl, asks: [{ kind, need, took }] }. The one pick page (js/menu.js MN.openPicks) shows each with the default marked, and
+  // R.applyPick swaps the default for the player's. An archetype has no default (RULED 09-24, the player's choice in this game): it waits, as it always did.
+  // `h.chose[lvl]` keeps what was chosen (R.migrate reads it); `h.pendingChoice` is the flag the 8-bit's field opens the page on ('archetype' while one waits,
+  // so the benches' own archetype line still finds it).
+  // The wizard's list (the climb's, lifted here 10-14: the 8-bit game's spells, Misty Step, the class NPCs' built 09-28, ours of 10-14) and his cantrips
+  R.WIZARD_SPELLS = ['burninghands', 'magicmissile', 'shield', 'sleep', 'detectmagic', 'mageArmor', 'thunderwave', 'scorchingray', 'shatter', 'web',
+    'holdperson', 'mistystep', 'fireball', 'lightningbolt', 'icestorm', 'greaterinvisibility', 'stoneskin', 'coneofcold', 'holdmonster', 'ropetrick', 'tinyhut',
+    'colorspray', 'grease', 'hideouslaughter', 'falselife', 'expeditiousretreat', 'longstrider', 'protectionfromevilandgood', 'fogcloud',
+    'acidarrow', 'blur', 'mirrorimage', 'rayofenfeeblement', 'gustofwind', 'enlargereduce', 'magicweapon', 'invisibility', 'darkvision', 'seeinvisibility', 'continualflame', 'darkness',
+    'haste', 'slow', 'hypnoticpattern', 'fear', 'vampirictouch', 'blink', 'protectionfromenergy', 'dispelmagic', 'stinkingcloud', 'sleetstorm', 'counterspell',
+    'searingscourge', 'deathhandsscourge'];
+  R.WIZARD_CANTRIPS = ['firebolt', 'acidsplash', 'light', 'rayoffrost', 'shockinggrasp', 'chilltouch', 'poisonspray', 'truestrike', 'dancinglights'];
+  // a spell the story game gives only as a page (Griz, 10-06: "storygame some come by collecting pages only (find familiar, etc)"): the lane's list until the road
+  // lane's walk decides -- every spell sheet in the world (content/items.json, `use.effect` 'learn'), Counterspell (his quest sheet) and Find Familiar (Ned's page).
+  // The ladder and the climb offer them all ("ladder for sure")
+  R.pageOnly = function (id) {
+    if (id === 'counterspell' || id === 'findfamiliar') return true;
+    var its = DS.DATA.items || {};
+    return Object.keys(its).some(function (k) { var u = its[k] && its[k].use; return u && u.effect === 'learn' && u.spell === id; });
+  };
+  R.ask = function (h, lvl, asks) { (h.picks = h.picks || []).push({ lvl: lvl, asks: asks }); R.pendSync(h); };
+  R.asking = function (h, kind) { return (h.picks || []).some(function (p) { return p.asks.some(function (a) { return a.kind === kind; }); }); };
+  R.pendSync = function (h) {
+    if (h.picks && !h.picks.length) delete h.picks;
+    if (h.picks) h.pendingChoice = R.asking(h, 'archetype') ? 'archetype' : 'pick';
+    else delete h.pendingChoice;
+  };
+  R.picksDue = function (h) { return !!(h && h.pendingChoice && h.picks && h.picks.length); };
+  R.chosen = function (h, lvl, kind) { return !!(h.chose && h.chose[lvl] && h.chose[lvl][kind] != null); };
+  // the rows a pick offers: { id, name, desc, lv (a spell's level: the page's tab), max (marks it can take), off (why not), tag } and the default marks
+  // o: { pages: true -- the story game: page-only spells left out; built(id) -> '' or why not (the grid's: not on the grid yet) }
+  R.pickRows = function (h, rec, ask, o) {
+    o = o || {};
+    var d = DS.DATA.heroes[h.id] || {}, SP = DS.DATA.spells, took = ask.took;
+    if (ask.kind === 'spells' || ask.kind === 'cantrip') {
+      var top = R.slotsFor({ cls: h.cls, lvl: rec.lvl, subclass: h.subclass }).length, mine = took || [];
+      return (ask.kind === 'cantrip' ? R.WIZARD_CANTRIPS : R.WIZARD_SPELLS).filter(function (id) {
+        var sp = SP[id]; if (!sp) return false;
+        if (ask.kind === 'cantrip' ? sp.level : !sp.level || sp.level > top) return false;
+        if ((h.known || []).indexOf(id) >= 0 && mine.indexOf(id) < 0) return false;
+        return !(o.pages && R.pageOnly(id) && mine.indexOf(id) < 0);
+      }).map(function (id) {
+        var sp = SP[id], why = o.built ? o.built(id) : '';
+        return { id: id, name: sp.name, desc: sp.desc || '', lv: sp.level || 0, max: 1, off: why || '', tag: !o.built && sp.grid && !sp.battle && !sp.field ? 'grid' : '' };
+      });
+    }
+    if (ask.kind === 'asi') return R.ABIL.map(function (k) {
+      var base = h.abil[k] - ((took && took[k]) || 0);
+      return { id: k, name: k.toUpperCase(), score: base, max: Math.max(0, Math.min(2, 20 - base)), off: base >= 20 ? 'already 20' : '' };
+    });
+    if (ask.kind === 'expertise') {
+      var have = (d.expertise || []).concat((h.expertise || []).filter(function (x) { return (took || []).indexOf(x) < 0; }));
+      return Object.keys(h.skills || {}).filter(function (k) { return have.indexOf(k) < 0; }).map(function (k) {
+        return { id: k, name: k, max: 1, desc: h.name + "'s proficiency counts twice for " + k + '.' + (k === 'Stealth' ? ' (HIDE reads Stealth.)' : '') };
+      });
+    }
+    if (ask.kind === 'archetype') return (d.archetypes || []).map(function (a) { return { id: a.name, name: a.name, desc: a.desc || '', max: 1 }; });
+    return [];
+  };
+  // the default marks: { id: n }
+  R.pickMarks = function (ask) {
+    var m = {};
+    if (ask.kind === 'asi') Object.keys(ask.took || {}).forEach(function (k) { if (ask.took[k] > 0) m[k] = ask.took[k]; });
+    else if (ask.kind === 'archetype') { if (ask.took) m[ask.took] = 1; }
+    else (ask.took || []).forEach(function (id) { m[id] = 1; });
+    return m;
+  };
+  // the swap: `ch` by kind -- { asi: { str: 2 }, spells: [ids], cantrip: [ids], expertise: [names], archetype: name }; a kind not in `ch` stays asked.
+  // Returns the lines that say what was taken
+  R.applyPick = function (h, rec, ch) {
+    var lines = [], done = {};
+    rec.asks = rec.asks.filter(function (a) {
+      var v = ch[a.kind]; if (v == null) return true;
+      if (a.kind === 'asi') {
+        var con0 = DS.mod(h.abil.con), got = {}, parts = [];
+        Object.keys(a.took || {}).forEach(function (k) { h.abil[k] -= a.took[k]; });
+        Object.keys(v).forEach(function (k) { var to = Math.min(20, h.abil[k] + v[k]); got[k] = to - h.abil[k]; h.abil[k] = to; if (got[k]) parts.push(k.toUpperCase() + ' +' + got[k]); });
+        var dHP = h.lvl * (DS.mod(h.abil.con) - con0); // (a max hit die a level, CON back to level 1: RULED 09-25)
+        if (dHP) { h.maxhp += dHP; h.hp = Math.min(h.maxhp, Math.max(h.ko ? 0 : 1, h.hp + dHP)); }
+        v = got; lines.push(h.name + ': ' + parts.join(', ') + '.');
+      } else if (a.kind === 'spells' || a.kind === 'cantrip') {
+        var out = (a.took || []).filter(function (id) { return v.indexOf(id) < 0; });
+        h.known = (h.known || []).filter(function (id) { return out.indexOf(id) < 0; });
+        if (h.prepared) h.prepared = h.prepared.filter(function (id) { return out.indexOf(id) < 0; });
+        v.forEach(function (id) { if (h.known.indexOf(id) < 0) h.known.push(id); });
+        if (v.length) lines.push(h.name + ' learns ' + v.map(function (id) { return DS.DATA.spells[id] ? DS.DATA.spells[id].name : id; }).join(', ') + '.');
+      } else if (a.kind === 'expertise') {
+        h.expertise = (h.expertise || []).filter(function (x) { return (a.took || []).indexOf(x) < 0; }).concat(v);
+        lines.push(h.name + ': Expertise in ' + v.join(', ') + '.');
+      } else if (a.kind === 'archetype') { h.subclass = v; lines.push(h.name + ' is a ' + v + '.'); }
+      done[a.kind] = v;
+      return false;
+    });
+    if (Object.keys(done).length) { h.chose = h.chose || {}; h.chose[rec.lvl] = Object.assign(h.chose[rec.lvl] || {}, done); }
+    if (h.picks && !rec.asks.length) h.picks = h.picks.filter(function (p) { return p !== rec; });
+    R.pendSync(h);
+    return lines;
+  };
+  // every ask with a default kept as it stands (the ones taken at the level-up); `ch` names any the caller chooses (an archetype: a situation's &rogue=, the
+  // benches' first). Nothing without a default and not in `ch` is touched
+  R.settlePicks = function (h, ch) {
+    (h.picks || []).slice().forEach(function (rec) {
+      var c = {};
+      rec.asks.forEach(function (a) { var v = ch && ch[a.kind] != null ? ch[a.kind] : a.took; if (v != null) c[a.kind] = v; });
+      R.applyPick(h, rec, c);
+    });
+    R.pendSync(h);
+  };
+  // no one to ask (the benches, an AI-run party, a headless page): the defaults, and the first archetype -- what the benches have always given her
+  R.autoPicks = function (h) {
+    var a = ((DS.DATA.heroes[h.id] || {}).archetypes || [])[0];
+    R.settlePicks(h, a ? { archetype: a.name } : null);
+  };
 
   // ---------------------------------------------------------------- derived numbers
   R.item = function (id) { return id ? DS.DATA.items[id] : null; };

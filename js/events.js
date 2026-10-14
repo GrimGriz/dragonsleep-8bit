@@ -1663,23 +1663,17 @@
     DS.push(new DS.Credits(true));
   };
 
-  // --- level-ups that ask: Vivian's archetype at rogue 3 (RULED 09-24, Griz: player's choice in this game)
+  // --- level-ups that ask: the level-up pick (10-14, the level-up pick lane; Griz: "this will be taking over that function and including all class level choices
+  // (at least the 4 for the game for now)") -- every hero a level-up left a choice (js/rules.js R.levelUp: the scores, Aurdin's spells and cantrip, Vivian's
+  // Expertise and her archetype, RULED 09-24 the player's choice in this game) on the one pick page over the field (js/scenes.js PickScene, js/menu.js
+  // MN.openPicks), the build's picks marked. The story's page-only spells are not offered (R.pageOnly). No one to ask (DS.autoPicks, the benches): the defaults
   EV.pendingChoices = function* () {
-    var g = G();
-    for (var i = 0; i < g.party.length; i++) {
-      var h = g.party[i];
-      if (h.pendingChoice !== 'archetype') { delete h.pendingChoice; continue; }
-      var opts = DS.DATA.heroes[h.id].archetypes || [];
-      var pick = null;
-      while (!pick) {
-        var a = yield DS.ask(L('rogue.archetypeAsk', { name: h.name }), opts.map(function (o) { return o.name.toUpperCase(); }).concat(['WHICH IS WHICH?']));
-        if (a >= 0 && a < opts.length) pick = opts[a];
-        else yield DS.say(opts.map(function (o) { return o.name.toUpperCase() + ': ' + o.desc; }));
-      }
-      h.subclass = pick.name; delete h.pendingChoice;
-      DS.audio.sfx('levelup');
-      yield DS.say(L('rogue.archetypeTaken', { name: h.name, arch: pick.name }));
-    }
+    var g = G(), who = g.party.filter(function (h) { return R.picksDue(h); });
+    g.party.forEach(function (h) { if (h.pendingChoice && !R.picksDue(h)) delete h.pendingChoice; }); // (a flag with nothing behind it would ask every step)
+    if (!who.length) return;
+    if (DS.autoPicks) { who.forEach(R.autoPicks); return; }
+    DS.audio.sfx('levelup');
+    yield W8.scene(new DS.PickScene(who));
   };
 
   // --- Percy's Particulars: he buys the parts (a fifth of what he'll sell them for, rendered); Ned minds the jars

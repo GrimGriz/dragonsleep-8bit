@@ -415,6 +415,15 @@
   DS.FieldMenu = FieldMenu;
   FieldMenu.prototype.update = function () { this.m.update(I); };
   FieldMenu.prototype.draw = function (ctx) { this.m.draw(ctx); };
+  // the level-up pick over the field (10-14, js/events.js EV.pendingChoices): the one menu opened on its pick pages alone (js/menu.js MN.openPicks); it closes
+  // when the last hero has confirmed. The story game: page-only spells left out
+  function PickScene(heroes) {
+    var self = this; this.kind = 'picks';
+    this.m = DS.MENU.openPicks(host8({}, function () { self.shut = true; }), heroes, { pages: true });
+  }
+  DS.PickScene = PickScene;
+  PickScene.prototype.update = function () { if (this.shut) { DS.pop(this); return; } this.m.update(I); };
+  PickScene.prototype.draw = function (ctx) { this.m.draw(ctx); };
   function host8(o, close) {
     var G = DS.G, fight = o.battle ? { hero: o.hero || null, acted: !!o.acted } : null;
     // in a fight, the fight's own lists for the hero whose turn it is (10-07, Griz: "1 - you're the instance for it if its not too big of a job" -- the grid's menu does

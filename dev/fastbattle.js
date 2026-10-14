@@ -3,6 +3,7 @@
    One fight per javascript_tool call, step-capped (a long synchronous sweep locks the desktop app). */
 (function () {
   var DS = window.DS, T = window.T, B = DS.Battle.prototype;
+  DS.autoPicks = true; // (the level-up pick, 10-14: a bench has no one to ask -- the build's picks and the first archetype, js/rules.js R.autoPicks; a test of the page sets it false)
   B.say = function* (t) { this.msg = t; (T.blog = T.blog || []).push(DS.stripCodes(t)); };
   B.hold = function* (t) { this.msg = t; (T.blog = T.blog || []).push(DS.stripCodes(t)); };
   B.wait = function () { return DS.W8.frames(1); };

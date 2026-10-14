@@ -3427,6 +3427,52 @@
     document.body.appendChild(preO);
     return;
   }
+  // the level-up pick on the grid (mode=levelpick1014; 10-14, the level-up pick lane -- the roam's "leveling up in the roam should work like leveling up in 8bit"):
+  // D.levelPicks, the roam's call, opens the 8-bit's pick page as the M menu stands and returns when the last hero has confirmed, each pick on its sheet; a bench
+  // takes the defaults at once; the climb levels its four on the same page (every spell offered, the page-only ones too: "ladder for sure"; one not on the grid greyed)
+  if (get('mode', '') === 'levelpick1014') {
+    var repLp = { checks: [], errors: [] }, ctx0Lp = D.ctx, auto0Lp = window.DS.autoPicks;
+    function okLp(what, v) { repLp.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function KLp(b) { return { pressed: function (x) { return x === b; }, repeat: function (x) { return x === b; } }; }
+    function rowLp(pg, id) { for (var t = 0; t < pg.tabs.length; t++) { pg.tab = t; pg.list.i = 0; pg.refresh(); for (var i = 0; i < pg.list.items.length; i++) { var it = pg.list.items[i]; if (it.value && it.value.id === id) { pg.list.i = i; pg.list.fix(); return true; } } } return false; }
+    function hitLp(m, id) { if (!rowLp(m.top(), id)) return false; m.update(KLp('a')); return true; }
+    function confLp(m) { var pg = m.top(); pg.list.i = pg.list.items.length - 1; pg.list.fix(); m.update(KLp('a')); if (m.toast) m.update(KLp('a')); }
+    try {
+      var RL = window.DS.R;
+      okLp('D.levelPicks is there (' + typeof D.levelPicks + ')', typeof D.levelPicks === 'function');
+      // a. a bench has no one to ask: the defaults, at once
+      var aB = RL.makeHero('aurdin', 3); aB.xp = RL.XP_LEVEL[4]; RL.gainXP(aB, 0);
+      var gB = D.levelPicks({ o: { bench: true } }, [aB]), rB = gB.next();
+      okLp('A BENCH: done at once (' + rB.done + '), the build\'s pair kept (' + (aB.known.indexOf('web') >= 0 && aB.known.indexOf('shatter') >= 0) + '), nothing asked (' + !aB.pendingChoice + ')', rB.done && aB.known.indexOf('web') >= 0 && !aB.pendingChoice && !aB.picks);
+      // b. the roam's floor: the page on the grid's screen, the coroutine waiting under it; Fireball for Lightning Bolt at 5
+      window.DS.autoPicks = false; if (!D.ctx) D.ctx = {};
+      var aR = RL.makeHero('aurdin', 4); aR.xp = RL.XP_LEVEL[5]; RL.gainXP(aR, 0);
+      var BR = { o: {}, menu: null }, gR = D.levelPicks(BR, [aR]), r1 = gR.next(), mR = BR.menu && BR.menu.m, pgR = mR && mR.top();
+      var offered = pgR ? pgR.groups[0].rows.map(function (r) { return r.id; }) : [];
+      okLp('THE ROAM: the page opens as the M menu (' + !!mR + '), the script waits (' + (!r1.done && r1.value) + '), page-only left out (grease ' + (offered.indexOf('grease') >= 0) + ', counterspell ' + (offered.indexOf('counterspell') >= 0) + '), 3rd level offered (' + (offered.indexOf('haste') >= 0) + ')',
+        mR && !r1.done && r1.value === 1 && offered.indexOf('grease') < 0 && offered.indexOf('counterspell') < 0 && offered.indexOf('haste') >= 0);
+      hitLp(mR, 'lightningbolt'); hitLp(mR, 'haste'); confLp(mR);
+      var r2 = gR.next();
+      okLp('Haste for Lightning Bolt: the menu gone (' + !BR.menu + '), the script on (' + r2.done + '), the sheet: haste ' + (aR.known.indexOf('haste') >= 0) + ', lightning bolt ' + (aR.known.indexOf('lightningbolt') >= 0) + ', fireball ' + (aR.known.indexOf('fireball') >= 0) + ', flag ' + aR.pendingChoice,
+        !BR.menu && r2.done && aR.known.indexOf('haste') >= 0 && aR.known.indexOf('lightningbolt') < 0 && aR.known.indexOf('fireball') >= 0 && !aR.pendingChoice);
+      // c. the climb: the four from 3 to 4 on the same page, then the summary
+      var sC = { level: 3, party: ['barley', 'aurdin', 'vivian', 'lymen'].map(function (id) { var h = RL.makeHero(id, 3); if (id === 'vivian') RL.settlePicks(h, { archetype: 'Thief' }); return h; }) }, doneC = false;
+      var lu = new D.LevelUp(sC, function () { doneC = true; }); lu.enter();
+      var pages = 0, names = [], pgC0 = lu.m && lu.m.top(), ladderRows = [];
+      if (pgC0) pgC0.groups.forEach(function (gr) { gr.rows.forEach(function (r) { ladderRows.push(r.id + (r.off ? '!' : '')); }); });
+      while (lu.m && pages < 8) { var pgC = lu.m.top(); names.push(pgC.h.name); if (pgC.h.id === 'aurdin') { pgC.groups.forEach(function (gr) { gr.rows.forEach(function (r) { ladderRows.push(r.id + (r.off ? '!' : '')); }); }); hitLp(lu.m, 'web'); hitLp(lu.m, 'grease'); } confLp(lu.m); pages++; }
+      var auC = sC.party[1], sumC = (lu.summary || []).join(' | ');
+      okLp('THE CLIMB: pages for ' + names.join(', ') + ' (want all four), the summary (' + !!lu.summary + '): ' + sumC.slice(0, 160),
+        names.join(',') === 'Barley,Aurdin,Vivian,Lymen' && !!lu.summary && /Learns/.test(sumC) && sC.party.every(function (h) { return h.lvl === 4 && !h.pendingChoice; }));
+      okLp('THE LADDER OFFERS THE PAGE-ONLY SPELLS (grease ' + (ladderRows.indexOf('grease') >= 0) + ') and Aurdin took it for Web (' + (auC.known.indexOf('grease') >= 0) + ', ' + (auC.known.indexOf('web') < 0) + ')',
+        ladderRows.indexOf('grease') >= 0 && auC.known.indexOf('grease') >= 0 && auC.known.indexOf('web') < 0);
+    } catch (eLp) { repLp.errors.push(String(eLp && eLp.stack || eLp).slice(0, 900)); }
+    D.ctx = ctx0Lp; window.DS.autoPicks = auto0Lp;
+    if (errs.length) repLp.errors = repLp.errors.concat(errs);
+    var preLp = document.createElement('pre'); preLp.id = 'out'; preLp.textContent = 'BENCH16 ' + JSON.stringify(repLp);
+    document.body.appendChild(preLp);
+    return;
+  }
   // the campfire (mode=campfire1014; 10-14, Griz: "Let's difficult terrain, 1d6 fire damage enter or start turn, and ignite nearby flamable (oiled squares) campfires as a matter
   // of principle", then "adjacent oiled trolls, not adjacent unoiled trolls (unless they walk on it -(more than adjacent))" -- js/oil.js, the campfire): the Cut Seal camp's fire is
   // difficult ground; 1d6 fire to step into it, once a turn, and to start a turn in it; a troll beside it unoiled takes nothing, coated beside it catches (5 fire, the coat gone),

@@ -1093,6 +1093,7 @@
     return { pressed: function (b) { return I.pressed(b); }, repeat: function (b) { return I.repeat(b); },
       mouse: { x: x, y: y, moved: !!mo.moved, click: !!mo.click && x >= 0 && y >= 0 && x < 256 && y < 240, rclick: !!mo.rclick } };
   }
+  UI.menuKeys = menuKeys; // (the climb's level-up pick drives the one menu with the grid's keys too, 10-14)
   // the hero whose turn it is, for EQUIP (a guest's gear is its own)
   function gearHero(B) { var u = B && B.req && B.req.turn; return u && u.side === 'party' && !u.guest && u.src ? u : null; }
   UI.backLabel = function () { var B = D.battle; return B && B.o.onDone ? (B.o.climb ? 'BACK TO THE CLIMB' : B.o.pocket ? 'BACK TO THE POCKET DM' : 'BACK TO THE LADDER') : 'RETURN TO SILVERTON'; };
@@ -2499,10 +2500,13 @@
   }
   var menuCv = null;
   function menu(ctx, B) { // (the one menu: drawn at its own 256x240 and set on the screen as a window; the old grid menu cut 10-07)
-    if (!B.menu.m) return;
+    if (B.menu.m) UI.drawMenu(ctx, B.menu.m);
+  }
+  // (any one-menu on the grid's screen, its window where the M menu's stands: the fight's, the climb's level-up pick -- 10-14)
+  UI.drawMenu = function (ctx, m) {
     if (!menuCv) { menuCv = document.createElement('canvas'); menuCv.width = 256; menuCv.height = 240; }
     var mc = menuCv.getContext('2d'); mc.imageSmoothingEnabled = false; mc.clearRect(0, 0, 256, 240);
-    B.menu.m.draw(mc);
+    m.draw(mc);
     ctx.save(); ctx.imageSmoothingEnabled = false; ctx.drawImage(menuCv, UI.MENU_X, UI.MENU_Y); ctx.restore();
-  }
+  };
 })();

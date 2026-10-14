@@ -472,6 +472,139 @@
     else descBox(ctx, cur ? (cur.value.desc || '') : '', cur && !cur.ready ? 'Not prepared today.' : '');
   };
 
+  // ------------------------------------------------------------------ THE PICK: what a level gives that the player chooses (10-14, the level-up pick lane; Griz: "this
+  // will be taking over that function and including all class level choices (at least the 4 for the game for now)"; the shape his 10-06 "4 - lean": the hero, a tab a
+  // spell level, each one's line in the box below, the build's picks marked, E swaps, CONFIRM). One page a hero a level, every ask of that level on it (js/rules.js
+  // R.levelUp leaves them: the ability scores, the two spells and the cantrip, Expertise, the archetype); the build's own come marked, so one press keeps them. Both
+  // games open it -- the 8-bit's field (js/scenes.js PickScene), the grid's floor and the climb (deep16/js/picks.js) -- through MN.openPicks
+  var PICK_WORD = { asi: 'SCORES', cantrip: 'CANTRIP', expertise: 'EXPERTISE', archetype: 'ARCHETYPE' };
+  function pickNeedWord(g) {
+    var a = g.ask, n = g.need;
+    if (a.kind === 'asi') return 'ABILITY SCORES: +2 to one, or +1 to two';
+    if (a.kind === 'spells') return (n === 1 ? 'A SPELL' : n === 2 ? 'TWO SPELLS' : n + ' SPELLS') + ' FOR THE BOOK';
+    if (a.kind === 'cantrip') return n === 1 ? 'A CANTRIP' : n + ' CANTRIPS';
+    if (a.kind === 'expertise') return 'EXPERTISE: ' + (n === 2 ? 'two skills' : n + ' skills') + ', proficiency twice over';
+    return 'THE ARCHETYPE';
+  }
+  function marksOf(g) { var n = 0; Object.keys(g.marks).forEach(function (k) { n += g.marks[k]; }); return n; }
+  function PickPage(m, h, rec, o, next) {
+    var R0 = R(), self = this;
+    this.m = m; this.h = h; this.rec = rec; this.o = o || {}; this.next = next; this.list = new List({ visible: 10 });
+    this.groups = rec.asks.map(function (a) {
+      var rows = R0.pickRows(h, rec, a, self.o), room = 0;
+      rows.forEach(function (r) { if (!r.off) room += r.max; });
+      return { ask: a, rows: rows, marks: R0.pickMarks(a), need: Math.min(a.need, room) };
+    });
+    // the tabs: the archetype, the scores, Expertise, the cantrip, then a tab each spell level
+    this.tabs = [];
+    ['archetype', 'asi', 'expertise', 'cantrip', 'spells'].forEach(function (kind) {
+      self.groups.forEach(function (g) {
+        if (g.ask.kind !== kind) return;
+        if (kind !== 'spells') { self.tabs.push({ g: g, label: PICK_WORD[kind] }); return; }
+        g.rows.map(function (r) { return r.lv; }).filter(function (lv, i, a) { return a.indexOf(lv) === i; }).sort(function (a, b) { return a - b; })
+          .forEach(function (lv) { self.tabs.push({ g: g, lv: lv, label: 'L' + lv }); });
+      });
+    });
+    // (the first tab with a default marked, so the build's pick is what he sees first; else the first)
+    this.tab = 0;
+    this.tabs.some(function (t, i) { if (t.g.rows.some(function (r) { return (t.lv == null || r.lv === t.lv) && t.g.marks[r.id]; })) { self.tab = i; return true; } return false; });
+    this.refresh();
+  }
+  PickPage.prototype.ready = function () { return this.groups.every(function (g) { return marksOf(g) === g.need; }); };
+  PickPage.prototype.refresh = function () {
+    var t = this.tabs[this.tab], g = t && t.g, h = this.h, items = [];
+    if (g) g.rows.forEach(function (r) {
+      if (t.lv != null && r.lv !== t.lv) return;
+      var n = g.marks[r.id] || 0, it = { value: r, label: fit(r.name, 140), pre: n ? '◆' : null, disabled: !!r.off, desc: r.desc || '' };
+      if (g.ask.kind === 'asi') { it.right = r.score + (n ? ' -> ' + (r.score + n) : ''); it.rightColor = n ? C.gold : C.pale; it.desc = r.off ? '' : r.name + ' ' + r.score + (n ? ' -> ' + (r.score + n) : '') + ' (' + sgn(mod(r.score + n)) + ').'; }
+      else if (r.lv != null && (g.ask.kind === 'spells' || g.ask.kind === 'cantrip')) {
+        var sp = spell(r.id), cat = sp ? spellCat(sp) : 'battle';
+        it.color = r.off ? C.dim : CAT[cat].c; it.right = r.off ? 'not built' : r.tag === 'grid' ? 'grid' : CAT[cat].w; it.rightColor = r.off ? C.dim : CAT[cat].c; // (coloured as MAGIC colours them)
+      }
+      items.push(it);
+    });
+    var ok = this.ready();
+    items.push({ label: 'CONFIRM', confirm: true, color: ok ? C.gold : C.white, disabled: !ok, right: ok ? '' : this.short(), rightColor: C.dim, desc: '' });
+    var i0 = this.list.i; this.list.set(items); this.list.i = Math.min(i0, items.length - 1); this.list.fix();
+  };
+  // what is still to choose, in a word
+  PickPage.prototype.short = function () {
+    var g = this.groups.filter(function (x) { return marksOf(x) !== x.need; })[0];
+    if (!g) return '';
+    var k = g.need - marksOf(g);
+    return k > 0 ? k + ' more' : 'one too many';
+  };
+  PickPage.prototype.toggle = function (r, g) {
+    var n = g.marks[r.id] || 0, total = marksOf(g);
+    if (n < r.max && total < g.need) { g.marks[r.id] = n + 1; sfx('cursor'); }
+    else if (n > 0) { delete g.marks[r.id]; sfx('cancel'); }
+    else if (g.need === 1) { g.marks = {}; g.marks[r.id] = 1; sfx('cursor'); } // (one to pick: E moves it)
+    else { sfx('error'); this.m.say(g.need + ' marked already: E on a marked one takes it off.'); return; }
+    this.refresh();
+  };
+  PickPage.prototype.choice = function () {
+    var ch = {};
+    this.groups.forEach(function (g) {
+      var ids = Object.keys(g.marks).filter(function (k) { return g.marks[k] > 0; });
+      if (g.ask.kind === 'asi') { var a = {}; ids.forEach(function (k) { a[k] = g.marks[k]; }); ch.asi = a; }
+      else if (g.ask.kind === 'archetype') ch.archetype = ids[0];
+      else ch[g.ask.kind] = g.rows.filter(function (r) { return g.marks[r.id]; }).map(function (r) { return r.id; }); // (in the list's order)
+    });
+    return ch;
+  };
+  PickPage.prototype.update = function (k) {
+    var t = tabStep(k, this.tabs.length, this.tab); if (t !== this.tab) { this.tab = t; this.list.i = 0; this.refresh(); }
+    var r = this.list.update(k), m = this.m, cur = this.list.cur(), self = this, g = this.tabs[this.tab] && this.tabs[this.tab].g;
+    if (r === 'back') { // (X: the last mark on this tab taken back; nothing leaves -- the build's picks are one press away)
+      var ids = g ? Object.keys(g.marks) : [];
+      if (ids.length) { delete g.marks[ids[ids.length - 1]]; this.refresh(); } else m.say('Choose, then CONFIRM. The build\'s picks come marked.');
+      return;
+    }
+    if (r === 'refused') { m.say(cur.confirm ? 'Not yet: ' + this.short() + ' -- ' + pickNeedWord(this.groups.filter(function (x) { return marksOf(x) !== x.need; })[0] || this.groups[0]).toLowerCase() + '.' : cur.value.name + ': ' + cur.value.off + '.'); return; }
+    if (r !== 'pick') return;
+    if (!cur.confirm) { this.toggle(cur.value, g); return; }
+    var lines = R().applyPick(this.h, this.rec, this.choice());
+    sfx('levelup');
+    m.say(lines.length ? lines : [this.h.name + ': done.'], function () { self.next(); });
+  };
+  PickPage.prototype.draw = function (ctx, active) {
+    var h = this.h, t = this.tabs[this.tab], g = t && t.g, self = this;
+    win(ctx, 2, 2, 252, 192);
+    var spr = null; try { spr = this.m.host.walker && this.m.host.walker(h); } catch (e) { spr = null; }
+    if (spr) ctx.drawImage(spr, 232, 4, Math.min(16, spr.width), Math.min(24, spr.height));
+    text(ctx, h.name, 10, 9, C.gold); text(ctx, clsName(h) + ' ' + this.rec.lvl + ' -- LEVEL UP', 12 + DS.textWidth(h.name) + 6, 9, C.pale);
+    drawTabs(ctx, this.tabs.map(function (tb) {
+      var n = 0; tb.g.rows.forEach(function (r) { if (tb.lv == null || r.lv === tb.lv) n += tb.g.marks[r.id] || 0; });
+      return { label: tb.label, count: n || null };
+    }), this.tab, 8, 22, Math.min(240, this.tabs.length * 60));
+    if (g) { text(ctx, fit(pickNeedWord(g), 186), 10, 38, C.pale); right(ctx, marksOf(g) + ' of ' + g.need, 246, 38, marksOf(g) === g.need ? C.green : C.gold); }
+    this.list.draw(ctx, 10, 52, 234, active, this.m.t, 12, 8); // (a gutter for the mark, clear of the cursor)
+    var def = this.groups.some(function (x) { return x.ask.took != null; }); // (an archetype comes with nothing marked: the player's choice, RULED 09-24)
+    text(ctx, '◆', 10, 184, C.gold); text(ctx, def ? 'marked  ·  the build\'s picks come marked' : 'marked  ·  nothing comes marked: yours to choose', 20, 184, C.dim);
+    var cur = this.list.cur();
+    if (!cur) return;
+    if (cur.confirm) descBox(ctx, this.ready() ? 'Keep these and go on.' : 'Not yet: ' + this.short() + '.', this.groups.length > 1 ? 'Every tab counts: ' + this.groups.map(function (x) { return (x.ask.kind === 'spells' ? 'spells' : PICK_WORD[x.ask.kind].toLowerCase()) + ' ' + marksOf(x) + '/' + x.need; }).join(', ') + '.' : '');
+    else descBox(ctx, cur.desc || '', cur.disabled ? 'Not offered: ' + cur.value.off + '.' : cur.value.tag === 'grid' ? 'Cast in the grid\'s fights (the story\'s); not in an 8-bit fight yet.' : 'E: mark or unmark.  ' + (self.groups.length > 1 || self.tabs.length > 1 ? 'Left/right: the tabs.' : ''));
+  };
+  // the pick pages for every hero with something to choose, one a hero a level, then done(); o: { pages, built } as R.pickRows takes them. The menu is the one
+  // menu (its host the game's: the 8-bit's host8, the grid's), opened on the pages alone
+  MN.openPicks = function (host, heroes, o, done) {
+    if (!host.party) host.party = function () { return heroes; };
+    if (!host.canSave) host.canSave = function () { return false; };
+    var m = new Menu(host), q = [];
+    heroes.forEach(function (h) { (h.picks || []).slice().sort(function (a, b) { return a.lvl - b.lvl; }).forEach(function (rec) { q.push({ h: h, rec: rec }); }); });
+    function next() {
+      if (m.pages.length) m.pages.pop();
+      var it = q.shift();
+      while (it && it.h.picks && it.h.picks.indexOf(it.rec) < 0) it = q.shift(); // (a record settled meanwhile)
+      if (!it) { m.close(); if (done) done(); return; }
+      m.push(new PickPage(m, it.h, it.rec, o, next));
+    }
+    next();
+    return m;
+  };
+  MN.PickPage = PickPage;
+
   // ------------------------------------------------------------------ SKILLS: a hero's, each with its line (his: "popup available skill with description line")
   function skillsOf(h) {
     var out = [], f = h.feats || {};
