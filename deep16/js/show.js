@@ -78,13 +78,41 @@
   };
   // (a climb row is not wanted here: the test ground is flat, nothing to climb -- it plays on a face or a rope, js/ui.js; the troll's and the stone giant's, 10-04.
   // A hide row is: the goblin's Hide is built since 10-07 -- the AI's own after its turn, and the director's beat below where it has not shown it twice)
-  SH.wanted = function (sheet, kind) { var fb = SH.fallback(sheet, kind); return SH.rowsOf(sheet).filter(function (r) { return !(fb && r === 'attack') && r !== 'climb'; }); };
+  // (nor a cutscene's row: GreyFang's `headless` plays only in his end, js/trophy.js -- 10-14)
+  SH.wanted = function (sheet, kind) { var fb = SH.fallback(sheet, kind); return SH.rowsOf(sheet).filter(function (r) { return !(fb && r === 'attack') && r !== 'climb' && r !== 'headless'; }); };
   // has it shown every row it has (but its death)?
   function shown(u) { return SH.wanted(u.sheet, u.kind).every(function (r) { return r === 'hurt' || (u.showSeen || {})[r]; }); }
 
   // ------------------------------------------------------------------ the director: the creature's turns (js/battle.js run hands them here; D.ai.turn
   // itself is left as it is -- dev/bench16.js reads its source for a rule)
   var turn0 = function (B, u) { return D.ai.turn(B, u); };
+  // the watchers within `reach` of it, nearest first -- with none, it comes up into reach first, by the shortest way (one that keeps its distance: a caster)
+  function* inReach(B, u, reach) {
+    var watch = B.units.filter(function (w) { return w.side === 'party' && D.grid.standing(w) && !w.familiar; });
+    var near = function () { return watch.filter(function (w) { return D.grid.dist(u, w) <= reach; }).sort(function (a, b) { return D.grid.dist(u, a) - D.grid.dist(u, b); }); };
+    if (!near().length && u.speed > 0 && !u.conds.restrained) {
+      var rm = D.grid.reach(u, u.speed), best = null, blen = Infinity;
+      Object.keys(rm).forEach(function (k) {
+        var c = rm[k]; if (!c.stand || !c.prev) return;
+        if (!watch.some(function (w) { return Math.max(Math.abs(w.x - c.x), Math.abs(w.y - c.y)) * 5 <= reach; })) return;
+        var len = D.grid.path(rm, c.x, c.y).length; if (len < blen) { blen = len; best = c; }
+      });
+      if (best) { yield* B.moveAlong(u, D.grid.path(rm, best.x, best.y), { noOA: true }); u.anim = 'idle'; }
+    }
+    return near();
+  }
+  // m up within `reach` of t by the shortest way (the director's step: no opening, no Give Ground)
+  function* closeTo(B, m, t, reach) {
+    if (D.grid.dist(m, t) <= reach || !(m.speed > 0) || m.conds.restrained || m.conds.grappled) return;
+    var rm = D.grid.reach(m, m.speed), best = null, blen = Infinity;
+    Object.keys(rm).forEach(function (k) {
+      var c = rm[k]; if (!c.stand || !c.prev || D.grid.dist(m, t, c.x, c.y) > reach) return;
+      var len = D.grid.path(rm, c.x, c.y).length; if (len < blen) { blen = len; best = c; }
+    });
+    if (!best) return;
+    if (!m.turn) m.turn = { move: 0, action: 0, bonus: 0 };
+    yield* B.moveAlong(m, D.grid.path(rm, best.x, best.y), { noOA: true, noGive: true }); m.anim = 'idle';
+  }
   SH.turn = function* (B, u) {
     if (u.hp > 0 && !u.dead && ((shown(u) && !u.conds.prone) || B.round >= SH.ROUNDS)) { // (one knocked flat gets up first: the prone row played back)
       u.showFree = true; B.focus(u);
@@ -168,21 +196,65 @@
     // one swing through the engine's own attack, the dice as they fall -- a miss shows the row as well as a hit
     var mk = Object.keys(u.attacks || {}).filter(function (k) { var a = u.attacks[k], r = String(a.name || k).toLowerCase().replace(/[^a-z]/g, ''); return !a.ranged && !a.spell && !a.needsHeld && D.spr.anim(u.sheet, r) && !(u.showSeen || {})[r]; })[0];
     if (mk && u.showTurns >= 2 && RU.canAct(u) && !u.conds.prone && u.hp > 0 && !u.riding) {
-      var ma = u.attacks[mk], mreach = ma.reach || u.reach || 5, mwatch = B.units.filter(function (w) { return w.side === 'party' && D.grid.standing(w) && !w.familiar; });
-      var near = function () { return mwatch.filter(function (w) { return D.grid.dist(u, w) <= mreach; }).sort(function (a, b) { return D.grid.dist(u, a) - D.grid.dist(u, b); })[0]; };
-      var mw = near();
-      if (!mw && u.speed > 0 && !u.conds.restrained) { // (it keeps its distance -- a caster: up into reach first, by the shortest way)
-        var mrm = D.grid.reach(u, u.speed), mbest = null, mlen = Infinity;
-        Object.keys(mrm).forEach(function (k) {
-          var c = mrm[k]; if (!c.stand || !c.prev) return;
-          if (!mwatch.some(function (w) { return Math.max(Math.abs(w.x - c.x), Math.abs(w.y - c.y)) * 5 <= mreach; })) return;
-          var len = D.grid.path(mrm, c.x, c.y).length; if (len < mlen) { mlen = len; mbest = c; }
-        });
-        if (mbest) { yield* B.moveAlong(u, D.grid.path(mrm, mbest.x, mbest.y), { noOA: true }); u.anim = 'idle'; mw = near(); }
-      }
+      var ma = u.attacks[mk], mw = (yield* inReach(B, u, ma.reach || u.reach || 5))[0];
       if (mw) {
         B.card(['{c}THE SHOW{/}: the ' + u.name + ' has not shown its ' + String(ma.name || mk).toLowerCase() + ' yet. One at ' + mw.name + ', to see it.'], 200);
         yield* B.attack(u, mw, ma); u.anim = 'idle'; u.animT = B.t;
+      }
+    }
+    // the rows its kit's features play (GreyFang's, 10-14: the Grey Road's Covering Volley `volley` and Sweep the Ring `whirlwind`, its 11th, and Give
+    // Ground's `backstep`, its 7th -- js/features.js) come only when the field offers the feature: a friend with two foes round it, two foes in reach, a
+    // foe stepping in with no friend beside him. The watchers seldom do (his show of 10-14 played none of the three), so by the end of its second turn,
+    // each one it has not shown, as the feature makes it, through the engine's own attack and move: the bow with the volley's row at up to three
+    // watchers it sees in range; the blade with the whirlwind's at up to three in reach (up into reach first); a 5-ft step back from the nearest, its gait the backstep
+    var kit = [u.weapon, u.alt].filter(function (a) { return a && a.name && !a.spell; });
+    var kbow = kit.filter(function (a) { return a.ranged && !a.thrown; })[0], kblade = kit.filter(function (a) { return !a.ranged; })[0];
+    var free = function () { return u.showTurns >= 2 && RU.canAct(u) && !u.conds.prone && u.hp > 0 && !u.dead && !u.riding; };
+    var watchers = function () { return B.units.filter(function (w) { return w.side === 'party' && D.grid.standing(w) && !w.familiar; }).sort(function (a, b) { return D.grid.dist(u, a) - D.grid.dist(u, b); }); };
+    if (kbow && kbow.range && !(u.showSeen || {}).volley && D.spr.anim(u.sheet, 'volley') && free()) {
+      var vs = watchers().filter(function (w) { return D.grid.dist(u, w) <= kbow.range[1] && D.grid.los(u, w).clear && D.magic.sees(B, u, w); }).slice(0, 3);
+      if (vs.length) {
+        B.card(['{c}THE SHOW{/}: the ' + u.name + ' has not shown its volley yet. ' + vs.length + ' arrow' + (vs.length > 1 ? 's' : '') + ', to see it.'], 200);
+        var va = Object.assign({}, kbow, { row: 'volley', cover: true });
+        for (var vi = 0; vi < vs.length; vi++) if (D.grid.standing(vs[vi]) && free()) yield* B.attack(u, vs[vi], va, vi ? { ride: true } : {});
+        u.anim = 'idle'; u.animT = B.t;
+      }
+    }
+    if (kblade && !(u.showSeen || {}).whirlwind && D.spr.anim(u.sheet, 'whirlwind') && free()) {
+      var ring = (yield* inReach(B, u, kblade.reach || u.reach || 5)).slice(0, 3);
+      if (ring.length) {
+        B.card(['{c}THE SHOW{/}: the ' + u.name + ' has not shown its whirlwind yet. A sweep of the ring, to see it.'], 200);
+        var wa = Object.assign({}, kblade, { row: 'whirlwind', sweep: true });
+        for (var wi = 0; wi < ring.length; wi++) if (D.grid.standing(ring[wi]) && free()) yield* B.attack(u, ring[wi], wa, wi ? { ride: true } : {});
+        u.anim = 'idle'; u.animT = B.t;
+      }
+    }
+    if (!(u.showSeen || {}).backstep && D.spr.anim(u.sheet, 'backstep') && u.speed > 0 && !u.conds.restrained && !u.conds.grappled && free()) {
+      var bn = watchers()[0], brm = bn ? D.grid.reach(u, 5, { upright: true }) : {}, bp = null;
+      Object.keys(brm).forEach(function (k) {
+        var e = brm[k]; if (!e.stand || (e.x === u.x && e.y === u.y)) return;
+        var d = D.grid.dist(u, bn, e.x, e.y); if (!bp || d > bp.d) bp = { x: e.x, y: e.y, d: d };
+      });
+      if (bp) {
+        B.card(['{c}THE SHOW{/}: the ' + u.name + ' has not shown its backstep yet. Five feet back from ' + bn.name + ', to see it.'], 200);
+        if (!u.turn) u.turn = { move: 0, action: 0, bonus: 0 };
+        yield* B.moveAlong(u, [[bp.x, bp.y]], { noOA: true, gait: 'backstep', keepFacing: true, noGive: true });
+        u.facing = D.spr.facingFor(bn.x - u.x, bn.y - u.y); u.anim = 'idle'; u.animT = B.t;
+      }
+    }
+    // and Turn It Aside's `parry` (the Grey Road's 3rd) comes only when a watcher's blow lands on a friend within 5 ft of it while it holds steel: by the end
+    // of its second turn, unshown, up beside its friend (the show stands two of a kind) and the nearest watcher with a blade at the friend -- on the test
+    // ground every blow at a creature on show lands, and the feature takes any it can turn (js/battle.js attack, js/features.js F.turnAside)
+    if (kblade && !(u.showSeen || {}).parry && D.spr.anim(u.sheet, 'parry') && u.reaction > 0 && free()) {
+      var pf = B.units.filter(function (w) { return w !== u && w.side === u.side && D.grid.standing(w) && !w.familiar && w.hp > 0; }).sort(function (a, b) { return D.grid.dist(u, a) - D.grid.dist(u, b); })[0];
+      if (pf) yield* closeTo(B, u, pf, 5);
+      var pw = pf && D.grid.dist(u, pf) <= 5 && watchers().filter(function (w) { return w.weapon && !w.weapon.ranged && RU.canAct(w); }).sort(function (a, b) { return D.grid.dist(pf, a) - D.grid.dist(pf, b); })[0];
+      if (pw) {
+        yield* closeTo(B, pw, pf, D.grid.reachOf(pw));
+        if (D.grid.dist(pw, pf) <= D.grid.reachOf(pw) && D.magic.sees(B, u, pw)) {
+          B.card(['{c}THE SHOW{/}: the ' + u.name + ' has not shown its parry yet. ' + pw.name + ' swings at the ' + pf.name + ' beside it, to see it turned aside.'], 220);
+          yield* B.attack(pw, pf, pw.weapon); pw.anim = 'idle'; u.anim = 'idle'; u.animT = B.t;
+        }
       }
     }
     // one no one has hit by the end of its second turn (the watchers fight what is nearest; a roper stays back): a stone flung at it, through

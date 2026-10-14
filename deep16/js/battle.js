@@ -2013,7 +2013,11 @@
     // attack's name (claw, bite), and its second and third use in a turn the numbered rows (claw2, claw3: a blow from each of its arms)
     if (!posing && att.anim === 'attack' && atk.name) {
       // (atk.row: a blow that names its row -- Sweep the Ring plays `whirlwind`, 10-08)
-      var rk = atk.row || String(atk.name).toLowerCase().replace(/[^a-z]/g, ''), rt = att.turn || {}, rn = ((rt.rowN = rt.rowN || {})[rk] = (rt.rowN[rk] || 0) + 1);
+      var rk = atk.row || String(atk.name).toLowerCase().replace(/[^a-z]/g, '');
+      // (a named weapon plays its sort's row where the sheet has none by its name: GreyFang's Bow +1 is a longbow, and every arrow of his played the
+      // `attack` fallback, his sword's slash, till 10-14 -- the show of his sheet found it: longbow 0, attack 26; js/save.js weaponOf carries the kind)
+      if (!atk.row && atk.kind && !D.spr.anim(att.sheet, rk) && D.spr.anim(att.sheet, atk.kind)) rk = atk.kind;
+      var rt = att.turn || {}, rn = ((rt.rowN = rt.rowN || {})[rk] = (rt.rowN[rk] || 0) + 1);
       var rw = rn > 1 && D.spr.anim(att.sheet, rk + rn) ? rk + rn : rk;
       if (rk && D.spr.anim(att.sheet, rw)) att.anim = rw;
       // (Surprise Attack's blow: a foe with it, its first melee blow of round one, plays its ambush row -- the bugbears' sheets, 10-07)

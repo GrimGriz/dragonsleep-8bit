@@ -86,6 +86,7 @@
     var w = R.weaponOf(h), dm = R.damageExpr(h, w), wd = w.weapon || {}, props = wd.props || [], ranged = props.indexOf('ranged') >= 0, bond = R.bonded(h, w.id);
     return {
       id: h.equip && h.equip.weapon, name: w.name, atk: R.attackBonus(h, w), dice: dm.dice, mod: dm.mod, type: dm.type, props: props, magic: !!(wd.bonus || wd.magic),
+      kind: wd.kind || null, // (the weapon's sort: its row where the name has none -- GreyFang's Bow +1 a longbow, js/battle.js attack, 10-14)
       finesse: props.indexOf('finesse') >= 0, gwf: !ranged && R.gwf(h, w), // (Great Weapon Fighting by the style, js/rules.js: 10-06; it was every fighter's)
       ranged: ranged, range: ranged ? (wd.range || [80, 320]) : null, ammo: wd.ammo || null, loading: props.indexOf('loading') >= 0, fx: 'bolt', icon: wd.icon || null, // (icon: the ring's ATTACK wears the weapon's own -- Denny's fist, 10-08)
       // (the weapon's own magic works only for one bonded with it -- js/rules.js R.bonded, 10-06: a Flame Tongue unbonded is a longsword, a Mace of Disruption a mace)
