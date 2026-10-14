@@ -18,6 +18,8 @@ What landed, newest first, one line each: **date · commit · lane · one senten
 - 2026-10-14 · `9c40078` · the house · `deep16/_src/Fresh` is the inbox again: every used sheet sorted to `_src/<creature>/` and the ten cutters that read Fresh read there, their art byte-identical · *"Everything we've done through Fresh should have been moved to _src or whatever so the Fresh could have remained the inbox. I'd like to sort that out and do it proper."*
 
 ## 2026-10-13
+- 2026-10-13 · `bf96499` · the Snoot mode · snoot-mode/rules-source.md, the mode's mechanics as read from CHAINMAIL 3e and OD&D I-III with the books' page numbers (the books and their text layers local in dev/chainmail-odd/) · *"just wanted to make sure the version of the mechanics we're using got stored somewhere useful - approve both"*
+- 2026-10-13 · `5e42e23` · the story review · plot-map.html and plot-explorer.html, the expansion's plot map and its problems-explorer, with his first walk's ear file (plot-ear-file-2026-10-14-0000Z) as the fold's receipt; dev pages, nothing in the game reads them · *"commit by name, code tab might orient on them"*
 - 2026-10-13 · `2a40752` · the road · A lantern or the Ledger-Lamp stays lit through a night's rest, a torch goes out (re-ruling 09-30e) · *"1 - yes"*
 - 2026-10-13 · `4b8a63b` · the road · The keepers' words in the shop window run to three lines (Dagny's and Percy's were cut), and the 8-bit menu's EXIT asks QUIT TO THE TITLE? with SAVE, THEN LEAVE first · *"13 - yes"*
 - 2026-10-13 · `4b8a63b` · the menus · In the ladder camp a hero's own kit heads EQUIP's list marked (yours), the list says more with its arrows, and the wheel scrolls it (Barley's flail was 17th of 18, below the fold) · *"13 - yes"*
