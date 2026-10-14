@@ -2224,13 +2224,13 @@
       var upQ = D.roam.def.stairUp[0], nbQ = null; for (var yQ = -1; yQ <= 1 && !nbQ; yQ++) for (var xQ = -1; xQ <= 1 && !nbQ; xQ++) if ((xQ || yQ) && GZ.canStand(RQ.token, upQ[0] + xQ, upQ[1] + yQ)) nbQ = [upQ[0] + xQ, upQ[1] + yQ];
       RQ.token.x = nbQ[0]; RQ.token.y = nbQ[1]; RQ.token.tween = null; GZ.setup(GZ.map, BQ.units); var nQ = (BQ.log || []).length; RQ.path = [upQ.slice()];
       driveZ(BQ.co, function () { return (BQ.log || []).slice(nQ).some(function (l) { return /THE PACK HANDED BACK/.test(l); }); }, 600);
-      var hQ = RQ.lastHandback || { lines: [], flags: ['no hand-back'], pack: {} }, saidQ = (BQ.log || []).slice(nQ).join(' ');
-      okZ('out by the stair up, the pack handed back: ' + (hQ.lines.join(', ') || 'nothing') + ' -- ' + (hQ.flags.join('; ') || 'every change accounted for') + ' (said: ' + /every change accounted for/.test(saidQ) + ')',
-        !hQ.flags.length && hQ.pack.fivetokens === 1 && hQ.pack.candleknife === 1 && hQ.pack.lightcrossbow === -1 && hQ.pack.potion === -1 && /every change accounted for/.test(saidQ));
-      var hbQ = function () { return D.roam.handback ? D.roam.handback(BQ) : { flags: [], lines: [], pack: {} }; }; (D.roam.addPack || D.roam.give)(BQ, 'bolts', 5); var hQ2 = hbQ();
+      var hQ = RQ.lastHandback || { lines: [], warn: ['no hand-back'], pack: {} }, saidQ = (BQ.log || []).slice(nQ).join(' ');
+      okZ('out by the stair up, the pack handed back: ' + (hQ.lines.join(', ') || 'nothing') + ' -- ' + (hQ.warn.join('; ') || 'every change accounted for') + ' (said: ' + /every change accounted for/.test(saidQ) + ')',
+        !hQ.warn.length && hQ.pack.fivetokens === 1 && hQ.pack.candleknife === 1 && hQ.pack.lightcrossbow === -1 && hQ.pack.potion === -1 && /every change accounted for/.test(saidQ));
+      var hbQ = function () { return D.roam.handback ? D.roam.handback(BQ) : { warn: [], lines: [], pack: {} }; }; (D.roam.addPack || D.roam.give)(BQ, 'bolts', 5); var hQ2 = hbQ();
       var fQ = (BQ.inv || []).filter(function (x) { return x.id === 'fivetokens'; })[0]; if (fQ) fQ.n = 0; var hQ3 = hbQ();
-      okZ('a planted leak is flagged (' + hQ2.flags.join('; ') + '), and the five\'s gear gone with no word (' + hQ3.flags.filter(function (f) { return /Five/.test(f); }).join('; ') + ')',
-        hQ2.flags.some(function (f) { return /Bolts/i.test(f); }) && hQ3.flags.some(function (f) { return /Five/.test(f) && /gone/.test(f); }));
+      okZ('a planted leak is flagged (' + hQ2.warn.join('; ') + '), and the five\'s gear gone with no word (' + hQ3.warn.filter(function (f) { return /Five/.test(f); }).join('; ') + ')',
+        hQ2.warn.some(function (f) { return /Bolts/i.test(f); }) && hQ3.warn.some(function (f) { return /Five/.test(f) && /gone/.test(f); }));
       // walked in from a save: the party's own pack, no loan (a save of two potions walks in with two potions and no crossbow, bolts or rope)
       var svQ = D.save.fixture(3); svQ.inv = [{ id: 'potion', n: 2 }]; memZ['deep16.handoff'] = JSON.stringify({ at: Date.now(), save: svQ });
       var BS = D.roam.make('?roam=wet&watch&enc=999&save'); D.scenes.length = 0; D.push(BS); D.battle = BS; BS.enter();

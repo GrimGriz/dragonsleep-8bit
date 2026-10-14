@@ -752,24 +752,24 @@
   // the hand-back said at a way off the floor: what the 8-bit's pack would take, and the check's word
   R.packCard = function (B) {
     var hb = R.handback(B);
-    B.card(R.wrap(['{y}THE PACK HANDED BACK{/}: ' + (hb.lines.join(', ') || 'as it came')].concat(hb.flags.length ? ['{r}CHECK{/}: ' + hb.flags.join('; ')] : ['{g}every change accounted for{/}'])), 420);
+    B.card(R.wrap(['{y}THE PACK HANDED BACK{/}: ' + (hb.lines.join(', ') || 'as it came')].concat(hb.warn.length ? ['{r}CHECK{/}: ' + hb.warn.join('; ')] : ['{g}every change accounted for{/}'])), 420);
     return hb;
   };
   R.keyItem = function (id) { var it = window.DS.DATA.items[id]; return !!(it && (it.kind === 'key' || it.noSell)); };
   R.handback = function (B) {
-    var R0 = B.roam, now = R.owned(B), exp = {}, out = { pack: {}, owned: {}, flags: [] }, nm = function (id) { var it = window.DS.DATA.items[id]; return it ? it.name : id; };
+    var R0 = B.roam, now = R.owned(B), exp = {}, out = { pack: {}, owned: {}, warn: [] }, nm = function (id) { var it = window.DS.DATA.items[id]; return it ? it.name : id; };
     (R0.ledger || []).forEach(function (e) { exp[e.id] = (exp[e.id] || 0) + e.n; });
     var uni = function () { var a = []; [].slice.call(arguments).forEach(function (o) { Object.keys(o).forEach(function (k) { if (a.indexOf(k) < 0) a.push(k); }); }); return a; };
     uni(now, R0.pack0 || {}, exp).forEach(function (id) {
       var d = (now[id] || 0) - ((R0.pack0 || {})[id] || 0), x = exp[id] || 0; if (d) out.owned[id] = d;
-      if (d > x) out.flags.push('+' + (d - x) + ' ' + nm(id) + ', with nothing in the ledger for it');
-      else if (d < x && R.keyItem(id)) out.flags.push((d - x) + ' ' + nm(id) + ', gone with nothing to say where');
+      if (d > x) out.warn.push('+' + (d - x) + ' ' + nm(id) + ', with nothing in the ledger for it');
+      else if (d < x && R.keyItem(id)) out.warn.push((d - x) + ' ' + nm(id) + ', gone with nothing to say where');
     });
     var p0 = R0.inv0 || {}, p1 = R.counts(B.inv);
     uni(p0, p1).forEach(function (id) { var d = (p1[id] || 0) - (p0[id] || 0); if (d) out.pack[id] = d; });
     out.lines = Object.keys(out.pack).map(function (id) { return (out.pack[id] > 0 ? '+' : '') + out.pack[id] + ' ' + nm(id); });
     R0.lastHandback = out;
-    if (out.flags.length && window.console) console.warn('THE ROAM, the pack at the stairs: ' + out.flags.join('; '));
+    if (out.warn.length && window.console) console.warn('THE ROAM, the pack at the stairs: ' + out.warn.join('; '));
     return out;
   };
   R.dice = function () { return { roll: function (e) { return D.roll(e).total; }, rng: D.rand }; };
