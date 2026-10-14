@@ -61,7 +61,9 @@
     var at8 = function (l) { return l.map(function (p) { return from8(p[0], p[1]); }); };
     D.MAPS.wetwhole = {
       name: 'The Wet', sub: 'the whole floor, walked as one token', dark: true, step: 10, deepWater: 'D', // (the settling pools and the inflow wadable since 10-13, his "1 yes"; the landlord's water and the drowned stair deep)
-      lampAt: wet.lampAt, lights: wet.lights, noBurrowAt: wet.noBurrowAt, // (the Settling's own: the same squares on the same turn)
+      lampAt: wet.lampAt, noBurrowAt: wet.noBurrowAt, // (the Settling's own: the same squares on the same turn)
+      // the Settling's lights, and the mark's cold glow on the landing beside it, as the Keeper's own map lights it (data/maps.js floodstair: "the rune lights the landing")
+      lights: (wet.lights || []).concat([from8(R.RUNE8[0], R.RUNE8[1] + 1).concat([20, 'glow'])]),
       sky: 20, // the cave's ceiling, 20 ft over the floor, as the roost's (js/grid.js G.flyTop): a darkmantle rolled at random hangs from it (10-13, Griz: "the whole area map needs a ceiling" -- "for if it rolls darkmantles as randoms")
       // the dwarven works -- the corridor, the landing, the drowned stair, the 8-bit's rows 19-24 -- under worked stone 15 ft up (the map's `skies`: js/grid.js G.ceilAt;
       // 10-13, Griz: "keepers room has to be at least 15 high")
@@ -70,6 +72,53 @@
       entry: wet.entry, stairUp: wet.doors, doors: wet.doors.concat(at8([[41, 27], [42, 27]])), foes: []
     };
     return D.MAPS.wetwhole;
+  };
+
+  // ------------------------------------------------------------------ the dwarven works' walls, drawn whole while the party is in them (10-14, Griz: "draw the walls of the Keeper room when you
+  // actually go in there (versus normally transparent) such that one can see the Rune"). The grid cuts a wall to a stub where open floor lies behind it (js/iso.js classifyRock:
+  // the room is seen through it), and the works' north wall -- the mark's -- has the cave behind it, so from the landing it was a stub and the mark was never seen. In the works,
+  // their walls are classed again by the works' own floor alone: the ones the party stands in front of rise whole (the mark on its face), the ones between them and the eye
+  // stay cut. Out of the works, as before
+  R.RUNE8 = [22, 19]; // (the 8-bit's runeWall: warrens_d (22,19), the mark's USE square, its landing the square below)
+  R.WORKS8 = { dwarfFloor: 1, drownStair: 1 }; R.WORKWALL8 = { dwarfWall: 1, runeWall: 1, sealDoor: 1 };
+  R.tile8 = function (x, y) { var M8 = R.def.src8, p = R.def.to8(x, y), row = M8.rows[p[1]]; return row != null && p[0] >= 0 && p[0] < row.length ? M8.legend[row.charAt(p[0])] : null; };
+  R.inWorks = function (B) {
+    var R0 = B.roam; if (!R0) return false;
+    var on = function (u) { return !!R.WORKS8[R.tile8(u.x, u.y)]; };
+    return R0.mode === 'fight' ? R0.members.some(function (u) { return u.hp > 0 && B.units.indexOf(u) >= 0 && on(u); }) : on(R0.token);
+  };
+  R.works = function (B, inside) {
+    var m = B.map; if (!m || !m.sq) return;
+    if (!m.works) { m.works = { walls: [], on: false }; m.sq.forEach(function (s) { if (!s.open && R.WORKWALL8[R.tile8(s.x, s.y)]) m.works.walls.push({ s: s, rock0: s.rock }); }); }
+    if (m.works.on === inside) return;
+    m.works.on = inside;
+    var fl = function (x, y) { var s = m.at(x, y); return !!(s && s.open && R.WORKS8[R.tile8(x, y)]); }, dirty = {};
+    m.works.walls.forEach(function (w) {
+      var s = w.s, x = s.x, y = s.y, r = w.rock0;
+      if (inside) r = fl(x - 1, y) || fl(x, y - 1) || fl(x - 1, y - 1) ? 'near' : fl(x + 1, y) || fl(x, y + 1) || fl(x + 1, y + 1) ? 'far' : w.rock0;
+      if (s.rock === r) return;
+      if (s.rock === 'fill' && !m.props.some(function (p) { return p.kind === 'rock' && p.sq === s; })) m.props.push({ kind: 'rock', sq: s, depth: s.x + s.y, gz: 0 });
+      s.rock = r; for (var dy = -1; dy <= 1; dy++) for (var dx = -1; dx <= 1; dx++) dirty[(x + dx) + ',' + (y + dy)] = 1;
+    });
+    Object.keys(dirty).forEach(function (k) { if (m.rockImgs) delete m.rockImgs[k]; }); // (a wall's picture reads its neighbours' cut: js/iso.js rockCanvas, made again when next seen)
+    m.sorted = null;
+  };
+  // the mark on the face of its wall toward the landing, while the works' walls stand whole: the Keeper's own glyph (js/keeper.js, the floodstair's), cold and breathing, sheared
+  // onto the wall's plane -- the face between the rune square and the landing runs along the grid's y, down to the left on the screen
+  var props1 = D.walls && D.walls.props;
+  if (props1) D.walls.props = function (B) {
+    var out = props1.apply(this, arguments);
+    if (!B || !B.roam || !B.map || !B.map.works || !B.map.works.on) return out;
+    var rq = R.def.from8(R.RUNE8[0], R.RUNE8[1]), gz = B.map.gz(rq[0] + 1, rq[1]), fx = rq[0] + 0.5, fy = rq[1];
+    out.push({ roamRune: true, depth: rq[0] + rq[1] + 0.9, gz: gz, layer: 1, draw: function (ctx) {
+      var iso = D.iso, c = iso.center(fx, fy, gz + 22), sc = iso.toScreen(c.x, c.y), glow = 0.55 + 0.25 * Math.sin(B.t / 22), C = FX.el('cold').c, x = Math.round(sc.x), y = Math.round(sc.y);
+      ctx.save(); ctx.translate(x, y); ctx.transform(1, -iso.TH / iso.TW, 0, 1, 0, 0);
+      ctx.globalAlpha = 0.25 * glow + 0.1; ctx.fillStyle = C[1]; ctx.beginPath(); ctx.ellipse(0, 0, 13, 11, 0, 0, 7); ctx.fill();
+      ctx.globalAlpha = glow + 0.2; ctx.strokeStyle = C[0]; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.ellipse(0, 0, 8, 8, 0, 0, 7); ctx.moveTo(0, -8); ctx.lineTo(0, 8); ctx.moveTo(-5, -3); ctx.lineTo(5, -3); ctx.moveTo(-4, 3); ctx.lineTo(4, 3); ctx.stroke();
+      ctx.restore(); ctx.globalAlpha = 1;
+    } });
+    return out;
   };
 
   // ------------------------------------------------------------------ the 8-bit's conditions, small (flag:x, !flag:x, & and |)
@@ -112,6 +161,7 @@
         if (R0.mode === 'order' && m.rclick && m.inside) R0.keys.push('turn'); // (a right click in ORDER: the formation as it stands facing the next way -- Griz, 10-13: "rightclick shows the ordering in different facings")
       }
       if (R0 && I.pressed('list')) R.showMap = !R.showMap; // (L: the floor map -- the whole Wet, what they saw, the ground and its ways out)
+      if (R0) R.works(this, R.inWorks(this)); // (the works' walls whole while the party is in them)
       return update0.apply(this, arguments);
     };
     B.paint = function (ctx) {
@@ -134,6 +184,8 @@
     var lead = members[0];
     var R0 = B.roam = { token: lead, members: members, rest: members.slice(1), form: {}, fw: [-1, 0], mode: 'walk', steps: 0, encIn: 0, clicks: [], keys: [], flags: {}, fights: 0, log: [], last: null, cut: null, msg: null, groups: [], spent: {} }; // (spent: the floor's triggers done with -- the roam's own marks, apart from the 8-bit's flags)
     members.slice(1).forEach(function (u, i) { R0.form[u.id] = stored[u.id] || R.FORM0[i] || [-(i + 1), 0]; });
+    // the purse, the kill tally and the XP banked till the next gather (R.pay): the save's own, or the fixture's none
+    var data0 = (B.from && B.from.data) || {}; R0.silver = data0.silver || 0; R0.kills = JSON.parse(JSON.stringify(data0.kills || {})); R0.xpBank = 0;
     if (/[?&]watch\b/.test(R.q)) members.forEach(function (u) { u.guest = true; u.classAI = true; }); // (&watch: the class tactics run the four, as the bench does)
     // the light: the party's carried torch (&light=none | torch | lantern), in the first free hand in the marching order (js/light.js handsFree, then handForLight)
     var lw = (/[?&]light=([a-z]+)/.exec(R.q) || [])[1] || 'torch';
@@ -224,7 +276,11 @@
       // the arrows: the screen's own directions, a square's diagonal on the grid (10-13, Griz: "Can arrow keys default move diagonal?"); two at once are the grid's
       // straight ways (up and right: the screen's upper right). A diagonal into a corner slides along the open side
       var dx0 = (I.held.down ? 1 : 0) - (I.held.up ? 1 : 0) + (I.held.right ? 1 : 0) - (I.held.left ? 1 : 0), dy0 = (I.held.down ? 1 : 0) - (I.held.up ? 1 : 0) - (I.held.right ? 1 : 0) + (I.held.left ? 1 : 0);
-      var dir = dx0 || dy0 ? [Math.sign(dx0), Math.sign(dy0)] : null;
+      var dir = dx0 || dy0 ? [Math.sign(dx0), Math.sign(dy0)] : null, dk = dir ? dir.join(',') : '';
+      // a press against a wall that holds the 8-bit's USE -- the mark -- is a hand on it, as E is (10-14, Griz: "let activation as well as directional press against it trigger it
+      // (diagonal is tricky)"): once a press, held or new, till the arrows let go or turn (R.pressInto)
+      if (dk !== R0.pressed) R0.pressed = null;
+      if (dir && !R0.pressed && !trk.length) { var pr = R.pressInto(B, dir); if (pr) { R0.pressed = dk; R0.path = null; t.facing = D.spr.facingFor(pr.sq[0] - t.x, pr.sq[1] - t.y); t.anim = 'idle'; t.animT = B.t; yield* R.fire(B, pr.trig, pr.sq); continue; } }
       if (dir) {
         var okS = function (x, y) { return G.canStand(t, x, y); }, tries = dir[0] && dir[1] ? [dir, [dir[0], 0], [0, dir[1]]] : [dir], went = null;
         for (var ti = 0; ti < tries.length && !went; ti++) { var d0 = tries[ti], tx = t.x + d0[0], ty = t.y + d0[1]; if (!okS(tx, ty)) continue; if (d0[0] && d0[1] && (!okS(t.x + d0[0], t.y) || !okS(t.x, t.y + d0[1]))) continue; went = [tx, ty]; }
@@ -323,6 +379,15 @@
   R.WADE8 = [[19, 20], [19, 21], [19, 22], [19, 23]]; // (the 8-bit's squares: the drowned stair's first row, where its `stair` trigger stands)
   R.isWade = function (x, y) { var p = R.def.to8(x, y); return R.WADE8.some(function (q) { return q[0] === p[0] && q[1] === p[1]; }); };
   R.USE_NAME = { mark: 'the mark', stair: 'the flooded stair', bucket: 'the bucket', landlord: 'the deep water', deepCradle0: 'the cradle', deepCradle1: 'the cradle', deepCradle2: 'the cradle' };
+  // an arrow press into a wall with a USE on it (the mark in the north wall of the landing): the square the press points at, or -- the diagonal, the tricky one (the arrows are
+  // the screen's own ways, so up and left alone are the grid's diagonals) -- either of its two straight halves, so each of the three landing squares beside the mark reaches it
+  // with one arrow. Only when the press is blocked: a diagonal that walks never fires a half
+  R.pressInto = function (B, dir) {
+    var t = B.roam.token; if (G.canStand(t, t.x + dir[0], t.y + dir[1])) return null;
+    var tries = [dir].concat(dir[0] && dir[1] ? [[dir[0], 0], [0, dir[1]]] : []);
+    for (var i = 0; i < tries.length; i++) { var x = t.x + tries[i][0], y = t.y + tries[i][1], s = G.map.at(x, y); if (!s || s.walk) continue; var tr = R.useAt(B, x, y); if (tr) return { trig: tr, sq: [x, y] }; }
+    return null;
+  };
   // the 8-bit's USE: a trigger on a square beside the token (the way it faces first) -- the mark is in the wall, so a click cannot pick it (iso.pick picks only open squares)
   R.useNear = function (B) {
     var R0 = B.roam, t = R0 && R0.token; if (!t) return null;
@@ -350,8 +415,8 @@
     var a = yield { prompt: { who: R0.token, title: 'THE FLOODED STAIR', lines: R.wrap([R.say8('w.stairSee'), R.say8('w.stairAsk')]), opts: [{ label: 'ROPE THEM OUT', value: 0 }, { label: 'WADE IN', value: 1 }, { label: 'LEAVE', value: 2 }] } };
     if (a === 0) {
       if (!(B.inv || []).some(function (x) { return x.id === 'rope' && x.n > 0; })) { B.card([R.say8('w.noRope')], 260); yield 20; return; }
-      if (f.keeperAwake) { B.card([R.say8('w.ropeAwake')], 260); yield 30; yield* R.pullIn(B, 'keeper', trig, at, 'rune'); return; }
-      f.fiveRecovered = 1; B.card(R.wrap([R.say8('w.ropeOut'), R.say8('w.fiveRecovered')]), 360); yield 40; return;
+      if (f.keeperAwake) { B.card([R.say8('w.ropeAwake')], 260); yield 30; yield* R.pullIn(B, 'keeper', trig, at, 'rune', 'rope'); return; }
+      yield* R.five(B, 'w.ropeOut'); return; // (the five's tokens and the stock's fork as the 8-bit's fiveUp gives them: js/rules.js R.fiveUp)
     }
     if (a === 1) { B.card(R.wrap([R.say8('w.wade')]), 260); yield 30; yield* R.pullIn(B, 'keeper', trig, at, 'ledge'); }
   };
@@ -365,23 +430,30 @@
   };
 
   // ------------------------------------------------------------------ a fight elsewhere, pulled in, and back
-  R.pullIn = function* (B, which, trig, at, start) {
+  R.pullIn = function* (B, which, trig, at, start, how) {
+    var R0 = B.roam; R0.pulling = which; // (till its last line is said: the bench waits on it)
+    try { yield* R.pullIn0(B, which, trig, at, start, how); } finally { delete R0.pulling; }
+  };
+  R.pullIn0 = function* (B, which, trig, at, start, how) {
     var R0 = B.roam, done = null, hp = {};
-    R0.members.forEach(function (u) { hp[u.id] = { hp: u.hp, ko: !!u.ko }; });
+    R0.members.forEach(function (u) { hp[u.id] = { hp: u.hp, ko: !!u.ko, slots: (u.slots || []).slice(), feats: JSON.parse(JSON.stringify(u.feats || {})) }; });
     var o = Object.assign({}, R.party0, { fightDef: null, fight: which === 'keeper' ? 'keeper' : 'wet', onDone: function (res) { done = res || 'out'; } });
     // the floor's own state goes in with them, as the 8-bit's seam sends it (js/embed.js): the flags it has set (the landlord fed, who holds the bucket, the dead) and the
     // pack as it stands (the bucket in it) -- and comes back out below (10-13, his play: "they did the bucket then left the zone, and the bucket refreshed and was triggered again")
     var base0 = o.ladder ? D.save.fixture(Math.min(9, R.party0.level)) : D.save.load().data; delete o.ladder;
     o.data = JSON.parse(JSON.stringify(base0));
     o.data.flags = Object.assign({}, o.data.flags || {}, R0.flags);
+    // each sheet as it walks: the level and the XP the floor's fights paid (R.pay), not the fixture's fresh copy
+    o.data.party = (o.data.party || []).map(function (h) { var w = R0.members.filter(function (u) { return u.id === h.id && u.src; })[0]; return w ? JSON.parse(JSON.stringify(w.src)) : h; });
     o.data.inv = JSON.parse(JSON.stringify(B.inv || []));
+    o.data.kills = JSON.parse(JSON.stringify(R0.kills || {})); o.data.silver = R0.silver; // (the tally and the purse go in as the 8-bit's seam sends them)
     if (which === 'keeper') o.start = start || (trig.id === 'mark' ? 'rune' : 'ledge');
     else o.wake = R.WAKE[trig.id];
     var b = new D.Battle(o), e0 = b.enter, leadId = R0.token.id;
     b.enter = function () {
       e0.apply(this, arguments);
       // the four as they walked: their hit points from the floor
-      this.units.forEach(function (u) { var h = hp[u.id]; if (h && u.side === 'party') { u.hp = Math.min(u.maxhp, h.hp); if (u.hp <= 0) u.ko = true; } });
+      this.units.forEach(function (u) { var h = hp[u.id]; if (h && u.side === 'party') { u.hp = Math.min(u.maxhp, h.hp); if (u.hp <= 0) u.ko = true; u.slots = h.slots.slice(); u.feats = JSON.parse(JSON.stringify(h.feats)); } }); // (and the slots and the uses they spent on the floor)
       // seated by the formation (Griz, 10-13: "'order' gonna have to be passed to every grid fight"): the lead on the trigger's square in the Settling (as the 8-bit's
       // seam puts him, embed.at -- the Settling's squares are the floor's own), on the map's way in at the Keeper's; each of the rest on its slot round the lead the way
       // the token faced, or the nearest open square to it
@@ -419,14 +491,18 @@
     while (!done) yield 1; // (the floor waits under it: only the top scene runs -- js/core.js)
     // back on the floor: the four's hit points as the fight left them; the trigger spent if the fight was won
     D.battle = B; G.setup(B.map, B.units); D.iso.map = B.map;
-    (b.units || []).forEach(function (u) { var w = R0.members.filter(function (m) { return m.id === u.id; })[0]; if (w) { w.hp = Math.max(0, u.hp); w.ko = w.hp <= 0; w.conds = {}; } });
+    (b.units || []).forEach(function (u) { var w = R0.members.filter(function (m) { return m.id === u.id; })[0]; if (w) { w.hp = Math.max(0, u.hp); w.ko = w.hp <= 0; w.conds = {}; w.slots = (u.slots || []).slice(); w.feats = JSON.parse(JSON.stringify(u.feats || {})); } });
     Object.assign(R0.flags, b.flags8 || {}); // (what it set: otyughFed, bucketBy, heard:r-stream, landlordSpoke, the dead -- the rim's trigger reads otyughFed and otyughDead)
     if (b.inv) B.inv = JSON.parse(JSON.stringify(b.inv)); // (the pack as the fight left it: the bucket taken up or gone into the water, a potion drunk)
+    // what fell in there (the Settling's own count, js/wet.js W.killed -- the three by name, each crawler; the Keeper's fight by kind): XP banked and the tally kept; won, the spoils
+    // (the Settling counts a walk-out with something dead behind it a win, as the 8-bit's does)
+    var ids8 = which === 'wet' ? (b.enemies8 || (done === 'fed' && D.wet && D.wet.killed && b.wet ? D.wet.killed(b) : []))
+      : (b.units || []).filter(function (u) { return u.side === 'foe' && !u.summon && !u.fled && !u.left && (u.dead || u.hp <= 0); }).map(function (u) { return (D.id8 ? D.id8(u.kind) : u.kind) || u.kind; });
+    var fell8 = done === 'lost' ? [] : R.fallen8(B, ids8), loot8 = done === 'won' || (done === 'fed' && ids8.length) ? R.spoils(B, fell8) : [];
     if (done === 'won') R0.spent[trig.id] = 1;
     if (which === 'wet' && done === 'won') ['jelly', 'jellyNorth', 'poolOoze', 'landlordStep'].forEach(function (id) { R0.spent[id] = 1; });
-    if (which === 'keeper' && done === 'won') { ['stair', 'mark'].forEach(function (id) { R0.spent[id] = 1; }); R0.flags.keeperDone = 1; R0.flags.fiveRecovered = 1; }
+    if (which === 'keeper' && done === 'won') { ['stair', 'mark'].forEach(function (id) { R0.spent[id] = 1; }); R0.flags.keeperDone = 1; }
     if (which === 'keeper' && done !== 'won' && done !== 'lost') R0.flags.keeperAwake = 1; // (a run leaves it awake and unbeaten: the rope then fights it by the rune -- the 8-bit's, 10-04)
-    if (which === 'keeper' && done === 'won') { B.card(R.wrap([R.say8('w.keeperGone'), R.say8('w.fiveRecovered')]), 360); yield 40; }
     // the Settling's squares are the floor's own: the token back where the party left it -- a square past the one who got out (off the Settling's ground, the way
     // they went), or where the first still standing ended (10-13, his play: "Barleys wet exit of landlord scene put them back at waters edge")
     if (which === 'wet') {
@@ -443,9 +519,82 @@
     B.focus(R0.token);
     B.card(done === 'fed' ? ['{y}The landlord settles under the water.{/}', '{g}The party gathers into ' + R0.token.name + '.{/}'] : ['{y}Back on the Wet{/} (' + done + ').'], 260);
     if (done === 'fed') { FX.ring(R0.token, 'glow', 22); D.sfx('popup'); }
-    if (!R.standing(R0).length) { R0.mode = 'over'; B.card(['{r}The party has fallen.{/}  R to walk the Wet again.'], 100000); }
+    if (!R.standing(R0).length) { R0.mode = 'over'; B.card(['{r}The party has fallen.{/}  R to walk the Wet again.'], 100000); return; }
+    // the gather pays (R.pay): what fell in there, and the landlord fed from the bucket -- a quarter again its XP, once (js/rules.js R.fedPool, the 8-bit's EV.fedXp)
+    var xpL = R.pay(B), fedL = [];
+    if (R0.flags.otyughFed && !R0.flags.otyughFedXp) { R0.flags.otyughFedXp = 1; fedL = R.pay(B, window.DS.R.fedPool(), R.say8('w.fedXp')); }
+    if (xpL.length || loot8.length) { B.card(R.wrap([done === 'won' ? '{y}Victory!{/}' : '{y}What fell{/}'].concat(xpL, loot8)), 420); yield 40; }
+    if (fedL.length) { B.card(R.wrap(fedL), 360); yield 40; }
+    // the Keeper beaten: it sinks back, and the five come up (the 8-bit's S.stair and S.mark: the rope's haul or its going, then fiveUp)
+    if (which === 'keeper' && done === 'won') yield* R.five(B, how === 'rope' ? 'w.ropeOut' : 'w.keeperGone');
   };
   R.standing = function (R0) { return R0.members.filter(function (u) { return u.hp > 0 && !u.dead; }); };
+
+  // ------------------------------------------------------------------ what the fights pay (RULED 10-14, Griz: "perfect for the roam seat", on the desk's lean -- his "1. Roam should do
+  // the xp rewards when it goes back to party token?" and "2. We got really fancy-ish (compare with SRD) to allow parties to flee random encounters on the grid"): each foe's XP
+  // counts when it falls and is paid at the next gather, won or got away; those still up carry theirs into the pursuit or the lost and pay when they fall; the split is
+  // among those standing at the gather and the guests fielded (the 8-bit's rule); coin, drops and parts on a win only (a getaway forfeits them, as the 8-bit's run
+  // does); the kill tally at the fall either way (the stock's fork reads it). The rules are js/rules.js's, the 8-bit finish's own (R.tally, R.spoils, R.shareXP)
+  R.give = function (B, id, n) { var s = (B.inv || []).filter(function (x) { return x.id === id; })[0]; if (s) s.n = (s.n || 0) + n; else (B.inv = B.inv || []).push({ id: id, n: n }); };
+  R.dice = function () { return { roll: function (e) { return D.roll(e).total; }, rng: D.rand }; };
+  R.mon8 = function (id8) { return window.DS.DATA.monsters[id8]; };
+  // the ones of this fight that fell (not those that fled or slunk off, not a foe's summoning): XP banked, the tally kept, once each. Returns them as the 8-bit's
+  // spoils read them ({ m, id, surrendered })
+  R.fallen = function (B, foes, zone) {
+    var R0 = B.roam, out = [];
+    (foes || []).forEach(function (u) {
+      if (u.roamFell || u.summon || u.left || u.fled || !(u.dead || u.hp <= 0)) return;
+      var id8 = (D.id8 ? D.id8(u.kind) : u.kind) || u.kind, m = R.mon8(id8); u.roamFell = true;
+      if (!m) return;
+      R0.xpBank += m.xp || 0; window.DS.R.tally(R0.kills, [id8], zone);
+      out.push({ m: m, id: id8, surrendered: !!(u.surrendered || u.yielded) });
+    });
+    return out;
+  };
+  // the fallen of a pulled-in fight, by the 8-bit's ids (the Settling's own count, js/wet.js W.killed; the Keeper by its kind)
+  R.fallen8 = function (B, ids) {
+    var R0 = B.roam, out = [];
+    ids.forEach(function (id8) { var m = R.mon8(id8); if (!m) return; R0.xpBank += m.xp || 0; window.DS.R.tally(R0.kills, [id8]); out.push({ m: m, id: id8 }); });
+    return out;
+  };
+  // a won fight's spoils, into the pack and the purse; the lines to say
+  R.spoils = function (B, fell) {
+    var R0 = B.roam; if (!fell.length) return [];
+    var sp = window.DS.R.spoils(fell, R.standing(R0).map(function (u) { return u.src; }).filter(Boolean), R.dice(), function (id, n) { R.give(B, id, n); });
+    R0.silver += sp.silver;
+    return sp.lines;
+  };
+  // the gather: the bank paid to those standing and the guests fielded, each sheet's level-ups carried onto its figure. Returns the lines
+  R.pay = function (B, pool, line) {
+    var R0 = B.roam, xp = pool != null ? pool : R0.xpBank; if (pool == null) R0.xpBank = 0;
+    if (!(xp > 0)) return [];
+    var up = R.standing(R0), heroes = up.filter(function (u) { return u.src; });
+    var guests = B.units.filter(function (u) { return u.side === 'party' && u.guest && !u.familiar && !u.summon && !u.object && u.hp > 0 && R0.members.indexOf(u) < 0; }).length;
+    var before = heroes.map(function (u) { return { u: u, lvl: u.src.lvl, feats: JSON.parse(JSON.stringify(u.src.feats || {})) }; });
+    var sx = window.DS.R.shareXP(xp, heroes.map(function (u) { return u.src; }), guests);
+    before.forEach(function (b) { if (b.u.src.lvl !== b.lvl) R.relevel(B, b.u, b.feats); });
+    var out = [];
+    if (sx.each) out.push(line ? line.replace('{n}', sx.each) : sx.line);
+    if (sx.ups.length) { D.sfx('levelup'); out = out.concat(sx.ups); }
+    R0.xpPaid = (R0.xpPaid || 0) + sx.each; // (the bench reads it)
+    return out;
+  };
+  // a figure brought up to its sheet after a level (js/rules.js R.levelUp changed the sheet; the figure walks on with its own hurt and spent slots): the new hit points
+  // on top of what it has, the new slots added, a feat's new uses added, the rest read again off the sheet as js/save.js makes a figure (gear and AC: R.regear)
+  R.relevel = function (B, u, feats0) {
+    var h = u.src, n = D.save.unitOf(h, !!u.guest, B.fight);
+    if (u.hp > 0) u.hp = Math.max(1, u.hp + n.maxhp - u.maxhp); u.maxhp = n.maxhp;
+    var sm0 = u.slotsMax || []; u.slots = u.slots || [];
+    (n.slotsMax || []).forEach(function (k, i) { u.slots[i] = (u.slots[i] || 0) + (k - (sm0[i] || 0)); }); u.slotsMax = (n.slotsMax || []).slice();
+    u.feats = u.feats || {}; Object.keys(h.feats || {}).forEach(function (k) { var v = h.feats[k], v0 = feats0[k]; if (typeof v === 'number') { var dv = v - (typeof v0 === 'number' ? v0 : 0); if (dv) u.feats[k] = (u.feats[k] || 0) + dv; } else if (v0 === undefined) u.feats[k] = JSON.parse(JSON.stringify(v)); });
+    ['lvl', 'abil', 'prof', 'init', 'known', 'subclass', 'attacksBase', 'crit', 'spellDC', 'spellAtk', 'saves', 'stealth', 'perception', 'athletics', 'acrobatics', 'savage', 'style'].forEach(function (k) { if (n[k] !== undefined) u[k] = n[k]; });
+  };
+  // the five brought up on the floor (js/rules.js R.fiveUp, the 8-bit's fiveUp's own: the flag, the tokens for Edric's book, the stock's fork) and the 8-bit's lines after the scene's own
+  R.five = function* (B, first) {
+    var R0 = B.roam;
+    window.DS.R.fiveUp(R0.flags, function (id, n) { R.give(B, id, n); }, R0.kills); D.sfx('chest');
+    B.card(R.wrap([].concat(first ? R.say8(first) : [], [R.say8('w.fiveRecovered'), R.say8('w.threshold')])), 420); yield 60;
+  };
 
   // ------------------------------------------------------------------ the party's sight from the token's square
   // each hero's own lights and darkvision, all of them where the token stands (they walk as one), and the floor's lights; a lit square in a line
@@ -542,7 +691,7 @@
     var who = R.whoOf(B, placed);
     var sees = sight.lightBy ? sight.lightBy + ' ' + sight.lightFt + ' ft' : 'no light';
     if (sight.dv) sees += ', ' + sight.dvBy + '\'s darkvision ' + sight.dv + ' ft';
-    var grp = { foes: placed, why: why, mode: 'approach', motivated: R.hunts(p.grp, placed), rolled: false, stall: 0, t: B.t, seenAt: distFt, flag: set && set.flag, trig: set && set.trig };
+    var grp = { foes: placed, why: why, mode: 'approach', motivated: R.hunts(p.grp, placed), rolled: false, stall: 0, t: B.t, seenAt: distFt, flag: set && set.flag, trig: set && set.trig, zone: set ? null : R.zoneAt(B, t.x, t.y) || 'warrens_d' }; // (zone: the tally's, as the 8-bit's EV.encounter sends it)
     R0.last = { why: why, who: who, kinds: placed.map(function (u) { return u.kind; }), spot: spot, distFt: distFt, how: how, sightFar: sight.far, lightFt: sight.lightFt, dv: sight.dv, lurk: lurk, motivated: grp.motivated, ms: ms, at: [t.x, t.y] };
     R0.log.push(R0.last); R0.sightV = sight.v; // (the map's picture of what they saw: R.paintMap)
     D.sfx('encounter');
@@ -762,6 +911,7 @@
       return;
     }
     var outBy = R0.members.filter(function (u) { return u.left; })[0];
+    var fell = R.fallen(B, foes, grp && grp.zone); // (XP banked and the tally kept at the fall, won or got away: paid at the gather below)
     var took = R.takeUpLights(B);
     var still = (foes || []).filter(function (u) { return !u.dead && u.hp > 0 && !u.left; });
     B.units = B.units.filter(function (u) { return u.side === 'party' ? !u.summon && !u.object : !u.dead && u.hp > 0; });
@@ -789,7 +939,7 @@
         B.card(['{y}Away{/}: ' + outBy.name + ' takes the stair, and the party with them.', '{g}Off the floor: the 8-bit would take you on, and back down its groups are gone. (The test keeps you here, the floor cleared.){/}'], 360);
         still = [];
       } else if (still.length) {
-        g2 = { foes: still, why: 'pursuit', mode: 'pursue', motivated: !!(grp && grp.motivated), rolled: false, stall: grp && grp.motivated ? 0 : 6, t: B.t, flag: grp && grp.flag, trig: grp && grp.trig };
+        g2 = { foes: still, why: 'pursuit', mode: 'pursue', motivated: !!(grp && grp.motivated), rolled: false, stall: grp && grp.motivated ? 0 : 6, t: B.t, flag: grp && grp.flag, trig: grp && grp.trig, zone: grp && grp.zone };
         R0.groups.push(g2);
         still.forEach(function (u) { u.racc = 0; u.anim = 'idle'; u.animT = B.t; });
       }
@@ -812,6 +962,9 @@
     FX.ring(lead, 'glow', 22); D.sfx('popup');
     lead.anim = 'idle'; lead.animT = B.t;
     B.focus(lead);
+    // the gather pays: the XP of everything that fell since the last one; on a win the coin, the drops and the parts off this fight's fallen (a getaway forfeits them)
+    var paid = o === 'won' ? R.spoils(B, fell) : [], xpL = R.pay(B);
+    if (paid.length || xpL.length) { B.card(R.wrap([o === 'won' ? '{y}Victory!{/}' : '{y}What fell{/}'].concat(xpL, paid)), 420); yield 30; }
     yield 20;
     if (g2) g2.t = B.t; // (their hold starts when the party can move again, not during the gather's beat)
   };

@@ -1970,16 +1970,11 @@
     }
     if (this.over === 'win') {
       DS.audio.play('victory');
-      var xp = 0, silver = 0, drops = [];
-      this.foes.forEach(function (f) {
-        if (f.fled) return;
-        xp += f.m.xp || 0;
-        if (f.m.silver) silver += DS.roll(f.m.silver);
-        (f.m.drops || []).forEach(function (d) { if (DS.rng() < d.chance) drops.push(d.item); });
-      });
+      // (the payout's rules are js/rules.js's -- R.tally, R.spoils, R.shareXP -- one copy, which the grid's roam pays by too: 10-14, the party-token map lane §6d)
+      var xp = 0, stood = this.foes.filter(function (f) { return !f.fled; });
+      stood.forEach(function (f) { xp += f.m.xp || 0; });
       if (o.noXp) xp = 0;
-      var K = DS.G.kills;
-      this.foes.forEach(function (f) { if (f.fled) return; K[f.id] = (K[f.id] || 0) + 1; if (o.zone) K[o.zone + ':' + f.id] = (K[o.zone + ':' + f.id] || 0) + 1; });
+      R.tally(DS.G.kills, stood.map(function (f) { return f.id; }), o.zone);
       if (o.bonusXp) xp += o.bonusXp;
       if (this.xpHalf) xp = Math.floor(xp / 2); // (Pyro drew the white mace: the fight's XP halved -- RULED 09-30b, js/pyro.js)
       var living = DS.G.party.filter(function (h) { return !h.ko; });
@@ -1987,25 +1982,13 @@
       // (the guests stand in the split: RULED 10-05, Griz: "count guests as 'standing' for xp." -- the pool is divided by the four standing plus each
       // guest fielded and not down at the end; they bank nothing, the gainXP loop below stays on the party; a solo fight is one hero's)
       var guestsUp = o.solo != null ? 0 : this.heroes.filter(function (u) { return u.guest && !down(u); }).length;
-      var each = living.length ? Math.floor(xp / (living.length + guestsUp)) : 0;
+      // (spell-component harvest: needs someone standing who has the skill for that part -- R.spoils)
+      var sp = R.spoils(this.foes, DS.G.party.filter(function (h) { return !h.ko; }), { roll: DS.roll, rng: DS.rng }, function (id, n) { DS.G.give(id, n); });
+      DS.G.silver += sp.silver;
+      var sx = R.shareXP(xp, living, guestsUp), ups = sx.ups;
       var lines = ['Victory!'];
-      if (each) lines.push('Each fighter standing gains ' + each + ' XP.' + (this.xpHalf ? ' (Halved: the king drew the white mace.)' : ''));
-      if (silver) { DS.G.silver += silver; lines.push('Found ' + silver + ' sp in coin and salvage.'); }
-      drops.forEach(function (id) { DS.G.give(id, 1); lines.push('Found ' + DS.DATA.items[id].name + '!'); });
-      // spell-component harvest: needs someone standing who has the skill for that part
-      var hands = DS.G.party.filter(function (h) { return !h.ko; }), got = {}, gotOrder = [];
-      this.foes.forEach(function (f) {
-        if (f.surrendered || f.fled) return;
-        (f.m.parts || []).forEach(function (pt) {
-          var h = hands.filter(function (x) { return pt.skill.some(function (s) { return x.skills && x.skills[s] != null; }); })[0];
-          if (!h) return;
-          if (!got[pt.item]) { got[pt.item] = { n: 0, who: h.name }; gotOrder.push(pt.item); }
-          got[pt.item].n++;
-        });
-      });
-      gotOrder.forEach(function (id) { DS.G.give(id, got[id].n); lines.push(got[id].who + ' harvests ' + DS.DATA.items[id].name + (got[id].n > 1 ? ' x' + got[id].n : '') + '.'); });
-      var ups = [];
-      living.forEach(function (h) { ups = ups.concat(R.gainXP(h, each)); });
+      if (sx.each) lines.push(sx.line + (this.xpHalf ? ' (Halved: the king drew the white mace.)' : ''));
+      lines = lines.concat(sp.lines);
       yield W8.frames(30);
       yield DS.say(lines.join('\n'), { top: true });
       if (ups.length) { DS.audio.sfx('levelup'); yield DS.say(ups, { top: true }); }

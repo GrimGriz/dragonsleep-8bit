@@ -188,6 +188,51 @@
     return msgs;
   };
   R.nextXP = function (h) { return h.lvl >= R.cap() ? null : R.XP_LEVEL[h.lvl + 1]; };
+
+  // ------------------------------------------------------------------ what a fight pays, one copy for both games (lifted 10-14 out of js/battle.js finish, so the grid's
+  // roam pays by the same rules -- the party-token map lane §6d, RULED 10-14, Griz: "perfect for the roam seat"). Each piece reads the 8-bit's monster records; the
+  // dice come in from the game calling it (the 8-bit's DS.roll and DS.rng; DEEP16's D.roll and D.rand)
+  // the kill tally (DS.G.kills): one more of each 8-bit id that fell, and of it in its zone -- the quota clock's fork reads the crawlers (fiveUp, below)
+  R.tally = function (K, ids, zone) { ids.forEach(function (id) { K[id] = (K[id] || 0) + 1; if (zone) K[zone + ':' + id] = (K[zone + ':' + id] || 0) + 1; }); };
+  // the XP: the pool divided by those standing and each guest fielded and standing (RULED 10-05, Griz: "count guests as 'standing' for xp."), banked by the heroes
+  // standing only. Returns { each, ups (the level-up lines), line }
+  R.shareXP = function (xp, living, guestsUp) {
+    var each = living.length ? Math.floor(xp / (living.length + (guestsUp || 0))) : 0, ups = [];
+    living.forEach(function (h) { ups = ups.concat(R.gainXP(h, each)); });
+    return { each: each, ups: ups, line: each ? 'Each fighter standing gains ' + each + ' XP.' : '' };
+  };
+  // a won fight's spoils: coin and salvage, the drops (each foe's in turn, as the dice fall), and the parts someone standing has the skill to harvest. foes: [{ m: its 8-bit
+  // monster, fled, surrendered }] -- one that fled leaves nothing, one that yielded keeps its parts; hands: the heroes standing; dice: { roll(expr) -> a number, rng() -> [0, 1) };
+  // give(id, n) puts a thing in the pack. The coin is the caller's to add. Returns { silver, lines }
+  R.spoils = function (foes, hands, dice, give) {
+    var silver = 0, drops = [], got = {}, order = [], lines = [];
+    foes.forEach(function (f) {
+      if (f.fled) return;
+      if (f.m.silver) silver += dice.roll(f.m.silver);
+      (f.m.drops || []).forEach(function (d) { if (dice.rng() < d.chance) drops.push(d.item); });
+    });
+    if (silver) lines.push('Found ' + silver + ' sp in coin and salvage.');
+    drops.forEach(function (id) { give(id, 1); lines.push('Found ' + DS.DATA.items[id].name + '!'); });
+    foes.forEach(function (f) {
+      if (f.surrendered || f.fled) return;
+      (f.m.parts || []).forEach(function (pt) {
+        var h = hands.filter(function (x) { return pt.skill.some(function (s) { return x.skills && x.skills[s] != null; }); })[0];
+        if (!h) return;
+        if (!got[pt.item]) { got[pt.item] = { n: 0, who: h.name }; order.push(pt.item); }
+        got[pt.item].n++;
+      });
+    });
+    order.forEach(function (id) { give(id, got[id].n); lines.push(got[id].who + ' harvests ' + DS.DATA.items[id].name + (got[id].n > 1 ? ' x' + got[id].n : '') + '.'); });
+    return { silver: silver, lines: lines };
+  };
+  // the landlord fed from the bucket: a quarter again what killing it pays (RULED 09-30e, Griz: "let's make it 125% the xp they get if they kill it"), once (js/events.js EV.fedXp)
+  R.fedPool = function () { var m = DS.DATA.monsters.otyugh; return Math.round(1.25 * ((m && m.xp) || 0)); };
+  // the five brought up -- the rope, the Keeper beaten, the stair drained (js/events.js fiveUp, js/deep.js S.dryStair, the roam's floor): the flag, the tokens for Edric's book,
+  // and the quota clock's fork, the stock (Griz 09-17e) -- one copy (10-14, the roam lane §6c: the roam set the flag alone, so Edric had nothing to take). The lines are the scene's
+  R.fiveUp = function (flags, give, kills) {
+    flags.fiveRecovered = 1; give('fivetokens', 1);
+    if (((kills || {}).crawler || 0) >= 6) flags.stockDead = 1;
+  };
   // bring an older save's heroes up to the current rules (spells cut, choices added since)
   R.migrate = function (h) {
     if (h.lvl <= 5 && h.xp >= R.XP_LEVEL[6]) h.xp = R.XP_LEVEL[6] - 1; // XP banked under the old cap of 5: one step short of 6, no more

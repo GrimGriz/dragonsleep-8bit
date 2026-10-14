@@ -116,9 +116,8 @@
     g.flags.drySeen = 1;
     yield DS.say(L('deep.drySee'));
     if (!g.flags.fiveRecovered) { // the five's tokens, where the water left them
-      g.flags.fiveRecovered = 1; g.give('fivetokens', 1); DS.audio.sfx('chest');
+      R.fiveUp(g.flags, function (id, n) { g.give(id, n); }, g.kills); DS.audio.sfx('chest'); // (the flag, the tokens and the stock's fork: js/rules.js, one copy -- 10-14)
       yield DS.say([L('deep.dryFive'), L('g.got', { item: DS.DATA.items.fivetokens.name })]);
-      if ((g.kills.crawler || 0) >= 6) g.flags.stockDead = 1;
     }
     yield DS.say(L(g.flags.keeperDone ? 'deep.puddleStill' : 'deep.puddle'));
     yield DS.say(L('deep.doorCut'));

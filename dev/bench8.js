@@ -2104,6 +2104,28 @@
         var old = R8.makeHero('vivian', 3); delete old.picks; old.pendingChoice = 'archetype'; R8.migrate(old);
         check('AN OLDER SAVE\'S WAITING ARCHETYPE becomes an ask (' + R8.asking(old, 'archetype') + ', flag ' + old.pendingChoice + ')', R8.asking(old, 'archetype') && old.pendingChoice === 'archetype');
       } finally { DS.autoPicks = auto0; }
+    } else if (test === 'payout1014') {
+      // a won fight's payout, lifted into js/rules.js (10-14, the party-token map lane §6d: R.tally, R.spoils, R.shareXP -- one copy the grid's roam pays by too): the same
+      // XP, coin, drops, parts, tally and lines for the same dice. One foe fled (nothing off it); the parts' skills on the party as they stand. Its PAID line is the receipt
+      // the old js/battle.js gave the same, word for word (the byte-exact swap)
+      var say0P = DS.say, saidP = [];
+      DS.say = function (t) { saidP.push([].concat(t).join(' / ')); return say0P.apply(this, arguments); };
+      try {
+        g.party.forEach(function (h) { h.lvl = 3; h.xp = DS.R.XP_LEVEL[3] + 1700; }); g.party[1].skills = Object.assign({}, g.party[1].skills, { Survival: 1, Arcana: 1 }); // (Aurdin harvests; 100 short of 4th)
+        var invP0 = {}; (g.inv || []).forEach(function (s) { invP0[s.id] = s.n; }); var silP0 = g.silver, kP0 = JSON.stringify(g.kills);
+        DS.seedDice(1014);
+        T.startFight(['crawler', 'darkmantle', 'ettercap', 'ettercap', 'giantspider'], { zone: 'warrens_d' });
+        for (var wP = 0; wP < 200 && !DS.find('battle'); wP++) T.step(1);
+        var bP = DS.find('battle'); bP.intro = 0;
+        bP.foes.forEach(function (f, i) { if (i === 4) f.fled = true; f.hp = 0; f.dead = true; }); bP.over = 'win'; drive({}, 1500);
+        var gotP = []; (g.inv || []).forEach(function (s) { var d = s.n - (invP0[s.id] || 0); if (d) gotP.push(s.id + ' +' + d); });
+        var xpP = g.party.map(function (h) { return h.name + ' ' + h.lvl + '/' + h.xp; }).join(', '), kills = g.kills;
+        out.checks.push('     PAID xp ' + xpP + ' | silver +' + (g.silver - silP0) + ' | got ' + gotP.join(', ') + ' | kills ' + JSON.stringify(kills) + ' | said ' + saidP.join(' // ')); // (the receipt: the same line off the code before)
+        var poolP = ['crawler', 'darkmantle', 'ettercap', 'ettercap'].reduce(function (a, id) { return a + (DS.DATA.monsters[id].xp || 0); }, 0), eachP = Math.floor(poolP / 4);
+        check('THE PAYOUT: each standing gains ' + eachP + ' (pool ' + poolP + ', the one that fled none) -- ' + xpP + '; Aurdin to 4th; the tally ' + JSON.stringify(kills) + ' (the spider none); the parts ' + gotP.join(', '),
+          g.party.every(function (h) { return h.xp === DS.R.XP_LEVEL[3] + 1700 + eachP; }) && g.party[1].lvl === 4 && kills.crawler === 1 && kills.ettercap === 2 && kills['warrens_d:ettercap'] === 2 && !kills.giantspider &&
+          gotP.some(function (x) { return /^crawlerichor/.test(x); }) && gotP.some(function (x) { return /^gulchsilk \+2/.test(x); }) && /Each fighter standing gains/.test(saidP.join(' ')));
+      } finally { DS.say = say0P; }
     } else if (test === 'migrate') {
       // an older save: Ingrith a fighter with a heals counter, hurt; DS.startFrom walks her on as the cleric she is
       DS.EV.addGuest('ingrith');

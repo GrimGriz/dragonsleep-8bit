@@ -1989,7 +1989,7 @@
         var wWd = bW.map.w, edgeW = null; for (var yE = 0; yE < bW.map.h && !edgeW; yE++) { var sE = bW.map.at(wWd - 1, yE); if (!sE || !sE.walk) continue; for (var dE = -1; dE <= 1 && !edgeW; dE++) { var sB = BW.map.at(wWd, yE + dE); if (sB && sB.walk) edgeW = [wWd - 1, yE]; } } // (an edge square with the floor going on past it, on the whole Wet)
         leadW.x = edgeW[0]; leadW.y = edgeW[1]; leadW.left = true; leadW.dead = true;
         D.pop(); bW.o.onDone('escaped');
-        var homeW = driveW(BW.co, function () { return D.top() === BW && RW.mode === 'walk' && GW.map === BW.map; }, 4000);
+        var homeW = driveW(BW.co, function () { return D.top() === BW && RW.mode === 'walk' && GW.map === BW.map && !RW.pulling; }, 4000); // (!pulling: the pull-in's last lines said -- the gather's pay, 10-14)
         okW('out of the Settling over its edge at ' + edgeW + ': back on the Wet a square past it (' + [RW.token.x, RW.token.y] + '), off the Settling\'s ground', homeW && RW.token.x >= wWd && Math.max(Math.abs(RW.token.x - edgeW[0]), Math.abs(RW.token.y - edgeW[1])) <= 1);
         okW('the landlord fed in there stays fed out here (otyughFed ' + !!RW.flags.otyughFed + '): its rim fires no more', RW.flags.otyughFed && !D.roam.triggerAt(BW, 8, 8, 'step'));
         // a peaceful bucket (Griz, 10-13: "Peaceful bucket should re-assemble the party token"): the landlord fed, nothing else up -- the Settling ends at the next player's turn
@@ -2009,7 +2009,7 @@
       RW.members.forEach(function (u) { u.hp = u.maxhp; u.ko = false; u.conds = {}; });
       var nearW = defW.from8(20, 21); tkW = RW.token; tkW.x = nearW[0]; tkW.y = nearW[1]; GW.setup(GW.map, BW.units); RW.path = [wadeSq];
       var kW = driveW(BW.co, function () { return D.top() !== BW; }, 2000), bK = D.top();
-      if (kW && bK !== BW) { bK.enter(); okW('wading onto the first row pulls the Keeper in, from the ledge (' + (bK.fight && bK.fight.id) + ', start ' + (bK.o.start || 'ledge') + ')', bK.fight && bK.fight.id === 'keeper' && (bK.o.start || 'ledge') === 'ledge'); D.pop(); bK.o.onDone('escaped'); driveW(BW.co, function () { return D.top() === BW && RW.mode === 'walk'; }, 2000); driveW(BW.co, null, 50); }
+      if (kW && bK !== BW) { bK.enter(); okW('wading onto the first row pulls the Keeper in, from the ledge (' + (bK.fight && bK.fight.id) + ', start ' + (bK.o.start || 'ledge') + ')', bK.fight && bK.fight.id === 'keeper' && (bK.o.start || 'ledge') === 'ledge'); D.pop(); bK.o.onDone('escaped'); driveW(BW.co, function () { return D.top() === BW && RW.mode === 'walk' && !RW.pulling; }, 2000); driveW(BW.co, null, 50); }
       else okW('wading onto the first row pulls the Keeper in', false);
       // E at the rune: the 8-bit's ask, and a hand on it -- the Keeper by the rune (driveW answers a prompt with its first choice: PUT A HAND ON IT)
       var byMark = defW.from8(22, 20); tkW.x = byMark[0]; tkW.y = byMark[1]; RW.fw = [-1, 0]; GW.setup(GW.map, BW.units); RW.groups = [];
@@ -2023,6 +2023,118 @@
     if (errs.length) repW.errors = repW.errors.concat(errs);
     var preW = document.createElement('pre'); preW.id = 'out'; preW.textContent = 'BENCH16 ' + JSON.stringify(repW);
     document.body.appendChild(preW);
+    return;
+  }
+  // the roam settled, 10-14 (mode=roam1014; the party-token map lane §6, Griz: "draw the walls of the Keeper room when you actually go in there ... such that one can see the Rune -
+  // let activation as well as directional press against it trigger it (diagonal is tricky) and make sure the mission can be completed"; the rewards RULED 10-14): the works' walls
+  // whole while the party is in them, the mark on its face; the mark by a press into its wall, straight or a diagonal's half; the five's tokens and the stock's fork by the rope and
+  // by the Keeper beaten; the pay at the gather -- each foe's XP at its fall, won or got away, the coin and parts on a win, the tally at the fall, the landlord fed; a level carried
+  // onto its figure, and the slots spent on the floor into a pulled-in fight. Each check failed on the code before it
+  if (get('mode', '') === 'roam1014') {
+    var repZ = { checks: [], errors: [] }, GZ = D.grid, memZ = {}, stGZ = D.store.get, stSZ = D.store.set, IZ = D.input;
+    function okZ(what, v) { repZ.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function driveZ(g, until, cap) { var v, k = 0, st; while (k++ < (cap || 20000)) { if (until && until()) return true; st = g.next(v); v = undefined; if (st.done) return !!(until && until()) || !until; if (typeof st.value === 'number' && D.battle) D.battle.t += Math.max(1, st.value); if (st.value && st.value.prompt) v = st.value.prompt.opts[0].value; } return !!(until && until()); }
+    D.store.get = function (k) { return memZ[k] ? JSON.parse(memZ[k]) : null; }; D.store.set = function (k, v) { memZ[k] = JSON.stringify(v); return true; };
+    try {
+      D.seed = +get('seed', 1014);
+      var BZ = D.roam.make('?roam=wet&watch&enc=999&lvl=3'); D.scenes.length = 0; D.push(BZ); D.battle = BZ; BZ.enter();
+      var RZ = BZ.roam, defZ = D.roam.def, tkZ = RZ.token, at8 = function (x, y) { return defZ.from8(x, y); };
+      if (!RZ.kills) RZ.kills = {}; // (the code before kept no tally)
+      var putZ = function (q) { tkZ = RZ.token; tkZ.x = q[0]; tkZ.y = q[1]; tkZ.tween = null; RZ.path = null; GZ.setup(GZ.map, BZ.units); };
+      var inWZ = function () { return D.roam.inWorks ? D.roam.inWorks(BZ) : false; }, worksZ = function () { if (D.roam.works) D.roam.works(BZ, inWZ()); }; // (guarded: each check reads RED on its own on the code before)
+      var home = function () { return D.top() === BZ && RZ.mode === 'walk' && !RZ.pulling; };
+      // a. the works' walls
+      var rqZ = at8(22, 19), sRune = BZ.map.at(rqZ[0], rqZ[1]), soZ = at8(22, 24), sSouth = BZ.map.at(soZ[0], soZ[1]);
+      var runeProp = function () { return D.walls.props(BZ).some(function (p) { return p.roamRune; }); };
+      putZ(at8(30, 17)); worksZ();
+      var out0 = [sRune.rock, runeProp()];
+      putZ(at8(22, 20)); worksZ();
+      var in1 = [inWZ(), sRune.rock, sSouth.rock, runeProp(), !!(BZ.lights || []).some(function (l) { var q = at8(22, 20); return l.x === q[0] && l.y === q[1] && l.color === 'glow'; })];
+      okZ('out of the works the mark\'s wall is cut, as before (' + out0[0] + '), no mark drawn (' + out0[1] + ')', out0[0] === 'near' && !out0[1]);
+      okZ('on the landing (in the works ' + in1[0] + '): the mark\'s wall whole (' + in1[1] + '), the stair\'s south wall still cut (' + in1[2] + '), the mark on its face (' + in1[3] + '), its cold glow on the landing (' + in1[4] + ')', in1[0] && in1[1] === 'far' && in1[2] === 'near' && in1[3] && in1[4]);
+      putZ(at8(30, 17)); worksZ();
+      okZ('out again: cut again (' + sRune.rock + '), the mark not drawn (' + runeProp() + ')', sRune.rock === 'near' && !runeProp());
+      // b. the press: straight from below the mark, the screen's up from below it and from the square west, the screen's left from the square east; not a press that walks, nor away
+      var prZ = function (q, d) { putZ(q); var r = (D.roam.pressInto ? D.roam.pressInto(BZ, d) : null); return r ? r.trig.id : null; };
+      var L0 = at8(22, 20), Lw = at8(21, 20), Le = at8(23, 20);
+      var pz = [prZ(L0, [-1, 0]), prZ(L0, [-1, -1]), prZ(Lw, [-1, -1]), prZ(Le, [-1, 1]), prZ(Lw, [-1, 1]), prZ(L0, [1, 0])];
+      okZ('a press into the mark: up and left from below it ' + pz[0] + ', up (a diagonal) from below it ' + pz[1] + ', up from the square west ' + pz[2] + ', left from the square east ' + pz[3] + '; not left from the west (' + pz[4] + ', it walks) nor away (' + pz[5] + ')', pz[0] === 'mark' && pz[1] === 'mark' && pz[2] === 'mark' && pz[3] === 'mark' && !pz[4] && !pz[5]);
+      putZ(L0); RZ.groups = []; IZ.held.up = true; IZ.held.left = true;
+      var gotM = driveZ(BZ.co, function () { return D.top() !== BZ; }, 3000), bMZ = D.top();
+      okZ('held up and left into it on the floor: the mark asked, a hand on it, the Keeper by the rune (' + (bMZ && bMZ.fight && bMZ.fight.id) + ', start ' + (bMZ && bMZ.o && bMZ.o.start) + ')', gotM && bMZ !== BZ && bMZ.fight && bMZ.fight.id === 'keeper' && bMZ.o.start === 'rune');
+      if (gotM && bMZ !== BZ) { bMZ.enter(); D.pop(); bMZ.o.onDone('escaped'); driveZ(BZ.co, home, 3000); }
+      var again = driveZ(BZ.co, function () { return D.top() !== BZ; }, 300);
+      okZ('still held after: no second hand on it (' + (again ? 'asked again' : 'once') + ')', !again);
+      if (again) { D.top().enter(); D.pop(); }
+      IZ.held.up = false; IZ.held.left = false; driveZ(BZ.co, null, 20);
+      // c. the five: the rope, the Keeper asleep -- the tokens, the threshold's line, the stock's fork at six crawlers
+      var cntZ = function (id) { var s = (BZ.inv || []).filter(function (x) { return x.id === id; })[0]; return s ? s.n : 0; };
+      var resetZ = function () { ['keeperAwake', 'keeperDone', 'fiveRecovered', 'stockDead'].forEach(function (k) { delete RZ.flags[k]; }); RZ.spent = {}; var s = (BZ.inv || []).filter(function (x) { return x.id === 'fivetokens'; })[0]; if (s) s.n = 0; };
+      resetZ(); RZ.kills.crawler = 6; var n0 = (BZ.log || []).length;
+      driveZ(D.roam.stairScene(BZ, { id: 'stair' }, at8(19, 21)), null, 400);
+      var saidR = (BZ.log || []).slice(n0).join(' | ');
+      okZ('ROPE THEM OUT: the five up (' + !!RZ.flags.fiveRecovered + '), their gear in the pack (x' + cntZ('fivetokens') + '), the stock dead at six crawlers (' + !!RZ.flags.stockDead + '), the haul and the threshold said (' + /hook and haul/.test(saidR) + ', ' + /promised/.test(saidR) + ')', RZ.flags.fiveRecovered && cntZ('fivetokens') === 1 && RZ.flags.stockDead && /hook and haul/.test(saidR) && /promised/.test(saidR));
+      // c and d. the Keeper beaten, from the ledge: the five up, no stock dead under six; its XP paid at the gather; the slots Aurdin spent on the floor go in with him
+      resetZ(); RZ.kills.crawler = 2; RZ.xpBank = 0;
+      RZ.members.forEach(function (u) { u.hp = u.maxhp; u.ko = false; u.conds = {}; });
+      var aurZ = RZ.members.filter(function (u) { return u.id === 'aurdin'; })[0]; aurZ.slots = [1, 0];
+      var xpK0 = RZ.members.map(function (u) { return u.src.xp; }), kmon = window.DS.DATA.monsters.keeper, eachK = Math.floor((kmon.xp || 0) / 4);
+      var gK = D.roam.pullIn(BZ, 'keeper', { id: 'stair' }, at8(19, 21), 'ledge');
+      for (var kK = 0; kK < 400 && D.top() === BZ; kK++) gK.next();
+      var bKZ = D.top(), slK = null;
+      if (bKZ !== BZ) {
+        bKZ.enter(); var aK = bKZ.units.filter(function (u) { return u.id === 'aurdin'; })[0]; slK = aK && aK.slots.join(',');
+        bKZ.units.forEach(function (u) { if (u.kind === 'keeper') { u.hp = 0; u.dead = true; } });
+        n0 = (BZ.log || []).length; D.pop(); bKZ.o.onDone('won'); driveZ(gK, null, 2000);
+      }
+      var saidK = (BZ.log || []).slice(n0).join(' | '), xpK = RZ.members.map(function (u, i) { return u.src.xp - xpK0[i]; });
+      okZ('the slots Aurdin spent on the floor go into the Keeper\'s fight with him (' + slK + ', want 1,0)', slK === '1,0');
+      okZ('the Keeper beaten: done (' + !!RZ.flags.keeperDone + '), the five up (' + !!RZ.flags.fiveRecovered + ', x' + cntZ('fivetokens') + '), no stock dead at two crawlers (' + !!RZ.flags.stockDead + '), its going said (' + /sinks back/.test(saidK) + ')', RZ.flags.keeperDone && RZ.flags.fiveRecovered && cntZ('fivetokens') === 1 && !RZ.flags.stockDead && /sinks back/.test(saidK));
+      okZ('its XP at the gather: each of the four +' + xpK.join(',') + ' (want ' + eachK + '), the tally keeper ' + RZ.kills.keeper, eachK > 0 && xpK.every(function (x) { return x === eachK; }) && RZ.kills.keeper === 1);
+      // d. a random fight won: two crawlers fallen -- each standing paid at the gather, the coin on the win, the tally by the zone; Aurdin up a level, his figure with him
+      RZ.groups = []; RZ.xpBank = 0;
+      var mkZ = function (n, x, y) { var u = BZ.makeFoe({ id: 'z' + n, kind: 'crawler' }); u.conds = u.conds || {}; u.x = x; u.y = y; BZ.units.push(u); return u; };
+      var cA = mkZ(1, 12, 30), cB = mkZ(2, 14, 30); cA.hp = 0; cA.dead = true; cB.hp = 0; cB.dead = true;
+      aurZ.src.xp = window.DS.R.XP_LEVEL[4] - 100; var lv0 = aurZ.lvl, mh0 = aurZ.maxhp, hp0 = aurZ.hp, sm0 = (aurZ.slotsMax || []).join(','), sl0 = (aurZ.slots || []).slice();
+      var xpW0 = RZ.members.map(function (u) { return u.src.xp; }), sil0 = RZ.silver, kc0 = RZ.kills.crawler || 0, kz0 = RZ.kills['warrens_d:crawler'] || 0;
+      n0 = (BZ.log || []).length; RZ.mode = 'fight';
+      driveZ(D.roam.after(BZ, 'won', { zone: 'warrens_d' }, [cA, cB]), null, 2000);
+      var cmon = window.DS.DATA.monsters.crawler, eachW = Math.floor(2 * cmon.xp / 4), xpW = RZ.members.map(function (u, i) { return u.src.xp - xpW0[i]; }), saidW = (BZ.log || []).slice(n0).join(' | ');
+      okZ('won: each standing +' + xpW.join(',') + ' (want ' + eachW + ', two crawlers), the coin +' + (RZ.silver - sil0) + ', the tally +' + ((RZ.kills.crawler || 0) - kc0) + ' (by the zone +' + ((RZ.kills['warrens_d:crawler'] || 0) - kz0) + '), "Victory!" said (' + /Victory!/.test(saidW) + ')',
+        xpW.every(function (x) { return x === eachW; }) && RZ.silver > sil0 && (RZ.kills.crawler || 0) - kc0 === 2 && (RZ.kills['warrens_d:crawler'] || 0) - kz0 === 2 && /Victory!/.test(saidW));
+      okZ('Aurdin up a level, his figure with him: level ' + lv0 + ' to ' + aurZ.lvl + ', max HP ' + mh0 + ' to ' + aurZ.maxhp + ' (HP ' + hp0 + ' to ' + aurZ.hp + '), slots ' + sm0 + ' to ' + (aurZ.slotsMax || []).join(',') + ' (left ' + sl0.join(',') + ' to ' + (aurZ.slots || []).join(',') + ')',
+        aurZ.lvl === lv0 + 1 && aurZ.maxhp > mh0 && aurZ.hp - hp0 === aurZ.maxhp - mh0 && (aurZ.slotsMax || []).join(',') !== sm0 && aurZ.slots[1] === (sl0[1] || 0) + (aurZ.slotsMax[1] - +(sm0.split(',')[1] || 0)));
+      // d. got away: one fell, one still up -- the fallen's XP at the gather, no coin; the one still up carries its XP into the pursuit and pays when it falls
+      RZ.groups = []; RZ.xpBank = 0;
+      var cC = mkZ(3, 12, 26), cD = mkZ(4, 14, 26); cC.hp = 0; cC.dead = true;
+      var outU = RZ.members[1]; outU.x = 16; outU.y = 33; outU.left = true;
+      var xpE0 = RZ.members.map(function (u) { return u.src.xp; }), silE0 = RZ.silver, kcE0 = RZ.kills.crawler || 0;
+      RZ.mode = 'fight';
+      driveZ(D.roam.after(BZ, 'escaped', { zone: 'warrens_d', motivated: false }, [cC, cD]), null, 2000);
+      var eachE = Math.floor(cmon.xp / 4), xpE = RZ.members.map(function (u, i) { return u.src.xp - xpE0[i]; }), gE = RZ.groups[0];
+      okZ('got away: the fallen one\'s XP at the gather (+' + xpE.join(',') + ', want ' + eachE + '), no coin (+' + (RZ.silver - silE0) + '), the tally +' + ((RZ.kills.crawler || 0) - kcE0) + ', the other after them carrying its own (' + (gE ? gE.mode + ', ' + gE.foes.length : 'none') + ')',
+        xpE.every(function (x) { return x === eachE; }) && RZ.silver === silE0 && (RZ.kills.crawler || 0) - kcE0 === 1 && gE && gE.mode === 'pursue' && gE.foes[0] === cD);
+      cD.hp = 0; cD.dead = true; RZ.groups = []; var xpF0 = RZ.members.map(function (u) { return u.src.xp; }); RZ.mode = 'fight';
+      driveZ(D.roam.after(BZ, 'won', gE || { zone: 'warrens_d' }, [cD]), null, 2000);
+      var xpF = RZ.members.map(function (u, i) { return u.src.xp - xpF0[i]; });
+      okZ('and when it falls later, its XP then (+' + xpF.join(',') + ', want ' + eachE + '), the tally +' + ((RZ.kills.crawler || 0) - kcE0) + ' in all', xpF.every(function (x) { return x === eachE; }) && (RZ.kills.crawler || 0) - kcE0 === 2);
+      // d. the landlord fed in the Settling: a quarter again its XP, paid as the party comes back to the floor, once
+      delete RZ.flags.otyughFed; delete RZ.flags.otyughFedXp; RZ.xpBank = 0;
+      var feed = function () {
+        var xp0 = RZ.members.map(function (u) { return u.src.xp; }), gP = D.roam.pullIn(BZ, 'wet', { id: 'landlordStep' }, at8(8, 8));
+        for (var k = 0; k < 400 && D.top() === BZ; k++) gP.next();
+        var bP = D.top(); if (bP === BZ) return null;
+        bP.enter(); bP.flags8 = Object.assign(bP.flags8 || {}, { otyughFed: 1 }); D.pop(); bP.o.onDone('escaped'); driveZ(gP, null, 2000);
+        return RZ.members.map(function (u, i) { return u.src.xp - xp0[i]; });
+      };
+      var f1 = feed(), f2 = feed(), eachFed = Math.floor(window.DS.R.fedPool() / 4);
+      okZ('the landlord fed: +' + (f1 || []).join(',') + ' each (want ' + eachFed + ', a quarter again its XP), the second time +' + (f2 || []).join(','), f1 && f1.every(function (x) { return x === eachFed; }) && f2 && f2.every(function (x) { return x === 0; }));
+    } catch (eZ) { repZ.errors.push(String(eZ && eZ.stack || eZ).slice(0, 900)); }
+    D.store.get = stGZ; D.store.set = stSZ; IZ.held.up = false; IZ.held.left = false;
+    if (errs.length) repZ.errors = repZ.errors.concat(errs);
+    if (repZ.errors.length) repZ.checks.push('FAIL an error (' + repZ.errors[0].slice(0, 160) + ')');
+    var preZ = document.createElement('pre'); preZ.id = 'out'; preZ.textContent = 'BENCH16 ' + JSON.stringify(repZ);
+    document.body.appendChild(preZ);
     return;
   }
   // leaving a fight together, 10-13 (mode=leave1013; his rulings in the grid's rules lane §2h): no one out while one of the four lies down or bound, the AI's own of ours following

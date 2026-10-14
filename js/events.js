@@ -941,11 +941,9 @@
   EV.fedXp = function* () {
     var g = G(); if (!g.flags.otyughFed || g.flags.otyughFedXp) return;
     g.flags.otyughFedXp = 1;
-    var m = DS.DATA.monsters.otyugh, pool = Math.round(1.25 * ((m && m.xp) || 0));
-    // (a guest walking with them stands in the split and banks nothing, as a fight's does: RULED 10-05, Griz: "count guests as 'standing' for xp.")
+    // (a guest walking with them stands in the split and banks nothing, as a fight's does: RULED 10-05, Griz: "count guests as 'standing' for xp." -- js/rules.js R.shareXP)
     var guestsUp = (g.guests || []).filter(function (x) { return !x.h.ko && x.h.hp > 0; }).length;
-    var living = g.party.filter(function (h) { return !h.ko; }), each = living.length ? Math.floor(pool / (living.length + guestsUp)) : 0, ups = [];
-    living.forEach(function (h) { ups = ups.concat(R.gainXP(h, each)); });
+    var sx = R.shareXP(R.fedPool(), g.party.filter(function (h) { return !h.ko; }), guestsUp), each = sx.each, ups = sx.ups;
     DS.audio.sfx('levelup');
     yield DS.say(L('w.fedXp', { n: each }));
     if (ups.length) { DS.audio.sfx('levelup'); yield DS.say(ups); }
@@ -971,11 +969,9 @@
   };
   // the five brought up (WADE IN won, the rope, or the fight a hand on the mark began): the tokens, and the quota clock's fork
   function* fiveUp(g) {
-    g.flags.fiveRecovered = 1; g.give('fivetokens', 1); DS.audio.sfx('chest');
+    R.fiveUp(g.flags, function (id, n) { g.give(id, n); }, g.kills); DS.audio.sfx('chest'); // (the flag, the tokens and the quota clock's fork: js/rules.js, one copy with the grid's roam -- 10-14)
     yield DS.say(L('w.fiveRecovered'));
     yield DS.say(L('w.threshold'));
-    // the quota clock's fork: the stock (Griz 09-17e)
-    if ((g.kills.crawler || 0) >= 6) g.flags.stockDead = 1;
   }
   S.stair = function* () {
     var g = G();
