@@ -317,7 +317,7 @@
     }
     var trig = R.triggerAt(B, p8[0], p8[1], 'step');
     if (R.isWade(t.x, t.y) && !R0.flags.keeperDone && !R0.flags.fiveRecovered && !R0.spent.stair) {
-      B.card(R.wrap([R.say8('w.wade')]), 260); yield 30;
+      B.card(R.wrap([R.say8(R.awake(R0.flags) ? 'w.wadeAwake' : 'w.wade')]), 260); yield 30;
       yield* R.pullIn(B, 'keeper', { id: 'stair' }, [t.x, t.y], 'ledge'); return 'trigger';
     }
     if (trig) { yield* R.fire(B, trig, [t.x, t.y]); return 'trigger'; }
@@ -398,8 +398,9 @@
   // the mark (js/events.js S.mark, 10-13 his: "make sure the rune - hand trigger option is added from the 8-bit for the keeper fight"): seen, perhaps read (Arcana or
   // Religion, 12), and a hand on it wakes the Keeper -- the fight by the rune
   R.markScene = function* (B, trig, at) {
-    var R0 = B.roam, f = R0.flags, Rr = window.DS.R, settled = f.keeperDone || f.stairHook || f.fiveRecovered;
-    var lines = [R.say8(f.stairHook && !f.keeperWater ? 'w.markDry' : settled ? 'w.markPlain' : 'w.markSee')];
+    // (the 8-bit's S.mark as the bug-fix seat left it, 10-14, the road §7d: once it is awake no hand wakes it twice, and the mark's look says it is awake)
+    var R0 = B.roam, f = R0.flags, Rr = window.DS.R, settled = f.keeperDone || f.stairHook || f.fiveRecovered || f.keeperAwake;
+    var lines = [R.say8(f.stairHook && !f.keeperWater ? 'w.markDry' : f.keeperAwake && !f.keeperDone && !f.fiveRecovered ? 'w.markAwake' : settled ? 'w.markPlain' : 'w.markSee')];
     var read = R0.members.some(function (u) { return u.src && u.hp > 0 && D.d(20) + Math.max(Rr.skill(u.src, 'Arcana', 'int'), Rr.skill(u.src, 'Religion', 'int')) >= 12; });
     if (read || f.hobMet) { f.markRead = 1; lines.push(R.say8('w.markRead')); }
     if (settled) { B.card(R.wrap(lines), 320); yield 30; return; }
@@ -412,14 +413,16 @@
   R.stairScene = function* (B, trig, at) {
     var R0 = B.roam, f = R0.flags;
     if (f.fiveRecovered) { B.card([R.say8('w.stairDone')], 260); yield 20; return; }
-    var a = yield { prompt: { who: R0.token, title: 'THE FLOODED STAIR', lines: R.wrap([R.say8('w.stairSee'), R.say8('w.stairAsk')]), opts: [{ label: 'ROPE THEM OUT', value: 0 }, { label: 'WADE IN', value: 1 }, { label: 'LEAVE', value: 2 }] } };
+    var awake = R.awake(f); // (the 8-bit's S.stair, 10-14: woken and not yet beaten, the stair says so and WADE IN meets it waiting)
+    var a = yield { prompt: { who: R0.token, title: 'THE FLOODED STAIR', lines: R.wrap([R.say8(awake ? 'w.stairAwake' : 'w.stairSee'), R.say8('w.stairAsk')]), opts: [{ label: 'ROPE THEM OUT', value: 0 }, { label: 'WADE IN', value: 1 }, { label: 'LEAVE', value: 2 }] } };
     if (a === 0) {
       if (!(B.inv || []).some(function (x) { return x.id === 'rope' && x.n > 0; })) { B.card([R.say8('w.noRope')], 260); yield 20; return; }
       if (f.keeperAwake) { B.card([R.say8('w.ropeAwake')], 260); yield 30; yield* R.pullIn(B, 'keeper', trig, at, 'rune', 'rope'); return; }
       yield* R.five(B, 'w.ropeOut'); return; // (the five's tokens and the stock's fork as the 8-bit's fiveUp gives them: js/rules.js R.fiveUp)
     }
-    if (a === 1) { B.card(R.wrap([R.say8('w.wade')]), 260); yield 30; yield* R.pullIn(B, 'keeper', trig, at, 'ledge'); }
+    if (a === 1) { B.card(R.wrap([R.say8(awake ? 'w.wadeAwake' : 'w.wade')]), 260); yield 30; yield* R.pullIn(B, 'keeper', trig, at, 'ledge'); }
   };
+  R.awake = function (f) { return !!(f.keeperAwake && !f.keeperDone); };
   // the bucket at the deep station's crate (js/events.js S.bucket): taken up into the pack, in the hand of the one who took it -- the Settling reads both (js/wet.js)
   R.bucketScene = function* (B, trig, at) {
     var R0 = B.roam, f = R0.flags;

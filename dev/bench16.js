@@ -2013,6 +2013,7 @@
       else okW('wading onto the first row pulls the Keeper in', false);
       // E at the rune: the 8-bit's ask, and a hand on it -- the Keeper by the rune (driveW answers a prompt with its first choice: PUT A HAND ON IT)
       var byMark = defW.from8(22, 20); tkW.x = byMark[0]; tkW.y = byMark[1]; RW.fw = [-1, 0]; GW.setup(GW.map, BW.units); RW.groups = [];
+      delete RW.flags.keeperAwake; // (the run from the wade above woke it, and an awake Keeper's mark asks nothing since 10-14 -- the road §7d: the ask is checked on a sleeping one)
       var unW = D.roam.useNear(BW);
       RW.keys.push('use'); var mW = driveW(BW.co, function () { return D.top() !== BW; }, 3000), bM = D.top();
       if (mW && bM !== BW) { okW('E beside the rune: the mark asked, a hand on it, the Keeper by the rune (' + (unW && unW.trig.id) + ', start ' + bM.o.start + '; keeperAwake ' + !!RW.flags.keeperAwake + ')', unW && unW.trig.id === 'mark' && bM.o.start === 'rune' && RW.flags.keeperAwake); bM.enter(); D.pop(); bM.o.onDone('escaped'); driveW(BW.co, function () { return D.top() === BW && RW.mode === 'walk'; }, 2000); }
@@ -2082,6 +2083,24 @@
       okZ('a group coming holds while the encounter\'s card holds: the first look moves the crawler ' + mvE + ' square (want 1, not the card\'s 3)', gTe && mvE === 1);
       okZ('the giant bat (fly 60) two squares a look, its slide from where the look found it (moved ' + mvB + ', from ' + (twE ? twE.fx + ',' + twE.fy : 'none') + ', want the square before both)', gBe && twE && Math.max(Math.abs(uBe.x - twE.fx), Math.abs(uBe.y - twE.fy)) >= 2);
       RZ.groups = []; BZ.units = BZ.units.filter(function (u) { return u.side === 'party'; }); GZ.setup(GZ.map, BZ.units);
+      // the Keeper awake (the 8-bit's S.mark and S.stair as the bug-fix seat left them, 10-14, the road §7d): the mark's look says so and asks nothing; the stair says so, and WADE IN
+      var ansZ = function (g, val) { var v, st, k = 0; while (k++ < 400) { st = g.next(v); v = undefined; if (st.done) return; if (st.value && st.value.prompt) v = val; else if (typeof st.value === 'number') BZ.t += st.value; } };
+      var txtZ = function (k) { var t = window.DS.DATA.text[k]; return window.DS.stripCodes(t ? (t.t || t) : k); };
+      var lineOf = function (k) { var p = txtZ(k.replace('Awake', k === 'w.stairAwake' || k === 'w.markAwake' ? 'See' : '')), a = txtZ(k), i = 0; while (i < a.length && a.charAt(i) === p.charAt(i)) i++; return a.slice(i, i + 16); }; // (where the awake line parts from the plain one: they open alike)
+      var logSince = function (n) { return (BZ.log || []).slice(n).map(function (l) { return l.replace(/^R\d+ /, ''); }).join(' '); }; // (a wrapped card's lines rejoined)
+      ['keeperDone', 'fiveRecovered', 'stairHook'].forEach(function (k) { delete RZ.flags[k]; }); RZ.flags.keeperAwake = 1; RZ.spent = {};
+      var nA = (BZ.log || []).length, askedA = false, gA = D.roam.markScene(BZ, { id: 'mark' }, at8(22, 19)), stA, kA = 0;
+      while (kA++ < 200) { stA = gA.next(); if (stA.done) break; if (stA.value && stA.value.prompt) { askedA = true; break; } }
+      var saidA = logSince(nA);
+      var nS = (BZ.log || []).length, promptS = null, gS = D.roam.stairScene(BZ, { id: 'stair' }, at8(19, 21)), stS, kS = 0;
+      while (kS++ < 200) { stS = gS.next(); if (stS.done) break; if (stS.value && stS.value.prompt) { promptS = stS.value.prompt.lines.join(' '); break; } }
+      var vS = null; if (promptS) { stS = gS.next(1); for (kS = 0; kS < 200 && !stS.done && D.top() === BZ; kS++) { if (typeof stS.value === 'number') BZ.t += stS.value; stS = gS.next(); } }
+      var bWk = D.top(), saidS = logSince(nS);
+      if (bWk !== BZ) { bWk.enter(); D.pop(); bWk.o.onDone('escaped'); ansZ(gS, 0); }
+      okZ('awake, the mark: its awake look (' + (saidA.indexOf(lineOf('w.markAwake')) >= 0) + ') and no hand asked (' + (askedA ? 'asked' : 'none') + ')', saidA.indexOf(lineOf('w.markAwake')) >= 0 && !askedA);
+      okZ('awake, the stair says so (' + !!(promptS && promptS.indexOf(lineOf('w.stairAwake')) >= 0) + '), and WADE IN meets it waiting (' + (saidS.indexOf(lineOf('w.wadeAwake')) >= 0) + ', the fight ' + (bWk !== BZ ? bWk.fight && bWk.fight.id : 'none') + ')',
+        promptS && promptS.indexOf(lineOf('w.stairAwake')) >= 0 && saidS.indexOf(lineOf('w.wadeAwake')) >= 0 && bWk !== BZ);
+      driveZ(BZ.co, home, 2000); delete RZ.flags.keeperAwake;
       // c. the five: the rope, the Keeper asleep -- the tokens, the threshold's line, the stock's fork at six crawlers
       var cntZ = function (id) { var s = (BZ.inv || []).filter(function (x) { return x.id === id; })[0]; return s ? s.n : 0; };
       var resetZ = function () { ['keeperAwake', 'keeperDone', 'fiveRecovered', 'stockDead'].forEach(function (k) { delete RZ.flags[k]; }); RZ.spent = {}; var s = (BZ.inv || []).filter(function (x) { return x.id === 'fivetokens'; })[0]; if (s) s.n = 0; };
