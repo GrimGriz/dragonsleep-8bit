@@ -3482,6 +3482,10 @@
       var ln = OC.lineAt(Bc, 9, 6) || '';
       okCf('the square under the cursor says so: ' + ln.slice(0, 90), /a campfire/.test(ln) && /1d6 fire/.test(ln));
       D.d = d0Cf;
+      // g2. the door's setting (his 10-14 look: "one in the pane doesn't have oil flasks or troll" -- the troll had sat on the ledge in the dark): &items, &foeat, &partyat
+      var Bd = mkCf('?npc=troll&vs=fighter:9&lvl=9&map=camp&foeat=10,5&partyat=7,6&items=oil:3'), fD = Bd.units.filter(function (u) { return u.side === 'party'; })[0], tD = Bd.units.filter(function (u) { return u.side === 'foe'; })[0];
+      var oD = (Bd.inv.filter(function (x) { return x.id === 'oil'; })[0] || {}).n;
+      okCf('the eyes door: the fighter at (' + fD.x + ', ' + fD.y + '), the troll at (' + tD.x + ', ' + tD.y + ') beside the fire, ' + oD + ' flasks in the pack', fD.x === 7 && fD.y === 6 && tD.x === 10 && tD.y === 5 && oD === 3);
       // h. the other campfires, as a matter of principle: the giant's camp and the rest
       var mg = D.iso.load(D.MAPS.giantcamp), mr = D.iso.load(D.MAPS.restcamp);
       okCf('the giant\'s camp\'s fire ' + JSON.stringify(mg.campfires) + ' and the rest\'s ' + JSON.stringify(mr.campfires) + ', difficult ' + !!mg.at(9, 6).difficult + ' ' + !!mr.at(10, 6).difficult,

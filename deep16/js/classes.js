@@ -561,8 +561,12 @@
     var vsl = vs ? vs.split(',').filter(Boolean) : [], fams = (get('fam') || '').split(',').filter(Boolean);
     var familiars = fams.map(function (k, i) { return vsl[i] && R.FAMILIARS[k] ? { kind: k, by: 'p' + i + '-' + vsl[i].split(':')[0] } : null; }).filter(Boolean);
     var map = get('map'), dark = /[?&]dark\b/.test(q) ? true : null;
+    // a test's setting (10-14, the campfire's door): &items=oil:3,torch:1 those stacks in the pack at that many; &foeat=x,y;x,y the foes on those squares, in order;
+    // &partyat=x,y the first hero there -- so a thing to be tried stands where the trying is (the troll beside the camp's fire, in its light)
+    var pairs = function (s) { return (s || '').split(';').map(function (p) { var a = p.split(',').map(Number); return a.length === 2 && isFinite(a[0]) && isFinite(a[1]) ? a : null; }).filter(Boolean); };
+    var itemsTest = (get('items') || '').split(',').filter(Boolean).map(function (s) { var a = s.split(':'); return [a[0], Math.max(0, +a[1] || 1)]; });
     if (get('seed')) D.seed = +get('seed') | 0; // (&seed=<n>: a bench fight of that seed, roll for roll, with &watch -- dev/bench16.js mode=mascots names its seeds; 10-07)
-    return new D.Battle(Object.assign({ npc: { foes: foes, party: vsl.length ? vsl : null }, watch: /[?&]watch\b/.test(q), flyTest: /[?&]fly\b/.test(q), legendTest: /[?&]legend\b/.test(q), breathTest: get('breath'), spellsTest: get('spells'), familiars: familiars, fightDef: D.classFight(L, { what: what, map: map && D.MAPS[map] ? map : null, dark: dark, defend: /[?&]defend\b/.test(q), doors: /[?&]doors\b/.test(q) }) }, o || {}));
+    return new D.Battle(Object.assign({ npc: { foes: foes, party: vsl.length ? vsl : null }, watch: /[?&]watch\b/.test(q), flyTest: /[?&]fly\b/.test(q), legendTest: /[?&]legend\b/.test(q), breathTest: get('breath'), spellsTest: get('spells'), familiars: familiars, itemsTest: itemsTest, foeAt: pairs(get('foeat')), partyAt: pairs(get('partyat'))[0] || null, fightDef: D.classFight(L, { what: what, map: map && D.MAPS[map] ? map : null, dark: dark, defend: /[?&]defend\b/.test(q), doors: /[?&]doors\b/.test(q) }) }, o || {}));
   };
   NPC.build = function (word, lvl, side, o) {
     // (a word, a spec, or { word, hpLeft, slotsLeft, featsLeft, ... }: the Pocket DM's carry between rungs rides on the word's spec)

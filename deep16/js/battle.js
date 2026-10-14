@@ -106,6 +106,8 @@
     var missed = [], LURK = { grick: 1, roper: 1, darkmantle: 1, xorn: 1, grimlock: 1, cube: 1, gelatinouscube: 1 }; // (the natural lurkers: the ones the story fights start hidden -- Griz 10-04, the Pocket DM's did not)
     if (NB && NB.foes && NB.foes.length) foes = this.seatBand(NB.foes.map(function (w, i) { var fid = 'f' + i + '-' + String(w).split(':')[0]; var b = D.npc.build(w, F.level, 'foe', { id: fid }) || (typeof w === 'string' && D.FOES[w] ? self.makeFoe({ id: fid, kind: w, hidden: !!LURK[w] }) : null); if (!b) missed.push(String(w)); return b; }).filter(Boolean), m, party);
     if (missed.length) console.warn('DEEP16: not a class or a bestiary monster: ' + missed.join(', '));
+    if (NB && this.o.foeAt) foes.forEach(function (u, i) { var p = self.o.foeAt[i]; if (p) { u.x = p[0]; u.y = p[1]; } }); // (the class floor's &foeat= and &partyat=: js/classes.js npcFight)
+    if (NB && this.o.partyAt && party[0]) { party[0].x = this.o.partyAt[0]; party[0].y = this.o.partyAt[1]; }
     if (this.o.embed && this.o.embed.revealed) foes.forEach(function (u) { u.hidden0 = false; }); // (seen coming: the roper under the ledger-lamp)
     var lent = (F.allies || []).map(function (f) { return self.makeFoe(Object.assign({ side: 'party', ally: true }, f)); }); // (ours for the fight, the brute's to run: the Skylights' stable fighters up the south road, the garrison behind the hatch -- 10-05)
     this.units = party.concat(foes, lent);
@@ -120,6 +122,7 @@
     // carries only what it brought (Griz, 09-27: "unless the players bring crossbows/range, they shouldn't have one")
     var pack = JSON.parse(JSON.stringify(this.from.data.inv || [])).map(function (s) { return Array.isArray(s) ? { id: s[0], n: s[1] } : s; });
     this.inv = this.o.embed ? pack : D.save.armoury(pack);
+    (this.o.itemsTest || []).forEach(function (s) { var st = self.inv.filter(function (x) { return x.id === s[0]; })[0]; if (st) st.n = s[1]; else self.inv.push({ id: s[0], n: s[1] }); }); // (the class floor's &items=: js/classes.js npcFight)
     // a class hero's second weapon in the pack too, so a player's hand has what the class turn swaps to -- the rogue's shortbow (10-01c, the rogue runner: "a human
     // rogue needs a ranged weapon: EQUIP offers only the Lt. Crossbow"; Griz: "yes")
     if (!this.o.embed) { var inv0 = this.inv; party.forEach(function (u) { var aid = u.alt && (typeof u.alt === 'string' ? u.alt : u.alt.id); if (u.side === 'party' && u.npc && aid && window.DS.DATA.items[aid] && !inv0.some(function (s) { return s.id === aid; })) inv0.push({ id: aid, n: 1 }); }); } // (the unit's alt is the weapon as the grid reads it: its id)
