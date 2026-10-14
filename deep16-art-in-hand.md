@@ -8,6 +8,7 @@ how: nothing here is wanted. When a block on `deep16-art-wanted.md` comes back a
 
 ## BUILT FROM THE LIST (newest first)
 
+- 2026-10-14 · the road's props (§8: ART-58 the lamp tower, lit and dark; ART-59 rubble, two scatters and three heaps; ART-60 the goblin camp, §7's block at full height: two tents, bones, the fire) · `deep16/_src/lamptower_p1/`, `rubble_p1/`, `goblincamp_p1/` (the art desk's papers in `_src/art-desk/received-2026-10-14-ROADPROPS/`), `tools/roadprops-sheet.py` -> `lamptower_p1`, `rubble_p1`, `goblincamp_p1`, `d27ce82` · stood at Third Lamp, the Cut Seal's camp and the Breach; the road's own squares wait on the roam (the party-token map lane)
 - 2026-10-14 · GreyFang, the rest of his rows (ART-01: idle, walk, bow, hurt, cast from the bottom-right and the top-right, the climb from behind) and his front and back (ART-32: every row, S and N) · `deep16/_src/greyfang/ART-01/`, `ART-32/`, `tools/greyfang-sheet.py` -> `greyfang_p1`, COMMIT · *"let's do him when they come in"*
 - 2026-10-14 · the water elemental's missing views (ART-51, from the facings package `deep16/_src/outbox/ART-FACINGS-2026-10-14/` and its own zip): S, E, N, the back-right's Whelm/Flinch/Fall and a re-rolled rear Slam · `deep16/_src/waterelemental/ART-51/`, `tools/waterelemental-sheet.py` -> `waterelemental_p2`, `0d74be5` (a runner) · *"water elemental art is in"*
 - 2026-10-14 · the ogre's missing views (ART-22, the facings package): S, E, N · `deep16/_src/ogre/ART-22/`, `tools/ogre-sheet.py` -> `ogre_p2`, `6590102` `800b15b` (a runner) · *"Ogre zip landed"*
@@ -945,3 +946,30 @@ Draw each HEAD above as its own separate image, in the order given: one sheet an
 ```
 Cut as: Idle -> idle, Walk -> walk, Bow -> longbow (release on frame 7), Hurt -> flinch, Cast -> cast, Climb -> climb; HEAD 1 plays SE, S and E (SW and W mirrored), HEAD 2 NE and N (NW mirrored); Climb from HEAD 2 in every facing. `tools/greyfang-sheet.py` takes them beside his combat sheets (ISO; his four combat views stay as drawn). The idle replaces the diagonals' standing stills.
 
+### The road's props (asked 10-13 in §7 and 10-14 in §8; drawn by the art desk, ART-58 to ART-60, 10-14; CUT 10-14, BUILT FROM THE LIST above)
+
+The two sections as they stood on `deep16-art-wanted.md`, word for word, kept for a re-roll. The assignments the art desk drew from (each with its paste-ready Image request) are in `deep16/_src/outbox/ART-ROADPROPS-2026-10-14/assignments/` and, as it returned them, `deep16/_src/art-desk/received-2026-10-14-ROADPROPS/`.
+
+#### The Cut Seal's camp: hide tents, bones, a fire (today: stalagmites stand in for the tents, `deep16/data/maps.js` `camp`)
+```text
+PROPS, THE GOBLIN CAMP (one image):
+
+HEAD: PROPS, THE GOBLIN CAMP -- a goblin war camp in a cavern deep underground, behind a broken dwarven wall. Draw each thing alone, each labelled beside it: Tent A (1: a low lean-to of stitched animal hides, patched and greasy, over crooked wooden poles lashed with sinew, its open side facing the lower left); Tent B (1: a smaller, sagging hide tent, a ragged hide flap for a door, facing the lower right); Bones (1: a scattered heap of gnawed bones on the ground, a big skull among them); Fire (6: a campfire in a ring of rough stones, a few logs, flames that flicker and lick upward, a little smoke -- the six frames loop).
+
+16-bit pixel art props, SNES-era, crisp dark outline, readable at small size. Isometric view from above at three-quarters, the floor tiles diamonds twice as wide as they are tall; light from the upper left. Flat dark navy background (a deep blue, not grey and not black). ONE sheet only, filling the whole image: no other panels, no title. Each thing labelled beside it, the fire's frames numbered 1 to 6 under each frame -- every number used once, none skipped. The same scale for all: a tent stands on two floor diamonds side by side and fills them, the bones and the fire each on one diamond, with clear space around each. No characters, no floor drawn, no labels on the props.
+```
+Cut as: the tents and the bones stills, the fire a looping prop row, by `tools/gsprops-sheet.py`'s way (registered by the lower silhouette, not the glow); the camp map's stand-in stalagmites become the tents.
+
+**Sent 10-14 as ART-60** in `deep16/_src/outbox/ART-ROADPROPS-2026-10-14.zip` (§8): the same camp, drawn at full height, its sizes given, and the road's tents and bones beside the Cut Seal's camp.
+
+#### 8. The road's props (added 10-14, the lanes desk)
+
+His words: *"Some of the 'tile looks' sound like props for the art department to make. Can you format the request with what the art department will need for those (the ones that provide cover, rune wall stuff we've got from the wet and doesn't seem prop-y)"* and *"note previous props designed at half-height"* (10-14).
+
+For the dwarven road (the 8-bit's `highway_1` to `highway_4`) when the grid plays it as one map, the party-token map lane §4.6. Packaged for the art desk as assignments, not blocks: `deep16/_src/outbox/ART-ROADPROPS-2026-10-14.zip`. It holds a README, an ART-00 update (a Props section: one view, full height at 8 px a foot, the old props a style reference only), the assignments below, and the Wet's and the cots' sheets as style refs. Each assignment's Image request is its paste-ready block.
+
+- **ART-58, the lamp tower**: Lit 4 (looping) + Dark 1, about 12 ft (96 px) on one diamond. Replaces the code-drawn tower (`deep16/js/circles.js` towerCanvas), `lamptower_p1`.
+- **ART-59, rubble**: Scatter A/B (ankle-high, difficult terrain on `r`) and Heap A/B/C (waist-high, half cover), `rubble_p1`.
+- **ART-60, the goblin camp**: §7's block at full height, `goblincamp_p1`.
+
+Not asked, already in hand: the cots (`gsbed_p1`), the crate (`wetcrate_p1`). Left to the engine: the seals and the vein (rune and wall work, as on the Wet), the chasm, the built road, water, and floor decoration. His call, not issued: the earlier props re-drawn at full height. ART-61 is the next free number.
