@@ -1170,8 +1170,9 @@
       FX.list.forEach(function (f) { if (!f.screen) objs.push({ depth: f.depth != null ? f.depth : 1e6, gz: 0, draw: function (c) { f.draw(c); } }); }); // (f.depth: an effect that lies on the floor, FX.ripples at -1, is sorted in under the figures)
       DEFER = objs; WCTX = wx;
       fadeFaces(B);
-      D.iso.draw(wx, objs, function (c) { overlay(c, B, hero); });
+      D.iso.draw(wx, objs, function (c) { overlay(c, B, hero); if (B.floorMarks) B.floorMarks(c); }); // (B.floorMarks: a host's own marks on the floor, under the figures -- the roam's ORDER box, js/roam.js)
       if (B.dark) D.light.pass(wx, B, vw, vh); // torchdark: the light pass over the world (the player sees it all, dimmed where the four can't)
+      if (B.marksOver) B.marksOver(wx); // (a host's own lines over the light: the roam's ORDER box, js/roam.js)
       drawPathDots(wx);
       drawPathMarks(wx);
       drawLabels(wx);
