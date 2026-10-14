@@ -2328,6 +2328,33 @@
       var aF = RF.members.filter(function (u) { return u.id === 'aurdin'; })[0]; aF.src.equip.ring = 'ringofflying'; BF.menuClosed(); var wA = !!aF.wings;
       aF.src.equip.ring = null; BF.menuClosed(); var wA2 = !!aF.wings;
       okZ('a ring put on by EQUIP out of a fight brings its wings (' + wA + '), taken off takes them (' + !wA2 + ')', wA && !wA2);
+      // his rulings, 10-14 (Griz): "3 - as leaned" (the Settling without a seam) · "4 - such that if party token use item grapple target floaty - animates reel-in as if they had
+      // clicked the menu option version to solve"
+      var BJ = D.roam.make('?roam=wet&watch&enc=999&lvl=3'); D.scenes.length = 0; D.push(BJ); D.battle = BJ; BJ.enter();
+      var RJ = BJ.roam, homeJ = function () { return D.top() === BJ && RJ.mode === 'walk' && !RJ.pulling; }, cJ = function (id) { var s = (BJ.inv || []).filter(function (x) { return x.id === id; })[0]; return s ? s.n : 0; };
+      var putJ = function (q) { RJ.token.x = q[0]; RJ.token.y = q[1]; RJ.token.tween = null; RJ.path = null; GZ.setup(GZ.map, BJ.units); };
+      var floatAt = function () { var p = D.roam.floatProp ? D.roam.floatProp(BJ) : null; return p ? p.depth : null; };
+      // the floating one at the deep end; ROPE THEM OUT throws the line and hauls it up to the landing, then the five are up and it is gone
+      putJ(at8(20, 21)); var fl0 = floatAt(), hauled = false, dmin = fl0;
+      var gJ = D.roam.stairScene(BJ, { id: 'stair' }, at8(19, 21)), vJ, stJ;
+      for (var kJ = 0; kJ < 400; kJ++) { stJ = gJ.next(vJ); vJ = undefined; if (stJ.done) break; if (stJ.value && stJ.value.prompt) vJ = 0; if (typeof stJ.value === 'number') BJ.t += stJ.value; if (RJ.haul) { hauled = true; var dd = floatAt(); if (dd != null && (dmin == null || Math.abs(dd - fl0) > Math.abs(dmin - fl0))) dmin = dd; } }
+      okZ('one of the five floats at the deep end (' + (fl0 != null) + '); ROPE THEM OUT hauls it up (' + hauled + ', drawn ' + (dmin != null && fl0 != null ? Math.abs(dmin - fl0).toFixed(1) : '?') + ' squares toward the landing), then the five are up (' + !!RJ.flags.fiveRecovered + ') and it is gone (' + (floatAt() == null) + ')',
+        fl0 != null && hauled && Math.abs(dmin - fl0) >= 4 && RJ.flags.fiveRecovered && floatAt() == null);
+      // the Rope & Grapple from the menu out of a fight: in reach of the landing, the same haul; out in the cave, nothing to hook
+      delete RJ.flags.fiveRecovered; var fz0 = (BJ.inv || []).filter(function (x) { return x.id === 'fivetokens'; })[0]; if (fz0) fz0.n = 0;
+      var useRope = function () { return BJ.menuAct ? BJ.menuAct('item', { id: 'rope' }, function () { return null; }) : false; };
+      var ropeIt = window.DS.DATA.items.rope; putJ([12, 30]); var nJ = (BJ.log || []).length, far1 = useRope(); driveZ(BJ.co, null, 60);
+      var nothing = (BJ.log || []).slice(nJ).some(function (l) { return /Nothing in reach to hook/.test(l); }) && !RJ.flags.fiveRecovered;
+      putJ(at8(20, 21)); var near1 = useRope(), hauled2 = false;
+      for (var kM = 0; kM < 600; kM++) { var stM = BJ.co.next(); if (typeof stM.value === 'number') BJ.t += stM.value; if (RJ.haul) hauled2 = true; if (RJ.flags.fiveRecovered && !RJ.haul && kM > 40) break; }
+      okZ('the Rope & Grapple from the menu (a field use on this page: ' + !!(ropeIt.use && ropeIt.use.effect === 'grapple') + '): out in the cave, nothing to hook (' + nothing + '); from the landing, the same haul (' + hauled2 + ') and the five up (' + !!RJ.flags.fiveRecovered + ', x' + cJ('fivetokens') + ')',
+        !!(ropeIt.use && ropeIt.use.effect === 'grapple') && nothing && near1 && hauled2 && RJ.flags.fiveRecovered && cJ('fivetokens') === 1);
+      // the Settling in and out without a seam: no card going in, none coming back; the Keeper keeps its own
+      var nS2 = (BJ.log || []).length, gW = D.roam.pullIn(BJ, 'wet', { id: 'landlordStep' }, at8(8, 8)), kW2 = 0;
+      for (; kW2 < 400 && D.top() === BJ; kW2++) gW.next();
+      var bW2 = D.top(); if (bW2 !== BJ) { bW2.enter(); D.pop(); bW2.o.onDone('escaped'); driveZ(gW, null, 2000); }
+      var saidW2 = (BJ.log || []).slice(nS2).join(' | ');
+      okZ('the Settling in and out without a seam: no card going in (' + !/THE SETTLING/.test(saidW2) + '), none back (' + !/Back on the Wet/.test(saidW2) + '), in at once (' + kW2 + ' steps)', bW2 !== BJ && !/THE SETTLING/.test(saidW2) && !/Back on the Wet/.test(saidW2) && kW2 <= 3);
     } catch (eZ) { repZ.errors.push(String(eZ && eZ.stack || eZ).slice(0, 900)); }
     D.store.get = stGZ; D.store.set = stSZ; IZ.held.up = false; IZ.held.left = false;
     if (errs.length) repZ.errors = repZ.errors.concat(errs);

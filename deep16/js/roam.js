@@ -108,6 +108,7 @@
   var props1 = D.walls && D.walls.props;
   if (props1) D.walls.props = function (B) {
     var out = props1.apply(this, arguments);
+    if (B && B.roam && B.map) { var fp = R.floatProp(B); if (fp) out.push(fp); } // (one of the five, floating at the stair's deep end: R.floatProp)
     if (!B || !B.roam || !B.map || !B.map.works || !B.map.works.on) return out;
     var rq = R.def.from8(R.RUNE8[0], R.RUNE8[1]), gz = B.map.gz(rq[0] + 1, rq[1]), fx = rq[0] + 0.5, fy = rq[1];
     out.push({ roamRune: true, depth: rq[0] + rq[1] + 0.9, gz: gz, layer: 1, draw: function (ctx) {
@@ -215,6 +216,7 @@
     R.into(B, R0.rest);
     B.focus(lead);
     R.bucketProp(B); // (the bucket on its crate, if it is there)
+    R.ropeUse(); // (the Rope & Grapple, usable from the menu on the floor: the floating one)
     // the pack's check at the stairs starts here: all the party owns as it walks on, the pack as it walks on, an empty ledger (R.handback)
     R0.ledger = []; R0.pack0 = R.owned(B); R0.inv0 = R.counts(B.inv);
     // the zone's creatures fetched behind, so a fight's figures are there when it falls
@@ -270,6 +272,7 @@
       var k = R0.keys.shift();
       var trk = R.tracking(R0);
       if (k === 'order') { if (trk.length) { D.sfx('miss'); B.card(['{g}Not with them coming.{/}'], 120); } else yield* R.order(B); continue; }
+      if (k === 'haul') { if (!trk.length && R.floatInReach(B)) yield* R.ropeHaul(B); continue; }
       if (k === 'use') { var un = R.useNear(B); if (un && !trk.length) yield* R.fire(B, un.trig, un.sq); else D.sfx('miss'); continue; }
       if (k === 'fight') { if (trk.length) yield* R.engage(B, trk[0], false, 'yours'); else yield* R.encounter(B, 'asked'); continue; }
       var ck = R0.clicks.shift();
@@ -471,14 +474,63 @@
     if (f.fiveRecovered) { B.card([R.say8('w.stairDone')], 260); yield 20; return; }
     var awake = R.awake(f); // (the 8-bit's S.stair, 10-14: woken and not yet beaten, the stair says so and WADE IN meets it waiting)
     var a = yield { prompt: { who: R0.token, title: 'THE FLOODED STAIR', lines: R.wrap([R.say8(awake ? 'w.stairAwake' : 'w.stairSee'), R.say8('w.stairAsk')]), opts: [{ label: 'ROPE THEM OUT', value: 0 }, { label: 'WADE IN', value: 1 }, { label: 'LEAVE', value: 2 }] } };
-    if (a === 0) {
-      if (!(B.inv || []).some(function (x) { return x.id === 'rope' && x.n > 0; })) { B.card([R.say8('w.noRope')], 260); yield 20; return; }
-      if (f.keeperAwake) { B.card([R.say8('w.ropeAwake')], 260); yield 30; yield* R.pullIn(B, 'keeper', trig, at, 'rune', 'rope'); return; }
-      yield* R.five(B, 'w.ropeOut'); return; // (the five's tokens and the stock's fork as the 8-bit's fiveUp gives them: js/rules.js R.fiveUp)
-    }
+    if (a === 0) { yield* R.ropeHaul(B, trig, at); return; }
     if (a === 1) { B.card(R.wrap([R.say8(awake ? 'w.wadeAwake' : 'w.wade')]), 260); yield 30; yield* R.pullIn(B, 'keeper', trig, at, 'ledge'); }
   };
   R.awake = function (f) { return !!(f.keeperAwake && !f.keeperDone); };
+  // ROPE THEM OUT, from the stair's ask or the Rope & Grapple used from the menu (10-14, Griz: "should we put one floating thing at the back and have them actually rope it out"
+  // -- "such that if party token use item grapple target floaty - animates reel-in as if they had clicked the menu option version to solve"): no rope, the 8-bit's word; the
+  // Keeper awake, the 8-bit's fight by the rune; asleep, the rope goes out, the hook takes the one floating at the deep end and they haul it up to the landing, and the five
+  // are up (js/rules.js R.fiveUp)
+  R.FLOAT8 = [13, 21]; // (the 8-bit's square of the one at the back: the drowned stair's deep end, the sealed door beyond)
+  // the hook reaches it from the landing, where the 8-bit asks ROPE THEM OUT: the token within two squares of the stair's first row, the five down, the stair water
+  R.floatInReach = function (B) {
+    var R0 = B.roam, f = R0.flags, t = R0.token; if (f.fiveRecovered || (f.stairHook && !f.keeperWater)) return false;
+    return R.WADE8.some(function (q) { var g = R.def.from8(q[0], q[1]); return Math.max(Math.abs(g[0] - t.x), Math.abs(g[1] - t.y)) <= 2; });
+  };
+  // the Rope & Grapple used from the menu out of a fight (js/menu.js asks an item's `use.field`, and the rope has none -- it is set on a face in a fight): on the roam's own page
+  // it is given one, a grapple, so the menu hands the pick to the roam (R.menuAct). This page only: the 8-bit's data is its own
+  R.ropeUse = function () { var it = window.DS.DATA.items.rope; if (it && !it.use) it.use = { field: true, target: 'party', effect: 'grapple', roam: true }; };
+  R.ropeHaul = function* (B, trig, at) {
+    var R0 = B.roam, f = R0.flags, t = R0.token;
+    if (!(B.inv || []).some(function (x) { return x.id === 'rope' && x.n > 0; })) { B.card([R.say8('w.noRope')], 260); yield 20; return; }
+    if (f.keeperAwake) { B.card([R.say8('w.ropeAwake')], 260); yield 30; yield* R.pullIn(B, 'keeper', trig || { id: 'stair' }, at || R.def.from8(19, 21), 'rune', 'rope'); return; }
+    var from = R.def.from8(R.FLOAT8[0], R.FLOAT8[1]), best = null, bd = Infinity;
+    R.WADE8.forEach(function (q) { var g = R.def.from8(q[0], q[1]), d = Math.max(Math.abs(g[0] - t.x), Math.abs(g[1] - t.y)); if (d < bd) { bd = d; best = g; } });
+    t.facing = D.spr.facingFor(from[0] - t.x, from[1] - t.y); t.anim = 'idle'; t.animT = B.t;
+    B.card(R.wrap([R.say8('w.ropeOut')]), 320); D.sfx('confirm');
+    B.focus({ x: Math.round((t.x + from[0]) / 2), y: Math.round((t.y + from[1]) / 2), size: 1 }); // (the camera between them: the deep end is down the stair, off the landing's view)
+    R0.haul = { from: from, to: best || from, t0: B.t, cast: 18, dur: 84 };
+    for (var k = 0; k < R0.haul.dur + R0.haul.cast + 6; k++) yield 1;
+    R0.haul = null; B.focus(t);
+    yield* R.five(B);
+  };
+  // the floating one, while the five are down and the stair is water: a body face-down on the black water at the deep end, rocking, a ring of ripple round it; while the rope
+  // hauls it (R0.haul), the line from the token's hand and the body drawn up the steps to the landing's edge (a stand-in drawn here, no sheet)
+  R.floatProp = function (B) {
+    var R0 = B.roam, f = R0.flags; if (f.fiveRecovered || (f.stairHook && !f.keeperWater)) return null;
+    var h = R0.haul, from = R.def.from8(R.FLOAT8[0], R.FLOAT8[1]), pos = from, k = 0;
+    if (h) { var e = B.t - h.t0 - h.cast; k = Math.max(0, Math.min(1, e / h.dur)); k = k * k * (3 - 2 * k); pos = [from[0] + (h.to[0] - from[0]) * k, from[1] + (h.to[1] - from[1]) * k]; }
+    var gz = B.map.gz(Math.round(pos[0]), Math.round(pos[1]));
+    return { depth: pos[0] + pos[1] + 0.3, gz: gz, layer: 1, draw: function (ctx) {
+      var iso = D.iso, z = iso.zoom || 1, c = iso.center(pos[0], pos[1], gz), s = iso.toScreen(c.x, c.y), x = Math.round(s.x), y = Math.round(s.y + 2 * z), bob = Math.sin(B.t / 28) * z, sx = 1.6 * z; // (half again a square's figure: it has to read on black water)
+      ctx.save();
+      ctx.globalAlpha = 0.45; ctx.strokeStyle = '#9fc4e8'; ctx.lineWidth = 1; ctx.beginPath(); ctx.ellipse(x, y + 1 * sx, (11 + Math.sin(B.t / 19) * 2) * sx, (5 + Math.sin(B.t / 19)) * sx, 0, 0, 7); ctx.stroke();
+      ctx.globalAlpha = 1; ctx.translate(x, y + bob); ctx.rotate(-0.42);
+      ctx.fillStyle = '#1a1614'; ctx.fillRect(-9 * sx, -3 * sx, 16 * sx, 6 * sx);           // its edge on the water
+      ctx.fillStyle = '#5a4a3c'; ctx.fillRect(-8 * sx, -2 * sx, 14 * sx, 4 * sx);           // the coat, sodden
+      ctx.fillStyle = '#7a6650'; ctx.fillRect(-6 * sx, -2 * sx, 8 * sx, 2 * sx);
+      ctx.fillStyle = '#ddd0bc'; ctx.fillRect(6 * sx, -2 * sx, 3 * sx, 3 * sx);            // the back of the head
+      ctx.fillStyle = '#4a3a2a'; ctx.fillRect(6 * sx, -2 * sx, 3 * sx, 1 * sx);
+      ctx.fillStyle = '#ddd0bc'; ctx.fillRect(-11 * sx, 1 * sx, 3 * sx, 1.5 * sx);         // a hand out on the water
+      ctx.restore();
+      if (h && B.t - h.t0 >= 0) { // the rope: out from the hand as a line, then taut while they haul
+        var t = R0.token, tc = iso.center(t.x, t.y, B.map.gz(t.x, t.y)), ts = iso.toScreen(tc.x, tc.y), hx = ts.x, hy = ts.y - 14 * z, a = Math.min(1, (B.t - h.t0) / h.cast);
+        var ex = hx + (x - hx) * a, ey = hy + (y + bob - hy) * a, sag = (1 - k) * 10 * z * (1 - a * 0.5);
+        ctx.strokeStyle = '#c8a86a'; ctx.lineWidth = Math.max(1, z); ctx.beginPath(); ctx.moveTo(hx, hy); ctx.quadraticCurveTo((hx + ex) / 2, (hy + ey) / 2 + sag, ex, ey); ctx.stroke(); ctx.lineWidth = 1;
+      }
+    } };
+  };
   // a square of the drowned stair's first row, its water as yet unsettled: the stair's USE stands there (its cond: the stair flooded), the five not up, the Keeper not beaten
   R.wadeAsk = function (B, sq) {
     var R0 = B.roam, f = R0.flags, s = G.map.at(sq[0], sq[1]);
@@ -564,8 +616,9 @@
         return r;
       };
     }
-    B.card(['{r}' + (which === 'keeper' ? 'THE KEEPER OF THE FLOODED STAIR' : 'THE SETTLING') + '{/}: its own fight, pulled in.'], 200);
-    D.sfx('encounter'); yield 40;
+    // (the Settling goes in and out without a seam -- RULED 10-14, Griz: "3 - as leaned": its squares are the floor's own, so no card, no wait and no word back; its own fight
+    // still runs it, the sleepers and the pictures and the drain. The Keeper keeps its card: another room, its own map)
+    if (which === 'keeper') { B.card(['{r}THE KEEPER OF THE FLOODED STAIR{/}: its own fight, pulled in.'], 200); D.sfx('encounter'); yield 40; }
     R.stats.pull = (R.stats.pull || 0) + 1;
     D.push(b);
     while (!done) yield 1; // (the floor waits under it: only the top scene runs -- js/core.js)
@@ -609,7 +662,7 @@
       }
     }
     B.focus(R0.token);
-    B.card(done === 'fed' ? ['{y}The landlord settles under the water.{/}', '{g}The party gathers into ' + R0.token.name + '.{/}'] : ['{y}Back on the Wet{/} (' + done + ').'], 260);
+    if (done === 'fed') B.card(['{y}The landlord settles under the water.{/}', '{g}The party gathers into ' + R0.token.name + '.{/}'], 260); else if (which !== 'wet') B.card(['{y}Back on the Wet{/} (' + done + ').'], 260);
     if (done === 'fed') { FX.ring(R0.token, 'glow', 22); D.sfx('popup'); }
     if (!R.standing(R0).length) { R0.mode = 'over'; B.card(['{r}The party has fallen.{/}  R to walk the Wet again.'], 100000); return; }
     // the gather pays (R.pay): what fell in there, and the landlord fed from the bucket -- a quarter again its XP, once (js/rules.js R.fedPool, the 8-bit's EV.fedXp)
@@ -1168,6 +1221,8 @@
     var take = function () { var s = (B.inv || []).filter(function (x) { return x.id === a.id; })[0]; if (s) s.n--; };
     if (kind === 'item' && it && it.use) {
       var who = u || R0.token, eff = it.use.effect;
+      // the Rope & Grapple from the menu (R.ropeUse): the one floating at the deep end, if the hook can reach it from where the party stands -- the haul, as ROPE THEM OUT
+      if (eff === 'grapple') { if (R.floatInReach(B)) { R0.keys.push('haul'); B.card(['{y}' + R0.token.name + '{/} shakes out the Rope & Grapple.'], 160); } else B.card(['{g}Nothing in reach to hook with it here.{/}'], 180); return true; }
       if (eff === 'light') {
         if (who.torch) { B.card(['{g}' + who.name + ' has a light in hand already.{/}'], 160); return true; }
         who.torch = a.id === 'torch' ? { lit: true, kind: 'torch' } : L.make(a.id, false); L.regrip(who); take(); D.sfx('confirm');
