@@ -564,7 +564,11 @@
       if (!best || n > best.n) best = { t: t, n: n };
     });
     if (!best) return;
-    S.ready = false; D.sfx('poison'); FX.sparkle(best.t, 'bone', 24);
+    S.ready = false;
+    // (its Spittle row where the sheet has one: turned to the point, the glob leaves on the row's release frame -- mouther_p2, 10-14)
+    var sr = D.spr.anim(u.sheet, 'spittle');
+    if (sr) { B.turnTo(u, B.faceTo(u, best.t)); u.anim = 'spittle'; u.animT = B.t; yield sr.release != null ? Math.ceil(sr.release * 60 / (sr.fps || 8)) : 12; }
+    D.sfx('poison'); FX.sparkle(best.t, 'bone', 24);
     var ml = ['{r}' + the(B, u) + '{/} spits a glob at ' + best.t.name + ': a blinding flash  DEX DC ' + S.dc];
     B.units.filter(function (w) { return w !== u && G.standing(w) && !w.object && G.dist(best.t, w) <= S.r; }).forEach(function (w) {
       var wn = w.side === 'foe' ? the(B, w) : w.name;
