@@ -122,7 +122,10 @@
   R.KEY = 'deep16.roam.form';
   R.setup = function (B) {
     var members = B.units.filter(function (u) { return u.side === 'party' && !u.familiar && !u.object && !u.summon; });
-    var lead = members[0], stored = D.store.get(R.KEY) || {};
+    var stored = D.store.get(R.KEY) || {};
+    // the front man kept with the formation (10-13, in the pane: his formation came back, his leader did not): the stored order first, the rest as they come
+    if (Array.isArray(stored._order)) members.sort(function (a, b) { var ia = stored._order.indexOf(a.id), ib = stored._order.indexOf(b.id); return (ia < 0 ? 99 : ia) - (ib < 0 ? 99 : ib); });
+    var lead = members[0];
     var R0 = B.roam = { token: lead, members: members, rest: members.slice(1), form: {}, fw: [-1, 0], mode: 'walk', steps: 0, encIn: 0, clicks: [], keys: [], flags: {}, fights: 0, log: [], last: null, cut: null, msg: null, groups: [] };
     members.slice(1).forEach(function (u, i) { R0.form[u.id] = stored[u.id] || R.FORM0[i] || [-(i + 1), 0]; });
     if (/[?&]watch\b/.test(R.q)) members.forEach(function (u) { u.guest = true; u.classAI = true; }); // (&watch: the class tactics run the four, as the bench does)
@@ -462,7 +465,7 @@
     R0.last = { why: why, who: who, kinds: placed.map(function (u) { return u.kind; }), spot: spot, distFt: distFt, how: how, sightFar: sight.far, lightFt: sight.lightFt, dv: sight.dv, lurk: lurk, motivated: grp.motivated, ms: ms, at: [t.x, t.y] };
     R0.log.push(R0.last); R0.sightV = sight.v; // (the map's picture of what they saw: R.paintMap)
     D.sfx('encounter');
-    B.focus(placed[0] || t);
+    B.focus({ x: Math.round((t.x + spot[0]) / 2), y: Math.round((t.y + spot[1]) / 2), size: 1 }); // (between them: the party and what is coming, not the dark it comes out of)
     // lying in wait, or a square of its own (an ooze where it lies -- RULED 10-13, Griz: "the ooze fights should just trigger"): the fight is now.
     // Walking in: the approach (RULED 10-13: "1 yes"), the fight where they meet
     if (lurk || (set && set.at)) {
@@ -540,7 +543,7 @@
     else {
       var withD = clear.filter(function (q) { return dd0[q[0] + ',' + q[1]] != null; });
       var lo = Math.min.apply(null, withD.map(function (q) { return dd0[q[0] + ',' + q[1]]; }));
-      ex = withD.length ? withD.filter(function (q) { return dd0[q[0] + ',' + q[1]] <= lo + 1; }) : clear;
+      ex = withD.length ? withD.filter(function (q) { return dd0[q[0] + ',' + q[1]] <= lo + 2; }) : clear; // (a short stretch of that edge, not one square: seen in the pane, 10-13)
     }
     B.exits = ex;
   };
@@ -842,7 +845,10 @@
     }
   };
   R.marksOver = function (c, B) {
-    var R0 = B.roam; if (!R0 || R0.mode !== 'order') return;
+    var R0 = B.roam; if (!R0) return;
+    // a hero's ways out over the light (in the pane, 10-13: the grid's pale squares are drawn under the dark, and on the Wet's dark floor they were gone)
+    if (R0.mode === 'fight' && B.req && B.req.turn) { (B.exits || []).forEach(function (q) { D.iso.rhombus(c, q[0], q[1], G.map.gz(q[0], q[1]), 2); c.strokeStyle = 'rgba(150,235,150,0.9)'; c.lineWidth = 1.5; c.stroke(); c.lineWidth = 1; }); return; }
+    if (R0.mode !== 'order') return;
     var t = R0.token, who = R0.sel || R0.rest[0] || t, iso = D.iso;
     var wp = function (gx, gy) { return iso.toScreen((gx - gy) * iso.TW / 2, (gx + gy) * iso.TH / 2); };
     for (var y = t.y - 2; y <= t.y + 2; y++) for (var x = t.x - 2; x <= t.x + 2; x++) {
@@ -916,6 +922,7 @@
     }
     var form = D.store.get(R.KEY) || {};
     R0.rest.forEach(function (u) { if (R0.form[u.id]) form[u.id] = R0.form[u.id]; }); // (what was set -- each move, the front man's swap -- not a stand-in square)
+    form._order = R0.members.map(function (u) { return u.id; }); delete form[R0.token.id]; // (and who leads: the first)
     D.store.set(R.KEY, form);
     B.cards = B.cards.filter(function (c) { return c.id !== 'roamorder'; });
     for (var i = 0; i < R0.rest.length; i++) FX.sparkle(R0.rest[i], 'glow', 8);
