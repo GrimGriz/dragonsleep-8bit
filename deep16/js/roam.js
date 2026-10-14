@@ -157,7 +157,7 @@
         if (I.pressed('order')) R0.keys.push('order');
         if (I.pressed('dice')) R0.keys.push('fight'); // (F: an encounter now -- the test's own key)
         if (R0.mode === 'walk' && I.pressed('a')) R0.keys.push('use'); // (E: the thing beside the token -- the mark, the stair, the bucket: the 8-bit's USE)
-        R0.hover = R0.mode === 'order' && m.inside ? D.iso.pick(m.x, m.y, 0) : null; // (the square under the mouse, for ORDER's box)
+        R0.hover = m.inside ? D.iso.pick(m.x, m.y, 0) : null; R0.hoverXY = m.inside ? [m.x, m.y] : null; // (the square under the mouse: ORDER's box, and the walk's path to it)
         if (R0.mode === 'order' && m.rclick && m.inside) R0.keys.push('turn'); // (a right click in ORDER: the formation as it stands facing the next way -- Griz, 10-13: "rightclick shows the ordering in different facings")
       }
       if (R0 && I.pressed('list')) R.showMap = !R.showMap; // (L: the floor map -- the whole Wet, what they saw, the ground and its ways out)
@@ -182,6 +182,9 @@
     // the front man kept with the formation (10-13, in the pane: his formation came back, his leader did not): the stored order first, the rest as they come
     if (Array.isArray(stored._order)) members.sort(function (a, b) { var ia = stored._order.indexOf(a.id), ib = stored._order.indexOf(b.id); return (ia < 0 ? 99 : ia) - (ib < 0 ? 99 : ib); });
     var lead = members[0];
+    // wings are for fights (10-14, Griz: "test with a fly ring equipped on vivian"): on the floor the party walks as one -- the token never flies over the deep water the rest
+    // would drown in -- so a worn Ring of Flying's wings (js/flight-ai.js gives them at the enter) are kept on the figure and spread when a fight begins (R.engage)
+    members.forEach(function (u) { u.wings = R.ringWings(u) || !!u.flies; u.flies = false; u.fz = 0; });
     var R0 = B.roam = { token: lead, members: members, rest: members.slice(1), form: {}, fw: [-1, 0], mode: 'walk', steps: 0, encIn: 0, clicks: [], keys: [], flags: {}, fights: 0, log: [], last: null, cut: null, msg: null, groups: [], spent: {} }; // (spent: the floor's triggers done with -- the roam's own marks, apart from the 8-bit's flags)
     members.slice(1).forEach(function (u, i) { R0.form[u.id] = stored[u.id] || R.FORM0[i] || [-(i + 1), 0]; });
     // the purse, the kill tally and the XP banked till the next gather (R.pay): the save's own, or the fixture's none
@@ -211,6 +214,7 @@
     var e = R.def.entry[0]; lead.x = e[0]; lead.y = e[1]; lead.facing = D.spr.facingFor(0, -1); R0.fw = [0, -1]; // (in off the stair walking the 8-bit's east: the grid's -y)
     R.into(B, R0.rest);
     B.focus(lead);
+    R.bucketProp(B); // (the bucket on its crate, if it is there)
     // the pack's check at the stairs starts here: all the party owns as it walks on, the pack as it walks on, an empty ledger (R.handback)
     R0.ledger = []; R0.pack0 = R.owned(B); R0.inv0 = R.counts(B.inv);
     // the zone's creatures fetched behind, so a fight's figures are there when it falls
@@ -402,7 +406,17 @@
     if (trig.once) R0.flags['trig:' + trig.id] = 1;
     var oz = R.OOZES[trig.id];
     if (oz) { yield* R.encounter(B, 'set', { list: oz.list, at: oz.at8 ? R.def.from8(oz.at8[0], oz.at8[1]) : at, swims: oz.swims, flag: oz.flag, trig: oz.trig, line: oz.line, how: 'where it lay' }); return; }
-    if (R.WAKE[trig.id]) { yield* R.pullIn(B, 'wet', trig, at); return; }
+    if (R.WAKE[trig.id]) {
+      // the landlord fed or dead: its water is only water (the 8-bit's S.landlord -- 10-14, his play: "settling retriggered post feeding": USE on the deep water had no
+      // condition and pulled the Settling in again); fed, the quarter-again XP if it has not been paid (EV.fedXp's once)
+      var f0 = B.roam.flags;
+      if (f0.otyughDead || f0.otyughFed) {
+        var fl0 = [R.say8(f0.otyughDead ? 'w.poolQuiet' : 'w.landlordFed')];
+        if (f0.otyughFed && !f0.otyughFedXp) { f0.otyughFedXp = 1; fl0 = fl0.concat(R.pay(B, window.DS.R.fedPool(), R.say8('w.fedXp'))); }
+        B.card(R.wrap(fl0), 260); yield 20; return;
+      }
+      yield* R.pullIn(B, 'wet', trig, at); R.bucketProp(B); return;
+    }
     if (trig.id === 'mark') { yield* R.markScene(B, trig, at); return; }
     if (trig.id === 'stair') { yield* R.stairScene(B, trig, at); return; }
     if (trig.id === 'bucket') { yield* R.bucketScene(B, trig, at); return; }
@@ -471,12 +485,21 @@
     if (!s || s.ch !== '~' || !R.isWade(sq[0], sq[1]) || f.keeperDone || f.fiveRecovered || R0.spent.stair) return false;
     var p = R.def.to8(sq[0], sq[1]); return !!R.triggerAt(B, p[0], p[1], 'use');
   };
+  // the bucket drawn on the deep station's crate while it is there -- not carried, not fed to the landlord (js/wet.js W.layBucket, the Settling's own picture; 10-14, his play:
+  // "bucket was gone until settling triggered": the floor laid the crate and never the bucket)
+  R.bucketProp = function (B) {
+    if (!D.wet || !D.wet.layBucket || !B.map) return;
+    var f = B.roam.flags, has = (B.inv || []).some(function (x) { return x.id === 'bucket' && x.n > 0; }), want = !has && !f.otyughFed && !f.otyughDead;
+    B.wet = B.wet || {}; var bk = B.wet.bucket, laid = !!(bk && B.map.props.indexOf(bk.prop) >= 0); // (on this map: a map loaded again has none)
+    if (want && !laid) { var g0 = G.map; G.map = B.map; D.wet.layBucket(B, R.def.from8(3, 7)); G.map = g0; B.map.sorted = null; }
+    else if (!want && bk) { var i = laid ? B.map.props.indexOf(bk.prop) : -1; if (i >= 0) B.map.props.splice(i, 1); B.wet.bucket = null; B.map.sorted = null; }
+  };
   // the bucket at the deep station's crate (js/events.js S.bucket): taken up into the pack, in the hand of the one who took it -- the Settling reads both (js/wet.js)
   R.bucketScene = function* (B, trig, at) {
     var R0 = B.roam, f = R0.flags;
     if (f.otyughFed || (B.inv || []).some(function (x) { return x.id === 'bucket' && x.n > 0; })) { B.card(['{g}The crate. The bucket is ' + (f.otyughFed ? 'down in the deep water.' : 'with you.') + '{/}'], 220); yield 20; return; }
     R.give(B, 'bucket', 1, 'the deep station\'s crate');
-    f.bucketBy = R0.token.id; D.sfx('chest');
+    f.bucketBy = R0.token.id; D.sfx('chest'); R.bucketProp(B);
     B.card(['{y}' + R0.token.name + '{/} takes up the deep station\'s bucket, rope and all.'], 260); yield 30;
   };
 
@@ -863,6 +886,7 @@
     B.exits = [];
     B.card(['{r}THE FIGHT{/}: ' + L0.contactFt + ' ft between them' + (why === 'yours' ? ' -- yours to open' : '') + '.', '{g}A way out: the stairs, or a square a full move clear of every one of them (the pale squares on your turn). One of you out takes the party with them.{/}'], 420);
     yield 50;
+    R0.members.forEach(function (u) { if (u.wings) u.flies = true; }); // (the ring's wings, spread for the fight)
     var o = yield* R.fight(B, foes, lurk);
     yield* R.after(B, o, grp, foes);
   };
@@ -1051,6 +1075,7 @@
     // ends, and of the conditions only what lasts stays (R.lasting: Mage Armor, the day's Darkvision, a Continual Flame, Aid) -- prone, poisoned, blessed and the rest do not walk on
     R0.members.forEach(function (u) { if (u.conc && D.magic && D.magic.endConc) D.magic.endConc(B, u, 'the fight is over'); });
     R0.members.forEach(function (u) { if (u.left) { u.left = false; u.dead = false; } u.conds = R.lasting(u.conds); u.turn = null; if (B.units.indexOf(u) < 0) B.units.push(u); });
+    R0.members.forEach(function (u) { u.wings = R.ringWings(u) || !!u.flies; u.flies = false; u.fz = 0; if (u.tween) u.tween.fz = 0; }); // (down out of the air as the fight ends: the floor is walked)
     G.setup(G.map, B.units); B.cache = null;
     var up = R.standing(R0), lead = up[0];
     if (!lead) { R0.mode = 'over'; return; }
@@ -1179,8 +1204,11 @@
       var ac = Rr.ac(h); if (u.conds.mageArmor && !Rr.armored(h)) ac = Math.max(ac, 13 + D.mod(u.abil.dex));
       u.baseAC = ac; u.armored = Rr.armored(h);
       L.regrip(u);
+      u.wings = R.ringWings(u); u.flies = B.roam.mode === 'fight' && u.wings; // (a ring put on or taken off by EQUIP: its wings with it, spread only in a fight)
     });
   };
+  // a Ring of Flying on a finger (content/items.json ring.fly; js/flight-ai.js reads the same two fingers)
+  R.ringWings = function (u) { var e = u.src && u.src.equip, I = window.DS.DATA.items; return !!(e && [e.ring, e.ring2].some(function (id) { var it = id && I[id]; return !!(it && it.ring && it.ring.fly); })); };
   // the token carries the whole party's lights and eyes (10-13, his play: the torch went to Aurdin, inside the token, and the floor went dark round Barley): what
   // lights the floor (js/light.js L.all) and what the player sees greyed (L.partyMap) count the four riding in it as standing on its square
   R.riding = function (B) { var R0 = B && B.roam; return R0 && R0.mode !== 'fight' && R0.mode !== 'order' && R0.rest.length ? R0 : null; };
@@ -1226,10 +1254,30 @@
       iso.rhombus(c, x, y, 0, 1); c.globalAlpha = occ ? 0.18 : 0.32; c.fillStyle = 'rgb(150,210,255)'; c.fill(); c.globalAlpha = 1;
     }
   };
+  // walking: the square under the mouse, and the way a click would walk there (10-14, Griz: "move indicator under mouse with pathing"): the path's squares and a ring on the
+  // square -- green, a click walks there; gold, a click uses what is there (the bucket, the deep water, the mark on its wall); grey, too far for a click (R.CLICK_FT); red, no way
+  R.hoverMarks = function (c, B) {
+    var R0 = B.roam, hv = R0.hover, xy = R0.hoverXY, t = R0.token, iso = D.iso;
+    if (B.req || B.menu || (R0.path && R0.path.length) || !xy) return;
+    var mk = R.runeAt(B, xy[0], xy[1]);
+    if (mk) {
+      var pm = R.besidePath(B, mk.sq), okm = pm && pm.length * 5 <= R.CLICK_FT, rq = mk.sq, gz = B.map.gz(rq[0] + 1, rq[1]), cc = iso.center(rq[0] + 0.5, rq[1], gz + 22 * (D.hscale || 1)), s = iso.toScreen(cc.x, cc.y);
+      (okm ? pm : []).forEach(function (q) { iso.rhombus(c, q[0], q[1], G.map.gz(q[0], q[1]), 11); c.fillStyle = 'rgba(232,208,112,0.5)'; c.fill(); });
+      c.strokeStyle = okm ? 'rgba(232,208,112,0.95)' : 'rgba(160,160,170,0.85)'; c.lineWidth = 1.5; c.beginPath(); c.ellipse(s.x, s.y, 12 * (iso.zoom || 1), 12 * (iso.zoom || 1), 0, 0, 7); c.stroke(); c.lineWidth = 1;
+      return;
+    }
+    if (!hv || (hv.x === t.x && hv.y === t.y)) return;
+    var key = hv.x + ',' + hv.y + ':' + t.x + ',' + t.y + ':' + G.map.sq.length;
+    if (R0.hk !== key) { R0.hk = key; var use = R.useAt(B, hv.x, hv.y); R0.huse = !!use; R0.hpath = use ? R.besidePath(B, [hv.x, hv.y]) : D.Battle.route(t, [hv.x, hv.y]); }
+    var p = R0.hpath, ok = !!p && p.length * 5 <= R.CLICK_FT, col = !p ? 'rgba(240,90,80,0.9)' : !ok ? 'rgba(160,160,170,0.85)' : R0.huse ? 'rgba(232,208,112,0.95)' : 'rgba(150,235,150,0.95)';
+    if (ok) p.forEach(function (q) { iso.rhombus(c, q[0], q[1], G.map.gz(q[0], q[1]), 11); c.fillStyle = R0.huse ? 'rgba(232,208,112,0.45)' : 'rgba(150,235,150,0.45)'; c.fill(); });
+    iso.rhombus(c, hv.x, hv.y, G.map.gz(hv.x, hv.y), 2); c.strokeStyle = col; c.lineWidth = 1.5; c.stroke(); c.lineWidth = 1;
+  };
   R.marksOver = function (c, B) {
     var R0 = B.roam; if (!R0) return;
     // a hero's ways out over the light (in the pane, 10-13: the grid's pale squares are drawn under the dark, and on the Wet's dark floor they were gone)
     if (R0.mode === 'fight' && B.req && B.req.turn) { (B.exits || []).forEach(function (q) { D.iso.rhombus(c, q[0], q[1], G.map.gz(q[0], q[1]), 2); c.strokeStyle = 'rgba(150,235,150,0.9)'; c.lineWidth = 1.5; c.stroke(); c.lineWidth = 1; }); return; }
+    if (R0.mode === 'walk') { R.hoverMarks(c, B); return; }
     if (R0.mode !== 'order') return;
     var t = R0.token, who = R0.sel || R0.rest[0] || t, iso = D.iso;
     var wp = function (gx, gy) { return iso.toScreen((gx - gy) * iso.TW / 2, (gx + gy) * iso.TH / 2); };

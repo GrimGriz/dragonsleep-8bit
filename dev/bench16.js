@@ -2289,6 +2289,45 @@
       var tMk = D.top();
       okZ('a click on the mark on its wall is a hand on it (' + askedM + ', then ' + (tMk !== BG ? tMk.fight && tMk.fight.id + ' by the ' + tMk.o.start : 'nothing') + ')', askedM === 'THE MARK' && tMk !== BG && tMk.o.start === 'rune');
       if (tMk !== BG) { tMk.enter(); D.pop(); tMk.o.onDone('escaped'); driveZ(BG.co, homeG, 2000); }
+      // his play, 10-14, the third round (Griz): "settling retriggered post feeding" · "bucket was gone until settling triggered" · "move indicator under mouse with pathing" ·
+      // "test with a fly ring equipped on vivian"
+      var BH = D.roam.make('?roam=wet&watch&enc=999&lvl=3'); D.scenes.length = 0; D.push(BH); D.battle = BH; BH.enter();
+      var RH = BH.roam, homeH = function () { return D.top() === BH && RH.mode === 'walk' && !RH.pulling; }, cH = function (id) { var s = (BH.inv || []).filter(function (x) { return x.id === id; })[0]; return s ? s.n : 0; };
+      var putH = function (q) { RH.token.x = q[0]; RH.token.y = q[1]; RH.token.tween = null; RH.path = null; GZ.setup(GZ.map, BH.units); };
+      // the bucket on its crate till it is taken, gone from it after
+      var onCrate = function () { return !!(BH.wet && BH.wet.bucket && BH.map.props.indexOf(BH.wet.bucket.prop) >= 0); };
+      var crate0 = onCrate(); driveZ(D.roam.bucketScene(BH, { id: 'bucket' }, at8(3, 7)), null, 200); var crate1 = onCrate();
+      okZ('the bucket on its crate on the floor (' + crate0 + '), gone from it once taken up (' + !crate1 + ', in the pack x' + cH('bucket') + ')', crate0 && !crate1 && cH('bucket') === 1);
+      // the landlord fed: USE on its water says so and pulls nothing in (and pays the quarter-again once, if not yet)
+      RH.flags.otyughFed = 1; delete RH.flags.otyughFedXp; var xpL0 = RH.members.map(function (u) { return u.src.xp; }), nL = (BH.log || []).length;
+      var gL = D.roam.fire(BH, { id: 'landlord' }, at8(8, 6)), pulledL = false; for (var kL = 0; kL < 200; kL++) { if (D.top() !== BH) { pulledL = true; break; } var stL = gL.next(); if (stL.done) break; }
+      if (pulledL) { var tL = D.top(); tL.enter(); D.pop(); tL.o.onDone('escaped'); driveZ(gL, null, 2000); }
+      var saidL = (BH.log || []).slice(nL).join(' '), paidL = RH.members.every(function (u, i) { return u.src.xp > xpL0[i]; });
+      okZ('the landlord fed, USE on its water: no Settling (' + (pulledL ? 'pulled in' : 'none') + '), its word said (' + /had its bucket/.test(saidL) + '), the fed XP paid once (' + paidL + ')', !pulledL && /had its bucket/.test(saidL) && paidL);
+      // the hover: a square in reach green with its path, one past 50 ft grey, a use square gold
+      var ctxH = document.createElement('canvas').getContext('2d'); putH([12, 30]); RH.mode = 'walk';
+      var flH = D.roam.flood(RH.token, [12, 30], 24), nearH = null, farH = null; Object.keys(flH).forEach(function (k) { var v = flH[k]; if (!nearH && v === 4) nearH = k.split(',').map(Number); if (!farH && v >= 16) farH = k.split(',').map(Number); });
+      var hoverAt = function (q) { var c = D.iso.center(q[0], q[1], GZ.map.gz(q[0], q[1])), s = D.iso.toScreen(c.x, c.y); RH.hover = { x: q[0], y: q[1] }; RH.hoverXY = [s.x, s.y]; RH.hk = null; RH.hpath = null; if (D.roam.hoverMarks) D.roam.hoverMarks(ctxH, BH); return { path: RH.hpath, use: RH.huse }; };
+      var hN = hoverAt(nearH), hF = hoverAt(farH);
+      okZ('the hover: 4 squares off, its path (' + (hN.path ? hN.path.length : 'none') + ' squares, in reach); 16 off, past a click (' + (hF.path ? hF.path.length * 5 + ' ft' : 'none') + ')', hN.path && hN.path.length === 4 && hF.path && hF.path.length * 5 > D.roam.CLICK_FT);
+      // the Ring of Flying on Vivian: worn from the start, on the floor the party walks (no wings on the token over the deep water), in a fight it flies; up in the air as the
+      // fight ends, down at the gather; put on by EQUIP out of a fight, its wings come with it
+      var svF = D.save.fixture(3), hv = svF.party.filter(function (h) { return h.id === 'vivian'; })[0]; hv.equip.ring = 'ringofflying';
+      memZ['deep16.handoff'] = JSON.stringify({ at: Date.now(), save: svF }); memZ['deep16.roam.form'] = JSON.stringify({ _order: ['vivian', 'barley', 'aurdin', 'lymen'] });
+      var BF = D.roam.make('?roam=wet&watch&enc=999&save'); D.scenes.length = 0; D.push(BF); D.battle = BF; BF.enter();
+      delete memZ['deep16.handoff']; delete memZ['deep16.roam.form'];
+      var RF = BF.roam, vF = RF.members.filter(function (u) { return u.id === 'vivian'; })[0];
+      var deepF = null; for (var yF = 0; yF < GZ.map.h && !deepF; yF++) for (var xF = 0; xF < GZ.map.w && !deepF; xF++) { var sF = GZ.map.at(xF, yF); if (sF && sF.ch === 'D') { for (var d2 = 0; d2 < 4; d2++) { var nx2 = xF + [1, -1, 0, 0][d2], ny2 = yF + [0, 0, 1, -1][d2], s2F = GZ.map.at(nx2, ny2); if (s2F && s2F.walk && s2F.ch !== 'D') { deepF = [xF, yF, nx2, ny2]; break; } } } }
+      RF.token.x = deepF[2]; RF.token.y = deepF[3]; GZ.setup(GZ.map, BF.units);
+      var overDeep = GZ.canStand(RF.token, deepF[0], deepF[1]);
+      okZ('the ring on Vivian, the token (' + RF.token.name + '): wings kept (' + !!vF.wings + '), not spread on the floor (' + !vF.flies + '), and the party token cannot stand on the deep water (' + !overDeep + ')', RF.token === vF && vF.wings && !vF.flies && !overDeep);
+      var gF = D.roam.encounter(BF, 'test', { list: ['crawler'], at: [deepF[2] + 2, deepF[3]], how: 'test' }); driveZ(gF, function () { return RF.mode === 'fight' && BF.order.length; }, 3000);
+      var flyIn = !!vF.flies; vF.fz = GZ.flyTop ? Math.min(GZ.flyTop(vF), 3 * GZ.map.def.step) : 3 * GZ.map.def.step;
+      BF.units.forEach(function (u) { if (u.side === 'foe') { u.hp = 0; u.dead = true; } }); driveZ(gF, function () { return RF.mode === 'walk'; }, 20000);
+      okZ('in a fight the ring\'s wings spread (' + flyIn + '); up in the air as it ends, down at the gather (fz ' + vF.fz + ', wings ' + !!vF.wings + ', spread ' + !!vF.flies + ')', flyIn && !vF.fz && vF.wings && !vF.flies);
+      var aF = RF.members.filter(function (u) { return u.id === 'aurdin'; })[0]; aF.src.equip.ring = 'ringofflying'; BF.menuClosed(); var wA = !!aF.wings;
+      aF.src.equip.ring = null; BF.menuClosed(); var wA2 = !!aF.wings;
+      okZ('a ring put on by EQUIP out of a fight brings its wings (' + wA + '), taken off takes them (' + !wA2 + ')', wA && !wA2);
     } catch (eZ) { repZ.errors.push(String(eZ && eZ.stack || eZ).slice(0, 900)); }
     D.store.get = stGZ; D.store.set = stSZ; IZ.held.up = false; IZ.held.left = false;
     if (errs.length) repZ.errors = repZ.errors.concat(errs);
