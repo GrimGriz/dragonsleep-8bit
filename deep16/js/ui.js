@@ -1042,7 +1042,7 @@
       give: function (id, n) { var s = B.inv.filter(function (x) { return x.id === id; })[0]; if (s) s.n += n || 1; else B.inv.push({ id: id, n: n || 1 }); },
       take: function (id, n) { var s = B.inv.filter(function (x) { return x.id === id; })[0]; if (s) s.n -= n || 1; },
       info: function () { return { place: (B.fight && (B.fight.title || B.fight.name)) || (D.MAPS[B.o.map] || {}).name || '' }; },
-      canSave: function () { return false; },
+      canSave: function () { return !!(calm && B.menuSave && B.menuSave()); }, // (the roam's floor inside the 8-bit: SAVE by a hand-back, js/roam.js R.save)
       walker: function (h) { return figure(h, 20, 32); }, portrait: function (h) { return figure(h, 32, 48); },
       whyNot: function () { return ''; },
       // the light in a hero's hand on the grid (u.torch, js/light.js): EQUIP's LIGHT row

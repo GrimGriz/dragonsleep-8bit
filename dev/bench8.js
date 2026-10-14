@@ -2139,6 +2139,33 @@
         var keptF = !!f8.familiar && f8.familiar.hp === 1 && !f8.familiarGone;
         delete f8.familiar; delete f8.familiarGone; if (tbF) f8.torchBy = tbF; if (tkF) f8.torchKind = tkF;
         check('the familiar back from the floor: fallen there, gone till the ritual calls it back (' + goneF + '); alive, kept (' + keptF + ')', goneF && keptF);
+        // SAVE on the floor and the cradles (10-14, Griz: "SAVE on the floor and the cradles by a hand-back to the 8-bit, then reopen the floor where they stood"): the floor's
+        // 'd16:hand' sets the frame aside (not closed), applies what the floor changed, stands the party on the floor's square and opens the 8-bit's own scene -- SAVE: its slots;
+        // out of them, the frame up again, the 8-bit held still, and the scene's word sent to the floor ('ds8:resume'); a save in warrens_d loads onto the floor
+        var slotTop = function () { return !!(DS.SlotScene && DS.top() instanceof DS.SlotScene); };
+        DS.field.load('warrens_d', 2, 12, 'right'); g.x = 2; g.y = 12; DS.paused = false;
+        DS.run(function* () { yield* DS.SCRIPTS['enter:warrens_d'](); });
+        for (kR = 0; kR < 200 && !document.getElementById('d16'); kR++) T.step(1);
+        var frH = document.getElementById('d16'), gotH = null;
+        if (frH) {
+          window.dispatchEvent(new MessageEvent('message', { source: frH.contentWindow, data: { type: 'd16:ready' } }));
+          try { frH.contentWindow.postMessage = function (d) { if (d && d.type === 'ds8:resume') gotH = d; }; } catch (eH) { }
+          var silH = g.silver;
+          window.dispatchEvent(new MessageEvent('message', { source: frH.contentWindow, data: { type: 'd16:hand', kind: 'save', exit8: [10, 14], dir: 'down', party: [], inv0: {}, inv1: {}, flags: { roamHandTest: 1 }, kills: JSON.parse(JSON.stringify(g.kills || {})), silver: silH + 7, warn: [] } }));
+          for (kR = 0; kR < 60 && !slotTop(); kR++) T.step(1);
+          var slotUp = slotTop(), asideH = frH.style.visibility === 'hidden', awakeH = !DS.paused, atH = [g.x, g.y, g.dir].join(',');
+          if (slotUp) DS.pop(DS.top());
+          for (kR = 0; kR < 60 && !gotH; kR++) T.step(1);
+          check('SAVE from the floor: the frame aside (' + asideH + '), the 8-bit awake (' + awakeH + ') with its slots up (' + slotUp + '), the party on the floor\'s square (' + atH + ', want 10,14,down), the floor\'s flags and purse on it (' + g.flags.roamHandTest + ', +' + (g.silver - silH) + '); out of the slots, the frame up again (' + (frH.style.visibility !== 'hidden') + '), held still (' + DS.paused + '), the word to the floor (' + JSON.stringify(gotH) + ')',
+            asideH && awakeH && slotUp && atH === '10,14,down' && g.flags.roamHandTest === 1 && g.silver === silH + 7 && frH.style.visibility !== 'hidden' && DS.paused === true && !!gotH && gotH.silver === silH + 7 && gotH.saved === null);
+          window.dispatchEvent(new MessageEvent('message', { source: frH.contentWindow, data: { type: 'd16:roam', result: 'out', exit8: [1, 12], party: [], inv0: {}, inv1: {}, flags: {}, warn: [] } }));
+          for (kR = 0; kR < 400 && (document.getElementById('d16') || DS.scriptActive() || DS.fadeLevel > 0); kR++) T.step(1);
+          delete g.flags.roamHandTest;
+        }
+        var svL = JSON.parse(JSON.stringify({ v: g.v, lead: g.lead, party: g.party, inv: g.inv, silver: g.silver, flags: g.flags, renown: g.renown, map: 'warrens_d', x: 2, y: 12, dir: 'right', steps: g.steps, time: g.time, kills: g.kills, guests: g.guests }));
+        DS.startFrom(svL); g = DS.G; f8 = g.flags;
+        for (kR = 0; kR < 200 && !document.getElementById('d16'); kR++) T.step(1);
+        check('a save in the Wet loads onto the floor: on warrens_d (' + (DS.field && DS.field.map && DS.field.map.id) + '), the grid\'s frame up over it (' + !!document.getElementById('d16') + ')', DS.field && DS.field.map && DS.field.map.id === 'warrens_d' && !!document.getElementById('d16'));
       } finally { window.setTimeout = set0R; window.clearTimeout = clr0R; var stR = document.getElementById('d16'); if (stR) stR.parentNode.removeChild(stR); }
     } else if (test === 'payout1014') {
       // a won fight's payout, lifted into js/rules.js (10-14, the party-token map lane §6d: R.tally, R.spoils, R.shareXP -- one copy the grid's roam pays by too): the same

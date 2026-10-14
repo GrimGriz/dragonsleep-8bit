@@ -46,6 +46,7 @@
     window.addEventListener('unhandledrejection', function (e) { var r = e.reason; crashed(r && r.message ? r.message : r, whereFrom(null, null, r && r.stack)); });
     window.addEventListener('message', function (e) {
       var m = e.data;
+      if (e.source === window.parent && m && m.type === 'ds8:resume') { if (D.roam && D.roam.resumed) D.roam.resumed(m); return; } // (the floor back from a hand-back: roam.js R.handOut)
       if (e.source !== window.parent || !m || (m.type !== 'ds8:fight' && m.type !== 'ds8:roam') || E.B) return;
       if (m.type === 'ds8:roam') E.roam(m); else E.start(m);
     });

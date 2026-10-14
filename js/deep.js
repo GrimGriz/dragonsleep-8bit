@@ -497,6 +497,10 @@
       nh.ko = !!x.h.ko; nh.hp = nh.ko ? 0 : Math.max(1, Math.min(nh.hp, Math.round(nh.maxhp * x.h.hp / Math.max(1, x.h.maxhp))));
       x.h = nh;
     });
+    // a save in the Wet (the roam's SAVE on the floor, 10-14, Griz: "SAVE on the floor ... then reopen the floor where they stood"): a load opens the floor again on the square
+    // it was saved on, as the warp in does (a load fires no map's enter hook); the 8-bit's own Wet when the roam is off (DS.roam8.on)
+    var F0 = DS.field;
+    if (F0 && F0.map && F0.map.id === 'warrens_d' && DS.roam8 && DS.roam8.on()) DS.run(function* () { yield* DS.roam8.enter(); });
   };
   EV.dropGuests = function () { G().guests = []; };
   EV.dropGuest = function (key) { var g = G(); g.guests = (g.guests || []).filter(function (x) { return x.id !== key; }); };

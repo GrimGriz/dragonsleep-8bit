@@ -235,6 +235,7 @@
     B.menuOrder = function () { R0.keys.push('order'); };
     B.menuAct = function (kind, a, unitOf) { return R.menuAct(B, kind, a, unitOf); };
     B.menuClosed = function () { R.regear(B); };
+    B.menuSave = function () { return R.canSave(B); }; // (SAVE on the M menu out of a fight, inside the 8-bit: R.save)
     B.floorMarks = function (c) { R.floorMarks(c, B); }; B.marksOver = function (c) { R.marksOver(c, B); }; // (ORDER's box on the floor, under the figures: ui.js drawBattle's hook)
     if (!R.emb && !/[?&]save\b/.test(R.q) && !(B.inv || []).some(function (s) { return s.id === 'lantern' && s.n > 0; })) (B.inv = B.inv || []).push({ id: 'lantern', n: 1 });
     // walked in from a save, the pack is the party's own: no loan (every grid fight not opened from inside the 8-bit lends a crossbow, bolts, arrows and a rope -- js/save.js
@@ -316,6 +317,7 @@
       var trk = R.tracking(R0);
       if (k === 'order') { if (trk.length) { D.sfx('miss'); B.card(['{g}Not with them coming.{/}'], 120); } else yield* R.order(B); continue; }
       if (k === 'haul') { if (!trk.length && R.floatInReach(B)) yield* R.ropeHaul(B); continue; }
+      if (k === 'save') { if (R.canSave(B)) yield* R.save(B); continue; }
       if (k === 'use') { var un = R.useNear(B); if (un && !trk.length) yield* R.fire(B, un.trig, un.sq); else D.sfx('miss'); continue; }
       if (k === 'fight') { if (trk.length) yield* R.engage(B, trk[0], false, 'yours'); else yield* R.encounter(B, 'asked'); continue; }
       var ck = R0.clicks.shift();
@@ -496,6 +498,7 @@
     if (trig.id === 'stair') { yield* R.stairScene(B, trig, at); return; }
     if (trig.id === 'bucket') { yield* R.bucketScene(B, trig, at); return; }
     if (trig.id === 'chest') { yield* R.chestScene(B, trig.chest); return; }
+    if (/^deepCradle\d$/.test(trig.id)) { yield* R.cradle(B, trig, at); return; }
     B.card(['{y}' + trig.id + '{/}: the 8-bit\'s scene (' + trig.script + ') runs here.', '{g}(in the test only the Settling\'s squares, the drowned stair, the rune and the puddle ooze do anything){/}'], 300);
     D.sfx('popup'); yield 30;
   };
@@ -808,9 +811,9 @@
   // E.roamOut, 'd16:roam'; js/embed.js there applies it and takes its own warp from the square). Each sheet whole -- the XP and levels the floor paid (R.pay), its hurt, slots and
   // uses, what lasts, its EQUIP, the light in its hand; the pack as the change since the party walked on (inv0 and inv1, as a fight's -- R.handback's check said with it); the
   // flags, the kill tally and the purse as the floor left them; the 8-bit square they left by. A fall is the 8-bit's game over
-  R.leaveFloor = function* (B, result, at) {
-    var R0 = B.roam; if (R0.out) return; R0.out = true; R0.mode = 'over';
-    var hb = R.handback(B), inv1 = R.counts(B.inv);
+  // the message itself: R.leaveFloor's at a way off the floor ('d16:roam'), R.handOut's from the middle of it ('d16:hand')
+  R.handMsg = function (B, type, result, at) {
+    var R0 = B.roam, hb = R.handback(B), inv1 = R.counts(B.inv);
     (B.lights || []).forEach(function (l) { if (l.kind === 'lantern' && l.item && R0.members.some(function (m) { return m.id === l.by; })) inv1[l.item] = (inv1[l.item] || 0) + 1; });
     var party = R0.members.filter(function (u) { return u.src; }).map(function (u) {
       var h = JSON.parse(JSON.stringify(u.src));
@@ -818,12 +821,59 @@
       h.conds = Object.assign({}, h.conds || {}, R.lasting(u.conds)); if (!(u.conds && u.conds.mageArmor)) delete h.conds.mageArmor;
       return { id: h.key || h.id, guest: !!h.guest, sheet: h, torch: u.torch && u.torch.lit !== false && u.hp > 0 ? (L.kindOf(u.torch) === 'lantern' ? (u.torch.item || 'lantern') : 'torch') : false };
     });
-    var msg = { type: 'd16:roam', result: result, exit8: at ? R.def.to8(at[0], at[1]) : null, party: party, inv0: R0.inv0 || {}, inv1: inv1, flags: JSON.parse(JSON.stringify(R0.flags)),
+    return { type: type, result: result, exit8: at ? R.def.to8(at[0], at[1]) : null, party: party, inv0: R0.inv0 || {}, inv1: inv1, flags: JSON.parse(JSON.stringify(R0.flags)),
       kills: JSON.parse(JSON.stringify(R0.kills || {})), silver: R0.silver, warn: hb.warn, order: R0.members.map(function (u) { return u.src ? (u.src.key || u.src.id) : u.id; }),
       familiar: R.famOut(R0) }; // (as a fight hands it back: js/embed.js famBack)
+  };
+  R.leaveFloor = function* (B, result, at) {
+    var R0 = B.roam; if (R0.out) return; R0.out = true; R0.mode = 'over';
+    var msg = R.handMsg(B, 'd16:roam', result, at);
     R.lastOut = msg;
     if (D.embed && D.embed.roamOut) D.embed.roamOut(msg);
     yield 1;
+  };
+  // a hand-back from the middle of the floor (10-14, Griz: "SAVE on the floor and the cradles by a hand-back to the 8-bit, then reopen the floor where they stood"), inside the
+  // 8-bit only: everything the floor changed goes over as at a stair (R.handMsg, 'd16:hand') with the square the token stands on and the way it faces; the 8-bit sets the frame
+  // aside, plays its own scene (js/embed.js DS.roam8.hand) and sends back what that scene changed ('ds8:resume': deep16/js/embed.js, R.resumed). The floor never closes -- its
+  // groups, its spent triggers, the formation stay as they were -- and its count starts again from what it handed over (the pack's baseline, the ledger), so the stair hands
+  // nothing over twice. Returns the 8-bit's word, or null outside the 8-bit
+  R.DIR8 = { '-1,0': 'up', '1,0': 'down', '0,-1': 'right', '0,1': 'left' }; // (the 8-bit's facing for the token's: R.setup's fw8 the other way)
+  R.handOut = function* (B, kind, extra) {
+    var R0 = B.roam, t = R0.token;
+    if (!R.emb || !D.embed || !D.embed.roamOut) return null;
+    var msg = Object.assign(R.handMsg(B, 'd16:hand', null, [t.x, t.y]), { kind: kind, dir: R.DIR8[R0.fw[0] + ',' + R0.fw[1]] || null }, extra || {});
+    var mode0 = R0.mode; R0.mode = 'hand'; R0.resume = null; R.lastHand = msg;
+    D.embed.roamOut(msg);
+    while (!R0.resume) yield 1;
+    var m = R0.resume; R0.resume = null; R0.mode = mode0;
+    // what the 8-bit's scene changed, on the floor too: the pack by id (and in the baseline, since the 8-bit holds it already), the flags, the purse
+    var inv0 = JSON.parse(JSON.stringify(msg.inv1));
+    Object.keys(m.inv || {}).forEach(function (id) {
+      var d = m.inv[id], s = (B.inv || []).filter(function (x) { return x.id === id; })[0];
+      if (s) s.n = Math.max(0, s.n + d); else if (d > 0) (B.inv = B.inv || []).push({ id: id, n: d });
+      inv0[id] = Math.max(0, (inv0[id] || 0) + d);
+    });
+    Object.assign(R0.flags, m.flags || {}); if (m.silver != null) R0.silver = m.silver;
+    R0.inv0 = inv0; R0.pack0 = R.owned(B); R0.ledger = [];
+    return m;
+  };
+  R.resumed = function (m) { var B = (D.embed && D.embed.B) || D.battle; if (B && B.roam) B.roam.resume = m; };
+  // SAVE on the floor (10-14, his "SAVE on the floor ... by a hand-back"): out of a fight, nothing coming, inside the 8-bit -- the 8-bit's own slots, on the square the party stands
+  // on (a load opens the floor there again: js/deep.js); the M menu's SAVE (deep16/js/ui.js gridHost canSave, through B.menuSave, and R.menuAct)
+  R.canSave = function (B) { var R0 = B.roam; return !!(R.emb && D.embed && D.embed.roamOut && R0.mode === 'walk' && !R.tracking(R0).length); };
+  R.save = function* (B) { var m = yield* R.handOut(B, 'save'); if (m && m.saved) { B.card(['{g}' + m.saved + '{/}'], 200); yield 10; } };
+  // a cradle (the 8-bit's deep rate, RULED 09-30g; js/events.js EV.deepRate): the 8-bit's own scene by a hand-back, the floor again after it; the animal roused, the fight is on
+  // the floor at its cradle -- the milker on the square the party worked it from, stiff with the poison if the touch took (the Settling's harness: deep16/js/wet.js)
+  R.cradle = function* (B, trig, at) {
+    var R0 = B.roam;
+    if (!R.emb) { B.card(R.wrap(['{y}the cradle{/}: the deep rate is the 8-bit\'s own scene -- inside the game the floor hands the party back for it (?at=roam).']), 300); D.sfx('popup'); yield 30; return; }
+    var m = yield* R.handOut(B, 'cradle', { n: +String(trig.id).replace(/\D/g, '') || 0 }), c = m && m.cradle;
+    if (!c || !c.roused) return;
+    yield* R.encounter(B, 'set', { list: ['crawler'], at: at, line: R.say8('w.deepRoused'), how: 'loose at its cradle', onSpill: function (B2) {
+      var mk = R0.members.filter(function (u) { return u.id === c.milker && u.hp > 0; })[0], ld = R0.token;
+      if (mk && mk !== ld) { var x = mk.x, y = mk.y; mk.x = ld.x; mk.y = ld.y; ld.x = x; ld.y = y; G.setup(G.map, B2.units); }
+      if (mk && c.touched) { mk.conds.poisoned = { paralysis: true }; mk.conds.paralyzed = { save: 'con', dc: 13, by: 'harness', poison: true }; }
+    } });
   };
   // the hand-back said at a way off the floor: what the 8-bit's pack would take, and the check's word
   R.packCard = function (B) {
@@ -1015,7 +1065,7 @@
     var who = R.whoOf(B, placed);
     var sees = sight.lightBy ? sight.lightBy + ' ' + sight.lightFt + ' ft' : 'no light';
     if (sight.dv) sees += ', ' + sight.dvBy + '\'s darkvision ' + sight.dv + ' ft';
-    var grp = { foes: placed, why: why, mode: 'approach', motivated: R.hunts(p.grp, placed), rolled: false, stall: 0, t: B.t, seenAt: distFt, flag: set && set.flag, trig: set && set.trig, zone: set ? null : R.zoneAt(B, t.x, t.y) || 'warrens_d' }; // (zone: the tally's, as the 8-bit's EV.encounter sends it)
+    var grp = { foes: placed, why: why, mode: 'approach', motivated: R.hunts(p.grp, placed), rolled: false, stall: 0, t: B.t, seenAt: distFt, flag: set && set.flag, trig: set && set.trig, onSpill: set && set.onSpill, zone: set ? null : R.zoneAt(B, t.x, t.y) || 'warrens_d' }; // (zone: the tally's, as the 8-bit's EV.encounter sends it)
     R0.last = { why: why, who: who, kinds: placed.map(function (u) { return u.kind; }), spot: spot, distFt: distFt, how: how, sightFar: sight.far, lightFt: sight.lightFt, dv: sight.dv, lurk: lurk, motivated: grp.motivated, ms: ms, at: [t.x, t.y] };
     R0.log.push(R0.last); R0.sightV = sight.v; // (the map's picture of what they saw: R.paintMap)
     D.sfx('encounter');
@@ -1058,6 +1108,7 @@
     B.units.forEach(function (u) { if (u.side === 'foe' && foes.indexOf(u) < 0) u.roamAside = true; });
     // the spill: the token's party out onto their formation, as near as the floor allows
     L0.spill = R.spill(B, {});
+    if (grp && grp.onSpill) grp.onSpill(B); // (a set fight's own seating after the spill: the cradle's milker -- R.cradle)
     B.exits = [];
     B.card(['{r}THE FIGHT{/}: ' + L0.contactFt + ' ft between them' + (why === 'yours' ? ' -- yours to open' : '') + '.', '{g}A way out: the stairs, or a square a full move clear of every one of them (the pale squares on your turn). One of you out takes the party with them.{/}'], 420);
     yield 50;
@@ -1351,6 +1402,7 @@
   R.menuAct = function (B, kind, a, unitOf) {
     var R0 = B.roam, it = a && a.id ? window.DS.DATA.items[a.id] : null, u = a && a.h ? unitOf(a.h) : null;
     var take = function () { var s = (B.inv || []).filter(function (x) { return x.id === a.id; })[0]; if (s) s.n--; };
+    if (kind === 'save') { if (R.canSave(B)) { R0.keys.push('save'); B.menu = null; if (B.menuClosed) B.menuClosed(); } return true; } // (SAVE on the floor: R.save, the menu shut first)
     if (kind === 'item' && it && it.use) {
       var who = u || R0.token, eff = it.use.effect;
       // the Rope & Grapple from the menu (R.ropeUse): the one floating at the deep end, if the hook can reach it from where the party stands -- the haul, as ROPE THEM OUT

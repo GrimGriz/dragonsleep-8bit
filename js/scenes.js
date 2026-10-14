@@ -392,6 +392,7 @@
       onCancel: function () { DS.pop(self); }
     });
   }
+  DS.SlotScene = SlotScene; // (the roam's SAVE on the floor opens it from the seam: js/embed.js DS.roam8.hand)
   SlotScene.prototype.update = function () { if (this.done > 0) { if (--this.done === 0) DS.pop(this); return; } this.menu.update(); };
   SlotScene.prototype.draw = function (ctx) {
     this.menu.draw(ctx);

@@ -881,7 +881,9 @@
   // silver a thimble (TarlynsPit/WarrensModule/crawler-warrens-DM.md §3: "DC 15 at the wet"; "A natural 1 on the deep rate rouses the animal
   // entirely"). A whip rouses it: the shift is over, and the fight is on the wet's grid, the crawler loose at its cradle, the milker beside it
   var DEEP_CRADLES = [[15, 6], [35, 6], [24, 16]]; // (mapgen.py's deepCradle0-2, in this order)
-  S.deepCradle = function* (n) {
+  // the shift itself -- the ask, who milks, the scene, the pay -- one copy for the 8-bit's cradle and the grid's floor (the roam hands the party back for it, 10-14, Griz:
+  // "SAVE on the floor and the cradles by a hand-back to the 8-bit, then reopen the floor where they stood"): { n, roused, milker, touched }, or nothing when they leave it
+  EV.deepRate = function* (n) {
     var g = G();
     if (!g.flags.tallyMet) { yield DS.say(L('w.deepNoBook')); return; }
     var a = yield DS.ask(L('w.deepAsk'), ['WORK THE DEEP RATE', 'LEAVE']);
@@ -913,9 +915,13 @@
     g.flags.deepShifts = (g.flags.deepShifts || 0) + 1;
     lines.push(L('w.deepPaid', { n: got, s: pay }));
     yield DS.say(lines);
-    if (!r || !r.roused) return;
+    return { n: n, roused: !!(r && r.roused), milker: h.id, touched: !!(r && r.touched) };
+  };
+  S.deepCradle = function* (n) {
+    var g = G(), d = yield* EV.deepRate(n);
+    if (!d || !d.roused) return;
     yield DS.say(L('w.deepRoused'));
-    var res = yield* EV.fight(['crawler'], { bg: 'wet', music: 'boss', canRun: true, deep16: 'wet', wake: 'harness', harness: DEEP_CRADLES[n] || DEEP_CRADLES[0], at: [g.x, g.y], milker: h.id, touched: !!r.touched });
+    var res = yield* EV.fight(['crawler'], { bg: 'wet', music: 'boss', canRun: true, deep16: 'wet', wake: 'harness', harness: DEEP_CRADLES[n] || DEEP_CRADLES[0], at: [g.x, g.y], milker: d.milker, touched: d.touched });
     yield* EV.wetOut(res);
   };
   S.jelly = function* () { var g = G(); yield DS.say(L('w.jelly')); var res = yield* EV.fight(['ochrejelly'], { bg: 'wet', music: 'boss', canRun: true, deep16: 'wet', wake: 'jelly', at: [g.x, g.y] }); yield* EV.wetOut(res); };

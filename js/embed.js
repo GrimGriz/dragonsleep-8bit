@@ -94,9 +94,14 @@
   DS.roam8 = {
     on: function () { var f = DS.G.flags; return !/[?&]noroam\b/.test(location.search) && !(f.stairHook && !f.keeperWater); },
     enter: function* () {
-      var g = DS.G, back = null;
-      open({ roam: true }, function (m) { back = m; });
-      yield DS.W8.until(function () { return !!back; });
+      var g = DS.G, back = null, hand = null, o = { roam: true, onHand: function (m) { hand = m; } };
+      open(o, function (m) { back = m; });
+      for (;;) { // (a hand-back from the middle of the floor -- SAVE, a cradle -- and the floor again, as often as it asks: DS.roam8.hand)
+        yield DS.W8.until(function () { return !!back || !!hand; });
+        if (back) break;
+        var hm = hand; hand = null;
+        o.resume(yield* DS.roam8.hand(hm));
+      }
       if (back.type !== 'd16:roam') { if (back.type === 'd16:crash') yield DS.say(FALTERED.replace('The fight goes on here.', 'The Wet goes on here.')); return; }
       DS.roam8.apply(back);
       if (back.result === 'lose') { DS.audio.play('gameover'); DS.push(new DS.GameOver()); return; }
@@ -120,6 +125,23 @@
       if (d.kills) g.kills = d.kills; if (d.silver != null) g.silver = d.silver;
       if (d.order) { var ord = d.order; g.party.sort(function (a, b) { var ia = ord.indexOf(a.id), ib = ord.indexOf(b.id); return (ia < 0 ? 99 : ia) - (ib < 0 ? 99 : ib); }); } // (a leader changed by ORDER on the floor leads the 8-bit's party too)
       if (d.warn && d.warn.length) console.warn('THE ROAM, the pack at the stairs: ' + d.warn.join('; '));
+    },
+    // a hand-back from the middle of the floor (10-14, Griz: "SAVE on the floor and the cradles by a hand-back to the 8-bit, then reopen the floor where they stood"): the
+    // frame set aside (open's onHand), everything the floor changed applied as at a stair, the party stood on the 8-bit square they stand on, the 8-bit's own scene -- its SAVE
+    // (the slots: a load opens the floor again there, js/deep.js), a cradle's deep rate (js/events.js EV.deepRate) -- and back to the floor with what that scene changed:
+    // the pack (inv, by id), the flags, the purse, and its word (the cradle's crawler roused, who milked, the touch)
+    hand: function* (m) {
+      var g = DS.G, f = DS.field, counts = function () { var c = {}; (g.inv || []).forEach(function (s) { var id = Array.isArray(s) ? s[0] : s.id, n = Array.isArray(s) ? s[1] : s.n; if (n > 0) c[id] = (c[id] || 0) + n; }); return c; };
+      DS.roam8.apply(m);
+      if (m.exit8) { g.x = m.exit8[0]; g.y = m.exit8[1]; if (m.dir) g.dir = m.dir; if (f) { f.px = g.x * 16; f.py = g.y * 16; f.moving = false; } }
+      var inv0 = counts(), fl0 = JSON.parse(JSON.stringify(g.flags)), out = {};
+      if (m.kind === 'save') { var sv = new DS.SlotScene(true); yield DS.W8.scene(sv); out.saved = /^Saved/.test(sv.msg || '') ? sv.msg : null; }
+      if (m.kind === 'cradle') out.cradle = (yield* DS.EV.deepRate(m.n)) || null;
+      var inv1 = counts(); out.inv = {};
+      Object.keys(inv0).concat(Object.keys(inv1)).forEach(function (id) { var d = (inv1[id] || 0) - (inv0[id] || 0); if (d) out.inv[id] = d; });
+      out.flags = {}; Object.keys(g.flags).forEach(function (k) { if (JSON.stringify(g.flags[k]) !== JSON.stringify(fl0[k])) out.flags[k] = g.flags[k]; });
+      out.silver = g.silver;
+      return out;
     }
   };
   // DEEP16 up over the screen; the 8-bit game holds still under it (DS.paused) until the fight comes back
@@ -135,6 +157,10 @@
       if (DS.canvas) DS.canvas.focus();
       done(m);
     }
+    // the floor's hand-back from its middle (the roam's 'd16:hand', DS.roam8.hand): the frame set aside, not closed -- the 8-bit awake for its own scene -- then up again
+    // with that scene's word ('ds8:resume') and the 8-bit held still under it once more
+    function aside(m) { fr.style.visibility = 'hidden'; DS.paused = false; DS.input.flush(); if (DS.canvas) DS.canvas.focus(); o.onHand(m); }
+    o.resume = function (data) { if (closed) return; fr.style.visibility = ''; DS.paused = true; DS.input.flush(); try { fr.contentWindow.focus(); } catch (e) { } fr.contentWindow.postMessage(Object.assign({ type: 'ds8:resume' }, data || {}), '*'); };
     // the guests the 8-bit battle would field (standing, and none for a lone fighter or a noGuests fight), each by its key
     // (two troopers are pinA and pinB, both 'trooper' underneath)
     var guests = o.solo == null && !o.noGuests ? (g.guests || []).filter(function (x) { return !x.h.ko && x.h.hp > 0; }) : [];
@@ -142,6 +168,7 @@
     function onMsg(e) {
       var m = e.data;
       if (e.source !== fr.contentWindow || !m) return;
+      if (m.type === 'd16:hand' && o.onHand) { aside(m); return; }
       // the lone investigator (the wagon night's INVESTIGATE): the 8-bit battle's `solo` (a party index) goes over as the hero's
       // id, with `join`, the round the rest come out of the inn
       var solo = o.solo != null && g.party[o.solo] ? g.party[o.solo].id : null;

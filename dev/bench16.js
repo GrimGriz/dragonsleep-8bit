@@ -2495,6 +2495,38 @@
       driveZ(BF.co, function () { return !!outF; }, 600);
       okZ('out by the stair up: the message carries the familiar gone (' + JSON.stringify(outF && outF.familiar) + ')', !!outF && !!outF.familiar && outF.familiar.gone === true);
       if (D.embed) D.embed.roamOut = roF;
+      // SAVE on the floor and the cradles (10-14, Griz: "SAVE on the floor and the cradles by a hand-back to the 8-bit, then reopen the floor where they stood"): inside the 8-bit
+      // the M menu's SAVE (out of a fight only) and a cradle hand the party over ('d16:hand') from the square the token stands on, and the floor waits, as it was, for the 8-bit's
+      // word ('ds8:resume'); what the scene changed comes onto the floor and into its count (the stair hands nothing over twice); a roused crawler is fought on the floor at its
+      // cradle, the milker on the square they worked it from, stiff if the touch took
+      while (D.scenes.length > 1) D.pop();
+      var saveH = D.save.fixture(3); saveH.inv = [{ id: 'draught', n: 2 }, { id: 'potion', n: 1 }]; saveH.flags = { tallyMet: 1 }; saveH.silver = 50;
+      var outH = [], roH = D.embed && D.embed.roamOut; if (D.embed) D.embed.roamOut = function (m) { outH.push(m); };
+      var BH = D.roam.make('?roam=wet&watch', { save: saveH, opts: { at8: [2, 12], dir: 'right', dark: true } }); D.scenes.length = 0; D.push(BH); D.battle = BH; BH.enter();
+      var RH = BH.roam; RH.spent.handTest = 1;
+      var canW = !!(BH.menuSave && BH.menuSave()); RH.mode = 'fight'; var canF = !!(BH.menuSave && BH.menuSave()); RH.mode = 'walk';
+      D.roam.menuAct(BH, 'save', {}, null);
+      driveZ(BH.co, function () { return outH.length > 0; }, 400);
+      var hS = outH[0] || {}, waitS = RH.mode === 'hand'; driveZ(BH.co, null, 30); var stillS = RH.mode === 'hand' && outH.length === 1;
+      if (D.roam.resumed) D.roam.resumed({ type: 'ds8:resume', saved: 'Saved to slot 2.', inv: {}, flags: {}, silver: 50 });
+      driveZ(BH.co, function () { return RH.mode === 'walk'; }, 200);
+      okZ('SAVE on the M menu out of a fight (' + canW + '; in one ' + canF + '): the party handed over from where it stands (' + hS.type + ', ' + hS.kind + ', 8-bit ' + hS.exit8 + ' facing ' + hS.dir + '), the floor waiting on the 8-bit (' + waitS + ', ' + stillS + '); back as it was (' + (D.top() === BH && BH.roam === RH && RH.spent.handTest === 1) + '), walking (' + RH.mode + ')',
+        canW && !canF && hS.type === 'd16:hand' && hS.kind === 'save' && String(hS.exit8) === '2,12' && hS.dir === 'right' && waitS && stillS && D.top() === BH && BH.roam === RH && RH.spent.handTest === 1 && RH.mode === 'walk');
+      outH = [];
+      var atC = D.roam.def.from8(15, 6), trC = D.roam.useAt(BH, atC[0], atC[1]), nbC = null;
+      for (var yC = -1; yC <= 1 && !nbC; yC++) for (var xC = -1; xC <= 1 && !nbC; xC++) if ((xC || yC) && GZ.canStand(RH.token, atC[0] + xC, atC[1] + yC)) nbC = [atC[0] + xC, atC[1] + yC];
+      RH.token.x = nbC[0]; RH.token.y = nbC[1]; RH.token.tween = null; GZ.setup(GZ.map, BH.units);
+      var gC = D.roam.fire(BH, trC, atC);
+      driveZ(gC, function () { return outH.length > 0; }, 200);
+      var hC = outH[0] || {}, standC = [RH.token.x, RH.token.y].join(',');
+      if (D.roam.resumed) D.roam.resumed({ type: 'ds8:resume', inv: { draught: -1 }, flags: { deepShifts: 1 }, silver: 59, cradle: { n: 0, roused: true, milker: 'aurdin', touched: true } });
+      driveZ(gC, function () { return !!(RH.last && RH.last.spill && RH.last.kinds && RH.last.kinds[0] === 'crawler'); }, 600);
+      var drC = (BH.inv || []).filter(function (s) { return s.id === 'draught'; })[0], crC = BH.units.filter(function (u) { return u.side === 'foe' && u.kind === 'crawler' && !u.dead; })[0], auC = RH.members.filter(function (u) { return u.id === 'aurdin'; })[0];
+      okZ('a cradle (' + (trC && trC.id) + '): handed over for the deep rate (' + hC.type + ', ' + hC.kind + ', cradle ' + hC.n + '); its changes on the floor -- the purse ' + RH.silver + ' (want 59), deepShifts ' + RH.flags.deepShifts + ', a draught drunk (' + (drC && drC.n) + ' left) and the count starting from it (' + (RH.inv0 || {}).draught + ', want 1)',
+        trC && trC.id === 'deepCradle0' && hC.type === 'd16:hand' && hC.kind === 'cradle' && hC.n === 0 && RH.silver === 59 && RH.flags.deepShifts === 1 && drC && drC.n === 1 && (RH.inv0 || {}).draught === 1);
+      okZ('roused: the crawler loose at its cradle (' + (crC ? [crC.x, crC.y] + ', ' + Math.max(Math.abs(crC.x - atC[0]), Math.abs(crC.y - atC[1])) + ' squares off' : 'none') + '), Aurdin who milked it on the square they worked it from (' + [auC.x, auC.y] + ', want ' + standC + '), stiff with the poison (' + !!(auC.conds && auC.conds.paralyzed) + ')',
+        !!crC && Math.max(Math.abs(crC.x - atC[0]), Math.abs(crC.y - atC[1])) <= 4 && [auC.x, auC.y].join(',') === standC && !!(auC.conds && auC.conds.paralyzed));
+      if (D.embed) D.embed.roamOut = roH;
     } catch (eZ) { repZ.errors.push(String(eZ && eZ.stack || eZ).slice(0, 900)); }
     D.store.get = stGZ; D.store.set = stSZ; IZ.held.up = false; IZ.held.left = false; window.DS.autoPicks = apZ;
     if (errs.length) repZ.errors = repZ.errors.concat(errs);
