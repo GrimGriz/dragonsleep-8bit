@@ -2374,6 +2374,27 @@
       occ(); var cutNow = band.filter(function (q) { return faceAt(q[0], q[1]) === 'near'; }).length;
       putJ([12, 30]); occ(); var backNow = band.filter(function (q) { return faceAt(q[0], q[1]) === 'far'; }).length;
       okZ('a face in front of the party cut while it hides them: ' + band.length + ' in the token\'s column behind the works corridor, cut ' + cutNow + ', whole again once it walks off ' + backNow, band.length > 0 && cutNow === band.length && backNow === band.length);
+      // his play, 10-14: "did a party escape with viv, then snapped back into fight coz ly was on trigger square" · "the camera goes to somewhere around 5, 13 (twice) when it
+      // should go to the landlord or the party" -- Vivian gets out standing on the landlord's rim: the party is set down beside it, off the rim, and nothing pulls it back in
+      while (D.top() !== BJ && D.scenes.length > 1) D.pop(); D.battle = BJ; delete RJ.flags.otyughFed; delete RJ.flags.otyughDead; RJ.spent = {}; RJ.groups = [];
+      RJ.members.forEach(function (u) { u.hp = u.maxhp; u.ko = false; u.left = false; u.dead = false; });
+      var rimE = at8(8, 8), vE = RJ.members.filter(function (u) { return u.id === 'vivian'; })[0]; vE.x = rimE[0]; vE.y = rimE[1]; vE.left = true; vE.dead = true; RJ.mode = 'fight';
+      var gE2 = D.roam.after(BJ, 'escaped', { zone: 'warrens_d' }, []), pulledE = false;
+      for (var kE = 0; kE < 1500; kE++) { if (D.top() !== BJ) { pulledE = true; break; } var stE = gE2.next(); if (stE.done) break; if (typeof stE.value === 'number') BJ.t += stE.value; }
+      if (pulledE) { var tE = D.top(); tE.enter(); D.pop(); tE.o.onDone('escaped'); driveZ(gE2, null, 2000); }
+      var onTrap = D.roam.trapAt ? D.roam.trapAt(BJ, RJ.token.x, RJ.token.y) : null, p8E = D.roam.def.to8(RJ.token.x, RJ.token.y);
+      okZ('Vivian out on the landlord\'s rim: the party set down at 8-bit ' + p8E + ' (on a trigger ' + onTrap + '), not pulled back in (' + !pulledE + ')', !pulledE && onTrap === false);
+      // the Settling's camera on the party where it stepped in, and what was said in there in the floor's log after
+      putJ(at8(9, 10)); var gC = D.roam.pullIn(BJ, 'wet', { id: 'landlordStep' }, at8(8, 8)); for (var kC2 = 0; kC2 < 400 && D.top() === BJ; kC2++) gC.next();
+      var bC = D.top(), camOk = null, saidIn = 0;
+      if (bC !== BJ) {
+        bC.enter(); var leadC = bC.units.filter(function (u) { return u.id === RJ.token.id; })[0], aC = leadC && D.fx.at(leadC), cc = aC && D.iso.center(aC.gx, aC.gy, aC.gz); // (where focus aims: the figure, js/battle.js Battle.focus)
+        camOk = !!(cc && Math.abs(D.iso.cam.x - cc.x) <= 2 && Math.abs(D.iso.cam.y - (cc.y - 20)) <= 2); // (js/iso.js lookAt sits the camera 20 px over the figure)
+        bC.card(['The bench says a line in the Settling.'], 60); saidIn = (bC.logEntries || []).length;
+        D.pop(); bC.o.onDone('escaped'); driveZ(gC, null, 2000);
+      }
+      var tagged = (BJ.log || []).filter(function (l) { return /\[the Settling\]/.test(l); }).length;
+      okZ('the Settling\'s camera on the party where it stepped in (' + camOk + '); what was said in there in the floor\'s log after (' + tagged + ' of ' + saidIn + ' lines)', camOk && saidIn > 0 && tagged >= saidIn);
     } catch (eZ) { repZ.errors.push(String(eZ && eZ.stack || eZ).slice(0, 900)); }
     D.store.get = stGZ; D.store.set = stSZ; IZ.held.up = false; IZ.held.left = false;
     if (errs.length) repZ.errors = repZ.errors.concat(errs);

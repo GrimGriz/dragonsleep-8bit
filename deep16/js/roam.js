@@ -626,6 +626,7 @@
         if (q) { u.x = q[0]; u.y = q[1]; taken[q[0] + ',' + q[1]] = 1; }
       });
       G.setup(m, this.units);
+      this.focus(lead); // (the camera on the party where it stepped in, not on the map's own way in -- 10-14, his play: "the camera goes to somewhere around 5, 13")
     };
     // a peaceful bucket (Griz, 10-13: "Peaceful bucket should re-assemble the party token"): the landlord fed and nothing else up -- no ooze or jelly woken, no
     // crawler roused -- and the Settling is over at the next turn that waits on a player (after the landlord's pictures), the party back into the token where it stands
@@ -648,6 +649,10 @@
     while (!done) yield 1; // (the floor waits under it: only the top scene runs -- js/core.js)
     // back on the floor: the four's hit points as the fight left them; the trigger spent if the fight was won
     D.battle = B; G.setup(B.map, B.units); D.iso.map = B.map;
+    // what was said in there, in the floor's log after it (the pulled-in fight's own log goes with it: his pane history had nothing of a Settling, 10-14)
+    var tag = which === 'keeper' ? '[the Keeper] ' : '[the Settling] ';
+    B.logEntries = (B.logEntries || []).concat((b.logEntries || []).map(function (e) { return { id: null, text: e.text.replace(/^(R\d+ )/, '$1' + tag) }; }));
+    B.log = B.logEntries.map(function (e) { return e.text; });
     // each of the four as that fight left them (the 8-bit seam's own crossings, js/embed.js): hit points, slots and uses; what lasts (Mage Armor, Darkvision, a Continual Flame);
     // the max HP the herd drained, for good; EQUIP done in there (a weapon drawn, a shield slung -- 10-14, his "used crossbow in fight, dagger equipped after": a swap in a pulled-in
     // fight wrote only that fight's copy of the sheet, while its pack came back whole with the stowed weapon in it); the light still lit in a hand
@@ -679,7 +684,7 @@
       var outU = ws.filter(function (u) { return u.left; })[0], upU = ws.filter(function (u) { return !u.left && u.hp > 0 && !u.dead; })[0], src = outU || upU;
       if (src) {
         var wW = (D.MAPS.wet.rows[0] || '').length, tok = R0.token, q0 = [src.x, src.y], best = null;
-        if (outU) for (var dy = -1; dy <= 1 && !best; dy++) for (var dx = -1; dx <= 1 && !best; dx++) { var nx = src.x + dx, ny = src.y + dy, s1 = G.map.at(nx, ny); if (s1 && s1.walk && nx >= wW && G.canStand(tok, nx, ny)) best = [nx, ny]; }
+        if (outU) for (var pass = 0; pass < 2 && !best; pass++) for (var dy = -1; dy <= 1 && !best; dy++) for (var dx = -1; dx <= 1 && !best; dx++) { var nx = src.x + dx, ny = src.y + dy, s1 = G.map.at(nx, ny); if (s1 && s1.walk && nx >= wW && G.canStand(tok, nx, ny) && (pass || !R.trapAt(B, nx, ny))) best = [nx, ny]; } // (off a trigger square first: away is away)
         if (!best && G.canStand(tok, q0[0], q0[1])) best = q0;
         if (!best) for (var r = 1; r <= 3 && !best; r++) for (var dy2 = -r; dy2 <= r && !best; dy2++) for (var dx2 = -r; dx2 <= r && !best; dx2++) if (G.canStand(tok, q0[0] + dx2, q0[1] + dy2)) best = [q0[0] + dx2, q0[1] + dy2];
         if (best) { tok.x = best[0]; tok.y = best[1]; tok.tween = null; G.setup(G.map, B.units); }
@@ -698,6 +703,11 @@
     if (which === 'keeper' && done === 'won') yield* R.five(B, how === 'rope' ? 'w.ropeOut' : 'w.keeperGone');
   };
   R.standing = function (R0) { return R0.members.filter(function (u) { return u.hp > 0 && !u.dead; }); };
+  // a square that does something when the party stands on it: a step trigger live on it, the stair's first row asking, a way off the floor
+  R.trapAt = function (B, x, y) {
+    var p = R.def.to8(x, y);
+    return !!(R.triggerAt(B, p[0], p[1], 'step') || R.wadeAsk(B, [x, y]) || (R.def.doors || []).some(function (d) { return d[0] === x && d[1] === y; }));
+  };
   // what a condition-set keeps past a fight (the 8-bit's finish clears the rest; js/embed.js carries these): Mage Armor till the long rest, the day's Darkvision, a Continual Flame
   R.LASTING = ['mageArmor', 'darkvision', 'continualFlame', 'aid'];
   R.lasting = function (c) { var o = {}; R.LASTING.forEach(function (k) { if (c && c[k]) o[k] = JSON.parse(JSON.stringify(c[k])); }); return o; };
@@ -1159,10 +1169,11 @@
     if (o === 'escaped' && outBy) {
       // one square past where the one who got out left: of the squares beside it, the one farthest by walking from the foes still up
       var fdist = function (x, y) { var best = Infinity; still.forEach(function (f) { var p = D.Battle.route(f, [x, y], false); best = Math.min(best, p ? p.length : 99); }); return best; };
-      var meet = [outBy.x, outBy.y], md = still.length ? fdist(outBy.x, outBy.y) : 0;
+      // (and not a trigger square, where one beside it is not: away is away -- 10-14, his play: "did a party escape with viv, then snapped back into fight coz ly was on trigger square")
+      var meet = [outBy.x, outBy.y], md = (still.length ? fdist(outBy.x, outBy.y) : 0) - (R.trapAt(B, outBy.x, outBy.y) ? 1000 : 0);
       for (var dy = -1; dy <= 1; dy++) for (var dx = -1; dx <= 1; dx++) {
         var nx = outBy.x + dx, ny = outBy.y + dy, s = G.map.at(nx, ny); if ((!dx && !dy) || !s || !s.walk || G.occupant(nx, ny)) continue;
-        var d = still.length ? fdist(nx, ny) : 0; if (d > md) { md = d; meet = [nx, ny]; }
+        var d = (still.length ? fdist(nx, ny) : 0) - (R.trapAt(B, nx, ny) ? 1000 : 0); if (d > md) { md = d; meet = [nx, ny]; }
       }
       R0.members.forEach(function (u) { if (u !== lead) FX.sparkle(u, 'glow', 10); });
       lead.x = meet[0]; lead.y = meet[1]; lead.tween = null;
@@ -1221,7 +1232,7 @@
     if (paid.length || xpL.length) { B.card(R.wrap([o === 'won' ? '{y}Victory!{/}' : '{y}What fell{/}'].concat(xpL, paid)), 420); yield 30; }
     yield 20;
     if (g2) g2.t = B.t; // (their hold starts when the party can move again, not during the gather's beat)
-    if (!byStair) yield* R.landed(B); // (the square the gather ends on (a stair getaway has said its own: off the floor), once, as if the party had come there: RULED 10-14, his "2 yes")
+    if (o === 'won') yield* R.landed(B); // (the square a won fight's gather ends on, once; a getaway sets the party down off any trigger and fires none -- his play, 10-14)
   };
 
   // what the fight left burning on the floor -- a torch dropped for a two-handed swing or thrown, a lantern set down -- is taken up as they gather: back
