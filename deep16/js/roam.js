@@ -60,6 +60,7 @@
     D.MAPS.wetwhole = {
       name: 'The Wet', sub: 'the whole floor, walked as one token', dark: true, step: 10, deepWater: 'D~',
       lampAt: wet.lampAt, lights: wet.lights, noBurrowAt: wet.noBurrowAt, // (the Settling's own: the same squares on the same turn)
+      sky: 20, // the cave's ceiling, 20 ft over the floor, as the roost's (js/grid.js G.flyTop): a darkmantle rolled at random hangs from it (10-13, Griz: "the whole area map needs a ceiling" -- "for if it rolls darkmantles as randoms")
       rows8: M8.rows, rows: R.turn(R8), from8: from8, to8: to8, src8: M8,
       entry: wet.entry, stairUp: wet.doors, doors: wet.doors.concat(at8([[41, 27], [42, 27]])), foes: []
     };
@@ -79,7 +80,7 @@
     R.def = R.wholeWet();
     R.q = q; R.PAD = num('pad', 4); R.FAR = num('far', 0); R.ENC = num('enc', 0); // (&far=0: no cap -- RULED 10-13 with the approach, his "1 yes")
     var lvl = num('lvl', 5), useSave = /[?&]save\b/.test(q);
-    var F = { map: 'wetwhole', foes: [], level: lvl, dark: !/[?&]lit\b/.test(q), entry: null };
+    var F = { map: 'wetwhole', foes: [], level: lvl, dark: !/[?&]lit\b/.test(q), entry: null, fliers: true }; // (fliers: one with wings keeps to the air, js/flight-ai.js)
     var o = useSave ? { fightDef: F } : { fightDef: F, ladder: true, level: lvl };
     var sd = /[?&]seed=(\d+)/.exec(q); if (sd) D.seed = +sd[1] | 0;
     R.party0 = o; // (a pulled-in fight walks in with the same four: the same level, or the same save)
@@ -151,7 +152,9 @@
     (Z ? Z.groups : []).forEach(function (g) { g.e.forEach(function (e2) { var f = D.FOES[e2[0]]; if (f && f.sheet && kinds.indexOf(f.sheet) < 0) kinds.push(f.sheet); }); });
     if (D.spr.prefetch) D.spr.prefetch(kinds);
   };
-  R.resetEnc = function (R0) { var Z = window.DS.DATA.encounters.warrens_d, r = (Z && Z.rate) || [18, 40]; return r[0] + D.rint(r[1] - r[0] + 1); };
+  // random fights at half the 8-bit's rate (RULED 10-13, Griz: "default random encounter rate down 50% from 8bit"): the 8-bit's count between them, doubled
+  R.RATE = 2;
+  R.resetEnc = function (R0) { var Z = window.DS.DATA.encounters.warrens_d, r = (Z && Z.rate) || [18, 40]; return (r[0] + D.rint(r[1] - r[0] + 1)) * R.RATE; };
   // off the floor and into the token (no walk: the setup's and the formation's quiet return)
   R.into = function (B, list) { list.forEach(function (u) { var j = B.units.indexOf(u); if (j >= 0) B.units.splice(j, 1); }); G.setup(G.map, B.units); B.cache = null; };
   R.zoneAt = function (B, x, y) {
@@ -208,8 +211,15 @@
           if (!R0.path) { D.sfx('miss'); B.card(['{g}No way there from here.{/}'], 120); }
         }
       }
-      var dir = I.held.up ? [-1, 0] : I.held.down ? [1, 0] : I.held.left ? [0, 1] : I.held.right ? [0, -1] : null; // (up is the 8-bit's north: the grid turned it to the upper left)
-      if (dir) { var nx = t.x + dir[0], ny = t.y + dir[1]; R0.path = G.canStand(t, nx, ny) ? [[nx, ny]] : null; if (!R0.path) t.facing = D.spr.facingFor(dir[0], dir[1]); }
+      // the arrows: the screen's own directions, a square's diagonal on the grid (10-13, Griz: "Can arrow keys default move diagonal?"); two at once are the grid's
+      // straight ways (up and right: the screen's upper right). A diagonal into a corner slides along the open side
+      var dx0 = (I.held.down ? 1 : 0) - (I.held.up ? 1 : 0) + (I.held.right ? 1 : 0) - (I.held.left ? 1 : 0), dy0 = (I.held.down ? 1 : 0) - (I.held.up ? 1 : 0) - (I.held.right ? 1 : 0) + (I.held.left ? 1 : 0);
+      var dir = dx0 || dy0 ? [Math.sign(dx0), Math.sign(dy0)] : null;
+      if (dir) {
+        var okS = function (x, y) { return G.canStand(t, x, y); }, tries = dir[0] && dir[1] ? [dir, [dir[0], 0], [0, dir[1]]] : [dir], went = null;
+        for (var ti = 0; ti < tries.length && !went; ti++) { var d0 = tries[ti], tx = t.x + d0[0], ty = t.y + d0[1]; if (!okS(tx, ty)) continue; if (d0[0] && d0[1] && (!okS(t.x + d0[0], t.y) || !okS(t.x, t.y + d0[1]))) continue; went = [tx, ty]; }
+        R0.path = went ? [went] : null; if (!went) t.facing = D.spr.facingFor(dir[0], dir[1]);
+      }
       if (R0.path && R0.path.length) {
         var to = R0.path.shift();
         if (!G.canStand(t, to[0], to[1])) { R0.path = null; yield 1; continue; }
@@ -291,25 +301,35 @@
     var R0 = B.roam, done = null, hp = {};
     R0.members.forEach(function (u) { hp[u.id] = { hp: u.hp, ko: !!u.ko }; });
     var o = Object.assign({}, R.party0, { fightDef: null, fight: which === 'keeper' ? 'keeper' : 'wet', onDone: function (res) { done = res || 'out'; } });
-    if (o.ladder) { delete o.ladder; o.data = D.save.fixture(Math.min(9, R.party0.level)); }
+    // the floor's own state goes in with them, as the 8-bit's seam sends it (js/embed.js): the flags it has set (the landlord fed, who holds the bucket, the dead) and the
+    // pack as it stands (the bucket in it) -- and comes back out below (10-13, his play: "they did the bucket then left the zone, and the bucket refreshed and was triggered again")
+    var base0 = o.ladder ? D.save.fixture(Math.min(9, R.party0.level)) : D.save.load().data; delete o.ladder;
+    o.data = JSON.parse(JSON.stringify(base0));
+    o.data.flags = Object.assign({}, o.data.flags || {}, R0.flags);
+    o.data.inv = JSON.parse(JSON.stringify(B.inv || []));
     if (which === 'keeper') o.start = trig.id === 'mark' ? 'rune' : 'ledge';
     else o.wake = R.WAKE[trig.id];
-    var b = new D.Battle(o), e0 = b.enter;
+    var b = new D.Battle(o), e0 = b.enter, leadId = R0.token.id;
     b.enter = function () {
       e0.apply(this, arguments);
       // the four as they walked: their hit points from the floor
       this.units.forEach(function (u) { var h = hp[u.id]; if (h && u.side === 'party') { u.hp = Math.min(u.maxhp, h.hp); if (u.hp <= 0) u.ko = true; } });
-      // the Settling: the lead on the square of the trigger that fired, as the 8-bit's seam puts him (embed.at), the rest beside (js/wet.js)
-      if (which === 'wet' && this.map.def.from8) {
-        var p8 = R.def.to8(at[0], at[1]), g = this.map.def.from8(p8[0], p8[1]), ours = this.units.filter(function (u) { return u.side === 'party' && !u.riding; }), self = this;
-        var taken = {}; this.units.forEach(function (u) { if (u.side !== 'party') taken[u.x + ',' + u.y] = 1; });
-        ours.forEach(function (u, i) {
-          var best = null, bd = Infinity;
-          for (var y = g[1] - 3; y <= g[1] + 3; y++) for (var x = g[0] - 3; x <= g[0] + 3; x++) { var s = self.map.at(x, y); if (!s || !s.walk || taken[x + ',' + y]) continue; var d = Math.max(Math.abs(x - g[0]), Math.abs(y - g[1])) + (i ? 0.5 : 0) * (x === g[0] && y === g[1] ? 1 : 0); if (d < bd) { bd = d; best = [x, y]; } }
-          if (best) { u.x = best[0]; u.y = best[1]; taken[best[0] + ',' + best[1]] = 1; }
-        });
-        G.setup(this.map, this.units);
-      }
+      // seated by the formation (Griz, 10-13: "'order' gonna have to be passed to every grid fight"): the lead on the trigger's square in the Settling (as the 8-bit's
+      // seam puts him, embed.at -- the Settling's squares are the floor's own), on the map's way in at the Keeper's; each of the rest on its slot round the lead the way
+      // the token faced, or the nearest open square to it
+      var self = this, m = this.map, ours = this.units.filter(function (u) { return u.side === 'party' && !u.riding; });
+      var lead = ours.filter(function (u) { return u.id === leadId; })[0] || ours[0]; if (!lead) return;
+      var L0 = which === 'wet' && m.def.from8 ? (function () { var p8 = R.def.to8(at[0], at[1]); return m.def.from8(p8[0], p8[1]); })() : [lead.x, lead.y];
+      var taken = {}; this.units.forEach(function (u) { if (u.side !== 'party') G.foot(u).forEach(function (q) { taken[q[0] + ',' + q[1]] = 1; }); });
+      var free = function (x, y) { var s = m.at(x, y); return s && s.walk && !taken[x + ',' + y]; };
+      var near = function (want) { var best = null, bd = Infinity; for (var y = want[1] - 4; y <= want[1] + 4; y++) for (var x = want[0] - 4; x <= want[0] + 4; x++) { if (!free(x, y)) continue; var d = Math.max(Math.abs(x - want[0]), Math.abs(y - want[1])) + 0.01 * Math.hypot(x - want[0], y - want[1]); if (d < bd) { bd = d; best = [x, y]; } } return best; };
+      var A = R.axes(R0.fw), lq = near(L0); if (lq) { lead.x = lq[0]; lead.y = lq[1]; taken[lq[0] + ',' + lq[1]] = 1; }
+      ours.forEach(function (u) {
+        if (u === lead) return;
+        var f = R0.form[u.id] || [-1, 0], want = [lead.x + f[0] * A.f[0] + f[1] * A.r[0], lead.y + f[0] * A.f[1] + f[1] * A.r[1]], q = near(want);
+        if (q) { u.x = q[0]; u.y = q[1]; taken[q[0] + ',' + q[1]] = 1; }
+      });
+      G.setup(m, this.units);
     };
     B.card(['{r}' + (which === 'keeper' ? 'THE KEEPER OF THE FLOODED STAIR' : 'THE SETTLING') + '{/}: its own fight, pulled in.'], 200);
     D.sfx('encounter'); yield 40;
@@ -319,9 +339,24 @@
     // back on the floor: the four's hit points as the fight left them; the trigger spent if the fight was won
     D.battle = B; G.setup(B.map, B.units); D.iso.map = B.map;
     (b.units || []).forEach(function (u) { var w = R0.members.filter(function (m) { return m.id === u.id; })[0]; if (w) { w.hp = Math.max(0, u.hp); w.ko = w.hp <= 0; w.conds = {}; } });
+    Object.assign(R0.flags, b.flags8 || {}); // (what it set: otyughFed, bucketBy, heard:r-stream, landlordSpoke, the dead -- the rim's trigger reads otyughFed and otyughDead)
+    if (b.inv) B.inv = JSON.parse(JSON.stringify(b.inv)); // (the pack as the fight left it: the bucket taken up or gone into the water, a potion drunk)
     if (done === 'won') R0.flags['done:' + trig.id] = 1;
     if (which === 'wet' && done === 'won') ['jelly', 'jellyNorth', 'poolOoze', 'landlordStep'].forEach(function (id) { R0.flags['done:' + id] = 1; });
     if (which === 'keeper' && done === 'won') ['stair', 'mark'].forEach(function (id) { R0.flags['done:' + id] = 1; });
+    // the Settling's squares are the floor's own: the token back where the party left it -- a square past the one who got out (off the Settling's ground, the way
+    // they went), or where the first still standing ended (10-13, his play: "Barleys wet exit of landlord scene put them back at waters edge")
+    if (which === 'wet') {
+      var ws = (b.units || []).filter(function (u) { return u.side === 'party' && !u.familiar && !u.summon; });
+      var outU = ws.filter(function (u) { return u.left; })[0], upU = ws.filter(function (u) { return !u.left && u.hp > 0 && !u.dead; })[0], src = outU || upU;
+      if (src) {
+        var wW = (D.MAPS.wet.rows[0] || '').length, tok = R0.token, q0 = [src.x, src.y], best = null;
+        if (outU) for (var dy = -1; dy <= 1 && !best; dy++) for (var dx = -1; dx <= 1 && !best; dx++) { var nx = src.x + dx, ny = src.y + dy, s1 = G.map.at(nx, ny); if (s1 && s1.walk && nx >= wW && G.canStand(tok, nx, ny)) best = [nx, ny]; }
+        if (!best && G.canStand(tok, q0[0], q0[1])) best = q0;
+        if (!best) for (var r = 1; r <= 3 && !best; r++) for (var dy2 = -r; dy2 <= r && !best; dy2++) for (var dx2 = -r; dx2 <= r && !best; dx2++) if (G.canStand(tok, q0[0] + dx2, q0[1] + dy2)) best = [q0[0] + dx2, q0[1] + dy2];
+        if (best) { tok.x = best[0]; tok.y = best[1]; tok.tween = null; G.setup(G.map, B.units); }
+      }
+    }
     B.focus(R0.token);
     B.card(['{y}Back on the Wet{/} (' + done + ').'], 200);
     if (!R.standing(R0).length) { R0.mode = 'over'; B.card(['{r}The party has fallen.{/}  R to walk the Wet again.'], 100000); }
@@ -355,6 +390,7 @@
   };
 
   // ------------------------------------------------------------------ an encounter: who, how far, the spill, the ground, the fight
+  R.CEILING = { darkmantle: 1 }; // (the lurkers that hang from a ceiling when there is one)
   R.LURK = { grick: 1, roper: 1, darkmantle: 1, xorn: 1, grimlock: 1, cube: 1, gelatinouscube: 1, grayooze: 1 }; // (battle.js's natural lurkers, and the gray ooze by its False Appearance)
   R.pick = function (zone, flags) {
     var Z = window.DS.DATA.encounters[zone]; if (!Z) return null;
@@ -408,6 +444,10 @@
       for (var j = 0; j < n; j++) for (var i = 0; i < n; i++) taken[(best[0] + i) + ',' + (best[1] + j)] = 1;
       u.x = best[0]; u.y = best[1]; u.facing = D.spr.facingFor(t.x - u.x, t.y - u.y);
       if (lurk && R.LURK[u.kind]) { u.conds.hidden = true; u.hidden0 = true; }
+      // wings (the fight's `fliers`: js/flight-ai.js marks only those it began with); a darkmantle lies in wait up on the ceiling -- SRD 5.1: "indistinguishable from a cave formation
+      // such as a stalactite" while it keeps still -- and drops from there
+      var fd0 = D.FOES[u.kind]; if (fd0 && fd0.fly) { u.flies = true; u.speed = Math.max(u.speed || 0, fd0.fly); }
+      if (lurk && R.CEILING[u.kind] && u.flies) u.fz = G.flyTop(u);
       placed.push(u);
     });
     if (!placed.length) { B.card(['{g}(no square for them: the encounter passes){/}'], 160); return; }
@@ -486,11 +526,22 @@
       return d;
     };
     var fd = foes.map(function (f) { return { f: f, need: Math.ceil(((f.reach || 5) + Math.max(f.speed || 30, f.fly || 0)) / 5), d: walk([f.x, f.y], f, 60, false) }; });
-    var mine = walk([u.x, u.y], u, Math.floor(2 * (u.speed || 30) / 5), true), ex = [];
+    var mine = walk([u.x, u.y], u, Math.floor(2 * (u.speed || 30) / 5), true), clear = [];
     Object.keys(mine).forEach(function (k) {
-      if (fd.every(function (e) { var dd = e.d[k]; return dd == null || dd > e.need; })) { var a = k.split(','); ex.push([+a[0], +a[1]]); }
+      if (fd.every(function (e) { var dd = e.d[k]; return dd == null || dd > e.need; })) { var a = k.split(','); clear.push([+a[0], +a[1]]); }
     });
-    (G.map.def.doors || []).forEach(function (q) { if (!ex.some(function (e) { return e[0] === q[0] && e[1] === q[1]; })) ex.push(q.slice()); });
+    // (RULED 10-13, Griz: "edge toward the actual exits for out-of-range exits"): the floor's own exits when this one can reach them this turn; else the clear squares
+    // nearest them by walking -- the edge of the clear ground on the way to the stairs. A floor with no way to its exits keeps every clear square
+    var doors = G.map.def.doors || [], dd0 = {}, dq = [];
+    doors.forEach(function (q) { dd0[q[0] + ',' + q[1]] = 0; dq.push(q); });
+    while (dq.length) { var c0 = dq.shift(), v0 = dd0[c0[0] + ',' + c0[1]]; for (var yy = -1; yy <= 1; yy++) for (var xx = -1; xx <= 1; xx++) { var kx = (c0[0] + xx) + ',' + (c0[1] + yy), s0 = G.map.at(c0[0] + xx, c0[1] + yy); if ((!xx && !yy) || dd0[kx] != null || !s0 || !s0.walk) continue; dd0[kx] = v0 + 1; dq.push([c0[0] + xx, c0[1] + yy]); } }
+    var inReach = doors.filter(function (q) { return mine[q[0] + ',' + q[1]] != null; }), ex;
+    if (inReach.length) ex = inReach.map(function (q) { return q.slice(); });
+    else {
+      var withD = clear.filter(function (q) { return dd0[q[0] + ',' + q[1]] != null; });
+      var lo = Math.min.apply(null, withD.map(function (q) { return dd0[q[0] + ',' + q[1]]; }));
+      ex = withD.length ? withD.filter(function (q) { return dd0[q[0] + ',' + q[1]] <= lo + 1; }) : clear;
+    }
     B.exits = ex;
   };
 
@@ -522,7 +573,7 @@
           u.x = nx[0]; u.y = nx[1];
         }
       });
-      if (!hit && live.some(function (u) { return g.mode === 'pursue' ? G.dist(u, t) <= 10 : G.dist(u, t) <= (u.reach || 5) + Math.max(u.speed || 30, u.fly || 0); })) { hit = g; return; }
+      if (!hit && !(g.stall > 0) && live.some(function (u) { return g.mode === 'pursue' ? G.dist(u, t) <= 10 : G.dist(u, t) <= (u.reach || 5) + Math.max(u.speed || 30, u.fly || 0); })) { hit = g; return; }
       if (seen) { g.rolled = false; return; }
       if (g.rolled) return;
       g.rolled = true;
@@ -645,12 +696,20 @@
       }
       R0.members.forEach(function (u) { if (u !== lead) FX.sparkle(u, 'glow', 10); });
       lead.x = meet[0]; lead.y = meet[1]; lead.tween = null;
-      if (still.length) {
+      // out by the floor's own stairs: off this floor -- the 8-bit takes the party on, and down again its groups are gone ("they'll have to exit and come back to make
+      // the random encounter vanish"); the test keeps the party here, on the stair, with the floor's groups cleared
+      var byStair = (G.map.def.doors || []).some(function (d) { return d[0] === outBy.x && d[1] === outBy.y; });
+      if (byStair) {
+        lead.x = outBy.x; lead.y = outBy.y;
+        B.units = B.units.filter(function (u) { return still.indexOf(u) < 0; }); R.dropGroups(B);
+        B.card(['{y}Away{/}: ' + outBy.name + ' takes the stair, and the party with them.', '{g}Off the floor: the 8-bit would take you on, and back down its groups are gone. (The test keeps you here, the floor cleared.){/}'], 360);
+        still = [];
+      } else if (still.length) {
         g2 = { foes: still, why: 'pursuit', mode: 'pursue', motivated: !!(grp && grp.motivated), rolled: false, stall: grp && grp.motivated ? 0 : 6, t: B.t, flag: grp && grp.flag, trig: grp && grp.trig };
         R0.groups.push(g2);
         still.forEach(function (u) { u.racc = 0; u.anim = 'idle'; u.animT = B.t; });
       }
-      B.card(['{y}Away{/}: ' + outBy.name + ' gets clear, and the party with them -- into ' + lead.name + '.', still.length ? (grp && grp.motivated ? '{o}They come after you at once.{/}' : '{g}They hold a moment (6 steps) -- then follow your trail.{/}') : ''], 340);
+      if (!byStair) B.card(['{y}Away{/}: ' + outBy.name + ' gets clear, and the party with them -- into ' + lead.name + '.', still.length ? (grp && grp.motivated ? '{o}They come after you at once.{/}' : '{g}They hold a moment (6 steps) -- then follow your trail.{/}') : ''], 340);
     } else {
       var meet2 = [lead.x, lead.y];
       B.card(['{y}The way is clear.{/}', '{g}The party gathers into ' + lead.name + '.' + (took.length ? ' The light on the floor is taken up (' + took.join(', ') + ').' : '') + '{/}'], 300);
