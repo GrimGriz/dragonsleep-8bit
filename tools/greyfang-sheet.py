@@ -118,6 +118,9 @@ SHEETS = {
 STILLS = {3: [(620, 8, 756, 119)], 5: [(248, 5, 372, 135)], 6: [(530, 4, 628, 52), (508, 52, 628, 130)]}   # (boxes, joined: the top-right's title ends at x 520)
 ISO = {7: 3, 1: 4, 3: 5, 5: 6}            # facing (SE, SW, NW, NE) -> its isometric sheet, drawn as it faces (no mirror)
 ISO_NEAR = {0: 3, 4: 6}                   # S and N: the nearer three-quarter view (S the bottom-right's, N the top-right's) for the rows it has
+BORROW = {('volley', 3): 6}              # (row, facing) -> the iso sheet whose row it plays MIRRORED: the top-left's Volley holds a blade, not the bow,
+                                          # in frames 4-5 (Griz, 10-14: "he pulls out his sword and returns to bow in his hand, and shoots volley"), so NW
+                                          # plays the top-right's Volley mirrored, the two-view sheets' way (NW <- NE mirrored)
 ISO_ROWS = {'attack': 'slash', 'slash': 'slash', 'volley': 'volley', 'whirlwind': 'whirlwind', 'parry': 'parry', 'backstep': 'backstep',
             'prone': 'prone', 'hurt': 'fall'}       # engine row -> the isometric sheets' row; the rest (idle, walk, longbow, cast, climb, flinch) play side-on there
 ISO_GUARD = ['slash', 'volley', 'whirlwind', 'parry', 'backstep']   # first frames: the guard each view and sheet 2 both stand in (scale by height)
@@ -354,6 +357,9 @@ def main(check=False):
                 per.append(([still(STILL[eng][f])] * len(side), False))
             elif eng == 'idle' and f in ISO:                  # a diagonal stands as its view's still (the bottom-left has none: the bottom-right's, mirrored)
                 per.append(([istill(ISO[f])] * len(side), False) if ISO[f] in STILLS else ([istill(ISO[7])] * len(side), True))
+            elif (eng, f) in BORROW:                          # another view's row, mirrored (BORROW)
+                fs = frames_of(BORROW[(eng, f)], ISO_ROWS[eng])
+                per.append((fs[::-1] if eng in REVERSED else fs, True))
             elif eng in ISO_ROWS and iso:                     # a diagonal (and S, N, the nearer view) plays its own view's row, as drawn
                 fs = frames_of(iso, ISO_ROWS[eng])
                 per.append((fs[::-1] if eng in REVERSED else fs, False))
