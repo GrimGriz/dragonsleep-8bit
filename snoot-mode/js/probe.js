@@ -1,0 +1,93 @@
+/* THE SNOOT -- the probe (?probe): what dev/snoot-probe.py reads in headless Edge. The books' numbers spot-checked against the
+   pages they came from, his rules as unit checks (the around, the witness, the Dominion's day), then whole battles played by
+   both hands -- the AI's for the gnolls and the Dominion, the bench's for ours (SN.AI.ours), the party's fights on the tables
+   (SN.standIn) -- every invariant held each day. Prints "ok"/"FAIL" lines into #probe and a last line SNOOTPROBE. */
+'use strict';
+(function () {
+  var SN = window.SN, out = [], bad = 0;
+  function ok(c, what) { out.push((c ? 'ok   ' : 'FAIL ') + what); if (!c) bad++; }
+  function eq(a, b) { return JSON.stringify(a) === JSON.stringify(b); }
+  // drive a day to its end: each { deep } on the tables, each { anim } passed
+  function play(st, deepLog) {
+    var g = SN.resolve(st), r = g.next(), n = 0;
+    while (!r.done && n++ < 200) { var v = r.value, back; if (v && v.deep) { if (deepLog) deepLog.push(v.deep.kind); back = SN.standIn(st, v.deep); } r = g.next(back); }
+  }
+  SN.probe = function () {
+    // ---- the books' numbers (CHAINMAIL p.40, p.44, p.15-16)
+    ok(eq(SN.CT.HH.LF, [4, 1, 5]), 'p.40: Heavy Horse against Light Foot, 4 dice a man, kills on 5-6');
+    ok(eq(SN.CT.LF.HH, [1, 4, 6]), 'p.40: Light Foot against Heavy Horse, 1 die per four men, kills on 6');
+    ok(eq(SN.CT.AF.LF, [1, 1, 4]) && eq(SN.CT.MH.HF, [2, 1, 5]) && eq(SN.CT.LH.AF, [1, 1, 6]), 'p.40: three more cells as printed');
+    ok(SN.FT.superhero.wraith === 8 && SN.FT.wraith.superhero === 10 && SN.FT.hero.wraith === 11 && SN.FT.wizard.wraith === 5, 'p.44: the Fantasy table cells the mode uses');
+    ok(SN.MORALE.HF === 5 && SN.MORALE.HH === 9 && SN.MORALE.LF === 4, 'p.15-16: morale ratings');
+    // ---- the map
+    ok(SN.ROWS.length === SN.H && SN.ROWS.every(function (r) { return r.length === SN.W; }), 'the map is ' + SN.W + ' by ' + SN.H);
+    ok(SN.ROADS.every(function (r) { return r.hexes.every(function (h) { return SN.on(h) && SN.cost(h) === 1; }); }), 'every road hex is on the map and costs 1');
+    ok(!!SN.path(SN.WEST, SN.PIT) && !!SN.path([14, 4], SN.PIT) && !!SN.path(SN.SOUTH, SN.MOOT), 'the west road, the Verge and the south road all reach the Pit and the moot');
+    ok(SN.cost([9, 3]) >= 99, 'no one walks on Halfway Lake');
+    // ---- the forces (his rulings 10-14)
+    var nl = SN.FORCES.filter(function (f) { return f.kind === 'Newland'; });
+    ok(nl.length >= 4 && nl.every(function (f) { return f.cleric || (f.heroes || []).some(function (h) { return h.paladin; }); }), 'every Newland unit carries a paladin, a cleric or both (' + nl.length + ')');
+    ok(SN.DOMINION.length === 3 && SN.DOMINION.every(function (f) { return (f.heroes || []).some(function (h) { return h.warlock; }) && f.wagon; }), 'three Dominion units, each a patrol lady (warlock) with her wagon');
+    // ---- his around (RULED 10-14): with GreyFang, next to him, or next to the Harbinger's group when it starts
+    var st = SN.newGame(7), G = SN.unit(st, 'greyfang'), H = SN.unit(st, 'harb'), P = SN.unit(st, 'party');
+    G.at = [5, 7]; H.at = [5, 7];
+    P.at = [5, 7]; ok(SN.around(st, G, H), 'around: the four in GreyFang\'s hex');
+    P.at = [6, 7]; ok(SN.around(st, G, H), 'around: the four next to the fight');
+    P.at = [7, 7]; ok(!SN.around(st, G, H), 'not around: the four two hexes off');
+    H.at = [4, 7]; P.at = [3, 7]; ok(SN.around(st, G, H), 'around: next to the Harbinger\'s group though not next to GreyFang');
+    // the collision both ways: around goes to the grid's `greyfang` fight; not around, the head on the map, no fight
+    st = SN.newGame(8); G = SN.unit(st, 'greyfang'); H = SN.unit(st, 'harb'); P = SN.unit(st, 'party');
+    G.at = [5, 7]; H.at = [5, 7]; P.at = [6, 7];
+    var gen = SN.collide(st, H, G), r1 = gen.next();
+    ok(!r1.done && r1.value.deep && r1.value.deep.fight === 'greyfang', 'the collision with the four around asks the grid for `greyfang`');
+    gen.next({ result: 'won', share: 1 });
+    ok(st.head && st.head.how === 'grid' && st.head.witnessed, 'the head is taken in the grid\'s fight, witnessed');
+    ok(st.units.filter(function (u) { return u.side === 'gnoll' && SN.alive(u) && !u.watch && !u.harbinger; }).every(function (u) { return u.state === 'withdraw'; }), 'after the head every snooting unit goes home (the death-watch stays)');
+    ok(SN.same(SN.unit(st, 'harb').at, SN.MOOT) || SN.dist(SN.unit(st, 'harb').at, SN.MOOT) <= 1, 'the Harbinger goes back to the moot ground');
+    st = SN.newGame(9); G = SN.unit(st, 'greyfang'); H = SN.unit(st, 'harb'); P = SN.unit(st, 'party');
+    G.at = [5, 7]; H.at = [5, 7]; P.at = [9, 8];
+    var gen2 = SN.collide(st, H, G), r2 = gen2.next();
+    ok(r2.done && st.head && st.head.how === 'map' && !st.head.witnessed, 'the collision with no one around: the head on the map, no fight');
+    // ---- the witness (his rule): within two hexes, up to half, never past the winner's start; not the death-watch
+    st = SN.newGame(10);
+    var W = SN.unit(st, 'sg1'), X = SN.unit(st, 'sg2'), Y = SN.unit(st, 'wl1'), Z = SN.unit(st, 'gkw');
+    st.units.forEach(function (u) { if (u.side === 'gnoll') u.at = [14, 9]; }); // (the rest of the Snoot far off: only these four near)
+    W.at = [5, 3]; W.figs = 2; X.at = [6, 4]; X.figs = 5; Y.at = [5, 6]; Y.figs = 6; Z.at = [4, 3]; W.figs0 = 6;
+    SN.witness(st, W);
+    ok(W.figs === 4 && X.figs === 3, 'witness: a band two hexes off gives two of its five to the winner (now ' + W.figs + ', the giver ' + X.figs + ')');
+    ok(Y.figs === 6 && Z.figs === 8, 'witness: three hexes off gives nothing, the death-watch gives nothing');
+    W.figs = 5; X.figs = 5; SN.witness(st, W);
+    ok(W.figs === 6 && X.figs === 4, 'witness: never past the winner\'s starting size (6): the giver keeps the rest (' + X.figs + ')');
+    // ---- whole battles, both hands, the party's part on the tables
+    var heads = 0, grids = 0, maps = 0, fills = 0, bands = 0, ends = [], domOk = true, inv = [], dom0 = [];
+    for (var seed = 1; seed <= 8; seed++) {
+      var s = SN.newGame(seed * 7919); s.party8 = null; var deeps = [], days = 0;
+      while (!s.over && days++ < 40) {
+        SN.dawn(s);
+        if (s.domIn && dom0.indexOf(seed) < 0) { dom0.push(seed); if (s.day !== s.huntDay + 2) domOk = false; }
+        SN.AI.ours(s); play(s, deeps);
+        s.units.forEach(function (u) {
+          if (u.figs < 0 || u.figs > Math.max(u.figs0, 0)) inv.push(seed + ':' + u.id + ' figs ' + u.figs + '/' + u.figs0);
+          if (SN.alive(u) && (!SN.on(u.at) || SN.cost(u.at) >= 99)) inv.push(seed + ':' + u.id + ' stands off the map or in the lake ' + u.at);
+        });
+        if (s.head && s.units.some(function (u) { return u.side === 'gnoll' && SN.alive(u) && !u.watch && u.state === 'ok'; })) inv.push(seed + ': a gnoll unit still snooting after the head');
+      }
+      if (s.head) { heads++; if (s.head.how === 'grid') grids++; else maps++; }
+      fills += s.stats.witness; bands += deeps.filter(function (k) { return k === 'band'; }).length;
+      ends.push('seed ' + seed * 7919 + ': ' + (s.over ? 'over Day ' + s.day : 'NOT OVER') + (s.head ? ', head Day ' + s.head.day + ' (' + s.head.how + ')' : ', no head') + ', score ' + (s.tally ? s.tally.score : '?') + ', witness ' + s.stats.witness);
+      var txt = s.log.map(function (l) { return l.text; }).join('\n');
+      if (seed === 1 && /[?&]dump\b/.test(location.search)) s.log.forEach(function (l) { out.push('LOG d' + l.day + ' [' + l.kind + '] ' + l.text); });
+      if (/undefined|NaN|\[object/.test(txt)) inv.push(seed + ': the log says ' + (/undefined|NaN|\[object[^\]]*\]/.exec(txt) || [''])[0]);
+      if (!s.over) inv.push(seed + ': the battle never ended');
+      if (s.over && !s.tally) inv.push(seed + ': over with no tally');
+    }
+    ends.forEach(function (e) { out.push('     ' + e); });
+    ok(!inv.length, 'eight whole battles keep every invariant' + (inv.length ? ': ' + inv.slice(0, 6).join('; ') : ''));
+    ok(heads >= 6, 'the head falls in most battles (' + heads + ' of 8: ' + grids + ' on the grid, ' + maps + ' on the map)');
+    ok(domOk && dom0.length >= 6, 'the Dominion comes on the west road two days after the hunt began (' + dom0.length + ' battles)');
+    ok(fills > 0, 'the witness fills a winner somewhere (' + fills + ' figures went over in eight battles)');
+    ok(bands > 0, 'the four fight a war-band on the grid somewhere (' + bands + ' asks)');
+    out.push('SNOOTPROBE ' + out.filter(function (l) { return /^(ok|FAIL)/.test(l); }).length + ' checks, ' + (bad ? bad + ' FAILED' : 'all ok'));
+    return out;
+  };
+})();
