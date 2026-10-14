@@ -964,7 +964,10 @@
     var still = (foes || []).filter(function (u) { return !u.dead && u.hp > 0 && !u.left; });
     B.units = B.units.filter(function (u) { return u.side === 'party' ? !u.summon && !u.object : !u.dead && u.hp > 0; });
     B.units.forEach(function (u) { delete u.roamAside; });
-    R0.members.forEach(function (u) { if (u.left) { u.left = false; u.dead = false; } delete u.conds.surprised; delete u.conds.hidden; u.turn = null; if (B.units.indexOf(u) < 0) B.units.push(u); });
+    // the fight's own state off the four as it ends (the 8-bit's finish: "clear battle-only state" -- 10-14, his "handoff issues between fight and out of fight"): a spell held
+    // ends, and of the conditions only what lasts stays (R.lasting: Mage Armor, the day's Darkvision, a Continual Flame, Aid) -- prone, poisoned, blessed and the rest do not walk on
+    R0.members.forEach(function (u) { if (u.conc && D.magic && D.magic.endConc) D.magic.endConc(B, u, 'the fight is over'); });
+    R0.members.forEach(function (u) { if (u.left) { u.left = false; u.dead = false; } u.conds = R.lasting(u.conds); u.turn = null; if (B.units.indexOf(u) < 0) B.units.push(u); });
     G.setup(G.map, B.units); B.cache = null;
     var up = R.standing(R0), lead = up[0];
     if (!lead) { R0.mode = 'over'; return; }

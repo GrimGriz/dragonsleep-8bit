@@ -2203,6 +2203,11 @@
       var viv2 = viv; viv2.turn = { action: 1, bonus: 1, move: 30, moved: 0 }; RZ.mode = 'fight';
       BZ.swapGear(viv2, { kind: 'weapon', id: 'candleknife' }); driveZ(D.roam.after(BZ, 'won', { zone: 'warrens_d' }, []), null, 600); D.roam.regear(BZ);
       okZ('and a swap on the floor holds through the gather and the menu (' + viv2.src.equip.weapon + ', in hand ' + (viv2.weapon && viv2.weapon.id) + ')', viv2.src.equip.weapon === 'candleknife' && viv2.weapon && viv2.weapon.id === 'candleknife');
+      // a fight's own conditions end with it, as the 8-bit's finish clears them: prone and poisoned off, Mage Armor kept
+      bar.conds = { prone: true, poisoned: { rounds: 3 } }; aur.conds = { mageArmor: true, frightened: { by: 'x' } }; RZ.mode = 'fight';
+      driveZ(D.roam.after(BZ, 'won', { zone: 'warrens_d' }, []), null, 600);
+      okZ('a fight\'s own conditions end with it: Barley\'s ' + (Object.keys(bar.conds).join(',') || 'none') + ' (prone and poisoned off), Aurdin\'s ' + Object.keys(aur.conds).join(',') + ' (Mage Armor kept, the fright off)',
+        !bar.conds.prone && !bar.conds.poisoned && aur.conds.mageArmor && !aur.conds.frightened);
     } catch (eZ) { repZ.errors.push(String(eZ && eZ.stack || eZ).slice(0, 900)); }
     D.store.get = stGZ; D.store.set = stSZ; IZ.held.up = false; IZ.held.left = false;
     if (errs.length) repZ.errors = repZ.errors.concat(errs);
