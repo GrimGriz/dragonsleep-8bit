@@ -272,5 +272,8 @@
     'eyes-antitoxin-reroll-1014': { pri: 3, group: G2, title: 'The antitoxin by the SRD; the reroll after a lost rung (10-14)', pt: 'the grid’s rules §2i; the Pocket DM and the races §2.2 (deep16/js/battle.js useItem; js/pocket.js)',
       url: 'deep16/?pocket&fresh=1',
       look: 'In any fight an antitoxin gives advantage on saves against poison for the fight and ends no poison already in you (the bar reads antitoxin). On a ladder, lose a rung and RETRY: the foes screen offers REROLL, the rung rolled the ladder’s way, till the fight begins.' },
+    'eyes-campfire-1014': { pri: 2, group: G2, title: 'The campfire burns, and catches the oil beside it (10-14)', pt: 'the grid’s rules (deep16/js/oil.js, the campfire; deep16/js/circles.js `fire`)',
+      url: 'deep16/?npc=troll&vs=fighter:5&lvl=5&map=camp&fresh=1',
+      look: 'The camp’s fire: the cursor on it reads a campfire. Walk the fighter into it: difficult ground (10 ft), 1d6 fire, once a turn; end there and the next turn starts with 1d6 more. With the troll standing beside the fire, it takes nothing for being there; throw the Oil Flask at it (ITEMS): a hit coats it and the fire catches the oil at once, 5 fire, the coat gone. A flask thrown at the ground beside the fire lights at once; one two squares off lies there unlit.' },
   };
 })();
