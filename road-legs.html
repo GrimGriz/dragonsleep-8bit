@@ -1,0 +1,328 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Road Legs</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- DRAGONSLEEP -- the highway's legs as the 8-bit holds them, a dev page (10-14, the Cowork seat, config echo claude-fable-5-1), on Griz's word:
+     "can you do a webpage with current 8 bit road legs - north to south, with current encounters (use new leg 1 story markers on existing 8 bit
+     locations) - add plot map as fourth page to flip through". Three leg pages, the road running DOWN each page (Solskaft's end at the top,
+     Deepholm's end at the foot); the fourth day to the door rides at the foot of page three. Every marker is an existing 8-bit location --
+     a trigger, an npc, a sign or a warp read off content/maps/highway_*.json -- with the scene the game plays there now (js/deep.js) and the
+     fight it hands to DEEP16 (deep16/data/fights.js, the ladder's name and level). The random tables are content/encounters.json verbatim.
+     The STORY markers on leg one are the story-review lane's §5 (handoff-2026-10-13-the-story-review.md), his rulings of 10-14, laid on the
+     locations they land on; his explorer notes (§4, unruled) are marked as such. Page four is plot-map.html in a frame. Receipts are at main
+     d0f0d2d and go stale the way a lamp's do. Open it from the folder (file://) or the preview server; no build, no gate, nothing in the game
+     reads it. Nothing here is ruled by this page. -->
+<style>
+  :root { --bg:#f4ecdc; --ink:#2b2418; --dim:#7a6a52; --rule:#d8cbb2; --accent:#8b4a2b; --card:#fbf5e8; --road:#c9b68f; --roadedge:#8a7652;
+          --story:#3f5a7a; --storybg:#e9eef4; --open:#a07a2a; --fight:#9a3b2e; --flag:#5b6b3a; --lamp:#d98a1a; }
+  :root[data-theme="night"] { --bg:#1e1b16; --ink:#e6dcc8; --dim:#9a8e7a; --rule:#3a342b; --accent:#d69a6a; --card:#26221b; --road:#4a3f2c; --roadedge:#8a7652;
+          --story:#8fb2d6; --storybg:#1f2731; --open:#e0b860; --fight:#e08a7a; --flag:#a9bf7a; --lamp:#f0a83a; }
+  * { box-sizing:border-box; }
+  html,body { margin:0; background:var(--bg); color:var(--ink); }
+  body { font-family: Georgia, "Iowan Old Style", "Palatino Linotype", "Book Antiqua", serif; font-size:14px; line-height:1.42; }
+  #bar { position:sticky; top:0; z-index:5; background:var(--bg); border-bottom:1px solid var(--rule); padding:.5rem 1rem; display:flex; gap:.5rem; flex-wrap:wrap; align-items:center; }
+  #bar h1 { font-size:1.05em; font-weight:normal; margin:0 .8rem 0 0; white-space:nowrap; }
+  #bar h1 small { color:var(--dim); font-style:italic; }
+  #bar button, .tab { background:none; border:1px solid var(--rule); color:var(--ink); padding:.25rem .6rem; border-radius:6px; cursor:pointer; font:inherit; font-size:13px; }
+  #bar button:hover, .tab:hover { border-color:var(--accent); }
+  .tab.on { border-color:var(--accent); color:var(--accent); }
+  .tab .k { color:var(--dim); margin-right:.3em; }
+  #bar .src { margin-left:auto; color:var(--dim); font-style:italic; font-size:12.5px; }
+  #bar .nav { display:flex; gap:.3rem; }
+  .page { display:none; padding:1rem 1rem 3rem; max-width:1480px; margin:0 auto; }
+  .page.on { display:block; }
+  .page > header { margin:0 0 .8rem; }
+  .page > header h2 { font-size:1.35em; font-weight:normal; margin:0; }
+  .page > header p { margin:.25em 0 0; color:var(--dim); font-style:italic; }
+  .leg { display:grid; grid-template-columns: minmax(0, 1fr) 330px; gap:1.2rem; align-items:start; }
+  @media (max-width: 900px) { .leg { grid-template-columns: 1fr; } .panel { position:static !important; } }
+  /* the road, running down the page */
+  .road { position:relative; padding:0 0 1rem; }
+  .road:before { content:""; position:absolute; left:50%; top:0; bottom:0; width:34px; margin-left:-17px; background:var(--road); border-left:3px double var(--roadedge); border-right:3px double var(--roadedge); }
+  .end { position:relative; text-align:center; margin:0 auto .6rem; width:60%; max-width:420px; background:var(--card); border:1px solid var(--roadedge); border-radius:999px; padding:.3rem .8rem; font-variant:small-caps; letter-spacing:.04em; color:var(--dim); }
+  .end.lamp { color:var(--lamp); border-color:var(--lamp); font-weight:bold; }
+  .mk { position:relative; width:calc(50% - 32px); margin:.55rem 0; }
+  .mk.l { margin-right:auto; } .mk.r { margin-left:auto; }
+  .mk:after { content:""; position:absolute; top:1.05rem; width:28px; height:0; border-top:2px dotted var(--roadedge); }
+  .mk.l:after { right:-30px; } .mk.r:after { left:-30px; }
+  .mk .pin { position:absolute; top:.65rem; width:12px; height:12px; border-radius:50%; background:var(--accent); border:2px solid var(--bg); }
+  .mk.l .pin { right:-37px; } .mk.r .pin { left:-37px; }
+  .mk.lampmk .pin { background:var(--lamp); width:16px; height:16px; top:.55rem; }
+  .mk.l.lampmk .pin { right:-39px; } .mk.r.lampmk .pin { left:-39px; }
+  .mk.side .pin { background:var(--dim); }
+  .card { background:var(--card); border:1px solid var(--rule); border-radius:10px; padding:.65rem .8rem; }
+  .card h3 { font-size:1.05em; font-weight:normal; margin:0 0 .2em; line-height:1.2; }
+  .card h3 .where { color:var(--dim); font-size:.82em; font-style:italic; margin-left:.4em; }
+  .card .now { margin:0 0 .3em; }
+  .card .now q { font-style:italic; }
+  .card .fight { color:var(--fight); font-size:.93em; margin:.2em 0; }
+  .card .fight b { font-weight:normal; font-variant:small-caps; letter-spacing:.03em; }
+  .card .rc { font-family: ui-monospace, Consolas, "Courier New", monospace; font-size:11px; color:var(--flag); word-break:break-word; margin-top:.35em; }
+  .story { margin:.45em 0 0; background:var(--storybg); border-left:3px solid var(--story); padding:.4em .6em; border-radius:0 6px 6px 0; }
+  .story .t { color:var(--story); font-variant:small-caps; letter-spacing:.04em; font-size:.9em; display:block; margin-bottom:.15em; }
+  .story q { font-style:italic; }
+  .tag { display:inline-block; font-size:.72em; font-variant:small-caps; letter-spacing:.05em; padding:0 .4em; border-radius:4px; border:1px solid currentColor; vertical-align:middle; margin-left:.3em; }
+  .tag.ruled { color:var(--flag); } .tag.open { color:var(--open); } .tag.note { color:var(--story); } .tag.seat { color:var(--dim); }
+  .panel { position:sticky; top:3.4rem; display:flex; flex-direction:column; gap:.8rem; }
+  .panel .card h4 { font-size:1em; font-weight:normal; margin:0 0 .3em; font-variant:small-caps; letter-spacing:.04em; color:var(--accent); }
+  table.rand { width:100%; border-collapse:collapse; font-size:.92em; }
+  table.rand td { padding:.12em .3em; border-top:1px solid var(--rule); vertical-align:top; }
+  table.rand td.w { color:var(--dim); width:2.2em; text-align:right; font-family: ui-monospace, Consolas, monospace; font-size:.92em; }
+  .panel .small { color:var(--dim); font-size:.9em; font-style:italic; }
+  .legend { display:flex; gap:.9rem; flex-wrap:wrap; font-size:.88em; color:var(--dim); margin:.2rem 0 .8rem; }
+  .legend span:before { content:""; display:inline-block; width:10px; height:10px; border-radius:50%; margin-right:.35em; vertical-align:-1px; }
+  .legend .a:before { background:var(--accent); } .legend .s:before { background:var(--dim); } .legend .lp:before { background:var(--lamp); }
+  .legend .st:before { background:var(--story); border-radius:2px; }
+  #frame { width:100%; height:calc(100vh - 8.5rem); border:1px solid var(--rule); border-radius:10px; background:var(--card); }
+  #foot { margin:1.2rem 0 0; padding-top:.8rem; border-top:1px solid var(--rule); color:var(--dim); font-size:12.5px; font-style:italic; }
+  code { font-family: ui-monospace, Consolas, "Courier New", monospace; font-size:.92em; }
+</style>
+</head>
+<body>
+<div id="bar">
+  <h1>The Road, by its Legs <small>-- as the 8-bit holds it, 10-14</small></h1>
+  <span class="nav" id="tabs"></span>
+  <button id="prev" title="&larr;">&larr;</button><button id="next" title="&rarr;">&rarr;</button>
+  <button id="theme">NIGHT</button>
+  <span class="src" id="src">main d0f0d2d · keys &larr; &rarr; flip the pages</span>
+</div>
+<div id="pages"></div>
+<script>
+'use strict';
+// ---------------------------------------------------------------------------------------------------------------------------------- the data
+// A marker: where (map, tiles), what the game does there now (its words, short), the fight it hands to DEEP16, the receipt, and -- on leg one --
+// the STORY block (the lane's §5, his rulings 10-14; or his explorer notes §4, unruled). side: a cavern off the road. lamp: a station.
+var LEGS = [
+ { id:'leg1', tab:'LEG ONE', title:'Leg one -- the mouth to First Lamp',
+   sub:'content/maps/highway_1.json · 72 x 22 · zone hw1 (x 0-59) · 10 seals in the walls, one CUT (x28, the breach) · dark; the lamp at x66 lights 84 px',
+   top:'Solskaft -- the highway\'s mouth (solskaft_deep x38)', bottom:'FIRST LAMP', rand:'hw1',
+   state:{ t:'The road\'s state at the heroes\' arrival (his pour, 10-14)', q:'The heroes showing up is the road as unsafe as it\'s been in some time. Of late increased activity between lamp 1 and solskaft (deeper too, the feel it later, i.e. the drow attack).', tag:'ruled' },
+   station:{ h:'First Lamp -- as built', lines:[
+     'A lamp-tower burning (x66,5 -- the road menu), a cistern, a barrack-cut. <q>Eight of the garrison and their captain</q> in the arrival line; on the map Ulf Silversands (x65,7) and three troopers.',
+     'Ulf: <q>The road is mine from here to Solskaft\'s mouth, for what that\'s worth this season. Goblins came through a cut seal back up the road a month since. We threw them back. They didn\'t stay thrown.</q>',
+     'The rest is offered, never imposed (STAY THE NIGHT / GO ON); the tower is a warp point once the king is home (<code>captainHome &amp; lamp1</code>).',
+     'The lamp\'s circle: flush in the floor, dormant until set going (CANON 10-07, the realm page).' ],
+     rc:'js/deep.js S.lampArrive, S.lampTower, lampWarpable; text deep.lamp1Arrive, deep.ulf1; TarlynsPit/wiki/solskaft.md §The highway' },
+   marks:[
+    { side:'l', h:'The gate and the ledger-lamp rack', where:'solskaft_deep x38,10-12 (use) · the rack: three hooks',
+      now:'Now: the gate opens for the king (<code>pyroLeads</code>); Pyro hands over a Ledger-Lamp off the rack -- <q>Ingrith\'s. Under warranty. It lights further than a torch, and it shows the seals</q> -- and <q>Mind the seals: white\'s whole, red\'s cut, and cut means company.</q>',
+      rc:'js/deep.js S.highwayGate; text deep.gatePyro, deep.ledgerlampPyro, deep.gateOpens',
+      story:[ { t:'the proving', q:'Considering a worth-proving before he meets them at first lamp and explains the teleportation circles, then walk 1st to 2nd with party', tag:'note', after:' -- leg one is walked by the four alone; no king from the vault door. His line at the proving: <q>meet me at the first lamp</q>.' },
+              { t:'the Ledger-Lamp', q:'Lamp one ingrith seals, ledger lamp to party', tag:'ruled', after:' and <q>3 - Ingrith after they assist the sealing and pyro has arrived</q> (15:22) -- the lamp changes hands at FIRST LAMP, from Ingrith, after the party assists her sealing and Pyro has come through the circle. The gate as built hands it to the king\'s escort; that goes.' } ] },
+    { side:'r', h:'The cut seal -- the breach', where:'x27-30, y5-7 (step) · flag sealCleared',
+      now:'<q>A warranted wall, breached from the far side. Its runes lie on the floor in pieces. Beyond it, a cavern and a camp: hide tents, bones, a fire, and the smell of goblins.</q> (the props in hand since today: ART-60.)',
+      fight:'<b>The Cut Seal</b> (DEEP16, level 5): bugbear chief, hobgoblin sergeant, 3 hobgoblins, a worg; +bugbear +worg with the king. Won: <q>they drove the seal right through the seam.</q>',
+      rc:'js/deep.js S.cutSeal (~681-690); deep16/data/fights.js cutseal',
+      story:[ { t:'the goblin breakthrough', q:'Road to the first lamp will be solidly warded with a goblin breakthrough on their way - leads to a different cavern area before the tribe at the back.', tag:'ruled', after:' -- one breach on a warded road; it opens on its own cavern area with the goblin tribe at its back. The hobgoblins and bugbears camped here now read as the RETURN\'s scouting party (the seat\'s reading).' },
+              { t:'the full clear, and the back', q:'if they clear it all the way the back of the goblin lair is somehow impassable, on return (or if first clear is with dwarves) a hobgoblin scouting party ... has checked in. They\'re there if first clear with dwarves, if second clear more hobgoblins as proof of breach is goblin corpses.', tag:'ruled', after:' <b>The back, ruled 15:22:</b> <q>rug covered hole in the floor - real high passive but findable on active search - short cave dead end to support the expansion placeholder for massive cave sprawl with hobgob nest going where placeholder is</q> -- a rug over a hole, a very high passive Perception, found on an active SEARCH; past it a short dead-end cave that is the placeholder for a cave sprawl expansion, the hobgoblin nest where the placeholder is.' },
+              { t:'hobgoblins over goblins', q:'not slavery exactly, but intermingling and pecking order dominance - things like shoving the the intermingle tribes to dangerous fringes', tag:'ruled', after:' -- why a goblin tribe sits at the back of a breach off a dwarven road.' } ] },
+    { side:'l', h:'The truesilver vein, in the cut', where:'x27,8 (use)',
+      now:'<q>The seals were driven through the seam, and the seam is truesilver. A lump the size of a fist comes out of the cut with a knife and some patience.</q> The Winnower\'s head. Unchanged by the re-cut.',
+      rc:'js/deep.js S.vein; text deep.vein' },
+    { side:'r', h:'The relief column', where:'x36, y9-12 (step) · after captainFound',
+      now:'<q>Boots on the road ahead, a lot of them, coming down: a column of the garrison, a lamp on every third helm.</q> An EVENT later in the spine (after Halldor is unpinned); not touched by the leg-one re-cut.',
+      rc:'js/deep.js S.relief; text deep.reliefCome' },
+    { side:'l', cls:'side', h:'The Grick Den -- the open cavern south of the road', where:'x40-46, y15-18 (step) · flag grickDone',
+      now:'<q>Something moves in the open cavern south of the road, low and fast, and then there are more of them than there were rocks.</q> The cavern too wide to seal.',
+      fight:'<b>The Grick Den</b> (DEEP16, level 5): 3 gricks; 5 with the king.',
+      rc:'js/deep.js S.grickDen (~691-697); deep16/data/fights.js gricks',
+      story:[ { t:'on the way back, with Ingrith', q:'Gricks or one of the other first lamp caverns on the way back.', tag:'ruled', after:' -- the side rooms he called <q>off task</q> get their task: the morning\'s deep clear and return passes them.' } ] },
+    { side:'r', cls:'lampmk', h:'First Lamp', where:'arrive x61, y9-12 · tower x66,5 · Ulf x65,7',
+      now:'<q>First Lamp. Held. A lamp-tower burning, a cistern, a barrack-cut, eight of the garrison and their captain.</q> With the king: <q>My king. If I\'d known, I\'d have swept.</q> / <q>You never sweep, Ulf. That\'s why I like it here.</q>',
+      rc:'js/deep.js S.lampArrive(1), lampRest -> EV.rest(\'inn\') + EV.morning',
+      story:[ { t:'the first rest -- the shield', q:'first lamp first rest discussion of why the players ended up with a dead dwarves shield', tag:'ruled', after:' -- the Burial\'s law of the line, told at the first rest: gear stays on the dead while the line lives; Audun\'s line ended at Third Lamp, so the ledger released the Door-Shield; Asmund has an heir, so his hammer is a theft.' },
+              { t:'the morning', q:'Ingrith shows up in the morning - the clear it deep and return, she seals and runes it. ... She spins up the first lamp circle and pyro arrives to measure them from 1 to 2.', tag:'ruled', after:' -- the deep clear with her, back past the Grick Den, her seal and runes on the breach, the circle set going, Pyro through it; his measure (<code>js/pyro.js</code>) runs on leg two. 15:22: <q>pyro does 1-2 - cavern and bullette</q> -- Pyro walks First to Second Lamp with the four; the great cavern and the bulette are that leg.' },
+              { t:'the reward for a lone full clear', q:'Tiny Hut as the sheet', tag:'ruled', after:' -- Sheet: Tiny Hut, at First Lamp, only if the party cleared the breach all the way ALONE; not there if they come back with the dwarves to clear it.' },
+              { t:'Pyro at First Lamp', q:'pyro says \'meet me at the first lamp\' - if they don\'t stick around there until he shows up (they get to lamp 2 first - he won\'t be happy).', tag:'ruled', after:' -- the unhappiness is conditional: only if the party walks on to Second Lamp before he comes through.' } ] }
+   ] },
+ { id:'leg2', tab:'LEG TWO', title:'Leg two -- First Lamp to Second Lamp',
+   sub:'content/maps/highway_2.json · 76 x 24 · zone hw2 (x 0-63) · 4 seals, one marked CUT (x61) by the bulette\'s breach · the great cavern, unsealable; a causeway across it',
+   top:'FIRST LAMP', bottom:'SECOND LAMP', rand:'hw2',
+   state:{ t:'Leg two and down (his pour, 10-14; the re-cut 15:22)', q:'two and lower is more underdark type fun.', tag:'ruled', more:'<b>The re-cut, 15:22 (ruled):</b> Pyro walks this leg (<q>pyro does 1-2 - cavern and bullette</q>). <q>You arrive with king, they tell you about pinned - rescue, lantern out wounded - wounded tell about Brood mother, pyro has \'just the thing\' in Solskaft - party item award, pyro \'you kids\' re the brood mother and brann and hedda go?</q> The north cut and the nest move PAST Second Lamp; the drainage cut becomes a pick-up mission; <q>First rest after brood, survivors of lamp 3 being taken show up</q> -- the word from below arrives as survivors, not a runner. The giant\'s cut moves beyond the broodmother; the seam is pulled or made optional on the far side of Second Lamp.' },
+   station:{ h:'Second Lamp -- as built', lines:[
+     '<q>Second Lamp. Held, and never not held: a lamp-tower burning, the cistern running, a captain and three on the watch.</q> Thyra Silversands (x71,6) and three; Gudrun Tallowmark\'s LAMP STORES (x74,9) -- rope, oil, torch, lantern, simples, the calling herbs at 50 sp: the road\'s one shop.',
+     'Thyra, with the king: <q>Halldor took six up the north cut, back along the road, after something that came through the wall and wasn\'t there when he got to it. Two days. A runner came back with half a word: pinned.</q>',
+     'A manned outpost (CANON 09-26d); its abandonment and the slates were retired with it.' ],
+     rc:'text deep.lamp2Arrive, deep.thyra1, deep.thyraReport; invented.json lamp2-stores' },
+   marks:[
+    { side:'l', h:'Pyro on the road -- three lines as he walks', where:'x9 y10-13 · x22-23 y7-12 · x56 y10-13 (step) · pyroLeads & !captainFound',
+      now:'The Burial\'s law in his mouth (<q>Your crew thought it was a tomb. It\'s a count.</q>); why he sealed the mint (<q>Let it be silver.</q>); what the road was for (<q>This road was for carts. Ore up, tolls down ... Four days of lamps so a carter could sleep.</q>)',
+      rc:'js/deep.js S.pyroRoad; text deep.pyroRoad1-3',
+      story:[ { t:'the re-cut keeps him here', q:'then walk 1st to 2nd with party', tag:'note', after:' -- in the explorer\'s order Pyro walks this leg with the four (through the circle), measuring; the three lines ride with him as they stand.' } ] },
+    { side:'r', cls:'side', h:'The way to the warded place -- NOT on the map yet', where:'between the first two lamps · a PLACE owed the realm wiki (fold)',
+      now:'A new place from the 10-14 pour: the entrance to the cave system that reaches the warded place on the Coldridge route (fountain-street HD-1\'s open line, CANON 09-22). No trigger, no tiles, no fight: where on this map it opens is not drawn.',
+      rc:'handoff-2026-10-13-the-story-review.md §5; wiki/if-ly-left-silverton.md leg-one-recut-1014',
+      story:[ { t:'his word', q:'Between lamps one and two will be the entrance to the cave system that leads to the warded place on the coldridge route.', tag:'ruled', open:'where on the leg; what guards it; whether it is this season\'s' } ] },
+    { side:'l', h:'The fork -- the causeway and the stalactite', where:'x36-40, y7-8 (step) · flag roperDead',
+      now:'<q>The causeway runs straight across the great cavern, the dark falling away either side. Ahead, a stalactite hangs low over it.</q> Perception 12 with the Ledger-Lamp: <q>it isn\'t a stalactite. It has an eye.</q> The rim-path round south, or under it.',
+      fight:'<b>The Fork</b> (DEEP16, level 6): a roper and 2 darkmantles; with the king 4 darkmantles and 2 gricks. Seen, nothing starts hidden; unseen, the party is surprised.',
+      rc:'js/deep.js S.roper (708-727); deep16/data/fights.js roper',
+      story:[ { t:'his note (the maps lane)', q:'battle targeted for rework with ceiling heights and ropes that drag off road big fall', tag:'note', after:' -- the roper as a stalactite over the bridge, a fly ceiling, a pull off the causeway. <q>probably a higher level adventure though.</q>' } ] },
+    { side:'r', cls:'side', h:'The north cut -- Pinned, and the nest', where:'sign x59,8 · warp x58,2 -> pinned (x9,12) -> nest',
+      now:'<q>A side cut, north off the road. Fresh boot-marks going up it, dwarven, and none coming back.</q> Up it: <q>a neck of rock no wider than two dwarves. Across the neck, a wall of crates and packs. Behind it, five of the garrison. Two of them lying down, and not by choice.</q> Past them the gallery and the cocoons: <q>She turns all her eyes on you at once.</q>',
+      fight:'<b>Pinned</b> (level 6): 5 phase spiders, <q>They come out of the walls.</q> · <b>The Brood</b> (level 7): the broodmother and 4 phase spiders. The nest\'s own random table: phase spiders; with giant spiders.',
+      rc:'js/deep.js S.pinned (742), S.brood (833); maps pinned.json, nest.json; encounters nest',
+      story:[ { t:'the north cut moves past Second Lamp', q:'North cut moves past the second lamp', tag:'ruled', after:' (15:22). The sequence, his: <q>You arrive with king, they tell you about pinned - rescue, lantern out wounded - wounded tell about Brood mother, pyro has \'just the thing\' in Solskaft - party item award, pyro \'you kids\' re the brood mother and brann and hedda go?</q> -- Thyra\'s report with the king at the fire; the rescue (Pinned); the wounded lamped out by the station\'s circle; the wounded name the broodmother; Pyro lamps up for <q>just the thing</q> -- a party item award (which item: open); <q>you kids</q> -- he hands them the brood; Brann and Hedda go with them (his question mark; the seat\'s lean: yes -- they come through the circle as the wounded go out, and the second pass is seeded).', open:'the item; Brann and Hedda' },
+              { t:'the first rest after the brood', q:'First rest after brood, survivors of lamp 3 being taken show up', tag:'ruled', after:' -- the word from below is survivors of Third Lamp, arriving at the rest; Ulf\'s runner (<code>wordBelow</code>) goes. What follows -- the muster at the gate as built, or the party pressing on from here -- is the open that remains.' },
+              { t:'beyond the broodmother', q:'Let\'s put the Giants cut beyond the brood mother, back entrance to cocoon gallery?', tag:'ruled', after:' -- the duergar camp and its stone giant move off leg three to the far side of the nest, and that cut is the Cocoon Gallery\'s back entrance (his question mark; taken as the seat\'s call, declared). <q>4 - deep in the hobgob, deep in back broodmother - maybe those two connected, support the expansion placeholder</q> -- the way to the warded place runs deep in the hobgoblin sprawl and deep behind the broodmother, maybe one system: both placeholders.' } ] },
+    { side:'l', h:'The bulette\'s breach', where:'x59-62, y10-12 (step) · flag buletteDead',
+      now:'<q>The road bucks. Out of a breach in the south wall, rough-cut and new, something armored comes up through the stone like a fin through water.</q> Won: <q>There was never a seal there to cut. There is no rune for a hole a beast dug.</q>',
+      fight:'<b>The Breach</b> (DEEP16, level 5): a bulette; two with the king.',
+      rc:'js/deep.js S.bulette (~729-731); deep16/data/fights.js bulette' },
+    { side:'r', cls:'side', h:'The drainage cut, under the station', where:'x67-73, y15-18 (step) · flag puddingDead',
+      now:'<q>Thyra\'s people keep a weighted grate over it and don\'t go down. Something black lies across the floor down there, glossy and still. Two somethings.</q> FIGHT IT / BACK AWAY.',
+      fight:'<b>The Drain Cut</b> (DEEP16, level 6): two black puddings. Won: <q>Thyra can take the weights off her grate.</q>',
+      rc:'js/deep.js S.drainCut (733-740); deep16/data/fights.js drain',
+      story:[ { t:'a pick-up mission', q:'drainage cut will be pick up mission by talking when the king isn\'t with you, in lamp 2 proper', tag:'ruled', after:' -- no step trigger; Thyra gives it in the station when Pyro is not in the party.' } ] },
+    { side:'l', cls:'lampmk', h:'Second Lamp', where:'arrive x64, y10-12 · tower x69,5 · Thyra x71,6 · the stores x74,9',
+      now:'<q>Held, and never not held.</q> Brann: <q>Thyra\'s lamp. She never lets it gutter. Third Lamp next. Ours.</q> Hedda: <q>Sleep if you\'re sleeping. I\'ll sit up. I always do, the night before Third Lamp.</q>',
+      rc:'js/deep.js S.lampArrive(2); text deep.lamp2Brann, deep.lamp2Hedda',
+      story:[ { t:'his note', q:'return to Solskaft to properly restaff second lamp', tag:'note', after:' -- after the nest; the restaffing is the beat the spine does not have yet.' } ] }
+   ] },
+ { id:'leg3', tab:'LEG THREE + THE DOOR', title:'Leg three -- Second Lamp to Third Lamp; and the fourth day to Deepholm\'s door',
+   sub:'content/maps/highway_3.json · 76 x 24 · zone hw3 (x 0-55) · 8 seals, none cut  ·  then highway_4.json · 80 x 24 · zone hw4 · 3 seals · the made road from x46  ·  then threshold.json',
+   top:'SECOND LAMP', bottom:'DEEPHOLM\'S DOOR', rand:'hw3', rand2:'hw4',
+   station:{ h:'Third Lamp -- as built, and as the raid leaves it', lines:[
+     '<q>Third Lamp. Held: the last lamp and the biggest station, the season\'s stores in crates, a tower burning.</q> Geir Silversands (x67,7) and two. With the king: <q>You came all this way to count my crates? They\'re very good crates.</q>',
+     'When the word comes from below (<code>wordBelow</code>): dark, the crates pulled into a barricade, <q>The underdark took the lamp.</q> After the raid Brann and Hedda hold it (their orders end here); the captain\'s body in the barrack-cut (x69,17) -- the Greyseam knife, <q>a ward-knot etched on the blade</q>; under the drow\'s leavings (x66,15) a Silversands axe taken two seasons back.',
+     'The big circle -- five squares across, centred in the station\'s south room (CANON 10-07): the way up to the Skylights when the runner comes (<code>EV.surfaceCall</code>, TO THE SURFACE!).',
+     'Past the station, before beat 6, Deepholm\'s road is closed by a word (x74): <q>nobody walks it this season without a reason.</q>' ],
+     rc:'js/deep.js S.lampArrive(3), S.raid (887), S.captain, S.leavings, S.deepholmRoad (918), EV.surfaceCall; text deep.raidSee, deep.captainSee, deep.leavings; wiki/solskaft.md §The dwarves\' circles' },
+   marks:[
+    { side:'l', h:'The seam', where:'x29-31, y10-13 (step) · flag xornDone',
+      now:'<q>The wall ahead bulges, cracks, and two things the size of barrels push out of the rock, chewing.</q> Won: <q>It had been eating the seam. There are gems in the rubble it spat out.</q> (no gem item exists -- the missions\' rewards, POSTPONED on his word)',
+      fight:'<b>The Seam</b> (DEEP16, level 8): two xorns.',
+      rc:'js/deep.js S.xorn (874); deep16/data/fights.js xorns',
+      story:[ { t:'pulled, or optional', q:'Pull the seam or put it optional on the other side of the second lamp,', tag:'ruled', after:' -- off the spine either way; the seat\'s lean: optional, a side cut on the far side of Second Lamp (its gems are the postponed rewards\' hook).' } ] },
+    { side:'r', cls:'side', h:'The giant\'s cut -- the duergar camp', where:'x42-46, y16-18 (step, south) · flag giantDone',
+      now:'<q>A cut off the south side of the road, and a camp in it: duergar, grey and quiet, and behind them, sitting against the wall as if it were part of it, a giant made of the same stone.</q> Won: the strongbox, and silver.',
+      fight:'<b>The Giant</b> (DEEP16, level 8): a stone giant and 3 duergar.',
+      rc:'js/deep.js S.giant (880); deep16/data/fights.js giant',
+      story:[ { t:'moves beyond the broodmother', q:'Let\'s put the Giants cut beyond the brood mother, back entrance to cocoon gallery?', tag:'ruled', after:' -- off this leg; see leg two\'s north cut.' } ] },
+    { side:'l', cls:'lampmk', h:'Third Lamp -- held, or taken', where:'arrive x60, y10-13 (!wordBelow) · the raid x57 (wordBelow & !raidWon) · tower x68,5',
+      now:'Held: Geir and two. Taken: <q>Shapes moving in the station, pale-haired and quiet, and the garrison\'s crates pulled into a barricade.</q> <q>Steel in the dark, and a voice already weaving.</q> Won: <q>The raid is broken. The station is quiet, and cold.</q> Brann: <q>Our lamp.</q>',
+      fight:'<b>The Raid on Third Lamp</b> (DEEP16, level 8): a drow captain, a spellweaver, 6 drow -- hard for four at 7-8 with Brann and Hedda.',
+      rc:'js/deep.js S.raid (887-917); deep16/data/fights.js raid; flagTiles crateCave x63-73',
+      story:[ { t:'the word from below, re-cut', q:'First rest after brood, survivors of lamp 3 being taken show up', tag:'ruled', after:' -- the taking of Third Lamp reaches the party as survivors at the rest after the brood (leg two\'s north cut), not as Ulf\'s runner at Solskaft.' } ] },
+    { side:'r', cls:'side', h:'The Cocoon Gallery -- off the road below Third Lamp', where:'at 16-bit only · which leg\'s wall it opens from: OPEN',
+      now:'An off-highway cavern entered by a narrow neck where the dressed stone gives way to raw floor (as built 09-27). <q>let\'s do off highway cavern we can use somewhere</q> (RULED 09-26d).',
+      fight:'<b>The Cocoon Gallery</b> (DEEP16, level 9).',
+      rc:'deep16/data/fights.js gallery; wiki/solskaft.md §The Cocoon Gallery',
+      story:[ { t:'its back entrance', q:'back entrance to cocoon gallery?', tag:'ruled', after:' -- the giant\'s cut beyond the broodmother (his question mark, taken as the seat\'s call): the gallery now opens from the nest\'s far side as well as from the road.' } ] },
+    { side:'l', cls:'end4', h:'The fourth day begins -- Deepholm\'s road', where:'highway_4: the drow\'s fallback line x13, y10-13 (step) · flag fallbackDone',
+      now:'<q>A line of crates across the road, and pale heads behind it: the ones who fell back from Third Lamp. They\'ve had a day to get ready.</q> Won: <q>What\'s left of them runs for the deep road, and it isn\'t much.</q>',
+      fight:'<b>The Fallback Line</b> (DEEP16, level 7): a drow captain and 4 drow.',
+      rc:'js/deep.js legFour, S.fallback (930); deep16/data/fights.js fallback' },
+    { side:'r', h:'The black water -- the causeway of dressed blocks', where:'x33, y11-12 (step) · flag nagaDone',
+      now:'<q>Halfway over, the water stands up. It stands up on both sides of the stones at once, two of it, and neither has a face.</q> Won: <q>Whatever it was, it will be a long time coming back together, if it can.</q>',
+      fight:'<b>The Black Water</b> (DEEP16, level 7): two water elementals -- in the spirit naga\'s place since 10-14 (his word: <q>text sounds more like them than naga</q>); the flag and the grid fight keep the old name.',
+      rc:'js/deep.js S.naga (931); deep16/data/fights.js naga; eyes row eyes-waterelemental-facings-1014 (works)' },
+    { side:'l', h:'The made road begins', where:'sign x46,9',
+      now:'<q>Here the carved road ends and a made road begins: dressed stone, laid, not cut. The first since Solskaft.</q> (the leg\'s midpoint, re-cut 09-27)',
+      rc:'maps highway_4.json signs' },
+    { side:'r', cls:'side', h:'The troll hole', where:'x50-54, y16-18 (step, south) · flag trollsDone',
+      now:'<q>A cavern off the south side of the road, and a smell in it like a butcher\'s yard in summer. Big grey-green shapes, a lot of arms.</q> Won: <q>Somebody should burn them before they get up again, and somebody does.</q>',
+      fight:'<b>Two Trolls</b> (DEEP16, level 8).',
+      rc:'js/deep.js S.trolls (932); deep16/data/fights.js trolls' },
+    { side:'l', h:'The cut -- the made road through living rock', where:'x63, y10-13 (step) · flag elementalDone',
+      now:'<q>The made road runs into a cut, and the cut\'s walls move. The rock stands up on legs of rock.</q> Won: <q>The made road runs on, dressed stone all the way to a light.</q>',
+      fight:'<b>The Cut</b> (DEEP16, level 8): two earth elementals.',
+      rc:'js/deep.js S.elemental (933); deep16/data/fights.js elementals' },
+    { side:'r', cls:'lampmk', h:'Deepholm\'s Door', where:'threshold.json · the door x17,7-9 (use) · the tariff board x10,3 · Dagny at the grille x14,3',
+      now:'<q>A door three dwarves tall with light under it.</q> Dagny Scalebeam behind the toll-grille (the trader clan keeps the doors at both ends); a tariff board in a live coin; <q>The weigh-station. The weights are honest. Nobody here would know how to make them otherwise.</q> <q>A stone bench, worn in the middle by four days\' worth of the tired.</q> The consult, and the seam into DEEP16.',
+      rc:'js/deep.js Deepholm\'s door (993-1216); maps threshold.json' }
+   ] },
+ { id:'plot', tab:'PLOT MAP', title:'The plot map -- the expansion\'s beats and forks', frame:'plot-map.html',
+   sub:'plot-map.html in a frame (the prototype of 10-13; it reads the quests live from data/data.js). His first walk of its explorer is the lane\'s §4; the spine\'s later order is still his to rule, and the map is to be redrawn after that, not before.' }
+];
+var RAND = {
+  hw1:{ rate:[14,26], src:'leg one, for 5-6: hobgoblin squads with a sergeant, bugbears, an ogre with goblins', g:[[4,'3-4 hobgoblins, a sergeant'],[3,'2-3 bugbears, 2-3 goblins'],[3,'1-2 ogres, 2-4 goblins'],[2,'2-3 worgs, 2-3 hobgoblins'],[2,'a bugbear chief, 1-2 bugbears']] },
+  hw2:{ rate:[14,26], src:'leg two, for 6-7: gibbering mouthers, an ettin, the phase spiders, the deep fauna', g:[[3,'2-3 gibbering mouthers'],[3,'3-4 gricks'],[2,'1-2 ettins'],[2,'2-3 phase spiders'],[2,'3-5 darkmantles, a grick'],[1,'a gelatinous cube, a mouther']] },
+  hw3:{ rate:[12,22], src:'leg three, for 7-8: duergar, a xorn pair in the seam, cloakers, drow blade-captain squads', g:[[3,'4-6 duergar'],[2,'2-3 duergar, 3-4 grimlocks'],[2,'2 xorns'],[2,'a cloaker'],[3,'a drow captain, 3-4 drow']] },
+  hw4:{ rate:[12,22], src:'leg four, for 8-9: the drow in force, a troll pack, a spirit naga, an earth elemental', g:[[2,'a drow captain, 4-5 drow'],[1,'a spellweaver, 3-4 drow'],[3,'2 trolls'],[1,'a spirit naga (the table still names it)'],[2,'an earth elemental, a xorn'],[2,'a stone giant, 2-3 duergar']] }
+};
+// ---------------------------------------------------------------------------------------------------------------------------------- the render
+function esc(s) { return s; } // the strings above carry their own markup
+function tagOf(t) { return t ? '<span class="tag ' + t + '">' + ({ ruled:'ruled 10-14', note:'his note, unruled', open:'open', seat:'the seat\'s' }[t] || t) + '</span>' : ''; }
+function storyBlock(st) {
+  return '<div class="story">' + st.map(function (s) {
+    return '<span class="t">' + s.t + tagOf(s.tag) + '</span><q>' + s.q + '</q>' + (s.after || '') + (s.open ? ' <span class="tag open">open: ' + s.open + '</span>' : '');
+  }).join('<br>') + '</div>';
+}
+function markCard(m) {
+  return '<div class="mk ' + m.side + (m.cls ? ' ' + m.cls : '') + '"><span class="pin"></span><div class="card">' +
+    '<h3>' + m.h + '<span class="where">' + m.where + '</span></h3>' +
+    '<p class="now">' + m.now + '</p>' + (m.fight ? '<p class="fight">' + m.fight + '</p>' : '') +
+    (m.story ? storyBlock(m.story) : '') + '<div class="rc">' + m.rc + '</div></div></div>';
+}
+function randTable(key) {
+  var r = RAND[key]; if (!r) return '';
+  return '<div class="card"><h4>Random encounters -- ' + key + '</h4><p class="small">a fight every ' + r.rate[0] + '-' + r.rate[1] + ' steps; the ladder read right: what is available by depth (' + r.src + ')</p>' +
+    '<table class="rand">' + r.g.map(function (g) { return '<tr><td class="w">w' + g[0] + '</td><td>' + g[1] + '</td></tr>'; }).join('') + '</table>' +
+    '<p class="small">guests weigh the fights: Pyro 1.5, Brann and Hedda 1, Ingrith and a trooper 0.5 -- a road group grows by (4 + weight) / 4 (<code>EV.pickGroup</code>).</p></div>';
+}
+function legPage(L) {
+  var h = '<header><h2>' + L.title + '</h2><p>' + L.sub + '</p></header>';
+  h += '<div class="legend"><span class="a">a scene on the road</span><span class="s">a cavern off it</span><span class="lp">a lamp station</span><span class="st">the story review, 10-14</span></div>';
+  h += '<div class="leg"><div class="road"><div class="end">' + L.top + '</div>' + L.marks.map(markCard).join('') + '<div class="end lamp">' + L.bottom + '</div></div>';
+  h += '<div class="panel">';
+  if (L.state) h += '<div class="card"><h4>' + L.state.t + tagOf(L.state.tag) + '</h4><q>' + L.state.q + '</q>' + (L.state.more ? '<p class="now" style="margin-top:.4em">' + L.state.more + '</p>' : '') + '</div>';
+  h += randTable(L.rand); if (L.rand2) h += randTable(L.rand2);
+  if (L.station) h += '<div class="card"><h4>' + L.station.h + '</h4>' + L.station.lines.map(function (l) { return '<p class="now">' + l + '</p>'; }).join('') + '<div class="rc">' + L.station.rc + '</div></div>';
+  h += '</div></div>';
+  return h;
+}
+var LIVE = 'https://grimgriz.github.io/dragonsleep-8bit/'; // Pages from main; plot-map.html is on main at 5e42e23
+function framePage(L) {
+  return '<header><h2>' + L.title + '</h2><p>' + L.sub + '</p></header><iframe id="frame" src="about:blank" title="plot map"></iframe>' +
+    '<p id="framenote" class="small" style="color:var(--dim);font-style:italic;margin:.4rem 0 0">loading&hellip;</p>';
+}
+// the frame wants plot-map.html beside this file (the dragonsleep-8bit folder, or the Pages site); a copy of this page opened elsewhere
+// (a download) has no sibling -- then the live one is framed instead (10-14, his "plot map 404'd")
+function loadFrame() {
+  var fr = document.getElementById('frame'), note = document.getElementById('framenote'); if (!fr || fr.dataset.done) return; fr.dataset.done = 1;
+  function use(src, why) { fr.src = src; note.innerHTML = why + ' -- <a href="' + src + '" target="_blank" rel="noopener">open it on its own</a>.'; }
+  var sib = 'plot-map.html';
+  if (location.protocol === 'file:') { // no fetch on file:, and a file: frame's document is opaque -- so probe the folder by loading data/data.js (plot-map's own data) as a script:
+    var s = document.createElement('script'); s.src = 'data/data.js';            // it loads: we are in dragonsleep-8bit, the sibling is there; it errors: a copy elsewhere
+    s.onload = function () { use(sib, 'plot-map.html beside this file'); };
+    s.onerror = function () { use(LIVE + sib, 'no plot-map.html beside this copy; the live one from Pages'); };
+    document.head.appendChild(s); return;
+  }
+  fetch(sib, { method: 'HEAD' }).then(function (r) { if (r.ok) use(sib, 'plot-map.html beside this file'); else use(LIVE + sib, 'no plot-map.html here (' + r.status + '); the live one from Pages'); })
+    .catch(function () { use(LIVE + sib, 'the live one from Pages'); });
+}
+var pages = document.getElementById('pages'), tabs = document.getElementById('tabs'), cur = 0;
+LEGS.forEach(function (L, i) {
+  var d = document.createElement('section'); d.className = 'page'; d.id = 'p' + i;
+  d.innerHTML = (L.frame ? framePage(L) : legPage(L)) + (i === LEGS.length - 1 ? '' : '');
+  pages.appendChild(d);
+  var b = document.createElement('button'); b.className = 'tab'; b.innerHTML = '<span class="k">' + (i + 1) + '</span>' + L.tab; b.onclick = function () { show(i); }; tabs.appendChild(b);
+});
+var foot = document.createElement('div'); foot.id = 'foot';
+foot.innerHTML = 'The road runs down each page: Solskaft\'s end at the top, Deepholm\'s at the foot; a marker on the left or right is only for room, not for which wall. Every marker is a location the 8-bit already has (<code>content/maps/highway_*.json</code> triggers, npcs, signs, warps), the scene <code>js/deep.js</code> plays there, and the fight it hands to DEEP16 by the ladder\'s name. The random tables are <code>content/encounters.json</code>. The blue blocks are the story-review lane (<code>handoff-2026-10-13-the-story-review.md</code> §5, his rulings of 10-14, and §4, his explorer notes, unruled) laid on the locations they land on; <em>ruled</em> is his word, <em>his note</em> is his note, <em>open</em> is open. Receipts at main <code>d0f0d2d</code>. Nothing here is ruled by this page: a marker in the wrong place or a scene misread is a bug in the page, and goes to the story-review lane.';
+pages.appendChild(foot);
+function show(i) {
+  cur = (i + LEGS.length) % LEGS.length;
+  [].forEach.call(document.querySelectorAll('.page'), function (p, j) { p.classList.toggle('on', j === cur); });
+  [].forEach.call(tabs.children, function (b, j) { b.classList.toggle('on', j === cur); });
+  try { location.hash = LEGS[cur].id; } catch (e) {}
+  if (LEGS[cur].frame) loadFrame();
+  window.scrollTo(0, 0);
+}
+document.getElementById('prev').onclick = function () { show(cur - 1); };
+document.getElementById('next').onclick = function () { show(cur + 1); };
+document.addEventListener('keydown', function (e) { if (e.key === 'ArrowLeft') show(cur - 1); else if (e.key === 'ArrowRight') show(cur + 1); });
+document.getElementById('theme').onclick = function () {
+  var r = document.documentElement, night = r.getAttribute('data-theme') !== 'night';
+  r.setAttribute('data-theme', night ? 'night' : 'day'); this.textContent = night ? 'DAY' : 'NIGHT';
+  try { localStorage.setItem('roadlegs-theme', night ? 'night' : 'day'); } catch (e) {}
+};
+try { if (localStorage.getItem('roadlegs-theme') === 'night') { document.documentElement.setAttribute('data-theme', 'night'); document.getElementById('theme').textContent = 'DAY'; } } catch (e) {}
+var start = 0; LEGS.forEach(function (L, i) { if (location.hash === '#' + L.id) start = i; });
+show(start);
+</script>
+</body>
+</html>
