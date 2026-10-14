@@ -34,7 +34,10 @@
     ok('the landlord under the fall, in sight and waiting, bound to its deep water: ' + (L && [L.x, L.y, L.dormant, L.bound].join(',')), L && L.dormant && L.bound === 'D' && G.map.at(L.x, L.y).ch === 'D' && JSON.stringify([L.x, L.y]) === JSON.stringify(g8(7, 3, 2)));
     ok('the pool ooze asleep in its puddle: not on the field', !unit(B, 'poolooze') && !!B.wet.sleepers.poolooze);
     ok('no start card: the fight\'s first beat is not the entry card (' + JSON.stringify(B.fight.noCards) + ')', B.fight.noCards === true);
-    ok('a hero may not walk into the deep water, nor the pools: ' + G.canStand(lead, g8(6, 5)[0], g8(6, 5)[1]) + ', ' + G.canStand(lead, g8(20, 11)[0], g8(20, 11)[1]), !G.canStand(lead, g8(6, 5)[0], g8(6, 5)[1]) && !G.canStand(lead, g8(20, 11)[0], g8(20, 11)[1]));
+    // (the settling pools wadable since 10-13 -- Griz: "1 yes", to "Make the three settling pools and the inflow wadable on both maps, with the landlord's water staying deep?" --
+    // difficult ground; the 09-30 check had them deep like the landlord's water)
+    var poolSq = G.map.at(g8(20, 11)[0], g8(20, 11)[1]);
+    ok('a hero may not walk into the deep water, but wades the pools (difficult): ' + G.canStand(lead, g8(6, 5)[0], g8(6, 5)[1]) + ', ' + G.canStand(lead, g8(20, 11)[0], g8(20, 11)[1]) + ', difficult ' + !!(poolSq && poolSq.difficult), !G.canStand(lead, g8(6, 5)[0], g8(6, 5)[1]) && G.canStand(lead, g8(20, 11)[0], g8(20, 11)[1]) && poolSq && poolSq.difficult);
     ok('the bucket on its square (the 8-bit 3, 7, by the stair since 10-08): ' + JSON.stringify(B.wet.bucket && B.wet.bucket.at), B.wet.bucket && JSON.stringify(B.wet.bucket.at) === JSON.stringify(g8(3, 7)));
     // 10-04 (Griz, the situations ear-file): the crate under the bucket and the lamp on it; the pool and its rim dressed stone
     var cq = g8(3, 7);

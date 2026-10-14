@@ -5,6 +5,11 @@
    Rows are gy (0 = the far, upper-right wall), columns gx (0 = the far, upper-left wall); the party walks in at the bottom.
    A map may carry `webs` (squares strung with web at the start: difficult for all but the web-walkers, and since 09-30 a
    hazard -- DEX against `webDC` on entering or starting a turn in them, or restrained; fire burns them: js/battle.js, magic.js).
+   CEILINGS (10-13, Griz: "now so other maps know how we do it"): `sky: ft` -- the whole map's ceiling over its lowest ground; `skies: [[x, y, w, h, ft]]` -- a section's
+   own (a dwarven hall in a cave, a shaft); neither -- 30 ft over the highest ground. A flier rises no higher and flies into no square under it (js/grid.js G.ceilAt); a
+   darkmantle rolled at random hangs from it (js/roam.js). Underground, give the map one.
+   WATER: `~` is still water, wadable and difficult; `deepWater` names the squares nothing walks in -- only what is bound to it or swims (js/grid.js). The Wet's settling
+   pools wadable since 10-13 (Griz: "1 yes", on wading the pools); the landlord's `D` stays deep.
    BUILDING A MAP? ASK WHETHER ITS GROUND IS SOLID STONE (10-01d, Griz: "put something somewhere so that when an instance goes to build a
    new map it considers whether or not it should"). A burrower -- the bulette, the xorn, the ankheg, a purple worm, a blue dragon --
    goes under any floor but worked stone (SRD 5.1: burrowing is through "sand, earth, mud, or ice", never solid rock; Earth Glide is
@@ -1207,7 +1212,7 @@ window.D16.MAPS.bog = {
     lights: [[from8(4, 7)[0], from8(4, 7)[1], 10, 'gold']], // (10-04, Griz: "put a light nearby the bucket ... a visible draw on the grid": the lamp's own light, bright 10 ft, dim 10 more -- on the lamp's square, not the bucket's: "the bucket glows like its a light" when it sat there)
     noBurrowAt: [rect8(3, 3, 10, 6)], // (10-04, Griz: "The tiles around the Landlords pool should be switched to solid stone": the pool and its rim, the 8-bit's x 3-12, y 3-8 -- dressed stone; nothing burrows under it or comes up through it)
     step: 10,
-    deepWater: 'D~',
+    deepWater: 'D', // (the landlord's water under the fall; the three settling pools are wadable since 10-13 -- Griz: "1 yes", to "Make the three settling pools and the inflow wadable on both maps, with the landlord's water staying deep?" -- difficult ground, the bridges the quick way across)
     rows8: R8, rows: rows, from8: from8, to8: to8,
     entry: at8([[2, 12], [2, 13], [3, 12], [3, 13], [2, 11]]),
     doors: at8([[1, 12], [1, 13]]),

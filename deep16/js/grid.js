@@ -55,11 +55,24 @@
   G.aloft = function (u) { return !!(u && u.fz != null && !u.dead && u.fz > G.groundAt(u, u.x, u.y)); };
   // the feet of movement a rise or a sink of dz px costs (5 ft a layer, to the 5)
   G.feetUp = function (dz) { return Math.ceil(Math.abs(dz) / G.map.def.step * 2.5 / 5) * 5; };
-  // the highest layer it may take from where it is: a floater one layer over its ground; a flier the map's `sky` (ft over its lowest ground) or 30 ft over its highest
+  // A MAP'S CEILING (10-13, Griz: "is ceiling static per map or can we section it?" -- "now so other maps know how we do it"): `sky`, ft over the map's lowest ground,
+  // the whole map's; `skies`, [[x, y, w, h, ft], ...] in the map's own squares, a section's own over the same ground (a dwarven hall lower than the cave round it, a shaft
+  // higher); neither, 30 ft over its highest ground. A body over more than one square takes the lowest over it. A flier rises no higher than the ceiling where it is (G.flyTop),
+  // and holding a layer goes into no square whose ceiling is under it (G.stepCost). The roam's Wet: sky 20, its dwarven works 15 (js/roam.js); the roost: sky 20
+  G.skyFt = function (u, x, y) {
+    var d = G.map.def, best = null;
+    G.foot(u, x, y).forEach(function (q) { var ft = d.sky; (d.skies || []).forEach(function (s) { if (q[0] >= s[0] && q[1] >= s[1] && q[0] < s[0] + s[2] && q[1] < s[1] + s[3]) ft = s[4]; }); if (ft != null) best = best == null ? ft : Math.min(best, ft); });
+    return best;
+  };
+  G.ceilAt = function (u, x, y) {
+    var m = G.map; if (m.loZ == null) { var lo = 1e9, hi = -1e9; for (var yy = 0; yy < m.h; yy++) for (var xx = 0; xx < m.w; xx++) { var s = m.at(xx, yy); if (s && s.walk) { var z = m.gz(xx, yy); lo = Math.min(lo, z); hi = Math.max(hi, z); } } m.loZ = lo; m.hiZ = hi; }
+    var ft = G.skyFt(u, x, y);
+    return ft != null ? m.loZ + ft / 2.5 * m.def.step : m.hiZ + 6 * G.LAYER();
+  };
+  // the highest layer it may take from where it is: a floater one layer over its ground; a flier the ceiling there
   G.flyTop = function (u) {
     if (u.floats) return G.groundAt(u, u.x, u.y) + G.LAYER();
-    var m = G.map; if (m.loZ == null) { var lo = 1e9, hi = -1e9; for (var y = 0; y < m.h; y++) for (var x = 0; x < m.w; x++) { var s = m.at(x, y); if (s && s.walk) { var z = m.gz(x, y); lo = Math.min(lo, z); hi = Math.max(hi, z); } } m.loZ = lo; m.hiZ = hi; }
-    return m.def.sky != null ? m.loZ + m.def.sky / 2.5 * m.def.step : m.hiZ + 6 * G.LAYER();
+    return G.ceilAt(u, u.x, u.y);
   };
   // the move at a layer z: the squares it may end on, as G.reach's map -- flown level at the higher of where it is and z (it rises first, or sinks last), the rise or the sink
   // in each cost; an end square only where its ground is not above z. Its own square too, for a rise or a sink in place
@@ -146,7 +159,7 @@
   G.stepCost = function (u, x0, y0, x1, y1, o) {
     if (!G.canPass(u, x1, y1, o)) return Infinity;
     if (G.shellBars && !(o && o.ghost) && G.shellBars(u, x0, y0, x1, y1)) return Infinity; // (an Antilife Shell: js/walls.js)
-    if (u.fz != null && G.winged(u)) return G.groundAt(u, x1, y1) > u.fz ? Infinity : 5; // (holding a layer: level over anything lower, not into anything higher -- flight at a height, 10-08)
+    if (u.fz != null && G.winged(u)) return G.groundAt(u, x1, y1) > u.fz || (!u.floats && u.fz > G.ceilAt(u, x1, y1)) ? Infinity : 5; // (and not up into a lower ceiling: a map's `skies`, 10-13) // (holding a layer: level over anything lower, not into anything higher -- flight at a height, 10-08)
     if (u.floats && G.winged(u)) return G.groundAt(u, x1, y1) - G.groundAt(u, x0, y0) > G.LAYER() ? Infinity : 5; // (a floater: up one layer at most, down any -- it hovers, RULED 10-06)
     if (G.winged(u)) return 5; // (a flier -- a familiar owl or bat: no ledge too high, no ground slows it; a held one is restrained -- a grapple is one here, battle.js -- no `grappled` key to read)
     var dzS = G.gzAt(u, x1, y1) - G.gzAt(u, x0, y0), stS = G.map.def.step;

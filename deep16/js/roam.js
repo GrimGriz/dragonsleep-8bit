@@ -41,7 +41,7 @@
   // reads as rock. The road's tiles are here for the next test
   R.TILE = {
     caveFloor: '.', caveWall: '#', timber: '#', rails: '.', railsH: '.', pool: '~', deep: 'D', ooze: '.', guano: '.', guanoDeep: '.',
-    webFloor: '.', dwarfFloor: '.', dwarfWall: '#', runeWall: '#', sealDoor: '#', drownStair: '~', ladder: '.', holeDown: '.', lantern: '#',
+    webFloor: '.', dwarfFloor: '.', dwarfWall: '#', runeWall: '#', sealDoor: '#', drownStair: 'D', ladder: '.', holeDown: '.', lantern: '#',
     cradle: 'y', gate: '#', bones: '.', stalag: 'P', fungus: '.', gravel: '.', minecart: 'k', crateCave: '.', glowmoss: '.', chimney: '#',
     stairsUp: '.', stairsDown: '.', bridgeV: '=', bridgeH: '=', dryStair: '.', sealCut: '.', stain: '.', steps: '.',
     dirt: ',', grass: 'g', tree: 'T', road: ',', dirtpath: ',', cobble: ',', water: 'D', fence: 'f', well: 'w', crate: 'k', cliff: '#',
@@ -55,12 +55,17 @@
   R.wholeWet = function () {
     if (D.MAPS.wetwhole) return D.MAPS.wetwhole;
     var M8 = window.DS.DATA.maps.warrens_d, R8 = R.rows8(M8), W8 = R8[0].length, wet = D.MAPS.wet;
+    // the drowned stair's first row, the landing's edge, wadable (RULED 10-13, Griz: "2 yes" -- wading onto it starts the Keeper, waded in: R.arrive); the rest of it deep
+    R.WADE8.forEach(function (q) { var row = R8[q[1]]; R8[q[1]] = row.slice(0, q[0]) + '~' + row.slice(q[0] + 1); });
     var from8 = function (x, y, s) { return [y, W8 - (x + (s || 1))]; }, to8 = function (gx, gy) { return [W8 - 1 - gy, gx]; };
     var at8 = function (l) { return l.map(function (p) { return from8(p[0], p[1]); }); };
     D.MAPS.wetwhole = {
-      name: 'The Wet', sub: 'the whole floor, walked as one token', dark: true, step: 10, deepWater: 'D~',
+      name: 'The Wet', sub: 'the whole floor, walked as one token', dark: true, step: 10, deepWater: 'D', // (the settling pools and the inflow wadable since 10-13, his "1 yes"; the landlord's water and the drowned stair deep)
       lampAt: wet.lampAt, lights: wet.lights, noBurrowAt: wet.noBurrowAt, // (the Settling's own: the same squares on the same turn)
       sky: 20, // the cave's ceiling, 20 ft over the floor, as the roost's (js/grid.js G.flyTop): a darkmantle rolled at random hangs from it (10-13, Griz: "the whole area map needs a ceiling" -- "for if it rolls darkmantles as randoms")
+      // the dwarven works -- the corridor, the landing, the drowned stair, the 8-bit's rows 19-24 -- under worked stone 15 ft up (the map's `skies`: js/grid.js G.ceilAt;
+      // 10-13, Griz: "keepers room has to be at least 15 high")
+      skies: [[19, W8 - 35, 6, 26, 15]],
       rows8: M8.rows, rows: R.turn(R8), from8: from8, to8: to8, src8: M8,
       entry: wet.entry, stairUp: wet.doors, doors: wet.doors.concat(at8([[41, 27], [42, 27]])), foes: []
     };
@@ -102,6 +107,7 @@
         if (m.click && m.inside) R0.clicks.push({ x: m.x, y: m.y });
         if (I.pressed('order')) R0.keys.push('order');
         if (I.pressed('dice')) R0.keys.push('fight'); // (F: an encounter now -- the test's own key)
+        if (R0.mode === 'walk' && I.pressed('a')) R0.keys.push('use'); // (E: the thing beside the token -- the mark, the stair, the bucket: the 8-bit's USE)
         R0.hover = R0.mode === 'order' && m.inside ? D.iso.pick(m.x, m.y, 0) : null; // (the square under the mouse, for ORDER's box)
         if (R0.mode === 'order' && m.rclick && m.inside) R0.keys.push('turn'); // (a right click in ORDER: the formation as it stands facing the next way -- Griz, 10-13: "rightclick shows the ordering in different facings")
       }
@@ -126,7 +132,7 @@
     // the front man kept with the formation (10-13, in the pane: his formation came back, his leader did not): the stored order first, the rest as they come
     if (Array.isArray(stored._order)) members.sort(function (a, b) { var ia = stored._order.indexOf(a.id), ib = stored._order.indexOf(b.id); return (ia < 0 ? 99 : ia) - (ib < 0 ? 99 : ib); });
     var lead = members[0];
-    var R0 = B.roam = { token: lead, members: members, rest: members.slice(1), form: {}, fw: [-1, 0], mode: 'walk', steps: 0, encIn: 0, clicks: [], keys: [], flags: {}, fights: 0, log: [], last: null, cut: null, msg: null, groups: [] };
+    var R0 = B.roam = { token: lead, members: members, rest: members.slice(1), form: {}, fw: [-1, 0], mode: 'walk', steps: 0, encIn: 0, clicks: [], keys: [], flags: {}, fights: 0, log: [], last: null, cut: null, msg: null, groups: [], spent: {} }; // (spent: the floor's triggers done with -- the roam's own marks, apart from the 8-bit's flags)
     members.slice(1).forEach(function (u, i) { R0.form[u.id] = stored[u.id] || R.FORM0[i] || [-(i + 1), 0]; });
     if (/[?&]watch\b/.test(R.q)) members.forEach(function (u) { u.guest = true; u.classAI = true; }); // (&watch: the class tactics run the four, as the bench does)
     // the light: the party's carried torch (&light=none | torch | lantern), in the first free hand in the marching order (js/light.js handsFree, then handForLight)
@@ -203,6 +209,7 @@
       var k = R0.keys.shift();
       var trk = R.tracking(R0);
       if (k === 'order') { if (trk.length) { D.sfx('miss'); B.card(['{g}Not with them coming.{/}'], 120); } else yield* R.order(B); continue; }
+      if (k === 'use') { var un = R.useNear(B); if (un && !trk.length) yield* R.fire(B, un.trig, un.sq); else D.sfx('miss'); continue; }
       if (k === 'fight') { if (trk.length) yield* R.engage(B, trk[0], false, 'yours'); else yield* R.encounter(B, 'asked'); continue; }
       var ck = R0.clicks.shift();
       if (ck) {
@@ -253,6 +260,10 @@
       return 'door';
     }
     var trig = R.triggerAt(B, p8[0], p8[1], 'step');
+    if (R.isWade(t.x, t.y) && !R0.flags.keeperDone && !R0.flags.fiveRecovered && !R0.spent.stair) {
+      B.card([R.say8('w.wade')], 260); yield 30;
+      yield* R.pullIn(B, 'keeper', { id: 'stair' }, [t.x, t.y], 'ledge'); return 'trigger';
+    }
     if (trig) { yield* R.fire(B, trig, [t.x, t.y]); return 'trigger'; }
     if (R.tracking(R0).length) return null; // (no count while a group is coming: one that lost the party holds nothing up)
     if (R.zoneAt(B, t.x, t.y)) {
@@ -265,7 +276,7 @@
   // ------------------------------------------------------------------ the 8-bit's trigger squares on the floor
   R.triggerAt = function (B, x8, y8, on) {
     var R0 = B.roam;
-    return (R.def.src8.triggers || []).filter(function (t) { var r = t.rect; return t.on === on && x8 >= r[0] && y8 >= r[1] && x8 < r[0] + r[2] && y8 < r[1] + r[3] && R.cond(t.cond, R0.flags) && !(t.once && R0.flags['trig:' + t.id]) && !R0.flags['done:' + t.id]; })[0] || null;
+    return (R.def.src8.triggers || []).filter(function (t) { var r = t.rect; return t.on === on && x8 >= r[0] && y8 >= r[1] && x8 < r[0] + r[2] && y8 < r[1] + r[3] && R.cond(t.cond, R0.flags) && !(t.once && R0.flags['trig:' + t.id]) && !R0.spent[t.id]; })[0] || null;
   };
   R.useAt = function (B, x, y) { var p = R.def.to8(x, y); return R.triggerAt(B, p[0], p[1], 'use'); };
   R.walkBeside = function* (B, at) {
@@ -281,7 +292,7 @@
   // (RULED 10-13, Griz: "the ooze fights should just trigger, the landlord and keeper should still load special as they prevent random encounters"): the
   // jelly, the pool ooze and the puddle ooze are fights made where they lie -- the jelly up out of its pool (the Settling's own squares, data/fights.js wet),
   // a swimmer; the landlord's rim pulls the Settling in, the drowned stair and the rune the Keeper
-  R.WAKE = { landlordStep: 'rim' };
+  R.WAKE = { landlordStep: 'rim', landlord: 'rim' }; // (stepping to the rim, or USE on the landlord's water: the Settling, the landlord speaking first)
   R.OOZES = {
     jelly: { list: ['ochrejelly'], at8: [22, 12], swims: true, flag: 'jellyDead', trig: ['jelly', 'jellyNorth'], line: 'Something ochre heaves up out of the settling pool.' },
     jellyNorth: { list: ['ochrejelly'], at8: [22, 12], swims: true, flag: 'jellyDead', trig: ['jelly', 'jellyNorth'], line: 'Something ochre heaves up out of the settling pool.' },
@@ -294,13 +305,61 @@
     var oz = R.OOZES[trig.id];
     if (oz) { yield* R.encounter(B, 'set', { list: oz.list, at: oz.at8 ? R.def.from8(oz.at8[0], oz.at8[1]) : at, swims: oz.swims, flag: oz.flag, trig: oz.trig, line: oz.line, how: 'where it lay' }); return; }
     if (R.WAKE[trig.id]) { yield* R.pullIn(B, 'wet', trig, at); return; }
-    if (trig.id === 'stair' || trig.id === 'mark') { yield* R.pullIn(B, 'keeper', trig, at); return; }
+    if (trig.id === 'mark') { yield* R.markScene(B, trig, at); return; }
+    if (trig.id === 'stair') { yield* R.stairScene(B, trig, at); return; }
+    if (trig.id === 'bucket') { yield* R.bucketScene(B, trig, at); return; }
     B.card(['{y}' + trig.id + '{/}: the 8-bit\'s scene (' + trig.script + ') runs here.', '{g}(in the test only the Settling\'s squares, the drowned stair, the rune and the puddle ooze do anything){/}'], 300);
     D.sfx('popup'); yield 30;
   };
 
+  // ------------------------------------------------------------------ the 8-bit's scenes on the floor, in its own words (DS.DATA.text, js/events.js S.mark, S.stair, S.bucket)
+  R.say8 = function (k) { var t = window.DS.DATA.text && window.DS.DATA.text[k]; return t ? (t.t || t) : k; };
+  R.WADE8 = [[19, 20], [19, 21], [19, 22], [19, 23]]; // (the 8-bit's squares: the drowned stair's first row, where its `stair` trigger stands)
+  R.isWade = function (x, y) { var p = R.def.to8(x, y); return R.WADE8.some(function (q) { return q[0] === p[0] && q[1] === p[1]; }); };
+  R.USE_NAME = { mark: 'the mark', stair: 'the flooded stair', bucket: 'the bucket', landlord: 'the deep water', deepCradle0: 'the cradle', deepCradle1: 'the cradle', deepCradle2: 'the cradle' };
+  // the 8-bit's USE: a trigger on a square beside the token (the way it faces first) -- the mark is in the wall, so a click cannot pick it (iso.pick picks only open squares)
+  R.useNear = function (B) {
+    var R0 = B.roam, t = R0 && R0.token; if (!t) return null;
+    var dirs = [R0.fw.slice()]; for (var dy = -1; dy <= 1; dy++) for (var dx = -1; dx <= 1; dx++) if ((dx || dy) && !(dx === R0.fw[0] && dy === R0.fw[1])) dirs.push([dx, dy]);
+    for (var i = 0; i < dirs.length; i++) { var x = t.x + dirs[i][0], y = t.y + dirs[i][1], tr = R.useAt(B, x, y); if (tr) return { trig: tr, sq: [x, y] }; }
+    return null;
+  };
+  // the mark (js/events.js S.mark, 10-13 his: "make sure the rune - hand trigger option is added from the 8-bit for the keeper fight"): seen, perhaps read (Arcana or
+  // Religion, 12), and a hand on it wakes the Keeper -- the fight by the rune
+  R.markScene = function* (B, trig, at) {
+    var R0 = B.roam, f = R0.flags, Rr = window.DS.R, settled = f.keeperDone || f.stairHook || f.fiveRecovered;
+    var lines = [R.say8(f.stairHook && !f.keeperWater ? 'w.markDry' : settled ? 'w.markPlain' : 'w.markSee')];
+    var read = R0.members.some(function (u) { return u.src && u.hp > 0 && D.d(20) + Math.max(Rr.skill(u.src, 'Arcana', 'int'), Rr.skill(u.src, 'Religion', 'int')) >= 12; });
+    if (read || f.hobMet) { f.markRead = 1; lines.push(R.say8('w.markRead')); }
+    if (settled) { B.card(lines, 320); yield 30; return; }
+    var a = yield { prompt: { who: R0.token, title: 'THE MARK', lines: lines.concat([R.say8('w.markAsk')]), opts: [{ label: 'PUT A HAND ON IT', value: 1 }, { label: 'LEAVE IT', value: 0 }] } };
+    if (a !== 1) return;
+    f.keeperAwake = 1; D.sfx('splash'); B.card([R.say8('w.markWake')], 320); yield 50;
+    yield* R.pullIn(B, 'keeper', trig, at, 'rune');
+  };
+  // the stair (js/events.js S.stair): ROPE THEM OUT (the rope; the Keeper awake fights by the rune, asleep the five come up), WADE IN (the fight from the ledge), LEAVE
+  R.stairScene = function* (B, trig, at) {
+    var R0 = B.roam, f = R0.flags;
+    if (f.fiveRecovered) { B.card([R.say8('w.stairDone')], 260); yield 20; return; }
+    var a = yield { prompt: { who: R0.token, title: 'THE FLOODED STAIR', lines: [R.say8('w.stairSee'), R.say8('w.stairAsk')], opts: [{ label: 'ROPE THEM OUT', value: 0 }, { label: 'WADE IN', value: 1 }, { label: 'LEAVE', value: 2 }] } };
+    if (a === 0) {
+      if (!(B.inv || []).some(function (x) { return x.id === 'rope' && x.n > 0; })) { B.card([R.say8('w.noRope')], 260); yield 20; return; }
+      if (f.keeperAwake) { B.card([R.say8('w.ropeAwake')], 260); yield 30; yield* R.pullIn(B, 'keeper', trig, at, 'rune'); return; }
+      f.fiveRecovered = 1; B.card([R.say8('w.ropeOut'), '{g}' + R.say8('w.fiveRecovered') + '{/}'], 360); yield 40; return;
+    }
+    if (a === 1) { B.card([R.say8('w.wade')], 260); yield 30; yield* R.pullIn(B, 'keeper', trig, at, 'ledge'); }
+  };
+  // the bucket at the deep station's crate (js/events.js S.bucket): taken up into the pack, in the hand of the one who took it -- the Settling reads both (js/wet.js)
+  R.bucketScene = function* (B, trig, at) {
+    var R0 = B.roam, f = R0.flags;
+    if (f.otyughFed || (B.inv || []).some(function (x) { return x.id === 'bucket' && x.n > 0; })) { B.card(['{g}The crate. The bucket is ' + (f.otyughFed ? 'down in the deep water.' : 'with you.') + '{/}'], 220); yield 20; return; }
+    var s0 = (B.inv || []).filter(function (x) { return x.id === 'bucket'; })[0]; if (s0) s0.n = 1; else (B.inv = B.inv || []).push({ id: 'bucket', n: 1 });
+    f.bucketBy = R0.token.id; D.sfx('chest');
+    B.card(['{y}' + R0.token.name + '{/} takes up the deep station\'s bucket, rope and all.'], 260); yield 30;
+  };
+
   // ------------------------------------------------------------------ a fight elsewhere, pulled in, and back
-  R.pullIn = function* (B, which, trig, at) {
+  R.pullIn = function* (B, which, trig, at, start) {
     var R0 = B.roam, done = null, hp = {};
     R0.members.forEach(function (u) { hp[u.id] = { hp: u.hp, ko: !!u.ko }; });
     var o = Object.assign({}, R.party0, { fightDef: null, fight: which === 'keeper' ? 'keeper' : 'wet', onDone: function (res) { done = res || 'out'; } });
@@ -310,7 +369,7 @@
     o.data = JSON.parse(JSON.stringify(base0));
     o.data.flags = Object.assign({}, o.data.flags || {}, R0.flags);
     o.data.inv = JSON.parse(JSON.stringify(B.inv || []));
-    if (which === 'keeper') o.start = trig.id === 'mark' ? 'rune' : 'ledge';
+    if (which === 'keeper') o.start = start || (trig.id === 'mark' ? 'rune' : 'ledge');
     else o.wake = R.WAKE[trig.id];
     var b = new D.Battle(o), e0 = b.enter, leadId = R0.token.id;
     b.enter = function () {
@@ -357,9 +416,11 @@
     (b.units || []).forEach(function (u) { var w = R0.members.filter(function (m) { return m.id === u.id; })[0]; if (w) { w.hp = Math.max(0, u.hp); w.ko = w.hp <= 0; w.conds = {}; } });
     Object.assign(R0.flags, b.flags8 || {}); // (what it set: otyughFed, bucketBy, heard:r-stream, landlordSpoke, the dead -- the rim's trigger reads otyughFed and otyughDead)
     if (b.inv) B.inv = JSON.parse(JSON.stringify(b.inv)); // (the pack as the fight left it: the bucket taken up or gone into the water, a potion drunk)
-    if (done === 'won') R0.flags['done:' + trig.id] = 1;
-    if (which === 'wet' && done === 'won') ['jelly', 'jellyNorth', 'poolOoze', 'landlordStep'].forEach(function (id) { R0.flags['done:' + id] = 1; });
-    if (which === 'keeper' && done === 'won') ['stair', 'mark'].forEach(function (id) { R0.flags['done:' + id] = 1; });
+    if (done === 'won') R0.spent[trig.id] = 1;
+    if (which === 'wet' && done === 'won') ['jelly', 'jellyNorth', 'poolOoze', 'landlordStep'].forEach(function (id) { R0.spent[id] = 1; });
+    if (which === 'keeper' && done === 'won') { ['stair', 'mark'].forEach(function (id) { R0.spent[id] = 1; }); R0.flags.keeperDone = 1; R0.flags.fiveRecovered = 1; }
+    if (which === 'keeper' && done !== 'won' && done !== 'lost') R0.flags.keeperAwake = 1; // (a run leaves it awake and unbeaten: the rope then fights it by the rune -- the 8-bit's, 10-04)
+    if (which === 'keeper' && done === 'won') { B.card([R.say8('w.keeperGone'), '{g}' + R.say8('w.fiveRecovered') + '{/}'], 360); yield 40; }
     // the Settling's squares are the floor's own: the token back where the party left it -- a square past the one who got out (off the Settling's ground, the way
     // they went), or where the first still standing ended (10-13, his play: "Barleys wet exit of landlord scene put them back at waters edge")
     if (which === 'wet') {
@@ -737,7 +798,7 @@
         else FX.sparkle(w, 'glow', 12);
       }
       if (grp && grp.flag) R0.flags[grp.flag] = 1; // (what is dead stays dead: an ooze's flag, as the 8-bit's)
-      if (grp && grp.trig) [].concat(grp.trig).forEach(function (id) { R0.flags['done:' + id] = 1; });
+      if (grp && grp.trig) [].concat(grp.trig).forEach(function (id) { R0.spent[id] = 1; });
     }
     var others = R0.members.filter(function (u) { return u !== lead; });
     R0.token = lead; R0.rest = others; R0.mode = 'walk';
@@ -980,7 +1041,7 @@
     if ((R0.mode === 'walk' || R0.mode === 'order') && !B.menu) {
       var z = R.zoneAt(B, R0.token.x, R0.token.y), p8 = R.def.to8(R0.token.x, R0.token.y);
       D.text(ctx, 'THE ROAM -- the Wet, ' + G.map.w + ' x ' + G.map.h + '   8-bit square ' + p8[0] + ',' + p8[1] + (z ? '   next fight in ' + R0.encIn + ' steps' : '   (no random fights here)'), 6, D.H - 30, '#e8d8a0');
-      D.text(ctx, R0.mode === 'order' ? 'ORDER (facing ' + R.faceName(R0.fw) + '): click one, then a lit square, or the leader to lead -- right click turns -- O when done' : 'click: walk   arrows: step   O: formation   F: a fight now   L: the floor map', 6, D.H - 20, '#9a94a8');
+      D.text(ctx, R0.mode === 'order' ? 'ORDER (facing ' + R.faceName(R0.fw) + '): click one, then a lit square, or the leader to lead -- right click turns -- O when done' : 'click: walk   arrows: step   O: formation   F: a fight now   L: the floor map' + (function () { var un = R.useNear(B); return un ? '   E: ' + (R.USE_NAME[un.trig.id] || un.trig.id) : ''; })(), 6, D.H - 20, '#9a94a8');
     }
     if (R.showMap) R.paintMap(ctx, B, D.W - G.map.w * 4 - 6, 22, 4);
     if (R0.mode === 'order' && R0.sel) { var s = D.iso.center(R0.sel.x, R0.sel.y, 0), p = D.iso.toScreen(s.x, s.y); ctx.strokeStyle = '#ffe080'; ctx.strokeRect(p.x - 8, p.y - 30, 16, 32); }

@@ -1974,7 +1974,7 @@
       var jFight = driveW(BW.co, function () { return RW.mode === 'fight' || D.top() !== BW; }, 4000), jlW = BW.units.filter(function (u) { return u.kind === 'ochrejelly'; })[0], poolW = defW.from8(22, 12);
       okW('the jelly\'s row: a fight where it lies, the jelly up out of its pool (' + (jlW ? [jlW.x, jlW.y] : 'none') + ' for ' + poolW + '), not pulled in', jFight && D.top() === BW && jlW && jlW.swims && Math.max(Math.abs(jlW.x - poolW[0]), Math.abs(jlW.y - poolW[1])) <= 3);
       driveW(BW.co, function () { return RW.mode === 'walk'; }, 80000); driveW(BW.co, null, 300);
-      okW('won, it stays dead (' + Object.keys(RW.flags).join(',') + ')', RW.lastOutcome !== 'won' || (RW.flags.jellyDead && RW.flags['done:jellyNorth']));
+      okW('won, it stays dead (' + Object.keys(RW.flags).join(',') + ')', RW.lastOutcome !== 'won' || (RW.flags.jellyDead && RW.spent.jellyNorth));
       // the landlord's rim pulls the Settling in, the lead on the rim square
       RW.members.forEach(function (u) { u.hp = u.maxhp; u.ko = false; u.conds = {}; });
       var rimW = defW.from8(8, 8); tkW = RW.token; var startW = defW.from8(8, 10); tkW.x = startW[0]; tkW.y = startW[1]; GW.setup(GW.map, BW.units); RW.path = D.Battle.route(tkW, rimW);
@@ -2000,6 +2000,23 @@
         var backP = D.top() === BW; for (kP = 0; kP < 400; kP++) { stP = gPW.next(); if (stP.done) break; }
         okW('a peaceful bucket ends the Settling, the party back in one token (' + (backP ? 'back on the floor' : 'still in it') + ')', bP !== BW && backP && stP && stP.done && BW.units.filter(function (u) { return u.side === 'party'; }).length === 1);
       } else okW('the landlord\'s rim pulls the Settling in', false);
+      // the pools wadable, the drowned stair deep but its first row; the ceiling over the dwarven works lower than the cave's (a map's `skies`)
+      var poolSq = defW.from8(20, 11), stairDeep = defW.from8(15, 21), wadeSq = defW.from8(19, 21), sP = GW.map.at(poolSq[0], poolSq[1]), sD = GW.map.at(stairDeep[0], stairDeep[1]), sW = GW.map.at(wadeSq[0], wadeSq[1]);
+      okW('a settling pool is wadable (' + sP.ch + ': walk ' + sP.walk + ', difficult ' + sP.difficult + '), the drowned stair deep (' + sD.ch + ': walk ' + sD.walk + ') but its first row (' + sW.ch + ': walk ' + sW.walk + ')', sP.walk && sP.difficult && !sD.walk && sW.walk);
+      var cave = D.grid.ceilAt(RW.token, 12, 30), works = D.grid.ceilAt(RW.token, defW.from8(25, 22)[0], defW.from8(25, 22)[1]), ftOfZ = function (z) { return Math.round((z - GW.map.loZ) / GW.map.def.step * 2.5); };
+      okW('the ceiling by section: the cave ' + ftOfZ(cave) + ' ft, the dwarven works ' + ftOfZ(works) + ' ft', ftOfZ(cave) === 20 && ftOfZ(works) === 15);
+      // wading onto the stair's first row: the Keeper, from the ledge
+      RW.members.forEach(function (u) { u.hp = u.maxhp; u.ko = false; u.conds = {}; });
+      var nearW = defW.from8(20, 21); tkW = RW.token; tkW.x = nearW[0]; tkW.y = nearW[1]; GW.setup(GW.map, BW.units); RW.path = [wadeSq];
+      var kW = driveW(BW.co, function () { return D.top() !== BW; }, 2000), bK = D.top();
+      if (kW && bK !== BW) { bK.enter(); okW('wading onto the first row pulls the Keeper in, from the ledge (' + (bK.fight && bK.fight.id) + ', start ' + (bK.o.start || 'ledge') + ')', bK.fight && bK.fight.id === 'keeper' && (bK.o.start || 'ledge') === 'ledge'); D.pop(); bK.o.onDone('escaped'); driveW(BW.co, function () { return D.top() === BW && RW.mode === 'walk'; }, 2000); driveW(BW.co, null, 50); }
+      else okW('wading onto the first row pulls the Keeper in', false);
+      // E at the rune: the 8-bit's ask, and a hand on it -- the Keeper by the rune (driveW answers a prompt with its first choice: PUT A HAND ON IT)
+      var byMark = defW.from8(22, 20); tkW.x = byMark[0]; tkW.y = byMark[1]; RW.fw = [-1, 0]; GW.setup(GW.map, BW.units); RW.groups = [];
+      var unW = D.roam.useNear(BW);
+      RW.keys.push('use'); var mW = driveW(BW.co, function () { return D.top() !== BW; }, 3000), bM = D.top();
+      if (mW && bM !== BW) { okW('E beside the rune: the mark asked, a hand on it, the Keeper by the rune (' + (unW && unW.trig.id) + ', start ' + bM.o.start + '; keeperAwake ' + !!RW.flags.keeperAwake + ')', unW && unW.trig.id === 'mark' && bM.o.start === 'rune' && RW.flags.keeperAwake); bM.enter(); D.pop(); bM.o.onDone('escaped'); driveW(BW.co, function () { return D.top() === BW && RW.mode === 'walk'; }, 2000); }
+      else okW('E beside the rune: the mark asked, the Keeper by the rune', false);
       repW.encounters = RW.log.map(function (e) { return e.who + ' ' + e.how + ' ' + e.distFt + ' ft (sees ' + e.sightFar + ')' + (e.spill ? ', met at ' + e.contactFt + ' ft, spill off ' + e.spill.map(function (s) { return s.off; }).join('') : ', no fight') + ', ' + e.ms + ' ms'; });
     } catch (eW) { repW.errors.push(String(eW && eW.stack || eW).slice(0, 900)); }
     D.store.get = stGW; D.store.set = stSW;
