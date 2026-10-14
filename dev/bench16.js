@@ -2151,7 +2151,7 @@
       var KP = function (b) { return { pressed: function (x) { return x === b; }, repeat: function (x) { return x === b; } }; };
       var rowP = function (pg, id) { for (var t = 0; t < pg.tabs.length; t++) { pg.tab = t; pg.list.i = 0; pg.refresh(); for (var i = 0; i < pg.list.items.length; i++) { var it = pg.list.items[i]; if (it.value && it.value.id === id) { pg.list.i = i; pg.list.fix(); return true; } } } return false; };
       var hitP = function (m, id) { var pg = m.top(); if (!rowP(pg, id)) return false; m.update(KP('a')); return true; };
-      var confirmPk = function (m) { var pg = m.top(); pg.list.i = pg.list.items.length - 1; pg.list.fix(); m.update(KP('a')); };
+      var confirmPk = function (m) { var pg = m.top(), ci = pg.list.items.findIndex(function (it) { return it.confirm; }); pg.list.i = ci >= 0 ? ci : pg.list.items.length - 1; pg.list.fix(); m.update(KP('a')); }; // (CONFIRM by its mark: at the top since 1341d28, as bench8's confirmP)
       var lvP = aurZ.lvl, gPk = D.roam.after(BZ, 'won', { zone: 'warrens_d' }, [cP]), mP = null, seenP = [], hitsP = [], doneP = false, stuckP = false;
       RZ.mode = 'fight';
       var ctxP0 = D.ctx; if (!D.ctx) { var cvPk = document.createElement('canvas'); cvPk.width = 480; cvPk.height = 270; D.ctx = cvPk.getContext('2d'); } // (the bench's page has no screen: D.levelPicks asks no one without one)
