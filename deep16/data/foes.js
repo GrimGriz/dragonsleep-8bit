@@ -761,7 +761,7 @@
     multi: 1, surprise: '2d6', src: 'SRD 5.1 Bugbear (CR 1); content/monsters.json bugbear; the chief\'s sheet; the Javelin thrown +4 1d6+2 30/120 (SRD 5.1, when nothing is in reach: ai.js volley; 10-02 runner); its own look since 10-07, bugbear_p1 (his GPT sheet, tools/bugbear-sheet.py)'
   },
   ogre: {
-    name: 'Ogre', type: 'giant', sheet: 'ogre_p1', cr: '2', ac: 11, hp: 59, speed: 40, size: 2, reach: 5, darkvision: 60,
+    name: 'Ogre', type: 'giant', sheet: 'ogre_p2', cr: '2', ac: 11, hp: 59, speed: 40, size: 2, reach: 5, darkvision: 60,
     abil: { str: 19, dex: 8, con: 16, int: 5, wis: 7, cha: 7 }, init: -1, perception: 8,
     saves: { str: 4, dex: -1, con: 3, int: -3, wis: -2, cha: -2 },
     attacks: {
