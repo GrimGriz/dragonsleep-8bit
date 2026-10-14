@@ -3,7 +3,7 @@
     python tools/greyfang-sheet.py            (writes deep16/art/greyfang_p1.png/.json)
     python tools/greyfang-sheet.py check      (also the cut overlays, dev/visions/greyfang/cut-<n>.png, a contact strip of every row and a lineup beside Talmok)
 
-Sources (gitignored, the main checkout's -- a worktree reads them there): deep16/_src/Fresh/Greyfang_ Grizzled Veteran Ranger Sprite Sheet-1.png
+Sources (gitignored, the main checkout's -- a worktree reads them there): deep16/_src/greyfang/Greyfang_ Grizzled Veteran Ranger Sprite Sheet-1.png
 and Greyfang's extra moves sprite sheet-2.png (a CURLY apostrophe in the second's name) -- Griz, 2026-10-08. GreyFang: a man with a wolf's head,
 a grizzled veteran ranger in a torn green cloak, a longbow in his hand, a quiver of arrows on his back, a sword for the close work.
 Not ruled how the game plays him -- the seat's (deep16/js/classes.js, data/foes.js); this cuts every row under the names the engine reads.
@@ -43,15 +43,15 @@ def _load(name, path):
 pix = _load('pix', os.path.join(ROOT, 'tools', 'pixelate.py'))
 SR = _load('sheetrows', os.path.join(ROOT, 'tools', 'sheetrows.py'))
 
-FILES = {1: os.path.join('Fresh', 'Greyfang_ Grizzled Veteran Ranger Sprite Sheet-1.png'),
-         2: os.path.join('Fresh', 'Greyfang’s extra moves sprite sheet-2.png'),     # (a curly apostrophe)
+FILES = {1: os.path.join('greyfang', 'Greyfang_ Grizzled Veteran Ranger Sprite Sheet-1.png'),
+         2: os.path.join('greyfang', 'Greyfang’s extra moves sprite sheet-2.png'),     # (a curly apostrophe)
          # his four isometric sheets (10-08, Griz: "the art department is putting out sprites thinking this is a 2D game. It's now generating
          # based on isometry"): sheet 2's moves from each screen diagonal, one sheet a view; the bottom-left is the last of two ("Use the last
          # bottom-left image -- it corrects the Volley's firing direction": Greyfang isometric combat sprite sheet-2.png's volley shot right)
-         3: os.path.join('Fresh', 'Greyfang’s Isometric Combat Sprite Sheet-1.png'),   # BOTTOM RIGHT -> SE (a curly apostrophe)
-         4: os.path.join('Fresh', "GreyFang's Eight-Frame Bow Volley-5.png"),           # BOTTOM LEFT -> SW
-         5: os.path.join('Fresh', 'Greyfang Isometric Combat Sprite Sheet-3.png'),      # TOP LEFT (titled only GREYFANG) -> NW
-         6: os.path.join('Fresh', 'Greyfang isometric combat sprite sheet-4.png')}      # TOP RIGHT -> NE
+         3: os.path.join('greyfang', 'Greyfang’s Isometric Combat Sprite Sheet-1.png'),   # BOTTOM RIGHT -> SE (a curly apostrophe)
+         4: os.path.join('greyfang', "GreyFang's Eight-Frame Bow Volley-5.png"),           # BOTTOM LEFT -> SW
+         5: os.path.join('greyfang', 'Greyfang Isometric Combat Sprite Sheet-3.png'),      # TOP LEFT (titled only GREYFANG) -> NW
+         6: os.path.join('greyfang', 'Greyfang isometric combat sprite sheet-4.png')}      # TOP RIGHT -> NE
 SRC = os.path.join(ROOT, 'deep16', '_src')                 # his sheets live in the main checkout (_src is not in git): a worktree reads them there
 if not os.path.exists(os.path.join(SRC, FILES[1])):
     _common = subprocess.run(['git', '-C', ROOT, 'rev-parse', '--git-common-dir'], capture_output=True, text=True).stdout.strip()

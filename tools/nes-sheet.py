@@ -11,7 +11,7 @@ puts its feet where the ready pose's feet are (js/bestiary-art.js DS.monsterArt 
 after a blow, defeated as it fades).
 
 First (and maybe only -- Griz, 10-08: "the code drawings are so-so and the 16 bit one looked so cool, please use new fancy and don't be
-surprised if its the only one"): the axe beak, deep16/_src/Fresh/Axe Beak NES Battle Sprite Sheet.png -- READY, ATTACK, HURT, DEFEATED.
+surprised if its the only one"): the axe beak, deep16/_src/axebeak/Axe Beak NES Battle Sprite Sheet.png -- READY, ATTACK, HURT, DEFEATED.
 Sources are gitignored (the main checkout's deep16/_src; a worktree reads them there).
 """
 import os, re, sys, subprocess
@@ -20,13 +20,13 @@ from PIL import Image
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SRC = os.path.join(ROOT, 'deep16', '_src')
-if not os.path.isdir(os.path.join(SRC, 'Fresh')):
+if not os.path.isdir(os.path.join(SRC, 'axebeak')):
     _common = subprocess.run(['git', '-C', ROOT, 'rev-parse', '--git-common-dir'], capture_output=True, text=True).stdout.strip()
     SRC = os.path.join(os.path.dirname(os.path.abspath(os.path.join(ROOT, _common))), 'deep16', '_src')
 ART = os.path.join(ROOT, 'js', 'bestiary-art.js')
 
 SPECS = {
-    'axebeak': dict(file=os.path.join('Fresh', 'Axe Beak NES Battle Sprite Sheet.png'),
+    'axebeak': dict(file=os.path.join('axebeak', 'Axe Beak NES Battle Sprite Sheet.png'),
                     poses=['ready', 'attack', 'hurt', 'defeated'],    # left to right on the sheet, over their labels
                     anchor={'ready': 'feet', 'attack': 'feet', 'hurt': 'feet', 'defeated': 'middle'},
                     colors=22),

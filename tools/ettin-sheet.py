@@ -3,7 +3,7 @@
     python tools/ettin-sheet.py            (writes deep16/art/ettin_p2.png/.json)
     python tools/ettin-sheet.py check      (also the cut overlays, dev/visions/ettin/cut-<n>.png, and a lineup beside the troll and a gnoll)
 
-Sources (gitignored, the main checkout's -- a worktree reads them there): deep16/_src/Fresh/Two-Headed Ettin Battle Sprite Sheet-1.png (the
+Sources (gitignored, the main checkout's -- a worktree reads them there): deep16/_src/ettin/Two-Headed Ettin Battle Sprite Sheet-1.png (the
 side rows), Front-facing ettin sprite sheet-2.png (from the front) and Ettin back-view flinch sprite fix-13.png (from behind: his re-roll of the
 whole sheet, which replaces Ettin Back Sprite Sheet-8.png, whose Flinch swapped the weapons -- -8 is not read) -- Griz, 2026-10-08, from the
 pastes in deep16-art-in-hand.md, "The stand-ins' first sheets" (#### The ettin) and "The six's fronts and backs"; then Ettin battleaxe and
@@ -47,8 +47,8 @@ def _load(name, path):
 pix = _load('pix', os.path.join(ROOT, 'tools', 'pixelate.py'))
 SR = _load('sheetrows', os.path.join(ROOT, 'tools', 'sheetrows.py'))
 
-FILES = {1: os.path.join('Fresh', 'Two-Headed Ettin Battle Sprite Sheet-1.png'), 2: os.path.join('Fresh', 'Front-facing ettin sprite sheet-2.png'),
-         3: os.path.join('Fresh', 'Ettin back-view flinch sprite fix-13.png'), 4: os.path.join('Fresh', 'Ettin battleaxe and morningstar animation-1.png')}
+FILES = {1: os.path.join('ettin', 'Two-Headed Ettin Battle Sprite Sheet-1.png'), 2: os.path.join('ettin', 'Front-facing ettin sprite sheet-2.png'),
+         3: os.path.join('ettin', 'Ettin back-view flinch sprite fix-13.png'), 4: os.path.join('ettin', 'Ettin battleaxe and morningstar animation-1.png')}
 SRC = os.path.join(ROOT, 'deep16', '_src')                 # his sheets live in the main checkout (_src is not in git): a worktree reads them there
 if not os.path.exists(os.path.join(SRC, FILES[1])):
     _common = subprocess.run(['git', '-C', ROOT, 'rev-parse', '--git-common-dir'], capture_output=True, text=True).stdout.strip()

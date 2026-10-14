@@ -3,7 +3,7 @@
     python tools/cube-sheet.py            (writes deep16/art/cube_p2.png/.json)
     python tools/cube-sheet.py check      (also the cut overlays, dev/visions/cube/cut-<n>.png, and a lineup beside the troll and the gnoll)
 
-Sources (gitignored, the main checkout's -- a worktree reads them there): deep16/_src/Fresh/Gelatinous Cube Animation Sheet-3.png (the side:
+Sources (gitignored, the main checkout's -- a worktree reads them there): deep16/_src/cube/Gelatinous Cube Animation Sheet-3.png (the side:
 a portrait, a turnaround Front, Right, Back, Left, then rows facing RIGHT, numbered: idle 6, slide 8, engulf 8, digest 6, flinch 4, fall 6)
 and Teal Jelly Cube Turnaround Sprite Sheet-1.png (despite its name no turnaround: four rows, Slide Front 8, Engulf Front 8, Slide Back 8,
 Engulf Back 8) -- Griz, 2026-10-08, the pastes in deep16-art-in-hand.md ("The stand-ins' first sheets", "The six's fronts and backs").
@@ -37,7 +37,7 @@ def _load(name, path):
 pix = _load('pix', os.path.join(ROOT, 'tools', 'pixelate.py'))
 SR = _load('sheetrows', os.path.join(ROOT, 'tools', 'sheetrows.py'))
 
-FILES = {1: os.path.join('Fresh', 'Gelatinous Cube Animation Sheet-3.png'), 2: os.path.join('Fresh', 'Teal Jelly Cube Turnaround Sprite Sheet-1.png')}
+FILES = {1: os.path.join('cube', 'Gelatinous Cube Animation Sheet-3.png'), 2: os.path.join('cube', 'Teal Jelly Cube Turnaround Sprite Sheet-1.png')}
 SRC = os.path.join(ROOT, 'deep16', '_src')                 # his sheets live in the main checkout (_src is not in git): a worktree reads them there
 if not os.path.exists(os.path.join(SRC, FILES[1])):
     _common = subprocess.run(['git', '-C', ROOT, 'rev-parse', '--git-common-dir'], capture_output=True, text=True).stdout.strip()

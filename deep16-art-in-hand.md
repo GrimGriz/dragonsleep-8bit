@@ -1,7 +1,7 @@
 ---
 title: DEEP16 art in hand -- what came back, and the pastes kept for a re-roll
 made: 2026-10-08 (Code tab), split out of deep16-art-wanted.md on Griz's word ("shouldn't we have (a better titled) art_we_used_to_want.md or something, such that deep16-art-wanted can just be copypasta to throw in the image gen as I can?" -- then "The split will be a thing")
-how: nothing here is wanted. When a block on `deep16-art-wanted.md` comes back and is cut, or is ruled not wanted, it moves here -- a line under BUILT FROM THE LIST with the date and the commit, and its paste into its own section for a re-roll -- never deleted. Everything below the list is the old register's DONE half as it stood at the split, word for word.
+how: nothing here is wanted. When a block on `deep16-art-wanted.md` comes back and is cut, or is ruled not wanted, it moves here -- a line under BUILT FROM THE LIST with the date and the commit, and its paste into its own section for a re-roll -- never deleted. Everything below the list is the old register's DONE half as it stood at the split, word for word. **A `deep16/_src/Fresh/` path below is where a sheet came in:** since 2026-10-14 every used sheet lives in `deep16/_src/<creature>/` (Fresh is the inbox again, Griz's word; the rule is the `how:` of `deep16-art-wanted.md`).
 ---
 
 # DEEP16 art in hand

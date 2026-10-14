@@ -2689,7 +2689,7 @@
 }
 },
 "face": 60,
-"source": "the big face off Fresh\\Greyfang, the grizzled wolfkin ranger.png (Griz, 10-08), cut by tools/faces-sheet.py"
+"source": "the big face off greyfang\\Greyfang, the grizzled wolfkin ranger.png (Griz, 10-08), cut by tools/faces-sheet.py"
 },
 "face_greyfang_hurt": {
 "image": "art/face_greyfang_hurt.png?v=267b6872f2",
@@ -2710,7 +2710,7 @@
 }
 },
 "face": 60,
-"source": "the big face off Fresh\\Exhausted Wolfkin Ranger Face Close-Up-1.png (Griz, 10-08), cut by tools/faces-sheet.py"
+"source": "the big face off greyfang\\Exhausted Wolfkin Ranger Face Close-Up-1.png (Griz, 10-08), cut by tools/faces-sheet.py"
 },
 "face_harbinger": {
 "image": "art/face_harbinger.png?v=ce64af6a19",
@@ -2731,7 +2731,7 @@
 }
 },
 "face": 60,
-"source": "the big face off Fresh\\Harbinger, the Mirror Gnoll.png (Griz, 10-08), cut by tools/faces-sheet.py"
+"source": "the big face off mirrorgnoll\\Harbinger, the Mirror Gnoll.png (Griz, 10-08), cut by tools/faces-sheet.py"
 },
 "face_harbinger_hurt": {
 "image": "art/face_harbinger_hurt.png?v=7ab1f75329",
@@ -2752,7 +2752,7 @@
 }
 },
 "face": 60,
-"source": "the big face off Fresh\\Battered Mirror-Eyed Gnoll Close-Up-2.png (Griz, 10-08), cut by tools/faces-sheet.py"
+"source": "the big face off mirrorgnoll\\Battered Mirror-Eyed Gnoll Close-Up-2.png (Griz, 10-08), cut by tools/faces-sheet.py"
 },
 "firebeetle_p1": {
 "image": "art/firebeetle_p1.png?v=41ee7cce6c",

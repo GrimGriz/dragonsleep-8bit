@@ -4,7 +4,7 @@
     python tools/faces-sheet.py check      (also dev/visions/faces.png, both at 3x)
 
 Griz, 10-08, on the ending's face close-ups (the game sprites blown up, blocky): "I remember a lot of the art sheets starting with a big ole face in the
-top left..". So: GreyFang's from his first sheet (deep16/_src/Fresh/Greyfang_ Grizzled Veteran Ranger Sprite Sheet-1.png, the box tools/greyfang-sheet.py
+top left..". So: GreyFang's from his first sheet (deep16/_src/greyfang/Greyfang_ Grizzled Veteran Ranger Sprite Sheet-1.png, the box tools/greyfang-sheet.py
 blanks), the Harbinger's from the made gnoll's second (deep16/_src/Mirror-Eyed Gnoll Action Sprite Sheet2.png). Each is cut out of its navy by the same mask
 the rows are (tools/sheetrows.py figure_mask), brought down to HEIGHT px and snapped to the palette (tools/pixelate.py). The Harbinger's portrait still has
 one amber eye -- the made gnoll has two mirrors (Griz, 10-08: "Can you make that front eye that's dark also mirror on this chap?") -- so its amber is painted
@@ -34,12 +34,12 @@ FACES = {
     # name: (source, the portrait's box on it, boxes whose amber is painted as a mirror). Since 10-08 evening his own two front faces, drawn for these
     # close-ups -- the Harbinger's with both mirrors. The first cut was the sheets' side portraits (GreyFang's sheet 1 box (0, 45, 298, 274); the made
     # gnoll's sheet 2 box (0, 20, 300, 285), its amber eye (171, 125, 194, 141) painted over): mirror_eye stays for a portrait that needs it
-    'face_greyfang': (os.path.join('Fresh', 'Greyfang, the grizzled wolfkin ranger.png'), (0, 0, 1254, 1254), []),
-    'face_harbinger': (os.path.join('Fresh', 'Harbinger, the Mirror Gnoll.png'), (0, 0, 1254, 1254), []),
+    'face_greyfang': (os.path.join('greyfang', 'Greyfang, the grizzled wolfkin ranger.png'), (0, 0, 1254, 1254), []),
+    'face_harbinger': (os.path.join('mirrorgnoll', 'Harbinger, the Mirror Gnoll.png'), (0, 0, 1254, 1254), []),
     # (and two battered, close, dropped after: the Harbinger bloodied, teeth bared; GreyFang worn out, an eye swollen shut -- the seat's call, the sky's face to
     # face after the fight; the clean faces for the Mane, he is just stood up whole)
-    'face_harbinger_hurt': (os.path.join('Fresh', 'Battered Mirror-Eyed Gnoll Close-Up-2.png'), (0, 0, 1254, 1254), []),
-    'face_greyfang_hurt': (os.path.join('Fresh', 'Exhausted Wolfkin Ranger Face Close-Up-1.png'), (0, 0, 1254, 1254), []),
+    'face_harbinger_hurt': (os.path.join('mirrorgnoll', 'Battered Mirror-Eyed Gnoll Close-Up-2.png'), (0, 0, 1254, 1254), []),
+    'face_greyfang_hurt': (os.path.join('greyfang', 'Exhausted Wolfkin Ranger Face Close-Up-1.png'), (0, 0, 1254, 1254), []),
 }
 
 

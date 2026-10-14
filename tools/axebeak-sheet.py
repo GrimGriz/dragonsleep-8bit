@@ -3,7 +3,7 @@
     python tools/axebeak-sheet.py            (writes deep16/art/axebeak_p2.png/.json)
     python tools/axebeak-sheet.py check      (also the cut overlays, dev/visions/axebeak/cut-<n>.png, and a lineup at 4x)
 
-Sources (gitignored, the main checkout's -- a worktree reads them there), all Griz's, 2026-10-08, in deep16/_src/Fresh/:
+Sources (gitignored, the main checkout's -- a worktree reads them there), all Griz's, 2026-10-08, in deep16/_src/axebeak/:
 sheet 1 `Axe Beak Animation Sheet-6.png` (asked as deep16-art-in-hand.md "The stand-ins' first sheets", #### The axe beak): a portrait,
 a turnaround (Front, Right, Back, Left, labelled ABOVE the stills), then rows facing RIGHT, numbered under each frame: Idle 6, Run 8, Beak 6,
 Flinch 4 (feathers flying round it: each feather is its frame's), Fall 6 (the last lies on the ground), Prone 2 (on its side kicking, then
@@ -36,8 +36,8 @@ def _load(name, path):
 pix = _load('pix', os.path.join(ROOT, 'tools', 'pixelate.py'))
 SR = _load('sheetrows', os.path.join(ROOT, 'tools', 'sheetrows.py'))
 
-FILES = {1: os.path.join('Fresh', 'Axe Beak Animation Sheet-6.png'), 2: os.path.join('Fresh', 'Front-Facing Axe Beak Animation Sheet-5.png'),
-         3: os.path.join('Fresh', 'Axe beak back-view sprite sheet-9.png')}
+FILES = {1: os.path.join('axebeak', 'Axe Beak Animation Sheet-6.png'), 2: os.path.join('axebeak', 'Front-Facing Axe Beak Animation Sheet-5.png'),
+         3: os.path.join('axebeak', 'Axe beak back-view sprite sheet-9.png')}
 SRC = os.path.join(ROOT, 'deep16', '_src')                 # his sheets live in the main checkout (_src is not in git): a worktree reads them there
 if not os.path.exists(os.path.join(SRC, FILES[1])):
     _common = subprocess.run(['git', '-C', ROOT, 'rev-parse', '--git-common-dir'], capture_output=True, text=True).stdout.strip()

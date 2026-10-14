@@ -5,7 +5,7 @@
 
 Sources (gitignored, the main checkout's -- a worktree reads them there): deep16/_src/Mirror-Eyed Gnoll Sprite Sheet1.png and
 Mirror-Eyed Gnoll Action Sprite Sheet2.png -- Griz, 2026-10-08, drawn from the GPT "Astra" draft's two prompts
-(deep16/_src/oneeye/astra-draft-2026-10-08.md: its rows and its look); then deep16/_src/Fresh/Hunched mirror-eyed gnoll sprite
+(deep16/_src/oneeye/astra-draft-2026-10-08.md: its rows and its look); then deep16/_src/mirrorgnoll/Hunched mirror-eyed gnoll sprite
 sheet-1.png (from the front) and Back-View Gnoll Animation Sprite Sheet-3.png (from behind; its sheet-2 dropped an idle frame and swung
 the other arm, and this re-roll fixed both), with Back-view mirror-eyed gnoll sprite sheet-2.png's backhand kept as the other arm's
 (Griz, 10-08: "if we want to make him do a dance, one has his arm out to one side and the other has the other arm out to a side ...
@@ -48,9 +48,9 @@ pix = _load('pix', os.path.join(ROOT, 'tools', 'pixelate.py'))
 SR = _load('sheetrows', os.path.join(ROOT, 'tools', 'sheetrows.py'))
 
 FILES = {1: 'Mirror-Eyed Gnoll Sprite Sheet1.png', 2: 'Mirror-Eyed Gnoll Action Sprite Sheet2.png',
-         3: os.path.join('Fresh', 'Hunched mirror-eyed gnoll sprite sheet-1.png'), 4: os.path.join('Fresh', 'Back-View Gnoll Animation Sprite Sheet-3.png'),
-         5: os.path.join('Fresh', 'Back-view mirror-eyed gnoll sprite sheet-2.png'),
-         6: os.path.join('Fresh', 'Mirror gnoll pounce attack sprite sheet-1.png')}
+         3: os.path.join('mirrorgnoll', 'Hunched mirror-eyed gnoll sprite sheet-1.png'), 4: os.path.join('mirrorgnoll', 'Back-View Gnoll Animation Sprite Sheet-3.png'),
+         5: os.path.join('mirrorgnoll', 'Back-view mirror-eyed gnoll sprite sheet-2.png'),
+         6: os.path.join('mirrorgnoll', 'Mirror gnoll pounce attack sprite sheet-1.png')}
 SRC = os.path.join(ROOT, 'deep16', '_src')                 # his sheets live in the main checkout (_src is not in git): a worktree reads them there
 if not os.path.exists(os.path.join(SRC, FILES[1])):
     _common = subprocess.run(['git', '-C', ROOT, 'rev-parse', '--git-common-dir'], capture_output=True, text=True).stdout.strip()

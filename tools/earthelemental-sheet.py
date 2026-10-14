@@ -4,7 +4,7 @@
     python tools/earthelemental-sheet.py check      (also the cut overlays, dev/visions/earthelemental/cut-<n>.png, the tone's means, and a
                                                      lineup beside the troll, the gnoll and the stand-in it replaces)
 
-Sources (gitignored, the main checkout's -- a worktree reads them there), all in deep16/_src/Fresh/:
+Sources (gitignored, the main checkout's -- a worktree reads them there), all in deep16/_src/earthelemental/:
   1  Earth Elemental Animation Sheet-2.png -- the first side sheet (asked 10-08 as "The stand-ins' first sheets", deep16-art-in-hand.md): a
      portrait, a turnaround labelled Front, Right, Back, Left ABOVE its stills, then rows facing RIGHT drawn small (its side idle 68 px tall,
      so they played upscaled and soft). Since the re-roll only its turnaround and its side idle are cut: the go-between that sizes sheets 2 and 3.
@@ -53,11 +53,11 @@ def _load(name, path):
 pix = _load('pix', os.path.join(ROOT, 'tools', 'pixelate.py'))
 SR = _load('sheetrows', os.path.join(ROOT, 'tools', 'sheetrows.py'))
 
-FILES = {1: os.path.join('Fresh', 'Earth Elemental Animation Sheet-2.png'),
-         2: os.path.join('Fresh', 'Front-Facing Earth Elemental Sprite Sheet-3.png'),
-         3: os.path.join('Fresh', 'Earth elemental back sprite sheet-6.png'),
-         4: os.path.join('Fresh', 'Right-facing earth elemental sprite sheet-4.png'),
-         5: os.path.join('Fresh', 'Right-facing earth elemental sprite sheet-5.png')}
+FILES = {1: os.path.join('earthelemental', 'Earth Elemental Animation Sheet-2.png'),
+         2: os.path.join('earthelemental', 'Front-Facing Earth Elemental Sprite Sheet-3.png'),
+         3: os.path.join('earthelemental', 'Earth elemental back sprite sheet-6.png'),
+         4: os.path.join('earthelemental', 'Right-facing earth elemental sprite sheet-4.png'),
+         5: os.path.join('earthelemental', 'Right-facing earth elemental sprite sheet-5.png')}
 SRC = os.path.join(ROOT, 'deep16', '_src')                 # his sheets live in the main checkout (_src is not in git): a worktree reads them there
 if not os.path.exists(os.path.join(SRC, FILES[1])):
     _common = subprocess.run(['git', '-C', ROOT, 'rev-parse', '--git-common-dir'], capture_output=True, text=True).stdout.strip()

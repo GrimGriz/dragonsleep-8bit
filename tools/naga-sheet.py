@@ -3,7 +3,7 @@
     python tools/naga-sheet.py            (writes deep16/art/naga_p2.png/.json)
     python tools/naga-sheet.py check      (also the cut overlays, dev/visions/naga/cut-<n>.png, and a lineup beside the troll and the gnoll)
 
-Sources (gitignored, the main checkout's -- a worktree reads them there), all in deep16/_src/Fresh/: Spirit Naga animation sprite sheet-4.png
+Sources (gitignored, the main checkout's -- a worktree reads them there), all in deep16/_src/naga/: Spirit Naga animation sprite sheet-4.png
 (the side: a portrait, a turnaround Front, Right, Back, Left, and rows facing RIGHT), Spirit Naga Front Animation Sheet-4.png (from the
 front) and Six back-view naga idle sprites-12.png (from behind: Griz's re-roll of the whole sheet, in place of Spirit Naga Back-View Animation
 Sheet-7.png, which dropped an idle frame) -- Griz, 2026-10-08, from the pastes in deep16-art-in-hand.md ("The stand-ins' first sheets", the
@@ -40,8 +40,8 @@ def _load(name, path):
 pix = _load('pix', os.path.join(ROOT, 'tools', 'pixelate.py'))
 SR = _load('sheetrows', os.path.join(ROOT, 'tools', 'sheetrows.py'))
 
-FILES = {1: os.path.join('Fresh', 'Spirit Naga animation sprite sheet-4.png'), 2: os.path.join('Fresh', 'Spirit Naga Front Animation Sheet-4.png'),
-         3: os.path.join('Fresh', 'Six back-view naga idle sprites-12.png')}
+FILES = {1: os.path.join('naga', 'Spirit Naga animation sprite sheet-4.png'), 2: os.path.join('naga', 'Spirit Naga Front Animation Sheet-4.png'),
+         3: os.path.join('naga', 'Six back-view naga idle sprites-12.png')}
 SRC = os.path.join(ROOT, 'deep16', '_src')                 # his sheets live in the main checkout (_src is not in git): a worktree reads them there
 if not os.path.exists(os.path.join(SRC, FILES[1])):
     _common = subprocess.run(['git', '-C', ROOT, 'rev-parse', '--git-common-dir'], capture_output=True, text=True).stdout.strip()
