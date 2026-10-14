@@ -954,8 +954,8 @@
   S.mark = function* () {
     var g = G();
     // once the stair is drained, fought or flooded again, the mark is only a mark (re-cut F1: it still offered to wake the keeper)
-    var settled = g.flags.keeperDone || g.flags.stairHook || g.flags.fiveRecovered;
-    yield DS.say(L(g.flags.stairHook && !g.flags.keeperWater ? 'w.markDry' : settled ? 'w.markPlain' : 'w.markSee'));
+    var settled = g.flags.keeperDone || g.flags.stairHook || g.flags.fiveRecovered || g.flags.keeperAwake; // (and once it is awake: no hand wakes it twice -- the road §7d, his note on ?at=stair, 10-14)
+    yield DS.say(L(g.flags.stairHook && !g.flags.keeperWater ? 'w.markDry' : g.flags.keeperAwake && !g.flags.keeperDone && !g.flags.fiveRecovered ? 'w.markAwake' : settled ? 'w.markPlain' : 'w.markSee'));
     var arc = g.party.some(function (h) { return DS.d(20) + Math.max(R.skill(h, 'Arcana', 'int'), R.skill(h, 'Religion', 'int')) >= 12; });
     if (arc || g.flags.hobMet) { g.flags.markRead = 1; yield DS.say(L('w.markRead')); }
     if (settled) return;
@@ -980,7 +980,8 @@
   S.stair = function* () {
     var g = G();
     if (g.flags.fiveRecovered) { yield DS.say(L('w.stairDone')); return; }
-    yield DS.say(L('w.stairSee'));
+    var awake = g.flags.keeperAwake && !g.flags.keeperDone; // (woken by the mark or by a run from WADE IN, and not yet beaten: the stair says so, and WADE IN meets it waiting -- the road §7d, 10-14)
+    yield DS.say(L(awake ? 'w.stairAwake' : 'w.stairSee'));
     var opts = ['ROPE THEM OUT', 'WADE IN', 'LEAVE'];
     var a = yield DS.ask(L('w.stairAsk'), opts);
     if (a === 0) {
@@ -993,7 +994,7 @@
       }
       yield DS.say(L('w.ropeOut'));
     } else if (a === 1) {
-      yield DS.say(L('w.wade'));
+      yield DS.say(L(awake ? 'w.wadeAwake' : 'w.wade'));
       var r2 = yield* EV.fight(['keeper'], { bg: 'dwarf', music: 'boss', canRun: true, deep16: 'keeper', start: 'ledge' }); // (at the water's edge, on the ledge -- 10-03)
       if (r2 !== 'win') { if (r2 !== 'lose') g.flags.keeperAwake = 1; return; } // (a run leaves it awake and unbeaten: the rope then fights it by the rune, as after the mark -- 10-04)
       g.flags.keeperDone = 1;

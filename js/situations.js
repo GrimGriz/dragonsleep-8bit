@@ -63,7 +63,7 @@
       set(f, { petition: 1, roadOpen: 1, pin: 'nest' }); EV().addGuest('halldor');
       for (var i = 1; i <= 4; i++) EV().addGuest('trooper', 'nest' + i, { name: 'Trooper' });
     },
-    function (G, f) { set(f, { nestCrushed: 1, nestHome: 1, pin: 'halls' }); G.guests = []; G.renown += 1; },      // 13 the nest crushed
+    function (G, f) { set(f, { nestCrushed: 1, nestHome: 1, pin: 'nest' }); G.guests = []; G.renown += 1; },      // 13 the nest crushed (the nest pinned till the word: js/deep.js S.brood, 10-14)
     function (G, f) { set(f, { wordBelow: 1, pin: 'solskaft' }); },                                                 // 14 the word from below
     function (G, f) {                                                                                                // 15 the muster: Brann and Hedda; leg three walked
       set(f, { mustered: 1, escortsOut: 1, roadOpen: 1, xornDone: 1, giantDone: 1 }); EV().addGuest('brann'); EV().addGuest('hedda');

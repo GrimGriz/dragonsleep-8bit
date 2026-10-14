@@ -836,7 +836,7 @@
     if (EV.hasGuest('halldor')) yield DS.say(L('deep.broodHalldor'), who('Halldor Silversands'));
     var res = yield* EV.fight(['broodmother', 'phasespider', 'phasespider', 'phasespider', 'phasespider'], { bg: 'cavern', music: 'boss', canRun: false, introText: L('deep.broodIntro'), deep16: 'brood' });
     if (res !== 'win') return;
-    g.flags.nestCrushed = 1; g.flags.pin = 'halls';
+    g.flags.nestCrushed = 1; g.flags.pin = 'nest'; // (the nest stays pinned till the word from below: its last step is a rest -- content/quests.json, 10-14; it pinned the halls, done by then, and the journal pointed nowhere)
     yield DS.say(L('deep.broodDone'));
     yield* EV.renown(1, 'renown.nest');
     if (EV.hasGuest('halldor')) { yield DS.say(L('deep.nestHome'), who('Halldor Silversands')); }

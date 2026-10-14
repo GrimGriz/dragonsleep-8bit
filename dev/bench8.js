@@ -1964,6 +1964,23 @@
         gB.flags.pin = pin0;
       }
       check('THE ARROW DOWN THE SPINE: ' + shown + ' of ' + swept + ' shown quest steps have an arrow from Silverton\'s start; a beat\'s pinned quest with none: ' + (noPin.join(', ') || 'none'), !noPin.length);
+      // the journal after the nest (the road §7e): the nest crushed, the word not yet come -- the journal still points (a rest), and the word ends it
+      T.newGame('barley'); DS.paused = true; DS.situation(DS.G, { base: 'lake', spine: 13 }); var gN = DS.G, qN = DS.pinnedQuest(), sN = qN && DS.questStep(qN);
+      gN.flags.wordBelow = 1; var qN2 = DS.pinnedQuest();
+      check('THE JOURNAL AFTER THE NEST: crushed, no word yet -- pinned ' + (qN ? qN.id + ', "' + (sN && sN.where) + '" (' + (sN && sN.map + ':' + sN.trig) + ')' : 'nothing') + '; the word come -- ' + (qN2 ? qN2.id : 'nothing') + ' (want the nest pointing to a rest, then done)',
+        !!qN && qN.id === 'nest' && !!sN && sN.map === 'solskaft' && /^bunk/.test(sN.trig || '') && !qN2);
+      // the stair once the Keeper is awake (the road §7d, his note on ?at=stair): the stair says it, WADE IN meets it waiting, the mark asks nothing
+      var say0 = DS.say, ask0 = DS.ask, fight0 = DS.EV.fight, said = [], asked = [];
+      DS.say = function (t) { said.push([].concat(t).join(' ')); return { say: 1 }; }; DS.ask = function (t, ch) { asked.push(ch.join('/')); return { ask: ch }; }; DS.EV.fight = function* () { said.push('(the fight)'); return 'run'; };
+      function drive(gen, pick) { var s0, v; for (var kD = 0; kD < 60; kD++) { s0 = gen.next(v); v = undefined; if (s0.done) return; if (s0.value && s0.value.ask) v = pick(s0.value.ask); } }
+      try {
+        T.newGame('barley'); DS.paused = true; var gK = DS.G; gK.flags.keeperAwake = 1; gK.give('rope', 1);
+        drive(DS.SCRIPTS.stair(), function (ch) { return ch.indexOf('WADE IN'); }); var stSaid = said.slice(); said = []; asked = [];
+        drive(DS.SCRIPTS.mark(), function () { return 1; }); var mkSaid = said.slice(), mkAsked = asked.slice();
+        var has = function (list, key) { var t = DS.L(key); return list.some(function (x) { return x.indexOf(String(t).slice(0, 40)) >= 0; }); };
+        check('THE STAIR WITH THE KEEPER AWAKE: the stair -- ' + (has(stSaid, 'w.stairAwake') ? 'stirring' : has(stSaid, 'w.stairSee') ? 'CALM' : '?') + ', WADE IN -- ' + (has(stSaid, 'w.wadeAwake') ? 'it waits' : 'as if asleep') + '; the mark -- ' + (mkAsked.length ? 'ASKS ' + mkAsked.join(' ') : 'no ask') + ', ' + (has(mkSaid, 'w.markAwake') ? 'unsettled' : 'its look ' + (mkSaid[0] || '').slice(0, 40)),
+          has(stSaid, 'w.stairAwake') && has(stSaid, 'w.wadeAwake') && !mkAsked.length && has(mkSaid, 'w.markAwake') && !has(mkSaid, 'w.markWake'));
+      } finally { DS.say = say0; DS.ask = ask0; DS.EV.fight = fight0; }
     } else if (test === 'scourge1014') {
       // Searing Scourge in the 8-bit (ours; 10-14, Griz: "do 1 and 2" -- the grid's eight squares, here the foe in front and up to two beside it, no picker): the sheet
       // copied into Aurdin's book, the three it takes of four, one roll for all; Deathhand's two dice, d6 each from the 3rd; the twirl's frames set
