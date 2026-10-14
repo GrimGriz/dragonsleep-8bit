@@ -2395,6 +2395,12 @@
       }
       var tagged = (BJ.log || []).filter(function (l) { return /\[the Settling\]/.test(l); }).length;
       okZ('the Settling\'s camera on the party where it stepped in (' + camOk + '); what was said in there in the floor\'s log after (' + tagged + ' of ' + saidIn + ' lines)', camOk && saidIn > 0 && tagged >= saidIn);
+      // the landlord's bucket picture on every way in while it is unfed (10-14, Griz: "the original food bucket should fire on re-entry after run away if he hasn't been fed yet"):
+      // the party has heard it once and run (landlordSpoke) -- in by the rim again, it is asked again; fed, it is not
+      delete RJ.flags.otyughFed; RJ.flags.landlordSpoke = 1; putJ(at8(9, 10));
+      var gA2 = D.roam.pullIn(BJ, 'wet', { id: 'landlordStep' }, at8(8, 8)); for (var kA2 = 0; kA2 < 400 && D.top() === BJ; kA2++) gA2.next();
+      var bA2 = D.top(), again = null; if (bA2 !== BJ) { bA2.enter(); again = !!(bA2.wet && !bA2.wet.spoke && bA2.wet.speakFirst); D.pop(); bA2.o.onDone('escaped'); driveZ(gA2, null, 2000); }
+      okZ('run from the landlord once, in by its rim again: it asks again, the bucket\'s picture first (' + again + ')', again === true);
     } catch (eZ) { repZ.errors.push(String(eZ && eZ.stack || eZ).slice(0, 900)); }
     D.store.get = stGZ; D.store.set = stSZ; IZ.held.up = false; IZ.held.left = false;
     if (errs.length) repZ.errors = repZ.errors.concat(errs);

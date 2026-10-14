@@ -55,7 +55,9 @@
   };
   W.setup = function (B) {
     var F = B.fight, f8 = fl(B), wake = (B.o.embed && B.o.embed.wake) || B.o.wake || null;
-    B.wet = { round: 0, downAt: {}, beside: {}, spoke: !!f8.landlordSpoke, sleepers: {}, present: {}, sunk: {}, crawlers: 0, bucket: null, bucketBy: null, speakFirst: null, purge: null };
+    // (spoke: the landlord's bucket picture plays on every way in while it is unfed -- 10-14, Griz: "the original food bucket should fire on re-entry after run away if he hasn't
+    // been fed yet"; it played once a game, and a party that ran from it came back to a silent pool. Fed, it is under the water and not here to ask)
+    B.wet = { round: 0, downAt: {}, beside: {}, spoke: !!(f8.landlordSpoke && f8.otyughFed), sleepers: {}, present: {}, sunk: {}, crawlers: 0, bucket: null, bucketBy: null, speakFirst: null, purge: null };
     B.flags8 = B.flags8 || {};
     W.loadPictures(); // his paintings, fetched now so they are in before the landlord sends one
     var self = B;
