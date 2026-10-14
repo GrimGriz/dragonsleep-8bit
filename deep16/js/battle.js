@@ -328,7 +328,7 @@
       yields: !!d.yields, // (stops at half his hit points: Battle.over's 'yielded', the 8-bit game's yield)
       flees: !!d.flees && !(this.fight && (this.fight.noFlee || this.fight.runWhenHurt)), traces: !!f.traces, transfer: !!d.transfer, images: 0, named: !!d.named || !!f.name, swims: !!d.swims, swarm: !!d.swarm, noProne: !!d.noProne,
       moan: d.moan ? Object.assign({ ready: true }, d.moan) : null,
-      gibber: d.gibber || null, aberrant: d.aberrant || null, spittle: d.spittle ? Object.assign({ ready: true }, d.spittle) : null, // (the gibbering mouther, SRD 5.1: js/traits.js, ai.js spit -- 10-06)
+      gibber: d.gibber || null, aberrant: d.aberrant || null, spittle: d.spittle ? Object.assign({ ready: true }, d.spittle) : null, whelm: d.whelm ? Object.assign({ ready: true }, d.whelm) : null, freeze: !!d.freeze, // (the water elemental's Whelm and Freeze, SRD 5.1: js/ai.js whelm, Battle.hurt -- 10-14) // (the gibbering mouther, SRD 5.1: js/traits.js, ai.js spit -- 10-06)
       leap: d.leap ? Object.assign({ ready: true }, d.leap) : null,
       phantasms: d.phantasms ? { when: d.phantasms, used: false } : null,
       darkness: d.darkness ? { r: d.darkness.r, range: d.darkness.range, chance: d.darkness.chance, used: false } : null, // (Amara's, once, the turn she runs; the drow's on the 8-bit's chance: magic.js castDarkness)
@@ -1111,6 +1111,9 @@
     // the one it rides; 10-01, Griz: "allies can strength check detach per SRD, I could only find the 'help' part"): a friend beside you with one riding on
     var pulls = Battle.pullable(u, this.units);
     if (pulls.length) out.push({ id: 'detach', label: 'PULL IT OFF', cost: 'A', icon: 'free', tool: 'detach', ok: T.action > 0 && !T.attacksLeft && !u.conds.restrained, why: u.conds.restrained ? 'held fast yourself' : 'the action is spent', note: 'a STR check, DC ' + ((pulls[0].master.conds.attached || {}).dc || 13) + ': the ' + shortName(pulls[0]) + ' off ' + (pulls[0].master === u ? 'you' : pulls[0].master.name) });
+    // PULL OUT (SRD 5.1 Water Elemental, Whelm: anyone within 5 ft of the elemental, a DC 14 STR check as an action): a friend it holds (10-14)
+    var drowning = Battle.whelmed(u, this.units);
+    if (drowning.length) out.push({ id: 'pullout', label: 'PULL OUT', cost: 'A', icon: 'free', tool: 'pullout', ok: T.action > 0 && !T.attacksLeft && !u.conds.restrained, why: u.conds.restrained ? 'held fast yourself' : 'the action is spent', note: 'a STR check, DC ' + drowning[0].conds.restrained.dc + ': a friend out of the water elemental, the elemental beside you' });
     // BREAK THE TENDRIL (SRD 5.1 Roper: "A tendril can also be broken if a creature takes an action and succeeds on a DC 15 Strength check against it"): the one it holds,
     // or a friend beside; the tendril is struck at with ATTACK on the held one's square (tendrilOn). 10-02, handoff-2026-10-01-the-tendrils-and-ready
     var brks = Battle.breakable(u, this.units);
@@ -1151,6 +1154,9 @@
   Battle.helpable = function (u, w) { return !!(w && w !== u && !G.hostile(u, w) && !w.dead && w.hp > 0 && !w.ethereal && G.dist(u, w) <= 5 && (w.conds.asleep || w.conds.restrained || w.conds.attached) && !w.conds.helpedCheck); }; // (attached: a darkmantle on -- the hand is on the STR check to pull it off)
   // the riders u could pull off a friend beside it (a darkmantle attached: PULL IT OFF)
   Battle.pullable = function (u, units) { return units.filter(function (w) { return w.attached && w.riding && w.master && !G.hostile(u, w.master) && G.hostile(u, w) && G.standing(w) && G.dist(u, w.master) <= 5; }); }; // (the one it rides, too: SRD 5.1, "a creature")
+  // the friends u could pull out of a water elemental (SRD 5.1 Whelm: "A creature within 5 feet of the elemental can pull a creature or object out of it by taking an
+  // action to make a DC 14 Strength [check] and succeeding"): held by its Whelm, u beside the elemental (10-14)
+  Battle.whelmed = function (u, units) { return units.filter(function (w) { var r = w.conds && w.conds.restrained; if (!r || !r.whelm || w === u || G.hostile(u, w) || !G.standing(w)) return false; var h = units.filter(function (x) { return x.id === r.by; })[0]; return !!(h && G.standing(h) && G.dist(u, h) <= 5); }); };
   // the rider on w that u may strike at through w's square (ui.js valid: the attack tool on a friend's square, or one's own)
   Battle.riderOn = function (u, w, units) { return w && !G.hostile(u, w) ? units.filter(function (r) { return r.attached && r.riding && r.master === w && G.hostile(u, r) && G.standing(r); })[0] || null : null; };
   // the dashes u has left this turn, 'a' and 'b' (10-04, Griz: "If she has dash and cunning dash should she be able to try the steepest climb?"): its action's, while the
@@ -1606,6 +1612,17 @@
         T.action = 0; RU.spendHelp(u); D.sfx('run');
         this.card(['{y}' + u.name + '{/} gets hold of the ' + shortName(rd) + (host === u ? '' : ' on ' + host.name) + ' and pulls: STR d20 ' + d20 + (adv1 !== dis1 ? (adv1 ? ' {n}(advantage){/}' : ' {o}(disadvantage){/}') : '') + ' ' + RU.sign(pb) + ' = ' + ptot + ' vs DC ' + dc + '  ' + (ptot >= dc ? '{n}OFF{/}' : '{g}it holds on{/}')]);
         if (ptot >= dc) { this.release(rd, host); if (blind0 && !host.conds.blinded) this.card(['{g}' + host.name + ' can see again.{/}'], 200); this.dismount(rd, u); } // (to the square nearest the puller and the one it rode)
+        yield 30; return;
+      }
+      case 'pullout': { // PULL OUT: a friend out of the water elemental (SRD 5.1 Whelm: a DC 14 STR check as an action; Athletics, as breakFree and PULL IT OFF read it)
+        var pw = c.target, pr = pw && pw.conds.restrained; if (!pr || !pr.whelm || Battle.whelmed(u, this.units).indexOf(pw) < 0) return;
+        var ph = this.units.filter(function (x) { return x.id === pr.by; })[0], en2 = u.conds.enlarged, ce2 = RU.checkEdges(u, 'str');
+        var adv2 = !!(en2 && !en2.down) || ce2.adv.length > 0, dis2 = !!(u.conds.poisoned || u.conds.frightened || (en2 && en2.down)) || ce2.dis.length > 0;
+        var b1 = D.d(20), b2 = D.d(20), e20 = adv2 && !dis2 ? Math.max(b1, b2) : dis2 && !adv2 ? Math.min(b1, b2) : b1;
+        var pb2 = D.mod(u.abil.str) + (u.cls === 'fighter' ? u.prof : 0), pt2 = e20 + pb2;
+        T.action = 0; RU.spendHelp(u); D.sfx('run');
+        this.card(['{y}' + u.name + '{/} reaches into the ' + shortName(ph) + ' for ' + pw.name + ' and pulls: STR d20 ' + e20 + (adv2 !== dis2 ? (adv2 ? ' {n}(advantage){/}' : ' {o}(disadvantage){/}') : '') + ' ' + RU.sign(pb2) + ' = ' + pt2 + ' vs DC ' + pr.dc + '  ' + (pt2 >= pr.dc ? '{n}OUT{/}' : '{g}the water holds on{/}')]);
+        if (pt2 >= pr.dc) { this.release(ph, pw); FX.sparkle(pw, 'blue', 12); }
         yield 30; return;
       }
       case 'breaktendril': { // BREAK THE TENDRIL (SRD 5.1 Roper: "A tendril can also be broken if a creature takes an action and succeeds on a DC 15 Strength check against it"):
@@ -2669,6 +2686,8 @@
   Battle.prototype.hurt = function (u, n, type, src) { // (src: { magic: true } when the blow is magical -- a spell, a magic weapon, a monster's magical attacks)
     if (n <= 0) return;
     u.woken = true; // (the cloaker hangs as a cloak till it takes damage: ui.js unitObj)
+    // Freeze (the water elemental, SRD 5.1: "If the elemental takes cold damage, it partially freezes; its speed is reduced by 20 feet until the end of its next turn" -- grimoire.js onStart)
+    if (u.freeze && type === 'cold' && !u.dead) { var fz = !u.conds.frozen; u.conds.frozen = { till: { who: u.id, at: 'end', n: this.active === u ? 2 : 1 } }; if (fz) this.card(['{c}The ' + shortName(u) + ' partially freezes:{/} {g}its speed 20 ft less till the end of its next turn{/}'], 200); }
     if (D.magic.preHurt) { n = D.magic.preHurt(this, u, n, type); if (n <= 0) return; } // (the Vigil's Keeper's Ward: js/features.js)
     // an object with a damage threshold (SRD 5.1 Objects: a blow under it is superficial) and resistance to everything (the skylight, 10-04 night)
     if (u.threshold && n < u.threshold) { FX.float('glances off', u, D.PAL.ramps.silver[5]); return; }

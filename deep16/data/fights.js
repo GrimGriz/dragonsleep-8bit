@@ -194,9 +194,9 @@
       from: 'the 8-bit game: deep.js S.roper (a roper and two darkmantles; more with the king)', won: 'IT HANGS THERE LIKE A STALACTITE.',
       foes: [{ id: 'roper', kind: 'roper', at: [9, 3], hidden: true }, { id: 'dm1', kind: 'darkmantle', at: [5, 6], hidden: true }, { id: 'dm2', kind: 'darkmantle', at: [15, 4], hidden: true }], wave: null },
     { id: 'naga', level: 7, map: 'causeway', name: 'The Black Water', sub: 'the causeway, leg four', music: 'boss',
-      intro: 'The road crosses the black water on a causeway of dressed blocks. Halfway over, the water stands up. It has a woman\'s face, and it does not blink.',
-      from: 'the 8-bit game: deep.js S.naga (the spirit naga; it keeps to the water here, the 8-bit game\'s causeway)', won: 'THE WATER LIES DOWN AGAIN.',
-      foes: [{ id: 'naga', kind: 'naga', at: [5, 4] }], wave: null },
+      intro: 'The road crosses the black water on a causeway of dressed blocks. Halfway over, the water stands up -- on both sides of the stones at once, two of it, and neither has a face.',
+      from: 'the 8-bit game: deep.js S.naga (since 10-14 two water elementals, the spirit naga\'s place; they rise from the water either side of the causeway)', won: 'THE WATER LIES DOWN AGAIN.',
+      foes: [{ id: 'water1', kind: 'waterelemental', at: [5, 4] }, { id: 'water2', kind: 'waterelemental', at: [13, 5] }], wave: null }, // (two water elementals in the spirit naga's place, 10-14: Griz, "Naga Swap (might need 2 or more to approx CR) go" -- the id stays `naga`, the 8-bit's S.naga calls it)
     { id: 'elementals', level: 8, map: 'cutwalls', name: 'The Cut\'s Walls', sub: 'the king\'s road, leg four', music: 'boss',
       intro: 'The made road runs into a cut, and the cut\'s walls move. The rock stands up on legs of rock. (Plain steel does half; thunder does double.)',
       from: 'the 8-bit game: deep.js S.elemental (two earth elementals)', won: 'THE ROCK IS ONLY ROCK AGAIN.',

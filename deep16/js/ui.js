@@ -211,7 +211,7 @@
     var out = [{ id: 'move', label: 'MOVE', cost: 'M', ok: u.turn.move > 0 && !u.conds.restrained, tool: 'move', icon: 'move' }];
     ['attack', 'beside', 'again'].forEach(function (k) { if (top[k]) out.push(top[k]); });
     fronts.forEach(function (x) { out.push(x); });
-    ['hide', 'breakfree', 'detach', 'breaktendril', 'takerope', 'bucketrope', 'barreltorch', 'passage', 'spells'].forEach(function (k) { if (top[k]) out.push(top[k]); }); // (detach: PULL IT OFF, the darkmantle -- 10-01, Griz: "Didn't see a pull it off out there"; breaktendril: BREAK THE TENDRIL, the roper's -- 10-02; takerope, bucketrope: TAKE THE ROPE and TAKE A ROPE, 10-04 night -- the first sat under ACTIONS where nothing listed it, Griz: "never managed to take up the hook")
+    ['hide', 'breakfree', 'detach', 'pullout', 'breaktendril', 'takerope', 'bucketrope', 'barreltorch', 'passage', 'spells'].forEach(function (k) { if (top[k]) out.push(top[k]); }); // (detach: PULL IT OFF, the darkmantle -- 10-01, Griz: "Didn't see a pull it off out there"; breaktendril: BREAK THE TENDRIL, the roper's -- 10-02; takerope, bucketrope: TAKE THE ROPE and TAKE A ROPE, 10-04 night -- the first sat under ACTIONS where nothing listed it, Griz: "never managed to take up the hook")
     if (cd.length) { var left = (u.feats && u.feats.channel) || 0; out.push({ id: 'channel', label: 'CHANNEL DIVINITY (' + left + ')', cost: 'A', ok: cd.some(function (x) { return x.ok; }), why: left ? 'nothing there to do now' : 'spent (a short rest brings it back)', sub: 'channel', icon: 'sacred', items: cd }); }
     sk = foldUnder(sk);
     if (sk.length) out.push(group('skills', 'SKILLS', sk));
@@ -244,7 +244,7 @@
     var out = [{ id: 'move', label: 'MOVE', cost: 'M', ok: u.turn.move > 0 && !u.conds.restrained, tool: 'move', icon: 'move' }];
     ['attack', 'beside', 'again'].forEach(function (k) { if (top[k]) out.push(top[k]); });
     fronts.forEach(function (x) { out.push(x); });
-    ['hide', 'breakfree', 'detach', 'breaktendril', 'takerope', 'bucketrope', 'barreltorch', 'passage', 'spells'].forEach(function (k) { if (top[k]) out.push(top[k]); });
+    ['hide', 'breakfree', 'detach', 'pullout', 'breaktendril', 'takerope', 'bucketrope', 'barreltorch', 'passage', 'spells'].forEach(function (k) { if (top[k]) out.push(top[k]); });
     if (A.length) out.push({ id: 'actions', label: 'ACTIONS' + poolTag(u, 'A'), cost: 'A', ok: A.some(function (x) { return x.ok; }), why: 'nothing to do with the action now', sub: 'actions', icon: 'actions2', items: A, ring2: 'A', note: 'everything that costs the action, the yellow A on the bar' });
     if (Bn.length) out.push({ id: 'bonuses', label: 'BONUSES' + poolTag(u, 'B'), cost: 'B', ok: Bn.some(function (x) { return x.ok; }), why: 'nothing to do with the bonus action now', sub: 'bonuses', icon: 'bonuses', items: Bn, ring2: 'B', note: 'everything that costs the bonus action, the blue B -- and the free moves' });
     return out.concat([{ id: 'end', label: 'END TURN', cost: 'F', ok: true, icon: 'end' }]);
@@ -737,6 +737,7 @@
     if (!foe && (tool === 'move' || tool === 'menu')) foe = hoveredRider(B, u, x, y);
     if (!s || !s.open) return 'no';
     if (tool === 'detach') return D.Battle.pullable(u, B.units).some(function (r) { return r.master === w; }) ? 'ok' : 'no'; // (PULL IT OFF: a friend beside you with one on)
+    if (tool === 'pullout') return w && D.Battle.whelmed(u, B.units).indexOf(w) >= 0 ? 'ok' : 'no'; // (PULL OUT: a friend the water elemental holds, it beside you -- 10-14)
     if (tool === 'breaktendril') return w && D.Battle.breakable(u, B.units).indexOf(w) >= 0 ? 'ok' : 'no'; // (BREAK THE TENDRIL: the one it holds -- you, or a friend beside you -- 10-02)
     if (tool === 'move' || tool === 'menu' || tool === 'attack') {
       // a rope's square (10-04 night, Griz: "if one clicks on a square where a grapple is they should be able to take it (unless someone is on it - in which case I think they'll
@@ -918,6 +919,7 @@
     if (!foe && tool === 'attack') foe = D.Battle.riderOn(u, w, B.units) || D.Battle.tendrilOn(u, w, B.units); // (a darkmantle riding a friend, or you: struck at through the square -- UI.valid; the roper's tendril the same, 10-02)
     if (!foe && (tool === 'move' || tool === 'menu')) foe = hoveredRider(B, u, x, y); // (the mouse on it: the click is on it -- UI.valid)
     if (tool === 'detach') { if (v === 'ok') return UI.command(B, u, { do: 'detach', target: D.Battle.riderOn(u, w, B.units) }); return B.card(['{o}Pull it off: a friend beside you with a darkmantle on.{/}'], 120); }
+    if (tool === 'pullout') { if (v === 'ok') return UI.command(B, u, { do: 'pullout', target: w }); return B.card(['{o}Pull out: a friend the water elemental holds, the elemental beside you.{/}'], 120); }
     if (tool === 'breaktendril') { if (v === 'ok') return UI.command(B, u, { do: 'breaktendril', target: w }); return B.card(['{o}Break the tendril: the one it holds -- yourself, or a friend beside you.{/}'], 120); }
     if (tool === 'move' || tool === 'menu' || tool === 'attack') {
       if (v === 'cut') return UI.command(B, u, { do: 'cutrope', x: x, y: y }); // (a rope a foe hangs on: struck from its top -- 10-04 night)
@@ -1399,10 +1401,12 @@
           else if (has('hurt')) { anim = 'hurt'; o.once = true; if (pf >= 0 && u.proneLook) t += Math.ceil(pf * 60 / (D.spr.anim(u.sheet, 'hurt').fps || 8)); }
           else if (u.dead) { anim = 'idle'; o.alpha = Math.max(0, 1 - (B.t - u.deadT) / 50); o.tint = R('violet', 4); o.tintAlpha = 0.5; }
           else { anim = 'idle'; o.lie = true; }
-        } else if (anim === 'attack' || anim === 'cast' || anim === 'flinch' || anim === 'clack' || anim === 'burrow' || anim === 'reveal' || anim === 'reel' || /^(claw|bite|tendril|tentacles|beak|greatclub|rock|taunt|denimdamage|gaze|cannonball|socialsharing|socialflame|socialdistancing|honk|hottake|goingviral|spot|spotlight|guard|lobstahhug|grouphug|lifeline|scimitar|shortbow|nimble|hide|morningstar|javelin|ambush|catch|engulf|digest|slam|battleaxe|crush|darkness|backhand|pounce|drain|mirrorstrike|kneel|overfill|ascend|longbow|slash|volley|whirlwind|parry|backstep|pseudopod|bites|spittle|spikedboneclub)\d?$/.test(anim)) { o.once = true; if (!has(anim) || t > D.spr.duration(u.sheet, anim) + 6) { anim = 'idle'; o.once = false; } } // (back to idle, and idle loops: the flinch's once held its last frame on anyone struck who then did not act -- the landlord, 09-30g)
+        } else if (anim === 'attack' || anim === 'cast' || anim === 'flinch' || anim === 'clack' || anim === 'burrow' || anim === 'reveal' || anim === 'reel' || /^(claw|bite|tendril|tentacles|beak|greatclub|rock|taunt|denimdamage|gaze|cannonball|socialsharing|socialflame|socialdistancing|honk|hottake|goingviral|spot|spotlight|guard|lobstahhug|grouphug|lifeline|scimitar|shortbow|nimble|hide|morningstar|javelin|ambush|catch|engulf|digest|slam|battleaxe|crush|darkness|backhand|pounce|drain|mirrorstrike|kneel|overfill|ascend|longbow|slash|volley|whirlwind|parry|backstep|pseudopod|bites|spittle|spikedboneclub|whelm)\d?$/.test(anim)) { o.once = true; if (!has(anim) || t > D.spr.duration(u.sheet, anim) + 6) { anim = 'idle'; o.once = false; } } // (back to idle, and idle loops: the flinch's once held its last frame on anyone struck who then did not act -- the landlord, 09-30g)
         // hiding (10-07, the goblin's Hide: its sheet's `hide` row, a crouch behind its shield): the row plays at the Hide (battle.js hide sets it, the once-rows above), and while it stays
         // hidden and would stand idle it keeps the row's last frame -- the crouch held; one that walks or strikes shows that, and one found stands up
         if (!down && u.conds.hidden && anim === 'idle' && has('hide')) { anim = 'hide'; o.frame = D.spr.anim(u.sheet, 'hide').frames - 1; o.once = false; }
+        // the water elemental holding what it whelmed (SRD 5.1 Whelm, js/ai.js whelm): swollen round them, its Whelm row's last frame held, the hide's way (10-14)
+        if (!down && anim === 'idle' && u.whelm && (u.holding || []).some(function (w) { return G.standing(w); }) && has('whelm')) { anim = 'whelm'; o.frame = D.spr.anim(u.sheet, 'whelm').frames - 1; o.once = false; }
         if (anim === 'idle' || anim === 'walk' || anim === 'slither' || anim === 'roost' || anim === 'braid' || anim === 'run' || anim === 'still' || anim === 'climb') t =u.conds.paralyzed || u.conds.asleep ? 0 : B.t + (u.id ? u.id.length * 7 : 0);
         // (the Harbinger risen, 10-08: once he has stood to his full height -- js/traits.js, his `ascend` row -- he stands upright between blows, on his `uprightidle` row)
         if (!down && u.upright && anim === 'idle' && has('uprightidle')) anim = 'uprightidle';
@@ -1976,7 +1980,8 @@
     }
     if (tool === 'shove') B.units.forEach(function (w) { if (G.hostile(u, w) && G.standing(w) && !w.object && G.dist(u, w) <= G.reachOf(u) && D.Battle.sizeCat(w) <= D.Battle.sizeCat(u) + 1) G.foot(w).forEach(function (q) { lineSq(ctx, q[0], q[1], D.Battle.knockSq(u, w) ? R('fire', 3) : R('bone', 2), 0.9); }); }); // (one at an edge: fire-orange)
     if (tool === 'help') B.units.forEach(function (w) { if ((G.hostile(u, w) && G.standing(w) && G.dist(u, w) <= 5) || D.Battle.helpable(u, w)) G.foot(w).forEach(function (q) { lineSq(ctx, q[0], q[1], G.hostile(u, w) ? R('bone', 2) : R('moss', 3), 0.9); }); }); // (a friend to help: green)
-    if (tool === 'detach') D.Battle.pullable(u, B.units).forEach(function (r) { lineSq(ctx, r.master.x, r.master.y, R('moss', 3), 0.9); }); // (a friend with a darkmantle on: green)
+    if (tool === 'detach') D.Battle.pullable(u, B.units).forEach(function (r) { lineSq(ctx, r.master.x, r.master.y, R('moss', 3), 0.9); });
+    if (tool === 'pullout') D.Battle.whelmed(u, B.units).forEach(function (w) { lineSq(ctx, w.x, w.y, R('blue', 3), 0.9); }); // (a friend the water elemental holds: blue) // (a friend with a darkmantle on: green)
     if (tool === 'lay') B.units.forEach(function (w) { if (w.side === u.side && !w.dead && (w === u || G.dist(u, w) <= 5)) G.foot(w).forEach(function (q) { lineSq(ctx, q[0], q[1], R('gold', 4), 0.9); }); });
     if (tool === 'item') B.units.forEach(function (w) { if (B.itemTargetOK(u, B.itemId, w)) G.foot(w).forEach(function (q) { lineSq(ctx, q[0], q[1], G.hostile(u, w) ? R('red', 4) : R('moss', 2), 0.9); }); });
     if (tool === 'spell') {

@@ -595,6 +595,19 @@
     multi: ['slam', 'slam'], resist: ['mundane'], vulnerable: ['thunder'], immune: ['poison'], earthGlide: true, burrow: 30, inorganic: true, // (burrow 30: SRD 5.1 "Speed 30 ft., burrow 30 ft." -- missing till 10-08, so it never went under; its new sheet's Sink and Rise play on js/ai.js sink/rise, the xorn's way) condImmune: ['exhaustion', 'paralyzed', 'petrified', 'poisoned', 'unconscious', 'asleep'], // (SRD 5.1 exhaustion, paralyzed, petrified, poisoned, unconscious; 'asleep' is this grid's unconscious from Sleep and Eyebite -- the 8-bit sheet had paralyzed, poisoned; 10-02 runner)
     src: 'SRD 5.1 Earth Elemental (CR 5, Large, slam reach 10 ft); content/monsters.json earthelemental: resists plain steel, thunder hurts it double, immune to poison; Earth Glide: through the rock, standing only on open ground (js/grid.js, 09-28); condition immunities exhaustion, paralyzed, petrified, poisoned, unconscious (SRD 5.1; 10-02 runner); it has blindsight 60 where the SRD gives tremorsense 60 (sense not changed yet)'
   },
+  // the water elemental (SRD 5.1, CR 5, Large): the Black Water's, in the spirit naga's place since 10-14 (Griz, 10-13: "re spirit naga - we got water
+  // elemental art waiting, we'll swap them out - text sounds more like them than naga as I recall anyway"). Two Slams, or its Whelm (recharge 4-6:
+  // js/ai.js whelm, drown); a friend beside it pulls the held out (battle.js PULL OUT); cold freezes it (battle.js hurt, grimoire.js onStart)
+  waterelemental: {
+    name: 'Water Elemental', type: 'elemental', sheet: 'waterelemental_p2', cr: '5', ac: 14, hp: 114, speed: 30, size: 2, reach: 5, darkvision: 60,
+    abil: { str: 18, dex: 14, con: 18, int: 5, wis: 10, cha: 8 }, init: 2, perception: 10,
+    saves: { str: 4, dex: 2, con: 4, int: -3, wis: 0, cha: -1 },
+    attacks: { slam: { name: 'Slam', atk: 7, dice: '2d8', mod: 4, type: 'bludgeoning', reach: 5 } },
+    multi: ['slam', 'slam'], resist: ['acid', 'mundane'], immune: ['poison'], swims: true, freeze: true,
+    whelm: { dc: 15, escape: 14, dice: '2d8', mod: 4, recharge: 4 },
+    condImmune: ['exhaustion', 'grappled', 'paralyzed', 'petrified', 'poisoned', 'prone', 'restrained', 'unconscious'],
+    src: 'SRD 5.1 Water Elemental (CR 5, Large; AC 14, 114 HP, speed 30, swim 90): two Slams +7 2d8+4; Whelm (recharge 4-6) read as on those beside it, the cube\'s Engulf\'s way -- Water Form (it may stop in a hostile creature\'s space) is not on the grid, nor a swim speed of its own (it swims, at 30); Freeze; resists acid and plain weapons, immune to poison, its condition immunities (10-14)'
+  },
   // the roper on leg two's fork (deep.js S.roper): it looks like the stalagmites until it doesn't (hidden at the start)
   roper: {
     name: 'Roper', type: 'monstrosity', sheet: 'roper_p1', cr: '5', ac: 20, hp: 93, speed: 10, climbs: 10, size: 2, reach: 5, darkvision: 60,

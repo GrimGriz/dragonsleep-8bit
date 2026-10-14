@@ -493,6 +493,49 @@
     }
     u.anim = 'idle';
   }
+  // the water elemental's Whelm (SRD 5.1, Recharge 4-6): "Each creature in the elemental's space must make a DC 15 Strength saving throw. On a failure, a target takes
+  // 13 (2d8 + 4) bludgeoning damage. If it is Large or smaller, it is also grappled (escape DC 14). Until this grapple ends, the target is restrained and unable to
+  // breathe ... If the saving throw is successful, the target is pushed out of the elemental's space." Its space read as beside it, the cube's Engulf's way (Water
+  // Form, stopping in a hostile creature's space, is not on the grid; so a saved one is already out of it). It holds one Large or two Medium or smaller. 10-14
+  function whelmRoom(u) { return 2 - (u.holding || []).reduce(function (s, w) { return s + (D.Battle.sizeCat(w) >= D.Battle.SIZE.L ? 2 : 1); }, 0); }
+  function* whelm(B, u, hs) {
+    var W = u.whelm, T = u.turn, room = whelmRoom(u);
+    var fits = function (w) { var sc = D.Battle.sizeCat(w); return sc <= D.Battle.SIZE.L && !RU.immuneTo(w, 'grappled') && (sc >= D.Battle.SIZE.L ? 2 : 1) <= room; };
+    var beside = function () { return hs.filter(function (w) { return G.standing(w) && !w.object && G.dist(u, w) <= 5 && (u.holding || []).indexOf(w) < 0; }); };
+    var ts = beside();
+    if (!ts.some(fits) && T.move > 0 && room > 0) { // (in on the nearest it could take, then over it)
+      var t0 = hs.filter(function (w) { return G.standing(w) && !w.object && fits(w) && (u.holding || []).indexOf(w) < 0; }).sort(function (a, b) { return G.dist(u, a) - G.dist(u, b); })[0];
+      if (t0 && G.dist(u, t0) <= 5 + T.move) { var e = approach(u, t0, G.reach(u, T.move), 5); if (e && (e.x !== u.x || e.y !== u.y)) yield* walkTo(B, u, e); }
+      ts = beside();
+    }
+    if (!ts.some(fits) || !T.action) return false;
+    T.action = 0; W.ready = false; D.sfx('crit');
+    var rw = D.spr.anim(u.sheet, 'whelm'); B.turnTo(u, B.faceTo(u, ts.filter(fits)[0])); u.anim = rw ? 'whelm' : 'attack'; u.animT = B.t;
+    B.card(['{r}' + the(B, u) + '{/} rises and comes down over ' + ts.map(function (w) { return w.name; }).join(' and ') + ': WHELM  STR DC ' + W.dc], 360);
+    yield 30;
+    ts.sort(function (a, b) { return D.Battle.sizeCat(a) - D.Battle.sizeCat(b); });
+    for (var i = 0; i < ts.length; i++) {
+      var w = ts[i]; if (!G.standing(w)) continue;
+      var sv = RU.save(w, 'str', W.dc);
+      if (sv.ok) { B.card(['  ' + w.name + ': STR ' + RU.saveText(sv) + ' vs DC ' + W.dc + '  {n}SAVED{/} -- thrown clear of it'], 300); yield 20; continue; }
+      var roll = D.roll(W.dice), n = roll.total + (W.mod || 0), take = fits(w);
+      B.card(['  ' + w.name + ': STR ' + RU.saveText(sv) + ' vs DC ' + W.dc + '  ' + W.dice + '+' + W.mod + ' ' + RU.fmtRolls(roll.rolls) + ' = {r}' + n + '{/} bludgeoning' + (take ? ' -- {o}GRAPPLED and RESTRAINED{/}, and no air  {g}(escape DC ' + W.escape + '; a friend beside it can pull them out){/}' : '')], 420);
+      FX.sparkle(w, 'blue', 18); D.sfx('hit');
+      B.hurt(w, n, 'bludgeoning');
+      if (take && G.standing(w) && !w.conds.restrained) { w.conds.restrained = { dc: W.escape, by: u.id, grapple: true, whelm: true }; u.holding = (u.holding || []).concat([w]); room = whelmRoom(u); }
+      yield 30;
+    }
+    return true;
+  }
+  // the held ones drown (SRD 5.1 Whelm: "At the start of each of the elemental's turns, each target grappled by it takes 13 (2d8 + 4) bludgeoning damage")
+  function* drown(B, u) {
+    var W = u.whelm, held = (u.holding || []).filter(function (w) { var r = w.conds.restrained; return r && r.by === u.id && r.whelm && G.standing(w); });
+    for (var i = 0; i < held.length; i++) {
+      var w = held[i], roll = D.roll(W.dice), n = roll.total + (W.mod || 0);
+      B.card(['{r}' + the(B, u) + '{/} crushes ' + w.name + ' inside it, and there is no air: ' + W.dice + '+' + W.mod + ' ' + RU.fmtRolls(roll.rolls) + ' = {r}' + n + '{/} bludgeoning'], 300);
+      FX.sparkle(w, 'blue', 12); D.sfx('hit'); B.hurt(w, n, 'bludgeoning'); yield 24;
+    }
+  }
   // its ranged routine (the multiattack's ranged names, else its first ranged attack once), each at the lowest AC in sight
   function* volley(B, u) {
     // (the roof guard throws no rock at the glass either -- noGlass, as her blows: 10-05 night, the bench with her own lane had her on the lip at round 4 throwing at the skylight)
@@ -1214,7 +1257,7 @@
     // the only stop. (Amara and Willem, who fight only to get away, give ground a step at a time instead: shooter())
     if (bolting) { if (yield* bolt(B, u)) return; }
     // recharges (5-6 at the start of its turn): the Moan, the Leap (once a turn: a burrower rolls before it picks where to come up -- burrower)
-    if (!T.recharged) [u.moan, u.leap, u.spittle].forEach(function (s) { if (s && !s.ready && D.d(6) >= s.recharge) s.ready = true; });
+    if (!T.recharged) [u.moan, u.leap, u.spittle, u.whelm].forEach(function (s) { if (s && !s.ready && D.d(6) >= s.recharge) s.ready = true; });
     // the mouther's Blinding Spittle (SRD 5.1: its Multiattack is "one bite attack and, if it can, uses its Blinding Spittle" -- no action of its own; 10-06)
     if (!grudge && u.spittle && u.spittle.ready && T.action && hs.length) yield* spit(B, u, hs);
     // Phantasms (the cloaker when bloodied; Willem at once): three false images, its action
@@ -1244,7 +1287,9 @@
     // a spent Web comes back on a 5 or 6 (at the start of its turn)
     if (u.web && !u.web.ready) { var rc = D.d(6); if (rc >= u.web.recharge) { u.web.ready = true; B.card(['{g}' + the(B, u) + ' has web again (d6 ' + rc + ').{/}'], 200); yield 12; } }
     // a grip it can no longer reach goes slack
-    (u.holding || []).slice().forEach(function (w) { if (w.dead || w.hp <= 0 || !w.conds.restrained || w.conds.restrained.by !== u.id || G.dist(u, w) > gripReach(u)) B.release(u, w); }); // (gripReach: a grip it has keeps its own reach, whatever it has left to throw -- 10-02)
+    (u.holding || []).slice().forEach(function (w) { if (w.dead || w.hp <= 0 || !w.conds.restrained || w.conds.restrained.by !== u.id || G.dist(u, w) > gripReach(u)) B.release(u, w); });
+    // the water elemental's held drown at the start of its turn, and it stays where it is, around them (Whelm, 10-14)
+    if (u.whelm && (u.holding || []).length) { yield* drown(B, u); if ((u.holding || []).some(function (w) { return G.standing(w); })) T.move = 0; } // (gripReach: a grip it has keeps its own reach, whatever it has left to throw -- 10-02)
     // riding the one it holds (the darkmantle attached, battle.js mount; SRD 5.1: "can attack no other creature except the target", its speed 0, it moves with
     // the target): no step of its own -- it squeezes the one it rides
     if (u.riding && u.attached) {
@@ -1268,6 +1313,8 @@
     } else if (u.conds.taunted && D.mpmon && D.mpmon.tauntTarget(B, u, hs)) { // (taunted by an MPMon, js/mpmon.js: only at him, when it can)
       hs = [D.mpmon.tauntTarget(B, u, hs)];
     }
+    // Whelm (the water elemental: its action, when it has it back -- recharge 4-6 -- on those beside it, or it closes on one first)
+    if (!grudge && u.whelm && u.whelm.ready && T.action) { if (yield* whelm(B, u, hs)) return; }
     // Tentacle Slam, instead of the bites and lashes, on what it already holds (the 8-bit game: half the time)
     if (u.slam && u.holding.length && T.action && D.d(100) <= (u.slam.chance || 0.5) * 100) { yield* slam(B, u); return; }
     var near = hs.filter(function (w) { return G.dist(u, w) <= reachOf(u, hs); }).sort(function (a, b) { return a.hp - b.hp; }); // (reachOf with hs: a tendril no one in its reach can be held by counts for nothing, and it walks in to bite -- 10-02)

@@ -928,7 +928,7 @@
     else if (res === 'run') yield F().walk(back);
   }
   S.fallback = function* () { yield* legFour('fallbackDone', 'deep.fallback', 'deep.fallbackIntro', ['drowcaptain', 'drow', 'drow', 'drow', 'drow'], 'deep.fallbackDone', ['left', 'left'], 'fallback'); };
-  S.naga = function* () { yield* legFour('nagaDone', 'deep.naga', null, ['naga'], 'deep.nagaDone', ['left', 'left'], 'naga'); };
+  S.naga = function* () { yield* legFour('nagaDone', 'deep.naga', null, ['waterelemental', 'waterelemental'], 'deep.nagaDone', ['left', 'left'], 'naga'); }; // (two water elementals in the spirit naga's place since 10-14 -- the flag and the grid fight keep the name)
   S.trolls = function* () { yield* legFour('trollsDone', 'deep.trolls', null, ['troll', 'troll'], 'deep.trollsDone', ['up', 'up'], 'trolls'); };
   S.elemental = function* () { yield* legFour('elementalDone', 'deep.elemental', null, ['earthelemental', 'earthelemental'], 'deep.elementalDone', ['left', 'left'], 'elementals'); };
   // the smith re-hafts Barley's flail in truesilver (spec §8: the Winnower)

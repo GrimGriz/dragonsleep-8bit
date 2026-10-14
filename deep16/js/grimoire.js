@@ -96,6 +96,7 @@
     var c = u.conds, T = u.turn;
     if (c.noReact || c.turned || (c.confused && !M.zoneGlobed(B, c.confused, u))) u.reaction = 0; // (Glass Whisper, Shocking Grasp: no reactions till its turn is over; the turned take none at all; nor the confused, SRD 5.1 -- unless it stands in a Globe of Invulnerability the Confusion was cast from outside of)
     if (c.frosted) T.move = Math.max(0, T.move - 10); // Ray of Frost: -10 ft
+    if (c.frozen) T.move = Math.max(0, T.move - 20); // Freeze (the water elemental, SRD 5.1): -20 ft till the end of its next turn (battle.js hurt)
     if (c.slowed) { T.move = Math.floor(T.move / 2); u.reaction = 0; T.slowed = true; } // Slow: half speed, no reactions, one attack, the action or the bonus
     if (c.hasted) { T.move *= 2; T.hasteAction = 1; } // Haste: double speed, one more action (one attack, Dash, Disengage, Hide, an object)
     if (c.lethargic) { T.move = 0; T.action = 0; T.bonus = 0; delete c.lethargic; B.card(['{g}' + Nm(B, u) + ' is dragged down by the haste\'s end: no move, no action.{/}'], 240); }
