@@ -616,7 +616,7 @@
   },
   // the Warrens' settling pools (events.js, warrens_d): the ochre jelly and the gray ooze
   ochrejelly: {
-    name: 'Ochre Jelly', type: 'ooze', sheet: 'ochrejelly_p1', small: 'ochrejellym_p1', cr: '2', ac: 8, hp: 45, speed: 10, climbs: 10, size: 2, reach: 5, blindsight: 60, blind: true,
+    name: 'Ochre Jelly', type: 'ooze', sheet: 'ochrejelly_p2', small: 'ochrejellym_p2', cr: '2', ac: 8, hp: 45, speed: 10, climbs: 10, size: 2, reach: 5, blindsight: 60, blind: true,
     abil: { str: 15, dex: 6, con: 14, int: 2, wis: 6, cha: 1 }, init: -2, perception: 8,
     saves: { str: 2, dex: -2, con: 2, int: -4, wis: -2, cha: -5 },
     attacks: { pseudopod: { name: 'Pseudopod', atk: 4, dice: '2d6', mod: 2, type: 'bludgeoning', extra: '1d6', extraType: 'acid', reach: 5 } },
