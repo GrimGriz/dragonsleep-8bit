@@ -207,7 +207,8 @@
     var members = B.units.filter(function (u) { return u.side === 'party' && !u.familiar && !u.object && !u.summon; });
     var stored = D.store.get(R.KEY) || {};
     // the front man kept with the formation (10-13, in the pane: his formation came back, his leader did not): the stored order first, the rest as they come
-    if (Array.isArray(stored._order)) members.sort(function (a, b) { var ia = stored._order.indexOf(a.id), ib = stored._order.indexOf(b.id); return (ia < 0 ? 99 : ia) - (ib < 0 ? 99 : ib); });
+    // (inside the 8-bit its party's order leads -- the first is the 8-bit's lead -- and ORDER on the floor goes back as that order: the seam, 10-14)
+    if (Array.isArray(stored._order) && !R.emb) members.sort(function (a, b) { var ia = stored._order.indexOf(a.id), ib = stored._order.indexOf(b.id); return (ia < 0 ? 99 : ia) - (ib < 0 ? 99 : ib); });
     var lead = members[0];
     // wings are for fights (10-14, Griz: "test with a fly ring equipped on vivian"): on the floor the party walks as one -- the token never flies over the deep water the rest
     // would drown in -- so a worn Ring of Flying's wings (js/flight-ai.js gives them at the enter) are kept on the figure and spread when a fight begins (R.engage)
@@ -801,7 +802,7 @@
       return { id: h.key || h.id, guest: !!h.guest, sheet: h, torch: u.torch && u.torch.lit !== false && u.hp > 0 ? (L.kindOf(u.torch) === 'lantern' ? (u.torch.item || 'lantern') : 'torch') : false };
     });
     var msg = { type: 'd16:roam', result: result, exit8: at ? R.def.to8(at[0], at[1]) : null, party: party, inv0: R0.inv0 || {}, inv1: inv1, flags: JSON.parse(JSON.stringify(R0.flags)),
-      kills: JSON.parse(JSON.stringify(R0.kills || {})), silver: R0.silver, warn: hb.warn };
+      kills: JSON.parse(JSON.stringify(R0.kills || {})), silver: R0.silver, warn: hb.warn, order: R0.members.map(function (u) { return u.src ? (u.src.key || u.src.id) : u.id; }) };
     R.lastOut = msg;
     if (D.embed && D.embed.roamOut) D.embed.roamOut(msg);
     yield 1;

@@ -114,6 +114,7 @@
       Object.keys(i1).forEach(function (id) { var got = (i1[id] || 0) - (i0[id] || 0); if (got > 0) g.give(id, got); });
       Object.keys(d.flags || {}).forEach(function (k) { g.flags[k] = d.flags[k]; });
       if (d.kills) g.kills = d.kills; if (d.silver != null) g.silver = d.silver;
+      if (d.order) { var ord = d.order; g.party.sort(function (a, b) { var ia = ord.indexOf(a.id), ib = ord.indexOf(b.id); return (ia < 0 ? 99 : ia) - (ib < 0 ? 99 : ib); }); } // (a leader changed by ORDER on the floor leads the 8-bit's party too)
       if (d.warn && d.warn.length) console.warn('THE ROAM, the pack at the stairs: ' + d.warn.join('; '));
     }
   };

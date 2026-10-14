@@ -85,6 +85,11 @@
       look: 'E on the crate above you (at the deep pool\'s corner, by the stair since 10-08) for the bucket. Then E at the water (or walk round to the stone rim south of the pool): onto the wet\'s grid with every sleeper in it, and the landlord\'s first picture before anyone moves. USE the bucket there (ITEM, by the one who carries it) and four more pictures come, the clackers clacking.',
       say: 'The Warrens\' wet. The crate above you holds the deep station\'s bucket; the landlord is in the water beyond it, unfed.',
       unset: ['otyughFed', 'landlordSpoke'], map: 'warrens_d', x: 3, y: 8, dir: 'up' },
+    // the Wet on the grid (the party-token map's seam, 10-14): set down on the Wet's arrival from the Warrens' second floor, as its warp would, and the enter hook run -- the roam opens
+    roam: { group: 'The base game', title: 'The Wet on the grid: the whole floor, one token', pt: 'the party-token map lane §4.4 · the seam (new 10-14)', lvl: 4,
+      look: 'The grid comes up over the 8-bit: the whole Wet as one token on the stair from the Warrens\' second floor. Walk it (random fights unannounced, the Settling and the Keeper pulled in, the five by the rope), then out by either stair: back on the 8-bit with what the floor gave and took -- XP and levels, the pack, the flags, the kills, the purse.',
+      say: 'The Warrens\' wet, walked on the grid.', unset: ['otyughFed', 'landlordSpoke'], map: 'warrens_d', x: 2, y: 12, dir: 'right',
+      start: function* () { if (S()['enter:warrens_d']) yield* S()['enter:warrens_d'](); } },
     // 10-03, Griz: "set me up with a level 3 party led by lymen, in silverton, with the gates down to the wet already opened type URL":
     // the ?lvl3 start (Winters' errands run, the four found, nothing else) plus the Warrens' way down -- Pete heard, the tally book met,
     // the five known, Skarn's gate open -- and nothing below done. base: 'lvl3' (DS.levelThree, not round six). &lead=lymen preselects him.
