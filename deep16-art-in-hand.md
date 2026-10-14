@@ -8,6 +8,7 @@ how: nothing here is wanted. When a block on `deep16-art-wanted.md` comes back a
 
 ## BUILT FROM THE LIST (newest first)
 
+- 2026-10-14 · GreyFang, the rest of his rows (ART-01: idle, walk, bow, hurt, cast from the bottom-right and the top-right, the climb from behind) and his front and back (ART-32: every row, S and N) · `deep16/_src/greyfang/ART-01/`, `ART-32/`, `tools/greyfang-sheet.py` -> `greyfang_p1`, COMMIT · *"let's do him when they come in"*
 - 2026-10-14 · the water elemental's missing views (ART-51, from the facings package `deep16/_src/outbox/ART-FACINGS-2026-10-14/` and its own zip): S, E, N, the back-right's Whelm/Flinch/Fall and a re-rolled rear Slam · `deep16/_src/waterelemental/ART-51/`, `tools/waterelemental-sheet.py` -> `waterelemental_p2`, `0d74be5` (a runner) · *"water elemental art is in"*
 - 2026-10-14 · the ogre's missing views (ART-22, the facings package): S, E, N · `deep16/_src/ogre/ART-22/`, `tools/ogre-sheet.py` -> `ogre_p2`, `6590102` `800b15b` (a runner) · *"Ogre zip landed"*
 - 2026-10-14 · the grimlock's missing views (ART-23, the facings package): S, E, N · `deep16/_src/grimlock/ART-23/`, `tools/grimlock-sheet.py` -> `grimlock_p2`, `dbe0fbd` (a runner) · *"more zips in the fresh"*
@@ -924,3 +925,23 @@ Cut as: Prone -> the sheet's `prone` row (`S.proneRow`), or its frame into `S.PR
 What the cutter needs from a sheet (the gnoll sheets were right): a turnaround of stills (front, right, back, left), then rows of frames all facing right in side view; every frame apart from its neighbours; one scale for the whole sheet. One sheet an image: a file of several sheets came back as one packed image with soft frames (the bugbear, 10-07).
 
 **To add an ask:** copy the nearest block above and change the head; keep its tail whole. A creature's later sheets (from the front, from behind, its tricks) follow the goblin's and the hobgoblin's in `deep16-art-in-hand.md`.
+
+### GreyFang, the rest of his moves (asked 10-08 in §6; drawn by the art desk, ART-01 10-09 and ART-32 10-14; CUT 10-14, BUILT FROM THE LIST above)
+
+The section as it stood on `deep16-art-wanted.md` §6, word for word, kept for a re-roll. (Its two-view reading is the 10-08 one, SUPERSEDED-BY the facings ruling of 10-14: ART-32 drew his front and back.)
+
+His four isometric combat sheets are cut (`greyfang_p1`, 10-08: slash, volley, whirlwind, parry, backstep, prone, fall from each diagonal). What he still plays side-on on the diagonals is below -- walk, the bow shot, flinch, cast, climb -- so on the grid he walks side-on and turns isometric to swing. Two views, the cutter mirroring the other two (his *"1 mirrored"*).
+
+### GreyFang
+ATTACH `deep16/_src/Fresh/Greyfang’s Isometric Combat Sprite Sheet-1.png` (his BOTTOM RIGHT sheet)
+```text
+Attached: GreyFang's isometric combat sheet from the bottom-right. Draw the same wolf-headed ranger in the same pixel style, from the same isometric camera and at the same scale: the grey-and-white wolf head with the scarred brow and amber eyes, the ragged green hooded cloak, the quiver of arrows on his back, the longbow, the big grey tail. These two sheets are the rest of his moves, in the two views below.
+
+HEAD 1 -- GREYFANG from the bottom-right: isometric three-quarter view from above, every frame facing toward the bottom-right corner of the image. Rows: Idle (4: standing in his crouched guard, the bow low in one hand, breathing, the cloak and tail stirring); Walk (8: a wary, stooped stride toward the bottom-right, the bow low); Bow (10: he draws an arrow from the quiver over his shoulder, nocks it, draws to the cheek, looses on frame 7 -- the arrow gone from the string -- and lowers the bow); Hurt (6: struck, he reels back, one knee dips toward the ground on frame 4, and he rises back into his guard); Cast (7: he raises his open free hand and small green sparks gather and flare in it, then fade).
+
+HEAD 2 -- GREYFANG from the top-right, seen from behind: isometric three-quarter view from above, every frame facing toward the top-right corner of the image, rows only. Rows: Idle (4: as HEAD 1, seen from behind); Walk (8: the same stride toward the top-right); Bow (10: the same draw and loose toward the top-right, looses on frame 7); Hurt (6: struck from behind, he lurches forward, one knee dips on frame 4, and he rises, still facing away); Cast (7: the same, toward the top-right); Climb (6: seen from behind, he climbs straight up an unseen wall in front of him hand over hand, the bow slung across his back; do not draw the wall).
+
+Draw each HEAD above as its own separate image, in the order given: one sheet an image, never two sheets in one image. Every sheet: 16-bit pixel art animation sheet, SNES-era action RPG style, crisp dark outline, readable at small size. Isometric three-quarter view from above, the camera looking down at about thirty degrees, as in a tactics game, as in the attached sheet. Flat dark navy background (a deep blue, not grey and not black). ONE sheet filling the whole image: no portrait, no other panels, no title. Labelled rows of frames, each row's name at its left, numbered 1 to N under each frame -- every number used once, none skipped, one drawing for each number. Every frame faces the way its HEAD says; a walk is animated in place, not travelling across the sheet. Every frame stands apart with clear space around it: nothing overlaps a neighbour or a label. The same scale as the attached sheet in every row and on both sheets, the bottom of every frame on one baseline. No scenery.
+```
+Cut as: Idle -> idle, Walk -> walk, Bow -> longbow (release on frame 7), Hurt -> flinch, Cast -> cast, Climb -> climb; HEAD 1 plays SE, S and E (SW and W mirrored), HEAD 2 NE and N (NW mirrored); Climb from HEAD 2 in every facing. `tools/greyfang-sheet.py` takes them beside his combat sheets (ISO; his four combat views stay as drawn). The idle replaces the diagonals' standing stills.
+
