@@ -90,6 +90,12 @@
       look: 'The grid comes up over the 8-bit: the whole Wet as one token on the stair from the Warrens\' second floor. Walk it (random fights unannounced, the Settling and the Keeper pulled in, the five by the rope), then out by either stair: back on the 8-bit with what the floor gave and took -- XP and levels, the pack, the flags, the kills, the purse.',
       say: 'The Warrens\' wet, walked on the grid.', unset: ['otyughFed', 'landlordSpoke'], map: 'warrens_d', x: 2, y: 12, dir: 'right',
       start: function* () { if (S()['enter:warrens_d']) yield* S()['enter:warrens_d'](); } },
+    // 10-14, Griz: "should be able to crawler game while the level picker levels up (in case of revision)" -- the roam's door, the four 20 XP short of 4
+    roamup: { group: 'The base game', title: 'The Wet on the grid, one fight short of level 4: the pick page on the floor (10-14)', pt: 'the party-token map lane §9 open 1 · the level-up pick', lvl: 3,
+      look: 'The Wet as one token, as ?at=roam, the four at level 3 and 20 XP short of 4. Win (or get away from) the first random fight: at the gather the card says each is level 4, then the one pick page opens over the floor, a page a hero -- Barley\'s scores (STR +2 marked), Aurdin\'s scores, two spells and a cantrip, Vivian\'s scores, Lymen\'s scores. The floor waits under it; CONFIRM on the last and the token walks on. A CON pick shows on the figure\'s max HP at once; a new spell is in the book and cast after a long rest.',
+      say: 'The Warrens\' wet on the grid, one fight short of level 4.', unset: ['otyughFed', 'landlordSpoke'], map: 'warrens_d', x: 2, y: 12, dir: 'right',
+      prep: function (G) { G.party.forEach(function (h) { h.xp = DS.R.XP_LEVEL[4] - 20; }); },
+      start: function* () { if (S()['enter:warrens_d']) yield* S()['enter:warrens_d'](); } },
     // 10-03, Griz: "set me up with a level 3 party led by lymen, in silverton, with the gates down to the wet already opened type URL":
     // the ?lvl3 start (Winters' errands run, the four found, nothing else) plus the Warrens' way down -- Pete heard, the tally book met,
     // the five known, Skarn's gate open -- and nothing below done. base: 'lvl3' (DS.levelThree, not round six). &lead=lymen preselects him.
