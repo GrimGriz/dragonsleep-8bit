@@ -1,0 +1,279 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Plot Map</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- DRAGONSLEEP -- the expansion's plot map, a PROTOTYPE (10-13, the Cowork seat, config echo claude-fable-5-1), on Griz's word:
+     "In the notes I left in situations, I asked for a plot-map of the expansion quests ... can you prototype one?" (the register's one line,
+     10-11: "wheelwright mission - please show me the possibility branches"). The beats' words are the game's own: this page loads
+     data/data.js and reads DS_DATA.quests (id, show, done, text, doneText, steps). The FORKS are this page's table, read off js/deep.js
+     and quests.json by the seat, each with a line receipt (toggle RECEIPTS); line numbers are at main 0d1afe5 and go stale the way a
+     lamp's receipts do. The DAYS are the clock lane's draft (handoff-2026-10-13-the-clock.md §3.2) -- a dev page may show the number;
+     the game never does (RULED 10-13). Open it from the folder (file://) or the preview server; no build, no gate, nothing in the game
+     reads it. -->
+<style>
+  :root { --bg:#f4ecdc; --ink:#2b2418; --dim:#7a6a52; --rule:#d8cbb2; --accent:#8b4a2b; --card:#fbf5e8; --flag:#5b6b3a; --fork:#8b4a2b; --side:#3f5a7a; --bad:#9a3b2e; --day:#a07a2a; }
+  [data-theme="night"] { --bg:#1e1b16; --ink:#e6dcc8; --dim:#9a8e7a; --rule:#3a342b; --accent:#d69a6a; --card:#26221b; --flag:#a9bf7a; --fork:#d69a6a; --side:#8fb2d6; --bad:#e08a7a; --day:#e0b860; }
+  * { box-sizing:border-box; }
+  html,body { margin:0; background:var(--bg); color:var(--ink); }
+  body { font-family: Georgia, "Iowan Old Style", "Palatino Linotype", "Book Antiqua", serif; font-size:14px; line-height:1.4; }
+  #bar { position:sticky; top:0; z-index:5; background:var(--bg); border-bottom:1px solid var(--rule); padding:.5rem 1rem; display:flex; gap:.6rem; flex-wrap:wrap; align-items:center; font-size:14px; }
+  #bar h1 { font-size:1.05em; font-weight:normal; margin:0 1rem 0 0; }
+  #bar h1 small { color:var(--dim); font-style:italic; }
+  #bar button { background:none; border:1px solid var(--rule); color:var(--ink); padding:.25rem .6rem; border-radius:6px; cursor:pointer; font:inherit; font-size:13px; }
+  #bar button:hover { border-color:var(--accent); }
+  #bar button.on { border-color:var(--accent); color:var(--accent); }
+  #bar .src { margin-left:auto; color:var(--dim); font-style:italic; font-size:12.5px; }
+  #wrap { position:relative; overflow:auto; padding:1.2rem 1.2rem 3rem; }
+  #svg { position:absolute; left:0; top:0; pointer-events:none; overflow:visible; }
+  #side { display:grid; grid-template-columns:repeat(5, minmax(220px, 1fr)); gap:.8rem; margin:0 0 1.4rem 0; padding:.9rem; border:1px dashed var(--side); border-radius:10px; position:relative; }
+  #side:before { content:"SIDE MISSIONS -- open in the halls once the king trusts you (pyroTrusts); Halldor is on his feet after two of them (js/deep.js:353)"; position:absolute; top:-.75em; left:1em; background:var(--bg); padding:0 .5em; color:var(--side); font-size:12px; letter-spacing:.02em; }
+  #spine { display:grid; grid-template-columns:repeat(8, minmax(250px, 1fr)); gap:.8rem; align-items:start; }
+  .col { display:flex; flex-direction:column; gap:.6rem; min-width:0; }
+  .card { background:var(--card); border:1px solid var(--rule); border-radius:10px; padding:.7rem .8rem; position:relative; }
+  .card.beat { border-color:var(--accent); }
+  .card.side { border-color:var(--side); }
+  .card.branch { border-style:dashed; }
+  .card h2 { font-size:1.05em; font-weight:normal; margin:0 0 .25em; line-height:1.2; }
+  .card h2 .n { color:var(--accent); margin-right:.35em; }
+  .card .flags { font-family: ui-monospace, Consolas, "Courier New", monospace; font-size:11.5px; color:var(--flag); margin:0 0 .4em; word-break:break-word; }
+  .card .flags b { font-weight:normal; color:var(--dim); }
+  .card p { margin:0 0 .45em; }
+  .card p.text { font-style:italic; }
+  .card p.done { color:var(--dim); }
+  .card p.done:before { content:"done: "; font-style:italic; }
+  .steps { margin:.2em 0 .3em; padding-left:1.1em; color:var(--ink); }
+  .steps li { margin:.15em 0; }
+  .steps li .if { font-family: ui-monospace, Consolas, "Courier New", monospace; font-size:11px; color:var(--dim); }
+  .day { position:absolute; top:-.7em; right:.7em; background:var(--bg); color:var(--day); border:1px solid var(--day); border-radius:999px; padding:0 .55em; font-size:11.5px; display:none; }
+  body.days .day { display:block; }
+  .fork { margin:.35em 0 0; }
+  .fork .q { color:var(--fork); font-size:13px; margin:0 0 .15em; }
+  .fork .q .rc { color:var(--dim); font-style:italic; }
+  .fork ul { list-style:none; margin:0; padding:0 0 0 .2em; }
+  .fork li { margin:.1em 0; padding-left:1.1em; text-indent:-1.1em; font-size:13px; }
+  .fork li:before { content:"\2514 "; color:var(--dim); }
+  .fork li .opt { font-variant:small-caps; letter-spacing:.03em; }
+  .fork li .arrow { color:var(--dim); margin:0 .3em; }
+  .fork li .out { color:var(--ink); }
+  .fork li .fl { font-family: ui-monospace, Consolas, "Courier New", monospace; font-size:11px; color:var(--flag); }
+  .fork li .fl.bad { color:var(--bad); }
+  .fork li ul { margin:.1em 0 0 .3em; }
+  .fork li li { font-size:12.5px; }
+  .rc { display:none; font-family: ui-monospace, Consolas, "Courier New", monospace; font-size:10.5px; color:var(--dim); }
+  body.receipts .rc { display:inline; }
+  .note { color:var(--dim); font-style:italic; font-size:12.5px; margin:.3em 0 0; }
+  #foot { color:var(--dim); font-style:italic; font-size:12.5px; margin:1.2rem 0 0; max-width:70em; }
+  .err { color:var(--bad); font-style:italic; }
+</style>
+</head>
+<body class="days">
+<div id="bar">
+  <h1>DRAGONSLEEP &mdash; the expansion's plot map <small>prototype, 10-13</small></h1>
+  <button id="bReceipts">receipts</button>
+  <button id="bDays" class="on">days (the clock lane's draft)</button>
+  <button id="bNight">night</button>
+  <span class="src" id="src">loading data/data.js&hellip;</span>
+</div>
+<div id="wrap">
+  <svg id="svg"></svg>
+  <div id="side"></div>
+  <div id="spine"></div>
+  <div id="foot">The beats run left to right along the king's road; under each, its forks: an option in small caps, then what it does and the flag it sets. A side mission hangs above the beat that opens it. Dashed cards are branches off a beat (the Skylights off the raid; the curl off the cleric). Receipts are <code>js/deep.js</code> lines at main <code>0d1afe5</code> unless named otherwise; the quests' words are read live from <code>data/data.js</code>. Nothing here is ruled by this page: a fork drawn wrong is a bug in the map, a fork missing is a bug in the map, and both go to the story-review lane.</div>
+</div>
+<script src="data/data.js"></script>
+<script>
+(function () {
+  var Q = {}; var ok = !!(window.DS_DATA && DS_DATA.quests);
+  if (ok) DS_DATA.quests.forEach(function (q) { Q[q.id] = q; });
+  document.getElementById('src').textContent = ok ? 'quests read from data/data.js (' + DS_DATA.quests.length + ' records; version ' + (DS_DATA.config && DS_DATA.config.version) + ')' : 'data/data.js did not load -- the beats show the page\'s own names only';
+  if (!ok) document.getElementById('src').className = 'src err';
+
+  function fl(s, bad) { return '<span class="fl' + (bad ? ' bad' : '') + '">' + s + '</span>'; }
+  function rc(s) { return '<span class="rc">' + s + '</span>'; }
+  function opt(label, out, flags, sub) {
+    var h = '<li><span class="opt">' + label + '</span><span class="arrow">&rarr;</span><span class="out">' + out + '</span>' + (flags ? ' ' + flags : '');
+    if (sub) h += '<ul>' + sub.map(function (s) { return opt.apply(null, s); }).join('') + '</ul>';
+    return h + '</li>';
+  }
+  function fork(q, receipt, opts) {
+    return '<div class="fork"><p class="q">' + q + ' ' + rc(receipt) + '</p><ul>' + opts.map(function (o) { return opt.apply(null, o); }).join('') + '</ul></div>';
+  }
+
+  // ------------------------------------------------------------ the spine: quests 11-18 of content/quests.json, the dwarven expansion (the re-cut, 09-27)
+  var BEATS = [
+    { id: 'onelaw', n: 1, day: 'Day 5 → 8', set: 'stairHook :75 → clericMet :327', forks:
+      fork('The night crew at the Geirmund wedge (Hask, the wheelwright, two crewmen)', 'js/deep.js:222-282',
+        [['CHALLENGE THEM', 'the fight (DEEP16 <i>crew</i>); the wheelwright bolts when Hask falls', fl('crewDealt') + ' ' + fl('wheelwrightRan') + ' + the sack',
+           [['run', 'they back off', fl('crewLeft')]]],
+         ['VIVIAN KNOWS THEM', 'Persuasion 13 (Vivian): they go, owing you', fl('crewDealt') + ' ' + fl('crewOwed') + ' + the sack; fail: the fight'],
+         ['TAKE A CUT', 'Intimidation 15: 200 sp and they go', fl('crewCut') + ' ' + fl('renown −1', true) + '; three nights on they come back for the rest ' + fl('crewBack')],
+         ['LEAVE', 'they back off', fl('crewLeft')]])
+      + fork('The crew\'s sack (crewsack), once you hold it', 'js/deep.js:153-162, :1255-1258, :1248',
+        [['PUT IT BACK', 'at the pried niche: the ledger\'s favour', fl('sackReturned') + ' ' + fl('favor +1')],
+         ['SELL IT (80 SP)', 'to Vera', fl('sackSold')],
+         ['keep it', 'Brann names it at the lamp, once', fl('brannSackSaid')]]) },
+    { id: 'theking', n: 2, day: 'Day 8', set: 'frontDoor :327 → pyroLeads :372', forks:
+      fork('The Burial\'s gear: Audun\'s shield, Asmund\'s gear', 'js/deep.js:176, :184, :396-405',
+        [['TAKE IT (the shield)', 'lawful once the ledger releases it', fl('shieldTaken') + ' (' + fl('warrantShield') + ')'],
+         ['TAKE IT (Asmund\'s)', 'unlawful: Ketil takes it back at the door, renown down one a piece', fl('blasphemy +1', true) + ' → ' + fl('unlawful', true)],
+         ['LEAVE IT', 'the dead keep it', '']])
+      + fork('The king at the vault door', 'js/deep.js:363, :372',
+        [['LOOK HIM IN THE EYE / TAKE HIS HAND', 'his read of you (a line each)', ''],
+         ['WALK THE ROAD WITH HIM', 'he leads', fl('pyroLeads')],
+         ['NOT YET', 'he waits at the door', '']]) },
+    { id: 'kingsroad', n: 3, day: 'Day 9 → 10', set: 'pyroLeads → captainFound :756', forks:
+      fork('The rooms off the road (the "side combat rooms" of his 10-12 note)', 'js/deep.js:717, :736; here-to-there legs cutseal, gricks, roper, bulette, drain',
+        [['FIGHT IT / GO BACK', 'the roper on the causeway', ''],
+         ['FIGHT IT / BACK AWAY', 'the drain under Second Lamp', ''],
+         ['(no ask)', 'the cut seal, the gricks, the bulette', fl('buletteDead')]])
+      + fork('The north cut: five phase spiders with two troopers; then Halldor', 'js/deep.js:752-768',
+        [['TEND HIM (HEALER\'S KIT)', 'a kit spent; he walks at two-thirds', fl('captainTended=kit')],
+         ['LAY ON HANDS (LYMEN)', 'ten of the pool', fl('captainTended=lay')],
+         ['LET HIM WALK', 'wounded all the way home', '']]) },
+    { id: 'escort', n: 4, day: 'Day 10', set: 'captainFound → captainHome + pyroTrusts :806', forks:
+      '<p class="note">No fork: up the road past a relief column; home, the king trusts you in his halls.</p>' },
+    { id: 'halls', n: 5, day: 'Day 10', set: 'pyroTrusts → petition :824', forks:
+      fork('Halldor mends while you do two of the side missions above; then in the muster yard', 'js/deep.js:353, :822',
+        [['WE COME', 'the nest is on', fl('petition') + ' ' + fl('roadOpen')],
+         ['NOT YET', 'he waits', '']]) },
+    { id: 'nest', n: 6, day: 'Day 10 → 11', set: 'petition → nestCrushed :839; the first rest after: Ulf\'s runner, wordBelow :864', forks:
+      '<p class="note">No fork in the nest; the cocoons cut down are <code>cocoon:</code> flags. The next rest of any kind brings the runner: the drow have taken Third Lamp.</p>' },
+    { id: 'solskaft', n: 7, day: 'Day 11', set: 'wordBelow → highwaySecured :997', forks:
+      fork('The muster at the highway\'s mouth', 'js/deep.js:622-650',
+        [['(by the story)', 'Brann and Hedda join as escorts, or the king alone', fl('mustered') + ' ' + fl('escortsOut')]])
+      + fork('The raid on Third Lamp', 'js/deep.js:891',
+        [['GO IN', 'straight at them', fl('raidWon')],
+         ['CREEP UP FIRST', 'the look before', fl('raidWon')]])
+      + fork('The drow\'s leavings: Brann\'s father\'s axe', 'js/deep.js:1260-1276',
+        [['GIVE IT TO BRANN', 'if he is at the lamp', fl('axeGiven')],
+         ['TAKE IT UP TO BRANN', 'carried; given in the yard', fl('axeCarried') + ' → ' + fl('axeGiven')],
+         ['KEEP IT', 'yours', fl('axeKept')]])
+      + '<p class="note">Leg four -- the cleric, the sect\'s blades, the black water, the fallback line -- is the dashed card below; the Skylights and the curl beside it.</p>' },
+    { id: 'thedoor', n: 8, day: 'Day 12', set: 'highwaySecured → expansionDone :1183', forks:
+      fork('Back up the lamps: the king\'s consent; Ingrith at her ledger', 'js/deep.js:407-415',
+        [['WALK HER DOWN', 'she joins as a healing guest; the door opens the width of one dwarf', fl('ingrithEscort')],
+         ['NOT YET', 'she waits', '']])
+      + fork('The Copperbottom smith, with the First Lamp seal\'s truesilver lump', 'js/deep.js:936-948',
+        [['RE-HAFT IT', 'Barley\'s flail becomes the Winnower (+2)', fl('winnowerMade')],
+         ['NOT YET', '', '']])
+      + '<p class="note">The consult: Dagny\'s line and the Sunshaft Staff; 13,000 XP; THE ROAD IS HELD; CONTINUE wakes the party in Solskaft (beat nine as built).</p>' }
+  ];
+
+  var LEG4 = fork('The cleric on the road (Torvald)', 'js/deep.js:1018-1060; DEEP16 torvald',
+        [['LET HIM GO', 'he heals when he leaves; "gone", or "robbed" if the scraping was lifted', fl('torvaldFate')],
+         ['ASK HIM', 'the check menu', '',
+           [['INSIGHT 13 / RELIGION 12 / MEDICINE 14', 'what each check watches for', ''],
+            ['PERSUASION 15', 'he tells it, heals you, goes', fl('torvaldTold') + ' ' + fl('torvaldFate=told')],
+            ['SLEIGHT OF HAND 15 (VIVIAN)', 'the copper scraping lifted; a miss is caught and he goes unhealed', fl('scrapingLifted') + ' / ' + fl('torvaldFate=caught')]]],
+         ['HOLD HIM', 'the fight; he yields at half', '',
+           [['LET HIM GO', 'spared, off down the road', fl('torvaldFate=spared')],
+            ['FINISH IT', 'the scraping, a kit, Dval\'s symbol, 40 sp', fl('torvaldFate=dead')]]]])
+      + fork('The sect\'s blades, at the next rest of any kind after him', 'js/deep.js:1084-1115',
+        [['HE WENT UP', 'true if he did: they go up after him', fl('fate=sent')],
+         ['HE WENT UP / HE WENT DOWN (a lie)', 'Deception 15', fl('fate=misled') + ' / the fight'],
+         ['NOTHING TO SAY', 'carrying the scraping: GIVE IT (paid) or KEEP IT (the fight); not carrying: they go, and circle back once', fl('fate=paid|gone|circle')],
+         ['ASK THEM', 'Insight 14, Intimidation 16', fl('assassinsTold')],
+         ['FIGHT', 'two Sect Blades, the ward-knots, 120 sp', '']])
+      + '<p class="note">Then the black water (the elemental, <code>elementalDone</code>), the fallback line (<code>fallbackDone</code>), and the door\'s spot ends the fourth day.</p>';
+
+  // branches off a beat (dashed): leg four, the Skylights and the curl, all off the raid's beat
+  var BRANCHES = {
+    solskaft: [
+      { title: 'Leg four: Third Lamp to the door', set: 'raidWon → the threshold', body: LEG4 },
+      { title: 'The Skylights (off the raid)', set: 'raidWon → surfaceCall :554 → skylightsWon :582', body:
+        '<p class="text">A runner from Solskaft after the raid (or at the next lamp touched): giants and trolls at the Edifice, the king gone up to the roof. The lamp\'s road menu leads with TO THE SURFACE!; the fight is DEEP16 <i>edifice</i>.</p>'
+        + fork('Won or lost', 'js/deep.js:554-607; deep16/data/fights.js edifice',
+          [['won', 'two stone giants and four trolls paid: 13,000 XP, their silver, two closing lines', fl('skylightsWon')],
+           ['lost', 'GAME OVER -- the save the runner offered', fl('GAME OVER', true)]]) },
+      { title: 'The copper scraping (the curl), once you hold it', set: 'from Torvald, lifted or looted', body:
+        fork('Who gets it', 'js/deep.js:1380-1396, :1108',
+          [['GIVE IT HER (Lucia)', 'antitoxin at cost from then on', fl('curlDone=lucia')],
+           ['SELL IT (500 SP) (Winters)', '', fl('curlDone=winters')],
+           ['GIVE IT (the sect\'s blades)', 'they take it and go', fl('fate=paid')],
+           ['keep it', 'nothing yet reads a kept one', '']]) }
+    ]
+  };
+
+  // ------------------------------------------------------------ the side missions: quests 19-23, opened by pyroTrusts
+  var SIDE = [
+    { id: 'heir', set: 'heirAsked :1283 → heirDone :1312', body:
+      '<p class="note">Aldwin opens it once the king trusts you. Signy without Hob\'s hint: Investigation 14. The rite at Asmund\'s wedge: the hammer comes off lawfully, renown +1. No fork.</p>' },
+    { id: 'count', set: 'countAsked :423 → countDone', body:
+      '<p class="note">Ingrith asks it once the king trusts you. Idony\'s price is not silver. No fork.</p>' },
+    { id: 'keeperwater', set: 'waterAsked :1356 → keeperWater', body:
+      '<p class="note">Ragna offers it once the king trusts you. Three nights held at the stair (<code>holdStair</code>; his 10-12: "Holding the Stair should use the keepers map"). No fork.</p>' },
+    { id: 'wheelwright', set: '(crewDealt & pyroTrusts & (wheelwrightRan | crewOwed)) :1323 → wwDone', body:
+      fork('At Brennan\'s forge -- the "possibility branches" he asked for (10-11)', 'js/deep.js:1330-1341',
+        [['HAND HIM TO INGRITH', 'the lift', fl('wwDone=lift') + ' ' + fl('wwLift')],
+         ['HAND HIM TO THE LEDGER', 'renown +1', fl('wwDone=ledger') + ' ' + fl('wwLedger')],
+         ['LET HIM HIDE', 'only if the crew left owing you (VIVIAN KNOWS THEM)', fl('wwDone=hide') + ' ' + fl('wwHidden')]])
+      + '<p class="note">He never appears unless the crew was dealt with (the fight or Vivian): a cut taken or a LEAVE leaves this mission closed.</p>' },
+    { id: 'tariff', set: 'has:tariffcopy :1377 → tariffDone :1327', body:
+      '<p class="note">The copy comes off the tollhouse\'s board. Tobin Thorne has a line at Marko\'s after. No fork.</p>' }
+  ];
+
+  function qhead(id, n, set, cls, day) {
+    var q = Q[id] || { name: id, show: '?', done: '?', text: '', doneText: '', steps: [] };
+    var h = '<div class="card ' + cls + '" data-id="' + id + '">';
+    if (day) h += '<span class="day">' + day + '</span>';
+    h += '<h2>' + (n ? '<span class="n">' + n + '</span>' : '') + q.name + '</h2>';
+    h += '<p class="flags"><b>show</b> ' + (q.show || '(start)') + ' &nbsp;<b>done</b> ' + q.done + (set ? ' &nbsp;' + rc(set) : '') + '</p>';
+    if (q.text) h += '<p class="text">' + q.text + '</p>';
+    if (q.steps && q.steps.length) h += '<ol class="steps">' + q.steps.map(function (s) { return '<li>' + s.where + (s['if'] ? ' <span class="if">[' + s['if'] + ']</span>' : '') + '</li>'; }).join('') + '</ol>';
+    if (q.doneText) h += '<p class="done">' + q.doneText + '</p>';
+    return h;
+  }
+
+  var spine = document.getElementById('spine');
+  spine.innerHTML = BEATS.map(function (b) {
+    var h = '<div class="col" data-col="' + b.id + '">' + qhead(b.id, b.n, b.set, 'beat', b.day) + b.forks + '</div>';
+    (BRANCHES[b.id] || []).forEach(function (br) {
+      h += '<div class="card branch" data-branch="' + b.id + '"><h2>' + br.title + '</h2><p class="flags">' + br.set + '</p>' + br.body + '</div>';
+    });
+    return h + '</div>';
+  }).join('');
+  document.getElementById('side').innerHTML = SIDE.map(function (s) { return qhead(s.id, '', s.set, 'side') + s.body + '</div>'; }).join('');
+
+  // ------------------------------------------------------------ the arrows: beat to beat along the spine; the band down to beat 5
+  function draw() {
+    var svg = document.getElementById('svg'), wrap = document.getElementById('wrap');
+    var W = wrap.scrollWidth, H = wrap.scrollHeight; svg.setAttribute('width', W); svg.setAttribute('height', H);
+    var wr = wrap.getBoundingClientRect(), sx = wrap.scrollLeft, sy = wrap.scrollTop;
+    function box(el) { var r = el.getBoundingClientRect(); return { x: r.left - wr.left + sx, y: r.top - wr.top + sy, w: r.width, h: r.height }; }
+    var col = getComputedStyle(document.body).getPropertyValue('--accent').trim() || '#8b4a2b';
+    var side = getComputedStyle(document.body).getPropertyValue('--side').trim() || '#3f5a7a';
+    var d = '<defs><marker id="m" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="' + col + '"/></marker>'
+          + '<marker id="ms" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="' + side + '"/></marker></defs>';
+    var beats = Array.prototype.slice.call(document.querySelectorAll('.card.beat'));
+    for (var i = 0; i + 1 < beats.length; i++) {
+      var a = box(beats[i]), b = box(beats[i + 1]);
+      var y = Math.min(a.y, b.y) + 28;
+      d += '<path d="M' + (a.x + a.w) + ',' + y + ' L' + b.x + ',' + y + '" stroke="' + col + '" stroke-width="1.6" fill="none" marker-end="url(#m)"/>';
+    }
+    // the band to beat 5
+    var band = box(document.getElementById('side')), five = box(document.querySelector('.card.beat[data-id="halls"]'));
+    var x5 = five.x + five.w / 2;
+    d += '<path d="M' + x5 + ',' + (band.y + band.h) + ' L' + x5 + ',' + five.y + '" stroke="' + side + '" stroke-width="1.6" stroke-dasharray="5 4" fill="none" marker-end="url(#ms)"/>';
+    // a branch to its beat
+    Array.prototype.forEach.call(document.querySelectorAll('.card.branch'), function (br) {
+      var beat = document.querySelector('.card.beat[data-id="' + br.getAttribute('data-branch') + '"]');
+      var a = box(beat), b = box(br); var x = a.x + 18;
+      d += '<path d="M' + x + ',' + (a.y + a.h) + ' L' + x + ',' + b.y + '" stroke="' + col + '" stroke-width="1.2" stroke-dasharray="3 4" fill="none" marker-end="url(#m)"/>';
+    });
+    svg.innerHTML = d;
+  }
+  draw(); window.addEventListener('resize', draw);
+
+  // ------------------------------------------------------------ the bar
+  function tog(id, cls) { var b = document.getElementById(id); b.addEventListener('click', function () { document.body.classList.toggle(cls); b.classList.toggle('on', document.body.classList.contains(cls)); draw(); }); }
+  tog('bReceipts', 'receipts'); tog('bDays', 'days');
+  var night = document.getElementById('bNight');
+  function setNight(on) { document.documentElement.setAttribute('data-theme', on ? 'night' : ''); night.classList.toggle('on', on); try { localStorage.setItem('plotmap.night', on ? '1' : ''); } catch (e) {} draw(); }
+  night.addEventListener('click', function () { setNight(!document.documentElement.getAttribute('data-theme')); });
+  try { setNight(localStorage.getItem('plotmap.night') === '1' || (!localStorage.getItem('plotmap.night') && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches)); } catch (e) {}
+})();
+</script>
+</body>
+</html>

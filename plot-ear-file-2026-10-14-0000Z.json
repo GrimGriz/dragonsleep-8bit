@@ -1,0 +1,264 @@
+{
+  "kind": "plot-ear-file",
+  "saved": "2026-10-14T00:00:50.712Z",
+  "page": "plot-explorer.html (prototype 10-13)",
+  "day": 13,
+  "done": {
+    "start": 0,
+    "board": 0,
+    "warrens": 0,
+    "galleries": 0,
+    "inn": 1,
+    "morning": 0,
+    "stair": 1,
+    "sack": 2,
+    "gear": 1,
+    "king": 0,
+    "lamp1": 0,
+    "roper": 0,
+    "lamp2": 0,
+    "drain": 0,
+    "halldor": 1,
+    "escort": 1,
+    "count": 0,
+    "heir": 0,
+    "water": 0,
+    "wheelwright": 0,
+    "tariff": 0,
+    "halls": 0,
+    "nest": 0
+  },
+  "flags": {
+    "snootWord": 1,
+    "fiveDone": 1,
+    "cloakerDone": 1,
+    "wagonNight": 1,
+    "wagonStopped": 1,
+    "dueSeen": 1,
+    "crewDealt": 1,
+    "crewOwed": 1,
+    "sack": 1,
+    "sackKept": 1,
+    "blasphemy": 1,
+    "pyroLeads": 1,
+    "lamp1": 1,
+    "roperDead": 1,
+    "lamp2": 1,
+    "captainFound": 1,
+    "drainDone": 1,
+    "captainTended": 1,
+    "captainHome": 1,
+    "pyroTrusts": 1,
+    "countDone": 1,
+    "side": 1,
+    "heirDone": 1,
+    "keeperWater": 1,
+    "wwDone": 1,
+    "tariffDone": 1,
+    "petition": 1,
+    "nestCrushed": 1,
+    "wordBelow": 1
+  },
+  "notes": {
+    "stair.1": "can't be soft about this, pyro ain't gonna befriend a party that doesn't do right with the bag",
+    "sack.2": "if we let them keep it, they can equip the weapons but Solskaft never opens to them",
+    "gear.1": "fight with the dwarves, if they live solskaft closed",
+    "king.0": "Considering a worth-proving before he meets them at first lamp and explains the teleportation circles, then walk 1st to 2nd with party ",
+    "lamp1.0": "might be the proving before pyro shows up to meet them there - he won't be happy, second lamp work redemptive",
+    "roper.0": "battle targeted for rework with ceiling heights and ropes that drag off road big fall",
+    "lamp2.0": "current map is before lamp, after will be better - more explore to get to him and broodmother nest - ceilinged map, terrain differences, props as described",
+    "escort.1": "lamp out the wounded, rejustify surface mission, king fights brood with you then trusts",
+    "count.0": "why wouldn't she have it already?",
+    "heir.0": "oooh hadn't found this one - ",
+    "water.0": "that was one fight and over",
+    "tariff.0": "oops, last one - lift- is problematic - need an economics lesson to understand this quest motive",
+    "halls.0": "rather as above, do it with King, return to Solskaft to properly restaff second lamp",
+    "nest.0": "might stall that runner"
+  },
+  "log": [
+    {
+      "id": "start",
+      "i": 0,
+      "t": "Silverton. The moot is tonight, under a full moon, and nobody in town knows.",
+      "label": "WALK OUT THE DOOR",
+      "out": "the game begins; the Snoot lights at the moot that night",
+      "day": 0
+    },
+    {
+      "id": "board",
+      "i": 0,
+      "t": "The Weigh-House board has a true word on it, for an anchor pin.",
+      "label": "PAY THE PIN",
+      "out": "the Snoot, listed",
+      "day": 0
+    },
+    {
+      "id": "warrens",
+      "i": 0,
+      "t": "Pete's Five are in the Warrens' wet.",
+      "label": "BRING THEM HOME",
+      "out": "Pete's page: the Sheet, Grease",
+      "day": 2
+    },
+    {
+      "id": "galleries",
+      "i": 0,
+      "t": "The forty-gold tail: the cloaker in the deep gallery, and Dace, who wants to go down.",
+      "label": "ESCORT HIM AND TAKE IT DOWN",
+      "out": "his pick: the Cloak of Displacement, or the Sheet, Mirror Image",
+      "day": 3
+    },
+    {
+      "id": "inn",
+      "i": 1,
+      "t": "The Halfway Inn. Second watch. A wagon comes in, children behind a glamour.",
+      "label": "WAKE THE PARTY",
+      "out": "everyone goes out; Katarina runs inside when steel comes out, and gives you her book the day after",
+      "day": 4
+    },
+    {
+      "id": "morning",
+      "i": 0,
+      "t": "Morning at the lake. Doran draws from it in front of everyone and drinks. The road north.",
+      "label": "WALK NORTH",
+      "out": "Silverton by evening; Urtusk walks out of his door: the scales lit, the stair drained, the one law",
+      "day": 5
+    },
+    {
+      "id": "stair",
+      "i": 1,
+      "t": "The stair behind the Warrens is dry. Down the cut door, along the hallway: somebody is at the dead. Hask, the wheelwright, two crewmen.",
+      "label": "VIVIAN KNOWS THEM",
+      "out": "Persuasion 13: they go, owing you; the sack dropped; Ingrith comes",
+      "day": 6
+    },
+    {
+      "id": "sack",
+      "i": 2,
+      "t": "You hold the night crew's sack.",
+      "label": "KEEP IT",
+      "out": "Brann names it at the lamp, once",
+      "day": 6
+    },
+    {
+      "id": "gear",
+      "i": 1,
+      "t": "The Burial's base ring: Audun's shield, released by the ledger; Asmund's gear, the dead's.",
+      "label": "TAKE ASMUND'S GEAR",
+      "out": "unlawful: Ketil takes it back at the door, renown down a piece",
+      "day": 6
+    },
+    {
+      "id": "king",
+      "i": 0,
+      "t": "Ingrith has given you the front door. Up the dwarves' stair and down the Sunshaft: the king stands at the vault door.",
+      "label": "LOOK HIM IN THE EYE, AND WALK THE ROAD WITH HIM",
+      "out": "he leads",
+      "day": 6
+    },
+    {
+      "id": "lamp1",
+      "i": 0,
+      "t": "Down the road to First Lamp: a cut seal, gricks in the dark, a truesilver seam. Ulf and three troopers.",
+      "label": "WALK ON",
+      "out": "First Lamp held",
+      "day": 7
+    },
+    {
+      "id": "roper",
+      "i": 0,
+      "t": "The roper on the causeway across the great cavern. Nothing on the road knows if you fought it.",
+      "label": "FIGHT IT",
+      "out": "",
+      "day": 7
+    },
+    {
+      "id": "lamp2",
+      "i": 0,
+      "t": "Second Lamp, across the great cavern. Thyra's report: Halldor's unit is pinned in the north cut.",
+      "label": "THE NORTH CUT",
+      "out": "five phase spiders, two troopers at your side; Halldor found",
+      "day": 8
+    },
+    {
+      "id": "drain",
+      "i": 0,
+      "t": "The drain under Second Lamp, under a weighted grate.",
+      "label": "FIGHT IT",
+      "out": "",
+      "day": 8
+    },
+    {
+      "id": "halldor",
+      "i": 1,
+      "t": "Halldor, found, wounded.",
+      "label": "LAY ON HANDS (LYMEN)",
+      "out": "ten of the pool",
+      "day": 8
+    },
+    {
+      "id": "escort",
+      "i": 1,
+      "t": "Halldor and his wounded, and the king, back up the road to Solskaft, past a relief column.",
+      "label": "THE LAMP'S CIRCLE",
+      "out": "no day; home; the king trusts you in his halls (his 10-12: \"I need to review the circle of teleportation mechanics\")",
+      "day": 8
+    },
+    {
+      "id": "count",
+      "i": 0,
+      "t": "Ingrith needs the count of what the treasury sent to Deepholm. The only count is Androit's father's mine records.",
+      "label": "GET THE PAGE",
+      "out": "Idony reads everything; her price is not silver; the dwarves' answer; the page to Ingrith",
+      "day": 8
+    },
+    {
+      "id": "heir",
+      "i": 0,
+      "t": "Aldwin at the chapel: a dying woman says she was Asmund's wife, and a child was hidden in the Shaft Rows the week the gate sealed.",
+      "label": "FIND THE HEIR",
+      "out": "Old Hob's hint, Signy the rope-maker (Investigation 14 without it), Ingrith, the rite at Asmund's wedge; renown +1",
+      "day": 8
+    },
+    {
+      "id": "water",
+      "i": 0,
+      "t": "Ragna can reverse the siphon and give the drained stair back its water, and its keeper, if you hold the stair for three nights.",
+      "label": "HOLD THE STAIR",
+      "out": "three nights at the stair (his 10-12: \"should use the keepers map\"); the stair is water again",
+      "day": 11
+    },
+    {
+      "id": "wheelwright",
+      "i": 0,
+      "t": "The one who built the siphon got away. The night crews' tools are made at Brennan's forge.",
+      "label": "HAND HIM TO INGRITH",
+      "out": "the lift",
+      "day": 11
+    },
+    {
+      "id": "tariff",
+      "i": 0,
+      "t": "The tariff board: the last surface goods ever tolled through Deepholm's gate, a caravan off the Coldridge route. Mical keeps manifests.",
+      "label": "TAKE THE COPY TO MICAL",
+      "out": "the caravan was never lost; Tobin Thorne has a line after",
+      "day": 11
+    },
+    {
+      "id": "halls",
+      "i": 0,
+      "t": "Halldor is on his feet, and he knows where the nest is. In the muster yard he asks.",
+      "label": "WE COME",
+      "out": "the nest is on",
+      "day": 12
+    },
+    {
+      "id": "nest",
+      "i": 0,
+      "t": "The nest: the north cut off the road short of Second Lamp, and past the neck. Cocoons in the walls, a brood chamber at the back.",
+      "label": "BY THE CIRCLE TO SECOND LAMP, THEN THE CUT",
+      "out": "no day on the road; the nest crushed; the first rest after brings Ulf's runner: the drow have taken Third Lamp",
+      "day": 13
+    }
+  ]
+}

@@ -1,0 +1,266 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Plot Explorer</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- DRAGONSLEEP -- the expansion as problems: a plot explorer, a PROTOTYPE (10-13, the Cowork seat, config echo claude-fable-5-1), on Griz's
+     trickshot: "Format the quest plot story explorer like notch's drowning in problems, allow text entry for each option and a save file".
+     The shape is after Notch's Drowning in Problems (2014): one column, plain words, a problem solved opens the next; nothing of that game's
+     text or art is here. The beats are the expansion's (quests 11-18 of content/quests.json) with three beats before them so the day can
+     reach the inn's locked Day 4; the forks are read off js/deep.js by the seat (the line receipts are on plot-map.html, same folder).
+     The DAY is the clock lane's draft (handoff-2026-10-13-the-clock.md §8.1): a day a leg walked, a lamp's circle none; a dev page may show
+     the number, the game never does (RULED 10-13). Every option has a note field; SAVE writes plot-ear-file-<UTC>.json (the path walked,
+     the flags, the notes, the day); LOAD reads one back. No build, no gate; nothing in the game reads this page. -->
+<style>
+  :root { --bg:#fff; --ink:#111; --dim:#8a8a8a; --rule:#ddd; --link:#111; --warn:#a33; }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --bg:#0e0e0e; --ink:#eee; --dim:#777; --rule:#2a2a2a; --link:#eee; --warn:#e07a6a; } }
+  :root[data-theme="dark"] { --bg:#0e0e0e; --ink:#eee; --dim:#777; --rule:#2a2a2a; --link:#eee; --warn:#e07a6a; }
+  * { box-sizing:border-box; }
+  html,body { margin:0; background:var(--bg); color:var(--ink); }
+  body { font-family: -apple-system, "Segoe UI", Helvetica, Arial, sans-serif; font-size:17px; line-height:1.5; }
+  #top { position:sticky; top:0; background:var(--bg); border-bottom:1px solid var(--rule); z-index:3; }
+  #top .in { max-width:44em; margin:0 auto; padding:.6rem 1rem; display:flex; align-items:baseline; gap:1rem; flex-wrap:wrap; }
+  #day { font-size:2em; font-weight:200; letter-spacing:.02em; min-width:5.5em; }
+  #day small { font-size:.4em; color:var(--dim); letter-spacing:.1em; margin-left:.3em; }
+  #top .b { margin-left:auto; display:flex; gap:.4rem; flex-wrap:wrap; }
+  button, label.btn { background:none; border:1px solid var(--rule); color:var(--ink); padding:.25rem .7rem; border-radius:4px; cursor:pointer; font:inherit; font-size:14px; }
+  button:hover, label.btn:hover { border-color:var(--ink); }
+  input[type=file] { display:none; }
+  #col { max-width:44em; margin:0 auto; padding:1.5rem 1rem 6rem; }
+  #intro { color:var(--dim); font-size:14px; margin:0 0 1.6rem; }
+  .done { color:var(--dim); margin:0 0 .35rem; font-size:15px; }
+  .done .t { text-decoration:line-through; }
+  .done b { font-weight:600; color:var(--ink); opacity:.75; }
+  .done i { opacity:.9; }
+  .done .d { display:inline-block; min-width:4.2em; font-variant-numeric:tabular-nums; }
+  .prob { margin:1.4rem 0 0; padding-top:1rem; border-top:1px solid var(--rule); }
+  .prob p.t { margin:0 0 .4rem; font-weight:600; }
+  .prob p.t .w { font-weight:400; color:var(--dim); font-size:14px; }
+  .prob p.t .plus { font-weight:400; color:var(--dim); font-size:13px; margin-left:.5em; }
+  .opt { display:flex; gap:.6rem; align-items:baseline; margin:.2rem 0; flex-wrap:wrap; }
+  .opt a { color:var(--link); text-decoration:none; white-space:nowrap; }
+  .opt a:before { content:"[ "; color:var(--dim); } .opt a:after { content:" ]"; color:var(--dim); }
+  .opt a:hover { text-decoration:underline; }
+  .opt a.off { color:var(--dim); pointer-events:none; }
+  .opt .o { color:var(--dim); font-size:14.5px; flex:1 1 14em; }
+  .opt input { flex:1 1 12em; min-width:9em; background:none; border:0; border-bottom:1px solid var(--rule); color:var(--ink); font:inherit; font-size:14px; padding:.1rem .2rem; }
+  .opt input:focus { outline:none; border-bottom-color:var(--ink); }
+  .opt input::placeholder { color:var(--dim); opacity:.7; }
+  #end { margin:2rem 0 0; padding-top:1rem; border-top:1px solid var(--rule); color:var(--dim); }
+  .warn { color:var(--warn); }
+</style>
+</head>
+<body>
+<div id="top"><div class="in">
+  <div id="day">DAY 0<small>of the Snoot</small></div>
+  <div class="b">
+    <button id="bSave">save</button>
+    <label class="btn" for="fLoad">load</label><input type="file" id="fLoad" accept="application/json">
+    <button id="bReset">reset</button>
+    <button id="bTheme">light / dark</button>
+  </div>
+</div></div>
+<div id="col">
+  <p id="intro">The expansion, as problems. A problem solved opens the next; the day counts a leg walked. Each option takes a note. SAVE writes the walk and the notes to a file; LOAD reads one back. The forks are read off the game's code; the days are the clock lane's draft, not the game's.</p>
+  <div id="log"></div>
+  <div id="open"></div>
+  <div id="end"></div>
+</div>
+<script>
+(function () {
+  // ------------------------------------------------------------ the problems. after: every one of these solved first; need / unless: flags.
+  // an option: [label, outcome, flags set, {day: override, need: [...], unless: [...]}]
+  var N = [
+    { id: 'start', day: 0, t: 'Silverton. The moot is tonight, under a full moon, and nobody in town knows.', o: [
+      ['WALK OUT THE DOOR', 'the game begins; the Snoot lights at the moot that night', []]] },
+    { id: 'board', day: 0, after: ['start'], t: 'The Weigh-House board has a true word on it, for an anchor pin.', w: 'Days 1-3: word reaches Silverton', o: [
+      ['PAY THE PIN', 'the Snoot, listed', ['snootWord']],
+      ['LEAVE IT', 'the board keeps it', []]] },
+    { id: 'warrens', day: 2, after: ['start'], t: 'Pete\'s Five are in the Warrens\' wet.', o: [
+      ['BRING THEM HOME', 'Pete\'s page: the Sheet, Grease', ['fiveDone']]] },
+    { id: 'galleries', day: 1, after: ['warrens'], t: 'The forty-gold tail: the cloaker in the deep gallery, and Dace, who wants to go down.', o: [
+      ['ESCORT HIM AND TAKE IT DOWN', 'his pick: the Cloak of Displacement, or the Sheet, Mirror Image', ['cloakerDone']],
+      ['BACK OUT, AND WIN THROUGH WITH IT HUNTING HIM', 'the sheet only; he keeps the cloak', ['cloakerDone']]] },
+    { id: 'inn', day: 1, after: ['galleries'], t: 'The Halfway Inn. Second watch. A wagon comes in, children behind a glamour.', w: 'DAY 4 -- locked', o: [
+      ['INVESTIGATE', 'the watcher goes out alone', ['wagonNight']],
+      ['WAKE THE PARTY', 'everyone goes out; Katarina runs inside when steel comes out, and gives you her book the day after', ['wagonNight', 'wagonStopped']],
+      ['KEEP WATCH', 'it goes on; Katarina rides out with her book at first light', ['wagonNight']]] },
+    { id: 'morning', day: 1, after: ['inn'], t: 'Morning at the lake. Doran draws from it in front of everyone and drinks. The road north.', o: [
+      ['WALK NORTH', 'Silverton by evening; Urtusk walks out of his door: the scales lit, the stair drained, the one law', ['dueSeen']]] },
+    { id: 'stair', day: 1, after: ['morning'], t: 'The stair behind the Warrens is dry. Down the cut door, along the hallway: somebody is at the dead. Hask, the wheelwright, two crewmen.', o: [
+      ['CHALLENGE THEM', 'the fight; the wheelwright bolts when Hask falls; the sack is yours; Ingrith comes down the hallway with a lamp', ['crewDealt', 'wheelwrightRan', 'sack']],
+      ['VIVIAN KNOWS THEM', 'Persuasion 13: they go, owing you; the sack dropped; Ingrith comes', ['crewDealt', 'crewOwed', 'sack']],
+      ['TAKE A CUT', 'Intimidation 15: 200 sp, renown down one; three nights on they come back for the rest', ['crewCut']],
+      ['LEAVE', 'they back off; the stair is still yours to come back to', ['crewLeft']]] },
+    { id: 'sack', day: 0, after: ['stair'], need: ['sack'], t: 'You hold the night crew\'s sack.', o: [
+      ['PUT IT BACK', 'at the pried niche: the ledger\'s favour', ['sackReturned']],
+      ['SELL IT (80 SP)', 'to Vera', ['sackSold']],
+      ['KEEP IT', 'Brann names it at the lamp, once', ['sackKept']]] },
+    { id: 'gear', day: 0, after: ['stair'], t: 'The Burial\'s base ring: Audun\'s shield, released by the ledger; Asmund\'s gear, the dead\'s.', o: [
+      ['TAKE THE SHIELD', 'lawful: the Door-Shield', ['shieldTaken']],
+      ['TAKE ASMUND\'S GEAR', 'unlawful: Ketil takes it back at the door, renown down a piece', ['blasphemy']],
+      ['LEAVE IT ALL', 'the dead keep it', []]] },
+    { id: 'king', day: 0, after: ['stair'], t: 'Ingrith has given you the front door. Up the dwarves\' stair and down the Sunshaft: the king stands at the vault door.', o: [
+      ['LOOK HIM IN THE EYE, AND WALK THE ROAD WITH HIM', 'he leads', ['pyroLeads']],
+      ['TAKE HIS HAND, AND WALK THE ROAD WITH HIM', 'he leads', ['pyroLeads']]] },
+    { id: 'lamp1', day: 1, after: ['king'], t: 'Down the road to First Lamp: a cut seal, gricks in the dark, a truesilver seam. Ulf and three troopers.', w: 'leg one', o: [
+      ['WALK ON', 'First Lamp held', ['lamp1']]] },
+    { id: 'roper', day: 0, after: ['lamp1'], t: 'The roper on the causeway across the great cavern. Nothing on the road knows if you fought it.', w: 'a room off the road', o: [
+      ['FIGHT IT', '', ['roperDead']],
+      ['GO BACK', 'the rim-path round', []]] },
+    { id: 'lamp2', day: 1, after: ['lamp1'], t: 'Second Lamp, across the great cavern. Thyra\'s report: Halldor\'s unit is pinned in the north cut.', w: 'leg two', o: [
+      ['THE NORTH CUT', 'five phase spiders, two troopers at your side; Halldor found', ['lamp2', 'captainFound']]] },
+    { id: 'drain', day: 0, after: ['lamp2'], t: 'The drain under Second Lamp, under a weighted grate.', w: 'a room off the road', o: [
+      ['FIGHT IT', '', ['drainDone']],
+      ['BACK AWAY', '', []]] },
+    { id: 'halldor', day: 0, after: ['lamp2'], t: 'Halldor, found, wounded.', o: [
+      ['TEND HIM (HEALER\'S KIT)', 'a kit spent; he walks at two-thirds', ['captainTended']],
+      ['LAY ON HANDS (LYMEN)', 'ten of the pool', ['captainTended']],
+      ['LET HIM WALK', 'wounded all the way home', []]] },
+    { id: 'escort', day: 0, after: ['halldor'], t: 'Halldor and his wounded, and the king, back up the road to Solskaft, past a relief column.', o: [
+      ['WALK THEM UP', 'two legs back; home; the king trusts you in his halls', ['captainHome', 'pyroTrusts'], { day: 2 }],
+      ['THE LAMP\'S CIRCLE', 'no day; home; the king trusts you in his halls (his 10-12: "I need to review the circle of teleportation mechanics")', ['captainHome', 'pyroTrusts'], { day: 0 }]] },
+    { id: 'heir', day: 0, after: ['escort'], t: 'Aldwin at the chapel: a dying woman says she was Asmund\'s wife, and a child was hidden in the Shaft Rows the week the gate sealed.', w: 'a side mission', o: [
+      ['FIND THE HEIR', 'Old Hob\'s hint, Signy the rope-maker (Investigation 14 without it), Ingrith, the rite at Asmund\'s wedge; renown +1', ['heirDone', 'side']]] },
+    { id: 'count', day: 0, after: ['escort'], t: 'Ingrith needs the count of what the treasury sent to Deepholm. The only count is Androit\'s father\'s mine records.', w: 'a side mission', o: [
+      ['GET THE PAGE', 'Idony reads everything; her price is not silver; the dwarves\' answer; the page to Ingrith', ['countDone', 'side']]] },
+    { id: 'water', day: 3, after: ['escort'], t: 'Ragna can reverse the siphon and give the drained stair back its water, and its keeper, if you hold the stair for three nights.', w: 'a side mission; three nights', o: [
+      ['HOLD THE STAIR', 'three nights at the stair (his 10-12: "should use the keepers map"); the stair is water again', ['keeperWater', 'side']]] },
+    { id: 'wheelwright', day: 0, after: ['escort'], need: ['crewDealt'], t: 'The one who built the siphon got away. The night crews\' tools are made at Brennan\'s forge.', w: 'a side mission -- only if the crew was dealt with', o: [
+      ['HAND HIM TO INGRITH', 'the lift', ['wwDone', 'side']],
+      ['HAND HIM TO THE LEDGER', 'renown +1', ['wwDone', 'side']],
+      ['LET HIM HIDE', 'only if the crew left owing you', ['wwDone', 'side'], { need: ['crewOwed'] }]] },
+    { id: 'tariff', day: 0, after: ['escort'], t: 'The tariff board: the last surface goods ever tolled through Deepholm\'s gate, a caravan off the Coldridge route. Mical keeps manifests.', w: 'a side mission', o: [
+      ['TAKE THE COPY TO MICAL', 'the caravan was never lost; Tobin Thorne has a line after', ['tariffDone', 'side']]] },
+    { id: 'halls', day: 1, after: ['escort'], need2: 'side', t: 'Halldor is on his feet, and he knows where the nest is. In the muster yard he asks.', w: 'after two side missions (js/deep.js:353)', o: [
+      ['WE COME', 'the nest is on', ['petition']]] },
+    { id: 'nest', day: 0, after: ['halls'], t: 'The nest: the north cut off the road short of Second Lamp, and past the neck. Cocoons in the walls, a brood chamber at the back.', o: [
+      ['BY THE CIRCLE TO SECOND LAMP, THEN THE CUT', 'no day on the road; the nest crushed; the first rest after brings Ulf\'s runner: the drow have taken Third Lamp', ['nestCrushed', 'wordBelow'], { day: 1 }],
+      ['WALK IT', 'two legs down; the nest crushed; the runner at the first rest', ['nestCrushed', 'wordBelow'], { day: 2 }]] },
+    { id: 'muster', day: 0, after: ['nest'], t: 'The highway\'s mouth, in the works. The king and the Cleric are waiting. Brann and Hedda, or the king alone.', o: [
+      ['MUSTER', 'the road is open', ['mustered']]] },
+    { id: 'raid', day: 1, after: ['muster'], t: 'Third Lamp. Take it back.', w: 'leg three', o: [
+      ['GO IN', 'straight at them', ['raidWon']],
+      ['CREEP UP FIRST', 'the look before', ['raidWon']]] },
+    { id: 'axe', day: 0, after: ['raid'], t: 'The drow\'s leavings at Third Lamp: Brann\'s father\'s axe.', o: [
+      ['GIVE IT TO BRANN', 'if he is at the lamp', ['axeGiven']],
+      ['TAKE IT UP TO BRANN', 'carried; given in the yard', ['axeGiven']],
+      ['KEEP IT', 'yours', ['axeKept']]] },
+    { id: 'skylights', day: 0, after: ['raid'], t: 'A runner from Solskaft down the road: giants and trolls at the Edifice, climbing for the skylights, the king gone up to the roof. TO THE SURFACE!', w: 'the lamps carry you up and back; no day', o: [
+      ['WON', 'two stone giants and four trolls paid: 13,000 XP, their silver', ['skylightsWon']],
+      ['LOST', 'GAME OVER -- the save the runner offered', ['gameOver']]] },
+    { id: 'torvald', day: 1, after: ['raid'], t: 'Leg four. A cleric on the road, mending. He heals when he leaves, not before the talk.', w: 'leg four', o: [
+      ['LET HIM GO', 'he heals you and goes', ['torvaldGone']],
+      ['ASK HIM -- PERSUASION 15', 'he tells it, heals you, goes', ['torvaldTold', 'torvaldGone']],
+      ['ASK HIM -- SLEIGHT OF HAND 15 (VIVIAN)', 'the copper scraping lifted, and he goes; a miss is caught, and he goes unhealed', ['scraping', 'torvaldGone']],
+      ['HOLD HIM, AND LET HIM GO WHEN HE YIELDS', 'the fight; spared at half', ['torvaldSpared']],
+      ['HOLD HIM, AND FINISH IT', 'the scraping, a kit, Dval\'s symbol, 40 sp', ['torvaldDead', 'scraping']]] },
+    { id: 'blades', day: 0, after: ['torvald'], t: 'The sect\'s blades, at the next rest of any kind after him. Two of them. The watch chooser.', o: [
+      ['HE WENT UP', 'true if he did: they go up after him', ['bladesSent'], { need: ['torvaldGone'] }],
+      ['HE WENT UP / HE WENT DOWN -- A LIE', 'Deception 15: misled, or the fight', ['bladesMisled']],
+      ['NOTHING TO SAY -- GIVE IT', 'they take the scraping and go', ['bladesPaid', 'curlGone'], { need: ['scraping'] }],
+      ['NOTHING TO SAY -- KEEP IT', 'the fight', ['bladesFought'], { need: ['scraping'] }],
+      ['NOTHING TO SAY', 'they go, and circle back once', ['bladesGone'], { unless: ['scraping'] }],
+      ['ASK THEM', 'Insight 14, Intimidation 16', ['bladesAsked']],
+      ['FIGHT', 'two Sect Blades (the poison spent), the ward-knots, 120 sp', ['bladesFought']]] },
+    { id: 'curl', day: 0, after: ['blades'], need: ['scraping'], unless: ['curlGone'], t: 'You hold the copper scraping.', o: [
+      ['GIVE IT HER (LUCIA)', 'antitoxin at cost from then on', ['curlLucia']],
+      ['SELL IT (500 SP) (WINTERS)', '', ['curlWinters']],
+      ['KEEP IT', 'nothing yet reads a kept one', ['curlKept']]] },
+    { id: 'black', day: 0, after: ['blades'], t: 'The black water: the causeway of dressed blocks, the troll hole, the made road and its cut. Deepholm\'s door at the end of the fourth day.', o: [
+      ['HOLD THE ROAD TO THE DOOR', 'the road is held', ['highwaySecured']]] },
+    { id: 'smith', day: 0, after: ['black'], t: 'The Copperbottom smith, with the First Lamp seal\'s truesilver lump and Barley\'s flail.', o: [
+      ['RE-HAFT IT', 'the Winnower (+2)', ['winnowerMade']],
+      ['NOT YET', '', []]] },
+    { id: 'door', day: 0, after: ['black'], t: 'Back up the lamps: tell the king the road is held. Ingrith at her ledger in the tollhouse.', o: [
+      ['WALK HER DOWN', 'she joins as a healing guest; the door opens the width of one dwarf; Dagny\'s line, the Sunshaft Staff, 13,000 XP. THE ROAD IS HELD.', ['expansionDone']]] },
+    { id: 'pit', day: 2, after: ['door'], t: 'CONTINUE wakes the party in Solskaft. The road south to Tarlyn\'s Pit, 35 miles, two days. GreyFang runs the fighting pit.', w: 'the Pit chapter -- not built', o: [
+      ['GO DOWN TO THE PIT', 'the Snoot mode opens (its own lane): Newland, GreyFang\'s unit, the three tribes, the barbarians, the Harbinger\'s unit, on a hex map', ['pitArrive']]] },
+    { id: 'exchange', day: 0, after: ['pit'], t: 'The exchange, ~Day 18-21: the Pit full of tribes, the tiers full. The Harbinger takes the head. "The Mane is mine."', w: 'the Snoot mode\'s climax', o: [
+      ['THE END OF THE MAP', 'everything past this is unbuilt', ['end']]] }
+  ];
+  var byId = {}; N.forEach(function (n) { byId[n.id] = n; });
+
+  // ------------------------------------------------------------ the state
+  var S = { done: {}, flags: {}, notes: {}, log: [] };
+  try { var saved = localStorage.getItem('plotExplorer.state'); if (saved) S = JSON.parse(saved); } catch (e) {}
+  function keep() { try { localStorage.setItem('plotExplorer.state', JSON.stringify(S)); } catch (e) {} }
+  function has(f) { return !!S.flags[f]; }
+  function dayOf() { var d = 0; Object.keys(S.done).forEach(function (id) { var n = byId[id]; if (!n) return; var o = n.o[S.done[id]]; var x = o && o[3]; d += (x && typeof x.day === 'number') ? x.day : (n.day || 0); }); return d; }
+  function sidesDone() { return Object.keys(S.done).filter(function (id) { var n = byId[id]; return n && n.o[S.done[id]] && n.o[S.done[id]][2].indexOf('side') >= 0; }).length; }
+  function isOpen(n) {
+    if (S.done[n.id] !== undefined) return false;
+    if ((n.after || []).some(function (a) { return S.done[a] === undefined; })) return false;
+    if ((n.need || []).some(function (f) { return !has(f); })) return false;
+    if ((n.unless || []).some(function (f) { return has(f); })) return false;
+    if (n.need2 === 'side' && sidesDone() < 2) return false;
+    if (has('gameOver')) return false;
+    return true;
+  }
+  function optOk(o) { var x = o[3] || {}; if ((x.need || []).some(function (f) { return !has(f); })) return false; if ((x.unless || []).some(function (f) { return has(f); })) return false; return true; }
+  function esc(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;'); }
+
+  // ------------------------------------------------------------ render
+  function render() {
+    var day = dayOf();
+    document.getElementById('day').innerHTML = 'DAY ' + day + '<small>of the Snoot</small>';
+    var log = document.getElementById('log'), open = document.getElementById('open'), end = document.getElementById('end');
+    log.innerHTML = S.log.map(function (e) {
+      var note = S.notes[e.id + '.' + e.i];
+      return '<p class="done"><span class="d">day ' + e.day + '</span> <span class="t">' + esc(e.t) + '</span> &mdash; <b>' + esc(e.label) + '</b>' + (e.out ? ' <span>' + esc(e.out) + '</span>' : '') + (note ? ' <i>&ldquo;' + esc(note) + '&rdquo;</i>' : '') + '</p>';
+    }).join('');
+    var opens = N.filter(isOpen);
+    open.innerHTML = opens.map(function (n) {
+      var h = '<div class="prob" data-id="' + n.id + '"><p class="t">' + esc(n.t) + (n.w ? ' <span class="w">' + esc(n.w) + '</span>' : '') + (n.day ? '<span class="plus">+' + n.day + (n.day === 1 ? ' day' : ' days') + '</span>' : '') + '</p>';
+      n.o.forEach(function (o, i) {
+        var ok = optOk(o), x = o[3] || {}, plus = (typeof x.day === 'number' && x.day !== n.day) ? ' (+' + x.day + ')' : '';
+        h += '<div class="opt"><a href="#" class="' + (ok ? '' : 'off') + '" data-id="' + n.id + '" data-i="' + i + '">' + esc(o[0]) + plus + '</a>'
+           + (o[1] ? '<span class="o">' + esc(o[1]) + '</span>' : '')
+           + '<input type="text" placeholder="a note" data-k="' + n.id + '.' + i + '" value="' + esc(S.notes[n.id + '.' + i] || '').replace(/"/g, '&quot;') + '"></div>';
+      });
+      return h + '</div>';
+    }).join('');
+    end.innerHTML = has('gameOver') ? '<p class="warn">GAME OVER. The save the runner offered. Load it, or reset.</p>' : (!opens.length ? '<p>Nothing is open. The map ends here.</p>' : '');
+    Array.prototype.forEach.call(open.querySelectorAll('a'), function (a) {
+      a.addEventListener('click', function (ev) {
+        ev.preventDefault();
+        var n = byId[a.getAttribute('data-id')], i = +a.getAttribute('data-i'), o = n.o[i];
+        if (!optOk(o)) return;
+        S.done[n.id] = i; o[2].forEach(function (f) { S.flags[f] = 1; });
+        S.log.push({ id: n.id, i: i, t: n.t, label: o[0], out: o[1], day: dayOf() });
+        keep(); render(); window.scrollTo(0, document.body.scrollHeight);
+      });
+    });
+    Array.prototype.forEach.call(open.querySelectorAll('input[data-k]'), function (inp) {
+      inp.addEventListener('input', function () { S.notes[inp.getAttribute('data-k')] = inp.value; keep(); });
+    });
+  }
+
+  // ------------------------------------------------------------ save, load, reset, theme
+  function stamp() { var d = new Date(); function p(n) { return (n < 10 ? '0' : '') + n; } return d.getUTCFullYear() + '-' + p(d.getUTCMonth() + 1) + '-' + p(d.getUTCDate()) + '-' + p(d.getUTCHours()) + p(d.getUTCMinutes()) + 'Z'; }
+  document.getElementById('bSave').addEventListener('click', function () {
+    var out = { kind: 'plot-ear-file', saved: new Date().toISOString(), page: 'plot-explorer.html (prototype 10-13)', day: dayOf(), done: S.done, flags: S.flags, notes: S.notes, log: S.log };
+    var blob = new Blob([JSON.stringify(out, null, 2)], { type: 'application/json' });
+    var a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'plot-ear-file-' + stamp() + '.json'; document.body.appendChild(a); a.click(); setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 500);
+  });
+  document.getElementById('fLoad').addEventListener('change', function (ev) {
+    var f = ev.target.files && ev.target.files[0]; if (!f) return;
+    var r = new FileReader();
+    r.onload = function () { try { var j = JSON.parse(r.result); if (!j || !j.done) throw new Error('not a plot ear file'); S = { done: j.done || {}, flags: j.flags || {}, notes: j.notes || {}, log: j.log || [] }; keep(); render(); } catch (e) { alert('Could not read that file: ' + e.message); } };
+    r.readAsText(f); ev.target.value = '';
+  });
+  var resetBtn = document.getElementById('bReset'), resetArmed = null;
+  resetBtn.addEventListener('click', function () { // two clicks, no dialog: the first arms it for three seconds
+    if (!S.log.length || resetArmed) { clearTimeout(resetArmed); resetArmed = null; resetBtn.textContent = 'reset'; S = { done: {}, flags: {}, notes: {}, log: [] }; keep(); render(); return; }
+    resetBtn.textContent = 'really reset? (the notes go unless saved)'; resetArmed = setTimeout(function () { resetArmed = null; resetBtn.textContent = 'reset'; }, 3000);
+  });
+  var themeBtn = document.getElementById('bTheme');
+  function theme(t) { if (t) document.documentElement.setAttribute('data-theme', t); else document.documentElement.removeAttribute('data-theme'); try { localStorage.setItem('plotExplorer.theme', t || ''); } catch (e) {} }
+  themeBtn.addEventListener('click', function () { var cur = document.documentElement.getAttribute('data-theme'); var dark = cur ? cur === 'dark' : (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches); theme(dark ? 'light' : 'dark'); });
+  try { var t = localStorage.getItem('plotExplorer.theme'); if (t) theme(t); } catch (e) {}
+  render();
+})();
+</script>
+</body>
+</html>
