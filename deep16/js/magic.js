@@ -991,13 +991,27 @@
     if (!w || w.dead || w.hp <= 0 || w.bound) return;
     if (w.hang && G.hanging(w)) { B.clingSave(w, 0, w.hang.rope ? ' is knocked off the rope' : ' is knocked off the face'); return; } // (a climber pushed -- Thunderwave, Gust of Wind -- comes off and falls its height, no second save; it had walked its foot square along the street and stood there unhurt. 10-05, Griz: "2 agreed")
     if (w.riding) return; // (a rider -- a darkmantle on a head, a familiar on its wizard -- goes where the one it rides goes: battle.js mount)
-    var dx = Math.sign(w.x - from.x), dy = Math.sign(w.y - from.y), x0 = w.x, y0 = w.y, moved = 0;
+    var dx = Math.sign(w.x - from.x), dy = Math.sign(w.y - from.y), x0 = w.x, y0 = w.y, moved = 0, st = G.map.def.step, fell = 0, aloft = G.aloft && G.aloft(w);
     if (!dx && !dy) return;
-    for (var i = 0; i < n; i++) { if (!G.canStand(w, w.x + dx, w.y + dy)) break; w.x += dx; w.y += dy; moved++; }
+    // over an edge: a square 10 ft or more below the one it stands on is where it goes down, and the push ends there (SRD 5.1, Falling: "1d6 bludgeoning damage for every
+    // 10 feet it fell ... lands prone"; the shove's knock-off, battle.js knockOff, the same dice). Before, the push set Vivian down on the street from the Skylights' 45 ft
+    // roof with no fall (the grid's rules §2h, "unchecked"; the bug-fix seat, 10-14, dev/bench16.js fix1014). One in the air moves in the air
+    for (var i = 0; i < n; i++) {
+      if (!G.canStand(w, w.x + dx, w.y + dy)) break;
+      var dz = G.gzAt(w, w.x, w.y) - G.gzAt(w, w.x + dx, w.y + dy);
+      w.x += dx; w.y += dy; moved++;
+      if (!aloft && dz >= 4 * st) { fell = dz; break; }
+    }
     if (!moved) return;
     if (B.forced) B.forced(w); // (a forced move: the readied strikes asked when the action is done -- battle.js readyForced, the grid's rules §2.5)
-    w.tween = { fx: x0, fy: y0, fz: G.gzAt(w, x0, y0), t: 0, dur: B.pace(10, true) }; // (a shove on an AI-run unit's turn keeps to the pace: Battle.prototype.pace)
+    w.tween = { fx: x0, fy: y0, fz: G.gzAt(w, x0, y0), t: 0, dur: B.pace(fell ? 16 : 10, true), mode: fell ? 'drop' : undefined }; // (a shove on an AI-run unit's turn keeps to the pace: Battle.prototype.pace)
     FX.float('pushed ' + moved * 5 + ' ft', w, D.PAL.ramps.silver[5]);
+    if (fell) {
+      var ftF = Math.floor(fell / st) * 2.5, tlF = G.map.at(w.x, w.y), wet = !!(tlF && tlF.ch === '~'), fdF = D.roll(Math.max(1, Math.floor(ftF / (wet ? 20 : 10))) + 'd6'); // (into water, as the shove's: the dice for every 20 ft)
+      if (!w.noProne && !RU.immuneTo(w, 'prone')) w.conds.prone = true;
+      B.card(['{o}' + (w.side === 'foe' ? 'The ' + B.shortName(w) : w.name) + ' goes over the edge: ' + ftF + ' ft, ' + fdF.total + ' bludgeoning' + (wet ? ' -- the water took the rest' : '') + ', and lands prone.{/}'], 240);
+      B.hurt(w, fdF.total, 'bludgeoning', {});
+    }
   };
   // a poison that wears off (09-27): the save at the end of the poisoned one's turn (M.endTurn calls it)
   M.poisonSave = function (B, u) {

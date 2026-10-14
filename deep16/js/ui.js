@@ -845,9 +845,10 @@
       var zH = zf + k * st, pick = null;
       from.forEach(function (f) { var steps = Math.round(Math.abs(zH - f.z0) / st); if (!steps) return; var c = { z0: f.z0, spent: f.spent, steps: steps, cost: steps * 5 }; if (!pick || c.spent + c.cost < pick.spent + pick.cost) pick = c; });
       if (!pick) continue;
-      var ok = T.move - pick.spent >= pick.cost;
+      var capK = D.Battle.ropeCap(B, u, r, pick.z0, zH > pick.z0), past = capK != null && (zH > pick.z0 ? zH > capK : zH < capK); // (the next climber on it: 5 ft short of them -- battle.js Battle.ropeCap, 10-14)
+      var ok = T.move - pick.spent >= pick.cost && !past;
       return { rope: r, z: zH, k: k, n: n, z0: pick.z0, steps: pick.steps, cost: pick.cost, spent: pick.spent, up: zH > pick.z0, to: zH > pick.z0 ? r.at : r.foot, ok: ok, ground: k === 0,
-        why: ok ? '' : (pick.spent + pick.cost) + ' ft of movement, ' + T.move + ' left' };
+        why: ok ? '' : past ? 'the next one on the rope: stay 5 ft ' + (zH > pick.z0 ? 'below' : 'above') + ' them' : (pick.spent + pick.cost) + ' ft of movement, ' + T.move + ' left' };
     }
     return null;
   }
@@ -2131,6 +2132,7 @@
     if (w.under) c.push('{o}under the ground{/}'); // (a burrower: out of reach till it comes up, js/ai.js)
     else if (w.ethereal && !(w.conds.stoning && w.conds.stoning.done)) c.push('{p}ethereal{/}'); // (a hero turned to stone is out of the world too, but says stone below)
     if (w.conds.poisoned) c.push('{n}poisoned{/}');
+    if (w.conds.antitoxin) c.push('{n}antitoxin{/}'); // (advantage on saves against poison: battle.js, 10-14)
     if (w.conds.sickened) c.push('{n}sickened{/}'); // (Eyebite's: a WIS save at each turn's end)
     if (w.conds.contagion) c.push('{n}diseased{/}'); // (Contagion: poisoned too, the save at each turn's end)
     if (w.conds.faerie) c.push('{p}faerie fire{/}');
@@ -2310,7 +2312,7 @@
     if (cur && !cur.ok && cur.why) D.text(ctx, '{g}' + cur.why + '{/}', x + 6, sy, R('accent', 2));
     else if (cur && cur.sp) D.text(ctx, '{g}' + D.typeText(D.magic.summary(cur, u)) + '{/}', x + 6, sy, R('accent', 2));
     else if (cur && cur.note) D.text(ctx, '{g}' + D.typeText(cur.note, true) + '{/}', x + 6, sy, R('accent', 2));
-    else if (cur && cur.use) D.text(ctx, '{g}' + ({ heal: cur.use.dice + ' healing, touch', revive: 'a fallen ally beside you, up on 1 HP', antitoxin: 'ends poison, touch', cure: 'ends poison, touch', damage: 'thrown, 20 ft: DEX DC ' + (cur.use.dc || 10) + ' or ' + cur.use.dice + ' fire', light: D.light.blurb(cur.id) }[cur.use.effect] || '') + '{/}', x + 6, sy, R('accent', 2));
+    else if (cur && cur.use) D.text(ctx, '{g}' + ({ heal: cur.use.dice + ' healing, touch', revive: 'a fallen ally beside you, up on 1 HP', antitoxin: 'advantage on saves vs poison, touch', cure: 'ends poison, touch', damage: 'thrown, 20 ft: DEX DC ' + (cur.use.dc || 10) + ' or ' + cur.use.dice + ' fire', light: D.light.blurb(cur.id) }[cur.use.effect] || '') + '{/}', x + 6, sy, R('accent', 2));
   }
 
   // ------------------------------------------------------------------ WINDOW: Chrono Trigger's command window, a pointing hand

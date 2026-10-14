@@ -1649,6 +1649,57 @@
         var b3 = inBox(drawsP.filter(function (d) { return d.ch === 48; })[0], 0, 48); BP.menu = null;
         okX('THE PORTRAIT CROP: the bar on a foe\'s turn -- ' + b1 + '; ' + b2 + '; STATUS -- ' + b3, !/CUT|not drawn/.test(b1 + b2 + b3));
       } finally { D.spr.draw = spD; D.spr.has = spH; D.spr.frameMask = spM; }
+      // 4. THE ANTITOXIN BY THE SRD (the grid's rules §2i; RULED 10-14, Griz: "Antitoxin is more generous - match SRD"): a poisoned hero drinks one -- still poisoned, and
+      // advantage on its saves against poison for the fight
+      var BA = D.npcFight('?npc=goblin&lvl=5&vs=fighter:5', {}); D.battle = BA; BA.enter(); while (!BA.order.length) BA.co.next();
+      var hA = BA.units.filter(function (u) { return u.side === 'party' && !u.object; })[0]; hA.conds.poisoned = { linked: null }; BA.inv = [{ id: 'antitoxin', n: 1 }]; D.rules.startTurn(hA);
+      runX(BA.useItem(hA, 'antitoxin', hA));
+      var svA = D.rules.save(hA, 'con', 15, false, 'poison'), svB = D.rules.save(hA, 'con', 15, false, null);
+      okX('THE ANTITOXIN: drunk while poisoned -- still poisoned ' + !!hA.conds.poisoned + ', the save against poison ' + svA.rolls.length + ' d20 (' + D.rules.saveText(svA).replace(/\{\/?[a-z]*\}/g, '') + '), a save against nothing ' + svB.rolls.length + ' -- ' + logX(BA, 0).split(' | ').filter(function (l) { return /Antitoxin/.test(l); }).join(' '),
+        !!hA.conds.poisoned && svA.rolls.length === 2 && /antitoxin/.test(D.rules.saveText(svA)) && svB.rolls.length === 1);
+      // 5. A SPELL'S PUSH OVER AN EDGE (the grid's rules §2h: "whether a lower floor counts, and so a fall with no dice, is unchecked"): Vivian on the Skylights' roof at its lip,
+      // pushed 10 ft out over the street (Thunderwave's, Gust of Wind's, Repelling Blast's -- magic.js M.push)
+      var BU = skyX(), stU = BU.map.def.step, vU = byIdX(BU, 'vivian'), pyU = byIdX(BU, 'pyro'); BU.units.forEach(function (w) { if (w.side === 'foe') { w.dead = true; w.hp = 0; } });
+      vU.x = 20; vU.y = 15; delete vU.hang; pyU.x = 20; pyU.y = 13; delete pyU.hang; var hpU = vU.hp, nU = (BU.log || []).length;
+      var gU = D.magic.push(BU, { x: 20, y: 14 }, vU, 2); if (gU && gU.next) runX(gU); for (var kU = 0; kU < 400 && BU.pending && BU.pending.length; kU++) runX(BU.pending.shift());
+      var lgU = logX(BU, nU), zU = D.grid.gzAt(vU, vU.x, vU.y);
+      okX('A SPELL\'S PUSH OVER AN EDGE: Vivian at the roof\'s lip, pushed 10 ft out -- at (' + vU.x + ',' + vU.y + ') ' + zU / stU * 2.5 + ' ft up, HP ' + hpU + ' -> ' + vU.hp + ', prone ' + !!vU.conds.prone + ' -- ' + (lgU.match(/[^|]*goes over the edge[^|]*/) || ['no fall'])[0],
+        zU === 0 && vU.y === 16 && vU.hp < hpU && !!vU.conds.prone && /goes over the edge: 45 ft/.test(lgU));
+      vU.x = 20; vU.y = 12; vU.hp = hpU; delete vU.conds.prone; var nU2 = (BU.log || []).length; D.magic.push(BU, { x: 21, y: 12 }, vU, 2);
+      okX('A SPELL\'S PUSH ALONG THE ROOF: no edge, no fall -- at (' + vU.x + ',' + vU.y + '), HP ' + vU.hp + ', prone ' + !!vU.conds.prone, vU.x === 18 && vU.hp === hpU && !vU.conds.prone && !/goes over/.test(logX(BU, nU2)));
+      // 6. THE ROPE'S FIVE FEET (the grid's rules §2h, his "make sure the players have to stay 5 feet below the other on the rope"): Lymen hangs 10 ft up a rope off the Skylights'
+      // facade, Vivian at its foot climbs as far as her move goes; then Vivian 5 ft up under him, he lets down to the ground
+      var B6 = skyX(), st6 = B6.map.def.step, rp6 = { at: [20, 15], foot: [20, 16], hp: 2, by: 'test' }; B6.ropes = [rp6]; B6.units.forEach(function (w) { if (w.side === 'foe') { w.dead = true; w.hp = 0; } });
+      var v6 = byIdX(B6, 'vivian'), l6 = byIdX(B6, 'lymen'); v6.x = 20; v6.y = 16; delete v6.hang; l6.x = 20; l6.y = 16; l6.hang = { rope: rp6, z: 4 * st6 }; B6.round = 5;
+      D.rules.startTurn(v6); var n6 = (B6.log || []).length; runX(B6.exec(v6, { do: 'ropeclimb', x: 20, y: 15 }));
+      var vz6 = v6.hang && D.grid.hanging(v6) ? v6.hang.z / st6 * 2.5 : 0;
+      okX('THE ROPE\'S FIVE FEET: Lymen 10 ft up, Vivian climbs from the foot -- she hangs ' + vz6 + ' ft up (want 5: 5 ft under him, never past) -- ' + logX(B6, n6).slice(0, 120), vz6 === 5 && l6.hang.z === 4 * st6);
+      v6.hang = { rope: rp6, z: 2 * st6 }; D.rules.startTurn(l6); var n6b = (B6.log || []).length; runX(B6.exec(l6, { do: 'ropeclimb', x: 20, y: 16, z: 0 }));
+      // 8. THE SKYLIGHTS' SMALL ONES (todo §6): one knocked off an edge lies prone as the card shows it, not after (Barley standing in the fountain after the dunk); a fight the
+      // AI plays keeps its record as far as it has gone, as the hand's does
+      var BK = skyX(), vK = byIdX(BK, 'vivian'), proneAtCard = null, card0K = BK.card; BK.units.forEach(function (w) { if (w.side === 'foe') { w.dead = true; w.hp = 0; } });
+      vK.x = 20; vK.y = 15; delete vK.hang; delete vK.conds.prone;
+      BK.card = function (l) { if (/goes over the edge/.test([].concat(l).join(' '))) proneAtCard = !!vK.conds.prone; return card0K.apply(this, arguments); };
+      var sqK = D.Battle.knockSq({ x: 20, y: 14 }, vK); if (sqK) runX(BK.knockOff(vK, sqK, null)); BK.card = card0K;
+      okX('KNOCKED OFF AN EDGE: Vivian over the roof\'s lip -- prone as the card says it ' + proneAtCard + ' (want true: drawn lying where she lands)', proneAtCard === true);
+      var BW = new D.Battle({ npc: { foes: ['goblin', 'goblin'] }, fightDef: D.classFight(3), record: { fight: 'fix1014-watched', name: 'a fight the AI plays', level: 3 } }); D.battle = BW; BW.enter();
+      BW.units.forEach(function (w) { if (w.side === 'party') { w.guest = true; w.classAI = true; } });
+      for (var kW = 0, vW; kW < 40000 && BW.round < 3 && !BW.over(); kW++) { var sW = BW.co.next(vW); vW = undefined; if (sW.done) break; if (sW.value && sW.value.prompt) vW = sW.value.prompt.opts[0].value; }
+      var keptW = (D.store.get('deep16.plays') || []).filter(function (f) { return f.fight === 'fix1014-watched' && BW.rec && f.started === BW.rec.started; })[0];
+      okX('A FIGHT THE AI PLAYS, KEPT AS IT GOES: round ' + BW.round + ', the hand\'s steps ' + (BW.rec ? BW.rec.steps.length : '-') + ' -- in the store ' + (keptW ? keptW.result + ', ' + (keptW.log || []).length + ' log lines' : 'nothing'), !!keptW && keptW.result === 'unfinished');
+      // 7. THE POCKET DM'S REROLL AFTER A LOSS (the Pocket DM lane §2.2, `lossMenu` never set; wired on the lane's lean): a run's CR screen shows no REROLL; a rung lost, RETRY --
+      // the CR screen's REROLL, and it rerolls the rung the run's way
+      var cvK = document.createElement('canvas'); cvK.width = D.W; cvK.height = D.H; var cxK = cvK.getContext('2d');
+      var pkK = new D.Pocket(); pkK.enter(); pkK.st.dm = false; pkK.st.run = { rung: 2, trial: false, base8: 2, carry: null, map: 'hexfloor', foes: ['goblin', 'goblin'] }; pkK.foes = ['goblin', 'goblin']; pkK.fightMap = 'hexfloor';
+      var drawK = function () { pkK.btns = []; pkK.draw(cxK); return pkK.btns.map(function (b) { return b.label; }); };
+      pkK.go('cr'); var crK0 = drawK();
+      pkK.before = { run: JSON.parse(JSON.stringify(pkK.st.run)), party: JSON.parse(JSON.stringify(pkK.st.party || [])), roster: JSON.parse(JSON.stringify(pkK.st.roster || [])) };
+      pkK.result = { res: 'lost', rec: { foes: 'two goblins', cr: '1/2', diff: 'EASY', rounds: 3, downs: 4 }, end: [] }; pkK.go('result'); drawK();
+      var retK = pkK.btns.filter(function (b) { return b.label === 'RETRY'; })[0]; if (retK) retK.fn();
+      var crK1 = drawK(), rrK = pkK.btns.filter(function (b) { return b.label === 'REROLL'; })[0], rung0K = pkK.st.run && pkK.st.run.rung, rrUsedK = false, rr0K = pkK.rerollRung; pkK.rerollRung = function () { rrUsedK = true; return rr0K.apply(this, arguments); }; if (rrK) rrK.fn();
+      okX('THE POCKET DM\'S REROLL AFTER A LOSS: a run\'s CR screen -- REROLL ' + (crK0.indexOf('REROLL') >= 0) + '; a rung lost, RETRY -- on the ' + pkK.screen + ' screen REROLL ' + !!rrK + ', pressed: the rung ' + rung0K + ' -> ' + (pkK.st.run && pkK.st.run.rung) + ', the run\'s own reroll ' + rrUsedK,
+        crK0.indexOf('REROLL') < 0 && !!retK && !!rrK && pkK.st.run && pkK.st.run.rung === rung0K && pkK.screen === 'cr' && rrUsedK);
+      okX('THE ROPE\'S FIVE FEET: Vivian 5 ft up under him, Lymen lets down to the ground -- he stays ' + (l6.hang && D.grid.hanging(l6) ? l6.hang.z / st6 * 2.5 + ' ft up' : 'NOT on the rope') + ' -- ' + logX(B6, n6b).slice(0, 120), !!(l6.hang && D.grid.hanging(l6) && l6.hang.z === 4 * st6) && /next one on the rope/.test(logX(B6, n6b)));
     } catch (eX) { repX.errors.push(String(eX && eX.stack || eX).slice(0, 900)); D.d = d0X; }
     if (errs.length) repX.errors = repX.errors.concat(errs);
     var preX = document.createElement('pre'); preX.id = 'out'; preX.textContent = 'BENCH16 ' + JSON.stringify(repX);
@@ -6347,7 +6398,9 @@
     stats.downs = (stats.downs || 0) + pty.filter(function (u) { return u.hp <= 0; }).length;
     if (wantLog && !log) log = (B.log || []).concat(['--- decisions ---'], B.benchLog || []);
   }
-  var out = { lvl: L, foes: get('fight', '') ? ['fight:' + get('fight', '')] : foes, vs: vs || 'the four', n: n, won: stats.won, lost: stats.lost, other: stats.other, avgRounds: +(stats.rounds / Math.max(1, n)).toFixed(1),
+  // (a fight's table at the level its four fought at: flvl, else the fight's own, nine at most -- battle.js's fixture; it printed L5, the lvl default, whatever they were: todo §6, 10-14)
+  var fLvl = get('fight', '') ? Math.min(9, +get('flvl', 0) || ((D.fight(get('fight', '')) || {}).level) || L) : L;
+  var out = { lvl: fLvl, foes: get('fight', '') ? ['fight:' + get('fight', '')] : foes, vs: vs || 'the four', n: n, won: stats.won, lost: stats.lost, other: stats.other, avgRounds: +(stats.rounds / Math.max(1, n)).toFixed(1),
     dealt: stats.dealt, taken: stats.taken, down: stats.down, casts: stats.casts, climbs: stats.climbs, fights: stats.fights, errors: errs.slice(0, 5), log: log,
     partyLeft: Math.round(100 * (stats.left || 0) / Math.max(1, n)), partyDowns: +((stats.downs || 0) / Math.max(1, n)).toFixed(2) };
   var pre = document.createElement('pre'); pre.id = 'out'; pre.textContent = 'BENCH16 ' + JSON.stringify(out);

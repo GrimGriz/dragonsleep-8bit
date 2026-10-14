@@ -1178,6 +1178,19 @@
     if (up) { if (!part && h + a >= n) return Math.max(0, n - h); m = Math.floor(Math.min(h + a, n - 1) / 2) * 2; return m > h ? m - h : 0; }
     if (!part && h - a <= 0) return Math.max(0, h); m = Math.ceil(Math.max(h - a, 1) / 2) * 2; return m < h ? h - m : 0;
   };
+  // the next climber on the same rope the way u goes (10-14, Griz, the grid's rules §2h: "make sure the players have to stay 5 feet below the other on the rope"): no one passes
+  // another on a rope, and a climb stops 5 ft short of the next one up (or down) it -- the height it may go to, or null when no one is in the way. Its own hang and the ground are its
+  // own business (the foot's stander: exec 'ropeclimb'). moveAlong's rope step, the let-down to a rung and ui.js ropeRung read it; dev/bench16.js fix1014
+  Battle.ropeCap = function (B, u, r, z0, up) {
+    var st = G.map.def.step, cap = null;
+    ((B && B.units) || []).forEach(function (h) {
+      if (h === u || !h.hang || h.hang.rope !== r || !G.hanging(h) || h.dead) return;
+      var zh = h.hang.z;
+      if (up && zh > z0 && (cap == null || zh - 2 * st < cap)) cap = zh - 2 * st;
+      if (!up && zh < z0 && (cap == null || zh + 2 * st > cap)) cap = zh + 2 * st;
+    });
+    return cap;
+  };
   Battle.ropeMark = function (r, z) { var st = G.map.def.step, zf = G.map.gz(r.foot[0], r.foot[1]), zt = G.map.gz(r.at[0], r.at[1]); return Math.max(zf, Math.min(zt, zf + Math.round((z - zf) / (2 * st)) * 2 * st)); };
   Battle.canTakeRope = function (B, u, r) {
     var T = u.turn || {}, h = Battle.ropeHanger(B, r), near = Math.max(Math.abs(u.x - r.at[0]), Math.abs(u.y - r.at[1])) <= 1 && Math.abs(G.gzAt(u, u.x, u.y) - G.map.gz(r.at[0], r.at[1])) <= G.map.def.step;
@@ -1279,6 +1292,9 @@
     // the dunking booth (10-05, Griz: "do similar (zoomed in) fall on whichever player character (only) that not only gets rocked off the ledge but also into a fountain - 'dunking booth'
     // blue egg"): one of the four, knocked off the edge and down into a fountain's water -- the splash, a close-up of the one in the water, the fall's dice halved (the water takes
     // the rest: the seat's call, his to overrule), and the blue egg once a save (js/grimoire.js M.EGGS dunk). A guest, an ally or a foe goes over as before
+    // prone where it lands, before the card and the egg (todo §6, the Skylights' small ones: "Barley drawn standing in the fountain after the dunk" -- the callers set it only once
+    // this returned, after the splash, the close-up and the egg's scene; theirs is a repeat now)
+    if (!u.dead && u.hp > 0 && !u.noProne && !RU.immuneTo(u, 'prone')) u.conds.prone = true;
     this.card(['{o}' + nameOf(u) + (dunk ? ' goes over the edge and into the fountain with a splash: ' + sq.ft + ' ft, ' + fd.total + ' bludgeoning -- the water took the rest -- and sits up in it, prone.' : ' goes over the edge: ' + sq.ft + ' ft, ' + fd.total + ' bludgeoning, and lands prone.') + '{/}'], 240);
     this.hurt(u, fd.total, 'bludgeoning', {});
     yield 20;
@@ -1452,6 +1468,8 @@
           var zTo = Battle.ropeMark(rr0, c.z), stepsR = Math.round(Math.abs(zTo - zFrom) / stZr); // (on a 5 ft mark above the foot, or an end -- a height off the marks is taken to the nearest: 10-05)
           if (stepsR < 1 || left < stepsR * 5) return; // (5 ft of movement a step along the rope: 10 a 5 ft mark)
           if (hangR && zTo < zFrom) { // down the rope from where it hangs, to a lower rung or to its foot (the rope's found-not-built of 10-04: a hanger could go up or step off, never down part way)
+            var capD = Battle.ropeCap(this, u, rr0, zFrom, false); // (5 ft over the next one down it: Battle.ropeCap, 10-14)
+            if (capD != null && zTo < capD) { zTo = capD; stepsR = Math.round(Math.abs(zTo - zFrom) / stZr); if (stepsR < 1) { this.card(['{o}' + nameOf(u) + ' cannot let down: the next one on the rope is 5 ft below.{/}'], 200); return; } }
             var ground = zTo <= G.map.gz(u.x, u.y) + 0.5, underR = ground ? G.occupant(u.x, u.y, u, { z: G.map.gz(u.x, u.y), h: G.bodyH(u) }) : null;
             if (underR) { this.card(['{o}' + nameOf(u) + ' cannot come down: ' + nameOf(underR) + ' stands at the foot of the rope.{/}'], 200); return; } // (one standing at the foot holds it; the hanger hangs on -- 10-05)
             u.tween = { fx: u.x, fy: u.y, fz: zFrom, t: 0, dur: this.pace(STEP_FRAMES + 2 * stepsR, true), mode: 'ropedown' };
@@ -1779,9 +1797,15 @@
       if (rpS) cliffM = z1 > z0 ? 'climb' : 'ropedown'; else if (hung0) cliffM = 'climb';
       // part way along it, as far as the move goes, and it hangs there (10-04, Griz: "a roped face is gonna be a movement stopping point"; exec 'ropeclimb' asks it)
       // ... or to the rung the hand picked (o.stopZ: exec 'ropeclimb' with z, 10-04 night), whether or not the move could have taken it the whole way
-      var stopR = !!(rpS && o && o.spend && o.stopZ != null) && Math.round(Math.abs(o.stopZ - z0) / stZ) < Math.round(Math.abs(z1 - z0) / stZ);
+      // ... and 5 ft short of the next climber on it, a hang there (Battle.ropeCap, 10-14: "stay 5 feet below the other on the rope"); already that close, no climb
+      var capS = rpS && o && o.spend ? Battle.ropeCap(this, u, rpS, z0, z1 > z0) : null, stopZr = o && o.stopZ != null ? o.stopZ : null;
+      if (capS != null && (stopZr == null || (z1 > z0 ? stopZr > capS : stopZr < capS))) stopZr = capS;
+      if (capS != null && Math.round(Math.abs(capS - z0) / stZ) < 1) { this.card(['{o}' + nameOf(u) + ' cannot climb on: the next one on the rope is 5 ft ' + (z1 > z0 ? 'above.' : 'below.') + '{/}'], 200); u.anim = 'idle'; return; }
+      var stopR = !!(rpS && o && o.spend && stopZr != null) && Math.round(Math.abs(stopZr - z0) / stZ) < Math.round(Math.abs(z1 - z0) / stZ);
       if (rpS && o && o.spend && (stopR || (o.partial && T.move < cost))) {
-        var upR = z1 > z0, stpR = stopR ? Math.round(Math.abs(o.stopZ - z0) / stZ) : Battle.ropeSteps(rpS, z0, upR, T.move, true); if (stpR < 1 || T.move < stpR * 5) { u.anim = 'idle'; return; } // (to the farthest 5 ft mark the move pays, 10 ft of movement a mark; an odd 5 ft left unspent -- 10-05)
+        var upR = z1 > z0, stpR = stopR ? Math.round(Math.abs(stopZr - z0) / stZ) : Battle.ropeSteps(rpS, z0, upR, T.move, true);
+        if (stopR && stopZr === capS && T.move < stpR * 5) stpR = Battle.ropeSteps(rpS, z0, upR, T.move, true); // (short of the cap by the move: as far as the move goes)
+        if (stpR < 1 || T.move < stpR * 5) { u.anim = 'idle'; return; } // (to the farthest 5 ft mark the move pays, 10 ft of movement a mark; an odd 5 ft left unspent -- 10-05)
         var zH = z0 + (upR ? 1 : -1) * stpR * stZ, endZ = upR ? G.map.gz(rpS.at[0], rpS.at[1]) : G.map.gz(rpS.foot[0], rpS.foot[1]);
         u.tween = { fx: u.x, fy: u.y, fz: z0, t: 0, dur: this.pace(STEP_FRAMES + 2 * stpR, true), mode: upR ? 'climb' : 'ropedown' };
         u.x = rpS.foot[0]; u.y = rpS.foot[1]; u.hang = { rope: rpS, z: zH };
@@ -3118,6 +3142,7 @@
     if (use.effect === 'revive') return w.hp <= 0;
     if (use.effect === 'heal') return w.hp < w.maxhp;
     if (use.effect === 'fortify') return w.hp > 0 && !w.fortified;
+    if (use.effect === 'antitoxin') return !w.conds.antitoxin; // (one dose does it: the SRD's, 10-14)
     return true;
   };
   // the Door-Shield (the 8-bit game's, RULED 09-26 by Griz: "no rule text, just the named item"; invented.json #door-shield): on a
@@ -3140,9 +3165,16 @@
     var who = w === u ? 'drinks' : 'gives ' + w.name;
     if (use.effect === 'heal') { var r = D.roll(use.dice), got = this.heal(w, r.total); this.card(['{y}' + u.name + '{/} ' + who + ' a ' + it.name + ': ' + use.dice + ' ' + RU.fmtRolls(r.rolls) + ' = {n}' + r.total + '{/}' + (got < r.total ? ' (' + got + ' to full)' : '')]); FX.sparkle(w, 'moss', 12); }
     if (use.effect === 'revive') { this.heal(w, use.hp || 1); this.card(['{y}' + u.name + '{/} works the ' + it.name + ' on ' + w.name + ': up, on ' + w.hp + ' HP.']); }
-    if (use.effect === 'antitoxin' || use.effect === 'cure') {
+    // the antitoxin by the SRD (RULED 10-14, Griz: "Antitoxin is more generous - match SRD"): "advantage on saving throws against poison for 1 hour" -- the fight -- and it ends
+    // nothing; "no benefit to undead or constructs". The 8-bit's has been the SRD's all along (js/battle.js conds.antitoxin). RU.save reads it beside Protection from Poison's ward
+    if (use.effect === 'antitoxin') {
+      var noUse = /^(undead|construct)$/.test(w.type || '');
+      if (!noUse) w.conds.antitoxin = true;
+      this.card(['{y}' + u.name + '{/} ' + who + ' the ' + it.name + (noUse ? ': it does nothing for ' + w.name + '.' : ': {n}advantage on saves against poison{/} for the fight' + (w.conds.poisoned ? ' {g}(the poison already in ' + w.name + ' stays){/}' : '') + '.')]); FX.sparkle(w, 'moss', 10);
+    }
+    if (use.effect === 'cure') {
       // the Elixir of Health by the SRD (RULED 10-13, Griz: "SRD, didn't realize it was that good"): any disease, and the blinded, deafened, paralyzed and poisoned
-      // conditions -- the grid's one disease (Contagion) and the blinding and deafness by Heal's own (js/grimoire.js M.cureSick). The antitoxin as it was
+      // conditions -- the grid's one disease (Contagion) and the blinding and deafness by Heal's own (js/grimoire.js M.cureSick)
       var gone = []; if (w.conds.poisoned) { delete w.conds.poisoned; gone.push('the poison'); }
       if (use.effect === 'cure') { if (w.conds.paralyzed) { delete w.conds.paralyzed; gone.push('the paralysis'); } gone = gone.concat(D.magic.cureSick ? D.magic.cureSick(w) : []); }
       this.card(['{y}' + u.name + '{/} ' + who + ' the ' + it.name + (gone.length ? ': ' + (gone.length > 1 ? gone.slice(0, -1).join(', ') + ' and ' + gone[gone.length - 1] : gone[0]) + ' gone.' : ': nothing to cure.')]); FX.sparkle(w, 'moss', 10);

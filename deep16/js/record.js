@@ -118,7 +118,7 @@
   // It writes over its own line in deep16.plays (the fight and its start), and REC.finish writes over it again at the end
   REC.checkpoint = function (B) {
     var r = B && B.rec;
-    if (!r || r.done || !r.steps.length) return;
+    if (!r || r.done || (!r.steps.length && !(B.logEntries || []).length)) return; // (a fight the AI plays has no hand's steps, only its log: kept too -- todo §6, the Skylights' small ones, 10-14)
     write(B, 'unfinished');
   };
   function write(B, result) {

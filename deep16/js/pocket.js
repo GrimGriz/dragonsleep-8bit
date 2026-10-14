@@ -420,6 +420,7 @@
     return words.map(function (w, i) { var c = run.carry[i]; return c ? { word: w, hpLeft: c.hp, slotsLeft: c.slots, featsLeft: c.feats, id: 'p' + i + '-' + PK.baseKey(w) } : w; });
   };
   Pocket.prototype.launch = function () {
+    this.lossMenu = false; // (the CR screen's mid-ladder REROLL: only after a loss, till the next fight)
     var self = this, run = this.st.run, mapId = this.fightMap || this.mapFor() || this.randomMap(), L = this.topLevel();
     if (!this.foes || !this.foes.length) this.reroll();
     this.fightMap = mapId;
@@ -528,6 +529,7 @@
     var run = this.st.run;
     this.rerolling = true; // (a planned rung refills its random part: js/pocketdm.js planRung)
     try { if (run && run.trial) this.setTrial(); else if (run) { run.rung--; this.nextRung(); } } finally { this.rerolling = false; }
+    this.lossMenu = true; // (the CR screen's REROLL stays offered till the fight: drawCR)
     this.go('cr');
   };
   Pocket.prototype.restCard = function () {
@@ -1018,7 +1020,9 @@
     cnt.slice(0, 9).forEach(function (c, i) { var colI = i % 3, row = Math.floor(i / 3); D.text(ctx, (c.n > 1 ? c.n + ' x ' : '') + c.name + '  {g}CR ' + c.cr + '{/}', 60 + colI * 140, y + row * 11, P('bone', 1)); });
     if (!cnt.length) D.text(ctx, 'nothing fits this dial on this map', 60, y, P('red', 4));
     var wy = 132;
-    if (!run || this.lossMenu) this.btn(ctx, 'REROLL', 60, wy, 80, 15, function () { self.reroll(); });
+    // (mid-ladder, after a lost rung only -- RETRY or REROLL THE RUNG on the loss card sets it, the fight begun clears it: it rerolls the rung the run's way, rerollRung -- a
+    // planned rung's random part, the trial its own; the Pocket DM lane §2.2, the flag that was never set, wired on its lean 10-14)
+    if (!run || this.lossMenu) this.btn(ctx, 'REROLL', 60, wy, 80, 15, function () { if (run) self.rerollRung(); else self.reroll(); });
     this.btn(ctx, 'WATCH: ' + (this.watch ? 'ON' : 'OFF'), 150, wy, 100, 15, function () { self.watch = !self.watch; self.keep(); }, { on: this.watch, small: true });
     D.text(ctx, this.watch ? 'the class AI runs your side too; you watch' : 'you run your side', 258, wy + 4, P('stone', 5));
     this.drawKnobs(ctx); // (the DM's: fly, legendary, breath, dark -- js/pocketdm.js)
@@ -1061,7 +1065,7 @@
       else this.btn(ctx, 'LONG REST FOR THE TRIAL', x + 20, by, 190, 15, function () { self.setTrial(); self.rest = { long: true }; self.go('rest'); }, { pri: true });
       this.btn(ctx, 'QUIT THE LADDER', x + w - 140, by, 120, 15, function () { self.st.run = null; self.keep(); self.go('title'); });
     } else if (run) {
-      this.btn(ctx, 'RETRY', x + 20, by, 90, 15, function () { self.restore(); self.go('cr'); }, { pri: true });
+      this.btn(ctx, 'RETRY', x + 20, by, 90, 15, function () { self.restore(); self.lossMenu = true; self.go('cr'); }, { pri: true });
       this.btn(ctx, 'REROLL THE RUNG', x + 120, by, 130, 15, function () { self.rerollRung(); });
       this.btn(ctx, 'QUIT', x + w - 90, by, 70, 15, function () { self.st.run = null; self.keep(); self.go('title'); });
       D.text(ctx, 'retry or reroll: the party as it went in', D.W / 2, by - 12, P('stone', 5), 'center');
