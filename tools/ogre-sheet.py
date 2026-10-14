@@ -35,16 +35,17 @@ Fall (it goes down, the club dropped); `prone` <- Prone, played pushing-up first
 (deep16/js/sprites.js S.proneRow, the hobgoblin's and the ettin's way). Every row has the same frame count in every HEAD.
 Facings (deep16/js/sprites.js S.FACINGS: 0 S, 1 SW, 2 W, 3 NW, 4 N, 5 NE, 6 E, 7 SE), RULED 10-14 (a figure is five drawn views): S <- HEAD 3,
 E <- HEAD 4 and W <- HEAD 4 mirrored, N <- HEAD 5, SE <- HEAD 1 and SW <- HEAD 1 mirrored, NE <- HEAD 2 and NW <- HEAD 2 mirrored (the club
-changes hands with the mirror, as every mirrored sheet's does). Till ART-22, S and E borrowed HEAD 1 and N HEAD 2; the SE, SW, NE and NW
-frames are the same drawings, pixel for pixel and placed the same on the anchor, as before ART-22 came (only a row's frame width may grow).
+changes hands with the mirror, as every mirrored sheet's does). Till ART-22, S and E borrowed HEAD 1 and N HEAD 2. The SE, SW, NE and NW
+rows from pages 1 and 3 (idle, walk, greatclub, attack) are the same drawings, pixel for pixel and placed the same on the anchor, as before
+ART-22 came; those from pages 2 and 4 were met again by their Javelin (below) and page 4 toned again (NEUTRAL), the desk's word 10-14.
 Scale: one for the creature in every row and facing, by HEIGHT -- an upright figure. GPT drew each page at its own size (the art log: "Body
-size differs across rows/pages"), so each page meets page 1's idle by its standing body: page 1 its idle (177-181 page px), page 2 its Flinch
-1 and 4 (the idle's stance, club low: 172), page 3 its idle (201-204: the rear page drawn an eighth bigger), page 4 its Flinch 1 and 4
-(171-175); page 5 its idle (203-204), page 7 its idle (225-235: the side page drawn an eighth bigger again), page 9 its idle (204-206); pages
-6, 8 and 10 their Javelin 2 and 6 (the javelin drawn, standing, and the throw's recovery to rest: 192 195, 201 201, 186 190) -- ART-22's
-Flinch CROUCHES (knees bent, the front view's the deepest: page 6's Flinch 177-179 against its Javelin 6's 195, where page 2's Flinch stands
-0.95 of its Javelin 2), and met by it those pages came out a tenth too big against their own idle (the head and the shoulders, by eye,
-each PAGE 2 laid beside its idle met both ways); by the Javelin the heads meet. The standing body is measured head to foot with the javelins on the back opened away
+size differs across rows/pages"), so each page meets page 1's idle by its standing body: page 1 its idle (177-181 page px), page 3 its idle
+(201-204: the rear page drawn an eighth bigger), page 5 its idle (203-204), page 7 its idle (225-235: the side page drawn an eighth bigger
+again), page 9 its idle (204-206); each PAGE 2 (pages 2, 4, 6, 8, 10) its Javelin 2 and 6 (the javelin drawn, standing, and the throw's
+recovery: 180 182, 177 178, 192 195, 201 201, 186 190) -- the Flinch CROUCHES (knees bent, ART-22's front view the deepest: page 6's Flinch
+177-179 against its Javelin 6's 195), and met by it ART-22's PAGE 2s came out a tenth too big against their own idle (the head and the
+shoulders, by eye, each laid beside its idle met both ways), and pages 2 and 4's javelin rows stood 87 and 85 game px where every other
+facing's stood 82-84; by the Javelin the heads meet and every facing's javelin row stands 82-84. The standing body is measured head to foot with the javelins on the back opened away
 (OPEN: their count and their tips' height change row to row, an art issue). Within a page the standing rows agree with its rest within 2-3%
 but three: pages 1, 5 and 7's Walk, drawn smaller (the head and the belly, by eye; FIT below). The game size: the standing body HEIGHT 80
 px. The idle in every facing, game px with the outline, head to foot with the javelins opened away (body_h): S 81-83, SW 80-82, W 81-84, NW
@@ -52,10 +53,12 @@ px. The idle in every facing, game px with the outline, head to foot with the ja
 head, E's highest; top 91) -- the Orc stand-in's idle is drawn 80-94, the troll's (Large) 98-104 but lanky and stooped, the ettin's (Huge)
 100-106 and broader; the hobgoblin's (Medium) 43-51. dev/visions/ogre/lineup.png stands them side by side; HEIGHT is the one number to change.
 Colour: TONE brings pages 2-10 to page 1 per channel, by the skin (the yellow every view shows): page 2's Flinch 1 and 4 against page 1's
-idle; page 3's idle against the turnaround's Back (the turnaround is drawn on page 1); page 4's Flinch 1 and 4 against page 3's idle; the S
-pages (5, 6) against page 1's idle, the E pages (7, 8) against the turnaround's Right, the N pages (9, 10) against its Back. ART-22's gain is
-weighed by how skin-like each pixel is (NEUTRAL): pages 6 and 10 draw the skin a third less blue than their idle pages and the hair and the
-loincloth's tan not, and a plain gain (blue 1.4) turned the hair purple and the tan pink; pages 2-4 keep the plain gain they were cut with.
+idle; page 3's idle against the turnaround's Back (the turnaround is drawn on page 1); page 4's Javelin 2 and 6 against it too; the S
+pages (5, 6) against page 1's idle, the E pages (7, 8) against the turnaround's Right, the N pages (9, 10) against its Back. Page 4's and
+ART-22's gain is weighed by how skin-like each pixel is (NEUTRAL): pages 4, 6 and 10 draw the skin a third less blue than their idle pages
+and the hair and the loincloth's tan not, and a plain gain (blue 1.27-1.4) turned the hair blue to purple and the tan pink; pages 2 and 3
+keep the plain gain they were cut with (blue 1.147 and 1.046: no cast on page 2's hair; page 3's reads a cooler near-black than page 4's,
+mild, as drawn).
 Cut: each row's band runs strip-middle to strip-middle, a page's last row to its foot; the Greatclub 4 impacts (pages 1, 3, 5, 7) and the
 rear Fall 4's dust keep their chips and dirt (NUMBOX, FIX, CUT below); keyed by sheetrows' default test (the navy's blue-minus-red 63-78), looked
 at on every frame: each gap of 40 px or more left inside a silhouette (an armpit, the raised arms' ring, under a lying body) is the navy in
@@ -170,8 +173,8 @@ FACING = {0: (3, False), 1: (1, True), 2: (4, True), 3: (2, True), 4: (5, False)
 NEW = []              # rows not in pix.ANIM_ORDER (greatclub and javelin are there already: the stone giant's, the bugbears')
 FPS = {'idle': 5, 'walk': 8, 'attack': 10, 'greatclub': 10, 'javelin': 10, 'flinch': 8, 'hurt': 8, 'prone': 8}
 RELEASE = {'javelin': 3}                  # the frame the javelin is gone from the hand (human frame 4, the arm thrown forward): js/battle.js
-# each page's standing body (row, frames 0-based): ART-22's PAGE 2s by their Javelin 2 and 6, standing at rest -- their Flinch crouches
-REST = {1: [('idle', None)], 2: [('flinch', (0, 3))], 3: [('idle', None)], 4: [('flinch', (0, 3))],
+# each page's standing body (row, frames 0-based): every PAGE 2 by its Javelin 2 and 6, standing -- the Flinch crouches
+REST = {1: [('idle', None)], 2: [('javelin', (1, 5))], 3: [('idle', None)], 4: [('javelin', (1, 5))],
         5: [('idle', None)], 6: [('javelin', (1, 5))], 7: [('idle', None)], 8: [('javelin', (1, 5))], 9: [('idle', None)],
         10: [('javelin', (1, 5))]}
 # a row drawn at its own size on its page, met to the page's idle by height: page 1's Walk is drawn smaller than its idle (the head and the
@@ -182,16 +185,16 @@ FIT = {(1, 'walk'): (3, 'walk'), (5, 'walk'): (3, 'walk'), (7, 'walk'): (3, 'wal
 # per channel, each later page brought to page 1 by the skin's mean (the yellow every view shows; a whole-figure mean weighs what each view
 # shows -- the back is hair, hides and the javelins): page 2's Flinch 1 and 4 (228.2 147.3 53.3 -> page 1's idle 216.0 149.7 61.1); page 3's
 # idle (214.5 146.9 51.1) to the turnaround's Back (200.7 140.6 53.4: the colours the art desk's later pages were asked to keep, as the
-# ettin's back sheet met its turnaround's Back); page 4's Flinch 1 and 4 (218.8 140.3 41.9) to page 3's idle, toned. ART-22 (NEUTRAL: the
+# ettin's back sheet met its turnaround's Back); page 4's Javelin 2 and 6 (219.8 142.0 42.5) to the Back too. Page 4 and ART-22 (NEUTRAL: the
 # gain weighed by how skin-like a pixel is -- its chroma CHROMA, its saturation SAT, its hue in the yellow-orange window HUE -- so the near-
 # neutral hair, outline, spearheads and the loincloth's pale tan keep their drawn colour; found by rounds on the raw skin's pixels): page 5's
 # idle (222.8 155.4 55.8) and page 6's Javelin 2 and 6 (225.9 142.8 43.9) to page 1's idle; page 7's idle (219.2 148.8 52.0) and page 8's
 # Javelin 2 and 6 (217.4 149.1 55.7) to the turnaround's Right (207.6 144.3 55.3); page 9's idle (215.6 145.5 50.3) and page 10's Javelin 2
 # and 6 (220.4 144.9 37.8) to the turnaround's Back -- tones() prints them
-TONE = {2: (0.947, 1.016, 1.147), 3: (0.936, 0.957, 1.046), 4: (0.918, 1.002, 1.273),
+TONE = {2: (0.947, 1.016, 1.147), 3: (0.936, 0.957, 1.046), 4: (0.914, 0.993, 1.274),
         5: (0.972, 0.966, 1.107), 6: (0.958, 1.053, 1.412), 7: (0.949, 0.973, 1.075), 8: (0.957, 0.970, 0.996),
         9: (0.933, 0.969, 1.073), 10: (0.912, 0.973, 1.440)}
-NEUTRAL = {5, 6, 7, 8, 9, 10}
+NEUTRAL = {4, 5, 6, 7, 8, 9, 10}
 CHROMA, SAT, HUE = (30, 90), (0.35, 0.6), (12, 22, 58, 70)     # ramps 0 -> 1 (the hue's back to 0 from 58 to 70 degrees)
 HEIGHT = 80           # the standing body (head to foot, no javelins), game px before the outline: idle 87-90 px with the javelins and outline
 OPEN = 10             # the radius (page px) of the opening that takes the javelins off the standing measure
@@ -199,7 +202,7 @@ FH, AY = 136, 124
 
 
 def toned(im, f, neutral=False):
-    """per channel, a gain; `neutral` (ART-22's pages, NEUTRAL) weighs it by how skin-like the pixel is: full on the skin's saturated
+    """per channel, a gain; `neutral` (page 4 and ART-22's pages, NEUTRAL) weighs it by how skin-like the pixel is: full on the skin's saturated
     yellow-orange, none on the near-neutral hair, outline and spearheads, the loincloth's pale tan or the club's red"""
     a = np.asarray(im).astype(float)
     g = np.array(f, dtype=float)
@@ -367,29 +370,29 @@ def tones(c):
     """per channel, each later page's skin brought to page 1's (the yellow every view shows)"""
     s1 = skin_mean([im for _, im, _ in c[1]['idle']])
     back = skin_mean([c[1]['turn'][2][1]])
-    s2 = skin_mean(rest_frames(c, 2))
+    flinch14 = [im for i, (_, im, _) in enumerate(c[2]['flinch']) if i in (0, 3)]    # page 2's plain gain, measured so (kept)
+    s2 = skin_mean(flinch14)
     s3 = skin_mean([im for _, im, _ in c[3]['idle']])
-    s4 = skin_mean(rest_frames(c, 4))
     t = {2: s1 / s2, 3: back / s3}
-    t[4] = t[3] * s3 / s4
-    print('  skin: page 1 idle %s, its turnaround Back %s; page 2 flinch 1+4 %s; page 3 idle %s; page 4 flinch 1+4 %s'
-          % tuple(np.round(x, 1).tolist() for x in (s1, back, s2, s3, s4)))
-    # ART-22's views (NEUTRAL: the gain weighed by chroma, so found by a few rounds): S (pages 5, 6) to page 1's idle (its turnaround's
-    # Front is the same three-quarter view), E (pages 7, 8) to the turnaround's Right (the side view), N (pages 9, 10) to the turnaround's
-    # Back (as page 3) -- each PAGE 1 by its idle, each PAGE 2 by its rest (Javelin 2 and 6)
+    print('  skin: page 1 idle %s, its turnaround Back %s; page 2 flinch 1+4 %s; page 3 idle %s'
+          % tuple(np.round(x, 1).tolist() for x in (s1, back, s2, s3)))
+    # NEUTRAL's pages (the gain weighed by how skin-like a pixel is, so found by a few rounds): page 4 to the turnaround's Back (page 3's
+    # idle, toned); ART-22's S (pages 5, 6) to page 1's idle (its turnaround's Front is the same three-quarter view), E (pages 7, 8) to the
+    # turnaround's Right (the side view), N (pages 9, 10) to the turnaround's Back (as page 3) -- each PAGE 1 by its idle, each PAGE 2 by its
+    # rest (Javelin 2 and 6)
     front, right = skin_mean([c[1]['turn'][0][1]]), skin_mean([c[1]['turn'][1][1]])
-    ims = {L: [im for _, im, _ in c[L]['idle']] if L % 2 else rest_frames(c, L) for L in (5, 6, 7, 8, 9, 10)}
+    ims = {L: [im for _, im, _ in c[L]['idle']] if L % 2 else rest_frames(c, L) for L in (4, 5, 6, 7, 8, 9, 10)}
     s = {L: skin_mean(ims[L]) for L in ims}
-    goal = {5: s1, 6: s1, 7: right, 8: right, 9: back, 10: back}
+    goal = {4: back, 5: s1, 6: s1, 7: right, 8: right, 9: back, 10: back}
     for L in ims:
         t[L] = goal[L] / s[L]
         for _ in range(6):
             t[L] = t[L] * goal[L] / skin_toned(ims[L], t[L])
     print('  skin: turnaround Front %s, Right %s; ' % tuple(np.round(x, 1).tolist() for x in (front, right)) + '; '.join(
         'page %d %s %s' % (L, 'idle' if L % 2 else 'javelin 2+6', np.round(s[L], 1).tolist()) for L in sorted(s)))
-    print('  (a plain gain would be: page 5 %s (to the Front %s), page 6 %s; page 7 %s (to page 1 idle %s), page 8 %s; page 9 %s, page 10 %s)'
-          % tuple(np.round(x, 3).tolist() for x in (s1 / s[5], front / s[5], s1 / s[6], right / s[7], s1 / s[7], right / s[8], back / s[9],
-                                                   back / s[10])))
+    print('  (a plain gain would be: page 4 %s; page 5 %s (to the Front %s), page 6 %s; page 7 %s (to page 1 idle %s), page 8 %s; page 9 %s, '
+          'page 10 %s)' % tuple(np.round(x, 3).tolist() for x in (back / s[4], s1 / s[5], front / s[5], s1 / s[6], right / s[7], s1 / s[7],
+                                                                  right / s[8], back / s[9], back / s[10])))
     print('  TONE measured: ' + ', '.join('%d: (%.3f, %.3f, %.3f)' % ((L,) + tuple(v)) for L, v in sorted(t.items())))
     tn = lambda L, im: toned(im, TONE[L], L in NEUTRAL) if L in TONE else im
     fm = lambda L, ims: np.round(figure_mean([tn(L, im) for im in ims]), 1).tolist()
@@ -399,9 +402,9 @@ def tones(c):
         lum, ch = p @ np.array([0.3, 0.59, 0.11]), p.max(1) - p.min(1)
         return np.round(p[(lum > 20) & (lum < 70) & (ch < 45)].mean(0), 1).tolist()
     print('  hair (toned): ' + '; '.join('page %d %s' % (L, hair(L, x)) for L, x in (
-        (1, [im for _, im, _ in c[1]['idle']]), (3, [im for _, im, _ in c[3]['idle']])) + tuple(sorted(ims.items()))))
-    print('  figure means (toned): page 1 idle %s, page 2 flinch 1+4 %s; turnaround Back %s, page 3 idle %s, page 4 flinch 1+4 %s'
-          % (fm(1, [im for _, im, _ in c[1]['idle']]), fm(2, rest_frames(c, 2)), fm(1, [c[1]['turn'][2][1]]),
+        (1, [im for _, im, _ in c[1]['idle']]), (2, rest_frames(c, 2)), (3, [im for _, im, _ in c[3]['idle']])) + tuple(sorted(ims.items()))))
+    print('  figure means (toned): page 1 idle %s, page 2 flinch 1+4 %s; turnaround Back %s, page 3 idle %s, page 4 javelin 2+6 %s'
+          % (fm(1, [im for _, im, _ in c[1]['idle']]), fm(2, flinch14), fm(1, [c[1]['turn'][2][1]]),
              fm(3, [im for _, im, _ in c[3]['idle']]), fm(4, rest_frames(c, 4))))
     print('  ART-22 (toned): ' + '; '.join('page %d figure %s skin %s' % (L, fm(L, ims), sm(L, ims)) for L, ims in (
         (5, [im for _, im, _ in c[5]['idle']]), (6, rest_frames(c, 6)), (7, [im for _, im, _ in c[7]['idle']]), (8, rest_frames(c, 8)),
