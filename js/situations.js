@@ -96,6 +96,11 @@
       say: 'The Warrens\' wet on the grid, one fight short of level 4.', unset: ['otyughFed', 'landlordSpoke'], map: 'warrens_d', x: 2, y: 12, dir: 'right',
       prep: function (G) { G.party.forEach(function (h) { h.xp = DS.R.XP_LEVEL[4] - 20; }); },
       start: function* () { if (S()['enter:warrens_d']) yield* S()['enter:warrens_d'](); } },
+    // 10-14, his close's "Roam the Wet going to need post-stair drain version" -- the roam's door with the stair pumped dry (the spine's first beat: Papa's hook), nothing past it
+    roamdry: { group: 'The base game', title: 'The Wet on the grid, drained: the dry stair, the five, the cut seal (10-14)', pt: 'the party-token map lane §4.3', base: 'lake', spine: 1, lvl: 5,
+      look: 'The Wet as one token with the stair pumped dry. The drowned stair is dry steps: walk down onto its first row and the floor steps aside for the 8-bit\'s own scene (the dry stair, the five\'s tokens if nobody fetched them, the puddle, the cut door), then the floor again where you stood. Past it the seal is cut: step onto it and the 8-bit takes the party down to the Burial. The mark is only a mark now; nothing to wade.',
+      say: 'The Warrens\' wet on the grid, the stair pumped dry.', map: 'warrens_d', x: 2, y: 12, dir: 'right',
+      start: function* () { if (S()['enter:warrens_d']) yield* S()['enter:warrens_d'](); } },
     // 10-03, Griz: "set me up with a level 3 party led by lymen, in silverton, with the gates down to the wet already opened type URL":
     // the ?lvl3 start (Winters' errands run, the four found, nothing else) plus the Warrens' way down -- Pete heard, the tally book met,
     // the five known, Skarn's gate open -- and nothing below done. base: 'lvl3' (DS.levelThree, not round six). &lead=lymen preselects him.
