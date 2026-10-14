@@ -261,7 +261,7 @@
     }
     var trig = R.triggerAt(B, p8[0], p8[1], 'step');
     if (R.isWade(t.x, t.y) && !R0.flags.keeperDone && !R0.flags.fiveRecovered && !R0.spent.stair) {
-      B.card([R.say8('w.wade')], 260); yield 30;
+      B.card(R.wrap([R.say8('w.wade')]), 260); yield 30;
       yield* R.pullIn(B, 'keeper', { id: 'stair' }, [t.x, t.y], 'ledge'); return 'trigger';
     }
     if (trig) { yield* R.fire(B, trig, [t.x, t.y]); return 'trigger'; }
@@ -314,6 +314,12 @@
 
   // ------------------------------------------------------------------ the 8-bit's scenes on the floor, in its own words (DS.DATA.text, js/events.js S.mark, S.stair, S.bucket)
   R.say8 = function (k) { var t = window.DS.DATA.text && window.DS.DATA.text[k]; return t ? (t.t || t) : k; };
+  // a line to the width a prompt or a card can show (the grid's prompt box stops at the canvas's width and does not wrap: seen in the pane, 10-13)
+  R.wrap = function (lines, maxPx) {
+    var out = [], w = maxPx || D.W - 40;
+    [].concat(lines).forEach(function (l) { var words = String(l).split(' '), cur = ''; words.forEach(function (wd) { var t = cur ? cur + ' ' + wd : wd; if (cur && D.textWidth(t) > w) { out.push(cur); cur = wd; } else cur = t; }); if (cur) out.push(cur); });
+    return out;
+  };
   R.WADE8 = [[19, 20], [19, 21], [19, 22], [19, 23]]; // (the 8-bit's squares: the drowned stair's first row, where its `stair` trigger stands)
   R.isWade = function (x, y) { var p = R.def.to8(x, y); return R.WADE8.some(function (q) { return q[0] === p[0] && q[1] === p[1]; }); };
   R.USE_NAME = { mark: 'the mark', stair: 'the flooded stair', bucket: 'the bucket', landlord: 'the deep water', deepCradle0: 'the cradle', deepCradle1: 'the cradle', deepCradle2: 'the cradle' };
@@ -331,23 +337,23 @@
     var lines = [R.say8(f.stairHook && !f.keeperWater ? 'w.markDry' : settled ? 'w.markPlain' : 'w.markSee')];
     var read = R0.members.some(function (u) { return u.src && u.hp > 0 && D.d(20) + Math.max(Rr.skill(u.src, 'Arcana', 'int'), Rr.skill(u.src, 'Religion', 'int')) >= 12; });
     if (read || f.hobMet) { f.markRead = 1; lines.push(R.say8('w.markRead')); }
-    if (settled) { B.card(lines, 320); yield 30; return; }
-    var a = yield { prompt: { who: R0.token, title: 'THE MARK', lines: lines.concat([R.say8('w.markAsk')]), opts: [{ label: 'PUT A HAND ON IT', value: 1 }, { label: 'LEAVE IT', value: 0 }] } };
+    if (settled) { B.card(R.wrap(lines), 320); yield 30; return; }
+    var a = yield { prompt: { who: R0.token, title: 'THE MARK', lines: R.wrap(lines.concat([R.say8('w.markAsk')])), opts: [{ label: 'PUT A HAND ON IT', value: 1 }, { label: 'LEAVE IT', value: 0 }] } };
     if (a !== 1) return;
-    f.keeperAwake = 1; D.sfx('splash'); B.card([R.say8('w.markWake')], 320); yield 50;
+    f.keeperAwake = 1; D.sfx('splash'); B.card(R.wrap([R.say8('w.markWake')]), 320); yield 50;
     yield* R.pullIn(B, 'keeper', trig, at, 'rune');
   };
   // the stair (js/events.js S.stair): ROPE THEM OUT (the rope; the Keeper awake fights by the rune, asleep the five come up), WADE IN (the fight from the ledge), LEAVE
   R.stairScene = function* (B, trig, at) {
     var R0 = B.roam, f = R0.flags;
     if (f.fiveRecovered) { B.card([R.say8('w.stairDone')], 260); yield 20; return; }
-    var a = yield { prompt: { who: R0.token, title: 'THE FLOODED STAIR', lines: [R.say8('w.stairSee'), R.say8('w.stairAsk')], opts: [{ label: 'ROPE THEM OUT', value: 0 }, { label: 'WADE IN', value: 1 }, { label: 'LEAVE', value: 2 }] } };
+    var a = yield { prompt: { who: R0.token, title: 'THE FLOODED STAIR', lines: R.wrap([R.say8('w.stairSee'), R.say8('w.stairAsk')]), opts: [{ label: 'ROPE THEM OUT', value: 0 }, { label: 'WADE IN', value: 1 }, { label: 'LEAVE', value: 2 }] } };
     if (a === 0) {
       if (!(B.inv || []).some(function (x) { return x.id === 'rope' && x.n > 0; })) { B.card([R.say8('w.noRope')], 260); yield 20; return; }
       if (f.keeperAwake) { B.card([R.say8('w.ropeAwake')], 260); yield 30; yield* R.pullIn(B, 'keeper', trig, at, 'rune'); return; }
-      f.fiveRecovered = 1; B.card([R.say8('w.ropeOut'), '{g}' + R.say8('w.fiveRecovered') + '{/}'], 360); yield 40; return;
+      f.fiveRecovered = 1; B.card(R.wrap([R.say8('w.ropeOut'), R.say8('w.fiveRecovered')]), 360); yield 40; return;
     }
-    if (a === 1) { B.card([R.say8('w.wade')], 260); yield 30; yield* R.pullIn(B, 'keeper', trig, at, 'ledge'); }
+    if (a === 1) { B.card(R.wrap([R.say8('w.wade')]), 260); yield 30; yield* R.pullIn(B, 'keeper', trig, at, 'ledge'); }
   };
   // the bucket at the deep station's crate (js/events.js S.bucket): taken up into the pack, in the hand of the one who took it -- the Settling reads both (js/wet.js)
   R.bucketScene = function* (B, trig, at) {
@@ -420,7 +426,7 @@
     if (which === 'wet' && done === 'won') ['jelly', 'jellyNorth', 'poolOoze', 'landlordStep'].forEach(function (id) { R0.spent[id] = 1; });
     if (which === 'keeper' && done === 'won') { ['stair', 'mark'].forEach(function (id) { R0.spent[id] = 1; }); R0.flags.keeperDone = 1; R0.flags.fiveRecovered = 1; }
     if (which === 'keeper' && done !== 'won' && done !== 'lost') R0.flags.keeperAwake = 1; // (a run leaves it awake and unbeaten: the rope then fights it by the rune -- the 8-bit's, 10-04)
-    if (which === 'keeper' && done === 'won') { B.card([R.say8('w.keeperGone'), '{g}' + R.say8('w.fiveRecovered') + '{/}'], 360); yield 40; }
+    if (which === 'keeper' && done === 'won') { B.card(R.wrap([R.say8('w.keeperGone'), R.say8('w.fiveRecovered')]), 360); yield 40; }
     // the Settling's squares are the floor's own: the token back where the party left it -- a square past the one who got out (off the Settling's ground, the way
     // they went), or where the first still standing ended (10-13, his play: "Barleys wet exit of landlord scene put them back at waters edge")
     if (which === 'wet') {
