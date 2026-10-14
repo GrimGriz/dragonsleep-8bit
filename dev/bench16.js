@@ -2237,6 +2237,58 @@
       var invS = (BS.inv || []).filter(function (s) { return s.n > 0; }).map(function (s) { return s.id + ':' + s.n; }).join(' ');
       okZ('walked in from a save, its own pack, no loan (' + invS + ')', /potion:2/.test(invS) && !/lightcrossbow|bolts|rope/.test(invS));
       delete memZ['deep16.handoff'];
+      // his play, 10-14, the second round (Griz: "random or not random encounters where new enemies are created (split ooze thing in pane)" · "trying to get the hand pop-up by
+      // clicking on the rune is hilarious. Click to move only on squares within x ft (30-50?)"; the gather and the trigger squares RULED, "1 yes" "2 yes")
+      var BG = D.roam.make('?roam=wet&watch&enc=999&lvl=3'); D.scenes.length = 0; D.push(BG); D.battle = BG; BG.enter();
+      var RG = BG.roam, homeG = function () { return D.top() === BG && RG.mode === 'walk' && !RG.pulling; };
+      var putG = function (q) { RG.token.x = q[0]; RG.token.y = q[1]; RG.token.tween = null; RG.path = null; GZ.setup(GZ.map, BG.units); };
+      // a split half is of the fight: the jelly split, the jelly down -- the fight goes on while the half stands; down too, nothing of it stands on the floor, and the XP is the jelly's once
+      putG([12, 30]); var xpS0 = RG.members.map(function (u) { return u.src.xp; });
+      var gS2 = D.roam.encounter(BG, 'test', { list: ['ochrejelly'], at: [14, 30], how: 'test' });
+      driveZ(gS2, function () { return RG.mode === 'fight' && BG.order.length; }, 3000);
+      var jel = BG.units.filter(function (u) { return u.kind === 'ochrejelly'; })[0], goesOn = null, orphan = null;
+      if (jel) {
+        BG.splitOff(jel); jel.hp = 0; jel.dead = true;
+        var half = BG.units.filter(function (u) { return u.kind === 'ochrejelly' && u !== jel; })[0];
+        if (half) { half.hp = half.maxhp = 999; half.split = false; } // (it must outlast the turns the check waits: no blow fells it, none splits it again)
+        for (var kS = 0; kS < 400; kS++) gS2.next();
+        goesOn = RG.mode === 'fight' && !!half && !half.dead;
+        if (half) { half.hp = 0; half.dead = true; }
+        driveZ(gS2, function () { return RG.mode === 'walk'; }, 40000);
+        orphan = BG.units.filter(function (u) { return u.side === 'foe' && !u.dead && u.hp > 0; }).map(function (u) { return u.id; }).join(',');
+      }
+      var upJ = RG.members.filter(function (u) { return u.hp > 0; }), xpS = RG.members.map(function (u, i) { return u.src.xp - xpS0[i]; }), eachJ = Math.floor((window.DS.DATA.monsters.ochrejelly.xp || 0) / Math.max(1, upJ.length)); // (split among those standing at the gather)
+      okZ('the jelly split and down: the fight goes on while its half stands (' + goesOn + '); the half down too, nothing stands after (' + (orphan || 'none') + '); the XP the jelly\'s once (+' + xpS.join(',') + ', want ' + eachJ + ')',
+        goesOn && orphan === '' && RG.members.every(function (u, i) { return xpS[i] === (u.hp > 0 ? eachJ : 0); }));
+      // the gather walks them all the way: Vivian left 15 squares off, at Barley's side when they are in
+      putG([12, 30]); var fl = D.roam.flood(RG.token, [12, 30], 20), farQ = null; Object.keys(fl).forEach(function (k) { if (!farQ && fl[k] >= 15) farQ = k.split(',').map(Number); });
+      var vG = RG.members.filter(function (u) { return u.id === 'vivian'; })[0]; vG.x = farQ[0]; vG.y = farQ[1]; RG.mode = 'fight';
+      driveZ(D.roam.after(BG, 'won', { zone: 'warrens_d' }, []), null, 3000);
+      var vd = Math.max(Math.abs(vG.x - RG.token.x), Math.abs(vG.y - RG.token.y));
+      okZ('the gather walks them all the way: Vivian from 15 squares off ends beside ' + RG.token.name + ' (' + vd + ' off)', vd <= 1);
+      // the square the gather ends on fires once: Barley on the landlord's rim when it is won -- the Settling, pulled in
+      var rimG = at8(8, 8); putG(rimG); RG.mode = 'fight'; var topR = null;
+      var gR = D.roam.after(BG, 'won', { zone: 'warrens_d' }, []); for (var kR = 0; kR < 1500 && D.top() === BG; kR++) { var stR = gR.next(); if (stR.done) break; }
+      topR = D.top(); var firedR = topR !== BG && topR.fight && topR.fight.settling;
+      if (topR !== BG) { topR.enter(); D.pop(); topR.o.onDone('escaped'); driveZ(gR, null, 2000); }
+      okZ('the gather\'s square fires once: won on the landlord\'s rim, the Settling pulled in (' + !!firedR + ')', !!firedR);
+      // a click walks 50 ft at most: a square 20 off refused, one 3 off walked
+      putG([12, 30]); driveZ(BG.co, null, 10);
+      var fl2 = D.roam.flood(RG.token, [12, 30], 24), far2 = null, near2 = null; Object.keys(fl2).forEach(function (k) { var v = fl2[k]; if (!far2 && v >= 20) far2 = k.split(',').map(Number); if (!near2 && v === 3) near2 = k.split(',').map(Number); });
+      var scr = function (q) { var c = D.iso.center(q[0], q[1], GZ.map.gz(q[0], q[1])); return D.iso.toScreen(c.x, c.y); };
+      var nC = (BG.log || []).length, s1 = scr(far2); RG.clicks.push({ x: s1.x, y: s1.y }); for (var kC = 0; kC < 3; kC++) BG.co.next();
+      var farRef = !RG.path && (BG.log || []).slice(nC).some(function (l) { return /Too far for a click/.test(l); });
+      RG.path = null; var s2c = scr(near2); RG.clicks.push({ x: s2c.x, y: s2c.y }); BG.co.next(); var nearOk = !!(RG.path && RG.path.length <= 3) || Math.max(Math.abs(RG.token.x - 12), Math.abs(RG.token.y - 30)) >= 1;
+      okZ('a click walks ' + 50 + ' ft at most: 20 squares off refused (' + farRef + '), 3 off walked (' + nearOk + ')', farRef && nearOk);
+      // a click on the mark, drawn on its wall: a hand on it (the Keeper asleep: the ask, then the Keeper by the rune)
+      driveZ(BG.co, homeG, 600); ['keeperAwake', 'keeperDone', 'fiveRecovered'].forEach(function (k) { delete RG.flags[k]; }); RG.spent = {};
+      putG(at8(22, 20)); RG.fw = [-1, 0]; if (D.roam.works) D.roam.works(BG, D.roam.inWorks(BG));
+      var rq2 = at8(22, 19), gzR = GZ.map.gz(rq2[0] + 1, rq2[1]), cR = D.iso.center(rq2[0] + 0.5, rq2[1], gzR + 22 * (D.hscale || 1)), sR = D.iso.toScreen(cR.x, cR.y);
+      var askedM = null; RG.clicks.push({ x: sR.x, y: sR.y });
+      (function () { var v, k = 0, st; while (k++ < 600) { if (D.top() !== BG) break; st = BG.co.next(v); v = undefined; if (st.done) break; if (typeof st.value === 'number') BG.t += st.value; if (st.value && st.value.prompt) { askedM = askedM || st.value.prompt.title; v = st.value.prompt.opts[0].value; } } })();
+      var tMk = D.top();
+      okZ('a click on the mark on its wall is a hand on it (' + askedM + ', then ' + (tMk !== BG ? tMk.fight && tMk.fight.id + ' by the ' + tMk.o.start : 'nothing') + ')', askedM === 'THE MARK' && tMk !== BG && tMk.o.start === 'rune');
+      if (tMk !== BG) { tMk.enter(); D.pop(); tMk.o.onDone('escaped'); driveZ(BG.co, homeG, 2000); }
     } catch (eZ) { repZ.errors.push(String(eZ && eZ.stack || eZ).slice(0, 900)); }
     D.store.get = stGZ; D.store.set = stSZ; IZ.held.up = false; IZ.held.left = false;
     if (errs.length) repZ.errors = repZ.errors.concat(errs);
