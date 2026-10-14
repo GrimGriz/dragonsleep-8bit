@@ -1222,8 +1222,13 @@
     if (!grudge && T.action > 0 && !u.conds.disarmed && B.ropes && B.ropes.length && !u.missionOnly && !(u.huntsClimbers && u.climbs)) { // (nothing but the window cuts no rope: 10-05, the fight log -- the male parted Barley's) (nor a hunter with a climb speed -- the spiders go down to the climber, not for the rope: 10-05 night, the seat's call)
       // (only a rope whose top is on its own level: a troll on the street walked off its fight toward the top of a rope 45 ft over it, took the blade beside it, dropped and knitted,
       // sixty rounds of it while Aurdin hung there -- the 10-05 bench; Griz: "we supposedly scripted the trolls to clear the street". From below, the one on the rope is a target as any is)
-      var zR0 = G.gzAt(u, u.x, u.y), stR = G.map.def.step;
-      var ropeT = B.ropes.filter(function (r) { return !r.cut && Math.abs(G.map.gz(r.at[0], r.at[1]) - zR0) <= stR && B.units.some(function (h) { return h.hang && h.hang.rope === r && G.hanging(h) && G.hostile(u, h) && G.standing(h); }); })[0];
+      // (and only one it can get to this turn, the nearest: the first in the list sent the Skylights' troll on the roof 30 ft a turn toward Barley's rope 150 ft off, away from Lymen beside
+      // it, and "paces: it cannot get at anyone" with its move spent -- two rounds of it in his 10-09 play: "a troll walking around on the skylights giving attacks of opportunity and
+      // saying he couldn't find anyone to attack". The bug-fix seat, 10-14; dev/bench16.js fix1014)
+      var zR0 = G.gzAt(u, u.x, u.y), stR = G.map.def.step, rchR = reachOf(u), rmR = null;
+      var canGet = function (r) { var sp = { x: r.at[0], y: r.at[1], size: 1 }; if (G.dist(u, sp) <= rchR) return true; rmR = rmR || G.reach(u, T.move); return Object.keys(rmR).some(function (k) { var e = rmR[k]; return e.stand && G.dist(u, sp, e.x, e.y) <= rchR; }); };
+      var ropeT = B.ropes.filter(function (r) { return !r.cut && Math.abs(G.map.gz(r.at[0], r.at[1]) - zR0) <= stR && B.units.some(function (h) { return h.hang && h.hang.rope === r && G.hanging(h) && G.hostile(u, h) && G.standing(h); }) && canGet(r); })
+        .sort(function (a, b) { return G.dist(u, { x: a.at[0], y: a.at[1], size: 1 }) - G.dist(u, { x: b.at[0], y: b.at[1], size: 1 }); })[0];
       var meleeA = ropeT && Object.keys(u.attacks || {}).map(function (k) { return u.attacks[k]; }).filter(function (a) { return a && !a.ranged && a.dice; })[0];
       if (ropeT && meleeA) {
         var rSpot = { x: ropeT.at[0], y: ropeT.at[1], size: 1 }, rRch = reachOf(u);

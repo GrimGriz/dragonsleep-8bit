@@ -1605,6 +1605,39 @@
     document.body.appendChild(preFL);
     return;
   }
+  // the bug-fix seat, 10-14 (mode=fix1014; the lanes desk's brief of 10-14): each check failed on the code before it
+  if (get('mode', '') === 'fix1014') {
+    var repX = { checks: [], errors: [], report: [] }, d0X = D.d;
+    function okX(what, v) { repX.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function runX(g) { var v, k = 0, st; while (g && k++ < 6000) { st = g.next(v); v = undefined; if (st.done) return st.value; if (st.value && st.value.prompt) v = st.value.prompt.opts[0].value; } }
+    function byIdX(Bx, id) { return Bx.units.filter(function (u) { return u.id === id; })[0]; }
+    function logX(Bx, n) { return (Bx.log || []).slice(n).join(' | ').replace(/\{\/?[a-z]*\}/g, ''); }
+    try {
+      D.seed = 11;
+      function skyX() { var Bx = new D.Battle({ ladder: true, fight: 'edifice', bench: true }); D.battle = Bx; Bx.enter(); var nx = 0; while (!Bx.order.length && nx++ < 3000) { if (Bx.co.next().done) break; } Bx.round = 4; (Bx.late || []).forEach(function (l) { if (l.round === Infinity) l.round = 4; }); runX(Bx.lateOut()); return Bx; }
+      // 1. THE TROLL ON THE GLASS (the AI and the dark §7; his 10-09 Skylights record, R11-R12: "The Troll paces: it cannot get at anyone" twice, after a walk that gave Lymen and Vivian
+      // their opportunity attacks): Lymen up the rope at (11,15), 10 ft from troll1 at (12,13); Barley hanging 10 ft up a new rope at (43,15), 150 ft east. The rope it went for was any rope
+      // with one of ours on it, however far: 30 ft toward Barley's, nothing in reach after, and the turn spent
+      function glassX(barleyRopeX) {
+        var Bx = skyX(), stX = Bx.map.def.step, at = { troll1: [12, 13], lymen: [11, 15], vivian: [28, 12], pyro: [25, 10], sgt: [26, 10], tr4: [25, 9], aurdin: [25, 16] };
+        Bx.units.forEach(function (w) { if (w.side === 'foe' && w.id !== 'troll1') { w.dead = true; w.hp = 0; } if (w.side === 'party' && !w.object && !at[w.id] && w.id !== 'barley') { w.x = 50; w.y = 30 + (w.id.length % 5); } if (at[w.id]) { w.x = at[w.id][0]; w.y = at[w.id][1]; delete w.hang; } });
+        var rp = { at: [barleyRopeX, 15], foot: [barleyRopeX, 16], hp: 2, by: 'barley' }; Bx.ropes = [rp];
+        var ba = byIdX(Bx, 'barley'); ba.x = barleyRopeX; ba.y = 16; ba.hang = { rope: rp, z: 4 * stX };
+        Bx.round = 11; var tl = byIdX(Bx, 'troll1'); tl.hp = 77; D.rules.startTurn(tl);
+        var n0 = (Bx.log || []).length; runX(D.ai.turn(Bx, tl)); return { B: Bx, t: tl, lg: logX(Bx, n0), rope: rp };
+      }
+      var GX = glassX(43), lmX = byIdX(GX.B, 'lymen');
+      okX('THE TROLL ON THE GLASS: Lymen 10 ft off on the roof, Barley on a rope 150 ft east -- the troll ends at (' + GX.t.x + ',' + GX.t.y + '), ' + D.grid.dist(GX.t, lmX) + ' ft from Lymen, paces ' + /cannot get at anyone/.test(GX.lg) + ', blows ' + (GX.lg.match(/Troll > [A-Za-z]+/g) || []).join(',') + ' -- ' + GX.lg.slice(0, 160),
+        !/cannot get at anyone/.test(GX.lg) && /Troll > Lymen/.test(GX.lg));
+      // ... and a rope it can get to this turn is still its target: Barley's rope 20 ft east of it, the walk there and the cut
+      var GX2 = glassX(16);
+      okX('THE TROLL ON THE GLASS: Barley on a rope at (16,15), in its walk -- it goes for the rope ' + /goes for the rope/.test(GX2.lg) + ' -- ' + (GX2.lg.match(/[^|]*goes for the rope[^|]*/) || [GX2.lg.slice(0, 120)])[0], /goes for the rope/.test(GX2.lg));
+    } catch (eX) { repX.errors.push(String(eX && eX.stack || eX).slice(0, 900)); D.d = d0X; }
+    if (errs.length) repX.errors = repX.errors.concat(errs);
+    var preX = document.createElement('pre'); preX.id = 'out'; preX.textContent = 'BENCH16 ' + JSON.stringify(repX);
+    document.body.appendChild(preX);
+    return;
+  }
   // the bug-fix seat, 10-13 (mode=fix1013; his notes of 10-09 to 10-12, filed by lane, and his answers of 10-13): each check failed on the code before it
   if (get('mode', '') === 'fix1013') {
     var repF = { checks: [], errors: [] }, d0F = D.d;
