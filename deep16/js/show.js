@@ -263,6 +263,9 @@
       var cx = Math.floor(D.grid.map.w / 2), cy = Math.floor(D.grid.map.h / 2);
       S.mate = B.units.filter(function (w) { return w.side === 'party' && !w.familiar; })[0];
       S.foes = B.units.filter(function (w) { return w.side === 'foe'; });
+      // (rowKind: the bestiary word it was asked by -- a named foe built by its class, GreyFang, has the kind `npcranger`, so the one gallery's
+      // eyes rows (`rows=greyfang`) found nothing to mark and N came back to him: Griz, 10-14, "couldn't greyfang or the 'n' after")
+      S.foes.forEach(function (u) { var w = String(u.id || '').replace(/^f\d+-/, ''); u.rowKind = D.FOES[w] ? w : u.kind; });
       S.mate.x = cx - 2; S.mate.y = cy + 1; S.mate.facing = 6; S.home = [cx, cy];
       S.foes.forEach(function (u) { u.show = true; u.bound = null; u.maxhp = u.hp; }); // (show: the ripple's mark, js/looks.js; bound to water, on a dry floor: let loose)
       // &sheet=<name>: the creature wears that sheet -- a new sheet seen on the floor before anything is built to wear it (10-08, GreyFang's isometric

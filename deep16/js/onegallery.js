@@ -125,7 +125,7 @@
   var FKEY = 'dsl-situations-feedback:v1', VERDICTS = [['works', 'works'], ['broken', 'broken'], ['unclear', 'unclear'], ['hard', 'too hard'], ['easy', 'too easy']]; // (situations.html's)
   function fbGet() { try { return JSON.parse(localStorage.getItem(FKEY) || '{}') || {}; } catch (e) { return {}; } }
   function fbPut(FB) { try { localStorage.setItem(FKEY, JSON.stringify(FB)); } catch (e) { /* (no store here: the mark is lost, the gallery goes on) */ } }
-  function entryKey(B) { var o = B.one, S = st(B); if (!S) return null; if (o.shelf === 'creatures') { var it = S.list[S.i]; return it && it.u.kind; } return S.ids[S.i]; }
+  function entryKey(B) { var o = B.one, S = st(B); if (!S) return null; if (o.shelf === 'creatures') { var it = S.list[S.i]; return it && (it.u.rowKind || it.u.kind); } return S.ids[S.i]; }
   // every eyes row whose door opens a shelf at an entry: { id, q (its door's query), shelf, want (the entries it names) }, most wanted first
   OG.galleryRows = function () {
     var E = window.DS && window.DS.EYES; if (!E) return [];
@@ -185,7 +185,7 @@
   }
   function current(B) {
     if (B.one.shelf !== 'creatures') return st(B).i;
-    var f = B.rowGallery.foes && B.rowGallery.foes[0]; return f ? OG.kinds().indexOf(f.kind) : 0;
+    var f = B.rowGallery.foes && B.rowGallery.foes[0]; return f ? Math.max(0, OG.kinds().indexOf(f.rowKind || f.kind)) : 0;
   }
   function openList(B) {
     var o = B.one, ns = names(B), cur = current(B);
