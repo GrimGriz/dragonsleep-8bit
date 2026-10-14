@@ -69,6 +69,10 @@
   //   k  a woodpile or crates   f  a rail or fence (posts and bars)   w  a well   b  a building's wall
   var STANDS = { P: 'a stalagmite', T: 'a tree', W: 'the wagon', V: 'the wagon', k: 'the woodpile', f: 'the rail', w: 'the well', y: 'the cradle' };
   iso.load = function (def) {
+    // heights at D.hscale (RULED 10-14, Griz: "now want that default across the board for grid mappings"; js/main.js sets it, 2 unless &hscale= says): a map's
+    // `step` is its own number in data/maps.js (kept as `step0`) times D.hscale, done here so a map made at runtime takes it too. The rules read feet through
+    // `step` (js/grid.js G.dist, G.LAYER, the falls), so only the picture changes. A map made from another's def copies its `step0`, never its scaled `step`
+    if (def.step) { if (def.step0 == null) def.step0 = def.step; def.step = Math.max(1, Math.round(def.step0 * (D.hscale || 1))); }
     var m = { def: def, w: def.rows[0].length, h: def.rows.length, sq: [] };
     for (var y = 0; y < m.h; y++) for (var x = 0; x < m.w; x++) {
       var ch = def.rows[y][x];

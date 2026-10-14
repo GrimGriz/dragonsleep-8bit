@@ -251,5 +251,8 @@
     'eyes-8bit-exit-shop-1013': { pri: 3, group: G2, title: 'The 8-bit: EXIT asks QUIT TO THE TITLE? with SAVE, THEN LEAVE; the keepers’ words in three lines; walking into a person (10-13)', pt: 'the road §7g (js/scenes.js exits, Shop; js/world.js tryMove)',
       url: '?at=pyro',
       look: 'In the field (here Solskaft’s vault hall): the menu’s EXIT reads QUIT TO THE TITLE?, SAVE, THEN LEAVE first (the slots, then the title; backing out of the slots leaves you where you were). At the Toll-Grille and Percy’s the keeper’s greeting is whole (three lines). Walking into a person opens the talk, as walking into a sign does. A night’s rest leaves the Ledger-Lamp lit in its hand (a torch goes out).' },
+    'eyes-height2-default-1014': { pri: 2, group: G2, title: 'Height 2 on every grid map by default: the story fights, the Game Show, the ladders (10-14)', pt: 'the maps §2c (deep16/js/main.js D.hscale, js/iso.js load)',
+      url: 'deep16/?fight=keeper',
+      look: 'Every grid map draws its heights twice as tall now, as the Skylights did at &hscale=2: here the Keeper’s stair (the dwarves’ mark should still sit on the north wall at a hand’s height, not halfway down it). Look too at a story fight inside the 8-bit, the Game Show’s station (the lighthouse, the cots, the chest), the Fork (deep16/?fight=roper), and a tall map’s camera on the 270 px screen. Add &hscale=1 to any door for the old squashed look. The rules are unchanged: the same five seeded fights came out identical at both heights.' },
   };
 })();

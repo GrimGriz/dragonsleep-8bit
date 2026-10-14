@@ -14,13 +14,13 @@
   // the default scale (10-09, Griz: "OPTIONS button on the front door with a slider for a default &scale= value - translated into resolution sizes"): the 8-bit
   // title's OPTIONS keeps it in deep16.opts (js/menu.js GRID SCALE); &scale= still wins, and a story fight inside the 8-bit (?embed) fits its frame as ever
   else if (!/[?&]embed\b/.test(q)) { try { var so = JSON.parse(window.localStorage.getItem('deep16.opts') || 'null'); if (so && so.scale >= 1 && so.scale <= 9) D.forceScale = so.scale | 0; } catch (e) { } }
-  // &hscale=N (10-08, Griz, on drawing height at true scale: "not the fight but the map, try it on the ediface"): every map's heights drawn N times as tall for this
-  // page -- a map's `step`, the px a 2.5 ft step is drawn (10 on most: 5 ft is 20 px, a figure about 50). The rules read feet through the same number (js/grid.js:
-  // G.dist, G.LAYER, the falls), so only the picture changes. A look, not a ruling: the maps keep their own steps
+  // heights drawn twice as tall by default (RULED 10-14, Griz: "we did discover height 2 on the edifice and now want that default across the board for grid
+  // mappings"; the look was &hscale=N, 10-08: "not the fight but the map, try it on the ediface"). A map's `step` is the px a 2.5 ft step is drawn (10 in most
+  // maps' own numbers: 5 ft is 20 px, a figure about 50); js/iso.js load draws it D.hscale times as tall, every map and every map made at runtime, in the
+  // story fights inside the 8-bit too. &hscale=1 is the old look. (The benches' page runs no main.js: the rules are the same either way, and they bench at 1)
   var hsc = /[?&]hscale=([0-9.]+)/.exec(q);
-  if (hsc && +hsc[1] > 0) {
-    D.hscale = +hsc[1];
-    Object.keys(D.MAPS || {}).forEach(function (k) { var m = D.MAPS[k]; if (m && m.step) m.step = Math.max(1, Math.round(m.step * D.hscale)); });
+  D.hscale = hsc && +hsc[1] > 0 ? +hsc[1] : 2;
+  if (D.hscale !== 1) {
     if (D.iso.setWall) D.iso.setWall(Math.round(D.iso.WALL * D.hscale)); // (the far walls rise with them, and the Edifice's painted walls under the glass go as deep again: js/iso.js)
   }
   // the Harbinger's switches, the bench's own (dev/bench16.js; 10-08), so a bench's seed watched on the class floor plays as it was benched: &callN=read reads the party (his pack,

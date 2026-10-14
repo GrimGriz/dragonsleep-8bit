@@ -609,7 +609,7 @@
       // wall's plane (geo.rune the landing square beside it [DEEP16 12,7 -- Griz 10-03], geo.runeFace 'c+' the wall it is on), not drawn flat to the viewer
       var rs = K.at(gm.rune[0], gm.rune[1]), rgz = B.map.gz(rs[0], rs[1]), fx = geo().axis === 'x' ? rs[0] : rs[0] + 0.5, fy = geo().axis === 'x' ? rs[1] - 0.5 : rs[1];
       out.push({ depth: rs[0] + rs[1] + 0.9, gz: rgz, layer: 1, draw: function (ctx) {
-        var iso = D.iso, c = iso.center(fx, fy, rgz + 22), sc = iso.toScreen(c.x, c.y), t = B.t, glow = 0.55 + 0.25 * Math.sin(t / 22), C = ramp(), x = Math.round(sc.x), y = Math.round(sc.y);
+        var iso = D.iso, c = iso.center(fx, fy, rgz + 22 * (D.hscale || 1)), sc = iso.toScreen(c.x, c.y), t = B.t, glow = 0.55 + 0.25 * Math.sin(t / 22), C = ramp(), x = Math.round(sc.x), y = Math.round(sc.y);
         ctx.save(); ctx.translate(x, y); ctx.transform(1, iso.TH / iso.TW, 0, 1, 0, 0); // (along the wall: x runs down-right at the tile's slope)
         ctx.globalAlpha = 0.25 * glow + 0.1; ctx.fillStyle = C[1]; ctx.beginPath(); ctx.ellipse(0, 0, 13, 11, 0, 0, 7); ctx.fill();
         ctx.globalAlpha = glow + 0.2; ctx.strokeStyle = C[0]; ctx.lineWidth = 1;

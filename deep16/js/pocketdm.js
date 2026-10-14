@@ -430,7 +430,7 @@
     ['DOWN TO THE WET', '../?at=wet3&lead=lymen', 'a level-3 party led by Lymen, the gates down to the Wet open'],
     ['PRONE, 8-BIT', '../?at=prone8', 'a show: sleet over two ogres and a worg, each falling on its side'],
     ['THE SKYLIGHTS', '?fight=edifice', 'the Edifice\'s defend fight: two stone giants, two trolls, Pyro'],
-    ['THE SKYLIGHTS, TALL', '?fight=edifice&hscale=2', 'the same with every height drawn twice as tall'],
+    ['THE SKYLIGHTS, SQUASHED', '?fight=edifice&hscale=1', 'the same with heights drawn half as tall, as every map was before 10-14'],
     ['GREYFANG\'S PIT', '?fight=greyfang', 'the Harbinger comes for GreyFang in public; GreyFang\'s end'],
     ['GREYFANG\'S PIT, READ', '?fight=greyfang&callN=read', 'the pack, the toying and the mirror double read off the party'],
     ['THE HARBINGER', '?fight=harbinger', 'the made gnoll on the Gnoll Hills: the ladder\'s 7th'],
