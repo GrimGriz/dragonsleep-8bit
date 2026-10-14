@@ -476,7 +476,7 @@
       if (f0.otyughDead || f0.otyughFed) {
         var fl0 = [R.say8(f0.otyughDead ? 'w.poolQuiet' : 'w.landlordFed')];
         if (f0.otyughFed && !f0.otyughFedXp) { f0.otyughFedXp = 1; fl0 = fl0.concat(R.pay(B, window.DS.R.fedPool(), R.say8('w.fedXp'))); }
-        B.card(R.wrap(fl0), 260); yield 20; return;
+        B.card(R.wrap(fl0), 260); yield 20; yield* R.picks(B); return;
       }
       yield* R.pullIn(B, 'wet', trig, at); R.bucketProp(B); return;
     }
@@ -737,6 +737,7 @@
     if (R0.flags.otyughFed && !R0.flags.otyughFedXp) { R0.flags.otyughFedXp = 1; fedL = R.pay(B, window.DS.R.fedPool(), R.say8('w.fedXp')); }
     if (xpL.length || loot8.length) { B.card(R.wrap([done === 'won' ? '{y}Victory!{/}' : '{y}What fell{/}'].concat(xpL, loot8)), 420); yield 40; }
     if (fedL.length) { B.card(R.wrap(fedL), 360); yield 40; }
+    yield* R.picks(B);
     // the Keeper beaten: it sinks back, and the five come up (the 8-bit's S.stair and S.mark: the rope's haul or its going, then fiveUp)
     if (which === 'keeper' && done === 'won') yield* R.five(B, how === 'rope' ? 'w.ropeOut' : 'w.keeperGone');
   };
@@ -866,12 +867,24 @@
     var guests = B.units.filter(function (u) { return u.side === 'party' && u.guest && !u.familiar && !u.summon && !u.object && u.hp > 0 && R0.members.indexOf(u) < 0; }).length;
     var before = heroes.map(function (u) { return { u: u, lvl: u.src.lvl, feats: JSON.parse(JSON.stringify(u.src.feats || {})) }; });
     var sx = window.DS.R.shareXP(xp, heroes.map(function (u) { return u.src; }), guests);
-    before.forEach(function (b) { if (b.u.src.lvl !== b.lvl) R.relevel(B, b.u, b.feats); });
+    before.forEach(function (b) { if (b.u.src.lvl !== b.lvl) { R.relevel(B, b.u, b.feats); R0.picksDue = (R0.picksDue || []).concat([b.u]); } });
     var out = [];
     if (sx.each) out.push(line ? line.replace('{n}', sx.each) : sx.line);
     if (sx.ups.length) { D.sfx('levelup'); out = out.concat(sx.ups); }
     R0.xpPaid = (R0.xpPaid || 0) + sx.each; // (the bench reads it)
     return out;
+  };
+  // the level-up's choices, on the floor as in the 8-bit (10-14, Griz: "leveling up in the roam should work like leveling up in 8bit."): after the pay's card, the heroes
+  // R.pay levelled with a pick due, on the one pick page over the floor (deep16/js/climb.js D.levelPicks, the level-up pick lane's), the script waiting under it as under
+  // the M menu; then each figure brought up to its sheet again (a CON swap's hit points, the spell, the archetype). No one to ask (a bench): the build's picks at once
+  R.picks = function* (B) {
+    var R0 = B.roam, us = (R0.picksDue || []).filter(function (u, i, a) { return a.indexOf(u) === i && window.DS.R.picksDue(u.src); });
+    R0.picksDue = [];
+    if (!us.length || !D.levelPicks) return;
+    var feats = us.map(function (u) { return JSON.parse(JSON.stringify(u.src.feats || {})); });
+    yield 60; // (the level-up's lines read first: the 8-bit's page opens after them)
+    yield* D.levelPicks(B, us.map(function (u) { return u.src; }));
+    us.forEach(function (u, i) { R.relevel(B, u, feats[i]); });
   };
   // a figure brought up to its sheet after a level (js/rules.js R.levelUp changed the sheet; the figure walks on with its own hurt and spent slots): the new hit points
   // on top of what it has, the new slots added, a feat's new uses added, the rest read again off the sheet as js/save.js makes a figure (gear and AC: R.regear)
@@ -1290,6 +1303,7 @@
     // the gather pays: the XP of everything that fell since the last one; on a win the coin, the drops and the parts off this fight's fallen (a getaway forfeits them)
     var paid = o === 'won' ? R.spoils(B, fell) : [], xpL = R.pay(B);
     if (paid.length || xpL.length) { B.card(R.wrap([o === 'won' ? '{y}Victory!{/}' : '{y}What fell{/}'].concat(xpL, paid)), 420); yield 30; }
+    yield* R.picks(B);
     yield 20;
     if (g2) g2.t = B.t; // (their hold starts when the party can move again, not during the gather's beat)
     if (o === 'won') yield* R.landed(B); // (the square a won fight's gather ends on, once; a getaway sets the party down off any trigger and fires none -- his play, 10-14)

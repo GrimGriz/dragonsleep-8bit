@@ -2037,6 +2037,7 @@
     function okZ(what, v) { repZ.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
     function driveZ(g, until, cap) { var v, k = 0, st; while (k++ < (cap || 20000)) { if (until && until()) return true; st = g.next(v); v = undefined; if (st.done) return !!(until && until()) || !until; if (typeof st.value === 'number' && D.battle) D.battle.t += Math.max(1, st.value); if (st.value && st.value.prompt) v = st.value.prompt.opts[0].value; } return !!(until && until()); }
     D.store.get = function (k) { return memZ[k] ? JSON.parse(memZ[k]) : null; }; D.store.set = function (k, v) { memZ[k] = JSON.stringify(v); return true; };
+    var apZ = window.DS.autoPicks; window.DS.autoPicks = true; // (no one to ask: a level-up's picks the build's at once -- the page's own check below turns it off)
     try {
       D.seed = +get('seed', 1014);
       var BZ = D.roam.make('?roam=wet&watch&enc=999&lvl=3'); D.scenes.length = 0; D.push(BZ); D.battle = BZ; BZ.enter();
@@ -2139,6 +2140,43 @@
         xpW.every(function (x) { return x === eachW; }) && RZ.silver > sil0 && (RZ.kills.crawler || 0) - kc0 === 2 && (RZ.kills['warrens_d:crawler'] || 0) - kz0 === 2 && /Victory!/.test(saidW));
       okZ('Aurdin up a level, his figure with him: level ' + lv0 + ' to ' + aurZ.lvl + ', max HP ' + mh0 + ' to ' + aurZ.maxhp + ' (HP ' + hp0 + ' to ' + aurZ.hp + '), slots ' + sm0 + ' to ' + (aurZ.slotsMax || []).join(',') + ' (left ' + sl0.join(',') + ' to ' + (aurZ.slots || []).join(',') + ')',
         aurZ.lvl === lv0 + 1 && aurZ.maxhp > mh0 && aurZ.hp - hp0 === aurZ.maxhp - mh0 && (aurZ.slotsMax || []).join(',') !== sm0 && aurZ.slots[1] === (sl0[1] || 0) + (aurZ.slotsMax[1] - +(sm0.split(',')[1] || 0)));
+      // the level-up's picks on the floor (10-14, Griz: "leveling up in the roam should work like leveling up in 8bit."; the level-up pick lane's D.levelPicks): a player there
+      // (DS.autoPicks off), Barley to 4 and Aurdin to 5 at a won fight's gather -- the one pick page opens over the floor after the card, each in turn; the script is stepped
+      // here only while no menu is up, as the frame steps it (deep16/js/battle.js frame). Barley's CON +2 for the build's STR lands on his sheet and, once the page shuts,
+      // on his figure (R.relevel after the page: his max HP by his level); Haste for Lightning Bolt in Aurdin's book (castable after a long rest, as the 8-bit's level-up says)
+      RZ.groups = []; RZ.xpBank = 0; window.DS.autoPicks = false;
+      var barZ = RZ.members.filter(function (u) { return u.id === 'barley'; })[0], lvB = barZ.src.lvl, strB = barZ.src.abil.str, conB = barZ.src.abil.con, mhB = barZ.maxhp, mhB0 = null;
+      RZ.members.forEach(function (u) { u.src.xp = (u === aurZ || u === barZ) ? window.DS.R.XP_LEVEL[u.src.lvl + 1] - 1 : window.DS.R.XP_LEVEL[u.src.lvl]; });
+      var cP = mkZ(5, 12, 32); cP.hp = 0; cP.dead = true;
+      var KP = function (b) { return { pressed: function (x) { return x === b; }, repeat: function (x) { return x === b; } }; };
+      var rowP = function (pg, id) { for (var t = 0; t < pg.tabs.length; t++) { pg.tab = t; pg.list.i = 0; pg.refresh(); for (var i = 0; i < pg.list.items.length; i++) { var it = pg.list.items[i]; if (it.value && it.value.id === id) { pg.list.i = i; pg.list.fix(); return true; } } } return false; };
+      var hitP = function (m, id) { var pg = m.top(); if (!rowP(pg, id)) return false; m.update(KP('a')); return true; };
+      var confirmPk = function (m) { var pg = m.top(); pg.list.i = pg.list.items.length - 1; pg.list.fix(); m.update(KP('a')); };
+      var lvP = aurZ.lvl, gPk = D.roam.after(BZ, 'won', { zone: 'warrens_d' }, [cP]), mP = null, seenP = [], hitsP = [], doneP = false, stuckP = false;
+      RZ.mode = 'fight';
+      var ctxP0 = D.ctx; if (!D.ctx) { var cvPk = document.createElement('canvas'); cvPk.width = 480; cvPk.height = 270; D.ctx = cvPk.getContext('2d'); } // (the bench's page has no screen: D.levelPicks asks no one without one)
+      for (var kP = 0; kP < 4000 && !doneP && !stuckP; kP++) {
+        if (BZ.menu) {
+          if (!mP) { mP = BZ.menu.m; mhB0 = barZ.maxhp; }
+          var hK = mP.top() && mP.top().h;
+          if (!hK || seenP.indexOf(hK) >= 0) { stuckP = true; BZ.menu = null; break; } // (a page that does not move on or shut on CONFIRM)
+          seenP.push(hK);
+          if (hK === aurZ.src) hitsP = hitsP.concat([hitP(mP, 'lightningbolt'), hitP(mP, 'haste')]);
+          if (hK === barZ.src) hitsP = hitsP.concat([hitP(mP, 'str'), hitP(mP, 'con'), hitP(mP, 'con')]);
+          confirmPk(mP); mP.update(KP('a'));
+          continue;
+        }
+        var stP = gPk.next(); if (stP.done) doneP = true; else if (typeof stP.value === 'number') BZ.t += Math.max(1, stP.value);
+      }
+      window.DS.autoPicks = true; D.ctx = ctxP0;
+      var shP = aurZ.src.known || [], fgP = aurZ.known || [], modP = function (x) { return Math.floor((x - 10) / 2); }, upB = barZ.src.lvl * (modP(conB + 2) - modP(conB));
+      okZ('a level-up at the gather with a player there: the pick page over the floor (' + !!mP + '), for ' + seenP.map(function (h) { return h.name; }).join(' then ') + ' (want Barley and Aurdin)',
+        !!mP && seenP.length === 2 && seenP.indexOf(barZ.src) >= 0 && seenP.indexOf(aurZ.src) >= 0);
+      okZ('Barley ' + lvB + ' to ' + barZ.src.lvl + ', CON +2 for the build\'s STR: his sheet STR ' + barZ.src.abil.str + ' (want ' + strB + '), CON ' + barZ.src.abil.con + ' (want ' + (conB + 2) + '); his figure after the page, max HP ' + mhB0 + ' to ' + barZ.maxhp + ' (want +' + upB + ')',
+        hitsP.length === 5 && hitsP.every(Boolean) && barZ.src.abil.str === strB && barZ.src.abil.con === conB + 2 && barZ.maxhp - mhB0 === upB && upB > 0);
+      okZ('Aurdin ' + lvP + ' to ' + aurZ.lvl + ', Haste for Lightning Bolt: his book (haste ' + (shP.indexOf('haste') >= 0) + ', lightningbolt ' + (shP.indexOf('lightningbolt') >= 0) + ', fireball ' + (shP.indexOf('fireball') >= 0) + '), not castable on the floor before a long rest (' + (fgP.indexOf('haste') < 0 && fgP.indexOf('lightningbolt') < 0) +
+        '); nothing left asked (' + !aurZ.src.picks + ', ' + !barZ.src.picks + ', ' + !aurZ.src.pendingChoice + ', ' + !barZ.src.pendingChoice + '), the page shut (' + !stuckP + ', ' + !BZ.menu + '), the script to its end (' + doneP + ')',
+        shP.indexOf('haste') >= 0 && shP.indexOf('lightningbolt') < 0 && shP.indexOf('fireball') >= 0 && fgP.indexOf('lightningbolt') < 0 && !aurZ.src.picks && !barZ.src.picks && !aurZ.src.pendingChoice && !barZ.src.pendingChoice && !stuckP && !BZ.menu && doneP && aurZ.lvl === lvP + 1);
       // d. got away: one fell, one still up -- the fallen's XP at the gather, no coin; the one still up carries its XP into the pursuit and pays when it falls
       RZ.groups = []; RZ.xpBank = 0;
       var cC = mkZ(3, 12, 26), cD = mkZ(4, 14, 26); cC.hp = 0; cC.dead = true;
@@ -2428,7 +2466,7 @@
       okZ('the Wet\'s chest on the floor (' + !!chZ + '), its square closed (' + !(chS && chS.walk) + '): opened beside it, the greater potion (+' + (gp1 - gp0) + ') and its flag (' + !!RJ.flags[key] + '); again, empty (' + empty + ')',
         !!chZ && chS && !chS.walk && gp1 - gp0 === 1 && RJ.flags[key] === 1 && empty);
     } catch (eZ) { repZ.errors.push(String(eZ && eZ.stack || eZ).slice(0, 900)); }
-    D.store.get = stGZ; D.store.set = stSZ; IZ.held.up = false; IZ.held.left = false;
+    D.store.get = stGZ; D.store.set = stSZ; IZ.held.up = false; IZ.held.left = false; window.DS.autoPicks = apZ;
     if (errs.length) repZ.errors = repZ.errors.concat(errs);
     if (repZ.errors.length) repZ.checks.push('FAIL an error (' + repZ.errors[0].slice(0, 160) + ')');
     var preZ = document.createElement('pre'); preZ.id = 'out'; preZ.textContent = 'BENCH16 ' + JSON.stringify(repZ);
