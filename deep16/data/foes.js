@@ -778,7 +778,7 @@
     multi: ['axe', 'star'], twoHeads: true, src: 'SRD 5.1 Ettin (CR 4, Large): battleaxe and morningstar; content/monsters.json ettin (leg two); Two Heads (advantage on saves against being blinded, charmed, deafened, frightened, stunned or knocked out (Two Heads, SRD 5.1: js/rules.js RU.save, 10-02 runner): the charm, fright and stun it is proof against, read so) (js/traits.js, 09-28); the advantage of Two Heads on Wisdom (Perception) checks read where the Perception of a foe is rolled against: the passive score is 5 up (battle.js hide, `twoHeads`; 10-02); the `condImmune: asleep` that stood for Wakeful taken off (SRD 5.1 gives the ettin no condition immunity, so Sleep can take it now; Wakeful itself is not read; 10-02 runner)'
   },
   mouther: {
-    name: 'Gibbering Mouther', type: 'aberration', sheet: 'mouther_p1', cr: '2', ac: 9, hp: 67, speed: 10, size: 1, reach: 5, darkvision: 60,
+    name: 'Gibbering Mouther', type: 'aberration', sheet: 'mouther_p2', cr: '2', ac: 9, hp: 67, speed: 10, size: 1, reach: 5, darkvision: 60,
     abil: { str: 10, dex: 8, con: 16, int: 3, wis: 10, cha: 6 }, init: -1, perception: 10,
     saves: { str: 0, dex: -1, con: 3, int: -4, wis: 0, cha: -2 },
     attacks: { bites: { name: 'Bites', atk: 2, dice: '5d6', mod: 0, type: 'piercing', reach: 5, prone: 10, proneMax: 1 } }, // (Medium or smaller: STR 10 or knocked prone)
