@@ -3519,6 +3519,21 @@
       var wT = PKP.wordOf(PKt.st, PKt.st.party[0]), tal4 = PKP.sheetOf(PKP.specOf(PKt.st, PKt.st.party[0]));
       okLp('TALMOK\'S CARD 3 -> 4 asks his increase (' + !!pmT + '): DEX ' + tal3.abil.dex + ' -> ' + tal4.abil.dex + ', STR ' + tal3.abil.str + ' -> ' + tal4.abil.str + ', the word ' + wT,
         !!pmT && tal4.abil.dex === tal3.abil.dex + 2 && tal4.abil.str === tal3.abil.str && /talmok:4:grown\+\^4a:dex2/.test(wT));
+      // g. the class options on THE GEAR's tabs (NPC.OPTIONS): a sorcerer's metamagic, a warlock's invocations and pact, a druid's land -- the sheet, the word, back
+      function clickLp(label) { btnsLp(); var b = PKl.btns.filter(function (x) { return x.label === label; })[0]; if (b) b.fn(); return !!b; }
+      PKl.mk.cls = 'sorcerer'; PKl.kitUp(); PKl.mk.lvl = 3; PKl.mk.step = 4; PKl.mk.tab = 'metamagic';
+      var tabsS = btnsLp(), fullS = clickLp('Careful Spell'), stillS = JSON.stringify(PKl.mkSheet().metamagic); clickLp('Quickened Spell'); clickLp('Careful Spell');
+      var sS = PKl.mkSheet(), wS = NPCx.code(PKl.mkSpec()), bS = NPCx.sheet(NPCx.spec(wS));
+      okLp('A SORCERER AT 3: a METAMAGIC tab (' + (tabsS.indexOf('METAMAGIC') >= 0) + '), two already (a third refused: ' + stillS + '), Careful for Quickened: ' + JSON.stringify(sS.metamagic) + ', the word ' + wS.slice(-20) + ', back ' + JSON.stringify(bS.metamagic),
+        tabsS.indexOf('METAMAGIC') >= 0 && fullS && stillS === '["quickened","twinned"]' && JSON.stringify(sS.metamagic) === '["twinned","careful"]' && /\.m:twinned-careful$/.test(wS) && JSON.stringify(bS.metamagic) === '["twinned","careful"]');
+      PKl.mk.cls = 'warlock'; PKl.kitUp(); PKl.mk.lvl = 5; PKl.mk.step = 4; PKl.mk.tab = 'invocations';
+      var tabsW = btnsLp(); clickLp('Devil\'s Sight'); clickLp('Fiendish Vigor'); PKl.mk.tab = 'pact'; clickLp('Pact of the Blade');
+      var sW = PKl.mkSheet(), wW = NPCx.code(PKl.mkSpec()), bW = NPCx.sheet(NPCx.spec(wW));
+      okLp('A WARLOCK AT 5: INVOCATIONS and PACT tabs (' + (tabsW.indexOf('INVOCATIONS') >= 0 && tabsW.indexOf('PACT') >= 0) + '), Fiendish Vigor for Devil\'s Sight: ' + JSON.stringify(sW.invocations) + ', the Blade (' + sW.pact + ', ' + sW.equip.weapon + '); the word ' + wW.slice(-44) + ', back ' + JSON.stringify(bW.invocations) + ' ' + bW.pact,
+        tabsW.indexOf('INVOCATIONS') >= 0 && tabsW.indexOf('PACT') >= 0 && JSON.stringify(sW.invocations) === '["agonizing","repelling","fiendishvigor"]' && sW.pact === 'blade' && JSON.stringify(bW.invocations) === JSON.stringify(sW.invocations) && bW.pact === 'blade');
+      PKl.mk.cls = 'druid'; PKl.kitUp(); PKl.mk.lvl = 3; PKl.mk.step = 4; PKl.mk.tab = 'land'; clickLp('the Mountain');
+      var sDr = PKl.mkSheet(), wDr = NPCx.code(PKl.mkSpec()), bDr = NPCx.sheet(NPCx.spec(wDr)), alwDr = (NPCx.prepInfo(NPCx.spec(wDr)) || {}).always || [];
+      okLp('A DRUID AT 3, the Mountain: ' + sDr.land + ', back ' + bDr.land + ', always ready ' + JSON.stringify(alwDr), sDr.land === 'mountain' && bDr.land === 'mountain' && alwDr.indexOf('spikegrowth') >= 0);
       var rowsR = RL.pickRows({ id: 'npc-rogue3', cls: 'rogue', lvl: 3, abil: {}, skills: {} }, { lvl: 3 }, { kind: 'archetype', need: 1, took: null }, {}).map(function (r) { return r.id; });
       okLp('THE PICK PAGE for a rogue with no sheet of its own offers the class\'s: ' + rowsR.join('/'), rowsR.join('/') === 'Thief/Cutthroat');
     } catch (eLp) { repLp.errors.push(String(eLp && eLp.stack || eLp).slice(0, 900)); }

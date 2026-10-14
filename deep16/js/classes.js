@@ -88,6 +88,42 @@
   // our four (09-28h, Griz: "the off SRD ones we made to 9"; "AI now, buttons later"): the tester ladder's party (js/ladder.js
   // ?ladder&party=ours), each built at the rung's level. One who is across the floor on that rung (the Wagon Yard's Willem, the
   // Card's Top's Talmok) sits it out: three of ours, not a man against himself (the seat's call; flagged)
+  // the class options a made one chooses with its level (10-14, the level-up pick: "Pocket has leveling choices"), the built ones only: the spec's own fields
+  // (NPC.sheet reads them), `at` the class level they come, `count` how many at a level (none: one of them). The Pocket DM's maker shows each as a tab beside
+  // STYLE; its word keeps the choice (NPC.code's 10th field). The rogue's Expertise waits: the class floor keeps no skills to double
+  NPC.OPTIONS = {
+    sorcerer: [{ key: 'metamagic', word: 'METAMAGIC', at: 3, count: function (L) { return L >= 17 ? 4 : L >= 10 ? 3 : 2; }, opts: [
+      { id: 'quickened', name: 'Quickened Spell', desc: '2 points: a spell of an action cast as a bonus action' },
+      { id: 'twinned', name: 'Twinned Spell', desc: 'a point a spell level: a one-target spell takes a second' },
+      { id: 'careful', name: 'Careful Spell', desc: '1 point: friends in its area make the save' },
+      { id: 'heightened', name: 'Heightened Spell', desc: '3 points: one target saves at disadvantage' }] }],
+    warlock: [{ key: 'invocations', word: 'INVOCATIONS', at: 2, count: function (L) { return L >= 12 ? 6 : L >= 9 ? 5 : L >= 7 ? 4 : L >= 5 ? 3 : 2; }, opts: [
+      { id: 'agonizing', name: 'Agonizing Blast', desc: 'CHA added to each Eldritch Blast beam' },
+      { id: 'devilsight', name: 'Devil\'s Sight', desc: 'sees in any dark, the magical too, to 120 ft' },
+      { id: 'repelling', name: 'Repelling Blast', desc: 'an Eldritch Blast beam that hits pushes 10 ft' },
+      { id: 'fiendishvigor', name: 'Fiendish Vigor', desc: 'False Life at will: 1d4+4 temporary HP to start a fight' }] },
+      { key: 'pact', word: 'PACT', at: 3, opts: [
+        { id: 'tome', name: 'Pact of the Tome', desc: 'three cantrips: Fire Bolt, Sacred Flame, Vicious Mockery' },
+        { id: 'blade', name: 'Pact of the Blade', desc: 'a pact weapon in hand: a rapier, proficient, magical' }] }],
+    druid: [{ key: 'land', word: 'LAND', at: 2, opts: [
+      { id: 'underdark', name: 'the Underdark', desc: 'Web, Stinking Cloud, Greater Invisibility, Insect Plague' },
+      { id: 'mountain', name: 'the Mountain', desc: 'Spike Growth, Lightning Bolt, Stoneskin, Wall of Stone' }] }]
+  };
+  // the options as a word's field ('m:twinned-careful_p:blade'), and back to the spec's fields (the built ones only, each at its level)
+  NPC.optWord = function (cls, sp) {
+    var c = C[cls] || {};
+    return (NPC.OPTIONS[cls] || []).map(function (o) {
+      var v = sp[o.key]; if (v == null || (o.key === 'pact' && v === c.pact)) return '';
+      return o.key.charAt(0) + ':' + (o.count ? v.join('-') : v);
+    }).filter(Boolean).join('_');
+  };
+  NPC.optRead = function (cls, s, lvl, sp) {
+    (s || '').split('_').forEach(function (t) {
+      var o = (NPC.OPTIONS[cls] || []).filter(function (x) { return x.key.charAt(0) === t.charAt(0) && t.charAt(1) === ':'; })[0]; if (!o || lvl < o.at) return;
+      var ids = o.opts.map(function (x) { return x.id; }), vs = t.slice(2).split('-').filter(function (x) { return ids.indexOf(x) >= 0; });
+      if (o.count) { if (vs.length) sp[o.key] = vs.slice(0, o.count(lvl)); } else if (vs.length === 1) sp[o.key] = vs[0];
+    });
+  };
   NPC.OURS = ['talmok', 'willem', 'katarina', 'torvald'];
   // the tester ladder's four at L, each the grown build (09-28h, Griz: "grown builds please": no dip at a register's own level). One of
   // ours who is that rung's foe (Willem in the Wagon Yard, Talmok on the Card's Top) is swapped for an alternate (Griz: "swap in
@@ -370,7 +406,7 @@
     var top = 0; (h.slotsMax || []).forEach(function (n, i) { if (n > 0) top = i + 1; });
     var n = c.known ? c.known[h.lvl - 1] : Math.max(1, DS.mod(h.abil[c.prepares]) + (c.half ? Math.floor(h.lvl / 2) : h.lvl));
     if (c.half && h.lvl < 2) n = 0;
-    var alw = alwaysOf(c, h.subclass, h.lvl), g = spec.grow || {}, sp = c.spells || {}, pool = (spec.known || []).slice();
+    var alw = alwaysOf(c, h.subclass, h.lvl, h.land), g = spec.grow || {}, sp = c.spells || {}, pool = (spec.known || []).slice();
     for (var L = 1; L <= top; L++) pool = pool.concat(g[L] || [], sp[L] || []);
     pool = pool.filter(uniq).filter(function (id) { var L2 = lv(id); return L2 >= 1 && L2 <= top && alw.indexOf(id) < 0; })
       .map(function (id, i) { return { id: id, i: i, lv: lv(id) }; }).sort(function (a, b) { return a.lv - b.lv || a.i - b.i; }).map(function (x) { return x.id; });
@@ -545,6 +581,7 @@
     if (f[7] && (R.STYLE_FOR[cls] || []).indexOf(f[7]) >= 0) sp.style = f[7]; // (the fighting style picked, 10-06: a word made before it has none, and fights by the class's)
     var so = f[8] && R.subOpt && R.subOpt(cls, f[8]); // (the subclass picked, 10-14 -- js/rules.js R.SUBCLASSES: a word made before it has none, and is the SRD's)
     if (so && lvl >= R.SUBCLASSES[cls].at) sp.subclass = so.name;
+    if (f[9]) NPC.optRead(cls, f[9], lvl, sp); // (the class options picked: metamagic, invocations, the pact, the land -- 10-14)
     if (picks) sp.picks = picks;
     return sp;
   };
@@ -553,7 +590,7 @@
     var eq = sp.equip || {}, gear = NPC.GEAR.map(function (k) { return k === 'alt' ? (sp.alt || '') : (eq[k] || ''); }).join('_');
     var name = String(sp.name || '').replace(/[^A-Za-z0-9 \-']/g, '').replace(/'/g, '').trim().replace(/ +/g, '_');
     var so = sp.subclass && R.subOpt ? R.subOpt(sp.cls, sp.subclass) : null;
-    return '~' + [sp.cls, sp.lvl, sp.race || 'human', ab, gear, name, (sp.known || []).join('-'), sp.style || '', so && !so.srd ? so.id : ''].join('.').replace(/\.+$/, '')
+    return '~' + [sp.cls, sp.lvl, sp.race || 'human', ab, gear, name, (sp.known || []).join('-'), sp.style || '', so && !so.srd ? so.id : '', NPC.optWord(sp.cls, sp)].join('.').replace(/\.+$/, '')
       + (sp.picks && R.picksWord ? R.picksWord(sp.picks).map(function (p) { return '+' + p; }).join('') : ''); // (its level picks, after the word: 10-14)
   };
   // the class floor from a URL: ?npc=cleric,wizard&lvl=5 -- those against the four at that level; &vs=fighter,rogue -- a band instead

@@ -695,12 +695,13 @@
     if (sp && sp.abil) { var rc = NPC.RACES[sp.race] || NPC.RACES.human; Object.keys(rc.abil).forEach(function (k) { abil[k] -= rc.abil[k]; }); }
     this.mk = { step: 1, slot: slotIndex, editing: custom ? this.st.party[slotIndex].custom : null, cls: sp ? sp.cls : 'fighter', race: sp ? sp.race : 'human', abil: abil, lvl: sp ? Math.min(PK.cap(this.st), sp.lvl) : 1,
       equip: sp ? Object.assign({}, sp.equip) : null, alt: sp ? sp.alt : undefined, known: sp && sp.known ? sp.known.slice() : null, name: sp ? sp.name : '', tab: 'weapon', spellTab: 0,
-      style: sp ? sp.style || NPC.CLASSES[sp.cls].style || null : null, sub: sp && sp.subclass ? sp.subclass : null, picks: sp && sp.picks ? JSON.parse(JSON.stringify(sp.picks)) : null };
+      style: sp ? sp.style || NPC.CLASSES[sp.cls].style || null : null, sub: sp && sp.subclass ? sp.subclass : null, picks: sp && sp.picks ? JSON.parse(JSON.stringify(sp.picks)) : null, opt: null };
+    var mk0 = this.mk; if (sp) (NPC.OPTIONS[sp.cls] || []).forEach(function (o) { if (sp[o.key] != null && !(o.key === 'pact' && sp.pact === NPC.CLASSES[sp.cls].pact)) { mk0.opt = mk0.opt || {}; mk0.opt[o.key] = o.count ? sp[o.key].slice() : sp[o.key]; } }); // (its class options, 10-14)
     if (!this.mk.equip) this.kitUp();
     this.go('maker');
   };
   // (the class's own kit -- and its own fighting style, the maker's STYLE tab picks another: 10-06)
-  Pocket.prototype.kitUp = function () { var c = NPC.CLASSES[this.mk.cls]; this.mk.equip = { weapon: c.kit.weapon, armor: c.kit.armor || null, shield: c.kit.shield || null, ring: null, cloak: null }; this.mk.alt = c.kit.alt || null; this.mk.known = null; this.mk.style = c.style || null; this.mk.sub = null; this.mk.picks = null; };
+  Pocket.prototype.kitUp = function () { var c = NPC.CLASSES[this.mk.cls]; this.mk.equip = { weapon: c.kit.weapon, armor: c.kit.armor || null, shield: c.kit.shield || null, ring: null, cloak: null }; this.mk.alt = c.kit.alt || null; this.mk.known = null; this.mk.style = c.style || null; this.mk.sub = null; this.mk.picks = null; this.mk.opt = null; };
   Pocket.prototype.mkSpec = function () {
     var m = this.mk, rc = NPC.RACES[m.race] || NPC.RACES.human, abil = {};
     NPC.ABIL.forEach(function (k) { abil[k] = m.abil[k] + (rc.abil[k] || 0); });
@@ -708,6 +709,7 @@
     if (m.style && (R.STYLE_FOR[m.cls] || []).indexOf(m.style) >= 0) sp.style = m.style;
     if (m.known) sp.known = m.known.slice();
     if (NPC.CLASSES[m.cls].pact) sp.pact = NPC.CLASSES[m.cls].pact;
+    (NPC.OPTIONS[m.cls] || []).forEach(function (o) { var v = m.opt && m.opt[o.key]; if (v == null || m.lvl < o.at) return; sp[o.key] = o.count ? v.slice(0, o.count(m.lvl)) : v; }); // (the class options picked on THE GEAR's tabs, 10-14)
     var sc = R.SUBCLASSES[m.cls]; if (m.sub && sc && m.lvl >= sc.at && R.subOpt(m.cls, m.sub)) sp.subclass = m.sub;
     if (m.picks) { var pp = {}; Object.keys(m.picks).forEach(function (L) { if (+L <= m.lvl) pp[L] = m.picks[L]; }); if (Object.keys(pp).length) sp.picks = pp; } // (the increases picked on THE LEVEL, 10-14) // (the subclass picked on THE LEVEL, 10-14; none picked: the SRD's)
     return sp;
@@ -982,9 +984,30 @@
       // "Pocket DM is meant exactly for that type of character building")
       var stl = R.STYLE_AT[m.cls] && m.lvl >= R.STYLE_AT[m.cls] ? R.STYLE_FOR[m.cls] : null, per = 11, list = [], from = 0;
       if (m.tab === 'style' && !stl) m.tab = 'weapon';
-      var tabs = [['weapon', 'WEAPON'], ['armor', 'ARMOUR'], ['shield', 'SHIELD'], ['alt', 'SECOND WEAPON']].concat(stl ? [['style', 'STYLE']] : []), tw = stl ? 90 : 110;
+      // the class's options beside the style, each from its level (10-14, the level-up pick: "Pocket has leveling choices" -- js/classes.js NPC.OPTIONS): the
+      // sorcerer's metamagic, the warlock's invocations and pact, the druid's land; the one the sheet stands with lit (the class's own until one is picked)
+      var opts = (NPC.OPTIONS[m.cls] || []).filter(function (o) { return m.lvl >= o.at; }), od = opts.filter(function (o) { return o.key === m.tab; })[0];
+      if (!od && ['weapon', 'armor', 'shield', 'alt', 'style'].indexOf(m.tab) < 0) m.tab = 'weapon';
+      var tabs = [['weapon', 'WEAPON'], ['armor', 'ARMOUR'], ['shield', 'SHIELD'], ['alt', 'SECOND WEAPON']].concat(stl ? [['style', 'STYLE']] : []).concat(opts.map(function (o) { return [o.key, o.word]; })), tw = tabs.length > 4 ? Math.floor(450 / tabs.length) : 110;
       tabs.forEach(function (tb, i) { self.btn(ctx, tb[1], 20 + i * tw, y, tw - 6, 13, function () { m.tab = tb[0]; self.scroll = 0; }, { on: m.tab === tb[0], small: true }); });
-      if (m.tab === 'style') {
+      if (od) {
+        var have = (m.opt && m.opt[od.key] != null) ? m.opt[od.key] : h ? h[od.key] : null, n = od.count ? od.count(m.lvl) : 1;
+        if (od.count) have = (have || []).slice(0, n);
+        od.opts.forEach(function (o, i) {
+          var yy = y + 18 + i * 15, on = od.count ? have.indexOf(o.id) >= 0 : have === o.id;
+          self.btn(ctx, o.name, 20, yy, 140, 13, function () {
+            m.opt = m.opt || {};
+            if (!od.count) { m.opt[od.key] = o.id; return; }
+            var cur = have.slice();
+            if (on) cur = cur.filter(function (x) { return x !== o.id; });
+            else if (cur.length >= n) { D.sfx('error'); self.say('that is the count for level ' + m.lvl + ': take one off first'); return; }
+            else cur.push(o.id);
+            m.opt[od.key] = cur;
+          }, { on: on, small: true });
+          D.text(ctx, o.desc, 166, yy + 3, P('bone', 1));
+        });
+        D.text(ctx, (od.count ? have.length + ' of ' + n + ' at level ' + m.lvl : 'one') + '  ·  from ' + R.CLASSES[m.cls].name.toLowerCase() + ' ' + od.at + ' (SRD 5.1, the built ones)', 20, y + 18 + od.opts.length * 15 + 6, P('stone', 5));
+      } else if (m.tab === 'style') {
         stl.forEach(function (k, i) {
           var st = R.STYLES[k], yy = y + 18 + i * 15;
           self.btn(ctx, st.name, 20, yy, 130, 13, function () { m.style = k; }, { on: m.style === k, small: true });
