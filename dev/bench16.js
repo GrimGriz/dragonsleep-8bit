@@ -2419,6 +2419,13 @@
       okZ('out by the stair up, the message back: ' + (outE ? outE.result + ' at 8-bit ' + outE.exit8 + '; Barley\'s XP +' + (sh ? sh.sheet.xp - xpE0[RE.members.indexOf(RE.members.filter(function (u) { return u.id === 'barley'; })[0])] : '?') + '; the pack ' + JSON.stringify(outE.inv0) + ' to ' + JSON.stringify(outE.inv1) + '; tally crawler ' + outE.kills.crawler + '; purse ' + outE.silver + '; jellyDead ' + outE.flags.jellyDead + '; the light ' + outE.party.filter(function (r) { return r.torch; }).map(function (r) { return r.id; }).join(',') : 'none'),
         !!outE && outE.result === 'out' && outE.exit8 && outE.exit8[0] === 1 && (outE.exit8[1] === 12 || outE.exit8[1] === 13) && sh && sh.sheet.xp - xpE0[RE.members.indexOf(RE.members.filter(function (u) { return u.id === 'barley'; })[0])] === Math.floor((window.DS.DATA.monsters.crawler.xp || 0) / 4) && outE.kills.crawler === 3 && outE.silver > 40 && outE.flags.jellyDead && outE.inv0.potion === 2 && (outE.inv1.crawlerichor || 0) >= 0 && outE.party.some(function (r) { return r.torch; }));
       if (D.embed) D.embed.roamOut = ro0;
+      // the Wet's chest (the seam: the 8-bit's map's chests on the floor): a greater potion at 8-bit (38, 21), its square closed, E beside it opens it once -- its flag for the 8-bit
+      var chZ = D.roam.chestAt ? D.roam.chestAt(38, 21) : null, chQ = at8(38, 21), chS = BJ.map.at(chQ[0], chQ[1]);
+      while (D.top() !== BJ && D.scenes.length > 1) D.pop(); D.battle = BJ; RJ.mode = 'walk'; RJ.groups = [];
+      var gp0 = cJ('greaterpotion'); putJ(at8(37, 21)); RJ.keys.push('use'); driveZ(BJ.co, null, 80); var gp1 = cJ('greaterpotion'), key = 'chest:warrens_d:38,21';
+      var nCh = (BJ.log || []).length; RJ.keys.push('use'); driveZ(BJ.co, null, 80); var empty = (BJ.log || []).slice(nCh).some(function (l) { return /Empty/.test(l); });
+      okZ('the Wet\'s chest on the floor (' + !!chZ + '), its square closed (' + !(chS && chS.walk) + '): opened beside it, the greater potion (+' + (gp1 - gp0) + ') and its flag (' + !!RJ.flags[key] + '); again, empty (' + empty + ')',
+        !!chZ && chS && !chS.walk && gp1 - gp0 === 1 && RJ.flags[key] === 1 && empty);
     } catch (eZ) { repZ.errors.push(String(eZ && eZ.stack || eZ).slice(0, 900)); }
     D.store.get = stGZ; D.store.set = stSZ; IZ.held.up = false; IZ.held.left = false;
     if (errs.length) repZ.errors = repZ.errors.concat(errs);

@@ -245,6 +245,7 @@
     R.into(B, R0.rest);
     B.focus(lead);
     R.bucketProp(B); // (the bucket on its crate, if it is there)
+    R.layChests(B); // (the 8-bit map's chests, opened or not by its flags)
     R.ropeUse(); // (the Rope & Grapple, usable from the menu on the floor: the floating one)
     // the pack's check at the stairs starts here: all the party owns as it walks on, the pack as it walks on, an empty ledger (R.handback)
     R0.ledger = []; R0.pack0 = R.owned(B); R0.inv0 = R.counts(B.inv);
@@ -399,7 +400,35 @@
     var R0 = B.roam;
     return (R.def.src8.triggers || []).filter(function (t) { var r = t.rect; return t.on === on && x8 >= r[0] && y8 >= r[1] && x8 < r[0] + r[2] && y8 < r[1] + r[3] && R.cond(t.cond, R0.flags) && !(t.once && R0.flags['trig:' + t.id]) && !R0.spent[t.id]; })[0] || null;
   };
-  R.useAt = function (B, x, y) { var p = R.def.to8(x, y); return R.triggerAt(B, p[0], p[1], 'use'); };
+  R.useAt = function (B, x, y) { var p = R.def.to8(x, y), c = R.chestAt(p[0], p[1]); return c ? { id: 'chest', on: 'use', chest: c } : R.triggerAt(B, p[0], p[1], 'use'); };
+  // the 8-bit map's chests on the floor (the Wet's one: a greater potion at (38, 21)): a box on its square, opened by E or a click as the 8-bit's EV.chest -- its flag
+  // ('chest:<map>:x,y') set, so the 8-bit has it opened too when the party is back (the seam, 10-14)
+  R.chestAt = function (x8, y8) { return (R.def.src8.chests || []).filter(function (c) { return c.x === x8 && c.y === y8; })[0] || null; };
+  R.chestKey = function (c) { return 'chest:' + R.def.src8.id + ':' + c.x + ',' + c.y; };
+  R.chestScene = function* (B, c) {
+    var R0 = B.roam, k = R.chestKey(c);
+    if (R0.flags[k]) { B.card([R.say8('g.empty')], 160); yield 20; return; }
+    R0.flags[k] = 1; D.sfx('chest');
+    if (c.item) { R.give(B, c.item, c.n || 1, 'the chest'); var it = window.DS.DATA.items[c.item]; B.card([R.say8('g.found').replace('{item}', (it ? it.name : c.item) + ((c.n || 1) > 1 ? ' x' + c.n : ''))], 260); }
+    if (c.silver) { R0.silver += c.silver; B.card(['Found ' + c.silver + ' sp.'], 220); }
+    yield 30;
+  };
+  // laid on the floor: its square closed to walking (the 8-bit's chests stand in the way), a box drawn on it, its lid up once opened
+  R.layChests = function (B) {
+    (R.def.src8.chests || []).forEach(function (c) {
+      var q = R.def.from8(c.x, c.y), s = B.map.at(q[0], q[1]); if (!s) return;
+      s.walk = false;
+      B.map.props.push({ kind: 'chest', sq: s, depth: q[0] + q[1] + 0.4, gz: 0, draw: function (ctx) {
+        var iso = D.iso, z = iso.zoom || 1, cc = iso.center(q[0], q[1], B.map.gz(q[0], q[1])), sc = iso.toScreen(cc.x, cc.y), x = Math.round(sc.x), y = Math.round(sc.y), open = !!(B.roam && B.roam.flags[R.chestKey(c)]);
+        ctx.fillStyle = '#1e1208'; ctx.fillRect(x - 9 * z, y - 9 * z, 18 * z, 10 * z);
+        ctx.fillStyle = '#7a4e22'; ctx.fillRect(x - 8 * z, y - 8 * z, 16 * z, 8 * z);
+        ctx.fillStyle = '#c8a040'; ctx.fillRect(x - 8 * z, y - 5 * z, 16 * z, 1 * z); ctx.fillRect(x - 1 * z, y - 6 * z, 2 * z, 3 * z); // (the band and the hasp)
+        if (open) { ctx.fillStyle = '#0c0806'; ctx.fillRect(x - 7 * z, y - 9 * z, 14 * z, 2 * z); ctx.fillStyle = '#6a4220'; ctx.fillRect(x - 8 * z, y - 15 * z, 16 * z, 6 * z); } // (the lid up, the dark inside)
+        else { ctx.fillStyle = '#8a5a2a'; ctx.fillRect(x - 8 * z, y - 11 * z, 16 * z, 3 * z); }
+      } });
+    });
+    B.map.sorted = null; G.setup(B.map, B.units);
+  };
   // the shortest walk to a square beside `at` ([] when beside it already, null when there is none)
   R.besidePath = function (B, at) {
     var t = B.roam.token;
@@ -453,6 +482,7 @@
     if (trig.id === 'mark') { yield* R.markScene(B, trig, at); return; }
     if (trig.id === 'stair') { yield* R.stairScene(B, trig, at); return; }
     if (trig.id === 'bucket') { yield* R.bucketScene(B, trig, at); return; }
+    if (trig.id === 'chest') { yield* R.chestScene(B, trig.chest); return; }
     B.card(['{y}' + trig.id + '{/}: the 8-bit\'s scene (' + trig.script + ') runs here.', '{g}(in the test only the Settling\'s squares, the drowned stair, the rune and the puddle ooze do anything){/}'], 300);
     D.sfx('popup'); yield 30;
   };
@@ -467,7 +497,7 @@
   };
   R.WADE8 = [[19, 20], [19, 21], [19, 22], [19, 23]]; // (the 8-bit's squares: the drowned stair's first row, where its `stair` trigger stands)
   R.isWade = function (x, y) { var p = R.def.to8(x, y); return R.WADE8.some(function (q) { return q[0] === p[0] && q[1] === p[1]; }); };
-  R.USE_NAME = { mark: 'the mark', stair: 'the flooded stair', bucket: 'the bucket', landlord: 'the deep water', deepCradle0: 'the cradle', deepCradle1: 'the cradle', deepCradle2: 'the cradle' };
+  R.USE_NAME = { chest: 'the chest', mark: 'the mark', stair: 'the flooded stair', bucket: 'the bucket', landlord: 'the deep water', deepCradle0: 'the cradle', deepCradle1: 'the cradle', deepCradle2: 'the cradle' };
   // an arrow press into a wall with a USE on it (the mark in the north wall of the landing): the square the press points at, or -- the diagonal, the tricky one (the arrows are
   // the screen's own ways, so up and left alone are the grid's diagonals) -- either of its two straight halves, so each of the three landing squares beside the mark reaches it
   // with one arrow. Only when the press is blocked: a diagonal that walks never fires a half
