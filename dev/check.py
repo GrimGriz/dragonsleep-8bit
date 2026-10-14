@@ -1,5 +1,6 @@
 """One command, green or red (10-01b: the gate question, Griz: "the gate bit is about how we're just constantly changing the live version
-of the game and that's a bad way to do things?" -- the seat's call: no deploy gate while he is the only player, but no push on red).
+of the game and that's a bad way to do things?" -- the seat's call: no deploy gate while he is the only player, but no push on red;
+since 2026-10-14 Pages deploys from the `live` branch and main is the workshop -- CLAUDE.md).
 The after-every-edit benches in one run; exit 0 green, 1 red. From PowerShell (headless Edge answers nothing from the Bash sandbox).
 
   python dev/check.py          quick: the every-spell check, three fights, sixteen modes (about 20 s)

@@ -1,6 +1,7 @@
 # The gate on GitHub (10-06, the gate handoff §2.1; Griz: "Ask an Opus runner, totally not my wheelhouse" -- the runner's (a)):
 # `python dev/check.py all` on a Linux runner after every push to main and to a cloud seat's claude/* branch, a green or red mark
-# on the commit. It blocks nothing: Pages still deploys from main, and the push law on the desk (GREEN before a push) is unchanged.
+# on the commit. It blocks nothing, and the push law on the desk (GREEN before a push) is unchanged. Since 2026-10-14 Pages deploys from
+# the `live` branch (CLAUDE.md): main is the workshop, and a push to main no longer reaches players.
 # A second witness: a clean checkout on another OS, the full gate every time, where the desk's quick gate runs before a push.
 name: gate
 
