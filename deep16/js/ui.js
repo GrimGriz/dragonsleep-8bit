@@ -1010,7 +1010,7 @@
       var u = unitOf(h), name = u && u.sheet; if (!name || !D.spr.has(name)) return null;
       var k = name + ':' + w; if (figs[k]) return figs[k];
       var cv = document.createElement('canvas'); cv.width = w; cv.height = hh;
-      D.spr.draw(cv.getContext('2d'), name, 'idle', 0, 0, w / 2, hh < 40 ? Math.min(D.spr.top(name), 44) + 2 : hh - 1, { frame: 0 });
+      D.spr.draw(cv.getContext('2d'), name, 'idle', 0, 0, w / 2, hh < 40 ? D.spr.drawnTop(name) + 2 : D.spr.portraitY(name, 0, hh), { frame: 0 }); // (STATUS's portrait: the head in it, a tall one's too -- GreyFang's, 10-14)
       return (figs[k] = cv);
     }
     var gu = gearHero(B), turn = gu ? sheet(gu) : null, COSTW = { A: 'the action', B: 'the bonus action', F: 'free', M: 'movement' };
@@ -2252,9 +2252,8 @@
     if (!u) return;
     ctx.fillStyle = R('stone', 1); ctx.fillRect(4, BAR_Y + 4, 36, 38);
     ctx.save(); ctx.beginPath(); ctx.rect(4, BAR_Y + 4, 36, 38); ctx.clip();
-    var face = u.rider || u.sheet, top = D.spr.top(face); // (a drider's portrait is its rider's face)
-    var fc = D.SHEETS && D.SHEETS[face] && D.SHEETS[face].face; // (a sheet's `face`: px above its foot where the face is -- the box centred on it; the Harbinger's legs filled it, 10-08)
-    D.spr.draw(ctx, face, 'idle', 0, B.t, 22, BAR_Y + (fc != null ? 22 + fc : 6 + Math.min(top, u.size > 1 && !u.rider ? 30 : 44)), { alpha: u.ethereal ? 0.3 : 1 });
+    var face = u.rider || u.sheet; // (a drider's portrait is its rider's face)
+    D.spr.draw(ctx, face, 'idle', 0, B.t, 22, D.spr.portraitY(face, BAR_Y + 4, 38), { alpha: u.ethereal ? 0.3 : 1 }); // (the head in the box, whatever its height: sprites.js S.portraitY, 10-14; a sheet's `face` centred as before -- the Harbinger's legs filled it, 10-08)
     ctx.restore();
     ctx.strokeStyle = u.side === 'foe' ? R('red', 3) : R('gold', 3); ctx.strokeRect(4.5, BAR_Y + 4.5, 35, 37);
     var cl = u.side === 'foe' ? 'foe' : u.cls ? (D.clsLabel(u.cls) + ' ' + u.lvl) : u.familiar ? 'familiar' : 'ally', clx = 44 + D.textWidth(u.name) + 6; // (a familiar has no class: it read "null 0", 10-02)

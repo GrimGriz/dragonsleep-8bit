@@ -214,6 +214,20 @@
   // how long an anim takes to play once, in frames at 60 Hz
   S.duration = function (name, anim) { var a = S.anim(name, anim); return a ? Math.ceil(a.frames * 60 / (a.fps || 8)) : 0; };
   S.top = function (name) { var sh = D.SHEETS && D.SHEETS[name]; return sh ? sh.top || 48 : 42; };
+  // how far above its foot a figure's drawn top is: its idle row, facing south, the first frame, from its pixels (S.top, the sheet's word, till it has loaded)
+  S.drawnTop = function (name) {
+    var mk = S.frameMask(name, 'idle', 0, 0); if (!mk) return S.top(name);
+    if (mk.top == null) { mk.top = 0; for (var j = 0; j < mk.h; j++) { var on = false; for (var i = 0; i < mk.w; i++) if (mk.m[j * mk.w + i]) { on = true; break; } if (on) { mk.top = mk.ay - j; break; } } }
+    return mk.top;
+  };
+  // where a portrait box puts a figure's foot (10-14, Griz: "a lot of the bottom right portraits are monster crotch" -- "It's on the grid when it's the enemies turn - also greyfang
+  // in the party menu"): a figure that fits stands whole in the box, centred; a taller one shows its head and what is under it, 2 px below the box's top; a sheet's own `face` (px
+  // above its foot) centred, as the Harbinger's. Before, each box set the foot by the sheet's `top` with a cap -- 30 px for a big one in the bottom bar: a troll's hips
+  S.portraitY = function (name, boxY, boxH) {
+    var fc = D.SHEETS && D.SHEETS[name] && D.SHEETS[name].face, h = S.drawnTop(name);
+    if (fc != null) return Math.round(boxY + boxH / 2 + fc);
+    return Math.round(h <= boxH - 2 ? boxY + boxH / 2 + h / 2 : boxY + 2 + h);
+  };
 
   // a rider on a body (the drider: the drow captain from the waist up on the phase spider's back, till it has a sheet
   // of its own): the rider's frame is cut at its waist (cut px above its foot) and that line set lift px above the

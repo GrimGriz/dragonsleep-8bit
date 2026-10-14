@@ -524,7 +524,7 @@
       box(ctx, x, y, w, hh, on ? P('gold', 4) : P('stone', 3), 0.8);
       ctx.save(); ctx.beginPath(); ctx.rect(x + 3, y + 3, 32, hh - 6); ctx.clip();
       var sheet = look.sheet || h.id + '_p0';
-      D.spr.draw(ctx, sheet, 'idle', 0, self.t, x + 19, y + Math.min(D.spr.top(sheet), 46) + 3, {});
+      D.spr.draw(ctx, sheet, 'idle', 0, self.t, x + 19, D.spr.portraitY(sheet, y + 3, hh - 6), {}); // (the head in the box: sprites.js S.portraitY, 10-14)
       ctx.restore();
       var w0 = R.weaponOf(h), dm = R.damageExpr(h, w0), gear = [item(h.equip.armor), item(h.equip.shield)].concat(R.PLACES.map(function (s) { return item(h.equip[s]); })).filter(Boolean).map(function (it) { return it.name; });
       D.text(ctx, '{y}' + (look.name || h.name) + '{/}  ' + D.clsLabel(h.cls) + ' ' + h.lvl + '   HP ' + h.maxhp + '   AC ' + R.ac(h), x + 40, y + 4, P('bone', 1));

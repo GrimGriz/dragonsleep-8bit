@@ -1632,6 +1632,23 @@
       // ... and a rope it can get to this turn is still its target: Barley's rope 20 ft east of it, the walk there and the cut
       var GX2 = glassX(16);
       okX('THE TROLL ON THE GLASS: Barley on a rope at (16,15), in its walk -- it goes for the rope ' + /goes for the rope/.test(GX2.lg) + ' -- ' + (GX2.lg.match(/[^|]*goes for the rope[^|]*/) || [GX2.lg.slice(0, 120)])[0], /goes for the rope/.test(GX2.lg));
+      // 3. THE PORTRAIT CROP (eyes on the screen §2d; his 10-12 "a lot of the bottom right portraits are monster crotch", and 10-14: "It's on the grid when it's the enemies turn
+      // - also greyfang in the party menu"): the bottom bar on a foe's turn -- a troll, and GreyFang's 67 px figure -- and STATUS's 32x48, the figure's top in the box. The sheets
+      // offline here: each figure as tall as its sheet's word (S.top); the draw caught, not made
+      var spD = D.spr.draw, spH = D.spr.has, spM = D.spr.frameMask, drawsP = [], BARP = 226;
+      D.spr.has = function () { return true; }; D.spr.frameMask = function () { return null; };
+      D.spr.draw = function (ctx, name, anim, facing, t, x, y) { drawsP.push({ name: name, x: x, y: y, ch: ctx && ctx.canvas ? ctx.canvas.height : 0 }); return D.spr.top(name); };
+      try {
+        var cvP = document.createElement('canvas'); cvP.width = D.W; cvP.height = D.H; var cxP = cvP.getContext('2d');
+        var BP = D.npcFight('?npc=troll&lvl=5&vs=ranger:5', {}); D.battle = BP; BP.enter(); while (!BP.order.length) BP.co.next(); BP.dark = false;
+        var tP = BP.units.filter(function (u) { return u.side === 'foe'; })[0], hP = BP.units.filter(function (u) { return u.side === 'party' && !u.object; })[0];
+        var barOf = function (u) { BP.active = u; drawsP = []; try { D.ui.drawBattle(cxP, BP); } catch (eP) { repX.errors.push('drawBattle: ' + String(eP).slice(0, 200)); } return drawsP.filter(function (d) { return d.x === 22 && d.y > BARP; })[0]; };
+        var inBox = function (d, boxY, boxH) { if (!d) return 'not drawn'; var ft = d.y - D.spr.top(d.name), ok = ft >= boxY - 2 && ft <= boxY + boxH / 2; /* (its head neither cut by the box's top nor sunk below its middle) */ return (ok ? '' : 'CUT ') + d.name + ' top ' + D.spr.top(d.name) + ', its head at ' + (ft - boxY) + ' in the box (foot at ' + (d.y - boxY) + ')'; };
+        var b1 = inBox(barOf(tP), BARP + 4, 38), skin = tP.sheet, size = tP.size; tP.sheet = 'greyfang_p1'; tP.size = 1; var b2 = inBox(barOf(tP), BARP + 4, 38); tP.sheet = skin; tP.size = size;
+        hP.sheet = 'greyfang_p1'; D.ui.openMenu(BP); var hostP = BP.menu.m.host, pP = hostP.party()[0]; drawsP = []; hostP.portrait(pP);
+        var b3 = inBox(drawsP.filter(function (d) { return d.ch === 48; })[0], 0, 48); BP.menu = null;
+        okX('THE PORTRAIT CROP: the bar on a foe\'s turn -- ' + b1 + '; ' + b2 + '; STATUS -- ' + b3, !/CUT|not drawn/.test(b1 + b2 + b3));
+      } finally { D.spr.draw = spD; D.spr.has = spH; D.spr.frameMask = spM; }
     } catch (eX) { repX.errors.push(String(eX && eX.stack || eX).slice(0, 900)); D.d = d0X; }
     if (errs.length) repX.errors = repX.errors.concat(errs);
     var preX = document.createElement('pre'); preX.id = 'out'; preX.textContent = 'BENCH16 ' + JSON.stringify(repX);

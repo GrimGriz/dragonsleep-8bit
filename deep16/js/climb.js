@@ -223,7 +223,7 @@
       box(ctx, x, y, w, 43, P('stone', 3));
       ctx.save(); ctx.beginPath(); ctx.rect(x + 3, y + 3, 30, 37); ctx.clip();
       var sheet = SV.look(h.id, null).sheet || h.id + '_p0';
-      D.spr.draw(ctx, sheet, 'idle', 0, self.t, x + 18, y + Math.min(D.spr.top(sheet), 42) + 3, {});
+      D.spr.draw(ctx, sheet, 'idle', 0, self.t, x + 18, D.spr.portraitY(sheet, y + 3, 37), {}); // (the head in the box: sprites.js S.portraitY, 10-14)
       ctx.restore();
       var w0 = R.weaponOf(h);
       D.text(ctx, '{y}' + h.name + '{/}  ' + D.clsLabel(h.cls) + ' ' + h.lvl + sub(h), x + 38, y + 4, P('bone', 1));
@@ -370,7 +370,7 @@
       box(ctx, x, y, 232, 53, on ? P('gold', 4) : P('stone', 3));
       ctx.save(); ctx.beginPath(); ctx.rect(x + 3, y + 3, 32, 47); ctx.clip();
       var sheet = SV.look(h.id, null).sheet || h.id + '_p0';
-      D.spr.draw(ctx, sheet, 'idle', 0, self.t, x + 19, y + Math.min(D.spr.top(sheet), 46) + 3, {});
+      D.spr.draw(ctx, sheet, 'idle', 0, self.t, x + 19, D.spr.portraitY(sheet, y + 3, 47), {}); // (the head in the box: sprites.js S.portraitY, 10-14)
       ctx.restore();
       D.text(ctx, '{y}' + h.name + '{/}  ' + D.clsLabel(h.cls) + ' ' + h.lvl + ' -> ' + (h.lvl + 1), x + 40, y + 4, P('bone', 1));
       D.text(ctx, abils(h), x + 40, y + 15, P('silver', 5));
