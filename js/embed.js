@@ -137,11 +137,21 @@
       var inv0 = counts(), fl0 = JSON.parse(JSON.stringify(g.flags)), out = {};
       if (m.kind === 'save') { var sv = new DS.SlotScene(true); yield DS.W8.scene(sv); out.saved = /^Saved/.test(sv.msg || '') ? sv.msg : null; }
       if (m.kind === 'cradle') out.cradle = (yield* DS.EV.deepRate(m.n)) || null;
+      if (m.kind === 'act' && m.act) { yield* DS.roam8.act(m.act); out.party = g.party.map(function (h) { return { id: h.id, sheet: JSON.parse(JSON.stringify(h)) }; }).concat((g.guests || []).map(function (x) { return { id: x.id, sheet: JSON.parse(JSON.stringify(x.h)) }; })); }
       var inv1 = counts(); out.inv = {};
       Object.keys(inv0).concat(Object.keys(inv1)).forEach(function (id) { var d = (inv1[id] || 0) - (inv0[id] || 0); if (d) out.inv[id] = d; });
       out.flags = {}; Object.keys(g.flags).forEach(function (k) { if (JSON.stringify(g.flags[k]) !== JSON.stringify(fl0[k])) out.flags[k] = g.flags[k]; });
       out.silver = g.silver;
       return out;
+    },
+    // a field action from the floor's M menu (10-14, Griz: "this is how we'll be doing all the dwarf road and stuff after, so we do it all and do it right"): a cast, a skill,
+    // an item the floor does not use itself, by id -- run as this game's own field menu runs it (js/scenes.js host8.run), every rule its own: where a rest may be had, the slot,
+    // the component, who it lands on
+    act: function* (a) {
+      var g = DS.G, hero = function (id) { if (id == null) return null; return g.party.filter(function (h) { return h.id === id; })[0] || ((g.guests || []).filter(function (x) { return x.id === id; })[0] || {}).h || null; };
+      if (a.kind === 'item' && a.id) yield* DS.EV.useFieldItem(a.id, hero(a.h));
+      else if (a.kind === 'cast' && a.sp && DS.DATA.spells[a.sp] && hero(a.h)) yield* DS.EV.fieldCast(hero(a.h), DS.DATA.spells[a.sp], hero(a.t));
+      else if (a.kind === 'skill' && hero(a.h)) yield* DS.EV.fieldSkill(hero(a.h), a.s, hero(a.t));
     }
   };
   // DEEP16 up over the screen; the 8-bit game holds still under it (DS.paused) until the fight comes back

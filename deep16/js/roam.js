@@ -318,6 +318,7 @@
       if (k === 'order') { if (trk.length) { D.sfx('miss'); B.card(['{g}Not with them coming.{/}'], 120); } else yield* R.order(B); continue; }
       if (k === 'haul') { if (!trk.length && R.floatInReach(B)) yield* R.ropeHaul(B); continue; }
       if (k === 'save') { if (R.canSave(B)) yield* R.save(B); continue; }
+      if (k === 'act') { if (!trk.length) yield* R.act(B); else { R0.acts = []; D.sfx('miss'); B.card(['{g}Not with them coming.{/}'], 120); } continue; }
       if (k === 'use') { var un = R.useNear(B); if (un && !trk.length) yield* R.fire(B, un.trig, un.sq); else D.sfx('miss'); continue; }
       if (k === 'fight') { if (trk.length) yield* R.engage(B, trk[0], false, 'yours'); else yield* R.encounter(B, 'asked'); continue; }
       var ck = R0.clicks.shift();
@@ -854,13 +855,30 @@
       inv0[id] = Math.max(0, (inv0[id] || 0) + d);
     });
     Object.assign(R0.flags, m.flags || {}); if (m.silver != null) R0.silver = m.silver;
+    // and each hero as the 8-bit left it (a field action's: R.act), onto its figure
+    (m.party || []).forEach(function (r) { var u = R0.members.filter(function (w) { return w.src && (w.src.key || w.src.id) === r.id; })[0]; if (u) R.resheet(B, u, r.sheet); });
+    if (m.party) R.regear(B);
     R0.inv0 = inv0; R0.pack0 = R.owned(B); R0.ledger = [];
     return m;
   };
   R.resumed = function (m) { var B = (D.embed && D.embed.B) || D.battle; if (B && B.roam) B.roam.resume = m; };
-  // SAVE on the floor (10-14, his "SAVE on the floor ... by a hand-back"): out of a fight, nothing coming, inside the 8-bit -- the 8-bit's own slots, on the square the party stands
-  // on (a load opens the floor there again: js/deep.js); the M menu's SAVE (deep16/js/ui.js gridHost canSave, through B.menuSave, and R.menuAct)
-  R.canSave = function (B) { var R0 = B.roam; return !!(R.emb && D.embed && D.embed.roamOut && R0.mode === 'walk' && !R.tracking(R0).length); };
+  // the M menu's field actions out of a fight (10-14, Griz: "yes to both - this is how we'll be doing all the dwarf road and stuff after, so we do it all and do it right as best
+  // we can"): a cast, a skill, an item the floor does not use itself (the tent, a sheet to learn -- a potion, a light and the grapple are the floor's) are the 8-bit's own, run as
+  // its field menu runs them (js/embed.js DS.roam8.act: EV.fieldCast, EV.fieldSkill, EV.useFieldItem -- where a rest may be had, a slot, a component, all its rules), by a
+  // hand-back from where the party stands; each hero comes back as it left them (R.resheet). Named by id: the hero, the spell, the one it is cast on
+  R.actOut = function (B, a, unitOf) {
+    var R0 = B.roam, idOf = function (h) { var u = h && unitOf ? unitOf(h) : null; return u && u.src ? (u.src.key || u.src.id) : h && h.id || null; };
+    if (!R.emb) { B.card(R.wrap(['{g}Spells, skills and that out of a fight are the 8-bit\'s own: inside the game the floor hands the party back for them (?at=roam).{/}']), 240); return true; }
+    var spells = window.DS.DATA.spells || {}, spId = a.sp ? (a.sp.id || Object.keys(spells).filter(function (k) { return spells[k] === a.sp; })[0] || null) : null;
+    (R0.acts = R0.acts || []).push({ kind: a.kind, h: idOf(a.h), id: a.id || null, sp: spId, s: a.s != null ? a.s : null, t: idOf(a.t) });
+    R0.keys.push('act'); B.menu = null; if (B.menuClosed) B.menuClosed();
+    return true;
+  };
+  R.act = function* (B) { var R0 = B.roam, a = (R0.acts || []).shift(); if (a) yield* R.handOut(B, 'act', { act: a }); };
+  // SAVE on the floor (10-14, his "SAVE on the floor ... by a hand-back"): out of a fight, nothing coming, inside the 8-bit, where the 8-bit's own map lets a save be made (every
+  // dungeon floor's is save=False -- tools/mapgen.py: his "yes to both", 10-14, SAVE greyed as the 8-bit greys it) -- the 8-bit's own slots, on the square the party stands on
+  // (a load opens the floor there again: js/deep.js); the M menu's SAVE (deep16/js/ui.js gridHost canSave, through B.menuSave, and R.menuAct)
+  R.canSave = function (B) { var R0 = B.roam; return !!(R.emb && D.embed && D.embed.roamOut && R0.mode === 'walk' && !R.tracking(R0).length && R.def.src8 && R.def.src8.save !== false); };
   R.save = function* (B) { var m = yield* R.handOut(B, 'save'); if (m && m.saved) { B.card(['{g}' + m.saved + '{/}'], 200); yield 10; } };
   // a cradle (the 8-bit's deep rate, RULED 09-30g; js/events.js EV.deepRate): the 8-bit's own scene by a hand-back, the floor again after it; the animal roused, the fight is on
   // the floor at its cradle -- the milker on the square the party worked it from, stiff with the poison if the touch took (the Settling's harness: deep16/js/wet.js)
@@ -961,7 +979,23 @@
     var sm0 = u.slotsMax || []; u.slots = u.slots || [];
     (n.slotsMax || []).forEach(function (k, i) { u.slots[i] = (u.slots[i] || 0) + (k - (sm0[i] || 0)); }); u.slotsMax = (n.slotsMax || []).slice();
     u.feats = u.feats || {}; Object.keys(h.feats || {}).forEach(function (k) { var v = h.feats[k], v0 = feats0[k]; if (typeof v === 'number') { var dv = v - (typeof v0 === 'number' ? v0 : 0); if (dv) u.feats[k] = (u.feats[k] || 0) + dv; } else if (v0 === undefined) u.feats[k] = JSON.parse(JSON.stringify(v)); });
-    ['lvl', 'abil', 'prof', 'init', 'known', 'subclass', 'attacksBase', 'crit', 'spellDC', 'spellAtk', 'saves', 'stealth', 'perception', 'athletics', 'acrobatics', 'savage', 'style'].forEach(function (k) { if (n[k] !== undefined) u[k] = n[k]; });
+    R.SHEETF.forEach(function (k) { if (n[k] !== undefined) u[k] = n[k]; });
+  };
+  R.SHEETF = ['lvl', 'abil', 'prof', 'init', 'known', 'subclass', 'attacksBase', 'crit', 'spellDC', 'spellAtk', 'saves', 'stealth', 'perception', 'athletics', 'acrobatics', 'savage', 'style']; // (what a figure reads off its sheet: R.relevel, R.resheet)
+  // a figure brought to its sheet as the 8-bit hands it back after its own scene (R.handOut: a cast's slot spent, a heal, a rest's hit points, slots and uses, a spell
+  // learned or prepared, Mage Armor put on): the sheet taken whole but its EQUIP and the light (the floor's own, in hand), then the figure's hit points, slots, uses and what
+  // lasts off it, and the rest read again as js/save.js makes a figure (gear and AC: R.regear, after)
+  R.resheet = function (B, u, sh) {
+    var h = u.src; if (!h || !sh) return;
+    Object.keys(sh).forEach(function (k) { if (k !== 'equip' && k !== 'conds' && k !== 'key' && k !== 'guest') h[k] = sh[k]; });
+    var n = D.save.unitOf(h, !!u.guest, B.fight);
+    u.maxhp = n.maxhp; u.hp = Math.max(0, Math.min(u.maxhp, sh.hp != null ? sh.hp : u.hp)); u.ko = u.hp <= 0; if (u.hp > 0) u.dead = false;
+    u.slotsMax = (n.slotsMax || []).slice(); u.slots = (sh.slots || n.slots || []).slice();
+    u.feats = JSON.parse(JSON.stringify(sh.feats || n.feats || {}));
+    var last = R.lasting(sh.conds || {}); u.conds = u.conds || {};
+    Object.keys(R.lasting(u.conds)).forEach(function (k) { if (!(k in last)) delete u.conds[k]; }); Object.assign(u.conds, last);
+    h.conds = Object.assign({}, h.conds || {}, last);
+    R.SHEETF.forEach(function (k) { if (n[k] !== undefined) u[k] = n[k]; });
   };
   // the five brought up on the floor (js/rules.js R.fiveUp, the 8-bit's fiveUp's own: the flag, the tokens for Edric's book, the stock's fork) and the 8-bit's lines after the scene's own
   R.five = function* (B, first) {
@@ -1422,14 +1456,14 @@
         if (!u || u.hp > 0) { B.card(['{g}' + (u ? u.name + ' is not down.' : 'Whom?') + '{/}'], 160); return true; }
         u.hp = it.use.hp || 1; u.ko = false; take(); D.sfx('heal'); B.card(['{y}' + u.name + '{/} is up (' + u.hp + ' HP).'], 200); return true;
       }
-      B.card(['{g}' + it.name + ': not out of a fight in the test.{/}'], 200); return true;
+      return R.actOut(B, { kind: 'item', id: a.id, h: a.h || null }, unitOf); // (the tent, a sheet to learn, the rest: the 8-bit's own -- R.actOut)
     }
     if (kind === 'light-off' && u && u.torch) {
       var lt = u.torch, id = L.kindOf(lt) === 'lantern' ? (lt.item || 'lantern') : null; delete u.torch; L.regrip(u);
       if (id) { var s2 = (B.inv || []).filter(function (x) { return x.id === id; })[0]; if (s2) s2.n++; else (B.inv = B.inv || []).push({ id: id, n: 1 }); }
       B.card(['{y}' + u.name + '{/} ' + (id ? 'puts the lantern away.' : 'puts the torch out (spent).')], 200); return true;
     }
-    if (kind === 'cast' || kind === 'skill') { B.card(['{g}Spells and skills out of a fight are the 8-bit\'s: not in the test.{/}'], 220); return true; }
+    if (kind === 'cast' || kind === 'skill') return R.actOut(B, { kind: kind, h: a.h, sp: a.sp, s: a.s, t: a.t }, unitOf); // (the 8-bit's own, by a hand-back: R.actOut)
     return false;
   };
   // after the menu: each hero's gear read again off the sheet EQUIP changed (battle.js swapGear's own lines: the weapon in hand, the attacks, the AC and Mage Armor)

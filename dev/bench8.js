@@ -2158,6 +2158,15 @@
           for (kR = 0; kR < 60 && !gotH; kR++) T.step(1);
           check('SAVE from the floor: the frame aside (' + asideH + '), the 8-bit awake (' + awakeH + ') with its slots up (' + slotUp + '), the party on the floor\'s square (' + atH + ', want 10,14,down), the floor\'s flags and purse on it (' + g.flags.roamHandTest + ', +' + (g.silver - silH) + '); out of the slots, the frame up again (' + (frH.style.visibility !== 'hidden') + '), held still (' + DS.paused + '), the word to the floor (' + JSON.stringify(gotH) + ')',
             asideH && awakeH && slotUp && atH === '10,14,down' && g.flags.roamHandTest === 1 && g.silver === silH + 7 && frH.style.visibility !== 'hidden' && DS.paused === true && !!gotH && gotH.silver === silH + 7 && gotH.saved === null);
+          // a field action from the floor's menu (10-14, Griz: "this is how we'll be doing all the dwarf road and stuff after, so we do it all and do it right"): Lymen's Cure
+          // Wounds on Barley by id, run by this game's own EV.fieldCast with the frame aside; every hero's sheet back to the floor with the word
+          gotH = null; var barA = g.hero('barley'), lyA = g.hero('lymen'); barA.hp = Math.max(1, barA.maxhp - 20); var hpA = barA.hp;
+          lyA.prepared = (lyA.prepared || []).concat(['curewounds']); lyA.slots[0] = Math.max(1, lyA.slots[0]); var slA = lyA.slots[0];
+          window.dispatchEvent(new MessageEvent('message', { source: frH.contentWindow, data: { type: 'd16:hand', kind: 'act', act: { kind: 'cast', h: 'lymen', sp: 'curewounds', t: 'barley' }, exit8: [10, 14], dir: 'down', party: [], inv0: {}, inv1: {}, flags: {}, kills: JSON.parse(JSON.stringify(g.kills || {})), silver: g.silver, warn: [] } }));
+          for (kR = 0; kR < 600 && !gotH; kR++) { var tA = DS.top(); if (tA && tA.kind === 'dialog') { if (tA.chars < tA.pageLen()) tA.chars = tA.pageLen(); T.tapf('a'); } T.step(1); }
+          var pAr = (gotH && gotH.party) || [], shA = pAr.filter(function (r) { return r.id === 'barley'; })[0], shL = pAr.filter(function (r) { return r.id === 'lymen'; })[0];
+          check('a cast from the floor\'s menu, by this game\'s own: Lymen\'s Cure Wounds on Barley (' + hpA + ' -> ' + (shA && shA.sheet.hp) + '), his slot spent (' + slA + ' -> ' + (shL && shL.sheet.slots[0]) + '), every sheet back to the floor (' + pAr.length + '), the frame up again (' + (frH.style.visibility !== 'hidden') + ')',
+            !!shA && shA.sheet.hp > hpA && !!shL && shL.sheet.slots[0] === slA - 1 && pAr.length >= g.party.length && frH.style.visibility !== 'hidden');
           window.dispatchEvent(new MessageEvent('message', { source: frH.contentWindow, data: { type: 'd16:roam', result: 'out', exit8: [1, 12], party: [], inv0: {}, inv1: {}, flags: {}, warn: [] } }));
           for (kR = 0; kR < 400 && (document.getElementById('d16') || DS.scriptActive() || DS.fadeLevel > 0); kR++) T.step(1);
           delete g.flags.roamHandTest;

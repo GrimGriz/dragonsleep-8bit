@@ -2504,6 +2504,9 @@
       var outH = [], roH = D.embed && D.embed.roamOut; if (D.embed) D.embed.roamOut = function (m) { outH.push(m); };
       var BH = D.roam.make('?roam=wet&watch', { save: saveH, opts: { at8: [2, 12], dir: 'right', dark: true } }); D.scenes.length = 0; D.push(BH); D.battle = BH; BH.enter();
       var RH = BH.roam; RH.spent.handTest = 1;
+      // (the Wet's own map says no save, as every dungeon floor's -- his "yes to both", 10-14: SAVE greyed there; the hand-back proven on a floor whose map would let one be made)
+      var canWet = !!(BH.menuSave && BH.menuSave()), sv8H = D.roam.def.src8.save; D.roam.def.src8.save = true;
+      okZ('SAVE greyed on the Wet\'s floor, as the 8-bit greys it on every dungeon floor (its map save=False): ' + !canWet, !canWet);
       var canW = !!(BH.menuSave && BH.menuSave()); RH.mode = 'fight'; var canF = !!(BH.menuSave && BH.menuSave()); RH.mode = 'walk';
       D.roam.menuAct(BH, 'save', {}, null);
       driveZ(BH.co, function () { return outH.length > 0; }, 400);
@@ -2512,6 +2515,29 @@
       driveZ(BH.co, function () { return RH.mode === 'walk'; }, 200);
       okZ('SAVE on the M menu out of a fight (' + canW + '; in one ' + canF + '): the party handed over from where it stands (' + hS.type + ', ' + hS.kind + ', 8-bit ' + hS.exit8 + ' facing ' + hS.dir + '), the floor waiting on the 8-bit (' + waitS + ', ' + stillS + '); back as it was (' + (D.top() === BH && BH.roam === RH && RH.spent.handTest === 1) + '), walking (' + RH.mode + ')',
         canW && !canF && hS.type === 'd16:hand' && hS.kind === 'save' && String(hS.exit8) === '2,12' && hS.dir === 'right' && waitS && stillS && D.top() === BH && BH.roam === RH && RH.spent.handTest === 1 && RH.mode === 'walk');
+      D.roam.def.src8.save = sv8H;
+      // a field action from the M menu out of a fight (10-14, Griz: "this is how we'll be doing all the dwarf road and stuff after, so we do it all and do it right"): a cast
+      // handed to the 8-bit by id -- the hero, the spell, the one it lands on (its own EV.fieldCast: js/embed.js DS.roam8.act); back, each hero onto its figure as the 8-bit left
+      // them (R.resheet): Barley healed, Lymen's slot spent, Mage Armor on Aurdin. The tent (an item the floor does not use itself) goes the same way
+      outH = [];
+      var mbH = function (id) { return RH.members.filter(function (u) { return u.id === id; })[0]; }, lyH = mbH('lymen'), baH = mbH('barley'), auH = mbH('aurdin');
+      var unitOfH = function (h) { return RH.members.filter(function (u) { return u === h || u.src === h || Object.getPrototypeOf(h) === u.src; })[0] || null; };
+      baH.hp = 3; var sl0H = (lyH.slots || [])[0] || 0;
+      D.roam.menuAct(BH, 'cast', { h: lyH.src, sp: window.DS.DATA.spells.curewounds, t: baH.src }, unitOfH);
+      driveZ(BH.co, function () { return outH.length > 0; }, 200);
+      var hA = outH[0] || {}, aA = hA.act || {}, pA = JSON.parse(JSON.stringify(hA.party || []));
+      pA.forEach(function (r) { if (r.id === 'barley') r.sheet.hp = r.sheet.maxhp; if (r.id === 'lymen') r.sheet.slots[0] = Math.max(0, r.sheet.slots[0] - 1); if (r.id === 'aurdin') r.sheet.conds = Object.assign({}, r.sheet.conds, { mageArmor: 1 }); });
+      if (D.roam.resumed) D.roam.resumed({ type: 'ds8:resume', inv: {}, flags: {}, silver: RH.silver, party: pA });
+      driveZ(BH.co, function () { return RH.mode === 'walk' && !RH.resume; }, 200);
+      okZ('a cast from the M menu out of a fight, the 8-bit\'s own (' + hA.kind + ': ' + JSON.stringify(aA) + ', from 8-bit ' + hA.exit8 + '); back, each as the 8-bit left them: Barley ' + baH.hp + '/' + baH.maxhp + ', Lymen\'s first slots ' + (lyH.slots || [])[0] + ' (want ' + Math.max(0, sl0H - 1) + '), Mage Armor on Aurdin (' + !!(auH.conds && auH.conds.mageArmor) + ')',
+        hA.type === 'd16:hand' && hA.kind === 'act' && aA.kind === 'cast' && aA.h === 'lymen' && aA.sp === 'curewounds' && aA.t === 'barley' && baH.hp === baH.maxhp && (lyH.slots || [])[0] === Math.max(0, sl0H - 1) && !!(auH.conds && auH.conds.mageArmor) && RH.mode === 'walk');
+      outH = [];
+      D.roam.menuAct(BH, 'item', { id: 'tent', h: auH.src }, unitOfH);
+      driveZ(BH.co, function () { return outH.length > 0; }, 200);
+      var hT = outH[0] || {}, aT = hT.act || {};
+      if (D.roam.resumed) D.roam.resumed({ type: 'ds8:resume', inv: {}, flags: {}, silver: RH.silver });
+      driveZ(BH.co, function () { return RH.mode === 'walk' && !RH.resume; }, 200);
+      okZ('the tent from the M menu: the 8-bit\'s own, the same way (' + hT.kind + ': ' + JSON.stringify(aT) + '), and the floor walking again (' + RH.mode + ')', hT.kind === 'act' && aT.kind === 'item' && aT.id === 'tent' && aT.h === 'aurdin' && RH.mode === 'walk');
       outH = [];
       var atC = D.roam.def.from8(15, 6), trC = D.roam.useAt(BH, atC[0], atC[1]), nbC = null;
       for (var yC = -1; yC <= 1 && !nbC; yC++) for (var xC = -1; xC <= 1 && !nbC; xC++) if ((xC || yC) && GZ.canStand(RH.token, atC[0] + xC, atC[1] + yC)) nbC = [atC[0] + xC, atC[1] + yC];
