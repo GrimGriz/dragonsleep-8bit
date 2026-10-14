@@ -2401,6 +2401,24 @@
       var gA2 = D.roam.pullIn(BJ, 'wet', { id: 'landlordStep' }, at8(8, 8)); for (var kA2 = 0; kA2 < 400 && D.top() === BJ; kA2++) gA2.next();
       var bA2 = D.top(), again = null; if (bA2 !== BJ) { bA2.enter(); again = !!(bA2.wet && !bA2.wet.spoke && bA2.wet.speakFirst); D.pop(); bA2.o.onDone('escaped'); driveZ(gA2, null, 2000); }
       okZ('run from the landlord once, in by its rim again: it asks again, the bucket\'s picture first (' + again + ')', again === true);
+      // the seam (10-14, Griz: "You should handle the seam given context?"): the floor opened as the 8-bit game opens it (deep16/js/embed.js E.roam) -- its party, pack, flags, tally
+      // and purse, set down on the square its warp from warrens_b leaves it, facing east, Aurdin's torch in hand; a crawler won; out by the stair up, the message back
+      while (D.top() !== BJ && D.scenes.length > 1) D.pop();
+      var save8 = D.save.fixture(3); save8.inv = [{ id: 'potion', n: 2 }, { id: 'rope', n: 1 }]; save8.flags = { heardPete: 1, jellyDead: 1 }; save8.kills = { crawler: 2 }; save8.silver = 40;
+      var outE = null, ro0 = D.embed && D.embed.roamOut; if (D.embed) D.embed.roamOut = function (m) { outE = m; };
+      var BE = D.roam.make('?roam=wet&watch', { save: save8, opts: { at8: [2, 12], dir: 'right', torch: 'aurdin', torchKind: 'torch', dark: true } }); D.scenes.length = 0; D.push(BE); D.battle = BE; BE.enter();
+      var RE = BE.roam, inE = D.roam.def.from8(2, 12), invE = (BE.inv || []).filter(function (s) { return s.n > 0; }).map(function (s) { return s.id + ':' + s.n; }).join(' '), auE = RE.members.filter(function (u) { return u.id === 'aurdin'; })[0];
+      okZ('inside the 8-bit: set down where its warp leaves the party (' + [RE.token.x, RE.token.y] + ' for ' + inE + '), its pack, no loan (' + invE + '), its flags (jellyDead ' + !!RE.flags.jellyDead + '), tally (crawler ' + (RE.kills || {}).crawler + '), purse (' + RE.silver + '), Aurdin\'s torch (' + !!(auE && auE.torch) + ')',
+        RE.token.x === inE[0] && RE.token.y === inE[1] && /potion:2/.test(invE) && !/lightcrossbow|bolts/.test(invE) && RE.flags.jellyDead && RE.kills.crawler === 2 && RE.silver === 40 && auE && auE.torch);
+      var xpE0 = RE.members.map(function (u) { return u.src.xp; }), crE = BE.makeFoe({ id: 'e1', kind: 'crawler' }); crE.conds = {}; crE.x = inE[0] + 3; crE.y = inE[1]; crE.hp = 0; crE.dead = true; BE.units.push(crE); RE.mode = 'fight';
+      driveZ(D.roam.after(BE, 'won', { zone: 'warrens_d' }, [crE]), null, 600);
+      var upE = D.roam.def.stairUp[0], nbE = null; for (var yE2 = -1; yE2 <= 1 && !nbE; yE2++) for (var xE2 = -1; xE2 <= 1 && !nbE; xE2++) if ((xE2 || yE2) && GZ.canStand(RE.token, upE[0] + xE2, upE[1] + yE2)) nbE = [upE[0] + xE2, upE[1] + yE2];
+      RE.token.x = nbE[0]; RE.token.y = nbE[1]; RE.token.tween = null; GZ.setup(GZ.map, BE.units); RE.path = [upE.slice()];
+      driveZ(BE.co, function () { return !!outE; }, 600);
+      var sh = outE && outE.party.filter(function (r) { return r.id === 'barley'; })[0];
+      okZ('out by the stair up, the message back: ' + (outE ? outE.result + ' at 8-bit ' + outE.exit8 + '; Barley\'s XP +' + (sh ? sh.sheet.xp - xpE0[RE.members.indexOf(RE.members.filter(function (u) { return u.id === 'barley'; })[0])] : '?') + '; the pack ' + JSON.stringify(outE.inv0) + ' to ' + JSON.stringify(outE.inv1) + '; tally crawler ' + outE.kills.crawler + '; purse ' + outE.silver + '; jellyDead ' + outE.flags.jellyDead + '; the light ' + outE.party.filter(function (r) { return r.torch; }).map(function (r) { return r.id; }).join(',') : 'none'),
+        !!outE && outE.result === 'out' && outE.exit8 && outE.exit8[0] === 1 && (outE.exit8[1] === 12 || outE.exit8[1] === 13) && sh && sh.sheet.xp - xpE0[RE.members.indexOf(RE.members.filter(function (u) { return u.id === 'barley'; })[0])] === Math.floor((window.DS.DATA.monsters.crawler.xp || 0) / 4) && outE.kills.crawler === 3 && outE.silver > 40 && outE.flags.jellyDead && outE.inv0.potion === 2 && (outE.inv1.crawlerichor || 0) >= 0 && outE.party.some(function (r) { return r.torch; }));
+      if (D.embed) D.embed.roamOut = ro0;
     } catch (eZ) { repZ.errors.push(String(eZ && eZ.stack || eZ).slice(0, 900)); }
     D.store.get = stGZ; D.store.set = stSZ; IZ.held.up = false; IZ.held.left = false;
     if (errs.length) repZ.errors = repZ.errors.concat(errs);

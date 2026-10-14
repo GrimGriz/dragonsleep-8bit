@@ -13,7 +13,7 @@ def main():
     out = os.path.join(HERE, 'wet8-probe-%d.html' % os.getpid())
     open(out, 'w', encoding='utf-8').write(page)
     prof = os.path.join(tempfile.gettempdir(), 'wet8-probe-edge-%d' % os.getpid())
-    url = 'file:///' + out.replace('\\', '/')
+    url = 'file:///' + out.replace('\\', '/') + '?noroam' # (the 8-bit's own Wet, as a grid refused or crashed leaves it: since 10-14 a warp into warrens_d opens the roam, js/embed.js DS.roam8)
     try:
         p = subprocess.run([bench8.EDGE, '--headless=new', '--disable-gpu', '--no-first-run', '--allow-file-access-from-files'] + bench8.EXTRA + ['--user-data-dir=' + prof, '--dump-dom', url], capture_output=True, timeout=300)
     finally:

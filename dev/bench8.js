@@ -2104,6 +2104,31 @@
         var old = R8.makeHero('vivian', 3); delete old.picks; old.pendingChoice = 'archetype'; R8.migrate(old);
         check('AN OLDER SAVE\'S WAITING ARCHETYPE becomes an ask (' + R8.asking(old, 'archetype') + ', flag ' + old.pendingChoice + ')', R8.asking(old, 'archetype') && old.pendingChoice === 'archetype');
       } finally { DS.autoPicks = auto0; }
+    } else if (test === 'roam8') {
+      // the Wet on the grid, the 8-bit's half (js/embed.js DS.roam8, js/deep.js's enter hook; the party-token map's seam, 10-14, Griz: "You should handle the seam given context?"):
+      // on unless the stair is drained (or &noroam); set down in warrens_d, the frame opens; what comes back by 'd16:roam' applied, and the 8-bit's own warp taken from the square
+      // they left by. DEEP16 is not run here: its message is dispatched on the page as the frame would send it (floor1003's way); the roam's own half is bench16 mode=roam1014
+      var f8 = g.flags, set0R = window.setTimeout, clr0R = window.clearTimeout;
+      var onA = DS.roam8.on(); f8.stairHook = 1; var onDr = DS.roam8.on(); f8.keeperWater = 1; var onFl = DS.roam8.on(); delete f8.stairHook; delete f8.keeperWater;
+      check('the roam on (' + onA + '), off with the stair drained (' + !onDr + '), on again flooded back (' + onFl + '); the hook in warrens_d (' + (typeof DS.SCRIPTS['enter:warrens_d']) + ')', onA && !onDr && onFl && typeof DS.SCRIPTS['enter:warrens_d'] === 'function');
+      try {
+        window.setTimeout = function (fn, ms) { return { fn: fn, ms: ms }; }; window.clearTimeout = function () {};
+        DS.field.load('warrens_d', 2, 12, 'right'); g.x = 2; g.y = 12; DS.paused = false;
+        var barR = g.hero('barley'), xpR0 = barR.xp, potR0 = g.count('potion'), ichR0 = g.count('crawlerichor');
+        DS.run(function* () { yield* DS.SCRIPTS['enter:warrens_d'](); });
+        for (var kR = 0; kR < 200 && !document.getElementById('d16'); kR++) T.step(1);
+        var frR = document.getElementById('d16');
+        check('set down in warrens_d: the grid\'s frame over the screen (' + !!frR + '), the 8-bit held still (' + DS.paused + ')', !!frR && DS.paused === true);
+        if (frR) {
+          var shR = JSON.parse(JSON.stringify(barR)); shR.xp = xpR0 + 300; shR.hp = Math.max(1, shR.hp - 5);
+          window.dispatchEvent(new MessageEvent('message', { source: frR.contentWindow, data: { type: 'd16:ready' } }));
+          window.dispatchEvent(new MessageEvent('message', { source: frR.contentWindow, data: { type: 'd16:roam', result: 'out', exit8: [1, 12], party: [{ id: 'barley', sheet: shR, torch: 'lantern' }], // (a lantern: a torch is put out by the warp to another map, the 8-bit's EV.torchOut; a lantern stays lit)
+            inv0: { potion: potR0 }, inv1: { potion: Math.max(0, potR0 - 1), crawlerichor: 2 }, flags: { jellyDead: 1 }, kills: { crawler: 5 }, silver: 123, warn: [] } }));
+          for (kR = 0; kR < 400 && (DS.scriptActive() || DS.fadeLevel > 0); kR++) T.step(1);
+          check('back from the grid out by the stair up: the frame gone (' + !document.getElementById('d16') + '), on warrens_b (' + (DS.field.map && DS.field.map.id) + '); Barley\'s XP +' + (barR.xp - xpR0) + ', a potion drunk (' + (potR0 - g.count('potion')) + '), the ichor +' + (g.count('crawlerichor') - ichR0) + ', jellyDead ' + g.flags.jellyDead + ', crawlers ' + g.kills.crawler + ', the purse ' + g.silver + ', the light ' + g.flags.torchBy + ' (' + g.flags.torchKind + ')',
+            !document.getElementById('d16') && DS.field.map && DS.field.map.id === 'warrens_b' && barR.xp === xpR0 + 300 && g.count('potion') === Math.max(0, potR0 - 1) && g.count('crawlerichor') === ichR0 + 2 && g.flags.jellyDead === 1 && g.kills.crawler === 5 && g.silver === 123 && g.flags.torchBy === 'barley' && g.flags.torchKind === 'lantern');
+        }
+      } finally { window.setTimeout = set0R; window.clearTimeout = clr0R; var stR = document.getElementById('d16'); if (stR) stR.parentNode.removeChild(stR); }
     } else if (test === 'payout1014') {
       // a won fight's payout, lifted into js/rules.js (10-14, the party-token map lane §6d: R.tally, R.spoils, R.shareXP -- one copy the grid's roam pays by too): the same
       // XP, coin, drops, parts, tally and lines for the same dice. One foe fled (nothing off it); the parts' skills on the party as they stand. Its PAID line is the receipt

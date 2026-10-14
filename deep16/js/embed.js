@@ -12,7 +12,7 @@
   var ended = false;
   function send(m) {
     if (m.type === 'd16:crash' && ended) return;
-    if (m.type === 'd16:done' || m.type === 'd16:refuse' || m.type === 'd16:crash') ended = true;
+    if (m.type === 'd16:done' || m.type === 'd16:refuse' || m.type === 'd16:crash' || m.type === 'd16:roam') ended = true;
     if (window.parent && window.parent !== window) window.parent.postMessage(m, '*');
   }
   function counts(inv) { var c = {}; (inv || []).forEach(function (s) { c[s.id] = (c[s.id] || 0) + s.n; }); return c; }
@@ -46,11 +46,19 @@
     window.addEventListener('unhandledrejection', function (e) { var r = e.reason; crashed(r && r.message ? r.message : r, whereFrom(null, null, r && r.stack)); });
     window.addEventListener('message', function (e) {
       var m = e.data;
-      if (e.source !== window.parent || !m || m.type !== 'ds8:fight' || E.B) return;
-      E.start(m);
+      if (e.source !== window.parent || !m || (m.type !== 'ds8:fight' && m.type !== 'ds8:roam') || E.B) return;
+      if (m.type === 'ds8:roam') E.roam(m); else E.start(m);
     });
     send({ type: 'd16:ready' });
   };
+  // the Wet walked on the grid (deep16/js/roam.js, the party-token map's seam, 10-14): 'ds8:roam' brings the 8-bit party onto the whole floor; it goes back by 'd16:roam' at a way
+  // off it, or a fall (R.leaveFloor), and the 8-bit game takes its own warp from there
+  E.roam = function (m) {
+    if (!D.roam) { send({ type: 'd16:refuse', missing: ['the roam'] }); return; }
+    var B = E.B = D.roam.make('?roam=wet', { save: m.save, opts: m.opts || {} });
+    D.push(B); D.canvas.focus();
+  };
+  E.roamOut = function (msg) { send(msg); };
   E.start = function (m) {
     // an 8-bit list with a foe the grid has no sheet for (review 09-28 #13): say so, and the 8-bit game fights it itself
     var list = m.opts && m.opts.enemies, missing = (list || []).filter(function (id8) { return !D.FOES[D.kind8 ? D.kind8(id8) : id8]; });

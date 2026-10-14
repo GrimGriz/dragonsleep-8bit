@@ -1405,4 +1405,8 @@
     if (pre) { g.flags['said:' + D.id + ':pre:' + pre.key] = 1; yield DS.say(pre.say, who(pre.who || D.name)); return; }
     yield* baseTalk(npc);
   };
+  // the Wet on the grid (js/embed.js DS.roam8 -- the party-token map's seam, 10-14, Griz: "You should handle the seam given context?"): set down in warrens_d by a warp, the
+  // party walks the whole floor in DEEP16 and comes back at a way off it; the 8-bit's own Wet when the grid is off (DS.roam8.on: &noroam, or the stair drained)
+  var enterWet0 = S['enter:warrens_d'];
+  S['enter:warrens_d'] = function* () { if (enterWet0) yield* enterWet0.apply(this, arguments); if (DS.roam8 && DS.roam8.on()) yield* DS.roam8.enter(); };
 })();

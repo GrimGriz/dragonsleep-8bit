@@ -153,14 +153,16 @@
   };
 
   // ------------------------------------------------------------------ the door: deep16/?roam=wet
-  R.make = function (q) {
-    q = q || '';
+  // emb (the seam, 10-14 -- Griz: "You should handle the seam given context?"): the 8-bit game's own party, walked in by its warp (deep16/js/embed.js E.roam, from js/embed.js
+  // there): { save: the party, guests, pack, flags, kills, silver as the 8-bit holds them; opts: { at8 (the square it arrived on), dir, torch, torchKind } }. Without it, the test
+  R.make = function (q, emb) {
+    q = q || ''; R.emb = emb || null;
     var num = function (k, d) { var m = new RegExp('[?&]' + k + '=(\\d+)').exec(q); return m ? +m[1] : d; };
     R.def = R.wholeWet();
     R.q = q; R.PAD = num('pad', 4); R.FAR = num('far', 0); R.ENC = num('enc', 0); // (&far=0: no cap -- RULED 10-13 with the approach, his "1 yes")
     var lvl = num('lvl', 5), useSave = /[?&]save\b/.test(q);
     var F = { map: 'wetwhole', foes: [], level: lvl, dark: !/[?&]lit\b/.test(q), entry: null, fliers: true, bucket: R.def.from8(3, 7) }; // (fliers: one with wings keeps to the air, js/flight-ai.js) (bucket: its square, so js/wet.js lifts the bucket onto the crate there -- his play, 10-14: "bucket rendered over crate not on top of crate")
-    var o = useSave ? { fightDef: F } : { fightDef: F, ladder: true, level: lvl };
+    var o = emb ? { fightDef: F, data: emb.save, embed: Object.assign({ canRun: true }, emb.opts || {}) } : useSave ? { fightDef: F } : { fightDef: F, ladder: true, level: lvl }; // (inside the 8-bit: its party and pack, no loan, a way out of any fight)
     var sd = /[?&]seed=(\d+)/.exec(q); if (sd) D.seed = +sd[1] | 0;
     R.party0 = o; // (a pulled-in fight walks in with the same four: the same level, or the same save)
     var B = new D.Battle(o), enter0 = B.enter, update0 = B.update, paint0 = B.paint;
@@ -214,10 +216,11 @@
     members.slice(1).forEach(function (u, i) { R0.form[u.id] = stored[u.id] || R.FORM0[i] || [-(i + 1), 0]; });
     // the purse, the kill tally and the XP banked till the next gather (R.pay): the save's own, or the fixture's none
     var data0 = (B.from && B.from.data) || {}; R0.silver = data0.silver || 0; R0.kills = JSON.parse(JSON.stringify(data0.kills || {})); R0.xpBank = 0;
+    if (R.emb) R0.flags = JSON.parse(JSON.stringify(data0.flags || {})); // (inside the 8-bit: its flags, all of them, and back out at the door)
     if (/[?&]watch\b/.test(R.q)) members.forEach(function (u) { u.guest = true; u.classAI = true; }); // (&watch: the class tactics run the four, as the bench does)
     // the light: the party's carried torch (&light=none | torch | lantern), in the first free hand in the marching order (js/light.js handsFree, then handForLight)
     var lw = (/[?&]light=([a-z]+)/.exec(R.q) || [])[1] || 'torch';
-    if (lw !== 'none' && !members.some(function (u) { return u.torch && u.torch.lit; })) {
+    if (lw !== 'none' && !R.emb && !members.some(function (u) { return u.torch && u.torch.lit; })) { // (inside the 8-bit, the light is the party's own: the battle's enter took up its torch)
       var bearer = members.filter(function (u) { return L.handsFree(u) > 0; })[0] || members.filter(function (u) { return L.handForLight(u); })[0] || lead; // (a free hand first: a two-hander drops it to swing)
       bearer.torch = lw === 'lantern' ? L.make('lantern', false) : { lit: true, kind: 'torch' }; L.regrip(bearer);
     }
@@ -231,12 +234,14 @@
     B.menuAct = function (kind, a, unitOf) { return R.menuAct(B, kind, a, unitOf); };
     B.menuClosed = function () { R.regear(B); };
     B.floorMarks = function (c) { R.floorMarks(c, B); }; B.marksOver = function (c) { R.marksOver(c, B); }; // (ORDER's box on the floor, under the figures: ui.js drawBattle's hook)
-    if (!/[?&]save\b/.test(R.q) && !(B.inv || []).some(function (s) { return s.id === 'lantern' && s.n > 0; })) (B.inv = B.inv || []).push({ id: 'lantern', n: 1 });
+    if (!R.emb && !/[?&]save\b/.test(R.q) && !(B.inv || []).some(function (s) { return s.id === 'lantern' && s.n > 0; })) (B.inv = B.inv || []).push({ id: 'lantern', n: 1 });
     // walked in from a save, the pack is the party's own: no loan (every grid fight not opened from inside the 8-bit lends a crossbow, bolts, arrows and a rope -- js/save.js
     // SV.armoury; the 8-bit's party carries only what it brought, Griz 09-27). The test's four keep the ladder's kit
     if (/[?&]save\b/.test(R.q)) B.inv = JSON.parse(JSON.stringify(data0.inv || [])).map(function (s) { return Array.isArray(s) ? { id: s[0], n: s[1] } : s; });
     // in by the stair up, where the 8-bit's warp from the Warrens' second floor lands (warrens_b to warrens_d (2, 12))
-    var e = R.def.entry[0]; lead.x = e[0]; lead.y = e[1]; lead.facing = D.spr.facingFor(0, -1); R0.fw = [0, -1]; // (in off the stair walking the 8-bit's east: the grid's -y)
+    var e = R.def.entry[0]; lead.x = e[0]; lead.y = e[1]; lead.facing = D.spr.facingFor(0, -1); R0.fw = [0, -1];
+    // inside the 8-bit: on the square its warp set the party down on, the way it faced (the 8-bit's compass on the turned grid: R.FACE8)
+    var eo = R.emb && R.emb.opts; if (eo && eo.at8) { var e8 = R.def.from8(eo.at8[0], eo.at8[1]); if (G.canStand(lead, e8[0], e8[1])) { lead.x = e8[0]; lead.y = e8[1]; } var fw8 = { up: [-1, 0], down: [1, 0], right: [0, -1], left: [0, 1] }[eo.dir]; if (fw8) { R0.fw = fw8; lead.facing = D.spr.facingFor(fw8[0], fw8[1]); } } // (in off the stair walking the 8-bit's east: the grid's -y)
     R.into(B, R0.rest);
     B.focus(lead);
     R.bucketProp(B); // (the bucket on its crate, if it is there)
@@ -378,6 +383,7 @@
     var R0 = B.roam, t = R0.token, p8 = R.def.to8(t.x, t.y);
     if ((R.def.doors || []).some(function (d) { return d[0] === t.x && d[1] === t.y; })) {
       var up = R.def.stairUp.some(function (d) { return d[0] === t.x && d[1] === t.y; });
+      if (R.emb) { yield* R.leaveFloor(B, 'out', [t.x, t.y]); return 'door'; } // (inside the 8-bit: off the floor, and the 8-bit takes its own warp from this square)
       B.card(['{y}' + (up ? 'The stair up to the Warrens\' second floor' : 'The stair down to the Warrens\' third floor') + '{/}: here the 8-bit takes the party on (' + (up ? 'warrens_b' : 'warrens_c') + ').', '{g}(the test keeps you on the Wet){/}'], 300);
       R.packCard(B);
       return 'door';
@@ -589,9 +595,10 @@
     // (and the light in each hand, and what lasts past a fight -- Mage Armor, the day's Darkvision, a Continual Flame: 10-14, his "check landlord handoff as well")
     R0.members.forEach(function (u) { hp[u.id] = { hp: u.hp, ko: !!u.ko, slots: (u.slots || []).slice(), feats: JSON.parse(JSON.stringify(u.feats || {})), torch: u.torch ? JSON.parse(JSON.stringify(u.torch)) : null, conds: R.lasting(u.conds) }; });
     var o = Object.assign({}, R.party0, { fightDef: null, fight: which === 'keeper' ? 'keeper' : 'wet', onDone: function (res) { done = res || 'out'; } });
+    delete o.embed; // (the floor's 8-bit options are the floor's: a pulled-in fight is the grid's own, its party and pack handed in and back below)
     // the floor's own state goes in with them, as the 8-bit's seam sends it (js/embed.js): the flags it has set (the landlord fed, who holds the bucket, the dead) and the
     // pack as it stands (the bucket in it) -- and comes back out below (10-13, his play: "they did the bucket then left the zone, and the bucket refreshed and was triggered again")
-    var base0 = o.ladder ? D.save.fixture(Math.min(9, R.party0.level)) : D.save.load().data; delete o.ladder;
+    var base0 = o.ladder ? D.save.fixture(Math.min(9, R.party0.level)) : R.emb ? R.emb.save : D.save.load().data; delete o.ladder;
     o.data = JSON.parse(JSON.stringify(base0));
     o.data.flags = Object.assign({}, o.data.flags || {}, R0.flags);
     // each sheet as it walks: the level and the XP the floor's fights paid (R.pay), not the fixture's fresh copy
@@ -693,7 +700,7 @@
     B.focus(R0.token);
     if (done === 'fed') B.card(['{y}The landlord settles under the water.{/}', '{g}The party gathers into ' + R0.token.name + '.{/}'], 260); else if (which !== 'wet') B.card(['{y}Back on the Wet{/} (' + done + ').'], 260);
     if (done === 'fed') { FX.ring(R0.token, 'glow', 22); D.sfx('popup'); }
-    if (!R.standing(R0).length) { R0.mode = 'over'; B.card(['{r}The party has fallen.{/}  R to walk the Wet again.'], 100000); return; }
+    if (!R.standing(R0).length) { R0.mode = 'over'; if (R.emb) { yield* R.leaveFloor(B, 'lose', null); return; } B.card(['{r}The party has fallen.{/}  R to walk the Wet again.'], 100000); return; }
     // the gather pays (R.pay): what fell in there, and the landlord fed from the bucket -- a quarter again its XP, once (js/rules.js R.fedPool, the 8-bit's EV.fedXp)
     var xpL = R.pay(B), fedL = [];
     if (R0.flags.otyughFed && !R0.flags.otyughFedXp) { R0.flags.otyughFedXp = 1; fedL = R.pay(B, window.DS.R.fedPool(), R.say8('w.fedXp')); }
@@ -748,6 +755,26 @@
     });
     (B.lights || []).forEach(function (l) { if ((l.kind === 'torch' || l.kind === 'lantern') && R0.members.some(function (m) { return m.id === l.by; })) add(l.kind === 'lantern' ? (l.item || 'lantern') : 'torch'); });
     return c;
+  };
+  // ------------------------------------------------------------------ off the floor, inside the 8-bit (the seam): everything the floor changed goes back by one message (deep16/js/embed.js
+  // E.roamOut, 'd16:roam'; js/embed.js there applies it and takes its own warp from the square). Each sheet whole -- the XP and levels the floor paid (R.pay), its hurt, slots and
+  // uses, what lasts, its EQUIP, the light in its hand; the pack as the change since the party walked on (inv0 and inv1, as a fight's -- R.handback's check said with it); the
+  // flags, the kill tally and the purse as the floor left them; the 8-bit square they left by. A fall is the 8-bit's game over
+  R.leaveFloor = function* (B, result, at) {
+    var R0 = B.roam; if (R0.out) return; R0.out = true; R0.mode = 'over';
+    var hb = R.handback(B), inv1 = R.counts(B.inv);
+    (B.lights || []).forEach(function (l) { if (l.kind === 'lantern' && l.item && R0.members.some(function (m) { return m.id === l.by; })) inv1[l.item] = (inv1[l.item] || 0) + 1; });
+    var party = R0.members.filter(function (u) { return u.src; }).map(function (u) {
+      var h = JSON.parse(JSON.stringify(u.src));
+      h.hp = Math.max(0, Math.min(h.maxhp, u.hp)); h.ko = h.hp <= 0; h.slots = (u.slots || []).slice(); h.feats = JSON.parse(JSON.stringify(u.feats || {}));
+      h.conds = Object.assign({}, h.conds || {}, R.lasting(u.conds)); if (!(u.conds && u.conds.mageArmor)) delete h.conds.mageArmor;
+      return { id: h.key || h.id, guest: !!h.guest, sheet: h, torch: u.torch && u.torch.lit !== false && u.hp > 0 ? (L.kindOf(u.torch) === 'lantern' ? (u.torch.item || 'lantern') : 'torch') : false };
+    });
+    var msg = { type: 'd16:roam', result: result, exit8: at ? R.def.to8(at[0], at[1]) : null, party: party, inv0: R0.inv0 || {}, inv1: inv1, flags: JSON.parse(JSON.stringify(R0.flags)),
+      kills: JSON.parse(JSON.stringify(R0.kills || {})), silver: R0.silver, warn: hb.warn };
+    R.lastOut = msg;
+    if (D.embed && D.embed.roamOut) D.embed.roamOut(msg);
+    yield 1;
   };
   // the hand-back said at a way off the floor: what the 8-bit's pack would take, and the check's word
   R.packCard = function (B) {
@@ -1149,6 +1176,7 @@
     R0.lastOutcome = o;
     if (o === 'lost') {
       R0.mode = 'over'; D.sfx('error');
+      if (R.emb) { yield* R.leaveFloor(B, 'lose', null); return; } // (inside the 8-bit: its game over)
       B.card(['{r}The party has fallen in the Wet.{/}  R to walk it again.'], 100000);
       return;
     }
@@ -1183,6 +1211,7 @@
       if (byStair) {
         lead.x = outBy.x; lead.y = outBy.y;
         B.units = B.units.filter(function (u) { return still.indexOf(u) < 0; }); R.dropGroups(B);
+        if (R.emb) { yield* R.leaveFloor(B, 'out', [outBy.x, outBy.y]); return; }
         B.card(['{y}Away{/}: ' + outBy.name + ' takes the stair, and the party with them.', '{g}Off the floor: the 8-bit would take you on, and back down its groups are gone. (The test keeps you here, the floor cleared.){/}'], 360);
         R.packCard(B);
         still = [];

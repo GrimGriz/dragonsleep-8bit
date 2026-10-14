@@ -82,6 +82,41 @@
     };
   }
 
+  // ------------------------------------------------------------------ THE WET ON THE GRID (the party-token map's seam, 10-14 -- Griz: "You should handle the seam given context?"). Set
+  // down in warrens_d by a warp (js/deep.js's enter hook), the party walks the whole floor in DEEP16 (deep16/js/roam.js), its random fights, the Settling and the Keeper there;
+  // it comes back by one message at a way off the floor, and this page takes its own warp from that square. What comes back: each sheet whole (the XP and levels the floor
+  // paid, hurt, slots, uses, what lasts, EQUIP), who holds the light, the pack as the change since the party walked on (a fight's inv0 and inv1), the flags, the kill tally,
+  // the purse. Refused or crashed, the 8-bit's own Wet stands under it, as a fight falls back to the 8-bit battle. Not after the drain (the drained stair is the 8-bit's till
+  // the grid has it), nor with &noroam in the address
+  DS.roam8 = {
+    on: function () { var f = DS.G.flags; return !/[?&]noroam\b/.test(location.search) && !(f.stairHook && !f.keeperWater); },
+    enter: function* () {
+      var g = DS.G, back = null;
+      open({ roam: true }, function (m) { back = m; });
+      yield DS.W8.until(function () { return !!back; });
+      if (back.type !== 'd16:roam') { if (back.type === 'd16:crash') yield DS.say(FALTERED.replace('The fight goes on here.', 'The Wet goes on here.')); return; }
+      DS.roam8.apply(back);
+      if (back.result === 'lose') { DS.audio.play('gameover'); DS.push(new DS.GameOver()); return; }
+      var x8 = back.exit8, f = DS.field; if (!x8 || !f) return;
+      g.x = x8[0]; g.y = x8[1]; f.px = g.x * 16; f.py = g.y * 16; f.moving = false;
+      var w = f.warpAt(g.x, g.y);
+      if (w) { DS.audio.sfx(w.sfx || 'door'); yield* DS.EV.warp(w.to, w.tx, w.ty, w.dir || g.dir, w); }
+    },
+    apply: function (d) {
+      var g = DS.G, find = function (id) { return g.party.filter(function (h) { return h.id === id; })[0] || ((g.guests || []).filter(function (x) { return x.id === id; })[0] || {}).h; };
+      (d.party || []).forEach(function (r) { var h = find(r.id); if (h && r.sheet) Object.keys(r.sheet).forEach(function (k) { h[k] = r.sheet[k]; }); });
+      // the light: the first still holding one carries it on into the map (the field's torchBy), the others none
+      var lit = (d.party || []).filter(function (r) { return r.torch; })[0];
+      g.party.concat((g.guests || []).map(function (x) { return x.h; })).forEach(function (h) { if (h.equip) delete h.equip.torch; });
+      if (lit) { g.flags.torchBy = lit.id; g.flags.torchKind = lit.torch; var lh = find(lit.id); if (lh && lh.equip) lh.equip.torch = 1; } else { delete g.flags.torchBy; delete g.flags.torchKind; }
+      var i0 = d.inv0 || {}, i1 = d.inv1 || {};
+      Object.keys(i0).forEach(function (id) { var used = i0[id] - (i1[id] || 0), have = g.count(id); if (used > 0 && have > 0) g.take(id, Math.min(used, have)); });
+      Object.keys(i1).forEach(function (id) { var got = (i1[id] || 0) - (i0[id] || 0); if (got > 0) g.give(id, got); });
+      Object.keys(d.flags || {}).forEach(function (k) { g.flags[k] = d.flags[k]; });
+      if (d.kills) g.kills = d.kills; if (d.silver != null) g.silver = d.silver;
+      if (d.warn && d.warn.length) console.warn('THE ROAM, the pack at the stairs: ' + d.warn.join('; '));
+    }
+  };
   // DEEP16 up over the screen; the 8-bit game holds still under it (DS.paused) until the fight comes back
   function open(o, done) {
     var g = DS.G, fr = document.createElement('iframe'), closed = false, readyTimer = null, readyMs = DS.d16ReadyMs != null ? DS.d16ReadyMs : 30000;
@@ -114,14 +149,17 @@
       // walked in holding a lit torch (the field's g.flags.torchBy)
       var dark = o.dark != null ? !!o.dark : (DS.EV.darkHere ? DS.EV.darkHere() : false);
       if (m.type === 'd16:ready') clearTimeout(readyTimer); // (it came up: from here the grid answers for itself, by done, refuse or crash)
-      if (m.type === 'd16:ready') fr.contentWindow.postMessage({ type: 'ds8:fight', fight: o.deep16, save: snap, opts: {
+      // (the Wet walked on the grid -- DS.roam8 below: the whole floor, not a fight; the tally and the purse go too, and the square the warp set the party down on)
+      if (m.type === 'd16:ready' && o.roam) fr.contentWindow.postMessage({ type: 'ds8:roam', save: Object.assign(snap, { kills: JSON.parse(JSON.stringify(g.kills || {})), silver: g.silver || 0 }),
+        opts: { at8: [g.x, g.y], dir: g.dir, dark: true, torch: g.flags.torchBy || null, torchKind: g.flags.torchKind || 'torch' } }, '*');
+      else if (m.type === 'd16:ready') fr.contentWindow.postMessage({ type: 'ds8:fight', fight: o.deep16, save: snap, opts: {
         canRun: o.canRun !== false, solo: solo, join: o.join || 0, only: o.deep16Only || null, enemies: o.enemies || null,
         at: o.at || null, wake: o.wake || null, // (the Settling: the lead's square, the trigger that fired -- deep16/js/wet.js)
         start: o.start || null, // (the way in by name: the Flooded Stair's 'ledge' (WADE IN) or 'rune' (a hand on the mark) -- js/events.js S.stair, S.mark; deep16/js/battle.js Battle.enter, 10-03)
         harness: o.harness || null, milker: o.milker || null, touched: !!o.touched, // (the deep rate roused: the cradle's square, who milked, whether the touch took -- 09-30g)
         surprised: o.surprised || null, revealed: !!o.revealed || seer, yieldText: o.yieldText || null,
         dark: dark, torch: o.torch || g.flags.torchBy || null, torchKind: g.flags.torchKind || 'torch' } }, '*');
-      if (m.type === 'd16:done' || m.type === 'd16:refuse' || m.type === 'd16:crash') close(m);
+      if (m.type === 'd16:done' || m.type === 'd16:refuse' || m.type === 'd16:crash' || m.type === 'd16:roam') close(m);
     }
     window.addEventListener('message', onMsg);
     DS.audio.stop();
