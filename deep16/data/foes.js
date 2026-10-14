@@ -815,7 +815,7 @@
     multi: ['scimitar', 'scimitar', 'dagger'], rangedMulti: ['throwndagger', 'throwndagger'], parry: 2, src: 'SRD 5.1 Bandit Captain (CR 2); content/monsters.json banditcaptain (in the 8-bit game only as Hask\'s pattern; Hask\'s sheet); two daggers thrown +5 1d4+3 20/60 (SRD 5.1 "or ... two ranged attacks with its daggers": `rangedMulti`, ai.js volley, when nothing is in reach; 10-02)'
   },
   grimlock: {
-    name: 'Grimlock', type: 'humanoid', sheet: 'grimlock_p1', cr: '1/4', ac: 11, hp: 11, speed: 30, size: 1, reach: 5, blindsight: 30, blind: true,
+    name: 'Grimlock', type: 'humanoid', sheet: 'grimlock_p2', cr: '1/4', ac: 11, hp: 11, speed: 30, size: 1, reach: 5, blindsight: 30, blind: true,
     abil: { str: 16, dex: 12, con: 12, int: 9, wis: 8, cha: 6 }, init: 1, perception: 13,
     saves: { str: 3, dex: 1, con: 1, int: -1, wis: -1, cha: -2 },
     attacks: { club: { name: 'Spiked Bone Club', atk: 5, dice: '1d4', mod: 3, type: 'bludgeoning', extra: '1d4', extraType: 'piercing', reach: 5 } },
