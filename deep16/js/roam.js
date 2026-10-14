@@ -204,10 +204,15 @@
     B.menuClosed = function () { R.regear(B); };
     B.floorMarks = function (c) { R.floorMarks(c, B); }; B.marksOver = function (c) { R.marksOver(c, B); }; // (ORDER's box on the floor, under the figures: ui.js drawBattle's hook)
     if (!/[?&]save\b/.test(R.q) && !(B.inv || []).some(function (s) { return s.id === 'lantern' && s.n > 0; })) (B.inv = B.inv || []).push({ id: 'lantern', n: 1 });
+    // walked in from a save, the pack is the party's own: no loan (every grid fight not opened from inside the 8-bit lends a crossbow, bolts, arrows and a rope -- js/save.js
+    // SV.armoury; the 8-bit's party carries only what it brought, Griz 09-27). The test's four keep the ladder's kit
+    if (/[?&]save\b/.test(R.q)) B.inv = JSON.parse(JSON.stringify(data0.inv || [])).map(function (s) { return Array.isArray(s) ? { id: s[0], n: s[1] } : s; });
     // in by the stair up, where the 8-bit's warp from the Warrens' second floor lands (warrens_b to warrens_d (2, 12))
     var e = R.def.entry[0]; lead.x = e[0]; lead.y = e[1]; lead.facing = D.spr.facingFor(0, -1); R0.fw = [0, -1]; // (in off the stair walking the 8-bit's east: the grid's -y)
     R.into(B, R0.rest);
     B.focus(lead);
+    // the pack's check at the stairs starts here: all the party owns as it walks on, the pack as it walks on, an empty ledger (R.handback)
+    R0.ledger = []; R0.pack0 = R.owned(B); R0.inv0 = R.counts(B.inv);
     // the zone's creatures fetched behind, so a fight's figures are there when it falls
     var Z = window.DS.DATA.encounters.warrens_d, kinds = [];
     (Z ? Z.groups : []).forEach(function (g) { g.e.forEach(function (e2) { var f = D.FOES[e2[0]]; if (f && f.sheet && kinds.indexOf(f.sheet) < 0) kinds.push(f.sheet); }); });
@@ -321,6 +326,7 @@
     if ((R.def.doors || []).some(function (d) { return d[0] === t.x && d[1] === t.y; })) {
       var up = R.def.stairUp.some(function (d) { return d[0] === t.x && d[1] === t.y; });
       B.card(['{y}' + (up ? 'The stair up to the Warrens\' second floor' : 'The stair down to the Warrens\' third floor') + '{/}: here the 8-bit takes the party on (' + (up ? 'warrens_b' : 'warrens_c') + ').', '{g}(the test keeps you on the Wet){/}'], 300);
+      R.packCard(B);
       return 'door';
     }
     var trig = R.triggerAt(B, p8[0], p8[1], 'step');
@@ -438,7 +444,7 @@
   R.bucketScene = function* (B, trig, at) {
     var R0 = B.roam, f = R0.flags;
     if (f.otyughFed || (B.inv || []).some(function (x) { return x.id === 'bucket' && x.n > 0; })) { B.card(['{g}The crate. The bucket is ' + (f.otyughFed ? 'down in the deep water.' : 'with you.') + '{/}'], 220); yield 20; return; }
-    var s0 = (B.inv || []).filter(function (x) { return x.id === 'bucket'; })[0]; if (s0) s0.n = 1; else (B.inv = B.inv || []).push({ id: 'bucket', n: 1 });
+    R.give(B, 'bucket', 1, 'the deep station\'s crate');
     f.bucketBy = R0.token.id; D.sfx('chest');
     B.card(['{y}' + R0.token.name + '{/} takes up the deep station\'s bucket, rope and all.'], 260); yield 30;
   };
@@ -449,7 +455,7 @@
     try { yield* R.pullIn0(B, which, trig, at, start, how); } finally { delete R0.pulling; }
   };
   R.pullIn0 = function* (B, which, trig, at, start, how) {
-    var R0 = B.roam, done = null, hp = {};
+    var R0 = B.roam, done = null, hp = {}, own0 = R.owned(B);
     // (and the light in each hand, and what lasts past a fight -- Mage Armor, the day's Darkvision, a Continual Flame: 10-14, his "check landlord handoff as well")
     R0.members.forEach(function (u) { hp[u.id] = { hp: u.hp, ko: !!u.ko, slots: (u.slots || []).slice(), feats: JSON.parse(JSON.stringify(u.feats || {})), torch: u.torch ? JSON.parse(JSON.stringify(u.torch)) : null, conds: R.lasting(u.conds) }; });
     var o = Object.assign({}, R.party0, { fightDef: null, fight: which === 'keeper' ? 'keeper' : 'wet', onDone: function (res) { done = res || 'out'; } });
@@ -524,6 +530,8 @@
     Object.assign(R0.flags, b.flags8 || {}); // (what it set: otyughFed, bucketBy, heard:r-stream, landlordSpoke, the dead -- the rim's trigger reads otyughFed and otyughDead)
     R.packBack(B, b); // (the pack: what that fight used or found -- the bucket taken up or gone into the water, a potion drunk, a weapon stowed -- not its loan)
     R.regear(B); // (each figure's weapon and AC read again off the sheet EQUIP changed)
+    // (what that fight changed of all the party owns, in the ledger as that fight's own: the pack's check at the stairs reads it -- R.handback)
+    var own1 = R.owned(B); Object.keys(own1).concat(Object.keys(own0)).forEach(function (id, i, a) { if (a.indexOf(id) !== i) return; var d = (own1[id] || 0) - (own0[id] || 0); if (d) R0.ledger.push({ id: id, n: d, why: which === 'keeper' ? 'the Keeper\'s fight' : 'the Settling' }); });
     // what fell in there (the Settling's own count, js/wet.js W.killed -- the three by name, each crawler; the Keeper's fight by kind): XP banked and the tally kept; won, the spoils
     // (the Settling counts a walk-out with something dead behind it a win, as the 8-bit's does)
     var ids8 = which === 'wet' ? (b.enemies8 || (done === 'fed' && D.wet && D.wet.killed && b.wet ? D.wet.killed(b) : []))
@@ -572,7 +580,7 @@
     var ids = Object.keys(c0).concat(Object.keys(c1)).filter(function (id, i, a) { return a.indexOf(id) === i; });
     ids.forEach(function (id) {
       var d = (c1[id] || 0) - (c0[id] || 0); if (!d) return;
-      if (d > 0) R.give(B, id, d); else { var s = (B.inv || []).filter(function (x) { return x.id === id; })[0]; if (s) s.n = Math.max(0, s.n + d); }
+      if (d > 0) R.addPack(B, id, d); else { var s = (B.inv || []).filter(function (x) { return x.id === id; })[0]; if (s) s.n = Math.max(0, s.n + d); }
     });
   };
 
@@ -581,7 +589,48 @@
   // counts when it falls and is paid at the next gather, won or got away; those still up carry theirs into the pursuit or the lost and pay when they fall; the split is
   // among those standing at the gather and the guests fielded (the 8-bit's rule); coin, drops and parts on a win only (a getaway forfeits them, as the 8-bit's run
   // does); the kill tally at the fall either way (the stock's fork reads it). The rules are js/rules.js's, the 8-bit finish's own (R.tally, R.spoils, R.shareXP)
-  R.give = function (B, id, n) { var s = (B.inv || []).filter(function (x) { return x.id === id; })[0]; if (s) s.n = (s.n || 0) + n; else (B.inv = B.inv || []).push({ id: id, n: n }); };
+  R.addPack = function (B, id, n) { var s = (B.inv || []).filter(function (x) { return x.id === id; })[0]; if (s) s.n = (s.n || 0) + n; else (B.inv = B.inv || []).push({ id: id, n: n }); };
+  // a thing the floor gives (the spoils, the five's gear, the bucket), written in the floor's ledger for the pack's check at the stairs (R.handback)
+  R.give = function (B, id, n, why) { R.addPack(B, id, n); if (B.roam && B.roam.ledger) B.roam.ledger.push({ id: id, n: n, why: why || 'found' }); };
+
+  // ------------------------------------------------------------------ the pack at the stairs (10-14, Griz: "check and see if a 'leaving map' inventory handoff check would help on map
+  // exit stairs" -- then "needs built - go"). What the party OWNS -- the pack, what each of the four holds and wears, a light of theirs left burning on the floor -- is counted as it
+  // walks onto the floor (R0.pack0); the floor's ledger writes every gain it makes (R.give) and a pulled-in fight's whole change (R.pullIn); at a way off the floor the hand-back
+  // is the pack's change since it walked on (what the 8-bit's pack takes: js/embed.js's inv0 and inv1), and the check flags a thing that grew with nothing in the ledger for it,
+  // or a key thing (the five's gear, the bucket, the Ledger-Lamp, a named weapon) gone with nothing to say where. A swap, a light set down and taken up, a lantern put away:
+  // moves between hand, floor and pack, never counted
+  R.owned = function (B) {
+    var R0 = B.roam, c = R.counts(B.inv), add = function (id) { if (typeof id === 'string' && window.DS.DATA.items[id]) c[id] = (c[id] || 0) + 1; };
+    R0.members.forEach(function (u) {
+      var e = u.src && u.src.equip; if (e) Object.keys(e).forEach(function (k) { [].concat(e[k]).forEach(add); });
+      if (u.torch) add(L.kindOf(u.torch) === 'lantern' ? (u.torch.item || 'lantern') : 'torch');
+    });
+    (B.lights || []).forEach(function (l) { if ((l.kind === 'torch' || l.kind === 'lantern') && R0.members.some(function (m) { return m.id === l.by; })) add(l.kind === 'lantern' ? (l.item || 'lantern') : 'torch'); });
+    return c;
+  };
+  // the hand-back said at a way off the floor: what the 8-bit's pack would take, and the check's word
+  R.packCard = function (B) {
+    var hb = R.handback(B);
+    B.card(R.wrap(['{y}THE PACK HANDED BACK{/}: ' + (hb.lines.join(', ') || 'as it came')].concat(hb.flags.length ? ['{r}CHECK{/}: ' + hb.flags.join('; ')] : ['{g}every change accounted for{/}'])), 420);
+    return hb;
+  };
+  R.keyItem = function (id) { var it = window.DS.DATA.items[id]; return !!(it && (it.kind === 'key' || it.noSell)); };
+  R.handback = function (B) {
+    var R0 = B.roam, now = R.owned(B), exp = {}, out = { pack: {}, owned: {}, flags: [] }, nm = function (id) { var it = window.DS.DATA.items[id]; return it ? it.name : id; };
+    (R0.ledger || []).forEach(function (e) { exp[e.id] = (exp[e.id] || 0) + e.n; });
+    var uni = function () { var a = []; [].slice.call(arguments).forEach(function (o) { Object.keys(o).forEach(function (k) { if (a.indexOf(k) < 0) a.push(k); }); }); return a; };
+    uni(now, R0.pack0 || {}, exp).forEach(function (id) {
+      var d = (now[id] || 0) - ((R0.pack0 || {})[id] || 0), x = exp[id] || 0; if (d) out.owned[id] = d;
+      if (d > x) out.flags.push('+' + (d - x) + ' ' + nm(id) + ', with nothing in the ledger for it');
+      else if (d < x && R.keyItem(id)) out.flags.push((d - x) + ' ' + nm(id) + ', gone with nothing to say where');
+    });
+    var p0 = R0.inv0 || {}, p1 = R.counts(B.inv);
+    uni(p0, p1).forEach(function (id) { var d = (p1[id] || 0) - (p0[id] || 0); if (d) out.pack[id] = d; });
+    out.lines = Object.keys(out.pack).map(function (id) { return (out.pack[id] > 0 ? '+' : '') + out.pack[id] + ' ' + nm(id); });
+    R0.lastHandback = out;
+    if (out.flags.length && window.console) console.warn('THE ROAM, the pack at the stairs: ' + out.flags.join('; '));
+    return out;
+  };
   R.dice = function () { return { roll: function (e) { return D.roll(e).total; }, rng: D.rand }; };
   R.mon8 = function (id8) { return window.DS.DATA.monsters[id8]; };
   // the ones of this fight that fell (not those that fled or slunk off, not a foe's summoning): XP banked, the tally kept, once each. Returns them as the 8-bit's
@@ -606,7 +655,7 @@
   // a won fight's spoils, into the pack and the purse; the lines to say
   R.spoils = function (B, fell) {
     var R0 = B.roam; if (!fell.length) return [];
-    var sp = window.DS.R.spoils(fell, R.standing(R0).map(function (u) { return u.src; }).filter(Boolean), R.dice(), function (id, n) { R.give(B, id, n); });
+    var sp = window.DS.R.spoils(fell, R.standing(R0).map(function (u) { return u.src; }).filter(Boolean), R.dice(), function (id, n) { R.give(B, id, n, 'the spoils'); });
     R0.silver += sp.silver;
     return sp.lines;
   };
@@ -638,7 +687,7 @@
   // the five brought up on the floor (js/rules.js R.fiveUp, the 8-bit's fiveUp's own: the flag, the tokens for Edric's book, the stock's fork) and the 8-bit's lines after the scene's own
   R.five = function* (B, first) {
     var R0 = B.roam;
-    window.DS.R.fiveUp(R0.flags, function (id, n) { R.give(B, id, n); }, R0.kills); D.sfx('chest');
+    window.DS.R.fiveUp(R0.flags, function (id, n) { R.give(B, id, n, 'the five'); }, R0.kills); D.sfx('chest');
     B.card(R.wrap([].concat(first ? R.say8(first) : [], [R.say8('w.fiveRecovered'), R.say8('w.threshold')])), 420); yield 60;
   };
 
@@ -988,6 +1037,7 @@
         lead.x = outBy.x; lead.y = outBy.y;
         B.units = B.units.filter(function (u) { return still.indexOf(u) < 0; }); R.dropGroups(B);
         B.card(['{y}Away{/}: ' + outBy.name + ' takes the stair, and the party with them.', '{g}Off the floor: the 8-bit would take you on, and back down its groups are gone. (The test keeps you here, the floor cleared.){/}'], 360);
+        R.packCard(B);
         still = [];
       } else if (still.length) {
         g2 = { foes: still, why: 'pursuit', mode: 'pursue', motivated: !!(grp && grp.motivated), rolled: false, stall: grp && grp.motivated ? 0 : 6, t: B.t, flag: grp && grp.flag, trig: grp && grp.trig, zone: grp && grp.zone };

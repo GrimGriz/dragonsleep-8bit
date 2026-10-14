@@ -2208,6 +2208,35 @@
       driveZ(D.roam.after(BZ, 'won', { zone: 'warrens_d' }, []), null, 600);
       okZ('a fight\'s own conditions end with it: Barley\'s ' + (Object.keys(bar.conds).join(',') || 'none') + ' (prone and poisoned off), Aurdin\'s ' + Object.keys(aur.conds).join(',') + ' (Mage Armor kept, the fright off)',
         !bar.conds.prone && !bar.conds.poisoned && aur.conds.mageArmor && !aur.conds.frightened);
+      // the pack at the stairs (10-14, Griz: "check and see if a 'leaving map' inventory handoff check would help on map exit stairs" -- "needs built - go"): a fresh floor --
+      // two crawlers won (their ichor), the five by the rope, the Settling with Vivian's crossbow taken up and a potion drunk in it -- then out by the stair up: the hand-back is
+      // what the 8-bit's pack would take, every change accounted for; five bolts out of nowhere, and the five's gear gone with no word, are each flagged
+      while (D.top() !== BZ && D.scenes.length > 1) D.pop();
+      var BQ = D.roam.make('?roam=wet&watch&enc=999&lvl=3'); D.scenes.length = 0; D.push(BQ); D.battle = BQ; BQ.enter();
+      var RQ = BQ.roam, cQ = function (id) { var s = (BQ.inv || []).filter(function (x) { return x.id === id; })[0]; return s ? s.n : 0; };
+      var homeQ = function () { return D.top() === BQ && RQ.mode === 'walk' && !RQ.pulling; };
+      var q1 = BQ.makeFoe({ id: 'q1', kind: 'crawler' }), q2 = BQ.makeFoe({ id: 'q2', kind: 'crawler' }); [q1, q2].forEach(function (u) { u.conds = {}; u.x = 12; u.y = 30; u.hp = 0; u.dead = true; });
+      RQ.mode = 'fight'; driveZ(D.roam.after(BQ, 'won', { zone: 'warrens_d' }, [q1, q2]), null, 600);
+      driveZ(D.roam.stairScene(BQ, { id: 'stair' }, at8(19, 21)), null, 400);
+      var gQ = D.roam.pullIn(BQ, 'wet', { id: 'landlordStep' }, at8(8, 8)); for (var kQ = 0; kQ < 400 && D.top() === BQ; kQ++) gQ.next();
+      var bQ = D.top();
+      if (bQ !== BQ) { bQ.enter(); var vQ = bQ.units.filter(function (u) { return u.id === 'vivian'; })[0]; vQ.turn = { action: 1, bonus: 1, move: 30, moved: 0 }; bQ.swapGear(vQ, { kind: 'weapon', id: 'lightcrossbow' }); var pQ = bQ.inv.filter(function (s) { return s.id === 'potion'; })[0]; if (pQ) pQ.n--; D.pop(); bQ.o.onDone('escaped'); driveZ(gQ, null, 2000); }
+      var upQ = D.roam.def.stairUp[0], nbQ = null; for (var yQ = -1; yQ <= 1 && !nbQ; yQ++) for (var xQ = -1; xQ <= 1 && !nbQ; xQ++) if ((xQ || yQ) && GZ.canStand(RQ.token, upQ[0] + xQ, upQ[1] + yQ)) nbQ = [upQ[0] + xQ, upQ[1] + yQ];
+      RQ.token.x = nbQ[0]; RQ.token.y = nbQ[1]; RQ.token.tween = null; GZ.setup(GZ.map, BQ.units); var nQ = (BQ.log || []).length; RQ.path = [upQ.slice()];
+      driveZ(BQ.co, function () { return (BQ.log || []).slice(nQ).some(function (l) { return /THE PACK HANDED BACK/.test(l); }); }, 600);
+      var hQ = RQ.lastHandback || { lines: [], flags: ['no hand-back'], pack: {} }, saidQ = (BQ.log || []).slice(nQ).join(' ');
+      okZ('out by the stair up, the pack handed back: ' + (hQ.lines.join(', ') || 'nothing') + ' -- ' + (hQ.flags.join('; ') || 'every change accounted for') + ' (said: ' + /every change accounted for/.test(saidQ) + ')',
+        !hQ.flags.length && hQ.pack.fivetokens === 1 && hQ.pack.candleknife === 1 && hQ.pack.lightcrossbow === -1 && hQ.pack.potion === -1 && /every change accounted for/.test(saidQ));
+      var hbQ = function () { return D.roam.handback ? D.roam.handback(BQ) : { flags: [], lines: [], pack: {} }; }; (D.roam.addPack || D.roam.give)(BQ, 'bolts', 5); var hQ2 = hbQ();
+      var fQ = (BQ.inv || []).filter(function (x) { return x.id === 'fivetokens'; })[0]; if (fQ) fQ.n = 0; var hQ3 = hbQ();
+      okZ('a planted leak is flagged (' + hQ2.flags.join('; ') + '), and the five\'s gear gone with no word (' + hQ3.flags.filter(function (f) { return /Five/.test(f); }).join('; ') + ')',
+        hQ2.flags.some(function (f) { return /Bolts/i.test(f); }) && hQ3.flags.some(function (f) { return /Five/.test(f) && /gone/.test(f); }));
+      // walked in from a save: the party's own pack, no loan (a save of two potions walks in with two potions and no crossbow, bolts or rope)
+      var svQ = D.save.fixture(3); svQ.inv = [{ id: 'potion', n: 2 }]; memZ['deep16.handoff'] = JSON.stringify({ at: Date.now(), save: svQ });
+      var BS = D.roam.make('?roam=wet&watch&enc=999&save'); D.scenes.length = 0; D.push(BS); D.battle = BS; BS.enter();
+      var invS = (BS.inv || []).filter(function (s) { return s.n > 0; }).map(function (s) { return s.id + ':' + s.n; }).join(' ');
+      okZ('walked in from a save, its own pack, no loan (' + invS + ')', /potion:2/.test(invS) && !/lightcrossbow|bolts|rope/.test(invS));
+      delete memZ['deep16.handoff'];
     } catch (eZ) { repZ.errors.push(String(eZ && eZ.stack || eZ).slice(0, 900)); }
     D.store.get = stGZ; D.store.set = stSZ; IZ.held.up = false; IZ.held.left = false;
     if (errs.length) repZ.errors = repZ.errors.concat(errs);
