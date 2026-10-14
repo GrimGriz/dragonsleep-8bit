@@ -76,4 +76,4 @@ var e0 = B.enter; B.enter = function () { var r = e0.apply(this, arguments); thi
 D16.push(B);
 ```
 
-The four are marked at `enter` (before the walk-in holds them offstage), as the bench marks them. Poll `D16.battle.log` as it runs; at the end `D16.rec.finish(D16.battle, D16.battle.result)` writes the record, since an AI-played fight takes no steps and the per-round checkpoint writes only after a step. Name the record `watched` so his own plays stay his. A background tab runs no frames: step `D16.update()` by hand there, and `tabs_create` gives the seat a tab of its own while he plays in his.
+The four are marked at `enter` (before the walk-in holds them offstage), as the bench marks them. Poll `D16.battle.log` as it runs; at the end `D16.rec.finish(D16.battle, D16.battle.result)` writes the finished record. (Since `aee5412`, 10-14, the per-round checkpoint keeps an AI-played fight too, by its log, so a tab closed mid-fight leaves it `unfinished` rather than nothing.) Name the record `watched` so his own plays stay his. A background tab runs no frames: step `D16.update()` by hand there, and `tabs_create` gives the seat a tab of its own while he plays in his.
