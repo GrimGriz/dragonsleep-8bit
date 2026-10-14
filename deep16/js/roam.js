@@ -135,7 +135,7 @@
     R.def = R.wholeWet();
     R.q = q; R.PAD = num('pad', 4); R.FAR = num('far', 0); R.ENC = num('enc', 0); // (&far=0: no cap -- RULED 10-13 with the approach, his "1 yes")
     var lvl = num('lvl', 5), useSave = /[?&]save\b/.test(q);
-    var F = { map: 'wetwhole', foes: [], level: lvl, dark: !/[?&]lit\b/.test(q), entry: null, fliers: true }; // (fliers: one with wings keeps to the air, js/flight-ai.js)
+    var F = { map: 'wetwhole', foes: [], level: lvl, dark: !/[?&]lit\b/.test(q), entry: null, fliers: true, bucket: R.def.from8(3, 7) }; // (fliers: one with wings keeps to the air, js/flight-ai.js) (bucket: its square, so js/wet.js lifts the bucket onto the crate there -- his play, 10-14: "bucket rendered over crate not on top of crate")
     var o = useSave ? { fightDef: F } : { fightDef: F, ladder: true, level: lvl };
     var sd = /[?&]seed=(\d+)/.exec(q); if (sd) D.seed = +sd[1] | 0;
     R.party0 = o; // (a pulled-in fight walks in with the same four: the same level, or the same save)
@@ -1227,7 +1227,8 @@
     if (kind === 'item' && it && it.use) {
       var who = u || R0.token, eff = it.use.effect;
       // the Rope & Grapple from the menu (R.ropeUse): the one floating at the deep end, if the hook can reach it from where the party stands -- the haul, as ROPE THEM OUT
-      if (eff === 'grapple') { if (R.floatInReach(B)) { R0.keys.push('haul'); B.card(['{y}' + R0.token.name + '{/} shakes out the Rope & Grapple.'], 160); } else B.card(['{g}Nothing in reach to hook with it here.{/}'], 180); return true; }
+      // (the menu closes on it, and the haul plays at once -- his play, 10-14: "didn't close menu and seemed like it didn't work, but once menu closed it did")
+      if (eff === 'grapple') { if (R.floatInReach(B)) { R0.keys.push('haul'); B.menu = null; if (B.menuClosed) B.menuClosed(); B.card(['{y}' + R0.token.name + '{/} shakes out the Rope & Grapple.'], 160); } else B.card(['{g}Nothing in reach to hook with it here.{/}'], 180); return true; }
       if (eff === 'light') {
         if (who.torch) { B.card(['{g}' + who.name + ' has a light in hand already.{/}'], 160); return true; }
         who.torch = a.id === 'torch' ? { lit: true, kind: 'torch' } : L.make(a.id, false); L.regrip(who); take(); D.sfx('confirm');

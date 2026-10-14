@@ -2297,7 +2297,8 @@
       // the bucket on its crate till it is taken, gone from it after
       var onCrate = function () { return !!(BH.wet && BH.wet.bucket && BH.map.props.indexOf(BH.wet.bucket.prop) >= 0); };
       var crate0 = onCrate(); driveZ(D.roam.bucketScene(BH, { id: 'bucket' }, at8(3, 7)), null, 200); var crate1 = onCrate();
-      okZ('the bucket on its crate on the floor (' + crate0 + '), gone from it once taken up (' + !crate1 + ', in the pack x' + cH('bucket') + ')', crate0 && !crate1 && cH('bucket') === 1);
+      var liftB = (BH.fight.bucket || []).join() === at8(3, 7).join(); // (js/wet.js onCrate reads the fight's bucket square: on it, the bucket is lifted onto the crate)
+      okZ('the bucket on its crate on the floor (' + crate0 + ', lifted onto it ' + liftB + '), gone from it once taken up (' + !crate1 + ', in the pack x' + cH('bucket') + ')', crate0 && liftB && !crate1 && cH('bucket') === 1);
       // the landlord fed: USE on its water says so and pulls nothing in (and pays the quarter-again once, if not yet)
       RH.flags.otyughFed = 1; delete RH.flags.otyughFedXp; var xpL0 = RH.members.map(function (u) { return u.src.xp; }), nL = (BH.log || []).length;
       var gL = D.roam.fire(BH, { id: 'landlord' }, at8(8, 6)), pulledL = false; for (var kL = 0; kL < 200; kL++) { if (D.top() !== BH) { pulledL = true; break; } var stL = gL.next(); if (stL.done) break; }
@@ -2345,10 +2346,10 @@
       var useRope = function () { return BJ.menuAct ? BJ.menuAct('item', { id: 'rope' }, function () { return null; }) : false; };
       var ropeIt = window.DS.DATA.items.rope; putJ([12, 30]); var nJ = (BJ.log || []).length, far1 = useRope(); driveZ(BJ.co, null, 60);
       var nothing = (BJ.log || []).slice(nJ).some(function (l) { return /Nothing in reach to hook/.test(l); }) && !RJ.flags.fiveRecovered;
-      putJ(at8(20, 21)); var near1 = useRope(), hauled2 = false;
+      putJ(at8(20, 21)); BJ.menu = { m: {} }; var near1 = useRope(), shut = !BJ.menu, hauled2 = false; // (the menu open as it would be: the pick shuts it)
       for (var kM = 0; kM < 600; kM++) { var stM = BJ.co.next(); if (typeof stM.value === 'number') BJ.t += stM.value; if (RJ.haul) hauled2 = true; if (RJ.flags.fiveRecovered && !RJ.haul && kM > 40) break; }
-      okZ('the Rope & Grapple from the menu (a field use on this page: ' + !!(ropeIt.use && ropeIt.use.effect === 'grapple') + '): out in the cave, nothing to hook (' + nothing + '); from the landing, the same haul (' + hauled2 + ') and the five up (' + !!RJ.flags.fiveRecovered + ', x' + cJ('fivetokens') + ')',
-        !!(ropeIt.use && ropeIt.use.effect === 'grapple') && nothing && near1 && hauled2 && RJ.flags.fiveRecovered && cJ('fivetokens') === 1);
+      okZ('the Rope & Grapple from the menu (a field use on this page: ' + !!(ropeIt.use && ropeIt.use.effect === 'grapple') + '): out in the cave, nothing to hook (' + nothing + '); from the landing the menu shuts (' + shut + ') and the same haul (' + hauled2 + ') and the five up (' + !!RJ.flags.fiveRecovered + ', x' + cJ('fivetokens') + ')',
+        !!(ropeIt.use && ropeIt.use.effect === 'grapple') && nothing && near1 && shut && hauled2 && RJ.flags.fiveRecovered && cJ('fivetokens') === 1);
       // the Settling in and out without a seam: no card going in, none coming back; the Keeper keeps its own
       var nS2 = (BJ.log || []).length, gW = D.roam.pullIn(BJ, 'wet', { id: 'landlordStep' }, at8(8, 8)), kW2 = 0;
       for (; kW2 < 400 && D.top() === BJ; kW2++) gW.next();
