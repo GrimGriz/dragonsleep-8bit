@@ -92,19 +92,24 @@
   // gone till the ritual calls it back; else what it has left
   function famBack(g, f) { if (f && g.flags.familiar) { if (f.gone) { g.flags.familiarGone = g.flags.familiar.kind; delete g.flags.familiar; } else g.flags.familiar.hp = f.hp; } }
   DS.roam8 = {
-    on: function () { var f = DS.G.flags; return !/[?&]noroam\b/.test(location.search) && !(f.stairHook && !f.keeperWater); },
+    // (the drained Wet too since 10-14 -- his close's "Roam the Wet going to need post-stair drain version": the floor lays the map's flag tiles by the flags, deep16/js/roam.js)
+    on: function () { return !/[?&]noroam\b/.test(location.search); },
     enter: function* () {
       var g = DS.G, back = null, hand = null, o = { roam: true, onHand: function (m) { hand = m; } };
       open(o, function (m) { back = m; });
-      for (;;) { // (a hand-back from the middle of the floor -- SAVE, a cradle -- and the floor again, as often as it asks: DS.roam8.hand)
+      for (;;) { // (a hand-back from the middle of the floor -- SAVE, a cradle, a field action, a scene -- and the floor again, as often as it asks: DS.roam8.hand)
         yield DS.W8.until(function () { return !!back || !!hand; });
         if (back) break;
-        var hm = hand; hand = null;
-        o.resume(yield* DS.roam8.hand(hm));
+        var hm = hand, hr; hand = null;
+        hr = yield* DS.roam8.hand(hm);
+        if (hr.over) { o.closeFrame(); return; } // (the party fell in the scene's own fight: this game's game over stands, the floor goes)
+        o.resume(hr);
       }
       if (back.type !== 'd16:roam') { if (back.type === 'd16:crash') yield DS.say(FALTERED.replace('The fight goes on here.', 'The Wet goes on here.')); return; }
       DS.roam8.apply(back);
       if (back.result === 'lose') { DS.audio.play('gameover'); DS.push(new DS.GameOver()); return; }
+      // a scene that changed the floor's own tiles (the stair held, the water back): the floor again, built for them, where the party stood
+      if (back.result === 'reopen') { var fr0 = DS.field; if (back.exit8) { g.x = back.exit8[0]; g.y = back.exit8[1]; if (fr0) { fr0.px = g.x * 16; fr0.py = g.y * 16; fr0.moving = false; } } yield* DS.roam8.enter(); return; }
       var x8 = back.exit8, f = DS.field; if (!x8 || !f) return;
       g.x = x8[0]; g.y = x8[1]; f.px = g.x * 16; f.py = g.y * 16; f.moving = false;
       var w = f.warpAt(g.x, g.y);
@@ -137,7 +142,13 @@
       var inv0 = counts(), fl0 = JSON.parse(JSON.stringify(g.flags)), out = {};
       if (m.kind === 'save') { var sv = new DS.SlotScene(true); yield DS.W8.scene(sv); out.saved = /^Saved/.test(sv.msg || '') ? sv.msg : null; }
       if (m.kind === 'cradle') out.cradle = (yield* DS.EV.deepRate(m.n)) || null;
-      if (m.kind === 'act' && m.act) { yield* DS.roam8.act(m.act); out.party = g.party.map(function (h) { return { id: h.id, sheet: JSON.parse(JSON.stringify(h)) }; }).concat((g.guests || []).map(function (x) { return { id: x.id, sheet: JSON.parse(JSON.stringify(x.h)) }; })); }
+      if (m.kind === 'act' && m.act) yield* DS.roam8.act(m.act);
+      if (m.kind === 'script' && m.script && DS.SCRIPTS[m.script]) yield* DS.SCRIPTS[m.script](m.arg); // (any other scene of this map's: the drained stair's dryStair, holdStair)
+      if (m.kind === 'act' || m.kind === 'script') { // (each hero as this game left them, the tally, the square the scene left the party on)
+        out.party = g.party.map(function (h) { return { id: h.id, sheet: JSON.parse(JSON.stringify(h)) }; }).concat((g.guests || []).map(function (x) { return { id: x.id, sheet: JSON.parse(JSON.stringify(x.h)) }; }));
+        out.kills = JSON.parse(JSON.stringify(g.kills || {})); out.at8 = [g.x, g.y];
+      }
+      if (DS.GameOver && DS.top() instanceof DS.GameOver) { out.over = true; return out; }
       var inv1 = counts(); out.inv = {};
       Object.keys(inv0).concat(Object.keys(inv1)).forEach(function (id) { var d = (inv1[id] || 0) - (inv0[id] || 0); if (d) out.inv[id] = d; });
       out.flags = {}; Object.keys(g.flags).forEach(function (k) { if (JSON.stringify(g.flags[k]) !== JSON.stringify(fl0[k])) out.flags[k] = g.flags[k]; });
@@ -170,6 +181,7 @@
     // the floor's hand-back from its middle (the roam's 'd16:hand', DS.roam8.hand): the frame set aside, not closed -- the 8-bit awake for its own scene -- then up again
     // with that scene's word ('ds8:resume') and the 8-bit held still under it once more
     function aside(m) { fr.style.visibility = 'hidden'; DS.paused = false; DS.input.flush(); if (DS.canvas) DS.canvas.focus(); o.onHand(m); }
+    o.closeFrame = function () { close({ type: 'd16:over' }); };
     o.resume = function (data) { if (closed) return; fr.style.visibility = ''; DS.paused = true; DS.input.flush(); try { fr.contentWindow.focus(); } catch (e) { } fr.contentWindow.postMessage(Object.assign({ type: 'ds8:resume' }, data || {}), '*'); };
     // the guests the 8-bit battle would field (standing, and none for a lone fighter or a noGuests fight), each by its key
     // (two troopers are pinA and pinB, both 'trooper' underneath)

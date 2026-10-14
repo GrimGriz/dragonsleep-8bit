@@ -43,20 +43,30 @@
     caveFloor: '.', caveWall: '#', timber: '#', rails: '.', railsH: '.', pool: '~', deep: 'D', ooze: '.', guano: '.', guanoDeep: '.',
     webFloor: '.', dwarfFloor: '.', dwarfWall: '#', runeWall: '#', sealDoor: '#', drownStair: 'D', ladder: '.', holeDown: '.', lantern: '#',
     cradle: 'y', gate: '#', bones: '.', stalag: 'P', fungus: '.', gravel: '.', minecart: 'k', crateCave: '.', glowmoss: '.', chimney: '#',
-    stairsUp: '.', stairsDown: '.', bridgeV: '=', bridgeH: '=', dryStair: '.', sealCut: '.', stain: '.', steps: '.',
+    stairsUp: '.', stairsDown: '.', bridgeV: '=', bridgeH: '=', dryStair: '.', sealCut: '.', stain: '.', steps: '.', puddle: '.', ironBars: '#',
     dirt: ',', grass: 'g', tree: 'T', road: ',', dirtpath: ',', cobble: ',', water: 'D', fence: 'f', well: 'w', crate: 'k', cliff: '#',
     mountain: '#', range: '#', void: '#', web: '.', cocoon: 'c', tent: '#', wall: '#', wallWin: '#', door: '.', flatstone: '.', reeds: 'g'
   };
-  R.rows8 = function (M8) {
-    return M8.rows.map(function (row) { var o = ''; for (var i = 0; i < row.length; i++) { var t = R.TILE[M8.legend[row.charAt(i)]]; o += t != null ? t : '#'; } return o; });
+  // and the map's flag tiles over them as the 8-bit lays them by its flags (js/world.js DS.applyFlagTiles; 10-14, Griz: "Roam the Wet going to need post-stair drain version",
+  // and "this is how we'll be doing all the dwarf road and stuff after, so we do it all and do it right": the drained stair's dry steps, the cut seal, the stain, the bars)
+  R.rows8 = function (M8, flags) {
+    var rows = M8.rows.map(function (row) { var o = ''; for (var i = 0; i < row.length; i++) { var t = R.TILE[M8.legend[row.charAt(i)]]; o += t != null ? t : '#'; } return o; });
+    (M8.flagTiles || []).forEach(function (ft) { if (!R.cond(ft.cond, flags || {}) || !rows[ft.y] || ft.x >= rows[ft.y].length) return; var t = R.TILE[ft.tile]; rows[ft.y] = rows[ft.y].slice(0, ft.x) + (t != null ? t : '#') + rows[ft.y].slice(ft.x + 1); });
+    return rows;
   };
+  // which of the map's flag tiles stand (the floor is built for them: a scene that changes them -- the stair held, the water back -- opens the floor again, R.scene8)
+  R.tileSig = function (M8, flags) { return (M8.flagTiles || []).map(function (ft) { return R.cond(ft.cond, flags || {}) ? 1 : 0; }).join(''); };
+  // the ways off the floor: the map's warps whose conditions stand (the Wet's stairs up and down; drained, the cut seal down to the Burial), each as the grid's square
+  R.warpsOn = function (M8, flags) { return (M8.warps || []).filter(function (w) { return R.cond(w.cond, flags || {}); }); };
   // a quarter counter-clockwise, as the Settling's grid (data/maps.js wet: the 8-bit square (x, y) is the grid's (y, W8 - 1 - x))
   R.turn = function (R8) { var W8 = R8[0].length, rows = []; for (var gy = 0; gy < W8; gy++) { var r = ''; for (var gx = 0; gx < R8.length; gx++) r += R8[gx][W8 - 1 - gy]; rows.push(r); } return rows; };
-  R.wholeWet = function () {
-    if (D.MAPS.wetwhole) return D.MAPS.wetwhole;
-    var M8 = window.DS.DATA.maps.warrens_d, R8 = R.rows8(M8), W8 = R8[0].length, wet = D.MAPS.wet;
-    // the drowned stair's first row, the landing's edge, wadable (RULED 10-13, Griz: "2 yes" -- wading onto it starts the Keeper, waded in: R.arrive); the rest of it deep
-    R.WADE8.forEach(function (q) { var row = R8[q[1]]; R8[q[1]] = row.slice(0, q[0]) + '~' + row.slice(q[0] + 1); });
+  R.wholeWet = function (flags) {
+    var M8 = window.DS.DATA.maps.warrens_d, sig = R.tileSig(M8, flags);
+    if (D.MAPS.wetwhole && D.MAPS.wetwhole.sig === sig) return D.MAPS.wetwhole;
+    var R8 = R.rows8(M8, flags), W8 = R8[0].length, wet = D.MAPS.wet;
+    // the drowned stair's first row, the landing's edge, wadable (RULED 10-13, Griz: "2 yes" -- wading onto it starts the Keeper, waded in: R.arrive); the rest of it deep.
+    // Drained, it is dry steps (the flag tiles), nothing to wade
+    R.WADE8.forEach(function (q) { var row = R8[q[1]]; if (row.charAt(q[0]) === 'D') R8[q[1]] = row.slice(0, q[0]) + '~' + row.slice(q[0] + 1); });
     var from8 = function (x, y, s) { return [y, W8 - (x + (s || 1))]; }, to8 = function (gx, gy) { return [W8 - 1 - gy, gx]; };
     var at8 = function (l) { return l.map(function (p) { return from8(p[0], p[1]); }); };
     D.MAPS.wetwhole = {
@@ -68,8 +78,8 @@
       // the dwarven works -- the corridor, the landing, the drowned stair, the 8-bit's rows 19-24 -- under worked stone 15 ft up (the map's `skies`: js/grid.js G.ceilAt;
       // 10-13, Griz: "keepers room has to be at least 15 high")
       skies: [[19, W8 - 35, 6, 26, 15]],
-      rows8: M8.rows, rows: R.turn(R8), from8: from8, to8: to8, src8: M8,
-      entry: wet.entry, stairUp: wet.doors, doors: wet.doors.concat(at8([[41, 27], [42, 27]])), foes: []
+      rows8: M8.rows, rows: R.turn(R8), from8: from8, to8: to8, src8: M8, sig: sig,
+      entry: wet.entry, stairUp: wet.doors, doors: at8(R.warpsOn(M8, flags).map(function (w) { return [w.x, w.y]; })), foes: []
     };
     return D.MAPS.wetwhole;
   };
@@ -158,7 +168,9 @@
   R.make = function (q, emb) {
     q = q || ''; R.emb = emb || null;
     var num = function (k, d) { var m = new RegExp('[?&]' + k + '=(\\d+)').exec(q); return m ? +m[1] : d; };
-    R.def = R.wholeWet();
+    // the floor as its flags lay it: inside the 8-bit, the game's own; the test's from its address -- &flags=a,b (set), &drained (the stair pumped dry: stairHook)
+    var fq = /[?&]flags=([A-Za-z0-9_,:]+)/.exec(q); R.flags0 = {}; if (fq) fq[1].split(',').forEach(function (k) { if (k) R.flags0[k] = 1; }); if (/[?&]drained\b/.test(q)) R.flags0.stairHook = 1;
+    R.def = R.wholeWet(emb && emb.save ? emb.save.flags || {} : R.flags0);
     R.q = q; R.PAD = num('pad', 4); R.FAR = num('far', 0); R.ENC = num('enc', 0); // (&far=0: no cap -- RULED 10-13 with the approach, his "1 yes")
     var lvl = num('lvl', 5), useSave = /[?&]save\b/.test(q);
     var F = { map: 'wetwhole', foes: [], level: lvl, dark: !/[?&]lit\b/.test(q), entry: null, fliers: true, bucket: R.def.from8(3, 7) }; // (fliers: one with wings keeps to the air, js/flight-ai.js) (bucket: its square, so js/wet.js lifts the bucket onto the crate there -- his play, 10-14: "bucket rendered over crate not on top of crate")
@@ -219,6 +231,7 @@
     // the purse, the kill tally and the XP banked till the next gather (R.pay): the save's own, or the fixture's none
     var data0 = (B.from && B.from.data) || {}; R0.silver = data0.silver || 0; R0.kills = JSON.parse(JSON.stringify(data0.kills || {})); R0.xpBank = 0;
     if (R.emb) R0.flags = JSON.parse(JSON.stringify(data0.flags || {})); // (inside the 8-bit: its flags, all of them, and back out at the door)
+    else R0.flags = JSON.parse(JSON.stringify(R.flags0 || {})); // (the test's from its address: &flags=, &drained -- R.make)
     if (/[?&]watch\b/.test(R.q)) members.forEach(function (u) { u.guest = true; u.classAI = true; }); // (&watch: the class tactics run the four, as the bench does)
     // the light: the party's carried torch (&light=none | torch | lantern), in the first free hand in the marching order (js/light.js handsFree, then handForLight)
     var lw = (/[?&]light=([a-z]+)/.exec(R.q) || [])[1] || 'torch';
@@ -401,7 +414,8 @@
     if ((R.def.doors || []).some(function (d) { return d[0] === t.x && d[1] === t.y; })) {
       var up = R.def.stairUp.some(function (d) { return d[0] === t.x && d[1] === t.y; });
       if (R.emb) { yield* R.leaveFloor(B, 'out', [t.x, t.y]); return 'door'; } // (inside the 8-bit: off the floor, and the 8-bit takes its own warp from this square)
-      B.card(['{y}' + (up ? 'The stair up to the Warrens\' second floor' : 'The stair down to the Warrens\' third floor') + '{/}: here the 8-bit takes the party on (' + (up ? 'warrens_b' : 'warrens_c') + ').', '{g}(the test keeps you on the Wet){/}'], 300);
+      var w8 = R.warpsOn(R.def.src8, R0.flags).filter(function (w) { return w.x === p8[0] && w.y === p8[1]; })[0], to8 = w8 ? w8.to : up ? 'warrens_b' : 'warrens_c', nm8 = ((window.DS.DATA.maps || {})[to8] || {}).name || to8; // (the map's own warp: the Burial's too, drained)
+      B.card(R.wrap(['{y}The way to ' + nm8 + '{/}: here the 8-bit takes the party on (' + to8 + ').', '{g}(the test keeps you on the Wet){/}']), 300);
       R.packCard(B);
       return 'door';
     }
@@ -500,8 +514,16 @@
     if (trig.id === 'bucket') { yield* R.bucketScene(B, trig, at); return; }
     if (trig.id === 'chest') { yield* R.chestScene(B, trig.chest); return; }
     if (/^deepCradle\d$/.test(trig.id)) { yield* R.cradle(B, trig, at); return; }
-    B.card(['{y}' + trig.id + '{/}: the 8-bit\'s scene (' + trig.script + ') runs here.', '{g}(in the test only the Settling\'s squares, the drowned stair, the rune and the puddle ooze do anything){/}'], 300);
-    D.sfx('popup'); yield 30;
+    yield* R.scene8(B, trig, at);
+  };
+  // any other 8-bit scene on the floor (10-14, Griz: "this is how we'll be doing all the dwarf road and stuff after, so we do it all and do it right" -- the drained stair's
+  // dryStair and holdStair here, the road's next): the 8-bit's own script by a hand-back from the square it fired on (js/embed.js DS.roam8.hand 'script': its lines, its
+  // fight in its own frame, its flags). What it did to the floor's flag tiles (the stair held, the water back) opens the floor again for them where the party stands
+  R.scene8 = function* (B, trig, at) {
+    var R0 = B.roam;
+    if (!R.emb) { B.card(R.wrap(['{y}' + trig.id + '{/}: the 8-bit\'s own scene (' + trig.script + ') -- inside the game the floor hands the party back for it (?at=roam).']), 300); D.sfx('popup'); yield 30; return; }
+    var m = yield* R.handOut(B, 'script', { script: trig.script, arg: trig.arg != null ? trig.arg : null, trig: trig.id });
+    if (m && !R0.out && R.tileSig(R.def.src8, R0.flags) !== R.def.sig) yield* R.leaveFloor(B, 'reopen', [R0.token.x, R0.token.y]);
   };
 
   // ------------------------------------------------------------------ the 8-bit's scenes on the floor, in its own words (DS.DATA.text, js/events.js S.mark, S.stair, S.bucket)
@@ -855,10 +877,14 @@
       inv0[id] = Math.max(0, (inv0[id] || 0) + d);
     });
     Object.assign(R0.flags, m.flags || {}); if (m.silver != null) R0.silver = m.silver;
-    // and each hero as the 8-bit left it (a field action's: R.act), onto its figure
+    // and each hero as the 8-bit left it (a field action's, a scene's: R.act, R.scene8), onto its figure; the kill tally a fight in there added to; the square the scene left
+    // the party on (a fight run from walks them off the stair)
     (m.party || []).forEach(function (r) { var u = R0.members.filter(function (w) { return w.src && (w.src.key || w.src.id) === r.id; })[0]; if (u) R.resheet(B, u, r.sheet); });
-    if (m.party) R.regear(B);
+    if (m.kills) R0.kills = JSON.parse(JSON.stringify(m.kills));
+    if (m.at8 && msg.exit8 && (m.at8[0] !== msg.exit8[0] || m.at8[1] !== msg.exit8[1])) { var q8 = R.def.from8(m.at8[0], m.at8[1]); if (G.canStand(t, q8[0], q8[1])) { t.x = q8[0]; t.y = q8[1]; t.tween = null; G.setup(G.map, B.units); B.focus(t); } }
     R0.inv0 = inv0; R0.pack0 = R.owned(B); R0.ledger = [];
+    // a level in there (a fight's XP): its picks on the floor, as at a gather (R.picks)
+    if (m.party) { R.regear(B); R0.picksDue = R0.members.filter(function (u) { return u.src && window.DS.R.picksDue(u.src); }); yield* R.picks(B); }
     return m;
   };
   R.resumed = function (m) { var B = (D.embed && D.embed.B) || D.battle; if (B && B.roam) B.roam.resume = m; };

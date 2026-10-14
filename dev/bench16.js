@@ -2553,6 +2553,40 @@
       okZ('roused: the crawler loose at its cradle (' + (crC ? [crC.x, crC.y] + ', ' + Math.max(Math.abs(crC.x - atC[0]), Math.abs(crC.y - atC[1])) + ' squares off' : 'none') + '), Aurdin who milked it on the square they worked it from (' + [auC.x, auC.y] + ', want ' + standC + '), stiff with the poison (' + !!(auC.conds && auC.conds.paralyzed) + ')',
         !!crC && Math.max(Math.abs(crC.x - atC[0]), Math.abs(crC.y - atC[1])) <= 4 && [auC.x, auC.y].join(',') === standC && !!(auC.conds && auC.conds.paralyzed));
       if (D.embed) D.embed.roamOut = roH;
+      // the drained Wet on the floor (10-14, his close's "Roam the Wet going to need post-stair drain version"; "do it all and do it right"): the floor laid by the map's flag
+      // tiles as the flags stand -- drained, the drowned stair dry steps with nothing to wade, the seal cut and a way down to the Burial (the map's own warp, by its condition);
+      // flooded, as before. The drained stair's own scenes the 8-bit's by a hand-back (dryStair: its lines, the five's tokens); the water back (holdStair won), the floor opens again
+      while (D.scenes.length > 1) D.pop();
+      var chAt = function (df, x8, y8) { var q = df.from8(x8, y8); return (df.rows[q[1]] || '').charAt(q[0]); };
+      var fl0 = D.roam.wholeWet({}), doorsF = JSON.stringify(fl0.doors), doorsOld = JSON.stringify(D.MAPS.wet.doors.concat([[41, 27], [42, 27]].map(function (p) { return fl0.from8(p[0], p[1]); })));
+      var wadeF = D.roam.WADE8.map(function (q) { return chAt(fl0, q[0], q[1]); }).join(''), sealF = chAt(fl0, 8, 21), bur = fl0.from8(8, 21);
+      var dr0 = D.roam.wholeWet({ stairHook: 1 }), wadeD = D.roam.WADE8.map(function (q) { return chAt(dr0, q[0], q[1]); }).join(''), sealD = chAt(dr0, 8, 21);
+      var hasBur = function (df) { return (df.doors || []).some(function (d) { return d[0] === bur[0] && d[1] === bur[1]; }); }, burF = hasBur(fl0), burD = hasBur(dr0);
+      var dr1 = D.roam.wholeWet({ stairHook: 1, frontDoor: 1 }), barsD = chAt(dr1, 8, 21), burB = hasBur(dr1);
+      okZ('the floor by its flags: flooded, the stair\'s first row to wade (' + wadeF + '), the seal stone (' + sealF + '), the ways off as before (' + (doorsF === doorsOld) + ') and none to the Burial (' + !burF + '); drained, dry steps (' + wadeD + '), the seal cut (' + sealD + ') and the way down to the Burial (' + burD + '); the front door taken, barred (' + barsD + ', ' + !burB + ')',
+        wadeF === '~~~~' && sealF === '#' && doorsF === doorsOld && !burF && wadeD === '....' && sealD === '.' && burD && barsD === '#' && !burB);
+      var outD = [], roD = D.embed && D.embed.roamOut; if (D.embed) D.embed.roamOut = function (m) { outD.push(m); };
+      var saveD = D.save.fixture(3); saveD.flags = { stairHook: 1, tallyMet: 1, waterAsked: 1 };
+      var BD = D.roam.make('?roam=wet&watch', { save: saveD, opts: { at8: [2, 12], dir: 'right', dark: true } }); D.scenes.length = 0; D.push(BD); D.battle = BD; BD.enter();
+      var RD = BD.roam, sqD = D.roam.def.from8(19, 21), trD = D.roam.triggerAt(BD, 19, 21, 'step');
+      var gD = D.roam.fire(BD, trD || { id: 'none', script: 'none' }, sqD);
+      driveZ(gD, function () { return outD.length > 0; }, 200);
+      var hD = outD[0] || {};
+      if (D.roam.resumed) D.roam.resumed({ type: 'ds8:resume', inv: { fivetokens: 1 }, flags: { drySeen: 1, fiveRecovered: 1 }, silver: RD.silver, party: hD.party || [], kills: hD.kills || {}, at8: hD.exit8 });
+      driveZ(gD, null, 400);
+      var ftD = (BD.inv || []).filter(function (s) { return s.id === 'fivetokens'; })[0];
+      okZ('drained, inside the 8-bit: the floor laid dry (' + D.roam.def.sig + '), the stair\'s row a scene of the 8-bit\'s (' + (trD && trD.id) + ': ' + hD.kind + ' ' + hD.script + '); back, its word on the floor (drySeen ' + RD.flags.drySeen + ', the five\'s tokens x' + (ftD ? ftD.n : 0) + '), still the floor (' + !RD.out + ')',
+        /1/.test(D.roam.def.sig) && trD && trD.id === 'dryStair' && hD.kind === 'script' && hD.script === 'dryStair' && RD.flags.drySeen === 1 && ftD && ftD.n === 1 && !RD.out);
+      outD = []; RD.mode = 'walk';
+      var trH = D.roam.triggerAt(BD, 19, 21, 'step'), gH2 = D.roam.fire(BD, trH || { id: 'none', script: 'none' }, sqD);
+      driveZ(gH2, function () { return outD.length > 0; }, 200);
+      var hH = outD[0] || {};
+      if (D.roam.resumed) D.roam.resumed({ type: 'ds8:resume', inv: {}, flags: { keeperWater: 1 }, silver: RD.silver, party: hH.party || [], kills: hH.kills || {}, at8: hH.exit8 });
+      driveZ(gH2, function () { return outD.length > 1; }, 400);
+      var oH = outD[1] || {};
+      okZ('holding the stair (' + (trH && trH.id) + ': ' + hH.kind + ' ' + hH.script + '), the water back: the floor opened again for it where they stand (' + oH.type + ' ' + oH.result + ' at 8-bit ' + oH.exit8 + ')',
+        trH && trH.id === 'holdStair' && hH.kind === 'script' && hH.script === 'holdStair' && oH.type === 'd16:roam' && oH.result === 'reopen' && String(oH.exit8) === String(hH.exit8));
+      if (D.embed) D.embed.roamOut = roD;
     } catch (eZ) { repZ.errors.push(String(eZ && eZ.stack || eZ).slice(0, 900)); }
     D.store.get = stGZ; D.store.set = stSZ; IZ.held.up = false; IZ.held.left = false; window.DS.autoPicks = apZ;
     if (errs.length) repZ.errors = repZ.errors.concat(errs);

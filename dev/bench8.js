@@ -2110,7 +2110,8 @@
       // they left by. DEEP16 is not run here: its message is dispatched on the page as the frame would send it (floor1003's way); the roam's own half is bench16 mode=roam1014
       var f8 = g.flags, set0R = window.setTimeout, clr0R = window.clearTimeout;
       var onA = DS.roam8.on(); f8.stairHook = 1; var onDr = DS.roam8.on(); f8.keeperWater = 1; var onFl = DS.roam8.on(); delete f8.stairHook; delete f8.keeperWater;
-      check('the roam on (' + onA + '), off with the stair drained (' + !onDr + '), on again flooded back (' + onFl + '); the hook in warrens_d (' + (typeof DS.SCRIPTS['enter:warrens_d']) + ')', onA && !onDr && onFl && typeof DS.SCRIPTS['enter:warrens_d'] === 'function');
+      // (on with the stair drained too since 10-14 -- his close's "Roam the Wet going to need post-stair drain version": the floor lays the drained tiles, deep16/js/roam.js)
+      check('the roam on (' + onA + '), on with the stair drained (' + onDr + '), on flooded back (' + onFl + '); the hook in warrens_d (' + (typeof DS.SCRIPTS['enter:warrens_d']) + ')', onA && onDr && onFl && typeof DS.SCRIPTS['enter:warrens_d'] === 'function');
       try {
         window.setTimeout = function (fn, ms) { return { fn: fn, ms: ms }; }; window.clearTimeout = function () {};
         DS.field.load('warrens_d', 2, 12, 'right'); g.x = 2; g.y = 12; DS.paused = false;
@@ -2167,7 +2168,34 @@
           var pAr = (gotH && gotH.party) || [], shA = pAr.filter(function (r) { return r.id === 'barley'; })[0], shL = pAr.filter(function (r) { return r.id === 'lymen'; })[0];
           check('a cast from the floor\'s menu, by this game\'s own: Lymen\'s Cure Wounds on Barley (' + hpA + ' -> ' + (shA && shA.sheet.hp) + '), his slot spent (' + slA + ' -> ' + (shL && shL.sheet.slots[0]) + '), every sheet back to the floor (' + pAr.length + '), the frame up again (' + (frH.style.visibility !== 'hidden') + ')',
             !!shA && shA.sheet.hp > hpA && !!shL && shL.sheet.slots[0] === slA - 1 && pAr.length >= g.party.length && frH.style.visibility !== 'hidden');
-          window.dispatchEvent(new MessageEvent('message', { source: frH.contentWindow, data: { type: 'd16:roam', result: 'out', exit8: [1, 12], party: [], inv0: {}, inv1: {}, flags: {}, warn: [] } }));
+          // the drained stair's own scene from the floor (10-14, his close's "Roam the Wet going to need post-stair drain version"): dryStair by name, this game's own -- its lines,
+          // the five's tokens where the water left them -- and its word back: the flag, the tokens, every sheet, the square
+          gotH = null; var five0 = g.flags.fiveRecovered; delete g.flags.fiveRecovered; delete g.flags.drySeen; var tok0 = g.count('fivetokens');
+          window.dispatchEvent(new MessageEvent('message', { source: frH.contentWindow, data: { type: 'd16:hand', kind: 'script', script: 'dryStair', arg: null, exit8: [19, 21], dir: 'left', party: [], inv0: {}, inv1: {}, flags: { stairHook: 1 }, kills: JSON.parse(JSON.stringify(g.kills || {})), silver: g.silver, warn: [] } }));
+          for (kR = 0; kR < 600 && !gotH; kR++) { var tS = DS.top(); if (tS && tS.kind === 'dialog') { if (tS.chars < tS.pageLen()) tS.chars = tS.pageLen(); T.tapf('a'); } T.step(1); }
+          check('the drained stair\'s dryStair from the floor, this game\'s own: its word back -- drySeen ' + (gotH && gotH.flags && gotH.flags.drySeen) + ', the five\'s tokens +' + (gotH && gotH.inv && gotH.inv.fivetokens) + ' (the pack ' + tok0 + ' -> ' + g.count('fivetokens') + '), the sheets (' + (gotH && gotH.party && gotH.party.length) + '), the square ' + (gotH && gotH.at8),
+            !!gotH && gotH.flags.drySeen === 1 && gotH.inv.fivetokens === 1 && g.count('fivetokens') === tok0 + 1 && !!gotH.party && String(gotH.at8) === '19,21');
+          delete g.flags.stairHook; delete g.flags.drySeen; if (five0) g.flags.fiveRecovered = five0; else delete g.flags.fiveRecovered;
+          // a party that falls in a scene's own fight: this game's game over stands and the frame goes (no floor to resume over it)
+          DS.SCRIPTS.__overTest = function* () { DS.push(new DS.GameOver()); }; // (a stand-in for a fight lost in a scene: the game over pushed, as EV.fight's)
+          window.dispatchEvent(new MessageEvent('message', { source: frH.contentWindow, data: { type: 'd16:hand', kind: 'script', script: '__overTest', arg: null, exit8: [3, 12], dir: 'right', party: [], inv0: {}, inv1: {}, flags: {}, kills: JSON.parse(JSON.stringify(g.kills || {})), silver: g.silver, warn: [] } }));
+          for (kR = 0; kR < 200 && document.getElementById('d16') && !(DS.GameOver && DS.top() instanceof DS.GameOver && frH.style.visibility !== 'hidden'); kR++) T.step(1);
+          for (kR = 0; kR < 20; kR++) T.step(1);
+          var overTop = !!(DS.GameOver && DS.top() instanceof DS.GameOver), overGone = !document.getElementById('d16');
+          check('fallen in a scene\'s own fight: the frame gone (' + overGone + '), the game over standing (' + overTop + ')', overGone && overTop);
+          delete DS.SCRIPTS.__overTest; if (overTop) DS.pop(DS.top());
+          if (!overGone) { window.dispatchEvent(new MessageEvent('message', { source: frH.contentWindow, data: { type: 'd16:roam', result: 'out', exit8: [1, 12], party: [], inv0: {}, inv1: {}, flags: {}, warn: [] } })); for (kR = 0; kR < 400 && (document.getElementById('d16') || DS.scriptActive() || DS.fadeLevel > 0); kR++) T.step(1); }
+          // a scene that changed the floor's tiles: the floor closes with 'reopen' and this game opens it again at the square, a fresh frame
+          DS.field.load('warrens_d', 2, 12, 'right'); g.x = 2; g.y = 12; DS.paused = false;
+          DS.run(function* () { yield* DS.SCRIPTS['enter:warrens_d'](); });
+          for (kR = 0; kR < 200 && !document.getElementById('d16'); kR++) T.step(1);
+          var frP = document.getElementById('d16');
+          if (frP) window.dispatchEvent(new MessageEvent('message', { source: frP.contentWindow, data: { type: 'd16:roam', result: 'reopen', exit8: [3, 12], party: [], inv0: {}, inv1: {}, flags: {}, warn: [] } }));
+          for (kR = 0; kR < 200 && !(document.getElementById('d16') && document.getElementById('d16') !== frP); kR++) T.step(1);
+          var frO = document.getElementById('d16');
+          check('reopened: a fresh frame (' + !!(frP && frO && frO !== frP) + ') where they stood (' + [g.x, g.y] + ', want 3,12)', !!frP && !!frO && frO !== frP && g.x === 3 && g.y === 12);
+          var frE = document.getElementById('d16');
+          if (frE) window.dispatchEvent(new MessageEvent('message', { source: frE.contentWindow, data: { type: 'd16:roam', result: 'out', exit8: [1, 12], party: [], inv0: {}, inv1: {}, flags: {}, warn: [] } }));
           for (kR = 0; kR < 400 && (document.getElementById('d16') || DS.scriptActive() || DS.fadeLevel > 0); kR++) T.step(1);
           delete g.flags.roamHandTest;
         }
