@@ -8,6 +8,7 @@ how: nothing here is wanted. When a block on `deep16-art-wanted.md` comes back a
 
 ## BUILT FROM THE LIST (newest first)
 
+- 2026-10-14 · the water elemental, two isometric views (ART-08: three of its four pages; the Whelm/Flinch/Fall page from behind is owed) · `deep16/_src/waterelemental/`, `tools/waterelemental-sheet.py` -> `waterelemental_p2`, `a31c89a` (a runner); a foe in the spirit naga's place at the Black Water, two of them · *"Naga Swap (might need 2 or more to approx CR) go"*
 - 2026-10-14 · the ogre, two isometric views (ART-06, four pages) · `deep16/_src/ogre/`, `tools/ogre-sheet.py` -> `ogre_p2`, `344235d` (a runner) · *"go with those 5 (if we have what we need for the ogre)"*; *"there's two ogre variants floating around... if one is missing pieces ignore for now"* (the brown one, `ogre/other-generator/`, not read)
 - 2026-10-14 · the grimlock, two isometric views (ART-07, four pages) · `deep16/_src/grimlock/`, `tools/grimlock-sheet.py` -> `grimlock_p2` (Lurk is its `still`), `4f93939` (a runner) · the same word
 - 2026-10-14 · the gibbering mouther, one view turned (ART-05, two pages) · `deep16/_src/mouther/`, `tools/mouther-sheet.py` -> `mouther_p2`, its Spittle played by js/ai.js spit, `90fcfff` (a runner), `ea13a30` · the same word
@@ -484,6 +485,26 @@ HEAD: THE GIANT CENTIPEDE -- its hurt row from the front and from behind. Attach
 
 16-bit pixel art animation sheet, SNES-era, crisp dark outline, readable at small size. Flat dark navy background. ONE sheet only, filling the whole image: no portrait, no turnaround, no title. Two rows, labelled Hurt Front and Hurt Back at the left, 8 frames each, numbered under each frame. Every frame stands apart with clear space around it: nothing overlaps a neighbour or a label. The same scale in every frame; the last frames lie on one floor line.
 ```
+
+### The water elemental (asked 10-08 in §1; drawn 10-10 by the art desk, ART-08; CUT 10-14, BUILT FROM THE LIST above)
+
+The block as it stood on `deep16-art-wanted.md` §1, word for word, kept for a re-roll.
+
+#### The water elemental (not a foe yet)
+
+RULED 10-04 (Griz: *"we're staying as close to the SRD as we can, immunity and a sheet"*): a foe of its own with the SRD's condition immunities and its own sheet. Nothing plays this until the foe is built.
+
+```text
+THE WATER ELEMENTAL -- a foe for a tactics game, drawn on two sheets. A churning column of living water twice a man's height: a rough head and two heavy arms of surging water rising out of a rolling wave at its base, clear blue-green, white foam at its edges, bubbles drifting inside it. It has no legs: it rolls on its wave.
+
+HEAD 1 -- THE WATER ELEMENTAL from the bottom-right: isometric three-quarter view from above, every frame facing toward the bottom-right corner of the image. Rows: Idle (6: surging and churning in place, foam curling at its edges); Move (8: it rolls toward the bottom-right on its wave, leaning into the motion); Slam (6: a heavy arm of water rises and crashes down on a foe toward the bottom-right, spraying, then reforms); Whelm (8: it rears up tall and crashes toward the bottom-right over a space as big as a man, closing round it, then holds, swollen, as if something is inside it -- do not draw what it holds); Flinch (4: struck, it splashes apart at the blow and pulls back together); Fall (6: it loses its shape and collapses into a spreading pool; the last frame a flat puddle on the ground).
+
+HEAD 2 -- THE WATER ELEMENTAL from the top-right, seen from behind: isometric three-quarter view from above, every frame facing toward the top-right corner of the image, rows only. Rows: Idle (6: surging and churning in place, foam curling at its edges); Move (8: it rolls toward the top-right on its wave, leaning into the motion); Slam (6: a heavy arm of water rises and crashes down toward the top-right, spraying, then reforms); Whelm (8: it rears up tall and crashes toward the top-right over a space as big as a man, closing round it, then holds, swollen -- do not draw what it holds); Flinch (4: struck from behind, it splashes apart at the blow and pulls back together, still facing away); Fall (6: it loses its shape and collapses into a spreading pool; the last frame a flat puddle on the ground).
+
+Draw each HEAD above as its own separate image, in the order given: one sheet an image, never two sheets in one image. Every sheet: 16-bit pixel art animation sheet, SNES-era action RPG style, crisp dark outline, readable at small size. Isometric three-quarter view from above, the camera looking down at about thirty degrees, as in a tactics game. Flat dark navy background (a deep blue, not grey and not black). ONE sheet filling the whole image: no other panels, no title. Only the first sheet has a portrait and a turnaround -- top left one large portrait, beside it four stills labelled Front, Right, Back, Left; every later sheet is rows only and draws the creature exactly as the first sheet's turnaround shows it, the same look, colours and size. Labelled rows of frames, each row's name at its left, numbered 1 to N under each frame -- every number used once, none skipped, one drawing for each number. Every frame faces the way its HEAD says; a walk is animated in place, not travelling across the sheet. Every frame stands apart with clear space around it: nothing overlaps a neighbour or a label. The same scale in every row and on every sheet, the bottom of every frame on one baseline. No scenery except what a row names.
+```
+Cut as: Move -> walk, Slam -> `slam` (and `slam2`), Whelm -> `whelm` (new, wired with its foe), Fall -> hurt; HEAD 1 plays SE, S and E (SW and W mirrored), HEAD 2 NE and N (NW mirrored); a row on HEAD 1 only plays from it in every facing. No prone (SRD: immune). Large.
+
 
 ### The stand-ins' isometric sheets (asked 10-08 in §1; drawn 10-09 and 10-10 by the art desk, ART-02 to ART-07; CUT 10-14, BUILT FROM THE LIST above)
 
