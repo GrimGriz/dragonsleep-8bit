@@ -673,6 +673,34 @@
       if (r.feats && hh.feats) Object.keys(hh.feats).forEach(function (k) { if (typeof hh.feats[k] === 'number' && typeof r.feats[k] === 'number') hh.feats[k] = Math.min(hh.feats[k], r.feats[k]); });
     });
     if (st.party8.party.every(function (x) { return x.hp <= 0; })) st.party8.party.forEach(function (x) { x.hp = 1; x.ko = false; }); // (carried off and bound up: one HP each, the rest at the Pit)
+    else SN.shortRest(st); // (a short rest after every fight -- RULED 10-15, his "Heroes get a short rest between fights and a long rest between days")
+  };
+  // the rests (SRD 5.1, as DEEP16's own: deep16/js/pocket.js PK.shortRest -- the fallen stand first, his ruling for the Pocket DM, then hit dice till
+  // whole or out; Second Wind and Action Surge, Channel Divinity, Wild Shape, ki, pact slots back; a wizard's Arcane Recovery once a day). The long
+  // rest is every dusk, wherever the four stand: whole, slots and features back, half their hit dice back
+  SN.HITDIE = { barbarian: 12, fighter: 10, paladin: 10, ranger: 10, bard: 8, cleric: 8, druid: 8, monk: 8, rogue: 8, warlock: 8, sorcerer: 6, wizard: 6 };
+  SN.shortRest = function (st) {
+    if (!st.party8) return;
+    var said = [];
+    st.party8.party.forEach(function (c) {
+      if (c.hdLeft == null) c.hdLeft = c.lvl;
+      var hd = SN.HITDIE[c.cls] || 8, con = Math.floor((((c.abil || {}).con || 10) - 10) / 2), spent = 0, healed = 0, back = [], f = c.feats = c.feats || {};
+      if (c.hp <= 0) { c.hp = 1; c.ko = false; back.push('back on their feet'); }
+      while (c.hp < c.maxhp && c.hdLeft > 0) { var g = Math.max(0, 1 + Math.floor(SN.rng(st) * hd) + con); c.hp = Math.min(c.maxhp, c.hp + g); healed += g; c.hdLeft--; spent++; }
+      if (c.cls === 'fighter') { if (!(f.secondWind > 0) || !(f.actionSurge > 0)) back.push('Second Wind, Action Surge'); f.secondWind = 1; f.actionSurge = 1; }
+      if (c.cls === 'paladin' && c.lvl >= 3 && !(f.channel > 0)) { f.channel = 1; back.push('Channel Divinity'); }
+      if (c.cls === 'cleric' && c.lvl >= 2) { var ch = c.lvl >= 18 ? 3 : c.lvl >= 6 ? 2 : 1; if (!(f.channel >= ch)) back.push('Channel Divinity'); f.channel = ch; }
+      if (c.cls === 'druid' && c.lvl >= 2 && !(f.wildShape >= 2)) { f.wildShape = 2; back.push('Wild Shape'); }
+      if (c.cls === 'monk' && c.lvl >= 2 && !(f.ki >= c.lvl)) { f.ki = c.lvl; back.push('ki'); }
+      if (c.cls === 'warlock' && c.slotsMax) { c.slots = c.slotsMax.slice(); back.push('pact slots'); }
+      if (c.cls === 'wizard' && f.arcaneRecovery > 0 && c.slotsMax && c.slots) {
+        var budget = Math.ceil(c.lvl / 2), got = 0;
+        for (var L = Math.min(5, c.slotsMax.length); L >= 1; L--) while (c.slots[L - 1] < c.slotsMax[L - 1] && budget >= L) { c.slots[L - 1]++; budget -= L; got++; }
+        if (got) { f.arcaneRecovery = 0; back.push('Arcane Recovery: ' + got + ' slot' + (got === 1 ? '' : 's')); }
+      }
+      if (spent || back.length) said.push(c.name + (spent ? ' ' + spent + ' hit ' + (spent === 1 ? 'die' : 'dice') + ', +' + healed + ' HP' : '') + (back.length ? (spent ? '; ' : ' ') + back.join(', ') + ' back' : ''));
+    });
+    if (said.length) SN.say(st, 'The four take a short rest: ' + said.join('; ') + '.', 'party');
   };
   // the bench's hand (the probe; and the fallback when the grid will not come up): the party's part on the tables, the four as eight-figure super-heroes --
   // 32 Armored Foot at +2 against the units' own figures on the Combat Table (RULED 10-15, his "the bench should read a complete gnoll slaughter, as
@@ -702,12 +730,13 @@
       if (u.cleric && u.figs < u.figs0 && u.figs > 0) { u.figs++; SN.say(st, 'The cleric with ' + u.name + ' mends a figure (' + u.figs + ').', 'info', u.at); }
       if (u.state === 'withdraw' && SN.same(u.at, u.home)) { u.state = 'home'; SN.say(st, u.name + ' are home.', 'info', u.at); }
     });
-    // the four rest at the Pit: a day held there with no fight is a long rest
+    // the four's long rest, every dusk wherever they stand (RULED 10-15, his "a long rest between days"; it was a day held in the Pit with no fight):
+    // whole, their slots and features back, half their hit dice back (SRD 5.1)
     var P = SN.unit(st, 'party');
-    if (P && SN.alive(P) && SN.same(P.at, SN.PIT) && !P.fought && st.party8 && st.party80) {
-      var hurt = st.party8.party.some(function (x, i) { return x.hp < x.maxhp || JSON.stringify(x.slots) !== JSON.stringify(st.party80.party[i].slots); });
-      st.party8.party.forEach(function (x, i) { var y = st.party80.party[i]; x.hp = x.maxhp; x.ko = false; x.slots = (y.slots || []).slice(); x.feats = JSON.parse(JSON.stringify(y.feats || {})); });
-      if (hurt) SN.say(st, 'The four take a long rest in the Pit.', 'party', SN.PIT);
+    if (P && SN.alive(P) && st.party8 && st.party80) {
+      var hurt = st.party8.party.some(function (x, i) { return x.hp < x.maxhp || JSON.stringify(x.slots) !== JSON.stringify(st.party80.party[i].slots) || JSON.stringify(x.feats) !== JSON.stringify(st.party80.party[i].feats); });
+      st.party8.party.forEach(function (x, i) { var y = st.party80.party[i]; x.hp = x.maxhp; x.ko = false; x.slots = (y.slots || []).slice(); x.feats = JSON.parse(JSON.stringify(y.feats || {})); x.hdLeft = Math.min(x.lvl, (x.hdLeft == null ? x.lvl : x.hdLeft) + Math.max(1, Math.floor(x.lvl / 2))); });
+      if (hurt) SN.say(st, 'The four take a long rest' + (SN.same(P.at, SN.PIT) ? ' in the Pit' : '') + '.', 'party', P.at);
     }
     // after the head, every snooting unit is going home whatever the day did to it (a rout rallies into the road home, not back into the fight)
     if (st.head) st.units.forEach(function (u) { if (u.side === 'gnoll' && SN.alive(u) && !u.watch && !u.harbinger && u.state !== 'withdraw') u.state = 'withdraw'; });

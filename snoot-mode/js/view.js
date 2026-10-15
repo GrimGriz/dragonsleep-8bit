@@ -73,6 +73,7 @@
     V.zk = k; V.cam.z = V.base.z * Math.pow(V.ZSTEP, k);
     V.cam.x = wx - (px - W / 2) / V.cam.z; V.cam.y = wy - (py - H / 2) / (V.cam.z * SQ); clampCam(); return true;
   };
+  V.ensureVisible = function (h) { var q = V.center(h), m = 90; if (q[0] < m || q[0] > cv.width - m || q[1] < m || q[1] > cv.height - m) { var w = V.world(h); V.cam.x = w[0]; V.cam.y = w[1] - V.elev(h) / SQ; clampCam(); } };
   V.panBy = function (dx, dy) { V.cam.x -= dx / V.cam.z; V.cam.y -= dy / (V.cam.z * SQ); clampCam(); };
   function clampCam() { V.cam.x = Math.max(-R3 / 2, Math.min(R3 * SN.W, V.cam.x)); V.cam.y = Math.max(-1, Math.min(1.5 * (SN.H - 1) + 1, V.cam.y)); }
   function mapProj() { return V.proj(V.cam, cv.width, cv.height); }

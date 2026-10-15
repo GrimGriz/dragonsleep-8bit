@@ -35,12 +35,12 @@
   };
   UI.help = function (fromTitle) {
     UI.card('<h1>HOW IT PLAYS</h1>' +
-      '<h2>The turn</h2><p>A turn is a day; a hex is about five miles (OD&amp;D Book III); a figure on a badge is twenty men (CHAINMAIL). Click one of your units (a <b>gold dot</b> on its badge means no order yet), then click where it should go: it marches as far as it can today, and the dotted line is the rest of the way. Or <b>HOLD</b>, or <b>CHARGE IF CHARGED</b> (it joins any fight next to it), or <b>AVOID</b> (it holds, and if anything comes at it, it tries to slip a hex away on OD&amp;D Book III\'s chances: the fewer it is and the stronger they are, the better; doubled if they were surprised, none if it was, unless it has magic; 25% for being twice as fast). The Dominion\'s wagons avoid. Right-click sends a unit onto a hex where your own stand. When every unit has its orders, <b>RESOLVE THE DAY</b> (Enter).</p>' +
+      '<h2>The turn</h2><p>A turn is a day; a hex is about five miles (OD&amp;D Book III); a figure on a badge is twenty men (CHAINMAIL). Click one of your units (a <b>gold dot</b> on its badge means no order yet; once it has its order the next one is selected), then click where it should go: it marches as far as it can today, and the dotted line is the rest of the way. Or <b>HOLD</b>, or <b>CHARGE IF CHARGED</b> (it joins any fight next to it), or <b>AVOID</b> (it holds, and if anything comes at it, it tries to slip a hex away on OD&amp;D Book III\'s chances: the fewer it is and the stronger they are, the better; doubled if they were surprised, none if it was, unless it has magic; 25% for being twice as fast). The Dominion\'s wagons avoid. Right-click sends a unit onto a hex where your own stand. When every unit has its orders, <b>RESOLVE THE DAY</b> (Enter).</p>' +
       '<h2>The day</h2><p>Everyone moves at once, the fast arriving first. Units that meet fight: up to three rounds on CHAINMAIL\'s Combat Tables, with morale after each round. The loser backs off, retreats, routs or surrenders; a rout spreads to friends it runs into. When a fight begins each side rolls a die for <b>surprise</b> (OD&amp;D Book III): on a 1 or 2 it is caught unready and taken in the flank in the first round -- in the rear if three or more units come at it; a side that has already fought that day is awake to it. If three rounds leave both standing, night falls and the lower morale total backs off a hex: no one ends the day sharing a hex. A unit that fights three rounds in a day is fatigued till it rests a day.</p>' +
       '<p><b>Every fight plays as a show</b>: the map flies down into that hex, the units stand in their formations on the sides they came in through, each side\'s dice roll on screen, the killed fall, the morale result goes up, witnesses run in, and the map flies back out. SPACE (or a click) skips a fight, Esc the rest of the day; the log on the right keeps every roll.</p>' +
       '<p><b>Before you send a unit</b>, hover where it would march: if it would meet an enemy (if they hold -- their orders are secret), a pop-up gives both sides\' dice and kill numbers off the tables, morale, the charge die, the shock, and the witnesses waiting to fill a gnoll win.</p>' +
       '<h2>Formation and facing</h2><p>Every unit stands in a <b>LINE</b>, a <b>COLUMN</b> or (foot only) a <b>SQUARE</b>, and faces one side of its hex (CHAINMAIL p.10). An enemy that comes in through a unit\'s <b>flank</b> fights a class up; through its <b>rear</b>, a class up and the unit strikes nothing back in the first round (p.16). A line\'s front is three sides; a column\'s one, but horse and wagons in column march further on the road (the book\'s road bonus: heavy horse a hex, medium and light horse and wagons two; foot none); a square is all front, moves a hex a day, and horse get no charge die against it. Set them free on Day 14 (and on a unit\'s arrival day); after that a change costs half the day\'s move, and a unit caught in a fight the day it changed counts as flanked. A unit that marches faces the way it went; turning in place is free (Q and E, or the panel).</p>' +
-      '<h2>The four</h2><p>The party are Super-heroes. Every fight they stand in is fought on the grid (DEEP16): you play it out there, and the result comes back to the map. What they spend stays spent; a day spent in the Pit without a fight is a long rest.</p>' +
+      '<h2>The four</h2><p>Every fight the four stand in is fought on the grid (DEEP16): you play it out there, and the result comes back to the map. After every fight they take a short rest (the fallen stand, hit dice heal, Second Wind, Action Surge and Channel Divinity come back, a wizard\'s Arcane Recovery once a day); every dusk a long rest, wherever they stand.</p>' +
       '<h2>The Snoot</h2><p><b>The witness:</b> a gnoll band that wins a fight is filled up from every gnoll band within two hexes. Glory draws followers.<br><b>The Harbinger</b> hunts GreyFang from Day 18 (sooner if GreyFang strays near him). Only a hero (a paladin), GreyFang or the four can hold him; anyone else he walks straight through. When he reaches GreyFang the head is taken: on the grid if the four are with GreyFang or next to the fight, on the map if not. Then every gnoll goes home.<br><b>The Dominion:</b> two days after the hunt begins, three wagons come along the west road. Mop them up and the battle is over.</p>' +
       '<h2>Who is who</h2><p>Newland\'s units carry a paladin (a Hero: +1 to the unit\'s dice) or a cleric (never surrenders, +1 morale, mends a figure a day) or both. The plains tribes are berserkers and their own masters: the computer moves them -- they charge any gnolls within two hexes, hunt the rest, and never check morale. Crossbows loose a volley before the melee. Horse charging over open ground adds a die a figure; standing horse defends a class down. Gnolls attack as Armored Foot and defend as Heavy Foot, morale +2 (OD&amp;D Book II).</p>' +
       '<h2>Keys</h2><p class="small">Tab the next unit without orders &middot; the ring round a selected unit: MOVE (then click where -- your own units\' hex too), HOLD, CHARGE? (charge if charged: join a fight next to it), AVOID, FORMATION (it tells you the cost first; BACK leaves it) and the turns &middot; Q / E turn the unit &middot; the wheel or + / - zoom, a drag or the arrows pan &middot; Enter resolve the day &middot; N notes &middot; H this card &middot; Esc deselect. The rules as read, with page numbers: <a href="rules-source.md" target="_blank" style="color:#ffe08a">rules-source.md</a>.</p>',
@@ -161,9 +161,9 @@
     el.innerHTML = html;
     var form = function (f, face) { return function () { SN.setForm(st, u, f, face); UI.tip(null); UI.render(); }; };
     if ($('fLine')) { $('fLine').onclick = form('line'); $('fCol').onclick = form('column'); if ($('fSq')) $('fSq').onclick = form('square'); $('fL').onclick = function () { form(null, (u.face || 0) + 1)(); }; $('fR').onclick = function () { form(null, (u.face || 0) + 5)(); }; }
-    if ($('oHold')) $('oHold').onclick = function () { u.order = { type: 'hold' }; u.held = true; UI.render(); };
-    if ($('oSup')) $('oSup').onclick = function () { u.order = { type: 'support' }; u.held = true; UI.render(); };
-    if ($('oAvoid')) $('oAvoid').onclick = function () { u.order = { type: 'avoid' }; u.held = true; UI.render(); };
+    if ($('oHold')) $('oHold').onclick = function () { UI.command(u, 'hold'); };
+    if ($('oSup')) $('oSup').onclick = function () { UI.command(u, 'support'); };
+    if ($('oAvoid')) $('oAvoid').onclick = function () { UI.command(u, 'avoid'); };
   };
   // ---------------------------------------------------------------- the ring (his ask 10-15: "a ring menu on the side for available commands for that unit"):
   // round the selected unit of ours, what it can be told -- HOLD, CHARGE IF CHARGED, AVOID, its formation (SQUARE for foot) and its turn; the four
@@ -200,7 +200,7 @@
   UI.command = function (u, k) {
     if (!st || busy || !SN.canOrder(st, u)) return;
     if (k === 'move') { UI.moveMode = UI.moveMode === u.id ? null : u.id; if (UI.moveMode) UI.toast('Click the hex it should march to -- your own units\' hex too. Esc cancels.'); }
-    else if (k === 'hold' || k === 'support' || k === 'avoid') { u.order = { type: k }; u.held = true; UI.moveMode = null; }
+    else if (k === 'hold' || k === 'support' || k === 'avoid') { u.order = { type: k }; u.held = true; UI.advance(u); }
     else if (k === 'form') UI.ringMode = 'form';
     else if (k === 'back') UI.ringMode = 'main';
     else if (k === 'line' || k === 'column' || k === 'square') { SN.setForm(st, u, k); UI.ringMode = 'main'; }
@@ -220,6 +220,15 @@
       el.innerHTML = '<div class="h">' + (info.hit ? 'Likely a fight at ' + esc(info.place) : 'Marching to ' + esc(info.place)) + '</div>' + info.lines.map(function (l) { return '<div>' + esc(l) + '</div>'; }).join('') + info.warn.map(function (l) { return '<div class="w">' + esc(l) + '</div>'; }).join('');
     }
     if (el.innerHTML) { el.style.display = 'block'; var r = $('app').getBoundingClientRect(), w = el.offsetWidth, hh = el.offsetHeight; el.style.left = Math.min(r.width - w - 8, x - r.left + 18) + 'px'; el.style.top = Math.min(r.height - hh - 8, y - r.top + 18) + 'px'; }
+  };
+  // an order given (HOLD, CHARGE IF CHARGED, AVOID, a march), the next unit without orders is selected (his ask 10-15: "completing orders for a unit (hold,
+  // charge, move) should select the next unit"); none left, the selection clears and RESOLVE THE DAY waits. A turn or a formation is not an order
+  UI.advance = function (u) {
+    var mine = st.units.filter(function (x) { return SN.canOrder(st, x); }), open = mine.filter(function (x) { return x !== u && x.order.type === 'hold' && !x.held; });
+    UI.moveMode = null; UI.ringMode = 'main';
+    if (!open.length) { V.sel = null; UI.toast('Every unit has its orders: RESOLVE THE DAY (Enter).'); return; }
+    var i = mine.indexOf(u), nx = open.filter(function (x) { return mine.indexOf(x) > i; })[0] || open[0];
+    V.sel = nx.id; if (V.ensureVisible) V.ensureVisible(nx.at);
   };
   UI.next = function () {
     if (!st || busy) return;
@@ -243,9 +252,9 @@
       var ids = mineHere.map(function (u) { return u.id; }), i = ids.indexOf(V.sel); V.sel = ids[(i + 1) % ids.length]; UI.render(); return;
     }
     if (sel && SN.canOrder(st, sel)) {
-      if (SN.same(sel.at, h)) { sel.order = { type: 'hold' }; sel.held = true; }
+      if (SN.same(sel.at, h)) { sel.order = { type: 'hold' }; sel.held = true; UI.advance(sel); }
       else if (!SN.setOrder(st, sel, { type: 'move', to: h })) UI.toast('No way there.');
-      else sel.held = true;
+      else { sel.held = true; UI.advance(sel); }
       UI.render(); return;
     }
     if (here.length) { V.sel = here[0].id; UI.render(); }
@@ -358,6 +367,18 @@
         var il = sl2.beats.map(function (b) { return b.t; }).indexOf('fight'); if (il >= 0) lsh = SN.Show.build(sl2, il, sl2.beats.length, sl2.beats[il].at); }
       var lo = lsh && SN.Show.layout(SN.Show.scene(lsh, 1.0));
       ok(lo && lo.sg1 && lo.bb1 && lo.sg1.ax > 0.1 && lo.bb1.ax < -0.1, 'in the zoom, a band taken from behind stands on the far side from the plains that came in at its back' + (lo && lo.sg1 ? ' (the band at ' + Math.round(lo.sg1.ax * 100) / 100 + ', the plains at ' + Math.round(lo.bb1.ax * 100) / 100 + ')' : ''));
+      // an order selects the next unit without orders (his ask 10-15); none left, the selection clears
+      var sn = SN.newGame(4242); sn.party8 = null; SN.dawn(sn); st = sn; V.sel = 'patrol'; UI.render(); UI.command(SN.unit(sn, 'patrol'), 'hold');
+      var nx = V.sel && SN.unit(sn, V.sel), nxOk = !!nx && nx.id !== 'patrol' && nx.order.type === 'hold' && !nx.held, guard = 0;
+      while (V.sel && guard++ < 20) UI.command(SN.unit(sn, V.sel), 'hold');
+      ok(nxOk && !V.sel && sn.units.filter(function (x) { return SN.canOrder(sn, x); }).every(function (x) { return x.held; }), 'an order given selects the next unit without orders; the last one given, the selection clears (' + (nx ? nx.id : 'none') + ' after the patrol)');
+      // the four's rests (RULED 10-15: "Heroes get a short rest between fights and a long rest between days")
+      var sr = SN.newGame(77); sr.party8 = JSON.parse(JSON.stringify(SN.PARTY8)); sr.party80 = JSON.parse(JSON.stringify(SN.PARTY8));
+      SN.partyBack(sr, { party: [{ id: 'barley', hp: 30, slots: [], feats: { secondWind: 0, actionSurge: 0, indomitable: 0 } }, { id: 'vivian', hp: 0 }] });
+      var bar = sr.party8.party.filter(function (x) { return x.id === 'barley'; })[0], viv = sr.party8.party.filter(function (x) { return x.id === 'vivian'; })[0];
+      var shortOk = bar.hp > 30 && bar.feats.secondWind === 1 && bar.feats.actionSurge === 1 && bar.hdLeft < 8 && viv.hp > 0;
+      var Pr = SN.unit(sr, 'party'); Pr.at = [5, 6]; Pr.fought = true; bar.hp = 10; var hd0 = bar.hdLeft; SN.dusk(sr);
+      ok(shortOk && bar.hp === bar.maxhp && bar.hdLeft > hd0, 'the four: a short rest after a fight (hit dice, Second Wind and Action Surge back, the fallen stand) and a long rest at dusk wherever they stand (Barley ' + bar.hp + '/' + bar.maxhp + ', hit dice ' + bar.hdLeft + ')');
       var sheetsAll = SN.FORCES.concat(SN.DOMINION).reduce(function (a, f) { return a.concat(f.sheets || []); }, []), missing = sheetsAll.filter(function (n) { return !(window.D16 && D16.SHEETS && D16.SHEETS[n]); });
       ok(!missing.length && sheetsAll.indexOf('gloryseeker_p1') < 0 && V.faceOf('gnoll_p2', 1) === 5 && V.faceOf('trooper_p0', 1) === 6, 'every sheet the mode draws is DEEP16\'s (the glory-seeker its eight-facing p2); on the map a sheet drawn in all eight faces NE truly, the rest turn to E' + (missing.length ? ': missing ' + missing.join(', ') : ''));
       ok(le[1] > le[0] && ce[0] > ce[1], 'the stacks stand in their formation with their sprites: a line facing east runs north and south, a column facing east east and west');
