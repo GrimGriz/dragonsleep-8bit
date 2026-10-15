@@ -118,8 +118,9 @@
       var m = B.units.filter(function (w) { return w !== u && w.drinkLight && G.hostile(u, w) && G.standing(w) && w.reaction > 0 && RU.canAct(w) && (w.drinkLeft == null ? w.drinkLight.uses : w.drinkLeft) > 0 && G.dist(w, u) <= 60 && M.sees(B, w, u) && !RU.charmedBy(w, u); })[0];
       if (m) {
         m.reaction = 0; m.drinkLeft = (m.drinkLeft == null ? m.drinkLight.uses : m.drinkLeft) - 1;
-        var ok = lv <= 3, r = 0, tot = 0;
-        if (!ok) { r = D.d(20); tot = r + M.mod(m); ok = tot >= 10 + lv; }
+        var ok = lv <= 3 && !m.showOverfill, r = 0, tot = 0;
+        if (!ok && !m.showOverfill) { r = D.d(20); tot = r + M.mod(m); ok = tot >= 10 + lv; }
+        m.showOverfill = false; // (the show's, js/show.js: this one is too much, to see him overfill)
         var cn = u.side === 'foe' ? 'the ' + B.shortName(u) : u.name;
         m.anim = ok ? 'drain' : 'overfill'; m.animT = B.t; D.sfx('magic'); FX.ring(m, 'silver', 30);
         B.card(['{r}' + Nm(B, m) + ' drinks the light{/} of ' + cn + '\'s ' + sp.name + (r ? '  (d20 ' + r + RU.sign(M.mod(m)) + ' = ' + tot + ' vs DC ' + (10 + lv) + ')' : '') + ' -- ' + (ok ? '{c}it goes out{/}' : '{o}too much: it overfills him and goes through{/}')], 280);
@@ -335,6 +336,7 @@
       yield 24;
     }
   }
+  TR.foretellUp = foretellUp; // (js/show.js: the show's Foretell, 10-15)
   // HE TOYS WITH A FEW (10-08, Griz: "I also like the small party adjustment being a script to use the lesser used powers more often"): on a party read too weak for him (strength under
   // `toy.under` -- GreyFang alone, GreyFang and Lymen: the pre-bench had him winning those with no pack at all), till he rises he plays with them -- no hunt, so no Pounce; while he holds
   // none, his turn is a Kneel (Hold Person, while the slots last) on the nearest he can hold, and a Foretell; while he holds one, he circles and Foretells, no blow; the slots spent, his blows

@@ -20,10 +20,14 @@
      * once in the fight, at the end of its second turn, each is knocked flat: its prone frame, and getting up at its next turn;
      * one with a laugh row (the gnolls') or a rofl row (the hyenas'), at the end of its third turn, is told a joke: helpless with laughter a
        moment, its fit on its row;
+   * one that rises at half its hit points (the Harbinger's ascend, 10-15) is brought there as its second turn starts, and stands upright
+       after; one that drinks the light overfills on its second drink; one that Foretells steps clear of the watchers at the end of its
+       second turn and raises its hand, and a watcher with a blade steps in at the start of its own turn and springs its Mirror Strike;
      * at the start of a turn, one that has shown every row it has (or any, from round 8) goes down: its death row.
    The tally counts what the engine plays, not what is drawn: a row set on the unit (a run of sets between two steps of the fight is the last
    one), a fall, a death, the Still from the start, and the two rows js/ui.js draws off a condition with no row set -- a sheet's own get-up
-   as it stands from prone, its laugh (or its rofl) while it laughs (10-15: the gnoll's and the hyena's, never counted before). The fight's last card reads it -- each row's count, and what played fewer than twice;
+   as it stands from prone, its laugh (or its rofl) while it laughs (10-15: the gnoll's and the hyena's, never counted before), its upright idle
+   while it stands risen (the Harbinger's, 10-15). The fight's last card reads it -- each row's count, and what played fewer than twice;
    B.showTally and B.showReport hold it. dev/bench16.py <creature> mode=show runs it headless: FAIL for a row under two. Recipe:
    deep16/blender-monsters.md, step 12. */
 'use strict';
@@ -74,6 +78,9 @@
       var cl = !down && !!u.riding && u.perch === 'over' && !!D.spr.anim(u.sheet, 'clamp'); // (on a head: js/ui.js plays its Clamp row there, the darkmantle's -- 10-08)
       if (cl && !s.clamp) see(B, u, 'clamp');
       s.clamp = cl;
+      var up = !down && !!u.upright && u.anim === 'idle' && !!D.spr.anim(u.sheet, 'uprightidle'); // (risen, js/ui.js draws his idle as his upright idle: the Harbinger's -- 10-15)
+      if (up && !s.up) see(B, u, 'uprightidle');
+      s.up = up;
     });
   }
   // a sheet's `attack` row is only the fallback for a blow with no row of its own: where every one of the creature's attacks has its own (the
@@ -87,7 +94,8 @@
   // (a climb row is not wanted here: the test ground is flat, nothing to climb -- it plays on a face or a rope, js/ui.js; the troll's and the stone giant's, 10-04.
   // A hide row is: the goblin's Hide is built since 10-07 -- the AI's own after its turn, and the director's beat below where it has not shown it twice)
   // (nor a cutscene's row: GreyFang's `headless` plays only in his end, js/trophy.js -- 10-14)
-  SH.wanted = function (sheet, kind) { var fb = SH.fallback(sheet, kind); return SH.rowsOf(sheet).filter(function (r) { return !(fb && r === 'attack') && r !== 'climb' && r !== 'headless'; }); };
+  // (nor a row that is another's drawing under a second name, its sheet's `same`: the Harbinger's `kneel` is his `cast`, the row the engine plays for his Kneel -- 10-15)
+  SH.wanted = function (sheet, kind) { var fb = SH.fallback(sheet, kind), an = (D.SHEETS[sheet] || {}).anims || {}; return SH.rowsOf(sheet).filter(function (r) { return !(fb && r === 'attack') && r !== 'climb' && r !== 'headless' && !(an[r] && an[r].same); }); };
   // has it shown every row it has (but its death)?
   function shown(u) { return SH.wanted(u.sheet, u.kind).every(function (r) { return r === 'hurt' || (u.showSeen || {})[r]; }); }
 
@@ -109,6 +117,19 @@
     }
     return near();
   }
+  // u out of every foe's `reach` by the shortest way: a square with no foe within it, familiars too -- the test js/traits.js foretellUp asks
+  // (10-15: the Harbinger's Foretell)
+  function* clearOf(B, u, reach) {
+    var near = function (x, y) { return D.grid.foesNear(u, x, y, reach).length > 0; };
+    if (!near(u.x, u.y) || !(u.speed > 0) || u.conds.restrained || u.conds.grappled) return;
+    var rm = D.grid.reach(u, u.speed), best = null, blen = Infinity;
+    Object.keys(rm).forEach(function (k) {
+      var c = rm[k]; if (!c.stand || !c.prev || near(c.x, c.y)) return;
+      var len = D.grid.path(rm, c.x, c.y).length; if (len < blen) { blen = len; best = c; }
+    });
+    if (!best) return;
+    yield* B.moveAlong(u, D.grid.path(rm, best.x, best.y), { noOA: true, noGive: true }); u.anim = 'idle';
+  }
   // m up within `reach` of t by the shortest way (the director's step: no opening, no Give Ground)
   function* closeTo(B, m, t, reach) {
     if (D.grid.dist(m, t) <= reach || !(m.speed > 0) || m.conds.restrained || m.conds.grappled) return;
@@ -127,10 +148,27 @@
       B.card(['{c}THE SHOW{/}: the ' + u.name + (shown(u) ? ' has shown every row it has.' : ' is out of time (round ' + SH.ROUNDS + ').') + ' Down it goes.'], 260);
       yield 30; B.hurt(u, u.hp, 'force'); yield 60; return;
     }
+    // one that rises at half its hit points (the Harbinger: js/traits.js rise) and has not shown its rise by its second turn: cut to the mark,
+    // as the &rise door does (js/main.js D.RISE_NOW), so it rises as this turn starts -- its ascend, then its upright idle between blows
+    if (u.rise && !u.risen && D.spr.anim(u.sheet, 'ascend') && !(u.showSeen || {}).ascend && (u.showTurns || 0) >= 1 && u.hp > 1) {
+      B.card(['{c}THE SHOW{/}: the ' + u.name + ' is brought to half its hit points, to see it rise.'], 220);
+      u.hp = Math.min(u.hp, Math.floor(u.maxhp * (u.rise.at || 0.5))); yield 30;
+    }
+    // and its Drink Light (js/traits.js): once it has drunk one, the next it drinks is too much, to see it overfill
+    if (u.drinkLight && D.spr.anim(u.sheet, 'overfill') && (u.showSeen || {}).drain && !(u.showSeen || {}).overfill) u.showOverfill = true;
     yield* turn0(B, u);
     if (u.hp <= 0 || u.dead) return;
     var seen = u.showSeen || {}, RU = D.rules;
     u.showTurns = (u.showTurns || 0) + 1;
+    // one that Foretells (the Harbinger: js/traits.js foretellUp, its own at a turn's end with no one in its reach) and has not by the end of
+    // its second turn: it steps clear of every watcher's reach and raises its hand -- the first to step in springs its Mirror Strike, on their turn
+    if (u.foretell && D.spr.anim(u.sheet, 'foretell') && !seen.foretell && u.showTurns >= 2 && !u.ready && u.reaction > 0 && RU.canAct(u) && !u.conds.prone && D.traits.foretellUp) {
+      yield* clearOf(B, u, D.grid.reachOf(u));
+      if (!D.grid.foesNear(u, u.x, u.y, D.grid.reachOf(u)).length) {
+        B.card(['{c}THE SHOW{/}: the ' + u.name + ' steps clear, to see it Foretell.'], 200);
+        yield* D.traits.foretellUp(B, u);
+      }
+    }
     // one that has not walked by the end of its turn (a roper holds its ground and reels): a few squares toward the watchers, to see its walk --
     // a step or two for its `walk`, three squares or more for its `slither` where it has one (js/battle.js moveAlong picks the gait by the length)
     var gaits = [['walk', 1, 2], ['slither', 3, 6]].filter(function (g) { return !seen[g[0]] && D.spr.anim(u.sheet, g[0]) && (g[0] === 'walk' || D.spr.anim(u.sheet, 'walk')); });
@@ -287,6 +325,18 @@
       delete u.conds.laughing;
     }
   };
+  // a watcher's turn done while a creature on show holds a Foretell it has not sprung twice (the Harbinger's Mirror Strike, 10-15): one with a
+  // blade steps into its reach -- between turns, no one's own, so the readied strike springs (js/battle.js readyHook: never on the readier's
+  // turn). (The watchers are the bench's guests, their turns D.ai.turn's, left as it is: so after the turn, js/traits.js afterTurn)
+  var after0 = D.traits.afterTurn;
+  D.traits.afterTurn = function* (B, w) {
+    if (after0) yield* after0.apply(this, arguments);
+    if (!B.show || !w || w.side !== 'party' || w.familiar || !D.grid.standing(w) || !D.rules.canAct(w) || !w.weapon || w.weapon.ranged || B.over()) return;
+    var f = B.units.filter(function (u) { return u.show && u.foretell && u.ready && u.ready.wp === u.foretell && u.reaction > 0 && ((u.showSeen || {}).mirrorstrike || 0) < 2 && u.hp > 0 && !u.dead; })[0];
+    if (!f || D.grid.dist(w, f) <= D.grid.reachOf(f)) return;
+    B.card(['{c}THE SHOW{/}: ' + w.name + ' steps up to the ' + f.name + ', into its Foretell.'], 200);
+    yield* closeTo(B, w, f, D.grid.reachOf(f));
+  };
   // no one drops below 1 HP till the director lets it
   var hurt0 = D.Battle.prototype.hurt;
   D.Battle.prototype.hurt = function (u, n, type) {
@@ -304,6 +354,8 @@
       var low = rows.filter(function (r) { return (t[r] || 0) < 2; });
       lines.push(low.length ? '  {r}under two: ' + low.join(', ') + '{/}' : '  {n}every row twice{/}');
       if (SH.fallback(sheet, kind)) lines.push('  {g}(its `attack` row never plays: every blow has a row of its own){/}');
+      var an = (D.SHEETS[sheet] || {}).anims || {};
+      Object.keys(an).filter(function (r) { return an[r].same; }).forEach(function (r) { lines.push('  {g}(its `' + r + '` row is its `' + an[r].same + '` drawn again: seen as that one plays){/}'); });
       // (10-02, Griz: "make sure if it can be prone it looks prone when it is": one that can be knocked flat but has no frame for it stands while prone)
       var d = kind && D.FOES[kind];
       if (D.spr.proneFrame(sheet) < 0 && d && !d.noProne && (d.condImmune || []).indexOf('prone') < 0) lines.push('  {o}no prone frame: it stands while prone (deep16-art-wanted.md, PRONE someday){/}');
