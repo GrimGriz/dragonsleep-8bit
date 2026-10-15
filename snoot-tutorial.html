@@ -59,7 +59,7 @@
 <script src="deep16/data/sprites.js"></script>
 <script src="snoot-mode/js/data.js?v=68c3352783"></script>
 <script src="snoot-mode/js/party8.js?v=e6a0f37d96"></script>
-<script src="snoot-mode/js/rules.js?v=0255a46a4a"></script>
+<script src="snoot-mode/js/rules.js?v=11c8c4cbda"></script>
 <script src="snoot-mode/js/ai.js?v=a9ddd73a54"></script>
 <script src="snoot-mode/js/view.js?v=2052111b22"></script>
 <script src="snoot-mode/js/show.js?v=9ca42bea7d"></script>
@@ -98,13 +98,20 @@
   // W: a Skull-Gate band falls on the patrol's crossbows; it wins, takes a loss, and the band two hexes off sends figures over (his witness)
   var W = scene(function (s) { var st = base(s); put(st, 'bows', [8, 5]); var a = put(st, 'sg2', [7, 4]); a.name = 'the Skull-Gate band in the fight'; put(st, 'sg1', [7, 3]).name = 'the Skull-Gate band two hexes off'; march(st, a, [8, 5]); return st; },
     function (st) { return has(st, 'wit') && has(st, 'cas', function (b) { return b.u === 'sg2'; }); });
-  // P: the four as CHAINMAIL would field them -- four super-heroes on the tables, not the grid -- charging a Gray Keeping band
+  // the four keyed by Book I's Fighting Capability (p.17; RULED 10-15, Griz: "Yes, key the four by Book I in the tutorial chapter")
+  var KEYS = [
+    { name: 'Barley', type: 'superhero', is: 'fighter 8', key: 'Fighting-Man, 8th: the Superhero' },
+    { name: 'Lymen', type: 'superhero', is: 'paladin 8', key: 'Fighting-Man, 8th: the Superhero (no paladin in Books I-III: keyed as the fighter he is)' },
+    { name: 'Aurdin', type: 'hero', missile: 'fireball', is: 'wizard 8, an evoker', key: 'Magic-User, 8th: the Warlock, who fights as a Hero' },
+    { name: 'Vivian', type: 'hero', is: 'rogue 8', key: 'no thief in Books I-III: a Hero (Griz, 10-15)' }];
+  var KEYFIGS = KEYS.reduce(function (s, k) { return s + { hero: 4, superhero: 8 }[k.type]; }, 0);
+  // P: the four as CHAINMAIL would field them, keyed by Book I -- on the tables, not the grid -- charging a Gray Keeping band
   var P = scene(function (s) {
       var st = base(s); put(st, 'gk1', [8, 6]);
       var f = SN.make({ id: 'four', side: 'ours', name: 'the four (on the tables)', kind: 'the four', cls: 'AF', def: 'AF', figs: 0, at: [9, 7], move: 3,
-        heroes: [{ type: 'superhero', name: 'Barley' }, { type: 'superhero', name: 'Aurdin' }, { type: 'superhero', name: 'Vivian' }, { type: 'superhero', name: 'Lymen' }], sheets: ['barley_p1', 'aurdin_p1', 'vivian_p1', 'lymen_p1'] }, true);
+        heroes: KEYS.map(function (k) { return { type: k.type, name: k.name, missile: k.missile }; }), sheets: ['barley_p1', 'lymen_p1', 'aurdin_p1', 'vivian_p1'] }, true);
       st.units.push(f); march(st, f, [8, 6]); return st; },
-    function (st) { return has(st, 'shock', function (b) { return b.ok; }) && has(st, 'atk', function (b) { return b.u === 'four'; }); });
+    function (st) { return has(st, 'shock', function (b) { return b.ok; }) && has(st, 'atk', function (b) { return b.u === 'four'; }) && has(st, 'fb', function (b) { return b.u === 'four'; }); });
   // H: the hunt -- the Harbinger walks through the crossbows (no hero with them) and reaches GreyFang with no one of ours near: the head on the map
   var H = scene(function (s) { var st = base(s); st.huntDay = 14; put(st, 'bows', [8, 7]); put(st, 'greyfang', [9, 8]); var h = put(st, 'harb', [7, 6]); march(st, h, [9, 8]); return st; },
     function (st) { return !!st.head && st.log.some(function (l) { return /cannot hold the Harbinger/.test(l.text); }); });
@@ -155,8 +162,8 @@
       OURS('<p>The table on the left is every unit of the battle as the mode builds it: its class to attack, its class to defend, its figures, its morale and its fantastic figures.</p>') +
       DIFF('<p><b>Ours, not the book\'s:</b> the paladin as a CHAINMAIL Hero; the cleric making a unit a religious order that also mends a figure a day; the plains tribes as berserkers; the Dominion\'s patrol lady as a CHAINMAIL warlock (by the book since 10-15: two Armored Foot, a missile every round, the saves, morale 30, 80 points), her missile\'s hit at this scale ours; the mirror hyenas as giant wolves.</p>') });
   step({ ch: 'Units', title: 'Heroes, super-heroes, wraiths', vis: { map: full, marks: [{ h: [9, 8], c: '#ffd25a', t: 'GreyFang, the four' }, { h: [6, 6], c: '#ff8a7a', t: 'the Harbinger' }] },
-    html: CM('<p>A <b>Hero</b> fights as four figures, adds 1 to his unit\'s dice, never checks morale, is the last killed, and dies to regular troops only on four hits at once. A <b>Super-hero</b> is all of that doubled, and every enemy unit his charge reaches checks morale (p.30). A <b>Wraith</b> raises its friends\' morale, makes the enemy check, and is harmed only by magic or the fantastic (pp.33-34). Fantastic against fantastic goes on the <b>Fantasy Combat Table</b>, two dice against a number (p.44). Book I: a 4th-level fighter is a Hero, an 8th-level one a Super-hero.</p>') +
-      OURS('<p><b>GreyFang</b> (ranger 11) is a Super-hero. <b>The four</b> at 8th are Super-heroes. <b>The Harbinger</b> is a Wraith. The paladins are Heroes, and the warlocks are wizards two ranks down (p.30).</p>') +
+    html: CM('<p>A <b>Hero</b> fights as four figures, adds 1 to his unit\'s dice, never checks morale, is the last killed, and dies to regular troops only on four hits at once. A <b>Super-hero</b> is all of that doubled, and every enemy unit his charge reaches checks morale (p.30). A <b>Wraith</b> raises its friends\' morale, makes the enemy check, and is harmed only by magic or the fantastic (pp.33-34). Fantastic against fantastic goes on the <b>Fantasy Combat Table</b>, two dice against a number (p.44). Book I keys every class by level to a CHAINMAIL type (p.17): a 4th-level fighter is a Hero, an 8th-level one a Super-hero; an 8th-level magic-user is the Warlock and fights as a Hero.</p>') +
+      OURS('<p><b>GreyFang</b> (ranger 11) is a Super-hero. <b>The four</b>, if they were on the tables, are keyed by Book I (the last chapter): Barley and Lymen Super-heroes, Aurdin a Warlock who fights as a Hero, Vivian a Hero. <b>The Harbinger</b> is a Wraith. The paladins are Heroes, and the warlocks are wizards two ranks down (p.30).</p>') +
       DIFF('<p>The four never fight on the tables: their fights go to the DEEP16 grid (the last chapter shows both ways). GreyFang can\'t die except to the Harbinger, and the Harbinger can\'t die at all: put down, the mirror carries him home for two days.</p>') });
   step({ ch: 'The day', title: 'Written orders', vis: { map: A ? A.before : full, sel: 'patrol' },
     html: CM('<p>The <b>simultaneous</b> system: both sides write orders for every unit, then everyone moves half, contacts are checked, the rest of the move is made, and then come missiles and melee (p.9). "Charge if charged" lets a unit move up to support (p.9), and a unit near a melee may be drawn into it (p.16).</p>') +
@@ -227,21 +234,23 @@
     var sh = P.shows.filter(function (s) { return s.first && s.first.t === 'fight'; })[0], gk = SN.unit(P.before, 'gk1'), band = SN.band(P.before, [gk], [8, 6]);
     var cnt = {}; band.enemies.forEach(function (e) { cnt[e] = (cnt[e] || 0) + 1; });
     step({ ch: 'The four: the book\'s way and ours', title: 'If the party were not grid-played', vis: { map: P.before, marks: [{ h: [8, 6], c: '#ffb898', t: 'a Gray Keeping band: 6' }, { h: [9, 7], c: '#9ff0dc', t: 'the four' }] },
-      html: CM('<p>Book III: in a big battle at 20:1, "single fantastic types" fight separately at 1:1 or against a single 20:1 figure (p.25). On the tables, four super-heroes are <b>32 figures</b> of their class with <b>+2 on every die</b>; they never check morale; regular troops kill one only on eight hits at once; their charge makes the enemy check (p.30).</p>') +
-        OURS('<p>The next steps run that same fight <b>the book\'s way</b>, with the mode\'s own engine and the four as a CHAINMAIL unit. After it comes what the grid does instead.</p>') });
+      html: CM('<p>Book III: in a big battle at 20:1, "single fantastic types" fight separately at 1:1 or against a single 20:1 figure (p.25). Book I keys a character to a CHAINMAIL type by class and level, its <b>Fighting Capability</b> (p.17): a Fighting-Man of 8th level is the <b>Superhero</b>; a Magic-User of 8th is the <b>Warlock</b>, who fights as a <b>Hero</b>.</p><p>A Super-hero fights as eight figures and a Hero as four; with a super-hero in it the unit adds <b>+2 to every die</b>; none of them checks morale; regular troops kill a Hero only on four hits at once and a Super-hero only on eight; a super-hero\'s charge makes the enemy check (p.30). A Warlock throws a missile, a fire ball or a lightning bolt (p.31).</p>') + keysTable() +
+        OURS('<p><b>Griz\'s ruling (10-15): the four keyed by Book I.</b> On the tables they are <b>' + KEYFIGS + ' figures</b>, +2 a die, and Aurdin\'s fire ball every round. The next steps run that same fight <b>the book\'s way</b>, with the mode\'s own engine and the four as a CHAINMAIL unit. After it comes what the grid does instead.</p>') +
+        DIFF('<p>Two readings are the seat\'s: Lymen the paladin keyed as the fighter he is, and Aurdin fighting as Book I\'s Hero while keeping CHAINMAIL\'s Warlock missile.</p>') });
     if (sh) sh.segs.forEach(function (sg, k) {
       var b = sg.b, list = sg.list, html = '', t2 = '';
       if (b.t === 'shock') { t2 = 'The four charge (the book\'s way)'; html = list.filter(function (x) { return x.t === 'shock'; }).map(function (x) { return '<p class="num">' + esc(unitName(P, x.u)) + ' check: [' + x.dice.join(' + ') + '] = ' + (x.dice[0] + x.dice[1]) + ' against ' + x.need + ' &rarr; <span class="k">' + (x.ok ? 'they stand' : 'they shy') + '</span></p>'; }).join('') + CM('<p>The super-heroes\' charge forces the check (p.30).</p>'); }
-      else if (b.t === 'atk') { t2 = 'The four on the tables: the dice'; html = list.map(function (x) { return atkText(P, x); }).join('') + CM('<p>Super-heroes: eight figures each, +2 a die (p.30). Regular troops kill a super-hero only with <b>eight hits at once</b>; the band\'s hits do nothing to the four.</p>'); }
+      else if (b.t === 'fb') { t2 = 'Aurdin\'s fire ball (the book\'s way)'; html = list.filter(function (x) { return x.t === 'fb'; }).map(function (x) { return '<p>' + esc(x.w) + ' throws a fire ball into ' + esc(unitName(P, x.tg)) + ': <b>' + x.n + '</b> figure' + (x.n > 1 ? 's die' : ' dies') + ', before the melee.</p>'; }).join('') + CM('<p>The Warlock\'s missile (p.31): a fire ball over a large catapult\'s hit area, or a lightning bolt. Aurdin is an evoker, so the fire ball.</p>') + OURS('<p>At this scale a fire ball kills one or two figures of the unit it falls on, every round before the melee.</p>'); }
+      else if (b.t === 'atk') { t2 = 'The four on the tables: the dice'; html = list.map(function (x) { return atkText(P, x); }).join('') + CM('<p>Barley and Lymen fight as eight figures each, Aurdin and Vivian as four: ' + KEYFIGS + ', and +2 a die for the super-heroes with them (p.30). Regular troops kill a Hero only with <b>four hits at once</b> and a Super-hero only with <b>eight</b>: Aurdin and Vivian are the ones the band can reach.</p>'); }
       else if (b.t === 'mor') { t2 = 'Morale (the book\'s way)'; html = morText(P, b); }
-      else if (b.t === 'cas' || b.t === 'gone' || b.t === 'fall' || b.t === 'night') { t2 = 'The result (the book\'s way)'; html = '<p>' + list.map(function (x) { return x.t === 'cas' ? esc(unitName(P, x.u)) + ' lose ' + x.n + ' (now ' + x.figs + ').' : x.t === 'gone' ? esc(unitName(P, x.u)) + ' are destroyed.' : x.t === 'fall' ? esc(unitName(P, x.u)) + ' ' + x.how + '.' : 'Night falls.'; }).join(' ') + '</p>'; }
+      else if (b.t === 'cas' || b.t === 'gone' || b.t === 'herofall' || b.t === 'fall' || b.t === 'night') { t2 = 'The result (the book\'s way)'; html = '<p>' + list.map(function (x) { return x.t === 'cas' ? esc(unitName(P, x.u)) + ' lose ' + x.n + ' (now ' + x.figs + ').' : x.t === 'gone' ? esc(unitName(P, x.u)) + ' are destroyed.' : x.t === 'herofall' ? esc(x.name) + ' falls.' : x.t === 'fall' ? esc(unitName(P, x.u)) + ' ' + x.how + '.' : x.t === 'night' ? 'Night falls.' : ''; }).join(' ') + '</p>'; }
       else return;
       step({ ch: 'The four: the book\'s way and ours', title: t2, show: { sh: sh, k: k }, html: html });
     });
     step({ ch: 'The four: the book\'s way and ours', title: 'What the grid does instead', vis: { map: P.before, marks: [{ h: [8, 6], c: '#ffb898', t: 'the band' }] },
       html: OURS('<p>In the mode the four never roll on the tables. When they stand in a fight, <b>DEEP16 opens</b> through its own embed door (the way the 8-bit opens its story fights), and the band becomes creatures at 1:1, sized from the unit\'s figures: here <b>' + Object.keys(cnt).map(function (k) { var nm = { gloryseeker: 'glory-seeker', trooper: 'trooper' }[k] || k; return cnt[k] + ' ' + nm + (cnt[k] > 1 ? 's' : ''); }).join(', ') + '</b> (' + band.enemies.length + ', a hard fight for four at 8th) on the road\'s map. They fight it out by the 5E rules, by hand.</p>' +
         '<p>Then it comes back to the map. <b>Won</b>: the band loses figures by the share of the band that fell (halved, unless it never checks morale) and <b>routs</b>. <b>Got out</b> (LEAVE THE FIGHT): the four fall back a hex and the gnolls have won, so the witness fills them. <b>Went down</b>: carried to the Pit, out until tomorrow, and the gnolls have won. Their HP, spell slots and potions stay spent; a day held in the Pit without a fight is a long rest.</p>') +
-        DIFF('<p>The book would roll the four as 32 figures with +2 and be done in a round. The mode trades that for the party\'s own play: Griz\'s ruling "Chef\'s dice" (the tables) only where the party isn\'t.</p>') +
+        DIFF('<p>The book would roll the four as ' + KEYFIGS + ' figures with +2 and a fire ball, the whole fight a few handfuls of dice. The mode trades that for the party\'s own play: Griz\'s ruling "Chef\'s dice" (the tables) only where the party isn\'t.</p>') +
         '<p><button id="gridgo">FIGHT IT ON THE GRID</button> <span style="color:var(--dim);font-size:13px">(opens DEEP16 with the four at 8th and this band; the result comes back here)</span></p><div id="gridres"></div>',
       after: function () { var b = $('gridgo'); if (b) b.onclick = gridFight; } });
   }
@@ -255,6 +264,11 @@
     });
   }
   function previewHtml() { if (!A) return ''; var u = SN.unit(A.before, 'patrol'), pv = SN.preview(A.before, u, [8, 6]); return pv ? pv.lines.concat(pv.warn).map(function (l) { return '<p style="margin:3px 0">' + esc(l) + '</p>'; }).join('') : ''; }
+  function keysTable() {
+    return '<table class="cmp"><tr><th></th><th>in DEEP16</th><th>Book I\'s key (p.17)</th><th>on the tables</th></tr>' + KEYS.map(function (k) {
+      return '<tr><td>' + esc(k.name) + '</td><td>' + esc(k.is) + '</td><td>' + esc(k.key) + '</td><td>' + { hero: 'a Hero: 4 figures', superhero: 'a Super-hero: 8 figures' }[k.type] + (k.missile ? '; a fire ball every round' : '') + '</td></tr>';
+    }).join('') + '</table>';
+  }
   function forcesTable() {
     var rows = SN.FORCES.concat(SN.DOMINION).map(function (f) {
       var hs = (f.heroes || []).map(function (h) { return h.name + ' (' + { hero: 'Hero', superhero: 'Super-hero', wraith: 'Wraith', wizard: 'Warlock' }[h.type] + ')'; }).join(', ');
@@ -279,7 +293,7 @@
       ['chg', 'Post-melee morale and its results', 'pp.15-16', 'The same formula, each side pooled in its hex; back off and fall back are a hex, a rout two.'],
       ['new', 'The melee continues next turn while the gap is under 20', 'p.16', 'NIGHTFALL: after three rounds the lower total backs off a hex. No hex ends a day shared.'],
       ['same', 'Rout runs over friends; the rally table; instability', 'pp.16-17', 'The same.'],
-      ['same', 'Heroes and super-heroes', 'p.30', 'The same: paladins are Heroes; GreyFang and the four Super-heroes.'],
+      ['same', 'Heroes and super-heroes; Book I keys a character\'s type by class and level', 'p.30; Book I p.17', 'The same: Newland\'s paladins are Heroes, GreyFang a Super-hero; the four, on the tables, by Book I (Barley and Lymen Super-heroes, Aurdin the Warlock fighting as a Hero, Vivian a Hero: no thief in Books I-III).'],
       ['same', 'The Fantasy Combat Table', 'p.44', 'The same numbers for hero, super-hero, wizard (warlock -2) and wraith.'],
       ['new', 'A wraith may withdraw; normal troops can\'t harm it', 'p.34, p.44', 'The hunting Harbinger walks through any unit with no hero in it; put down, he is carried home for two days.'],
       ['same', 'A wizard fights as two Armored Foot; affects morale as a super-hero; impervious to normal missiles', 'p.30', 'The same, for the Dominion\'s warlocks (morale 30, 80 points, -2 on the Fantasy table: pp.30-33).'],
