@@ -18,7 +18,7 @@
   var DUR = { fight: 0.9, round: 0.3, shock: 1.0, ft: 0.9, fb: 0.75, atk: 1.2, cas: 0.6, herofall: 0.6, gone: 0.6, mor: 0.95, fall: 0.6, surrender: 0.6, wit: 1.1, inst: 0.8, grid: 1.2, night: 1.0, head: 3.4 };
   // a family plays as one beat: every band's shock with its falling back; the round's casualties with who fell and who is gone; the falls
   // after nightfall with the night; a run of instability rolls
-  var FAM = { atk: 'atk', cas: 'toll', gone: 'toll', herofall: 'toll', surrender: 'toll', fb: 'fb', ft: 'ft', shock: 'shock', fall: 'fall', inst: 'inst', night: 'night' };
+  var FAM = { atk: 'atk', cas: 'toll', gone: 'toll', herofall: 'toll', surrender: 'toll', fb: 'fb', save: 'fb', ft: 'ft', shock: 'shock', fall: 'fall', inst: 'inst', night: 'night' };
   var JOIN = { shock: { fall: 1 }, night: { fall: 1 }, toll: { fall: 1 } }, QUICK = { atk: 1, cas: 1, gone: 1, herofall: 1, mor: 1, ft: 1, round: 1 };
 
   // ---------------------------------------------------------------- the sheets
@@ -83,7 +83,10 @@
         case 'shock': if (now) { sc.dice.push({ side: U ? U.k : 'theirs', u: b.u, dice: b.dice, need: b.need, sum: true, p: p, word: b.ok ? 'THEY STAND' : 'THEY SHY FROM ' + String(b.byName).toUpperCase() }); if (U) U.shake = 1 - p; } break;
         case 'ft': if (now) { var A = sc.units[b.a]; sc.dice.push({ side: A ? A.k : 'ours', u: b.a, dice: b.dice, need: b.need, mod: b.mod, sum: true, p: p, word: { kill: b.bh + ' IS KILLED', back: b.bh + ' FALLS BACK', none: 'NO EFFECT', beaten: 'THE MIRROR TAKES HIM', spared: 'BEATEN BACK -- HE IS THE HARBINGER\'S' }[b.res], title: b.ah + ' against ' + b.bh }); if (A) A.anim = 'attack', A.animT = local; }
           if (b.res === 'kill' && p >= 1) { var Bt = sc.units[b.b]; if (Bt) Bt.heroes.forEach(function (h) { if (h.name === b.bh) h.dead = true; }); } break;
-        case 'fb': if (now) { var tg = sc.units[b.tg]; sc.fx.push({ kind: 'fire', u: b.tg, p: p }); if (tg) tg.hurt = 1 - p; sc.banner = { big: 'A FIRE BALL', small: b.w + ': ' + b.n + (b.n > 1 ? ' figures burn' : ' figure burns'), p: p, quick: true }; } break;
+        case 'fb': if (now) { var light = b.kind === 'lightning', tl = b.tgs || [{ tg: b.tg, n: b.n }];
+            tl.forEach(function (x) { var tg = sc.units[x.tg]; sc.fx.push({ kind: light ? 'bolt' : 'fire', u: x.tg, from: b.u, p: p }); if (tg) tg.hurt = 1 - p; });
+            sc.banner = { big: light ? 'A LIGHTNING BOLT' : 'A FIRE BALL', small: b.w + ': ' + tl.map(function (x) { return x.n + (x.n > 1 ? ' figures' : ' figure'); }).join(' and ') + ' struck', p: p, quick: true }; } break;
+        case 'save': if (now) sc.dice.push({ side: U ? U.k : 'ours', u: b.u, dice: b.dice, need: b.need, sum: true, p: p, word: b.ok ? b.name + ' SAVES' : b.name + ' IS STRUCK', title: 'Caught by the missile: two dice to save' }); break;
         case 'atk': if (now) { if (U) { U.anim = 'attack'; U.animT = local; } sc.dice.push({ side: U ? U.k : 'ours', u: b.u, dice: b.dice, need: b.need, k: b.k, p: p, title: (U ? (U.u.party ? 'the four' : U.u.name) : '') + (b.volley ? ', a volley' : b.imp ? ', charging (+1 die a figure)' : '') + ': ' + b.cls + ' v ' + b.dcls + ', ' + b.need + '+ kills' }); } break;
         case 'cas': if (U) { if (now) { U.hurt = 1 - p; sc.fx.push({ kind: 'minus', u: b.u, n: b.n, p: p }); } if (p >= 1 || !now) U.figs = b.figs; } break;
         case 'herofall': if (U) { if (now) sc.fx.push({ kind: 'word', u: b.u, text: b.name + ' falls', p: p }); if (p >= 1) U.heroes.forEach(function (h) { if (h.name === b.name) h.dead = true; }); } break;
@@ -181,7 +184,11 @@
     // effects: fire, the minus, words
     sc.fx.forEach(function (fx) {
       var U = sc.units[fx.u]; if (!U) return; var pl = places(sc, fx.u), x = pl.bx + pl.dir * 60, y = pl.by - 30;
-      if (fx.kind === 'fire') { cx.globalAlpha = 1 - fx.p; for (var r = 0; r < 3; r++) { cx.fillStyle = ['#ffe08a', '#ff9a3a', '#d0401a'][r]; cx.beginPath(); cx.arc(x, y, 30 + fx.p * 90 - r * 22, 0, Math.PI * 2); cx.fill(); } cx.globalAlpha = 1; }
+      if (fx.kind === 'fire') { cx.globalAlpha = 1 - fx.p; for (var r = 0; r < 3; r++) { cx.fillStyle = ['#ffe08a', '#ff9a3a', '#d0401a'][r]; cx.beginPath(); cx.arc(x, y, Math.max(2, 30 + fx.p * 90 - r * 22), 0, Math.PI * 2); cx.fill(); } cx.globalAlpha = 1; }
+      if (fx.kind === 'bolt') { var F = sc.units[fx.from], pf = F ? places(sc, fx.from) : null, x0 = pf ? pf.bx + pf.dir * 40 : CX, y0 = pf ? pf.by - 40 : GY - 60;
+        cx.globalAlpha = 1 - fx.p * 0.8; cx.strokeStyle = '#fff6a0'; cx.lineWidth = 5; cx.shadowColor = '#ffe08a'; cx.shadowBlur = 14; cx.beginPath(); cx.moveTo(x0, y0);
+        for (var z = 1; z <= 6; z++) { var q = z / 6; cx.lineTo(x0 + (x - x0) * q + (z < 6 ? Math.sin(z * 7.3 + sc.t * 30) * 14 : 0), y0 + (y - y0) * q + (z < 6 ? Math.cos(z * 5.1) * 10 : 0)); }
+        cx.stroke(); cx.shadowBlur = 0; cx.globalAlpha = 1; }
       if (fx.kind === 'minus') text(cx, '-' + fx.n, x, y - 70 - fx.p * 30, 30, '#ff6a5a');
       if (fx.kind === 'word') text(cx, fx.text, x, y - 80, 24, '#ffd25a');
     });

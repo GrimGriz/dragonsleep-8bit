@@ -77,7 +77,13 @@
   // light foot 9", heavy horse 12", medium 18", light 24") -- the seat's reading, so the horse is not ten hexes on a fifteen-hex map
   SN.MOVE = { AF: 2, HF: 3, LF: 3, HH: 4, MH: 6, LH: 8 };
   // point values, p.27 and the fantasy kinds (pp.29-38): what the tally counts
-  SN.POINTS = { LF: 1, HF: 2, AF: 2.5, LH: 3, MH: 4, HH: 5, hero: 20, superhero: 50, wizard: 60, wraith: 10 };
+  SN.POINTS = { LF: 1, HF: 2, AF: 2.5, LH: 3, MH: 4, HH: 5, hero: 20, superhero: 50, wizard: 80, wraith: 10 }; // (a wizard at the warlock's rank: 80, p.33)
+  // the wizard by the book (pp.30-33; RULED 10-15, his "Book basics for sure"): a warlock is the wizard two ranks down -- morale 30, 80 points
+  // (p.33), -2 on the Fantasy table (SN.WARLOCK); she fights as two Armored Foot, her charge makes the enemy check as a super-hero's does,
+  // normal missiles cannot harm her, and she throws one missile a round, chosen before the battle: a fire ball or a lightning bolt (p.31),
+  // which kills what it strikes save the fantastic: heroes on 9+, super-heroes on 6+, wraiths on 7+ (SN.SAVES)
+  SN.WIZARD = { morale: 30 };
+  SN.SAVES = { hero: 9, superhero: 6, wraith: 7 };
 
   // ---------------------------------------------------------------- the forces at Day 14 (the lane §3, §5.5; his rulings 10-14)
   // side: ours (the player writes every order -- RULED 10-13 "build for all, a.i. later"), gnoll (the AI), dominion (the AI)
@@ -127,11 +133,11 @@
   // the lady a CHAINMAIL warlock (p.30), the soldiers a figure of troopers, the wagon baggage (p.21)
   SN.DOMINION = [
     { id: 'dm1', side: 'dominion', name: "a Dominion wagon", kind: 'the Dominion', cls: 'HF', def: 'HF', figs: 1, morale: 5, wagon: true, move: 3,
-      heroes: [{ type: 'wizard', name: 'a patrol lady (warlock)', warlock: true }], sheets: ['npcwarlock_p0', 'trooper_p0'] },
+      heroes: [{ type: 'wizard', name: 'a patrol lady (warlock)', warlock: true, missile: 'fireball' }], sheets: ['npcwarlock_p0', 'trooper_p0'] },
     { id: 'dm2', side: 'dominion', name: "a Dominion wagon", kind: 'the Dominion', cls: 'HF', def: 'HF', figs: 1, morale: 5, wagon: true, move: 3,
-      heroes: [{ type: 'wizard', name: 'a patrol lady (warlock)', warlock: true }], sheets: ['npcwarlock_p0', 'trooper_p0'] },
+      heroes: [{ type: 'wizard', name: 'a patrol lady (warlock)', warlock: true, missile: 'lightning' }], sheets: ['npcwarlock_p0', 'trooper_p0'] },
     { id: 'dm3', side: 'dominion', name: "a Dominion wagon", kind: 'the Dominion', cls: 'HF', def: 'HF', figs: 1, morale: 5, wagon: true, move: 3,
-      heroes: [{ type: 'wizard', name: 'a patrol lady (warlock)', warlock: true }], sheets: ['npcwarlock_p0', 'trooper_p0'] }
+      heroes: [{ type: 'wizard', name: 'a patrol lady (warlock)', warlock: true, missile: 'fireball' }], sheets: ['npcwarlock_p0', 'trooper_p0'] }
   ];
   SN.DAY0 = 14; SN.HUNT = 18; SN.LAST = 28; // (the Pit two days after the Skylights, Day 14; the exchange ~18-21 -- the clock lane; the battle stops at Day 28 whatever stands)
   SN.STACK = 3; // (units of one side a hex, the Pit excepted)

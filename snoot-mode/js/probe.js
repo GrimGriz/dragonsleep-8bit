@@ -58,6 +58,22 @@
     ok(Y.figs === 6 && Z.figs === 8, 'witness: three hexes off gives nothing, the death-watch gives nothing');
     W.figs = 5; X.figs = 5; SN.witness(st, W);
     ok(W.figs === 6 && X.figs === 4, 'witness: never past the winner\'s starting size (6): the giver keeps the rest (' + X.figs + ')');
+    // ---- the warlock by the book (CHAINMAIL pp.30-33; RULED 10-15: "Book basics for sure")
+    function domDay(seed, setup) { var s = SN.newGame(seed); s.party8 = null; s.units.forEach(function (u) { u.on = false; }); s.beats = []; SN.DOMINION.forEach(function (f) { s.units.push(SN.make(f, false)); }); setup(s); var g = SN.resolve(s), r = g.next(); while (!r.done) { var v = r.value; r = g.next(v && v.deep ? SN.standIn(s, v.deep) : undefined); } return s; }
+    function on(s, id, at) { var u = SN.unit(s, id); u.on = true; u.state = 'ok'; u.at = at.slice(); u.order = { type: 'hold' }; return u; }
+    ok(SN.POINTS.wizard === 80, 'p.33: a warlock is worth 80 points (was ' + SN.POINTS.wizard + ')');
+    ok(SN.SAVES && SN.SAVES.hero === 9 && SN.SAVES.superhero === 6 && SN.SAVES.wraith === 7, 'p.31: a missile\'s saves -- heroes 9+, super-heroes 6+, wraiths 7+');
+    ok(SN.bonus({ figs: 1, heroes: [{ type: 'wizard' }] }) === 0 && SN.bonus({ figs: 1, heroes: [{ type: 'hero' }] }) === 1 && SN.bonus({ figs: 1, heroes: [{ type: 'wraith' }] }) === 0, 'p.30: a hero adds 1 to his unit\'s dice; a wizard or a wraith adds nothing');
+    var sw = domDay(11, function (s) { on(s, 'bows', [8, 5]); var d = on(s, 'dm1', [8, 4]); d.order = { type: 'move', to: [8, 5], path: [[8, 5]] }; });
+    ok(sw.beats.some(function (b) { return b.t === 'atk' && b.u === 'dm1' && b.wiz && b.cls === 'AF' && b.f === 2; }), 'p.30: the patrol lady fights as two Armored Foot, her own dice');
+    ok(sw.beats.some(function (b) { return b.t === 'shock' && b.by === 'dm1'; }), 'p.30: a wizard affects enemy morale as a super-hero -- her charge makes them check');
+    var sv = domDay(12, function (s) { var b = on(s, 'bows', [8, 5]); b.figs = b.figs0 = 60; var d = on(s, 'dm1', [8, 5]); d.figs = 0; });
+    var vol = sv.beats.filter(function (b) { return b.t === 'atk' && b.volley && b.tg === 'dm1'; })[0];
+    ok(vol && vol.dice.some(function (x) { return x >= vol.need; }) && vol.k === 0, 'p.30: a wizard is impervious to normal missiles -- the volley hits and kills nothing' + (vol ? ' ([' + vol.dice.filter(function (x) { return x >= vol.need; }).length + ' hits] -> ' + vol.k + ')' : ' (no volley at her)'));
+    var sl = domDay(13, function (s) { on(s, 'bows', [8, 5]); on(s, 'patrol', [8, 5]); on(s, 'dm2', [8, 5]); });
+    ok(sl.beats.some(function (b) { return b.t === 'fb' && b.kind === 'lightning' && (b.tgs || []).length === 2; }), 'p.31: a lightning bolt strikes along a line -- two units');
+    var sf = domDay(14, function (s) { on(s, 'patrol', [8, 5]); var d = on(s, 'dm1', [8, 4]); d.order = { type: 'move', to: [8, 5], path: [[8, 5]] }; });
+    ok(sf.beats.some(function (b) { return b.t === 'save' && b.need === 9; }), 'p.31: the fire ball falls on the paladin\'s unit and the paladin rolls his save (9+)');
     // ---- whole battles, both hands, the party's part on the tables
     var heads = 0, grids = 0, maps = 0, fills = 0, bands = 0, ends = [], domOk = true, inv = [], dom0 = [], nightShared = 0;
     for (var seed = 1; seed <= 8; seed++) {

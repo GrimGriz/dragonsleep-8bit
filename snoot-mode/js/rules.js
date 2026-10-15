@@ -67,7 +67,8 @@
   SN.hostile = function (a, b) { return a.side !== b.side && (a.side === 'ours' || b.side === 'ours'); }; // (the gnolls and the Dominion do not fight each other: the Dominion lit this)
   SN.unitsAt = function (st, h) { return st.units.filter(function (u) { return SN.alive(u) && SN.same(u.at, h); }); };
   SN.unit = function (st, id) { return st.units.filter(function (u) { return u.id === id; })[0]; };
-  SN.nevers = function (u) { return !!(u.party || u.berserk || u.watch || u.harbinger || (!u.figs && SN.heroesOf(u).length)); }; // (never check morale: the heroes (p.30), berserkers (p.20), the death-watch "unto death", the Harbinger's pack)
+  SN.isWiz = function (h) { return h.type === 'wizard'; };
+  SN.nevers = function (u) { var hs = SN.heroesOf(u); return !!(u.party || u.berserk || u.watch || u.harbinger || (!u.figs && hs.length && !hs.every(SN.isWiz))); }; // (a wizard alone checks, at her own rating: p.33) // (never check morale: the heroes (p.30), berserkers (p.20), the death-watch "unto death", the Harbinger's pack)
   SN.rating = function (u) { return (u.morale || SN.MORALE[u.def] || 5) + (u.cleric ? 1 : 0) - (u.fatigued ? 1 : 0); };
   SN.greyfang = function (st) { var u = SN.unit(st, 'greyfang'); return u && SN.alive(u) && SN.heroesOf(u).some(function (h) { return h.fated; }) ? u : null; };
   SN.harb = function (st) { var u = SN.unit(st, 'harb'); return u && SN.alive(u) && !st.head ? u : null; };
@@ -75,7 +76,7 @@
   // the figures a unit counts in a fight: its own, and its fantastic figures at what they fight as (a hero four, a super-hero eight, a wraith
   // or a warlock two: p.30, p.33, p.43) -- the party is never in this count but on the bench's stand-in
   SN.fightFigs = function (u) { return u.figs + SN.heroesOf(u).reduce(function (s, h) { return s + ({ hero: 4, superhero: 8, wraith: 2, wizard: 2 }[h.type] || 0); }, 0); };
-  SN.bonus = function (u) { var hs = SN.heroesOf(u), b = 0; if (hs.some(function (h) { return h.type === 'superhero'; })) b = 2; else if (hs.length) b = 1; return b + (u.berserk ? 2 : 0); }; // (a hero adds 1 to the unit's dice, a super-hero 2 (p.30: doubled); berserkers +2, p.20)
+  SN.bonus = function (u) { var hs = SN.heroesOf(u), b = 0; if (hs.some(function (h) { return h.type === 'superhero'; })) b = 2; else if (hs.some(function (h) { return h.type === 'hero'; })) b = 1; return b + (u.berserk ? 2 : 0); }; // (only a hero adds to his unit's dice, a super-hero twice, p.30; a wizard or a wraith works on morale) // (a hero adds 1 to the unit's dice, a super-hero 2 (p.30: doubled); berserkers +2, p.20)
 
   SN.newGame = function (seed) {
     var st = { v: 1, seed: seed >>> 0, rs: seed >>> 0, day: SN.DAY0, units: [], log: [], head: null, huntDay: null, domDay: null, pitFell: false, over: false,
@@ -201,7 +202,7 @@
       if (foes.length) {
         u.halted = true; u.charged = true;
         foes.forEach(function (f) { f.halted = true; });
-        if (SN.heroesOf(u).some(function (h) { return h.type === 'superhero' || h.type === 'wraith'; })) st.shock = (st.shock || []).concat([{ at: e.to.slice(), by: u.id }]);
+        if (SN.heroesOf(u).some(function (h) { return h.type === 'superhero' || h.type === 'wraith' || h.type === 'wizard'; })) st.shock = (st.shock || []).concat([{ at: e.to.slice(), by: u.id }]);
       }
     });
     return steps;
@@ -395,24 +396,47 @@
       var tgt = B.slice().sort(function (x, y) { return SN.fightFigs(y) - SN.fightFigs(x); })[0], cls = a.fatigued ? SN.LOWER[a.cls] : a.cls;
       var dcls = tgt.fatigued ? SN.LOWER[tgt.def] : tgt.def, horse = { LH: 1, MH: 1, HH: 1 };
       if (horse[dcls] && !tgt.charged) dcls = SN.LOWER[dcls]; // (standing horse defends a class down, p.17)
-      var row = SN.CT[cls][dcls], f = volley ? a.figs : SN.fightFigs(a), ter = SN.TERRAIN[SN.ter(h[0], h[1])];
+      var wf = volley ? 0 : SN.heroesOf(a).filter(SN.isWiz).length * 2; // (a wizard fights as two Armored Foot, p.30: her own dice, below)
+      var row = SN.CT[cls][dcls], f = volley ? a.figs : SN.fightFigs(a) - wf, ter = SN.TERRAIN[SN.ter(h[0], h[1])];
+      if (wf) wizDice(a, tgt, dcls, wf, ter);
       if (f <= 0) return;
       var imp = !volley && round === 1 && a.charged && cls !== 'LF' && !ter.hill && !ter.rough; // (impetus, p.17: heavy and armored foot and all horse charging over open ground add a die)
       var n = Math.ceil(f / row[1]) * row[0] + (imp ? Math.ceil(f / row[1]) : 0), b = SN.bonus(a), need = Math.max(2, row[2] - b), r = SN.dice(st, n), k = r.filter(function (x) { return x >= need; }).length;
       if (tgt.harbinger && !SN.heroesOf(a).length && !tgt.figs) k = 0; // (a wraith alone: only magic and the fantastic harm him, p.34)
+      if (volley && SN.heroesOf(tgt).some(SN.isWiz)) k = Math.min(k, tgt.figs); // (a wizard is impervious to normal missile fire, p.30: the volley kills her men, never her)
       SN.beat(st, { t: 'atk', u: a.id, tg: tgt.id, cls: cls, dcls: dcls, dice: r, need: need, k: k, volley: !!volley, imp: !!imp, round: round, f: f, row: row.slice(), bonus: SN.bonus(a) });
       SN.say(st, a.name + (volley ? ' loose a volley' : imp ? ' charge' : '') + ' (' + f + ' ' + cls + ' against ' + dcls + (imp ? ', +1 die a figure for the charge' : '') + ') roll ' + n + (n === 1 ? ' die' : ' dice') + ', kill on ' + need + '+' + (b ? ' (+' + b + ')' : '') + ': [' + r.join(' ') + '] -> ' + k + (k === 1 ? ' kill' : ' kills'), 'roll', h);
       if (k) hit(tgt, k);
     }
-    if (round === 1) {
-      // the warlock's fire ball (p.31: a large catapult's hit area): before the melee, once a fight, one or two figures of the unit it falls on
-      o.concat(t).forEach(function (a) {
-        SN.heroesOf(a).filter(function (x) { return x.warlock; }).forEach(function (w) {
-          var B = (a.side === 'ours' ? t : o); if (!B.length) return; var tgt = B[Math.floor(SN.rng(st) * B.length)], n = 1 + Math.floor(SN.rng(st) * 2);
-          SN.beat(st, { t: 'fb', u: a.id, w: w.name, tg: tgt.id, n: n });
-          SN.say(st, w.name + ' throws a fire ball into ' + tgt.name + ': ' + n + (n > 1 ? ' figures burn.' : ' figure burns.'), 'roll', h); hit(tgt, n);
+    function wizDice(a, tgt, dcls, wf, ter) {
+      var row = SN.CT.AF[dcls], imp = round === 1 && a.charged && !ter.hill && !ter.rough, n = Math.ceil(wf / row[1]) * row[0] + (imp ? Math.ceil(wf / row[1]) : 0), r = SN.dice(st, n), k = r.filter(function (x) { return x >= row[2]; }).length;
+      var w = SN.heroesOf(a).filter(SN.isWiz)[0];
+      SN.beat(st, { t: 'atk', u: a.id, tg: tgt.id, cls: 'AF', dcls: dcls, dice: r, need: row[2], k: k, volley: false, imp: !!imp, round: round, f: wf, row: row.slice(), bonus: 0, wiz: true, who: w.name });
+      SN.say(st, w.name + ' fights as two Armored Foot (against ' + dcls + ') rolls ' + n + (n === 1 ? ' die' : ' dice') + ', kill on ' + row[2] + '+: [' + r.join(' ') + '] -> ' + k + (k === 1 ? ' kill' : ' kills'), 'roll', h);
+      if (k) hit(tgt, k);
+    }
+    // a wizard's missile, every round before the melee (p.31): chosen before the battle, a fire ball (a large catapult's hit area: one or two figures of
+    // the unit it falls on) or a lightning bolt (a line: a figure in each of up to two units); it kills whatever it strikes, but a fantastic figure in the
+    // struck unit rolls its save -- heroes 9+, super-heroes 6+, wraiths 7+ (GreyFang is beaten back, never killed; the Harbinger is the mirror's)
+    o.concat(t).forEach(function (a) {
+      SN.heroesOf(a).filter(SN.isWiz).forEach(function (w) {
+        var B = (a.side === 'ours' ? t : o).filter(function (u) { return SN.alive(u) && SN.same(u.at, h); }); if (!B.length) return;
+        var light = w.missile === 'lightning', pick = B.slice().sort(function () { return SN.rng(st) - 0.5; }), tgs = light ? pick.slice(0, 2) : pick.slice(0, 1);
+        var hitsOn = tgs.map(function (u) { return { tg: u.id, n: light ? 1 : 1 + Math.floor(SN.rng(st) * 2) }; });
+        SN.beat(st, { t: 'fb', u: a.id, w: w.name, kind: light ? 'lightning' : 'fireball', tg: hitsOn[0].tg, n: hitsOn[0].n, tgs: hitsOn });
+        hitsOn.forEach(function (x) {
+          var u = SN.unit(st, x.tg); hit(u, Math.min(x.n, u.figs));
+          SN.say(st, w.name + (light ? ' throws a lightning bolt through ' : ' throws a fire ball into ') + u.name + ': ' + x.n + (x.n > 1 ? ' figures die.' : ' figure dies.'), 'roll', h);
+          var fx = SN.heroesOf(u).filter(function (hh) { return SN.SAVES[hh.type]; }); if (!fx.length) return;
+          var hh = fx[Math.floor(SN.rng(st) * fx.length)], need = SN.SAVES[hh.type], r = SN.dice(st, 2), ok = r[0] + r[1] >= need;
+          SN.beat(st, { t: 'save', u: u.id, name: hh.name, type: hh.type, dice: r, need: need, ok: ok });
+          SN.say(st, hh.name + ' is caught by it: [' + r.join(' + ') + '] = ' + (r[0] + r[1]) + ' against ' + need + (ok ? ': saved.' : hh.fated ? ': beaten back -- he is the Harbinger\'s.' : hh.harbinger ? ': the mirror takes him back to the moot ground.' : ': killed.'), 'roll', h);
+          if (ok) return;
+          if (hh.fated) SN.fallBack(st, u, 'back'); else if (hh.harbinger) SN.beatHarb(st, u); else { hh.dead = true; SN.lose(st, u, 0, hh); }
         });
       });
+    });
+    if (round === 1) {
       // missiles first (p.9): the crossbows' volley, nothing back
       o.concat(t).filter(function (a) { return a.volley && a.figs > 0; }).forEach(function (a) { attack(a, a.side === 'ours' ? t : o, true); });
     }
@@ -441,7 +465,7 @@
   // post-melee morale (pp.15-16): fewer casualties scores the difference times a die, more survivors the difference, each side adds its
   // survivors times its rating; under twenty figures a side everything doubles; the lower total reacts by the gap
   SN.morale = function (st, o, t, before, h) {
-    function side(U) { var surv = 0, cas = 0, rate = 0, n = 0; U.forEach(function (u) { var f = SN.fightFigs(u); surv += f; cas += Math.max(0, before[u.id] - f); rate += SN.rating(u) * Math.max(1, f); n += Math.max(1, f); }); return { U: U, surv: surv, cas: cas, rate: n ? rate / n : 5, never: U.every(SN.nevers) }; }
+    function side(U) { var surv = 0, cas = 0, rate = 0, n = 0; U.forEach(function (u) { var f = SN.fightFigs(u), wf = SN.heroesOf(u).filter(SN.isWiz).length * 2; surv += f; cas += Math.max(0, before[u.id] - f); rate += SN.rating(u) * Math.max(1, f - wf) + SN.WIZARD.morale * wf; n += Math.max(1, f - wf) + wf; }); return { U: U, surv: surv, cas: cas, rate: n ? rate / n : 5, never: U.every(SN.nevers) }; } // (a wizard's figures at her own rating, p.33)
     var A = side(o), B = side(t), dA = SN.d6(st), dB = SN.d6(st);
     var sA = (A.cas < B.cas ? (B.cas - A.cas) * dA : 0) + (A.surv > B.surv ? A.surv - B.surv : 0) + A.surv * A.rate;
     var sB = (B.cas < A.cas ? (A.cas - B.cas) * dB : 0) + (B.surv > A.surv ? B.surv - A.surv : 0) + B.surv * B.rate;
