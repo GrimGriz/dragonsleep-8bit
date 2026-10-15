@@ -49,6 +49,13 @@
   // hexes and they go for it; else the nearest gnoll unit in the field (not the Harbinger: he walks through anyone without a hero); none seen, the
   // stomp toward the moot ground; the Snoot gone home (the head taken) and no gnoll near, back to the Verge
   AI.plains = function (st, u) {
+    // the horse escort (his word 10-15: "we may need 60 to continue to the pit escorting the horses in before joining"): to the Pit with the herd first, and
+    // into the fight the day after it is in
+    if (u.escort && !(u.delivered && u.delivered < st.day)) {
+      if (SN.same(u.at, SN.PIT)) { if (!u.delivered) { u.delivered = st.day; SN.say(st, u.name + ' bring the horses in to the Pit.', 'arrive', u.at); } u.order = { type: 'hold' }; }
+      else go(st, u, SN.PIT);
+      return;
+    }
     var g = st.units.filter(function (x) { return x.side === 'gnoll' && SN.alive(x) && x.state !== 'home' && !x.harbinger; })
       .sort(function (a, b) { return SN.dist(a.at, u.at) - SN.dist(b.at, u.at); });
     u.berserkOrder = false;
@@ -62,7 +69,7 @@
     if (u.watch) { if (!SN.same(u.at, SN.MOOT)) go(st, u, SN.MOOT); return; } // (the death-watch: unto death, on the moot ground -- and back to it if a night drove it off)
     if (u.harbinger) return AI.harbinger(st, u);
     if (u.tribe === 'wall' && st.day < 19) return; // (the Wall-Laugh holds -- and is despised for it at the tally)
-    if (u.tribe === 'gray') {
+    if (u.tribe === 'gray' && !u.youngblood) { // (the young blood are out for the Snoot from the first day: his word 10-15)
       var plains = st.units.filter(function (x) { return x.kind === 'the plains' && SN.alive(x) && SN.dist(x.at, SN.MOOT) <= 3; });
       if (plains.length) { if (SN.dist(u.at, SN.MOOT) > 1) go(st, u, SN.MOOT); else u.order = { type: 'support' }; return; } // (the stomp breaks on the Gray Keeping's wall)
       if (st.day < 16) { u.order = { type: 'support' }; return; }
@@ -74,7 +81,7 @@
     var best = AI.mark(st, u);
     if (best) { go(st, u, best.at, true); return; }
     // nothing to hunt: down toward the road and the Pit, where the young blood is seen
-    if ((u.tribe === 'skull' || st.day >= 17) && SN.dist(u.at, SN.PIT) > 2) { go(st, u, SN.dist(u.at, [8, 5]) > 1 ? [8, 5] : [7, 6], true); return; } // (down toward the road above the Pit, where the young blood is seen -- not into the four)
+    if ((u.tribe === 'skull' || u.youngblood || st.day >= 17) && SN.dist(u.at, SN.PIT) > 2) { go(st, u, SN.dist(u.at, [8, 5]) > 1 ? [8, 5] : [7, 6], true); return; } // (down toward the road above the Pit, where the young blood is seen -- not into the four)
     u.order = { type: 'support' };
   };
   // the mark: of ours within three days, not the four and not where they stand, the one with the most gnoll figures that could reach it
@@ -99,7 +106,7 @@
   };
   AI.dominion = function (st, u) {
     u.order = { type: 'hold' };
-    var near = ours(st).filter(function (x) { return !x.party && SN.dist(x.at, u.at) === 1 && SN.fightFigs(x) <= 3; })[0];
+    var near = ours(st).filter(function (x) { return !x.party && SN.dist(x.at, u.at) === 1 && SN.fightFigs(x) <= 8; })[0]; // (what is small: a handful of men)
     if (near) { go(st, u, near.at); return; }
     var inn = [8, 3];
     if (!SN.same(u.at, inn) && SN.dist(u.at, inn) > 1) go(st, u, inn);
@@ -113,7 +120,7 @@
       if (!SN.canOrder(st, u) || u.berserkOrder) return;
       if (u.party) { if (G && !SN.same(u.at, G.at)) SN.setOrder(st, u, { type: 'move', to: G.at }); else if (!G) AI.hunt(st, u); else u.order = { type: 'support' }; return; }
       if (u.id === 'greyfang') { u.order = { type: 'hold' }; return; }
-      if ((u.id === 'patrol' || u.id === 'bows') && st.day < 16) { u.order = { type: 'support' }; return; }
+      if (u.id === 'patrol' && st.day < 16) { u.order = { type: 'support' }; return; }
       AI.hunt(st, u);
     });
   };

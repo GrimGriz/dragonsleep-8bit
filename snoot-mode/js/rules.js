@@ -58,7 +58,7 @@
   // wagons in column march further while they keep to the road: CHAINMAIL p.10's road bonus, heavy horse +3", medium and light horse +6", wagons
   // +6" -- a hex for every 3", as the foot's 9" is its 3 hexes; foot get none (RULED 10-15, his "1 book"; the column, the march formation, the seat's)
   SN.ROADBONUS = { HH: 1, MH: 2, LH: 2 };
-  SN.roadBonus = function (u) { return u.form !== 'column' ? 0 : u.wagon ? 2 : u.mounted ? (SN.ROADBONUS[u.cls] || 0) : 0; };
+  SN.roadBonus = function (u) { return u.form !== 'column' ? 0 : u.wagon && !u.groups ? 2 : Math.min.apply(null, SN.parts(u).map(function (g) { return g.mounted ? (SN.ROADBONUS[g.cls] || 0) : 0; })); }; // (a mixed unit: its slowest type's; foot none)
   SN.reach = function (u, path) {
     var col = SN.roadBonus(u), left = SN.moveOf(u) + col, road = true, out = [];
     for (var i = 0; i < (path || []).length; i++) {
@@ -69,7 +69,7 @@
     return out;
   };
   SN.moveOf = function (u) {
-    var m = Math.max(1, (u.move || SN.MOVE[u.cls] || 3) - (u.fatigued ? 1 : 0));
+    var m = Math.max(1, (u.move || Math.min.apply(null, SN.parts(u).map(function (g) { return SN.MOVE[g.cls] || 3; }))) - (u.fatigued ? 1 : 0)); // (a mixed unit at its slowest type's pace)
     if (u.form === 'square') m = 1; // (a square holds its ground: a hex a day)
     if (u.reformed) m = Math.max(1, Math.floor(m / 2)); // (a formation changed today: half the day's move -- RULED 10-15)
     return m;
@@ -84,12 +84,35 @@
   SN.isWiz = function (h) { return h.type === 'wizard'; };
   SN.casts = function (h) { return h.type === 'wizard' || !!h.missile; }; // (who throws a missile: every wizard, and a hero who carries one -- Book I p.17 keys an 8th-level magic-user, the Warlock, to fight as a Hero; his missile is still the Warlock's, p.31)
   SN.nevers = function (u) { var hs = SN.heroesOf(u); return !!(u.party || u.berserk || u.watch || u.harbinger || (!u.figs && hs.length && !hs.every(SN.isWiz))); }; // (a wizard alone checks, at her own rating: p.33) // (never check morale: the heroes (p.30), berserkers (p.20), the death-watch "unto death", the Harbinger's pack)
-  SN.rating = function (u) { return (u.morale || SN.MORALE[u.def] || 5) + (u.cleric ? 1 : 0) - (u.fatigued ? 1 : 0); };
+  SN.rating = function (u) {
+    var base = u.morale || SN.MORALE[u.def] || 5;
+    if (u.groups && u.figs > 0) base = Math.round(u.groups.reduce(function (s, g) { return s + g.n * (g.morale || SN.MORALE[g.def] || 5); }, 0) / u.figs * 10) / 10; // (by type, p.15)
+    return base + (u.cleric ? 1 : 0) - (u.fatigued ? 1 : 0);
+  };
   SN.greyfang = function (st) { var u = SN.unit(st, 'greyfang'); return u && SN.alive(u) && SN.heroesOf(u).some(function (h) { return h.fated; }) ? u : null; };
   SN.harb = function (st) { var u = SN.unit(st, 'harb'); return u && SN.alive(u) && !st.head ? u : null; };
   SN.party = function (st) { var u = SN.unit(st, 'party'); return u && SN.alive(u) && !u.out ? u : null; };
   // the figures a unit counts in a fight: its own, and its fantastic figures at what they fight as (a hero four, a super-hero eight, a wraith
   // or a warlock two: p.30, p.33, p.43) -- the party is never in this count but on the bench's stand-in
+  // ---------------------------------------------------------------- one man a figure, and the mixed units (RULED 10-15, his "1 let's try it out", "2 try that
+  // too"): a unit's figs are its men (Book III p.25's basic system), so Book I's Fighting Capability reads straight -- a Hero four men, a Super-hero eight.
+  // A unit of one type keeps cls/def/figs; a MIXED one carries u.groups ({ cls, def, n, n0, volley, mounted, name }), each group its own row on the
+  // Combat Table, morale "separating them by type" (p.15); its cls/def are its biggest group's, its figs their sum
+  SN.parts = function (u) { return u.groups && u.groups.length ? u.groups : [{ cls: u.cls, def: u.def, n: u.figs || 0, n0: u.figs0 || 0, volley: !!u.volley, mounted: !!u.mounted, morale: u.morale, name: u.name }]; };
+  SN.sync = function (u) {
+    if (!u.groups) return;
+    u.figs = u.groups.reduce(function (s, g) { return s + g.n; }, 0);
+    var big = u.groups.slice().sort(function (a, b) { return b.n - a.n || b.n0 - a.n0; })[0]; if (big) { u.cls = big.cls; u.def = big.def; }
+    u.volley = u.groups.some(function (g) { return g.volley && g.n > 0; }); u.mounted = u.groups.every(function (g) { return g.mounted; });
+  };
+  // n men off a unit, the biggest group giving first (the owner's to choose, p.14: read as keeping the unit's shape); the tally by type
+  SN.take = function (st, u, n, kind) {
+    var k = kind || (u.side === 'ours' ? 'lost' : 'killed'), got = 0, add = function (cls, m) { st.stats[k][u.side + ':' + cls] = (st.stats[k][u.side + ':' + cls] || 0) + m; };
+    if (!u.groups) { got = Math.max(0, Math.min(u.figs, n)); u.figs -= got; if (got) add(u.cls, got); return got; }
+    while (got < n) { var g = u.groups.filter(function (x) { return x.n > 0; }).sort(function (a, b) { return b.n - a.n; })[0]; if (!g) break; g.n--; got++; add(g.cls, 1); }
+    SN.sync(u); return got;
+  };
+  SN.addMen = function (u, n) { if (!u.groups) { u.figs += n; return; } var g = u.groups.filter(function (x) { return x.n < x.n0; })[0] || u.groups[0]; g.n += n; SN.sync(u); };
   SN.fightFigs = function (u) { return u.figs + SN.heroesOf(u).reduce(function (s, h) { return s + ({ hero: 4, superhero: 8, wraith: 2, wizard: 2 }[h.type] || 0); }, 0); };
   // ---------------------------------------------------------------- formation and facing (CHAINMAIL p.10, p.16; RULED 10-15, his "3 - Formations" and
   // "4 - Round 1 have the player set the formation before play without cost, change formation half-day")
@@ -101,7 +124,7 @@
   // arrival day); a change after costs half the day's move; a unit that marches faces the way it goes, and turning in place is free.
   SN.FORMS = { line: ['front', 'front', 'flank', 'rear', 'flank', 'front'], column: ['front', 'flank', 'flank', 'rear', 'flank', 'flank'], square: ['front', 'front', 'front', 'front', 'front', 'front'] };
   SN.HIGHER = { LF: 'HF', HF: 'AF', LH: 'MH', MH: 'HH' }; // (Armored Foot and Heavy Horse: +1 a die instead)
-  SN.foot = function (u) { return !u.mounted && !!{ LF: 1, HF: 1, AF: 1 }[u.cls]; };
+  SN.foot = function (u) { return !u.mounted && SN.parts(u).every(function (g) { return !g.mounted && !!{ LF: 1, HF: 1, AF: 1 }[g.cls]; }); };
   SN.formFree = function (st, u) { return st.day === SN.DAY0 || u.arrivedOn === st.day; };
   SN.setForm = function (st, u, form, face) {
     if (form && !SN.FORMS[form]) return false;
@@ -129,6 +152,7 @@
   };
   SN.make = function (f, on) {
     var u = JSON.parse(JSON.stringify(f));
+    if (u.groups) { u.groups.forEach(function (g) { g.n0 = g.n; }); SN.sync(u); }
     u.figs0 = u.figs; u.on = !!on; u.state = 'ok'; u.at = (u.at || SN.WEST).slice(); u.home = u.at.slice(); u.lost = 0; u.rounds = 0; u.order = { type: 'hold' };
     (u.heroes || []).forEach(function (h) { h.dead = false; });
     if (u.tribe === 'skull') u.home = [7, 1]; else if (u.tribe === 'gray' || u.harbinger) u.home = SN.MOOT.slice(); else if (u.tribe === 'wall') u.home = [0, 1];
@@ -193,6 +217,31 @@
     if (o.type === 'move') { var p = SN.path(u.at, o.to); if (!p || !p.length) return false; u.order = { type: 'move', to: o.to.slice(), path: SN.reach(u, p), full: p }; }
     else u.order = { type: o.type };
     return true;
+  };
+
+  // COMBINE (RULED 10-15, his "5 - let's try that out"): two of ours in one hex become one mixed unit -- the smaller joins the bigger (GreyFang's always
+  // keeps him: he is the Snoot's quarry), its men by type, its heroes with it; no splitting back. The day's order is the bigger's, and the joining
+  // counts as a formation changed (half the day's move after Day 14, flanked if caught)
+  SN.canCombine = function (st, a, b) { return !!a && !!b && a !== b && SN.canOrder(st, a) && SN.canOrder(st, b) && !a.party && !b.party && SN.same(a.at, b.at); };
+  SN.combine = function (st, a, b) {
+    if (!SN.canCombine(st, a, b)) return null;
+    var fated = function (u) { return SN.heroesOf(u).some(function (x) { return x.fated; }); };
+    var big = fated(a) ? a : fated(b) ? b : SN.fightFigs(a) >= SN.fightFigs(b) ? a : b, sm = big === a ? b : a;
+    var gs = SN.parts(big).map(function (g) { return Object.assign({}, g, { name: g.name || big.name }); });
+    SN.parts(sm).forEach(function (g) {
+      var same = gs.filter(function (x) { return x.cls === g.cls && x.def === g.def && !!x.volley === !!g.volley && !!x.mounted === !!g.mounted && (x.morale || 0) === (g.morale || 0); })[0];
+      if (same) { same.n += g.n; same.n0 += g.n0; } else gs.push(Object.assign({}, g, { name: g.name || sm.name }));
+    });
+    big.groups = gs; big.heroes = (big.heroes || []).concat(sm.heroes || []);
+    big.sheets = (big.sheets || []).concat((sm.sheets || []).filter(function (s) { return (big.sheets || []).indexOf(s) < 0; }));
+    big.cleric = big.cleric || sm.cleric; big.wagon = big.wagon || sm.wagon; big.lost = (big.lost || 0) + (sm.lost || 0);
+    big.figs0 = gs.reduce(function (s, g) { return s + g.n0; }, 0); SN.sync(big);
+    var was = big.name; big.name = was + ' with ' + sm.name.replace(/^(the|a) /i, '');
+    sm.on = false; sm.state = 'merged'; sm.mergedInto = big.id; sm.figs = 0;
+    if (!SN.formFree(st, big)) big.reformed = true;
+    SN.setForm(st, big, null); // (its march re-reckoned at the new pace)
+    SN.say(st, sm.name + ' join ' + was + ': one unit of ' + big.figs + ' men.', 'info', big.at);
+    return big;
   };
 
   // ---------------------------------------------------------------- the resolve (a generator: yields { anim } and { deep }; the page drives it)
@@ -342,6 +391,7 @@
       var foes = theirs(), H = foes.filter(function (u) { return u.harbinger; })[0], req;
       if (H) req = { kind: 'harbinger', fight: 'harbinger', at: h.slice(), foes: [H.id] };
       else req = SN.band(st, foes, h);
+      req.allies = SN.allies(st, h);
       yield* SN.flush(st, h);
       var res = yield { deep: req };
       SN.partyBack(st, res);
@@ -453,7 +503,7 @@
     else { SN.say(st, u.name + ' have lost ' + u.lost + ' of ' + u.figs0 + ' and break apart (' + r.join('+') + '=' + s + ', needed ' + need + '): ' + (SN.heroesOf(u).length ? 'the men scatter; ' + SN.heroesOf(u).map(function (x) { return x.name; }).join(' and ') + ' fight on alone.' : 'the unit is gone.'), 'roll', u.at); SN.scatter(st, u); }
   };
   SN.scatter = function (st, u) {
-    if (SN.heroesOf(u).length && u.figs > 0) { u.figs = 0; return; } // (the heroes stay: the last figures killed are always theirs, p.30)
+    if (SN.heroesOf(u).length && u.figs > 0) { if (u.groups) u.groups.forEach(function (g) { g.n = 0; }); u.figs = 0; return; } // (the heroes stay: the last figures killed are always theirs, p.30)
     u.state = 'gone'; u.on = false;
     st.stats.scattered = (st.stats.scattered || 0) + 1;
   };
@@ -497,24 +547,30 @@
     function attack(a, B, volley) {
       if (!volley && rearOf[a.id]) { B = B.filter(function (x) { return rearOf[a.id].indexOf(x.id) < 0; }); if (!B.length) SN.say(st, a.name + ' are taken from behind: they strike nothing back this round.', 'roll', h); }
       if (!B.length) return;
-      var tgt = biggest(B), cls0 = a.fatigued ? SN.LOWER[a.cls] : a.cls, cls = cls0;
-      var dcls = tgt.fatigued ? SN.LOWER[tgt.def] : tgt.def, horse = { LH: 1, MH: 1, HH: 1 };
+      var tgt = biggest(B), dcls = tgt.fatigued ? SN.LOWER[tgt.def] : tgt.def, horse = { LH: 1, MH: 1, HH: 1 };
       if (horse[dcls] && !tgt.charged) dcls = SN.LOWER[dcls]; // (standing horse defends a class down, p.17)
-      var asp = volley ? 'front' : aspOf(a, tgt), up = 0; // (from the flank or the rear: the next class up, Armored Foot and Heavy Horse +1 a die, p.16)
-      if (asp !== 'front') { if (SN.HIGHER[cls]) cls = SN.HIGHER[cls]; else up = 1; }
-      var wf = volley ? 0 : SN.heroesOf(a).filter(SN.isWiz).length * 2; // (a wizard fights as two Armored Foot, p.30: her own dice, below)
-      var row = SN.CT[cls][dcls], f = volley ? a.figs : SN.fightFigs(a) - wf, ter = SN.TERRAIN[SN.ter(h[0], h[1])];
+      var asp = volley ? 'front' : aspOf(a, tgt); // (from the flank or the rear: the next class up, Armored Foot and Heavy Horse +1 a die, p.16)
+      var wf = volley ? 0 : SN.heroesOf(a).filter(SN.isWiz).length * 2, ter = SN.TERRAIN[SN.ter(h[0], h[1])]; // (a wizard fights as two Armored Foot, p.30: her own dice, below)
       if (wf) wizDice(a, tgt, dcls, wf, ter, asp);
-      if (f <= 0) return;
-      // impetus, p.17: heavy and armored foot and all horse charging over open ground add a die -- not a square (it cannot charge), and not horse
-      // against a square (p.10's square, the seat's reading of what it is for)
-      var imp = !volley && round === 1 && a.charged && cls0 !== 'LF' && !ter.hill && !ter.rough && a.form !== 'square' && !(horse[cls0] && tgt.form === 'square');
-      var n = Math.ceil(f / row[1]) * row[0] + (imp ? Math.ceil(f / row[1]) : 0), b = SN.bonus(a) + up, need = Math.max(2, row[2] - b), r = SN.dice(st, n), k = r.filter(function (x) { return x >= need; }).length;
-      if (tgt.harbinger && !SN.heroesOf(a).length && !tgt.figs) k = 0; // (a wraith alone: only magic and the fantastic harm him, p.34)
-      if (volley && SN.heroesOf(tgt).some(SN.isWiz)) k = Math.min(k, tgt.figs); // (a wizard is impervious to normal missile fire, p.30: the volley kills her men, never her)
-      SN.beat(st, { t: 'atk', u: a.id, tg: tgt.id, cls: cls, dcls: dcls, dice: r, need: need, k: k, volley: !!volley, imp: !!imp, round: round, f: f, row: row.slice(), bonus: b, asp: asp, up: up, cls0: cls0, noBack: asp === 'rear' && round === 1 });
-      SN.say(st, a.name + (volley ? ' loose a volley' : imp ? ' charge' : '') + (asp === 'rear' ? ' from the rear' : asp === 'flank' ? ' on the flank' : '') + ' (' + f + ' ' + cls + (cls !== cls0 ? ' -- ' + cls0 + ' a class up' : '') + ' against ' + dcls + (imp ? ', +1 die a figure for the charge' : '') + ') roll ' + n + (n === 1 ? ' die' : ' dice') + ', kill on ' + need + '+' + (b ? ' (+' + b + ')' : '') + ': [' + r.join(' ') + '] -> ' + k + (k === 1 ? ' kill' : ' kills'), 'roll', h);
-      if (k) hit(tgt, k);
+      var heroF = volley ? 0 : SN.fightFigs(a) - (a.figs || 0) - wf; // (the heroes fight with the unit's first type)
+      // each type of a mixed unit rolls its own row (p.15, "separating them by type"); a unit of one type is one
+      SN.parts(a).forEach(function (g, gi) {
+        if (volley && !g.volley) return;
+        var f = (volley ? g.n : g.n + (gi === 0 ? heroF : 0)); if (f <= 0) return;
+        var cls0 = a.fatigued ? SN.LOWER[g.cls] : g.cls, cls = cls0, up = 0;
+        if (asp !== 'front') { if (SN.HIGHER[cls]) cls = SN.HIGHER[cls]; else up = 1; }
+        var row = SN.CT[cls][dcls];
+        // impetus, p.17: heavy and armored foot and all horse charging over open ground add a die -- not a square (it cannot charge), and not horse
+        // against a square (p.10's square, the seat's reading of what it is for)
+        var imp = !volley && round === 1 && a.charged && cls0 !== 'LF' && !ter.hill && !ter.rough && a.form !== 'square' && !(horse[cls0] && tgt.form === 'square');
+        var n = Math.ceil(f / row[1]) * row[0] + (imp ? Math.ceil(f / row[1]) : 0), b = SN.bonus(a) + up, need = Math.max(2, row[2] - b), r = SN.dice(st, n), k = r.filter(function (x) { return x >= need; }).length;
+        if (tgt.harbinger && !SN.heroesOf(a).length && !tgt.figs) k = 0; // (a wraith alone: only magic and the fantastic harm him, p.34)
+        if (volley && SN.heroesOf(tgt).some(SN.isWiz)) k = Math.min(k, tgt.figs); // (a wizard is impervious to normal missile fire, p.30: the volley kills her men, never her)
+        var gname = a.groups ? g.name || SN.CLASSNAME[g.cls] : null;
+        SN.beat(st, { t: 'atk', u: a.id, tg: tgt.id, cls: cls, dcls: dcls, dice: r, need: need, k: k, volley: !!volley, imp: !!imp, round: round, f: f, row: row.slice(), bonus: b, asp: asp, up: up, cls0: cls0, noBack: asp === 'rear' && round === 1, grp: gname });
+        SN.say(st, a.name + (gname ? ' (' + gname + ')' : '') + (volley ? ' loose a volley' : imp ? ' charge' : '') + (asp === 'rear' ? ' from the rear' : asp === 'flank' ? ' on the flank' : '') + ' (' + f + ' ' + cls + (cls !== cls0 ? ' -- ' + cls0 + ' a class up' : '') + ' against ' + dcls + (imp ? ', +1 die a figure for the charge' : '') + ') roll ' + n + (n === 1 ? ' die' : ' dice') + ', kill on ' + need + '+' + (b ? ' (+' + b + ')' : '') + ': [' + r.join(' ') + '] -> ' + k + (k === 1 ? ' kill' : ' kills'), 'roll', h);
+        if (k) hit(tgt, k);
+      });
     }
     function wizDice(a, tgt, dcls, wf, ter, asp) {
       var up = asp && asp !== 'front' ? 1 : 0, need = Math.max(2, SN.CT.AF[dcls][2] - up);
@@ -531,7 +587,7 @@
       SN.heroesOf(a).filter(SN.casts).forEach(function (w) {
         var B = (a.side === 'ours' ? t : o).filter(function (u) { return SN.alive(u) && SN.same(u.at, h); }); if (!B.length) return;
         var light = w.missile === 'lightning', pick = B.slice().sort(function () { return SN.rng(st) - 0.5; }), tgs = light ? pick.slice(0, 2) : pick.slice(0, 1);
-        var hitsOn = tgs.map(function (u) { return { tg: u.id, n: light ? 1 : 1 + Math.floor(SN.rng(st) * 2) }; });
+        var hitsOn = tgs.map(function (u) { return { tg: u.id, n: light ? 1 + Math.floor(SN.rng(st) * 6) : 2 + Math.floor(SN.rng(st) * 6) + Math.floor(SN.rng(st) * 6) }; }); // (one man a figure: a fire ball 2d6 men of the unit it falls on, a bolt 1d6 of each of two -- the seat's reading of the catapult's hit area)
         SN.beat(st, { t: 'fb', u: a.id, w: w.name, kind: light ? 'lightning' : 'fireball', tg: hitsOn[0].tg, n: hitsOn[0].n, tgs: hitsOn });
         hitsOn.forEach(function (x) {
           var u = SN.unit(st, x.tg); hit(u, Math.min(x.n, u.figs));
@@ -547,7 +603,7 @@
     });
     if (round === 1) {
       // missiles first (p.9): the crossbows' volley, nothing back
-      o.concat(t).filter(function (a) { return a.volley && a.figs > 0; }).forEach(function (a) { attack(a, a.side === 'ours' ? t : o, true); });
+      o.concat(t).filter(function (a) { return a.volley && a.figs > 0; }).forEach(function (a) { attack(a, a.side === 'ours' ? t : o, true); }); // (a mixed unit's missile troops alone)
     }
     o.forEach(function (a) { attack(a, t); });
     t.forEach(function (a) { attack(a, o); });
@@ -559,9 +615,8 @@
   };
   // casualties: off the figures first, the heroes last (p.30) -- a hero needs four hits at once from regular troops, a super-hero eight
   SN.lose = function (st, u, n, heroKilled) {
-    var take = Math.min(u.figs, n); u.figs -= take; u.lost += take; n -= take;
-    if (take) SN.beat(st, { t: 'cas', u: u.id, n: take, figs: u.figs });
-    if (take) { var k = u.side === 'ours' ? 'lost' : 'killed'; st.stats[k][u.side + ':' + u.cls] = (st.stats[k][u.side + ':' + u.cls] || 0) + take; u.lostToday = true; }
+    var take = SN.take(st, u, Math.min(u.figs, n)); u.lost += take; n -= take;
+    if (take) { SN.beat(st, { t: 'cas', u: u.id, n: take, figs: u.figs }); u.lostToday = true; }
     if (heroKilled) { st.stats[u.side === 'ours' ? 'lost' : 'killed'][u.side + ':' + heroKilled.type] = (st.stats[u.side === 'ours' ? 'lost' : 'killed'][u.side + ':' + heroKilled.type] || 0) + 1; }
     SN.heroesOf(u).forEach(function (hh) {
       var needHits = hh.type === 'superhero' ? 8 : 4;
@@ -597,7 +652,7 @@
     return true;
   };
   SN.surrender = function (st, u) {
-    var k = u.side + ':' + u.cls; st.stats.prisoners[k] = (st.stats.prisoners[k] || 0) + u.figs;
+    SN.take(st, u, u.figs, 'prisoners');
     SN.beat(st, { t: 'surrender', u: u.id });
     u.state = 'prisoner'; u.on = false;
   };
@@ -625,22 +680,44 @@
   // ---------------------------------------------------------------- the party's part: what the grid sends, and what comes back
   // a war-band from the units it meets: the road's glory-seekers fight (`snoot`, its map the road south) with the 8-bit's own list, sized from the
   // figures there (a hard fight for four at 8, the seat's lean RULED 10-14); against the Dominion the wagon yard's own (`wagon`: its soldiers)
+  // one man a figure (RULED 10-15): the band on the grid is the band -- each unit's men by its make-up (comp), as many as are left of them, up to thirty
+  // creatures a grid; `contrib` says how many each unit sent, so what falls there comes off it man for man
+  SN.GRIDMAX = 30;
   SN.band = function (st, foes, h) {
-    var g = foes.filter(function (u) { return u.side === 'gnoll'; }), f = Math.min(8, g.reduce(function (s, u) { return s + u.figs; }, 0)), list = [];
-    if (g.length) {
-      var gs = Math.min(3, Math.max(1, Math.ceil(f / 2))), gn = Math.min(10, 3 + f), hy = Math.min(6, Math.max(1, f));
-      for (var i = 0; i < gs; i++) list.push('gloryseeker'); for (i = 0; i < gn; i++) list.push('gnoll'); for (i = 0; i < hy; i++) list.push('hyena');
-      return { kind: 'band', fight: 'snoot', at: h.slice(), enemies: list, foes: foes.map(function (u) { return u.id; }) };
-    }
-    var d = foes.filter(function (u) { return u.side === 'dominion'; }), n = Math.min(12, 6 * d.length);
-    for (i = 0; i < n; i++) list.push('trooper');
-    return { kind: 'band', fight: 'snoot', at: h.slice(), enemies: list, dominion: true, foes: foes.map(function (u) { return u.id; }) };
+    var g = foes.filter(function (u) { return u.side === 'gnoll'; }), list = [], contrib = [], room = SN.GRIDMAX;
+    var send = function (u, comp) {
+      var keys = Object.keys(comp), tot = keys.reduce(function (s, k) { return s + comp[k]; }, 0) || 1, n = Math.min(room, u.figs), sent = 0;
+      keys.forEach(function (k, i) { var m = i === keys.length - 1 ? n - sent : Math.min(n - sent, Math.round(n * comp[k] / tot)); for (var j = 0; j < m; j++) list.push(k); sent += m; });
+      if (n > 0) contrib.push({ id: u.id, n: n }); room -= n;
+    };
+    if (g.length) { g.forEach(function (u) { send(u, u.comp || { gnoll: 1 }); }); return { kind: 'band', fight: 'snoot', at: h.slice(), enemies: list, foes: foes.map(function (u) { return u.id; }), contrib: contrib }; }
+    foes.filter(function (u) { return u.side === 'dominion'; }).forEach(function (u) { send(u, { trooper: 1 }); });
+    return { kind: 'band', fight: 'snoot', at: h.slice(), enemies: list, dominion: true, foes: foes.map(function (u) { return u.id; }), contrib: contrib };
+  };
+  // the men of ours beside the four (RULED 10-15, his "4 - I'd like to"): ours in the four's hex send men to the grid with them -- DEEP16's own soldier
+  // (js/party8.js SN.TROOPER8), fought by the class AI -- up to six, from each unit by its share; the rest of them fight on the tables after
+  SN.ALLIES = 6;
+  SN.allies = function (st, h) {
+    var U = SN.unitsAt(st, h).filter(function (u) { return u.side === 'ours' && !u.party && u.figs > 0 && u.state === 'ok'; }), tot = U.reduce(function (s, u) { return s + u.figs; }, 0), out = [], given = 0;
+    if (!tot || !SN.TROOPER8) return out;
+    var cap = Math.min(SN.ALLIES, tot);
+    U.forEach(function (u, i) { var n = Math.min(u.figs, cap - given, i === U.length - 1 ? cap - given : Math.max(1, Math.round(cap * u.figs / tot))); for (var j = 0; j < n; j++) out.push({ unit: u.id, key: 'ally-' + u.id + '-' + j }); given += n; });
+    return out;
   };
   // the result on the hex: won, the band's units break -- they lose figures by the share of the band that fell and rout (the shock of four
   // super-heroes, p.30); the four ran, they fall back a hex and the enemy has won; the four fell, they are carried back to the Pit for a day
   SN.partyResult = function (st, P, foes, req, res, h) {
     var r = res && res.result || 'lost', share = res && res.share != null ? res.share : (r === 'won' ? 1 : 0.3);
     SN.beat(st, { t: 'grid', kind: req.kind, res: r, share: share, n: (req.enemies || []).length });
+    // the men of ours who fell on the grid beside the four, each from its own unit (RULED 10-15)
+    if (res && res.allyDead) Object.keys(res.allyDead).forEach(function (id) { var u = SN.unit(st, id), n = res.allyDead[id]; if (u && SN.alive(u) && n > 0) { SN.say(st, n + ' of ' + u.name + ' fell on the grid beside the four.', 'party', h); SN.lose(st, u, n); } });
+    // what fell on the grid comes off the units that sent it, man for man (one man a figure); the bench's stand-in has no grid -- its share of each
+    var killed = function () {
+      if (res && res.dead != null && req.contrib) {
+        var sent = req.contrib.reduce(function (s, c) { return s + c.n; }, 0), left = Math.min(res.dead, sent);
+        req.contrib.forEach(function (c, i) { var u = SN.unit(st, c.id); if (!u || !SN.alive(u)) return; var n = Math.min(u.figs, left, i === req.contrib.length - 1 ? left : Math.round(res.dead * c.n / Math.max(1, sent))); if (n > 0) SN.lose(st, u, n); left -= n; });
+      } else foes.forEach(function (u) { if (SN.alive(u) && SN.same(u.at, h)) { var n = Math.ceil(u.figs * share); if (n > 0) SN.lose(st, u, n); } });
+    };
     if (req.kind === 'harbinger') {
       var H = foes.filter(function (u) { return u.harbinger; })[0];
       if (r === 'won' || r === 'yielded') { SN.say(st, 'The four put the Harbinger down -- and the mirror takes him back to the moot ground. He will come again.', 'party', h); if (H) SN.beatHarb(st, H); }
@@ -649,14 +726,10 @@
     }
     if (r === 'won' || r === 'yielded' || r === 'fled') {
       SN.say(st, 'The four win their part of it on the grid (' + Math.round(share * 100) + '% of the band down).', 'party', h);
-      foes.forEach(function (u) {
-        if (!SN.alive(u) || !SN.same(u.at, h)) return;
-        var n = Math.max(1, Math.ceil(u.figs * share / (SN.nevers(u) ? 1 : 2)));
-        SN.lose(st, u, n);
-        if (SN.alive(u) && !SN.nevers(u)) { SN.say(st, u.name + ' break before the four and rout.', 'morale', h); SN.fallBack(st, u, 'rout'); }
-      });
+      killed();
+      foes.forEach(function (u) { if (SN.alive(u) && SN.same(u.at, h) && !SN.nevers(u)) { SN.say(st, u.name + ' break before the four and rout.', 'morale', h); SN.fallBack(st, u, 'rout'); } });
       P.wonToday = true;
-    } else SN.partyBeaten(st, P, r, h);
+    } else { killed(); SN.partyBeaten(st, P, r, h); }
   };
   SN.partyBeaten = function (st, P, r, h) {
     if (r === 'escaped') { SN.say(st, 'The four get out of it and fall back a hex.', 'party', h); SN.fallBack(st, P, 'back'); }
@@ -709,8 +782,9 @@
     if (req.kind === 'greyfang') return { result: 'won', share: 1, stand: true };
     if (req.kind === 'harbinger') { var r = SN.dice(st, 2), s = r[0] + r[1]; SN.say(st, 'On the tables: the four against the Harbinger, ' + r.join('+') + '=' + s + ' against 8.', 'roll'); return { result: s > 8 ? 'won' : s === 8 ? 'escaped' : 'lost', share: s > 8 ? 1 : 0, stand: true }; }
     var foes = (req.foes || []).map(function (id) { return SN.unit(st, id); }).filter(function (u) { return u && SN.alive(u); }), figs = foes.reduce(function (s, u) { return s + (u.figs || 0); }, 0);
-    var dcls = foes.length ? foes[0].def : 'HF', row = SN.CT.AF[dcls], need = Math.max(2, row[2] - 2), n = Math.ceil(32 / row[1]) * row[0], dice = SN.dice(st, n), k = dice.filter(function (x) { return x >= need; }).length; // (32 Armored Foot, +2 a die for the super-heroes, p.30, p.40)
-    SN.say(st, 'On the tables: the four (32 Armored Foot, +2) roll ' + n + ' dice against ' + SN.CLASSNAME[dcls] + ', kill on ' + need + '+: ' + k + ' kills of ' + figs + ' figures.', 'roll');
+    var dcls = foes.length ? foes[0].def : 'HF', row = SN.CT.AF[dcls], need = Math.max(2, row[2] - 2), n = Math.ceil(32 / row[1]) * row[0], k = 0, rd = 0; // (32 Armored Foot, +2 a die for the super-heroes, p.30, p.40)
+    while (rd < 3 && k < figs) { k += SN.dice(st, n).filter(function (x) { return x >= need; }).length; rd++; } // (one man a figure: up to a day's three rounds, till the band is down)
+    SN.say(st, 'On the tables: the four (32 Armored Foot, +2) roll ' + n + ' dice a round against ' + SN.CLASSNAME[dcls] + ', kill on ' + need + '+: ' + k + ' kills of ' + figs + ' in ' + rd + ' round' + (rd > 1 ? 's' : '') + '.', 'roll');
     return { result: k * 2 >= figs ? 'won' : 'escaped', share: Math.min(1, k / Math.max(1, figs)), stand: true };
   };
 
@@ -727,7 +801,7 @@
         else if (u.rally >= 4) { SN.say(st, u.name + ' never rally: they are gone from the field.', 'morale', u.at); SN.scatter(st, u); u.state = 'gone'; u.on = false; }
       }
       if (!u.fought && !u.moved && u.fatigued) { u.fatigued = false; }
-      if (u.cleric && u.figs < u.figs0 && u.figs > 0) { u.figs++; SN.say(st, 'The cleric with ' + u.name + ' mends a figure (' + u.figs + ').', 'info', u.at); }
+      if (u.cleric && u.figs < u.figs0 && u.figs > 0) { var mend = Math.min(u.figs0 - u.figs, 1 + Math.floor(SN.rng(st) * 3)); SN.addMen(u, mend); SN.say(st, 'The cleric' + (u.side === 'gnoll' ? 's' : '') + ' with ' + u.name + ' mend' + (u.side === 'gnoll' ? '' : 's') + ' ' + mend + ' (' + u.figs + ').', 'info', u.at); } // (one man a figure: 1d3 a day)
       if (u.state === 'withdraw' && SN.same(u.at, u.home)) { u.state = 'home'; SN.say(st, u.name + ' are home.', 'info', u.at); }
     });
     // the four's long rest, every dusk wherever they stand (RULED 10-15, his "a long rest between days"; it was a day held in the Pit with no fight):

@@ -14,7 +14,9 @@
   DP.fight = function (st, req, done) {
     if (/[?&]bench\b/.test(location.search) || !st.party8) { done(SN.standIn(st, req)); return; }
     var fight = req.dominion ? 'roadcatch1' : req.fight, fr = document.createElement('iframe'), closed = false, timer = null;
-    var snap = JSON.parse(JSON.stringify({ party: st.party8.party, guests: [], inv: st.party8.inv || [], flags: st.party8.flags || {} }));
+    // the men of ours beside the four (RULED 10-15): DEEP16's trooper, one a man, by its key ('ally-<unit>-<n>': two troopers are two)
+    var guests = (req.allies || []).map(function (a) { return Object.assign(JSON.parse(JSON.stringify(SN.TROOPER8)), { key: a.key }); });
+    var snap = JSON.parse(JSON.stringify({ party: st.party8.party, guests: guests, inv: st.party8.inv || [], flags: st.party8.flags || {} }));
     function close(m) {
       if (closed) return; closed = true; clearTimeout(timer); window.removeEventListener('message', onMsg);
       if (fr.parentNode) fr.parentNode.removeChild(fr);
@@ -22,7 +24,9 @@
       var foes = m.foes || [], down = foes.filter(function (f) { return f.dead || f.fled; }).length;
       // the pack: what the fight used is gone (a potion drunk, a bolt loosed) -- the 8-bit's own rule (js/embed.js apply)
       if (st.party8.inv && m.inv0) { var i0 = m.inv0, i1 = m.inv1 || {}; Object.keys(i0).forEach(function (id) { var used = i0[id] - (i1[id] || 0); if (used <= 0) return; st.party8.inv.forEach(function (sl) { var sid = Array.isArray(sl) ? sl[0] : sl.id; if (sid !== id || used <= 0) return; var n = Array.isArray(sl) ? sl[1] : sl.n, k = Math.min(n, used); used -= k; if (Array.isArray(sl)) sl[1] -= k; else sl.n -= k; }); }); }
-      done({ result: m.result, share: foes.length ? down / foes.length : (m.result === 'won' ? 1 : 0), party: m.party, foes: foes });
+      var dead = foes.filter(function (f) { return f.dead; }).length, allyDead = {};
+      (m.party || []).forEach(function (p) { var mm = /^ally-(.+)-\d+$/.exec(p.id || ''); if (mm && p.hp <= 0) allyDead[mm[1]] = (allyDead[mm[1]] || 0) + 1; });
+      done({ result: m.result, share: foes.length ? down / foes.length : (m.result === 'won' ? 1 : 0), party: m.party, foes: foes, dead: dead, allyDead: allyDead });
     }
     function onMsg(e) {
       if (e.source !== fr.contentWindow || !e.data) return;

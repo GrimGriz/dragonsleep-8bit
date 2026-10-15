@@ -55,7 +55,7 @@
     W.at = [5, 3]; W.figs = 2; X.at = [6, 4]; X.figs = 5; Y.at = [5, 6]; Y.figs = 6; Z.at = [4, 3]; W.figs0 = 6;
     SN.witness(st, W);
     ok(W.figs === 4 && X.figs === 3, 'witness: a band two hexes off gives two of its five to the winner (now ' + W.figs + ', the giver ' + X.figs + ')');
-    ok(Y.figs === 6 && Z.figs === 8, 'witness: three hexes off gives nothing, the death-watch gives nothing');
+    ok(Y.figs === 6 && Z.figs === Z.figs0, 'witness: three hexes off gives nothing, the death-watch gives nothing');
     W.figs = 5; X.figs = 5; SN.witness(st, W);
     ok(W.figs === 6 && X.figs === 4, 'witness: never past the winner\'s starting size (6): the giver keeps the rest (' + X.figs + ')');
     // ---- the warlock by the book (CHAINMAIL pp.30-33; RULED 10-15: "Book basics for sure")
@@ -64,13 +64,13 @@
     ok(SN.POINTS.wizard === 80, 'p.33: a warlock is worth 80 points (was ' + SN.POINTS.wizard + ')');
     ok(SN.SAVES && SN.SAVES.hero === 9 && SN.SAVES.superhero === 6 && SN.SAVES.wraith === 7, 'p.31: a missile\'s saves -- heroes 9+, super-heroes 6+, wraiths 7+');
     ok(SN.bonus({ figs: 1, heroes: [{ type: 'wizard' }] }) === 0 && SN.bonus({ figs: 1, heroes: [{ type: 'hero' }] }) === 1 && SN.bonus({ figs: 1, heroes: [{ type: 'wraith' }] }) === 0, 'p.30: a hero adds 1 to his unit\'s dice; a wizard or a wraith adds nothing');
-    var sw = domDay(11, function (s) { on(s, 'bows', [8, 5]); var d = on(s, 'dm1', [8, 4]); d.order = { type: 'move', to: [8, 5], path: [[8, 5]] }; });
+    var sw = domDay(11, function (s) { on(s, 'bat2', [8, 5]); var d = on(s, 'dm1', [8, 4]); d.order = { type: 'move', to: [8, 5], path: [[8, 5]] }; });
     ok(sw.beats.some(function (b) { return b.t === 'atk' && b.u === 'dm1' && b.wiz && b.cls === 'AF' && b.f === 2; }), 'p.30: the patrol lady fights as two Armored Foot, her own dice');
     ok(sw.beats.some(function (b) { return b.t === 'shock' && b.by === 'dm1'; }), 'p.30: a wizard affects enemy morale as a super-hero -- her charge makes them check');
-    var sv = domDay(12, function (s) { var b = on(s, 'bows', [8, 5]); b.figs = b.figs0 = 60; var d = on(s, 'dm1', [8, 5]); d.figs = 0; });
+    var sv = domDay(12, function (s) { var b = on(s, 'bat2', [8, 5]); b.figs = b.figs0 = 60; var d = on(s, 'dm1', [8, 5]); d.figs = 0; });
     var vol = sv.beats.filter(function (b) { return b.t === 'atk' && b.volley && b.tg === 'dm1'; })[0];
     ok(vol && vol.dice.some(function (x) { return x >= vol.need; }) && vol.k === 0, 'p.30: a wizard is impervious to normal missiles -- the volley hits and kills nothing' + (vol ? ' ([' + vol.dice.filter(function (x) { return x >= vol.need; }).length + ' hits] -> ' + vol.k + ')' : ' (no volley at her)'));
-    var sl = domDay(13, function (s) { on(s, 'bows', [8, 5]); on(s, 'patrol', [8, 5]); on(s, 'dm2', [8, 5]); });
+    var sl = domDay(13, function (s) { on(s, 'bat2', [8, 5]); on(s, 'patrol', [8, 5]); on(s, 'dm2', [8, 5]); });
     ok(sl.beats.some(function (b) { return b.t === 'fb' && b.kind === 'lightning' && (b.tgs || []).length === 2; }), 'p.31: a lightning bolt strikes along a line -- two units');
     // (the first day of these whose fire ball falls on the patrol -- on some the patrol shies from her charge before a round is fought)
     var sf = null, sfs = 0; for (var q4 = 14; q4 < 90 && !sf; q4++) { var sx4 = domDay(q4, function (s) { on(s, 'patrol', [8, 5]); var d = on(s, 'dm1', [8, 4]); d.order = { type: 'move', to: [8, 5], path: [[8, 5]] }; }); if (sx4.beats.some(function (b) { return b.t === 'fb' && b.tg === 'patrol'; })) { sf = sx4; sfs = q4; } }
@@ -103,7 +103,7 @@
       sf.day = 15; SN.dawn(sf); SN.setForm(sf, pf, 'line'); var half = pf.reformed && SN.moveOf(pf) === Math.max(1, Math.floor(m0 / 2));
       SN.setForm(sf, pf, 'column'); return free && half && !pf.reformed && SN.moveOf(pf) === m0; }),
       'RULED 10-15: a formation set on Day 14 before the first orders is free; a change after costs half the day\'s move; back to the dawn\'s costs nothing');
-    ok(tk(function () { var sq = SN.newGame(52); SN.dawn(sq); var pq = SN.unit(sq, 'patrol'); return !SN.setForm(sq, SN.unit(sq, 'bat3'), 'square') && SN.setForm(sq, pq, 'square') && SN.moveOf(pq) === 1; }),
+    ok(tk(function () { var sq = SN.newGame(52); SN.dawn(sq); var pq = SN.unit(sq, 'bat1'); return !SN.setForm(sq, SN.unit(sq, 'bat3'), 'square') && SN.setForm(sq, pq, 'square') && SN.moveOf(pq) === 1; }),
       'p.10: a square is foot only, and holds its ground (a hex a day)');
     var q1 = fday(53, function (s) { var g = on(s, 'gk1', [8, 5]); g.form = 'square'; var b = on(s, 'bat3', [7, 5]); b.order = { type: 'move', to: [8, 5], path: [[8, 5]] }; });
     var q2 = fday(53, function (s) { var g = on(s, 'gk1', [8, 5]); g.form = 'line'; g.face = 3; var b = on(s, 'bat3', [7, 5]); b.order = { type: 'move', to: [8, 5], path: [[8, 5]] }; });
@@ -118,7 +118,7 @@
       return p.every(SN.road) && q.every(SN.road) && c1 === l1 && c2 === l2 + 2 && c3 === l3 + 2; }),
       'p.10 (RULED 10-15, "1 book"): the road bonus is horse\'s and wagons\' -- foot in column march no further; medium horse and the Dominion\'s wagons in column, two hexes further on the road');
     // ---- surprise (OD&D Book III p.9, p.17; RULED 10-15, "2 lean": surprise first)
-    function surpDay(seed, three) { return fday(seed, function (s) { var g = on(s, 'sg1', [8, 5]); g.form = 'line'; g.face = 3; ['patrol'].concat(three ? ['bows', 'bat1'] : []).forEach(function (id) { var p = on(s, id, [7, 5]); p.order = { type: 'move', to: [8, 5], path: [[8, 5]] }; }); }); }
+    function surpDay(seed, three) { return fday(seed, function (s) { var g = on(s, 'sg1', [8, 5]); g.form = 'line'; g.face = 3; ['patrol'].concat(three ? ['bat2', 'bat1'] : []).forEach(function (id) { var p = on(s, id, [7, 5]); p.order = { type: 'move', to: [8, 5], path: [[8, 5]] }; }); }); }
     var sp1 = null, sp3 = null, rolled = 0;
     for (var q3 = 60; q3 < 400 && (!sp1 || !sp3); q3++) {
       if (!sp1) { var s1 = surpDay(q3, false), b1s = s1.beats.filter(function (b) { return b.t === 'surp'; })[0]; if (b1s) rolled++; if (b1s && b1s.side === 'theirs') sp1 = s1; }
@@ -139,6 +139,27 @@
     ok(ev && !SN.same(pe.at, [8, 5]) && !atk1(ev, 'patrol') && !atk1(ev, 'sg1'), 'Book III p.20: a unit under AVOID that a band comes at rolls to slip a hex away -- and no blow is struck' + (pe ? ' (the patrol now at ' + pe.at + ')' : ''));
     ok(tk(function () { var sd = SN.newGame(61); sd.party8 = null; SN.DOMINION.forEach(function (f) { sd.units.push(SN.make(f, true)); }); var w1 = SN.unit(sd, 'dm1'); w1.at = [8, 3]; SN.AI.dominion(sd, w1); return w1.order.type === 'avoid'; }),
       'the Dominion\'s wagons at the inn are under AVOID (the seat\'s lean, ruled)');
+    // ---- one man a figure, the mixed units, his numbers, COMBINE, the grid beside the four (RULED 10-15)
+    var FF = function (id) { return SN.FORCES.filter(function (f) { return f.id === id; })[0]; };
+    ok(tk(function () { return FF('greyfang').figs === 40 && FF('patrol').groups.map(function (g) { return g.n + g.cls; }).join() === '12HF,4MH' && FF('patrol').wagon && !FF('bows') &&
+      FF('bat1').figs === 40 && FF('bat2').figs === 40 && FF('bat3').figs === 20 && [FF('bat1'), FF('bat2'), FF('bat3')].every(function (f) { return f.arrive === 18; }) &&
+      FF('bb1').figs + FF('bb2').figs + FF('bb3').figs === 100 && FF('bb1').figs === 60 && FF('bb1').escort && FF('sg1').figs === 18 && FF('sg1').comp.gloryseeker === 3 && FF('sg1').comp.gnoll === 9 && FF('sg1').comp.hyena === 6 && FF('gk1').youngblood; }),
+      'his numbers (10-15), one man a figure: the Pit 40; the road patrol a paladin, 12 heavy foot, 4 horse and a wagon; Newland\'s 40, 40 and 20 on Day 18; the plains 100, 60 the horse escort; a war-band 18; the Gray Keeping\'s young blood');
+    var mx = fday(43, function (s) { var g = on(s, 'sg1', [8, 5]); g.face = 3; var p = on(s, 'patrol', [7, 5]); p.order = { type: 'move', to: [8, 5], path: [[8, 5]] }; });
+    var mrows = mx.beats.filter(function (b) { return b.t === 'atk' && b.u === 'patrol' && b.round === 1 && !b.wiz; }), pu = SN.make(FF('patrol'), true);
+    ok(mrows.length >= 2 && mrows[0].cls0 === 'HF' && mrows[1].cls0 === 'MH' && Math.abs(SN.rating(pu) - (12 * 5 + 4 * 8) / 16) < 0.06 && SN.moveOf(pu) === 3 && !SN.foot(pu),
+      'p.15: a mixed unit rolls each type on its own row (the patrol\'s heavy foot, then its horse), its morale by type, its pace its slowest\'s; no square with horse in it (' + mrows.map(function (b) { return b.cls0; }).join(' ') + ')');
+    ok(tk(function () { var sc = SN.newGame(62); sc.party8 = null; SN.dawn(sc); var a = SN.unit(sc, 'patrol'), g = SN.unit(sc, 'greyfang'), big = SN.combine(sc, a, g);
+      return big && big.id === 'greyfang' && big.figs === 56 && big.groups.length === 3 && SN.heroesOf(big).length === 2 && a.state === 'merged' && !SN.alive(a) && !big.reformed && SN.greyfang(sc) === big; }),
+      'COMBINE: the patrol joins GreyFang\'s fighters -- one mixed unit of 56 men, three types, both heroes; GreyFang\'s keeps him (the quarry); free on Day 14');
+    ok(tk(function () { var sa = SN.newGame(63); sa.party8 = null; SN.dawn(sa); var al = SN.allies(sa, SN.PIT), P = SN.unit(sa, 'party'), b = SN.unit(sa, 'sg1'); b.at = SN.PIT.slice();
+      var req = SN.band(sa, [b], SN.PIT); SN.partyResult(sa, P, [b], req, { result: 'won', share: 0.5, dead: 10, allyDead: { patrol: 2 } }, SN.PIT);
+      return al.length === 6 && al.every(function (x) { return x.unit === 'greyfang' || x.unit === 'patrol'; }) && req.enemies.length === 18 && req.contrib[0].n === 18 && b.figs === 8 && SN.unit(sa, 'patrol').figs === 14; }),
+      'the grid at one man a figure: the band goes whole (18), six men of ours stand beside the four, and what falls there comes off man for man (10 of the band, 2 of the patrol)');
+    ok(tk(function () { var se = SN.newGame(64); se.party8 = null; se.day = 16; SN.dawn(se); var e = SN.unit(se, 'bb1'), o = SN.unit(se, 'bb2');
+      var s14 = SN.newGame(64); s14.party8 = null; SN.dawn(s14); var y14 = SN.unit(s14, 'gk1');
+      return e.order.type === 'move' && SN.same(e.order.to, SN.PIT) && o.order.type === 'move' && !SN.same(o.order.to, SN.PIT) && y14.order.type === 'move'; }),
+      'the horse escort marches for the Pit with the herd while the outriders peel off for the Snoot; the Gray Keeping\'s young blood are out from Day 14 (his words 10-15)');
     // ---- whole battles, both hands, the party's part on the tables
     var heads = 0, grids = 0, maps = 0, fills = 0, bands = 0, ends = [], domOk = true, inv = [], dom0 = [], nightShared = 0;
     for (var seed = 1; seed <= 8; seed++) {
