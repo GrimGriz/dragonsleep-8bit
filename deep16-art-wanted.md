@@ -230,7 +230,7 @@ Seven LPC sheets, drawn by the Liberated Pixel Cup generator in four directions 
 
 ART-61 (the trooper) came back PARTIAL 10-15 and is cut (`7b8db5b`): SE every row, E's and N's Hurt. Still owed by the art desk: its HEAD 2 (NE, every row), with the mace in the right hand (screen-right, as LPC's back and side show it; the engine's return `deep16/_src/outbox/ENGINE-RETURN-2026-10-15-ART-61-trooper.md`). ART-62 to ART-67: not back. The cutter takes each figure's pages by a spec read off the page (`FIGS` in the tool).
 
-## 10. The gnoll's last old rows (added 10-15, the gnoll sprite seat)
+## 10. The gnoll's last old rows -- IN HAND 2026-10-15 (the art desk's ART-29 supplement 2, cut into `gnoll_p2` and `gloryseeker_p2`, `a0e7ce2`, his *"They're good enough"*); its line is on `deep16-art-in-hand.md`
 
 His words: *"Yes - write the SE Idle 8, Attack 8 and E Walk 8 ask for the art desk so the last old gnoll rows go."* (10-15).
 
