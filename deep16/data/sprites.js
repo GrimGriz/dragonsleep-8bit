@@ -9306,7 +9306,7 @@
 }
 },
 "trooper_p0": {
-"image": "art/trooper_p0.png?v=3ff453e20b",
+"image": "art/trooper_p0.png?v=fc65075f7b",
 "fw": 64,
 "fh": 64,
 "ax": 32,
@@ -9355,12 +9355,11 @@
 "from": "ART-61",
 "drawn": [
 "SE idle/walk/attack/hurt",
+"NE idle/walk/attack/hurt",
 "E hurt",
 "N hurt"
 ],
-"owed": [
-"NE (NW mirrored): Idle 2, Walk 9, Attack 6, Hurt 6 -- open at the art desk"
-],
+"owed": [],
 "lpc_cells": {
 "hurt": [
 64,
