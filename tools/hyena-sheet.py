@@ -38,6 +38,7 @@ _src/art-desk/received-2026-10-15-ART-30/), each cut by its own row and number l
     H2P2  ART-30_HEAD-2_PAGE-2.png  NE: the rows of H1P2
     H3P1  ART-30_HEAD-3_PAGE-1.png  S:  Hurt 6, Death 8, ROFL 10
     H5P1  ART-30_HEAD-5_PAGE-1.png  N:  Hurt 6, Death 8, ROFL 10
+    H2P3  ART-30_HEAD-2_PAGE-3.png  NE: ROFL 10, re-rolled onto its back (supplement 1, 10-15, _src/hyena/ART-30-ROLL/): it replaces H2P2's
 Their Bite plays as `attack`, Hurt as `flinch`, Death as `hurt`, ROFL as `rofl` -- its ten frames straight (frame 10 leads into
 1), where E and W play their six there and back. S and N keep the stills' idle, walk and bite, bobbed. Every facing now draws
 every row from its own view: S, SE, E, NE, N as drawn, SW, W, NW mirrored. Each page is scaled to the view beside it as
@@ -125,9 +126,14 @@ PAGES = {
                  rows=[('hurt', (200, 30, 2137, 248), (223, 247), NUM(6)),
                        ('death', (200, 260, 2137, 476), (448, 475), NUM(8)),
                        ('rofl', (185, 490, 2137, 682), (656, 681), NUM(10))]),
+    # ART-30 supplement 1 (10-15, his "1 ask" on the old NE roll, "lol - that's a spine injury hyena"): the NE ROFL re-rolled onto its
+    # back, one page in _src/hyena/ART-30-ROLL/ (its ART-30-ROLL-CUTTER-NOTES.md); it comes after H2P2 in HEADS, so its rofl replaces H2P2's
+    'H2P3': dict(file='ART-30_HEAD-2_PAGE-3.png', dir=os.path.join(SRC, 'hyena', 'ART-30-ROLL'),                # NE: ROFL 10
+                 text=[(0, 325, 165, 390), (165, 452, 2169, 486)],
+                 rows=[('rofl', (165, 260, 2169, 484), (455, 483), NUM(10))]),
 }
 ENGINE = {'idle': 'idle', 'walk': 'walk', 'bite': 'attack', 'hurt': 'flinch', 'death': 'hurt', 'rofl': 'rofl'}   # the page's row -> the sheet's
-HEADS = {'SE': ('H1P1', 'H1P2'), 'NE': ('H2P1', 'H2P2'), 'S': ('H3P1',), 'N': ('H5P1',)}
+HEADS = {'SE': ('H1P1', 'H1P2'), 'NE': ('H2P1', 'H2P2', 'H2P3'), 'S': ('H3P1',), 'N': ('H5P1',)}   # (a view's rows in page order: a later page's row replaces)
 FLOOR = ('hurt', 'death')                    # rows that start standing: the row's ground is its first frame's feet (a cringe or a body lying
                                              # nearer the eye reaches lower on the page); the others stand on the row's lowest point
 # the scale, page px a game px. No turnaround on the pages: each page's standing hyena to the view beside it as committed, by the square
@@ -140,13 +146,17 @@ FLOOR = ('hurt', 'death')                    # rows that start standing: the row
 # idle: HEAD 1's drawn 8% bigger (area 131.8 to 121.6, height 140 to 129.5), HEAD 2's 2% (122.1 to 120.5, 165 to 158.8).
 K30 = {'H1P1': 3.86, 'H2P1': 3.83, 'H3P1': 3.98, 'H5P1': 3.90}
 K30.update({'H1P2': K30['H1P1'] * 1.08, 'H2P2': K30['H2P1'] * 1.02})
+# H2P3, the re-rolled NE roll, has no standing frame: by its ROFL's area against the other views' ROFLs at game size (SE 28.2, S 29.3,
+# N 28.0 -- the old NE's 28.7), its 130.2 to their 28.5: 4.57, drawn a seventh bigger than its page 1
+K30['H2P3'] = 4.57
 # the colour, page by page, to the side rows' (his look's): the art desk drew a warmer, stronger, brighter hyena, the more so on the later
 # pages. The medians of the coloured pixels (saturation over 0.2), hue / saturation / value: the side's idle, walk and bite 32.6 / 0.486 /
 # 0.443; H1P1 30.0 / 0.537 / 0.502, H1P2 29.1 / 0.590 / 0.529, H2P1 28.5 / 0.563 / 0.518, H2P2 26.3 / 0.657 / 0.596, H3P1 26.4 / 0.677 /
 # 0.596, H5P1 25.7 / 0.661 / 0.565. Each page: the hue turned, the saturation and the value times a factor, to meet the side's
 # (a per-channel tone moves the spots and the outline unevenly -- GreyFang's seat, 10-14: match saturation instead)
 TONE30 = {'H1P1': (2.6, 0.907, 0.883), 'H1P2': (3.6, 0.825, 0.837), 'H2P1': (4.1, 0.864, 0.856),
-          'H2P2': (6.3, 0.740, 0.743), 'H3P1': (6.2, 0.719, 0.743), 'H5P1': (6.9, 0.736, 0.785)}
+          'H2P2': (6.3, 0.740, 0.743), 'H3P1': (6.2, 0.719, 0.743), 'H5P1': (6.9, 0.736, 0.785),
+          'H2P3': (5.6, 0.824, 0.825)}                                       # (H2P3, the NE roll re-rolled: 27.0 / 0.590 / 0.537)
 
 
 def toned(im, t):
@@ -263,7 +273,7 @@ def heads(check=False):
         for L in pages:
             s = PAGES[L]
             over = [] if check else None
-            cuts = SR.cut_sheet(os.path.join(ART30, s['file']), s, overlay=over, tag=L)
+            cuts = SR.cut_sheet(os.path.join(s.get('dir', ART30), s['file']), s, overlay=over, tag=L)
             if check:
                 d = os.path.join(ROOT, 'dev', 'visions', 'hyena'); os.makedirs(d, exist_ok=True)
                 over[0].save(os.path.join(d, 'cut-%s.png' % L))

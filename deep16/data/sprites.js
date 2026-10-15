@@ -4594,7 +4594,7 @@
 }
 },
 "hyena_p2": {
-"image": "art/hyena_p2.png?v=15752fb82e",
+"image": "art/hyena_p2.png?v=72f97f5a95",
 "fw": 96,
 "fh": 80,
 "ax": 48,
