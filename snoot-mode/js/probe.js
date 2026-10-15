@@ -77,6 +77,12 @@
     var sk = domDay(15, function (s) { on(s, 'patrol', [8, 5]); var d = on(s, 'dm1', [8, 5]); d.figs = 0; d.heroes = [{ type: 'hero', name: 'a Warlock keyed as a Hero', missile: 'fireball' }]; });
     ok(sk.beats.some(function (b) { return b.t === 'fb' && b.u === 'dm1'; }) && !sk.beats.some(function (b) { return b.t === 'atk' && b.u === 'dm1' && b.wiz; }) && sk.beats.some(function (b) { return b.t === 'atk' && b.u === 'dm1' && b.f === 4 && b.bonus === 1; }),
       'Book I p.17: a Warlock keyed as a Hero fights as a Hero (four figures, +1) and still throws his missile (RULED 10-15: the four by Book I)');
+    // ---- the bench's stand-in (RULED 10-15: "the bench should read a complete gnoll slaughter ... keep at 32 figures") and the plains tribes (RULED 10-15)
+    var sx = SN.newGame(21), wins = 0; sx.party8 = null;
+    for (var q = 0; q < 40; q++) { var rq = SN.band(sx, [SN.unit(sx, 'sg1')], SN.unit(sx, 'sg1').at); var rs = SN.standIn(sx, rq); if (rs.result === 'won' && rs.share >= 1) wins++; }
+    ok(wins >= 38, 'the stand-in: the four as 32 Armored Foot at +2 against a band\'s own figures read a slaughter, as the grid does (' + wins + ' of 40)');
+    var sb = SN.newGame(31); sb.party8 = null; sb.day = 16; SN.dawn(sb); var b1 = SN.unit(sb, 'bb1');
+    ok(b1.on && !SN.canOrder(sb, b1) && b1.order.type === 'move', 'the plains tribes are the mode\'s AI\'s: no orders of the player\'s, and they march on the Snoot (' + b1.order.type + ')');
     // ---- whole battles, both hands, the party's part on the tables
     var heads = 0, grids = 0, maps = 0, fills = 0, bands = 0, ends = [], domOk = true, inv = [], dom0 = [], nightShared = 0;
     for (var seed = 1; seed <= 8; seed++) {

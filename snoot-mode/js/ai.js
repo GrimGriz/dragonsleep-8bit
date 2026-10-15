@@ -7,6 +7,9 @@
    - the Wall-Laugh (the face, "snoots last, or holds"): holds its seat till Day 19;
    - the Harbinger: holds in the hills till the hunt (Day 18, or GreyFang within two hexes -- RULED 10-14), then goes for GreyFang
      by the cheapest way, through whoever stands in it.
+   The plains tribes are the AI's too (RULED 10-15, his "Give the modes AI control over the barbarians"): berserkers who came for the
+   Snoot -- they charge any gnolls within two hexes, hunt the nearest still in the field, stomp toward the moot ground if none is
+   seen, and ride back to the Verge once the Snoot has gone home.
    A band hunting picks GreyFang if it can reach him in two days (the walking jackpot), else the nearest of ours it can face -- and
    it goes round the four where it can (the Snoot shies from a Lupine's guard; the lane §5.4). The Dominion watches: it walks the
    west road to the inn and holds there, and strikes only at what is small and next to it. SN.AI.ours is the bench's hand for our
@@ -31,16 +34,20 @@
       if (u.state === 'retreat' || (u.stand >= st.day)) { u.order = { type: 'hold' }; return; }
       if (u.side === 'gnoll') AI.gnoll(st, u);
       else if (u.side === 'dominion') AI.dominion(st, u);
-      else if (u.berserk) AI.berserk(st, u);
+      else if (u.berserk) AI.plains(st, u);
     });
   };
-  // the berserkers will not wait (p.20: they charge on sight and fight till all are dead): a gnoll band within two hexes, and they go for it,
-  // whatever was written -- the page shows it as their order, not the player's
-  AI.berserk = function (st, u) {
-    var g = st.units.filter(function (x) { return x.side === 'gnoll' && SN.alive(x) && x.state !== 'home' && SN.dist(x.at, u.at) <= 2; })
-      .sort(function (a, b) { return SN.dist(a.at, u.at) - SN.dist(b.at, u.at); })[0];
-    if (g) { go(st, u, g.at); u.berserkOrder = true; SN.say(st, u.name + ' have seen gnolls and will not be held back.', 'move', u.at); }
-    else u.berserkOrder = false;
+  // the plains tribes (RULED 10-15): berserkers will not wait (p.20: they charge on sight and fight till all are dead) -- a gnoll unit within two
+  // hexes and they go for it; else the nearest gnoll unit in the field (not the Harbinger: he walks through anyone without a hero); none seen, the
+  // stomp toward the moot ground; the Snoot gone home (the head taken) and no gnoll near, back to the Verge
+  AI.plains = function (st, u) {
+    var g = st.units.filter(function (x) { return x.side === 'gnoll' && SN.alive(x) && x.state !== 'home' && !x.harbinger; })
+      .sort(function (a, b) { return SN.dist(a.at, u.at) - SN.dist(b.at, u.at); });
+    u.berserkOrder = false;
+    if (g[0] && SN.dist(g[0].at, u.at) <= 2) { go(st, u, g[0].at); u.berserkOrder = true; SN.say(st, u.name + ' have seen gnolls and will not be held back.', 'move', u.at); return; }
+    if (st.head && !(g[0] && SN.dist(g[0].at, u.at) <= 4)) { if (!SN.same(u.at, u.home)) go(st, u, u.home); return; }
+    if (g[0]) { go(st, u, g[0].at); return; }
+    if (!SN.same(u.at, SN.MOOT)) go(st, u, SN.MOOT);
   };
   AI.gnoll = function (st, u) {
     u.order = { type: 'hold' };

@@ -92,7 +92,7 @@
     (u.heroes || []).forEach(function (h) { h.dead = false; });
     if (u.tribe === 'skull') u.home = [7, 1]; else if (u.tribe === 'gray' || u.harbinger) u.home = SN.MOOT.slice(); else if (u.tribe === 'wall') u.home = [0, 1];
     if (u.side === 'dominion') u.home = SN.WEST.slice();
-    if (u.side === 'ours') u.home = SN.PIT.slice();
+    if (u.side === 'ours') u.home = u.kind === 'the plains' ? u.at.slice() : SN.PIT.slice(); // (the plains tribes go back to the Verge)
     return u;
   };
   SN.say = function (st, text, kind, at) { st.log.push({ day: st.day, text: text, kind: kind || 'info', at: at || null }); };
@@ -140,7 +140,7 @@
     return SN.unitsAt(st, h).filter(function (x) { return x !== u && x.side === u.side; }).length < SN.STACK;
   };
   // an order for a unit of ours (the page writes these): { type: 'move', to: [c, r] } | { type: 'hold' } | { type: 'support' } (charge if charged)
-  SN.canOrder = function (st, u) { return SN.alive(u) && u.side === 'ours' && u.state === 'ok' && !u.out && !(u.stand >= st.day) && !u.berserkOrder; };
+  SN.canOrder = function (st, u) { return SN.alive(u) && u.side === 'ours' && u.state === 'ok' && !u.out && !(u.stand >= st.day) && !u.berserk; }; // (the plains tribes are the mode's AI's: RULED 10-15)
   SN.setOrder = function (st, u, o) {
     if (!SN.canOrder(st, u)) return false;
     if (o.type === 'move') { var p = SN.path(u.at, o.to); if (!p || !p.length) return false; u.order = { type: 'move', to: o.to.slice(), path: SN.reach(u, p), full: p }; }
@@ -565,13 +565,16 @@
     });
     if (st.party8.party.every(function (x) { return x.hp <= 0; })) st.party8.party.forEach(function (x) { x.hp = 1; x.ko = false; }); // (carried off and bound up: one HP each, the rest at the Pit)
   };
-  // the bench's hand (the probe; and the fallback when the grid will not come up): the party's part on the tables, the four as eight-figure super-heroes
+  // the bench's hand (the probe; and the fallback when the grid will not come up): the party's part on the tables, the four as eight-figure super-heroes --
+  // 32 Armored Foot at +2 against the units' own figures on the Combat Table (RULED 10-15, his "the bench should read a complete gnoll slaughter, as
+  // that's the result in the grid most times.. probably better to keep at 32 figures"): against a war-band it comes out a slaughter, as the grid does
   SN.standIn = function (st, req) {
     if (req.kind === 'greyfang') return { result: 'won', share: 1, stand: true };
     if (req.kind === 'harbinger') { var r = SN.dice(st, 2), s = r[0] + r[1]; SN.say(st, 'On the tables: the four against the Harbinger, ' + r.join('+') + '=' + s + ' against 8.', 'roll'); return { result: s > 8 ? 'won' : s === 8 ? 'escaped' : 'lost', share: s > 8 ? 1 : 0, stand: true }; }
-    var n = (req.enemies || []).length, dice = SN.dice(st, 32), k = dice.filter(function (x) { return x >= 5; }).length; // (four super-heroes, 32 Armored Foot against Heavy Foot: one die a man, 5-6, p.40)
-    SN.say(st, 'On the tables: the four (32 Armored Foot) roll 32 dice, kill on 5+: ' + k + ' kills of ' + n + '.', 'roll');
-    return { result: k * 2 >= n ? 'won' : 'escaped', share: Math.min(1, k / Math.max(1, n)), stand: true };
+    var foes = (req.foes || []).map(function (id) { return SN.unit(st, id); }).filter(function (u) { return u && SN.alive(u); }), figs = foes.reduce(function (s, u) { return s + (u.figs || 0); }, 0);
+    var dcls = foes.length ? foes[0].def : 'HF', row = SN.CT.AF[dcls], need = Math.max(2, row[2] - 2), n = Math.ceil(32 / row[1]) * row[0], dice = SN.dice(st, n), k = dice.filter(function (x) { return x >= need; }).length; // (32 Armored Foot, +2 a die for the super-heroes, p.30, p.40)
+    SN.say(st, 'On the tables: the four (32 Armored Foot, +2) roll ' + n + ' dice against ' + SN.CLASSNAME[dcls] + ', kill on ' + need + '+: ' + k + ' kills of ' + figs + ' figures.', 'roll');
+    return { result: k * 2 >= figs ? 'won' : 'escaped', share: Math.min(1, k / Math.max(1, figs)), stand: true };
   };
 
   // ---------------------------------------------------------------- the day ends: rally, rest, the cleric, the Pit, home, the end
