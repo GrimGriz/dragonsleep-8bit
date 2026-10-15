@@ -18,9 +18,11 @@
        second turn throws it at the nearest watcher (the stone giant's rock, 10-06); one no one has hit by the end of its second turn has a
        stone flung at it (its flinch);
      * once in the fight, at the end of its second turn, each is knocked flat: its prone frame, and getting up at its next turn;
+     * one with a laugh row (the gnolls'), at the end of its third turn, is told a joke: helpless with laughter a moment, its fit on its row;
      * at the start of a turn, one that has shown every row it has (or any, from round 8) goes down: its death row.
    The tally counts what the engine plays, not what is drawn: a row set on the unit (a run of sets between two steps of the fight is the last
-   one), a fall, a death, the Still from the start. The fight's last card reads it -- each row's count, and what played fewer than twice;
+   one), a fall, a death, the Still from the start, and the two rows js/ui.js draws off a condition with no row set -- a sheet's own get-up
+   as it stands from prone, its laugh while it laughs (10-15: the gnoll's, never counted before). The fight's last card reads it -- each row's count, and what played fewer than twice;
    B.showTally and B.showReport hold it. dev/bench16.py <creature> mode=show runs it headless: FAIL for a row under two. Recipe:
    deep16/blender-monsters.md, step 12. */
 'use strict';
@@ -62,7 +64,11 @@
       s.down = down;
       var pr = !!u.conds.prone && !down;
       if (pr && !s.prone && D.spr.proneFrame(u.sheet) >= 0) see(B, u, 'prone');
+      if (!pr && s.prone && !down && D.spr.anim(u.sheet, 'getup')) see(B, u, 'getup'); // (up again: js/ui.js plays its own get-up off the prone clock)
       s.prone = pr;
+      var lg = !down && !!u.conds.laughing && !!D.spr.anim(u.sheet, 'laugh'); // (js/ui.js plays its fit while it laughs, beat by beat: grimoire.js M.LAUGH)
+      if (lg && !s.laugh) see(B, u, 'laugh');
+      s.laugh = lg;
       var cl = !down && !!u.riding && u.perch === 'over' && !!D.spr.anim(u.sheet, 'clamp'); // (on a head: js/ui.js plays its Clamp row there, the darkmantle's -- 10-08)
       if (cl && !s.clamp) see(B, u, 'clamp');
       s.clamp = cl;
@@ -268,6 +274,14 @@
       u.conds.prone = true;
       B.card(['{c}THE SHOW{/}: the ' + u.name + ' is knocked flat, to see it lie there. It gets up on its turn.'], 240);
       yield 50;
+    }
+    // one with a laugh row it has not shown (the gnolls'), up again by its third turn: a joke, and a moment's fit -- the laugh the egg's Hideous
+    // Laughter brings (js/grimoire.js), without the spell; it ends here, before the turn does
+    if (D.spr.anim(u.sheet, 'laugh') && !seen.laugh && u.showTurns >= 3 && !u.conds.prone && u.hp > 0 && !u.dead) {
+      u.anim = 'idle'; u.conds.laughing = { by: u.id, joke: true };
+      B.card(['{c}THE SHOW{/}: a joke told to the ' + u.name + ', to see it laugh.'], 240);
+      yield 150;
+      delete u.conds.laughing;
     }
   };
   // no one drops below 1 HP till the director lets it
