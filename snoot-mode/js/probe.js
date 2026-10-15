@@ -165,6 +165,20 @@
       SN.surrender(sp, g); SN.surrender(sp, b);
       return g.figs === 0 && SN.alive(g) && g.state !== 'prisoner' && SN.greyfang(sp) === g && !SN.same(g.at, SN.PIT) && b.state === 'prisoner' && !SN.alive(b) && sp.stats.prisoners['ours:HF'] === 40; }),
       'p.30: a surrender takes the men, never the heroes -- GreyFang\'s forty are taken, GreyFang cuts free and falls back alone; a band with no hero is taken whole');
+    // ---- holding ground (his word 10-15: "are we giving a defense bonus for people in the pit or at the halfway inn or snoot grounds (gnolls)")
+    var wP = fday(66, function (s) { on(s, 'greyfang', SN.PIT); var b = on(s, 'sg1', [9, 7]); b.order = { type: 'move', to: SN.PIT.slice(), path: [SN.PIT.slice()] }; });
+    var wO = fday(66, function (s) { on(s, 'greyfang', [8, 5]); var b = on(s, 'sg1', [7, 5]); b.order = { type: 'move', to: [8, 5], path: [[8, 5]] }; });
+    // (the morale's rating straight off SN.morale: the Pit's forty and GreyFang often end a lone band in the first round, before any morale)
+    var morRate = function (walled) { var sm = SN.newGame(68); sm.party8 = null; SN.dawn(sm); var g = SN.unit(sm, 'greyfang'), b = SN.unit(sm, 'sg1'), bf = {}; b.at = SN.PIT.slice(); b.came = [9, 7];
+      bf.greyfang = SN.fightFigs(g); bf.sg1 = SN.fightFigs(b); sm.walls = walled ? SN.walls(sm, SN.PIT, [g], [b]) : null; sm.beats = []; SN.morale(sm, [g], [b], bf, SN.PIT);
+      return sm.beats.filter(function (x) { return x.t === 'mor'; })[0].parts.ours.rate; };
+    var wPa = atk1(wP, 'sg1'), wOa = atk1(wO, 'sg1'), rg = SN.rating(SN.make(FF('greyfang'), true)), mw = tk(function () { return morRate(true); }), mn = tk(function () { return morRate(false); });
+    ok(wPa && !wPa.imp && wPa.held && wOa && wOa.imp && !wOa.held && wP.beats.some(function (b) { return b.t === 'walls' && b.units.join() === 'greyfang'; }) && mw === rg + 1 && mn === rg,
+      'his word 10-15, holding ground: a band charging GreyFang\'s men in the Pit gets no charge die (p.17: only "across smooth, level terrain") and the Pit\'s men stand a step firmer (morale ' + mn + ' to ' + mw + ') -- the same charge on open ground has its die');
+    var wv = null; for (var q6 = 66; q6 < 140 && !wv; q6++) { var sv = fday(q6, function (s) { on(s, 'gk2', SN.MOOT); var c = on(s, 'bat2', [4, 5]); c.order = { type: 'move', to: SN.MOOT.slice(), path: [SN.MOOT.slice()] }; }); var vb = sv.beats.filter(function (b) { return b.t === 'atk' && b.u === 'bat2' && b.volley; })[0]; if (vb && vb.cover >= 2) wv = vb; }
+    var pv = tk(function () { var sx = SN.newGame(67); sx.party8 = null; SN.dawn(sx); var g = SN.unit(sx, 'gk2'), c = SN.unit(sx, 'patrol'); g.at = SN.MOOT.slice(); c.at = [4, 5]; return SN.preview(sx, c, SN.MOOT); });
+    ok(wv && wv.k === Math.floor(wv.cover / 2) && wv.held && pv && pv.lines.some(function (l) { return l.indexOf('They hold the moot ground') === 0; }),
+      'p.12: the Gray Keeping on the moot ground -- the crossbows\' volley at them halved behind their cover (' + (wv ? wv.cover + ' to ' + wv.k : 'no volley of two or more found') + '), and the march\'s pop-up says they hold it');
     // ---- whole battles, both hands, the party's part on the tables
     var heads = 0, grids = 0, maps = 0, fills = 0, bands = 0, ends = [], domOk = true, inv = [], dom0 = [], nightShared = 0;
     for (var seed = 1; seed <= 8; seed++) {

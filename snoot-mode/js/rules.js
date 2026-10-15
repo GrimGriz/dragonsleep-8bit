@@ -362,6 +362,20 @@
     if (G.figs <= 0 && !SN.heroesOf(G).length) G.state = 'gone';
   };
 
+  // holding ground (his word 10-15: "are we giving a defense bonus for people in the pit or at the halfway inn or snoot grounds (gnolls) - i think we
+  // should at least a little"): a unit that stood its ground -- it did not march in that day -- in Tarlyn's Pit or at the Halfway Inn, or a gnoll on
+  // the tribes' seats, against foes who came at it. CHAINMAIL has no mass-melee rule for a wall (its sieges are man to man, pp.22-24), so the seat's
+  // reading takes what the book gives: no charge die at them -- the impetus is only "across smooth, level terrain" (p.17; on the seats, hills, it
+  // never was); walls and stakes are soft cover, the volleys at them halved, "drop all fractions" (p.12); and they stand a step firmer, +1 on their
+  // morale rating (the book's own scale, p.15: heavy foot 5, elite heavy foot 6). The four's fights are the grid's, and the grid has its own ground
+  SN.holdsGround = function (u, h) { var t = SN.TERRAIN[SN.ter(h[0], h[1])] || {}; return !u.came && !u.party && (t.walls || (t.seat && u.side === 'gnoll')) ? t.name : ''; };
+  SN.walls = function (st, h, O, T) {
+    var ids = {}, n = 0;
+    [[O, T], [T, O]].forEach(function (p) { if (!p[1].some(function (x) { return !!x.came; })) return; p[0].forEach(function (u) { if (SN.holdsGround(u, h)) { ids[u.id] = true; n++; } }); });
+    return n ? { at: h.slice(), ids: ids } : null;
+  };
+  SN.holding = function (st, u, h) { return !!(st.walls && SN.same(st.walls.at, h) && st.walls.ids[u.id]); };
+
   // ---------------------------------------------------------------- a contested hex: the shock, the grid for the party, then the tables
   SN.fightHex = function* (st, h) {
     var here = function () { return SN.unitsAt(st, h); };
@@ -374,6 +388,12 @@
     SN.evasion(st, h, ours(), theirs());
     if (!ours().length || !theirs().length) return; // (it slipped away: no fight, and no one won one)
     here().forEach(function (u) { u.fought = true; });
+    st.walls = SN.walls(st, h, ours(), theirs());
+    if (st.walls) {
+      var hw = here().filter(function (u) { return st.walls.ids[u.id]; });
+      SN.beat(st, { t: 'walls', units: hw.map(function (u) { return u.id; }), names: hw.map(function (u) { return u.name; }), place: SN.TERRAIN[SN.ter(h[0], h[1])].name });
+      SN.say(st, hw.map(function (u) { return u.name; }).join(' and ') + ' hold ' + SN.TERRAIN[SN.ter(h[0], h[1])].name + ': no charge die against them, the volleys at them halved (cover, p.12), +1 on their morale.', 'info', h);
+    }
     // the shock: a super-hero's or a wraith's charge makes every enemy unit it reaches check as if over its line (p.30, p.34; p.18 for what failing is)
     (st.shock || []).filter(function (s) { return SN.same(s.at, h); }).forEach(function (s) {
       var by = SN.unit(st, s.by); if (!by || !SN.alive(by)) return;
@@ -547,7 +567,7 @@
     function attack(a, B, volley) {
       if (!volley && rearOf[a.id]) { B = B.filter(function (x) { return rearOf[a.id].indexOf(x.id) < 0; }); if (!B.length) SN.say(st, a.name + ' are taken from behind: they strike nothing back this round.', 'roll', h); }
       if (!B.length) return;
-      var tgt = biggest(B), dcls = tgt.fatigued ? SN.LOWER[tgt.def] : tgt.def, horse = { LH: 1, MH: 1, HH: 1 };
+      var tgt = biggest(B), dcls = tgt.fatigued ? SN.LOWER[tgt.def] : tgt.def, horse = { LH: 1, MH: 1, HH: 1 }, hd = SN.holding(st, tgt, h); // (hd: they hold their ground here)
       if (horse[dcls] && !tgt.charged) dcls = SN.LOWER[dcls]; // (standing horse defends a class down, p.17)
       var asp = volley ? 'front' : aspOf(a, tgt); // (from the flank or the rear: the next class up, Armored Foot and Heavy Horse +1 a die, p.16)
       var wf = volley ? 0 : SN.heroesOf(a).filter(SN.isWiz).length * 2, ter = SN.TERRAIN[SN.ter(h[0], h[1])]; // (a wizard fights as two Armored Foot, p.30: her own dice, below)
@@ -562,19 +582,20 @@
         var row = SN.CT[cls][dcls];
         // impetus, p.17: heavy and armored foot and all horse charging over open ground add a die -- not a square (it cannot charge), and not horse
         // against a square (p.10's square, the seat's reading of what it is for)
-        var imp = !volley && round === 1 && a.charged && cls0 !== 'LF' && !ter.hill && !ter.rough && a.form !== 'square' && !(horse[cls0] && tgt.form === 'square');
+        var imp = !volley && round === 1 && a.charged && cls0 !== 'LF' && !ter.hill && !ter.rough && a.form !== 'square' && !(horse[cls0] && tgt.form === 'square') && !hd;
         var n = Math.ceil(f / row[1]) * row[0] + (imp ? Math.ceil(f / row[1]) : 0), b = SN.bonus(a) + up, need = Math.max(2, row[2] - b), r = SN.dice(st, n), k = r.filter(function (x) { return x >= need; }).length;
+        var k0 = k; if (volley && hd) k = Math.floor(k / 2); // (behind their walls: soft cover halves it, "drop all fractions", p.12)
         if (tgt.harbinger && !SN.heroesOf(a).length && !tgt.figs) k = 0; // (a wraith alone: only magic and the fantastic harm him, p.34)
         if (volley && SN.heroesOf(tgt).some(SN.isWiz)) k = Math.min(k, tgt.figs); // (a wizard is impervious to normal missile fire, p.30: the volley kills her men, never her)
         var gname = a.groups ? g.name || SN.CLASSNAME[g.cls] : null;
-        SN.beat(st, { t: 'atk', u: a.id, tg: tgt.id, cls: cls, dcls: dcls, dice: r, need: need, k: k, volley: !!volley, imp: !!imp, round: round, f: f, row: row.slice(), bonus: b, asp: asp, up: up, cls0: cls0, noBack: asp === 'rear' && round === 1, grp: gname });
-        SN.say(st, a.name + (gname ? ' (' + gname + ')' : '') + (volley ? ' loose a volley' : imp ? ' charge' : '') + (asp === 'rear' ? ' from the rear' : asp === 'flank' ? ' on the flank' : '') + ' (' + f + ' ' + cls + (cls !== cls0 ? ' -- ' + cls0 + ' a class up' : '') + ' against ' + dcls + (imp ? ', +1 die a figure for the charge' : '') + ') roll ' + n + (n === 1 ? ' die' : ' dice') + ', kill on ' + need + '+' + (b ? ' (+' + b + ')' : '') + ': [' + r.join(' ') + '] -> ' + k + (k === 1 ? ' kill' : ' kills'), 'roll', h);
+        SN.beat(st, { t: 'atk', u: a.id, tg: tgt.id, cls: cls, dcls: dcls, dice: r, need: need, k: k, volley: !!volley, imp: !!imp, round: round, f: f, row: row.slice(), bonus: b, asp: asp, up: up, cls0: cls0, noBack: asp === 'rear' && round === 1, grp: gname, held: !!hd, cover: volley && hd ? k0 : null });
+        SN.say(st, a.name + (gname ? ' (' + gname + ')' : '') + (volley ? ' loose a volley' : imp ? ' charge' : '') + (asp === 'rear' ? ' from the rear' : asp === 'flank' ? ' on the flank' : '') + ' (' + f + ' ' + cls + (cls !== cls0 ? ' -- ' + cls0 + ' a class up' : '') + ' against ' + dcls + (imp ? ', +1 die a figure for the charge' : '') + ') roll ' + n + (n === 1 ? ' die' : ' dice') + ', kill on ' + need + '+' + (b ? ' (+' + b + ')' : '') + ': [' + r.join(' ') + '] -> ' + (volley && hd ? k0 + ', halved behind their cover: ' : '') + k + (k === 1 ? ' kill' : ' kills') + (!volley && hd && round === 1 && a.charged && cls0 !== 'LF' ? ' (no charge die: they hold their ground)' : ''), 'roll', h);
         if (k) hit(tgt, k);
       });
     }
     function wizDice(a, tgt, dcls, wf, ter, asp) {
       var up = asp && asp !== 'front' ? 1 : 0, need = Math.max(2, SN.CT.AF[dcls][2] - up);
-      var row = SN.CT.AF[dcls], imp = round === 1 && a.charged && !ter.hill && !ter.rough, n = Math.ceil(wf / row[1]) * row[0] + (imp ? Math.ceil(wf / row[1]) : 0), r = SN.dice(st, n), k = r.filter(function (x) { return x >= need; }).length;
+      var row = SN.CT.AF[dcls], imp = round === 1 && a.charged && !ter.hill && !ter.rough && !SN.holding(st, tgt, h), n = Math.ceil(wf / row[1]) * row[0] + (imp ? Math.ceil(wf / row[1]) : 0), r = SN.dice(st, n), k = r.filter(function (x) { return x >= need; }).length;
       var w = SN.heroesOf(a).filter(SN.isWiz)[0];
       SN.beat(st, { t: 'atk', u: a.id, tg: tgt.id, cls: 'AF', dcls: dcls, dice: r, need: need, k: k, volley: false, imp: !!imp, round: round, f: wf, row: row.slice(), bonus: up, wiz: true, who: w.name, asp: asp || 'front' });
       SN.say(st, w.name + ' fights as two Armored Foot (against ' + dcls + ') rolls ' + n + (n === 1 ? ' die' : ' dice') + ', kill on ' + row[2] + '+: [' + r.join(' ') + '] -> ' + k + (k === 1 ? ' kill' : ' kills'), 'roll', h);
@@ -629,7 +650,7 @@
   // post-melee morale (pp.15-16): fewer casualties scores the difference times a die, more survivors the difference, each side adds its
   // survivors times its rating; under twenty figures a side everything doubles; the lower total reacts by the gap
   SN.morale = function (st, o, t, before, h) {
-    function side(U) { var surv = 0, cas = 0, rate = 0, n = 0; U.forEach(function (u) { var f = SN.fightFigs(u), wf = SN.heroesOf(u).filter(SN.isWiz).length * 2; surv += f; cas += Math.max(0, before[u.id] - f); rate += SN.rating(u) * Math.max(1, f - wf) + SN.WIZARD.morale * wf; n += Math.max(1, f - wf) + wf; }); return { U: U, surv: surv, cas: cas, rate: n ? rate / n : 5, never: U.every(SN.nevers) }; } // (a wizard's figures at her own rating, p.33)
+    function side(U) { var surv = 0, cas = 0, rate = 0, n = 0; U.forEach(function (u) { var f = SN.fightFigs(u), wf = SN.heroesOf(u).filter(SN.isWiz).length * 2; surv += f; cas += Math.max(0, before[u.id] - f); rate += (SN.rating(u) + (SN.holding(st, u, h) ? 1 : 0)) * Math.max(1, f - wf) + SN.WIZARD.morale * wf; n += Math.max(1, f - wf) + wf; }); return { U: U, surv: surv, cas: cas, rate: n ? rate / n : 5, never: U.every(SN.nevers) }; } // (a wizard's figures at her own rating, p.33)
     var A = side(o), B = side(t), dA = SN.d6(st), dB = SN.d6(st);
     var sA = (A.cas < B.cas ? (B.cas - A.cas) * dA : 0) + (A.surv > B.surv ? A.surv - B.surv : 0) + A.surv * A.rate;
     var sB = (B.cas < A.cas ? (A.cas - B.cas) * dB : 0) + (B.surv > A.surv ? B.surv - A.surv : 0) + B.surv * B.rate;
@@ -842,9 +863,9 @@
     var cls0 = a.fatigued ? SN.LOWER[a.cls] : a.cls, cls = cls0, dcls = d.fatigued ? SN.LOWER[d.def] : d.def, ter = SN.TERRAIN[SN.ter(at[0], at[1])], horse = { LH: 1, MH: 1, HH: 1 }, up = 0;
     if (horse[dcls] && !charging.d) dcls = SN.LOWER[dcls];
     if (asp && asp !== 'front') { if (SN.HIGHER[cls]) cls = SN.HIGHER[cls]; else up = 1; }
-    var row = SN.CT[cls][dcls], f = SN.fightFigs(a), imp = charging.a && cls0 !== 'LF' && !ter.hill && !ter.rough && a.form !== 'square' && !(horse[cls0] && d.form === 'square');
+    var row = SN.CT[cls][dcls], f = SN.fightFigs(a), imp = charging.a && cls0 !== 'LF' && !ter.hill && !ter.rough && a.form !== 'square' && !(horse[cls0] && d.form === 'square') && !charging.held;
     var n = Math.ceil(f / row[1]) * row[0] + (imp ? Math.ceil(f / row[1]) : 0), need = Math.max(2, row[2] - SN.bonus(a) - up);
-    return { cls: cls, dcls: dcls, n: n, need: need, imp: imp, hill: !!ter.hill || !!ter.rough, kills: Math.round(n * Math.max(0, 7 - need) / 6 * 10) / 10, f: f };
+    return { cls: cls, dcls: dcls, n: n, need: need, imp: imp, held: !!charging.held, hill: !!ter.hill || !!ter.rough, kills: Math.round(n * Math.max(0, 7 - need) / 6 * 10) / 10, f: f };
   };
   SN.preview = function (st, u, to) {
     if (!u || !SN.on(to)) return null;
@@ -871,12 +892,13 @@
       var hi = day.indexOf(day.filter(function (x) { return SN.same(x, hit.at); })[0]), prev = hi > 0 ? day[hi - 1] : u.at, side = SN.dirTo(hit.at, prev);
       var asp = SN.aspect(st, { came: prev }, tg, hit.at), FN = { line: 'line', column: 'column', square: 'square' };
       out.lines.push('They stand in ' + FN[tg.form] + ', facing ' + SN.DIRS[tg.face || 0] + '; you come in from the ' + (side >= 0 ? SN.DIRS[side] : 'side') + ': ' + (asp === 'rear' ? 'their REAR -- you fight a class up, and they strike nothing back in the first round (p.16).' : asp === 'flank' ? 'their FLANK -- you fight a class up (p.16).' : 'their front.'));
-      var me = SN.odds(st, u, tg, hit.at, { a: true, d: false }, asp);
-      out.lines.push('You: ' + me.f + ' ' + me.cls + ' against their ' + me.dcls + ' -- ' + me.n + ' dice, kill on ' + me.need + '+, about ' + me.kills + ' kills a round' + (me.imp ? ' (with your charge die)' : me.hill ? ' (no charge die up here)' : tg.form === 'square' ? ' (no charge die against a square)' : '') + '.');
+      var tgHolds = SN.holdsGround(tg, hit.at), me = SN.odds(st, u, tg, hit.at, { a: true, d: false, held: !!tgHolds }, asp);
+      if (tgHolds) out.lines.push('They hold ' + tgHolds + ': no charge die at them, your volleys halved (cover, CHAINMAIL p.12), and +1 on their morale.');
+      out.lines.push('You: ' + me.f + ' ' + me.cls + ' against their ' + me.dcls + ' -- ' + me.n + ' dice, kill on ' + me.need + '+, about ' + me.kills + ' kills a round' + (me.imp ? ' (with your charge die)' : me.held ? ' (no charge die: they hold their ground)' : me.hill ? ' (no charge die up here)' : tg.form === 'square' ? ' (no charge die against a square)' : '') + '.');
       if (u.reformed) out.warn.push('You change formation today: caught in a fight, you count as flanked (p.10).');
       var back = 0, bn = 0; foes2.forEach(function (x) { var o = SN.odds(st, x, u, hit.at, { a: false, d: true }); back += o.kills; bn += o.n; });
       out.lines.push('Them: ' + bn + ' dice back -- about ' + Math.round(back * 10) / 10 + ' kills a round. You have ' + SN.fightFigs(u) + ' to lose.');
-      var rt = foes2.reduce(function (s, x) { return s + SN.rating(x); }, 0) / foes2.length;
+      var rt = foes2.reduce(function (s, x) { return s + SN.rating(x) + (SN.holdsGround(x, hit.at) ? 1 : 0); }, 0) / foes2.length;
       out.lines.push('Morale: yours ' + SN.rating(u) + (SN.nevers(u) ? ' (never checks)' : '') + ', theirs ' + Math.round(rt * 10) / 10 + (foes2.every(SN.nevers) ? ' (they never check)' : '') + '.');
     }
     if (SN.heroesOf(u).some(function (hh) { return hh.type === 'superhero'; }) || u.party) {

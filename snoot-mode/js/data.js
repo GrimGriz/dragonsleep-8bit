@@ -12,6 +12,7 @@
   // . plain   h hills (cost 2; a charge cannot be made up one: CHAINMAIL p.9)   v the Verge, the plains' edge (grass)
   // w Halfway Lake (no one walks on it)   g Web Gulch (rough: cost 2)   P Tarlyn's Pit   i the Halfway Inn
   // m the moot ground (the Gray Keeping's seat)   s the Skull-Gate's seat   l the Wall-Laugh's seat
+  // (walls: the Pit's and the inn's -- a unit that stood its ground behind them holds it, js/rules.js SN.holdsGround; the gnolls hold their seats)
   var ROWS = [
     '...............',
     'lhhhhhhsg......',
@@ -28,7 +29,7 @@
   SN.TERRAIN = {
     '.': { name: 'open ground', cost: 1 }, h: { name: 'the hills', cost: 2, hill: true }, v: { name: 'the Verge', cost: 1 },
     w: { name: 'Halfway Lake', cost: 99, water: true }, g: { name: 'Web Gulch', cost: 2, rough: true },
-    P: { name: "Tarlyn's Pit", cost: 1, town: true }, i: { name: 'the Halfway Inn', cost: 1 },
+    P: { name: "Tarlyn's Pit", cost: 1, town: true, walls: true }, i: { name: 'the Halfway Inn', cost: 1, walls: true },
     m: { name: 'the moot ground', cost: 2, hill: true, seat: 'gray' }, s: { name: "the Skull-Gate's seat", cost: 2, hill: true, seat: 'skull' },
     l: { name: "the Wall-Laugh's seat", cost: 2, hill: true, seat: 'wall' }
   };
