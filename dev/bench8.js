@@ -1981,6 +1981,31 @@
         check('THE STAIR WITH THE KEEPER AWAKE: the stair -- ' + (has(stSaid, 'w.stairAwake') ? 'stirring' : has(stSaid, 'w.stairSee') ? 'CALM' : '?') + ', WADE IN -- ' + (has(stSaid, 'w.wadeAwake') ? 'it waits' : 'as if asleep') + '; the mark -- ' + (mkAsked.length ? 'ASKS ' + mkAsked.join(' ') : 'no ask') + ', ' + (has(mkSaid, 'w.markAwake') ? 'unsettled' : 'its look ' + (mkSaid[0] || '').slice(0, 40)),
           has(stSaid, 'w.stairAwake') && has(stSaid, 'w.wadeAwake') && !mkAsked.length && has(mkSaid, 'w.markAwake') && !has(mkSaid, 'w.markWake'));
       } finally { DS.say = say0; DS.ask = ask0; DS.EV.fight = fight0; }
+    } else if (test === 'snootcall1015') {
+      // THE SNOOT from the road (10-15, Griz: "For now, just auto-pin it as a mission in the journal that pops after the edifice fight"; on the seat's lean, "yeah ... this
+      // should be live and testing"): ?at=snootcall pins THE SNOOT, its step the runner in the Halfway Inn's yard, with an arrow from Fountain Street; the runner stands there
+      // once the Skylights are won; NOT YET leaves the runner, TO THE SNOOT asks the save (the page's going to snoot-mode/ is not driven: it would leave this page); and the
+      // Skylights' end pins it (js/deep.js S.skylights, the grid's fight stubbed won)
+      var sayS = DS.say, askS = DS.ask, fightS = DS.EV.fight, saidS = [], askedS = [];
+      try {
+        T.newGame('barley'); DS.paused = true; DS.situation(DS.G, DS.SITUATIONS.snootcall); var gS = DS.G, qS = DS.pinnedQuest(), sS = qS && DS.questStep(qS);
+        DS.field.load('solskaft_deep', 36, 11, 'left'); gS.x = 36; gS.y = 11; DS.field.pinKey = null; var pS = DS.field.pinPoint();
+        check('?at=snootcall: pinned ' + (qS ? qS.id : 'nothing') + ', its step ' + (sS ? sS.map + ':' + sS.npc : '-') + ', the arrow from Fountain Street ' + (pS ? (pS.npc ? 'npc ' : '') + pS.x + ',' + pS.y + ' via ' + (DS.field.pinChain || []).join(' > ') : 'none'),
+          !!qS && qS.id === 'thesnoot' && !!sS && sS.map === 'halfway' && sS.npc === 'pitRunner' && !!pS);
+        var runS = (DS.DATA.maps.halfway.npcs || []).filter(function (n) { return n.id === 'pitRunner'; })[0];
+        check('the runner from the Pit in the inn\'s yard once the Skylights are won: ' + (runS ? runS.x + ',' + runS.y + ' (' + runS.cond + ': ' + DS.cond(runS.cond) + ')' : 'none'), !!runS && DS.cond(runS.cond));
+        DS.say = function (t) { saidS.push([].concat(t).join(' ')); return { say: 1 }; }; DS.ask = function (t, ch) { askedS.push(ch.join('/')); return { ask: ch }; };
+        var driveS = function (gen, pick, stop) { var s0, v; for (var k = 0; k < 80; k++) { s0 = gen.next(v); v = undefined; if (s0.done) return 'done'; if (s0.value && s0.value.ask) { if (stop && stop(s0.value.ask)) return 'stopped'; v = pick(s0.value.ask); } } return 'ran on'; };
+        var hasS = function (key) { var tx = [].concat(DS.L(key)).join(' '); return saidS.some(function (x) { return x.indexOf(String(tx).slice(0, 30)) >= 0; }); };
+        var r1 = driveS(DS.SCRIPTS.snootCall({ id: 'pitRunner' }, DS.DATA.npcs.pitRunner), function (ch) { return ch.indexOf('NOT YET'); });
+        check('the runner, NOT YET: ' + r1 + ', asked ' + askedS.join(' | ') + ', the runner waits ' + hasS('inn.snootNotYet'), r1 === 'done' && askedS[0] === 'TO THE SNOOT/NOT YET' && hasS('inn.snootNotYet'));
+        askedS = []; var r2 = driveS(DS.SCRIPTS.snootCall({ id: 'pitRunner' }, DS.DATA.npcs.pitRunner), function (ch) { return ch.indexOf('TO THE SNOOT'); }, function (ch) { return ch[0] === 'SAVE'; });
+        check('the runner, TO THE SNOOT: the save asked before the page goes (' + askedS.join(' | ') + ')', r2 === 'stopped' && askedS.join(' | ') === 'TO THE SNOOT/NOT YET | SAVE/NO');
+        delete gS.flags.skylightsWon; delete gS.flags.pin; saidS = []; DS.EV.fight = function* () { return 'win'; };
+        var r3 = driveS(DS.SCRIPTS.skylights(), function () { return 0; });
+        check('the Skylights won (the fight stubbed): ' + r3 + ', pinned ' + gS.flags.pin + ', the line said ' + hasS('deep.snootCall'), r3 === 'done' && !!gS.flags.skylightsWon && gS.flags.pin === 'thesnoot' && hasS('deep.snootCall'));
+      } catch (eS) { check('threw: ' + String(eS && eS.stack || eS).slice(0, 400), false); }
+      DS.say = sayS; DS.ask = askS; DS.EV.fight = fightS;
     } else if (test === 'scourge1014') {
       // Searing Scourge in the 8-bit (ours; 10-14, Griz: "do 1 and 2" -- the grid's eight squares, here the foe in front and up to two beside it, no picker): the sheet
       // copied into Aurdin's book, the three it takes of four, one roll for all; Deathhand's two dice, d6 each from the 3rd; the twirl's frames set

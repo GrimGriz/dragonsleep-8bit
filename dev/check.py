@@ -46,6 +46,7 @@ ALL_SCRIPTS = [['dev/bench8.py', 'lymen'], ['dev/bench8.py', 'ingrith'], ['dev/b
                ['dev/bench8.py', 'levelpick1014'], # (the level-up pick, 10-14: the asks the level-up leaves, the page over the field, the pool, a swap that a load keeps, the archetype and Expertise on it)
                ['dev/bench8.py', 'scourge1014'], # (Searing Scourge in the 8-bit, 10-14: the sheets copied, the three it takes, Deathhand's two dice by slot)
                ['dev/bench8.py', 'fixes1014'], # (the bug-fix seat's 8-bit checks, 10-14: the halls hand off to the Keeper's Water while Halldor mends; the arrow's way walked, Skarn's gate shut or open; the arrow down the spine)
+               ['dev/bench8.py', 'snootcall1015'], # (THE SNOOT from the road, 10-15: pinned after the Skylights, the arrow to the runner in the Halfway Inn's yard, NOT YET and TO THE SNOOT's save)
                ['dev/bench8.py', 'roam8'], # (the Wet on the grid, the 8-bit's half, 10-14: the roam on unless drained, set down in warrens_d the frame opens, what comes back by 'd16:roam' applied and the 8-bit's own warp taken)
                ['dev/bench8.py', 'payout1014'], # (a won fight's payout lifted into js/rules.js, 10-14, the party-token map lane: the same XP, coin, drops, parts, tally and lines -- one copy the grid's roam pays by too)
                ['dev/bench8.py', 'fixes1013'], # (the bug-fix seat's 8-bit checks, 10-13: a paladin's level-up names what opens; the Elixir of Health in the field; walking into a person talks)
