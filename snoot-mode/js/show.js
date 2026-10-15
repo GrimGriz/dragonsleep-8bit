@@ -45,7 +45,17 @@
   SH.build = function (st, from, to, at) {
     var B = st.beats || [], start = from;
     if (B[from] && B[from].t !== 'fight' && B[from].t !== 'head') { for (var i = from - 1; i >= 0; i--) { if (B[i].t === 'fight' && (!at || SN.same(B[i].at, at))) { start = i; break; } if (B[i].day !== st.day) break; } }
-    var segs = [], t = 0, round = 0, skipTo = 0, wit = [];
+    var segs = [], t = 0, round = 0, skipTo = 0, wit = [], F0 = B[start], oursIds = {};
+    if (F0 && F0.ours) F0.ours.forEach(function (u) { oursIds[u.id] = 1; });
+    // a round's casualties one side at a time, the side that lost the more first (his ask 10-15: "remove the casualties one side at a time? With a
+    // clear victor, the losing units first"); each unit's falling back goes with its side
+    var halves = function (list) {
+      if (FAM[list[0].t] !== 'toll') return null;
+      var parts = { ours: [], theirs: [] }, loss = { ours: 0, theirs: 0 };
+      list.forEach(function (x) { var s = oursIds[x.u] ? 'ours' : 'theirs'; parts[s].push(x); loss[s] += x.t === 'cas' ? x.n : x.t === 'herofall' ? 4 : x.t === 'gone' || x.t === 'surrender' ? 1 : 0; });
+      if (!parts.ours.length || !parts.theirs.length) return null;
+      return loss.ours > loss.theirs ? [parts.ours, parts.theirs] : [parts.theirs, parts.ours];
+    };
     for (var j = start; j < to; j++) {
       var b = B[j]; if (!b) continue;
       // the witness plays on the map after the camera is back out, the givers' figures running from their hexes (his ask 10-15: "can the witness
@@ -59,7 +69,9 @@
       if (b.t === 'round' && b.n === 1) d = 0;
       if (b.t === 'surp' && !b.side) d = 0.45; // (no one caught unready: the two dice, briefly)
       if (b.t === 'head' && b.around) d = 1.8; // (the grid has shown it: a banner only)
-      segs.push({ b: b, list: list, t0: t, d: d }); t += d;
+      var hv = halves(list);
+      if (hv) hv.forEach(function (hl) { segs.push({ b: hl[0], list: hl, t0: t, d: d * 0.75 }); t += d * 0.75; });
+      else { segs.push({ b: b, list: list, t0: t, d: d }); t += d; }
       if (j >= from - 1 && start < from && !skipTo && j < from) skipTo = t;
     }
     return { segs: segs, total: t, startT: start < from ? skipTo : 0, first: B[start], wit: wit };

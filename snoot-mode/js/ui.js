@@ -313,6 +313,12 @@
       var avg = fights.length ? sumT / fights.length : 0;
       if (/[?&]dump\b/.test(location.search)) fights.forEach(function (i, n) { var to = n + 1 < fights.length ? fights[n + 1] : B.length, sh = SN.Show.build(st, i, to, B[i].at); out.push('SHOW ' + Math.round(sh.total * 10) / 10 + ': ' + sh.segs.map(function (s) { return s.b.t + (s.list.length > 1 ? 'x' + s.list.length : '') + ':' + Math.round(s.d * 10) / 10; }).join(' ')); });
       ok(fights.length > 3 && !badShow.length, 'the show builds and draws every fight of the battle (' + fights.length + ')' + (badShow.length ? ': ' + badShow.slice(0, 3).join('; ') : ''));
+      // a round's casualties one side at a time, the side that lost the more first (his ask 10-15)
+      var TOLL = { cas: 1, gone: 1, herofall: 1, surrender: 1 }, pairs = 0, badPair = 0;
+      fights.forEach(function (i, n) { var to = n + 1 < fights.length ? fights[n + 1] : B.length, sh = SN.Show.build(st, i, to, B[i].at), ou = {}; ((sh.first || {}).ours || []).forEach(function (u) { ou[u.id] = 1; });
+        var lossOf = function (sg) { return sg.list.reduce(function (s, x) { return s + (x.t === 'cas' ? x.n : x.t === 'herofall' ? 4 : x.t === 'gone' || x.t === 'surrender' ? 1 : 0); }, 0); }, sideOf = function (sg) { return ou[sg.list[0].u] ? 'o' : 't'; };
+        for (var k2 = 0; k2 + 1 < sh.segs.length; k2++) { var a1 = sh.segs[k2], a2 = sh.segs[k2 + 1]; if (TOLL[a1.b.t] && TOLL[a2.b.t] && sideOf(a1) !== sideOf(a2)) { pairs++; if (lossOf(a1) < lossOf(a2)) badPair++; } } });
+      ok(pairs > 0 && !badPair, 'the zoom takes a round\'s casualties off one side at a time, the side that lost the more first (' + pairs + ' rounds split' + (badPair ? ', ' + badPair + ' out of order' : '') + ')');
       ok(kinds.atk && kinds.mor && kinds.cas, 'the show has the dice, the casualties and the morale in it (' + Object.keys(kinds).sort().join(' ') + ')');
       ok(long <= fights.length / 4 && avg <= 6.5, 'the shows run about five seconds a fight (average ' + Math.round(avg * 10) / 10 + ' s; ' + long + ' of ' + fights.length + ' over ten)');
       // the isometric map and the fight's zoom (his word 10-15: "isometric hex the main map and zoom in to animate the combat")
