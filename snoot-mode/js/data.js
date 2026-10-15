@@ -102,6 +102,9 @@
   // A unit may be MIXED (RULED 10-15, "2 try that too"): groups by type, each its own row on the Combat Table, morale "separating them by type" (p.15).
   // comp: what a gnoll unit's men are, for the grid (one man a figure: the band on the grid is the band)
   var BAND = { gloryseeker: 3, gnoll: 9, hyena: 6 };
+  // the Gray Keeping's (10-15, his "a 3rd tribe color for the gray keeping", his pick "D - the darker cloth and grayer fur"): the same men in the
+  // seat-tribe's gray (deep16/data/foes.js gnollgray, gloryseekergray; the sheet graykeeping_p2)
+  var GRAYBAND = { gloryseekergray: 3, gnollgray: 9, hyena: 6 };
   SN.FORCES = [
     // ours
     { id: 'party', side: 'ours', name: 'The Party', kind: 'the four', party: true, cls: 'AF', def: 'AF', figs: 0, at: [9, 8], move: 3,
@@ -131,10 +134,10 @@
     { id: 'sg2', side: 'gnoll', tribe: 'skull', name: 'a Skull-Gate band', kind: 'the Skull-Gate', cls: 'AF', def: 'HF', figs: 18, comp: BAND, at: [7, 4], morale: 7, sheets: ['gnoll_p2', 'hyena_p2', 'gloryseeker_p2'] },
     { id: 'sg3', side: 'gnoll', tribe: 'skull', name: 'the glory-seekers on the road', kind: 'the Skull-Gate', cls: 'AF', def: 'HF', figs: 9, comp: { gloryseeker: 6, hyena: 3 }, at: [8, 6], morale: 7, sheets: ['gloryseeker_p2', 'gnoll_p2', 'hyena_p2'] },
     { id: 'sg4', side: 'gnoll', tribe: 'skull', name: 'a Skull-Gate band', kind: 'the Skull-Gate', cls: 'AF', def: 'HF', figs: 18, comp: BAND, at: [5, 2], morale: 7, sheets: ['gnoll_p2', 'hyena_p2', 'gloryseeker_p2'] },
-    { id: 'gkw', side: 'gnoll', tribe: 'gray', watch: true, name: 'the death-watch', kind: 'the Gray Keeping', cls: 'AF', def: 'HF', figs: 12, comp: { gnoll: 12 }, at: [3, 5], morale: 7, cleric: true, sheets: ['gnoll_p2', 'gloryseeker_p2'],
-      note: 'The seat-tribe\'s women -- "larger and fiercer", the greyest, the matriarch-clerics whose rule is shadowy -- keep the unclaimed Mane: they stand the death-watch on the moot ground and never leave it. Their own look is asked of the art desk (deep16-art-wanted.md §13).' },
-    { id: 'gk1', side: 'gnoll', tribe: 'gray', youngblood: true, name: "the Gray Keeping's young blood", kind: 'the Gray Keeping', cls: 'AF', def: 'HF', figs: 18, comp: BAND, at: [4, 6], morale: 7, sheets: ['gnoll_p2', 'hyena_p2', 'gloryseeker_p2'] },
-    { id: 'gk2', side: 'gnoll', tribe: 'gray', name: 'a Gray Keeping band', kind: 'the Gray Keeping', cls: 'AF', def: 'HF', figs: 18, comp: BAND, at: [2, 4], morale: 7, sheets: ['gnoll_p2', 'hyena_p2', 'gloryseeker_p2'] },
+    { id: 'gkw', side: 'gnoll', tribe: 'gray', watch: true, name: 'the death-watch', kind: 'the Gray Keeping', cls: 'AF', def: 'HF', figs: 12, comp: { gnollgray: 12 }, at: [3, 5], morale: 7, cleric: true, sheets: ['graykeeping_p2'],
+      note: 'The seat-tribe\'s women -- "larger and fiercer", the greyest, the matriarch-clerics whose rule is shadowy -- keep the unclaimed Mane: they stand the death-watch on the moot ground and never leave it. Their own look is asked of the art desk (deep16-art-wanted.md §13); till it comes, the seat-tribe\'s gray.' },
+    { id: 'gk1', side: 'gnoll', tribe: 'gray', youngblood: true, name: "the Gray Keeping's young blood", kind: 'the Gray Keeping', cls: 'AF', def: 'HF', figs: 18, comp: GRAYBAND, at: [4, 6], morale: 7, sheets: ['graykeeping_p2', 'hyena_p2'] },
+    { id: 'gk2', side: 'gnoll', tribe: 'gray', name: 'a Gray Keeping band', kind: 'the Gray Keeping', cls: 'AF', def: 'HF', figs: 18, comp: GRAYBAND, at: [2, 4], morale: 7, sheets: ['graykeeping_p2', 'hyena_p2'] },
     { id: 'wl1', side: 'gnoll', tribe: 'wall', name: 'the Wall-Laugh', kind: 'the Wall-Laugh', cls: 'AF', def: 'HF', figs: 18, comp: { gnoll: 12, hyena: 6 }, at: [0, 1], morale: 7, sheets: ['gnoll_p2', 'hyena_p2'] },
     { id: 'wl2', side: 'gnoll', tribe: 'wall', name: 'the Wall-Laugh\'s young blood', kind: 'the Wall-Laugh', cls: 'AF', def: 'HF', figs: 12, comp: { gnoll: 8, hyena: 4 }, at: [1, 2], morale: 7, sheets: ['gnoll_p2', 'hyena_p2'] },
     { id: 'harb', side: 'gnoll', tribe: 'harbinger', harbinger: true, name: "the Harbinger's pack", kind: 'the Harbinger', cls: 'LH', def: 'LH', figs: 6, comp: { hyena: 6 }, at: [6, 6], move: 3, morale: 6,

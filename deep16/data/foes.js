@@ -901,3 +901,13 @@
 // block, his sheet (tools/stonegiantm-blend.py; the spiked club in both hands). data/fights.js giant picks one of the two kinds; the Pocket DM draws either.
 window.D16.FOES.stonegiantm = Object.assign({}, window.D16.FOES.stonegiant, { sheet: 'stonegiantm_p1',
   src: window.D16.FOES.stonegiant.src + '; the male look (stonegiantm_p1, 10-04): the same block' });
+
+// the Gray Keeping's gnolls (10-15, Griz: "we need a 3rd tribe color for the gray keeping i think"; his pick, "D - the darker cloth and grayer fur.
+// Wire the Gray Keeping in it."): the same SRD blocks on the seat-tribe's sheet (graykeeping_p2, tools/gnoll-sheet.py gray_cloth: dark gray cloth, grayer fur).
+// The Snoot mode's Gray Keeping units send them to the grid (snoot-mode/js/data.js GRAYBAND). `seatAs`: a fight's spots for the blue one seat them
+// (js/battle.js roster); the kind names start as theirs do, so whatever knows a gnoll by its kind knows these (grimoire.js M.gnoll). Off the DM's
+// shelves, one of each there (js/pocketdm.js PD.OUT).
+window.D16.FOES.gnollgray = Object.assign({}, window.D16.FOES.gnoll, { sheet: 'graykeeping_p2', seatAs: 'gnoll',
+  src: window.D16.FOES.gnoll.src + '; the look of the Gray Keeping (graykeeping_p2, 10-15): the same block' });
+window.D16.FOES.gloryseekergray = Object.assign({}, window.D16.FOES.gloryseeker, { sheet: 'graykeeping_p2', seatAs: 'gloryseeker',
+  src: window.D16.FOES.gloryseeker.src + '; the young blood of the Gray Keeping (graykeeping_p2, 10-15: at the size of a gnoll, one gray sheet for both): the same block' });

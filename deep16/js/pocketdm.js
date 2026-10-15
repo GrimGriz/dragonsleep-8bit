@@ -81,7 +81,7 @@
     { id: 'etc', name: 'ABERRATIONS, OOZES, ETC.', short: 'ABERRATIONS, OOZES, ETC.', types: null, icon: 'eye', sub: 'aberrations, oozes, elementals, the undead, the rest' }
   ];
   var TYPED = ['beast', 'monstrosity', 'humanoid', 'giant'];
-  PD.OUT = ['keeperold', 'stonegiantm']; // (the ladder's old Keeper; the stone giant's second look, the same block -- one of each on the shelf)
+  PD.OUT = ['keeperold', 'stonegiantm', 'gnollgray', 'gloryseekergray']; // (the ladder's old Keeper; the stone giant's second look and the Gray Keeping's gnolls, the same blocks -- one of each on the shelf)
   PD.shelf = function (shop, sort) {
     var out = Object.keys(D.FOES).filter(function (k) {
       var f = D.FOES[k]; if (!f || /^fam_/.test(k) || f.object || PD.OUT.indexOf(k) >= 0) return false; // (CR 0 on the shelves since his 10-09, at 10 sp: a hyena in a unit)

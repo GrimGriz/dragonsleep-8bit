@@ -223,13 +223,14 @@
     list.forEach(function (id8, n) {
       var kind = D.kind8(id8);
       if (!D.FOES[kind]) { console.warn('DEEP16: no foe for the 8-bit game\'s ' + id8); return; }
-      for (var j = 0; j < spots.length; j++) if (used.indexOf(j) < 0 && spots[j].kind === kind) { used.push(j); out.push(Object.assign({}, spots[j], { i8: n })); mark(spots[j].at[0], spots[j].at[1], D.FOES[kind].size || 1); return; }
+      var seat = D.FOES[kind].seatAs || kind; // (a look of another kind takes that kind's spots: the Gray Keeping's gnolls, data/foes.js gnollgray -- 10-15)
+      for (var j = 0; j < spots.length; j++) if (used.indexOf(j) < 0 && spots[j].kind === seat) { used.push(j); out.push(Object.assign({}, spots[j], { i8: n, kind: kind })); mark(spots[j].at[0], spots[j].at[1], D.FOES[kind].size || 1); return; }
       extra.push({ kind: kind, i8: n });
     });
     var nth = {};
     extra.forEach(function (e) {
       // (beside each spot of its kind in turn: five phase spiders out of three walls, not two out of one)
-      var d = D.FOES[e.kind], s = d.size || 1, likes = spots.filter(function (p) { return p.kind === e.kind; });
+      var d = D.FOES[e.kind], s = d.size || 1, likes = spots.filter(function (p) { return p.kind === (d.seatAs || e.kind); });
       var like = likes.length ? likes[(nth[e.kind] = (nth[e.kind] || 0) + 1) % likes.length] : null;
       var at = (like || spots[0] || { at: [Math.floor(m.w / 2), 2] }).at, best = null, bd = Infinity;
       for (var y = 0; y < m.h; y++) for (var x = 0; x < m.w; x++) {
