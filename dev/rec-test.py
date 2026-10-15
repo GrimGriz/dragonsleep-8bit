@@ -2,7 +2,7 @@
 record's steps and transcript are printed.   python dev/rec-test.py [level]"""
 import os, re, subprocess, sys, tempfile, json, html as H
 HERE = os.path.dirname(os.path.abspath(__file__)); ROOT = os.path.dirname(HERE)
-EDGE = r'C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe'
+sys.path.insert(0, HERE); import bench16; EDGE = bench16.browser() # (the benches' browser rule, 10-15: Chromium before Edge)
 lvl = sys.argv[1] if len(sys.argv) > 1 else '3'
 html = open(os.path.join(ROOT, 'deep16', 'index.html'), encoding='utf-8').read()
 tags = []

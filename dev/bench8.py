@@ -9,7 +9,8 @@ import json, os, re, subprocess, sys, tempfile, urllib.parse
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
-EDGE = os.environ.get('DEEP16_BROWSER') or r'C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe' # (the same two knobs as bench16.py: DEEP16_BROWSER another headless Chromium, DEEP16_BROWSER_ARGS its extra flags -- unset, the desktop is as it was)
+sys.path.insert(0, HERE); import bench16 as _b16 # (one browser rule for both benches: bench16.browser())
+EDGE = _b16.browser() # (DEEP16_BROWSER, else Playwright's Chromium, else Edge -- 10-15; DEEP16_BROWSER_ARGS its extra flags)
 EXTRA = os.environ.get('DEEP16_BROWSER_ARGS', '').split()
 
 

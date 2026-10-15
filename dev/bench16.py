@@ -11,7 +11,21 @@ import json, os, re, subprocess, sys, tempfile, urllib.parse
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
-EDGE = os.environ.get('DEEP16_BROWSER') or r'C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe' # (DEEP16_BROWSER: another headless Chromium, the cloud seat's; DEEP16_BROWSER_ARGS: its extra flags, e.g. --no-sandbox as root -- unset, the desktop is as it was)
+def browser():
+    """the headless browser every bench, probe and shot launches: DEEP16_BROWSER if set (another headless Chromium, the cloud seat's;
+    DEEP16_BROWSER_ARGS its extra flags, e.g. --no-sandbox as root), else Playwright's Chromium when installed, else the desktop's Edge.
+    Chromium first since 10-15 (Griz: "if you guise have to use microsoft browsers, that playwright thing sounds the way to go"): headless
+    Edge signs each fresh --user-data-dir profile in to the PC's Microsoft account, and a gate's dozens of profiles (several seats gating at
+    once) got the sign-in refused -- "This application made too many requests", 0x80860010. Chromium has no Microsoft sign-in.
+    (python -m pip install --user playwright; python -m playwright install chromium-headless-shell)"""
+    if os.environ.get('DEEP16_BROWSER'): return os.environ['DEEP16_BROWSER']
+    import glob
+    # (Playwright's headless shell: its full chrome.exe would not start on his PC -- Windows' side-by-side loader refused its version
+    # assembly, 14001 -- and the shell is the build made for this; python -m playwright install chromium-headless-shell)
+    pw = glob.glob(os.path.join(os.environ.get('LOCALAPPDATA', ''), 'ms-playwright', 'chromium_headless_shell-*', 'chrome-headless-shell-win*', 'chrome-headless-shell.exe'))
+    if pw: return max(pw, key=lambda p: int(re.search(r'chromium_headless_shell-(\d+)', p).group(1)))
+    return r'C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe'
+EDGE = browser() # (the name kept: every probe reads bench16.EDGE)
 EXTRA = os.environ.get('DEEP16_BROWSER_ARGS', '').split()
 CLASSES = ['barbarian', 'bard', 'cleric', 'druid', 'fighter', 'monk', 'paladin', 'ranger', 'rogue', 'sorcerer', 'warlock', 'wizard']
 
