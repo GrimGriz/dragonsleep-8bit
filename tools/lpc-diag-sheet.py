@@ -79,7 +79,7 @@ FIGS = {
                          rows=[('hurt', (180, 280, 2172, 516), (516, 556), NUM(6))]),
             # (flip: drawn with the front's left hand, so from behind its mace is on screen-left where LPC's N rows carry it on
             # screen-right, the right hand -- mirrored, it falls with the mace in the hand it stood with; a back view is near enough
-            # symmetric to take it. The seat's lean, 10-15, his to overrule: `flip` off draws it as the art desk did)
+            # symmetric to take it. RULED 10-15, Griz: "2 yes" -- `flip` off would draw it as the art desk did)
             'H5P1': dict(file='ART-61_HEAD-5_PAGE-1.png', view='N', ref=('hurt', '1'), flip=True,  # N: Hurt 6
                          text=[(0, 385, 140, 450), (150, 524, 2137, 565)],
                          rows=[('hurt', (150, 285, 2137, 524), (524, 565), NUM(6))]),
