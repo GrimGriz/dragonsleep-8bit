@@ -150,6 +150,8 @@ FH, AY = 112, 100
 # its frames are cut left to right by those x's -- never by the digits printed (H3P2's Overfill prints 1,2,3,4,6,6: six drawings).
 P31 = os.path.join('mirrorgnoll', 'ART-31', 'PRESERVED_SELECTED')
 R31 = os.path.join('mirrorgnoll', 'ART-31', 'SPLIT_ROW_REPAIRS_REVIEW')
+N31 = os.path.join('mirrorgnoll', 'ART-31-NEROWS')        # (ART-31 supplement 1, 10-15: NE's Backhand, Mirror Strike and Overfill asked again;
+                                                          # their near hand drawn blue-black enough that the default test keyed it lacy: `fill`)
 ART31 = {
   # HEAD 1, SE (SW mirrored)
   'H1P1': dict(file=os.path.join(P31, 'ART-31_HEAD-1_PAGE-1.png'), names=[(14, 132, 90, 166), (14, 368, 92, 404), (14, 604, 150, 640), (14, 812, 150, 860)],
@@ -188,6 +190,12 @@ ART31 = {
                 rows=[('kneel', (523, 546), [246, 493, 739, 988, 1245, 1500, 1754, 2004])]),
   'H2P3C': dict(file=os.path.join(R31, 'ART-31_HEAD-2_PAGE-3C.png'), names=[(14, 270, 160, 312)],
                 rows=[('overfill', (522, 550), [288, 614, 958, 1303, 1627, 1968])]),
+  'H2P5': dict(mask={'fill': 16}, file=os.path.join(N31, 'ART-31_HEAD-2_PAGE-5.png'), names=[(14, 326, 192, 366)],
+               rows=[('backhand', (519, 546), [332, 633, 934, 1251, 1582, 1899])]),
+  'H2P6': dict(mask={'fill': 16}, file=os.path.join(N31, 'ART-31_HEAD-2_PAGE-6.png'), names=[(14, 320, 232, 360)],
+               rows=[('mirrorstrike', (517, 543), [315, 615, 939, 1315, 1694, 1991])], streaks=('mirrorstrike',)),   # (4's claw accents lie nearer 5)
+  'H2P7': dict(mask={'fill': 16}, file=os.path.join(N31, 'ART-31_HEAD-2_PAGE-7.png'), names=[(14, 356, 156, 396)],
+               rows=[('overfill', (560, 586), [293, 597, 939, 1277, 1606, 1918])]),
   'H2P4': dict(file=os.path.join(P31, 'ART-31_HEAD-2_PAGE-4.png'), names=[(20, 130, 136, 166), (20, 558, 210, 602)],
                rows=[('ascend', (443, 460), [96, 270, 439, 606, 777, 947, 1118, 1283, 1442]),
                      ('uprightidle', (870, 890), [293, 482, 672, 861, 1056, 1251])]),
@@ -236,8 +244,15 @@ def cut31(L, check=False):
     for row, (sy0, sy1), xs in s['rows']:
         hand[(0, sy0)] = xs
         text += [(int(x) - 20, sy0 - 5, int(x) + 20, sy1 + 6) for x in xs]   # (a number's soft drop shadow runs past its glyph)
-    mk = s.get('mask', {})
-    m = SR.figure_mask(a, mk.get('grey', 20), mk.get('far', 150), mk.get('chan'))
+    mk = dict(s.get('mask', {}))
+    fill = mk.pop('fill', None)
+    m = SR.figure_mask(a, mk.get('grey', 20), mk.get('far', 150), None if fill else mk.get('chan'))
+    if fill:                     # (a mask's `fill`: the channel test only inside his own silhouette -- a hand drawn blue-black, which the
+        cm = SR.figure_mask(a, chan=fill)   # default test keys as navy -- and the drop shadow outside it painted navy before the cut)
+        sil = ndimage.binary_fill_holes(ndimage.binary_closing(m, iterations=3))
+        shadow = cm & ~m & ~sil
+        m = m | (cm & sil)
+        mk['chan'] = fill
     SR.drop_text(m, text)
     lab, n = ndimage.label(m, structure=np.ones((3, 3)))
     cy = np.array([c[0] for c in ndimage.center_of_mass(m, lab, range(1, n + 1))])
@@ -253,6 +268,8 @@ def cut31(L, check=False):
             mine = np.isin(lab, 1 + np.where(owner == k)[0])
             b = a.copy()
             b[m & ~mine] = navy
+            if fill:
+                b[shadow] = navy
             fix = list(s.get('fix', {}).get(row, ()))
             if row in s.get('streaks', ()):              # the drain's streaks point back at the frame they leave: each streak to the frame
                 glab, gn = ndimage.label(ndimage.binary_dilation(gm & mine, iterations=3))   # on its left (right-facing pages)
@@ -453,9 +470,11 @@ def scales(c):
 
 # which pages of ART-31 are cut in: the nine selected, and six of the nine review pages on Griz's word (10-15, "approve what you've done", of
 # the seat's leans after he saw them play: dev/shots/harbinger-review/review.html). Not cut, asked again (ART-31 supplement 1): H2P1B, NE's
-# Backhand (drawn straight from behind), H2P3A, NE's Mirror Strike (the art desk's BLOCKED arm swap), H2P3C, NE's Overfill (from behind)
+# Backhand (drawn straight from behind), H2P3A, NE's Mirror Strike (the art desk's BLOCKED arm swap), H2P3C, NE's Overfill (from behind);
+# that supplement's three pages, H2P5-H2P7 (ART-31-NEROWS, back 10-15), in their place
 USE31 = ('H1P1', 'H1P2', 'H1P3', 'H2P2', 'H2P4', 'H3P1', 'H3P2', 'H4P1', 'H5P1',
-         'H2P1A', 'H2P1C', 'H2P3B', 'H5P2A', 'H5P2B', 'H5P2C')
+         'H2P1A', 'H2P1C', 'H2P3B', 'H5P2A', 'H5P2B', 'H5P2C',
+         'H2P5', 'H2P6', 'H2P7')
 # the engine's rows each ART-31 page gives a view: row -> {view: (page, the page's row)}; a view a page doesn't give (or not in USE31)
 # plays what it played before ART-31 (S sheet 3's rows, N sheet 4's, the rest the side rows -- the head of this file)
 V31 = {'idle': {'SE': ('H1P1', 'idle'), 'NE': ('H2P1A', 'idle')},
@@ -465,13 +484,13 @@ V31 = {'idle': {'SE': ('H1P1', 'idle'), 'NE': ('H2P1A', 'idle')},
        'hurt': {'S': ('H3P1', 'fall'), 'SE': ('H1P2', 'fall'), 'NE': ('H2P2', 'fall'), 'N': ('H5P1', 'fall')},
        'pounce': {'SE': ('H1P2', 'pounce'), 'NE': ('H2P2', 'pounce')},
        'foretell': {'S': ('H3P1', 'foretell'), 'SE': ('H1P2', 'foretell'), 'NE': ('H2P2', 'foretell'), 'N': ('H5P1', 'foretell')},
-       'mirrorstrike': {'S': ('H3P1', 'mirrorstrike'), 'SE': ('H1P3', 'mirrorstrike'), 'NE': ('H2P3A', 'mirrorstrike'), 'N': ('H5P1', 'mirrorstrike')},
+       'mirrorstrike': {'S': ('H3P1', 'mirrorstrike'), 'SE': ('H1P3', 'mirrorstrike'), 'NE': ('H2P6', 'mirrorstrike'), 'N': ('H5P1', 'mirrorstrike')},
        'kneel': {'S': ('H3P2', 'kneel'), 'SE': ('H1P3', 'kneel'), 'NE': ('H2P3B', 'kneel'), 'N': ('H5P2A', 'kneel')},
-       'overfill': {'S': ('H3P2', 'overfill'), 'SE': ('H1P3', 'overfill'), 'NE': ('H2P3C', 'overfill'), 'N': ('H5P2B', 'overfill')},
+       'overfill': {'S': ('H3P2', 'overfill'), 'SE': ('H1P3', 'overfill'), 'NE': ('H2P7', 'overfill'), 'N': ('H5P2B', 'overfill')},
        'ascend': {'S': ('H3P2', 'ascend'), 'SE': ('H1P3', 'ascend'), 'NE': ('H2P4', 'ascend'), 'N': ('H5P2C', 'ascend')},
        'uprightidle': {'S': ('H3P2', 'uprightidle'), 'E': ('H4P1', 'uprightidle'), 'NE': ('H2P4', 'uprightidle'), 'N': ('H5P2C', 'uprightidle')}}
 for _r in ('attack', 'backhand', 'backhand2'):
-    V31[_r] = {'SE': ('H1P1', 'backhand'), 'NE': ('H2P1B', 'backhand')}     # (backhand2 three-quarter: the same arm, as side-on)
+    V31[_r] = {'SE': ('H1P1', 'backhand'), 'NE': ('H2P5', 'backhand')}      # (backhand2 three-quarter: the same arm, as side-on)
 V31['prone'], V31['cast'] = V31['hurt'], V31['kneel']
 # the death and the Pounce stand on their first frame's feet (the hyena seat's way), not on the row's lowest pixel: H1P2 draws SE's lying
 # body 31 page px (12 game px) lower than Fall 1's feet, toward the viewer, and its Pounce's dust 26 below, so by the lowest pixel SE's
@@ -486,6 +505,7 @@ GUARD31 = {'H1P1': [('idle', None)], 'H1P2': [('foretell', 0)],
            'H2P1A': [('idle', None)], 'H2P1B': [('backhand', 0), ('backhand', 5)], 'H2P1C': [('drain', 0), ('drain', 7)],
            'H2P2': [('foretell', 0)], 'H2P3A': [('mirrorstrike', 5)], 'H2P3B': [('kneel', 0), ('kneel', 7)],
            'H2P3C': [('overfill', 0), ('overfill', 5)], 'H2P4': [('ascend', 0)],
+           'H2P5': [('backhand', 0), ('backhand', 5)], 'H2P6': [('mirrorstrike', 5)], 'H2P7': [('overfill', 0), ('overfill', 5)],
            'H3P1': [('drain', 0), ('drain', 7), ('foretell', 0), ('mirrorstrike', 5)],
            'H3P2': [('kneel', 0), ('kneel', 7), ('overfill', 0), ('overfill', 5)],
            'H5P1': [('drain', 0), ('drain', 7), ('foretell', 0), ('mirrorstrike', 5)],
