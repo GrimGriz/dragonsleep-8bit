@@ -9,7 +9,7 @@ Pixel Cup generator in four directions: front, left, back, right, and Hurt from 
 eight facings by LPC_FOR_FACING, so SE and SW borrow the front, NE and NW the back, and every facing's Hurt is the one front fall.
 Griz, 10-15: "make sure we have all 8 facings for those to be used in snoot fight animations", "exclude the main party facings - but
 include the NPC", and "(a) Yeah - I think we'll need to build the first-sheets out the LPC stuff we have to give to the art team to make
-the other poses". The art desk was given each figure's sheet at 3x (deep16/_src/outbox/ART-SNOOTNPCS-2026-10-15/) and asked for
+the other poses". The art desk was given each figure's sheet at 3x (deep16/_src/art-desk/sent/ART-SNOOTNPCS-2026-10-15/) and asked for
 HEAD 1 = SE (every row), HEAD 2 = NE (every row), HEAD 4 = E's Hurt, HEAD 5 = N's Hurt, drawn in the LPC style.
 
 This is the pipeline's LAST step: pixelate.py p0 calls apply() after it writes the sheet, so a re-run of lpc-compose, lpc-squash or
