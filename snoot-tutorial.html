@@ -62,7 +62,7 @@
 <script src="snoot-mode/js/rules.js?v=0051f8c16a"></script>
 <script src="snoot-mode/js/ai.js?v=65408aa8ce"></script>
 <script src="snoot-mode/js/view.js?v=d55754de35"></script>
-<script src="snoot-mode/js/show.js?v=b6bc089e39"></script>
+<script src="snoot-mode/js/show.js?v=cd79140d85"></script>
 <script src="snoot-mode/js/deep.js?v=c4a6164f52"></script>
 <script>
 'use strict';
@@ -226,6 +226,12 @@
       else if (b.t === 'save') return;
       else return;
       step({ ch: ch, title: t2, show: { sh: sh, k: k }, html: html });
+    });
+    // the witness: after the fight, on the map (the mode plays it with the camera back out, the givers' figures running in)
+    (sh.wit || []).forEach(function (x) {
+      var G = SN.unit(scn.after, x.from), Wn = SN.unit(scn.after, x.to);
+      step({ ch: ch, title: 'The witness comes', vis: { map: scn.after, marks: [G ? { h: G.at, c: '#ffd25a', t: 'gives ' + x.n } : null, Wn ? { h: Wn.at, c: '#ff8a7a', t: 'the winner' } : null].filter(Boolean) },
+        html: OURS('<p><b>' + esc(x.fromName) + '</b> saw the win and sends <b>' + x.n + '</b> figure' + (x.n > 1 ? 's' : '') + ' over to ' + esc(unitName(scn, x.to)) + '. In the mode this plays on the map after the fight, the camera back out: the figures run from the giver\'s hex to the winner\'s.</p>') + DIFF('<p>Griz\'s rule, not CHAINMAIL\'s. The book would leave the winner short its dead.</p>') });
     });
   }
   function headStep() {
