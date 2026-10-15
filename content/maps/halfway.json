@@ -134,6 +134,14 @@
 "look": "girl",
 "wander": 1,
 "cond": "flag:kidAtInn & !flag:dueSeen"
+},
+{
+"id": "pitRunner",
+"x": 16,
+"y": 12,
+"look": "guard",
+"dir": "down",
+"cond": "flag:skylightsWon"
 }
 ],
 "warps": [

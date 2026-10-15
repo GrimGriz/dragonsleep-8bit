@@ -172,6 +172,7 @@
     "skarnPaid": "set: js/events.js, js/scenes.js; read: js/events.js",
     "skylightsWon": "set: js/deep.js; read: js/deep.js",
     "smokeDreamt": "set: js/deep.js, js/situations.js; read: js/deep.js",
+    "snootBattleDone": "read: content/quests.json (THE SNOOT done: set by the Halfway Inn's own start of the Snoot, not built yet -- 10-15)",
     "snootDone": "set: js/events.js, js/scenes.js; read: content/quests.json, js/events.js, maps/world.json",
     "snootWord": "set: js/events.js, js/scenes.js; read: js/events.js",
     "stairHook": "set: js/deep.js, js/situations.js; read: content/npcs.json, content/quests.json, js/deep.js",

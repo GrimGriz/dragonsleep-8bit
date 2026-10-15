@@ -943,6 +943,7 @@ def build_halfway():
     g.npc('orrin', 25, 13, 'kid', dir='right', cond='!flag:dueSeen')
     g.npc('pell', 22, 16, 'kid', wander=1, cond='!flag:dueSeen')
     g.npc('adoptedKid', 24, 18, 'girl', wander=1, cond='flag:kidAtInn & !flag:dueSeen')   # the one she kept, out back by the water
+    g.npc('pitRunner', 16, 12, 'guard', dir='down', cond='flag:skylightsWon')   # the Snoot's call (Griz 10-15): a runner from the Pit, after the Skylights
     g.trig('point', 28, 11, 'point', on='use', w=3, h=5)
     g.trig('pointStep', 27, 13, 'pointStep', on='step')
     g.trig('rowboat', 27, 15, 'rowboat', on='step')

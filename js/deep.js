@@ -584,6 +584,10 @@
     if (res !== 'win') return;
     g.flags.skylightsWon = 1;
     yield DS.say(L('deep.skylightsWon'));
+    // the Snoot's call (Griz 10-15: "we're going to move that to the half-way inn and start the snoot from there. For now, just auto-pin it as a mission in the journal that pops after the edifice fight"): the journal's
+    // THE SNOOT, pinned, its arrow on the runner in the Halfway Inn's yard (js/events.js S.snootCall)
+    g.flags.pin = 'thesnoot'; DS.audio.sfx('levelup');
+    yield DS.say(L('deep.snootCall'), { top: true });
   };
   EV.roadMenu = function* (here) { // fast travel (spec §6.2) and, at a lamp, a night if you want one (re-cut F5)
     if (here !== 'gate') yield* EV.surfaceCall(); // (a save past the raid that never heard the runner hears him here -- 10-05 night)

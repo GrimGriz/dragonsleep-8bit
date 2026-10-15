@@ -1213,6 +1213,17 @@
     var g = G();
     if (!g.flags.reachedInn) { g.flags.reachedInn = 1; yield DS.say(L('inn.arrive')); }
   };
+  // the Snoot's call (Griz 10-15: the Snoot starts from the Halfway Inn -- "For now, just auto-pin it as a mission in the journal"): the runner from the
+  // Pit in the yard after the Skylights; TO THE SNOOT offers the save, then the page goes to the Snoot mode (snoot-mode/?from=road: its own four at
+  // 8th, its own save, BACK TO THE ROAD on its title). THE SNOOT stays open till the inn's own start of it is built (flag snootBattleDone)
+  S.snootCall = function* (npc, D) {
+    yield* EV.dialog(D);
+    var a = yield DS.ask(L('inn.snootAsk'), ['TO THE SNOOT', 'NOT YET'], who('A runner from the Pit'));
+    if (a !== 0) { yield DS.say(L('inn.snootNotYet')); return; }
+    var s = yield DS.ask(L('g.saveAsk'), ['SAVE', 'NO']);
+    if (s === 0) yield W8.scene(new DS.SlotScene(true));
+    window.location.href = 'snoot-mode/?from=road';
+  };
   S.gennet = function* (npc, D) {
     var g = G();
     yield* EV.dialog(D);
