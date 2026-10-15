@@ -27,10 +27,14 @@ order stands:
   H4P1  ART-29_HEAD-4_PAGE-1.png  E:  Idle 8, Attack 8
   H4P2  ART-29_HEAD-4_PAGE-2.png  E:  the rows of H2P2
   H5P1  ART-29_HEAD-5_PAGE-1.png  N:  the rows of H2P2
-By the manifest the old rows stay where they were drawn: SE (and SW) keep the old three-quarter idle, attack, death, prone, get up and
-laugh; E (and W) the old side walk; S and N the old front still's and back views' idle, walk and attack. Every other facing of every
-row is ART-29's (build() prints which view each facing plays). The pages are cut by their labels (sheetrows, the CHAN test), scaled
-each by its standing rows (K, in build()), toned to the old page 1's fur and cloth (TONE, in build()), and placed as the old rows are.
+and its redraw (2026-10-15, Griz's pick after our return: deep16/_src/gnoll/ART-29-REDRAW/, its ART-29-REDRAW-MANIFEST.md) --
+  H1P2  ART-29_HEAD-1_PAGE-2.png  SE: the rows of H2P2 (the old sheet's SE Death, Prone, Get Up and Laugh were the 09-28 drawings, short)
+  H3P2  ART-29_HEAD-3_PAGE-2.png  S:  Idle 8, Walk 8, Attack 8 (the old "front still" S played was drawn three-quarter, the muzzle right)
+  H5P2  ART-29_HEAD-5_PAGE-2.png  N:  Idle 8, Walk 8, Attack 8 (the old back views, a slimmer gnoll)
+Of the old sheets only page 1's SE Idle and Attack and its side Walk (E) still play, as the manifests keep them (the old page 2 feeds
+nothing now). Every other facing of every row is ART-29's (build() prints which view each facing plays). The pages are cut by their labels
+(sheetrows, the CHAN test), scaled each by its standing rows (K, in build()), toned to the old page 1's fur and cloth (TONE, in build()),
+and placed as the old rows are; the attack row's frames are 16 px taller (TALL: the N overhead thrust on the glory-seeker).
 """
 import os, sys, json, subprocess
 import numpy as np
@@ -57,17 +61,13 @@ def load(name):
 
 
 P1, BG1 = load('gnoll_grok_1.png')
-P2, BG2 = load('gnoll_grok_2.webp')
 FW, FH, AX, AY = 120, 96, 60, 86
 HEIGHT = {'gnoll_p2': 60, 'gloryseeker_p2': 64}     # standing, in px: the Snoot's young blood a size bigger (CR 1, STR 16)
+TALL = {'attack': (112, 102)}    # a row's own frame height and foot (the redraw's N Attack 4, the spear overhead, stands 86 on the glory-seeker)
 
 # the rows' bands (x0, y0, x1, y1) and how many frames each holds
-B1 = {'front': ((195, 105, 290, 298), 1), 'back': ((428, 105, 525, 298), 1),
-      'idle': ((100, 340, 1140, 470), 8), 'walk': ((100, 485, 1140, 612), 8), 'attack': ((100, 770, 1140, 912), 8),
+B1 = {'idle': ((100, 340, 1140, 470), 8), 'walk': ((100, 485, 1140, 612), 8), 'attack': ((100, 770, 1140, 912), 8),
       'death': ((100, 1040, 840, 1162), 7)}
-B2 = {'front': ((20, 105, 120, 252), 1), 'back': ((700, 1062, 900, 1172), 3),   # (the fourth back view is the Desert tribe's)
-      # 10-02: the idle variations (the 6th, the yawn), Sit / Rest and Fall / Get Up -- the laugh's poses and the prone row
-      'idlevar': ((20, 105, 640, 252), 6), 'sit': ((125, 298, 1290, 386), 8), 'fall': ((130, 680, 1290, 754), 8)}
 
 # ART-29 (10-15): the art desk's five views, cut by their own row and number labels (tools/sheetrows.py; the boxes read off the pages by
 # their figures' and labels' blobs): per page its text boxes (the row names) and its rows -- (row, band x0 y0 x1 y1, the number strip
@@ -79,6 +79,7 @@ NUM = lambda k: [str(i + 1) for i in range(k)]
 CHAN = 16     # figure: any channel 17 or more off the navy (the default test keeps the cloth's darks, blue 30-45 over red, as navy; the page's
               # own navy varies 5-12 at most, the feet's drop shadow 8-16, the outline 24 and more)
 A29 = os.path.join('gnoll', 'ART-29')
+A29R = os.path.join('gnoll', 'ART-29-REDRAW')
 ART29 = {
     'H1P1': dict(file=os.path.join(A29, 'ART-29_HEAD-1_PAGE-1.png'), text=[(0, 340, 150, 390)],
                  rows=[('walk', (150, 200, 2079, 532), (533, 570), NUM(8))]),
@@ -110,6 +111,21 @@ ART29 = {
                        ('prone', (0, 230, 700, 398), (398, 422), NUM(2)),
                        ('getup', (0, 412, 1855, 590), (586, 611), NUM(6)),
                        ('laugh', (0, 610, 1855, 803), (800, 826), NUM(9))]),
+    # the redraw (10-15, his pick of three sets after the engine's return: deep16/_src/gnoll/ART-29-REDRAW/, its ART-29-REDRAW-MANIFEST.md)
+    'H1P2': dict(file=os.path.join(A29R, 'ART-29_HEAD-1_PAGE-2.png'), text=[(0, 112, 140, 165), (0, 302, 140, 332), (0, 455, 140, 498), (0, 620, 140, 658)],
+                 rows=[('death', (150, 10, 2078, 218), (210, 236), NUM(7)),
+                       ('prone', (150, 240, 750, 400), (395, 417), NUM(2)),
+                       ('getup', (150, 350, 2078, 546), (546, 571), NUM(6)),
+                       ('laugh', (150, 548, 2078, 728), (718, 742), NUM(9))],
+                 clear={'getup': [(150, 350, 720, 422)]}),                   # the Prone row (x 193-705, down to y 398) and its numbers
+    'H3P2': dict(file=os.path.join(A29R, 'ART-29_HEAD-3_PAGE-2.png'), text=[(0, 15, 170, 58), (0, 262, 182, 304), (0, 492, 200, 532)],
+                 rows=[('idle', (180, 10, 2126, 224), (225, 250), NUM(8)),
+                       ('walk', (180, 255, 2126, 462), (462, 487), NUM(8)),
+                       ('attack', (0, 490, 2126, 692), (696, 724), NUM(8))]),     # (from x 0: Attack 1's spear reaches back to x 135)
+    'H5P2': dict(file=os.path.join(A29R, 'ART-29_HEAD-5_PAGE-2.png'), text=[(0, 72, 92, 106), (0, 320, 104, 352), (0, 574, 126, 607)],
+                 rows=[('idle', (150, 40, 1855, 249), (249, 277), NUM(8)),
+                       ('walk', (150, 290, 1855, 502), (502, 531), NUM(8)),
+                       ('attack', (0, 535, 1855, 787), (786, 813), NUM(8))]),     # (from x 0: Attack 1's spear head reaches x 106)
 }
 FIT29 = {('H3P1', 'death')}     # (a row scaled apart from its page: build())
 # a line of pixels cleared (sheetrows' CUT): the E page's Laugh 8 lies with its sole against Laugh 9's toes (x 1530-1531, y 800-818)
@@ -260,24 +276,15 @@ def torso_x(a):
     return float(np.median(xs)) if len(xs) else a.shape[1] / 2
 
 
-def place(a, x_ref, dy=0):
-    out = np.zeros((FH, FW, 4), dtype=np.uint8)
+def place(a, x_ref, dy=0, fh=FH, ay=AY):
+    out = np.zeros((fh, FW, 4), dtype=np.uint8)
     rows = np.where(a[..., 3].any(axis=1))[0]
-    ox, oy = int(round(AX - x_ref)), AY - rows[-1] + dy
+    ox, oy = int(round(AX - x_ref)), ay - rows[-1] + dy
     h, w = a.shape[:2]
     y0, x0 = max(0, oy), max(0, ox)
-    y1, x1 = min(FH, oy + h), min(FW, ox + w)
+    y1, x1 = min(fh, oy + h), min(FW, ox + w)
     out[y0:y1, x0:x1] = a[y0 - oy:y1 - oy, x0 - ox:x1 - ox]
     return out
-
-
-def breathe(fr):
-    """the chest rises a pixel (the legs stay put)."""
-    o = fr.copy()
-    rows = np.where(fr[..., 3].any(axis=1))[0]
-    mid = rows[0] + (rows[-1] - rows[0]) * 6 // 10
-    o[rows[0] - 1:mid] = fr[rows[0]:mid + 1]
-    return o
 
 
 def hgt(im):
@@ -297,34 +304,15 @@ def cuts29():
 def build(name, recolour):
     H = HEIGHT[name]
     rows1 = {k: frames_in(P1, BG1, *v) for k, v in B1.items()}
-    rows2 = {k: frames_in(P2, BG2, *v) for k, v in B2.items()}
     stand1 = np.mean([im.size[1] for im in rows1['idle']]) / H        # page 1's rows, by the idle row's height
-    stand2f = rows2['front'][0].size[1] / H                           # page 2's front idle
-    stand2b = np.mean([im.size[1] for im in rows2['back']]) / H       # page 2's back views (drawn smaller)
-    side = lambda ims: [place(a, torso_x(a)) for a in (fit(im, stand1, recolour) for im in ims)]
-    idle_r, walk_r, atk_r, death_r = side(rows1['idle']), side(rows1['walk']), side(rows1['attack']), side(rows1['death'])
-    front = fit(rows2['front'][0], stand2f, recolour)
-    fS = place(front, torso_x(front))
-    backs = [fit(im, stand2b, recolour) for im in rows2['back']]
-    fN = [place(a, torso_x(a)) for a in backs]
+    side = lambda ims, row: [place(a, torso_x(a), 0, *TALL.get(row, (FH, AY))) for a in (fit(im, stand1, recolour) for im in ims)]
+    old = {r: side(rows1[r], r) for r in ('idle', 'walk', 'attack')}       # SE's idle and attack, E's walk
     mirror = lambda seq: [fr[:, ::-1].copy() for fr in seq]
-    idle_l, walk_l, atk_l, death_l = mirror(idle_r), mirror(walk_r), mirror(atk_r), mirror(death_r)
-    shift = lambda fr, dx, dy: np.roll(np.roll(fr, dx, axis=1), dy, axis=0)
-
-    # the laugh (RULED 10-02, Griz: "I'd play 'yawn' (idle variation 6) when the laugh sound fires, then like sit/rest 2, 1, 3, 8 .. 3 to fall/getup 1,
-    # 2, 4, 2, - 5, sit/rest 8, fall/getup 5, sit/rest 8"): the row holds each pose once -- 0 the yawn, 1-4 sit 2, 1, 3, 8, 5-8 fall 1, 2, 4, 5 -- and
-    # deep16/js/grimoire.js M.LAUGH plays them in his order, each held its own beats. Prone (deep16/js/sprites.js S.proneRow: falls through the row, lies
-    # at its last frame): Fall / Get Up 1, 2 -- knocked over onto its back (RULED 10-02, Griz: "yes", to falling over rather than sinking to its hands);
-    # and up again by the sheet's own get-up, 3 to 8, played forward (the `getup` row: deep16/js/ui.js). Page 2's rows at its front idle's scale
-    p2 = lambda ims: [place(a, torso_x(a)) for a in (fit(im, stand2f, recolour) for im in ims)]
-    idv, sit, fall = p2(rows2['idlevar']), p2(rows2['sit']), p2(rows2['fall'])
-    laugh_r = [idv[5], sit[1], sit[0], sit[2], sit[7], fall[0], fall[1], fall[3], fall[4]]
-    prone_r, getup_r = [fall[0], fall[1]], fall[2:8]
-    laugh_l, prone_l, getup_l = mirror(laugh_r), mirror(prone_r), mirror(getup_r)
 
     # ART-29 (10-15): every page at its own scale (GPT drew each at its own size), the gnoll the old rows' way -- on its torso, its lowest pixel on
-    # the floor line. A page 1 by its standing rows: HEAD 2's and HEAD 4's idle the idle's height; HEAD 1's walk the old side walk's (the walk it
-    # turns to at E and W). A page 2 (Death, Prone, Get Up, Laugh) by its Get Up 6, the gnoll stood up again, as tall as the idle it rises into.
+    # the floor line. A page with an Idle by it, the idle's height (HEAD 2's and HEAD 4's page 1, HEAD 3's and HEAD 5's page 2); HEAD 1's walk by
+    # the old side walk's (the walk it turns to at E and W). A page of Death, Prone, Get Up, Laugh by its Get Up 6, the gnoll stood up again, as
+    # tall as the idle it rises into.
     cuts = cuts29()
     walk_h = np.mean([im.size[1] for im in rows1['walk']]) / stand1        # the old side walk at game size
     K = {L: float(np.mean([hgt(im) for _, im, _ in cuts[L]['walk']])) / walk_h if L == 'H1P1' else
@@ -335,8 +323,8 @@ def build(name, recolour):
     KR = {(L, row): K[L] * r(L) / float(np.mean([r(M) for M in ART29 if 'getup' in cuts[M] and (M, row) not in FIT29])) for L, row in FIT29}
     # the colour: GPT drew ART-29 warmer and brighter than the old sheets (the fur's saturation 0.49-0.54 to 0.40, its value 0.41-0.47 to 0.36, at
     # game size), so a turn from the old SE rows to the new E or NE ones flushed it; each page's fur and cloth brought to the old page 1's (the
-    # rows it turns among: SE, SW, E's and W's walk) by saturation and value, at their own hue -- the GreyFang seat's way (10-14: a per-channel
-    # gain moves the fur's hue too)
+    # rows it turns among: SE's idle and attack, E's and W's walk) by saturation and value, at their own hue -- the GreyFang seat's way (10-14: a
+    # per-channel gain moves the fur's hue too). (The reference keeps the old death row, as the first cut measured it.)
     ref = sv_means(rows1['idle'] + rows1['walk'] + rows1['attack'] + rows1['death'])
     TONE = {}
     for L in ART29:
@@ -344,40 +332,26 @@ def build(name, recolour):
         TONE[L] = tuple((ref[k][0] / got_[k][0], ref[k][1] / got_[k][1]) for k in (0, 1))
     print('  %s tone (fur s v, cloth s v), to page 1 fur %.2f %.2f cloth %.2f %.2f: %s' % ((name,) + ref[0] + ref[1] + (', '.join(
         '%s %.2f %.2f %.2f %.2f' % ((L,) + TONE[L][0] + TONE[L][1]) for L in ART29),)))
-    new = {(L, row): [place(a, torso_x(a)) for a in (fit(im, KR.get((L, row), K[L]), recolour, TONE[L]) for _, im, _ in frs)]
+    new = {(L, row): [place(a, torso_x(a), 0, *TALL.get(row, (FH, AY))) for a in (fit(im, KR.get((L, row), K[L]), recolour, TONE[L]) for _, im, _ in frs)]
            for L in ART29 for row, frs in cuts[L].items()}
     print('  %s ART-29 scales (page px a game px): %s; %s' % (name, ', '.join('%s %.3f' % (L, K[L]) for L in ART29),
                                                             ', '.join('%s %s %.3f' % (L, row, k) for (L, row), k in KR.items())))
-    late = lambda L: {'hurt': L, 'prone': L, 'getup': L, 'laugh': L}           # a page 2's rows (its Death plays as `hurt`)
-    view = {'HEAD1': {'walk': 'H1P1'}, 'HEAD2': dict(late('H2P2'), idle='H2P1', walk='H2P1', attack='H2P1'), 'HEAD3': late('H3P1'),
-            'HEAD4': dict(late('H4P2'), idle='H4P1', attack='H4P1'), 'HEAD5': late('H5P1')}
+    late = lambda L: {'hurt': L, 'prone': L, 'getup': L, 'laugh': L}           # a page of Death (it plays as `hurt`), Prone, Get Up, Laugh
+    stand = lambda L: {'idle': L, 'walk': L, 'attack': L}
+    view = {'HEAD1': dict(late('H1P2'), walk='H1P1'), 'HEAD2': dict(late('H2P2'), **stand('H2P1')), 'HEAD3': dict(late('H3P1'), **stand('H3P2')),
+            'HEAD4': dict(late('H4P2'), idle='H4P1', attack='H4P1'), 'HEAD5': dict(late('H5P1'), **stand('H5P2'))}
     got = lambda v, row: new[(view[v][row], 'death' if row == 'hurt' else row)]
-    old = {'idle': (idle_r, idle_l), 'walk': (walk_r, walk_l), 'attack': (atk_r, atk_l), 'hurt': (death_r, death_l),
-           'laugh': (laugh_r, laugh_l), 'prone': (prone_r, prone_l), 'getup': (getup_r, getup_l)}
 
-    # the facings (S, SW, W, NW, N, NE, E, SE), RULED 10-14 (a figure is five drawn views; SE mirrors to SW, E to W, NE to NW), by ART-29's manifest:
-    # S its front (the old front still's idle, walk and attack; HEAD 3's Death, Prone, Get Up, Laugh), SE the old three-quarter rows but the Walk
-    # (HEAD 1's), E the old Walk and HEAD 4's every other row, NE HEAD 2's every row, N its back (the old back views' idle, walk and attack; HEAD 5's rest)
+    # the facings (S, SW, W, NW, N, NE, E, SE), RULED 10-14 (a figure is five drawn views; SE mirrors to SW, E to W, NE to NW): every row ART-29's
+    # but SE's idle and attack (the old three-quarter rows) and E's walk (the old side walk), as its manifest and the redraw's keep them
     frames = {'idle': [], 'walk': [], 'attack': [], 'hurt': [], 'laugh': [], 'prone': [], 'getup': []}
     took = {r: [] for r in frames}
     for f in range(8):
-        west = f in (1, 2, 3)
+        v = {0: 'HEAD3', 4: 'HEAD5', 1: 'HEAD1', 7: 'HEAD1', 3: 'HEAD2', 5: 'HEAD2', 2: 'HEAD4', 6: 'HEAD4'}[f]
         for row in frames:
-            if f == 0 and row in ('idle', 'walk', 'attack'):
-                seq, src = {'idle': [fS] * 4 + [breathe(fS)] * 4, 'walk': [shift(fS, 0, -(i % 2)) for i in range(8)],
-                            'attack': [fS, fS, shift(fS, 0, 1), shift(fS, 0, 3), shift(fS, 0, 4), shift(fS, 0, 3), shift(fS, 0, 1), fS]}[row], 'front'
-            elif f == 4 and row in ('idle', 'walk', 'attack'):
-                loop = [fN[0], fN[1], fN[2], fN[1]]
-                seq, src = {'idle': [x for x in loop for _ in (0, 1)], 'walk': [shift(loop[i % 4], 0, -(i % 2)) for i in range(8)],
-                            'attack': [fN[0], fN[0], shift(fN[0], 0, -1), shift(fN[0], 0, -3), shift(fN[0], 0, -4), shift(fN[0], 0, -3), shift(fN[0], 0, -1), fN[0]]}[row], 'back'
-            else:
-                v = {0: 'HEAD3', 4: 'HEAD5', 1: 'HEAD1', 7: 'HEAD1', 3: 'HEAD2', 5: 'HEAD2', 2: 'HEAD4', 6: 'HEAD4'}[f]
-                if row in view[v]:
-                    seq, src = got(v, row), v
-                else:                                    # the old rows: SE's three-quarter, E's side walk
-                    seq, src = old[row][0], 'old'
-                if west:
-                    seq, src = mirror(seq), src + 'm'
+            seq, src = (got(v, row), v) if row in view[v] else (old[row], 'old')
+            if f in (1, 2, 3):
+                seq, src = mirror(seq), src + 'm'
             frames[row].append(seq); took[row].append(src)
     print('  facings (S SW W NW N NE E SE) <- view (m mirrored): ' + '; '.join('%s %s' % (r, ' '.join(t)) for r, t in took.items()))
     lost = ['%s facing %d frame %d' % (r, f, i) for r, per in frames.items() for f, seq in enumerate(per) for i, fr in enumerate(seq)
@@ -386,15 +360,16 @@ def build(name, recolour):
         raise SystemExit('cut off at the frame edges: ' + ', '.join(lost))
     for extra in ('laugh', 'getup'):                                      # (named here, not in pixelate.py: this cutter's own rows)
         if extra not in pix.ANIM_ORDER: pix.ANIM_ORDER.append(extra)
-    pix.write_sheet(name, frames, FW, FH, AX, AY, pix.top_of(frames['idle'][0] + frames['idle'][6], AY))
+    pix.write_sheet(name, frames, FW, FH, AX, AY, pix.top_of(frames['idle'][0] + frames['idle'][6], AY),
+                    sizes={r: (FW, fh, AX, ay) for r, (fh, ay) in TALL.items()})
     if CHECK:
         facings(name, frames)
     meta_p = os.path.join(ROOT, 'deep16', 'art', name + '.json')
     meta = json.load(open(meta_p))
     meta['anims']['idle']['fps'] = 5; meta['anims']['walk']['fps'] = 10; meta['anims']['attack']['fps'] = 12; meta['anims']['hurt']['fps'] = 8
     meta['anims']['prone']['fps'] = 8; meta['anims']['getup']['fps'] = 8; meta['anims']['laugh']['fps'] = 6   # (the laugh's own beats are grimoire.js M.LAUGH's; fps is for a plain play)
-    meta['source'] = ('generated by Griz (2026-09-28, two sheets) and the art desk (2026-10-15, ART-29: the SE walk, every NE row, S and N '
-                      'but their idle, walk and attack, E but its walk), cut and snapped by tools/gnoll-sheet.py') + (', the cloth recoloured to the Desert tribe\'s red' if recolour else ', the Hills\' blue as drawn')
+    meta['source'] = ('generated by Griz (2026-09-28: SE\'s idle and attack, E\'s walk) and the art desk (2026-10-15, ART-29 and its redraw: '
+                      'every other row of every view), cut and snapped by tools/gnoll-sheet.py') + (', the cloth recoloured to the Desert tribe\'s red' if recolour else ', the Hills\' blue as drawn')
     json.dump(meta, open(meta_p, 'w'), indent=1)
 
 
@@ -407,23 +382,24 @@ def facings(name, frames):
     prone 2, get up 1 and 6, laugh 1 and 5"""
     d = os.path.join(ROOT, 'dev', 'visions', 'gnoll'); os.makedirs(d, exist_ok=True)
     for row, per in frames.items():
-        n = len(per[0])
-        cv = Image.new('RGBA', (FW * n + 4 * (n + 1), FH * 8), (70, 74, 70, 255))
+        n, (fh, ay) = len(per[0]), TALL.get(row, (FH, AY))
+        cv = Image.new('RGBA', (FW * n + 4 * (n + 1), fh * 8), (70, 74, 70, 255))
         dr = ImageDraw.Draw(cv)
         for f in range(8):
             for i, fr in enumerate(per[f]):
-                cv.alpha_composite(Image.fromarray(fr, 'RGBA'), (4 + i * (FW + 4), f * FH))
-            dr.line([(0, f * FH + AY + 1), (cv.width, f * FH + AY + 1)], fill=(110, 114, 110, 255))
-            dr.text((2, f * FH + 2), FN[f], fill=(255, 255, 255, 255))
+                cv.alpha_composite(Image.fromarray(fr, 'RGBA'), (4 + i * (FW + 4), f * fh))
+            dr.line([(0, f * fh + ay + 1), (cv.width, f * fh + ay + 1)], fill=(110, 114, 110, 255))
+            dr.text((2, f * fh + 2), FN[f], fill=(255, 255, 255, 255))
         cv.resize((cv.width * 2, cv.height * 2), Image.NEAREST).save(os.path.join(d, 'facings-%s-%s.png' % (name, row)))
     pick = [('idle', 0), ('walk', 0), ('attack', 3), ('hurt', 0), ('hurt', 6), ('prone', 1), ('getup', 0), ('getup', 5), ('laugh', 0), ('laugh', 4)]
-    cv = Image.new('RGBA', (FW * len(pick), FH * 8), (70, 74, 70, 255))
+    CH, CY = max([FH] + [t[0] for t in TALL.values()]), max([AY] + [t[1] for t in TALL.values()])     # a cell holds the tallest row, feet on one line
+    cv = Image.new('RGBA', (FW * len(pick), CH * 8), (70, 74, 70, 255))
     dr = ImageDraw.Draw(cv)
     for f in range(8):
         for i, (row, k) in enumerate(pick):
-            cv.alpha_composite(Image.fromarray(frames[row][f][k], 'RGBA'), (i * FW, f * FH))
-        dr.line([(0, f * FH + AY + 1), (cv.width, f * FH + AY + 1)], fill=(200, 60, 60, 255))
-        dr.text((2, f * FH + 2), FN[f], fill=(255, 255, 255, 255))
+            cv.alpha_composite(Image.fromarray(frames[row][f][k], 'RGBA'), (i * FW, f * CH + CY - TALL.get(row, (FH, AY))[1]))
+        dr.line([(0, f * CH + CY + 1), (cv.width, f * CH + CY + 1)], fill=(200, 60, 60, 255))
+        dr.text((2, f * CH + 2), FN[f], fill=(255, 255, 255, 255))
     cv.resize((cv.width * 2, cv.height * 2), Image.NEAREST).save(os.path.join(d, 'lineup-%s.png' % name))
 
 
