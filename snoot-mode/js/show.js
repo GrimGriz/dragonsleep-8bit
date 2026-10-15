@@ -15,7 +15,7 @@
   var W0 = 960, H0 = 540, CX = 480; // (the screen's own size for the dice, the banners and the rosters; the canvas scales it)
   // how long each beat holds the screen, in seconds; a round's dice roll together (CHAINMAIL's melee is simultaneous, p.14), as do its casualties,
   // its fire balls and its duels -- one beat each -- and a later round goes quicker: about five seconds a fight (RULED 10-14 night)
-  var DUR = { surp: 0.9, fight: 0.9, round: 0.3, shock: 1.0, ft: 0.9, fb: 0.75, atk: 1.2, cas: 0.6, herofall: 0.6, gone: 0.6, mor: 0.95, fall: 0.6, surrender: 0.6, wit: 1.1, inst: 0.8, grid: 1.2, night: 1.0, head: 3.4 };
+  var DUR = { evade: 1.1, surp: 0.9, fight: 0.9, round: 0.3, shock: 1.0, ft: 0.9, fb: 0.75, atk: 1.2, cas: 0.6, herofall: 0.6, gone: 0.6, mor: 0.95, fall: 0.6, surrender: 0.6, wit: 1.1, inst: 0.8, grid: 1.2, night: 1.0, head: 3.4 };
   // a family plays as one beat: every band's shock with its falling back; the round's casualties with who fell and who is gone; the falls
   // after nightfall with the night; a run of instability rolls
   var FAM = { atk: 'atk', cas: 'toll', gone: 'toll', herofall: 'toll', surrender: 'toll', fb: 'fb', save: 'fb', ft: 'ft', shock: 'shock', fall: 'fall', inst: 'inst', night: 'night' };
@@ -81,6 +81,7 @@
       switch (b.t) {
         case 'fight': if (now) sc.banner = { big: 'A FIGHT AT ' + String(b.place).toUpperCase(), small: 'Day ' + b.day, p: p }; sc.enter = 1 - p; break;
         case 'round': if (now) sc.banner = { big: 'ROUND ' + b.n, small: '', p: p, quick: true }; break;
+        case 'evade': if (now) sc.banner = { big: b.ok ? 'THEY SLIP AWAY' : 'CAUGHT', small: b.name + ' try to evade (Book III): ' + b.roll + ' against ' + b.chance + '%' + (b.room ? '' : ', nowhere to go'), p: p }; break;
         case 'surp': if (now) { [['ours', b.dO], ['theirs', b.dT]].forEach(function (x) { sc.dice.push({ side: x[0], u: null, dice: [x[1]], need: 3, sum: true, p: p, word: x[1] <= 2 ? 'UNREADY' : 'READY', title: 'A die for surprise (Book III): 1-2 unready' }); });
             if (b.side) sc.banner = { big: 'SURPRISE!', small: (b.side === 'ours' ? 'ours are' : 'they are') + ' caught unready: taken ' + (b.circle ? 'from the rear, in a circle,' : 'in the flank') + ' in the first round', p: p }; } break;
         case 'shock': if (now) { sc.dice.push({ side: U ? U.k : 'theirs', u: b.u, dice: b.dice, need: b.need, sum: true, p: p, word: b.ok ? 'THEY STAND' : 'THEY SHY FROM ' + String(b.byName).toUpperCase() }); if (U) U.shake = 1 - p; } break;

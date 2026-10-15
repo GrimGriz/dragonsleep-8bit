@@ -322,6 +322,8 @@
     SN.say(st, 'A fight at ' + name + ': ' + ours().map(SN.label).join(', ') + ' against ' + theirs().map(SN.label).join(', ') + '.', 'fight', h);
     SN.beat(st, { t: 'fight', at: h.slice(), place: name, ter: SN.ter(h[0], h[1]), road: SN.road(h), ours: ours().map(function (u) { return SN.snap(u, h); }), theirs: theirs().map(function (u) { return SN.snap(u, h); }) });
     SN.surprise(st, h, ours(), theirs());
+    SN.evasion(st, h, ours(), theirs());
+    if (!ours().length || !theirs().length) return; // (it slipped away: no fight, and no one won one)
     here().forEach(function (u) { u.fought = true; });
     // the shock: a super-hero's or a wraith's charge makes every enemy unit it reaches check as if over its line (p.30, p.34; p.18 for what failing is)
     (st.shock || []).filter(function (s) { return SN.same(s.at, h); }).forEach(function (s) {
@@ -372,6 +374,37 @@
     if (side) st.surp = { at: h.slice(), side: side, circle: circle };
     SN.beat(st, { t: 'surp', dO: dO, dT: dT, side: side, circle: circle, both: sO && sT });
     SN.say(st, 'Surprise (Book III): ours roll ' + dO + ', theirs ' + dT + (side ? ' -- ' + (side === 'ours' ? 'ours are' : 'they are') + ' caught unready: in the first round they are taken ' + (circle ? 'from the rear (three or more come at them, in a circle)' : 'in the flank') + '.' : sO && sT ? ' -- both caught unready: neither gains.' : ' -- no one is caught unready.'), 'roll', h);
+  };
+  // evasion (OD&D Book III p.20; RULED 10-15, his "go on evasion" on the seat's lean): a unit under orders to AVOID that something comes at tries
+  // to slip a hex away instead of fighting, on Book III's table -- the party's size (here the unit's figures; the four count four) against "the number
+  // of monsters encountered" as a share of the "possible #" (here the pursuers' figures against their starting figures). "Surprise by party means
+  // that evasion chances are doubled. Surprise by monsters negates all chance of evasion unless party is able to use some form of magic" (a wizard
+  // or a caster with it); "if ... one is at least twice as fast as the other, the faster will have the effect of increasing/decreasing evasion
+  // chances by 25%". A failed evasion is the fight (no pursuit at a day's scale). The Dominion's wagons avoid whenever they hold
+  SN.EVADE = [[3, [50, 70, 90]], [9, [30, 50, 70]], [24, [15, 30, 50]], [1e9, [5, 20, 35]]]; // (party size up to, then the chance by the monsters' share: 25% or less, 26-60%, over 60%)
+  SN.evadeChance = function (st, u, P, surp) {
+    var size = u.party ? 4 : SN.fightFigs(u), row = SN.EVADE.filter(function (r) { return size <= r[0]; })[0][1];
+    var a = P.reduce(function (s, x) { return s + (x.figs || 0); }, 0), b = P.reduce(function (s, x) { return s + (x.figs0 || 0); }, 0), share = b ? a / b : 1;
+    var c = row[share <= 0.25 ? 0 : share <= 0.6 ? 1 : 2], why = [size + (u.party ? ' of the four' : ' figures') + ' against ' + Math.round(share * 100) + '% of their strength: ' + c + '%'];
+    var mine = u.side === 'ours' ? 'ours' : 'theirs';
+    if (surp && surp.side && surp.side !== mine) { c *= 2; why.push('they were surprised: doubled'); }
+    else if (surp && surp.side === mine) { if (SN.heroesOf(u).some(SN.casts)) why.push('surprised, but magic with them'); else { c = 0; why.push('caught unready: no chance'); } }
+    var mu = SN.moveOf(u), mp = Math.max.apply(null, P.map(SN.moveOf));
+    if (c > 0 && mu >= 2 * mp) { c += 25; why.push('twice as fast: +25'); } else if (c > 0 && mp >= 2 * mu) { c -= 25; why.push('they are twice as fast: -25'); }
+    return { c: Math.max(0, Math.min(100, c)), why: why.join('; ') };
+  };
+  SN.evasion = function (st, h, O, T) {
+    var surp = st.surp && SN.same(st.surp.at, h) ? st.surp : null;
+    [[O, T], [T, O]].forEach(function (pr) {
+      pr[0].filter(function (u) { return u.order && u.order.type === 'avoid' && u.state === 'ok' && SN.same(u.at, h); }).forEach(function (u) {
+        var P = pr[1].filter(function (x) { return SN.alive(x) && SN.same(x.at, h); }); if (!P.length) return;
+        var e = SN.evadeChance(st, u, P, surp), roll = 1 + Math.floor(SN.rng(st) * 100), room = SN.nbrs(u.at).some(function (x) { return SN.cost(x) < 99 && !SN.unitsAt(st, x).some(function (y) { return SN.hostile(u, y); }); });
+        var ok = roll <= e.c && room, nm = u.party ? 'the four' : u.name;
+        SN.beat(st, { t: 'evade', u: u.id, name: nm, roll: roll, chance: e.c, ok: ok, why: e.why, room: room });
+        SN.say(st, nm + ' try to slip away (Book III): ' + e.why + ' -- rolled ' + roll + (ok ? ': they are gone a hex.' : !room ? ': nowhere to go -- caught.' : ': caught.'), 'roll', h);
+        if (ok) SN.fallBack(st, u, 'evade');
+      });
+    });
   };
   // nightfall (RULED 10-14 night, his "enemies can't end the day on the hex?" and the seat's lean): three rounds and both still standing, the
   // side with the lower morale total backs off a hex in good order -- CHAINMAIL's mildest result (p.16); a side that never yields (berserkers,
@@ -745,6 +778,8 @@
     }
     var wit = st.units.filter(function (x) { return x.side === 'gnoll' && SN.alive(x) && x.state === 'ok' && !x.watch && x.figs >= 2 && SN.dist(x.at, hit.at) <= 2 && foes2.indexOf(x) < 0; });
     if (foes2.some(function (x) { return x.side === 'gnoll'; }) && wit.length) out.warn.push('If the gnolls win, the witness fills them from ' + wit.map(function (x) { return x.name + ' (' + x.figs + ')'; }).join(', ') + ' -- within two hexes.');
+    var wag = foes2.filter(function (x) { return x.side === 'dominion'; })[0];
+    if (wag) out.lines.push('The Dominion\'s wagons slip away if they can (Book III\'s evasion): about ' + SN.evadeChance(st, wag, [u], null).c + '% against you.');
     if (!u.party) out.lines.push('Either side may be caught unready: a 1 or 2 on its die (OD&D Book III) -- then it is taken in the flank in the first round, in the rear if three or more units come at it.');
     out.lines.push('Their orders are secret: they may move, or others may charge in.');
     return out;

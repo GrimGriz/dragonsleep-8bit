@@ -128,6 +128,17 @@
     ok(rolled > 0 && a1 && a1.asp === 'flank', 'Book III p.9: each side rolls for surprise as a fight begins; a band caught unready (1-2) is taken in the flank in the first round -- the patrol came at its front' + (a1 ? ' (' + a1.asp + ')' : ' (no band caught unready)'));
     ok(a3 && a3.asp === 'rear' && !atk1(sp3, 'sg1'), 'Book III p.17: three units of ours surprising a band are "moved into a circle" -- from the rear, and the band strikes nothing back in the first round');
 
+    // ---- evasion (OD&D Book III p.20; RULED 10-15: "go on evasion")
+    ok(tk(function () { var c = function (u, P, s) { return SN.evadeChance({}, Object.assign({ side: 'ours', cls: 'HF', heroes: [] }, u), P.map(function (x) { return Object.assign({ cls: 'HF', heroes: [] }, x); }), s).c; };
+      var big = { figs: 6, figs0: 6 }, half = { figs: 3, figs0: 6 }, lone = { figs: 1, figs0: 6 };
+      return c({ figs: 3 }, [big]) === 90 && c({ figs: 5 }, [half]) === 50 && c({ figs: 30 }, [lone]) === 5 && c({ figs: 5 }, [big], { side: 'theirs' }) === 100 && c({ figs: 5 }, [big], { side: 'ours' }) === 0 &&
+        c({ figs: 5, heroes: [{ type: 'wizard', missile: 'fireball' }] }, [big], { side: 'ours' }) === 70 && c({ figs: 5, cls: 'LH', mounted: true }, [big]) === 95; }),
+      'Book III p.20: the evasion table -- 3 figures from a band at full strength 90%, 5 from one at half 50%, 30 from a remnant 5%; doubled when they were surprised, none when the evader was unless it has magic, +25% twice as fast');
+    var ev = null; for (var q5 = 100; q5 < 300 && !ev; q5++) { var se = fday(q5, function (s) { var p = on(s, 'patrol', [8, 5]); p.order = { type: 'avoid' }; var g = on(s, 'sg1', [7, 5]); g.order = { type: 'move', to: [8, 5], path: [[8, 5]] }; }); var eb = se.beats.filter(function (b) { return b.t === 'evade'; })[0]; if (eb && eb.ok) ev = se; }
+    var pe = ev && SN.unit(ev, 'patrol');
+    ok(ev && !SN.same(pe.at, [8, 5]) && !atk1(ev, 'patrol') && !atk1(ev, 'sg1'), 'Book III p.20: a unit under AVOID that a band comes at rolls to slip a hex away -- and no blow is struck' + (pe ? ' (the patrol now at ' + pe.at + ')' : ''));
+    ok(tk(function () { var sd = SN.newGame(61); sd.party8 = null; SN.DOMINION.forEach(function (f) { sd.units.push(SN.make(f, true)); }); var w1 = SN.unit(sd, 'dm1'); w1.at = [8, 3]; SN.AI.dominion(sd, w1); return w1.order.type === 'avoid'; }),
+      'the Dominion\'s wagons at the inn are under AVOID (the seat\'s lean, ruled)');
     // ---- whole battles, both hands, the party's part on the tables
     var heads = 0, grids = 0, maps = 0, fills = 0, bands = 0, ends = [], domOk = true, inv = [], dom0 = [], nightShared = 0;
     for (var seed = 1; seed <= 8; seed++) {

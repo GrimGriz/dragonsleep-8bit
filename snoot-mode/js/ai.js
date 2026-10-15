@@ -103,7 +103,7 @@
     if (near) { go(st, u, near.at); return; }
     var inn = [8, 3];
     if (!SN.same(u.at, inn) && SN.dist(u.at, inn) > 1) go(st, u, inn);
-    else u.order = { type: 'support' };
+    else u.order = { type: 'avoid' }; // (they came to watch, not to fight: Book III's evasion, RULED 10-15)
   };
 
   // ---------------------------------------------------------------- the bench's hand for our side (the probe's whole battle; ?watch)
