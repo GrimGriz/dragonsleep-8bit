@@ -141,17 +141,17 @@
       'the Dominion\'s wagons at the inn are under AVOID (the seat\'s lean, ruled)');
     // ---- one man a figure, the mixed units, his numbers, COMBINE, the grid beside the four (RULED 10-15)
     var FF = function (id) { return SN.FORCES.filter(function (f) { return f.id === id; })[0]; };
-    ok(tk(function () { return FF('greyfang').figs === 40 && FF('patrol').groups.map(function (g) { return g.n + g.cls; }).join() === '12HF,4MH' && FF('patrol').wagon && !FF('bows') &&
+    ok(tk(function () { return FF('greyfang').figs === 40 && FF('greyfang').cls === 'HF' && FF('greyfang').def === 'HF' && !FF('greyfang').morale && FF('patrol').groups.map(function (g) { return g.n + g.cls; }).join() === '12HF,4MH' && FF('patrol').wagon && !FF('bows') &&
       FF('bat1').figs === 40 && FF('bat2').figs === 40 && FF('bat3').figs === 20 && [FF('bat1'), FF('bat2'), FF('bat3')].every(function (f) { return f.arrive === 18; }) &&
       FF('bb1').figs + FF('bb2').figs + FF('bb3').figs === 100 && FF('bb1').figs === 60 && FF('bb1').escort && FF('sg1').figs === 18 && FF('sg1').comp.gloryseeker === 3 && FF('sg1').comp.gnoll === 9 && FF('sg1').comp.hyena === 6 && FF('gk1').youngblood; }),
-      'his numbers (10-15), one man a figure: the Pit 40; the road patrol a paladin, 12 heavy foot, 4 horse and a wagon; Newland\'s 40, 40 and 20 on Day 18; the plains 100, 60 the horse escort; a war-band 18; the Gray Keeping\'s young blood');
+      'his numbers (10-15), one man a figure: the Pit 40 Heavy Foot; the road patrol a paladin, 12 heavy foot, 4 horse and a wagon; Newland\'s 40, 40 and 20 on Day 18; the plains 100, 60 the horse escort; a war-band 18; the Gray Keeping\'s young blood');
     var mx = fday(43, function (s) { var g = on(s, 'sg1', [8, 5]); g.face = 3; var p = on(s, 'patrol', [7, 5]); p.order = { type: 'move', to: [8, 5], path: [[8, 5]] }; });
     var mrows = mx.beats.filter(function (b) { return b.t === 'atk' && b.u === 'patrol' && b.round === 1 && !b.wiz; }), pu = SN.make(FF('patrol'), true);
     ok(mrows.length >= 2 && mrows[0].cls0 === 'HF' && mrows[1].cls0 === 'MH' && Math.abs(SN.rating(pu) - (12 * 5 + 4 * 8) / 16) < 0.06 && SN.moveOf(pu) === 3 && !SN.foot(pu),
       'p.15: a mixed unit rolls each type on its own row (the patrol\'s heavy foot, then its horse), its morale by type, its pace its slowest\'s; no square with horse in it (' + mrows.map(function (b) { return b.cls0; }).join(' ') + ')');
     ok(tk(function () { var sc = SN.newGame(62); sc.party8 = null; SN.dawn(sc); var a = SN.unit(sc, 'patrol'), g = SN.unit(sc, 'greyfang'), big = SN.combine(sc, a, g);
-      return big && big.id === 'greyfang' && big.figs === 56 && big.groups.length === 3 && SN.heroesOf(big).length === 2 && a.state === 'merged' && !SN.alive(a) && !big.reformed && SN.greyfang(sc) === big; }),
-      'COMBINE: the patrol joins GreyFang\'s fighters -- one mixed unit of 56 men, three types, both heroes; GreyFang\'s keeps him (the quarry); free on Day 14');
+      return big && big.id === 'greyfang' && big.figs === 56 && big.groups.length === 2 && big.groups[0].n === 52 && SN.heroesOf(big).length === 2 && a.state === 'merged' && !SN.alive(a) && !big.reformed && SN.greyfang(sc) === big; }),
+      'COMBINE: the patrol joins GreyFang\'s fighters -- one mixed unit of 56 men, the heavy foot together (52) and the horse, both heroes; GreyFang\'s keeps him (the quarry); free on Day 14');
     ok(tk(function () { var sa = SN.newGame(63); sa.party8 = null; SN.dawn(sa); var al = SN.allies(sa, SN.PIT), P = SN.unit(sa, 'party'), b = SN.unit(sa, 'sg1'); b.at = SN.PIT.slice();
       var req = SN.band(sa, [b], SN.PIT); SN.partyResult(sa, P, [b], req, { result: 'won', share: 0.5, dead: 10, allyDead: { patrol: 2 } }, SN.PIT);
       return al.length === 6 && al.every(function (x) { return x.unit === 'greyfang' || x.unit === 'patrol'; }) && req.enemies.length === 18 && req.contrib[0].n === 18 && b.figs === 8 && SN.unit(sa, 'patrol').figs === 14; }),
@@ -163,7 +163,7 @@
     // ---- a surrender takes the men, never the heroes (p.30; found 10-15 in his play: GreyFang went prisoner with his forty)
     ok(tk(function () { var sp = SN.newGame(65); sp.party8 = null; SN.dawn(sp); var g = SN.unit(sp, 'greyfang'), b = SN.unit(sp, 'sg1'); b.at = [8, 2];
       SN.surrender(sp, g); SN.surrender(sp, b);
-      return g.figs === 0 && SN.alive(g) && g.state !== 'prisoner' && SN.greyfang(sp) === g && !SN.same(g.at, SN.PIT) && b.state === 'prisoner' && !SN.alive(b) && sp.stats.prisoners['ours:LF'] === 40; }),
+      return g.figs === 0 && SN.alive(g) && g.state !== 'prisoner' && SN.greyfang(sp) === g && !SN.same(g.at, SN.PIT) && b.state === 'prisoner' && !SN.alive(b) && sp.stats.prisoners['ours:HF'] === 40; }),
       'p.30: a surrender takes the men, never the heroes -- GreyFang\'s forty are taken, GreyFang cuts free and falls back alone; a band with no hero is taken whole');
     // ---- whole battles, both hands, the party's part on the tables
     var heads = 0, grids = 0, maps = 0, fills = 0, bands = 0, ends = [], domOk = true, inv = [], dom0 = [], nightShared = 0;

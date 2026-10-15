@@ -107,7 +107,7 @@
     { id: 'party', side: 'ours', name: 'The Party', kind: 'the four', party: true, cls: 'AF', def: 'AF', figs: 0, at: [9, 8], move: 3,
       heroes: [{ type: 'superhero', name: 'Barley' }, { type: 'superhero', name: 'Aurdin' }, { type: 'superhero', name: 'Vivian' }, { type: 'superhero', name: 'Lymen' }],
       sheets: ['barley_p1', 'aurdin_p1', 'vivian_p1', 'lymen_p1'], note: 'Every fight they stand in is fought on the grid (DEEP16), and the men of ours in their hex fight beside them.' },
-    { id: 'greyfang', side: 'ours', name: "GreyFang's pit fighters", kind: 'the pit', cls: 'LF', def: 'LF', figs: 40, at: [9, 8], move: 3, morale: 4,
+    { id: 'greyfang', side: 'ours', name: "GreyFang's pit fighters", kind: 'the pit', cls: 'HF', def: 'HF', figs: 40, at: [9, 8], move: 3, // (Heavy Foot, trained fighters -- RULED 10-15, his "yes - heavy foot the tarlyn's pit troops"; they were Light Foot levies, the lane §3's first reading)
       heroes: [{ type: 'superhero', name: 'GreyFang', fated: true }], sheets: ['greyfang_p1', 'npcfighter_p0'],
       note: 'GreyFang, ranger 11 of the Grey Road, and the Pit\'s forty fighters: a Super-hero (p.30). The Snoot\'s quarry: the Harbinger hunts him.' },
     { id: 'patrol', side: 'ours', name: "Newland's road patrol", kind: 'Newland', cls: 'HF', def: 'HF', at: [9, 8], wagon: true,
