@@ -48,12 +48,11 @@
   "from": "ART-61",
   "drawn": [
    "SE idle/walk/attack/hurt",
+   "NE idle/walk/attack/hurt",
    "E hurt",
    "N hurt"
   ],
-  "owed": [
-   "NE (NW mirrored): Idle 2, Walk 9, Attack 6, Hurt 6 -- open at the art desk"
-  ],
+  "owed": [],
   "lpc_cells": {
    "hurt": [
     64,

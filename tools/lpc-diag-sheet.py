@@ -64,7 +64,7 @@ NUM = lambda k: [str(i + 1) for i in range(k)]
 # y0 y1, the numbers). `view` is the facing the page draws; `ref` the page's standing frame its scale is read from. `owed` is what the art
 # desk has not sent yet: those facings stay as pixelate.py lays them.
 FIGS = {
-    'trooper': dict(                                          # ART-61, 10-15: three pages of four, PARTIAL (deep16/_src/trooper/ART-61/)
+    'trooper': dict(                                          # ART-61, 10-15: all four pages (deep16/_src/trooper/ART-61/)
         dir='trooper/ART-61',
         pages={
             'H1P1': dict(file='ART-61_HEAD-1_PAGE-1.png', view='SE', ref=('idle', '1'),          # SE: Idle 2, Walk 9, Attack 6, Hurt 6
@@ -74,6 +74,15 @@ FIGS = {
                                ('walk', (150, 193, 2067, 352), (352, 377), NUM(9)),
                                ('attack', (150, 378, 2067, 540), (540, 568), NUM(6)),
                                ('hurt', (150, 568, 2067, 719), (719, 746), NUM(6))]),
+            # (HEAD 2 came loose, after the zip -- Griz, 10-15: "just added to Fresh, it didn't put it in the zip"; its Hurt 4 reaches into
+            # its number strip, so that strip starts under it, in the numbers' lower part)
+            'H2P1': dict(file='ART-61_HEAD-2_PAGE-1.png', view='NE', ref=('idle', '1'),          # NE: Idle 2, Walk 9, Attack 6, Hurt 6
+                         text=[(0, 85, 145, 140), (0, 262, 145, 315), (0, 440, 145, 492), (0, 618, 145, 670),
+                               (150, 166, 2067, 192), (150, 348, 2067, 376), (150, 540, 2067, 568), (150, 721, 2067, 746)],
+                         rows=[('idle', (150, 10, 2067, 166), (166, 192), NUM(2)),
+                               ('walk', (150, 190, 2067, 348), (348, 376), NUM(9)),
+                               ('attack', (150, 378, 2067, 540), (540, 568), NUM(6)),
+                               ('hurt', (150, 566, 2067, 725), (725, 746), NUM(6))]),
             'H4P1': dict(file='ART-61_HEAD-4_PAGE-1.png', view='E', ref=('hurt', '1'),           # E: Hurt 6
                          text=[(0, 445, 170, 515), (180, 516, 2172, 556)],
                          rows=[('hurt', (180, 280, 2172, 516), (516, 556), NUM(6))]),
@@ -84,7 +93,7 @@ FIGS = {
                          text=[(0, 385, 140, 450), (150, 524, 2137, 565)],
                          rows=[('hurt', (150, 285, 2137, 524), (524, 565), NUM(6))]),
         },
-        owed={'H2P1': 'NE (NW mirrored): Idle 2, Walk 9, Attack 6, Hurt 6 -- open at the art desk'}),
+        owed={}),
 }
 
 
