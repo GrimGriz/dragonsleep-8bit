@@ -31,8 +31,10 @@ and its redraw (2026-10-15, Griz's pick after our return: deep16/_src/gnoll/ART-
   H1P2  ART-29_HEAD-1_PAGE-2.png  SE: the rows of H2P2 (the old sheet's SE Death, Prone, Get Up and Laugh were the 09-28 drawings, short)
   H3P2  ART-29_HEAD-3_PAGE-2.png  S:  Idle 8, Walk 8, Attack 8 (the old "front still" S played was drawn three-quarter, the muzzle right)
   H5P2  ART-29_HEAD-5_PAGE-2.png  N:  Idle 8, Walk 8, Attack 8 (the old back views, a slimmer gnoll)
-Of the old sheets only page 1's SE Idle and Attack and its side Walk (E) still play, as the manifests keep them (the old page 2 feeds
-nothing now). Every other facing of every row is ART-29's (build() prints which view each facing plays). The pages are cut by their labels
+and its last rows (2026-10-15, his "so the last old gnoll rows go": deep16/_src/gnoll/ART-29-LASTROWS/) --
+  H1P3  ART-29_HEAD-1_PAGE-3.png  SE: Idle 8, Attack 8
+  H4P3  ART-29_HEAD-4_PAGE-3.png  E:  Walk 8 (met, as HEAD 1's walk is, to the old side walk's height)
+No row plays from the old sheets now: page 1 is read for that walk height and as TONE's colour reference, page 2 not at all. Every other facing of every row is ART-29's (build() prints which view each facing plays). The pages are cut by their labels
 (sheetrows, the CHAN test), scaled each by its standing rows (K, in build()), toned to the old page 1's fur and cloth (TONE, in build()),
 and placed as the old rows are; the attack row's frames are 16 px taller (TALL: the N overhead thrust on the glory-seeker).
 """
@@ -80,6 +82,7 @@ CHAN = 16     # figure: any channel 17 or more off the navy (the default test ke
               # own navy varies 5-12 at most, the feet's drop shadow 8-16, the outline 24 and more)
 A29 = os.path.join('gnoll', 'ART-29')
 A29R = os.path.join('gnoll', 'ART-29-REDRAW')
+A29L = os.path.join('gnoll', 'ART-29-LASTROWS')
 ART29 = {
     'H1P1': dict(file=os.path.join(A29, 'ART-29_HEAD-1_PAGE-1.png'), text=[(0, 340, 150, 390)],
                  rows=[('walk', (150, 200, 2079, 532), (533, 570), NUM(8))]),
@@ -126,6 +129,12 @@ ART29 = {
                  rows=[('idle', (150, 40, 1855, 249), (249, 277), NUM(8)),
                        ('walk', (150, 290, 1855, 502), (502, 531), NUM(8)),
                        ('attack', (0, 535, 1855, 787), (786, 813), NUM(8))]),     # (from x 0: Attack 1's spear head reaches x 106)
+    # the last rows (10-15, ART-29 supplement 2, his "so the last old gnoll rows go": deep16/_src/gnoll/ART-29-LASTROWS/, its ART-29-LASTROWS-MANIFEST.md)
+    'H1P3': dict(file=os.path.join(A29L, 'ART-29_HEAD-1_PAGE-3.png'), text=[(0, 188, 140, 234), (0, 506, 168, 548)],
+                 rows=[('idle', (180, 70, 2079, 336), (338, 373), NUM(8)),
+                       ('attack', (175, 371, 2079, 652), (656, 690), NUM(8))]),   # (Attack 4's spear tip at y 374, over the Idle's numbers)
+    'H4P3': dict(file=os.path.join(A29L, 'ART-29_HEAD-4_PAGE-3.png'), text=[(0, 338, 133, 382)],
+                 rows=[('walk', (0, 150, 1983, 565), (568, 607), NUM(8))]),       # (from x 0: Walk 1's tail reaches x 125, under the label)
 }
 FIT29 = {('H3P1', 'death')}     # (a row scaled apart from its page: build())
 # a line of pixels cleared (sheetrows' CUT): the E page's Laugh 8 lies with its sole against Laugh 9's toes (x 1530-1531, y 800-818)
@@ -305,8 +314,6 @@ def build(name, recolour):
     H = HEIGHT[name]
     rows1 = {k: frames_in(P1, BG1, *v) for k, v in B1.items()}
     stand1 = np.mean([im.size[1] for im in rows1['idle']]) / H        # page 1's rows, by the idle row's height
-    side = lambda ims, row: [place(a, torso_x(a), 0, *TALL.get(row, (FH, AY))) for a in (fit(im, stand1, recolour) for im in ims)]
-    old = {r: side(rows1[r], r) for r in ('idle', 'walk', 'attack')}       # SE's idle and attack, E's walk
     mirror = lambda seq: [fr[:, ::-1].copy() for fr in seq]
 
     # ART-29 (10-15): every page at its own scale (GPT drew each at its own size), the gnoll the old rows' way -- on its torso, its lowest pixel on
@@ -315,7 +322,7 @@ def build(name, recolour):
     # tall as the idle it rises into.
     cuts = cuts29()
     walk_h = np.mean([im.size[1] for im in rows1['walk']]) / stand1        # the old side walk at game size
-    K = {L: float(np.mean([hgt(im) for _, im, _ in cuts[L]['walk']])) / walk_h if L == 'H1P1' else
+    K = {L: float(np.mean([hgt(im) for _, im, _ in cuts[L]['walk']])) / walk_h if L in ('H1P1', 'H4P3') else
             float(np.median([hgt(im) for _, im, _ in cuts[L]['idle']])) / H if 'idle' in cuts[L] else hgt(cuts[L]['getup'][5][1]) / H for L in ART29}
     # FIT29: a row GPT drew bigger than its page -- HEAD 3's Death: its Death 1 stands 1.18 of its Get Up 6, the other views' 1.03-1.07 (and its
     # head, ear to ear, a tenth wider than Get Up 6's): scaled so that ratio is theirs
@@ -338,18 +345,20 @@ def build(name, recolour):
                                                             ', '.join('%s %s %.3f' % (L, row, k) for (L, row), k in KR.items())))
     late = lambda L: {'hurt': L, 'prone': L, 'getup': L, 'laugh': L}           # a page of Death (it plays as `hurt`), Prone, Get Up, Laugh
     stand = lambda L: {'idle': L, 'walk': L, 'attack': L}
-    view = {'HEAD1': dict(late('H1P2'), walk='H1P1'), 'HEAD2': dict(late('H2P2'), **stand('H2P1')), 'HEAD3': dict(late('H3P1'), **stand('H3P2')),
-            'HEAD4': dict(late('H4P2'), idle='H4P1', attack='H4P1'), 'HEAD5': dict(late('H5P1'), **stand('H5P2'))}
+    view = {'HEAD1': dict(late('H1P2'), walk='H1P1', idle='H1P3', attack='H1P3'), 'HEAD2': dict(late('H2P2'), **stand('H2P1')),
+            'HEAD3': dict(late('H3P1'), **stand('H3P2')), 'HEAD4': dict(late('H4P2'), idle='H4P1', attack='H4P1', walk='H4P3'),
+            'HEAD5': dict(late('H5P1'), **stand('H5P2'))}
     got = lambda v, row: new[(view[v][row], 'death' if row == 'hurt' else row)]
 
-    # the facings (S, SW, W, NW, N, NE, E, SE), RULED 10-14 (a figure is five drawn views; SE mirrors to SW, E to W, NE to NW): every row ART-29's
-    # but SE's idle and attack (the old three-quarter rows) and E's walk (the old side walk), as its manifest and the redraw's keep them
+    # the facings (S, SW, W, NW, N, NE, E, SE), RULED 10-14 (a figure is five drawn views; SE mirrors to SW, E to W, NE to NW): every row of every
+    # view ART-29's. The 09-28 sheets play nothing now: page 1 is read for the old side walk's height (HEAD 1's and HEAD 4's walks are met to it)
+    # and for TONE's colour
     frames = {'idle': [], 'walk': [], 'attack': [], 'hurt': [], 'laugh': [], 'prone': [], 'getup': []}
     took = {r: [] for r in frames}
     for f in range(8):
         v = {0: 'HEAD3', 4: 'HEAD5', 1: 'HEAD1', 7: 'HEAD1', 3: 'HEAD2', 5: 'HEAD2', 2: 'HEAD4', 6: 'HEAD4'}[f]
         for row in frames:
-            seq, src = (got(v, row), v) if row in view[v] else (old[row], 'old')
+            seq, src = got(v, row), v
             if f in (1, 2, 3):
                 seq, src = mirror(seq), src + 'm'
             frames[row].append(seq); took[row].append(src)
@@ -368,8 +377,8 @@ def build(name, recolour):
     meta = json.load(open(meta_p))
     meta['anims']['idle']['fps'] = 5; meta['anims']['walk']['fps'] = 10; meta['anims']['attack']['fps'] = 12; meta['anims']['hurt']['fps'] = 8
     meta['anims']['prone']['fps'] = 8; meta['anims']['getup']['fps'] = 8; meta['anims']['laugh']['fps'] = 6   # (the laugh's own beats are grimoire.js M.LAUGH's; fps is for a plain play)
-    meta['source'] = ('generated by Griz (2026-09-28: SE\'s idle and attack, E\'s walk) and the art desk (2026-10-15, ART-29 and its redraw: '
-                      'every other row of every view), cut and snapped by tools/gnoll-sheet.py') + (', the cloth recoloured to the Desert tribe\'s red' if recolour else ', the Hills\' blue as drawn')
+    meta['source'] = ('drawn by the art desk (2026-10-15, ART-29, its redraw and its last rows: every row of every view) after Griz\'s generated '
+                      'sheets of 2026-09-28 (their colour kept), cut and snapped by tools/gnoll-sheet.py') + (', the cloth recoloured to the Desert tribe\'s red' if recolour else ', the Hills\' blue as drawn')
     json.dump(meta, open(meta_p, 'w'), indent=1)
 
 
