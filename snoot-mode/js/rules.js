@@ -54,14 +54,17 @@
     var out = [], at = b; while (!SN.same(at, a)) { out.unshift(at); at = prev[SN.key(at)]; }
     return out;
   };
-  // how far a path gets in a day: the hexes it reaches (a unit can always take its first step, whatever the ground -- Book III's day); a column
-  // marches a hex further while it keeps to the road (the seat's reading, ruled with the formations 10-15: the march formation)
+  // how far a path gets in a day: the hexes it reaches (a unit can always take its first step, whatever the ground -- Book III's day). Horse and
+  // wagons in column march further while they keep to the road: CHAINMAIL p.10's road bonus, heavy horse +3", medium and light horse +6", wagons
+  // +6" -- a hex for every 3", as the foot's 9" is its 3 hexes; foot get none (RULED 10-15, his "1 book"; the column, the march formation, the seat's)
+  SN.ROADBONUS = { HH: 1, MH: 2, LH: 2 };
+  SN.roadBonus = function (u) { return u.form !== 'column' ? 0 : u.wagon ? 2 : u.mounted ? (SN.ROADBONUS[u.cls] || 0) : 0; };
   SN.reach = function (u, path) {
-    var col = u.form === 'column' ? 1 : 0, left = SN.moveOf(u) + col, road = true, out = [];
+    var col = SN.roadBonus(u), left = SN.moveOf(u) + col, road = true, out = [];
     for (var i = 0; i < (path || []).length; i++) {
       road = road && SN.road(path[i]);
-      var c = SN.cost(path[i]), cap = left - (col && !road ? 1 : 0);
-      if (c > cap && i > 0) break; left -= c; out.push(path[i]); if (left - (col && !road ? 1 : 0) <= 0) break;
+      var c = SN.cost(path[i]), cap = left - (road ? 0 : col);
+      if (c > cap && i > 0) break; left -= c; out.push(path[i]); if (left - (road ? 0 : col) <= 0) break;
     }
     return out;
   };
@@ -318,6 +321,7 @@
     var name = SN.placeName(h);
     SN.say(st, 'A fight at ' + name + ': ' + ours().map(SN.label).join(', ') + ' against ' + theirs().map(SN.label).join(', ') + '.', 'fight', h);
     SN.beat(st, { t: 'fight', at: h.slice(), place: name, ter: SN.ter(h[0], h[1]), road: SN.road(h), ours: ours().map(function (u) { return SN.snap(u, h); }), theirs: theirs().map(function (u) { return SN.snap(u, h); }) });
+    SN.surprise(st, h, ours(), theirs());
     here().forEach(function (u) { u.fought = true; });
     // the shock: a super-hero's or a wraith's charge makes every enemy unit it reaches check as if over its line (p.30, p.34; p.18 for what failing is)
     (st.shock || []).filter(function (s) { return SN.same(s.at, h); }).forEach(function (s) {
@@ -354,6 +358,20 @@
     here().forEach(function (u) { if (u.rounds >= 3 && !u.fatigued) { u.fatigued = true; SN.say(st, u.name + ' are fatigued (three rounds of melee: a class down and -1 morale till a day\'s rest).', 'info', h); } });
     if (ours().length && theirs().length) SN.nightfall(st, h, ours(), theirs());
     SN.after(st, h, null);
+  };
+  // surprise (OD&D Book III p.9, the wilderness's the same, p.17; RULED 10-15, his "2 lean" -- surprise first): "roll a six-sided die for each party
+  // concerned. A roll of 1 or 2 indicates the party is surprised" -- not a side all of whose units have fought today (they are awake to it); both
+  // caught, neither gains. "Surprise gives the advantage of a free move segment": in the first round the surprising side's units come at the
+  // surprised side's from the flank -- from the rear if three or more of them are in the fight, since "if there are three or more monsters involved
+  // they will have moved into a circle around the adventurers" (p.17)
+  SN.surprise = function (st, h, O, T) {
+    st.surp = null;
+    var dO = SN.d6(st), dT = SN.d6(st), awake = function (U) { return U.every(function (u) { return u.fought; }); };
+    var sO = dO <= 2 && !awake(O), sT = dT <= 2 && !awake(T), side = sO && !sT ? 'ours' : sT && !sO ? 'theirs' : null;
+    var by = side === 'ours' ? T : O, circle = !!side && by.filter(function (u) { return !u.party; }).length >= 3;
+    if (side) st.surp = { at: h.slice(), side: side, circle: circle };
+    SN.beat(st, { t: 'surp', dO: dO, dT: dT, side: side, circle: circle, both: sO && sT });
+    SN.say(st, 'Surprise (Book III): ours roll ' + dO + ', theirs ' + dT + (side ? ' -- ' + (side === 'ours' ? 'ours are' : 'they are') + ' caught unready: in the first round they are taken ' + (circle ? 'from the rear (three or more come at them, in a circle)' : 'in the flank') + '.' : sO && sT ? ' -- both caught unready: neither gains.' : ' -- no one is caught unready.'), 'roll', h);
   };
   // nightfall (RULED 10-14 night, his "enemies can't end the day on the hex?" and the seat's lean): three rounds and both still standing, the
   // side with the lower morale total backs off a hex in good order -- CHAINMAIL's mildest result (p.16); a side that never yields (berserkers,
@@ -439,14 +457,17 @@
     var before = {}; o.concat(t).forEach(function (u) { before[u.id] = SN.fightFigs(u); });
     // who takes whom from the rear in the first round: the attacker strikes and takes nothing back (p.16)
     var biggest = function (B) { return B.slice().sort(function (x, y) { return SN.fightFigs(y) - SN.fightFigs(x); })[0]; }, rearOf = {};
-    if (round === 1) [[o, t], [t, o]].forEach(function (pr) { pr[0].forEach(function (a) { var tg = biggest(pr[1]); if (tg && SN.aspect(st, a, tg, h) === 'rear') (rearOf[tg.id] = rearOf[tg.id] || []).push(a.id); }); });
+    // a side caught unready (SN.surprise) is taken in the flank in the first round, or in the rear by a circle of three or more
+    var sur = round === 1 && st.surp && SN.same(st.surp.at, h) ? st.surp : null;
+    var aspOf = function (a, tg) { var asp = SN.aspect(st, a, tg, h); if (sur && (tg.side === 'ours') === (sur.side === 'ours') && asp !== 'rear') asp = sur.circle ? 'rear' : 'flank'; return asp; };
+    if (round === 1) [[o, t], [t, o]].forEach(function (pr) { pr[0].forEach(function (a) { var tg = biggest(pr[1]); if (tg && aspOf(a, tg) === 'rear') (rearOf[tg.id] = rearOf[tg.id] || []).push(a.id); }); });
     function attack(a, B, volley) {
       if (!volley && rearOf[a.id]) { B = B.filter(function (x) { return rearOf[a.id].indexOf(x.id) < 0; }); if (!B.length) SN.say(st, a.name + ' are taken from behind: they strike nothing back this round.', 'roll', h); }
       if (!B.length) return;
       var tgt = biggest(B), cls0 = a.fatigued ? SN.LOWER[a.cls] : a.cls, cls = cls0;
       var dcls = tgt.fatigued ? SN.LOWER[tgt.def] : tgt.def, horse = { LH: 1, MH: 1, HH: 1 };
       if (horse[dcls] && !tgt.charged) dcls = SN.LOWER[dcls]; // (standing horse defends a class down, p.17)
-      var asp = volley ? 'front' : SN.aspect(st, a, tgt, h), up = 0; // (from the flank or the rear: the next class up, Armored Foot and Heavy Horse +1 a die, p.16)
+      var asp = volley ? 'front' : aspOf(a, tgt), up = 0; // (from the flank or the rear: the next class up, Armored Foot and Heavy Horse +1 a die, p.16)
       if (asp !== 'front') { if (SN.HIGHER[cls]) cls = SN.HIGHER[cls]; else up = 1; }
       var wf = volley ? 0 : SN.heroesOf(a).filter(SN.isWiz).length * 2; // (a wizard fights as two Armored Foot, p.30: her own dice, below)
       var row = SN.CT[cls][dcls], f = volley ? a.figs : SN.fightFigs(a) - wf, ter = SN.TERRAIN[SN.ter(h[0], h[1])];
@@ -634,7 +655,7 @@
 
   // ---------------------------------------------------------------- the day ends: rally, rest, the cleric, the Pit, home, the end
   SN.dusk = function (st) {
-    st.shock = [];
+    st.shock = []; st.surp = null;
     st.units.forEach(function (u) {
       if (!SN.alive(u)) return;
       if (u.state === 'retreat') { u.state = 'ok'; u.stand = st.day + 1; } // (a retreat stands a day while it rallies, p.16: no orders tomorrow)
@@ -724,6 +745,7 @@
     }
     var wit = st.units.filter(function (x) { return x.side === 'gnoll' && SN.alive(x) && x.state === 'ok' && !x.watch && x.figs >= 2 && SN.dist(x.at, hit.at) <= 2 && foes2.indexOf(x) < 0; });
     if (foes2.some(function (x) { return x.side === 'gnoll'; }) && wit.length) out.warn.push('If the gnolls win, the witness fills them from ' + wit.map(function (x) { return x.name + ' (' + x.figs + ')'; }).join(', ') + ' -- within two hexes.');
+    if (!u.party) out.lines.push('Either side may be caught unready: a 1 or 2 on its die (OD&D Book III) -- then it is taken in the flank in the first round, in the rear if three or more units come at it.');
     out.lines.push('Their orders are secret: they may move, or others may charge in.');
     return out;
   };

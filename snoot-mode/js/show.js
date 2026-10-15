@@ -15,7 +15,7 @@
   var W0 = 960, H0 = 540, CX = 480; // (the screen's own size for the dice, the banners and the rosters; the canvas scales it)
   // how long each beat holds the screen, in seconds; a round's dice roll together (CHAINMAIL's melee is simultaneous, p.14), as do its casualties,
   // its fire balls and its duels -- one beat each -- and a later round goes quicker: about five seconds a fight (RULED 10-14 night)
-  var DUR = { fight: 0.9, round: 0.3, shock: 1.0, ft: 0.9, fb: 0.75, atk: 1.2, cas: 0.6, herofall: 0.6, gone: 0.6, mor: 0.95, fall: 0.6, surrender: 0.6, wit: 1.1, inst: 0.8, grid: 1.2, night: 1.0, head: 3.4 };
+  var DUR = { surp: 0.9, fight: 0.9, round: 0.3, shock: 1.0, ft: 0.9, fb: 0.75, atk: 1.2, cas: 0.6, herofall: 0.6, gone: 0.6, mor: 0.95, fall: 0.6, surrender: 0.6, wit: 1.1, inst: 0.8, grid: 1.2, night: 1.0, head: 3.4 };
   // a family plays as one beat: every band's shock with its falling back; the round's casualties with who fell and who is gone; the falls
   // after nightfall with the night; a run of instability rolls
   var FAM = { atk: 'atk', cas: 'toll', gone: 'toll', herofall: 'toll', surrender: 'toll', fb: 'fb', save: 'fb', ft: 'ft', shock: 'shock', fall: 'fall', inst: 'inst', night: 'night' };
@@ -54,6 +54,7 @@
       var d = (DUR[b.t] || 0.6) * (round >= 2 && QUICK[b.t] ? 0.5 : 1);
       if (b.t === 'mor' && b.how === 'continue' && round >= 2) d = 0.45;
       if (b.t === 'round' && b.n === 1) d = 0;
+      if (b.t === 'surp' && !b.side) d = 0.45; // (no one caught unready: the two dice, briefly)
       if (b.t === 'head' && b.around) d = 1.8; // (the grid has shown it: a banner only)
       segs.push({ b: b, list: list, t0: t, d: d }); t += d;
       if (j >= from - 1 && start < from && !skipTo && j < from) skipTo = t;
@@ -80,6 +81,8 @@
       switch (b.t) {
         case 'fight': if (now) sc.banner = { big: 'A FIGHT AT ' + String(b.place).toUpperCase(), small: 'Day ' + b.day, p: p }; sc.enter = 1 - p; break;
         case 'round': if (now) sc.banner = { big: 'ROUND ' + b.n, small: '', p: p, quick: true }; break;
+        case 'surp': if (now) { [['ours', b.dO], ['theirs', b.dT]].forEach(function (x) { sc.dice.push({ side: x[0], u: null, dice: [x[1]], need: 3, sum: true, p: p, word: x[1] <= 2 ? 'UNREADY' : 'READY', title: 'A die for surprise (Book III): 1-2 unready' }); });
+            if (b.side) sc.banner = { big: 'SURPRISE!', small: (b.side === 'ours' ? 'ours are' : 'they are') + ' caught unready: taken ' + (b.circle ? 'from the rear, in a circle,' : 'in the flank') + ' in the first round', p: p }; } break;
         case 'shock': if (now) { sc.dice.push({ side: U ? U.k : 'theirs', u: b.u, dice: b.dice, need: b.need, sum: true, p: p, word: b.ok ? 'THEY STAND' : 'THEY SHY FROM ' + String(b.byName).toUpperCase() }); if (U) U.shake = 1 - p; } break;
         case 'ft': if (now) { var A = sc.units[b.a]; sc.dice.push({ side: A ? A.k : 'ours', u: b.a, dice: b.dice, need: b.need, mod: b.mod, sum: true, p: p, word: { kill: b.bh + ' IS KILLED', back: b.bh + ' FALLS BACK', none: 'NO EFFECT', beaten: 'THE MIRROR TAKES HIM', spared: 'BEATEN BACK -- HE IS THE HARBINGER\'S' }[b.res], title: b.ah + ' against ' + b.bh }); if (A) A.anim = 'attack', A.animT = local; }
           if (b.res === 'kill' && p >= 1) { var Bt = sc.units[b.b]; if (Bt) Bt.heroes.forEach(function (h) { if (h.name === b.bh) h.dead = true; }); } break;
@@ -133,7 +136,9 @@
   // a unit's figures in its formation (CHAINMAIL p.10): a line two ranks abreast, a column in file two wide, a square in a ring; its heroes before it
   function figsOf(U, L) {
     var out = [], sh = U.u.sheets || [], heroes = U.heroes.filter(function (h) { return !h.dead; }), hs = heroes.length && !U.u.party ? 1 : 0;
-    var n = U.u.party ? 0 : Math.min(9, Math.max(U.figs > 0 ? 1 : 0, U.figs)), f = L.f, r = L.r, sp = 0.1, pts = [], i;
+    // (the spacing is the screen's: a rank running into the slant's depth is squashed to SQ, so it is spread the more in the world)
+    var SQ = SN.V.SQ, sl = function (v) { var l = Math.sqrt(v[0] * v[0] + v[1] * v[1] * SQ * SQ) || 1; return [v[0] / l, v[1] / l]; };
+    var n = U.u.party ? 0 : Math.min(9, Math.max(U.figs > 0 ? 1 : 0, U.figs)), f = sl(L.f), r = sl(L.r), sp = 0.1, pts = [], i;
     if (U.u.form === 'square' && n > 2) for (i = 0; i < n; i++) { var a = i / n * Math.PI * 2; pts.push([Math.cos(a) * 0.16, Math.sin(a) * 0.16]); }
     else if (U.u.form === 'column') { var files = n > 2 ? 2 : 1, ranks = Math.ceil(n / files); for (i = 0; i < n; i++) { var u2 = ((ranks - 1) / 2 - Math.floor(i / files)) * sp, v2 = (i % files - (files - 1) / 2) * sp * 0.9; pts.push([f[0] * u2 + r[0] * v2, f[1] * u2 + r[1] * v2]); } }
     else { var fl = n > 4 ? Math.ceil(n / 2) : n; for (i = 0; i < n; i++) { var v3 = (i % fl - (fl - 1) / 2) * sp, u3 = -Math.floor(i / fl) * sp * 0.85; pts.push([f[0] * u3 + r[0] * v3, f[1] * u3 + r[1] * v3]); } }

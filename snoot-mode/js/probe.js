@@ -72,8 +72,9 @@
     ok(vol && vol.dice.some(function (x) { return x >= vol.need; }) && vol.k === 0, 'p.30: a wizard is impervious to normal missiles -- the volley hits and kills nothing' + (vol ? ' ([' + vol.dice.filter(function (x) { return x >= vol.need; }).length + ' hits] -> ' + vol.k + ')' : ' (no volley at her)'));
     var sl = domDay(13, function (s) { on(s, 'bows', [8, 5]); on(s, 'patrol', [8, 5]); on(s, 'dm2', [8, 5]); });
     ok(sl.beats.some(function (b) { return b.t === 'fb' && b.kind === 'lightning' && (b.tgs || []).length === 2; }), 'p.31: a lightning bolt strikes along a line -- two units');
-    var sf = domDay(14, function (s) { on(s, 'patrol', [8, 5]); var d = on(s, 'dm1', [8, 4]); d.order = { type: 'move', to: [8, 5], path: [[8, 5]] }; });
-    ok(sf.beats.some(function (b) { return b.t === 'save' && b.need === 9; }), 'p.31: the fire ball falls on the paladin\'s unit and the paladin rolls his save (9+)');
+    // (the first day of these whose fire ball falls on the patrol -- on some the patrol shies from her charge before a round is fought)
+    var sf = null, sfs = 0; for (var q4 = 14; q4 < 90 && !sf; q4++) { var sx4 = domDay(q4, function (s) { on(s, 'patrol', [8, 5]); var d = on(s, 'dm1', [8, 4]); d.order = { type: 'move', to: [8, 5], path: [[8, 5]] }; }); if (sx4.beats.some(function (b) { return b.t === 'fb' && b.tg === 'patrol'; })) { sf = sx4; sfs = q4; } }
+    ok(sf && sf.beats.some(function (b) { return b.t === 'save' && b.need === 9; }), 'p.31: the fire ball falls on the paladin\'s unit and the paladin rolls his save (9+)' + (sf ? ' (day ' + sfs + ')' : ' (no fire ball fell on the patrol)'));
     var sk = domDay(15, function (s) { on(s, 'patrol', [8, 5]); var d = on(s, 'dm1', [8, 5]); d.figs = 0; d.heroes = [{ type: 'hero', name: 'a Warlock keyed as a Hero', missile: 'fireball' }]; });
     ok(sk.beats.some(function (b) { return b.t === 'fb' && b.u === 'dm1'; }) && !sk.beats.some(function (b) { return b.t === 'atk' && b.u === 'dm1' && b.wiz; }) && sk.beats.some(function (b) { return b.t === 'atk' && b.u === 'dm1' && b.f === 4 && b.bonus === 1; }),
       'Book I p.17: a Warlock keyed as a Hero fights as a Hero (four figures, +1) and still throws his missile (RULED 10-15: the four by Book I)');
@@ -110,8 +111,23 @@
     var c5 = fday(54, function (s) { var g = on(s, 'gk1', [8, 5]); g.form = 'line'; g.face = 3; g.reformed = true; var p = on(s, 'patrol', [7, 5]); p.order = { type: 'move', to: [8, 5], path: [[8, 5]] }; });
     ok(atk1(c5, 'patrol') && atk1(c5, 'patrol').asp === 'flank', 'p.10: a unit caught in a fight the day it changed formation is flanked -- the patrol hits the band\'s front as a flank');
     ok(SN.ROADS.every(function (rd) { return rd.hexes.every(function (x, i) { return !i || SN.dist(x, rd.hexes[i - 1]) === 1; }); }), 'every road runs hex to neighbouring hex (the Pit road and the pirate road each skipped one)');
-    ok(tk(function () { var cr = SN.newGame(55); SN.dawn(cr); var pc = SN.unit(cr, 'patrol'), p = SN.path([9, 8], [8, 2]); SN.setForm(cr, pc, 'line'); var l1 = SN.reach(pc, p).length; SN.setForm(cr, pc, 'column'); var c1 = SN.reach(pc, p).length; return p.every(SN.road) && c1 === l1 + 1; }),
-      'a column on the road marches a hex further (the seat\'s reading, ruled with the formations); the march from the Pit keeps to the road');
+    ok(tk(function () { var cr = SN.newGame(55); SN.dawn(cr); var pc = SN.unit(cr, 'patrol'), hc = SN.unit(cr, 'bat3'), p = SN.path([9, 8], [8, 2]), q = SN.path([9, 9], [8, 0]), w = SN.path([0, 0], [8, 0]);
+      SN.setForm(cr, pc, 'line'); var l1 = SN.reach(pc, p).length; SN.setForm(cr, pc, 'column'); var c1 = SN.reach(pc, p).length;
+      SN.setForm(cr, hc, 'line'); var l2 = SN.reach(hc, q).length; SN.setForm(cr, hc, 'column'); var c2 = SN.reach(hc, q).length;
+      var dw = SN.make(SN.DOMINION[0], true); dw.at = [0, 0]; var c3 = SN.reach(dw, w).length; dw.form = 'line'; var l3 = SN.reach(dw, w).length;
+      return p.every(SN.road) && q.every(SN.road) && c1 === l1 && c2 === l2 + 2 && c3 === l3 + 2; }),
+      'p.10 (RULED 10-15, "1 book"): the road bonus is horse\'s and wagons\' -- foot in column march no further; medium horse and the Dominion\'s wagons in column, two hexes further on the road');
+    // ---- surprise (OD&D Book III p.9, p.17; RULED 10-15, "2 lean": surprise first)
+    function surpDay(seed, three) { return fday(seed, function (s) { var g = on(s, 'sg1', [8, 5]); g.form = 'line'; g.face = 3; ['patrol'].concat(three ? ['bows', 'bat1'] : []).forEach(function (id) { var p = on(s, id, [7, 5]); p.order = { type: 'move', to: [8, 5], path: [[8, 5]] }; }); }); }
+    var sp1 = null, sp3 = null, rolled = 0;
+    for (var q3 = 60; q3 < 400 && (!sp1 || !sp3); q3++) {
+      if (!sp1) { var s1 = surpDay(q3, false), b1s = s1.beats.filter(function (b) { return b.t === 'surp'; })[0]; if (b1s) rolled++; if (b1s && b1s.side === 'theirs') sp1 = s1; }
+      if (!sp3) { var s3 = surpDay(q3, true), b3s = s3.beats.filter(function (b) { return b.t === 'surp'; })[0]; if (b3s && b3s.side === 'theirs' && b3s.circle) sp3 = s3; }
+    }
+    var a1 = sp1 && atk1(sp1, 'patrol'), a3 = sp3 && atk1(sp3, 'patrol');
+    ok(rolled > 0 && a1 && a1.asp === 'flank', 'Book III p.9: each side rolls for surprise as a fight begins; a band caught unready (1-2) is taken in the flank in the first round -- the patrol came at its front' + (a1 ? ' (' + a1.asp + ')' : ' (no band caught unready)'));
+    ok(a3 && a3.asp === 'rear' && !atk1(sp3, 'sg1'), 'Book III p.17: three units of ours surprising a band are "moved into a circle" -- from the rear, and the band strikes nothing back in the first round');
+
     // ---- whole battles, both hands, the party's part on the tables
     var heads = 0, grids = 0, maps = 0, fills = 0, bands = 0, ends = [], domOk = true, inv = [], dom0 = [], nightShared = 0;
     for (var seed = 1; seed <= 8; seed++) {
