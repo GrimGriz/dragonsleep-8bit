@@ -107,8 +107,8 @@
   // seat-tribe's gray (deep16/data/foes.js gnollgray, gloryseekergray; the sheet graykeeping_p2)
   var GRAYBAND = { gloryseekergray: 3, gnollgray: 9, hyena: 6 };
   SN.FORCES = [
-    // ours
-    { id: 'party', side: 'ours', name: 'The Party', kind: 'the four', party: true, cls: 'AF', def: 'AF', figs: 0, at: [9, 8], move: 3,
+    // ours (the four start at the Halfway Inn -- his word 10-15, "please start the party 4 at the half-way inn"; they were in the Pit)
+    { id: 'party', side: 'ours', name: 'The Party', kind: 'the four', party: true, cls: 'AF', def: 'AF', figs: 0, at: [8, 3], move: 3,
       heroes: [{ type: 'superhero', name: 'Barley' }, { type: 'superhero', name: 'Aurdin' }, { type: 'superhero', name: 'Vivian' }, { type: 'superhero', name: 'Lymen' }],
       sheets: ['barley_p1', 'aurdin_p1', 'vivian_p1', 'lymen_p1'], note: 'Every fight they stand in is fought on the grid (DEEP16), and the men of ours in their hex fight beside them.' },
     { id: 'greyfang', side: 'ours', name: "GreyFang's pit fighters", kind: 'the pit', cls: 'HF', def: 'HF', figs: 40, at: [9, 8], move: 3, // (Heavy Foot, trained fighters -- RULED 10-15, his "yes - heavy foot the tarlyn's pit troops"; they were Light Foot levies, the lane §3's first reading)
