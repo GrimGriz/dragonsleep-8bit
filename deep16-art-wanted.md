@@ -221,3 +221,9 @@ Cut as: Bow -> longbow (release on frame 7), Idle to register the look against t
 ### The Cut Seal's camp -- IN HAND 2026-10-14 (the art desk's ART-60, cut into `goblincamp_p1`, `d27ce82`); the block is on `deep16-art-in-hand.md`
 
 ## 8. The road's props -- IN HAND 2026-10-14 (the art desk's ART-58 to ART-60, cut into `lamptower_p1`, `rubble_p1` and `goblincamp_p1`, `d27ce82`); the section is on `deep16-art-in-hand.md`
+
+## 9. The Snoot battle's LPC people in all eight facings (added 10-15, the lanes desk)
+
+His words: *"make sure we have all 8 facings for those to be used in snoot fight animations"*, *"exclude the main party facings - but include the NPC"*, *"(a) Yeah - I think we'll need to build the first-sheets out the LPC stuff we have to give to the art team to make the other poses"* (10-15).
+
+Seven LPC sheets, drawn by the Liberated Pixel Cup generator in four directions only, show front, right and back; their front-right and back-right views borrow the front and back, and Hurt is one drawing. The seven are `trooper_p0`, `npcfighter_p0`, `npcpaladin_p0`, `npccleric_p0`, `npcranger_p0`, `npcbarbarian_p0` and `npcwarlock_p0`. They are packaged for the art desk as assignments in the LPC style: `deep16/_src/outbox/ART-SNOOTNPCS-2026-10-15.zip`. ART-61 to ART-67 (482 drawings), each with a first-sheet and a views sheet built from the game's sheet; each assignment's Image request is its paste-ready block. When the pages come, a new cutter `tools/lpc-diag-sheet.py` writes SE/NE and E/N Hurt into the existing sheets. ART-68 is the next free number.
