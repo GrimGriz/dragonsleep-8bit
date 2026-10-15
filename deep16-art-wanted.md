@@ -233,3 +233,9 @@ Seven LPC sheets, drawn by the Liberated Pixel Cup generator in four directions 
 His words: *"Yes - write the SE Idle 8, Attack 8 and E Walk 8 ask for the art desk so the last old gnoll rows go."* (10-15).
 
 ART-29 and its redraw are cut (`gnoll_p2` and `gloryseeker_p2`, `4f83f7d`, `20570f6`); three rows still play from the gnoll's 09-28 sheets, a slimmer gnoll beside the rest: the SE Idle and Attack (SW mirrored) and the side Walk (E, W mirrored). Packaged for the art desk as a second ART-29 supplement, numbered as its pages: `deep16/_src/outbox/ART-29-LASTROWS-2026-10-15.zip` -- HEAD 1 PAGE 3 (SE Idle 8, Attack 8) and HEAD 4 PAGE 3 (E Walk 8), 24 drawings; the assignment's Image request is its paste-ready block, the two selected ART-29 pages it attaches are in its `refs/`. When the pages come, `tools/gnoll-sheet.py` takes them as `H1P3` and `H4P3` and no 09-28 row plays. ART-68 is still the next free number.
+
+## 11. The hyena's NE roll, re-rolled (added 10-15, the hyena sprite seat)
+
+His words: on first sight of ART-30's NE ROFL in the gallery, *"lol - that's a spine injury hyena"*; asked whether to have it re-rolled, *"1 ask"* (10-15).
+
+ART-30 is cut (`hyena_p2`, `f4751e5`, `4290d70`); HEAD 2 PAGE 2's ROFL -- the shallow roll the art desk flagged itself -- plays facing NE (NW mirrored) with the hyena on its side, back twisted, hind legs flung across. Packaged for the art desk as an ART-30 supplement, numbered as its pages: `deep16/_src/outbox/ART-30-ROLL-2026-10-15.zip` -- HEAD 2 PAGE 3 (NE ROFL 10, on its back, spine straight), 10 drawings; the assignment's Image request is its paste-ready block, the two selected ART-30 pages it attaches are in its `refs/`. When the page comes, `tools/hyena-sheet.py` takes it as `H2P3` after `H2P2` and its rofl replaces the old. ART-68 is still the next free number.
