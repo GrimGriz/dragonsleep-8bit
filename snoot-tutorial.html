@@ -1,0 +1,343 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Snoot, explained</title>
+<!-- THE SNOOT, EXPLAINED (10-15, the Snoot mode seat): a page for Griz's understanding, not the game -- his words: "can you create a tutorial that
+     goes through the chain mail rules, how the units are made - what happens when they fight, with pauses for reading between steps"; "this is
+     more for my understanding that something going in the game whole cloth - also demonstrate what we're doing different from the chainmail
+     rules - like the gnoll snoot stuff and if the party wouldn't be grid-played"; "a simplified version will remain for the in game tutorial".
+     It runs the mode's own engine (snoot-mode/js) on staged scenes with fixed seeds, so every die on screen is the engine's and the lesson
+     plays the same each time. Each step pairs what CHAINMAIL says (with its page) and what the Snoot mode does. A dev page beside road-legs.html,
+     linked from nothing. The STEPS list below is the one to cut from for the in-game tutorial. -->
+<style>
+  :root { --ink: #e8d8a0; --dim: #9a94a8; --bg: #120f17; --panel: #1d1824; --line: #4a3f5c; --cm: #d8c08a; --ours: #4fb3a0; --warn: #f0c060; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: var(--bg); color: var(--ink); font: 15px/1.5 Georgia, 'Times New Roman', serif; overflow: hidden; }
+  #app { position: absolute; inset: 0; }
+  #top { position: absolute; left: 0; right: 0; top: 0; height: 40px; display: flex; align-items: center; gap: 12px; padding: 0 14px; background: #0c0a10; border-bottom: 1px solid var(--line); }
+  #top .t { font-size: 17px; letter-spacing: 2px; }
+  #top .ch { color: var(--warn); }
+  #stage { position: absolute; left: 0; top: 40px; bottom: 0; right: 430px; }
+  #map, #show { position: absolute; left: 0; top: 0; image-rendering: pixelated; }
+  #show { display: none; }
+  #vis { position: absolute; inset: 0; overflow: auto; padding: 18px 22px; display: none; background: var(--bg); }
+  #read { position: absolute; right: 0; top: 40px; bottom: 0; width: 430px; background: var(--panel); border-left: 1px solid var(--line); display: flex; flex-direction: column; }
+  #body { flex: 1; overflow-y: auto; padding: 14px 18px; }
+  #body h2 { margin: 0 0 8px; font-size: 21px; color: #ffe08a; }
+  .box { border-radius: 6px; padding: 8px 11px; margin: 10px 0; font-size: 14px; }
+  .box .lab { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 3px; }
+  .cm { background: #2a2418; border: 1px solid #6a5a34; } .cm .lab { color: var(--cm); }
+  .ours { background: #15302b; border: 1px solid #2f7a6a; } .ours .lab { color: var(--ours); }
+  .diff { background: #33201a; border: 1px solid #a85a3a; } .diff .lab { color: #ff9a7a; }
+  .num { font-family: Consolas, monospace; font-size: 13px; color: #f3e7c0; }
+  .k { color: #ffd25a; font-weight: bold; }
+  #nav { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-top: 1px solid var(--line); }
+  #nav .sp { flex: 1; text-align: center; color: var(--dim); font-size: 13px; }
+  button { font: inherit; color: var(--ink); background: #2a2233; border: 1px solid var(--line); border-radius: 4px; padding: 5px 14px; cursor: pointer; }
+  button:hover { background: #3a3046; } button.go { background: #3d5a2a; border-color: #6a9a48; font-weight: bold; } button:disabled { opacity: .4; cursor: default; }
+  #dots { display: flex; flex-wrap: wrap; gap: 3px; padding: 6px 14px 0; }
+  #dots i { width: 9px; height: 9px; border-radius: 50%; background: #3a3046; cursor: pointer; } #dots i.on { background: #ffd25a; } #dots i.ch { outline: 1px solid #6a5a34; }
+  table.cmp { border-collapse: collapse; width: 100%; font-size: 13.5px; }
+  table.cmp th { text-align: left; color: #ffe08a; border-bottom: 2px solid var(--line); padding: 6px 8px; position: sticky; top: 0; background: var(--bg); }
+  table.cmp td { border-bottom: 1px solid #2c2536; padding: 6px 8px; vertical-align: top; }
+  table.cmp td.p { color: var(--dim); white-space: nowrap; }
+  table.cmp tr.same td.o { color: #9fe0c8; } table.cmp tr.chg td.o { color: #ffd28a; } table.cmp tr.new td.o { color: #ff9a7a; } table.cmp tr.out td.o { color: var(--dim); }
+  .tag { font-size: 11px; border-radius: 3px; padding: 0 5px; margin-right: 4px; }
+  .tag.same { background: #15302b; color: #9fe0c8; } .tag.chg { background: #3a2e14; color: #ffd28a; } .tag.new { background: #3a1e18; color: #ff9a7a; } .tag.out { background: #2a2433; color: var(--dim); }
+  #d16 { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; z-index: 30; background: #000; }
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="top"><span class="t">THE SNOOT, EXPLAINED</span><span class="ch" id="chap"></span><span style="flex:1"></span><span style="color:var(--dim);font-size:13px">&larr; &rarr; or the buttons &middot; nothing here is the game</span></div>
+  <div id="stage"><canvas id="map"></canvas><canvas id="show"></canvas><div id="vis"></div></div>
+  <div id="read"><div id="dots"></div><div id="body"></div><div id="nav"><button id="back">&larr; BACK</button><span class="sp" id="count"></span><button id="next" class="go">NEXT &rarr;</button></div></div>
+</div>
+<script>window.SN = window.SN || {}; window.SN.DEEP16 = 'deep16/';</script>
+<script src="deep16/data/sprites.js"></script>
+<script src="snoot-mode/js/data.js?v=925171332e"></script>
+<script src="snoot-mode/js/party8.js?v=e6a0f37d96"></script>
+<script src="snoot-mode/js/rules.js?v=a92105e128"></script>
+<script src="snoot-mode/js/ai.js?v=a9ddd73a54"></script>
+<script src="snoot-mode/js/view.js?v=2052111b22"></script>
+<script src="snoot-mode/js/show.js?v=0074a4c568"></script>
+<script src="snoot-mode/js/deep.js?v=c4a6164f52"></script>
+<script>
+'use strict';
+(function () {
+  var SN = window.SN, V = SN.V, SH = SN.Show; SH.hint = false;
+  function $(id) { return document.getElementById(id); }
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]; }); }
+  var CN = SN.CLASSNAME;
+
+  // ---------------------------------------------------------------- the staged scenes: the mode's own engine, a day run on a fixed seed
+  function base(seed) { var st = SN.newGame(seed); st.party8 = null; st.units.forEach(function (u) { u.on = false; }); st.log = []; st.beats = []; return st; }
+  function put(st, id, at) { var u = SN.unit(st, id); u.on = true; u.state = 'ok'; u.at = at.slice(); u.order = { type: 'hold' }; return u; }
+  function march(st, u, to) { var p = SN.path(u.at, to); u.order = { type: 'move', to: to.slice(), path: SN.reach(u, p), full: p }; }
+  function runDay(st) { var g = SN.resolve(st), r = g.next(), anim = null; while (!r.done) { var v = r.value; if (v && v.anim) anim = v.anim; r = g.next(v && v.deep ? SN.standIn(st, v.deep) : undefined); } return anim; }
+  function clone(st) { return JSON.parse(JSON.stringify(st)); }
+  function has(st, t, f) { return (st.beats || []).some(function (b) { return b.t === t && (!f || f(b)); }); }
+  // a scene: the field before the day, the day's moves, the field after, and the shows of its fights; the seed is the first that shows what the step teaches
+  function scene(build, want) {
+    for (var seed = 1; seed < 900; seed++) {
+      var st = build(seed), before = clone(st), anim = runDay(st);
+      if (want(st)) return { seed: seed, before: before, after: st, anim: anim || [], shows: shows(st) };
+    }
+    return null;
+  }
+  function shows(st) {
+    var B = st.beats, out = [];
+    B.forEach(function (b, i) { if (b.t !== 'fight' && b.t !== 'head') return; var j = i + 1; while (j < B.length && B[j].t !== 'fight' && B[j].t !== 'head') j++; out.push(SH.build(st, i, j, b.at)); });
+    return out;
+  }
+  // A: Newland's road patrol (a paladin with it) marches out of the Pit and charges the glory-seekers on the road: one round decides it
+  var A = scene(function (s) { var st = base(s); var P = put(st, 'patrol', [9, 8]); put(st, 'sg1', [8, 6]); march(st, P, [8, 6]); return st; },
+    function (st) { return has(st, 'atk', function (b) { return b.u === 'patrol' && b.imp; }) && has(st, 'cas', function (b) { return b.u === 'patrol'; }) && has(st, 'cas', function (b) { return b.u === 'sg1'; }) && has(st, 'mor', function (b) { return b.lo === 'theirs' && (b.how === 'back' || b.how === 'backoff' || b.how === 'retreat'); }); });
+  // W: a Skull-Gate band falls on the patrol's crossbows; it wins, takes a loss, and the band two hexes off sends figures over (his witness)
+  var W = scene(function (s) { var st = base(s); put(st, 'bows', [8, 5]); var a = put(st, 'sg2', [7, 4]); a.name = 'the Skull-Gate band in the fight'; put(st, 'sg1', [7, 3]).name = 'the Skull-Gate band two hexes off'; march(st, a, [8, 5]); return st; },
+    function (st) { return has(st, 'wit') && has(st, 'cas', function (b) { return b.u === 'sg2'; }); });
+  // P: the four as CHAINMAIL would field them -- four super-heroes on the tables, not the grid -- charging a Gray Keeping band
+  var P = scene(function (s) {
+      var st = base(s); put(st, 'gk1', [8, 6]);
+      var f = SN.make({ id: 'four', side: 'ours', name: 'the four (on the tables)', kind: 'the four', cls: 'AF', def: 'AF', figs: 0, at: [9, 7], move: 3,
+        heroes: [{ type: 'superhero', name: 'Barley' }, { type: 'superhero', name: 'Aurdin' }, { type: 'superhero', name: 'Vivian' }, { type: 'superhero', name: 'Lymen' }], sheets: ['barley_p1', 'aurdin_p1', 'vivian_p1', 'lymen_p1'] }, true);
+      st.units.push(f); march(st, f, [8, 6]); return st; },
+    function (st) { return has(st, 'shock', function (b) { return b.ok; }) && has(st, 'atk', function (b) { return b.u === 'four'; }); });
+  // H: the hunt -- the Harbinger walks through the crossbows (no hero with them) and reaches GreyFang with no one of ours near: the head on the map
+  var H = scene(function (s) { var st = base(s); st.huntDay = 14; put(st, 'bows', [8, 7]); put(st, 'greyfang', [9, 8]); var h = put(st, 'harb', [7, 6]); march(st, h, [9, 8]); return st; },
+    function (st) { return !!st.head && st.log.some(function (l) { return /cannot hold the Harbinger/.test(l.text); }); });
+
+  // ---------------------------------------------------------------- words for the beats (the numbers are the scene's own)
+  function unitName(scn, id) { var u = SN.unit(scn.before, id) || SN.unit(scn.after, id); return u ? (u.party ? 'the four' : u.name) : id; }
+  function per(row) { return row[0] > 1 ? row[0] + ' dice a figure' : row[1] > 1 ? '1 die per ' + row[1] + ' figures' : '1 die a figure'; }
+  function atkText(scn, b) {
+    var row = b.row || SN.CT[b.cls][b.dcls], base = Math.ceil(b.f / row[1]) * row[0], bon = b.bonus || 0;
+    return '<p><b>' + esc(unitName(scn, b.u)) + '</b>: ' + b.f + ' figures fighting as <b>' + CN[b.cls] + '</b> against <b>' + CN[b.dcls] + '</b>. The table gives <b>' + per(row) + ', kills on ' + row[2] + (row[2] < 6 ? '-6' : '') + '</b> &rarr; ' + base + ' dice' +
+      (b.imp ? ', <b>+' + base + ' for the charge</b> (impetus over open ground)' : '') + (bon ? '; <b>+' + bon + '</b> on every die (' + (bon >= 2 ? 'a super-hero, or berserkers' : 'a hero with them') + '), so kills on <b>' + b.need + '+</b>' : '') + '.</p>' +
+      '<p class="num">' + b.dice.length + ' dice: [' + b.dice.join(' ') + '] &rarr; <span class="k">' + b.k + ' kill' + (b.k === 1 ? '' : 's') + '</span></p>';
+  }
+  function morText(scn, b) {
+    var P2 = b.parts; if (!P2) return '';
+    function side(nm, a, o) {
+      var cas = a.cas < o.cas ? (o.cas - a.cas) + ' fewer casualties &times; a die (' + a.die + ') = ' + (o.cas - a.cas) * a.die : 'no fewer casualties: 0';
+      var sv = a.surv > o.surv ? (a.surv - a.surv + a.surv - o.surv) + ' more survivors: +' + (a.surv - o.surv) : 'no more survivors: 0';
+      var raw = (a.cas < o.cas ? (o.cas - a.cas) * a.die : 0) + (a.surv > o.surv ? a.surv - o.surv : 0) + a.surv * a.rate;
+      return '<p class="num"><b>' + nm + '</b>: ' + cas + '; ' + sv + '; ' + a.surv + ' survivors &times; morale ' + a.rate + ' = ' + Math.round(a.surv * a.rate * 10) / 10 + ' &rarr; ' + Math.round(raw * 10) / 10 + (b.doubled ? ' &times; 2 = <b>' + Math.round(raw * 2) + '</b>' : ' = <b>' + Math.round(raw) + '</b>') + '</p>';
+    }
+    var res = { 'continue': 'under 20: the melee goes on', backoff: '20-39: they back off half a move', back: '40-59: they fall back a move in good order', retreat: '60-79: they retreat a move', rout: '80-99: they rout', surrender: '100 or more: they surrender' }[b.how];
+    return side('Ours', P2.ours, P2.theirs) + side('Theirs', P2.theirs, P2.ours) + '<p>The gap is <b>' + b.gap + '</b> &rarr; ' + (b.never ? 'the lower side never checks morale, so the melee goes on' : '<b>' + res + '</b>' + (b.how !== 'continue' ? ' (' + (b.lo === 'ours' ? 'ours' : 'theirs') + ')' : '')) + '.</p>';
+  }
+
+  // ---------------------------------------------------------------- the steps (CHAINMAIL with its page, the Snoot mode, and where they differ)
+  function box(cls, lab, html) { return '<div class="box ' + cls + '"><div class="lab">' + lab + '</div>' + html + '</div>'; }
+  var CM = function (h) { return box('cm', 'Chainmail', h); }, OURS = function (h) { return box('ours', 'The Snoot mode', h); }, DIFF = function (h) { return box('diff', 'Different from Chainmail', h); };
+  var full = SN.newGame(1); SN.dawn(full); full.log = [];
+  var STEPS = [];
+  function step(o) { STEPS.push(o); }
+
+  step({ ch: 'The two clocks', title: 'Two books, two clocks', vis: { map: full, marks: [{ h: [9, 8], c: '#ffd25a', t: 'one hex: about five miles' }] },
+    html: '<p>The Chef\'s cobble is two books stacked. <b>OD&amp;D Book III</b> gives the map and the day; <b>CHAINMAIL</b> gives the battle and the morale that makes a Snoot a Snoot.</p>' +
+      CM('<p>A tabletop battle: one figure is twenty men, an inch is ten yards, a turn is about a minute of fighting (p.8). Book III adds the wilderness: a hex about five miles across, and a turn is a day (pp.16-17).</p>') +
+      OURS('<p>The map is Book III\'s: <b>a hex is five miles and a turn is a day</b>, Day 14 onward. A fight on a hex uses CHAINMAIL\'s melee, up to three rounds in the day.</p>') +
+      DIFF('<p>There are no inches. Within a hex no one has a position, a facing, a flank or a range: a fight is everyone in the hex against everyone.</p>') });
+  step({ ch: 'The two clocks', title: 'Ground and movement', vis: { map: full, marks: [{ h: [4, 3], c: '#c8a060', t: 'hills: 2' }, { h: [8, 4], c: '#e0c890', t: 'road: 1' }, { h: [9, 3], c: '#80b0d0', t: 'no one' }, { h: [8, 1], c: '#c8a060', t: 'gulch: 2' }, { h: [12, 5], c: '#a0c070', t: 'open: 1' }] },
+    html: CM('<p>Movement in inches by class: armored foot 6", heavy and light foot 9", heavy horse 12", medium 18", light 24" (p.10). A hill halves movement and forbids a charge; woods, marsh and rough ground the same (p.9). Book III: a man on foot crosses 3 hexes a day.</p>') +
+      OURS('<p>Each hex costs to enter: <b>open ground and the road 1, the hills and Web Gulch 2</b>; no one walks on the lake. A unit always takes its first step.</p>') +
+      DIFF('<p>The day\'s move is <b>Book III\'s foot (3 hexes) scaled by CHAINMAIL\'s own ratios</b>: armored foot 2, heavy and light foot 3, heavy horse 4, medium 6, light 8. Book III\'s horse would cross ten hexes, most of this map, in a day.</p>') });
+  step({ ch: 'Units', title: 'A unit is figures', vis: { map: full, sel: 'patrol', marks: [{ h: [9, 8], c: '#4fb3a0', t: 'Newland\'s road patrol: 5' }] },
+    html: CM('<p>A figure is twenty men. A unit\'s figures fight by its <b>troop class</b>: light foot, heavy foot, armored foot, light, medium or heavy horse (pp.14-15). Each class has a <b>morale rating</b>: light foot and levies 4, heavy foot 5, light horse 6, armored foot 7, medium horse 8, heavy horse 9 (pp.15-16).</p>') +
+      OURS('<p>Each stack is one unit with one class. The badge shows its figures: Newland\'s road patrol is <b>5 figures (100 men) of Heavy Foot</b>, morale 5, 3 hexes a day, and carries <b>a paladin</b>.</p>') +
+      DIFF('<p>CHAINMAIL mixes classes in a body of troops; here a unit is one class. Newland\'s crossbows are their own unit. Every Newland unit carries a paladin, a cleric or both (Griz\'s ruling).</p>') });
+  step({ ch: 'Units', title: 'The forces in the books\' classes', vis: { html: forcesTable() },
+    html: CM('<p>OD&amp;D Book II: a gnoll is "similar to a hobgoblin", which CHAINMAIL fields as <b>armored foot attacking and heavy foot defending</b> (p.29), <b>morale +2</b>. Berserkers add 2 to their dice, charge on sight and never stop (p.20). A religious order never surrenders and adds 1 to morale (p.19).</p>') +
+      OURS('<p>The table on the left is every unit of the battle as the mode builds it: its class to attack, its class to defend, its figures, its morale and its fantastic figures.</p>') +
+      DIFF('<p><b>Ours, not the book\'s:</b> the paladin as a CHAINMAIL Hero; the cleric making a unit a religious order that also mends a figure a day; the plains tribes as berserkers; the Dominion\'s patrol lady as a warlock with one fire ball a fight; the mirror hyenas as giant wolves.</p>') });
+  step({ ch: 'Units', title: 'Heroes, super-heroes, wraiths', vis: { map: full, marks: [{ h: [9, 8], c: '#ffd25a', t: 'GreyFang, the four' }, { h: [6, 6], c: '#ff8a7a', t: 'the Harbinger' }] },
+    html: CM('<p>A <b>Hero</b> fights as four figures, adds 1 to his unit\'s dice, never checks morale, is the last killed, and dies to regular troops only on four hits at once. A <b>Super-hero</b> is all of that doubled, and every enemy unit his charge reaches checks morale (p.30). A <b>Wraith</b> raises its friends\' morale, makes the enemy check, and is harmed only by magic or the fantastic (pp.33-34). Fantastic against fantastic goes on the <b>Fantasy Combat Table</b>, two dice against a number (p.44). Book I: a 4th-level fighter is a Hero, an 8th-level one a Super-hero.</p>') +
+      OURS('<p><b>GreyFang</b> (ranger 11) is a Super-hero. <b>The four</b> at 8th are Super-heroes. <b>The Harbinger</b> is a Wraith. The paladins are Heroes, and the warlocks are wizards two ranks down (p.30).</p>') +
+      DIFF('<p>The four never fight on the tables: their fights go to the DEEP16 grid (the last chapter shows both ways). GreyFang can\'t die except to the Harbinger, and the Harbinger can\'t die at all: put down, the mirror carries him home for two days.</p>') });
+  step({ ch: 'The day', title: 'Written orders', vis: { map: A ? A.before : full, sel: 'patrol' },
+    html: CM('<p>The <b>simultaneous</b> system: both sides write orders for every unit, then everyone moves half, contacts are checked, the rest of the move is made, and then come missiles and melee (p.9). "Charge if charged" lets a unit move up to support (p.9), and a unit near a melee may be drawn into it (p.16).</p>') +
+      OURS('<p>The player writes an order for every unit (<b>march</b>, <b>hold</b> or <b>charge if charged</b>) and the AI writes the gnolls\' and the Dominion\'s in secret. Here the patrol is ordered up the road onto a Skull-Gate band.</p>') +
+      '<div class="box ours"><div class="lab">The march\'s pop-up</div>' + previewHtml() + '</div>' });
+  step({ ch: 'The day', title: 'Everyone moves at once', vis: { anim: A },
+    html: CM('<p>Move half, check for contact, then the rest (p.9).</p>') +
+      OURS('<p>Every step happens at its own hour of the day: the sum of its costs over the unit\'s move. The fast arrive first. A step into an enemy\'s hex stops <b>both</b> there: that is a contact, and a fight on that hex.</p>') +
+      DIFF('<p>CHAINMAIL\'s half-move check, made finer: every step is its own moment. Moving next to an enemy doesn\'t stop anyone, because hexes have no zone of control.</p>') });
+  // the fight, beat by beat (scene A)
+  fightSteps(A, 'A fight on the tables', 'The patrol charges a Skull-Gate band');
+  step({ ch: 'A fight on the tables', title: 'Three rounds, then nightfall', vis: { map: A ? A.after : full, marks: [{ h: [8, 6], c: '#ffd25a', t: 'the fight' }] },
+    html: CM('<p>Melee goes round by round with morale after each; if the gap is under 20 the melee simply continues next turn (p.16). <b>Fatigue</b>: three rounds of melee (and other mixes of moving and fighting) drop a unit a class and 1 morale until it rests a turn (p.11). A routing unit that runs into friends routs them too, and rallies by a table (p.16). A unit past its loss line rolls two dice to stay (p.17).</p>') +
+      OURS('<p>A day holds up to three rounds. Rout spreads by contact, routing units rally at dusk by the book\'s table, and instability is rolled once when a unit crosses its line.</p>') +
+      DIFF('<p><b>Nightfall</b> (Griz\'s question, ruled): if three rounds leave both standing, the side with the lower morale total backs off a hex. A side that never yields (berserkers, the death-watch, heroes) makes the other back off. No hex ends a day shared. CHAINMAIL would leave them locked.</p>') });
+  // the Snoot's own rules
+  step({ ch: 'The Snoot\'s own rules', title: 'The witness', vis: { map: W ? W.before : full, marks: [{ h: [8, 5], c: '#ff8a7a', t: 'the fight' }, { h: [7, 3], c: '#ffd25a', t: 'the witness: 2 hexes' }] },
+    html: CM('<p>Nearest thing in the book: a unit within 3" of a melee may be drawn into it if its owner chooses (p.16). Glory isn\'t a CHAINMAIL rule.</p>') +
+      OURS('<p><b>Griz\'s rule:</b> a gnoll band that <b>wins</b> a fight is filled up from every gnoll band within <b>two hexes</b>. Each gives up to half its figures, never past the winner\'s starting size. The Harbinger\'s pack counts; the death-watch never leaves the Mane.</p>') +
+      DIFF('<p>Not in CHAINMAIL. It is the Snoot\'s succession by battle-glory as a rule that moves bodies: glory draws followers. A band that keeps winning near its kin stays whole.</p>') });
+  fightSteps(W, 'The Snoot\'s own rules', 'A band beats the crossbows, and the witness comes');
+  step({ ch: 'The Snoot\'s own rules', title: 'The Harbinger\'s hunt', vis: H ? { anim: H } : { map: full },
+    html: CM('<p>A Wraith may withdraw from combat if the enemy\'s dice score no effect (p.44), and normal troops can\'t harm it (p.34). A Hero may leave his unit to fight another individual (p.30).</p>') +
+      OURS('<p>The Harbinger holds in the hills until Day 18, the exchange (sooner if GreyFang comes within two hexes), then goes for GreyFang. <b>Only a unit with a hero in it (a paladin, GreyFang) or the four can hold him.</b> Watch: the crossbows on the road have a cleric but no hero, and he walks straight through them.</p>') +
+      DIFF('<p>Ours: the book\'s "withdraw when they can\'t hurt you" read as "walk through anyone who can\'t". It is what makes Newland\'s paladins matter.</p>') });
+  headStep();
+  step({ ch: 'The Snoot\'s own rules', title: 'The Dominion, and the end', vis: { map: full, marks: [{ h: [0, 0], c: '#c8a8f0', t: 'the west road' }] },
+    html: CM('<p>Point values balance a battle: peasant &frac12;, light foot 1, heavy foot 2, armored foot 2&frac12;, light horse 3, medium 4, heavy 5; a hero 20, a super-hero 50, a wizard 50-100 (p.27).</p>') +
+      OURS('<p><b>Griz\'s rule:</b> two days after the hunt begins, three Dominion wagons come along the west road, each with Kat\'s loadout: a patrol lady (a warlock), a figure of troopers and the wagon. They watch from the inn. The battle ends when the head is taken and the Dominion is gone. The tally counts CHAINMAIL\'s points: gnolls killed and taken, the Dominion, ours lost (GreyFang among them), and whether the Pit held.</p>') +
+      DIFF('<p>The Dominion is the mode\'s only, not canon (his word). Day 28 ends the battle whatever stands.</p>') });
+  // the four: the book's way, and ours
+  partySteps();
+  step({ ch: 'Side by side', title: 'CHAINMAIL against the Snoot mode, rule by rule', vis: { html: compareTable() },
+    html: '<p>The whole difference on one page. <span class="tag same">same</span> the book\'s rule as written; <span class="tag chg">changed</span> the book\'s rule adjusted to a day and a hex; <span class="tag new">ours</span> not in the book (Griz\'s rules and the seat\'s readings); <span class="tag out">left out</span>.</p><p>The readings marked ours are in <span class="num">invented.json</span> (<span class="num">snoot-mode-readings</span>), each Griz\'s to strike.</p>' });
+
+  // ---------------------------------------------------------------- the fight as steps: one step a beat of its show, the words its numbers
+  function fightSteps(scn, ch, title) {
+    if (!scn) return;
+    var sh = scn.shows.filter(function (s) { return s.first && s.first.t === 'fight'; })[0]; if (!sh) return;
+    sh.segs.forEach(function (sg, k) {
+      var b = sg.b, list = sg.list, html = '', t2 = title;
+      if (b.t === 'fight') { t2 = 'The fight begins'; html = OURS('<p>' + esc(sh.first.place) + ': ' + sh.first.ours.map(function (u) { return esc(u.name) + ' (' + u.figs + (u.heroes.length ? ' + ' + u.heroes.map(function (h) { return esc(h.name); }).join(', ') : '') + ')'; }).join(', ') + ' against ' + sh.first.theirs.map(function (u) { return esc(u.name) + ' (' + u.figs + ')'; }).join(', ') + '.</p>') + DIFF('<p>Everyone in the hex fights everyone in it. There\'s no frontage, flank or rear, no formation and no facing.</p>'); }
+      else if (b.t === 'round') return;
+      else if (b.t === 'shock') { t2 = 'The super-heroes\' charge'; html = CM('<p>Every enemy unit a super-hero\'s charge reaches must check as if it had taken excess casualties (p.30): two dice against its loss number (p.17); a failure falls back (p.18).</p>') + list.filter(function (x) { return x.t === 'shock'; }).map(function (x) { return '<p class="num">' + esc(unitName(scn, x.u)) + ': [' + x.dice.join(' + ') + '] = ' + (x.dice[0] + x.dice[1]) + ' against ' + x.need + ' &rarr; <span class="k">' + (x.ok ? 'they stand' : 'they shy and fall back') + '</span></p>'; }).join(''); }
+      else if (b.t === 'atk') { t2 = 'Round ' + (b.round || 1) + ': the dice'; html = CM('<p>The <b>Combat Tables</b> (p.40): for each attacking class against each defending class, so many dice a figure and the faces that kill. Missiles and the charge come first; then all melee is simultaneous, both sides\' casualties come off together (p.14).</p>') + list.map(function (x) { return atkText(scn, x); }).join(''); }
+      else if (b.t === 'cas' || b.t === 'gone' || b.t === 'herofall' || b.t === 'surrender') { t2 = 'Casualties'; html = OURS(list.map(function (x) { return '<p>' + esc(unitName(scn, x.u)) + (x.t === 'cas' ? ' lose <b>' + x.n + '</b> figure' + (x.n === 1 ? '' : 's') + ' (now ' + x.figs + ')' : x.t === 'gone' ? ' are destroyed' : x.t === 'herofall' ? ': ' + esc(x.name) + ' falls' : ' surrender') + '.</p>'; }).join('')) + CM('<p>Casualties come off before morale (p.15); a hero is always the last figure killed in his unit (p.30).</p>'); }
+      else if (b.t === 'mor') { t2 = 'Morale'; html = CM('<p><b>Post-melee morale</b> (pp.15-16): the side with fewer casualties scores the difference times a die; the side with more survivors scores the difference; each side adds survivors times its morale rating; under twenty figures a side, everything doubles. The lower total reacts by the gap: under 20 the melee goes on; 20-39 back off; 40-59 fall back a move; 60-79 retreat; 80-99 rout; 100 or more surrender.</p>') + morText(scn, b) + DIFF('<p>Each side is everyone of it in the hex pooled, at its average rating. A hero\'s figures count as survivors.</p>'); }
+      else if (b.t === 'fall') { t2 = 'They fall back'; html = OURS(list.map(function (x) { return '<p>' + esc(unitName(scn, x.u)) + ' ' + { backoff: 'back off', back: 'fall back', retreat: 'retreat', rout: 'rout' }[x.how] + ': ' + (x.how === 'rout' ? 'two hexes' : 'one hex') + ' away from the enemy, toward home.' + (x.how === 'retreat' ? ' A retreat stands a day to rally.' : '') + (x.how === 'rout' ? ' A rout runs friends over and rallies by the table.' : '') + '</p>'; }).join('')) + DIFF('<p>A move in the book is a hex here: back off and fall back are both one hex in good order. A rout is two.</p>'); }
+      else if (b.t === 'wit') { t2 = 'The witness comes'; html = OURS(list.map(function (x) { return '<p><b>' + esc(x.fromName) + '</b> saw the win and sends <b>' + x.n + '</b> figure' + (x.n > 1 ? 's' : '') + ' over to ' + esc(unitName(scn, x.to)) + '.</p>'; }).join('')) + DIFF('<p>Griz\'s rule, not CHAINMAIL\'s. The book would leave the winner short its dead.</p>'); }
+      else if (b.t === 'inst') { t2 = 'Instability'; html = CM('<p>A unit that has lost a set share of its strength (light foot a quarter, heavy foot a third, heavy horse half) rolls two dice to stay, or is gone (p.17).</p>') + list.map(function (x) { return '<p class="num">' + esc(unitName(scn, x.u)) + ': [' + x.dice.join(' + ') + '] = ' + (x.dice[0] + x.dice[1]) + ' against ' + x.need + ' &rarr; <span class="k">' + (x.ok ? 'they hold together' : 'they break apart') + '</span></p>'; }).join(''); }
+      else if (b.t === 'ft') { t2 = 'The Fantasy table'; html = CM('<p>Fantastic against fantastic (p.44): two dice against the number for the pair; under, no effect; equal, the defender falls back; over, killed.</p>') + list.map(function (x) { return '<p class="num">' + esc(x.ah) + ' against ' + esc(x.bh) + ': [' + x.dice.join(' + ') + ']' + (x.mod ? ' ' + x.mod : '') + ' against ' + x.need + ' &rarr; ' + x.res + '</p>'; }).join(''); }
+      else if (b.t === 'night') { t2 = 'Nightfall'; html = DIFF('<p>Three rounds, both still standing: the lower morale total backs off a hex. Griz\'s question, ruled; not CHAINMAIL\'s.</p>'); }
+      else if (b.t === 'fb') { t2 = 'A fire ball'; html = CM('<p>A wizard\'s fire ball covers a large catapult\'s hit area (p.31).</p>') + OURS('<p>Once a fight, one or two figures of the unit it falls on.</p>'); }
+      else return;
+      step({ ch: ch, title: t2, show: { sh: sh, k: k }, html: html });
+    });
+  }
+  function headStep() {
+    var sh = H && H.shows.filter(function (s) { return s.first && s.first.t === 'head'; })[0];
+    step({ ch: 'The Snoot\'s own rules', title: 'The collision: the head', show: sh ? { sh: sh, k: 0 } : null, vis: sh ? null : { map: H ? H.after : full },
+      html: CM('<p>When an <b>army commander</b> is killed or captured, every unit on his side checks morale at once, at -2 (p.21). A routing unit routs the friends it touches (p.16).</p>') +
+        OURS('<p><b>Griz\'s rule:</b> when the Harbinger\'s pack reaches GreyFang\'s unit, GreyFang loses his head. If the four are with him or next to the fight, it is fought on the grid (GreyFang\'s Pit, its trophy ending); here no one of ours is near, so it happens on the map with no roll. Then the Harbinger walks back to the moot ground and <b>every gnoll unit goes home</b>.</p>') +
+        DIFF('<p>The book\'s commander falling, turned around: the Lupine\'s head is the Snoot\'s commander-piece, and instead of a morale check at -2 the whole Snoot simply ends. The gnolls stop fighting and walk home.</p>') });
+  }
+  function partySteps() {
+    if (!P) return;
+    var sh = P.shows.filter(function (s) { return s.first && s.first.t === 'fight'; })[0], gk = SN.unit(P.before, 'gk1'), band = SN.band(P.before, [gk], [8, 6]);
+    var cnt = {}; band.enemies.forEach(function (e) { cnt[e] = (cnt[e] || 0) + 1; });
+    step({ ch: 'The four: the book\'s way and ours', title: 'If the party were not grid-played', vis: { map: P.before, marks: [{ h: [8, 6], c: '#ffb898', t: 'a Gray Keeping band: 6' }, { h: [9, 7], c: '#9ff0dc', t: 'the four' }] },
+      html: CM('<p>Book III: in a big battle at 20:1, "single fantastic types" fight separately at 1:1 or against a single 20:1 figure (p.25). On the tables, four super-heroes are <b>32 figures</b> of their class with <b>+2 on every die</b>; they never check morale; regular troops kill one only on eight hits at once; their charge makes the enemy check (p.30).</p>') +
+        OURS('<p>The next steps run that same fight <b>the book\'s way</b>, with the mode\'s own engine and the four as a CHAINMAIL unit. After it comes what the grid does instead.</p>') });
+    if (sh) sh.segs.forEach(function (sg, k) {
+      var b = sg.b, list = sg.list, html = '', t2 = '';
+      if (b.t === 'shock') { t2 = 'The four charge (the book\'s way)'; html = list.filter(function (x) { return x.t === 'shock'; }).map(function (x) { return '<p class="num">' + esc(unitName(P, x.u)) + ' check: [' + x.dice.join(' + ') + '] = ' + (x.dice[0] + x.dice[1]) + ' against ' + x.need + ' &rarr; <span class="k">' + (x.ok ? 'they stand' : 'they shy') + '</span></p>'; }).join('') + CM('<p>The super-heroes\' charge forces the check (p.30).</p>'); }
+      else if (b.t === 'atk') { t2 = 'The four on the tables: the dice'; html = list.map(function (x) { return atkText(P, x); }).join('') + CM('<p>Super-heroes: eight figures each, +2 a die (p.30). Regular troops kill a super-hero only with <b>eight hits at once</b>; the band\'s hits do nothing to the four.</p>'); }
+      else if (b.t === 'mor') { t2 = 'Morale (the book\'s way)'; html = morText(P, b); }
+      else if (b.t === 'cas' || b.t === 'gone' || b.t === 'fall' || b.t === 'night') { t2 = 'The result (the book\'s way)'; html = '<p>' + list.map(function (x) { return x.t === 'cas' ? esc(unitName(P, x.u)) + ' lose ' + x.n + ' (now ' + x.figs + ').' : x.t === 'gone' ? esc(unitName(P, x.u)) + ' are destroyed.' : x.t === 'fall' ? esc(unitName(P, x.u)) + ' ' + x.how + '.' : 'Night falls.'; }).join(' ') + '</p>'; }
+      else return;
+      step({ ch: 'The four: the book\'s way and ours', title: t2, show: { sh: sh, k: k }, html: html });
+    });
+    step({ ch: 'The four: the book\'s way and ours', title: 'What the grid does instead', vis: { map: P.before, marks: [{ h: [8, 6], c: '#ffb898', t: 'the band' }] },
+      html: OURS('<p>In the mode the four never roll on the tables. When they stand in a fight, <b>DEEP16 opens</b> through its own embed door (the way the 8-bit opens its story fights), and the band becomes creatures at 1:1, sized from the unit\'s figures: here <b>' + Object.keys(cnt).map(function (k) { var nm = { gloryseeker: 'glory-seeker', trooper: 'trooper' }[k] || k; return cnt[k] + ' ' + nm + (cnt[k] > 1 ? 's' : ''); }).join(', ') + '</b> (' + band.enemies.length + ', a hard fight for four at 8th) on the road\'s map. They fight it out by the 5E rules, by hand.</p>' +
+        '<p>Then it comes back to the map. <b>Won</b>: the band loses figures by the share of the band that fell (halved, unless it never checks morale) and <b>routs</b>. <b>Got out</b> (LEAVE THE FIGHT): the four fall back a hex and the gnolls have won, so the witness fills them. <b>Went down</b>: carried to the Pit, out until tomorrow, and the gnolls have won. Their HP, spell slots and potions stay spent; a day held in the Pit without a fight is a long rest.</p>') +
+        DIFF('<p>The book would roll the four as 32 figures with +2 and be done in a round. The mode trades that for the party\'s own play: Griz\'s ruling "Chef\'s dice" (the tables) only where the party isn\'t.</p>') +
+        '<p><button id="gridgo">FIGHT IT ON THE GRID</button> <span style="color:var(--dim);font-size:13px">(opens DEEP16 with the four at 8th and this band; the result comes back here)</span></p><div id="gridres"></div>',
+      after: function () { var b = $('gridgo'); if (b) b.onclick = gridFight; } });
+  }
+  function gridFight() {
+    var st = clone(P.before); st.party8 = JSON.parse(JSON.stringify(SN.PARTY8)); st.party80 = JSON.parse(JSON.stringify(SN.PARTY8));
+    var gk = SN.unit(st, 'gk1'), req = SN.band(st, [gk], [8, 6]);
+    SN.Deep.fight(st, req, function (res) {
+      var four = SN.make({ id: 'party', side: 'ours', name: 'The Party', kind: 'the four', party: true, cls: 'AF', def: 'AF', figs: 0, at: [8, 6], heroes: [], sheets: [] }, true); st.units.push(four);
+      var f0 = gk.figs; SN.partyResult(st, four, [gk], req, res, [8, 6]);
+      $('gridres').innerHTML = OURS('<p>The grid said <b>' + esc(res.result) + '</b>, ' + Math.round((res.share || 0) * 100) + '% of the band down. On the map: the band ' + f0 + ' &rarr; ' + gk.figs + ' figures, ' + (gk.state === 'rout' ? 'routing' : gk.state === 'gone' ? 'destroyed' : 'standing') + '.</p>');
+    });
+  }
+  function previewHtml() { if (!A) return ''; var u = SN.unit(A.before, 'patrol'), pv = SN.preview(A.before, u, [8, 6]); return pv ? pv.lines.concat(pv.warn).map(function (l) { return '<p style="margin:3px 0">' + esc(l) + '</p>'; }).join('') : ''; }
+  function forcesTable() {
+    var rows = SN.FORCES.concat(SN.DOMINION).map(function (f) {
+      var hs = (f.heroes || []).map(function (h) { return h.name + ' (' + { hero: 'Hero', superhero: 'Super-hero', wraith: 'Wraith', wizard: 'Warlock' }[h.type] + ')'; }).join(', ');
+      var notes = [f.berserk ? 'berserk' : '', f.cleric ? 'cleric' : '', f.volley ? 'volley' : '', f.watch ? 'never leaves the moot' : '', f.arrive ? 'arrives Day ' + f.arrive : '', f.side === 'dominion' ? 'two days after the hunt' : ''].filter(Boolean).join(', ');
+      return '<tr><td>' + esc(f.name) + '</td><td>' + esc(f.kind) + '</td><td>' + (f.party ? '--' : f.figs) + '</td><td>' + CN[f.cls] + '</td><td>' + CN[f.def] + '</td><td>' + (f.party ? '--' : (f.morale || SN.MORALE[f.def]) + (f.cleric ? '+1' : '')) + '</td><td>' + esc(hs) + '</td><td>' + esc(notes) + '</td></tr>';
+    }).join('');
+    return '<table class="cmp"><tr><th>unit</th><th>side</th><th>figs</th><th>attacks as</th><th>defends as</th><th>morale</th><th>fantastic figures</th><th>notes</th></tr>' + rows + '</table>';
+  }
+  function compareTable() {
+    var R = [
+      ['same', 'A figure is 20 men; morale ratings by class', 'p.8, pp.15-16', 'The same.'],
+      ['chg', 'Inches on a table; a turn is a minute', 'p.8', 'A hex is 5 miles and a turn a day (Book III); up to three rounds of melee in a day.'],
+      ['chg', 'Movement in inches by class', 'p.10', 'Hexes a day: foot 3 (Book III), the rest at CHAINMAIL\'s ratios (AF 2, HH 4, MH 6, LH 8).'],
+      ['chg', 'Hills halve movement and forbid a charge', 'p.9', 'Hills and the gulch cost 2; no charge die in them; the road costs 1.'],
+      ['same', 'Simultaneous written orders; move half, check contact, finish', 'p.9', 'Orders for every unit; each step at its own hour; contact stops both.'],
+      ['same', 'Charge if charged; drawn into a melee within 3"', 'p.9, p.16', 'CHARGE IF CHARGED joins a fight next to it.'],
+      ['out', 'Formations, facing, flanks, rear attacks', 'pp.10-11, 16', 'Left out: everyone in a hex fights everyone in it.'],
+      ['chg', 'Missile tables by armour, ranges, pass-through fire', 'pp.11-13', 'A missile unit\'s first-round volley on its own Combat Table row, nothing back.'],
+      ['same', 'The Combat Tables', 'p.40', 'The same numbers.'],
+      ['same', 'Impetus: +1 die a figure charging open ground; standing horse a class down', 'p.17', 'The same.'],
+      ['same', 'Fatigue: a class down and -1 morale till a turn\'s rest', 'p.11', 'The same, after three rounds; a day held is the rest.'],
+      ['chg', 'Post-melee morale and its results', 'pp.15-16', 'The same formula, each side pooled in its hex; back off and fall back are a hex, a rout two.'],
+      ['new', 'The melee continues next turn while the gap is under 20', 'p.16', 'NIGHTFALL: after three rounds the lower total backs off a hex. No hex ends a day shared.'],
+      ['same', 'Rout runs over friends; the rally table; instability', 'pp.16-17', 'The same.'],
+      ['same', 'Heroes and super-heroes', 'p.30', 'The same: paladins are Heroes; GreyFang and the four Super-heroes.'],
+      ['same', 'The Fantasy Combat Table', 'p.44', 'The same numbers for hero, super-hero, wizard (warlock -2) and wraith.'],
+      ['new', 'A wraith may withdraw; normal troops can\'t harm it', 'p.34, p.44', 'The hunting Harbinger walks through any unit with no hero in it; put down, he is carried home for two days.'],
+      ['chg', 'A wizard\'s fire ball over a catapult\'s area', 'p.31', 'The warlock throws one a fight: one or two figures.'],
+      ['chg', 'Religious orders: +1 morale, never surrender', 'p.19', 'Newland\'s clerics: the same, and they mend a figure a day.'],
+      ['same', 'Berserkers: +2, charge on sight, to the death', 'p.20', 'The plains tribes: within two hexes of gnolls they charge whatever is written.'],
+      ['new', 'The army commander killed: all check at -2', 'p.21', 'THE COLLISION (Griz): the Harbinger reaches GreyFang, the head is taken, every gnoll goes home.'],
+      ['new', '(none)', '', 'THE WITNESS (Griz): a gnoll win is filled from every band within two hexes.'],
+      ['new', 'Heroes fight separately at 1:1 in a 20:1 battle', 'Book III p.25', 'The four\'s fights go to the DEEP16 grid (5E, by hand); the result maps back to the unit.'],
+      ['new', '(none)', '', 'The Dominion\'s three wagons two days after the hunt; the Harbinger\'s hunt from Day 18.'],
+      ['same', 'Point values', 'p.27', 'The tally.']
+    ];
+    return '<table class="cmp"><tr><th></th><th>CHAINMAIL</th><th>page</th><th>the Snoot mode</th></tr>' + R.map(function (r) { return '<tr class="' + r[0] + '"><td><span class="tag ' + r[0] + '">' + { same: 'same', chg: 'changed', new: 'ours', out: 'left out' }[r[0]] + '</span></td><td>' + esc(r[1]) + '</td><td class="p">' + esc(r[2]) + '</td><td class="o">' + esc(r[3]) + '</td></tr>'; }).join('') + '</table>';
+  }
+
+  // ---------------------------------------------------------------- the stage: the map (with marks), the moves played, a fight's show beat by beat
+  var cv = $('map'), scv = $('show'), frame = 0, cur = 0, vis = null, mapSt = null, marks = [], showT = 0, showTo = 0, showSh = null;
+  V.init(cv);
+  function fit() { var w = $('stage').clientWidth, h = $('stage').clientHeight; V.fit(w, h); scv.width = w; scv.height = h; }
+  function drawMarks(cx) {
+    var s = V.size();
+    marks.forEach(function (m) {
+      var p = V.center(m.h); cx.save(); cx.strokeStyle = m.c; cx.lineWidth = 3; cx.shadowColor = m.c; cx.shadowBlur = 8; cx.beginPath();
+      for (var i = 0; i < 6; i++) { var a = Math.PI / 180 * (60 * i - 30), x = p[0] + s * 0.95 * Math.cos(a), y = p[1] + s * 0.95 * Math.sin(a); if (i) cx.lineTo(x, y); else cx.moveTo(x, y); }
+      cx.closePath(); cx.stroke(); cx.restore();
+      if (m.t) { cx.font = 'bold ' + Math.max(12, Math.round(s * 0.34)) + 'px Georgia'; cx.textAlign = 'center'; cx.lineWidth = 4; cx.strokeStyle = 'rgba(0,0,0,0.9)'; cx.strokeText(m.t, p[0], p[1] - s * 1.05); cx.fillStyle = m.c; cx.fillText(m.t, p[0], p[1] - s * 1.05); }
+    });
+  }
+  function tick() {
+    frame++;
+    if (vis === 'map' && mapSt) { V.draw(mapSt, frame); drawMarks(cv.getContext('2d')); }
+    if (vis === 'show' && showSh) { if (showT < showTo) showT = Math.min(showTo, showT + 1 / 60); SH.draw(scv.getContext('2d'), scv.width, scv.height, showSh, showT); }
+    var fired = false, go = function () { if (!fired) { fired = true; tick(); } }; requestAnimationFrame(go); setTimeout(go, 50);
+  }
+  function show(i) {
+    cur = Math.max(0, Math.min(STEPS.length - 1, i));
+    var S = STEPS[cur];
+    $('chap').textContent = S.ch; $('count').textContent = (cur + 1) + ' of ' + STEPS.length;
+    $('body').innerHTML = '<h2>' + esc(S.title) + '</h2>' + S.html; $('body').scrollTop = 0;
+    $('back').disabled = cur === 0; $('next').textContent = cur === STEPS.length - 1 ? 'THE END' : 'NEXT →'; $('next').disabled = cur === STEPS.length - 1;
+    [].forEach.call($('dots').children, function (d, k) { d.className = (k === cur ? 'on' : '') + (k > 0 && STEPS[k].ch !== STEPS[k - 1].ch ? ' ch' : ''); });
+    $('vis').style.display = 'none'; scv.style.display = 'none'; cv.style.display = 'block'; vis = null; V.anim = null; marks = []; V.sel = null;
+    if (S.show) { vis = 'show'; showSh = S.show.sh; var sg = showSh.segs[S.show.k]; showT = sg.t0; showTo = sg.t0 + sg.d * 0.97; scv.style.display = 'block'; } // (the beat plays, then holds for reading)
+    else if (S.vis && S.vis.html) { vis = 'html'; $('vis').innerHTML = S.vis.html; $('vis').style.display = 'block'; cv.style.display = 'none'; }
+    else if (S.vis && S.vis.anim) { vis = 'map'; var scn = S.vis.anim; mapSt = clone(scn.before); V.anim = { steps: scn.anim, t0: frame, dur: 120 }; setTimeout(function () { if (STEPS[cur] === S) { V.anim = null; mapSt = scn.after; marks = scn.after.head ? [{ h: scn.after.head.at, c: '#ff8a7a', t: 'the head' }] : SN.contested(scn.after).map(function (h) { return { h: h, c: '#ffd25a', t: '' }; }); } }, 2300); }
+    else if (S.vis && S.vis.map) { vis = 'map'; mapSt = S.vis.map; marks = S.vis.marks || []; V.sel = S.vis.sel || null; }
+    if (S.after) S.after();
+  }
+  $('dots').innerHTML = STEPS.map(function (s, k) { return '<i title="' + esc(s.ch + ': ' + s.title) + '"></i>'; }).join('');
+  [].forEach.call($('dots').children, function (d, k) { d.onclick = function () { show(k); }; });
+  $('next').onclick = function () { show(cur + 1); }; $('back').onclick = function () { show(cur - 1); };
+  document.addEventListener('keydown', function (e) { if (document.getElementById('d16')) return; if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'Enter') { e.preventDefault(); show(cur + 1); } if (e.key === 'ArrowLeft') { e.preventDefault(); show(cur - 1); } });
+  window.addEventListener('resize', fit);
+  [A, W, P, H].forEach(function (scn) { if (scn) V.preload(scn.before); });
+  window.TUT = { steps: STEPS, scenes: { A: A, W: W, P: P, H: H }, show: show }; // (for a look from the console, and the probe)
+  fit(); show(0); tick();
+  if (/[?&]probe\b/.test(location.search)) { var pr = document.createElement('pre'); pr.id = 'probe'; var bad = [];
+    STEPS.forEach(function (s, k) { try { show(k); } catch (e) { bad.push(k + ': ' + e.message); } });
+    pr.textContent = 'TUTORIAL ' + STEPS.length + ' steps; scenes ' + ['A', 'W', 'P', 'H'].map(function (k) { return k + (window.TUT.scenes[k] ? '@' + window.TUT.scenes[k].seed : ':NONE'); }).join(' ') + (bad.length ? '; FAIL steps threw: ' + bad.join('; ') : '; every step draws'); document.body.appendChild(pr); }
+})();
+</script>
+</body>
+</html>
