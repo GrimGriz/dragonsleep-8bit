@@ -542,6 +542,18 @@
     srd: { attacks: { bite: { name: 'Bite', atk: 6, dice: '2d6', mod: 3, type: 'piercing', reach: 5, attach: { dc: 16, large: true }, rides: true }, tail: { name: 'Tail', atk: 6, dice: '1d8', mod: 3, type: 'slashing', reach: 10 } } },
     src: 'SRD 5.1 Cloaker (CR 8, fly 40 read as moving 40); content/monsters.json cloaker: the bite engulfs (read as a grip, escape DC 16, its bite then always lands), Damage Transfer, Moan (WIS 13, frightened), Phantasms once when bloodied', todo: 'the engulfed one\'s blindness is not read'
   },
+  // a patrol lady of the Dominion (the Snoot mode, 10-15 -- Griz: "there wasn't any warlocks when I ran the party into a dominion fight"): one rides
+  // each of its wagons, a warlock of the Mirror -- Amara's numbers (warlock 5 at her register's hit points, two beams of Eldritch Blast, the Mirror's
+  // eye), unnamed and without her list; she stands with her soldiers (no flight: the Snoot's fight is the road's). The Snoot's band sends one for
+  // each wagon whose lady still lives (snoot-mode/js/rules.js SN.band), and one who falls here falls on its map
+  patrollady: {
+    name: 'Patrol Lady', type: 'humanoid', sheet: 'npcwarlock_p0', humanoid: true, cr: '3', ac: 13, hp: 45, speed: 30, size: 1, reach: 5,
+    abil: { str: 9, dex: 14, con: 12, int: 12, wis: 11, cha: 17 }, init: 2, perception: 10,
+    saves: { str: -1, dex: 2, con: 1, int: 1, wis: 2, cha: 5 },
+    attacks: { blast: { name: 'Eldritch Blast', atk: 6, dice: '1d10', mod: 3, type: 'force', ranged: true, spell: true, range: [120, 120], fx: 'fire' } },
+    multi: ['blast', 'blast'], mirrorEye: true,
+    src: 'the Snoot mode\'s Dominion wagons (snoot-mode/js/data.js SN.DOMINION: "the lady a CHAINMAIL warlock", Kat\'s wagon loadout): Amara\'s sheet above, unnamed -- the seat\'s draft, invented.json#patrol-lady-grid'
+  },
   amara: {
     named: true, name: 'Amara', type: 'humanoid', sheet: 'amara_p1', cr: '3', ac: 13, hp: 45, speed: 30, size: 1, reach: 5, // (hp: warlock 5 at a max d8+1 a level, RULED 09-28; the speed, size and reach sat behind this comment from e8435b3 to 09-28, so she had none)
     abil: { str: 9, dex: 14, con: 12, int: 12, wis: 11, cha: 17 }, init: 2, perception: 10,
