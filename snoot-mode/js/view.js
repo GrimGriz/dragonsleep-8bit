@@ -6,7 +6,11 @@
    the world to the screen, and the show (js/show.js) flies it from the whole map down into the one hex where a fight is, and back.
    The figures are DEEP16's own sheets (the lane §8: "the hex does the work"), read from ../deep16/data/sprites.js and drawn by their
    idle row; each stack shows its formation (a bar across its facing for a line, along it for a column, a ring for a square) and a
-   chevron on the side it faces (CHAINMAIL p.10, RULED 10-15). The badge and the ground are code-drawn. */
+   chevron on the side it faces (CHAINMAIL p.10, RULED 10-15). The badge and the ground are code-drawn.
+   10-15 later, his asks: "tile-ation of the out of bounds" -- the ground runs on past the map's edge, dim, the roads out of it; "keep the
+   default zoom out one step closer" -- the camera opens a step (1.25x) in from the whole map, the wheel steps it, a drag or the arrows pan;
+   "show the formation with sprites in the hex" -- a stack's figures stand in its formation (a line abreast, a column in file, a square in a
+   ring), its hero before it, and a chevron on the side it faces. */
 'use strict';
 (function () {
   var SN = window.SN, V = SN.V = {};
@@ -26,7 +30,17 @@
   // ---------------------------------------------------------------- the world and the camera
   // a hex's centre in the world: (√3·(c + ½ on an odd row), 1.5·r), its radius 1; the screen squashes y by SQ and lifts by the ground
   V.world = function (h) { return [R3 * (h[0] + 0.5 * (h[1] & 1)), 1.5 * h[1]]; };
-  V.elev = function (h) { var e = ELEV[SN.ter(h[0], h[1])]; return e == null ? 0 : e; };
+  // the ground off the map's edge: the nearest edge hex's ground carried on, now and then a hill, never the lake or a place; drawn dim, and
+  // nothing stands or moves there (V.hexAt finds only the map's own hexes)
+  V.OOB = 6;
+  V.terAt = function (h) {
+    if (SN.on(h)) return SN.ter(h[0], h[1]);
+    var ch = SN.ter(Math.max(0, Math.min(SN.W - 1, h[0])), Math.max(0, Math.min(SN.H - 1, h[1])));
+    ch = { P: '.', i: '.', m: 'h', s: 'h', l: 'h', w: '.', g: 'h' }[ch] || ch;
+    var n = noise(h[0], h[1], 5); if (ch !== 'h' && n > 0.86) ch = 'h'; else if (ch === 'h' && n < 0.14) ch = '.';
+    return ch;
+  };
+  V.elev = function (h) { var e = ELEV[V.terAt(h)]; return e == null ? 0 : e; };
   V.proj = function (cam, W, H) { return function (wx, wy, e) { return [(wx - cam.x) * cam.z + W / 2, ((wy - cam.y) * SQ - (e || 0)) * cam.z + H / 2]; }; };
   V.fitCam = function (W, H) {
     var x0 = -R3 / 2, x1 = R3 * SN.W, y0 = -SQ - 0.4, y1 = (1.5 * (SN.H - 1) + 1) * SQ + 0.3;
@@ -39,8 +53,23 @@
     return { x: w[0], y: w[1] - V.elev(h) / SQ + (H * 0.07) / (z * SQ), z: z };
   };
   V.lerpCam = function (a, b, f) { var z = a.z * Math.pow(b.z / a.z, f), g = (z - a.z) / ((b.z - a.z) || 1); return { x: a.x + (b.x - a.x) * g, y: a.y + (b.y - a.y) * g, z: z }; };
-  V.init = function (canvas) { cv = canvas; cx = cv.getContext('2d'); };
-  V.fit = function (w, h) { cv.width = Math.max(200, Math.floor(w)); cv.height = Math.max(200, Math.floor(h)); V.cam = V.fitCam(cv.width, cv.height); };
+  V.init = function (canvas) { cv = canvas; cx = cv.getContext('2d'); V.camSet = false; };
+  // the map's camera opens a step in from the whole map (his "one step closer"); the wheel steps it in or out about the mouse, from the whole map
+  // and a step out of it to four steps in; a drag or the arrows pan it, never far off the map
+  V.ZSTEP = 1.25; V.ZMIN = -1; V.ZMAX = 4; V.zk = 1;
+  V.fit = function (w, h) {
+    cv.width = Math.max(200, Math.floor(w)); cv.height = Math.max(200, Math.floor(h)); V.base = V.fitCam(cv.width, cv.height);
+    if (!V.camSet) { V.cam = { x: V.base.x, y: V.base.y, z: 0 }; V.camSet = true; }
+    V.cam.z = V.base.z * Math.pow(V.ZSTEP, V.zk); clampCam();
+  };
+  V.zoomAt = function (dk, px, py) {
+    var k = Math.max(V.ZMIN, Math.min(V.ZMAX, V.zk + dk)); if (k === V.zk) return false;
+    var W = cv.width, H = cv.height, wx = (px - W / 2) / V.cam.z + V.cam.x, wy = (py - H / 2) / (V.cam.z * SQ) + V.cam.y; // (the ground under the mouse stays under it)
+    V.zk = k; V.cam.z = V.base.z * Math.pow(V.ZSTEP, k);
+    V.cam.x = wx - (px - W / 2) / V.cam.z; V.cam.y = wy - (py - H / 2) / (V.cam.z * SQ); clampCam(); return true;
+  };
+  V.panBy = function (dx, dy) { V.cam.x -= dx / V.cam.z; V.cam.y -= dy / (V.cam.z * SQ); clampCam(); };
+  function clampCam() { V.cam.x = Math.max(-R3 / 2, Math.min(R3 * SN.W, V.cam.x)); V.cam.y = Math.max(-1, Math.min(1.5 * (SN.H - 1) + 1, V.cam.y)); }
   function mapProj() { return V.proj(V.cam, cv.width, cv.height); }
   V.center = function (h) { var w = V.world(h); return mapProj()(w[0], w[1], V.elev(h)); };
   V.hexAt = function (px, py) {
@@ -79,7 +108,8 @@
     var p = V.proj(cam, W, H), z = cam.z, r, col;
     c.imageSmoothingEnabled = false;
     c.fillStyle = '#16121c'; c.fillRect(0, 0, W, H);
-    for (r = 0; r < SN.H; r++) for (col = 0; col < SN.W; col++) { var q = V.center0(p, [col, r]); if (q[0] < -2 * z || q[0] > W + 2 * z || q[1] < -2 * z || q[1] > H + 2 * z) continue; tile(c, p, z, col, r); }
+    var M = V.OOB; V.stats = { tiles: 0, out: 0 };
+    for (r = -M; r < SN.H + M; r++) for (col = -M; col < SN.W + M; col++) { var q = V.center0(p, [col, r]); if (q[0] < -2 * z || q[0] > W + 2 * z || q[1] < -2 * z || q[1] > H + 2 * z) continue; tile(c, p, z, col, r); }
     // the roads
     SN.ROADS.forEach(function (rd) {
       var pts = rd.hexes.map(function (h) { return V.center0(p, h); });
@@ -87,6 +117,9 @@
       c.strokeStyle = '#3c2e1e'; c.lineWidth = Math.max(3, z * 0.16); c.beginPath(); pts.forEach(function (q, i) { if (i) c.lineTo(q[0], q[1]); else c.moveTo(q[0], q[1]); }); c.stroke();
       c.strokeStyle = '#c9a96a'; c.lineWidth = Math.max(1.5, z * 0.08); c.stroke();
     });
+    c.globalAlpha = 0.4; roadsOut().forEach(function (hs) { var pts = hs.map(function (h) { return V.center0(p, h); });
+      c.strokeStyle = '#3c2e1e'; c.lineWidth = Math.max(3, z * 0.16); c.beginPath(); pts.forEach(function (q, i) { if (i) c.lineTo(q[0], q[1]); else c.moveTo(q[0], q[1]); }); c.stroke();
+      c.strokeStyle = '#c9a96a'; c.lineWidth = Math.max(1.5, z * 0.08); c.stroke(); }); c.globalAlpha = 1;
     // the places' names (only from far off)
     if (z < 90 && opt.labels !== false) {
       c.font = 'italic ' + Math.max(10, Math.round(z * 0.28)) + 'px Georgia, serif'; c.textAlign = 'center';
@@ -122,12 +155,32 @@
   V.center0 = function (p, h) { var w = V.world(h); return p(w[0], w[1], V.elev(h)); };
   function label(c, txt, x, y, col) { c.lineWidth = 3; c.strokeStyle = 'rgba(0,0,0,0.8)'; c.strokeText(txt, x, y); c.fillStyle = col; c.fillText(txt, x, y); }
 
-  // a tile: its south walls, its top, its ground
+  // a tile: its south walls, its top, its ground; past the map's edge, dimmer the further out
   function tile(c, p, z, col, r) {
-    var h = [col, r], ch = SN.ter(col, r), w = V.world(h), e = V.elev(h), base = GROUND[ch] || '#555', top = corners(p, w, e, 1), low = corners(p, w, -0.18, 1);
+    var h = [col, r], ch = V.terAt(h), w = V.world(h), e = V.elev(h), base = GROUND[ch] || '#555', top = corners(p, w, e, 1), low = corners(p, w, -0.18, 1);
+    var out = SN.on(h) ? 0 : Math.max(-col, col - (SN.W - 1), -r, r - (SN.H - 1));
+    V.stats.tiles++; if (out) V.stats.out++;
     [[1, 2, 0.58], [2, 3, 0.72]].forEach(function (ed) { poly(c, [top[ed[0]], top[ed[1]], low[ed[1]], low[ed[0]]]); c.fillStyle = shade(ch === 'w' ? '#1e3a50' : base, ed[2]); c.fill(); c.strokeStyle = 'rgba(0,0,0,0.25)'; c.lineWidth = 1; c.stroke(); });
     poly(c, top); c.fillStyle = shade(base, 0.92 + 0.14 * noise(col, r, 1)); c.fill(); c.strokeStyle = 'rgba(0,0,0,0.3)'; c.lineWidth = 1; c.stroke();
     ground(c, ch, p, w, e, z, col, r);
+    if (out) { c.fillStyle = 'rgba(16,12,22,' + Math.min(0.8, 0.34 + 0.08 * out) + ')'; poly(c, top); c.fill(); [[1, 2], [2, 3]].forEach(function (ed) { poly(c, [top[ed[0]], top[ed[1]], low[ed[1]], low[ed[0]]]); c.fill(); }); }
+  }
+  // the roads that run off the map, carried on past its edge (the west road west, the south road south, the pirate road east)
+  var NBV = [[[1, 0], [0, -1], [-1, -1], [-1, 0], [-1, 1], [0, 1]], [[1, 0], [1, -1], [0, -1], [-1, 0], [0, 1], [1, 1]]], ROADOUT = null;
+  function roadsOut() {
+    if (ROADOUT) return ROADOUT; ROADOUT = [];
+    var count = {}; SN.ROADS.forEach(function (rd) { rd.hexes.forEach(function (x) { count[SN.key(x)] = (count[SN.key(x)] || 0) + 1; }); });
+    SN.ROADS.forEach(function (rd) {
+      var hx = rd.hexes, ends = [[hx[0], hx[1]], [hx[hx.length - 1], hx[hx.length - 2]]];
+      ends.forEach(function (e) {
+        var end = e[0], d = SN.dirTo(e[1], end), edge = end[0] === 0 || end[1] === 0 || end[0] === SN.W - 1 || end[1] === SN.H - 1;
+        if (!edge || count[SN.key(end)] > 1 || d < 0) return;
+        var line = [end], h = end;
+        for (var i = 0; i <= V.OOB; i++) { var dd = d === 4 || d === 5 ? (i % 2 ? 4 : 5) : d === 1 || d === 2 ? (i % 2 ? 1 : 2) : d, o = NBV[h[1] & 1][dd]; h = [h[0] + o[0], h[1] + o[1]]; line.push(h); }
+        ROADOUT.push(line);
+      });
+    });
+    return ROADOUT;
   }
   // the ground's marks, in the world so they lie on the slant (the more the zoom, the more of them: the show's hex is a field, not a tile)
   function ground(c, ch, p, w, e, z, col, r) {
@@ -198,36 +251,35 @@
     return out;
   }
   V.positions = function (st, t) { return positions(st, t, mapProj()); };
-  // a stack: its formation on the ground and the side it faces, three to five figures of its sheets, its hero in front, and its badge
+  // the screen's own way a unit faces (unit vector, the slant's squash taken out) and its right hand
+  function facing(dir) { var d = V.DIRV[dir || 0], ux = d[0], uy = d[1] * SQ, l = Math.sqrt(ux * ux + uy * uy); return [ux / l, uy / l, -uy / l, ux / l]; }
+  // where a stack's troop figures stand about its foot, in its formation (CHAINMAIL p.10): a line abreast across the way it faces (two ranks past four),
+  // a column in file along it (two wide from four), a square in a ring; the four abreast
+  V.layoutOf = function (u, n, s, k, dir) {
+    var F = facing(dir), ux = F[0], uy = F[1], rx = F[2], ry = F[3], sp = s * 0.44 * k, out = [], i, form = u.party ? 'party' : u.form || 'line';
+    if (form === 'square' && n >= 4) for (i = 0; i < n; i++) { var a = (i + 0.5) / n * Math.PI * 2; out.push([Math.cos(a) * sp * 1.05, Math.sin(a) * sp * 0.7]); }
+    else if (form === 'column') { var files = n >= 4 ? 2 : 1, ranks = Math.ceil(n / files); for (i = 0; i < n; i++) { var u2 = ((ranks - 1) / 2 - Math.floor(i / files)) * sp * 0.85, v2 = (i % files - (files - 1) / 2) * sp * 0.75; out.push([ux * u2 + rx * v2, uy * u2 + ry * v2]); } }
+    else { var fl = n > 4 && form !== 'party' ? Math.ceil(n / 2) : n, rk = Math.ceil(n / fl); for (i = 0; i < n; i++) { var v3 = (i % fl - (fl - 1) / 2) * sp, u3 = ((rk - 1) / 2 - Math.floor(i / fl)) * sp * 0.7; out.push([ux * u3 + rx * v3, uy * u3 + ry * v3]); } }
+    return out;
+  };
+  // a stack: its figures in its formation, its hero before them (in a square, amid them), a chevron on the side it faces, and its badge
   function stack(c, st, u, x, y, s, t, crowd, dir, ui) {
-    var k = crowd > 1 ? 0.62 : 1, sheets = u.sheets || [], heroes = SN.heroesOf(u), hgt = Math.min(96, s * 0.82) * k, face = FACE[dir || 0];
-    var n = u.party ? 4 : Math.max(heroes.length ? 1 : 2, Math.min(crowd > 1 ? 3 : 5, Math.ceil((u.figs || 0) / 2) + heroes.length));
-    var slots = [[0, 0.05], [-0.26 * k, -0.1], [0.26 * k, -0.1], [-0.13 * k, -0.24], [0.13 * k, -0.24]];
-    if (u.party) slots = [[-0.27 * k, 0.04], [-0.09 * k, -0.06], [0.09 * k, 0.04], [0.27 * k, -0.06]];
-    if (!u.party) formMark(c, u, x, y, s * k, dir || 0);
+    var k = crowd > 1 ? 0.62 : 1, sheets = u.sheets || [], hs = SN.heroesOf(u).length && !u.party ? 1 : 0, hgt = Math.min(84, s * 0.58) * k, face = FACE[dir || 0], F = facing(dir);
+    var troops = u.party ? 4 : Math.max(hs ? 0 : 1, Math.min(crowd > 1 ? 3 : 5, Math.ceil((u.figs || 0) / 1.5))), pos = V.layoutOf(u, troops, s, k, dir), figs = [];
+    pos.forEach(function (q, i) { figs.push({ x: x + q[0], y: y + q[1], nm: u.party ? sheets[i] : sheets[(hs + (i % Math.max(1, sheets.length - hs))) % sheets.length] || sheets[0] }); });
+    if (hs) { var fwd = u.form === 'square' ? 0 : s * 0.4 * k * (u.form === 'column' ? 1.1 : 0.85); figs.push({ x: x + F[0] * fwd, y: y + F[1] * fwd, nm: sheets[0], hero: true }); }
+    if (!u.party) chevron(c, u, x, y, s * k, F);
+    c.fillStyle = 'rgba(0,0,0,0.3)'; figs.forEach(function (f) { c.beginPath(); c.ellipse(f.x, f.y, s * 0.1 * k, s * 0.045 * k, 0, 0, Math.PI * 2); c.fill(); }); // (each figure's shadow on the ground: the formation's shape)
     var a0 = c.globalAlpha; if (u.state === 'rout' || u.state === 'withdraw' || u.state === 'home') c.globalAlpha = a0 * 0.6;
-    for (var i = n - 1; i >= 0; i--) {
-      var sl = slots[i], nm = u.party ? sheets[i] : (i === 0 && heroes.length ? sheets[0] : sheets[(heroes.length ? 1 : 0) + (i % Math.max(1, sheets.length - (heroes.length ? 1 : 0)))] || sheets[0]);
-      figure(c, nm, face, x + sl[0] * s, y + sl[1] * s * SQ * 1.4, hgt, t + i * 7);
-    }
+    figs.sort(function (a, b) { return a.y - b.y; }).forEach(function (f, i) { figure(c, f.nm, face, f.x, f.y, hgt * (f.hero ? 1.08 : 1), t + i * 7); });
     c.globalAlpha = a0;
-    badge(c, st, u, x + s * 0.3 * k, y - s * 0.62 * k - hgt * 0.35, s, k, ui);
+    badge(c, st, u, x + s * 0.34 * k, y - s * 0.5 * k - hgt * 0.6, s, k, ui);
   }
-  // the formation on the ground (CHAINMAIL p.10): a line a bar across the way it faces, a column a bar along it, a square a ring; a chevron on the side
-  function formMark(c, u, x, y, s, dir) {
-    var d = V.DIRV[dir], ux = d[0], uy = d[1] * SQ, l = Math.sqrt(ux * ux + uy * uy); ux /= l; uy /= l;
-    var px = -uy, py = ux, col = SIDE[u.side] || '#888', len = s * 0.4;
-    y += s * 0.16; // (in front of the figures' feet, where it can be seen)
-    c.save(); c.lineCap = 'round'; c.strokeStyle = 'rgba(0,0,0,0.55)'; c.lineWidth = Math.max(4, s * 0.1);
-    var draw = function () { c.beginPath();
-      if (u.form === 'square') c.ellipse(x, y, len * 0.75, len * 0.75 * SQ, 0, 0, Math.PI * 2);
-      else if (u.form === 'column') { c.moveTo(x - ux * len * 0.9, y - uy * len * 0.9); c.lineTo(x + ux * len * 0.5, y + uy * len * 0.5); }
-      else { c.moveTo(x - px * len, y - py * len); c.lineTo(x + px * len, y + py * len); }
-      c.stroke(); };
-    draw(); c.strokeStyle = col; c.lineWidth = Math.max(2, s * 0.05); draw();
-    var cxp = x + ux * len * 1.05, cyp = y + uy * len * 1.05, w = Math.max(4, s * 0.1);
-    c.fillStyle = col; c.strokeStyle = 'rgba(0,0,0,0.7)'; c.lineWidth = 1.5; c.beginPath(); c.moveTo(cxp + ux * w, cyp + uy * w); c.lineTo(cxp + px * w * 0.7, cyp + py * w * 0.7); c.lineTo(cxp - px * w * 0.7, cyp - py * w * 0.7); c.closePath(); c.fill(); c.stroke();
-    c.restore();
+  // the side it faces: a chevron on the ground before its front rank
+  function chevron(c, u, x, y, s, F) {
+    var col = SIDE[u.side] || '#888', d = s * (u.form === 'column' ? 0.8 : 0.55), cxp = x + F[0] * d, cyp = y + F[1] * d + s * 0.04, w = Math.max(4, s * 0.1);
+    c.save(); c.fillStyle = col; c.strokeStyle = 'rgba(0,0,0,0.75)'; c.lineWidth = 1.5; c.beginPath();
+    c.moveTo(cxp + F[0] * w, cyp + F[1] * w); c.lineTo(cxp + F[2] * w * 0.75, cyp + F[3] * w * 0.75); c.lineTo(cxp - F[2] * w * 0.75, cyp - F[3] * w * 0.75); c.closePath(); c.fill(); c.stroke(); c.restore();
   }
   function badge(c, st, u, x, y, s, k, ui) {
     var w = s * 0.46 * (k || 1), h = s * 0.46 * (k || 1), col = SIDE[u.side] || '#888';

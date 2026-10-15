@@ -43,7 +43,7 @@
       '<h2>The four</h2><p>The party are Super-heroes. Every fight they stand in is fought on the grid (DEEP16): you play it out there, and the result comes back to the map. What they spend stays spent; a day spent in the Pit without a fight is a long rest.</p>' +
       '<h2>The Snoot</h2><p><b>The witness:</b> a gnoll band that wins a fight is filled up from every gnoll band within two hexes. Glory draws followers.<br><b>The Harbinger</b> hunts GreyFang from Day 18 (sooner if GreyFang strays near him). Only a hero (a paladin), GreyFang or the four can hold him; anyone else he walks straight through. When he reaches GreyFang the head is taken: on the grid if the four are with GreyFang or next to the fight, on the map if not. Then every gnoll goes home.<br><b>The Dominion:</b> two days after the hunt begins, three wagons come along the west road. Mop them up and the battle is over.</p>' +
       '<h2>Who is who</h2><p>Newland\'s units carry a paladin (a Hero: +1 to the unit\'s dice) or a cleric (never surrenders, +1 morale, mends a figure a day) or both. The plains tribes are berserkers and their own masters: the computer moves them -- they charge any gnolls within two hexes, hunt the rest, and never check morale. Crossbows loose a volley before the melee. Horse charging over open ground adds a die a figure; standing horse defends a class down. Gnolls attack as Armored Foot and defend as Heavy Foot, morale +2 (OD&amp;D Book II).</p>' +
-      '<h2>Keys</h2><p class="small">Tab the next unit without orders &middot; Q / E turn the unit &middot; Enter resolve the day &middot; N notes &middot; H this card &middot; Esc deselect. The rules as read, with page numbers: <a href="rules-source.md" target="_blank" style="color:#ffe08a">rules-source.md</a>.</p>',
+      '<h2>Keys</h2><p class="small">Tab the next unit without orders &middot; the ring round a selected unit, or the panel, for its orders and formation &middot; Q / E turn the unit &middot; the wheel or + / - zoom, a drag or the arrows pan &middot; Enter resolve the day &middot; N notes &middot; H this card &middot; Esc deselect. The rules as read, with page numbers: <a href="rules-source.md" target="_blank" style="color:#ffe08a">rules-source.md</a>.</p>',
       [{ label: fromTitle ? 'BACK' : 'ON', go: true, fn: fromTitle ? UI.title : null }]);
   };
 
@@ -126,7 +126,7 @@
     var todo = st.units.filter(function (u) { return SN.canOrder(st, u) && u.order.type === 'hold' && !u.held; }).length;
     $('phase').textContent = busy ? 'the day plays out...' : st.over ? 'the battle is over' : todo ? todo + ' unit' + (todo > 1 ? 's' : '') + ' without orders' : 'every unit has its orders';
     $('bResolve').disabled = busy || st.over; $('bNext').disabled = busy || st.over;
-    UI.panel(); UI.renderLog();
+    UI.panel(); UI.renderLog(); UI.ring();
   };
   UI.renderLog = function () {
     if (!st) return; var el = $('log');
@@ -165,6 +165,35 @@
     if ($('oSup')) $('oSup').onclick = function () { u.order = { type: 'support' }; u.held = true; UI.render(); };
     if ($('oAvoid')) $('oAvoid').onclick = function () { u.order = { type: 'avoid' }; u.held = true; UI.render(); };
   };
+  // ---------------------------------------------------------------- the ring (his ask 10-15: "a ring menu on the side for available commands for that unit"):
+  // round the selected unit of ours, what it can be told -- HOLD, CHARGE IF CHARGED, AVOID, its formation (SQUARE for foot) and its turn; the four
+  // their orders only. A march is still a click on a hex
+  var ringKey = null;
+  UI.ring = function () {
+    var el = $('ring'); if (!el) return;
+    var u = st && V.sel && SN.unit(st, V.sel), showing = $('show') && $('show').style.display === 'block';
+    if (!u || busy || showing || !SN.canOrder(st, u) || UI.cardOpen() || SN.Notes.isOpen()) { el.style.display = 'none'; ringKey = null; return; }
+    var o = u.order, key = [u.id, st.day, o.type, u.held, u.form, u.face, u.reformed].join('|');
+    if (key !== ringKey) {
+      ringKey = key;
+      var items = [{ k: 'hold', t: 'HOLD', on: o.type === 'hold' && u.held, tip: 'Hold this hex' }, { k: 'support', t: 'CHARGE?', on: o.type === 'support', tip: 'CHARGE IF CHARGED: join any fight next to it' }, { k: 'avoid', t: 'AVOID', on: o.type === 'avoid', tip: 'Hold, and slip a hex away from anything that comes (OD&D Book III)' }];
+      var cost = SN.formFree(st, u) ? ' (free today)' : ' (half today\'s move)';
+      if (!u.party) items = items.concat([{ k: 'line', t: 'LINE', on: u.form === 'line', tip: 'Line: front three sides' + cost }, { k: 'column', t: 'COLUMN', on: u.form === 'column', tip: 'Column: front one side; horse and wagons march further on the road' + cost },
+        SN.foot(u) ? { k: 'square', t: 'SQUARE', on: u.form === 'square', tip: 'Square: all front, a hex a day' + cost } : null, { k: 'left', t: '\u27F2', tip: 'Turn left (Q)' }, { k: 'right', t: '\u27F3', tip: 'Turn right (E)' }].filter(Boolean));
+      el.innerHTML = items.map(function (it, i) { var a = -Math.PI / 2 + i / items.length * Math.PI * 2; return '<button data-k="' + it.k + '" data-a="' + a + '"' + (it.on ? ' class="on"' : '') + ' title="' + esc(it.tip) + '">' + it.t + '</button>'; }).join('');
+      [].forEach.call(el.querySelectorAll('button'), function (b) { b.onmousedown = function (e) { e.stopPropagation(); }; b.onclick = function (e) { e.stopPropagation(); UI.command(u, b.getAttribute('data-k')); }; });
+    }
+    var q = V.center(u.at), r = Math.max(64, V.size() * 1.2), m = $('map');
+    el.style.display = 'block'; el.style.left = m.offsetLeft + 'px'; el.style.top = m.offsetTop + 'px';
+    [].forEach.call(el.querySelectorAll('button'), function (b) { var a = +b.getAttribute('data-a'); b.style.left = Math.round(q[0] + Math.cos(a) * r * 1.45) + 'px'; b.style.top = Math.round(q[1] - V.size() * 0.35 + Math.sin(a) * r * 0.95) + 'px'; });
+  };
+  UI.command = function (u, k) {
+    if (!st || busy || !SN.canOrder(st, u)) return;
+    if (k === 'hold' || k === 'support' || k === 'avoid') { u.order = { type: k }; u.held = true; }
+    else if (k === 'line' || k === 'column' || k === 'square') SN.setForm(st, u, k);
+    else if (k === 'left' || k === 'right') SN.setForm(st, u, null, (u.face || 0) + (k === 'left' ? 1 : 5));
+    UI.tip(null); UI.render();
+  };
   // the move's preview (his question 10-14 night; js/rules.js SN.preview): a selected unit of ours, the mouse on where it would march
   var tipKey = null;
   UI.tip = function (h, x, y) {
@@ -187,6 +216,7 @@
 
   // ---------------------------------------------------------------- input
   function click(e, right) {
+    if (UI.dragged) { UI.dragged = false; return; } // (the end of a drag across the map, not a click on it)
     if (!st || busy || UI.cardOpen() || SN.Notes.isOpen()) return;
     var r = $('map').getBoundingClientRect(), h = V.hexAt(e.clientX - r.left, e.clientY - r.top); if (!h) return;
     var here = SN.unitsAt(st, h), mineHere = here.filter(function (u) { return u.side === 'ours'; }), sel = V.sel && SN.unit(st, V.sel);
@@ -207,6 +237,12 @@
     cv.addEventListener('contextmenu', function (e) { e.preventDefault(); click(e, true); });
     cv.addEventListener('mousemove', function (e) { var r = cv.getBoundingClientRect(), h = V.hexAt(e.clientX - r.left, e.clientY - r.top); V.hover = h; UI.tip(h, e.clientX, e.clientY); });
     cv.addEventListener('mouseleave', function () { V.hover = null; UI.tip(null); });
+    // the camera (his "keep the default zoom out one step closer", 10-15): the wheel steps it about the mouse; a drag pans it
+    cv.addEventListener('wheel', function (e) { e.preventDefault(); var r = cv.getBoundingClientRect(); if (V.zoomAt(e.deltaY < 0 ? 1 : -1, e.clientX - r.left, e.clientY - r.top)) UI.tip(null); }, { passive: false });
+    var drag = null;
+    cv.addEventListener('mousedown', function (e) { if (e.button === 0 || e.button === 1) drag = { x: e.clientX, y: e.clientY, moved: false }; if (e.button === 1) e.preventDefault(); });
+    window.addEventListener('mousemove', function (e) { if (!drag) return; var dx = e.clientX - drag.x, dy = e.clientY - drag.y; if (!drag.moved && dx * dx + dy * dy < 49) return; drag.moved = true; cv.style.cursor = 'grabbing'; V.panBy(dx, dy); drag.x = e.clientX; drag.y = e.clientY; UI.tip(null); });
+    window.addEventListener('mouseup', function () { if (drag && drag.moved) { UI.dragged = true; setTimeout(function () { UI.dragged = false; }, 50); } drag = null; cv.style.cursor = ''; });
     $('bResolve').onclick = UI.resolve; $('bNext').onclick = UI.next;
     $('bNotes').onclick = function () { SN.Notes.open(st, false); };
     $('bHelp').onclick = function () { UI.help(false); };
@@ -219,12 +255,14 @@
       else if (e.key === 'Tab') { UI.next(); e.preventDefault(); }
       else if (e.key === 'n' || e.key === 'N') { if (!SN.Notes.isOpen()) { SN.Notes.open(st, false); e.preventDefault(); } }
       else if (e.key === 'h' || e.key === 'H') { if (!UI.cardOpen()) UI.help(false); }
+      else if (/^Arrow/.test(e.key)) { var ps = V.size() * 1.6; V.panBy(e.key === 'ArrowLeft' ? ps : e.key === 'ArrowRight' ? -ps : 0, e.key === 'ArrowUp' ? ps : e.key === 'ArrowDown' ? -ps : 0); e.preventDefault(); }
+      else if (e.key === '+' || e.key === '=' || e.key === '-' || e.key === '_') { var mc = $('map'); V.zoomAt(e.key === '-' || e.key === '_' ? -1 : 1, mc.width / 2, mc.height / 2); }
       else if (/^[qQeE]$/.test(e.key)) { var su = st && V.sel && SN.unit(st, V.sel); if (su && !busy && SN.canOrder(st, su) && !su.party) { SN.setForm(st, su, null, (su.face || 0) + (/[qQ]/.test(e.key) ? 1 : 5)); UI.render(); } }
     });
     window.addEventListener('resize', fit);
   };
   function fit() { var w = window.innerWidth - ($('log').offsetWidth || 340), hh = window.innerHeight - 40 - ($('panel').offsetHeight || 128); $('panel').style.right = ($('log').offsetWidth || 340) + 'px'; V.fit(w, hh); }
-  function loop() { frame++; if (st) V.draw(st, frame); requestAnimationFrame(loop); }
+  function loop() { frame++; if (st) { V.draw(st, frame); UI.ring(); } requestAnimationFrame(loop); }
   UI.boot = function () { V.init($('map')); UI.bind(); fit(); loop(); if (WATCH) UI.newGame(); else UI.title(); };
 
   // ---------------------------------------------------------------- the probe's look at the page (dev/snoot-probe.py): a whole battle through the page's
@@ -273,6 +311,20 @@
       var pp = SN.preview(s2, SN.unit(s2, 'party'), gs.at);
       ok(pp && pp.lines.some(function (l) { return /grid/.test(l); }), 'the pop-up: the four marching on a band are told it goes to the grid');
       UI.closeCard();
+      // his asks after the isometric map (10-15): the camera a step closer, the ground past the edge, the stacks in formation, the ring
+      V.camSet = false; V.zk = 1; V.fit(800, 500); var fz = V.fitCam(800, 500).z, z1 = V.cam.z, zin = V.zoomAt(1, 400, 250) && Math.abs(V.cam.z - fz * 1.5625) < 0.01;
+      for (var zi = 0; zi < 9; zi++) V.zoomAt(1, 400, 250); var zmax = V.cam.z; V.zk = 1; V.fit(800, 500);
+      ok(Math.abs(z1 - fz * 1.25) < 0.01 && zin && Math.abs(zmax - fz * Math.pow(1.25, 4)) < 0.01, 'the map opens a step (1.25x) in from the whole map; the wheel steps it, to four steps in');
+      var s3 = SN.newGame(4242); s3.party8 = null; SN.dawn(s3); V.draw(s3, 1); var oq = V.center([-2, 3]);
+      ok(V.stats && V.stats.out > 20 && !V.hexAt(oq[0], oq[1]), 'the ground runs on past the map\'s edge (' + (V.stats ? V.stats.out : 0) + ' tiles drawn dim), and nothing there can be clicked');
+      var spread = function (form, dir) { var p = V.layoutOf({ form: form }, 6, 40, 1, dir), xs = p.map(function (q) { return q[0]; }), ys = p.map(function (q) { return q[1]; }); return [Math.max.apply(null, xs) - Math.min.apply(null, xs), Math.max.apply(null, ys) - Math.min.apply(null, ys)]; };
+      var le = spread('line', 0), ce = spread('column', 0);
+      ok(le[1] > le[0] && ce[0] > ce[1], 'the stacks stand in their formation with their sprites: a line facing east runs north and south, a column facing east east and west');
+      st = s3; V.sel = 'patrol'; UI.render(); UI.ring();
+      var rk = [].map.call(document.querySelectorAll('#ring button'), function (b) { return b.getAttribute('data-k'); }), ab = document.querySelector('#ring button[data-k="avoid"]'); if (ab) ab.click();
+      var pav = SN.unit(st, 'patrol').order.type; V.sel = 'party'; UI.render(); UI.ring();
+      var rp = [].map.call(document.querySelectorAll('#ring button'), function (b) { return b.getAttribute('data-k'); }); V.sel = null; UI.render();
+      ok(rk.join() === 'hold,support,avoid,line,column,square,left,right' && pav === 'avoid' && rp.join() === 'hold,support,avoid', 'the ring round a selected unit of ours: its orders, its formations, its turns (the four: their orders); AVOID from the ring is its order (' + rk.join(' ') + ')');
     } catch (e) { ok(false, 'the page threw: ' + (e && e.stack || e)); }
     out.push('SNOOTPAGE ' + out.length + ' checks, ' + (bad ? bad + ' FAILED' : 'all ok'));
     return out;
