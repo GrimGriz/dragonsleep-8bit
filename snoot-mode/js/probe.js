@@ -160,6 +160,11 @@
       var s14 = SN.newGame(64); s14.party8 = null; SN.dawn(s14); var y14 = SN.unit(s14, 'gk1');
       return e.order.type === 'move' && SN.same(e.order.to, SN.PIT) && o.order.type === 'move' && !SN.same(o.order.to, SN.PIT) && y14.order.type === 'move'; }),
       'the horse escort marches for the Pit with the herd while the outriders peel off for the Snoot; the Gray Keeping\'s young blood are out from Day 14 (his words 10-15)');
+    // ---- a surrender takes the men, never the heroes (p.30; found 10-15 in his play: GreyFang went prisoner with his forty)
+    ok(tk(function () { var sp = SN.newGame(65); sp.party8 = null; SN.dawn(sp); var g = SN.unit(sp, 'greyfang'), b = SN.unit(sp, 'sg1'); b.at = [8, 2];
+      SN.surrender(sp, g); SN.surrender(sp, b);
+      return g.figs === 0 && SN.alive(g) && g.state !== 'prisoner' && SN.greyfang(sp) === g && !SN.same(g.at, SN.PIT) && b.state === 'prisoner' && !SN.alive(b) && sp.stats.prisoners['ours:LF'] === 40; }),
+      'p.30: a surrender takes the men, never the heroes -- GreyFang\'s forty are taken, GreyFang cuts free and falls back alone; a band with no hero is taken whole');
     // ---- whole battles, both hands, the party's part on the tables
     var heads = 0, grids = 0, maps = 0, fills = 0, bands = 0, ends = [], domOk = true, inv = [], dom0 = [], nightShared = 0;
     for (var seed = 1; seed <= 8; seed++) {

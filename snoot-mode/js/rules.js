@@ -651,9 +651,13 @@
     });
     return true;
   };
+  // a surrender takes the men; a hero, a super-hero or a wraith with them "never checks morale" (p.30) and is not taken -- cut free, falling back alone
+  // (found 10-15 in his play: GreyFang's forty surrendered at the Pit and he went with them; the Harbinger's quarry is never a prisoner)
   SN.surrender = function (st, u) {
+    var hs = SN.heroesOf(u).filter(function (h) { return h.type !== 'wizard'; });
     SN.take(st, u, u.figs, 'prisoners');
-    SN.beat(st, { t: 'surrender', u: u.id });
+    SN.beat(st, { t: 'surrender', u: u.id, heroesLeft: hs.length > 0 });
+    if (hs.length) { SN.say(st, hs.map(function (h) { return h.name; }).join(' and ') + ' will not be taken: cut free, falling back alone.', 'morale', u.at); SN.fallBack(st, u, 'retreat'); return; }
     u.state = 'prisoner'; u.on = false;
   };
   // falling back: a hex away from the enemy, toward home; a rout two (a move and a half), and a routing unit routs the friends it runs into (p.16)
