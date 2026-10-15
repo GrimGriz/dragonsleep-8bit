@@ -59,10 +59,10 @@
 <script src="deep16/data/sprites.js"></script>
 <script src="snoot-mode/js/data.js?v=4cbad22ed4"></script>
 <script src="snoot-mode/js/party8.js?v=edb32c7f51"></script>
-<script src="snoot-mode/js/rules.js?v=ae19066741"></script>
+<script src="snoot-mode/js/rules.js?v=b775b19bf2"></script>
 <script src="snoot-mode/js/ai.js?v=c8a08c5fa3"></script>
 <script src="snoot-mode/js/view.js?v=7567bc33bb"></script>
-<script src="snoot-mode/js/show.js?v=99017eaaf9"></script>
+<script src="snoot-mode/js/show.js?v=3901dd2ffc"></script>
 <script src="snoot-mode/js/deep.js?v=08abb655fa"></script>
 <script>
 'use strict';
@@ -133,7 +133,7 @@
       var raw = (a.cas < o.cas ? (o.cas - a.cas) * a.die : 0) + (a.surv > o.surv ? a.surv - o.surv : 0) + a.surv * a.rate;
       return '<p class="num"><b>' + nm + '</b>: ' + cas + '; ' + sv + '; ' + a.surv + ' survivors &times; morale ' + a.rate + ' = ' + Math.round(a.surv * a.rate * 10) / 10 + ' &rarr; ' + Math.round(raw * 10) / 10 + (b.doubled ? ' &times; 2 = <b>' + Math.round(raw * 2) + '</b>' : ' = <b>' + Math.round(raw) + '</b>') + '</p>';
     }
-    var res = { 'continue': 'under 20: the melee goes on', backoff: '20-39: they back off half a move', back: '40-59: they fall back a move in good order', retreat: '60-79: they retreat a move', rout: '80-99: they rout', surrender: '100 or more: they surrender' }[b.how];
+    var res = { 'continue': 'under 20: the melee goes on', backoff: '20-39: they back off half a move', back: '40-59: they fall back a move in good order', retreat: '60-79: they retreat a move', rout: b.gap >= 100 ? '100 or more: the book\'s surrender -- here they rout (Griz: no one surrenders)' : '80-99: they rout', surrender: '100 or more: they surrender' }[b.how];
     return side('Ours', P2.ours, P2.theirs) + side('Theirs', P2.theirs, P2.ours) + '<p>The gap is <b>' + b.gap + '</b> &rarr; ' + (b.never ? 'the lower side never checks morale, so the melee goes on' : '<b>' + res + '</b>' + (b.how !== 'continue' ? ' (' + (b.lo === 'ours' ? 'ours' : 'theirs') + ')' : '')) + '.</p>';
   }
 
@@ -181,7 +181,7 @@
   fightSteps(A, 'A fight on the tables', 'The patrol charges a Skull-Gate band');
   step({ ch: 'A fight on the tables', title: 'Three rounds, then nightfall', vis: { map: A ? A.after : full, marks: [{ h: [8, 6], c: '#ffd25a', t: 'the fight' }] },
     html: CM('<p>Melee goes round by round with morale after each; if the gap is under 20 the melee simply continues next turn (p.16). <b>Fatigue</b>: three rounds of melee (and other mixes of moving and fighting) drop a unit a class and 1 morale until it rests a turn (p.11). A routing unit that runs into friends routs them too, and rallies by a table (p.16). A unit past its loss line rolls two dice to stay (p.17).</p>') +
-      OURS('<p>A day holds up to three rounds. Rout spreads by contact, routing units rally at dusk by the book\'s table, and instability is rolled once when a unit crosses its line.</p>') +
+      OURS('<p>A day holds up to three rounds. No one surrenders (Griz: the book\'s 100 and over is a rout). Men who rout join a steady friend within two hexes or scatter and are gone; a gnoll rout spreads by contact and rallies at dusk by the book\'s table; and instability is rolled once when a unit crosses its line.</p>') +
       DIFF('<p><b>Nightfall</b> (Griz\'s question, ruled): if three rounds leave both standing, the side with the lower morale total backs off a hex. A side that never yields (berserkers, the death-watch, heroes) makes the other back off. No hex ends a day shared. CHAINMAIL would leave them locked.</p>') });
   // the Snoot's own rules
   step({ ch: 'The Snoot\'s own rules', title: 'The witness', vis: { map: W ? W.before : full, marks: [{ h: [8, 5], c: '#ff8a7a', t: 'the fight' }, { h: [7, 3], c: '#ffd25a', t: 'the witness: 2 hexes' }] },
@@ -218,6 +218,8 @@
       else if (b.t === 'cas' || b.t === 'gone' || b.t === 'herofall' || b.t === 'surrender') { t2 = 'Casualties'; html = OURS(list.map(function (x) { return '<p>' + esc(unitName(scn, x.u)) + (x.t === 'cas' ? ' lose <b>' + x.n + '</b> figure' + (x.n === 1 ? '' : 's') + ' (now ' + x.figs + ')' : x.t === 'gone' ? ' are destroyed' : x.t === 'herofall' ? ': ' + esc(x.name) + ' falls' : ' surrender') + '.</p>'; }).join('')) + CM('<p>Casualties come off before morale (p.15); a hero is always the last figure killed in his unit (p.30).</p>'); }
       else if (b.t === 'mor') { t2 = 'Morale'; html = CM('<p><b>Post-melee morale</b> (pp.15-16): the side with fewer casualties scores the difference times a die; the side with more survivors scores the difference; each side adds survivors times its morale rating; under twenty figures a side, everything doubles. The lower total reacts by the gap: under 20 the melee goes on; 20-39 back off; 40-59 fall back a move; 60-79 retreat; 80-99 rout; 100 or more surrender.</p>') + morText(scn, b) + DIFF('<p>Each side is everyone of it in the hex pooled, at its average rating. A hero\'s figures count as survivors.</p>'); }
       else if (b.t === 'fall') { t2 = 'They fall back'; html = OURS(list.map(function (x) { return '<p>' + esc(unitName(scn, x.u)) + ' ' + { backoff: 'back off', back: 'fall back', retreat: 'retreat', rout: 'rout', evade: 'slip away' }[x.how] + ': ' + (x.how === 'rout' ? 'two hexes' : 'one hex') + ' away from the enemy, toward home.' + (x.how === 'retreat' ? ' A retreat stands a day to rally.' : '') + (x.how === 'rout' ? ' A rout runs friends over and rallies by the table.' : '') + '</p>'; }).join('')) + DIFF('<p>A move in the book is a hex here: back off and fall back are both one hex in good order. A rout is two.</p>'); }
+      else if (b.t === 'walls') { t2 = 'They hold their ground'; html = DIFF('<p>CHAINMAIL has no wall rule for a mass melee (its sieges are man to man, pp.22-24). Griz\'s ask, read from the book: men who stood their ground in the Pit or at the inn, or gnolls on their seats, take no charge die (the impetus is only "across smooth, level terrain", p.17), take half from volleys (walls are soft cover, p.12), and add 1 to their morale.</p>') + OURS('<p>' + esc(b.names.join(' and ')) + ' hold ' + esc(b.place) + '.</p>'); }
+      else if (b.t === 'menrun') { t2 = 'The men break'; html = OURS('<p>' + esc(unitName(scn, b.u)) + ' rout: ' + (b.to ? 'their <b>' + b.n + '</b> men run to ' + esc(b.toName) + ' and join them' : 'their <b>' + b.n + '</b> men scatter for home') + (b.heroes ? '; the heroes cut free and fall back alone' : '') + '.</p>') + DIFF('<p>Griz\'s rule, not CHAINMAIL\'s: the book\'s rout runs a move and a half and rallies by its table (p.16); men who rout here join a steady friend within two hexes, or the unit is gone.</p>'); }
       else if (b.t === 'wit') { t2 = 'The witness comes'; html = OURS(list.map(function (x) { return '<p><b>' + esc(x.fromName) + '</b> saw the win and sends <b>' + x.n + '</b> figure' + (x.n > 1 ? 's' : '') + ' over to ' + esc(unitName(scn, x.to)) + '.</p>'; }).join('')) + DIFF('<p>Griz\'s rule, not CHAINMAIL\'s. The book would leave the winner short its dead.</p>'); }
       else if (b.t === 'inst') { t2 = 'Instability'; html = CM('<p>A unit that has lost a set share of its strength (light foot a quarter, heavy foot a third, heavy horse half) rolls two dice to stay, or is gone (p.17).</p>') + list.map(function (x) { return '<p class="num">' + esc(unitName(scn, x.u)) + ': [' + x.dice.join(' + ') + '] = ' + (x.dice[0] + x.dice[1]) + ' against ' + x.need + ' &rarr; <span class="k">' + (x.ok ? 'they hold together' : 'they break apart') + '</span></p>'; }).join(''); }
       else if (b.t === 'ft') { t2 = 'The Fantasy table'; html = CM('<p>Fantastic against fantastic (p.44): two dice against the number for the pair; under, no effect; equal, the defender falls back; over, killed.</p>') + list.map(function (x) { return '<p class="num">' + esc(x.ah) + ' against ' + esc(x.bh) + ': [' + x.dice.join(' + ') + ']' + (x.mod ? ' ' + x.mod : '') + ' against ' + x.need + ' &rarr; ' + x.res + '</p>'; }).join(''); }
@@ -230,6 +232,8 @@
     // the witness: after the fight, on the map (the mode plays it with the camera back out, the givers' figures running in)
     (sh.wit || []).forEach(function (x) {
       var G = SN.unit(scn.after, x.from), Wn = SN.unit(scn.after, x.to);
+      if (x.kind === 'rally') { step({ ch: ch, title: 'The men run', vis: { map: scn.after, marks: [G ? { h: G.at, c: '#ffd25a', t: 'routed' } : null, Wn ? { h: Wn.at, c: '#8ad0ff', t: 'joined' } : null].filter(Boolean) },
+        html: OURS('<p><b>' + esc(x.fromName) + '</b> break, and <b>' + x.n + '</b> men run to ' + esc(unitName(scn, x.to)) + ' and join them. In the mode this plays on the map after the fight, the camera back out.</p>') + DIFF('<p>Griz\'s rule, not CHAINMAIL\'s: men who rout join a steady friend within two hexes, or scatter and are gone. The book\'s rout runs a move and a half and rallies by its table (p.16).</p>') }); return; }
       step({ ch: ch, title: 'The witness comes', vis: { map: scn.after, marks: [G ? { h: G.at, c: '#ffd25a', t: 'gives ' + x.n } : null, Wn ? { h: Wn.at, c: '#ff8a7a', t: 'the winner' } : null].filter(Boolean) },
         html: OURS('<p><b>' + esc(x.fromName) + '</b> saw the win and sends <b>' + x.n + '</b> figure' + (x.n > 1 ? 's' : '') + ' over to ' + esc(unitName(scn, x.to)) + '. In the mode this plays on the map after the fight, the camera back out: the figures run from the giver\'s hex to the winner\'s.</p>') + DIFF('<p>Griz\'s rule, not CHAINMAIL\'s. The book would leave the winner short its dead.</p>') });
     });
@@ -308,17 +312,18 @@
       ['chg', 'Missile tables by armour, ranges, pass-through fire', 'pp.11-13', 'A missile unit\'s first-round volley on its own Combat Table row, nothing back.'],
       ['same', 'The Combat Tables', 'p.40', 'The same numbers.'],
       ['same', 'Impetus: +1 die a figure charging open ground; standing horse a class down', 'p.17', 'The same.'],
+      ['new', 'Soft cover halves missile casualties; impetus only "across smooth, level terrain"', 'p.12, p.17', 'HOLDING GROUND (Griz): men who stood their ground in the Pit or at the inn, and gnolls on their seats -- no charge die at them, volleys halved, +1 morale.'],
       ['same', 'Fatigue: a class down and -1 morale till a turn\'s rest', 'p.11', 'The same, after three rounds; a day held is the rest.'],
-      ['chg', 'Post-melee morale and its results', 'pp.15-16', 'The same formula, each side pooled in its hex; back off and fall back are a hex, a rout two.'],
+      ['chg', 'Post-melee morale and its results', 'pp.15-16', 'The same formula, each side pooled in its hex; back off and fall back are a hex, a rout two; 100 and over is a rout, not a surrender: no one here would take the other (Griz).'],
       ['new', 'The melee continues next turn while the gap is under 20', 'p.16', 'NIGHTFALL: after three rounds the lower total backs off a hex. No hex ends a day shared.'],
-      ['same', 'Rout runs over friends; the rally table; instability', 'pp.16-17', 'The same.'],
+      ['chg', 'Rout runs over friends; the rally table; instability', 'pp.16-17', 'The same for the gnolls; men who rout -- ours, the Dominion\'s -- join a steady friend within two hexes, or scatter and are gone (Griz).'],
       ['same', 'Heroes and super-heroes; Book I keys a character\'s type by class and level', 'p.30; Book I p.17', 'The same: Newland\'s paladins are Heroes, GreyFang a Super-hero; the four, on the tables, by Book I (Barley and Lymen Super-heroes, Aurdin the Warlock fighting as a Hero, Vivian a Hero: no thief in Books I-III).'],
       ['same', 'The Fantasy Combat Table', 'p.44', 'The same numbers for hero, super-hero, wizard (warlock -2) and wraith.'],
       ['new', 'A wraith may withdraw; normal troops can\'t harm it', 'p.34, p.44', 'The hunting Harbinger walks through any unit with no hero in it; put down, he is carried home for two days.'],
       ['same', 'A wizard fights as two Armored Foot; affects morale as a super-hero; impervious to normal missiles', 'p.30', 'The same, for the Dominion\'s warlocks (morale 30, 80 points, -2 on the Fantasy table: pp.30-33).'],
       ['chg', 'A fire ball over a catapult\'s area, or a lightning bolt 3/4" by 6"; the fantastic save 9+, 6+, 7+', 'p.31', 'Every round: a fire ball one or two figures of a unit, a bolt one in each of two; the saves as printed.'],
       ['out', 'Invisible until it attacks; sees in the dark; sixteen spells, counter-spells, the complexity table', 'pp.30-33', 'Not yet: the spells are the open question (Confusion, Slowness, Darkness).'],
-      ['chg', 'Religious orders: +1 morale, never surrender', 'p.19', 'Newland\'s clerics: the same, and they mend a figure a day.'],
+      ['chg', 'Religious orders: +1 morale, never surrender', 'p.19', 'Newland\'s clerics: +1 morale, and they mend a figure a day (no one surrenders here).'],
       ['same', 'Berserkers: +2, charge on sight, to the death', 'p.20', 'The plains tribes: within two hexes of gnolls they charge whatever is written.'],
       ['new', 'The army commander killed: all check at -2', 'p.21', 'THE COLLISION (Griz): the Harbinger reaches GreyFang, the head is taken, every gnoll goes home.'],
       ['new', '(none)', '', 'THE WITNESS (Griz): a gnoll win is filled from every band within two hexes.'],
