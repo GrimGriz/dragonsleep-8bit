@@ -228,6 +228,8 @@ His words: *"make sure we have all 8 facings for those to be used in snoot fight
 
 Seven LPC sheets, drawn by the Liberated Pixel Cup generator in four directions only, show front, right and back; their front-right and back-right views borrow the front and back, and Hurt is one drawing. The seven are `trooper_p0`, `npcfighter_p0`, `npcpaladin_p0`, `npccleric_p0`, `npcranger_p0`, `npcbarbarian_p0` and `npcwarlock_p0`. They are packaged for the art desk as assignments in the LPC style: `deep16/_src/outbox/ART-SNOOTNPCS-2026-10-15.zip`. ART-61 to ART-67 (482 drawings), each with a first-sheet and a views sheet built from the game's sheet; each assignment's Image request is its paste-ready block. When the pages come, a new cutter `tools/lpc-diag-sheet.py` writes SE/NE and E/N Hurt into the existing sheets. ART-68 is the next free number.
 
+ART-61 (the trooper) came back PARTIAL 10-15 and is cut (`7b8db5b`): SE every row, E's and N's Hurt. Still owed by the art desk: its HEAD 2 (NE, every row), with the mace in the right hand (screen-right, as LPC's back and side show it; the engine's return `deep16/_src/outbox/ENGINE-RETURN-2026-10-15-ART-61-trooper.md`). ART-62 to ART-67: not back. The cutter takes each figure's pages by a spec read off the page (`FIGS` in the tool).
+
 ## 10. The gnoll's last old rows (added 10-15, the gnoll sprite seat)
 
 His words: *"Yes - write the SE Idle 8, Attack 8 and E Walk 8 ask for the art desk so the last old gnoll rows go."* (10-15).
