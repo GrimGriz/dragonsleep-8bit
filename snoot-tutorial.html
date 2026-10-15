@@ -61,7 +61,7 @@
 <script src="snoot-mode/js/party8.js?v=e6a0f37d96"></script>
 <script src="snoot-mode/js/rules.js?v=0051f8c16a"></script>
 <script src="snoot-mode/js/ai.js?v=65408aa8ce"></script>
-<script src="snoot-mode/js/view.js?v=2eb50709a8"></script>
+<script src="snoot-mode/js/view.js?v=b07bd3ae6a"></script>
 <script src="snoot-mode/js/show.js?v=b6bc089e39"></script>
 <script src="snoot-mode/js/deep.js?v=c4a6164f52"></script>
 <script>
@@ -323,7 +323,7 @@
 
   // ---------------------------------------------------------------- the stage: the map (with marks), the moves played, a fight's show beat by beat
   var cv = $('map'), scv = $('show'), frame = 0, cur = 0, vis = null, mapSt = null, marks = [], showT = 0, showTo = 0, showSh = null;
-  V.init(cv);
+  V.init(cv); V.zk = 0; // (the whole map in the frame: the mode's own opens a step closer)
   function fit() { var w = $('stage').clientWidth, h = $('stage').clientHeight; V.fit(w, h); scv.width = w; scv.height = h; }
   function drawMarks(cx) {
     var s = V.size();
