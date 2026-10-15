@@ -59,10 +59,10 @@
 <script src="deep16/data/sprites.js"></script>
 <script src="snoot-mode/js/data.js?v=929df5beb9"></script>
 <script src="snoot-mode/js/party8.js?v=e6a0f37d96"></script>
-<script src="snoot-mode/js/rules.js?v=73bc35d445"></script>
+<script src="snoot-mode/js/rules.js?v=4c7f423ef6"></script>
 <script src="snoot-mode/js/ai.js?v=bb786527f1"></script>
 <script src="snoot-mode/js/view.js?v=2eb50709a8"></script>
-<script src="snoot-mode/js/show.js?v=94e506502c"></script>
+<script src="snoot-mode/js/show.js?v=0146d150e4"></script>
 <script src="snoot-mode/js/deep.js?v=c4a6164f52"></script>
 <script>
 'use strict';
@@ -176,7 +176,7 @@
   step({ ch: 'The day', title: 'Formation and facing', vis: { map: A ? A.before : full, sel: 'patrol' },
     html: CM('<p>Every unit is in a formation -- <b>line</b>, <b>column</b> or <b>square</b> (foot only) -- and faces a way; changing either costs movement, and a unit caught in melee while changing is flanked (p.10). Attacked from the <b>flank</b>, it fights the attacker at "the next higher class, i.e., Heavy Foot equals Armored Foot and Heavy Horse equals +1 on each die"; from the <b>rear</b>, the same, and the attacker takes no casualties in return (p.16).</p>') +
       OURS('<p>Each unit faces one side of its hex (the chevron on the map), and its formation shows under it. The side an enemy comes in through is its front, flank or rear: a <b>line</b>\'s front is three sides, a <b>column</b>\'s one, a <b>square</b>\'s all six. Set them free on Day 14 (and on a unit\'s arrival day); after that a change costs half the day\'s move. A march faces the way it goes; turning in place is free.</p>') +
-      DIFF('<p>Griz\'s rulings (10-15): "Formations"; "Round 1 have the player set the formation before play without cost, change formation half-day". The rear\'s "nothing in return" is the first round\'s. A square moves a hex a day and horse get no charge die against it, and a column marches a hex further on the road: the seat\'s readings (the book gives its road bonus to horse and wagons).</p>') });
+      DIFF('<p>Griz\'s rulings (10-15): "Formations"; "Round 1 have the player set the formation before play without cost, change formation half-day". The rear\'s "nothing in return" is the first round\'s. A square moves a hex a day and horse get no charge die against it: the seat\'s readings. The road bonus is the book\'s (his "1 book", 10-15): horse and wagons, in column, march further on the road -- heavy horse a hex, medium and light horse and wagons two (p.10: +3" and +6" at 3" a hex); foot none.</p>') });
   // the fight, beat by beat (scene A)
   fightSteps(A, 'A fight on the tables', 'The patrol charges a Skull-Gate band');
   step({ ch: 'A fight on the tables', title: 'Three rounds, then nightfall', vis: { map: A ? A.after : full, marks: [{ h: [8, 6], c: '#ffd25a', t: 'the fight' }] },
@@ -211,6 +211,7 @@
       var b = sg.b, list = sg.list, html = '', t2 = title;
       if (b.t === 'fight') { t2 = 'The fight begins'; html = OURS('<p>' + esc(sh.first.place) + ': ' + sh.first.ours.map(function (u) { return esc(u.name) + ' (' + u.figs + (u.heroes.length ? ' + ' + u.heroes.map(function (h) { return esc(h.name); }).join(', ') : '') + ')'; }).join(', ') + ' against ' + sh.first.theirs.map(function (u) { return esc(u.name) + ' (' + u.figs + ')'; }).join(', ') + '.</p>') + DIFF('<p>Everyone in the hex fights everyone in it. Each unit stands in its formation, facing a side of the hex; the side an attacker came in through makes it front, flank or rear (since 10-15).</p>'); }
       else if (b.t === 'round') return;
+      else if (b.t === 'surp') { t2 = 'Surprise?'; html = DIFF('<p>Not CHAINMAIL\'s but OD&amp;D Book III\'s (p.9, the wilderness the same, p.17): "roll a six-sided die for each party concerned. A roll of 1 or 2 indicates the party is surprised"; surprise gives "a free move segment", and three or more "will have moved into a circle around the adventurers". Here: the surprised side is taken in the flank in the first round, in the rear by three or more (Griz\'s "2 lean", 10-15).</p>') + OURS('<p class="num">Ours roll ' + b.dO + ', theirs ' + b.dT + ' &rarr; <span class="k">' + (b.side ? (b.side === 'ours' ? 'ours are' : 'they are') + ' caught unready' + (b.circle ? ', in a circle' : '') : b.both ? 'both unready: neither gains' : 'no one is caught unready') + '</span></p>'); }
       else if (b.t === 'shock') { t2 = 'The super-heroes\' charge'; html = CM('<p>Every enemy unit a super-hero\'s charge reaches must check as if it had taken excess casualties (p.30): two dice against its loss number (p.17); a failure falls back (p.18).</p>') + list.filter(function (x) { return x.t === 'shock'; }).map(function (x) { return '<p class="num">' + esc(unitName(scn, x.u)) + ': [' + x.dice.join(' + ') + '] = ' + (x.dice[0] + x.dice[1]) + ' against ' + x.need + ' &rarr; <span class="k">' + (x.ok ? 'they stand' : 'they shy and fall back') + '</span></p>'; }).join(''); }
       else if (b.t === 'atk') { t2 = 'Round ' + (b.round || 1) + ': the dice'; html = CM('<p>The <b>Combat Tables</b> (p.40): for each attacking class against each defending class, so many dice a figure and the faces that kill. Missiles and the charge come first; then all melee is simultaneous, both sides\' casualties come off together (p.14).</p>') + list.map(function (x) { return atkText(scn, x); }).join(''); }
       else if (b.t === 'cas' || b.t === 'gone' || b.t === 'herofall' || b.t === 'surrender') { t2 = 'Casualties'; html = OURS(list.map(function (x) { return '<p>' + esc(unitName(scn, x.u)) + (x.t === 'cas' ? ' lose <b>' + x.n + '</b> figure' + (x.n === 1 ? '' : 's') + ' (now ' + x.figs + ')' : x.t === 'gone' ? ' are destroyed' : x.t === 'herofall' ? ': ' + esc(x.name) + ' falls' : ' surrender') + '.</p>'; }).join('')) + CM('<p>Casualties come off before morale (p.15); a hero is always the last figure killed in his unit (p.30).</p>'); }
@@ -291,7 +292,8 @@
       ['same', 'Charge if charged; drawn into a melee within 3"', 'p.9, p.16', 'CHARGE IF CHARGED joins a fight next to it.'],
       ['same', 'Line, column, square (foot only) and a facing; from the flank the next higher class; from the rear the same, and nothing in return', 'p.10, p.16', 'The same, by hex side: a line\'s front three sides, a column\'s one, a square\'s six; the rear\'s "nothing in return" is the first round\'s.'],
       ['chg', 'A formation or facing change costs a move; caught changing, flanked', 'p.10', 'Set free on Day 14 and a unit\'s arrival day; after, a formation change costs half the day\'s move (Griz\'s ruling); turning in place is free; caught changing, flanked.'],
-      ['new', 'The road bonus is horse\'s and wagons\'', 'p.10', 'A column marches a hex further on the road, foot as well (the seat\'s reading, ruled with the formations).'],
+      ['chg', 'The road bonus: heavy horse +3", medium and light horse +6", wagons +6"; foot none', 'p.10', 'The same at 3" a hex (+1, +2, +2), for horse and wagons in column, the march formation (his "1 book"; the column the seat\'s).'],
+      ['new', 'OD&D Book III\'s surprise: a die each side, 1-2 surprised, a free move segment; three or more "moved into a circle"', 'Book III p.9, p.17', 'Each side rolls as a fight begins: caught unready, it is taken in the flank in the first round, in the rear if three or more units come at it; a side that has fought that day is awake to it (his "2 lean", 10-15).'],
       ['out', 'Excess troops overlap a formation\'s flanks after the first round', 'p.16', 'Left out (an open lean).'],
       ['chg', 'Missile tables by armour, ranges, pass-through fire', 'pp.11-13', 'A missile unit\'s first-round volley on its own Combat Table row, nothing back.'],
       ['same', 'The Combat Tables', 'p.40', 'The same numbers.'],
