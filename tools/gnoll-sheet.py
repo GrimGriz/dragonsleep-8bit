@@ -64,7 +64,7 @@ def load(name):
 
 P1, BG1 = load('gnoll_grok_1.png')
 FW, FH, AX, AY = 120, 96, 60, 86
-HEIGHT = {'gnoll_p2': 60, 'gloryseeker_p2': 64}     # standing, in px: the Snoot's young blood a size bigger (CR 1, STR 16)
+HEIGHT = {'gnoll_p2': 60, 'gloryseeker_p2': 64, 'graykeeping_p2': 60}   # standing, in px: the Snoot's young blood a size bigger (CR 1, STR 16)
 TALL = {'attack': (112, 102)}    # a row's own frame height and foot (the redraw's N Attack 4, the spear overhead, stands 86 on the glory-seeker)
 
 # the rows' bands (x0, y0, x1, y1) and how many frames each holds
@@ -266,6 +266,54 @@ def toned(img, t):
     return Image.fromarray(np.dstack([(np.clip(rgb, 0, 1) * 255).round().astype(np.uint8), (al * 255).round().astype(np.uint8)]), 'RGBA')
 
 
+GRAY = {'fold': 0.15, 'split': 0.6, 'cloth': 0.36, 'span': 0.08, 'fur': 0.25}   # the Gray Keeping's look (gray_cloth below): his pick, D (10-15: "D - the darker cloth and grayer fur")
+
+
+def gray_cloth(img):
+    """the Gray Keeping (10-15, Griz: "we need a 3rd tribe color for the gray keeping i think", then "Still a little blue to me - can you do dark
+    gray and maybe even gray their fur compared to the others?"): the Hills' blue cloth (the blue red_cloth takes) turned a neutral dark gray, and
+    the fur a grayer, dustier brown. The palette (deep16/palette.json, snapped in Lab) has one neutral gray, accent #6e6a66; a neutral value of
+    0.22-0.31 snaps to the bluish silver darks, so the cloth keeps out of that band: its lit cloth at GRAY['cloth'] up to + GRAY['span'] (the
+    #6e6a66), its folds at GRAY['fold'] (the stone darks). The fur (classes(): the tawny browns) keeps GRAY['fur'] of its saturation."""
+    a = np.asarray(img, dtype=np.float32) / 255
+    rgb, h, s, v, al = hsv(img)
+    blue = (h > 195) & (h < 250) & (s > 0.22)
+    q = np.clip((v - 0.15) / 0.6, 0, 1)
+    t = np.where(q < GRAY['split'], GRAY['fold'], GRAY['cloth'] + (q - GRAY['split']) / (1 - GRAY['split']) * GRAY['span'])
+    rgb2 = np.where(blue[..., None], np.stack([t, t, t], -1), rgb)
+    fur = classes(img)[0] & ~blue
+    gray = rgb2.mean(-1, keepdims=True)
+    rgb2 = np.where(fur[..., None], gray + (rgb2 - gray) * GRAY['fur'], rgb2)
+    return Image.fromarray(np.dstack([(np.clip(rgb2, 0, 1) * 255).round().astype(np.uint8), (a[..., 3] * 255).astype(np.uint8)]), 'RGBA')
+
+
+def _unblue_map():
+    """the palette's blue and slate (its blue ramp, its silver ramp but the two lightest, which are steel) -> the nearest, in Lab, of its neutral
+    and warm darks (the outline, the stone ramp, accent #6e6a66, bone): the Gray Keeping's sheet holds no blue at all"""
+    pal = json.load(open(os.path.join(ROOT, 'deep16', 'palette.json')))['ramps']
+    hx = lambda c: tuple(int(c[i:i + 2], 16) for i in (1, 3, 5))
+    src = [hx(c) for c in pal['blue'] + pal['silver'][:5]]
+    dst = [hx(c) for c in pal['outline'] + pal['stone'] + ['#6e6a66'] + pal['bone']]
+    lab = lambda cs: pix.to_lab(np.array(cs, np.float32).reshape(1, -1, 3) / 255)[0]
+    ls, ld = lab(src), lab(dst)
+    return {c: dst[int(np.argmin(((ld - l) ** 2).sum(-1)))] for c, l in zip(src, ls)}
+
+
+def unblue(a):
+    """a snapped frame with every palette blue and slate swapped for its neutral or warm neighbour (_unblue_map)"""
+    global UNBLUE
+    if UNBLUE is None:
+        UNBLUE = _unblue_map()
+    out = a.copy()
+    for s_, d_ in UNBLUE.items():
+        m = (a[..., 3] > 0) & (a[..., :3] == np.array(s_, np.uint8)).all(-1)
+        out[m, :3] = d_
+    return out
+
+
+UNBLUE = None
+
+
 def fit(img, scale, recolour, tone=None):
     if tone:
         img = toned(img, tone)
@@ -273,7 +321,8 @@ def fit(img, scale, recolour, tone=None):
         img = recolour(img)
     w, h = img.size
     img = img.resize((max(1, round(w / scale)), max(1, round(h / scale))), Image.BOX)
-    return pix.pixelate(img, 1, do_lift=False)
+    a = pix.pixelate(img, 1, do_lift=False)
+    return unblue(a) if recolour is gray_cloth else a
 
 
 def torso_x(a):
@@ -378,7 +427,9 @@ def build(name, recolour):
     meta['anims']['idle']['fps'] = 5; meta['anims']['walk']['fps'] = 10; meta['anims']['attack']['fps'] = 12; meta['anims']['hurt']['fps'] = 8
     meta['anims']['prone']['fps'] = 8; meta['anims']['getup']['fps'] = 8; meta['anims']['laugh']['fps'] = 6   # (the laugh's own beats are grimoire.js M.LAUGH's; fps is for a plain play)
     meta['source'] = ('drawn by the art desk (2026-10-15, ART-29, its redraw and its last rows: every row of every view) after Griz\'s generated '
-                      'sheets of 2026-09-28 (their colour kept), cut and snapped by tools/gnoll-sheet.py') + (', the cloth recoloured to the Desert tribe\'s red' if recolour else ', the Hills\' blue as drawn')
+                      'sheets of 2026-09-28 (their colour kept), cut and snapped by tools/gnoll-sheet.py') + {
+                      None: ', the Hills\' blue as drawn', red_cloth: ', the cloth recoloured to the Desert tribe\'s red',
+                      gray_cloth: ', the cloth recoloured to the Gray Keeping\'s ash-gray'}[recolour]
     json.dump(meta, open(meta_p, 'w'), indent=1)
 
 
@@ -416,3 +467,4 @@ CHECK = 'check' in sys.argv[1:]
 if __name__ == '__main__':
     build('gnoll_p2', None)
     build('gloryseeker_p2', red_cloth)
+    build('graykeeping_p2', gray_cloth)                    # the Gray Keeping's gnolls (10-15): the same frames, the cloth ash-gray

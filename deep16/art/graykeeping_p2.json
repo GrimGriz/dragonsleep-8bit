@@ -1,0 +1,74 @@
+{
+ "image": "art/graykeeping_p2.png",
+ "fw": 120,
+ "fh": 96,
+ "ax": 60,
+ "ay": 86,
+ "top": 62,
+ "anims": {
+  "idle": {
+   "y": 0,
+   "fw": 120,
+   "fh": 96,
+   "ax": 60,
+   "ay": 86,
+   "frames": 8,
+   "fps": 5
+  },
+  "walk": {
+   "y": 768,
+   "fw": 120,
+   "fh": 96,
+   "ax": 60,
+   "ay": 86,
+   "frames": 8,
+   "fps": 10
+  },
+  "attack": {
+   "y": 1536,
+   "fw": 120,
+   "fh": 112,
+   "ax": 60,
+   "ay": 102,
+   "frames": 8,
+   "fps": 12
+  },
+  "hurt": {
+   "y": 2432,
+   "fw": 120,
+   "fh": 96,
+   "ax": 60,
+   "ay": 86,
+   "frames": 7,
+   "fps": 8
+  },
+  "prone": {
+   "y": 3200,
+   "fw": 120,
+   "fh": 96,
+   "ax": 60,
+   "ay": 86,
+   "frames": 2,
+   "fps": 8
+  },
+  "laugh": {
+   "y": 3968,
+   "fw": 120,
+   "fh": 96,
+   "ax": 60,
+   "ay": 86,
+   "frames": 9,
+   "fps": 6
+  },
+  "getup": {
+   "y": 4736,
+   "fw": 120,
+   "fh": 96,
+   "ax": 60,
+   "ay": 86,
+   "frames": 6,
+   "fps": 8
+  }
+ },
+ "source": "drawn by the art desk (2026-10-15, ART-29, its redraw and its last rows: every row of every view) after Griz's generated sheets of 2026-09-28 (their colour kept), cut and snapped by tools/gnoll-sheet.py, the cloth recoloured to the Gray Keeping's ash-gray"
+}
