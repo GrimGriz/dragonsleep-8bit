@@ -59,7 +59,7 @@
     W.figs = 5; X.figs = 5; SN.witness(st, W);
     ok(W.figs === 6 && X.figs === 4, 'witness: never past the winner\'s starting size (6): the giver keeps the rest (' + X.figs + ')');
     // ---- whole battles, both hands, the party's part on the tables
-    var heads = 0, grids = 0, maps = 0, fills = 0, bands = 0, ends = [], domOk = true, inv = [], dom0 = [];
+    var heads = 0, grids = 0, maps = 0, fills = 0, bands = 0, ends = [], domOk = true, inv = [], dom0 = [], nightShared = 0;
     for (var seed = 1; seed <= 8; seed++) {
       var s = SN.newGame(seed * 7919); s.party8 = null; var deeps = [], days = 0;
       while (!s.over && days++ < 40) {
@@ -71,6 +71,7 @@
           if (SN.alive(u) && (!SN.on(u.at) || SN.cost(u.at) >= 99)) inv.push(seed + ':' + u.id + ' stands off the map or in the lake ' + u.at);
         });
         if (s.head && s.units.some(function (u) { return u.side === 'gnoll' && SN.alive(u) && !u.watch && u.state === 'ok'; })) inv.push(seed + ': a gnoll unit still snooting after the head');
+        var shared = SN.contested(s); if (shared.length) { nightShared++; if (nightShared <= 2) inv.push(seed + ': Day ' + (s.over ? s.day : s.day - 1) + ' ends with enemies sharing ' + shared.map(SN.key).join(' ')); } // (RULED 10-14 night: no hex ends the day shared)
       }
       if (s.head) { heads++; if (s.head.how === 'grid') grids++; else maps++; }
       fills += s.stats.witness; bands += deeps.filter(function (k) { return k === 'band'; }).length;

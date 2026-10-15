@@ -26,15 +26,19 @@
     var b = [{ label: 'NEW BATTLE', go: true, fn: function () { UI.newGame(); } }];
     if (saved && saved.units && !saved.over && !/[?&]fresh\b/.test(Q)) b.unshift({ label: 'CONTINUE (Day ' + saved.day + ')', go: true, fn: function () { UI.load(saved); } });
     b.push({ label: 'HOW IT PLAYS', fn: function () { UI.help(true); } });
-    UI.card('<h1>THE SNOOT</h1><p class="small">Tarlyn\'s Pit, the autumn the gnoll king died</p>' +
+    UI.card('<h1>THE SNOOT</h1><p class="small">A playtest for the Chef &middot; Tarlyn\'s Pit, the autumn the gnoll king died</p>' +
+      '<p><b>Chef:</b> Griz built this battle on the rules you cobbled together from CHAINMAIL and OD&amp;D -- the Combat Tables, post-melee morale, heroes and super-heroes, the wilderness day of five-mile hexes. It is a test, and your verdict is the point of it: what plays, what does not, what the old books would have done instead.</p>' +
       '<p>Two days after the giants came down, the four walk into Tarlyn\'s Pit. The gnoll tribes are <b>snooting</b>: their king is dead and the Mane goes to whoever wins the most glory -- and nothing is more glorious than a Lupine\'s head. GreyFang, who runs the Pit\'s fighting pit, is the walking jackpot. And something with mirrors for eyes is hunting him.</p>' +
       '<p>You command everyone who is not a gnoll: the four, GreyFang and his pit men, Newland\'s soldiers, and the plains tribes when they ride in. A day is a turn; you write every unit\'s orders, then the day plays out. The battle is fought by CHAINMAIL\'s rules and OD&amp;D\'s wilderness: a playtest build, riffed off the old books.</p>' +
-      '<p class="small">NOTES (top right, or N) is for you to tell Griz anything, any time. It opens by itself at the end.</p>', b);
+      '<p><b>One battle</b> runs Day 14 to the fall of GreyFang\'s head and the Dominion after it: thirty to forty-five minutes. HOW IT PLAYS has the rules on one card; hover a march to see the odds before you send it.</p>' +
+      '<p><b>Your notes</b> go to Griz: NOTES (top right, or N) any time -- it keeps what you write on this machine -- and it opens by itself when the battle ends. COPY FOR DISCORD, or SAVE FILE and send him the file (it carries every roll, so he can replay your battle).</p>', b);
   };
   UI.help = function (fromTitle) {
     UI.card('<h1>HOW IT PLAYS</h1>' +
       '<h2>The turn</h2><p>A turn is a day; a hex is about five miles (OD&amp;D Book III); a figure on a badge is twenty men (CHAINMAIL). Click one of your units (a <b>gold dot</b> on its badge means no order yet), then click where it should go: it marches as far as it can today, and the dotted line is the rest of the way. Or <b>HOLD</b>, or <b>CHARGE IF CHARGED</b> (it joins any fight next to it). Right-click sends a unit onto a hex where your own stand. When every unit has its orders, <b>RESOLVE THE DAY</b> (Enter).</p>' +
-      '<h2>The day</h2><p>Everyone moves at once, the fast arriving first. Units that meet fight: up to three rounds on CHAINMAIL\'s Combat Tables -- every roll is in the log on the right -- with morale after each round. The loser backs off, retreats, routs or surrenders; a rout spreads to friends it runs into. A unit that fights three rounds in a day is fatigued till it rests a day.</p>' +
+      '<h2>The day</h2><p>Everyone moves at once, the fast arriving first. Units that meet fight: up to three rounds on CHAINMAIL\'s Combat Tables, with morale after each round. The loser backs off, retreats, routs or surrenders; a rout spreads to friends it runs into. If three rounds leave both standing, night falls and the lower morale total backs off a hex: no one ends the day sharing a hex. A unit that fights three rounds in a day is fatigued till it rests a day.</p>' +
+      '<p><b>Every fight plays as a show</b>: the two sides face off on that hex\'s ground, each side\'s dice roll on screen, the killed fall, the morale result goes up, witnesses run in. SPACE (or a click) skips a fight, Esc the rest of the day; the log on the right keeps every roll.</p>' +
+      '<p><b>Before you send a unit</b>, hover where it would march: if it would meet an enemy (if they hold -- their orders are secret), a pop-up gives both sides\' dice and kill numbers off the tables, morale, the charge die, the shock, and the witnesses waiting to fill a gnoll win.</p>' +
       '<h2>The four</h2><p>The party are Super-heroes. Every fight they stand in is fought on the grid (DEEP16): you play it out there, and the result comes back to the map. What they spend stays spent; a day spent in the Pit without a fight is a long rest.</p>' +
       '<h2>The Snoot</h2><p><b>The witness:</b> a gnoll band that wins a fight is filled up from every gnoll band within two hexes. Glory draws followers.<br><b>The Harbinger</b> hunts GreyFang from Day 18 (sooner if GreyFang strays near him). Only a hero (a paladin), GreyFang or the four can hold him; anyone else he walks straight through. When he reaches GreyFang the head is taken: on the grid if the four are with GreyFang or next to the fight, on the map if not. Then every gnoll goes home.<br><b>The Dominion:</b> two days after the hunt begins, three wagons come along the west road. Mop them up and the battle is over.</p>' +
       '<h2>Who is who</h2><p>Newland\'s units carry a paladin (a Hero: +1 to the unit\'s dice) or a cleric (never surrenders, +1 morale, mends a figure a day) or both. The plains tribes are berserkers: within two hexes of gnolls they charge whatever you say, and never check morale. Crossbows loose a volley before the melee. Horse charging over open ground adds a die a figure; standing horse defends a class down. Gnolls attack as Armored Foot and defend as Heavy Foot, morale +2 (OD&amp;D Book II).</p>' +
@@ -48,16 +52,16 @@
     seed = seed != null ? seed : m ? +m[1] : (Math.random() * 4294967295) >>> 0;
     st = SN.newGame(seed);
     if (SN.PARTY8) { st.party8 = JSON.parse(JSON.stringify(SN.PARTY8)); st.party80 = JSON.parse(JSON.stringify(SN.PARTY8)); }
-    SN.dawn(st); shown = 0; V.sel = null; V.preload(st); UI.save(); UI.render();
+    SN.dawn(st); shown = 0; $('log').innerHTML = ''; V.sel = null; V.preload(st); UI.save(); UI.render();
     UI.card('<h1>DAY 14</h1><p>The four stand in Tarlyn\'s Pit with GreyFang, his pit men and Newland\'s road patrol. The Skull-Gate\'s bands are already out of the hills, on the road above the Pit. The Gray Keeping holds the moot ground; the Wall-Laugh sits on its seat.</p><p>Write your orders. The plains tribes and Newland\'s battalions are on their way (Days 16 to 18).</p>', [{ label: 'TO THE MAP', go: true, fn: WATCH ? function () { setTimeout(UI.auto, 400); } : null }]);
   };
-  UI.load = function (saved) { st = saved; shown = 0; V.sel = null; V.preload(st); UI.render(); };
+  UI.load = function (saved) { st = saved; shown = 0; $('log').innerHTML = ''; V.sel = null; V.preload(st); UI.render(); };
   UI.save = function () { try { localStorage.setItem(KEY, JSON.stringify(st)); } catch (e) { } };
 
   // the day resolves: the moves play on the map, each fight the four stand in goes to the grid, the rest is on the tables in the log
   UI.resolve = function () {
     if (busy || !st || st.over || UI.cardOpen() || SN.Notes.isOpen()) return;
-    busy = true; UI.render(); V.sel = null;
+    busy = true; V.sel = null; UI.tip(null); UI.render(); SN.Show.skipDay = false;
     gen = SN.resolve(st); step();
   };
   function step(val) {
@@ -70,6 +74,7 @@
       V.anim = { steps: v.anim, t0: frame, dur: 75 };
       return setTimeout(function () { V.anim = null; SN.contested(st).forEach(function (h) { V.flash.push({ at: h, t0: frame }); }); step(); }, 75 * 16.7 + 60);
     }
+    if (v.show) { if (PROBE) return step(); return SN.Show.play(st, v.show.from, v.show.to, v.show.at, function () { UI.render(); step(); }); } // (the day's fights as a show: js/show.js)
     if (v.deep) {
       var d = v.deep, what = d.kind === 'greyfang' ? '<h1>GREYFANG\'S PIT</h1><p>The Harbinger has reached GreyFang, and the four are there. The fight goes to the grid.</p>' :
         d.kind === 'harbinger' ? '<h1>THE HARBINGER</h1><p>The four stand in the Harbinger\'s way. The fight goes to the grid.</p>' :
@@ -148,6 +153,19 @@
     if ($('oHold')) $('oHold').onclick = function () { u.order = { type: 'hold' }; u.held = true; UI.render(); };
     if ($('oSup')) $('oSup').onclick = function () { u.order = { type: 'support' }; u.held = true; UI.render(); };
   };
+  // the move's preview (his question 10-14 night; js/rules.js SN.preview): a selected unit of ours, the mouse on where it would march
+  var tipKey = null;
+  UI.tip = function (h, x, y) {
+    var el = $('tip'), u = st && V.sel && SN.unit(st, V.sel);
+    if (!h || !u || busy || !SN.canOrder(st, u) || SN.same(h, u.at) || UI.cardOpen() || SN.Notes.isOpen()) { el.style.display = 'none'; tipKey = null; return; }
+    var key = V.sel + '@' + SN.key(h) + '#' + st.day;
+    if (key !== tipKey) {
+      tipKey = key; var info = SN.preview(st, u, h);
+      if (!info) { el.style.display = 'none'; return; }
+      el.innerHTML = '<div class="h">' + (info.hit ? 'Likely a fight at ' + esc(info.place) : 'Marching to ' + esc(info.place)) + '</div>' + info.lines.map(function (l) { return '<div>' + esc(l) + '</div>'; }).join('') + info.warn.map(function (l) { return '<div class="w">' + esc(l) + '</div>'; }).join('');
+    }
+    if (el.innerHTML) { el.style.display = 'block'; var r = $('app').getBoundingClientRect(), w = el.offsetWidth, hh = el.offsetHeight; el.style.left = Math.min(r.width - w - 8, x - r.left + 18) + 'px'; el.style.top = Math.min(r.height - hh - 8, y - r.top + 18) + 'px'; }
+  };
   UI.next = function () {
     if (!st || busy) return;
     var mine = st.units.filter(function (u) { return SN.canOrder(st, u); }), open = mine.filter(function (u) { return u.order.type === 'hold' && !u.held; });
@@ -175,8 +193,8 @@
     var cv = $('map');
     cv.addEventListener('click', function (e) { click(e, false); });
     cv.addEventListener('contextmenu', function (e) { e.preventDefault(); click(e, true); });
-    cv.addEventListener('mousemove', function (e) { var r = cv.getBoundingClientRect(); V.hover = V.hexAt(e.clientX - r.left, e.clientY - r.top); });
-    cv.addEventListener('mouseleave', function () { V.hover = null; });
+    cv.addEventListener('mousemove', function (e) { var r = cv.getBoundingClientRect(), h = V.hexAt(e.clientX - r.left, e.clientY - r.top); V.hover = h; UI.tip(h, e.clientX, e.clientY); });
+    cv.addEventListener('mouseleave', function () { V.hover = null; UI.tip(null); });
     $('bResolve').onclick = UI.resolve; $('bNext').onclick = UI.next;
     $('bNotes').onclick = function () { SN.Notes.open(st, false); };
     $('bHelp').onclick = function () { UI.help(false); };
@@ -214,11 +232,43 @@
       ok(!!$('nCopy') && !!$('nSave') && !!$('nText'), 'the notes box has COPY FOR DISCORD, SAVE FILE and a place to write');
       ok(/THE SNOOT IS OVER/.test($('card').innerHTML) && /Score/.test($('card').innerHTML), 'the tally is on the card under it');
       var t = SN.Notes.text(st); ok(/THE SNOOT -- notes/.test(t) && /Result:/.test(t), 'COPY\'s text names the battle and its result');
-      SN.Notes.close(); UI.help(false); ok(/HOW IT PLAYS/.test($('card').innerHTML) && /witness/i.test($('card').innerHTML), 'the help card draws, the witness in it');
+      SN.Notes.close(); UI.help(false); ok(/HOW IT PLAYS/.test($('card').innerHTML) && /witness/i.test($('card').innerHTML) && /show/i.test($('card').innerHTML), 'the help card draws, the witness and the show in it');
+      UI.closeCard(); UI.title(); ok(/Chef/.test($('card').innerHTML) && /NOTES/.test($('card').innerHTML), 'the door is the Chef\'s: the title card speaks to him and names the notes');
+      // the show: every fight of the battle built and drawn at its start, its middle and its end, headless (nothing on screen waits for a frame)
+      var B = st.beats || [], fights = [], cvS = document.createElement('canvas'); cvS.width = 960; cvS.height = 540;
+      B.forEach(function (b, i) { if (b.t === 'fight' || b.t === 'head') fights.push(i); });
+      var badShow = [], long = 0, kinds = {};
+      var sumT = 0; fights.forEach(function (i, n) { var to = n + 1 < fights.length ? fights[n + 1] : B.length, sh = SN.Show.build(st, i, to, B[i].at); sumT += sh.total; if (sh.total > 10) long++; sh.segs.forEach(function (s) { kinds[s.b.t] = 1; });
+        [0, sh.total / 2, sh.total].forEach(function (tt) { try { SN.Show.draw(cvS.getContext('2d'), 960, 540, sh, tt); } catch (e) { badShow.push(B[i].t + '@' + B[i].day + ': ' + e.message); } }); });
+      var avg = fights.length ? sumT / fights.length : 0;
+      if (/[?&]dump\b/.test(location.search)) fights.forEach(function (i, n) { var to = n + 1 < fights.length ? fights[n + 1] : B.length, sh = SN.Show.build(st, i, to, B[i].at); out.push('SHOW ' + Math.round(sh.total * 10) / 10 + ': ' + sh.segs.map(function (s) { return s.b.t + (s.list.length > 1 ? 'x' + s.list.length : '') + ':' + Math.round(s.d * 10) / 10; }).join(' ')); });
+      ok(fights.length > 3 && !badShow.length, 'the show builds and draws every fight of the battle (' + fights.length + ')' + (badShow.length ? ': ' + badShow.slice(0, 3).join('; ') : ''));
+      ok(kinds.atk && kinds.mor && kinds.cas, 'the show has the dice, the casualties and the morale in it (' + Object.keys(kinds).sort().join(' ') + ')');
+      ok(long <= fights.length / 4 && avg <= 6.5, 'the shows run about five seconds a fight (average ' + Math.round(avg * 10) / 10 + ' s; ' + long + ' of ' + fights.length + ' over ten)');
+      // the pop-up: a march into an enemy names the fight and both sides' dice
+      var s2 = SN.newGame(99); SN.dawn(s2); var pu = SN.unit(s2, 'patrol'), gs = SN.unit(s2, 'sg3'), pv = SN.preview(s2, pu, gs.at);
+      ok(pv && pv.hit && pv.lines.some(function (l) { return /dice, kill on \d\+/.test(l); }) && pv.lines.some(function (l) { return /Them:/.test(l); }), 'the pop-up: the patrol marching on the glory-seekers sees both sides\' dice');
+      var pp = SN.preview(s2, SN.unit(s2, 'party'), gs.at);
+      ok(pp && pp.lines.some(function (l) { return /grid/.test(l); }), 'the pop-up: the four marching on a band are told it goes to the grid');
       UI.closeCard();
     } catch (e) { ok(false, 'the page threw: ' + (e && e.stack || e)); }
     out.push('SNOOTPAGE ' + out.length + ' checks, ' + (bad ? bad + ' FAILED' : 'all ok'));
     return out;
+  };
+  // the probe's timed look (the page's #probe, after the checks above): a show must finish with no animation frames at all -- a window that is
+  // not painting gives none, and the day stalled mid-show in the pane 10-14 night. The probe's browser runs its timers on virtual time
+  UI.probeAsync = function (pre) {
+    var line = 'FAIL the show finishes when the window paints no frames (it never finished)', raf = window.requestAnimationFrame;
+    pre.textContent += '\n' + line;
+    try {
+      V.init($('map')); V.fit(800, 500);
+      var s2 = SN.newGame(4242); s2.party8 = null; SN.dawn(s2); var n = 0;
+      while (n++ < 6 && !(s2.beats || []).some(function (b) { return b.t === 'atk'; })) { SN.AI.ours(s2); var g = SN.resolve(s2), r = g.next(); while (!r.done) { var v = r.value; r = g.next(v && v.deep ? SN.standIn(s2, v.deep) : undefined); } SN.dawn(s2); }
+      var B = s2.beats || [], i = B.map(function (b) { return b.t; }).indexOf('fight'), j = i + 1; while (j < B.length && B[j].t !== 'fight' && B[j].t !== 'head') j++;
+      var t0 = performance.now();
+      window.requestAnimationFrame = function () { return 0; };
+      SN.Show.play(s2, i, j, B[i].at, function () { window.requestAnimationFrame = raf; pre.textContent = pre.textContent.replace(line, 'ok   the show finishes when the window paints no frames (' + Math.round((performance.now() - t0) / 100) / 10 + ' s)'); });
+    } catch (e) { window.requestAnimationFrame = raf; pre.textContent = pre.textContent.replace(line, 'FAIL the timed show threw: ' + (e && e.message || e)); }
   };
   if (!PROBE) window.addEventListener('load', UI.boot);
 })();

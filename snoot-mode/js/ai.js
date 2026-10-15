@@ -44,7 +44,7 @@
   };
   AI.gnoll = function (st, u) {
     u.order = { type: 'hold' };
-    if (u.watch) return; // (the death-watch: unto death, on the moot ground)
+    if (u.watch) { if (!SN.same(u.at, SN.MOOT)) go(st, u, SN.MOOT); return; } // (the death-watch: unto death, on the moot ground -- and back to it if a night drove it off)
     if (u.harbinger) return AI.harbinger(st, u);
     if (u.tribe === 'wall' && st.day < 19) return; // (the Wall-Laugh holds -- and is despised for it at the tally)
     if (u.tribe === 'gray') {

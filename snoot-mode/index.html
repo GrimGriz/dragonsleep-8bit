@@ -8,6 +8,7 @@
      Its own folder and door (the lean RULED 10-13; the desk ships this folder to `live` alone): from the shared tree it reads
      only ../deep16/data/sprites.js and ../deep16/art/ (the sheets) and opens ../deep16/index.html?embed for the party's fights.
      The lane: they live\handoff-2026-10-13-the-snoot-mode.md. The rules as read: rules-source.md beside this page.
+     The door is the Chef's test (his word 10-14 night, by the desk: "let the snoot know to edit the door to the chef's test").
      Doors: (none) the game · ?seed=N a battle by its dice · ?fresh a new battle, the saved one left alone · ?watch both sides
      played by the AI · ?probe the gate's checks (dev/snoot-probe.py) -->
 <style>
@@ -61,6 +62,11 @@
   #toast { position: absolute; left: 50%; top: 52px; transform: translateX(-50%); background: #3d5a2a; padding: 6px 14px; border-radius: 4px; display: none; z-index: 40; }
   #d16 { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; z-index: 30; background: #000; }
   #probe { white-space: pre; }
+  #show { position: absolute; left: 0; top: 40px; display: none; z-index: 12; cursor: pointer; image-rendering: pixelated; }
+  #tip { position: absolute; display: none; z-index: 8; max-width: 380px; background: #1d1824f2; border: 1px solid var(--warn); border-radius: 6px; padding: 7px 10px; font-size: 12.5px; pointer-events: none; box-shadow: 0 4px 18px #000a; }
+  #tip .h { color: var(--warn); font-weight: bold; margin-bottom: 3px; }
+  #tip .w { color: #ff9a7a; }
+  #tip div { margin: 2px 0; }
   @media (max-width: 900px) { #log { width: 240px; } #panel .who { min-width: 180px; } }
 </style>
 </head>
@@ -76,6 +82,8 @@
     <button id="bHelp" title="How it plays (H)">HOW IT PLAYS</button>
   </div>
   <canvas id="map"></canvas>
+  <canvas id="show"></canvas>
+  <div id="tip"></div>
   <div id="log"></div>
   <div id="panel"></div>
   <div class="modal" id="cardM"><div class="card" id="card"></div></div>
@@ -84,17 +92,18 @@
 </div>
 <pre id="probe" hidden></pre>
 <script src="../deep16/data/sprites.js"></script>
-<script src="js/data.js?v=eb809d6e56"></script>
+<script src="js/data.js?v=925171332e"></script>
 <script src="js/party8.js?v=e6a0f37d96"></script>
-<script src="js/rules.js?v=8dd1315f0b"></script>
-<script src="js/ai.js?v=e3e5d6e89d"></script>
+<script src="js/rules.js?v=46b384607b"></script>
+<script src="js/ai.js?v=a9ddd73a54"></script>
+<script src="js/show.js?v=4625173cf9"></script>
 <script src="js/view.js?v=492d2a41c3"></script>
 <script src="js/deep.js?v=ae61bbc294"></script>
 <script src="js/notes.js?v=0de3ae997b"></script>
-<script src="js/ui.js?v=3d749d22c1"></script>
-<script src="js/probe.js?v=528d76e770"></script>
+<script src="js/ui.js?v=e16a984ecd"></script>
+<script src="js/probe.js?v=7773f094f8"></script>
 <script>
-  if (/[?&]probe\b/.test(location.search)) { var pr = document.getElementById('probe'); pr.hidden = false; try { pr.textContent = window.SN.probe().join('\n') + (window.SN.UI && window.SN.UI.probeUI ? '\n' + window.SN.UI.probeUI().join('\n') : ''); } catch (e) { pr.textContent = 'FAIL the probe threw: ' + (e && e.stack || e); } }
+  if (/[?&]probe\b/.test(location.search)) { var pr = document.getElementById('probe'); pr.hidden = false; try { pr.textContent = window.SN.probe().join('\n') + (window.SN.UI && window.SN.UI.probeUI ? '\n' + window.SN.UI.probeUI().join('\n') : ''); if (window.SN.UI.probeAsync) window.SN.UI.probeAsync(pr); } catch (e) { pr.textContent = 'FAIL the probe threw: ' + (e && e.stack || e); } }
 </script>
 </body>
 </html>
