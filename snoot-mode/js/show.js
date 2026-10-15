@@ -45,9 +45,12 @@
   SH.build = function (st, from, to, at) {
     var B = st.beats || [], start = from;
     if (B[from] && B[from].t !== 'fight' && B[from].t !== 'head') { for (var i = from - 1; i >= 0; i--) { if (B[i].t === 'fight' && (!at || SN.same(B[i].at, at))) { start = i; break; } if (B[i].day !== st.day) break; } }
-    var segs = [], t = 0, round = 0, skipTo = 0;
+    var segs = [], t = 0, round = 0, skipTo = 0, wit = [];
     for (var j = start; j < to; j++) {
       var b = B[j]; if (!b) continue;
+      // the witness plays on the map after the camera is back out, the givers' figures running from their hexes (his ask 10-15: "can the witness
+      // joinings trigger after the victory (zoomed back to see the other units feeding the witnessed)")
+      if (b.t === 'wit') { if (j >= from) wit.push(b); if (j >= from - 1 && start < from && !skipTo && j < from) skipTo = t; continue; }
       if (b.t === 'round') round = b.n;
       var list = [b], fam = FAM[b.t];
       while (fam && j + 1 < to && B[j + 1] && (FAM[B[j + 1].t] === fam || (JOIN[fam] && JOIN[fam][B[j + 1].t]))) { j++; list.push(B[j]); } // (a family: one beat)
@@ -59,7 +62,7 @@
       segs.push({ b: b, list: list, t0: t, d: d }); t += d;
       if (j >= from - 1 && start < from && !skipTo && j < from) skipTo = t;
     }
-    return { segs: segs, total: t, startT: start < from ? skipTo : 0, first: B[start] };
+    return { segs: segs, total: t, startT: start < from ? skipTo : 0, first: B[start], wit: wit };
   };
 
   // ---------------------------------------------------------------- the scene at a moment: who stands where, how many, what is on screen
@@ -117,15 +120,21 @@
   function ease(x) { return x < 0.5 ? 2 * x * x : 1 - Math.pow(-2 * x + 2, 2) / 2; }
   function sheetDir(f) { var a = Math.atan2(f[1] * SN.V.SQ, f[0]), k = ((Math.round(a / (Math.PI / 4)) % 8) + 8) % 8; return [6, 7, 0, 1, 2, 3, 4, 5][k]; } // (a world direction to the sheet's eight facings)
   // where each unit stands in the hex (the hex's own world units, its centre 0,0): one that came in stands just inside the side it came through,
-  // facing in; one that stood there holds the middle, a little behind its facing; a side's units from one way stand abreast
+  // facing in; one that stood there holds the middle, on the far side from the enemies that came in (facing as it faced: taken from behind, its back
+  // to them -- found 10-15 in his play: the plains came in behind a band and both stood on one side); a side's units from one way stand abreast; two
+  // sides in through one side, the second a little further in
   function layout(sc) {
-    var V = SN.V, groups = {}, out = {};
-    Object.keys(sc.units).forEach(function (id) { var U = sc.units[id], key = U.k + ':' + (U.u.from >= 0 ? U.u.from : 'c'); (groups[key] = groups[key] || []).push(id); });
+    var V = SN.V, groups = {}, out = {}, came = { ours: [0, 0, 0], theirs: [0, 0, 0] }, used = {};
+    Object.keys(sc.units).forEach(function (id) { var U = sc.units[id], key = U.k + ':' + (U.u.from >= 0 ? U.u.from : 'c'); (groups[key] = groups[key] || []).push(id);
+      if (U.u.from >= 0) { var c = came[U.k]; c[0] += V.DIRV[U.u.from][0]; c[1] += V.DIRV[U.u.from][1]; c[2]++; } });
     Object.keys(groups).forEach(function (key) {
       var ids = groups[key], n = ids.length;
       ids.forEach(function (id, i) {
         var U = sc.units[id], from = U.u.from, face = from >= 0 ? (from + 3) % 6 : (U.u.face || 0), f = V.DIRV[face], r = [-f[1], f[0]];
-        var base = from >= 0 ? [V.DIRV[from][0] * 0.5, V.DIRV[from][1] * 0.5] : [-f[0] * 0.14, -f[1] * 0.14];
+        var foe = came[U.k === 'ours' ? 'theirs' : 'ours'], fl = Math.sqrt(foe[0] * foe[0] + foe[1] * foe[1]), deep = from >= 0 && used[from] && used[from] !== U.k ? 0.2 : 0.5, base;
+        if (from >= 0) { base = [V.DIRV[from][0] * deep, V.DIRV[from][1] * deep]; if (!used[from]) used[from] = U.k; }
+        else if (foe[2] && fl > 0.2) base = [-foe[0] / fl * 0.24, -foe[1] / fl * 0.24];
+        else base = [-f[0] * 0.14, -f[1] * 0.14];
         var o = (i - (n - 1) / 2) * 0.36, ax = base[0] + r[0] * o, ay = base[1] + r[1] * o;
         if (from >= 0 && sc.enter > 0) { ax += V.DIRV[from][0] * 0.45 * sc.enter; ay += V.DIRV[from][1] * 0.45 * sc.enter; }
         if (U.fall) { var fd = V.DIRV[U.fall.dir >= 0 ? U.fall.dir : (face + 3) % 6]; ax += fd[0] * 1.1 * U.fall.p; ay += fd[1] * 1.1 * U.fall.p; }
@@ -134,6 +143,7 @@
     });
     return out;
   }
+  SH.layout = layout;
   // a unit's figures in its formation (CHAINMAIL p.10): a line two ranks abreast, a column in file two wide, a square in a ring; its heroes before it
   function figsOf(U, L) {
     var out = [], sh = U.u.sheets || [], heroes = U.heroes.filter(function (h) { return !h.dead; }), hs = heroes.length && !U.u.party ? 1 : 0;
@@ -268,6 +278,27 @@
     cx.restore();
   }
 
+  // ---------------------------------------------------------------- the witness on the map, the camera back out: from each giver's hex its figures run
+  // to the winner's, under the banner (p 0..1; the map's units as they now stand, the figures already moved)
+  var WITD = 1.8;
+  SH.drawWit = function (cx, Wc, Hc, show, p, env) {
+    var V = SN.V, st = env.st, cam = env.cam0, pr = V.proj(cam, Wc, Hc), z = cam.z, kk = Math.min(84, z * 0.58) / 56;
+    V.render(cx, Wc, Hc, cam, st, env.frame || 0, {});
+    var lines = [];
+    (show.wit || []).forEach(function (b, wi) {
+      var G = SN.unit(st, b.from), Wn = SN.unit(st, b.to); if (!G || !Wn) return;
+      var a = V.center0(pr, G.at), c = V.center0(pr, Wn.at), dx = c[0] - a[0], dy = c[1] - a[1], face = sheetDir([dx, dy / V.SQ]);
+      lines.push(b.fromName + ' saw it: ' + b.n + (b.n > 1 ? ' figures go' : ' figure goes') + ' over to ' + Wn.name);
+      for (var i = 0; i < Math.min(5, b.n * 2); i++) {
+        var q = p * 1.6 - i * 0.12 - wi * 0.1; if (q <= 0 || q >= 1) continue; var j = (i % 3 - 1) * z * 0.18;
+        figure(cx, (b.sheets || [])[i % Math.max(1, (b.sheets || []).length)] || 'gnoll_p2', 'walk', face, a[0] + dx * q - dy / (Math.abs(dx) + Math.abs(dy) + 1) * j, a[1] + dy * q + dx / (Math.abs(dx) + Math.abs(dy) + 1) * j * 0.6, kk, p * 3 + i * 0.2, false, q > 0.9 ? (1 - q) * 10 : 1);
+      }
+    });
+    var k = Math.min(Wc / W0, Hc / H0); cx.save(); cx.translate((Wc - W0 * k) / 2, (Hc - H0 * k) / 2); cx.scale(k, k);
+    cx.globalAlpha = Math.min(1, p * 6, (1 - p) * 6 + 0.3); cx.fillStyle = 'rgba(12,10,16,0.78)'; cx.fillRect(0, 26, W0, 46 + lines.length * 20);
+    text(cx, 'WITNESS', W0 / 2, 58, 26, '#ffe08a'); lines.forEach(function (l, i) { text(cx, l, W0 / 2, 82 + i * 20, 15, '#e8d8a0'); }); cx.globalAlpha = 1; cx.restore();
+  };
+
   // ---------------------------------------------------------------- playing a show on the page: the camera flies in, the fight, the camera flies out
   SH.skipDay = false;
   SH.play = function (st, from, to, at, done) {
@@ -275,19 +306,24 @@
     if (!show.segs.length || SH.skipDay || show.total - show.startT < 0.2) { done(); return; }
     var cv = document.getElementById('show'), map = document.getElementById('map'), V = SN.V;
     cv.width = map.width; cv.height = map.height; cv.style.left = map.style.left || '0px'; cv.style.top = map.offsetTop + 'px'; cv.style.display = 'block';
-    var cx = cv.getContext('2d'), now = function () { return performance.now() / 1000; }, t0 = now() - show.startT, tEnd = null, ended = false, speed = /[?&]watch\b/.test(location.search) ? 1.6 : 1;
+    var cx = cv.getContext('2d'), now = function () { return performance.now() / 1000; }, t0 = now() - show.startT, tEnd = null, tW = null, jump = false, ended = false, speed = /[?&]watch\b/.test(location.search) ? 1.6 : 1;
     var env = { st: st, cam0: { x: V.cam.x, y: V.cam.y, z: V.cam.z }, t0: show.startT, frame: 0, out: null };
     function end() { if (ended) return; ended = true; document.removeEventListener('keydown', key, true); cv.removeEventListener('click', click); cv.style.display = 'none'; done(); }
-    function key(e) { if (e.key === ' ' || e.key === 'Spacebar') { e.preventDefault(); e.stopImmediatePropagation(); t0 = -1e9; } else if (e.key === 'Escape') { e.preventDefault(); e.stopImmediatePropagation(); SH.skipDay = true; t0 = -1e9; } else if (e.key === 'Enter') { e.preventDefault(); e.stopImmediatePropagation(); } }
-    function click() { t0 = -1e9; }
+    function key(e) { if (e.key === ' ' || e.key === 'Spacebar') { e.preventDefault(); e.stopImmediatePropagation(); t0 = -1e9; jump = tW != null; } else if (e.key === 'Escape') { e.preventDefault(); e.stopImmediatePropagation(); SH.skipDay = true; t0 = -1e9; } else if (e.key === 'Enter') { e.preventDefault(); e.stopImmediatePropagation(); } }
+    function click() { t0 = -1e9; jump = tW != null; }
     document.addEventListener('keydown', key, true); cv.addEventListener('click', click);
     (function tick() {
       if (ended) return;
       var t = Math.min(show.total, (now() - t0) * speed);
       if (t >= show.total) { if (tEnd == null) tEnd = now(); env.out = (now() - tEnd) * speed / ZOUT; }
       env.frame++;
-      try { SH.draw(cx, cv.width, cv.height, show, t, env); } catch (e) { console.error(e); return end(); }
-      if (env.out != null && env.out >= 1) return end();
+      try {
+        if (env.out != null && env.out >= 1) { // (back out: the witness, if the fight drew one, then the day goes on)
+          if (!show.wit.length || SH.skipDay || jump) return end();
+          if (tW == null) tW = now(); var pw = (now() - tW) * speed / WITD;
+          SH.drawWit(cx, cv.width, cv.height, show, Math.min(1, pw), env); if (pw >= 1) return end();
+        } else SH.draw(cx, cv.width, cv.height, show, t, env);
+      } catch (e) { console.error(e); return end(); }
       // the next frame, or a tenth of a second, whichever comes first: a window that is not painting (minimized, covered) gives no frames
       // though the page counts as shown, and the day must not stall mid-show (found 10-14 night in the pane)
       var fired = false, go = function () { if (!fired) { fired = true; tick(); } };
