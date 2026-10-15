@@ -25,6 +25,11 @@
   // a sheet facing (S, SW, W, NW, N, NE, E, SE: 0..7) for each hex side (E, NE, NW, W, SW, SE) on the map: the side views, as the screenshot he
   // pasted draws its stacks -- NE and NW turn to E and W, since a sheet's back rows read as a grey lump at this size
   var FACE = [6, 6, 2, 2, 1, 7];
+  // a sheet drawn in all eight facings faces its true way on the map, NE and NW from behind (10-15, the art cuts: the gnoll, the glory-seeker, the
+  // hyena; GreyFang since ART-32); the rest keep the side views till their art comes (the LPC people borrow N for NE: ART-61 to ART-67)
+  V.FULL8 = { gnoll_p2: 1, gloryseeker_p2: 1, hyena_p2: 1, greyfang_p1: 1 };
+  var EIGHT = [6, 5, 3, 2, 1, 7];
+  V.faceOf = function (nm, dir) { return (V.FULL8[nm] ? EIGHT : FACE)[dir || 0]; };
   V.DIRV = [[1, 0], [0.5, -R3 / 2], [-0.5, -R3 / 2], [-1, 0], [-0.5, R3 / 2], [0.5, R3 / 2]]; // (E NE NW W SW SE: unit vectors in the world, y down)
 
   // ---------------------------------------------------------------- the world and the camera
@@ -264,14 +269,14 @@
   };
   // a stack: its figures in its formation, its hero before them (in a square, amid them), a chevron on the side it faces, and its badge
   function stack(c, st, u, x, y, s, t, crowd, dir, ui) {
-    var k = crowd > 1 ? 0.62 : 1, sheets = u.sheets || [], hs = SN.heroesOf(u).length && !u.party ? 1 : 0, hgt = Math.min(84, s * 0.58) * k, face = FACE[dir || 0], F = facing(dir);
+    var k = crowd > 1 ? 0.62 : 1, sheets = u.sheets || [], hs = SN.heroesOf(u).length && !u.party ? 1 : 0, hgt = Math.min(84, s * 0.58) * k, F = facing(dir);
     var troops = u.party ? 4 : Math.max(hs ? 0 : 1, Math.min(crowd > 1 ? 3 : 5, Math.ceil((u.figs || 0) / 1.5))), pos = V.layoutOf(u, troops, s, k, dir), figs = [];
     pos.forEach(function (q, i) { figs.push({ x: x + q[0], y: y + q[1], nm: u.party ? sheets[i] : sheets[(hs + (i % Math.max(1, sheets.length - hs))) % sheets.length] || sheets[0] }); });
     if (hs) { var fwd = u.form === 'square' ? 0 : s * 0.4 * k * (u.form === 'column' ? 1.1 : 0.85); figs.push({ x: x + F[0] * fwd, y: y + F[1] * fwd, nm: sheets[0], hero: true }); }
     if (!u.party) chevron(c, u, x, y, s * k, F);
     c.fillStyle = 'rgba(0,0,0,0.3)'; figs.forEach(function (f) { c.beginPath(); c.ellipse(f.x, f.y, s * 0.1 * k, s * 0.045 * k, 0, 0, Math.PI * 2); c.fill(); }); // (each figure's shadow on the ground: the formation's shape)
     var a0 = c.globalAlpha; if (u.state === 'rout' || u.state === 'withdraw' || u.state === 'home') c.globalAlpha = a0 * 0.6;
-    figs.sort(function (a, b) { return a.y - b.y; }).forEach(function (f, i) { figure(c, f.nm, face, f.x, f.y, hgt * (f.hero ? 1.08 : 1), t + i * 7); });
+    figs.sort(function (a, b) { return a.y - b.y; }).forEach(function (f, i) { figure(c, f.nm, V.faceOf(f.nm, dir), f.x, f.y, hgt * (f.hero ? 1.08 : 1), t + i * 7); });
     c.globalAlpha = a0;
     badge(c, st, u, x + s * 0.34 * k, y - s * 0.5 * k - hgt * 0.6, s, k, ui);
   }

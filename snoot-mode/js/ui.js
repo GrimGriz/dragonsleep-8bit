@@ -319,6 +319,8 @@
       ok(V.stats && V.stats.out > 20 && !V.hexAt(oq[0], oq[1]), 'the ground runs on past the map\'s edge (' + (V.stats ? V.stats.out : 0) + ' tiles drawn dim), and nothing there can be clicked');
       var spread = function (form, dir) { var p = V.layoutOf({ form: form }, 6, 40, 1, dir), xs = p.map(function (q) { return q[0]; }), ys = p.map(function (q) { return q[1]; }); return [Math.max.apply(null, xs) - Math.min.apply(null, xs), Math.max.apply(null, ys) - Math.min.apply(null, ys)]; };
       var le = spread('line', 0), ce = spread('column', 0);
+      var sheetsAll = SN.FORCES.concat(SN.DOMINION).reduce(function (a, f) { return a.concat(f.sheets || []); }, []), missing = sheetsAll.filter(function (n) { return !(window.D16 && D16.SHEETS && D16.SHEETS[n]); });
+      ok(!missing.length && sheetsAll.indexOf('gloryseeker_p1') < 0 && V.faceOf('gnoll_p2', 1) === 5 && V.faceOf('trooper_p0', 1) === 6, 'every sheet the mode draws is DEEP16\'s (the glory-seeker its eight-facing p2); on the map a sheet drawn in all eight faces NE truly, the rest turn to E' + (missing.length ? ': missing ' + missing.join(', ') : ''));
       ok(le[1] > le[0] && ce[0] > ce[1], 'the stacks stand in their formation with their sprites: a line facing east runs north and south, a column facing east east and west');
       st = s3; V.sel = 'patrol'; UI.render(); UI.ring();
       var rk = [].map.call(document.querySelectorAll('#ring button'), function (b) { return b.getAttribute('data-k'); }), ab = document.querySelector('#ring button[data-k="avoid"]'); if (ab) ab.click();

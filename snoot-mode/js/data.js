@@ -87,6 +87,8 @@
   SN.SAVES = { hero: 9, superhero: 6, wraith: 7 };
 
   // ---------------------------------------------------------------- the forces at Day 14 (the lane §3, §5.5; his rulings 10-14)
+  // (10-15, the desk's find after the art cut: the glory-seeker is drawn from gloryseeker_p2 -- all eight facings, with death, prone, laugh and get-up
+  // rows; gloryseeker_p1 had idle, walk and attack only)
   // side: ours (the player writes every order -- RULED 10-13 "build for all, a.i. later"), gnoll (the AI), dominion (the AI)
   // cls: the class it attacks as; def: the class it defends as (a gnoll attacks as Armored Foot and defends as Heavy Foot: Book II)
   // figs: figures at 20 men a figure (CHAINMAIL p.8); heroes: fantastic figures with the unit; sheets: what the stack is drawn with
@@ -115,14 +117,14 @@
     { id: 'bb3', side: 'ours', name: 'the festival war-camp', kind: 'the plains', cls: 'HF', def: 'HF', figs: 6, at: [14, 6], arrive: 17, berserk: true,
       heroes: [], sheets: ['npcbarbarian_p0'] },
     // the gnolls (the AI from the first build): the three tribes and the Harbinger (the lane §3)
-    { id: 'sg1', side: 'gnoll', tribe: 'skull', name: 'a Skull-Gate band', kind: 'the Skull-Gate', cls: 'AF', def: 'HF', figs: 6, at: [7, 2], morale: 7, sheets: ['gnoll_p2', 'hyena_p2', 'gloryseeker_p1'] },
-    { id: 'sg2', side: 'gnoll', tribe: 'skull', name: 'a Skull-Gate band', kind: 'the Skull-Gate', cls: 'AF', def: 'HF', figs: 6, at: [7, 4], morale: 7, sheets: ['gnoll_p2', 'hyena_p2', 'gloryseeker_p1'] },
-    { id: 'sg3', side: 'gnoll', tribe: 'skull', name: 'the glory-seekers on the road', kind: 'the Skull-Gate', cls: 'AF', def: 'HF', figs: 4, at: [8, 6], morale: 7, sheets: ['gloryseeker_p1', 'gnoll_p2', 'hyena_p2'] },
-    { id: 'sg4', side: 'gnoll', tribe: 'skull', name: 'a Skull-Gate band', kind: 'the Skull-Gate', cls: 'AF', def: 'HF', figs: 6, at: [5, 2], morale: 7, sheets: ['gnoll_p2', 'hyena_p2', 'gloryseeker_p1'] },
-    { id: 'gkw', side: 'gnoll', tribe: 'gray', watch: true, name: 'the death-watch', kind: 'the Gray Keeping', cls: 'AF', def: 'HF', figs: 8, at: [3, 5], morale: 7, sheets: ['gnoll_p2', 'gloryseeker_p1'],
+    { id: 'sg1', side: 'gnoll', tribe: 'skull', name: 'a Skull-Gate band', kind: 'the Skull-Gate', cls: 'AF', def: 'HF', figs: 6, at: [7, 2], morale: 7, sheets: ['gnoll_p2', 'hyena_p2', 'gloryseeker_p2'] },
+    { id: 'sg2', side: 'gnoll', tribe: 'skull', name: 'a Skull-Gate band', kind: 'the Skull-Gate', cls: 'AF', def: 'HF', figs: 6, at: [7, 4], morale: 7, sheets: ['gnoll_p2', 'hyena_p2', 'gloryseeker_p2'] },
+    { id: 'sg3', side: 'gnoll', tribe: 'skull', name: 'the glory-seekers on the road', kind: 'the Skull-Gate', cls: 'AF', def: 'HF', figs: 4, at: [8, 6], morale: 7, sheets: ['gloryseeker_p2', 'gnoll_p2', 'hyena_p2'] },
+    { id: 'sg4', side: 'gnoll', tribe: 'skull', name: 'a Skull-Gate band', kind: 'the Skull-Gate', cls: 'AF', def: 'HF', figs: 6, at: [5, 2], morale: 7, sheets: ['gnoll_p2', 'hyena_p2', 'gloryseeker_p2'] },
+    { id: 'gkw', side: 'gnoll', tribe: 'gray', watch: true, name: 'the death-watch', kind: 'the Gray Keeping', cls: 'AF', def: 'HF', figs: 8, at: [3, 5], morale: 7, sheets: ['gnoll_p2', 'gloryseeker_p2'],
       note: 'The seat-tribe\'s females keep the unclaimed Mane: they stand the death-watch on the moot ground and never leave it.' },
-    { id: 'gk1', side: 'gnoll', tribe: 'gray', name: 'a Gray Keeping band', kind: 'the Gray Keeping', cls: 'AF', def: 'HF', figs: 6, at: [4, 6], morale: 7, sheets: ['gnoll_p2', 'hyena_p2', 'gloryseeker_p1'] },
-    { id: 'gk2', side: 'gnoll', tribe: 'gray', name: 'a Gray Keeping band', kind: 'the Gray Keeping', cls: 'AF', def: 'HF', figs: 6, at: [2, 4], morale: 7, sheets: ['gnoll_p2', 'hyena_p2', 'gloryseeker_p1'] },
+    { id: 'gk1', side: 'gnoll', tribe: 'gray', name: 'a Gray Keeping band', kind: 'the Gray Keeping', cls: 'AF', def: 'HF', figs: 6, at: [4, 6], morale: 7, sheets: ['gnoll_p2', 'hyena_p2', 'gloryseeker_p2'] },
+    { id: 'gk2', side: 'gnoll', tribe: 'gray', name: 'a Gray Keeping band', kind: 'the Gray Keeping', cls: 'AF', def: 'HF', figs: 6, at: [2, 4], morale: 7, sheets: ['gnoll_p2', 'hyena_p2', 'gloryseeker_p2'] },
     { id: 'wl1', side: 'gnoll', tribe: 'wall', name: 'the Wall-Laugh', kind: 'the Wall-Laugh', cls: 'AF', def: 'HF', figs: 6, at: [0, 1], morale: 7, sheets: ['gnoll_p2', 'hyena_p2'] },
     { id: 'wl2', side: 'gnoll', tribe: 'wall', name: 'the Wall-Laugh\'s young blood', kind: 'the Wall-Laugh', cls: 'AF', def: 'HF', figs: 5, at: [1, 2], morale: 7, sheets: ['gnoll_p2', 'hyena_p2'] },
     { id: 'harb', side: 'gnoll', tribe: 'harbinger', harbinger: true, name: "the Harbinger's pack", kind: 'the Harbinger', cls: 'LH', def: 'LH', figs: 2, at: [6, 6], move: 3, morale: 6,
