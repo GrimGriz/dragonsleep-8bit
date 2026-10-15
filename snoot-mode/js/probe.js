@@ -83,6 +83,35 @@
     ok(wins >= 38, 'the stand-in: the four as 32 Armored Foot at +2 against a band\'s own figures read a slaughter, as the grid does (' + wins + ' of 40)');
     var sb = SN.newGame(31); sb.party8 = null; sb.day = 16; SN.dawn(sb); var b1 = SN.unit(sb, 'bb1');
     ok(b1.on && !SN.canOrder(sb, b1) && b1.order.type === 'move', 'the plains tribes are the mode\'s AI\'s: no orders of the player\'s, and they march on the Snoot (' + b1.order.type + ')');
+    // ---- formation and facing (CHAINMAIL p.10, p.16; RULED 10-15: "3 - Formations", "4 - Round 1 have the player set the formation before play without
+    // cost, change formation half-day")
+    function tk(f) { try { return f(); } catch (e) { return false; } }
+    function fday(seed, setup) { var s = SN.newGame(seed); s.party8 = null; s.units.forEach(function (u) { u.on = false; }); s.beats = []; setup(s); var g = SN.resolve(s), r = g.next(); while (!r.done) { var v = r.value; r = g.next(v && v.deep ? SN.standIn(s, v.deep) : undefined); } return s; }
+    function atk1(s, id) { return (s.beats || []).filter(function (b) { return b.t === 'atk' && b.u === id && b.round === 1 && !b.wiz; })[0]; }
+    ok(tk(function () { var hx = [6, 5], nb = SN.nbrs(hx), asp = function (d, s) { return SN.aspect({ day: 15 }, { came: nb[s] }, d, hx); }, all = function (d) { return [0, 1, 2, 3, 4, 5].map(function (s) { return asp(d, s); }).join(); };
+      return all({ form: 'line', face: 0 }) === 'front,front,flank,rear,flank,front' && all({ form: 'column', face: 0 }) === 'front,flank,flank,rear,flank,flank' && all({ form: 'square', face: 3 }) === 'front,front,front,front,front,front' && all({ form: 'line', face: 2 }) === 'flank,front,front,front,flank,rear'; }),
+      'p.10, p.16: a line\'s front is three sides, a column\'s one, a square\'s all six; the side behind is the rear');
+    var sr = fday(41, function (s) { var g = on(s, 'sg1', [8, 5]); g.form = 'line'; g.face = 0; var p = on(s, 'patrol', [7, 5]); p.order = { type: 'move', to: [8, 5], path: [[8, 5]] }; });
+    var ra = atk1(sr, 'patrol'), rb = atk1(sr, 'sg1');
+    ok(ra && ra.asp === 'rear' && ra.cls === 'AF' && !rb, 'p.16: the patrol takes a band from behind -- Heavy Foot fights as Armored Foot, and the band strikes nothing back in the first round' + (ra ? ' (' + ra.asp + ', ' + ra.cls + ')' : ''));
+    var sl = fday(42, function (s) { var g = on(s, 'sg1', [8, 5]); g.form = 'line'; g.face = 1; var p = on(s, 'patrol', [7, 5]); p.order = { type: 'move', to: [8, 5], path: [[8, 5]] }; });
+    var fa = atk1(sl, 'patrol'), fb2 = atk1(sl, 'sg1');
+    ok(fa && fa.asp === 'flank' && fa.cls === 'AF' && fb2 && fb2.tg === 'patrol', 'p.16: from the flank, a class up -- and the band strikes back');
+    ok(tk(function () { var sf = SN.newGame(51); sf.party8 = null; SN.dawn(sf); var pf = SN.unit(sf, 'patrol'), m0 = SN.moveOf(pf);
+      SN.setForm(sf, pf, 'column'); var free = !pf.reformed && SN.moveOf(pf) === m0;
+      sf.day = 15; SN.dawn(sf); SN.setForm(sf, pf, 'line'); var half = pf.reformed && SN.moveOf(pf) === Math.max(1, Math.floor(m0 / 2));
+      SN.setForm(sf, pf, 'column'); return free && half && !pf.reformed && SN.moveOf(pf) === m0; }),
+      'RULED 10-15: a formation set on Day 14 before the first orders is free; a change after costs half the day\'s move; back to the dawn\'s costs nothing');
+    ok(tk(function () { var sq = SN.newGame(52); SN.dawn(sq); var pq = SN.unit(sq, 'patrol'); return !SN.setForm(sq, SN.unit(sq, 'bat3'), 'square') && SN.setForm(sq, pq, 'square') && SN.moveOf(pq) === 1; }),
+      'p.10: a square is foot only, and holds its ground (a hex a day)');
+    var q1 = fday(53, function (s) { var g = on(s, 'gk1', [8, 5]); g.form = 'square'; var b = on(s, 'bat3', [7, 5]); b.order = { type: 'move', to: [8, 5], path: [[8, 5]] }; });
+    var q2 = fday(53, function (s) { var g = on(s, 'gk1', [8, 5]); g.form = 'line'; g.face = 3; var b = on(s, 'bat3', [7, 5]); b.order = { type: 'move', to: [8, 5], path: [[8, 5]] }; });
+    ok(atk1(q1, 'bat3') && !atk1(q1, 'bat3').imp && atk1(q2, 'bat3') && atk1(q2, 'bat3').imp, 'p.10: horse charging a square get no charge die; the same charge on a line\'s front does');
+    var c5 = fday(54, function (s) { var g = on(s, 'gk1', [8, 5]); g.form = 'line'; g.face = 3; g.reformed = true; var p = on(s, 'patrol', [7, 5]); p.order = { type: 'move', to: [8, 5], path: [[8, 5]] }; });
+    ok(atk1(c5, 'patrol') && atk1(c5, 'patrol').asp === 'flank', 'p.10: a unit caught in a fight the day it changed formation is flanked -- the patrol hits the band\'s front as a flank');
+    ok(SN.ROADS.every(function (rd) { return rd.hexes.every(function (x, i) { return !i || SN.dist(x, rd.hexes[i - 1]) === 1; }); }), 'every road runs hex to neighbouring hex (the Pit road and the pirate road each skipped one)');
+    ok(tk(function () { var cr = SN.newGame(55); SN.dawn(cr); var pc = SN.unit(cr, 'patrol'), p = SN.path([9, 8], [8, 2]); SN.setForm(cr, pc, 'line'); var l1 = SN.reach(pc, p).length; SN.setForm(cr, pc, 'column'); var c1 = SN.reach(pc, p).length; return p.every(SN.road) && c1 === l1 + 1; }),
+      'a column on the road marches a hex further (the seat\'s reading, ruled with the formations); the march from the Pit keeps to the road');
     // ---- whole battles, both hands, the party's part on the tables
     var heads = 0, grids = 0, maps = 0, fills = 0, bands = 0, ends = [], domOk = true, inv = [], dom0 = [], nightShared = 0;
     for (var seed = 1; seed <= 8; seed++) {

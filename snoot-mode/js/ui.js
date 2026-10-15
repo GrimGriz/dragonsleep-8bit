@@ -39,10 +39,11 @@
       '<h2>The day</h2><p>Everyone moves at once, the fast arriving first. Units that meet fight: up to three rounds on CHAINMAIL\'s Combat Tables, with morale after each round. The loser backs off, retreats, routs or surrenders; a rout spreads to friends it runs into. If three rounds leave both standing, night falls and the lower morale total backs off a hex: no one ends the day sharing a hex. A unit that fights three rounds in a day is fatigued till it rests a day.</p>' +
       '<p><b>Every fight plays as a show</b>: the two sides face off on that hex\'s ground, each side\'s dice roll on screen, the killed fall, the morale result goes up, witnesses run in. SPACE (or a click) skips a fight, Esc the rest of the day; the log on the right keeps every roll.</p>' +
       '<p><b>Before you send a unit</b>, hover where it would march: if it would meet an enemy (if they hold -- their orders are secret), a pop-up gives both sides\' dice and kill numbers off the tables, morale, the charge die, the shock, and the witnesses waiting to fill a gnoll win.</p>' +
+      '<h2>Formation and facing</h2><p>Every unit stands in a <b>LINE</b>, a <b>COLUMN</b> or (foot only) a <b>SQUARE</b>, and faces one side of its hex (CHAINMAIL p.10). An enemy that comes in through a unit\'s <b>flank</b> fights a class up; through its <b>rear</b>, a class up and the unit strikes nothing back in the first round (p.16). A line\'s front is three sides; a column\'s one, but a column marches a hex further on the road; a square is all front, moves a hex a day, and horse get no charge die against it. Set them free on Day 14 (and on a unit\'s arrival day); after that a change costs half the day\'s move, and a unit caught in a fight the day it changed counts as flanked. A unit that marches faces the way it went; turning in place is free (Q and E, or the panel).</p>' +
       '<h2>The four</h2><p>The party are Super-heroes. Every fight they stand in is fought on the grid (DEEP16): you play it out there, and the result comes back to the map. What they spend stays spent; a day spent in the Pit without a fight is a long rest.</p>' +
       '<h2>The Snoot</h2><p><b>The witness:</b> a gnoll band that wins a fight is filled up from every gnoll band within two hexes. Glory draws followers.<br><b>The Harbinger</b> hunts GreyFang from Day 18 (sooner if GreyFang strays near him). Only a hero (a paladin), GreyFang or the four can hold him; anyone else he walks straight through. When he reaches GreyFang the head is taken: on the grid if the four are with GreyFang or next to the fight, on the map if not. Then every gnoll goes home.<br><b>The Dominion:</b> two days after the hunt begins, three wagons come along the west road. Mop them up and the battle is over.</p>' +
       '<h2>Who is who</h2><p>Newland\'s units carry a paladin (a Hero: +1 to the unit\'s dice) or a cleric (never surrenders, +1 morale, mends a figure a day) or both. The plains tribes are berserkers and their own masters: the computer moves them -- they charge any gnolls within two hexes, hunt the rest, and never check morale. Crossbows loose a volley before the melee. Horse charging over open ground adds a die a figure; standing horse defends a class down. Gnolls attack as Armored Foot and defend as Heavy Foot, morale +2 (OD&amp;D Book II).</p>' +
-      '<h2>Keys</h2><p class="small">Tab the next unit without orders &middot; Enter resolve the day &middot; N notes &middot; H this card &middot; Esc deselect. The rules as read, with page numbers: <a href="rules-source.md" target="_blank" style="color:#ffe08a">rules-source.md</a>.</p>',
+      '<h2>Keys</h2><p class="small">Tab the next unit without orders &middot; Q / E turn the unit &middot; Enter resolve the day &middot; N notes &middot; H this card &middot; Esc deselect. The rules as read, with page numbers: <a href="rules-source.md" target="_blank" style="color:#ffe08a">rules-source.md</a>.</p>',
       [{ label: fromTitle ? 'BACK' : 'ON', go: true, fn: fromTitle ? UI.title : null }]);
   };
 
@@ -149,8 +150,17 @@
       html += '<div class="orders"><div class="cls">Orders: <b>' + now + '</b></div><div><button id="oHold"' + (o.type === 'hold' && u.held ? ' class="on"' : '') + '>HOLD</button><button id="oSup"' + (o.type === 'support' ? ' class="on"' : '') + '>CHARGE IF CHARGED</button></div><div class="tip">Click a hex to march there (right-click to stack with your own).</div></div>';
     } else if (mine && u.berserk && SN.alive(u)) html += '<div class="orders"><div class="cls">Today: <b>' + (u.order.type === 'move' ? 'march on ' + esc(SN.placeName(u.order.to)) : 'hold') + '</b></div><div class="tip">The plains tribes ride their own way: the computer writes their orders. They charge any gnolls within two hexes and hunt the rest.</div></div>';
     else if (!mine) html += '<div class="orders"><div class="tip">The computer\'s. Its orders are written in secret, as yours are.</div></div>';
+    if (mine && SN.canOrder(st, u) && !busy && !u.party) {
+      var FN = { line: 'LINE', column: 'COLUMN', square: 'SQUARE' }, cost = SN.formFree(st, u) ? 'set it free today' : u.reformed ? 'changed today: half the day\'s move, and flanked if caught in a fight' : 'a change costs half today\'s move';
+      html += '<div class="orders"><div class="cls">Formation <b>' + FN[u.form] + '</b>, facing <b>' + SN.DIRS[u.face || 0] + '</b> &middot; ' + cost + '</div><div>' +
+        '<button id="fLine"' + (u.form === 'line' ? ' class="on"' : '') + ' title="Front: three sides">LINE</button><button id="fCol"' + (u.form === 'column' ? ' class="on"' : '') + ' title="Front: one side; a hex further on the road">COLUMN</button>' +
+        (SN.foot(u) ? '<button id="fSq"' + (u.form === 'square' ? ' class="on"' : '') + ' title="All front; a hex a day; no charge die for horse against it">SQUARE</button>' : '') +
+        '<button id="fL" title="Turn left (Q)">&#10226;</button><button id="fR" title="Turn right (E)">&#10227;</button></div><div class="tip">From a flank the enemy fights a class up; from the rear, and you strike nothing back in the first round.</div></div>';
+    }
     if (u.note) html += '<div class="note">' + esc(u.note) + '</div>';
     el.innerHTML = html;
+    var form = function (f, face) { return function () { SN.setForm(st, u, f, face); UI.tip(null); UI.render(); }; };
+    if ($('fLine')) { $('fLine').onclick = form('line'); $('fCol').onclick = form('column'); if ($('fSq')) $('fSq').onclick = form('square'); $('fL').onclick = function () { form(null, (u.face || 0) + 1)(); }; $('fR').onclick = function () { form(null, (u.face || 0) + 5)(); }; }
     if ($('oHold')) $('oHold').onclick = function () { u.order = { type: 'hold' }; u.held = true; UI.render(); };
     if ($('oSup')) $('oSup').onclick = function () { u.order = { type: 'support' }; u.held = true; UI.render(); };
   };
@@ -208,6 +218,7 @@
       else if (e.key === 'Tab') { UI.next(); e.preventDefault(); }
       else if (e.key === 'n' || e.key === 'N') { if (!SN.Notes.isOpen()) { SN.Notes.open(st, false); e.preventDefault(); } }
       else if (e.key === 'h' || e.key === 'H') { if (!UI.cardOpen()) UI.help(false); }
+      else if (/^[qQeE]$/.test(e.key)) { var su = st && V.sel && SN.unit(st, V.sel); if (su && !busy && SN.canOrder(st, su) && !su.party) { SN.setForm(st, su, null, (su.face || 0) + (/[qQ]/.test(e.key) ? 1 : 5)); UI.render(); } }
     });
     window.addEventListener('resize', fit);
   };

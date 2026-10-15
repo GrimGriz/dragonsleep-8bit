@@ -34,11 +34,12 @@
   };
   SN.ROWS = ROWS;
   SN.ter = function (c, r) { var row = ROWS[r]; return row && c >= 0 && c < SN.W ? row.charAt(c) : null; };
-  // the roads: a hex on a road costs 1 whatever its ground (Book III p.16: a track through woods costs nothing more)
+  // the roads: a hex on a road costs 1 whatever its ground (Book III p.16: a track through woods costs nothing more); each hex the next one's
+  // neighbour (10-15: the Pit road skipped from (8,6) to (9,7) and the pirate road from (10,8) to (11,7), two hexes apart -- (8,7) and (10,7) close them)
   SN.ROADS = [
-    { name: 'the Pit road', hexes: [[8, 0], [8, 1], [8, 2], [8, 3], [8, 4], [8, 5], [8, 6], [9, 7], [9, 8], [9, 9]] },
+    { name: 'the Pit road', hexes: [[8, 0], [8, 1], [8, 2], [8, 3], [8, 4], [8, 5], [8, 6], [8, 7], [9, 7], [9, 8], [9, 9]] },
     { name: 'the west road (the Castegut road)', hexes: [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [5, 0], [6, 0], [7, 0], [8, 0]] },
-    { name: 'the pirate road', hexes: [[9, 8], [10, 8], [11, 7], [12, 7], [13, 6], [14, 6]] }
+    { name: 'the pirate road', hexes: [[9, 8], [10, 8], [10, 7], [11, 7], [12, 7], [13, 6], [14, 6]] }
   ];
   SN.PLACES = [
     { at: [9, 8], name: "Tarlyn's Pit" }, { at: [8, 3], name: 'the Halfway Inn', dx: -0.3 }, { at: [9, 3], name: 'Halfway Lake', dx: 0.35, dy: -0.95 },

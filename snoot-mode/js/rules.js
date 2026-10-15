@@ -44,6 +44,7 @@
       if (SN.same(h, b)) break;
       SN.nbrs(h).forEach(function (n) {
         var c = SN.cost(n); if (c >= 99) return;
+        if (SN.road(n)) c -= 0.001; // (of two ways as good, the road: where a column gains its hex)
         if (avoid && avoid(n) && !SN.same(n, b)) c += 6; // (a hex to go round if it can: the party's guard, for a band that wants glory not grief)
         var nk = SN.key(n), d = cur[0] + c;
         if (best[nk] == null || d < best[nk]) { best[nk] = d; prev[nk] = h; open.push([d, n]); }
@@ -53,13 +54,23 @@
     var out = [], at = b; while (!SN.same(at, a)) { out.unshift(at); at = prev[SN.key(at)]; }
     return out;
   };
-  // how far a path gets in a day: the hexes it reaches (a unit can always take its first step, whatever the ground -- Book III's day)
+  // how far a path gets in a day: the hexes it reaches (a unit can always take its first step, whatever the ground -- Book III's day); a column
+  // marches a hex further while it keeps to the road (the seat's reading, ruled with the formations 10-15: the march formation)
   SN.reach = function (u, path) {
-    var left = SN.moveOf(u), out = [];
-    for (var i = 0; i < (path || []).length; i++) { var c = SN.cost(path[i]); if (c > left && i > 0) break; left -= c; out.push(path[i]); if (left <= 0) break; }
+    var col = u.form === 'column' ? 1 : 0, left = SN.moveOf(u) + col, road = true, out = [];
+    for (var i = 0; i < (path || []).length; i++) {
+      road = road && SN.road(path[i]);
+      var c = SN.cost(path[i]), cap = left - (col && !road ? 1 : 0);
+      if (c > cap && i > 0) break; left -= c; out.push(path[i]); if (left - (col && !road ? 1 : 0) <= 0) break;
+    }
     return out;
   };
-  SN.moveOf = function (u) { return Math.max(1, (u.move || SN.MOVE[u.cls] || 3) - (u.fatigued ? 1 : 0)); };
+  SN.moveOf = function (u) {
+    var m = Math.max(1, (u.move || SN.MOVE[u.cls] || 3) - (u.fatigued ? 1 : 0));
+    if (u.form === 'square') m = 1; // (a square holds its ground: a hex a day)
+    if (u.reformed) m = Math.max(1, Math.floor(m / 2)); // (a formation changed today: half the day's move -- RULED 10-15)
+    return m;
+  };
 
   // ---------------------------------------------------------------- the units
   SN.alive = function (u) { return u.on && (u.state === 'ok' || u.state === 'retreat' || u.state === 'rout' || u.state === 'withdraw'); };
@@ -77,6 +88,33 @@
   // the figures a unit counts in a fight: its own, and its fantastic figures at what they fight as (a hero four, a super-hero eight, a wraith
   // or a warlock two: p.30, p.33, p.43) -- the party is never in this count but on the bench's stand-in
   SN.fightFigs = function (u) { return u.figs + SN.heroesOf(u).reduce(function (s, h) { return s + ({ hero: 4, superhero: 8, wraith: 2, wizard: 2 }[h.type] || 0); }, 0); };
+  // ---------------------------------------------------------------- formation and facing (CHAINMAIL p.10, p.16; RULED 10-15, his "3 - Formations" and
+  // "4 - Round 1 have the player set the formation before play without cost, change formation half-day")
+  // A unit stands in LINE, COLUMN or SQUARE (foot only) and faces one of its hex's six sides; an attacker strikes the side it came in through. A
+  // line's front is the facing side and the two beside it, its flanks the next two, its rear the side behind; a column's front is the facing side
+  // alone, four flanks and the rear; a square is all front. From a flank the attacker is "at the next higher class, i.e., Heavy Foot equals Armored
+  // Foot and Heavy Horse equals +1 on each die"; from the rear the same, and it deals "casualties without receiving any in return" -- here, the first
+  // round's (p.16). A unit "caught in melee during formation change" is flanked (p.10). Set free before Day 14's first orders (and on a unit's
+  // arrival day); a change after costs half the day's move; a unit that marches faces the way it goes, and turning in place is free.
+  SN.FORMS = { line: ['front', 'front', 'flank', 'rear', 'flank', 'front'], column: ['front', 'flank', 'flank', 'rear', 'flank', 'flank'], square: ['front', 'front', 'front', 'front', 'front', 'front'] };
+  SN.HIGHER = { LF: 'HF', HF: 'AF', LH: 'MH', MH: 'HH' }; // (Armored Foot and Heavy Horse: +1 a die instead)
+  SN.foot = function (u) { return !u.mounted && !!{ LF: 1, HF: 1, AF: 1 }[u.cls]; };
+  SN.formFree = function (st, u) { return st.day === SN.DAY0 || u.arrivedOn === st.day; };
+  SN.setForm = function (st, u, form, face) {
+    if (form && !SN.FORMS[form]) return false;
+    if (form === 'square' && !SN.foot(u)) return false;
+    if (face != null) u.face = ((face % 6) + 6) % 6;
+    if (form) { u.form = form; u.reformed = !SN.formFree(st, u) && u.form !== u.formDawn; } // (changing back to the dawn's formation costs nothing)
+    if (u.order && u.order.type === 'move' && u.order.to) { var p = SN.path(u.at, u.order.to); if (p && p.length) u.order = { type: 'move', to: u.order.to.slice(), path: SN.reach(u, p), full: p }; }
+    return true;
+  };
+  // the side of d that a strikes in hex h: the side a came in through, against d's facing and formation ('front', 'flank', 'rear')
+  SN.aspect = function (st, a, d, h) {
+    if (d.party || !SN.FORMS[d.form]) return 'front';
+    var s = a.came ? SN.dirTo(h, a.came) : -1, asp = s >= 0 ? SN.FORMS[d.form][(s - (d.face || 0) + 6) % 6] : 'front';
+    if (asp === 'front' && d.reformed) asp = 'flank';
+    return asp;
+  };
   SN.bonus = function (u) { var hs = SN.heroesOf(u), b = 0; if (hs.some(function (h) { return h.type === 'superhero'; })) b = 2; else if (hs.some(function (h) { return h.type === 'hero'; })) b = 1; return b + (u.berserk ? 2 : 0); }; // (only a hero adds to his unit's dice, a super-hero twice, p.30; a wizard or a wraith works on morale) // (a hero adds 1 to the unit's dice, a super-hero 2 (p.30: doubled); berserkers +2, p.20)
 
   SN.newGame = function (seed) {
@@ -92,6 +130,10 @@
     (u.heroes || []).forEach(function (h) { h.dead = false; });
     if (u.tribe === 'skull') u.home = [7, 1]; else if (u.tribe === 'gray' || u.harbinger) u.home = SN.MOOT.slice(); else if (u.tribe === 'wall') u.home = [0, 1];
     if (u.side === 'dominion') u.home = SN.WEST.slice();
+    // the formation each unit takes the field in: the death-watch in square round the Mane, the Dominion and Newland's battalions on the march in
+    // column, the rest in line; ours face the hills (NW), the gnolls the road and the Pit (SE), the plains the hills (W), the Dominion east
+    if (!u.form) u.form = u.watch ? 'square' : (u.side === 'dominion' || (u.arrive && u.kind === 'Newland')) ? 'column' : 'line';
+    if (u.face == null) u.face = u.side === 'ours' ? (u.kind === 'the plains' ? 3 : 2) : u.side === 'gnoll' ? 5 : 0;
     if (u.side === 'ours') u.home = u.kind === 'the plains' ? u.at.slice() : SN.PIT.slice(); // (the plains tribes go back to the Verge)
     return u;
   };
@@ -99,14 +141,16 @@
   // the show's beats (RULED 10-14 night, "the resolution should be a show"): what happened in a fight, in the order it happened, with its
   // dice -- the log is for reading, the beats for js/show.js to stage. A unit as it stood when its fight began: SN.snap
   SN.beat = function (st, d) { d.day = st.day; (st.beats = st.beats || []).push(d); };
-  SN.snap = function (u) { return { id: u.id, name: u.name, side: u.side, party: !!u.party, figs: u.figs || 0, cls: u.cls, sheets: (u.sheets || []).slice(), heroes: SN.heroesOf(u).map(function (h) { return { name: h.name, type: h.type }; }), harbinger: !!u.harbinger }; };
+  SN.snap = function (u, h) { return { id: u.id, name: u.name, side: u.side, party: !!u.party, figs: u.figs || 0, cls: u.cls, sheets: (u.sheets || []).slice(), heroes: SN.heroesOf(u).map(function (x) { return { name: x.name, type: x.type }; }), harbinger: !!u.harbinger,
+    from: h && u.came ? SN.dirTo(h, u.came) : -1, face: u.face || 0, form: u.form || 'line', mounted: !!u.mounted }; }; // (from: the side it came in through, -1 if it stood there)
 
   // ---------------------------------------------------------------- the day begins: arrivals, the hunt, the Dominion, the AI's orders
   SN.dawn = function (st) {
     st.events = [];
     st.units.forEach(function (u) {
-      if (!u.on && u.arrive && u.arrive <= st.day && !u.arrived) { u.arrived = true; u.on = true; u.at = SN.freeNear(st, u.at, u); SN.say(st, u.name + ' arrive' + (u.kind === 'the plains' ? ' off the Verge' : ' up the south road') + '.', 'arrive', u.at); st.events.push({ kind: 'arrive', id: u.id }); }
+      if (!u.on && u.arrive && u.arrive <= st.day && !u.arrived) { u.arrived = true; u.on = true; u.arrivedOn = st.day; u.at = SN.freeNear(st, u.at, u); SN.say(st, u.name + ' arrive' + (u.kind === 'the plains' ? ' off the Verge' : ' up the south road') + '.', 'arrive', u.at); st.events.push({ kind: 'arrive', id: u.id }); }
       u.rounds = 0; u.moved = false; u.charged = false; u.berserkOrder = false; u.held = false; u.fought = false; u.lostToday = false; u.wonToday = false; u.drawn = false;
+      u.came = null; u.reformed = false; u.formDawn = u.form;
       if (u.out && u.out <= st.day) { u.out = 0; SN.say(st, 'The four are on their feet again.', 'party'); }
     });
     // the hunt: the Harbinger holds in the hills till the exchange (Day 18) -- or till GreyFang comes within two hexes of him (RULED 10-14, lean 1)
@@ -195,11 +239,11 @@
       var holds = function (x) { return x.party || SN.heroesOf(x).some(function (hh) { return hh.type === 'hero' || hh.type === 'superhero'; }); };
       if (hunting(u) && foes.length && !foes.some(holds)) {
         SN.say(st, foes.map(function (x) { return x.name; }).join(' and ') + ' cannot hold the Harbinger: he walks through them.', 'move', e.to);
-        steps.push({ id: u.id, from: u.at.slice(), to: e.to.slice(), t: e.t }); u.at = e.to.slice(); u.moved = true; return;
+        steps.push({ id: u.id, from: u.at.slice(), to: e.to.slice(), t: e.t }); SN.stepTo(u, e.to); u.moved = true; return;
       }
       if (foes.length && foes.every(hunting) && !holds(u)) { u.halted = true; SN.say(st, u.name + ' cannot close with the Harbinger.', 'move', e.to); return; }
       steps.push({ id: u.id, from: u.at.slice(), to: e.to.slice(), t: e.t });
-      u.at = e.to.slice(); u.moved = true;
+      SN.stepTo(u, e.to); u.moved = true;
       if (foes.length) {
         u.halted = true; u.charged = true;
         foes.forEach(function (f) { f.halted = true; });
@@ -208,6 +252,7 @@
     });
     return steps;
   };
+  SN.stepTo = function (u, to) { var d = SN.dirTo(u.at, to); if (d >= 0) u.face = d; u.came = u.at.slice(); u.at = to.slice(); }; // (a marching unit faces the way it goes)
   // CHARGE IF CHARGED (p.9) and the drawn-in rule (p.16: within reach of a melee, a unit may join it): ours by the order, the gnolls by the AI's
   SN.drawIn = function (st) {
     var fighting = {}; SN.contested(st).forEach(function (h) { fighting[SN.key(h)] = 1; }); // (a unit already in a fight is not drawn out of it into another)
@@ -218,7 +263,7 @@
         var join = (u.order.type === 'support' && u.side === 'ours' && (sides.gnoll || sides.dominion)) ||
           (u.side !== 'ours' && u.order.type === 'support' && sides.ours && sides[u.side]) || (u.berserk && sides.gnoll);
         if (!join || !SN.room(st, h, u) || SN.cost(h) >= 99) return;
-        u.at = h.slice(); u.drawn = true; u.moved = true;
+        SN.stepTo(u, h); u.drawn = true; u.moved = true;
         SN.say(st, u.name + (u.berserk ? ' will not wait: they run into the fight.' : ' are drawn into the fight.'), 'move', h);
       });
     });
@@ -248,12 +293,12 @@
     }
     gf.dead = true;
     st.head = { day: st.day, at: G.at.slice(), how: how, witnessed: around, result: res && res.result || null };
-    SN.beat(st, { t: 'head', at: G.at.slice(), around: around, how: how, g: SN.snap(G), h: SN.snap(H) });
+    SN.beat(st, { t: 'head', at: G.at.slice(), around: around, how: how, g: SN.snap(G, G.at), h: SN.snap(H, G.at) });
     st.stats.lostHeads = 1;
     SN.say(st, around ? 'The Harbinger takes GreyFang\'s head in front of the four. "The Mane is mine."' : 'No one is there to stop it. The Harbinger takes GreyFang\'s head. "The Mane is mine."', 'head', G.at);
     st.events.push({ kind: 'head', around: around });
     // then: the Harbinger back to where the Snoot started, and every snooting unit goes home (his rule)
-    H.at = SN.freeNear(st, SN.MOOT, H); H.state = 'home'; H.on = true; H.home = SN.MOOT.slice();
+    H.at = SN.freeNear(st, SN.MOOT, H); H.came = null; H.state = 'home'; H.on = true; H.home = SN.MOOT.slice();
     st.units.forEach(function (u) {
       if (u.side !== 'gnoll' || !SN.alive(u) || u === H) return;
       if (u.watch) return; // (the death-watch stays on the moot ground: they keep the Mane, and now its claimant comes to them)
@@ -272,7 +317,7 @@
     if (!ours().length || !theirs().length) return;
     var name = SN.placeName(h);
     SN.say(st, 'A fight at ' + name + ': ' + ours().map(SN.label).join(', ') + ' against ' + theirs().map(SN.label).join(', ') + '.', 'fight', h);
-    SN.beat(st, { t: 'fight', at: h.slice(), place: name, ter: SN.ter(h[0], h[1]), road: SN.road(h), ours: ours().map(SN.snap), theirs: theirs().map(SN.snap) });
+    SN.beat(st, { t: 'fight', at: h.slice(), place: name, ter: SN.ter(h[0], h[1]), road: SN.road(h), ours: ours().map(function (u) { return SN.snap(u, h); }), theirs: theirs().map(function (u) { return SN.snap(u, h); }) });
     here().forEach(function (u) { u.fought = true; });
     // the shock: a super-hero's or a wraith's charge makes every enemy unit it reaches check as if over its line (p.30, p.34; p.18 for what failing is)
     (st.shock || []).filter(function (s) { return SN.same(s.at, h); }).forEach(function (s) {
@@ -392,27 +437,36 @@
     o = o.filter(SN.alive).filter(function (u) { return SN.same(u.at, h); }); t = t.filter(SN.alive).filter(function (u) { return SN.same(u.at, h); });
     if (!o.length || !t.length) return true;
     var before = {}; o.concat(t).forEach(function (u) { before[u.id] = SN.fightFigs(u); });
+    // who takes whom from the rear in the first round: the attacker strikes and takes nothing back (p.16)
+    var biggest = function (B) { return B.slice().sort(function (x, y) { return SN.fightFigs(y) - SN.fightFigs(x); })[0]; }, rearOf = {};
+    if (round === 1) [[o, t], [t, o]].forEach(function (pr) { pr[0].forEach(function (a) { var tg = biggest(pr[1]); if (tg && SN.aspect(st, a, tg, h) === 'rear') (rearOf[tg.id] = rearOf[tg.id] || []).push(a.id); }); });
     function attack(a, B, volley) {
+      if (!volley && rearOf[a.id]) { B = B.filter(function (x) { return rearOf[a.id].indexOf(x.id) < 0; }); if (!B.length) SN.say(st, a.name + ' are taken from behind: they strike nothing back this round.', 'roll', h); }
       if (!B.length) return;
-      var tgt = B.slice().sort(function (x, y) { return SN.fightFigs(y) - SN.fightFigs(x); })[0], cls = a.fatigued ? SN.LOWER[a.cls] : a.cls;
+      var tgt = biggest(B), cls0 = a.fatigued ? SN.LOWER[a.cls] : a.cls, cls = cls0;
       var dcls = tgt.fatigued ? SN.LOWER[tgt.def] : tgt.def, horse = { LH: 1, MH: 1, HH: 1 };
       if (horse[dcls] && !tgt.charged) dcls = SN.LOWER[dcls]; // (standing horse defends a class down, p.17)
+      var asp = volley ? 'front' : SN.aspect(st, a, tgt, h), up = 0; // (from the flank or the rear: the next class up, Armored Foot and Heavy Horse +1 a die, p.16)
+      if (asp !== 'front') { if (SN.HIGHER[cls]) cls = SN.HIGHER[cls]; else up = 1; }
       var wf = volley ? 0 : SN.heroesOf(a).filter(SN.isWiz).length * 2; // (a wizard fights as two Armored Foot, p.30: her own dice, below)
       var row = SN.CT[cls][dcls], f = volley ? a.figs : SN.fightFigs(a) - wf, ter = SN.TERRAIN[SN.ter(h[0], h[1])];
-      if (wf) wizDice(a, tgt, dcls, wf, ter);
+      if (wf) wizDice(a, tgt, dcls, wf, ter, asp);
       if (f <= 0) return;
-      var imp = !volley && round === 1 && a.charged && cls !== 'LF' && !ter.hill && !ter.rough; // (impetus, p.17: heavy and armored foot and all horse charging over open ground add a die)
-      var n = Math.ceil(f / row[1]) * row[0] + (imp ? Math.ceil(f / row[1]) : 0), b = SN.bonus(a), need = Math.max(2, row[2] - b), r = SN.dice(st, n), k = r.filter(function (x) { return x >= need; }).length;
+      // impetus, p.17: heavy and armored foot and all horse charging over open ground add a die -- not a square (it cannot charge), and not horse
+      // against a square (p.10's square, the seat's reading of what it is for)
+      var imp = !volley && round === 1 && a.charged && cls0 !== 'LF' && !ter.hill && !ter.rough && a.form !== 'square' && !(horse[cls0] && tgt.form === 'square');
+      var n = Math.ceil(f / row[1]) * row[0] + (imp ? Math.ceil(f / row[1]) : 0), b = SN.bonus(a) + up, need = Math.max(2, row[2] - b), r = SN.dice(st, n), k = r.filter(function (x) { return x >= need; }).length;
       if (tgt.harbinger && !SN.heroesOf(a).length && !tgt.figs) k = 0; // (a wraith alone: only magic and the fantastic harm him, p.34)
       if (volley && SN.heroesOf(tgt).some(SN.isWiz)) k = Math.min(k, tgt.figs); // (a wizard is impervious to normal missile fire, p.30: the volley kills her men, never her)
-      SN.beat(st, { t: 'atk', u: a.id, tg: tgt.id, cls: cls, dcls: dcls, dice: r, need: need, k: k, volley: !!volley, imp: !!imp, round: round, f: f, row: row.slice(), bonus: SN.bonus(a) });
-      SN.say(st, a.name + (volley ? ' loose a volley' : imp ? ' charge' : '') + ' (' + f + ' ' + cls + ' against ' + dcls + (imp ? ', +1 die a figure for the charge' : '') + ') roll ' + n + (n === 1 ? ' die' : ' dice') + ', kill on ' + need + '+' + (b ? ' (+' + b + ')' : '') + ': [' + r.join(' ') + '] -> ' + k + (k === 1 ? ' kill' : ' kills'), 'roll', h);
+      SN.beat(st, { t: 'atk', u: a.id, tg: tgt.id, cls: cls, dcls: dcls, dice: r, need: need, k: k, volley: !!volley, imp: !!imp, round: round, f: f, row: row.slice(), bonus: b, asp: asp, up: up, cls0: cls0, noBack: asp === 'rear' && round === 1 });
+      SN.say(st, a.name + (volley ? ' loose a volley' : imp ? ' charge' : '') + (asp === 'rear' ? ' from the rear' : asp === 'flank' ? ' on the flank' : '') + ' (' + f + ' ' + cls + (cls !== cls0 ? ' -- ' + cls0 + ' a class up' : '') + ' against ' + dcls + (imp ? ', +1 die a figure for the charge' : '') + ') roll ' + n + (n === 1 ? ' die' : ' dice') + ', kill on ' + need + '+' + (b ? ' (+' + b + ')' : '') + ': [' + r.join(' ') + '] -> ' + k + (k === 1 ? ' kill' : ' kills'), 'roll', h);
       if (k) hit(tgt, k);
     }
-    function wizDice(a, tgt, dcls, wf, ter) {
-      var row = SN.CT.AF[dcls], imp = round === 1 && a.charged && !ter.hill && !ter.rough, n = Math.ceil(wf / row[1]) * row[0] + (imp ? Math.ceil(wf / row[1]) : 0), r = SN.dice(st, n), k = r.filter(function (x) { return x >= row[2]; }).length;
+    function wizDice(a, tgt, dcls, wf, ter, asp) {
+      var up = asp && asp !== 'front' ? 1 : 0, need = Math.max(2, SN.CT.AF[dcls][2] - up);
+      var row = SN.CT.AF[dcls], imp = round === 1 && a.charged && !ter.hill && !ter.rough, n = Math.ceil(wf / row[1]) * row[0] + (imp ? Math.ceil(wf / row[1]) : 0), r = SN.dice(st, n), k = r.filter(function (x) { return x >= need; }).length;
       var w = SN.heroesOf(a).filter(SN.isWiz)[0];
-      SN.beat(st, { t: 'atk', u: a.id, tg: tgt.id, cls: 'AF', dcls: dcls, dice: r, need: row[2], k: k, volley: false, imp: !!imp, round: round, f: wf, row: row.slice(), bonus: 0, wiz: true, who: w.name });
+      SN.beat(st, { t: 'atk', u: a.id, tg: tgt.id, cls: 'AF', dcls: dcls, dice: r, need: need, k: k, volley: false, imp: !!imp, round: round, f: wf, row: row.slice(), bonus: up, wiz: true, who: w.name, asp: asp || 'front' });
       SN.say(st, w.name + ' fights as two Armored Foot (against ' + dcls + ') rolls ' + n + (n === 1 ? ' die' : ' dice') + ', kill on ' + row[2] + '+: [' + r.join(' ') + '] -> ' + k + (k === 1 ? ' kill' : ' kills'), 'roll', h);
       if (k) hit(tgt, k);
     }
@@ -501,8 +555,9 @@
       var opts = SN.nbrs(u.at).filter(function (x) { return SN.cost(x) < 99 && !SN.unitsAt(st, x).some(function (y) { return SN.hostile(u, y); }); });
       if (!opts.length) { if (how === 'rout') { SN.say(st, u.name + ' have nowhere to run and are cut down.', 'morale', u.at); SN.lose(st, u, u.figs); u.state = 'gone'; } return; }
       opts.sort(function (a, b) { return (SN.dist(a, u.home) - SN.dist(b, u.home)) - 0.5 * (SN.away(st, u, a) - SN.away(st, u, b)); });
-      if (i === 0) SN.beat(st, { t: 'fall', u: u.id, how: how, from: u.at.slice() });
-      u.at = opts[0].slice();
+      if (i === 0) SN.beat(st, { t: 'fall', u: u.id, how: how, from: u.at.slice(), dir: SN.dirTo(u.at, opts[0]) });
+      var fd = SN.dirTo(u.at, opts[0]); if (fd >= 0) u.face = how === 'rout' || how === 'retreat' ? fd : (fd + 3) % 6; // (in good order they face the enemy; a retreat or a rout has its back to them, p.16)
+      u.at = opts[0].slice(); u.came = null;
     }
     u.moved = true;
     if (how === 'rout' || how === 'retreat') { u.state = how; u.rally = 0; }
@@ -511,7 +566,7 @@
     });
   };
   SN.away = function (st, u, h) { var d = 99; st.units.forEach(function (x) { if (SN.alive(x) && SN.hostile(u, x)) d = Math.min(d, SN.dist(x.at, h)); }); return d; };
-  SN.beatHarb = function (st, H) { H.beaten = st.day + 2; H.at = SN.freeNear(st, SN.MOOT, H); H.moved = true; st.stats.beaten++; st.events.push({ kind: 'beaten' }); };
+  SN.beatHarb = function (st, H) { H.beaten = st.day + 2; H.at = SN.freeNear(st, SN.MOOT, H); H.came = null; H.moved = true; st.stats.beaten++; st.events.push({ kind: 'beaten' }); };
 
   // ---------------------------------------------------------------- the party's part: what the grid sends, and what comes back
   // a war-band from the units it meets: the road's glory-seekers fight (`snoot`, its map the road south) with the 8-bit's own list, sized from the
@@ -622,11 +677,12 @@
   // holds (their orders are secret), and the tables' numbers both ways; or who stands next to where it ends and might charge it
   var S2 = {}; (function () { for (var a = 1; a <= 6; a++) for (var b = 1; b <= 6; b++) S2[a + b] = (S2[a + b] || 0) + 1; })();
   SN.p2d6 = function (n) { var c = 0; for (var s = n; s <= 12; s++) c += S2[s] || 0; return c / 36; }; // (two dice scoring n or more)
-  SN.odds = function (st, a, d, at, charging) {
-    var cls = a.fatigued ? SN.LOWER[a.cls] : a.cls, dcls = d.fatigued ? SN.LOWER[d.def] : d.def, ter = SN.TERRAIN[SN.ter(at[0], at[1])];
-    if ({ LH: 1, MH: 1, HH: 1 }[dcls] && !charging.d) dcls = SN.LOWER[dcls];
-    var row = SN.CT[cls][dcls], f = SN.fightFigs(a), imp = charging.a && cls !== 'LF' && !ter.hill && !ter.rough;
-    var n = Math.ceil(f / row[1]) * row[0] + (imp ? Math.ceil(f / row[1]) : 0), need = Math.max(2, row[2] - SN.bonus(a));
+  SN.odds = function (st, a, d, at, charging, asp) {
+    var cls0 = a.fatigued ? SN.LOWER[a.cls] : a.cls, cls = cls0, dcls = d.fatigued ? SN.LOWER[d.def] : d.def, ter = SN.TERRAIN[SN.ter(at[0], at[1])], horse = { LH: 1, MH: 1, HH: 1 }, up = 0;
+    if (horse[dcls] && !charging.d) dcls = SN.LOWER[dcls];
+    if (asp && asp !== 'front') { if (SN.HIGHER[cls]) cls = SN.HIGHER[cls]; else up = 1; }
+    var row = SN.CT[cls][dcls], f = SN.fightFigs(a), imp = charging.a && cls0 !== 'LF' && !ter.hill && !ter.rough && a.form !== 'square' && !(horse[cls0] && d.form === 'square');
+    var n = Math.ceil(f / row[1]) * row[0] + (imp ? Math.ceil(f / row[1]) : 0), need = Math.max(2, row[2] - SN.bonus(a) - up);
     return { cls: cls, dcls: dcls, n: n, need: need, imp: imp, hill: !!ter.hill || !!ter.rough, kills: Math.round(n * Math.max(0, 7 - need) / 6 * 10) / 10, f: f };
   };
   SN.preview = function (st, u, to) {
@@ -650,8 +706,13 @@
       var b = H ? null : SN.band(st, foes2, hit.at);
       out.lines.push('The four\'s fight goes to the grid (DEEP16): ' + (H ? 'the Harbinger himself.' : 'a war-band of ' + b.enemies.length + (b.dominion ? ' soldiers' : ' (glory-seekers, gnolls, hyenas)') + '. Win it and they break; LEAVE THE FIGHT and you fall back a hex.'));
     } else {
-      var tg = foes2.slice().sort(function (x, y) { return SN.fightFigs(y) - SN.fightFigs(x); })[0], me = SN.odds(st, u, tg, hit.at, { a: true, d: false });
-      out.lines.push('You: ' + me.f + ' ' + me.cls + ' against their ' + me.dcls + ' -- ' + me.n + ' dice, kill on ' + me.need + '+, about ' + me.kills + ' kills a round' + (me.imp ? ' (with your charge die)' : me.hill ? ' (no charge die up here)' : '') + '.');
+      var tg = foes2.slice().sort(function (x, y) { return SN.fightFigs(y) - SN.fightFigs(x); })[0];
+      var hi = day.indexOf(day.filter(function (x) { return SN.same(x, hit.at); })[0]), prev = hi > 0 ? day[hi - 1] : u.at, side = SN.dirTo(hit.at, prev);
+      var asp = SN.aspect(st, { came: prev }, tg, hit.at), FN = { line: 'line', column: 'column', square: 'square' };
+      out.lines.push('They stand in ' + FN[tg.form] + ', facing ' + SN.DIRS[tg.face || 0] + '; you come in from the ' + (side >= 0 ? SN.DIRS[side] : 'side') + ': ' + (asp === 'rear' ? 'their REAR -- you fight a class up, and they strike nothing back in the first round (p.16).' : asp === 'flank' ? 'their FLANK -- you fight a class up (p.16).' : 'their front.'));
+      var me = SN.odds(st, u, tg, hit.at, { a: true, d: false }, asp);
+      out.lines.push('You: ' + me.f + ' ' + me.cls + ' against their ' + me.dcls + ' -- ' + me.n + ' dice, kill on ' + me.need + '+, about ' + me.kills + ' kills a round' + (me.imp ? ' (with your charge die)' : me.hill ? ' (no charge die up here)' : tg.form === 'square' ? ' (no charge die against a square)' : '') + '.');
+      if (u.reformed) out.warn.push('You change formation today: caught in a fight, you count as flanked (p.10).');
       var back = 0, bn = 0; foes2.forEach(function (x) { var o = SN.odds(st, x, u, hit.at, { a: false, d: true }); back += o.kills; bn += o.n; });
       out.lines.push('Them: ' + bn + ' dice back -- about ' + Math.round(back * 10) / 10 + ' kills a round. You have ' + SN.fightFigs(u) + ' to lose.');
       var rt = foes2.reduce(function (s, x) { return s + SN.rating(x); }, 0) / foes2.length;

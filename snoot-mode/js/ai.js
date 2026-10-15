@@ -35,7 +35,15 @@
       if (u.side === 'gnoll') AI.gnoll(st, u);
       else if (u.side === 'dominion') AI.dominion(st, u);
       else if (u.berserk) AI.plains(st, u);
+      if (u.side !== 'ours' || u.berserk) AI.face(st, u);
     });
+  };
+  // a unit of the AI's that is not marching turns to face the nearest enemy (turning in place is free; a march faces the way it goes)
+  AI.face = function (st, u) {
+    if (u.order.type === 'move') return;
+    var x = st.units.filter(function (y) { return SN.alive(y) && SN.hostile(u, y) && !SN.same(y.at, u.at); }).sort(function (a, b) { return SN.dist(a.at, u.at) - SN.dist(b.at, u.at); })[0];
+    var p = x && SN.dist(x.at, u.at) <= 6 ? SN.path(u.at, x.at) : null, d = p && p[0] ? SN.dirTo(u.at, p[0]) : -1;
+    if (d >= 0) u.face = d;
   };
   // the plains tribes (RULED 10-15): berserkers will not wait (p.20: they charge on sight and fight till all are dead) -- a gnoll unit within two
   // hexes and they go for it; else the nearest gnoll unit in the field (not the Harbinger: he walks through anyone without a hero); none seen, the
