@@ -223,19 +223,24 @@
   // keeps him: he is the Snoot's quarry), its men by type, its heroes with it; no splitting back. The day's order is the bigger's, and the joining
   // counts as a formation changed (half the day's move after Day 14, flanked if caught)
   SN.canCombine = function (st, a, b) { return !!a && !!b && a !== b && SN.canOrder(st, a) && SN.canOrder(st, b) && !a.party && !b.party && SN.same(a.at, b.at); };
+  // the men of sm poured into big by type (one group a class, armour, missile, horse and morale); full: their starting strength comes too (COMBINE),
+  // else only the men who come (a rout's: SN.breakUp)
+  SN.pour = function (big, sm, full) {
+    var gs = SN.parts(big).map(function (g) { return Object.assign({}, g, { name: g.name || big.name }); });
+    SN.parts(sm).forEach(function (g) {
+      if (!full && !g.n) return;
+      var n0 = full ? g.n0 : g.n, same = gs.filter(function (x) { return x.cls === g.cls && x.def === g.def && !!x.volley === !!g.volley && !!x.mounted === !!g.mounted && (x.morale || 0) === (g.morale || 0); })[0];
+      if (same) { same.n += g.n; same.n0 += n0; } else gs.push(Object.assign({}, g, { n0: n0, name: g.name || sm.name }));
+    });
+    big.groups = gs; big.figs0 = gs.reduce(function (s, g) { return s + g.n0; }, 0); SN.sync(big);
+    big.sheets = (big.sheets || []).concat((sm.sheets || []).filter(function (s) { return (big.sheets || []).indexOf(s) < 0; }));
+  };
   SN.combine = function (st, a, b) {
     if (!SN.canCombine(st, a, b)) return null;
     var fated = function (u) { return SN.heroesOf(u).some(function (x) { return x.fated; }); };
     var big = fated(a) ? a : fated(b) ? b : SN.fightFigs(a) >= SN.fightFigs(b) ? a : b, sm = big === a ? b : a;
-    var gs = SN.parts(big).map(function (g) { return Object.assign({}, g, { name: g.name || big.name }); });
-    SN.parts(sm).forEach(function (g) {
-      var same = gs.filter(function (x) { return x.cls === g.cls && x.def === g.def && !!x.volley === !!g.volley && !!x.mounted === !!g.mounted && (x.morale || 0) === (g.morale || 0); })[0];
-      if (same) { same.n += g.n; same.n0 += g.n0; } else gs.push(Object.assign({}, g, { name: g.name || sm.name }));
-    });
-    big.groups = gs; big.heroes = (big.heroes || []).concat(sm.heroes || []);
-    big.sheets = (big.sheets || []).concat((sm.sheets || []).filter(function (s) { return (big.sheets || []).indexOf(s) < 0; }));
+    SN.pour(big, sm, true); big.heroes = (big.heroes || []).concat(sm.heroes || []);
     big.cleric = big.cleric || sm.cleric; big.wagon = big.wagon || sm.wagon; big.lost = (big.lost || 0) + (sm.lost || 0);
-    big.figs0 = gs.reduce(function (s, g) { return s + g.n0; }, 0); SN.sync(big);
     var was = big.name; big.name = was + ' with ' + sm.name.replace(/^(the|a) /i, '');
     sm.on = false; sm.state = 'merged'; sm.mergedInto = big.id; sm.figs = 0;
     if (!SN.formFree(st, big)) big.reformed = true;
@@ -647,6 +652,9 @@
     if (u.figs <= 0 && !SN.heroesOf(u).length && !u.party) { u.state = 'gone'; SN.beat(st, { t: 'gone', u: u.id }); SN.say(st, u.name + ' are destroyed.', 'roll', u.at); }
     else if (u.figs <= 0 && SN.heroesOf(u).some(function (x) { return x.fated; }) && n > 0 && u.figs0) SN.fallBack(st, u, 'back'); // (GreyFang's men gone: he is carried out of it -- his end is the Harbinger's)
   };
+  // the lower total reacts by the gap (p.16) -- but no one here surrenders (his rules 10-15: "I don't think either side would accept them", then
+  // "Rout over surrender for the gnolls as well"): the book's 100 and over is a rout, as 80-99 is; a rout of men joins or disbands (SN.breakUp)
+  SN.react = function (gap) { return gap >= 80 ? 'rout' : gap >= 60 ? 'retreat' : gap >= 40 ? 'back' : 'backoff'; };
   // post-melee morale (pp.15-16): fewer casualties scores the difference times a die, more survivors the difference, each side adds its
   // survivors times its rating; under twenty figures a side everything doubles; the lower total reacts by the gap
   SN.morale = function (st, o, t, before, h) {
@@ -659,20 +667,20 @@
     var lo = sA < sB ? A : B, gap = Math.abs(sA - sB);
     st._mor = { at: h.slice(), sA: sA, sB: sB };
     SN.say(st, 'Morale: ours ' + sA + ', theirs ' + sB + ' (the gap ' + gap + ').', 'morale', h);
-    var how = gap < 20 || lo.never ? 'continue' : gap >= 100 ? 'surrender' : gap >= 80 ? 'rout' : gap >= 60 ? 'retreat' : gap >= 40 ? 'back' : 'backoff';
+    var how = gap < 20 || lo.never ? 'continue' : SN.react(gap);
     SN.beat(st, { t: 'mor', sA: sA, sB: sB, gap: gap, how: how, never: gap >= 20 && lo.never, lo: lo === A ? 'ours' : 'theirs', doubled: A.surv < 20 && B.surv < 20,
       parts: { ours: { surv: A.surv, cas: A.cas, rate: Math.round(A.rate * 10) / 10, die: dA, never: A.never }, theirs: { surv: B.surv, cas: B.cas, rate: Math.round(B.rate * 10) / 10, die: dB, never: B.never } } });
     if (how === 'continue') { if (gap >= 20) SN.say(st, 'They do not check morale; the melee goes on.', 'morale', h); return false; }
-    var word = { surrender: 'surrender', rout: 'rout', retreat: 'retreat a move', back: 'fall back a move in good order', backoff: 'back off half a move in good order' }[how];
+    var word = { rout: 'rout', retreat: 'retreat a move', back: 'fall back a move in good order', backoff: 'back off half a move in good order' }[how];
     lo.U.forEach(function (u) {
       if (SN.nevers(u)) return;
-      if (how === 'surrender' && (u.cleric || u.berserk)) { SN.say(st, u.name + ' will not surrender (a religious order: p.19): they rout instead.', 'morale', h); SN.fallBack(st, u, 'rout'); return; }
       SN.say(st, u.name + ' ' + word + '.', 'morale', h);
-      if (how === 'surrender') SN.surrender(st, u); else SN.fallBack(st, u, how);
+      SN.fallBack(st, u, how);
     });
     return true;
   };
   // a surrender takes the men; a hero, a super-hero or a wraith with them "never checks morale" (p.30) and is not taken -- cut free, falling back alone
+  // (since his "Rout over surrender" 10-15 the morale never calls it: kept for a surrender he may want back, between men)
   // (found 10-15 in his play: GreyFang's forty surrendered at the Pit and he went with them; the Harbinger's quarry is never a prisoner)
   SN.surrender = function (st, u) {
     var hs = SN.heroesOf(u).filter(function (h) { return h.type !== 'wizard'; });
@@ -682,8 +690,35 @@
     u.state = 'prisoner'; u.on = false;
   };
   // falling back: a hex away from the enemy, toward home; a rout two (a move and a half), and a routing unit routs the friends it runs into (p.16)
+  // a rout of men (his rule 10-15: "Routing typically disbans the units - when the humans get routed can we do a 'joins group within two' OR ELSE
+  // disbands?"): a unit of men -- ours or the Dominion's; the gnolls rout as the book has it -- does not run its move and a half: its men run to the
+  // nearest steady unit of their own side within two hexes (the witness's reach), not in a fight, and join it; with none, they scatter for home and
+  // the unit is gone (CHAINMAIL p.16: a rout off the table, or past its rally table, is removed from play). A hero, a super-hero or a wraith does not
+  // run (p.30): cut free, falling back alone, as from a surrender; a warlock goes with the men
+  SN.menBreak = function (u) { return u.side !== 'gnoll' && !u.party; };
+  SN.breakUp = function (st, u) {
+    var hs = SN.heroesOf(u).filter(function (x) { return x.type !== 'wizard'; }), wz = SN.heroesOf(u).filter(SN.isWiz), n = u.figs, h = u.at.slice();
+    var to = st.units.filter(function (x) {
+      return x !== u && x.side === u.side && SN.alive(x) && x.state === 'ok' && !x.party && !x.berserk && SN.dist(x.at, h) <= 2 && !SN.same(x.at, h) &&
+        !SN.unitsAt(st, x.at).some(function (y) { return SN.hostile(x, y); });
+    }).sort(function (a, b) { return SN.dist(a.at, h) - SN.dist(b.at, h) || b.figs - a.figs; })[0];
+    SN.beat(st, { t: 'menrun', u: u.id, n: n, to: to ? to.id : null, toName: to ? to.name : null, heroes: hs.length > 0, word: to ? 'THEY RUN TO ' + to.name.toUpperCase() : 'THEY SCATTER' });
+    if (to && n > 0) {
+      SN.pour(to, u, false); if (u.groups) u.groups.forEach(function (g) { g.n = 0; }); u.figs = 0; SN.sync(u);
+      if (wz.length) { to.heroes = (to.heroes || []).concat(wz); u.heroes = (u.heroes || []).filter(function (x) { return wz.indexOf(x) < 0; }); }
+      SN.beat(st, { t: 'wit', kind: 'rally', from: u.id, fromName: u.name, to: to.id, toName: to.name, n: n, sheets: (u.sheets || []).slice() });
+      SN.say(st, u.name + ' break: ' + n + ' men run to ' + to.name + ' and join them (' + to.name + ' now ' + to.figs + ').', 'morale', h);
+    } else if (n > 0) {
+      st.stats.fled = st.stats.fled || {}; SN.take(st, u, n, u.side === 'ours' ? 'lost' : 'fled');
+      SN.say(st, u.name + ' break with no steady friends within two hexes: ' + n + ' men scatter for home' + (hs.length ? '.' : ', and the unit is gone.'), 'morale', h);
+    }
+    if (hs.length) { SN.say(st, hs.map(function (x) { return x.name; }).join(' and ') + ' will not run: cut free, falling back alone.', 'morale', h); SN.fallBack(st, u, 'retreat'); return; }
+    u.on = false;
+    if (to) { u.state = 'merged'; u.mergedInto = to.id; } else { u.state = 'gone'; st.stats.scattered = (st.stats.scattered || 0) + 1; }
+  };
   SN.fallBack = function (st, u, how, depth) {
     if (!SN.alive(u)) return;
+    if (how === 'rout' && SN.menBreak(u)) return SN.breakUp(st, u);
     var n = how === 'rout' ? 2 : 1;
     for (var i = 0; i < n; i++) {
       var opts = SN.nbrs(u.at).filter(function (x) { return SN.cost(x) < 99 && !SN.unitsAt(st, x).some(function (y) { return SN.hostile(u, y); }); });

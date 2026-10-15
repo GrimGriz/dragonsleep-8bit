@@ -100,14 +100,14 @@
 <script src="../deep16/data/sprites.js"></script>
 <script src="js/data.js?v=4cbad22ed4"></script>
 <script src="js/party8.js?v=edb32c7f51"></script>
-<script src="js/rules.js?v=ae19066741"></script>
+<script src="js/rules.js?v=b775b19bf2"></script>
 <script src="js/ai.js?v=c8a08c5fa3"></script>
-<script src="js/show.js?v=99017eaaf9"></script>
+<script src="js/show.js?v=3901dd2ffc"></script>
 <script src="js/view.js?v=7567bc33bb"></script>
 <script src="js/deep.js?v=08abb655fa"></script>
 <script src="js/notes.js?v=0de3ae997b"></script>
-<script src="js/ui.js?v=c41454835b"></script>
-<script src="js/probe.js?v=bba72a3c00"></script>
+<script src="js/ui.js?v=e80539dbb1"></script>
+<script src="js/probe.js?v=40be73b20e"></script>
 <script>
   if (/[?&]probe\b/.test(location.search)) { var pr = document.getElementById('probe'); pr.hidden = false; try { pr.textContent = window.SN.probe().join('\n') + (window.SN.UI && window.SN.UI.probeUI ? '\n' + window.SN.UI.probeUI().join('\n') : ''); if (window.SN.UI.probeAsync) window.SN.UI.probeAsync(pr); } catch (e) { pr.textContent = 'FAIL the probe threw: ' + (e && e.stack || e); } }
 </script>

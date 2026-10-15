@@ -179,6 +179,19 @@
     var pv = tk(function () { var sx = SN.newGame(67); sx.party8 = null; SN.dawn(sx); var g = SN.unit(sx, 'gk2'), c = SN.unit(sx, 'patrol'); g.at = SN.MOOT.slice(); c.at = [4, 5]; return SN.preview(sx, c, SN.MOOT); });
     ok(wv && wv.k === Math.floor(wv.cover / 2) && wv.held && pv && pv.lines.some(function (l) { return l.indexOf('They hold the moot ground') === 0; }),
       'p.12: the Gray Keeping on the moot ground -- the crossbows\' volley at them halved behind their cover (' + (wv ? wv.cover + ' to ' + wv.k : 'no volley of two or more found') + '), and the march\'s pop-up says they hold it');
+    // ---- no surrender, and a rout of men joins or disbands (his rules 10-15: "when the humans get routed can we do a 'joins group within two' OR ELSE
+    // disbands?", "Rout over surrender for the gnolls as well")
+    ok(tk(function () { return SN.react(176) === 'rout' && SN.react(100) === 'rout' && SN.react(85) === 'rout' && SN.react(65) === 'retreat' && SN.react(45) === 'back' && SN.react(25) === 'backoff'; }),
+      'his rule 10-15, no one surrenders: a gap of 100 and over routs, as 80-99 does (GreyFang\'s forty at 176 would have run)');
+    var rj = tk(function () { var sr = SN.newGame(69); sr.party8 = null; SN.dawn(sr); sr.units.forEach(function (u) { u.on = false; }); sr.beats = [];
+      var a = on(sr, 'bat2', [8, 5]), f = on(sr, 'patrol', [8, 3]), p = on(sr, 'bat1', [2, 8]), g = on(sr, 'greyfang', [12, 2]), f0 = f.figs, a0 = a.figs;
+      var d = SN.make(SN.DOMINION[0], true); sr.units.push(d); d.on = true; d.state = 'ok'; d.at = [13, 1];
+      SN.fallBack(sr, a, 'rout'); var joined = f.figs === f0 + a0 && a.state === 'merged' && !SN.alive(a) && sr.beats.some(function (b) { return b.t === 'wit' && b.kind === 'rally' && b.to === 'patrol' && b.n === a0; });
+      var l0 = sr.stats.lost['ours:HF'] || 0; SN.fallBack(sr, p, 'rout'); var pal = p.figs === 0 && SN.alive(p) && p.state === 'retreat' && SN.heroesOf(p).length === 1 && sr.stats.lost['ours:HF'] === l0 + 40;
+      var d0 = d.figs; SN.fallBack(sr, d, 'rout'); var dg = d.state === 'gone' && !SN.alive(d) && sr.stats.fled['dominion:' + d.cls] === d0;
+      SN.fallBack(sr, g, 'rout'); var gf = SN.greyfang(sr) === g && g.figs === 0;
+      var gn = on(sr, 'sg1', [5, 2]); SN.fallBack(sr, gn, 'rout'); return [joined, pal, dg, gf, gn.state === 'rout' && gn.figs === 18 && !SN.same(gn.at, [5, 2])]; });
+    ok(rj && rj.every(Boolean), 'his rule 10-15, a rout of men: Newland\'s crossbows run to the road patrol two hexes off and join it; Newland\'s heavy foot with no steady friend in reach scatter, their paladin cut free (p.30); a Dominion wagon\'s men scatter and it is gone; GreyFang\'s men scatter and he cuts free; a gnoll band routs as the book has it (' + (rj ? rj.join(' ') : 'threw') + ')');
     // ---- whole battles, both hands, the party's part on the tables
     var heads = 0, grids = 0, maps = 0, fills = 0, bands = 0, ends = [], domOk = true, inv = [], dom0 = [], nightShared = 0;
     for (var seed = 1; seed <= 8; seed++) {

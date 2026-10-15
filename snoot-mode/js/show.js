@@ -15,7 +15,7 @@
   var W0 = 960, H0 = 540, CX = 480; // (the screen's own size for the dice, the banners and the rosters; the canvas scales it)
   // how long each beat holds the screen, in seconds; a round's dice roll together (CHAINMAIL's melee is simultaneous, p.14), as do its casualties,
   // its fire balls and its duels -- one beat each -- and a later round goes quicker: about five seconds a fight (RULED 10-14 night)
-  var DUR = { evade: 1.1, walls: 1.0, surp: 0.9, fight: 0.9, round: 0.3, shock: 1.0, ft: 0.9, fb: 0.75, atk: 1.2, cas: 0.6, herofall: 0.6, gone: 0.6, mor: 0.95, fall: 0.6, surrender: 0.6, wit: 1.1, inst: 0.8, grid: 1.2, night: 1.0, head: 3.4 };
+  var DUR = { evade: 1.1, walls: 1.0, menrun: 0.8, surp: 0.9, fight: 0.9, round: 0.3, shock: 1.0, ft: 0.9, fb: 0.75, atk: 1.2, cas: 0.6, herofall: 0.6, gone: 0.6, mor: 0.95, fall: 0.6, surrender: 0.6, wit: 1.1, inst: 0.8, grid: 1.2, night: 1.0, head: 3.4 };
   // a family plays as one beat: every band's shock with its falling back; the round's casualties with who fell and who is gone; the falls
   // after nightfall with the night; a run of instability rolls
   var FAM = { atk: 'atk', cas: 'toll', gone: 'toll', herofall: 'toll', surrender: 'toll', fb: 'fb', save: 'fb', ft: 'ft', shock: 'shock', fall: 'fall', inst: 'inst', night: 'night' };
@@ -114,7 +114,8 @@
         case 'mor': if (now) sc.banner = { big: { 'continue': 'THE MELEE GOES ON', backoff: 'THEY BACK OFF', back: 'THEY FALL BACK', retreat: 'THEY RETREAT', rout: 'ROUT!', surrender: 'THEY SURRENDER' }[b.how] + (b.how === 'continue' ? '' : b.lo === 'ours' ? ' (OURS)' : ''), small: 'Morale: ours ' + b.sA + ' -- theirs ' + b.sB + (b.never ? ' (they never check)' : ''), p: p }; break;
         case 'fall': if (U) { U.fall = { dir: b.dir != null ? b.dir : -1, p: p * (b.how === 'rout' ? 1.3 : 1) }; U.anim = null; U.alpha = 1 - Math.max(0, p - 0.5) * 2; if (p >= 1) U.gone = true; if (now && b.how === 'rout') sc.fx.push({ kind: 'word', u: b.u, text: 'ROUT', p: p }); } break;
         case 'surrender': if (U) { if (b.heroesLeft) { if (now) sc.fx.push({ kind: 'word', u: b.u, text: 'THE MEN ARE TAKEN', p: p }); if (p >= 1 || !now) U.figs = 0; } else { if (now) sc.fx.push({ kind: 'word', u: b.u, text: 'TAKEN PRISONER', p: p }); U.alpha = 1 - p; if (p >= 1) U.gone = true; } } break;
-        case 'wit': var W = sc.units[b.to]; if (now) { sc.runners.push({ to: b.to, n: b.n, sheets: b.sheets, p: p }); sc.banner = { big: 'WITNESS', small: b.fromName + ' saw it: ' + b.n + (b.n > 1 ? ' figures go' : ' figure goes') + ' over to the winner', p: p }; } if (W && (p >= 1 || !now)) W.figs += b.n; break;
+        case 'wit': var W = sc.units[b.to]; if (now) { sc.runners.push({ to: b.to, n: b.n, sheets: b.sheets, p: p }); sc.banner = b.kind === 'rally' ? { big: 'THEY RUN', small: b.fromName + ' break: ' + b.n + ' men run to ' + b.toName, p: p } : { big: 'WITNESS', small: b.fromName + ' saw it: ' + b.n + (b.n > 1 ? ' figures go' : ' figure goes') + ' over to the winner', p: p }; } if (W && (p >= 1 || !now)) W.figs += b.n; break;
+        case 'menrun': if (U) { if (now) sc.fx.push({ kind: 'word', u: b.u, text: b.word, p: p }); if (b.heroes) { if (p >= 1 || !now) U.figs = 0; } else { U.alpha = 1 - p; if (p >= 1) U.gone = true; } } break; // (a rout of men: to a friend, or scattered)
         case 'inst': if (now) sc.dice.push({ side: U ? U.k : 'theirs', u: b.u, dice: b.dice, need: b.need, sum: true, p: p, word: b.ok ? 'THEY HOLD TOGETHER' : 'THEY BREAK APART', title: 'Lost too many: two dice to stay' }); break;
         case 'grid': if (now) sc.banner = { big: b.kind === 'harbinger' ? 'THE FOUR AND THE HARBINGER' : 'THE FOUR ON THE GRID', small: { won: 'won', yielded: 'won', fled: 'won', escaped: 'the four got out of it', lost: 'the four went down' }[b.res] + (b.kind === 'band' ? ' -- ' + Math.round(b.share * 100) + '% of the band down' : ''), p: p }; break;
         case 'night': if (now) { sc.dark = Math.min(1, p * 2) * 0.45; sc.banner = { big: 'NIGHT FALLS', small: 'no one ends the day on a shared hex: one side backs off', p: p }; } else sc.dark = 0; break;
@@ -301,7 +302,7 @@
     (show.wit || []).forEach(function (b, wi) {
       var G = SN.unit(st, b.from), Wn = SN.unit(st, b.to); if (!G || !Wn) return;
       var a = V.center0(pr, G.at), c = V.center0(pr, Wn.at), dx = c[0] - a[0], dy = c[1] - a[1], face = sheetDir([dx, dy / V.SQ]);
-      lines.push(b.fromName + ' saw it: ' + b.n + (b.n > 1 ? ' figures go' : ' figure goes') + ' over to ' + Wn.name);
+      lines.push(b.kind === 'rally' ? b.fromName + ' break: ' + b.n + (b.n > 1 ? ' men run' : ' man runs') + ' to ' + Wn.name : b.fromName + ' saw it: ' + b.n + (b.n > 1 ? ' figures go' : ' figure goes') + ' over to ' + Wn.name);
       for (var i = 0; i < Math.min(5, b.n * 2); i++) {
         var q = p * 1.6 - i * 0.12 - wi * 0.1; if (q <= 0 || q >= 1) continue; var j = (i % 3 - 1) * z * 0.18;
         figure(cx, (b.sheets || [])[i % Math.max(1, (b.sheets || []).length)] || 'gnoll_p2', 'walk', face, a[0] + dx * q - dy / (Math.abs(dx) + Math.abs(dy) + 1) * j, a[1] + dy * q + dx / (Math.abs(dx) + Math.abs(dy) + 1) * j * 0.6, kk, p * 3 + i * 0.2, false, q > 0.9 ? (1 - q) * 10 : 1);
@@ -309,7 +310,7 @@
     });
     var k = Math.min(Wc / W0, Hc / H0); cx.save(); cx.translate((Wc - W0 * k) / 2, (Hc - H0 * k) / 2); cx.scale(k, k);
     cx.globalAlpha = Math.min(1, p * 6, (1 - p) * 6 + 0.3); cx.fillStyle = 'rgba(12,10,16,0.78)'; cx.fillRect(0, 26, W0, 46 + lines.length * 20);
-    text(cx, 'WITNESS', W0 / 2, 58, 26, '#ffe08a'); lines.forEach(function (l, i) { text(cx, l, W0 / 2, 82 + i * 20, 15, '#e8d8a0'); }); cx.globalAlpha = 1; cx.restore();
+    text(cx, (show.wit || []).every(function (b) { return b.kind === 'rally'; }) ? 'THE ROUT' : 'WITNESS', W0 / 2, 58, 26, '#ffe08a'); lines.forEach(function (l, i) { text(cx, l, W0 / 2, 82 + i * 20, 15, '#e8d8a0'); }); cx.globalAlpha = 1; cx.restore();
   };
 
   // ---------------------------------------------------------------- playing a show on the page: the camera flies in, the fight, the camera flies out
