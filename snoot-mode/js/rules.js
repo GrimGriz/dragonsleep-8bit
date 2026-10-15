@@ -68,6 +68,7 @@
   SN.unitsAt = function (st, h) { return st.units.filter(function (u) { return SN.alive(u) && SN.same(u.at, h); }); };
   SN.unit = function (st, id) { return st.units.filter(function (u) { return u.id === id; })[0]; };
   SN.isWiz = function (h) { return h.type === 'wizard'; };
+  SN.casts = function (h) { return h.type === 'wizard' || !!h.missile; }; // (who throws a missile: every wizard, and a hero who carries one -- Book I p.17 keys an 8th-level magic-user, the Warlock, to fight as a Hero; his missile is still the Warlock's, p.31)
   SN.nevers = function (u) { var hs = SN.heroesOf(u); return !!(u.party || u.berserk || u.watch || u.harbinger || (!u.figs && hs.length && !hs.every(SN.isWiz))); }; // (a wizard alone checks, at her own rating: p.33) // (never check morale: the heroes (p.30), berserkers (p.20), the death-watch "unto death", the Harbinger's pack)
   SN.rating = function (u) { return (u.morale || SN.MORALE[u.def] || 5) + (u.cleric ? 1 : 0) - (u.fatigued ? 1 : 0); };
   SN.greyfang = function (st) { var u = SN.unit(st, 'greyfang'); return u && SN.alive(u) && SN.heroesOf(u).some(function (h) { return h.fated; }) ? u : null; };
@@ -419,7 +420,7 @@
     // the unit it falls on) or a lightning bolt (a line: a figure in each of up to two units); it kills whatever it strikes, but a fantastic figure in the
     // struck unit rolls its save -- heroes 9+, super-heroes 6+, wraiths 7+ (GreyFang is beaten back, never killed; the Harbinger is the mirror's)
     o.concat(t).forEach(function (a) {
-      SN.heroesOf(a).filter(SN.isWiz).forEach(function (w) {
+      SN.heroesOf(a).filter(SN.casts).forEach(function (w) {
         var B = (a.side === 'ours' ? t : o).filter(function (u) { return SN.alive(u) && SN.same(u.at, h); }); if (!B.length) return;
         var light = w.missile === 'lightning', pick = B.slice().sort(function () { return SN.rng(st) - 0.5; }), tgs = light ? pick.slice(0, 2) : pick.slice(0, 1);
         var hitsOn = tgs.map(function (u) { return { tg: u.id, n: light ? 1 : 1 + Math.floor(SN.rng(st) * 2) }; });

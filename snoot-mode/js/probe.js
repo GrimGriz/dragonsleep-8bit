@@ -74,6 +74,9 @@
     ok(sl.beats.some(function (b) { return b.t === 'fb' && b.kind === 'lightning' && (b.tgs || []).length === 2; }), 'p.31: a lightning bolt strikes along a line -- two units');
     var sf = domDay(14, function (s) { on(s, 'patrol', [8, 5]); var d = on(s, 'dm1', [8, 4]); d.order = { type: 'move', to: [8, 5], path: [[8, 5]] }; });
     ok(sf.beats.some(function (b) { return b.t === 'save' && b.need === 9; }), 'p.31: the fire ball falls on the paladin\'s unit and the paladin rolls his save (9+)');
+    var sk = domDay(15, function (s) { on(s, 'patrol', [8, 5]); var d = on(s, 'dm1', [8, 5]); d.figs = 0; d.heroes = [{ type: 'hero', name: 'a Warlock keyed as a Hero', missile: 'fireball' }]; });
+    ok(sk.beats.some(function (b) { return b.t === 'fb' && b.u === 'dm1'; }) && !sk.beats.some(function (b) { return b.t === 'atk' && b.u === 'dm1' && b.wiz; }) && sk.beats.some(function (b) { return b.t === 'atk' && b.u === 'dm1' && b.f === 4 && b.bonus === 1; }),
+      'Book I p.17: a Warlock keyed as a Hero fights as a Hero (four figures, +1) and still throws his missile (RULED 10-15: the four by Book I)');
     // ---- whole battles, both hands, the party's part on the tables
     var heads = 0, grids = 0, maps = 0, fills = 0, bands = 0, ends = [], domOk = true, inv = [], dom0 = [], nightShared = 0;
     for (var seed = 1; seed <= 8; seed++) {
