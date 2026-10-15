@@ -9,13 +9,17 @@ edges don't go dark), cut the alpha hard, lift colour a touch, snap every pixel 
 and draw a 1-px dark outline round the silhouette. One camera, one light, one palette: every creature matches.
 Sheet layout: for each anim, 8 rows (facings S, SW, W, NW, N, NE, E, SE), frames left to right.
 """
-import json, os, sys
+import importlib.util, json, os, sys
 import numpy as np
 from PIL import Image
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 D16 = os.path.join(ROOT, 'deep16')
 SRC = os.path.join(D16, '_src')
+if not os.path.isdir(SRC):                                     # (_src is not in git: a worktree reads the main checkout's -- 10-15)
+    import subprocess
+    _common = subprocess.run(['git', '-C', ROOT, 'rev-parse', '--git-common-dir'], capture_output=True, text=True).stdout.strip()
+    SRC = os.path.join(os.path.dirname(os.path.abspath(os.path.join(ROOT, _common))), 'deep16', '_src')
 ART = os.path.join(D16, 'art')
 FPS = {'longsword': 12, 'longsword2': 12, 'longbow': 10, 'martial': 12, 'morningstar': 12, 'morningstar2': 12, 'javelin': 10, 'ambush': 12, 'scimitar': 12, 'shortbow': 10, 'nimble': 12, 'hide': 8, 'gaze': 10, 'taunt': 10, 'denimdamage': 12, 'cannonball': 14, 'spot': 8, 'spotlight': 12, 'guard': 8, 'lobstahhug': 12, 'grouphug': 10, 'lifeline': 10, 'socialsharing': 8, 'socialflame': 10, 'socialdistancing': 10, 'honk': 10, 'hottake': 12, 'goingviral': 10,'claw': 12, 'claw2': 12, 'claw3': 12, 'bite': 10, 'burrow': 8, 'idle': 6, 'walk': 10, 'attack': 12, 'hurt': 10, 'die': 8, 'sit': 2, 'cast': 10, 'fly': 9, 'roost': 2, 'reveal': 6, 'moan': 8, 'flinch': 12, 'tendril': 12, 'tendril2': 12, 'tendril3': 12, 'tendril4': 12, 'reel': 10, 'still': 2, 'tentacles': 12, 'beak': 10, 'slither': 10, 'prone': 8, 'greatclub': 10, 'greatclub2': 10, 'rock': 10, 'climb': 8, 'catch': 10}
 ANIM_ORDER = ['idle', 'walk', 'attack', 'hurt', 'die', 'sit', 'cast', 'fly', 'roost', 'reveal', 'moan', 'flinch', 'rofl', 'braid', 'run', 'clack', 'burrow', 'claw', 'claw2', 'claw3', 'bite', 'tendril', 'tendril2', 'tendril3', 'tendril4', 'reel', 'still', 'tentacles', 'beak', 'slither', 'prone', 'greatclub', 'greatclub2', 'rock', 'climb', 'catch', 'gaze', 'taunt', 'denimdamage', 'cannonball', 'socialsharing', 'socialflame', 'socialdistancing', 'honk', 'hottake', 'goingviral', 'spot', 'spotlight', 'guard', 'lobstahhug', 'grouphug', 'lifeline', 'scimitar', 'shortbow', 'nimble', 'hide', 'morningstar', 'javelin', 'ambush', 'longsword', 'longsword2', 'longbow', 'martial', 'morningstar2']  # (morningstar2: the bugbear chief's second swing of a turn, his re-roll of that row, 10-08; last, so no sheet's rows move)  # (longsword, longsword2, longbow: the hobgoblins' blows, rows named for the attack, the sergeant's second swing on its numbered row; martial: Martial Advantage's drilled lunge, js/battle.js -- their GPT sheets, 10-07)  # (morningstar, javelin: the bugbears' two blows, rows named for the attack; ambush: Surprise Attack's blow in round one, js/battle.js -- their GPT sheets, 10-07)  # (scimitar, shortbow: the goblin's two blows, battle.js plays a row named for the attack; nimble: its Nimble Escape, js/traits.js; hide: crouched behind its shield, nothing plays it till its Hide is built -- its GPT sheets, 10-07)  # (grouphug, lifeline: Goose's Group Hug and Lifeline, his sheet 5, 10-07)  # (spot, spotlight: Beholda's Eye On It and Spotlight; guard, lobstahhug: Denny's Bodyguard and Lobstah Hug -- their second and third sheets, 10-07; the cannonball 14 fps since, so his landing frame meets the leap's)  # (hottake, goingviral: Rascal's Hot Take and Going Viral, his second sheet, 10-07)  # (honk: Goose's, 10-07)  # (greatclub, greatclub2, rock: the stone giant's overhead smash, its flat sweep (a Multiattack's second swing), and the rock thrown from her left hand -- battle.js plays a row named for the attack, 10-04)  # (prone: a sheet's own fall, lying at its last frame -- sprites.js S.proneRow; the xorn's and the roper's, 10-02)  # (slither: a long move's gait, three squares or more -- battle.js moveAlong; the grick's, 10-02)  # (tentacles, beak: the grick's two blows, the beak only after the tentacles hit -- 10-02)  # (tendril..tendril4, reel, still: the roper's lash from each tendril, its Reel, and its False Appearance, a stalagmite -- 10-01e)  # (claw, claw2, claw3, bite: a row for each of a Multiattack's blows, the xorn's first -- battle.js attack, 10-01d)  # (burrow: going under, the bulette's, its last frame the mound it is while under -- 10-01d)  # (clack: the clacker striking its hooks together at its turn's start, 10-01)  # (braid: the ettercap sitting on its stump braiding, till it sees you; run: the giant boar's charge -- both 09-30)  # (rofl: the hyena rolling on the floor with laughter, 09-30: the Hideous Laughter easter egg)  # (flinch: a blow that lands and doesn't drop it, played once: the generated sheets' hit rows, 09-29)  # (fly: the cloaker's flight in, played as drawn -- the easter egg's ending)  # (cast: the spellcasters' own pose, the spell animation pass 09-28h)
@@ -159,6 +163,11 @@ def p0(fig):
             cells[dname] = [pixelate(sheet.crop((i * afw, ri * afh, (i + 1) * afw, (ri + 1) * afh)), 1, do_lift=False) for i in range(info['frames'])]
         frames[anim] = [cells.get(LPC_FOR_FACING[f]) or cells.get('down') or next(iter(cells.values())) for f in range(8)]
     write_sheet(fig + '_p0', frames, fw, fh, ax, ay, top_of(frames['idle'][0], ay), sizes)
+    # the last step: the art desk's views LPC never drew (SE, NE, E and N Hurt), written in where a figure has its pages (ART-61 to ART-67,
+    # 10-15), so a re-run here keeps them
+    spec = importlib.util.spec_from_file_location('lpc_diag', os.path.join(ROOT, 'tools', 'lpc-diag-sheet.py'))
+    diag = importlib.util.module_from_spec(spec); spec.loader.exec_module(diag)
+    diag.apply(fig, art=ART)
 
 
 def main():

@@ -35,12 +35,32 @@
   },
   "hurt": {
    "y": 2560,
-   "fw": 64,
-   "fh": 64,
-   "ax": 32,
+   "fw": 128,
+   "fh": 80,
+   "ax": 64,
    "ay": 61,
    "frames": 6,
    "fps": 10
+  }
+ },
+ "diag": {
+  "by": "tools/lpc-diag-sheet.py",
+  "from": "ART-61",
+  "drawn": [
+   "SE idle/walk/attack/hurt",
+   "E hurt",
+   "N hurt"
+  ],
+  "owed": [
+   "NE (NW mirrored): Idle 2, Walk 9, Attack 6, Hurt 6 -- open at the art desk"
+  ],
+  "lpc_cells": {
+   "hurt": [
+    64,
+    64,
+    32,
+    61
+   ]
   }
  }
 }
