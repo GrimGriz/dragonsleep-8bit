@@ -35,7 +35,7 @@
   function sheet(name) {
     var sh = window.D16 && window.D16.SHEETS && window.D16.SHEETS[name]; if (!sh) return null;
     var im = imgs[name];
-    if (!im) { im = imgs[name] = new Image(); im.onload = function () { V.dirty = true; }; im.src = '../deep16/' + sh.image; }
+    if (!im) { im = imgs[name] = new Image(); im.onload = function () { V.dirty = true; }; im.src = (SN.DEEP16 || '../deep16/') + sh.image; }
     return im.complete && im.naturalWidth ? { sh: sh, im: im } : null;
   }
   V.preload = function (st) { st.units.forEach(function (u) { (u.sheets || []).forEach(sheet); }); };

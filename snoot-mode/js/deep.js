@@ -35,7 +35,7 @@
     }
     window.addEventListener('message', onMsg);
     fr.id = 'd16'; fr.title = 'DEEP16'; fr.allow = 'gamepad';
-    fr.src = '../deep16/index.html?embed';
+    fr.src = (SN.DEEP16 || '../deep16/') + 'index.html?embed';
     fr.onload = function () { try { fr.contentWindow.focus(); } catch (e) { } };
     document.getElementById('app').appendChild(fr);
     timer = setTimeout(function () { close({ type: 'd16:crash', msg: 'no ready in ' + DP.READY_MS / 1000 + ' s' }); }, DP.READY_MS);

@@ -400,7 +400,7 @@
       var imp = !volley && round === 1 && a.charged && cls !== 'LF' && !ter.hill && !ter.rough; // (impetus, p.17: heavy and armored foot and all horse charging over open ground add a die)
       var n = Math.ceil(f / row[1]) * row[0] + (imp ? Math.ceil(f / row[1]) : 0), b = SN.bonus(a), need = Math.max(2, row[2] - b), r = SN.dice(st, n), k = r.filter(function (x) { return x >= need; }).length;
       if (tgt.harbinger && !SN.heroesOf(a).length && !tgt.figs) k = 0; // (a wraith alone: only magic and the fantastic harm him, p.34)
-      SN.beat(st, { t: 'atk', u: a.id, tg: tgt.id, cls: cls, dcls: dcls, dice: r, need: need, k: k, volley: !!volley, imp: !!imp, round: round });
+      SN.beat(st, { t: 'atk', u: a.id, tg: tgt.id, cls: cls, dcls: dcls, dice: r, need: need, k: k, volley: !!volley, imp: !!imp, round: round, f: f, row: row.slice(), bonus: SN.bonus(a) });
       SN.say(st, a.name + (volley ? ' loose a volley' : imp ? ' charge' : '') + ' (' + f + ' ' + cls + ' against ' + dcls + (imp ? ', +1 die a figure for the charge' : '') + ') roll ' + n + (n === 1 ? ' die' : ' dice') + ', kill on ' + need + '+' + (b ? ' (+' + b + ')' : '') + ': [' + r.join(' ') + '] -> ' + k + (k === 1 ? ' kill' : ' kills'), 'roll', h);
       if (k) hit(tgt, k);
     }
@@ -451,7 +451,8 @@
     st._mor = { at: h.slice(), sA: sA, sB: sB };
     SN.say(st, 'Morale: ours ' + sA + ', theirs ' + sB + ' (the gap ' + gap + ').', 'morale', h);
     var how = gap < 20 || lo.never ? 'continue' : gap >= 100 ? 'surrender' : gap >= 80 ? 'rout' : gap >= 60 ? 'retreat' : gap >= 40 ? 'back' : 'backoff';
-    SN.beat(st, { t: 'mor', sA: sA, sB: sB, gap: gap, how: how, never: gap >= 20 && lo.never, lo: lo === A ? 'ours' : 'theirs' });
+    SN.beat(st, { t: 'mor', sA: sA, sB: sB, gap: gap, how: how, never: gap >= 20 && lo.never, lo: lo === A ? 'ours' : 'theirs', doubled: A.surv < 20 && B.surv < 20,
+      parts: { ours: { surv: A.surv, cas: A.cas, rate: Math.round(A.rate * 10) / 10, die: dA, never: A.never }, theirs: { surv: B.surv, cas: B.cas, rate: Math.round(B.rate * 10) / 10, die: dB, never: B.never } } });
     if (how === 'continue') { if (gap >= 20) SN.say(st, 'They do not check morale; the melee goes on.', 'morale', h); return false; }
     var word = { surrender: 'surrender', rout: 'rout', retreat: 'retreat a move', back: 'fall back a move in good order', backoff: 'back off half a move in good order' }[how];
     lo.U.forEach(function (u) {

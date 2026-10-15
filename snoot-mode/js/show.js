@@ -24,7 +24,7 @@
   // ---------------------------------------------------------------- the sheets
   function sheet(name) {
     var sh = window.D16 && window.D16.SHEETS && window.D16.SHEETS[name]; if (!sh) return null;
-    var im = imgs[name]; if (!im) { im = imgs[name] = new Image(); im.src = '../deep16/' + sh.image; }
+    var im = imgs[name]; if (!im) { im = imgs[name] = new Image(); im.src = (SN.DEEP16 || '../deep16/') + sh.image; }
     return im.complete && im.naturalWidth ? { sh: sh, im: im } : null;
   }
   // one figure at its foot: anim ('idle', 'walk', 'attack', 'hurt', 'prone'), facing (S SW W NW N NE E SE: 0..7), k the scale, f the time in s
@@ -213,7 +213,7 @@
     });
     if (sc.dark) { cx.fillStyle = 'rgba(10,10,40,' + sc.dark + ')'; cx.fillRect(0, 0, W0, H0); }
     if (sc.banner) { var bp = sc.banner, a = bp.quick ? 1 : Math.min(1, bp.p * 5, (1 - bp.p) * 5 + 0.2); cx.globalAlpha = a; cx.fillStyle = 'rgba(12,10,16,0.78)'; cx.fillRect(0, 26, W0, bp.small ? 66 : 46); text(cx, bp.big, W0 / 2, 58, 26, '#ffe08a'); if (bp.small) text(cx, bp.small, W0 / 2, 82, 15, '#e8d8a0'); cx.globalAlpha = 1; }
-    text(cx, 'SPACE skips this fight  ·  Esc the rest of the day', W0 - 12, H0 - 10, 12, '#9a94a8', 'right');
+    if (SH.hint !== false) text(cx, 'SPACE skips this fight  ·  Esc the rest of the day', W0 - 12, H0 - 10, 12, '#9a94a8', 'right');
     cx.restore();
     return sc;
   };
