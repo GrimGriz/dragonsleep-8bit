@@ -2,6 +2,10 @@
 
 What landed, newest first, one line each: **date · commit · lane · one sentence · his word** when there is one. **A line is a line** (RULED 10-06, on a consult and its fork: 20 of the first 55 ran past 400 characters): the hash, one sentence of what, his words verbatim; the files, the numbers and the why are the bolt's and the commit's. The lines before this rule stand as written. A lane is a live handoff at `..\handoff-*.md`, named by its title (the table at the head of the todo is the list); "the house" is the gate, the build and the repo. When an item lands it is cut from its lane and from `..\dragonsleep-todo-2026-10-03.md` and written here (RULED 2026-10-06, Griz: *"I'm on board"*). The story of each line is in the bolt (`..\weaving-room\dragonsleep-8bit.md`); before 2026-10-03, `git log` and the bolt are the record. A line is never edited once written. A ruling that something stays as it is gets a line too, marked `ruled`.
 
+## 2026-10-15
+- 2026-10-15 · `b0f15f8` · the bestiary · The show tallies a sheet's own get-up and laugh (drawn off a condition, never counted) and tells a gnoll a joke to see it laugh, so its bench plays every row twice; eyes row `eyes-gnoll-facings-1015`
+- 2026-10-15 · `4f83f7d` · the bestiary · The gnoll and the glory-seeker in all eight facings: the art desk's ART-29 SE walk, every NE row, E's rows but the walk, and S's and N's death, prone, get-up and laugh cut into `gnoll_p2` and `gloryseeker_p2`, the kept rows unchanged · *"spin up a sprite session for the gnolls (29 in Fresh)"*
+
 ## 2026-10-14
 - 2026-10-14 · seen · the Snoot mode · He looked at the show, the march's pop-up and the Chef's door locally (eyes-snoot-show-1014b) · *"thats good for the chefs test"*
 - 2026-10-14 · `440fedf` · the Snoot mode · Every fight plays as a show on its hex's ground with the dice on screen, no hex ends the day shared, a march's pop-up gives the tables' odds, and the door is the Chef's · *"the resolution should be a show"*; *"let the snoot know to edit the door to the chef's test"*
