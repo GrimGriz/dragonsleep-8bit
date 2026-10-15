@@ -451,8 +451,11 @@ def scales(c):
     return {1: k1, 2: k2, 3: k3, 4: k4, 5: k5, 6: k6}
 
 
-# which pages of ART-31 are cut in (the rest wait on Griz's eye: the art desk's notes, ART-31-CUTTER-NOTES.md, list each one's defects)
-USE31 = ('H1P1', 'H1P2', 'H1P3', 'H2P2', 'H2P4', 'H3P1', 'H3P2', 'H4P1', 'H5P1')
+# which pages of ART-31 are cut in: the nine selected, and six of the nine review pages on Griz's word (10-15, "approve what you've done", of
+# the seat's leans after he saw them play: dev/shots/harbinger-review/review.html). Not cut, asked again (ART-31 supplement 1): H2P1B, NE's
+# Backhand (drawn straight from behind), H2P3A, NE's Mirror Strike (the art desk's BLOCKED arm swap), H2P3C, NE's Overfill (from behind)
+USE31 = ('H1P1', 'H1P2', 'H1P3', 'H2P2', 'H2P4', 'H3P1', 'H3P2', 'H4P1', 'H5P1',
+         'H2P1A', 'H2P1C', 'H2P3B', 'H5P2A', 'H5P2B', 'H5P2C')
 # the engine's rows each ART-31 page gives a view: row -> {view: (page, the page's row)}; a view a page doesn't give (or not in USE31)
 # plays what it played before ART-31 (S sheet 3's rows, N sheet 4's, the rest the side rows -- the head of this file)
 V31 = {'idle': {'SE': ('H1P1', 'idle'), 'NE': ('H2P1A', 'idle')},
@@ -544,14 +547,22 @@ def sv_means(imgs):
     return tuple(tuple(np.concatenate(x).mean(0)) for x in acc)
 
 
+# his charcoal (the mane, the sooty hands and shins: dark, unsaturated, not the spots' brown) turned to one hue on every ART-31 page. The
+# pages draw it 315-344 degrees, as the old sheets do (330-336); but cut down 2.4-4.3 times (sheet 1 1.7) its thin strands average with
+# the ochre fur and snapped to the palette's brown, not the silver ramp deep16/js/ripple.js finds his mane by: from behind, H5P2B/C's
+# Overfill, Ascend and Upright Idle had no mane at all (10-15). At 300 degrees they snap silver again, as the old sheets' did
+CHAR_HUE = 300.0
+
+
 def sv_toned(img, t):
     """the fur's and the cloth's saturation and value times t ((fur s, v), (cloth s, v)), at their own hue (the gnoll seat's way, 10-15:
-    a per-channel gain moves the hue too) -- the mane's charcoal untouched, so deep16/js/ripple.js still finds it"""
+    a per-channel gain moves the hue too); the charcoal turned to CHAR_HUE, its saturation and value kept"""
     rgb, h, s, v, on = hsv(img)
     al = np.asarray(img)[..., 3]
-    for m, (fs, fv) in zip(classes31(h, s, v, on), t):
+    char = on & (v >= 0.08) & (v < 0.42) & (s < 0.45) & ~((h >= 12) & (h < 50))
+    for m, (fs, fv), hm in list(zip(classes31(h, s, v, on), t, (None, None))) + [(char, (1.0, 1.0), CHAR_HUE)]:
         s2, v2 = np.clip(s * fs, 0, 1), np.clip(v * fv, 0, 1)
-        hh = (h / 60) % 6; cc = v2 * s2; x = cc * (1 - np.abs(hh % 2 - 1)); z = np.zeros_like(cc)
+        hh = ((h if hm is None else np.full_like(h, hm)) / 60) % 6; cc = v2 * s2; x = cc * (1 - np.abs(hh % 2 - 1)); z = np.zeros_like(cc)
         i = np.floor(hh).astype(int)
         out = np.select([(i == k)[..., None] for k in range(6)], [np.stack(q, -1) for q in ((cc, x, z), (x, cc, z), (z, cc, x), (z, x, cc), (x, z, cc), (cc, z, x))])
         rgb = np.where(m[..., None], out + (v2 - cc)[..., None], rgb)
