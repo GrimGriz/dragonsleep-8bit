@@ -751,9 +751,13 @@
       if (n > 0) contrib.push({ id: u.id, n: n }); room -= n;
     };
     if (g.length) { g.forEach(function (u) { send(u, u.comp || { gnoll: 1 }); }); return { kind: 'band', fight: 'snoot', at: h.slice(), enemies: list, foes: foes.map(function (u) { return u.id; }), contrib: contrib }; }
-    foes.filter(function (u) { return u.side === 'dominion'; }).forEach(function (u) { send(u, { trooper: 1 }); });
-    return { kind: 'band', fight: 'snoot', at: h.slice(), enemies: list, dominion: true, foes: foes.map(function (u) { return u.id; }), contrib: contrib };
+    // the Dominion: each wagon's patrol lady first -- DEEP16's patrollady, a warlock of the Mirror (his note 10-15: "there wasn't any warlocks when I
+    // ran the party into a dominion fight": the band sent only the soldiers) -- then its soldiers man for man; `ladies` says whose each list place is
+    var ladies = {};
+    foes.filter(function (u) { return u.side === 'dominion'; }).forEach(function (u) { if (room > 0 && SN.heroesOf(u).some(SN.isWiz)) { ladies[list.length] = u.id; list.push('patrollady'); room--; } send(u, { trooper: 1 }); });
+    return { kind: 'band', fight: 'snoot', at: h.slice(), enemies: list, dominion: true, ladies: ladies, foes: foes.map(function (u) { return u.id; }), contrib: contrib };
   };
+  SN.bandWords = function (b) { var nL = Object.keys(b.ladies || {}).length; return (b.enemies.length - nL) + ' soldiers' + (nL ? ' and ' + nL + ' patrol lad' + (nL === 1 ? 'y' : 'ies') : ''); };
   // the men of ours beside the four (RULED 10-15, his "4 - I'd like to"): ours in the four's hex send men to the grid with them -- DEEP16's own soldier
   // (js/party8.js SN.TROOPER8), fought by the class AI -- up to six, from each unit by its share; the rest of them fight on the tables after
   SN.ALLIES = 6;
@@ -770,6 +774,8 @@
     var r = res && res.result || 'lost', share = res && res.share != null ? res.share : (r === 'won' ? 1 : 0.3);
     SN.beat(st, { t: 'grid', kind: req.kind, res: r, share: share, n: (req.enemies || []).length });
     // the men of ours who fell on the grid beside the four, each from its own unit (RULED 10-15)
+    // a patrol lady who fell on the grid falls on the map: her wagon's warlock (CHAINMAIL p.30's wizard; the grid's patrollady)
+    if (res && res.ladyDead) Object.keys(res.ladyDead).forEach(function (id) { var u = SN.unit(st, id), w = u && SN.heroesOf(u).filter(SN.isWiz)[0]; if (!w) return; w.dead = true; SN.say(st, 'The ' + w.name.replace(/^a /, '') + ' of ' + u.name + ' falls on the grid.', 'party', h); SN.lose(st, u, 0, w); });
     if (res && res.allyDead) Object.keys(res.allyDead).forEach(function (id) { var u = SN.unit(st, id), n = res.allyDead[id]; if (u && SN.alive(u) && n > 0) { SN.say(st, n + ' of ' + u.name + ' fell on the grid beside the four.', 'party', h); SN.lose(st, u, n); } });
     // what fell on the grid comes off the units that sent it, man for man (one man a figure); the bench's stand-in has no grid -- its share of each
     var killed = function () {
@@ -921,7 +927,7 @@
     if (H && st.huntDay != null && !H.beaten && !holds) out.warn.push('The Harbinger walks through you: only a paladin, GreyFang or the four can hold him.');
     if (u.party) {
       var b = H ? null : SN.band(st, foes2, hit.at);
-      out.lines.push('The four\'s fight goes to the grid (DEEP16): ' + (H ? 'the Harbinger himself.' : 'a war-band of ' + b.enemies.length + (b.dominion ? ' soldiers' : ' (glory-seekers, gnolls, hyenas)') + '. Win it and they break; LEAVE THE FIGHT and you fall back a hex.'));
+      out.lines.push('The four\'s fight goes to the grid (DEEP16): ' + (H ? 'the Harbinger himself.' : 'a war-band of ' + (b.dominion ? SN.bandWords(b) : b.enemies.length + ' (glory-seekers, gnolls, hyenas)') + '. Win it and they break; LEAVE THE FIGHT and you fall back a hex.'));
     } else {
       var tg = foes2.slice().sort(function (x, y) { return SN.fightFigs(y) - SN.fightFigs(x); })[0];
       var hi = day.indexOf(day.filter(function (x) { return SN.same(x, hit.at); })[0]), prev = hi > 0 ? day[hi - 1] : u.at, side = SN.dirTo(hit.at, prev);

@@ -192,6 +192,12 @@
       SN.fallBack(sr, g, 'rout'); var gf = SN.greyfang(sr) === g && g.figs === 0;
       var gn = on(sr, 'sg1', [5, 2]); SN.fallBack(sr, gn, 'rout'); return [joined, pal, dg, gf, gn.state === 'rout' && gn.figs === 18 && !SN.same(gn.at, [5, 2])]; });
     ok(rj && rj.every(Boolean), 'his rule 10-15, a rout of men: Newland\'s crossbows run to the road patrol two hexes off and join it; Newland\'s heavy foot with no steady friend in reach scatter, their paladin cut free (p.30); a Dominion wagon\'s men scatter and it is gone; GreyFang\'s men scatter and he cuts free; a gnoll band routs as the book has it (' + (rj ? rj.join(' ') : 'threw') + ')');
+    // ---- the Dominion on the grid: each wagon's patrol lady goes, and one who falls there falls on the map (his note 10-15: "there wasn't any warlocks")
+    var wl = tk(function () { var sw = SN.newGame(70); sw.party8 = null; SN.dawn(sw); var D3 = SN.DOMINION.map(function (f) { var u = SN.make(f, true); u.at = [7, 0]; sw.units.push(u); return u; }), P = SN.unit(sw, 'party');
+      var req = SN.band(sw, D3, [7, 0]), nl = req.enemies.filter(function (e) { return e === 'patrollady'; }).length, i = +Object.keys(req.ladies)[0], ld = {}; ld[req.ladies[i]] = true; sw.beats = [];
+      SN.partyResult(sw, P, D3, req, { result: 'won', share: 0.4, dead: 4, ladyDead: ld }, [7, 0]);
+      return [nl === 3, req.enemies[i] === 'patrollady', req.contrib.reduce(function (s, c) { return s + c.n; }, 0) === 27, SN.heroesOf(SN.unit(sw, req.ladies[i])).length === 0, (sw.stats.killed['dominion:wizard'] || 0) === 1]; });
+    ok(wl && wl.every(Boolean), 'his note 10-15, the Dominion on the grid: three wagons send their three patrol ladies and 27 soldiers (thirty a grid), and a lady killed there dies on the map (' + (wl ? wl.join(' ') : 'threw') + ')');
     // ---- whole battles, both hands, the party's part on the tables
     var heads = 0, grids = 0, maps = 0, fills = 0, bands = 0, ends = [], domOk = true, inv = [], dom0 = [], nightShared = 0;
     for (var seed = 1; seed <= 8; seed++) {

@@ -24,9 +24,11 @@
       var foes = m.foes || [], down = foes.filter(function (f) { return f.dead || f.fled; }).length;
       // the pack: what the fight used is gone (a potion drunk, a bolt loosed) -- the 8-bit's own rule (js/embed.js apply)
       if (st.party8.inv && m.inv0) { var i0 = m.inv0, i1 = m.inv1 || {}; Object.keys(i0).forEach(function (id) { var used = i0[id] - (i1[id] || 0); if (used <= 0) return; st.party8.inv.forEach(function (sl) { var sid = Array.isArray(sl) ? sl[0] : sl.id; if (sid !== id || used <= 0) return; var n = Array.isArray(sl) ? sl[1] : sl.n, k = Math.min(n, used); used -= k; if (Array.isArray(sl)) sl[1] -= k; else sl.n -= k; }); }); }
-      var dead = foes.filter(function (f) { return f.dead; }).length, allyDead = {};
+      var lady = function (f) { return !!req.ladies && req.ladies[f.i8] != null; }, ladyDead = {}; // (a patrol lady is her wagon's hero, not one of its men)
+      foes.forEach(function (f) { if (f.dead && lady(f)) ladyDead[req.ladies[f.i8]] = true; });
+      var dead = foes.filter(function (f) { return f.dead && !lady(f); }).length, allyDead = {};
       (m.party || []).forEach(function (p) { var mm = /^ally-(.+)-\d+$/.exec(p.id || ''); if (mm && p.hp <= 0) allyDead[mm[1]] = (allyDead[mm[1]] || 0) + 1; });
-      done({ result: m.result, share: foes.length ? down / foes.length : (m.result === 'won' ? 1 : 0), party: m.party, foes: foes, dead: dead, allyDead: allyDead });
+      done({ result: m.result, share: foes.length ? down / foes.length : (m.result === 'won' ? 1 : 0), party: m.party, foes: foes, dead: dead, allyDead: allyDead, ladyDead: ladyDead });
     }
     function onMsg(e) {
       if (e.source !== fr.contentWindow || !e.data) return;

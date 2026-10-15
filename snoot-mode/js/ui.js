@@ -5,7 +5,7 @@
 'use strict';
 (function () {
   var SN = window.SN, V = SN.V, UI = SN.UI = {}, st = null, frame = 0, busy = false, gen = null, shown = 0, KEY = 'snoot.save.v1';
-  var Q = location.search, PROBE = /[?&]probe\b/.test(Q), WATCH = /[?&]watch\b/.test(Q);
+  var Q = location.search, PROBE = /[?&]probe\b/.test(Q), WATCH = /[?&]watch\b/.test(Q), ROAD = /[?&]from=road\b/.test(Q); // (ROAD: come from the 8-bit game's Halfway Inn -- js/events.js S.snootCall)
   function $(id) { return document.getElementById(id); }
   function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
   UI.state = function () { return st; };
@@ -26,6 +26,7 @@
     var b = [{ label: 'NEW BATTLE', go: true, fn: function () { UI.newGame(); } }];
     if (saved && saved.units && !saved.over && !/[?&]fresh\b/.test(Q)) b.unshift({ label: 'CONTINUE (Day ' + saved.day + ')', go: true, fn: function () { UI.load(saved); } });
     b.push({ label: 'HOW IT PLAYS', fn: function () { UI.help(true); } });
+    if (ROAD) b.push({ label: 'BACK TO THE ROAD', fn: function () { location.href = '../'; } });
     UI.card('<h1>THE SNOOT</h1><p class="small">A playtest for the Chef &middot; Tarlyn\'s Pit, the autumn the gnoll king died</p>' +
       '<p><b>Chef:</b> Griz built this battle on the rules you cobbled together from CHAINMAIL and OD&amp;D -- the Combat Tables, post-melee morale, heroes and super-heroes, the wilderness day of five-mile hexes. It is a test, and your verdict is the point of it: what plays, what does not, what the old books would have done instead.</p>' +
       '<p>Two days after the giants came down, the four are at the Halfway Inn, on the road down to Tarlyn\'s Pit. The gnoll tribes are <b>snooting</b>: their king is dead and the Mane goes to whoever wins the most glory -- and nothing is more glorious than a Lupine\'s head. GreyFang, who runs the Pit\'s fighting pit, is the walking jackpot. And something with mirrors for eyes is hunting him.</p>' +
@@ -115,7 +116,7 @@
       '<tr><td><b>Score</b></td><td><b>' + T.score + '</b></td></tr></table>' +
       (T.witnessed ? '<p><b>WITNESS HIM.</b> The four were there when GreyFang died.</p>' : '') +
       '<p class="small">Points by CHAINMAIL p.27, a man as a figure: a gnoll 2&frac12; (a hobgoblin), heavy foot 2, horse 3-4, a hero 20, a super-hero 50, a warlock 80.</p>',
-      [{ label: 'NOTES FOR GRIZ', go: true, fn: function () { SN.Notes.open(st, true); } }, { label: 'NEW BATTLE', fn: function () { try { localStorage.removeItem(KEY); } catch (e) { } UI.newGame(); } }, { label: 'LOOK AT THE FIELD' }]);
+      [{ label: 'NOTES FOR GRIZ', go: true, fn: function () { SN.Notes.open(st, true); } }, { label: 'NEW BATTLE', fn: function () { try { localStorage.removeItem(KEY); } catch (e) { } UI.newGame(); } }, { label: 'LOOK AT THE FIELD' }].concat(ROAD ? [{ label: 'BACK TO THE ROAD', fn: function () { location.href = '../'; } }] : []));
     SN.Notes.open(st, true); // (his word: the notes box opens by itself at the end of the mini-game)
   };
 
