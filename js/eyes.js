@@ -17,6 +17,9 @@
   var DS = window.DS = window.DS || {};
   var G1 = 'Eyes: first', G2 = 'Eyes: built this week', G3 = 'Eyes: built before, never seen';
   DS.EYES = {
+    'eyes-release-frame-1015': { pri: 2, group: G2, title: 'The arrow leaves on the bow hand’s frame, at every pace (10-15)', pt: 'the grid’s rules, arrow timing (deep16/js/battle.js attack, Battle.unpace) · eyes',
+      url: 'deep16/?show=hobgoblin&fresh=1',
+      look: 'The hobgoblin’s rows, each played twice. Watch the LONGBOW: the arrow leaves as the bow hand opens (its release frame), not a beat after -- at the pace you play at (PACE in the M menu: 1, 1.25, 1.5), the same frame. It was a frame late at 1.25 and two at 1.5, for every row that names its release: the goblin’s shortbow, GreyFang’s bow, the Harbinger’s pounce.' },
     'eyes-shaken-checks-1015': { pri: 3, group: G2, title: 'Shaken’s -2 on every check: the Hide, the Search, a climb (10-15)', pt: 'the grid’s rules §2g (deep16/js/battle.js Battle.shakenTag, stealthRoll, search, the climbs and the pulls; the &shaken knob) · eyes',
       url: 'deep16/?npc=goblin,goblin&vs=rogue:5,fighter:5&lvl=5&map=climbfloor&shaken&fresh=1',
       look: 'Your two start shaken (&shaken: the fear scale’s first step). The rogue’s HIDE card reads “Stealth d20 .. +.. -2 shaken = ..”, and a SEARCH “Perception d20 .. -2 shaken = ..”. Walk the fighter up a face that asks a climb: the Athletics total is 2 less than calm. The fear steps down on a WIS save at a turn’s end, as before -- so look on the first turn.' },

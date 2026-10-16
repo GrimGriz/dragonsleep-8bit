@@ -2600,6 +2600,37 @@
     document.body.appendChild(preZ);
     return;
   }
+  // the blow on the release frame, 10-15 (mode=release1015; RULED, Griz: "Arrow timing to the grid lane please"; the hobgoblin seat's find): an AI's shot from a row with a `release`
+  // frame -- the goblin's shortbow, the hobgoblin's longbow -- timed the way the page runs it (each wait stretched by the pace, as Battle.step does; the row on the clock unstretched):
+  // the frame the arrow leaves on, at the pace 1, 1.25 (the default) and 1.5. Late by a frame at 1.25 and 1.5 on the code before it
+  if (get('mode', '') === 'release1015') {
+    var repRL = { checks: [], errors: [] }, P0RL = D.PACE;
+    function okRL(what, v) { repRL.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function mkRL(q) { var Bx = D.npcFight(q, {}); D.battle = Bx; Bx.enter(); while (!Bx.order.length) Bx.co.next(); Bx.dark = false; return Bx; }
+    try {
+      [['goblin', 'shortbow'], ['hobgoblin', 'longbow']].forEach(function (pr) {
+        [1, 1.25, 1.5].forEach(function (P) {
+          D.PACE = P;
+          var Bx = mkRL('?npc=' + pr[0] + '&lvl=5&vs=fighter:5'), a = Bx.units.filter(function (u) { return u.kind === pr[0]; })[0], f = Bx.units.filter(function (u) { return u.side === 'party'; })[0];
+          var atk = a.attacks[pr[1]]; if (!atk) { okRL(pr[0] + ': its ' + pr[1], false); return; }
+          a.x = f.x; a.y = Math.max(1, f.y - 6); f.hp = f.maxhp = 300; D.rules.startTurn(a); Bx.active = a;
+          var shotAt = null, p0 = D.fx.projectile; D.fx.projectile = function (who) { if (who === a && shotAt == null) shotAt = Bx.t - (a.animT || 0); return p0.apply(this, arguments); };
+          var row = null;
+          try {
+            var g = Bx.attack(a, f, atk), v, st, k = 0;
+            while (k++ < 400) { st = g.next(v); v = undefined; if (st.done) break; var y = st.value; if (!row && a.anim) row = D.spr.anim(a.sheet, a.anim) ? { name: a.anim, r: D.spr.anim(a.sheet, a.anim) } : null; if (typeof y === 'number') { if (y > 0) Bx.t += Bx.pace(y, true); } else if (y && y.prompt) v = y.prompt.opts[0].value; if (shotAt != null) break; }
+          } finally { D.fx.projectile = p0; }
+          var fr = row && shotAt != null ? Math.floor(shotAt * (row.r.fps || 8) / 60) : null, want = row && row.r.release;
+          okRL(pr[0] + '\'s ' + pr[1] + ' at the pace ' + P + ': the row ' + (row ? row.name : 'none') + ', the arrow leaves on frame ' + fr + ' (' + shotAt + ' ticks) -- its release frame ' + want, row && want != null && fr === want);
+        });
+      });
+    } catch (eRL) { repRL.errors.push(String(eRL && eRL.stack || eRL).slice(0, 900)); }
+    D.PACE = P0RL;
+    if (errs.length) repRL.errors = repRL.errors.concat(errs);
+    var preRL = document.createElement('pre'); preRL.id = 'out'; preRL.textContent = 'BENCH16 ' + JSON.stringify(repRL);
+    document.body.appendChild(preRL);
+    return;
+  }
   // the fear scale on checks, 10-15 (mode=shaken1015; RULED, Griz: "3 - SRD when we can, yes" -- the d20 SRD's shaken, -2 on every ability check): the Hide, the Search and a climb's
   // Athletics, each rolled twice with the dice pinned, calm and shaken -- 2 apart, and the card says shaken. Each failed on the code before it
   if (get('mode', '') === 'shaken1015') {

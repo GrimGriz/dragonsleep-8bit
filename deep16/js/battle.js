@@ -483,6 +483,8 @@
     if (wait && !(this.active && byAI(this.active))) return n; // (a wait is the AI's only while an AI-run unit has the turn; a message's life is the pace's whoever's turn)
     return Math.max(1, Math.round(n * P));
   };
+  // a wait in the row's own ticks: what to yield so the pace's stretch (above) gives n back, never short of it -- a blow on a row's release frame (attack, 10-15)
+  Battle.prototype.unpace = function (n) { var P = D.PACE; if (!(P > 0) || P === 1 || !(n > 0) || !(this.active && byAI(this.active))) return n; return Math.max(1, Math.ceil(n / P)); };
   Battle.prototype.answer = function (v) { this.req = null; this.step(v); };
   // the floor (10-03, Griz: "1 - yes", to: a fight that breaks mid-way goes back where it came from as it was): a fight with a way back -- the Pocket DM, the
   // ladder, the climb (o.onDone) -- that throws in its turn, or whose picture keeps failing (DRAW_BAD frames in a row; one bad frame is logged and it plays on),
@@ -2123,7 +2125,9 @@
     // the Harbinger's pounce landing on its frame 6. A melee row with no release still strikes 10 ticks in)
     var rel = !atk.spell && D.spr.anim(att.sheet, att.anim), relT = rel && rel.release != null ? Math.ceil(rel.release * 60 / (rel.fps || 8)) : 0;
     if (o.ride) yield 4; // (riding the blow before it: no new wind-up)
-    else if (!o.oa) yield atk.spell && !melee ? Math.max(4, Math.round((D.spr.duration(att.sheet, att.anim) || 18) * 0.55) - (this.t - att.animT)) : relT ? Math.max(4, relT - (this.t - att.animT)) : 10;
+    // (on the release frame at every pace -- RULED 10-15, Griz: "Arrow timing to the grid lane please"; the hobgoblin seat's find: the wait to it was stretched by the pace (step) while
+    // the row plays on the unstretched clock, so an AI's arrow left a frame late -- the hobgoblin's on its 6th, not its 5th. Battle.unpace asks for the wait the pace will stretch back)
+    else if (!o.oa) yield atk.spell && !melee ? Math.max(4, Math.round((D.spr.duration(att.sheet, att.anim) || 18) * 0.55) - (this.t - att.animT)) : relT ? this.unpace(Math.max(4, relT - (this.t - att.animT))) : 10;
     if (!melee) { FX.projectile(att, tgt, atk.fx || 'bolt'); yield { fx: 1 }; }
     var los = G.los(att, tgt), cover = melee && G.dist(att, tgt) <= 5 ? 0 : los.cover;
     var ac = RU.ac(tgt) + cover, e = RU.edges(att, tgt, atk);
