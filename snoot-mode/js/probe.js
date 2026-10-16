@@ -198,6 +198,68 @@
       SN.partyResult(sw, P, D3, req, { result: 'won', share: 0.4, dead: 4, ladyDead: ld }, [7, 0]);
       return [nl === 3, req.enemies[i] === 'patrollady', req.contrib.reduce(function (s, c) { return s + c.n; }, 0) === 27, SN.heroesOf(SN.unit(sw, req.ladies[i])).length === 0, (sw.stats.killed['dominion:wizard'] || 0) === 1]; });
     ok(wl && wl.every(Boolean), 'his note 10-15, the Dominion on the grid: three wagons send their three patrol ladies and 27 soldiers (thirty a grid), and a lady killed there dies on the map (' + (wl ? wl.join(' ') : 'threw') + ')');
+    // ---- the Gray Keeping's matriarchs (10-16, Griz: "let's give one group a superhero matriarch and the other hero, with clerics with the gray young
+    // ones. Give the superhero entangle?"; "all 8 leans are go"): OD&D Book I's clerics -- the Eldest a Patriarch ("Superhero - 1"), the band's a Lama
+    var MW = FF('gkw'), MB = FF('gk2'), MY = FF('gk1'), Me = (MW.heroes || [])[0], Ml = (MB.heroes || [])[0];
+    ok(!!Me && Me.type === 'superhero' && Me.ft === -1 && eq(Me.prays, ['insectplague', 'entangle']) && Me.grid === 'gnollmatriarcheldest' && MW.def === 'AF' && MW.figs === 11 && MW.cleric && MW.watch &&
+      !!Ml && Ml.type === 'hero' && eq(Ml.prays, ['bless']) && Ml.grid === 'gnollmatriarchlama' && MB.relic && MY.cleric && MY.relic && !(MY.heroes || []).length,
+      'his design 10-16: the death-watch\'s Eldest a Super-hero at -1 on the Fantasy table (Book I\'s Patriarch of 9th) praying Insect Plague and Entangle, eleven more defending as Armored Foot; the band\'s matriarch a Hero (Book I\'s Lama) who Blesses; clerics with the young blood; the band and the young blood carry a relic');
+    // Insect Plague and Entangle: two units of the plains come onto the moot -- the bigger is driven off in rout (berserkers too: no morale check), the
+    // other held (no charge die, struck as from the flank); each once that day
+    var mp = tk(function () {
+      var s = fday(71, function (s) { on(s, 'gkw', SN.MOOT); [['bb2', 20], ['bb3', 20]].forEach(function (x, i) { var u = on(s, x[0], [4, 5]); u.figs = x[1] + (i ? 0 : 4); u.figs0 = u.figs; u.order = { type: 'move', to: SN.MOOT.slice(), path: [SN.MOOT.slice()] }; }); });
+      var pr = s.beats.filter(function (b) { return b.t === 'pray'; }), ip = pr.filter(function (b) { return b.id === 'insectplague'; }), en = pr.filter(function (b) { return b.id === 'entangle'; });
+      var a3 = atk1(s, 'bb3'), gk = s.beats.filter(function (b) { return b.t === 'atk' && b.u === 'gkw' && b.tg === 'bb3' && b.round === 1; })[0], e = SN.unit(s, 'gkw').heroes[0];
+      var b2 = SN.unit(s, 'bb2');
+      return [ip.length === 1 && ip[0].tg === 'bb2', s.beats.some(function (b) { return b.t === 'menrun' && b.u === 'bb2'; }) && !(SN.alive(b2) && SN.same(b2.at, SN.MOOT)), en.length === 1 && en[0].tg === 'bb3', !!a3 && !a3.imp, !!gk && gk.asp !== 'front', !!ip[0] && e.prayed.insectplague === ip[0].day && e.prayed.entangle === ip[0].day];
+    });
+    ok(mp && mp.every(Boolean), 'his design 10-16, the Eldest\'s prayers: Insect Plague drives the bigger unit of the plains off the moot in rout (Book I: "less than three hit dice ... off in rout"), Entangle holds the other -- no charge die, the death-watch strikes it as from the flank -- each once that day (' + (mp ? mp.join(' ') : 'threw') + ')');
+    // the heroes stand: the road patrol comes at the moot -- its men are driven off, its paladin stands alone where they were and meets the Eldest on the
+    // Fantasy table at her -1
+    var mh = tk(function () {
+      var s = fday(72, function (s) { on(s, 'gkw', SN.MOOT); var p = on(s, 'patrol', [4, 5]); p.order = { type: 'move', to: SN.MOOT.slice(), path: [SN.MOOT.slice()] }; });
+      var run = s.beats.filter(function (b) { return b.t === 'menrun' && b.u === 'patrol'; })[0], ft = s.beats.filter(function (b) { return b.t === 'ft' && b.ah === 'the Eldest'; })[0];
+      return [!!run && run.heroes, s.log.some(function (l) { return /stands alone where the men were/.test(l.text); }), !!ft && ft.mod === -1, SN.unit(s, 'patrol').figs === 0];
+    });
+    ok(mh && mh.every(Boolean), 'his design 10-16: Insect Plague takes the men, never the heroes -- the road patrol\'s men are driven off and its paladin stands alone, meeting the Eldest on the Fantasy table at her -1 (' + (mh ? mh.join(' ') : 'threw') + ')');
+    // Entangle holds them: a unit held fast does not fall back on a lost morale -- the melee goes on
+    var mm = tk(function () { var s = SN.newGame(73); s.party8 = null; SN.dawn(s); var p = SN.unit(s, 'patrol'), b = SN.unit(s, 'gk2'), bf = {}; p.at = SN.MOOT.slice(); b.at = SN.MOOT.slice(); p.entangled = true; s.beats = [];
+      bf.patrol = SN.fightFigs(p) + 40; bf.gk2 = SN.fightFigs(b); var dec = SN.morale(s, [p], [b], bf, SN.MOOT);
+      return [dec === false, SN.same(p.at, SN.MOOT), s.beats.some(function (x) { return x.t === 'held' && x.u === 'patrol'; })]; });
+    ok(mm && mm.every(Boolean), 'his design 10-16, Entangle: a unit held fast that loses the morale cannot fall back -- the melee goes on (' + (mm ? mm.join(' ') : 'threw') + ')');
+    // Bless: the band's matriarch blesses it as its fight begins -- +1 to its dice (a Hero's +1 and the blessing's) and its morale
+    var mb = tk(function () {
+      var s = fday(74, function (s) { on(s, 'gk2', [5, 5]); var p = on(s, 'bat2', [6, 5]); p.order = { type: 'move', to: [5, 5], path: [[5, 5]] }; });
+      var g = SN.unit(s, 'gk2'), a = atk1(s, 'gk2'), pr = s.beats.filter(function (b) { return b.t === 'pray' && b.id === 'bless' && b.u === 'gk2'; });
+      return [pr.length === 1, g.blessed, !!a && a.bonus - (a.up || 0) === 2, SN.rating(g) === 8 - (g.fatigued ? 1 : 0)];
+    });
+    ok(mb && mb.every(Boolean), 'his design 10-16, Bless (Book I: "raises morale by +1 and also adds +1 to attack dice"): the band\'s matriarch blesses it as its fight begins -- +2 on its dice with her own Hero\'s +1, morale 7 to 8 (' + (mb ? mb.join(' ') : 'threw') + ')');
+    // only where a relic is (gnoll-hills.md, RULED 08-13d): the death-watch off the moot ground neither prays nor mends; on it, it mends
+    var mr = tk(function () {
+      var s = fday(75, function (s) { on(s, 'gkw', [5, 5]); var u = on(s, 'bb2', [6, 5]); u.order = { type: 'move', to: [5, 5], path: [[5, 5]] }; });
+      var none = !s.beats.some(function (b) { return b.t === 'pray'; });
+      var t = SN.newGame(76); t.party8 = null; SN.dawn(t); var w = SN.unit(t, 'gkw'); w.at = [5, 5]; w.figs = 5; SN.dusk(t); var off = w.figs === 5; w.at = SN.MOOT.slice(); SN.dusk(t);
+      return [none, off, w.figs > 5, SN.relicHere(SN.unit(t, 'gk1')) && !SN.relicHere(Object.assign({}, w, { at: [5, 5] }))];
+    });
+    ok(mr && mr.every(Boolean), 'the register, RULED 08-13d ("keepers cast only in a relic\'s presence"): the death-watch off the moot ground neither prays nor mends; on it, with the Mane, it mends at dusk; the young blood carry their relic (' + (mr ? mr.join(' ') : 'threw') + ')');
+    // the moot holds (his note 10-16: "I found it a little easy to clear the moot point"): the plains' outriders against the death-watch on the moot,
+    // twenty seeds -- with her prayers, and on the tables alone (the Eldest kept from praying): the death-watch and the Eldest still there at nightfall
+    var holds = function (pray) { var n = 0; for (var q = 0; q < 20; q++) { var s = fday(300 + q, function (s) { var w = on(s, 'gkw', SN.MOOT); if (!pray) w.heroes[0].prays = []; var u = on(s, 'bb2', [4, 5]); u.order = { type: 'move', to: SN.MOOT.slice(), path: [SN.MOOT.slice()] }; });
+      var w = SN.unit(s, 'gkw'); if (SN.alive(w) && SN.same(w.at, SN.MOOT) && SN.heroesOf(w).length) n++; } return n; };
+    var hP = tk(function () { return holds(true); }), hT = tk(function () { return holds(false); });
+    // (a hundred seeds, 10-16: 100 with her prayers, 76 on the tables alone -- 17 of the 24 lost when the death-watch is caught unready and taken in
+    // the flank; the sixty of the horse escort take the moot every time on the tables alone, and never once she prays)
+    ok(hP === 20 && hT >= 12, 'his note 10-16 ("a little easy to clear the moot point"): twenty outriders come onto the moot -- the death-watch holds it ' + hP + ' times of 20 with the Eldest\'s prayers, ' + hT + ' of 20 on the tables alone (it was wiped in a round: twelve common gnolls defending as Heavy Foot, no hero)');
+    // on the grid: the death-watch sends the Eldest first, then its matriarchs man for man; she falls on the map when she falls there
+    var mg = tk(function () { var s = SN.newGame(77); s.party8 = null; SN.dawn(s); var w = SN.unit(s, 'gkw'), P = SN.unit(s, 'party'); w.at = SN.MOOT.slice();
+      var req = SN.band(s, [w], SN.MOOT), cd = {}; cd.gkw = [0]; s.beats = [];
+      var words = SN.gnollWords(s, req); SN.partyResult(s, P, [w], req, { result: 'won', share: 0.5, dead: 5, chiefDead: cd }, SN.MOOT);
+      return [req.enemies[0] === 'gnollmatriarcheldest', eq(req.chiefs[0], ['gkw', 0]), req.enemies.slice(1).every(function (k) { return k === 'gnollmatriarch'; }) && req.enemies.length === 12, req.contrib[0].n === 11, /the Eldest/.test(words), w.heroes[0].dead, (s.stats.killed['gnoll:superhero'] || 0) === 1]; });
+    ok(mg && mg.every(Boolean), 'his design 10-16, the death-watch on the grid: the Eldest (DEEP16\'s cleric 9 of the Keeping) first, then eleven matriarchs, and she dies on the map when she falls there (' + (mg ? mg.join(' ') : 'threw') + ')');
+    // the death-watch is the seat-tribe's women: glory's followers do not join it; and the march's pop-up says what waits on the moot
+    var mx = tk(function () { var s = SN.newGame(78); s.party8 = null; SN.dawn(s); var w = SN.unit(s, 'gkw'), b = SN.unit(s, 'gk2'), c = SN.unit(s, 'patrol'); w.at = SN.MOOT.slice(); b.at = [2, 5]; w.figs = 4; SN.witness(s, w);
+      c.at = [4, 5]; var pv = SN.preview(s, c, SN.MOOT); return [w.figs === 4, b.figs === 18, !!pv && pv.warn.some(function (l) { return /Insect Plague/.test(l); }) && pv.warn.some(function (l) { return /Entangle/.test(l); })]; });
+    ok(mx && mx.every(Boolean), 'his design 10-16: the witness never fills the death-watch (the seat-tribe\'s women), and the march\'s pop-up warns of Insect Plague and Entangle on the moot (' + (mx ? mx.join(' ') : 'threw') + ')');
     // ---- whole battles, both hands, the party's part on the tables
     var heads = 0, grids = 0, maps = 0, fills = 0, bands = 0, ends = [], domOk = true, inv = [], dom0 = [], nightShared = 0;
     for (var seed = 1; seed <= 8; seed++) {

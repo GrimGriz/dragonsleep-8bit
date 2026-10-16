@@ -15,7 +15,7 @@
   var W0 = 960, H0 = 540, CX = 480; // (the screen's own size for the dice, the banners and the rosters; the canvas scales it)
   // how long each beat holds the screen, in seconds; a round's dice roll together (CHAINMAIL's melee is simultaneous, p.14), as do its casualties,
   // its fire balls and its duels -- one beat each -- and a later round goes quicker: about five seconds a fight (RULED 10-14 night)
-  var DUR = { evade: 1.1, walls: 1.0, menrun: 0.8, surp: 0.9, fight: 0.9, round: 0.3, shock: 1.0, ft: 0.9, fb: 0.75, atk: 1.2, cas: 0.6, herofall: 0.6, gone: 0.6, mor: 0.95, fall: 0.6, surrender: 0.6, wit: 1.1, inst: 0.8, grid: 1.2, night: 1.0, head: 3.4 };
+  var DUR = { evade: 1.1, walls: 1.0, menrun: 0.8, surp: 0.9, fight: 0.9, round: 0.3, shock: 1.0, ft: 0.9, fb: 0.75, atk: 1.2, cas: 0.6, herofall: 0.6, gone: 0.6, mor: 0.95, fall: 0.6, surrender: 0.6, wit: 1.1, inst: 0.8, grid: 1.2, night: 1.0, head: 3.4, pray: 1.3, held: 0.6 };
   // a family plays as one beat: every band's shock with its falling back; the round's casualties with who fell and who is gone; the falls
   // after nightfall with the night; a run of instability rolls
   var FAM = { atk: 'atk', cas: 'toll', gone: 'toll', herofall: 'toll', surrender: 'toll', fb: 'fb', save: 'fb', ft: 'ft', shock: 'shock', fall: 'fall', inst: 'inst', night: 'night' };
@@ -116,6 +116,10 @@
         case 'surrender': if (U) { if (b.heroesLeft) { if (now) sc.fx.push({ kind: 'word', u: b.u, text: 'THE MEN ARE TAKEN', p: p }); if (p >= 1 || !now) U.figs = 0; } else { if (now) sc.fx.push({ kind: 'word', u: b.u, text: 'TAKEN PRISONER', p: p }); U.alpha = 1 - p; if (p >= 1) U.gone = true; } } break;
         case 'wit': var W = sc.units[b.to]; if (now) { sc.runners.push({ to: b.to, n: b.n, sheets: b.sheets, p: p }); sc.banner = b.kind === 'rally' ? { big: 'THEY RUN', small: b.fromName + ' break: ' + b.n + ' men run to ' + b.toName, p: p } : { big: 'WITNESS', small: b.fromName + ' saw it: ' + b.n + (b.n > 1 ? ' figures go' : ' figure goes') + ' over to the winner', p: p }; } if (W && (p >= 1 || !now)) W.figs += b.n; break;
         case 'menrun': if (U) { if (now) sc.fx.push({ kind: 'word', u: b.u, text: b.word, p: p }); if (b.heroes) { if (p >= 1 || !now) U.figs = 0; } else { U.alpha = 1 - p; if (p >= 1) U.gone = true; } } break; // (a rout of men: to a friend, or scattered)
+        // the matriarchs' prayers (10-16, js/rules.js SN.pray): the one who prays plays her Pray row (`cast`, ART-68's), the prayer's light on its target
+        case 'pray': if (now) { if (U) { U.anim = 'cast'; U.animT = local; } sc.fx.push({ kind: 'pray', u: b.tg, id: b.id, p: p });
+            sc.banner = { big: b.word, small: b.who + (b.id === 'bless' ? ' blesses ' + b.tgName + ': +1 to their dice and morale today' : b.id === 'insectplague' ? ' prays from the moot ground: ' + b.tgName + ' are driven off in rout' : ': the ground holds ' + b.tgName + ' fast -- no charge, struck as from the flank, no falling back'), p: p }; } break;
+        case 'held': if (U && now) sc.fx.push({ kind: 'word', u: b.u, text: 'HELD FAST', p: p }); break;
         case 'inst': if (now) sc.dice.push({ side: U ? U.k : 'theirs', u: b.u, dice: b.dice, need: b.need, sum: true, p: p, word: b.ok ? 'THEY HOLD TOGETHER' : 'THEY BREAK APART', title: 'Lost too many: two dice to stay' }); break;
         case 'grid': if (now) sc.banner = { big: b.kind === 'harbinger' ? 'THE FOUR AND THE HARBINGER' : 'THE FOUR ON THE GRID', small: { won: 'won', yielded: 'won', fled: 'won', escaped: 'the four got out of it', lost: 'the four went down' }[b.res] + (b.kind === 'band' ? ' -- ' + Math.round(b.share * 100) + '% of the band down' : ''), p: p }; break;
         case 'night': if (now) { sc.dark = Math.min(1, p * 2) * 0.45; sc.banner = { big: 'NIGHT FALLS', small: 'no one ends the day on a shared hex: one side backs off', p: p }; } else sc.dark = 0; break;
@@ -233,6 +237,12 @@
         cx.stroke(); cx.shadowBlur = 0; cx.globalAlpha = 1; }
       if (fx.kind === 'minus') text(cx, '-' + fx.n, x, y - figH * 0.9 - fx.p * 30 * zs, Math.max(16, Math.round(30 * zs)), '#ff6a5a');
       if (fx.kind === 'word') text(cx, fx.text, x, y - figH * 1.1, Math.max(14, Math.round(24 * zs)), '#ffd25a');
+      if (fx.kind === 'pray') { // (Insect Plague a swarm over them; Bless and Entangle a ring on their ground, pale and green)
+        cx.globalAlpha = 1 - fx.p * 0.6;
+        if (fx.id === 'insectplague') { cx.fillStyle = '#26241a'; var ds = Math.max(2, Math.round(3 * zs)); for (var k = 0; k < 48; k++) { var an = k * 2.4 + sc.t * 6, rr = (18 + (k % 7) * 10) * zs * (0.6 + fx.p); cx.fillRect(Math.round(x + Math.cos(an) * rr), Math.round(y + Math.sin(an * 1.3) * rr * 0.6), ds, ds); } }
+        else { cx.strokeStyle = fx.id === 'entangle' ? '#5fae4a' : '#bff5c8'; cx.lineWidth = Math.max(2, 4 * zs); cx.beginPath(); cx.ellipse(x, y + figH * 0.6, (40 + fx.p * 50) * zs, (16 + fx.p * 20) * zs, 0, 0, Math.PI * 2); cx.stroke(); }
+        cx.globalAlpha = 1;
+      }
     });
   }
   // the head on the map, no one of ours there (his rule): GreyFang and the Harbinger on the hex's own ground, the Harbinger in from the side he came

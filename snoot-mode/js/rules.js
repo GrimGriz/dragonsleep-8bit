@@ -87,7 +87,7 @@
   SN.rating = function (u) {
     var base = u.morale || SN.MORALE[u.def] || 5;
     if (u.groups && u.figs > 0) base = Math.round(u.groups.reduce(function (s, g) { return s + g.n * (g.morale || SN.MORALE[g.def] || 5); }, 0) / u.figs * 10) / 10; // (by type, p.15)
-    return base + (u.cleric ? 1 : 0) - (u.fatigued ? 1 : 0);
+    return base + (u.cleric ? 1 : 0) + (u.blessed ? 1 : 0) - (u.fatigued ? 1 : 0); // (blessed: a matriarch's Bless today, SN.pray -- Book I, "raises morale by +1")
   };
   SN.greyfang = function (st) { var u = SN.unit(st, 'greyfang'); return u && SN.alive(u) && SN.heroesOf(u).some(function (h) { return h.fated; }) ? u : null; };
   SN.harb = function (st) { var u = SN.unit(st, 'harb'); return u && SN.alive(u) && !st.head ? u : null; };
@@ -141,7 +141,7 @@
     if (asp === 'front' && d.reformed) asp = 'flank';
     return asp;
   };
-  SN.bonus = function (u) { var hs = SN.heroesOf(u), b = 0; if (hs.some(function (h) { return h.type === 'superhero'; })) b = 2; else if (hs.some(function (h) { return h.type === 'hero'; })) b = 1; return b + (u.berserk ? 2 : 0); }; // (only a hero adds to his unit's dice, a super-hero twice, p.30; a wizard or a wraith works on morale) // (a hero adds 1 to the unit's dice, a super-hero 2 (p.30: doubled); berserkers +2, p.20)
+  SN.bonus = function (u) { var hs = SN.heroesOf(u), b = 0; if (hs.some(function (h) { return h.type === 'superhero'; })) b = 2; else if (hs.some(function (h) { return h.type === 'hero'; })) b = 1; return b + (u.berserk ? 2 : 0) + (u.blessed ? 1 : 0); }; // (blessed: Book I's Bless, "+1 to attack dice") // (only a hero adds to his unit's dice, a super-hero twice, p.30; a wizard or a wraith works on morale) // (a hero adds 1 to the unit's dice, a super-hero 2 (p.30: doubled); berserkers +2, p.20)
 
   SN.newGame = function (seed) {
     var st = { v: 1, seed: seed >>> 0, rs: seed >>> 0, day: SN.DAY0, units: [], log: [], head: null, huntDay: null, domDay: null, pitFell: false, over: false,
@@ -177,7 +177,7 @@
     st.units.forEach(function (u) {
       if (!u.on && u.arrive && u.arrive <= st.day && !u.arrived) { u.arrived = true; u.on = true; u.arrivedOn = st.day; u.at = SN.freeNear(st, u.at, u); SN.say(st, u.name + ' arrive' + (u.kind === 'the plains' ? ' off the Verge' : ' up the south road') + '.', 'arrive', u.at); st.events.push({ kind: 'arrive', id: u.id }); }
       u.rounds = 0; u.moved = false; u.charged = false; u.berserkOrder = false; u.held = false; u.fought = false; u.lostToday = false; u.wonToday = false; u.drawn = false;
-      u.came = null; u.reformed = false; u.formDawn = u.form;
+      u.came = null; u.reformed = false; u.formDawn = u.form; u.blessed = false; u.entangled = false; // (the matriarchs' prayers last the day: SN.pray)
       if (u.out && u.out <= st.day) { u.out = 0; SN.say(st, 'The four are on their feet again.', 'party'); }
     });
     // the hunt: the Harbinger holds in the hills till the exchange (Day 18) -- or till GreyFang comes within two hexes of him (RULED 10-14, lean 1)
@@ -410,6 +410,9 @@
       });
     });
     if (!ours().length || !theirs().length) return SN.after(st, h, null);
+    // the matriarchs' prayers, before the grid or the tables (Insect Plague may leave the four alone with the death-watch)
+    SN.pray(st, h, ours(), theirs());
+    if (!ours().length || !theirs().length) return SN.after(st, h, null);
     // the party: the grid
     var P = ours().filter(function (u) { return u.party && !u.out; })[0];
     if (P) {
@@ -435,6 +438,43 @@
     here().forEach(function (u) { if (u.rounds >= 3 && !u.fatigued) { u.fatigued = true; SN.say(st, u.name + ' are fatigued (three rounds of melee: a class down and -1 morale till a day\'s rest).', 'info', h); } });
     if (ours().length && theirs().length) SN.nightfall(st, h, ours(), theirs());
     SN.after(st, h, null);
+  };
+  // the matriarchs' prayers (10-16, Griz: "let's give one group a superhero matriarch and the other hero, with clerics with the gray young ones. Give
+  // the superhero entangle? There's good cleric stuff high level that didn't exist in chainmail I think"; then "all 8 leans are go"). CHAINMAIL has no
+  // clerics; these are OD&D Book I's at a day's scale, each once a day by each who prays it, and only where a relic is (SN.relicHere):
+  // - Bless (Book I, 2nd: "During any turn the prospective recipients of a Bless spell are not in combat the Cleric may give them this benison. A
+  //   blessing raises morale by +1 and also adds +1 to attack dice"): the Lama, her own unit, as its fight begins -- +1 to its dice and morale today
+  // - Insect Plague (Book I, 5th: "drive creatures with less than three hit dice off in rout", range 48"): the Eldest, from the moot ground, into a
+  //   fight on it or next to it -- the biggest unit of men there routs (no morale check: berserkers go too); the heroes in it stand (SN.breakUp)
+  // - Entangle (his word; the SRD 5.1's, not Book I's -- Rhollor's, the god under the ground): the Eldest, in a fight on the moot -- the biggest unit
+  //   of ours still there is held where it stands for the day: no charge die, struck as from the flank (restrained: attacked at advantage), no
+  //   falling back till nightfall lets it go
+  SN.PRAYER = { bless: 'BLESS', insectplague: 'INSECT PLAGUE', entangle: 'ENTANGLE' };
+  SN.relicHere = function (u) { return !!u.relic || SN.same(u.at, SN.MOOT); }; // (the Mane on the moot ground; a minor relic of the tribe carried)
+  SN.prays = function (st, u, id) { return SN.heroesOf(u).filter(function (x) { return (x.prays || []).indexOf(id) >= 0 && !(x.prayed && x.prayed[id] === st.day); })[0] || null; };
+  SN.pray = function (st, h, O, T) {
+    var here = function (U) { return U.filter(function (u) { return SN.alive(u) && SN.same(u.at, h); }); };
+    var said = function (u, w, id, tg, text) {
+      (w.prayed = w.prayed || {})[id] = st.day;
+      SN.beat(st, { t: 'pray', u: u.id, who: w.name, id: id, word: SN.PRAYER[id], tg: tg ? tg.id : u.id, tgName: tg ? tg.name : u.name });
+      SN.say(st, text, 'roll', h);
+    };
+    here(T).forEach(function (u) {
+      var w = u.side === 'gnoll' && !u.blessed && SN.relicHere(u) ? SN.prays(st, u, 'bless') : null; if (!w) return;
+      u.blessed = true; said(u, w, 'bless', null, w.name + ' blesses ' + u.name + ' (Book I\'s Bless): +1 to their dice and their morale today.');
+    });
+    var men = function () { return here(O).filter(function (u) { return !u.party && u.figs > 0; }).sort(function (a, b) { return b.figs - a.figs; }); };
+    st.units.forEach(function (u) {
+      if (u.side !== 'gnoll' || !SN.alive(u) || !SN.same(u.at, SN.MOOT) || SN.dist(u.at, h) > 1) return;
+      var w = SN.prays(st, u, 'insectplague'), tg = w && men()[0]; if (!tg) return;
+      said(u, w, 'insectplague', tg, w.name + ' prays Insect Plague from the moot ground (Book I): a cloud of insects drives ' + tg.name + ' off in rout' + (SN.heroesOf(tg).some(function (x) { return x.type !== 'wizard'; }) ? '; the heroes with them stand.' : '.'));
+      SN.breakUp(st, tg, true);
+    });
+    if (!SN.same(h, SN.MOOT)) return;
+    here(T).forEach(function (u) {
+      var w = SN.prays(st, u, 'entangle'), tg = w && here(O).filter(function (x) { return !x.party && !x.entangled; }).sort(function (a, b) { return SN.fightFigs(b) - SN.fightFigs(a); })[0]; if (!tg) return;
+      tg.entangled = true; said(u, w, 'entangle', tg, w.name + ' prays Entangle: the ground takes ' + tg.name + ' by the legs -- no charge, struck as from the flank, and they cannot fall back today.');
+    });
   };
   // surprise (OD&D Book III p.9, the wilderness's the same, p.17; RULED 10-15, his "2 lean" -- surprise first): "roll a six-sided die for each party
   // concerned. A roll of 1 or 2 indicates the party is surprised" -- not a side all of whose units have fought today (they are awake to it); both
@@ -485,6 +525,7 @@
   // side with the lower morale total backs off a hex in good order -- CHAINMAIL's mildest result (p.16); a side that never yields (berserkers,
   // the death-watch, the four) makes the other back off; both never yield, the fewer figures do; if they cannot move, the other side does
   SN.nightfall = function (st, h, O, T) {
+    O.concat(T).forEach(function (u) { u.entangled = false; }); // (Entangle holds for the day: nightfall lets it go -- SN.pray)
     var figs = function (U) { return U.reduce(function (s, u) { return s + SN.fightFigs(u); }, 0); };
     var nO = O.every(SN.nevers), nT = T.every(SN.nevers), m = st._mor && SN.same(st._mor.at, h) ? st._mor : null, back;
     if (nO && !nT) back = T; else if (nT && !nO) back = O;
@@ -509,7 +550,7 @@
   // the witness (his rule): every gnoll unit within two hexes of a gnoll win gives up to half its figures to the winner, never past its starting size;
   // the Harbinger's pack counts (glory draws followers to him); the death-watch never leaves the Mane
   SN.witness = function (st, w) {
-    var need = w.figs0 - w.figs; if (need <= 0 || !SN.alive(w)) return;
+    var need = w.figs0 - w.figs; if (need <= 0 || !SN.alive(w) || w.watch) return; // (the death-watch is the seat-tribe's women: glory's followers do not join it -- 10-16)
     st.units.filter(function (x) { return x !== w && x.side === 'gnoll' && SN.alive(x) && x.state === 'ok' && !x.watch && !x.lostToday && x.figs >= 2 && SN.dist(x.at, w.at) <= 2; })
       .sort(function (a, b) { return SN.dist(a.at, w.at) - SN.dist(b.at, w.at); })
       .forEach(function (x) {
@@ -546,9 +587,9 @@
           if (!targets.length) return;
           var tg = targets[Math.floor(SN.rng(st) * targets.length)], b = tg[0], hb = tg[1];
           var need = SN.FT[ha.type] && SN.FT[ha.type][hb.type]; if (!need) return;
-          var r = SN.dice(st, 2), s = r[0] + r[1] - (ha.warlock ? SN.WARLOCK : 0);
-          SN.beat(st, { t: 'ft', a: a.id, ah: ha.name, b: b.id, bh: hb.name, dice: r, mod: ha.warlock ? -SN.WARLOCK : 0, need: need, res: s > need ? (hb.fated ? 'spared' : hb.harbinger ? 'beaten' : 'kill') : s === need ? 'back' : 'none' });
-          var line = ha.name + ' against ' + hb.name + ' on the Fantasy table: ' + r.join('+') + (ha.warlock ? '-2' : '') + '=' + s + ' against ' + need;
+          var mod = (ha.warlock ? -SN.WARLOCK : 0) + (ha.ft || 0), r = SN.dice(st, 2), s = r[0] + r[1] + mod; // (ft: a rank's own, the Eldest's "Superhero - 1", OD&D Book I)
+          SN.beat(st, { t: 'ft', a: a.id, ah: ha.name, b: b.id, bh: hb.name, dice: r, mod: mod, need: need, res: s > need ? (hb.fated ? 'spared' : hb.harbinger ? 'beaten' : 'kill') : s === need ? 'back' : 'none' });
+          var line = ha.name + ' against ' + hb.name + ' on the Fantasy table: ' + r.join('+') + (mod ? (mod > 0 ? '+' : '') + mod : '') + '=' + s + ' against ' + need;
           if (s > need) {
             if (hb.fated) { SN.say(st, line + ': GreyFang is beaten back, not killed -- he is the Harbinger\'s.', 'roll', h); SN.fallBack(st, b, 'back'); }
             else if (hb.harbinger) { SN.say(st, line + ': the Harbinger goes down -- and the mirror takes him back to the moot ground.', 'roll', h); SN.beatHarb(st, b); }
@@ -567,7 +608,7 @@
     var biggest = function (B) { return B.slice().sort(function (x, y) { return SN.fightFigs(y) - SN.fightFigs(x); })[0]; }, rearOf = {};
     // a side caught unready (SN.surprise) is taken in the flank in the first round, or in the rear by a circle of three or more
     var sur = round === 1 && st.surp && SN.same(st.surp.at, h) ? st.surp : null;
-    var aspOf = function (a, tg) { var asp = SN.aspect(st, a, tg, h); if (sur && (tg.side === 'ours') === (sur.side === 'ours') && asp !== 'rear') asp = sur.circle ? 'rear' : 'flank'; return asp; };
+    var aspOf = function (a, tg) { var asp = SN.aspect(st, a, tg, h); if (sur && (tg.side === 'ours') === (sur.side === 'ours') && asp !== 'rear') asp = sur.circle ? 'rear' : 'flank'; if (tg.entangled && asp === 'front') asp = 'flank'; return asp; }; // (entangled: restrained, struck as from the flank -- SN.pray)
     if (round === 1) [[o, t], [t, o]].forEach(function (pr) { pr[0].forEach(function (a) { var tg = biggest(pr[1]); if (tg && aspOf(a, tg) === 'rear') (rearOf[tg.id] = rearOf[tg.id] || []).push(a.id); }); });
     function attack(a, B, volley) {
       if (!volley && rearOf[a.id]) { B = B.filter(function (x) { return rearOf[a.id].indexOf(x.id) < 0; }); if (!B.length) SN.say(st, a.name + ' are taken from behind: they strike nothing back this round.', 'roll', h); }
@@ -587,7 +628,7 @@
         var row = SN.CT[cls][dcls];
         // impetus, p.17: heavy and armored foot and all horse charging over open ground add a die -- not a square (it cannot charge), and not horse
         // against a square (p.10's square, the seat's reading of what it is for)
-        var imp = !volley && round === 1 && a.charged && cls0 !== 'LF' && !ter.hill && !ter.rough && a.form !== 'square' && !(horse[cls0] && tgt.form === 'square') && !hd;
+        var imp = !volley && round === 1 && a.charged && !a.entangled && cls0 !== 'LF' && !ter.hill && !ter.rough && a.form !== 'square' && !(horse[cls0] && tgt.form === 'square') && !hd;
         var n = Math.ceil(f / row[1]) * row[0] + (imp ? Math.ceil(f / row[1]) : 0), b = SN.bonus(a) + up, need = Math.max(2, row[2] - b), r = SN.dice(st, n), k = r.filter(function (x) { return x >= need; }).length;
         var k0 = k; if (volley && hd) k = Math.floor(k / 2); // (behind their walls: soft cover halves it, "drop all fractions", p.12)
         if (tgt.harbinger && !SN.heroesOf(a).length && !tgt.figs) k = 0; // (a wraith alone: only magic and the fantastic harm him, p.34)
@@ -600,7 +641,7 @@
     }
     function wizDice(a, tgt, dcls, wf, ter, asp) {
       var up = asp && asp !== 'front' ? 1 : 0, need = Math.max(2, SN.CT.AF[dcls][2] - up);
-      var row = SN.CT.AF[dcls], imp = round === 1 && a.charged && !ter.hill && !ter.rough && !SN.holding(st, tgt, h), n = Math.ceil(wf / row[1]) * row[0] + (imp ? Math.ceil(wf / row[1]) : 0), r = SN.dice(st, n), k = r.filter(function (x) { return x >= need; }).length;
+      var row = SN.CT.AF[dcls], imp = round === 1 && a.charged && !a.entangled && !ter.hill && !ter.rough && !SN.holding(st, tgt, h), n = Math.ceil(wf / row[1]) * row[0] + (imp ? Math.ceil(wf / row[1]) : 0), r = SN.dice(st, n), k = r.filter(function (x) { return x >= need; }).length;
       var w = SN.heroesOf(a).filter(SN.isWiz)[0];
       SN.beat(st, { t: 'atk', u: a.id, tg: tgt.id, cls: 'AF', dcls: dcls, dice: r, need: need, k: k, volley: false, imp: !!imp, round: round, f: wf, row: row.slice(), bonus: up, wiz: true, who: w.name, asp: asp || 'front' });
       SN.say(st, w.name + ' fights as two Armored Foot (against ' + dcls + ') rolls ' + n + (n === 1 ? ' die' : ' dice') + ', kill on ' + row[2] + '+: [' + r.join(' ') + '] -> ' + k + (k === 1 ? ' kill' : ' kills'), 'roll', h);
@@ -672,12 +713,14 @@
       parts: { ours: { surv: A.surv, cas: A.cas, rate: Math.round(A.rate * 10) / 10, die: dA, never: A.never }, theirs: { surv: B.surv, cas: B.cas, rate: Math.round(B.rate * 10) / 10, die: dB, never: B.never } } });
     if (how === 'continue') { if (gap >= 20) SN.say(st, 'They do not check morale; the melee goes on.', 'morale', h); return false; }
     var word = { rout: 'rout', retreat: 'retreat a move', back: 'fall back a move in good order', backoff: 'back off half a move in good order' }[how];
+    var moved = false;
     lo.U.forEach(function (u) {
       if (SN.nevers(u)) return;
+      if (u.entangled) { SN.say(st, u.name + ' would ' + word + ', but the ground holds them fast: the melee goes on.', 'morale', h); SN.beat(st, { t: 'held', u: u.id }); return; } // (Entangle: no falling back today -- SN.pray)
       SN.say(st, u.name + ' ' + word + '.', 'morale', h);
-      SN.fallBack(st, u, how);
+      SN.fallBack(st, u, how); moved = true;
     });
-    return true;
+    return moved;
   };
   // a surrender takes the men; a hero, a super-hero or a wraith with them "never checks morale" (p.30) and is not taken -- cut free, falling back alone
   // (since his "Rout over surrender" 10-15 the morale never calls it: kept for a surrender he may want back, between men)
@@ -696,10 +739,12 @@
   // the unit is gone (CHAINMAIL p.16: a rout off the table, or past its rally table, is removed from play). A hero, a super-hero or a wraith does not
   // run (p.30): cut free, falling back alone, as from a surrender; a warlock goes with the men
   SN.menBreak = function (u) { return u.side !== 'gnoll' && !u.party; };
-  SN.breakUp = function (st, u) {
+  // (stay: the heroes do not fall back -- an Insect Plague drives off the men alone, "less than three hit dice", SN.pray; a berserker's men, who only
+  // ever rout by it, run to their own people, the plains tribes)
+  SN.breakUp = function (st, u, stay) {
     var hs = SN.heroesOf(u).filter(function (x) { return x.type !== 'wizard'; }), wz = SN.heroesOf(u).filter(SN.isWiz), n = u.figs, h = u.at.slice();
     var to = st.units.filter(function (x) {
-      return x !== u && x.side === u.side && SN.alive(x) && x.state === 'ok' && !x.party && !x.berserk && SN.dist(x.at, h) <= 2 && !SN.same(x.at, h) &&
+      return x !== u && x.side === u.side && SN.alive(x) && x.state === 'ok' && !x.party && (u.berserk ? x.kind === u.kind : !x.berserk) && SN.dist(x.at, h) <= 2 && !SN.same(x.at, h) &&
         !SN.unitsAt(st, x.at).some(function (y) { return SN.hostile(x, y); });
     }).sort(function (a, b) { return SN.dist(a.at, h) - SN.dist(b.at, h) || b.figs - a.figs; })[0];
     SN.beat(st, { t: 'menrun', u: u.id, n: n, to: to ? to.id : null, toName: to ? to.name : null, heroes: hs.length > 0, word: to ? 'THEY RUN TO ' + to.name.toUpperCase() : 'THEY SCATTER' });
@@ -712,6 +757,7 @@
       st.stats.fled = st.stats.fled || {}; SN.take(st, u, n, u.side === 'ours' ? 'lost' : 'fled');
       SN.say(st, u.name + ' break with no steady friends within two hexes: ' + n + ' men scatter for home' + (hs.length ? '.' : ', and the unit is gone.'), 'morale', h);
     }
+    if (hs.length && stay) { SN.say(st, hs.map(function (x) { return x.name; }).join(' and ') + ' stand' + (hs.length > 1 ? '' : 's') + ' alone where the men were.', 'morale', h); return; }
     if (hs.length) { SN.say(st, hs.map(function (x) { return x.name; }).join(' and ') + ' will not run: cut free, falling back alone.', 'morale', h); SN.fallBack(st, u, 'retreat'); return; }
     u.on = false;
     if (to) { u.state = 'merged'; u.mergedInto = to.id; } else { u.state = 'gone'; st.stats.scattered = (st.stats.scattered || 0) + 1; }
@@ -750,13 +796,21 @@
       keys.forEach(function (k, i) { var m = i === keys.length - 1 ? n - sent : Math.min(n - sent, Math.round(n * comp[k] / tot)); for (var j = 0; j < m; j++) list.push(k); sent += m; });
       if (n > 0) contrib.push({ id: u.id, n: n }); room -= n;
     };
-    if (g.length) { g.forEach(function (u) { send(u, u.comp || { gnoll: 1 }); }); return { kind: 'band', fight: 'snoot', at: h.slice(), enemies: list, foes: foes.map(function (u) { return u.id; }), contrib: contrib }; }
+    // a matriarch is her unit's hero, not one of its men (10-16): her own grid kind first -- DEEP16's cleric of the Keeping (deep16/data/foes.js
+    // gnollmatriarcheldest, gnollmatriarchlama) -- and `chiefs` says whose each list place is, so one who falls on the grid falls on the map, as the
+    // Dominion's ladies do below
+    var chiefs = {};
+    if (g.length) {
+      g.forEach(function (u) { (u.heroes || []).forEach(function (x, i) { if (!x.dead && x.grid && room > 0) { chiefs[list.length] = [u.id, i]; list.push(x.grid); room--; } }); send(u, u.comp || { gnoll: 1 }); });
+      return { kind: 'band', fight: 'snoot', at: h.slice(), enemies: list, chiefs: chiefs, foes: foes.map(function (u) { return u.id; }), contrib: contrib };
+    }
     // the Dominion: each wagon's patrol lady first -- DEEP16's patrollady, a warlock of the Mirror (his note 10-15: "there wasn't any warlocks when I
     // ran the party into a dominion fight": the band sent only the soldiers) -- then its soldiers man for man; `ladies` says whose each list place is
     var ladies = {};
     foes.filter(function (u) { return u.side === 'dominion'; }).forEach(function (u) { if (room > 0 && SN.heroesOf(u).some(SN.isWiz)) { ladies[list.length] = u.id; list.push('patrollady'); room--; } send(u, { trooper: 1 }); });
     return { kind: 'band', fight: 'snoot', at: h.slice(), enemies: list, dominion: true, ladies: ladies, foes: foes.map(function (u) { return u.id; }), contrib: contrib };
   };
+  SN.gnollWords = function (st, b) { var cs = Object.keys(b.chiefs || {}).map(function (k) { var c = b.chiefs[k], u = SN.unit(st, c[0]); return u.heroes[c[1]].name; }); return b.enemies.length + ' (' + (cs.length ? cs.join(', ') + ', and ' + (b.enemies.length - cs.length) + ' more' : 'glory-seekers, gnolls, hyenas') + ')'; };
   SN.bandWords = function (b) { var nL = Object.keys(b.ladies || {}).length; return (b.enemies.length - nL) + ' soldiers' + (nL ? ' and ' + nL + ' patrol lad' + (nL === 1 ? 'y' : 'ies') : ''); };
   // the men of ours beside the four (RULED 10-15, his "4 - I'd like to"): ours in the four's hex send men to the grid with them -- DEEP16's own soldier
   // (js/party8.js SN.TROOPER8), fought by the class AI -- up to six, from each unit by its share; the rest of them fight on the tables after
@@ -776,6 +830,8 @@
     // the men of ours who fell on the grid beside the four, each from its own unit (RULED 10-15)
     // a patrol lady who fell on the grid falls on the map: her wagon's warlock (CHAINMAIL p.30's wizard; the grid's patrollady)
     if (res && res.ladyDead) Object.keys(res.ladyDead).forEach(function (id) { var u = SN.unit(st, id), w = u && SN.heroesOf(u).filter(SN.isWiz)[0]; if (!w) return; w.dead = true; SN.say(st, 'The ' + w.name.replace(/^a /, '') + ' of ' + u.name + ' falls on the grid.', 'party', h); SN.lose(st, u, 0, w); });
+    // a matriarch who fell on the grid falls on the map (10-16: the band's chiefs, SN.band)
+    if (res && res.chiefDead) Object.keys(res.chiefDead).forEach(function (id) { var u = SN.unit(st, id); if (!u) return; res.chiefDead[id].forEach(function (i) { var x = (u.heroes || [])[i]; if (!x || x.dead) return; x.dead = true; SN.say(st, x.name + ' of ' + u.name + ' falls on the grid.', 'party', h); SN.lose(st, u, 0, x); }); });
     if (res && res.allyDead) Object.keys(res.allyDead).forEach(function (id) { var u = SN.unit(st, id), n = res.allyDead[id]; if (u && SN.alive(u) && n > 0) { SN.say(st, n + ' of ' + u.name + ' fell on the grid beside the four.', 'party', h); SN.lose(st, u, n); } });
     // what fell on the grid comes off the units that sent it, man for man (one man a figure); the bench's stand-in has no grid -- its share of each
     var killed = function () {
@@ -867,7 +923,7 @@
         else if (u.rally >= 4) { SN.say(st, u.name + ' never rally: they are gone from the field.', 'morale', u.at); SN.scatter(st, u); u.state = 'gone'; u.on = false; }
       }
       if (!u.fought && !u.moved && u.fatigued) { u.fatigued = false; }
-      if (u.cleric && u.figs < u.figs0 && u.figs > 0) { var mend = Math.min(u.figs0 - u.figs, 1 + Math.floor(SN.rng(st) * 3)); SN.addMen(u, mend); SN.say(st, 'The cleric' + (u.side === 'gnoll' ? 's' : '') + ' with ' + u.name + ' mend' + (u.side === 'gnoll' ? '' : 's') + ' ' + mend + ' (' + u.figs + ').', 'info', u.at); } // (one man a figure: 1d3 a day)
+      if (u.cleric && (u.side !== 'gnoll' || SN.relicHere(u)) && u.figs < u.figs0 && u.figs > 0) { var mend = Math.min(u.figs0 - u.figs, 1 + Math.floor(SN.rng(st) * 3)); SN.addMen(u, mend); SN.say(st, 'The cleric' + (u.side === 'gnoll' ? 's' : '') + ' with ' + u.name + ' mend' + (u.side === 'gnoll' ? '' : 's') + ' ' + mend + ' (' + u.figs + ').', 'info', u.at); } // (one man a figure: 1d3 a day; a gnoll keeper prays only where a relic is: gnoll-hills.md, RULED 08-13d)
       if (u.state === 'withdraw' && SN.same(u.at, u.home)) { u.state = 'home'; SN.say(st, u.name + ' are home.', 'info', u.at); }
     });
     // the four's long rest, every dusk wherever they stand (RULED 10-15, his "a long rest between days"; it was a day held in the Pit with no fight):
@@ -927,7 +983,7 @@
     if (H && st.huntDay != null && !H.beaten && !holds) out.warn.push('The Harbinger walks through you: only a paladin, GreyFang or the four can hold him.');
     if (u.party) {
       var b = H ? null : SN.band(st, foes2, hit.at);
-      out.lines.push('The four\'s fight goes to the grid (DEEP16): ' + (H ? 'the Harbinger himself.' : 'a war-band of ' + (b.dominion ? SN.bandWords(b) : b.enemies.length + ' (glory-seekers, gnolls, hyenas)') + '. Win it and they break; LEAVE THE FIGHT and you fall back a hex.'));
+      out.lines.push('The four\'s fight goes to the grid (DEEP16): ' + (H ? 'the Harbinger himself.' : 'a war-band of ' + (b.dominion ? SN.bandWords(b) : SN.gnollWords(st, b)) + '. Win it and they break; LEAVE THE FIGHT and you fall back a hex.'));
     } else {
       var tg = foes2.slice().sort(function (x, y) { return SN.fightFigs(y) - SN.fightFigs(x); })[0];
       var hi = day.indexOf(day.filter(function (x) { return SN.same(x, hit.at); })[0]), prev = hi > 0 ? day[hi - 1] : u.at, side = SN.dirTo(hit.at, prev);
@@ -948,6 +1004,14 @@
     }
     var wit = st.units.filter(function (x) { return x.side === 'gnoll' && SN.alive(x) && x.state === 'ok' && !x.watch && x.figs >= 2 && SN.dist(x.at, hit.at) <= 2 && foes2.indexOf(x) < 0; });
     if (foes2.some(function (x) { return x.side === 'gnoll'; }) && wit.length) out.warn.push('If the gnolls win, the witness fills them from ' + wit.map(function (x) { return x.name + ' (' + x.figs + ')'; }).join(', ') + ' -- within two hexes.');
+    // the matriarchs' prayers (10-16, SN.pray): what waits for you on the moot ground and next to it
+    if (!u.party && u.figs > 0) st.units.forEach(function (x) {
+      if (x.side !== 'gnoll' || !SN.alive(x) || !SN.same(x.at, SN.MOOT) || SN.dist(x.at, hit.at) > 1) return;
+      var ip = SN.prays(st, x, 'insectplague'), en = SN.same(hit.at, SN.MOOT) && SN.prays(st, x, 'entangle');
+      if (ip) out.warn.push(ip.name + ' can pray Insect Plague from the moot ground (once a day, OD&D Book I): the biggest unit of men in the fight is driven off in rout -- the heroes with it stand.');
+      if (en) out.warn.push(en.name + ' can pray Entangle on the moot: the biggest unit of ours left is held for the day -- no charge die, struck as from the flank, no falling back.');
+    });
+    foes2.forEach(function (x) { var w = SN.relicHere(x) && !x.blessed && SN.prays(st, x, 'bless'); if (w) out.lines.push(w.name + ' with ' + x.name + ' blesses them as the fight begins (OD&D Book I): +1 to their dice and their morale.'); });
     var wag = foes2.filter(function (x) { return x.side === 'dominion'; })[0];
     if (wag) out.lines.push('The Dominion\'s wagons slip away if they can (Book III\'s evasion): about ' + SN.evadeChance(st, wag, [u], null).c + '% against you.');
     if (!u.party) out.lines.push('Either side may be caught unready: a 1 or 2 on its die (OD&D Book III) -- then it is taken in the flank in the first round, in the rear if three or more units come at it.');
