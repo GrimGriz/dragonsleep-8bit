@@ -759,7 +759,7 @@
 }
 },
 "bugbear_p1": {
-"image": "art/bugbear_p1.png?v=e305214c83",
+"image": "art/bugbear_p1.png?v=b004032bf5",
 "fw": 96,
 "fh": 144,
 "ax": 48,
@@ -804,9 +804,9 @@
 },
 "flinch": {
 "y": 4608,
-"fw": 96,
+"fw": 112,
 "fh": 144,
-"ax": 48,
+"ax": 56,
 "ay": 132,
 "frames": 4,
 "fps": 12
@@ -822,9 +822,9 @@
 },
 "prone": {
 "y": 6912,
-"fw": 128,
+"fw": 144,
 "fh": 144,
-"ax": 64,
+"ax": 72,
 "ay": 132,
 "frames": 2,
 "fps": 8
@@ -859,9 +859,9 @@
 },
 "ambush": {
 "y": 11520,
-"fw": 104,
+"fw": 128,
 "fh": 144,
-"ax": 52,
+"ax": 64,
 "ay": 132,
 "frames": 6,
 "fps": 12
@@ -907,7 +907,7 @@
 }
 },
 "bugbearchief_p2": {
-"image": "art/bugbearchief_p2.png?v=2a4edf7ef4",
+"image": "art/bugbearchief_p2.png?v=8a8cb12019",
 "fw": 96,
 "fh": 144,
 "ax": 48,
@@ -934,9 +934,9 @@
 },
 "attack": {
 "y": 2304,
-"fw": 96,
+"fw": 112,
 "fh": 144,
-"ax": 48,
+"ax": 56,
 "ay": 132,
 "frames": 6,
 "fps": 12
@@ -970,9 +970,9 @@
 },
 "prone": {
 "y": 6912,
-"fw": 112,
+"fw": 160,
 "fh": 144,
-"ax": 56,
+"ax": 80,
 "ay": 132,
 "frames": 2,
 "fps": 8
@@ -988,27 +988,27 @@
 },
 "morningstar": {
 "y": 9216,
-"fw": 96,
+"fw": 112,
 "fh": 144,
-"ax": 48,
+"ax": 56,
 "ay": 132,
 "frames": 6,
 "fps": 12
 },
 "ambush": {
 "y": 10368,
-"fw": 96,
+"fw": 128,
 "fh": 144,
-"ax": 48,
+"ax": 64,
 "ay": 132,
 "frames": 6,
 "fps": 12
 },
 "morningstar2": {
 "y": 11520,
-"fw": 120,
+"fw": 152,
 "fh": 144,
-"ax": 60,
+"ax": 76,
 "ay": 132,
 "frames": 6,
 "fps": 12
