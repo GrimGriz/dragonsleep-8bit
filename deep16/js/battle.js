@@ -1110,6 +1110,11 @@
     // SHOVE (SRD 5.1, Shoving a Creature: one attack of the Attack action, at one in your reach no more than one size larger; your Athletics against its Athletics or Acrobatics, its
     // pick; won, it is knocked prone or pushed 5 ft away -- over an edge of 10 ft or more, it falls. 10-13, Griz: "2 yes", a hero's SHOVE; ai.js shoveOff)
     var shoveT = this.units.some(function (w) { return G.hostile(u, w) && G.standing(w) && !w.object && G.dist(u, w) <= G.reachOf(u) && Battle.sizeCat(w) <= Battle.sizeCat(u) + 1; });
+    // THROW (the grid's rules §2.21; SRD 5.1, the thrown property: "you can throw the weapon to make a ranged attack", 20/60 the handaxe and the dagger): a hand's throw of the
+    // thrown weapon it carries -- a class hero's two handaxes or daggers (js/classes.js `alt`), one of the count gone a throw (Battle.spendThrow). Before, only READY's pick threw it
+    var thW = Battle.throwable(u);
+    if (thW) { var thIn = this.units.some(function (w) { return G.hostile(u, w) && G.standing(w) && !w.ethereal && G.dist(u, w) <= thW.range[1] && G.los(u, w).clear; }), thN = Battle.thrownLeft(u, thW);
+      out.push({ id: 'throw', label: 'THROW ' + thW.name.toUpperCase().replace(/^THROWN /, ''), cost: 'A', icon: 'attack', ok: (T.action > 0 || T.attacksLeft > 0 || T.hasteAction > 0) && thIn, why: !thIn ? 'no foe within ' + thW.range[1] + ' ft in sight' : 'no attack left', tool: 'throw', note: 'one attack of the Attack action: a ranged attack, ' + thW.range[0] + ' ft, out to ' + thW.range[1] + ' at disadvantage -- ' + thN + (thN === 1 ? ' left' : ' left to throw') + ', none picked up' }); }
     if (shoveT) out.push({ id: 'shove', label: 'SHOVE', cost: 'A', ok: (T.action > 0 || T.attacksLeft > 0) && !u.conds.restrained, why: u.conds.restrained ? 'held fast' : 'no attack left', tool: 'shove', note: 'one attack of the Attack action: a foe in your reach, no more than one size larger, pushed 5 ft away (off an edge, it falls) or knocked prone -- your Athletics against its Athletics or Acrobatics' });
     // PULL IT OFF (SRD 5.1 Darkmantle: "A creature can detach the darkmantle by making a successful DC 13 Strength check as an action" -- any creature, not only
     // the one it rides; 10-01, Griz: "allies can strength check detach per SRD, I could only find the 'help' part"): a friend beside you with one riding on
@@ -1608,6 +1613,16 @@
         return;
       }
       case 'dodge': D.sfx('bump'); T.action = 0; u.conds.dodge = true; this.card(['{y}' + u.name + '{/} dodges: attacks against at disadvantage till the next turn.']); return;
+      case 'throw': { // (a hand's throw of its thrown weapon, one attack of the Attack action -- the grid's rules §2.21, 10-15)
+        var thw = Battle.throwable(u), tht = c.target; if (!thw || !tht || tht.dead || (tht.hp <= 0 && !tht.regenDown)) return;
+        if (RU.charmedBy(u, tht)) { this.card(['{o}' + u.name + ' is charmed: no raising a hand to ' + (tht.side === 'foe' ? Battle.nm(tht) : tht.name) + '.{/}'], 200); return; }
+        if (G.dist(u, tht) > thw.range[1] || !G.los(u, tht).clear) { this.card(['{o}Throw: a foe within ' + thw.range[1] + ' ft, in sight.{/}'], 160); return; }
+        if (!Battle.openAttack(u)) return;
+        T.attacksLeft--;
+        yield* this.attack(u, tht, thw);
+        if (u.conds.hidden) delete u.conds.hidden;
+        return;
+      }
       case 'shove': { // (the SRD's Shove, a hero's -- 10-13: the push, over an edge a fall, or prone; ai.js shoveOff rolls it)
         var sw = c.target; if (!sw || sw.dead || sw.hp <= 0 || !G.hostile(u, sw)) return;
         if (Battle.sizeCat(sw) > Battle.sizeCat(u) + 1 || G.dist(u, sw) > G.reachOf(u)) { this.card(['{o}Shove: a foe in your reach, no more than one size larger.{/}'], 160); return; }
@@ -3020,6 +3035,8 @@
     return Math.max(0, atk.count - ((u.thrown || {})[atk.name] || 0));
   };
   Battle.prototype.thrownLeft = function (u, atk) { return Battle.thrownLeft(u, atk); };
+  // the thrown weapon a unit carries to throw, with one left (the ring's THROW, 10-15): a class hero's `alt` handaxes or daggers
+  Battle.throwable = function (u) { var a = u && u.alt; return a && a.thrown && a.ranged && a.range && !(u.conds && u.conds.disarmed) && Battle.thrownLeft(u, a) > 0 ? a : null; };
   Battle.prototype.spendThrow = function (u, atk) {
     if (this.thrownLeft(u, atk) === Infinity) return;
     u.thrown = u.thrown || {}; u.thrown[atk.name] = (u.thrown[atk.name] || 0) + 1;

@@ -1249,14 +1249,21 @@
   // speed 60 where it was less (on its own turn the feet it gains at once, the SRD's change of speeds), and both back when the concentration ends; a fall then is battle.js
   // flyCheck's ("no wings"). The AI keeps to the surface: it does not cast it. Not built: a second creature from a 4th-level slot
   E.fly = {
-    summary: function () { return 'touch · a willing creature flies, 60 ft (Shift+wheel its height); it falls if still up when the spell ends (concentration)'; },
+    // (SRD 5.1: "one additional creature for each slot level above 3rd" -- the allies' pick, data/spells.js; one concentration holds them all, and each falls if still up when it ends.
+    // 10-15, the grid's rules §2.21; a lone creature as the target still takes it, as READY and the gallery hand it)
+    summary: function (e) { var n = 1 + Math.max(0, ((e && e.slot) || 3) - 3); return 'touch · ' + (n > 1 ? 'up to ' + n + ' willing creatures fly' : 'a willing creature flies') + ', 60 ft (Shift+wheel its height); one more a slot above 3rd; it falls if still up when the spell ends (concentration)'; },
     cast: function* (B, u, t, slot, head) {
-      if (t.conds.flying) { B.card([head + ': ' + t.name + ' flies already.']); yield 16; return; }
-      var rec = t.conds.flying = { by: u.id, flies0: !!t.flies, speed0: t.speed };
-      t.flies = true; if (t.speed < 60) { if (t.turn && B.active === t) t.turn.move += 60 - t.speed; rec.walk0 = t.walkSpeed; t.walkSpeed = t.speed; t.speed = 60; } // (walkSpeed: on the ground, prone, it crawls at its own -- rules.js RU.speedNow)
-      FX.ring(t, 'glow', 32); D.sfx('buff');
-      B.card([head + ' on ' + t.name + ': {c}it flies, 60 ft{/}  {g}(Shift+wheel or PgUp/PgDn its height while it moves; concentration){/}'], 260);
-      M.concentrate(B, u, 'fly', 'Fly', function () { if (t.conds.flying !== rec) return; delete t.conds.flying; t.flies = rec.flies0; t.speed = rec.speed0; t.walkSpeed = rec.walk0; if (t.turn && t.turn.move > t.speed) t.turn.move = t.speed; B.cache = null; if (B.flyCheck) B.flyCheck(); });
+      var who = (t && t.units ? t.units : [t]).filter(function (w, i, a) { return w && a.indexOf(w) === i; }), recs = [], had = [];
+      who.forEach(function (w) {
+        if (w.conds.flying) { had.push(w.name); return; }
+        var rec = w.conds.flying = { by: u.id, flies0: !!w.flies, speed0: w.speed };
+        w.flies = true; if (w.speed < 60) { if (w.turn && B.active === w) w.turn.move += 60 - w.speed; rec.walk0 = w.walkSpeed; w.walkSpeed = w.speed; w.speed = 60; } // (walkSpeed: on the ground, prone, it crawls at its own -- rules.js RU.speedNow)
+        FX.ring(w, 'glow', 32); recs.push({ w: w, rec: rec });
+      });
+      if (!recs.length) { B.card([head + ': ' + had.join(', ') + (had.length > 1 ? ' fly' : ' flies') + ' already.']); yield 16; return; }
+      D.sfx('buff');
+      B.card([head + ' on ' + recs.map(function (r) { return r.w.name; }).join(', ') + ': {c}' + (recs.length > 1 ? 'they fly' : 'it flies') + ', 60 ft{/}' + (had.length ? ' (' + had.join(', ') + ' already)' : '') + '  {g}(Shift+wheel or PgUp/PgDn its height while it moves; concentration){/}'], 260);
+      M.concentrate(B, u, 'fly', 'Fly', function () { recs.forEach(function (r) { var w = r.w, rec = r.rec; if (w.conds.flying !== rec) return; delete w.conds.flying; w.flies = rec.flies0; w.speed = rec.speed0; w.walkSpeed = rec.walk0; if (w.turn && w.turn.move > w.speed) w.turn.move = w.speed; }); B.cache = null; if (B.flyCheck) B.flyCheck(); });
       yield 24;
     },
     ai: function () { return null; }

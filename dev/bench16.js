@@ -2848,6 +2848,24 @@
       var c0 = dr4.climbs || 0; run15(D.features.wildShape(B4, dr4, 'wolfspider')); var c1 = dr4.climbs, cl1 = dr4.turn.climbLeft;
       D.features.unshape(B4, dr4, 0, true); var c2 = dr4.climbs || 0;
       ok15('§2.18 a druid as a wolf spider: climb ' + c0 + ' to ' + c1 + ', this turn\'s climb ' + cl1 + ', back in its own shape ' + c2 + ' (want 0, 40, 40, 0)', c0 === 0 && c1 === 40 && cl1 === 40 && c2 === 0);
+      // §2.21 FLIGHT'S SMALL ONES: Fly takes one creature more a slot above 3rd (SRD 5.1); a familiar that flies walks at its own speed when it cannot; a hand's THROW on the ring
+      var B5 = mk15('?npc=goblin&lvl=9&vs=wizard:9,fighter:9,cleric:9&spells=fly&fam=owl'), wz5 = side15(B5, 'party').filter(function (w) { return w.cls === 'wizard'; })[0], fi5 = side15(B5, 'party').filter(function (w) { return w.cls === 'fighter'; })[0], cl5 = side15(B5, 'party').filter(function (w) { return w.cls === 'cleric'; })[0];
+      var o5 = open15(4, 3); fi5.x = o5[0]; fi5.y = o5[1]; wz5.x = o5[0] + 1; wz5.y = o5[1]; cl5.x = o5[0] + 2; cl5.y = o5[1]; D.rules.startTurn(wz5); B5.active = wz5; wz5.slots[3] = Math.max(wz5.slots[3] || 0, 1);
+      var eF = M15.list(B5, wz5).filter(function (e) { return e.id === 'fly'; })[0], g5 = M15.geo('fly'), n4 = (g5.n || 1) + Math.max(0, 4 - 3), n3 = (g5.n || 1);
+      run15(M15.cast(B5, wz5, 'fly', 4, { units: [fi5, cl5] }));
+      var both = !!(fi5.conds.flying && cl5.conds.flying && fi5.flies && cl5.flies && fi5.speed === 60 && cl5.speed === 60);
+      if (M15.endConc) M15.endConc(B5, wz5, 'bench'); else if (wz5.conc && wz5.conc.end) wz5.conc.end();
+      var gone = !fi5.conds.flying && !cl5.conds.flying && fi5.speed === 30 && cl5.speed === 30;
+      ok15('§2.21 Fly from a 4th-level slot: picks ' + n3 + ' at 3rd, ' + n4 + ' at 4th; on the fighter and the cleric both: flying ' + both + '; its end lands both ' + gone + ' (want 1, 2, true, true; listed ' + !!eF + ')', n3 === 1 && n4 === 2 && both && gone && !!eF);
+      var ow5 = B5.units.filter(function (w) { return w.familiar; })[0];
+      var sp0 = ow5 ? D.rules.speedNow(ow5) : null; if (ow5) ow5.conds.prone = true; var sp1 = ow5 ? D.rules.speedNow(ow5) : null; if (ow5) delete ow5.conds.prone;
+      ok15('§2.21 the owl familiar: speed ' + sp0 + ' on the wing, ' + sp1 + ' grounded, prone (want 60, 5)', sp0 === 60 && sp1 === 5);
+      var B6 = mk15('?npc=goblin&lvl=5&vs=fighter:5'), g6 = kind15(B6, 'goblin'), f6 = side15(B6, 'party')[0], o6 = open15(6, 2);
+      f6.x = o6[0]; f6.y = o6[1]; g6.x = o6[0] + 4; g6.y = o6[1]; g6.hp = g6.maxhp = 200; D.rules.startTurn(f6); B6.active = f6;
+      var thC = (B6.commands(f6) || []).filter(function (c) { return c.id === 'throw'; })[0], left0 = D.Battle.thrownLeft(f6, f6.alt), n6 = (B6.log || []).length;
+      run15(B6.exec(f6, { do: 'throw', target: g6 }));
+      var left1 = f6.alt ? D.Battle.thrownLeft(f6, f6.alt) : 0, l6 = log15(B6, n6);
+      ok15('§2.21 a hand\'s THROW: on the ring ' + !!(thC && thC.ok) + ' (' + (thC ? thC.label : 'none') + '), 20 ft at the goblin: ' + left0 + ' to ' + left1 + ' left, a throw on the log ' + /Handaxe/i.test(l6) + ' (want true, 2 to 1)', !!(thC && thC.ok) && left0 === 2 && left1 === 1 && /Handaxe/i.test(l6));
     } catch (e15) { rep15.errors.push(String(e15 && e15.stack || e15).slice(0, 900)); D.d = d015; }
     if (errs.length) rep15.errors = rep15.errors.concat(errs);
     var pre15 = document.createElement('pre'); pre15.id = 'out'; pre15.textContent = 'BENCH16 ' + JSON.stringify(rep15);

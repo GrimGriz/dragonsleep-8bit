@@ -49,7 +49,8 @@
     var u = B.makeFoe({ id: 'familiar', kind: 'fam_' + fl.kind });
     u.side = 'party'; u.guest = true; u.familiar = master.id; u.name = master.name + '\'s ' + d.name;
     u.hp = Math.max(1, Math.min(d.hp, fl.hp == null ? d.hp : fl.hp)); u.maxhp = d.hp;
-    u.flies = !!d.fly; u.flyby = !!d.flyby; u.help = d.help || 'order'; u.drawScale = d.scale || 1; u.lvl = 0; u.cls = null; u.known = []; u.slots = [];
+    u.flies = !!d.fly; if (d.fly && d.speed != null && d.speed < d.fly) u.walkSpeed = d.speed; // (its walk when it cannot fly -- the owl's 5, the bat's 5, prone or held: rules.js RU.speedNow; the grid's rules §2.21, 10-15)
+    u.flyby = !!d.flyby; u.help = d.help || 'order'; u.drawScale = d.scale || 1; u.lvl = 0; u.cls = null; u.known = []; u.slots = [];
     u.lift = d.fly && !d.flyby ? 12 : 0; // (the bat stand-in's sheet walks on the ground: out on the field it is drawn up in the air, ui.js)
     if (d.darkvision) u.darkvision = d.darkvision;
     if (d.blindsight) u.blindsight = d.blindsight;

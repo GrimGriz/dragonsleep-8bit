@@ -135,7 +135,7 @@
   dispelmagic: { shape: 'single', range: 120, time: 'A', effects: true, obj: true }, // (obj: "one creature, object, or magical effect within range") // (effects: an empty square of a spell's area is a target too -- js/grimoire.js M.effectsAt, 10-02)
   fear: { shape: 'cone', len: 30, time: 'A', conc: true },
   haste: { see: true, shape: 'single', side: 'ally', range: 30, time: 'A', conc: true, self: true },
-  fly: { shape: 'touch', side: 'ally', time: 'A', conc: true },                    // (flight at a height, 10-08: a willing creature you touch flies 60 ft -- js/grimoire.js E.fly)
+  fly: { shape: 'allies', side: 'ally', range: 5, n: 1, time: 'A', conc: true },  // (one creature more a slot above 3rd, SRD 5.1 -- the allies' pick: the grid's rules §2.21, 10-15)                    // (flight at a height, 10-08: a willing creature you touch flies 60 ft -- js/grimoire.js E.fly)
   hypnoticpattern: { shape: 'cube', range: 120, size: 30, time: 'A', conc: true },
   masshealingword: { see: true, shape: 'allies', range: 60, n: 6, time: 'B' },
   protectionfromenergy: { shape: 'touch', side: 'ally', time: 'A', conc: true },

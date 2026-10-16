@@ -702,7 +702,7 @@
       B.list = { kind: c.sub, items: items, sel: first, back: back || null }; B.ringB = null;
       return;
     }
-    if (c.tool) { B.tool = c.tool; B.clearCards(); if (c.tool === 'shove') B.card(['{g}SHOVE: a foe in your reach, no more than one size larger -- pushed 5 ft away (off an edge, it falls) or knocked prone.{/}'], 200); if (c.tool === 'help') B.card(['{g}HELP: a foe beside you -- the next ally to swing at it has advantage; or a friend beside you -- shake a sleeper awake, or a hand out of a web or a grip.{/}'], 200); if (c.tool === 'torch') B.card([D.keys('{g}THROW TORCH: a square within 20 ft you can see. It lands and burns there.  X back{/}')], 100000); if (c.tool === 'detach') B.card([D.keys('{g}PULL IT OFF: click the friend it rides -- a STR check, an action.  X back{/}')], 100000); if (c.tool === 'breaktendril') B.card([D.keys('{g}BREAK THE TENDRIL: click the one it holds -- yourself, or a friend beside you -- a STR check, an action.  X back{/}')], 100000); return; }
+    if (c.tool) { B.tool = c.tool; B.clearCards(); if (c.tool === 'shove') B.card(['{g}SHOVE: a foe in your reach, no more than one size larger -- pushed 5 ft away (off an edge, it falls) or knocked prone.{/}'], 200); if (c.tool === 'throw') { var thK = D.Battle.throwable(u); if (thK) B.card([D.keys('{g}THROW: a foe in sight within ' + thK.range[1] + ' ft (past ' + thK.range[0] + ', at disadvantage) -- ' + D.Battle.thrownLeft(u, thK) + ' left.  X back{/}')], 100000); } if (c.tool === 'help') B.card(['{g}HELP: a foe beside you -- the next ally to swing at it has advantage; or a friend beside you -- shake a sleeper awake, or a hand out of a web or a grip.{/}'], 200); if (c.tool === 'torch') B.card([D.keys('{g}THROW TORCH: a square within 20 ft you can see. It lands and burns there.  X back{/}')], 100000); if (c.tool === 'detach') B.card([D.keys('{g}PULL IT OFF: click the friend it rides -- a STR check, an action.  X back{/}')], 100000); if (c.tool === 'breaktendril') B.card([D.keys('{g}BREAK THE TENDRIL: click the one it holds -- yourself, or a friend beside you -- a STR check, an action.  X back{/}')], 100000); return; }
     UI.command(B, u, { do: c.id });
   }
   function levelRing(B, u) {
@@ -806,6 +806,7 @@
       return 'no';
     }
     if (tool === 'rope') return D.Battle.ropeSq(B, u, x, y) ? 'ok' : 'no';
+    if (tool === 'throw') { var thV = D.Battle.throwable(u); return foe && thV && G.standing(foe) && G.dist(u, foe) <= thV.range[1] && G.los(u, foe).clear && !D.rules.charmedBy(u, foe) ? 'ok' : 'no'; } // (the ring's THROW: a foe in its long range, in sight -- 10-15)
     if (tool === 'shove') return foe && G.standing(foe) && !foe.object && G.dist(u, foe) <= G.reachOf(u) && D.Battle.sizeCat(foe) <= D.Battle.sizeCat(u) + 1 ? 'ok' : 'no'; // (the SRD's Shove: 10-13)
     if (tool === 'help') return (foe && G.dist(u, foe) <= 5) || D.Battle.helpable(u, w) ? 'ok' : 'no'; // (a friend beside you who needs a hand, too: 10-01c)
     if (tool === 'lay') return w && w.side === u.side && !w.dead && (w === u || G.dist(u, w) <= 5) ? 'ok' : 'no';
@@ -999,6 +1000,7 @@
       return;
     }
     if (tool === 'rope') { if (v === 'ok') return UI.command(B, u, { do: 'rope', x: x, y: y }); return B.card(['{o}The top of a face: from beside it up there, or from below within the rope\'s 50 ft and in sight.{/}'], 140); }
+    if (tool === 'throw') { if (v === 'ok') return UI.command(B, u, { do: 'throw', target: foe }); var thC = D.Battle.throwable(u); return B.card(['{o}Throw: a foe within ' + (thC ? thC.range[1] : 60) + ' ft, in sight.{/}'], 120); }
     if (tool === 'shove') { if (v === 'ok') return UI.command(B, u, { do: 'shove', target: foe }); return B.card(['{o}Shove: a foe in your reach, no more than one size larger.{/}'], 120); }
     if (tool === 'help') { if (v === 'ok') return UI.command(B, u, { do: 'help', target: foe || w }); return B.card(['{o}Help: a foe beside you, or a friend beside you asleep or held fast.{/}'], 120); }
     if (tool === 'lay') { if (v === 'ok') return UI.command(B, u, { do: 'lay', target: w }); return B.card(['{o}Lay on Hands is touch: yourself or an ally beside you.{/}'], 120); }
@@ -2039,6 +2041,7 @@
         }
       }
     }
+    if (tool === 'throw') { var thD = D.Battle.throwable(u); if (thD) B.units.forEach(function (w) { if (G.hostile(u, w) && G.standing(w) && !w.ethereal && G.dist(u, w) <= thD.range[1] && G.los(u, w).clear) G.foot(w).forEach(function (q) { lineSq(ctx, q[0], q[1], G.dist(u, w) <= thD.range[0] ? R('fire', 3) : R('gold', 2), 0.9); }); }); } // (a foe in its reach: red, gold at long range)
     if (tool === 'shove') B.units.forEach(function (w) { if (G.hostile(u, w) && G.standing(w) && !w.object && G.dist(u, w) <= G.reachOf(u) && D.Battle.sizeCat(w) <= D.Battle.sizeCat(u) + 1) G.foot(w).forEach(function (q) { lineSq(ctx, q[0], q[1], D.Battle.knockSq(u, w) ? R('fire', 3) : R('bone', 2), 0.9); }); }); // (one at an edge: fire-orange)
     if (tool === 'help') B.units.forEach(function (w) { if ((G.hostile(u, w) && G.standing(w) && G.dist(u, w) <= 5) || D.Battle.helpable(u, w)) G.foot(w).forEach(function (q) { lineSq(ctx, q[0], q[1], G.hostile(u, w) ? R('bone', 2) : R('moss', 3), 0.9); }); }); // (a friend to help: green)
     if (tool === 'detach') D.Battle.pullable(u, B.units).forEach(function (r) { lineSq(ctx, r.master.x, r.master.y, R('moss', 3), 0.9); });
