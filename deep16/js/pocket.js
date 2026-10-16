@@ -956,7 +956,7 @@
       if (ats.length) {
         var xA = 30 + D.text(ctx, '{y}ABILITY INCREASES{/}', 30, y + 96, P('bone', 1)) + 8;
         ats.forEach(function (at) {
-          var g = h.asiAt[at], lab = 'L' + at + ' ' + (Object.keys(g).map(function (k) { return k.toUpperCase() + '+' + g[k]; }).join(' ') || '--'), bw2 = D.textWidth(lab) + 12;
+          var g = h.asiAt[at], lab = 'L' + at + ' ' + (Object.keys(g).map(function (k) { return k === 'feat' ? ((window.DS.R.FEATS || {})[g.feat] || { name: 'a feat' }).name.toUpperCase() : k.toUpperCase() + '+' + g[k]; }).join(' ') || '--'), bw2 = D.textWidth(lab) + 12;
           self.btn(ctx, lab, xA, y + 93, bw2, 13, function () { self.askMakerAsi(at); }, { small: true, on: !!(m.picks && m.picks[at]) });
           xA += bw2 + 6;
         });

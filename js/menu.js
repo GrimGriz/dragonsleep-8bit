@@ -496,13 +496,14 @@
   var PICK_WORD = { asi: 'SCORES', cantrip: 'CANTRIP', expertise: 'EXPERTISE', archetype: 'ARCHETYPE' };
   function pickNeedWord(g) {
     var a = g.ask, n = g.need;
-    if (a.kind === 'asi') return 'ABILITY SCORES: +2 to one, or +1 to two';
+    if (a.kind === 'asi') return 'ABILITY SCORES: +2 to one, +1 to two, or a feat';
     if (a.kind === 'spells') return (n === 1 ? 'A SPELL' : n === 2 ? 'TWO SPELLS' : n + ' SPELLS') + ' FOR THE BOOK';
     if (a.kind === 'cantrip') return n === 1 ? 'A CANTRIP' : n + ' CANTRIPS';
     if (a.kind === 'expertise') return 'EXPERTISE: ' + (n === 2 ? 'two skills' : n + ' skills') + ', proficiency twice over';
     return 'THE ARCHETYPE';
   }
-  function marksOf(g) { var n = 0; Object.keys(g.marks).forEach(function (k) { n += g.marks[k]; }); return n; }
+  function markWorth(id, n) { return /^feat:/.test(id) ? 2 * n : n; } // (a feat is the whole increase: both marks -- 10-15)
+  function marksOf(g) { var n = 0; Object.keys(g.marks).forEach(function (k) { n += markWorth(k, g.marks[k]); }); return n; }
   function PickPage(m, h, rec, o, next) {
     var R0 = R(), self = this;
     this.m = m; this.h = h; this.rec = rec; this.o = o || {}; this.next = next; this.list = new List({ visible: 10 });
@@ -534,7 +535,8 @@
     if (g) g.rows.forEach(function (r) {
       if (t.lv != null && r.lv !== t.lv) return;
       var n = g.marks[r.id] || 0, it = { value: r, label: fit(r.name, 140), pre: n ? '◆' : null, disabled: !!r.off, desc: r.desc || '' };
-      if (g.ask.kind === 'asi') { it.right = r.score + (n ? ' -> ' + (r.score + n) : ''); it.rightColor = n ? C.gold : C.pale; it.desc = r.off ? '' : r.name + ' ' + r.score + (n ? ' -> ' + (r.score + n) : '') + ' (' + sgn(mod(r.score + n)) + ').'; }
+      if (g.ask.kind === 'asi' && r.feat) { it.right = r.off ? r.off : n ? 'taken' : 'feat'; it.rightColor = n ? C.gold : r.off ? C.dim : C.magic; it.color = r.off ? C.dim : C.magic; it.desc = r.desc; } // (a feat in place of the increase: 10-15)
+      else if (g.ask.kind === 'asi') { it.right = r.score + (n ? ' -> ' + (r.score + n) : ''); it.rightColor = n ? C.gold : C.pale; it.desc = r.off ? '' : r.name + ' ' + r.score + (n ? ' -> ' + (r.score + n) : '') + ' (' + sgn(mod(r.score + n)) + ').'; }
       else if (r.lv != null && (g.ask.kind === 'spells' || g.ask.kind === 'cantrip')) {
         var sp = spell(r.id), cat = sp ? spellCat(sp) : 'battle';
         it.color = r.off ? C.dim : CAT[cat].c; it.right = r.off ? 'not built' : r.tag === 'grid' ? 'grid' : CAT[cat].w; it.rightColor = r.off ? C.dim : CAT[cat].c; // (coloured as MAGIC colours them)
@@ -553,6 +555,8 @@
     return k > 0 ? k + ' more' : 'one too many';
   };
   PickPage.prototype.toggle = function (r, g) {
+    if (r.feat) { if (g.marks[r.id]) { delete g.marks[r.id]; sfx('cancel'); } else { g.marks = {}; g.marks[r.id] = 1; sfx('cursor'); } this.refresh(); return; } // (a feat: the whole increase, the scores' marks let go)
+    if (g.ask.kind === 'asi' && Object.keys(g.marks).some(function (k) { return /^feat:/.test(k); })) Object.keys(g.marks).forEach(function (k) { if (/^feat:/.test(k)) delete g.marks[k]; }); // (a score marked over a feat: the feat let go)
     var n = g.marks[r.id] || 0, total = marksOf(g);
     if (n < r.max && total < g.need) { g.marks[r.id] = n + 1; sfx('cursor'); }
     else if (n > 0) { delete g.marks[r.id]; sfx('cancel'); }
@@ -564,7 +568,7 @@
     var ch = {};
     this.groups.forEach(function (g) {
       var ids = Object.keys(g.marks).filter(function (k) { return g.marks[k] > 0; });
-      if (g.ask.kind === 'asi') { var a = {}; ids.forEach(function (k) { a[k] = g.marks[k]; }); ch.asi = a; }
+      if (g.ask.kind === 'asi') { var a = {}; ids.forEach(function (k) { if (/^feat:/.test(k)) a.feat = k.slice(5); else a[k] = g.marks[k]; }); ch.asi = a; }
       else if (g.ask.kind === 'archetype') ch.archetype = ids[0];
       else ch[g.ask.kind] = g.rows.filter(function (r) { return g.marks[r.id]; }).map(function (r) { return r.id; }); // (in the list's order)
     });
@@ -592,7 +596,7 @@
     if (spr) ctx.drawImage(spr, 232, 4, Math.min(16, spr.width), Math.min(24, spr.height));
     text(ctx, h.name, 10, 9, C.gold); text(ctx, clsName(h) + ' ' + this.rec.lvl + ' -- LEVEL UP', 12 + DS.textWidth(h.name) + 6, 9, C.pale);
     drawTabs(ctx, this.tabs.map(function (tb) {
-      var n = 0; tb.g.rows.forEach(function (r) { if (tb.lv == null || r.lv === tb.lv) n += tb.g.marks[r.id] || 0; });
+      var n = 0; tb.g.rows.forEach(function (r) { if (tb.lv == null || r.lv === tb.lv) n += markWorth(r.id, tb.g.marks[r.id] || 0); });
       return { label: tb.label, count: n || null };
     }), this.tab, 8, 22, Math.min(240, this.tabs.length * 60));
     if (g) { text(ctx, fit(pickNeedWord(g), 186), 10, 38, C.pale); right(ctx, marksOf(g) + ' of ' + g.need, 246, 38, marksOf(g) === g.need ? C.green : C.gold); }

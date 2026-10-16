@@ -292,11 +292,12 @@
     // (spec.asis: the Pocket DM's own character -- the scores typed in are its level-1 numbers, and the ASIs come with the level, 10-02)
     // (the player's own at a level -- spec.picks[at].asi, the Pocket DM's maker and its cards, 10-14 -- in place of the class's first; each level's increase
     // kept on the sheet, h.asiAt, for the pick page's default)
-    var asiAt = {};
+    var asiAt = {}, featsW = [];
     (spec.abil ? (spec.away ? (c.asiAt || [4, 8]).filter(function (at) { return at > spec.away; }) : spec.asis ? (c.asiAt || [4, 8]) : []) : c.asiAt || [4, 8]).forEach(function (at) {
       if (lvl < at) return;
       var mine = spec.picks && spec.picks[at] && spec.picks[at].asi, got = {};
-      if (mine) Object.keys(mine).forEach(function (k) { if (abil[k] == null) return; var g = Math.max(0, Math.min(20 - abil[k], mine[k])); if (g > 0) { abil[k] += g; got[k] = g; } });
+      if (mine && mine.feat) { if (R.FEATS && R.FEATS[mine.feat] && featsW.indexOf(mine.feat) < 0) { featsW.push(mine.feat); got.feat = mine.feat; } } // (a feat in place of the increase -- js/rules.js R.FEATS, 10-15)
+      else if (mine) Object.keys(mine).forEach(function (k) { if (abil[k] == null) return; var g = Math.max(0, Math.min(20 - abil[k], mine[k])); if (g > 0) { abil[k] += g; got[k] = g; } });
       else { var left = 2; c.prio.forEach(function (k) { var room = 20 - abil[k], g = Math.min(room, left); if (g > 0) { abil[k] += g; left -= g; got[k] = g; } }); }
       asiAt[at] = got;
     });
@@ -317,6 +318,7 @@
       land: spec.land || (cls === 'druid' ? 'underdark' : null), // (a druid's circle land: the generic druid's is the Pit's Underdark, 09-29)
       lupine: !!spec.lupine, // (GreyFang's people, 10-08: NPC.unit gives the senses)
       asiAt: asiAt, // (each level's ability increase as it was taken: the Pocket DM's pick page marks it, 10-14)
+      featIds: featsW.length ? featsW.slice() : undefined, // (the feats a word's picks took: R.hasFeat, 10-15)
       script: spec.script || null // (a named one's own turn: js/pyro.js)
     };
     if (spec.loot) NPC.wear(h, spec.loot); // (the Pocket DM's winnings: `+item` on the word, worn where the class may -- 10-02)

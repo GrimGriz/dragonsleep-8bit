@@ -4459,6 +4459,63 @@
     document.body.appendChild(preOp);
     return;
   }
+  // the feats on the level-up pick (mode=feats1015; RULED 10-15 -- his Symmetric Fighting, "Weapon in the OFFHAND can be used with TWO WEAPON FIGHTING if it is the same weapon type
+  // as the main hand and char STR is 17 or higher"; the desk's leans (a)-(d), his "2 - correct, two magical maces not otherwise considered a pair as well"): the SCORES tab offers it in
+  // place of the increase, wanting STR 17 on the scores before it; marked, it is the whole increase (CONFIRM ready, the word '^4a:fsymmetric'), taken back the scores return; and the
+  // swing: a pair by the base weapon (two longswords, a mace and a Mace of Disruption) with the feat and STR 17 -- not at STR 16, not a longsword and a dagger, never a greatsword pair
+  if (get('mode', '') === 'feats1015') {
+    var repFt = { checks: [], errors: [] }, RF = window.DS.R;
+    function okFt(what, v) { repFt.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function runFt(g) { var v, k = 0, st; while (g && k++ < 4000) { st = g.next(v); v = undefined; if (st.done) return; if (st.value && st.value.prompt) v = st.value.prompt.opts[0].value; } }
+    try {
+      var hF = RF.makeHero('barley', 4); RF.settlePicks(hF, null);
+      var recA = function (took) { return { lvl: 4, asks: [{ kind: 'asi', need: 2, took: took }] }; };
+      hF.abil.str = 18; var rows16 = RF.pickRows(hF, recA({ str: 2 }), recA({ str: 2 }).asks[0]), sy16 = rows16.filter(function (r) { return r.feat === 'symmetric'; })[0];
+      hF.abil.str = 17; hF.abil.con = 16; var rec17 = recA({ con: 2 }), rows17 = RF.pickRows(hF, rec17, rec17.asks[0]), sy17 = rows17.filter(function (r) { return r.feat === 'symmetric'; })[0];
+      okFt('the SCORES tab: SYMMETRIC FIGHTING (FEAT) at STR 16 before the increase "' + (sy16 && sy16.off) + '"; at 17 ' + (sy17 && !sy17.off ? 'offered' : sy17 && sy17.off) + ', worth ' + (sy17 && sy17.worth),
+        sy16 && sy16.off === 'wants STR 17' && sy17 && !sy17.off && sy17.worth === 2 && /SYMMETRIC FIGHTING/.test(sy17.name));
+      // the page: marked, the whole increase; CONFIRM applies it
+      hF.picks = [rec17]; RF.pendSync(hF); var doneFt = false, pmF = window.DS.MENU.openPicks({ party: function () { return [hF]; }, close: function () { } }, [hF], {}, function () { doneFt = true; }), pgF = pmF && pmF.top();
+      var gF = pgF && pgF.groups[0], rowF = gF && gF.rows.filter(function (r) { return r.feat === 'symmetric'; })[0];
+      if (rowF) pgF.toggle(rowF, gF); var chF = pgF ? pgF.choice() : null, readyF = pgF && pgF.ready();
+      var KF = function (b) { return { pressed: function (x) { return x === b; }, repeat: function (x) { return x === b; } }; };
+      if (pgF && readyF) { pgF.list.i = 0; pgF.list.fix(); pmF.update(KF('a')); if (pmF.toast) pmF.update(KF('a')); }
+      okFt('marked: ' + JSON.stringify(gF && gF.marks) + ', CONFIRM ready ' + readyF + ', the choice ' + JSON.stringify(chF) + '; applied: feats ' + JSON.stringify(hF.featIds) + ', CON ' + hF.abil.con + ' (16 before the +2 let go: 14)',
+        !!rowF && readyF && chF && chF.asi && chF.asi.feat === 'symmetric' && (hF.featIds || []).indexOf('symmetric') >= 0 && hF.abil.con === 14);
+      var wd = RF.picksWord({ 4: { asi: { feat: 'symmetric' } } }), back = RF.picksParse(wd);
+      okFt('the word: ' + wd.join(' ') + ', read back ' + JSON.stringify(back), wd.join() === '^4a:fsymmetric' && back && back[4] && back[4].asi && back[4].asi.feat === 'symmetric');
+      RF.applyPick(hF, { lvl: 4, asks: [{ kind: 'asi', need: 0, took: { feat: 'symmetric' } }] }, { asi: { con: 2 } });
+      okFt('taken back for CON +2: feats ' + JSON.stringify(hF.featIds || []) + ', CON ' + hF.abil.con, (hF.featIds || []).indexOf('symmetric') < 0 && hF.abil.con === 16);
+      // the swing: a pair with the feat and STR 17
+      var pair = function (str, w, o, feat) { var s0 = { abil: { str: str, dex: 12, con: 14, int: 10, wis: 10, cha: 10 }, equip: { weapon: w, offhand: o }, featIds: feat ? ['symmetric'] : [] }; return RF.twoWeapon(s0); };
+      var p1 = pair(17, 'longsword', 'longsword', true), p2 = pair(16, 'longsword', 'longsword', true), p3 = pair(17, 'mace', 'macedisruption', true), p4 = pair(17, 'longsword', 'dagger', true), p5 = pair(17, 'greatsword', 'greatsword', true), p6 = pair(17, 'longsword', 'longsword', false);
+      okFt('two longswords, the feat, STR 17: ' + p1.ok + ' (' + p1.by + '); STR 16: ' + p2.ok + ' (' + p2.why + '); a mace and the Mace of Disruption: ' + p3.ok + '; a longsword and a dagger: ' + p4.ok + ' (' + p4.why + '); two greatswords: ' + p5.ok + '; two longswords without the feat: ' + p6.ok,
+        p1.ok && p1.by === 'symmetric' && !p2.ok && /STR 17/.test(p2.why) && p3.ok && !p4.ok && !p5.ok && !p6.ok);
+      // on the grid: OFF HAND for the pair after the Attack; the style and the feat together keep STR on it
+      var Bf = D.npcFight('?npc=goblin&lvl=5&vs=fighter:5', {}); D.battle = Bf; Bf.enter(); while (!Bf.order.length) Bf.co.next(); Bf.dark = false;
+      var fF = Bf.units.filter(function (w) { return w.side === 'party'; })[0], gbF = Bf.units.filter(function (w) { return w.side === 'foe'; })[0]; gbF.hp = gbF.maxhp = 500; fF.guest = false;
+      fF.src.abil.str = 17; fF.src.featIds = ['symmetric']; fF.src.equip.weapon = 'longsword'; fF.src.equip.offhand = 'longsword'; fF.src.equip.shield = null; fF.src.style = 'twf';
+      fF.weapon = D.save.weaponOf(fF.src); fF.offhand = D.save.offhandOf(fF.src);
+      for (var dy = -1; dy <= 1; dy++) for (var dx = -1; dx <= 1; dx++) if ((dx || dy) && D.grid.canStand(fF, gbF.x + dx, gbF.y + dy) && !(fF.x === gbF.x + dx && fF.y === gbF.y + dy)) { fF.x = gbF.x + dx; fF.y = gbF.y + dy; dx = dy = 2; }
+      D.rules.startTurn(fF); Bf.active = fF; Bf.req = { turn: fF }; Bf.answer = function () { this.req = null; };
+      var caughtF = [], atF = Bf.attack; Bf.attack = function* (a, t, atk) { caughtF.push(atk); if (a.turn) a.turn.attacked = (a.turn.attacked || 0) + 1; };
+      runFt(Bf.exec(fF, { do: 'attack', target: gbF })); var oF = Bf.commands(fF).filter(function (c) { return c.id === 'offhand'; })[0];
+      runFt(Bf.exec(fF, { do: 'offhand', target: gbF })); var swF = caughtF[caughtF.length - 1]; Bf.attack = atF;
+      okFt('on the grid, two longswords, the feat and the style: OFF HAND ' + (oF && oF.ok) + ' (' + (oF && oF.note) + '); swung the ' + (swF && swF.name) + ' ' + (swF && swF.dice) + D.rules.sign(swF ? swF.mod : 0) + ' (STR ' + D.rules.sign(D.mod(17)) + ' kept by the style; the longsword one-handed beside it ' + (fF.weapon && fF.weapon.dice) + ')',
+        oF && oF.ok && swF && swF.offhandSwing && swF.name === 'Longsword' && swF.mod === D.mod(17) && fF.weapon.dice === '1d8');
+      // the door's word (eyes-symmetric-1015): a fighter at 5, STR 17, two longswords, the feat at 4 in its picks
+      var wF = '~fighter.5.human.17-12-14-10-10-10.longsword_chainmail________longsword.Twin_Swords+^4a:fsymmetric', shF = D.npc.sheet ? D.npc.sheet(D.npc.spec(wF)) : null;
+      okFt('the door’s word: STR ' + (shF && shF.abil.str) + ', feats ' + JSON.stringify(shF && shF.featIds) + ', ' + (shF && shF.equip.weapon) + ' and ' + (shF && shF.equip.offhand) + ', a pair ' + (shF && RF.twoWeapon(shF).ok),
+        !!shF && shF.abil.str === 17 && (shF.featIds || []).indexOf('symmetric') >= 0 && shF.equip.offhand === 'longsword' && RF.twoWeapon(shF).ok);
+      // Pyro: no feat, his maces his script's (twf1015 holds the rest)
+      var pyF = JSON.parse(JSON.stringify(window.DS.DATA.heroes.pyro));
+      okFt('Pyro (no feat): his mace and Mace of Disruption a pair? ' + RF.twoWeapon(pyF).ok, !RF.twoWeapon(pyF).ok);
+    } catch (eFt) { repFt.errors.push(String(eFt && eFt.stack || eFt).slice(0, 900)); }
+    if (errs.length) repFt.errors = repFt.errors.concat(errs);
+    var preFt = document.createElement('pre'); preFt.id = 'out'; preFt.textContent = 'BENCH16 ' + JSON.stringify(repFt);
+    document.body.appendChild(preFt);
+    return;
+  }
   // two-weapon fighting on the grid (mode=twf1015; RULED 10-15, Griz: "5 - we're gonna have to do a dual-wield"; SRD 5.1 srd/08-combat.md): a shortsword and a dagger -- OFF HAND on the
   // ring beside the Attack, greyed till the Attack action is taken, then the bonus action at a foe in reach, its damage without the ability modifier (the style puts it back, a
   // negative one stays); a longsword and a dagger offer nothing (not light), nor a two-handed weapon; a thrown light weapon goes at a foe 20 ft off and leaves the hand; RING2 puts

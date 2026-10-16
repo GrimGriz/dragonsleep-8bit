@@ -315,6 +315,14 @@
   // the class's ability score improvement levels (SRD 5.1: 4, 8, 12, 16, 19; the fighter's 6 and 14 too, the rogue's 10). A hero's own sheet names its
   // own at its levels (content/heroes.json `asi`); one whose sheet names none at a level takes the class's increase there (R.CLASSES[c].asi), the default
   R.ASI_AT = { fighter: [4, 6, 8, 12, 14, 16, 19], rogue: [4, 8, 10, 12, 16, 19], _: [4, 8, 12, 16, 19] };
+  // FEATS, taken in place of an ability score increase (SRD 5.1, Feats: "Using the optional feats rule, you can forgo taking that feature to take a feat of your choice instead.
+  // You can take each feat only once ... If you ever lose a feat's prerequisite, you can't use that feat until you regain the prerequisite"; RULED 10-15 on the desk's lean (a), his
+  // own feat on the level-up pick, both games -- the 10-14 "ASI as the SRD has it with no feat row" lifted for these). The pick's SCORES tab offers them, each worth the
+  // whole increase; taken, the sheet's `featIds` holds it (R.hasFeat). The class NPCs' builds and the Pocket DM's keep their increases (lean (d))
+  R.FEATS = {
+    symmetric: { name: 'Symmetric Fighting', str: 17, desc: 'Weapon in the OFFHAND can be used with TWO WEAPON FIGHTING if it is the same weapon type as the main hand and char STR is 17 or higher. (A pair by the base weapon, magic or not; never a two-handed one.)' } // (his words, 10-15)
+  };
+  R.featIds = function () { return Object.keys(R.FEATS); };
   R.asiLevels = function (cls) { return R.ASI_AT[cls] || R.ASI_AT._; };
   // the picks in a word (the Pocket DM's cards carry a hero's picks into the fight's URL, 10-14): '+^' + level + a letter for the kind + ':' + the values --
   // '^6a:con2', '^4s:shatter-blur', '^4c:light', '^6e:Insight-Sleight_of_Hand', '^3r:Cutthroat' (a space as _)
@@ -325,7 +333,8 @@
       var ch = picks[L] || {};
       Object.keys(PICK_L).forEach(function (k) {
         var v = ch[k]; if (v == null) return;
-        var s = k === 'asi' ? Object.keys(v).filter(function (x) { return v[x] > 0; }).map(function (x) { return x + v[x]; }).join('-') : k === 'archetype' ? String(v).replace(/ /g, '_') : v.map(function (x) { return String(x).replace(/ /g, '_'); }).join('-');
+        var s = k === 'asi' ? Object.keys(v).filter(function (x) { return x === 'feat' ? !!v.feat : v[x] > 0; }).map(function (x) { return x === 'feat' ? 'f' + v.feat : x + v[x]; }).join('-') : // (a feat: 'f<id>', 10-15)
+           k === 'archetype' ? String(v).replace(/ /g, '_') : v.map(function (x) { return String(x).replace(/ /g, '_'); }).join('-');
         out.push('^' + L + PICK_L[k] + ':' + s);
       });
     });
@@ -336,7 +345,7 @@
     (parts || []).forEach(function (p) {
       var m = /^\^(\d+)([ascer]):(.*)$/.exec(p); if (!m) return;
       var L = +m[1], k = K[m[2]], s = m[3], v;
-      if (k === 'asi') { v = {}; s.split('-').forEach(function (x) { var mm = /^(str|dex|con|int|wis|cha)([12])$/.exec(x); if (mm) v[mm[1]] = +mm[2]; }); }
+      if (k === 'asi') { v = {}; s.split('-').forEach(function (x) { var mm = /^(str|dex|con|int|wis|cha)([12])$/.exec(x), mf = /^f([a-z]+)$/.exec(x); if (mm) v[mm[1]] = +mm[2]; else if (mf && R.FEATS[mf[1]]) v.feat = mf[1]; }); }
       else if (k === 'archetype') v = s.replace(/_/g, ' ');
       else v = s ? s.split('-').map(function (x) { return x.replace(/_/g, ' '); }) : [];
       picks = picks || {}; (picks[L] = picks[L] || {})[k] = v;
@@ -392,7 +401,10 @@
     if (ask.kind === 'asi') return R.ABIL.map(function (k) {
       var base = h.abil[k] - ((took && took[k]) || 0);
       return { id: k, name: k.toUpperCase(), score: base, max: Math.max(0, Math.min(2, 20 - base)), off: base >= 20 ? 'already 20' : '' };
-    });
+    }).concat(R.featIds().map(function (id) { // (a feat in place of the increase: worth both marks; its prerequisite read on the scores before this increase -- 10-15)
+      var f = R.FEATS[id], had = (h.featIds || []).indexOf(id) >= 0 && !(took && took.feat === id), str = h.abil.str - ((took && took.str) || 0);
+      return { id: 'feat:' + id, feat: id, name: f.name.toUpperCase() + ' (FEAT)', desc: f.desc + (f.grid ? ' ' + f.grid : ''), max: 1, worth: 2, off: had ? 'taken already' : f.str && str < f.str ? 'wants STR ' + f.str : '' };
+    }));
     if (ask.kind === 'expertise') {
       var have = (d.expertise || []).concat((h.expertise || []).filter(function (x) { return (took || []).indexOf(x) < 0; }));
       return Object.keys(h.skills || {}).filter(function (k) { return have.indexOf(k) < 0; }).map(function (k) {
@@ -405,7 +417,7 @@
   // the default marks: { id: n }
   R.pickMarks = function (ask) {
     var m = {};
-    if (ask.kind === 'asi') Object.keys(ask.took || {}).forEach(function (k) { if (ask.took[k] > 0) m[k] = ask.took[k]; });
+    if (ask.kind === 'asi') Object.keys(ask.took || {}).forEach(function (k) { if (k === 'feat') { if (ask.took.feat) m['feat:' + ask.took.feat] = 1; } else if (ask.took[k] > 0) m[k] = ask.took[k]; });
     else if (ask.kind === 'archetype') { if (ask.took) m[ask.took] = 1; }
     else (ask.took || []).forEach(function (id) { m[id] = 1; });
     return m;
@@ -418,8 +430,9 @@
       var v = ch[a.kind]; if (v == null) return true;
       if (a.kind === 'asi') {
         var con0 = DS.mod(h.abil.con), got = {}, parts = [];
-        Object.keys(a.took || {}).forEach(function (k) { h.abil[k] -= a.took[k]; });
-        Object.keys(v).forEach(function (k) { var to = Math.min(20, h.abil[k] + v[k]); got[k] = to - h.abil[k]; h.abil[k] = to; if (got[k]) parts.push(k.toUpperCase() + ' +' + got[k]); });
+        Object.keys(a.took || {}).forEach(function (k) { if (k === 'feat') { if (h.featIds) h.featIds = h.featIds.filter(function (x) { return x !== a.took.feat; }); } else h.abil[k] -= a.took[k]; }); // (a feat taken back: off the sheet)
+        Object.keys(v).forEach(function (k) { if (k === 'feat') return; var to = Math.min(20, h.abil[k] + v[k]); got[k] = to - h.abil[k]; h.abil[k] = to; if (got[k]) parts.push(k.toUpperCase() + ' +' + got[k]); });
+        if (v.feat && R.FEATS[v.feat]) { h.featIds = (h.featIds || []).filter(function (x) { return x !== v.feat; }).concat([v.feat]); got.feat = v.feat; parts.push('the feat ' + R.FEATS[v.feat].name); } // (a feat in place of the increase: 10-15)
         var dHP = h.lvl * (DS.mod(h.abil.con) - con0); // (a max hit die a level, CON back to level 1: RULED 09-25)
         if (dHP) { h.maxhp += dHP; h.hp = Math.min(h.maxhp, Math.max(h.ko ? 0 : 1, h.hp + dHP)); }
         v = got; lines.push(h.name + ': ' + parts.join(', ') + '.');
