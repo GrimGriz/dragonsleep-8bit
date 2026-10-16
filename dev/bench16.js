@@ -4459,6 +4459,68 @@
     document.body.appendChild(preOp);
     return;
   }
+  // a hero's GRAPPLE (mode=grapple1015; RULED 10-15, Griz: "Grapple should go on the action menu with dodge and help and such, appearing conditionally (empty hand, adjacent enemy)";
+  // SRD 5.1 srd/08-combat.md Grappling): with DODGE and HELP (RING's ACTIONS, RING2's), shown only with a hand empty and a foe beside no more than one size larger; one attack of the
+  // Attack action (the rest left); the check pinned -- held: its speed 0 at its turn, the grappler's walk halved; dragged along a walk; its escape (Athletics or Acrobatics against
+  // Athletics) frees it; LET GO frees it; out of reach, or the grappler stunned, the grapple ends
+  if (get('mode', '') === 'grapple1015') {
+    var repGr = { checks: [], errors: [] }, G2 = D.grid, RU2 = D.rules, d0Gr = D.d, menuGr0 = D.ui.opts.menu, urlGr0 = D.ui.urlMenu;
+    function okGr(what, v) { repGr.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function runGr(g) { var v, k = 0, st; while (g && k++ < 4000) { st = g.next(v); v = undefined; if (st.done) return; if (st.value && st.value.prompt) v = st.value.prompt.opts[0].value; } }
+    function idsGr(list) { var o = []; (list || []).forEach(function (x) { o.push(x.id + (x.sub ? '>' : '')); if (x.items) o = o.concat(idsGr(x.items).map(function (y) { return x.id + '/' + y; })); }); return o; }
+    function pinGr(seq) { var i = 0; D.d = function (n) { return n === 20 && i < seq.length ? seq[i++] : d0Gr(n); }; }
+    function besideGr(a, b) { for (var dy = -2; dy <= 2; dy++) for (var dx = -2; dx <= 2; dx++) { if (!dx && !dy) continue; if (G2.canStand(a, b.x + dx, b.y + dy) && G2.dist(b, a, null, null, b.x + dx, b.y + dy) <= 5) { a.x = b.x + dx; a.y = b.y + dy; delete a.tween; return true; } } return false; } // (a Large body anchors two squares off and still stands beside)
+    try {
+      var Bg = D.npcFight('?npc=goblin,ogre,stonegiant&lvl=5&vs=fighter:5,cleric:5', {}); D.battle = Bg; Bg.enter(); while (!Bg.order.length) Bg.co.next(); Bg.dark = false; D.ui.urlMenu = null; Bg.answer = function () { this.req = null; };
+      var fg = Bg.units.filter(function (w) { return w.side === 'party' && w.cls === 'fighter'; })[0], clG = Bg.units.filter(function (w) { return w.side === 'party' && w.cls === 'cleric'; })[0], gob = Bg.units.filter(function (w) { return w.kind === 'goblin' || /goblin/i.test(w.name); })[0], ogre = Bg.units.filter(function (w) { return /ogre/i.test(w.name); })[0], giant = Bg.units.filter(function (w) { return /giant/i.test(w.name); })[0];
+      fg.guest = false; fg.src.equip.weapon = 'longsword'; fg.src.equip.shield = null; fg.src.equip.offhand = null; fg.offhand = null; fg.weapon = D.save.weaponOf(fg.src); delete fg.torch;
+      [gob, ogre, giant].forEach(function (w) { if (w) { w.hp = w.maxhp = 500; w.x = 1; w.y = 1; } });
+      // far from everyone: no GRAPPLE
+      for (var yy = 0; yy < 30; yy++) for (var xx = 0; xx < 30; xx++) if (G2.canStand(fg, xx, yy) && [gob, ogre, giant].every(function (w) { return !w || G2.dist(fg, w, null, null, xx, yy) > 15; })) { fg.x = xx; fg.y = yy; yy = xx = 99; }
+      RU2.startTurn(fg); Bg.active = fg; Bg.req = { turn: fg };
+      var far = Bg.commands(fg).some(function (c) { return c.id === 'grapple'; });
+      // beside the goblin: under ACTIONS with DODGE and HELP, on RING and RING2
+      besideGr(gob, fg); RU2.startTurn(fg);
+      D.ui.opts.menu = 'ring'; var r1 = idsGr(D.ui.cmds(Bg, fg)); D.ui.opts.menu = 'ring2'; var r2 = idsGr(D.ui.cmds(Bg, fg)); D.ui.opts.menu = 'ring';
+      okGr('no foe beside: GRAPPLE shown ' + far + '; the goblin beside: RING ' + r1.filter(function (x) { return /grapple|dodge|help/.test(x); }).join(' ') + ' | RING2 ' + r2.filter(function (x) { return /grapple|dodge|help/.test(x); }).join(' '),
+        !far && r1.indexOf('actions/grapple') >= 0 && r1.indexOf('actions/dodge') >= 0 && r1.indexOf('grapple') < 0 && r2.indexOf('actions/grapple') >= 0);
+      // no empty hand: a shield with the sword -- not shown; the ogre (Large, one size up) shown; the hill giant (Huge) not
+      fg.src.equip.shield = 'shield'; var shS = Bg.commands(fg).some(function (c) { return c.id === 'grapple'; }); fg.src.equip.shield = null;
+      var keepO = [ogre.x, ogre.y], keepG = giant ? [giant.x, giant.y] : null; ogre.x = fg.x + 1; ogre.y = fg.y; var gOgre = D.Battle.grabbable(fg, ogre) && G2.dist(fg, ogre) <= 5; ogre.x = keepO[0]; ogre.y = keepO[1]; if (giant) { giant.x = fg.x + 1; giant.y = fg.y; } var gGiant = giant ? D.Battle.grabbable(fg, giant) : false, dGiant = giant ? G2.dist(fg, giant) : null; if (giant) { giant.x = keepG[0]; giant.y = keepG[1]; } // (each set beside him in turn: the size rule, not the room on the map)
+      okGr('a sword and a shield: GRAPPLE shown ' + shS + '; the ogre (one size larger) seizable ' + gOgre + ', the stone giant (two, ' + dGiant + ' ft off) ' + gGiant, !shS && gOgre === true && gGiant === false && dGiant <= 5);
+      // the grapple: the check pinned (18 against 2), one of the two attacks spent, the walk halved
+      var mv0 = fg.turn.move; pinGr([18, 2]); runGr(Bg.exec(fg, { do: 'grapple', target: gob })); D.d = d0Gr;
+      var atkC = Bg.commands(fg).filter(function (c) { return c.id === 'attack'; })[0], lgC = Bg.commands(fg).filter(function (c) { return c.id === 'letgo'; })[0];
+      okGr('GRAPPLED: ' + JSON.stringify(gob.conds.grappled) + ', grappling ' + fg.grappling + ', attacks left ' + fg.turn.attacksLeft + ' (ATTACK "' + (atkC && atkC.label) + '"), the walk ' + mv0 + ' -> ' + fg.turn.move + ', LET GO there ' + !!lgC,
+        gob.conds.grappled && gob.conds.grappled.by === fg.id && fg.grappling === gob.id && fg.turn.attacksLeft === fg.attacks - 1 && fg.turn.move === Math.floor(mv0 / 2) && !!lgC && /\(1\)/.test(atkC.label));
+      RU2.startTurn(gob); var gm = gob.turn.move;
+      okGr('the goblin\'s turn: its speed ' + gm + ' (grappled); the grappler next turn walks ' + (RU2.startTurn(fg), fg.turn.move) + ' of ' + fg.speed, gm === 0 && fg.turn.move === Math.floor(fg.speed / 2));
+      // the drag: two squares away, the goblin pulled along within reach
+      var rm = G2.reach(fg, fg.turn.move), dest = null; Object.keys(rm).forEach(function (k) { var p = k.split(',').map(Number); if (!dest && rm[k].stand && Math.max(Math.abs(p[0] - fg.x), Math.abs(p[1] - fg.y)) === 2 && G2.dist(gob, gob, null, null, p[0], p[1]) >= 10) dest = p; });
+      var g0 = [gob.x, gob.y]; if (dest) runGr(Bg.exec(fg, { do: 'move', x: dest[0], y: dest[1] }));
+      okGr('dragged: the fighter to ' + fg.x + ',' + fg.y + ', the goblin from ' + g0 + ' to ' + gob.x + ',' + gob.y + ' (' + G2.dist(fg, gob) + ' ft), still held ' + !!gob.conds.grappled, !!dest && (gob.x !== g0[0] || gob.y !== g0[1]) && G2.dist(fg, gob) <= G2.reachOf(fg) && !!gob.conds.grappled);
+      // its escape, pinned its way (19 against 1): free, its walk back
+      RU2.startTurn(gob); pinGr([19, 1]); runGr(D.ai.escapeGrip(Bg, gob)); D.d = d0Gr;
+      okGr('the escape: free ' + !gob.conds.grappled + ', the grappler holds nothing ' + !fg.grappling + ', its walk ' + gob.turn.move + ', its action ' + gob.turn.action, !gob.conds.grappled && !fg.grappling && gob.turn.move > 0 && gob.turn.action === 0);
+      // LET GO; out of reach; the grappler stunned
+      RU2.startTurn(fg); besideGr(gob, fg); pinGr([18, 2]); runGr(Bg.exec(fg, { do: 'grapple', target: gob })); D.d = d0Gr; runGr(Bg.exec(fg, { do: 'letgo' })); var lg1 = !gob.conds.grappled && !fg.grappling;
+      RU2.startTurn(fg); pinGr([18, 2]); runGr(Bg.exec(fg, { do: 'grapple', target: gob })); D.d = d0Gr; var gx = gob.x, gyy = gob.y; gob.x = fg.x + 5; gob.y = fg.y; Bg.sweep(); var rch = !gob.conds.grappled; gob.x = gx; gob.y = gyy;
+      RU2.startTurn(fg); besideGr(gob, fg); pinGr([18, 2]); runGr(Bg.exec(fg, { do: 'grapple', target: gob })); D.d = d0Gr; fg.conds.stunned = { rounds: 1 }; Bg.sweep(); var stn = !gob.conds.grappled; delete fg.conds.stunned;
+      // the goblin's own turn (ai.js turn): the cleric near enough to walk to, out of its arm -- it breaks the hold (pinned 19 against 1); no one else near -- it fights where it stands
+      var farFrom = function (w, lo, hi) { for (var y3 = 0; y3 < 40; y3++) for (var x3 = 0; x3 < 40; x3++) { var d3 = G2.dist(w, clG, null, null, x3, y3); if (d3 >= lo && d3 <= hi && G2.canStand(clG, x3, y3)) { clG.x = x3; clG.y = y3; delete clG.tween; return true; } } return false; };
+      RU2.startTurn(fg); besideGr(gob, fg); pinGr([18, 2]); runGr(Bg.exec(fg, { do: 'grapple', target: gob })); D.d = d0Gr; var nearC = farFrom(gob, 15, 25), dNear = G2.dist(gob, clG);
+      RU2.startTurn(gob); pinGr([19, 1]); runGr(D.ai.turn(Bg, gob)); D.d = d0Gr; var escT = !gob.conds.grappled;
+      RU2.startTurn(fg); besideGr(gob, fg); pinGr([18, 2]); runGr(Bg.exec(fg, { do: 'grapple', target: gob })); D.d = d0Gr; var farC = farFrom(gob, 60, 200);
+      RU2.startTurn(gob); var gx4 = gob.x, gy4 = gob.y; runGr(D.ai.turn(Bg, gob)); var stayT = !!gob.conds.grappled && gob.x === gx4 && gob.y === gy4;
+      okGr('its own turn: the cleric ' + (nearC ? dNear + ' ft off at its turn' : 'not placed') + ' -- it breaks the hold ' + escT + '; the cleric far (' + farC + ') -- still held where it stood ' + stayT, nearC && escT && farC && stayT);
+      okGr('LET GO frees it ' + lg1 + '; shoved out of reach, the grapple ends ' + rch + '; the grappler stunned, it ends ' + stn, lg1 && rch && stn);
+    } catch (eGr) { repGr.errors.push(String(eGr && eGr.stack || eGr).slice(0, 900)); }
+    D.d = d0Gr; D.ui.opts.menu = menuGr0; D.ui.urlMenu = urlGr0;
+    if (errs.length) repGr.errors = repGr.errors.concat(errs);
+    var preGr = document.createElement('pre'); preGr.id = 'out'; preGr.textContent = 'BENCH16 ' + JSON.stringify(repGr);
+    document.body.appendChild(preGr);
+    return;
+  }
   // the feats on the level-up pick (mode=feats1015; RULED 10-15 -- his Symmetric Fighting, "Weapon in the OFFHAND can be used with TWO WEAPON FIGHTING if it is the same weapon type
   // as the main hand and char STR is 17 or higher"; the desk's leans (a)-(d), his "2 - correct, two magical maces not otherwise considered a pair as well"): the SCORES tab offers it in
   // place of the increase, wanting STR 17 on the scores before it; marked, it is the whole increase (CONFIRM ready, the word '^4a:fsymmetric'), taken back the scores return; and the

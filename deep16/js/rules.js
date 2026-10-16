@@ -49,7 +49,7 @@
   // condition from one fight to the next (the climb's camp starts every hero clean: climb.js CL.rested), so here it lasts the fight
   RU.EXHAUSTION = ['', 'disadvantage on ability checks', 'and its speed halved', 'and disadvantage on attacks and saves', 'and its hit point maximum halved', 'and its speed 0', 'dead'];
   RU.exhaustion = function (u) { return (u && u.conds && u.conds.exhaustion && u.conds.exhaustion.n) || 0; };
-  RU.speedNow = function (u) { var x = RU.exhaustion(u), s = u.walkSpeed != null && !(G.winged && G.winged(u)) ? u.walkSpeed : u.speed; return x >= 5 ? 0 : x >= 2 ? Math.floor(s / 2) : s; }; // (`walkSpeed`: one whose speed is its flying speed walks slower when it cannot fly -- prone, held: the Fly spell's, the giant bat's; Griz, 10-08, "1 yes")
+  RU.speedNow = function (u) { var x = RU.exhaustion(u), s = u.walkSpeed != null && !(G.winged && G.winged(u)) ? u.walkSpeed : u.speed; if (u.conds && u.conds.grappled) return 0; if (u.grappling && D.Battle && D.Battle.dragHalves(u)) s = Math.floor(s / 2); return x >= 5 ? 0 : x >= 2 ? Math.floor(s / 2) : s; }; // (a hero's grapple, 10-15: the held one's speed 0, SRD 5.1's grappled; the one dragging it at half, unless it is two sizes smaller -- battle.js grapple) // (`walkSpeed`: one whose speed is its flying speed walks slower when it cannot fly -- prone, held: the Fly spell's, the giant bat's; Griz, 10-08, "1 yes")
   RU.exhaust = function (B, u, n, why) {
     if (!u || u.dead || RU.immuneTo(u, 'exhaustion')) return 0;
     var was = RU.exhaustion(u), now = Math.min(6, was + (n || 1)), nm = u.side === 'foe' && B && B.shortName && !u.named ? 'The ' + B.shortName(u) : u.name;

@@ -190,7 +190,7 @@
   // class features that spend something (the 8-bit game's SKILL: Lay on Hands, Sacred Weapon, Second Wind, Action
   // Surge); ACTIONS the plain ones anyone has (Dash, Disengage, Dodge, Help), the same four for everyone, the rogue's
   // Dash and Disengage being her Cunning Action's -- Griz, 09-27. The rogue's HIDE is on the first ring (09-27 again)
-  var SKILLS = { lay: 1, sacred: 1, secondwind: 1, surge: 1, ignite: 1, douse: 1 }, ACTIONS = { search: 1, dash: 1, disengage: 1, cdash: 1, cdisengage: 1, dodge: 1, help: 1, ready: 1, leave: 1, droptorch: 1, throwtorch: 1, dousetorch: 1, pickuptorch: 1, hooddown: 1, hoodup: 1, putaway: 1, drawweapon: 1, drawoffhand: 1 }; // (putaway, drawweapon: the weapon put away and drawn, 10-05) // (ready: the Ready action, 10-02 -- battle.js exec 'ready')
+  var SKILLS = { lay: 1, sacred: 1, secondwind: 1, surge: 1, ignite: 1, douse: 1 }, ACTIONS = { search: 1, dash: 1, disengage: 1, cdash: 1, cdisengage: 1, dodge: 1, help: 1, ready: 1, leave: 1, droptorch: 1, throwtorch: 1, dousetorch: 1, pickuptorch: 1, hooddown: 1, hoodup: 1, putaway: 1, drawweapon: 1, drawoffhand: 1, grapple: 1, letgo: 1 }; // (grapple, letgo: a hero's grapple with DODGE and HELP -- RULED 10-15) // (putaway, drawweapon: the weapon put away and drawn, 10-05) // (ready: the Ready action, 10-02 -- battle.js exec 'ready')
   function group(id, label, list) {
     return { id: id, label: label, cost: '', ok: list.some(function (x) { return x.ok; }), why: 'nothing there to do now', sub: id, icon: id, items: list };
   }
@@ -658,7 +658,7 @@
     // is (10-05, Griz: "have viv move and end up on a rope with her bonus action left ... used bonus dash and it auto-ended her turn before i spent the bonus dash movement")
     var mvH = T.move + D.Battle.dashes(u).length * (u.speed || 30); // (a Dash still open -- the action's, or Cunning Action's bonus -- is more rope to climb: not spent; 10-05, Griz: "not if they have dash action or dash bonus action of course")
     if (mvH >= 5 && !u.conds.restrained && u.hang && u.hang.rope && G.hanging(u) && (D.Battle.ropeSteps(u.hang.rope, u.hang.z, true, mvH) > 0 || D.Battle.ropeSteps(u.hang.rope, u.hang.z, false, mvH) > 0)) return false;
-    return !B.commands(u).some(function (c) { return c.ok && c.id !== 'putaway' && c.id !== 'drawweapon' && c.id !== 'drawoffhand' && c.id !== 'skipattack'; }); // (PUT AWAY and DRAW hold no turn open: free and nearly always there -- 10-05; nor SKIP ATTACK, 10-13)
+    return !B.commands(u).some(function (c) { return c.ok && c.id !== 'putaway' && c.id !== 'drawweapon' && c.id !== 'drawoffhand' && c.id !== 'skipattack' && c.id !== 'letgo'; }); // (PUT AWAY and DRAW hold no turn open: free and nearly always there -- 10-05; nor SKIP ATTACK, 10-13)
   }
   UI.spent = spent; // (the bench's: dev/bench16.js mode=edifice1004)
   function turnWheel() { return I.repeat('wheell') || I.repeat('bumpl') ? -1 : I.repeat('wheelr') || I.repeat('bumpr') ? 1 : 0; } // the pad's right stick or bumpers, on the wheel (the window's list)
@@ -815,6 +815,7 @@
     if (tool === 'rope') return D.Battle.ropeSq(B, u, x, y) ? 'ok' : 'no';
     if (tool === 'throw') { var thV = D.Battle.throwable(u); return foe && thV && G.standing(foe) && G.dist(u, foe) <= thV.range[1] && G.los(u, foe).clear && !D.rules.charmedBy(u, foe) ? 'ok' : 'no'; } // (the ring's THROW: a foe in its long range, in sight -- 10-15)
     if (tool === 'shove') return foe && G.standing(foe) && !foe.object && G.dist(u, foe) <= G.reachOf(u) && D.Battle.sizeCat(foe) <= D.Battle.sizeCat(u) + 1 ? 'ok' : 'no'; // (the SRD's Shove: 10-13)
+    if (tool === 'grapple') return foe && D.Battle.grabbable(u, foe) ? 'ok' : 'no'; // (a hero's grapple: a foe beside, no more than one size larger -- 10-15)
     if (tool === 'offhand') { var thO = D.Battle.offThrow(u); return foe && G.hostile(u, foe) && (foe.hp > 0 || foe.regenDown) && (G.dist(u, foe) <= G.reachOf(u) || (thO && G.dist(u, foe) <= thO.range[1] && G.los(u, foe).clear)) ? 'ok' : 'no'; } // (two-weapon fighting's swing, or its throw: 10-15)
     if (tool === 'help') return (foe && G.dist(u, foe) <= 5) || D.Battle.helpable(u, w) ? 'ok' : 'no'; // (a friend beside you who needs a hand, too: 10-01c)
     if (tool === 'lay') return w && w.side === u.side && !w.dead && (w === u || G.dist(u, w) <= 5) ? 'ok' : 'no';
@@ -1010,6 +1011,7 @@
     if (tool === 'rope') { if (v === 'ok') return UI.command(B, u, { do: 'rope', x: x, y: y }); return B.card(['{o}The top of a face: from beside it up there, or from below within the rope\'s 50 ft and in sight.{/}'], 140); }
     if (tool === 'throw') { if (v === 'ok') return UI.command(B, u, { do: 'throw', target: foe }); var thC = D.Battle.throwable(u); return B.card(['{o}Throw: a foe within ' + (thC ? thC.range[1] : 60) + ' ft, in sight.{/}'], 120); }
     if (tool === 'shove') { if (v === 'ok') return UI.command(B, u, { do: 'shove', target: foe }); return B.card(['{o}Shove: a foe in your reach, no more than one size larger.{/}'], 120); }
+    if (tool === 'grapple') { if (v === 'ok') return UI.command(B, u, { do: 'grapple', target: foe }); return B.card(['{o}Grapple: a foe beside you, no more than one size larger.{/}'], 120); }
     if (tool === 'offhand') { if (v === 'ok') return UI.command(B, u, { do: 'offhand', target: foe }); return B.card(['{o}Off hand: a foe in your reach' + (D.Battle.offThrow(u) ? ', or one to throw it at' : '') + '.{/}'], 120); }
     if (tool === 'help') { if (v === 'ok') return UI.command(B, u, { do: 'help', target: foe || w }); return B.card(['{o}Help: a foe beside you, or a friend beside you asleep or held fast.{/}'], 120); }
     if (tool === 'lay') { if (v === 'ok') return UI.command(B, u, { do: 'lay', target: w }); return B.card(['{o}Lay on Hands is touch: yourself or an ally beside you.{/}'], 120); }
@@ -2052,6 +2054,7 @@
       }
     }
     if (tool === 'throw') { var thD = D.Battle.throwable(u); if (thD) B.units.forEach(function (w) { if (G.hostile(u, w) && G.standing(w) && !w.ethereal && G.dist(u, w) <= thD.range[1] && G.los(u, w).clear) G.foot(w).forEach(function (q) { lineSq(ctx, q[0], q[1], G.dist(u, w) <= thD.range[0] ? R('fire', 3) : R('gold', 2), 0.9); }); }); } // (a foe in its reach: red, gold at long range)
+    if (tool === 'grapple') B.units.forEach(function (w) { if (D.Battle.grabbable(u, w)) G.foot(w).forEach(function (q) { lineSq(ctx, q[0], q[1], R('bone', 2), 0.9); }); }); // (the foes a grapple may seize: 10-15)
     if (tool === 'offhand') B.units.forEach(function (w) { if (UI.valid(B, u, w.x, w.y) === 'ok') G.foot(w).forEach(function (q) { lineSq(ctx, q[0], q[1], R('bone', 2), 0.9); }); }); // (the foes the off hand may reach: 10-15)
     if (tool === 'shove') B.units.forEach(function (w) { if (G.hostile(u, w) && G.standing(w) && !w.object && G.dist(u, w) <= G.reachOf(u) && D.Battle.sizeCat(w) <= D.Battle.sizeCat(u) + 1) G.foot(w).forEach(function (q) { lineSq(ctx, q[0], q[1], D.Battle.knockSq(u, w) ? R('fire', 3) : R('bone', 2), 0.9); }); }); // (one at an edge: fire-orange)
     if (tool === 'help') B.units.forEach(function (w) { if ((G.hostile(u, w) && G.standing(w) && G.dist(u, w) <= 5) || D.Battle.helpable(u, w)) G.foot(w).forEach(function (q) { lineSq(ctx, q[0], q[1], G.hostile(u, w) ? R('bone', 2) : R('moss', 3), 0.9); }); }); // (a friend to help: green)
@@ -2235,6 +2238,8 @@
     if (w.conds.divineFavor) c.push('{y}favor{/}');
     if (w.conds.sacred) c.push('{y}sacred +' + w.conds.sacred.atk + '{/}');
     if (w.conds.helped) c.push('{w}helped{/}');
+    if (w.conds.grappled) c.push('{w}grappled{/}'); // (a hero's grapple: its speed 0 -- 10-15)
+    if (w.grappling && D.battle && D.Battle.heldBy(D.battle, w)) c.push('{w}grappling{/}');
     if (w.conds.restrained && !(w.conds.stoning && w.conds.restrained.kind === 'stone')) c.push(w.conds.restrained.grapple ? '{w}held{/}' + (w.conds.restrained.tendril ? '{g} (tendril ' + w.conds.restrained.tendril.hp + '/' + w.conds.restrained.tendril.max + '){/}' : '') : '{w}webbed{/}'); // (Flesh to Stone's hold says stone, below; the roper's tendril and what is left of it, 10-02)
     if (w.conds.stunned) c.push('{p}stunned{/}');
     if (w.conds.prone) c.push('{o}prone{/}');

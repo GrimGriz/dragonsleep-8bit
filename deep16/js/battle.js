@@ -926,6 +926,20 @@
     yield 70;
   };
   Battle.prototype.shortName = shortName;
+  // A hero's grapple (SRD 5.1, srd/08-combat.md Grappling; RULED 10-15, Griz: "Grapple should go on the action menu with dodge and help and such, appearing conditionally (empty hand, adjacent enemy)"): the one u holds; who may be seized (beside it, no more than one size larger, standing, not immune, not held by it already); the drag's half
+  // speed (two or more sizes smaller: carried at its own); the grapple ended -- let go, escaped, out of reach, the grappler incapacitated (sweep)
+  Battle.heldBy = function (B, u) { if (!u || !u.grappling) return null; var w = B.units.filter(function (x) { return x.id === u.grappling; })[0]; return w && !w.dead && w.conds.grappled && w.conds.grappled.by === u.id ? w : null; };
+  Battle.grabbable = function (u, w) { return !!(w && G.hostile(u, w) && G.standing(w) && !w.object && !w.ethereal && !w.dead && w.hp > 0 && G.dist(u, w) <= 5 && G.dist(u, w) <= G.reachOf(u) && Battle.sizeCat(w) <= Battle.sizeCat(u) + 1 && !RU.immuneTo(w, 'grappled') && !(w.conds.grappled && w.conds.grappled.by === u.id)); };
+  Battle.dragHalves = function (u) { var B = D.battle, w = B && Battle.heldBy(B, u); return !!w && Battle.sizeCat(w) > Battle.sizeCat(u) - 2; };
+  Battle.prototype.letGo = function (g, w, why) {
+    if (!w || !w.conds.grappled) return;
+    delete w.conds.grappled; if (g && g.grappling === w.id) delete g.grappling;
+    var nm = w.side === 'foe' ? Battle.nm(w, true) : w.name;
+    if (why === 'release') this.card(['{y}' + g.name + '{/} lets go of ' + nm + '.'], 160);
+    else if (why === 'escape') this.card(['{o}' + nm + ' breaks ' + (g ? g.name + '\'s' : 'the') + ' hold.{/}'], 180);
+    else if (why === 'reach') this.card(['{g}(' + nm + ' is out of ' + (g ? g.name + '\'s' : 'the') + ' reach: the grapple ends){/}'], 180);
+    else if (why === 'incap') this.card(['{g}(' + (g ? g.name : 'the grappler') + ' can hold no longer: ' + nm + ' is free){/}'], 180);
+  };
 
   // the conditions' housekeeping after every turn (09-27, Griz: "check the rest of the status effects for the similar issue
   // poison and restrained were having"): what a creature holds ends with it. A stun or a fright it laid (the slam's, the
@@ -941,6 +955,8 @@
       if (gone) self.units.forEach(function (w) { ['stunned', 'frightened'].forEach(function (c) { if (w.conds[c] && w.conds[c].by === s.id && !(c === 'frightened' && w.conds.turned) && !(c === 'stunned' && w.conds[c].fresh === undefined && !w.conds[c].till)) delete w.conds[c]; }); }); // (a prayer's turning runs its minute out, whoever fell; nor does a spell's stun -- only the slam's and the moan's, laid with `fresh`, and a blow's, on a clock of its laying one's turns, go with the one who laid them)
       if (incap && s.conc) D.magic.endConc(self, s, gone ? 'gone' : 'incapacitated');
       if (incap && s.holding && s.holding.length) self.release(s);
+      // a hero's grapple ends when the grappler is incapacitated, or when the one held is out of its reach (SRD 5.1, grappled: "if an effect removes the grappled creature from the reach") -- 10-15
+      if (s.conds.grappled) { var gS = self.units.filter(function (x) { return x.id === s.conds.grappled.by; })[0], gIn = !gS || gS.dead || gS.fled || gS.left || gS.hp <= 0 || gS.conds.paralyzed || gS.conds.stunned || gS.conds.asleep || gS.conds.incapacitated; if (gone || gIn) self.letGo(gS, s, gone ? 'gone' : 'incap'); else if (G.dist(gS, s) > G.reachOf(gS)) self.letGo(gS, s, 'reach'); }
       // a blinding hold (the darkmantle over the head, the cloaker's fold) ends with the grip, however the grip ended
       var bl = s.conds.blinded;
       if (bl && bl.held && !(s.conds.restrained && s.conds.restrained.by === bl.by && s.conds.restrained.grapple) && !(s.conds.attached && s.conds.attached.by === bl.by)) { delete s.conds.blinded; self.card(['{g}' + (s.side === 'foe' ? Battle.nm(s, true) : s.name) + ' can see again.{/}'], 200); }
@@ -1134,6 +1150,12 @@
     var thW = Battle.throwable(u);
     if (thW) { var thIn = this.units.some(function (w) { return G.hostile(u, w) && G.standing(w) && !w.ethereal && G.dist(u, w) <= thW.range[1] && G.los(u, w).clear; }), thN = Battle.thrownLeft(u, thW);
       out.push({ id: 'throw', label: 'THROW ' + thW.name.toUpperCase().replace(/^THROWN /, ''), cost: 'A', icon: 'attack', ok: (T.action > 0 || T.attacksLeft > 0 || T.hasteAction > 0) && thIn, why: !thIn ? 'no foe within ' + thW.range[1] + ' ft in sight' : 'no attack left', tool: 'throw', note: 'one attack of the Attack action: a ranged attack, ' + thW.range[0] + ' ft, out to ' + thW.range[1] + ' at disadvantage -- ' + thN + (thN === 1 ? ' left' : ' left to throw') + ', none picked up' }); }
+    // GRAPPLE (a hero's grapple (SRD 5.1, srd/08-combat.md Grappling; RULED 10-15, Griz: "Grapple should go on the action menu with dodge and help and such, appearing conditionally (empty hand, adjacent enemy)")): with DODGE and HELP, shown only with an empty hand and a foe beside no more than one size
+    // larger; the SRD's special melee attack -- one attack of the Attack action, the rest left (ATTACK (n) says so); LET GO, free ("no action required")
+    var grT = !u.grappling && D.light.handsFree(u) > 0 && this.units.some(function (w) { return Battle.grabbable(u, w); });
+    if (grT) out.push({ id: 'grapple', label: 'GRAPPLE', cost: 'A', ok: (T.action > 0 || T.attacksLeft > 0) && !u.conds.restrained, why: u.conds.restrained ? 'held fast' : 'no attack left', tool: 'grapple', note: 'one attack of the Attack action: a foe beside you, no more than one size larger -- your Athletics against its Athletics or Acrobatics; held, its speed is 0 and yours is halved to drag it' });
+    var heldG = Battle.heldBy(this, u);
+    if (heldG) out.push({ id: 'letgo', label: 'LET GO OF ' + (heldG.side === 'foe' ? shortName(heldG) : heldG.name).toUpperCase(), cost: 'F', ok: true, why: '', icon: 'free', note: 'free: your grapple ends' });
     if (shoveT) out.push({ id: 'shove', label: 'SHOVE', cost: 'A', ok: (T.action > 0 || T.attacksLeft > 0) && !u.conds.restrained, why: u.conds.restrained ? 'held fast' : 'no attack left', tool: 'shove', note: 'one attack of the Attack action: a foe in your reach, no more than one size larger, pushed 5 ft away (off an edge, it falls) or knocked prone -- your Athletics against its Athletics or Acrobatics' });
     // PULL IT OFF (SRD 5.1 Darkmantle: "A creature can detach the darkmantle by making a successful DC 13 Strength check as an action" -- any creature, not only
     // the one it rides; 10-01, Griz: "allies can strength check detach per SRD, I could only find the 'help' part"): a friend beside you with one riding on
@@ -1689,6 +1711,19 @@
         yield* D.ai.shoveOff(this, u, sw, { how: how, paid: true });
         return;
       }
+      case 'grapple': { // (a hero's grapple (SRD 5.1, srd/08-combat.md Grappling; RULED 10-15, Griz: "Grapple should go on the action menu with dodge and help and such, appearing conditionally (empty hand, adjacent enemy)"))
+        var gw = c.target; if (!gw || gw.dead || gw.hp <= 0 || u.grappling) return;
+        if (!Battle.grabbable(u, gw) || D.light.handsFree(u) <= 0) { this.card(['{o}Grapple: a foe beside you, no more than one size larger -- and a hand empty.{/}'], 160); return; }
+        if (!Battle.openAttack(u, true)) { if (T.hasteAttack) this.card(['{o}The attack Haste gives is a weapon attack: no grapple with it.{/}'], 160); return; } // (the Attack action's, not Haste's: "one weapon attack only")
+        T.attacksLeft--;
+        if (yield* D.ai.grappleCheck(this, u, gw)) {
+          gw.conds.grappled = { by: u.id }; u.grappling = gw.id;
+          if (Battle.dragHalves(u)) T.move = Math.floor(T.move / 2); // (the rest of the walk at half, to drag it)
+          this.card(['{y}' + u.name + '{/} has ' + (gw.side === 'foe' ? Battle.nm(gw, true) : gw.name) + ': {o}GRAPPLED{/}  {g}(its speed 0; ' + (Battle.dragHalves(u) ? 'yours halved to drag it' : 'small enough to carry at your speed') + '; LET GO is free)' + (T.attacksLeft > 0 ? '  ' + T.attacksLeft + ' attack' + (T.attacksLeft > 1 ? 's' : '') + ' left' : '') + '{/}'], 260);
+        }
+        return;
+      }
+      case 'letgo': { var lg = Battle.heldBy(this, u); if (lg) this.letGo(u, lg, 'release'); return; }
       case 'help': {
         if (!c.target) return;
         D.sfx('buff');
@@ -1836,7 +1871,19 @@
     this.keepInView(u); yield STEP_FRAMES + 2 * can; u.anim = 'idle';
     if (this.readyArmed()) yield* this.readyHook(u, 'move');
   };
+  // the drag (SRD 5.1, "When you move, you can drag or carry the grappled creature with you"; 10-15): after the grappler's walk, the one it holds is pulled into the last square
+  // behind it -- along the way it came -- or, with nowhere to stand, let go
   Battle.prototype.moveAlong = function* (u, path, o) {
+    var heldM = Battle.heldBy(this, u), fromM = { x: u.x, y: u.y };
+    yield* moveAlong0.call(this, u, path, o);
+    if (!heldM || !heldM.conds.grappled || G.dist(u, heldM) <= G.reachOf(u)) return;
+    var trail = [[fromM.x, fromM.y]].concat(path), spot = null;
+    for (var i = trail.length - 2; i >= 0 && !spot; i--) { var q = trail[i]; if (G.canStand(heldM, q[0], q[1]) && G.dist(u, heldM, null, null, q[0], q[1]) <= G.reachOf(u) && !(q[0] === u.x && q[1] === u.y)) spot = q; }
+    if (!spot) { this.letGo(u, heldM, 'reach'); return; }
+    heldM.tween = { fx: heldM.x, fy: heldM.y, fz: G.gzAt(heldM, heldM.x, heldM.y), t: 0, dur: this.pace(STEP_FRAMES, true), mode: 'walk' }; heldM.x = spot[0]; heldM.y = spot[1];
+    this.card(['{y}' + u.name + '{/} drags ' + (heldM.side === 'foe' ? Battle.nm(heldM, true) : heldM.name) + ' along.'], 160); yield STEP_FRAMES;
+  };
+  function* moveAlong0(u, path, o) {
     var T = u.turn;
     // the gait: a sheet with a `slither` row plays it for a move of three squares or more, its walk for less (the grick, 10-02, Griz: "can we
     // do the old one for 1-2 squares and the new if they're going 3 squares or more" -- coiled and swaying for a step or two, laid flat to go far)

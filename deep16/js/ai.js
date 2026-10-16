@@ -134,6 +134,12 @@
       var how = u.classAI && D.tactics && D.tactics.freeHow ? D.tactics.freeHow(B, u) : 'escape';
       if (how === 'escape') yield* D.magic.breakFree(B, u); else if (how === 'strike') yield* D.tactics.strikeHeld(B, u);
     }
+    // held by a hero's grapple (10-15, SRD 5.1: "A grappled creature can use its action to escape"): it fights from where it is while a foe stands in its reach besides the one
+    // holding it, or while there is no one else it could reach once free; with another of the party in reach of its walk and not of its arm, it spends its action on the escape
+    if (u.conds.grappled && u.turn.action && !u.conds.restrained) {
+      var gH = u.conds.grappled.by, hsH = heroes(B, u).filter(function (w) { return G.standing(w) && w.id !== gH; }), armH = G.reachOf(u), walkH = (u.speed || 30) + armH;
+      if (!hsH.some(function (w) { return G.dist(u, w) <= armH; }) && hsH.some(function (w) { return G.dist(u, w) <= walkH; })) yield* escapeGrip(B, u);
+    }
     // a darkmantle over its head (attached and blinding: battle.js mount): it pulls it off first -- an action, a DC 13 STR check (SRD 5.1; PULL IT OFF)
     var onMe = D.Battle.riderOn(u, u, B.units);
     if (onMe && u.turn.action && !u.conds.restrained && u.conds.blinded && u.conds.blinded.by === onMe.id) yield* B.exec(u, { do: 'detach', target: onMe });
@@ -1490,6 +1496,24 @@
   // the helpers the class tactics share (js/tactics.js)
   AI.brute = brute; AI.wantsDark = function (B, u) { return wantsDark(B, u); };
   AI.brute = brute; // (the flier's blows once it is in the air: js/flight-ai.js, 10-08)
+  // A hero's grapple (SRD 5.1, srd/08-combat.md Grappling; RULED 10-15, Griz: "Grapple should go on the action menu with dodge and help and such, appearing conditionally (empty hand, adjacent enemy)"): the grapple check -- Athletics against the one seized's Athletics or Acrobatics, the better ("the target chooses") -- as the Shove's contest;
+  // and the escape, its action: its Athletics or Acrobatics against the grappler's Athletics
+  AI.grappleCheck = function* (B, u, w, label) {
+    u.facing = B.faceTo(u, w); u.anim = 'attack'; u.animT = B.t;
+    var rA = d20e(RU.checkEdges(u, 'str')), bA = G.athletics(u) - RU.shaken(u), tA = rA + bA, bS = G.athletics(w) - RU.shaken(w), bD = acrobatics(w) - RU.shaken(w), dex = bD > bS, rW = d20e(RU.checkEdges(w, dex ? 'dex' : 'str')), tW = rW + (dex ? bD : bS), won = tA > tW;
+    B.card([(u.side === 'foe' ? '{r}' + the(B, u) : '{y}' + u.name) + '{/} > ' + (w.side === 'foe' ? '{r}' + the(B, w) : '{y}' + w.name) + '{/}  ' + (label || 'GRAPPLE'), 'Athletics d20 ' + rA + ' ' + RU.sign(bA) + ' = ' + tA + '  vs ' + (dex ? 'Acrobatics' : 'Athletics') + ' d20 ' + rW + ' ' + RU.sign(dex ? bD : bS) + ' = ' + tW + '  ' + (won ? '{y}held{/}' : '{o}it twists free{/}')], 260);
+    D.sfx(won ? 'hit' : 'miss'); yield 20; u.anim = 'idle';
+    return won;
+  };
+  function* escapeGrip(B, w) {
+    var g = B.units.filter(function (x) { return x.id === w.conds.grappled.by; })[0]; if (!g) { delete w.conds.grappled; return; }
+    w.turn.action = 0; w.anim = 'attack'; w.animT = B.t;
+    var bS = G.athletics(w) - RU.shaken(w), bD = acrobatics(w) - RU.shaken(w), dex = bD > bS, rW = d20e(RU.checkEdges(w, dex ? 'dex' : 'str')), tW = rW + (dex ? bD : bS), rG = d20e(RU.checkEdges(g, 'str')), bG = G.athletics(g) - RU.shaken(g), tG = rG + bG, out = tW > tG;
+    B.card(['{r}' + the(B, w) + '{/} struggles against ' + (g.side === 'foe' ? the(B, g) : g.name) + '\'s hold', (dex ? 'Acrobatics' : 'Athletics') + ' d20 ' + rW + ' ' + RU.sign(dex ? bD : bS) + ' = ' + tW + '  vs Athletics d20 ' + rG + ' ' + RU.sign(bG) + ' = ' + tG + '  ' + (out ? '{o}free{/}' : '{y}still held{/}')], 260);
+    D.sfx(out ? 'confirm' : 'miss'); yield 20; w.anim = 'idle';
+    if (out) { B.letGo(g, w, 'escape'); w.turn.move = RU.speedNow(w); }
+  }
+  AI.escapeGrip = escapeGrip;
   AI.shoveOff = shoveOff; // (the SRD's Shove, for the bench: mode=rules1013, a shove over an edge)
   AI.heroes = heroes; AI.approach = approach; AI.walkTo = walkTo; AI.visibleFrom = visibleFrom; AI.eyesAt = eyesAt; AI.reachOf = reachOf; AI.the = the;
   function* guest(B, u) {
