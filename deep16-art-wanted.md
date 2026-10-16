@@ -263,6 +263,4 @@ Draw each HEAD above as its own separate image, in the order given: one sheet an
 ```
 Cut as: a new sheet `gnollmatriarch_p1` (Idle -> idle, Walk -> walk, Strike -> attack, Pray -> cast, Laugh -> laugh, Flinch -> flinch, Fall -> hurt, Prone -> prone); HEAD 1 SE, HEAD 2 NE, HEAD 3 S, HEAD 4 E, HEAD 5 N, the cutter mirroring SE for SW, E for W, NE for NW. Medium, a head taller than a common gnoll. The Snoot's death-watch (`snoot-mode/js/data.js` `gkw` sheets) draws it once it is cut.
 
-## 14. The hobgoblin's SE, another stab (added 10-15, the art desk)
-
-Griz, 10-15, after his look at ART-25's cut: *"Height is good on the hobgoblin, with the art department for another stab at SE"*. The hobgoblin's SE view (ART-25 HEAD 1, both pages: Idle 6, Walk 8, Longsword 6, Longbow 6; Martial Advantage 6, Flinch 4, Fall 6, Prone 2 -- `hobgoblin_p2`, SW its mirror) is with the art desk again, in his hand; no package was written here. Its size stays (RULED 10-15, same words). When it comes back: Fresh -> `deep16/_src/hobgoblin/`, cut by `tools/hobgoblin-sheet.py` in place of HEAD 1 in a worktree, shown to him new beside old, landed on his pass; the sergeant's sheet stays byte for byte. ART-69 is the next free number.
+## 14. The sergeant's SE, another stab -- IN HAND 2026-10-15 (asked as the hobgoblin's; it was the sergeant's: the art desk's ART-26 SE redraw, cut into `hobsergeant_p2`, `40607c6`); the block is on `deep16-art-in-hand.md`
