@@ -5768,7 +5768,7 @@
 }
 },
 "npcbarbarian_p0": {
-"image": "art/npcbarbarian_p0.png?v=7c36f59579",
+"image": "art/npcbarbarian_p0.png?v=0da0c91d3d",
 "fw": 64,
 "fh": 64,
 "ax": 32,
@@ -5804,12 +5804,31 @@
 },
 "hurt": {
 "y": 2560,
-"fw": 64,
-"fh": 64,
-"ax": 32,
+"fw": 128,
+"fh": 80,
+"ax": 64,
 "ay": 61,
 "frames": 6,
 "fps": 10
+}
+},
+"diag": {
+"by": "tools/lpc-diag-sheet.py",
+"from": "ART-66",
+"drawn": [
+"SE idle/walk/attack/hurt",
+"NE idle/walk/attack/hurt",
+"E hurt",
+"N hurt"
+],
+"owed": [],
+"lpc_cells": {
+"hurt": [
+64,
+64,
+32,
+61
+]
 }
 }
 },
