@@ -560,12 +560,14 @@
       if (B.list || B.tool === 'menu') { D.sfx('cancel'); B.list = null; B.tool = 'move'; B.spell = null; B.picks = []; B.clearCards(); showCursor(B); return; }
       B.focus(u);
     }
-    if (!B.list && B.tool !== 'menu' && (I.pressed('wheell') || I.pressed('wheelr') || I.pressed('bumpl') || I.pressed('bumpr'))) { D.sfx('popup'); B.tool = 'menu'; B.spell = null; B.picks = []; B.clearCards(); B.ringStill = false; return; }
+    if (!B.list && B.tool !== 'menu' && (I.pressed('wheell') || I.pressed('wheelr') || I.pressed('bumpl') || I.pressed('bumpr'))) { D.sfx('popup'); B.tool = 'menu'; B.spell = null; B.picks = []; B.clearCards(); B.ringStill = false; B.focus(u); return; } // (the camera on the hero the ring stands over, as Q's)
     // an open list (spells, items) takes the keys first
     if (B.list) return listInput(B, u);
     var cmds = UI.cmds(B, u);
     for (var k = 1; k <= 9; k++) if (I.pressed('n' + k) && cmds[k - 1]) return pickCommand(B, u, cmds[k - 1], k - 1);
-    if (I.pressed('ring')) { D.sfx(B.tool === 'menu' ? 'cancel' : 'popup'); B.tool = B.tool === 'menu' ? rest() === 'menu' ? 'move' : rest() : 'menu'; B.spell = null; B.picks = []; B.clearCards(); return; }
+    // Q brings the menu up with the camera on it (10-15, the menus lane §2.7, Griz: "q menu should center cam on the menu it brings up"): the ring stands over the hero
+    // whose turn it is, and the window is that hero's -- the camera goes to them, as C does; Q again puts it away and the camera stays
+    if (I.pressed('ring')) { D.sfx(B.tool === 'menu' ? 'cancel' : 'popup'); B.tool = B.tool === 'menu' ? rest() === 'menu' ? 'move' : rest() : 'menu'; B.spell = null; B.picks = []; B.clearCards(); if (B.tool === 'menu') B.focus(u); return; }
     // the command menu at rest (window, ring)
     if (B.tool === 'menu') {
       var n = cmds.length, prev = B.cmdSel;

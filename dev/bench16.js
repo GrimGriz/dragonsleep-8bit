@@ -4260,6 +4260,31 @@
     document.body.appendChild(preOp);
     return;
   }
+  // Q and the camera (mode=qcam1015; 10-15, the menus lane §2.7, Griz: "q menu should center cam on the menu it brings up"): the camera far off, Q brings the ring
+  // up with the camera on the hero it stands over (where C puts it); Q again puts it away and leaves the camera; the pad's call of the wheel the same; WINDOW too
+  if (get('mode', '') === 'qcam1015') {
+    var repQ = { checks: [], errors: [] }, menuQ0 = D.ui.opts.menu, urlQ0 = D.ui.urlMenu;
+    function okQ(what, v) { repQ.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    try {
+      var Bq = D.npcFight('?npc=goblin,goblin&lvl=5&vs=fighter:5,rogue:5', {}); D.battle = Bq; Bq.enter(); while (!Bq.order.length) Bq.co.next(); Bq.dark = false; Bq.answer = function () { this.req = null; };
+      var uq = Bq.units.filter(function (w) { return w.side === 'party'; })[1]; D.rules.startTurn(uq); Bq.active = uq; Bq.req = { turn: uq }; Bq.tool = 'move'; Bq.menu = null; Bq.list = null; D.ui.urlMenu = null; D.ui.opts.menu = 'ring';
+      Bq.focus(uq); var wantQ = D.iso.cam.x + ',' + D.iso.cam.y, camQ = function () { return D.iso.cam.x + ',' + D.iso.cam.y; };
+      var awayQ = function () { D.iso.cam.x += 260; D.iso.cam.y -= 180; return camQ(); }, pressQ = function (k) { D.input.edge = {}; D.input.edge[k] = true; try { D.ui.input(Bq, Bq.req); } finally { D.input.edge = {}; } };
+      var a1 = awayQ(); pressQ('ring'); var t1 = Bq.tool, c1 = camQ();
+      okQ('RING, the camera at ' + a1 + ': Q brings the ' + t1 + ' up and the camera to ' + c1 + ' (the hero: ' + wantQ + ')', t1 === 'menu' && c1 === wantQ);
+      var a2 = awayQ(); pressQ('ring'); var t2 = Bq.tool, c2 = camQ();
+      okQ('Q again puts it away (' + t2 + ') and the camera stays (' + c2 + ', was ' + a2 + ')', t2 === 'move' && c2 === a2);
+      var a3 = awayQ(); pressQ('bumpr'); var t3 = Bq.tool, c3 = camQ();
+      okQ('the pad\'s bumper calls the wheel (' + t3 + ') with the camera on the hero (' + c3 + ')', t3 === 'menu' && c3 === wantQ);
+      D.ui.opts.menu = 'window'; Bq.tool = 'move'; var a4 = awayQ(); pressQ('ring'); var t4 = Bq.tool, c4 = camQ();
+      okQ('WINDOW: Q brings the window back (' + t4 + ') with the camera on the hero (' + c4 + ')', t4 === 'menu' && c4 === wantQ);
+    } catch (eQ) { repQ.errors.push(String(eQ && eQ.stack || eQ).slice(0, 900)); }
+    D.ui.opts.menu = menuQ0; D.ui.urlMenu = urlQ0;
+    if (errs.length) repQ.errors = repQ.errors.concat(errs);
+    var preQ = document.createElement('pre'); preQ.id = 'out'; preQ.textContent = 'BENCH16 ' + JSON.stringify(repQ);
+    document.body.appendChild(preQ);
+    return;
+  }
   // the level-up pick on the grid (mode=levelpick1014; 10-14, the level-up pick lane -- the roam's "leveling up in the roam should work like leveling up in 8bit"):
   // D.levelPicks, the roam's call, opens the 8-bit's pick page as the M menu stands and returns when the last hero has confirmed, each pick on its sheet; a bench
   // takes the defaults at once; the climb levels its four on the same page (every spell offered, the page-only ones too: "ladder for sure"; one not on the grid greyed)
