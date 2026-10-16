@@ -1564,11 +1564,17 @@
     { id: 'katInk', name: 'Ink for Katarina', open: 'flag:katInk', done: 'flag:katVision', lost: 'flag:katGone & !flag:katVision' }
   ];
   // the easter eggs found (10-02, Griz: "which I'm hoping we're tracking somewhere in their save files"): each by the flag DEEP16 sends back when its red
-  // egg comes up (deep16/js/grimoire.js M.EGGS, M.egg -- once a save), for a tally, a play record, an ending to read
+  // egg comes up (deep16/js/grimoire.js M.EGGS, M.egg -- once a save), for a tally, a play record, an ending to read. Since 10-15 they are also the load
+  // screen's six slots, in this order (js/scenes.js eggRow; Griz, 10-11: "6 empty eggs slots on the load from save screen (full if that save has gotten that
+  // egg) - exclude pocket DM eggs"): the three built, then the two RULED 10-13 in the clock lane §12 and the sixth, which "will reveal itself to us during
+  // the build" -- a slot whose egg is not built yet stays empty, as one not found does. `hue` is the egg's own colour on the slot
   EV.EGGS = [
-    { id: 'joke', name: 'Guess I\'m the Joke, Now', found: 'flag:eggJoke', where: 'Aurdin\'s Hideous Laughter on himself, gnolls by (DEEP16)' },
-    { id: 'darkness', name: 'Stare Into the Void Long Enough', found: 'flag:eggDarkness', where: 'Magic Missile at the darkness, the cloaker\'s deep gallery (DEEP16): the purple egg' },
-    { id: 'dunk', name: 'Dunking Booth', found: 'flag:eggDunk', where: 'One of the four rocked off the Edifice\'s edge into a fountain, the Skylights (DEEP16): the blue egg' }
+    { id: 'joke', name: 'Guess I\'m the Joke, Now', found: 'flag:eggJoke', flag: 'eggJoke', hue: 'red', where: 'Aurdin\'s Hideous Laughter on himself, gnolls by (DEEP16)' },
+    { id: 'darkness', name: 'Stare Into the Void Long Enough', found: 'flag:eggDarkness', flag: 'eggDarkness', hue: 'violet', where: 'Magic Missile at the darkness, the cloaker\'s deep gallery (DEEP16): the purple egg' },
+    { id: 'dunk', name: 'Dunking Booth', found: 'flag:eggDunk', flag: 'eggDunk', hue: 'blue', where: 'One of the four rocked off the Edifice\'s edge into a fountain, the Skylights (DEEP16): the blue egg' },
+    { id: 'counted', name: 'Counted Him Right', found: 'flag:eggOrange', flag: 'eggOrange', hue: 'orange', unbuilt: true, where: 'Third Lamp: the count of the Old One\'s makings met, asked and answered right (the clock lane §12; not built yet)' },
+    { id: 'witness', name: 'Witness Him', found: 'flag:eggWitness', flag: 'eggWitness', hue: 'green', unbuilt: true, where: 'The party in a combined unit with GreyFang\'s when the Harbinger takes the head, the Snoot (the clock lane §12; not built yet)' },
+    { id: 'sixth', name: null, found: null, flag: null, hue: null, unbuilt: true, where: 'reveals itself during the build (Griz, 10-13)' }
   ];
   // Katarina's vision (RULED 10-01c, Griz: "First time Barley in party when talk to Kat, only if before wagon event has been triggered, Barley says 'You're
   // with the Dominion' - Kat breaks into: My deity gave me a vision, and when it ended I had used up all my ink. If you bring me another bottle, I'll tell you

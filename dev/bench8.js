@@ -2251,6 +2251,36 @@
           g.party.every(function (h) { return h.xp === DS.R.XP_LEVEL[3] + 1700 + eachP; }) && g.party[1].lvl === 4 && kills.crawler === 1 && kills.ettercap === 2 && kills['warrens_d:ettercap'] === 2 && !kills.giantspider &&
           gotP.some(function (x) { return /^crawlerichor/.test(x); }) && gotP.some(function (x) { return /^gulchsilk \+2/.test(x); }) && /Each fighter standing gains/.test(saidP.join(' ')));
       } finally { DS.say = say0P; }
+    } else if (test === 'eggs1015') {
+      // the eggs on the load screen (10-15, the menus lane §2.2; Griz, 10-11: "6 empty eggs slots on the load from save screen (full if that save has gotten that egg) -
+      // exclude pocket DM eggs"): EV.EGGS are the six, none of them the Pocket DM's; a save's flags light its own; the slot screen draws each save's six under its row --
+      // a lit one in its hue, the rest the socket -- with the window and the message box under it on the screen; SAVE WHERE? draws them too
+      var loadE = DS.loadSlot, eggsE = DS.EV.EGGS || [];
+      try {
+        var pdE = ['dm', 'release', 'denny', 'beholda', 'rascal', 'goose'];
+        check('EV.EGGS: ' + eggsE.length + ' (' + eggsE.map(function (e) { return e.id + (e.flag ? ':' + e.flag : '') + (e.unbuilt ? '*' : ''); }).join(' ') + '), none the Pocket DM\'s',
+          eggsE.length === 6 && !eggsE.some(function (e) { return pdE.indexOf(e.id) >= 0; }));
+        var mkE = function (fl) { var s = JSON.parse(JSON.stringify(DS.G)); s.flags = Object.assign({}, fl); s.time = 3600 * 60; return s; };
+        var savesE = { 1: mkE({ eggJoke: 1, eggDunk: 1 }), 2: mkE({ eggJoke: 1, eggDarkness: 1, eggDunk: 1, eggOrange: 1, eggWitness: 1 }), 3: mkE({}) };
+        DS.loadSlot = function (n) { return savesE[n] ? JSON.parse(JSON.stringify(savesE[n])) : null; };
+        var fE = [1, 2, 3].map(function (n) { return JSON.stringify(DS.eggsFound(savesE[n])); });
+        check('a save lights its own: ' + fE.join(' / '), fE[0] === '["red",null,"blue",null,null,null]' && fE[1] === '["red","violet","blue","orange","green",null]' && fE[2] === '[null,null,null,null,null,null]');
+        var hexE = function (c, x, y) { var d = c.getImageData(x, y, 1, 1).data; return '#' + [d[0], d[1], d[2]].map(function (v) { return ('0' + v.toString(16)).slice(-2); }).join('').toUpperCase(); };
+        [false, true].forEach(function (saving) {
+          var scE = new DS.SlotScene(saving), cvE = document.createElement('canvas'); cvE.width = 256; cvE.height = 240; var cE = cvE.getContext('2d'), drewE = true;
+          cE.fillStyle = '#000'; cE.fillRect(0, 0, 256, 240);
+          try { scE.msg = 'That save was made by a newer version of the game: reload the page.'; scE.draw(cE); } catch (eE) { drewE = String(eE && eE.stack || eE).slice(0, 300); }
+          var mE = scE.menu, rowsE = mE.items.map(function (it) { return it.eggs ? 'eggs' : '-'; }).join(','), boxE = mE.y + mE.h + 6 + 8 + 2 * 11;
+          check((saving ? 'SAVE WHERE?' : 'CONTINUE FROM') + ' draws (' + drewE + '): the save rows two lines tall ' + rowsE + ', the window ' + mE.y + '+' + mE.h + ', the two-line message box down to ' + boxE,
+            drewE === true && rowsE === (saving ? 'eggs,eggs,eggs' : 'eggs,eggs,eggs,-,-') && boxE <= 240);
+          // each egg's body (4,6 of its 9x11: the body still, rocked a pixel either way or under the glint) on the three rows
+          var xE = mE.x + mE.pad + 8 + DS.textWidth('SLOT 1  '), yE = mE.y + mE.pad + mE.titleH + 11, pxE = [0, 1, 2].map(function (r) { var o = []; for (var i = 0; i < 6; i++) o.push(hexE(cE, xE + i * 12 + 4, yE + r * 25 + 6)); return o.join(' '); });
+          var S_ = '#181A48';
+          check('the eggs on the screen: ' + pxE.join(' / '), pxE[0] === ['#D82800', S_, '#0058F8', S_, S_, S_].join(' ') && pxE[1] === ['#D82800', '#6844FC', '#0058F8', '#E45C10', '#00A800', S_].join(' ') && pxE[2] === [S_, S_, S_, S_, S_, S_].join(' '));
+          if (Q.get('shot') && !saving) out.shot = cvE.toDataURL('image/png'); // (shot=1: the load screen as a picture, for an eye)
+        });
+      } catch (eE2) { check('threw: ' + String(eE2 && eE2.stack || eE2).slice(0, 400), false); }
+      DS.loadSlot = loadE;
     } else if (test === 'migrate') {
       // an older save: Ingrith a fighter with a heals counter, hurt; DS.startFrom walks her on as the cleric she is
       DS.EV.addGuest('ingrith');
