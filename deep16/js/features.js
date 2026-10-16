@@ -518,7 +518,7 @@
   // the creatures a save-spell aimed at t catches, foes first-hand for Heightened
   function metaCaught(B, u, g, t) {
     if (t && t.units) return t.units.filter(function (w) { return w.id && w.hp > 0; });
-    if (t && t.x != null && !t.id) return B.units.filter(function (w) { return G.present(w) && w.hp > 0 && G.inArea(w, M.area(u, g, t.x, t.y)); });
+    if (t && t.x != null && !t.id) return B.units.filter(function (w) { return G.present(w) && w.hp > 0 && G.inArea(w, M.area(u, g, t.x, t.y, t.z)); });
     return t ? [t] : [];
   }
   var cast1m = M.cast;

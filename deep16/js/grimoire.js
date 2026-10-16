@@ -386,7 +386,7 @@
   E.colorspray = {
     summary: function (e, u) { return '15-ft cone · ' + (6 + 2 * Math.max(0, e.slot - 1)) + 'd10 HP of creatures blinded, the weakest first, till the end of your next turn'; },
     cast: function* (B, u, t, slot, head, x) {
-      var sq = M.area(u, x.g, t.x, t.y), n = 6 + 2 * up(x.sp, slot), pool = D.roll(n + 'd10'), left = pool.total, lines = [head + '  ' + n + 'd10 = ' + pool.total + ' HP of dazzled eyes, the weakest first'];
+      var sq = M.area(u, x.g, t.x, t.y, t.z), n = 6 + 2 * up(x.sp, slot), pool = D.roll(n + 'd10'), left = pool.total, lines = [head + '  ' + n + 'd10 = ' + pool.total + ' HP of dazzled eyes, the weakest first'];
       FX.bloom(u.x, u.y, sq, 'violet');
       caughtIn(B, sq).filter(function (w) { return w !== u && !w.conds.blinded && !w.blind; }).sort(function (a, b) { return a.hp - b.hp; }).forEach(function (w) {
         if (M.globed(B, u, w, 1)) { lines.push('  ' + Nm(B, w) + ': {c}inside the globe: untouched{/}'); return; } // (the Globe of Invulnerability: it takes none of the pool)
@@ -424,7 +424,7 @@
   E.entangle = {
     summary: function () { return '20-ft square within 90 ft · STR or restrained by vines; the ground difficult (concentration)'; },
     cast: function* (B, u, t, slot, head, x) {
-      var sq = M.area(u, x.g, t.x, t.y), rec = { kind: 'vines', sq: sq, by: u.id, difficult: true };
+      var sq = M.area(u, x.g, t.x, t.y, t.z), rec = { kind: 'vines', sq: sq, by: u.id, difficult: true };
       B.grounds = (B.grounds || []).concat([rec]); FX.bloom(t.x, t.y, sq, 'moss');
       var held = [];
       yield* saveAll(B, u, caughtIn(B, sq), 'str', x.dc, null, '', false, head + ': grasping weeds and vines burst from the ground', { skip: function (w) { return RU.immuneTo(w, 'restrained') ? 'nothing holds it' : ''; }, adv: function (w) { return !!w.landsStride; }, failText: 'restrained', cond: function (w) { w.conds.restrained = { dc: x.dc, by: u.id, kind: 'vines' }; held.push(w); } }); // (Land's Stride: advantage on the save against magically made plants, SRD)
@@ -468,7 +468,7 @@
   E.grease = {
     summary: function () { return '10-ft square within 60 ft · DEX or prone, and again for any who enter or end a turn on it; difficult; it lasts a minute (ten rounds)'; },
     cast: function* (B, u, t, slot, head, x) {
-      var sq = M.area(u, x.g, t.x, t.y), rec = { kind: 'grease', sq: sq, by: u.id, dc: x.dc, difficult: true, till: 10 };
+      var sq = M.area(u, x.g, t.x, t.y, t.z), rec = { kind: 'grease', sq: sq, by: u.id, dc: x.dc, difficult: true, till: 10 };
       B.grounds = (B.grounds || []).concat([rec]); FX.bloom(t.x, t.y, sq, 'stone');
       yield* saveAll(B, u, caughtIn(B, sq).filter(function (w) { return !w.noProne && !RU.immuneTo(w, 'prone'); }), 'dex', x.dc, null, '', false, head + ': slick grease over the ground', { failText: 'down', cond: function (w) { w.conds.prone = true; } });
     },
@@ -761,7 +761,7 @@
   E.faeriefire = {
     summary: function () { return '20-ft cube within 60 ft · DEX or outlined: attacks at them with advantage, no hiding (concentration)'; },
     cast: function* (B, u, t, slot, head, x) {
-      var sq = M.area(u, x.g, t.x, t.y), lit = []; FX.bloom(t.x, t.y, sq, 'violet');
+      var sq = M.area(u, x.g, t.x, t.y, t.z), lit = []; FX.bloom(t.x, t.y, sq, 'violet');
       yield* saveAll(B, u, caughtIn(B, sq), 'dex', x.dc, null, '', false, head + ': violet light', { failText: 'outlined', cond: function (w) { w.conds.faerie = { by: u.id }; delete w.conds.hidden; lit.push(w); } });
       if (lit.length) M.concentrate(B, u, 'faeriefire', 'Faerie Fire', function () { lit.forEach(function (w) { if (w.conds.faerie && w.conds.faerie.by === u.id) delete w.conds.faerie; }); });
     },
@@ -789,7 +789,7 @@
   // Darkness as a spell (SRD 5.1: a 15-ft sphere at a point within 60 ft, concentration): the drow's innate is magic.js castDarkness
   E.darkness = {
     summary: function () { return '15-ft sphere of magical darkness within 60 ft: nobody sees in, out or across (Devil\'s Sight does) (concentration)'; },
-    cast: function* (B, u, t, slot, head, x) { yield* M.darknessAt(B, u, M.area(u, x.g, t.x, t.y), head); },
+    cast: function* (B, u, t, slot, head, x) { yield* M.darknessAt(B, u, M.area(u, x.g, t.x, t.y, t.z), head); },
     ai: function (B, u, e, slot, fs, allies) {
       if (!u.devilSight || u.conc) return null;
       // a Devil's-Sight warlock drops it on herself: she sees out, they do not see in
@@ -949,7 +949,7 @@
   E.gustofwind = {
     summary: function () { return '60-ft line from you · STR or pushed 15 ft away; the fog and the cloud in it blown apart'; },
     cast: function* (B, u, t, slot, head, x) {
-      var sq = M.area(u, x.g, t.x, t.y); FX.bloom(u.x, u.y, sq, 'silver');
+      var sq = M.area(u, x.g, t.x, t.y, t.z); FX.bloom(u.x, u.y, sq, 'silver');
       var before = (B.darks || []).length;
       B.darks = (B.darks || []).filter(function (d) { return !((d.kind === 'fog' || d.kind === 'stink' || d.kind === 'kill') && d.sq.some(function (q) { return sq.some(function (p) { return p[0] === q[0] && p[1] === q[1]; }); })); });
       if (B.darks.length < before) { B.card(['{c}The wind tears the cloud apart.{/}'], 240); if (B.lightMap) B.lightMap = null; }
@@ -1011,7 +1011,7 @@
   };
   E.spikegrowth = {
     summary: function () { return '20-ft radius within 150 ft · hidden spikes: difficult, and 2d4 piercing for each 5 ft moved in it (concentration)'; },
-    cast: function* (B, u, t, slot, head, x) { var sq = M.area(u, x.g, t.x, t.y), rec = { kind: 'spikes', sq: sq, by: u.id, difficult: true }; B.grounds = (B.grounds || []).concat([rec]); FX.bloom(t.x, t.y, sq, 'moss'); M.concentrate(B, u, 'spikegrowth', 'Spike Growth', function () { removeGround(B, rec); B.card(['{g}The spikes wither back into the ground.{/}'], 240); }); B.card([head + ': the ground bristles with thorns (concentration).']); yield 30; },
+    cast: function* (B, u, t, slot, head, x) { var sq = M.area(u, x.g, t.x, t.y, t.z), rec = { kind: 'spikes', sq: sq, by: u.id, difficult: true }; B.grounds = (B.grounds || []).concat([rec]); FX.bloom(t.x, t.y, sq, 'moss'); M.concentrate(B, u, 'spikegrowth', 'Spike Growth', function () { removeGround(B, rec); B.card(['{g}The spikes wither back into the ground.{/}'], 240); }); B.card([head + ': the ground bristles with thorns (concentration).']); yield 30; },
     ai: function (B, u, e, slot, fs) { if (u.conc) return null; return TX().bestArea(B, u, e, fs, function (caught, sq) { var sc = 0; caught.forEach(function (w) { sc += (G.hostile(u, w) ? 1 : -1.5) * 5 * 1.5; }); return sc; }); }
   };
   // Spiritual Weapon (SRD 5.1): a floating weapon (a minute, no concentration); it strikes as it appears, and each turn after a bonus
@@ -1238,7 +1238,7 @@
   E.fear = {
     summary: function () { return '30-ft cone · WIS or frightened: it drops what it holds and runs from you each turn (concentration)'; },
     cast: function* (B, u, t, slot, head, x) {
-      var sq = M.area(u, x.g, t.x, t.y), dc = x.dc, hit = []; FX.bloom(u.x, u.y, sq, 'violet');
+      var sq = M.area(u, x.g, t.x, t.y, t.z), dc = x.dc, hit = []; FX.bloom(u.x, u.y, sq, 'violet');
       yield* saveAll(B, u, caughtIn(B, sq).filter(function (w) { return w !== u; }), 'wis', dc, null, '', false, head + ': a phantom of their worst fear', { against: 'frightened', skip: function (w) { return w.conds.heroism || RU.immuneTo(w, 'frightened') ? 'fearless' : ''; }, failText: 'terrified', cond: function (w) { w.conds.frightened = { by: u.id }; w.conds.feared = { dc: dc, by: u.id }; if (w.weapon && !w.guest && w.side === 'party') w.conds.disarmed = { till: { who: w.id, at: 'end', n: 1 } }; hit.push(w); } });
       if (hit.length) M.concentrate(B, u, 'fear', 'Fear', function () { hit.forEach(function (w) { if (w.conds.feared && w.conds.feared.by === u.id) { delete w.conds.feared; if (w.conds.frightened && w.conds.frightened.by === u.id) delete w.conds.frightened; } }); });
     },
@@ -1271,7 +1271,7 @@
   E.hypnoticpattern = {
     summary: function () { return '30-ft cube within 120 ft · WIS or charmed: helpless, speed 0, till hurt (concentration)'; },
     cast: function* (B, u, t, slot, head, x) {
-      var sq = M.area(u, x.g, t.x, t.y), hit = []; FX.bloom(t.x, t.y, sq, 'violet');
+      var sq = M.area(u, x.g, t.x, t.y, t.z), hit = []; FX.bloom(t.x, t.y, sq, 'violet');
       yield* saveAll(B, u, caughtIn(B, sq).filter(function (w) { return w !== u; }), 'wis', x.dc, null, '', false, head + ': a twisting pattern of colours', { against: 'charmed', skip: function (w) { return w.conds.blinded || w.blind ? 'does not see it' : RU.immuneTo(w, 'charmed') ? 'cannot be charmed' : ''; }, failText: 'entranced', cond: function (w) { w.conds.hypnotized = { by: u.id }; w.conds.incapacitated = { by: u.id }; w.conds.charmed = { by: u.id }; hit.push(w); } });
       if (hit.length) M.concentrate(B, u, 'hypnoticpattern', 'Hypnotic Pattern', function () { hit.forEach(function (w) { if (w.conds.hypnotized && w.conds.hypnotized.by === u.id) { delete w.conds.hypnotized; delete w.conds.incapacitated; delete w.conds.charmed; } }); });
     },
@@ -1291,7 +1291,7 @@
   E.slow = {
     summary: function () { return 'up to six in a 40-ft cube within 120 ft · WIS or slowed: -2 AC and DEX saves, half speed, no reactions, one attack (concentration)'; },
     cast: function* (B, u, t, slot, head, x) {
-      var sq = M.area(u, x.g, t.x, t.y), dc = x.dc, hit = [], list = caughtIn(B, sq).filter(function (w) { return G.hostile(u, w); }).slice(0, 6); FX.bloom(t.x, t.y, sq, 'silver');
+      var sq = M.area(u, x.g, t.x, t.y, t.z), dc = x.dc, hit = [], list = caughtIn(B, sq).filter(function (w) { return G.hostile(u, w); }).slice(0, 6); FX.bloom(t.x, t.y, sq, 'silver');
       yield* saveAll(B, u, list, 'wis', dc, null, '', false, head + ': time thickens', { failText: 'slowed', cond: function (w) { w.conds.slowed = { dc: dc, by: u.id }; hit.push(w); } });
       if (hit.length) M.concentrate(B, u, 'slow', 'Slow', function () { hit.forEach(function (w) { if (w.conds.slowed && w.conds.slowed.by === u.id) delete w.conds.slowed; }); });
     },
@@ -1344,7 +1344,7 @@
   // whoever ends a turn within 5 ft of it, or is rammed: DEX, 2d6 fire, half; it sheds light as a torch does (B.lights, kind 'sphere').
   // Both concentration; both take anyone in the way, friend or foe -- the AI keeps its own out of them
   function zoneOf(B, u, id) { return (B.zones || []).filter(function (z) { return z.by === u.id && z.id === id; })[0] || null; }
-  function zoneSq(z) { return G.sphere(z.x, z.y, 5); }
+  function zoneSq(z) { var sq = G.sphere(z.x, z.y, 5); return G.tall() && M.byHeight ? M.byHeight(sq, { shape: 'sphere', r: 5, tall: z.id === 'moonbeam' ? 40 : null }, z.x, z.y, G.map.gz(z.x, z.y)) : sq; } // (by height, 10-15: the beam a shaft 40 ft up from the ground, the sphere on the ground -- js/magic.js M.byHeight)
   M.zoneSq = zoneSq;
   function zoneCaught(B, z) { var sq = zoneSq(z); return B.units.filter(function (w) { return G.standing(w) && G.inArea(w, sq); }); }
   // one save against the zone: once a turn for the beam (the round and whose turn it is name the turn); every time for a ram or a turn's end
@@ -1507,7 +1507,7 @@
   E.blacktentacles = {
     summary: function () { return '20-ft square within 90 ft · writhing tentacles: difficult; DEX or 3d6 bludgeoning and restrained, entering or starting there (concentration)'; },
     cast: function* (B, u, t, slot, head, x) {
-      var sq = M.area(u, x.g, t.x, t.y), rec = { kind: 'tentacles', sq: sq, by: u.id, dc: x.dc, difficult: true };
+      var sq = M.area(u, x.g, t.x, t.y, t.z), rec = { kind: 'tentacles', sq: sq, by: u.id, dc: x.dc, difficult: true };
       B.grounds = (B.grounds || []).concat([rec]); FX.bloom(t.x, t.y, sq, 'violet');
       yield* saveAll(B, u, caughtIn(B, sq), 'dex', x.dc, '3d6', 'bludgeoning', false, head + ': black tentacles fill the ground', { failText: 'seized', cond: function (w) { if (!RU.immuneTo(w, 'restrained')) w.conds.restrained = { dc: x.dc, by: u.id, kind: 'tentacles' }; } });
       M.concentrate(B, u, 'blacktentacles', 'Black Tentacles', function () { removeGround(B, rec); B.units.forEach(function (w) { var r = w.conds.restrained; if (r && r.kind === 'tentacles' && r.by === u.id) delete w.conds.restrained; }); B.card(['{g}The tentacles sink away.{/}'], 240); });
@@ -1524,7 +1524,7 @@
   E.confusion = {
     summary: function () { return '10-ft sphere within 90 ft · WIS or confused, and no reactions: each turn a d10 -- wander, stand, strike at random, or act (concentration)'; },
     cast: function* (B, u, t, slot, head, x) {
-      var sq = M.area(u, x.g, t.x, t.y), dc = x.dc, hit = []; FX.bloom(t.x, t.y, sq, 'violet');
+      var sq = M.area(u, x.g, t.x, t.y, t.z), dc = x.dc, hit = []; FX.bloom(t.x, t.y, sq, 'violet');
       // (SRD 5.1: "an affected target can't take reactions": its reaction goes now, and M.onStart keeps it gone at each of its turns; react: it had one to lose)
       yield* saveAll(B, u, caughtIn(B, sq), 'wis', dc, null, '', false, head + ': their minds come loose', { failText: 'confused', cond: function (w) { w.conds.confused = { dc: dc, by: u.id, react: w.reaction > 0 }; w.reaction = 0; hit.push(w); } });
       if (hit.length) M.concentrate(B, u, 'confusion', 'Confusion', function () { hit.forEach(function (w) { var cf = w.conds.confused; if (cf && cf.by === u.id) { delete w.conds.confused; if (cf.react && w.hp > 0 && !w.dead) w.reaction = 1; } }); });
@@ -1664,7 +1664,7 @@
   E.flamestrike = {
     summary: function (e) { var n = Math.max(0, e.slot - 5); return '10-ft radius within 60 ft · DEX · ' + more('4d6', n) + ' fire and 4d6 radiant (half)'; },
     cast: function* (B, u, t, slot, head, x) {
-      var sq = M.area(u, x.g, t.x, t.y), list = caughtIn(B, sq); FX.bloom(t.x, t.y, sq, 'fire');
+      var sq = M.area(u, x.g, t.x, t.y, t.z), list = caughtIn(B, sq); FX.bloom(t.x, t.y, sq, 'fire');
       var f = D.roll(more('4d6', up(x.sp, slot))), r = D.roll('4d6'), lines = [head + '  a column of divine fire: ' + f.total + ' fire + ' + r.total + ' radiant  DEX DC ' + x.dc], hits = [];
       list.forEach(function (w) { if (M.globed(B, u, w, 5)) { lines.push('  ' + Nm(B, w) + ': {c}inside the globe: untouched{/}'); return; } var sv = RU.save(w, 'dex', x.dc), k = sv.ok ? 0.5 : 1; lines.push('  ' + Nm(B, w) + ': ' + RU.saveText(sv) + ' ' + (sv.ok ? '{n}saved{/}' : '{o}failed{/}')); hits.push([w, Math.floor(f.total * k), Math.floor(r.total * k)]); }); // (the Globe of Invulnerability: this one had no filter at all)
       B.card(lines.slice(0, 8), 420); yield { fx: 1 };
@@ -1724,7 +1724,7 @@
   E.insectplague = {
     summary: function (e) { return '20-ft sphere within 300 ft · swarming locusts: difficult; CON or ' + more('4d10', Math.max(0, e.slot - 5)) + ' piercing (half) as it forms, entering, or ending a turn there (concentration)'; },
     cast: function* (B, u, t, slot, head, x) {
-      var sq = M.area(u, x.g, t.x, t.y), rec = { kind: 'insects', sq: sq, by: u.id, dc: x.dc, difficult: true, dice: more('4d10', up(x.sp, slot)) };
+      var sq = M.area(u, x.g, t.x, t.y, t.z), rec = { kind: 'insects', sq: sq, by: u.id, dc: x.dc, difficult: true, dice: more('4d10', up(x.sp, slot)) };
       B.grounds = (B.grounds || []).concat([rec]); FX.bloom(t.x, t.y, sq, 'moss');
       yield* saveAll(B, u, caughtIn(B, sq), 'con', x.dc, rec.dice, 'piercing', true, head + ': a cloud of biting locusts');
       M.concentrate(B, u, 'insectplague', 'Insect Plague', function () { removeGround(B, rec); B.card(['{g}The locusts scatter.{/}'], 240); });
@@ -2055,7 +2055,7 @@
     return {
       summary: function (e) { return (e.g.r ? e.g.r + '-ft sphere within ' + e.g.range + ' ft' : e.g.len + '-ft ' + e.g.shape) + ' · ' + ab.toUpperCase() + ' · ' + dexpr + ' ' + type + (half ? ' (half)' : '') + (o.more || ''); },
       cast: function* (B, u, t, slot, head, x) {
-        var sq = M.area(u, x.g, t.x, t.y), list = caughtIn(B, sq); // (those inside a Globe of Invulnerability stay in the list: saveAll says "inside the globe: untouched" for each, where a filter here left "no one in it" -- and uses the spell's level, not the slot)
+        var sq = M.area(u, x.g, t.x, t.y, t.z), list = caughtIn(B, sq); // (those inside a Globe of Invulnerability stay in the list: saveAll says "inside the globe: untouched" for each, where a filter here left "no one in it" -- and uses the spell's level, not the slot)
         FX.bloom(/cone|line/.test(x.g.shape) ? u.x : t.x, /cone|line/.test(x.g.shape) ? u.y : t.y, sq, ramp);
         yield* saveAll(B, u, list, ab, x.dc, o.up ? more(dexpr, up(x.sp, slot) * o.up) : dexpr, type, half, head, { cond: o.cond ? function (w) { o.cond(B, u, w, x); } : null, skip: o.skip, against: o.against });
         if (o.after) o.after(B, u, sq, x);
@@ -2422,7 +2422,7 @@
     summary: function (e) { return (e.g.again ? 'the beam again: ' : '') + '60-ft line · CON · 6d8 radiant (half) and blinded (concentration: again each action)'; },
     cast: function* (B, u, t, slot, head, x) {
       if (!x.g.again) M.concentrate(B, u, 'sunbeam', 'Sunbeam', function () {});
-      var sq = M.area(u, x.g, t.x, t.y); FX.bloom(u.x, u.y, sq, 'bone');
+      var sq = M.area(u, x.g, t.x, t.y, t.z); FX.bloom(u.x, u.y, sq, 'bone');
       yield* saveAll(B, u, caughtIn(B, sq).filter(function (w) { return w !== u; }), 'con', x.dc, '6d8', 'radiant', true, head + ': a beam of sunlight', { against: 'blinded', failText: 'blinded', cond: function (w) { w.conds.blinded = { by: u.id, till: { who: w.id, at: 'end', n: 1 } }; } });
     },
     ai: function (B, u, e, slot, fs) { var b = TX().bestArea(B, u, e, fs, function (caught) { return TX().areaWorth(B, u, Object.assign({}, e, { sp: Object.assign({}, e.sp, { dmg: '6d8', half: true, save: 'con' }) }), 0, caught.filter(function (w) { return w !== u; })) * 1.3; }); if (b && !e.g.again) { b.score *= 1.6; b.keep = b.score / 3; } return b; }
@@ -2511,7 +2511,7 @@
   E.prismaticspray = {
     summary: function () { return '60-ft cone · DEX, and each caught one takes a ray of a d8: fire, acid, lightning, poison or cold (10d6, half), restrained, blinded, or two'; },
     cast: function* (B, u, t, slot, head, x) {
-      var sq = M.area(u, x.g, t.x, t.y), lines = [head + '  DEX DC ' + x.dc], hits = [];
+      var sq = M.area(u, x.g, t.x, t.y, t.z), lines = [head + '  DEX DC ' + x.dc], hits = [];
       var RAYS = [['fire', 'red'], ['acid', 'orange'], ['lightning', 'yellow'], ['poison', 'green'], ['cold', 'blue']];
       FX.bloom(u.x, u.y, sq, 'violet');
       caughtIn(B, sq).filter(function (w) { return w !== u; }).forEach(function (w) {
@@ -2545,7 +2545,7 @@
   // ------------------------------------------------------------------ 8th
   E.earthquake = {
     summary: function () { return 'a 100-ft radius within 500 ft · the ground heaves: difficult; each turn there DEX or prone, and CON to hold a spell (concentration)'; },
-    cast: function* (B, u, t, slot, head, x) { var sq = M.area(u, x.g, t.x, t.y), rec = { kind: 'quake', sq: sq, by: u.id, dc: x.dc, difficult: true }; B.grounds = (B.grounds || []).concat([rec]); D.sfx('encounter'); B.shakeT = 60; M.concentrate(B, u, 'earthquake', 'Earthquake', function () { removeGround(B, rec); B.card(['{g}The ground stills.{/}'], 240); }); B.card([head + ': the ground heaves.']); yield 30; },
+    cast: function* (B, u, t, slot, head, x) { var sq = M.area(u, x.g, t.x, t.y, t.z), rec = { kind: 'quake', sq: sq, by: u.id, dc: x.dc, difficult: true }; B.grounds = (B.grounds || []).concat([rec]); D.sfx('encounter'); B.shakeT = 60; M.concentrate(B, u, 'earthquake', 'Earthquake', function () { removeGround(B, rec); B.card(['{g}The ground stills.{/}'], 240); }); B.card([head + ': the ground heaves.']); yield 30; },
     ai: function (B, u, e, slot, fs) { if (u.conc) return null; return TX().bestArea(B, u, e, fs, function (caught) { var sc = 0; caught.forEach(function (w) { sc += (G.hostile(u, w) ? 1 : -1.2) * (TX().pFail(w, 'dex', u.spellDC) * 4 + (w.conc ? 6 : 0)); }); return sc; }); }
   };
   E.feeblemind = {
@@ -2664,7 +2664,7 @@
   E.weird = {
     summary: function () { return '30-ft sphere within 120 ft · WIS or frightened by its worst fear, 4d10 psychic at the end of each of its turns till it saves (concentration)'; },
     cast: function* (B, u, t, slot, head, x) {
-      var sq = M.area(u, x.g, t.x, t.y), hit = []; FX.bloom(t.x, t.y, sq, 'violet');
+      var sq = M.area(u, x.g, t.x, t.y, t.z), hit = []; FX.bloom(t.x, t.y, sq, 'violet');
       yield* saveAll(B, u, caughtIn(B, sq).filter(function (w) { return G.hostile(u, w); }), 'wis', x.dc, null, '', false, head + ': each sees what it fears most', { against: 'frightened', failText: 'sees it', cond: function (w) { w.conds.frightened = { by: u.id }; w.conds.killer = { dc: x.dc, by: u.id, dice: '4d10' }; hit.push(w); } });
       if (hit.length) M.concentrate(B, u, 'weird', 'Weird', function () { hit.forEach(function (w) { if (w.conds.killer && w.conds.killer.by === u.id) { delete w.conds.killer; if (w.conds.frightened && w.conds.frightened.by === u.id) delete w.conds.frightened; } }); });
     },

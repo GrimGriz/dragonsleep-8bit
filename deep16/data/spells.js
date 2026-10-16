@@ -7,6 +7,8 @@
           · sphere (r ft, at a point within range) · cube (size ft) · cone (len ft, from you) · line (len ft x 5, from you)
           · around (the squares within 5 ft of you, not yours: ours, Searing Scourge 10-14)
           · reaction (asked for, never cast from the list) · none (no use in this fight)
+   by height (10-15, the grid's rules §2.19 -- js/magic.js M.area): tall (ft) a sphere that is the SRD's cylinder, its height up from the ground at its point; ground, an area
+          that lies on the ground alone (what flies or clings over it is not in it). A sphere, a cube, a cone and a line are three-dimensional by themselves
    time: A action, B bonus action.  conc: concentration.  side: foe / ally / any.
    see: its SRD words say "that you can see" -- of the creature, or of the point (10-02, the runner's register; js/magic.js M.targetOK, M.inRange). A spell
    without it asks only a clear path: a friend unseen is found where you know them to be, a foe unseen only by aiming at its square (M.guessDark).
@@ -26,7 +28,7 @@
   invisibility: { shape: 'touch', side: 'ally', time: 'A', conc: true },          // till they attack or cast
   seeinvisibility: { shape: 'self', time: 'A' },
   stinkingcloud: { shape: 'sphere', range: 90, r: 20, time: 'A', conc: true },    // fog, and CON or the action goes each turn inside
-  sleetstorm: { shape: 'sphere', range: 150, r: 40, time: 'A', conc: true },      // fog, ice (difficult; DEX or prone), flames out
+  sleetstorm: { tall: 20, shape: 'sphere', range: 150, r: 40, time: 'A', conc: true },      // fog, ice (difficult; DEX or prone), flames out
   mislead: { shape: 'self', time: 'A', conc: true },                              // invisible, and a false double
   passwithouttrace: { shape: 'self', time: 'A', conc: true },                     // +10 Stealth for all of yours within 30 ft
   trueseeing: { shape: 'touch', side: 'ally', time: 'A' },                        // truesight 120 ft
@@ -50,7 +52,7 @@
   mistystep: { see: true, shape: 'teleport', range: 30, time: 'B' },
   fireball: { shape: 'sphere', range: 150, r: 20, time: 'A' },
   lightningbolt: { shape: 'line', len: 100, time: 'A' },
-  icestorm: { shape: 'sphere', range: 300, r: 20, time: 'A' },
+  icestorm: { tall: 40, shape: 'sphere', range: 300, r: 20, time: 'A' },
   greaterinvisibility: { shape: 'touch', side: 'ally', time: 'A', conc: true },
   stoneskin: { shape: 'touch', side: 'ally', time: 'A', conc: true },
   coneofcold: { shape: 'cone', len: 60, time: 'A' },
@@ -83,10 +85,10 @@
   bane: { see: true, shape: 'allies', side: 'foe', range: 30, n: 3, time: 'A', conc: true },
   colorspray: { shape: 'cone', len: 15, time: 'A' },
   command: { see: true, shape: 'single', side: 'foe', range: 60, time: 'A' },
-  entangle: { shape: 'cube', range: 90, size: 20, time: 'A', conc: true },
+  entangle: { ground: true, shape: 'cube', range: 90, size: 20, time: 'A', conc: true },
   expeditiousretreat: { shape: 'self', time: 'B', conc: true },
   falselife: { shape: 'self', time: 'A' },
-  grease: { shape: 'cube', range: 60, size: 10, time: 'A' },
+  grease: { ground: true, shape: 'cube', range: 60, size: 10, time: 'A' },
   guidingbolt: { shape: 'attack', range: 120, time: 'A' },
   healingword: { see: true, shape: 'single', side: 'ally', range: 60, time: 'B' },
   hellishrebuke: { see: true, shape: 'reaction', why: 'a reaction: when a foe you can see within 60 ft hurts you' },
@@ -119,9 +121,9 @@
   mirrorimage: { shape: 'self', time: 'A' },
   protectionfrompoison: { shape: 'touch', side: 'ally', time: 'A' },
   rayofenfeeblement: { shape: 'attack', range: 60, time: 'A', conc: true },
-  spikegrowth: { shape: 'sphere', range: 150, r: 20, time: 'A', conc: true },
+  spikegrowth: { ground: true, shape: 'sphere', range: 150, r: 20, time: 'A', conc: true },
   // the zones that move (the druid to nine, 09-29; js/grimoire.js): cast again to move them (the beam by an action, the sphere by a bonus action)
-  moonbeam: { shape: 'sphere', range: 120, r: 5, time: 'A', conc: true },
+  moonbeam: { tall: 40, shape: 'sphere', range: 120, r: 5, time: 'A', conc: true },
   flamingsphere: { shape: 'sphere', range: 60, r: 5, time: 'A', conc: true },
   spiritualweapon: { shape: 'single', side: 'foe', range: 60, time: 'B' },
   wardingbond: { shape: 'touch', side: 'ally', time: 'A' },
@@ -142,7 +144,7 @@
   vampirictouch: { shape: 'attack', range: 5, time: 'A', conc: true },
   // the class NPCs' spells (09-28, batch d; js/grimoire.js)
   banishment: { see: true, shape: 'single', range: 60, time: 'A', conc: true },
-  blacktentacles: { see: true, shape: 'cube', range: 90, size: 20, time: 'A', conc: true },
+  blacktentacles: { ground: true, see: true, shape: 'cube', range: 90, size: 20, time: 'A', conc: true },
   blight: { see: true, shape: 'single', side: 'foe', range: 30, time: 'A' },
   confusion: { shape: 'sphere', range: 90, r: 10, time: 'A', conc: true },
   deathward: { shape: 'touch', side: 'ally', time: 'A' },
@@ -154,7 +156,7 @@
   resilientsphere: { shape: 'single', range: 30, time: 'A', conc: true },
   contagion: { shape: 'attack', range: 5, time: 'A' },
   dispelevilandgood: { shape: 'self', time: 'A', conc: true },
-  flamestrike: { shape: 'sphere', range: 60, r: 10, time: 'A' },
+  flamestrike: { tall: 40, shape: 'sphere', range: 60, r: 10, time: 'A' },
   greaterrestoration: { shape: 'touch', side: 'ally', time: 'A' },
   insectplague: { shape: 'sphere', range: 300, r: 20, time: 'A', conc: true },
   // the druid's last (the druid to twelve, 09-30: js/walls.js, js/grimoire.js)
@@ -199,7 +201,7 @@
   prismaticspray: { shape: 'cone', len: 60, time: 'A' },
   regenerate: { shape: 'touch', side: 'ally', time: 'A' },
   symbol: { shape: 'sphere', range: 5, r: 0, time: 'A' },
-  earthquake: { see: true, shape: 'sphere', range: 500, r: 100, time: 'A', conc: true },
+  earthquake: { ground: true, see: true, shape: 'sphere', range: 500, r: 100, time: 'A', conc: true },
   feeblemind: { see: true, shape: 'single', side: 'foe', range: 150, time: 'A' },
   holyaura: { shape: 'self', time: 'A', conc: true },
   maze: { see: true, shape: 'single', side: 'foe', range: 60, time: 'A', conc: true },

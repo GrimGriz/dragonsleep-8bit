@@ -354,7 +354,7 @@
   MP.gazeTargets = function (B, u) { return MP.foes(B, u, MP.gazeRange(u.lvl), true); };
   MP.screenTargets = function (B, u) { return MP.foes(B, u, MP.screenLen(u.lvl), true); };
   MP.screenCatch = function (B, u, t) {
-    var sq = M.area(u, MP.screenGeo(u.lvl), t.x, t.y);
+    var sq = M.area(u, MP.screenGeo(u.lvl), t.x, t.y, t.z);
     return { sq: sq, foes: B.units.filter(function (w) { return G.hostile(u, w) && standing(w) && G.inArea(w, sq); }) };
   };
   function gazeRow(u) { return D.spr.anim(u.sheet, 'gaze') ? 'gaze' : D.spr.anim(u.sheet, 'cast') ? 'cast' : 'attack'; }
@@ -491,7 +491,7 @@
   // a save; friends in it burn too, as a Fireball's do. The dance with the claw clapping is its row; the fire is drawn here. Aimed as a spell is (a point: js/ui.js)
   MP.flameTargets = function (B, u) { return MP.foes(B, u, 60, true); };
   MP.flameCatch = function (B, u, t) {
-    var sq = M.area(u, MP.flameGeo(u.lvl), t.x, t.y);
+    var sq = M.area(u, MP.flameGeo(u.lvl), t.x, t.y, t.z);
     return { sq: sq, all: B.units.filter(function (w) { return w !== u && standing(w) && G.inArea(w, sq); }) };
   };
   MP.flame = function* (B, u, t) {

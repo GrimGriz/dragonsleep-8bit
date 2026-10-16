@@ -44,7 +44,7 @@
     return out;
   };
   var area0 = M.area;
-  M.area = function (u, g, cx, cy) { return g.shape === 'wall' ? (M.inRange(u, g, cx, cy) ? M.wallSq(u, g, cx, cy) : []) : area0(u, g, cx, cy); };
+  M.area = function (u, g, cx, cy, cz) { return g.shape === 'wall' ? (M.inRange(u, g, cx, cy) ? M.wallSq(u, g, cx, cy) : []) : area0(u, g, cx, cy, cz); }; // (cz: the aim's height, M.area by height -- 10-15)
   // which side of the wall a square is on: +1 the far side (away from him), -1 his, 0 in the line
   function sideOf(w, x, y) { var v = (x - w.cx) * w.dir[0] + (y - w.cy) * w.dir[1]; return v > 0.01 ? 1 : v < -0.01 ? -1 : 0; }
   // the grid's one question (grid.js): the wall on a square, if any (a lookup rebuilt when the walls change)

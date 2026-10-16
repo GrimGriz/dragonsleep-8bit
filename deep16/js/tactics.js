@@ -334,17 +334,18 @@
   TX.bestArea = function (B, u, e, fs, weigh) {
     var g = e.g, best = null, tried = {};
     var pts = [];
-    fs.forEach(function (t) { pts.push([t.x, t.y]); fs.forEach(function (t2) { if (t2 !== t && G.dist(t, t2) <= 15) pts.push([Math.round((t.x + t2.x) / 2), Math.round((t.y + t2.y) / 2)]); }); });
+    fs.forEach(function (t) { pts.push([t.x, t.y, M.aimAt(t, g)]); fs.forEach(function (t2) { // (at each foe's height -- one in the air too: areas by height, 10-15)
+      if (t2 !== t && G.dist(t, t2) <= 15) pts.push([Math.round((t.x + t2.x) / 2), Math.round((t.y + t2.y) / 2)]); }); });
     pts.forEach(function (p) {
-      var k = p[0] + ',' + p[1]; if (tried[k]) return; tried[k] = 1;
-      var sq = M.area(u, g, p[0], p[1]);
+      var k = p[0] + ',' + p[1] + ',' + (p[2] == null ? '' : p[2]); if (tried[k]) return; tried[k] = 1;
+      var sq = M.area(u, g, p[0], p[1], p[2]);
       if (!sq.length) return;
       // (a creature inside a Globe of Invulnerability that the spell's level cannot cross counts for nothing in the score -- not a foe hit, not a friend spared
       // the blast: the spell does nothing to it, M.globed, js/grimoire.js)
       var caught = B.units.filter(function (w) { return G.present(w) && w.hp > 0 && G.inArea(w, sq) && !M.globeShuts(B, u, g, w); });
       if (!caught.some(function (w) { return G.hostile(u, w); })) return;
       var sc = weigh(caught, sq);
-      if (!best || sc > best.score) best = { score: sc, t: { x: p[0], y: p[1] }, caught: caught };
+      if (!best || sc > best.score) best = { score: sc, t: { x: p[0], y: p[1], z: p[2] }, caught: caught };
     });
     return best;
   };

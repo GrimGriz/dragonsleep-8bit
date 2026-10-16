@@ -406,9 +406,10 @@
     for (var y = y0; y < y0 + n; y++) for (var x = x0; x < x0 + n; x++) { var s = G.map.at(x, y); if (s && s.open) out.push([x, y]); }
     return out;
   };
+  // (an area by height -- js/magic.js M.area, the grid's rules §2.19, 10-15 -- carries `sq.inZ`: a square under it counts only where the area meets the body's height there)
   G.inArea = function (u, sq) {
-    var f = G.foot(u);
-    for (var i = 0; i < f.length; i++) for (var j = 0; j < sq.length; j++) if (f[i][0] === sq[j][0] && f[i][1] === sq[j][1]) return true;
+    var f = G.foot(u), lo = sq.inZ ? G.gzAt(u, u.x, u.y) : 0, hi = sq.inZ ? lo + G.bodyH(u) * G.map.def.step : 0;
+    for (var i = 0; i < f.length; i++) for (var j = 0; j < sq.length; j++) if (f[i][0] === sq[j][0] && f[i][1] === sq[j][1] && (!sq.inZ || sq.inZ(f[i][0], f[i][1], lo, hi))) return true;
     return false;
   };
 

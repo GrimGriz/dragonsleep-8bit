@@ -100,6 +100,20 @@
     B.card(['{c}FLY{/} ' + (B.flyZ == null ? 'on the ground' : up > 0 ? Math.round(up) + ' ft up' : Math.round(-up) + ' ft down') + '  {g}(Shift+wheel, PgUp/PgDn or [ ]: 5 ft a step; a rise or a sink costs its feet; LAND on the ring){/}'], 160, 'fly-layer');
     return true;
   };
+  // AN AREA AIMED AT A HEIGHT (the grid's rules §2.19, areas by height, 10-15): while a sphere, a cube, a cone or a line is aimed where height can matter (G.tall), the same keys
+  // as a flier's layer -- Shift+wheel, PgUp/PgDn, [ ] -- lift the point it is aimed at 5 ft a step, from the ground under the cursor to the ceiling there (SRD 5.1: "a point
+  // you choose"). B.aimZ, absolute px, kept for the spell aimed (B.aimFor); null: the point M.aimZ picks -- the one aloft over the square, else the ground (js/magic.js)
+  UI.aimer = function (B) { var u = B.req && B.req.turn, S = B.spell; return u && B.tool === 'spell' && S && S.g && /^(sphere|cube|cone|line)$/.test(S.g.shape) && !S.g.ground && G.tall() ? u : null; };
+  UI.aimZ = function (B, x, y) { return B.aimFor === B.spell && B.aimZ != null ? Math.max(B.aimZ, G.map.gz(x, y)) : undefined; };
+  UI.stepAim = function (B, d) {
+    var u = UI.aimer(B); if (!u || !B.cursor) return false;
+    var x = B.cursor.x, y = B.cursor.y, g = B.spell.g, gz = G.map.gz(x, y), z0 = UI.aimZ(B, x, y), cur = z0 != null ? z0 : D.magic.aimZ(g, x, y), z = cur + d * G.LAYER(), top = G.ceilAt({ x: x, y: y, size: 1 }, x, y);
+    if (z > top || z < gz - 0.5) { D.sfx('error'); return false; }
+    B.aimZ = z; B.aimFor = B.spell; D.sfx('cursor');
+    var up = Math.round((z - gz) / G.map.def.step * 2.5);
+    B.card(['{c}AIM{/} ' + (up > 0 ? up + ' ft up' : 'on the ground') + '  {g}(Shift+wheel, PgUp/PgDn or [ ]: the point 5 ft a step){/}'], 160, 'aim-layer');
+    return true;
+  };
   function reachCache(B, u) {
     var T = u.turn, key = u.x + ',' + u.y + ',' + T.move + ',' + T.action + ',' + T.bonus + ',' + T.attacksLeft + ',' + B.units.map(function (w) { return w.x + ':' + w.y + ':' + (w.dead || w.hp <= 0 ? 0 : RU.canAct(w) ? 1 : 2) + (w.ethereal ? 'e' : ''); }).join(';') + (B.webs || []).length;
     if (B.cache && B.cache.key === key) return B.cache;
@@ -285,6 +299,7 @@
     }
     if (m.panX || m.panY) { cam.x -= (m.panX || 0) / z; cam.y -= (m.panY || 0) / z; m.panX = m.panY = 0; }
     var flU = UI.flyer(B); if (flU && free) { var dL = (m.wheel && m.wheelShift && m.inside && !overUI(B) ? (m.wheel < 0 ? 1 : -1) : 0) + (I.repeat('layerup') || I.repeat('bracketr') || I.pressed('rsup') ? 1 : 0) - (I.repeat('layerdown') || I.repeat('bracketl') || I.pressed('rsdown') ? 1 : 0); if (m.wheel && m.wheelShift && m.inside && !overUI(B)) m.wheel = 0; if (dL) UI.stepLayer(B, dL > 0 ? 1 : -1); } // (flight at a height, RULED 10-08: "Where the mousewheel becomes the vertical selection - yes"; then, on the pane, "Shift+wheel = height": the plain wheel zooms as everywhere)
+    else if (free && UI.aimer(B)) { var dA = (m.wheel && m.wheelShift && m.inside && !overUI(B) ? (m.wheel < 0 ? 1 : -1) : 0) + (I.repeat('layerup') || I.repeat('bracketr') || I.pressed('rsup') ? 1 : 0) - (I.repeat('layerdown') || I.repeat('bracketl') || I.pressed('rsdown') ? 1 : 0); if (m.wheel && m.wheelShift && m.inside && !overUI(B)) m.wheel = 0; if (dA) UI.stepAim(B, dA > 0 ? 1 : -1); } // (an area's point at a height: UI.stepAim, 10-15)
     else if (free && (I.pressed('rsup') || I.pressed('rsdown'))) UI.setZoom(I.pressed('rsdown') ? 1 : -1, null, null); // (the right stick's up and down zoom, as ever, while no flier's move is out)
     if (typeof document !== 'undefined' && document.body) document.body.classList.toggle('fly', !!flU); // (the phone's ▲ ▼ beside the move card, deep16/index.html)
     if (free && (m.wheel || I.pressed('zoomout') || I.pressed('zoomin'))) UI.setZoom(m.wheel ? m.wheel : I.pressed('zoomout') ? 1 : -1, m.wheel && m.inside ? m.x : null, m.wheel && m.inside ? m.y : null);
@@ -764,7 +779,7 @@
     if (tool === 'torch') return UI.throwSq(u, x, y) ? 'ok' : 'no';
     if (tool === 'spell') {
       var g = B.spell.g, M = D.magic;
-      if (g.shape === 'sphere' || g.shape === 'cube') return M.inRange(u, g, x, y) ? 'ok' : 'no';
+      if (g.shape === 'sphere' || g.shape === 'cube') return M.inRange(u, g, x, y, G.tall() ? (UI.aimZ(B, x, y) != null ? UI.aimZ(B, x, y) : M.aimZ(g, x, y)) : undefined) ? 'ok' : 'no'; // (the range up to the point too: areas by height, 10-15)
       if (g.shape === 'wall') return M.area(u, g, x, y).length ? 'ok' : 'no';
       if (g.shape === 'cone' || g.shape === 'line' || g.shape === 'wave') return M.area(u, g, x, y).length ? 'ok' : 'no';
       if (g.shape === 'around') return G.foot(u).concat(M.area(u, g, x, y)).some(function (q) { return q[0] === x && q[1] === y; }) ? 'ok' : 'no'; // (round the caster: himself or a square of it -- Searing Scourge, 10-14)
@@ -982,7 +997,8 @@
       }
       if (g.effects && !w) return cast({ x: x, y: y }); // (the spell on that empty square: Dispel Magic, M.effectsAt)
       if (g.shape === 'around') return cast({ x: u.x, y: u.y }); // (always round the caster, wherever the click)
-      if (g.shape === 'sphere' || g.shape === 'cube' || g.shape === 'cone' || g.shape === 'line' || g.shape === 'wave' || g.shape === 'wall' || g.shape === 'teleport') return cast({ x: x, y: y });
+      if (g.shape === 'sphere' || g.shape === 'cube' || g.shape === 'cone' || g.shape === 'line') { var zA = UI.aimZ(B, x, y); return cast(zA != null ? { x: x, y: y, z: zA } : { x: x, y: y }); } // (the point at the height picked, UI.stepAim: areas by height, 10-15)
+      if (g.shape === 'wave' || g.shape === 'wall' || g.shape === 'teleport') return cast({ x: x, y: y });
       return cast(spellTarget(B, u, g, x, y) || w || (M.guessDark(B, u, g, x, y) ? { x: x, y: y, size: 1, dark: true, name: 'the dark' } : null)); // (the guess: whoever stands there, or the dark itself)
     }
   }
@@ -2002,7 +2018,9 @@
         // M.globed, js/grimoire.js, asks the globe against the spell's own level (S.sp.level, not the slot), from where the caster would cast it: where he stands, or, for a spell used again
         // (g.free: Moonbeam moved, the sphere rolled), where it was first cast, M.castOrigin -- as magic.js M.globeShuts does. 10-01, the fog-and-dark runner's find: the preview tinted them)
         var org = g.free && M.castOrigin ? M.castOrigin(B, u, g) : u, globes = (B.globes || []).length && M.globed;
-        M.area(u, g, cx, cy).forEach(function (q) { if (globes && M.globed(B, org, { x: q[0], y: q[1] }, S.sp.level)) return; fillSq(ctx, q[0], q[1], col, 0.38); });
+        var sqA = M.area(u, g, cx, cy, UI.aimZ(B, cx, cy)); sqA.forEach(function (q) { if (globes && M.globed(B, org, { x: q[0], y: q[1] }, S.sp.level)) return; fillSq(ctx, q[0], q[1], col, 0.38); });
+        if (sqA.oz != null && sqA.oz > G.map.gz(cx, cy) + G.map.def.step + 0.5) airColumn(cx, cy, sqA.oz, null, 0, 'ok'); // (a point in the air: the column up to it and its height, as a flier's layer -- areas by height, 10-15)
+        if (sqA.inZ) B.units.forEach(function (w) { if (G.present(w) && !w.object && G.inArea(w, sqA)) G.foot(w).forEach(function (q) { lineSq(ctx, q[0], q[1], G.hostile(u, w) ? R('red', 4) : R('gold', 4), 0.8, 1); }); }); // (by height, who it catches is ringed: one in the air over its squares, not)
       } else if (g.shape === 'teleport') B.mistyTargets(u, g.range, g.see).forEach(function (q) { lineSq(ctx, q[0], q[1], R('glow', 2), 0.6, 4); });
       else B.units.forEach(function (w) {
         if (!M.targetOK(B, u, g, w)) return;
@@ -2287,7 +2305,7 @@
     D.text(ctx, 'END TURN', eb.x + eb.w / 2, eb.y + 2, R('bone', 1), 'center');
     var spellRing = B.list && B.list.kind === 'spells';
     D.hint(ctx, st === 'window' ? (B.tool === 'menu' ? 'up/down, E: choose   X: menu' : 'E: here   X: back to the commands') : spellRing ? 'left/right turns the ring, up/down the slot, E: choose' : B.tool === 'menu' || B.list ? 'left/right turns the ring, E: choose   X: close' : B.tool === 'move' ? 'X, Q or E on yourself: the ring   M: menu' : 'E: here   X: back', BX, BAR_Y + 6, R('accent', 2));
-    D.hint(ctx, UI.flyer(B) ? 'C recentre  M menu  wheel zoom  Shift+wheel height' : 'C recentre  M menu  wheel or -/= zoom', BX, BAR_Y + 18, R('stone', 5)); // (a flier's move out: its height's keys -- flight at a height, 10-08)
+    D.hint(ctx, UI.flyer(B) || UI.aimer(B) ? 'C recentre  M menu  wheel zoom  Shift+wheel height' : 'C recentre  M menu  wheel or -/= zoom', BX, BAR_Y + 18, R('stone', 5)); // (a flier's move out: its height's keys -- flight at a height, 10-08)
   }
   function pip(ctx, x, y, label, lit, col) { // a small lit box round a letter; gives back its width
     var w = D.textWidth(label) + 3;

@@ -2766,6 +2766,54 @@
       ok15('§2.22 Fire Bolt by the caster\'s level: ' + lad15 + ' (want 1d10 2d10 2d10 3d10 3d10 4d10 4d10)', lad15 === '4:1d10 5:2d10 10:2d10 11:3d10 16:3d10 17:4d10 20:4d10');
       var vm15 = M15.data('viciousmockery'), lv15 = [1, 5, 11, 17].map(function (L) { return M15.dice(vm15, { lvl: L }, 0); }).join(' ');
       ok15('§2.22 Vicious Mockery at 1st, 5th, 11th, 17th: ' + lv15 + ' (want 1d4 2d4 3d4 4d4)', lv15 === '1d4 2d4 3d4 4d4');
+      // §2.19 AREAS BY HEIGHT (his "lane for now"): a sphere's radius runs up as across, a cone and a line tilt to the point aimed at, a cylinder stands its height, a ground area
+      // lies on the ground. A wizard at 9th against three goblins on an open stretch of the class floor; one goblin given wings and lifted
+      function open15(w, h) { var m = G15.map; for (var y = 1; y + h < m.h; y++) for (var x = 1; x + w < m.w; x++) { var z = m.gz(x, y), good = true; for (var j = 0; j < h && good; j++) for (var i = 0; i < w && good; i++) { var s = m.at(x + i, y + j); if (!s || !s.walk || m.gz(x + i, y + j) !== z) good = false; } if (good) return [x, y]; } return null; }
+      var B2 = mk15('?npc=goblin,goblin,goblin&lvl=9&vs=wizard:9&breath=cold'), gs2 = side15(B2, 'foe'), wz2 = side15(B2, 'party')[0], o2 = open15(12, 5), LY = G15.LAYER();
+      if (!o2) ok15('§2.19 an open stretch of the class floor', false);
+      else {
+        var X = o2[0], Y = o2[1], gz2 = G15.map.gz(X, Y), g0 = gs2[0], g1 = gs2[1], g2 = gs2[2];
+        function up15(w, ft) { w.flies = true; w.fz = ft ? gz2 + ft / 5 * LY : null; }
+        function caught15(sq) { return B2.units.filter(function (w) { return G15.present(w) && G15.inArea(w, sq); }).map(function (w) { return w === g0 ? 'g0' : w === g1 ? 'g1' : w === g2 ? 'g2' : 'wz'; }).sort().join(','); }
+        wz2.x = X; wz2.y = Y + 2; g0.x = X + 8; g0.y = Y + 2; g1.x = X + 9; g1.y = Y + 2; g2.x = X + 8; g2.y = Y + 3; up15(g1, 0); up15(g2, 0);
+        var fb = M15.geo('fireball'), flat = M15.area(wz2, fb, X + 8, Y + 2);
+        ok15('§2.19 nobody aloft on a flat floor: the Fireball\'s squares as ever, no height (' + !flat.inZ + '), all three caught: ' + caught15(flat), !flat.inZ && caught15(flat) === 'g0,g1,g2');
+        up15(g1, 60);
+        var s60 = M15.area(wz2, fb, X + 8, Y + 2);
+        ok15('§2.19 a goblin 60 ft up beside the Fireball\'s point: caught ' + caught15(s60) + ' (want g0,g2 -- the flier out of it)', caught15(s60) === 'g0,g2');
+        up15(g1, 10);
+        ok15('§2.19 the same goblin 10 ft up: caught ' + caught15(M15.area(wz2, fb, X + 8, Y + 2)) + ' (want all three)', caught15(M15.area(wz2, fb, X + 8, Y + 2)) === 'g0,g1,g2');
+        up15(g1, 40);
+        var sAt = M15.area(wz2, fb, X + 9, Y + 2);
+        ok15('§2.19 the Fireball aimed at the square under the goblin 40 ft up (nobody on its ground): the point at it, ' + Math.round((sAt.oz - gz2) / LY * 5) + ' ft up; caught ' + caught15(sAt) + ' (want ~42 ft, g1 alone)', caught15(sAt) === 'g1' && Math.abs((sAt.oz - gz2) / LY * 5 - 42.5) < 3);
+        var sPick = M15.area(wz2, fb, X + 8, Y + 2, gz2 + 6 * LY);
+        ok15('§2.19 the point picked 30 ft over g0 (Shift+wheel): caught ' + caught15(sPick) + ' (want g1, 10 ft over and 5 ft across; the two on the ground 30 ft down out)', caught15(sPick) === 'g1');
+        // the cone: Burning Hands, 15 ft, from the wizard; the cone of cold 60 ft tilted up at a flier
+        g0.x = X + 2; g0.y = Y + 2; g1.x = X + 2; g1.y = Y + 1; up15(g1, 25); g2.x = X + 3; g2.y = Y + 3;
+        var bh = M15.geo('burninghands'), cLvl = M15.area(wz2, bh, X + 2, Y + 2);
+        ok15('§2.19 Burning Hands at g0 beside g1 25 ft up: caught ' + caught15(cLvl) + ' (want g0,g2: the cone 5 ft high there, the flier over it)', caught15(cLvl) === 'g0,g2');
+        var cc = M15.geo('coneofcold'); g1.x = X + 6; g1.y = Y + 2; up15(g1, 25); g0.x = X + 6; g0.y = Y + 4; g2.x = X + 8; g2.y = Y + 2;
+        var cUp = M15.area(wz2, cc, X + 6, Y + 2);
+        ok15('§2.19 Cone of Cold aimed at g1 30 ft off and 25 ft up: caught ' + caught15(cUp) + ' (want g1 -- the cone tilts to it; g2 on the floor 40 ft out, in reach of a level cone, out of the tilted one)', /g1/.test(caught15(cUp)) && !/g2/.test(caught15(cUp)));
+        var lb = M15.geo('lightningbolt'); g0.x = X + 4; g0.y = Y + 2; g1.x = X + 6; g1.y = Y + 2; up15(g1, 15); g2.x = X + 8; g2.y = Y + 2;
+        var ln = M15.area(wz2, lb, X + 8, Y + 2);
+        ok15('§2.19 Lightning Bolt along the floor through g0 and g2, g1 15 ft over the line between: caught ' + caught15(ln) + ' (want g0,g2)', caught15(ln) === 'g0,g2');
+        // the cylinder and the ground: Moonbeam's 40 ft shaft, Grease on the floor
+        var mbR = { id: 'moonbeam', x: X + 6, y: Y + 2 }, mbs = M15.zoneSq(mbR); up15(g1, 30);
+        var in30 = G15.inArea(g1, mbs); up15(g1, 50); var in50 = G15.inArea(g1, M15.zoneSq(mbR));
+        ok15('§2.19 Moonbeam\'s shaft, 40 ft high: a goblin 30 ft up in it ' + in30 + ', 50 ft up ' + in50 + ' (want true, false)', in30 && !in50);
+        var gr = M15.geo('grease'); g0.x = X + 6; g0.y = Y + 3; up15(g1, 5);
+        var gs = M15.area(wz2, gr, X + 6, Y + 2);
+        ok15('§2.19 Grease on the floor: g0 on it caught, g1 5 ft over it not -- caught ' + caught15(gs) + ' (want g0)', caught15(gs) === 'g0');
+        // the breath: the goblin's cold breath (the testing room's &breath=cold) at a wizard flying 10 ft up, 10 ft off
+        up15(g1, 0); g1.x = X + 11; g1.y = Y + 4; g2.x = X + 11; g2.y = Y; wz2.flies = true; wz2.fz = gz2 + 2 * LY; g0.x = X + 2; g0.y = Y + 2; wz2.x = X + 4; wz2.y = Y + 2;
+        var aim = D.magic.breathAim ? D.magic.breathAim(B2, g0) : null;
+        ok15('§2.19 a cold breath (15-ft cone) at the wizard flying 10 ft up, 10 ft off: aimed ' + (aim ? aim.foes + ' foe(s), at ' + Math.round((aim.z - gz2) / LY * 5) + ' ft' : 'none') + ' (want one, her middle 12.5 ft)', !!aim && aim.foes === 1 && Math.abs((aim.z - gz2) / LY * 5 - 12.5) < 1);
+        wz2.fz = gz2 + 8 * LY;
+        var aim2 = D.magic.breathAim ? D.magic.breathAim(B2, g0) : null;
+        ok15('§2.19 and at her 40 ft up, 10 ft off: ' + (aim2 ? 'aimed, ' + aim2.foes : 'none in it') + ' (want none -- out of a 15-ft cone)', !aim2);
+        wz2.flies = false; wz2.fz = null;
+      }
     } catch (e15) { rep15.errors.push(String(e15 && e15.stack || e15).slice(0, 900)); D.d = d015; }
     if (errs.length) rep15.errors = rep15.errors.concat(errs);
     var pre15 = document.createElement('pre'); pre15.id = 'out'; pre15.textContent = 'BENCH16 ' + JSON.stringify(rep15);

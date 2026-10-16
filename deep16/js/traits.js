@@ -671,14 +671,14 @@
     var br = u.breath, best = null;
     B.units.forEach(function (w) {
       if (!G.hostile(u, w) || !G.standing(w) || w.object || G.dist(u, w) > br.ft + 5) return;
-      var sq = M.area(u, { shape: br.shape || 'cone', len: br.ft }, w.x, w.y), foes = 0, friends = 0;
+      var gB = { shape: br.shape || 'cone', len: br.ft }, zB = M.aimAt(w, gB), sq = M.area(u, gB, w.x, w.y, zB), foes = 0, friends = 0; // (aimed at its body's height -- one in the air too: areas by height, 10-15)
       B.units.forEach(function (x) { if (x === u || !G.standing(x) || x.object || !G.inArea(x, sq)) return; if (G.hostile(u, x)) foes++; else friends++; });
-      if (foes && (!best || foes - 2 * friends > best.foes - 2 * best.friends)) best = { x: w.x, y: w.y, foes: foes, friends: friends };
+      if (foes && (!best || foes - 2 * friends > best.foes - 2 * best.friends)) best = { x: w.x, y: w.y, z: zB, foes: foes, friends: friends };
     });
     return best;
   };
   M.breathe = function* (B, u, aim) {
-    var br = u.breath, sq = M.area(u, { shape: br.shape || 'cone', len: br.ft }, aim.x, aim.y), ab = br.ab || 'dex';
+    var br = u.breath, sq = M.area(u, { shape: br.shape || 'cone', len: br.ft }, aim.x, aim.y, aim.z), ab = br.ab || 'dex';
     var ramp = br.stone ? 'stone' : br.type === 'cold' || br.type === 'lightning' ? 'glow' : br.type === 'poison' || br.type === 'acid' ? 'moss' : br.type === 'thunder' ? 'silver' : 'fire';
     if (u.turn) u.turn.action = 0; u.breathSpent = true; u.anim = 'attack'; u.animT = B.t;
     var caught = B.units.filter(function (w) { return w !== u && G.present(w) && (w.hp > 0 || w.regenDown) && !w.object && G.inArea(w, sq); });

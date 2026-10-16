@@ -125,7 +125,7 @@
   // ------------------------------------------------------------------ shapes
   // (a teleport's 30 ft is a distance, up and down as well as across -- height as a diagonal, as G.dist has it: from the roof's edge the street 45 ft below is out of Misty Step's
   // reach, where the flat count had let it jump down; 10-05, Griz: "1 agreed")
-  M.inRange = function (u, g, x, y) { var dzT = g.shape === 'teleport' && G.tall() ? Math.floor(Math.abs(G.map.gz(x, y) - G.gzAt(u, u.x, u.y)) / G.map.def.step / 2) : 0; return Math.max(Math.abs(x - u.x), Math.abs(y - u.y), dzT) * 5 <= (g.range || 0) && G.losPoint(u.x, u.y, x, y) && !(g.see && g.shape !== 'darts' && D.battle && !M.seesSq(D.battle, u, x, y)); }; // (a point you can see -- Call Lightning, Black Tentacles, Guardian of Faith, the Conjures: data/spells.js `see`, 10-02)
+  M.inRange = function (u, g, x, y, z) { var dzT = (g.shape === 'teleport' || z != null) && G.tall() ? Math.floor(Math.abs((z != null ? z : G.map.gz(x, y)) - G.gzAt(u, u.x, u.y)) / G.map.def.step / 2) : 0; return Math.max(Math.abs(x - u.x), Math.abs(y - u.y), dzT) * 5 <= (g.range || 0) && G.losPoint(u.x, u.y, x, y) && !(g.see && g.shape !== 'darts' && D.battle && !M.seesSq(D.battle, u, x, y)); }; // (a point you can see -- Call Lightning, Black Tentacles, Guardian of Faith, the Conjures: data/spells.js `see`, 10-02)
   M.seesSq = function (B, u, x, y) { return M.seeWhy(B, u, { x: x, y: y, size: 1, conds: {} }).ok; };
   // a foe's square aimed at in the dark by a spell that names one creature and asks no sight of it (10-02, Griz: "allow unseen foes only by guessing the square"): whoever
   // stands there takes it -- an empty square takes nothing but the slot (js/magic.js M.cast). Not a friend's spell: a friend is found where you know them (M.targetOK)
@@ -135,29 +135,66 @@
     return !M.seesSq(B, u, x, y);
   };
   // cone and line: from the caster toward the cursor. A cone is as wide as it is far (half-angle ~26.6); a line 5 ft wide.
-  function aimed(u, cx, cy, len, cone) {
+  // (by height, 10-15: `tz`, the aim's height in drawing px, tilts it from the middle of the caster's body toward that point -- a cone widens up and down as it does across, a
+  // line is 5 ft high as it is wide (SRD 5.1 Areas of Effect) -- and the squares are what lies under it; with no `tz` it is the flat cone it always was)
+  function aimed(u, cx, cy, len, cone, tz) {
     var ox = u.x + ((u.size || 1) - 1) / 2, oy = u.y + ((u.size || 1) - 1) / 2, dx = cx - ox, dy = cy - oy, L = Math.hypot(dx, dy);
     if (L < 0.01) return [];
-    dx /= L; dy /= L;
+    var LY = tz != null ? G.LAYER() : 1, oz = tz != null ? M.midZ(u) / LY : 0, dz = tz != null ? tz / LY - oz : 0, L3 = Math.hypot(L, dz), lim = len / 5 + 0.5, span = lim + 1;
+    var ax = dx / L3, ay = dy / L3, az = dz / L3, tilt = Math.abs(dz) > 0.01; // (heights in squares, 5 ft each, as across)
+    function inside(x, y, z) { var vx = x - ox, vy = y - oy, vz = z - oz, al = vx * ax + vy * ay + vz * az; if (al <= 0.3 || al > lim) return false; var pp = Math.sqrt(Math.max(0, vx * vx + vy * vy + vz * vz - al * al)); return cone ? pp <= al / 2 + 0.35 : pp <= 0.55; }
+    function colIn(x, y, z0, z1) { var n = Math.max(2, Math.ceil((z1 - z0) / 0.25)); for (var i = 0; i <= n; i++) if (inside(x, y, z0 + (z1 - z0) * i / n)) return true; return false; }
     var out = [], R = Math.ceil(len / 5) + 1;
     for (var y = Math.floor(oy) - R; y <= Math.ceil(oy) + R; y++) for (var x = Math.floor(ox) - R; x <= Math.ceil(ox) + R; x++) {
       var s = G.map.at(x, y); if (!s || !s.open) continue;
       if (x >= u.x && y >= u.y && x < u.x + (u.size || 1) && y < u.y + (u.size || 1)) continue;
-      var vx = x - ox, vy = y - oy, along = vx * dx + vy * dy, perp = Math.abs(vx * dy - vy * dx);
-      if (along <= 0.3 || along > len / 5 + 0.5) continue;
-      if (cone ? perp > along / 2 + 0.35 : perp > 0.55) continue;
+      if (!(tilt ? colIn(x, y, oz - span, oz + span) : inside(x, y, oz))) continue; // (level, the widest is at the caster's height: the flat test, exactly)
       if (!G.losPoint(u.x, u.y, x, y)) continue;
       out.push([x, y]);
     }
+    if (tz != null) { out.inZ = function (x, y, lo, hi) { return colIn(x, y, lo / LY, hi / LY); }; out.oz = tz; }
     return out;
   }
-  M.area = function (u, g, cx, cy) {
-    if (g.shape === 'sphere') return M.inRange(u, g, cx, cy) ? G.sphere(cx, cy, g.r) : [];
-    if (g.shape === 'cube') { var n = g.size / 5, x0 = cx - Math.floor((n - 1) / 2), y0 = cy - Math.floor((n - 1) / 2); return M.inRange(u, g, cx, cy) ? G.cube(x0, y0, n) : []; }
-    if (g.shape === 'wave') return M.wave(u, g, cx, cy);
+  // AREAS BY HEIGHT (the grid's rules §2.19; 10-08, Griz: "lane for now"; built 10-15): the SRD's areas are three-dimensional -- a sphere's radius runs up and down as it does
+  // across, a cylinder (data/spells.js `tall`, ft: Moonbeam, Flame Strike, Ice Storm, Sleet Storm) stands its height from the ground at its point, a cube its size, and some lie
+  // on the ground alone (`ground`: Grease, Entangle, Spike Growth, Black Tentacles, Earthquake). Before, an area was squares on the floor, and a Fireball's 20 ft caught a flier
+  // 60 ft up. The squares are still what lies on the floor under it (the tint, a zone's record); `sq.inZ(x, y, lo, hi)` says whether it meets a body standing lo to hi (drawing
+  // px) at that square, and G.inArea asks it. Only where height can matter (G.tall: a map rising 10 ft or more, or one aloft) -- a flat floor reads as it always did.
+  // The point it is aimed at, `cz` (px): what the aim gave (Shift+wheel, ui.js; the AI's at a foe in the air, M.aimAt), else the middle of the creature in the air or on a face
+  // over that square when none stands on its ground, else the ground (a cone's or a line's: the middle of whoever stands there, or 2.5 ft over an empty square)
+  M.midZ = function (w) { return G.gzAt(w, w.x, w.y) + G.bodyH(w) * G.map.def.step / 2; };
+  function upThere(o) { return !!(o && (G.aloft(o) || (o.hang && G.hanging(o)))); }
+  M.aimZ = function (g, cx, cy) {
+    var o = G.occupant(cx, cy); if (upThere(o)) return M.midZ(o); // (G.occupant: the one on its ground first)
+    if (g.shape === 'cone' || g.shape === 'line') return o ? M.midZ(o) : G.map.gz(cx, cy) + G.map.def.step;
+    return G.map.gz(cx, cy);
+  };
+  M.aimAt = function (w, g) { return g.shape === 'cone' || g.shape === 'line' || upThere(w) ? M.midZ(w) : G.gzAt(w, w.x, w.y); }; // (at one creature: the AI's areas, a breath)
+  function byHeight(sq, g, cx, cy, z) {
+    if (z == null) return sq;
+    var k = G.map.def.step / 2.5, st = G.map.def.step, gz0 = G.map.gz(cx, cy), aerial = z > gz0 + 0.5;
+    if (g.ground) sq.inZ = function (x, y, lo) { return lo <= G.map.gz(x, y) + st; }; // (on the ground: one standing on it, not one over it)
+    else if (g.shape === 'cube' || g.tall) { var h = (g.tall || g.size) * k, b0 = aerial ? z - h / 2 : gz0; sq.inZ = function (x, y, lo, hi) { return lo <= b0 + h + 0.01 && hi >= b0 - 0.01; }; } // (from the ground at its point up; a point in the air its middle)
+    else { var r = g.r; sq.inZ = function (x, y, lo, hi) { var hd = Math.hypot(x - cx, y - cy) * 5, hv = Math.sqrt(Math.max(0, r * r - hd * hd)) * k; return lo <= z + hv + 0.01 && hi >= z - hv - 0.01; }; }
+    sq.oz = z;
+    return sq;
+  }
+  M.byHeight = byHeight; // (the lasting zones' squares by height too: js/grimoire.js zoneSq)
+  // a wave (Thunderwave's cube out from the caster): from his feet up its size, standing; in the air, its middle at his
+  function waveHeight(u, g, sq) {
+    if (!G.tall()) return sq;
+    var st = G.map.def.step, h = g.size / 2.5 * st, b0 = upThere(u) ? M.midZ(u) - h / 2 : G.gzAt(u, u.x, u.y);
+    sq.inZ = function (x, y, lo, hi) { return lo <= b0 + h + 0.01 && hi >= b0 - 0.01; };
+    return sq;
+  }
+  M.area = function (u, g, cx, cy, cz) {
+    var z = G.tall() && /^(sphere|cube|cone|line)$/.test(g.shape) ? (cz != null ? Math.max(cz, G.map.gz(cx, cy)) : M.aimZ(g, cx, cy)) : null;
+    if (g.shape === 'sphere') return M.inRange(u, g, cx, cy, z) ? byHeight(G.sphere(cx, cy, g.r), g, cx, cy, z) : [];
+    if (g.shape === 'cube') { var n = g.size / 5, x0 = cx - Math.floor((n - 1) / 2), y0 = cy - Math.floor((n - 1) / 2); return M.inRange(u, g, cx, cy, z) ? byHeight(G.cube(x0, y0, n), g, cx, cy, z) : []; }
+    if (g.shape === 'wave') return waveHeight(u, g, M.wave(u, g, cx, cy));
     if (g.shape === 'around') return M.around(u, u.x, u.y); // (wherever the cursor is: it is always round the caster)
-    if (g.shape === 'cone') return aimed(u, cx, cy, g.len, true);
-    if (g.shape === 'line') return aimed(u, cx, cy, g.len, false);
+    if (g.shape === 'cone') return aimed(u, cx, cy, g.len, true, z);
+    if (g.shape === 'line') return aimed(u, cx, cy, g.len, false, z);
     return [];
   };
   // a cube out from the caster (Thunderwave): 3 x 3 squares against the side (or the corner) of him the cursor is toward
@@ -471,7 +508,7 @@
       });
       B.card(lines2, 360); yield 30;
     } else if (g.shape === 'sphere' || g.shape === 'cube' || g.shape === 'cone' || g.shape === 'line' || g.shape === 'wave' || g.shape === 'around') {
-      yield* area(B, u, id, sp, g, slot, t && t.x != null ? t.x : u.x, t && t.y != null ? t.y : u.y, head);
+      yield* area(B, u, id, sp, g, slot, t && t.x != null ? t.x : u.x, t && t.y != null ? t.y : u.y, head, t && t.z);
     } else if (g.shape === 'single') {
       if (id === 'holdmonster' && t.type === 'undead') { B.card([head + ' on the ' + B.shortName(t) + ': {g}the dead are not held{/}  (SRD 5.1: "no effect on undead")']); FX.ring(t, 'violet', 20); } // (10-06)
       else if (id === 'holdmonster' || id === 'holdperson') {
@@ -571,8 +608,8 @@
   };
 
   // every area spell: the squares, one damage roll, each creature's save (Evasion for a DEX save), conditions
-  function* area(B, u, id, sp, g, slot, cx, cy, head) {
-    var sq = M.area(u, g, cx, cy), dc = u.spellDC;
+  function* area(B, u, id, sp, g, slot, cx, cy, head, cz) {
+    var sq = M.area(u, g, cx, cy, cz), dc = u.spellDC;
     var ramp = id === 'daylight' || id === 'dancinglights' ? 'bone' : id === 'fogcloud' || id === 'sleetstorm' ? 'silver' : id === 'stinkingcloud' ? 'acid' : sp.el === 'cold' || sp.el === 'lightning' ? 'glow' : sp.el === 'thunder' ? 'silver' : sp.el === 'force' ? 'bone' : 'fire';
     if (g.shape === 'sphere' || g.shape === 'cube') { FX.projectile(u, { x: cx, y: cy, size: 1 }, 'fire'); yield { fx: 1 }; }
     var fromMe = g.shape === 'cone' || g.shape === 'line' || g.shape === 'wave' || g.shape === 'around';

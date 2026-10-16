@@ -2600,8 +2600,8 @@
         if (mk) return { do: 'cast', target: mk };
       }
       if (/^(rays|darts)$/.test(g.shape)) { if (!ok(foe)) return null; var n = (g.n || 1) + Math.max(0, (rd.slot || 0) - (rd.level || 0)), us = []; for (var k = 0; k < n; k++) us.push(foe); return { do: 'cast', target: { units: us } }; }
-      if (/^(sphere|cube)$/.test(g.shape)) return foe && M.inRange(w, g, foe.x, foe.y) ? { do: 'cast', target: { x: foe.x, y: foe.y } } : null;
-      if (/^(cone|line|wave)$/.test(g.shape)) return foe && M.area(w, g, foe.x, foe.y).length ? { do: 'cast', target: { x: foe.x, y: foe.y } } : null;
+      if (/^(sphere|cube)$/.test(g.shape)) return foe && M.area(w, g, foe.x, foe.y, M.aimAt(foe, g)).length ? { do: 'cast', target: { x: foe.x, y: foe.y, z: M.aimAt(foe, g) } } : null; // (at the foe's height: areas by height, 10-15)
+      if (/^(cone|line|wave)$/.test(g.shape)) return foe && M.area(w, g, foe.x, foe.y, M.aimAt(foe, g)).length ? { do: 'cast', target: { x: foe.x, y: foe.y, z: M.aimAt(foe, g) } } : null;
       if (g.shape === 'allies') { var a = ok(ally) ? ally : ok(w) ? w : null; return a ? { do: 'cast', target: { units: [a] } } : null; }
       if (g.side === 'ally' || g.shape === 'touch') { var b = ok(ally) ? ally : ok(w) ? w : null; return b ? { do: 'cast', target: b } : null; }
       return ok(foe) ? { do: 'cast', target: foe } : null;
