@@ -236,6 +236,47 @@ FIGS = {
                          rows=[('hurt', (180, 180, 2117, 540), (540, 582), NUM(6))]),
         },
         owed={}),
+    # (his bow Attack is 13 frames drawn over three lines of its page: `attack`, `attack#2`, `attack#3`, joined in order; its pages are
+    # toned against LPC's own Attack, the only LPC row with the bow in hand)
+    'npcranger': dict(                                        # ART-65, 10-15: eight pages (deep16/_src/npcranger/ART-65/); HEADs 1 and 2 three each
+        dir='npcranger/ART-65',
+        pages={
+            'H1P1': dict(file='ART-65_HEAD-1_PAGE-1.png', view='SE', ref=('idle', '1'), chan=14,          # SE: Idle 2, Walk 9
+                         text=[(0, 185, 240, 252), (0, 460, 240, 528), (240, 350, 2081, 382), (240, 640, 2081, 676)],
+                         rows=[('idle', (240, 50, 2081, 350), (350, 382), NUM(2)),
+                               ('walk', (240, 385, 2081, 640), (640, 676), NUM(9))]),
+            'H1P2': dict(file='ART-65_HEAD-1_PAGE-2.png', view='SE', ref=('attack', '1'), chan=14, tone=('attack', 'attack'),   # SE: Attack 13
+                         text=[(0, 95, 240, 156), (0, 355, 240, 415), (0, 577, 240, 638),
+                               (240, 224, 2158, 255), (240, 476, 2158, 506), (240, 697, 2158, 724)],
+                         rows=[('attack', (240, 5, 2158, 225), (225, 255), NUM(5)),
+                               ('attack#2', (240, 258, 2158, 476), (476, 506), ['6', '7', '8', '9', '10']),
+                               ('attack#3', (240, 508, 2158, 724), (698, 724), ['11', '12', '13'])]),
+            'H1P3': dict(file='ART-65_HEAD-1_PAGE-3.png', view='SE', ref=('cast', '1'), chan=14,          # SE: Hurt 6, Cast 7
+                         text=[(0, 165, 240, 230), (0, 487, 240, 551), (240, 329, 2172, 360), (240, 634, 2172, 670)],
+                         rows=[('hurt', (240, 30, 2172, 329), (329, 360), NUM(6)),
+                               ('cast', (240, 365, 2172, 634), (634, 670), NUM(7))]),
+            'H2P1': dict(file='ART-65_HEAD-2_PAGE-1.png', view='NE', ref=('idle', '1'), chan=14,          # NE: Idle 2, Walk 9
+                         text=[(0, 183, 230, 250), (0, 495, 230, 561), (230, 337, 2073, 373), (230, 646, 2073, 685)],
+                         rows=[('idle', (230, 40, 2073, 337), (337, 373), NUM(2)),
+                               ('walk', (230, 380, 2073, 646), (646, 685), NUM(9))]),
+            'H2P2': dict(file='ART-65_HEAD-2_PAGE-2.png', view='NE', ref=('attack', '1'), chan=14, tone=('attack', 'attack'),   # NE: Attack 13
+                         text=[(0, 115, 260, 170), (0, 348, 260, 402), (0, 570, 260, 625),
+                               (260, 224, 2172, 258), (260, 451, 2172, 482), (260, 674, 2172, 708)],
+                         rows=[('attack', (260, 5, 2172, 224), (224, 258), NUM(5)),
+                               ('attack#2', (260, 262, 2172, 451), (451, 482), ['6', '7', '8', '9', '10']),
+                               ('attack#3', (260, 486, 2172, 674), (674, 708), ['11', '12', '13'])]),
+            'H2P3': dict(file='ART-65_HEAD-2_PAGE-3.png', view='NE', ref=('cast', '1'), chan=14,          # NE: Hurt 6, Cast 7
+                         text=[(0, 128, 230, 195), (0, 456, 230, 523), (230, 316, 2091, 354), (230, 652, 2091, 690)],
+                         rows=[('hurt', (230, 30, 2091, 316), (316, 354), NUM(6)),
+                               ('cast', (230, 360, 2091, 652), (652, 690), NUM(7))]),
+            'H4P1': dict(file='ART-65_HEAD-4_PAGE-1.png', view='E', ref=('hurt', '1'), chan=14,           # E: Hurt 6
+                         text=[(0, 226, 185, 305), (185, 630, 2172, 674)],
+                         rows=[('hurt', (185, 200, 2172, 630), (630, 674), NUM(6))]),
+            'H5P1': dict(file='ART-65_HEAD-5_PAGE-1.png', view='N', ref=('hurt', '1'), against='N', chan=14,   # N: Hurt 6
+                         text=[(0, 320, 200, 396), (200, 546, 2172, 598)],
+                         rows=[('hurt', (200, 180, 2172, 546), (546, 598), NUM(6))]),
+        },
+        owed={}),
 }
 
 
@@ -417,7 +458,7 @@ def cut_pages(fig, ref_h, cellof, pal, old, tone=True, overlays=None, report=Non
     views, clipped = {}, []
     for L, pg in cfg['pages'].items():
         over = [] if overlays is not None else None
-        cuts = SR.cut_sheet(os.path.join(SRC, cfg['dir'], pg['file']), pg, cuts=pg.get('cuts'), overlay=over, tag=L)
+        cuts = joined(SR.cut_sheet(os.path.join(SRC, cfg['dir'], pg['file']), pg, cuts=pg.get('cuts'), overlay=over, tag=L))
         if overlays is not None:
             overlays[L] = over[0]
         ran, rnm = pg['ref']
@@ -445,11 +486,26 @@ def cut_pages(fig, ref_h, cellof, pal, old, tone=True, overlays=None, report=Non
     return views, clipped
 
 
+def anim_of(row):
+    """a spec row's anim: a row drawn over several lines of a page names its later lines `attack#2`, `attack#3` (the ranger's Attack 13)"""
+    return row.split('#')[0]
+
+
+def joined(cuts):
+    """a page's cut rows with an anim's later lines (`attack#2` ...) joined onto its first, in order"""
+    out = {}
+    for an in dict.fromkeys(anim_of(r) for r in cuts):        # (the anims in the page's own order)
+        for row in sorted((r for r in cuts if anim_of(r) == an), key=lambda r: int(r.split('#')[1]) if '#' in r else 1):
+            out.setdefault(an, []).extend(cuts[row])
+    return out
+
+
 def written(fig):
     """(anim, facing index) pairs the figure's pages write"""
     out = set()
     for L, pg in FIGS[fig]['pages'].items():
         for an, *_ in pg['rows']:
+            an = anim_of(an)
             out.add((an, FACINGS.index(pg['view'])))
             if pg['view'] in MIRROR:
                 out.add((an, FACINGS.index(MIRROR[pg['view']])))
@@ -499,7 +555,7 @@ def build(fig, meta, sheet, colours=None, overlays=None, report=None, tone=True)
                 out[y0 + f * fh:y0 + (f + 1) * fh, i * fw:(i + 1) * fw] = fr
         y0 += 8 * fh
     meta['diag'] = {'by': 'tools/lpc-diag-sheet.py', 'from': FIGS[fig]['dir'].split('/')[-1],
-                    'drawn': ['%s %s' % (pg['view'], '/'.join(r[0] for r in pg['rows'])) for pg in FIGS[fig]['pages'].values()],
+                    'drawn': ['%s %s' % (pg['view'], '/'.join(dict.fromkeys(anim_of(r[0]) for r in pg['rows']))) for pg in FIGS[fig]['pages'].values()],
                     'owed': list(FIGS[fig]['owed'].values()),
                     'lpc_cells': {an: list(od[an]) for an in od if new_dims[an] != od[an]}}
     bad = unchanged_check(fig, meta, out, od, old)
