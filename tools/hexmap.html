@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Realm Hex Map</title>
+<!-- the realm's hex map (10-16, the maps lane; Griz, 10-15: "at each zoom level I can select the hex and change the terrain type in order to reconstruct
+     the corridor-silver-pit"; "1 B" -- three levels, 5 mi / 1 mi / 330 ft; "I'll need to be able to move the cities and roads around as well").
+     Serve it from the they-live preview (http://localhost:8931/dragonsleep-8bit/tools/hexmap.html): that server reaches TarlynsPit/map for the underlays.
+     What he paints lives in this browser (localStorage) and is taken back by EXPORT (a .json the seat reads). -->
+<style>
+  :root { --bg: #15171c; --panel: #1d2027; --line: #2c313b; --text: #d9dce3; --dim: #8a90a0; --a: #ff9a3c; --b: #3cc8ff; --warn: #ff6a5c; --ok: #7ad37a; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: var(--bg); color: var(--text); font: 13px/1.35 ui-monospace, Consolas, monospace; overflow: hidden; }
+  #wrap { display: flex; height: 100%; }
+  #side { width: 310px; min-width: 310px; background: var(--panel); border-right: 1px solid var(--line); overflow-y: auto; padding: 10px 12px 40px; }
+  #view { flex: 1; position: relative; overflow: hidden; }
+  canvas { display: block; width: 100%; height: 100%; }
+  h1 { font-size: 14px; margin: 0 0 6px; letter-spacing: .04em; }
+  h2 { font-size: 11px; color: var(--dim); text-transform: uppercase; letter-spacing: .08em; margin: 14px 0 6px; }
+  select, button, input { font: inherit; color: var(--text); background: #262a33; border: 1px solid var(--line); border-radius: 4px; padding: 3px 7px; }
+  button { cursor: pointer; } button:hover { border-color: #4a5160; } button.on { background: #36507a; border-color: #4f73ad; }
+  input[type=text] { width: 100%; } input[type=number] { width: 64px; } input[type=range] { padding: 0; vertical-align: middle; }
+  .row { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; margin: 3px 0; }
+  .dim { color: var(--dim); }
+  #terrs { display: grid; grid-template-columns: 1fr 1fr; gap: 3px; }
+  .sw { display: flex; align-items: center; gap: 5px; padding: 2px 4px; border: 1px solid var(--line); border-radius: 4px; cursor: pointer; user-select: none; white-space: nowrap; overflow: hidden; }
+  .sw.on { border-color: var(--a); background: #2d2a26; }
+  .sw i { display: inline-block; width: 14px; height: 14px; min-width: 14px; border-radius: 3px; border: 1px solid rgba(0,0,0,.5); }
+  .sw small { color: var(--dim); margin-left: auto; }
+  .list div { padding: 1px 4px; cursor: pointer; border-radius: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .list div:hover { background: #262a33; } .list div.on { background: #36507a; }
+  #info, #measure, #msg { white-space: pre-wrap; }
+  #info { min-height: 3.5em; }
+  #status { position: absolute; left: 10px; bottom: 8px; color: var(--dim); pointer-events: none; white-space: pre; text-shadow: 0 0 3px #000, 0 0 3px #000; }
+  #lvl { position: absolute; left: 10px; top: 8px; font-size: 15px; pointer-events: none; text-shadow: 0 0 3px #000, 0 0 3px #000; }
+  b.warn { color: var(--warn); } b.ok { color: var(--ok); }
+  .box { border: 1px solid var(--line); border-radius: 4px; padding: 5px 6px; margin: 4px 0; }
+</style>
+</head>
+<body>
+<div id="wrap">
+  <div id="side">
+    <h1>REALM HEX MAP <span class="dim">the road, Silverton to the Pit</span></h1>
+    <h2>Level</h2>
+    <div class="row" id="levels"></div>
+    <div class="dim" id="lvlnote"></div>
+    <h2>Tool</h2>
+    <div class="row" id="tools"></div>
+    <div class="row" id="brushrow"><span class="dim">brush</span><span id="brushes"></span></div>
+    <h2>Terrain <span class="dim" style="text-transform:none;letter-spacing:0">(double-click one to edit it)</span></h2>
+    <div id="terrs"></div>
+    <div class="row"><button id="addterr">+ terrain</button><button id="guess" title="Guess the current level's hexes from the corridor v3 underlay (only hexes you have not painted at this level)">guess this level from v3</button></div>
+    <h2>Selected</h2>
+    <div id="info" class="box dim">nothing selected</div>
+    <div id="edit"></div>
+    <h2>Places</h2>
+    <div class="list" id="sites"></div>
+    <h2>Roads and rivers</h2>
+    <div class="list" id="paths"></div>
+    <div class="row"><button id="newroad">+ road</button><button id="newriver">+ river</button></div>
+    <h2>Measure</h2>
+    <div class="row"><span class="dim">on foot</span><input type="number" id="pfoot" step="1" min="1"><span class="dim">mi/day · cart</span><input type="number" id="pcart" step="1" min="1"><span class="dim">mi/day</span></div>
+    <div id="measure" class="dim">M, then click along a way (double-click ends; Esc clears)</div>
+    <h2>Underlays</h2>
+    <div id="unders"></div>
+    <div class="row"><span class="dim">paint</span><input type="range" id="paintop" min="0" max="1" step="0.05"><label><input type="checkbox" id="gridon"> grid</label><label><input type="checkbox" id="labon"> labels</label></div>
+    <h2>Taken back</h2>
+    <div class="row" id="filerow"></div>
+    <div id="filenote" class="dim"></div>
+    <div class="row"><button id="export">export .json</button><button id="import">import .json</button><button id="png">view .png</button></div>
+    <div class="row"><button id="undo">undo</button><button id="redo">redo</button><button id="reset">start over</button></div>
+    <input type="file" id="file" accept=".json,application/json" style="display:none">
+    <input type="file" id="imgfile" accept="image/*" style="display:none">
+    <div id="msg" class="dim"></div>
+    <div id="origin" class="dim"></div>
+    <h2>Keys</h2>
+    <div class="dim" style="white-space:pre-wrap">wheel: zoom (the level follows) · right- or middle-drag, or a drag on empty ground: pan
+1 2 3: level · double-click a hex: into it · Backspace: up a level
+S select · B paint · E erase · C places · R roads · M measure · U move an underlay
+[ ] brush · Ctrl+Z / Ctrl+Y · Del: the selected place or road point · Esc: let go</div>
+  </div>
+  <div id="view"><canvas id="c"></canvas><div id="lvl"></div><div id="status"></div></div>
+</div>
+<script src="hexmap.js"></script>
+</body>
+</html>
