@@ -4530,7 +4530,7 @@
       // beside the goblin: under ACTIONS with DODGE and HELP, on RING and RING2
       besideGr(gob, fg); RU2.startTurn(fg);
       D.ui.opts.menu = 'ring'; var r1 = idsGr(D.ui.cmds(Bg, fg)); D.ui.opts.menu = 'ring2'; var r2 = idsGr(D.ui.cmds(Bg, fg)); D.ui.opts.menu = 'ring';
-      okGr('no foe beside: GRAPPLE shown ' + far + '; the goblin beside: RING ' + r1.filter(function (x) { return /grapple|dodge|help/.test(x); }).join(' ') + ' | RING2 ' + r2.filter(function (x) { return /grapple|dodge|help/.test(x); }).join(' '),
+      okGr('no foe beside: GRAPPLE shown ' + far + '; the goblin beside: RING ' + r1.filter(function (x) { return /grapple|dodge|help/.test(x); }).join(' ') + ' | RING2 ' + r2.filter(function (x) { return /grapple|dodge|help/.test(x); }).join(' ') + ' (SHOVE: RING ' + (r1.filter(function (x) { return /shove/.test(x); }).join(' ') || 'nowhere') + ', RING2 ' + (r2.filter(function (x) { return /shove/.test(x); }).join(' ') || 'nowhere') + ')',
         !far && r1.indexOf('actions/grapple') >= 0 && r1.indexOf('actions/dodge') >= 0 && r1.indexOf('grapple') < 0 && r2.indexOf('actions/grapple') >= 0);
       // no empty hand: a shield with the sword -- not shown; the ogre (Large, one size up) shown; the hill giant (Huge) not
       fg.src.equip.shield = 'shield'; var shS = Bg.commands(fg).some(function (c) { return c.id === 'grapple'; }); fg.src.equip.shield = null;
