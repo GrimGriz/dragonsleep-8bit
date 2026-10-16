@@ -4169,6 +4169,49 @@
     document.body.appendChild(preO);
     return;
   }
+  // the one OPTIONS on the grid (mode=options1015; 10-15, the menus lane §2.1, RULED 10-13, Griz: "8 - yes"): a fight's M menu has the rows of the 8-bit's title, GRID
+  // SCALE and MENU TYPE and no MENU STYLE; GRID SCALE picked in the fight is kept with the rest (deep16.opts, UI.opts) and taken at once on a grid page of its own, never
+  // in the 8-bit's frame; MENU TYPE RING puts the Mascot game on the ring too, and back to LET THE MAP DECIDE the classes are on the ring, the Mascots on RING2
+  if (get('mode', '') === 'options1015') {
+    var repOp = { checks: [], errors: [] }, U_ = D.ui, op0 = null, fs0 = D.forceScale, fit0 = D.fit, emb0 = D.embed.on, uo0 = JSON.stringify(U_.opts), url0 = U_.urlMenu, fits = 0, ctx0Op = D.ctx;
+    function okOp(what, v) { repOp.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function keyOp(b) { return { pressed: function (x) { return x === b; }, repeat: function (x) { return x === b; }, mouse: null }; }
+    try { op0 = window.localStorage.getItem('deep16.opts'); window.localStorage.removeItem('deep16.opts'); } catch (e) { }
+    try {
+      D.fit = function () { fits++; }; if (!D.ctx) { var cvOp = document.createElement('canvas'); cvOp.width = D.W; cvOp.height = D.H; D.ctx = cvOp.getContext('2d'); }
+      var MNo = window.DS.MENU, front = MNo.openOptions({ close: function () { }, run: function () { } }), labF = front.top().list.items.map(function (x) { return x.label; });
+      var Bo = D.npcFight('?npc=goblin,goblin&lvl=5&vs=fighter:5,rogue:5', {}); D.battle = Bo; Bo.enter(); while (!Bo.order.length) Bo.co.next(); Bo.dark = false; Bo.answer = function () { this.req = null; };
+      var uo = Bo.units.filter(function (w) { return w.side === 'party'; })[0]; D.rules.startTurn(uo); Bo.active = uo; Bo.req = { turn: uo }; Bo.tool = 'move'; Bo.menu = null;
+      U_.openMenu(Bo); var mo = Bo.menu.m; mo.root.cmds.i = mo.root.cmds.items.map(function (x) { return x.value; }).indexOf('options'); mo.update(keyOp('a'));
+      var pgO = mo.top(), labG = pgO.list && pgO.list.items.map(function (x) { return x.label; }) || [];
+      okOp('the same rows on the title and in a fight: ' + labF.join(', ') + ' / ' + labG.join(', '), labF.join() === labG.join() && labG.indexOf('GRID SCALE') >= 0 && labG.indexOf('MENU TYPE') >= 0 && labG.indexOf('MENU STYLE') < 0);
+      var rowO = function (l) { pgO.list.i = labG.indexOf(l); }, stO = function () { try { return JSON.parse(window.localStorage.getItem('deep16.opts') || 'null') || {}; } catch (e) { return {}; } };
+      // GRID SCALE, in a fight on a grid page of its own: 3X now, kept; then a change of another row keeps it (UI.saveOpts writes UI.opts)
+      D.embed.on = false; rowO('GRID SCALE'); mo.update(keyOp('right')); mo.update(keyOp('right')); mo.update(keyOp('right'));
+      var sA = stO().scale, fA = D.forceScale, nA = fits, uA = U_.opts.scale; rowO('AUTO END TURN'); mo.update(keyOp('right')); var sB = stO().scale;
+      okOp('GRID SCALE in the fight: kept as ' + sA + ', the grid ' + fA + 'X now (fit ' + nA + 'x), UI.opts ' + uA + '; another row changed, still ' + sB, sA === 3 && fA === 3 && nA >= 1 && uA === 3 && sB === 3);
+      rowO('GRID SCALE'); D.embed.on = true; fits = 0; var fE = D.forceScale; mo.update(keyOp('left')); var sE = stO().scale;
+      okOp('inside the 8-bit\'s frame: kept as ' + sE + ' for the pages after, the frame\'s fit untouched (' + D.forceScale + 'X, fit ' + fits + 'x)', sE === 2 && D.forceScale === fE && fits === 0);
+      D.embed.on = false; mo.update(keyOp('left')); mo.update(keyOp('left')); var sZ = stO().scale;
+      okOp('AUTO: kept as ' + sZ + ', the grid fits the window again (forceScale ' + D.forceScale + ')', sZ === 0 && !D.forceScale);
+      // MENU TYPE: RING puts the Mascot game on the ring; back to LET THE MAP DECIDE, each kind its own default (a WINDOW kept from the old MENU STYLE let go)
+      U_.urlMenu = null; var mB_ = { units: [{ cls: 'mpmon', side: 'party' }] }, cB_ = { units: [{ cls: 'fighter', side: 'party' }] };
+      var o0_ = stO(); o0_.style = 'window'; o0_.menu = null; window.localStorage.setItem('deep16.opts', JSON.stringify(o0_)); U_.opts.style = 'window'; U_.opts.menu = null;
+      mo.pop(); mo.root.cmds.i = mo.root.cmds.items.map(function (x) { return x.value; }).indexOf('options'); mo.update(keyOp('a')); pgO = mo.top(); labG = pgO.list.items.map(function (x) { return x.label; });
+      rowO('MENU TYPE'); var r0 = pgO.list.cur().right; mo.update(keyOp('right')); var r1 = pgO.list.cur().right, s1 = U_.style(mB_) + '/' + U_.style(cB_);
+      mo.update(keyOp('left')); var r2 = pgO.list.cur().right, s2 = U_.style(mB_) + '/' + U_.style(cB_), st2 = stO();
+      okOp('MENU TYPE ' + r0 + ' -> ' + r1 + ': Mascot/class ' + s1 + '; -> ' + r2 + ': ' + s2 + ' (kept ' + st2.menu + ', ' + st2.style + ', ' + st2.mpStyle + ')',
+        r0 === 'LET THE MAP DECIDE' && r1 === 'RING' && s1 === 'ring/ring' && r2 === 'LET THE MAP DECIDE' && s2 === 'ring2/ring' && st2.menu == null && st2.style === 'ring' && st2.mpStyle === 'ring2');
+      var drewO = true; try { pgO.draw(D.ctx, true); rowO('GRID SCALE'); pgO.draw(D.ctx, true); front.draw(D.ctx); } catch (eDr) { drewO = String(eDr && eDr.stack || eDr).slice(0, 300); }
+      okOp('the page draws, on the title and in the fight (' + drewO + ')', drewO === true);
+    } catch (eOp) { repOp.errors.push(String(eOp && eOp.stack || eOp).slice(0, 900)); }
+    D.fit = fit0; D.forceScale = fs0; D.embed.on = emb0; U_.opts = JSON.parse(uo0); U_.urlMenu = url0; D.ctx = ctx0Op;
+    try { if (op0 == null) window.localStorage.removeItem('deep16.opts'); else window.localStorage.setItem('deep16.opts', op0); } catch (e) { }
+    if (errs.length) repOp.errors = repOp.errors.concat(errs);
+    var preOp = document.createElement('pre'); preOp.id = 'out'; preOp.textContent = 'BENCH16 ' + JSON.stringify(repOp);
+    document.body.appendChild(preOp);
+    return;
+  }
   // the level-up pick on the grid (mode=levelpick1014; 10-14, the level-up pick lane -- the roam's "leveling up in the roam should work like leveling up in 8bit"):
   // D.levelPicks, the roam's call, opens the 8-bit's pick page as the M menu stands and returns when the last hero has confirmed, each pick on its sheet; a bench
   // takes the defaults at once; the climb levels its four on the same page (every spell offered, the page-only ones too: "ladder for sure"; one not on the grid greyed)
@@ -7172,8 +7215,8 @@
       okD(drew.every(Boolean), 'every new screen draws: the notes, the title at the DM\'s, CAMPAIGN, THE UNITS, BUILD, DOORS, the foes with the knobs, the five shops, the six eggs');
       okD(PD.DOORS.length >= 30 && PD.DOORS.every(function (r) { return r[0] && r[1] && r[2]; }) && /\?fight=greyfang$/.test(PD.doorUrl('?fight=greyfang')), 'DOORS: ' + PD.DOORS.length + ' doors, each a name, a link and what it does');
       // n. the front door's OPTIONS rows, and MENU TYPE in the grid
-      var fr = window.DS.MENU.gridRows(null, true).map(function (r) { return r.label; }), fi = window.DS.MENU.gridRows(null, false).map(function (r) { return r.label; });
-      okD(fr[0] === 'GRID SCALE' && fr[1] === 'MENU TYPE' && fr.indexOf('MENU STYLE') < 0 && fi[0] === 'MENU STYLE', 'OPTIONS on the front door: GRID SCALE and MENU TYPE in MENU STYLE\'s place (' + fr.join(', ') + ')');
+      var fr = window.DS.MENU.gridRows(null).map(function (r) { return r.label; }); // (one list wherever it opens since 10-15, the menus lane §2.1: mode=options1015)
+      okD(fr[0] === 'GRID SCALE' && fr[1] === 'MENU TYPE' && fr.indexOf('MENU STYLE') < 0,'OPTIONS on the front door: GRID SCALE and MENU TYPE in MENU STYLE\'s place (' + fr.join(', ') + ')');
       var U = D.ui, mB = { units: [{ cls: 'mpmon', side: 'party' }] }, cB = { units: [{ cls: 'fighter', side: 'party' }] }, menu0 = U.opts.menu, url0 = U.urlMenu; U.urlMenu = null;
       U.opts.menu = null; var s0 = U.style(mB) + '/' + U.style(cB); U.opts.menu = 'ring'; var s1 = U.style(mB) + '/' + U.style(cB); U.opts.menu = 'window'; var s2 = U.style(mB) + '/' + U.style(cB);
       U.opts.menu = menu0; U.urlMenu = url0;

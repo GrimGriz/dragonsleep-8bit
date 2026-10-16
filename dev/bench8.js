@@ -1050,7 +1050,7 @@
         m = open(); toCmd(m, 'options'); press(m, 'a'); var op = m.pages[0], labs = op.list.items.map(function (x) { return x.label; });
         op.list.i = labs.indexOf('END TURN ASKS'); var r0 = op.list.cur().right; press(m, 'right'); var r1 = op.list.items[labs.indexOf('END TURN ASKS')].right, st9 = null;
         try { st9 = JSON.parse(window.localStorage.getItem('deep16.opts') || 'null'); if (o0 == null) window.localStorage.removeItem('deep16.opts'); else window.localStorage.setItem('deep16.opts', o0); } catch (eO2) { }
-        check('OPTIONS has the grid\'s rows (' + labs.join(', ') + '); END TURN ASKS ' + r0 + ' -> ' + r1 + ', kept as ' + (st9 && st9.confirmEnd), ['MENU STYLE', 'AUTO END TURN', 'END TURN ASKS', 'AI + MESSAGE TIME'].every(function (l) { return labs.indexOf(l) >= 0; }) && r0 !== r1 && st9 && st9.confirmEnd === 'always');
+        check('OPTIONS has the grid\'s rows (' + labs.join(', ') + '); END TURN ASKS ' + r0 + ' -> ' + r1 + ', kept as ' + (st9 && st9.confirmEnd), ['GRID SCALE', 'MENU TYPE', 'AUTO END TURN', 'END TURN ASKS', 'AI + MESSAGE TIME'].every(function (l) { return labs.indexOf(l) >= 0; }) && r0 !== r1 && st9 && st9.confirmEnd === 'always');
         // 10. the night's bonds, before the day's spells: a ring put on bonds in the night (NEW); one let go on the sheet stays let go through the next rest
         var vi = g.hero('vivian'); DS.clearScenes(); vi.attuned = []; vi.equip.ring = 'ringofprotection'; delete vi.noBond;
         DS.EV.longRest(); var newB = vi.attuned.indexOf('ringofprotection') >= 0, seenB = null;

@@ -942,25 +942,24 @@
   // music off, a default 'menu type' select that is originally 'let the map decide' and overrides the mascots using Ring2 by default if it is set to ring 1"): GRID SCALE,
   // read by deep16/js/main.js where the address has no &scale= (0 AUTO: the grid fits the window); MENU TYPE, read by deep16/js/ui.js UI.style (null: the map decides)
   var MENUW = { ring: 'RING', ring2: 'RING2', window: 'WINDOW' }, SCALE_MAX = 8;
-  MN.gridRows = function (host, front) {
+  // ONE OPTIONS (RULED 10-13, Griz: "Title screen options is not the same one from inside a save (no scale) - is this necessary (that they be different menus?) same
+  // with 16 bit - are we making it the same menu through and through as much as possible?"; "8 - yes"): the same rows wherever the page opens -- the 8-bit's title,
+  // its field menu in a save, a grid fight's M menu. GRID SCALE in all three (a fight that is not inside the 8-bit takes it at once: deep16/js/ui.js optsChanged);
+  // MENU TYPE in MENU STYLE's old place, his 10-09 row: LET THE MAP DECIDE (the classes on the ring, a Mascot game on RING2 -- his 10-08 "mascot games default to menu
+  // setting of ring two, not an overwrite"), or RING, RING2 or WINDOW in every fight, the Mascot games too. Back to LET THE MAP DECIDE puts each kind on its own default
+  // again, so the row says what the fights do (the old MENU STYLE kept one per kind, set from inside a fight; a setting made there before stays till then)
+  MN.gridRows = function (host) {
     var o = readOpts(), save = function () { try { window.localStorage.setItem(OPT_KEY, JSON.stringify(o)); } catch (e) { } if (host && host.optsChanged) host.optsChanged(o); };
-    // (a Mascot game keeps its own MENU STYLE, RING2 till changed -- 10-08, Griz: "mascot games default to menu setting of ring two, not an overwrite"; deep16/js/ui.js UI.style;
-    // a MENU TYPE set on the title is the one in force everywhere, so the row changes that)
-    var sk = o.menu && MENUW[o.menu] ? 'menu' : host && host.mascotGame && host.mascotGame() ? 'mpStyle' : 'style';
-    var first = front ? [
+    return [
       { label: 'GRID SCALE', key: 'scale', get: function () { return o.scale ? o.scale + 'X' : 'AUTO'; }, step: function (d) { o.scale = clamp((o.scale | 0) + d, 0, SCALE_MAX); save(); }, scale: function () { return o.scale | 0; } },
-      { label: 'MENU TYPE', key: 'menu', get: function () { return MENUW[o.menu] || 'LET THE MAP DECIDE'; }, step: function (d) { o.menu = cyc([null, 'ring', 'ring2', 'window'], MENUW[o.menu] ? o.menu : null, d); save(); } }
-    ] : [
-      { label: 'MENU STYLE', get: function () { return String(o[sk] || 'ring').toUpperCase(); }, step: function (d) { o[sk] = cyc(['ring', 'ring2', 'window'], o[sk], d); save(); } } // (RING2, 10-08: the ring by cost -- ACTIONS and BONUSES; deep16/js/ui.js)
-    ];
-    return first.concat([
+      { label: 'MENU TYPE', key: 'menu', get: function () { return MENUW[o.menu] || 'LET THE MAP DECIDE'; }, step: function (d) { o.menu = cyc([null, 'ring', 'ring2', 'window'], MENUW[o.menu] ? o.menu : null, d); if (!o.menu) { o.style = 'ring'; o.mpStyle = 'ring2'; } save(); }, // (RING2, 10-08: the ring by cost -- ACTIONS and BONUSES; deep16/js/ui.js)
+        now: function () { return { style: o.style, mpStyle: o.mpStyle }; } },
       { label: 'AUTO END TURN', get: function () { return o.autoEnd ? 'ON' : 'OFF'; }, step: function () { o.autoEnd = !o.autoEnd; save(); } },
       { label: 'END TURN ASKS', get: function () { return ASKW[o.confirmEnd] || 'IF IDLE'; }, step: function (d) { o.confirmEnd = cyc(ASKS, o.confirmEnd, d); save(); } },
       { label: 'AI + MESSAGE TIME', get: function () { return o.pace + 'x'; }, step: function (d) { o.pace = cyc(PACES, o.pace, d); save(); } }
-    ]);
+    ];
   };
-  // o.front: the 8-bit title's OPTIONS (MN.openOptions), GRID SCALE and MENU TYPE in MENU STYLE's place
-  function OptionsPage(m, o) { this.m = m; this.front = !!(o && o.front); this.grid = MN.gridRows(m.host, this.front); this.list = new List({ visible: 12 }); this.refresh(); }
+  function OptionsPage(m) { this.m = m; this.grid = MN.gridRows(m.host); this.list = new List({ visible: 12 }); this.refresh(); }
   OptionsPage.prototype.rows = function () {
     var A = DS.audio || {}, extra = this.grid, mv = Math.round((A.musicVol || 0) * 10);
     return [{ label: 'MUSIC', right: mv ? 'ON  ' + mv : 'OFF', value: { k: 'music' } }, { label: 'SOUND', right: Math.round((A.sfxVol || 0) * 10), value: { k: 'sound' } }]
@@ -1012,10 +1011,13 @@
       for (var i = 0; i < stops; i++) { var sx = tx + Math.round(i * tw / (stops - 1)); ctx.fillStyle = i === s ? C.gold : MID; ctx.fillRect(sx - (i === s ? 2 : 0), 202 - (i === s ? 1 : 0), i === s ? 5 : 1, i === s ? 9 : 7); }
       var big = s && window.screen && (480 * s > window.screen.width * (window.devicePixelRatio || 1) || 270 * s > window.screen.height * (window.devicePixelRatio || 1));
       text(ctx, s ? s + 'X: ' + 480 * s + ' x ' + 270 * s + ' pixels' + (big ? ', bigger than this screen' : '') : 'AUTO: the grid fits the window', 10, 214, s ? C.tan : C.green);
-      text(ctx, 'the 16-bit fights\' size, unless a link says &scale=', 10, 224, C.grey);
+      // (where it takes: a grid page of its own at once; inside the 8-bit -- its menu, or a story fight in its frame -- the frame decides, and the ladders and the Pocket DM take it)
+      var D16 = window.D16, live = !!(this.m.host && this.m.host.optsChanged) && !(D16 && D16.embed && D16.embed.on);
+      text(ctx, live ? 'this fight now, and the 16-bit pages after it' : 'the 16-bit pages\' size; the game\'s own fights fit it', 10, 224, C.grey);
     } else if (o && o.key === 'menu') {
       win(ctx, 4, 196, 248, 40);
-      wrap(MENUW[readOpts().menu] ? 'Every 16-bit fight on ' + MENUW[readOpts().menu] + ', the Mascot games too.' : 'Each fight its own: the classes on the ring, a Mascot game on RING2 -- the fight\'s M menu changes either.', 236).slice(0, 3).forEach(function (l, i) { text(ctx, l, 10, 203 + i * 10, C.tan); });
+      var nowM = o.now(), W_ = function (s) { return MENUW[s] || 'RING'; };
+      wrap(MENUW[readOpts().menu] ? 'Every 16-bit fight on ' + MENUW[readOpts().menu] + ', the Mascot games too.' : 'Each fight its own: the classes on ' + W_(nowM.style) + ', a Mascot game on ' + W_(nowM.mpStyle) + '.', 236).slice(0, 3).forEach(function (l, i) { text(ctx, l, 10, 203 + i * 10, C.tan); });
     } else if (v && v.k === 'music') {
       win(ctx, 4, 196, 248, 40);
       text(ctx, 'E turns the music off, and back on where it was', 10, 203, C.tan);
@@ -1028,7 +1030,7 @@
     var m = Object.create(Menu.prototype); // (not new Menu: its Root reads the host's party, and the title has none)
     m.host = host; m.t = 0; m.pages = []; m.toast = null; m.busy = false; m.closed = false; m.hits = [];
     m.root = { mode: null, draw: function () { }, update: function () { m.close(); }, drawPick: function () { } };
-    m.push(new OptionsPage(m, { front: true }));
+    m.push(new OptionsPage(m)); // (the same page as everywhere since 10-15: ONE OPTIONS above)
     return m;
   };
 
