@@ -17,6 +17,9 @@
   var DS = window.DS = window.DS || {};
   var G1 = 'Eyes: first', G2 = 'Eyes: built this week', G3 = 'Eyes: built before, never seen';
   DS.EYES = {
+    'eyes-shaken-checks-1015': { pri: 3, group: G2, title: 'Shaken’s -2 on every check: the Hide, the Search, a climb (10-15)', pt: 'the grid’s rules §2g (deep16/js/battle.js Battle.shakenTag, stealthRoll, search, the climbs and the pulls; the &shaken knob) · eyes',
+      url: 'deep16/?npc=goblin,goblin&vs=rogue:5,fighter:5&lvl=5&map=climbfloor&shaken&fresh=1',
+      look: 'Your two start shaken (&shaken: the fear scale’s first step). The rogue’s HIDE card reads “Stealth d20 .. +.. -2 shaken = ..”, and a SEARCH “Perception d20 .. -2 shaken = ..”. Walk the fighter up a face that asks a climb: the Athletics total is 2 less than calm. The fear steps down on a WIS save at a turn’s end, as before -- so look on the first turn.' },
     'eyes-take-the-party-1015': { pri: 2, group: G2, title: 'Take the party with you: outside a story fight the first one out takes the rest (10-15)', pt: 'the grid’s rules, leaving together (deep16/js/battle.js Battle.takesParty, over, leave) · eyes',
       url: 'deep16/?npc=goblin,goblin&vs=fighter:5,cleric:5,rogue:5&lvl=5&fresh=1',
       look: 'The class floor (not a story fight). Walk one of the three onto the way you came in: LEAVE THE FIGHT says “out the way you came in, and the party goes too”. Take it (a foe beside you still gets its swing) and the fight ends, escaped, with all three out. While one of them is down or held, LEAVE is greyed: “Your allies refuse -- not while ... is down!”. A story fight (the game’s own, e.g. the Skylights) keeps the old way: each walks out.' },

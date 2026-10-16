@@ -2600,6 +2600,43 @@
     document.body.appendChild(preZ);
     return;
   }
+  // the fear scale on checks, 10-15 (mode=shaken1015; RULED, Griz: "3 - SRD when we can, yes" -- the d20 SRD's shaken, -2 on every ability check): the Hide, the Search and a climb's
+  // Athletics, each rolled twice with the dice pinned, calm and shaken -- 2 apart, and the card says shaken. Each failed on the code before it
+  if (get('mode', '') === 'shaken1015') {
+    var repSH = { checks: [], errors: [] }, d0SH = D.d, GSH = D.grid;
+    function okSH(what, v) { repSH.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function runSH(g) { var v, k = 0, st; while (g && k++ < 6000) { st = g.next(v); v = undefined; if (st.done) return st.value; if (st.value && st.value.prompt) v = st.value.prompt.opts[0].value; } }
+    function mkSH(q) { var Bx = D.npcFight(q, {}); D.battle = Bx; Bx.enter(); while (!Bx.order.length) Bx.co.next(); Bx.dark = false; return Bx; }
+    function sideSH(Bx, s) { return Bx.units.filter(function (u) { return u.side === s; }); }
+    function logSH(Bx, n) { return (Bx.log || []).slice(n).join(' | ').replace(/\{\/?[a-z]*\}/g, ''); }
+    function shake(u, on) { if (on) u.conds.fearScale = { n: 1 }; else delete u.conds.fearScale; }
+    try {
+      D.d = function (n) { return n === 20 ? 10 : 1; };
+      var B1 = mkSH('?npc=goblin&lvl=5&vs=rogue:5'), r1 = sideSH(B1, 'party')[0], g1 = sideSH(B1, 'foe')[0];
+      shake(r1, false); var calm1 = B1.stealthRoll(r1).total; shake(r1, true); var sh1 = B1.stealthRoll(r1).total, tag1 = D.Battle.shakenTag ? D.Battle.shakenTag(r1) : '';
+      okSH('THE HIDE: the rogue\'s Stealth, the d20 pinned at 10 -- calm ' + calm1 + ', shaken ' + sh1 + ' (want 2 less), the card\'s tag "' + tag1.replace(/\{\/?[a-z]*\}/g, '') + '"', sh1 === calm1 - 2 && /-2 shaken/.test(tag1));
+      // THE SEARCH: the goblin hidden in sight; the rogue searches, calm then shaken -- the Perception total on the card 2 less
+      g1.conds.hidden = true; g1.hidTotal = 99; g1.x = r1.x + 2; g1.y = r1.y; shake(g1, false);
+      function srch(on) { shake(r1, on); g1.conds.hidden = true; D.rules.startTurn(r1); B1.active = r1; var n = (B1.log || []).length; runSH(B1.search(r1)); var m = logSH(B1, n).match(/Perception d20 10 [^=]*= (-?\d+)/); return m ? +m[1] : null; }
+      var se0 = srch(false), se1 = srch(true);
+      okSH('THE SEARCH: the rogue\'s Perception, the d20 at 10 -- calm ' + se0 + ', shaken ' + se1 + ' (want 2 less)', se0 != null && se1 === se0 - 2);
+      // THE CLIMB: a fighter at the foot of a 10 ft face (the class floor's ground raised for the check), calm and shaken: the Athletics total on the card 2 less
+      var B2 = mkSH('?npc=goblin&lvl=5&vs=fighter:5&map=climbfloor'), f2 = sideSH(B2, 'party')[0], m2 = GSH.map, st2 = m2.def.step, o2 = null;
+      for (var y2 = 2; y2 < m2.h - 3 && !o2; y2++) for (var x2 = 2; x2 < m2.w - 3 && !o2; x2++) { var z2 = m2.gz(x2, y2), good = true; for (var j = 0; j < 2 && good; j++) for (var i = 0; i < 2 && good; i++) { var s2 = m2.at(x2 + i, y2 + j); if (!s2 || !s2.walk || m2.gz(x2 + i, y2 + j) !== z2 || GSH.occupant(x2 + i, y2 + j)) good = false; } if (good) o2 = [x2, y2, z2]; }
+      function climbAt(on) {
+        var gz0 = m2.gz; m2.gz = function (x, y) { return x === o2[0] + 1 && y === o2[1] ? o2[2] + 4 * st2 : gz0.call(m2, x, y); };
+        try { f2.x = o2[0]; f2.y = o2[1]; f2.hp = f2.maxhp = 200; f2.conds = {}; shake(f2, on); D.rules.startTurn(f2); B2.active = f2; var n = (B2.log || []).length; runSH(B2.exec(f2, { do: 'move', x: o2[0] + 1, y: o2[1] })); var l = logSH(B2, n), m = l.match(/Athletics d20 10 [^=]*= (-?\d+)/); return m ? +m[1] : null; }
+        finally { m2.gz = gz0; }
+      }
+      var cl0 = o2 ? climbAt(false) : null, cl1 = o2 ? climbAt(true) : null;
+      okSH('THE CLIMB: the fighter up a 10 ft face, Athletics with the d20 at 10 -- calm ' + cl0 + ', shaken ' + cl1 + ' (want 2 less)', cl0 != null && cl1 === cl0 - 2);
+    } catch (eSH) { repSH.errors.push(String(eSH && eSH.stack || eSH).slice(0, 900)); }
+    D.d = d0SH;
+    if (errs.length) repSH.errors = repSH.errors.concat(errs);
+    var preSH = document.createElement('pre'); preSH.id = 'out'; preSH.textContent = 'BENCH16 ' + JSON.stringify(repSH);
+    document.body.appendChild(preSH);
+    return;
+  }
   // take the party with you, 10-15 (mode=leave1015; RULED, Griz: "If none of the party is held or down 'take the party with you' works"): outside a story fight the first of the four
   // out takes the rest; a story fight keeps the walk-out (mode=leave1013); still refused while one is down or bound. The first check failed on the code before it; the refusal and the story's walk-out held on both
   if (get('mode', '') === 'leave1015') {

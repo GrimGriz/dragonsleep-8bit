@@ -118,6 +118,7 @@
     // (&mine: on our first hero instead, played by hand -- the ring's BREATH and the legendary ask, 10-15)
     var f0T = this.o.mineTest ? party.filter(function (w) { return !w.familiar; })[0] : foes[0], brT = this.o.breathTest && { cold: { name: 'Cold Breath', shape: 'cone', ft: 15, ab: 'dex', dc: 12, dice: '4d8', type: 'cold', recharge: 5 }, fire: { name: 'Fire Breath', shape: 'cone', ft: 15, ab: 'dex', dc: 13, dice: '7d6', type: 'fire', recharge: 5 }, lightning: { name: 'Lightning Breath', shape: 'line', ft: 30, ab: 'dex', dc: 12, dice: '4d10', type: 'lightning', recharge: 5 }, stone: { name: 'Petrifying Breath', shape: 'cone', ft: 30, ab: 'con', dc: 13, stone: true, recharge: 5 } }[this.o.breathTest];
     if (f0T && brT) f0T.breath = brT;
+    if (this.o.shakenTest) party.forEach(function (w) { if (!w.familiar) (w.conds = w.conds || {}).fearScale = { n: 1, by: foes[0] && foes[0].id, dc: 13 }; }); // (by: the fear's source, their first foe -- with none standing the scale lapses, js/traits.js fearKeep) // (&shaken: our heroes start shaken, the fear scale's first step -- its -2 on the checks to be seen, 10-15)
     if (this.o.gazeTest && foes[0]) foes[0].gaze = { range: 30, dc: 12, ab: 'con', stone: true, mirror: true, title: 'THE BASILISK GAZE' }; // (&gaze: the basilisk's Petrifying Gaze on their first foe, its reflection too -- the testing room's, 10-15)
     if (f0T && this.o.legendTest) { var mkT = this.o.mineTest ? 'weapon' : Object.keys(f0T.attacks || {}).filter(function (k) { return !f0T.attacks[k].ranged; })[0]; f0T.legendary = { n: 3, acts: [{ name: 'A Swipe', cost: 1, atk: mkT }, { name: 'Detect', cost: 1, detect: true }] }; f0T.legendaryResist = 3; }
     // the pack: DEEP16 lends every ladder and climb party a crossbow and bolts (save.js armoury); inside the 8-bit game the party
@@ -1414,7 +1415,7 @@
         if (!rq || (ownR ? !(u.ownRope > 0) : !rs0) || !T.action || T.attacksLeft) return;
         T.action = 0; u.facing = D.spr.facingFor(c.x - u.x, c.y - u.y); u.anim = 'attack'; u.animT = this.t; yield 10;
         if (!rq.top) {
-          var re = RU.checkEdges(u, 'dex'), rr = re.dis.length && !re.adv.length ? Math.min(D.d(20), D.d(20)) : re.adv.length && !re.dis.length ? Math.max(D.d(20), D.d(20)) : D.d(20), rb = D.mod(u.abil ? u.abil.dex : 10), rt = rr + rb;
+          var re = RU.checkEdges(u, 'dex'), rr = re.dis.length && !re.adv.length ? Math.min(D.d(20), D.d(20)) : re.adv.length && !re.dis.length ? Math.max(D.d(20), D.d(20)) : D.d(20), rb = D.mod(u.abil ? u.abil.dex : 10) - RU.shaken(u), rt = rr + rb;
           var tdc = rq.dc || 10; // (10 to 30 ft, 2 more each 5 ft past: Battle.throwDC, 10-05)
           this.card(['{y}' + nameOf(u) + '{/} throws the grapple up ' + rq.ft + ' ft: DEX d20 ' + rr + ' ' + RU.sign(rb) + ' = ' + rt + ' against DC ' + tdc + '  ' + (rt >= tdc ? '{n}IT CATCHES{/}' : '{o}IT CLATTERS BACK{/}')], 200);
           yield 20; if (rt < tdc) { u.anim = 'idle'; return; }
@@ -1688,7 +1689,7 @@
         var hr = host.conds.attached, dc = (hr && hr.dc) || 13, en1 = u.conds.enlarged, ce1 = RU.checkEdges(u, 'str');
         var adv1 = !!(en1 && !en1.down) || ce1.adv.length > 0, dis1 = !!(u.conds.poisoned || u.conds.frightened || (en1 && en1.down)) || ce1.dis.length > 0;
         var a1 = D.d(20), a2 = D.d(20), d20 = adv1 && !dis1 ? Math.max(a1, a2) : dis1 && !adv1 ? Math.min(a1, a2) : a1;
-        var pb = D.mod(u.abil.str) + (u.cls === 'fighter' ? u.prof : 0), ptot = d20 + pb, blind0 = !!(host.conds.blinded && host.conds.blinded.held && host.conds.blinded.by === rd.id);
+        var pb = D.mod(u.abil.str) + (u.cls === 'fighter' ? u.prof : 0) - RU.shaken(u), ptot = d20 + pb, blind0 = !!(host.conds.blinded && host.conds.blinded.held && host.conds.blinded.by === rd.id);
         T.action = 0; RU.spendHelp(u); D.sfx('run');
         this.card(['{y}' + u.name + '{/} gets hold of the ' + shortName(rd) + (host === u ? '' : ' on ' + host.name) + ' and pulls: STR d20 ' + d20 + (adv1 !== dis1 ? (adv1 ? ' {n}(advantage){/}' : ' {o}(disadvantage){/}') : '') + ' ' + RU.sign(pb) + ' = ' + ptot + ' vs DC ' + dc + '  ' + (ptot >= dc ? '{n}OFF{/}' : '{g}it holds on{/}')]);
         if (ptot >= dc) { this.release(rd, host); if (blind0 && !host.conds.blinded) this.card(['{g}' + host.name + ' can see again.{/}'], 200); this.dismount(rd, u); } // (to the square nearest the puller and the one it rode)
@@ -1699,7 +1700,7 @@
         var ph = this.units.filter(function (x) { return x.id === pr.by; })[0], en2 = u.conds.enlarged, ce2 = RU.checkEdges(u, 'str');
         var adv2 = !!(en2 && !en2.down) || ce2.adv.length > 0, dis2 = !!(u.conds.poisoned || u.conds.frightened || (en2 && en2.down)) || ce2.dis.length > 0;
         var b1 = D.d(20), b2 = D.d(20), e20 = adv2 && !dis2 ? Math.max(b1, b2) : dis2 && !adv2 ? Math.min(b1, b2) : b1;
-        var pb2 = D.mod(u.abil.str) + (u.cls === 'fighter' ? u.prof : 0), pt2 = e20 + pb2;
+        var pb2 = D.mod(u.abil.str) + (u.cls === 'fighter' ? u.prof : 0) - RU.shaken(u), pt2 = e20 + pb2;
         T.action = 0; RU.spendHelp(u); D.sfx('run');
         this.card(['{y}' + u.name + '{/} reaches into the ' + shortName(ph) + ' for ' + pw.name + ' and pulls: STR d20 ' + e20 + (adv2 !== dis2 ? (adv2 ? ' {n}(advantage){/}' : ' {o}(disadvantage){/}') : '') + ' ' + RU.sign(pb2) + ' = ' + pt2 + ' vs DC ' + pr.dc + '  ' + (pt2 >= pr.dc ? '{n}OUT{/}' : '{g}the water holds on{/}')]);
         if (pt2 >= pr.dc) { this.release(ph, pw); FX.sparkle(pw, 'blue', 12); }
@@ -1711,7 +1712,7 @@
         var tn = hw.conds.restrained.tendril, dc2 = tn.breakDC || 15, en2 = u.conds.enlarged, ce2 = RU.checkEdges(u, 'str');
         var adv2 = !!(en2 && !en2.down) || ce2.adv.length > 0, dis2 = !!(u.conds.poisoned || u.conds.frightened || (en2 && en2.down) || (u.conds.restrained && u.conds.restrained.weak)) || ce2.dis.length > 0;
         var b1 = D.d(20), b2 = D.d(20), bd20 = adv2 && !dis2 ? Math.max(b1, b2) : dis2 && !adv2 ? Math.min(b1, b2) : b1;
-        var pb2 = D.mod(u.abil.str) + (u.cls === 'fighter' ? u.prof : 0), btot = bd20 + pb2;
+        var pb2 = D.mod(u.abil.str) + (u.cls === 'fighter' ? u.prof : 0) - RU.shaken(u), btot = bd20 + pb2;
         T.action = 0; RU.spendHelp(u); D.sfx('run'); if (hw !== u) this.turnTo(u, faceTo(u, hw));
         var luck2 = RU.darkLuck(u, dc2 - btot); if (luck2) btot += luck2;
         this.card(['{y}' + u.name + '{/} takes hold of the tendril' + (hw === u ? '' : ' on ' + hw.name) + ' and wrenches: STR d20 ' + bd20 + (adv2 !== dis2 ? (adv2 ? ' {n}(advantage){/}' : ' {o}(disadvantage){/}') : '') + ' ' + RU.sign(pb2) + (luck2 ? ' {y}+' + luck2 + ' dark one\'s own luck{/}' : '') + ' = ' + btot + ' vs DC ' + dc2 + '  ' + (btot >= dc2 ? '{n}BROKEN{/}' : '{g}it holds{/}')]);
@@ -1947,7 +1948,7 @@
         if (o && o.spend && T.climbLeft != null) T.climbLeft = Math.max(0, T.climbLeft - Math.ceil(needC * 2.5 / 5) * 5); // (the whole face this turn: off the turn's climb)
       }
       if (cDC) { // (a cliff over 5 ft: SRD 5.1, "climbing a slippery vertical surface or one with few handholds requires a successful Strength (Athletics) check" -- G.climbDC; a 5 ft ledge is pulled up onto)
-        var ce0 = RU.checkEdges(u, 'str'), cr = ce0.dis.length && !ce0.adv.length ? Math.min(D.d(20), D.d(20)) : ce0.adv.length && !ce0.dis.length ? Math.max(D.d(20), D.d(20)) : D.d(20), cb = G.athletics(u), ct = cr + cb;
+        var ce0 = RU.checkEdges(u, 'str'), cr = ce0.dis.length && !ce0.adv.length ? Math.min(D.d(20), D.d(20)) : ce0.adv.length && !ce0.dis.length ? Math.max(D.d(20), D.d(20)) : D.d(20), cb = G.athletics(u) - RU.shaken(u), ct = cr + cb;
         this.card(['{y}' + nameOf(u) + '{/} climbs: Athletics d20 ' + cr + ' ' + RU.sign(cb) + ' = ' + ct + ' against DC ' + cDC + ' (' + csN * 2.5 + ' ft' + (kindN ? ', a ' + kindN + ' face' : '') + ')  ' + (ct >= cDC ? '{n}UP{/}' : '{o}SLIPS{/}')], 160);
         if (ct < cDC) {
           if (o && o.spend) { T.move -= cost; T.moved = (T.moved || 0) + cost; }
@@ -1965,7 +1966,7 @@
       var csD = u.cdown ? G.climbsDown(u, u.x, u.y, nx, ny) : 0, cDCd = G.climbDC(csD, u, G.faceKind(u.x, u.y)), csDmiss = false;
       if (csD) cliffM = 'ropedown';
       if (cDCd) {
-        var ce1 = RU.checkEdges(u, 'str'), cr1 = ce1.dis.length && !ce1.adv.length ? Math.min(D.d(20), D.d(20)) : ce1.adv.length && !ce1.dis.length ? Math.max(D.d(20), D.d(20)) : D.d(20), cb1 = G.athletics(u), ct1 = cr1 + cb1;
+        var ce1 = RU.checkEdges(u, 'str'), cr1 = ce1.dis.length && !ce1.adv.length ? Math.min(D.d(20), D.d(20)) : ce1.adv.length && !ce1.dis.length ? Math.max(D.d(20), D.d(20)) : D.d(20), cb1 = G.athletics(u) - RU.shaken(u), ct1 = cr1 + cb1;
         this.card(['{y}' + nameOf(u) + '{/} climbs down: Athletics d20 ' + cr1 + ' ' + RU.sign(cb1) + ' = ' + ct1 + ' against DC ' + cDCd + ' (' + csD * 2.5 + ' ft)  ' + (ct1 >= cDCd ? '{n}DOWN{/}' : '{o}LOSES ITS HOLD{/}')], 160);
         csDmiss = ct1 < cDCd;
       }
@@ -3426,11 +3427,15 @@
     if (shod.length) ce = { adv: ce.adv.concat(shod), dis: ce.dis };
     return { supreme: supreme, ce: ce, hadv: supreme || ce.adv.length > 0, hdis: ce.dis.length > 0 };
   };
+  // THE FEAR SCALE ON CHECKS (RULED 10-15, Griz: "3 - SRD when we can, yes" -- the d20 SRD's shaken: -2 on attack rolls, saving throws, skill checks and ability checks): shaken's -2
+  // (rules.js RU.shaken) on every check the grid rolls -- the Hide and the Search, the climbs, the grapple thrown up, PULL IT OFF, PULL OUT, BREAK THE TENDRIL -- as it was on the
+  // attacks, the saves, the shove and the break-free; a card that rolls one says so
+  Battle.shakenTag = function (u) { var s = RU.shaken(u); return s ? ' {p}-' + s + ' ' + RU.FEAR[RU.fearLvl(u)] + '{/}' : ''; };
   // a Stealth roll for u now: the d20 and the total
   Battle.prototype.stealthRoll = function (u) {
     var se = this.stealthEdges(u), supreme = se.supreme, ce = se.ce, hadv = se.hadv, hdis = se.hdis, ra = D.d(20);
     var r = hadv !== hdis ? (hadv ? Math.max(ra, D.d(20)) : Math.min(ra, D.d(20))) : ra;
-    return { r: r, total: r + u.stealth + (u.conds.pwt ? 10 : 0), supreme: supreme, ce: ce, hadv: hadv, hdis: hdis };
+    return { r: r, total: r + u.stealth + (u.conds.pwt ? 10 : 0) - RU.shaken(u), shaken: RU.shaken(u), supreme: supreme, ce: ce, hadv: hadv, hdis: hdis }; // (shaken: the fear scale's -2 on every ability check -- RULED 10-15, Battle.shakenTag)
   };
   // w finds u (hidden by B.hide): its passive Perception plus the bonus of where u stands beats the Stealth total u rolled when it hid (held -- Griz 10-04, "the existing
   // roll, not a fresh one at each step"; an active Search is the foe's own roll, Battle.search); the line for the card, or null
@@ -3454,9 +3459,9 @@
       var sw = D.magic.seeWhy(self, u, w), lw = G.los(u, w, undefined, undefined, true);
       if (!w.conds.hidden || !G.hostile(u, w) || !G.standing(w) || !sw.ok || !lw.clear) return;
       // (u.keenSenses: keen hearing and smell, GreyFang's, 10-08 -- advantage on the roll)
-      var n = self.nearOf(u, w), bonus = n && n.bonus ? n.bonus : 0, held = self.stealthRoll(w).total, r = u.keenSenses ? Math.max(D.d(20), D.d(20)) : D.d(20), tot = r + (u.perception - 10) + bonus, got = tot > held;
+      var n = self.nearOf(u, w), bonus = n && n.bonus ? n.bonus : 0, held = self.stealthRoll(w).total, r = u.keenSenses ? Math.max(D.d(20), D.d(20)) : D.d(20), tot = r + (u.perception - 10) + bonus - RU.shaken(u), got = tot > held;
       any = true;
-      self.card(['{y}' + nameOf(u) + '{/} searches: Perception d20 ' + r + ' ' + RU.sign(u.perception - 10) + (bonus ? ' +' + bonus + ' (' + n.side + ')' : '') + ' = ' + tot + ' against ' + nameOf(w) + "'s Stealth " + held + '  ' + (got ? '{o}FOUND{/}' : '{n}nothing{/}')], 200);
+      self.card(['{y}' + nameOf(u) + '{/} searches: Perception d20 ' + r + ' ' + RU.sign(u.perception - 10) + (bonus ? ' +' + bonus + ' (' + n.side + ')' : '') + Battle.shakenTag(u) + ' = ' + tot + ' against ' + nameOf(w) + "'s Stealth " + held + '  ' + (got ? '{o}FOUND{/}' : '{n}nothing{/}')], 200);
       if (got) { delete w.conds.hidden; delete w.hidTotal; }
     });
     if (!any && u.side === 'party') this.card(['{g}' + nameOf(u) + ' searches: no one hidden in sight.{/}']);
@@ -3508,7 +3513,7 @@
       var rr = { t: total, r: r }, why = '';
       foes.forEach(function (w) { if (!why) why = self.spots(w, u, rr) || ''; });
       var ok = !why && !u.conds.faerie; // (faerie: outlined in violet light, nowhere to hide)
-      this.card(['{y}' + u.name + '{/} hides: Stealth d20 ' + r + (supreme ? ' {n}(supreme sneak: advantage){/}' : '') + (!supreme && hadv !== hdis ? (hadv ? ' {n}(advantage: ' + ce.adv.join(', ') + '){/}' : ' {o}(disadvantage: ' + ce.dis.join(', ') + '){/}') : '') + ' ' + RU.sign(u.stealth) + (gd ? ' {c}+' + gd + ' guidance{/}' : '') + ' = ' + total + (ok ? '  {n}HIDDEN{/}' : '  {o}SEEN{/}'), ok ? '{g}Out of every foe\'s watch, or not seen in it; ' + u.name + '\'s next attack has advantage' + (u.cls === 'rogue' || u.sneak ? ' (and Sneak Attack)' : '') + '.{/}' : why ? '{g}' + why + '.{/}' : '']);
+      this.card(['{y}' + u.name + '{/} hides: Stealth d20 ' + r + (supreme ? ' {n}(supreme sneak: advantage){/}' : '') + (!supreme && hadv !== hdis ? (hadv ? ' {n}(advantage: ' + ce.adv.join(', ') + '){/}' : ' {o}(disadvantage: ' + ce.dis.join(', ') + '){/}') : '') + ' ' + RU.sign(u.stealth) + Battle.shakenTag(u) + (gd ? ' {c}+' + gd + ' guidance{/}' : '') + ' = ' + total + (ok ? '  {n}HIDDEN{/}' : '  {o}SEEN{/}'), ok ? '{g}Out of every foe\'s watch, or not seen in it; ' + u.name + '\'s next attack has advantage' + (u.cls === 'rogue' || u.sneak ? ' (and Sneak Attack)' : '') + '.{/}' : why ? '{g}' + why + '.{/}' : '']);
       if (ok) u.conds.hidden = true; else delete u.hidTotal;
     }
     // a sheet's own hide row (the goblin's crouch behind its shield, 10-07): played at the Hide, held while it stays hidden (js/ui.js) -- the row is the try, so a Hide that fails stands up again
