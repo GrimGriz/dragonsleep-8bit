@@ -239,6 +239,127 @@ TONE = {'bugbear': (1.046, 0.960, 0.805), 'chief': (1.000, 0.909, 0.810),
 RELEASE = {'javelin': 3}                                     # the frame the javelin leaves on (frame 4, the arm thrown forward): js/battle.js
 FH, AY = 144, 132
 
+# ART-27 (the bugbear) and ART-28 (the chief), 10-15: the art desk drew the views the sheets lacked (RULED 10-14, five drawn views: S, SE,
+# E, NE, N; SE mirrors to SW, NE to NW), six pages each in deep16/_src/bugbear/ART-27/ and _src/bugbearchief/ART-28/ (ART-28's
+# ART-28-FINAL-MANIFEST.md; ART-27's manifest is the "## ART-27" section of its cutter log; the desk's papers in
+# _src/art-desk/received-2026-10-14-ART-27/ and -ART-28/):
+#     H1P1  SE: Idle 6, Walk 8, Morningstar 6, Javelin 6 (the bugbear) / Morningstar 2 6 (the chief)
+#     H1P2  SE: Flinch 4, Fall 6, Prone 2, Lurk 4, Ambush 6
+#     H2P1, H2P2  NE: the same rows
+#     H3P1  S: Fall 6, Prone 2, Lurk 4
+#     H5P1  N: Flinch 4, Fall 6, Prone 2, Lurk 4
+# HEAD 1 plays SE and HEAD 2 NE for every row; HEADs 3 and 5 replace only the rows they drew. E and W keep the side re-rolls, S and N their
+# packed rows for the rest, and climb stays as it was in every facing (none drawn). Per page: its row names' boxes and its rows -- (the page's
+# row, its number strip y0 y1, the numbers' x's), read off the page (dev: the white digits under each frame). A page's rows crowd (a raised
+# morningstar reaches up to the numbers above), so each blob goes to the row its centre lies in (as tools/mirrorgnoll-sheet.py cut31).
+ART = {'bugbear': os.path.join(SRC, 'bugbear', 'ART-27'), 'chief': os.path.join(SRC, 'bugbearchief', 'ART-28')}
+PAGES = {
+    'bugbear': {
+        'H1P1': dict(file='ART-27_HEAD-1_PAGE-1.png', names=[(20, 106, 86, 130), (20, 305, 99, 329), (20, 522, 232, 552), (20, 726, 142, 750)],
+                     rows=[('idle', (196, 217), [290, 540, 782, 1032, 1290, 1565]),
+                           ('walk', (401, 422), [247, 449, 636, 837, 1033, 1235, 1437, 1641]),
+                           ('morningstar', (625, 646), [339, 559, 795, 1059, 1339, 1597]),
+                           ('javelin', (847, 868), [296, 572, 812, 1040, 1316, 1598])]),
+        'H1P2': dict(file='ART-27_HEAD-1_PAGE-2.png', names=[(20, 90, 114, 112), (20, 297, 75, 319), (20, 486, 111, 508), (20, 660, 93, 682),
+                                                             (20, 867, 127, 889)],
+                     rows=[('flinch', (170, 189), [263, 503, 733, 974]),
+                           ('fall', (389, 411), [225, 445, 671, 888, 1136, 1393]),
+                           ('prone', (565, 584), [281, 538]),
+                           ('lurk', (740, 759), [247, 479, 694, 922]),
+                           ('ambush', (964, 985), [253, 474, 687, 912, 1177, 1418])]),
+        'H2P1': dict(file='ART-27_HEAD-2_PAGE-1.png', names=[(23, 129, 85, 152), (24, 367, 97, 390), (21, 611, 204, 639), (21, 837, 128, 859)],
+                     rows=[('idle', (222, 243), [284, 498, 710, 927, 1145, 1361]),
+                           ('walk', (459, 479), [205, 383, 557, 722, 909, 1071, 1248, 1423]),
+                           ('morningstar', (717, 737), [287, 504, 703, 901, 1145, 1364]),
+                           ('javelin', (968, 988), [249, 448, 673, 901, 1136, 1361])]),
+        'H2P2': dict(file='ART-27_HEAD-2_PAGE-2.png', names=[(26, 102, 115, 123), (25, 301, 75, 322), (25, 508, 110, 529), (25, 671, 90, 693),
+                                                             (24, 865, 127, 886)],
+                     rows=[('flinch', (197, 217), [320, 618, 912, 1181]),
+                           ('fall', (410, 433), [204, 441, 635, 872, 1121, 1385]),
+                           ('prone', (592, 612), [255, 541]),
+                           ('lurk', (756, 775), [330, 597, 839, 1088]),
+                           ('ambush', (968, 988), [230, 447, 676, 886, 1154, 1392])]),
+        'H3P1': dict(file='ART-27_HEAD-3_PAGE-1.png', names=[(26, 174, 90, 199), (26, 446, 133, 472), (26, 688, 104, 714)],
+                     rows=[('fall', (281, 308), [232, 492, 748, 1040, 1331, 1625]),
+                           ('prone', (540, 564), [312, 748]),
+                           ('lurk', (811, 835), [260, 651, 1036, 1434])]),
+        'H5P1': dict(file='ART-27_HEAD-5_PAGE-1.png', names=[(23, 106, 135, 133), (22, 342, 87, 368), (23, 554, 129, 580), (23, 753, 103, 780)],
+                     rows=[('flinch', (197, 219), [346, 638, 903, 1161]),
+                           ('fall', (434, 460), [247, 524, 757, 1024, 1305, 1591]),
+                           ('prone', (632, 658), [311, 676]),
+                           ('lurk', (838, 859), [327, 619, 907, 1188])])},
+    'chief': {
+        'H1P1': dict(file='ART-28_HEAD-1_PAGE-1.png', names=[(24, 102, 99, 130), (24, 302, 106, 329), (23, 531, 218, 562), (23, 729, 234, 760)],
+                     rows=[('idle', (189, 211), [294, 527, 756, 999, 1235, 1472]),
+                           ('walk', (400, 422), [253, 433, 625, 805, 1010, 1217, 1423, 1634]),
+                           ('morningstar', (631, 652), [329, 561, 788, 995, 1266, 1521]),
+                           ('morningstar2', (839, 861), [337, 544, 771, 1037, 1372, 1641])],   # (5 read at 1358: its ball, lunged out
+                     fix={'morningstar2': [((955, 740, 968, 750), '3')]},      # to 1500, seeded 6) (a tip of frame 3's speed lines, by 4's shield)
+                     touch_ok=('morningstar2',)),
+        'H1P2': dict(file='ART-28_HEAD-1_PAGE-2.png', names=[(26, 101, 135, 127), (26, 281, 93, 307), (26, 450, 118, 475), (26, 594, 101, 620),
+                                                             (26, 757, 145, 783)],
+                     rows=[('flinch', (180, 201), [297, 549, 778, 1010]),
+                           ('fall', (369, 391), [293, 531, 770, 1051, 1324, 1590]),
+                           ('prone', (510, 537), [294, 605]),
+                           ('lurk', (659, 685), [277, 518, 765, 1004]),
+                           ('ambush', (852, 873), [277, 537, 789, 1036, 1361, 1641])]),
+        'H2P1': dict(file='ART-28_HEAD-2_PAGE-1.png', names=[(24, 103, 100, 131), (24, 303, 105, 331), (23, 533, 208, 564), (23, 731, 227, 761)],
+                     rows=[('idle', (190, 212), [299, 538, 797, 1058, 1321, 1576]),
+                           ('walk', (402, 425), [253, 470, 637, 830, 1042, 1236, 1440, 1623]),
+                           ('morningstar', (637, 659), [311, 530, 769, 988, 1265, 1507]),
+                           ('morningstar2', (839, 861), [327, 550, 774, 1043, 1337, 1595])],
+                     fix={'morningstar2': [((935, 716, 972, 744), '3')]},       # (a streak of frame 3's speed lines, by frame 4's shield)
+                     touch_ok=('morningstar2',)),
+        'H2P2': dict(file='ART-28_HEAD-2_PAGE-2.png', names=[(21, 92, 137, 119), (23, 280, 95, 305), (23, 442, 119, 467), (23, 590, 99, 616),
+                                                             (23, 751, 137, 778)],
+                     rows=[('flinch', (176, 197), [303, 567, 820, 1035]),
+                           ('fall', (363, 385), [256, 529, 773, 1045, 1332, 1608]),
+                           ('prone', (514, 535), [303, 584]),
+                           ('lurk', (673, 694), [285, 544, 786, 1028]),
+                           ('ambush', (851, 872), [259, 523, 765, 1028, 1312, 1599])]),
+        'H3P1': dict(file='ART-28_HEAD-3_PAGE-1.png', names=[(30, 141, 100, 170), (30, 427, 131, 456), (30, 658, 107, 687)],
+                     rows=[('fall', (307, 333), [260, 525, 785, 1053, 1339, 1629]),
+                           ('prone', (543, 570), [322, 709]),
+                           ('lurk', (802, 828), [290, 603, 905, 1209])]),
+        'H5P1': dict(file='ART-28_HEAD-5_PAGE-1.png', names=[(31, 97, 244, 128), (31, 352, 175, 385), (31, 594, 215, 627), (31, 827, 185, 860)],
+                     rows=[('flinch', (206, 230), [425, 660, 912, 1174]),
+                           ('fall', (463, 492), [282, 495, 697, 908, 1139, 1370]),
+                           ('prone', (687, 715), [436, 805]),
+                           ('lurk', (938, 965), [383, 645, 908, 1168])])},
+}
+HEADS = {'SE': ('H1P1', 'H1P2'), 'NE': ('H2P1', 'H2P2'), 'S': ('H3P1',), 'N': ('H5P1',)}
+FACING = {'SE': (7, 1), 'NE': (5, 3), 'S': (0,), 'N': (4,)}       # deep16/js/sprites.js S.FACINGS: S SW W NW N NE E SE (1-3 drawn mirrored)
+ENGINE = {'idle': ('idle',), 'walk': ('walk',), 'morningstar': ('morningstar', 'attack'), 'morningstar2': ('morningstar2',),
+          'javelin': ('javelin',), 'flinch': ('flinch',), 'fall': ('hurt',), 'prone': ('prone',), 'lurk': ('still',), 'ambush': ('ambush',)}
+PLAY = {'prone': ['2', '1']}                 # (up off the ground, then lying, as the side's: js/ui.js lies at the last frame and rises back through it)
+FLOOR = ('flinch', 'fall')                   # rows that start standing: the row's ground is its first frame's feet (a body lying toward the eye reaches
+                                             # lower on the page); the others stand on the row's lowest point
+# the scale, page px a game px. No turnaround on the pages: each page's standing bugbear to the views beside it as committed, by the square
+# root of its filled area (the house's way since the hyena, 10-15: height lies -- the NE idles stand upright where E's and N's stoop). At game
+# size the bugbear's side idle is sqrt-area 45.2 (52.5 tall), its front idle 48.3 (56.2), its back idle 45.5 (52.5); the chief's 39.0 (49.7),
+# 45.9 (60.4), 45.5 (56.4). A diagonal page by its Idle against the two views beside it, a page 2 by its Fall 1 (standing, the idle's pose)
+# and Flinch against its page 1's Idle; S and N (no idle drawn) by their standing frames -- S's Fall 1, N's Flinch -- against the old front
+# and back idles, by area and by height, the mean of the two (as the Harbinger's S and N, 10-15: the art desk drew the cardinal pages more
+# upright, so the two disagree there). The bugbear: H1P1 idle 134.3 against SE's neighbours' 46.75 -> 2.87 (height says 2.97); H1P2 Fall 1
+# 0.963 of H1P1's idle -> 2.77; H2P1 idle 129.0 against 45.35 -> 2.85 (it stands 61 px, upright: height says 3.3); H2P2 Fall 1 0.99 -> 2.82;
+# H3P1 Fall 1 151.5 / 197 px against the front idle -> 3.14 by area, 3.51 by height -> 3.32; H5P1 Flinch 134.4 / 162.5 against the back
+# idle -> 2.95, 3.10 -> 3.02. The chief: H1P1 idle 132.0 against 42.45 -> 3.11 (2.98); H1P2 Flinch and Fall 1 0.99 -> 3.08; H2P1 idle 127.7
+# against 42.25 -> 3.02 (3.03); H2P2 0.99 -> 2.99; H3P1 Fall 1 171.8 / 216 -> 3.74, 3.58 -> 3.66; H5P1 Flinch 140.7 / 178.8 -> 3.09, 3.17
+# -> 3.13. (The morningstar's ball, a sphere, would be the rigid measure, but the art desk drew it a different size on every page.)
+KP = {'bugbear': {'H1P1': 2.87, 'H1P2': 2.77, 'H2P1': 2.85, 'H2P2': 2.82, 'H3P1': 3.32, 'H5P1': 3.02},
+      'chief': {'H1P1': 3.11, 'H1P2': 3.08, 'H2P1': 3.02, 'H2P2': 2.99, 'H3P1': 3.66, 'H5P1': 3.13}}
+# the colour, page by page, to the side re-rolls' (they hold E and W, and the packed rows were toned to them in 10-07): the art desk drew a
+# stronger, brighter orange, the more so on the later pages. The medians of the coloured pixels at game size (saturation over 0.2), hue /
+# saturation / value: the bugbear's side rows 25.6 / 0.697 / 0.380, its pages H1P1 23.4 / 0.766 / 0.424, H1P2 23.6 / 0.794 / 0.439, H2P1
+# 25.4 / 0.771 / 0.431, H2P2 25.4 / 0.850 / 0.514, H3P1 25.2 / 0.733 / 0.416, H5P1 22.9 / 0.842 / 0.427; the chief's side 24.1 / 0.652 /
+# 0.365, H1P1 23.2 / 0.761 / 0.373, H1P2 22.3 / 0.816 / 0.376, H2P1 22.1 / 0.821 / 0.365, H2P2 21.3 / 0.891 / 0.404, H3P1 23.7 / 0.821 /
+# 0.392, H5P1 21.2 / 0.926 / 0.416. Each page: the hue turned, the saturation and the value times a factor, to meet the side's (in HSV, as
+# the hyena's: a per-channel tone moves the steel and the outline unevenly)
+TONEP = {'bugbear': {'H1P1': (2.2, 0.909, 0.898), 'H1P2': (1.9, 0.877, 0.866), 'H2P1': (0.2, 0.904, 0.882), 'H2P2': (0.2, 0.820, 0.740),
+                     'H3P1': (0.3, 0.950, 0.915), 'H5P1': (2.7, 0.828, 0.890)},
+         'chief': {'H1P1': (0.9, 0.857, 0.979), 'H1P2': (1.9, 0.799, 0.969), 'H2P1': (2.0, 0.795, 1.000), 'H2P2': (2.8, 0.732, 0.903),
+                   'H3P1': (0.4, 0.794, 0.930), 'H5P1': (3.0, 0.704, 0.877)}}
+
 
 def game_size(img, k):
     w, h = img.size
@@ -271,8 +392,93 @@ def place(a, x_ref, up, fw, ax):
     return out, (a[..., 3] > 0).sum() > (out[..., 3] > 0).sum()
 
 
+def cut_page(look, L, check=False):
+    """sheetrows over one ART-27/28 page -> {row: [(name, RGBA image, box)]}, the frames split by the numbers' x's as read, every number and
+    row name dropped as text; each blob on the page goes to the row its centre lies in (above that row's numbers, below the row above's), and
+    each row is cut from a strip of the page with every other row's blobs painted the navy"""
+    import io
+    s = PAGES[look][L]
+    a = np.asarray(Image.open(os.path.join(ART[look], s['file'])).convert('RGB')).astype(np.int32)
+    H, W = a.shape[:2]
+    text, hand = [(0, y0 - 6, x1 + 6, y1 + 6) for x0, y0, x1, y1 in s['names']], {}
+    for row, (sy0, sy1), xs in s['rows']:
+        text += [(int(x) - 22, sy0 - 6, int(x) + 22, sy1 + 7) for x in xs]    # (a number's soft drop shadow runs past its glyph)
+    m = SR.figure_mask(a)
+    SR.drop_text(m, text)
+    lab, n = ndimage.label(m, structure=np.ones((3, 3)))
+    cy = np.array([c[0] for c in ndimage.center_of_mass(m, lab, range(1, n + 1))])
+    owner = np.searchsorted([sy1 for _, (_, sy1), _ in s['rows']], cy)     # a blob's row: the first whose numbers lie below its centre
+    navy = np.median(a.reshape(-1, 3)[::97], axis=0)
+    orig = SR.label_xs
+    SR.label_xs = lambda a_, x0, x1, y0, y1: hand.get((x0, y0)) or orig(a_, x0, x1, y0, y1)
+    out, over = {}, (a * 0.25).astype(np.uint8) if check else None
+    try:
+        for k, (row, (sy0, sy1), xs) in enumerate(s['rows']):
+            mine = np.isin(lab, 1 + np.where(owner == k)[0])
+            b = a.copy()
+            b[m & ~mine] = navy
+            ys = np.where(mine.any(1))[0]
+            Y0, Y1 = max(0, min(ys[0], sy0) - 8), min(H, max(ys[-1], sy1) + 8)
+            buf = io.BytesIO(); Image.fromarray(b[Y0:Y1].astype(np.uint8)).save(buf, 'PNG'); buf.seek(0)
+            hand[(0, sy0 - Y0)] = xs
+            spec = dict(text=[(t[0], t[1] - Y0, t[2], t[3] - Y0) for t in text], rows=[(row, (0, 0, W, Y1 - Y0), (sy0 - Y0, sy1 - Y0), NUM(len(xs)))])
+            o = [] if check else None
+            fix = {row: [((x0, y0 - Y0, x1, y1 - Y0), to) for (x0, y0, x1, y1), to in s.get('fix', {}).get(row, ())]}
+            got = SR.cut_sheet(buf, spec, fix=fix, touch_ok=s.get('touch_ok', ()), overlay=o, tag='%s %s' % (look, L))
+            out.update({r: [(nm, im, (bx[0], bx[1] + Y0, bx[2], bx[3] + Y0)) for nm, im, bx in frs] for r, frs in got.items()})
+            if check:
+                over[Y0:Y1][mine[Y0:Y1]] = np.asarray(o[0])[mine[Y0:Y1]]
+    finally:
+        SR.label_xs = orig
+    if check:
+        d = os.path.join(ROOT, 'dev', 'visions', 'bugbear'); os.makedirs(d, exist_ok=True)
+        Image.fromarray(over).save(os.path.join(d, 'cut-%s-%s.png' % (look, L)))
+    return out
+
+
+def hsv_toned(im, t):
+    """an RGBA cut in HSV: its hue turned t[0] degrees, its saturation times t[1], its value times t[2] (tools/hyena-sheet.py's)"""
+    a = np.asarray(im).astype(float)
+    rgb = a[..., :3] / 255.0
+    mx, mn = rgb.max(-1), rgb.min(-1)
+    d = np.maximum(mx - mn, 1e-6)
+    r, g, b = rgb[..., 0], rgb[..., 1], rgb[..., 2]
+    h = (np.where(mx == r, ((g - b) / d) % 6, np.where(mx == g, (b - r) / d + 2, (r - g) / d + 4)) * 60 + t[0]) % 360
+    s = np.clip(np.where(mx > 0, (mx - mn) / np.maximum(mx, 1e-6), 0) * t[1], 0, 1)
+    v = np.clip(mx * t[2], 0, 1)
+    cc = v * s
+    x = cc * (1 - np.abs((h / 60) % 2 - 1))
+    sec = (h // 60).astype(int) % 6
+    z = np.zeros_like(cc)
+    out = np.select([sec[..., None] == k for k in range(6)],
+                    [np.stack(p, -1) for p in ((cc, x, z), (x, cc, z), (z, cc, x), (z, x, cc), (x, z, cc), (cc, z, x))]) + (v - cc)[..., None]
+    a[..., :3] = np.clip(out * 255, 0, 255)
+    return Image.fromarray(a.round().astype(np.uint8), 'RGBA')
+
+
+def heads(look, check=False):
+    """ART-27/28's pages -> {view: {sheet row: [(1x RGBA array, its core x, px above the ground)]}}, each page at its own scale (KP) and tone
+    (TONEP); a later page's row replaces an earlier one's"""
+    views = {v: {} for v in HEADS}
+    for v, pages in HEADS.items():
+        for L in pages:
+            k, t = KP[look][L], TONEP[look][L]
+            for row, frs in cut_page(look, L, check).items():
+                floor = frs[0][2][3] if row in FLOOR else max(b[3] for _, _, b in frs)
+                if row in PLAY:
+                    frs = [next(f for f in frs if f[0] == nm) for nm in PLAY[row]]
+                seq = []
+                for nm, im, box in frs:
+                    a = pix.pixelate(game_size(hsv_toned(im, t), k), 1, do_lift=False)
+                    seq.append((a, core_x(a), int(round((floor - box[3]) / k))))
+                for eng in ENGINE[row]:
+                    views[v][eng] = seq
+    return views
+
+
 def main(check=False):
     cuts = {look: cut(look, check) for look in IMAGES}
+    hd = {look: heads(look, check) for look in PAGES}
     for name, L in LOOKS.items():
         look = L['look']
         def frames_of(src):
@@ -291,6 +497,10 @@ def main(check=False):
         for eng, by in L['rows'].items():
             side = frames_of(by['side'])
             src[eng] = [frames_of(by['S']) if f == 0 and 'S' in by else frames_of(by['N']) if f == 4 and 'N' in by else side for f in range(8)]
+            for v, fs in FACING.items():                     # ART-27/28: SE and SW, NE and NW, and S and N where their pages drew the row
+                if eng in hd[look][v]:
+                    for f in fs:
+                        src[eng][f] = hd[look][v][eng]
             counts = {len(s) for s in src[eng]}
             if len(counts) > 1:
                 raise SystemExit('%s %s: frame counts differ by facing %s' % (name, eng, sorted(counts)))
@@ -323,5 +533,37 @@ def main(check=False):
         json.dump(meta, open(meta_p, 'w'), indent=1)
 
 
+FN = ['S', 'SW', 'W', 'NW', 'N', 'NE', 'E', 'SE']
+
+
+def facings():
+    """dev/visions/bugbear/facings-<sheet>-<row>.png: every facing of every row as written, S SW W NW N NE E SE top to bottom, 2x on a grey
+    floor (the foot's line drawn); lineup-<sheet>.png: idle frame 1 in all eight facings, 4x"""
+    from PIL import ImageDraw
+    d = os.path.join(ROOT, 'dev', 'visions', 'bugbear'); os.makedirs(d, exist_ok=True)
+    for name in LOOKS:
+        m = json.load(open(os.path.join(ROOT, 'deep16', 'art', name + '.json')))
+        im = Image.open(os.path.join(ROOT, 'deep16', 'art', name + '.png')).convert('RGBA')
+        for row, an in m['anims'].items():
+            fw, fh, n, y, ay = an.get('fw', m['fw']), an.get('fh', m['fh']), an['frames'], an['y'], an.get('ay', m['ay'])
+            cv = Image.new('RGBA', (fw * n + 4 * (n + 1), fh * 8), (70, 74, 70, 255))
+            dr = ImageDraw.Draw(cv)
+            for f in range(8):
+                dr.line([(0, f * fh + ay + 1), (cv.width, f * fh + ay + 1)], fill=(110, 114, 110, 255))
+                dr.text((2, f * fh + 2), FN[f], fill=(255, 255, 255, 255))
+                for i in range(n):
+                    cv.alpha_composite(im.crop((i * fw, y + f * fh, (i + 1) * fw, y + (f + 1) * fh)), (4 + i * (fw + 4), f * fh))
+            cv.resize((cv.width * 2, cv.height * 2), Image.NEAREST).save(os.path.join(d, 'facings-%s-%s.png' % (name, row)))
+        an = m['anims']['idle']
+        fw, fh, y = an.get('fw', m['fw']), an.get('fh', m['fh']), an['y']
+        cv = Image.new('RGBA', (fw * 8, fh), (70, 74, 70, 255))
+        for f in range(8):
+            cv.alpha_composite(im.crop((0, y + f * fh, fw, y + (f + 1) * fh)), (f * fw, 0))
+        cv.resize((cv.width * 4, cv.height * 4), Image.NEAREST).save(os.path.join(d, 'lineup-%s.png' % name))
+    print('  wrote', d)
+
+
 if __name__ == '__main__':
     main(check='check' in sys.argv[1:])
+    if 'check' in sys.argv[1:]:
+        facings()
