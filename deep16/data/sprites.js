@@ -6108,7 +6108,7 @@
 }
 },
 "npccleric_p0": {
-"image": "art/npccleric_p0.png?v=364c7801a4",
+"image": "art/npccleric_p0.png?v=f7bc098e0c",
 "fw": 64,
 "fh": 64,
 "ax": 32,
@@ -6144,15 +6144,15 @@
 },
 "hurt": {
 "y": 2560,
-"fw": 64,
-"fh": 64,
-"ax": 32,
+"fw": 128,
+"fh": 80,
+"ax": 64,
 "ay": 61,
 "frames": 6,
 "fps": 10
 },
 "sit": {
-"y": 3072,
+"y": 3200,
 "fw": 64,
 "fh": 64,
 "ax": 32,
@@ -6161,13 +6161,34 @@
 "fps": 2
 },
 "cast": {
-"y": 3584,
+"y": 3712,
 "fw": 64,
 "fh": 64,
 "ax": 32,
 "ay": 61,
 "frames": 7,
 "fps": 10
+}
+},
+"diag": {
+"by": "tools/lpc-diag-sheet.py",
+"from": "ART-64",
+"drawn": [
+"SE idle/walk/attack",
+"SE hurt/sit/cast",
+"NE idle/walk/attack",
+"NE hurt/sit/cast",
+"E hurt",
+"N hurt"
+],
+"owed": [],
+"lpc_cells": {
+"hurt": [
+64,
+64,
+32,
+61
+]
 }
 }
 },

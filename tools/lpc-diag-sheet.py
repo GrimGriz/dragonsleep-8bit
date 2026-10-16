@@ -199,6 +199,43 @@ FIGS = {
                          rows=[('hurt', (180, 230, 2048, 536), (536, 590), NUM(6))]),
         },
         owed={}),
+    # (Sit and Cast are extra rows, taken by name; his Hurt, Sit and Cast are drawn without the shield, so those pages are toned against
+    # LPC's Cast and scaled by Cast 1, standing straight)
+    'npccleric': dict(                                        # ART-64, 10-15: six pages (deep16/_src/npccleric/ART-64/)
+        dir='npccleric/ART-64',
+        pages={
+            'H1P1': dict(file='ART-64_HEAD-1_PAGE-1.png', view='SE', ref=('idle', '1'), chan=14,          # SE: Idle 2, Walk 9, Attack 6
+                         text=[(0, 120, 180, 175), (0, 372, 180, 425), (0, 636, 180, 690),
+                               (180, 248, 1882, 280), (180, 505, 1882, 540), (180, 764, 1882, 798)],
+                         rows=[('idle', (180, 20, 1882, 248), (248, 280), NUM(2)),
+                               ('walk', (180, 285, 1882, 505), (505, 540), NUM(9)),
+                               ('attack', (180, 545, 1882, 764), (764, 798), NUM(6))]),
+            'H1P2': dict(file='ART-64_HEAD-1_PAGE-2.png', view='SE', ref=('cast', '1'), chan=14, tone=('cast', 'cast'),   # SE: Hurt 6, Sit 3, Cast 7
+                         text=[(0, 85, 180, 148), (0, 360, 180, 422), (0, 585, 180, 645),
+                               (180, 274, 1941, 305), (180, 515, 1941, 545), (180, 764, 1941, 795)],
+                         rows=[('hurt', (180, 20, 1941, 305), (276, 305), NUM(6)),
+                               ('sit', (180, 305, 1941, 545), (516, 545), NUM(3)),
+                               ('cast', (180, 545, 1941, 795), (766, 795), NUM(7))]),
+            'H2P1': dict(file='ART-64_HEAD-2_PAGE-1.png', view='NE', ref=('idle', '1'), chan=14,          # NE: Idle 2, Walk 9, Attack 6
+                         text=[(0, 165, 160, 225), (0, 468, 160, 527), (0, 752, 160, 812),
+                               (160, 312, 1536, 345), (160, 616, 1536, 650), (160, 914, 1536, 948)],
+                         rows=[('idle', (160, 60, 1536, 312), (312, 345), NUM(2)),
+                               ('walk', (160, 350, 1536, 616), (616, 650), NUM(9)),
+                               ('attack', (160, 655, 1536, 914), (914, 948), NUM(6))]),
+            'H2P2': dict(file='ART-64_HEAD-2_PAGE-2.png', view='NE', ref=('cast', '1'), chan=14, tone=('cast', 'cast'),   # NE: Hurt 6, Sit 3, Cast 7
+                         text=[(0, 110, 200, 180), (0, 360, 200, 420), (0, 610, 200, 675),
+                               (200, 248, 1994, 280), (200, 500, 1994, 535), (200, 745, 1994, 778)],
+                         rows=[('hurt', (200, 15, 1994, 248), (248, 280), NUM(6)),
+                               ('sit', (200, 290, 1994, 500), (500, 535), NUM(3)),
+                               ('cast', (200, 545, 1994, 745), (745, 778), NUM(7))]),
+            'H4P1': dict(file='ART-64_HEAD-4_PAGE-1.png', view='E', ref=('hurt', '1'), chan=14, tone=('hurt', 'cast'),    # E: Hurt 6
+                         text=[(0, 332, 180, 408), (180, 555, 1950, 595)],
+                         rows=[('hurt', (180, 200, 1950, 555), (555, 595), NUM(6))]),
+            'H5P1': dict(file='ART-64_HEAD-5_PAGE-1.png', view='N', ref=('hurt', '1'), against='N', chan=14, tone=('hurt', 'cast'),   # N: Hurt 6
+                         text=[(0, 214, 180, 288), (180, 540, 2117, 582)],
+                         rows=[('hurt', (180, 180, 2117, 540), (540, 582), NUM(6))]),
+        },
+        owed={}),
 }
 
 
