@@ -560,8 +560,9 @@
     if (this.units.some(function (u) { return u.vital && u.side === 'party' && (u.dead || u.hp <= 0); })) return 'lost';
     // one of the party killed outright in a story fight (massive damage, Battle.hurt): the game is over (RULED 10-06)
     if (this.slainLost) return 'lost';
-    // one out, all out (a fight's `oneLeavesAll`: the Wet since 09-30e, the Keeper 10-04 -- Griz: "can we do the 'pull the rest of the party' we do with the Wet escape?")
-    if (this.fight && this.fight.oneLeavesAll && this.units.some(function (u) { return u.side === 'party' && u.left && !u.familiar && !u.summon && !u.ally; })) return 'escaped';
+    // one out, all out (a fight's `oneLeavesAll`: the Wet since 09-30e, the Keeper 10-04 -- Griz: "can we do the 'pull the rest of the party' we do with the Wet escape?"; and every
+    // fight but a story's since 10-15: Battle.takesParty)
+    if (this.takesParty() && this.units.some(function (u) { return u.side === 'party' && u.left && !u.familiar && !u.summon && !u.ally; })) return 'escaped';
     // none of the party left on the field: lost, unless one of them got out (the climb's campfire; Griz, 09-27), or the rest
     // are still on their way out of the inn (this.reserve)
     // (a familiar left alone keeps no fight going, and one sent to its pocket of the world got nobody out)
@@ -1092,7 +1093,7 @@
     // (inside the 8-bit game, only where its own battle had RUN: this.o.embed.canRun)
     if (!(this.o.embed && this.o.embed.canRun === false) && (this.exits || []).length) {
       var hbL = this.heldBack(u); // (no one out while one of the four lies down or bound -- 10-13, his: "your allies refuse - not while Aurdin is paralyzed!")
-      if (this.onExit(u)) out.push({ id: 'leave', label: 'LEAVE THE FIGHT', cost: 'M', icon: 'back', ok: T.move >= 5 && !u.conds.restrained && !hbL, why: hbL ? Battle.refuseText(hbL) : u.conds.restrained ? 'held fast' : 'no move left', note: 'out the way you came in' + (this.fight.oneLeavesAll ? ', and the party goes too' : '') + ': a foe beside you gets its swing' });
+      if (this.onExit(u)) out.push({ id: 'leave', label: 'LEAVE THE FIGHT', cost: 'M', icon: 'back', ok: T.move >= 5 && !u.conds.restrained && !hbL, why: hbL ? Battle.refuseText(hbL) : u.conds.restrained ? 'held fast' : 'no move left', note: 'out the way you came in' + (this.takesParty() ? ', and the party goes too' : '') + ': a foe beside you gets its swing' });
       // (10-04, Griz: "Keeper Fight lacks fight escape", and the Wet at level 3, "not on wheel": off a way out the command still shows, greyed, and says where to go)
       else out.push({ id: 'leave', label: 'LEAVE THE FIGHT', cost: 'M', icon: 'back', ok: false, why: 'not from here: walk to one of the pale squares at the edge first (' + this.exits.length + ' way' + (this.exits.length === 1 ? '' : 's') + ' out)', note: 'out the way you came in' });
     }
@@ -3135,6 +3136,11 @@
     return null;
   };
   // the first of the four who holds the rest: down and not carried, or bound (the one asking never holds itself)
+  // TAKE THE PARTY WITH YOU (RULED 10-15, Griz: "1 - yes, story fight is pretty limited too - like once the drow raid fight starts (win or reload, no escape). If none of the party is held
+  // or down 'take the party with you' works"): outside a story fight (Battle.isStory -- the Pocket DM, the class floor, the ladders, the climb), the first of the four out takes the
+  // rest with it -- the leave is still refused while one of the four is down or bound (heldBack), so none is left behind. A story fight keeps the walk-out above; the Wet's and
+  // the Keeper's `oneLeavesAll` go as before
+  Battle.prototype.takesParty = function () { return !!(this.fight && this.fight.oneLeavesAll) || !this.isStory(); };
   Battle.prototype.heldBack = function (u) {
     if (this.fight && this.fight.oneLeavesAll) return null;
     var w = this.units.filter(function (x) { return x !== u && Battle.isHero(x) && !x.left && !x.dead && !x.carriedBy && (x.hp <= 0 || Battle.boundBy(x)); })[0];
@@ -3190,7 +3196,7 @@
     if (cw) { cw.left = true; cw.dead = true; cw.deadT = this.t; delete cw.carriedBy; } // (the one carried goes out with the carrier)
     if (Battle.isHero(u) && !this.retreat) this.retreat = { by: u.id, round: this.round }; // (the first of the four out: ours run by the AI follow, js/tactics.js TX.retreatTurn)
     D.sfx('run');
-    if (!this.fight.noCards) this.card(['{y}' + u.name + '{/} gets out the way the party came in' + (cw ? ', carrying ' + cw.name : '') + (this.fight.oneLeavesAll ? ', and the party goes too' : '') + '.  {g}(out of the fight){/}']); // (the wet asked already: no card -- 09-30e)
+    if (!this.fight.noCards) this.card(['{y}' + u.name + '{/} gets out the way the party came in' + (cw ? ', carrying ' + cw.name : '') + (this.takesParty() ? ', and the party goes too' : '') + '.  {g}(out of the fight){/}']); // (the wet asked already: no card -- 09-30e)
     yield 30;
   };
 

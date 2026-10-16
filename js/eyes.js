@@ -17,6 +17,9 @@
   var DS = window.DS = window.DS || {};
   var G1 = 'Eyes: first', G2 = 'Eyes: built this week', G3 = 'Eyes: built before, never seen';
   DS.EYES = {
+    'eyes-take-the-party-1015': { pri: 2, group: G2, title: 'Take the party with you: outside a story fight the first one out takes the rest (10-15)', pt: 'the grid’s rules, leaving together (deep16/js/battle.js Battle.takesParty, over, leave) · eyes',
+      url: 'deep16/?npc=goblin,goblin&vs=fighter:5,cleric:5,rogue:5&lvl=5&fresh=1',
+      look: 'The class floor (not a story fight). Walk one of the three onto the way you came in: LEAVE THE FIGHT says “out the way you came in, and the party goes too”. Take it (a foe beside you still gets its swing) and the fight ends, escaped, with all three out. While one of them is down or held, LEAVE is greyed: “Your allies refuse -- not while ... is down!”. A story fight (the game’s own, e.g. the Skylights) keeps the old way: each walks out.' },
     'eyes-dominate-mark-1015': { pri: 1, group: G2, title: 'Dominate’s mark: Beholda’s spiral over the dominated, while the spell holds it (10-15)', pt: 'the grid’s rules, the 10-15 Dominate mark (deep16/js/looks.js LK.domSpiral; js/mpmon.js draws hers by it) · eyes',
       url: 'deep16/?gallery&shelf=spells&spell=dominateperson&fresh=1',
       look: 'Dominate Person on the gallery’s stage (the dice pinned: the save fails). The fighter who goes over wears Beholda’s own mark -- the turning spiral over the head, violet and white, as her Baleful Gaze’s dominated wear it -- in place of the charm’s small pink swirl, for as long as the spell holds; when the concentration ends, or the fighter saves free when hurt, it goes. E casts again. (Your “too easy” on Dominate is asked apart: which lever.)' },

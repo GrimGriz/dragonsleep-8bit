@@ -2600,6 +2600,36 @@
     document.body.appendChild(preZ);
     return;
   }
+  // take the party with you, 10-15 (mode=leave1015; RULED, Griz: "If none of the party is held or down 'take the party with you' works"): outside a story fight the first of the four
+  // out takes the rest; a story fight keeps the walk-out (mode=leave1013); still refused while one is down or bound. The first check failed on the code before it; the refusal and the story's walk-out held on both
+  if (get('mode', '') === 'leave1015') {
+    var repLP = { checks: [], errors: [] };
+    function okLP(what, v) { repLP.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function runLP(g) { var v, k = 0, st; while (g && k++ < 6000) { st = g.next(v); v = undefined; if (st.done) return st.value; if (st.value && st.value.prompt) v = st.value.prompt.opts[0].value; } }
+    function mkLP(q) { var Bx = D.npcFight(q, {}); D.battle = Bx; Bx.enter(); while (!Bx.order.length) Bx.co.next(); Bx.dark = false; return Bx; }
+    function sideLP(Bx, s) { return Bx.units.filter(function (u) { return u.side === s; }); }
+    function onExitLP(Bx, u) { for (var i = 0; i < Bx.exits.length; i++) { var q = Bx.exits[i]; if (D.grid.canStand(u, q[0], q[1])) { u.x = q[0]; u.y = q[1]; return true; } } return false; }
+    try {
+      // THE CLASS FLOOR (no story): the fighter on a way out, the cleric well across the room -- LEAVE says the party goes too; he goes, and the fight is over, escaped
+      var B1 = mkLP('?npc=goblin&lvl=5&vs=fighter:5,cleric:5'), f1 = sideLP(B1, 'party')[0], c1 = sideLP(B1, 'party')[1];
+      var at1 = onExitLP(B1, f1); D.rules.startTurn(f1); B1.active = f1;
+      var cmd1 = (B1.commands(f1) || []).filter(function (c) { return c.id === 'leave'; })[0] || {};
+      runLP(B1.leave(f1));
+      okLP('THE CLASS FLOOR (story ' + B1.isStory() + '): LEAVE ' + cmd1.ok + ' -- "' + (cmd1.note || '').slice(0, 60) + '"; the fighter out ' + !!f1.left + ', the cleric still on the floor ' + !c1.left + ', the fight ' + B1.over() + ' (want false, true, the party goes too, true, true, escaped)', at1 && !B1.isStory() && cmd1.ok && /the party goes too/.test(cmd1.note || '') && !!f1.left && B1.over() === 'escaped');
+      // ... still refused while one of the four is down
+      var B2 = mkLP('?npc=goblin&lvl=5&vs=fighter:5,cleric:5'), f2 = sideLP(B2, 'party')[0], c2 = sideLP(B2, 'party')[1];
+      onExitLP(B2, f2); c2.hp = 0; D.rules.startTurn(f2); B2.active = f2; runLP(B2.leave(f2));
+      okLP('THE CLASS FLOOR, the cleric down: the fighter refused (out ' + !!f2.left + '), the fight ' + B2.over() + ' (want false, null)', !f2.left && B2.over() == null);
+      // A STORY FIGHT keeps the walk-out: the fighter out, the cleric well and in -- the fight goes on
+      var B3 = mkLP('?npc=goblin&lvl=5&vs=fighter:5,cleric:5'), f3 = sideLP(B3, 'party')[0], c3 = sideLP(B3, 'party')[1]; B3.isStory = function () { return true; };
+      onExitLP(B3, f3); D.rules.startTurn(f3); B3.active = f3; runLP(B3.leave(f3));
+      okLP('A STORY FIGHT: the fighter out ' + !!f3.left + ', the cleric still in ' + !c3.left + ', the fight ' + B3.over() + ' (want true, true, null -- each walks out)', !!f3.left && !c3.left && B3.over() == null);
+    } catch (eLP) { repLP.errors.push(String(eLP && eLP.stack || eLP).slice(0, 900)); }
+    if (errs.length) repLP.errors = repLP.errors.concat(errs);
+    var preLP = document.createElement('pre'); preLP.id = 'out'; preLP.textContent = 'BENCH16 ' + JSON.stringify(repLP);
+    document.body.appendChild(preLP);
+    return;
+  }
   // leaving a fight together, 10-13 (mode=leave1013; his rulings in the grid's rules lane §2h): no one out while one of the four lies down or bound, the AI's own of ours following
   // the first out, the fallen picked up and carried, and who may be left on the floor. Each check failed on the code before it
   if (get('mode', '') === 'leave1013') {
@@ -2616,7 +2646,9 @@
     try {
       var hasL = typeof BtL.isHero === 'function' && typeof D.battle !== 'undefined';
       // REFUSE: the fighter on a way out, the cleric down -- then paralyzed -- then well
-      var B1 = mkL('?npc=goblin&lvl=5&vs=fighter:5,cleric:5'), fi = sideL(B1, 'party')[0], cl = sideL(B1, 'party')[1], go1 = sideL(B1, 'foe')[0], ex1 = exitL(B1, fi);
+      // (the walk-out and the followers are a story fight's since 10-15 -- outside one the first out takes the party, his ruling: mode=leave1015 -- so these three are marked story)
+      var storyL = function (Bx) { Bx.isStory = function () { return true; }; return Bx; };
+      var B1 = storyL(mkL('?npc=goblin&lvl=5&vs=fighter:5,cleric:5')), fi = sideL(B1, 'party')[0], cl = sideL(B1, 'party')[1], go1 = sideL(B1, 'foe')[0], ex1 = exitL(B1, fi);
       farL(B1, go1); fi.x = ex1.at[0]; fi.y = ex1.at[1]; cl.x = ex1.in[0]; cl.y = ex1.in[1]; D.rules.startTurn(fi); B1.active = fi;
       cl.hp = 0; var cmd1 = (B1.commands(fi) || []).filter(function (c) { return c.id === 'leave'; })[0] || {}, n1 = (B1.log || []).length;
       runL(B1.leave(fi)); var l1 = logL(B1, n1), stayed1 = !fi.left;
@@ -2626,7 +2658,7 @@
       delete cl.conds.paralyzed; D.rules.startTurn(fi); runL(B1.leave(fi));
       okL('REFUSE: the cleric well, the fighter goes: out ' + !!fi.left + ', the retreat begun by ' + (B1.retreat && B1.retreat.by), !!fi.left && !!B1.retreat && B1.retreat.by === fi.id);
       // FOLLOW and CARRY: Brann (the 8-bit's guest, run by the AI) follows the fighter out; the cleric falls after, beside him -- he picks her up and carries her out
-      var B2 = mkL('?npc=goblin&lvl=5&vs=fighter:5,cleric:5,brann:5'), f2 = sideL(B2, 'party')[0], c2 = sideL(B2, 'party')[1], br = sideL(B2, 'party')[2], g2 = sideL(B2, 'foe')[0], e2 = exitL(B2, f2);
+      var B2 = storyL(mkL('?npc=goblin&lvl=5&vs=fighter:5,cleric:5,brann:5')), f2 = sideL(B2, 'party')[0], c2 = sideL(B2, 'party')[1], br = sideL(B2, 'party')[2], g2 = sideL(B2, 'foe')[0], e2 = exitL(B2, f2);
       br.guest = true; br.classAI = true; if (br.src && !br.src.guest) br.src = Object.assign({}, br.src, { guest: true }); // (as the 8-bit sends him: its guest sheet)
       farL(B2, g2); f2.x = e2.at[0]; f2.y = e2.at[1]; br.x = Math.floor(GL.map.w / 2); br.y = Math.floor(GL.map.h / 2) + 2; c2.x = br.x + 1; c2.y = br.y;
       if (!GL.canStand(br, br.x, br.y)) { var sq2 = null; for (var yy = 1; yy < GL.map.h - 1 && !sq2; yy++) for (var xx = 1; xx < GL.map.w - 2 && !sq2; xx++) if (GL.canStand(br, xx, yy) && GL.canStand(c2, xx + 1, yy) && (xx !== g2.x || yy !== g2.y)) sq2 = [xx, yy]; if (sq2) { br.x = sq2[0]; br.y = sq2[1]; c2.x = br.x + 1; c2.y = br.y; } }
@@ -2642,7 +2674,7 @@
       br.x = e2.at[0]; br.y = e2.at[1]; c2.x = br.x; c2.y = br.y; B2.active = br; runL(D.ai.turn(B2, br));
       okL('CARRY: on a way out, his next turn takes them both out -- Brann out ' + !!br.left + ', the cleric out ' + !!c2.left + ', the fight ' + B2.over(), !!br.left && !!c2.left && B2.over() === 'escaped');
       // THE END: who is left on the floor when the rest got out
-      var B3 = mkL('?npc=goblin&lvl=5&vs=fighter:5,cleric:5,brann:5'), f3 = sideL(B3, 'party')[0], c3 = sideL(B3, 'party')[1], b3 = sideL(B3, 'party')[2];
+      var B3 = storyL(mkL('?npc=goblin&lvl=5&vs=fighter:5,cleric:5,brann:5')), f3 = sideL(B3, 'party')[0], c3 = sideL(B3, 'party')[1], b3 = sideL(B3, 'party')[2];
       b3.guest = true; b3.classAI = true; if (b3.src && !b3.src.guest) b3.src = Object.assign({}, b3.src, { guest: true });
       f3.left = true; f3.dead = true; c3.left = true; c3.dead = true; b3.hp = 0; var ov3a = B3.over();
       var k3 = b3.kind; b3.kind = 'trooper'; if (b3.src) b3.src = Object.assign({}, b3.src, { id: 'trooper' }); var ov3b = B3.over(), lb3 = !!b3.leftBehind; b3.kind = k3;
