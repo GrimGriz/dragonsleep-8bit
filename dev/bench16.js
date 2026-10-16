@@ -575,12 +575,12 @@
   // sleeper wakes it, still prone; HELP on a webbed friend gives its break-free advantage, spent; the class AI wakes a sleeping friend; a Sleep from outside a
   // globe is held off; the cleric's Spiritual Weapon swing on the first ring once it is up
   // the show (mode=show, 10-02: deep16/js/show.js, the test ground): a creature's sheet in a fight, every row twice -- FAIL for a row under two.
-  // python dev/bench16.py grick mode=show [lvl=3] [stone=grey]
+  // python dev/bench16.py grick mode=show [lvl=3] [stone=grey] [sheet=npcfighter_p0: the creatures wear that sheet, 10-15]
   if (get('mode', '') === 'show') {
     var repS = { checks: [], errors: [] };
     try {
       D.seed = seed0 * 7919;
-      var BS = D.show.fight('?show=' + foes.join(',') + '&lvl=' + (get('lvl', '') || 3) + (get('stone', '') ? '&stone=' + get('stone', '') : ''), { bench: true });
+      var BS = D.show.fight('?show=' + foes.join(',') + '&lvl=' + (get('lvl', '') || 3) + (get('stone', '') ? '&stone=' + get('stone', '') : '') + (get('sheet', '') ? '&sheet=' + get('sheet', '') : ''), { bench: true });
       D.battle = BS; BS.enter();
       var resS = drive(BS);
       repS.report = (BS.showReport || []).map(function (x) { return x.replace(/\{\/?[a-z]*\}/g, ''); });

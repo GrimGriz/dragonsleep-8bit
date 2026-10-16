@@ -62,7 +62,8 @@ NUM = lambda k: [str(i + 1) for i in range(k)]
 # Each figure: its pages, each read off the page by hand -- the text boxes (a blob wholly inside one is lettering: the row names, and a
 # strip the page's width under each row, where its numbers stand), and the rows (the sheet's anim, band x0 y0 x1 y1, its number strip
 # y0 y1, the numbers). `view` is the facing the page draws; `ref` the page's standing frame its scale is read from. `owed` is what the art
-# desk has not sent yet: those facings stay as pixelate.py lays them.
+# desk has not sent yet: those facings stay as pixelate.py lays them. A page may also carry sheetrows' own `chan` (the mask's test) and
+# `cuts` (a line cleared where two frames touch), and `stands` (ART-62's attack page, which has no standing frame).
 FIGS = {
     'trooper': dict(                                          # ART-61, 10-15: all four pages (deep16/_src/trooper/ART-61/)
         dir='trooper/ART-61',
@@ -93,6 +94,46 @@ FIGS = {
                          text=[(0, 385, 140, 450), (150, 524, 2137, 565)],
                          rows=[('hurt', (150, 285, 2137, 524), (524, 565), NUM(6))]),
         },
+        owed={}),
+    # (chan on every page: the fighter's trousers are navy, 20-37 off the page's navy in one channel and not grey, so the default mask
+    # cut them out; the page's own navy strays 9 at most)
+    'npcfighter': dict(                                       # ART-62, 10-15: six pages (deep16/_src/npcfighter/ART-62/); HEAD 1 split in three
+        dir='npcfighter/ART-62',
+        pages={
+            'H1P1': dict(file='ART-62_HEAD-1_PAGE-1.png', view='SE', ref=('idle', '1'), chan=14,          # SE: Idle 2, Walk 9
+                         text=[(0, 200, 150, 260), (0, 520, 150, 580), (150, 356, 1981, 392), (150, 678, 1981, 715)],
+                         rows=[('idle', (150, 100, 1981, 356), (356, 392), NUM(2)),
+                               ('walk', (150, 420, 1981, 678), (678, 715), NUM(9))]),
+            # (no standing frame: Attack 1 is a crouch. `stands` is what a standing figure would stand on this page, read off the head --
+            # the hair's top to the brow is 76 page px in Attack 1 and 2 and 56 in H1P1's idle, which stands 217: 217 * 76 / 56. The crouch
+            # by itself (284) would make the head 4% big. The cut: Attack 1's sword tip touches Attack 2's boot)
+            'H1P2': dict(file='ART-62_HEAD-1_PAGE-2.png', view='SE', ref=('attack', '1'), stands=294, chan=14,   # SE: Attack 6
+                         text=[(0, 370, 175, 420), (175, 568, 2172, 620)],
+                         rows=[('attack', (175, 150, 2172, 573), (574, 618), NUM(6))],
+                         cuts={'attack': [((464, 520), (464, 552))]}),
+            'H1P3': dict(file='ART-62_HEAD-1_PAGE-3.png', view='SE', ref=('hurt', '1'), chan=14,          # SE: Hurt 6
+                         text=[(0, 345, 175, 415), (175, 532, 2172, 570)],
+                         rows=[('hurt', (175, 200, 2172, 570), (545, 568), NUM(6))]),
+            'H2P1': dict(file='ART-62_HEAD-2_PAGE-1.png', view='NE', ref=('idle', '1'), chan=14,          # NE: Idle 2, Walk 9, Attack 6, Hurt 6
+                         text=[(0, 115, 170, 165), (0, 320, 170, 365), (0, 550, 170, 592), (0, 765, 170, 808),
+                               (170, 226, 1697, 252), (170, 436, 1697, 462), (170, 663, 1697, 690), (170, 871, 1697, 895)],
+                         rows=[('idle', (170, 40, 1697, 226), (226, 252), NUM(2)),
+                               ('walk', (170, 256, 1697, 436), (436, 462), NUM(9)),
+                               ('attack', (170, 466, 1697, 663), (663, 690), NUM(6)),
+                               ('hurt', (170, 694, 1697, 871), (871, 895), NUM(6))]),
+            'H4P1': dict(file='ART-62_HEAD-4_PAGE-1.png', view='E', ref=('hurt', '1'), chan=14,           # E: Hurt 6
+                         text=[(0, 340, 175, 410), (175, 560, 2069, 610)],
+                         rows=[('hurt', (175, 250, 2069, 560), (560, 610), NUM(6))]),
+            # (against N: this LPC figure stands 50 from behind and 54 from the front -- the front's hair spikes -- so Hurt 1 measured
+            # against S would stand 4 px over the N idle it follows. The sword is on screen-right, where LPC's N walk and S hurt carry
+            # it: no flip)
+            'H5P1': dict(file='ART-62_HEAD-5_PAGE-1.png', view='N', ref=('hurt', '1'), against='N', chan=14,   # N: Hurt 6
+                         text=[(0, 360, 175, 432), (175, 597, 2170, 640)],
+                         rows=[('hurt', (175, 230, 2170, 597), (597, 640), NUM(6))]),
+        },
+        # (SE's sword held low and out reaches 33 px right of the torso in Idle and Walk 1, past LPC's 64-px cell: those cells grow about
+        # the anchor as the hurt cell does, so no row's pixels move against the foot)
+        cells={'idle': (72, 64), 'walk': (72, 64)},
         owed={}),
 }
 
@@ -269,16 +310,20 @@ def cut_pages(fig, ref_h, cellof, pal, old, tone=True, overlays=None, report=Non
     views, clipped = {}, []
     for L, pg in cfg['pages'].items():
         over = [] if overlays is not None else None
-        cuts = SR.cut_sheet(os.path.join(SRC, cfg['dir'], pg['file']), pg, overlay=over, tag=L)
+        cuts = SR.cut_sheet(os.path.join(SRC, cfg['dir'], pg['file']), pg, cuts=pg.get('cuts'), overlay=over, tag=L)
         if overlays is not None:
             overlays[L] = over[0]
         ran, rnm = pg['ref']
         rim = dict((nm, im) for nm, im, _ in cuts[ran])[rnm]
-        k = height(np.asarray(rim)) / float(ref_h)            # page px a game px (the cut carries the page's own drawn outline: LPC's own)
+        stands = pg.get('stands', height(np.asarray(rim)))    # (a page with no standing frame says what one would stand, by hand)
+        to_h = ref_h if 'against' not in pg else height(old['idle'][FACINGS.index(pg['against'])][0]) - 2
+        k = stands / float(to_h)                              # page px a game px (the cut carries the page's own drawn outline: LPC's own)
         src, ref = page_moments(cuts, pg), view_moments(old, TONE_REF[pg['view']])
         if report is not None:
-            report.append('%s (%s): %s %s stands %d px of page -> k %.3f; tone L %.1f/%.1f -> %.1f/%.1f, a %+.1f, b %+.1f (to %s)'
-                          % (L, pg['view'], ran, rnm, height(np.asarray(rim)), k, src[0][0], src[1][0], ref[0][0], ref[1][0],
+            report.append('%s (%s): %s %s stands %d px of page%s -> k %.3f%s; tone L %.1f/%.1f -> %.1f/%.1f, a %+.1f, b %+.1f (to %s)'
+                          % (L, pg['view'], ran, rnm, stands, ' (by hand: it stands %d)' % height(np.asarray(rim)) if 'stands' in pg else '',
+                             k, ' (against the %s idle, %d)' % (pg['against'], to_h) if 'against' in pg else '',
+                             src[0][0], src[1][0], ref[0][0], ref[1][0],
                              ref[0][1] - src[0][1], ref[0][2] - src[0][2], '+'.join(TONE_REF[pg['view']])))
         for an, frs in cuts.items():
             cell = cellof(an)
@@ -318,6 +363,8 @@ def build(fig, meta, sheet, colours=None, overlays=None, report=None, tone=True)
     if any(an == 'hurt' for an, _ in w):
         fw, fh = HURT_CELL
         new_dims['hurt'] = (fw, fh, fw // 2, od['hurt'][3])
+    for an, (fw, fh) in FIGS[fig].get('cells', {}).items():   # a figure's own bigger cells, the same way (the fighter's low sword, ART-62)
+        new_dims[an] = (fw, fh, fw // 2, od[an][3])
     pal = own_palette(sheet) if (colours or COLOURS) == 'own' else None
     views, clipped = cut_pages(fig, ref_h, lambda an: new_dims[an], pal, old, tone, overlays, report)
     frames = {an: [[recell(fr, od[an], new_dims[an]) if new_dims[an] != od[an] else fr for fr in old[an][f]] for f in range(8)]

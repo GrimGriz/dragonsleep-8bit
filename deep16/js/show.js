@@ -377,8 +377,11 @@
     var B = new D.Battle(Object.assign({ npc: { foes: foes, party: ['wizard:' + L, 'wizard:' + L, 'fighter:' + L + ':dwarf', 'rogue:' + L + ':human'] }, watch: true,
       familiars: [{ kind: 'bat', by: 'p0-wizard' }, { kind: 'snake', by: 'p1-wizard' }], fightDef: F }, o || {}));
     B.show = true; B.showTally = {}; B.showKind = {}; B.showRipple = get('ripple'); // (&ripple=body|mane: js/looks.js LK.ripple)
+    // &sheet=<name>: the creatures wear that sheet, as on ?rows= -- a sheet no foe wears yet, every row twice in a fight (10-15, the LPC
+    // fighter's: `?show=trooper&sheet=npcfighter_p0`, dev/bench16.py trooper mode=show sheet=npcfighter_p0)
+    var look = get('sheet'); look = look && D.SHEETS && D.SHEETS[look] ? look : null;
     var enter0 = B.enter;
-    B.enter = function () { enter0.apply(this, arguments); SH.setup(this); };
+    B.enter = function () { enter0.apply(this, arguments); if (look) this.units.forEach(function (u) { if (u.side === 'foe') u.sheet = look; }); SH.setup(this); };
     B.finish = function* (res) { this.showReport = SH.report(this); this.card(this.showReport, 1e9); yield* D.Battle.prototype.finish.call(this, res); };
     return B;
   };

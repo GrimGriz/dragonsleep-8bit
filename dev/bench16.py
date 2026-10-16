@@ -111,7 +111,7 @@ def main(argv):
     for j in jobs:
         L = lvl or (j.split(',')[0].split(':')[1] if ':' in j.split(',')[0] else '5')
         params = {'foes': j, 'lvl': L, 'n': kw.get('n', '10'), 'seed': kw.get('seed', '1')}
-        for k in ('vs', 'fight', 'guests', 'sky', 'mode', 'ward', 'plain', 'avghp', 'stone', 'raw', 'climb', 'flvl', 'measure', 'plus', 'callN', 'dbl', 'toy', 'laugh', 'reads'):  # (callN: the Harbinger's pack held at a size, 10-08)
+        for k in ('vs', 'fight', 'guests', 'sky', 'mode', 'ward', 'plain', 'avghp', 'stone', 'raw', 'climb', 'flvl', 'measure', 'plus', 'callN', 'dbl', 'toy', 'laugh', 'reads', 'sheet'):  # (callN: the Harbinger's pack held at a size, 10-08) (sheet: the show's foes wear it, 10-15)
             if kw.get(k):
                 params[k] = kw[k]
         if kw.get('log'):

@@ -6428,7 +6428,7 @@
 }
 },
 "npcfighter_p0": {
-"image": "art/npcfighter_p0.png?v=3fbd1bc80c",
+"image": "art/npcfighter_p0.png?v=ade9e8fdfe",
 "fw": 64,
 "fh": 64,
 "ax": 32,
@@ -6437,18 +6437,18 @@
 "anims": {
 "idle": {
 "y": 0,
-"fw": 64,
+"fw": 72,
 "fh": 64,
-"ax": 32,
+"ax": 36,
 "ay": 61,
 "frames": 2,
 "fps": 6
 },
 "walk": {
 "y": 512,
-"fw": 64,
+"fw": 72,
 "fh": 64,
-"ax": 32,
+"ax": 36,
 "ay": 61,
 "frames": 9,
 "fps": 10
@@ -6464,12 +6464,45 @@
 },
 "hurt": {
 "y": 2560,
-"fw": 64,
-"fh": 64,
-"ax": 32,
+"fw": 128,
+"fh": 80,
+"ax": 64,
 "ay": 61,
 "frames": 6,
 "fps": 10
+}
+},
+"diag": {
+"by": "tools/lpc-diag-sheet.py",
+"from": "ART-62",
+"drawn": [
+"SE idle/walk",
+"SE attack",
+"SE hurt",
+"NE idle/walk/attack/hurt",
+"E hurt",
+"N hurt"
+],
+"owed": [],
+"lpc_cells": {
+"idle": [
+64,
+64,
+32,
+61
+],
+"walk": [
+64,
+64,
+32,
+61
+],
+"hurt": [
+64,
+64,
+32,
+61
+]
 }
 }
 },
