@@ -1237,7 +1237,7 @@
       okM('armour in a ladder fight (' + Fa.id + ', ' + (ha && ha.name) + ' in ' + (ha && ha.src.equip.armor) + ', three suits in the pack): ARMOUR OFF / WEAR offered ' + JSON.stringify(armA) + '; the ARMOR row says "' + saya + '"', !!ha && !armA.length && saya === 'Armour: not in a fight.');
       // (d) LIGHT: with a torch in the pack, EQUIP has the row; its list is the pack's torch at the action, and the pick lights it in hand (the ring's ITEM, to the turn)
       var B6 = mkM('?npc=goblin,goblin&lvl=5&vs=rogue:5,fighter:5'), r6 = turnM(B6, heroM(B6, 'rogue')); packM(B6, 'torch', 2); delete r6.torch;
-      var m6 = openM(B6, 'equip'), ep6 = m6.pages[0], lrow6 = ep6 ? rowM(ep6.list, function (x) { return x.value === 'light'; }) : -1;
+      var m6 = openM(B6, 'equip'), ep6 = m6.pages[0], lrow6 = ep6 ? rowM(ep6.list, function (x) { return x.value === 'offhand'; }) : -1; // (the light's place is the OFFHAND since 10-15)
       if (lrow6 >= 0) pressM(B6, 'a');
       var cp6 = m6.pages[1], t6 = cp6 ? rowM(cp6.list, function (x) { return x.value && x.value.kind === 'item' && x.value.e.id === 'torch'; }) : -1, ok6 = t6 >= 0 && !cp6.list.cur().disabled, drew6 = cp6 ? drawM(m6) : 'no list';
       if (ok6) pressM(B6, 'a');
@@ -4440,41 +4440,52 @@
     return;
   }
   // PUT AWAY off the ring (mode=putaway1015; 10-15, the menus lane §2.4, Griz: "Remove put-it-away from the menu ring. If they have the action and the bonus to light the torch
-  // and click on it, pop-up confirmation PUT AWAY WEAPON?"): neither ring carries PUT AWAY, EQUIP still does; a fighter with the sword and a shield may light a torch, asked
-  // PUT AWAY WEAPON? -- NOT NOW spends nothing, yes puts the sword away (the free hand on an object) and lights it (the action); a rogue with a hand free is not asked; with the
-  // free hand on an object spent this turn there is no asking, the torch greyed with its reason
+  // and click on it, pop-up confirmation PUT AWAY WEAPON?") -- lined up the same night with the OFFHAND (RULED 10-15: "6 - yeah, in the offhand instead of its own slot"): neither
+  // ring carries PUT AWAY, EQUIP still does; the light goes in the off hand, so a sword and a shield light nothing (the shield's doff is the action) and the torch is greyed with
+  // why; a dagger in the off hand is what PUT AWAY WEAPON? puts away -- NOT NOW spends nothing, yes puts it away (the free hand on an object) and lights it (the action), DRAW (OFF
+  // HAND) waiting till the light is out; a rogue with the off hand empty is not asked; the free hand on an object spent, no asking
   if (get('mode', '') === 'putaway1015') {
     var repPa = { checks: [], errors: [] }, menuPa0 = D.ui.opts.menu, urlPa0 = D.ui.urlMenu;
     function okPa(what, v) { repPa.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
     function runPa(g, pick) { var v, k = 0, st, asked = null; while (g && k++ < 4000) { st = g.next(v); v = undefined; if (st.done) break; if (st.value && st.value.prompt) { asked = asked || st.value.prompt; v = pick(st.value.prompt); } } return asked; }
     function idsPa(list) { var o = []; (list || []).forEach(function (x) { o.push(x.id); if (x.items) o = o.concat(idsPa(x.items)); }); return o; }
+    function torchPa(Bx, u) { return Bx.itemList(u).filter(function (e) { return e.id === 'torch'; })[0]; }
     try {
       var Bpa = D.npcFight('?npc=goblin&lvl=5&vs=fighter:5,rogue:5', {}); D.battle = Bpa; Bpa.enter(); while (!Bpa.order.length) Bpa.co.next(); Bpa.dark = false; D.ui.urlMenu = null;
       var fgPa = Bpa.units.filter(function (u) { return u.side === 'party' && u.cls === 'fighter'; })[0], rgPa = Bpa.units.filter(function (u) { return u.side === 'party' && u.cls === 'rogue'; })[0];
       [fgPa, rgPa].forEach(function (u) { u.guest = false; delete u.torch; delete u.sheathed; });
-      fgPa.src.equip.weapon = 'longsword'; fgPa.src.equip.shield = 'shield'; D.light.regrip(fgPa); // (Lymen's kit: the sword and a shield)
+      fgPa.src.equip.weapon = 'longsword'; fgPa.src.equip.shield = 'shield'; fgPa.src.equip.offhand = null; fgPa.offhand = null; D.light.regrip(fgPa); // (Lymen's kit: the sword and a shield)
       Bpa.inv = (Bpa.inv || []).filter(function (x) { return x.id !== 'torch'; }).concat([{ id: 'torch', n: 3 }]);
       D.rules.startTurn(fgPa); D.rules.startTurn(rgPa); Bpa.active = fgPa; Bpa.req = { turn: fgPa };
-      var wpPa = fgPa.weapon && fgPa.weapon.name, inB = Bpa.commands(fgPa).some(function (c) { return c.id === 'putaway'; });
+      var inB = Bpa.commands(fgPa).some(function (c) { return c.id === 'putaway'; });
       D.ui.opts.menu = 'ring'; var r1Pa = idsPa(D.ui.cmds(Bpa, fgPa)); D.ui.opts.menu = 'ring2'; var r2Pa = idsPa(D.ui.cmds(Bpa, fgPa)); D.ui.opts.menu = 'ring';
-      okPa('PUT AWAY on RING ' + (r1Pa.indexOf('putaway') >= 0) + ', on RING2 ' + (r2Pa.indexOf('putaway') >= 0) + '; still a command for EQUIP ' + inB + ' (DRAW and the torches stay: ' + (r1Pa.indexOf('items') >= 0) + ')', r1Pa.indexOf('putaway') < 0 && r2Pa.indexOf('putaway') < 0 && inB);
-      var tF = Bpa.itemList(fgPa).filter(function (e) { return e.id === 'torch'; })[0], tR = Bpa.itemList(rgPa).filter(function (e) { return e.id === 'torch'; })[0];
-      okPa('the fighter (the ' + wpPa + ' and a shield): the torch ' + (tF && tF.ok) + ', asked first ' + (tF && tF.putAway) + '; the rogue (a hand free): ' + (tR && tR.ok) + ', asked ' + (tR && tR.putAway), tF && tF.ok && tF.putAway && tR && tR.ok && !tR.putAway);
-      // the pick as the UI sends it (EQUIP's light row -> itemAim -> UI.command): it carries the ask
+      okPa('PUT AWAY on RING ' + (r1Pa.indexOf('putaway') >= 0) + ', on RING2 ' + (r2Pa.indexOf('putaway') >= 0) + '; still a command for EQUIP ' + inB, r1Pa.indexOf('putaway') < 0 && r2Pa.indexOf('putaway') < 0 && inB);
+      var tS0 = torchPa(Bpa, fgPa), tR = torchPa(Bpa, rgPa);
+      okPa('the sword and a shield: the torch ' + (tS0 && tS0.ok) + ', asked ' + (tS0 && tS0.putAway) + ' -- "' + (tS0 && tS0.why) + '"; the rogue (the off hand empty): ' + (tR && tR.ok) + ', asked ' + (tR && tR.putAway),
+        tS0 && !tS0.ok && !tS0.putAway && /shield is on the off hand/.test(tS0.why) && tR && tR.ok && !tR.putAway);
+      // the shield into the pack, a dagger in the off hand (as EQUIP's OFFHAND leaves it): the torch asks for the dagger
+      fgPa.src.equip.shield = null; fgPa.src.equip.offhand = 'dagger'; fgPa.offhand = D.save.offhandOf(fgPa.src); D.light.regrip(fgPa);
+      var tF = torchPa(Bpa, fgPa), dgPa = fgPa.offhand && fgPa.offhand.name;
+      okPa('the sword and a ' + dgPa + ' in the off hand: the torch ' + (tF && tF.ok) + ', asked first ' + (tF && tF.putAway), tF && tF.ok && tF.putAway);
+      // the pick as the UI sends it (EQUIP's OFFHAND -> its light -> itemAim -> UI.command): it carries the ask
       var sentPa = null; Bpa.answer = function (c) { sentPa = c; this.req = null; }; Bpa.req = { turn: fgPa };
       D.ui.openMenu(Bpa); var hostPa = Bpa.menu.m.host, lrow = hostPa.fightEquip().filter(function (o) { return o.kind === 'item' && o.e.id === 'torch'; })[0]; if (lrow) hostPa.fightSwap(lrow); Bpa.menu = null;
-      okPa('EQUIP\'s light row sends ' + (sentPa ? sentPa.do + ' ' + sentPa.id + ', putAway ' + sentPa.putAway + ', cost ' + sentPa.cost : 'nothing'), !!sentPa && sentPa.do === 'item' && sentPa.id === 'torch' && sentPa.putAway === true);
+      okPa('EQUIP\'s OFFHAND light sends ' + (sentPa ? sentPa.do + ' ' + sentPa.id + ', putAway ' + sentPa.putAway + ', cost ' + sentPa.cost : 'nothing'), !!sentPa && sentPa.do === 'item' && sentPa.id === 'torch' && sentPa.putAway === true);
       var n0Pa = D.light.inPack(Bpa, 'torch'), askPa = runPa(Bpa.exec(fgPa, sentPa), function (p) { return p.opts[1].value; });
-      okPa('asked "' + (askPa && askPa.title) + '" (' + (askPa ? askPa.opts.map(function (o) { return o.label; }).join(' / ') : '-') + '); NOT NOW: the ' + (fgPa.weapon && fgPa.weapon.name) + ' in hand, no torch ' + !fgPa.torch + ', the pack ' + D.light.inPack(Bpa, 'torch') + '/' + n0Pa + ', the action ' + fgPa.turn.action + ', the free hand ' + !fgPa.turn.freeObj,
-        !!askPa && askPa.title === 'PUT AWAY WEAPON?' && fgPa.weapon.name === wpPa && !fgPa.torch && D.light.inPack(Bpa, 'torch') === n0Pa && fgPa.turn.action > 0 && !fgPa.turn.freeObj);
+      okPa('asked "' + (askPa && askPa.title) + '" (' + (askPa ? askPa.opts.map(function (o) { return o.label; }).join(' / ') : '-') + '); NOT NOW: the ' + dgPa + ' in hand ' + !fgPa.offhandSheathed + ', no torch ' + !fgPa.torch + ', the pack ' + D.light.inPack(Bpa, 'torch') + '/' + n0Pa + ', the action ' + fgPa.turn.action + ', the free hand ' + !fgPa.turn.freeObj,
+        !!askPa && askPa.title === 'PUT AWAY WEAPON?' && askPa.opts[0].label === 'PUT AWAY THE ' + String(dgPa).toUpperCase() && !fgPa.offhandSheathed && !fgPa.torch && D.light.inPack(Bpa, 'torch') === n0Pa && fgPa.turn.action > 0 && !fgPa.turn.freeObj);
       runPa(Bpa.exec(fgPa, sentPa), function (p) { return p.opts[0].value; });
-      okPa('PUT AWAY: the ' + (fgPa.sheathed && fgPa.sheathed.name) + ' away, a torch in hand ' + !!fgPa.torch + ', the pack ' + D.light.inPack(Bpa, 'torch') + ', the action ' + fgPa.turn.action + ', the free hand spent ' + !!fgPa.turn.freeObj,
-        fgPa.sheathed && fgPa.sheathed.name === wpPa && !!fgPa.torch && D.light.inPack(Bpa, 'torch') === n0Pa - 1 && !fgPa.turn.action && fgPa.turn.freeObj === true);
+      var drw = Bpa.commands(fgPa).filter(function (c) { return c.id === 'drawoffhand'; })[0];
+      okPa('PUT AWAY: the ' + dgPa + ' at the belt ' + !!fgPa.offhandSheathed + ', the longsword still in hand (' + (fgPa.weapon && fgPa.weapon.name) + '), a torch ' + !!fgPa.torch + ', the pack ' + D.light.inPack(Bpa, 'torch') + ', the action ' + fgPa.turn.action + ', the free hand spent ' + !!fgPa.turn.freeObj + '; DRAW (OFF HAND) there ' + !!drw + ', not now ' + (drw && !drw.ok),
+        !!fgPa.offhandSheathed && fgPa.weapon.name === 'Longsword' && !!fgPa.torch && D.light.inPack(Bpa, 'torch') === n0Pa - 1 && !fgPa.turn.action && fgPa.turn.freeObj === true && !!drw && !drw.ok);
       var askR = runPa(Bpa.exec(rgPa, { do: 'item', id: 'torch', target: rgPa }), function (p) { return p.opts[0].value; });
       okPa('the rogue lights one unasked (' + !askR + '), the ' + (rgPa.weapon && rgPa.weapon.name) + ' still in hand (' + !rgPa.sheathed + ')', !askR && !!rgPa.torch && !rgPa.sheathed);
-      delete fgPa.torch; fgPa.weapon = fgPa.sheathed; delete fgPa.sheathed; D.light.regrip(fgPa); D.rules.startTurn(fgPa); fgPa.turn.freeObj = true;
-      var tS = Bpa.itemList(fgPa).filter(function (e) { return e.id === 'torch'; })[0];
-      okPa('the free hand on an object spent: the torch ' + (tS && tS.ok) + ', asked ' + (tS && tS.putAway) + ' -- "' + (tS && tS.why) + '"', tS && !tS.ok && !tS.putAway && /no free hand/.test(tS.why));
+      delete fgPa.torch; D.light.regrip(fgPa); D.rules.startTurn(fgPa); var drw2 = Bpa.commands(fgPa).filter(function (c) { return c.id === 'drawoffhand'; })[0];
+      runPa(Bpa.exec(fgPa, { do: 'drawoffhand' }), function (p) { return p.opts[0].value; });
+      okPa('the torch out, next turn: DRAW (OFF HAND) ' + (drw2 && drw2.ok) + ', drawn ' + !fgPa.offhandSheathed, drw2 && drw2.ok && !fgPa.offhandSheathed);
+      D.rules.startTurn(fgPa); fgPa.turn.freeObj = true;
+      var tS = torchPa(Bpa, fgPa);
+      okPa('the free hand on an object spent: the torch ' + (tS && tS.ok) + ', asked ' + (tS && tS.putAway) + ' -- "' + (tS && tS.why) + '"', tS && !tS.ok && !tS.putAway && /off hand/.test(tS.why));
     } catch (ePa) { repPa.errors.push(String(ePa && ePa.stack || ePa).slice(0, 900)); }
     D.ui.opts.menu = menuPa0; D.ui.urlMenu = urlPa0;
     if (errs.length) repPa.errors = repPa.errors.concat(errs);

@@ -1069,7 +1069,9 @@
     // sword"): put away, the hand is empty -- a torch taken up or lit, the lit flask (js/oil.js) -- and its blows are an unarmed strike till it is drawn; drawn, a hand to hold it
     if (!u.guest && u.src && u.src.equip) {
       if (u.sheathed) { var dHands = Lt.handsFree(u) > 0; out.push({ id: 'drawweapon', label: 'DRAW ' + u.sheathed.name.toUpperCase(), cost: 'F', icon: 'attack', ok: !T.freeObj && dHands, why: T.freeObj ? freeWhy : Lt.handsWhy(u), note: 'back in hand: ' + u.sheathed.name + ' ' + RU.sign(u.sheathed.atk) + ', ' + u.sheathed.dice + RU.sign(u.sheathed.mod) });
-      } else if (u.weapon && u.weapon.id && u.weapon.id !== 'unarmed') out.push({ id: 'putaway', label: 'PUT AWAY ' + u.weapon.name.toUpperCase(), cost: 'F', icon: 'attack', ok: !T.freeObj, why: freeWhy, note: 'the hand free (a torch, the lit flask); an unarmed strike till it is drawn' });
+      }
+      if (u.offhand && u.offhandSheathed && !u.script) { var oFree = D.light.handForLight(u); out.push({ id: 'drawoffhand', label: 'DRAW ' + u.offhand.name.toUpperCase() + ' (OFF HAND)', cost: 'F', icon: 'attack', ok: !T.freeObj && oFree, why: T.freeObj ? freeWhy : D.light.lightWhy(u), note: 'back in the off hand' }); } // (the OFFHAND's weapon, put away for a light: 10-15)
+      if (u.sheathed) { } else if (u.weapon && u.weapon.id && u.weapon.id !== 'unarmed') out.push({ id: 'putaway', label: 'PUT AWAY ' + u.weapon.name.toUpperCase(), cost: 'F', icon: 'attack', ok: !T.freeObj, why: freeWhy, note: 'the hand free (a torch, the lit flask); an unarmed strike till it is drawn' });
     }
     if (u.cls === 'paladin') out.push({ id: 'lay', label: 'LAY HANDS', cost: 'A', ok: T.action > 0 && !T.attacksLeft && u.feats.lay > 0, tool: 'lay', note: 'a pool of ' + (u.feats.lay || 0) + ' HP (long rest), touch' });
     // Sacred Weapon (Channel Divinity, Oath of Devotion): the 8-bit game's SKILL beside Lay on Hands, an action there as here
@@ -1547,11 +1549,11 @@
         // and click on it, pop-up confirmation PUT AWAY WEAPON?"): asked first; yes puts the weapon away with the turn's free hand on an object (SRD 5.1: sheathing a sword is
         // one), then the light takes the action as ever; NOT NOW spends nothing. itemList marks it (`putAway`) only when that free hand is unspent and putting away frees one
         if (c.putAway && !byAI(u)) {
-          var itP = window.DS.DATA.items[c.id], wpP = u.weapon && u.weapon.name;
+          var itP = window.DS.DATA.items[c.id], wpP = u.offhand && u.offhand.name; // (the off hand's weapon: the light's hand since 10-15)
           var okP = yield { prompt: { who: u, title: 'PUT AWAY WEAPON?', lines: [nameOf(u) + ' has no free hand for the ' + (itP ? itP.name.toLowerCase() : 'light') + '.', 'The ' + (wpP || 'weapon').toLowerCase() + ' goes away (the free hand on an object), then it is lit (' + (c.cost === 'B' ? 'the bonus action' : 'the action') + ').'], opts: [{ label: 'PUT AWAY THE ' + String(wpP || 'weapon').toUpperCase(), value: true }, { label: 'NOT NOW', value: false }] } };
           if (okP !== true) return;
-          yield* this.exec(u, { do: 'putaway' });
-          if (!u.sheathed || !D.light.canLight(this, u, c.id).ok) return;
+          this.putAwayOff(u);
+          if (!u.offhandSheathed || !D.light.canLight(this, u, c.id).ok) return;
         }
         if (c.askSelf && !byAI(u)) { var itS = window.DS.DATA.items[c.id], okS = yield { prompt: { who: u, title: u.name + ': ' + (itS ? itS.name.toUpperCase() : 'THE ITEM') + '?', lines: ['On ' + u.name + '?'], opts: [{ label: 'USE IT ON ' + u.name.toUpperCase(), value: true }, { label: 'NOT NOW', value: 0 }] } }; if (!okS) return; }
         yield* this.useItem(u, c.id, c.target, c); return;
@@ -1564,6 +1566,11 @@
       }
       case 'putaway': { // (PUT AWAY, 10-05: the weapon kept on u.sheathed, an unarmed strike in its place -- the save's equip untouched; off the ring since 10-15, EQUIP's and the torch's ask)
         this.putAway(u); return;
+      }
+      case 'drawoffhand': { // (the off hand's weapon taken up again: the off hand empty -- no light, no shield; 10-15)
+        if (!u.offhand || !u.offhandSheathed || T.freeObj || !D.light.handForLight(u)) return;
+        T.freeObj = true; u.offhandSheathed = false;
+        D.sfx('confirm'); this.card(['{y}' + u.name + '{/} draws the ' + u.offhand.name + ' in the off hand.'], 180); return;
       }
       case 'drawweapon': { // (DRAW: back in hand -- a hand for it)
         if (!u.sheathed || T.freeObj || D.light.handsFree(u) <= 0) return;
@@ -3084,7 +3091,7 @@
     this.inv.forEach(function (s) {
       var it = window.DS.DATA.items[s.id];
       if (!it || it.kind !== 'weapon' || s.n <= 0 || !R.canEquip(h, it)) return;
-      var wd = it.weapon, two = (wd.props || []).indexOf('two-handed') >= 0, why = busy || (two && h.equip.shield ? 'two hands: the shield comes off first' : ''); // (with a torch it is carried in one hand, and the torch falls when it swings: battle.js attack, 10-05)
+      var wd = it.weapon, two = (wd.props || []).indexOf('two-handed') >= 0, why = busy || (two && h.equip.shield ? 'two hands: the shield comes off first' : two && h.equip.offhand ? 'two hands: the off hand empties first' : ''); // (with a torch it is carried in one hand, and the torch falls when it swings: battle.js attack, 10-05)
       var ammo = wd.ammo ? ', ' + (packOf(B, wd.ammo) ? packOf(B, wd.ammo).n : 0) + ' ' + B.itemName(wd.ammo).toLowerCase() : '';
       out.push({ kind: 'weapon', id: s.id, label: it.name, note: wd.dmg + ' ' + wd.type + (wd.range ? ', ' + wd.range.join('/') + ' ft' : ', melee') + ammo, ok: !why, why: why });
     });
@@ -3094,8 +3101,15 @@
     if (h.equip.shield) out.push({ kind: 'shieldoff', label: 'SHIELD OFF', note: 'into the pack: -' + ((R.item(h.equip.shield).shield || {}).ac || 2) + ' AC', ok: !busy, why: busy });
     else {
       var sh = this.inv.filter(function (s) { var it = window.DS.DATA.items[s.id]; return it && it.kind === 'shield' && s.n > 0 && R.canEquip(h, it); })[0];
-      if (sh) out.push({ kind: 'shieldon', id: sh.id, label: 'SHIELD ON: ' + this.itemName(sh.id), note: '', ok: !busy && !curTwo && !u.torch, why: busy || (curTwo ? 'the weapon takes both hands' : u.torch ? 'the torch is in that hand' : '') });
+      if (sh) out.push({ kind: 'shieldon', id: sh.id, label: 'SHIELD ON: ' + this.itemName(sh.id), note: '', ok: !busy && !curTwo && !u.torch && !h.equip.offhand, why: busy || (curTwo ? 'the weapon takes both hands' : u.torch ? 'the torch is in that hand' : h.equip.offhand ? 'the ' + this.itemName(h.equip.offhand).toLowerCase() + ' is in the off hand' : '') });
     }
+    // the OFFHAND's weapon (RULED 10-15): into the pack, or one from it -- one-handed and melee -- each the action, as a weapon from the pack is (a light one swings as the off-hand attack)
+    if (h.equip.offhand) out.push({ kind: 'offhandoff', label: 'OFF HAND: STOW ' + this.itemName(h.equip.offhand).toUpperCase(), note: 'into the pack', ok: !busy, why: busy });
+    else if (!h.equip.shield) this.inv.forEach(function (s) {
+      var it = window.DS.DATA.items[s.id]; if (!it || s.n <= 0 || !R.offhandWeapon || !R.offhandWeapon(it) || !R.canEquip(h, it)) return;
+      var why = busy || (curTwo ? 'the weapon takes both hands' : u.torch ? 'the ' + D.light.word(u.torch) + ' is in that hand' : '');
+      out.push({ kind: 'offhandon', id: s.id, label: 'OFF HAND: ' + it.name, note: R.offhandWord ? R.offhandWord(Object.assign({}, h, { equip: Object.assign({}, h.equip, { offhand: s.id }) }), s.id) : 'in the off hand', ok: !why, why: why });
+    });
     return out;
   };
   Battle.prototype.swapGear = function (u, o) {
@@ -3106,12 +3120,15 @@
     if (o.kind === 'weapon') { give(h.equip.weapon); take(o.id); h.equip.weapon = o.id; delete u.conds.ablaze; } // sheathed: the flame goes out
     if (o.kind === 'shieldoff') { give(h.equip.shield); h.equip.shield = null; }
     if (o.kind === 'shieldon') { take(o.id); h.equip.shield = o.id; }
+    if (o.kind === 'offhandoff') { give(h.equip.offhand); h.equip.offhand = null; }
+    if (o.kind === 'offhandon') { take(o.id); h.equip.offhand = o.id; }
+    u.offhand = D.save.offhandOf(h); delete u.offhandSheathed; delete u.offhandThrown; // (the OFFHAND's weapon read again: 10-15)
     delete u.sheathed; u.weapon = D.save.weaponOf(h); u.attacks = u.weapon.loading ? 1 : u.attacksBase; // (a swap takes the new one up in hand: no weapon put away after it -- 10-05)
     // Mage Armor ends when its wearer puts on armour (robes aren't armour to it)
     if (R.armored(h) && (u.conds.mageArmor || (h.conds && h.conds.mageArmor))) { delete u.conds.mageArmor; if (h.conds) delete h.conds.mageArmor; }
     var ac = R.ac(h); if (u.conds.mageArmor && !R.armored(h)) ac = Math.max(ac, 13 + D.mod(u.abil.dex)); // Mage Armor cast in this fight
     u.baseAC = ac; u.armored = R.armored(h);
-    var did = { weapon: 'stows one weapon and takes up the ' + u.weapon.name, shieldoff: 'slings the shield', shieldon: 'takes up the shield' }[o.kind];
+    var did = { weapon: 'stows one weapon and takes up the ' + u.weapon.name, shieldoff: 'slings the shield', shieldon: 'takes up the shield', offhandoff: 'stows the off hand\'s weapon', offhandon: 'takes up the ' + (u.offhand ? u.offhand.name : 'weapon') + ' in the off hand' }[o.kind];
     this.card(['{y}' + u.name + '{/} ' + did + ' (the action).  AC ' + RU.ac(u) + '  ' + u.weapon.name + ' ' + RU.sign(u.weapon.atk) + ', ' + u.weapon.dice + RU.sign(u.weapon.mod) + (u.weapon.ranged ? '  ' + u.weapon.range.join('/') + ' ft' : '')], 240);
   };
 
@@ -3219,7 +3236,8 @@
       if (it.use.effect === 'light') { // a torch (torchdark 09-28), or a lantern (09-29; under a roost it is lit hood down): a free hand, and the action (or the Thief's bonus)
         var cl = D.light.canLight(self, u, s.id), can = (torchFast(u) && T.bonus > 0) || (T.action > 0 && !T.attacksLeft);
         // (no hand only for the weapon, and the turn's free hand on an object unspent: lit with PUT AWAY WEAPON? asked first -- exec 'item' c.putAway; the menus lane §2.4, 10-15)
-        var pa = !cl.ok && !u.guest && !u.sheathed && !T.freeObj && u.weapon && u.weapon.id && u.weapon.id !== 'unarmed' && D.light.canLight(self, Object.assign({}, u, { weapon: null }), s.id).ok;
+        // (since 10-15 the light goes in the OFFHAND: the weapon put away is the off hand's, the shield never -- its doff is the action, EQUIP's SHIELD OFF)
+        var pa = !cl.ok && !u.guest && !T.freeObj && !!u.offhand && !u.offhandSheathed && !u.offhandThrown && D.light.canLight(self, Object.assign({}, u, { offhandSheathed: true }), s.id).ok;
         return { id: s.id, name: it.name, n: s.n, use: it.use, ok: (cl.ok || pa) && can && !u.guest, putAway: !!pa, why: !cl.ok && !pa ? cl.why : can ? '' : 'the action is spent', cost: torchFast(u) && T.bonus > 0 ? 'B' : 'A' };
       }
       return { id: s.id, name: it.name, n: s.n, use: it.use, ok: (u.subclass === 'Thief' && T.bonus > 0) || (T.action > 0 && !T.attacksLeft), why: T.action > 0 ? '' : 'the action is spent' };
@@ -3231,6 +3249,14 @@
     if (u.sheathed || !u.weapon || !u.weapon.id || T.freeObj) return false;
     T.freeObj = true; u.sheathed = u.weapon; u.weapon = D.save.weaponOf(Object.assign({}, u.src, { equip: Object.assign({}, u.src.equip, { weapon: null }) }));
     D.sfx('confirm'); this.card(['{y}' + u.name + '{/} puts the ' + u.sheathed.name + ' away: a hand free.  {g}(' + u.weapon.name + ' ' + RU.sign(u.weapon.atk) + ', ' + u.weapon.dice + RU.sign(u.weapon.mod) + ' till it is drawn){/}'], 220);
+    return true;
+  };
+  // the off hand's weapon put away (the light's ask, exec 'item'; 10-15): at the belt, the turn's free hand on an object; DRAW (the off hand) takes it up again
+  Battle.prototype.putAwayOff = function (u) {
+    var T = u.turn || {};
+    if (!u.offhand || u.offhandSheathed || T.freeObj) return false;
+    T.freeObj = true; u.offhandSheathed = true;
+    D.sfx('confirm'); this.card(['{y}' + u.name + '{/} puts the ' + u.offhand.name + ' away: the off hand free.'], 200);
     return true;
   };
   Battle.prototype.itemTargetOK = function (u, id, w) {

@@ -518,6 +518,8 @@
       };
       fight.pick = function (kind, e) { o.picked({ cmd: kind === 'items' ? 'item' : kind === 'spells' ? 'magic' : 'skill', value: kind === 'items' ? e.id : kind === 'spells' ? e.spell : e.value }); };
     }
+    // a shield on or off in a fight is the action (SRD 5.1: "Shield 1 action 1 action"; RULED 10-15, the OFFHAND -- js/menu.js MN.swap): the turn's action spent, the turn over
+    if (fight) fight.spendAction = function () { if (st8) { st8.actions = Math.max(0, st8.actions - 1); st8.acted = true; } fight.acted = true; };
     return {
       fight: fight,
       party: function () { return G.party; },
@@ -548,7 +550,10 @@
       exitTitle: 'QUIT TO THE TITLE?',
       run: function (kind, a, done) {
         DS.run(function* () {
-          if (kind === 'item') yield* DS.EV.useFieldItem(a.id, a.h || null);
+          if (kind === 'item') { // (clearOff: a light taken up on EQUIP's OFFHAND -- what the off hand held goes to the pack first, unless the party's light is in another hand: 10-15)
+            if (a.clearOff && a.h && a.h.equip && !(G.flags.torchBy && G.flags.torchBy !== a.h.id)) { var e0 = a.h.equip; if (e0.shield) { G.give(e0.shield, 1); e0.shield = null; } if (e0.offhand) { G.give(e0.offhand, 1); e0.offhand = null; } }
+            yield* DS.EV.useFieldItem(a.id, a.h || null);
+          }
           else if (kind === 'cast') yield* DS.EV.fieldCast(a.h, a.sp, a.t);
           else if (kind === 'skill') yield* DS.EV.fieldSkill(a.h, a.s, a.t);
           else if (kind === 'save') yield W8.scene(new SlotScene(true));

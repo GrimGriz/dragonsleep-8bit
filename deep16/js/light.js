@@ -228,15 +228,20 @@
   // holding a torch that drops when they attack". A weapon PUT AWAY is no hand at all: u.sheathed, battle.js exec 'putaway')
   L.handsUsed = function (u) {
     var w = u.weapon, props = (w && w.props) || [], two = props.indexOf('two-handed') >= 0, sh = !!(u.src && u.src.equip && u.src.equip.shield);
-    return { weapon: w && w.id && w.id !== 'unarmed' ? (two && !u.torch ? 2 : 1) : 0, shield: sh ? 1 : 0, torch: u.torch ? 1 : 0, two: two, sh: sh, carried: two && !!u.torch };
+    var off = !!(u.offhand && !u.offhandSheathed && !u.offhandThrown); // (a weapon in the OFFHAND -- js/rules.js R.offhandOf, 10-15; put away for a light it is no hand)
+    return { weapon: w && w.id && w.id !== 'unarmed' ? (two && !u.torch ? 2 : 1) : 0, shield: sh ? 1 : 0, torch: u.torch ? 1 : 0, off: off ? 1 : 0, two: two, sh: sh, carried: two && !!u.torch };
   };
-  L.handsFree = function (u) { var h = L.handsUsed(u); return Math.max(0, 2 - h.weapon - h.shield - h.torch); };
+  L.handsFree = function (u) { var h = L.handsUsed(u); return Math.max(0, 2 - h.weapon - h.shield - h.torch - h.off); };
   // a hand for a light: one free -- or both on a two-handed weapon and no shield, which then carries it in one (10-05)
-  L.handForLight = function (u) { var h = L.handsUsed(u); return L.handsFree(u) > 0 || (h.two && !h.sh && !h.torch); };
+  // (since 10-15 the light goes in the OFFHAND -- RULED, Griz: "6 - yeah, in the offhand instead of its own slot": the off hand empty -- no shield, no weapon there, no light;
+  // a two-handed weapon carries it in that hand as before. A main hand put away no longer makes room: the shield stays in the off hand)
+  L.handForLight = function (u) { var h = L.handsUsed(u); return !h.sh && !h.off && !h.torch; };
+  L.lightWhy = function (u) { var h = L.handsUsed(u); return h.sh ? 'the shield is on the off hand (SHIELD OFF first: the action)' : h.off ? 'the ' + u.offhand.name.toLowerCase() + ' is in the off hand' : h.torch ? 'a ' + L.kindName(u.torch) + ' in hand already' : L.handsWhy(u); };
   L.handsWhy = function (u) {
     var h = L.handsUsed(u), bits = [];
     if (h.two && !h.carried) bits.push('both hands on the ' + u.weapon.name.toLowerCase()); else if (h.weapon) bits.push('the ' + u.weapon.name.toLowerCase() + (h.carried ? ', carried' : ''));
     if (h.sh) bits.push('the shield');
+    if (h.off) bits.push('the ' + u.offhand.name.toLowerCase() + ' in the off hand');
     if (h.torch) bits.push('a ' + L.kindName(u.torch) + ' already');
     return 'no free hand: ' + (bits.join(' and ') || 'both hands full');
   };
@@ -261,7 +266,7 @@
     if (u.torch) return { ok: false, why: 'a ' + L.word(u.torch) + ' in hand already' };
     if (!L.inPack(B, id)) return { ok: false, why: 'no ' + L.word(id) + ' in the pack' };
     if (B.fight && B.fight.roost && !L.isLantern(id)) return { ok: false, why: 'the roost overhead: no fire' };
-    if (!L.handForLight(u)) return { ok: false, why: L.handsWhy(u) };
+    if (!L.handForLight(u)) return { ok: false, why: L.lightWhy(u) };
     return { ok: true, why: '' };
   };
   // light one: a torch (or a lantern, or the Ledger-Lamp) out of the pack, in the free hand; the light-shy recoil from it (magic.js brighten).
@@ -335,7 +340,7 @@
     if (!near) return { ok: false, why: 'not from here: on its square or beside it' };
     if (u.hang && G.hanging(u)) return { ok: false, why: 'not while hanging on a rope' };
     if (T.freeObj) return { ok: false, why: 'the free hand on an object is spent this turn' };
-    if (!L.handForLight(u)) return { ok: false, why: L.handsWhy(u) };
+    if (!L.handForLight(u)) return { ok: false, why: L.lightWhy(u) };
     return { ok: true, why: '' };
   };
   // pick up the one burning at his feet, or beside him (free, a free hand)

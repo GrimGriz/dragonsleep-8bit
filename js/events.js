@@ -369,7 +369,15 @@
       // the lamp stays lit map to map, and a rest or EQUIP's LIGHT puts any of them away -- RULED 09-30d, 09-30e)
       var dark = EV.darkHere();
       if (g.flags.torchBy) { var tb = g.party.filter(function (x) { return x.id === g.flags.torchBy; })[0]; yield DS.say(L('g.torchAlready', { name: tb ? tb.name : 'Someone' })); return; }
-      if (!R.freeHands(h)) { yield DS.say(L('g.torchNoHand', { why: R.handsWhy(h) })); return; }
+      // (the light goes in the OFFHAND -- RULED 10-15, Griz: "6 - yeah, in the offhand instead of its own slot": what the off hand holds comes away first, asked -- a weapon or the
+      // shield, into the pack, free out of a fight -- and only when that frees the hand: a two-handed weapon still wants both)
+      var ohE = R.offhandOf(h);
+      if (!R.lightHand(h) && ohE && ohE.kind !== 'light' && R.lightHand(Object.assign({}, h, { equip: Object.assign({}, h.equip, ohE.kind === 'shield' ? { shield: null } : { offhand: null }) }))) {
+        var ohN = (R.item(ohE.id) || { name: 'it' }).name, ohA = yield DS.ask(h.name + ' has no free hand for the light: ' + R.lightWhy(h) + '.', [ohE.kind === 'shield' ? 'TAKE OFF THE SHIELD' : 'PUT AWAY THE ' + ohN.toUpperCase(), 'NOT NOW']);
+        if (ohA !== 0) return;
+        g.give(ohE.id, 1); if (ohE.kind === 'shield') h.equip.shield = null; else h.equip.offhand = null;
+      }
+      if (!R.lightHand(h)) { yield DS.say(L('g.torchNoHand', { why: R.lightWhy(h) })); return; }
       g.take(id, 1); g.flags.torchBy = h.id; g.flags.torchKind = lantern ? id : 'torch'; h.equip.torch = 1; DS.audio.sfx('fire');
       yield DS.say(dark ? L(lamp ? 'g.lampLit' : lantern ? 'g.lanternLit' : 'g.torchLit', { name: h.name }) : L('g.lightReady', { name: h.name, item: DS.DATA.items[id].name.toLowerCase().replace(/^hooded /, '') }));
     }

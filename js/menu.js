@@ -368,13 +368,19 @@
   };
 
   // ------------------------------------------------------------------ GEAR: to look at, tabs by kind; equipping is EQUIP's
-  var GEAR_TABS = [{ label: 'WEAPONS', glyph: 'sword', kinds: ['weapon'] }, { label: 'ARMOR', glyph: 'armor', kinds: ['armor'] }, { label: 'SHIELDS', glyph: 'shield', kinds: ['shield'] },
+  var GEAR_TABS = [{ label: 'WEAPONS', glyph: 'sword', kinds: ['weapon'] }, { label: 'ARMOR', glyph: 'armor', kinds: ['armor'] }, { label: 'OFFHAND', glyph: 'shield', kinds: ['shield'], off: true }, // (OFFHAND, RULED 10-15: the shields, the weapons worn in the off hand, the lights -- R.offhandOf)
     { label: 'RINGS', glyph: 'ring', kinds: ['ring'] }, { label: 'CLOAKS', glyph: 'cloak', kinds: ['cloak'] }, { label: 'MISC', glyph: 'boot', kinds: ['worn'] }, { label: 'AMMO', glyph: 'arrow', kinds: ['ammo'] }];
   function GearPage(m) { this.m = m; this.tab = 0; this.list = new List({ visible: 13 }); this.refresh(); }
   GearPage.prototype.refresh = function () {
     var host = this.m.host, tab = GEAR_TABS[this.tab], rows = [];
     host.pack().forEach(function (s) { var it = item(s.id); if (it && tab.kinds.indexOf(it.kind) >= 0) rows.push({ label: fit(it.name, 150), right: 'x' + s.n, value: s.id }); });
-    host.party().forEach(function (h) { Object.keys(h.equip || {}).forEach(function (sl) { var it = item(h.equip[sl]); if (sl !== 'torch' && it && tab.kinds.indexOf(it.kind) >= 0) rows.push({ label: fit(it.name, 150), right: 'on ' + h.name, value: h.equip[sl], who: h, slot: sl, color: C.pale, rightColor: C.gold }); }); });
+    if (tab.off) packLights(host).forEach(function (s) { var it = item(s.id); rows.push({ label: fit(it.name, 150), right: 'x' + s.n, value: s.id, light: true }); });
+    if (tab.off) host.party().forEach(function (h) {
+      var ow = h.equip && h.equip.offhand && item(h.equip.offhand), lt = host.light ? host.light(h) : null;
+      if (ow) rows.push({ label: fit(ow.name, 150), right: 'off hand: ' + h.name, value: h.equip.offhand, who: h, slot: 'offhand' });
+      if (lt) rows.push({ label: fit(lt.name, 150), right: 'lit: ' + h.name, value: lt.id, who: h, slot: 'offhand', light: true });
+    });
+    host.party().forEach(function (h) { Object.keys(h.equip || {}).forEach(function (sl) { var it = item(h.equip[sl]); if (sl !== 'torch' && it && tab.kinds.indexOf(it.kind) >= 0) rows.push({ label: fit(it.name, 150), right: 'on ' + h.name, value: h.equip[sl], who: h, slot: offSlot(sl), color: C.pale, rightColor: C.gold }); }); });
     this.list.set(rows);
   };
   // E on a row, out of a fight (Griz, 10-06: "when I see the Quarterstaff is on Ly click doesn't kick me into the equip tab with lymen selected" -- "(when out
@@ -389,8 +395,8 @@
     if (host.fight) { m.say([it.name + ': ' + (it.desc || '')].concat(['In a fight, EQUIP is the one whose turn it is.'])); return; }
     if (row.who) { m.push(new EquipPage(m, row.who, row.slot)); return; }
     if (it.kind === 'ammo') { m.say(it.name + ': ' + (it.desc || '') + ' It goes with the bow or crossbow that shoots it.'); return; }
-    m.root.choose({ title: 'WHO WEARS IT?', sub: it.name, ok: function (h) { return R().canEquip(h, it) ? true : h.name + ' can\'t use it.'; },
-      then: function (h) { var slot = R().slotFor(h, it), ep = m.push(new EquipPage(m, h, slot)), cp = m.push(new CandPage(m, h, slot, ep)); cp.list.i = Math.max(0, cp.list.items.map(function (x) { return x.value; }).indexOf(row.value)); cp.list.fix(); } });
+    m.root.choose({ title: row.light ? 'WHO CARRIES IT?' : 'WHO WEARS IT?', sub: it.name, ok: function (h) { return row.light || R().canEquip(h, it) ? true : h.name + ' can\'t use it.'; },
+      then: function (h) { var slot = row.light ? 'offhand' : offSlot(R().slotFor(h, it)), ep = m.push(new EquipPage(m, h, slot)), cp = m.push(new CandPage(m, h, slot, ep)); cp.list.i = Math.max(0, cp.list.items.map(function (x) { return x.value; }).indexOf(row.value)); cp.list.fix(); } });
   };
   GearPage.prototype.draw = function (ctx, active) {
     var self = this, host = this.m.host;
@@ -662,8 +668,16 @@
   };
 
   // ------------------------------------------------------------------ EQUIP: the places a body wears things (RULED 10-06: CLOAK "definite"; the places as items come; two rings)
-  var SLOTS = [['weapon', 'WEAPON'], ['armor', 'ARMOR'], ['shield', 'SHIELD'], ['ring', 'RING'], ['ring2', 'RING'], ['cloak', 'CLOAK'], ['feet', 'FEET'], ['neck', 'NECK']];
-  function fitsSlot(it, slot) { if (!it) return false; if (slot === 'ring' || slot === 'ring2') return it.kind === 'ring'; if (slot === 'feet' || slot === 'neck') return it.kind === 'worn' && it.place === slot; return it.kind === slot; }
+  // OFFHAND (RULED 10-15, Griz: "OFFHAND is shield hand, just change text and function for where that slot is among slots"; "6 - yeah, in the offhand instead of its own
+  // slot"): SHIELD's place holds the one thing the other hand holds -- a shield, a weapon, or the light (js/rules.js R.offhandOf); the LIGHT row that stood under the
+  // places is in it now. A two-handed weapon empties it; a shield on or off in a fight is the action (SRD 5.1: "Shield 1 action 1 action")
+  var SLOTS = [['weapon', 'WEAPON'], ['armor', 'ARMOR'], ['offhand', 'OFFHAND'], ['ring', 'RING'], ['ring2', 'RING'], ['cloak', 'CLOAK'], ['feet', 'FEET'], ['neck', 'NECK']];
+  function offSlot(sl) { return sl === 'shield' || sl === 'torch' ? 'offhand' : sl; } // (a shield's place, and the light's, is the OFFHAND)
+  function offhandThing(h, host) { var o = R().offhandOf(h); if (!o) return null; if (o.kind === 'light') { var lt = host && host.light ? host.light(h) : null; return { kind: 'light', id: lt ? lt.id : 'torch', name: lt ? lt.name : 'Torch', hooded: !!(lt && lt.hooded) }; } var it = item(o.id); return it ? { kind: o.kind, id: o.id, name: it.name } : null; }
+  MN.offhandThing = offhandThing;
+  function mainTwo(h) { var w = item(h.equip.weapon); return !!(w && w.weapon && (w.weapon.props || []).indexOf('two-handed') >= 0); }
+  function offWord(h, id) { return R().offhandWord ? R().offhandWord(h, id) : 'off hand'; } // (what a weapon there does: its off-hand swing, or held -- R.offhandWord)
+  function fitsSlot(it, slot) { if (slot === 'offhand') return !!it && (it.kind === 'shield' || R().offhandWeapon(it)); if (!it) return false; if (slot === 'ring' || slot === 'ring2') return it.kind === 'ring'; if (slot === 'feet' || slot === 'neck') return it.kind === 'worn' && it.place === slot; return it.kind === slot; }
   // the bond's mark beside a worn thing: a gold diamond bonded, a dim one waiting for a rest (the font has no hollow diamond)
   function bondMark(h, id) { var b = R().bondState ? R().bondState(h, id) : ''; return b === 'bonded' ? '◆' : b === 'unbonded' ? '◆' : null; }
   function bondColor(h, id) { var b = R().bondState ? R().bondState(h, id) : ''; return b === 'unbonded' ? C.dim : b === 'bonded' ? C.gold : null; }
@@ -679,7 +693,7 @@
   }
   function EquipPage(m, h, at) { this.m = m; this.h = h; this.list = new List({ visible: 9 }); this.refresh(); if (at) { this.list.i = Math.max(0, this.list.items.map(function (x) { return x.value; }).indexOf(at)); this.list.fix(); } }
   // a grid choice's place (deep16/js/battle.js gearOptions kinds; the free hand's -- PUT AWAY, DRAW, the light -- name theirs: deep16/js/ui.js gridHost fightEquip)
-  function optSlot(o) { return o.slot || (o.kind === 'weapon' ? 'weapon' : /^shield/.test(o.kind) ? 'shield' : /^armor/.test(o.kind) ? 'armor' : null); }
+  function optSlot(o) { return o.slot === 'light' || /^shield|^offhand/.test(o.kind || '') ? 'offhand' : o.slot || (o.kind === 'weapon' ? 'weapon' : /^armor/.test(o.kind) ? 'armor' : null); } // (the shield's and the light's choices: the OFFHAND's, 10-15)
   // a place with nothing to change it to: one wording wherever it is said (10-07, his find on the grid's menu: "\"nothing goes there in this fight\" vs \"no weapon barley
   // can swap to\"" -- the seat's pick)
   function emptyWhy(m, h) { return 'Nothing in the pack ' + h.name + ' can put there' + (m.host.fight ? ' in this fight.' : '.'); }
@@ -688,33 +702,21 @@
     var h = this.h, host = this.m.host, fight = !!host.fight, acted = fight && host.fight.acted, lt = host.light ? host.light(h) : null, lit = !!lt;
     var fo = this.fo = fight && host.fightEquip ? host.fightEquip() : null, away = host.wielding ? host.wielding(h) : ''; // (the grid: its own choices, each with what it costs or why not)
     var rows = SLOTS.map(function (s) {
+      var off = fo ? !fo.some(function (o) { return optSlot(o) === s[0]; }) : (fight && (acted || (s[0] !== 'weapon' && s[0] !== 'offhand')));
+      if (s[0] === 'offhand') { var oh = offhandThing(h, host), ok0 = oh && oh.kind !== 'light' ? bondMark(h, oh.id) : null; return { label: s[1], right: oh ? fit((ok0 ? ok0 + ' ' : '') + oh.name + (oh.kind === 'light' ? ' (lit)' : ''), 128) : '—', value: 'offhand', disabled: off, rightColor: oh && oh.kind !== 'light' && bondColor(h, oh.id) === C.dim ? C.dim : null }; }
       var id = h.equip[s[0]], it = item(id), mk = it ? bondMark(h, id) : null;
-      var off = fo ? !fo.some(function (o) { return optSlot(o) === s[0]; }) : (fight && (acted || (s[0] !== 'weapon' && s[0] !== 'shield'))) || (s[0] === 'shield' && lit && !h.equip.shield);
-      return { label: s[1], right: it ? fit((mk ? mk + ' ' : '') + it.name + (s[0] === 'weapon' && away ? ' (' + away + ')' : ''), 128) : (s[0] === 'shield' && lit ? 'a light in hand' : '—'), value: s[0], disabled: off, rightColor: it && bondColor(h, id) === C.dim ? C.dim : null };
+      return { label: s[1], right: it ? fit((mk ? mk + ' ' : '') + it.name + (s[0] === 'weapon' && away ? ' (' + away + ')' : ''), 128) : '—', value: s[0], disabled: off, rightColor: it && bondColor(h, id) === C.dim ? C.dim : null };
     });
-    // LIGHT: the one in hand, or -- with a light in the pack -- the place to take one up (10-07, his find on the grid's menu: "torches cannot be equipped"); in the
-    // grid's fight its choices are the ring's (fo), out of one the light put away or lit from here, as ITEMS lights it
-    var lights = fo ? fo.filter(function (o) { return optSlot(o) === 'light'; }) : null;
-    if (lt || (fo ? lights.length : packLights(host).length)) rows.push({ label: 'LIGHT', right: lt ? fit(lt.name, 128) : '—', value: 'light', disabled: fo ? !lights.length : fight });
+    // (the LIGHT row of 10-07 -- his "torches cannot be equipped" -- is the OFFHAND's since 10-15: the one in hand there, the pack's lights its choices, as ITEMS lights them)
     this.list.set(rows);
   };
   EquipPage.prototype.update = function (k) {
     var r = this.list.update(k), m = this.m, h = this.h, self = this;
     if (r === 'back') { m.pop(); return; }
     // (ARMOR in a fight, either game: the SRD's minutes -- RULED 10-07, Griz: "SRD everywhere", "(not in a fight) is plenty")
-    if (r === 'refused') { m.say(m.host.fight && this.list.cur().value === 'armor' ? 'Armour: not in a fight.' : this.fo ? emptyWhy(m, h) : m.host.fight ? (m.host.fight.acted ? 'The action is spent: no changes now.' : 'In a fight: the weapon and the shield only.') : 'A light in that hand: no shield.'); return; }
+    if (r === 'refused') { m.say(m.host.fight && this.list.cur().value === 'armor' ? 'Armour: not in a fight.' : this.fo ? emptyWhy(m, h) : m.host.fight ? (m.host.fight.acted ? 'The action is spent: no changes now.' : 'In a fight: the weapon and the off hand only.') : emptyWhy(m, h)); return; }
     if (r !== 'pick') return;
     var slot = this.list.cur().value;
-    if (slot === 'light' && this.fo) { m.push(new CandPage(m, h, 'light', this, this.fo.filter(function (o) { return optSlot(o) === 'light'; }))); return; }
-    if (slot === 'light' && !m.host.light(h)) { // (none in hand: the pack's lights, each lit in this hand as ITEMS lights it -- a free hand, one light for the party)
-      m.push(new ChoicePage(m, 'TAKE UP A LIGHT', packLights(m.host).map(function (s) { return { label: fit(item(s.id).name, 120), right: 'x' + s.n, value: s.id }; }), function (id) { m.act('item', { id: id, h: h }, function () { self.refresh(); }); }));
-      return;
-    }
-    if (slot === 'light') { // (a torch put out is spent; a lantern or the lamp goes back in the pack)
-      var lt = m.host.light(h);
-      m.push(new ChoicePage(m, 'EQUIP LIGHT', [{ label: lt.hooded ? '(put it away)' : '(put it out)', right: lt.hooded ? 'to the pack' : 'spent', value: 'off' }], function () { m.act('light-off', { h: h }, function () { self.refresh(); }); }));
-      return;
-    }
     m.push(new CandPage(m, h, slot, this, this.fo && this.fo.filter(function (o) { return optSlot(o) === slot; })));
   };
   // a small list over the page: one choice, then back
@@ -740,6 +742,7 @@
   function CandPage(m, h, slot, back, fo) { this.m = m; this.h = h; this.slot = slot; this.back = back; this.fo = fo || null; this.list = new List({ visible: 8 }); this.refresh(); }
   CandPage.prototype.refresh = function () {
     var h = this.h, slot = this.slot, host = this.m.host, lit = !!h.equip.torch, R0 = R(), rows = [];
+    if (!this.fo && slot === 'offhand') { this.list.set(offhandCands(h, host)); return; }
     if (this.fo) { this.list.set(this.fo.map(function (o) { return { label: fit(o.label.replace(/^(WEAR|SHIELD ON): /, ''), 104), right: fit(o.ok ? o.short || o.note : o.why, 96), value: o, disabled: !o.ok, color: o.ok ? costCol(o.cost) : null, rightColor: o.ok ? costCol(o.cost) : C.dim }; })); return; } // (lit by its cost, 10-07)
     host.pack().forEach(function (s) {
       var it = item(s.id); if (!fitsSlot(it, slot) || !R0.canEquip(h, it)) return;
@@ -753,20 +756,51 @@
   CandPage.prototype.update = function (k) {
     var r = this.list.update(k), m = this.m;
     if (r === 'back') { m.pop(); return; }
-    if (r === 'refused') { var c0 = this.list.cur(); m.say(this.fo ? c0.value.label.replace(/^\(|\)$/g, '') + ': ' + c0.value.why + '.' : 'Both hands on it, and a light in one: put the light away first.'); return; }
+    if (r === 'refused') { var c0 = this.list.cur(); m.say(this.fo ? c0.value.label.replace(/^\(|\)$/g, '') + ': ' + c0.value.why + '.' : c0.why ? c0.label + ': ' + c0.why + '.' : 'Both hands on it, and a light in one: put the light away first.'); return; }
     if (r !== 'pick') return;
-    var pick = this.list.cur().value;
+    var pick = this.list.cur().value, cur = this.list.cur(), h = this.h;
+    if (!this.fo && this.slot === 'offhand') { // (the OFFHAND's: the light put out or away; a light taken up, what was there to the pack first; a shield or a weapon there)
+      var back = this.back, again = function () { if (back && back.refresh) back.refresh(); };
+      if (pick === '__lightoff') { m.pop(); m.act('light-off', { h: h }, again); return; }
+      if (cur.kind === 'light') { m.pop(); m.act('item', { id: pick, h: h, clearOff: true }, again); return; }
+      var lt0 = offhandThing(h, m.host), sl0 = pick === '__none' ? 'offhand' : cur.kind === 'shield' ? 'shield' : 'offhand';
+      if (lt0 && lt0.kind === 'light') { m.pop(); m.act('light-off', { h: h }, function () { MN.swap(m, h, sl0, pick === '__none' ? null : pick); again(); }); return; }
+      if (MN.swap(m, h, sl0, pick === '__none' ? null : pick)) m.pop();
+      return;
+    }
     if (this.fo) { m.host.fightSwap(pick); m.close(); return; } // (the grid: the swap spends the action, back to the turn)
     if (MN.swap(m, this.h, this.slot, pick === '__none' ? null : pick)) m.pop();
   };
-  // one change of gear: the pack gives and takes, two hands are two hands
+  // the OFFHAND's choices out of a grid fight (10-15): what is there taken off (the light put out or away), the pack's shields and one-handed melee weapons, and -- out
+  // of a fight -- the pack's lights; a two-handed weapon in the main hand leaves it nothing (a light only by its own rule: the 8-bit's wants the hand free)
+  function offhandCands(h, host) {
+    var R0 = R(), oh = offhandThing(h, host), two = mainTwo(h), fight = !!host.fight, rows = [], wn = two ? (item(h.equip.weapon) || {}).name : '';
+    if (oh && oh.kind === 'light') rows.push({ label: oh.hooded ? '(put it away)' : '(put it out)', right: oh.hooded ? 'to the pack' : 'spent', value: '__lightoff' });
+    else if (oh) rows.push({ label: '(remove)', right: oh.kind === 'shield' && fight ? 'the action' : '', value: '__none' });
+    host.pack().forEach(function (s) {
+      var it = item(s.id); if (!it || s.n <= 0 || !R0.canEquip(h, it)) return;
+      var why = two ? 'both hands on the ' + String(wn).toLowerCase() : '';
+      if (it.kind === 'shield') rows.push({ label: fit(it.name, 120), right: two ? 'both hands' : compare(h, 'shield', s.id) + (fight ? ' (action)' : ''), value: s.id, kind: 'shield', disabled: two, why: why });
+      else if (R0.offhandWeapon(it)) rows.push({ label: fit(it.name, 120), right: two ? 'both hands' : offWord(Object.assign({}, h, { equip: Object.assign({}, h.equip, { offhand: s.id, shield: null, torch: null }) }), s.id), value: s.id, kind: 'weapon', disabled: two, why: why });
+    });
+    if (!fight) packLights(host).forEach(function (s) { var it = item(s.id), had = oh && oh.kind === 'light'; rows.push({ label: fit(it.name, 120), right: had ? 'one lit already' : 'lit, in hand', value: s.id, kind: 'light', disabled: had, why: had ? 'a light in that hand already' : '' }); });
+    return rows;
+  }
+  MN.offhandCands = offhandCands; MN.CandPage = CandPage; // (dev/bench8.js menu1006: a place with nothing in the pack for it)
+  // one change of gear: the pack gives and takes, two hands are two hands; the OFFHAND holds one thing (a shield put on sends a weapon there to the pack, and a weapon a
+  // shield); a shield on or off in a fight is the action (SRD 5.1 -- the host's fight.spendAction)
   MN.swap = function (m, h, slot, pick) {
-    var host = m.host, R0 = R();
+    var host = m.host, R0 = R(), hadShield = h.equip.shield || null;
+    if (slot === 'offhand' && !pick && h.equip.shield) slot = 'shield'; // ((remove) on the OFFHAND: whichever it holds)
+    if (slot === 'offhand' && pick && mainTwo(h)) { m.say(item(h.equip.weapon).name + ' needs both hands. Nothing in the off hand with it.'); return false; }
+    if (slot === 'shield' && pick && h.equip.offhand) { host.give(h.equip.offhand, 1); h.equip.offhand = null; }
+    if (slot === 'offhand' && pick && h.equip.shield) { host.give(h.equip.shield, 1); h.equip.shield = null; }
     if (slot === 'shield' && pick) { var w = item(h.equip.weapon); if (w && (w.weapon.props || []).indexOf('two-handed') >= 0) { m.say(w.name + ' needs both hands. No shield with it.'); return false; } }
-    if (slot === 'weapon' && pick) { var nw = item(pick); if ((nw.weapon.props || []).indexOf('two-handed') >= 0 && h.equip.shield) { host.give(h.equip.shield, 1); h.equip.shield = null; } }
+    if (slot === 'weapon' && pick) { var nw = item(pick); if ((nw.weapon.props || []).indexOf('two-handed') >= 0) { if (h.equip.shield) { host.give(h.equip.shield, 1); h.equip.shield = null; } if (h.equip.offhand) { host.give(h.equip.offhand, 1); h.equip.offhand = null; } } } // (a two-handed weapon empties the OFFHAND)
     if (h.equip[slot]) host.give(h.equip[slot], 1);
     h.equip[slot] = null;
     if (pick) { host.take(pick, 1); h.equip[slot] = pick; if (R0.ward) R0.ward(h); } // (a thing put on that bars a condition ends it -- the Periapt and a poison: js/rules.js R.ward, 10-07)
+    if (host.fight && (h.equip.shield || null) !== hadShield && host.fight.spendAction) { host.fight.spendAction(); m.say(h.name + (h.equip.shield ? ' straps the shield on' : ' takes the shield off') + ': the action (SRD 5.1, a shield is an action on or off).'); }
     sfx('confirm');
     if (pick && R0.bondState && R0.bondState(h, pick) === 'unbonded') m.say(h.name + ' wears the ' + item(pick).name + '. It wants a bond: it works after the next rest' + ((h.attuned || []).length >= (R0.ATTUNE_MAX || 3) ? ', and three bonds are held already.' : '.'));
     return true;
@@ -804,7 +838,7 @@
     this.p = 0; this.guest = guest;
   }
   StatusPage.prototype.lines = function () { // [{ t, c }] for the page shown
-    var h = this.h, pg = this.pages[this.p], out = [], d = DS.DATA.heroes[h.id] || {}, R0 = R();
+    var hostS = this.m.host, h = this.h, pg = this.pages[this.p], out = [], d = DS.DATA.heroes[h.id] || {}, R0 = R();
     function add(s, c, ind) { wrap(s, 230 - (ind || 0)).forEach(function (l, i) { out.push({ t: (i && ind ? '' : '') + l, c: c, x: i ? (ind || 0) + 8 : (ind || 0) }); }); }
     if (pg.k === 'guest') { add(d.classLine || clsName(h) + ' ' + h.lvl, C.pale); add(d.blurb || '', C.tan); out.push({ t: '', c: C.dim }); add('A guest of the party: fights on its own; its gear is its own.', C.dim); }
     if (pg.k === 'feat') {
@@ -823,7 +857,7 @@
     if (pg.k === 'gear') {
       var w = R0.weaponOf(h), dx = R0.damageExpr(h, w);
       out.push({ t: 'WEAPON  ' + w.name, c: C.white, r: sgn(R0.attackBonus(h, w)) + ' ' + (dx.dice === '0' ? '' : dx.dice) + sgn(dx.mod) });
-      SLOTS.slice(1).forEach(function (s) { var it = item(h.equip[s[0]]), mk = it ? bondMark(h, h.equip[s[0]]) : null; out.push({ t: s[1] + '  ' + (it ? fit((mk ? mk + ' ' : '') + it.name, 170) : '—'), c: it ? (bondColor(h, h.equip[s[0]]) === C.dim ? C.dim : C.pale) : C.dim, r: it && bondColor(h, h.equip[s[0]]) === C.dim ? 'at a rest' : null }); });
+      SLOTS.slice(1).forEach(function (s) { if (s[0] === 'offhand') { var oh = offhandThing(h, hostS); out.push({ t: s[1] + '  ' + (oh ? fit(oh.name + (oh.kind === 'light' ? ' (lit)' : ''), 170) : '—'), c: oh ? C.pale : C.dim }); return; } var it = item(h.equip[s[0]]), mk = it ? bondMark(h, h.equip[s[0]]) : null; out.push({ t: s[1] + '  ' + (it ? fit((mk ? mk + ' ' : '') + it.name, 170) : '—'), c: it ? (bondColor(h, h.equip[s[0]]) === C.dim ? C.dim : C.pale) : C.dim, r: it && bondColor(h, h.equip[s[0]]) === C.dim ? 'at a rest' : null }); });
       out.push({ t: '', c: C.dim });
       add('BONDS ' + (h.attuned || []).length + '/' + (R0.ATTUNE_MAX || 3) + ((h.attuned || []).length ? ': ' + h.attuned.map(function (id) { return (item(id) || { name: id }).name; }).join(', ') : ''), C.magic);
     }

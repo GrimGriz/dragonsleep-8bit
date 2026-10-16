@@ -1000,7 +1000,8 @@
         var inT = 0, inG = 0, kinds = {};
         g.inv.forEach(function (s) { var it = DS.DATA.items[s.id], t = MN.itemTab(it); if (t >= 0) inT++; else { inG++; kinds[it.kind] = 1; } });
         m = open(); toCmd(m, 'items'); press(m, 'a'); var ip = m.pages[0], seenI = 0; for (var ti = 0; ti < 4; ti++) { ip.tab = ti; ip.refresh(); seenI += ip.list.items.length; m.draw(cx); }
-        press(m, 'b'); toCmd(m, 'gear'); press(m, 'a'); var gp = m.pages[0], seenG = 0; for (var tg = 0; tg < 7; tg++) { gp.tab = tg; gp.refresh(); seenG += gp.list.items.filter(function (x) { return /^x/.test(x.right); }).length; m.draw(cx); }
+        // (GEAR's OFFHAND tab shows the pack's lights too since 10-15: ITEMS' things, not counted twice)
+        press(m, 'b'); toCmd(m, 'gear'); press(m, 'a'); var gp = m.pages[0], seenG = 0; for (var tg = 0; tg < 7; tg++) { gp.tab = tg; gp.refresh(); seenG += gp.list.items.filter(function (x) { return /^x/.test(x.right) && !x.light; }).length; m.draw(cx); }
         check('ITEMS shows ' + seenI + ' of the pack\'s ' + inT + ' things to use, GEAR ' + seenG + ' of its ' + inG + ' to wear (' + Object.keys(kinds).join(', ') + ')', seenI === inT && seenG === inG);
         // 4. the cursor kicked into the panel: Lymen's Cure Wounds on a hurt Barley, asked once (the panel), not twice
         var ly = g.hero('lymen'), ba = g.hero('barley'); ba.hp = Math.max(1, ba.maxhp - 12); var hp0 = ba.hp; ly.slots = ly.slotsMax.slice();
@@ -1066,19 +1067,23 @@
         // there, and E on it, then on the torch, lights it in that hero's hand, as ITEMS lights it
         var vi12 = g.hero('vivian'); DS.EV.torchOut(true); g.give('torch', 1); vi12.equip.shield = null; drawErr = [];
         m = open(); toCmd(m, 'equip'); press(m, 'a'); m.root.pi = m.root.rows(false).indexOf(vi12); press(m, 'a');
-        var ep12 = m.pages[0], li12 = ep12 && ep12.list ? ep12.list.items.map(function (x) { return x.value; }).indexOf('light') : -1;
-        if (li12 >= 0) { ep12.list.i = li12; press(m, 'a'); press(m, 'a'); }
+        // (since 10-15 the light is the OFFHAND's: E on OFFHAND, then on the pack's torch -- RULED, Griz: "6 - yeah, in the offhand instead of its own slot")
+        var ep12 = m.pages[0], li12 = ep12 && ep12.list ? ep12.list.items.map(function (x) { return x.value; }).indexOf('offhand') : -1;
+        if (li12 >= 0) { ep12.list.i = li12; press(m, 'a'); var cp12 = m.pages[1], ti12 = cp12 ? cp12.list.items.map(function (x) { return x.kind === 'light' && x.value; }).indexOf('torch') : -1; if (ti12 >= 0) { cp12.list.i = ti12; press(m, 'a'); } else li12 = -1; }
         for (var w12 = 0; w12 < 300 && m.busy; w12++) { var tq12 = DS.top(); if (tq12 && tq12.kind === 'dialog') { if (tq12.chars < tq12.pageLen()) tq12.chars = tq12.pageLen(); T.tapf('a'); } else T.step(1); }
-        check('EQUIP\'s LIGHT in the 8-bit: the row there with a torch in the pack and none lit (' + (li12 >= 0) + '), the torch lit in Vivian\'s hand (torchBy ' + g.flags.torchBy + ')' + (drawErr.length ? ': ' + drawErr[0] : ''), li12 >= 0 && g.flags.torchBy === 'vivian' && !drawErr.length);
+        check('EQUIP\'s OFFHAND in the 8-bit: the pack\'s torch on its list with none lit (' + (li12 >= 0) + '), the torch lit in Vivian\'s hand (torchBy ' + g.flags.torchBy + ')' + (drawErr.length ? ': ' + drawErr[0] : ''), li12 >= 0 && g.flags.torchBy === 'vivian' && !drawErr.length);
         DS.EV.torchOut(true);
         // 13. (10-07, his: "\"nothing goes there in this fight\" vs \"no weapon barley can swap to\"") one wording for a place with nothing to put there: Vivian's SHIELD (a rogue
         // takes up none) says the grid's sentence
         m = open(); toCmd(m, 'equip'); press(m, 'a'); m.root.pi = m.root.rows(false).indexOf(vi12); press(m, 'a');
-        var ep13 = m.pages[0]; if (ep13) { ep13.list.i = ep13.list.items.map(function (x) { return x.value; }).indexOf('shield'); press(m, 'a'); }
+        // (a place with nothing in the pack for it: since 10-15 the OFFHAND -- the old SHIELD -- has Vivian's daggers and the lights, so the first one that is empty)
+        var inv13 = g.inv.slice(), neck13 = vi12.equip.neck; g.inv.length = 0; inv13.forEach(function (x) { var it = DS.DATA.items[x.id]; if (!(it && it.kind === 'worn' && it.place === 'neck')) g.inv.push(x); }); vi12.equip.neck = null; // (NECK made empty for it: the pack's neck things set aside till the check is done)
+        var ep13 = m.pages[0]; if (ep13) { ep13.refresh(); ep13.list.i = ep13.list.items.map(function (x) { return x.value; }).indexOf('neck'); press(m, 'a'); }
         var said13 = [], text13 = DS.text; DS.text = function (c, s) { said13.push(String(s)); return text13.apply(this, arguments); };
         try { m.draw(cx); } finally { DS.text = text13; }
         var empty13 = said13.join(' ');
         check('an empty place in the 8-bit\'s EQUIP says the one sentence: ' + (/Nothing in the pack[^.]*\./.exec(empty13) || [empty13.slice(0, 80)])[0], /Nothing in the pack Vivian can put there\./.test(empty13));
+        g.inv.length = 0; inv13.forEach(function (x) { g.inv.push(x); }); vi12.equip.neck = neck13;
         if (Q.get('shot')) { m = open(); toCmd(m, 'status'); press(m, 'a'); press(m, 'a'); out.shot = cv.toDataURL('image/png'); }
       } finally { DS.choose = choose0; }
     } else if (test === 'countdown1003') {
@@ -1192,7 +1197,7 @@
         try {
           var fm0 = new DS.FieldMenu(), m0 = fm0.m, ip0 = new (function () { m0.root.go('items'); return function () { }; })();
           var pgI = m0.pages[m0.pages.length - 1]; for (var t0 = 0; t0 < 4; t0++) { pgI.tab = t0; pgI.refresh(); listed = listed.concat(pgI.list.items); }
-          m0.pop(); m0.root.go('gear'); var pgG = m0.pages[m0.pages.length - 1]; for (var t1 = 0; t1 < 7; t1++) { pgG.tab = t1; pgG.refresh(); listed = listed.concat(pgG.list.items.filter(function (x) { return /^x/.test(x.right); })); }
+          m0.pop(); m0.root.go('gear'); var pgG = m0.pages[m0.pages.length - 1]; for (var t1 = 0; t1 < 7; t1++) { pgG.tab = t1; pgG.refresh(); listed = listed.concat(pgG.list.items.filter(function (x) { return /^x/.test(x.right) && !x.light; })); } // (the OFFHAND tab's pack lights are ITEMS' too: 10-15)
         } catch (eL) { asked.push(String(eL)); }
         console.error = c0;
         check('the menu\'s ITEMS and GEAR lists build: ' + (listed.length ? listed.length + ' rows, ' + listed.map(function (i) { return i.label; }).slice(0, 4).join(', ') + '...' : 'they did not (' + asked.length + ' errors: ' + asked[0] + ')'), listed.length === DS.G.inv.length && listed.every(function (i) { return typeof i.label === 'string' && i.label; }));
@@ -2251,6 +2256,76 @@
           g.party.every(function (h) { return h.xp === DS.R.XP_LEVEL[3] + 1700 + eachP; }) && g.party[1].lvl === 4 && kills.crawler === 1 && kills.ettercap === 2 && kills['warrens_d:ettercap'] === 2 && !kills.giantspider &&
           gotP.some(function (x) { return /^crawlerichor/.test(x); }) && gotP.some(function (x) { return /^gulchsilk \+2/.test(x); }) && /Each fighter standing gains/.test(saidP.join(' ')));
       } finally { DS.say = say0P; }
+    } else if (test === 'offhand1015') {
+      // the OFFHAND (RULED 10-15, Griz: "OFFHAND is shield hand, just change text and function for where that slot is among slots"; "6 - yeah, in the offhand instead of its own
+      // slot"): EQUIP's third place is OFFHAND (no LIGHT row); it holds one thing -- a shield, a weapon, the light -- its list the pack's shields, one-handed melee weapons
+      // and lights; a dagger there sends the shield to the pack, a light the dagger; STATUS and GEAR's OFFHAND tab show it; a two-handed weapon empties it; the light in
+      // the field asks for the shield to come off (free out of a fight); in a fight a weapon there is put away for a light (asked) and a shield refuses it, and a shield
+      // on or off from the fight's EQUIP is the action
+      var MNo = DS.MENU, sayO = DS.say, askO = DS.ask, chooseO = DS.choose, saidO = [], askedO = [];
+      function keyO(b) { return { pressed: function (x) { return x === b; }, repeat: function (x) { return x === b; } }; }
+      function openO() { DS.clearScenes(); var fm = new DS.FieldMenu(); DS.push(fm); return fm.m; }
+      function driveO(gen, answer) { var v, st, k = 0; while (gen && k++ < 600) { st = gen.next(v); v = undefined; if (st.done) return st.value; if (st.value && (st.value.ask || st.value.chooseO)) v = answer(st.value.ask || st.value.chooseO); } return 'ran on'; }
+      try {
+        var ly = g.hero('lymen'), w0 = ly.equip.weapon; DS.EV.torchOut(true);
+        ly.equip.weapon = 'longsword'; ly.equip.shield = 'shield'; ly.equip.offhand = null; g.give('dagger', 1); g.give('torch', 2);
+        // 1. EQUIP: OFFHAND in SHIELD's place, the shield in it, no LIGHT row
+        var m = openO(); m.root.cmds.i = m.root.cmds.items.map(function (x) { return x.value; }).indexOf('equip'); m.update(keyO('a')); m.root.pi = m.root.rows(false).indexOf(ly); m.update(keyO('a'));
+        var ep = m.pages[0], labs = ep ? ep.list.items.map(function (x) { return x.label + '=' + x.right; }) : [];
+        check('EQUIP\'s places: ' + labs.join(' | '), labs[2] === 'OFFHAND=Shield' && !labs.some(function (l) { return /^LIGHT=/.test(l); }) && !labs.some(function (l) { return /^SHIELD=/.test(l); }));
+        // 2. its list: (remove), the shield? no -- worn; the dagger, the torch
+        ep.list.i = 2; m.update(keyO('a')); var cp = m.pages[1], rows = cp ? cp.list.items.map(function (x) { return (x.kind || '-') + ':' + x.value; }) : [];
+        check('OFFHAND\'s list: ' + rows.join(' '), rows.indexOf('-:__none') === 0 && rows.indexOf('weapon:dagger') > 0 && rows.indexOf('light:torch') > 0 && !rows.some(function (r) { return /^weapon:(greatsword|longbow|shortbow|greataxe|maul)/.test(r); }));
+        // 3. the dagger: the shield to the pack; the longsword one-handed now (versatile)
+        var shN0 = (g.inv.filter(function (s) { return s.id === 'shield'; })[0] || { n: 0 }).n;
+        cp.list.i = rows.indexOf('weapon:dagger'); m.update(keyO('a'));
+        var shN1 = (g.inv.filter(function (s) { return s.id === 'shield'; })[0] || { n: 0 }).n, twoV = DS.R.twoHanded(ly, DS.R.weaponOf(ly));
+        check('the dagger in the off hand: equip ' + JSON.stringify({ shield: ly.equip.shield, offhand: ly.equip.offhand }) + ', the shield to the pack ' + shN0 + ' -> ' + shN1 + ', the longsword in one hand ' + !twoV + ', hands free ' + DS.R.freeHands(ly),
+          !ly.equip.shield && ly.equip.offhand === 'dagger' && shN1 === shN0 + 1 && !twoV && DS.R.freeHands(ly) === 0);
+        // 4. the torch from the OFFHAND: the dagger to the pack, the light in that hand
+        m = openO(); m.root.cmds.i = m.root.cmds.items.map(function (x) { return x.value; }).indexOf('equip'); m.update(keyO('a')); m.root.pi = m.root.rows(false).indexOf(ly); m.update(keyO('a'));
+        ep = m.pages[0]; ep.list.i = 2; m.update(keyO('a')); cp = m.pages[1]; cp.list.i = cp.list.items.map(function (x) { return x.kind === 'light' && x.value; }).indexOf('torch'); m.update(keyO('a'));
+        for (var wO = 0; wO < 300 && m.busy; wO++) { var tqO = DS.top(); if (tqO && tqO.kind === 'dialog') { if (tqO.chars < tqO.pageLen()) tqO.chars = tqO.pageLen(); T.tapf('a'); } else T.step(1); }
+        ep.refresh(); var ohRow = ep.list.items[2];
+        check('the torch from the OFFHAND: lit in Lymen\'s hand (torchBy ' + g.flags.torchBy + '), the dagger to the pack (offhand ' + ly.equip.offhand + '), the row says ' + ohRow.right,
+          g.flags.torchBy === 'lymen' && !ly.equip.offhand && /\(lit\)/.test(ohRow.right));
+        // 5. STATUS's GEAR and GEAR's OFFHAND tab show the light
+        var sp = new (function () { })(); var stP = null; m.pages.length = 0; m.root.cmds.i = m.root.cmds.items.map(function (x) { return x.value; }).indexOf('status'); m.update(keyO('a')); m.root.pi = m.root.rows(false).indexOf(ly); m.update(keyO('a')); stP = m.pages[0];
+        var gl = []; if (stP) { stP.p = stP.pages.map(function (x) { return x.k; }).indexOf('gear'); gl = stP.lines().map(function (l) { return l.t; }); }
+        m.pages.length = 0; m.root.cmds.i = m.root.cmds.items.map(function (x) { return x.value; }).indexOf('gear'); m.update(keyO('a')); var gp = m.pages[0], gr = [];
+        if (gp) { gp.tab = 2; gp.refresh(); gr = gp.list.items.map(function (x) { return x.label + '=' + x.right; }); }
+        check('STATUS: ' + (gl.filter(function (t) { return /^OFFHAND/.test(t); })[0] || 'no OFFHAND line') + '; GEAR\'s OFFHAND tab: ' + gr.join(' | '),
+          gl.some(function (t) { return /^OFFHAND\s+Torch \(lit\)/.test(t); }) && gr.some(function (r) { return /^Torch=lit: Lymen/.test(r); }) && gr.some(function (r) { return /^Torch=x\d/.test(r); }) && gr.some(function (r) { return /^Shield=x\d/.test(r); }));
+        // 6. a two-handed weapon empties it
+        DS.EV.torchOut(true); ly.equip.shield = null; ly.equip.offhand = 'dagger'; g.take('dagger', 1); g.give('greatsword', 1);
+        m = openO(); var dg0 = (g.inv.filter(function (s) { return s.id === 'dagger'; })[0] || { n: 0 }).n; MNo.swap(m, ly, 'weapon', 'greatsword');
+        check('the greatsword in hand: the off hand empty (offhand ' + ly.equip.offhand + ', the dagger back in the pack ' + dg0 + ' -> ' + (g.inv.filter(function (s) { return s.id === 'dagger'; })[0] || { n: 0 }).n + ')', ly.equip.weapon === 'greatsword' && !ly.equip.offhand);
+        MNo.swap(m, ly, 'weapon', 'longsword');
+        // 7. the field's light with the shield on: asked to take it off, free out of a fight; then lit
+        ly.equip.shield = 'shield'; g.take('shield', 1); DS.EV.torchOut(true);
+        DS.say = function (t) { saidO.push([].concat(t).join(' ')); return { say: 1 }; }; DS.ask = function (t, ch) { askedO.push(ch.join('/')); return { ask: ch }; };
+        var rF = driveO(DS.EV.useFieldItem('torch', ly), function (ch) { return 0; });
+        check('the field\'s torch with the shield on: asked ' + askedO.join(' | ') + ', the shield off (' + ly.equip.shield + '), lit (torchBy ' + g.flags.torchBy + ')', askedO[0] === 'TAKE OFF THE SHIELD/NOT NOW' && !ly.equip.shield && g.flags.torchBy === 'lymen');
+        DS.EV.torchOut(true); DS.say = sayO; DS.ask = askO;
+        // 8. in a fight: the off hand's dagger put away for a light (asked); a shield refuses it; the fight's EQUIP: a shield is the action
+        ly.equip.shield = null; ly.equip.offhand = 'dagger'; g.take('dagger', 1);
+        T.startFight(['gnoll']); for (var wF = 0; wF < 400 && !DS.find('battle'); wF++) T.step(1);
+        var bt = DS.find('battle'), uL = bt.heroes.filter(function (u) { return u.h.id === 'lymen'; })[0], picked = [];
+        DS.choose = function (o) { picked.push(o.title + ': ' + o.items.map(function (i) { return i.label; }).join('/')); return { chooseO: o }; };
+        var rows8 = bt.battleItems(uL).filter(function (r) { return r.value === 'torch'; })[0];
+        g.take('torch', 1); var r8 = driveO(bt.useItem(uL, 'torch'), function (o) { return o.items[0].value; });
+        check('the fight\'s torch with a dagger in the off hand: on the list ' + !(rows8 && rows8.disabled) + ', asked ' + picked.join(' | ') + ', the dagger to the pack (offhand ' + ly.equip.offhand + '), lit (torchBy ' + bt.torchBy + ')',
+          rows8 && !rows8.disabled && /^PUT AWAY WEAPON\?: PUT AWAY THE DAGGER\/NOT NOW$/.test(picked[0] || '') && !ly.equip.offhand && bt.torchBy === 'lymen');
+        delete ly.equip.torch; bt.torchBy = null; ly.equip.shield = 'shield'; g.take('shield', 1);
+        var rows8s = bt.battleItems(uL).filter(function (r) { return r.value === 'torch'; })[0]; picked = []; saidO = [];
+        var say8 = bt.say; bt.say = function* (t) { saidO.push(t); }; g.take('torch', 1); var r8s = driveO(bt.useItem(uL, 'torch'), function () { return 'no'; }); bt.say = say8;
+        check('the fight\'s torch with the shield on: greyed ' + !!(rows8s && rows8s.disabled) + ', refused "' + saidO.join(' ') + '", nothing asked ' + !picked.length, rows8s && rows8s.disabled && /shield is on the off hand/.test(saidO.join(' ')) && !picked.length && r8s === false);
+        var st8 = { actions: 1, bonus: 1 }, fm8 = new DS.FieldMenu({ battle: {}, hero: ly, acted: false, unit: uL, st: st8 });
+        MNo.swap(fm8.m, ly, 'shield', null);
+        check('the fight\'s EQUIP: the shield off is the action (actions ' + st8.actions + ', acted ' + !!st8.acted + ', the menu\'s acted ' + fm8.m.host.fight.acted + ')', !ly.equip.shield && st8.actions === 0 && st8.acted && fm8.m.host.fight.acted);
+        ly.equip.weapon = w0;
+      } catch (eO) { check('threw: ' + String(eO && eO.stack || eO).slice(0, 500), false); }
+      DS.say = sayO; DS.ask = askO; DS.choose = chooseO;
     } else if (test === 'eggs1015') {
       // the eggs on the load screen (10-15, the menus lane §2.2; Griz, 10-11: "6 empty eggs slots on the load from save screen (full if that save has gotten that egg) -
       // exclude pocket DM eggs"): EV.EGGS are the six, none of them the Pocket DM's; a save's flags light its own; the slot screen draws each save's six under its row --

@@ -1077,13 +1077,15 @@
     return [{ label: 'SACRED WEAPON', value: 'sacred', right: 'action' },
       { label: 'TURN THE UNHOLY', value: 'unholy', right: 'action', disabled: !this.foes.some(function (x) { return !x.dead && x.hp > 0 && /^(undead|fiend)$/.test(tags(x)[0]) && !x.conds.frightened; }) }];
   };
+  // the off hand's weapon may be put away for a light (free: the SRD's object interaction), the light then in that hand -- never a shield, whose doff is the action
+  Battle.prototype.offhandAway = function (h) { var e = h.equip || {}; return !!e.offhand && !e.shield && !e.torch && R.lightHand(Object.assign({}, h, { equip: Object.assign({}, e, { offhand: null }) })); };
   Battle.prototype.battleItems = function (u) {
     var self = this;
     return DS.G.inv.filter(function (s) { var it = DS.DATA.items[s.id]; return it && it.use && it.use.battle && s.n > 0; })
       .map(function (s) {
         var it = DS.DATA.items[s.id];
         // a torch (torchdark 09-28): a free hand to hold it, and never under the roost (greyed, as the grid greys it)
-        if (it.use.effect === 'light' && u) { if (self.o.roost && !R.hooded(s.id)) return { label: it.name, right: 'ROOST', value: s.id, disabled: true }; if (!R.freeHands(u.h)) return { label: it.name, right: 'hands', value: s.id, disabled: true }; } // (a lantern is lit hood down under the roost: 09-29)
+        if (it.use.effect === 'light' && u) { if (self.o.roost && !R.hooded(s.id)) return { label: it.name, right: 'ROOST', value: s.id, disabled: true }; if (!R.lightHand(u.h) && !self.offhandAway(u.h)) return { label: it.name, right: 'hands', value: s.id, disabled: true }; } // (a lantern is lit hood down under the roost: 09-29) (the off hand's weapon put away first, asked: offhandAway, 10-15)
         return { label: it.name, right: 'x' + s.n, value: s.id };
       });
   };
@@ -1625,7 +1627,14 @@
       yield* this.flushMsg();
     } else if (use.effect === 'light') { // a torch (torchdark 09-28) or a hooded lantern (09-29): a free hand to hold it (R.freeHands); the light for the fight
       var lantern = R.hooded(id), lamp = lantern && id !== 'lantern', feet = { 20: 'Twenty', 30: 'Thirty', 40: 'Forty' }[it.light && it.light.bright] || 'A good stretch'; // (the Ledger-Lamp, 09-30: a hooded light of its own, forty feet, never spent)
-      if (!R.freeHands(u.h)) { DS.G.give(id, 1); DS.audio.sfx('error'); yield* this.say('No free hand for ' + (lamp ? 'the ' + it.name : 'a ' + (lantern ? 'lantern' : 'torch')) + ': ' + R.handsWhy(u.h) + '.', 44); return false; }
+      // (the light goes in the OFFHAND -- RULED 10-15, Griz: "6 - yeah, in the offhand instead of its own slot": a weapon there is put away first, asked (free, into the pack); a shield
+      // comes off only by EQUIP, the action -- SRD 5.1, a shield's doff is 1 action -- so the light waits for the next turn)
+      if (!R.lightHand(u.h) && this.offhandAway(u.h)) {
+        var owN = R.item(u.h.equip.offhand).name, owA = yield DS.choose({ items: [{ label: 'PUT AWAY THE ' + owN.toUpperCase(), value: 'away' }, { label: 'NOT NOW', value: 'no' }], x: 40, y: 96, w: 176, rowH: 12, pad: 8, title: 'PUT AWAY WEAPON?' });
+        if (owA !== 'away') { DS.G.give(id, 1); return false; }
+        DS.G.give(u.h.equip.offhand, 1); u.h.equip.offhand = null; yield* this.say(nameOf(u) + ' puts the ' + owN + ' away.', 30);
+      }
+      if (!R.lightHand(u.h)) { DS.G.give(id, 1); DS.audio.sfx('error'); yield* this.say('No free hand for ' + (lamp ? 'the ' + it.name : 'a ' + (lantern ? 'lantern' : 'torch')) + ': ' + R.lightWhy(u.h) + '.', 44); return false; }
       u.h.equip.torch = 1; this.torchBy = u.h.id; this.torchKind = lantern ? id : 'torch'; this.lit = true;
       if (lantern && this.o.roost) { // the hood down (RULED 09-29): dim light, enough to see by, no bright light -- the roost sleeps
         this.flashT = 4; yield* this.say(nameOf(u) + ' lights the ' + lightWord(id) + ', hood down. A little light, and nothing overhead stirs.', 50); return true;

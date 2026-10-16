@@ -75,12 +75,12 @@
     var keyA = { pressed: function (x) { return x === 'a'; }, repeat: function (x) { return x === 'a'; } };
     try {
       var mm = new DS.FieldMenu().m; mm.root.go('equip'); var ep = mm.pages[mm.pages.length - 1];
-      var row = ep.list.items.filter(function (x) { return x.value === 'light'; })[0]; seen.push(row);
+      var row = ep.list.items.filter(function (x) { return x.value === 'offhand'; })[0]; seen.push(row); // (the light's place is the OFFHAND since 10-15)
       ep.list.i = ep.list.items.indexOf(row); mm.update(keyA);
       var cp = mm.pages[mm.pages.length - 1]; seen.push(cp && cp.list && cp.list.items[0]);
       mm.update(keyA); T.step(30);
     } finally { g.party = pp; }
-    check('EQUIP shows LIGHT (' + (row && row.right) + ', ' + JSON.stringify(seen[1] && seen[1].label) + ') and puts the lantern away: the pack x' + g.count('lantern') + ', in hand ' + !!lh.equip.torch + ', torchBy ' + g.flags.torchBy, row && !row.disabled && seen[1] && seen[1].label === '(put it away)' && g.count('lantern') === 1 && !lh.equip.torch && !g.flags.torchBy);
+    check('EQUIP shows the light in the OFFHAND (' + (row && row.right) + ', ' + JSON.stringify(seen[1] && seen[1].label) + ') and puts the lantern away: the pack x' + g.count('lantern') + ', in hand ' + !!lh.equip.torch + ', torchBy ' + g.flags.torchBy, row && !row.disabled && seen[1] && seen[1].label === '(put it away)' && g.count('lantern') === 1 && !lh.equip.torch && !g.flags.torchBy);
     var tn0 = g.count('torch');
     DS.run(function* () { yield* DS.EV.useFieldItem('torch', lh); }); pump(200);
     var t0 = g.flags.torchBy === lh.id && g.flags.torchKind === 'torch';

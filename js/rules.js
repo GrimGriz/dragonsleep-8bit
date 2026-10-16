@@ -580,7 +580,7 @@
   R.twoHanded = function (h, w) {
     var p = w.weapon.props || [];
     if (p.indexOf('two-handed') >= 0) return true;
-    return p.indexOf('versatile') >= 0 && !h.equip.shield && !h.equip.torch; // (a torch in the other hand: one-handed)
+    return p.indexOf('versatile') >= 0 && !h.equip.shield && !h.equip.torch && !h.equip.offhand; // (a torch, or a weapon, in the other hand: one-handed)
   };
   // ---------------------------------------------------------------- the fighting styles (SRD 5.1: the fighter chooses at 1, the paladin
   // and the ranger at 2). One rule, both games (10-06, Griz: Great Weapon Fighting in the 8-bit "yeah", as the grid's; "yeses. Pocket DM is
@@ -614,16 +614,27 @@
   // spell (conds.darkvision, till the long rest). A light carried in: the Sunshaft staff (always lit), a Continual Flame
   R.freeHands = function (h) {
     var w = R.weaponOf(h), p = w.weapon.props || [];
-    var used = (w.id === 'unarmed' ? 0 : p.indexOf('two-handed') >= 0 ? 2 : 1) + (h.equip.shield ? 1 : 0) + (h.equip.torch ? 1 : 0);
+    var used = (w.id === 'unarmed' ? 0 : p.indexOf('two-handed') >= 0 ? 2 : 1) + (h.equip.shield ? 1 : 0) + (h.equip.torch ? 1 : 0) + (h.equip.offhand ? 1 : 0);
     return Math.max(0, 2 - used);
   };
   R.handsWhy = function (h) {
     var w = R.weaponOf(h), p = w.weapon.props || [], bits = [];
     if (w.id !== 'unarmed') bits.push((p.indexOf('two-handed') >= 0 ? 'both hands on the ' : 'the ') + w.name.toLowerCase());
     if (h.equip.shield) bits.push('the shield');
+    if (h.equip.offhand) bits.push('the ' + ((R.item(h.equip.offhand) || {}).name || 'weapon').toLowerCase() + ' in the off hand');
     if (h.equip.torch) bits.push('a light in that hand already');
     return bits.join(' and ') || 'both hands full';
   };
+  // ---------------------------------------------------------------- OFFHAND (RULED 10-15, Griz: "OFFHAND is shield hand, just change text and function for where that slot
+  // is among slots"; "6 - yeah, in the offhand instead of its own slot"): the other hand holds one thing -- a shield (equip.shield), a weapon (equip.offhand) or the light
+  // (equip.torch) -- never two. The keys are the ones a save always had, so an old save is the same save and the AC still reads equip.shield. A two-handed weapon empties it
+  // (a light it carries in one hand till it swings, on the grid as ever: deep16/js/light.js). The light goes only there: a shield or a weapon in the off hand comes away first
+  R.offhandOf = function (h) { var e = (h && h.equip) || {}; return e.shield ? { kind: 'shield', id: e.shield } : e.offhand ? { kind: 'weapon', id: e.offhand } : e.torch ? { kind: 'light', id: null } : null; };
+  // a weapon the off hand may hold: melee, in one hand (a light one swings as the off-hand attack -- R.twoWeapon; another is held, as Pyro's Mace of Disruption for its light)
+  R.offhandWeapon = function (it) { var p = (it && it.weapon && it.weapon.props) || []; return !!(it && it.kind === 'weapon' && it.id !== 'unarmed' && p.indexOf('ranged') < 0 && p.indexOf('two-handed') < 0); };
+  // a hand for a light: the off hand empty, and the main weapon not on both hands (the 8-bit's; the grid lets a two-hander carry it -- light.js handForLight)
+  R.lightHand = function (h) { var e = h.equip || {}; return !e.shield && !e.offhand && !e.torch && R.freeHands(h) > 0; };
+  R.lightWhy = function (h) { var e = h.equip || {}; return e.shield ? 'the shield is on the off hand' : e.offhand ? 'the ' + ((R.item(e.offhand) || {}).name || 'weapon').toLowerCase() + ' is in the off hand' : e.torch ? 'a light in that hand already' : R.handsWhy(h); };
   // shooting blind (an attack at a creature the attacker cannot see for want of light): 'disadvantage' is the SRD 5.1's rule
   // (AMENDED 09-28 on Griz's question: the -4 was AD&D's number, "shouldn't be what the game does"); -4 keeps his first notion
   // as a flat penalty instead. One switch, both games (deep16/js/light.js L.BLIND reads it)
