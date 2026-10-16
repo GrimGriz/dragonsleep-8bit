@@ -2808,12 +2808,46 @@
         // the breath: the goblin's cold breath (the testing room's &breath=cold) at a wizard flying 10 ft up, 10 ft off
         up15(g1, 0); g1.x = X + 11; g1.y = Y + 4; g2.x = X + 11; g2.y = Y; wz2.flies = true; wz2.fz = gz2 + 2 * LY; g0.x = X + 2; g0.y = Y + 2; wz2.x = X + 4; wz2.y = Y + 2;
         var aim = D.magic.breathAim ? D.magic.breathAim(B2, g0) : null;
-        ok15('§2.19 a cold breath (15-ft cone) at the wizard flying 10 ft up, 10 ft off: aimed ' + (aim ? aim.foes + ' foe(s), at ' + Math.round((aim.z - gz2) / LY * 5) + ' ft' : 'none') + ' (want one, her middle 12.5 ft)', !!aim && aim.foes === 1 && Math.abs((aim.z - gz2) / LY * 5 - 12.5) < 1);
+        ok15('§2.19 a cold breath (15-ft cone) at the wizard flying 10 ft up, 10 ft off: aimed ' + (aim ? aim.foes + ' foe(s), at ' + Math.round((aim.z - gz2) / LY * 5) + ' ft' : 'none') + ' (want one, the middle of the body 12.5 ft)', !!aim && aim.foes === 1 && Math.abs((aim.z - gz2) / LY * 5 - 12.5) < 1);
         wz2.fz = gz2 + 8 * LY;
         var aim2 = D.magic.breathAim ? D.magic.breathAim(B2, g0) : null;
-        ok15('§2.19 and at her 40 ft up, 10 ft off: ' + (aim2 ? 'aimed, ' + aim2.foes : 'none in it') + ' (want none -- out of a 15-ft cone)', !aim2);
+        ok15('§2.19 and at the wizard 40 ft up, 10 ft off: ' + (aim2 ? 'aimed, ' + aim2.foes : 'none in it') + ' (want none -- out of a 15-ft cone)', !aim2);
         wz2.flies = false; wz2.fz = null;
       }
+      // §2.18 THE WALL CLIMB BY THE LAYER (his "gonna need spiders wall climb similar"): a wolf spider (climb 40) on the Edifice picks the height on a face -- the walk up stops
+      // there and clings, a cling moves up and down its face to a height picked, the way down stops at one too. Commands as the hand's click sends them (ui.js: { do: 'move', cz })
+      var B3 = mk15('?npc=wolfspider&lvl=5&vs=fighter:5&map=edifice'), sp3 = kind15(B3, 'wolfspider'), f3 = side15(B3, 'party')[0], m3 = G15.map, st3 = m3.def.step, e3 = null;
+      [[1, 0], [-1, 0], [0, 1], [0, -1]].forEach(function (dv) {
+        for (var y3 = 2; y3 < m3.h - 2 && !e3; y3++) for (var x3 = 2; x3 < m3.w - 2 && !e3; x3++) {
+          var tp = m3.at(x3 + dv[0], y3 + dv[1]), ft = m3.at(x3, y3);
+          if (ft && ft.walk && tp && tp.walk && m3.gz(x3 + dv[0], y3 + dv[1]) - m3.gz(x3, y3) >= 16 * st3 && G15.canStand(sp3, x3, y3) && G15.canStand(sp3, x3 + dv[0], y3 + dv[1]) && !G15.occupant(x3, y3) && !G15.occupant(x3 + dv[0], y3 + dv[1])) e3 = [x3, y3, x3 + dv[0], y3 + dv[1]];
+        }
+      });
+      if (!e3) ok15('§2.18 a face 40 ft or more on the Edifice', false);
+      else {
+        var zF3 = m3.gz(e3[0], e3[1]), zT3 = m3.gz(e3[2], e3[3]), ftOf = function (z) { return Math.round((z - zF3) / st3 * 2.5); };
+        f3.x = 1; f3.y = 1; sp3.x = e3[0]; sp3.y = e3[1]; delete sp3.hang; D.rules.startTurn(sp3); B3.active = sp3;
+        run15(B3.exec(sp3, { do: 'move', x: e3[2], y: e3[3], cz: zF3 + 8 * st3 }));
+        var up1 = sp3.hang && G15.hanging(sp3) ? ftOf(sp3.hang.z) : null;
+        ok15('§2.18 the walk up a ' + ftOf(zT3) + '-ft face with 20 ft picked: clings at ' + up1 + ' ft, on its foot ' + (sp3.x === e3[0] && sp3.y === e3[1]) + ', 20 ft of its move spent (' + (40 - sp3.turn.move) + ') (want 20, true, 20)', up1 === 20 && sp3.x === e3[0] && sp3.y === e3[1] && sp3.turn.move === 20);
+        run15(B3.exec(sp3, { do: 'move', x: sp3.x, y: sp3.y, cz: zF3 + 12 * st3 }));
+        var up2 = sp3.hang ? ftOf(sp3.hang.z) : null, mv2 = sp3.turn.move;
+        run15(B3.exec(sp3, { do: 'move', x: sp3.x, y: sp3.y, cz: zF3 + 4 * st3 }));
+        var dn2 = sp3.hang ? ftOf(sp3.hang.z) : null;
+        ok15('§2.18 clinging, 30 ft picked: at ' + up2 + ' ft (' + (20 - mv2) + ' ft of move); then 10 ft picked: at ' + dn2 + ' ft (want 30 for 10, then 20 -- the 10 ft of move left takes it 10 ft down, the move left ' + sp3.turn.move + ', want 0)', up2 === 30 && 20 - mv2 === 10 && dn2 === 20 && sp3.turn.move === 0);
+        D.rules.startTurn(sp3); run15(B3.exec(sp3, { do: 'move', x: sp3.x, y: sp3.y, cz: zF3 + 4 * st3 }));
+        var dn3 = sp3.hang ? ftOf(sp3.hang.z) : null;
+        D.rules.startTurn(sp3); run15(B3.exec(sp3, { do: 'move', x: e3[2], y: e3[3] })); var top3 = !sp3.hang && sp3.x === e3[2] && sp3.y === e3[3];
+        ok15('§2.18 a new turn, 10 ft picked: at ' + dn3 + ' ft; then the walk onto the face square, nothing picked: on top ' + top3 + ' (want 10, true)', dn3 === 10 && top3);
+        D.rules.startTurn(sp3); run15(B3.exec(sp3, { do: 'move', x: e3[0], y: e3[1], cz: zF3 + 6 * st3 }));
+        var dn4 = sp3.hang && G15.hanging(sp3) ? ftOf(sp3.hang.z) : null;
+        ok15('§2.18 the way down the face with 15 ft picked: clings at ' + dn4 + ' ft over the foot (want 15), on the foot square ' + (sp3.x === e3[0] && sp3.y === e3[1]), dn4 === 15 && sp3.x === e3[0] && sp3.y === e3[1]);
+      }
+      // Wild Shape takes the beast's climb speed (SRD 5.1: "your game statistics are replaced by the statistics of the beast"), this turn's climb by it, and gives it back
+      var B4 = mk15('?npc=goblin&lvl=5&vs=druid:5&map=edifice'), dr4 = side15(B4, 'party')[0]; D.rules.startTurn(dr4); B4.active = dr4;
+      var c0 = dr4.climbs || 0; run15(D.features.wildShape(B4, dr4, 'wolfspider')); var c1 = dr4.climbs, cl1 = dr4.turn.climbLeft;
+      D.features.unshape(B4, dr4, 0, true); var c2 = dr4.climbs || 0;
+      ok15('§2.18 a druid as a wolf spider: climb ' + c0 + ' to ' + c1 + ', this turn\'s climb ' + cl1 + ', back in its own shape ' + c2 + ' (want 0, 40, 40, 0)', c0 === 0 && c1 === 40 && cl1 === 40 && c2 === 0);
     } catch (e15) { rep15.errors.push(String(e15 && e15.stack || e15).slice(0, 900)); D.d = d015; }
     if (errs.length) rep15.errors = rep15.errors.concat(errs);
     var pre15 = document.createElement('pre'); pre15.id = 'out'; pre15.textContent = 'BENCH16 ' + JSON.stringify(rep15);

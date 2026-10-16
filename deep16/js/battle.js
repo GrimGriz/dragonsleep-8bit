@@ -1364,6 +1364,7 @@
     switch (c.do) {
       case 'move': {
         if (c.fz != null && G.winged(u)) { yield* this.flyMove(u, c.x, c.y, c.fz); return; } // (at a layer: flight at a height, 10-08)
+        if (c.cz != null && u.climbs && u.hang && u.hang.face && G.hanging(u) && c.x === u.x && c.y === u.y) { yield* this.clingTo(u, c.cz); return; } // (clinging: up or down its face to the height picked -- the grid's rules §2.18, 10-15)
         var rm = G.reach(u, T.move), path = G.path(rm, c.x, c.y);
         if (!path || !path.length || !rm[c.x + ',' + c.y].stand) return;
         if (!byAI(u)) { // (a hand's click that would fall, or risk it: asked first -- fallLines; and a climb that takes a check, a Rope & Grapple in the pack: USE GRAPPLE -- 10-04, Griz)
@@ -1386,7 +1387,7 @@
             }
           }
         }
-        yield* this.moveAlong(u, path, { spend: true });
+        yield* this.moveAlong(u, path, c.cz != null && u.climbs ? { spend: true, climbZ: c.cz } : { spend: true }); // (climbZ: a climber's stop on the last face, the height its hand picked -- §2.18, 10-15)
         if (!byAI(u) && Battle.passageAt(this, u.x, u.y) && T.move >= Math.floor(u.speed / 2)) yield* this.exec(u, { do: 'passage', ask: true }); // (the walk ended on a door: GO IN? / COME OUT? -- 10-04 night)
         return;
       }
@@ -1736,6 +1737,27 @@
   };
 
   // ------------------------------------------------------------------ movement, square by square, provoking as it goes
+  // SPIDERS' WALL CLIMB BY THE LAYER (the grid's rules §2.18; 10-08, Griz: "I think it'll end up in your lane - gonna need spiders wall climb similar"; built 10-15): a climber clinging
+  // to a face goes up or down it to the height its hand picked (ui.js UI.stepClimb: Shift+wheel on the move, as a flier picks its layer) -- 5 ft of its move a 5 ft mark (a climb
+  // speed's cost: grid.js stepCost), no more than the turn's climb, never into a body clinging on the same column; to the ground under it, it lets go and stands. The way on up
+  // over the lip is the walk onto the face square, as before
+  Battle.prototype.clingTo = function* (u, z) {
+    var T = u.turn, h = u.hang, st = G.map.def.step, zF = G.groundAt(u, u.x, u.y), zT = G.map.gz(h.face[0], h.face[1]), self = this;
+    if (z >= zT) z = zT - 2 * st; if (z < zF) z = zF;
+    var n = Math.round((z - h.z) / st), up = n > 0; n = Math.abs(n); if (!n) return;
+    var bud = Math.floor(Math.min(T.move, T.climbLeft != null ? T.climbLeft : u.climbs) / 5) * 5, can = Math.min(n, Math.floor(bud / 2.5));
+    if ((Math.round((h.z - zF) / st) + (up ? can : -can)) % 2) can -= 1; // (to a 5 ft mark over the ground, as the cling)
+    var others = this.units.filter(function (w) { return w !== u && w.hang && G.hanging(w) && w.x === u.x && w.y === u.y; });
+    while (can >= 1 && others.some(function (w) { return G.sharesZ(w, { z: h.z + (up ? can : -can) * st, h: G.bodyH(u) }); })) can -= 2; // (under the one above, over the one below)
+    if (can < 1) { D.sfx('error'); this.card(['{o}' + nameOf(u) + ' cannot climb ' + (up ? 'up' : 'down') + ' the face: ' + (bud < 5 ? 'no climb left this turn' : 'another clings there') + '.{/}'], 180); return; }
+    var z1 = h.z + (up ? can : -can) * st, spent = Math.ceil(can * 2.5 / 5) * 5;
+    u.anim = 'walk'; u.tween = { fx: u.x, fy: u.y, fz: h.z, t: 0, dur: this.pace(STEP_FRAMES + 2 * can, true), mode: 'climb' };
+    if (z1 <= zF + 0.5) delete u.hang; else u.hang = { face: h.face, foot: h.foot, z: z1, down: h.down && !up };
+    T.move -= spent; T.moved = (T.moved || 0) + spent; if (T.climbLeft != null) T.climbLeft = Math.max(0, T.climbLeft - spent);
+    this.card(['{y}' + nameOf(u) + '{/} climbs ' + can * 2.5 + ' ft ' + (up ? 'up' : 'down') + ' the face' + (u.hang ? ' and clings there, ' + Math.round((z1 - zF) / st) * 2.5 + ' ft above the ground.' : ' to the ground.')], 260);
+    this.keepInView(u); yield STEP_FRAMES + 2 * can; u.anim = 'idle';
+    if (this.readyArmed()) yield* this.readyHook(u, 'move');
+  };
   Battle.prototype.moveAlong = function* (u, path, o) {
     var T = u.turn;
     // the gait: a sheet with a `slither` row plays it for a move of three squares or more, its walk for less (the grick, 10-02, Griz: "can we
@@ -1825,8 +1847,9 @@
       if (u.climbs && !rpS && !hung0 && z0 - z1 > stZ && G.map.def.climb && !u.flies) {
         var needD = Math.round((z0 - z1) / stZ), budD = Math.floor(Math.min(T.move, T.climbLeft != null ? T.climbLeft : u.climbs) / 5) * 5, rawD = Math.floor(budD / 2.5), zB1 = 0;
         G.foot(u, nx, ny).forEach(function (p) { zB1 = Math.max(zB1, G.map.gz(p[0], p[1])); });
-        if (rawD < needD) {
-          var h0D = Math.round((z0 - zB1) / stZ), hD = Math.max(2, h0D - rawD); if (hD % 2) hD += 1;
+        var wantD = o && o.climbZ != null && i === path.length - 1 && o.climbZ < z0 && o.climbZ > zB1 + 0.5 ? Math.round((o.climbZ - zB1) / stZ) : null; // (the height its hand picked on the way down: §2.18, 10-15)
+        if (rawD < needD || wantD != null) {
+          var h0D = Math.round((z0 - zB1) / stZ), hD = Math.max(2, h0D - rawD, wantD || 0); if (hD % 2) hD += 1;
           var hangersD = this.units.filter(function (w) { return w !== u && w.hang && G.hanging(w) && w.x === nx && w.y === ny; });
           while (hD < h0D && hangersD.some(function (w) { return G.sharesZ(w, { z: zB1 + hD * stZ, h: G.bodyH(u) }); })) hD += 2;
           var canD = h0D - hD; if (canD < 1) { u.anim = 'idle'; return; }
@@ -1848,8 +1871,10 @@
         var needC = Math.round((z1 - z0) / stZ), budC = Math.floor(Math.min(T.move, T.climbLeft != null ? T.climbLeft : u.climbs) / 5) * 5, zB = 0;
         G.foot(u, u.x, u.y).forEach(function (p) { zB = Math.max(zB, G.map.gz(p[0], p[1])); }); // (the ground under it: the cling stops on a 5 ft mark above it, an even number of steps -- 10-05, Griz: "1 yes")
         var hB = Math.round((z0 - zB) / stZ), rawC = Math.floor(budC / 2.5), canC = rawC;
-        if (rawC < needC) {
-          canC = Math.floor((hB + rawC) / 2) * 2 - hB; // (short of the top: down to the mark)
+        // (or to the height its hand picked on this face, the last of the walk -- Shift+wheel on the move, as a flier's layer: the grid's rules §2.18, 10-15, Griz: "gonna need spiders wall climb similar")
+        var wantC = o && o.climbZ != null && i === path.length - 1 && o.climbZ > z0 && o.climbZ < z1 ? Math.round((o.climbZ - z0) / stZ) : null;
+        if (rawC < needC || wantC != null) {
+          canC = Math.floor((hB + Math.min(rawC, wantC != null ? wantC : rawC)) / 2) * 2 - hB; // (short of the top: down to the mark)
           var hangersC = this.units.filter(function (w) { return w !== u && w.hang && G.hanging(w) && w.x === u.x && w.y === u.y; }); // (others clinging on this column of the face)
           while (canC >= 1 && hangersC.some(function (w) { return G.sharesZ(w, { z: z0 + canC * stZ, h: G.bodyH(u) }); })) canC -= 2; // (no two bodies in one band of the face: it stops under the one above, a file up the wall -- 10-05, the pane: two giants and a troll clinging on one square, the giants at one height, the troll under them unpickable)
           if (canC < 1) { u.anim = 'idle'; return; }
@@ -1857,7 +1882,7 @@
           u.tween = { fx: u.x, fy: u.y, fz: z0, t: 0, dur: this.pace(STEP_FRAMES + 2 * canC, true), mode: 'climb' };
           u.hang = { face: [nx, ny], foot: [u.x, u.y], z: zC };
           if (o && o.spend) { T.move -= spentC; T.moved = (T.moved || 0) + spentC; if (T.climbLeft != null) T.climbLeft = Math.max(0, T.climbLeft - spentC); }
-          this.card(['{y}' + nameOf(u) + '{/} digs ' + canC * 2.5 + ' ft up the face and clings there, ' + (needC - canC) * 2.5 + ' ft to go.'], 260);
+          this.card(['{y}' + nameOf(u) + '{/} ' + (wantC != null && canC >= wantC ? 'climbs ' : 'digs ') + canC * 2.5 + ' ft up the face and clings there, ' + (needC - canC) * 2.5 + ' ft to go.'], 260);
           this.keepInView(u); yield STEP_FRAMES + 2 * canC; u.anim = 'idle';
           if (this.readyArmed()) yield* this.readyHook(u, 'move'); // (a climb is a move: the readied bow or spell that sees it -- 10-05)
           return;

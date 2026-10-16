@@ -419,7 +419,7 @@
     u.turn.action = 0; u.feats.wildShape--;
     var bite = d.attacks[Object.keys(d.attacks)[0]];
     var shp = F.SHAPES.filter(function (s) { return s.kind === kind; })[0];
-    u.beast = { kind: kind, hp: d.hp, maxhp: d.hp, keep: { weapon: u.weapon, alt: u.alt, baseAC: u.baseAC, speed: u.speed, walkSpeed: u.walkSpeed, sheet: u.sheet, abil: u.abil, saves: u.saves, attacks: u.attacks, attacksBase: u.attacksBase, packTactics: u.packTactics, known: u.known, flies: u.flies, blindsight: u.blindsight } };
+    u.beast = { kind: kind, hp: d.hp, maxhp: d.hp, keep: { weapon: u.weapon, alt: u.alt, baseAC: u.baseAC, speed: u.speed, walkSpeed: u.walkSpeed, sheet: u.sheet, abil: u.abil, saves: u.saves, attacks: u.attacks, attacksBase: u.attacksBase, packTactics: u.packTactics, known: u.known, flies: u.flies, blindsight: u.blindsight, climbs: u.climbs } };
     // (the whole attack, so the spider's poison and the frog's grip ride with the bite; the figure keeps its own square -- a Large shape stands in one)
     u.weapon = Object.assign({}, bite, { magic: false });
     u.alt = null; u.baseAC = d.ac; u.speed = d.speed; u.sheet = d.sheet; u.abil = Object.assign({}, u.abil, { str: d.abil.str, dex: d.abil.dex, con: d.abil.con }); u.attacks = 1; u.attacksBase = 1; u.packTactics = !!d.packTactics; u.known = [];
@@ -427,6 +427,7 @@
     var sv0 = u.saves || {}; ['str', 'dex', 'con', 'int', 'wis', 'cha'].forEach(function (k) { if (sv0[k] == null) sv0[k] = D.mod(u.beast.keep.abil[k]); });
     u.saves = Object.assign({}, sv0, { str: d.saves ? d.saves.str : D.mod(d.abil.str), dex: d.saves ? d.saves.dex : D.mod(d.abil.dex), con: d.saves ? d.saves.con : D.mod(d.abil.con) });
     if (d.blindsight) u.blindsight = Math.max(u.blindsight || 0, d.blindsight);
+    u.climbs = d.climbs || 0; if (u.turn && u.climbs) u.turn.climbLeft = Math.max(u.turn.climbLeft || 0, u.climbs - (u.turn.moved || 0)); // (and this turn's climb by it, less what was moved -- SRD 5.1 Movement, "switching between speeds") (the beast's climb speed too -- SRD 5.1 Wild Shape: "your game statistics are replaced by the statistics of the beast"; the wolf spider climbs 40: the grid's rules §2.18, 10-15)
     u.flies = !!(shp && shp.flies); u.walkSpeed = u.flies && d.walk != null ? d.walk : undefined; // (the bat walks 10 when it cannot fly: rules.js RU.speedNow, 10-08)
     if (!(u.conds.restrained || u.conds.dancing)) u.turn.move = Math.max(u.turn.move, d.speed - (u.keep0 || 0)); // (a beast's stride is no use to a druid held fast -- speed 0 -- or dancing in place: SRD 5.1, Restrained; Irresistible Dance)
     FX.sparkle(u, 'moss', 24); D.sfx('buff');

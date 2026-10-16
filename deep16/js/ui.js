@@ -114,6 +114,34 @@
     B.card(['{c}AIM{/} ' + (up > 0 ? up + ' ft up' : 'on the ground') + '  {g}(Shift+wheel, PgUp/PgDn or [ ]: the point 5 ft a step){/}'], 160, 'aim-layer');
     return true;
   };
+  // A CLIMBER'S HEIGHT ON A FACE (the grid's rules §2.18; 10-08, Griz: "gonna need spiders wall climb similar"; built 10-15): one with a climb speed, its move out on a map with
+  // faces to climb, picks the height to stop at on the face its walk ends on as a flier picks its layer -- Shift+wheel, PgUp/PgDn, [ ] -- 5 ft a step over the ground at the
+  // face's foot; the walk climbs to it and clings there (battle.js moveAlong's climbZ). Clinging, the same keys pick a height on its own face, and a click on itself climbs
+  // there (battle.js clingTo). B.climbZ, absolute px, for that face only (B.climbFor, B.climbAt); null: the whole face, as before
+  UI.climber = function (B) { var u = B.req && B.req.turn; return u && B.tool === 'move' && u.turn && u.climbs && !G.winged(u) && G.map && G.map.def && G.map.def.climb ? u : null; };
+  // the face a walk to (x, y) ends on -- its foot square, its ground and its top -- or, at the climber's own square, the face it clings to; null: no face there
+  UI.climbFace = function (B, u, x, y) {
+    var st = G.map.def.step;
+    if (x === u.x && y === u.y) { var h = u.hang; return h && h.face && G.hanging(u) ? { foot: h.foot, zF: G.groundAt(u, u.x, u.y), zT: G.map.gz(h.face[0], h.face[1]), cling: true, key: 'c' + h.face } : null; }
+    var e = reachCache(B, u).move[x + ',' + y]; if (!e || !e.stand || !e.prev) return null;
+    var pp = e.prev.split(',').map(Number), zP = G.groundAt(u, pp[0], pp[1]), zC = G.groundAt(u, x, y);
+    if (zC - zP > st) return { foot: pp, zF: zP, zT: zC, up: true, key: x + ',' + y };
+    if (zP - zC > st) return { foot: [x, y], zF: zC, zT: zP, up: false, key: x + ',' + y };
+    return null;
+  };
+  // the height picked, if it is for this face and part way up it
+  UI.climbPick = function (B, u, x, y) { if (B.climbFor !== u.id || B.climbZ == null) return null; var f = UI.climbFace(B, u, x, y); return f && f.key === B.climbAt && B.climbZ > f.zF + 0.5 && B.climbZ < f.zT - 0.5 ? B.climbZ : null; };
+  UI.stepClimb = function (B, d) {
+    var u = UI.climber(B); if (!u || !B.cursor) return false;
+    var f = UI.climbFace(B, u, B.cursor.x, B.cursor.y), L = G.LAYER();
+    if (!f) { D.sfx('error'); B.card(['{c}CLIMB{/}  {g}point at a square up or down a face, or at yourself on one, to pick the height (Shift+wheel){/}'], 160, 'climb-layer'); return false; }
+    var z0 = UI.climbPick(B, u, B.cursor.x, B.cursor.y), cur = z0 != null ? z0 : f.cling ? u.hang.z : f.up ? f.zF : f.zT, z = f.zF + Math.round((cur - f.zF) / L) * L + d * L;
+    if (z <= f.zF + 0.5) z = null; // (back to the ground: the whole face)
+    if (z != null && (z >= f.zT - 0.5 || z < f.zF - 0.5)) { D.sfx('error'); return false; }
+    B.climbZ = z; B.climbFor = u.id; B.climbAt = f.key; B.cache = null; D.sfx('cursor');
+    B.card(['{c}CLIMB{/} ' + (z == null ? (f.cling ? 'where it clings' : f.up ? 'to the top' : 'to the ground') : Math.round((z - f.zF) / G.map.def.step * 2.5) + ' ft up the face, and cling there') + '  {g}(Shift+wheel, PgUp/PgDn or [ ]: 5 ft a step){/}'], 160, 'climb-layer');
+    return true;
+  };
   function reachCache(B, u) {
     var T = u.turn, key = u.x + ',' + u.y + ',' + T.move + ',' + T.action + ',' + T.bonus + ',' + T.attacksLeft + ',' + B.units.map(function (w) { return w.x + ':' + w.y + ':' + (w.dead || w.hp <= 0 ? 0 : RU.canAct(w) ? 1 : 2) + (w.ethereal ? 'e' : ''); }).join(';') + (B.webs || []).length;
     if (B.cache && B.cache.key === key) return B.cache;
@@ -300,6 +328,7 @@
     if (m.panX || m.panY) { cam.x -= (m.panX || 0) / z; cam.y -= (m.panY || 0) / z; m.panX = m.panY = 0; }
     var flU = UI.flyer(B); if (flU && free) { var dL = (m.wheel && m.wheelShift && m.inside && !overUI(B) ? (m.wheel < 0 ? 1 : -1) : 0) + (I.repeat('layerup') || I.repeat('bracketr') || I.pressed('rsup') ? 1 : 0) - (I.repeat('layerdown') || I.repeat('bracketl') || I.pressed('rsdown') ? 1 : 0); if (m.wheel && m.wheelShift && m.inside && !overUI(B)) m.wheel = 0; if (dL) UI.stepLayer(B, dL > 0 ? 1 : -1); } // (flight at a height, RULED 10-08: "Where the mousewheel becomes the vertical selection - yes"; then, on the pane, "Shift+wheel = height": the plain wheel zooms as everywhere)
     else if (free && UI.aimer(B)) { var dA = (m.wheel && m.wheelShift && m.inside && !overUI(B) ? (m.wheel < 0 ? 1 : -1) : 0) + (I.repeat('layerup') || I.repeat('bracketr') || I.pressed('rsup') ? 1 : 0) - (I.repeat('layerdown') || I.repeat('bracketl') || I.pressed('rsdown') ? 1 : 0); if (m.wheel && m.wheelShift && m.inside && !overUI(B)) m.wheel = 0; if (dA) UI.stepAim(B, dA > 0 ? 1 : -1); } // (an area's point at a height: UI.stepAim, 10-15)
+    else if (free && UI.climber(B)) { var dC = (m.wheel && m.wheelShift && m.inside && !overUI(B) ? (m.wheel < 0 ? 1 : -1) : 0) + (I.repeat('layerup') || I.repeat('bracketr') || I.pressed('rsup') ? 1 : 0) - (I.repeat('layerdown') || I.repeat('bracketl') || I.pressed('rsdown') ? 1 : 0); if (m.wheel && m.wheelShift && m.inside && !overUI(B)) m.wheel = 0; if (dC) UI.stepClimb(B, dC > 0 ? 1 : -1); } // (a climber's height on a face: UI.stepClimb, 10-15)
     else if (free && (I.pressed('rsup') || I.pressed('rsdown'))) UI.setZoom(I.pressed('rsdown') ? 1 : -1, null, null); // (the right stick's up and down zoom, as ever, while no flier's move is out)
     if (typeof document !== 'undefined' && document.body) document.body.classList.toggle('fly', !!flU); // (the phone's ▲ ▼ beside the move card, deep16/index.html)
     if (free && (m.wheel || I.pressed('zoomout') || I.pressed('zoomin'))) UI.setZoom(m.wheel ? m.wheel : I.pressed('zoomout') ? 1 : -1, m.wheel && m.inside ? m.x : null, m.wheel && m.inside ? m.y : null);
@@ -765,7 +794,7 @@
       var ltA = !foe && !(x === u.x && y === u.y) && !G.occupant(x, y) && D.light.torchAt(B, x, y); // (a light on the floor beside the hero, nobody on it: the click takes it up, or steps there, asked -- as the grapple, 10-05)
       if (ltA && D.light.canTake(B, u, ltA).ok) return 'takelight';
       if (B.ropePick && x === B.ropePick.rope.foot[0] && y === B.ropePick.rope.foot[1] && !foe) return B.ropePick.ok ? 'rung' : 'no'; // (a rung of a rope the mouse is on: ropeRung, 10-04 night)
-      if (x === u.x && y === u.y && !foe && !(UI.flyer(B) === u && UI.layerZ(B, u) != null && UI.layerZ(B, u) !== G.gzAt(u, u.x, u.y))) return 'self'; // (at another layer: up or down in place, flight at a height)
+      if (x === u.x && y === u.y && !foe && !(UI.flyer(B) === u && UI.layerZ(B, u) != null && UI.layerZ(B, u) !== G.gzAt(u, u.x, u.y)) && !(UI.climber(B) === u && B.climbFor === u.id && B.climbZ != null && u.hang && G.hanging(u) && B.climbZ !== u.hang.z && UI.climbPick(B, u, x, y) != null)) return 'self'; // (clinging, another height picked on its face: a climb -- §2.18, 10-15) // (at another layer: up or down in place, flight at a height)
       if (foe) return B.canHit(u, foe) && (T.attacksLeft || T.action || T.hasteAction || T.slamsLeft > 0) ? 'ok' : 'no'; // a crossbow reaches out to its long range (T.slamsLeft: the Keeper's second Slam out of the one action -- js/keeperplay.js)
       var rc = reachCache(B, u), k = x + ',' + y; // (the attack tool walks too: a step between swings is fair)
       if (rc.move[k] && rc.move[k].stand) return 'ok';
@@ -945,6 +974,7 @@
       if (v === 'take') return UI.command(B, u, { do: 'takerope', x: x, y: y }); // (a rope's grapple, nobody on it: taken up, or the square stepped onto -- asked)
       if (v === 'takelight') return UI.command(B, u, { do: 'pickuptorch', x: x, y: y }); // (a torch on the floor beside: the same -- 10-05)
       if (v === 'rung') return UI.command(B, u, { do: 'ropeclimb', x: B.ropePick.to[0], y: B.ropePick.to[1], z: B.ropePick.z }); // (the rung picked: to exactly there, and hang -- before the self-click, since a hanger's square is the rope's foot)
+      if (x === u.x && y === u.y && !foe && v === 'ok' && UI.climber(B) === u && UI.climbPick(B, u, x, y) != null) { var czS = UI.climbPick(B, u, x, y); B.climbZ = null; return UI.command(B, u, { do: 'move', x: x, y: y, cz: czS }); } // (clinging: up or down its face to the height picked -- §2.18, 10-15)
       if (x === u.x && y === u.y && !foe && v === 'ok' && UI.flyer(B) === u) { var fzS = UI.layerZ(B, u); B.flyZ = null; return UI.command(B, u, { do: 'move', x: x, y: y, fz: fzS }); } // (your own square at another layer: up or down in place -- Griz, 10-08: "trouble landing in the square I'm above")
       if (x === u.x && y === u.y && !foe) { // (the self-click: the ring -- or, standing on a rope's grapple, the question first: Griz, 10-04 night: "standing on it makes me select character?")
         if (u.conds.prone && RU.canRise(u) && T.move >= Math.floor(u.speed / 2)) return UI.command(B, u, { do: 'stand' }); // (prone, the half to stand: the click on yourself stands you -- 10-04 night, Griz)
@@ -960,7 +990,7 @@
         return B.card(['{o}The ' + B.shortName(foe) + ' is out of ' + (u.weapon && u.weapon.ranged ? 'range' : 'reach') + ' (' + G.dist(u, foe) + ' ft).{/}'], 120);
       }
       if (v === 'no' && (u.size || 1) > 1 && D.keeperPlay && D.keeperPlay.human(B, u)) { D.sfx('error'); return B.card(['{o}MOVE: ' + (D.keeperPlay.moveWhy(B, u, x, y) || 'not there') + '.{/}'], 160); } // (a big creature's refused pick says why)
-      if (v === 'ok') { var fzC = UI.flyer(B) === u ? UI.layerZ(B, u) : null; if (fzC != null) { B.flyZ = null; return UI.command(B, u, { do: 'move', x: x, y: y, fz: fzC }); } return UI.command(B, u, { do: 'move', x: x, y: y }); } // (fz: the layer, flight at a height)
+      if (v === 'ok') { var fzC = UI.flyer(B) === u ? UI.layerZ(B, u) : null; if (fzC != null) { B.flyZ = null; return UI.command(B, u, { do: 'move', x: x, y: y, fz: fzC }); } var czC = UI.climber(B) === u ? UI.climbPick(B, u, x, y) : null; if (czC != null) { B.climbZ = null; return UI.command(B, u, { do: 'move', x: x, y: y, cz: czC }); } return UI.command(B, u, { do: 'move', x: x, y: y }); } // (cz: a climber's height on the face, §2.18) // (fz: the layer, flight at a height)
       if (v === 'far') { var fzD = UI.flyer(B) === u ? UI.layerZ(B, u) : null; if (fzD != null) { B.flyZ = null; return UI.command(B, u, { do: 'dashmove', x: x, y: y, fz: fzD }); } return UI.command(B, u, { do: 'dashmove', x: x, y: y }); } // (a dash at a layer: flight at a height, 10-08)
       if (v === 'rope') return UI.command(B, u, { do: 'ropeclimb', x: x, y: y });
       return;
@@ -2040,6 +2070,7 @@
     var clW = clingOf(B); if (clW) drawRung(B, u, { rope: { at: clW.hang.face, foot: clW.hang.foot }, z: clW.hang.z, ok: true, cling: true }); // (a figure clinging to a face, the mouse on it: the face, its height, the same gold -- clingOf, 10-05)
     // the cursor: red where the current thing can't go
     var s0 = G.map.at(cx, cy);
+    var czP = tool === 'move' && UI.climber(B) === u ? UI.climbPick(B, u, cx, cy) : null; if (czP != null) { var cfP = UI.climbFace(B, u, cx, cy); if (cfP) airColumn(cfP.foot[0], cfP.foot[1], czP, null, 0, 'ok'); } // (a climber's height picked: the column at the face's foot to it, 'N ft up' -- §2.18, 10-15)
     var lzC = tool === 'move' && UI.flyer(B) === u ? UI.layerZ(B, u) : null; if (lzC != null) LAYERZ = lzC; // (a flier's move at a layer: the cursor at the layer, red where it cannot go -- Griz, 10-08, "when out of autodash move square becomes red to explain why clicking fails to move you")
     if (s0 && s0.open) { var v = UI.valid(B, u, cx, cy); lineSq(ctx, cx, cy, v === 'no' ? R('red', 4) : v === 'cut' ? R('fire', 2) : v === 'far' || v === 'rope' || v === 'rung' || v === 'take' || v === 'takelight' ? R('gold', 2) : v === 'self' ? R('gold', 4) : R('bone', 2), 1, 1); }
     LAYERZ = null;
@@ -2306,8 +2337,8 @@
     ctx.strokeStyle = R('silver', 3); ctx.strokeRect(eb.x + 0.5, eb.y + 0.5, eb.w - 1, eb.h - 1);
     D.text(ctx, 'END TURN', eb.x + eb.w / 2, eb.y + 2, R('bone', 1), 'center');
     var spellRing = B.list && B.list.kind === 'spells';
-    D.hint(ctx, st === 'window' ? (B.tool === 'menu' ? 'up/down, E: choose   X: menu' : 'E: here   X: back to the commands') : spellRing ? 'left/right turns the ring, up/down the slot, E: choose' : B.tool === 'menu' || B.list ? 'left/right turns the ring, E: choose   X: close' : B.tool === 'move' ? 'X, Q or E on yourself: the ring   M: menu' : 'E: here   X: back', BX, BAR_Y + 6, R('accent', 2));
-    D.hint(ctx, UI.flyer(B) || UI.aimer(B) ? 'C recentre  M menu  wheel zoom  Shift+wheel height' : 'C recentre  M menu  wheel or -/= zoom', BX, BAR_Y + 18, R('stone', 5)); // (a flier's move out: its height's keys -- flight at a height, 10-08)
+    D.hint(ctx, st === 'window' ? (B.tool === 'menu' ? 'up/down, E: choose   X: menu' : 'E: here   X: back to the commands') : spellRing ? 'left/right turns the ring, up/down the slot, E: choose' : B.tool === 'menu' || B.list ? 'left/right turns the ring, E: choose   X: close' : B.tool === 'move' ? (UI.climber(B) && B.req && B.req.turn && UI.climbPick(B, B.req.turn, B.req.turn.x, B.req.turn.y) != null ? 'E on yourself: climb to the height picked   X or Q: the ring' : 'X, Q or E on yourself: the ring   M: menu') : 'E: here   X: back', BX, BAR_Y + 6, R('accent', 2));
+    D.hint(ctx, UI.flyer(B) || UI.aimer(B) || UI.climber(B) ? 'C recentre  M menu  wheel zoom  Shift+wheel height' : 'C recentre  M menu  wheel or -/= zoom', BX, BAR_Y + 18, R('stone', 5)); // (a flier's move out: its height's keys -- flight at a height, 10-08)
   }
   function pip(ctx, x, y, label, lit, col) { // a small lit box round a letter; gives back its width
     var w = D.textWidth(label) + 3;
