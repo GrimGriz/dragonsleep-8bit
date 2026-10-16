@@ -240,6 +240,6 @@ ART-29 and its redraw are cut (`gnoll_p2` and `gloryseeker_p2`, `4f83f7d`, `2057
 
 ## 12. The Harbinger's last three NE rows -- IN HAND 2026-10-15 (the art desk's ART-31 supplement 1, cut into `mirrorgnoll_p1`, `2cf9c09`, his *"Land them and close."*); the block is on `deep16-art-in-hand.md`
 
-## 13. The Gray Keeping's matriarch-clerics -- IN HAND 2026-10-15 (the art desk's ART-68, cut into `gnollmatriarch_p1`, `b80fe9f`, toned gray on his pick, *"Toned gray - land the gray matriarch."*); the block is on `deep16-art-in-hand.md`
+## 13. The Gray Keeping's matriarch-clerics -- IN HAND 2026-10-15 (the art desk's ART-68, cut into `gnollmatriarch_p1`, `cb98efb`, toned gray on his pick, *"Toned gray - land the gray matriarch."*); the block is on `deep16-art-in-hand.md`
 
 ## 14. The sergeant's SE, another stab -- IN HAND 2026-10-15 (asked as the hobgoblin's; it was the sergeant's: the art desk's ART-26 SE redraw, cut into `hobsergeant_p2`, `40607c6`); the block is on `deep16-art-in-hand.md`
