@@ -923,3 +923,27 @@ window.D16.FOES.gnollgray = Object.assign({}, window.D16.FOES.gnoll, { sheet: 'g
   src: window.D16.FOES.gnoll.src + '; the look of the Gray Keeping (graykeeping_p2, 10-15): the same block' });
 window.D16.FOES.gloryseekergray = Object.assign({}, window.D16.FOES.gloryseeker, { sheet: 'graykeeping_p2', seatAs: 'gloryseeker',
   src: window.D16.FOES.gloryseeker.src + '; the young blood of the Gray Keeping (graykeeping_p2, 10-15: at the size of a gnoll, one gray sheet for both): the same block' });
+// the Gray Keeping's matriarch-clerics (10-16, Griz: "let's give one group a superhero matriarch and the other hero ... Give the superhero entangle?"; then
+// "all 8 leans are go"): the Snoot's death-watch on the moot ground and the tribe's band (snoot-mode/js/data.js gkw, gk2) send them to the grid. The
+// death-watch's women are the gnoll's SRD block (the register's "larger and fiercer" is the Snoot's tables': they defend as Armored Foot there); the Eldest
+// and the band's matriarch are clerics of the Keeping by their class (js/classes.js NPC.NAMED matriarch, matriarchlama: cleric 9 and 6, OD&D Book I's
+// Patriarch and Lama). Their sheet is the Gray Keeping's till ART-68's gnollmatriarch_p1 is cut. Off the DM's shelf and the pot as the gray gnolls are
+// (js/pocketdm.js PD.OUT, js/pocket.js PK.NAMED_OUT): the Snoot's own
+window.D16.FOES.gnollmatriarch = Object.assign({}, window.D16.FOES.gnoll, { name: 'Matriarch', sheet: 'graykeeping_p2', seatAs: 'gnoll',
+  src: window.D16.FOES.gnoll.src + '; a matriarch of the Gray Keeping\'s death-watch (the Snoot mode, 10-16): the same block' });
+window.D16.FOES.gnollmatriarcheldest = {
+  named: true, name: 'The Eldest', type: 'humanoid', sheet: 'graykeeping_p2', cr: '6', ac: 14, hp: 66, speed: 30, size: 1, reach: 5, darkvision: 60, seatAs: 'gnoll',
+  abil: { str: 15, dex: 12, con: 14, int: 10, wis: 18, cha: 12 }, init: 1, perception: 14,
+  saves: { str: 2, dex: 1, con: 2, int: 0, wis: 8, cha: 5 },
+  attacks: { staff: { name: 'Skull-Staff', atk: 6, dice: '1d6', mod: 2, type: 'bludgeoning', reach: 5 } },
+  multi: 1, build: 'matriarch',
+  src: 'ours (invented.json #gray-keeping-matriarchs): the death-watch\'s eldest, a cleric 9 of the Keeping (js/classes.js NPC.NAMED matriarch) -- OD&D Book I\'s Patriarch of 9th, "Superhero - 1"; this block is her sheet as the class builds it (cleric 9 at the average: 66 HP, AC 14 in a chain shirt)'
+};
+window.D16.FOES.gnollmatriarchlama = {
+  name: 'Matriarch', type: 'humanoid', sheet: 'graykeeping_p2', cr: '3', ac: 14, hp: 39, speed: 30, size: 1, reach: 5, darkvision: 60, seatAs: 'gnoll',
+  abil: { str: 14, dex: 12, con: 13, int: 10, wis: 16, cha: 11 }, init: 1, perception: 13,
+  saves: { str: 2, dex: 1, con: 1, int: 0, wis: 6, cha: 3 },
+  attacks: { staff: { name: 'Skull-Staff', atk: 5, dice: '1d6', mod: 2, type: 'bludgeoning', reach: 5 } },
+  multi: 1, build: 'matriarchlama',
+  src: 'ours (invented.json #gray-keeping-matriarchs): a matriarch with the Gray Keeping\'s band, a cleric 6 of the Keeping (js/classes.js NPC.NAMED matriarchlama) -- OD&D Book I\'s Lama, "Hero"; this block is her sheet as the class builds it (cleric 6 at the average: 39 HP, AC 14)'
+};

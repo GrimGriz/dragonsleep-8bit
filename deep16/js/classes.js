@@ -83,7 +83,12 @@
   // Hold Monster and Dispel Evil and Good. All eight are built on the grid)
   NPC.SUBS = {
     'the Window': { always: { 1: ['disguiseself', 'silentimage'], 3: ['blur', 'passwithouttrace'], 5: ['hypnoticpattern', 'clairvoyance'], 7: ['greaterinvisibility', 'confusion'], 9: ['mislead', 'holdmonster'] }, uses: 'handOnNeck' },
-    'the Vigil': { always: { 1: ['sanctuary', 'protectionfromevilandgood'], 3: ['holdperson', 'wardingbond'], 5: ['spiritguardians', 'glyphofwarding'], 7: ['guardianoffaith', 'freedomofmovement'], 9: ['holdmonster', 'dispelevilandgood'] }, uses: 'keepersWard' }
+    'the Vigil': { always: { 1: ['sanctuary', 'protectionfromevilandgood'], 3: ['holdperson', 'wardingbond'], 5: ['spiritguardians', 'glyphofwarding'], 7: ['guardianoffaith', 'freedomofmovement'], 9: ['holdmonster', 'dispelevilandgood'] }, uses: 'keepersWard' },
+    // the Keeping (10-16, Griz on the Gray Keeping's matriarchs: "Give the superhero entangle? There's good cleric stuff high level that didn't exist in
+    // chainmail I think"; "all 8 leans are go"): Rhollor's, through the relics (TarlynsPit/wiki/gnoll-hills.md -- the god under the ground, his dead call
+    // "through the female voices"). Entangle is his; the rest the seat's drafts, invented.json #the-keeping: the laugh that is the call, the hold, the
+    // pack's terror, the curse, the rot, the confusion, and at 9 Book I's own Insect Plague
+    'the Keeping': { always: { 1: ['entangle', 'hideouslaughter'], 3: ['holdperson', 'blindnessdeafness'], 5: ['fear', 'bestowcurse'], 7: ['blight', 'confusion'], 9: ['insectplague', 'holdmonster'] } }
   };
   // our four (09-28h, Griz: "the off SRD ones we made to 9"; "AI now, buttons later"): the tester ladder's party (js/ladder.js
   // ?ladder&party=ours), each built at the rung's level. One who is across the floor on that rung (the Wagon Yard's Willem, the
@@ -180,6 +185,14 @@
     // "Kat supposed to be Cleric of trickster deity trapped in mirror" -- her domain is our own, the Window (invented.json #the-window).
     // Her level is unruled in the register (cleric 2 or 3, BIBLE 08-27), so she stands at any, as Higertha does; human, generic numbers
     // RULED 09-28h (Griz): "at campaign start she's just hit 3" -- her register's level is 3
+    // the Gray Keeping's matriarch-clerics (10-16, the Snoot's death-watch and its band -- snoot-mode/js/data.js gkw, gk2): OD&D Book I keys a cleric's
+    // fighting to CHAINMAIL's -- a Lama (6th) "Hero", a Patriarch of 9th "Superhero - 1" -- so the Eldest is cleric 9, the band's matriarch cleric 6, both of
+    // the Keeping. The register gives no numbers (gnoll-hills.md: "larger and fiercer", "the greyest, longest-lived"): the seat's drafts, a gnoll's body
+    // at a priest's wisdom; the skull-staff a quarterstaff, hide and mail a chain shirt (ART-68's look). deep16/data/foes.js gnollmatriarcheldest, -lama
+    matriarch: { name: 'The Eldest', named: true, cls: 'cleric', lvl: 9, race: 'human', subclass: 'the Keeping', abil: { str: 15, dex: 12, con: 14, int: 10, wis: 18, cha: 12 },
+      equip: { weapon: 'quarterstaff', armor: 'chainshirt' }, look: 'graykeeping_p2' },
+    matriarchlama: { name: 'Matriarch', named: true, cls: 'cleric', lvl: 6, race: 'human', subclass: 'the Keeping', abil: { str: 14, dex: 12, con: 13, int: 10, wis: 16, cha: 11 },
+      equip: { weapon: 'quarterstaff', armor: 'chainshirt' }, look: 'graykeeping_p2' },
     katarina: { name: 'Katarina', cls: 'cleric', lvl: 3, race: 'human', subclass: 'the Window', named: true,
       equip: { weapon: 'mace', armor: 'leather', shield: 'shield' } },
     // Ingrith Scalebeam, cleric 4 (deepholm-and-the-edifice.md, CANON 09-26b). RULED 09-28g (Griz: "Yes, she's meant to be Cleric"):
