@@ -277,6 +277,41 @@ FIGS = {
                          rows=[('hurt', (200, 180, 2172, 546), (546, 598), NUM(6))]),
         },
         owed={}),
+    # (the Dominion's patrol ladies. Her Cast pages are scaled by Cast 1 and toned against LPC's own Cast, the dagger stowed in both)
+    'npcwarlock': dict(                                       # ART-67, 10-15: six pages (deep16/_src/npcwarlock/ART-67/)
+        dir='npcwarlock/ART-67',
+        pages={
+            'H1P1': dict(file='ART-67_HEAD-1_PAGE-1.png', view='SE', ref=('idle', '1'), chan=14,          # SE: Idle 2, Walk 9, Attack 6
+                         text=[(0, 185, 165, 242), (0, 445, 165, 500), (0, 700, 165, 756),
+                               (165, 354, 1536, 384), (165, 610, 1536, 640), (165, 876, 1536, 906)],
+                         rows=[('idle', (165, 100, 1536, 354), (354, 384), NUM(2)),
+                               ('walk', (165, 390, 1536, 610), (610, 640), NUM(9)),
+                               ('attack', (165, 645, 1536, 876), (876, 906), NUM(6))]),
+            'H1P2': dict(file='ART-67_HEAD-1_PAGE-2.png', view='SE', ref=('cast', '1'), chan=14, tone=('cast', 'cast'),   # SE: Hurt 6, Cast 7
+                         text=[(0, 147, 200, 216), (0, 449, 200, 520), (200, 333, 2172, 368), (200, 663, 2172, 698)],
+                         rows=[('hurt', (200, 20, 2172, 333), (333, 368), NUM(6)),
+                               ('cast', (200, 372, 2172, 663), (663, 698), NUM(7))]),
+            'H2P1': dict(file='ART-67_HEAD-2_PAGE-1.png', view='NE', ref=('idle', '1'), chan=14,          # NE: Idle 2, Walk 9, Attack 6
+                         text=[(0, 112, 200, 168), (0, 322, 200, 378), (0, 567, 200, 623),
+                               (200, 207, 2172, 239), (200, 431, 2172, 464), (200, 673, 2172, 703)],
+                         rows=[('idle', (200, 5, 2172, 207), (207, 239), NUM(2)),
+                               ('walk', (200, 240, 2172, 431), (431, 464), NUM(9)),
+                               ('attack', (200, 470, 2172, 673), (673, 703), NUM(6))]),
+            'H2P2': dict(file='ART-67_HEAD-2_PAGE-2.png', view='NE', ref=('cast', '1'), chan=14, tone=('cast', 'cast'),   # NE: Hurt 6, Cast 7
+                         text=[(0, 102, 220, 160), (0, 423, 220, 478), (220, 326, 2172, 356), (220, 648, 2172, 687)],
+                         rows=[('hurt', (220, 20, 2172, 326), (326, 356), NUM(6)),
+                               ('cast', (220, 362, 2172, 648), (648, 687), NUM(7))]),
+            'H4P1': dict(file='ART-67_HEAD-4_PAGE-1.png', view='E', ref=('hurt', '1'), chan=14,           # E: Hurt 6
+                         text=[(0, 468, 160, 524), (160, 641, 1536, 676)],
+                         rows=[('hurt', (160, 300, 1536, 641), (641, 676), NUM(6))]),
+            'H5P1': dict(file='ART-67_HEAD-5_PAGE-1.png', view='N', ref=('hurt', '1'), against='N', chan=14,   # N: Hurt 6
+                         text=[(0, 442, 200, 497), (200, 629, 1536, 658)],
+                         rows=[('hurt', (200, 300, 1536, 629), (629, 658), NUM(6))]),
+        },
+        # (her Attack's last two frames reach 36 px right of her body, the dagger out and the slash arc: LPC's 64-px attack cell grows
+        # about the anchor, as the fighter's idle did)
+        cells={'attack': (80, 64)},
+        owed={}),
 }
 
 
