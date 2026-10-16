@@ -28,7 +28,7 @@
   // a sheet drawn in all eight facings faces its true way on the map, NE and NW from behind (10-15, the art cuts: the gnoll, the glory-seeker, the
   // hyena; GreyFang since ART-32; the dwarf trooper since ART-61; the fighter since ART-62; the paladin since ART-63; the barbarian since ART-66; the cleric since ART-64; the ranger since ART-65; the warlock since ART-67; the Harbinger since ART-31 and its supplement); the rest keep the side views
   // (the main party's, on his word, 10-15: "exclude the main party facings - but include the NPC")
-  V.FULL8 = { gnoll_p2: 1, gloryseeker_p2: 1, hyena_p2: 1, greyfang_p1: 1, trooper_p0: 1, npcfighter_p0: 1, npcpaladin_p0: 1, npcbarbarian_p0: 1, npccleric_p0: 1, npcranger_p0: 1, npcwarlock_p0: 1, graykeeping_p2: 1, mirrorgnoll_p1: 1 }; // (graykeeping_p2: the gnoll's own frames in the Gray Keeping's gray, 10-15 -- all eight)
+  V.FULL8 = { gnoll_p2: 1, gloryseeker_p2: 1, hyena_p2: 1, greyfang_p1: 1, trooper_p0: 1, npcfighter_p0: 1, npcpaladin_p0: 1, npcbarbarian_p0: 1, npccleric_p0: 1, npcranger_p0: 1, npcwarlock_p0: 1, graykeeping_p2: 1, mirrorgnoll_p1: 1, gnollmatriarch_p1: 1 }; // (graykeeping_p2: the gnoll's own frames in the Gray Keeping's gray, 10-15 -- all eight; gnollmatriarch_p1: the matriarch-cleric, ART-68, drawn in all five views)
   var EIGHT = [6, 5, 3, 2, 1, 7];
   V.faceOf = function (nm, dir) { return (V.FULL8[nm] ? EIGHT : FACE)[dir || 0]; };
   V.DIRV = [[1, 0], [0.5, -R3 / 2], [-0.5, -R3 / 2], [-1, 0], [-0.5, R3 / 2], [0.5, R3 / 2]]; // (E NE NW W SW SE: unit vectors in the world, y down)

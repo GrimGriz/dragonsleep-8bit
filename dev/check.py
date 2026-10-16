@@ -78,7 +78,7 @@ def fight(p):
     return [name + ': ' + e.replace('\n', ' ')[:300] for e in r.get('errors') or []]
 
 
-MODE_FOES = {'items': 'fighter:5', 'show': 'grick,xorn,roper,troll,stonegiant,stonegiantm'}  # (a mode that fights its foes wants real ones; the rest set up their own. show: the Blender monsters on the test ground, every row twice -- 10-02)
+MODE_FOES = {'items': 'fighter:5', 'show': 'grick,xorn,roper,troll,stonegiant,stonegiantm,gnollmatriarchlama'}  # (a mode that fights its foes wants real ones; the rest set up their own. show: the Blender monsters on the test ground, every row twice -- 10-02; the Gray Keeping's matriarch on her ART-68 sheet, the band's Lama for her prayers, 10-16)
 
 
 def mode(m):

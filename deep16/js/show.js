@@ -95,7 +95,8 @@
   // A hide row is: the goblin's Hide is built since 10-07 -- the AI's own after its turn, and the director's beat below where it has not shown it twice)
   // (nor a cutscene's row: GreyFang's `headless` plays only in his end, js/trophy.js -- 10-14)
   // (nor a row that is another's drawing under a second name, its sheet's `same`: the Harbinger's `kneel` is his `cast`, the row the engine plays for his Kneel -- 10-15)
-  SH.wanted = function (sheet, kind) { var fb = SH.fallback(sheet, kind), an = (D.SHEETS[sheet] || {}).anims || {}; return SH.rowsOf(sheet).filter(function (r) { return !(fb && r === 'attack') && r !== 'climb' && r !== 'headless' && !(an[r] && an[r].same); }); };
+  // (nor a row the grid never plays: the matriarch's `cackle`, the Snoot mode's own -- 10-15)
+  SH.wanted = function (sheet, kind) { var fb = SH.fallback(sheet, kind), an = (D.SHEETS[sheet] || {}).anims || {}; return SH.rowsOf(sheet).filter(function (r) { return !(fb && r === 'attack') && r !== 'climb' && r !== 'headless' && r !== 'cackle' && !(an[r] && an[r].same); }); };
   // has it shown every row it has (but its death)?
   function shown(u) { return SH.wanted(u.sheet, u.kind).every(function (r) { return r === 'hurt' || (u.showSeen || {})[r]; }); }
 
@@ -240,7 +241,9 @@
     }
     // one with a blow of its own row it has not shown by the end of its second turn, a watcher in its reach (the spirit naga casts every turn and never bit, 10-08):
     // one swing through the engine's own attack, the dice as they fall -- a miss shows the row as well as a hit
-    var mk = Object.keys(u.attacks || {}).filter(function (k) { var a = u.attacks[k], r = String(a.name || k).toLowerCase().replace(/[^a-z]/g, ''); return !a.ranged && !a.spell && !a.needsHeld && D.spr.anim(u.sheet, r) && !(u.showSeen || {})[r]; })[0];
+    // (or the `attack` row a blow with no row of its own plays -- the matriarch prays every turn and swung her skull-staff once, 10-15)
+    var rowOf = function (a, k) { var r = String(a.name || k).toLowerCase().replace(/[^a-z]/g, ''); return D.spr.anim(u.sheet, r) ? r : D.spr.anim(u.sheet, 'attack') ? 'attack' : null; };
+    var mk = Object.keys(u.attacks || {}).filter(function (k) { var a = u.attacks[k], r = rowOf(a, k); return !a.ranged && !a.spell && !a.needsHeld && r && !(u.showSeen || {})[r]; })[0];
     if (mk && u.showTurns >= 2 && RU.canAct(u) && !u.conds.prone && u.hp > 0 && !u.riding) {
       var ma = u.attacks[mk], mw = (yield* inReach(B, u, ma.reach || u.reach || 5))[0];
       if (mw) {

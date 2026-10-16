@@ -190,9 +190,9 @@
     // the Keeping. The register gives no numbers (gnoll-hills.md: "larger and fiercer", "the greyest, longest-lived"): the seat's drafts, a gnoll's body
     // at a priest's wisdom; the skull-staff a quarterstaff, hide and mail a chain shirt (ART-68's look). deep16/data/foes.js gnollmatriarcheldest, -lama
     matriarch: { name: 'The Eldest', named: true, cls: 'cleric', lvl: 9, race: 'human', subclass: 'the Keeping', abil: { str: 15, dex: 12, con: 14, int: 10, wis: 18, cha: 12 },
-      equip: { weapon: 'quarterstaff', armor: 'chainshirt' }, look: 'graykeeping_p2' },
+      equip: { weapon: 'quarterstaff', armor: 'chainshirt' }, look: 'gnollmatriarch_p1' },
     matriarchlama: { name: 'Matriarch', named: true, cls: 'cleric', lvl: 6, race: 'human', subclass: 'the Keeping', abil: { str: 14, dex: 12, con: 13, int: 10, wis: 16, cha: 11 },
-      equip: { weapon: 'quarterstaff', armor: 'chainshirt' }, look: 'graykeeping_p2' },
+      equip: { weapon: 'quarterstaff', armor: 'chainshirt' }, look: 'gnollmatriarch_p1' },
     katarina: { name: 'Katarina', cls: 'cleric', lvl: 3, race: 'human', subclass: 'the Window', named: true,
       equip: { weapon: 'mace', armor: 'leather', shield: 'shield' } },
     // Ingrith Scalebeam, cleric 4 (deepholm-and-the-edifice.md, CANON 09-26b). RULED 09-28g (Griz: "Yes, she's meant to be Cleric"):

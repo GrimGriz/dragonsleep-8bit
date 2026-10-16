@@ -3282,6 +3282,90 @@
 },
 "source": "drawn by the art desk (2026-10-15, ART-29, its redraw and its last rows: every row of every view) after Griz's generated sheets of 2026-09-28 (their colour kept), cut and snapped by tools/gnoll-sheet.py, the Hills' blue as drawn"
 },
+"gnollmatriarch_p1": {
+"image": "art/gnollmatriarch_p1.png?v=82b3f5d7e9",
+"fw": 96,
+"fh": 136,
+"ax": 48,
+"ay": 124,
+"top": 80,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 96,
+"fh": 136,
+"ax": 48,
+"ay": 124,
+"frames": 6,
+"fps": 5
+},
+"walk": {
+"y": 1088,
+"fw": 96,
+"fh": 136,
+"ax": 48,
+"ay": 124,
+"frames": 8,
+"fps": 10
+},
+"attack": {
+"y": 2176,
+"fw": 136,
+"fh": 136,
+"ax": 68,
+"ay": 124,
+"frames": 6,
+"fps": 12,
+"release": 3
+},
+"hurt": {
+"y": 3264,
+"fw": 160,
+"fh": 136,
+"ax": 80,
+"ay": 124,
+"frames": 6,
+"fps": 8
+},
+"cast": {
+"y": 4352,
+"fw": 120,
+"fh": 136,
+"ax": 60,
+"ay": 124,
+"frames": 6,
+"fps": 8
+},
+"flinch": {
+"y": 5440,
+"fw": 112,
+"fh": 136,
+"ax": 56,
+"ay": 124,
+"frames": 4,
+"fps": 12
+},
+"prone": {
+"y": 6528,
+"fw": 184,
+"fh": 136,
+"ax": 92,
+"ay": 124,
+"frames": 2,
+"fps": 8
+},
+"cackle": {
+"y": 7616,
+"fw": 104,
+"fh": 136,
+"ax": 52,
+"ay": 124,
+"frames": 6,
+"fps": 8
+}
+},
+"source": "drawn by the art desk (2026-10-15, ART-68: every row in all five views), cut and snapped by tools/gnollmatriarch-sheet.py, toned to the Gray Keeping's gray"
+},
 "goblin_p1": {
 "image": "art/goblin_p1.png?v=ec72303092",
 "fw": 96,
