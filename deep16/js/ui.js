@@ -269,12 +269,13 @@
   // beside one, the again, the fronted features), the situational ones (HIDE, BREAK FREE, PULL IT OFF ...), SPELLS, then ACTIONS and BONUSES -- every command that costs the action on
   // the one ring (the yellow A the bar counts), every one that costs the bonus action or is free on the other (the blue B) -- then END TURN. The two labels carry a Mascot's pools. The
   // ring wears the colour while it is open (cmdRing). The classes keep the first ring under RING ("I don't think the class ones are monster party weird"); RING2 in the menu puts them on it
-  var FIRST2 = { attack: 1, hide: 1, breakfree: 1, detach: 1, breaktendril: 1, takerope: 1, bucketrope: 1, barreltorch: 1, passage: 1, spells: 1 };
+  var FIRST2 = { attack: 1, hide: 1, breakfree: 1, detach: 1, breaktendril: 1, takerope: 1, bucketrope: 1, barreltorch: 1, passage: 1 }; // (SPELLS on ACTIONS and BONUSES since 10-15: cmds2)
   function poolTag(u, p) { var MP = D.mpmon; if (!MP || u.cls !== 'mpmon' || !MP.left) return ''; var n = MP.left(u, p); return ' · ' + n + (n === 1 ? ' skill' : ' skills') + ' left'; }
   function cmds2(B, u) {
     var c = B.commands(u).filter(offRing), top = {}, fronts = [], A = [], Bn = [], cd = [], q = quickSpell(B, u), q2 = quickSpell(B, u, BESIDE), fr = !u.guest && FRONT[u.cls];
     c.forEach(function (x) {
       if (CHANNEL[x.id]) { cd.push(x); return; }
+      if (x.id === 'spells') return; // (SPELLS by the cost first: one on each ring, below)
       if ((fr && x.id === fr) || fronted(x)) { fronts.push(x); return; }
       if (q && x.id === 'attack') { A.push(x); return; } // (the cantrip in the swing's place: the weapon among the actions, as the first ring has it)
       if (FIRST2[x.id] && !x.skill && !x.under) { top[x.id] = x; return; } // (a rogue's HIDE up front; a Mascot's SCUTTLE: HIDE under its icon with the bonuses)
@@ -286,6 +287,12 @@
     if (cd.length) { var left = (u.feats && u.feats.channel) || 0; A.push({ id: 'channel', label: 'CHANNEL DIVINITY (' + left + ')', cost: 'A', ok: cd.some(function (x) { return x.ok; }), why: left ? 'nothing there to do now' : 'spent (a short rest brings it back)', sub: 'channel', icon: 'sacred', items: cd }); }
     var skillsFirst = function (a, b) { return (b.skill ? 1 : 0) - (a.skill ? 1 : 0); }; // (the skills lead each ring, the plain actions and the free odds and ends after -- PUT AWAY was the front of the blue ring, 10-08)
     A = foldUnder(A).sort(skillsFirst); Bn = foldUnder(Bn).sort(skillsFirst);
+    // SPELLS by ACTION and BONUS before the level (10-15, the menus lane §2.6, Griz: "Spells on the Ring2 should be divided by Action/Bonus prior to level. The action wheel should
+    // have 'spells' and so should 'bonus', where once in that ring you can click to see your lvl 1, lvl 2 and lvl 3 spells (etc.)"): the action's spells at the head of ACTIONS, the
+    // bonus action's at the head of BONUSES (data/spells.js `time`; a Quickened Spell turns one at the cast), each opening its own levels (levelRing by the time), washed its ring's colour
+    var spl = c.some(function (x) { return x.id === 'spells'; }) ? D.magic.list(B, u) : [], spA = spl.filter(function (e) { return !(e.g && e.g.time === 'B'); }), spB = spl.filter(function (e) { return e.g && e.g.time === 'B'; });
+    if (spA.length) A.unshift({ id: 'spells', label: 'SPELLS', cost: 'A', time: 'A', ok: spA.some(function (e) { return e.ok; }), why: 'nothing to cast with the action now', sub: 'spells', icon: 'spell', note: 'the spells that take the action, by level' });
+    if (spB.length) Bn.unshift({ id: 'bspells', label: 'SPELLS', cost: 'B', time: 'B', ok: spB.some(function (e) { return e.ok; }), why: 'nothing to cast with the bonus action now', sub: 'spells', icon: 'spell', note: 'the spells that take the bonus action, by level' });
     var out = [{ id: 'move', label: 'MOVE', cost: 'M', ok: u.turn.move > 0 && !u.conds.restrained, tool: 'move', icon: 'move' }];
     ['attack', 'beside', 'again'].forEach(function (k) { if (top[k]) out.push(top[k]); });
     fronts.forEach(function (x) { out.push(x); });
@@ -689,7 +696,7 @@
     D.sfx('confirm');
     if (c.aim) return aimCommand(B, u, c);
     if (c.id === 'end') return endTurn(B, u);
-    if (c.sub === 'spells' && UI.style(B) !== 'window') { B.list = levelRing(B, u); B.list.back = back || null; B.ringB = null; return; }
+    if (c.sub === 'spells' && UI.style(B) !== 'window') { B.list = levelRing(B, u, c.time); B.list.back = back || null; B.ringB = null; return; } // (c.time: RING2's SPELLS on ACTIONS or BONUSES)
     if (c.items) { // SKILLS, ACTIONS: their commands as a list (a ring on the ring)
       var cl = c.items.map(function (x) { return { kind: 'cmd', cmd: x, id: x.id, icon: x.icon, name: x.label, label: x.label, cost: x.cost, ok: x.ok, why: x.why, note: x.note }; });
       var f0 = 0; cl.some(function (e, i) { if (e.ok) { f0 = i; return true; } return false; });
@@ -705,15 +712,15 @@
     if (c.tool) { B.tool = c.tool; B.clearCards(); if (c.tool === 'shove') B.card(['{g}SHOVE: a foe in your reach, no more than one size larger -- pushed 5 ft away (off an edge, it falls) or knocked prone.{/}'], 200); if (c.tool === 'throw') { var thK = D.Battle.throwable(u); if (thK) B.card([D.keys('{g}THROW: a foe in sight within ' + thK.range[1] + ' ft (past ' + thK.range[0] + ', at disadvantage) -- ' + D.Battle.thrownLeft(u, thK) + ' left.  X back{/}')], 100000); } if (c.tool === 'help') B.card(['{g}HELP: a foe beside you -- the next ally to swing at it has advantage; or a friend beside you -- shake a sleeper awake, or a hand out of a web or a grip.{/}'], 200); if (c.tool === 'torch') B.card([D.keys('{g}THROW TORCH: a square within 20 ft you can see. It lands and burns there.  X back{/}')], 100000); if (c.tool === 'detach') B.card([D.keys('{g}PULL IT OFF: click the friend it rides -- a STR check, an action.  X back{/}')], 100000); if (c.tool === 'breaktendril') B.card([D.keys('{g}BREAK THE TENDRIL: click the one it holds -- yourself, or a friend beside you -- a STR check, an action.  X back{/}')], 100000); return; }
     UI.command(B, u, { do: c.id });
   }
-  function levelRing(B, u) {
-    var all = D.magic.list(B, u), lv = {}, items = [];
+  function levelRing(B, u, time) { // (time 'A' or 'B': only the spells cast with the action, or the bonus action -- RING2's two SPELLS, 10-15)
+    var all = D.magic.list(B, u).filter(function (e) { return !time || (time === 'B') === !!(e.g && e.g.time === 'B'); }), lv = {}, items = [];
     all.forEach(function (e) { (lv[e.level] = lv[e.level] || []).push(e); });
     Object.keys(lv).map(Number).sort(function (a, b) { return a - b; }).forEach(function (L) {
       var slots = L ? (u.slots[L - 1] || 0) : null, any = lv[L].some(function (e) { return e.ok; });
       items.push({ kind: 'level', level: L, name: L ? 'LEVEL ' + L : 'CANTRIPS', label: L ? 'LEVEL ' + L + ' · ' + slots + ' slot' + (slots === 1 ? '' : 's') : 'CANTRIPS', ok: any, why: any ? '' : L && !slots ? 'no level-' + L + ' slots left' : 'nothing castable now', spells: lv[L] });
     });
     var first = 0; items.some(function (e, i) { if (e.ok) { first = i; return true; } return false; });
-    return { kind: 'levels', items: items, sel: first };
+    return { kind: 'levels', items: items, sel: first, ring2: time || null, title: time === 'B' ? 'SPELLS: THE BONUS ACTION' : time === 'A' ? 'SPELLS: THE ACTION' : undefined };
   }
   function listInput(B, u) {
     var L = B.list, n = L.items.length, st = UI.style(B), e = L.items[L.sel];
@@ -742,7 +749,7 @@
     if (e.kind === 'readylevels') { D.sfx('confirm'); var rl = readyLevels(B, u); rl.back = B.list; B.list = rl; B.ringB = null; return; }
     if (e.kind === 'cmd') { var back = B.list; B.list = null; return pickCommand(B, u, e.cmd, null, back); } // (it says its own confirm; `back`: a group inside a group -- SCUTTLE on the bonuses, ITEM on the actions -- comes back to this ring on X)
     D.sfx('confirm');
-    if (e.kind === 'level') { var sp = e.spells.map(function (x) { x.kind = 'spell'; return x; }), f = 0; sp.some(function (x, k) { if (x.ok) { f = k; return true; } return false; }); B.list = { kind: 'spells', items: sp, sel: f, back: B.list, title: e.label }; B.ringC = null; return; }
+    if (e.kind === 'level') { var sp = e.spells.map(function (x) { x.kind = 'spell'; return x; }), f = 0; sp.some(function (x, k) { if (x.ok) { f = k; return true; } return false; }); B.list = { kind: 'spells', items: sp, sel: f, back: B.list, title: e.label, ring2: B.list.ring2 || null }; B.ringC = null; return; }
     B.list = null;
     return e.kind === 'item' ? itemAim(B, u, e) : spellAim(B, u, e);
   }

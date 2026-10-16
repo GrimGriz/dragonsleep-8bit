@@ -4312,6 +4312,54 @@
     document.body.appendChild(preOp);
     return;
   }
+  // RING2's spells by the cost first (mode=ring2spells1015; 10-15, the menus lane §2.6, Griz: "Spells on the Ring2 should be divided by Action/Bonus prior to level. The action wheel
+  // should have 'spells' and so should 'bonus', where once in that ring you can click to see your lvl 1, lvl 2 and lvl 3 spells (etc.)"): a cleric under RING2 has no SPELLS on the
+  // first ring; ACTIONS opens with SPELLS (the action's, by level, washed yellow), BONUSES with SPELLS (the bonus action's, washed blue), walked by the keys; RING keeps the one SPELLS;
+  // the Mascots' rings as MPMon §6j has them (Denny no SPELLS; ACTIONS all the action's, BONUSES none of it)
+  if (get('mode', '') === 'ring2spells1015') {
+    var repR2 = { checks: [], errors: [] }, menuR20 = D.ui.opts.menu, urlR20 = D.ui.urlMenu;
+    function okR2(what, v) { repR2.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function pressR2(Bx, k) { D.input.edge = {}; D.input.edge[k] = true; try { D.ui.input(Bx, Bx.req); } finally { D.input.edge = {}; } }
+    try {
+      var Bc = D.npcFight('?npc=goblin,goblin&lvl=5&vs=cleric:5,fighter:5', {}); D.battle = Bc; Bc.enter(); while (!Bc.order.length) Bc.co.next(); Bc.dark = false; Bc.answer = function () { this.req = null; };
+      var cl = Bc.units.filter(function (w) { return w.side === 'party' && w.cls === 'cleric'; })[0]; cl.guest = false; cl.classAI = false; D.rules.startTurn(cl); Bc.active = cl; Bc.req = { turn: cl }; Bc.list = null; D.ui.urlMenu = null;
+      var tOf = function (e) { return e.g && e.g.time === 'B' ? 'B' : 'A'; }, all = D.magic.list(Bc, cl), nB = all.filter(function (e) { return tOf(e) === 'B'; }).length;
+      D.ui.opts.menu = 'ring2'; var r2c = D.ui.cmds(Bc, cl), ids = r2c.map(function (c) { return c.id; }), actC = r2c.filter(function (c) { return c.id === 'actions'; })[0], bonC = r2c.filter(function (c) { return c.id === 'bonuses'; })[0];
+      okR2('RING2, the cleric: the first ring ' + ids.join(',') + '; ACTIONS opens with ' + (actC && actC.items[0].id) + ' (' + (actC && actC.items[0].time) + '), BONUSES with ' + (bonC && bonC.items[0].id) + ' (' + (bonC && bonC.items[0].time) + '); bonus spells known ' + nB,
+        ids.indexOf('spells') < 0 && actC && actC.items[0].sub === 'spells' && actC.items[0].time === 'A' && nB > 0 && bonC && bonC.items[0].sub === 'spells' && bonC.items[0].time === 'B');
+      // by the keys: BONUSES, then its SPELLS, then a level's spells; X back to the levels and to BONUSES
+      var walk = function (ringId) {
+        Bc.list = null; Bc.tool = 'menu'; var cm = D.ui.cmds(Bc, cl); Bc.cmdSel = cm.map(function (c) { return c.id; }).indexOf(ringId); pressR2(Bc, 'a');
+        var ring = Bc.list, k = ring ? ring.items.map(function (e) { return e.cmd && e.cmd.sub; }).indexOf('spells') : -1; if (ring) ring.sel = Math.max(0, k); pressR2(Bc, 'a');
+        var lv = Bc.list, sp = []; (lv && lv.items || []).forEach(function (it) { (it.spells || []).forEach(function (e) { sp.push(e); }); });
+        var fi = lv ? lv.items.map(function (e) { return e.ok; }).indexOf(true) : -1; if (lv && fi >= 0) { lv.sel = fi; pressR2(Bc, 'a'); }
+        var sl = Bc.list; return { ring: ring, lv: lv, sp: sp, sl: sl };
+      };
+      var wB = walk('bonuses'), wBs = wB.sp.map(function (e) { return e.id + ':' + tOf(e); });
+      okR2('BONUSES > SPELLS: the levels ' + (wB.lv && wB.lv.kind) + ' washed ' + (wB.lv && wB.lv.ring2) + ' "' + (wB.lv && wB.lv.title) + '" -- ' + wBs.join(' ') + '; a level opened: ' + (wB.sl && wB.sl.kind) + ' washed ' + (wB.sl && wB.sl.ring2),
+        wB.lv && wB.lv.kind === 'levels' && wB.lv.ring2 === 'B' && wB.sp.length === nB && wB.sp.every(function (e) { return tOf(e) === 'B'; }) && wB.sl && wB.sl.kind === 'spells' && wB.sl.ring2 === 'B');
+      pressR2(Bc, 'b'); var back1 = Bc.list && Bc.list.kind; pressR2(Bc, 'b'); var back2 = Bc.list && Bc.list.kind;
+      okR2('X: back to the levels (' + back1 + '), then to BONUSES (' + back2 + ')', back1 === 'levels' && back2 === 'bonuses');
+      var wA = walk('actions');
+      okR2('ACTIONS > SPELLS: washed ' + (wA.lv && wA.lv.ring2) + ', ' + wA.sp.length + ' spells, none the bonus action\'s (' + wA.sp.filter(function (e) { return tOf(e) === 'B'; }).length + ') -- ' + (wA.lv ? wA.lv.items.map(function (e) { return e.name; }).join(', ') : '-'),
+        wA.lv && wA.lv.ring2 === 'A' && wA.sp.length === all.length - nB && wA.sp.every(function (e) { return tOf(e) === 'A'; }));
+      D.ui.opts.menu = 'ring'; Bc.list = null; var r1c = D.ui.cmds(Bc, cl).map(function (c) { return c.id; }); Bc.tool = 'menu'; Bc.cmdSel = r1c.indexOf('spells'); pressR2(Bc, 'a'); var lv1 = Bc.list, n1 = 0; (lv1 && lv1.items || []).forEach(function (it) { n1 += (it.spells || []).length; });
+      okR2('RING keeps the one SPELLS on the first ring (' + (r1c.indexOf('spells') >= 0) + '), every spell under it (' + n1 + ' of ' + all.length + '), no wash (' + (lv1 && lv1.ring2) + ')', r1c.indexOf('spells') >= 0 && n1 === all.length && !(lv1 && lv1.ring2));
+      // the Mascots (MPMon §6j): Denny and Rascal at 5 under their own RING2
+      D.ui.opts.menu = null;
+      var Bm = D.npcFight('?npc=goblin,goblin&lvl=5&vs=denny:5,rascal:5&mascots', {}); D.battle = Bm; Bm.enter(); while (!Bm.order.length) Bm.co.next();
+      var mR = function (w) { w.guest = false; w.classAI = false; D.rules.startTurn(w); var r = D.ui.cmds(Bm, w), a = r.filter(function (c) { return c.id === 'actions'; })[0], b = r.filter(function (c) { return c.id === 'bonuses'; })[0]; return { ids: r.map(function (c) { return c.id; }), a: a, b: b }; };
+      var dn = mR(Bm.units.filter(function (w) { return w.side === 'party' && /denny/i.test(w.name); })[0]), rc = mR(Bm.units.filter(function (w) { return w.side === 'party' && /rascal/i.test(w.name); })[0]);
+      var costsOK = function (m) { return (!m.a || m.a.items.every(function (c) { return c.cost === 'A'; })) && (!m.b || m.b.items.every(function (c) { return c.cost !== 'A'; })); };
+      okR2('the Mascots: Denny ' + dn.ids.join(',') + ' (SPELLS on neither ring ' + !((dn.a && dn.a.items.concat(dn.b ? dn.b.items : []) || []).some(function (c) { return c.sub === 'spells'; })) + '); Rascal ' + rc.ids.join(',') + ', ACTIONS ' + (rc.a ? rc.a.items.map(function (c) { return c.id; }).join(',') : '-') + '; every ring by its cost ' + (costsOK(dn) && costsOK(rc)),
+        dn.ids.indexOf('mp-denim') >= 0 && !(dn.a && dn.a.items.concat(dn.b ? dn.b.items : []).some(function (c) { return c.sub === 'spells'; })) && rc.ids.indexOf('firebolt') >= 0 && costsOK(dn) && costsOK(rc));
+    } catch (eR2) { repR2.errors.push(String(eR2 && eR2.stack || eR2).slice(0, 900)); }
+    D.ui.opts.menu = menuR20; D.ui.urlMenu = urlR20;
+    if (errs.length) repR2.errors = repR2.errors.concat(errs);
+    var preR2 = document.createElement('pre'); preR2.id = 'out'; preR2.textContent = 'BENCH16 ' + JSON.stringify(repR2);
+    document.body.appendChild(preR2);
+    return;
+  }
   // PUT AWAY off the ring (mode=putaway1015; 10-15, the menus lane §2.4, Griz: "Remove put-it-away from the menu ring. If they have the action and the bonus to light the torch
   // and click on it, pop-up confirmation PUT AWAY WEAPON?"): neither ring carries PUT AWAY, EQUIP still does; a fighter with the sword and a shield may light a torch, asked
   // PUT AWAY WEAPON? -- NOT NOW spends nothing, yes puts the sword away (the free hand on an object) and lights it (the action); a rogue with a hand free is not asked; with the
