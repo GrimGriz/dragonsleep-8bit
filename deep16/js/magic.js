@@ -33,7 +33,8 @@
   M.dice = function (sp, u, slot) { // a cantrip grows with the caster's level; a slot above the spell's adds its dice
     var d = sp.dmg;
     if (sp.scale) Object.keys(sp.scale).forEach(function (lv) { if (u.lvl >= +lv) d = sp.scale[lv]; });
-    if (sp.level === 0 && u.lvl >= 11 && d) d = d.replace(/^(\d+)d/, function (m, n) { return (+n + 1) + 'd'; });
+    var more = sp.level === 0 ? (u.lvl >= 11 ? 1 : 0) + (u.lvl >= 17 ? 1 : 0) : 0; // (the SRD's cantrips: a die more at 5th -- the `scale` -- 11th and 17th; 17th's was missing till 10-15)
+    if (more && d) d = d.replace(/^(\d+)d/, function (m, n) { return (+n + more) + 'd'; });
     if (sp.upDice && up(sp, slot)) d = window.DS.R.slotDice(d, sp, up(sp, slot)); // (js/rules.js: a die that steps up first -- `upDie`, Deathhand's, 10-14)
     return d;
   };

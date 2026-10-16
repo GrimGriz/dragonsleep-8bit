@@ -2750,6 +2750,28 @@
     document.body.appendChild(preS);
     return;
   }
+  // the grid's rules lane, 10-15 (mode=rules1015; the coordinating desk's order on his "spin up ... the grid lane as well", handoff-2026-10-04-the-grids-rules.md §2.18-2.22):
+  // a cantrip's dice at 17th; each check failed on the code before it
+  if (get('mode', '') === 'rules1015') {
+    var rep15 = { checks: [], errors: [] }, d015 = D.d, M15 = D.magic, G15 = D.grid;
+    function ok15(what, v) { rep15.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function run15(g) { var v, k = 0, st; while (g && k++ < 4000) { st = g.next(v); v = undefined; if (st.done) return st.value; if (st.value && st.value.prompt) v = st.value.prompt.opts[0].value; } }
+    function mk15(q) { var Bx = D.npcFight(q, {}); D.battle = Bx; Bx.enter(); while (!Bx.order.length) Bx.co.next(); Bx.dark = false; return Bx; }
+    function side15(Bx, s) { return Bx.units.filter(function (u) { return u.side === s; }); }
+    function kind15(Bx, k) { return Bx.units.filter(function (u) { return u.kind === k; })[0]; }
+    function log15(Bx, n) { return (Bx.log || []).slice(n).join(' | ').replace(/\{\/?[a-z]*\}/g, ''); }
+    try {
+      // §2.22 THE CANTRIP'S DICE: a die more at 5th, 11th and 17th (SRD 5.1, every damage cantrip) -- Fire Bolt 1d10 at 4th, 2d10 at 5th, 3d10 at 11th, 4d10 at 17th
+      var fb15 = M15.data('firebolt'), lad15 = [4, 5, 10, 11, 16, 17, 20].map(function (L) { return L + ':' + M15.dice(fb15, { lvl: L }, 0); }).join(' ');
+      ok15('§2.22 Fire Bolt by the caster\'s level: ' + lad15 + ' (want 1d10 2d10 2d10 3d10 3d10 4d10 4d10)', lad15 === '4:1d10 5:2d10 10:2d10 11:3d10 16:3d10 17:4d10 20:4d10');
+      var vm15 = M15.data('viciousmockery'), lv15 = [1, 5, 11, 17].map(function (L) { return M15.dice(vm15, { lvl: L }, 0); }).join(' ');
+      ok15('§2.22 Vicious Mockery at 1st, 5th, 11th, 17th: ' + lv15 + ' (want 1d4 2d4 3d4 4d4)', lv15 === '1d4 2d4 3d4 4d4');
+    } catch (e15) { rep15.errors.push(String(e15 && e15.stack || e15).slice(0, 900)); D.d = d015; }
+    if (errs.length) rep15.errors = rep15.errors.concat(errs);
+    var pre15 = document.createElement('pre'); pre15.id = 'out'; pre15.textContent = 'BENCH16 ' + JSON.stringify(rep15);
+    document.body.appendChild(pre15);
+    return;
+  }
   // the grid's rules lane, 10-13 (mode=rules1013; his answers to the notes window, handoff-2026-10-04-the-grids-rules.md §2h): big through small and a creature's space as difficult
   // terrain, the sheet's own Acrobatics, a shove over an edge, the pudding's third bite. Each check failed on the code before it but the Magic Weapon guard, which held already
   if (get('mode', '') === 'rules1013') {
