@@ -63,7 +63,9 @@ NUM = lambda k: [str(i + 1) for i in range(k)]
 # strip the page's width under each row, where its numbers stand), and the rows (the sheet's anim, band x0 y0 x1 y1, its number strip
 # y0 y1, the numbers). `view` is the facing the page draws; `ref` the page's standing frame its scale is read from. `owed` is what the art
 # desk has not sent yet: those facings stay as pixelate.py lays them. A page may also carry sheetrows' own `chan` (the mask's test) and
-# `cuts` (a line cleared where two frames touch), and `stands` (ART-62's attack page, which has no standing frame).
+# `cuts` (a line cleared where two frames touch), `stands` (a standing height read by hand: ART-62's attack page, which has no standing
+# frame), `against` (the LPC view whose idle it is scaled to, S by default) and `tone` (page row, sheet row: the colour compared like
+# with like); a figure, `cells` (its own bigger cells).
 FIGS = {
     'trooper': dict(                                          # ART-61, 10-15: all four pages (deep16/_src/trooper/ART-61/)
         dir='trooper/ART-61',
@@ -134,6 +136,43 @@ FIGS = {
         # (SE's sword held low and out reaches 33 px right of the torso in Idle and Walk 1, past LPC's 64-px cell: those cells grow about
         # the anchor as the hurt cell does, so no row's pixels move against the foot)
         cells={'idle': (72, 64), 'walk': (72, 64)},
+        owed={}),
+    # (Cast: the first extra LPC row through here, taken by the sheet's own anim name -- LPC draws it in all four directions, so SE and NE
+    # are written and E, W and N keep LPC's. The Hurt/Cast pages are scaled by Cast 1, standing straight; their Hurt 1 already leans. `tone`:
+    # the pages with no shield are toned against LPC's Cast, shield-free in every view, not its idle and walk, which carry the brown shield)
+    'npcpaladin': dict(                                       # ART-63, 10-15: six pages (deep16/_src/npcpaladin/ART-63/)
+        dir='npcpaladin/ART-63',
+        pages={
+            'H1P1': dict(file='ART-63_HEAD-1_PAGE-1.png', view='SE', ref=('idle', '1'), chan=14,          # SE: Idle 2, Walk 9, Attack 6
+                         text=[(0, 130, 175, 185), (0, 383, 175, 435), (0, 623, 175, 676),
+                               (175, 257, 1942, 290), (175, 493, 1942, 525), (175, 745, 1942, 780)],
+                         rows=[('idle', (175, 50, 1942, 257), (257, 290), NUM(2)),
+                               ('walk', (175, 292, 1942, 493), (493, 525), NUM(9)),
+                               ('attack', (175, 530, 1942, 745), (745, 780), NUM(6))]),
+            'H1P2': dict(file='ART-63_HEAD-1_PAGE-2.png', view='SE', ref=('cast', '1'), chan=14, tone=('cast', 'cast'),          # SE: Hurt 6, Cast 7
+                         text=[(0, 180, 165, 240), (0, 525, 165, 585), (165, 357, 2054, 386), (165, 680, 2054, 716)],
+                         rows=[('hurt', (165, 90, 2054, 357), (357, 386), NUM(6)),
+                               ('cast', (165, 420, 2054, 680), (680, 716), NUM(7))]),
+            # (stands: NE's idle raises the sword 14 page px over his hair, so the idle is measured from the hair's top, 152 to the feet, plus
+            # the 6 page px of outline the page draws over the hair in every other frame)
+            'H2P1': dict(file='ART-63_HEAD-2_PAGE-1.png', view='NE', ref=('idle', '1'), stands=158, chan=14,          # NE: Idle 2, Walk 9, Attack 6
+                         text=[(0, 157, 150, 210), (0, 425, 150, 475), (0, 710, 150, 757),
+                               (150, 270, 1630, 300), (150, 540, 1630, 570), (150, 845, 1630, 878)],
+                         rows=[('idle', (150, 50, 1630, 270), (270, 300), NUM(2)),
+                               ('walk', (150, 305, 1630, 540), (540, 570), NUM(9)),
+                               ('attack', (150, 575, 1630, 845), (845, 878), NUM(6))]),
+            'H2P2': dict(file='ART-63_HEAD-2_PAGE-2.png', view='NE', ref=('cast', '1'), chan=14, tone=('cast', 'cast'),          # NE: Hurt 6, Cast 7
+                         text=[(0, 145, 200, 207), (0, 472, 200, 527), (200, 369, 1983, 400), (200, 680, 1983, 715)],
+                         rows=[('hurt', (200, 90, 1983, 369), (369, 400), NUM(6)),
+                               ('cast', (200, 410, 1983, 680), (680, 715), NUM(7))]),
+            'H4P1': dict(file='ART-63_HEAD-4_PAGE-1.png', view='E', ref=('hurt', '1'), chan=14, tone=('hurt', 'cast'),           # E: Hurt 6
+                         text=[(0, 318, 175, 382), (175, 495, 2172, 540)],
+                         rows=[('hurt', (175, 200, 2172, 495), (495, 540), NUM(6))]),
+            # (its Hurt label stands low, on the numbers' line: its box stops short of Hurt 1's number)
+            'H5P1': dict(file='ART-63_HEAD-5_PAGE-1.png', view='N', ref=('hurt', '1'), chan=14, against='N', tone=('hurt', 'cast'),   # N: Hurt 6
+                         text=[(0, 560, 160, 602), (160, 560, 2172, 602)],
+                         rows=[('hurt', (160, 200, 2172, 555), (560, 602), NUM(6))]),
+        },
         owed={}),
 }
 
@@ -289,16 +328,22 @@ def mirror(fr, ax):
 TONE_REF = {'SE': ('S', 'E'), 'E': ('E',), 'N': ('N',), 'NE': ('N', 'E')}   # the LPC views a page's colour is toned to: the views beside it
 
 
-def view_moments(old, views):
-    """the Lab moments of the sheet's own idle and walk in the named LPC views"""
+def view_moments(old, views, pg=None):
+    """the Lab moments of the sheet's own idle and walk in the named LPC views -- or, for a page with `tone` (page row, sheet row), the sheet
+    row's first two frames there (the paladin's: his Hurt and Cast are drawn without the shield his idle and walk carry, ART-63)"""
+    if pg and 'tone' in pg:
+        return lab_moments(np.concatenate([fr[fr[..., 3] > 0][:, :3] for v in views for fr in old[pg['tone'][1]][FACINGS.index(v)][:2]]))
     return lab_moments(np.concatenate([fr[fr[..., 3] > 0][:, :3] for v in views for an in ('idle', 'walk')
                                        for fr in old[an][FACINGS.index(v)]]))
 
 
 def page_moments(cuts, pg):
-    """the Lab moments of a page's standing figures: its idle and walk, or (a page of falls) its first two frames"""
+    """the Lab moments of a page's standing figures: its idle and walk, or (a page of falls) its first two frames, or its `tone` row's"""
     rows = [r for r in ('idle', 'walk') if r in cuts]
-    ims = [im for r in rows for _, im, _ in cuts[r]] if rows else [im for _, im, _ in cuts[pg['ref'][0]][:2]]
+    if 'tone' in pg:
+        ims = [im for _, im, _ in cuts[pg['tone'][0]][:2]]
+    else:
+        ims = [im for r in rows for _, im, _ in cuts[r]] if rows else [im for _, im, _ in cuts[pg['ref'][0]][:2]]
     return lab_moments(np.concatenate([np.asarray(im)[np.asarray(im)[..., 3] > 0][:, :3] for im in ims]))
 
 
@@ -318,13 +363,13 @@ def cut_pages(fig, ref_h, cellof, pal, old, tone=True, overlays=None, report=Non
         stands = pg.get('stands', height(np.asarray(rim)))    # (a page with no standing frame says what one would stand, by hand)
         to_h = ref_h if 'against' not in pg else height(old['idle'][FACINGS.index(pg['against'])][0]) - 2
         k = stands / float(to_h)                              # page px a game px (the cut carries the page's own drawn outline: LPC's own)
-        src, ref = page_moments(cuts, pg), view_moments(old, TONE_REF[pg['view']])
+        src, ref = page_moments(cuts, pg), view_moments(old, TONE_REF[pg['view']], pg)
         if report is not None:
             report.append('%s (%s): %s %s stands %d px of page%s -> k %.3f%s; tone L %.1f/%.1f -> %.1f/%.1f, a %+.1f, b %+.1f (to %s)'
                           % (L, pg['view'], ran, rnm, stands, ' (by hand: it stands %d)' % height(np.asarray(rim)) if 'stands' in pg else '',
                              k, ' (against the %s idle, %d)' % (pg['against'], to_h) if 'against' in pg else '',
                              src[0][0], src[1][0], ref[0][0], ref[1][0],
-                             ref[0][1] - src[0][1], ref[0][2] - src[0][2], '+'.join(TONE_REF[pg['view']])))
+                             ref[0][1] - src[0][1], ref[0][2] - src[0][2], '+'.join(TONE_REF[pg['view']]) + ("'s %s, from the page's %s" % (pg['tone'][1], pg['tone'][0]) if 'tone' in pg else '')))
         for an, frs in cuts.items():
             cell = cellof(an)
             floor = frs[0][2][3]                               # the row's ground on the page: frame 1's feet
@@ -505,7 +550,7 @@ def check(fig):
         facings_png(m_own, s_own, an, os.path.join(d, 'facings-%s.png' % an))
     strips(((COLOURS, m_own, s_own), ('house', m_house, s_house), ('untoned', m_raw, s_raw)), d)
     print('  unchanged: every row the pages do not write equals the sheet before the step (%d rows written, %d kept)'
-          % (len(written(fig)), 4 * 8 - len(written(fig))))
+          % (len(written(fig)), len(meta['anims']) * 8 - len(written(fig))))
     print('  wrote', d)
 
 

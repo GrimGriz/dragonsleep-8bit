@@ -6746,7 +6746,7 @@
 }
 },
 "npcpaladin_p0": {
-"image": "art/npcpaladin_p0.png?v=b9b46c729a",
+"image": "art/npcpaladin_p0.png?v=d4f6b1cd6e",
 "fw": 64,
 "fh": 64,
 "ax": 32,
@@ -6782,21 +6782,42 @@
 },
 "hurt": {
 "y": 2560,
-"fw": 64,
-"fh": 64,
-"ax": 32,
+"fw": 128,
+"fh": 80,
+"ax": 64,
 "ay": 61,
 "frames": 6,
 "fps": 10
 },
 "cast": {
-"y": 3072,
+"y": 3200,
 "fw": 64,
 "fh": 64,
 "ax": 32,
 "ay": 61,
 "frames": 7,
 "fps": 10
+}
+},
+"diag": {
+"by": "tools/lpc-diag-sheet.py",
+"from": "ART-63",
+"drawn": [
+"SE idle/walk/attack",
+"SE hurt/cast",
+"NE idle/walk/attack",
+"NE hurt/cast",
+"E hurt",
+"N hurt"
+],
+"owed": [],
+"lpc_cells": {
+"hurt": [
+64,
+64,
+32,
+61
+]
 }
 }
 },
