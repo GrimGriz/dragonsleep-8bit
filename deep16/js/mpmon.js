@@ -119,7 +119,7 @@
     u.kind = 'npcmpmon'; u.mpmon = h.build; u.mpSub = b.sub; u.race = b.kind; u.type = k.type; u.speed = k.speed;
     u.sheet = (o && o.sheet) || b.look;
     if (k.floats) { u.flies = true; u.floats = true; } // (the grid's flier, js/grid.js stepCost; `floats`: no higher than 5 ft, for flight at a height)
-    if (k.climbs) u.climbs = true;
+    if (k.climbs) u.climbs = k.climbs === true ? k.speed : k.climbs; // (a climb speed in feet, its walk's -- `true` read as 1 ft made the turn's climb 0, and no face could be climbed at all: the grid's rules, 10-15)
     if (k.noHands) u.noHands = true;
     u.darkvision = Math.max(u.darkvision || 0, k.dv || 0);
     if (MP.has(u, 'tank', 6)) u.bodyguard = true; // (Bodyguard: battle.js's Protection, without the shield)

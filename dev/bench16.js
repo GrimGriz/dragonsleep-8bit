@@ -2906,6 +2906,12 @@
       var cv10 = document.createElement('canvas'); cv10.width = cv10.height = 64; var cx10 = cv10.getContext('2d'), sp10 = 0, f0s = D.looks.domSpiral; D.looks.domSpiral = function () { sp10++; return f0s.apply(this, arguments); };
       try { D.looks.over(cx10, B10, f10, { x: 32, y: 60 }); var on10 = sp10, dm10 = !!f10.dominated; if (M15.endConc) M15.endConc(B10, w10, 'bench'); sp10 = 0; D.looks.over(cx10, B10, f10, { x: 32, y: 60 }); var off10 = sp10; } finally { D.looks.domSpiral = f0s; }
       ok15('THE DOMINATE MARK: the fighter dominated (' + dm10 + '), the spiral drawn ' + on10 + ' time(s); the spell ended (' + !f10.dominated + '), drawn ' + off10 + ' (want true, 1, true, 0)', dm10 && on10 === 1 && off10 === 0 && !f10.dominated);
+      // a Mascot that climbs (the lobstamonkees: Denny, Rascal, Goose -- js/mpmon.js `climbs: true`) climbs a face at its walk's speed: `true` had read as 1 ft, the turn's climb 0
+      var B11 = mk15('?npc=goblin&lvl=5&vs=denny:5&map=edifice'), dn11 = side15(B11, 'party')[0]; D.rules.startTurn(dn11);
+      var st11 = G15.map.def.step, fc11 = null;
+      for (var y11 = 2; y11 < G15.map.h - 2 && !fc11; y11++) for (var x11 = 2; x11 < G15.map.w - 2 && !fc11; x11++) { var a11 = G15.map.at(x11, y11), b11 = G15.map.at(x11, y11 - 1); if (a11 && a11.walk && b11 && b11.walk && G15.map.gz(x11, y11 - 1) - G15.map.gz(x11, y11) >= 4 * st11 && !G15.occupant(x11, y11) && !G15.occupant(x11, y11 - 1)) fc11 = [x11, y11]; }
+      var cost11 = fc11 ? G15.stepCost(dn11, fc11[0], fc11[1], fc11[0], fc11[1] - 1) : null;
+      ok15('a Mascot that climbs: Denny\'s climb ' + dn11.climbs + ' ft, this turn\'s ' + dn11.turn.climbLeft + '; a step up a face ' + (fc11 ? Math.round((G15.map.gz(fc11[0], fc11[1] - 1) - G15.map.gz(fc11[0], fc11[1])) / st11 * 2.5) + ' ft' : '?') + ' costs ' + cost11 + ' (want 30, 30, a number)', dn11.climbs === 30 && dn11.turn.climbLeft === 30 && cost11 != null && isFinite(cost11));
       ok15('§2.21 a hand\'s THROW: on the ring ' + !!(thC && thC.ok) + ' (' + (thC ? thC.label : 'none') + '), 20 ft at the goblin: ' + left0 + ' to ' + left1 + ' left, a throw on the log ' + /Handaxe/i.test(l6) + ' (want true, 2 to 1)', !!(thC && thC.ok) && left0 === 2 && left1 === 1 && /Handaxe/i.test(l6));
     } catch (e15) { rep15.errors.push(String(e15 && e15.stack || e15).slice(0, 900)); D.d = d015; }
     if (errs.length) rep15.errors = rep15.errors.concat(errs);
