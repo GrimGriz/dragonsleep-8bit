@@ -4459,6 +4459,68 @@
     document.body.appendChild(preOp);
     return;
   }
+  // two-weapon fighting on the grid (mode=twf1015; RULED 10-15, Griz: "5 - we're gonna have to do a dual-wield"; SRD 5.1 srd/08-combat.md): a shortsword and a dagger -- OFF HAND on the
+  // ring beside the Attack, greyed till the Attack action is taken, then the bonus action at a foe in reach, its damage without the ability modifier (the style puts it back, a
+  // negative one stays); a longsword and a dagger offer nothing (not light), nor a two-handed weapon; a thrown light weapon goes at a foe 20 ft off and leaves the hand; RING2 puts
+  // it in BONUSES; Pyro's two maces offer nothing (his script's)
+  if (get('mode', '') === 'twf1015') {
+    var G = D.grid, RU = D.rules, repTw = { checks: [], errors: [] }, menuTw0 = D.ui.opts.menu, urlTw0 = D.ui.urlMenu, items0 = window.DS.DATA.items, RS = window.DS.R;
+    function okTw(what, v) { repTw.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function runTw(g) { var v, k = 0, st; while (g && k++ < 4000) { st = g.next(v); v = undefined; if (st.done) return; if (st.value && st.value.prompt) v = st.value.prompt.opts[0].value; } }
+    function cmdTw(Bx, u, id) { return Bx.commands(u).filter(function (c) { return c.id === id; })[0]; }
+    try {
+      var Bt = D.npcFight('?npc=goblin,goblin&lvl=5&vs=rogue:5,fighter:5', {}); D.battle = Bt; Bt.enter(); while (!Bt.order.length) Bt.co.next(); Bt.dark = false; D.ui.urlMenu = null;
+      var rg = Bt.units.filter(function (w) { return w.side === 'party' && w.cls === 'rogue'; })[0], gb = Bt.units.filter(function (w) { return w.side === 'foe'; })[0];
+      rg.guest = false; rg.src.equip.weapon = 'shortsword'; rg.src.equip.offhand = 'dagger'; rg.src.equip.shield = null; rg.weapon = D.save.weaponOf(rg.src); rg.offhand = D.save.offhandOf(rg.src); rg.style = rg.src.style = null;
+      // the goblin beside her, its blows not answered (the bench's own swing only)
+      var near = function (a, b) { for (var dy = -1; dy <= 1; dy++) for (var dx = -1; dx <= 1; dx++) { if (!dx && !dy) continue; if (G.canStand(a, b.x + dx, b.y + dy)) { a.x = b.x + dx; a.y = b.y + dy; delete a.tween; return true; } } return false; };
+      near(rg, gb); gb.hp = gb.maxhp = 500; D.rules.startTurn(rg); Bt.active = rg; Bt.req = { turn: rg };
+      var o0 = cmdTw(Bt, rg, 'offhand');
+      D.ui.opts.menu = 'ring'; var r1 = D.ui.cmds(Bt, rg).map(function (c) { return c.id; }); D.ui.opts.menu = 'ring2'; var r2c = D.ui.cmds(Bt, rg), bon = r2c.filter(function (c) { return c.id === 'bonuses'; })[0]; D.ui.opts.menu = 'ring';
+      okTw('a shortsword and a dagger: OFF HAND ' + !!o0 + ' "' + (o0 && o0.label) + '", greyed before the Attack (' + (o0 && o0.why) + '); RING beside the Attack ' + (r1.indexOf('offhand') === r1.indexOf('attack') + 1) + ', RING2 in BONUSES ' + !!(bon && bon.items.some(function (c) { return c.id === 'offhand'; })),
+        !!o0 && !o0.ok && /after the Attack/.test(o0.why) && o0.cost === 'B' && r1.indexOf('offhand') === r1.indexOf('attack') + 1 && !!(bon && bon.items.some(function (c) { return c.id === 'offhand'; })));
+      // the Attack, then the off hand: the swing it takes caught (the dice are the attack's own)
+      var at0 = Bt.attack, caught = []; Bt.attack = function* (a, t, atk) { caught.push(atk); if (a.turn) a.turn.attacked = (a.turn.attacked || 0) + 1; }; // (as the real one counts the blow)
+      runTw(Bt.exec(rg, { do: 'attack', target: gb })); var o1 = cmdTw(Bt, rg, 'offhand');
+      runTw(Bt.exec(rg, { do: 'offhand', target: gb })); var ofA = caught[caught.length - 1], dexM = D.mod(rg.abil.dex);
+      okTw('after the Attack: OFF HAND ' + (o1 && o1.ok) + '; swung: the ' + (ofA && ofA.name) + ' ' + (ofA && ofA.dice) + RU.sign(ofA ? ofA.mod : 0) + ' (DEX +' + dexM + ' left off), the bonus action ' + rg.turn.bonus + ', again ' + (cmdTw(Bt, rg, 'offhand') || {}).ok,
+        o1 && o1.ok && ofA && ofA.offhandSwing && ofA.name === 'Dagger' && ofA.mod === 0 && rg.turn.bonus === 0 && !cmdTw(Bt, rg, 'offhand').ok);
+      // the style puts the modifier back; a negative one stays
+      rg.src.style = 'twf'; rg.src.cls = 'fighter'; var stOn = RS.offhandDamage(rg.src, RS.item('dagger')).mod; rg.src.cls = 'rogue'; rg.src.style = null;
+      var ab0 = rg.src.abil.dex, as0 = rg.src.abil.str; rg.src.abil.dex = 8; rg.src.abil.str = 8; var neg = RS.offhandDamage(rg.src, RS.item('dagger')).mod; rg.src.abil.dex = ab0; rg.src.abil.str = as0;
+      okTw('Two-Weapon Fighting (the style) puts DEX back: ' + RU.sign(stOn) + '; DEX and STR 8 keep their -1: ' + RU.sign(neg) + '; the style is the fighter\'s and the ranger\'s, not the paladin\'s (' + RS.STYLE_FOR.fighter.indexOf('twf') + ', ' + RS.STYLE_FOR.ranger.indexOf('twf') + ', ' + RS.STYLE_FOR.paladin.indexOf('twf') + ')',
+        stOn === dexM && neg === -1 && RS.STYLE_FOR.fighter.indexOf('twf') >= 0 && RS.STYLE_FOR.ranger.indexOf('twf') >= 0 && RS.STYLE_FOR.paladin.indexOf('twf') < 0);
+      // not light, two-handed: nothing
+      rg.src.equip.weapon = 'longsword'; rg.weapon = D.save.weaponOf(rg.src); D.rules.startTurn(rg); var tl = RS.twoWeapon(rg.src), oL = cmdTw(Bt, rg, 'offhand');
+      rg.src.equip.weapon = 'greatsword'; var t2 = RS.twoWeapon(rg.src);
+      okTw('a longsword and a dagger: ' + tl.ok + ' (' + tl.why + '), no OFF HAND ' + !oL + '; a greatsword: ' + t2.ok + ' (' + t2.why + ')', !tl.ok && /longsword is not light/.test(tl.why) && !oL && !t2.ok);
+      // thrown: a light thrown weapon (the bench's own, the data's daggers carry no `thrown`) at a goblin 20 ft off
+      window.DS.DATA.items = Object.assign({}, items0, { benchknife: { id: 'benchknife', name: 'Bench Knife', kind: 'weapon', weapon: { dmg: '1d4', type: 'piercing', kind: 'dagger', props: ['finesse', 'light', 'thrown'], range: [20, 60] } } });
+      rg.src.equip.weapon = 'shortsword'; rg.src.equip.offhand = 'benchknife'; rg.weapon = D.save.weaponOf(rg.src); rg.offhand = D.save.offhandOf(rg.src); delete rg.offhandThrown;
+      var gb2 = Bt.units.filter(function (w) { return w.side === 'foe' && w !== gb; })[0]; gb2.hp = gb2.maxhp = 500;
+      var far = null; for (var yy = 0; yy < 40 && !far; yy++) for (var xx = 0; xx < 40 && !far; xx++) { var d0 = Math.max(Math.abs(xx - gb2.x), Math.abs(yy - gb2.y)); if (d0 === 4 && G.canStand(rg, xx, yy) && G.los({ x: xx, y: yy, side: 'party', size: 1 }, gb2).clear) far = [xx, yy]; }
+      if (far) { rg.x = far[0]; rg.y = far[1]; delete rg.tween; }
+      D.rules.startTurn(rg); rg.turn.attackAction = true; rg.turn.attacked = 1; rg.turn.action = 0; var oT = cmdTw(Bt, rg, 'offhand'); Bt.tool = 'offhand'; var vT = D.ui.valid(Bt, rg, gb2.x, gb2.y); Bt.tool = 'move';
+      runTw(Bt.exec(rg, { do: 'offhand', target: gb2 })); var thA = caught[caught.length - 1];
+      okTw('a thrown light weapon, a goblin ' + G.dist(rg, gb2) + ' ft off: OFF HAND ' + (oT && oT.ok) + ', the square ' + vT + '; thrown ' + !!(thA && thA.thrown && thA.ranged) + ', the off hand empty after ' + !!rg.offhandThrown + ', OFF HAND gone ' + !cmdTw(Bt, rg, 'offhand'),
+        !!far && oT && oT.ok && vT === 'ok' && !!(thA && thA.thrown && thA.ranged) && rg.offhandThrown && !cmdTw(Bt, rg, 'offhand'));
+      window.DS.DATA.items = items0; Bt.attack = at0;
+      // the door's word (eyes-twf-1015): a class hero with a shortsword and the dagger in the off hand -- a tenth gear field, only when set, so every word before reads the same
+      var wTw = '~rogue.5.human..shortsword_leather________dagger.Twin_Blades', spTw = D.npc.spec(wTw), Bw = D.npcFight('?npc=goblin&lvl=5&vs=' + wTw, {}); Bw.enter(); while (!Bw.order.length) Bw.co.next();
+      var uw = Bw.units.filter(function (w) { return w.side === 'party'; })[0], plainW = D.npc.code(D.npc.spec('~rogue.5.human..shortsword_leather.Plain'));
+      okTw('the door’s word: the off hand ' + (spTw && spTw.equip && spTw.equip.offhand) + ', the unit ' + (uw && uw.weapon.name) + ' and ' + (uw && uw.offhand && uw.offhand.name) + ', its code back ' + (D.npc.code(spTw) === wTw) + '; a word with none codes as before (' + plainW + ')',
+        !!spTw && spTw.equip.offhand === 'dagger' && uw && uw.weapon.name === 'Shortsword' && uw.offhand && uw.offhand.name === 'Dagger' && D.npc.code(spTw) === wTw && !/dagger/.test(plainW));
+      D.battle = Bt;
+      // Pyro: two maces, his script's -- no swing offered here
+      var py = window.DS.DATA.heroes.pyro, pyS = py && JSON.parse(JSON.stringify(py)); var pyT = pyS && pyS.equip ? RS.twoWeapon(pyS) : null;
+      okTw('Pyro\'s two maces (' + (pyS && pyS.equip ? pyS.equip.weapon + ' and ' + pyS.equip.offhand : 'no sheet') + '): two-weapon fighting ' + (pyT && pyT.ok) + ' (' + (pyT && pyT.why) + ')', !!pyT && !pyT.ok && /not light/.test(pyT.why));
+    } catch (eTw) { repTw.errors.push(String(eTw && eTw.stack || eTw).slice(0, 900)); }
+    window.DS.DATA.items = items0; D.ui.opts.menu = menuTw0; D.ui.urlMenu = urlTw0;
+    if (errs.length) repTw.errors = repTw.errors.concat(errs);
+    var preTw = document.createElement('pre'); preTw.id = 'out'; preTw.textContent = 'BENCH16 ' + JSON.stringify(repTw);
+    document.body.appendChild(preTw);
+    return;
+  }
   // RING2's spells by the cost first (mode=ring2spells1015; 10-15, the menus lane §2.6, Griz: "Spells on the Ring2 should be divided by Action/Bonus prior to level. The action wheel
   // should have 'spells' and so should 'bonus', where once in that ring you can click to see your lvl 1, lvl 2 and lvl 3 spells (etc.)"): a cleric under RING2 has no SPELLS on the
   // first ring; ACTIONS opens with SPELLS (the action's, by level, washed yellow), BONUSES with SPELLS (the bonus action's, washed blue), walked by the keys; RING keeps the one SPELLS;

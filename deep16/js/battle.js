@@ -1031,6 +1031,10 @@
     // SKIP ATTACK: the attacks left this turn let go, free -- Lymen's second on the rope had no one in reach and no way to put it down (10-13, the grid's rules §2h;
     // Griz: "No way to cancel left over attack player can't figure out how to spend"). It holds no turn open (ui.js spent): the auto end passes over it
     if (T.attacksLeft > 0) out.push({ id: 'skipattack', icon: 'back', label: 'SKIP ATTACK', cost: 'F', ok: true, why: '', note: 'the attack' + (T.attacksLeft > 1 ? 's' : '') + ' left this turn go unspent' });
+    // OFF HAND: two-weapon fighting (SRD 5.1; RULED 10-15 -- js/rules.js R.twoWeapon): after the Attack action, the bonus action, the weapon in the off hand at a foe in reach -- or
+    // thrown, a weapon with the thrown property; no ability modifier on its damage unless negative, or the style (R.offhandDamage). Pyro's maces are his script's: a mace is not light
+    var twO = u.src && u.src.equip && u.offhand && !u.offhandSheathed && !u.offhandThrown ? window.DS.R.twoWeapon(u.src) : null;
+    if (twO && twO.ok) { var reachO = this.foeInReach(u), thrO = Battle.offThrow(u); out.push({ id: 'offhand', label: 'OFF HAND: ' + u.offhand.name.toUpperCase(), cost: 'B', icon: u.offhand.icon || 'attack', ok: !!T.attackAction && !!T.attacked && T.bonus > 0 && !T.offhandDone && (reachO || !!thrO) && !u.conds.disarmed, why: !T.attackAction || !T.attacked ? 'after the Attack action' : T.offhandDone || !(T.bonus > 0) ? 'the bonus action is spent' : 'no foe in reach' + (thrO ? ' or in throwing range' : ''), tool: 'offhand', note: 'the bonus action: ' + u.offhand.dice + RU.sign(window.DS.R.offhandDamage(u.src, window.DS.R.item(u.src.equip.offhand)).mod) + ' ' + u.offhand.type + (twO.by === 'symmetric' ? ' (Symmetric Fighting)' : '') }); }
     if (u.conds.restrained) out.push({ id: 'breakfree', label: 'BREAK FREE', cost: 'A', ok: T.action > 0 && !T.attacksLeft, icon: 'free' });
     var spells = D.magic.list(this, u);
     if (spells.length) out.push({ id: 'spells', label: 'SPELLS', cost: 'A', ok: spells.some(function (e) { return e.ok; }), sub: 'spells', icon: 'spell' });
@@ -1569,6 +1573,20 @@
       }
       case 'putaway': { // (PUT AWAY, 10-05: the weapon kept on u.sheathed, an unarmed strike in its place -- the save's equip untouched; off the ring since 10-15, EQUIP's and the torch's ask)
         this.putAway(u); return;
+      }
+      case 'offhand': { // (two-weapon fighting's swing, the bonus action -- RULED 10-15; Pyro's script never sends it)
+        var twX = u.src && u.offhand && !u.offhandSheathed && !u.offhandThrown ? window.DS.R.twoWeapon(u.src) : null, tgX = c.target;
+        if (!twX || !twX.ok || !tgX || tgX.dead || (tgX.hp <= 0 && !tgX.regenDown) || !T.attackAction || !(T.bonus > 0) || T.offhandDone) return;
+        if (RU.charmedBy(u, tgX)) { this.card(['{o}' + u.name + ' is charmed: no raising a hand to ' + (tgX.side === 'foe' ? Battle.nm(tgX) : tgX.name) + '.{/}'], 200); return; }
+        var odX = window.DS.R.offhandDamage(u.src, window.DS.R.item(u.src.equip.offhand)), atkX = Object.assign({}, u.offhand, { dice: odX.dice, mod: odX.mod, offhandSwing: true });
+        var thX = G.dist(u, tgX) > G.reachOf(u) ? Battle.offThrow(u) : null;
+        if (G.dist(u, tgX) > G.reachOf(u) && !thX) return;
+        if (thX) atkX = Object.assign(atkX, { ranged: true, range: thX.range, thrown: true, count: 1, name: u.offhand.name });
+        T.bonus = 0; T.offhandDone = true;
+        yield* this.attack(u, tgX, atkX);
+        if (thX) { u.offhandThrown = true; this.card(['{g}(the ' + u.offhand.name.toLowerCase() + ' is thrown: the off hand empty till the fight is done){/}'], 160); }
+        if (u.conds.hidden) delete u.conds.hidden;
+        return;
       }
       case 'drawoffhand': { // (the off hand's weapon taken up again: the off hand empty -- no light, no shield; 10-15)
         if (!u.offhand || !u.offhandSheathed || T.freeObj || !D.light.handForLight(u)) return;
@@ -3074,6 +3092,8 @@
     return Math.max(0, atk.count - ((u.thrown || {})[atk.name] || 0));
   };
   Battle.prototype.thrownLeft = function (u, atk) { return Battle.thrownLeft(u, atk); };
+  // the off hand's weapon thrown instead (SRD 5.1, two-weapon fighting: "If either weapon has the thrown property, you can throw the weapon"): its range, or none
+  Battle.offThrow = function (u) { var it = u && u.src && u.src.equip && window.DS.R.item(u.src.equip.offhand), wd = it && it.weapon; return wd && (wd.props || []).indexOf('thrown') >= 0 ? { range: wd.range || [20, 60] } : null; };
   // the thrown weapon a unit carries to throw, with one left (the ring's THROW, 10-15): a class hero's `alt` handaxes or daggers
   Battle.throwable = function (u) { var a = u && u.alt; return a && a.thrown && a.ranged && a.range && !(u.conds && u.conds.disarmed) && Battle.thrownLeft(u, a) > 0 ? a : null; };
   Battle.prototype.spendThrow = function (u, atk) {

@@ -1018,6 +1018,7 @@
         var t = yield* this.pickFoe();
         if (!t) continue;
         yield* this.heroAttack(u, t, st, null);
+        yield* this.offhandSwing(u, t, st); // (two-weapon fighting: the bonus action, 10-15)
         used = true;
       } else if (cmd === 'magic') {
         var sp = pre || (yield* this.pickSpell(u, castable, st)); // (pre: the spell picked on the menu's MAGIC)
@@ -1165,7 +1166,7 @@
         continue;
       }
       var crit = nat >= R.critRange(h) || (melee && critClose(t)) || opening;
-      var dx = R.damageExpr(h, w);
+      var dx = st.offhand ? R.offhandDamage(h, w) : R.damageExpr(h, w); // (st.offhand: two-weapon fighting's swing -- no ability modifier unless negative, or the style; 10-15)
       var gwf = melee && R.gwf(h, w); // Great Weapon Fighting by the style and the weapon, as the grid's (10-06: it was Barley's by name; Brann's battleaxe too now)
       var dmg = (dx.dice === '0' ? 0 : DS.roll(dx.dice, { crit: crit, reroll12: gwf })) + dx.mod + mw;
       if (crit && melee && R.savage(h) && dx.dice !== '0') dmg += DS.roll('1' + dx.dice.replace(/^\d+/, ''), {}); // Savage Attacks (by blood, R.savage: Lymen's)
@@ -1208,6 +1209,15 @@
       if (down(t)) yield* this.say(nameOf(t) + ' is defeated!', 30);
     }
     u.pose = null; u.poseT = 0;
+  };
+  // two-weapon fighting (SRD 5.1; RULED 10-15 -- js/rules.js R.twoWeapon): after the Attack, the weapon in the off hand with the bonus action, at the same foe (or the next
+  // standing); Pyro's two maces are his script's (js/pyro.js), never this
+  Battle.prototype.offhandSwing = function* (u, t, st) {
+    var h = u.h, tw = R.twoWeapon(h); if (!tw.ok || !(st.bonus > 0) || this.over || down(u) || !this.liveFoes().length) return;
+    var off = R.item(h.equip.offhand), w0 = st.w, n0 = st.n; st.bonus = 0;
+    yield* this.say(nameOf(u) + ' follows with the ' + off.name + ' in the off hand.', 24);
+    st.w = off; st.n = 1; st.offhand = true;
+    try { yield* this.heroAttack(u, down(t) ? DS.pick(this.liveFoes()) : t, st, null); } finally { st.w = w0; st.n = n0; delete st.offhand; }
   };
   Battle.prototype.tryRun = function* (u) {
     if (this.o.canRun === false) { yield* this.say('There is no running from this!', 40); return; }

@@ -586,16 +586,17 @@
   // and the ranger at 2). One rule, both games (10-06, Griz: Great Weapon Fighting in the 8-bit "yeah", as the grid's; "yeses. Pocket DM is
   // meant exactly for that type of character building"): a story hero's style is on its sheet (content/heroes.json `style`: Barley's and
   // Brann's Great Weapon Fighting, Lymen's Defense), a class NPC's on its own (deep16/js/classes.js; the Pocket DM's maker picks it).
-  // Two-Weapon Fighting waits with the off-hand attack itself (only Pyro's own script swings a second weapon)
+  // Two-Weapon Fighting since 10-15, with the off-hand attack (R.twoWeapon; his "5 - we're gonna have to do a dual-wield"): the fighter's and the ranger's, as SRD 5.1 has them
   R.STYLES = {
     archery: { name: 'Archery', short: 'archery', words: '+2 to hit with ranged weapons' },
     defense: { name: 'Defense', short: 'defense', words: '+1 AC while wearing armour' },
     dueling: { name: 'Dueling', short: 'dueling', words: '+2 damage: a melee weapon in one hand, no other' },
     gwf: { name: 'Great Weapon Fighting', short: 'great weapon', words: 'a 1 or 2 on the die of a two-handed blow: again' },
-    protection: { name: 'Protection', short: 'protection', words: 'shield up: the reaction, disadvantage on a blow beside' }
+    protection: { name: 'Protection', short: 'protection', words: 'shield up: the reaction, disadvantage on a blow beside' },
+    twf: { name: 'Two-Weapon Fighting', short: 'two-weapon', words: 'the off-hand swing adds the ability modifier to its damage' }
   };
   R.STYLE_AT = { fighter: 1, paladin: 2, ranger: 2 };
-  R.STYLE_FOR = { fighter: ['archery', 'defense', 'dueling', 'gwf', 'protection'], paladin: ['defense', 'dueling', 'gwf', 'protection'], ranger: ['archery', 'defense', 'dueling'] };
+  R.STYLE_FOR = { fighter: ['archery', 'defense', 'dueling', 'gwf', 'protection', 'twf'], paladin: ['defense', 'dueling', 'gwf', 'protection'], ranger: ['archery', 'defense', 'dueling', 'twf'] }; // (the paladin has no Two-Weapon Fighting: SRD 5.1)
   // the style a hero fights with now: none before its class's level; its own (a class NPC's, even none), else its sheet's (an 8-bit save never stored one)
   R.style = function (h) {
     var at = R.STYLE_AT[h.cls];
@@ -633,6 +634,34 @@
   // a weapon the off hand may hold: melee, in one hand (a light one swings as the off-hand attack -- R.twoWeapon; another is held, as Pyro's Mace of Disruption for its light)
   R.offhandWeapon = function (it) { var p = (it && it.weapon && it.weapon.props) || []; return !!(it && it.kind === 'weapon' && it.id !== 'unarmed' && p.indexOf('ranged') < 0 && p.indexOf('two-handed') < 0); };
   // a hand for a light: the off hand empty, and the main weapon not on both hands (the 8-bit's; the grid lets a two-hander carry it -- light.js handForLight)
+  // ---------------------------------------------------------------- two-weapon fighting (SRD 5.1, srd/08-combat.md: "When you take the Attack action and attack with a light melee
+  // weapon that you're holding in one hand, you can use a bonus action to attack with a different light melee weapon that you're holding in the other hand. You don't add your
+  // ability modifier to the damage of the bonus attack, unless that modifier is negative. If either weapon has the thrown property, you can throw the weapon"; RULED 10-15, his
+  // "5 - we're gonna have to do a dual-wield"). Both games: the 8-bit's FIGHT swings it after the Attack while the bonus action is there, the grid's ring has OFF HAND. Symmetric
+  // Fighting (his feat, 10-15: "Weapon in the OFFHAND can be used with TWO WEAPON FIGHTING if it is the same weapon type as the main hand and char STR is 17 or higher") pairs
+  // the same base weapon, magic or not ("two magical maces not otherwise considered a pair as well"), never a two-handed one. Pyro's two maces stay his script's: a mace is not
+  // light, so this never offers him the swing, and his own swings (js/pyro.js, deep16/js/pyro.js) never pass through here
+  R.baseWeapon = function (it, id) { return it ? ((it.weapon && it.weapon.kind) || it.id || id || null) : null; };
+  R.hasFeat = function (h, id) { return !!(h && (h.featIds || []).indexOf(id) >= 0); };
+  R.twoWeapon = function (h) {
+    var e = (h && h.equip) || {}, main = R.item(e.weapon), off = R.item(e.offhand), mp = (main && main.weapon && main.weapon.props) || [], op = (off && off.weapon && off.weapon.props) || [];
+    if (!off || !off.weapon) return { ok: false, why: 'nothing in the off hand to swing' };
+    if (!main || !main.weapon) return { ok: false, why: 'a weapon in the main hand first' };
+    if (mp.indexOf('ranged') >= 0 || op.indexOf('ranged') >= 0) return { ok: false, why: 'two melee weapons' };
+    if (mp.indexOf('two-handed') >= 0 || op.indexOf('two-handed') >= 0) return { ok: false, why: 'never a two-handed weapon' };
+    if (mp.indexOf('light') >= 0 && op.indexOf('light') >= 0) return { ok: true, by: 'light' };
+    var same = R.baseWeapon(main, e.weapon) === R.baseWeapon(off, e.offhand);
+    if (R.hasFeat(h, 'symmetric') && same && h.abil.str >= 17) return { ok: true, by: 'symmetric' };
+    if (R.hasFeat(h, 'symmetric') && same) return { ok: false, why: 'Symmetric Fighting wants STR 17' }; // (SRD 5.1, Feats: a prerequisite lost, the feat waits)
+    return { ok: false, why: (mp.indexOf('light') < 0 ? 'the ' + main.name.toLowerCase() : 'the ' + off.name.toLowerCase()) + ' is not light' + (R.hasFeat(h, 'symmetric') ? ', and not a pair' : '') };
+  };
+  // the off-hand swing's damage: the ability modifier left off unless it is negative, or the Two-Weapon Fighting style; a magic weapon's own bonus stays (it is the weapon's)
+  R.offhandDamage = function (h, it) {
+    var dx = R.damageExpr(h, it), a = DS.mod(h.abil[R.weaponAbil(h, it)]), keep = a < 0 || R.style(h) === 'twf';
+    return { dice: dx.dice, mod: dx.mod - (keep ? 0 : a), type: dx.type };
+  };
+  // EQUIP's word for a weapon in the off hand: its swing, or why it is only held
+  R.offhandWord = function (h, id) { var t = R.twoWeapon(h); return t.ok ? 'off-hand swing' + (t.by === 'symmetric' ? ' (pair)' : '') : 'held: ' + t.why; };
   R.lightHand = function (h) { var e = h.equip || {}; return !e.shield && !e.offhand && !e.torch && R.freeHands(h) > 0; };
   R.lightWhy = function (h) { var e = h.equip || {}; return e.shield ? 'the shield is on the off hand' : e.offhand ? 'the ' + ((R.item(e.offhand) || {}).name || 'weapon').toLowerCase() + ' is in the off hand' : e.torch ? 'a light in that hand already' : R.handsWhy(h); };
   // shooting blind (an attack at a creature the attacker cannot see for want of light): 'disadvantage' is the SRD 5.1's rule

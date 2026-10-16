@@ -254,7 +254,7 @@
     if (q2) top.beside = q2;
     var q3 = againSpell(B, u); if (q3 && !(q && q.id === q3.id) && !(q2 && q2.id === q3.id)) top.again = q3; // (Hunter's Mark moved: BESIDE has it already)
     var out = [{ id: 'move', label: 'MOVE', cost: 'M', ok: u.turn.move > 0 && !u.conds.restrained, tool: 'move', icon: 'move' }];
-    ['attack', 'beside', 'again'].forEach(function (k) { if (top[k]) out.push(top[k]); });
+    ['attack', 'offhand', 'beside', 'again'].forEach(function (k) { if (top[k]) out.push(top[k]); }); // (offhand: two-weapon fighting's swing beside the Attack, 10-15)
     fronts.forEach(function (x) { out.push(x); });
     ['hide', 'breakfree', 'detach', 'pullout', 'breaktendril', 'takerope', 'bucketrope', 'barreltorch', 'passage', 'spells'].forEach(function (k) { if (top[k]) out.push(top[k]); }); // (detach: PULL IT OFF, the darkmantle -- 10-01, Griz: "Didn't see a pull it off out there"; breaktendril: BREAK THE TENDRIL, the roper's -- 10-02; takerope, bucketrope: TAKE THE ROPE and TAKE A ROPE, 10-04 night -- the first sat under ACTIONS where nothing listed it, Griz: "never managed to take up the hook")
     if (cd.length) { var left = (u.feats && u.feats.channel) || 0; out.push({ id: 'channel', label: 'CHANNEL DIVINITY (' + left + ')', cost: 'A', ok: cd.some(function (x) { return x.ok; }), why: left ? 'nothing there to do now' : 'spent (a short rest brings it back)', sub: 'channel', icon: 'sacred', items: cd }); }
@@ -815,6 +815,7 @@
     if (tool === 'rope') return D.Battle.ropeSq(B, u, x, y) ? 'ok' : 'no';
     if (tool === 'throw') { var thV = D.Battle.throwable(u); return foe && thV && G.standing(foe) && G.dist(u, foe) <= thV.range[1] && G.los(u, foe).clear && !D.rules.charmedBy(u, foe) ? 'ok' : 'no'; } // (the ring's THROW: a foe in its long range, in sight -- 10-15)
     if (tool === 'shove') return foe && G.standing(foe) && !foe.object && G.dist(u, foe) <= G.reachOf(u) && D.Battle.sizeCat(foe) <= D.Battle.sizeCat(u) + 1 ? 'ok' : 'no'; // (the SRD's Shove: 10-13)
+    if (tool === 'offhand') { var thO = D.Battle.offThrow(u); return foe && G.hostile(u, foe) && (foe.hp > 0 || foe.regenDown) && (G.dist(u, foe) <= G.reachOf(u) || (thO && G.dist(u, foe) <= thO.range[1] && G.los(u, foe).clear)) ? 'ok' : 'no'; } // (two-weapon fighting's swing, or its throw: 10-15)
     if (tool === 'help') return (foe && G.dist(u, foe) <= 5) || D.Battle.helpable(u, w) ? 'ok' : 'no'; // (a friend beside you who needs a hand, too: 10-01c)
     if (tool === 'lay') return w && w.side === u.side && !w.dead && (w === u || G.dist(u, w) <= 5) ? 'ok' : 'no';
     if (tool === 'item') { if (B.itemId === 'oil' && !w && D.oil) return D.oil.squareOK(B, u, x, y) ? 'ok' : 'no'; return B.itemTargetOK(u, B.itemId, w) ? 'ok' : 'no'; } // (the flask at the ground: js/oil.js, 10-05)
@@ -1009,6 +1010,7 @@
     if (tool === 'rope') { if (v === 'ok') return UI.command(B, u, { do: 'rope', x: x, y: y }); return B.card(['{o}The top of a face: from beside it up there, or from below within the rope\'s 50 ft and in sight.{/}'], 140); }
     if (tool === 'throw') { if (v === 'ok') return UI.command(B, u, { do: 'throw', target: foe }); var thC = D.Battle.throwable(u); return B.card(['{o}Throw: a foe within ' + (thC ? thC.range[1] : 60) + ' ft, in sight.{/}'], 120); }
     if (tool === 'shove') { if (v === 'ok') return UI.command(B, u, { do: 'shove', target: foe }); return B.card(['{o}Shove: a foe in your reach, no more than one size larger.{/}'], 120); }
+    if (tool === 'offhand') { if (v === 'ok') return UI.command(B, u, { do: 'offhand', target: foe }); return B.card(['{o}Off hand: a foe in your reach' + (D.Battle.offThrow(u) ? ', or one to throw it at' : '') + '.{/}'], 120); }
     if (tool === 'help') { if (v === 'ok') return UI.command(B, u, { do: 'help', target: foe || w }); return B.card(['{o}Help: a foe beside you, or a friend beside you asleep or held fast.{/}'], 120); }
     if (tool === 'lay') { if (v === 'ok') return UI.command(B, u, { do: 'lay', target: w }); return B.card(['{o}Lay on Hands is touch: yourself or an ally beside you.{/}'], 120); }
     // (askSelf: a click on your own square with an item aimed is asked first -- 10-05 night, his play: the Bat-Wing Pie refused on Aurdin, down, and the next click, on Lymen's own square, ate it
@@ -2050,6 +2052,7 @@
       }
     }
     if (tool === 'throw') { var thD = D.Battle.throwable(u); if (thD) B.units.forEach(function (w) { if (G.hostile(u, w) && G.standing(w) && !w.ethereal && G.dist(u, w) <= thD.range[1] && G.los(u, w).clear) G.foot(w).forEach(function (q) { lineSq(ctx, q[0], q[1], G.dist(u, w) <= thD.range[0] ? R('fire', 3) : R('gold', 2), 0.9); }); }); } // (a foe in its reach: red, gold at long range)
+    if (tool === 'offhand') B.units.forEach(function (w) { if (UI.valid(B, u, w.x, w.y) === 'ok') G.foot(w).forEach(function (q) { lineSq(ctx, q[0], q[1], R('bone', 2), 0.9); }); }); // (the foes the off hand may reach: 10-15)
     if (tool === 'shove') B.units.forEach(function (w) { if (G.hostile(u, w) && G.standing(w) && !w.object && G.dist(u, w) <= G.reachOf(u) && D.Battle.sizeCat(w) <= D.Battle.sizeCat(u) + 1) G.foot(w).forEach(function (q) { lineSq(ctx, q[0], q[1], D.Battle.knockSq(u, w) ? R('fire', 3) : R('bone', 2), 0.9); }); }); // (one at an edge: fire-orange)
     if (tool === 'help') B.units.forEach(function (w) { if ((G.hostile(u, w) && G.standing(w) && G.dist(u, w) <= 5) || D.Battle.helpable(u, w)) G.foot(w).forEach(function (q) { lineSq(ctx, q[0], q[1], G.hostile(u, w) ? R('bone', 2) : R('moss', 3), 0.9); }); }); // (a friend to help: green)
     if (tool === 'detach') D.Battle.pullable(u, B.units).forEach(function (r) { lineSq(ctx, r.master.x, r.master.y, R('moss', 3), 0.9); });

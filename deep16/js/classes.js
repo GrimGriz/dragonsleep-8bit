@@ -571,7 +571,7 @@
     var nums = (f[3] || '').split('-').map(Number), abil = null;
     if (nums.length === 6 && nums.every(function (n) { return n >= 1 && n <= 30; })) { abil = {}; NPC.ABIL.forEach(function (k, i) { abil[k] = nums[i]; }); }
     var gear = (f[4] || '').split('_'), equip = {}, alt = null;
-    NPC.GEAR.forEach(function (k, i) { var id = gear[i] || ''; if (!id || !DS.DATA.items[id]) { if (k !== 'alt') equip[k] = null; return; } if (k === 'alt') alt = id; else equip[k] = id; });
+    NPC.GEAR.forEach(function (k, i) { var id = gear[i] || ''; if (!id || !DS.DATA.items[id]) { if (k !== 'alt') equip[k] = null; return; } if (k === 'alt') alt = id; else equip[k] = id; }); var offG = gear[NPC.GEAR.length]; if (offG && DS.DATA.items[offG]) equip.offhand = offG; // (the OFFHAND's weapon, a tenth field only when there is one: every word made before reads as it did -- 10-15)
     var name = (f[5] || '').replace(/_/g, ' ').trim() || (R.CLASSES[cls].name + ' ' + lvl);
     var known = f[6] ? f[6].split('-').filter(function (id) { return !!(DS.DATA.spells[id] || (D.EXTRA_SPELLS || {})[id]); }) : null;
     var sp = { cls: cls, lvl: lvl, race: race, name: name, named: true, custom: true, maxhp: true, asis: !!abil, equip: equip, alt: alt, code: code };
@@ -587,7 +587,7 @@
   };
   NPC.code = function (sp) {
     var ab = sp.abil ? NPC.ABIL.map(function (k) { return sp.abil[k]; }).join('-') : '';
-    var eq = sp.equip || {}, gear = NPC.GEAR.map(function (k) { return k === 'alt' ? (sp.alt || '') : (eq[k] || ''); }).join('_');
+    var eq = sp.equip || {}, gear = NPC.GEAR.map(function (k) { return k === 'alt' ? (sp.alt || '') : (eq[k] || ''); }).join('_') + (eq.offhand ? '_' + eq.offhand : '');
     var name = String(sp.name || '').replace(/[^A-Za-z0-9 \-']/g, '').replace(/'/g, '').trim().replace(/ +/g, '_');
     var so = sp.subclass && R.subOpt ? R.subOpt(sp.cls, sp.subclass) : null;
     return '~' + [sp.cls, sp.lvl, sp.race || 'human', ab, gear, name, (sp.known || []).join('-'), sp.style || '', so && !so.srd ? so.id : '', NPC.optWord(sp.cls, sp)].join('.').replace(/\.+$/, '')

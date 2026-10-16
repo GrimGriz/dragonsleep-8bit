@@ -2256,6 +2256,36 @@
           g.party.every(function (h) { return h.xp === DS.R.XP_LEVEL[3] + 1700 + eachP; }) && g.party[1].lvl === 4 && kills.crawler === 1 && kills.ettercap === 2 && kills['warrens_d:ettercap'] === 2 && !kills.giantspider &&
           gotP.some(function (x) { return /^crawlerichor/.test(x); }) && gotP.some(function (x) { return /^gulchsilk \+2/.test(x); }) && /Each fighter standing gains/.test(saidP.join(' ')));
       } finally { DS.say = say0P; }
+    } else if (test === 'twf1015') {
+      // two-weapon fighting in the 8-bit (RULED 10-15, Griz: "5 - we're gonna have to do a dual-wield"; SRD 5.1): FIGHT with a shortsword and a dagger in the off hand swings the
+      // shortsword, then the dagger with the bonus action -- its damage without DEX; no bonus action left, no second swing; a longsword and a dagger, none. Pyro's swings are his
+      // script's and stay as they were (his "4 - does his script allow for the mace's magic to magic and his ability modifier? if so, yes"): STR +5 on both maces, the white one magic
+      var d20o = null, rollO = DS.roll, hurtO = null, dealtO = [];
+      try {
+        DS.EV.addGuest('pyro');
+        T.startFight(['gnoll', 'gnoll']); for (var wT = 0; wT < 400 && !DS.find('battle'); wT++) T.step(1);
+        var btT = DS.find('battle'), viT = btT.heroes.filter(function (u) { return u.h.id === 'vivian'; })[0], pyT = btT.heroes.filter(function (u) { return u.h.id === 'pyro'; })[0], gnT = btT.foes[0];
+        btT.foes.forEach(function (f) { f.hp = f.maxhp = 900; });
+        d20o = btT.d20; btT.d20 = function () { return 15; }; DS.roll = function () { return 1; }; hurtO = btT.hurt; btT.hurt = function (t, n, type, o) { dealtO.push({ n: n, type: type, magic: !!(o && o.magicWeapon) }); return n; };
+        viT.h.equip.weapon = 'shortsword'; viT.h.equip.offhand = 'dagger'; viT.h.equip.shield = null;
+        var dexT = DS.mod(viT.h.abil.dex), stT = { actions: 1, bonus: 1, surged: false, sneakUsed: true }, saidT = [], sayT = btT.say; btT.say = function* (t) { saidT.push(t); };
+        var drive = function (g) { var k = 0, st; while (g && k++ < 2000) { st = g.next(); if (st.done) return; } };
+        drive(btT.heroAttack(viT, gnT, stT, null)); var mainD = dealtO.slice(); dealtO = [];
+        drive(btT.offhandSwing(viT, gnT, stT)); var offD = dealtO.slice(); dealtO = [];
+        check('FIGHT, the shortsword then the dagger: the shortsword for ' + mainD.map(function (x) { return x.n; }).join('+') + ' (1 + DEX ' + dexT + '), the dagger for ' + offD.map(function (x) { return x.n; }).join('+') + ' (1, DEX left off), the bonus action ' + stT.bonus + ', said "' + (saidT.filter(function (t) { return /follows/.test(t); })[0] || '') + '"',
+          mainD.length === 1 && mainD[0].n === 1 + dexT && offD.length === 1 && offD[0].n === 1 && stT.bonus === 0 && saidT.some(function (t) { return /follows with the Dagger in the off hand/.test(t); }));
+        drive(btT.offhandSwing(viT, gnT, stT)); var againT = dealtO.length; dealtO = [];
+        viT.h.equip.weapon = 'longsword'; var stL = { actions: 1, bonus: 1, sneakUsed: true }; drive(btT.offhandSwing(viT, gnT, stL)); var lsT = dealtO.length; dealtO = [];
+        check('no bonus action left: no second swing (' + againT + '); a longsword and a dagger: none (' + lsT + ', the bonus action kept ' + stL.bonus + ')', againT === 0 && lsT === 0 && stL.bonus === 1);
+        btT.say = sayT;
+        // Pyro: his script's swings (js/pyro.js S8.measure: heroAttack with st.w, never st.offhand) -- STR on both, the Mace of Disruption magic (bonded: no attuned list)
+        var ph = pyT && pyT.h, strP = ph ? DS.mod(ph.abil.str) : 0, plainP = ph && DS.R.item(ph.equip.weapon), whiteP = ph && DS.R.item(ph.equip.offhand);
+        drive(btT.heroAttack(pyT, gnT, { actions: 1, bonus: 0, sneakUsed: true, w: plainP, n: 1 }, null)); var pP = dealtO.slice(); dealtO = [];
+        drive(btT.heroAttack(pyT, gnT, { actions: 1, bonus: 0, sneakUsed: true, w: whiteP, n: 1 }, null)); var pW = dealtO.slice(); dealtO = [];
+        check('Pyro: the mace for ' + (pP[0] && pP[0].n) + ' (1 + STR ' + strP + '), the Mace of Disruption for ' + (pW[0] && pW[0].n) + ' magic ' + (pW[0] && pW[0].magic) + '; two-weapon fighting offered him ' + DS.R.twoWeapon(ph).ok,
+          !!ph && pP.length === 1 && pP[0].n === 1 + strP && pW.length >= 1 && pW[0].n === 1 + strP && pW[0].magic && !DS.R.twoWeapon(ph).ok);
+      } catch (eT) { check('threw: ' + String(eT && eT.stack || eT).slice(0, 500), false); }
+      DS.roll = rollO; var btT2 = DS.find('battle'); if (btT2 && d20o) btT2.d20 = d20o; if (btT2 && hurtO) btT2.hurt = hurtO;
     } else if (test === 'offhand1015') {
       // the OFFHAND (RULED 10-15, Griz: "OFFHAND is shield hand, just change text and function for where that slot is among slots"; "6 - yeah, in the offhand instead of its own
       // slot"): EQUIP's third place is OFFHAND (no LIGHT row); it holds one thing -- a shield, a weapon, the light -- its list the pack's shields, one-handed melee weapons
