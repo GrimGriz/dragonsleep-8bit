@@ -4459,6 +4459,54 @@
     document.body.appendChild(preOp);
     return;
   }
+  // Grappler (mode=grappler1015; RULED 10-15, Griz: "1 - lets add grappler."; SRD 5.1 srd/05-feats.md): on the level-up pick beside Symmetric Fighting, wanting STR 13 (the 8-bit's row says
+  // it acts in the grid's fights); advantage on attack rolls against the one it grapples (not another, not without the feat, not at STR 12); PIN -- the action, next turn after the
+  // grapple's attack -- both restrained; no BREAK FREE for the one who pins; LET GO ends both; the pinned one's escape, its turn, ends both
+  if (get('mode', '') === 'grappler1015') {
+    var repGp = { checks: [], errors: [] }, G3 = D.grid, RU3 = D.rules, d0Gp = D.d, RGP = window.DS.R;
+    function okGp(what, v) { repGp.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function runGp(g) { var v, k = 0, st; while (g && k++ < 4000) { st = g.next(v); v = undefined; if (st.done) return; if (st.value && st.value.prompt) v = st.value.prompt.opts[0].value; } }
+    function pinGp(seq) { var i = 0; D.d = function (n) { return n === 20 && i < seq.length ? seq[i++] : d0Gp(n); }; }
+    function cmdGp(B, u, id) { return B.commands(u).filter(function (c) { return c.id === id; })[0]; }
+    try {
+      // the pick
+      var hG = RGP.makeHero('barley', 4); RGP.settlePicks(hG, null); var recG = { lvl: 4, asks: [{ kind: 'asi', need: 2, took: { con: 2 } }] };
+      hG.abil.str = 12; var r12 = RGP.pickRows(hG, recG, recG.asks[0], { pages: true }).filter(function (r) { return r.feat === 'grappler'; })[0];
+      hG.abil.str = 13; var r13 = RGP.pickRows(hG, recG, recG.asks[0], { pages: true }).filter(function (r) { return r.feat === 'grappler'; })[0], r13g = RGP.pickRows(hG, recG, recG.asks[0], {}).filter(function (r) { return r.feat === 'grappler'; })[0];
+      RGP.applyPick(hG, recG, { asi: { feat: 'grappler' } });
+      okGp('the pick: GRAPPLER (FEAT) at STR 12 "' + (r12 && r12.off) + '", at 13 offered ' + (r13 && !r13.off) + '; the 8-bit\'s row says where it acts ' + /grid/.test(r13 && r13.desc) + ', the grid\'s not ' + !/grid\'s fights/.test(r13g && r13g.desc) + '; taken: ' + JSON.stringify(hG.featIds),
+        r12 && r12.off === 'wants STR 13' && r13 && !r13.off && /grid/.test(r13.desc) && !/grid\'s fights/.test(r13g.desc) && (hG.featIds || []).indexOf('grappler') >= 0);
+      // the grid: a fighter with a longsword (a hand empty), the feat, STR 16; two goblins
+      var Bp = D.npcFight('?npc=goblin,goblin&lvl=5&vs=fighter:5', {}); D.battle = Bp; Bp.enter(); while (!Bp.order.length) Bp.co.next(); Bp.dark = false; Bp.answer = function () { this.req = null; };
+      var fp = Bp.units.filter(function (w) { return w.side === 'party'; })[0], gbs = Bp.units.filter(function (w) { return w.side === 'foe'; }), g1 = gbs[0], g2 = gbs[1];
+      fp.guest = false; fp.src.equip.weapon = 'longsword'; fp.src.equip.shield = null; fp.weapon = D.save.weaponOf(fp.src); fp.src.featIds = ['grappler']; fp.src.abil.str = 16; fp.abil = fp.src.abil;
+      [g1, g2].forEach(function (w) { w.hp = w.maxhp = 500; });
+      var near = function (a, b) { for (var dy = -1; dy <= 1; dy++) for (var dx = -1; dx <= 1; dx++) { if (!dx && !dy) continue; if (G3.canStand(a, b.x + dx, b.y + dy)) { a.x = b.x + dx; a.y = b.y + dy; delete a.tween; return true; } } return false; };
+      near(g1, fp); near(g2, fp); RU3.startTurn(fp); Bp.active = fp; Bp.req = { turn: fp };
+      var adv0 = RU3.edges(fp, g1, fp.weapon).adv.indexOf('grappler') >= 0;
+      pinGp([18, 2]); runGp(Bp.exec(fp, { do: 'grapple', target: g1 })); D.d = d0Gp;
+      var advH = RU3.edges(fp, g1, fp.weapon).adv.indexOf('grappler') >= 0, advO = RU3.edges(fp, g2, fp.weapon).adv.indexOf('grappler') >= 0;
+      fp.src.featIds = []; var advNF = RU3.edges(fp, g1, fp.weapon).adv.indexOf('grappler') >= 0; fp.src.featIds = ['grappler']; fp.src.abil.str = 12; var advS = RU3.edges(fp, g1, fp.weapon).adv.indexOf('grappler') >= 0; fp.src.abil.str = 16;
+      var pin0 = cmdGp(Bp, fp, 'pin');
+      okGp('advantage on the held goblin ' + advH + ' (before the grapple ' + adv0 + ', the other goblin ' + advO + ', without the feat ' + advNF + ', at STR 12 ' + advS + '); PIN this turn (the Attack action spent on the grapple): ' + (pin0 ? (pin0.ok ? 'ok' : pin0.why) : 'absent'),
+        advH && !adv0 && !advO && !advNF && !advS && pin0 && !pin0.ok);
+      // next turn: PIN (pinned 17 against 3) -- both restrained; no BREAK FREE for the one who pins; LET GO frees both
+      RU3.startTurn(fp); var pin1 = cmdGp(Bp, fp, 'pin'); pinGp([17, 3]); runGp(Bp.exec(fp, { do: 'pin' })); D.d = d0Gp;
+      var bothR = g1.conds.restrained && g1.conds.restrained.pin && fp.conds.restrained && fp.conds.restrained.pin, bfP = cmdGp(Bp, fp, 'breakfree'), pin2 = cmdGp(Bp, fp, 'pin');
+      okGp('next turn PIN ' + (pin1 && pin1.ok) + ': both restrained ' + !!bothR + ', the action ' + fp.turn.action + '; BREAK FREE on his ring ' + !!bfP + ', PIN again ' + !!pin2, pin1 && pin1.ok && bothR && fp.turn.action === 0 && !bfP && !pin2);
+      runGp(Bp.exec(fp, { do: 'letgo' }));
+      okGp('LET GO: the goblin free of both (' + !g1.conds.grappled + ', ' + !g1.conds.restrained + '), the fighter unrestrained ' + !fp.conds.restrained, !g1.conds.grappled && !g1.conds.restrained && !fp.conds.restrained);
+      // pinned again, the goblin's turn: it breaks the hold (pinned 19 against 1) and both restraints go
+      RU3.startTurn(fp); pinGp([18, 2]); runGp(Bp.exec(fp, { do: 'grapple', target: g1 })); D.d = d0Gp; RU3.startTurn(fp); pinGp([17, 3]); runGp(Bp.exec(fp, { do: 'pin' })); D.d = d0Gp;
+      var pinned = !!(g1.conds.restrained && g1.conds.restrained.pin); RU3.startTurn(g1); pinGp([19, 1]); runGp(D.ai.turn(Bp, g1)); D.d = d0Gp;
+      okGp('pinned (' + pinned + '), its turn: free ' + !g1.conds.grappled + ', unrestrained ' + !g1.conds.restrained + ', the fighter unrestrained ' + !fp.conds.restrained, pinned && !g1.conds.grappled && !g1.conds.restrained && !fp.conds.restrained);
+    } catch (eGp) { repGp.errors.push(String(eGp && eGp.stack || eGp).slice(0, 900)); }
+    D.d = d0Gp;
+    if (errs.length) repGp.errors = repGp.errors.concat(errs);
+    var preGp = document.createElement('pre'); preGp.id = 'out'; preGp.textContent = 'BENCH16 ' + JSON.stringify(repGp);
+    document.body.appendChild(preGp);
+    return;
+  }
   // a hero's GRAPPLE (mode=grapple1015; RULED 10-15, Griz: "Grapple should go on the action menu with dodge and help and such, appearing conditionally (empty hand, adjacent enemy)";
   // SRD 5.1 srd/08-combat.md Grappling): with DODGE and HELP (RING's ACTIONS, RING2's), shown only with a hand empty and a foe beside no more than one size larger; one attack of the
   // Attack action (the rest left); the check pinned -- held: its speed 0 at its turn, the grappler's walk halved; dragged along a walk; its escape (Athletics or Acrobatics against

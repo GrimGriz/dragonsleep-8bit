@@ -219,6 +219,7 @@
     var adv = [], dis = [], melee = !atk.ranged && (!atk.spell || atk.touch); // (a touch spell is a melee attack)
     if (att.conds.poisoned) dis.push('poisoned');
     if (att.conds.frightened) dis.push('frightened');
+    if (D.Battle && D.Battle.grapplerOn && D.Battle.grapplerOn(att, tgt)) adv.push('grappler'); // (Grappler (SRD 5.1, srd/05-feats.md; RULED 10-15, Griz: "1 - lets add grappler."): advantage against the one it grapples)
     // bright light where it stands (js/light.js: a torch's reach, the Light cantrip, Daylight) on one that hates it (the 8-bit's
     // lightSensitive: drow, duergar, the cloaker) -- in the dark, or once a light has been lit in a lit place (the old fight-wide
     // dazzle) -- and a wounded guest swinging anyway (Halldor at a third of himself, the 8-bit js/battle.js) -- review 09-28 #7, #4

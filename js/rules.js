@@ -320,7 +320,9 @@
   // own feat on the level-up pick, both games -- the 10-14 "ASI as the SRD has it with no feat row" lifted for these). The pick's SCORES tab offers them, each worth the
   // whole increase; taken, the sheet's `featIds` holds it (R.hasFeat). The class NPCs' builds and the Pocket DM's keep their increases (lean (d))
   R.FEATS = {
-    symmetric: { name: 'Symmetric Fighting', str: 17, desc: 'Weapon in the OFFHAND can be used with TWO WEAPON FIGHTING if it is the same weapon type as the main hand and char STR is 17 or higher. (A pair by the base weapon, magic or not; never a two-handed one.)' } // (his words, 10-15)
+    symmetric: { name: 'Symmetric Fighting', str: 17, desc: 'Weapon in the OFFHAND can be used with TWO WEAPON FIGHTING if it is the same weapon type as the main hand and char STR is 17 or higher. (A pair by the base weapon, magic or not; never a two-handed one.)' }, // (his words, 10-15)
+    // Grappler (SRD 5.1, srd/05-feats.md; RULED 10-15, Griz: "1 - lets add grappler."): advantage against the one it grapples, and PIN -- deep16/js/battle.js; the grid's fights, where a hero grapples
+    grappler: { name: 'Grappler', str: 13, desc: 'Advantage on attack rolls against a creature you are grappling. PIN: your action, another grapple check -- won, you and it are both restrained till the grapple ends. (STR 13.)', grid: 'It acts in the grid\'s fights, where a hero grapples.' }
   };
   R.featIds = function () { return Object.keys(R.FEATS); };
   R.asiLevels = function (cls) { return R.ASI_AT[cls] || R.ASI_AT._; };
@@ -403,7 +405,7 @@
       return { id: k, name: k.toUpperCase(), score: base, max: Math.max(0, Math.min(2, 20 - base)), off: base >= 20 ? 'already 20' : '' };
     }).concat(R.featIds().map(function (id) { // (a feat in place of the increase: worth both marks; its prerequisite read on the scores before this increase -- 10-15)
       var f = R.FEATS[id], had = (h.featIds || []).indexOf(id) >= 0 && !(took && took.feat === id), str = h.abil.str - ((took && took.str) || 0);
-      return { id: 'feat:' + id, feat: id, name: f.name.toUpperCase() + ' (FEAT)', desc: f.desc + (f.grid ? ' ' + f.grid : ''), max: 1, worth: 2, off: had ? 'taken already' : f.str && str < f.str ? 'wants STR ' + f.str : '' };
+      return { id: 'feat:' + id, feat: id, name: f.name.toUpperCase() + ' (FEAT)', desc: f.desc + (f.grid && o.pages ? ' ' + f.grid : ''), max: 1, worth: 2, off: had ? 'taken already' : f.str && str < f.str ? 'wants STR ' + f.str : '' }; // (o.pages: the 8-bit's pick says where Grappler acts)
     }));
     if (ask.kind === 'expertise') {
       var have = (d.expertise || []).concat((h.expertise || []).filter(function (x) { return (took || []).indexOf(x) < 0; }));

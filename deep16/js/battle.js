@@ -935,9 +935,14 @@
   Battle.heldBy = function (B, u) { if (!u || !u.grappling) return null; var w = B.units.filter(function (x) { return x.id === u.grappling; })[0]; return w && !w.dead && w.conds.grappled && w.conds.grappled.by === u.id ? w : null; };
   Battle.grabbable = function (u, w) { return !!(w && G.hostile(u, w) && G.standing(w) && !w.object && !w.ethereal && !w.dead && w.hp > 0 && G.dist(u, w) <= 5 && G.dist(u, w) <= G.reachOf(u) && Battle.sizeCat(w) <= Battle.sizeCat(u) + 1 && !RU.immuneTo(w, 'grappled') && !(w.conds.grappled && w.conds.grappled.by === u.id)); };
   Battle.dragHalves = function (u) { var B = D.battle, w = B && Battle.heldBy(B, u); return !!w && Battle.sizeCat(w) > Battle.sizeCat(u) - 2; };
+  // Grappler (SRD 5.1, srd/05-feats.md; RULED 10-15, Griz: "1 - lets add grappler."): a hero with the feat and STR 13 (SRD 5.1, Feats: "If your Strength is reduced below 13 ... you can't benefit from the Grappler feat until your Strength is restored"), and
+  // its advantage against the one it holds (rules.js RU.edges)
+  Battle.grappler = function (u) { var h = u && u.src; return !!(h && window.DS.R.hasFeat(h, 'grappler') && (u.abil || h.abil).str >= 13); };
+  Battle.grapplerOn = function (att, tgt) { return !!(tgt && tgt.conds && tgt.conds.grappled && tgt.conds.grappled.by === att.id && Battle.grappler(att)); };
   Battle.prototype.letGo = function (g, w, why) {
     if (!w || !w.conds.grappled) return;
     delete w.conds.grappled; if (g && g.grappling === w.id) delete g.grappling;
+    if (w.conds.restrained && w.conds.restrained.pin) delete w.conds.restrained; if (g && g.conds.restrained && g.conds.restrained.pin) delete g.conds.restrained; // (a pin ends with the grapple: Grappler)
     var nm = w.side === 'foe' ? Battle.nm(w, true) : w.name;
     if (why === 'release') this.card(['{y}' + g.name + '{/} lets go of ' + nm + '.'], 160);
     else if (why === 'escape') this.card(['{o}' + nm + ' breaks ' + (g ? g.name + '\'s' : 'the') + ' hold.{/}'], 180);
@@ -1055,7 +1060,7 @@
     // thrown, a weapon with the thrown property; no ability modifier on its damage unless negative, or the style (R.offhandDamage). Pyro's maces are his script's: a mace is not light
     var twO = u.src && u.src.equip && u.offhand && !u.offhandSheathed && !u.offhandThrown ? window.DS.R.twoWeapon(u.src) : null;
     if (twO && twO.ok) { var reachO = this.foeInReach(u), thrO = Battle.offThrow(u); out.push({ id: 'offhand', label: 'OFF HAND: ' + u.offhand.name.toUpperCase(), cost: 'B', icon: u.offhand.icon || 'attack', ok: !!T.attackAction && !!T.attacked && T.bonus > 0 && !T.offhandDone && (reachO || !!thrO) && !u.conds.disarmed, why: !T.attackAction || !T.attacked ? 'after the Attack action' : T.offhandDone || !(T.bonus > 0) ? 'the bonus action is spent' : 'no foe in reach' + (thrO ? ' or in throwing range' : ''), tool: 'offhand', note: 'the bonus action: ' + u.offhand.dice + RU.sign(window.DS.R.offhandDamage(u.src, window.DS.R.item(u.src.equip.offhand)).mod) + ' ' + u.offhand.type + (twO.by === 'symmetric' ? ' (Symmetric Fighting)' : '') }); }
-    if (u.conds.restrained) out.push({ id: 'breakfree', label: 'BREAK FREE', cost: 'A', ok: T.action > 0 && !T.attacksLeft, icon: 'free' });
+    if (u.conds.restrained && !u.conds.restrained.pin) out.push({ id: 'breakfree', label: 'BREAK FREE', cost: 'A', ok: T.action > 0 && !T.attacksLeft, icon: 'free' });
     var spells = D.magic.list(this, u);
     if (spells.length) out.push({ id: 'spells', label: 'SPELLS', cost: 'A', ok: spells.some(function (e) { return e.ok; }), sub: 'spells', icon: 'spell' });
     var items = this.itemList(u);
@@ -1159,6 +1164,8 @@
     var grT = !u.grappling && D.light.handsFree(u) > 0 && this.units.some(function (w) { return Battle.grabbable(u, w); });
     if (grT) out.push({ id: 'grapple', label: 'GRAPPLE', cost: 'A', ok: (T.action > 0 || T.attacksLeft > 0) && !u.conds.restrained, why: u.conds.restrained ? 'held fast' : 'no attack left', tool: 'grapple', note: 'one attack of the Attack action: a foe beside you, no more than one size larger -- your Athletics against its Athletics or Acrobatics; held, its speed is 0 and yours is halved to drag it' });
     var heldG = Battle.heldBy(this, u);
+    // PIN (Grappler (SRD 5.1, srd/05-feats.md; RULED 10-15, Griz: "1 - lets add grappler.")): the action, a second grapple check -- won, both restrained till the grapple ends; held already, not again
+    if (heldG && Battle.grappler(u) && !(heldG.conds.restrained && heldG.conds.restrained.pin)) out.push({ id: 'pin', label: 'PIN ' + (heldG.side === 'foe' ? shortName(heldG) : heldG.name).toUpperCase(), cost: 'A', ok: T.action > 0 && !T.attacksLeft && !T.attackAction, why: 'the action is spent', icon: 'free', note: 'Grappler: your action, another grapple check -- won, you and it both restrained till the grapple ends' });
     if (heldG) out.push({ id: 'letgo', label: 'LET GO OF ' + (heldG.side === 'foe' ? shortName(heldG) : heldG.name).toUpperCase(), cost: 'F', ok: true, why: '', icon: 'free', note: 'free: your grapple ends' });
     if (shoveT) out.push({ id: 'shove', label: 'SHOVE', cost: 'A', ok: (T.action > 0 || T.attacksLeft > 0) && !u.conds.restrained, why: u.conds.restrained ? 'held fast' : 'no attack left', tool: 'shove', note: 'one attack of the Attack action: a foe in your reach, no more than one size larger, pushed 5 ft away (off an edge, it falls) or knocked prone -- your Athletics against its Athletics or Acrobatics' });
     // PULL IT OFF (SRD 5.1 Darkmantle: "A creature can detach the darkmantle by making a successful DC 13 Strength check as an action" -- any creature, not only
@@ -1728,6 +1735,15 @@
         return;
       }
       case 'letgo': { var lg = Battle.heldBy(this, u); if (lg) this.letGo(u, lg, 'release'); return; }
+      case 'pin': { // (Grappler (SRD 5.1, srd/05-feats.md; RULED 10-15, Griz: "1 - lets add grappler."))
+        var pw = Battle.heldBy(this, u); if (!pw || !Battle.grappler(u) || !(T.action > 0) || T.attacksLeft || T.attackAction || (pw.conds.restrained && pw.conds.restrained.pin)) return; // (the turn's own action: Haste's has no pin in it)
+        T.action = 0;
+        if (yield* D.ai.grappleCheck(this, u, pw, 'PIN')) {
+          pw.conds.restrained = { by: u.id, pin: true }; u.conds.restrained = { by: u.id, pin: true, self: true };
+          this.card(['{y}' + u.name + '{/} pins ' + (pw.side === 'foe' ? Battle.nm(pw, true) : pw.name) + ': {o}both RESTRAINED{/}  {g}(till the grapple ends: LET GO, or it breaks free){/}'], 260);
+        }
+        return;
+      }
       case 'help': {
         if (!c.target) return;
         D.sfx('buff');
