@@ -2,6 +2,9 @@
 
 What landed, newest first, one line each: **date · commit · lane · one sentence · his word** when there is one. **A line is a line** (RULED 10-06, on a consult and its fork: 20 of the first 55 ran past 400 characters): the hash, one sentence of what, his words verbatim; the files, the numbers and the why are the bolt's and the commit's. The lines before this rule stand as written. A lane is a live handoff at `..\handoff-*.md`, named by its title (the table at the head of the todo is the list); "the house" is the gate, the build and the repo. When an item lands it is cut from its lane and from `..\dragonsleep-todo-2026-10-03.md` and written here (RULED 2026-10-06, Griz: *"I'm on board"*). The story of each line is in the bolt (`..\weaving-room\dragonsleep-8bit.md`); before 2026-10-03, `git log` and the bolt are the record. A line is never edited once written. A ruling that something stays as it is gets a line too, marked `ruled`.
 
+## 2026-10-16
+- 2026-10-16 · `ba8c782` `c3fa0d7` `85cfd26` · the Snoot mode · The Gray Keeping's matriarchs: the death-watch's Eldest a Super-hero (Book I's Patriarch, -1 on the Fantasy table) who prays Insect Plague and Entangle on the moot once a day, the band's Lama who Blesses, clerics with the young blood, all praying only where a relic is; on the grid clerics 9 and 6 of the Keeping; eyes rows `eyes-snoot-matriarchs-1016`, `eyes-matriarchs-grid-1016` · *"all 8 leans are go"*
+
 ## 2026-10-15
 - 2026-10-15 · ruled · the grid's rules · Lair actions wait for the road's 16-bit pass next week (the SRD 5.1 has the rule, no monster with any; the aboleth's are the MM's) · *"Lair actions for the 16 bitting of the road next week."*
 - 2026-10-15 · `b28b15e` · the Snoot mode · The ranger joins the Snoot's `V.FULL8`, so Newland's crossbows face NE and NW truly (the page's check RED on the old view.js, GREEN now)
