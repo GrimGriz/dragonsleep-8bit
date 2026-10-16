@@ -2898,6 +2898,14 @@
       ok15('§2.20 the steel mirror at a basilisk-gazed goblin in bright light: on the list ' + !!(mi9 && mi9.ok) + ', a target ' + ok9 + '; held up, it turns its gaze on itself ' + /turns its gaze on itself/.test(l9c) + ', its own stone begun ' + !!g9.conds.stoning + ', the mirror kept (' + kept9 + ') (want true, true, true, true, 1)', !!(mi9 && mi9.ok) && ok9 && /turns its gaze on itself/.test(l9c) && !!g9.conds.stoning && kept9 === 1);
       g9.gaze.mirror = false;
       ok15('§2.20 and a gazer with no `mirror` (the medusa: the SRD gives it none) is no target: ' + !B9.itemTargetOK(f9, 'mirror', g9), !B9.itemTargetOK(f9, 'mirror', g9));
+      // THE DOMINATE MARK (10-15, his "dominate I'd like something like beholda has that shows the target dominated"): Beholda's spiral over the head (js/looks.js LK.domSpiral) on
+      // Dominate Person's creature while the spell holds it, the charm's pink not; gone when the concentration ends
+      var B10 = mk15('?npc=wizard:9&lvl=9&vs=fighter:7'), w10 = side15(B10, 'foe')[0], f10 = side15(B10, 'party')[0];
+      f10.hp = f10.maxhp = 300; f10.conds = {}; w10.x = f10.x; w10.y = Math.max(0, f10.y - 6); D.rules.startTurn(w10); w10.slots[4] = 2; B10.active = w10;
+      D.d = function (n) { return n === 20 ? 2 : n; }; try { run15(M15.cast(B10, w10, 'dominateperson', 5, f10)); } finally { D.d = d015; }
+      var cv10 = document.createElement('canvas'); cv10.width = cv10.height = 64; var cx10 = cv10.getContext('2d'), sp10 = 0, f0s = D.looks.domSpiral; D.looks.domSpiral = function () { sp10++; return f0s.apply(this, arguments); };
+      try { D.looks.over(cx10, B10, f10, { x: 32, y: 60 }); var on10 = sp10, dm10 = !!f10.dominated; if (M15.endConc) M15.endConc(B10, w10, 'bench'); sp10 = 0; D.looks.over(cx10, B10, f10, { x: 32, y: 60 }); var off10 = sp10; } finally { D.looks.domSpiral = f0s; }
+      ok15('THE DOMINATE MARK: the fighter dominated (' + dm10 + '), the spiral drawn ' + on10 + ' time(s); the spell ended (' + !f10.dominated + '), drawn ' + off10 + ' (want true, 1, true, 0)', dm10 && on10 === 1 && off10 === 0 && !f10.dominated);
       ok15('§2.21 a hand\'s THROW: on the ring ' + !!(thC && thC.ok) + ' (' + (thC ? thC.label : 'none') + '), 20 ft at the goblin: ' + left0 + ' to ' + left1 + ' left, a throw on the log ' + /Handaxe/i.test(l6) + ' (want true, 2 to 1)', !!(thC && thC.ok) && left0 === 2 && left1 === 1 && /Handaxe/i.test(l6));
     } catch (e15) { rep15.errors.push(String(e15 && e15.stack || e15).slice(0, 900)); D.d = d015; }
     if (errs.length) rep15.errors = rep15.errors.concat(errs);

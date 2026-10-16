@@ -1523,15 +1523,7 @@
       if (!u || u.hp <= 0 || u.dead) return;
       var c = u.conds || {}, t = B.t || 0, top = D.spr.unitTop(u), hx = p.x, hy = p.y - top - 6;
       // (the bubble's film round its maker is gone: the one dome over the whole reach is its skin now -- drawDome, above)
-      if (c.dominated) { // a turning spiral over the head, violet and white, the gaze still in it
-        ctx.save();
-        for (var k = 0; k < 22; k++) {
-          var a = -t / 6 + k * 0.62, rr2 = 0.6 + k * 0.32, sx = Math.round(hx + Math.cos(a) * rr2 * 1.3), sy = Math.round(hy - 4 + Math.sin(a) * rr2 * 0.8), big = k > 12 ? 2 : 1;
-          ctx.fillStyle = '#1a0526'; ctx.fillRect(sx - 1, sy - 1, big + 2, big + 2);
-          ctx.fillStyle = k % 3 ? '#c77dff' : '#ffffff'; ctx.fillRect(sx, sy, big, big);
-        }
-        ctx.restore();
-      }
+      if (c.dominated) LK.domSpiral(ctx, hx, hy, t); // a turning spiral over the head, violet and white, the gaze still in it (js/looks.js since 10-15: the spell's dominated wear it too)
       if (c.taunted) { // a red "!" beside the head: it has eyes for him alone
         var tx = Math.round(hx + 8), ty = Math.round(hy - 9) + (Math.floor(t / 12) % 2);
         ctx.save(); ctx.fillStyle = '#1a0507'; ctx.fillRect(tx - 1, ty - 1, 4, 8); ctx.fillRect(tx - 1, ty + 7, 4, 4);

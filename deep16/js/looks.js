@@ -689,6 +689,17 @@
   };
 
   // after the figure: the marks of what is on it, small, over the head or about the body
+  // the dominated's spiral (Beholda's, 10-07; the spell's since 10-15): twenty-two motes turning out from the middle over the head, every third white, each ringed dark.
+  // (x, y): the top of the head, as js/mpmon.js measures it
+  LK.domSpiral = function (ctx, x, y, t) {
+    ctx.save();
+    for (var k = 0; k < 22; k++) {
+      var a = -t / 6 + k * 0.62, rr2 = 0.6 + k * 0.32, sx = Math.round(x + Math.cos(a) * rr2 * 1.3), sy = Math.round(y - 4 + Math.sin(a) * rr2 * 0.8), big = k > 12 ? 2 : 1;
+      ctx.fillStyle = '#1a0526'; ctx.fillRect(sx - 1, sy - 1, big + 2, big + 2);
+      ctx.fillStyle = k % 3 ? '#c77dff' : '#ffffff'; ctx.fillRect(sx, sy, big, big);
+    }
+    ctx.restore();
+  };
   LK.over = function (ctx, B, u, p) {
     var c = u.conds, t = B.t, top = D.spr.unitTop(u), hx = p.x, hy = p.y - Math.max(top, LK.flameTop(u, B)) - 11, E; // (the marks over the head clear of a smouldering troll's flames: LK.flameTop, 10-07)
     if (u.hp <= 0) { if (c.oiled && !u.dead) oilMarks(ctx, B, u, p, top); return; } // (down at 0: ui.js asks only for the oil -- 10-06, a troll oiled where it lies)
@@ -719,8 +730,13 @@
     if (c.slowed || c.lethargic) { E = FX.EL.thunder; var dp = (t * 0.3) % 24; ctx.globalAlpha = 1 - dp / 24; px(ctx, p.x + 6, p.y - top * 0.6 + dp, E.c[2], 2); ctx.globalAlpha = 1; }
     // frightened: sweat and a shiver
     if (c.frightened || c.feared || c.turned || c.fearScale) { E = FX.EL.shadow; for (var f = 0; f < 2; f++) { var fp = (t * 0.8 + f * 10) % 20; ctx.globalAlpha = 1 - fp / 20; px(ctx, hx - 7 + f * 14, hy + 6 + fp * 0.6, FX.EL.cold.c[1], 2); } ctx.globalAlpha = 1; }
+    // DOMINATED (10-15, Griz: "dominate I'd like something like beholda has that shows the target dominated"): Dominate Person, Beast or Monster's creature wears Beholda's
+    // own mark -- the turning spiral over the head, violet and white (her Baleful Gaze's, js/mpmon.js) -- for as long as the spell holds it (u.dominated: js/grimoire.js), in
+    // place of the charm's pink
+    var domS = u.dominated && c.charmed && c.charmed.dominated;
+    if (domS) LK.domSpiral(ctx, hx, p.y - top - 6, t);
     // charmed, hypnotized, confused, laughing, commanded: pink turning over the head
-    if (c.charmed || c.hypnotized || c.confused || c.laughing || c.commanded) { E = FX.EL.charm; for (var s2 = 0; s2 < 6; s2++) { var an = t / 8 + s2 * 0.9, r = 2 + s2 * 1.1; px(ctx, hx + Math.cos(an) * r, hy + Math.sin(an) * r * 0.5, s2 % 2 ? E.c[1] : E.c[2], 2); } }
+    if ((c.charmed && !domS) || c.hypnotized || c.confused || c.laughing || c.commanded) { E = FX.EL.charm; for (var s2 = 0; s2 < 6; s2++) { var an = t / 8 + s2 * 0.9, r = 2 + s2 * 1.1; px(ctx, hx + Math.cos(an) * r, hy + Math.sin(an) * r * 0.5, s2 % 2 ? E.c[1] : E.c[2], 2); } }
     // stunned: stars round the head
     if (c.stunned) { E = FX.EL.lightning; for (var st = 0; st < 3; st++) { var sa = t / 10 + st * 2.1; px(ctx, hx + Math.cos(sa) * 9, hy + 3 + Math.sin(sa) * 3, E.c[1], 2); px(ctx, hx + Math.cos(sa) * 9, hy + 3 + Math.sin(sa) * 3 - 2, E.c[0]); } }
     // poisoned, sickened: green bubbles; acid on it: drips
