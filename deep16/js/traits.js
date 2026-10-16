@@ -664,7 +664,45 @@
     if (a.atk) { var at = legAtk(L, a); if (!at) return []; var rng = at.ranged ? at.range[1] : G.reachOf(L, at.reach); return B.units.filter(function (w) { return G.hostile(L, w) && G.standing(w) && !w.object && G.dist(L, w) <= rng && M.sees(B, L, w) && (!at.ranged || G.los(L, w).clear) && !RU.charmedBy(L, w); }); }
     if (a.detect) return B.units.some(function (w) { return G.hostile(L, w) && G.standing(w) && w.conds.hidden; }) ? [null] : [];
     if (a.drain) return B.units.filter(function (w) { return G.standing(w) && w.conds.charmed && w.conds.charmed.by === L.id; });
+    if (a.cast) return legCastTargets(B, L, a);
+    if (a.call) return legCallers(B, L, a).length ? [null] : [];
     return [];
+  }
+  // two kinds more (10-16, the Snoot lane on Griz's "approve 3 leans above": the Gray Keeping's Eldest a boss on the grid -- data/foes.js gnollmatriarcheldest):
+  // `cast: '<spell id>'` -- a cantrip as a legendary action, at a foe it sees in the spell's range, its action and bonus action kept (the SRD's legendary
+  // spellcasters, the lich's and the mummy lord's, "cast a cantrip"-shaped); `call: <ft>` -- RHOLLOR'S CALL (ours, invented.json #gray-keeping-matriarchs):
+  // she cackles (her sheet's `cackle` row, ART-68's Laugh), and each of her kind within that many feet who can hear it spends its reaction to move up to
+  // half its speed toward the nearest foe and make one melee attack
+  function legCastTargets(B, L, a) {
+    var sp = D.SPELLS && D.SPELLS[a.cast]; if (!sp || !(L.known || []).length && !a.free) return [];
+    return B.units.filter(function (w) { return G.hostile(L, w) && G.standing(w) && !w.object && G.dist(L, w) <= (sp.range || 60) && M.sees(B, L, w) && G.los(L, w).clear && !RU.charmedBy(L, w); });
+  }
+  function legMelee(w) { if (w.weapon && !w.weapon.ranged) return w.weapon; var ks = Object.keys(w.attacks || {}).filter(function (k) { var at = w.attacks[k]; return at && !at.ranged && !at.spell; }); return ks.length ? w.attacks[ks[0]] : null; }
+  function legCallers(B, L, a) {
+    var kin = function (w) { return /^gnoll/.test(w.kind || '') && w.kind !== L.kind; };
+    return B.units.filter(function (w) {
+      if (w === L || G.hostile(L, w) || w.side !== L.side || !kin(w) || !G.standing(w) || !RU.canAct(w) || w.reaction === 0 || G.dist(L, w) > a.call || !legMelee(w)) return false;
+      var half = Math.floor((w.speed || 30) / 2), at = legMelee(w);
+      return B.units.some(function (t) { return G.hostile(w, t) && G.standing(t) && !t.object && G.dist(w, t) <= half + G.reachOf(w, at.reach); });
+    });
+  }
+  function* legCall(B, L, a) {
+    var cs = legCallers(B, L, a);
+    if (D.spr && D.spr.anim(L.sheet, 'cackle')) { L.anim = 'cackle'; L.animT = B.t; }
+    D.sfx('gnollaugh'); FX.ring(L, 'moss', 30);
+    B.card(['{r}' + Nm(B, L) + '{/} throws back her head and cackles: {y}Rhollor\'s Call{/}. ' + cs.length + ' of the death-watch answer it.'], 260); yield 40;
+    for (var i = 0; i < cs.length && !B.over(); i++) {
+      var w = cs[i], at = legMelee(w); if (!G.standing(w) || !at) continue;
+      var t = B.units.filter(function (x) { return G.hostile(w, x) && G.standing(x) && !x.object; }).sort(function (p, q) { return G.dist(w, p) - G.dist(w, q); })[0]; if (!t) break;
+      w.reaction = 0;
+      var reach = G.reachOf(w, at.reach), half = Math.floor((w.speed || 30) / 2);
+      if (G.dist(w, t) > reach) {
+        var t0 = w.turn; w.turn = { move: half, action: 0, bonus: 0, disengaged: false }; // (outside its own turn: a move of its own for the call, its turn's left as it was)
+        try { var rm = G.reach(w, half), e = AI.approach(w, t, rm, reach), path = e && G.path(rm, e.x, e.y); if (path && path.length) yield* B.moveAlong(w, path, { spend: true }); } finally { w.turn = t0; }
+      }
+      if (G.standing(w) && G.standing(t) && G.dist(w, t) <= reach) { yield* B.attack(w, t, at); w.anim = 'idle'; }
+    }
+    L.anim = 'idle';
   }
   function* legAsk(B, L) {
     var picks = [], opts = [];
@@ -685,6 +723,8 @@
         if (t) v = 2;
       } else if (a.detect) { if (B.units.some(function (w) { return G.hostile(L, w) && G.standing(w) && w.conds.hidden; })) v = 1; }
       else if (a.drain) { t = B.units.filter(function (w) { return G.standing(w) && w.conds.charmed && w.conds.charmed.by === L.id; })[0]; if (t) v = 3 * c; }
+      else if (a.cast) { t = legCastTargets(B, L, a).sort(function (p, q) { return p.hp - q.hp; })[0]; if (t) v = 1.8; } // (a cantrip a shade under a blow in reach: the staff first when it can)
+      else if (a.call) { var n = legCallers(B, L, a).length; if (n >= 2) v = 1.5 * n; } // (worth its two when three or more answer it)
       if (v > 0 && (!best || v / c > best.v / best.c)) best = { act: a, t: t, v: v, c: c };
     });
     return best;
@@ -693,6 +733,8 @@
     var a = p.act;
     if (a.atk) { yield* B.attack(L, p.t, legAtk(L, a)); L.anim = 'idle'; return; }
     if (a.detect) { var a0 = L.turn ? L.turn.action : 0; yield* B.search(L); if (L.turn) L.turn.action = a0; return; }
+    if (a.cast) { var ca = L.turn ? L.turn.action : 0, cb = L.turn ? L.turn.bonus : 0; yield* M.cast(B, L, a.cast, 0, p.t); if (L.turn) { L.turn.action = ca; L.turn.bonus = cb; } L.anim = 'idle'; return; }
+    if (a.call) { yield* legCall(B, L, a); return; }
     if (a.drain) {
       var r = D.roll(a.drain.dice), was = p.t.hp; B.hurt(p.t, r.total, a.drain.type || 'psychic', { magic: true }); var took = Math.max(0, was - p.t.hp), back = took ? B.heal(L, took) : 0;
       B.card(['{r}' + Nm(B, L) + '{/} drains ' + Nm(B, p.t) + ': ' + a.drain.dice + ' = ' + r.total + ' ' + (a.drain.type || 'psychic') + (back ? ', and it heals ' + back : '')], 240);

@@ -291,7 +291,11 @@
     // a sheet's `srd`: the SRD's reading of it everywhere but the story, which keeps its own (the cloaker's grip, an egg -- RULED 10-06, Griz: "Story Cloaker is riding
     // as is for the time being, it's an easter egg one. Cloaker's that are used in the Pocket DM should match SRD")
     if (d && d.srd && !this.isStory()) d = Object.assign({}, d, d.srd);
-    if (d.build && D.npc && D.npc.NAMED[d.build]) return D.npc.fromFoe(this, f, d); // (a named caster built by its class: js/classes.js)
+    if (d.build && D.npc && D.npc.NAMED[d.build]) { // (a named caster built by its class: js/classes.js)
+      var nb = D.npc.fromFoe(this, f, d);
+      ['legendary', 'legendaryResist'].forEach(function (k) { if (d[k] != null) nb[k] = JSON.parse(JSON.stringify(d[k])); }); // (the Gray Keeping's Eldest, 10-16: a class-built boss keeps her sheet's legendary actions)
+      return nb;
+    }
     var u = this.makeFoe0(f, d);
     // the bestiary's traits (js/traits.js): the sheet's own, carried on the unit
     if (D.traits) D.traits.FIELDS.forEach(function (k) { if (d[k] != null) u[k] = JSON.parse(JSON.stringify(d[k])); });

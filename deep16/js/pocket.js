@@ -98,7 +98,7 @@
   // ------------------------------------------------------------------ the pot, and the roll (his: "randomly put in monsters we have in existence that add up to that CR")
   // out: the story's named (Talmok, Torvald, Hask, the Keeper), the familiars, CR 0; Willem and Amara only when not in the party ("throw in
   // willem and amara if they aren't in the player's party"); a thing bound to water only where the map has water
-  PK.NAMED_OUT = ['talmok', 'torvald', 'hask', 'keeper', 'keeperold', 'gnollmatriarcheldest', 'gnollmatriarchlama']; // (keeperold: the ladder's old Keeper, data/foes.js -- 10-03; the Gray Keeping's matriarch-clerics, the Snoot's -- 10-16)
+  PK.NAMED_OUT = ['talmok', 'torvald', 'hask', 'keeper', 'keeperold', 'gnollmatriarcheldest', 'gnollmatriarchlama', 'gnollmatriarchguard']; // (keeperold: the ladder's old Keeper, data/foes.js -- 10-03; the Gray Keeping's matriarch-clerics, the Snoot's -- 10-16)
   PK.pot = function (partyWords, mapId, dm) {
     var keys = (partyWords || []).map(PK.baseKey), def = D.MAPS[mapId], water = def ? def.rows.join('').indexOf('~') >= 0 : false;
     return Object.keys(D.FOES).filter(function (k) {

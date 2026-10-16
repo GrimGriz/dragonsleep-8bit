@@ -932,13 +932,24 @@ window.D16.FOES.gloryseekergray = Object.assign({}, window.D16.FOES.gloryseeker,
 window.D16.FOES.gnollmatriarch = Object.assign({}, window.D16.FOES.gnoll, { name: 'Matriarch', sheet: 'gnollmatriarch_p1', seatAs: 'gnoll',
   src: window.D16.FOES.gnoll.src + '; a matriarch of the Gray Keeping\'s death-watch (the Snoot mode, 10-16): the same block' });
 window.D16.FOES.gnollmatriarcheldest = {
-  named: true, name: 'The Eldest', type: 'humanoid', sheet: 'gnollmatriarch_p1', cr: '6', ac: 14, hp: 66, speed: 30, size: 1, reach: 5, darkvision: 60, seatAs: 'gnoll',
+  named: true, name: 'The Eldest', type: 'humanoid', sheet: 'gnollmatriarch_p1', cr: '9', ac: 14, hp: 175, speed: 30, size: 1, reach: 5, darkvision: 60, seatAs: 'gnoll',
   abil: { str: 15, dex: 12, con: 14, int: 10, wis: 18, cha: 12 }, init: 1, perception: 14,
   saves: { str: 2, dex: 1, con: 2, int: 0, wis: 8, cha: 5 },
   attacks: { staff: { name: 'Skull-Staff', atk: 6, dice: '1d6', mod: 2, type: 'bludgeoning', reach: 5 } },
   multi: 1, build: 'matriarch',
+  // a boss on the grid (10-16, Griz: "approve 3 leans above" -- her hit points up, legendary actions, Legendary Resistance; the SRD's rules, js/traits.js; 175 HP
+  // tuned on the bench with her three bodyguards and eight matriarchs: the four at 8 win 25 of 40, 28% of their HP left, about two downs a fight):
+  // the staff, a cantrip, and RHOLLOR'S CALL (ours: she cackles, and the death-watch within 30 ft spends its reactions to close in and strike)
+  legendary: { n: 3, acts: [{ name: 'Skull-Staff', cost: 1, atk: 'weapon' }, { name: 'Sacred Flame', cost: 1, cast: 'sacredflame' }, { name: 'Rhollor\'s Call', cost: 2, call: 30 }] }, legendaryResist: 3,
   src: 'ours (invented.json #gray-keeping-matriarchs): the death-watch\'s eldest, a cleric 9 of the Keeping (js/classes.js NPC.NAMED matriarch) -- OD&D Book I\'s Patriarch of 9th, "Superhero - 1"; this block is her sheet as the class builds it (cleric 9 at the average: 66 HP, AC 14 in a chain shirt)'
 };
+// the death-watch's bodyguards (10-16, Griz: "approve 3 leans above"): OD&D Book II's gnoll king keeps "1-4 bodyguards" who fight as trolls without the
+// regeneration -- the Mane's watch keeps three (tuned: four made it 9 of 20 for the four), the SRD 5.1 Troll's numbers on her sheet, no Regeneration, her size; its
+// claws read as the staff's two blows
+window.D16.FOES.gnollmatriarchguard = Object.assign({}, window.D16.FOES.troll, { name: 'Matriarch of the Watch', type: 'humanoid', sheet: 'gnollmatriarch_p1', size: 1, climbs: 0, regen: 0, seatAs: 'gnoll',
+  attacks: { bite: { name: 'Bite', atk: 7, dice: '1d6', mod: 4, type: 'piercing', reach: 5 }, staff: { name: 'Skull-Staff', atk: 7, dice: '2d6', mod: 4, type: 'bludgeoning', reach: 5 } },
+  multi: ['bite', 'staff', 'staff'],
+  src: 'OD&D Book II (a gnoll king\'s bodyguards "as Trolls" without the regeneration) on the SRD 5.1 Troll (CR 5): AC 15, 84 HP, bite and two blows; ours, invented.json #gray-keeping-matriarchs' });
 window.D16.FOES.gnollmatriarchlama = {
   name: 'Matriarch', type: 'humanoid', sheet: 'gnollmatriarch_p1', cr: '3', ac: 14, hp: 39, speed: 30, size: 1, reach: 5, darkvision: 60, seatAs: 'gnoll',
   abil: { str: 14, dex: 12, con: 13, int: 10, wis: 16, cha: 11 }, init: 1, perception: 13,
