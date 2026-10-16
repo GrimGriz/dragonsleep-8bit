@@ -1,0 +1,202 @@
+{
+ "_readme": {
+  "what": "Playtest feedback from situations.html: one verdict and note a row -- an eyes row (js/eyes.js: built, not yet seen) or a story situation (?at=<id>, js/situations.js).",
+  "fold_back": "Fold every eyes row noted here that is still live in js/eyes.js (a folded row is already cut, so nothing folds twice; previous_save and new_since_last_save only hint at what is new -- RULED 10-15); a story situation note folds when its `at` is after the save of the last ear file folded. An eyes row noted at all is SEEN: a `seen` line in PATCHLOG.md with the note verbatim, and the row cut from js/eyes.js whatever the verdict (a fix that wants another look writes a fresh row). Broken and unclear become the fix list (in the lane its pt names); too hard / too easy are tuning; notes are the tester's words, verbatim."
+ },
+ "saved_at": "2026-10-16T21:39:50.722Z",
+ "previous_save": "2026-10-14T08:25:08.362Z",
+ "items": [
+  {
+   "id": "eyes-axebeak-nes-1008",
+   "eyes": true,
+   "pri": 1,
+   "title": "The axe beak from your NES sheet, in the 8-bit (10-08)",
+   "pt": "the bestiary · the 8-bit battle · eyes",
+   "url": "?at=axebeak8",
+   "verdict": "works",
+   "note": "so good",
+   "at": "2026-10-16T15:19:23.596Z",
+   "new_since_last_save": true
+  },
+  {
+   "id": "eyes-levelpick-1014",
+   "eyes": true,
+   "pri": 1,
+   "title": "The level-up pick: every choice the four make, on one page (10-14)",
+   "pt": "the level-up pick §3 (js/menu.js PickPage, js/rules.js R.levelUp) · eyes",
+   "url": "?at=levelup4",
+   "verdict": "hard",
+   "note": "These button options may not accurately describe the feedback. \nSuperfluous \"Barley chooses next\" box - i.e. why not level barley right then, followed by Aurdin levels up, then leveling him up, etc.\nEach page of selection requires confirm, when  you confirm ability it moves you spell choice selection - or one spell left off auto-suggest. Confirming what you think is stats and miss out on change spell selection out of ignorance feels bad man. \n",
+   "at": "2026-10-16T17:24:21.918Z",
+   "new_since_last_save": true
+  },
+  {
+   "id": "eyes-pocket-levels-1014",
+   "eyes": true,
+   "pri": 1,
+   "title": "The Pocket DM’s level choices: a card’s level arrow asks them; the maker’s increases (10-14)",
+   "pt": "the level-up pick (deep16/js/pocket.js askLevel, askMakerAsi) · eyes",
+   "url": "deep16/?pocket&fresh=1",
+   "verdict": "unclear",
+   "note": "invocation and spell choices prompted during levelup in 'make'\nshould mirror warlock have a different pact?\n\nFeels like we should be able to click on regular premakes and get to the gear page\n\nworks as expected otherwise",
+   "at": "2026-10-16T17:55:16.800Z",
+   "new_since_last_save": true
+  },
+  {
+   "id": "eyes-snoot-zoom-1015",
+   "eyes": true,
+   "pri": 1,
+   "title": "THE SNOOT: the map isometric, and every fight the map flying down into its hex (10-15)",
+   "pt": "the Snoot mode §15 (snoot-mode/js/view.js, show.js) · eyes",
+   "url": "snoot-mode/?watch&bench&fresh",
+   "verdict": "works",
+   "note": "needs tied to the main menu options for AI slowdown & screen scale adjustment\nCouldn't figure out where to look to see the formation indicators\nI think we can animate the scatter (units turn and run in all directions)",
+   "at": "2026-10-16T20:31:11.093Z",
+   "new_since_last_save": true
+  },
+  {
+   "id": "eyes-snoot-forms-1015",
+   "eyes": true,
+   "pri": 1,
+   "title": "THE SNOOT: formation and facing by hand -- line, column, square, the flank and the rear (10-15)",
+   "pt": "the Snoot mode §15 (snoot-mode/js/rules.js, ui.js) · eyes",
+   "url": "snoot-mode/?fresh",
+   "verdict": "works",
+   "note": "didn't see the 'computer writes' part on those from the verge (saw it on enemies) - looks like clicking on the barbarians revealed the turn the computer had written for them (visible move arrows)\n\nI think we can communicate the pop-up information in symbols or short-hand with color. Threat indicators or something, discuss, suggest, compare with civilization games\n\nDiscuss combining problems and possibilities, pros and cons",
+   "at": "2026-10-16T20:48:06.418Z",
+   "new_since_last_save": true
+  },
+  {
+   "id": "eyes-snoot-ring-1015c",
+   "eyes": true,
+   "pri": 1,
+   "title": "THE SNOOT: the ring of commands, the camera a step closer, the ground past the edge, the stacks in formation; AVOID, surprise, the road bonus (10-15)",
+   "pt": "the Snoot mode §15 (snoot-mode/js/view.js, ui.js, rules.js) · eyes",
+   "url": "snoot-mode/?fresh",
+   "verdict": "",
+   "note": "can we smooth out arrow panning - more steps (automated, same functionality (one arrow per hex pan))\nDiscuss mapping unit ring menu to the one the player is used to\nwith rotation outside of the mapped ring - rotation symbols at like 11:30 and 1:30 if the ring is a clock\nDoes hold do anything (combat bonus) outside of fortifications (tarlyns pit)\n\n\non hex-hover:  Marching to open ground, no fight on the way if you hold. I thought hold was separate from move, and if they're moving they aren't holding... please teach me the game better\n\nNewland Road patrol can't square?\n\nshould we lock combat over days?\n\n",
+   "at": "2026-10-16T21:02:40.352Z",
+   "new_since_last_save": true
+  },
+  {
+   "id": "eyes-snoot-matriarchs-1016",
+   "eyes": true,
+   "pri": 1,
+   "title": "THE SNOOT: the Gray Keeping's matriarchs pray -- Insect Plague, Entangle, Bless (10-16)",
+   "pt": "the Snoot mode §18 (snoot-mode/js/rules.js SN.pray; show.js the pray beat) · eyes",
+   "url": "snoot-mode/?watch&bench&seed=8&fresh",
+   "verdict": "unclear",
+   "note": "We have better for entangle visuals on the grid? Runs a little fast to discern the stuff I'm watching for.",
+   "at": "2026-10-16T21:08:07.743Z",
+   "new_since_last_save": true
+  },
+  {
+   "id": "eyes-eldest-boss-1016",
+   "eyes": true,
+   "pri": 1,
+   "title": "The Eldest, a boss on the grid: the whole death-watch against the four at 8 -- legendary actions, Rhollor's Call, three bodyguards (10-16)",
+   "pt": "the Snoot mode §18 (deep16/data/foes.js gnollmatriarcheldest, gnollmatriarchguard; js/traits.js the `cast` and `call` legendary kinds; js/battle.js makeFoe) · eyes",
+   "url": "deep16/?npc=gnollmatriarcheldest,gnollmatriarchguard,gnollmatriarchguard,gnollmatriarchguard,gnollmatriarch,gnollmatriarch,gnollmatriarch,gnollmatriarch,gnollmatriarch,gnollmatriarch,gnollmatriarch,gnollmatriarch&lvl=8&fresh=1",
+   "verdict": "works",
+   "note": "She had hold person in the bag and didn't use it until 3 of the party were down",
+   "at": "2026-10-16T21:21:35.613Z",
+   "new_since_last_save": true
+  },
+  {
+   "id": "eyes-snoot-call-1015f",
+   "eyes": true,
+   "pri": 1,
+   "title": "THE SNOOT from the road: the mission after the Skylights, the runner at the Halfway Inn (10-15)",
+   "pt": "the Snoot mode §17 (js/deep.js S.skylights, js/events.js S.snootCall, content/quests.json thesnoot) · eyes",
+   "url": "?at=snootcall",
+   "verdict": "works",
+   "note": "yeah, but the patrol ladies only eldritch blasted",
+   "at": "2026-10-16T21:31:47.883Z",
+   "new_since_last_save": true
+  },
+  {
+   "id": "eyes-offhand-1015",
+   "eyes": true,
+   "pri": 1,
+   "title": "The OFFHAND in SHIEL\u0001’s place: a shield, a weapon or the light, both games (10-15)",
+   "pt": "the menus §2.5 (js/menu.js OFFHAND, js/rules.js R.offhandOf; deep16/js/light.js, battle.js gearOptions) · eyes",
+   "url": "?at=offhand",
+   "verdict": "works",
+   "note": "is it ever lanterns? do we have other offhand items?\n\nmessages on dagger and shortsword (the longsword+2 is not light) but let me equip just fine\ndidn't seem to be a greatsword to test equpping two hand removal.. (barley's thresh worked, unequipped offhand)\n\n",
+   "at": "2026-10-16T21:39:41.796Z",
+   "new_since_last_save": true
+  },
+  {
+   "id": "wet",
+   "eyes": false,
+   "pri": 4,
+   "title": "The Wet: the bucket and the landlord",
+   "pt": "§5 the wet · the landlord's pictures (new 10-01)",
+   "url": "?at=wet",
+   "verdict": "works",
+   "note": "This works. I think we made it such that no one can to this spot in the 8-bit without already being pulled on to the grid (check to make sure). We should put a light nearby the bucket and double check the sprite we're using to make it more a visible draw on the grid. The tiles around the Landlords pool should be switched to solid stone. ",
+   "at": "2026-10-04T05:23:43.178Z",
+   "new_since_last_save": false
+  },
+  {
+   "id": "wet3",
+   "eyes": false,
+   "pri": 4,
+   "title": "The gates down to the wet, at level 3",
+   "pt": "§5 the wet · §3 battle feel (new 10-03)",
+   "url": "?at=wet3",
+   "verdict": "unclear",
+   "note": "No encounters between town and warrens. Running back and forth on the road and got 2 giant rats. \nNo encounters in the mine until down in the wet itself. There either are not exit squares in the fight with the landlord, or party members are not allowed to use the flee under action (not on wheel). ",
+   "at": "2026-10-04T05:24:47.498Z",
+   "new_since_last_save": false
+  },
+  {
+   "id": "gulch",
+   "eyes": false,
+   "pri": 4,
+   "title": "Web Gulch: the strung end",
+   "pt": "§7 the braiding ettercap · §11 the snared traveler",
+   "url": "?at=gulch",
+   "verdict": "works",
+   "note": "",
+   "at": "2026-10-04T05:30:38.432Z",
+   "new_since_last_save": false
+  },
+  {
+   "id": "cloaker",
+   "eyes": false,
+   "pri": 4,
+   "title": "The guano slide and the cloaker",
+   "pt": "§6 the cloaker · §11 guano slide",
+   "url": "?at=cloaker",
+   "verdict": "works",
+   "note": "",
+   "at": "2026-10-04T05:30:46.273Z",
+   "new_since_last_save": false
+  },
+  {
+   "id": "roost",
+   "eyes": false,
+   "pri": 4,
+   "title": "Under the roost",
+   "pt": "§6 the one law · §11/§12 NOT THIS KIND OF NAME",
+   "url": "?at=roost",
+   "verdict": "works",
+   "note": "",
+   "at": "2026-10-04T05:34:59.719Z",
+   "new_since_last_save": false
+  },
+  {
+   "id": "cradle",
+   "eyes": false,
+   "pri": 4,
+   "title": "A shift at the cradle",
+   "pt": "§13 the cradle, rebuilt",
+   "url": "?at=cradle",
+   "verdict": "works",
+   "note": "",
+   "at": "2026-10-04T05:35:12.626Z",
+   "new_since_last_save": false
+  }
+ ]
+}
