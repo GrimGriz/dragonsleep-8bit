@@ -30,6 +30,9 @@ and gets up through Prone 2). E and W keep sheet 1's rows, S and N keep sheets 3
 climb stays as it was (no climb was drawn). Each page scaled by area against the views beside it and toned in HSV to the side rows (scales25).
 ART-26 (10-15): the sergeant's six pages, deep16/_src/hobsergeant/ART-26/ (its ART-26-MANIFEST.md), the same heads and rows with Longsword 2
 (`longsword2`, its second blow in a turn) in the Longbow's place on the page 1s; cut, scaled and toned the same way (PAGES26, DELIVERY).
+Its SE redrawn the same evening (ART-26-SE-REDRAW, his "had it try SE again": the first SE read as a profile beside E): three pages,
+Idle and Walk / Longsword, Longsword 2 and Martial Advantage / Flinch, Fall and Prone, drawn more front-on, replace HEAD 1 whole; each
+later page scaled by the guard frames it names (`guard`) against its page 1's idle.
 """
 import os, sys, json, subprocess, tempfile
 import importlib.util
@@ -187,19 +190,27 @@ PAGES = {
 # ART-26 (10-15): the art desk's six pages for the sergeant, deep16/_src/hobsergeant/ART-26/ (its ART-26-MANIFEST.md; the desk's papers in
 # _src/art-desk/received-2026-10-14-ART-26/), read the same way; its page 1s draw Longsword 2 (`longsword2`) where the hobgoblin's draw the Longbow
 ART26 = os.path.join(SRC, 'hobsergeant', 'ART-26')
+ART26SE = os.path.join(SRC, 'hobsergeant', 'ART-26-SE-REDRAW')
 PAGES26 = {
-  'H1P1': dict(file='ART-26_HEAD-1_PAGE-1.png',                                                     # SE: Idle 6, Walk 8, Longsword 6, Longsword 2 6
-               names=[(18, 120, 87, 153), (18, 346, 105, 377), (18, 588, 189, 626), (18, 791, 206, 829)],
-               rows=[('idle', (262, 281), [281, 482, 685, 866, 1054, 1242]),
-                     ('walk', (489, 508), [228, 386, 547, 705, 876, 1052, 1233, 1413]),
-                     ('longsword', (741, 760), [281, 480, 676, 864, 1070, 1275]),
-                     ('longsword2', (968, 986), [280, 488, 685, 901, 1114, 1300])]),
-  'H1P2': dict(file='ART-26_HEAD-1_PAGE-2.png',                                                     # SE: Martial Advantage 6, Flinch 4, Fall 6, Prone 2
-               names=[(18, 118, 190, 201), (18, 355, 129, 393), (18, 594, 89, 632), (18, 831, 122, 867)],
-               rows=[('martial', (268, 288), [293, 496, 714, 936, 1161, 1391]),
-                     ('flinch', (524, 543), [268, 523, 735, 948]),
-                     ('fall', (760, 779), [245, 465, 676, 897, 1142, 1381]),
-                     ('prone', (960, 986), [276, 526])]),
+  # HEAD 1 redrawn (10-15, ART-26-SE-REDRAW: his "had it try SE again" -- the first SE read as a profile beside E): three pages in
+  # _src/hobsergeant/ART-26-SE-REDRAW/ (its ART-26-SE-CUTTER-NOTES.md) replace the first two, every SE row; drawn more front-on, both eyes showing
+  'H1P1': dict(file='ART-26_HEAD-1_PAGE-1.png', dir=ART26SE,                                        # SE: Idle 6, Walk 8
+               names=[(18, 152, 122, 203), (14, 500, 152, 550)],
+               rows=[('idle', (399, 425), [261, 518, 777, 1035, 1295, 1554]),
+                     ('walk', (775, 801), [170, 381, 586, 789, 1002, 1206, 1421, 1623])]),
+  'H1P2': dict(file='ART-26_HEAD-1_PAGE-2.png', dir=ART26SE,                                        # SE: Longsword 6, Longsword 2 6, Martial Advantage 6
+               names=[(14, 113, 232, 163), (14, 370, 265, 420), (14, 616, 352, 660)],   # (the g of Advantage ends a row above
+                                                                                                   # Martial Advantage 1's crest)
+               rows=[('longsword', (301, 325), [304, 553, 796, 1053, 1315, 1580]),
+                     ('longsword2', (563, 587), [304, 552, 796, 1054, 1315, 1579]),
+                     ('martial', (837, 863), [304, 550, 786, 1046, 1327, 1584])],
+               guard=[('longsword', 0), ('longsword2', 0), ('martial', 5)]),
+  'H1P3': dict(file='ART-26_HEAD-1_PAGE-3.png', dir=ART26SE,                                        # SE: Flinch 4, Fall 6, Prone 2
+               names=[(14, 113, 148, 158), (16, 366, 101, 411), (16, 664, 144, 708)],
+               rows=[('flinch', (307, 329), [293, 582, 875, 1152]),
+                     ('fall', (596, 621), [229, 492, 748, 1018, 1317, 1594]),
+                     ('prone', (829, 851), [261, 571])],
+               guard=[('flinch', 0), ('flinch', 3)]),
   'H2P1': dict(file='ART-26_HEAD-2_PAGE-1.png',                                                     # NE: the rows of H1P1
                names=[(10, 126, 71, 157), (10, 373, 90, 404), (10, 628, 166, 665), (10, 878, 176, 914)],
                rows=[('idle', (246, 261), [219, 421, 625, 830, 1037, 1244]),
@@ -230,7 +241,8 @@ PAGES26 = {
 DELIVERY = {'hobgoblin': ('ART-25', ART25, PAGES, 'cut25', 'medians'),
             'sergeant': ('ART-26', ART26, PAGES26, 'cut26', 'materials')}
 # a view's pages (a view's row from its page; the S and N pages give only the fall and the prone, the rest of S and N stay sheets 3 and 4's)
-HEADS = {'SE': ('H1P1', 'H1P2'), 'NE': ('H2P1', 'H2P2'), 'S': ('H3P1',), 'N': ('H5P1',)}
+HEAD_VIEW = {'H1': 'SE', 'H2': 'NE', 'H3': 'S', 'H5': 'N'}
+HEADS = lambda pages: {v: tuple(sorted(L for L in pages if HEAD_VIEW[L[:2]] == v)) for v in HEAD_VIEW.values()}
 VIEW = {0: 'S', 1: 'SE', 3: 'NE', 4: 'N', 5: 'NE', 7: 'SE'}  # facing (S SW W NW N NE E SE) -> the drawn view it shows (SW, NW mirrored)
 FLOOR = ('fall',)                                            # the page's fall starts standing: its ground is frame 1's feet (a body lying nearer
                                                              # the eye reaches lower on the page); every other row stands on its lowest point
@@ -317,7 +329,7 @@ def cut25(look, L, check=False):
     import io
     _, folder, pages, tag, _ = DELIVERY[look]
     s = pages[L]
-    a = np.asarray(Image.open(os.path.join(folder, s['file'])).convert('RGB')).astype(np.int32)
+    a = np.asarray(Image.open(os.path.join(s.get('dir', folder), s['file'])).convert('RGB')).astype(np.int32)
     H, W = a.shape[:2]
     text, hand = [tuple(b) for b in s['names']], {}
     for row, (sy0, sy1), xs in s['rows']:
@@ -428,7 +440,7 @@ def toned(im, t):
     return Image.fromarray(a.round().astype(np.uint8), 'RGBA')
 
 
-def scales25(c, K, p, tag='ART-25', how='medians'):
+def scales25(c, K, p, tag='ART-25', how='medians', pages=None):
     """ART-25's K per page (page px a game px) and its tone. No turnaround on the pages: each page's standing hobgoblin by the square root of its
     filled area (the house's way since the hyena: height lies -- the page 2s' guard crouches lower than page 1's idle, the same height and a
     bigger body) against the views beside it at game size: the SE idle to the side idle's and the front idle's geometric mean, the NE idle to
@@ -441,8 +453,11 @@ def scales25(c, K, p, tag='ART-25', how='medians'):
     g = {L: med(c[L]['idle']) / K[L] for L in (1, 3, 4)}                  # the idles' sqrt area at game size: side, front, back
     gf = {L: sq(c[L]['flinch'][0][1]) / K[L] for L in (3, 4)}               # the front's and back's Flinch 1
     k = {'H1P1': med(p['H1P1']['idle']) / np.sqrt(g[1] * g[3]), 'H2P1': med(p['H2P1']['idle']) / np.sqrt(g[1] * g[4])}
-    for L2, L1 in (('H1P2', 'H1P1'), ('H2P2', 'H2P1')):
-        k[L2] = k[L1] * np.mean([sq(p[L2]['martial'][0][1]), sq(p[L2]['flinch'][3][1])]) / med(p[L1]['idle'])
+    for L2 in sorted(p):                                     # a diagonal's later pages: by the guard frames it names (Martial Advantage 1 and Flinch 4
+        if L2[:2] in ('H1', 'H2') and L2 not in k:           # unless it says) against its page 1's idle
+            L1 = L2[:2] + 'P1'
+            g2 = (pages or {}).get(L2, {}).get('guard', [('martial', 0), ('flinch', 3)])
+            k[L2] = k[L1] * np.mean([sq(p[L2][r][i][1]) for r, i in g2]) / med(p[L1]['idle'])
     for L, F in (('H3P1', 3), ('H5P1', 4)):
         k[L] = sq(p[L]['fall'][0][1]) * np.mean([1 / g[F], 1 / gf[F]])
     ref = hsv_median([im for r in ('idle', 'walk', 'longsword') for _, im, _ in c[1][r]])
@@ -475,7 +490,7 @@ def main(check=False):
         art = DELIVERY.get(look)                             # the art desk's pages: ART-25 the hobgoblin's, ART-26 the sergeant's
         if art:
             p = {L: cut25(look, L, check) for L in art[2]}
-            k25, tone = scales25(c, K, p, art[0], art[4])
+            k25, tone = scales25(c, K, p, art[0], art[4], art[2])
             c.update(p); K.update(k25)
         small = {}
         def frames_of(L, row):
@@ -495,7 +510,7 @@ def main(check=False):
             L, row = by if isinstance(by, tuple) else (by, eng)
             per = []
             for f in range(8):                               # facings S SW W NW N NE E SE (deep16/js/sprites.js S.FACINGS)
-                pg = [P for P in (HEADS.get(VIEW.get(f), ()) if art else ()) if row in c[P]]   # (a later page's row replaces)
+                pg = [P for P in (HEADS(art[2]).get(VIEW.get(f), ()) if art else ()) if row in c[P]]   # (a later page's row replaces)
                 per.append(frames_of(pg[-1], row) if pg else frames_of(3, row) if f == 0 and row in E['S'] else
                            frames_of(4, row) if f == 4 and row in E['N'] else frames_of(L, row))
             src[eng] = per
