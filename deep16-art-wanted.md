@@ -239,3 +239,7 @@ ART-29 and its redraw are cut (`gnoll_p2` and `gloryseeker_p2`, `4f83f7d`, `2057
 ## 11. The hyena's NE roll -- IN HAND 2026-10-15 (the art desk's ART-30 supplement 1, cut into `hyena_p2`, `e9c4105`); the block is on `deep16-art-in-hand.md`
 
 ## 12. The Harbinger's last three NE rows -- IN HAND 2026-10-15 (the art desk's ART-31 supplement 1, cut into `mirrorgnoll_p1`, `2cf9c09`, his *"Land them and close."*); the block is on `deep16-art-in-hand.md`
+
+## 14. The hobgoblin's SE, another stab (added 10-15, the art desk)
+
+Griz, 10-15, after his look at ART-25's cut: *"Height is good on the hobgoblin, with the art department for another stab at SE"*. The hobgoblin's SE view (ART-25 HEAD 1, both pages: Idle 6, Walk 8, Longsword 6, Longbow 6; Martial Advantage 6, Flinch 4, Fall 6, Prone 2 -- `hobgoblin_p2`, SW its mirror) is with the art desk again, in his hand; no package was written here. Its size stays (RULED 10-15, same words). When it comes back: Fresh -> `deep16/_src/hobgoblin/`, cut by `tools/hobgoblin-sheet.py` in place of HEAD 1 in a worktree, shown to him new beside old, landed on his pass; the sergeant's sheet stays byte for byte. ART-68 is still the next free number.
