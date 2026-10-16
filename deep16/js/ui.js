@@ -241,10 +241,13 @@
     out.forEach(function (g) { if (g.items && !g.ok) g.why = (g.items[0] && g.items[0].why) || 'nothing there to do now'; });
     return out;
   }
+  // PUT AWAY off both rings (10-15, the menus lane §2.4, Griz: "Remove put-it-away from the menu ring. If they have the action and the bonus to light the torch and click on it,
+  // pop-up confirmation PUT AWAY WEAPON?"): a torch that wants the weapon's hand asks for it (battle.js itemList putAway, exec 'item'); EQUIP's (put it away) keeps it in the M menu
+  function offRing(x) { return x.id !== 'putaway'; }
   UI.cmds = function (B, u) {
     if (D.keeperPlay && D.keeperPlay.human(B, u)) return D.keeperPlay.ring(B, u); // (?keeperfight&play=keeper: the Keeper's own ring -- js/keeperplay.js)
     if (UI.styleOf(u, B) === 'ring2') return cmds2(B, u); // (the ring by cost: a Mascot game's default, or anyone's under RING2 -- below)
-    var c = B.commands(u), top = {}, fronts = [], sk = [], ac = [], cd = [], q = quickSpell(B, u), q2 = quickSpell(B, u, BESIDE), fr = !u.guest && FRONT[u.cls];
+    var c = B.commands(u).filter(offRing), top = {}, fronts = [], sk = [], ac = [], cd = [], q = quickSpell(B, u), q2 = quickSpell(B, u, BESIDE), fr = !u.guest && FRONT[u.cls];
     // (x.skill: a class feature's button from js/features.js F.commands -- Rage, the Channel Divinities, the subclasses' own; a fronted one goes up front, the rest of the skills under SKILLS)
     c.forEach(function (x) { if (CHANNEL[x.id]) { cd.push(x); return; } if ((fr && x.id === fr) || fronted(x)) { fronts.push(x); return; } if (SKILLS[x.id] || x.skill || (q && x.id === 'attack')) (SKILLS[x.id] || x.skill ? sk : ac).push(x); else if (ACTIONS[x.id]) ac.push(x); else top[x.id] = x; });
     if (q) top.attack = q;
@@ -269,7 +272,7 @@
   var FIRST2 = { attack: 1, hide: 1, breakfree: 1, detach: 1, breaktendril: 1, takerope: 1, bucketrope: 1, barreltorch: 1, passage: 1, spells: 1 };
   function poolTag(u, p) { var MP = D.mpmon; if (!MP || u.cls !== 'mpmon' || !MP.left) return ''; var n = MP.left(u, p); return ' · ' + n + (n === 1 ? ' skill' : ' skills') + ' left'; }
   function cmds2(B, u) {
-    var c = B.commands(u), top = {}, fronts = [], A = [], Bn = [], cd = [], q = quickSpell(B, u), q2 = quickSpell(B, u, BESIDE), fr = !u.guest && FRONT[u.cls];
+    var c = B.commands(u).filter(offRing), top = {}, fronts = [], A = [], Bn = [], cd = [], q = quickSpell(B, u), q2 = quickSpell(B, u, BESIDE), fr = !u.guest && FRONT[u.cls];
     c.forEach(function (x) {
       if (CHANNEL[x.id]) { cd.push(x); return; }
       if ((fr && x.id === fr) || fronted(x)) { fronts.push(x); return; }
@@ -747,7 +750,7 @@
   // skills, or magic"): used at once, or the tool that aims it
   function itemAim(B, u, e) {
     // (the bucket and a light are his own: used at once, no target to pick -- 09-30d, Griz: "bucket asks for self-or nearby target like a potion")
-    if (e.use.effect === 'bucket' || e.use.effect === 'light') return UI.command(B, u, { do: 'item', id: e.id, target: u });
+    if (e.use.effect === 'bucket' || e.use.effect === 'light') return UI.command(B, u, { do: 'item', id: e.id, target: u, putAway: !!e.putAway, cost: e.cost }); // (putAway: PUT AWAY WEAPON? asked first -- battle.js exec 'item', 10-15)
     // (the Rope & Grapple: the top of a face to pick -- battle.js Battle.ropeSq, exec 'rope'; 10-04)
     if (e.use.effect === 'rope') { B.tool = 'rope'; B.card(['{g}' + e.name.toUpperCase() + ': the top of a face -- tie it off from up there, or throw the grapple up from below, as far as the rope is long, 50 ft (DEX DC 10 to 30 ft, 2 more each 5 ft past).{/}'], 320); return; }
     B.tool = 'item'; B.itemId = e.id; B.card(['{g}' + e.name + ': ' + (e.id === 'oil' && D.oil ? 'at a foe or a square within 20 ft -- ' + (D.oil.lit(u) ? 'lit at your torch: a hit is 5 fire.' : 'a hit coats it, and the next fire on it burns 5 more; a square, oiled.') : e.use.effect === 'damage' ? 'throw it at a foe within 20 ft.' :e.use.effect === 'revive' ? 'a fallen ally beside you.' : 'yourself, or an ally beside you.') + '{/}'], 240);

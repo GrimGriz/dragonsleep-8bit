@@ -1521,6 +1521,16 @@
       case 'item': {
         // (a click on the hero's own square with an item aimed: asked first, nothing spent on NOT NOW -- 10-05 night, his play: the pie refused on Aurdin, down, then a click on Lymen's own
         // square ate it and his action; ui.js actAt sends askSelf)
+        // a light that wants the weapon's hand (10-15, the menus lane §2.4, Griz: "Remove put-it-away from the menu ring. If they have the action and the bonus to light the torch
+        // and click on it, pop-up confirmation PUT AWAY WEAPON?"): asked first; yes puts the weapon away with the turn's free hand on an object (SRD 5.1: sheathing a sword is
+        // one), then the light takes the action as ever; NOT NOW spends nothing. itemList marks it (`putAway`) only when that free hand is unspent and putting away frees one
+        if (c.putAway && !byAI(u)) {
+          var itP = window.DS.DATA.items[c.id], wpP = u.weapon && u.weapon.name;
+          var okP = yield { prompt: { who: u, title: 'PUT AWAY WEAPON?', lines: [nameOf(u) + ' has no free hand for the ' + (itP ? itP.name.toLowerCase() : 'light') + '.', 'The ' + (wpP || 'weapon').toLowerCase() + ' goes away (the free hand on an object), then it is lit (' + (c.cost === 'B' ? 'the bonus action' : 'the action') + ').'], opts: [{ label: 'PUT AWAY THE ' + String(wpP || 'weapon').toUpperCase(), value: true }, { label: 'NOT NOW', value: false }] } };
+          if (okP !== true) return;
+          yield* this.exec(u, { do: 'putaway' });
+          if (!u.sheathed || !D.light.canLight(this, u, c.id).ok) return;
+        }
         if (c.askSelf && !byAI(u)) { var itS = window.DS.DATA.items[c.id], okS = yield { prompt: { who: u, title: u.name + ': ' + (itS ? itS.name.toUpperCase() : 'THE ITEM') + '?', lines: ['On ' + u.name + '?'], opts: [{ label: 'USE IT ON ' + u.name.toUpperCase(), value: true }, { label: 'NOT NOW', value: 0 }] } }; if (!okS) return; }
         yield* this.useItem(u, c.id, c.target, c); return;
       } // (c: the oil flask's square, c.x/c.y, when it is thrown at the ground -- js/oil.js)
@@ -1530,10 +1540,8 @@
         if (!T.attacksLeft) return;
         T.attacksLeft = 0; D.sfx('cancel'); this.card(['{y}' + u.name + '{/} lets the attack left go.'], 160); return;
       }
-      case 'putaway': { // (the ring's PUT AWAY, 10-05: the weapon kept on u.sheathed, an unarmed strike in its place -- the save's equip untouched)
-        if (u.sheathed || !u.weapon || !u.weapon.id || T.freeObj) return;
-        T.freeObj = true; u.sheathed = u.weapon; u.weapon = D.save.weaponOf(Object.assign({}, u.src, { equip: Object.assign({}, u.src.equip, { weapon: null }) }));
-        D.sfx('confirm'); this.card(['{y}' + u.name + '{/} puts the ' + u.sheathed.name + ' away: a hand free.  {g}(' + u.weapon.name + ' ' + RU.sign(u.weapon.atk) + ', ' + u.weapon.dice + RU.sign(u.weapon.mod) + ' till it is drawn){/}'], 220); return;
+      case 'putaway': { // (PUT AWAY, 10-05: the weapon kept on u.sheathed, an unarmed strike in its place -- the save's equip untouched; off the ring since 10-15, EQUIP's and the torch's ask)
+        this.putAway(u); return;
       }
       case 'drawweapon': { // (DRAW: back in hand -- a hand for it)
         if (!u.sheathed || T.freeObj || D.light.handsFree(u) <= 0) return;
@@ -3161,10 +3169,20 @@
       if (roost && (it.use.effect === 'damage' || (it.use.effect === 'light' && !D.light.isLantern(s.id)))) return { id: s.id, name: it.name, n: s.n, use: it.use, ok: false, why: 'the roost overhead: no fire' };
       if (it.use.effect === 'light') { // a torch (torchdark 09-28), or a lantern (09-29; under a roost it is lit hood down): a free hand, and the action (or the Thief's bonus)
         var cl = D.light.canLight(self, u, s.id), can = (torchFast(u) && T.bonus > 0) || (T.action > 0 && !T.attacksLeft);
-        return { id: s.id, name: it.name, n: s.n, use: it.use, ok: cl.ok && can && !u.guest, why: !cl.ok ? cl.why : can ? '' : 'the action is spent', cost: torchFast(u) && T.bonus > 0 ? 'B' : 'A' };
+        // (no hand only for the weapon, and the turn's free hand on an object unspent: lit with PUT AWAY WEAPON? asked first -- exec 'item' c.putAway; the menus lane §2.4, 10-15)
+        var pa = !cl.ok && !u.guest && !u.sheathed && !T.freeObj && u.weapon && u.weapon.id && u.weapon.id !== 'unarmed' && D.light.canLight(self, Object.assign({}, u, { weapon: null }), s.id).ok;
+        return { id: s.id, name: it.name, n: s.n, use: it.use, ok: (cl.ok || pa) && can && !u.guest, putAway: !!pa, why: !cl.ok && !pa ? cl.why : can ? '' : 'the action is spent', cost: torchFast(u) && T.bonus > 0 ? 'B' : 'A' };
       }
       return { id: s.id, name: it.name, n: s.n, use: it.use, ok: (u.subclass === 'Thief' && T.bonus > 0) || (T.action > 0 && !T.attacksLeft), why: T.action > 0 ? '' : 'the action is spent' };
     }).filter(Boolean);
+  };
+  // PUT AWAY (exec 'putaway', and the light's ask in exec 'item' -- 10-15): the weapon kept on u.sheathed, an unarmed strike in its place, the turn's free hand on an object spent
+  Battle.prototype.putAway = function (u) {
+    var T = u.turn || {};
+    if (u.sheathed || !u.weapon || !u.weapon.id || T.freeObj) return false;
+    T.freeObj = true; u.sheathed = u.weapon; u.weapon = D.save.weaponOf(Object.assign({}, u.src, { equip: Object.assign({}, u.src.equip, { weapon: null }) }));
+    D.sfx('confirm'); this.card(['{y}' + u.name + '{/} puts the ' + u.sheathed.name + ' away: a hand free.  {g}(' + u.weapon.name + ' ' + RU.sign(u.weapon.atk) + ', ' + u.weapon.dice + RU.sign(u.weapon.mod) + ' till it is drawn){/}'], 220);
+    return true;
   };
   Battle.prototype.itemTargetOK = function (u, id, w) {
     var use = window.DS.DATA.items[id].use;

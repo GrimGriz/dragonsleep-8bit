@@ -4294,6 +4294,49 @@
     document.body.appendChild(preOp);
     return;
   }
+  // PUT AWAY off the ring (mode=putaway1015; 10-15, the menus lane §2.4, Griz: "Remove put-it-away from the menu ring. If they have the action and the bonus to light the torch
+  // and click on it, pop-up confirmation PUT AWAY WEAPON?"): neither ring carries PUT AWAY, EQUIP still does; a fighter with the sword and a shield may light a torch, asked
+  // PUT AWAY WEAPON? -- NOT NOW spends nothing, yes puts the sword away (the free hand on an object) and lights it (the action); a rogue with a hand free is not asked; with the
+  // free hand on an object spent this turn there is no asking, the torch greyed with its reason
+  if (get('mode', '') === 'putaway1015') {
+    var repPa = { checks: [], errors: [] }, menuPa0 = D.ui.opts.menu, urlPa0 = D.ui.urlMenu;
+    function okPa(what, v) { repPa.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function runPa(g, pick) { var v, k = 0, st, asked = null; while (g && k++ < 4000) { st = g.next(v); v = undefined; if (st.done) break; if (st.value && st.value.prompt) { asked = asked || st.value.prompt; v = pick(st.value.prompt); } } return asked; }
+    function idsPa(list) { var o = []; (list || []).forEach(function (x) { o.push(x.id); if (x.items) o = o.concat(idsPa(x.items)); }); return o; }
+    try {
+      var Bpa = D.npcFight('?npc=goblin&lvl=5&vs=fighter:5,rogue:5', {}); D.battle = Bpa; Bpa.enter(); while (!Bpa.order.length) Bpa.co.next(); Bpa.dark = false; D.ui.urlMenu = null;
+      var fgPa = Bpa.units.filter(function (u) { return u.side === 'party' && u.cls === 'fighter'; })[0], rgPa = Bpa.units.filter(function (u) { return u.side === 'party' && u.cls === 'rogue'; })[0];
+      [fgPa, rgPa].forEach(function (u) { u.guest = false; delete u.torch; delete u.sheathed; });
+      fgPa.src.equip.weapon = 'longsword'; fgPa.src.equip.shield = 'shield'; D.light.regrip(fgPa); // (Lymen's kit: the sword and a shield)
+      Bpa.inv = (Bpa.inv || []).filter(function (x) { return x.id !== 'torch'; }).concat([{ id: 'torch', n: 3 }]);
+      D.rules.startTurn(fgPa); D.rules.startTurn(rgPa); Bpa.active = fgPa; Bpa.req = { turn: fgPa };
+      var wpPa = fgPa.weapon && fgPa.weapon.name, inB = Bpa.commands(fgPa).some(function (c) { return c.id === 'putaway'; });
+      D.ui.opts.menu = 'ring'; var r1Pa = idsPa(D.ui.cmds(Bpa, fgPa)); D.ui.opts.menu = 'ring2'; var r2Pa = idsPa(D.ui.cmds(Bpa, fgPa)); D.ui.opts.menu = 'ring';
+      okPa('PUT AWAY on RING ' + (r1Pa.indexOf('putaway') >= 0) + ', on RING2 ' + (r2Pa.indexOf('putaway') >= 0) + '; still a command for EQUIP ' + inB + ' (DRAW and the torches stay: ' + (r1Pa.indexOf('items') >= 0) + ')', r1Pa.indexOf('putaway') < 0 && r2Pa.indexOf('putaway') < 0 && inB);
+      var tF = Bpa.itemList(fgPa).filter(function (e) { return e.id === 'torch'; })[0], tR = Bpa.itemList(rgPa).filter(function (e) { return e.id === 'torch'; })[0];
+      okPa('the fighter (the ' + wpPa + ' and a shield): the torch ' + (tF && tF.ok) + ', asked first ' + (tF && tF.putAway) + '; the rogue (a hand free): ' + (tR && tR.ok) + ', asked ' + (tR && tR.putAway), tF && tF.ok && tF.putAway && tR && tR.ok && !tR.putAway);
+      // the pick as the UI sends it (EQUIP's light row -> itemAim -> UI.command): it carries the ask
+      var sentPa = null; Bpa.answer = function (c) { sentPa = c; this.req = null; }; Bpa.req = { turn: fgPa };
+      D.ui.openMenu(Bpa); var hostPa = Bpa.menu.m.host, lrow = hostPa.fightEquip().filter(function (o) { return o.kind === 'item' && o.e.id === 'torch'; })[0]; if (lrow) hostPa.fightSwap(lrow); Bpa.menu = null;
+      okPa('EQUIP\'s light row sends ' + (sentPa ? sentPa.do + ' ' + sentPa.id + ', putAway ' + sentPa.putAway + ', cost ' + sentPa.cost : 'nothing'), !!sentPa && sentPa.do === 'item' && sentPa.id === 'torch' && sentPa.putAway === true);
+      var n0Pa = D.light.inPack(Bpa, 'torch'), askPa = runPa(Bpa.exec(fgPa, sentPa), function (p) { return p.opts[1].value; });
+      okPa('asked "' + (askPa && askPa.title) + '" (' + (askPa ? askPa.opts.map(function (o) { return o.label; }).join(' / ') : '-') + '); NOT NOW: the ' + (fgPa.weapon && fgPa.weapon.name) + ' in hand, no torch ' + !fgPa.torch + ', the pack ' + D.light.inPack(Bpa, 'torch') + '/' + n0Pa + ', the action ' + fgPa.turn.action + ', the free hand ' + !fgPa.turn.freeObj,
+        !!askPa && askPa.title === 'PUT AWAY WEAPON?' && fgPa.weapon.name === wpPa && !fgPa.torch && D.light.inPack(Bpa, 'torch') === n0Pa && fgPa.turn.action > 0 && !fgPa.turn.freeObj);
+      runPa(Bpa.exec(fgPa, sentPa), function (p) { return p.opts[0].value; });
+      okPa('PUT AWAY: the ' + (fgPa.sheathed && fgPa.sheathed.name) + ' away, a torch in hand ' + !!fgPa.torch + ', the pack ' + D.light.inPack(Bpa, 'torch') + ', the action ' + fgPa.turn.action + ', the free hand spent ' + !!fgPa.turn.freeObj,
+        fgPa.sheathed && fgPa.sheathed.name === wpPa && !!fgPa.torch && D.light.inPack(Bpa, 'torch') === n0Pa - 1 && !fgPa.turn.action && fgPa.turn.freeObj === true);
+      var askR = runPa(Bpa.exec(rgPa, { do: 'item', id: 'torch', target: rgPa }), function (p) { return p.opts[0].value; });
+      okPa('the rogue lights one unasked (' + !askR + '), the ' + (rgPa.weapon && rgPa.weapon.name) + ' still in hand (' + !rgPa.sheathed + ')', !askR && !!rgPa.torch && !rgPa.sheathed);
+      delete fgPa.torch; fgPa.weapon = fgPa.sheathed; delete fgPa.sheathed; D.light.regrip(fgPa); D.rules.startTurn(fgPa); fgPa.turn.freeObj = true;
+      var tS = Bpa.itemList(fgPa).filter(function (e) { return e.id === 'torch'; })[0];
+      okPa('the free hand on an object spent: the torch ' + (tS && tS.ok) + ', asked ' + (tS && tS.putAway) + ' -- "' + (tS && tS.why) + '"', tS && !tS.ok && !tS.putAway && /no free hand/.test(tS.why));
+    } catch (ePa) { repPa.errors.push(String(ePa && ePa.stack || ePa).slice(0, 900)); }
+    D.ui.opts.menu = menuPa0; D.ui.urlMenu = urlPa0;
+    if (errs.length) repPa.errors = repPa.errors.concat(errs);
+    var prePa = document.createElement('pre'); prePa.id = 'out'; prePa.textContent = 'BENCH16 ' + JSON.stringify(repPa);
+    document.body.appendChild(prePa);
+    return;
+  }
   // Q and the camera (mode=qcam1015; 10-15, the menus lane §2.7, Griz: "q menu should center cam on the menu it brings up"): the camera far off, Q brings the ring
   // up with the camera on the hero it stands over (where C puts it); Q again puts it away and leaves the camera; the pad's call of the wheel the same; WINDOW too
   if (get('mode', '') === 'qcam1015') {
