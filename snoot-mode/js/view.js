@@ -26,9 +26,9 @@
   // pasted draws its stacks -- NE and NW turn to E and W, since a sheet's back rows read as a grey lump at this size
   var FACE = [6, 6, 2, 2, 1, 7];
   // a sheet drawn in all eight facings faces its true way on the map, NE and NW from behind (10-15, the art cuts: the gnoll, the glory-seeker, the
-  // hyena; GreyFang since ART-32; the dwarf trooper since ART-61; the fighter since ART-62; the paladin since ART-63; the Harbinger since ART-31 and its supplement); the rest keep the side views
-  // till their art comes (the other LPC people borrow N for NE: ART-64 to ART-67)
-  V.FULL8 = { gnoll_p2: 1, gloryseeker_p2: 1, hyena_p2: 1, greyfang_p1: 1, trooper_p0: 1, npcfighter_p0: 1, npcpaladin_p0: 1, graykeeping_p2: 1, mirrorgnoll_p1: 1 }; // (graykeeping_p2: the gnoll's own frames in the Gray Keeping's gray, 10-15 -- all eight)
+  // hyena; GreyFang since ART-32; the dwarf trooper since ART-61; the fighter since ART-62; the paladin since ART-63; the barbarian since ART-66; the Harbinger since ART-31 and its supplement); the rest keep the side views
+  // till their art comes (the other LPC people borrow N for NE: ART-64, 65 and 67)
+  V.FULL8 = { gnoll_p2: 1, gloryseeker_p2: 1, hyena_p2: 1, greyfang_p1: 1, trooper_p0: 1, npcfighter_p0: 1, npcpaladin_p0: 1, npcbarbarian_p0: 1, graykeeping_p2: 1, mirrorgnoll_p1: 1 }; // (graykeeping_p2: the gnoll's own frames in the Gray Keeping's gray, 10-15 -- all eight)
   var EIGHT = [6, 5, 3, 2, 1, 7];
   V.faceOf = function (nm, dir) { return (V.FULL8[nm] ? EIGHT : FACE)[dir || 0]; };
   V.DIRV = [[1, 0], [0.5, -R3 / 2], [-0.5, -R3 / 2], [-1, 0], [-0.5, R3 / 2], [0.5, R3 / 2]]; // (E NE NW W SW SE: unit vectors in the world, y down)
