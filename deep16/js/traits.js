@@ -598,6 +598,33 @@
       if (look) M.gazeSave(B, u, m); else M.avert(B, u, m);
     }
   };
+  // LOOKING IN THE MEANTIME (SRD 5.1: "If it looks at the basilisk in the meantime, it must immediately make the save"; the grid's rules §2.20, 10-15): eyes averted from a gazer,
+  // a look at it -- the hand's LOOK AT on the ring, or a blow it chooses to see (battle.js exec 'attack') -- ends the aversion from that one and makes the save at once
+  M.lookAt = function (B, u, m) {
+    var av = u.conds.averted; if (av) { av.from = av.from.filter(function (id) { return id !== m.id; }); if (!av.from.length) delete u.conds.averted; }
+    B.card(['{y}' + Nm(B, u) + '{/} looks at ' + (m.side === 'foe' && !m.named ? 'the ' + B.shortName(m) : m.name) + '.'], 180);
+    if (m.gaze && G.standing(m) && RU.canAct(m) && G.dist(m, u) <= (m.gaze.range || 30) && M.sees(B, m, u)) M.gazeSave(B, u, m);
+  };
+  // THE REFLECTION (SRD 5.1 the basilisk: "If the basilisk sees its reflection within 30 feet of it in bright light, it mistakes itself for a rival and targets itself with its
+  // gaze"; the grid's rules §2.20, 10-15): a sheet's `gaze.mirror` (the basilisk's; the medusa's SRD block has none). The steel mirror (content/items.json `mirror`, SRD 5.1
+  // Adventuring Gear, 5 gp; Use an Object, kept) held up within 30 ft of it, where it sees the one holding it, the gazer in bright light (js/light.js L.brightAt): it makes its own
+  // gaze's save, and a failure begins its own stone
+  M.mirrorWhy = function (B, u, m) {
+    if (!m || !m.gaze || !m.gaze.mirror) return 'no gaze that a mirror turns';
+    if (!G.standing(m) || !RU.canAct(m)) return 'it cannot look';
+    if (G.dist(m, u) > (m.gaze.range || 30)) return 'not within ' + (m.gaze.range || 30) + ' ft';
+    if (!M.sees(B, m, u)) return 'it cannot see the mirror';
+    if (!(D.light && D.light.brightAt && D.light.brightAt(B, m))) return 'not in bright light';
+    return '';
+  };
+  M.mirror = function* (B, u, m) {
+    var why = M.mirrorWhy(B, u, m), nm = m.side === 'foe' && !m.named ? 'the ' + B.shortName(m) : m.name;
+    if (why) { B.card(['{y}' + Nm(B, u) + '{/} holds up the mirror: ' + why + '.'], 200); yield 16; return; }
+    FX.ring(m, 'silver', 24); D.sfx('magic');
+    B.card(['{y}' + Nm(B, u) + '{/} holds up the mirror -- ' + nm + ' sees itself in it, takes it for a rival, and turns its gaze on itself!'], 260); yield 24;
+    M.gazeSave(B, m, m);
+    yield 20;
+  };
   var onStartGz = M.onStart;
   M.onStart = function (B, u) {
     onStartGz.apply(this, arguments);
@@ -619,9 +646,9 @@
   // for its cost; none before its own first turn, none while it cannot act. LEGENDARY RESISTANCE (`legendaryResist: 3`, "If [it] fails a saving throw, it can choose to succeed
   // instead"): the AI takes it on any failed save but concentration's
   TR.legendary = function* (B, ended) {
-    var ls = B.units.filter(function (L) { return L !== ended && L.legendary && L.side === 'foe' && !L.dominated && G.standing(L) && RU.canAct(L) && L.acted && (L.legLeft || 0) > 0; });
+    var ls = B.units.filter(function (L) { return L !== ended && L.legendary && (L.side === 'foe' || legHand(L)) && !L.dominated && G.standing(L) && RU.canAct(L) && L.acted && (L.legLeft || 0) > 0 && L.legSkip !== B.round; });
     for (var i = 0; i < ls.length; i++) {
-      var L = ls[i], pk = legPick(B, L); if (!pk) continue;
+      var L = ls[i], pk = legHand(L) ? yield* legAsk(B, L) : legPick(B, L); if (!pk) continue;
       L.legLeft -= pk.act.cost || 1;
       B.card(['{r}' + Nm(B, L) + '{/}: a legendary action -- {y}' + pk.act.name + '{/}' + ((pk.act.cost || 1) > 1 ? ' (costs ' + pk.act.cost + ')' : '') + '  {g}(' + L.legLeft + ' left this round){/}'], 220);
       var a0 = B.active; B.active = L;
@@ -629,12 +656,31 @@
       if (B.over()) return;
     }
   };
+  // a legendary creature played by hand (the grid's rules §2.20, 10-15 -- the testing room's &legend&mine on our first hero; a monster played by hand, when one is): asked at the end
+  // of each other creature's turn which it takes -- each option it can take now, a blow's at each one in reach -- or NOT NOW, or NONE THIS ROUND (asked again the next)
+  function legHand(L) { return L.side === 'party' && !L.guest && !L.ally; }
+  function legAtk(L, a) { return a.atk === 'weapon' ? L.weapon : L.attacks && typeof L.attacks === 'object' ? L.attacks[a.atk] : null; } // ('weapon': a hero's own blade)
+  function legTargets(B, L, a) {
+    if (a.atk) { var at = legAtk(L, a); if (!at) return []; var rng = at.ranged ? at.range[1] : G.reachOf(L, at.reach); return B.units.filter(function (w) { return G.hostile(L, w) && G.standing(w) && !w.object && G.dist(L, w) <= rng && M.sees(B, L, w) && (!at.ranged || G.los(L, w).clear) && !RU.charmedBy(L, w); }); }
+    if (a.detect) return B.units.some(function (w) { return G.hostile(L, w) && G.standing(w) && w.conds.hidden; }) ? [null] : [];
+    if (a.drain) return B.units.filter(function (w) { return G.standing(w) && w.conds.charmed && w.conds.charmed.by === L.id; });
+    return [];
+  }
+  function* legAsk(B, L) {
+    var picks = [], opts = [];
+    (L.legendary.acts || []).forEach(function (a) { if ((a.cost || 1) > L.legLeft) return; legTargets(B, L, a).forEach(function (t) { picks.push({ act: a, t: t }); opts.push({ label: a.name.toUpperCase() + (t ? ': ' + Nm(B, t).toUpperCase() + ' (' + G.dist(L, t) + ' FT)' : '') + ((a.cost || 1) > 1 ? ' -- ' + a.cost : ''), value: picks.length }); }); });
+    if (!picks.length) return null;
+    opts.push({ label: 'NOT NOW', value: 0 }); opts.push({ label: 'NONE THIS ROUND', value: -1 });
+    var v = yield { prompt: { who: L, title: L.name + ': A LEGENDARY ACTION?', lines: [L.legLeft + ' left this round, at the end of another\'s turn: one now, or keep them.'], opts: opts } };
+    if (v === -1) { L.legSkip = B.round; return null; }
+    return v > 0 ? picks[v - 1] : null;
+  }
   function legPick(B, L) {
     var best = null;
     (L.legendary.acts || []).forEach(function (a) {
       var c = a.cost || 1, t = null, v = 0; if (c > L.legLeft) return;
-      if (a.atk && L.attacks && L.attacks[a.atk]) {
-        var at = L.attacks[a.atk], rng = at.ranged ? at.range[1] : G.reachOf(L, at.reach);
+      if (a.atk && legAtk(L, a)) {
+        var at = legAtk(L, a), rng = at.ranged ? at.range[1] : G.reachOf(L, at.reach);
         t = B.units.filter(function (w) { return G.hostile(L, w) && G.standing(w) && !w.object && G.dist(L, w) <= rng && M.sees(B, L, w) && (!at.ranged || G.los(L, w).clear) && !RU.charmedBy(L, w); }).sort(function (p, q) { return p.hp - q.hp; })[0];
         if (t) v = 2;
       } else if (a.detect) { if (B.units.some(function (w) { return G.hostile(L, w) && G.standing(w) && w.conds.hidden; })) v = 1; }
@@ -645,7 +691,7 @@
   }
   function* legDo(B, L, p) {
     var a = p.act;
-    if (a.atk) { yield* B.attack(L, p.t, L.attacks[a.atk]); L.anim = 'idle'; return; }
+    if (a.atk) { yield* B.attack(L, p.t, legAtk(L, a)); L.anim = 'idle'; return; }
     if (a.detect) { var a0 = L.turn ? L.turn.action : 0; yield* B.search(L); if (L.turn) L.turn.action = a0; return; }
     if (a.drain) {
       var r = D.roll(a.drain.dice), was = p.t.hp; B.hurt(p.t, r.total, a.drain.type || 'psychic', { magic: true }); var took = Math.max(0, was - p.t.hp), back = took ? B.heal(L, took) : 0;

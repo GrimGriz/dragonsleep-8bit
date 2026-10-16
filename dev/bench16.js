@@ -2865,6 +2865,39 @@
       var thC = (B6.commands(f6) || []).filter(function (c) { return c.id === 'throw'; })[0], left0 = D.Battle.thrownLeft(f6, f6.alt), n6 = (B6.log || []).length;
       run15(B6.exec(f6, { do: 'throw', target: g6 }));
       var left1 = f6.alt ? D.Battle.thrownLeft(f6, f6.alt) : 0, l6 = log15(B6, n6);
+      // §2.20 THE RULES THE BESTIARY'S ELEVEN WANT: a breath and legendary actions for one played by hand (the testing room's &breath / &legend with &mine, on our fighter), the gaze's
+      // look in the meantime, the basilisk's reflection (the steel mirror)
+      function runPick15(g, want) { var v, k = 0, st; while (g && k++ < 4000) { st = g.next(v); v = undefined; if (st.done) return st.value; if (st.value && st.value.prompt) { var op = st.value.prompt.opts.filter(function (o) { return o.value === want; })[0]; v = (op || st.value.prompt.opts[0]).value; } } }
+      var B7 = mk15('?npc=goblin,goblin&lvl=5&vs=fighter:5&breath=fire&mine'), f7 = side15(B7, 'party')[0], gs7 = side15(B7, 'foe'), o7 = open15(6, 3);
+      f7.x = o7[0]; f7.y = o7[1] + 1; gs7[0].x = o7[0] + 2; gs7[0].y = o7[1] + 1; gs7[1].x = o7[0] + 3; gs7[1].y = o7[1] + 1; gs7.forEach(function (g) { g.hp = g.maxhp = 200; }); D.rules.startTurn(f7); B7.active = f7;
+      var br7 = (B7.commands(f7) || []).filter(function (c) { return c.id === 'breath'; })[0], hp7 = gs7[0].hp + gs7[1].hp;
+      run15(B7.exec(f7, { do: 'breath', target: { x: gs7[0].x, y: gs7[0].y } }));
+      var hit7 = hp7 - (gs7[0].hp + gs7[1].hp), br7b = (B7.commands(f7) || []).filter(function (c) { return c.id === 'breath'; })[0];
+      ok15('§2.20 BREATH on the ring for one played by hand: ' + (br7 ? br7.label + ' ' + br7.ok + ' aimed ' + !!br7.aim : 'none') + '; at the two goblins: ' + hit7 + ' fire; spent, the ring says ' + (br7b ? br7b.ok + ' (' + br7b.why + ')' : 'none') + ' (want on, aimed, both hurt, then false)', !!(br7 && br7.ok && br7.aim) && hit7 > 0 && gs7[0].hp < 200 && gs7[1].hp < 200 && !!(br7b && !br7b.ok));
+      var B8 = mk15('?npc=goblin,goblin&lvl=5&vs=fighter:5&legend&mine'), f8 = side15(B8, 'party')[0], gs8 = side15(B8, 'foe'), o8 = open15(6, 3);
+      f8.x = o8[0]; f8.y = o8[1] + 1; gs8[0].x = o8[0] + 1; gs8[0].y = o8[1] + 1; gs8[1].x = o8[0] + 5; gs8[1].y = o8[1] + 2; gs8.forEach(function (g) { g.hp = g.maxhp = 200; }); D.rules.startTurn(f8);
+      var n8 = (B8.log || []).length; D.d = function (n) { return n === 20 ? 20 : 1; };
+      try { run15(D.traits.legendary(B8, gs8[1])); } finally { D.d = d015; }
+      var l8 = log15(B8, n8), left8 = f8.legLeft;
+      f8.legLeft = 3; var asked8 = null, g8 = D.traits.legendary(B8, gs8[1]), st8 = g8.next(); if (st8.value && st8.value.prompt) asked8 = st8.value.prompt.opts.map(function (o) { return o.label; });
+      ok15('§2.20 legendary actions for one played by hand: asked at the end of a goblin\'s turn -- ' + (asked8 ? asked8.join(' / ') : 'not asked') + '; the first taken: legendary left 3 to ' + left8 + ', ' + /legendary action/.test(l8) + ' (want A SWIPE at the goblin beside it, NOT NOW, NONE THIS ROUND; 2, true)', !!asked8 && /A SWIPE: THE GOBLIN/.test(asked8[0]) && asked8.indexOf('NOT NOW') >= 0 && left8 === 2 && /legendary action/.test(l8));
+      var B9 = mk15('?npc=goblin&lvl=5&vs=fighter:5&items=mirror:1'), f9 = side15(B9, 'party')[0], g9 = kind15(B9, 'goblin'), o9 = open15(6, 3);
+      f9.x = o9[0]; f9.y = o9[1] + 1; g9.x = o9[0] + 3; g9.y = o9[1] + 1; g9.hp = g9.maxhp = 200; g9.gaze = { range: 30, dc: 12, ab: 'con', stone: true, mirror: true }; D.rules.startTurn(f9); B9.active = f9;
+      f9.conds.averted = { from: [g9.id], till: { who: f9.id, at: 'start', n: 1 } };
+      var lk9 = (B9.commands(f9) || []).filter(function (c) { return c.id === 'lookat'; })[0], n9 = (B9.log || []).length;
+      D.d = function (n) { return n === 20 ? 15 : 1; }; try { run15(B9.exec(f9, { do: 'lookat' })); } finally { D.d = d015; }
+      var l9 = log15(B9, n9);
+      ok15('§2.20 eyes averted, LOOK AT on the ring: ' + (lk9 ? lk9.label + ' (' + lk9.cost + ')' : 'none') + '; taken: averted ' + !!f9.conds.averted + ', the save at once ' + /gaze/.test(l9) + ' (want on, free; false, true)', !!lk9 && lk9.cost === 'F' && !f9.conds.averted && /gaze/.test(l9));
+      f9.conds.averted = { from: [g9.id], till: { who: f9.id, at: 'start', n: 1 } }; D.rules.startTurn(f9); f9.conds.averted = { from: [g9.id], till: { who: f9.id, at: 'start', n: 1 } }; f9.x = o9[0] + 2; var n9b = (B9.log || []).length;
+      D.d = function (n) { return n === 20 ? 15 : 1; }; try { runPick15(B9.exec(f9, { do: 'attack', target: g9 }), 'look'); } finally { D.d = d015; }
+      var l9b = log15(B9, n9b);
+      ok15('§2.20 a blow at the gazer, eyes averted, LOOK AT IT picked: the save first, then the blow -- ' + l9b.slice(0, 160) + ' (want the gaze line before the swing, the eyes no longer averted)', /gaze/.test(l9b) && !f9.conds.averted && l9b.indexOf('gaze') < l9b.indexOf('Fighter 5 >') );
+      f9.x = o9[0]; D.rules.startTurn(f9); delete f9.conds.averted; delete g9.conds.stoning; delete g9.conds.restrained; var mi9 = (B9.itemList(f9) || []).filter(function (s) { return s.id === 'mirror'; })[0], ok9 = B9.itemTargetOK(f9, 'mirror', g9), n9c = (B9.log || []).length;
+      D.d = function (n) { return n === 20 ? 2 : 1; }; try { run15(B9.useItem(f9, 'mirror', g9)); } finally { D.d = d015; }
+      var l9c = log15(B9, n9c), kept9 = (B9.inv.filter(function (s) { return s.id === 'mirror'; })[0] || {}).n;
+      ok15('§2.20 the steel mirror at a basilisk-gazed goblin in bright light: on the list ' + !!(mi9 && mi9.ok) + ', a target ' + ok9 + '; held up, it turns its gaze on itself ' + /turns its gaze on itself/.test(l9c) + ', its own stone begun ' + !!g9.conds.stoning + ', the mirror kept (' + kept9 + ') (want true, true, true, true, 1)', !!(mi9 && mi9.ok) && ok9 && /turns its gaze on itself/.test(l9c) && !!g9.conds.stoning && kept9 === 1);
+      g9.gaze.mirror = false;
+      ok15('§2.20 and a gazer with no `mirror` (the medusa: the SRD gives it none) is no target: ' + !B9.itemTargetOK(f9, 'mirror', g9), !B9.itemTargetOK(f9, 'mirror', g9));
       ok15('§2.21 a hand\'s THROW: on the ring ' + !!(thC && thC.ok) + ' (' + (thC ? thC.label : 'none') + '), 20 ft at the goblin: ' + left0 + ' to ' + left1 + ' left, a throw on the log ' + /Handaxe/i.test(l6) + ' (want true, 2 to 1)', !!(thC && thC.ok) && left0 === 2 && left1 === 1 && /Handaxe/i.test(l6));
     } catch (e15) { rep15.errors.push(String(e15 && e15.stack || e15).slice(0, 900)); D.d = d015; }
     if (errs.length) rep15.errors = rep15.errors.concat(errs);

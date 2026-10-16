@@ -115,9 +115,11 @@
     if (this.o.spellsTest) party.forEach(function (u) { if (!u.known || !u.slots) return; String(this.o.spellsTest).split(',').forEach(function (id) { if (D.SPELLS && D.SPELLS[id] && u.known.indexOf(id) < 0) u.known.push(id); }); }, this); // (&spells=fly,...: the testing room's casters given those spells to try -- 10-08)
     // (&legend and &breath=cold|fire|lightning|stone: the testing room's first foe made legendary -- three actions, a blow and Detect, three Legendary Resistances -- or given a breath,
     // the winter wolf's, a red's, a blue's, the gorgon's numbers; the rules before the monsters that use them, js/traits.js, 10-08)
-    var f0T = foes[0], brT = this.o.breathTest && { cold: { name: 'Cold Breath', shape: 'cone', ft: 15, ab: 'dex', dc: 12, dice: '4d8', type: 'cold', recharge: 5 }, fire: { name: 'Fire Breath', shape: 'cone', ft: 15, ab: 'dex', dc: 13, dice: '7d6', type: 'fire', recharge: 5 }, lightning: { name: 'Lightning Breath', shape: 'line', ft: 30, ab: 'dex', dc: 12, dice: '4d10', type: 'lightning', recharge: 5 }, stone: { name: 'Petrifying Breath', shape: 'cone', ft: 30, ab: 'con', dc: 13, stone: true, recharge: 5 } }[this.o.breathTest];
+    // (&mine: on our first hero instead, played by hand -- the ring's BREATH and the legendary ask, 10-15)
+    var f0T = this.o.mineTest ? party.filter(function (w) { return !w.familiar; })[0] : foes[0], brT = this.o.breathTest && { cold: { name: 'Cold Breath', shape: 'cone', ft: 15, ab: 'dex', dc: 12, dice: '4d8', type: 'cold', recharge: 5 }, fire: { name: 'Fire Breath', shape: 'cone', ft: 15, ab: 'dex', dc: 13, dice: '7d6', type: 'fire', recharge: 5 }, lightning: { name: 'Lightning Breath', shape: 'line', ft: 30, ab: 'dex', dc: 12, dice: '4d10', type: 'lightning', recharge: 5 }, stone: { name: 'Petrifying Breath', shape: 'cone', ft: 30, ab: 'con', dc: 13, stone: true, recharge: 5 } }[this.o.breathTest];
     if (f0T && brT) f0T.breath = brT;
-    if (f0T && this.o.legendTest) { var mkT = Object.keys(f0T.attacks || {}).filter(function (k) { return !f0T.attacks[k].ranged; })[0]; f0T.legendary = { n: 3, acts: [{ name: 'A Swipe', cost: 1, atk: mkT }, { name: 'Detect', cost: 1, detect: true }] }; f0T.legendaryResist = 3; }
+    if (this.o.gazeTest && foes[0]) foes[0].gaze = { range: 30, dc: 12, ab: 'con', stone: true, mirror: true, title: 'THE BASILISK GAZE' }; // (&gaze: the basilisk's Petrifying Gaze on their first foe, its reflection too -- the testing room's, 10-15)
+    if (f0T && this.o.legendTest) { var mkT = this.o.mineTest ? 'weapon' : Object.keys(f0T.attacks || {}).filter(function (k) { return !f0T.attacks[k].ranged; })[0]; f0T.legendary = { n: 3, acts: [{ name: 'A Swipe', cost: 1, atk: mkT }, { name: 'Detect', cost: 1, detect: true }] }; f0T.legendaryResist = 3; }
     // the pack: DEEP16 lends every ladder and climb party a crossbow and bolts (save.js armoury); inside the 8-bit game the party
     // carries only what it brought (Griz, 09-27: "unless the players bring crossbows/range, they shouldn't have one")
     var pack = JSON.parse(JSON.stringify(this.from.data.inv || [])).map(function (s) { return Array.isArray(s) ? { id: s[0], n: s[1] } : s; });
@@ -1112,6 +1114,13 @@
     var shoveT = this.units.some(function (w) { return G.hostile(u, w) && G.standing(w) && !w.object && G.dist(u, w) <= G.reachOf(u) && Battle.sizeCat(w) <= Battle.sizeCat(u) + 1; });
     // THROW (the grid's rules §2.21; SRD 5.1, the thrown property: "you can throw the weapon to make a ranged attack", 20/60 the handaxe and the dagger): a hand's throw of the
     // thrown weapon it carries -- a class hero's two handaxes or daggers (js/classes.js `alt`), one of the count gone a throw (Battle.spendThrow). Before, only READY's pick threw it
+    // A BREATH ON THE RING (the grid's rules §2.20, 10-15): one played by hand with a `breath` (js/traits.js M.breathe -- the testing room's &breath=..&mine on our first hero; a
+    // monster played by hand, when one is) breathes it as its action, aimed as a spell's cone or line is (ui.js aimCommand), and waits on its recharge as the AI's does
+    if (u.breath) { var brU = u.breath; out.push({ id: 'breath', label: (brU.name || 'BREATH').toUpperCase(), cost: 'A', icon: 'skills', skill: true, ok: T.action > 0 && !T.attacksLeft && !u.breathSpent, why: u.breathSpent ? 'not back yet (a d6 of ' + (brU.recharge || 5) + ' or more at the turn\'s start)' : 'the action is spent', aim: { shape: brU.shape || 'cone', len: brU.ft, kind: 'save', el: brU.type || null }, aimText: brU.ft + '-ft ' + (brU.shape || 'cone') + ', ' + (brU.ab || 'dex').toUpperCase() + ' DC ' + brU.dc + (brU.dice ? ', ' + brU.dice + ' ' + brU.type + ', half on a save' : brU.stone ? ', or begin to turn to stone' : '') + ' -- aim it', note: 'its action: a ' + brU.ft + '-ft ' + (brU.shape || 'cone') + (brU.dice ? ', ' + brU.dice + ' ' + brU.type : '') + '; back on a d6 of ' + (brU.recharge || 5) + '-6' }); }
+    // LOOK AT IT (the grid's rules §2.20, 10-15; SRD 5.1 the basilisk's and the medusa's gaze: "If it looks at the basilisk in the meantime, it must immediately make the save"): eyes
+    // averted from a gazer, a free look -- the save at once, and then it sees it (js/traits.js M.lookAt); a blow at it asks the same (exec 'attack')
+    var avU = u.conds.averted, gzU = avU ? this.units.filter(function (m) { return m.gaze && G.standing(m) && avU.from.indexOf(m.id) >= 0; })[0] : null;
+    if (gzU) out.push({ id: 'lookat', label: 'LOOK AT ' + Battle.nm(gzU, true).toUpperCase(), cost: 'F', icon: 'search', ok: true, why: '', note: 'your eyes are averted: look now, and the gaze save at once (' + (gzU.gaze.ab || 'con').toUpperCase() + ' DC ' + gzU.gaze.dc + '); then you see it' });
     var thW = Battle.throwable(u);
     if (thW) { var thIn = this.units.some(function (w) { return G.hostile(u, w) && G.standing(w) && !w.ethereal && G.dist(u, w) <= thW.range[1] && G.los(u, w).clear; }), thN = Battle.thrownLeft(u, thW);
       out.push({ id: 'throw', label: 'THROW ' + thW.name.toUpperCase().replace(/^THROWN /, ''), cost: 'A', icon: 'attack', ok: (T.action > 0 || T.attacksLeft > 0 || T.hasteAction > 0) && thIn, why: !thIn ? 'no foe within ' + thW.range[1] + ' ft in sight' : 'no attack left', tool: 'throw', note: 'one attack of the Attack action: a ranged attack, ' + thW.range[0] + ' ft, out to ' + thW.range[1] + ' at disadvantage -- ' + thN + (thN === 1 ? ' left' : ' left to throw') + ', none picked up' }); }
@@ -1505,6 +1514,13 @@
         if (!c.target || c.target.dead || (c.target.hp <= 0 && !c.target.regenDown)) return; // (no target: nothing is spent -- a stray command burned Katarina's action 09-29. A troll down at 0 and knitting is a target: blows change nothing but fire or acid, and a player may spend one there -- 10-13, Griz: "should have been able to burn unspendable attack on non-fire/non-acid down troll")
         if (RU.charmedBy(u, c.target)) { this.card(['{o}' + u.name + ' is charmed: no raising a hand to ' + (c.target.side === 'foe' ? Battle.nm(c.target) : c.target.name) + '.{/}'], 200); return; }
         if (u.conds.disarmed) { this.card(['{o}' + u.name + ' has dropped the weapon (the turn is spent picking it up).{/}'], 200); return; }
+        // (eyes averted from the gazer it swings at: blind, at disadvantage, or a look -- the save at once, SRD 5.1; the hand is asked, the AI swings blind. 10-15, §2.20)
+        var avA = u.conds.averted, gzA = !byAI(u) && avA && c.target.gaze && avA.from.indexOf(c.target.id) >= 0;
+        if (gzA) {
+          var lkA = yield { prompt: { who: u, title: u.name + ': LOOK AT IT?', lines: ['Your eyes are averted from ' + Battle.nm(c.target) + ': you cannot see it, and a blow at it is at disadvantage.', 'LOOK AT IT: the gaze save now, ' + (c.target.gaze.ab || 'con').toUpperCase() + ' DC ' + c.target.gaze.dc + ' -- then the blow as one who sees it.'], opts: [{ label: 'SWING BLIND', value: 'blind' }, { label: 'LOOK AT IT', value: 'look' }, { label: 'NOT THAT', value: 0 }] } };
+          if (!lkA) return;
+          if (lkA === 'look') { D.magic.lookAt(this, u, c.target); if (u.dead || u.hp <= 0 || !RU.canAct(u) || u.conds.petrified) return; }
+        }
         // (the quiver empty: checked before the Attack is opened, so the shot that cannot be made costs nothing -- it took Vivian's action in the Grick Den, 10-13)
         if (u.weapon.ammo && !this.ammoLeft(u)) { yield* this.emptyQuiver(u); return; }
         if (!Battle.openAttack(u)) return; // (the action's attacks -- Slow's one -- else Haste's one: js/grimoire.js)
@@ -1613,6 +1629,16 @@
         return;
       }
       case 'dodge': D.sfx('bump'); T.action = 0; u.conds.dodge = true; this.card(['{y}' + u.name + '{/} dodges: attacks against at disadvantage till the next turn.']); return;
+      case 'breath': { // (a breath on the ring, its action -- the grid's rules §2.20, 10-15: js/traits.js M.breathe)
+        if (!u.breath || u.breathSpent || !T.action || T.attacksLeft || !c.target || c.target.x == null) return;
+        yield* D.magic.breathe(this, u, c.target);
+        return;
+      }
+      case 'lookat': { // (eyes averted, a look at the gazer: the save at once -- js/traits.js M.lookAt, 10-15)
+        var avL = u.conds.averted, mL = c.target || (avL ? this.units.filter(function (m) { return m.gaze && G.standing(m) && avL.from.indexOf(m.id) >= 0; })[0] : null);
+        if (mL) D.magic.lookAt(this, u, mL);
+        return;
+      }
       case 'throw': { // (a hand's throw of its thrown weapon, one attack of the Attack action -- the grid's rules §2.21, 10-15)
         var thw = Battle.throwable(u), tht = c.target; if (!thw || !tht || tht.dead || (tht.hp <= 0 && !tht.regenDown)) return;
         if (RU.charmedBy(u, tht)) { this.card(['{o}' + u.name + ' is charmed: no raising a hand to ' + (tht.side === 'foe' ? Battle.nm(tht) : tht.name) + '.{/}'], 200); return; }
@@ -3170,7 +3196,7 @@
 
   // ------------------------------------------------------------------ items: the save's own (a potion, a kit, an antitoxin, an oil flask)
   // fortify (09-28g): Marta's bat-wing pie, eaten in a fight -- +2 CON (+1 to CON saves) and +5 HP till it ends (the 8-bit battle's)
-  var ITEM_OK = { heal: 1, revive: 1, antitoxin: 1, cure: 1, damage: 1, light: 1, fortify: 1, bucket: 1 }; // (bucket: the landlord's, js/wet.js)
+  var ITEM_OK = { heal: 1, revive: 1, antitoxin: 1, cure: 1, damage: 1, light: 1, fortify: 1, bucket: 1, mirror: 1 }; // (mirror: the steel mirror at a gazer, 10-15 -- js/traits.js M.mirror) // (bucket: the landlord's, js/wet.js)
   // a torch is lit as a bonus action by the Thief (Fast Hands), or by anyone if the seat's default is flipped (js/light.js LIGHT_COST)
   function torchFast(u) { return u.subclass === 'Thief' || D.light.LIGHT_COST === 'B'; }
   Battle.prototype.itemList = function (u) {
@@ -3182,7 +3208,7 @@
       var it = window.DS.DATA.items[s.id];
       // the Rope & Grapple (the 8-bit game's rope; 10-04, Griz: "as an item on the item wheel"): set on a face, an action -- exec 'rope', the tool picks the face's top (ui.js)
       if (s.id === 'rope' && s.n > 0) { var cl0 = !!(G.map.def.climb && (u.size || 1) === 1); return { id: 'rope', name: (it && it.name) || 'Rope & Grapple', n: s.n, use: { effect: 'rope' }, ok: cl0 && T.action > 0 && !T.attacksLeft && !u.guest, why: !cl0 ? 'no face here to climb' : T.action > 0 ? '' : 'the action is spent' }; }
-      if (!it || !it.use || !it.use.battle || !ITEM_OK[it.use.effect] || s.n <= 0) return null;
+      if (!it || !it.use || !(it.use.battle || it.use.grid) || !ITEM_OK[it.use.effect] || s.n <= 0) return null; // (use.grid: the grid's alone, never the 8-bit battle's list -- the steel mirror, 10-15)
       if (roost && (it.use.effect === 'damage' || (it.use.effect === 'light' && !D.light.isLantern(s.id)))) return { id: s.id, name: it.name, n: s.n, use: it.use, ok: false, why: 'the roost overhead: no fire' };
       if (it.use.effect === 'light') { // a torch (torchdark 09-28), or a lantern (09-29; under a roost it is lit hood down): a free hand, and the action (or the Thief's bonus)
         var cl = D.light.canLight(self, u, s.id), can = (torchFast(u) && T.bonus > 0) || (T.action > 0 && !T.attacksLeft);
@@ -3206,6 +3232,7 @@
     if (!w || w.dead) return false;
     if (use.effect === 'damage') return G.hostile(u, w) && (w.hp > 0 || !!w.regenDown) && G.dist(u, w) <= 20 && G.los(u, w).clear; // (a troll lying at 0 and knitting is a target for the flask: the oil runner's find, 10-05)
     if (use.effect === 'light') return w === u;
+    if (use.effect === 'mirror') return !!(D.magic.mirrorWhy && !D.magic.mirrorWhy(this, u, w)); // (a gazer that sees its own reflection: js/traits.js, 10-15)
     if (w.side !== u.side || (w !== u && G.dist(u, w) > 5)) return false;
     if (use.effect === 'revive') return w.hp <= 0;
     if (use.effect === 'heal') return w.hp < w.maxhp;
@@ -3229,7 +3256,8 @@
     var it = window.DS.DATA.items[id], use = it.use, s = this.inv.filter(function (x) { return x.id === id; })[0];
     if (((use.effect === 'light' && torchFast(u)) || u.subclass === 'Thief') && u.turn.bonus > 0) u.turn.bonus = 0; else u.turn.action = 0; // Fast Hands
     if (use.effect === 'light') { yield* D.light.lightTorch(this, u, id); yield 20; return; } // (lightTorch takes it from the pack)
-    if (id === 'oil' && u.ownFlask != null) u.ownFlask = Math.max(0, u.ownFlask - 1); else s.n--; // (a story guest throws its own flask, never the pack's: itemList)
+    if (id === 'oil' && u.ownFlask != null) u.ownFlask = Math.max(0, u.ownFlask - 1); else if (!use.keep) s.n--; // (use.keep: a thing used and kept -- the steel mirror)
+    if (use.effect === 'mirror') { yield* D.magic.mirror(this, u, w); return; } // (a story guest throws its own flask, never the pack's: itemList)
     var who = w === u ? 'drinks' : 'gives ' + w.name;
     if (use.effect === 'heal') { var r = D.roll(use.dice), got = this.heal(w, r.total); this.card(['{y}' + u.name + '{/} ' + who + ' a ' + it.name + ': ' + use.dice + ' ' + RU.fmtRolls(r.rolls) + ' = {n}' + r.total + '{/}' + (got < r.total ? ' (' + got + ' to full)' : '')]); FX.sparkle(w, 'moss', 12); }
     if (use.effect === 'revive') { this.heal(w, use.hp || 1); this.card(['{y}' + u.name + '{/} works the ' + it.name + ' on ' + w.name + ': up, on ' + w.hp + ' HP.']); }
