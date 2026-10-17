@@ -243,3 +243,11 @@ ART-29 and its redraw are cut (`gnoll_p2` and `gloryseeker_p2`, `4f83f7d`, `2057
 ## 13. The Gray Keeping's matriarch-clerics -- IN HAND 2026-10-15 (the art desk's ART-68, cut into `gnollmatriarch_p1`, `cb98efb`, toned gray on his pick, *"Toned gray - land the gray matriarch."*); the block is on `deep16-art-in-hand.md`
 
 ## 14. The sergeant's SE, another stab -- IN HAND 2026-10-15 (asked as the hobgoblin's; it was the sergeant's: the art desk's ART-26 SE redraw, cut into `hobsergeant_p2`, `40607c6`); the block is on `deep16-art-in-hand.md`
+
+## 15. The Snoot's horse units and its wagon -- ASKED 2026-10-17 as ART-69, ART-70, ART-71 (the package `deep16/_src/outbox/ART-SNOOTHORSE-2026-10-17/`, and its .zip, for his hand to the art desk)
+
+His word, 10-17: *"if usage left try art request for horse units and wagon 16b for snoot for outbox folder"*. Today the Snoot's three mounted units ride on foot sheets (Newland's horse `bat3` and the road patrol's four horse on `npcpaladin_p0` / `npcfighter_p0`, the outriders `bb2` on `npcbarbarian_p0`), and its four wagons (the road patrol's, the Dominion's `dm1`-`dm3`) are drawn nowhere. Three new figures, each in all five views from its own first sheet, horse and rider (or wagon, team and wagoneer) one drawing a frame:
+- **ART-69 Newland's mounted man-at-arms** (`newlandrider_p1`): mail and helm, the Sun's orange-gold surcoat and caparison, a round shield, a longsword, on a bay warhorse. 10 pages, 175 drawings. Rows Idle 4, Walk 8, Charge 6, Strike 6, Flinch 4, Fall 6.
+- **ART-70 the plains tribes' outrider** (`plainsrider_p1`): long dark hair, brown leather, a spear, a cased bow, on a lean dun plains horse with a feathered mane. 10 pages, 175 drawings, the same rows.
+- **ART-71 the covered wagon** (`wagon_p1`): dark iron-bound wood, purple-trimmed sideboards, plain canvas (toned per side by the engine), two draft horses, a wagoneer in black with a purple sash. 5 pages, 114 drawings. Rows Idle 4, Roll 8, Jolt 4, Wreck 6.
+The refs are the game's own paladin, barbarian and warlock at 3x (from the ART-SNOOTNPCS kit). When they come back: a `charge` row is new to the engine, a mounted group needs its own sheet in the Snoot's show, and the wagon is new code on the map and in the show (the Snoot lane §19).
