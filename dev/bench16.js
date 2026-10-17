@@ -4822,6 +4822,56 @@
     document.body.appendChild(preQ);
     return;
   }
+  // the Pocket DM's market and pack (mode=market1017; 10-17, Griz: "Store with 100 sp starting cash first fight", "stock by level is good", "4 yes" -- half back,
+  // "5 yes, and they'll have to read packs now", "add 'gear' button' (symbol?) below the down arrow"): the purse, the stock by level, a buy and a sale, a card's GEAR
+  // from the pack into its word and its sheet, the pack into a fight and what it used off it, the coin a win pays, the story's gear among the late winnings
+  if (get('mode', '') === 'market1017') {
+    var repMk = { checks: [], errors: [] };
+    function okMk(what, v) { repMk.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    try {
+      var PKk = D.pocket, I8 = window.DS.DATA.items, cvMk = document.createElement('canvas'); cvMk.width = D.W; cvMk.height = D.H; var cxMk = cvMk.getContext('2d');
+      try { window.localStorage.removeItem('deep16.pocket'); } catch (e) { }
+      var st0 = PKk.load();
+      okMk('A NEW TABLE: the purse ' + st0.purse + ' sp (want 100), the pack ' + JSON.stringify(st0.pack), st0.purse === 100 && Array.isArray(st0.pack) && !st0.pack.length);
+      var s1 = PKk.stock(1), s5 = PKk.stock(5), s8 = PKk.stock(8), s11 = PKk.stock(11);
+      var priced = Object.keys(I8).filter(function (id) { var it = I8[id]; return it && typeof it === 'object' && it.price > 0 && !it.noSell && ['weapon', 'ammo', 'armor', 'shield', 'ring', 'cloak', 'worn', 'use', 'tool'].indexOf(it.kind) >= 0; });
+      okMk('THE STOCK BY LEVEL: at 1 ' + s1.length + ' (a longsword ' + (s1.indexOf('longsword') >= 0) + ', a potion ' + (s1.indexOf('potion') >= 0) + ', no longsword +1 ' + (s1.indexOf('longsword1') < 0) + '), at 5 ' + s5.length + ' (the +1 ' + (s5.indexOf('longsword1') >= 0) + '), at 8 ' + s8.length + ' (dwarven plate ' + (s8.indexOf('dwarfplate') >= 0) + '), at 11 every priced thing (' + s11.length + ' of ' + priced.length + ')',
+        s1.indexOf('longsword') >= 0 && s1.indexOf('potion') >= 0 && s1.indexOf('longsword1') < 0 && s5.indexOf('longsword1') >= 0 && s8.indexOf('dwarfplate') >= 0 && s5.indexOf('dwarfplate') < 0 && s11.length === priced.length);
+      var lateMiss = ['threshingflail1', 'greyfangbow', 'macedisruption', 'banhammer', 'sunshaftstaff'].filter(function (id) { return PKk.LOOT_LATE.indexOf(id) < 0; });
+      okMk('THE STORY\'S GEAR AMONG THE LATE WINNINGS (' + PKk.LOOT_LATE.length + ', missing ' + JSON.stringify(lateMiss) + '); the king\'s plate left to the king (' + (PKk.LOOT_LATE.indexOf('kingsplate') < 0) + ')', !lateMiss.length && PKk.LOOT_LATE.indexOf('kingsplate') < 0);
+      var Pm = new D.Pocket(); Pm.enter(); Pm.st.purse = 100; Pm.st.pack = []; Pm.st.party = [{ w: 'barley', lvl: 4, loot: [] }, { w: 'lymen', lvl: 4, loot: [] }];
+      function btnMk(label) { Pm.btns = []; Pm.draw(cxMk); return Pm.btns.filter(function (b) { return b.label === label; })[0]; }
+      Pm.openMarket('party'); Pm.marketTab = 'arms';
+      var bLs = btnMk('Longsword'); if (bLs) bLs.fn(); var afterLs = Pm.st.purse;
+      var bDg = btnMk('Dagger'); if (bDg) bDg.fn(); var afterDg = Pm.st.purse, nDg = PKk.packN(Pm.st, 'dagger');
+      okMk('BUY: a Longsword (150 sp) refused with 100 in the purse (' + afterLs + '), a Dagger (20 sp) bought: the purse ' + afterDg + ', the pack ' + nDg, !!bLs && afterLs === 100 && !!bDg && afterDg === 80 && nDg === 1);
+      Pm.btns = []; Pm.draw(cxMk); var bSell = Pm.btns.filter(function (b) { return b.label === 'Dagger' && b.x > 200; })[0]; if (bSell) bSell.fn();
+      okMk('SELL: the Dagger back at half: the purse ' + Pm.st.purse + ' (want 90), the pack ' + PKk.packN(Pm.st, 'dagger'), !!bSell && Pm.st.purse === 90 && PKk.packN(Pm.st, 'dagger') === 0);
+      PKk.packAdd(Pm.st, 'greatsword', 1); Pm.openGear(1); Pm.gearTab = 'weapon';
+      var bGs = btnMk('Greatsword'); if (bGs) bGs.fn();
+      var slL = Pm.st.party[1], wL = PKk.wordOf(Pm.st, slL), shL = PKk.sheetOf(PKk.specOf(Pm.st, slL));
+      okMk('GEAR: Lymen takes the Greatsword from the pack -- the word ' + wL + ', his sheet ' + shL.equip.weapon + ', the shield ' + shL.equip.shield + ', the pack ' + PKk.packN(Pm.st, 'greatsword'),
+        !!bGs && /\+greatsword/.test(wL) && shL.equip.weapon === 'greatsword' && !shL.equip.shield && PKk.packN(Pm.st, 'greatsword') === 0);
+      var bOwn = btnMk('its own weapon'); if (bOwn) bOwn.fn();
+      var wL2 = PKk.wordOf(Pm.st, slL), shL2 = PKk.sheetOf(PKk.specOf(Pm.st, slL));
+      okMk('ITS OWN WEAPON again: the Greatsword back in the pack (' + PKk.packN(Pm.st, 'greatsword') + '), the word ' + wL2 + ', the sheet ' + shL2.equip.weapon + ' and a shield ' + shL2.equip.shield, !!bOwn && PKk.packN(Pm.st, 'greatsword') === 1 && !/greatsword/.test(wL2) && shL2.equip.weapon !== 'greatsword' && !!shL2.equip.shield);
+      PKk.packAdd(Pm.st, 'potion', 2);
+      var Bk = D.npcFight('?npc=goblin&lvl=3&vs=fighter:3', { pack: JSON.parse(JSON.stringify(Pm.st.pack)) }); D.battle = Bk; Bk.enter(); for (var gk = 0; gk < 200 && !Bk.order.length; gk++) Bk.co.next();
+      var potIn = (Bk.inv || []).filter(function (x) { return x.id === 'potion'; }).reduce(function (a, x) { return a + x.n; }, 0);
+      (Bk.inv || []).forEach(function (x) { if (x.id === 'potion') x.n = 1; });
+      PKk.packBack(Pm.st, Bk);
+      okMk('THE PACK INTO THE FIGHT: potions in it ' + potIn + ' (want 2); one drunk, the pack after ' + PKk.packN(Pm.st, 'potion') + ' (want 1); the lent crossbow not the table\'s (' + PKk.packN(Pm.st, 'lightcrossbow') + ')', potIn === 2 && PKk.packN(Pm.st, 'potion') === 1 && PKk.packN(Pm.st, 'lightcrossbow') === 0);
+      okMk('THE COIN A WIN PAYS: two goblins (CR 1/4 each) ' + PKk.coinFor(['goblin', 'goblin']) + ' sp (want 50); an ogre (CR 2) ' + PKk.coinFor(['ogre']), PKk.coinFor(['goblin', 'goblin']) === 50 && PKk.coinFor(['ogre']) === 200);
+      var shN = PKk.sheetOf(D.npc.spec('lymen:4+noshield'));
+      okMk('NOSHIELD in a word takes the shield off: ' + shN.equip.shield, !shN.equip.shield);
+      var bG = (function () { Pm.go('party'); Pm.btns = []; Pm.draw(cxMk); return Pm.btns.filter(function (b) { return b.label === 'GEAR'; }).length; })(), bM = Pm.btns.filter(function (b) { return /^THE MARKET/.test(b.label); }).length;
+      okMk('THE PARTY SCREEN: a GEAR under each card (' + bG + ' of 2), THE MARKET by the seats (' + bM + ')', bG === 2 && bM === 1);
+    } catch (eMk) { repMk.errors.push(String(eMk && eMk.stack || eMk).slice(0, 900)); }
+    if (errs.length) repMk.errors = repMk.errors.concat(errs);
+    var preMk = document.createElement('pre'); preMk.id = 'out'; preMk.textContent = 'BENCH16 ' + JSON.stringify(repMk);
+    document.body.appendChild(preMk);
+    return;
+  }
   // the level-up pick on the grid (mode=levelpick1014; 10-14, the level-up pick lane -- the roam's "leveling up in the roam should work like leveling up in 8bit"):
   // D.levelPicks, the roam's call, opens the 8-bit's pick page as the M menu stands and returns when the last hero has confirmed, each pick on its sheet; a bench
   // takes the defaults at once; the climb levels its four on the same page (every spell offered, the page-only ones too: "ladder for sure"; one not on the grid greyed)

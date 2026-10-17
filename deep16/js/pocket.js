@@ -36,6 +36,8 @@
     st.party = st.party || null;          // the slots: { w, lvl, loot } or { custom: i }
     st.pyro = !!st.pyro;                  // the trial won: Pyro on the roster
     st.run = st.run || null;              // the ladder under way
+    if (st.purse == null) st.purse = 100; // the party's purse, sp (10-17, his "Store with 100 sp starting cash first fight")
+    st.pack = st.pack || [];              // the party's pack: { id, n } -- the market's, into every fight and back (PK.packBack)
     return st;
   };
   PK.save = function (st) { return D.store.set(KEY, st); }; // (true when it was written: false with the browser's storage full or shut -- the scene says so, Pocket.prototype.keep)
@@ -59,12 +61,12 @@
   // the word a slot makes (js/classes.js NPC.spec reads it): 'barley:3+dagger1', 'talmok:5:grown', '~fighter.5....'
   PK.wordOf = function (st, slot) {
     if (!slot) return null;
-    if (slot.custom != null) { var c = st.roster[slot.custom]; return c ? c.code : null; }
+    if (slot.custom != null) { var c = st.roster[slot.custom]; return c ? c.code + PK.gearIds(slot).map(function (id) { return '+' + id; }).join('') : null; } // (its GEAR from the pack after its code, 10-17)
     if (slot.w === 'new' || slot.w === '?') return null;
     var s = PK.STOCK.filter(function (x) { return x.w === slot.w; })[0] || { lo: 1 };
     var L = s.king ? 12 : Math.max(s.lo, Math.min(s.hi || 12, PK.cap(st), slot.lvl || s.lo));
     var pk = slot.picks && DS.R.picksWord ? DS.R.picksWord(slot.picks).filter(function (w0) { return +/^\^(\d+)/.exec(w0)[1] <= L; }) : []; // (its level picks: js/rules.js R.picksWord, 10-14)
-    return slot.w + ':' + L + (s.grown ? ':grown' : '') + (slot.loot || []).concat(pk).map(function (id) { return '+' + id; }).join('');
+    return slot.w + ':' + L + (s.grown ? ':grown' : '') + (slot.loot || []).concat(PK.gearIds(slot), pk).map(function (id) { return '+' + id; }).join(''); // (its winnings, its GEAR from the pack, its picks)
   };
   PK.specOf = function (st, slot) { var w = PK.wordOf(st, slot); return w ? NPC.spec(w) : null; };
   // a sheet for the card (the 8-bit's shape: hp, equip, abil...), and its figure
@@ -182,7 +184,10 @@
   // the plus-ones and the two SRD items the ladder's armoury already carries, by what the class may wear; the +2s from the third rung and the trial
   // (10-06: and the worn things -- the Ring of Resistance (fire), the Boots of Elvenkind, the Periapt of Proof against Poison; any class may wear them: R.canEquip)
   PK.LOOT = ['longsword1', 'dagger1', 'maul1', 'staff1', 'leather1', 'studded1', 'padded1', 'hide1', 'chainshirt1', 'scalemail1', 'ringmail1', 'chainmail1', 'splint1', 'robes1', 'ringofprotection', 'cloakdisplacement', 'ringresistfire', 'bootselvenkind', 'periaptpoison'];
-  PK.LOOT_LATE = ['longsword2', 'dagger2', 'staff2', 'flametongue', 'doorshield', 'dwarfplate'];
+  PK.LOOT_LATE = ['longsword2', 'dagger2', 'staff2', 'flametongue', 'doorshield', 'dwarfplate',
+    // (10-17, his "Make sure all the items we have in the game end up as fight rewards or in those stores": the story's own gear, priceless -- the king's plate and
+    // mantle and the Game Show's supplies left to their owners)
+    'threshingflail1', 'threshingflail2', 'greyfangbow', 'macedisruption', 'banhammer', 'winnower', 'greyseamknife', 'asmundhammer', 'sectblade', 'fatheraxe', 'sunshaftstaff', 'candleknife', 'ringofflying'];
   function bonusOf(it) { if (!it) return 0; var w = it.weapon || it.armor || it.shield || {}; return w.bonus || (w.magic ? 1 : 0) || (it.kind === 'shield' && w.ac > 2 ? w.ac - 2 : 0); }
   PK.lootFor = function (h, late) {
     var pool = PK.LOOT.concat(late ? PK.LOOT_LATE : []), out = [];
@@ -227,6 +232,40 @@
       s.loot = (s.loot || []).filter(function (id) { return drop.indexOf(id) < 0; }); s.loot.push(item);
     }
   };
+
+  // ------------------------------------------------------------------ the market and the pack (10-17, Griz: "like pocket DM, you make a party - if the CR is set hard
+  // enough you level - you might take symmetric fighting and need another sword"; "Store with 100 sp starting cash first fight. Save party gear et al status after
+  // every fight and ladder run. 2. Make sure all the items we have in the game end up as fight rewards or in those stores - stock by level is good"; "4 yes" -- sold
+  // back at half; "5 yes, and they'll have to read packs now"): a purse and a pack on the table. Every priced thing of the game's is on the market from the level the
+  // camp's armoury opens it (js/camp.js D.CAMP_ARMOURY), else by its price (under 1000 sp from 1, 4000 from 5, 8000 from 8, the rest from 11); the story's own gear,
+  // priceless, is among the late winnings (PK.LOOT_LATE); the Game Show's supplies stay the Game Show's. A won fight pays 100 sp a CR beaten (the DM's shops' scale)
+  var GOODS = ['weapon', 'ammo', 'armor', 'shield', 'ring', 'cloak', 'worn', 'use', 'tool'];
+  PK.tierOf = function (id) {
+    var it = DS.DATA.items[id], A = D.CAMP_ARMOURY || []; if (!it) return 99;
+    for (var i = 0; i < A.length; i++) if (A[i][1].indexOf(id) >= 0) return A[i][0];
+    var p = it.price || 0; return p < 1000 ? 1 : p < 4000 ? 5 : p < 8000 ? 8 : 11;
+  };
+  PK.stock = function (L) {
+    var I = DS.DATA.items;
+    return Object.keys(I).filter(function (id) { var it = I[id]; return it && typeof it === 'object' && it.price > 0 && !it.noSell && GOODS.indexOf(it.kind) >= 0 && PK.tierOf(id) <= L; })
+      .sort(function (a, b) { return GOODS.indexOf(I[a].kind) - GOODS.indexOf(I[b].kind) || I[a].price - I[b].price || (I[a].name < I[b].name ? -1 : 1); });
+  };
+  PK.packN = function (st, id) { var s = (st.pack || []).filter(function (x) { return x.id === id; })[0]; return s ? s.n : 0; };
+  PK.packAdd = function (st, id, d) {
+    st.pack = st.pack || []; var s = st.pack.filter(function (x) { return x.id === id; })[0];
+    if (!s) { if (d <= 0) return; s = { id: id, n: 0 }; st.pack.push(s); }
+    s.n += d; if (s.n <= 0) st.pack = st.pack.filter(function (x) { return x !== s; });
+  };
+  PK.coinFor = function (kinds) { return Math.round(PK.sum8(kinds) / 8 * 100); };
+  // what the fight used comes off the pack; a stack the fight lent (the armoury's crossbow and bolts, js/save.js) is not the table's
+  PK.packBack = function (st, B) {
+    (st.pack || []).slice().forEach(function (s) { var n = 0; (B.inv || []).forEach(function (x) { if (x.id === s.id) n += x.n || 0; }); if (n < s.n) PK.packAdd(st, s.id, n - s.n); });
+  };
+  // a card's gear from the pack (his: "add 'gear' button' (symbol?) below the down arrow to swap the characters"): rides its word as `+item`, worn after its
+  // winnings (js/classes.js NPC.wear); `noshield` / `noarmor` take the place's own off
+  PK.gearIds = function (slot) { var g = (slot && slot.gear) || {}; return Object.keys(g).filter(function (k) { return g[k]; }).map(function (k) { return g[k]; }); };
+  var MARKET_TABS = [['arms', 'WEAPONS', ['weapon', 'ammo']], ['armour', 'ARMOUR, SHIELDS', ['armor', 'shield']], ['worn', 'RINGS, CLOAKS', ['ring', 'cloak', 'worn']], ['goods', 'POTIONS, GOODS', ['use', 'tool']]];
+  var GEAR_TABS = [['weapon', 'WEAPON'], ['armor', 'ARMOUR'], ['shield', 'SHIELD'], ['worn', 'RINGS, CLOAK, BOOTS']];
 
   // ------------------------------------------------------------------ the query (every fight a URL)
   PK.query = function (foes, words, L, mapId, watch, kn) {
@@ -361,6 +400,8 @@
     if (s === 'map') { this.go('party'); return; }
     if (s === 'cr') { if (this.st.run) { this.go('title'); return; } this.go('map'); return; }
     if (s === 'notes') { this.go('fights'); return; }
+    if (s === 'gear') { this.go('party'); return; }
+    if (s === 'market') { this.go(this.marketFrom && this.marketFrom !== 'market' ? this.marketFrom : 'party'); return; }
     if (s === 'result' || s === 'rest' || s === 'unlock') return; // (a card with its own buttons)
     this.go('title');
   };
@@ -434,7 +475,7 @@
       won: run && run.trial ? 'THE TRIAL IS PASSED.' : 'THE TABLE IS CLEARED.', lost: 'THE DARK KEEPS THEM.' });
     var started = new Date().toISOString();
     this.before = JSON.parse(JSON.stringify({ run: run, party: this.st.party, roster: this.st.roster }));
-    var B = new D.Battle({ npc: { foes: kinds, party: this.fightWords() }, watch: this.watch, fightDef: def, pocket: true, flyTest: !!kn.fly, legendTest: !!kn.legend, breathTest: kn.breath || null, // (the class floor's knobs, set on the DM's foes screen: js/pocketdm.js)
+    var B = new D.Battle({ npc: { foes: kinds, party: this.fightWords() }, pack: JSON.parse(JSON.stringify(this.st.pack || [])), watch: this.watch, fightDef: def, pocket: true, flyTest: !!kn.fly, legendTest: !!kn.legend, breathTest: kn.breath || null, // (the class floor's knobs, set on the DM's foes screen: js/pocketdm.js)
       record: { fight: 'pocket', name: name + ': ' + PK.foesText(kinds), level: L },
       onDone: function (res, why) { if (B.rec) D.rec.finish(B, res); if (why && why.broke) self.floor(why.broke, false); else self.done(res, B, { q: q, kinds: kinds, mapId: mapId, d: d, started: started }); } });
     this.lastQ = q;
@@ -468,7 +509,9 @@
       downs: end.filter(function (e) { return e.down; }).length, rung: run ? (run.trial ? 'trial' : run.rung) : null, notes: '' };
     this.st.fights.unshift(rec); while (this.st.fights.length > KEEP) this.st.fights.pop();
     this.result = { res: res, rec: rec, end: end, loot: null };
+    PK.packBack(this.st, B); // (what the fight used comes off the pack, 10-17)
     if (res === 'won') {
+      var coin = PK.coinFor(info.kinds); this.st.purse = (this.st.purse == null ? 100 : this.st.purse) + coin; this.result.coin = coin; rec.coin = coin; // (100 sp a CR beaten)
       var late = run ? (run.trial || run.rung >= 3) : info.d.ratio >= 1.5;
       var gift = PK.loot(this.st, this.st.party, late);
       if (gift) { PK.give(this.st, this.st.party, gift.who, gift.item); this.result.loot = gift; rec.loot = gift.name + ': ' + DS.DATA.items[gift.item].name; }
@@ -802,6 +845,77 @@
     this.go('party');
   };
 
+  // ------------------------------------------------------------------ THE MARKET and GEAR (10-17: the screens; the rules are PK's, above)
+  Pocket.prototype.openMarket = function (from) { this.marketFrom = from || this.screen; this.marketTab = this.marketTab || 'arms'; if (this.st.purse == null) this.st.purse = 100; this.go('market'); };
+  Pocket.prototype.drawMarket = function (ctx) {
+    var self = this, st = this.st, L = this.topLevel(), mt = this.marketTab || 'arms', tab = MARKET_TABS.filter(function (t) { return t[0] === mt; })[0] || MARKET_TABS[0];
+    if (st.purse == null) st.purse = 100;
+    head(ctx, 'THE MARKET', 'the purse ' + st.purse + ' sp  ·  stock for level ' + L + '  ·  sold back at half');
+    var y = 40;
+    MARKET_TABS.forEach(function (t, k) { self.btn(ctx, t[1], 20 + k * 112, y, 106, 13, function () { self.marketTab = t[0]; self.scroll = 0; }, { on: tab === t, small: true }); });
+    var list = PK.stock(L).filter(function (id) { return tab[2].indexOf(DS.DATA.items[id].kind) >= 0; }), per = 11, from = Math.min(this.scroll, Math.max(0, list.length - per));
+    this.scroll = from;
+    D.text(ctx, '{y}FOR SALE{/}', 20, y + 20, P('bone', 1));
+    list.slice(from, from + per).forEach(function (id, k) {
+      var it = DS.DATA.items[id], yy = y + 32 + k * 15, dear = it.price > st.purse;
+      self.btn(ctx, it.name, 20, yy, 150, 13, function () {
+        if (st.purse < it.price) { D.sfx('error'); self.say('the purse is ' + st.purse + ' sp: ' + it.name + ' is ' + it.price); return; }
+        st.purse -= it.price; PK.packAdd(st, id, 1); self.keep(); D.sfx('confirm'); self.say(it.name + ' into the pack');
+      }, { small: true, dis: dear, why: 'the purse is short' });
+      D.text(ctx, it.price + ' sp', 176, yy + 3, dear ? P('stone', 5) : P('gold', 4));
+    });
+    if (list.length > per) D.text(ctx, '{g}wheel: ' + (from + 1) + '-' + Math.min(list.length, from + per) + ' of ' + list.length + '{/}', 20, y + 32 + per * 15 + 2, P('stone', 5));
+    var px = 262, pk = (st.pack || []).filter(function (s) { return s.n > 0 && DS.DATA.items[s.id]; });
+    D.text(ctx, '{y}THE PACK{/}  {g}(a click sells one){/}', px, y + 20, P('bone', 1));
+    if (!pk.length) D.text(ctx, 'empty', px, y + 34, P('stone', 5));
+    pk.slice(0, per).forEach(function (s, k) {
+      var it = DS.DATA.items[s.id], yy = y + 32 + k * 15, half = Math.floor((it.price || 0) / 2);
+      self.btn(ctx, it.name + (s.n > 1 ? ' x' + s.n : ''), px, yy, 150, 13, function () { st.purse += half; PK.packAdd(st, s.id, -1); self.keep(); D.sfx('cursor'); self.say(it.name + ' sold: ' + half + ' sp'); }, { small: true, dis: !(it.price > 0) || it.noSell, why: 'nobody buys that' });
+      D.text(ctx, half + ' sp', px + 156, yy + 3, P('silver', 5));
+    });
+    if (pk.length > per) D.text(ctx, '{g}and ' + (pk.length - per) + ' more{/}', px, y + 32 + per * 15 + 2, P('stone', 5));
+    this.btn(ctx, 'BACK', 20, 236, 60, 15, function () { self.back(); });
+    D.hint(ctx, 'what you buy waits in the pack: a card\'s GEAR puts it on', D.W / 2, 222, P('stone', 4), 'center');
+  };
+  Pocket.prototype.openGear = function (i) { this.gearAt = i; this.gearTab = 'weapon'; this.scroll = 0; this.go('gear'); };
+  Pocket.prototype.gearSet = function (slot, pl, id) {
+    var st = this.st, g = slot.gear = slot.gear || {}, old = g[pl], it = id && DS.DATA.items[id];
+    if (old && !/^no/.test(old)) PK.packAdd(st, old, 1);
+    if (id && !/^no/.test(id)) PK.packAdd(st, id, -1);
+    if (id) g[pl] = id; else delete g[pl];
+    // (both hands: a shield from the pack goes back to it)
+    if (pl === 'weapon' && it && it.weapon && (it.weapon.props || []).indexOf('two-handed') >= 0 && g.shield && !/^no/.test(g.shield)) { PK.packAdd(st, g.shield, 1); delete g.shield; }
+    this.cache = {}; this.keep(); D.sfx('cursor');
+  };
+  Pocket.prototype.drawGear = function (ctx) {
+    var self = this, st = this.st, slot = st.party[this.gearAt], sp = slot ? PK.specOf(st, slot) : null, h = PK.sheetOf(sp);
+    if (!h) { this.go('party'); return; }
+    var gt = this.gearTab || 'weapon', places = gt === 'worn' ? R.PLACES : [gt], g = slot.gear = slot.gear || {};
+    head(ctx, 'GEAR: ' + h.name.toUpperCase(), R.CLASSES[h.cls].name + ' ' + h.lvl + '  ·  its own kit and winnings, or the pack\'s  ·  the purse ' + (st.purse == null ? 100 : st.purse) + ' sp');
+    var y = 40, rows = [];
+    GEAR_TABS.forEach(function (t, k) { self.btn(ctx, t[1], 20 + k * 112, y, 106, 13, function () { self.gearTab = t[0]; self.scroll = 0; }, { on: gt === t[0], small: true }); });
+    places.forEach(function (pl) { if (g[pl] && !/^no/.test(g[pl])) rows.push({ label: 'its own ' + (pl === 'armor' ? 'armour' : pl === 'ring2' ? 'ring (2nd)' : pl), right: (DS.DATA.items[g[pl]] || {}).name + ' back in the pack', fn: function () { self.gearSet(slot, pl, null); } }); });
+    if (gt === 'shield' || gt === 'armor') rows.push({ label: 'none', right: gt === 'shield' ? 'a free hand' : 'no armour', on: g[gt] === 'no' + gt, fn: function () { self.gearSet(slot, gt, g[gt] === 'no' + gt ? null : 'no' + gt); } });
+    (st.pack || []).forEach(function (s) {
+      var it = DS.DATA.items[s.id]; if (!it || s.n <= 0) return;
+      var pl = R.slotFor(h, it); if (!pl || places.indexOf(pl) < 0) return;
+      var ok = it.kind === 'cloak' || R.canEquip(h, it);
+      rows.push({ label: it.name + (s.n > 1 ? '  x' + s.n : ''), right: ok ? (it.desc || '').slice(0, 52) : 'not for a ' + R.CLASSES[h.cls].name.toLowerCase(), dis: !ok, fn: function () { self.gearSet(slot, pl, s.id); } });
+    });
+    var per = 10, from = Math.min(this.scroll, Math.max(0, rows.length - per)); this.scroll = from;
+    if (!rows.length) D.text(ctx, 'nothing in the pack for ' + (gt === 'worn' ? 'a ring, a cloak, the feet or the neck' : 'this place') + ': THE MARKET sells it', 20, y + 22, P('stone', 5));
+    rows.slice(from, from + per).forEach(function (r, k) {
+      var yy = y + 18 + k * 15;
+      self.btn(ctx, r.label, 20, yy, 150, 13, r.fn, { small: true, dis: !!r.dis, on: !!r.on, why: r.right });
+      D.text(ctx, r.right || '', 176, yy + 3, r.dis ? P('stone', 5) : P('bone', 1));
+    });
+    var worn = places.map(function (pl) { var it = DS.DATA.items[h.equip[pl]]; return (pl === 'armor' ? 'armour' : pl) + ': ' + (it ? it.name : 'none'); }).join('  ·  ');
+    D.text(ctx, '{y}' + worn + '{/}', 20, y + 18 + per * 15 + 4, P('bone', 1));
+    D.text(ctx, 'AC ' + R.ac(h) + '  ·  ' + ((R.weaponOf(h) || {}).name || ''), 20, y + 18 + per * 15 + 16, P('gold', 4));
+    this.btn(ctx, 'BACK', 20, 236, 60, 15, function () { self.back(); });
+    this.btn(ctx, 'THE MARKET', D.W - 120, 236, 100, 15, function () { self.openMarket('gear'); }, { pri: true });
+  };
+
   // ------------------------------------------------------------------ the slots
   Pocket.prototype.cycle = function (i, dir) {
     var es = PK.entries(this.st), slot = this.st.party[i], at = -1;
@@ -865,6 +979,8 @@
     else if (s === 'rest') this.drawRest(ctx);
     else if (s === 'fights') this.drawFights(ctx);
     else if (s === 'notes') this.drawNotes(ctx);
+    else if (s === 'market') this.drawMarket(ctx);
+    else if (s === 'gear') this.drawGear(ctx);
     else this.drawMore(ctx, s);
     if (this.msg && this.msg.t > 0) { var mw = D.textWidth(this.msg.text) + 16; D.win8(ctx, (D.W - mw) / 2, D.H - 30, mw, 16); D.text(ctx, this.msg.text, D.W / 2, D.H - 26, this.msg.bad ? P('red', 4) : P('gold', 4), 'center'); }
     if (this.egg) this.drawEgg(ctx);
@@ -941,6 +1057,7 @@
         }
       } else { D.text(ctx, '(no sheet)', x + cw / 2, top + 60, P('red', 4), 'center'); }
       self.btn(ctx, 'v', x + cw / 2 - 12, top + 134, 24, 11, function () { self.cycle(i, 1); }, { small: true });
+      if (!isNew && s.h && !locked && !(e && e.king)) self.btn(ctx, 'GEAR', x + 8, top + 147, cw - 16, 11, function () { self.openGear(i); }, { small: true }); // (10-17: below the down arrow, his word)
     });
     var ready = this.ready();
     this.btn(ctx, '- a seat', 20, 200, 70, 14, function () { if (st.party.length > 1) { st.party.pop(); self.cache = {}; self.keep(); } }, { dis: n <= 1 });
@@ -948,7 +1065,7 @@
     // the cards' level arrows (10-17, Griz: "For the named characters let's add an edit toggle on the level select screen, where they get full edit of torvald
     // and aurdin and such, or it always takes defaults (unlike Aurdin now)"): EDIT, each level up opens its pick page (Pocket.askLevel); DEFAULTS, none does
     this.btn(ctx, st.editLevels ? 'LEVEL-UPS: EDIT' : 'LEVEL-UPS: DEFAULTS', 172, 200, 132, 14, function () { st.editLevels = !st.editLevels; self.keep(); D.sfx('cursor'); }, { on: !!st.editLevels, why: 'EDIT: a card\'s level up asks its choices; DEFAULTS: it takes its own' });
-    if (st.roster.length) D.text(ctx, st.roster.length + ' of your own on the roster', 312, 203, P('stone', 5));
+    this.btn(ctx, 'THE MARKET  ' + (st.purse == null ? 100 : st.purse) + ' sp', 312, 200, 148, 14, function () { self.openMarket('party'); }); // (10-17)
     this.btn(ctx, 'BACK', 20, 236, 60, 15, function () { self.back(); });
     this.btn(ctx, 'SAVE CAMPAIGN', 88, 236, 114, 15, function () { self.saveTable(); }); // (the whole campaign's file, 10-06: PK.tableFile; SAVE ROSTER till then, greyed with no character of your own; SAVE TABLE till 10-09)
     this.btn(ctx, 'LOAD CAMPAIGN', 208, 236, 114, 15, function () { self.loadTable(); }); // (a campaign or table file, or a roster file of 10-03's)
@@ -1207,6 +1324,7 @@
     D.text(ctx, r.rec.foes + '  ·  CR ' + r.rec.cr + ', ' + r.rec.diff.toLowerCase() + '  ·  ' + r.rec.rounds + ' round' + (r.rec.rounds === 1 ? '' : 's') + (r.rec.downs ? '  ·  ' + r.rec.downs + ' down' : ''), D.W / 2, y + 30, P('bone', 1), 'center');
     var yy = y + 44;
     r.end.forEach(function (e) { D.text(ctx, (e.down ? '{r}' : '{y}') + e.name + '{/}  ' + e.hp + '/' + e.maxhp + (e.down ? '  down' : ''), D.W / 2, yy, P('bone', 1), 'center'); yy += 10; });
+    if (r.coin) { yy += 4; D.text(ctx, '{y}+' + r.coin + ' sp to the purse (' + this.st.purse + ' sp){/}', D.W / 2, yy, P('gold', 4), 'center'); yy += 6; } // (10-17)
     if (r.loot) { yy += 4; D.text(ctx, '{y}' + r.loot.name + ' finds ' + DS.DATA.items[r.loot.item].name + '.{/}', D.W / 2, yy, P('gold', 4), 'center'); yy += 10; }
     if (r.unlocked) { yy += 4; D.text(ctx, '{y}Pyronimus, King of Solskaft, will walk with you.{/} He is on the roster now, at his 12, with his own gear.', D.W / 2, yy, P('gold', 4), 'center'); yy += 10; }
     (r.lines || []).forEach(function (l) { yy += 2; D.text(ctx, l, D.W / 2, yy, P('gold', 4), 'center'); yy += 10; }); // (what the DM's purse took in: js/pocketdm.js afterFight)
@@ -1244,6 +1362,7 @@
       (this.rest.lines || []).forEach(function (l) { D.wrap('{y}' + l.name + '{/} ' + l.hp + '/' + l.maxhp + ': ' + l.text + ' {g}(' + l.hd + ' hit dice left){/}', w - 30).forEach(function (t) { D.text(ctx, t, x + 15, yy, P('bone', 1)); yy += 10; }); });
     }
     this.btn(ctx, long ? 'TO THE TRIAL' : 'THE NEXT RUNG', x + w / 2 - 70, y + 190 - 22, 140, 15, function () { if (!long) self.nextRung(); self.go('cr'); }, { pri: true });
+    this.btn(ctx, 'THE MARKET', x + 8, y + 190 - 22, 76, 15, function () { self.openMarket('rest'); }); // (between rungs, 10-17)
   };
   Pocket.prototype.drawFights = function (ctx) {
     var self = this, fs = this.st.fights, per = 11;

@@ -123,7 +123,7 @@
     if (f0T && this.o.legendTest) { var mkT = this.o.mineTest ? 'weapon' : Object.keys(f0T.attacks || {}).filter(function (k) { return !f0T.attacks[k].ranged; })[0]; f0T.legendary = { n: 3, acts: [{ name: 'A Swipe', cost: 1, atk: mkT }, { name: 'Detect', cost: 1, detect: true }] }; f0T.legendaryResist = 3; }
     // the pack: DEEP16 lends every ladder and climb party a crossbow and bolts (save.js armoury); inside the 8-bit game the party
     // carries only what it brought (Griz, 09-27: "unless the players bring crossbows/range, they shouldn't have one")
-    var pack = JSON.parse(JSON.stringify(this.from.data.inv || [])).map(function (s) { return Array.isArray(s) ? { id: s[0], n: s[1] } : s; });
+    var pack = JSON.parse(JSON.stringify(this.o.pack || this.from.data.inv || [])).map(function (s) { return Array.isArray(s) ? { id: s[0], n: s[1] } : s; }); // (o.pack: the Pocket DM's party pack, 10-17)
     this.inv = this.o.embed ? pack : D.save.armoury(pack);
     (this.o.itemsTest || []).forEach(function (s) { var st = self.inv.filter(function (x) { return x.id === s[0]; })[0]; if (st) st.n = s[1]; else self.inv.push({ id: s[0], n: s[1] }); }); // (the class floor's &items=: js/classes.js npcFight)
     // a class hero's second weapon in the pack too, so a player's hand has what the class turn swaps to -- the rogue's shortbow (10-01c, the rogue runner: "a human

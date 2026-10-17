@@ -406,10 +406,12 @@
   // list of bonds (a story hero's) takes up what it wears at once, as at a rest)
   NPC.wear = function (h, ids) {
     (ids || []).forEach(function (id) {
+      var off = /^no(armor|shield)$/.exec(id); if (off) { h.equip[off[1]] = null; return; } // (a card's GEAR: the place's own taken off, 10-17)
       var it = DS.DATA.items[id], slot = it && R.slotFor(h, it);
       if (!slot) return;
       if (it.kind !== 'cloak' && !R.canEquip(h, it)) return;
       h.equip[slot] = id;
+      if (slot === 'weapon' && it.weapon && (it.weapon.props || []).indexOf('two-handed') >= 0) h.equip.shield = null; // (both hands)
     });
     if (h.attuned) R.attune(h);
     return h;

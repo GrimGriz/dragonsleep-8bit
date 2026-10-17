@@ -28,6 +28,7 @@
     [6, ['doorshield', 'lighthammer', 'ringresistfire', 'periaptpoison']],
     [8, ['dwarfplate']]
   ];
+  D.CAMP_ARMOURY = ARMOURY; // (the Pocket DM's market opens its stock by these levels, 10-17: js/pocket.js PK.tierOf)
   function armoury(L) {
     var out = [];
     ARMOURY.forEach(function (a) { if (L >= a[0]) out = out.concat(a[1]); });
