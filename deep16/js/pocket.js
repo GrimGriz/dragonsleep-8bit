@@ -265,7 +265,6 @@
   // winnings (js/classes.js NPC.wear); `noshield` / `noarmor` take the place's own off
   PK.gearIds = function (slot) { var g = (slot && slot.gear) || {}; return Object.keys(g).filter(function (k) { return g[k]; }).map(function (k) { return g[k]; }); };
   var MARKET_TABS = [['arms', 'WEAPONS', ['weapon', 'ammo']], ['armour', 'ARMOUR, SHIELDS', ['armor', 'shield']], ['worn', 'RINGS, CLOAKS', ['ring', 'cloak', 'worn']], ['goods', 'POTIONS, GOODS', ['use', 'tool']]];
-  var GEAR_TABS = [['weapon', 'WEAPON'], ['armor', 'ARMOUR'], ['shield', 'SHIELD'], ['worn', 'RINGS, CLOAK, BOOTS']];
 
   // ------------------------------------------------------------------ the query (every fight a URL)
   PK.query = function (foes, words, L, mapId, watch, kn) {
@@ -381,7 +380,7 @@
     if (I.pressed('b') && !D.typing) { this.back(); return; }
     if (s === 'title' && this.titleClick()) return; // (the throne and the two lamps: js/pocketdm.js)
     if (this.readButtons()) return;
-    if (s === 'map' || s === 'fights' || s === 'maker' || s === 'useful' || this.scrolls(s)) {
+    if (s === 'map' || s === 'fights' || s === 'maker' || s === 'useful' || s === 'market' || this.scrolls(s)) { // (the market's list too, 10-17: his "i rolled the mousewheel over that ... and nothing happened")
       var w = I.mouse.wheel; if (w && !this.wheelTo(w)) { this.scroll = Math.max(0, this.scroll + w); } // (wheelTo: a screen of two lists takes it for the one under the mouse, js/pocketdm.js)
     }
     if (s === 'cr' && this.drag && I.mouse.inside) {
@@ -400,7 +399,6 @@
     if (s === 'map') { this.go('party'); return; }
     if (s === 'cr') { if (this.st.run) { this.go('title'); return; } this.go('map'); return; }
     if (s === 'notes') { this.go('fights'); return; }
-    if (s === 'gear') { this.go('party'); return; }
     if (s === 'market') { this.go(this.marketFrom && this.marketFrom !== 'market' ? this.marketFrom : 'party'); return; }
     if (s === 'result' || s === 'rest' || s === 'unlock') return; // (a card with its own buttons)
     this.go('title');
@@ -864,7 +862,11 @@
       }, { small: true, dis: dear, why: 'the purse is short' });
       D.text(ctx, it.price + ' sp', 176, yy + 3, dear ? P('stone', 5) : P('gold', 4));
     });
-    if (list.length > per) D.text(ctx, '{g}wheel: ' + (from + 1) + '-' + Math.min(list.length, from + per) + ' of ' + list.length + '{/}', 20, y + 32 + per * 15 + 2, P('stone', 5));
+    if (list.length > per) { // (^ and v, and the wheel: his "arrows would have shown more?", 10-17)
+      D.text(ctx, (from + 1) + '-' + Math.min(list.length, from + per) + ' of ' + list.length, 60, y + 32 + per * 15 + 4, P('stone', 5));
+      this.btn(ctx, '^', 20, y + 32 + per * 15 + 1, 16, 12, function () { self.scroll = Math.max(0, self.scroll - per); }, { small: true, dis: from <= 0 });
+      this.btn(ctx, 'v', 38, y + 32 + per * 15 + 1, 16, 12, function () { self.scroll = Math.min(list.length - per, self.scroll + per); }, { small: true, dis: from + per >= list.length });
+    }
     var px = 262, pk = (st.pack || []).filter(function (s) { return s.n > 0 && DS.DATA.items[s.id]; });
     D.text(ctx, '{y}THE PACK{/}  {g}(a click sells one){/}', px, y + 20, P('bone', 1));
     if (!pk.length) D.text(ctx, 'empty', px, y + 34, P('stone', 5));
@@ -877,43 +879,40 @@
     this.btn(ctx, 'BACK', 20, 236, 60, 15, function () { self.back(); });
     D.hint(ctx, 'what you buy waits in the pack: a card\'s GEAR puts it on', D.W / 2, 222, P('stone', 4), 'center');
   };
-  Pocket.prototype.openGear = function (i) { this.gearAt = i; this.gearTab = 'weapon'; this.scroll = 0; this.go('gear'); };
-  Pocket.prototype.gearSet = function (slot, pl, id) {
-    var st = this.st, g = slot.gear = slot.gear || {}, old = g[pl], it = id && DS.DATA.items[id];
-    if (old && !/^no/.test(old)) PK.packAdd(st, old, 1);
-    if (id && !/^no/.test(id)) PK.packAdd(st, id, -1);
-    if (id) g[pl] = id; else delete g[pl];
-    // (both hands: a shield from the pack goes back to it)
-    if (pl === 'weapon' && it && it.weapon && (it.weapon.props || []).indexOf('two-handed') >= 0 && g.shield && !/^no/.test(g.shield)) { PK.packAdd(st, g.shield, 1); delete g.shield; }
-    this.cache = {}; this.keep(); D.sfx('cursor');
+  // a card's GEAR (10-17, Griz: "Gear - why not open the regular menu with equip and that character selected?"): the one menu's EQUIP on the card's sheet, over the
+  // table's pack. Its own kit and winnings are its own: offered as free while it does not wear them, never into the pack (so nothing is sold twice). When the
+  // menu closes, what it wears that its word does not is written as its GEAR (PK.gearIds)
+  Pocket.prototype.openGear = function (i) {
+    var self = this, st = this.st, slot = st.party[i]; if (!slot) return;
+    var h = PK.sheetOf(PK.specOf(st, slot)); if (!h) return;
+    var g0 = slot.gear; slot.gear = {}; var own = PK.sheetOf(PK.specOf(st, slot)); slot.gear = g0 || {};
+    var ownIds = own ? R.PLACES.concat(['weapon', 'armor', 'shield', 'offhand']).map(function (pl) { return own.equip[pl]; }).filter(Boolean) : [];
+    var wornN = function (id) { return Object.keys(h.equip).filter(function (pl) { return h.equip[pl] === id; }).length; }, worn = function (id) { return wornN(id) > 0; };
+    var ownFree = function (id) { return ownIds.indexOf(id) >= 0 && !worn(id); };
+    this.pm = DS.MENU.openEquip({
+      party: function () { return [h]; },
+      pack: function () {
+        var out = (st.pack || []).filter(function (s) { var it = DS.DATA.items[s.id]; return s.n > 0 && it && !(it.use && it.use.effect === 'light'); }).map(function (s) { return { id: s.id, n: s.n }; }); // (the lights wait for the fight's ITEMS)
+        ownIds.forEach(function (id) { if (!ownFree(id)) return; var s = out.filter(function (x) { return x.id === id; })[0]; if (s) s.n++; else out.push({ id: id, n: 1 }); });
+        return out;
+      },
+      give: function (id, n) { if (ownIds.indexOf(id) >= 0 && wornN(id) <= 1) return; PK.packAdd(st, id, n || 1); }, // (its own coming off, called while still worn: back to itself, not the pack)
+      take: function (id, n) { if (ownFree(id)) return; PK.packAdd(st, id, -(n || 1)); },
+      canSave: function () { return false; },
+      run: function (kind, a, done) { if (done) done(); },
+      close: function () { self.pm = null; self.gearBack(i, h, own); }
+    }, h);
   };
-  Pocket.prototype.drawGear = function (ctx) {
-    var self = this, st = this.st, slot = st.party[this.gearAt], sp = slot ? PK.specOf(st, slot) : null, h = PK.sheetOf(sp);
-    if (!h) { this.go('party'); return; }
-    var gt = this.gearTab || 'weapon', places = gt === 'worn' ? R.PLACES : [gt], g = slot.gear = slot.gear || {};
-    head(ctx, 'GEAR: ' + h.name.toUpperCase(), R.CLASSES[h.cls].name + ' ' + h.lvl + '  ·  its own kit and winnings, or the pack\'s  ·  the purse ' + (st.purse == null ? 100 : st.purse) + ' sp');
-    var y = 40, rows = [];
-    GEAR_TABS.forEach(function (t, k) { self.btn(ctx, t[1], 20 + k * 112, y, 106, 13, function () { self.gearTab = t[0]; self.scroll = 0; }, { on: gt === t[0], small: true }); });
-    places.forEach(function (pl) { if (g[pl] && !/^no/.test(g[pl])) rows.push({ label: 'its own ' + (pl === 'armor' ? 'armour' : pl === 'ring2' ? 'ring (2nd)' : pl), right: (DS.DATA.items[g[pl]] || {}).name + ' back in the pack', fn: function () { self.gearSet(slot, pl, null); } }); });
-    if (gt === 'shield' || gt === 'armor') rows.push({ label: 'none', right: gt === 'shield' ? 'a free hand' : 'no armour', on: g[gt] === 'no' + gt, fn: function () { self.gearSet(slot, gt, g[gt] === 'no' + gt ? null : 'no' + gt); } });
-    (st.pack || []).forEach(function (s) {
-      var it = DS.DATA.items[s.id]; if (!it || s.n <= 0) return;
-      var pl = R.slotFor(h, it); if (!pl || places.indexOf(pl) < 0) return;
-      var ok = it.kind === 'cloak' || R.canEquip(h, it);
-      rows.push({ label: it.name + (s.n > 1 ? '  x' + s.n : ''), right: ok ? (it.desc || '').slice(0, 52) : 'not for a ' + R.CLASSES[h.cls].name.toLowerCase(), dis: !ok, fn: function () { self.gearSet(slot, pl, s.id); } });
+  Pocket.prototype.gearBack = function (i, h, own) {
+    var slot = this.st.party[i]; if (!slot || !own) return;
+    var g = {};
+    ['weapon', 'armor', 'shield', 'offhand'].concat(R.PLACES).forEach(function (pl) {
+      var now = h.equip[pl] || null, was = own.equip[pl] || null;
+      if (now === was) return;
+      if (now) g[pl] = pl === 'offhand' ? 'off:' + now : now;
+      else if (pl === 'armor' || pl === 'shield') g[pl] = 'no' + pl;
     });
-    var per = 10, from = Math.min(this.scroll, Math.max(0, rows.length - per)); this.scroll = from;
-    if (!rows.length) D.text(ctx, 'nothing in the pack for ' + (gt === 'worn' ? 'a ring, a cloak, the feet or the neck' : 'this place') + ': THE MARKET sells it', 20, y + 22, P('stone', 5));
-    rows.slice(from, from + per).forEach(function (r, k) {
-      var yy = y + 18 + k * 15;
-      self.btn(ctx, r.label, 20, yy, 150, 13, r.fn, { small: true, dis: !!r.dis, on: !!r.on, why: r.right });
-      D.text(ctx, r.right || '', 176, yy + 3, r.dis ? P('stone', 5) : P('bone', 1));
-    });
-    var worn = places.map(function (pl) { var it = DS.DATA.items[h.equip[pl]]; return (pl === 'armor' ? 'armour' : pl) + ': ' + (it ? it.name : 'none'); }).join('  ·  ');
-    D.text(ctx, '{y}' + worn + '{/}', 20, y + 18 + per * 15 + 4, P('bone', 1));
-    D.text(ctx, 'AC ' + R.ac(h) + '  ·  ' + ((R.weaponOf(h) || {}).name || ''), 20, y + 18 + per * 15 + 16, P('gold', 4));
-    this.btn(ctx, 'BACK', 20, 236, 60, 15, function () { self.back(); });
-    this.btn(ctx, 'THE MARKET', D.W - 120, 236, 100, 15, function () { self.openMarket('gear'); }, { pri: true });
+    slot.gear = g; this.cache = {}; this.keep();
   };
 
   // ------------------------------------------------------------------ the slots
@@ -980,7 +979,6 @@
     else if (s === 'fights') this.drawFights(ctx);
     else if (s === 'notes') this.drawNotes(ctx);
     else if (s === 'market') this.drawMarket(ctx);
-    else if (s === 'gear') this.drawGear(ctx);
     else this.drawMore(ctx, s);
     if (this.msg && this.msg.t > 0) { var mw = D.textWidth(this.msg.text) + 16; D.win8(ctx, (D.W - mw) / 2, D.H - 30, mw, 16); D.text(ctx, this.msg.text, D.W / 2, D.H - 26, this.msg.bad ? P('red', 4) : P('gold', 4), 'center'); }
     if (this.egg) this.drawEgg(ctx);

@@ -1093,6 +1093,16 @@
   };
   // the title's OPTIONS (10-09: in the PLAYTESTER LADDER's place on the 8-bit's front door, his "pull the playtester ladder option and put OPTIONS in its slot"): the
   // page alone, no party panel behind it; DONE or X closes it and the host's close pops the scene (js/scenes.js FrontOptions)
+  // EQUIP alone, on one hero (10-17, the Pocket DM's card -- Griz: "Gear - why not open the regular menu with equip and that character selected?"): the same
+  // page as everywhere, over the host's pack (host.pack, give, take); X on it closes the menu
+  MN.openEquip = function (host, h) {
+    var m = Object.create(Menu.prototype);
+    m.host = host; m.t = 0; m.pages = []; m.toast = null; m.busy = false; m.closed = false; m.hits = [];
+    m.root = { mode: null, draw: function () { }, update: function () { m.close(); }, drawPick: function () { } };
+    m.pop = function () { Menu.prototype.pop.call(this); if (!this.pages.length) this.close(); };
+    m.push(new EquipPage(m, h));
+    return m;
+  };
   MN.openOptions = function (host) {
     var m = Object.create(Menu.prototype); // (not new Menu: its Root reads the host's party, and the title has none)
     m.host = host; m.t = 0; m.pages = []; m.toast = null; m.busy = false; m.closed = false; m.hits = [];

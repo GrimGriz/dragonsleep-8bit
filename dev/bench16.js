@@ -4847,14 +4847,33 @@
       okMk('BUY: a Dagger (20 sp) refused with 10 in the purse (' + afterLs + ', the pack ' + nLs + '), then bought with 100: the purse ' + afterDg + ', the pack ' + nDg, !!bLs && afterLs === 10 && nLs === 0 && !!bDg && afterDg === 80 && nDg === 1);
       Pm.btns = []; Pm.draw(cxMk); var bSell = Pm.btns.filter(function (b) { return b.label === 'Dagger' && b.x > 200; })[0]; if (bSell) bSell.fn();
       okMk('SELL: the Dagger back at half: the purse ' + Pm.st.purse + ' (want 90), the pack ' + PKk.packN(Pm.st, 'dagger'), !!bSell && Pm.st.purse === 90 && PKk.packN(Pm.st, 'dagger') === 0);
-      PKk.packAdd(Pm.st, 'greatsword', 1); Pm.openGear(1); Pm.gearTab = 'weapon';
-      var bGs = btnMk('Greatsword'); if (bGs) bGs.fn();
-      var slL = Pm.st.party[1], wL = PKk.wordOf(Pm.st, slL), shL = PKk.sheetOf(PKk.specOf(Pm.st, slL));
-      okMk('GEAR: Lymen takes the Greatsword from the pack -- the word ' + wL + ', his sheet ' + shL.equip.weapon + ', the shield ' + shL.equip.shield + ', the pack ' + PKk.packN(Pm.st, 'greatsword'),
-        !!bGs && /\+greatsword/.test(wL) && shL.equip.weapon === 'greatsword' && !shL.equip.shield && PKk.packN(Pm.st, 'greatsword') === 0);
-      var bOwn = btnMk('its own weapon'); if (bOwn) bOwn.fn();
+      // GEAR: the one menu's EQUIP on Lymen (10-17, his "why not open the regular menu with equip and that character selected?")
+      function KMk(b) { return { pressed: function (x) { return x === b; }, repeat: function (x) { return x === b; } }; }
+      function equipPick(pk, place, id) {
+        var m = pk.pm; if (!m) return 'no menu'; var ep = m.top();
+        var ri = ep.list.items.findIndex(function (it) { return it.value === place; }); if (ri < 0) return 'no ' + place + ' row'; ep.list.i = ri; ep.list.fix(); m.update(KMk('a'));
+        var cp = m.top(); if (cp === ep) return 'no choices';
+        var ci = cp.list.items.findIndex(function (it) { return it.value === id; }); if (ci < 0) { var have = cp.list.items.map(function (it) { return it.value; }).join(','); m.update(KMk('b')); return 'not offered (' + have + ')'; }
+        cp.list.i = ci; cp.list.fix(); m.update(KMk('a')); if (m.toast) m.update(KMk('a'));
+        return '';
+      }
+      var slL = Pm.st.party[1], ownL = PKk.sheetOf(PKk.specOf(Pm.st, slL)), own0 = ownL.equip.weapon, ownSh = ownL.equip.shield;
+      PKk.packAdd(Pm.st, 'greatsword', 1); Pm.openGear(1); var isMenu = !!(Pm.pm && Pm.pm.top() && Pm.pm.top().h);
+      var whyGs = equipPick(Pm, 'weapon', 'greatsword'); if (Pm.pm) Pm.pm.update(KMk('b'));
+      var wL = PKk.wordOf(Pm.st, slL), shL = PKk.sheetOf(PKk.specOf(Pm.st, slL));
+      okMk('GEAR is the regular EQUIP on Lymen (' + isMenu + '): the Greatsword from the pack (' + (whyGs || 'taken') + '), the menu closed on X (' + !Pm.pm + ') -- the word ' + wL + ', his sheet ' + shL.equip.weapon + ', the shield ' + shL.equip.shield + ', the pack ' + PKk.packN(Pm.st, 'greatsword') + '; his own ' + own0 + ' and shield not in it (' + PKk.packN(Pm.st, own0) + ', ' + PKk.packN(Pm.st, ownSh) + ')',
+        isMenu && !whyGs && !Pm.pm && /\+greatsword/.test(wL) && shL.equip.weapon === 'greatsword' && !shL.equip.shield && PKk.packN(Pm.st, 'greatsword') === 0 && PKk.packN(Pm.st, own0) === 0 && PKk.packN(Pm.st, ownSh) === 0);
+      Pm.openGear(1); var whyOwn = equipPick(Pm, 'weapon', own0), whySh = equipPick(Pm, 'offhand', ownSh); if (Pm.pm) Pm.pm.update(KMk('b'));
       var wL2 = PKk.wordOf(Pm.st, slL), shL2 = PKk.sheetOf(PKk.specOf(Pm.st, slL));
-      okMk('ITS OWN WEAPON again: the Greatsword back in the pack (' + PKk.packN(Pm.st, 'greatsword') + '), the word ' + wL2 + ', the sheet ' + shL2.equip.weapon + ' and a shield ' + shL2.equip.shield, !!bOwn && PKk.packN(Pm.st, 'greatsword') === 1 && !/greatsword/.test(wL2) && shL2.equip.weapon !== 'greatsword' && !!shL2.equip.shield);
+      okMk('HIS OWN AGAIN (weapon ' + (whyOwn || 'taken') + ', shield ' + (whySh || 'taken') + '): the Greatsword back in the pack (' + PKk.packN(Pm.st, 'greatsword') + '), the word ' + wL2 + ', the sheet ' + shL2.equip.weapon + ' and ' + shL2.equip.shield + '; his own never in the pack (' + PKk.packN(Pm.st, own0) + ', ' + PKk.packN(Pm.st, ownSh) + ')',
+        !whyOwn && !whySh && PKk.packN(Pm.st, 'greatsword') === 1 && wL2 === 'lymen:4' && shL2.equip.weapon === own0 && shL2.equip.shield === ownSh && PKk.packN(Pm.st, own0) === 0 && PKk.packN(Pm.st, ownSh) === 0);
+      function shutMk(pk) { for (var q = 0; q < 4 && pk.pm; q++) pk.pm.update(KMk('b')); }
+      PKk.packAdd(Pm.st, 'shortsword', 1); Pm.openGear(0); var whyTwo = equipPick(Pm, 'offhand', 'shortsword'), refusedTwo = !!(Pm.pm && Pm.pm.top() && !Pm.pm.top().slot && Pm.pm.top().list); shutMk(Pm);
+      var wB0 = PKk.wordOf(Pm.st, Pm.st.party[0]);
+      Pm.openGear(1); var whyOff = equipPick(Pm, 'offhand', 'shortsword'); shutMk(Pm);
+      var wO = PKk.wordOf(Pm.st, slL), shO = PKk.sheetOf(PKk.specOf(Pm.st, slL));
+      okMk('A SECOND BLADE IN THE OFF HAND (his "you might take symmetric fighting and need another sword"): Barley\'s Thresh takes both hands, nothing written (' + wB0 + '); Lymen takes the Shortsword there (' + (whyOff || 'taken') + ') -- the word ' + wO + ', the sheet\'s off hand ' + shO.equip.offhand + ', the shield ' + shO.equip.shield + ', the pack ' + PKk.packN(Pm.st, 'shortsword'),
+        wB0 === 'barley:4' && !whyOff && /\+off:shortsword/.test(wO) && shO.equip.offhand === 'shortsword' && !shO.equip.shield && PKk.packN(Pm.st, 'shortsword') === 0 && !Pm.pm);
       PKk.packAdd(Pm.st, 'potion', 2);
       var Bk = D.npcFight('?npc=goblin&lvl=3&vs=fighter:3', { pack: JSON.parse(JSON.stringify(Pm.st.pack)) }); D.battle = Bk; Bk.enter(); for (var gk = 0; gk < 200 && !Bk.order.length; gk++) Bk.co.next();
       var potIn = (Bk.inv || []).filter(function (x) { return x.id === 'potion'; }).reduce(function (a, x) { return a + x.n; }, 0);
@@ -4865,6 +4884,8 @@
       var shN = PKk.sheetOf(D.npc.spec('lymen:4+noshield'));
       okMk('NOSHIELD in a word takes the shield off: ' + shN.equip.shield, !shN.equip.shield);
       var bG = (function () { Pm.go('party'); Pm.btns = []; Pm.draw(cxMk); return Pm.btns.filter(function (b) { return b.label === 'GEAR'; }).length; })(), bM = Pm.btns.filter(function (b) { return /^THE MARKET/.test(b.label); }).length;
+      Pm.openMarket('party'); Pm.marketTab = 'arms'; Pm.scroll = 0; Pm.btns = []; Pm.draw(cxMk); var dnM = Pm.btns.filter(function (x) { return x.label === 'v' && x.y > 150; })[0], s0M = Pm.scroll; if (dnM) dnM.fn(); Pm.btns = []; Pm.draw(cxMk); var s1M = Pm.scroll;
+      okMk('THE MARKET\'S v pages on (' + s0M + ' -> ' + s1M + ')', !!dnM && s1M > s0M);
       okMk('THE PARTY SCREEN: a GEAR under each card (' + bG + ' of 2), THE MARKET by the seats (' + bM + ')', bG === 2 && bM === 1);
     } catch (eMk) { repMk.errors.push(String(eMk && eMk.stack || eMk).slice(0, 900)); }
     if (errs.length) repMk.errors = repMk.errors.concat(errs);
