@@ -22,14 +22,17 @@
    them in st.mascots. */
 'use strict';
 (function () {
-  var D = window.D16, I = D.input, PK = D.pocket, Pocket = D.Pocket, MP = D.mpmon;
+  var D = window.D16, I = D.input, PK = D.pocket, Pocket = D.Pocket, MP = D.mpmon, NPC = D.npc, DS = window.DS;
   if (!PK || !Pocket) return;
   var P = function (r, i) { return D.PAL.ramps[r][i]; };
   var PD = D.pocketdm = {};
 
   // ------------------------------------------------------------------ the DM's roster: GreyFang (js/classes.js NPC.NAMED.greyfang, a ranger to his 11), and every Mascot
   var pyAt = PK.STOCK.map(function (s) { return s.w; }).indexOf('pyro');
-  PK.STOCK.splice(pyAt < 0 ? PK.STOCK.length : pyAt, 0, { w: 'greyfang', lo: 1, hi: 11, dm: true });
+  PK.STOCK.splice(pyAt < 0 ? PK.STOCK.length : pyAt, 0, { w: 'greyfang', lo: 1, hi: 11, dm: true },
+    // the story's villains of a class on the play roster at the DM's table (10-17, step C; Griz: "allows villains in the play roster in that mode also"): the Gray
+    // Keeping's two matriarchs, clerics of the Keeping by js/classes.js NPC.NAMED (their bestiary blocks on THE VILLAINS' shelf, gnollmatriarcheldest and -lama)
+    { w: 'matriarch', lo: 1, hi: 12, dm: true, villain: true }, { w: 'matriarchlama', lo: 1, hi: 12, dm: true, villain: true });
   if (MP && MP.unlocked) { var unl0 = MP.unlocked; MP.unlocked = function (st, w) { return !!(st && st.dm) || unl0(st, w); }; }
 
   // ------------------------------------------------------------------ the campaign's store (st.camp, kept with the rest in deep16.pocket and in SAVE CAMPAIGN's file)
@@ -49,9 +52,21 @@
     if (c.units.some(function (u) { return u && u.kind && !u.members; })) { c.bought = c.bought.concat(c.units.filter(function (u) { return u && u.kind && !u.members; })); c.units = c.units.filter(function (u) { return u && u.members; }); }
     c.strike = Array.isArray(c.strike) ? c.strike : []; c.plan = Array.isArray(c.plan) ? c.plan : [];
     c.mapCR = c.mapCR && typeof c.mapCR === 'object' ? c.mapCR : {}; c.next = c.next || 1;
+    // (10-17, step C) the maps bought (c.maps: { id, paid, at }), the modules by name (c.modules: { id, name, about, slots, at }; c.edit the one on BUILD), the
+    // stock cards' marks (c.marks: word -> 'villain' | 'only'), a stock villain's level on the shelf (c.vlvl)
+    c.maps = Array.isArray(c.maps) ? c.maps : []; c.modules = Array.isArray(c.modules) ? c.modules : [];
+    c.marks = c.marks && typeof c.marks === 'object' ? c.marks : {}; c.vlvl = c.vlvl && typeof c.vlvl === 'object' ? c.vlvl : {};
+    // (the one ladder of 10-09 to 10-17 is a module now, its rests as its file read: a short rest and the market between, a long rest before a fifth)
+    if (c.plan.length && !c.planMoved) {
+      var m0 = PK.moduleOf({ game: 'DRAGONSLEEP', kind: PK.LADDER_KIND, plan: c.plan });
+      c.modules.push({ id: c.next++, name: 'YOUR LADDER', about: '', at: Date.now(), slots: c.plan.map(function (s, i) { return Object.assign(JSON.parse(JSON.stringify(s)), { rest: m0 && m0.slots[i] ? m0.slots[i].rest : { short: true, long: false, market: false } }); }) });
+      c.plan = []; c.planMoved = true;
+    }
+    // (a map a module already stands on is the campaign's, paid nothing: what was built before THE LOCATIONS keeps its floors)
+    c.modules.forEach(function (m) { (m.slots || []).forEach(function (s) { if (s && s.map && D.MAPS[s.map] && !c.maps.some(function (x) { return x.id === s.map; })) c.maps.push({ id: s.map, paid: 0, at: Date.now() }); }); });
     return c;
   };
-  PD.price = function (kind) { var f = D.FOES[kind]; if (!f) return 0; var e = PK.cr8(f.cr); return e > 0 ? e * PD.CP8 : PD.CP0; };
+  PD.price = function (kind) { var f = PK.foe(kind); if (!f) return 0; var e = PK.cr8(f.cr); return e > 0 ? e * PD.CP8 : PD.CP0; }; // (a villain's word at its level's CR, js/pocket.js PK.foe)
   PD.unitCR8 = function (u) { return PK.sum8((u.members || []).map(function (m) { return m.kind; })); };
   PD.unitKinds = function (u) { return (u.members || []).map(function (m) { return m.kind; }); };
   PD.unitName = function (u) { return PK.foesText(PD.unitKinds(u)); };
@@ -70,21 +85,25 @@
   };
   PD.placed = function (plan, skip) { var back = {}; (plan || []).forEach(function (s, i) { if (i !== skip) (s.units || []).forEach(function (id) { if (back[id] == null) back[id] = i; }); }); return back; };
   function water(mapId) { var def = D.MAPS[mapId]; return !!def && def.rows.join('').indexOf('~') >= 0; }
-  function fits(kind, mapId) { var f = D.FOES[kind]; return !!f && !(f.bound && !water(mapId)); }
+  function fits(kind, mapId) { var f = PK.foe(kind); return !!f && !(f.bound && !water(mapId)); }
 
   // ------------------------------------------------------------------ the five shops
   PD.SHOPS = [
     { id: 'beasts', name: 'BEASTS', types: ['beast'], icon: 'paw', sub: 'the wild and the hungry' },
     { id: 'monstrosities', name: 'MONSTROSITIES', types: ['monstrosity'], icon: 'claw', sub: 'the made wrong and the made on purpose' },
-    { id: 'humanoids', name: 'HUMANOIDS', types: ['humanoid'], icon: 'sword', sub: 'bandits, drow, gnolls, the story\'s named' },
+    { id: 'humanoids', name: 'HUMANOIDS', types: ['humanoid'], icon: 'sword', sub: 'bandits, drow, gnolls, the plain folk' }, // (the story's named to VILLAINS, RULED 10-17: "4-8 yes")
     { id: 'giants', name: 'GIANTS', types: ['giant'], icon: 'boulder', sub: 'the big ones' },
-    { id: 'etc', name: 'ABERRATIONS, OOZES, ETC.', short: 'ABERRATIONS, OOZES, ETC.', types: null, icon: 'eye', sub: 'aberrations, oozes, elementals, the undead, the rest' }
+    { id: 'etc', name: 'ABERRATIONS, OOZES, ETC.', short: 'ABERRATIONS, OOZES, ETC.', types: null, icon: 'eye', sub: 'aberrations, oozes, elementals, the undead, the rest' },
+    // THE VILLAINS (10-17, step C; Griz: "pull villains into a new store and allow 'make' from there as well as going through the existing roster and being able to
+    // mark as villain or villain only"): the story's named, of every type, and yours -- made here, or marked on THE MARKS -- at their level's CR (PK.levelCR)
+    { id: 'villains', name: 'VILLAINS', named: true, icon: 'crown', sub: 'the story\'s named, and your own: made here or marked from the roster' }
   ];
   var TYPED = ['beast', 'monstrosity', 'humanoid', 'giant'];
   PD.OUT = ['keeperold', 'stonegiantm', 'gnollgray', 'gloryseekergray', 'gnollmatriarch', 'gnollmatriarchguard']; // (the ladder's old Keeper; the stone giant's second look and the Gray Keeping's gnolls and matriarchs, the same blocks -- one of each on the shelf)
   PD.shelf = function (shop, sort) {
     var out = Object.keys(D.FOES).filter(function (k) {
       var f = D.FOES[k]; if (!f || /^fam_/.test(k) || f.object || PD.OUT.indexOf(k) >= 0) return false; // (CR 0 on the shelves since his 10-09, at 10 sp: a hyena in a unit)
+      if (shop.named || f.named) return !!shop.named && !!f.named; // (the story's named on THE VILLAINS' shelf alone)
       return shop.types ? shop.types.indexOf(f.type) >= 0 : TYPED.indexOf(f.type) < 0;
     });
     var nm = function (k) { return String(D.FOES[k].name || k); };
@@ -95,9 +114,9 @@
   };
   // a purchase is a receipt, to bind into a unit
   PD.buy = function (st, kind) {
-    var cp = PD.camp(st), cost = PD.price(kind);
-    if (!D.FOES[kind] || cost <= 0) return { ok: false, why: 'not for sale' };
-    if (cp.purse < cost) return { ok: false, why: 'the purse holds ' + PD.fmt(cp.purse) + ': ' + D.FOES[kind].name + ' is ' + PD.fmt(cost) };
+    var cp = PD.camp(st), cost = PD.price(kind), fk = PK.foe(kind);
+    if (!fk || cost <= 0) return { ok: false, why: 'not for sale' };
+    if (cp.purse < cost) return { ok: false, why: 'the purse holds ' + PD.fmt(cp.purse) + ': ' + fk.name + ' is ' + PD.fmt(cost) };
     cp.purse -= cost; var r = { id: cp.next++, kind: kind, at: Date.now(), paid: cost }; cp.bought.push(r);
     return { ok: true, receipt: r };
   };
@@ -151,45 +170,126 @@
     this.fightMap = run.map = map; this.foes = run.foes = f.foes; run.mine = f.mine; run.units = f.units;
     return true;
   };
-  // the ladder to a file (10-17, his "DM should be able to save a ladder that has to be played on the regular ... rather than duping the experience" -- "1 yes"): its
-  // slots as they stand, each floor, CR and the foes its units made; any table plays it from the title's A DM'S LADDER (js/pocket.js takeLadder)
-  PD.ladderFile = function (cp) { return { game: 'DRAGONSLEEP', kind: PK.LADDER_KIND, v: 1, at: new Date().toISOString(), plan: JSON.parse(JSON.stringify(cp.plan)) }; };
-  PD.saveLadder = function (pk) {
-    var cp = PD.camp(pk.st); if (!cp.plan.length) return null;
-    var d = new Date(), pad = function (n) { return (n < 10 ? '0' : '') + n; }, name = 'pocket-dm-ladder-' + d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()) + '-' + pad(d.getHours()) + pad(d.getMinutes()) + '.json';
-    try {
-      var a = document.createElement('a'), url = URL.createObjectURL(new Blob([JSON.stringify(PD.ladderFile(cp), null, 1)], { type: 'application/json' }));
-      a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(function () { URL.revokeObjectURL(url); }, 4000);
-      pk.say('saved your ladder (' + cp.plan.length + ' slots) to ' + name + ': any table plays it from MODULES on the title (FROM A FILE)', 420); return name;
-    } catch (e) { pk.msg = { text: 'could not write the file: ' + e, t: 300, bad: true }; return null; }
+  // ------------------------------------------------------------------ THE MODULES of the campaign (10-17, step C; Griz: "A DM will want to save multiple ladders (modules?)",
+  // "First page ... should be the DMs units and maps, with load module or build module", "DM flag when he adds each map if he allows short rest, long rest, market visit
+  // between runs of his module(ladder)"): several, each a name, up to PK.MODULE_MAX fights, each fight a floor, its CR, the foes its units made and what follows it
+  // (`rest`: a short rest on, a long rest and the market off -- RULED 10-17, "4-8 yes"). c.edit is the one on BUILD. They play at the DM's table from THE CAMP's
+  // LOAD MODULE (js/pocket.js PK.modules, 'table:<id>') and go out as a file to the modules folder (SAVE TO THE FOLDER)
+  PD.REST0 = function () { return { short: true, long: false, market: false }; };
+  PD.MODULES_MAX = 30;
+  PD.module = function (st, id) { var cp = PD.camp(st); return cp.modules.filter(function (m) { return m.id === id; })[0] || null; };
+  PD.editing = function (st) { var cp = PD.camp(st); return cp.edit != null ? PD.module(st, cp.edit) : null; };
+  PD.newModule = function (st, name) {
+    var cp = PD.camp(st); if (cp.modules.length >= PD.MODULES_MAX) return null;
+    var n = 1; while (cp.modules.some(function (m) { return m.name === 'MODULE ' + n; })) n++;
+    var m = { id: cp.next++, name: String(name || 'MODULE ' + n).toUpperCase().slice(0, 24), about: '', at: Date.now(), slots: [] };
+    cp.modules.push(m); cp.edit = m.id; return m;
   };
-  // SAVE AS A MODULE (10-17, the two Pocket DMs; his "re 5 - can we when DM saves module store a pointer to a folder" -- "2 yes"): the ladder as built, as a module file
-  // (js/pocket.js PK.moduleOf: four rungs with a short rest and the market between, a long rest before a fifth, the trial), written into the modules folder -- picked the
-  // first time, kept after (PK.folder), one allow after a restart -- where THE CAMP's LOAD MODULE reads it; without folder access, a download as before
-  PD.moduleFile = function (cp, name) { var m = PK.moduleOf(PD.ladderFile(cp)); return m ? { game: 'DRAGONSLEEP', kind: PK.MODULE_KIND, v: 1, at: new Date().toISOString(), name: name, by: 'a DM', party: null, about: m.about, slots: m.slots } : null; };
-  PD.saveModule = function (pk) {
-    var cp = PD.camp(pk.st); if (!cp.plan.length) return null;
+  PD.copyModule = function (st, id) {
+    var cp = PD.camp(st), m = PD.module(st, id); if (!m || cp.modules.length >= PD.MODULES_MAX) return null;
+    var c = JSON.parse(JSON.stringify(m)); c.id = cp.next++; c.name = (m.name + ' AGAIN').slice(0, 24); c.at = Date.now(); cp.modules.push(c); return c;
+  };
+  PD.dropModule = function (st, id) { var cp = PD.camp(st); cp.modules = cp.modules.filter(function (m) { return m.id !== id; }); if (cp.edit === id) cp.edit = null; };
+  // a fight onto the module: the floor at a CR, its units first (the ones in its other fights behind the rest -- his 'used' rule, 10-09b)
+  PD.addSlot = function (pk, m, mapId, cr8) {
+    if (!m || m.slots.length >= PK.MODULE_MAX) return null;
+    var f = PD.fill(pk, mapId, cr8, PD.placed(m.slots)), s = { map: mapId, cr8: cr8, foes: f.foes, mine: f.mine, units: f.units, rest: PD.REST0() };
+    m.slots.push(s); return s;
+  };
+  // a module from a file (FROM A FILE on LOAD MODULE): the campaign's to change, its maps the campaign's at no cost (they came with it)
+  PD.takeModule = function (st, mod) {
+    var cp = PD.camp(st); if (!mod || cp.modules.length >= PD.MODULES_MAX) return null;
+    var m = { id: cp.next++, name: String(mod.name || 'A MODULE').toUpperCase().slice(0, 24), about: mod.about || '', at: Date.now(),
+      slots: mod.slots.map(function (s) { return { map: s.map, cr8: PK.sum8(s.foes), foes: s.foes.slice(), mine: 0, units: [], name: s.name || null, intro: s.intro || null, rest: Object.assign(PD.REST0(), s.rest || {}) }; }) };
+    cp.modules.push(m); PD.camp(st); return m;
+  };
+  // the module as a file (PK.moduleOf reads it at any table: its villains' words build anywhere)
+  PD.moduleFile = function (m) {
+    return { game: 'DRAGONSLEEP', kind: PK.MODULE_KIND, v: 1, at: new Date().toISOString(), name: m.name, by: 'a DM', party: null, about: m.about || ('A module of ' + m.slots.length + ' fight' + (m.slots.length === 1 ? '' : 's') + '.'),
+      slots: m.slots.map(function (s) { var o = { map: s.map, foes: s.foes.slice(), rest: Object.assign(PD.REST0(), s.rest || {}) }; if (s.name) o.name = s.name; if (s.intro) o.intro = s.intro; return o; }) };
+  };
+  // SAVE TO THE FOLDER (10-17, the two Pocket DMs; his "re 5 - can we when DM saves module store a pointer to a folder" -- "2 yes"): written into the modules folder --
+  // picked the first time, kept after (PK.folder), one allow after a restart -- where THE CAMP's LOAD MODULE reads it; without folder access, a download
+  PD.saveModule = function (pk, m) {
+    m = m || PD.editing(pk.st); if (!m || !m.slots.length) return null;
     var d = new Date(), pad = function (n) { return (n < 10 ? '0' : '') + n; }, stamp = d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()) + '-' + pad(d.getHours()) + pad(d.getMinutes());
-    var name = 'YOUR MODULE ' + (d.getMonth() + 1) + '-' + d.getDate() + ' ' + pad(d.getHours()) + pad(d.getMinutes()), file = 'pocket-module-' + stamp + '.json', text = JSON.stringify(PD.moduleFile(cp, name), null, 1);
+    var slug = String(m.name).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'module', file = 'pocket-module-' + slug + '-' + stamp + '.json', text = JSON.stringify(PD.moduleFile(m), null, 1);
     var download = function () {
       try { var a = document.createElement('a'), url = URL.createObjectURL(new Blob([text], { type: 'application/json' })); a.href = url; a.download = file; document.body.appendChild(a); a.click(); a.remove(); setTimeout(function () { URL.revokeObjectURL(url); }, 4000); pk.say('saved ' + file + ': THE CAMP, LOAD MODULE, FROM A FILE plays it', 420); }
       catch (e) { pk.msg = { text: 'could not write the file: ' + e, t: 300, bad: true }; }
     };
     if (!PK.canFolder()) { download(); return file; }
     var h = PK.folder, got = h ? PK.folderAllowed(h, true, true).then(function (ok) { return ok ? h : PK.folderPick(); }) : PK.folderPick();
-    got.then(function (fh) { return PK.folderWrite(fh, file, text).then(function () { pk.say('saved ' + name + ' to the folder ' + fh.name + ': THE CAMP\'s LOAD MODULE lists it', 420); }); })
+    got.then(function (fh) { return PK.folderWrite(fh, file, text).then(function () { pk.say('saved ' + m.name + ' to the folder ' + fh.name + ': THE CAMP\'s LOAD MODULE lists it', 420); }); })
       .catch(function (e) { if (e && e.name === 'AbortError') { pk.say('no folder picked: nothing saved', 300); return; } pk.say('the folder would not take it (' + (e && e.message || e) + '): a download instead', 300); download(); });
     return file;
   };
-  PD.startPlan = function (pk) {
-    var cp = PD.camp(pk.st); if (!cp.plan.length) return false;
-    var here = pk.st.run, ask = pk.ask || function (q) { return window.confirm(q); };
-    if (here && !ask('A ladder is under way (' + (here.trial ? 'the trial' : 'rung ' + here.rung) + '). Put it away for yours?')) { pk.say('kept the ladder under way', 240); return false; }
-    var levels = pk.levels();
-    pk.st.run = { rung: 1, trial: false, base8: cp.plan[0].cr8, carry: null, hd: levels.slice(), arcane: levels.map(function () { return false; }), won: 0, startedAt: Date.now(), plan: JSON.parse(JSON.stringify(cp.plan)), foes: null, map: null };
-    pk.planRung(pk.st.run); pk.keep();
-    return true;
+
+  // ------------------------------------------------------------------ THE LOCATIONS (10-17, step C; Griz: "We'll need a 'locations' store that works like the monster store by tileset
+  // (i.e. underground, urban, outdoors - probably matching world tile) sorted by map size. Maps chosen/bought here show up on the ladder building screen (instead of all
+  // available maps)"): every floor the table deals, by its ground -- a map's own `land` where it has one, else this table (the seat's read of each floor, 10-17; a floor
+  // not here goes UNDERGROUND when dark and OUTDOORS when not) -- sorted small to large by the squares one can stand on, priced by size band (RULED 10-17, "4-8 yes":
+  // 50 / 100 / 200 sp). A map bought is the campaign's (c.maps); let go, its silver back. STRIKE (the random draw's) lives here since BUILD shows only maps bought
+  PD.LANDS = [['underground', 'UNDERGROUND', 'caves, the king\'s road, the Warrens'], ['urban', 'URBAN', 'halls, yards, the made places'], ['outdoors', 'OUTDOORS', 'roads, hills, water, open sky']];
+  PD.LAND = {
+    floodstair: 'underground', pool: 'underground', drain: 'underground', cut: 'underground', siphon: 'underground', roost: 'underground', cutwalls: 'underground',
+    threshold: 'underground', settling: 'underground', seamwall: 'underground', giantcamp: 'underground', trollcave: 'underground', camp: 'underground', burial: 'underground',
+    grickden: 'underground', deep: 'underground', roperfork: 'underground', nest: 'underground', barricade: 'underground', breach: 'underground', lamp: 'underground',
+    cavern: 'underground', causeway: 'underground', restcamp: 'underground', cistern: 'underground', lampcircle: 'underground',
+    hexfloor: 'urban', yard: 'urban', greyfangpit: 'urban', edifice: 'urban', lighthouse: 'urban',
+    gulch: 'outdoors', bridge: 'outdoors', bog: 'outdoors', snootroad: 'outdoors', northroad: 'outdoors', gnollhills: 'outdoors', point: 'outdoors', climbfloor: 'outdoors'
   };
+  PD.landOf = function (id) { var d = D.MAPS[id] || {}; return d.land || PD.LAND[id] || (d.dark ? 'underground' : 'outdoors'); };
+  var sizeC = {};
+  PD.sizeOf = function (id) { // (the squares one can stand on, as PK.roomOn counts them)
+    if (sizeC[id] != null) return sizeC[id];
+    var def = D.MAPS[id], n = 0; if (!def) return 0;
+    try { var m = D.iso.load(def); for (var y = 0; y < m.h; y++) for (var x = 0; x < m.w; x++) { var q = m.at(x, y); if (q && q.walk) n++; } } catch (e) { n = 0; }
+    return (sizeC[id] = n);
+  };
+  PD.BANDS = [[150, 'SMALL', 500], [250, 'MEDIUM', 1000], [Infinity, 'LARGE', 2000]]; // (under 150 squares, under 250, the rest; the price in copper: 50 / 100 / 200 sp)
+  PD.bandOf = function (id) { var n = PD.sizeOf(id); for (var i = 0; i < PD.BANDS.length; i++) if (n < PD.BANDS[i][0]) return PD.BANDS[i]; return PD.BANDS[PD.BANDS.length - 1]; };
+  PD.mapPrice = function (id) { return PD.bandOf(id)[2]; };
+  PD.owns = function (st, id) { return PD.camp(st).maps.some(function (x) { return x.id === id; }); };
+  PD.locations = function (pk, land) {
+    return pk.mapIds().filter(function (id) { return !land || PD.landOf(id) === land; }).sort(function (a, b) { return PD.sizeOf(a) - PD.sizeOf(b) || (String((D.MAPS[a] || {}).name) < String((D.MAPS[b] || {}).name) ? -1 : 1); });
+  };
+  PD.buyMap = function (st, id) {
+    var cp = PD.camp(st), cost = PD.mapPrice(id);
+    if (!D.MAPS[id]) return { ok: false, why: 'no such floor' };
+    if (PD.owns(st, id)) return { ok: false, why: 'yours already' };
+    if (cp.purse < cost) return { ok: false, why: 'the purse holds ' + PD.fmt(cp.purse) + ': ' + (D.MAPS[id].name || id) + ' is ' + PD.fmt(cost) };
+    cp.purse -= cost; cp.maps.push({ id: id, paid: cost, at: Date.now() }); return { ok: true };
+  };
+  PD.letGoMap = function (st, id) {
+    var cp = PD.camp(st), r = cp.maps.filter(function (x) { return x.id === id; })[0]; if (!r) return null;
+    if (cp.modules.some(function (m) { return m.slots.some(function (s) { return s.map === id; }); })) return { ok: false, why: 'a module of yours stands on it: take its fight off first' };
+    cp.maps = cp.maps.filter(function (x) { return x !== r; }); cp.purse += r.paid || 0; return { ok: true, back: r.paid || 0 };
+  };
+  PD.myMaps = function (pk) { var cp = PD.camp(pk.st), ids = pk.mapIds(); return cp.maps.map(function (x) { return x.id; }).filter(function (id) { return ids.indexOf(id) >= 0; }).sort(function (a, b) { var la = PD.landOf(a), lb = PD.landOf(b); return la !== lb ? (la < lb ? -1 : 1) : PD.sizeOf(a) - PD.sizeOf(b); }); };
+
+  // ------------------------------------------------------------------ THE VILLAINS of a class: what THE MARKS and MAKE put on THE VILLAINS' shelf, each at a level (its CR, PK.levelCR)
+  // a stock card marked (st.camp.marks) at the level the shelf's arrows set (c.vlvl, the card's own lowest at first); a made one -- MAKE's, or one of the roster marked
+  // -- at its own (EDIT it in the maker for another)
+  PD.stockName = function (w) { var n = NPC.NAMED[w], h = DS.DATA.heroes && DS.DATA.heroes[w]; return (n && n.name) || (h && h.name) || (w.charAt(0).toUpperCase() + w.slice(1)); }; // (Ingrith's register names her nowhere else)
+  PD.villainRows = function (st) {
+    var cp = PD.camp(st), out = [];
+    PK.STOCK.forEach(function (s) {
+      if (s.king || !cp.marks[s.w]) return;
+      var hi = Math.min(s.hi || 12, 12), L = Math.max(s.lo, Math.min(hi, cp.vlvl[s.w] || Math.max(s.lo, 5)));
+      var sp = null; try { sp = NPC.spec(s.w + ':' + L); } catch (e) { sp = null; } if (!sp) return;
+      out.push({ key: 'w:' + s.w, w: s.w, word: s.w + ':' + L, lvl: L, lo: s.lo, hi: hi, name: PD.stockName(s.w), cls: sp.cls || (DS.DATA.heroes[sp.hero] || {}).cls, mark: cp.marks[s.w], tag: 'MARKED' });
+    });
+    st.roster.forEach(function (c, i) {
+      if (!c.dm && !c.mark) return;
+      out.push({ key: 'c:' + i, i: i, word: c.code, lvl: c.lvl, name: c.name, cls: c.cls, mark: c.mark || 'villain', tag: c.dm ? 'MADE' : 'MARKED' });
+    });
+    return out;
+  };
+  PD.MARKS = [null, 'villain', 'only'];
+  PD.markWord = function (m) { return m === 'only' ? 'VILLAIN ONLY' : m === 'villain' ? 'VILLAIN' : '--'; };
+  PD.setMark = function (st, e, m) { var cp = PD.camp(st); if (e.kind === 'custom') { var c = st.roster[e.i]; if (!c) return; if (m) c.mark = m; else delete c.mark; } else if (m) cp.marks[e.w] = m; else delete cp.marks[e.w]; };
+  Pocket.prototype.makeVillain = function (i) { var rec = i != null ? this.st.roster[i] : null; this.makeNew(-1, rec, i != null ? i : null); this.mk.villain = true; };
   // what a ladder fight pays the DM (his: "double the CR of the ladder encounter for each fight on the ladder"): won or lost, twice the table's CR in silver
   Pocket.prototype.afterFight = function (res, run, info) {
     if (!this.st.dm || !run || (res !== 'won' && res !== 'lost')) return;
@@ -243,18 +343,24 @@
     D.text(ctx, '{y}' + PD.fmt(cp.purse) + '{/}  ' + cp.units.length + ' unit' + (cp.units.length === 1 ? '' : 's') + (cp.bought.length ? ' {g}+' + cp.bought.length + '{/}' : ''), x + w / 2, y + 22, P('bone', 1), 'center');
   };
 
-  // ------------------------------------------------------------------ the screens: the campaign, a shop, the units, the builder, the doors, the notes
+  // ------------------------------------------------------------------ the screens: the campaign, the shops, a shop, the villains, the marks, the units, the locations, the modules,
+  // the builder, the doors, the notes
+  var BACKTO = { camp: 'title', doors: 'title', shops: 'camp', units: 'camp', build: 'camp', locations: 'camp', dmmods: 'camp', shop: 'shops', villains: 'shops', marks: 'villains', feedback: 'doors' };
   Pocket.prototype.backMore = function (s) {
-    if (s === 'camp' || s === 'doors') { this.keep(); this.go('title'); return true; }
-    if (s === 'shop' || s === 'units' || s === 'build') { this.keep(); this.go('camp'); return true; }
-    if (s === 'feedback') { this.keep(); this.go('doors'); return true; } // (USEFULS till 10-17)
-    return false;
+    if (!BACKTO[s]) return false;
+    if (s === 'build' && this.naming) { this.naming = false; this.dropField(); return true; } // (X from the name's field lets the field go, not the builder)
+    this.keep(); this.go(BACKTO[s]); return true; // (USEFULS till 10-17 for the notes; THE CAMPAIGN's own pages back to it, a shop's to THE SHOPS since 10-17)
   };
-  Pocket.prototype.scrolls = function (s) { return s === 'shop' || s === 'units' || s === 'build' || s === 'doors'; };
+  Pocket.prototype.scrolls = function (s) { return ['shop', 'units', 'build', 'doors', 'locations', 'villains', 'marks', 'dmmods'].indexOf(s) >= 0; };
   Pocket.prototype.drawMore = function (ctx, s) {
     if (s === 'camp') this.drawCamp(ctx);
+    else if (s === 'shops') this.drawShops(ctx);
     else if (s === 'shop') this.drawShop(ctx);
+    else if (s === 'villains') this.drawVillains(ctx);
+    else if (s === 'marks') this.drawMarks(ctx);
     else if (s === 'units') this.drawUnits(ctx);
+    else if (s === 'locations') this.drawLocations(ctx);
+    else if (s === 'dmmods') this.drawDmMods(ctx);
     else if (s === 'build') this.drawBuild(ctx);
     else if (s === 'doors') this.drawDoors(ctx);
     else if (s === 'feedback') this.drawFeedback(ctx);
@@ -263,49 +369,178 @@
     ctx.save(); ctx.translate(D.W / 2, 6); ctx.scale(2, 2); D.text(ctx, title, 0, 0, P('gold', 4), 'center'); ctx.restore();
     if (sub) D.text(ctx, sub, D.W / 2, 24, P('silver', 5), 'center');
   }
-  function crOf(kind) { return String((D.FOES[kind] || {}).cr || '?'); }
-  function nameOf(kind) { return (D.FOES[kind] || {}).name || kind; }
+  function panel(ctx, x, y, w, h) { ctx.fillStyle = 'rgba(14,12,24,.84)'; ctx.fillRect(x, y, w, h); ctx.strokeStyle = P('stone', 3); ctx.strokeRect(x + 0.5, y + 0.5, w - 1, h - 1); }
+  function crOf(kind) { return String((PK.foe(kind) || {}).cr || '?'); }
+  function nameOf(kind) { return (PK.foe(kind) || {}).name || kind; }
   function cut(s, w) { s = String(s); if (D.textWidth(s) <= w) return s; while (s.length > 1 && D.textWidth(s + '..') > w) s = s.slice(0, -1); return s + '..'; }
+  function clsOf(c) { return c && DS.R.CLASSES[c] ? DS.R.CLASSES[c].name : ''; }
+  PD.shopById = function (id) { return PD.SHOPS.filter(function (s) { return s.id === id; })[0] || null; };
+  Pocket.prototype.toShop = function (id) { this.shop = id; this.scroll = 0; this.go(id === 'villains' ? 'villains' : 'shop'); };
 
-  // the campaign: the purse, the five shops, the units, the ladder of your own
+  // THE CAMPAIGN, the first page (10-17, step C; Griz: "First page (currently when DM clicks 'campaign') should be the DMs units and maps, with load module or build
+  // module - or clicking a button near their units and maps where they can buy and add more to their campaign without starting to build a module"): the purse; your
+  // units with THE SHOPS and THE UNITS beside them; your maps with THE LOCATIONS; your modules with BUILD MODULE and LOAD MODULE; the campaign's file
   Pocket.prototype.drawCamp = function (ctx) {
     var self = this, st = this.st, cp = PD.camp(st);
-    head(ctx, 'THE CAMPAIGN', 'your purse, your villains, your own ladder · CR in silver: 100 sp a CR');
-    ctx.save(); ctx.translate(20, 36); ctx.scale(2, 2); D.text(ctx, PD.fmt(cp.purse), 0, 0, P('gold', 4)); ctx.restore();
-    D.text(ctx, 'the purse · each ladder fight pays twice its CR in silver, won or lost', 20, 54, P('stone', 5));
-    // the shops, an icon each
-    var tw = 86, gap = 6, x0 = Math.round((D.W - (5 * tw + 4 * gap)) / 2), ty = 66, th = 44;
-    PD.SHOPS.forEach(function (sh, i) {
-      var x = x0 + i * (tw + gap), n = PD.shelf(sh).length;
-      self.btn(ctx, '', x, ty, tw, th, function () { self.shop = sh.id; self.scroll = 0; self.go('shop'); });
-      var ic = icon(sh.icon); ctx.drawImage(ic, 0, 0, 12, 12, x + tw / 2 - 12, ty + 4, 24, 24);
-      var lines = sh.id === 'etc' ? ['ABERRATIONS,', 'OOZES, ETC.'] : [sh.name];
-      lines.forEach(function (l, j) { D.text(ctx, l, x + tw / 2, ty + 29 + j * 8 - (lines.length - 1) * 4, P('bone', 2), 'center'); });
-      D.text(ctx, '{g}' + n + '{/}', x + tw - 4, ty + 3, P('stone', 5), 'right');
+    head(ctx, 'THE CAMPAIGN', 'your units and your maps, then your modules · CR in silver: 100 sp a CR');
+    ctx.save(); ctx.translate(20, 34); ctx.scale(2, 2); D.text(ctx, PD.fmt(cp.purse), 0, 0, P('gold', 4)); ctx.restore();
+    D.text(ctx, 'the purse · a fight of yours played here pays twice its CR in silver, won or lost', 20, 52, P('stone', 5));
+    var ty = 64, ph = 92, lx = 16, lw = 218, us = PD.newest(cp), nb = cp.bought.length;
+    panel(ctx, lx, ty, lw, ph);
+    D.text(ctx, '{y}YOUR UNITS{/}  ' + us.length + (nb ? '  {g}+' + nb + ' receipt' + (nb === 1 ? '' : 's') + ' to bind{/}' : ''), lx + 6, ty + 5, P('bone', 1));
+    us.slice(0, 5).forEach(function (u, i) { D.text(ctx, cut(PD.unitName(u), lw - 56), lx + 6, ty + 17 + i * 10, P('bone', 1)); D.text(ctx, 'CR ' + PK.fmt8(PD.unitCR8(u)), lx + lw - 6, ty + 17 + i * 10, P('gold', 4), 'right'); });
+    if (!us.length) D.text(ctx, nb ? 'bind your receipts into a unit: THE UNITS' : 'none yet: buy in THE SHOPS, then bind', lx + 6, ty + 17, P('stone', 5));
+    else if (us.length > 5) D.text(ctx, '{g}and ' + (us.length - 5) + ' more{/}', lx + 6, ty + 67, P('stone', 5));
+    this.btn(ctx, 'THE SHOPS', lx + 6, ty + 74, 100, 14, function () { self.go('shops'); }, { pri: true });
+    this.btn(ctx, 'THE UNITS', lx + 112, ty + 74, 100, 14, function () { self.scroll = 0; self.scroll2 = 0; self.go('units'); }, { dis: !us.length && !nb, why: 'nothing bought yet: THE SHOPS' });
+    var rx = 246, rw = D.W - rx - 16, mine = PD.myMaps(this);
+    panel(ctx, rx, ty, rw, ph);
+    D.text(ctx, '{y}YOUR MAPS{/}  ' + mine.length, rx + 6, ty + 5, P('bone', 1));
+    mine.slice(0, 5).forEach(function (id, i) { D.text(ctx, cut((D.MAPS[id] || {}).name || id, rw - 92), rx + 6, ty + 17 + i * 10, P('bone', 1)); D.text(ctx, '{g}' + PD.landOf(id).toUpperCase() + '{/}', rx + rw - 6, ty + 17 + i * 10, P('stone', 5), 'right'); });
+    if (!mine.length) D.text(ctx, 'none yet: THE LOCATIONS sells them', rx + 6, ty + 17, P('stone', 5));
+    else if (mine.length > 5) D.text(ctx, '{g}and ' + (mine.length - 5) + ' more{/}', rx + 6, ty + 67, P('stone', 5));
+    this.btn(ctx, 'THE LOCATIONS', rx + 6, ty + 74, 112, 14, function () { self.scroll = 0; self.go('locations'); }, { pri: true });
+    // the modules, the newest first
+    var my = 162, mods = cp.modules.slice().sort(function (a, b) { return (b.at || 0) - (a.at || 0); });
+    panel(ctx, 16, my, D.W - 32, 66);
+    D.text(ctx, '{y}YOUR MODULES{/}  ' + mods.length + '  {g}play one from THE CAMP\'s LOAD MODULE: with DM mode on it pays this purse{/}', 22, my + 5, P('bone', 1));
+    mods.slice(0, 4).forEach(function (m, i) {
+      self.btn(ctx, cut(m.name, 150) + '  {g}' + m.slots.length + ' fight' + (m.slots.length === 1 ? '' : 's') + '{/}', 22 + (i % 2) * 220, my + 17 + Math.floor(i / 2) * 14, 212, 12, function () { cp.edit = m.id; self.scroll = 0; self.keep(); self.go('build'); }, { small: true });
     });
-    // the units
-    var us = PD.newest(cp), uy = 116;
-    var nb = cp.bought.length, uTail = us.length ? ', newest first: ' + us.slice(0, 4).map(function (u) { return PD.unitName(u) + ' (CR ' + PK.fmt8(PD.unitCR8(u)) + ')'; }).join('; ') : nb ? ' -- bind your receipts into one' : ' -- buy in a shop, then bind';
-    var uHead = 'THE UNITS  ' + us.length + (nb ? ' (' + nb + ' receipt' + (nb === 1 ? '' : 's') + ' to bind)' : ''), uRoom = D.W - 130 - 20 - D.textWidth(uHead);
-    D.text(ctx, '{y}THE UNITS{/}  ' + us.length + (nb ? ' {g}(' + nb + ' receipt' + (nb === 1 ? '' : 's') + ' to bind){/}' : '') + cut(uTail, uRoom), 20, uy + 3, P('bone', 1)); // (cut short of THE UNITS button)
-    this.btn(ctx, 'THE UNITS', D.W - 110, uy, 90, 14, function () { self.scroll = 0; self.scroll2 = 0; self.go('units'); }, { dis: !us.length && !nb, why: 'nothing bought yet: buy in a shop, then bind' });
-    // the ladder of your own
-    var ly = 136;
-    D.text(ctx, '{y}YOUR LADDER{/}  ' + cp.plan.length + ' of ' + PD.SLOTS + ' slots' + (cp.plan.length ? '' : ' -- BUILD it: a floor, a CR, your units first'), 20, ly, P('bone', 1));
-    for (var i = 0; i < PD.SLOTS; i++) {
-      var sl = cp.plan[i], yy = ly + 11 + i * 10, tag = i === 4 ? 'TRIAL' : 'RUNG ' + (i + 1);
-      if (!sl) { D.text(ctx, '{g}' + tag + '  --{/}', 28, yy, P('stone', 4)); continue; }
-      D.text(ctx, '{y}' + tag + '{/}  ' + cut(((D.MAPS[sl.map] || {}).name || sl.map), 110) + '  {g}CR ' + PK.fmt8(PK.sum8(sl.foes || [])) + '{/}  ' + cut(PK.foesText(sl.foes || []), 250) + (sl.mine ? '  {n}(' + sl.mine + ' yours){/}' : ''), 28, yy, P('bone', 1));
-    }
-    var by = 200, ready = this.ready();
-    this.btn(ctx, 'BUILD THE LADDER', 20, by, 130, 15, function () { self.scroll = 0; self.go('build'); }, { pri: true });
-    this.btn(ctx, 'CLEAR IT', 156, by, 70, 15, function () { cp.plan = []; self.keep(); }, { dis: !cp.plan.length, small: true });
-    D.text(ctx, 'play it from THE CAMP: LOAD MODULE, YOUR LADDER (10-17: the DM side builds, the player side plays)', 234, by + 4, P('stone', 5));
-    D.text(ctx, 'struck from the random draw (' + cp.strike.length + ' of ' + PD.STRIKES + '): ' + (cp.strike.length ? cut(cp.strike.map(function (id) { return (D.MAPS[id] || {}).name || id; }).join(', '), 300) : 'none -- strike them on BUILD'), 20, 220, P('stone', 5));
+    if (!mods.length) D.text(ctx, 'none yet: BUILD MODULE -- a fight a map, your units first', 22, my + 19, P('stone', 5));
+    this.btn(ctx, 'BUILD MODULE', 22, my + 47, 120, 14, function () { var m = PD.newModule(st); if (!m) { D.sfx('error'); self.say(PD.MODULES_MAX + ' modules already: let one go on LOAD MODULE', 300); return; } self.scroll = 0; self.keep(); self.go('build'); }, { pri: true });
+    this.btn(ctx, 'LOAD MODULE', 148, my + 47, 110, 14, function () { self.scroll = 0; self.go('dmmods'); });
+    if (mods.length > 4) D.text(ctx, '{g}and ' + (mods.length - 4) + ' more on LOAD MODULE{/}', 266, my + 51, P('stone', 5));
     this.btn(ctx, 'BACK', 20, 236, 60, 15, function () { self.back(); });
     this.btn(ctx, 'SAVE CAMPAIGN', 88, 236, 114, 15, function () { self.saveTable(); });
     this.btn(ctx, 'LOAD CAMPAIGN', 208, 236, 114, 15, function () { self.loadTable(); });
-    if (st.run) D.text(ctx, '{o}a ladder is under way: ' + (st.run.trial ? 'the trial' : 'rung ' + st.run.rung) + '{/}', D.W - 20, 240, P('fire', 1), 'right');
+    if (st.run) D.text(ctx, '{o}under way: ' + (st.run.module ? cut(st.run.module.name, 80) + ', fight ' + st.run.rung : st.run.trial ? 'the trial' : 'rung ' + st.run.rung) + '{/}', D.W - 20, 240, P('fire', 1), 'right');
+  };
+
+  // THE SHOPS: the six, an icon each (THE VILLAINS the sixth since 10-17)
+  Pocket.prototype.drawShops = function (ctx) {
+    var self = this, cp = PD.camp(this.st), tw = 70, gap = 6, x0 = Math.round((D.W - (PD.SHOPS.length * tw + (PD.SHOPS.length - 1) * gap)) / 2), ty = 46, th = 50, hov = null;
+    head(ctx, 'THE SHOPS', 'creatures by kind, priced top to bottom · CR in silver: 100 sp a CR · the purse ' + PD.fmt(cp.purse));
+    PD.SHOPS.forEach(function (sh, i) {
+      var x = x0 + i * (tw + gap), n = sh.id === 'villains' ? PD.shelf(sh).length + PD.villainRows(self.st).length : PD.shelf(sh).length;
+      var b = self.btn(ctx, '', x, ty, tw, th, function () { self.toShop(sh.id); }); if (self.btns.length - 1 === self.ksel) hov = sh;
+      ctx.drawImage(icon(sh.icon), 0, 0, 12, 12, x + tw / 2 - 12, ty + 5, 24, 24);
+      var lines = sh.id === 'etc' ? ['ABERRATIONS,', 'OOZES, ETC.'] : [sh.name];
+      lines.forEach(function (l, j) { D.text(ctx, l, x + tw / 2, ty + 34 + j * 8 - (lines.length - 1) * 4, P('bone', 2), 'center'); });
+      D.text(ctx, '{g}' + n + '{/}', x + tw - 4, ty + 3, P('stone', 5), 'right');
+      return b;
+    });
+    D.text(ctx, hov ? '{y}' + hov.name + '{/}: ' + hov.sub : 'a purchase is a receipt; receipts bound on THE UNITS are one unit, at their CRs summed', D.W / 2, ty + th + 10, P('bone', 1), 'center');
+    D.text(ctx, '{y}THE RECEIPTS{/}  ' + cp.bought.length + ' to bind  ·  {y}THE UNITS{/}  ' + cp.units.length, D.W / 2, ty + th + 26, P('bone', 1), 'center');
+    this.btn(ctx, 'BACK', 20, 236, 60, 15, function () { self.back(); });
+    this.btn(ctx, 'THE UNITS (' + cp.bought.length + ' TO BIND)', 88, 236, 160, 15, function () { self.scroll = 0; self.scroll2 = 0; self.go('units'); }, { dis: !cp.bought.length && !cp.units.length, why: 'nothing bought yet' });
+    this.btn(ctx, 'THE LOCATIONS', D.W - 130, 236, 110, 15, function () { self.scroll = 0; self.go('locations'); });
+  };
+
+  // THE VILLAINS (10-17, step C): the story's named, and yours -- a stock card marked on THE MARKS at the level its arrows set, one of your own marked, one MAKE made
+  Pocket.prototype.drawVillains = function (ctx) {
+    var self = this, st = this.st, cp = PD.camp(st), sh = PD.shopById('villains'), per = 11;
+    var rows = PD.villainRows(st).map(function (v) { return { v: v, word: v.word }; }).concat(PD.shelf(sh, 'cheap').map(function (k) { return { story: true, word: k }; }));
+    head(ctx, 'VILLAINS', 'yours first, then the story\'s named · a villain of a class at its level\'s CR · the purse ' + PD.fmt(cp.purse));
+    ctx.drawImage(icon('crown'), 0, 0, 12, 12, 14, 4, 24, 24);
+    var from = Math.min(this.scroll, Math.max(0, rows.length - per)); this.scroll = from;
+    var have = {}; cp.bought.forEach(function (r) { have[r.kind] = (have[r.kind] || 0) + 1; }); cp.units.forEach(function (u) { PD.unitKinds(u).forEach(function (k) { have[k] = (have[k] || 0) + 1; }); });
+    D.text(ctx, '{g}price{/}', 14, 34, P('stone', 5)); D.text(ctx, '{g}villain{/}', 112, 34, P('stone', 5)); D.text(ctx, '{g}level{/}', 240, 34, P('stone', 5)); D.text(ctx, '{g}CR{/}', 306, 34, P('stone', 5)); D.text(ctx, '{g}yours{/}', 334, 34, P('stone', 5));
+    rows.slice(from, from + per).forEach(function (r, i) {
+      var yy = 44 + i * 16, k = r.word, cost = PD.price(k), f = PK.foe(k) || { name: k }, v = r.v;
+      self.btn(ctx, 'BUY  ' + PD.fmt(cost), 14, yy, 92, 13, function () {
+        var res = PD.buy(st, k);
+        if (res.ok) { self.keep(); self.say('bought ' + f.name + ' for ' + PD.fmt(cost) + ' -- ' + PD.fmt(PD.camp(st).purse) + ' left; bind it on THE UNITS', 240); }
+        else { D.sfx('error'); self.say(res.why, 300); }
+      }, { small: true, dis: cp.purse < cost, why: 'the purse holds ' + PD.fmt(cp.purse) + ': a fight of yours pays twice its CR' });
+      D.text(ctx, cut(v ? v.name : f.name, 120), 112, yy + 3, r.story ? P('bone', 1) : P('gold', 4));
+      if (v && v.w) { // (a stock card: its level by the arrows)
+        self.btn(ctx, '<', 236, yy, 13, 13, function () { cp.vlvl[v.w] = Math.max(v.lo, v.lvl - 1); self.keep(); }, { small: true, dis: v.lvl <= v.lo });
+        D.text(ctx, clsOf(v.cls).slice(0, 3).toUpperCase() + ' ' + v.lvl, 271, yy + 3, P('bone', 1), 'center');
+        self.btn(ctx, '>', 292, yy, 13, 13, function () { cp.vlvl[v.w] = Math.min(v.hi, v.lvl + 1); self.keep(); }, { small: true, dis: v.lvl >= v.hi });
+      } else if (v) D.text(ctx, cut(clsOf(v.cls) + ' ' + v.lvl, 62), 240, yy + 3, P('bone', 1));
+      else D.text(ctx, '{g}' + (f.type || '') + '{/}', 240, yy + 3, P('stone', 5));
+      D.text(ctx, crOf(k), 310, yy + 3, P('gold', 4));
+      if (have[k]) D.text(ctx, '{n}' + have[k] + '{/}', 340, yy + 3, P('moss', 2));
+      D.text(ctx, '{g}' + (r.story ? 'STORY' : v.mark === 'only' ? 'ONLY' : v.tag) + '{/}', 358, yy + 3, P('stone', 5));
+      if (v && v.i != null) self.btn(ctx, 'EDIT', D.W - 50, yy, 36, 13, function () { self.makeVillain(v.i); }, { small: true }); // (the maker on it: its level, its gear, its spells)
+    });
+    if (!PD.villainRows(st).length) D.text(ctx, '{g}none of your own yet: MAKE A VILLAIN, or mark one of the roster on THE MARKS{/}', D.W / 2, 44 + Math.min(per, rows.length) * 16 + 4, P('stone', 5), 'center');
+    if (rows.length > per) D.text(ctx, 'wheel: ' + (from + 1) + '-' + Math.min(rows.length, from + per) + ' of ' + rows.length, 14, 224, P('stone', 5));
+    this.btn(ctx, 'BACK', 20, 236, 60, 15, function () { self.back(); });
+    this.btn(ctx, 'MAKE A VILLAIN', 88, 236, 120, 15, function () { self.makeVillain(null); }, { pri: true });
+    this.btn(ctx, 'THE MARKS', 214, 236, 90, 15, function () { self.scroll = 0; self.go('marks'); });
+    this.btn(ctx, 'THE UNITS (' + cp.bought.length + ')', 310, 236, 100, 15, function () { self.scroll = 0; self.scroll2 = 0; self.go('units'); }, { dis: !cp.bought.length && !cp.units.length, why: 'nothing bought yet' });
+  };
+  // THE MARKS (his "going through the existing roster and being able to mark as villain or villain only to add to villain store and remove from 'campaign' available
+  // party members"): every card of the roster, the king aside, and the mark it carries -- --, VILLAIN, VILLAIN ONLY, a click the next
+  Pocket.prototype.drawMarks = function (ctx) {
+    var self = this, st = this.st, per = 11;
+    var es = PK.STOCK.filter(function (s) { return !s.king && !s.mascot; }).map(function (s) { return { kind: 'stock', w: s.w, word: s.w + ':' + s.lo }; })
+      .concat(st.roster.map(function (c, i) { return { kind: 'custom', i: i, word: c.code, made: !!c.dm }; }));
+    head(ctx, 'THE MARKS', 'VILLAIN: on THE VILLAINS\' shelf too  ·  VILLAIN ONLY: there, and off the roster at this table');
+    var from = Math.min(this.scroll, Math.max(0, es.length - per)); this.scroll = from;
+    es.slice(from, from + per).forEach(function (e, k) {
+      var yy = 36 + k * 16, f = PK.foe(e.word) || {}, m = PK.markOf(st, e), at = PD.MARKS.indexOf(m);
+      D.text(ctx, (m ? '{y}' : '') + cut(e.kind === 'custom' ? st.roster[e.i].name : PD.stockName(e.w), 150) + (m ? '{/}' : ''), 20, yy + 3, P('bone', 1));
+      D.text(ctx, '{g}' + clsOf(f.cls) + (e.kind === 'custom' ? ' ' + st.roster[e.i].lvl + (e.made ? ', made in THE VILLAINS' : ', your own') : '') + '{/}', 180, yy + 3, P('stone', 5));
+      self.btn(ctx, PD.markWord(m), D.W - 140, yy, 120, 13, function () { PD.setMark(st, e, PD.MARKS[(at + 1) % PD.MARKS.length]); self.cache = {}; self.keep(); }, { small: true, on: !!m });
+    });
+    if (es.length > per) D.text(ctx, 'wheel: ' + (from + 1) + '-' + Math.min(es.length, from + per) + ' of ' + es.length, 20, 36 + per * 16 + 2, P('stone', 5));
+    D.text(ctx, 'a seat already holding one marked VILLAIN ONLY keeps it till the arrows move on', D.W / 2, 224, P('stone', 5), 'center');
+    this.btn(ctx, 'BACK', 20, 236, 60, 15, function () { self.back(); });
+    this.btn(ctx, 'THE VILLAINS', D.W - 120, 236, 100, 15, function () { self.back(); });
+  };
+  // THE LOCATIONS: by ground, small to large; BUY (or LET GO, its silver back); STRIKE keeps a floor out of the random draw at this table
+  Pocket.prototype.drawLocations = function (ctx) {
+    var self = this, st = this.st, cp = PD.camp(st), land = this.landTab || 'underground', per = 9;
+    head(ctx, 'THE LOCATIONS', 'the floors by their ground, small to large · 50 / 100 / 200 sp by size · the purse ' + PD.fmt(cp.purse));
+    PD.LANDS.forEach(function (L, k) { self.btn(ctx, L[1] + '  ' + PD.locations(self, L[0]).length, 20 + k * 148, 34, 142, 13, function () { self.landTab = L[0]; self.scroll = 0; }, { on: land === L[0], small: true }); });
+    var list = PD.locations(this, land), from = Math.min(this.scroll, Math.max(0, list.length - per)); this.scroll = from;
+    D.text(ctx, '{g}' + (PD.LANDS.filter(function (L) { return L[0] === land; })[0] || [])[2] + '{/}', 20, 52, P('stone', 5));
+    list.slice(from, from + per).forEach(function (id, i) {
+      var yy = 62 + i * 16, d = D.MAPS[id], own = PD.owns(st, id), band = PD.bandOf(id), cost = band[2], struck = cp.strike.indexOf(id) >= 0;
+      if (own) self.btn(ctx, 'YOURS: LET GO', 14, yy, 96, 13, function () { var r = PD.letGoMap(st, id); if (r && r.ok) { self.keep(); self.say((d.name || id) + ' let go: +' + PD.fmt(r.back), 240); } else { D.sfx('error'); self.say(r ? r.why : 'not yours', 300); } }, { small: true, on: true });
+      else self.btn(ctx, 'BUY  ' + PD.fmt(cost), 14, yy, 96, 13, function () { var r = PD.buyMap(st, id); if (r.ok) { self.keep(); self.say((d.name || id) + ' is yours: BUILD offers it', 240); } else { D.sfx('error'); self.say(r.why, 300); } }, { small: true, dis: cp.purse < cost, why: 'the purse holds ' + PD.fmt(cp.purse) });
+      D.text(ctx, cut(d.name || id, 150), 116, yy + 3, own ? P('gold', 4) : P('bone', 1));
+      D.text(ctx, band[1] + '  {g}' + PD.sizeOf(id) + ' squares{/}', 272, yy + 3, P('bone', 1));
+      if (d.dark) D.text(ctx, '{p}DARK{/}', 372, yy + 3, P('violet', 5));
+      self.btn(ctx, struck ? 'STRUCK' : 'STRIKE', D.W - 64, yy, 50, 13, function () {
+        if (struck) cp.strike = cp.strike.filter(function (x) { return x !== id; });
+        else if (cp.strike.length >= PD.STRIKES) { D.sfx('error'); self.say('three floors struck already: let one back in first', 240); return; }
+        else cp.strike.push(id);
+        self.keep();
+      }, { small: true, on: struck });
+    });
+    if (list.length > per) D.text(ctx, 'wheel: ' + (from + 1) + '-' + Math.min(list.length, from + per) + ' of ' + list.length, 14, 62 + per * 16 + 2, P('stone', 5));
+    D.text(ctx, 'STRIKE keeps a floor out of every random draw at this table (' + cp.strike.length + ' of ' + PD.STRIKES + ') · BUILD offers the floors you own (' + cp.maps.length + ')', D.W / 2, 224, P('stone', 5), 'center');
+    this.btn(ctx, 'BACK', 20, 236, 60, 15, function () { self.back(); });
+    var ed = PD.editing(st); if (ed) this.btn(ctx, 'BACK TO BUILD', D.W - 130, 236, 110, 15, function () { self.scroll = 0; self.go('build'); });
+  };
+  // LOAD MODULE at the DM's side: the campaign's modules, one picked shown whole; OPEN it on BUILD, COPY, LET GO, or one FROM A FILE taken into the campaign
+  Pocket.prototype.drawDmMods = function (ctx) {
+    var self = this, st = this.st, cp = PD.camp(st), mods = cp.modules.slice().sort(function (a, b) { return (b.at || 0) - (a.at || 0); }), per = 10;
+    head(ctx, 'YOUR MODULES', 'open one on BUILD, copy it, let it go -- or take one in FROM A FILE to change it');
+    if (!mods.some(function (m) { return m.id === self.dmSel; })) this.dmSel = mods.length ? mods[0].id : null;
+    var from = Math.min(this.scroll, Math.max(0, mods.length - per)); this.scroll = from;
+    mods.slice(from, from + per).forEach(function (m, i) { self.btn(ctx, cut(m.name, 128), 14, 36 + i * 17, 140, 15, function () { self.dmSel = m.id; }, { on: self.dmSel === m.id, small: true }); });
+    if (mods.length > per) D.text(ctx, 'wheel: ' + (from + 1) + '-' + Math.min(mods.length, from + per) + ' of ' + mods.length, 14, 36 + per * 17 + 2, P('stone', 5));
+    var m = PD.module(st, this.dmSel), px = 162, py = 34, pw = D.W - px - 10, ph = 194;
+    panel(ctx, px, py, pw, ph);
+    if (m) {
+      var yy = py + 5;
+      D.text(ctx, '{y}' + cut(m.name, pw - 20) + '{/}  {g}' + m.slots.length + ' of ' + PK.MODULE_MAX + ' fights{/}', px + 6, yy, P('gold', 4)); yy += 12;
+      m.slots.forEach(function (s, i) {
+        D.text(ctx, cut('{y}' + (i + 1) + '{/} ' + ((D.MAPS[s.map] || {}).name || s.map) + '  {g}CR ' + PK.fmt8(PK.sum8(s.foes || [])) + '{/}  ' + PK.foesText(s.foes || []), pw - 12), px + 6, yy, P('bone', 1)); yy += 9;
+        if (i < m.slots.length - 1) { D.text(ctx, '{g}then ' + PK.restText(s.rest) + '{/}', px + 16, yy, P('stone', 5)); yy += 9; }
+      });
+      if (!m.slots.length) D.text(ctx, 'no fights yet: OPEN it on BUILD', px + 6, yy, P('stone', 5));
+    } else D.text(ctx, 'none yet: BUILD MODULE on THE CAMPAIGN, or FROM A FILE', px + pw / 2, py + 80, P('stone', 5), 'center');
+    this.btn(ctx, 'BACK', 20, 236, 60, 15, function () { self.back(); });
+    this.btn(ctx, 'FROM A FILE', 86, 236, 90, 15, function () { PK.readJSON(function (text) { var x = self.readModule(text); if (!x) return; var t = PD.takeModule(st, x); if (!t) { self.say(PD.MODULES_MAX + ' modules already', 300); return; } self.dmSel = t.id; self.keep(); self.say(t.name + ': ' + t.slots.length + ' fights, yours to change', 300); }); });
+    this.btn(ctx, 'COPY', 182, 236, 54, 15, function () { var c = PD.copyModule(st, m.id); if (c) { self.dmSel = c.id; self.keep(); } }, { dis: !m, small: true });
+    this.btn(ctx, 'LET GO', 242, 236, 62, 15, function () { var ask = self.ask || function (q) { return window.confirm(q); }; if (ask('Let ' + m.name + ' go? It cannot be had back (but a file of it can).')) { PD.dropModule(st, m.id); self.keep(); } }, { dis: !m, small: true });
+    this.btn(ctx, 'OPEN ON BUILD', D.W - 130, 236, 110, 15, function () { cp.edit = m.id; self.scroll = 0; self.keep(); self.go('build'); }, { pri: true, dis: !m, why: 'no module picked' });
   };
   // a shop: its creatures priced top to bottom, or by name, or the dearest first
   var SORTS = [['cheap', 'PRICE: LOW FIRST'], ['dear', 'PRICE: HIGH FIRST'], ['name', 'BY NAME']];
@@ -326,7 +561,7 @@
         var r = PD.buy(st, k);
         if (r.ok) { self.keep(); self.say('bought ' + (/^[aeiou]/i.test(f.name) ? 'an ' : 'a ') + f.name + ' for ' + PD.fmt(cost) + ' -- ' + PD.fmt(PD.camp(st).purse) + ' left; BIND makes your receipts a unit', 240); }
         else { D.sfx('error'); self.say(r.why, 300); }
-      }, { small: true, dis: cp.purse < cost, why: 'the purse holds ' + PD.fmt(cp.purse) + ': a ladder fight pays twice its CR' });
+      }, { small: true, dis: cp.purse < cost, why: 'the purse holds ' + PD.fmt(cp.purse) + ': a fight of yours pays twice its CR' });
       D.text(ctx, cut(label(k), 180), 112, yy + 3, P('bone', 1));
       D.text(ctx, crOf(k), 300, yy + 3, P('gold', 4));
       if (have[k]) D.text(ctx, '{n}' + have[k] + '{/}', 350, yy + 3, P('moss', 2));
@@ -338,7 +573,7 @@
     this.btn(ctx, SORTS[si < 0 ? 0 : si][1], 88, 236, 130, 15, function () { self.shopSort = SORTS[(si + 1) % SORTS.length][0]; self.scroll = 0; }, { small: true });
     this.btn(ctx, 'BIND (' + cp.bought.length + ')', 224, 236, 110, 15, function () { self.scroll = 0; self.scroll2 = 0; self.go('units'); }, { dis: !cp.bought.length && !cp.units.length, why: 'nothing bought yet' }); // (to THE UNITS, where receipts bind)
     var j = PD.SHOPS.indexOf(sh);
-    this.btn(ctx, 'NEXT SHOP >', D.W - 110, 236, 90, 15, function () { self.shop = PD.SHOPS[(j + 1) % PD.SHOPS.length].id; self.scroll = 0; });
+    this.btn(ctx, 'NEXT SHOP >', D.W - 110, 236, 90, 15, function () { self.toShop(PD.SHOPS[(j + 1) % PD.SHOPS.length].id); }); // (THE VILLAINS the sixth: its own page, 10-17)
   };
   // THE UNITS: the receipts on the left, picked as a file list picks (a click one, shift+click a run from the last, ctrl+click adds or drops one; E on a row
   // adds or drops it, for the keys and a pad), BIND AS UNIT makes them one; the units on the right, newest first, each UNBIND back to receipts
@@ -399,55 +634,58 @@
       self.picked = {}; self.anchor = null; self.keep(); self.say(n + ' back to the shops: +' + PD.fmt(back), 240);
     }, { dis: !ids.length, why: 'pick the receipts to let go first', small: true });
     this.btn(ctx, ids.length === rs.length && rs.length ? 'NONE' : 'ALL', 340, 236, 50, 15, function () { var all = ids.length !== rs.length; self.picked = {}; if (all) rs.forEach(function (r) { self.picked[r.id] = true; }); }, { dis: !rs.length, small: true });
-    this.btn(ctx, 'THE SHOPS', D.W - 86, 236, 70, 15, function () { self.back(); }, { small: true });
+    this.btn(ctx, 'THE SHOPS', D.W - 86, 236, 70, 15, function () { self.go('shops'); }, { small: true }); // (THE SHOPS' own page since 10-17)
   };
-  // the builder (his: "Next to each map a CR up/down, when you click the map it puts it in the next available slot of your campaign ladder"), and the strikes
+  // BUILD (his: "Next to each map a CR up/down, when you click the map it puts it in the next available slot"; 10-17, step C: "Maps chosen/bought here show up on the ladder
+  // building screen (instead of all available maps). DM flag when he adds each map if he allows short rest, long rest, market visit between runs of his module(ladder)"):
+  // the maps you own on the left, a CR each; the module on the right -- its name (RENAME), its fights, each with R (filled again), x (taken off) and what follows it,
+  // S a short rest, L a long rest, M the market (a short rest on, the rest off: RULED 10-17); SAVE TO THE FOLDER writes it as a module file
   Pocket.prototype.drawBuild = function (ctx) {
-    var self = this, st = this.st, cp = PD.camp(st), ids = this.mapIds(), per = 11;
-    head(ctx, 'BUILD YOUR LADDER', 'a floor clicked goes in the next empty slot at its CR: your newest units first, the rest rolled');
+    var self = this, st = this.st, cp = PD.camp(st), m = PD.editing(st), ids = PD.myMaps(this), per = 11;
+    if (!m) { this.go('camp'); return; }
+    head(ctx, 'BUILD A MODULE', 'a map clicked adds a fight at its CR: your newest units first, the rest rolled');
     var from = Math.min(this.scroll, Math.max(0, ids.length - per)); this.scroll = from;
-    var dflt = this.crI >= 0 ? this.crI : 5;
+    var dflt = this.crI >= 0 ? this.crI : 5, full = m.slots.length >= PK.MODULE_MAX;
     ids.slice(from, from + per).forEach(function (id, i) {
-      var def = D.MAPS[id], yy = 36 + i * 16, ci = cp.mapCR[id] == null ? dflt : cp.mapCR[id], struck = cp.strike.indexOf(id) >= 0, full = cp.plan.length >= PD.SLOTS;
+      var def = D.MAPS[id], yy = 36 + i * 16, ci = cp.mapCR[id] == null ? dflt : cp.mapCR[id];
       self.btn(ctx, cut(def.name || id, 124), 14, yy, 132, 14, function () {
-        if (cp.plan.length >= PD.SLOTS) { D.sfx('error'); self.say('all ' + PD.SLOTS + ' slots are full: clear one on the right', 240); return; }
-        var cr8 = PK.VALUES[ci], f = PD.fill(self, id, cr8, PD.placed(cp.plan)); // (units already in a slot go behind the rest: his 'used' rule, 10-09b)
-        cp.plan.push({ map: id, cr8: cr8, foes: f.foes, mine: f.mine, units: f.units }); self.keep();
-        self.say((cp.plan.length === 5 ? 'THE TRIAL' : 'RUNG ' + cp.plan.length) + ': ' + (def.name || id) + ', ' + PK.foesText(f.foes) + (f.mine ? ' (' + f.mine + ' yours)' : ''), 300);
-      }, { small: true, dis: full, why: 'all ' + PD.SLOTS + ' slots are full: clear one on the right' });
-      if (def.dark) D.text(ctx, '{p}D{/}', 150, yy + 3, P('violet', 5));
-      self.btn(ctx, '<', 160, yy, 14, 14, function () { cp.mapCR[id] = Math.max(0, ci - 1); self.keep(); }, { small: true });
-      D.text(ctx, 'CR ' + PK.fmt8(PK.VALUES[ci]), 202, yy + 3, P('gold', 4), 'center');
-      self.btn(ctx, '>', 230, yy, 14, 14, function () { cp.mapCR[id] = Math.min(PK.VALUES.length - 1, ci + 1); self.keep(); }, { small: true });
-      self.btn(ctx, struck ? 'STRUCK' : 'STRIKE', 248, yy, 50, 14, function () {
-        if (struck) cp.strike = cp.strike.filter(function (x) { return x !== id; });
-        else if (cp.strike.length >= PD.STRIKES) { D.sfx('error'); self.say('three floors struck already: let one back in first', 240); return; }
-        else cp.strike.push(id);
-        self.keep();
-      }, { small: true, on: struck });
+        var s = PD.addSlot(self, m, id, PK.VALUES[ci]); if (!s) { D.sfx('error'); self.say('all ' + PK.MODULE_MAX + ' fights are set: take one off on the right', 240); return; }
+        m.at = Date.now(); self.keep(); self.say('FIGHT ' + m.slots.length + ': ' + (def.name || id) + ', ' + PK.foesText(s.foes) + (s.mine ? ' (' + s.mine + ' yours)' : ''), 300);
+      }, { small: true, dis: full, why: 'all ' + PK.MODULE_MAX + ' fights are set: take one off on the right' });
+      D.text(ctx, '{g}' + ({ underground: 'U', urban: 'R', outdoors: 'O' }[PD.landOf(id)] || '?') + '{/}' + (def.dark ? '{p}D{/}' : ''), 150, yy + 3, P('stone', 5));
+      self.btn(ctx, '<', 166, yy, 14, 14, function () { cp.mapCR[id] = Math.max(0, ci - 1); self.keep(); }, { small: true });
+      D.text(ctx, 'CR ' + PK.fmt8(PK.VALUES[ci]), 208, yy + 3, P('gold', 4), 'center');
+      self.btn(ctx, '>', 236, yy, 14, 14, function () { cp.mapCR[id] = Math.min(PK.VALUES.length - 1, ci + 1); self.keep(); }, { small: true });
     });
-    if (ids.length > per) D.text(ctx, 'wheel: ' + (from + 1) + '-' + Math.min(ids.length, from + per) + ' of ' + ids.length + '  ·  {p}D{/} dark', 14, 36 + per * 16 + 2, P('stone', 5));
-    // the slots
-    var px = 306, pw = D.W - px - 8;
-    D.win8(ctx, px, 34, pw, 172);
-    D.text(ctx, '{y}YOUR LADDER{/}  ' + cp.plan.length + ' of ' + PD.SLOTS, px + 6, 40, P('bone', 1));
-    for (var i = 0; i < PD.SLOTS; i++) {
-      (function (i) {
-        var sl = cp.plan[i], yy = 54 + i * 30, tag = i === 4 ? 'THE TRIAL' : 'RUNG ' + (i + 1);
-        if (!sl) { D.text(ctx, '{g}' + tag + ': the next floor clicked' + (i === cp.plan.length ? '' : '') + '{/}', px + 6, yy, P('stone', 4)); return; }
-        D.text(ctx, '{y}' + tag + '{/}  ' + cut((D.MAPS[sl.map] || {}).name || sl.map, pw - 90), px + 6, yy, P('bone', 1));
-        D.text(ctx, '{g}CR ' + PK.fmt8(PK.sum8(sl.foes || [])) + (sl.mine ? '  ' + sl.mine + ' yours' : '') + '{/}', px + 6, yy + 9, P('stone', 5));
-        D.text(ctx, cut(PK.foesText(sl.foes || []), pw - 12), px + 6, yy + 18, P('bone', 1));
-        self.btn(ctx, 'x', px + pw - 18, yy - 2, 12, 11, function () { cp.plan.splice(i, 1); self.keep(); }, { small: true });
-        self.btn(ctx, 'R', px + pw - 32, yy - 2, 12, 11, function () { var f = PD.fill(self, sl.map, sl.cr8, PD.placed(cp.plan, i)); sl.foes = f.foes; sl.mine = f.mine; sl.units = f.units; self.keep(); }, { small: true }); // (filled again: the units as they stand now, a fresh roll for the rest)
-      })(i);
-    }
-    D.text(ctx, '{g}R{/} fills it again  ·  {g}x{/} clears it', px + 6, 196, P('stone', 5));
-    D.text(ctx, 'STRIKE keeps a floor out of every random draw at this table (' + cp.strike.length + ' of ' + PD.STRIKES + ')', 14, 224, P('stone', 5));
+    if (!ids.length) { D.text(ctx, 'no maps of your own yet:', 20, 44, P('stone', 5)); this.btn(ctx, 'THE LOCATIONS', 20, 56, 120, 14, function () { self.scroll = 0; self.go('locations'); }, { pri: true }); }
+    if (ids.length > per) D.text(ctx, 'wheel: ' + (from + 1) + '-' + Math.min(ids.length, from + per) + ' of ' + ids.length, 14, 36 + per * 16 + 2, P('stone', 5));
+    D.text(ctx, '{g}U{/} underground  {g}R{/} urban  {g}O{/} outdoors  {p}D{/} dark', 14, 214, P('stone', 5));
+    // the module
+    var px = 258, pw = D.W - px - 8;
+    D.win8(ctx, px, 32, pw, 192);
+    if (this.naming) {
+      this.useField('input', { x: px + 6, y: 35, w: pw - 60, h: 13 }, m.name, function (v) { m.name = String(v || '').toUpperCase().slice(0, 24) || 'A MODULE'; self.keep(); });
+      if (this.field && this.t - (this.nameT || 0) > 10 && document.activeElement !== this.field.el) { this.naming = false; this.dropField(); } // (Enter or a click away: the name kept)
+    } else D.text(ctx, '{y}' + cut(m.name, pw - 70) + '{/}', px + 6, 38, P('gold', 4));
+    this.btn(ctx, this.naming ? 'DONE' : 'RENAME', px + pw - 52, 35, 46, 12, function () { if (self.naming) { self.naming = false; self.dropField(); } else { self.naming = true; self.nameT = self.t; } }, { small: true, on: !!this.naming });
+    D.text(ctx, '{g}' + m.slots.length + ' of ' + PK.MODULE_MAX + ' fights · then S short, L long, M market{/}', px + 6, 50, P('stone', 5));
+    m.slots.forEach(function (sl, i) {
+      var yy = 60 + i * 16, last = i === m.slots.length - 1, rs = sl.rest = sl.rest || PD.REST0();
+      D.text(ctx, '{y}' + (i + 1) + '{/} ' + cut((D.MAPS[sl.map] || {}).name || sl.map, pw - 128) + '  {g}CR ' + PK.fmt8(PK.sum8(sl.foes || [])) + (sl.mine ? ' · ' + sl.mine + ' yours' : '') + '{/}', px + 6, yy, P('bone', 1));
+      D.text(ctx, cut(PK.foesText(sl.foes || []), pw - 104), px + 14, yy + 8, P('stone', 6));
+      self.btn(ctx, 'R', px + pw - 84, yy + 7, 12, 9, function () { var f = PD.fill(self, sl.map, sl.cr8, PD.placed(m.slots, i)); sl.foes = f.foes; sl.mine = f.mine; sl.units = f.units; self.keep(); }, { small: true }); // (filled again: the units as they stand now, a fresh roll for the rest)
+      self.btn(ctx, 'x', px + pw - 70, yy + 7, 12, 9, function () { m.slots.splice(i, 1); self.keep(); }, { small: true });
+      if (!last) [['short', 'S'], ['long', 'L'], ['market', 'M']].forEach(function (q, k) {
+        self.btn(ctx, q[1], px + pw - 46 + k * 13, yy + 7, 12, 9, function () { rs[q[0]] = !rs[q[0]]; if (q[0] === 'long' && rs.long) rs.short = false; if (q[0] === 'short' && rs.short) rs.long = false; self.keep(); }, { small: true, on: !!rs[q[0]] }); // (a long rest or a short one, not both)
+      });
+      else D.text(ctx, '{g}the end{/}', px + pw - 6, yy + 8, P('stone', 5), 'right');
+    });
+    if (!m.slots.length) D.text(ctx, 'click a map on the left: it is fight 1', px + pw / 2, 90, P('stone', 5), 'center');
     this.btn(ctx, 'BACK', 20, 236, 60, 15, function () { self.back(); });
-    this.btn(ctx, 'SAVE AS A MODULE', D.W - 150, 236, 130, 15, function () { PD.saveModule(self); }, { pri: true, dis: !cp.plan.length, why: 'no slots yet' }); // (into the modules folder, THE CAMP's LOAD MODULE reads it -- SAVE THE LADDER till 10-17)
+    this.btn(ctx, 'THE LOCATIONS', 86, 236, 100, 15, function () { self.scroll = 0; self.go('locations'); }, { small: true });
+    this.btn(ctx, 'CLEAR IT', 192, 236, 64, 15, function () { var ask = self.ask || function (q) { return window.confirm(q); }; if (ask('Take every fight off ' + m.name + '?')) { m.slots = []; self.keep(); } }, { dis: !m.slots.length, small: true });
+    this.btn(ctx, 'SAVE TO THE FOLDER', D.W - 150, 236, 130, 15, function () { PD.saveModule(self, m); }, { pri: true, dis: !m.slots.length, why: 'no fights yet' }); // (into the modules folder, THE CAMP's LOAD MODULE reads it; a download without one)
   };
-
   // DOORS: every door of URLS.md (10-08 and before), opened in a tab of its own so the table stays where it is
   PD.DOORS = [
     ['THE 8-BIT GAME', '../', 'the story, from the title'],
@@ -525,7 +763,7 @@
         party: sh.map(function (s) { return s.h ? { name: s.h.name, cls: s.h.cls, lvl: s.h.lvl, word: PK.wordOf(st, s.slot) } : null; }).filter(Boolean),
         roster: (st.roster || []).map(function (c) { return { name: c.name, cls: c.cls, lvl: c.lvl, code: c.code }; }), pyro: !!st.pyro, mascots: st.mascots || {},
         ladder: run ? { rung: run.trial ? 'trial' : run.rung, won: run.won || 0, map: run.map, foes: run.foes, built: !!run.plan } : null,
-        dm: cp ? { purse: PD.fmt(cp.purse), units: (cp.units || []).map(function (u) { return PD.unitName(u) + ' (CR ' + PK.fmt8(PD.unitCR8(u)) + ')'; }), receipts: (cp.bought || []).map(function (r) { return r.kind; }), strike: cp.strike || [], ladder: (cp.plan || []).map(function (s) { return s.map + ' CR ' + PK.fmt8(s.cr8); }) } : null
+        dm: cp ? { purse: PD.fmt(cp.purse), units: (cp.units || []).map(function (u) { return PD.unitName(u) + ' (CR ' + PK.fmt8(PD.unitCR8(u)) + ')'; }), receipts: (cp.bought || []).map(function (r) { return r.kind; }), strike: cp.strike || [], maps: (cp.maps || []).map(function (x) { return x.id; }), modules: (cp.modules || []).map(function (m) { return m.name + ': ' + (m.slots || []).map(function (s) { return s.map + ' CR ' + PK.fmt8(PK.sum8(s.foes || [])); }).join(', '); }), marks: cp.marks || {} } : null
       },
       fights: fights.map(function (f) { return { at: new Date(f.t).toISOString(), result: f.result, rounds: f.rounds, foes: f.foes, cr: f.cr, diff: f.diff, map: f.mapName, party: f.party, rung: f.rung, notes: f.notes || '' }; })
     };
@@ -620,7 +858,8 @@
     claw: ['............', '..oooo......', '.oRRRRo.....', 'oRRRRRRo....', 'oRRooRRRo...', '.oo..oRRRo..', '......oRRRoo', '...oooooRRRo', '..oRRRRRRRo.', '.oRRRRRRRo..', '..oooooo....', '............'],
     sword: ['.........oo.', '........oSso', '.......oSso.', '......oSso..', '.oo..oSso...', '.ogo.Sso....', '..ogoso.....', '...ogo......', '..oLgo......', '.oLo.ogo....', 'oLo...oo....', '.o..........'],
     boulder: ['............', '....oooo....', '..ooSSSSoo..', '.oSSsSSSSSo.', '.oSsssSSSSo.', 'oSSSSSSsSSSo', 'oSSSSSSssSSo', 'oSSsSSSSSSSo', '.oSSSSSSSSo.', '..ooSSSSoo..', '....oooo....', '............'],
-    eye: ['............', '....oooo....', '..ooVVVVoo..', '.oVVwwwwVVo.', 'oVVwwoowwVVo', 'oVwwooMowwVo', 'oVwwoooowwVo', 'oVVwwoowwVVo', '.oVVwwwwVVo.', '..ooVVVVoo..', '....oooo....', '............']
+    eye: ['............', '....oooo....', '..ooVVVVoo..', '.oVVwwwwVVo.', 'oVVwwoowwVVo', 'oVwwooMowwVo', 'oVwwoooowwVo', 'oVVwwoowwVVo', '.oVVwwwwVVo.', '..ooVVVVoo..', '....oooo....', '............'],
+    crown: ['............', '............', '.o...oo...o.', 'oRo.oRRo.oRo', 'ogo.oggo.ogo', 'oggoggggoggo', 'oggggggggggo', 'ogRggVVggRgo', 'oggggggggggo', 'oooooooooooo', '............', '............'] // (THE VILLAINS, 10-17)
   };
   var icache = {};
   function icon(name) {

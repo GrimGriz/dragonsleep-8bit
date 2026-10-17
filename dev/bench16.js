@@ -4869,7 +4869,7 @@
       var drawMo = function (pk, what) { try { pk.btns = []; pk.draw(cxMo); return true; } catch (eDm) { repMo.errors.push('draw ' + what + ': ' + String(eDm && eDm.stack || eDm).slice(0, 400)); return false; } };
       var btnMo = function (pk, re) { return pk.btns.filter(function (b) { return re.test(b.label); })[0] || null; };
       try { window.localStorage.removeItem('deep16.pocket'); } catch (eLs) { }
-      var Pm = new D.Pocket(); Pm.enter(); Pm.ask = function () { return true; };
+      var Pm = new D.Pocket(); Pm.enter(); Pm.ask = function () { return true; }; Pm.xpAlways = true; // (the bench's party is watched: its XP counted -- his "except for your benches", 10-17)
       var mods = PKm.modules(Pm.st), wr = mods.filter(function (m) { return m.key === 'game:wagonroad'; })[0], idsMo = Pm.mapIds();
       okMo('THE WAGON ROAD comes with the game: ' + (wr && wr.slots.length) + ' fights, made for ' + (wr && wr.party && wr.party.n + ' at ' + wr.party.lvl) + ', every floor one the table deals and every foe in the bestiary',
         !!wr && wr.slots.length === 6 && wr.party.n === 4 && wr.party.lvl === 1 && wr.slots.every(function (s) { return idsMo.indexOf(s.map) >= 0 && s.foes.every(function (k) { return !!D.FOES[k]; }); }));
@@ -4986,10 +4986,10 @@
       var gfB = btnMo(Pm, /^FIGHT$/), Bsf = null; D.push = function (b) { Bsf = b; }; try { if (gfB) Pm.fire(gfB); } finally { D.push = push0Mo; }
       okMo('SINGLE FIGHT: THE MAP, THE FOES, FIGHT, then THE LONG REST, then FIGHT sets the fight in the day\'s morning', onMap && onMorn && !!Bsf && !!(Pm.st.dayMorning && Pm.st.dayMorning.cards));
       // the DM's side: THE CAMPAIGN builds, the camp plays (his "We'll want to remove 'Party' and 'Play Ladder' from the DM side of things"; "3. yes - with DM mode on too")
-      Pm.st.dm = true; var cpdMo = D.pocketdm.camp(Pm.st); cpdMo.plan = [{ map: idsMo[0], cr8: 8, foes: ['goblin', 'goblin'], mine: 0, units: [] }];
+      Pm.st.dm = true; var cpdMo = D.pocketdm.camp(Pm.st); cpdMo.modules = [{ id: 901, name: 'THE GOBLIN WALK', about: '', at: 1, slots: [{ map: idsMo[0], cr8: 8, foes: ['goblin', 'goblin'], mine: 0, units: [], rest: { short: true, long: false, market: false } }] }];
       Pm.go('camp'); drawMo(Pm, 'campaign'); var cpL = Pm.btns.map(function (b) { return b.label; }), ylMo = PKm.modules(Pm.st)[0];
-      okMo('THE CAMPAIGN: no FIGHT YOUR LADDER, no THE PARTY; at the DM\'s table YOUR LADDER heads LOAD MODULE', cpL.indexOf('FIGHT YOUR LADDER') < 0 && cpL.indexOf('THE PARTY') < 0 && cpL.indexOf('BUILD THE LADDER') >= 0 && !!ylMo && ylMo.key === 'table:ladder' && ylMo.slots[0].foes.join() === 'goblin,goblin');
-      cpdMo.plan = []; Pm.st.dm = false;
+      okMo('THE CAMPAIGN: no FIGHT YOUR LADDER, no THE PARTY; BUILD MODULE; at the DM\'s table its modules head LOAD MODULE (step C, 10-17: YOUR LADDER till then)', cpL.indexOf('FIGHT YOUR LADDER') < 0 && cpL.indexOf('THE PARTY') < 0 && cpL.indexOf('BUILD MODULE') >= 0 && !!ylMo && ylMo.key === 'table:901' && ylMo.name === 'THE GOBLIN WALK' && ylMo.slots[0].foes.join() === 'goblin,goblin');
+      cpdMo.modules = []; Pm.st.dm = false;
       repMo.report = Object.keys(repMo.fights).map(function (k) { var x = repMo.fights[k], m = x.won + x.lost + x.other; return '  fight ' + k + ': ' + m + ' fought, won ' + x.won + ', lost ' + x.lost + (x.other ? ', other ' + x.other : '') + '  rounds ' + (x.rounds / m).toFixed(1) + '  downs ' + (x.downs / m).toFixed(2); });
       var rsTxt = Object.keys(restSeen).map(function (k) { return k + ': ' + restSeen[k]; }).join('; ');
       okMo('after each fight the rest its slot allows (' + rsTxt + ')', restSeen[1] === 'A SHORT REST' && restSeen[3] === 'A LONG REST + THE MARKET + THE LONG REST' && (!restSeen[4] || restSeen[4] === 'A SHORT REST') && (!restSeen[5] || restSeen[5] === 'A SHORT REST'));
@@ -5100,7 +5100,7 @@
       // A DM'S LADDER (10-17, his "DM should be able to save a ladder that has to be played on the regular ... rather than duping the experience" -- "1 yes")
       var PDk = D.pocketdm, Pr = new D.Pocket(); Pr.enter(); Pr.st.dm = false; Pr.st.run = null; Pr.st.party = [{ w: 'barley', lvl: 3, loot: [] }, { w: 'lymen', lvl: 3, loot: [] }]; Pr.ask = function () { return true; };
       var mapsR = Pr.mapIds(), cpD = { plan: [{ map: mapsR[0], cr8: 8, foes: ['goblin', 'goblin', 'goblin', 'goblin'], mine: 0, units: [] }, { map: mapsR[1] || mapsR[0], cr8: 16, foes: ['ogre'], mine: 0, units: [] }] };
-      var fileD = PDk.ladderFile(cpD), runR = Pr.takeLadder(JSON.stringify(fileD)), foesR = JSON.stringify(Pr.foes), screenR = Pr.screen;
+      var fileD = { game: 'DRAGONSLEEP', kind: 'pocket-dm-ladder', v: 1, at: '2026-10-17T00:00:00Z', plan: cpD.plan }, runR = Pr.takeLadder(JSON.stringify(fileD)), foesR = JSON.stringify(Pr.foes), screenR = Pr.screen;
       var badR = Pr.takeLadder('{"game":"DRAGONSLEEP","kind":"pocket-dm-ladder","plan":[]}');
       okMk('A DM\'S LADDER: saved as ' + fileD.kind + ' (' + fileD.plan.length + ' slots), played at a table without the DM\'s door -- rung ' + (runR && runR.rung) + ' of ' + (runR && Pr.lastRung(runR)) + ', its foes ' + foesR + ' (the DM\'s goblins), marked a DM\'s (' + !!(runR && runR.dmLadder) + '), on ' + screenR + '; an empty file refused (' + !badR + ')',
         !!runR && runR.rung === 1 && Pr.lastRung(runR) === 2 && foesR === JSON.stringify(['goblin', 'goblin', 'goblin', 'goblin']) && !!runR.dmLadder && screenR === 'cr' && !badR);
@@ -7879,12 +7879,15 @@
         var memKeep = mem['deep16.pocket'], tm0 = PQ.mapIds()[0];
         PQ.st.party = [{ custom: 1 }, { custom: 0 }, { w: 'barley', lvl: 5, loot: ['ringofprotection'] }]; PQ.st.run = { rung: 2, trial: false, won: 1, map: tm0, foes: ['goblin', 'goblin'] }; PQ.keep();
         clicked = null; var tName = PQ.saveTable(), tFile = PK.tableFile(PQ.st);
-        okP(clicked && /^pocket-dm-campaign-.*\.json$/.test(clicked.name) && tName === clicked.name && tFile.kind === 'pocket-campaign' && tFile.roster.length === 2 && tFile.party.length === 3 && tFile.party[2].loot[0] === 'ringofprotection' && tFile.run && tFile.run.rung === 2 && tFile.pyro, 'SAVE CAMPAIGN (SAVE TABLE till 10-09): one file, the seats with their winnings, the two made, Pyro, the ladder at rung 2 (' + (clicked && clicked.name) + ')');
+        // (since step C, 10-17 -- Griz: "Campaign saves are DMs units, maps, and roster / Player saves are current party and pack" -- the seats and the ladder are the
+        // party's file; a campaign file of before, v2 with them in it, still loads whole: tOld)
+        var tOld = Object.assign({}, tFile, { v: 2, party: JSON.parse(JSON.stringify(PQ.st.party)), run: JSON.parse(JSON.stringify(PQ.st.run)) });
+        okP(clicked && /^pocket-dm-campaign-.*\.json$/.test(clicked.name) && tName === clicked.name && tFile.kind === 'pocket-campaign' && tFile.v === 3 && tFile.roster.length === 2 && !('party' in tFile) && !('run' in tFile) && tFile.pyro, 'SAVE CAMPAIGN (SAVE TABLE till 10-09): one file, the two made and Pyro -- not the seats or the ladder since step C (' + (clicked && clicked.name) + ')');
         mem['deep16.pocket'] = JSON.stringify({ roster: [{ code: other.code, name: other.name, cls: other.cls, lvl: other.lvl, made: 2 }], fights: [], party: null, run: null });
         var PT = new D.Pocket(); PT.enter(); PT.ask = function () { return true; };
-        var tIn = PT.takeFile(JSON.stringify(tFile)), tSeat = PT.st.party || [];
+        var tIn = PT.takeFile(JSON.stringify(tOld)), tSeat = PT.st.party || [];
         okP(tIn && tIn.added === 1 && PT.st.roster.length === 2 && tSeat.length === 3 && PT.st.roster[tSeat[0].custom].code === other.code && PT.st.roster[tSeat[1].custom].code === code && tSeat[2].loot[0] === 'ringofprotection' && PT.st.run && PT.st.run.rung === 2 && PT.st.pyro && JSON.parse(mem['deep16.pocket']).run.rung === 2, 'LOAD TABLE on another table: one new to its roster, the seats pointed at where each now stands, the winnings and the ladder taken, written (' + JSON.stringify(tIn) + ')');
-        PT.ask = function () { return false; }; var tNo = PT.takeFile(JSON.stringify(Object.assign({}, tFile, { run: null })));
+        PT.ask = function () { return false; }; var tNo = PT.takeFile(JSON.stringify(Object.assign({}, tOld, { run: null })));
         okP(tNo && tNo.declined && PT.st.run && PT.st.run.rung === 2, 'a ladder under way is not put away when he says no');
         var tRos = PT.takeFile(JSON.stringify({ game: 'DRAGONSLEEP', kind: 'pocket-roster', v: 1, roster: [mine], pyro: false }));
         okP(tRos && tRos.had === 1 && PT.st.run && PT.st.run.rung === 2, 'LOAD TABLE takes a roster file of 10-03\'s the roster\'s way, the ladder untouched');
@@ -8048,7 +8051,7 @@
       // c. the five shops: every creature on one shelf (CR 0 too, at 10 sp: his "CR 0 at 10 SP or something"), priced 100 sp a CR, cheapest first
       var shelved = {}; PD.SHOPS.forEach(function (sh) { PD.shelf(sh).forEach(function (k) { shelved[k] = (shelved[k] || 0) + 1; }); });
       var want = Object.keys(D.FOES).filter(function (k) { var f = D.FOES[k]; return f && !/^fam_/.test(k) && !f.object && PD.OUT.indexOf(k) < 0; });
-      okD(PD.SHOPS.length === 5 && want.every(function (k) { return shelved[k] === 1; }) && Object.keys(shelved).length === want.length && shelved.hyena === 1, 'five shops, each of the ' + want.length + ' creatures on exactly one, the CR 0s too (beasts ' + PD.shelf(PD.SHOPS[0]).length + ', monstrosities ' + PD.shelf(PD.SHOPS[1]).length + ', humanoids ' + PD.shelf(PD.SHOPS[2]).length + ', giants ' + PD.shelf(PD.SHOPS[3]).length + ', the rest ' + PD.shelf(PD.SHOPS[4]).length + ')');
+      okD(PD.SHOPS.length === 6 && want.every(function (k) { return shelved[k] === 1; }) && Object.keys(shelved).length === want.length && shelved.hyena === 1 && PD.shelf(PD.SHOPS[5]).every(function (k) { return D.FOES[k].named; }) && PD.shelf(PD.SHOPS[2]).every(function (k) { return !D.FOES[k].named; }), 'six shops, each of the ' + want.length + ' creatures on exactly one, the CR 0s too (beasts ' + PD.shelf(PD.SHOPS[0]).length + ', monstrosities ' + PD.shelf(PD.SHOPS[1]).length + ', humanoids ' + PD.shelf(PD.SHOPS[2]).length + ', giants ' + PD.shelf(PD.SHOPS[3]).length + ', the rest ' + PD.shelf(PD.SHOPS[4]).length + ', THE VILLAINS the story\'s named ' + PD.shelf(PD.SHOPS[5]).length + ')');
       okD(PD.fmt(PD.price('hyena')) === '10 sp' && PD.fmt(PD.price('goblin')) === '25 sp' && PD.fmt(PD.price('guard')) === '12 sp 5 cp' && PD.fmt(PD.price('hobgoblin')) === '50 sp' && PD.fmt(PD.price('drow')) === '500 sp' && PD.fmt(PD.START) === '1,000 sp', 'the prices: a hyena (CR 0) 10 sp, a goblin (1/4) 25 sp, a guard (1/8) 12 sp 5 cp, a hobgoblin (1/2) 50 sp, the drow captain (5) 500 sp; the purse starts at 1,000 sp');
       var hum = PD.shelf(PD.SHOPS[2]), sorted = hum.every(function (k, i) { return !i || PD.price(hum[i - 1]) <= PD.price(k); }), dear = PD.shelf(PD.SHOPS[2], 'dear'), byN = PD.shelf(PD.SHOPS[2], 'name').map(function (k) { return D.FOES[k].name; });
       okD(sorted && dear.every(function (k, i) { return !i || PD.price(dear[i - 1]) >= PD.price(k); }) && byN.every(function (n, i) { return !i || byN[i - 1] <= n; }), 'a shelf is priced top to bottom, cheapest first (' + D.FOES[hum[0]].name + ' to ' + D.FOES[hum[hum.length - 1]].name + '); the dearest first and by name on SORT');
@@ -8090,20 +8093,36 @@
       okD(PD.newest(cp, bk).map(function (u) { return u.id; }).join() === '13,11,12' && flB.units.indexOf(12) < 0, 'the builder: a unit already in a slot stands behind the rest for the next slot');
       var lf = pk.ladderFoes(['ogre', 'hobgoblin'], 'hexfloor');
       okD(PK.sum8(lf) === 20 && lf.indexOf('hyena') >= 0 && lf.indexOf('goblin') >= 0 && lf.indexOf(kBarb) < 0, 'the dial\'s ladder: a rolled CR 2 1/2 is the units that fit (the hyenas, the goblins; the CR 3 one does not), the rest rolled (' + PK.foesText(lf) + ')');
-      // g. the built ladder: two slots are two rungs and no trial; five are four and the trial; the rungs are the slots
+      // g. the campaign's modules (10-17, step C; Griz: "A DM will want to save multiple ladders (modules?)", "DM flag when he adds each map if he allows short rest,
+      // long rest, market visit"): a module by name, its fights from the maps bought, the units first, a short rest after each by default; played at the DM's table
+      // from THE CAMP's LOAD MODULE ('table:<id>') as built -- FIGHT 1 OF 2, then the second
       var m2 = pk.mapIds()[1], m3 = pk.mapIds()[2];
-      pk.st.party = [{ w: 'barley', lvl: 5, loot: [] }, { w: 'aurdin', lvl: 5, loot: [] }]; pk.cache = {};
-      cp.plan = [{ map: m2, cr8: 8, foes: ['goblin', 'goblin', 'hyena', 'hyena', 'worg'], mine: 4 }, { map: m3, cr8: 16, foes: ['ogre'], mine: 0 }];
-      var sp2 = PD.startPlan(pk), run2 = pk.st.run;
-      okD(sp2 && run2.plan.length === 2 && pk.lastRung(run2) === 2 && !pk.hasTrial(run2) && run2.map === m2 && run2.foes.join() === 'goblin,goblin,hyena,hyena,worg' && pk.rungName(run2) === 'RUNG 1 OF 2', 'FIGHT YOUR LADDER: rung 1 of 2 is the first slot, its floor and its foes');
+      pk.st.party = [{ w: 'barley', lvl: 5, loot: [] }, { w: 'aurdin', lvl: 5, loot: [] }]; pk.cache = {}; pk.st.run = null; pk.ask = function () { return true; };
+      cp.purse = PD.START; cp.maps = []; cp.modules = []; cp.edit = null;
+      var noMap = PD.addSlot(pk, null, m2, 8), bm2 = PD.buyMap(pk.st, m2), bm3 = PD.buyMap(pk.st, m3), bmTwice = PD.buyMap(pk.st, m2);
+      var tm = PD.newModule(pk.st, 'the test road'), s1 = PD.addSlot(pk, tm, m2, 8), s2 = PD.addSlot(pk, tm, m3, 16);
+      okD(!noMap && bm2.ok && bm3.ok && !bmTwice.ok && tm && tm.name === 'THE TEST ROAD' && cp.edit === tm.id && tm.slots.length === 2 && PK.sum8(s1.foes) === 8 && s1.mine === 4 && PK.sum8(s2.foes) === 16 && s1.rest.short && !s1.rest.long && !s1.rest.market,
+        'a module by name: THE TEST ROAD, two fights on maps bought (' + PK.foesText(s1.foes) + '; ' + PK.foesText(s2.foes) + '), the units first, a short rest after each by default');
+      s1.rest = { short: false, long: true, market: true };
+      var tmM = PK.modules(pk.st).filter(function (x) { return x.key === 'table:' + tm.id; })[0];
+      var sp2 = tmM && pk.startModule(tmM), run2 = pk.st.run;
+      okD(!!tmM && tmM.slots[0].rest.long && tmM.slots[0].rest.market && !tmM.slots[0].rest.short && sp2 && run2.module && run2.plan.length === 2 && pk.lastRung(run2) === 2 && !pk.hasTrial(run2) && run2.map === m2 && run2.foes.join() === s1.foes.join() && pk.rungName(run2) === 'FIGHT 1 OF 2',
+        'LOAD MODULE at the DM\'s table lists it ("' + (tmM && tmM.name) + '", its rests as set: a long rest and the market after fight 1); played, FIGHT 1 OF 2 is its first fight');
       pk.nextRung();
-      okD(run2.rung === 2 && run2.map === m3 && run2.foes.join() === 'ogre', 'the next rung is the second slot');
-      pk.rerolling = true; pk.st.run.rung = 1; pk.planRung(pk.st.run); pk.rerolling = false;
-      okD(PK.sum8(pk.st.run.foes) === 8 && pk.st.run.foes.slice(0, 4).join() === 'hyena,hyena,goblin,goblin', 'REROLL THE RUNG on a built one fills it again: the units first (' + PK.foesText(pk.st.run.foes) + ')');
-      cp.plan = [0, 1, 2, 3, 4].map(function (i) { return { map: m2, cr8: 4 + i * 4, foes: ['hobgoblin'], mine: 0 }; }); pk.st.run = null; PD.startPlan(pk);
-      okD(pk.lastRung(pk.st.run) === 4 && pk.hasTrial(pk.st.run), 'five slots: four rungs and the trial');
+      okD(run2.rung === 2 && run2.map === m3 && run2.foes.join() === s2.foes.join(), 'the next fight is its second');
+      var mf = PD.moduleFile(tm), back = PK.moduleOf(JSON.parse(JSON.stringify(mf)));
+      okD(mf.kind === 'pocket-dm-module' && mf.name === 'THE TEST ROAD' && back && back.slots.length === 2 && back.slots[0].rest.long && back.slots[0].rest.market && !back.slots[1].rest.long, 'the module as a file reads back at any table, its rests with it');
+      var lgo = PD.letGoMap(pk.st, m2), cpy = PD.copyModule(pk.st, tm.id); PD.dropModule(pk.st, cpy.id);
+      okD(lgo && !lgo.ok && /module/.test(lgo.why) && cp.modules.length === 1, 'a map a module stands on is not let go; COPY, then LET GO, leaves the one');
+      // the one ladder of 10-09 to 10-17 is a module (THE CAMPAIGN's BUILD THE LADDER till step C): its rests as its file read, its floors the campaign's
+      var stL = { roster: [], fights: [], party: [], dm: true, camp: { purse: 1000, plan: [0, 1, 2, 3, 4].map(function (i) { return { map: pk.mapIds()[3 + i], cr8: 8, foes: ['goblin', 'goblin'], mine: 0, units: [] }; }) } };
+      var cpL = PD.camp(stL), ml = cpL.modules[0];
+      okD(ml && ml.name === 'YOUR LADDER' && ml.slots.length === 5 && !cpL.plan.length && ml.slots[0].rest.short && ml.slots[0].rest.market && ml.slots[3].rest.long && cpL.maps.length === 5, 'the old ladder became the module YOUR LADDER: five fights, a short rest and the market between, a long rest before the fifth; its five floors the campaign\'s');
+      // a ladder of the DM's begun before step C plays on: its rungs, the fifth its trial
+      pk.st.run = { rung: 1, trial: false, base8: 4, carry: null, hd: [5, 5], arcane: [false, false], won: 0, startedAt: 1, plan: [0, 1, 2, 3, 4].map(function (i) { return { map: m2, cr8: 4 + i * 4, foes: ['hobgoblin'], mine: 0 }; }), foes: null, map: null };
+      pk.planRung(pk.st.run); var oldR = pk.lastRung(pk.st.run) === 4 && pk.hasTrial(pk.st.run) && pk.st.run.foes.join() === 'hobgoblin';
       pk.st.run.trial = true; pk.planRung(pk.st.run);
-      okD(pk.st.run.foes.join() === 'hobgoblin' && pk.st.run.map === m2, 'the trial is the fifth slot');
+      okD(oldR && pk.st.run.foes.join() === 'hobgoblin' && pk.st.run.map === m2, 'a ladder of the DM\'s under way from before: four rungs and the trial, the fifth slot');
       // h. the purse takes in twice a ladder fight's CR in silver, won or lost; a fight off the ladder pays nothing
       var pu0 = cp.purse; pk.result = { lines: [] }; pk.afterFight('lost', pk.st.run, { kinds: ['ogre'] });
       var pu1 = cp.purse; pk.afterFight('won', null, { kinds: ['ogre'] });
@@ -8161,11 +8180,11 @@
         'SAVE ALL: THE FIGHTS writes one file, every fight with its summary and notes (' + (dlD[0] && dlD[0].name) + ')');
       pk3.st.fights = fs0;
       var drew = ['feedback'].map(function (s) { pk3.go(s); return drawOK(pk3, s); }); pk3.dropField();
-      pk.st.dm = true; var screensD = ['title', 'camp', 'units', 'build', 'doors', 'cr'];
+      pk.st.dm = true; PD.camp(pk.st).edit = (PD.camp(pk.st).modules[0] || {}).id; var screensD = ['title', 'camp', 'shops', 'villains', 'marks', 'units', 'locations', 'dmmods', 'build', 'doors', 'cr'];
       screensD.forEach(function (s) { pk.go(s); drew.push(drawOK(pk, s)); });
-      PD.SHOPS.forEach(function (sh) { pk.shop = sh.id; pk.go('shop'); drew.push(drawOK(pk, 'shop ' + sh.id)); });
+      PD.SHOPS.forEach(function (sh) { if (sh.id === 'villains') return; pk.shop = sh.id; pk.go('shop'); drew.push(drawOK(pk, 'shop ' + sh.id)); });
       ['dm', 'release', 'denny', 'beholda', 'rascal', 'goose'].forEach(function (e) { pk.go('title'); PD.egg(pk, e); pk.t += 60; drew.push(drawOK(pk, 'egg ' + e)); pk.egg = null; });
-      okD(drew.every(Boolean), 'every new screen draws: the notes, the title at the DM\'s, CAMPAIGN, THE UNITS, BUILD, DOORS, the foes with the knobs, the five shops, the six eggs');
+      okD(drew.every(Boolean), 'every new screen draws: the notes, the title at the DM\'s, THE CAMPAIGN, THE SHOPS, THE VILLAINS, THE MARKS, THE UNITS, THE LOCATIONS, YOUR MODULES, BUILD, DOORS, the foes with the knobs, the five shops, the six eggs');
       okD(PD.DOORS.length >= 30 && PD.DOORS.every(function (r) { return r[0] && r[1] && r[2]; }) && /\?fight=greyfang$/.test(PD.doorUrl('?fight=greyfang')), 'DOORS: ' + PD.DOORS.length + ' doors, each a name, a link and what it does');
       // n. the front door's OPTIONS rows, and MENU TYPE in the grid
       var fr = window.DS.MENU.gridRows(null).map(function (r) { return r.label; }); // (one list wherever it opens since 10-15, the menus lane §2.1: mode=options1015)
@@ -8174,6 +8193,68 @@
       U.opts.menu = null; var s0 = U.style(mB) + '/' + U.style(cB); U.opts.menu = 'ring'; var s1 = U.style(mB) + '/' + U.style(cB); U.opts.menu = 'window'; var s2 = U.style(mB) + '/' + U.style(cB);
       U.opts.menu = menu0; U.urlMenu = url0;
       okD(s0 === U.opts.mpStyle + '/' + U.opts.style && s1 === 'ring/ring' && s2 === 'window/window', 'MENU TYPE: the map decides (' + s0 + '); RING puts the Mascot game on the ring too (' + s1 + '); WINDOW, both (' + s2 + ')');
+      // p. STEP C (10-17, the DM's campaign; his note on eyes-units-1009b and "4-8 yes"): THE LOCATIONS, THE VILLAINS and MAKE, THE MARKS, the play roster's villains, XP and WATCH,
+      // a made card's level by the toggle, the campaign's file
+      var pkC = new D.Pocket(); memD['deep16.pocket'] = JSON.stringify({ roster: [], fights: [], party: null, run: null, dm: true }); pkC.enter(); pkC.ask = function () { return true; };
+      var cpC = PD.camp(pkC.st), ids0 = pkC.mapIds(), lands = {}; ids0.forEach(function (id) { var l = PD.landOf(id); lands[l] = (lands[l] || 0) + 1; });
+      var bandsOK = ids0.every(function (id) { var p = PD.mapPrice(id), n = PD.sizeOf(id); return (n < 150 && p === 500) || (n >= 150 && n < 250 && p === 1000) || (n >= 250 && p === 2000); });
+      var sortedU = PD.locations(pkC, 'underground'), sortOK = sortedU.every(function (id, i) { return !i || PD.sizeOf(sortedU[i - 1]) <= PD.sizeOf(id); });
+      okD(Object.keys(lands).sort().join() === 'outdoors,underground,urban' && ids0.every(function (id) { return !!PD.LAND[id]; }) && bandsOK && sortOK && PD.landOf('yard') === 'urban' && PD.landOf('gnollhills') === 'outdoors' && PD.landOf('pool') === 'underground',
+        'THE LOCATIONS: every floor the table deals has its ground (underground ' + lands.underground + ', urban ' + lands.urban + ', outdoors ' + lands.outdoors + '), sorted small to large, 50 / 100 / 200 sp by size');
+      var smallest = sortedU[0], pc0 = cpC.purse, bS = PD.buyMap(pkC.st, smallest), pc1 = cpC.purse, lg = PD.letGoMap(pkC.st, smallest);
+      okD(bS.ok && pc0 - pc1 === PD.mapPrice(smallest) && PD.myMaps(pkC).length === 0 && lg.ok && cpC.purse === pc0, 'a map bought (' + D.MAPS[smallest].name + ', ' + PD.fmt(PD.mapPrice(smallest)) + ') and let go, its silver back');
+      PD.buyMap(pkC.st, smallest); var mC = PD.newModule(pkC.st); pkC.go('build'); drawOK(pkC, 'build (one map)');
+      var mapBtns = pkC.btns.filter(function (b) { return b.w === 132; });
+      okD(mapBtns.length === 1 && mapBtns[0].label.indexOf(D.MAPS[smallest].name.slice(0, 8)) === 0 && mC.name === 'MODULE 1', 'BUILD offers only the maps bought (' + mapBtns.length + ': ' + (mapBtns[0] && mapBtns[0].label) + ') -- his "Maps chosen/bought here show up on the ladder building screen"');
+      // the slot's rest toggles on BUILD
+      PD.addSlot(pkC, mC, smallest, 8); PD.addSlot(pkC, mC, smallest, 8); pkC.btns = []; drawOK(pkC, 'build (two fights)');
+      var tg = function (l) { return pkC.btns.filter(function (b) { return b.label === l && b.w === 12; })[0]; }, bL = tg('L'), bM = tg('M');
+      if (bL) pkC.fire(bL); if (bM) pkC.fire(bM);
+      okD(!!bL && !!bM && mC.slots[0].rest.long && !mC.slots[0].rest.short && mC.slots[0].rest.market && pkC.btns.filter(function (b) { return b.label === 'S' && b.w === 12; }).length === 1, 'BUILD: S L M after each fight but the last; L and M on fight 1 set a long rest (the short one off) and the market');
+      // THE VILLAINS: the story's named off the type shops; a stock card marked at a level, by the SRD's casters' line; MAKE
+      okD(PK.levelCR(1) === '1/4' && PK.levelCR(5) === '2' && PK.levelCR(9) === '6' && PK.levelCR(12) === '8' && PK.levelCR(18) === '12' && PK.levelCR(3) === '1',
+        'a villain\'s CR by its level: 1st 1/4 (the acolyte), 3rd ' + PK.levelCR(3) + ', 5th 2 (the priest), 9th 6 (the mage), 12th ' + PK.levelCR(12) + ', 18th 12 (the archmage)');
+      PD.setMark(pkC.st, { kind: 'stock', w: 'torvald' }, 'villain'); cpC.vlvl.torvald = 9; var vr = PD.villainRows(pkC.st), vt = vr.filter(function (v) { return v.w === 'torvald'; })[0];
+      var bT = vt && PD.buy(pkC.st, vt.word), rT = cpC.bought[cpC.bought.length - 1];
+      okD(!!vt && vt.word === 'torvald:9' && PK.foe('torvald:9').cr === '6' && bT.ok && rT.kind === 'torvald:9' && rT.paid === 6 * 8 * PD.CP8, 'THE MARKS: Torvald marked VILLAIN is on the shelf at the level set, 9th: CR 6, bought for ' + PD.fmt(rT && rT.paid));
+      pkC.makeVillain(null); var mkV = pkC.mk.villain && pkC.screen === 'maker'; pkC.mk.cls = 'wizard'; pkC.kitUp(); pkC.mk.lvl = 7; pkC.mk.name = 'Grey Usurer'; pkC.mk.walked = 7; pkC.saveMade(); if (pkC.egg) pkC.egg = null;
+      var made = pkC.st.roster.filter(function (c) { return c.name === 'Grey Usurer'; })[0], mv = PD.villainRows(pkC.st).filter(function (v) { return v.name === 'Grey Usurer'; })[0];
+      okD(mkV && made && made.dm && made.mark === 'villain' && pkC.screen === 'villains' && !!mv && PK.foe(mv.word).cr === PK.levelCR(7) && pkC.st.party.every(function (s) { return s.custom == null; }), 'MAKE A VILLAIN: the maker, then back to THE VILLAINS; Grey Usurer (wizard 7) on the shelf at CR ' + (mv && PK.foe(mv.word).cr) + ', in no seat');
+      // the villains on the play roster at the DM's table, not the release's; VILLAIN ONLY off it at the DM's
+      var esD = PK.entries(pkC.st), wsD = esD.map(function (e) { return e.w || (e.kind === 'custom' ? 'c' + e.i : e.kind); }), madeI = pkC.st.roster.indexOf(made);
+      var esR = PK.entries(Object.assign({}, pkC.st, { dm: false })).map(function (e) { return e.w || (e.kind === 'custom' ? 'c' + e.i : e.kind); });
+      PD.setMark(pkC.st, { kind: 'stock', w: 'torvald' }, 'only'); var esO = PK.entries(pkC.st).map(function (e) { return e.w; });
+      okD(wsD.indexOf('matriarch') >= 0 && wsD.indexOf('matriarchlama') >= 0 && wsD.indexOf('c' + madeI) >= 0 && esR.indexOf('c' + madeI) < 0 && esR.indexOf('matriarch') < 0 && esO.indexOf('torvald') < 0 && esR.indexOf('torvald') >= 0,
+        'the play roster: at the DM\'s table the Eldest, the Matriarch and the villain made; at the release\'s none of them; VILLAIN ONLY takes Torvald off the DM\'s roster, not the release\'s');
+      // a villain's word in a fight: built by its class on the foes' side, and its XP by its CR
+      var Bv = null, push0V = D.push; D.push = function (b) { Bv = b; }; pkC.st.party = [{ w: 'barley', lvl: 5, loot: [] }]; pkC.cache = {}; pkC.foes = [made.code]; pkC.fightMap = smallest;
+      try { pkC.launch(); } finally { D.push = push0V; } var vu = null; if (Bv) { D.battle = Bv; Bv.enter(); vu = Bv.units.filter(function (u) { return u.side === 'foe'; })[0]; }
+      okD(!!vu && vu.name === 'Grey Usurer' && PK.xpOf(made.code) === DS.R.CR_XP[PK.levelCR(7)], 'a made villain fights: ' + (vu && vu.name) + ', a wizard 7 on the foes\' side; ' + PK.xpOf(made.code) + ' XP');
+      // XP and WATCH (his "xp off if player has 'watch' turned on (unless DM mode is on)", "except for your benches")
+      var pkX = new D.Pocket(); memD['deep16.pocket'] = JSON.stringify({ roster: [], fights: [], party: null, run: null }); pkX.enter();
+      pkX.watch = true; var w1 = pkX.xpOn(); pkX.st.dm = true; var w2 = pkX.xpOn(); pkX.st.dm = false; pkX.xpAlways = true; var w3 = pkX.xpOn(); pkX.xpAlways = false; pkX.watch = false; var w4 = pkX.xpOn();
+      okD(!w1 && w2 && w3 && w4, 'XP and WATCH: none watched at the release table, given watched at the DM\'s, a bench\'s always, given played (' + [w1, w2, w3, w4].join(' ') + ')');
+      // a made card's level by the toggle (his "can we accept the toggle on the party screen here?"): DEFAULTS folds the class's own new spells into its word
+      var spSp = { cls: 'sorcerer', lvl: 1, race: 'human', abil: { str: 8, dex: 14, con: 14, int: 10, wis: 12, cha: 16 }, asis: true, maxhp: true, named: true, custom: true, equip: { weapon: 'dagger' }, name: 'Sparka' }; spSp.known = PK.madeBase(spSp);
+      var spk = { code: D.npc.code(spSp), name: 'Sparka', cls: 'sorcerer', lvl: 1, made: 1 }; pkX.st.roster.push(spk); pkX.st.party[0] = { custom: pkX.st.roster.length - 1 }; pkX.cache = {};
+      var k0 = (D.npc.decode(spk.code).known || []).slice(); spk.xp = DS.R.XP_LEVEL[3]; pkX.st.editLevels = false; var lv3 = pkX.levelUps(), k3 = D.npc.decode(spk.code).known || [];
+      okD(spk.lvl === 3 && /^~sorcerer\.3\./.test(spk.code) && k3.length > k0.length && k0.every(function (id) { return k3.indexOf(id) >= 0; }) && lv3.length === 2, 'LEVEL-UPS: DEFAULTS -- a made sorcerer at 1st with 900 XP is 3rd at the long rest, its word too, its spells grown ' + k0.length + ' to ' + k3.length + ' by its class\'s own');
+      spk.xp = DS.R.XP_LEVEL[4]; pkX.st.editLevels = true; pkX.levelUps(); var q4 = (pkX.levelQueue || []).slice(), asked = false;
+      if (q4.length) { var lq = pkX.levelQueue.shift(); pkX.askLevel(lq[0], lq[1]); asked = !!pkX.pm; if (pkX.pm) pkX.pm.close(); pkX.pm = null; }
+      okD(spk.lvl === 4 && q4.length === 1 && q4[0][1] === 4 && asked, 'LEVEL-UPS: EDIT -- the made card at 4th opens the level\'s page, as a stock card\'s does');
+      // the campaign's file (his "Campaign saves are DMs units, maps, and roster / Player saves are current party and pack")
+      var tf3 = PK.tableFile(pkC.st);
+      okD(tf3.v === 3 && !('party' in tf3) && !('run' in tf3) && tf3.camp.maps.length === 1 && tf3.camp.modules.length === 1 && tf3.roster.some(function (c) { return c.name === 'Grey Usurer' && c.dm && c.mark === 'villain'; }) && tf3.camp.marks.torvald === 'only',
+        'the campaign\'s file: the roster with its marks, the DM\'s units, maps, modules and marks -- no seats, no run');
+      var pkF = new D.Pocket(); memD['deep16.pocket'] = JSON.stringify({ roster: [], fights: [], party: [{ w: 'lymen', lvl: 2, loot: [] }], run: { rung: 2, foes: ['goblin'], map: smallest }, dm: true }); pkF.enter(); pkF.ask = function () { return false; };
+      var tk = pkF.takeFile(JSON.stringify(tf3));
+      okD(tk && !tk.whole && pkF.st.party.length === 1 && pkF.st.party[0].w === 'lymen' && pkF.st.run && pkF.st.run.rung === 2 && pkF.st.roster.some(function (c) { return c.name === 'Grey Usurer' && c.mark === 'villain'; }) && PD.camp(pkF.st).modules.length === 1,
+        'LOAD CAMPAIGN of it: the roster and the DM\'s brought in, the seats and the run here left as they were, nothing asked');
+      // every new screen of C draws
+      var drC = []; pkC.st.dm = true; ['camp', 'shops', 'villains', 'marks', 'locations', 'dmmods', 'build'].forEach(function (s) { pkC.go(s); drC.push(drawOK(pkC, 'C ' + s)); });
+      pkC.go('camp'); drawOK(pkC, 'camp'); var cL = pkC.btns.map(function (b) { return b.label; });
+      okD(drC.every(Boolean) && ['THE SHOPS', 'THE UNITS', 'THE LOCATIONS', 'BUILD MODULE', 'LOAD MODULE', 'SAVE CAMPAIGN', 'LOAD CAMPAIGN'].every(function (l) { return cL.indexOf(l) >= 0; }) && cL.indexOf('BUILD THE LADDER') < 0,
+        'THE CAMPAIGN\'s first page: THE SHOPS and THE UNITS by the units, THE LOCATIONS by the maps, BUILD MODULE and LOAD MODULE; every page of C draws');
       // o. the ladders: VILLAINS on the combat ladder, HEROES on the tester's; R saves the record on the combat ladder too
       memD['deep16.plays'] = JSON.stringify([{ fight: 'f0', started: 's0', steps: [], log: ['x'] }]); dlD.length = 0;
       var lad = new D.Ladder({}); lad.enter(); var ladOK = drawOK({ draw: function (c) { lad.draw(c); } }, 'ladder');
