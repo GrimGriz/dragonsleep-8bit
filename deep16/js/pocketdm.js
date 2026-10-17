@@ -151,6 +151,18 @@
     this.fightMap = run.map = map; this.foes = run.foes = f.foes; run.mine = f.mine; run.units = f.units;
     return true;
   };
+  // the ladder to a file (10-17, his "DM should be able to save a ladder that has to be played on the regular ... rather than duping the experience" -- "1 yes"): its
+  // slots as they stand, each floor, CR and the foes its units made; any table plays it from the title's A DM'S LADDER (js/pocket.js takeLadder)
+  PD.ladderFile = function (cp) { return { game: 'DRAGONSLEEP', kind: PK.LADDER_KIND, v: 1, at: new Date().toISOString(), plan: JSON.parse(JSON.stringify(cp.plan)) }; };
+  PD.saveLadder = function (pk) {
+    var cp = PD.camp(pk.st); if (!cp.plan.length) return null;
+    var d = new Date(), pad = function (n) { return (n < 10 ? '0' : '') + n; }, name = 'pocket-dm-ladder-' + d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()) + '-' + pad(d.getHours()) + pad(d.getMinutes()) + '.json';
+    try {
+      var a = document.createElement('a'), url = URL.createObjectURL(new Blob([JSON.stringify(PD.ladderFile(cp), null, 1)], { type: 'application/json' }));
+      a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(function () { URL.revokeObjectURL(url); }, 4000);
+      pk.say('saved your ladder (' + cp.plan.length + ' slots) to ' + name + ': any table plays it from A DM\'S LADDER on the title', 420); return name;
+    } catch (e) { pk.msg = { text: 'could not write the file: ' + e, t: 300, bad: true }; return null; }
+  };
   PD.startPlan = function (pk) {
     var cp = PD.camp(pk.st); if (!cp.plan.length) return false;
     var here = pk.st.run, ask = pk.ask || function (q) { return window.confirm(q); };
@@ -419,6 +431,7 @@
     D.text(ctx, '{g}R{/} fills it again  ·  {g}x{/} clears it', px + 6, 196, P('stone', 5));
     D.text(ctx, 'STRIKE keeps a floor out of every random draw at this table (' + cp.strike.length + ' of ' + PD.STRIKES + ')', 14, 224, P('stone', 5));
     this.btn(ctx, 'BACK', 20, 236, 60, 15, function () { self.back(); });
+    this.btn(ctx, 'SAVE THE LADDER', 196, 236, 128, 15, function () { PD.saveLadder(self); }, { dis: !cp.plan.length, why: 'no slots yet' }); // (for any table to play as built, 10-17)
     this.btn(ctx, 'FIGHT YOUR LADDER', D.W - 150, 236, 130, 15, function () { if (PD.startPlan(self)) self.go('cr'); }, { pri: true, dis: !cp.plan.length || !this.ready(), why: !cp.plan.length ? 'click a floor first' : 'every seat at THE PARTY wants a character' });
   };
 

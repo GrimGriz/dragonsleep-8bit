@@ -4887,6 +4887,14 @@
       Pm.openMarket('party'); Pm.marketTab = 'arms'; Pm.scroll = 0; Pm.btns = []; Pm.draw(cxMk); var dnM = Pm.btns.filter(function (x) { return x.label === 'v' && x.y > 150; })[0], s0M = Pm.scroll; if (dnM) dnM.fn(); Pm.btns = []; Pm.draw(cxMk); var s1M = Pm.scroll;
       okMk('THE MARKET\'S v pages on (' + s0M + ' -> ' + s1M + ')', !!dnM && s1M > s0M);
       okMk('THE PARTY SCREEN: a GEAR under each card (' + bG + ' of 2), THE MARKET by the seats (' + bM + ')', bG === 2 && bM === 1);
+      // A DM'S LADDER (10-17, his "DM should be able to save a ladder that has to be played on the regular ... rather than duping the experience" -- "1 yes")
+      var PDk = D.pocketdm, Pr = new D.Pocket(); Pr.enter(); Pr.st.dm = false; Pr.st.run = null; Pr.st.party = [{ w: 'barley', lvl: 3, loot: [] }, { w: 'lymen', lvl: 3, loot: [] }]; Pr.ask = function () { return true; };
+      var mapsR = Pr.mapIds(), cpD = { plan: [{ map: mapsR[0], cr8: 8, foes: ['goblin', 'goblin', 'goblin', 'goblin'], mine: 0, units: [] }, { map: mapsR[1] || mapsR[0], cr8: 16, foes: ['ogre'], mine: 0, units: [] }] };
+      var fileD = PDk.ladderFile(cpD), runR = Pr.takeLadder(JSON.stringify(fileD)), foesR = JSON.stringify(Pr.foes), screenR = Pr.screen;
+      var badR = Pr.takeLadder('{"game":"DRAGONSLEEP","kind":"pocket-dm-ladder","plan":[]}');
+      okMk('A DM\'S LADDER: saved as ' + fileD.kind + ' (' + fileD.plan.length + ' slots), played at a table without the DM\'s door -- rung ' + (runR && runR.rung) + ' of ' + (runR && Pr.lastRung(runR)) + ', its foes ' + foesR + ' (the DM\'s goblins), marked a DM\'s (' + !!(runR && runR.dmLadder) + '), on ' + screenR + '; an empty file refused (' + !badR + ')',
+        !!runR && runR.rung === 1 && Pr.lastRung(runR) === 2 && foesR === JSON.stringify(['goblin', 'goblin', 'goblin', 'goblin']) && !!runR.dmLadder && screenR === 'cr' && !badR);
+      Pr.st.run = null; Pr.keep();
     } catch (eMk) { repMk.errors.push(String(eMk && eMk.stack || eMk).slice(0, 900)); }
     if (errs.length) repMk.errors = repMk.errors.concat(errs);
     var preMk = document.createElement('pre'); preMk.id = 'out'; preMk.textContent = 'BENCH16 ' + JSON.stringify(repMk);

@@ -517,7 +517,7 @@
         // the party's slots are the fight's units in order (the familiars and summons left out above)
         run.carry = this.st.party.map(function (s, i) { var e = end[i]; return e ? { hp: e.hp, maxhp: e.maxhp, slots: e.slots, slotsMax: e.slotsMax, feats: e.feats, cls: e.cls, lvl: e.lvl, con: e.con, cha: e.cha } : null; });
         run.won = (run.won || 0) + 1;
-        if (run.trial) { this.st.pyro = true; this.st.run = null; this.result.unlocked = true; }
+        if (run.trial) { if (!run.dmLadder) this.st.pyro = true; this.st.run = null; this.result.unlocked = !run.dmLadder; } // (a DM's ladder's trial lets no king in)
       }
     }
     this.afterFight(res, run, info);
@@ -662,6 +662,30 @@
   // the same file, named for what it now carries -- the DM's purse, units, struck floors and built ladder (st.camp) and the Mascots let in (st.mascots) with the rest;
   // a table file of 10-06's (kind pocket-table) still loads
   PK.TABLE_KIND = 'pocket-table'; PK.CAMPAIGN_KIND = 'pocket-campaign';
+  // A DM'S LADDER (10-17, Griz: "DM should be able to save a ladder that has to be played on the regular (as an option - play DMs ladder) rather than duping the
+  // experience?" -- "1 yes"): a ladder a DM built and saved (js/pocketdm.js PD.saveLadder) played at any table as built -- its floors, its CRs, the foes its units
+  // made; its fifth slot is its trial, which lets no king in (the king is the real trial's)
+  PK.LADDER_KIND = 'pocket-dm-ladder';
+  Pocket.prototype.loadLadder = function () {
+    var self = this, inp = document.createElement('input'); inp.type = 'file'; inp.accept = '.json,application/json';
+    inp.onchange = function () { var f = inp.files && inp.files[0]; if (!f) return; var rd = new FileReader(); rd.onload = function () { self.takeLadder(rd.result); }; rd.readAsText(f); };
+    inp.click();
+  };
+  Pocket.prototype.takeLadder = function (text) {
+    var f = null; try { f = JSON.parse(text); } catch (e) { f = null; }
+    var plan = f && f.game === 'DRAGONSLEEP' && f.kind === PK.LADDER_KIND && Array.isArray(f.plan) ? f.plan.filter(function (s) { return s && s.map && Array.isArray(s.foes) && s.foes.length && s.foes.every(function (k) { return !!D.FOES[k]; }); }).slice(0, 5) : [];
+    if (!plan.length) { this.msg = { text: 'that file is not a DM\'s ladder (or its foes are not in this game)', t: 300, bad: true }; return null; }
+    if (!this.ready()) { this.go('party'); this.say('every seat wants a character first: then A DM\'S LADDER again', 300); return null; }
+    var here = this.st.run, ask = this.ask || function (q) { return window.confirm(q); };
+    if (here && !ask('A ladder is under way (' + (here.trial ? 'the trial' : 'rung ' + here.rung) + '). Put it away for the DM\'s?')) { this.say('kept the ladder under way', 240); return null; }
+    var levels = this.levels();
+    this.st.run = { rung: 1, trial: false, base8: plan[0].cr8, carry: null, hd: levels.slice(), arcane: levels.map(function () { return false; }), won: 0, startedAt: Date.now(), plan: JSON.parse(JSON.stringify(plan)), foes: null, map: null, dmLadder: f.at || true };
+    this.planRung(this.st.run); this.keep(); this.go('cr');
+    this.say('the DM\'s ladder: ' + plan.length + (plan.length === 1 ? ' rung' : ' rungs') + (plan.length >= 5 ? ', the fifth its trial' : ''), 300);
+    return this.st.run;
+  };
+
+
   PK.tableFile = function (st) {
     var copy = function (v) { return v == null ? null : JSON.parse(JSON.stringify(v)); };
     return { game: 'DRAGONSLEEP', kind: PK.CAMPAIGN_KIND, v: 2, at: new Date().toISOString(), party: copy(st.party), roster: copy(st.roster) || [], pyro: !!st.pyro, run: copy(st.run),
@@ -996,7 +1020,7 @@
     D.text(ctx, this.st.dm ? '{y}behind the screen{/}' : '{o}alpha{/}', D.W / 2 + 92, 20, P('fire', 1));
     D.text(ctx, this.st.dm ? 'every creature, every door, a campaign of your own' : 'any party, any map, any CR -- every fight a URL', D.W / 2, 50, P('bone', 1), 'center');
     // (the buttons stand to the right, so the stone and the light on it stay in view; the column starts under the right lamp, whose head is one of the DM's three)
-    var w = 150, x = D.W - w - 22, y = 120, n = this.st.fights.length; // (y 150 till 10-06, 132 till 10-09: up for the campaign's two rows)
+    var w = 150, x = D.W - w - 22, y = 104, n = this.st.fights.length; // (y 150 till 10-06, 132 till 10-09, 120 till 10-17: up for the campaign's two rows, then A DM'S LADDER)
     this.btn(ctx, this.st.run ? 'THE LADDER: ' + (this.st.run.trial ? 'THE TRIAL' : 'RUNG ' + this.st.run.rung) : 'START', x, y, w, 18, function () { if (self.st.run) { self.foes = self.st.run.foes; self.fightMap = self.st.run.map; self.go('cr'); } else self.go('party'); }, { pri: true });
     this.btn(ctx, 'FIGHTS' + (n ? '  (' + n + ')' : ''), x, y + 22, w, 16, function () { self.go('fights'); }, { dis: !n, why: 'no fights kept yet: START one' });
     this.btn(ctx, 'USEFULS', x, y + 41, w, 16, function () { self.go('useful'); });
@@ -1004,6 +1028,7 @@
     // the whole campaign to a file and back, here where a ladder under way can reach it (10-06: PK.tableFile; SAVE TABLE till 10-09)
     this.btn(ctx, 'SAVE CAMPAIGN', x, y + 79, w, 15, function () { self.saveTable(); });
     this.btn(ctx, 'LOAD CAMPAIGN', x, y + 96, w, 15, function () { self.loadTable(); });
+    this.btn(ctx, 'A DM\'S LADDER', x, y + 113, w, 15, function () { self.loadLadder(); }); // (a ladder a DM saved, played as built: 10-17)
     this.drawTitleDM(ctx);
     D.text(ctx, 'Solskaft: the oath-stone of the Silversands, under the Sunshaft. At noon the light lands here.', D.W / 2, 243, P('stone', 5), 'center');
     D.hint(ctx, 'up/down choose · E go · X the 8-bit game · the Discord: ' + PK.DISCORD.replace('https://', ''), D.W / 2, 256, P('stone', 4), 'center');
