@@ -218,11 +218,18 @@
     // mantle and the Game Show's supplies left to their owners)
     'threshingflail1', 'threshingflail2', 'greyfangbow', 'macedisruption', 'banhammer', 'winnower', 'greyseamknife', 'asmundhammer', 'sectblade', 'fatheraxe', 'sunshaftstaff', 'candleknife', 'ringofflying'];
   function bonusOf(it) { if (!it) return 0; var w = it.weapon || it.armor || it.shield || {}; return w.bonus || (w.magic ? 1 : 0) || (it.kind === 'shield' && w.ac > 2 ? w.ac - 2 : 0); }
+  // the level a winning comes from (PK.LOOT_BY_LEVEL): a priced thing the market's (PK.tierOf); the story's priceless gear by its magic -- a +2 or more from 8th, a +1 or
+  // another magic thing from 5th, a plain one from 1st (the +2 Greyseam Knife reached a 1st-level party's late fights by price 0 -- bench16 module1017, 10-17)
+  PK.lootTier = function (id) {
+    var it = DS.DATA.items[id]; if (!it) return 99; if (it.price > 0) return PK.tierOf(id);
+    var b = bonusOf(it), w = it.weapon || {}, magic = b >= 1 || !!it.attune || /^(ring|cloak|worn)$/.test(it.kind) || !!(w.magic || w.flame || w.disrupt || w.onCrit || w.sneakPoison);
+    return b >= 3 ? 11 : b >= 2 ? 8 : magic ? 5 : 1;
+  };
   PK.lootFor = function (h, late, L) { // (L: the party's level -- a thing is won from the level the market sells it, PK.tierOf; 10-17)
     var pool = PK.LOOT.concat(late ? PK.LOOT_LATE : []), out = [];
     pool.forEach(function (id) {
       var it = DS.DATA.items[id]; if (!it) return;
-      if (L != null && it.price > 0 && PK.tierOf(id) > L) return; // (the story's priceless gear keeps to the late winnings, as before)
+      if (L != null && PK.lootTier(id) > L) return;
       var slot = R.slotFor(h, it); if (!slot) return; // (a ring: the first free hand of two; boots, a periapt: their own place -- js/rules.js R.slotFor)
       if (it.kind !== 'cloak' && !R.canEquip(h, it)) return;
       if (R.wears(h, id)) return; // (one of a thing is enough: it is not a gift twice)
@@ -236,10 +243,11 @@
     return out;
   };
   // what is found goes into the pack (Pocket.done), the one it suits named, and is worn only when the player says so on the result card (PUT IT ON -- 10-17, Griz:
-  // "rewards should go into pack and not-auto equip unless player confirms equip"). PK.LOOT_BY_LEVEL (OFF, his to rule -- 10-17, Griz: "these lvl 1 guys are starting
-  // wtih longsword+1 and cloak of displacement with nothing magic for sale in store..."): the winnings keep to the market's levels, a +1 from 5th, the Cloak of
-  // Displacement from 8th (PK.tierOf), and a party below them finds a healing potion -- bench16 module1017 with it on: THE WAGON ROAD done 1 of 10 at 1st level, 16 of 20 off
-  PK.LOOT_BY_LEVEL = false;
+  // "rewards should go into pack and not-auto equip unless player confirms equip"). PK.LOOT_BY_LEVEL (ON, RULED 10-17 -- Griz: "these lvl 1 guys are starting wtih
+  // longsword+1 and cloak of displacement with nothing magic for sale in store...", then "turn it on"): the winnings keep to the market's levels, a +1 from 5th, the
+  // Cloak of Displacement from 8th (PK.tierOf), and a party below them finds a healing potion -- THE WAGON ROAD at 1st done 1 of 10 without a loss (16 of 20 with
+  // the +1s worn); played as the module offers it, RETRY on a loss, bench16 module1017's `retry` counts the tries
+  PK.LOOT_BY_LEVEL = true;
   PK.loot = function (st, slots, late, rnd) {
     rnd = rnd || D.rand;
     var L = 1; slots.forEach(function (s) { var sp = PK.specOf(st, s); if (sp && sp.lvl > L && PK.baseKey(PK.wordOf(st, s)) !== 'pyro') L = sp.lvl; });
@@ -1837,6 +1845,9 @@
     catch (e) { drawHall(ctx, this.t, 0.42, this.st.dm); } // (the fire would not draw: the hall, as before)
   };
   Pocket.prototype.loadedModule = function () { var k = this.st.moduleKey; return k ? PK.modules(this.st).filter(function (m) { return m.key === k; })[0] || null : null; };
+  // the long rest that opens a ladder or a module levels a card whose XP is due, as every other long rest does (10-17: XP earned on a road given up waited for the
+  // next road's third fight -- bench16 module1017 restart=)
+  Pocket.prototype.dayLevels = function () { var lv = this.levelUps(); if (lv.length) this.say(lv.join(' '), 360); return lv; };
   Pocket.prototype.drawHub = function (ctx) {
     var self = this, st = this.st, sh = this.sheets(), run = st.run, ready = this.ready(), mod = this.loadedModule();
     head(ctx, 'THE CAMP', 'the party at the fire: the menu, the market, then where to');
@@ -1860,8 +1871,8 @@
       this.btn(ctx, 'PUT IT AWAY', rx, by + 22, rw, 15, function () { var ask = self.ask || function (q) { return window.confirm(q); }; if (ask('Put away ' + rn + '? It cannot be taken up again.')) { st.run = null; self.keep(); } });
     } else {
       this.btn(ctx, 'SINGLE FIGHT', rx, by, rw, 18, function () { self.go('map'); }, { pri: true, dis: !ready, why: 'every seat at THE PARTY wants a character' });
-      this.btn(ctx, 'RANDOM LADDER', rx, by + 22, rw, 16, function () { self.toMorning({ label: 'TO RUNG 1', fn: function () { self.fightMap = self.randomMap(); self.mapSel = null; self.crI = self.defaultCR(); self.reroll(); self.startRun(); self.takeMorning(); self.go('cr'); } }, 'hub'); }, { dis: !ready, why: 'every seat at THE PARTY wants a character' });
-      this.btn(ctx, mod ? 'PLAY ' + fitText(mod.name, 110) : 'PLAY MODULE', rx, by + 42, rw, 16, function () { self.toMorning({ label: 'TO FIGHT 1', fn: function () { if (self.startModule(mod)) self.takeMorning(); } }, 'hub'); }, { dis: !mod || !ready, why: !mod ? 'no module loaded: LOAD MODULE' : 'every seat at THE PARTY wants a character' });
+      this.btn(ctx, 'RANDOM LADDER', rx, by + 22, rw, 16, function () { self.dayLevels(); self.toMorning({ label: 'TO RUNG 1', fn: function () { self.fightMap = self.randomMap(); self.mapSel = null; self.crI = self.defaultCR(); self.reroll(); self.startRun(); self.takeMorning(); self.go('cr'); } }, 'hub'); }, { dis: !ready, why: 'every seat at THE PARTY wants a character' });
+      this.btn(ctx, mod ? 'PLAY ' + fitText(mod.name, 110) : 'PLAY MODULE', rx, by + 42, rw, 16, function () { self.dayLevels(); self.toMorning({ label: 'TO FIGHT 1', fn: function () { if (self.startModule(mod)) self.takeMorning(); } }, 'hub'); }, { dis: !mod || !ready, why: !mod ? 'no module loaded: LOAD MODULE' : 'every seat at THE PARTY wants a character' });
       this.btn(ctx, mod ? 'CHANGE MODULE' : 'LOAD MODULE', rx, by + 62, rw, 15, function () { self.scroll = 0; self.go('modules'); });
       D.text(ctx, 'a ladder: four rungs at a third again each, short rests between, a long rest and the trial', D.W / 2, 212, P('stone', 5), 'center');
     }

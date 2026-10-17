@@ -4913,12 +4913,16 @@
       drawMo(Pm, 'cr'); var crMo = Pm.btns.map(function (b) { return b.label; });
       okMo('THE FOES in a module: FIGHT 1 OF 6, QUIT THE MODULE, no REROLL', crMo.indexOf('FIGHT 1 OF 6') >= 0 && crMo.indexOf('QUIT THE MODULE') >= 0 && crMo.indexOf('REROLL') < 0);
       // the run, played by the AI's party
-      var nMo = +get('runs', 3), push0Mo = D.push, restSeen = {}, drawsMo = true, longOK = true, doneOK = true, xpSeq = null, lvEnd = null, lvMid = null, lootSeen = { n: 0, packed: 0, worn: 0 };
+      // (RETRY on a loss, as the module's result card offers it -- `retry` tries a fight, 8 by default, 0 for the road with no loss allowed; since 10-17's winnings by
+      // the market's levels, his "turn it on": THE WAGON ROAD at 1st is a road of retries)
+      var nMo = +get('runs', 3), triesMo = +get('retry', 8), push0Mo = D.push, restSeen = {}, drawsMo = true, longOK = true, doneOK = true, xpSeq = null, lvEnd = null, lvMid = null, lootSeen = { n: 0, packed: 0, worn: 0, wearable: 0, magic: 0 };
+      repMo.fought = []; repMo.retries = [];
       for (var kMo = 0; kMo < nMo; kMo++) {
-        D.seed = 3000 + kMo * 7919; Pm.st.run = null; Pm.st.party.forEach(function (sl) { sl.lvl = 1; sl.xp = 0; }); Pm.cache = {};
+        D.seed = 3000 + kMo * 7919; Pm.st.run = null; Pm.st.party.forEach(function (sl) { sl.lvl = 1; sl.xp = 0; sl.loot = []; }); Pm.st.pack = []; Pm.cache = {};
         Pm.startModule(wr); Pm.mInfo = null; Pm.takeMorning(); Pm.watch = true;
-        var gotMo = 0, outMo = 'done', xpRun = [];
+        var gotMo = 0, outMo = 'done', xpRun = [], foughtMo = 0, triedMo = 0;
         for (var fMo = 0; fMo < 6; fMo++) {
+          foughtMo++;
           var Bm = null; D.push = function (b) { Bm = b; }; try { Pm.launch(); } finally { D.push = push0Mo; }
           if (!Bm) { outMo = 'fight ' + (fMo + 1) + ' never set'; break; }
           D.battle = Bm; Bm.enter(); var rMo = drive(Bm), hpIn = Bm.units.filter(function (u) { return u.side === 'party'; }).map(function (u) { return u.hp; });
@@ -4926,10 +4930,13 @@
           var fk = (fMo + 1) + ' ' + ((wr.slots[fMo] || {}).name || '');
           repMo.fights[fk] = repMo.fights[fk] || { won: 0, lost: 0, other: 0, rounds: 0, downs: 0 }; var fr = repMo.fights[fk];
           fr[rMo === 'won' ? 'won' : rMo === 'lost' ? 'lost' : 'other']++; fr.rounds += Bm.round || 0; fr.downs += Pm.result && Pm.result.rec ? Pm.result.rec.downs : 0;
+          if (rMo !== 'won' && rMo === 'lost' && triedMo < triesMo) { drawMo(Pm, 'result lost ' + (fMo + 1)); var rtMo = btnMo(Pm, /^RETRY$/); if (rtMo) { triedMo++; Pm.fire(rtMo); fMo--; continue; } } // (RETRY: the party as it went in, the same fight)
           if (rMo !== 'won') { outMo = 'lost at fight ' + (fMo + 1) + (rMo !== 'lost' ? ' (' + rMo + ')' : ''); break; }
           gotMo++; xpRun.push(Pm.result && Pm.result.xp);
-          // the winning into the pack, and on as a player puts it (10-17, his "rewards should go into pack and not-auto equip unless player confirms equip")
-          var lgMo = Pm.result && Pm.result.loot; if (lgMo && lgMo.who >= 0) { lootSeen.n++; if (PKm.packN(Pm.st, lgMo.item) > 0) lootSeen.packed++; drawMo(Pm, 'result loot'); var piMo = btnMo(Pm, /^PUT IT ON/); if (piMo) { Pm.fire(piMo); if (Pm.result.loot.worn && PKm.packN(Pm.st, lgMo.item) === 0) lootSeen.worn++; } }
+          // the winning into the pack, and on as a player puts it (10-17, his "rewards should go into pack and not-auto equip unless player confirms equip"); at
+          // 1st, by the market's levels, never a magic thing (his "turn it on")
+          var lgMo = Pm.result && Pm.result.loot; if (lgMo) { lootSeen.n++; if (PKm.lootTier(lgMo.item) > 1) { lootSeen.magic++; (lootSeen.ids = lootSeen.ids || []).push(lgMo.item); } if (PKm.packN(Pm.st, lgMo.item) > 0) lootSeen.packed++; }
+          if (lgMo && lgMo.who >= 0) { lootSeen.wearable++; drawMo(Pm, 'result loot'); var piMo = btnMo(Pm, /^PUT IT ON/); if (piMo) { Pm.fire(piMo); if (Pm.result.loot.worn && PKm.packN(Pm.st, lgMo.item) === 0) lootSeen.worn++; } }
           if (fMo === 2 && lvMid == null) lvMid = Pm.levels().join('/') + ' with ' + Pm.st.party.map(function (sl) { return sl.xp; }).join('/') + ' XP';
           if (fMo === 5 && xpSeq == null) { xpSeq = xpRun.join(' '); lvEnd = { levels: Pm.levels().join('/'), lines: (Pm.result && Pm.result.levels) || [] }; }
           if (fMo === 5) { if (!(Pm.result && Pm.result.moduleDone === 'THE WAGON ROAD' && !Pm.st.run)) { doneOK = false; outMo = 'the last won, not marked done'; } break; }
@@ -4943,10 +4950,36 @@
           if (Pm.screen === 'morning') { if (!drawMo(Pm, 'morning ' + (fMo + 2))) drawsMo = false; var gmMo = btnMo(Pm, new RegExp('^TO FIGHT ' + (fMo + 2) + '$')); if (!gmMo) { outMo = 'no TO FIGHT ' + (fMo + 2) + ' on THE LONG REST'; break; } restSeen[fMo + 1] += ' + THE LONG REST'; Pm.fire(gmMo); }
           var sl2 = wr.slots[fMo + 1]; if (!(Pm.st.run.rung === fMo + 2 && Pm.st.run.map === sl2.map && Pm.st.run.foes.join() === sl2.foes.join() && Pm.screen === 'cr')) { outMo = 'fight ' + (fMo + 2) + ' not as built'; break; }
         }
-        repMo.reach.push(gotMo); repMo.runs.push(outMo);
+        repMo.reach.push(gotMo); repMo.runs.push(outMo); repMo.fought.push(foughtMo); repMo.retries.push(triedMo);
       }
       Pm.st.run = null;
-      okMo('THE WINNINGS: ' + lootSeen.n + ' found, each into the pack (' + lootSeen.packed + '), worn on PUT IT ON (' + lootSeen.worn + ') -- his "rewards should go into pack and not-auto equip unless player confirms equip"', lootSeen.n > 0 && lootSeen.packed === lootSeen.n && lootSeen.worn === lootSeen.n);
+      okMo('THE WINNINGS: ' + lootSeen.n + ' found, each into the pack (' + lootSeen.packed + '), a card\'s worn on PUT IT ON (' + lootSeen.worn + ' of ' + lootSeen.wearable + '); none magic at 1st (' + lootSeen.magic + (lootSeen.ids ? ': ' + lootSeen.ids.slice(0, 5).join(', ') : '') + ') -- his "rewards should go into pack and not-auto equip unless player confirms equip", "turn it on"',
+        lootSeen.n > 0 && lootSeen.packed === lootSeen.n && lootSeen.worn === lootSeen.wearable && lootSeen.magic === 0 && PKm.LOOT_BY_LEVEL === true);
+      // RESTART THE ROAD (restart=<trials>, a balance read, not the gate's): a loss quits the road and the next one begins at the long rest that opens it (the XP of the
+      // fights won kept, and a level due taken there -- Pocket.dayLevels); how many roads begun before the four stand at 2nd. 10-17, his "How many attempts at the
+      // road will it take them to hit lvl 2?"
+      var nRs = +get('restart', 0); repMo.restart = [];
+      for (var tRs = 0; tRs < nRs; tRs++) {
+        D.seed = 9000 + tRs * 7919; Pm.st.run = null; Pm.st.party.forEach(function (sl) { sl.lvl = 1; sl.xp = 0; sl.loot = []; }); Pm.st.pack = []; Pm.cache = {};
+        var roads = 0, at2 = null, wonRs = [];
+        while (roads < 15 && at2 == null) {
+          roads++; Pm.st.run = null; Pm.dayLevels(); if (Pm.levels().every(function (L) { return L >= 2; })) { at2 = roads - 1 + ' (at the next road\'s opening rest)'; break; }
+          Pm.startModule(wr); Pm.mInfo = null; Pm.takeMorning(); Pm.watch = true; var wonR = 0;
+          for (var fR = 0; fR < 6; fR++) {
+            var Br = null; D.push = function (b) { Br = b; }; try { Pm.launch(); } finally { D.push = push0Mo; }
+            if (!Br) break; D.battle = Br; Br.enter(); var rR = drive(Br); Br.o.onDone(rR === 'won' || rR === 'lost' ? rR : null);
+            if (rR !== 'won') { Pm.st.run = null; break; }
+            wonR++; var lgR = Pm.result && Pm.result.loot; if (lgR && lgR.who >= 0 && PKm.packN(Pm.st, lgR.item) > 0) { PKm.packAdd(Pm.st, lgR.item, -1); PKm.give(Pm.st, Pm.st.party, lgR.who, lgR.item); }
+            if (fR === 5) break;
+            Pm.moduleRest(); Pm.nextRung(); if (Pm.rest && Pm.rest.long) { Pm.mInfo = null; Pm.takeMorning(); }
+            if (Pm.levels().every(function (L) { return L >= 2; })) break;
+          }
+          wonRs.push(wonR);
+          if (at2 == null && Pm.levels().every(function (L) { return L >= 2; })) at2 = String(roads);
+        }
+        repMo.restart.push({ roads: at2 || 'not in 15', won: wonRs.join(' ') });
+      }
+      if (nRs) repMo.restartText = repMo.restart.map(function (r) { return r.roads + ' [' + r.won + ']'; }).join('; ');
       // THE CAMP from a rest (10-17, his "return to camp 'so i can equip after visit market' on long rests"): the run waits at the fire, GO ON is the rest's way on
       var campOK = [];
       Pm.startModule(wr); Pm.mInfo = null; Pm.takeMorning(); Pm.st.run.rung = 3; Pm.st.run.carry = null; Pm.moduleRest(); Pm.go('rest'); drawMo(Pm, 'rest 3 (camp)');
@@ -4991,6 +5024,8 @@
       okMo('THE CAMPAIGN: no FIGHT YOUR LADDER, no THE PARTY; BUILD MODULE; at the DM\'s table its modules head LOAD MODULE (step C, 10-17: YOUR LADDER till then)', cpL.indexOf('FIGHT YOUR LADDER') < 0 && cpL.indexOf('THE PARTY') < 0 && cpL.indexOf('BUILD MODULE') >= 0 && !!ylMo && ylMo.key === 'table:901' && ylMo.name === 'THE GOBLIN WALK' && ylMo.slots[0].foes.join() === 'goblin,goblin');
       cpdMo.modules = []; Pm.st.dm = false;
       repMo.report = Object.keys(repMo.fights).map(function (k) { var x = repMo.fights[k], m = x.won + x.lost + x.other; return '  fight ' + k + ': ' + m + ' fought, won ' + x.won + ', lost ' + x.lost + (x.other ? ', other ' + x.other : '') + '  rounds ' + (x.rounds / m).toFixed(1) + '  downs ' + (x.downs / m).toFixed(2); });
+      repMo.report.push('  fights fought a road (retries in it): ' + repMo.fought.map(function (f, i) { return f + ' (' + repMo.retries[i] + ')'; }).join(' '));
+      if (repMo.restartText) repMo.report.push('  restart on a loss -- roads begun to the four at 2nd [fights won each road]: ' + repMo.restartText);
       var rsTxt = Object.keys(restSeen).map(function (k) { return k + ': ' + restSeen[k]; }).join('; ');
       okMo('after each fight the rest its slot allows (' + rsTxt + ')', restSeen[1] === 'A SHORT REST' && restSeen[3] === 'A LONG REST + THE MARKET + THE LONG REST' && (!restSeen[4] || restSeen[4] === 'A SHORT REST') && (!restSeen[5] || restSeen[5] === 'A SHORT REST'));
       okMo('the long rest after fight 3 carries nothing into fight 4', longOK);
@@ -4999,7 +5034,7 @@
         xpSeq === '25 37 62 31 77 75' && /^1\/1\/1\/1 with 124\/124\/124\/124 XP$/.test(lvMid || '') && !!lvEnd && lvEnd.levels === '2/2/2/2' && lvEnd.lines.join(' ') === 'The party reaches level 2.');
       okMo('a module whose last fight is won is done: the run put away, THE WAGON ROAD IS DONE', doneOK);
       okMo('every result and rest drew', drawsMo);
-      okMo('THE WAGON ROAD played ' + nMo + ' times by the AI\'s party at 1st level: ' + repMo.reach.filter(function (x) { return x === 6; }).length + ' done; fights won ' + repMo.reach.join(' '), repMo.reach.length === nMo && repMo.runs.every(function (o) { return o === 'done' || /^lost at fight \d$/.test(o); }));
+      okMo('THE WAGON ROAD played ' + nMo + ' times by the AI\'s party at 1st level, RETRY on a loss up to ' + triesMo + ' a fight: ' + repMo.reach.filter(function (x) { return x === 6; }).length + ' done; fights won ' + repMo.reach.join(' ') + '; fights fought ' + repMo.fought.join(' '), repMo.reach.length === nMo && repMo.runs.every(function (o) { return o === 'done' || /^lost at fight \d$/.test(o); }));
     } catch (eMo) { repMo.errors.push(String(eMo && eMo.stack || eMo).slice(0, 800)); }
     var preMo = document.createElement('pre'); preMo.id = 'out'; preMo.textContent = 'BENCH16 ' + JSON.stringify(repMo);
     document.body.appendChild(preMo);
