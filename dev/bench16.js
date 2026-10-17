@@ -5003,6 +5003,22 @@
       if (pmE) { pmE.root.go('equip'); pickOK.push(pmE.root.mode === 'pick'); pmE.update(mkK({ x: 60, y: 62, moved: true })); pickOK.push(pmE.root.pi === 1); pmE.update(mkK({ wheel: 1 })); pickOK.push(pmE.root.pi === 2); pmE.update(mkK({ x: 60, y: 22, click: true })); pickOK.push(pmE.pages.length === 1 && pmE.root.mode !== 'pick'); pmE.close(); }
       okMo('EQUIP WHOM?: the mouse points at the second card, the wheel walks to the third, a click on the first opens its EQUIP (' + pickOK.join(' ') + ')', pickOK.length === 4 && pickOK.every(Boolean));
       Pm.pm = null; Pm.go('hub');
+      // A LIGHT IN HAND (10-17, his "lanterns and torches not appearing when bought in market (on camp equip menu - they're in the pack on the grid)"): the market's
+      // lantern on THE MENU's OFFHAND, taken into one card's hand (its shield to the pack), held lit from the fight's first round, and back in the pack after it
+      var ltOK = [], pack0 = JSON.stringify(Pm.st.pack); Pm.st.pack = [{ id: 'lantern', n: 1 }, { id: 'torch', n: 2 }]; Pm.st.light = null; Pm.st.run = null;
+      Pm.openMenu(); var pmL = Pm.pm, hL = pmL ? pmL.host.party()[3] : null, cands = hL ? window.DS.MENU.offhandCands(hL, pmL.host) : [];
+      ltOK.push(cands.some(function (c) { return c.kind === 'light' && c.value === 'lantern'; }) && cands.some(function (c) { return c.kind === 'light' && c.value === 'torch'; }));
+      if (pmL) pmL.host.run('item', { id: 'lantern', h: hL, clearOff: true }, function () { });
+      ltOK.push(!!Pm.st.light && Pm.st.light.seat === 3 && Pm.st.light.id === 'lantern' && hL.equip.torch === 'lantern' && !hL.equip.shield && pmL.host.pack().every(function (s) { return s.id !== 'lantern'; }) && !!pmL.host.light(hL));
+      if (pmL) pmL.close(); Pm.pm = null; Pm.cache = {};
+      var shL = Pm.sheets()[3].h; ltOK.push(!!shL && !shL.equip.shield); // (the shield off the card for the light: its word says so)
+      Pm.foes = ['goblin']; Pm.fightMap = idsMo[0]; var BL = null; D.push = function (b) { BL = b; }; try { Pm.launch(); } finally { D.push = push0Mo; }
+      var uL = null; if (BL) { D.battle = BL; BL.enter(); for (var gl = 0; gl < 300 && !(BL.order && BL.order.length); gl++) BL.co.next(); uL = BL.units.filter(function (u) { return u.side === 'party'; })[3]; }
+      ltOK.push(!!uL && !!uL.torch && (BL.inv.filter(function (s) { return s.id === 'lantern'; })[0] || { n: 0 }).n === 0);
+      if (BL) { var dL = drive(BL); BL.o.onDone(dL === 'won' || dL === 'lost' ? dL : null); }
+      ltOK.push(PKm.packN(Pm.st, 'lantern') === 1 && !!Pm.st.light);
+      okMo('A LIGHT IN HAND: the lantern on THE MENU\'s OFFHAND (with the torches), taken by ' + (hL && hL.name) + ' (the shield to the pack), held lit from the first round, back in the pack after (' + ltOK.join(' ') + ')', ltOK.length === 5 && ltOK.every(Boolean));
+      Pm.st.light = null; Pm.st.pack = JSON.parse(pack0); Pm.st.party.forEach(function (sl) { if (sl.gear) delete sl.gear.shield; }); Pm.cache = {}; Pm.go('hub');
       // THE MENU at THE CAMP: the regular menu over the party, closed back to the camp
       Pm.go('hub'); drawMo(Pm, 'hub'); var mnB = btnMo(Pm, /^THE MENU/); if (mnB) Pm.fire(mnB); var pmOpen = !!Pm.pm, pmN = Pm.pm ? Pm.pm.host.party().length : 0; if (Pm.pm) Pm.pm.close();
       okMo('THE MENU: the regular menu over the ' + pmN + ' of the party, and closed back to THE CAMP', pmOpen && pmN === 4 && !Pm.pm && Pm.screen === 'hub');

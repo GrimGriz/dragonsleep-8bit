@@ -571,7 +571,13 @@
       won: lastM ? run.module.name + ' IS DONE.' : run && run.trial ? 'THE TRIAL IS PASSED.' : 'THE TABLE IS CLEARED.', lost: 'THE DARK KEEPS THEM.' });
     var started = new Date().toISOString();
     this.before = JSON.parse(JSON.stringify({ run: run, party: this.st.party, roster: this.st.roster }));
-    var B = new D.Battle({ npc: { foes: kinds, party: this.fightWords() }, pack: JSON.parse(JSON.stringify(this.st.pack || [])), watch: this.watch, fightDef: def, pocket: true, flyTest: !!kn.fly, legendTest: !!kn.legend, breathTest: kn.breath || null, // (the class floor's knobs, set on the DM's foes screen: js/pocketdm.js)
+    // (the camp's light in hand: its bearer holds it lit from the first round, the one in hand not in the fight's pack -- js/battle.js o.torch; back after, Pocket.done)
+    var fw = this.fightWords(), lt = this.st.light && this.lightOf(this.st.light.seat), ltAt = -1, packIn = JSON.parse(JSON.stringify(this.st.pack || []));
+    if (lt) { for (var si = 0, wi = -1; si <= lt.seat; si++) if (PK.wordOf(this.st, this.st.party[si])) wi++; ltAt = wi; }
+    var ltW = ltAt >= 0 ? fw[ltAt] : null, ltId = ltW ? (typeof ltW === 'string' ? 'p' + ltAt + '-' + String(ltW).split(':')[0].split('.')[0].split('+')[0] : ltW.id) : null; // (the unit's id as js/battle.js gives it)
+    if (ltId) packIn.forEach(function (s) { if (s.id === lt.id) s.n--; });
+    this.lightHeld = ltId ? lt.id : null;
+    var B = new D.Battle({ npc: { foes: kinds, party: fw }, pack: packIn.filter(function (s) { return s.n > 0; }), torch: ltId || undefined, torchKind: ltId ? lt.id : undefined, watch: this.watch, fightDef: def, pocket: true, flyTest: !!kn.fly, legendTest: !!kn.legend, breathTest: kn.breath || null, // (the class floor's knobs, set on the DM's foes screen: js/pocketdm.js)
       record: { fight: 'pocket', name: name + ': ' + PK.foesText(kinds), level: L },
       onDone: function (res, why) { if (B.rec) D.rec.finish(B, res); if (why && why.broke) self.floor(why.broke, false); else self.done(res, B, { q: q, kinds: kinds, mapId: mapId, d: d, started: started }); } });
     this.lastQ = q;
@@ -606,6 +612,7 @@
     this.st.fights.unshift(rec); while (this.st.fights.length > KEEP) this.st.fights.pop();
     this.result = { res: res, rec: rec, end: end, loot: null };
     PK.packBack(this.st, B); // (what the fight used comes off the pack, 10-17)
+    if (this.lightHeld) { if (!B.lampReturned) PK.packAdd(this.st, this.lightHeld, 1); this.lightHeld = null; } // (the light in hand back to the pack: it was never the fight's to spend -- a lantern nobody could take up came back by the fight's own pack)
     if (res === 'won') {
       var coin = PK.coinFor(info.kinds); this.st.purse = (this.st.purse == null ? 100 : this.st.purse) + coin; this.result.coin = coin; rec.coin = coin; // (100 sp a CR beaten)
       var xpe = this.xpOn() ? PK.giveXP(this.st, info.kinds) : 0; this.result.xp = xpe; rec.xp = xpe; this.result.noXP = !this.xpOn(); // (the SRD's XP for the foes, split across the seats -- 10-17; none watched, Pocket.xpOn)
@@ -1310,18 +1317,19 @@
     var h = PK.sheetOf(PK.specOf(st, slot)); if (!h) return;
     slot.gear = slot.gear || {}; var wins = PK.winsOf(st, slot);
     var wornN = function (id) { return Object.keys(h.equip).filter(function (pl) { return h.equip[pl] === id; }).length; };
+    var give = function (id, n) { // (called while still worn)
+      var wk = wins.indexOf(id); if (wk >= 0 && wornN(id) <= 1 && PK.dropWin(st, slot, id)) wins.splice(wk, 1); // (a winning: off the card's record)
+      PK.packAdd(st, id, n || 1);
+    };
+    var lh = this.lightHost([h], [i], give); // (a torch or a lantern in the off hand too, 10-17: Pocket.lightHost)
     this.pm = DS.MENU.openEquip({
       party: function () { return [h]; },
-      pack: function () {
-        return (st.pack || []).filter(function (s) { var it = DS.DATA.items[s.id]; return s.n > 0 && it && !(it.use && it.use.effect === 'light'); }).map(function (s) { return { id: s.id, n: s.n }; }); // (the lights wait for the fight's ITEMS)
-      },
-      give: function (id, n) { // (called while still worn)
-        var wk = wins.indexOf(id); if (wk >= 0 && wornN(id) <= 1 && PK.dropWin(st, slot, id)) wins.splice(wk, 1); // (a winning: off the card's record)
-        PK.packAdd(st, id, n || 1);
-      },
+      pack: function () { return self.campPack(); },
+      give: give,
       take: function (id, n) { PK.packAdd(st, id, -(n || 1)); },
       canSave: function () { return false; },
-      run: function (kind, a, done) { if (done) done(); },
+      light: lh.light,
+      run: lh.run,
       close: function () { self.pm = null; self.gearBack(i, h); }
     }, h);
   };
@@ -1343,6 +1351,7 @@
     es.forEach(function (e, k) { if (slot.custom != null ? (e.kind === 'custom' && e.i === slot.custom) : slot.w === 'new' ? e.kind === 'new' : (e.kind === 'stock' && e.w === slot.w)) at = k; });
     var e = es[(at + dir + es.length) % es.length];
     PK.slotToPack(this.st, slot); // (its GEAR and a stock word's winnings into the pack, not lost with the card -- 10-17)
+    if (this.st.light && this.st.light.seat === i) this.st.light = null; // (its light in hand stays in the pack, 10-17)
     if (e.kind === 'stock') this.st.party[i] = { w: e.w, lvl: Math.max(e.lo, Math.min(e.hi, slot.lvl || 3)), loot: [] };
     else if (e.kind === 'custom') this.st.party[i] = { custom: e.i };
     else this.st.party[i] = { w: 'new' };
@@ -1856,7 +1865,8 @@
       if (!s.h) return; var slot = st.party[i], L = PK.lvlOf(st, slot), nx = R.XP_LEVEL[L + 1], e = PK.stockOf(slot);
       D.text(ctx, '{y}' + s.h.name + '{/}  ' + R.CLASSES[s.h.cls].name + ' ' + s.h.lvl + '   {g}HP ' + s.h.maxhp + '  AC ' + R.ac(s.h) + (e && e.king ? '' : '  XP ' + PK.xpNow(st, slot) + (nx ? ' of ' + nx : '')) + '{/}' + (PK.levelDue(st, slot) ? '  {y}a level at the next long rest{/}' : ''), 24, yy, P('bone', 1)); yy += 11;
     });
-    D.text(ctx, 'the purse ' + (st.purse == null ? 100 : st.purse) + ' sp  ·  the pack ' + (st.pack || []).reduce(function (n, s) { return n + (s.n || 0); }, 0) + ' things', 24, yy + 3, P('silver', 5));
+    var ltH = st.light && this.lightOf(st.light.seat), ltS = ltH && sh[ltH.seat] && sh[ltH.seat].h; // (the light in hand, 10-17)
+    D.text(ctx, 'the purse ' + (st.purse == null ? 100 : st.purse) + ' sp  ·  the pack ' + (st.pack || []).reduce(function (n, s) { return n + (s.n || 0); }, 0) + ' things' + (ltS ? '  ·  {y}' + ltS.name + '{/} carries the ' + DS.DATA.items[ltH.id].name.toLowerCase() : ''), 24, yy + 3, P('silver', 5));
     var lx = 20, rx = D.W - 180, rw = 160, by = 116, rest = run && run.atCamp; // (the right column narrower since 10-17: the fire between the two)
     this.btn(ctx, 'THE MENU  (M)', lx, by, 150, 16, function () { self.openMenu(); }, { dis: !ready, why: 'every seat at THE PARTY wants a character' });
     this.btn(ctx, 'THE MARKET  ' + (st.purse == null ? 100 : st.purse) + ' sp', lx, by + 20, 150, 16, function () { self.openMarket('hub'); }, { dis: !!(rest && !rest.market), why: 'the DM allows no market at this rest' });
@@ -1886,16 +1896,48 @@
     st.party.forEach(function (slot, i) { var e = PK.STOCK.filter(function (q) { return q.w === slot.w; })[0]; if (slot.w === 'new' || (e && e.king)) return; var h = PK.sheetOf(PK.specOf(st, slot)); if (h) { h.xp = PK.xpNow(st, slot); hs.push(h); at.push(i); } }); // (the card's XP on the sheet: the menu's Next)
     if (!hs.length) return;
     var wins = at.map(function (i) { return PK.winsOf(st, st.party[i]); }), wornN = function (h, id) { return Object.keys(h.equip).filter(function (pl) { return h.equip[pl] === id; }).length; };
+    var give = function (id, n) { for (var k = 0; k < hs.length; k++) if (wornN(hs[k], id) >= 1) { var wk = wins[k].indexOf(id); if (wk >= 0 && wornN(hs[k], id) <= 1 && PK.dropWin(st, st.party[at[k]], id)) wins[k].splice(wk, 1); break; } PK.packAdd(st, id, n || 1); };
+    var lh = this.lightHost(hs, at, give);
     this.pm = DS.MENU.open({
       party: function () { return hs; },
-      pack: function () { return (st.pack || []).filter(function (s) { var it = DS.DATA.items[s.id]; return s.n > 0 && it && !(it.use && it.use.effect === 'light'); }).map(function (s) { return { id: s.id, n: s.n }; }); },
-      give: function (id, n) { for (var k = 0; k < hs.length; k++) if (wornN(hs[k], id) >= 1) { var wk = wins[k].indexOf(id); if (wk >= 0 && wornN(hs[k], id) <= 1 && PK.dropWin(st, st.party[at[k]], id)) wins[k].splice(wk, 1); break; } PK.packAdd(st, id, n || 1); },
+      pack: function () { return self.campPack(); },
+      give: give,
       take: function (id, n) { PK.packAdd(st, id, -(n || 1)); },
       canSave: function () { return false; },
       order: function () { self.say('the order is THE PARTY\'s: its arrows', 240); },
-      run: function (kind, a, done) { self.say('at the camp the party is whole: nothing to use that on', 240); if (done) done(); },
+      light: lh.light,
+      run: lh.run,
       close: function () { self.pm = null; hs.forEach(function (h, k) { self.gearBack(at[k], h); }); }
     });
+  };
+  // A LIGHT IN HAND (10-17, Griz: "lanterns and torches not appearing when bought in market (on camp equip menu - they're in the pack on the grid)"): at the camp a torch or
+  // a lantern from the pack goes into one card's off hand -- EQUIP's OFFHAND, or ITEMS' WHO CARRIES IT? -- one bearer, as the ladder camp's A TORCH IN HAND, and that card
+  // walks into the next fights holding it lit (js/battle.js o.torch, Pocket.launch). It stays the pack's: the menus show the pack less the one in hand, and it comes back
+  // after each fight (Pocket.done). st.light: { seat, id }
+  PK.isLight = function (id) { var it = DS.DATA.items[id]; return !!(it && it.use && it.use.effect === 'light'); };
+  Pocket.prototype.lightOf = function (i) { var l = this.st.light; return l && l.seat === i && this.st.party[i] && PK.packN(this.st, l.id) > 0 ? l : null; };
+  Pocket.prototype.campPack = function () {
+    var l = this.st.light && this.lightOf(this.st.light.seat);
+    return (this.st.pack || []).map(function (s) { return { id: s.id, n: s.n - (l && l.id === s.id ? 1 : 0) }; }).filter(function (s) { return s.n > 0 && DS.DATA.items[s.id]; });
+  };
+  Pocket.prototype.lightHost = function (hs, at, give) {
+    var self = this, st = this.st, seatOf = function (h) { var k = hs.indexOf(h); return k >= 0 ? at[k] : -1; };
+    hs.forEach(function (h, k) { delete h.equip.torch; if (self.lightOf(at[k])) h.equip.torch = st.light.id; }); // (the bearer's sheet holds it: the menu's OFFHAND says so)
+    return {
+      light: function (h) { var l = self.lightOf(seatOf(h)); if (!l) return null; var it = DS.DATA.items[l.id]; return { id: l.id, name: it ? it.name : 'Torch', hooded: false }; },
+      run: function (kind, a, done) {
+        var h = a && a.h, i = h ? seatOf(h) : -1, it = a && DS.DATA.items[a.id];
+        if (kind === 'item' && it && PK.isLight(a.id) && i >= 0) {
+          var bare = Object.assign({}, h, { equip: Object.assign({}, h.equip, { torch: null }) });
+          if (!a.clearOff && !R.lightHand(bare)) { self.say(h.name + ': ' + R.lightWhy(bare), 300); if (done) done(); return; }
+          ['shield', 'offhand'].forEach(function (pl) { if (h.equip[pl]) { give(h.equip[pl], 1); h.equip[pl] = null; } }); // (the off hand emptied for it: what was there to the pack)
+          hs.forEach(function (o) { delete o.equip.torch; }); h.equip.torch = a.id; st.light = { seat: i, id: a.id };
+          self.keep(); self.say(h.name + ' carries the ' + it.name.toLowerCase() + ', lit, into the next fight', 300);
+        } else if (kind === 'light-off' && h) { if (st.light && st.light.seat === i) st.light = null; delete h.equip.torch; self.keep(); self.say(h.name + ' puts the light away: back in the pack', 240); }
+        else self.say('at the camp the party is whole: nothing to use that on', 240);
+        if (done) done();
+      }
+    };
   };
   // the party's own file (his "Player saves are current party and pack"): the seats, the characters made for them, the pack and the purse; loaded, the made ones join
   // the roster (by their word) and the seats point at them
