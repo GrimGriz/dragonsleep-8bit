@@ -146,7 +146,7 @@
     if (!run || !run.plan) return false;
     var slot = run.plan[run.trial ? 4 : run.rung - 1]; if (!slot) return false;
     var map = this.mapIds().indexOf(slot.map) >= 0 ? slot.map : this.randomMap();
-    var fresh = this.rerolling || !slot.foes || !slot.foes.length || map !== slot.map;
+    var fresh = !run.module && (this.rerolling || !slot.foes || !slot.foes.length || map !== slot.map); // (a module's foes are its own, whatever floor: js/pocket.js startModule, 10-17)
     var f = fresh ? PD.fill(this, map, slot.cr8) : { foes: slot.foes.slice(), mine: slot.mine || 0, units: (slot.units || []).slice() };
     this.fightMap = run.map = map; this.foes = run.foes = f.foes; run.mine = f.mine; run.units = f.units;
     return true;
@@ -160,7 +160,7 @@
     try {
       var a = document.createElement('a'), url = URL.createObjectURL(new Blob([JSON.stringify(PD.ladderFile(cp), null, 1)], { type: 'application/json' }));
       a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(function () { URL.revokeObjectURL(url); }, 4000);
-      pk.say('saved your ladder (' + cp.plan.length + ' slots) to ' + name + ': any table plays it from A DM\'S LADDER on the title', 420); return name;
+      pk.say('saved your ladder (' + cp.plan.length + ' slots) to ' + name + ': any table plays it from MODULES on the title (FROM A FILE)', 420); return name;
     } catch (e) { pk.msg = { text: 'could not write the file: ' + e, t: 300, bad: true }; return null; }
   };
   PD.startPlan = function (pk) {

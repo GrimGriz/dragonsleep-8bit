@@ -4855,6 +4855,82 @@
     document.body.appendChild(preQ);
     return;
   }
+  // THE MODULES (mode=module1017; 10-17, Griz: "to test it can you make a 6 fight module for a starting lvl 1 party of 4 that we can include for new users to have
+  // as example module?"): the game's own module whole -- its floors dealt, its foes in the bestiary, its rests as flagged -- the title's MODULES, THE MODULES' screen
+  // and THE PARTY TO LEVEL 1, a DM's ladder file of 10-17 read as a module; then THE WAGON ROAD played through `runs` times (3 in the gate; runs=20 for a balance read) by the AI's party (watched, as the Pocket
+  // DM's own fights run: launch, the fight driven to its end, the result card, the rest its slot allows, the next fight), the wounds carried: how far the four get
+  if (get('mode', '') === 'module1017') {
+    var repMo = { checks: [], errors: [], runs: [], reach: [], fights: {} };
+    function okMo(what, v) { repMo.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    try {
+      var PKm = D.pocket, cvMo = document.createElement('canvas'); cvMo.width = D.W; cvMo.height = D.H; var cxMo = cvMo.getContext('2d');
+      var drawMo = function (pk, what) { try { pk.btns = []; pk.draw(cxMo); return true; } catch (eDm) { repMo.errors.push('draw ' + what + ': ' + String(eDm && eDm.stack || eDm).slice(0, 400)); return false; } };
+      var btnMo = function (pk, re) { return pk.btns.filter(function (b) { return re.test(b.label); })[0] || null; };
+      try { window.localStorage.removeItem('deep16.pocket'); } catch (eLs) { }
+      var Pm = new D.Pocket(); Pm.enter(); Pm.ask = function () { return true; };
+      var mods = PKm.modules(Pm.st), wr = mods.filter(function (m) { return m.key === 'game:wagonroad'; })[0], idsMo = Pm.mapIds();
+      okMo('THE WAGON ROAD comes with the game: ' + (wr && wr.slots.length) + ' fights, made for ' + (wr && wr.party && wr.party.n + ' at ' + wr.party.lvl) + ', every floor one the table deals and every foe in the bestiary',
+        !!wr && wr.slots.length === 6 && wr.party.n === 4 && wr.party.lvl === 1 && wr.slots.every(function (s) { return idsMo.indexOf(s.map) >= 0 && s.foes.every(function (k) { return !!D.FOES[k]; }); }));
+      var rsMo = wr ? wr.slots.slice(0, 5).map(function (s) { return (s.rest.long ? 'L' : s.rest.short ? 'S' : '-') + (s.rest.market ? 'M' : ''); }).join(' ') : '';
+      okMo('its rests: a short rest after 1, 2, 4 and 5, a long rest and the market after 3 (' + rsMo + ')', rsMo === 'S S LM S S');
+      Pm.go('title'); drawMo(Pm, 'title'); var tlMo = Pm.btns.map(function (b) { return b.label; });
+      okMo('the title has MODULES and no A DM\'S LADDER', tlMo.indexOf('MODULES') >= 0 && tlMo.indexOf('A DM\'S LADDER') < 0);
+      Pm.go('modules'); drawMo(Pm, 'modules'); var toL = btnMo(Pm, /^THE PARTY TO LEVEL 1$/); if (toL) Pm.fire(toL);
+      var lvMo = Pm.levels().join('/'); drawMo(Pm, 'modules again');
+      okMo('THE MODULES: THE WAGON ROAD picked first; THE PARTY TO LEVEL 1 puts the four at ' + lvMo + ', and then is gone', Pm.modSel === 'game:wagonroad' && !!toL && lvMo === '1/1/1/1' && !btnMo(Pm, /^THE PARTY TO LEVEL/));
+      var lfMo = { game: 'DRAGONSLEEP', kind: 'pocket-dm-ladder', at: '2026-10-17T00:00:00Z', plan: [0, 1, 2, 3, 4].map(function (i) { return { map: idsMo[i], cr8: 8, foes: ['goblin', 'goblin'] }; }) };
+      var lmMo = PKm.moduleOf(lfMo);
+      okMo('a DM\'s ladder file of 10-17 reads as a module: 5 fights, a short rest and the market between, a long rest before the fifth, "The trial"',
+        !!lmMo && lmMo.slots.length === 5 && lmMo.slots[0].rest.short && lmMo.slots[0].rest.market && !lmMo.slots[0].rest.long && lmMo.slots[3].rest.long && lmMo.slots[4].name === 'The trial');
+      var kMo0 = PKm.keepModule(Pm.st, lmMo), modsK = PKm.modules(Pm.st); PKm.keepModule(Pm.st, lmMo);
+      okMo('a module from a file is kept in the list after the game\'s own, once', kMo0 === 'kept:0' && modsK.length === mods.length + 1 && modsK[modsK.length - 1].name === 'A DM\'S LADDER' && Pm.st.modules.length === 1);
+      Pm.st.modules = [];
+      Pm.modSel = 'game:wagonroad'; drawMo(Pm, 'modules'); var playMo = btnMo(Pm, /^PLAY THIS MODULE$/); if (playMo) Pm.fire(playMo);
+      var runMo = Pm.st.run;
+      okMo('PLAY THIS MODULE: ' + (runMo && Pm.rungName(runMo)) + ' on ' + (runMo && runMo.map) + ', ' + (runMo && PKm.foesText(runMo.foes)) + ', on THE FOES',
+        !!runMo && !!runMo.module && runMo.rung === 1 && Pm.lastRung(runMo) === 6 && Pm.rungName(runMo) === 'FIGHT 1 OF 6' && runMo.map === 'snootroad' && runMo.foes.join() === 'bandit,bandit,bandit,bandit' && Pm.screen === 'cr' && !Pm.hasTrial(runMo));
+      drawMo(Pm, 'cr'); var crMo = Pm.btns.map(function (b) { return b.label; });
+      okMo('THE FOES in a module: FIGHT 1 OF 6, QUIT THE MODULE, no REROLL', crMo.indexOf('FIGHT 1 OF 6') >= 0 && crMo.indexOf('QUIT THE MODULE') >= 0 && crMo.indexOf('REROLL') < 0);
+      // the run, played by the AI's party
+      var nMo = +get('runs', 3), push0Mo = D.push, restSeen = {}, drawsMo = true, longOK = true, doneOK = true;
+      for (var kMo = 0; kMo < nMo; kMo++) {
+        D.seed = 3000 + kMo * 7919; Pm.st.run = null; Pm.startModule(wr); Pm.watch = true;
+        var gotMo = 0, outMo = 'done';
+        for (var fMo = 0; fMo < 6; fMo++) {
+          var Bm = null; D.push = function (b) { Bm = b; }; try { Pm.launch(); } finally { D.push = push0Mo; }
+          if (!Bm) { outMo = 'fight ' + (fMo + 1) + ' never set'; break; }
+          D.battle = Bm; Bm.enter(); var rMo = drive(Bm), hpIn = Bm.units.filter(function (u) { return u.side === 'party'; }).map(function (u) { return u.hp; });
+          Bm.o.onDone(rMo === 'won' || rMo === 'lost' ? rMo : null);
+          var fk = (fMo + 1) + ' ' + ((wr.slots[fMo] || {}).name || '');
+          repMo.fights[fk] = repMo.fights[fk] || { won: 0, lost: 0, other: 0, rounds: 0, downs: 0 }; var fr = repMo.fights[fk];
+          fr[rMo === 'won' ? 'won' : rMo === 'lost' ? 'lost' : 'other']++; fr.rounds += Bm.round || 0; fr.downs += Pm.result && Pm.result.rec ? Pm.result.rec.downs : 0;
+          if (rMo !== 'won') { outMo = 'lost at fight ' + (fMo + 1) + (rMo !== 'lost' ? ' (' + rMo + ')' : ''); break; }
+          gotMo++;
+          if (fMo === 5) { if (!(Pm.result && Pm.result.moduleDone === 'THE WAGON ROAD' && !Pm.st.run)) { doneOK = false; outMo = 'the last won, not marked done'; } break; }
+          if (!drawMo(Pm, 'result ' + (fMo + 1))) drawsMo = false;
+          var rbMo = btnMo(Pm, /^A (LONG|SHORT) REST$|^ON TO FIGHT/); if (!rbMo) { outMo = 'no rest button after fight ' + (fMo + 1); break; }
+          Pm.fire(rbMo); if (!drawMo(Pm, 'rest ' + (fMo + 1))) drawsMo = false;
+          restSeen[fMo + 1] = rbMo.label + (btnMo(Pm, /^THE MARKET$/) ? ' + THE MARKET' : '');
+          if (fMo === 2 && Pm.st.run.carry) longOK = false;
+          var nbMo = btnMo(Pm, new RegExp('^FIGHT ' + (fMo + 2) + '$')); if (!nbMo) { outMo = 'no FIGHT ' + (fMo + 2) + ' on the rest'; break; }
+          Pm.fire(nbMo);
+          var sl2 = wr.slots[fMo + 1]; if (!(Pm.st.run.rung === fMo + 2 && Pm.st.run.map === sl2.map && Pm.st.run.foes.join() === sl2.foes.join() && Pm.screen === 'cr')) { outMo = 'fight ' + (fMo + 2) + ' not as built'; break; }
+        }
+        repMo.reach.push(gotMo); repMo.runs.push(outMo);
+      }
+      Pm.st.run = null;
+      repMo.report = Object.keys(repMo.fights).map(function (k) { var x = repMo.fights[k], m = x.won + x.lost + x.other; return '  fight ' + k + ': ' + m + ' fought, won ' + x.won + ', lost ' + x.lost + (x.other ? ', other ' + x.other : '') + '  rounds ' + (x.rounds / m).toFixed(1) + '  downs ' + (x.downs / m).toFixed(2); });
+      var rsTxt = Object.keys(restSeen).map(function (k) { return k + ': ' + restSeen[k]; }).join('; ');
+      okMo('after each fight the rest its slot allows (' + rsTxt + ')', restSeen[1] === 'A SHORT REST' && restSeen[3] === 'A LONG REST + THE MARKET' && (!restSeen[4] || restSeen[4] === 'A SHORT REST') && (!restSeen[5] || restSeen[5] === 'A SHORT REST'));
+      okMo('the long rest after fight 3 carries nothing into fight 4', longOK);
+      okMo('a module whose last fight is won is done: the run put away, THE WAGON ROAD IS DONE', doneOK);
+      okMo('every result and rest drew', drawsMo);
+      okMo('THE WAGON ROAD played ' + nMo + ' times by the AI\'s party at 1st level: ' + repMo.reach.filter(function (x) { return x === 6; }).length + ' done; fights won ' + repMo.reach.join(' '), repMo.reach.length === nMo && repMo.runs.every(function (o) { return o === 'done' || /^lost at fight \d$/.test(o); }));
+    } catch (eMo) { repMo.errors.push(String(eMo && eMo.stack || eMo).slice(0, 800)); }
+    var preMo = document.createElement('pre'); preMo.id = 'out'; preMo.textContent = 'BENCH16 ' + JSON.stringify(repMo);
+    document.body.appendChild(preMo);
+    return;
+  }
   // the Pocket DM's market and pack (mode=market1017; 10-17, Griz: "Store with 100 sp starting cash first fight", "stock by level is good", "4 yes" -- half back,
   // "5 yes, and they'll have to read packs now", "add 'gear' button' (symbol?) below the down arrow"): the purse, the stock by level, a buy and a sale, a card's GEAR
   // from the pack into its word and its sheet, the pack into a fight and what it used off it, the coin a win pays, the story's gear among the late winnings

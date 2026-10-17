@@ -419,7 +419,7 @@
     if (I.pressed('b') && !D.typing) { this.back(); return; }
     if (s === 'title' && this.titleClick()) return; // (the throne and the two lamps: js/pocketdm.js)
     if (this.readButtons()) return;
-    if (s === 'map' || s === 'fights' || s === 'maker' || s === 'market' || this.scrolls(s)) { // (the market's list too, 10-17: his "i rolled the mousewheel over that ... and nothing happened")
+    if (s === 'map' || s === 'fights' || s === 'maker' || s === 'market' || s === 'modules' || this.scrolls(s)) { // (the market's list too, 10-17: his "i rolled the mousewheel over that ... and nothing happened")
       var w = I.mouse.wheel; if (w && !this.wheelTo(w)) { this.scroll = Math.max(0, this.scroll + w); } // (wheelTo: a screen of two lists takes it for the one under the mouse, js/pocketdm.js)
     }
     if (s === 'cr' && this.drag && I.mouse.inside) {
@@ -433,7 +433,7 @@
     D.sfx('cancel');
     if (this.backMore(s)) return; // (the DM's screens and the notes: js/pocketdm.js)
     if (s === 'title') { location.href = '../'; return; }
-    if (s === 'party' || s === 'fights') { this.keep(); this.go('title'); return; }
+    if (s === 'party' || s === 'fights' || s === 'modules') { this.keep(); this.go('title'); return; }
     if (s === 'maker') { if (this.mk && this.mk.step > 1) this.mk.step--; else this.go('party'); return; }
     if (s === 'map') { this.go('party'); return; }
     if (s === 'cr') { if (this.st.run) { this.go('title'); return; } this.go('map'); return; }
@@ -506,10 +506,11 @@
     this.fightMap = mapId;
     var words = this.words(), kinds = this.foes.slice(), d = PK.diff(this.levels(), kinds), kn = this.knobs() || {};
     var q = PK.query(kinds, words, L, mapId, this.watch, kn);
-    var name = run ? this.rungName(run) : 'THE POCKET DM', sub = PK.foesText(kinds) + ' -- ' + d.label.toLowerCase() + (d.deadlyX > 1 ? ' x' + d.deadlyX : '');
-    var def = D.classFight(L, { id: 'pocket', what: PK.foesText(kinds), map: mapId, name: name, sub: sub, music: run && run.trial ? 'boss' : undefined, dark: kn.dark != null ? kn.dark : undefined,
-      intro: run && run.trial ? 'The last of it. Everything the dark could spare, at once. Win this and the king himself will walk with you.' : 'The Pocket DM sets the table: ' + PK.foesText(kinds) + ', on ' + (D.MAPS[mapId].name || mapId) + '.',
-      won: run && run.trial ? 'THE TRIAL IS PASSED.' : 'THE TABLE IS CLEARED.', lost: 'THE DARK KEEPS THEM.' });
+    var slot = this.slotOf(run), lastM = !!(slot && run.rung >= run.plan.length); // (a module's fight: its own name and line, the last its boss music -- 10-17)
+    var name = run ? (slot ? run.module.name + ': ' + this.rungName(run) : this.rungName(run)) : 'THE POCKET DM', sub = (slot && slot.name ? slot.name + ' -- ' : '') + PK.foesText(kinds) + ' -- ' + d.label.toLowerCase() + (d.deadlyX > 1 ? ' x' + d.deadlyX : '');
+    var def = D.classFight(L, { id: 'pocket', what: PK.foesText(kinds), map: mapId, name: name, sub: sub, music: (run && run.trial) || lastM ? 'boss' : undefined, dark: kn.dark != null ? kn.dark : undefined,
+      intro: slot && slot.intro ? slot.intro : run && run.trial ? (run.dmLadder ? 'The last of the DM\'s ladder, after a night\'s rest.' : 'The last of it. Everything the dark could spare, at once. Win this and the king himself will walk with you.') : 'The Pocket DM sets the table: ' + PK.foesText(kinds) + ', on ' + (D.MAPS[mapId].name || mapId) + '.',
+      won: lastM ? run.module.name + ' IS DONE.' : run && run.trial ? 'THE TRIAL IS PASSED.' : 'THE TABLE IS CLEARED.', lost: 'THE DARK KEEPS THEM.' });
     var started = new Date().toISOString();
     this.before = JSON.parse(JSON.stringify({ run: run, party: this.st.party, roster: this.st.roster }));
     var B = new D.Battle({ npc: { foes: kinds, party: this.fightWords() }, pack: JSON.parse(JSON.stringify(this.st.pack || [])), watch: this.watch, fightDef: def, pocket: true, flyTest: !!kn.fly, legendTest: !!kn.legend, breathTest: kn.breath || null, // (the class floor's knobs, set on the DM's foes screen: js/pocketdm.js)
@@ -557,6 +558,7 @@
         run.carry = this.st.party.map(function (s, i) { var e = end[i]; return e ? { hp: e.hp, maxhp: e.maxhp, slots: e.slots, slotsMax: e.slotsMax, feats: e.feats, cls: e.cls, lvl: e.lvl, con: e.con, cha: e.cha } : null; });
         run.won = (run.won || 0) + 1;
         if (run.trial) { if (!run.dmLadder) this.st.pyro = true; this.st.run = null; this.result.unlocked = !run.dmLadder; } // (a DM's ladder's trial lets no king in)
+        else if (run.module && run.rung >= run.plan.length) { this.st.run = null; this.result.moduleDone = run.module.name; } // (a module's last fight won: it is done)
       }
     }
     this.afterFight(res, run, info);
@@ -568,9 +570,11 @@
 
   // ------------------------------------------------------------------ the ladder (his: "auto-fill the next map with a reasonable increase in CR (randomly generated 4-rung ladder)")
   // (a ladder of the DM's own making -- run.plan, his "build a ladder", js/pocketdm.js -- has as many rungs as it has slots, the fifth its trial)
-  Pocket.prototype.lastRung = function (run) { return run && run.plan ? Math.max(1, Math.min(4, run.plan.length)) : 4; };
-  Pocket.prototype.hasTrial = function (run) { return !run || !run.plan || run.plan.length >= 5; };
-  Pocket.prototype.rungName = function (run) { return run.trial ? 'THE TRIAL' : 'RUNG ' + run.rung + ' OF ' + this.lastRung(run); };
+  // (a module, run.module: as many fights as its slots, no trial -- js/pocket.js startModule)
+  Pocket.prototype.lastRung = function (run) { return run && run.module ? run.plan.length : run && run.plan ? Math.max(1, Math.min(4, run.plan.length)) : 4; };
+  Pocket.prototype.hasTrial = function (run) { return !run || (!run.module && (!run.plan || run.plan.length >= 5)); };
+  Pocket.prototype.rungName = function (run) { return run.module ? 'FIGHT ' + run.rung + ' OF ' + run.plan.length : run.trial ? 'THE TRIAL' : 'RUNG ' + run.rung + ' OF ' + this.lastRung(run); };
+  Pocket.prototype.slotOf = function (run) { return run && run.module ? run.plan[run.rung - 1] || null : null; };
   // hooks the DM's table fills (js/pocketdm.js): the knobs a fight takes, what a fight's end pays, a planned rung's table
   Pocket.prototype.knobs = function () { return null; };
   Pocket.prototype.afterFight = function () { };
@@ -724,23 +728,88 @@
   // experience?" -- "1 yes"): a ladder a DM built and saved (js/pocketdm.js PD.saveLadder) played at any table as built -- its floors, its CRs, the foes its units
   // made; its fifth slot is its trial, which lets no king in (the king is the real trial's)
   PK.LADDER_KIND = 'pocket-dm-ladder';
-  Pocket.prototype.loadLadder = function () {
-    var self = this, inp = document.createElement('input'); inp.type = 'file'; inp.accept = '.json,application/json';
-    inp.onchange = function () { var f = inp.files && inp.files[0]; if (!f) return; var rd = new FileReader(); rd.onload = function () { self.takeLadder(rd.result); }; rd.readAsText(f); };
+  // MODULES (10-17, the two Pocket DMs, step B; Griz: "A DM will want to save multiple ladders (modules?)", "DM flag when he adds each map if he allows short rest,
+  // long rest, market visit between runs of his module(ladder)", "to test it can you make a 6 fight module for a starting lvl 1 party of 4 that we can include for
+  // new users to have as example module?"): a run of fights played as built, as many as PK.MODULE_MAX, each slot its floor, its foes, a name, a line to open it and
+  // what follows it (`rest`: short, long, market -- a short rest unless it says not, RULED 10-17). The game's own are data/modules.js (D.MODULES); one from a file
+  // is kept in this browser (st.modules, the newest first) to play again. A DM's ladder file of 10-17 still loads: its four rungs with a short rest and the market
+  // between, a long rest before its fifth, the trial (as the DM's ladder ran). A module's last fight lets no king in, as a DM's trial never did
+  PK.MODULE_KIND = 'pocket-dm-module'; PK.MODULE_MAX = 10; PK.MODULES_KEPT = 12;
+  PK.moduleOf = function (f) {
+    if (!f || f.game !== 'DRAGONSLEEP') return null;
+    var ok = function (s) { return s && typeof s.map === 'string' && Array.isArray(s.foes) && s.foes.length && s.foes.every(function (k) { return !!D.FOES[k]; }); };
+    var str = function (v, n) { return v == null || v === '' ? null : String(v).slice(0, n); };
+    if (f.kind === PK.LADDER_KIND && Array.isArray(f.plan)) {
+      var plan = f.plan.filter(ok).slice(0, 5); if (!plan.length) return null;
+      return { id: null, name: 'A DM\'S LADDER', by: null, party: null, about: 'A ladder a DM built and saved' + (f.at ? ' (' + String(f.at).slice(0, 10) + ')' : '') + ': ' + plan.length + ' fight' + (plan.length === 1 ? '' : 's') + (plan.length >= 5 ? ', the fifth the trial after a long rest' : '') + '.', at: f.at || null,
+        slots: plan.map(function (s, i) { return { map: s.map, foes: s.foes.slice(), name: plan.length >= 5 && i === 4 ? 'The trial' : null, intro: null, rest: { short: true, long: plan.length >= 5 && i === 3, market: true } }; }) };
+    }
+    if ((f.kind === PK.MODULE_KIND || f.builtin) && Array.isArray(f.slots)) {
+      var sl = f.slots.filter(ok).slice(0, PK.MODULE_MAX); if (!sl.length) return null;
+      var pty = f.party && +f.party.lvl ? { n: Math.max(1, Math.min(6, +f.party.n || 4)), lvl: Math.max(1, Math.min(12, +f.party.lvl)) } : null;
+      return { id: str(f.id, 40), name: (str(f.name, 32) || 'A MODULE').toUpperCase(), by: str(f.by, 40), party: pty, about: str(f.about, 400) || '', at: f.at || null,
+        slots: sl.map(function (s) { var r = s.rest || {}; return { map: s.map, foes: s.foes.slice(), name: str(s.name, 40), intro: str(s.intro, 200), rest: { short: r.short !== false, long: !!r.long, market: !!r.market } }; }) };
+    }
+    return null;
+  };
+  // the game's own (data/modules.js) and those kept from files, each with a key the list picks by
+  PK.modules = function (st) {
+    var own = (D.MODULES || []).map(function (m) { var x = PK.moduleOf(Object.assign({ game: 'DRAGONSLEEP', builtin: true }, m)); if (x) { x.key = 'game:' + m.id; x.builtin = true; } return x; }).filter(Boolean);
+    var kept = (st.modules || []).map(function (m, i) { var x = PK.moduleOf(Object.assign({ game: 'DRAGONSLEEP', kind: PK.MODULE_KIND }, m)); if (x) x.key = 'kept:' + i; return x; }).filter(Boolean);
+    return own.concat(kept);
+  };
+  PK.keepModule = function (st, mod) {
+    var rec = JSON.parse(JSON.stringify({ id: mod.id, name: mod.name, by: mod.by, party: mod.party, about: mod.about, at: mod.at, slots: mod.slots }));
+    var same = function (m) { return m && m.name === rec.name && JSON.stringify(m.slots) === JSON.stringify(rec.slots); };
+    st.modules = [rec].concat((st.modules || []).filter(function (m) { return !same(m); })).slice(0, PK.MODULES_KEPT);
+    return 'kept:0';
+  };
+  // the stock cards to the module's level (the made characters keep theirs: their level is the maker's)
+  PK.levelAll = function (st, L) {
+    var moved = 0, kept = 0;
+    st.party.forEach(function (slot) {
+      var e = PK.STOCK.filter(function (x) { return x.w === slot.w; })[0];
+      if (!e || e.king || slot.custom != null) { if (slot.w !== 'new') kept++; return; }
+      var to = Math.max(e.lo, Math.min(e.hi || 12, PK.cap(st), L)); if (to === slot.lvl) return;
+      slot.lvl = to; moved++; if (slot.picks) Object.keys(slot.picks).forEach(function (k) { if (+k > to) delete slot.picks[k]; });
+    });
+    return { moved: moved, kept: kept };
+  };
+  PK.readJSON = function (cb) {
+    var inp = document.createElement('input'); inp.type = 'file'; inp.accept = '.json,application/json';
+    inp.onchange = function () { var f = inp.files && inp.files[0]; if (!f) return; var rd = new FileReader(); rd.onload = function () { cb(rd.result, f.name); }; rd.readAsText(f); };
     inp.click();
   };
-  Pocket.prototype.takeLadder = function (text) {
+  Pocket.prototype.readModule = function (text) {
     var f = null; try { f = JSON.parse(text); } catch (e) { f = null; }
-    var plan = f && f.game === 'DRAGONSLEEP' && f.kind === PK.LADDER_KIND && Array.isArray(f.plan) ? f.plan.filter(function (s) { return s && s.map && Array.isArray(s.foes) && s.foes.length && s.foes.every(function (k) { return !!D.FOES[k]; }); }).slice(0, 5) : [];
-    if (!plan.length) { this.msg = { text: 'that file is not a DM\'s ladder (or its foes are not in this game)', t: 300, bad: true }; return null; }
-    if (!this.ready()) { this.go('party'); this.say('every seat wants a character first: then A DM\'S LADDER again', 300); return null; }
+    var m = PK.moduleOf(f);
+    if (!m) { this.msg = { text: 'that file is not a module or a DM\'s ladder (or its foes are not in this game)', t: 300, bad: true }; return null; }
+    return m;
+  };
+  // FROM A FILE on THE MODULES: kept in the list and picked, not begun
+  Pocket.prototype.loadModule = function () { var self = this; PK.readJSON(function (text) { var m = self.readModule(text); if (!m) return; self.modSel = PK.keepModule(self.st, m); self.keep(); self.say(m.name + ': ' + m.slots.length + ' fights, kept in this browser', 300); }); };
+  Pocket.prototype.startModule = function (m) {
+    if (!m || !m.slots || !m.slots.length) return null;
+    if (!this.ready()) { this.go('party'); this.say('every seat wants a character first: then the module again', 300); return null; }
     var here = this.st.run, ask = this.ask || function (q) { return window.confirm(q); };
-    if (here && !ask('A ladder is under way (' + (here.trial ? 'the trial' : 'rung ' + here.rung) + '). Put it away for the DM\'s?')) { this.say('kept the ladder under way', 240); return null; }
-    var levels = this.levels();
-    this.st.run = { rung: 1, trial: false, base8: plan[0].cr8, carry: null, hd: levels.slice(), arcane: levels.map(function () { return false; }), won: 0, startedAt: Date.now(), plan: JSON.parse(JSON.stringify(plan)), foes: null, map: null, dmLadder: f.at || true };
+    if (here && !ask('A ' + (here.module ? 'module' : 'ladder') + ' is under way (' + (here.trial ? 'the trial' : (here.module ? 'fight ' : 'rung ') + here.rung) + '). Put it away for ' + m.name + '?')) { this.say('kept the one under way', 240); return null; }
+    var levels = this.levels(), plan = m.slots.map(function (s) { return Object.assign(JSON.parse(JSON.stringify(s)), { cr8: PK.sum8(s.foes), mine: 0, units: [] }); });
+    this.st.run = { rung: 1, trial: false, base8: plan[0].cr8, carry: null, hd: levels.slice(), arcane: levels.map(function () { return false; }), won: 0, startedAt: Date.now(), plan: plan,
+      module: { name: m.name, key: m.key || null, n: plan.length }, foes: null, map: null, dmLadder: m.at || m.id || true };
     this.planRung(this.st.run); this.keep(); this.go('cr');
-    this.say('the DM\'s ladder: ' + plan.length + (plan.length === 1 ? ' rung' : ' rungs') + (plan.length >= 5 ? ', the fifth its trial' : ''), 300);
+    this.say(m.name + ': ' + plan.length + ' fight' + (plan.length === 1 ? '' : 's'), 300);
     return this.st.run;
+  };
+  // a DM's ladder file played straight from its text (10-17's A DM'S LADDER; THE MODULES' FROM A FILE keeps one to pick instead)
+  Pocket.prototype.takeLadder = function (text) { var m = this.readModule(text); return m ? this.startModule(m) : null; };
+  // after a module's won fight: what its slot allows -- a long rest (hit points, slots, hit dice and features back), a short rest (the ladder's), or none
+  Pocket.prototype.moduleRest = function () {
+    var run = this.st.run, sl = run && run.plan[run.rung - 1], rs = (sl && sl.rest) || {};
+    if (rs.long) { run.carry = null; run.hd = this.levels().slice(); run.arcane = run.hd.map(function () { return false; }); this.rest = { long: true }; this.keep(); }
+    else if (rs.short && run.carry) this.restCard();
+    else this.rest = { none: true };
+    this.rest.module = true; this.rest.market = !!rs.market;
+    return this.rest;
   };
 
 
@@ -1052,6 +1121,7 @@
     drawHall(ctx, this.t, this.screen === 'title' ? 1 : 0.42, this.st.dm);
     var s = this.screen;
     if (s === 'title') this.drawTitle(ctx);
+    else if (s === 'modules') this.drawModules(ctx);
     else if (s === 'party') this.drawParty(ctx);
     else if (s === 'maker') this.drawMaker(ctx);
     else if (s === 'map') this.drawMap(ctx);
@@ -1079,14 +1149,14 @@
     D.text(ctx, this.st.dm ? 'every creature, every door, a campaign of your own' : 'any party, any map, any CR -- every fight a URL', D.W / 2, 50, P('bone', 1), 'center');
     // (the buttons stand to the right, so the stone and the light on it stay in view; the column starts under the right lamp, whose head is one of the DM's three)
     var w = 150, x = D.W - w - 22, y = 104, n = this.st.fights.length; // (y 150 till 10-06, 132 till 10-09, 120 till 10-17: up for the campaign's two rows, then A DM'S LADDER)
-    this.btn(ctx, this.st.run ? 'THE LADDER: ' + (this.st.run.trial ? 'THE TRIAL' : 'RUNG ' + this.st.run.rung) : 'START', x, y, w, 18, function () { if (self.st.run) { self.foes = self.st.run.foes; self.fightMap = self.st.run.map; self.go('cr'); } else self.go('party'); }, { pri: true });
+    this.btn(ctx, this.st.run ? (this.st.run.module ? 'MODULE: FIGHT ' + this.st.run.rung + ' OF ' + this.st.run.plan.length : 'THE LADDER: ' + (this.st.run.trial ? 'THE TRIAL' : 'RUNG ' + this.st.run.rung)) : 'START', x, y, w, 18, function () { if (self.st.run) { self.foes = self.st.run.foes; self.fightMap = self.st.run.map; self.go('cr'); } else self.go('party'); }, { pri: true });
     this.btn(ctx, 'FIGHTS' + (n ? '  (' + n + ')' : ''), x, y + 22, w, 16, function () { self.go('fights'); }, { dis: !n, why: 'no fights kept yet: START one' });
     this.btn(ctx, 'DOORS', x, y + 41, w, 16, function () { self.scroll = 0; self.go('doors'); }); // (one DOORS on both tables, js/pocketdm.js PD.doorsFor -- USEFULS till 10-17, Griz: "Usefuls is a less functional version of DOORS")
     this.btn(ctx, 'THE 8-BIT GAME', x, y + 60, w, 16, function () { location.href = '../'; });
     // the whole campaign to a file and back, here where a ladder under way can reach it (10-06: PK.tableFile; SAVE TABLE till 10-09)
     this.btn(ctx, 'SAVE CAMPAIGN', x, y + 79, w, 15, function () { self.saveTable(); });
     this.btn(ctx, 'LOAD CAMPAIGN', x, y + 96, w, 15, function () { self.loadTable(); });
-    this.btn(ctx, 'A DM\'S LADDER', x, y + 113, w, 15, function () { self.loadLadder(); }); // (a ladder a DM saved, played as built: 10-17)
+    this.btn(ctx, 'MODULES', x, y + 113, w, 15, function () { self.scroll = 0; self.go('modules'); }); // (the game's own and a DM's, played as built -- A DM'S LADDER till 10-17; to THE CAMP when it stands)
     this.drawTitleDM(ctx);
     D.text(ctx, 'Solskaft: the oath-stone of the Silversands, under the Sunshaft. At noon the light lands here.', D.W / 2, 243, P('stone', 5), 'center');
     D.hint(ctx, 'up/down choose · E go · X the 8-bit game · the Discord: ' + PK.DISCORD.replace('https://', ''), D.W / 2, 256, P('stone', 4), 'center');
@@ -1335,8 +1405,8 @@
     if (this.crI < 0) this.crI = this.defaultCR();
     if (!this.foes) this.reroll();
     var fk = (this.foes || []).join(); if (this.foesAsked !== fk) { this.foesAsked = fk; D.spr.prefetch((this.foes || []).map(function (k) { return D.FOES[k] && D.FOES[k].sheet; })); } // (the table's foes fetched behind while it is set: js/sprites.js, 10-03)
-    var title = run ? this.rungName(run) : 'THE FOES';
-    head(ctx, title, run ? (run.trial ? (run.plan ? 'the last slot of your ladder, after a long rest' : 'double deadly: win it and Pyro joins the roster') : run.plan ? 'your ladder\'s rung: your units first, the rest rolled' : 'the table set for you; a short rest between rungs') : 'the CR is the sum of theirs; the reading is the DMG\'s for this party');
+    var title = run ? this.rungName(run) : 'THE FOES', mSlot = this.slotOf(run);
+    head(ctx, title, mSlot ? fitText(run.module.name + (mSlot.name ? ': ' + mSlot.name : '') + (mSlot.intro ? ' -- ' + mSlot.intro : ''), D.W - 20) : run ? (run.trial ? (run.plan ? 'the last slot of your ladder, after a long rest' : 'double deadly: win it and Pyro joins the roster') : run.plan ? 'your ladder\'s rung: your units first, the rest rolled' : 'the table set for you; a short rest between rungs') : 'the CR is the sum of theirs; the reading is the DMG\'s for this party');
     // the dial
     var sx = 60, sw = D.W - 120, sy = 40;
     ctx.fillStyle = P('stone', 2); ctx.fillRect(sx, sy + 6, sw, 3);
@@ -1360,7 +1430,7 @@
     var wy = 132;
     // (mid-ladder, after a lost rung only -- RETRY or REROLL THE RUNG on the loss card sets it, the fight begun clears it: it rerolls the rung the run's way, rerollRung -- a
     // planned rung's random part, the trial its own; the Pocket DM lane §2.2, the flag that was never set, wired on its lean 10-14)
-    if (!run || this.lossMenu) this.btn(ctx, 'REROLL', 60, wy, 80, 15, function () { if (run) self.rerollRung(); else self.reroll(); });
+    if (!run || (this.lossMenu && !mSlot)) this.btn(ctx, 'REROLL', 60, wy, 80, 15, function () { if (run) self.rerollRung(); else self.reroll(); }); // (a module's foes are the DM's: never rerolled)
     this.btn(ctx, 'WATCH: ' + (this.watch ? 'ON' : 'OFF'), 150, wy, 100, 15, function () { self.watch = !self.watch; self.keep(); }, { on: this.watch, small: true });
     D.text(ctx, this.watch ? 'the class AI runs your side too; you watch' : 'you run your side', 258, wy + 4, P('stone', 5));
     this.drawKnobs(ctx); // (the DM's: fly, legendary, breath, dark -- js/pocketdm.js)
@@ -1371,8 +1441,8 @@
     // the ways in
     this.btn(ctx, 'BACK', 20, 236, 60, 15, function () { self.back(); });
     if (run) {
-      this.btn(ctx, run.trial ? 'FIGHT THE TRIAL' : 'FIGHT RUNG ' + run.rung, D.W - 170, 236, 150, 15, function () { self.launch(); }, { pri: true, dis: !kinds.length });
-      this.btn(ctx, 'QUIT THE LADDER', 90, 236, 120, 15, function () { self.st.run = null; self.keep(); self.go('title'); });
+      this.btn(ctx, run.trial ? 'FIGHT THE TRIAL' : mSlot ? 'FIGHT ' + run.rung + ' OF ' + run.plan.length : 'FIGHT RUNG ' + run.rung, D.W - 170, 236, 150, 15, function () { self.launch(); }, { pri: true, dis: !kinds.length });
+      this.btn(ctx, mSlot ? 'QUIT THE MODULE' : 'QUIT THE LADDER', 90, 236, 120, 15, function () { self.st.run = null; self.keep(); self.go('title'); });
       var pLine = (run.carry || []).map(function (c, i) { var s = self.sheets()[i]; return c && s && s.h ? s.h.name + ' ' + c.hp + '/' + c.maxhp : null; }).filter(Boolean).join('  ·  ');
       if (pLine) D.text(ctx, pLine, D.W / 2, 200, P('bone', 1), 'center');
       var nR = this.lastRung(run); D.text(ctx, 'won ' + (run.won || 0) + ' of ' + (run.trial ? nR + ', and now the trial' : nR), D.W / 2, 212, P('silver', 5), 'center');
@@ -1395,8 +1465,23 @@
     if (r.loot) { yy += 4; D.text(ctx, '{y}' + r.loot.name + ' finds ' + DS.DATA.items[r.loot.item].name + '.{/}', D.W / 2, yy, P('gold', 4), 'center'); yy += 10; }
     if (r.unlocked) { yy += 4; D.text(ctx, '{y}Pyronimus, King of Solskaft, will walk with you.{/} He is on the roster now, at his 12, with his own gear.', D.W / 2, yy, P('gold', 4), 'center'); yy += 10; }
     (r.lines || []).forEach(function (l) { yy += 2; D.text(ctx, l, D.W / 2, yy, P('gold', 4), 'center'); yy += 10; }); // (what the DM's purse took in: js/pocketdm.js afterFight)
-    var by = y + h - 22;
-    if (run && won && !run.trial && run.rung >= this.lastRung(run) && !this.hasTrial(run)) {
+    if (r.moduleDone) { yy += 4; D.text(ctx, '{y}' + r.moduleDone + ' IS DONE.{/} Every fight of it won.', D.W / 2, yy, P('gold', 4), 'center'); yy += 10; }
+    var by = y + h - 22, slot = this.slotOf(run);
+    if (r.moduleDone) {
+      this.btn(ctx, 'THE MODULES', x + 20, by, 120, 15, function () { self.go('modules'); }, { pri: true });
+      this.btn(ctx, 'NOTES', x + 150, by, 70, 15, function () { self.note = 0; self.go('notes'); });
+      this.btn(ctx, 'THE TITLE', x + w - 110, by, 90, 15, function () { self.go('title'); });
+    } else if (slot && won) {
+      // a module's fight won: what its slot allows next (10-17, his "DM flag ... if he allows short rest, long rest, market visit between runs")
+      var rs = slot.rest || {}, nx = run.plan[run.rung], nName = 'FIGHT ' + (run.rung + 1) + (nx && nx.name ? ': ' + nx.name : '');
+      this.btn(ctx, rs.long ? 'A LONG REST' : rs.short ? 'A SHORT REST' : 'ON TO FIGHT ' + (run.rung + 1), x + 20, by, 160, 15, function () { self.moduleRest(); self.go('rest'); }, { pri: true });
+      this.btn(ctx, 'QUIT THE MODULE', x + w - 140, by, 120, 15, function () { self.st.run = null; self.keep(); self.go('title'); });
+      D.text(ctx, 'next: ' + (nName.length > 60 ? nName.slice(0, 58) + '..' : nName), D.W / 2, by - 12, P('stone', 5), 'center');
+    } else if (slot) {
+      this.btn(ctx, 'RETRY', x + 20, by, 90, 15, function () { self.restore(); self.go('cr'); }, { pri: true }); // (a module's foes are the DM's: no reroll)
+      this.btn(ctx, 'QUIT THE MODULE', x + w - 140, by, 120, 15, function () { self.st.run = null; self.keep(); self.go('title'); });
+      D.text(ctx, 'retry: the party as it went in, the same fight', D.W / 2, by - 12, P('stone', 5), 'center');
+    } else if (run && won && !run.trial && run.rung >= this.lastRung(run) && !this.hasTrial(run)) {
       // a ladder of the DM's making with no fifth slot ends at its last rung
       this.btn(ctx, 'THE LADDER IS CLIMBED', x + 20, by, 190, 15, function () { self.st.run = null; self.keep(); self.go(self.st.dm ? 'camp' : 'title'); }, { pri: true });
     } else if (run && won) {
@@ -1416,6 +1501,7 @@
     }
   };
   Pocket.prototype.drawRest = function (ctx) {
+    if (this.rest && this.rest.module) { this.drawModuleRest(ctx); return; }
     var self = this, run = this.st.run, w = 420, x = (D.W - w) / 2, y = 40, long = this.rest && this.rest.long;
     D.win8(ctx, x, y, w, 190);
     ctx.save(); ctx.translate(D.W / 2, y + 8); ctx.scale(2, 2); D.text(ctx, long ? '{y}LONG REST FOR THE TRIAL{/}' : '{y}SHORT REST FOR THE WICKED{/}', 0, 0, P('gold', 4), 'center'); ctx.restore();
@@ -1430,6 +1516,60 @@
     }
     this.btn(ctx, long ? 'TO THE TRIAL' : 'THE NEXT RUNG', x + w / 2 - 70, y + 190 - 22, 140, 15, function () { if (!long) self.nextRung(); self.go('cr'); }, { pri: true });
     this.btn(ctx, 'THE MARKET', x + 8, y + 190 - 22, 76, 15, function () { self.openMarket('rest'); }); // (between rungs, 10-17)
+  };
+  function fitText(s, w) { s = String(s); if (D.textWidth(s) <= w) return s; while (s.length > 1 && D.textWidth(s + '..') > w) s = s.slice(0, -1); return s + '..'; }
+  PK.restText = function (rs) { rs = rs || {}; return (rs.long ? 'a long rest' : rs.short !== false ? 'a short rest' : 'no rest') + (rs.market ? ' and the market' : ''); };
+  // a module's rest (10-17): the one its slot allows, then the next fight -- its name, its foes, how they read; the market only where the DM allows it
+  Pocket.prototype.drawModuleRest = function (ctx) {
+    var self = this, run = this.st.run, rs = this.rest, w = 420, x = (D.W - w) / 2, y = 40, h = 190;
+    if (!run) { this.go('title'); return; }
+    var nx = run.plan[run.rung]; // (the next slot: the rung is still the one just won)
+    D.win8(ctx, x, y, w, h);
+    ctx.save(); ctx.translate(D.W / 2, y + 8); ctx.scale(2, 2); D.text(ctx, '{y}' + (rs.long ? 'A LONG REST' : rs.none ? 'NO REST' : 'A SHORT REST') + '{/}', 0, 0, P('gold', 4), 'center'); ctx.restore();
+    var yy = y + 30;
+    if (rs.long) { D.text(ctx, 'A night of it. Hit points, slots and hit dice back; every feature ready.', D.W / 2, yy, P('bone', 1), 'center'); yy += 12; }
+    else if (rs.none) { D.text(ctx, 'The DM allows no rest here: straight on, as you are.', D.W / 2, yy, P('bone', 1), 'center'); yy += 12; }
+    else {
+      D.text(ctx, 'An hour. The fallen are up first (the DM\'s hand), then hit dice till whole or out (SRD 5.1).', D.W / 2, yy, P('silver', 5), 'center'); yy += 12;
+      (rs.lines || []).forEach(function (l) { D.wrap('{y}' + l.name + '{/} ' + l.hp + '/' + l.maxhp + ': ' + l.text + ' {g}(' + l.hd + ' hit dice left){/}', w - 30).forEach(function (t) { D.text(ctx, t, x + 15, yy, P('bone', 1)); yy += 10; }); });
+    }
+    if (nx) {
+      var dd = PK.diff(this.levels(), nx.foes); yy += 6;
+      D.text(ctx, fitText('{y}NEXT, FIGHT ' + (run.rung + 1) + ' OF ' + run.plan.length + (nx.name ? ': ' + nx.name : '') + '{/}', w - 20), D.W / 2, yy, P('gold', 4), 'center'); yy += 11;
+      D.text(ctx, fitText(PK.foesText(nx.foes) + ' on ' + ((D.MAPS[nx.map] || {}).name || nx.map) + '  {g}' + dd.label + '{/}', w - 20), D.W / 2, yy, P('bone', 1), 'center');
+    }
+    this.btn(ctx, 'FIGHT ' + (run.rung + 1), x + w / 2 - 60, y + h - 22, 120, 15, function () { self.nextRung(); self.go('cr'); }, { pri: true });
+    if (rs.market) this.btn(ctx, 'THE MARKET', x + 8, y + h - 22, 76, 15, function () { self.openMarket('rest'); });
+    this.btn(ctx, 'QUIT', x + w - 60, y + h - 22, 52, 15, function () { self.st.run = null; self.keep(); self.go('title'); });
+  };
+  // THE MODULES (10-17): the game's own (data/modules.js) and any kept from a file; the one picked shows its fights, how each reads for this party, and what the
+  // DM allows after each. On the title for now; THE CAMP's LOAD MODULE when the camp stands (the two Pocket DMs, step B)
+  Pocket.prototype.drawModules = function (ctx) {
+    var self = this, st = this.st, list = PK.modules(st), per = 10;
+    head(ctx, 'THE MODULES', 'a DM\'s fights, played as built: the game\'s own, and any you load from a file');
+    if (!list.some(function (m) { return m.key === self.modSel; })) this.modSel = list.length ? list[0].key : null;
+    var from = Math.min(this.scroll, Math.max(0, list.length - per)); this.scroll = from;
+    list.slice(from, from + per).forEach(function (m, i) { self.btn(ctx, fitText(m.name, 128), 14, 36 + i * 17, 140, 15, function () { self.modSel = m.key; }, { on: self.modSel === m.key, small: true }); });
+    if (list.length > per) D.text(ctx, 'wheel: ' + (from + 1) + '-' + Math.min(list.length, from + per) + ' of ' + list.length, 14, 36 + per * 17 + 2, P('stone', 5));
+    var m = list.filter(function (x) { return x.key === self.modSel; })[0], px = 162, py = 34, pw = D.W - px - 10, ph = 196;
+    ctx.fillStyle = 'rgba(10,8,16,.9)'; ctx.fillRect(px, py, pw, ph); ctx.strokeStyle = P('stone', 3); ctx.strokeRect(px + 0.5, py + 0.5, pw - 1, ph - 1);
+    var levels = this.levels(), off = false;
+    if (m) {
+      var yy = py + 5;
+      D.text(ctx, '{y}' + m.name + '{/}' + (m.builtin ? '  {g}comes with the game{/}' : ''), px + 6, yy, P('gold', 4)); yy += 10;
+      if (m.party) { off = levels.length !== m.party.n || levels.some(function (L) { return L !== m.party.lvl; }); D.text(ctx, 'made for ' + m.party.n + ' at level ' + m.party.lvl + (off ? '  {o}yours: ' + levels.length + ' at ' + levels.join('/') + '{/}' : '  {n}yours fit{/}'), px + 6, yy, P('silver', 5)); yy += 10; }
+      D.wrap(m.about || '', pw - 12).slice(0, 3).forEach(function (t) { D.text(ctx, t, px + 6, yy, P('bone', 1)); yy += 9; });
+      yy += 3;
+      m.slots.forEach(function (s, i) {
+        var d = PK.diff(levels, s.foes), col = d.label === 'DEADLY' ? '{r}' : d.label === 'HARD' ? '{o}' : '{g}';
+        D.text(ctx, fitText('{y}' + (i + 1) + '{/} ' + (s.name || PK.foesText(s.foes)) + '  ' + col + d.label + (d.deadlyX > 1 ? ' x' + d.deadlyX : '') + '{/}', pw - 12), px + 6, yy, P('bone', 1)); yy += 9;
+        D.text(ctx, fitText(PK.foesText(s.foes) + ', ' + ((D.MAPS[s.map] || {}).name || s.map) + (i < m.slots.length - 1 ? '  ·  then ' + PK.restText(s.rest) : ''), pw - 20), px + 14, yy, P('stone', 5)); yy += 10;
+      });
+    } else D.text(ctx, 'no modules yet: FROM A FILE loads one', px + pw / 2, py + 80, P('stone', 5), 'center');
+    this.btn(ctx, 'BACK', 20, 236, 60, 15, function () { self.back(); });
+    this.btn(ctx, 'FROM A FILE', 86, 236, 90, 15, function () { self.loadModule(); });
+    if (m && m.party && off) this.btn(ctx, 'THE PARTY TO LEVEL ' + m.party.lvl, 182, 236, 130, 15, function () { var r = PK.levelAll(st, m.party.lvl); self.cache = {}; self.keep(); self.say(r.moved + ' to level ' + m.party.lvl + (r.kept ? '; ' + r.kept + ' made by hand keep their own (EDIT on THE PARTY)' : '') + (levels.length !== m.party.n ? '; the module wants ' + m.party.n + ' seats (THE PARTY)' : ''), 360); });
+    this.btn(ctx, 'PLAY THIS MODULE', D.W - 150, 236, 130, 15, function () { self.startModule(m); }, { pri: true, dis: !m || !this.ready(), why: !m ? 'no module picked' : 'every seat at THE PARTY wants a character' });
   };
   Pocket.prototype.drawFights = function (ctx) {
     var self = this, fs = this.st.fights, per = 11;
