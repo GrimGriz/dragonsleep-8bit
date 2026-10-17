@@ -115,7 +115,7 @@
       heroes: [{ type: 'superhero', name: 'GreyFang', fated: true }], sheets: ['greyfang_p1', 'npcfighter_p0'],
       note: 'GreyFang, ranger 11 of the Grey Road, and the Pit\'s forty fighters: a Super-hero (p.30). The Snoot\'s quarry: the Harbinger hunts him.' },
     { id: 'patrol', side: 'ours', name: "Newland's road patrol", kind: 'Newland', cls: 'HF', def: 'HF', at: [9, 8], wagon: true,
-      groups: [{ cls: 'HF', def: 'HF', n: 12, name: 'heavy foot' }, { cls: 'MH', def: 'MH', n: 4, mounted: true, name: 'horse' }],
+      groups: [{ cls: 'HF', def: 'HF', n: 12, name: 'heavy foot' }, { cls: 'MH', def: 'MH', n: 4, mounted: true, name: 'horse', sheets: ['newlandrider_p1'] }], // (the horse on ART-69's sheet, 10-17; the wagon ART-71's Newland variant, js/view.js V.wagonOf)
       heroes: [{ type: 'hero', name: 'a paladin of the Sun-Father', paladin: true }], sheets: ['npcpaladin_p0', 'trooper_p0', 'npcfighter_p0'],
       note: 'A paladin, twelve heavy foot and four mounted with a supply wagon: each type rolls its own row.' },
     { id: 'bat1', side: 'ours', name: "Newland's heavy foot", kind: 'Newland', cls: 'HF', def: 'HF', figs: 40, at: [9, 9], arrive: 18, cleric: true,
@@ -123,11 +123,11 @@
     { id: 'bat2', side: 'ours', name: "Newland's crossbows", kind: 'Newland', cls: 'LF', def: 'LF', figs: 40, at: [9, 9], arrive: 18, volley: true, cleric: true,
       heroes: [], sheets: ['npccleric_p0', 'npcranger_p0'] },
     { id: 'bat3', side: 'ours', name: "Newland's horse", kind: 'Newland', cls: 'MH', def: 'MH', figs: 20, at: [9, 9], arrive: 18,
-      heroes: [{ type: 'hero', name: 'a paladin of the Sun-Father', paladin: true }], sheets: ['npcpaladin_p0', 'npcfighter_p0'], mounted: true },
+      heroes: [{ type: 'hero', name: 'a paladin of the Sun-Father', paladin: true }], sheets: ['newlandrider_p1'], mounted: true }, // (ART-69's mounted man-at-arms, 10-17: the paladin rides at their head)
     { id: 'bb1', side: 'ours', name: 'the horse escort', kind: 'the plains', cls: 'HF', def: 'HF', figs: 60, at: [14, 4], arrive: 16, berserk: true, escort: true,
       heroes: [], sheets: ['npcbarbarian_p0'], note: 'Sixty of the plains tribes bringing the horses in to the Pit: they join the fight once the herd is in.' },
     { id: 'bb2', side: 'ours', name: 'the outriders', kind: 'the plains', cls: 'LH', def: 'LH', figs: 20, at: [14, 5], arrive: 16, berserk: true,
-      heroes: [], sheets: ['npcbarbarian_p0'], mounted: true },
+      heroes: [], sheets: ['plainsrider_p1'], mounted: true }, // (ART-70's outrider, 10-17)
     { id: 'bb3', side: 'ours', name: 'the festival war-camp', kind: 'the plains', cls: 'HF', def: 'HF', figs: 20, at: [14, 6], arrive: 16, berserk: true,
       heroes: [], sheets: ['npcbarbarian_p0'] },
     // the gnolls (the AI from the first build): the three tribes and the Harbinger (the lane §3); a band is the grid's war-band

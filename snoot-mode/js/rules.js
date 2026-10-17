@@ -169,7 +169,8 @@
   // dice -- the log is for reading, the beats for js/show.js to stage. A unit as it stood when its fight began: SN.snap
   SN.beat = function (st, d) { d.day = st.day; (st.beats = st.beats || []).push(d); };
   SN.snap = function (u, h) { return { id: u.id, name: u.name, side: u.side, party: !!u.party, figs: u.figs || 0, cls: u.cls, sheets: (u.sheets || []).slice(), heroes: SN.heroesOf(u).map(function (x) { return { name: x.name, type: x.type }; }), harbinger: !!u.harbinger,
-    from: h && u.came ? SN.dirTo(h, u.came) : -1, face: u.face || 0, form: u.form || 'line', mounted: !!u.mounted }; }; // (from: the side it came in through, -1 if it stood there)
+    from: h && u.came ? SN.dirTo(h, u.came) : -1, face: u.face || 0, form: u.form || 'line', mounted: !!u.mounted, wagon: !!u.wagon,
+    groups: u.groups ? u.groups.map(function (g) { return { n: g.n, mounted: !!g.mounted, sheets: g.sheets }; }) : null }; }; // (from: the side it came in through, -1 if it stood there; groups and wagon for the show's figures, 10-17)
 
   // ---------------------------------------------------------------- the day begins: arrivals, the hunt, the Dominion, the AI's orders
   SN.dawn = function (st) {
