@@ -4842,9 +4842,9 @@
       var Pm = new D.Pocket(); Pm.enter(); Pm.st.purse = 100; Pm.st.pack = []; Pm.st.party = [{ w: 'barley', lvl: 4, loot: [] }, { w: 'lymen', lvl: 4, loot: [] }];
       function btnMk(label) { Pm.btns = []; Pm.draw(cxMk); return Pm.btns.filter(function (b) { return b.label === label; })[0]; }
       Pm.openMarket('party'); Pm.marketTab = 'arms';
-      var bLs = btnMk('Longsword'); if (bLs) bLs.fn(); var afterLs = Pm.st.purse;
+      Pm.st.purse = 10; var bLs = btnMk('Dagger'); if (bLs) bLs.fn(); var afterLs = Pm.st.purse, nLs = PKk.packN(Pm.st, 'dagger'); Pm.st.purse = 100; // (refused: 20 sp with 10 in the purse)
       var bDg = btnMk('Dagger'); if (bDg) bDg.fn(); var afterDg = Pm.st.purse, nDg = PKk.packN(Pm.st, 'dagger');
-      okMk('BUY: a Longsword (150 sp) refused with 100 in the purse (' + afterLs + '), a Dagger (20 sp) bought: the purse ' + afterDg + ', the pack ' + nDg, !!bLs && afterLs === 100 && !!bDg && afterDg === 80 && nDg === 1);
+      okMk('BUY: a Dagger (20 sp) refused with 10 in the purse (' + afterLs + ', the pack ' + nLs + '), then bought with 100: the purse ' + afterDg + ', the pack ' + nDg, !!bLs && afterLs === 10 && nLs === 0 && !!bDg && afterDg === 80 && nDg === 1);
       Pm.btns = []; Pm.draw(cxMk); var bSell = Pm.btns.filter(function (b) { return b.label === 'Dagger' && b.x > 200; })[0]; if (bSell) bSell.fn();
       okMk('SELL: the Dagger back at half: the purse ' + Pm.st.purse + ' (want 90), the pack ' + PKk.packN(Pm.st, 'dagger'), !!bSell && Pm.st.purse === 90 && PKk.packN(Pm.st, 'dagger') === 0);
       PKk.packAdd(Pm.st, 'greatsword', 1); Pm.openGear(1); Pm.gearTab = 'weapon';
