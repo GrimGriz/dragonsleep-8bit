@@ -156,6 +156,14 @@
     if (this.toast && k.mouse && (k.mouse.click || k.mouse.rclick)) k = MN.keyAlso(k, 'a');
     if (this.toast) { if (k.pressed('a') || k.pressed('b')) { sfx('confirm'); var th = this.toast.then; this.toast = null; if (th) th(); } return; }
     if (k.mouse && k.mouse.wheel && this.root.mode !== 'pick') { var tw = this.top(); if (tw && tw.list && tw.list.wheel) tw.list.wheel(k.mouse.wheel > 0 ? 1 : -1); } // (the wheel scrolls the page's rows, 10-14)
+    // the party panel when it asks WHO (EQUIP WHOM?, WHO CASTS?): the mouse over a card points at it, a click is E, the wheel walks the party (10-17, Griz: "mouse
+    // stops working on 'menu' after you click equip (have to keyboard - need mousewheel through party")
+    if (k.mouse && !this.toast && this.root.mode === 'pick' && this.root.pick) {
+      var rt = this.root, pm = k.mouse, prow = rt.rows(rt.pick.guests), pr = Math.floor((pm.y - 10) / 40), p0 = rt.pi;
+      if (pm.wheel) rt.pi = clamp(rt.pi + (pm.wheel > 0 ? 1 : -1), 0, prow.length - 1);
+      else if (pm.x >= 2 && pm.x < 182 && pm.y >= 10 && pr >= 0 && pr < 4 && prow[rt.ps + pr]) { if (pm.moved || pm.click) rt.pi = rt.ps + pr; if (pm.click) k = MN.keyAlso(k, 'a'); }
+      if (rt.pi !== p0) { sfx('cursor'); if (rt.pi < rt.ps) rt.ps = rt.pi; if (rt.pi >= rt.ps + 4) rt.ps = rt.pi - 3; }
+    }
     if (this.root.mode === 'pick') { this.root.update(k); return; } // (the cursor kicked into the panel, over whatever page asked)
     this.top().update(k);
   };

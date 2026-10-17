@@ -189,10 +189,11 @@
     // mantle and the Game Show's supplies left to their owners)
     'threshingflail1', 'threshingflail2', 'greyfangbow', 'macedisruption', 'banhammer', 'winnower', 'greyseamknife', 'asmundhammer', 'sectblade', 'fatheraxe', 'sunshaftstaff', 'candleknife', 'ringofflying'];
   function bonusOf(it) { if (!it) return 0; var w = it.weapon || it.armor || it.shield || {}; return w.bonus || (w.magic ? 1 : 0) || (it.kind === 'shield' && w.ac > 2 ? w.ac - 2 : 0); }
-  PK.lootFor = function (h, late) {
+  PK.lootFor = function (h, late, L) { // (L: the party's level -- a thing is won from the level the market sells it, PK.tierOf; 10-17)
     var pool = PK.LOOT.concat(late ? PK.LOOT_LATE : []), out = [];
     pool.forEach(function (id) {
       var it = DS.DATA.items[id]; if (!it) return;
+      if (L != null && it.price > 0 && PK.tierOf(id) > L) return; // (the story's priceless gear keeps to the late winnings, as before)
       var slot = R.slotFor(h, it); if (!slot) return; // (a ring: the first free hand of two; boots, a periapt: their own place -- js/rules.js R.slotFor)
       if (it.kind !== 'cloak' && !R.canEquip(h, it)) return;
       if (R.wears(h, id)) return; // (one of a thing is enough: it is not a gift twice)
@@ -205,16 +206,24 @@
     });
     return out;
   };
+  // what is found goes into the pack (Pocket.done), the one it suits named, and is worn only when the player says so on the result card (PUT IT ON -- 10-17, Griz:
+  // "rewards should go into pack and not-auto equip unless player confirms equip"). PK.LOOT_BY_LEVEL (OFF, his to rule -- 10-17, Griz: "these lvl 1 guys are starting
+  // wtih longsword+1 and cloak of displacement with nothing magic for sale in store..."): the winnings keep to the market's levels, a +1 from 5th, the Cloak of
+  // Displacement from 8th (PK.tierOf), and a party below them finds a healing potion -- bench16 module1017 with it on: THE WAGON ROAD done 1 of 10 at 1st level, 16 of 20 off
+  PK.LOOT_BY_LEVEL = false;
   PK.loot = function (st, slots, late, rnd) {
     rnd = rnd || D.rand;
+    var L = 1; slots.forEach(function (s) { var sp = PK.specOf(st, s); if (sp && sp.lvl > L && PK.baseKey(PK.wordOf(st, s)) !== 'pyro') L = sp.lvl; });
     var order = slots.map(function (s, i) { return i; }).filter(function (i) { var w = PK.wordOf(st, slots[i]); return w && PK.baseKey(w) !== 'pyro'; });
     for (var k = order.length - 1; k > 0; k--) { var j = Math.floor(rnd() * (k + 1)); var t = order[k]; order[k] = order[j]; order[j] = t; }
     for (var n = 0; n < order.length; n++) {
       var i = order[n], sp = PK.specOf(st, slots[i]), h = PK.sheetOf(sp); if (!h) continue;
-      var c = PK.lootFor(h, late); if (!c.length) continue;
+      var c = PK.lootFor(h, late, PK.LOOT_BY_LEVEL ? L : null); if (!c.length) continue;
       return { who: i, item: c[Math.floor(rnd() * c.length)], name: h.name };
     }
-    return null;
+    if (!PK.LOOT_BY_LEVEL) return null;
+    var heal = PK.stock(L).filter(function (id) { var u = DS.DATA.items[id].use; return u && u.effect === 'heal' && u.battle; }), hi = heal[heal.length - 1]; // (the dearest healing the market has at the level)
+    return hi ? { who: -1, item: hi, name: 'The party' } : null;
   };
   // the thing given: on a stock word as `+item`; in a player's own character's code, in its gear slot
   PK.give = function (st, slots, who, item) {
@@ -323,7 +332,7 @@
     this.st = PK.load();
     if (!this.st.party) this.st.party = PK.defaultParty();
     PK.kitToPack(this.st);
-    this.screen = this.st.run ? 'cr' : 'title';
+    this.screen = this.st.run ? (this.st.run.atCamp ? 'hub' : 'cr') : 'title'; // (a run resting at the camp comes back to the fire, 10-17)
     this.btns = []; this.ksel = 0; this.scroll = 0; this.msg = null; this.field = null;
     this.mapSel = this.st.mapId || null; this.crI = this.st.crI == null ? -1 : this.st.crI; this.foes = this.st.foes || null; this.watch = !!this.st.watch;
     this.cache = {};
@@ -565,7 +574,7 @@
       var xpe = PK.giveXP(this.st, info.kinds); this.result.xp = xpe; rec.xp = xpe; // (the SRD's XP for the foes, split across the seats -- 10-17)
       var late = run ? (run.trial || run.rung >= 3) : info.d.ratio >= 1.5;
       var gift = PK.loot(this.st, this.st.party, late);
-      if (gift) { PK.give(this.st, this.st.party, gift.who, gift.item); this.result.loot = gift; rec.loot = gift.name + ': ' + DS.DATA.items[gift.item].name; }
+      if (gift) { PK.packAdd(this.st, gift.item, 1); this.result.loot = gift; rec.loot = gift.name + ': ' + DS.DATA.items[gift.item].name + ' (to the pack)'; } // (into the pack, worn only on the player's word -- 10-17, Griz: "rewards should go into pack and not-auto equip unless player confirms equip")
       if (run) {
         // the party's slots are the fight's units in order (the familiars and summons left out above)
         run.carry = this.st.party.map(function (s, i) { var e = end[i]; return e ? { hp: e.hp, maxhp: e.maxhp, slots: e.slots, slotsMax: e.slotsMax, feats: e.feats, cls: e.cls, lvl: e.lvl, con: e.con, cha: e.cha } : null; });
@@ -1148,6 +1157,24 @@
   };
 
   // ------------------------------------------------------------------ THE MARKET and GEAR (10-17: the screens; the rules are PK's, above)
+  // what a thing is, in a line (10-17, Griz: "item descriptions on mouseover and highlight of store options (bow range, finesse, etc on weapons)"): a weapon's damage,
+  // its group and its properties, the range; armour's AC and how DEX adds, its weight, STR and Stealth; a shield's AC; then the item's own words where they say more
+  PK.itemLine = function (id) {
+    var it = DS.DATA.items[id]; if (!it) return { stats: '', desc: '' };
+    var bits = [], w = it.weapon, a = it.armor, s = it.shield;
+    if (w) {
+      bits.push(w.dmg + ' ' + (w.type || '') + (w.versatile ? ' (' + w.versatile + ' two-handed)' : ''), (w.group || '') + ' ' + (w.kind || 'weapon'));
+      (w.props || []).forEach(function (p) { if (p === 'ranged') return; bits.push(p === 'thrown' && w.thrown ? 'thrown (' + w.thrown.join('/') + ' ft)' : p); });
+      if ((w.props || []).indexOf('ranged') >= 0) bits.push('range ' + (w.range || [80, 320]).join('/') + ' ft' + (w.ammo ? ', ' + w.ammo : ''));
+      if (w.bonus) bits.push('+' + w.bonus + ' to hit and damage'); else if (w.magic) bits.push('magic');
+    } else if (a) {
+      var dm = a.dexMax == null ? (a.type === 'medium' ? 2 : null) : a.dexMax;
+      bits.push('AC ' + (a.base + (a.bonus || 0)) + (dm === 0 ? '' : dm ? ' + DEX (max ' + dm + ')' : ' + DEX'), a.type || 'armour'); // (what the game's armour carries: no STR or Stealth rows, the grid reads neither from it)
+    } else if (s) bits.push('+' + s.ac + ' AC', 'a hand');
+    if (it.attune) bits.push('takes a bond');
+    var d = String(it.desc || ''), plain = /^(\d+d\d+ [a-z]+[.,]|AC \d+|\+\d+ AC)/.test(d); // (the SRD basics' words only repeat the numbers)
+    return { stats: bits.join(' · '), desc: plain ? '' : d };
+  };
   Pocket.prototype.openMarket = function (from) { this.marketFrom = from || this.screen; this.marketTab = this.marketTab || 'arms'; if (this.st.purse == null) this.st.purse = 100; this.go('market'); };
   Pocket.prototype.drawMarket = function (ctx) {
     var self = this, st = this.st, L = this.topLevel(), mt = this.marketTab || 'arms', tab = MARKET_TABS.filter(function (t) { return t[0] === mt; })[0] || MARKET_TABS[0];
@@ -1155,15 +1182,16 @@
     head(ctx, 'THE MARKET', 'the purse ' + st.purse + ' sp  ·  stock for level ' + L + '  ·  sold back at half');
     var y = 40;
     MARKET_TABS.forEach(function (t, k) { self.btn(ctx, t[1], 20 + k * 112, y, 106, 13, function () { self.marketTab = t[0]; self.scroll = 0; }, { on: tab === t, small: true }); });
-    var list = PK.stock(L).filter(function (id) { return tab[2].indexOf(DS.DATA.items[id].kind) >= 0; }), per = 9, from = Math.min(this.scroll, Math.max(0, list.length - per));
+    var list = PK.stock(L).filter(function (id) { return tab[2].indexOf(DS.DATA.items[id].kind) >= 0; }), per = 8, from = Math.min(this.scroll, Math.max(0, list.length - per));
     this.scroll = from;
+    var rowsAt = []; // (each row's button, for the line under the lists: the one under the mouse or the keys -- 10-17)
     D.text(ctx, '{y}FOR SALE{/}', 20, y + 20, P('bone', 1));
     list.slice(from, from + per).forEach(function (id, k) {
       var it = DS.DATA.items[id], yy = y + 32 + k * 15, dear = it.price > st.purse;
       self.btn(ctx, it.name, 20, yy, 150, 13, function () {
         if (st.purse < it.price) { D.sfx('error'); self.say('the purse is ' + st.purse + ' sp: ' + it.name + ' is ' + it.price); return; }
         st.purse -= it.price; PK.packAdd(st, id, 1); self.keep(); D.sfx('confirm'); self.say(it.name + ' into the pack');
-      }, { small: true, dis: dear, why: 'the purse is short' });
+      }, { small: true, dis: dear, why: 'the purse is short' }); rowsAt.push([self.btns.length - 1, id, yy, 20]);
       D.text(ctx, it.price + ' sp', 176, yy + 3, dear ? P('stone', 5) : P('gold', 4));
     });
     if (list.length > per) { // (^ and v, and the wheel: his "arrows would have shown more?", 10-17)
@@ -1176,12 +1204,19 @@
     if (!pk.length) D.text(ctx, 'empty', px, y + 34, P('stone', 5));
     pk.slice(0, per).forEach(function (s, k) {
       var it = DS.DATA.items[s.id], yy = y + 32 + k * 15, half = Math.floor((it.price || 0) / 2);
-      self.btn(ctx, it.name + (s.n > 1 ? ' x' + s.n : ''), px, yy, 150, 13, function () { st.purse += half; PK.packAdd(st, s.id, -1); self.keep(); D.sfx('cursor'); self.say(it.name + ' sold: ' + half + ' sp'); }, { small: true, dis: !(it.price > 0) || it.noSell, why: 'nobody buys that' });
+      self.btn(ctx, it.name + (s.n > 1 ? ' x' + s.n : ''), px, yy, 150, 13, function () { st.purse += half; PK.packAdd(st, s.id, -1); self.keep(); D.sfx('cursor'); self.say(it.name + ' sold: ' + half + ' sp'); }, { small: true, dis: !(it.price > 0) || it.noSell, why: 'nobody buys that' }); rowsAt.push([self.btns.length - 1, s.id, yy, px]);
       D.text(ctx, half + ' sp', px + 156, yy + 3, P('silver', 5));
     });
     if (pk.length > per) D.text(ctx, '{g}and ' + (pk.length - per) + ' more{/}', px, y + 32 + per * 15 + 2, P('stone', 5));
+    // the row under the mouse or the keys: lit, and what it is under the lists (his "item descriptions on mouseover and highlight of store options")
+    var hv = rowsAt.filter(function (q) { return q[0] === self.ksel; })[0];
+    if (hv) {
+      ctx.strokeStyle = P('gold', 4); ctx.strokeRect(hv[3] - 1.5, hv[2] - 1.5, 153, 16);
+      var il = PK.itemLine(hv[1]), dy = 207, iw = D.W - 40, hit0 = DS.DATA.items[hv[1]];
+      D.text(ctx, fitText('{y}' + hit0.name + '{/}  ' + il.stats, iw), 20, dy, P('bone', 1)); dy += 9;
+      if (il.desc) D.wrap(il.desc, iw).slice(0, 2).forEach(function (t) { D.text(ctx, t, 20, dy, P('silver', 5)); dy += 9; });
+    } else D.hint(ctx, 'what you buy waits in the pack: a card\'s GEAR puts it on · point at a thing for what it is', D.W / 2, 222, P('stone', 4), 'center');
     this.btn(ctx, 'BACK', 20, 236, 60, 15, function () { self.back(); });
-    D.hint(ctx, 'what you buy waits in the pack: a card\'s GEAR puts it on', D.W / 2, 222, P('stone', 4), 'center');
   };
   // a card's GEAR (10-17, Griz: "Gear - why not open the regular menu with equip and that character selected?"): the one menu's EQUIP on the card's sheet, over the
   // table's pack. Whatever comes off goes into the pack, a thing like any other, to wear or sell (10-17, his "wouldn't the kit items go in the pack to sell at the new market?"): a winning off the card's
@@ -1271,7 +1306,8 @@
   // ------------------------------------------------------------------ drawing
   Pocket.prototype.draw = function (ctx) {
     this.btns = [];
-    drawHall(ctx, this.t, this.screen === 'title' ? 1 : 0.42, this.st.dm);
+    if (this.screen === 'hub' && D.campfire) this.drawFire(ctx); // (THE CAMP at the ladder camp's fire, 10-17: his "camp background based on the old combat ladder camp image")
+    else drawHall(ctx, this.t, this.screen === 'title' ? 1 : 0.42, this.st.dm);
     var s = this.screen;
     if (s === 'title') this.drawTitle(ctx);
     else if (s === 'modules') this.drawModules(ctx);
@@ -1304,7 +1340,7 @@
     D.text(ctx, this.st.dm ? 'every creature, every door, a campaign of your own' : 'any party, any map, any CR -- every fight a URL', D.W / 2, 50, P('bone', 1), 'center');
     // (the buttons stand to the right, so the stone and the light on it stay in view; the column starts under the right lamp, whose head is one of the DM's three)
     var w = 150, x = D.W - w - 22, y = 104, n = this.st.fights.length; // (y 150 till 10-06, 132 till 10-09, 120 till 10-17: up for the campaign's two rows, then A DM'S LADDER)
-    this.btn(ctx, this.st.run ? (this.st.run.module ? 'MODULE: FIGHT ' + this.st.run.rung + ' OF ' + this.st.run.plan.length : 'THE LADDER: ' + (this.st.run.trial ? 'THE TRIAL' : 'RUNG ' + this.st.run.rung)) : 'START', x, y, w, 18, function () { if (self.st.run) { self.foes = self.st.run.foes; self.fightMap = self.st.run.map; self.go('cr'); } else self.go('party'); }, { pri: true });
+    this.btn(ctx, this.st.run ? (this.st.run.module ? 'MODULE: FIGHT ' + this.st.run.rung + ' OF ' + this.st.run.plan.length : 'THE LADDER: ' + (this.st.run.trial ? 'THE TRIAL' : 'RUNG ' + this.st.run.rung)) : 'START', x, y, w, 18, function () { if (self.st.run && self.st.run.atCamp) self.go('hub'); else if (self.st.run) { self.foes = self.st.run.foes; self.fightMap = self.st.run.map; self.go('cr'); } else self.go('party'); }, { pri: true });
     this.btn(ctx, 'FIGHTS' + (n ? '  (' + n + ')' : ''), x, y + 22, w, 16, function () { self.go('fights'); }, { dis: !n, why: 'no fights kept yet: START one' });
     this.btn(ctx, 'DOORS', x, y + 41, w, 16, function () { self.scroll = 0; self.go('doors'); }); // (one DOORS on both tables, js/pocketdm.js PD.doorsFor -- USEFULS till 10-17, Griz: "Usefuls is a less functional version of DOORS")
     this.btn(ctx, 'THE 8-BIT GAME', x, y + 60, w, 16, function () { location.href = '../'; });
@@ -1616,7 +1652,11 @@
     r.end.forEach(function (e) { D.text(ctx, (e.down ? '{r}' : '{y}') + e.name + '{/}  ' + e.hp + '/' + e.maxhp + (e.down ? '  down' : ''), D.W / 2, yy, P('bone', 1), 'center'); yy += 10; });
     if (r.coin || r.xp) { yy += 4; D.text(ctx, '{y}' + [r.coin ? '+' + r.coin + ' sp to the purse (' + this.st.purse + ' sp)' : '', r.xp ? '+' + r.xp + ' XP each' : ''].filter(Boolean).join('  ·  ') + '{/}', D.W / 2, yy, P('gold', 4), 'center'); yy += 6; } // (10-17: the coin, and the XP)
     if (r.levels && r.levels.length) { yy += 4; D.wrap('{y}' + r.levels.join(' ') + '{/}' + (this.st.editLevels ? ' The choices next (LEVEL-UPS: EDIT).' : ''), w - 30).slice(0, 2).forEach(function (t) { D.text(ctx, t, D.W / 2, yy, P('gold', 4), 'center'); yy += 10; }); }
-    if (r.loot) { yy += 4; D.text(ctx, '{y}' + r.loot.name + ' finds ' + DS.DATA.items[r.loot.item].name + '.{/}', D.W / 2, yy, P('gold', 4), 'center'); yy += 10; }
+    if (r.loot) { // (into the pack; PUT IT ON is the player's word -- 10-17, his "rewards should go into pack and not-auto equip unless player confirms equip")
+      var lg = r.loot, lit = DS.DATA.items[lg.item], lst = this.st;
+      yy += 4; D.text(ctx, '{y}' + lg.name + ' finds ' + (/^[aeiou]/i.test(lit.name) ? 'an ' : 'a ') + lit.name + (lg.worn ? '{/}, and puts it on.' : '{/}: in the pack.'), D.W / 2, yy, P('gold', 4), 'center'); yy += 10;
+      if (lg.who >= 0 && !lg.worn && PK.packN(lst, lg.item) > 0) { this.btn(ctx, fitText('PUT IT ON ' + String(lg.name).toUpperCase(), 150), D.W / 2 - 80, yy, 160, 12, function () { PK.packAdd(lst, lg.item, -1); PK.give(lst, lst.party, lg.who, lg.item); lg.worn = true; self.cache = {}; self.keep(); }, { small: true }); yy += 14; }
+    }
     if (r.unlocked) { yy += 4; D.text(ctx, '{y}Pyronimus, King of Solskaft, will walk with you.{/} He is on the roster now, at his 12, with his own gear.', D.W / 2, yy, P('gold', 4), 'center'); yy += 10; }
     (r.lines || []).forEach(function (l) { yy += 2; D.text(ctx, l, D.W / 2, yy, P('gold', 4), 'center'); yy += 10; }); // (what the DM's purse took in: js/pocketdm.js afterFight)
     if (r.moduleDone) { yy += 4; D.text(ctx, '{y}' + r.moduleDone + ' IS DONE.{/} Every fight of it won.', D.W / 2, yy, P('gold', 4), 'center'); yy += 10; }
@@ -1671,6 +1711,7 @@
     }
     this.btn(ctx, long ? 'TO THE TRIAL' : 'THE NEXT RUNG', x + w / 2 - 70, y + 190 - 22, 140, 15, function () { if (long) { self.toMorning({ label: 'TO THE TRIAL', fn: function () { self.takeMorning(); self.go('cr'); } }, 'rest'); return; } self.nextRung(); self.go('cr'); }, { pri: true }); // (a long rest: THE LONG REST's page, 10-17)
     this.btn(ctx, 'THE MARKET', x + 8, y + 190 - 22, 76, 15, function () { self.openMarket('rest'); }); // (between rungs, 10-17)
+    this.btn(ctx, 'THE CAMP', x + w - 84, y + 190 - 22, 76, 15, function () { self.toCamp({ long: long, trial: long, market: true }); }); // (to equip what the market sold, 10-17)
   };
   function fitText(s, w) { s = String(s); if (D.textWidth(s) <= w) return s; while (s.length > 1 && D.textWidth(s + '..') > w) s = s.slice(0, -1); return s + '..'; }
   PK.restText = function (rs) { rs = rs || {}; return (rs.long ? 'a long rest' : rs.short !== false ? 'a short rest' : 'no rest') + (rs.market ? ' and the market' : ''); };
@@ -1695,12 +1736,30 @@
     }
     this.btn(ctx, 'FIGHT ' + (run.rung + 1), x + w / 2 - 60, y + h - 22, 120, 15, function () { if (rs.long) { var lbl = 'TO FIGHT ' + (run.rung + 1); self.toMorning({ label: lbl, fn: function () { self.nextRung(); self.takeMorning(); self.go('cr'); } }, 'rest'); return; } self.nextRung(); self.go('cr'); }, { pri: true }); // (a long rest: THE LONG REST's page, 10-17)
     if (rs.market) this.btn(ctx, 'THE MARKET', x + 8, y + h - 22, 76, 15, function () { self.openMarket('rest'); });
+    this.btn(ctx, 'THE CAMP', x + w - 144, y + h - 22, 76, 15, function () { self.toCamp({ long: !!rs.long, market: !!rs.market }); }); // (to equip what the market sold, 10-17)
     this.btn(ctx, 'QUIT', x + w - 60, y + h - 22, 52, 15, function () { self.st.run = null; self.keep(); self.go('hub'); });
   };
   // THE CAMP (10-17, the two Pocket DMs, step B; Griz: "The FOES page on the player side becomes the camp, where they can open the standard 'm' menu / The pick from
   // there, single fight, random ladder or play module (load module to change greyed out play module when none loaded or to change loaded module)"; "Player saves
   // are current party and pack"): after THE PARTY, the party at the fire -- THE MENU (M: the regular menu over the four, PK's pack), THE MARKET, the party's own
   // file -- and where to: SINGLE FIGHT (THE MAP, THE FOES, then THE LONG REST), RANDOM LADDER and PLAY MODULE (THE LONG REST, then the first fight)
+  // a rest's THE CAMP (10-17, Griz: "return to camp 'so i can equip after visit market' on long rests"): the run waits at the fire (run.atCamp: what the rest was, and
+  // whether its market is open) -- THE MENU's EQUIP on what the market sold -- and GO ON is the rest's own way on: a long rest's day first (THE LONG REST), then the fight
+  Pocket.prototype.toCamp = function (o) { var run = this.st.run; if (!run) return; run.atCamp = { long: !!o.long, trial: !!o.trial, market: !!o.market }; this.keep(); this.go('hub'); };
+  Pocket.prototype.restOn = function () {
+    var self = this, run = this.st.run, rest = run && run.atCamp; if (!run) return;
+    if (!rest) { this.foes = run.foes; this.fightMap = run.map; this.go('cr'); return; }
+    var on = function () { delete run.atCamp; if (!rest.trial) self.nextRung(); };
+    if (rest.long) { this.toMorning({ label: rest.trial ? 'TO THE TRIAL' : 'TO ' + (run.module ? 'FIGHT ' : 'RUNG ') + (run.rung + 1), fn: function () { on(); self.takeMorning(); self.go('cr'); } }, 'hub'); return; }
+    on(); this.keep(); this.go('cr');
+  };
+  // the night clearing of the ladder's camp (js/campfire.js, js/camp.js): the party's first four in the fire's four seats, in THE PARTY's order
+  var SEATKEY = ['barley', 'aurdin', 'lymen', 'vivian'], FIRE_HUB = [232, 196];
+  Pocket.prototype.drawFire = function (ctx) {
+    var hs = this.sheets().filter(function (s) { return s.h && s.look; }).slice(0, 4).map(function (s, i) { return { id: SEATKEY[i], sheet: s.look }; });
+    try { D.campfire.draw(ctx, { cx: FIRE_HUB[0], cy: FIRE_HUB[1], t: this.t, dim: 0.8, heroes: hs }); }
+    catch (e) { drawHall(ctx, this.t, 0.42, this.st.dm); } // (the fire would not draw: the hall, as before)
+  };
   Pocket.prototype.loadedModule = function () { var k = this.st.moduleKey; return k ? PK.modules(this.st).filter(function (m) { return m.key === k; })[0] || null : null; };
   Pocket.prototype.drawHub = function (ctx) {
     var self = this, st = this.st, sh = this.sheets(), run = st.run, ready = this.ready(), mod = this.loadedModule();
@@ -1711,25 +1770,27 @@
       D.text(ctx, '{y}' + s.h.name + '{/}  ' + R.CLASSES[s.h.cls].name + ' ' + s.h.lvl + '   {g}HP ' + s.h.maxhp + '  AC ' + R.ac(s.h) + (e && e.king ? '' : '  XP ' + PK.xpNow(st, slot) + (nx ? ' of ' + nx : '')) + '{/}' + (PK.levelDue(st, slot) ? '  {y}a level at the next long rest{/}' : ''), 24, yy, P('bone', 1)); yy += 11;
     });
     D.text(ctx, 'the purse ' + (st.purse == null ? 100 : st.purse) + ' sp  ·  the pack ' + (st.pack || []).reduce(function (n, s) { return n + (s.n || 0); }, 0) + ' things', 24, yy + 3, P('silver', 5));
-    var lx = 20, rx = D.W - 190, by = 116;
+    var lx = 20, rx = D.W - 180, rw = 160, by = 116, rest = run && run.atCamp; // (the right column narrower since 10-17: the fire between the two)
     this.btn(ctx, 'THE MENU  (M)', lx, by, 150, 16, function () { self.openMenu(); }, { dis: !ready, why: 'every seat at THE PARTY wants a character' });
-    this.btn(ctx, 'THE MARKET  ' + (st.purse == null ? 100 : st.purse) + ' sp', lx, by + 20, 150, 16, function () { self.openMarket('hub'); });
+    this.btn(ctx, 'THE MARKET  ' + (st.purse == null ? 100 : st.purse) + ' sp', lx, by + 20, 150, 16, function () { self.openMarket('hub'); }, { dis: !!(rest && !rest.market), why: 'the DM allows no market at this rest' });
     this.btn(ctx, 'SAVE THE PARTY', lx, by + 40, 150, 15, function () { self.saveParty(); });
     this.btn(ctx, 'LOAD A PARTY', lx, by + 59, 150, 15, function () { self.loadParty(); });
     if (run) {
       var rn = run.module ? run.module.name + ': FIGHT ' + run.rung + ' OF ' + run.plan.length : 'THE LADDER: ' + (run.trial ? 'THE TRIAL' : 'RUNG ' + run.rung);
-      D.text(ctx, '{o}under way:{/} ' + fitText(rn, 170), rx, by - 10, P('bone', 1));
-      this.btn(ctx, 'GO ON', rx, by, 170, 18, function () { self.go('cr'); }, { pri: true });
-      this.btn(ctx, 'PUT IT AWAY', rx, by + 22, 170, 15, function () { var ask = self.ask || function (q) { return window.confirm(q); }; if (ask('Put away ' + rn + '? It cannot be taken up again.')) { st.run = null; self.keep(); } });
+      // (come to the camp from a rest -- 10-17, his "return to camp 'so i can equip after visit market' on long rests": GO ON is the rest's way on, the long rest's day first)
+      var nextN = rest ? (run.module ? 'FIGHT ' + (run.rung + 1) : rest.trial ? 'THE TRIAL' : 'RUNG ' + (run.rung + 1)) : null;
+      D.text(ctx, (rest ? '{o}resting:{/} ' : '{o}under way:{/} ') + fitText(rest ? (run.module ? run.module.name + ', then ' : 'the ladder, then ') + nextN : rn, rw), rx, by - 10, P('bone', 1));
+      this.btn(ctx, rest ? 'GO ON: ' + nextN : 'GO ON', rx, by, rw, 18, function () { self.restOn(); }, { pri: true });
+      this.btn(ctx, 'PUT IT AWAY', rx, by + 22, rw, 15, function () { var ask = self.ask || function (q) { return window.confirm(q); }; if (ask('Put away ' + rn + '? It cannot be taken up again.')) { st.run = null; self.keep(); } });
     } else {
-      this.btn(ctx, 'SINGLE FIGHT', rx, by, 170, 18, function () { self.go('map'); }, { pri: true, dis: !ready, why: 'every seat at THE PARTY wants a character' });
-      this.btn(ctx, 'RANDOM LADDER', rx, by + 22, 170, 16, function () { self.toMorning({ label: 'TO RUNG 1', fn: function () { self.fightMap = self.randomMap(); self.mapSel = null; self.crI = self.defaultCR(); self.reroll(); self.startRun(); self.takeMorning(); self.go('cr'); } }, 'hub'); }, { dis: !ready, why: 'every seat at THE PARTY wants a character' });
-      this.btn(ctx, mod ? 'PLAY ' + fitText(mod.name, 120) : 'PLAY MODULE', rx, by + 42, 170, 16, function () { self.toMorning({ label: 'TO FIGHT 1', fn: function () { if (self.startModule(mod)) self.takeMorning(); } }, 'hub'); }, { dis: !mod || !ready, why: !mod ? 'no module loaded: LOAD MODULE' : 'every seat at THE PARTY wants a character' });
-      this.btn(ctx, mod ? 'CHANGE MODULE' : 'LOAD MODULE', rx, by + 62, 170, 15, function () { self.scroll = 0; self.go('modules'); });
-      D.text(ctx, 'a ladder: four rungs at a third again each, short rests between, a long rest and the trial', D.W / 2, by + 86, P('stone', 5), 'center');
+      this.btn(ctx, 'SINGLE FIGHT', rx, by, rw, 18, function () { self.go('map'); }, { pri: true, dis: !ready, why: 'every seat at THE PARTY wants a character' });
+      this.btn(ctx, 'RANDOM LADDER', rx, by + 22, rw, 16, function () { self.toMorning({ label: 'TO RUNG 1', fn: function () { self.fightMap = self.randomMap(); self.mapSel = null; self.crI = self.defaultCR(); self.reroll(); self.startRun(); self.takeMorning(); self.go('cr'); } }, 'hub'); }, { dis: !ready, why: 'every seat at THE PARTY wants a character' });
+      this.btn(ctx, mod ? 'PLAY ' + fitText(mod.name, 110) : 'PLAY MODULE', rx, by + 42, rw, 16, function () { self.toMorning({ label: 'TO FIGHT 1', fn: function () { if (self.startModule(mod)) self.takeMorning(); } }, 'hub'); }, { dis: !mod || !ready, why: !mod ? 'no module loaded: LOAD MODULE' : 'every seat at THE PARTY wants a character' });
+      this.btn(ctx, mod ? 'CHANGE MODULE' : 'LOAD MODULE', rx, by + 62, rw, 15, function () { self.scroll = 0; self.go('modules'); });
+      D.text(ctx, 'a ladder: four rungs at a third again each, short rests between, a long rest and the trial', D.W / 2, 212, P('stone', 5), 'center');
     }
     this.btn(ctx, 'BACK', 20, 236, 60, 15, function () { self.back(); });
-    D.hint(ctx, 'M the menu · X back to THE PARTY', D.W / 2, 222, P('stone', 4), 'center');
+    D.hint(ctx, 'M the menu · X back to THE PARTY', D.W / 2, 224, P('stone', 4), 'center');
   };
   // THE MENU at the camp: the regular one over the party (EQUIP, ITEMS, MAGIC, SKILLS, STATUS -- the same pages as everywhere), on PK's pack; what comes off goes into
   // the pack and each card's word keeps what it wears, as GEAR's (gearBack). The order is THE PARTY's (its arrows); nothing is cast or used out here

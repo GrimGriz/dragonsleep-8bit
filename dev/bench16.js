@@ -4913,7 +4913,7 @@
       drawMo(Pm, 'cr'); var crMo = Pm.btns.map(function (b) { return b.label; });
       okMo('THE FOES in a module: FIGHT 1 OF 6, QUIT THE MODULE, no REROLL', crMo.indexOf('FIGHT 1 OF 6') >= 0 && crMo.indexOf('QUIT THE MODULE') >= 0 && crMo.indexOf('REROLL') < 0);
       // the run, played by the AI's party
-      var nMo = +get('runs', 3), push0Mo = D.push, restSeen = {}, drawsMo = true, longOK = true, doneOK = true, xpSeq = null, lvEnd = null, lvMid = null;
+      var nMo = +get('runs', 3), push0Mo = D.push, restSeen = {}, drawsMo = true, longOK = true, doneOK = true, xpSeq = null, lvEnd = null, lvMid = null, lootSeen = { n: 0, packed: 0, worn: 0 };
       for (var kMo = 0; kMo < nMo; kMo++) {
         D.seed = 3000 + kMo * 7919; Pm.st.run = null; Pm.st.party.forEach(function (sl) { sl.lvl = 1; sl.xp = 0; }); Pm.cache = {};
         Pm.startModule(wr); Pm.mInfo = null; Pm.takeMorning(); Pm.watch = true;
@@ -4928,6 +4928,8 @@
           fr[rMo === 'won' ? 'won' : rMo === 'lost' ? 'lost' : 'other']++; fr.rounds += Bm.round || 0; fr.downs += Pm.result && Pm.result.rec ? Pm.result.rec.downs : 0;
           if (rMo !== 'won') { outMo = 'lost at fight ' + (fMo + 1) + (rMo !== 'lost' ? ' (' + rMo + ')' : ''); break; }
           gotMo++; xpRun.push(Pm.result && Pm.result.xp);
+          // the winning into the pack, and on as a player puts it (10-17, his "rewards should go into pack and not-auto equip unless player confirms equip")
+          var lgMo = Pm.result && Pm.result.loot; if (lgMo && lgMo.who >= 0) { lootSeen.n++; if (PKm.packN(Pm.st, lgMo.item) > 0) lootSeen.packed++; drawMo(Pm, 'result loot'); var piMo = btnMo(Pm, /^PUT IT ON/); if (piMo) { Pm.fire(piMo); if (Pm.result.loot.worn && PKm.packN(Pm.st, lgMo.item) === 0) lootSeen.worn++; } }
           if (fMo === 2 && lvMid == null) lvMid = Pm.levels().join('/') + ' with ' + Pm.st.party.map(function (sl) { return sl.xp; }).join('/') + ' XP';
           if (fMo === 5 && xpSeq == null) { xpSeq = xpRun.join(' '); lvEnd = { levels: Pm.levels().join('/'), lines: (Pm.result && Pm.result.levels) || [] }; }
           if (fMo === 5) { if (!(Pm.result && Pm.result.moduleDone === 'THE WAGON ROAD' && !Pm.st.run)) { doneOK = false; outMo = 'the last won, not marked done'; } break; }
@@ -4944,6 +4946,30 @@
         repMo.reach.push(gotMo); repMo.runs.push(outMo);
       }
       Pm.st.run = null;
+      okMo('THE WINNINGS: ' + lootSeen.n + ' found, each into the pack (' + lootSeen.packed + '), worn on PUT IT ON (' + lootSeen.worn + ') -- his "rewards should go into pack and not-auto equip unless player confirms equip"', lootSeen.n > 0 && lootSeen.packed === lootSeen.n && lootSeen.worn === lootSeen.n);
+      // THE CAMP from a rest (10-17, his "return to camp 'so i can equip after visit market' on long rests"): the run waits at the fire, GO ON is the rest's way on
+      var campOK = [];
+      Pm.startModule(wr); Pm.mInfo = null; Pm.takeMorning(); Pm.st.run.rung = 3; Pm.st.run.carry = null; Pm.moduleRest(); Pm.go('rest'); drawMo(Pm, 'rest 3 (camp)');
+      var tcB = btnMo(Pm, /^THE CAMP$/); if (tcB) Pm.fire(tcB); campOK.push(Pm.screen === 'hub' && !!Pm.st.run.atCamp && Pm.st.run.atCamp.long && Pm.st.run.atCamp.market);
+      drawMo(Pm, 'hub resting'); var goB = btnMo(Pm, /^GO ON: FIGHT 4$/), mkB = btnMo(Pm, /^THE MARKET/); campOK.push(!!goB && !!mkB && !mkB.dis);
+      var keepE = Pm.st.run.rung, Pe = new D.Pocket(); Pe.enter(); campOK.push(Pe.screen === 'hub'); // (a reload while resting comes back to the fire)
+      if (goB) Pm.fire(goB); campOK.push(Pm.screen === 'morning' && keepE === 3 && Pm.st.run.rung === 3); drawMo(Pm, 'morning from camp'); var tf4 = btnMo(Pm, /^TO FIGHT 4$/); if (tf4) Pm.fire(tf4);
+      campOK.push(Pm.screen === 'cr' && Pm.st.run.rung === 4 && !Pm.st.run.atCamp && Pm.st.run.foes.join() === wr.slots[3].foes.join());
+      Pm.st.run.rung = 1; Pm.moduleRest(); Pm.go('rest'); drawMo(Pm, 'rest 1 (camp)'); tcB = btnMo(Pm, /^THE CAMP$/); if (tcB) Pm.fire(tcB); drawMo(Pm, 'hub resting 2');
+      var mk2 = btnMo(Pm, /^THE MARKET/), go2 = btnMo(Pm, /^GO ON: FIGHT 2$/); campOK.push(!!mk2 && mk2.dis && !!go2); if (go2) Pm.fire(go2); campOK.push(Pm.screen === 'cr' && Pm.st.run.rung === 2);
+      Pm.st.run = null; Pm.keep();
+      okMo('THE CAMP from a rest: after fight 3 the run waits at the fire with the market open, GO ON: FIGHT 4 through THE LONG REST to fight 4; after fight 1 the market shut (the DM\'s) and GO ON: FIGHT 2 straight on; a reload while resting opens at the fire (' + campOK.join(' ') + ')', campOK.length === 7 && campOK.every(Boolean));
+      // THE MARKET's line for the row under the mouse (10-17, his "item descriptions on mouseover and highlight of store options (bow range, finesse, etc on weapons)")
+      var ilB = PKm.itemLine('longbow'), ilD = PKm.itemLine('dagger'), ilC = PKm.itemLine('cloakdisplacement'), ilA = PKm.itemLine('chainmail');
+      Pm.openMarket('hub'); drawMo(Pm, 'market'); var rowB = Pm.btns.map(function (b, i) { return [b, i]; }).filter(function (q) { return q[0].small && q[0].w === 150; })[0]; if (rowB) Pm.ksel = rowB[1]; var mkDrew = drawMo(Pm, 'market hovered');
+      okMo('THE MARKET says what a thing is: the longbow "' + ilB.stats + '"; the dagger "' + ilD.stats + '"; chain "' + ilA.stats + '"; the cloak "' + ilC.stats + '" + its words; a row lit draws', /range 150\/600 ft/.test(ilB.stats) && /finesse/.test(ilD.stats) && /light/.test(ilD.stats) && /^AC 16 · heavy$/.test(ilA.stats) && /takes a bond/.test(ilC.stats) && !!ilC.desc && !!rowB && mkDrew);
+      Pm.go('hub');
+      // the menu's party panel on EQUIP WHOM? (10-17, his "mouse stops working on 'menu' after you click equip (have to keyboard - need mousewheel through party")
+      Pm.openMenu(); var pmE = Pm.pm, mkK = function (ms) { return { pressed: function () { return false; }, repeat: function () { return false; }, mouse: Object.assign({ x: 0, y: 0, moved: false, click: false, rclick: false, wheel: 0 }, ms) }; };
+      var pickOK = [];
+      if (pmE) { pmE.root.go('equip'); pickOK.push(pmE.root.mode === 'pick'); pmE.update(mkK({ x: 60, y: 62, moved: true })); pickOK.push(pmE.root.pi === 1); pmE.update(mkK({ wheel: 1 })); pickOK.push(pmE.root.pi === 2); pmE.update(mkK({ x: 60, y: 22, click: true })); pickOK.push(pmE.pages.length === 1 && pmE.root.mode !== 'pick'); pmE.close(); }
+      okMo('EQUIP WHOM?: the mouse points at the second card, the wheel walks to the third, a click on the first opens its EQUIP (' + pickOK.join(' ') + ')', pickOK.length === 4 && pickOK.every(Boolean));
+      Pm.pm = null; Pm.go('hub');
       // THE MENU at THE CAMP: the regular menu over the party, closed back to the camp
       Pm.go('hub'); drawMo(Pm, 'hub'); var mnB = btnMo(Pm, /^THE MENU/); if (mnB) Pm.fire(mnB); var pmOpen = !!Pm.pm, pmN = Pm.pm ? Pm.pm.host.party().length : 0; if (Pm.pm) Pm.pm.close();
       okMo('THE MENU: the regular menu over the ' + pmN + ' of the party, and closed back to THE CAMP', pmOpen && pmN === 4 && !Pm.pm && Pm.screen === 'hub');
