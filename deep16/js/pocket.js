@@ -853,7 +853,7 @@
     head(ctx, 'THE MARKET', 'the purse ' + st.purse + ' sp  ·  stock for level ' + L + '  ·  sold back at half');
     var y = 40;
     MARKET_TABS.forEach(function (t, k) { self.btn(ctx, t[1], 20 + k * 112, y, 106, 13, function () { self.marketTab = t[0]; self.scroll = 0; }, { on: tab === t, small: true }); });
-    var list = PK.stock(L).filter(function (id) { return tab[2].indexOf(DS.DATA.items[id].kind) >= 0; }), per = 11, from = Math.min(this.scroll, Math.max(0, list.length - per));
+    var list = PK.stock(L).filter(function (id) { return tab[2].indexOf(DS.DATA.items[id].kind) >= 0; }), per = 9, from = Math.min(this.scroll, Math.max(0, list.length - per));
     this.scroll = from;
     D.text(ctx, '{y}FOR SALE{/}', 20, y + 20, P('bone', 1));
     list.slice(from, from + per).forEach(function (id, k) {
