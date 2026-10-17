@@ -2105,7 +2105,7 @@
         var pgW = mP.top(), walk = [pgW.tabs[pgW.tab].label];
         for (var wW = 0; wW < 2; wW++) { confirmP(mP); walk.push(mP.top().tabs[mP.top().tab].label); }
         var keptW = !!(aur.chose && aur.chose[4]), thenW = pgW.list.items[0].right;
-        check('CONFIRM WALKS THE MARKED TABS FIRST: ' + walk.join(' -> ') + ' (want SCORES -> CANTRIP -> L2), nothing kept on the way (' + !keptW + '), the page still Aurdin's (' + (mP.top() === pgW) + '); at L2 the row says "' + thenW + '" (want nothing: every marked tab seen)',
+        check('CONFIRM WALKS THE MARKED TABS FIRST: ' + walk.join(' -> ') + ' (want SCORES -> CANTRIP -> L2), nothing kept on the way (' + !keptW + '), the page still Aurdin\'s (' + (mP.top() === pgW) + '); at L2 the row says "' + thenW + '" (want nothing: every marked tab seen)',
           walk.join('/') === 'SCORES/CANTRIP/L2' && !keptW && mP.top() === pgW && !thenW);
         var pgA = mP.top(), idsA = allRows(pgA), spA = pgA.groups.filter(function (x) { return x.ask.kind === 'spells'; })[0];
         var pageOnly = idsA.filter(function (id) { return R8.pageOnly(id); }), knownIn = idsA.filter(function (id) { return aur.known.indexOf(id) >= 0 && ['web', 'shatter', 'dancinglights'].indexOf(id) < 0; });
