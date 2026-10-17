@@ -4884,13 +4884,19 @@
       var b5L = RL.makeHero('brann', 5), b6L = RL.makeHero('brann', 6);
       okLp('BRANN AT 6 has the fighter\'s increase: STR ' + b5L.abil.str + ' -> ' + b6L.abil.str, b6L.abil.str === Math.min(20, b5L.abil.str + 2));
       var PKP = D.pocket, PKc = new D.Pocket(); PKc.enter(); PKc.st.dm = true; PKc.st.party[0] = { w: 'brann', lvl: 5, loot: [] }; PKc.st.party[1] = { w: 'aurdin', lvl: 3, loot: [] };
-      PKc.levelSlot(0, 1); var pmB = PKc.pm, pgB = pmB && pmB.top();
+      // (10-17, his "or it always takes defaults (unlike Aurdin now)": LEVEL-UPS DEFAULTS, the table's own, opens no page; EDIT asks as below)
+      function walkLp(pk) { var seen = [], g = 0; while (pk.pm && g++ < 80) { var pm = pk.pm, pg = pm.top(); if (pm.toast) { pm.update(KLp('a')); continue; } if (seen.indexOf(pg) < 0) seen.push(pg); pg.list.i = pg.list.items.findIndex(function (it) { return it.confirm; }); pg.list.fix(); pm.update(KLp('a')); } return seen; }
+      PKc.levelSlot(0, 1); var noPgD = !PKc.pm, shD = PKP.sheetOf(PKP.specOf(PKc.st, PKc.st.party[0])); PKc.levelSlot(0, -1);
+      okLp('LEVEL-UPS: DEFAULTS (the table\'s own): Brann 5 -> 6 opens no page (' + noPgD + ') and takes his own increase (STR ' + shD.abil.str + ', want ' + b6L.abil.str + ')', noPgD && !PKc.st.editLevels && shD.abil.str === b6L.abil.str);
+      PKc.st.editLevels = true;
+      PKc.levelSlot(0, 1); var pmB = PKc.pm, lvB = pmB && pmB.toast ? pmB.toast.lines.join(' | ') : ''; if (pmB && pmB.toast) pmB.update(KLp('a')); var pgB = pmB && pmB.top();
+      okLp('EDIT: Brann\'s level lines over his page first: "' + lvB + '"', /Brann is now level 6/.test(lvB));
       okLp('THE CARD 5 -> 6: the pick page over the table (' + !!pmB + '), Brann\'s scores, the build\'s ' + (pgB ? JSON.stringify(pgB.groups[0].marks) : '-') + ' marked', !!pmB && pgB.h.id === 'brann' && JSON.stringify(pgB.groups[0].marks) === '{"str":2}');
       if (pmB) { hitLp(pmB, 'str'); hitLp(pmB, 'con'); hitLp(pmB, 'con'); confLp(pmB); }
       var slB = PKc.st.party[0], wB = PKP.wordOf(PKc.st, slB), shB = PKP.sheetOf(PKP.specOf(PKc.st, slB));
       okLp('CON +2 FOR STR: the page gone (' + !PKc.pm + '), the card\'s word ' + wB + ', its sheet STR ' + shB.abil.str + ' (want ' + b5L.abil.str + '), CON ' + shB.abil.con + ' (want ' + (b5L.abil.con + 2) + '), max HP ' + shB.maxhp + ' (want ' + (b6L.maxhp + 6 * (DS.mod(b5L.abil.con + 2) - DS.mod(b5L.abil.con))) + ')',
         !PKc.pm && /\+\^6a:con2$/.test(wB) && shB.abil.str === b5L.abil.str && shB.abil.con === b5L.abil.con + 2 && shB.maxhp === b6L.maxhp + 6 * (DS.mod(b5L.abil.con + 2) - DS.mod(b5L.abil.con)));
-      PKc.levelSlot(1, 1); var pmA = PKc.pm;
+      PKc.levelSlot(1, 1); var pmA = PKc.pm; if (pmA && pmA.toast) pmA.update(KLp('a'));
       if (pmA) { hitLp(pmA, 'web'); hitLp(pmA, 'blur'); confLp(pmA); }
       var slA = PKc.st.party[1], wA = PKP.wordOf(PKc.st, slA), shA = PKP.sheetOf(PKP.specOf(PKc.st, slA));
       okLp('AURDIN\'S CARD 3 -> 4: Blur for Web -- the word ' + wA + ', the book: blur ' + (shA.known.indexOf('blur') >= 0) + ', web ' + (shA.known.indexOf('web') >= 0) + ', the day ' + (shA.prepared || []).length + ' of ' + RL.prepCount(shA),
@@ -4905,11 +4911,30 @@
       okLp('THE MAKER\'S INCREASES (a fighter at 6): ' + labsF.join(', ') + '; L4 to CON +2 on the page (' + !!pmF + '): STR ' + sF0.abil.str + ' -> ' + sF.abil.str + ', CON ' + sF0.abil.con + ' -> ' + sF.abil.con + '; the word ' + wF.slice(-12) + ' builds it back (CON ' + sF2.abil.con + ')',
         labsF.length === 2 && !!pmF && sF.abil.con === sF0.abil.con + 2 && sF.abil.str === sF0.abil.str - 2 && /\+\^4a:con2$/.test(wF) && sF2.abil.con === sF.abil.con && JSON.stringify(PKl.mk.picks) === '{"4":{"asi":{"con":2}}}');
       var PKt = new D.Pocket(); PKt.enter(); PKt.st.dm = true; PKt.st.party[0] = { w: 'talmok', lvl: 3, loot: [] };
-      var tal3 = PKP.sheetOf(PKP.specOf(PKt.st, PKt.st.party[0])); PKt.levelSlot(0, 1); var pmT = PKt.pm;
-      if (pmT) { hitLp(pmT, 'str'); hitLp(pmT, 'dex'); hitLp(pmT, 'dex'); confLp(pmT); }
+      PKt.st.editLevels = true; var tal3 = PKP.sheetOf(PKP.specOf(PKt.st, PKt.st.party[0])); PKt.levelSlot(0, 1); var pmT = PKt.pm; if (pmT && pmT.toast) pmT.update(KLp('a'));
+      if (pmT) { hitLp(pmT, 'str'); hitLp(pmT, 'dex'); hitLp(pmT, 'dex'); walkLp(PKt); } // (the whole level now: CONFIRM walks its tabs, 10-17)
       var wT = PKP.wordOf(PKt.st, PKt.st.party[0]), tal4 = PKP.sheetOf(PKP.specOf(PKt.st, PKt.st.party[0]));
       okLp('TALMOK\'S CARD 3 -> 4 asks his increase (' + !!pmT + '): DEX ' + tal3.abil.dex + ' -> ' + tal4.abil.dex + ', STR ' + tal3.abil.str + ' -> ' + tal4.abil.str + ', the word ' + wT,
         !!pmT && tal4.abil.dex === tal3.abil.dex + 2 && tal4.abil.str === tal3.abil.str && /talmok:4:grown\+\^4a:dex2/.test(wT));
+      // h. the maker's walk (10-17, Griz: "Ideally this wouldn't level until next, then you'd have to walk all the way through each one for that character"): a
+      // sorcerer set to 4 on THE LEVEL, NEXT walks 1 to 4, a page a level with what it gives, the class's own marked and CONFIRM walking each marked tab
+      PKl.mk.cls = 'sorcerer'; PKl.kitUp(); PKl.mk.walked = 0; PKl.mk.got = null; PKl.mk.lvl = 4; PKl.mk.step = 3; var doneW = false;
+      btnsLp(); var nextW = PKl.btns.filter(function (b) { return b.label === 'NEXT >'; })[0]; if (nextW) { nextW.fn(); doneW = true; }
+      var pagesW = walkLp(PKl), sumW = pagesW.map(function (pg) { return pg.rec.lvl + ':' + pg.tabs.map(function (t) { return t.label; }).join('/'); });
+      var inf4 = PKl.spellInfo(), cN = PKl.mk.known.filter(function (id) { return inf4.cpool.indexOf(id) >= 0; }).length, sN = PKl.mk.known.filter(function (id) { return inf4.pool.indexOf(id) >= 0; }).length;
+      okLp('THE MAKER WALKS 1 TO 4 ON NEXT (' + doneW + '): ' + sumW.join('  ') + '; then THE GEAR (step ' + PKl.mk.step + '), walked ' + PKl.mk.walked + '; cantrips ' + cN + ' of ' + inf4.nc + ' (' + inf4.cpool.length + ' built), spells ' + sN + ' of ' + inf4.n + ', metamagic ' + JSON.stringify((PKl.mk.opt || {}).metamagic) + ', L4 ' + JSON.stringify((PKl.mk.picks || {})[4]),
+        doneW && pagesW.length === 4 && sumW.map(function (x) { return +x.split(':')[0]; }).join(',') === '1,2,3,4' && /^3:.*METAMAGIC/.test(sumW[2]) && /^4:.*SCORES/.test(sumW[3]) && PKl.mk.step === 4 && PKl.mk.walked === 4 && cN === Math.min(inf4.nc, inf4.cpool.length) && sN === inf4.n &&((PKl.mk.opt || {}).metamagic || []).length === 2 && !!(PKl.mk.picks || {})[4]);
+      PKl.mk.step = 3; btnsLp(); var downW = PKl.btns.filter(function (b) { return b.label === '<'; })[0]; if (downW) downW.fn(); var inf3 = PKl.spellInfo(), sN3 = PKl.mk.known.filter(function (id) { return inf3.pool.indexOf(id) >= 0; }).length;
+      okLp('BACK TO 3 on THE LEVEL: walked ' + PKl.mk.walked + ', the level-4 spells gone (' + sN3 + ' of ' + inf3.n + '), its increase gone (' + !(PKl.mk.picks || {})[4] + ')', PKl.mk.walked === 3 && sN3 === inf3.n && !(PKl.mk.picks || {})[4]);
+      // i. a named caster's card with EDIT on asks the whole level (10-17, "full edit of torvald and aurdin and such"): Torvald 3 -> 4, a spell swapped, the word, the sheet
+      var PKv = new D.Pocket(); PKv.enter(); PKv.st.dm = true; PKv.st.editLevels = true; PKv.st.party[0] = { w: 'torvald', lvl: 3, loot: [] };
+      PKv.levelSlot(0, 1); var pmV = PKv.pm, lvV = pmV && pmV.toast ? pmV.toast.lines.join(' | ') : ''; if (pmV && pmV.toast) pmV.update(KLp('a'));
+      var pgV = pmV && pmV.top(), tabsV = pgV ? pgV.tabs.map(function (t) { return t.label; }).join('/') : '-', grV = pgV && pgV.groups.filter(function (x) { return x.ask.kind === 'spells'; })[0];
+      var outV = grV ? Object.keys(grV.marks)[0] : null, inV = grV ? (grV.rows.filter(function (r) { return !grV.marks[r.id] && !r.off; })[0] || {}).id : null;
+      if (grV && outV) hitLp(pmV, outV); if (grV && inV) hitLp(pmV, inV); if (pmV) walkLp(PKv);
+      var wV = PKP.wordOf(PKv.st, PKv.st.party[0]), shV = PKP.sheetOf(PKP.specOf(PKv.st, PKv.st.party[0]));
+      okLp('TORVALD\'S CARD 3 -> 4 WITH EDIT: "' + lvV + '"; tabs ' + tabsV + '; ' + (outV || 'nothing') + ' out, ' + inV + ' in -- the word ' + wV + '; the sheet knows ' + inV + ' (' + (shV.known.indexOf(inV) >= 0) + ')' + (outV ? ', not ' + outV + ' (' + (shV.known.indexOf(outV) < 0) + ')' : ''),
+        /Torvald is now level 4/.test(lvV) && !!grV && !!inV && wV.indexOf('^4s:') >= 0 && wV.indexOf(inV) >= 0 && shV.known.indexOf(inV) >= 0 && (!outV || (shV.known.indexOf(outV) < 0 && wV.indexOf('^4d:') >= 0)));
       // g. the class options on THE GEAR's tabs (NPC.OPTIONS): a sorcerer's metamagic, a warlock's invocations and pact, a druid's land -- the sheet, the word, back
       function clickLp(label) { btnsLp(); var b = PKl.btns.filter(function (x) { return x.label === label; })[0]; if (b) b.fn(); return !!b; }
       PKl.mk.cls = 'sorcerer'; PKl.kitUp(); PKl.mk.lvl = 3; PKl.mk.step = 4; PKl.mk.tab = 'metamagic';

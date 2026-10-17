@@ -281,6 +281,7 @@
   NPC.sheet = function (spec) {
     var cls = spec.cls, c = C[cls], RC = R.CLASSES[cls], lvl = Math.max(1, Math.min(NPC.maxLvl(cls, spec), spec.lvl || 1));
     if (!c || !RC) throw new Error('DEEP16: no class ' + cls);
+    var pkd = pickedOver(spec, lvl); if (pkd) spec = Object.assign({}, spec, pkd.fields); // (a card's level choices past the increase, 10-17: pickedOver below)
     var race = NPC.RACES[spec.race || 'human'] || NPC.RACES.human;
     var abil = {};
     c.prio.forEach(function (k, i) { abil[k] = ARRAY[i]; });
@@ -307,6 +308,7 @@
     var sub = c.sub && lvl >= c.sub[0] ? c.sub[1] : null;
     if ('subclass' in spec) sub = spec.subclass;
     if (cls === 'warlock' && spec.patron === 'mirror') sub = 'The Mirror';
+    if (pkd && pkd.fields.subclass != null) sub = pkd.fields.subclass; // (one chosen on the card's EDIT stands over the register's, Amara's patron too)
     if (sub === 'Draconic Bloodline') hp += lvl; // Draconic Resilience: +1 HP a level
     if (spec.hp && !spec.away) hp = spec.hp; // (a named one's sheet: its register's number; away from its level, the SRD's average)
     var h = {
@@ -353,6 +355,7 @@
         var alw = alwaysOf(cc, sub, lvl, h.land), keep = h.known.filter(function (id) { var s = D.magic.data(id); return !s || !(s.level > 0) || alw.indexOf(id) >= 0; });
         h.known = keep.concat(spec.prepared).filter(function (id, i, a) { return a.indexOf(id) === i; });
       }
+      if (pkd) h.known = h.known.filter(function (id) { return pkd.drop.indexOf(id) < 0; }).concat(pkd.add).filter(function (id, i, a) { return a.indexOf(id) === i; }); // (the card's swaps)
     }
     // Pact of the Tome (SRD 5.1, 3rd): the Book of Shadows -- three cantrips from any class's list, cast at will, and not counted against the
     // cantrips known; warlock spells for her though they are not on its list (the built ones only: a cantrip not built is not on the ring)
@@ -426,6 +429,64 @@
     pool = pool.filter(uniq).filter(function (id) { var L2 = lv(id); return L2 >= 1 && L2 <= top && alw.indexOf(id) < 0; })
       .map(function (id, i) { return { id: id, i: i, lv: lv(id) }; }).sort(function (a, b) { return a.lv - b.lv || a.i - b.i; }).map(function (x) { return x.id; });
     return { n: n, top: top, pool: pool, always: alw.filter(function (id) { return lv(id) >= 0 && lv(id) <= top; }), def: h.known.filter(function (id) { return lv(id) >= 1 && alw.indexOf(id) < 0; }) };
+  };
+  // a card's level choices past the increase (10-17, the Pocket DM's EDIT -- Griz: "For the named characters let's add an edit toggle on the level select screen,
+  // where they get full edit of torvald and aurdin and such"): spec.picks to the level, in order -- the archetype, the class options and the style in place of
+  // the register's, the spells taken and the ones let go (drop) over its list. Null when the picks hold only increases (NPC.sheet reads those itself)
+  function pickedOver(spec, lvl) {
+    var P = spec.picks; if (!P) return null;
+    var out = { fields: {}, add: [], drop: [] }, any = false;
+    Object.keys(P).map(Number).sort(function (a, b) { return a - b; }).forEach(function (L) {
+      var p = P[L] || {}; if (L > lvl) return;
+      if (p.archetype != null) { out.fields.subclass = p.archetype; any = true; }
+      R.PICK_OPTS.forEach(function (k) { if (p[k] != null) { out.fields[k] = p[k]; any = true; } });
+      (p.drop || []).forEach(function (id) { out.drop.push(id); out.add = out.add.filter(function (x) { return x !== id; }); any = true; });
+      (p.spells || []).concat(p.cantrip || []).forEach(function (id) { out.add.push(id); out.drop = out.drop.filter(function (x) { return x !== id; }); any = true; });
+    });
+    return any ? out : null;
+  }
+  // a class sheet's level-up as the one pick page asks it (10-17 -- the Pocket DM's maker, Griz: "Ideally this wouldn't level until next, then you'd have to walk all
+  // the way through each one for that character", and a named card's EDIT): what level L gives over L-1 -- the increase, the subclass at its level, the cantrips
+  // and spells it adds (the new ones of its list marked, any of the class's up to the level's slots offered), the class options as their counts grow
+  // (invocations, metamagic) or at their level (the pact, the land), the fighting style at its level. spec: the character (its picks, its list, at any level);
+  // o.known: the spells it has at L-1 (else its sheet's); o.classDefaults: the class's own new spells marked, not its list's (the maker, whose list is the
+  // player's). Returns { lvl, asks, lines }: asks empty when the level gives nothing to choose; lines, what the level gave
+  NPC.levelAsks = function (spec, L, o) {
+    o = o || {};
+    var cls = spec.cls, c = C[cls], RC = R.CLASSES[cls], at = function (s, lv) { return NPC.sheet(Object.assign({}, s, { lvl: lv })); };
+    var hL = at(spec, L), hP = L > 1 ? at(spec, L - 1) : null, asks = [], name = spec.name || RC.name;
+    var fill = function (took, ids, n) { return took.concat(ids.filter(function (id) { return took.indexOf(id) < 0; })).slice(0, n); }; // (the class's own, topped up from the list to the count: CONFIRM is never short on its own picks)
+    var lines = [L > 1 ? name + ' is now level ' + L + '! Max HP +' + (hL.maxhp - hP.maxhp) + '.' : name + ' at level 1: HP ' + hL.maxhp + '.'];
+    if (hL.asiAt && hL.asiAt[L]) asks.push({ kind: 'asi', need: 2, took: hL.asiAt[L] });
+    var scl = R.SUBCLASSES[cls];
+    if (scl && L === scl.at) asks.push({ kind: 'archetype', word: scl.word, need: 1, took: scl.opts.some(function (x) { return x.name === hL.subclass; }) ? hL.subclass : scl.opts[0].name,
+      rows: scl.opts.map(function (x) { return { id: x.name, name: x.name + (x.srd ? '' : ' *'), desc: x.desc || '', max: 1 }; }) });
+    if (RC.caster && (c.prepares || c.known)) {
+      var have = o.known || (hP ? hP.known : []), lv = function (id) { var s = D.magic.data(id); return s ? s.level || 0 : -1; };
+      var row = function (id) { var s = D.magic.data(id); return { id: id, name: s.name, desc: s.desc || '', lv: s.level || 0, max: 1, off: '' }; };
+      var dS = o.classDefaults ? Object.assign({}, spec, { known: null }) : spec, dL = at(dS, L).known, dP = L > 1 ? at(dS, L - 1).known : [];
+      var fresh = dL.filter(function (id) { return dP.indexOf(id) < 0 && have.indexOf(id) < 0; });
+      var nc = function (x) { return c.cantrips ? c.cantrips[x - 1] || 0 : 0; }, kc = nc(L) - (L > 1 ? nc(L - 1) : 0);
+      if (kc > 0) {
+        var cpool = ((c.spells && c.spells[0]) || []).filter(function (id) { return lv(id) === 0 && have.indexOf(id) < 0; });
+        if (cpool.length) asks.push({ kind: 'cantrip', need: kc, took: fill(fresh.filter(function (id) { return cpool.indexOf(id) >= 0; }), cpool, kc), rows: cpool.map(row) });
+      }
+      var iL = NPC.prepInfo(Object.assign({}, dS, { lvl: L })), iP = L > 1 ? NPC.prepInfo(Object.assign({}, dS, { lvl: L - 1 })) : null, ks = iL ? iL.n - (iP ? iP.n : 0) : 0;
+      if (ks > 0) {
+        var pool = iL.pool.filter(function (id) { return have.indexOf(id) < 0; });
+        if (pool.length) asks.push({ kind: 'spells', need: ks, took: fill(fresh.filter(function (id) { return pool.indexOf(id) >= 0; }), pool, ks), rows: pool.map(row) });
+      }
+    }
+    (NPC.OPTIONS[cls] || []).forEach(function (op) {
+      if (L < op.at) return;
+      var nN = op.count ? op.count(L) : 1, nP = L - 1 < op.at ? 0 : op.count ? op.count(L - 1) : 1, cur = hL[op.key];
+      if (nN <= nP) return;
+      asks.push({ kind: 'option', key: op.key, word: op.word, need: nN, one: !op.count, took: op.count ? fill((cur || []).filter(function (id) { return op.opts.some(function (x) { return x.id === id; }); }), op.opts.map(function (x) { return x.id; }), nN) : (op.opts.some(function (x) { return x.id === cur; }) ? cur : null),
+        rows: op.opts.map(function (x) { return { id: x.id, name: x.name, desc: x.desc || '', max: 1 }; }) });
+    });
+    if (R.STYLE_AT[cls] === L && (R.STYLE_FOR[cls] || []).length) asks.push({ kind: 'option', key: 'style', word: 'STYLE', need: 1, one: true, took: (R.STYLE_FOR[cls] || []).indexOf(hL.style) >= 0 ? hL.style : null,
+      rows: R.STYLE_FOR[cls].map(function (k) { return { id: k, name: R.STYLES[k].name, desc: R.STYLES[k].words || '', max: 1 }; }) });
+    return { lvl: L, asks: asks, lines: lines, h: hL }; // (h: the sheet at L, the page's scratch)
   };
   // the class's figure, or its race's where one is drawn (npc<class>_<race>_p0: the dragonborn's and the tiefling's, 10-03, Griz: "1 per class")
   function classLook(cls, race) { var k = C[cls] && C[cls].look, r = k && race && race !== 'human' ? k.replace('_p0', '_' + race + '_p0') : null; return r && D.SHEETS && D.SHEETS[r] ? r : k || null; }

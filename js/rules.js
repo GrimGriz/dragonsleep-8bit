@@ -332,7 +332,11 @@
   R.asiLevels = function (cls) { return R.ASI_AT[cls] || R.ASI_AT._; };
   // the picks in a word (the Pocket DM's cards carry a hero's picks into the fight's URL, 10-14): '+^' + level + a letter for the kind + ':' + the values --
   // '^6a:con2', '^4s:shatter-blur', '^4c:light', '^6e:Insight-Sleight_of_Hand', '^3r:Cutthroat' (a space as _)
-  var PICK_L = { asi: 'a', spells: 's', cantrip: 'c', expertise: 'e', archetype: 'r' };
+  // (10-17, the Pocket DM's EDIT for a named card -- Griz: "full edit of torvald and aurdin and such": the spells it let go '^5d:bless', the class options
+  // '^5i:agonizing-repelling' '^3m:twinned-careful' '^3p:blade' '^2l:mountain', the style '^1y:defense'; one value for the archetype, the pact, the land, the style)
+  var PICK_L = { asi: 'a', spells: 's', cantrip: 'c', expertise: 'e', archetype: 'r', drop: 'd', invocations: 'i', metamagic: 'm', pact: 'p', land: 'l', style: 'y' };
+  var PICK_ONE = { archetype: 1, pact: 1, land: 1, style: 1 };
+  R.PICK_OPTS = ['invocations', 'metamagic', 'pact', 'land', 'style'];
   R.picksWord = function (picks) {
     var out = [];
     Object.keys(picks || {}).map(Number).sort(function (a, b) { return a - b; }).forEach(function (L) {
@@ -340,7 +344,7 @@
       Object.keys(PICK_L).forEach(function (k) {
         var v = ch[k]; if (v == null) return;
         var s = k === 'asi' ? Object.keys(v).filter(function (x) { return x === 'feat' ? !!v.feat : v[x] > 0; }).map(function (x) { return x === 'feat' ? 'f' + v.feat : x + v[x]; }).join('-') : // (a feat: 'f<id>', 10-15)
-           k === 'archetype' ? String(v).replace(/ /g, '_') : v.map(function (x) { return String(x).replace(/ /g, '_'); }).join('-');
+           PICK_ONE[k] ? String(v).replace(/ /g, '_') : v.map(function (x) { return String(x).replace(/ /g, '_'); }).join('-');
         out.push('^' + L + PICK_L[k] + ':' + s);
       });
     });
@@ -349,10 +353,10 @@
   R.picksParse = function (parts) {
     var picks = null, K = {}; Object.keys(PICK_L).forEach(function (k) { K[PICK_L[k]] = k; });
     (parts || []).forEach(function (p) {
-      var m = /^\^(\d+)([ascer]):(.*)$/.exec(p); if (!m) return;
+      var m = /^\^(\d+)([a-z]):(.*)$/.exec(p); if (!m || !K[m[2]]) return;
       var L = +m[1], k = K[m[2]], s = m[3], v;
       if (k === 'asi') { v = {}; s.split('-').forEach(function (x) { var mm = /^(str|dex|con|int|wis|cha)([12])$/.exec(x), mf = /^f([a-z]+)$/.exec(x); if (mm) v[mm[1]] = +mm[2]; else if (mf && R.FEATS[mf[1]]) v.feat = mf[1]; }); }
-      else if (k === 'archetype') v = s.replace(/_/g, ' ');
+      else if (PICK_ONE[k]) v = s.replace(/_/g, ' ');
       else v = s ? s.split('-').map(function (x) { return x.replace(/_/g, ' '); }) : [];
       picks = picks || {}; (picks[L] = picks[L] || {})[k] = v;
     });
@@ -391,6 +395,7 @@
   // o: { pages: true -- the story game: page-only spells left out; built(id) -> '' or why not (the grid's: not on the grid yet) }
   R.pickRows = function (h, rec, ask, o) {
     o = o || {};
+    if (ask.rows) return ask.rows.map(function (r) { return Object.assign({}, r); }); // (rows the asker made: a class sheet's level, DEEP16's NPC.levelAsks -- 10-17)
     var d = DS.DATA.heroes[h.id] || {}, SP = DS.DATA.spells, took = ask.took;
     if (ask.kind === 'spells' || ask.kind === 'cantrip') {
       var top = R.slotsFor({ cls: h.cls, lvl: rec.lvl, subclass: h.subclass }).length, mine = took || [];
@@ -424,16 +429,23 @@
   R.pickMarks = function (ask) {
     var m = {};
     if (ask.kind === 'asi') Object.keys(ask.took || {}).forEach(function (k) { if (k === 'feat') { if (ask.took.feat) m['feat:' + ask.took.feat] = 1; } else if (ask.took[k] > 0) m[k] = ask.took[k]; });
-    else if (ask.kind === 'archetype') { if (ask.took) m[ask.took] = 1; }
+    else if (ask.kind === 'archetype' || typeof ask.took === 'string') { if (ask.took) m[ask.took] = 1; } // (one value: the archetype, a pact, a land, a style)
     else (ask.took || []).forEach(function (id) { m[id] = 1; });
     return m;
   };
   // the swap: `ch` by kind -- { asi: { str: 2 }, spells: [ids], cantrip: [ids], expertise: [names], archetype: name }; a kind not in `ch` stays asked.
   // Returns the lines that say what was taken
+  // (a class option asks by its key: { kind: 'option', key: 'invocations' } is ch.invocations -- 10-17)
+  R.askKey = function (a) { return a.kind === 'option' ? a.key : a.kind; };
   R.applyPick = function (h, rec, ch) {
     var lines = [], done = {};
     rec.asks = rec.asks.filter(function (a) {
-      var v = ch[a.kind]; if (v == null) return true;
+      var v = ch[R.askKey(a)]; if (v == null) return true;
+      if (a.kind === 'option') { // (the asker writes it where it belongs: the maker's sheet, a card's word)
+        var nm = function (id) { var r = (a.rows || []).filter(function (x) { return x.id === id; })[0]; return r ? r.name : id; };
+        lines.push(h.name + ': ' + (a.word || a.key).toLowerCase() + ' ' + [].concat(v).map(nm).join(', ') + '.');
+        done[a.key] = v; return false;
+      }
       if (a.kind === 'asi') {
         var con0 = DS.mod(h.abil.con), got = {}, parts = [];
         Object.keys(a.took || {}).forEach(function (k) { if (k === 'feat') { if (h.featIds) h.featIds = h.featIds.filter(function (x) { return x !== a.took.feat; }); } else h.abil[k] -= a.took[k]; }); // (a feat taken back: off the sheet)

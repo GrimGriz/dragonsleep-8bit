@@ -500,7 +500,8 @@
     if (a.kind === 'spells') return (n === 1 ? 'A SPELL' : n === 2 ? 'TWO SPELLS' : n + ' SPELLS') + ' FOR THE BOOK';
     if (a.kind === 'cantrip') return n === 1 ? 'A CANTRIP' : n + ' CANTRIPS';
     if (a.kind === 'expertise') return 'EXPERTISE: ' + (n === 2 ? 'two skills' : n + ' skills') + ', proficiency twice over';
-    return 'THE ARCHETYPE';
+    if (a.kind === 'option') return (a.word || a.key.toUpperCase()) + (n > 1 ? ': ' + n + ' in all' : ': one'); // (a class option, 10-17)
+    return a.word ? 'THE ' + a.word : 'THE ARCHETYPE';
   }
   function markWorth(id, n) { return /^feat:/.test(id) ? 2 * n : n; } // (a feat is the whole increase: both marks -- 10-15)
   function marksOf(g) { var n = 0; Object.keys(g.marks).forEach(function (k) { n += markWorth(k, g.marks[k]); }); return n; }
@@ -517,11 +518,13 @@
     ['archetype', 'asi', 'expertise', 'cantrip', 'spells'].forEach(function (kind) {
       self.groups.forEach(function (g) {
         if (g.ask.kind !== kind) return;
-        if (kind !== 'spells') { self.tabs.push({ g: g, label: PICK_WORD[kind] }); return; }
+        if (kind !== 'spells') { self.tabs.push({ g: g, label: kind === 'archetype' && g.ask.word ? g.ask.word : PICK_WORD[kind] }); return; }
         g.rows.map(function (r) { return r.lv; }).filter(function (lv, i, a) { return a.indexOf(lv) === i; }).sort(function (a, b) { return a - b; })
           .forEach(function (lv) { self.tabs.push({ g: g, lv: lv, label: 'L' + lv }); });
       });
     });
+    // (then the class's options, a tab each: INVOCATIONS, PACT, METAMAGIC, LAND, STYLE -- 10-17, the Pocket DM's maker and its cards)
+    self.groups.forEach(function (g) { if (g.ask.kind === 'option') self.tabs.push({ g: g, label: g.ask.word || g.ask.key.toUpperCase() }); });
     // (the first tab with a default marked, so the build's pick is what he sees first; else the first)
     this.tab = 0; this.seen = {}; // (the tabs he has looked at: refresh marks the one it shows)
     this.tabs.some(function (t, i) { if (t.g.rows.some(function (r) { return (t.lv == null || r.lv === t.lv) && t.g.marks[r.id]; })) { self.tab = i; return true; } return false; });
@@ -582,6 +585,7 @@
       var ids = Object.keys(g.marks).filter(function (k) { return g.marks[k] > 0; });
       if (g.ask.kind === 'asi') { var a = {}; ids.forEach(function (k) { if (/^feat:/.test(k)) a.feat = k.slice(5); else a[k] = g.marks[k]; }); ch.asi = a; }
       else if (g.ask.kind === 'archetype') ch.archetype = ids[0];
+      else if (g.ask.kind === 'option') ch[g.ask.key] = g.ask.one ? ids[0] : g.rows.filter(function (r) { return g.marks[r.id]; }).map(function (r) { return r.id; });
       else ch[g.ask.kind] = g.rows.filter(function (r) { return g.marks[r.id]; }).map(function (r) { return r.id; }); // (in the list's order)
     });
     return ch;
@@ -630,7 +634,7 @@
     var cur = this.list.cur();
     if (!cur) return;
     var nxD = this.unseen();
-    if (cur.confirm) descBox(ctx, nxD >= 0 ? 'Next, the ' + this.tabs[nxD].label + ' tab: look before you keep them.' : this.ready() ? 'Keep these and go on.' : 'Not yet: ' + this.short() + '.',this.groups.length > 1 ? 'Every tab counts: ' + this.groups.map(function (x) { return (x.ask.kind === 'spells' ? 'spells' : PICK_WORD[x.ask.kind].toLowerCase()) + ' ' + marksOf(x) + '/' + x.need; }).join(', ') + '.' : '');
+    if (cur.confirm) descBox(ctx, nxD >= 0 ? 'Next, the ' + this.tabs[nxD].label + ' tab: look before you keep them.' : this.ready() ? 'Keep these and go on.' : 'Not yet: ' + this.short() + '.',this.groups.length > 1 ? 'Every tab counts: ' + this.groups.map(function (x) { return (x.ask.kind === 'spells' ? 'spells' : (x.ask.word || PICK_WORD[x.ask.kind] || x.ask.kind).toLowerCase()) + ' ' + marksOf(x) + '/' + x.need; }).join(', ') + '.' : '');
     else descBox(ctx, cur.desc || '', cur.disabled ? 'Not offered: ' + cur.value.off + '.' : cur.value.tag === 'grid' ? 'Cast in the grid\'s fights (the story\'s); not in an 8-bit fight yet.' : 'E: mark or unmark.  ' + (self.groups.length > 1 || self.tabs.length > 1 ? 'Left/right: the tabs.' : ''));
   };
   // the pick pages for every hero with something to choose, one a hero a level, then done(); o: { pages, built } as R.pickRows takes them. The menu is the one

@@ -695,7 +695,9 @@
     if (sp && sp.abil) { var rc = NPC.RACES[sp.race] || NPC.RACES.human; Object.keys(rc.abil).forEach(function (k) { abil[k] -= rc.abil[k]; }); }
     this.mk = { step: 1, slot: slotIndex, editing: custom ? this.st.party[slotIndex].custom : null, cls: sp ? sp.cls : 'fighter', race: sp ? sp.race : 'human', abil: abil, lvl: sp ? Math.min(PK.cap(this.st), sp.lvl) : 1,
       equip: sp ? Object.assign({}, sp.equip) : null, alt: sp ? sp.alt : undefined, known: sp && sp.known ? sp.known.slice() : null, name: sp ? sp.name : '', tab: 'weapon', spellTab: 0,
-      style: sp ? sp.style || NPC.CLASSES[sp.cls].style || null : null, sub: sp && sp.subclass ? sp.subclass : null, picks: sp && sp.picks ? JSON.parse(JSON.stringify(sp.picks)) : null, opt: null };
+      style: sp ? sp.style || NPC.CLASSES[sp.cls].style || null : null, sub: sp && sp.subclass ? sp.subclass : null, picks: sp && sp.picks ? JSON.parse(JSON.stringify(sp.picks)) : null, opt: null,
+      walked: 0, got: null }; // (walked: the levels NEXT has walked -- one of your own already made stands walked to its level, 10-17)
+    if (sp) this.mk.walked = this.mk.lvl;
     var mk0 = this.mk; if (sp) (NPC.OPTIONS[sp.cls] || []).forEach(function (o) { if (sp[o.key] != null && !(o.key === 'pact' && sp.pact === NPC.CLASSES[sp.cls].pact)) { mk0.opt = mk0.opt || {}; mk0.opt[o.key] = o.count ? sp[o.key].slice() : sp[o.key]; } }); // (its class options, 10-14)
     if (!this.mk.equip) this.kitUp();
     this.go('maker');
@@ -726,6 +728,48 @@
     });
   };
   Pocket.prototype.mkSheet = function () { try { return NPC.sheet(this.mkSpec()); } catch (e) { return null; } };
+  // NEXT from THE LEVEL walks every level not yet walked, a pick page a level (10-17, Griz: "Ideally this wouldn't level until next, then you'd have to walk all
+  // the way through each one for that character"): the level's lines, then what it gives (js/classes.js NPC.levelAsks), the class's own marked and CONFIRM
+  // walking them; a level with nothing to choose passes, its lines said with the next page's. What is chosen is the maker's: the increase (m.picks), the
+  // subclass, the spells (m.known, and m.got by level so a level given back takes its own), the class options, the style. done() when the last is kept
+  Pocket.prototype.walkLevels = function (done) {
+    var m = this.mk, self = this, R8 = DS.R, said = [];
+    if ((m.walked || 0) >= m.lvl) { done(); return; }
+    if (!m.walked) { m.known = []; m.got = {}; } // (from level 1: every spell is the walk's)
+    else if (!m.known) { var inf = this.spellInfo(m.walked); m.known = inf ? inf.defC.concat(inf.def) : []; } // (an older one on its class's list: that list, written out)
+    m.got = m.got || {};
+    var scl = R.SUBCLASSES[m.cls];
+    var step = function () {
+      var L = (m.walked || 0) + 1;
+      if (L > m.lvl) { if (said.length) self.say(said[said.length - 1]); done(); return; }
+      var sp = self.mkSpec(); sp.name = m.name || R.CLASSES[m.cls].name;
+      if (scl && L < scl.at) delete sp.subclass; // (the subclass from its own level only)
+      var a = null; try { a = NPC.levelAsks(sp, L, { known: m.known, classDefaults: true }); } catch (e) { a = null; }
+      if (!a || !a.asks.length) { if (a) said = said.concat(a.lines); m.walked = L; step(); return; }
+      var h = a.h, rec = { lvl: L, asks: a.asks, lines: said.concat(a.lines).slice(-6) }; said = [];
+      h.picks = [rec]; R8.pendSync(h);
+      self.pm = DS.MENU.openPicks({ party: function () { return [h]; }, close: function () { } }, [h], { built: D.climb.built }, function () {
+        self.pm = null;
+        var ch = (h.chose && h.chose[L]) || {}, got = [].concat(ch.spells || [], ch.cantrip || []);
+        if (ch.asi) { m.picks = m.picks || {}; m.picks[L] = { asi: ch.asi }; }
+        if (ch.archetype != null) { var so = R.subOpt(m.cls, ch.archetype); m.sub = so && so.srd ? null : ch.archetype; }
+        m.known = m.known.concat(got.filter(function (id) { return m.known.indexOf(id) < 0; })); m.got[L] = got;
+        R8.PICK_OPTS.forEach(function (k) { if (ch[k] == null) return; if (k === 'style') m.style = ch[k]; else { m.opt = m.opt || {}; m.opt[k] = ch[k]; } });
+        m.walked = L; step();
+      });
+    };
+    step();
+  };
+  // a level given back on THE LEVEL takes what the walk gave it: its spells, its increase; the walk starts again from there
+  Pocket.prototype.levelBack = function () {
+    var m = this.mk;
+    for (var L = m.walked || 0; L > m.lvl; L--) {
+      var g = (m.got || {})[L] || [];
+      if (m.known) m.known = m.known.filter(function (id) { return g.indexOf(id) < 0; });
+      if (m.got) delete m.got[L]; if (m.picks) delete m.picks[L];
+    }
+    if ((m.walked || 0) > m.lvl) m.walked = m.lvl;
+  };
   // the mundane racks, by what the class may use (his: "generic kits per class"; the plus-ones are winnings)
   Pocket.prototype.rack = function (kind) {
     var h = this.mkSheet(), self = this, items = DS.DATA.items, out = [];
@@ -740,8 +784,8 @@
     return out;
   };
   // the class's spells, the built ones (his: "classed based, SRD - what we don't have"): the cantrips and the levelled, with the counts the level knows
-  Pocket.prototype.spellInfo = function () {
-    var sp = this.mkSpec(), c = NPC.CLASSES[sp.cls], info = null;
+  Pocket.prototype.spellInfo = function (atL) {
+    var sp = this.mkSpec(), c = NPC.CLASSES[sp.cls], info = null; if (atL) sp.lvl = atL; // (atL: another level's, the walk's start -- 10-17)
     try { info = NPC.prepInfo(Object.assign({}, sp, { known: null })); } catch (e) { info = null; }
     if (!info) return null;
     var built = function (id) { return !!D.magic.data(id); };
@@ -774,7 +818,7 @@
     if (L === slot.lvl) { D.sfx('error'); return; }
     slot.lvl = L; this.cache = {}; this.keep(); D.sfx('cursor');
     if (slot.picks) Object.keys(slot.picks).forEach(function (k) { if (+k > L) delete slot.picks[k]; }); // (a level given back takes its picks with it)
-    if (dir > 0) this.askLevel(i, L);
+    if (dir > 0 && this.st.editLevels) this.askLevel(i, L); // (EDIT off: the level's defaults, no page -- 10-17, his "or it always takes defaults (unlike Aurdin now)")
   };
   // a card's level up asks that level's choices (10-14, Griz: "I just clicked brann from L5 to L6 and expected choices"): the 8-bit's heroes and guests, made by
   // js/rules.js R.makeHero, on the one pick page (js/menu.js MN.openPicks) where the grid's M menu stands, as the climb asks them -- every spell offered (the
@@ -785,19 +829,22 @@
     if (sp.hero) { // (an 8-bit hero or guest, made by R.makeHero: the level's asks as the 8-bit's level-up leaves them)
       var d = DS.DATA.heroes[sp.hero]; if (!d || L <= d.level) return; // (at or below its start a hero is drawn as it starts: nothing a level gave)
       h = R8.makeHero(sp.hero, L - 1); if (slot.picks) R8.repick(h, slot.picks);
-      h.picks = null; R8.pendSync(h); h.xp = R8.XP_LEVEL[L]; R8.levelUp(h);
+      h.picks = null; R8.pendSync(h); h.xp = R8.XP_LEVEL[L]; var msgs = R8.levelUp(h);
       rec = (h.picks || []).filter(function (r) { return r.lvl === L; })[0];
-    } else { // (one of the class floor's named, made by NPC.sheet: the level's ability increase, past its register's level)
-      h = PK.sheetOf(sp); var got = h && h.asiAt && h.asiAt[L];
-      if (got) rec = { lvl: L, asks: [{ kind: 'asi', need: 2, took: got }] };
+      if (rec) rec.lines = msgs.filter(function (x) { return (msgs.asked || []).indexOf(x) < 0; }); // (its level lines over its page, 10-17)
+    } else { // (one of the class floor's named, made by NPC.sheet: the whole level as the maker's walk asks it -- 10-17, his "full edit of torvald and aurdin
+      // and such"; the spells it lets go ride the card's word as `drop`, js/classes.js pickedOver)
+      var a = null; try { a = NPC.levelAsks(Object.assign({}, sp, { lvl: L }), L); } catch (e) { a = null; }
+      if (a && a.asks.length) { h = a.h; rec = { lvl: L, asks: a.asks, lines: a.lines }; }
     }
     if (!rec) return;
     h.picks = [rec]; R8.pendSync(h);
-    var kinds = rec.asks.map(function (a) { return a.kind; });
+    var kinds = rec.asks.map(R8.askKey), tooks = rec.asks.map(function (a) { return { k: a.kind, took: a.took }; }); // (before the page takes them)
     this.pm = DS.MENU.openPicks({ party: function () { return [h]; }, close: function () { } }, [h], { built: D.climb.built }, function () {
       self.pm = null;
       var ch = (h.chose && h.chose[L]) || {}, keep = {};
       kinds.forEach(function (k) { if (ch[k] != null) keep[k] = ch[k]; });
+      if (!sp.hero) tooks.forEach(function (t) { if ((t.k === 'spells' || t.k === 'cantrip') && ch[t.k]) { var dr = (t.took || []).filter(function (id) { return ch[t.k].indexOf(id) < 0; }); if (dr.length) keep.drop = (keep.drop || []).concat(dr); } });
       slot.picks = slot.picks || {}; slot.picks[L] = keep;
       self.cache = {}; self.keep();
     });
@@ -898,7 +945,10 @@
     var ready = this.ready();
     this.btn(ctx, '- a seat', 20, 200, 70, 14, function () { if (st.party.length > 1) { st.party.pop(); self.cache = {}; self.keep(); } }, { dis: n <= 1 });
     this.btn(ctx, '+ a seat', 96, 200, 70, 14, function () { if (st.party.length < 6) { st.party.push({ w: 'new' }); self.cache = {}; self.keep(); } }, { dis: n >= 6 });
-    if (st.roster.length) D.text(ctx, st.roster.length + ' of your own on the roster (cycle to them)', 180, 203, P('stone', 5));
+    // the cards' level arrows (10-17, Griz: "For the named characters let's add an edit toggle on the level select screen, where they get full edit of torvald
+    // and aurdin and such, or it always takes defaults (unlike Aurdin now)"): EDIT, each level up opens its pick page (Pocket.askLevel); DEFAULTS, none does
+    this.btn(ctx, st.editLevels ? 'LEVEL-UPS: EDIT' : 'LEVEL-UPS: DEFAULTS', 172, 200, 132, 14, function () { st.editLevels = !st.editLevels; self.keep(); D.sfx('cursor'); }, { on: !!st.editLevels, why: 'EDIT: a card\'s level up asks its choices; DEFAULTS: it takes its own' });
+    if (st.roster.length) D.text(ctx, st.roster.length + ' of your own on the roster', 312, 203, P('stone', 5));
     this.btn(ctx, 'BACK', 20, 236, 60, 15, function () { self.back(); });
     this.btn(ctx, 'SAVE CAMPAIGN', 88, 236, 114, 15, function () { self.saveTable(); }); // (the whole campaign's file, 10-06: PK.tableFile; SAVE ROSTER till then, greyed with no character of your own; SAVE TABLE till 10-09)
     this.btn(ctx, 'LOAD CAMPAIGN', 208, 236, 114, 15, function () { self.loadTable(); }); // (a campaign or table file, or a roster file of 10-03's)
@@ -918,7 +968,7 @@
       D.text(ctx, '{y}RACE{/}', 30, y, P('bone', 1)); D.text(ctx, '{y}CLASS{/}', 250, y, P('bone', 1));
       var races = Object.keys(NPC.RACES), classes = Object.keys(NPC.CLASSES);
       races.forEach(function (rk, i) { var rc = NPC.RACES[rk], ks = Object.keys(rc.abil); self.btn(ctx, rc.name, 30, y + 12 + i * 15, 90, 13, function () { m.race = rk; }, { on: m.race === rk, small: true }); D.text(ctx, ks.length === 6 ? '+1 to all six' : ks.map(function (k) { return k.toUpperCase() + '+' + rc.abil[k]; }).join(' '), 126, y + 15 + i * 15, P('stone', 5)); });
-      classes.forEach(function (ck, i) { var col = i < 6 ? 0 : 1, row = i % 6; self.btn(ctx, R.CLASSES[ck].name, 250 + col * 110, y + 12 + row * 15, 100, 13, function () { if (m.cls !== ck) { m.cls = ck; self.kitUp(); } }, { on: m.cls === ck, small: true }); });
+      classes.forEach(function (ck, i) { var col = i < 6 ? 0 : 1, row = i % 6; self.btn(ctx, R.CLASSES[ck].name, 250 + col * 110, y + 12 + row * 15, 100, 13, function () { if (m.cls !== ck) { m.cls = ck; self.kitUp(); m.walked = 0; m.got = null; } }, { on: m.cls === ck, small: true }); });
       D.text(ctx, 'the race\'s numbers go on top of the scores you set next', 250, y + 108, P('stone', 5));
     } else if (step === 2) {
       var rc = NPC.RACES[m.race] || NPC.RACES.human;
@@ -937,8 +987,10 @@
       this.btn(ctx, 'ALL TENS', 300, y + 117, 70, 13, function () { NPC.ABIL.forEach(function (k) { m.abil[k] = 10; }); }, { small: true });
       this.btn(ctx, 'THE ARRAY', 376, y + 117, 76, 13, function () { var c = NPC.CLASSES[m.cls]; c.prio.forEach(function (k, i) { m.abil[k] = [15, 14, 13, 12, 10, 8][i]; }); }, { small: true });
     } else if (step === 3) {
-      D.text(ctx, 'the level, 1 to ' + PK.cap(this.st) + ' (ability score improvements come with it: the class\'s first, or yours below)', D.W / 2, y, P('silver', 5), 'center');
-      this.btn(ctx, '<', 190, y + 20, 20, 16, function () { if (m.lvl > 1) m.lvl--; else D.sfx('error'); });
+      // (10-17: the arrows set the level and NEXT walks it, a pick page a level -- Pocket.walkLevels; what is below changes one level's after)
+      D.text(ctx, 'the level, 1 to ' + PK.cap(this.st) + ': NEXT walks each level\'s choices, the class\'s own marked', D.W / 2, y, P('silver', 5), 'center');
+      if ((m.walked || 0) < m.lvl) D.text(ctx, '{y}NEXT walks level' + ((m.walked || 0) + 1 < m.lvl ? 's ' + ((m.walked || 0) + 1) + ' to ' + m.lvl : ' ' + m.lvl) + '{/}', 330, y + 24, P('bone', 1));
+      this.btn(ctx, '<', 190, y + 20, 20, 16, function () { if (m.lvl > 1) { m.lvl--; self.levelBack(); } else D.sfx('error'); });
       ctx.save(); ctx.translate(240, y + 18); ctx.scale(2, 2); D.text(ctx, String(m.lvl), 0, 0, P('gold', 4), 'center'); ctx.restore();
       this.btn(ctx, '>', 270, y + 20, 20, 16, function () { if (m.lvl < PK.cap(self.st)) m.lvl++; else D.sfx('error'); });
       if (h) {
@@ -1066,7 +1118,10 @@
       }
     }
     this.btn(ctx, step === 1 ? 'BACK' : '< BACK', 20, 236, 70, 15, function () { self.back(); });
-    if (step < 6) this.btn(ctx, 'NEXT >', D.W - 100, 236, 80, 15, function () { m.step = step === 4 && !caster ? 6 : step + 1; self.scroll = 0; self.dropField(); }, { pri: true });
+    if (step < 6) this.btn(ctx, 'NEXT >', D.W - 100, 236, 80, 15, function () {
+      if (step === 3) { self.walkLevels(function () { m.step = 4; self.scroll = 0; }); return; } // (the level's choices first, 10-17)
+      m.step = step === 4 && !caster ? 6 : step + 1; self.scroll = 0; self.dropField();
+    }, { pri: true });
     else this.btn(ctx, 'SAVE', D.W - 100, 236, 80, 15, function () { self.saveMade(); }, { pri: true });
   };
   // the maps, the dark ones said so and shown so
