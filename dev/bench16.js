@@ -1813,6 +1813,8 @@
       BL.hurt(uL, uL.hp + 5, 'bludgeoning', sideF(BL, 'foe')[0]); var lL = logF(BL, nL);
       okF('THE FALL LINE: ' + (lL.match(/goes down\.[^|]*/) || ['(no line)'])[0], /The Ledger-Lamp burns where Fighter 5 fell/.test(lL) && !/torch burns beside/.test(lL));
       // 5f. THE PARTY AT THE DM'S TABLE (the Pocket DM §2e): BACK and its forward button go back to the campaign, a ladder under way kept; the release edition's as it was
+      // (SUPERSEDED 10-17 by his two Pocket DMs -- "We'll want to remove 'Party' and 'Play Ladder' from the DM side of things": THE PARTY is the player side's at both
+      // tables, BACK to the title and NEXT: THE CAMP forward, a run under way kept; the DM side builds, the camp plays -- the lane's 2l)
       var memPk = {}, sgPk = D.store.get, ssPk = D.store.set, m0Pk = D.input.mouse, cv0Pk = D.canvas, cvPk = document.createElement('canvas'); cvPk.width = D.W; cvPk.height = D.H; var cxPk = cvPk.getContext('2d');
       D.store.get = function (k) { return memPk[k] ? JSON.parse(memPk[k]) : null; }; D.store.set = function (k, v) { memPk[k] = JSON.stringify(v); return true; }; if (!D.canvas) D.canvas = cvPk;
       try {
@@ -1820,7 +1822,7 @@
         var pkA = new D.Pocket(); pkA.enter(); pkA.st.dm = true; pkA.st.run = { rung: 2 }; pkA.screen = 'party'; pkA.back(); var bA = pkA.screen;
         pkA.screen = 'party'; pkA.draw(cxPk); clickPk(pkA, D.W - 85, 243); var nA = pkA.screen, runA = !!pkA.st.run;
         var pkB = new D.Pocket(); pkB.enter(); pkB.st.dm = false; pkB.screen = 'party'; pkB.back(); var bB = pkB.screen;
-        okF('THE PARTY AT THE DM\'S TABLE: BACK to ' + bA + ', the forward button to ' + nA + ' (the ladder under way kept ' + runA + '); the release edition\'s BACK to ' + bB, bA === 'camp' && nA === 'camp' && runA && bB === 'title');
+        okF('THE PARTY AT THE DM\'S TABLE: BACK to ' + bA + ', the forward button to ' + nA + ' (the ladder under way kept ' + runA + '); the release edition\'s BACK to ' + bB, bA === 'title' && nA === 'hub' && runA && bB === 'title');
       } finally { D.store.get = sgPk; D.store.set = ssPk; D.input.mouse = m0Pk; D.canvas = cv0Pk; }
       // 5g. A BIG ONE PICKED BY ITS CUBE (eyes §2d): a stone giant (Huge) takes a click anywhere in its 15 ft cube as drawn -- here near the cube's side corner, outside the
       // old box round its foot point; a goblin (Medium) keeps the old box
@@ -4874,7 +4876,12 @@
       var rsMo = wr ? wr.slots.slice(0, 5).map(function (s) { return (s.rest.long ? 'L' : s.rest.short ? 'S' : '-') + (s.rest.market ? 'M' : ''); }).join(' ') : '';
       okMo('its rests: a short rest after 1, 2, 4 and 5, a long rest and the market after 3 (' + rsMo + ')', rsMo === 'S S LM S S');
       Pm.go('title'); drawMo(Pm, 'title'); var tlMo = Pm.btns.map(function (b) { return b.label; });
-      okMo('the title has MODULES and no A DM\'S LADDER', tlMo.indexOf('MODULES') >= 0 && tlMo.indexOf('A DM\'S LADDER') < 0);
+      okMo('the title: START, and no MODULES or A DM\'S LADDER (LOAD MODULE is THE CAMP\'s since 10-17)', tlMo.indexOf('START') >= 0 && tlMo.indexOf('MODULES') < 0 && tlMo.indexOf('A DM\'S LADDER') < 0);
+      // THE CAMP (10-17, his "The FOES page on the player side becomes the camp, where they can open the standard 'm' menu")
+      Pm.go('party'); drawMo(Pm, 'party'); var nxC = btnMo(Pm, /^NEXT: THE CAMP$/); if (nxC) Pm.fire(nxC); drawMo(Pm, 'hub');
+      var hubL = Pm.btns.map(function (b) { return b.label; }), playDis = btnMo(Pm, /^PLAY MODULE$/);
+      okMo('THE PARTY, NEXT: THE CAMP -- THE MENU, THE MARKET, SAVE THE PARTY, LOAD A PARTY, SINGLE FIGHT, RANDOM LADDER, LOAD MODULE, and PLAY MODULE greyed with none loaded',
+        !!nxC && Pm.screen === 'hub' && ['THE MENU  (M)', 'SAVE THE PARTY', 'LOAD A PARTY', 'SINGLE FIGHT', 'RANDOM LADDER', 'LOAD MODULE'].every(function (l) { return hubL.indexOf(l) >= 0; }) && hubL.some(function (l) { return /^THE MARKET/.test(l); }) && !!playDis && !!playDis.dis);
       Pm.go('modules'); drawMo(Pm, 'modules'); var toL = btnMo(Pm, /^THE PARTY TO LEVEL 1$/); if (toL) Pm.fire(toL);
       var lvMo = Pm.levels().join('/'); drawMo(Pm, 'modules again');
       okMo('THE MODULES: THE WAGON ROAD picked first; THE PARTY TO LEVEL 1 puts the four at ' + lvMo + ', and then is gone', Pm.modSel === 'game:wagonroad' && !!toL && lvMo === '1/1/1/1' && !btnMo(Pm, /^THE PARTY TO LEVEL/));
@@ -4883,19 +4890,34 @@
       okMo('a DM\'s ladder file of 10-17 reads as a module: 5 fights, a short rest and the market between, a long rest before the fifth, "The trial"',
         !!lmMo && lmMo.slots.length === 5 && lmMo.slots[0].rest.short && lmMo.slots[0].rest.market && !lmMo.slots[0].rest.long && lmMo.slots[3].rest.long && lmMo.slots[4].name === 'The trial');
       var kMo0 = PKm.keepModule(Pm.st, lmMo), modsK = PKm.modules(Pm.st); PKm.keepModule(Pm.st, lmMo);
-      okMo('a module from a file is kept in the list after the game\'s own, once', kMo0 === 'kept:0' && modsK.length === mods.length + 1 && modsK[modsK.length - 1].name === 'A DM\'S LADDER' && Pm.st.modules.length === 1);
+      okMo('a module from a file is kept in the list after the game\'s own, once, by a key of its own (' + kMo0 + ')', /^kept:m/.test(kMo0) && PKm.keepModule(Pm.st, lmMo) === kMo0 && modsK.length === mods.length + 1 && modsK[modsK.length - 1].name === 'A DM\'S LADDER' && Pm.st.modules.length === 1);
       Pm.st.modules = [];
-      Pm.modSel = 'game:wagonroad'; drawMo(Pm, 'modules'); var playMo = btnMo(Pm, /^PLAY THIS MODULE$/); if (playMo) Pm.fire(playMo);
+      Pm.modSel = 'game:wagonroad'; drawMo(Pm, 'modules'); var loadMo = btnMo(Pm, /^LOAD THIS MODULE$/); if (loadMo) Pm.fire(loadMo);
+      drawMo(Pm, 'hub'); var playMo = btnMo(Pm, /^PLAY THE WAGON ROAD$/);
+      okMo('LOAD THIS MODULE: back at THE CAMP with PLAY THE WAGON ROAD lit', !!loadMo && Pm.screen === 'hub' && Pm.st.moduleKey === 'game:wagonroad' && !!playMo && !playMo.dis);
+      // THE LONG REST (his "For ladder and module play, long rest and daily spells/pre-cast (aid, mage armor) then go to fight")
+      if (playMo) Pm.fire(playMo); drawMo(Pm, 'morning');
+      var goM = btnMo(Pm, /^TO FIGHT 1$/), mInf = Pm.mInfoNow(), azM = mInf.cards.filter(function (c) { return c && c.sp.hero === 'aurdin'; })[0];
+      okMo('PLAY: THE LONG REST first -- Aurdin\'s day ' + (azM && azM.pi ? azM.prepared.length + ' of ' + azM.pi.n : 'none') + ', MAGE ARMOR ' + (mInf.ma.on ? 'on ' + (mInf.ma.target && mInf.ma.target.h.name) : 'off: ' + mInf.ma.why) + ', then TO FIGHT 1',
+        Pm.screen === 'morning' && !!goM && !!azM && !!azM.pi && azM.prepared.length === azM.pi.n && mInf.ma.on && !!mInf.ma.caster && mInf.ma.caster.sp.hero === 'aurdin');
+      if (goM) Pm.fire(goM);
       var runMo = Pm.st.run;
+      // what the morning puts on: Mage Armor on him from his 1st-level slot; turned off, he walks in bare with the slot -- the fixture casts nothing of itself under a morning
+      var unitOf = function (who) { var Bq = null; D.push = function (b) { Bq = b; }; try { Pm.launch(); } finally { D.push = push0Mo0; } if (!Bq) return null; D.battle = Bq; Bq.enter(); for (var g = 0; g < 300 && !(Bq.order && Bq.order.length); g++) Bq.co.next(); return Bq.units.filter(function (u) { return u.hero === who; })[0] || null; };
+      var push0Mo0 = D.push, azU = unitOf('aurdin'), maOn = azU && azU.conds.mageArmor === 1 && azU.slots[0] === azU.slotsMax[0] - 1;
+      Pm.morning().ma.on = false; Pm.mInfo = null; Pm.takeMorning(); var azU2 = unitOf('aurdin'), maOff = azU2 && !azU2.conds.mageArmor && azU2.slots[0] === azU2.slotsMax[0];
+      Pm.morning().ma.on = true; Pm.mInfo = null; Pm.takeMorning();
+      okMo('the morning is worn: Aurdin in Mage Armor, a 1st-level slot spent (' + (azU && azU.slots.join('/')) + ' of ' + (azU && azU.slotsMax.join('/')) + '); MAGE ARMOR off, bare and the slot kept (' + (azU2 && azU2.slots.join('/')) + ')', !!maOn && !!maOff);
       okMo('PLAY THIS MODULE: ' + (runMo && Pm.rungName(runMo)) + ' on ' + (runMo && runMo.map) + ', ' + (runMo && PKm.foesText(runMo.foes)) + ', on THE FOES',
         !!runMo && !!runMo.module && runMo.rung === 1 && Pm.lastRung(runMo) === 6 && Pm.rungName(runMo) === 'FIGHT 1 OF 6' && runMo.map === 'snootroad' && runMo.foes.join() === 'bandit,bandit,bandit,bandit' && Pm.screen === 'cr' && !Pm.hasTrial(runMo));
       drawMo(Pm, 'cr'); var crMo = Pm.btns.map(function (b) { return b.label; });
       okMo('THE FOES in a module: FIGHT 1 OF 6, QUIT THE MODULE, no REROLL', crMo.indexOf('FIGHT 1 OF 6') >= 0 && crMo.indexOf('QUIT THE MODULE') >= 0 && crMo.indexOf('REROLL') < 0);
       // the run, played by the AI's party
-      var nMo = +get('runs', 3), push0Mo = D.push, restSeen = {}, drawsMo = true, longOK = true, doneOK = true;
+      var nMo = +get('runs', 3), push0Mo = D.push, restSeen = {}, drawsMo = true, longOK = true, doneOK = true, xpSeq = null, lvEnd = null, lvMid = null;
       for (var kMo = 0; kMo < nMo; kMo++) {
-        D.seed = 3000 + kMo * 7919; Pm.st.run = null; Pm.startModule(wr); Pm.watch = true;
-        var gotMo = 0, outMo = 'done';
+        D.seed = 3000 + kMo * 7919; Pm.st.run = null; Pm.st.party.forEach(function (sl) { sl.lvl = 1; sl.xp = 0; }); Pm.cache = {};
+        Pm.startModule(wr); Pm.mInfo = null; Pm.takeMorning(); Pm.watch = true;
+        var gotMo = 0, outMo = 'done', xpRun = [];
         for (var fMo = 0; fMo < 6; fMo++) {
           var Bm = null; D.push = function (b) { Bm = b; }; try { Pm.launch(); } finally { D.push = push0Mo; }
           if (!Bm) { outMo = 'fight ' + (fMo + 1) + ' never set'; break; }
@@ -4905,7 +4927,9 @@
           repMo.fights[fk] = repMo.fights[fk] || { won: 0, lost: 0, other: 0, rounds: 0, downs: 0 }; var fr = repMo.fights[fk];
           fr[rMo === 'won' ? 'won' : rMo === 'lost' ? 'lost' : 'other']++; fr.rounds += Bm.round || 0; fr.downs += Pm.result && Pm.result.rec ? Pm.result.rec.downs : 0;
           if (rMo !== 'won') { outMo = 'lost at fight ' + (fMo + 1) + (rMo !== 'lost' ? ' (' + rMo + ')' : ''); break; }
-          gotMo++;
+          gotMo++; xpRun.push(Pm.result && Pm.result.xp);
+          if (fMo === 2 && lvMid == null) lvMid = Pm.levels().join('/') + ' with ' + Pm.st.party.map(function (sl) { return sl.xp; }).join('/') + ' XP';
+          if (fMo === 5 && xpSeq == null) { xpSeq = xpRun.join(' '); lvEnd = { levels: Pm.levels().join('/'), lines: (Pm.result && Pm.result.levels) || [] }; }
           if (fMo === 5) { if (!(Pm.result && Pm.result.moduleDone === 'THE WAGON ROAD' && !Pm.st.run)) { doneOK = false; outMo = 'the last won, not marked done'; } break; }
           if (!drawMo(Pm, 'result ' + (fMo + 1))) drawsMo = false;
           var rbMo = btnMo(Pm, /^A (LONG|SHORT) REST$|^ON TO FIGHT/); if (!rbMo) { outMo = 'no rest button after fight ' + (fMo + 1); break; }
@@ -4914,15 +4938,39 @@
           if (fMo === 2 && Pm.st.run.carry) longOK = false;
           var nbMo = btnMo(Pm, new RegExp('^FIGHT ' + (fMo + 2) + '$')); if (!nbMo) { outMo = 'no FIGHT ' + (fMo + 2) + ' on the rest'; break; }
           Pm.fire(nbMo);
+          if (Pm.screen === 'morning') { if (!drawMo(Pm, 'morning ' + (fMo + 2))) drawsMo = false; var gmMo = btnMo(Pm, new RegExp('^TO FIGHT ' + (fMo + 2) + '$')); if (!gmMo) { outMo = 'no TO FIGHT ' + (fMo + 2) + ' on THE LONG REST'; break; } restSeen[fMo + 1] += ' + THE LONG REST'; Pm.fire(gmMo); }
           var sl2 = wr.slots[fMo + 1]; if (!(Pm.st.run.rung === fMo + 2 && Pm.st.run.map === sl2.map && Pm.st.run.foes.join() === sl2.foes.join() && Pm.screen === 'cr')) { outMo = 'fight ' + (fMo + 2) + ' not as built'; break; }
         }
         repMo.reach.push(gotMo); repMo.runs.push(outMo);
       }
       Pm.st.run = null;
+      // THE MENU at THE CAMP: the regular menu over the party, closed back to the camp
+      Pm.go('hub'); drawMo(Pm, 'hub'); var mnB = btnMo(Pm, /^THE MENU/); if (mnB) Pm.fire(mnB); var pmOpen = !!Pm.pm, pmN = Pm.pm ? Pm.pm.host.party().length : 0; if (Pm.pm) Pm.pm.close();
+      okMo('THE MENU: the regular menu over the ' + pmN + ' of the party, and closed back to THE CAMP', pmOpen && pmN === 4 && !Pm.pm && Pm.screen === 'hub');
+      // SAVE THE PARTY, LOAD A PARTY (his "Player saves are current party and pack")
+      Pm.st.pack = [{ id: 'potion', n: 2 }]; Pm.st.purse = 345; var dlMo = [], clkMo = HTMLAnchorElement.prototype.click; HTMLAnchorElement.prototype.click = function () { dlMo.push({ name: this.download, href: this.href }); };
+      var pfName = null; try { pfName = Pm.saveParty(); } finally { HTMLAnchorElement.prototype.click = clkMo; }
+      var pfText = null; try { var xqP = new XMLHttpRequest(); xqP.open('GET', dlMo[0].href, false); xqP.send(); pfText = xqP.responseText; } catch (eXp) { repMo.errors.push('party file: ' + eXp); }
+      var lvB = Pm.st.party.map(function (sl) { return sl.lvl; }).join(); Pm.st.pack = []; Pm.st.purse = 1; Pm.st.party.forEach(function (sl) { sl.lvl = 5; }); var tpMo = Pm.takeParty(pfText);
+      okMo('SAVE THE PARTY and LOAD A PARTY: ' + pfName + ' brings back the seats (' + Pm.st.party.map(function (sl) { return sl.w + ':' + sl.lvl; }).join(' ') + '), the pack and the 345 sp',
+        !!tpMo && /^pocket-party-/.test(pfName || '') && Pm.st.purse === 345 && Pm.st.pack.length === 1 && Pm.st.pack[0].n === 2 && Pm.st.party.map(function (sl) { return sl.lvl; }).join() === lvB);
+      // SINGLE FIGHT: THE MAP, THE FOES, FIGHT, THE LONG REST, FIGHT (his "For single fight, map and CR setting, then long rest spell selection")
+      Pm.go('hub'); drawMo(Pm, 'hub'); var sfB = btnMo(Pm, /^SINGLE FIGHT$/); if (sfB) Pm.fire(sfB); var onMap = Pm.screen === 'map'; drawMo(Pm, 'map');
+      var nfB = btnMo(Pm, /^NEXT: THE FOES$/); if (nfB) Pm.fire(nfB); drawMo(Pm, 'cr'); var fiB = btnMo(Pm, /^FIGHT$/); if (fiB) Pm.fire(fiB); var onMorn = Pm.screen === 'morning'; drawMo(Pm, 'morning single');
+      var gfB = btnMo(Pm, /^FIGHT$/), Bsf = null; D.push = function (b) { Bsf = b; }; try { if (gfB) Pm.fire(gfB); } finally { D.push = push0Mo; }
+      okMo('SINGLE FIGHT: THE MAP, THE FOES, FIGHT, then THE LONG REST, then FIGHT sets the fight in the day\'s morning', onMap && onMorn && !!Bsf && !!(Pm.st.dayMorning && Pm.st.dayMorning.cards));
+      // the DM's side: THE CAMPAIGN builds, the camp plays (his "We'll want to remove 'Party' and 'Play Ladder' from the DM side of things"; "3. yes - with DM mode on too")
+      Pm.st.dm = true; var cpdMo = D.pocketdm.camp(Pm.st); cpdMo.plan = [{ map: idsMo[0], cr8: 8, foes: ['goblin', 'goblin'], mine: 0, units: [] }];
+      Pm.go('camp'); drawMo(Pm, 'campaign'); var cpL = Pm.btns.map(function (b) { return b.label; }), ylMo = PKm.modules(Pm.st)[0];
+      okMo('THE CAMPAIGN: no FIGHT YOUR LADDER, no THE PARTY; at the DM\'s table YOUR LADDER heads LOAD MODULE', cpL.indexOf('FIGHT YOUR LADDER') < 0 && cpL.indexOf('THE PARTY') < 0 && cpL.indexOf('BUILD THE LADDER') >= 0 && !!ylMo && ylMo.key === 'table:ladder' && ylMo.slots[0].foes.join() === 'goblin,goblin');
+      cpdMo.plan = []; Pm.st.dm = false;
       repMo.report = Object.keys(repMo.fights).map(function (k) { var x = repMo.fights[k], m = x.won + x.lost + x.other; return '  fight ' + k + ': ' + m + ' fought, won ' + x.won + ', lost ' + x.lost + (x.other ? ', other ' + x.other : '') + '  rounds ' + (x.rounds / m).toFixed(1) + '  downs ' + (x.downs / m).toFixed(2); });
       var rsTxt = Object.keys(restSeen).map(function (k) { return k + ': ' + restSeen[k]; }).join('; ');
-      okMo('after each fight the rest its slot allows (' + rsTxt + ')', restSeen[1] === 'A SHORT REST' && restSeen[3] === 'A LONG REST + THE MARKET' && (!restSeen[4] || restSeen[4] === 'A SHORT REST') && (!restSeen[5] || restSeen[5] === 'A SHORT REST'));
+      okMo('after each fight the rest its slot allows (' + rsTxt + ')', restSeen[1] === 'A SHORT REST' && restSeen[3] === 'A LONG REST + THE MARKET + THE LONG REST' && (!restSeen[4] || restSeen[4] === 'A SHORT REST') && (!restSeen[5] || restSeen[5] === 'A SHORT REST'));
       okMo('the long rest after fight 3 carries nothing into fight 4', longOK);
+      // XP (10-17, his "watched the module, are we by chance not giving the xp?"): the SRD's XP a won fight, split four ways; the levels at a long rest
+      okMo('XP: each fight of THE WAGON ROAD gives the four ' + xpSeq + ' each; after fight 3\'s long rest still ' + lvMid + '; at its end ' + (lvEnd && lvEnd.levels) + ' ("' + (lvEnd && lvEnd.lines.join(' ')) + '")',
+        xpSeq === '25 37 62 31 77 75' && /^1\/1\/1\/1 with 124\/124\/124\/124 XP$/.test(lvMid || '') && !!lvEnd && lvEnd.levels === '2/2/2/2' && lvEnd.lines.join(' ') === 'The party reaches level 2.');
       okMo('a module whose last fight is won is done: the run put away, THE WAGON ROAD IS DONE', doneOK);
       okMo('every result and rest drew', drawsMo);
       okMo('THE WAGON ROAD played ' + nMo + ' times by the AI\'s party at 1st level: ' + repMo.reach.filter(function (x) { return x === 6; }).length + ' done; fights won ' + repMo.reach.join(' '), repMo.reach.length === nMo && repMo.runs.every(function (o) { return o === 'done' || /^lost at fight \d$/.test(o); }));

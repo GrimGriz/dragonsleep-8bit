@@ -617,7 +617,9 @@
   NPC.HEROES = ['barley', 'aurdin', 'vivian', 'lymen'];
   NPC.heroSheet = function (sp) {
     var id = sp.hero, d = DS.DATA.heroes[id], L = Math.max(1, Math.min(12, sp.lvl || d.level)), h;
-    if (NPC.HEROES.indexOf(id) >= 0) h = D.save.fixture(Math.min(9, L)).party.filter(function (x) { return x.id === id; })[0];
+    // (sp.morning: the Pocket DM's long rest chose the day -- js/pocket.js THE LONG REST, 10-17: built bare, nothing cast by itself, then its day's spells, what it
+    // cast ahead and spent, Aid's +5, as NPC.sheet lays a class card's)
+    if (NPC.HEROES.indexOf(id) >= 0) h = D.save.fixture(Math.min(9, L), sp.morning ? { bare: true } : undefined).party.filter(function (x) { return x.id === id; })[0];
     else {
       h = R.makeHero(id, Math.max(d.level, L));
       h.attacks = d.attacks; if (d.resist) h.resist = d.resist.slice(); h.guest = true; h.key = id;
@@ -626,6 +628,12 @@
     // (the player's own picks a level gave, from the card -- js/rules.js R.repick against what the build took; the day's spells refilled: 10-14)
     if (sp.picks && R.repick) { R.repick(h, sp.picks); if (h.prepared && R.prepCount(h)) h.prepared = R.prepFill(h, D.save.spell); }
     if (sp.loot) NPC.wear(h, sp.loot);
+    if (sp.morning) {
+      if (sp.prepared && h.prepared && R.prepCount(h)) { var pool = R.prepPool(h, D.save.spell); h.prepared = sp.prepared.filter(function (x) { return pool.indexOf(x) >= 0; }).slice(0, R.prepCount(h)); }
+      if (sp.conds) Object.keys(sp.conds).forEach(function (k) { h.conds[k] = sp.conds[k]; });
+      (sp.spend || []).forEach(function (lv) { for (var i = lv - 1; i < (h.slots || []).length; i++) if (h.slots[i] > 0) { h.slots[i]--; break; } });
+      if (sp.aid) { h.maxhp += sp.aid; h.hp = h.maxhp; h.conds.aid = sp.aid; }
+    }
     NPC.carry(h, sp);
     return h;
   };

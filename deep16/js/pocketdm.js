@@ -163,6 +163,24 @@
       pk.say('saved your ladder (' + cp.plan.length + ' slots) to ' + name + ': any table plays it from MODULES on the title (FROM A FILE)', 420); return name;
     } catch (e) { pk.msg = { text: 'could not write the file: ' + e, t: 300, bad: true }; return null; }
   };
+  // SAVE AS A MODULE (10-17, the two Pocket DMs; his "re 5 - can we when DM saves module store a pointer to a folder" -- "2 yes"): the ladder as built, as a module file
+  // (js/pocket.js PK.moduleOf: four rungs with a short rest and the market between, a long rest before a fifth, the trial), written into the modules folder -- picked the
+  // first time, kept after (PK.folder), one allow after a restart -- where THE CAMP's LOAD MODULE reads it; without folder access, a download as before
+  PD.moduleFile = function (cp, name) { var m = PK.moduleOf(PD.ladderFile(cp)); return m ? { game: 'DRAGONSLEEP', kind: PK.MODULE_KIND, v: 1, at: new Date().toISOString(), name: name, by: 'a DM', party: null, about: m.about, slots: m.slots } : null; };
+  PD.saveModule = function (pk) {
+    var cp = PD.camp(pk.st); if (!cp.plan.length) return null;
+    var d = new Date(), pad = function (n) { return (n < 10 ? '0' : '') + n; }, stamp = d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()) + '-' + pad(d.getHours()) + pad(d.getMinutes());
+    var name = 'YOUR MODULE ' + (d.getMonth() + 1) + '-' + d.getDate() + ' ' + pad(d.getHours()) + pad(d.getMinutes()), file = 'pocket-module-' + stamp + '.json', text = JSON.stringify(PD.moduleFile(cp, name), null, 1);
+    var download = function () {
+      try { var a = document.createElement('a'), url = URL.createObjectURL(new Blob([text], { type: 'application/json' })); a.href = url; a.download = file; document.body.appendChild(a); a.click(); a.remove(); setTimeout(function () { URL.revokeObjectURL(url); }, 4000); pk.say('saved ' + file + ': THE CAMP, LOAD MODULE, FROM A FILE plays it', 420); }
+      catch (e) { pk.msg = { text: 'could not write the file: ' + e, t: 300, bad: true }; }
+    };
+    if (!PK.canFolder()) { download(); return file; }
+    var h = PK.folder, got = h ? PK.folderAllowed(h, true, true).then(function (ok) { return ok ? h : PK.folderPick(); }) : PK.folderPick();
+    got.then(function (fh) { return PK.folderWrite(fh, file, text).then(function () { pk.say('saved ' + name + ' to the folder ' + fh.name + ': THE CAMP\'s LOAD MODULE lists it', 420); }); })
+      .catch(function (e) { if (e && e.name === 'AbortError') { pk.say('no folder picked: nothing saved', 300); return; } pk.say('the folder would not take it (' + (e && e.message || e) + '): a download instead', 300); download(); });
+    return file;
+  };
   PD.startPlan = function (pk) {
     var cp = PD.camp(pk.st); if (!cp.plan.length) return false;
     var here = pk.st.run, ask = pk.ask || function (q) { return window.confirm(q); };
@@ -230,8 +248,6 @@
     if (s === 'camp' || s === 'doors') { this.keep(); this.go('title'); return true; }
     if (s === 'shop' || s === 'units' || s === 'build') { this.keep(); this.go('camp'); return true; }
     if (s === 'feedback') { this.keep(); this.go('doors'); return true; } // (USEFULS till 10-17)
-    // THE PARTY at the DM's table is the campaign's: back to it, never the title (10-13, the Pocket DM §2e; Griz: "party button on DM's pocket should stay in Campaign flow")
-    if (s === 'party' && this.st.dm) { this.keep(); this.go('camp'); return true; }
     return false;
   };
   Pocket.prototype.scrolls = function (s) { return s === 'shop' || s === 'units' || s === 'build' || s === 'doors'; };
@@ -283,9 +299,8 @@
     }
     var by = 200, ready = this.ready();
     this.btn(ctx, 'BUILD THE LADDER', 20, by, 130, 15, function () { self.scroll = 0; self.go('build'); }, { pri: true });
-    this.btn(ctx, 'FIGHT YOUR LADDER', 156, by, 130, 15, function () { if (PD.startPlan(self)) self.go('cr'); }, { pri: true, dis: !cp.plan.length || !ready, why: !cp.plan.length ? 'no slots yet: BUILD THE LADDER' : 'every seat at THE PARTY wants a character' });
-    this.btn(ctx, 'CLEAR IT', 292, by, 70, 15, function () { cp.plan = []; self.keep(); }, { dis: !cp.plan.length, small: true });
-    this.btn(ctx, 'THE PARTY', 368, by, 92, 15, function () { self.go('party'); }, { small: true });
+    this.btn(ctx, 'CLEAR IT', 156, by, 70, 15, function () { cp.plan = []; self.keep(); }, { dis: !cp.plan.length, small: true });
+    D.text(ctx, 'play it from THE CAMP: LOAD MODULE, YOUR LADDER (10-17: the DM side builds, the player side plays)', 234, by + 4, P('stone', 5));
     D.text(ctx, 'struck from the random draw (' + cp.strike.length + ' of ' + PD.STRIKES + '): ' + (cp.strike.length ? cut(cp.strike.map(function (id) { return (D.MAPS[id] || {}).name || id; }).join(', '), 300) : 'none -- strike them on BUILD'), 20, 220, P('stone', 5));
     this.btn(ctx, 'BACK', 20, 236, 60, 15, function () { self.back(); });
     this.btn(ctx, 'SAVE CAMPAIGN', 88, 236, 114, 15, function () { self.saveTable(); });
@@ -430,8 +445,7 @@
     D.text(ctx, '{g}R{/} fills it again  ·  {g}x{/} clears it', px + 6, 196, P('stone', 5));
     D.text(ctx, 'STRIKE keeps a floor out of every random draw at this table (' + cp.strike.length + ' of ' + PD.STRIKES + ')', 14, 224, P('stone', 5));
     this.btn(ctx, 'BACK', 20, 236, 60, 15, function () { self.back(); });
-    this.btn(ctx, 'SAVE THE LADDER', 196, 236, 128, 15, function () { PD.saveLadder(self); }, { dis: !cp.plan.length, why: 'no slots yet' }); // (for any table to play as built, 10-17)
-    this.btn(ctx, 'FIGHT YOUR LADDER', D.W - 150, 236, 130, 15, function () { if (PD.startPlan(self)) self.go('cr'); }, { pri: true, dis: !cp.plan.length || !this.ready(), why: !cp.plan.length ? 'click a floor first' : 'every seat at THE PARTY wants a character' });
+    this.btn(ctx, 'SAVE AS A MODULE', D.W - 150, 236, 130, 15, function () { PD.saveModule(self); }, { pri: true, dis: !cp.plan.length, why: 'no slots yet' }); // (into the modules folder, THE CAMP's LOAD MODULE reads it -- SAVE THE LADDER till 10-17)
   };
 
   // DOORS: every door of URLS.md (10-08 and before), opened in a tab of its own so the table stays where it is

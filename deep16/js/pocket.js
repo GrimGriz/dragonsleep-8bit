@@ -338,7 +338,7 @@
   // file (SAVE ROSTER), but a reload would lose it -- the message outlasts the screen it was set on
   Pocket.prototype.keep = function () { this.st.mapId = this.mapSel; this.st.crI = this.crI; this.st.foes = this.foes; this.st.watch = this.watch; var ok = PK.save(this.st); if (!ok) this.failSay(); return ok; };
   Pocket.prototype.failSay = function () { this.msg = { text: 'NOT SAVED: this browser\'s storage is full or shut. SAVE CAMPAIGN to a file.', t: 480, sticky: true, bad: true }; };
-  Pocket.prototype.go = function (screen) { this.dropField(); this.screen = screen; this.ksel = 0; this.scroll = 0; this.msg = this.msg && this.msg.sticky ? this.msg : null; this.cache = {}; };
+  Pocket.prototype.go = function (screen) { if (screen === 'modules') this.fold = null; this.dropField(); this.screen = screen; this.ksel = 0; this.scroll = 0; this.msg = this.msg && this.msg.sticky ? this.msg : null; this.cache = {}; };
 
   // a field over the canvas (a name, the notes): the game hears no key while it has the focus (core.js D.typing)
   Pocket.prototype.useField = function (kind, rect, value, oninput) {
@@ -415,11 +415,13 @@
     if (this.msg && this.msg.t > 0) this.msg.t--;
     if (this.egg) { this.eggUpdate(); return; } // (an egg on the screen holds the table till it is let go: js/pocketdm.js)
     if (this.pm) { this.pm.update(D.ui.menuKeys()); return; } // (a card's level picks: the one pick page holds the table till CONFIRM, 10-14)
+    if (this.levelQueue && this.levelQueue.length) { var lq = this.levelQueue.shift(); this.askLevel(lq[0], lq[1]); return; } // (XP's level-ups with EDIT on: a card's page at a time, 10-17)
+    if (this.screen === 'hub' && I.pressed('menu') && !D.typing && this.ready()) { this.openMenu(); return; } // (THE CAMP's M: the regular menu, 10-17)
     var s = this.screen;
     if (I.pressed('b') && !D.typing) { this.back(); return; }
     if (s === 'title' && this.titleClick()) return; // (the throne and the two lamps: js/pocketdm.js)
     if (this.readButtons()) return;
-    if (s === 'map' || s === 'fights' || s === 'maker' || s === 'market' || s === 'modules' || this.scrolls(s)) { // (the market's list too, 10-17: his "i rolled the mousewheel over that ... and nothing happened")
+    if (s === 'map' || s === 'fights' || s === 'maker' || s === 'market' || s === 'modules' || s === 'morning' || this.scrolls(s)) { // (the market's list too, 10-17: his "i rolled the mousewheel over that ... and nothing happened")
       var w = I.mouse.wheel; if (w && !this.wheelTo(w)) { this.scroll = Math.max(0, this.scroll + w); } // (wheelTo: a screen of two lists takes it for the one under the mouse, js/pocketdm.js)
     }
     if (s === 'cr' && this.drag && I.mouse.inside) {
@@ -433,9 +435,12 @@
     D.sfx('cancel');
     if (this.backMore(s)) return; // (the DM's screens and the notes: js/pocketdm.js)
     if (s === 'title') { location.href = '../'; return; }
-    if (s === 'party' || s === 'fights' || s === 'modules') { this.keep(); this.go('title'); return; }
+    if (s === 'party' || s === 'fights') { this.keep(); this.go('title'); return; }
+    if (s === 'modules') { this.keep(); this.go('hub'); return; } // (LOAD MODULE is THE CAMP's)
     if (s === 'maker') { if (this.mk && this.mk.step > 1) this.mk.step--; else this.go('party'); return; }
-    if (s === 'map') { this.go('party'); return; }
+    if (s === 'map') { this.go('hub'); return; } // (THE MAP is SINGLE FIGHT's, from THE CAMP since 10-17)
+    if (s === 'hub') { this.keep(); this.go('party'); return; }
+    if (s === 'morning') { this.go(this.mFrom && this.mFrom !== 'morning' ? this.mFrom : 'hub'); return; }
     if (s === 'cr') { if (this.st.run) { this.go('title'); return; } this.go('map'); return; }
     if (s === 'notes') { this.go('fights'); return; }
     if (s === 'market') { this.go(this.marketFrom && this.marketFrom !== 'market' ? this.marketFrom : 'party'); return; }
@@ -495,9 +500,16 @@
   // ------------------------------------------------------------------ the fight
   Pocket.prototype.fightWords = function () {
     // (the ladder carries what the last rung left: js/classes.js NPC.build reads { word, hpLeft, slotsLeft, featsLeft })
-    var self = this, run = this.st.run, words = this.words();
-    if (!run || !run.carry) return words;
-    return words.map(function (w, i) { var c = run.carry[i]; return c ? { word: w, hpLeft: c.hp, slotsLeft: c.slots, featsLeft: c.feats, id: 'p' + i + '-' + PK.baseKey(w) } : w; });
+    // (and the morning of THE LONG REST, 10-17: the day's spells, what was cast ahead -- the run's till its next long rest, else the single fight's)
+    var self = this, run = this.st.run, words = this.words(), mm = run ? run.morning : this.st.dayMorning, mo = mm && mm.cards && JSON.stringify(mm.words) === JSON.stringify(words) ? mm.cards : null; // (a morning is its party's: a card changed since, and it is not worn)
+    if ((!run || !run.carry) && !mo) return words;
+    return words.map(function (w, i) {
+      var c = run && run.carry ? run.carry[i] : null, m = mo ? mo[i] : null;
+      if (!c && !m) return w;
+      var o = Object.assign({ word: w, id: 'p' + i + '-' + PK.baseKey(w) }, m ? JSON.parse(JSON.stringify(m)) : {});
+      if (c) Object.assign(o, { hpLeft: c.hp, slotsLeft: c.slots, featsLeft: c.feats });
+      return o;
+    });
   };
   Pocket.prototype.launch = function () {
     this.lossMenu = false; // (the CR screen's mid-ladder REROLL: only after a loss, till the next fight)
@@ -550,6 +562,7 @@
     PK.packBack(this.st, B); // (what the fight used comes off the pack, 10-17)
     if (res === 'won') {
       var coin = PK.coinFor(info.kinds); this.st.purse = (this.st.purse == null ? 100 : this.st.purse) + coin; this.result.coin = coin; rec.coin = coin; // (100 sp a CR beaten)
+      var xpe = PK.giveXP(this.st, info.kinds); this.result.xp = xpe; rec.xp = xpe; // (the SRD's XP for the foes, split across the seats -- 10-17)
       var late = run ? (run.trial || run.rung >= 3) : info.d.ratio >= 1.5;
       var gift = PK.loot(this.st, this.st.party, late);
       if (gift) { PK.give(this.st, this.st.party, gift.who, gift.item); this.result.loot = gift; rec.loot = gift.name + ': ' + DS.DATA.items[gift.item].name; }
@@ -562,6 +575,7 @@
       }
     }
     this.afterFight(res, run, info);
+    if (res === 'won' && !this.st.run) this.result.levels = this.levelUps(); // (no run under way now -- a single fight, or the end of one: the long rest after it, and its levels)
     this.cache = {};
     this.keep();
     this.go('result');
@@ -755,14 +769,19 @@
   // the game's own (data/modules.js) and those kept from files, each with a key the list picks by
   PK.modules = function (st) {
     var own = (D.MODULES || []).map(function (m) { var x = PK.moduleOf(Object.assign({ game: 'DRAGONSLEEP', builtin: true }, m)); if (x) { x.key = 'game:' + m.id; x.builtin = true; } return x; }).filter(Boolean);
-    var kept = (st.modules || []).map(function (m, i) { var x = PK.moduleOf(Object.assign({ game: 'DRAGONSLEEP', kind: PK.MODULE_KIND }, m)); if (x) x.key = 'kept:' + i; return x; }).filter(Boolean);
-    return own.concat(kept);
+    var kept = (st.modules || []).map(function (m, i) { var x = PK.moduleOf(Object.assign({ game: 'DRAGONSLEEP', kind: PK.MODULE_KIND }, m)); if (x) x.key = 'kept:' + (m.kid || i); return x; }).filter(Boolean); // (kid: a kept one's own key, so a later file shifts nothing)
+    // (at the DM's table, the ladder on THE CAMPAIGN's BUILD as it stands, to play-test with DM mode on -- his "3. yes - with DM mode on too (playtesting his own modules)")
+    var cp = st.dm && st.camp && Array.isArray(st.camp.plan) && st.camp.plan.length ? PK.moduleOf({ game: 'DRAGONSLEEP', kind: PK.LADDER_KIND, plan: st.camp.plan }) : null;
+    if (cp) { cp.key = 'table:ladder'; cp.name = 'YOUR LADDER'; cp.about = 'The ladder on THE CAMPAIGN\'s BUILD as it stands: ' + cp.slots.length + ' fight' + (cp.slots.length === 1 ? '' : 's') + (cp.slots.length >= 5 ? ', the fifth the trial after a long rest' : '') + '. Played here, it pays the DM\'s purse as the ladder did.'; }
+    return (cp ? [cp] : []).concat(own, kept);
   };
   PK.keepModule = function (st, mod) {
     var rec = JSON.parse(JSON.stringify({ id: mod.id, name: mod.name, by: mod.by, party: mod.party, about: mod.about, at: mod.at, slots: mod.slots }));
+    var was = (st.modules || []).filter(function (m) { return m && m.name === rec.name && JSON.stringify(m.slots) === JSON.stringify(rec.slots); })[0];
+    rec.kid = was && was.kid ? was.kid : 'm' + Date.now().toString(36) + Math.floor(Math.random() * 1296).toString(36);
     var same = function (m) { return m && m.name === rec.name && JSON.stringify(m.slots) === JSON.stringify(rec.slots); };
     st.modules = [rec].concat((st.modules || []).filter(function (m) { return !same(m); })).slice(0, PK.MODULES_KEPT);
-    return 'kept:0';
+    return 'kept:' + rec.kid;
   };
   // the stock cards to the module's level (the made characters keep theirs: their level is the maker's)
   PK.levelAll = function (st, L) {
@@ -771,7 +790,7 @@
       var e = PK.STOCK.filter(function (x) { return x.w === slot.w; })[0];
       if (!e || e.king || slot.custom != null) { if (slot.w !== 'new') kept++; return; }
       var to = Math.max(e.lo, Math.min(e.hi || 12, PK.cap(st), L)); if (to === slot.lvl) return;
-      slot.lvl = to; moved++; if (slot.picks) Object.keys(slot.picks).forEach(function (k) { if (+k > to) delete slot.picks[k]; });
+      slot.lvl = to; slot.xp = R.XP_LEVEL[to] || 0; moved++; if (slot.picks) Object.keys(slot.picks).forEach(function (k) { if (+k > to) delete slot.picks[k]; });
     });
     return { moved: moved, kept: kept };
   };
@@ -785,6 +804,45 @@
     var m = PK.moduleOf(f);
     if (!m) { this.msg = { text: 'that file is not a module or a DM\'s ladder (or its foes are not in this game)', t: 300, bad: true }; return null; }
     return m;
+  };
+  // THE MODULES FOLDER (10-17, his "re 5 - can we when DM saves module store a pointer to a folder so player side load module doesn't open windows picker and can load
+  // ones in that folder from in-game?" -- "2 yes, i'll test in brave after"): a folder picked once (the browser's picker, that one time) is kept in this browser's
+  // IndexedDB, as tools/hexmap.js keeps its file; the DM's SAVE AS A MODULE writes into it, and THE MODULES lists its modules in the game. After the browser restarts it
+  // asks one "allow" (a permission prompt, never the picker). Without folder access (Firefox, Safari; Brave may ship it switched off) FROM A FILE stands
+  PK.canFolder = function () { return typeof window.showDirectoryPicker === 'function' && typeof indexedDB !== 'undefined'; };
+  function idbP() { return new Promise(function (res, rej) { var r = indexedDB.open('deep16-pocket', 1); r.onupgradeneeded = function () { r.result.createObjectStore('h'); }; r.onsuccess = function () { res(r.result); }; r.onerror = function () { rej(r.error); }; }); }
+  PK.folderGet = function () { if (!PK.canFolder()) return Promise.resolve(null); return idbP().then(function (db) { return new Promise(function (res) { var q = db.transaction('h').objectStore('h').get('modules'); q.onsuccess = function () { res(q.result || null); }; q.onerror = function () { res(null); }; }); }).catch(function () { return null; }); };
+  PK.folderSet = function (h) { return idbP().then(function (db) { return new Promise(function (res) { var tx = db.transaction('h', 'readwrite'); tx.objectStore('h').put(h, 'modules'); tx.oncomplete = function () { res(true); }; tx.onerror = function () { res(false); }; }); }).catch(function () { return false; }); };
+  PK.folder = null; PK.folderGet().then(function (h) { PK.folder = h; }); // (held from the page's start, so a click's permission prompt is asked inside the click)
+  PK.folderPick = function () { return window.showDirectoryPicker({ id: 'pocket-modules', mode: 'readwrite' }).then(function (h) { PK.folder = h; return PK.folderSet(h).then(function () { return h; }); }); };
+  PK.folderAllowed = function (h, write, ask) {
+    var o = { mode: write ? 'readwrite' : 'read' };
+    return Promise.resolve(h.queryPermission ? h.queryPermission(o) : 'granted').then(function (p) { return p === 'granted' ? true : ask && h.requestPermission ? h.requestPermission(o).then(function (q) { return q === 'granted'; }) : false; });
+  };
+  // every .json the folder holds that reads as a module, its file name on it
+  PK.folderScan = function (h) {
+    var out = [], it = h && h.values ? h.values() : null; if (!it) return Promise.resolve(out);
+    var step = function () { return it.next().then(function (r) {
+      if (r.done) return out; var e = r.value; if (!e || e.kind !== 'file' || !/\.json$/i.test(e.name)) return step();
+      return e.getFile().then(function (f) { return f.text(); }).then(function (t) { var j = null; try { j = JSON.parse(t); } catch (x) { j = null; } var m = PK.moduleOf(j); if (m) { m.file = e.name; out.push(m); } return step(); }, step);
+    }); };
+    return step().then(function (ms) { return ms.sort(function (a, b) { return a.file < b.file ? 1 : -1; }); }); // (the newest file names first: they carry the date)
+  };
+  PK.folderWrite = function (h, name, text) { return h.getFileHandle(name, { create: true }).then(function (fh) { return fh.createWritable(); }).then(function (w) { return Promise.resolve(w.write(text)).then(function () { return w.close(); }); }); };
+  // THE MODULES' view of the folder: none, waiting for an allow, read (its modules), or none to be had here
+  Pocket.prototype.folderRead = function (ask) {
+    var self = this, h = PK.folder;
+    if (!PK.canFolder()) { this.fold = { state: 'unsupported', mods: [] }; return; }
+    if (!h) { this.fold = { state: 'none', mods: [] }; return; }
+    this.fold = { state: 'reading', name: h.name, mods: [] };
+    PK.folderAllowed(h, false, ask).then(function (ok) {
+      if (!ok) { self.fold = { state: 'ask', name: h.name, mods: [] }; return; }
+      return PK.folderScan(h).then(function (ms) { self.fold = { state: 'ok', name: h.name, mods: ms.map(function (m) { m.key = 'dir:' + m.file; m.inFolder = true; return m; }) }; });
+    }).catch(function (e) { self.fold = { state: 'ask', name: h.name, mods: [], err: String(e && e.message || e) }; });
+  };
+  Pocket.prototype.folderChoose = function () {
+    var self = this;
+    PK.folderPick().then(function () { self.folderRead(false); self.say('THE MODULES now read the folder ' + PK.folder.name, 300); }).catch(function (e) { if (!(e && e.name === 'AbortError')) self.say('could not keep the folder: ' + (e && e.message || e), 300); });
   };
   // FROM A FILE on THE MODULES: kept in the list and picked, not begun
   Pocket.prototype.loadModule = function () { var self = this; PK.readJSON(function (text) { var m = self.readModule(text); if (!m) return; self.modSel = PK.keepModule(self.st, m); self.keep(); self.say(m.name + ': ' + m.slots.length + ' fights, kept in this browser', 300); }); };
@@ -805,11 +863,106 @@
   // after a module's won fight: what its slot allows -- a long rest (hit points, slots, hit dice and features back), a short rest (the ladder's), or none
   Pocket.prototype.moduleRest = function () {
     var run = this.st.run, sl = run && run.plan[run.rung - 1], rs = (sl && sl.rest) || {};
-    if (rs.long) { run.carry = null; run.hd = this.levels().slice(); run.arcane = run.hd.map(function () { return false; }); this.rest = { long: true }; this.keep(); }
+    if (rs.long) { var lvs = this.levelUps(); run.carry = null; run.hd = this.levels().slice(); run.arcane = run.hd.map(function () { return false; }); this.rest = { long: true, levels: lvs }; this.keep(); } // (the XP's levels at the long rest, 10-17)
     else if (rs.short && run.carry) this.restCard();
     else this.rest = { none: true };
     this.rest.module = true; this.rest.market = !!rs.market;
     return this.rest;
+  };
+
+  // ------------------------------------------------------------------ XP (10-17, Griz: "watched the module, are we by chance not giving the xp?" -- and his 10-17 "if the CR is
+  // set hard enough you level"): a won fight gives the SRD's XP for its foes (R.CR_XP), split evenly across the seats (the king takes none); a card with enough
+  // (R.XP_LEVEL) goes up a level at the next long rest -- straight after a single fight (each is followed by one), at a ladder's or a module's long rest, and at
+  // its end. LEVEL-UPS: EDIT opens each level's choices (askLevel), a card at a time; DEFAULTS takes them. A made card takes its class's own (EDIT it on THE
+  // PARTY to choose). The arrows still set a level by hand, its XP to that level's floor. (The seat's leans, his to overrule.)
+  PK.stockOf = function (slot) { return slot && slot.custom == null ? PK.STOCK.filter(function (q) { return q.w === slot.w; })[0] || null : null; };
+  PK.recOf = function (st, slot) { return slot.custom != null ? st.roster[slot.custom] || null : slot.w === 'new' ? null : slot; };
+  PK.lvlOf = function (st, slot) { var r = PK.recOf(st, slot), e = PK.stockOf(slot); return r ? (slot.custom != null ? r.lvl || 1 : r.lvl || (e ? e.lo : 1)) : 0; };
+  PK.xpNow = function (st, slot) { var r = PK.recOf(st, slot); return r ? (r.xp != null ? r.xp : R.XP_LEVEL[PK.lvlOf(st, slot)] || 0) : 0; };
+  PK.seatsXP = function (st) { return st.party.filter(function (slot) { var e = PK.stockOf(slot); return PK.recOf(st, slot) && !(e && e.king); }); };
+  PK.giveXP = function (st, kinds) {
+    var xp = 0; (kinds || []).forEach(function (k) { xp += PK.xpOf(k); });
+    var seats = PK.seatsXP(st); if (!xp || !seats.length) return 0;
+    var each = Math.floor(xp / seats.length);
+    seats.forEach(function (slot) { PK.recOf(st, slot).xp = PK.xpNow(st, slot) + each; });
+    return each;
+  };
+  PK.levelDue = function (st, slot) { var e = PK.stockOf(slot), L = PK.lvlOf(st, slot), top = Math.min(PK.cap(st), e ? e.hi || 12 : 12); return !!PK.recOf(st, slot) && !(e && e.king) && L < top && PK.xpNow(st, slot) >= (R.XP_LEVEL[L + 1] || Infinity); };
+  // at a long rest: every card with the XP goes up, as far as it has earned; the lines say who
+  Pocket.prototype.levelUps = function () {
+    var st = this.st, self = this, ups = [];
+    st.party.forEach(function (slot, i) {
+      for (var g = 0; g < 12 && PK.levelDue(st, slot); g++) {
+        var L = PK.lvlOf(st, slot) + 1, r = PK.recOf(st, slot);
+        if (slot.custom != null) { r.lvl = L; r.code = String(r.code).replace(/^(~[^.]+\.)\d+/, '$1' + L); }
+        else { slot.lvl = L; if (st.editLevels) (self.levelQueue = self.levelQueue || []).push([i, L]); }
+        ups.push([i, L]);
+      }
+    });
+    if (!ups.length) return [];
+    this.cache = {}; this.keep();
+    var sh = this.sheets(), seats = PK.seatsXP(st).length, one = ups.every(function (u) { return u[1] === ups[0][1]; });
+    if (one && ups.length === seats && seats > 1) return ['The party reaches level ' + ups[0][1] + '.']; // (all of them at once: the party, never a pronoun)
+    return ups.map(function (u) { var s = sh[u[0]]; return (s && s.h ? s.h.name : 'a seat') + ' reaches level ' + u[1] + '.'; });
+  };
+
+  // ------------------------------------------------------------------ THE LONG REST (10-17, the two Pocket DMs, step B; Griz: "For ladder and module play, long rest and daily
+  // spells/pre-cast (aid, mage armor) then go to fight. For single fight, map and CR setting, then long rest spell selection"): the day's spells of each card that
+  // prepares (a hero's by js/rules.js, a class card's by js/classes.js NPC.prepInfo), and what is cast that morning -- the grid camp's three (js/camp.js): Mage
+  // Armor on one in no armour, Aid on three of the party, Light on one's gear -- each by whoever has it ready and the slot for it. Its choices are kept (st.morning)
+  // and become each card's morning (PK.morningOf: prepared, conds, spend, aid; no Mage Armor by itself any more), worn into every fight of that day: a single
+  // fight, or a ladder's or a module's fights till the next long rest (run.morning). By slot index: a seat's card
+  PK.MORNING0 = function () { return { prep: {}, ma: { on: true, who: null }, aid: { on: false, out: null }, light: { on: null, who: null } }; }; // (the grid camp's own defaults: Mage Armor on, Aid off, Light by the dark)
+  function slotAt(h, lv) { for (var i = lv - 1; i < (h.slots || []).length; i++) if (h.slots[i] > 0) return i; return -1; }
+  PK.morningInfo = function (st, m, dark) {
+    var slots = st.party, out = { cards: [], ma: null, aid: null, light: null };
+    slots.forEach(function (slot, i) {
+      var sp = PK.specOf(st, slot); if (!sp) { out.cards.push(null); return; }
+      var bare = PK.sheetOf(Object.assign({}, sp, { morning: true, mageArmor: false, prepared: null })); if (!bare) { out.cards.push(null); return; }
+      var pi = null;
+      if (sp.hero) { var n = R.prepCount(bare); if (n && bare.prepared) pi = { n: n, pool: R.prepPool(bare, SV.spell), always: R.oathSpells(bare) || [], def: bare.prepared.length ? bare.prepared.slice() : R.prepDefault(bare, SV.spell) }; } // (the build's own day by default: a morning left alone is the day the hero had)
+      else if (NPC.CLASSES[sp.cls] && NPC.CLASSES[sp.cls].prepares) { pi = NPC.prepInfo(sp); if (pi && !pi.n) pi = null; }
+      var prepared = pi ? (m.prep[i] || pi.def).filter(function (id) { return pi.pool.indexOf(id) >= 0; }).slice(0, pi.n) : null;
+      var h = PK.sheetOf(Object.assign({}, sp, { morning: true, mageArmor: false, prepared: prepared })) || bare;
+      var ready = (pi ? prepared.concat(pi.always || []) : []).concat(h.known || []);
+      out.cards.push({ i: i, sp: sp, h: h, pi: pi, prepared: prepared, ready: ready, slots: (h.slots || []).slice(), unit: sp.hero || ('p' + i + '-' + PK.baseKey(PK.wordOf(st, slot))), fields: { morning: true, mageArmor: false, prepared: prepared || undefined, conds: {}, spend: [], aid: 0 } });
+    });
+    var cs = out.cards.filter(Boolean), can = function (id, lv) { return cs.filter(function (c) { return (c.pi ? c.pi.pool.concat(c.pi.always || []).concat(c.h.known || []) : c.h.known || []).indexOf(id) >= 0 && (!lv || slotAt(c, lv) >= 0); }); };
+    var has = function (id, lv) { return cs.filter(function (c) { return c.ready.indexOf(id) >= 0 && (!lv || slotAt(c, lv) >= 0); })[0] || null; };
+    var byI = function (i) { return cs.filter(function (c) { return c.i === i; })[0] || null; };
+    var spend = function (c, lv) { var k = slotAt(c, lv); if (k >= 0) c.slots[k]--; c.fields.spend.push(lv); };
+    // Mage Armor: whoever has it ready and a 1st-level slot, on one in no armour -- the caster unless told otherwise
+    var mc = has('mageArmor', 1), mt = byI(m.ma.who) || mc, mwhy = '';
+    if (!mc) mwhy = can('mageArmor').length ? 'not prepared, or no 1st-level slot' : 'nobody can cast it';
+    else if (!mt || R.armored(mt.h)) mwhy = (mt ? mt.h.name : 'nobody') + ' wears armour';
+    if (m.ma.on && !mwhy) { spend(mc, 1); mt.fields.conds.mageArmor = 1; }
+    out.ma = { has: !!mc || can('mageArmor').length > 0, on: !!m.ma.on && !mwhy, why: mwhy, caster: mc, target: mt };
+    // Aid: whoever has it ready and a 2nd-level slot, on three of the party (who goes without: the caster unless told otherwise)
+    var ac = has('aid', 2), wo = byI(m.aid.out) || (cs.length > 3 ? ac : null), tg = cs.filter(function (c) { return c !== wo; }).slice(0, 3), awhy = '';
+    if (!ac) awhy = can('aid').length ? 'not prepared, or no 2nd-level slot' : 'nobody can cast it yet';
+    if (m.aid.on && !awhy) { spend(ac, 2); tg.forEach(function (c) { c.fields.aid = 5; }); }
+    out.aid = { has: !!ac || can('aid').length > 0, on: !!m.aid.on && !awhy, why: awhy, caster: ac, targets: tg, out: wo };
+    // Light: a cantrip, free, on one's gear (on by itself when the fight is dark, as the camp's)
+    var lc = has('light'), lt = byI(m.light.who) || cs.filter(function (c) { return /barbarian|fighter|paladin|monk/.test(c.h.cls); })[0] || cs[0], lon = m.light.on != null ? !!m.light.on : !!dark;
+    if (lc && lon && lt) lt.fields.conds.light = { by: lc.unit };
+    out.light = { has: !!lc, on: !!lc && lon, why: lc ? '' : 'nobody knows it', caster: lc, target: lt };
+    return out;
+  };
+  PK.morningOf = function (info) { return info.cards.map(function (c) { return c ? JSON.parse(JSON.stringify(c.fields)) : null; }); };
+  // into THE LONG REST: what follows it (go: { label, fn }); the screen's BACK goes to `from`
+  Pocket.prototype.toMorning = function (go, from) { this.mGo = go; this.mFrom = from || this.screen; this.mCaster = null; this.mInfo = null; this.go('morning'); };
+  Pocket.prototype.morning = function () { var st = this.st; st.morning = st.morning && st.morning.prep ? st.morning : PK.MORNING0(); return st.morning; };
+  Pocket.prototype.mInfoNow = function () {
+    if (!this.mInfo) { var run = this.st.run, mapId = run ? run.map : this.fightMap || this.mapFor(), def = D.MAPS[mapId] || {}; this.mInfo = PK.morningInfo(this.st, this.morning(), def.dark); }
+    return this.mInfo;
+  };
+  Pocket.prototype.mChanged = function () { this.mInfo = null; this.keep(); D.sfx('cursor'); };
+  // the morning chosen: worn by the run's fights (till its next long rest), or by the single fight and its AGAIN
+  Pocket.prototype.takeMorning = function () {
+    var mo = { words: this.words(), cards: PK.morningOf(this.mInfoNow()) };
+    if (this.st.run) this.st.run.morning = mo; else this.st.dayMorning = mo;
+    this.keep();
+    return mo;
   };
 
 
@@ -1081,7 +1234,7 @@
     var slot = this.st.party[i], e = PK.STOCK.filter(function (x) { return x.w === slot.w; })[0]; if (!e || e.king) return;
     var L = Math.max(e.lo, Math.min(e.hi || 12, PK.cap(this.st), (slot.lvl || e.lo) + dir));
     if (L === slot.lvl) { D.sfx('error'); return; }
-    slot.lvl = L; this.cache = {}; this.keep(); D.sfx('cursor');
+    slot.lvl = L; slot.xp = R.XP_LEVEL[L] || 0; this.cache = {}; this.keep(); D.sfx('cursor'); // (the XP to the level's floor: the arrows set a level by hand, 10-17)
     if (slot.picks) Object.keys(slot.picks).forEach(function (k) { if (+k > L) delete slot.picks[k]; }); // (a level given back takes its picks with it)
     if (dir > 0 && this.st.editLevels) this.askLevel(i, L); // (EDIT off: the level's defaults, no page -- 10-17, his "or it always takes defaults (unlike Aurdin now)")
   };
@@ -1122,6 +1275,8 @@
     var s = this.screen;
     if (s === 'title') this.drawTitle(ctx);
     else if (s === 'modules') this.drawModules(ctx);
+    else if (s === 'hub') this.drawHub(ctx);
+    else if (s === 'morning') this.drawMorning(ctx);
     else if (s === 'party') this.drawParty(ctx);
     else if (s === 'maker') this.drawMaker(ctx);
     else if (s === 'map') this.drawMap(ctx);
@@ -1156,7 +1311,7 @@
     // the whole campaign to a file and back, here where a ladder under way can reach it (10-06: PK.tableFile; SAVE TABLE till 10-09)
     this.btn(ctx, 'SAVE CAMPAIGN', x, y + 79, w, 15, function () { self.saveTable(); });
     this.btn(ctx, 'LOAD CAMPAIGN', x, y + 96, w, 15, function () { self.loadTable(); });
-    this.btn(ctx, 'MODULES', x, y + 113, w, 15, function () { self.scroll = 0; self.go('modules'); }); // (the game's own and a DM's, played as built -- A DM'S LADDER till 10-17; to THE CAMP when it stands)
+    // (MODULES -- A DM'S LADDER till 10-17 -- is THE CAMP's LOAD MODULE since 10-17, his "Remove 'Play DM Ladder' from the Front page")
     this.drawTitleDM(ctx);
     D.text(ctx, 'Solskaft: the oath-stone of the Silversands, under the Sunshaft. At noon the light lands here.', D.W / 2, 243, P('stone', 5), 'center');
     D.hint(ctx, 'up/down choose · E go · X the 8-bit game · the Discord: ' + PK.DISCORD.replace('https://', ''), D.W / 2, 256, P('stone', 4), 'center');
@@ -1206,8 +1361,7 @@
     this.btn(ctx, 'BACK', 20, 236, 60, 15, function () { self.back(); });
     this.btn(ctx, 'SAVE CAMPAIGN', 88, 236, 114, 15, function () { self.saveTable(); }); // (the whole campaign's file, 10-06: PK.tableFile; SAVE ROSTER till then, greyed with no character of your own; SAVE TABLE till 10-09)
     this.btn(ctx, 'LOAD CAMPAIGN', 208, 236, 114, 15, function () { self.loadTable(); }); // (a campaign or table file, or a roster file of 10-03's)
-    if (st.dm) this.btn(ctx, 'TO THE CAMPAIGN', D.W - 150, 236, 130, 15, function () { self.keep(); self.go('camp'); }, { pri: true }); // (the DM's table: THE PARTY is the campaign's, and the release's map-then-CR flow is not -- js/pocketdm.js backMore, 10-13)
-    else this.btn(ctx, 'NEXT: THE MAP', D.W - 150, 236, 130, 15, function () { if (self.st.run) { self.st.run = null; } self.go('map'); }, { pri: true, dis: !ready, why: 'every seat wants someone in it: arrows cycle the roster, the ? makes one' });
+    this.btn(ctx, 'NEXT: THE CAMP', D.W - 150, 236, 130, 15, function () { self.keep(); self.go('hub'); }, { pri: true, dis: !ready, why: 'every seat wants someone in it: arrows cycle the roster, the ? makes one' }); // (THE CAMP at both tables, 10-17: TO THE CAMPAIGN and NEXT: THE MAP till then)
     if (!ready) D.text(ctx, 'every seat wants a character (a locked one cannot come)', D.W / 2, 222, P('fire', 1), 'center');
     else D.hint(ctx, 'E on a card\'s arrows cycles · X back', D.W / 2, 222, P('stone', 4), 'center');
   };
@@ -1442,14 +1596,13 @@
     this.btn(ctx, 'BACK', 20, 236, 60, 15, function () { self.back(); });
     if (run) {
       this.btn(ctx, run.trial ? 'FIGHT THE TRIAL' : mSlot ? 'FIGHT ' + run.rung + ' OF ' + run.plan.length : 'FIGHT RUNG ' + run.rung, D.W - 170, 236, 150, 15, function () { self.launch(); }, { pri: true, dis: !kinds.length });
-      this.btn(ctx, mSlot ? 'QUIT THE MODULE' : 'QUIT THE LADDER', 90, 236, 120, 15, function () { self.st.run = null; self.keep(); self.go('title'); });
+      this.btn(ctx, mSlot ? 'QUIT THE MODULE' : 'QUIT THE LADDER', 90, 236, 120, 15, function () { self.st.run = null; self.keep(); self.go('hub'); });
       var pLine = (run.carry || []).map(function (c, i) { var s = self.sheets()[i]; return c && s && s.h ? s.h.name + ' ' + c.hp + '/' + c.maxhp : null; }).filter(Boolean).join('  ·  ');
       if (pLine) D.text(ctx, pLine, D.W / 2, 200, P('bone', 1), 'center');
       var nR = this.lastRung(run); D.text(ctx, 'won ' + (run.won || 0) + ' of ' + (run.trial ? nR + ', and now the trial' : nR), D.W / 2, 212, P('silver', 5), 'center');
     } else {
-      this.btn(ctx, 'FIGHT', D.W - 90, 236, 70, 15, function () { self.launch(); }, { pri: true, dis: !kinds.length });
-      this.btn(ctx, 'THE LADDER: 4 RUNGS FROM HERE', D.W - 300, 236, 200, 15, function () { self.startRun(); self.launch(); }, { dis: !kinds.length });
-      D.wrap('the ladder: this table first, then three more at a third again each; SHORT REST FOR THE WICKED between; then a long rest, and the trial', D.W - 80).forEach(function (l, i) { D.text(ctx, l, D.W / 2, 204 + i * 10, P('stone', 5), 'center'); });
+      this.btn(ctx, 'FIGHT', D.W - 90, 236, 70, 15, function () { self.toMorning({ label: 'FIGHT', fn: function () { self.takeMorning(); self.launch(); } }, 'cr'); }, { pri: true, dis: !kinds.length }); // (by THE LONG REST, 10-17: his "For single fight, map and CR setting, then long rest spell selection")
+      D.text(ctx, 'FIGHT: the long rest first (the day\'s spells, what is cast ahead); a ladder or a module starts from THE CAMP', D.W / 2, 212, P('stone', 5), 'center');
     }
   };
   Pocket.prototype.drawResult = function (ctx) {
@@ -1461,43 +1614,44 @@
     D.text(ctx, r.rec.foes + '  ·  CR ' + r.rec.cr + ', ' + r.rec.diff.toLowerCase() + '  ·  ' + r.rec.rounds + ' round' + (r.rec.rounds === 1 ? '' : 's') + (r.rec.downs ? '  ·  ' + r.rec.downs + ' down' : ''), D.W / 2, y + 30, P('bone', 1), 'center');
     var yy = y + 44;
     r.end.forEach(function (e) { D.text(ctx, (e.down ? '{r}' : '{y}') + e.name + '{/}  ' + e.hp + '/' + e.maxhp + (e.down ? '  down' : ''), D.W / 2, yy, P('bone', 1), 'center'); yy += 10; });
-    if (r.coin) { yy += 4; D.text(ctx, '{y}+' + r.coin + ' sp to the purse (' + this.st.purse + ' sp){/}', D.W / 2, yy, P('gold', 4), 'center'); yy += 6; } // (10-17)
+    if (r.coin || r.xp) { yy += 4; D.text(ctx, '{y}' + [r.coin ? '+' + r.coin + ' sp to the purse (' + this.st.purse + ' sp)' : '', r.xp ? '+' + r.xp + ' XP each' : ''].filter(Boolean).join('  ·  ') + '{/}', D.W / 2, yy, P('gold', 4), 'center'); yy += 6; } // (10-17: the coin, and the XP)
+    if (r.levels && r.levels.length) { yy += 4; D.wrap('{y}' + r.levels.join(' ') + '{/}' + (this.st.editLevels ? ' The choices next (LEVEL-UPS: EDIT).' : ''), w - 30).slice(0, 2).forEach(function (t) { D.text(ctx, t, D.W / 2, yy, P('gold', 4), 'center'); yy += 10; }); }
     if (r.loot) { yy += 4; D.text(ctx, '{y}' + r.loot.name + ' finds ' + DS.DATA.items[r.loot.item].name + '.{/}', D.W / 2, yy, P('gold', 4), 'center'); yy += 10; }
     if (r.unlocked) { yy += 4; D.text(ctx, '{y}Pyronimus, King of Solskaft, will walk with you.{/} He is on the roster now, at his 12, with his own gear.', D.W / 2, yy, P('gold', 4), 'center'); yy += 10; }
     (r.lines || []).forEach(function (l) { yy += 2; D.text(ctx, l, D.W / 2, yy, P('gold', 4), 'center'); yy += 10; }); // (what the DM's purse took in: js/pocketdm.js afterFight)
     if (r.moduleDone) { yy += 4; D.text(ctx, '{y}' + r.moduleDone + ' IS DONE.{/} Every fight of it won.', D.W / 2, yy, P('gold', 4), 'center'); yy += 10; }
     var by = y + h - 22, slot = this.slotOf(run);
     if (r.moduleDone) {
-      this.btn(ctx, 'THE MODULES', x + 20, by, 120, 15, function () { self.go('modules'); }, { pri: true });
+      this.btn(ctx, 'THE CAMP', x + 20, by, 120, 15, function () { self.go('hub'); }, { pri: true });
       this.btn(ctx, 'NOTES', x + 150, by, 70, 15, function () { self.note = 0; self.go('notes'); });
-      this.btn(ctx, 'THE TITLE', x + w - 110, by, 90, 15, function () { self.go('title'); });
+      this.btn(ctx, 'THE MODULES', x + w - 110, by, 90, 15, function () { self.go('modules'); });
     } else if (slot && won) {
       // a module's fight won: what its slot allows next (10-17, his "DM flag ... if he allows short rest, long rest, market visit between runs")
       var rs = slot.rest || {}, nx = run.plan[run.rung], nName = 'FIGHT ' + (run.rung + 1) + (nx && nx.name ? ': ' + nx.name : '');
       this.btn(ctx, rs.long ? 'A LONG REST' : rs.short ? 'A SHORT REST' : 'ON TO FIGHT ' + (run.rung + 1), x + 20, by, 160, 15, function () { self.moduleRest(); self.go('rest'); }, { pri: true });
-      this.btn(ctx, 'QUIT THE MODULE', x + w - 140, by, 120, 15, function () { self.st.run = null; self.keep(); self.go('title'); });
+      this.btn(ctx, 'QUIT THE MODULE', x + w - 140, by, 120, 15, function () { self.st.run = null; self.keep(); self.go('hub'); });
       D.text(ctx, 'next: ' + (nName.length > 60 ? nName.slice(0, 58) + '..' : nName), D.W / 2, by - 12, P('stone', 5), 'center');
     } else if (slot) {
       this.btn(ctx, 'RETRY', x + 20, by, 90, 15, function () { self.restore(); self.go('cr'); }, { pri: true }); // (a module's foes are the DM's: no reroll)
-      this.btn(ctx, 'QUIT THE MODULE', x + w - 140, by, 120, 15, function () { self.st.run = null; self.keep(); self.go('title'); });
+      this.btn(ctx, 'QUIT THE MODULE', x + w - 140, by, 120, 15, function () { self.st.run = null; self.keep(); self.go('hub'); });
       D.text(ctx, 'retry: the party as it went in, the same fight', D.W / 2, by - 12, P('stone', 5), 'center');
     } else if (run && won && !run.trial && run.rung >= this.lastRung(run) && !this.hasTrial(run)) {
       // a ladder of the DM's making with no fifth slot ends at its last rung
-      this.btn(ctx, 'THE LADDER IS CLIMBED', x + 20, by, 190, 15, function () { self.st.run = null; self.keep(); self.go(self.st.dm ? 'camp' : 'title'); }, { pri: true });
+      this.btn(ctx, 'THE LADDER IS CLIMBED', x + 20, by, 190, 15, function () { self.st.run = null; var lv = self.levelUps(); self.keep(); self.go('hub'); if (lv.length) self.say(lv.join(' '), 360); }, { pri: true });
     } else if (run && won) {
       if (!run.trial && run.rung < this.lastRung(run)) this.btn(ctx, 'SHORT REST FOR THE WICKED', x + 20, by, 190, 15, function () { self.restCard(); self.go('rest'); }, { pri: true });
-      else this.btn(ctx, 'LONG REST FOR THE TRIAL', x + 20, by, 190, 15, function () { self.setTrial(); self.rest = { long: true }; self.go('rest'); }, { pri: true });
-      this.btn(ctx, 'QUIT THE LADDER', x + w - 140, by, 120, 15, function () { self.st.run = null; self.keep(); self.go('title'); });
+      else this.btn(ctx, 'LONG REST FOR THE TRIAL', x + 20, by, 190, 15, function () { var lv = self.levelUps(); self.setTrial(); self.rest = { long: true, levels: lv }; self.go('rest'); }, { pri: true });
+      this.btn(ctx, 'QUIT THE LADDER', x + w - 140, by, 120, 15, function () { self.st.run = null; self.keep(); self.go('hub'); });
     } else if (run) {
       this.btn(ctx, 'RETRY', x + 20, by, 90, 15, function () { self.restore(); self.lossMenu = true; self.go('cr'); }, { pri: true });
       this.btn(ctx, 'REROLL THE RUNG', x + 120, by, 130, 15, function () { self.rerollRung(); });
-      this.btn(ctx, 'QUIT', x + w - 90, by, 70, 15, function () { self.st.run = null; self.keep(); self.go('title'); });
+      this.btn(ctx, 'QUIT', x + w - 90, by, 70, 15, function () { self.st.run = null; self.keep(); self.go('hub'); });
       D.text(ctx, 'retry or reroll: the party as it went in', D.W / 2, by - 12, P('stone', 5), 'center');
     } else {
       this.btn(ctx, 'AGAIN', x + 20, by, 70, 15, function () { self.launch(); }, { pri: true });
       this.btn(ctx, 'NEW FOES', x + 100, by, 90, 15, function () { self.go('cr'); });
       this.btn(ctx, 'NOTES', x + 200, by, 70, 15, function () { self.note = 0; self.go('notes'); });
-      this.btn(ctx, r.unlocked ? 'THE PARTY' : 'THE PARTY', x + w - 110, by, 90, 15, function () { self.go('party'); });
+      this.btn(ctx, 'THE CAMP', x + w - 110, by, 90, 15, function () { self.go('hub'); });
     }
   };
   Pocket.prototype.drawRest = function (ctx) {
@@ -1508,13 +1662,14 @@
     var yy = y + 30;
     if (long) {
       D.text(ctx, 'A night of it. Hit points, slots and hit dice back; every feature ready.', D.W / 2, yy, P('bone', 1), 'center'); yy += 12;
+      ((this.rest && this.rest.levels) || []).forEach(function (l) { D.text(ctx, '{y}' + l + '{/}', D.W / 2, yy, P('gold', 4), 'center'); yy += 10; }); // (the XP's levels, 10-17)
       D.text(ctx, 'Then the trial: ' + PK.foesText(run.foes) + ' on ' + ((D.MAPS[run.map] || {}).name || run.map) + '.', D.W / 2, yy, P('bone', 1), 'center'); yy += 12;
       var dd = PK.diff(this.levels(), run.foes); D.text(ctx, '{r}' + dd.label + (dd.deadlyX > 1 ? ' x' + dd.deadlyX : '') + '{/}  adjusted XP ' + dd.adj + ' against deadly at ' + dd.thresh[3], D.W / 2, yy, P('red', 4), 'center');
     } else {
       D.text(ctx, 'An hour. The fallen are up first (the DM\'s hand), then hit dice till whole or out (SRD 5.1).', D.W / 2, yy, P('silver', 5), 'center'); yy += 12;
       (this.rest.lines || []).forEach(function (l) { D.wrap('{y}' + l.name + '{/} ' + l.hp + '/' + l.maxhp + ': ' + l.text + ' {g}(' + l.hd + ' hit dice left){/}', w - 30).forEach(function (t) { D.text(ctx, t, x + 15, yy, P('bone', 1)); yy += 10; }); });
     }
-    this.btn(ctx, long ? 'TO THE TRIAL' : 'THE NEXT RUNG', x + w / 2 - 70, y + 190 - 22, 140, 15, function () { if (!long) self.nextRung(); self.go('cr'); }, { pri: true });
+    this.btn(ctx, long ? 'TO THE TRIAL' : 'THE NEXT RUNG', x + w / 2 - 70, y + 190 - 22, 140, 15, function () { if (long) { self.toMorning({ label: 'TO THE TRIAL', fn: function () { self.takeMorning(); self.go('cr'); } }, 'rest'); return; } self.nextRung(); self.go('cr'); }, { pri: true }); // (a long rest: THE LONG REST's page, 10-17)
     this.btn(ctx, 'THE MARKET', x + 8, y + 190 - 22, 76, 15, function () { self.openMarket('rest'); }); // (between rungs, 10-17)
   };
   function fitText(s, w) { s = String(s); if (D.textWidth(s) <= w) return s; while (s.length > 1 && D.textWidth(s + '..') > w) s = s.slice(0, -1); return s + '..'; }
@@ -1527,7 +1682,7 @@
     D.win8(ctx, x, y, w, h);
     ctx.save(); ctx.translate(D.W / 2, y + 8); ctx.scale(2, 2); D.text(ctx, '{y}' + (rs.long ? 'A LONG REST' : rs.none ? 'NO REST' : 'A SHORT REST') + '{/}', 0, 0, P('gold', 4), 'center'); ctx.restore();
     var yy = y + 30;
-    if (rs.long) { D.text(ctx, 'A night of it. Hit points, slots and hit dice back; every feature ready.', D.W / 2, yy, P('bone', 1), 'center'); yy += 12; }
+    if (rs.long) { D.text(ctx, 'A night of it. Hit points, slots and hit dice back; every feature ready.', D.W / 2, yy, P('bone', 1), 'center'); yy += 12; (rs.levels || []).forEach(function (l) { D.text(ctx, '{y}' + l + '{/}', D.W / 2, yy, P('gold', 4), 'center'); yy += 10; }); }
     else if (rs.none) { D.text(ctx, 'The DM allows no rest here: straight on, as you are.', D.W / 2, yy, P('bone', 1), 'center'); yy += 12; }
     else {
       D.text(ctx, 'An hour. The fallen are up first (the DM\'s hand), then hit dice till whole or out (SRD 5.1).', D.W / 2, yy, P('silver', 5), 'center'); yy += 12;
@@ -1538,15 +1693,140 @@
       D.text(ctx, fitText('{y}NEXT, FIGHT ' + (run.rung + 1) + ' OF ' + run.plan.length + (nx.name ? ': ' + nx.name : '') + '{/}', w - 20), D.W / 2, yy, P('gold', 4), 'center'); yy += 11;
       D.text(ctx, fitText(PK.foesText(nx.foes) + ' on ' + ((D.MAPS[nx.map] || {}).name || nx.map) + '  {g}' + dd.label + '{/}', w - 20), D.W / 2, yy, P('bone', 1), 'center');
     }
-    this.btn(ctx, 'FIGHT ' + (run.rung + 1), x + w / 2 - 60, y + h - 22, 120, 15, function () { self.nextRung(); self.go('cr'); }, { pri: true });
+    this.btn(ctx, 'FIGHT ' + (run.rung + 1), x + w / 2 - 60, y + h - 22, 120, 15, function () { if (rs.long) { var lbl = 'TO FIGHT ' + (run.rung + 1); self.toMorning({ label: lbl, fn: function () { self.nextRung(); self.takeMorning(); self.go('cr'); } }, 'rest'); return; } self.nextRung(); self.go('cr'); }, { pri: true }); // (a long rest: THE LONG REST's page, 10-17)
     if (rs.market) this.btn(ctx, 'THE MARKET', x + 8, y + h - 22, 76, 15, function () { self.openMarket('rest'); });
-    this.btn(ctx, 'QUIT', x + w - 60, y + h - 22, 52, 15, function () { self.st.run = null; self.keep(); self.go('title'); });
+    this.btn(ctx, 'QUIT', x + w - 60, y + h - 22, 52, 15, function () { self.st.run = null; self.keep(); self.go('hub'); });
+  };
+  // THE CAMP (10-17, the two Pocket DMs, step B; Griz: "The FOES page on the player side becomes the camp, where they can open the standard 'm' menu / The pick from
+  // there, single fight, random ladder or play module (load module to change greyed out play module when none loaded or to change loaded module)"; "Player saves
+  // are current party and pack"): after THE PARTY, the party at the fire -- THE MENU (M: the regular menu over the four, PK's pack), THE MARKET, the party's own
+  // file -- and where to: SINGLE FIGHT (THE MAP, THE FOES, then THE LONG REST), RANDOM LADDER and PLAY MODULE (THE LONG REST, then the first fight)
+  Pocket.prototype.loadedModule = function () { var k = this.st.moduleKey; return k ? PK.modules(this.st).filter(function (m) { return m.key === k; })[0] || null : null; };
+  Pocket.prototype.drawHub = function (ctx) {
+    var self = this, st = this.st, sh = this.sheets(), run = st.run, ready = this.ready(), mod = this.loadedModule();
+    head(ctx, 'THE CAMP', 'the party at the fire: the menu, the market, then where to');
+    var yy = 36;
+    sh.forEach(function (s, i) {
+      if (!s.h) return; var slot = st.party[i], L = PK.lvlOf(st, slot), nx = R.XP_LEVEL[L + 1], e = PK.stockOf(slot);
+      D.text(ctx, '{y}' + s.h.name + '{/}  ' + R.CLASSES[s.h.cls].name + ' ' + s.h.lvl + '   {g}HP ' + s.h.maxhp + '  AC ' + R.ac(s.h) + (e && e.king ? '' : '  XP ' + PK.xpNow(st, slot) + (nx ? ' of ' + nx : '')) + '{/}' + (PK.levelDue(st, slot) ? '  {y}a level at the next long rest{/}' : ''), 24, yy, P('bone', 1)); yy += 11;
+    });
+    D.text(ctx, 'the purse ' + (st.purse == null ? 100 : st.purse) + ' sp  ·  the pack ' + (st.pack || []).reduce(function (n, s) { return n + (s.n || 0); }, 0) + ' things', 24, yy + 3, P('silver', 5));
+    var lx = 20, rx = D.W - 190, by = 116;
+    this.btn(ctx, 'THE MENU  (M)', lx, by, 150, 16, function () { self.openMenu(); }, { dis: !ready, why: 'every seat at THE PARTY wants a character' });
+    this.btn(ctx, 'THE MARKET  ' + (st.purse == null ? 100 : st.purse) + ' sp', lx, by + 20, 150, 16, function () { self.openMarket('hub'); });
+    this.btn(ctx, 'SAVE THE PARTY', lx, by + 40, 150, 15, function () { self.saveParty(); });
+    this.btn(ctx, 'LOAD A PARTY', lx, by + 59, 150, 15, function () { self.loadParty(); });
+    if (run) {
+      var rn = run.module ? run.module.name + ': FIGHT ' + run.rung + ' OF ' + run.plan.length : 'THE LADDER: ' + (run.trial ? 'THE TRIAL' : 'RUNG ' + run.rung);
+      D.text(ctx, '{o}under way:{/} ' + fitText(rn, 170), rx, by - 10, P('bone', 1));
+      this.btn(ctx, 'GO ON', rx, by, 170, 18, function () { self.go('cr'); }, { pri: true });
+      this.btn(ctx, 'PUT IT AWAY', rx, by + 22, 170, 15, function () { var ask = self.ask || function (q) { return window.confirm(q); }; if (ask('Put away ' + rn + '? It cannot be taken up again.')) { st.run = null; self.keep(); } });
+    } else {
+      this.btn(ctx, 'SINGLE FIGHT', rx, by, 170, 18, function () { self.go('map'); }, { pri: true, dis: !ready, why: 'every seat at THE PARTY wants a character' });
+      this.btn(ctx, 'RANDOM LADDER', rx, by + 22, 170, 16, function () { self.toMorning({ label: 'TO RUNG 1', fn: function () { self.fightMap = self.randomMap(); self.mapSel = null; self.crI = self.defaultCR(); self.reroll(); self.startRun(); self.takeMorning(); self.go('cr'); } }, 'hub'); }, { dis: !ready, why: 'every seat at THE PARTY wants a character' });
+      this.btn(ctx, mod ? 'PLAY ' + fitText(mod.name, 120) : 'PLAY MODULE', rx, by + 42, 170, 16, function () { self.toMorning({ label: 'TO FIGHT 1', fn: function () { if (self.startModule(mod)) self.takeMorning(); } }, 'hub'); }, { dis: !mod || !ready, why: !mod ? 'no module loaded: LOAD MODULE' : 'every seat at THE PARTY wants a character' });
+      this.btn(ctx, mod ? 'CHANGE MODULE' : 'LOAD MODULE', rx, by + 62, 170, 15, function () { self.scroll = 0; self.go('modules'); });
+      D.text(ctx, 'a ladder: four rungs at a third again each, short rests between, a long rest and the trial', D.W / 2, by + 86, P('stone', 5), 'center');
+    }
+    this.btn(ctx, 'BACK', 20, 236, 60, 15, function () { self.back(); });
+    D.hint(ctx, 'M the menu · X back to THE PARTY', D.W / 2, 222, P('stone', 4), 'center');
+  };
+  // THE MENU at the camp: the regular one over the party (EQUIP, ITEMS, MAGIC, SKILLS, STATUS -- the same pages as everywhere), on PK's pack; what comes off goes into
+  // the pack and each card's word keeps what it wears, as GEAR's (gearBack). The order is THE PARTY's (its arrows); nothing is cast or used out here
+  Pocket.prototype.openMenu = function () {
+    var self = this, st = this.st, hs = [], at = [];
+    st.party.forEach(function (slot, i) { var e = PK.STOCK.filter(function (q) { return q.w === slot.w; })[0]; if (slot.w === 'new' || (e && e.king)) return; var h = PK.sheetOf(PK.specOf(st, slot)); if (h) { h.xp = PK.xpNow(st, slot); hs.push(h); at.push(i); } }); // (the card's XP on the sheet: the menu's Next)
+    if (!hs.length) return;
+    var wins = at.map(function (i) { return PK.winsOf(st, st.party[i]); }), wornN = function (h, id) { return Object.keys(h.equip).filter(function (pl) { return h.equip[pl] === id; }).length; };
+    this.pm = DS.MENU.open({
+      party: function () { return hs; },
+      pack: function () { return (st.pack || []).filter(function (s) { var it = DS.DATA.items[s.id]; return s.n > 0 && it && !(it.use && it.use.effect === 'light'); }).map(function (s) { return { id: s.id, n: s.n }; }); },
+      give: function (id, n) { for (var k = 0; k < hs.length; k++) if (wornN(hs[k], id) >= 1) { var wk = wins[k].indexOf(id); if (wk >= 0 && wornN(hs[k], id) <= 1 && PK.dropWin(st, st.party[at[k]], id)) wins[k].splice(wk, 1); break; } PK.packAdd(st, id, n || 1); },
+      take: function (id, n) { PK.packAdd(st, id, -(n || 1)); },
+      canSave: function () { return false; },
+      order: function () { self.say('the order is THE PARTY\'s: its arrows', 240); },
+      run: function (kind, a, done) { self.say('at the camp the party is whole: nothing to use that on', 240); if (done) done(); },
+      close: function () { self.pm = null; hs.forEach(function (h, k) { self.gearBack(at[k], h); }); }
+    });
+  };
+  // the party's own file (his "Player saves are current party and pack"): the seats, the characters made for them, the pack and the purse; loaded, the made ones join
+  // the roster (by their word) and the seats point at them
+  PK.PARTY_KIND = 'pocket-party';
+  Pocket.prototype.saveParty = function () {
+    var st = this.st, used = {}, roster = [], party = JSON.parse(JSON.stringify(st.party)).map(function (slot) { if (slot.custom != null && st.roster[slot.custom]) { if (used[slot.custom] == null) { used[slot.custom] = roster.length; roster.push(st.roster[slot.custom]); } slot.custom = used[slot.custom]; } return slot; });
+    var d = new Date(), pad = function (n) { return (n < 10 ? '0' : '') + n; }, name = 'pocket-party-' + d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()) + '-' + pad(d.getHours()) + pad(d.getMinutes()) + '.json';
+    var body = JSON.stringify({ game: 'DRAGONSLEEP', kind: PK.PARTY_KIND, v: 1, at: d.toISOString(), party: party, roster: JSON.parse(JSON.stringify(roster)), pack: JSON.parse(JSON.stringify(st.pack || [])), purse: st.purse == null ? 100 : st.purse }, null, 1);
+    try { var a = document.createElement('a'), url = URL.createObjectURL(new Blob([body], { type: 'application/json' })); a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(function () { URL.revokeObjectURL(url); }, 4000); this.say('saved the party to ' + name, 300); }
+    catch (e) { this.say('could not save: ' + e); return null; }
+    return name;
+  };
+  Pocket.prototype.takeParty = function (text) {
+    var f = null; try { f = JSON.parse(text); } catch (e) { f = null; }
+    if (!f || f.game !== 'DRAGONSLEEP' || f.kind !== PK.PARTY_KIND || !Array.isArray(f.party) || !f.party.length) { this.msg = { text: 'that file is not a party', t: 300, bad: true }; return null; }
+    var st = this.st, ask = this.ask || function (q) { return window.confirm(q); };
+    if (st.run && !ask('A ' + (st.run.module ? 'module' : 'ladder') + ' is under way. Put it away for this party?')) { this.say('kept the party as it was', 240); return null; }
+    st.roster = st.roster || [];
+    var party = f.party.slice(0, 6).map(function (slot) {
+      if (slot.custom == null) return slot;
+      var c = (f.roster || [])[slot.custom]; if (!c) return { w: 'new' };
+      var k = st.roster.map(function (x) { return x.code; }).indexOf(c.code); if (k < 0) { st.roster.push(c); k = st.roster.length - 1; }
+      return Object.assign({}, slot, { custom: k });
+    });
+    st.party = party; st.pack = Array.isArray(f.pack) ? f.pack : []; st.purse = typeof f.purse === 'number' ? f.purse : 100; st.run = null; st.dayMorning = null;
+    this.cache = {}; this.keep(); this.say('the party: ' + party.length + ' seats, the pack and ' + st.purse + ' sp', 300);
+    return st.party;
+  };
+  Pocket.prototype.loadParty = function () { var self = this; PK.readJSON(function (text) { self.takeParty(text); }); };
+  // THE LONG REST's page: the casters' day on the left (pick one, its spells on the right), what is cast this morning under them, then what follows (mGo)
+  Pocket.prototype.drawMorning = function (ctx) {
+    var self = this, mi = this.mInfoNow(), m = this.morning(), cards = mi.cards.filter(function (c) { return c && c.pi; });
+    head(ctx, 'THE LONG REST', 'a night of it -- everything back -- then the day\'s spells, and what is cast this morning');
+    if (this.mCaster == null || !cards.some(function (c) { return c.i === self.mCaster; })) this.mCaster = cards.length ? cards[0].i : -1;
+    var yy = 36;
+    D.text(ctx, '{y}THE DAY\'S SPELLS{/}', 14, yy, P('gold', 4)); yy += 10;
+    if (!cards.length) { D.text(ctx, 'nobody here prepares spells', 14, yy + 3, P('stone', 5)); yy += 14; }
+    cards.forEach(function (c) { self.btn(ctx, fitText(c.h.name.toUpperCase(), 100) + '  ' + c.prepared.length + ' OF ' + c.pi.n, 14, yy, 150, 14, function () { self.mCaster = c.i; self.scroll = 0; }, { on: self.mCaster === c.i, small: true }); yy += 16; });
+    yy += 6; D.text(ctx, '{y}CAST THIS MORNING{/}', 14, yy, P('gold', 4)); yy += 10;
+    var nm = function (c) { return c ? c.h.name : 'nobody'; }, cyc = function (key, field, d) { var cs = mi.cards.filter(Boolean), cur = m[key][field], k = cs.map(function (c) { return c.i; }).indexOf(cur); m[key][field] = cs[((k < 0 ? 0 : k) + d + cs.length) % cs.length].i; self.mChanged(); };
+    var row = function (o, key, label, who, field) {
+      if (!o.has) return;
+      self.btn(ctx, label + ': ' + (o.on ? 'ON' : 'OFF'), 14, yy, 96, 13, function () { m[key].on = !o.on; self.mChanged(); }, { on: o.on, small: true });
+      self.btn(ctx, fitText(who, 50), 114, yy, 50, 13, function () { cyc(key, field, 1); }, { small: true });
+      if (o.why && !o.on) D.text(ctx, fitText(o.why, 150), 14, yy + 15, P('fire', 1));
+      yy += o.why && !o.on ? 26 : 16;
+    };
+    row(mi.ma, 'ma', 'MAGE ARMOR', 'on ' + nm(mi.ma.target), 'who');
+    row(mi.aid, 'aid', 'AID', 'not ' + nm(mi.aid.out), 'out');
+    row(mi.light, 'light', 'LIGHT', 'on ' + nm(mi.light.target), 'who');
+    if (!mi.ma.has && !mi.aid.has && !mi.light.has) D.text(ctx, 'nobody here casts ahead', 14, yy + 3, P('stone', 5));
+    // the picked caster's spells
+    var px = 172, py = 34, pw = D.W - px - 10, ph = 192, c = cards.filter(function (x) { return x.i === self.mCaster; })[0];
+    ctx.fillStyle = 'rgba(10,8,16,.9)'; ctx.fillRect(px, py, pw, ph); ctx.strokeStyle = P('stone', 3); ctx.strokeRect(px + 0.5, py + 0.5, pw - 1, ph - 1);
+    if (c) {
+      D.text(ctx, '{y}' + c.h.name + '{/}: ' + c.prepared.length + ' of ' + c.pi.n + ' prepared  {g}(cantrips' + ((c.pi.always || []).length ? ' and the always-ready' : '') + ' need none){/}', px + 6, py + 5, P('bone', 1));
+      var pool = c.pi.pool, per = 26, from = Math.min(this.scroll, Math.max(0, pool.length - per)); this.scroll = from;
+      pool.slice(from, from + per).forEach(function (id, k) {
+        var sp = SV.spell(id) || { name: id, level: '?' }, on = c.prepared.indexOf(id) >= 0, col = k % 2, rw = Math.floor(k / 2);
+        self.btn(ctx, fitText((on ? '[x] ' : '[ ] ') + sp.name, 120) + '  L' + sp.level, px + 6 + col * ((pw - 12) / 2), py + 18 + rw * 12, (pw - 16) / 2, 11, function () {
+          var cur = (m.prep[c.i] || c.prepared).slice(), at2 = cur.indexOf(id);
+          if (at2 >= 0) cur.splice(at2, 1); else if (cur.length < c.pi.n) cur.push(id); else { self.say(c.h.name + ' has ' + c.pi.n + ' prepared: let one go first', 240); return; }
+          m.prep[c.i] = cur; self.mChanged();
+        }, { on: on, small: true });
+      });
+      if (pool.length > per) D.text(ctx, 'wheel: ' + (from + 1) + '-' + Math.min(pool.length, from + per) + ' of ' + pool.length, px + 6, py + ph - 10, P('stone', 5));
+      if ((c.pi.always || []).length) D.text(ctx, fitText('always ready: ' + c.pi.always.map(function (id) { return (SV.spell(id) || { name: id }).name; }).join(', '), pw - 12), px + 6, py + ph - (pool.length > per ? 20 : 10), P('silver', 5));
+    } else D.text(ctx, 'nobody here prepares spells: the rest is the rest', px + pw / 2, py + 80, P('stone', 5), 'center');
+    this.btn(ctx, 'BACK', 20, 236, 60, 15, function () { self.back(); });
+    this.btn(ctx, 'THE CLASS\'S OWN', 86, 236, 110, 15, function () { self.st.morning = PK.MORNING0(); self.mChanged(); }, { small: true });
+    var g = this.mGo || { label: 'DONE', fn: function () { self.go('hub'); } };
+    this.btn(ctx, g.label, D.W - 150, 236, 130, 15, function () { g.fn(); }, { pri: true });
   };
   // THE MODULES (10-17): the game's own (data/modules.js) and any kept from a file; the one picked shows its fights, how each reads for this party, and what the
   // DM allows after each. On the title for now; THE CAMP's LOAD MODULE when the camp stands (the two Pocket DMs, step B)
   Pocket.prototype.drawModules = function (ctx) {
-    var self = this, st = this.st, list = PK.modules(st), per = 10;
-    head(ctx, 'THE MODULES', 'a DM\'s fights, played as built: the game\'s own, and any you load from a file');
+    if (!this.fold) this.folderRead(false); // (the folder read once a visit: js/pocket.js go clears it)
+    var self = this, st = this.st, fold = this.fold || { mods: [] }, list = PK.modules(st).concat(fold.mods), per = 10;
+    head(ctx, 'THE MODULES', 'a DM\'s fights, played as built: the game\'s own, your folder\'s, and any you load from a file');
     if (!list.some(function (m) { return m.key === self.modSel; })) this.modSel = list.length ? list[0].key : null;
     var from = Math.min(this.scroll, Math.max(0, list.length - per)); this.scroll = from;
     list.slice(from, from + per).forEach(function (m, i) { self.btn(ctx, fitText(m.name, 128), 14, 36 + i * 17, 140, 15, function () { self.modSel = m.key; }, { on: self.modSel === m.key, small: true }); });
@@ -1556,7 +1836,7 @@
     var levels = this.levels(), off = false;
     if (m) {
       var yy = py + 5;
-      D.text(ctx, '{y}' + m.name + '{/}' + (m.builtin ? '  {g}comes with the game{/}' : ''), px + 6, yy, P('gold', 4)); yy += 10;
+      D.text(ctx, fitText('{y}' + m.name + '{/}' + (m.builtin ? '  {g}comes with the game{/}' : m.inFolder ? '  {g}' + m.file + '{/}' : m.key === 'table:ladder' ? '  {g}this table\'s{/}' : ''), pw - 12), px + 6, yy, P('gold', 4)); yy += 10;
       if (m.party) { off = levels.length !== m.party.n || levels.some(function (L) { return L !== m.party.lvl; }); D.text(ctx, 'made for ' + m.party.n + ' at level ' + m.party.lvl + (off ? '  {o}yours: ' + levels.length + ' at ' + levels.join('/') + '{/}' : '  {n}yours fit{/}'), px + 6, yy, P('silver', 5)); yy += 10; }
       D.wrap(m.about || '', pw - 12).slice(0, 3).forEach(function (t) { D.text(ctx, t, px + 6, yy, P('bone', 1)); yy += 9; });
       yy += 3;
@@ -1568,8 +1848,16 @@
     } else D.text(ctx, 'no modules yet: FROM A FILE loads one', px + pw / 2, py + 80, P('stone', 5), 'center');
     this.btn(ctx, 'BACK', 20, 236, 60, 15, function () { self.back(); });
     this.btn(ctx, 'FROM A FILE', 86, 236, 90, 15, function () { self.loadModule(); });
+    // the folder (10-17): choose one once; after a restart, one allow; read again for a module saved since
+    if (fold.state === 'unsupported') D.text(ctx, 'this browser keeps no folder: FROM A FILE', 20, 222, P('stone', 5));
+    else {
+      this.btn(ctx, fold.state === 'none' ? 'CHOOSE A FOLDER' : fitText('FOLDER: ' + (fold.name || ''), 140), 20, 218, 156, 13, function () { self.folderChoose(); }, { small: true });
+      if (fold.state === 'ask') this.btn(ctx, 'ALLOW IT', 182, 218, 80, 13, function () { self.folderRead(true); }, { pri: true, small: true });
+      else if (fold.state === 'ok') { this.btn(ctx, 'READ IT AGAIN', 182, 218, 90, 13, function () { self.folderRead(false); }, { small: true }); D.text(ctx, fold.mods.length + ' module' + (fold.mods.length === 1 ? '' : 's') + ' there', 278, 222, P('stone', 5)); }
+      else if (fold.state === 'none') D.text(ctx, 'a folder where SAVE AS A MODULE writes, read here', 182, 222, P('stone', 5));
+    }
     if (m && m.party && off) this.btn(ctx, 'THE PARTY TO LEVEL ' + m.party.lvl, 182, 236, 130, 15, function () { var r = PK.levelAll(st, m.party.lvl); self.cache = {}; self.keep(); self.say(r.moved + ' to level ' + m.party.lvl + (r.kept ? '; ' + r.kept + ' made by hand keep their own (EDIT on THE PARTY)' : '') + (levels.length !== m.party.n ? '; the module wants ' + m.party.n + ' seats (THE PARTY)' : ''), 360); });
-    this.btn(ctx, 'PLAY THIS MODULE', D.W - 150, 236, 130, 15, function () { self.startModule(m); }, { pri: true, dis: !m || !this.ready(), why: !m ? 'no module picked' : 'every seat at THE PARTY wants a character' });
+    this.btn(ctx, this.st.moduleKey === (m && m.key) ? 'LOADED' : 'LOAD THIS MODULE', D.W - 150, 236, 130, 15, function () { self.st.moduleKey = m.inFolder ? PK.keepModule(st, m) : m.key; self.keep(); self.go('hub'); self.say(m.name + ' loaded: PLAY it from THE CAMP', 240); }, { pri: true, dis: !m, why: 'no module picked' }); // (THE CAMP's PLAY MODULE plays it, 10-17)
   };
   Pocket.prototype.drawFights = function (ctx) {
     var self = this, fs = this.st.fights, per = 11;
