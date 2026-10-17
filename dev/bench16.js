@@ -2158,6 +2158,7 @@
       for (var kP = 0; kP < 4000 && !doneP && !stuckP; kP++) {
         if (BZ.menu) {
           if (!mP) { mP = BZ.menu.m; mhB0 = barZ.maxhp; }
+          if (mP.toast) { mP.update(KP('a')); continue; } // (the hero's level-up lines over the page first, 10-16: let them go)
           var hK = mP.top() && mP.top().h;
           if (!hK || seenP.indexOf(hK) >= 0) { stuckP = true; BZ.menu = null; break; } // (a page that does not move on or shut on CONFIRM)
           seenP.push(hK);
@@ -4839,6 +4840,8 @@
       var offered = pgR ? pgR.groups[0].rows.map(function (r) { return r.id; }) : [];
       okLp('THE ROAM: the page opens as the M menu (' + !!mR + '), the script waits (' + (!r1.done && r1.value) + '), page-only left out (grease ' + (offered.indexOf('grease') >= 0) + ', counterspell ' + (offered.indexOf('counterspell') >= 0) + '), 3rd level offered (' + (offered.indexOf('haste') >= 0) + ')',
         mR && !r1.done && r1.value === 1 && offered.indexOf('grease') < 0 && offered.indexOf('counterspell') < 0 && offered.indexOf('haste') >= 0);
+      var lvR = mR && mR.toast ? mR.toast.lines.join(' | ') : ''; if (mR && mR.toast) mR.update(KLp('a')); // (Aurdin's level lines over the page first, 10-16)
+      okLp('THE ROAM SAYS AURDIN\'S LEVEL LINES OVER THE PAGE, no "chooses ... next": "' + lvR + '"', /Aurdin is now level 5/.test(lvR) && !/chooses .* next/.test(lvR));
       hitLp(mR, 'lightningbolt'); hitLp(mR, 'haste'); confLp(mR);
       var r2 = gR.next();
       okLp('Haste for Lightning Bolt: the menu gone (' + !BR.menu + '), the script on (' + r2.done + '), the sheet: haste ' + (aR.known.indexOf('haste') >= 0) + ', lightning bolt ' + (aR.known.indexOf('lightningbolt') >= 0) + ', fireball ' + (aR.known.indexOf('fireball') >= 0) + ', flag ' + aR.pendingChoice,

@@ -181,6 +181,10 @@
     h.xp += xp;
     while (h.lvl < cap && h.xp >= R.XP_LEVEL[h.lvl + 1]) {
       var m = R.levelUp(h), asked = m.asked || [], put = false;
+      // (a level that asks keeps its lines for its own pick page, said just before it -- 10-16, Griz: "Superfluous "Barley chooses next" box - i.e. why not level
+      // barley right then, followed by Aurdin levels up, then leveling him up"; js/menu.js MN.openPicks says rec.lines. No one to ask (DS.autoPicks): said here, as before)
+      var rec = m.chooses && !DS.autoPicks ? (h.picks || []).filter(function (p) { return p.lvl === h.lvl; }).pop() : null;
+      if (rec) { rec.lines = m.filter(function (x) { return asked.indexOf(x) < 0; }); continue; }
       m.forEach(function (x) { if (asked.indexOf(x) < 0) msgs.push(x); else if (!put) { put = true; msgs.push(m.chooses); } }); // (the pick page follows: what is to choose, not the build's picks)
       if (m.chooses && !put) msgs.push(m.chooses);
     }

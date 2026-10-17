@@ -523,15 +523,27 @@
       });
     });
     // (the first tab with a default marked, so the build's pick is what he sees first; else the first)
-    this.tab = 0;
+    this.tab = 0; this.seen = {}; // (the tabs he has looked at: refresh marks the one it shows)
     this.tabs.some(function (t, i) { if (t.g.rows.some(function (r) { return (t.lv == null || r.lv === t.lv) && t.g.marks[r.id]; })) { self.tab = i; return true; } return false; });
     this.refresh();
     // (CONFIRM is the top row -- 10-14, Griz: "confirm at the top for spell selection" -- the cursor on it when the build's picks stand, else on the first choice)
     this.list.i = this.ready() ? 0 : Math.min(1, this.list.items.length - 1); this.list.fix();
   }
   PickPage.prototype.ready = function () { return this.groups.every(function (g) { return marksOf(g) === g.need; }); };
+  // the next tab holding a mark he has not looked at, or -1 (10-16, Griz: "Each page of selection requires confirm, when you confirm ability it moves you spell
+  // choice selection ... Confirming what you think is stats and miss out on change spell selection out of ignorance feels bad man"): CONFIRM walks to each of
+  // them before it keeps the picks, so the build's spells are seen before they are kept; a tab with nothing marked stays one LEFT/RIGHT away
+  PickPage.prototype.unseen = function () {
+    var n = this.tabs.length;
+    for (var s = 1; s <= n; s++) {
+      var i = (this.tab + s) % n, t = this.tabs[i];
+      if (!this.seen[i] && t.g.rows.some(function (r) { return (t.lv == null || r.lv === t.lv) && t.g.marks[r.id]; })) return i;
+    }
+    return -1;
+  };
   PickPage.prototype.refresh = function () {
     var t = this.tabs[this.tab], g = t && t.g, h = this.h, items = [];
+    if (t) this.seen[this.tab] = true;
     if (g) g.rows.forEach(function (r) {
       if (t.lv != null && r.lv !== t.lv) return;
       var n = g.marks[r.id] || 0, it = { value: r, label: fit(r.name, 140), pre: n ? '◆' : null, disabled: !!r.off, desc: r.desc || '' };
@@ -543,8 +555,8 @@
       }
       items.push(it);
     });
-    var ok = this.ready();
-    items.unshift({ label: 'CONFIRM', confirm: true, color: ok ? C.gold : C.white, disabled: !ok, right: ok ? '' : this.short(), rightColor: C.dim, desc: '' });
+    var ok = this.ready(), nx = this.unseen();
+    items.unshift({ label: 'CONFIRM', confirm: true, color: ok ? C.gold : C.white, disabled: !ok && nx < 0, right: nx >= 0 ? 'then ' + this.tabs[nx].label : ok ? '' : this.short(), rightColor: C.dim, desc: '' });
     var i0 = this.list.i; this.list.set(items); this.list.i = Math.min(i0, items.length - 1); this.list.fix();
   };
   // what is still to choose, in a word
@@ -585,6 +597,8 @@
     if (r === 'refused') { m.say(cur.confirm ? 'Not yet: ' + this.short() + ' -- ' + pickNeedWord(this.groups.filter(function (x) { return marksOf(x) !== x.need; })[0] || this.groups[0]).toLowerCase() + '.' : cur.value.name + ': ' + cur.value.off + '.'); return; }
     if (r !== 'pick') return;
     if (!cur.confirm) { this.toggle(cur.value, g); return; }
+    var nx = this.unseen();
+    if (nx >= 0) { this.tab = nx; this.list.i = 0; this.refresh(); sfx('cursor'); return; } // (a marked tab not yet seen: CONFIRM shows it first)
     var lines = R().applyPick(this.h, this.rec, this.choice());
     sfx('levelup');
     m.say(lines.length ? lines : [this.h.name + ': done.'], function () { self.next(); });
@@ -599,7 +613,13 @@
       var n = 0; tb.g.rows.forEach(function (r) { if (tb.lv == null || r.lv === tb.lv) n += markWorth(r.id, tb.g.marks[r.id] || 0); });
       return { label: tb.label, count: n || null };
     }), this.tab, 8, 22, Math.min(240, this.tabs.length * 60));
-    if (g) { text(ctx, fit(pickNeedWord(g), 186), 10, 38, C.pale); right(ctx, marksOf(g) + ' of ' + g.need, 246, 38, marksOf(g) === g.need ? C.green : C.gold); }
+    if (g) {
+      // (a spell level with none of the group's marks says where they are: "2 of 2 on L2", not a bare "2 of 2" over an unmarked list -- 10-16, his "or one spell
+      // left off auto-suggest")
+      var here = 0; g.rows.forEach(function (r) { if (t.lv == null || r.lv === t.lv) here += markWorth(r.id, g.marks[r.id] || 0); });
+      var onT = t.lv != null && !here && marksOf(g) ? ' on ' + this.tabs.filter(function (tb) { return tb.g === g && tb !== t && g.rows.some(function (r) { return r.lv === tb.lv && g.marks[r.id]; }); }).map(function (tb) { return tb.label; }).join('/') : '';
+      text(ctx, fit(pickNeedWord(g), onT ? 150 : 186), 10, 38, C.pale); right(ctx, marksOf(g) + ' of ' + g.need + onT, 246, 38, marksOf(g) === g.need ? C.green : C.gold);
+    }
     this.list.draw(ctx, 10, 52, 234, active, this.m.t, 12, 8); // (a gutter for the mark, clear of the cursor)
     if (this.list.scroll > 0 && this.ready()) { // (scrolled past CONFIRM: it stands at the top while the count is met -- "or appears at top when valid")
       ctx.fillStyle = '#2c3070'; ctx.fillRect(150, 6, 76, 12); text(ctx, 'CONFIRM ▲', 156, 9, C.gold);
@@ -609,7 +629,8 @@
     text(ctx, '◆', 10, 184, C.gold); text(ctx, def ? 'marked  ·  the build\'s picks come marked' : 'marked  ·  nothing comes marked: yours to choose', 20, 184, C.dim);
     var cur = this.list.cur();
     if (!cur) return;
-    if (cur.confirm) descBox(ctx, this.ready() ? 'Keep these and go on.' : 'Not yet: ' + this.short() + '.', this.groups.length > 1 ? 'Every tab counts: ' + this.groups.map(function (x) { return (x.ask.kind === 'spells' ? 'spells' : PICK_WORD[x.ask.kind].toLowerCase()) + ' ' + marksOf(x) + '/' + x.need; }).join(', ') + '.' : '');
+    var nxD = this.unseen();
+    if (cur.confirm) descBox(ctx, nxD >= 0 ? 'Next, the ' + this.tabs[nxD].label + ' tab: look before you keep them.' : this.ready() ? 'Keep these and go on.' : 'Not yet: ' + this.short() + '.',this.groups.length > 1 ? 'Every tab counts: ' + this.groups.map(function (x) { return (x.ask.kind === 'spells' ? 'spells' : PICK_WORD[x.ask.kind].toLowerCase()) + ' ' + marksOf(x) + '/' + x.need; }).join(', ') + '.' : '');
     else descBox(ctx, cur.desc || '', cur.disabled ? 'Not offered: ' + cur.value.off + '.' : cur.value.tag === 'grid' ? 'Cast in the grid\'s fights (the story\'s); not in an 8-bit fight yet.' : 'E: mark or unmark.  ' + (self.groups.length > 1 || self.tabs.length > 1 ? 'Left/right: the tabs.' : ''));
   };
   // the pick pages for every hero with something to choose, one a hero a level, then done(); o: { pages, built } as R.pickRows takes them. The menu is the one
@@ -625,6 +646,9 @@
       while (it && it.h.picks && it.h.picks.indexOf(it.rec) < 0) it = q.shift(); // (a record settled meanwhile)
       if (!it) { m.close(); if (done) done(); return; }
       m.push(new PickPage(m, it.h, it.rec, o, next));
+      // (the hero's level-up lines first, over the hero's own page -- "Barley is now level 4!", then Barley's choices, then Aurdin's lines and page: 10-16, kept on the
+      // record by R.gainXP and said once)
+      if (it.rec.lines && it.rec.lines.length) { m.say(it.rec.lines); delete it.rec.lines; }
     }
     next();
     return m;

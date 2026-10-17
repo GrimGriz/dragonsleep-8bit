@@ -2087,6 +2087,10 @@
         for (var wP = 0; wP < 60 && !(DS.top() && DS.top().kind === 'picks'); wP++) T.step(1);
         var scP = DS.top(), mP = scP && scP.m;
         check('THE FIELD OPENS THE PICK PAGE: ' + (scP && scP.kind) + ', first ' + (mP && mP.top().h.name) + ' (want Barley)', scP && scP.kind === 'picks' && mP.top().h === bar);
+        // (10-16, his "why not level barley right then, followed by Aurdin levels up, then leveling him up": each hero's level lines come over that hero's own page, said once)
+        var lvSaid = {};
+        function lvLine(m) { var pg = m.top(), t = m.toast ? m.toast.lines.join(' | ') : ''; lvSaid[pg.h.id] = t; if (m.toast) m.update(K('a')); return t; }
+        lvLine(mP);
         // Barley: STR +2 marked; CON +2 instead
         var pgB = mP.top(), marksB = JSON.stringify(pgB.groups[0].marks), topB = !!pgB.list.items[0].confirm && pgB.list.i === 0;
         function KM(mo) { return { pressed: function () { return false; }, repeat: function () { return false; }, mouse: Object.assign({ x: -1, y: -1, moved: false, click: false, rclick: false, wheel: 0 }, mo) }; }
@@ -2095,6 +2099,14 @@
         check('BARLEY\'S SCORES: the build\'s ' + marksB + ' marked (want {"str":2}); CON +2 taken: STR ' + bar.abil.str + ' (want ' + str0 + '), CON ' + bar.abil.con + ' (want ' + (con0 + 2) + '), max HP ' + hp4 + ' -> ' + bar.maxhp + ' (want +4); "' + toastB + '"',
           marksB === '{"str":2}' && bar.abil.str === str0 && bar.abil.con === con0 + 2 && bar.maxhp === hp4 + 4 * (DS.mod(con0 + 2) - DS.mod(con0)) && /CON \+2/.test(toastB));
         // Aurdin: the pool, the build's marked; Web out, Blur in
+        lvLine(mP);
+        // (10-16, his "when you confirm ability it moves you [to the] spell choice selection": CONFIRM walks to each tab holding a mark he has not seen -- SCORES,
+        // then CANTRIP, then L2 (L1 holds none of the build's) -- and keeps nothing on the way)
+        var pgW = mP.top(), walk = [pgW.tabs[pgW.tab].label];
+        for (var wW = 0; wW < 2; wW++) { confirmP(mP); walk.push(mP.top().tabs[mP.top().tab].label); }
+        var keptW = !!(aur.chose && aur.chose[4]), thenW = pgW.list.items[0].right;
+        check('CONFIRM WALKS THE MARKED TABS FIRST: ' + walk.join(' -> ') + ' (want SCORES -> CANTRIP -> L2), nothing kept on the way (' + !keptW + '), the page still Aurdin's (' + (mP.top() === pgW) + '); at L2 the row says "' + thenW + '" (want nothing: every marked tab seen)',
+          walk.join('/') === 'SCORES/CANTRIP/L2' && !keptW && mP.top() === pgW && !thenW);
         var pgA = mP.top(), idsA = allRows(pgA), spA = pgA.groups.filter(function (x) { return x.ask.kind === 'spells'; })[0];
         var pageOnly = idsA.filter(function (id) { return R8.pageOnly(id); }), knownIn = idsA.filter(function (id) { return aur.known.indexOf(id) >= 0 && ['web', 'shatter', 'dancinglights'].indexOf(id) < 0; });
         var tooHigh = spA.rows.filter(function (r) { return r.lv > 2; }).map(function (r) { return r.id; });
@@ -2109,13 +2121,18 @@
         check('ONE SHORT, CONFIRM SAYS SO ("' + refused + '", the page stays ' + stillA + '); Blur for Web: web ' + (aur.known.indexOf('web') >= 0) + ', blur ' + (aur.known.indexOf('blur') >= 0) + ', shatter ' + (aur.known.indexOf('shatter') >= 0) + ', the cantrip ' + (aur.known.indexOf('dancinglights') >= 0) + '; chose ' + JSON.stringify(aur.chose && aur.chose[4]),
           /Not yet: 1 more/.test(refused) && stillA && aur.known.indexOf('web') < 0 && aur.known.indexOf('blur') >= 0 && aur.known.indexOf('shatter') >= 0 && aur.known.indexOf('dancinglights') >= 0 && JSON.stringify(aur.chose[4].spells) === '["shatter","blur"]');
         // Vivian: her archetype, nothing marked; Cutthroat
+        lvLine(mP);
         var pgV = mP.top(), arV = pgV.groups[0], noneV = !Object.keys(arV.marks).length && pgV.list.i === 1; // (nothing marked: the cursor on the first choice, not CONFIRM)
         confirmP(mP); var refusedV = mP.toast ? mP.toast.lines.join(' ') : ''; mP.update(K('a'));
         hitRow(mP, 'Cutthroat'); confirmP(mP); mP.update(K('a'));
         check('VIVIAN\'S ARCHETYPE on the page (' + (pgV.h === viv) + ', ' + arV.ask.kind + ', rows ' + arV.rows.map(function (r) { return r.id; }).join('/') + ', none marked ' + noneV + '); CONFIRM refused first ("' + refusedV + '"); she is a ' + viv.subclass + ', flag ' + viv.pendingChoice,
           pgV.h === viv && noneV && arV.ask.kind === 'archetype' && arV.rows.length === 2 && /Not yet/.test(refusedV) && viv.subclass === 'Cutthroat' && !viv.pendingChoice && !viv.picks);
         // Lymen: one press keeps the build's
+        lvLine(mP);
         var lymA = JSON.stringify(lym.abil); confirmP(mP); mP.update(K('a'));
+        var lvAll = ['barley', 'aurdin', 'vivian', 'lymen'].map(function (id) { return id + ': "' + (lvSaid[id] || '') + '"'; }).join('; ');
+        check('EACH HERO\'S LEVEL LINES OVER THAT HERO\'S OWN PAGE, none of them a "chooses ... next" (his 10-16): ' + lvAll,
+          ['barley', 'aurdin', 'vivian', 'lymen'].every(function (id) { var t = lvSaid[id] || ''; return /is now level/.test(t) && !/chooses .* next|learns|Ability scores/.test(t); }) && /Barley is now level 4/.test(lvSaid.barley) && /Vivian is now level 3/.test(lvSaid.vivian));
         for (var wQ = 0; wQ < 10 && DS.top() && DS.top().kind === 'picks'; wQ++) T.step(1);
         check('LYMEN KEEPS THE BUILD\'S WITH ONE PRESS (' + (JSON.stringify(lym.abil) === lymA) + '); the page closes on the field (' + (DS.top() && DS.top().kind) + '); nothing asked (' + g.party.every(function (h) { return !h.pendingChoice && !h.picks; }) + ')',
           JSON.stringify(lym.abil) === lymA && DS.top() === DS.field && g.party.every(function (h) { return !h.pendingChoice && !h.picks; }));
