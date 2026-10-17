@@ -7993,9 +7993,23 @@
       pk3.go('units'); drawOK(pk3, 'units (to bind)'); var bindB = pk3.btns.filter(function (b) { return /^BIND AS UNIT/.test(b.label); })[0]; if (bindB) pk3.fire(bindB);
       var rEgg = pk3.egg && pk3.egg.id === 'rascal'; pk3.egg = null; PD.buy(pk3.st, 'goblin'); pk3.picked = {}; pk3.picked[cp3.bought[0].id] = true; pk3.go('units'); drawOK(pk3, 'units'); bindB = pk3.btns.filter(function (b) { return /^BIND AS UNIT/.test(b.label); })[0]; if (bindB) pk3.fire(bindB);
       okD(bindB && rEgg && !pk3.egg && cp3.units.length === 2 && PD.unitName(cp3.units[0]) === 'a Goblin, a Hyena' && PK.entries(pk3.st).some(function (e) { return e.w === 'rascal'; }), 'Rascal: the first BIND AS UNIT lets him in with his egg (' + (cp3.units[0] && PD.unitName(cp3.units[0])) + '); the second, no egg');
-      // m. USEFULS' SITUATIONS opens the notes, not the page; every new screen draws
-      pk3.go('useful'); drawOK(pk3, 'useful'); var sit = pk3.btns.filter(function (b) { return b.label === 'SITUATIONS'; })[0]; if (sit) pk3.fire(sit);
-      okD(sit && pk3.screen === 'feedback', 'USEFULS: SITUATIONS opens the notes box');
+      // m. DOORS' SITUATIONS opens the notes, not the page (USEFULS' till 10-17); every new screen draws
+      pk3.go('title'); drawOK(pk3, 'title'); var drB = pk3.btns.filter(function (b) { return b.label === 'DOORS'; })[0], usB = pk3.btns.filter(function (b) { return b.label === 'USEFULS'; })[0]; if (drB) pk3.fire(drB);
+      var onDoors = pk3.screen === 'doors'; drawOK(pk3, 'doors'); var sit = pk3.btns.filter(function (b) { return b.label === 'SITUATIONS'; })[0]; if (sit) pk3.fire(sit);
+      okD(drB && !usB && onDoors && sit && pk3.screen === 'feedback', 'DOORS: the release title has DOORS and no USEFULS; its SITUATIONS opens the notes box');
+      pk3.back(); okD(pk3.screen === 'doors', 'DOORS: BACK from the notes comes back to DOORS (was ' + pk3.screen + ')');
+      // one DOORS (10-17, Griz: "Usefuls is a less functional version of DOORS"): the release's eight, every door at the DM's with the notes and the Discord
+      var pubL = PD.doorsFor({}).map(function (r) { return r[1]; }), dmL = PD.doorsFor({ dm: true }).map(function (r) { return r[1]; });
+      okD(pubL.length === 8 && pubL.indexOf('notes:') >= 0 && pubL.indexOf('?fight=greyfang') < 0 && dmL.indexOf('?fight=greyfang') >= 0 && dmL.indexOf('notes:') === 0 && dmL.indexOf(PK.DISCORD) === dmL.length - 1 && dmL.length === PD.DOORS.length + 2,
+        'DOORS: the release shows its eight (' + pubL.length + ', no GreyFang), the DM\'s every door with the notes and the Discord (' + dmL.length + ')');
+      // SAVE ALL on THE FIGHTS (10-17, Griz: "a save on the previous page with all the fights that saves all the fights and all the notes with them"): one file
+      var fs0 = pk3.st.fights; pk3.st.fights = [{ t: 2, started: 'sa2', result: 'won', rounds: 3, party: ['Barley'], foes: 'two goblins', cr: '1/2', diff: 'easy', mapName: 'the yard', q: 'npc=goblin', notes: 'the second one ran' },
+        { t: 1, started: 'sa1', result: 'lost', rounds: 5, party: ['Barley'], foes: 'an ogre', cr: '2', diff: 'deadly', mapName: 'the yard', q: 'npc=ogre' }];
+      pk3.go('fights'); drawOK(pk3, 'fights'); var saB = pk3.btns.filter(function (b) { return b.label === 'SAVE ALL'; })[0]; dlD.length = 0; if (saB) pk3.fire(saB);
+      var saBody = null; try { var xq = new XMLHttpRequest(); xq.open('GET', dlD[0].href, false); xq.send(); saBody = JSON.parse(xq.responseText); } catch (eS) { repD.errors.push('SAVE ALL file: ' + eS); }
+      okD(saB && dlD.length === 1 && /^pocket-dm-fights-\d{4}-\d\d-\d\d-\d{4}\.json$/.test(dlD[0].name) && saBody && saBody.n === 2 && saBody.noted === 1 && saBody.fights[0].fight.notes === 'the second one ran' && /NOTES: the second one ran/.test(saBody.fights[0].summary) && saBody.fights[1].record === null,
+        'SAVE ALL: THE FIGHTS writes one file, every fight with its summary and notes (' + (dlD[0] && dlD[0].name) + ')');
+      pk3.st.fights = fs0;
       var drew = ['feedback'].map(function (s) { pk3.go(s); return drawOK(pk3, s); }); pk3.dropField();
       pk.st.dm = true; var screensD = ['title', 'camp', 'units', 'build', 'doors', 'cr'];
       screensD.forEach(function (s) { pk.go(s); drew.push(drawOK(pk, s)); });

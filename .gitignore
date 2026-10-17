@@ -3,6 +3,7 @@
 dev/*
 !dev/*.py
 !dev/*.js
+!dev/play-main.bat
 __pycache__/
 *.pyc
 .DS_Store

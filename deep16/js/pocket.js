@@ -419,7 +419,7 @@
     if (I.pressed('b') && !D.typing) { this.back(); return; }
     if (s === 'title' && this.titleClick()) return; // (the throne and the two lamps: js/pocketdm.js)
     if (this.readButtons()) return;
-    if (s === 'map' || s === 'fights' || s === 'maker' || s === 'useful' || s === 'market' || this.scrolls(s)) { // (the market's list too, 10-17: his "i rolled the mousewheel over that ... and nothing happened")
+    if (s === 'map' || s === 'fights' || s === 'maker' || s === 'market' || this.scrolls(s)) { // (the market's list too, 10-17: his "i rolled the mousewheel over that ... and nothing happened")
       var w = I.mouse.wheel; if (w && !this.wheelTo(w)) { this.scroll = Math.max(0, this.scroll + w); } // (wheelTo: a screen of two lists takes it for the one under the mouse, js/pocketdm.js)
     }
     if (s === 'cr' && this.drag && I.mouse.inside) {
@@ -433,7 +433,7 @@
     D.sfx('cancel');
     if (this.backMore(s)) return; // (the DM's screens and the notes: js/pocketdm.js)
     if (s === 'title') { location.href = '../'; return; }
-    if (s === 'useful' || s === 'party' || s === 'fights') { this.keep(); this.go('title'); return; }
+    if (s === 'party' || s === 'fights') { this.keep(); this.go('title'); return; }
     if (s === 'maker') { if (this.mk && this.mk.step > 1) this.mk.step--; else this.go('party'); return; }
     if (s === 'map') { this.go('party'); return; }
     if (s === 'cr') { if (this.st.run) { this.go('title'); return; } this.go('map'); return; }
@@ -653,6 +653,25 @@
       setTimeout(function () { URL.revokeObjectURL(url); }, 4000);
       this.say('saved ' + name);
     } catch (e) { this.say('could not save: ' + e); }
+  };
+  // SAVE ALL on THE FIGHTS (10-17, Griz: "a save on the previous page with all the fights that saves all the fights and all the notes with them would be better"):
+  // every fight kept here in one file, each as a fight's own SAVE A FILE writes it -- its summary, its notes, its play record (js/record.js keeps the last 40, so an
+  // older fight's `record` is null). R on the tester ladder (REC.save) writes the play records alone, with no notes and no summary
+  Pocket.prototype.saveAll = function () {
+    var fs = this.st.fights || []; if (!fs.length) return null;
+    var plays = D.store.get('deep16.plays') || [], self = this;
+    var d = new Date(), pad = function (n) { return (n < 10 ? '0' : '') + n; };
+    var name = 'pocket-dm-fights-' + d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()) + '-' + pad(d.getHours()) + pad(d.getMinutes()) + '.json';
+    var body = JSON.stringify({ what: 'DRAGONSLEEP: every Pocket DM fight kept in this browser, newest first (deep16/?pocket THE FIGHTS, SAVE ALL; the play records by js/record.js)', saved: d.toISOString(), n: fs.length,
+      noted: fs.filter(function (f) { return f.notes; }).length,
+      fights: fs.map(function (rec) { return { summary: self.summary(rec), fight: rec, record: plays.filter(function (f) { return f.started === rec.started; })[0] || null }; }) }, null, 1);
+    try {
+      var a = document.createElement('a'), url = URL.createObjectURL(new Blob([body], { type: 'application/json' }));
+      a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(function () { URL.revokeObjectURL(url); }, 4000);
+      this.say('saved ' + name + ': ' + fs.length + ' fight' + (fs.length === 1 ? '' : 's'));
+    } catch (e) { this.say('could not save: ' + e); return null; }
+    return name;
   };
   // ------------------------------------------------------------------ the roster in a file of its own (10-03, Griz: "pocket dm roster should save in pocket dm and not overlap with
   // the 8bit ideally"): the player's own characters, and Pyro if the trial is won, to a .json and back, from THE PARTY. The 8-bit's SAVE TO FILE (js/scenes.js FILE_KEYS) keeps the
@@ -1033,7 +1052,6 @@
     drawHall(ctx, this.t, this.screen === 'title' ? 1 : 0.42, this.st.dm);
     var s = this.screen;
     if (s === 'title') this.drawTitle(ctx);
-    else if (s === 'useful') this.drawUseful(ctx);
     else if (s === 'party') this.drawParty(ctx);
     else if (s === 'maker') this.drawMaker(ctx);
     else if (s === 'map') this.drawMap(ctx);
@@ -1063,7 +1081,7 @@
     var w = 150, x = D.W - w - 22, y = 104, n = this.st.fights.length; // (y 150 till 10-06, 132 till 10-09, 120 till 10-17: up for the campaign's two rows, then A DM'S LADDER)
     this.btn(ctx, this.st.run ? 'THE LADDER: ' + (this.st.run.trial ? 'THE TRIAL' : 'RUNG ' + this.st.run.rung) : 'START', x, y, w, 18, function () { if (self.st.run) { self.foes = self.st.run.foes; self.fightMap = self.st.run.map; self.go('cr'); } else self.go('party'); }, { pri: true });
     this.btn(ctx, 'FIGHTS' + (n ? '  (' + n + ')' : ''), x, y + 22, w, 16, function () { self.go('fights'); }, { dis: !n, why: 'no fights kept yet: START one' });
-    this.btn(ctx, 'USEFULS', x, y + 41, w, 16, function () { self.go('useful'); });
+    this.btn(ctx, 'DOORS', x, y + 41, w, 16, function () { self.scroll = 0; self.go('doors'); }); // (one DOORS on both tables, js/pocketdm.js PD.doorsFor -- USEFULS till 10-17, Griz: "Usefuls is a less functional version of DOORS")
     this.btn(ctx, 'THE 8-BIT GAME', x, y + 60, w, 16, function () { location.href = '../'; });
     // the whole campaign to a file and back, here where a ladder under way can reach it (10-06: PK.tableFile; SAVE TABLE till 10-09)
     this.btn(ctx, 'SAVE CAMPAIGN', x, y + 79, w, 15, function () { self.saveTable(); });
@@ -1073,21 +1091,7 @@
     D.text(ctx, 'Solskaft: the oath-stone of the Silversands, under the Sunshaft. At noon the light lands here.', D.W / 2, 243, P('stone', 5), 'center');
     D.hint(ctx, 'up/down choose · E go · X the 8-bit game · the Discord: ' + PK.DISCORD.replace('https://', ''), D.W / 2, 256, P('stone', 4), 'center');
   };
-  Pocket.prototype.drawUseful = function (ctx) {
-    var self = this;
-    head(ctx, 'USEFULS', 'the other doors of the grid, and the pages beside the game');
-    var rows = [['THE LADDER', 'the story\'s fights, rung by rung, the four at each level', function () { location.href = '?ladder'; }],
-      ['THE TESTER LADDER', 'Talmok, Willem, Katarina and Torvald; you watch, or play (P) and it is recorded', function () { location.href = '?ladder&party=ours'; }],
-      ['THE CLIMB', 'one party from level 1 to 9, your own picks at each level', function () { location.href = '?climb'; }],
-      ['THE GALLERY', 'spells, features, the Mascots and every creature\'s rows: one door, one set of keys (X comes back here)', function () { location.href = '?gallery&from=pocket'; }], // (the three galleries as one, js/onegallery.js, 10-08)
-      ['TEST RUNS', 'the page that builds any URL of the game, row by row', function () { self.open('../test-runs.html'); }],
-      ['SITUATIONS', 'what you noticed, in your own words: a notes file of its own', function () { self.go('feedback'); }], // (10-09, Griz: "a 'notes' pop-up that saves as a separate file called hero_situations_feedback"; "No on opening the situations page": js/pocketdm.js)
-      ['EVERY URL', 'URLS.md: the whole list, with what each does', function () { self.open('https://github.com/GrimGriz/dragonsleep-8bit/blob/main/URLS.md'); }],
-      ['THE DISCORD', PK.DISCORD, function () { self.open(PK.DISCORD); }]];
-    var y = 40;
-    rows.forEach(function (r) { self.btn(ctx, r[0], 20, y, 150, 15, r[2]); D.text(ctx, r[1], 180, y + 4, P('bone', 1)); y += 19; });
-    this.btn(ctx, 'BACK', 20, 236, 60, 15, function () { self.back(); });
-  };
+  // (USEFULS, the release's eight doors, is DOORS since 10-17: js/pocketdm.js PD.PUBLIC, the same rows in DOORS' list)
   // the party: the slots across, arrows above and below (his words), the level beneath
   Pocket.prototype.drawParty = function (ctx) {
     var self = this, st = this.st, sh = this.sheets(), n = st.party.length;
@@ -1429,7 +1433,7 @@
   };
   Pocket.prototype.drawFights = function (ctx) {
     var self = this, fs = this.st.fights, per = 11;
-    head(ctx, 'THE FIGHTS', fs.length + ' kept in this browser · E on one for its notes, a file, a mail');
+    head(ctx, 'THE FIGHTS', fs.length + ' kept in this browser · E on one for its notes · SAVE ALL: every fight and its notes in one file');
     var from = Math.min(this.scroll, Math.max(0, fs.length - per)); this.scroll = from;
     fs.slice(from, from + per).forEach(function (f, i) {
       var yy = 36 + i * 17, d = new Date(f.t), when = (d.getMonth() + 1) + '-' + d.getDate() + ' ' + (d.getHours() < 10 ? '0' : '') + d.getHours() + ':' + (d.getMinutes() < 10 ? '0' : '') + d.getMinutes();
@@ -1439,6 +1443,7 @@
     });
     if (fs.length > per) D.text(ctx, 'wheel: ' + (from + 1) + '-' + Math.min(fs.length, from + per) + ' of ' + fs.length, 14, 36 + per * 17, P('stone', 5));
     this.btn(ctx, 'BACK', 20, 236, 60, 15, function () { self.back(); });
+    this.btn(ctx, 'SAVE ALL', 90, 236, 90, 15, function () { self.saveAll(); }, { pri: true, dis: !fs.length }); // (10-17: one file, every fight and its notes)
     this.btn(ctx, 'FORGET THEM ALL', D.W - 150, 236, 130, 15, function () { self.st.fights = []; self.keep(); self.go('title'); }, { dis: !fs.length });
   };
   Pocket.prototype.drawNotes = function (ctx) {

@@ -1,0 +1,106 @@
+{
+ "_readme": {
+  "what": "Playtest feedback from situations.html: one verdict and note a row -- an eyes row (js/eyes.js: built, not yet seen) or a story situation (?at=<id>, js/situations.js).",
+  "fold_back": "Fold every eyes row noted here that is still live in js/eyes.js (a folded row is already cut, so nothing folds twice; previous_save and new_since_last_save only hint at what is new -- RULED 10-15); a story situation note folds when its `at` is after the save of the last ear file folded. An eyes row noted at all is SEEN: a `seen` line in PATCHLOG.md with the note verbatim, and the row cut from js/eyes.js whatever the verdict (a fix that wants another look writes a fresh row). Broken and unclear become the fix list (in the lane its pt names); too hard / too easy are tuning; notes are the tester's words, verbatim."
+ },
+ "saved_at": "2026-10-17T15:39:48.250Z",
+ "previous_save": "2026-10-16T21:39:50.722Z",
+ "items": [
+  {
+   "id": "eyes-dominate-mark-1015",
+   "eyes": true,
+   "pri": 1,
+   "title": "Dominate’s mark: Beholda’s spiral over the dominated, while the spell holds it (10-15)",
+   "pt": "the grid’s rules, the 10-15 Dominate mark (deep16/js/looks.js LK.domSpiral; js/mpmon.js draws hers by it) · eyes",
+   "url": "deep16/?gallery&shelf=spells&spell=dominateperson&fresh=1",
+   "verdict": "works",
+   "note": "dwarf trooper has see through head",
+   "at": "2026-10-17T13:22:38.814Z",
+   "new_since_last_save": true
+  },
+  {
+   "id": "eyes-units-1009b",
+   "eyes": true,
+   "pri": 1,
+   "title": "THE CAMPAIGN again: receipts bound into units, CR 0 at 10 sp, Rascal on the first unit (10-09b)",
+   "pt": "the Pocket DM and the races §2d (deep16/js/pocketdm.js) · eyes",
+   "url": "deep16/?pocket&fresh=1",
+   "verdict": "works",
+   "note": "We'll want to remove 'Party' and 'Play Ladder' from the DM side of things\nRemove 'Play DM Ladder' from the Front page\nUsefuls is a less functional version of DOORS\n\nGot that list of fights, and I can click on a fight and leave a note - but it wants me to save a file there and a save on the previous page with all the fights that saves all the fights and all the notes with them would be better - how is different from ladder 'r' record save?\n\nWe have 'humanoids' in the DM monster store in a fashion that makes me think we should pull villains into a new store and allow 'make' from there as well as going through the existing roster and being able to mark as villain or villain only to add to villain store and remove from 'campaign' available party members\n\nThere are two pocket DM experiences, player and DM. A DM will want to save multiple ladders (modules?) \nWe'll need a 'locations' store that works like the monster store by tileset (i.e. underground, urban, outdoors - probably matching world tile) sorted by map size. Maps chosen/bought here show up on the ladder building screen (instead of all available maps). DM flag when he adds each map if he allows short rest, long rest, market visit between runs of his module(ladder). \n\nFirst page (currently when DM clicks 'campaign') should be the DMs units and maps, with load module or build module - or clicking a button near their units and maps where they can buy and add more to their campaign without starting to build a module. \n\nCampaign saves are DMs units, maps, and roster \nPlayer saves are current party and pack\n\nThe FOES page on the player side becomes the camp, where they can open the standard 'm' menu \nThe pick from there, single fight, random ladder or play module (load module to change greyed out play module when none loaded or to change loaded module). For ladder and module play, long rest and daily spells/pre-cast (aid, mage armor) then go to fight. For single fight, map and CR setting, then long rest spell selection. ",
+   "at": "2026-10-17T15:39:43.863Z",
+   "new_since_last_save": true
+  },
+  {
+   "id": "wet",
+   "eyes": false,
+   "pri": 4,
+   "title": "The Wet: the bucket and the landlord",
+   "pt": "§5 the wet · the landlord's pictures (new 10-01)",
+   "url": "?at=wet",
+   "verdict": "works",
+   "note": "This works. I think we made it such that no one can to this spot in the 8-bit without already being pulled on to the grid (check to make sure). We should put a light nearby the bucket and double check the sprite we're using to make it more a visible draw on the grid. The tiles around the Landlords pool should be switched to solid stone. ",
+   "at": "2026-10-04T05:23:43.178Z",
+   "new_since_last_save": false
+  },
+  {
+   "id": "wet3",
+   "eyes": false,
+   "pri": 4,
+   "title": "The gates down to the wet, at level 3",
+   "pt": "§5 the wet · §3 battle feel (new 10-03)",
+   "url": "?at=wet3",
+   "verdict": "unclear",
+   "note": "No encounters between town and warrens. Running back and forth on the road and got 2 giant rats. \nNo encounters in the mine until down in the wet itself. There either are not exit squares in the fight with the landlord, or party members are not allowed to use the flee under action (not on wheel). ",
+   "at": "2026-10-04T05:24:47.498Z",
+   "new_since_last_save": false
+  },
+  {
+   "id": "gulch",
+   "eyes": false,
+   "pri": 4,
+   "title": "Web Gulch: the strung end",
+   "pt": "§7 the braiding ettercap · §11 the snared traveler",
+   "url": "?at=gulch",
+   "verdict": "works",
+   "note": "",
+   "at": "2026-10-04T05:30:38.432Z",
+   "new_since_last_save": false
+  },
+  {
+   "id": "cloaker",
+   "eyes": false,
+   "pri": 4,
+   "title": "The guano slide and the cloaker",
+   "pt": "§6 the cloaker · §11 guano slide",
+   "url": "?at=cloaker",
+   "verdict": "works",
+   "note": "",
+   "at": "2026-10-04T05:30:46.273Z",
+   "new_since_last_save": false
+  },
+  {
+   "id": "roost",
+   "eyes": false,
+   "pri": 4,
+   "title": "Under the roost",
+   "pt": "§6 the one law · §11/§12 NOT THIS KIND OF NAME",
+   "url": "?at=roost",
+   "verdict": "works",
+   "note": "",
+   "at": "2026-10-04T05:34:59.719Z",
+   "new_since_last_save": false
+  },
+  {
+   "id": "cradle",
+   "eyes": false,
+   "pri": 4,
+   "title": "A shift at the cradle",
+   "pt": "§13 the cradle, rebuilt",
+   "url": "?at=cradle",
+   "verdict": "works",
+   "note": "",
+   "at": "2026-10-04T05:35:12.626Z",
+   "new_since_last_save": false
+  }
+ ]
+}

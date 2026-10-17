@@ -14,7 +14,7 @@
    up/down, when you click the map it puts it in the next available slot of your campaign ladder, fills CR with units first, from most recently created units
    first"): a table's CR filled with whole units, the newest first, never spent, each once a table; five slots, four rungs and the trial; three floors struck
    from the random draw ("4 - yes": his "limited number of ladder map exclusions").
-   BOTH EDITIONS: USEFULS' SITUATIONS opens a notes box that saves hero_situations_feedback-<UTC>.json, the campaign's particulars in it ("separate from the
+   BOTH EDITIONS: DOORS' SITUATIONS (USEFULS' till 10-17) opens a notes box that saves hero_situations_feedback-<UTC>.json, the campaign's particulars in it ("separate from the
    campaign file (but includes pertinent information from the campaign file)"; "No on opening the situations page ... we'll just see what they notice enough to
    type about"). THE EGGS, a Mascot each (10-06 night: "'make your own character the first time' = unlock denny"; 10-09: "Making a campaign should unlock Beholda
    when you haven't bothered to do the 3 clicks"; Goose: "let this unlock a lobstamonkee - flash an easter egg the first time they've actually typed something in
@@ -221,16 +221,15 @@
     }
     if (!this.st.dm) return;
     var cp = PD.camp(this.st), x = 22, w = 110, y = 120;
-    this.btn(ctx, 'CAMPAIGN', x, y, w, 18, function () { self.go('camp'); }, { pri: true });
-    this.btn(ctx, 'DOORS', x, y + 22, w, 16, function () { self.go('doors'); });
-    D.text(ctx, '{y}' + PD.fmt(cp.purse) + '{/}  ' + cp.units.length + ' unit' + (cp.units.length === 1 ? '' : 's') + (cp.bought.length ? ' {g}+' + cp.bought.length + '{/}' : ''), x + w / 2, y + 44, P('bone', 1), 'center');
+    this.btn(ctx, 'CAMPAIGN', x, y, w, 18, function () { self.go('camp'); }, { pri: true }); // (DOORS stands in the right column on both tables since 10-17)
+    D.text(ctx, '{y}' + PD.fmt(cp.purse) + '{/}  ' + cp.units.length + ' unit' + (cp.units.length === 1 ? '' : 's') + (cp.bought.length ? ' {g}+' + cp.bought.length + '{/}' : ''), x + w / 2, y + 22, P('bone', 1), 'center');
   };
 
   // ------------------------------------------------------------------ the screens: the campaign, a shop, the units, the builder, the doors, the notes
   Pocket.prototype.backMore = function (s) {
     if (s === 'camp' || s === 'doors') { this.keep(); this.go('title'); return true; }
     if (s === 'shop' || s === 'units' || s === 'build') { this.keep(); this.go('camp'); return true; }
-    if (s === 'feedback') { this.keep(); this.go('useful'); return true; }
+    if (s === 'feedback') { this.keep(); this.go('doors'); return true; } // (USEFULS till 10-17)
     // THE PARTY at the DM's table is the campaign's: back to it, never the title (10-13, the Pocket DM §2e; Griz: "party button on DM's pocket should stay in Campaign flow")
     if (s === 'party' && this.st.dm) { this.keep(); this.go('camp'); return true; }
     return false;
@@ -472,14 +471,30 @@
     ['SITUATIONS PAGE', '../situations.html', 'the eyes rows and the ?at= situations, marked and saved'],
     ['EVERY URL', 'https://github.com/GrimGriz/dragonsleep-8bit/blob/main/URLS.md', 'URLS.md: the whole list, with what each does']
   ];
+  // ONE DOORS (10-17, Griz: "Usefuls is a less functional version of DOORS"): the release's title had USEFULS, eight rows that left the page; both tables now have
+  // DOORS, each door in a tab of its own. The release's are the eight (PD.PUBLIC); the DM's table every door above, with the notes first and the Discord last.
+  // A row's link 'notes:' opens SITUATIONS' notes box, not a page
+  PD.NOTES = ['SITUATIONS', 'notes:', 'what you noticed, in your own words: a notes file of its own (hero_situations_feedback)'];
+  PD.DISCORD = ['THE DISCORD', PK.DISCORD, 'the game\'s Discord'];
+  PD.PUBLIC = [
+    ['THE LADDER', '?ladder', 'the story\'s fights, rung by rung, the four at each level'],
+    ['THE TESTER LADDER', '?ladder&party=ours', 'Talmok, Willem, Katarina and Torvald; you watch, or play (P) and it is recorded'],
+    ['THE CLIMB', '?climb', 'one party from level 1 to 9, your own picks at each level'],
+    ['THE GALLERY', '?gallery&from=pocket', 'spells, features, the Mascots and every creature\'s rows: one door, one set of keys'],
+    ['TEST RUNS', '../test-runs.html', 'the page that builds any URL of the game, row by row'],
+    PD.NOTES,
+    ['EVERY URL', 'https://github.com/GrimGriz/dragonsleep-8bit/blob/main/URLS.md', 'URLS.md: the whole list, with what each does'],
+    PD.DISCORD
+  ];
+  PD.doorsFor = function (st) { return st && st.dm ? [PD.NOTES].concat(PD.DOORS, [PD.DISCORD]) : PD.PUBLIC; };
   PD.doorUrl = function (u) { if (/^https?:/.test(u)) return u; if (/^\.\.\//.test(u) || u === './') return new URL(u, location.href).href; return location.origin + location.pathname + u; };
   Pocket.prototype.drawDoors = function (ctx) {
-    var self = this, per = 11, list = PD.DOORS;
-    head(ctx, 'DOORS', 'every door of the game, each in a tab of its own · the whole list is URLS.md');
+    var self = this, per = 11, list = PD.doorsFor(this.st);
+    head(ctx, 'DOORS', this.st.dm ? 'every door of the game, each in a tab of its own · the whole list is URLS.md' : 'the other doors of the grid and the pages beside the game, each in a tab of its own');
     var from = Math.min(this.scroll, Math.max(0, list.length - per)); this.scroll = from;
     list.slice(from, from + per).forEach(function (r, i) {
       var yy = 36 + i * 16;
-      self.btn(ctx, cut(r[0], 150), 14, yy, 160, 14, function () { self.open(PD.doorUrl(r[1])); }, { small: true });
+      self.btn(ctx, cut(r[0], 150), 14, yy, 160, 14, function () { if (r[1] === 'notes:') self.go('feedback'); else self.open(PD.doorUrl(r[1])); }, { small: true });
       D.text(ctx, cut(r[2], D.W - 200), 182, yy + 3, P('bone', 1));
     });
     if (list.length > per) D.text(ctx, 'wheel: ' + (from + 1) + '-' + Math.min(list.length, from + per) + ' of ' + list.length, 14, 36 + per * 16 + 2, P('stone', 5));
