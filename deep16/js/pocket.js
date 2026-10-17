@@ -224,12 +224,15 @@
       var sp = NPC.decode(c.code); if (!sp) return;
       sp.equip = sp.equip || {};
       var slot = R.slotFor({ equip: sp.equip }, it); if (!slot) return; // (the item's own place, a ring in the first free hand: js/rules.js R.slotFor)
+      PK.gearOff(st, s, slot);
+      (c.loot = c.loot || []).push({ id: item, place: slot, was: sp.equip[slot] || null }); // (what it took the place of: back when it comes off in GEAR, PK.dropWin -- 10-17)
       sp.equip[slot] = item; c.code = NPC.code(sp);
     } else {
       // a stock word's winnings are kept as `+item`s: a new one takes the place of what was won for the same place (a ring: the older of two ring hands)
       var same = function (a, b) { return a.kind === b.kind && (a.kind !== 'worn' || a.place === b.place); };
       var olds = (s.loot || []).filter(function (id) { return same(DS.DATA.items[id] || {}, it); }), drop = it.kind === 'ring' ? olds.slice(0, Math.max(0, olds.length - 1)) : olds;
       s.loot = (s.loot || []).filter(function (id) { return drop.indexOf(id) < 0; }); s.loot.push(item);
+      var hS = PK.sheetOf(PK.specOf(st, s)); if (hS) PK.gearOff(st, s, R.slotFor(Object.assign({}, hS, { equip: {} }), it)); // (GEAR in that place would cover it)
     }
   };
 
@@ -264,6 +267,41 @@
   // a card's gear from the pack (his: "add 'gear' button' (symbol?) below the down arrow to swap the characters"): rides its word as `+item`, worn after its
   // winnings (js/classes.js NPC.wear); `noshield` / `noarmor` take the place's own off
   PK.gearIds = function (slot) { var g = (slot && slot.gear) || {}; return Object.keys(g).filter(function (k) { return g[k]; }).map(function (k) { return g[k]; }); };
+  // a card's GEAR in a place a new winning takes: back to the pack (a `no<place>` simply dropped), so the winning is worn and not covered
+  PK.gearOff = function (st, slot, place) {
+    var g = slot && slot.gear, v = g && place && g[place]; if (!v) return;
+    if (!/^no/.test(v)) PK.packAdd(st, String(v).replace(/^off:/, ''), 1); delete g[place];
+  };
+  // the card as its word makes it without its GEAR: its own kit and its winnings
+  PK.bareOf = function (st, slot) { var g0 = slot.gear; slot.gear = {}; try { return PK.sheetOf(PK.specOf(st, slot)); } finally { slot.gear = g0; } };
+  // a card's winnings: a stock word's `loot`; a made character's as PK.give records them (c.loot: { id, place, was } -- since 10-17, so one won before is its kit)
+  PK.winsOf = function (st, slot) { if (slot.custom != null) { var c = st.roster[slot.custom]; return c && c.loot ? c.loot.map(function (x) { return x.id; }) : []; } return (slot.loot || []).slice(); };
+  // a winning taken off in GEAR leaves the card's record (10-17, his "removing it from barley doesn't take - doesn't go in pack, is on him again when you hit 'gear'"): it goes to the pack, a thing like any other, and
+  // a made character gets back what it took the place of
+  PK.dropWin = function (st, slot, id) {
+    if (slot.custom != null) {
+      var c = st.roster[slot.custom], k = c && c.loot ? c.loot.map(function (x) { return x.id; }).indexOf(id) : -1; if (k < 0) return false;
+      var w = c.loot.splice(k, 1)[0], sp = NPC.decode(c.code);
+      if (sp && sp.equip && sp.equip[w.place] === id) { sp.equip[w.place] = w.was || null; c.code = NPC.code(sp); }
+      return true;
+    }
+    var j = (slot.loot || []).indexOf(id); if (j < 0) return false; slot.loot.splice(j, 1); return true;
+  };
+  // a card swapped off a seat: what it wore from the pack back to it, and a stock word's winnings with them (a made character keeps its own in its code)
+  PK.slotToPack = function (st, slot) {
+    if (!slot) return;
+    Object.keys(slot.gear || {}).forEach(function (pl) { PK.gearOff(st, slot, pl); });
+    if (slot.custom == null) (slot.loot || []).forEach(function (id) { PK.packAdd(st, id, 1); });
+  };
+  // a table whose GEAR was written before the kit went to the pack (10-17 early: its own kit offered free, never packed): what it took off its kit, packed once
+  PK.kitToPack = function (st) {
+    if (st.kitPacked) return; st.kitPacked = true;
+    (st.party || []).forEach(function (slot) {
+      var g = slot && slot.gear; if (!g || !Object.keys(g).length) return;
+      var bare = PK.bareOf(st, slot); if (!bare) return;
+      Object.keys(g).forEach(function (pl) { var was = bare.equip[pl]; if (was && g[pl] !== was) PK.packAdd(st, was, 1); });
+    });
+  };
   var MARKET_TABS = [['arms', 'WEAPONS', ['weapon', 'ammo']], ['armour', 'ARMOUR, SHIELDS', ['armor', 'shield']], ['worn', 'RINGS, CLOAKS', ['ring', 'cloak', 'worn']], ['goods', 'POTIONS, GOODS', ['use', 'tool']]];
 
   // ------------------------------------------------------------------ the query (every fight a URL)
@@ -284,6 +322,7 @@
   Pocket.prototype.enter = function () {
     this.st = PK.load();
     if (!this.st.party) this.st.party = PK.defaultParty();
+    PK.kitToPack(this.st);
     this.screen = this.st.run ? 'cr' : 'title';
     this.btns = []; this.ksel = 0; this.scroll = 0; this.msg = null; this.field = null;
     this.mapSel = this.st.mapId || null; this.crI = this.st.crI == null ? -1 : this.st.crI; this.foes = this.st.foes || null; this.watch = !!this.st.watch;
@@ -904,37 +943,37 @@
     D.hint(ctx, 'what you buy waits in the pack: a card\'s GEAR puts it on', D.W / 2, 222, P('stone', 4), 'center');
   };
   // a card's GEAR (10-17, Griz: "Gear - why not open the regular menu with equip and that character selected?"): the one menu's EQUIP on the card's sheet, over the
-  // table's pack. Its own kit and winnings are its own: offered as free while it does not wear them, never into the pack (so nothing is sold twice). When the
-  // menu closes, what it wears that its word does not is written as its GEAR (PK.gearIds)
+  // table's pack. Whatever comes off goes into the pack, a thing like any other, to wear or sell (10-17, his "wouldn't the kit items go in the pack to sell at the new market?"): a winning off the card's
+  // record first (PK.dropWin); its own kit stays off because the word says so -- when the menu closes, what it wears that its word does not is written as its
+  // GEAR (PK.gearIds) and a place its word fills that it left empty as `no<place>` -- so nothing comes back to be sold twice
   Pocket.prototype.openGear = function (i) {
     var self = this, st = this.st, slot = st.party[i]; if (!slot) return;
     var h = PK.sheetOf(PK.specOf(st, slot)); if (!h) return;
-    var g0 = slot.gear; slot.gear = {}; var own = PK.sheetOf(PK.specOf(st, slot)); slot.gear = g0 || {};
-    var ownIds = own ? R.PLACES.concat(['weapon', 'armor', 'shield', 'offhand']).map(function (pl) { return own.equip[pl]; }).filter(Boolean) : [];
-    var wornN = function (id) { return Object.keys(h.equip).filter(function (pl) { return h.equip[pl] === id; }).length; }, worn = function (id) { return wornN(id) > 0; };
-    var ownFree = function (id) { return ownIds.indexOf(id) >= 0 && !worn(id); };
+    slot.gear = slot.gear || {}; var wins = PK.winsOf(st, slot);
+    var wornN = function (id) { return Object.keys(h.equip).filter(function (pl) { return h.equip[pl] === id; }).length; };
     this.pm = DS.MENU.openEquip({
       party: function () { return [h]; },
       pack: function () {
-        var out = (st.pack || []).filter(function (s) { var it = DS.DATA.items[s.id]; return s.n > 0 && it && !(it.use && it.use.effect === 'light'); }).map(function (s) { return { id: s.id, n: s.n }; }); // (the lights wait for the fight's ITEMS)
-        ownIds.forEach(function (id) { if (!ownFree(id)) return; var s = out.filter(function (x) { return x.id === id; })[0]; if (s) s.n++; else out.push({ id: id, n: 1 }); });
-        return out;
+        return (st.pack || []).filter(function (s) { var it = DS.DATA.items[s.id]; return s.n > 0 && it && !(it.use && it.use.effect === 'light'); }).map(function (s) { return { id: s.id, n: s.n }; }); // (the lights wait for the fight's ITEMS)
       },
-      give: function (id, n) { if (ownIds.indexOf(id) >= 0 && wornN(id) <= 1) return; PK.packAdd(st, id, n || 1); }, // (its own coming off, called while still worn: back to itself, not the pack)
-      take: function (id, n) { if (ownFree(id)) return; PK.packAdd(st, id, -(n || 1)); },
+      give: function (id, n) { // (called while still worn)
+        var wk = wins.indexOf(id); if (wk >= 0 && wornN(id) <= 1 && PK.dropWin(st, slot, id)) wins.splice(wk, 1); // (a winning: off the card's record)
+        PK.packAdd(st, id, n || 1);
+      },
+      take: function (id, n) { PK.packAdd(st, id, -(n || 1)); },
       canSave: function () { return false; },
       run: function (kind, a, done) { if (done) done(); },
-      close: function () { self.pm = null; self.gearBack(i, h, own); }
+      close: function () { self.pm = null; self.gearBack(i, h); }
     }, h);
   };
-  Pocket.prototype.gearBack = function (i, h, own) {
-    var slot = this.st.party[i]; if (!slot || !own) return;
+  Pocket.prototype.gearBack = function (i, h) {
+    var slot = this.st.party[i], own = slot && PK.bareOf(this.st, slot); if (!slot || !own) return; // (as its word now makes it: a winning taken off is gone from it)
     var g = {};
     ['weapon', 'armor', 'shield', 'offhand'].concat(R.PLACES).forEach(function (pl) {
       var now = h.equip[pl] || null, was = own.equip[pl] || null;
       if (now === was) return;
       if (now) g[pl] = pl === 'offhand' ? 'off:' + now : now;
-      else if (pl === 'armor' || pl === 'shield') g[pl] = 'no' + pl;
+      else g[pl] = 'no' + pl; // (any place: what came off is in the pack, not on the card -- 10-17)
     });
     slot.gear = g; this.cache = {}; this.keep();
   };
@@ -944,6 +983,7 @@
     var es = PK.entries(this.st), slot = this.st.party[i], at = -1;
     es.forEach(function (e, k) { if (slot.custom != null ? (e.kind === 'custom' && e.i === slot.custom) : slot.w === 'new' ? e.kind === 'new' : (e.kind === 'stock' && e.w === slot.w)) at = k; });
     var e = es[(at + dir + es.length) % es.length];
+    PK.slotToPack(this.st, slot); // (its GEAR and a stock word's winnings into the pack, not lost with the card -- 10-17)
     if (e.kind === 'stock') this.st.party[i] = { w: e.w, lvl: Math.max(e.lo, Math.min(e.hi, slot.lvl || 3)), loot: [] };
     else if (e.kind === 'custom') this.st.party[i] = { custom: e.i };
     else this.st.party[i] = { w: 'new' };

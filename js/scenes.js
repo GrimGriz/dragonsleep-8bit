@@ -499,7 +499,7 @@
     // target picker after it, as from its own lists
     var B8 = o.battle, u8 = o.unit, st8 = o.st;
     if (fight && u8 && st8 && B8.spellRows) {
-      var SK = { secondWind: ['B', '1d10 + level HP back'], actionSurge: ['F', 'one more action this turn'], hideAttack: ['B', 'hide, then strike from hiding'], attackHide: ['B', 'strike, then hide'],
+      var SK = { endconc: ['F', 'stop concentrating: free (SRD 5.1)'], secondWind: ['B', '1d10 + level HP back'], actionSurge: ['F', 'one more action this turn'], hideAttack: ['B', 'hide, then strike from hiding'], attackHide: ['B', 'strike, then hide'],
         lay: ['A', 'heal by touch from the pool'], sacred: ['A', 'Sacred Weapon: +CHA to hit for a minute'], unholy: ['A', 'Turn the Unholy: fiends and undead save or flee'] };
       fight.ring = function (kind) {
         if (kind === 'items') { var fast = o.hero.subclass === 'Thief' && st8.bonus > 0; return B8.battleItems(u8).map(function (r) { return { id: r.value, name: r.label, ok: !r.disabled, why: r.right === 'ROOST' ? 'the roost overhead: no fire' : r.right === 'hands' ? 'no free hand to hold it' : '', cost: fast ? 'B' : 'A' }; }); }

@@ -2273,6 +2273,25 @@
           g.party.every(function (h) { return h.xp === DS.R.XP_LEVEL[3] + 1700 + eachP; }) && g.party[1].lvl === 4 && kills.crawler === 1 && kills.ettercap === 2 && kills['warrens_d:ettercap'] === 2 && !kills.giantspider &&
           gotP.some(function (x) { return /^crawlerichor/.test(x); }) && gotP.some(function (x) { return /^gulchsilk \+2/.test(x); }) && /Each fighter standing gains/.test(saidP.join(' ')));
       } finally { DS.say = say0P; }
+    } else if (test === 'conc1017') {
+      // END CONCENTRATION, free, in the 8-bit (10-17, Griz: "i just discovered in the pane the need for a free action 'end concentration spell' i think.."; SRD 5.1: "You can end
+      // concentration at any time (no action required)"): Aurdin holding a spell has END <IT> on SKILL, free, and on the one menu's SKILLS lit as the free; picked, it lets go
+      // with its line and the turn goes on ('free'); no spell held, no END
+      try {
+        T.startFight(['gnoll', 'gnoll']); for (var wC = 0; wC < 400 && !DS.find('battle'); wC++) T.step(1);
+        var btC = DS.find('battle'), auC = btC.heroes.filter(function (u) { return u.h.id === 'aurdin'; })[0], stC = { actions: 1, bonus: 1, surged: false, sneakUsed: false };
+        var driveC = function (g) { var k = 0, st; while (g && k++ < 2000) { st = g.next(); if (st.done) return st.value; } };
+        var sayC = btC.say, saidC = []; btC.say = function* (t) { saidC.push(t); };
+        var noneC = btC.skillList(auC, stC).filter(function (r) { return r.value === 'endconc'; }).length;
+        var spC = DS.DATA.spells.web || DS.DATA.spells.bless; driveC(btC.beginConc(auC, spC));
+        var rowC = btC.skillList(auC, stC).filter(function (r) { return r.value === 'endconc'; })[0];
+        check('no spell held: no END (' + noneC + '); ' + spC.name + ' held: SKILL has "' + (rowC && rowC.label) + '" ' + (rowC && rowC.right), !noneC && rowC && rowC.label === 'END ' + spC.name.toUpperCase() && rowC.right === 'free');
+        var resC = driveC(btC.useSkill(auC, 'endconc', stC));
+        check('END picked: returns ' + resC + ' (the turn goes on), held ' + !!auC.conc + ', said "' + saidC.join(' | ') + '", the action ' + stC.actions + ', the bonus ' + stC.bonus,
+          resC === 'free' && !auC.conc && saidC.some(function (t) { return new RegExp('lets go of ' + spC.name + '\\.$').test(t); }) && stC.actions === 1 && stC.bonus === 1);
+        check('after: no END on SKILL', !btC.skillList(auC, stC).some(function (r) { return r.value === 'endconc'; }));
+        btC.say = sayC;
+      } catch (eC) { check('threw: ' + String(eC && eC.stack || eC).slice(0, 500), false); }
     } else if (test === 'twf1015') {
       // two-weapon fighting in the 8-bit (RULED 10-15, Griz: "5 - we're gonna have to do a dual-wield"; SRD 5.1): FIGHT with a shortsword and a dagger in the off hand swings the
       // shortsword, then the dagger with the bonus action -- its damage without DEX; no bonus action left, no second swing; a longsword and a dagger, none. Pyro's swings are his

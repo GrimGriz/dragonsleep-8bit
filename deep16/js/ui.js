@@ -190,7 +190,7 @@
   // class features that spend something (the 8-bit game's SKILL: Lay on Hands, Sacred Weapon, Second Wind, Action
   // Surge); ACTIONS the plain ones anyone has (Dash, Disengage, Dodge, Help), the same four for everyone, the rogue's
   // Dash and Disengage being her Cunning Action's -- Griz, 09-27. The rogue's HIDE is on the first ring (09-27 again)
-  var SKILLS = { lay: 1, sacred: 1, secondwind: 1, surge: 1, ignite: 1, douse: 1 }, ACTIONS = { search: 1, dash: 1, disengage: 1, cdash: 1, cdisengage: 1, dodge: 1, help: 1, ready: 1, leave: 1, droptorch: 1, throwtorch: 1, dousetorch: 1, pickuptorch: 1, hooddown: 1, hoodup: 1, putaway: 1, drawweapon: 1, drawoffhand: 1, grapple: 1, letgo: 1, pin: 1 }; // (grapple, letgo: a hero's grapple with DODGE and HELP -- RULED 10-15) // (putaway, drawweapon: the weapon put away and drawn, 10-05) // (ready: the Ready action, 10-02 -- battle.js exec 'ready')
+  var SKILLS = { lay: 1, sacred: 1, secondwind: 1, surge: 1, ignite: 1, douse: 1 }, ACTIONS = { search: 1, dash: 1, disengage: 1, cdash: 1, cdisengage: 1, dodge: 1, help: 1, ready: 1, leave: 1, droptorch: 1, throwtorch: 1, dousetorch: 1, pickuptorch: 1, hooddown: 1, hoodup: 1, putaway: 1, drawweapon: 1, drawoffhand: 1, grapple: 1, letgo: 1, pin: 1, endconc: 1 }; // (endconc: END <the spell held>, free, beside LET GO -- 10-17) // (grapple, letgo: a hero's grapple with DODGE and HELP -- RULED 10-15) // (putaway, drawweapon: the weapon put away and drawn, 10-05) // (ready: the Ready action, 10-02 -- battle.js exec 'ready')
   function group(id, label, list) {
     return { id: id, label: label, cost: '', ok: list.some(function (x) { return x.ok; }), why: 'nothing there to do now', sub: id, icon: id, items: list };
   }
@@ -658,7 +658,7 @@
     // is (10-05, Griz: "have viv move and end up on a rope with her bonus action left ... used bonus dash and it auto-ended her turn before i spent the bonus dash movement")
     var mvH = T.move + D.Battle.dashes(u).length * (u.speed || 30); // (a Dash still open -- the action's, or Cunning Action's bonus -- is more rope to climb: not spent; 10-05, Griz: "not if they have dash action or dash bonus action of course")
     if (mvH >= 5 && !u.conds.restrained && u.hang && u.hang.rope && G.hanging(u) && (D.Battle.ropeSteps(u.hang.rope, u.hang.z, true, mvH) > 0 || D.Battle.ropeSteps(u.hang.rope, u.hang.z, false, mvH) > 0)) return false;
-    return !B.commands(u).some(function (c) { return c.ok && c.id !== 'putaway' && c.id !== 'drawweapon' && c.id !== 'drawoffhand' && c.id !== 'skipattack' && c.id !== 'letgo'; }); // (PUT AWAY and DRAW hold no turn open: free and nearly always there -- 10-05; nor SKIP ATTACK, 10-13)
+    return !B.commands(u).some(function (c) { return c.ok && c.id !== 'putaway' && c.id !== 'drawweapon' && c.id !== 'drawoffhand' && c.id !== 'skipattack' && c.id !== 'letgo' && c.id !== 'endconc'; }); // (PUT AWAY and DRAW hold no turn open: free and nearly always there -- 10-05; nor SKIP ATTACK, 10-13)
   }
   UI.spent = spent; // (the bench's: dev/bench16.js mode=edifice1004)
   function turnWheel() { return I.repeat('wheell') || I.repeat('bumpl') ? -1 : I.repeat('wheelr') || I.repeat('bumpr') ? 1 : 0; } // the pad's right stick or bumpers, on the wheel (the window's list)

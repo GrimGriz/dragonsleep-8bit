@@ -1166,6 +1166,8 @@
     var heldG = Battle.heldBy(this, u);
     // PIN (Grappler (SRD 5.1, srd/05-feats.md; RULED 10-15, Griz: "1 - lets add grappler.")): the action, a second grapple check -- won, both restrained till the grapple ends; held already, not again
     if (heldG && Battle.grappler(u) && !(heldG.conds.restrained && heldG.conds.restrained.pin)) out.push({ id: 'pin', label: 'PIN ' + (heldG.side === 'foe' ? shortName(heldG) : heldG.name).toUpperCase(), cost: 'A', ok: T.action > 0 && !T.attacksLeft && !T.attackAction, why: 'the action is spent', icon: 'free', note: 'Grappler: your action, another grapple check -- won, you and it both restrained till the grapple ends' });
+    // END <the spell held> (SRD 5.1: "You can end concentration at any time (no action required)" -- 10-17, Griz: "i just discovered in the pane the need for a free action 'end concentration spell' i think.."): free, the spell lets go (D.magic.endConc)
+    if (u.conc) out.push({ id: 'endconc', label: 'END ' + String(u.conc.name || 'CONCENTRATION').toUpperCase(), cost: 'F', ok: true, why: '', icon: 'free', note: 'free: you stop concentrating on ' + (u.conc.name || 'the spell') + ' (SRD 5.1: no action required)' });
     if (heldG) out.push({ id: 'letgo', label: 'LET GO OF ' + (heldG.side === 'foe' ? shortName(heldG) : heldG.name).toUpperCase(), cost: 'F', ok: true, why: '', icon: 'free', note: 'free: your grapple ends' });
     if (shoveT) out.push({ id: 'shove', label: 'SHOVE', cost: 'A', ok: (T.action > 0 || T.attacksLeft > 0) && !u.conds.restrained, why: u.conds.restrained ? 'held fast' : 'no attack left', tool: 'shove', note: 'one attack of the Attack action: a foe in your reach, no more than one size larger, pushed 5 ft away (off an edge, it falls) or knocked prone -- your Athletics against its Athletics or Acrobatics' });
     // PULL IT OFF (SRD 5.1 Darkmantle: "A creature can detach the darkmantle by making a successful DC 13 Strength check as an action" -- any creature, not only
@@ -1735,6 +1737,7 @@
         return;
       }
       case 'letgo': { var lg = Battle.heldBy(this, u); if (lg) this.letGo(u, lg, 'release'); return; }
+      case 'endconc': { if (u.conc) D.magic.endConc(this, u); return; } // (free, 10-17)
       case 'pin': { // (Grappler (SRD 5.1, srd/05-feats.md; RULED 10-15, Griz: "1 - lets add grappler."))
         var pw = Battle.heldBy(this, u); if (!pw || !Battle.grappler(u) || !(T.action > 0) || T.attacksLeft || T.attackAction || (pw.conds.restrained && pw.conds.restrained.pin)) return; // (the turn's own action: Haste's has no pin in it)
         T.action = 0;

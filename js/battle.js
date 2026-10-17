@@ -718,10 +718,10 @@
     return gone;
   };
   // the letting go with its card (a new spell, a failed save is concCheck's own line, helpless, down)
-  Battle.prototype.endConc = function* (u, why) {
+  Battle.prototype.endConc = function* (u, why, loud) { // (loud: the hero's own END, said though nothing of it stands -- 10-17)
     var c = u.conc; if (!c) return;
     var live = this.concLive(u), gone = this.dropConc(u);
-    if (!live && !gone.length) return;
+    if (!live && !gone.length && !loud) return;
     yield* this.say(nameOf(u) + ' lets go of ' + c.name + (why ? ' (' + why + ')' : '') + '.', 40);
     for (var i = 0; i < gone.length; i++) yield* this.say(gone[i], 30);
   };
@@ -1056,6 +1056,8 @@
   };
   Battle.prototype.skillList = function (u, st) {
     var h = u.h, f = h.feats, L = [];
+    // END <the spell held> (SRD 5.1: "You can end concentration at any time (no action required)" -- 10-17, Griz: "i just discovered in the pane the need for a free action 'end concentration spell' i think.."): any caster's, free
+    if (u.conc) L.push({ label: 'END ' + String(u.conc.name || 'CONCENTRATION').toUpperCase(), value: 'endconc', right: 'free' });
     if (h.cls === 'fighter') {
       if (f.secondWind) L.push({ label: 'SECOND WIND', value: 'secondWind', right: 'bonus', disabled: !st.bonus });
       if (f.actionSurge && !st.surged) L.push({ label: 'ACTION SURGE', value: 'actionSurge', right: 'free' });
@@ -1251,6 +1253,7 @@
       yield* this.say(nameOf(u) + ' catches a second breath. +' + n + ' HP.', 44);
       return 'bonus';
     }
+    if (sk === 'endconc') { yield* this.endConc(u, null, true); return 'free'; } // (free: the turn goes on, 10-17)
     if (sk === 'actionSurge') {
       f.actionSurge = 0; st.actions++; st.surged = true;
       DS.audio.sfx('buff'); this.elemBurst(u, 'buff', 'rise');

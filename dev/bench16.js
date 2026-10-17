@@ -4689,6 +4689,39 @@
     document.body.appendChild(preTw);
     return;
   }
+  // END CONCENTRATION, free (mode=conc1017; 10-17, Griz: "i just discovered in the pane the need for a free action 'end concentration spell' i think.."; SRD 5.1: "You can end
+  // concentration at any time (no action required)"): a cleric holding Bless has END BLESS among the commands, cost F, on RING and RING2; it holds no turn open (UI.spent the same
+  // with it as without); picked, the spell lets go -- the undo run, the card said -- and the action, the bonus and the move are all still hers; no spell held, no END
+  if (get('mode', '') === 'conc1017') {
+    var repCn = { checks: [], errors: [] }, menuCn0 = D.ui.opts.menu, urlCn0 = D.ui.urlMenu;
+    function okCn(what, v) { repCn.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function idsCn(list) { var o = []; (list || []).forEach(function (x) { o.push(x.id); if (x.items) o = o.concat(idsCn(x.items)); }); return o; }
+    try {
+      var Bn = D.npcFight('?npc=goblin,goblin&lvl=5&vs=cleric:5,fighter:5', {}); D.battle = Bn; Bn.enter(); while (!Bn.order.length) Bn.co.next(); Bn.dark = false; D.ui.urlMenu = null;
+      var cn = Bn.units.filter(function (w) { return w.side === 'party' && w.cls === 'cleric'; })[0]; cn.guest = false; cn.classAI = false; D.rules.startTurn(cn); Bn.active = cn; Bn.req = { turn: cn };
+      var none = Bn.commands(cn).filter(function (c) { return c.id === 'endconc'; }).length, undone = 0;
+      D.magic.concentrate(Bn, cn, 'bless', 'Bless', function () { undone++; });
+      var ec = Bn.commands(cn).filter(function (c) { return c.id === 'endconc'; })[0];
+      okCn('no spell held: no END (' + none + '); Bless held: "' + (ec && ec.label) + '", cost ' + (ec && ec.cost) + ', ok ' + (ec && ec.ok) + ' -- "' + (ec && ec.note) + '"', !none && ec && ec.label === 'END BLESS' && ec.cost === 'F' && ec.ok);
+      D.ui.opts.menu = 'ring'; var r1Cn = idsCn(D.ui.cmds(Bn, cn)); D.ui.opts.menu = 'ring2'; var r2Cn = idsCn(D.ui.cmds(Bn, cn));
+      okCn('END on RING ' + (r1Cn.indexOf('endconc') >= 0) + ', on RING2 ' + (r2Cn.indexOf('endconc') >= 0), r1Cn.indexOf('endconc') >= 0 && r2Cn.indexOf('endconc') >= 0);
+      var T0 = { a: cn.turn.action, b: cn.turn.bonus, m: cn.turn.move };
+      cn.turn.action = 0; cn.turn.bonus = 0; cn.turn.move = 0; var spW = D.ui.spent(Bn, cn), cW = cn.conc; delete cn.conc; var spO = D.ui.spent(Bn, cn); cn.conc = cW;
+      cn.turn.action = T0.a; cn.turn.bonus = T0.b; cn.turn.move = T0.m;
+      okCn('the turn otherwise spent: spent with END there ' + spW + ', without ' + spO + ' (END holds no turn open)', spW === spO);
+      var log0 = (Bn.log || []).length;
+      var g = Bn.exec(cn, { do: 'endconc' }), k = 0; while (g && k++ < 400) { var st = g.next(); if (st.done) break; }
+      var said = (Bn.log || []).slice(log0).join(' | ');
+      okCn('END BLESS picked: held ' + !!cn.conc + ', the undo run ' + undone + ', said "' + said + '"; the action ' + cn.turn.action + ', the bonus ' + cn.turn.bonus + ', the move ' + cn.turn.move + ' (want ' + T0.a + '/' + T0.b + '/' + T0.m + ')',
+        !cn.conc && undone === 1 && /lets go of Bless\.$/.test(said) && cn.turn.action === T0.a && cn.turn.bonus === T0.b && cn.turn.move === T0.m);
+      okCn('after: no END (' + Bn.commands(cn).filter(function (c) { return c.id === 'endconc'; }).length + ')', !Bn.commands(cn).some(function (c) { return c.id === 'endconc'; }));
+    } catch (eCn) { repCn.errors.push(String(eCn && eCn.stack || eCn).slice(0, 900)); }
+    D.ui.opts.menu = menuCn0; D.ui.urlMenu = urlCn0;
+    if (errs.length) repCn.errors = repCn.errors.concat(errs);
+    var preCn = document.createElement('pre'); preCn.id = 'out'; preCn.textContent = 'BENCH16 ' + JSON.stringify(repCn);
+    document.body.appendChild(preCn);
+    return;
+  }
   // RING2's spells by the cost first (mode=ring2spells1015; 10-15, the menus lane §2.6, Griz: "Spells on the Ring2 should be divided by Action/Bonus prior to level. The action wheel
   // should have 'spells' and so should 'bonus', where once in that ring you can click to see your lvl 1, lvl 2 and lvl 3 spells (etc.)"): a cleric under RING2 has no SPELLS on the
   // first ring; ACTIONS opens with SPELLS (the action's, by level, washed yellow), BONUSES with SPELLS (the bonus action's, washed blue), walked by the keys; RING keeps the one SPELLS;
@@ -4861,19 +4894,46 @@
       PKk.packAdd(Pm.st, 'greatsword', 1); Pm.openGear(1); var isMenu = !!(Pm.pm && Pm.pm.top() && Pm.pm.top().h);
       var whyGs = equipPick(Pm, 'weapon', 'greatsword'); if (Pm.pm) Pm.pm.update(KMk('b'));
       var wL = PKk.wordOf(Pm.st, slL), shL = PKk.sheetOf(PKk.specOf(Pm.st, slL));
-      okMk('GEAR is the regular EQUIP on Lymen (' + isMenu + '): the Greatsword from the pack (' + (whyGs || 'taken') + '), the menu closed on X (' + !Pm.pm + ') -- the word ' + wL + ', his sheet ' + shL.equip.weapon + ', the shield ' + shL.equip.shield + ', the pack ' + PKk.packN(Pm.st, 'greatsword') + '; his own ' + own0 + ' and shield not in it (' + PKk.packN(Pm.st, own0) + ', ' + PKk.packN(Pm.st, ownSh) + ')',
-        isMenu && !whyGs && !Pm.pm && /\+greatsword/.test(wL) && shL.equip.weapon === 'greatsword' && !shL.equip.shield && PKk.packN(Pm.st, 'greatsword') === 0 && PKk.packN(Pm.st, own0) === 0 && PKk.packN(Pm.st, ownSh) === 0);
+      okMk('GEAR is the regular EQUIP on Lymen (' + isMenu + '): the Greatsword from the pack (' + (whyGs || 'taken') + '), the menu closed on X (' + !Pm.pm + ') -- the word ' + wL + ', his sheet ' + shL.equip.weapon + ', the shield ' + shL.equip.shield + ', the pack ' + PKk.packN(Pm.st, 'greatsword') + '; his own ' + own0 + ' and shield into the pack (' + PKk.packN(Pm.st, own0) + ', ' + PKk.packN(Pm.st, ownSh) + ', his "wouldn\'t the kit items go in the pack to sell")',
+        isMenu && !whyGs && !Pm.pm && /\+greatsword/.test(wL) && /\+noshield/.test(wL) && shL.equip.weapon === 'greatsword' && !shL.equip.shield && PKk.packN(Pm.st, 'greatsword') === 0 && PKk.packN(Pm.st, own0) === 1 && PKk.packN(Pm.st, ownSh) === 1);
       Pm.openGear(1); var whyOwn = equipPick(Pm, 'weapon', own0), whySh = equipPick(Pm, 'offhand', ownSh); if (Pm.pm) Pm.pm.update(KMk('b'));
       var wL2 = PKk.wordOf(Pm.st, slL), shL2 = PKk.sheetOf(PKk.specOf(Pm.st, slL));
-      okMk('HIS OWN AGAIN (weapon ' + (whyOwn || 'taken') + ', shield ' + (whySh || 'taken') + '): the Greatsword back in the pack (' + PKk.packN(Pm.st, 'greatsword') + '), the word ' + wL2 + ', the sheet ' + shL2.equip.weapon + ' and ' + shL2.equip.shield + '; his own never in the pack (' + PKk.packN(Pm.st, own0) + ', ' + PKk.packN(Pm.st, ownSh) + ')',
+      okMk('HIS OWN AGAIN from the pack (weapon ' + (whyOwn || 'taken') + ', shield ' + (whySh || 'taken') + '): the Greatsword back in the pack (' + PKk.packN(Pm.st, 'greatsword') + '), the word ' + wL2 + ', the sheet ' + shL2.equip.weapon + ' and ' + shL2.equip.shield + '; his own out of the pack (' + PKk.packN(Pm.st, own0) + ', ' + PKk.packN(Pm.st, ownSh) + ')',
         !whyOwn && !whySh && PKk.packN(Pm.st, 'greatsword') === 1 && wL2 === 'lymen:4' && shL2.equip.weapon === own0 && shL2.equip.shield === ownSh && PKk.packN(Pm.st, own0) === 0 && PKk.packN(Pm.st, ownSh) === 0);
       function shutMk(pk) { for (var q = 0; q < 4 && pk.pm; q++) pk.pm.update(KMk('b')); }
       PKk.packAdd(Pm.st, 'shortsword', 1); Pm.openGear(0); var whyTwo = equipPick(Pm, 'offhand', 'shortsword'), refusedTwo = !!(Pm.pm && Pm.pm.top() && !Pm.pm.top().slot && Pm.pm.top().list); shutMk(Pm);
       var wB0 = PKk.wordOf(Pm.st, Pm.st.party[0]);
       Pm.openGear(1); var whyOff = equipPick(Pm, 'offhand', 'shortsword'); shutMk(Pm);
       var wO = PKk.wordOf(Pm.st, slL), shO = PKk.sheetOf(PKk.specOf(Pm.st, slL));
-      okMk('A SECOND BLADE IN THE OFF HAND (his "you might take symmetric fighting and need another sword"): Barley\'s Thresh takes both hands, nothing written (' + wB0 + '); Lymen takes the Shortsword there (' + (whyOff || 'taken') + ') -- the word ' + wO + ', the sheet\'s off hand ' + shO.equip.offhand + ', the shield ' + shO.equip.shield + ', the pack ' + PKk.packN(Pm.st, 'shortsword'),
-        wB0 === 'barley:4' && !whyOff && /\+off:shortsword/.test(wO) && shO.equip.offhand === 'shortsword' && !shO.equip.shield && PKk.packN(Pm.st, 'shortsword') === 0 && !Pm.pm);
+      okMk('A SECOND BLADE IN THE OFF HAND (his "you might take symmetric fighting and need another sword"): Barley\'s Thresh takes both hands, nothing written (' + wB0 + '); Lymen takes the Shortsword there (' + (whyOff || 'taken') + ') -- the word ' + wO + ', the sheet\'s off hand ' + shO.equip.offhand + ', the shield ' + shO.equip.shield + ' (in the pack ' + PKk.packN(Pm.st, ownSh) + '), the pack\'s shortswords ' + PKk.packN(Pm.st, 'shortsword'),
+        wB0 === 'barley:4' && !whyOff && /\+off:shortsword/.test(wO) && shO.equip.offhand === 'shortsword' && !shO.equip.shield && PKk.packN(Pm.st, ownSh) === 1 && PKk.packN(Pm.st, 'shortsword') === 0 && !Pm.pm);
+      // A WINNING TAKEN OFF (10-17, his "removing it from barley doesn't take - doesn't go in pack, is on him again when you hit 'gear'"): Barley's Cloak of Displacement
+      // off in GEAR goes to the pack and off his card; GEAR again finds it off; Lymen puts it on from the pack; a made character's winning comes off to what it replaced
+      var slB = Pm.st.party[0]; slB.loot = ['cloakdisplacement']; slB.gear = {}; var cl0 = PKk.packN(Pm.st, 'cloakdisplacement');
+      Pm.openGear(0); var whyCl = equipPick(Pm, 'cloak', '__none'); shutMk(Pm);
+      var wCl = PKk.wordOf(Pm.st, slB), hCl = PKk.sheetOf(PKk.specOf(Pm.st, slB));
+      Pm.openGear(0); var againCl = Pm.pm && Pm.pm.top().h.equip.cloak; shutMk(Pm);
+      okMk('BARLEY\'S CLOAK OFF (' + (whyCl || 'taken off') + '): his winnings ' + JSON.stringify(slB.loot) + ', the word ' + wCl + ', his sheet\'s cloak ' + hCl.equip.cloak + ', GEAR again ' + againCl + ', the pack ' + cl0 + ' -> ' + PKk.packN(Pm.st, 'cloakdisplacement'),
+        !whyCl && !slB.loot.length && !/cloak/.test(wCl) && !hCl.equip.cloak && !againCl && PKk.packN(Pm.st, 'cloakdisplacement') === cl0 + 1);
+      Pm.openGear(1); var whyClL = equipPick(Pm, 'cloak', 'cloakdisplacement'); shutMk(Pm);
+      var wClL = PKk.wordOf(Pm.st, slL), hClL = PKk.sheetOf(PKk.specOf(Pm.st, slL));
+      okMk('LYMEN PUTS IT ON from the pack (' + (whyClL || 'taken') + '): the word ' + wClL + ', his cloak ' + hClL.equip.cloak + ', the pack ' + PKk.packN(Pm.st, 'cloakdisplacement'),
+        !whyClL && /\+cloakdisplacement/.test(wClL) && hClL.equip.cloak === 'cloakdisplacement' && PKk.packN(Pm.st, 'cloakdisplacement') === cl0);
+      var Ns = D.npc, spM = Ns.spec('fighter:4'), shM = PKk.sheetOf(spM); spM.equip = { weapon: shM.equip.weapon, armor: shM.equip.armor, shield: shM.equip.shield }; var cM = { code: Ns.code(spM) }; /* (as the maker writes one: its kit in its code) */ Pm.st.roster = (Pm.st.roster || []).concat([cM]); var riM = Pm.st.roster.length - 1;
+      var partyM = [{ custom: riM }], wM0 = PKk.sheetOf(PKk.specOf(Pm.st, partyM[0])).equip.weapon;
+      PKk.give(Pm.st, partyM, 0, 'longsword1'); var wM1 = PKk.sheetOf(PKk.specOf(Pm.st, partyM[0])).equip.weapon, recM = JSON.stringify(cM.loot);
+      var dropM = PKk.dropWin(Pm.st, partyM[0], 'longsword1'), wM2 = PKk.sheetOf(PKk.specOf(Pm.st, partyM[0])).equip.weapon;
+      okMk('A MADE FIGHTER\'S WINNING: ' + wM0 + ' -> ' + wM1 + ' (recorded ' + recM + '), taken off ' + dropM + ' -> ' + wM2 + ' again', wM1 === 'longsword1' && dropM && wM2 === wM0 && !cM.loot.length);
+      Pm.st.roster.pop();
+      // a card swapped off its seat: its GEAR and its winnings to the pack, not lost; a table's GEAR from before the kit was packed, packed once
+      slB.loot = ['ringofprotection']; var rp0 = PKk.packN(Pm.st, 'ringofprotection'), cd0 = PKk.packN(Pm.st, 'cloakdisplacement'), ss0 = PKk.packN(Pm.st, 'shortsword');
+      Pm.cycle(0, 1); Pm.cycle(1, 1); var cyc = 'Barley -> ' + Pm.st.party[0].w + ', Lymen -> ' + Pm.st.party[1].w;
+      okMk('SWAPPED OFF THEIR SEATS (' + cyc + '): Barley\'s won ring to the pack ' + rp0 + ' -> ' + PKk.packN(Pm.st, 'ringofprotection') + ', Lymen\'s cloak ' + cd0 + ' -> ' + PKk.packN(Pm.st, 'cloakdisplacement') + ' and shortsword ' + ss0 + ' -> ' + PKk.packN(Pm.st, 'shortsword'),
+        PKk.packN(Pm.st, 'ringofprotection') === rp0 + 1 && PKk.packN(Pm.st, 'cloakdisplacement') === cd0 + 1 && PKk.packN(Pm.st, 'shortsword') === ss0 + 1);
+      var stOld = { party: [{ w: 'lymen', lvl: 4, loot: [], gear: { weapon: 'greatsword', shield: 'noshield' } }], pack: [], roster: [] };
+      PKk.kitToPack(stOld); var oldN = [PKk.packN(stOld, own0), PKk.packN(stOld, ownSh)]; PKk.kitToPack(stOld);
+      okMk('A TABLE GEARED BEFORE THE KIT WAS PACKED: Lymen\'s ' + own0 + ' and shield packed (' + oldN.join(', ') + '), once (' + PKk.packN(stOld, own0) + ', ' + PKk.packN(stOld, ownSh) + ')', oldN.join() === '1,1' && PKk.packN(stOld, own0) === 1 && PKk.packN(stOld, ownSh) === 1);
+      Pm.st.party = [{ w: 'barley', lvl: 4, loot: [] }, { w: 'lymen', lvl: 4, loot: [] }];
       PKk.packAdd(Pm.st, 'potion', 2);
       var Bk = D.npcFight('?npc=goblin&lvl=3&vs=fighter:3', { pack: JSON.parse(JSON.stringify(Pm.st.pack)) }); D.battle = Bk; Bk.enter(); for (var gk = 0; gk < 200 && !Bk.order.length; gk++) Bk.co.next();
       var potIn = (Bk.inv || []).filter(function (x) { return x.id === 'potion'; }).reduce(function (a, x) { return a + x.n; }, 0);
@@ -4895,6 +4955,18 @@
       okMk('A DM\'S LADDER: saved as ' + fileD.kind + ' (' + fileD.plan.length + ' slots), played at a table without the DM\'s door -- rung ' + (runR && runR.rung) + ' of ' + (runR && Pr.lastRung(runR)) + ', its foes ' + foesR + ' (the DM\'s goblins), marked a DM\'s (' + !!(runR && runR.dmLadder) + '), on ' + screenR + '; an empty file refused (' + !badR + ')',
         !!runR && runR.rung === 1 && Pr.lastRung(runR) === 2 && foesR === JSON.stringify(['goblin', 'goblin', 'goblin', 'goblin']) && !!runR.dmLadder && screenR === 'cr' && !badR);
       Pr.st.run = null; Pr.keep();
+      // A LONG REST AFTER A SOLO FIGHT (10-17, his "check we're giving party a long rest after a solo fight"): a fight won with no ladder under way, the party
+      // hurt and spent -- nothing carried; the next fight's cards at full hit points, full slots
+      var Ps = new D.Pocket(); Ps.enter(); Ps.st.run = null; Ps.st.party = [{ w: 'aurdin', lvl: 5, loot: [] }, { w: 'lymen', lvl: 5, loot: [] }]; Ps.foes = ['goblin'];
+      var Bs = new D.Battle({ npc: { foes: ['goblin'], party: Ps.fightWords() }, pocket: true }); D.battle = Bs; Bs.enter(); for (var gs = 0; gs < 200 && !Bs.order.length; gs++) Bs.co.next();
+      var pS = Bs.units.filter(function (u) { return u.side === 'party'; }), fresh = pS.map(function (u) { return JSON.stringify(u.slots || []); }); // (as a fresh party starts: Aurdin's Mage Armor cast before the fight, a 1st-level slot -- js/classes.js)
+      pS.forEach(function (u) { u.hp = 1; if (u.slots) u.slots = u.slots.map(function () { return 0; }); });
+      Ps.done('won', Bs, { q: '?', mapId: Ps.mapIds()[0], kinds: ['goblin'], d: { label: 'EASY', ratio: 0.5, deadlyX: 1 }, started: new Date().toISOString() });
+      var wS = Ps.fightWords(), B2s = new D.Battle({ npc: { foes: ['goblin'], party: wS }, pocket: true }); D.battle = B2s; B2s.enter(); for (var gs2 = 0; gs2 < 200 && !B2s.order.length; gs2++) B2s.co.next();
+      var p2 = B2s.units.filter(function (u) { return u.side === 'party'; }), full = p2.map(function (u) { return u.name + ' ' + u.hp + '/' + u.maxhp + ' slots ' + JSON.stringify(u.slots) + '/' + JSON.stringify(u.slotsMax); });
+      okMk('A SOLO FIGHT WON hurt and spent: carried ' + JSON.stringify(Ps.st.run) + ', the next fight -- ' + full.join('; ') + ' (a fresh start ' + fresh.join(', ') + ')',
+        !Ps.st.run && wS.every(function (w) { return typeof w === 'string'; }) && p2.length === 2 && p2.every(function (u, k) { return u.hp === u.maxhp && JSON.stringify(u.slots || []) === fresh[k]; }));
+      try { window.localStorage.removeItem('deep16.pocket'); } catch (e) { }
     } catch (eMk) { repMk.errors.push(String(eMk && eMk.stack || eMk).slice(0, 900)); }
     if (errs.length) repMk.errors = repMk.errors.concat(errs);
     var preMk = document.createElement('pre'); preMk.id = 'out'; preMk.textContent = 'BENCH16 ' + JSON.stringify(repMk);
