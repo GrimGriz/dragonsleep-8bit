@@ -474,7 +474,7 @@
       var iL = NPC.prepInfo(Object.assign({}, dS, { lvl: L })), iP = L > 1 ? NPC.prepInfo(Object.assign({}, dS, { lvl: L - 1 })) : null, ks = iL ? iL.n - (iP ? iP.n : 0) : 0;
       if (ks > 0) {
         var pool = iL.pool.filter(function (id) { return have.indexOf(id) < 0; });
-        if (pool.length) asks.push({ kind: 'spells', need: ks, took: fill(fresh.filter(function (id) { return pool.indexOf(id) >= 0; }), pool, ks), rows: pool.map(row) });
+        if (pool.length) asks.push({ kind: 'spells', book: cls === 'wizard', need: ks, took: fill(fresh.filter(function (id) { return pool.indexOf(id) >= 0; }), pool, ks), rows: pool.map(row) });
       }
     }
     (NPC.OPTIONS[cls] || []).forEach(function (op) {

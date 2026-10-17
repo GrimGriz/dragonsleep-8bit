@@ -115,7 +115,8 @@
       if (on) { ctx.fillStyle = '#2c3070'; ctx.fillRect(tx, y - 2, each - 2, 14); }
       var gx = tx + 2;
       if (t.glyph) { ctx.drawImage(glyph(t.glyph), gx, y); gx += 12; }
-      if (t.label && (on || !t.glyph || each >= 40)) text(ctx, fit(t.label, each - (gx - tx) - 3), gx, y + 1, on ? C.gold : C.grey);
+      var cw = t.count != null ? DS.textWidth(String(t.count)) + 4 : 0; // (room for the count beside the label: "METAMAGIC2" ran together, 10-17)
+      if (t.label && (on || !t.glyph || each >= 40)) text(ctx, fit(t.label, each - (gx - tx) - 3 - cw), gx, y + 1, on ? C.gold : C.grey);
       if (t.count != null) right(ctx, t.count, tx + each - 4, y + 1, on ? C.pale : C.dim);
     });
   }
@@ -497,7 +498,7 @@
   function pickNeedWord(g) {
     var a = g.ask, n = g.need;
     if (a.kind === 'asi') return 'ABILITY SCORES: +2 to one, +1 to two, or a feat';
-    if (a.kind === 'spells') return (n === 1 ? 'A SPELL' : n === 2 ? 'TWO SPELLS' : n + ' SPELLS') + ' FOR THE BOOK';
+    if (a.kind === 'spells') return (n === 1 ? 'A SPELL' : n === 2 ? 'TWO SPELLS' : n + ' SPELLS') + (a.book === false ? '' : ' FOR THE BOOK'); // (a wizard's book; the maker's others have none, 10-17)
     if (a.kind === 'cantrip') return n === 1 ? 'A CANTRIP' : n + ' CANTRIPS';
     if (a.kind === 'expertise') return 'EXPERTISE: ' + (n === 2 ? 'two skills' : n + ' skills') + ', proficiency twice over';
     if (a.kind === 'option') return (a.word || a.key.toUpperCase()) + (n > 1 ? ': ' + n + ' in all' : ': one'); // (a class option, 10-17)
@@ -616,7 +617,7 @@
     drawTabs(ctx, this.tabs.map(function (tb) {
       var n = 0; tb.g.rows.forEach(function (r) { if (tb.lv == null || r.lv === tb.lv) n += markWorth(r.id, tb.g.marks[r.id] || 0); });
       return { label: tb.label, count: n || null };
-    }), this.tab, 8, 22, Math.min(240, this.tabs.length * 60));
+    }), this.tab, 8, 22, this.tabs.some(function (tb) { return tb.label.length > 6; }) ? 240 : Math.min(240, this.tabs.length * 60)); // (a long word, METAMAGIC or INVOCATIONS: the whole bar)
     if (g) {
       // (a spell level with none of the group's marks says where they are: "2 of 2 on L2", not a bare "2 of 2" over an unmarked list -- 10-16, his "or one spell
       // left off auto-suggest")
