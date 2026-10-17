@@ -1,0 +1,47 @@
+{
+ "image": "art/newlandwagon_p1.png",
+ "fw": 216,
+ "fh": 120,
+ "ax": 108,
+ "ay": 100,
+ "top": 78,
+ "anims": {
+  "idle": {
+   "y": 0,
+   "fw": 216,
+   "fh": 120,
+   "ax": 108,
+   "ay": 100,
+   "frames": 4,
+   "fps": 5
+  },
+  "walk": {
+   "y": 960,
+   "fw": 216,
+   "fh": 120,
+   "ax": 108,
+   "ay": 100,
+   "frames": 8,
+   "fps": 8
+  },
+  "hurt": {
+   "y": 1920,
+   "fw": 240,
+   "fh": 120,
+   "ax": 120,
+   "ay": 100,
+   "frames": 6,
+   "fps": 8
+  },
+  "flinch": {
+   "y": 2880,
+   "fw": 192,
+   "fh": 120,
+   "ax": 96,
+   "ay": 100,
+   "frames": 4,
+   "fps": 10
+  }
+ },
+ "source": "drawn by the art desk (2026-10-17, ART-71-NEWLAND: every row in all five views), cut and snapped by tools/snoothorse-sheet.py"
+}

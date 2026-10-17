@@ -1,0 +1,66 @@
+{
+ "image": "art/newlandrider_p1.png",
+ "fw": 128,
+ "fh": 104,
+ "ax": 64,
+ "ay": 96,
+ "top": 69,
+ "anims": {
+  "idle": {
+   "y": 0,
+   "fw": 128,
+   "fh": 104,
+   "ax": 64,
+   "ay": 96,
+   "frames": 4,
+   "fps": 5
+  },
+  "walk": {
+   "y": 832,
+   "fw": 144,
+   "fh": 104,
+   "ax": 72,
+   "ay": 96,
+   "frames": 8,
+   "fps": 10
+  },
+  "attack": {
+   "y": 1664,
+   "fw": 104,
+   "fh": 104,
+   "ax": 52,
+   "ay": 96,
+   "frames": 6,
+   "fps": 12,
+   "release": 3
+  },
+  "hurt": {
+   "y": 2496,
+   "fw": 288,
+   "fh": 104,
+   "ax": 144,
+   "ay": 96,
+   "frames": 6,
+   "fps": 8
+  },
+  "flinch": {
+   "y": 3328,
+   "fw": 112,
+   "fh": 104,
+   "ax": 56,
+   "ay": 96,
+   "frames": 4,
+   "fps": 12
+  },
+  "charge": {
+   "y": 4160,
+   "fw": 176,
+   "fh": 104,
+   "ax": 88,
+   "ay": 96,
+   "frames": 6,
+   "fps": 12
+  }
+ },
+ "source": "drawn by the art desk (2026-10-17, ART-69: every row in all five views), cut and snapped by tools/snoothorse-sheet.py"
+}
