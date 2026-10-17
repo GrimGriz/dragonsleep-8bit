@@ -1265,7 +1265,7 @@
     var d = String(it.desc || ''), plain = /^(\d+d\d+ [a-z]+[.,]|AC \d+|\+\d+ AC)/.test(d); // (the SRD basics' words only repeat the numbers)
     return { stats: bits.join(' · '), desc: plain ? '' : d };
   };
-  Pocket.prototype.openMarket = function (from) { this.marketFrom = from || this.screen; this.marketTab = this.marketTab || 'arms'; if (this.st.purse == null) this.st.purse = 100; this.go('market'); };
+  Pocket.prototype.openMarket = function (from) { this.marketFrom = from || this.screen; this.marketTab = this.marketTab || 'arms'; if (this.st.purse == null) this.st.purse = 100; this.go('market'); this.scroll2 = 0; }; // (scroll2: the pack's page, 10-17)
   Pocket.prototype.drawMarket = function (ctx) {
     var self = this, st = this.st, L = this.topLevel(), mt = this.marketTab || 'arms', tab = MARKET_TABS.filter(function (t) { return t[0] === mt; })[0] || MARKET_TABS[0];
     if (st.purse == null) st.purse = 100;
@@ -1292,12 +1292,17 @@
     var px = 262, pk = (st.pack || []).filter(function (s) { return s.n > 0 && DS.DATA.items[s.id]; });
     D.text(ctx, '{y}THE PACK{/}  {g}(a click sells one){/}', px, y + 20, P('bone', 1));
     if (!pk.length) D.text(ctx, 'empty', px, y + 34, P('stone', 5));
-    pk.slice(0, per).forEach(function (s, k) {
+    var pFrom = Math.min(this.scroll2 || 0, Math.max(0, pk.length - per)); this.scroll2 = pFrom; // (the pack pages as the stock does -- ^ v and the wheel over it: 10-17, his "the pack contains more items than it can sell - it doesn't scroll like buying items does")
+    pk.slice(pFrom, pFrom + per).forEach(function (s, k) {
       var it = DS.DATA.items[s.id], yy = y + 32 + k * 15, half = Math.floor((it.price || 0) / 2);
       self.btn(ctx, it.name + (s.n > 1 ? ' x' + s.n : ''), px, yy, 150, 13, function () { st.purse += half; PK.packAdd(st, s.id, -1); self.keep(); D.sfx('cursor'); self.say(it.name + ' sold: ' + half + ' sp'); }, { small: true, dis: !(it.price > 0) || it.noSell, why: 'nobody buys that' }); rowsAt.push([self.btns.length - 1, s.id, yy, px]);
       D.text(ctx, half + ' sp', px + 156, yy + 3, P('silver', 5));
     });
-    if (pk.length > per) D.text(ctx, '{g}and ' + (pk.length - per) + ' more{/}', px, y + 32 + per * 15 + 2, P('stone', 5));
+    if (pk.length > per) {
+      D.text(ctx, (pFrom + 1) + '-' + Math.min(pk.length, pFrom + per) + ' of ' + pk.length, px + 40, y + 32 + per * 15 + 4, P('stone', 5));
+      this.btn(ctx, '^', px, y + 32 + per * 15 + 1, 16, 12, function () { self.scroll2 = Math.max(0, pFrom - per); }, { small: true, dis: pFrom <= 0 });
+      this.btn(ctx, 'v', px + 18, y + 32 + per * 15 + 1, 16, 12, function () { self.scroll2 = Math.min(pk.length - per, pFrom + per); }, { small: true, dis: pFrom + per >= pk.length });
+    }
     // the row under the mouse or the keys: lit, and what it is under the lists (his "item descriptions on mouseover and highlight of store options")
     var hv = rowsAt.filter(function (q) { return q[0] === self.ksel; })[0];
     if (hv) {

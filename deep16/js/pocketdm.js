@@ -588,7 +588,7 @@
     else { Object.keys(sel).forEach(function (k) { delete sel[k]; }); sel[id] = true; }
     pk.anchor = i;
   };
-  Pocket.prototype.wheelTo = function (w) { if (this.screen === 'units' && I.mouse.x >= 244) { this.scroll2 = Math.max(0, (this.scroll2 || 0) + w); return true; } return false; };
+  Pocket.prototype.wheelTo = function (w) { if ((this.screen === 'units' && I.mouse.x >= 244) || (this.screen === 'market' && I.mouse.x >= 256)) { this.scroll2 = Math.max(0, (this.scroll2 || 0) + w); return true; } return false; }; // (THE MARKET's pack too, 10-17)
   Pocket.prototype.drawUnits = function (ctx) {
     var self = this, st = this.st, cp = PD.camp(st), rs = cp.bought, us = PD.newest(cp), per = 12, sel = this.picked = this.picked || {};
     Object.keys(sel).forEach(function (k) { if (!rs.some(function (r) { return String(r.id) === k; })) delete sel[k]; });

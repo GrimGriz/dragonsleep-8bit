@@ -5147,6 +5147,13 @@
       var bG = (function () { Pm.go('party'); Pm.btns = []; Pm.draw(cxMk); return Pm.btns.filter(function (b) { return b.label === 'GEAR'; }).length; })(), bM = Pm.btns.filter(function (b) { return /^THE MARKET/.test(b.label); }).length;
       Pm.openMarket('party'); Pm.marketTab = 'arms'; Pm.scroll = 0; Pm.btns = []; Pm.draw(cxMk); var dnM = Pm.btns.filter(function (x) { return x.label === 'v' && x.y > 150; })[0], s0M = Pm.scroll; if (dnM) dnM.fn(); Pm.btns = []; Pm.draw(cxMk); var s1M = Pm.scroll;
       okMk('THE MARKET\'S v pages on (' + s0M + ' -> ' + s1M + ')', !!dnM && s1M > s0M);
+      // the pack pages too (10-17, his "the pack contains more items than it can sell - it doesn't scroll like buying items does"): its own ^ v, and the wheel over it
+      var packKeep = Pm.st.pack; Pm.st.pack = PKk.stock(11).slice(0, 12).map(function (id) { return { id: id, n: 1 }; }); Pm.openMarket('party'); Pm.btns = []; Pm.draw(cxMk);
+      var pRow = function () { return (Pm.btns.filter(function (b) { return b.x >= 262 && b.w === 150; })[0] || {}).label; }, row0 = pRow(), pDn = Pm.btns.filter(function (x) { return x.label === 'v' && x.x >= 262; })[0];
+      if (pDn) pDn.fn(); Pm.btns = []; Pm.draw(cxMk); var row1 = pRow(), ps1 = Pm.scroll2;
+      var m0P = D.input.mouse; D.input.mouse = Object.assign({}, m0P || {}, { x: 300, y: 120 }); var whl = Pm.wheelTo(-1); D.input.mouse = m0P; Pm.btns = []; Pm.draw(cxMk); var ps2 = Pm.scroll2;
+      okMk('THE PACK pages as the stock does: 12 things, v shows ' + row1 + ' first (was ' + row0 + '), the wheel over it goes back (' + ps1 + ' -> ' + ps2 + ')', !!pDn && row1 !== row0 && ps1 === 4 && whl && ps2 === 3);
+      Pm.st.pack = packKeep; Pm.scroll2 = 0;
       okMk('THE PARTY SCREEN: a GEAR under each card (' + bG + ' of 2), THE MARKET by the seats (' + bM + ')', bG === 2 && bM === 1);
       // A DM'S LADDER (10-17, his "DM should be able to save a ladder that has to be played on the regular ... rather than duping the experience" -- "1 yes")
       var PDk = D.pocketdm, Pr = new D.Pocket(); Pr.enter(); Pr.st.dm = false; Pr.st.run = null; Pr.st.party = [{ w: 'barley', lvl: 3, loot: [] }, { w: 'lymen', lvl: 3, loot: [] }]; Pr.ask = function () { return true; };
