@@ -28,7 +28,24 @@
   // a sheet drawn in all eight facings faces its true way on the map, NE and NW from behind (10-15, the art cuts: the gnoll, the glory-seeker, the
   // hyena; GreyFang since ART-32; the dwarf trooper since ART-61; the fighter since ART-62; the paladin since ART-63; the barbarian since ART-66; the cleric since ART-64; the ranger since ART-65; the warlock since ART-67; the Harbinger since ART-31 and its supplement); the rest keep the side views
   // (the main party's, on his word, 10-15: "exclude the main party facings - but include the NPC")
-  V.FULL8 = { gnoll_p2: 1, gloryseeker_p2: 1, hyena_p2: 1, greyfang_p1: 1, trooper_p0: 1, npcfighter_p0: 1, npcpaladin_p0: 1, npcbarbarian_p0: 1, npccleric_p0: 1, npcranger_p0: 1, npcwarlock_p0: 1, graykeeping_p2: 1, mirrorgnoll_p1: 1, gnollmatriarch_p1: 1 }; // (graykeeping_p2: the gnoll's own frames in the Gray Keeping's gray, 10-15 -- all eight; gnollmatriarch_p1: the matriarch-cleric, ART-68, drawn in all five views)
+  V.FULL8 = { gnoll_p2: 1, gloryseeker_p2: 1, hyena_p2: 1, greyfang_p1: 1, trooper_p0: 1, npcfighter_p0: 1, npcpaladin_p0: 1, npcbarbarian_p0: 1, npccleric_p0: 1, npcranger_p0: 1, npcwarlock_p0: 1, graykeeping_p2: 1, mirrorgnoll_p1: 1, gnollmatriarch_p1: 1,
+    newlandrider_p1: 1, plainsrider_p1: 1, wagon_p1: 1, newlandwagon_p1: 1 }; // (graykeeping_p2: the gnoll's own frames in the Gray Keeping's gray, 10-15 -- all eight; gnollmatriarch_p1: the matriarch-cleric, ART-68, drawn in all five views; the horse and the wagons, ART-69 to ART-71, 10-17)
+  // a unit's troop figures by its parts (10-17, the horse cuts): a group may name its own sheets (the road patrol's four horse ride beside its twelve
+  // heavy foot), its share of the n figures by its men, every group still standing one at least, each group's figures together (the horse on a flank);
+  // a group naming none, and a unit of one part, cycle the unit's sheets after its hero's
+  V.troopSheets = function (u, n, hs) {
+    var sh = u.sheets || [], rest = sh.length > hs ? sh.slice(hs) : sh, gs = (u.groups || []).filter(function (g) { return g.n > 0; }), out = [], i;
+    var cyc = function (list, k) { for (var j = 0; j < k; j++) out.push(list[j % list.length] || sh[0]); };
+    if (!n) return out;
+    if (!gs.some(function (g) { return g.sheets; })) { cyc(rest, n); return out; }
+    var tot = gs.reduce(function (s, g) { return s + g.n; }, 0), cnt = gs.map(function (g) { return Math.max(1, Math.floor(n * g.n / tot)); });
+    while (cnt.reduce(function (s, c) { return s + c; }, 0) > n) { var big = cnt.indexOf(Math.max.apply(null, cnt)); if (cnt[big] <= 1) break; cnt[big]--; }
+    for (i = 0; cnt.reduce(function (s, c) { return s + c; }, 0) < n; i++) cnt[i % cnt.length]++;
+    gs.forEach(function (g, k) { cyc(g.sheets || rest, cnt[k]); });
+    return out.slice(0, n);
+  };
+  // a unit's wagon (10-17, ART-71): Newland's road patrol drives the desk's Newland variant, the Dominion the wagon as drawn, in its black and purple
+  V.wagonOf = function (u) { return u.wagon ? (u.side === 'dominion' ? 'wagon_p1' : 'newlandwagon_p1') : null; };
   var EIGHT = [6, 5, 3, 2, 1, 7];
   V.faceOf = function (nm, dir) { return (V.FULL8[nm] ? EIGHT : FACE)[dir || 0]; };
   V.DIRV = [[1, 0], [0.5, -R3 / 2], [-0.5, -R3 / 2], [-1, 0], [-0.5, R3 / 2], [0.5, R3 / 2]]; // (E NE NW W SW SE: unit vectors in the world, y down)
@@ -98,7 +115,7 @@
     if (!im) { im = imgs[name] = new Image(); im.onload = function () { V.dirty = true; }; im.src = (SN.DEEP16 || '../deep16/') + sh.image; }
     return im.complete && im.naturalWidth ? { sh: sh, im: im } : null;
   }
-  V.preload = function (st) { st.units.forEach(function (u) { (u.sheets || []).forEach(sheet); }); };
+  V.preload = function (st) { st.units.forEach(function (u) { (u.sheets || []).forEach(sheet); (u.groups || []).forEach(function (g) { (g.sheets || []).forEach(sheet); }); if (u.wagon) sheet(V.wagonOf(u)); }); };
   function figure(c, name, facing, x, y, hgt, t) {
     var S = sheet(name);
     if (!S) { c.fillStyle = '#222'; c.fillRect(x - 3, y - hgt * 0.8, 6, hgt * 0.8); return; }
@@ -273,8 +290,10 @@
   function stack(c, st, u, x, y, s, t, crowd, dir, ui) {
     var k = crowd > 1 ? 0.62 : 1, sheets = u.sheets || [], hs = SN.heroesOf(u).length && !u.party ? 1 : 0, hgt = Math.min(84, s * 0.58) * k, F = facing(dir);
     var troops = u.party ? 4 : Math.max(hs ? 0 : 1, Math.min(crowd > 1 ? 3 : 5, Math.ceil((u.figs || 0) / 1.5))), pos = V.layoutOf(u, troops, s, k, dir), figs = [];
-    pos.forEach(function (q, i) { figs.push({ x: x + q[0], y: y + q[1], nm: u.party ? sheets[i] : sheets[(hs + (i % Math.max(1, sheets.length - hs))) % sheets.length] || sheets[0] }); });
+    var ts = u.party ? sheets : V.troopSheets(u, troops, hs);
+    pos.forEach(function (q, i) { figs.push({ x: x + q[0], y: y + q[1], nm: ts[i] || sheets[0] }); });
     if (hs) { var fwd = u.form === 'square' ? 0 : s * 0.4 * k * (u.form === 'column' ? 1.1 : 0.85); figs.push({ x: x + F[0] * fwd, y: y + F[1] * fwd, nm: sheets[0], hero: true }); }
+    if (u.wagon) { var back = s * 0.5 * k * (u.form === 'column' ? 1.3 : 1); figs.push({ x: x - F[0] * back, y: y - F[1] * back, nm: V.wagonOf(u) }); } // (its wagon behind the ranks)
     if (!u.party) chevron(c, u, x, y, s * k, F);
     c.fillStyle = 'rgba(0,0,0,0.3)'; figs.forEach(function (f) { c.beginPath(); c.ellipse(f.x, f.y, s * 0.1 * k, s * 0.045 * k, 0, 0, Math.PI * 2); c.fill(); }); // (each figure's shadow on the ground: the formation's shape)
     var a0 = c.globalAlpha; if (u.state === 'rout' || u.state === 'withdraw' || u.state === 'home') c.globalAlpha = a0 * 0.6;

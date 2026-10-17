@@ -39,6 +39,9 @@
     cx.globalAlpha = 1;
   }
 
+  function hasRow(name, row) { var sh = window.D16 && window.D16.SHEETS && window.D16.SHEETS[name]; return !!(sh && sh.anims && sh.anims[row]); }
+  var CHARGE = 0.5; // (the gallop in before a charging rider's blow, s)
+
   // ---------------------------------------------------------------- the beats into a timeline
   // a show for st.beats[from..to): if it does not open on its fight (the part after the grid), the fight it belongs to is found before it and
   // replayed at once, so the scene opens as the field stood
@@ -107,7 +110,7 @@
             tl.forEach(function (x) { var tg = sc.units[x.tg]; sc.fx.push({ kind: light ? 'bolt' : 'fire', u: x.tg, from: b.u, p: p }); if (tg) tg.hurt = 1 - p; });
             sc.banner = { big: light ? 'A LIGHTNING BOLT' : 'A FIRE BALL', small: b.w + ': ' + tl.map(function (x) { return x.n + (x.n > 1 ? ' figures' : ' figure'); }).join(' and ') + ' struck', p: p, quick: true }; } break;
         case 'save': if (now) sc.dice.push({ side: U ? U.k : 'ours', u: b.u, dice: b.dice, need: b.need, sum: true, p: p, word: b.ok ? b.name + ' SAVES' : b.name + ' IS STRUCK', title: 'Caught by the missile: two dice to save' }); break;
-        case 'atk': if (now) { if (U) { U.anim = 'attack'; U.animT = local; } sc.dice.push({ side: U ? U.k : 'ours', u: b.u, dice: b.dice, need: b.need, k: b.k, p: p, title: (U ? (U.u.party ? 'the four' : U.u.name) : '') + (b.volley ? ', a volley' : b.imp ? ', charging (+1 die a figure)' : '') + (b.asp === 'rear' ? ', FROM THE REAR' : b.asp === 'flank' ? ', ON THE FLANK' : '') + ': ' + b.cls + ' v ' + b.dcls + ', ' + b.need + '+ kills' + (b.cover != null ? ' -- ' + b.cover + ' halved behind their cover' : '') }); } break;
+        case 'atk': if (now) { if (U) { U.anim = 'attack'; U.animT = local; U.charge = !!b.imp; } sc.dice.push({ side: U ? U.k : 'ours', u: b.u, dice: b.dice, need: b.need, k: b.k, p: p, title: (U ? (U.u.party ? 'the four' : U.u.name) : '') + (b.volley ? ', a volley' : b.imp ? ', charging (+1 die a figure)' : '') + (b.asp === 'rear' ? ', FROM THE REAR' : b.asp === 'flank' ? ', ON THE FLANK' : '') + ': ' + b.cls + ' v ' + b.dcls + ', ' + b.need + '+ kills' + (b.cover != null ? ' -- ' + b.cover + ' halved behind their cover' : '') }); } break;
         case 'cas': if (U) { if (now) { U.hurt = 1 - p; sc.fx.push({ kind: 'minus', u: b.u, n: b.n, p: p }); } if (p >= 1 || !now) U.figs = b.figs; } break;
         case 'herofall': if (U) { if (now) sc.fx.push({ kind: 'word', u: b.u, text: b.name + ' falls', p: p }); if (p >= 1) U.heroes.forEach(function (h) { if (h.name === b.name) h.dead = true; }); } break;
         case 'gone': if (U) { U.alpha = 1 - p; if (p >= 1) U.gone = true; } break;
@@ -167,11 +170,13 @@
     var out = [], sh = U.u.sheets || [], heroes = U.heroes.filter(function (h) { return !h.dead; }), hs = heroes.length && !U.u.party ? 1 : 0;
     // (the spacing is the screen's: a rank running into the slant's depth is squashed to SQ, so it is spread the more in the world)
     var SQ = SN.V.SQ, sl = function (v) { var l = Math.sqrt(v[0] * v[0] + v[1] * v[1] * SQ * SQ) || 1; return [v[0] / l, v[1] / l]; };
-    var n = U.u.party ? 0 : Math.min(9, Math.max(U.figs > 0 ? 1 : 0, U.figs)), f = sl(L.f), r = sl(L.r), sp = 0.1, pts = [], i;
+    var mt = U.u.mounted, n = U.u.party ? 0 : Math.min(mt ? 6 : 9, Math.max(U.figs > 0 ? 1 : 0, U.figs)), f = sl(L.f), r = sl(L.r), sp = mt ? 0.17 : 0.1, pts = [], i; // (horse stand wider and fewer: a rider is two men long, 10-17)
     if (U.u.form === 'square' && n > 2) for (i = 0; i < n; i++) { var a = i / n * Math.PI * 2; pts.push([Math.cos(a) * 0.16, Math.sin(a) * 0.16]); }
     else if (U.u.form === 'column') { var files = n > 2 ? 2 : 1, ranks = Math.ceil(n / files); for (i = 0; i < n; i++) { var u2 = ((ranks - 1) / 2 - Math.floor(i / files)) * sp, v2 = (i % files - (files - 1) / 2) * sp * 0.9; pts.push([f[0] * u2 + r[0] * v2, f[1] * u2 + r[1] * v2]); } }
     else { var fl = n > 4 ? Math.ceil(n / 2) : n; for (i = 0; i < n; i++) { var v3 = (i % fl - (fl - 1) / 2) * sp, u3 = -Math.floor(i / fl) * sp * 0.85; pts.push([f[0] * u3 + r[0] * v3, f[1] * u3 + r[1] * v3]); } }
-    pts.forEach(function (q, j) { out.push({ lx: L.ax + q[0], ly: L.ay + q[1], sheet: sh[(hs + (j % Math.max(1, sh.length - hs))) % sh.length] || sh[0] }); });
+    var ts = SN.V.troopSheets(U.u, pts.length, hs); // (each group on its own sheet: the road patrol's horse beside its foot, 10-17)
+    pts.forEach(function (q, j) { out.push({ lx: L.ax + q[0], ly: L.ay + q[1], sheet: ts[j] || sh[0] }); });
+    if (U.u.wagon) { var wb = U.u.form === 'column' ? 0.3 : 0.24; out.push({ lx: L.ax - f[0] * wb, ly: L.ay - f[1] * wb, sheet: SN.V.wagonOf(U.u), wagon: true }); } // (its wagon behind the ranks)
     var H = U.u.party ? (U.u.sheets || []).map(function (s) { return { sheet: s }; }) : heroes.map(function () { return { sheet: sh[0] }; });
     H.forEach(function (h, m) { var v = (m - (H.length - 1) / 2) * 0.12, u = U.u.party || U.u.form === 'square' ? 0 : 0.11; out.push({ lx: L.ax + f[0] * u + r[0] * v, ly: L.ay + f[1] * u + r[1] * v, sheet: h.sheet, hero: true }); });
     return out;
@@ -210,13 +215,23 @@
     var L = layout(sc), all = [];
     Object.keys(sc.units).forEach(function (id) {
       var U = sc.units[id], Lu = L[id]; if (!Lu || (U.gone && U.alpha <= 0)) return;
-      var face = sheetDir(U.fall ? V.DIRV[U.fall.dir >= 0 ? U.fall.dir : (Lu.face + 3) % 6] : Lu.f), lunge = U.anim === 'attack' ? 0.035 * Math.sin(Math.min(1, (U.animT || 0) * 2) * Math.PI) : 0;
+      var face = sheetDir(U.fall ? V.DIRV[U.fall.dir >= 0 ? U.fall.dir : (Lu.face + 3) % 6] : Lu.f), lunge0 = U.anim === 'attack' ? 0.035 * Math.sin(Math.min(1, (U.animT || 0) * 2) * Math.PI) : 0;
       figsOf(U, Lu).forEach(function (fg, j) {
+        // a charge (the round's impetus, CHAINMAIL p.17): a figure whose sheet has a gallop rides in on it for CHARGE s, then strikes (10-17, the horse)
+        var gallop = U.anim === 'attack' && U.charge && !fg.wagon && hasRow(fg.sheet, 'charge'), tA = U.animT || 0;
+        var lunge = fg.wagon ? 0 : gallop ? (tA < CHARGE ? -0.14 * (1 - tA / CHARGE) : 0.035 * Math.sin(Math.min(1, (tA - CHARGE) * 2) * Math.PI)) : lunge0;
         var q = P(fg.lx + Lu.f[0] * lunge, fg.ly + Lu.f[1] * lunge), shake = U.shake ? Math.sin(sc.t * 60 + j) * 4 * U.shake * zs : 0;
         all.push({ y: q[1], draw: function () {
           var anim = U.anim || (U.fall ? 'walk' : sc.enter > 0.02 && U.u.from >= 0 ? 'walk' : 'idle'), tt = U.anim ? U.animT : sc.t + j * 0.13;
           if (U.hurt > 0 && !U.anim) { anim = 'hurt'; tt = (1 - U.hurt) * 0.6; }
-          figure(cx, fg.sheet, anim, face, q[0] + shake, q[1], kk * (fg.hero ? 1.12 : 1), tt + j * 0.05, anim === 'attack' || anim === 'hurt', U.alpha);
+          if (gallop) { if (tA < CHARGE) anim = 'charge'; else tt = tA - CHARGE; }
+          if (anim === 'hurt' && U.hurt > 0 && !fg.wagon && hasRow(fg.sheet, 'charge')) anim = 'flinch'; // (a rider whose men are hit shies; his hurt row is the horse going down)
+          if (fg.wagon) { // (the wagon: it rolls with its unit, jolts when its men are hit, and wrecks as the last of them go)
+            if (U.figs <= 0 && U.alpha < 1) { anim = 'hurt'; tt = (1 - U.alpha) * 1.2; }
+            else if (anim === 'hurt') anim = 'flinch';
+            else if (anim !== 'walk') { anim = 'idle'; tt = sc.t; }
+          }
+          figure(cx, fg.sheet, anim, face, q[0] + shake, q[1], kk * (fg.hero ? 1.12 : 1), tt + (fg.wagon ? 0 : j * 0.05), anim === 'attack' || anim === 'hurt' || anim === 'flinch', fg.wagon && U.figs <= 0 ? 1 : U.alpha);
         } });
       });
     });
