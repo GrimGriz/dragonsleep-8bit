@@ -551,7 +551,7 @@
     abil: { str: 9, dex: 14, con: 12, int: 12, wis: 11, cha: 17 }, init: 2, perception: 10,
     saves: { str: -1, dex: 2, con: 1, int: 1, wis: 2, cha: 5 },
     attacks: { blast: { name: 'Eldritch Blast', atk: 6, dice: '1d10', mod: 3, type: 'force', ranged: true, spell: true, range: [120, 120], fx: 'fire' } },
-    multi: ['blast', 'blast'], mirrorEye: true,
+    multi: ['blast', 'blast'], mirrorEye: true, build: 'patrolladyw', // (10-17: built as a warlock 5 of the Mirror with the Pact of the Blade and a list of her own, js/classes.js NPC.NAMED; the attack above stands if the build cannot)
     src: 'the Snoot mode\'s Dominion wagons (snoot-mode/js/data.js SN.DOMINION: "the lady a CHAINMAIL warlock", Kat\'s wagon loadout): Amara\'s sheet above, unnamed -- the seat\'s draft, invented.json#patrol-lady-grid'
   },
   amara: {

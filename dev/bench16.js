@@ -4724,6 +4724,12 @@
       okR2('RING keeps the one SPELLS on the first ring (' + (r1c.indexOf('spells') >= 0) + '), every spell under it (' + n1 + ' of ' + all.length + '), no wash (' + (lv1 && lv1.ring2) + ')', r1c.indexOf('spells') >= 0 && n1 === all.length && !(lv1 && lv1.ring2));
       // the Mascots (MPMon §6j): Denny and Rascal at 5 under their own RING2
       D.ui.opts.menu = null;
+      // (10-17, his "i tried to switch ring2 type to see if warlock had bonus actions left": the fight broke -- the classic ring's cursor past RING2's shorter first ring)
+      var cvR2 = document.createElement('canvas'); cvR2.width = D.W; cvR2.height = D.H; var thR2 = '', mn0R = D.ui.opts.menu;
+      Bc.list = null; Bc.tool = 'menu'; Bc.cmdSel = r1c.length - 1; D.ui.opts.menu = 'ring2'; var n2R = D.ui.cmds(Bc, cl).length;
+      try { D.ui.drawBattle(cvR2.getContext('2d'), Bc); } catch (eR2) { thR2 = String(eR2 && eR2.stack || eR2).slice(0, 300); }
+      okR2('A CURSOR PAST RING2\'S END (' + (r1c.length - 1) + ', RING2 has ' + n2R + ') draws (' + (thR2 || 'no error') + '), the cursor back to ' + Bc.cmdSel, !thR2 && Bc.cmdSel >= 0 && Bc.cmdSel < n2R && r1c.length - 1 >= n2R);
+      D.ui.opts.menu = mn0R;
       var Bm = D.npcFight('?npc=goblin,goblin&lvl=5&vs=denny:5,rascal:5&mascots', {}); D.battle = Bm; Bm.enter(); while (!Bm.order.length) Bm.co.next();
       var mR = function (w) { w.guest = false; w.classAI = false; D.rules.startTurn(w); var r = D.ui.cmds(Bm, w), a = r.filter(function (c) { return c.id === 'actions'; })[0], b = r.filter(function (c) { return c.id === 'bonuses'; })[0]; return { ids: r.map(function (c) { return c.id; }), a: a, b: b }; };
       var dn = mR(Bm.units.filter(function (w) { return w.side === 'party' && /denny/i.test(w.name); })[0]), rc = mR(Bm.units.filter(function (w) { return w.side === 'party' && /rascal/i.test(w.name); })[0]);
@@ -7374,7 +7380,8 @@
       var wl5 = D.npc.build('warlock:5', 5, 'foe', { id: 'w5' }), wl2 = D.npc.build('warlock:2', 2, 'foe', { id: 'w2' }), wlb = D.npc.build({ id: 'wb', cls: 'warlock', lvl: 5, pact: 'blade' }, 5, 'foe'), am = D.npc.build('amara', 5, 'foe', { id: 'am' });
       var tome = ['firebolt', 'sacredflame', 'viciousmockery'];
       okF('warlock 5, the generic one: pact ' + wl5.pact + ', the tome\'s cantrips ' + tome.map(function (id) { return wl5.known.indexOf(id) >= 0; }).join('/') + ' (' + wl5.known.filter(function (id) { var s = MF.data(id); return s && !s.level; }).length + ' cantrips, the class\'s three and the Book\'s three)', wl5.pact === 'tome' && tome.every(function (id) { return wl5.known.indexOf(id) >= 0; }));
-      okF('warlock 2 has no pact yet (' + wl2.pact + '); Amara (a named warlock) has none: pact ' + am.pact + ', Fire Bolt ' + (am.known.indexOf('firebolt') >= 0), !wl2.pact && wl2.known.indexOf('firebolt') < 0 && !am.pact && am.known.indexOf('firebolt') < 0);
+      // (Amara the Tome since 10-17 -- RULED, Griz: "go on those opens, good with your leans"; she had none till then)
+      okF('warlock 2 has no pact yet (' + wl2.pact + '); Amara (a named warlock) has the Tome: pact ' + am.pact + ', Fire Bolt ' + (am.known.indexOf('firebolt') >= 0), !wl2.pact && wl2.known.indexOf('firebolt') < 0 && am.pact === 'tome' && am.known.indexOf('firebolt') >= 0);
       var prof5 = 3, dexm = D.mod(wlb.abil.dex), strm = D.mod(wlb.abil.str);
       okF('pact of the blade: ' + wlb.weapon.name + ', magical ' + wlb.weapon.magic + ', attack ' + wlb.weapon.atk + ' (ability ' + Math.max(dexm, strm) + ' + proficiency ' + prof5 + '), the crossbow second (' + (wlb.alt && wlb.alt.name) + ')', wlb.pact === 'blade' && wlb.weapon.magic === true && wlb.weapon.atk === Math.max(dexm, strm) + prof5 && wlb.alt && /crossbow/i.test(wlb.alt.name));
       var Bw = mkF([{ id: 'wbl', cls: 'warlock', lvl: 5, pact: 'blade' }], ['fighter:5'], 5), wbl = sideF(Bw, 'party')[0], gr = sideF(Bw, 'foe')[0]; spotF(Bw, wbl, 9, 8); spotF(Bw, gr, 9, 9); gr.resist = ['mundane']; gr.baseAC = 1; gr.hp = gr.maxhp = 500; RUF.startTurn(wbl);

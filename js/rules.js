@@ -692,7 +692,8 @@
     return { dice: dx.dice, mod: dx.mod - (keep ? 0 : a), type: dx.type };
   };
   // EQUIP's word for a weapon in the off hand: its swing, or why it is only held
-  R.offhandWord = function (h, id) { var t = R.twoWeapon(h); return t.ok ? 'off-hand swing' + (t.by === 'symmetric' ? ' (pair)' : '') : 'held: ' + t.why; };
+  // (what it costs, not a refusal -- 10-17, his note on the OFFHAND: "messages on dagger and shortsword (the longsword+2 is not light) but let me equip just fine")
+  R.offhandWord = function (h, id) { var t = R.twoWeapon(h); return t.ok ? 'off-hand swing' + (t.by === 'symmetric' ? ' (pair)' : '') : 'no off-hand swing: ' + t.why; };
   R.lightHand = function (h) { var e = h.equip || {}; return !e.shield && !e.offhand && !e.torch && R.freeHands(h) > 0; };
   R.lightWhy = function (h) { var e = h.equip || {}; return e.shield ? 'the shield is on the off hand' : e.offhand ? 'the ' + ((R.item(e.offhand) || {}).name || 'weapon').toLowerCase() + ' is in the off hand' : e.torch ? 'a light in that hand already' : R.handsWhy(h); };
   // shooting blind (an attack at a creature the attacker cannot see for want of light): 'disadvantage' is the SRD 5.1's rule

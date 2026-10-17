@@ -165,7 +165,13 @@
     amara: { cls: 'warlock', lvl: 5, race: 'human', patron: 'mirror', abil: { str: 9, dex: 14, con: 12, int: 12, wis: 11, cha: 17 },
       equip: { weapon: 'dagger', armor: 'leather' },
       known: ['eldritchblast', 'minorillusion', 'mirrorsgaze', 'command', 'darkness', 'fear', 'charmperson', 'suggestion', 'counterspell'], // (Counterspell on the ladders: 10-02, Griz, "give it to all of them on the ladders")
-      invocations: ['agonizing', 'fiendishvigor'] },
+      invocations: ['agonizing', 'fiendishvigor'], pact: 'tome' }, // (Pact of the Tome, SRD 5.1 -- RULED 10-17, Griz: "go on those opens, good with your leans": the scholar of the glass, the patrol ladies the Blade)
+    // a Dominion patrol lady (10-17, the same ruling; the Snoot lane: "yeah, but the patrol ladies only eldritch blasted"): a warlock of the Mirror at Amara's
+    // numbers with the Pact of the Blade -- a longsword called to hand, fighting beside her soldiers -- and a short list of her own, not Amara's
+    patrolladyw: { cls: 'warlock', lvl: 5, race: 'human', patron: 'mirror', abil: { str: 9, dex: 14, con: 12, int: 12, wis: 11, cha: 17 },
+      equip: { weapon: 'dagger', armor: 'leather' }, pact: 'blade', pactForm: 'longsword',
+      known: ['eldritchblast', 'chilltouch', 'poisonspray', 'hellishrebuke', 'command', 'holdperson', 'scorchingray', 'vampirictouch', 'mirrorimage'],
+      invocations: ['agonizing', 'devilsight'] },
     // Willem Glass, wizard 5 of illusion (npcs-by-location.md §The Road): Ray of Frost (RULED 09-28), Blur for Phantasmal Force (the ear
     // file, dist-4); the illusion school is the PHB's: his tradition is our own, the Rimeglass (09-28g, the seat's on Griz's "Sufficiently
     // distinct"; invented.json #the-rimeglass). The 8-bit sheet's AC 12: no Mage Armor up
