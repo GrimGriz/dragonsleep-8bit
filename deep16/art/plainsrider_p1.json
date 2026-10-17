@@ -1,0 +1,66 @@
+{
+ "image": "art/plainsrider_p1.png",
+ "fw": 96,
+ "fh": 88,
+ "ax": 48,
+ "ay": 76,
+ "top": 63,
+ "anims": {
+  "idle": {
+   "y": 0,
+   "fw": 96,
+   "fh": 88,
+   "ax": 48,
+   "ay": 76,
+   "frames": 4,
+   "fps": 5
+  },
+  "walk": {
+   "y": 704,
+   "fw": 96,
+   "fh": 88,
+   "ax": 48,
+   "ay": 76,
+   "frames": 8,
+   "fps": 10
+  },
+  "attack": {
+   "y": 1408,
+   "fw": 104,
+   "fh": 88,
+   "ax": 52,
+   "ay": 76,
+   "frames": 6,
+   "fps": 12,
+   "release": 3
+  },
+  "hurt": {
+   "y": 2112,
+   "fw": 136,
+   "fh": 88,
+   "ax": 68,
+   "ay": 76,
+   "frames": 6,
+   "fps": 8
+  },
+  "flinch": {
+   "y": 2816,
+   "fw": 96,
+   "fh": 88,
+   "ax": 48,
+   "ay": 76,
+   "frames": 4,
+   "fps": 12
+  },
+  "charge": {
+   "y": 3520,
+   "fw": 112,
+   "fh": 88,
+   "ax": 56,
+   "ay": 76,
+   "frames": 6,
+   "fps": 12
+  }
+ },
+ "source": "drawn by the art desk (2026-10-17, ART-70: every row in all five views), cut and snapped by tools/snoothorse-sheet.py"
+}

@@ -1,0 +1,47 @@
+{
+ "image": "art/wagon_p1.png",
+ "fw": 216,
+ "fh": 112,
+ "ax": 108,
+ "ay": 96,
+ "top": 80,
+ "anims": {
+  "idle": {
+   "y": 0,
+   "fw": 216,
+   "fh": 112,
+   "ax": 108,
+   "ay": 96,
+   "frames": 4,
+   "fps": 5
+  },
+  "walk": {
+   "y": 896,
+   "fw": 208,
+   "fh": 112,
+   "ax": 104,
+   "ay": 96,
+   "frames": 8,
+   "fps": 8
+  },
+  "hurt": {
+   "y": 1792,
+   "fw": 224,
+   "fh": 112,
+   "ax": 112,
+   "ay": 96,
+   "frames": 6,
+   "fps": 8
+  },
+  "flinch": {
+   "y": 2688,
+   "fw": 192,
+   "fh": 112,
+   "ax": 96,
+   "ay": 96,
+   "frames": 4,
+   "fps": 10
+  }
+ },
+ "source": "drawn by the art desk (2026-10-17, ART-71: every row in all five views), cut and snapped by tools/snoothorse-sheet.py"
+}
