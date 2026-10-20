@@ -120,10 +120,10 @@
 },
 {
 "id": "drummer",
-"x": 7,
-"y": 10,
+"x": 10,
+"y": 9,
 "look": "boy",
-"dir": "up",
+"dir": "left",
 "idle": true
 },
 {

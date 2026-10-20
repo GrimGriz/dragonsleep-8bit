@@ -94,7 +94,7 @@
 "y": 10,
 "look": "clerk",
 "dir": "left",
-"cond": "flag:cullHired & !flag:cloakerDone"
+"cond": "flag:cullHired & !flag:cloakerDone & !flag:cloakerKilled & !has:cloakertail & !flag:daceWith"
 },
 {
 "id": "drivecrew",

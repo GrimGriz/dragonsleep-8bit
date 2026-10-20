@@ -82,6 +82,8 @@ The spine re-cut around Pyro (09-27): the hook hands out no mission; Pyro, sympa
 
 ## The Skylights -- the Edifice under attack
 
+*10-20: left the first game.* RULED 10-20, Griz: "Revert to the old ending in 8-bit before the edifice fight was added and call it the first game". The 8-bit ends again at the raid, the road held, the consult and THE ROAD IS HELD; the Skylights below is THE SECOND GAME's, on the grid (deep16/data/fights.js `edifice`), and THE SNOOT's call that hung off it went with it.
+
 ### skylights-call
 The call from the surface (10-05 night, Griz: 'a fella running in after lamp 3 is clear, saying there's an attack on the surface - chance to save - them lamping from 3 starts this fight - with xp reward hand back to 8 bit after the battle'): at the end of the Third Lamp raid (or at the next lamp touched, for a save already past it) a runner from Solskaft comes down the road -- giants and trolls at the Edifice, climbing for the skylights, the king gone up to the roof -- the save is offered, and while the call is out a lamp's road menu leads with TO THE SURFACE! in place of BACK UP TO SOLSKAFT (the gate, reached on foot, starts it too): up the lamps, out through the vault onto Fountain Street (solskaft_deep), and the Skylights on the grid (DEEP16 'edifice', its own cast: fights.js ownCast). Won: the 8-bit's ending pays two stone giants and four trolls (13000 XP, their silver), flag skylightsWon, two closing lines; lost: GAME OVER, the save the runner offered. Flags surfaceCall, skylightsWon. The runner's and the closing lines are the seat's drafts (content/text.json deep.surface*, deep.skylights*). Playtest: ?at=skylights.
 

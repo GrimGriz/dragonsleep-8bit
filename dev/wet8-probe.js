@@ -1,7 +1,8 @@
 /* THE SETTLING, the 8-bit half (dev/wet8-probe.py; 09-30b): the wet's triggers (back till their creature dies; the ooze's ring), the
-   three scripts sending the fight to the grid with the lead's square and the woken one, the bucket in the 8-bit battle, and the seam
-   bringing the grid's report home -- the flags, the bucket, the max HP the herd took, the XP of what died. DEEP16 is not run: its
-   'd16:done' is dispatched as the iframe would send it (the runner's ledgerlamp8seam way). */
+   three scripts sending the wet's fight with the lead's square and the woken one, the bucket in the 8-bit battle, and the wet's fights
+   themselves in the 8-bit battle -- since 10-20 the only path (js/embed.js; the first game lane: "8 bit solely 8-bit after this"). Till
+   then the seam brought the grid's report home (the flags, the bucket, the max HP the herd took, the exit square), dispatched here as the
+   iframe would send it; those are the grid's own, the second game's, and dev/wet-probe.py keeps the grid's half. */
 (function () {
   var DS = window.DS, T = window.T, R = DS.R, out = { checks: [], errors: [] };
   function check(what, ok) { out.checks.push([what, !!ok]); }
@@ -41,24 +42,28 @@
     check('in an 8-bit fight: listed ' + !!li + ', "' + (said().match(/Nothing here takes it[^|]*/) || [''])[0] + '", still carried x' + g.count('bucket'), !!li && r.value === false && g.count('bucket') === 1);
     while (DS.find('battle')) DS.pop(DS.find('battle'));
 
-    // the seam: the grid's report of a won wet -- the jelly dead, the bucket picked up, Vivian drained by the herd
-    function seam(name, rep, expect) {
-      SETUP(5); var gg = DS.G; DS.EV.darkHere = function () { return true; };
-      var xp0 = gg.party.map(function (h) { return h.xp; }), mx0 = gg.party.map(function (h) { return h.maxhp; });
-      gg.x = 23; gg.y = 14;
-      var res = null; DS.run(function* () { res = yield* DS.EV.fight(['ochrejelly'], { bg: 'wet', music: 'boss', canRun: true, deep16: 'wet', wake: 'jelly', at: [gg.x, gg.y] }); });
-      for (var i = 0; i < 400 && !document.getElementById('d16'); i++) T.step(1);
-      var fr = document.getElementById('d16'); if (!fr) { check(name + ': the iframe never opened', false); return; }
-      window.dispatchEvent(new MessageEvent('message', { source: fr.contentWindow, data: Object.assign({ type: 'd16:done', party: gg.party.map(function (h) { return { id: h.id, hp: h.hp, maxhp: h.maxhp - (h.id === 'vivian' ? 4 : 0), slots: h.slots, feats: h.feats, drained: h.id === 'vivian' ? 4 : 0 }; }), foes: [], inv0: {}, inv1: {} }, rep) }));
-      pump(1500);
-      var viv = gg.hero('vivian'), i2 = gg.party.map(function (h) { return h.id; }).indexOf('vivian');
-      var r2 = expect(gg, xp0, mx0, viv, i2, res);
-      check(name + ': result ' + res + '; flags jellyDead ' + gg.flags.jellyDead + ', landlordSpoke ' + gg.flags.landlordSpoke + '; bucket x' + gg.count('bucket') + '; Vivian max ' + mx0[i2] + ' -> ' + viv.maxhp + '; XP ' + xp0.join('/') + ' -> ' + gg.party.map(function (h) { return h.xp; }).join('/') + (DS.lastError ? ' ERR ' + String(DS.lastError).slice(0, 160) : ''), r2 && !DS.lastError);
+    // the wet's jelly in the 8-bit battle (till 10-20 the seam: the grid's report of a won wet -- the jelly dead, the bucket picked up on the grid, Vivian drained by
+    // the herd -- and of a walk out the way they came; the grid's own, gone with the grid): won, it is dead for good and its XP paid, the party where it stood, no frame
+    var stJ = window.setTimeout; window.setTimeout = function (f, ms) { if (!ms && typeof f === 'function') { pending.push(f); return 0; } return stJ.apply(window, arguments); };
+    function fight8(plan) { // the 8-bit battle on the page to its end: the plan's labels on the first menus, else FIGHT
+      var q = (plan || []).slice();
+      for (var i = 0; i < 3000 && DS.find('battle') && !DS.lastError; i++) {
+        var tq = DS.top(), kq = tq && tq.kind;
+        if (kq === 'menu') { var lb = tq.menu.items.map(function (it) { return it.disabled ? '' : String(it.label).toUpperCase(); }), j = q.length ? lb.findIndex(function (l) { return l.indexOf(String(q[0]).toUpperCase()) === 0; }) : -1; if (j >= 0) q.shift(); else j = lb.indexOf('FIGHT'); tq.menu.i = Math.max(0, j); T.tapf('a'); }
+        else if (kq === 'target') { tq.i = 0; T.tapf('a'); }
+        else if (kq === 'dialog') { if (tq.chars < tq.pageLen()) tq.chars = tq.pageLen(); T.tapf('a'); }
+        else T.step(1);
+      }
     }
-    seam('won (the jelly dead)', { result: 'won', flags: { jellyDead: 1, landlordSpoke: 1 }, enemies8: ['ochrejelly'], inv1: { bucket: 1 } },
-      function (gg, xp0, mx0, viv, i2, res) { return gg.flags.jellyDead && gg.flags.landlordSpoke && gg.count('bucket') === 1 && viv.maxhp === mx0[i2] - 4 && gg.party.some(function (h, k) { return h.xp > xp0[k]; }); });
-    seam('out the way they came (one left the edge)', { result: 'escaped', flags: { poolOozeDead: 1 }, enemies8: null },
-      function (gg, xp0, mx0, viv, i2, res) { return viv.maxhp === mx0[i2] - 4 && gg.flags.poolOozeDead && !gg.flags.jellyDead && gg.party.every(function (h, k) { return h.xp === xp0[k]; }); });
+    SETUP(5); var gJ = DS.G; DS.field.load('warrens_d', 23, 14, 'down'); gJ.x = 23; gJ.y = 14; DS.EV.darkHere = function () { return true; };
+    var xpJ = gJ.party.map(function (h) { return h.xp; }), resJ = null, frJ = false, doneJ = false;
+    DS.run(function* () { resJ = yield* DS.EV.fight(['ochrejelly'], { bg: 'wet', music: 'boss', canRun: true, deep16: 'wet', wake: 'jelly', at: [gJ.x, gJ.y] }); }, function () { doneJ = true; });
+    for (var iJ = 0; iJ < 400 && !DS.find('battle'); iJ++) { T.step(1); if (document.getElementById('d16')) frJ = true; }
+    var bJ = DS.find('battle'); if (bJ) { bJ.foes.forEach(function (f) { f.hp = 0; f.dead = true; }); fight8(); }
+    pump(600);
+    check('the jelly in the 8-bit battle (' + !!bJ + ', no frame ' + !frJ + '): ' + resJ + ', jellyDead ' + gJ.flags.jellyDead + ', XP ' + xpJ.join('/') + ' -> ' + gJ.party.map(function (h) { return h.xp; }).join('/') + ', where it stood ' + [gJ.map, gJ.x, gJ.y].join(',') + (DS.lastError ? ' ERR ' + String(DS.lastError).slice(0, 160) : ''),
+      !!bJ && !frJ && resJ === 'win' && doneJ && gJ.flags.jellyDead === 1 && gJ.party.some(function (h, k) { return h.xp > xpJ[k]; }) && gJ.map === 'warrens_d' && gJ.x === 23 && gJ.y === 14 && !DS.lastError);
+    window.setTimeout = stJ;
 
     // ---- 09-30d: the lantern sticks (map to map, a rest, a fight on lit ground); a torch still goes out; EQUIP's LIGHT puts it away
     SETUP(5); g = DS.G; DS.field.load('warrens_b', 12, 3, 'down'); g.give('lantern', 1); g.give('torch', 1);
@@ -94,42 +99,32 @@
     pump(300);
     check('an 8-bit fight on lit ground: the lantern still in ' + lh.name + '\'s hand after (' + g.flags.torchBy + ', pack x' + g.count('lantern') + ')', b8 && g.flags.torchBy === lh.id && !!lh.equip.torch && g.count('lantern') === 0);
 
-    // ---- 09-30d: whole trips through the wet's own scripts -- the grid's report dispatched as the iframe would send it
+    // ---- 09-30d: whole trips through the wet's own scripts, in the 8-bit battle since 10-20 (till then the grid's report was dispatched as the iframe would send it, and
+    // its exit square -- the south edge, the stair -- set the party down: the grid's own, gone with it; in the 8-bit the party stays where the fight found it)
     // (the 8-bit battle hands the script back through setTimeout(.., 0), which never fires inside this synchronous probe: run it on the step)
     var sto0 = window.setTimeout; window.setTimeout = function (f, ms) { if (!ms && typeof f === 'function') { pending.push(f); return 0; } return sto0.apply(window, arguments); };
-    function trip(script, at, rep, pre) {
-      SETUP(5); var gg = DS.G; DS.field.load('warrens_d', at[0], at[1], 'down'); DS.EV.darkHere = function () { return rep.dark !== false; };
-      if (pre) pre(gg);
-      var xp0 = gg.party.map(function (h) { return h.xp; }), done = false;
+    function trip(script, at, o) { // o: pre(gg), kill (the foes down at the first frame), plan (labels for the battle's first menus)
+      SETUP(5); var gg = DS.G; DS.field.load('warrens_d', at[0], at[1], 'down'); gg.x = at[0]; gg.y = at[1]; DS.EV.darkHere = function () { return o.dark !== false; };
+      if (o.pre) o.pre(gg);
+      var xp0 = gg.party.map(function (h) { return h.xp; }), done = false, fr = false, b = null;
       DS.run(DS.SCRIPTS[script], function () { done = true; });
-      for (var i = 0; i < 800 && !document.getElementById('d16'); i++) { var tp = DS.top(), k = tp && tp.kind; if (k === 'dialog') { if (tp.chars < tp.pageLen()) tp.chars = tp.pageLen(); T.tapf('a'); } else if (k === 'menu') { tp.menu.i = rep.menu || 0; T.tapf('a'); } else T.step(1); }
-      var fr = document.getElementById('d16');
-      if (fr) {
-        var party = gg.party.map(function (h) { return Object.assign({ id: h.id, hp: h.hp, maxhp: h.maxhp, slots: h.slots, feats: h.feats }, (rep.party || {})[h.id] || {}); });
-        window.dispatchEvent(new MessageEvent('message', { source: fr.contentWindow, data: Object.assign({ type: 'd16:done', party: party, foes: [], inv0: {}, inv1: {} }, rep.msg) }));
-      }
-      pump(1500);
-      return { gg: gg, xp0: xp0, done: done, fr: !!fr, gain: gg.party.map(function (h, n) { return h.xp - xp0[n]; }) };
+      for (var i = 0; i < 800 && !DS.find('battle') && !(done && !DS.scriptActive()); i++) { if (document.getElementById('d16')) fr = true; var tp = DS.top(), k = tp && tp.kind; if (k === 'dialog') { if (tp.chars < tp.pageLen()) tp.chars = tp.pageLen(); T.tapf('a'); } else if (k === 'menu') { tp.menu.i = 0; T.tapf('a'); } else T.step(1); }
+      b = DS.find('battle'); if (b) { if (o.kill) b.foes.forEach(function (f) { f.hp = 0; f.dead = true; }); fight8(o.plan); }
+      pump(1500); if (document.getElementById('d16')) fr = true;
+      return { gg: gg, xp0: xp0, done: done, fr: fr, b: !!b, gain: gg.party.map(function (h, n) { return h.xp - xp0[n]; }) };
     }
-    // (where the party stands when the Victory is said, and when the bucket's XP is: 09-30e, "land them on the stair, reward and then stair them up")
-    var posV = null, posF = null, say0 = DS.say, fed0 = DS.EV.fedXp;
-    DS.say = function (t) { if (/Victory/.test(String(t))) posV = [DS.G.map, DS.G.x, DS.G.y]; return say0.apply(this, arguments); };
-    DS.EV.fedXp = function* () { if (DS.G.flags.otyughFed && !DS.G.flags.otyughFedXp) posF = [DS.G.map, DS.G.x, DS.G.y]; yield* fed0.apply(this, arguments); };
     var POOL = Math.round(1.25 * DS.DATA.monsters.otyugh.xp);
-    var t1 = trip('jelly', [23, 14], { msg: { result: 'won', flags: { jellyDead: 1 }, enemies8: ['ochrejelly'], exit8: [20, 18] } });
-    check('the jelly killed, out at the south edge: at ' + [t1.gg.map, t1.gg.x, t1.gg.y].join(',') + ' (there already at the Victory: ' + JSON.stringify(posV) + '), XP +' + t1.gain.join('/') + ', jellyDead ' + t1.gg.flags.jellyDead + ', script done ' + t1.done, t1.fr && t1.done && t1.gg.map === 'warrens_d' && t1.gg.x === 20 && t1.gg.y === 18 && JSON.stringify(posV) === '["warrens_d",20,18]' && t1.gain.every(function (n) { return n > 0; }) && t1.gg.flags.jellyDead && !DS.wetExit);
-    var t2 = trip('poolOoze', [29, 13], { msg: { result: 'escaped', flags: {}, exit8: [1, 12] } });
-    check('nothing dead, up the stair: on ' + [t2.gg.map, t2.gg.x, t2.gg.y].join(',') + ', XP +' + t2.gain.join('/'), t2.fr && t2.done && t2.gg.map === 'warrens_b' && t2.gain.every(function (n) { return n === 0; }));
-    posV = null; posF = null;
-    var t2b = trip('jelly', [23, 14], { msg: { result: 'won', flags: { jellyDead: 1, otyughFed: 1 }, enemies8: ['ochrejelly'], exit8: [1, 13] } });
-    check('the jelly killed and the landlord fed, out by the stair: on the stair at the Victory ' + JSON.stringify(posV) + ' and at the bucket\'s XP ' + JSON.stringify(posF) + ', then up: ' + [t2b.gg.map, t2b.gg.x, t2b.gg.y].join(','), JSON.stringify(posV) === '["warrens_d",1,13]' && JSON.stringify(posF) === '["warrens_d",1,13]' && t2b.gg.map === 'warrens_b' && t2b.done);
-    var t3 = trip('jelly', [22, 9], { msg: { result: 'escaped', flags: { otyughFed: 1, 'heard:r-stream': 1 }, exit8: [15, 18] } });
-    var t3b = null; (function () { var gg = t3.gg, xp1 = gg.party.map(function (h) { return h.xp; }); gg.x = 23; gg.y = 14; DS.run(DS.SCRIPTS.jelly, function () { }); for (var i = 0; i < 800 && !document.getElementById('d16'); i++) { var tp = DS.top(); if (tp && tp.kind === 'dialog') { if (tp.chars < tp.pageLen()) tp.chars = tp.pageLen(); T.tapf('a'); } else T.step(1); } var fr = document.getElementById('d16'); if (fr) window.dispatchEvent(new MessageEvent('message', { source: fr.contentWindow, data: { type: 'd16:done', result: 'escaped', party: [], foes: [], inv0: {}, inv1: {}, exit8: [16, 18] } })); pump(1500); t3b = gg.party.map(function (h, n) { return h.xp - xp1[n]; }); })();
-    check('fed on the grid, walked out: +' + t3.gain.join('/') + ' (125% of the otyugh\'s ' + DS.DATA.monsters.otyugh.xp + ' = ' + POOL + ', shared among ' + t3.gg.party.filter(function (h) { return !h.ko; }).length + '); the next trip pays nothing more: +' + (t3b || []).join('/'), t3.fr && t3.gain.every(function (n) { return n === Math.floor(POOL / t3.gg.party.length); }) && t3.gg.flags.otyughFedXp && t3b && t3b.every(function (n) { return n === 0; }));
-    DS.say = say0; DS.EV.fedXp = fed0;
-    var lh5 = null, rep5 = { dark: false, msg: { result: 'escaped', flags: {}, exit8: [20, 18] }, party: {} };
-    var t5 = trip('jelly', [23, 14], rep5, function (gg) { gg.give('lantern', 1); lh5 = gg.party.filter(function (h) { return R.freeHands(h); })[0]; gg.flags.torchBy = lh5.id; gg.flags.torchKind = 'lantern'; gg.take('lantern', 1); lh5.equip.torch = 1; rep5.party[lh5.id] = { torch: 'lantern' }; });
-    check('a lantern still lit in the hand comes back up in the hand, dark or not (the seam on lit ground): ' + (t5.gg.flags.torchBy || 'none') + ', pack x' + t5.gg.count('lantern'), t5.fr && lh5 && t5.gg.flags.torchBy === lh5.id && !!lh5.equip.torch && t5.gg.count('lantern') === 0);
+    var t1 = trip('jelly', [23, 14], { kill: true });
+    check('the jelly\'s shore: the 8-bit battle (' + t1.b + ', no frame ' + !t1.fr + '), killed: XP +' + t1.gain.join('/') + ', jellyDead ' + t1.gg.flags.jellyDead + ', the party where it stood ' + [t1.gg.map, t1.gg.x, t1.gg.y].join(',') + ', script done ' + t1.done,
+      t1.b && !t1.fr && t1.done && t1.gg.map === 'warrens_d' && t1.gg.x === 23 && t1.gg.y === 14 && t1.gain.every(function (n) { return n > 0; }) && t1.gg.flags.jellyDead === 1);
+    var t2 = trip('poolOoze', [29, 13], { kill: true });
+    check('the pool ooze\'s puddle: the 8-bit battle (' + t2.b + ', no frame ' + !t2.fr + '), poolOozeDead ' + t2.gg.flags.poolOozeDead + ', XP +' + t2.gain.join('/'), t2.b && !t2.fr && t2.done && t2.gg.flags.poolOozeDead === 1 && t2.gain.every(function (n) { return n > 0; }));
+    var t3 = trip('landlordNear', [8, 8], { pre: function (gg) { gg.give('bucket', 1); }, plan: ['ITEM', 'Carrion Bucket'] }), t3b = null;
+    (function () { var gg = t3.gg, xp1 = gg.party.map(function (h) { return h.xp; }); DS.field.load('warrens_d', 13, 4, 'left'); DS.run(DS.SCRIPTS.landlord, function () { }); pump(600); t3b = gg.party.map(function (h, n) { return h.xp - xp1[n]; }); })();
+    check('the rim with the bucket, the 8-bit battle (' + t3.b + ', no frame ' + !t3.fr + '): fed (' + t3.gg.flags.otyughFed + ', not dead ' + !t3.gg.flags.otyughDead + '), +' + t3.gain.join('/') + ' as they leave it (125% of the otyugh\'s ' + DS.DATA.monsters.otyugh.xp + ' = ' + POOL + ', shared among ' + t3.gg.party.filter(function (h) { return !h.ko; }).length + '); E at the water after pays nothing more: +' + (t3b || []).join('/'),
+      t3.b && !t3.fr && t3.gg.flags.otyughFed === 1 && !t3.gg.flags.otyughDead && t3.gain.every(function (n) { return n === Math.floor(POOL / t3.gg.party.length); }) && t3.gg.flags.otyughFedXp && t3b && t3b.every(function (n) { return n === 0; }));
+    var lh5 = null, t5 = trip('jelly', [23, 14], { dark: false, kill: true, pre: function (gg) { gg.give('lantern', 1); lh5 = gg.party.filter(function (h) { return R.freeHands(h); })[0]; gg.flags.torchBy = lh5.id; gg.flags.torchKind = 'lantern'; gg.take('lantern', 1); lh5.equip.torch = 1; } });
+    check('a lantern lit in the hand comes out of the wet\'s 8-bit fight in the hand: ' + (t5.gg.flags.torchBy || 'none') + ', pack x' + t5.gg.count('lantern'), t5.b && lh5 && t5.gg.flags.torchBy === lh5.id && !!lh5.equip.torch && t5.gg.count('lantern') === 0);
     // ---- 09-30g: the rim takes them onto the grid; fed, it is only stone
     var wd2 = DS.DATA.maps.warrens_d, rimT = wd2.triggers.filter(function (t) { return t.id === 'landlordStep'; })[0], dc = wd2.triggers.filter(function (t) { return /^deepCradle/.test(t.id); });
     check('the rim\'s trigger quiet once fed or dead (' + (rimT && rimT.cond) + '); three deep-rate stations (' + dc.map(function (t) { return t.rect.slice(0, 2).join(',') + ':' + t.arg; }).join(' ') + ')', rimT && /otyughFed/.test(rimT.cond) && /otyughDead/.test(rimT.cond) && dc.length === 3 && dc.every(function (t) { return t.on === 'use' && t.script === 'deepCradle'; }));
@@ -158,13 +153,8 @@
     var fo = sent2[1];
     check('in the book, a deep shift: the scene made deep ' + !!(madeWith && madeWith.deep) + ' for ' + (madeWith && madeWith.hero && madeWith.hero.name) + '; 2 thimbles paid ' + (g.silver - sh1) + ' silver; roused, the fight ' + JSON.stringify(fo && { deep16: fo.deep16, wake: fo.wake, harness: fo.harness, at: fo.at, milker: fo.milker, touched: fo.touched }), madeWith && madeWith.deep && g.silver - sh1 === 6 && fo && fo.deep16 === 'wet' && fo.wake === 'harness' && fo.harness.join() === '15,6' && fo.at.join() === '16,6' && fo.milker === madeWith.hero.id && fo.touched === true);
     DS.battle = base2;
-    // the seam hands the grid the deep rate's options (js/embed.js open)
-    var seamOpts = null; SETUP(5); g = DS.G; DS.field.load('warrens_d', 16, 6, 'left');
-    DS.run(function* () { yield* DS.EV.fight(['crawler'], { bg: 'wet', deep16: 'wet', wake: 'harness', harness: [15, 6], at: [16, 6], milker: 'aurdin', touched: true }); });
-    for (var q2 = 0; q2 < 400 && !document.getElementById('d16'); q2++) T.step(1);
-    var fr2 = document.getElementById('d16');
-    if (fr2) { var pm0 = fr2.contentWindow.postMessage; try { fr2.contentWindow.postMessage = function (m) { seamOpts = m && m.opts; }; } catch (e) { } window.dispatchEvent(new MessageEvent('message', { source: fr2.contentWindow, data: { type: 'd16:ready' } })); window.dispatchEvent(new MessageEvent('message', { source: fr2.contentWindow, data: { type: 'd16:done', result: 'escaped', party: [], foes: [], inv0: {}, inv1: {} } })); pump(800); }
-    check('the seam carries the deep rate across: ' + JSON.stringify(seamOpts && { harness: seamOpts.harness, milker: seamOpts.milker, touched: seamOpts.touched, wake: seamOpts.wake }), seamOpts && seamOpts.harness && seamOpts.harness.join() === '15,6' && seamOpts.milker === 'aurdin' && seamOpts.touched === true && seamOpts.wake === 'harness');
+    // (the seam that handed the grid the deep rate's options -- the harness, the milker, the touch -- went with the grid, 10-20: the 8-bit battle reads none of them, and
+    // the check above keeps that the scene still asks for them, for the second game)
     // the cradle scene itself at the deep rate: un-settled from the first draw, a narrower gold, a whip ends the shift roused
     SETUP(5); g = DS.G; var ch = g.hero('aurdin');
     var pens = new DS.CradleScene({ hero: ch, skill: 3, skillName: 'Nature', mouth: 2, shifts: 1 }), deep = new DS.CradleScene({ hero: ch, skill: 3, skillName: 'Nature', deep: true, shifts: 1 });

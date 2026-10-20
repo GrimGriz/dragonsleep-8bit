@@ -1,271 +1,36 @@
-/* DRAGONSLEEP — a fight fought in DEEP16 (09-27. RULED, Griz: the ettercap, "replace it outright"; "what is spent in the
-   fight gone on return to 8-bit"). A battle with `deep16: '<fight id>'` (deep16/data/fights.js) lays DEEP16 over the whole
-   window in an iframe (the cradle's #fx is the precedent: one scene may step outside the 8-bit frame), hands it the party
-   by postMessage, and takes back what the fight did: HP and KO, spell slots, feature uses, Mage Armor and Aid cast in it,
-   potions and bolts used. Nothing is refunded. Then the 8-bit battle's own ending runs on the result (Victory!, XP,
-   silver, drops, the harvest; GAME OVER on a loss), so the scene that yielded DS.battle carries on as ever. DEEP16 writes
-   no 8-bit save: this page applies the result to its party, and the save changes only when the player saves.
-   Wraps DS.battle (the deep.js way): file order is call order, so this loads after battle.js. */
+/* DRAGONSLEEP — a story fight that has a grid twin. From 09-27 to 10-20 a battle with `deep16: '<fight id>'` (deep16/data/fights.js)
+   laid DEEP16 over the window in an iframe, handed it the party and took back what the fight did; the 8-bit battle was the floor under it,
+   for a grid that refused or crashed. Since 10-20 that floor is the only path: the first game hands nothing to DEEP16 (RULED, Griz: "the
+   8-bit handoff (at the cradle and with light) are so jarring it made me want to call the 8-bit one finished"; "8 bit solely 8-bit after
+   this"). Every such fight is the 8-bit battle, played at once. The `deep16` key stays on each call as the name of its grid twin, for the
+   second game (THE SECOND GAME takes the Skylights, the Wet on the grid and the story fights on the grid); the 8-bit battle reads it in one
+   place, the landlord's bucket (js/battle.js: the wet's fight). The Wet's roam (DS.roam8) went with the frame. Wraps DS.battle (the deep.js
+   way): file order is call order, so this loads after battle.js. */
 'use strict';
 (function () {
   var DS = window.DS, base = DS.battle;
-  var RESULT = { won: 'win', lost: 'lose', escaped: 'run', fled: 'fled', yielded: 'win', roost: 'lose' }; // (roost: the roof let go, RoostFail)
-
-  DS.battle = function (o) { return o && o.deep16 ? deep(o) : base(o); };
-
-  // (10-03, the review's floor under the player: how long the 8-bit page waits for DEEP16 to say d16:ready before it takes the fight itself; a probe sets it small)
-  if (DS.d16ReadyMs == null) DS.d16ReadyMs = 30000;
-  // what the player is told when the grid fails and the 8-bit battle takes over (said over the field, before the battle comes up)
-  var FALTERED = 'The grid faltered. The fight goes on here.';
-  // the wet's three that stay dead once killed (deep16/js/wet.js FLAG8): killed in the 8-bit battle a wet fight fell back to, they are as dead as the grid
-  // makes them, and their spots on the 8-bit map stop calling them up (10-03, Griz: "if for some reason the game starts crashing, they should be able to
-  // finish off those 3 monsters in 8bit"). The southern ooze is the 8-bit's own fight, never a wet one, and is not counted
+  // the wet's three that stay dead once killed (deep16/js/wet.js FLAG8): killed in a wet fight they are as dead as the grid made them, and their spots on the 8-bit map
+  // stop calling them up (10-03, Griz: "if for some reason the game starts crashing, they should be able to finish off those 3 monsters in 8bit"). The southern ooze is
+  // the 8-bit's own fight, never a wet one, and is not counted
   var WET_DEAD = { otyugh: 'otyughDead', ochrejelly: 'jellyDead', grayooze: 'poolOozeDead' };
 
-  function deep(o) {
+  DS.battle = function (o) { return o && o.deep16 === 'wet' ? wet(o) : base(o); };
+
+  // a wet fight: the 8-bit battle, as DS.battle runs it (js/battle.js), with the three's deaths kept as it closes
+  function wet(o) {
     return {
       start: function (script) {
         var self = this, prevSong = DS.audio.songId;
         DS.audio.sfx('encounter');
-        DS.push(new DS.EncounterFlash(function () {
-          open(o, function (d) {
-            if (d.type === 'd16:refuse' || d.type === 'd16:crash') { // (no sheet on the grid for one of these, or the grid threw or never came up: the 8-bit battle, as ever)
-              var crashed = d.type === 'd16:crash';
-              // (the report was never applied, so the party is as it walked in. DS.lastD16Crash is for probes: never in DS.G, never in the save)
-              if (crashed) { console.warn('DEEP16 crashed in ' + o.deep16 + ' (' + d.msg + (d.at ? ' at ' + d.at : '') + '): fought in the 8-bit game'); DS.lastD16Crash = { fight: o.deep16, msg: d.msg, at: d.at }; }
-              else console.warn('DEEP16 refused ' + o.deep16 + ' (' + (d.missing || []).join(', ') + '): fought in the 8-bit game');
-              // (nothing of a grid report stands: no square to land on, no measure of Pyro's -- the 8-bit battle keeps its own, js/pyro.js; 10-06, the 8-bit battle lane §2.3)
-              DS.wetExit = null; DS.pyroBack = null;
-              var b8 = new DS.Battle(o);
-              b8.onClose = function (r) {
-                if (o.deep16 === 'wet') b8.foes.forEach(function (f) { if (f.dead && !f.fled && WET_DEAD[f.id]) DS.G.flags[WET_DEAD[f.id]] = 1; });
-                self.finished = true; self.result = r; if (o.after !== false && r !== 'lose' || o.lossOk) DS.audio.play(o.returnSong || prevSong, true); setTimeout(function () { script.resume(self, r); }, 0); };
-              if (crashed) DS.run(function* () { yield DS.say(FALTERED); DS.push(b8); }); else DS.push(b8);
-              return;
-            }
-            var res = apply(d);
-            // (the Settling: up on the 8-bit square the one who walked off the grid left it by, before the ending runs -- js/events.js EV.wetLand, 09-30e)
-            if (res !== 'lose' && DS.wetExit && DS.EV.wetLand) DS.EV.wetLand(DS.wetExit);
-            // the rest of the party came out of the inn during the fight: no longer a lone fighter's battle, so the XP is split
-            // among everyone standing, as the 8-bit's own joinParty leaves it (review 09-28 #2)
-            if (d.joined && o.solo != null) o.solo = null;
-            // (the light as the grid left it, not as the field had it: a lantern or the Ledger-Lamp put out or set down on the grid is in the pack, and the
-            // 8-bit battle's own ending must not light a phantom torch for the one who walked in holding it -- 09-30)
-            o.torch = DS.G.flags.torchBy || null; delete o.torchKind;
-            // (the Settling, 09-30: the wet's grid holds more than the 8-bit scene sent -- the ending counts what it killed there)
-            var b = new DS.Battle(d.enemies8 && d.enemies8.length ? Object.assign({}, o, { enemies: d.enemies8 }) : o);
-            // the 8-bit foes as DEEP16 left them: on a win all down (one who got away gives no XP), else as they stood. Each
-            // DEEP16 foe knows its place in the 8-bit list (i8); a fight built without the list is matched by kind
-            var back = (d.foes || []).slice();
-            b.foes.forEach(function (f, n) {
-              var k = -1;
-              for (var i = 0; i < back.length; i++) if (back[i].i8 === n) { k = i; break; }
-              if (k < 0) for (var j = 0; j < back.length; j++) if (back[j].i8 == null && back[j].kind === f.id) { k = j; break; }
-              var r = k >= 0 ? back.splice(k, 1)[0] : null;
-              if (res === 'win' || (r && (r.dead || r.fled))) { f.dead = true; f.fade = 0; if (r && r.fled) f.fled = true; }
-              // he yielded (the cleric): the 8-bit battle's own yield, a win with him standing (no harvest off him)
-              if (d.result === 'yielded' && r && !r.dead) f.surrendered = true;
-              // one who ran carries his flag out with him, as the 8-bit foeBolt does (the wheelwright: wheelwrightRan)
-              if (r && r.fled && f.m.traits && f.m.traits.flag) DS.G.flags[f.m.traits.flag] = 1;
-            });
-            b.over = d.result === 'roost' ? 'roost' : res; b.fromDeep = true; // (roost: finish() runs the swarm and RoostFail)
-            if (d.result === 'roost') { b.usedFire = true; b.roostCause = d.roost === 'fire' ? 'fire' : 'light'; } // (Light, Daylight, the paladin's glow: bright light)
-            b.onClose = function (r) {
-              self.finished = true; self.result = r;
-              if (o.after !== false && r !== 'lose' || o.lossOk) DS.audio.play(o.returnSong || prevSong, true);
-              setTimeout(function () { script.resume(self, r); }, 0);
-            };
-            DS.push(b);
-          });
-        }));
+        var b8 = new DS.Battle(o);
+        b8.onClose = function (r) {
+          b8.foes.forEach(function (f) { if (f.dead && !f.fled && WET_DEAD[f.id]) DS.G.flags[WET_DEAD[f.id]] = 1; });
+          self.finished = true; self.result = r;
+          if (o.after !== false && r !== 'lose' || o.lossOk) DS.audio.play(o.returnSong || prevSong, true);
+          setTimeout(function () { script.resume(self, r); }, 0);
+        };
+        DS.push(new DS.EncounterFlash(function () { DS.push(b8); }));
       }
     };
-  }
-
-  // ------------------------------------------------------------------ THE WET ON THE GRID (the party-token map's seam, 10-14 -- Griz: "You should handle the seam given context?"). Set
-  // down in warrens_d by a warp (js/deep.js's enter hook), the party walks the whole floor in DEEP16 (deep16/js/roam.js), its random fights, the Settling and the Keeper there;
-  // it comes back by one message at a way off the floor, and this page takes its own warp from that square. What comes back: each sheet whole (the XP and levels the floor
-  // paid, hurt, slots, uses, what lasts, EQUIP), who holds the light, the pack as the change since the party walked on (a fight's inv0 and inv1), the flags, the kill tally,
-  // the purse. Refused or crashed, the 8-bit's own Wet stands under it, as a fight falls back to the 8-bit battle. Not after the drain (the drained stair is the 8-bit's till
-  // the grid has it), nor with &noroam in the address
-  // the wizard's familiar (Find Familiar, js/familiar.js) back from the grid, a fight's or the floor's (10-14, Griz: "familiars aren't properly handled"): fallen there, it is
-  // gone till the ritual calls it back; else what it has left
-  function famBack(g, f) { if (f && g.flags.familiar) { if (f.gone) { g.flags.familiarGone = g.flags.familiar.kind; delete g.flags.familiar; } else g.flags.familiar.hp = f.hp; } }
-  DS.roam8 = {
-    // (the drained Wet too since 10-14 -- his close's "Roam the Wet going to need post-stair drain version": the floor lays the map's flag tiles by the flags, deep16/js/roam.js)
-    on: function () { return !/[?&]noroam\b/.test(location.search); },
-    enter: function* () {
-      var g = DS.G, back = null, hand = null, o = { roam: true, onHand: function (m) { hand = m; } };
-      open(o, function (m) { back = m; });
-      for (;;) { // (a hand-back from the middle of the floor -- SAVE, a cradle, a field action, a scene -- and the floor again, as often as it asks: DS.roam8.hand)
-        yield DS.W8.until(function () { return !!back || !!hand; });
-        if (back) break;
-        var hm = hand, hr; hand = null;
-        hr = yield* DS.roam8.hand(hm);
-        if (hr.over) { o.closeFrame(); return; } // (the party fell in the scene's own fight: this game's game over stands, the floor goes)
-        o.resume(hr);
-      }
-      if (back.type !== 'd16:roam') { if (back.type === 'd16:crash') yield DS.say(FALTERED.replace('The fight goes on here.', 'The Wet goes on here.')); return; }
-      DS.roam8.apply(back);
-      if (back.result === 'lose') { DS.audio.play('gameover'); DS.push(new DS.GameOver()); return; }
-      // a scene that changed the floor's own tiles (the stair held, the water back): the floor again, built for them, where the party stood
-      if (back.result === 'reopen') { var fr0 = DS.field; if (back.exit8) { g.x = back.exit8[0]; g.y = back.exit8[1]; if (fr0) { fr0.px = g.x * 16; fr0.py = g.y * 16; fr0.moving = false; } } yield* DS.roam8.enter(); return; }
-      var x8 = back.exit8, f = DS.field; if (!x8 || !f) return;
-      g.x = x8[0]; g.y = x8[1]; f.px = g.x * 16; f.py = g.y * 16; f.moving = false;
-      var w = f.warpAt(g.x, g.y);
-      if (w) { DS.audio.sfx(w.sfx || 'door'); yield* DS.EV.warp(w.to, w.tx, w.ty, w.dir || g.dir, w); }
-    },
-    apply: function (d) {
-      var g = DS.G, find = function (id) { return g.party.filter(function (h) { return h.id === id; })[0] || ((g.guests || []).filter(function (x) { return x.id === id; })[0] || {}).h; };
-      (d.party || []).forEach(function (r) { var h = find(r.id); if (h && r.sheet) Object.keys(r.sheet).forEach(function (k) { h[k] = r.sheet[k]; }); });
-      // the light: the first still holding one carries it on into the map (the field's torchBy), the others none
-      var lit = (d.party || []).filter(function (r) { return r.torch; })[0];
-      g.party.concat((g.guests || []).map(function (x) { return x.h; })).forEach(function (h) { if (h.equip) delete h.equip.torch; });
-      if (lit) { g.flags.torchBy = lit.id; g.flags.torchKind = lit.torch; var lh = find(lit.id); if (lh && lh.equip) lh.equip.torch = 1; } else { delete g.flags.torchBy; delete g.flags.torchKind; }
-      var i0 = d.inv0 || {}, i1 = d.inv1 || {};
-      Object.keys(i0).forEach(function (id) { var used = i0[id] - (i1[id] || 0), have = g.count(id); if (used > 0 && have > 0) g.take(id, Math.min(used, have)); });
-      Object.keys(i1).forEach(function (id) { var got = (i1[id] || 0) - (i0[id] || 0); if (got > 0) g.give(id, got); });
-      Object.keys(d.flags || {}).forEach(function (k) { g.flags[k] = d.flags[k]; });
-      famBack(g, d.familiar); // (after the flags: the floor's copy of flags.familiar is as it walked on)
-      if (d.kills) g.kills = d.kills; if (d.silver != null) g.silver = d.silver;
-      if (d.order) { var ord = d.order; g.party.sort(function (a, b) { var ia = ord.indexOf(a.id), ib = ord.indexOf(b.id); return (ia < 0 ? 99 : ia) - (ib < 0 ? 99 : ib); }); } // (a leader changed by ORDER on the floor leads the 8-bit's party too)
-      if (d.warn && d.warn.length) console.warn('THE ROAM, the pack at the stairs: ' + d.warn.join('; '));
-    },
-    // a hand-back from the middle of the floor (10-14, Griz: "SAVE on the floor and the cradles by a hand-back to the 8-bit, then reopen the floor where they stood"): the
-    // frame set aside (open's onHand), everything the floor changed applied as at a stair, the party stood on the 8-bit square they stand on, the 8-bit's own scene -- its SAVE
-    // (the slots: a load opens the floor again there, js/deep.js), a cradle's deep rate (js/events.js EV.deepRate) -- and back to the floor with what that scene changed:
-    // the pack (inv, by id), the flags, the purse, and its word (the cradle's crawler roused, who milked, the touch)
-    hand: function* (m) {
-      var g = DS.G, f = DS.field, counts = function () { var c = {}; (g.inv || []).forEach(function (s) { var id = Array.isArray(s) ? s[0] : s.id, n = Array.isArray(s) ? s[1] : s.n; if (n > 0) c[id] = (c[id] || 0) + n; }); return c; };
-      DS.roam8.apply(m);
-      if (m.exit8) { g.x = m.exit8[0]; g.y = m.exit8[1]; if (m.dir) g.dir = m.dir; if (f) { f.px = g.x * 16; f.py = g.y * 16; f.moving = false; } }
-      var inv0 = counts(), fl0 = JSON.parse(JSON.stringify(g.flags)), out = {};
-      if (m.kind === 'save') { var sv = new DS.SlotScene(true); yield DS.W8.scene(sv); out.saved = /^Saved/.test(sv.msg || '') ? sv.msg : null; }
-      if (m.kind === 'cradle') out.cradle = (yield* DS.EV.deepRate(m.n)) || null;
-      if (m.kind === 'act' && m.act) yield* DS.roam8.act(m.act);
-      if (m.kind === 'script' && m.script && DS.SCRIPTS[m.script]) yield* DS.SCRIPTS[m.script](m.arg); // (any other scene of this map's: the drained stair's dryStair, holdStair)
-      if (m.kind === 'act' || m.kind === 'script') { // (each hero as this game left them, the tally, the square the scene left the party on)
-        out.party = g.party.map(function (h) { return { id: h.id, sheet: JSON.parse(JSON.stringify(h)) }; }).concat((g.guests || []).map(function (x) { return { id: x.id, sheet: JSON.parse(JSON.stringify(x.h)) }; }));
-        out.kills = JSON.parse(JSON.stringify(g.kills || {})); out.at8 = [g.x, g.y];
-      }
-      if (DS.GameOver && DS.top() instanceof DS.GameOver) { out.over = true; return out; }
-      var inv1 = counts(); out.inv = {};
-      Object.keys(inv0).concat(Object.keys(inv1)).forEach(function (id) { var d = (inv1[id] || 0) - (inv0[id] || 0); if (d) out.inv[id] = d; });
-      out.flags = {}; Object.keys(g.flags).forEach(function (k) { if (JSON.stringify(g.flags[k]) !== JSON.stringify(fl0[k])) out.flags[k] = g.flags[k]; });
-      out.silver = g.silver;
-      return out;
-    },
-    // a field action from the floor's M menu (10-14, Griz: "this is how we'll be doing all the dwarf road and stuff after, so we do it all and do it right"): a cast, a skill,
-    // an item the floor does not use itself, by id -- run as this game's own field menu runs it (js/scenes.js host8.run), every rule its own: where a rest may be had, the slot,
-    // the component, who it lands on
-    act: function* (a) {
-      var g = DS.G, hero = function (id) { if (id == null) return null; return g.party.filter(function (h) { return h.id === id; })[0] || ((g.guests || []).filter(function (x) { return x.id === id; })[0] || {}).h || null; };
-      if (a.kind === 'item' && a.id) yield* DS.EV.useFieldItem(a.id, hero(a.h));
-      else if (a.kind === 'cast' && a.sp && DS.DATA.spells[a.sp] && hero(a.h)) yield* DS.EV.fieldCast(hero(a.h), DS.DATA.spells[a.sp], hero(a.t));
-      else if (a.kind === 'skill' && hero(a.h)) yield* DS.EV.fieldSkill(hero(a.h), a.s, hero(a.t));
-    }
-  };
-  // DEEP16 up over the screen; the 8-bit game holds still under it (DS.paused) until the fight comes back
-  function open(o, done) {
-    var g = DS.G, fr = document.createElement('iframe'), closed = false, readyTimer = null, readyMs = DS.d16ReadyMs != null ? DS.d16ReadyMs : 30000;
-    // the grid is gone, whichever way: its own word (done, refuse, crash) or the timer below. Once only; the 8-bit game wakes, the listener and the timer go
-    function close(m) {
-      if (closed) return; closed = true;
-      clearTimeout(readyTimer);
-      window.removeEventListener('message', onMsg);
-      if (fr.parentNode) fr.parentNode.removeChild(fr);
-      DS.paused = false; DS.input.flush();
-      if (DS.canvas) DS.canvas.focus();
-      done(m);
-    }
-    // the floor's hand-back from its middle (the roam's 'd16:hand', DS.roam8.hand): the frame set aside, not closed -- the 8-bit awake for its own scene -- then up again
-    // with that scene's word ('ds8:resume') and the 8-bit held still under it once more
-    function aside(m) { fr.style.visibility = 'hidden'; DS.paused = false; DS.input.flush(); if (DS.canvas) DS.canvas.focus(); o.onHand(m); }
-    o.closeFrame = function () { close({ type: 'd16:over' }); };
-    o.resume = function (data) { if (closed) return; fr.style.visibility = ''; DS.paused = true; DS.input.flush(); try { fr.contentWindow.focus(); } catch (e) { } fr.contentWindow.postMessage(Object.assign({ type: 'ds8:resume' }, data || {}), '*'); };
-    // the guests the 8-bit battle would field (standing, and none for a lone fighter or a noGuests fight), each by its key
-    // (two troopers are pinA and pinB, both 'trooper' underneath)
-    var guests = o.solo == null && !o.noGuests ? (g.guests || []).filter(function (x) { return !x.h.ko && x.h.hp > 0; }) : [];
-    var snap = JSON.parse(JSON.stringify({ party: g.party, guests: guests.map(function (x) { return Object.assign({}, x.h, { key: x.id }); }), inv: g.inv, flags: g.flags }));
-    function onMsg(e) {
-      var m = e.data;
-      if (e.source !== fr.contentWindow || !m) return;
-      if (m.type === 'd16:hand' && o.onHand) { aside(m); return; }
-      // the lone investigator (the wagon night's INVESTIGATE): the 8-bit battle's `solo` (a party index) goes over as the hero's
-      // id, with `join`, the round the rest come out of the inn
-      var solo = o.solo != null && g.party[o.solo] ? g.party[o.solo].id : null;
-      // the light already on them: the scene's `revealed`, or a hero carrying a weapon that reveals (the Sunshaft staff: the 8-bit
-      // battle's `seer`, js/battle.js), so nothing on the grid starts hidden (review 09-28 #5)
-      var seer = g.party.some(function (h) { if (h.ko) return false; var w = DS.R.item(h.equip && h.equip.weapon); return !!(w && w.weapon && w.weapon.reveals); });
-      // the fight is the 8-bit scene's own foes (RULED 09-28, Griz: "8-bit's list"), and its opening: who was caught unaware
-      // (`surprised`), whether the light was already on them (`revealed`), what a foe who yields says (`yieldText`)
-      // torchdark (09-28): whether it is dark where the fight is (the 8-bit map's `dark`, the night's tint: EV.darkHere), and who
-      // walked in holding a lit torch (the field's g.flags.torchBy)
-      var dark = o.dark != null ? !!o.dark : (DS.EV.darkHere ? DS.EV.darkHere() : false);
-      if (m.type === 'd16:ready') clearTimeout(readyTimer); // (it came up: from here the grid answers for itself, by done, refuse or crash)
-      // (the Wet walked on the grid -- DS.roam8 below: the whole floor, not a fight; the tally and the purse go too, and the square the warp set the party down on)
-      if (m.type === 'd16:ready' && o.roam) fr.contentWindow.postMessage({ type: 'ds8:roam', save: Object.assign(snap, { kills: JSON.parse(JSON.stringify(g.kills || {})), silver: g.silver || 0 }),
-        opts: { at8: [g.x, g.y], dir: g.dir, dark: true, torch: g.flags.torchBy || null, torchKind: g.flags.torchKind || 'torch' } }, '*');
-      else if (m.type === 'd16:ready') fr.contentWindow.postMessage({ type: 'ds8:fight', fight: o.deep16, save: snap, opts: {
-        canRun: o.canRun !== false, solo: solo, join: o.join || 0, only: o.deep16Only || null, enemies: o.enemies || null,
-        at: o.at || null, wake: o.wake || null, // (the Settling: the lead's square, the trigger that fired -- deep16/js/wet.js)
-        start: o.start || null, // (the way in by name: the Flooded Stair's 'ledge' (WADE IN) or 'rune' (a hand on the mark) -- js/events.js S.stair, S.mark; deep16/js/battle.js Battle.enter, 10-03)
-        harness: o.harness || null, milker: o.milker || null, touched: !!o.touched, // (the deep rate roused: the cradle's square, who milked, whether the touch took -- 09-30g)
-        surprised: o.surprised || null, revealed: !!o.revealed || seer, yieldText: o.yieldText || null,
-        dark: dark, torch: o.torch || g.flags.torchBy || null, torchKind: g.flags.torchKind || 'torch' } }, '*');
-      if (m.type === 'd16:done' || m.type === 'd16:refuse' || m.type === 'd16:crash' || m.type === 'd16:roam') close(m);
-    }
-    window.addEventListener('message', onMsg);
-    DS.audio.stop();
-    fr.id = 'd16'; fr.title = 'DEEP16'; fr.allow = 'gamepad'; fr.src = 'deep16/index.html?embed' + (/[?&]nolog\b/.test(location.search) ? '&nolog' : /[?&]log\b/.test(location.search) ? '&log' : ''); // (the game pad reaches the fight: js/pad.js)
-    fr.onload = function () { try { fr.contentWindow.focus(); } catch (e) { } };
-    document.body.appendChild(fr);
-    DS.paused = true;
-    // (no d16:ready in time -- the page did not load, a script threw before it could say so: the same end as a crash, and the 8-bit game takes the fight)
-    readyTimer = setTimeout(function () { close({ type: 'd16:crash', msg: 'no ready in ' + readyMs + 'ms' }); }, readyMs);
-  }
-
-  // what the fight did, onto the party: what was spent stays spent (no slot, use or potion comes back that the fight took)
-  function apply(d) {
-    var g = DS.G, all = g.party.map(function (h) { return { id: h.id, h: h }; }).concat(g.guests || []); // (a guest by its key)
-    (d.party || []).forEach(function (r) {
-      var h = (all.filter(function (x) { return x.id === r.id; })[0] || {}).h;
-      if (!h) return;
-      if (r.leftBehind && r.guest && DS.EV && DS.EV.dropGuest) { DS.EV.dropGuest(r.id); return; } // (a trooper left lying when the party got out of the grid's fight: no longer with you -- 10-13)
-      h.conds = h.conds || {};
-      // Aid cast in the fight: the 8-bit game's own Aid, lifted at the next long rest (EV.longRest)
-      if (r.drained) h.maxhp = Math.max(1, h.maxhp - r.drained); // (the Settling: the crawlers fed on him while he was down -- max HP, for good, 09-30b; the grid's maxhp is already the less)
-      if (r.maxhp > h.maxhp) { h.conds.aid = (h.conds.aid || 0) + r.maxhp - h.maxhp; h.maxhp = r.maxhp; }
-      h.hp = Math.max(0, Math.min(h.maxhp, r.hp)); h.ko = h.hp <= 0;
-      if (r.slots && h.slots) h.slots = h.slots.map(function (n, i) { return r.slots[i] == null ? n : Math.min(n, r.slots[i]); });
-      if (r.feats && h.feats) Object.keys(h.feats).forEach(function (k) { if (typeof h.feats[k] === 'number' && typeof r.feats[k] === 'number') h.feats[k] = Math.min(h.feats[k], r.feats[k]); });
-      if (r.mageArmor) h.conds.mageArmor = true; // cast in the fight: it holds till the long rest, as the 8-bit game's does
-      else if (h.conds.mageArmor && r.equip && DS.R.armored(Object.assign({}, h, { equip: r.equip }))) delete h.conds.mageArmor; // (armour put on in the fight ends it)
-      // EQUIP in the fight (a weapon drawn, a shield on or off) crosses back (RULED 09-28: "all changes in 16 should cross back to 8bit")
-      if (r.equip && h.equip) ['weapon', 'shield', 'armor'].forEach(function (k) { if (k in r.equip) h.equip[k] = r.equip[k]; });
-      // torchdark: the day's Darkvision and a Continual Flame stay on him; a torch still burning in his hand burns on into the map
-      if (r.darkvision) h.conds.darkvision = true;
-      if (r.continualFlame && !h.conds.continualFlame) h.conds.continualFlame = h.equip.weapon || true;
-      // (r.torch is 'torch', 'lantern' or a hooded light's pack id -- the Ledger-Lamp's 'ledgerlamp', 09-30 -- or false; the hooded ones are never spent)
-      var lk = DS.R.hooded(r.torch) ? r.torch : (r.torch ? 'torch' : false), hoodedLit = lk && lk !== 'torch';
-      // (a lantern or the lamp still lit in his hand stays there, dark here or not: it sticks -- RULED 09-30d)
-      if (r.torch && (hoodedLit || (DS.EV.darkHere && DS.EV.darkHere()))) { g.flags.torchBy = h.id; g.flags.torchKind = lk; h.equip.torch = 1; }
-      else if (g.flags.torchBy === h.id) { delete g.flags.torchBy; delete g.flags.torchKind; delete h.equip.torch; if (hoodedLit) g.give(lk, 1); } // (dropped, thrown, put out or spent in the fight: a torch is done)
-      else if (hoodedLit) g.give(lk, 1);
-      if (!r.torch) delete h.equip.torch;
-    });
-    famBack(g, d.familiar);
-    // the pack: what the fight used is gone (a potion drunk, a bolt loosed), never below none. The party fights with only
-    // what it brought (no crossbow lent here, Griz 09-27)
-    var i0 = d.inv0 || {}, i1 = d.inv1 || {};
-    Object.keys(i0).forEach(function (id) { var used = i0[id] - (i1[id] || 0), have = g.count(id); if (used > 0 && have > 0) g.take(id, Math.min(used, have)); });
-    Object.keys(i1).forEach(function (id) { var got = (i1[id] || 0) - (i0[id] || 0); if (got > 0) g.give(id, got); }); // (a weapon stowed in the fight is back in the pack)
-    // the flags the fight set (the Settling's, 09-30), and Pyro's measure (js/pyro.js reads DS.pyroBack as the 8-bit battle ends)
-    if (d.flags) Object.keys(d.flags).forEach(function (k) { g.flags[k] = d.flags[k]; });
-    DS.pyroBack = d.pyro || null;
-    DS.wetExit = d.exit8 || null; // (the Settling's way out: the 8-bit square the party walked off the grid at -- EV.wetOut, 09-30d)
-    if (d.result === 'fled') DS.fledIds = (d.away || []).slice();
-    if (d.result === 'yielded') DS.battleYielded = true; // (his words were on DEEP16's card; the scene asks what you do with him)
-    return RESULT[d.result] || 'run';
   }
 })();

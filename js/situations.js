@@ -80,27 +80,19 @@
   ];
 
   DS.SITUATIONS = {
+    // THE FIRST GAME's ending, one step short (RULED 10-20, Griz: "Revert to the old ending in 8-bit before the edifice fight was added and call it the first game";
+    // "ship to live with a door to the ending"): the whole road walked -- the raid at Third Lamp won, leg four, the road held to the door, Torvald let go, the blades
+    // sent up, Pyro's word -- and Ingrith beside them at Deepholm's door. E on the door and the ending plays in a minute: the consult, the credits, THE ROAD IS HELD
+    ending: { group: 'The first game', title: 'THE FIRST GAME: the ending -- the consult and THE ROAD IS HELD (10-20)', pt: 'the first game lane · §19 the consult and the credits', base: 'lake', spine: 20, lvl: 9,
+      look: 'E on the door (one step east). Dagny at the grille; Ingrith goes through and you do not; the SUNSHAFT STAFF for Aurdin (EQUIP it?); 5,000 XP; then the credits: DRAGONSLEEP, Behind the Fountains, the line your choices wrote (here: the blades sent up), DEEPHOLM coming in an expansion. B (or wait) to the end: THE ROAD IS HELD, CONTINUE or TITLE -- and no PAST THE DOOR. CONTINUE wakes you in Sólskaft the morning after. Nothing on the way hands off to the grid.',
+      say: 'THE FIRST GAME, its ending. The road is held to Deepholm\'s door; Pyro has given his word, and Ingrith stands beside you. The door is just east.',
+      map: 'threshold', x: 16, y: 8, dir: 'right' },
     // ---------------------------------------------------------------- the base game (round six's state, one quest undone)
     wet: { group: 'The base game', title: 'The Wet: the bucket and the landlord', pt: '§5 the wet · the landlord\'s pictures (new 10-01)', lvl: 4,
       look: 'E on the crate above you (at the deep pool\'s corner, by the stair since 10-08) for the bucket. Then E at the water (or walk round to the stone rim south of the pool): onto the wet\'s grid with every sleeper in it, and the landlord\'s first picture before anyone moves. USE the bucket there (ITEM, by the one who carries it) and four more pictures come, the clackers clacking.',
       say: 'The Warrens\' wet. The crate above you holds the deep station\'s bucket; the landlord is in the water beyond it, unfed.',
       unset: ['otyughFed', 'landlordSpoke'], map: 'warrens_d', x: 3, y: 8, dir: 'up' },
-    // the Wet on the grid (the party-token map's seam, 10-14): set down on the Wet's arrival from the Warrens' second floor, as its warp would, and the enter hook run -- the roam opens
-    roam: { group: 'The base game', title: 'The Wet on the grid: the whole floor, one token', pt: 'the party-token map lane §4.4 · the seam (new 10-14)', lvl: 4,
-      look: 'The grid comes up over the 8-bit: the whole Wet as one token on the stair from the Warrens\' second floor. Walk it (random fights unannounced, the Settling and the Keeper pulled in, the five by the rope), then out by either stair: back on the 8-bit with what the floor gave and took -- XP and levels, the pack, the flags, the kills, the purse.',
-      say: 'The Warrens\' wet, walked on the grid.', unset: ['otyughFed', 'landlordSpoke'], map: 'warrens_d', x: 2, y: 12, dir: 'right',
-      start: function* () { if (S()['enter:warrens_d']) yield* S()['enter:warrens_d'](); } },
-    // 10-14, Griz: "should be able to crawler game while the level picker levels up (in case of revision)" -- the roam's door, the four 20 XP short of 4
-    roamup: { group: 'The base game', title: 'The Wet on the grid, one fight short of level 4: the pick page on the floor (10-14)', pt: 'the party-token map lane §9 open 1 · the level-up pick', lvl: 3,
-      look: 'The Wet as one token, as ?at=roam, the four at level 3 and 20 XP short of 4. Win (or get away from) the first random fight: at the gather the card says each is level 4, then the one pick page opens over the floor, a page a hero -- Barley\'s scores (STR +2 marked), Aurdin\'s scores, two spells and a cantrip, Vivian\'s scores, Lymen\'s scores. The floor waits under it; CONFIRM on the last and the token walks on. A CON pick shows on the figure\'s max HP at once; a new spell is in the book and cast after a long rest.',
-      say: 'The Warrens\' wet on the grid, one fight short of level 4.', unset: ['otyughFed', 'landlordSpoke'], map: 'warrens_d', x: 2, y: 12, dir: 'right',
-      prep: function (G) { G.party.forEach(function (h) { h.xp = DS.R.XP_LEVEL[4] - 20; }); },
-      start: function* () { if (S()['enter:warrens_d']) yield* S()['enter:warrens_d'](); } },
-    // 10-14, his close's "Roam the Wet going to need post-stair drain version" -- the roam's door with the stair pumped dry (the spine's first beat: Papa's hook), nothing past it
-    roamdry: { group: 'The base game', title: 'The Wet on the grid, drained: the dry stair, the five, the cut seal (10-14)', pt: 'the party-token map lane §4.3', base: 'lake', spine: 1, lvl: 5,
-      look: 'The Wet as one token with the stair pumped dry. The drowned stair is dry steps: walk down onto its first row and the floor steps aside for the 8-bit\'s own scene (the dry stair, the five\'s tokens if nobody fetched them, the puddle, the cut door), then the floor again where you stood. Past it the seal is cut: step onto it and the 8-bit takes the party down to the Burial. The mark is only a mark now; nothing to wade.',
-      say: 'The Warrens\' wet on the grid, the stair pumped dry.', map: 'warrens_d', x: 2, y: 12, dir: 'right',
-      start: function* () { if (S()['enter:warrens_d']) yield* S()['enter:warrens_d'](); } },
+    // (roam, roamup, roamdry -- the Wet on the grid, 10-14 -- left with the roam, 10-20: the first game walks the Wet on its own floor, ?at=wet)
     // 10-03, Griz: "set me up with a level 3 party led by lymen, in silverton, with the gates down to the wet already opened type URL":
     // the ?lvl3 start (Winters' errands run, the four found, nothing else) plus the Warrens' way down -- Pete heard, the tally book met,
     // the five known, Skarn's gate open -- and nothing below done. base: 'lvl3' (DS.levelThree, not round six). &lead=lymen preselects him.
@@ -173,15 +165,7 @@
       look: 'One step east: GO IN, or CREEP UP FIRST (a group Stealth check). A blade-captain, a spell-weaver, five drow; Brann and Hedda beside you. Win: Brann lights the lamp. The captain\'s knife in the barrack-cut.',
       say: 'Third Lamp, dark. Brann and Hedda are with you; the station is just east.',
       map: 'highway_3', x: 56, y: 11, dir: 'right' },
-    skylights: { group: 'The dwarven expansion', title: 'The call from the surface: the Skylights', pt: '§22 after the raid', base: 'lake', spine: 16, lvl: 8,
-      look: 'One step up: touch Third Lamp. A runner comes down from Solskaft (giants and trolls at the Edifice), the save is offered, and the lamp\'s menu leads with TO THE SURFACE!. That is the Skylights on the grid; win it and the 8-bit pays the XP of two stone giants and four trolls and sets you down in Solskaft. A loss is GAME OVER: load the save the runner offered.',
-      say: 'Third Lamp, lit. The raid is broken; the road above is quiet.',
-      map: 'highway_3', x: 68, y: 6, dir: 'up' },
-    snootcall: { group: 'The dwarven expansion', title: 'The Snoot\'s call: the mission to the Halfway Inn', pt: '§22 after the Skylights', base: 'lake', spine: 16, lvl: 8,
-      flags: { surfaceCall: 1, skylightsWon: 1, pin: 'thesnoot' },
-      look: 'The Skylights won, on Fountain Street. JOURNAL: THE SNOOT, pinned; its arrow leads out to the Halfway Inn, where a runner from the Pit waits in the yard. Talk to the runner: TO THE SNOOT offers the save, then the Snoot battle opens on its own page (the four at 8th); its title has BACK TO THE ROAD. NOT YET leaves the runner waiting.',
-      say: 'Fountain Street, the Skylights won. THE SNOOT is in your journal.',
-      map: 'solskaft_deep', x: 36, y: 11, dir: 'left' },
+    // (skylights, snootcall -- the call from the surface and the Snoot's call, 10-05 and 10-15 -- left the first game with them, 10-20: the second game's)
     leg4: { group: 'The dwarven expansion', title: 'Leg four: the black water', pt: '§22 leg four', base: 'lake', spine: 16, lvl: 8, flags: { fallbackDone: 1 },
       look: 'Two steps east: the causeway over black water and what stands up out of it. Then on: the troll hole, the made road beginning, the rock that stands up in its cut.',
       say: 'Leg four, past the drow\'s fallback line. The causeway is just ahead.',

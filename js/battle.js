@@ -689,13 +689,15 @@
     if (extra && extra.cloud) c.cloud = true;
     if (extra && extra.lit != null) c.litWas = extra.lit;
   };
-  // is anything of the spell still standing? (a Hold everyone saved against, a Bless that ran its minute: nothing to hold, the caster is free)
+  // is anything of the spell still standing? (a Hold everyone saved against, a Bless that ran its minute: nothing to hold, the caster is free). A mark on one
+  // killed is not standing (his 10-19 note: "'end hold person' on guy vivian just killed in 8 bit should have dropped when he was killed" -- the first game lane,
+  // 10-20): the dead keep their conds (Battle.kill), so the mark was counted and END HOLD PERSON stayed on SKILL with nothing held
   Battle.prototype.concLive = function (u) {
     var c = u.conc; if (!c) return false;
     var id = u.h.id;
     if (c.cloud) return !!(this.cloud && this.cloud.by === id);
     if (c.litWas != null) return true;
-    return c.marks.some(function (m) { var v = m.u.conds[m.k]; return !!(v && typeof v === 'object' && v.by === id); });
+    return c.marks.some(function (m) { if (m.u.dead) return false; var v = m.u.conds[m.k]; return !!(v && typeof v === 'object' && v.by === id); });
   };
   // the letting go, no card: takes back what this caster laid and returns the lines for it (the caller says them, or hangs them on pendingMsg)
   Battle.prototype.dropConc = function (u) {
@@ -704,6 +706,7 @@
     var id = u.h.id;
     c.marks.forEach(function (m) {
       var v = m.u.conds[m.k]; if (!v || typeof v !== 'object' || v.by !== id) return;
+      if (m.u.dead) { delete m.u.conds[m.k]; return; } // (nothing to say of the dead: concLive)
       delete m.u.conds[m.k];
       if (m.k === 'paralyzed' || m.k === 'laughing') delete m.u.conds.prone; // (the fall came with the spell; the SRD leaves them prone, the 8-bit stands them up with it)
       if (m.k === 'double') imagesHold(m.u); // (Mislead let go: the double with it)
@@ -735,9 +738,14 @@
     var gone = this.dropConc(u);
     add(plain(u) + ' loses ' + c.name + '! (CON ' + s.total + ' vs DC ' + dc + ')' + (gone.length ? ' ' + gone.join(' ') : ''));
   };
-  // at the top of every turn: a caster helpless (held, asleep, stunned, laughing) or down holds nothing
+  // at the top of every turn: a caster helpless (held, asleep, stunned, laughing) or down holds nothing; and one whose spell has nothing left standing (its mark
+  // killed: concLive) is free of it, quietly, so END <the spell> leaves SKILL (the first game lane, 10-20)
   Battle.prototype.concSweep = function* () {
-    for (var i = 0; i < this.heroes.length; i++) { var x = this.heroes[i]; if (x.conc && (down(x) || incap(x))) yield* this.endConc(x, down(x) ? 'down' : 'helpless'); }
+    for (var i = 0; i < this.heroes.length; i++) {
+      var x = this.heroes[i];
+      if (x.conc && (down(x) || incap(x))) yield* this.endConc(x, down(x) ? 'down' : 'helpless');
+      else if (x.conc && !this.concLive(x)) this.dropConc(x);
+    }
   };
 
   // The reaction window (SRD 5.1; RULED 10-03, Griz: "Simple because of movement, but they should still get their reactions is my first impression"):
@@ -1599,10 +1607,10 @@
       if (!t) { if (use.target === 'revive') yield* this.say('No one is down.', 30); return false; }
     } else t = u;
     if (use.effect === 'heal' && t.h && t.h.hp >= t.h.maxhp) { yield* this.say(nameOf(t) + ' is unhurt.', 30); return false; }
-    if (use.effect === 'bucket') { // (the landlord's: the wet is fought on the grid, deep16/js/wet.js)
-      // the wet's fight fallen back from the grid (js/embed.js d16:crash) with the landlord in it: it takes the bucket as the grid's USE BUCKET has it -- fed, it does
-      // not fight, it shows its pictures, and the fed XP is paid as the party leaves the wet (EV.wetOut, EV.fedXp). 10-06, the 8-bit battle lane §2.3: the one
-      // grid-only extra a fallback dropped that the story reads (otyughFed: the rim, the bucket's station, the landlord's own word)
+    if (use.effect === 'bucket') { // (the landlord's: the wet's fight, deep16: 'wet' -- the 8-bit battle since 10-20, js/embed.js; the grid's twin is deep16/js/wet.js)
+      // the wet's fight with the landlord in it: it takes the bucket as the grid's USE BUCKET has it -- fed, it does not fight, it shows its pictures, and the fed XP
+      // is paid as the party leaves the wet (EV.wetOut, EV.fedXp). 10-06, the 8-bit battle lane §2.3, when this was the grid's fallback: the one grid-only extra the
+      // story reads (otyughFed: the rim, the bucket's station, the landlord's own word)
       var ll = this.o.deep16 === 'wet' ? this.liveFoes().filter(function (f) { return f.id === 'otyugh'; })[0] : null;
       if (!ll) { yield* this.say('Nothing here takes it. It is for the deep water under the fall.', 40); return false; }
       DS.G.take(id, 1); DS.G.flags.otyughFed = 1; DS.G.flags['heard:r-stream'] = 1; delete DS.G.flags.bucketBy;

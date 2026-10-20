@@ -919,29 +919,26 @@
       check('lit hood down under the roost: "' + (T.blog || []).join(' ') + '"; bright ' + b7.bright + ', fire used ' + !!b7.usedFire + ', lit ' + b7.lit, /Ledger-Lamp, hood down/.test((T.blog || []).join(' ')) && !b7.bright && !b7.usedFire && b7.lit);
       DS.EV.darkHere = dark0;
     } else if (test === 'ledgerlamp8seam') {
-      // the seam's 8-bit half (js/embed.js apply) for the Ledger-Lamp: DEEP16 is not run; its 'd16:done' report is dispatched on the page as the
-      // iframe would send it (a MessageEvent whose source is the iframe's window), and the 8-bit battle's own ending runs on it. What the pack and
-      // the field's flags hold afterward is what is checked: the lamp is never lost, never doubled
+      // the Ledger-Lamp through a story fight (a `deep16` key on it) -- since 10-20 the 8-bit battle, with no frame (the first game lane: "8 bit solely 8-bit after this").
+      // Until 10-20 this was the seam's 8-bit half (js/embed.js apply), the grid's 'd16:done' report dispatched on the page; the grid is gone from the 8-bit, and what the
+      // pack and the field's flags hold after the 8-bit battle's own ending is what is checked: the lamp is never lost, never doubled, and no frame ever opens
       function runScript2(fn) { var done = false; DS.lastError = null; DS.run(fn, function () { done = true; }); for (var i = 0; i < 800 && !done && !DS.lastError; i++) { var tp = DS.top(), k = tp && tp.kind; if (k === 'dialog') { if (tp.chars < tp.pageLen()) tp.chars = tp.pageLen(); T.tapf('a'); } else T.step(1); } }
       var dark1 = DS.EV.darkHere;
-      function seam(name, o) { // o: dark, fieldLit (lit in the field first), pack (lamp in the pack at the start), report (the party entry for Aurdin), inv0, inv1, expect(g) -> [ok, what]
+      function story(name, o) { // o: dark, fieldLit (lit in the field first), pack (lamp in the pack at the start), expect(g)
         SETUP(+(Q.get('lvl') || 5)); DS.EV.darkHere = function () { return !!o.dark; }; var gg = DS.G, aur = gg.hero('aurdin');
         if (o.pack) gg.give('ledgerlamp', 1);
         if (o.fieldLit) { DS.EV.darkHere = function () { return true; }; gg.give('ledgerlamp', 1); runScript2(function* () { yield* DS.EV.useFieldItem('ledgerlamp', aur); }); DS.EV.darkHere = function () { return !!o.dark; }; }
         T.startFight(['ogre'], { deep16: 'trolls', dark: !!o.dark, torch: gg.flags.torchBy || null });
-        for (var i = 0; i < 400 && !document.getElementById('d16'); i++) T.step(1);
-        var fr = document.getElementById('d16'); if (!fr) { check(name + ': the iframe never opened', false); return; }
-        window.dispatchEvent(new MessageEvent('message', { source: fr.contentWindow, data: { type: 'd16:done', result: 'won', party: gg.party.map(function (h) { return { id: h.id, hp: h.hp, maxhp: h.maxhp, slots: h.slots, feats: h.feats, torch: h.id === 'aurdin' ? o.report : false }; }), foes: [{ id: 'ogre', kind: 'ogre', i8: 0, dead: true }], inv0: o.inv0 || {}, inv1: o.inv1 || {} } }));
+        var frame = false; for (var i = 0; i < 400 && !DS.find('battle'); i++) { T.step(1); if (document.getElementById('d16')) frame = true; }
+        var b = DS.find('battle'); if (!b || frame) { check(name + ': the 8-bit battle took it (' + !!b + '), no frame (' + !frame + ')', false); return; }
+        b.foes.forEach(function (f) { f.hp = 0; f.dead = true; });
         drive({}, 1500);
-        var ran = +((/\((\d+) steps\)/.exec(out.result) || [])[1]) > 0; // (the 8-bit battle's own ending must have run on the report: a listener that threw would pass vacuously)
-        var r = o.expect(gg) && ran; check(name + ': the 8-bit ending ran ' + ran + ', pack x' + gg.count('ledgerlamp') + ', torchBy ' + gg.flags.torchBy + ', torchKind ' + gg.flags.torchKind + ', his hand ' + gg.hero('aurdin').equip.torch + ', still had ' + gg.has('ledgerlamp') + (out.err ? ' ERR ' + String(out.err).slice(0, 200) : ''), r);
+        var ran = +((/\((\d+) steps\)/.exec(out.result) || [])[1]) > 0; // (the 8-bit battle's own ending must have run)
+        var r = o.expect(gg) && ran && !document.getElementById('d16'); check(name + ': the 8-bit ending ran ' + ran + ', no frame ' + !document.getElementById('d16') + ', pack x' + gg.count('ledgerlamp') + ', torchBy ' + gg.flags.torchBy + ', torchKind ' + gg.flags.torchKind + ', his hand ' + gg.hero('aurdin').equip.torch + ', still had ' + gg.has('ledgerlamp') + (out.err ? ' ERR ' + String(out.err).slice(0, 200) : ''), r);
       }
-      seam('walked in holding it, still lit in the dark', { dark: true, fieldLit: true, report: 'ledgerlamp', expect: function (gg) { return gg.count('ledgerlamp') === 0 && gg.flags.torchBy === 'aurdin' && gg.flags.torchKind === 'ledgerlamp' && gg.has('ledgerlamp'); } });
-      seam('walked in holding it, put out on the grid (inv1 has it)', { dark: true, fieldLit: true, report: false, inv0: {}, inv1: { ledgerlamp: 1 }, expect: function (gg) { return gg.count('ledgerlamp') === 1 && !gg.flags.torchBy && !gg.hero('aurdin').equip.torch; } });
-      seam('walked in holding it, set down and left (the seam counts the floor)', { dark: true, fieldLit: true, report: false, inv0: {}, inv1: { ledgerlamp: 1 }, expect: function (gg) { return gg.count('ledgerlamp') === 1 && !gg.flags.torchBy; } });
-      seam('lit on the grid from the pack, still lit in the dark', { dark: true, pack: true, report: 'ledgerlamp', inv0: { ledgerlamp: 1 }, inv1: {}, expect: function (gg) { return gg.count('ledgerlamp') === 0 && gg.flags.torchBy === 'aurdin' && gg.flags.torchKind === 'ledgerlamp' && gg.has('ledgerlamp'); } });
-      seam('lit on the grid from the pack, the place light enough (09-30d: still in the hand)', { dark: false, pack: true, report: 'ledgerlamp', inv0: { ledgerlamp: 1 }, inv1: {}, expect: function (gg) { return gg.count('ledgerlamp') === 0 && gg.flags.torchBy === 'aurdin' && gg.flags.torchKind === 'ledgerlamp'; } });
-      seam('lit on the grid from the pack, put out again', { dark: true, pack: true, report: false, inv0: { ledgerlamp: 1 }, inv1: { ledgerlamp: 1 }, expect: function (gg) { return gg.count('ledgerlamp') === 1 && !gg.flags.torchBy; } });
+      story('walked in holding it, still lit in the dark', { dark: true, fieldLit: true, expect: function (gg) { return gg.count('ledgerlamp') === 0 && gg.flags.torchBy === 'aurdin' && gg.flags.torchKind === 'ledgerlamp' && gg.has('ledgerlamp'); } });
+      story('walked in holding it, the place light enough (09-30d: still in the hand)', { dark: false, fieldLit: true, expect: function (gg) { return gg.count('ledgerlamp') === 0 && gg.flags.torchBy === 'aurdin' && gg.flags.torchKind === 'ledgerlamp'; } });
+      story('in the pack, unlit: still in the pack, one', { dark: true, pack: true, expect: function (gg) { return gg.count('ledgerlamp') === 1 && !gg.flags.torchBy; } });
       DS.EV.darkHere = dark1;
     } else if (test === 'menus1003') {
       // a menu's title wraps inside its box (10-03, the reactions seat's find; Griz: "it's the little things"): the box askReact really asks for (DS.choose caught),
@@ -1111,74 +1108,47 @@
       F.load(A.id, A.x, A.y, 'down'); F.encounterIn = 0.5; F.load(B.id, B.x, B.y, 'down'); F.arrive();
       check('half a step left on ' + A.id + ' fires on the first step of ' + B.id + ': a fight begun (' + DS.scriptActive() + '), the next countdown rolled (' + F.encounterIn + ')', DS.scriptActive() && F.encounterIn >= rB[0] && F.encounterIn <= rB[1]);
     } else if (test === 'floor1003') {
-      // the floor under the player (10-03, the cloud review's recommendation 3, "A floor under the player"): a grid fight that crashes or never comes up must not freeze the
-      // 8-bit game (js/embed.js: d16:crash, the ready timeout), a loaded save naming an item or a map the game does not have must not break the menus or black the screen
-      // (js/scenes.js DS.migrateSave), and a warp that throws must not leave the screen black (js/events.js EV.warp). DEEP16 is not run: its messages are dispatched on the
-      // page as the iframe would send them (ledgerlamp8seam's way), and the page's timers are held in a list so the ready timeout is fired by hand, not waited for
-      var cases = [], realSet = window.setTimeout, realClear = window.clearTimeout, realWarn = console.warn, realErr = console.error, knob0 = DS.d16ReadyMs, timers = [], warns = [];
+      // the floor under the player (10-03, the cloud review's recommendation 3, "A floor under the player"): a story fight must never freeze the 8-bit game -- since 10-20
+      // it is the 8-bit battle at once, no frame, no line (the first game lane: "8 bit solely 8-bit after this"; until then a grid that crashed or never came up fell
+      // back to it, and cases 1 and 2 dispatched the grid's d16:crash and fired its ready timeout) -- a loaded save naming an item or a map the game does not have must
+      // not break the menus or black the screen (js/scenes.js DS.migrateSave), and a warp that throws must not leave the screen black (js/events.js EV.warp)
+      var cases = [], realSet = window.setTimeout, realClear = window.clearTimeout, realWarn = console.warn, realErr = console.error, timers = [], warns = [];
       function floorCase(name, fn) { // a case passes when every check it made did; one that throws is a failed case, not the end of the bench
         var before = out.checks.length;
         try { fn(); } catch (e) { check(name + ': threw ' + String(e && e.stack || e).slice(0, 240), false); }
-        window.setTimeout = realSet; window.clearTimeout = realClear; console.warn = realWarn; console.error = realErr; DS.choose = chooseReal; DS.d16ReadyMs = knob0;
+        window.setTimeout = realSet; window.clearTimeout = realClear; console.warn = realWarn; console.error = realErr; DS.choose = chooseReal;
         cases.push({ name: name, ok: out.checks.slice(before).every(function (c) { return c.indexOf('ok') === 0; }) });
       }
       var chooseReal = DS.choose;
       function holdTimers() { timers = []; window.setTimeout = function (fn, ms) { var t = { fn: fn, ms: ms, cleared: false, ran: false }; timers.push(t); return t; }; window.clearTimeout = function (t) { if (t && typeof t === 'object') t.cleared = true; }; }
       function flushZero() { timers.forEach(function (t) { if (!t.cleared && !t.ran && !t.ms) { t.ran = true; t.fn(); } }); } // (the 8-bit battle hands its script back through setTimeout(.., 0))
       function holdWarns() { warns = []; console.warn = function () { warns.push(Array.prototype.join.call(arguments, ' ')); }; }
-      function gridMsg(fr, data) { window.dispatchEvent(new MessageEvent('message', { source: fr.contentWindow, data: data })); }
-      // a fight the grid would take, opened: the iframe over the screen, the 8-bit game held still under it
-      function openGrid() {
+      // a story fight opened (a `deep16` key on it): the 8-bit battle comes up with no line before it and no frame at any step, and is fought to its end with the foes down
+      function eightBitAtOnce(list, o) {
         var stale; while ((stale = document.getElementById('d16'))) stale.parentNode.removeChild(stale);
-        SETUP(+(Q.get('lvl') || 5)); DS.lastError = null; DS.lastD16Crash = null; DS.paused = false; T.res = undefined; holdTimers(); holdWarns();
-        T.startFight(['ogre'], { deep16: 'trolls', dark: false, torch: null });
-        for (var i = 0; i < 400 && !document.getElementById('d16'); i++) T.step(1);
-        return document.getElementById('d16');
-      }
-      // after the grid has gone: the line first (a dialog over the field), then the 8-bit battle, fought to its end with the foes already down
-      function eightBitTakes() {
-        var said = [], hp0 = null, b;
+        DS.lastError = null; DS.paused = false; T.res = undefined; holdTimers(); holdWarns();
+        T.startFight(list, Object.assign({ dark: false, torch: null }, o));
+        var said = [], hp0 = null, b, frame = false, paused = false;
         for (var i = 0; i < 600 && !DS.find('battle'); i++) {
-          var tp = DS.top(), k = tp && tp.kind;
+          var tp = DS.top(), k = tp && tp.kind; if (document.getElementById('d16')) frame = true; if (DS.paused) paused = true;
           if (k === 'dialog') { var pg = tp.pages[tp.p]; if (pg) { var tx = DS.stripCodes(pg.lines.join(' ')); if (said[said.length - 1] !== tx) said.push(tx); } if (tp.chars < tp.pageLen()) tp.chars = tp.pageLen(); T.tapf('a'); }
           else T.step(1);
         }
         b = DS.find('battle'); if (b) hp0 = b.heroes.map(function (u) { return u.h.hp; });
         if (b) { b.foes.forEach(function (f) { f.hp = 0; f.dead = true; }); drive({}, 1500); }
         flushZero(); T.step(2);
-        return { said: said, b: b, hp0: hp0 };
-      }
-      function afterGrid(tag, pre, why) { // the checks the crash and the timeout share
-        var r = eightBitTakes(), c = DS.lastD16Crash, g1 = DS.G;
-        check(tag + ': the iframe gone (' + !document.getElementById('d16') + '), the 8-bit game unpaused (' + !DS.paused + ')', !document.getElementById('d16') && DS.paused === false);
-        check(tag + ': DS.lastD16Crash ' + JSON.stringify(c), !!c && c.fight === 'trolls' && c.msg === why.msg && (c.at || null) === (why.at || null) && !('lastD16Crash' in g1) && JSON.stringify(g1).indexOf('lastD16Crash') < 0);
-        check(tag + ': the console was told (' + warns.length + ' warn, "' + (warns[0] || '').slice(0, 90) + '")', warns.some(function (w) { return /trolls/.test(w) && w.indexOf(why.msg) >= 0; }));
-        check(tag + ': the player was told, "' + r.said.join(' | ') + '"', r.said.length === 1 && /The grid faltered\. The fight goes on here\./.test(r.said[0]));
-        check(tag + ': the 8-bit battle took the fight (' + !!r.b + ', fromDeep ' + !!(r.b && r.b.fromDeep) + ', foes ' + (r.b && r.b.foes.length) + '), the party as it walked in (' + (r.hp0 || []).join('/') + ' of ' + pre.join('/') + '), result ' + T.res,
-          !!r.b && !r.b.fromDeep && r.b.foes.length === 1 && JSON.stringify(r.hp0) === JSON.stringify(pre) && T.res === 'win');
+        if (document.getElementById('d16')) frame = true;
+        return { said: said, b: b, hp0: hp0, frame: frame, paused: paused };
       }
       function party(g2) { return g2.party.map(function (h) { return h.hp; }).concat((g2.guests || []).map(function (x) { return x.h.hp; })); }
-      // 1. DEEP16 says it crashed (deep16/js/embed.js: the first uncaught error or rejection)
-      floorCase('a d16:crash message', function () {
-        var fr = openGrid(), pre = party(DS.G);
-        if (!fr) { check('a d16:crash message: the iframe never opened', false); return; }
-        var wait0 = timers.filter(function (t) { return t.ms === 30000 && !t.cleared; }).length;
-        check('the grid is up: the 8-bit game held (' + DS.paused + '), a ready timer of ' + (timers[0] && timers[0].ms) + ' ms waiting (' + wait0 + ')', DS.paused === true && wait0 === 1);
-        gridMsg(fr, { type: 'd16:ready' });
-        check('ready came: the timer cleared (' + (timers[0] && timers[0].cleared) + ')', !!timers[0] && timers[0].cleared === true);
-        gridMsg(fr, { type: 'd16:crash', msg: 'boom', at: 'battle.js:9' });
-        afterGrid('crash', pre, { msg: 'boom', at: 'battle.js:9' });
-      });
-      // 2. DEEP16 never says ready (the iframe 404, a script that did not load): the timer, read from the knob, fires
-      floorCase('the ready timeout', function () {
-        check('the ready knob: DS.d16ReadyMs is ' + knob0 + ' unless set', knob0 === 30000);
-        DS.d16ReadyMs = 50;
-        var fr = openGrid(), pre = party(DS.G);
-        if (!fr) { check('the ready timeout: the iframe never opened', false); return; }
-        var tm = timers.filter(function (t) { return t.ms === 50 && !t.cleared; })[0];
-        check('the knob read: a timer of ' + (tm && tm.ms) + ' ms is waiting for ready', !!tm);
-        if (tm) { tm.ran = true; tm.fn(); }
-        afterGrid('timeout', pre, { msg: 'no ready in 50ms', at: null });
+      // 1. a story fight is the 8-bit battle at once (cases 1 and 2 till 10-20: the grid's crash and its ready timeout, each falling back to this)
+      floorCase('a story fight is the 8-bit battle', function () {
+        SETUP(+(Q.get('lvl') || 5)); var pre = party(DS.G);
+        var r = eightBitAtOnce(['ogre'], { deep16: 'trolls' });
+        check('a story fight (deep16: trolls): no frame over the screen (' + !r.frame + '), the game never held still for one (' + !r.paused + '), no grid left behind (DS.roam8 ' + typeof DS.roam8 + ', DS.d16ReadyMs ' + DS.d16ReadyMs + ')', !r.frame && !r.paused && DS.roam8 === undefined && DS.d16ReadyMs === undefined);
+        check('nothing said before it (' + r.said.length + (r.said.length ? ': "' + r.said.join(' | ') + '"' : '') + '), nothing warned (' + warns.length + ')', r.said.length === 0 && warns.length === 0);
+        check('the 8-bit battle took the fight (' + !!r.b + ', fromDeep ' + !!(r.b && r.b.fromDeep) + ', foes ' + (r.b && r.b.foes.length) + '), the party as it walked in (' + (r.hp0 || []).join('/') + ' of ' + pre.join('/') + '), result ' + T.res,
+          !!r.b && !r.b.fromDeep && r.b.foes.length === 1 && JSON.stringify(r.hp0) === JSON.stringify(pre) && T.res === 'win');
       });
       // 3. a save with an item id the game has not got, in the pack and in two equipment slots (a hero's and a guest's)
       floorCase('a save naming an unknown item', function () {
@@ -1233,67 +1203,135 @@
         console.error = realErr;
         check('the fade is back up (' + DS.fadeLevel + '), the throw still seen (' + errs.length + ' script error), control back (' + !DS.scriptActive() + ')', DS.fadeLevel === 0 && errs.length === 1 && /thrown in the dark/.test(errs.join(' ')) && !DS.scriptActive());
       });
-      // 7. a wet fight the grid dropped (10-03, Griz: "if for some reason the game starts crashing, they should be able to finish off those 3 monsters in 8bit"):
-      // the landlord, the jelly and the pool ooze, finished in the 8-bit battle, stay dead as the grid would leave them, and their spots stop calling them up;
-      // a crawler sets nothing, and a gray ooze killed in a fight that is not the wet's does not still the pool
-      floorCase('a wet fight the grid dropped', function () {
-        function wetCrash(list, o) {
-          var stale; while ((stale = document.getElementById('d16'))) stale.parentNode.removeChild(stale);
-          SETUP(+(Q.get('lvl') || 5)); DS.lastError = null; DS.lastD16Crash = null; DS.paused = false; T.res = undefined; holdTimers(); holdWarns();
+      // 7. a wet fight in the 8-bit battle (10-03, Griz: "if for some reason the game starts crashing, they should be able to finish off those 3 monsters in 8bit" --
+      // since 10-20 every wet fight is the 8-bit's, js/embed.js): the landlord, the jelly and the pool ooze, killed, stay dead as the grid would leave them, and their
+      // spots stop calling them up; a crawler sets nothing, and a gray ooze killed in a fight that is not the wet's does not still the pool. No frame at any of them
+      floorCase('a wet fight in the 8-bit battle', function () {
+        function wet8(list, o) {
+          SETUP(+(Q.get('lvl') || 5));
           DS.field.load('warrens_d', 20, 10, 'down');
-          T.startFight(list, Object.assign({ dark: false, torch: null }, o));
-          for (var i = 0; i < 400 && !document.getElementById('d16'); i++) T.step(1);
-          var fr = document.getElementById('d16'); if (!fr) return null;
-          gridMsg(fr, { type: 'd16:ready' }); gridMsg(fr, { type: 'd16:crash', msg: 'boom', at: 'wet.js:1' });
-          var r = eightBitTakes(); return { r: r, flags: DS.G.flags };
+          var r = eightBitAtOnce(list, o); return r.b ? { r: r, flags: DS.G.flags } : null;
         }
         var trig = { jellyDead: 'jelly', poolOozeDead: 'poolOoze', otyughDead: 'landlordNear' };
         [['otyugh', 'rim', 'otyughDead'], ['ochrejelly', 'jelly', 'jellyDead'], ['grayooze', 'poolooze', 'poolOozeDead']].forEach(function (w) {
-          var x = wetCrash([w[0]], { deep16: 'wet', wake: w[1] }), fl = x && x.flags, spots = (DS.field.map.src.triggers || []).filter(function (t) { return t.script === trig[w[2]]; }), live = spots.filter(function (t) { return DS.cond(t.cond); }).length;
-          check('the ' + w[0] + ' (wake ' + w[1] + '), the grid crashed, killed in the 8-bit (' + (x && T.res) + '): ' + w[2] + ' ' + (fl && fl[w[2]]) + ', its spots on the map calling ' + live + ' of ' + spots.length, !!x && T.res === 'win' && fl[w[2]] === 1 && spots.length > 0 && live === 0);
+          var x = wet8([w[0]], { deep16: 'wet', wake: w[1] }), fl = x && x.flags, spots = (DS.field.map.src.triggers || []).filter(function (t) { return t.script === trig[w[2]]; }), live = spots.filter(function (t) { return DS.cond(t.cond); }).length;
+          check('the ' + w[0] + ' (wake ' + w[1] + ') killed in the 8-bit battle (' + (x && T.res) + ', no frame ' + !!(x && !x.r.frame) + '): ' + w[2] + ' ' + (fl && fl[w[2]]) + ', its spots on the map calling ' + live + ' of ' + spots.length, !!x && !x.r.frame && T.res === 'win' && fl[w[2]] === 1 && spots.length > 0 && live === 0);
         });
-        var xc = wetCrash(['crawler'], { deep16: 'wet', wake: 'harness' });
+        var xc = wet8(['crawler'], { deep16: 'wet', wake: 'harness' });
         check('a crawler killed the same way sets none of the three (' + (xc && ['otyughDead', 'jellyDead', 'poolOozeDead'].map(function (k) { return k + ' ' + !!xc.flags[k]; }).join(', ')) + ')', !!xc && T.res === 'win' && !xc.flags.otyughDead && !xc.flags.jellyDead && !xc.flags.poolOozeDead);
-        var xo = wetCrash(['grayooze'], { deep16: 'trolls' });
+        var xo = wet8(['grayooze'], { deep16: 'trolls' });
         check('a gray ooze killed in a fight that is not the wet\'s leaves the pool as it was (poolOozeDead ' + !!(xo && xo.flags.poolOozeDead) + ')', !!xo && T.res === 'win' && !xo.flags.poolOozeDead);
       });
       var okN = cases.filter(function (c) { return c.ok; }).length;
       T.blog = []; out.log.push('floor1003: ' + okN + '/' + cases.length + ' cases' + (okN === cases.length ? ' clean' : ': ' + cases.filter(function (c) { return !c.ok; }).map(function (c) { return c.name; }).join('; ') + ' went wrong'));
-    } else if (test === 'skylights8') {
-      // the call from the surface and the Skylights handed back (10-05 night, Griz: "a fella running in after lamp 3 is clear, saying there's an attack on the surface - chance to
-      // save - them lamping from 3 starts this fight - with xp reward hand back to 8 bit after the battle"): js/deep.js EV.surfaceCall (the runner, the save asked -- answered NO),
-      // EV.roadMenu (TO THE SURFACE! first, no way back up while the call is out), S.skylights (DEEP16 'edifice', the ownCast). DEEP16 is not run: its 'd16:done' is dispatched on
-      // the page as ledgerlamp8seam does, and the 8-bit's own ending pays: the XP of two stone giants and four trolls, 13000, by the four. The page's short timers queue with the
-      // scene resumes (T.step drains them); the grid's ready timeout is put out of reach
-      var said8 = [], asked8 = [], say8 = DS.say, ask8 = DS.ask, st8 = window.setTimeout, rdy8 = DS.d16ReadyMs;
-      DS.say = function (t) { said8.push(DS.stripCodes(Array.isArray(t) ? t.join(' ') : String(t))); return say8.apply(this, arguments); };
-      DS.ask = function (t, opts) { var i = opts[0] === 'SAVE' && opts[1] === 'NO' ? 1 : 0; asked8.push(opts.join('/')); return { start: function () { this.result = i; this.finished = true; } }; };
-      window.setTimeout = function (fn, ms) { if ((ms || 0) < 1000) pending.push(fn); return 0; }; DS.d16ReadyMs = 1e9;
-      var tap8 = function (until, cap) { for (var i = 0; i < (cap || 3000) && !DS.lastError && !until(); i++) { var tp = DS.top(), k = tp && tp.kind; if (k === 'dialog') { if (tp.chars < tp.pageLen()) tp.chars = tp.pageLen(); T.tapf('a'); } else T.step(1); } };
-      try {
-        var g8 = SETUP(8, { raidWon: 1, lamp3: 1, captainHome: 1, mustered: 1, wordBelow: 1, roadOpen: 1, escortsOut: 1 }); DS.lastError = null;
-        DS.field.load('highway_3', 68, 6, 'up'); g8.x = 68; g8.y = 6;
-        var xp8 = g8.party.map(function (h) { return h.xp; }), done8 = false;
-        DS.run(function* () { yield* DS.EV.roadMenu(3); }, function () { done8 = true; });
-        tap8(function () { return done8 || !!document.getElementById('d16'); });
-        var fr8 = document.getElementById('d16'), menu8 = asked8.filter(function (a) { return /SURFACE/.test(a); })[0] || '';
-        check('the runner and the save: the call heard ' + !!g8.flags.surfaceCall + ', his words said ' + said8.some(function (x) { return /on the Edifice/.test(x); }) + ', the save asked ' + asked8.some(function (a) { return a === 'SAVE/NO'; }) + ' (NO)' + (DS.lastError ? ' ERR ' + String(DS.lastError).slice(0, 160) : ''),
-          !!g8.flags.surfaceCall && said8.some(function (x) { return /on the Edifice/.test(x); }) && asked8.some(function (a) { return a === 'SAVE/NO'; }));
-        check('the lamp leads with TO THE SURFACE!, no way back up while the call is out: ' + menu8, /^TO THE SURFACE!\//.test(menu8) && !/BACK UP/.test(menu8));
-        var pyro8 = (g8.guests || []).map(function (x) { return x.id; }).join(',');
-        check('to the grid: the iframe opened ' + !!fr8 + ', the field on ' + (DS.field && DS.field.map && DS.field.map.id) + ', the king a guest for it (' + pyro8 + ') -- he walks out of the vault first (Griz: "pyro never came out the door when I played")', !!fr8 && DS.field.map.id === 'solskaft_deep' && pyro8 === 'pyro');
-        if (fr8) {
-          window.dispatchEvent(new MessageEvent('message', { source: fr8.contentWindow, data: { type: 'd16:done', result: 'won', party: g8.party.map(function (h) { return { id: h.id, hp: h.hp, maxhp: h.maxhp, slots: h.slots, feats: h.feats }; }), foes: [], inv0: {}, inv1: {} } }));
-          drive({}, 3000);
-          tap8(function () { return done8; }, 4000);
-          var gain8 = g8.party.map(function (h, i) { return h.xp - xp8[i]; });
-          check('won and handed back: the flag ' + !!g8.flags.skylightsWon + ', the four gained ' + gain8.join('/') + ' XP (13000 by five: the king stands in the split), the king gone home after ' + !(g8.guests || []).some(function (x) { return x.id === 'pyro'; }) + ', the line said ' + said8.some(function (x) { return /The last of them goes down/.test(x); }) + ', the script done ' + done8 + ', on ' + DS.field.map.id + (DS.lastError ? ' ERR ' + String(DS.lastError).slice(0, 160) : ''),
-            !!g8.flags.skylightsWon && gain8.every(function (n) { return n === 2600; }) && !(g8.guests || []).some(function (x) { return x.id === 'pyro'; }) && said8.some(function (x) { return /The last of them goes down/.test(x); }) && done8);
-          asked8.length = 0; var done9 = false; DS.run(function* () { yield* DS.EV.roadMenu(3); }, function () { done9 = true; }); tap8(function () { return done9; }, 600);
-          check('after it: the lamp offers the way back up again, no surface: ' + asked8.join(' | '), asked8.some(function (a) { return /BACK UP TO SOLSKAFT/.test(a) && !/SURFACE/.test(a); }));
+    } else if (test === 'ending1020' || test === 'door1020') {
+      // THE FIRST GAME's ending (RULED 10-20, Griz: "Revert to the old ending in 8-bit before the edifice fight was added and call it the first game"; "8 bit solely 8-bit
+      // after this"; "ship to live with a door to the ending"). In place of skylights8 (the call from the surface and the Skylights handed to the grid, 10-05 night to 10-20).
+      // ending1020 walks it from the raid at Third Lamp (?at=raid's story): the raid, the lamp's menu after it, leg four, the road held at the door, then the journal's own
+      // doors -- the king's word, Ingrith walked down, the door -- to the consult and the credits; and a save from the Skylights' weeks loads onto that road. door1020 is the
+      // door the ship gives (?at=ending): set up as the title sets a situation up, E on the door, the credits. Every question its first choice, every fight the 8-bit battle
+      // with its foes put down at its first frame (DS.autoPicks: a level-up's picks the defaults); checked at every step that no frame comes over the screen
+      var st20 = window.setTimeout, say20 = DS.say, said20 = [], asked20 = [], frames20 = 0, fights20 = [], auto20 = DS.autoPicks;
+      window.setTimeout = function (fn) { pending.push(fn); return 0; }; DS.autoPicks = true;
+      DS.say = function (t) { said20.push(DS.stripCodes(Array.isArray(t) ? t.join(' ') : String(t))); return say20.apply(this, arguments); };
+      function heard20(re) { return said20.some(function (x) { return re.test(x); }); }
+      function play20(gen, answers, cap) { // a script to its end, or to the credits
+        answers = (answers || []).slice(); var fin = false; DS.lastError = null; DS.run(gen, function () { fin = true; });
+        for (var i = 0; i < (cap || 20000) && !DS.lastError; i++) {
+          if (document.getElementById('d16')) frames20++;
+          var tp = DS.top(), k = tp && tp.kind, b = DS.find('battle');
+          if (k === 'credits' || k === 'after' || k === 'gameover') break;
+          if (b && !b.down20) { b.down20 = true; fights20.push((b.o.enemies || []).join(',') + (b.o.deep16 ? ' [' + b.o.deep16 + ']' : '')); b.foes.forEach(function (f) { f.hp = 0; f.dead = true; }); }
+          var menu = (k === 'dialog' || k === 'menu' || k === 'popup') ? tp.menu : null;
+          if (menu) {
+            var labels = menu.items.map(function (it) { return String(it.label || it); }); if (!b) asked20.push(labels.join('/'));
+            var idx = -1; if (answers.length && !b) { var a = String(answers[0]).toUpperCase(); idx = labels.findIndex(function (l, j) { return !menu.items[j].disabled && l.toUpperCase().indexOf(a) === 0; }); if (idx >= 0) answers.shift(); }
+            if (idx < 0) idx = menu.items.findIndex(function (it) { return !it.disabled && !/DONATE|SUPPORT|KO-?FI|^RUN$/i.test(String(it.label || it)); });
+            menu.i = Math.max(0, idx); T.tapf('a');
+          }
+          else if (k === 'dialog') { if (tp.chars < tp.pageLen()) tp.chars = tp.pageLen(); T.tapf('a'); }
+          else if (k === 'target') { tp.i = 0; T.tapf('a'); }
+          else if (k === 'check') { if (tp.t > 60) T.tapf('a'); else T.step(4); }
+          else if (k && k !== 'field' && k !== 'flash' && k !== 'battle') { T.tapf('a'); T.step(2); }
+          else T.step(1);
+          if (fin && !DS.scriptActive() && (!k || k === 'field')) break;
         }
-      } catch (e8) { check('threw: ' + String(e8 && e8.stack || e8).slice(0, 400), false); }
-      DS.say = say8; DS.ask = ask8; window.setTimeout = st8; DS.d16ReadyMs = rdy8;
+        return fin;
+      }
+      function credits20(tag) { // the credits as the ending pushes them, then B to their end: THE ROAD IS HELD, CONTINUE and TITLE, no PAST THE DOOR
+        var cr = DS.top(), lines = cr && cr.lines ? cr.lines.map(function (l) { return l.t; }) : [];
+        check(tag + ': the credits (' + (cr && cr.kind) + '): ' + lines.slice(0, 2).join(' / ') + ', DEEPHOLM ' + (lines.indexOf('DEEPHOLM') >= 0) + ', the title after them ' + (cr && cr.o && cr.o.title) + ', expansionDone ' + DS.G.flags.expansionDone,
+          !!cr && cr.kind === 'credits' && lines[0] === 'DRAGONSLEEP' && lines[1] === 'Behind the Fountains' && lines.indexOf('DEEPHOLM') >= 0 && cr.o && cr.o.title === 'THE ROAD IS HELD' && DS.G.flags.expansionDone === 1);
+        T.tapf('b'); var af = DS.top(), items = af && af.menu ? af.menu.items.map(function (it) { return it.label; }) : [];
+        check(tag + ': at their end ' + (af && af.kind) + ' -- ' + items.join(' / ') + ' (no PAST THE DOOR: it carried the save into deep16/)', !!af && af.kind === 'after' && items.join('/') === 'CONTINUE/TITLE');
+      }
+      function door20(tag) { // the journal's door, played: an NPC talked to, or the square's trigger used (story1006's way, one step at a time)
+        var q = DS.pinnedQuest(), s = q && DS.questStep(q), F = DS.field;
+        if (!s) { check(tag + ': the journal points at nothing (' + (q ? q.id : 'no quest') + ')', false); return null; }
+        F.load(s.map, s.at ? s.at[0] : 1, s.at ? s.at[1] : 1, 'right'); var n = s.npc && F.npcs.filter(function (x) { return x.id === s.npc; })[0];
+        if (s.npc && !n) { check(tag + ': the journal\'s ' + s.npc + ' is not on ' + s.map, false); return null; }
+        if (n) { DS.G.x = n.x - 1; DS.G.y = n.y; F.px = DS.G.x * 16; F.py = DS.G.y * 16; play20(function* () { yield* DS.EV.talk(n); }); }
+        else { var t = F.triggerAt(s.at[0] + 1, s.at[1], 'use') || F.triggerAt(s.at[0], s.at[1], 'step'); if (!t) { check(tag + ': no door at ' + s.map + ' ' + s.at, false); return null; } play20(function* () { yield* DS.EV.trigger(t, F); }); }
+        return { q: q.id, where: s.map + (s.npc ? ':' + s.npc : ' ' + s.at) };
+      }
+      try {
+        if (test === 'ending1020') {
+          T.newGame('barley'); DS.paused = true; DS.situation(DS.G, DS.SITUATIONS.raid); var g20 = DS.G; g20.flags.noEncounters = 1;
+          DS.field.load('highway_3', 56, 11, 'right');
+          play20(DS.SCRIPTS.raid, ['GO IN']);
+          check('the raid at Third Lamp: the 8-bit battle (' + fights20.join(' | ') + '), raidWon ' + g20.flags.raidWon + ', lamp3 ' + g20.flags.lamp3 + ', pinned ' + g20.flags.pin + '; no runner from the surface (' + !heard20(/on the Edifice|Boots on the road above/) + ', surfaceCall ' + !!g20.flags.surfaceCall + ')',
+            fights20.length === 1 && /\[raid\]$/.test(fights20[0]) && g20.flags.raidWon === 1 && g20.flags.lamp3 === 1 && g20.flags.pin === 'solskaft' && !heard20(/on the Edifice|Boots on the road above/) && !g20.flags.surfaceCall);
+          DS.field.load('highway_3', 66, 11, 'right'); asked20 = [];
+          play20(function* () { yield* DS.EV.roadMenu(3); }, ['NOT NOW']);
+          check('Third Lamp\'s menu after it: ' + asked20.join(' | ') + ' -- the way back up, no TO THE SURFACE!', asked20.some(function (a) { return /BACK UP TO SOLSKAFT/.test(a); }) && !asked20.some(function (a) { return /SURFACE/.test(a); }));
+          DS.field.load('highway_4', 2, 11, 'right'); var f0 = fights20.length;
+          ['fallback', 'naga', 'trolls', 'elemental'].forEach(function (s) { play20(DS.SCRIPTS[s]); });
+          check('leg four: four fights, the 8-bit battle each (' + fights20.slice(f0).join(' | ') + '), done ' + ['fallbackDone', 'nagaDone', 'trollsDone', 'elementalDone'].map(function (k) { return g20.flags[k] || 0; }).join(''),
+            fights20.length - f0 === 4 && ['fallbackDone', 'nagaDone', 'trollsDone', 'elementalDone'].every(function (k) { return g20.flags[k] === 1; }));
+          DS.field.load('threshold', 1, 8, 'right');
+          play20(DS.SCRIPTS['enter:threshold']);
+          check('Deepholm\'s door: the road held (' + g20.flags.highwaySecured + '), pinned ' + g20.flags.pin + ', Torvald met (' + g20.flags.torvaldMet + ', ' + g20.flags.torvaldFate + ')', g20.flags.highwaySecured === 1 && g20.flags.pin === 'thedoor' && g20.flags.torvaldMet === 1);
+          var d1 = door20('the king'), d2 = door20('Ingrith');
+          check('the journal\'s doors: ' + (d1 && d1.where) + ' -- the king\'s word (' + g20.flags.pyroConsent + '); ' + (d2 && d2.where) + ' -- Ingrith walks down with you (' + g20.flags.ingrithEscort + ', a guest ' + DS.EV.hasGuest('ingrith') + ')',
+            !!d1 && d1.where === 'solskaft:pyro' && g20.flags.pyroConsent === 1 && !!d2 && d2.where === 'solskaft:ingrith' && g20.flags.ingrithEscort === 1 && DS.EV.hasGuest('ingrith'));
+          var d3 = door20('the door');
+          check('the door (' + (d3 && d3.where) + '): the consult -- Ingrith through it (' + !DS.EV.hasGuest('ingrith') + '), the Sunshaft staff (' + (g20.has('sunshaftstaff') || g20.party.some(function (h) { return h.equip.weapon === 'sunshaftstaff'; })) + ')',
+            !!d3 && !DS.EV.hasGuest('ingrith') && (g20.has('sunshaftstaff') || g20.party.some(function (h) { return h.equip.weapon === 'sunshaftstaff'; })));
+          credits20('the ending');
+          // a save from the Skylights' weeks (10-05 to 10-20): the runner heard, or the Skylights won and THE SNOOT pinned -- it loads onto this road, never stuck at the gate
+          [{ name: 'the runner heard, the road not yet held', f: { surfaceCall: 1 }, pin: 'solskaft' }, { name: 'the Skylights won, THE SNOOT pinned', f: { surfaceCall: 1, skylightsWon: 1, pin: 'thesnoot' }, pin: 'solskaft' },
+            { name: 'THE SNOOT pinned, the road held', f: { surfaceCall: 1, skylightsWon: 1, pin: 'thesnoot', highwaySecured: 1 }, pin: 'thedoor' }].forEach(function (c) {
+            T.newGame('barley'); DS.paused = true; DS.situation(DS.G, DS.SITUATIONS.raid); var s0 = JSON.parse(JSON.stringify(DS.G));
+            Object.assign(s0.flags, { lamp3: 1, raidWon: 1, captainHome: 1, roadOpen: 1 }, c.f); s0.map = 'solskaft_deep'; s0.x = 36; s0.y = 11; s0.guests = [];
+            var w0 = console.warn; console.warn = function () { }; DS.startFrom(s0); console.warn = w0; var gL = DS.G;
+            check('a save from the Skylights\' weeks, ' + c.name + ': loads with surfaceCall ' + !!gL.flags.surfaceCall + ', skylightsWon ' + !!gL.flags.skylightsWon + ', pinned ' + gL.flags.pin, !gL.flags.surfaceCall && !gL.flags.skylightsWon && gL.flags.pin === c.pin);
+          });
+          asked20 = []; DS.field.load('solskaft_deep', 36, 11, 'left');
+          play20(DS.SCRIPTS.highwayGate, ['NOT NOW']);
+          check('and at the gate it is the road\'s menu, not a fight: ' + asked20.join(' | '), asked20.some(function (a) { return /^WALK THE ROAD\//.test(a); }) && !asked20.some(function (a) { return /SURFACE/.test(a); }));
+          check('THE SNOOT is out of the first game: no quest ' + !(DS.DATA.quests || []).some(function (q) { return q.id === 'thesnoot'; }) + ', no runner from the Pit ' + !DS.DATA.npcs.pitRunner + ', no scene ' + (!DS.SCRIPTS.snootCall && !DS.SCRIPTS.skylights && !DS.EV.surfaceCall),
+            !(DS.DATA.quests || []).some(function (q) { return q.id === 'thesnoot'; }) && !DS.DATA.npcs.pitRunner && !DS.SCRIPTS.snootCall && !DS.SCRIPTS.skylights && !DS.EV.surfaceCall);
+        } else {
+          var s20 = DS.SITUATIONS.ending;
+          check('?at=ending is there: "' + (s20 && s20.title) + '"', !!s20);
+          if (s20) {
+            T.newGame('aurdin'); DS.paused = true; DS.situation(DS.G, s20); var gD = DS.G; gD.flags.noEncounters = 1;
+            DS.clearScenes(); var FD = DS.field = new DS.Field(); DS.push(FD); FD.load(gD.map, gD.x, gD.y, gD.dir);
+            play20(function* () { yield* DS.situationStart(s20); });
+            check('set up as the title sets it up: ' + [FD.map.id, gD.x, gD.y, gD.dir].join(',') + ', Ingrith a guest ' + DS.EV.hasGuest('ingrith') + ', the road held ' + gD.flags.highwaySecured + ', the king\'s word ' + gD.flags.pyroConsent + ', the raid won ' + gD.flags.raidWon + ', pinned ' + gD.flags.pin,
+              FD.map.id === 'threshold' && DS.EV.hasGuest('ingrith') && gD.flags.highwaySecured === 1 && gD.flags.pyroConsent === 1 && gD.flags.raidWon === 1 && gD.flags.pin === 'thedoor');
+            var t20 = FD.triggerAt(gD.x + 1, gD.y, 'use');
+            check('one step east is the door (' + (t20 && t20.id) + ')', !!t20 && t20.script === 'deepDoor');
+            said20 = []; T.tapf('a'); var eStarted = DS.scriptActive(); // (E, as the field takes it: Field.interact on the square faced)
+            play20(function* () { }, [], 20000); // (drives the scene the E started, to the credits)
+            check('E on the door starts it (' + eStarted + '): the consult (' + heard20(/Dagny|Ingrith|door/i) + ', ' + said20.length + ' lines), Ingrith through it (' + !DS.EV.hasGuest('ingrith') + '), expansionDone ' + gD.flags.expansionDone, eStarted && !DS.EV.hasGuest('ingrith') && gD.flags.expansionDone === 1);
+            credits20('the door');
+          }
+        }
+        check('no frame over the screen at any step (' + frames20 + '), no error' + (DS.lastError ? ': ' + String(DS.lastError.stack || DS.lastError).slice(0, 300) : ''), frames20 === 0 && !DS.lastError && !document.getElementById('d16'));
+        out.log.push(test + ': the fights ' + fights20.join(' | '));
+      } catch (e20) { check('threw: ' + String(e20 && e20.stack || e20).slice(0, 400), false); }
+      DS.say = say20; window.setTimeout = st20; DS.autoPicks = auto20;
     } else if (test === 'xp1005') {
       // 10-05 (RULED, Griz: "count guests as 'standing' for xp."): the guests stand in the XP split and bank nothing (js/battle.js finish: the divisor is the
       // four standing plus each guest fielded and not down at the end; js/events.js EV.fedXp: the landlord's pool the same). A won fight with the foes put down
@@ -1433,29 +1471,25 @@
           load(save0, []); check('a good save stays where it was (' + [DS.field.map.id, DS.G.x, DS.G.y].join(',') + ', ' + warns.length + ' warnings)', DS.field.map.id === 'gulch' && DS.G.x === 33 && DS.G.y === 8 && !warns.length);
         } finally { console.error = err0; console.warn = warn0; DS.EV.onEnter = onEnter0; }
       });
-      // §2.3 what a grid crash's fallback carries (todo 1.3): nothing of a grid report stands (no stale square, no stale measure); in the wet's fallback with the landlord
-      // in it the bucket feeds it as the grid's USE BUCKET does (otyughFed, the stream's rumour, not dead, no kill XP); elsewhere it is refused and kept; and the
-      // Skylights' fallback fields Pyro on his own 8-bit measure (js/pyro.js): one swing, then the white mace and the halved XP when one of the four is down
-      laneCase('the grid crashed: what the fallback carries', function () {
+      // §2.3 what a story fight carries in the 8-bit battle (todo 1.3; till 10-20 "what a grid crash's fallback carries" -- the fallback is the only path since, js/embed.js,
+      // so the grid's message and its stale square and measure are gone from the check): no frame; in the wet's fight with the landlord in it the bucket feeds it as the
+      // grid's USE BUCKET does (otyughFed, the stream's rumour, not dead, no kill XP); elsewhere it is refused and kept; and a story fight fields Pyro on his own 8-bit
+      // measure (js/pyro.js): one swing, then the white mace and the halved XP when one of the four is down (the Skylights' fight till 10-20; a troll on the road now)
+      laneCase('a story fight in the 8-bit battle: what it carries', function () {
         var set0 = window.setTimeout, clr0 = window.clearTimeout, warn0 = console.warn, timers = [];
-        function crash(list, o, before) {
-          var stale; while ((stale = document.getElementById('d16'))) stale.parentNode.removeChild(stale);
+        function crash(list, o, before) { // (the name kept from the fallback's days: it opens the story fight, which is the 8-bit battle)
           SETUP(5); DS.lastError = null; DS.paused = false; T.res = undefined; timers = [];
           window.setTimeout = function (fn, ms) { var t = { fn: fn, ms: ms }; timers.push(t); return t; }; window.clearTimeout = function (t) { if (t) t.cleared = true; };
           console.warn = function () { };
           if (before) before();
           T.startFight(list, Object.assign({ dark: false, torch: null }, o));
-          for (var i = 0; i < 400 && !document.getElementById('d16'); i++) T.step(1);
-          var fr = document.getElementById('d16'); if (!fr) return null;
-          function msg(d) { window.dispatchEvent(new MessageEvent('message', { source: fr.contentWindow, data: d })); }
-          msg({ type: 'd16:ready' }); msg({ type: 'd16:crash', msg: 'boom', at: 'battle1006' });
           for (var j = 0; j < 600 && !DS.find('battle'); j++) { var tp = DS.top(); if (tp && tp.kind === 'dialog') { tp.chars = tp.pageLen(); T.tapf('a'); } else T.step(1); }
-          return DS.find('battle');
+          return document.getElementById('d16') ? null : DS.find('battle');
         }
         function flush() { timers.forEach(function (t) { if (!t.cleared && !t.ran && !t.ms) { t.ran = true; t.fn(); } }); T.step(2); }
         try {
-          var b = crash(['otyugh'], { deep16: 'wet', wake: 'rim', bg: 'wet' }, function () { DS.G.give('bucket', 1); DS.wetExit = [9, 9]; DS.pyroBack = { held: true, phase: 3 }; });
-          check('the wet crashed: the 8-bit battle has it (' + !!b + ', fromDeep ' + !!(b && b.fromDeep) + '), a stale exit and measure cleared (' + JSON.stringify([DS.wetExit, DS.pyroBack]) + ')', !!b && !b.fromDeep && DS.wetExit === null && DS.pyroBack === null);
+          var b = crash(['otyugh'], { deep16: 'wet', wake: 'rim', bg: 'wet' }, function () { DS.G.give('bucket', 1); });
+          check('the wet\'s fight: the 8-bit battle has it (' + !!b + ', fromDeep ' + !!(b && b.fromDeep) + '), no frame (' + !document.getElementById('d16') + ')', !!b && !b.fromDeep && !document.getElementById('d16'));
           var xp0 = DS.G.party.map(function (h) { return h.xp; }).join();
           drive({ barley: ['ITEM', 'Carrion Bucket'] }, 3000); flush();
           var xp1 = DS.G.party.map(function (h) { return h.xp; }).join();
@@ -1464,14 +1498,14 @@
             T.res === 'win' && fl.otyughFed === 1 && fl['heard:r-stream'] === 1 && !fl.otyughDead && DS.G.count('bucket') === 0 && /The landlord takes it, and settles\./.test(said1) && /chimney full of wings/.test(said1) && xp0 === xp1);
           var b2 = crash(['ochrejelly'], { deep16: 'wet', wake: 'jelly', bg: 'wet' }, function () { DS.G.give('bucket', 1); });
           var bar = b2 && b2.heroes[0], got = b2 && runGen(b2.useItem(bar, 'bucket')), lastLine = (T.blog || []).slice(-1)[0];
-          check('the bucket where no landlord stands (the jelly\'s fallback): refused (' + got + '), "' + lastLine + '", kept x' + DS.G.count('bucket') + ', nothing fed (' + !!DS.G.flags.otyughFed + ')', got === false && /Nothing here takes it/.test(lastLine) && DS.G.count('bucket') === 1 && !DS.G.flags.otyughFed);
+          check('the bucket where no landlord stands (the jelly\'s fight): refused (' + got + '), "' + lastLine + '", kept x' + DS.G.count('bucket') + ', nothing fed (' + !!DS.G.flags.otyughFed + ')', got === false && /Nothing here takes it/.test(lastLine) && DS.G.count('bucket') === 1 && !DS.G.flags.otyughFed);
           b2.foes.forEach(function (f) { f.hp = 0; f.dead = true; }); drive({}, 1500); flush();
-          var b3 = crash(['troll'], { deep16: 'edifice', canRun: false }, function () { DS.EV.addGuest('pyro'); });
+          var b3 = crash(['troll'], { deep16: 'trolls', canRun: false }, function () { DS.EV.addGuest('pyro'); });
           var py = b3 && b3.heroes.filter(function (x) { return x.guest && x.h.script === 'measure'; })[0], n0 = (T.blog || []).length;
           if (py) runGen(b3.guestTurn(py));
           var swing = (T.blog || []).slice(n0).filter(function (l) { return /\bPyro (hits|attacks)\b/.test(l); }); // (a crit's line starts "Critical! ")
           b3.heroes[0].h.hp = 0; b3.heroes[0].h.ko = true; runGen(DS.scripts8.watch(b3));
-          check('the Skylights crashed: Pyro walks in the 8-bit battle on his own measure (' + !!py + '), one swing a turn (' + swing.length + ': "' + (swing[0] || '') + '"), Barley down and the white mace drawn (phase ' + (b3.pyro8 && b3.pyro8.phase) + ', the XP halved ' + !!b3.xpHalf + ')',
+          check('a story fight with the king: Pyro walks in the 8-bit battle on his own measure (' + !!py + '), one swing a turn (' + swing.length + ': "' + (swing[0] || '') + '"), Barley down and the white mace drawn (phase ' + (b3.pyro8 && b3.pyro8.phase) + ', the XP halved ' + !!b3.xpHalf + ')',
             !!py && swing.length === 1 && !!b3.pyro8 && b3.pyro8.phase === 2 && b3.xpHalf === true);
           b3.foes.forEach(function (f) { f.hp = 0; f.dead = true; }); b3.over = 'win'; drive({}, 1500); flush();
         } finally { window.setTimeout = set0; window.clearTimeout = clr0; console.warn = warn0; }
@@ -1865,7 +1899,7 @@
         }
         return fin;
       }
-      function raidE() { DS.G.flags.surfaceCall = 1; DS.G.map = 'highway_3'; DS.G.x = 56; DS.G.y = 11; tripE(); return playE(function* () { yield* Se.raid(); }); }
+      function raidE() { DS.G.map = 'highway_3'; /* (surfaceCall no longer set here: it kept the runner from the surface out of the raid's end, 10-05 to 10-20 -- there is none now) */ DS.G.x = 56; DS.G.y = 11; tripE(); return playE(function* () { yield* Se.raid(); }); }
       try {
         freshE(15); var e0 = keysE(); tripE(); var e1 = keysE();
         check('the muster\'s two through a save and a load: ' + e0 + ' -> ' + e1 + ' (want brann,hedda both times)', e0 === 'brann,hedda' && e1 === 'brann,hedda');
@@ -1986,31 +2020,95 @@
         check('THE STAIR WITH THE KEEPER AWAKE: the stair -- ' + (has(stSaid, 'w.stairAwake') ? 'stirring' : has(stSaid, 'w.stairSee') ? 'CALM' : '?') + ', WADE IN -- ' + (has(stSaid, 'w.wadeAwake') ? 'it waits' : 'as if asleep') + '; the mark -- ' + (mkAsked.length ? 'ASKS ' + mkAsked.join(' ') : 'no ask') + ', ' + (has(mkSaid, 'w.markAwake') ? 'unsettled' : 'its look ' + (mkSaid[0] || '').slice(0, 40)),
           has(stSaid, 'w.stairAwake') && has(stSaid, 'w.wadeAwake') && !mkAsked.length && has(mkSaid, 'w.markAwake') && !has(mkSaid, 'w.markWake'));
       } finally { DS.say = say0; DS.ask = ask0; DS.EV.fight = fight0; }
-    } else if (test === 'snootcall1015') {
-      // THE SNOOT from the road (10-15, Griz: "For now, just auto-pin it as a mission in the journal that pops after the edifice fight"; on the seat's lean, "yeah ... this
-      // should be live and testing"): ?at=snootcall pins THE SNOOT, its step the runner in the Halfway Inn's yard, with an arrow from Fountain Street; the runner stands there
-      // once the Skylights are won; NOT YET leaves the runner, TO THE SNOOT asks the save (the page's going to snoot-mode/ is not driven: it would leave this page); and the
-      // Skylights' end pins it (js/deep.js S.skylights, the grid's fight stubbed won)
-      var sayS = DS.say, askS = DS.ask, fightS = DS.EV.fight, saidS = [], askedS = [];
+    } else if (test === 'fixes1020') {
+      // THE FIRST GAME's 8-bit fixes (his 10-19 notes, probed 10-20 by the desk's runners; the first game lane). In place of snootcall1015 (THE SNOOT from the road, 10-15:
+      // the runner, TO THE SNOOT, the Skylights' pin -- out of the first game with the Skylights; ending1020 checks they are gone). Five: (a) Dace -- the pit's Dace gone once
+      // the cloaker is dead or he walks with you, daceDeep fires under the cloaker's rect once it is killed, and he goes no farther than the mine (his "8 - yes": the kid's
+      // fall still ends it); (b) the drummer boy beside his drum; (c) the shops buy the starter gear, no ordinary shop the quest's +1s, Winters does; (d) END HOLD drops when its
+      // mark is killed; (e) the dock shut till the wagon night, and the lake's gift on the chuul's corpse when the party never had it
+      var st21 = window.setTimeout, say21 = DS.say, said21 = [], ch21 = DS.choose, auto21 = DS.autoPicks;
+      window.setTimeout = function (fn) { pending.push(fn); return 0; }; DS.autoPicks = true;
+      DS.say = function (t) { said21.push(DS.stripCodes(Array.isArray(t) ? t.join(' ') : String(t))); return say21.apply(this, arguments); };
+      function heard21(key) { var tx = DS.stripCodes([].concat(DS.L(key)).join(' ')); return said21.some(function (x) { return x.indexOf(tx.slice(0, 30)) >= 0; }); }
+      function play21(gen, answers) { // a script to its end, or to the credits: its questions by label (else the first), every fight the 8-bit battle with its foes put down
+        answers = (answers || []).slice(); var fin = false; DS.lastError = null; DS.run(gen, function () { fin = true; });
+        for (var i = 0; i < 20000 && !DS.lastError; i++) {
+          var tp = DS.top(), k = tp && tp.kind, b = DS.find('battle');
+          if (k === 'credits' || k === 'after' || k === 'gameover') break;
+          if (b && !b.down21) { b.down21 = true; b.foes.forEach(function (f) { f.hp = 0; f.dead = true; }); }
+          var menu = (k === 'dialog' || k === 'menu' || k === 'popup') ? tp.menu : null;
+          if (menu) { var idx = -1; if (answers.length && !b) { var a = String(answers[0]).toUpperCase(); idx = menu.items.findIndex(function (it) { return !it.disabled && String(it.label).toUpperCase().indexOf(a) === 0; }); if (idx >= 0) answers.shift(); }
+            if (idx < 0) idx = menu.items.findIndex(function (it) { return !it.disabled && !/^RUN$/.test(String(it.label)); }); menu.i = Math.max(0, idx); T.tapf('a'); }
+          else if (k === 'dialog') { if (tp.chars < tp.pageLen()) tp.chars = tp.pageLen(); T.tapf('a'); }
+          else if (k === 'target') { tp.i = 0; T.tapf('a'); }
+          else if (k && k !== 'field' && k !== 'flash' && k !== 'battle') { T.tapf('a'); T.step(2); }
+          else T.step(1);
+          if (fin && !DS.scriptActive() && (!k || k === 'field')) break;
+        }
+        return fin;
+      }
+      function runGen21(gen) { var r; for (var i = 0; i < 400; i++) { r = gen.next(); if (r.done) return r.value; } return 'ran on'; }
       try {
-        T.newGame('barley'); DS.paused = true; DS.situation(DS.G, DS.SITUATIONS.snootcall); var gS = DS.G, qS = DS.pinnedQuest(), sS = qS && DS.questStep(qS);
-        DS.field.load('solskaft_deep', 36, 11, 'left'); gS.x = 36; gS.y = 11; DS.field.pinKey = null; var pS = DS.field.pinPoint();
-        check('?at=snootcall: pinned ' + (qS ? qS.id : 'nothing') + ', its step ' + (sS ? sS.map + ':' + sS.npc : '-') + ', the arrow from Fountain Street ' + (pS ? (pS.npc ? 'npc ' : '') + pS.x + ',' + pS.y + ' via ' + (DS.field.pinChain || []).join(' > ') : 'none'),
-          !!qS && qS.id === 'thesnoot' && !!sS && sS.map === 'halfway' && sS.npc === 'pitRunner' && !!pS);
-        var runS = (DS.DATA.maps.halfway.npcs || []).filter(function (n) { return n.id === 'pitRunner'; })[0];
-        check('the runner from the Pit in the inn\'s yard once the Skylights are won: ' + (runS ? runS.x + ',' + runS.y + ' (' + runS.cond + ': ' + DS.cond(runS.cond) + ')' : 'none'), !!runS && DS.cond(runS.cond));
-        DS.say = function (t) { saidS.push([].concat(t).join(' ')); return { say: 1 }; }; DS.ask = function (t, ch) { askedS.push(ch.join('/')); return { ask: ch }; };
-        var driveS = function (gen, pick, stop) { var s0, v; for (var k = 0; k < 80; k++) { s0 = gen.next(v); v = undefined; if (s0.done) return 'done'; if (s0.value && s0.value.ask) { if (stop && stop(s0.value.ask)) return 'stopped'; v = pick(s0.value.ask); } } return 'ran on'; };
-        var hasS = function (key) { var tx = [].concat(DS.L(key)).join(' '); return saidS.some(function (x) { return x.indexOf(String(tx).slice(0, 30)) >= 0; }); };
-        var r1 = driveS(DS.SCRIPTS.snootCall({ id: 'pitRunner' }, DS.DATA.npcs.pitRunner), function (ch) { return ch.indexOf('NOT YET'); });
-        check('the runner, NOT YET: ' + r1 + ', asked ' + askedS.join(' | ') + ', the runner waits ' + hasS('inn.snootNotYet'), r1 === 'done' && askedS[0] === 'TO THE SNOOT/NOT YET' && hasS('inn.snootNotYet'));
-        askedS = []; var r2 = driveS(DS.SCRIPTS.snootCall({ id: 'pitRunner' }, DS.DATA.npcs.pitRunner), function (ch) { return ch.indexOf('TO THE SNOOT'); }, function (ch) { return ch[0] === 'SAVE'; });
-        check('the runner, TO THE SNOOT: the save asked before the page goes (' + askedS.join(' | ') + ')', r2 === 'stopped' && askedS.join(' | ') === 'TO THE SNOOT/NOT YET | SAVE/NO');
-        delete gS.flags.skylightsWon; delete gS.flags.pin; saidS = []; DS.EV.fight = function* () { return 'win'; };
-        var r3 = driveS(DS.SCRIPTS.skylights(), function () { return 0; });
-        check('the Skylights won (the fight stubbed): ' + r3 + ', pinned ' + gS.flags.pin + ', the line said ' + hasS('deep.snootCall'), r3 === 'done' && !!gS.flags.skylightsWon && gS.flags.pin === 'thesnoot' && hasS('deep.snootCall'));
-      } catch (eS) { check('threw: ' + String(eS && eS.stack || eS).slice(0, 400), false); }
-      DS.say = sayS; DS.ask = askS; DS.EV.fight = fightS;
+        // (a) Dace
+        var g21 = SETUP(5, { cullHired: 1 }), F21 = DS.field, npcOn = function (map, id) { var d = (DS.DATA.maps[map].npcs || []).filter(function (n) { return n.id === id; })[0]; return !!(d && DS.cond(d.cond)); };
+        var pitA = npcOn('galleries_g3', 'dacedown'); g21.flags.cloakerKilled = 1; var pitB = npcOn('galleries_g3', 'dacedown'); delete g21.flags.cloakerKilled; g21.flags.daceWith = 1; var pitC = npcOn('galleries_g3', 'dacedown'); delete g21.flags.daceWith;
+        check('(a) the pit\'s Dace: there before the kill ' + pitA + ', gone once the cloaker is dead ' + !pitB + ', gone while he walks with you ' + !pitC, pitA && !pitB && !pitC);
+        F21.load('galleries_g4', 10, 12, 'down'); var tA = F21.triggerAt(10, 12, 'step');
+        g21.flags.cloakerKilled = 1; g21.give('cloakertail', 1); var tB = F21.triggerAt(10, 12, 'step');
+        DS.EV.addGuest('dace'); g21.flags.daceWith = 1; g21.flags.daceAfter = 1; var tC = F21.triggerAt(10, 12, 'step');
+        check('(a) the deep gallery\'s room: before the kill ' + (tA && tA.id) + ', after it alone ' + (tB && tB.id) + ', after it with Dace walking back down ' + (tC && tC.id), !!tA && tA.id === 'cloaker' && !tB && !!tC && tC.id === 'daceDeep');
+        said21 = []; play21(function* () { yield* DS.EV.trigger(tC, F21); }, ['THE CLOAK']);
+        check('(a) daceDeep plays: his thanks ' + heard21('dace.deep') + ', the cloak ' + g21.has('cloakdisplacement') + ', daceDone ' + g21.flags.daceDone + ', home ' + !DS.EV.hasGuest('dace'), heard21('dace.deep') && g21.has('cloakdisplacement') && g21.flags.daceDone === 1 && !DS.EV.hasGuest('dace'));
+        delete g21.flags.daceDone; delete g21.flags.cloakerKilled; g21.take('cloakertail', 1); DS.EV.addGuest('dace'); g21.flags.daceWith = 1;
+        F21.load('galleries_g1', 17, 4, 'down'); said21 = [];
+        play21(function* () { yield* DS.EV.warp('galleries_g2', 17, 26, 'up'); });
+        var inMine = DS.EV.hasGuest('dace') && DS.field.map.id === 'galleries_g2';
+        DS.field.load('galleries_g1', 17, 22, 'down'); said21 = [];
+        play21(function* () { yield* DS.EV.warp('world', 23, 11, 'down'); });
+        check('(a) the mine\'s exits: down into the mine he comes (' + inMine + '); out to the road he stops (' + heard21('dace.mouth') + ', a guest ' + DS.EV.hasGuest('dace') + ', daceWith ' + !!g21.flags.daceWith + '), the party on ' + DS.field.map.id,
+          inMine && heard21('dace.mouth') && !DS.EV.hasGuest('dace') && !g21.flags.daceWith && DS.field.map.id === 'world');
+        var dD = DS.DATA.heroes.dace; check('(a) "game over if the kid falls" stands: his sheet vital (' + !!(dD && dD.vital) + ')', !!(dD && dD.vital));
+        // (b) the drummer
+        var gm = DS.DATA.maps.gulch, dr = (gm.npcs || []).filter(function (n) { return n.id === 'drummer'; })[0]; DS.field.load('gulch', 33, 8, 'right'); var crate = DS.field.map.at(9, 9);
+        check('(b) the drummer boy at ' + (dr && dr.x + ',' + dr.y + ' facing ' + dr.dir) + ', the drum (' + crate + ') at 9,9 beside him', !!dr && Math.abs(dr.x - 9) + Math.abs(dr.y - 9) === 1 && dr.dir === 'left' && dr.x === 10 && /crate|barrel/.test(String(crate)));
+        // (c) the shops
+        var lists = {};
+        DS.choose = function (o) { lists.cur = (o.items || []).map(function (it) { return it.value + '@' + it.right; }); return { start: function () { this.result = null; this.finished = true; } }; };
+        function sellList(shopId) { lists.cur = null; var sh = new DS.Shop(DS.DATA.shops[shopId]); play21(function* () { yield* sh.go('sell'); }); return lists.cur || []; }
+        SETUP(5); var gS = DS.G; ['threshingflail', 'candleknife', 'threshingflail1', 'greyfangbow'].forEach(function (id) { gS.give(id, 1); });
+        var vil = sellList('vilar'), win = sellList('winters');
+        DS.choose = ch21;
+        var has21 = function (l, id) { return l.filter(function (x) { return x.split('@')[0] === id; })[0] || ''; };
+        check('(c) Vilar buys the starter gear: ' + [has21(vil, 'threshingflail'), has21(vil, 'candleknife')].join(', ') + ' (the flail 10 gp, the dagger 2 gp, at half); not the quest\'s +1s (' + (has21(vil, 'threshingflail1') || 'none') + ', ' + (has21(vil, 'greyfangbow') || 'none') + ')',
+          has21(vil, 'threshingflail') === 'threshingflail@50 sp' && has21(vil, 'candleknife') === 'candleknife@10 sp' && !has21(vil, 'threshingflail1') && !has21(vil, 'greyfangbow'));
+        check('(c) Winters, the magic items man, buys them: ' + [has21(win, 'threshingflail1'), has21(win, 'greyfangbow'), has21(win, 'threshingflail')].join(', '), !!has21(win, 'threshingflail1') && !!has21(win, 'greyfangbow') && !!has21(win, 'threshingflail'));
+        // (d) END HOLD on a mark killed
+        SETUP(5); T.startFight(['bandit', 'bandit'], {}); for (var w = 0; w < 200 && !DS.find('battle'); w++) T.step(1);
+        var bH = DS.find('battle'), cast = bH && bH.heroes.filter(function (u) { return u.h.id === 'aurdin'; })[0], mark = bH && bH.foes[0];
+        if (bH && cast && mark) {
+          cast.conc = { id: 'holdperson', name: 'Hold Person', rounds: 10, marks: [{ u: mark, k: 'paralyzed' }] }; mark.conds.paralyzed = { by: cast.h.id, rounds: 10, save: { ab: 'wis', dc: 30 } };
+          var endRow = function () { return bH.skillList(cast, { action: true, bonus: true }).filter(function (r) { return r.value === 'endconc'; }).length; };
+          var live0 = bH.concLive(cast), row0 = endRow();
+          bH.kill(mark); var live1 = bH.concLive(cast); bH.say = function* (t) { said21.push(t); }; said21 = []; runGen21(bH.concSweep());
+          check('(d) Hold Person on a bandit: held ' + live0 + ' (END row ' + row0 + '); the bandit killed: nothing held ' + !live1 + ', the next turn\'s sweep lets it go (' + !cast.conc + '), END gone (' + endRow() + '), nothing said of the dead (' + said21.join(' | ') + ')',
+            live0 && row0 === 1 && !live1 && !cast.conc && endRow() === 0 && !said21.some(function (x) { return /paralyzed/.test(x); }));
+          bH.foes.forEach(function (f) { f.hp = 0; f.dead = true; }); drive({}, 1500);
+        } else check('(d) the fight for END HOLD did not open', false);
+        // (e) the dock and the chuul
+        var gE = SETUP(5, { reachedInn: 1 }); delete gE.flags.lakeDone; DS.field.load('halfway', 27, 14, 'down');
+        var boat0 = DS.field.triggerAt(27, 15, 'step'); gE.flags.wagonNight = 1; gE.flags.wagonOutcome = 'quiet'; var boat1 = DS.field.triggerAt(27, 15, 'step');
+        check('(e) the rowboat: shut before the first night at the inn (' + (boat0 && boat0.id) + '), open after it (' + (boat1 && boat1.id) + ')', !boat0 && !!boat1 && boat1.id === 'rowboat');
+        function chuul(flags) {
+          var gC = SETUP(5, Object.assign({ reachedInn: 1, wagonNight: 1 }, flags)); delete gC.flags.lakeDone; DS.field.load('halfway', 27, 14, 'down'); said21 = [];
+          var want = DS.EV.lakeGiftId(), n0 = gC.count(want); play21(DS.SCRIPTS.rowboat, ['PUSH']);
+          return { g: gC, want: want, got: gC.count(want) - n0, said: heard21('lake.corpseGift'), done: gC.flags.lakeDone === 1 };
+        }
+        var c1 = chuul({ wagonOutcome: 'quiet' }), c2 = chuul({ wagonOutcome: 'inn', doranAway: 1 }), c3 = chuul({ wagonOutcome: 'road', doranAway: 1, wagonGift: 1 });
+        check('(e) the wagon let go, the chuul killed off the rowboat: on its corpse ' + c1.want + ' x' + c1.got + ' ("' + DS.L('lake.corpseGift').slice(0, 30) + '..." ' + c1.said + '), lakeGiftGot ' + c1.g.flags.lakeGiftGot, c1.done && c1.got === 1 && c1.said && c1.g.flags.lakeGiftGot === 1);
+        check('(e) the wagon stopped and Elsbeth\'s gift had: nothing on it (' + c2.got + ', said ' + c2.said + ')', c2.done && c2.got === 0 && !c2.said);
+        check('(e) the wagon stopped, her thanks still owed: on the corpse (' + c3.got + '), owed no longer (wagonGift ' + !!c3.g.flags.wagonGift + ')', c3.done && c3.got === 1 && !c3.g.flags.wagonGift);
+      } catch (e21) { check('threw: ' + String(e21 && e21.stack || e21).slice(0, 400), false); }
+      DS.say = say21; DS.choose = ch21; window.setTimeout = st21; DS.autoPicks = auto21;
     } else if (test === 'scourge1014') {
       // Searing Scourge in the 8-bit (ours; 10-14, Griz: "do 1 and 2" -- the grid's eight squares, here the foe in front and up to two beside it, no picker): the sheet
       // copied into Aurdin's book, the three it takes of four, one roll for all; Deathhand's two dice, d6 each from the 3rd; the twirl's frames set
@@ -2151,106 +2249,40 @@
         var old = R8.makeHero('vivian', 3); delete old.picks; old.pendingChoice = 'archetype'; R8.migrate(old);
         check('AN OLDER SAVE\'S WAITING ARCHETYPE becomes an ask (' + R8.asking(old, 'archetype') + ', flag ' + old.pendingChoice + ')', R8.asking(old, 'archetype') && old.pendingChoice === 'archetype');
       } finally { DS.autoPicks = auto0; }
-    } else if (test === 'roam8') {
-      // the Wet on the grid, the 8-bit's half (js/embed.js DS.roam8, js/deep.js's enter hook; the party-token map's seam, 10-14, Griz: "You should handle the seam given context?"):
-      // on unless the stair is drained (or &noroam); set down in warrens_d, the frame opens; what comes back by 'd16:roam' applied, and the 8-bit's own warp taken from the square
-      // they left by. DEEP16 is not run here: its message is dispatched on the page as the frame would send it (floor1003's way); the roam's own half is bench16 mode=roam1014
-      var f8 = g.flags, set0R = window.setTimeout, clr0R = window.clearTimeout;
-      var onA = DS.roam8.on(); f8.stairHook = 1; var onDr = DS.roam8.on(); f8.keeperWater = 1; var onFl = DS.roam8.on(); delete f8.stairHook; delete f8.keeperWater;
-      // (on with the stair drained too since 10-14 -- his close's "Roam the Wet going to need post-stair drain version": the floor lays the drained tiles, deep16/js/roam.js)
-      check('the roam on (' + onA + '), on with the stair drained (' + onDr + '), on flooded back (' + onFl + '); the hook in warrens_d (' + (typeof DS.SCRIPTS['enter:warrens_d']) + ')', onA && onDr && onFl && typeof DS.SCRIPTS['enter:warrens_d'] === 'function');
+    } else if (test === 'wetfloor1020') {
+      // the Wet on its own 8-bit floor again (the first game lane, 10-20; Griz: "the 8-bit handoff (at the cradle and with light) are so jarring"; "8 bit solely 8-bit after
+      // this"). In place of roam8 (the Wet on the grid, the 8-bit's half, 10-14: the frame opened in warrens_d, 'd16:roam' and 'd16:hand' applied, the familiar back from
+      // the floor -- all of it the roam's, gone with it; the grid's own half stays in bench16 mode=roam1014, for the second game). Checked: no roam left; set down in
+      // warrens_d by its enter hook no frame comes and the game never holds still; a save in the Wet loads onto the 8-bit floor; and the Settling's own triggers on the floor
+      // -- the jelly's shore, the pool ooze's puddle, the landlord's rim -- each play the 8-bit battle there, and the dead stay dead
+      var set0W = window.setTimeout, frW = 0, heldW = false;
+      window.setTimeout = function (fn) { pending.push(fn); return 0; };
+      function stepW(n, until) { for (var k = 0; k < n && !(until && until()); k++) { if (document.getElementById('d16')) frW++; if (DS.paused) heldW = true; var tp = DS.top(); if (tp && tp.kind === 'dialog') { if (tp.chars < tp.pageLen()) tp.chars = tp.pageLen(); T.tapf('a'); } else T.step(1); } }
       try {
-        window.setTimeout = function (fn, ms) { return { fn: fn, ms: ms }; }; window.clearTimeout = function () {};
-        DS.field.load('warrens_d', 2, 12, 'right'); g.x = 2; g.y = 12; DS.paused = false;
-        var barR = g.hero('barley'), xpR0 = barR.xp, potR0 = g.count('potion'), ichR0 = g.count('crawlerichor');
-        DS.run(function* () { yield* DS.SCRIPTS['enter:warrens_d'](); });
-        for (var kR = 0; kR < 200 && !document.getElementById('d16'); kR++) T.step(1);
-        var frR = document.getElementById('d16');
-        check('set down in warrens_d: the grid\'s frame over the screen (' + !!frR + '), the 8-bit held still (' + DS.paused + ')', !!frR && DS.paused === true);
-        if (frR) {
-          var shR = JSON.parse(JSON.stringify(barR)); shR.xp = xpR0 + 300; shR.hp = Math.max(1, shR.hp - 5);
-          window.dispatchEvent(new MessageEvent('message', { source: frR.contentWindow, data: { type: 'd16:ready' } }));
-          window.dispatchEvent(new MessageEvent('message', { source: frR.contentWindow, data: { type: 'd16:roam', result: 'out', exit8: [1, 12], party: [{ id: 'barley', sheet: shR, torch: 'lantern' }], // (a lantern: a torch is put out by the warp to another map, the 8-bit's EV.torchOut; a lantern stays lit)
-            inv0: { potion: potR0 }, inv1: { potion: Math.max(0, potR0 - 1), crawlerichor: 2 }, flags: { jellyDead: 1 }, kills: { crawler: 5 }, silver: 123, warn: [], order: ['aurdin', 'barley', 'lymen', 'vivian'] } }));
-          for (kR = 0; kR < 400 && (DS.scriptActive() || DS.fadeLevel > 0); kR++) T.step(1);
-          check('back from the grid out by the stair up: the frame gone (' + !document.getElementById('d16') + '), on warrens_b (' + (DS.field.map && DS.field.map.id) + '); Barley\'s XP +' + (barR.xp - xpR0) + ', a potion drunk (' + (potR0 - g.count('potion')) + '), the ichor +' + (g.count('crawlerichor') - ichR0) + ', jellyDead ' + g.flags.jellyDead + ', crawlers ' + g.kills.crawler + ', the purse ' + g.silver + ', the light ' + g.flags.torchBy + ' (' + g.flags.torchKind + '), the lead ' + g.party[0].id,
-            !document.getElementById('d16') && DS.field.map && DS.field.map.id === 'warrens_b' && barR.xp === xpR0 + 300 && g.count('potion') === Math.max(0, potR0 - 1) && g.count('crawlerichor') === ichR0 + 2 && g.flags.jellyDead === 1 && g.kills.crawler === 5 && g.silver === 123 && g.flags.torchBy === 'barley' && g.flags.torchKind === 'lantern' && g.party[0].id === 'aurdin');
-        }
-        // the familiar back from the floor (10-14, Griz: "familiars aren't properly handled"): the floor's word on it applied as a fight's is (js/embed.js famBack), after
-        // the flags -- fallen there, gone till the ritual calls it back; alive, kept
-        var tbF = f8.torchBy, tkF = f8.torchKind;
-        f8.familiar = { kind: 'owl', by: 'aurdin', hp: 1 }; delete f8.familiarGone;
-        DS.roam8.apply({ party: [], flags: { familiar: { kind: 'owl', by: 'aurdin', hp: 1 } }, familiar: { gone: true, hp: 0 } });
-        var goneF = !f8.familiar && f8.familiarGone === 'owl';
-        f8.familiar = { kind: 'owl', by: 'aurdin', hp: 1 }; delete f8.familiarGone;
-        DS.roam8.apply({ party: [], flags: {}, familiar: { gone: false, hp: 1 } });
-        var keptF = !!f8.familiar && f8.familiar.hp === 1 && !f8.familiarGone;
-        delete f8.familiar; delete f8.familiarGone; if (tbF) f8.torchBy = tbF; if (tkF) f8.torchKind = tkF;
-        check('the familiar back from the floor: fallen there, gone till the ritual calls it back (' + goneF + '); alive, kept (' + keptF + ')', goneF && keptF);
-        // SAVE on the floor and the cradles (10-14, Griz: "SAVE on the floor and the cradles by a hand-back to the 8-bit, then reopen the floor where they stood"): the floor's
-        // 'd16:hand' sets the frame aside (not closed), applies what the floor changed, stands the party on the floor's square and opens the 8-bit's own scene -- SAVE: its slots;
-        // out of them, the frame up again, the 8-bit held still, and the scene's word sent to the floor ('ds8:resume'); a save in warrens_d loads onto the floor
-        var slotTop = function () { return !!(DS.SlotScene && DS.top() instanceof DS.SlotScene); };
-        DS.field.load('warrens_d', 2, 12, 'right'); g.x = 2; g.y = 12; DS.paused = false;
-        DS.run(function* () { yield* DS.SCRIPTS['enter:warrens_d'](); });
-        for (kR = 0; kR < 200 && !document.getElementById('d16'); kR++) T.step(1);
-        var frH = document.getElementById('d16'), gotH = null;
-        if (frH) {
-          window.dispatchEvent(new MessageEvent('message', { source: frH.contentWindow, data: { type: 'd16:ready' } }));
-          try { frH.contentWindow.postMessage = function (d) { if (d && d.type === 'ds8:resume') gotH = d; }; } catch (eH) { }
-          var silH = g.silver;
-          window.dispatchEvent(new MessageEvent('message', { source: frH.contentWindow, data: { type: 'd16:hand', kind: 'save', exit8: [10, 14], dir: 'down', party: [], inv0: {}, inv1: {}, flags: { roamHandTest: 1 }, kills: JSON.parse(JSON.stringify(g.kills || {})), silver: silH + 7, warn: [] } }));
-          for (kR = 0; kR < 60 && !slotTop(); kR++) T.step(1);
-          var slotUp = slotTop(), asideH = frH.style.visibility === 'hidden', awakeH = !DS.paused, atH = [g.x, g.y, g.dir].join(',');
-          if (slotUp) DS.pop(DS.top());
-          for (kR = 0; kR < 60 && !gotH; kR++) T.step(1);
-          check('SAVE from the floor: the frame aside (' + asideH + '), the 8-bit awake (' + awakeH + ') with its slots up (' + slotUp + '), the party on the floor\'s square (' + atH + ', want 10,14,down), the floor\'s flags and purse on it (' + g.flags.roamHandTest + ', +' + (g.silver - silH) + '); out of the slots, the frame up again (' + (frH.style.visibility !== 'hidden') + '), held still (' + DS.paused + '), the word to the floor (' + JSON.stringify(gotH) + ')',
-            asideH && awakeH && slotUp && atH === '10,14,down' && g.flags.roamHandTest === 1 && g.silver === silH + 7 && frH.style.visibility !== 'hidden' && DS.paused === true && !!gotH && gotH.silver === silH + 7 && gotH.saved === null);
-          // a field action from the floor's menu (10-14, Griz: "this is how we'll be doing all the dwarf road and stuff after, so we do it all and do it right"): Lymen's Cure
-          // Wounds on Barley by id, run by this game's own EV.fieldCast with the frame aside; every hero's sheet back to the floor with the word
-          gotH = null; var barA = g.hero('barley'), lyA = g.hero('lymen'); barA.hp = Math.max(1, barA.maxhp - 20); var hpA = barA.hp;
-          lyA.prepared = (lyA.prepared || []).concat(['curewounds']); lyA.slots[0] = Math.max(1, lyA.slots[0]); var slA = lyA.slots[0];
-          window.dispatchEvent(new MessageEvent('message', { source: frH.contentWindow, data: { type: 'd16:hand', kind: 'act', act: { kind: 'cast', h: 'lymen', sp: 'curewounds', t: 'barley' }, exit8: [10, 14], dir: 'down', party: [], inv0: {}, inv1: {}, flags: {}, kills: JSON.parse(JSON.stringify(g.kills || {})), silver: g.silver, warn: [] } }));
-          for (kR = 0; kR < 600 && !gotH; kR++) { var tA = DS.top(); if (tA && tA.kind === 'dialog') { if (tA.chars < tA.pageLen()) tA.chars = tA.pageLen(); T.tapf('a'); } T.step(1); }
-          var pAr = (gotH && gotH.party) || [], shA = pAr.filter(function (r) { return r.id === 'barley'; })[0], shL = pAr.filter(function (r) { return r.id === 'lymen'; })[0];
-          check('a cast from the floor\'s menu, by this game\'s own: Lymen\'s Cure Wounds on Barley (' + hpA + ' -> ' + (shA && shA.sheet.hp) + '), his slot spent (' + slA + ' -> ' + (shL && shL.sheet.slots[0]) + '), every sheet back to the floor (' + pAr.length + '), the frame up again (' + (frH.style.visibility !== 'hidden') + ')',
-            !!shA && shA.sheet.hp > hpA && !!shL && shL.sheet.slots[0] === slA - 1 && pAr.length >= g.party.length && frH.style.visibility !== 'hidden');
-          // the drained stair's own scene from the floor (10-14, his close's "Roam the Wet going to need post-stair drain version"): dryStair by name, this game's own -- its lines,
-          // the five's tokens where the water left them -- and its word back: the flag, the tokens, every sheet, the square
-          gotH = null; var five0 = g.flags.fiveRecovered; delete g.flags.fiveRecovered; delete g.flags.drySeen; var tok0 = g.count('fivetokens');
-          window.dispatchEvent(new MessageEvent('message', { source: frH.contentWindow, data: { type: 'd16:hand', kind: 'script', script: 'dryStair', arg: null, exit8: [19, 21], dir: 'left', party: [], inv0: {}, inv1: {}, flags: { stairHook: 1 }, kills: JSON.parse(JSON.stringify(g.kills || {})), silver: g.silver, warn: [] } }));
-          for (kR = 0; kR < 600 && !gotH; kR++) { var tS = DS.top(); if (tS && tS.kind === 'dialog') { if (tS.chars < tS.pageLen()) tS.chars = tS.pageLen(); T.tapf('a'); } T.step(1); }
-          check('the drained stair\'s dryStair from the floor, this game\'s own: its word back -- drySeen ' + (gotH && gotH.flags && gotH.flags.drySeen) + ', the five\'s tokens +' + (gotH && gotH.inv && gotH.inv.fivetokens) + ' (the pack ' + tok0 + ' -> ' + g.count('fivetokens') + '), the sheets (' + (gotH && gotH.party && gotH.party.length) + '), the square ' + (gotH && gotH.at8),
-            !!gotH && gotH.flags.drySeen === 1 && gotH.inv.fivetokens === 1 && g.count('fivetokens') === tok0 + 1 && !!gotH.party && String(gotH.at8) === '19,21');
-          delete g.flags.stairHook; delete g.flags.drySeen; if (five0) g.flags.fiveRecovered = five0; else delete g.flags.fiveRecovered;
-          // a party that falls in a scene's own fight: this game's game over stands and the frame goes (no floor to resume over it)
-          DS.SCRIPTS.__overTest = function* () { DS.push(new DS.GameOver()); }; // (a stand-in for a fight lost in a scene: the game over pushed, as EV.fight's)
-          window.dispatchEvent(new MessageEvent('message', { source: frH.contentWindow, data: { type: 'd16:hand', kind: 'script', script: '__overTest', arg: null, exit8: [3, 12], dir: 'right', party: [], inv0: {}, inv1: {}, flags: {}, kills: JSON.parse(JSON.stringify(g.kills || {})), silver: g.silver, warn: [] } }));
-          for (kR = 0; kR < 200 && document.getElementById('d16') && !(DS.GameOver && DS.top() instanceof DS.GameOver && frH.style.visibility !== 'hidden'); kR++) T.step(1);
-          for (kR = 0; kR < 20; kR++) T.step(1);
-          var overTop = !!(DS.GameOver && DS.top() instanceof DS.GameOver), overGone = !document.getElementById('d16');
-          check('fallen in a scene\'s own fight: the frame gone (' + overGone + '), the game over standing (' + overTop + ')', overGone && overTop);
-          delete DS.SCRIPTS.__overTest; if (overTop) DS.pop(DS.top());
-          if (!overGone) { window.dispatchEvent(new MessageEvent('message', { source: frH.contentWindow, data: { type: 'd16:roam', result: 'out', exit8: [1, 12], party: [], inv0: {}, inv1: {}, flags: {}, warn: [] } })); for (kR = 0; kR < 400 && (document.getElementById('d16') || DS.scriptActive() || DS.fadeLevel > 0); kR++) T.step(1); }
-          // a scene that changed the floor's tiles: the floor closes with 'reopen' and this game opens it again at the square, a fresh frame
-          DS.field.load('warrens_d', 2, 12, 'right'); g.x = 2; g.y = 12; DS.paused = false;
-          DS.run(function* () { yield* DS.SCRIPTS['enter:warrens_d'](); });
-          for (kR = 0; kR < 200 && !document.getElementById('d16'); kR++) T.step(1);
-          var frP = document.getElementById('d16');
-          if (frP) window.dispatchEvent(new MessageEvent('message', { source: frP.contentWindow, data: { type: 'd16:roam', result: 'reopen', exit8: [3, 12], party: [], inv0: {}, inv1: {}, flags: {}, warn: [] } }));
-          for (kR = 0; kR < 200 && !(document.getElementById('d16') && document.getElementById('d16') !== frP); kR++) T.step(1);
-          var frO = document.getElementById('d16');
-          check('reopened: a fresh frame (' + !!(frP && frO && frO !== frP) + ') where they stood (' + [g.x, g.y] + ', want 3,12)', !!frP && !!frO && frO !== frP && g.x === 3 && g.y === 12);
-          var frE = document.getElementById('d16');
-          if (frE) window.dispatchEvent(new MessageEvent('message', { source: frE.contentWindow, data: { type: 'd16:roam', result: 'out', exit8: [1, 12], party: [], inv0: {}, inv1: {}, flags: {}, warn: [] } }));
-          for (kR = 0; kR < 400 && (document.getElementById('d16') || DS.scriptActive() || DS.fadeLevel > 0); kR++) T.step(1);
-          delete g.flags.roamHandTest;
-        }
-        var svL = JSON.parse(JSON.stringify({ v: g.v, lead: g.lead, party: g.party, inv: g.inv, silver: g.silver, flags: g.flags, renown: g.renown, map: 'warrens_d', x: 2, y: 12, dir: 'right', steps: g.steps, time: g.time, kills: g.kills, guests: g.guests }));
-        DS.startFrom(svL); g = DS.G; f8 = g.flags;
-        for (kR = 0; kR < 200 && !document.getElementById('d16'); kR++) T.step(1);
-        check('a save in the Wet loads onto the floor: on warrens_d (' + (DS.field && DS.field.map && DS.field.map.id) + '), the grid\'s frame up over it (' + !!document.getElementById('d16') + ')', DS.field && DS.field.map && DS.field.map.id === 'warrens_d' && !!document.getElementById('d16'));
-      } finally { window.setTimeout = set0R; window.clearTimeout = clr0R; var stR = document.getElementById('d16'); if (stR) stR.parentNode.removeChild(stR); }
+        check('no roam in the 8-bit: DS.roam8 ' + typeof DS.roam8, DS.roam8 === undefined);
+        var gW = SETUP(4); DS.field.load('warrens_d', 2, 12, 'right'); gW.x = 2; gW.y = 12; DS.paused = false;
+        var hookW = DS.SCRIPTS['enter:warrens_d'], doneW = !hookW;
+        if (hookW) DS.run(function* () { yield* hookW(); }, function () { doneW = true; });
+        stepW(400, function () { return doneW && !DS.scriptActive(); });
+        check('set down in warrens_d (its enter hook ' + typeof hookW + '): no frame (' + frW + '), the game never held still (' + !heldW + '), the hook done (' + doneW + '), on ' + DS.field.map.id + ' ' + gW.x + ',' + gW.y,
+          frW === 0 && !heldW && doneW && DS.field.map.id === 'warrens_d' && gW.x === 2 && gW.y === 12);
+        var svW = JSON.parse(JSON.stringify({ v: gW.v, lead: gW.lead, party: gW.party, inv: gW.inv, silver: gW.silver, flags: gW.flags, renown: gW.renown, map: 'warrens_d', x: 2, y: 12, dir: 'right', steps: gW.steps, time: gW.time, kills: gW.kills, hired: gW.hired, guests: gW.guests || [] }));
+        DS.startFrom(svW); gW = DS.G; frW = 0; heldW = false; DS.paused = false; stepW(200);
+        check('a save in the Wet loads onto the 8-bit floor: on ' + (DS.field && DS.field.map && DS.field.map.id) + ', no frame (' + frW + '), nothing running (' + !DS.scriptActive() + ')', DS.field && DS.field.map && DS.field.map.id === 'warrens_d' && frW === 0 && !DS.scriptActive());
+        [['jelly', 'jellyDead'], ['poolOoze', 'poolOozeDead'], ['landlordNear', 'otyughDead']].forEach(function (w) {
+          var g2 = SETUP(4); delete g2.flags.otyughFed; DS.field.load('warrens_d', 2, 12, 'right'); DS.paused = false; frW = 0;
+          var tr = (DS.field.map.src.triggers || []).filter(function (t) { return t.script === w[0] && DS.cond(t.cond); })[0], doneT = false, b = null;
+          if (!tr) { check('the Settling\'s ' + w[0] + ': no live trigger on the floor', false); return; }
+          var r0 = tr.rect || [tr.x, tr.y, 1, 1]; g2.x = r0[0]; g2.y = r0[1];
+          DS.run(function* () { yield* DS.EV.trigger(tr, DS.field); }, function () { doneT = true; });
+          stepW(600, function () { return !!DS.find('battle'); }); b = DS.find('battle');
+          if (b) { b.foes.forEach(function (f) { f.hp = 0; f.dead = true; }); drive({}, 1500); }
+          stepW(800, function () { return doneT && !DS.scriptActive(); });
+          check('the Settling\'s ' + w[0] + ' (' + tr.id + ') on the 8-bit floor: the 8-bit battle (' + !!b + ', ' + (b && b.o.enemies.join(',')) + ', deep16 ' + (b && b.o.deep16) + '), no frame (' + frW + '), ' + w[1] + ' ' + g2.flags[w[1]] + ', the scene done (' + doneT + ')',
+            !!b && b.o.deep16 === 'wet' && frW === 0 && g2.flags[w[1]] === 1 && doneT);
+        });
+      } catch (eW) { check('threw: ' + String(eW && eW.stack || eW).slice(0, 400), false); }
+      finally { window.setTimeout = set0W; }
     } else if (test === 'payout1014') {
       // a won fight's payout, lifted into js/rules.js (10-14, the party-token map lane §6d: R.tally, R.spoils, R.shareXP -- one copy the grid's roam pays by too): the same
       // XP, coin, drops, parts, tally and lines for the same dice. One foe fled (nothing off it); the parts' skills on the party as they stand. Its PAID line is the receipt

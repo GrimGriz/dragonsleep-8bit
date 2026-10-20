@@ -1,7 +1,7 @@
-/* THE KEEPER'S STAIR, the 8-bit half (dev/keeper-probe.py runs it after the grid's checks; 10-03): the quest's ways through js/events.js S.stair and S.mark, and the
-   seam (js/embed.js) carrying where the party comes in -- WADE IN starts the fight with the party on the ledge ('ledge'); a hand on the mark starts it by the rune ('rune');
-   the rope with the Keeper asleep brings the five up with no fight at all; the rope with it awake fights first, by the rune. DEEP16 is not run: a stub battle answers
-   (what the scene asked for, and a result), and through the seam the grid's 'd16:ready' and 'd16:done' are dispatched as its iframe would send them (dev/wet8-probe.js's way). */
+/* THE KEEPER'S STAIR, the 8-bit half (dev/keeper-probe.py runs it after the grid's checks; 10-03): the quest's ways through js/events.js S.stair and S.mark, and where
+   the party comes in -- WADE IN starts the fight with the party on the ledge ('ledge'); a hand on the mark starts it by the rune ('rune'); the rope with the Keeper asleep
+   brings the five up with no fight at all; the rope with it awake fights first, by the rune. A stub battle answers (what the scene asked for, and a result); then the
+   8-bit battle itself (since 10-20 the only path, js/embed.js -- till then the seam, the grid's 'd16:ready' and 'd16:done' dispatched as its iframe would send them). */
 (function () {
   var DS = window.DS, T = window.T, out = { checks: [], errors: [] };
   function check(what, ok) { out.checks.push([what, !!ok]); }
@@ -71,36 +71,34 @@
     check('the mark\'s fight lost (awake, not done: ' + lostOk + '); then the rope: "' + L('w.ropeAwake').slice(0, 30) + '..." and the fight first, ' + JSON.stringify({ deep16: o.deep16, start: o.start }) + '; won, the five up (' + fl(g) + ')',
       lostOk && fin && sent.length === 1 && o.deep16 === 'keeper' && o.start === 'rune' && heard('w.ropeAwake') && g.flags.keeperDone === 1 && g.flags.fiveRecovered === 1);
     DS.battle = base;
-    // ---- THE SEAM (js/embed.js open): what the grid is handed -- the fight and where the party comes in -- and the grid's win back through it
-    function seam(script, answers, at) {
-      var gs = fresh(at); if (answers[0] === 'ROPE') gs.give('rope', 1); var opts = null, fight = null, fin3 = false;
+    // ---- THE 8-BIT BATTLE (since 10-20 the only path -- js/embed.js; the first game lane: "8 bit solely 8-bit after this"). Till then THE SEAM: the grid handed the fight
+    // and where the party came in, and its win dispatched back through the frame. Now: the Keeper's fight is the 8-bit battle, no frame at any step, its foe put down at
+    // its first frame and the 8-bit's own ending run, and the five come up; the rope with the Keeper asleep is still no fight at all
+    function eight(script, answers, at) {
+      var gs = fresh(at); if (answers[0] === 'ROPE') gs.give('rope', 1); var fin3 = false, b = null, frame = false, st0 = window.setTimeout;
       said = []; var answ = answers.slice();
+      window.setTimeout = function (fn) { pending.push(fn); return 0; }; // (the 8-bit battle resumes its script on a macrotask: here it waits in the queue T.step drains -- dev/bench8.js's way)
       DS.run(script, function () { fin3 = true; });
-      for (var i = 0; i < 600 && !document.getElementById('d16'); i++) {
-        var tp = DS.top(), k = tp && tp.kind, menu = k === 'dialog' ? tp.menu : null;
-        if (menu) { var a = answ.length ? String(answ[0]).toUpperCase() : null, j = a ? menu.items.findIndex(function (it) { return String(it.label).toUpperCase().indexOf(a) === 0; }) : -1; if (j >= 0) answ.shift(); menu.i = Math.max(0, j); T.tapf('a'); }
-        else if (k === 'dialog') { if (tp.chars < tp.pageLen()) tp.chars = tp.pageLen(); T.tapf('a'); } else T.step(1);
+      for (var i = 0; i < 6000 && !(fin3 && !DS.scriptActive()); i++) {
+        if (document.getElementById('d16')) frame = true;
+        var tp = DS.top(), k = tp && tp.kind, bb = DS.find('battle'), menu = (k === 'dialog' || k === 'menu') ? tp.menu : null;
+        if (bb && !b) { b = bb; bb.foes.forEach(function (f) { f.hp = 0; f.dead = true; }); }
+        if (menu && !bb) { var a = answ.length ? String(answ[0]).toUpperCase() : null, j = a ? menu.items.findIndex(function (it) { return String(it.label).toUpperCase().indexOf(a) === 0; }) : -1; if (j >= 0) answ.shift(); menu.i = Math.max(0, j); T.tapf('a'); }
+        else if (k === 'dialog') { if (tp.chars < tp.pageLen()) tp.chars = tp.pageLen(); T.tapf('a'); }
+        else if (k === 'menu' || k === 'target' || k === 'battle') T.tapf('a');
+        else T.step(1);
       }
-      var fr = document.getElementById('d16'), st0 = window.setTimeout;
-      if (fr) {
-        window.setTimeout = function (fn) { pending.push(fn); return 0; }; // (the 8-bit battle resumes its script on a macrotask: here it waits in the queue T.step drains -- dev/bench8.js's way)
-        try { fr.contentWindow.postMessage = function (m) { opts = m && m.opts; fight = m && m.fight; }; } catch (e) { }
-        window.dispatchEvent(new MessageEvent('message', { source: fr.contentWindow, data: { type: 'd16:ready' } }));
-        window.dispatchEvent(new MessageEvent('message', { source: fr.contentWindow, data: { type: 'd16:done', result: 'won', party: [], foes: [{ id: 'keeper', kind: 'keeper', i8: 0, dead: true }], inv0: {}, inv1: {} } }));
-        for (var s = 0; s < 4000 && !(fin3 && !DS.scriptActive()); s++) { // (the 8-bit battle's ending on the grid's result -- Victory!, the XP -- and the scene after it)
-          var t2 = DS.top(), k2 = t2 && t2.kind; if (k2 === 'dialog') { if (t2.chars < t2.pageLen()) t2.chars = t2.pageLen(); T.tapf('a'); } else if (k2 === 'menu' || k2 === 'battle') T.tapf('a'); else T.step(1); }
-        window.setTimeout = st0;
-      }
-      return { g: gs, opts: opts, fight: fight, iframe: !!fr, fin: fin3 };
+      window.setTimeout = st0;
+      return { g: gs, b: b, o: b && b.o, frame: frame, fin: fin3 };
     }
-    var sw = seam(DS.SCRIPTS.stair, ['WADE'], STAIR);
-    check('through the seam, WADE IN: the grid is handed ' + JSON.stringify({ fight: sw.fight, start: sw.opts && sw.opts.start, canRun: sw.opts && sw.opts.canRun }) + '; the grid\'s win comes back and the five come up (' + fl(sw.g) + ')',
-      sw.iframe && sw.fight === 'keeper' && sw.opts && sw.opts.start === 'ledge' && sw.opts.canRun === true && sw.g.flags.fiveRecovered === 1 && sw.g.flags.keeperDone === 1);
-    var sm = seam(DS.SCRIPTS.mark, ['PUT'], MARK);
-    check('through the seam, a hand on the mark: the grid is handed ' + JSON.stringify({ fight: sm.fight, start: sm.opts && sm.opts.start }) + '; won, the five up (' + fl(sm.g) + ')',
-      sm.iframe && sm.fight === 'keeper' && sm.opts && sm.opts.start === 'rune' && sm.g.flags.fiveRecovered === 1 && sm.g.flags.keeperDone === 1);
-    var sr = seam(DS.SCRIPTS.stair, ['ROPE'], STAIR);
-    check('through the seam, the rope with the Keeper asleep: no grid at all (iframe ' + sr.iframe + '), the five up (' + fl(sr.g) + ')', !sr.iframe && sr.g.flags.fiveRecovered === 1 && !sr.g.flags.keeperDone);
+    var sw = eight(DS.SCRIPTS.stair, ['WADE'], STAIR);
+    check('the 8-bit battle, WADE IN: ' + JSON.stringify({ deep16: sw.o && sw.o.deep16, start: sw.o && sw.o.start, canRun: sw.o && sw.o.canRun, foes: sw.b && sw.b.foes.length }) + ', no frame (' + !sw.frame + '); won, the five come up (' + fl(sw.g) + ')',
+      !!sw.b && !sw.frame && sw.o.deep16 === 'keeper' && sw.o.start === 'ledge' && sw.o.canRun === true && sw.g.flags.fiveRecovered === 1 && sw.g.flags.keeperDone === 1);
+    var sm = eight(DS.SCRIPTS.mark, ['PUT'], MARK);
+    check('the 8-bit battle, a hand on the mark: ' + JSON.stringify({ deep16: sm.o && sm.o.deep16, start: sm.o && sm.o.start }) + ', no frame (' + !sm.frame + '); won, the five up (' + fl(sm.g) + ')',
+      !!sm.b && !sm.frame && sm.o.deep16 === 'keeper' && sm.o.start === 'rune' && sm.g.flags.fiveRecovered === 1 && sm.g.flags.keeperDone === 1);
+    var sr = eight(DS.SCRIPTS.stair, ['ROPE'], STAIR);
+    check('the rope with the Keeper asleep: no fight at all (battle ' + !!sr.b + ', frame ' + sr.frame + '), the five up (' + fl(sr.g) + ')', !sr.b && !sr.frame && sr.g.flags.fiveRecovered === 1 && !sr.g.flags.keeperDone);
   } catch (e) { out.errors.push(String(e && e.stack || e).slice(0, 800)); }
   if (DS.lastError) out.errors.push('lastError: ' + String(DS.lastError.stack || DS.lastError).slice(0, 600));
   var p = document.createElement('pre'); p.textContent = 'KEEPER8 ' + JSON.stringify(out); document.body.appendChild(p);

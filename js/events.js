@@ -30,6 +30,12 @@
 
   // ------------------------------------------------------------------ movement & maps
   EV.warp = function* (to, tx, ty, dir, w) {
+    // Corwen Dace goes no farther than the mine: walking out of it with him a guest, he stops at the mouth and goes back to the house (the road lane §4, his escort
+    // notes (1); RULED 10-01c, Griz: "game over if the kid falls" -- he stands only in the mine's fights). The first game lane, 10-20
+    if (DS.EV.hasGuest && DS.EV.hasGuest('dace') && F().map && /^galleries_/.test(F().map.id) && !/^galleries_/.test(to)) {
+      EV.dropGuest('dace'); delete G().flags.daceWith; delete G().flags.daceAfter; if (F().refreshNpcs) F().refreshNpcs();
+      yield DS.say(L('dace.mouth'), who('Corwen Dace'));
+    }
     var prev = F().map ? F().map.src.name : null;
     if (F().map && to !== F().map.id) EV.torchOut(); // (another map: the field torch is done; a lantern or the lamp stays lit in the hand -- 09-30d)
     yield DS.fade(1, 12);
@@ -1221,17 +1227,8 @@
     var g = G();
     if (!g.flags.reachedInn) { g.flags.reachedInn = 1; yield DS.say(L('inn.arrive')); }
   };
-  // the Snoot's call (Griz 10-15: the Snoot starts from the Halfway Inn -- "For now, just auto-pin it as a mission in the journal"): the runner from the
-  // Pit in the yard after the Skylights; TO THE SNOOT offers the save, then the page goes to the Snoot mode (snoot-mode/?from=road: its own four at
-  // 8th, its own save, BACK TO THE ROAD on its title). THE SNOOT stays open till the inn's own start of it is built (flag snootBattleDone)
-  S.snootCall = function* (npc, D) {
-    yield* EV.dialog(D);
-    var a = yield DS.ask(L('inn.snootAsk'), ['TO THE SNOOT', 'NOT YET'], who('A runner from the Pit'));
-    if (a !== 0) { yield DS.say(L('inn.snootNotYet')); return; }
-    var s = yield DS.ask(L('g.saveAsk'), ['SAVE', 'NO']);
-    if (s === 0) yield W8.scene(new DS.SlotScene(true));
-    window.location.href = 'snoot-mode/?from=road';
-  };
+  // (the Snoot's call -- the runner from the Pit in the yard after the Skylights, TO THE SNOOT to snoot-mode/ -- left the first game with the Skylights, 10-20: the
+  // Snoot is the second game's, snoot-mode/)
   S.gennet = function* (npc, D) {
     var g = G();
     yield* EV.dialog(D);
@@ -1541,6 +1538,10 @@
     if (how !== 'inn' && g.has('ringofbinding')) yield DS.say(L('wagon.ringCold')); // the lake was fed tonight
     yield* EV.morning();
   };
+  // what the lake gave back (Elsbeth's gift, or the chuul's corpse): the lead's armour +1, or a ring of protection
+  EV.lakeGiftId = function () { var arm = R.item(G().main().equip.armor); return arm && DS.DATA.items[arm.id + '1'] ? arm.id + '1' : 'ringofprotection'; };
+  // had it already: lakeGiftGot since 10-20; a save from before it, by the wagon stopped (EV.wagonFreed's doranAway) with her thanks no longer owed
+  EV.lakeGiftHad = function () { var f = G().flags; return !!(f.lakeGiftGot || (f.doranAway && !f.wagonGift)); };
   // Elsbeth, after the wagon's been stopped: the lake gave it back; it should go to somebody who stops things
   EV.wagonGift = function* () {
     var g = G(), main = g.main(), f = F(), els = EV.npc('elsbeth'), home = null;
@@ -1555,9 +1556,9 @@
         g.dir = { down: 'up', up: 'down', right: 'left', left: 'right' }[face];
       }
     }
-    var arm = R.item(main.equip.armor), id = arm && DS.DATA.items[arm.id + '1'] ? arm.id + '1' : 'ringofprotection', it = DS.DATA.items[id];
+    var id = EV.lakeGiftId(), it = DS.DATA.items[id];
     yield DS.say(L('wagon.gift'), who('Elsbeth'));
-    g.give(id, 1); DS.audio.sfx('chest');
+    g.give(id, 1); DS.audio.sfx('chest'); g.flags.lakeGiftGot = 1;
     yield DS.say(L('g.got', { item: it.name }));
     if (it.kind === 'armor') {
       var eq = yield DS.ask(L('winters.equipAsk', { name: main.name }), ['YES', 'NO']);
@@ -1681,6 +1682,15 @@
     if (res !== 'win') return;
     g.flags.lakeDone = 1;
     yield DS.say(L('lake.after'));
+    // what the lake gives back, on the thing itself when nobody at the inn handed it on (Griz, 10-20: "Find the lake gave back item on the corpse of the monster (didn't
+    // have time to give it back)"): Elsbeth's gift (EV.wagonGift) if the party never had it -- the wagon let go, or her thanks still owed -- here, and owed no longer
+    if (!EV.lakeGiftHad()) {
+      delete g.flags.wagonGift; g.flags.lakeGiftGot = 1;
+      var lg = EV.lakeGiftId(), lgi = DS.DATA.items[lg];
+      yield DS.say(L('lake.corpseGift'));
+      g.give(lg, 1); DS.audio.sfx('chest');
+      yield DS.say(L('g.got', { item: lgi.name }));
+    }
     yield* EV.renown(2, 'renown.lake');
     yield DS.say(L('lake.ending'));
     DS.audio.play('ending', true);

@@ -10,7 +10,9 @@ An 8-bit, turn-based RPG of Silverton and the Silverton–Pit corridor, in the s
 
 **Up to the Doors, down to the Pit, and through Deepholm's door:** coming in expansion packs. [Donate to support them](https://ko-fi.com/grimgriz).
 
-**Past the door, 16-bit:** [`deep16/`](deep16/README.md) is a proof of concept of the world beyond Deepholm's door at a Diablo angle, on a 5-ft grid with more of the 5E rules (https://grimgriz.github.io/dragonsleep-8bit/deep16/, or PAST THE DOOR after the expansion's credits).
+**The first game (10-20):** the 8-bit game is finished as THE FIRST GAME. It ends at Deepholm's door -- the raid at Third Lamp, the road held, the consult -- with the credits THE ROAD IS HELD, and it is 8-bit all the way: every fight is the 8-bit battle and the Wet is its own 8-bit floor. To play the ending in a minute: https://grimgriz.github.io/dragonsleep-8bit/?at=ending. It takes bug fixes from here; new story is THE SECOND GAME's.
+
+**Past the door, 16-bit:** [`deep16/`](deep16/README.md) is a proof of concept of the world beyond Deepholm's door at a Diablo angle, on a 5-ft grid with more of the 5E rules (https://grimgriz.github.io/dragonsleep-8bit/deep16/, or POCKET DM on the title). It is where THE SECOND GAME will be built: the Skylights, the Wet on the grid and the story fights on the grid live there now.
 
 **The dark (09-28):** the mines, the wet, the Burial and the road under the mountain are dark. You see the map; the characters see by their torches (a hand each), their lights and their darkvision, and whoever swings at what they cannot see does it at disadvantage until somebody makes a light. Torches are a silver at the Provisioner's, the Chandler's and the garrison stores. A hooded lantern (fifty silver, the Provisioner's and the Chandler's) lights thirty feet and is never spent; with its hood down it gives a glimmer of five feet that wakes nothing overhead (09-29).
 

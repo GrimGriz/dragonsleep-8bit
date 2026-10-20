@@ -17,6 +17,12 @@
   var DS = window.DS = window.DS || {};
   var G1 = 'Eyes: first', G2 = 'Eyes: built this week', G3 = 'Eyes: built before, never seen';
   DS.EYES = {
+    'eyes-ending-1020': { pri: 1, group: G1, title: 'THE FIRST GAME’s ending: the consult and THE ROAD IS HELD, nothing handed to the grid (10-20)', pt: 'the first game lane (js/deep.js EV.consult, EV.expansionEnd; js/situations.js ending)',
+      url: '?at=ending',
+      look: 'Your 10-20 (“Revert to the old ending in 8-bit before the edifice fight was added and call it the first game”; “ship to live with a door to the ending”). Pick a lead; you stand at Deepholm’s door with Ingrith. E on the door: Dagny, Ingrith goes through and you do not, the SUNSHAFT STAFF for Aurdin, 5,000 XP, then the credits -- DRAGONSLEEP, Behind the Fountains, the line your choices wrote, DEEPHOLM coming in an expansion. At their end THE ROAD IS HELD with CONTINUE and TITLE only (PAST THE DOOR is gone). No runner from the surface after the raid, no TO THE SURFACE! on a lamp, no THE SNOOT; every story fight is the 8-bit battle, the Wet its own 8-bit floor.' },
+    'eyes-chuul-dock-1020': { pri: 2, group: G2, title: 'The chuul after the wagon night: the dock shut till then, the lake’s gift on its corpse (10-20)', pt: 'the first game lane, his 10-19 notes (tools/mapgen.py rowboat; js/events.js S.lakeFight, EV.lakeGiftId)',
+      url: '?at=wagon',
+      look: 'Your 10-20 (“Find the lake gave back item on the corpse of the monster (didn’t have time to give it back) ... we might have to turn the dock off until they stay at the inn once”). Before you take a room, walk out to the rowboat on the point: nothing happens. Stay the night (the wagon comes; let it go with KEEP WATCH, or stop it). The morning after, step onto the rowboat: PUSH OUT AND SOUND THE DEEP is the chuul. If the wagon went on its way, the chuul’s corpse gives back the lead’s armour +1 (or a Ring of Protection); if you stopped it, Elsbeth already gave you that, and the corpse has nothing.' },
     'eyes-release-frame-1015': { pri: 2, group: G2, title: 'The arrow leaves on the bow hand’s frame, at every pace (10-15)', pt: 'the grid’s rules, arrow timing (deep16/js/battle.js attack, Battle.unpace) · eyes',
       url: 'deep16/?show=hobgoblin&fresh=1',
       look: 'The hobgoblin’s rows, each played twice. Watch the LONGBOW: the arrow leaves as the bow hand opens (its release frame), not a beat after -- at the pace you play at (PACE in the M menu: 1, 1.25, 1.5), the same frame. It was a frame late at 1.25 and two at 1.5, for every row that names its release: the goblin’s shortbow, GreyFang’s bow, the Harbinger’s pounce.' },
@@ -218,12 +224,6 @@
     'eyes-stair-awake-1014': { pri: 2, group: G2, title: 'The flooded stair with the Keeper awake (10-14)', pt: 'the road §7d (js/events.js S.stair, S.mark)',
       url: '?at=stair',
       look: 'WADE IN, then LEAVE THE FIGHT (the corridor’s east end, once the wall is down): back on the stair, E on the water says the water is moving and what keeps it is awake; WADE IN again meets it already waiting. The mark on the north wall is only a mark now: no PUT A HAND ON IT.' },
-    'eyes-roam-handback-1014': { pri: 2, group: G2, title: 'The Wet on the grid: a cast, the familiar, a cradle, SAVE greyed (10-14)', pt: 'the party-token map §9 (deep16/js/roam.js R.handOut, R.actOut, R.famPlace, R.cradle; js/embed.js DS.roam8.hand)',
-      url: '?at=roam',
-      look: 'Out of a fight, M then MAGIC: Aurdin casts Find Familiar -- the floor steps aside for the 8-bit’s own scene (its form to pick), then the floor again where you stood; the familiar rides him in and out of the token and into the next fight. Cure Wounds on someone hurt comes back with the hit points and the slot spent; SAVE is greyed, as on every dungeon floor. E on a cradle plays the deep rate; roused, the crawler is fought on the floor beside the milker, stiff if the touch took.' },
-    'eyes-roam-drained-1014': { pri: 2, group: G2, title: 'The Wet on the grid, drained: the dry stair, the five, the cut seal (10-14)', pt: 'the party-token map §4.3 (deep16/js/roam.js R.rows8, R.warpsOn, R.scene8)',
-      url: '?at=roamdry',
-      look: 'The drowned stair is dry steps. Walk down onto its first row: the floor steps aside for the 8-bit’s dry-stair scene (the five’s tokens if nobody fetched them, the puddle, the cut door), then the floor again where you stood. Past it the seal is cut: step onto it and the 8-bit takes the party down to the Burial. The mark is only a mark; nothing to wade.' },
     'eyes-rope-push-1014': { pri: 2, group: G2, title: 'Five feet on a rope; a push off an edge falls (10-14)', pt: 'the grid’s rules §2h (deep16/js/battle.js Battle.ropeCap; js/magic.js M.push)',
       url: 'deep16/?fight=edifice&fresh=1',
       look: 'Two of yours on one rope: the one below climbs only to 5 ft under the one above (the rung picker says why past that), and one letting down stops 5 ft over the one below. Anything a spell pushes off the roof’s edge (Thunderwave, Gust of Wind, Repelling Blast) falls the 45 ft: 4d6 and prone. Anyone knocked off lies where they land, Barley in the fountain too.' },

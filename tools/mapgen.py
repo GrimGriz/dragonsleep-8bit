@@ -842,7 +842,7 @@ def build_galleries():
     g.trig('rescue', 25, 5, 'rescue', on='step', once=True, cond='flag:cullHired')
     g.trig('badair', 44, 15, 'badAir', on='step', w=7, h=3)
     g.chest(50, 17, 'ringofprotection', 1)
-    g.npc('dacedown', 46, 10, 'clerk', dir='left', cond='flag:cullHired & !flag:cloakerDone')
+    g.npc('dacedown', 46, 10, 'clerk', dir='left', cond='flag:cullHired & !flag:cloakerDone & !flag:cloakerKilled & !has:cloakertail & !flag:daceWith')   # (gone once the cloaker is dead or he walks with you: the first game lane, 10-20)
     g.npc('drivecrew', 30, 10, 'worker2', dir='down', cond='flag:cullHired')
     g.zone('g3', 0, 0, 44, H)
     save('galleries_g3', g, 'cave', 'The guano mine — the dens', music='dungeon', bg='guano', save=False, roost=True, dark=True)
@@ -862,10 +862,11 @@ def build_galleries():
     g.put(35, 20, '#'); g.put(35, 19, '#'); g.put(11, 25, '#')   # passages off, not this adventure: signed dead ends, no open edge
     g.warp(9, 1, 'galleries_g3', 50, 9, 'left', sfx='stairs')
     g.warp(3, 2, 'galleries_g2', 27, 5, 'down', sfx='stairs')
-    # it drops on you once you're out in the big room, whichever way you came down (ladder or slide)
-    g.trig('cloaker', 5, 8, 'cloaker', on='step', w=28, h=16, cond='!flag:cloakerDone')
-    # after the kill, Dace down again: THE CLOAK or THE PAGE (4fabec1)
+    # after the kill, Dace down again: THE CLOAK or THE PAGE (4fabec1). First in the list: the two share one rect and js/world.js triggerAt takes the first that holds
     g.trig('daceDeep', 5, 8, 'daceDeep', on='step', w=28, h=16, cond='flag:daceAfter & !flag:daceDone')
+    # it drops on you once you're out in the big room, whichever way you came down (ladder or slide) -- till it is killed (cloakerKilled; the tail in the pack for a
+    # save from before that flag), not only till Hessle pays for the tail: the first game lane, 10-20, daceDeep never fired under it
+    g.trig('cloaker', 5, 8, 'cloaker', on='step', w=28, h=16, cond='!flag:cloakerDone & !flag:cloakerKilled & !has:cloakertail')
     g.sign(35, 19, 'A passage runs off into the dark, east. Not this adventure.', 'GalleriesModule/guano-galleries-DM.md §2 G4 (beyond: not mapped)')
     g.sign(11, 25, 'A passage runs off south. Not this adventure.', 'GalleriesModule/guano-galleries-DM.md §2 G4 (beyond: not mapped)')
     g.chest(25, 17, 'maul1', 1)
@@ -894,7 +895,7 @@ def build_gulch():
     for (x, y) in [(0, 5), (0, 6), (1, 5), (1, 6), (38, 25), (38, 26), (39, 25), (39, 26)]:
         g.put(x, y, 'U')
     g.npc('silkcutter', 8, 9, 'worker', dir='right')
-    g.npc('drummer', 7, 10, 'boy', dir='up', idle=True)
+    g.npc('drummer', 10, 9, 'boy', dir='left', idle=True)       # at his drum: the crate at (9, 9) beside him (his 10-19 note; the first game lane, 10-20)
     # the snared traveler: a silk-wrapped shape strung between two stunted trees, just off the way down
     g.put(17, 17, 'e'); g.put(19, 17, 'e'); g.put(18, 17, 'Q')
     g.trig('snared', 18, 17, 'snared', on='use', once=True)
@@ -943,10 +944,9 @@ def build_halfway():
     g.npc('orrin', 25, 13, 'kid', dir='right', cond='!flag:dueSeen')
     g.npc('pell', 22, 16, 'kid', wander=1, cond='!flag:dueSeen')
     g.npc('adoptedKid', 24, 18, 'girl', wander=1, cond='flag:kidAtInn & !flag:dueSeen')   # the one she kept, out back by the water
-    g.npc('pitRunner', 16, 12, 'guard', dir='down', cond='flag:skylightsWon')   # the Snoot's call (Griz 10-15): a runner from the Pit, after the Skylights
     g.trig('point', 28, 11, 'point', on='use', w=3, h=5)
     g.trig('pointStep', 27, 13, 'pointStep', on='step')
-    g.trig('rowboat', 27, 15, 'rowboat', on='step')
+    g.trig('rowboat', 27, 15, 'rowboat', on='step', cond='flag:wagonNight')   # the dock shut till the first night at the inn has played, so the wagon is gone before the chuul (Griz 10-20: "we might have to turn the dock off until they stay at the inn once")
     g.sign(26, 11, 'A lantern post by the flat stone. Nobody swims here. Nobody draws from the lake. The well is for that.', 'wiki/halfway-inn-and-lake.md; module-halfway-inn.md §2 (the point)')
     save('halfway', g, 'town', 'The Halfway Inn', music='lake', bg='lake', outside=True,
          exits={'west': {'to': 'world', 'tx': 33, 'ty': 37, 'dir': 'left'}, 'north': {'to': 'world', 'tx': 33, 'ty': 36, 'dir': 'up'},

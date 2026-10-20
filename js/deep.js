@@ -497,10 +497,12 @@
       nh.ko = !!x.h.ko; nh.hp = nh.ko ? 0 : Math.max(1, Math.min(nh.hp, Math.round(nh.maxhp * x.h.hp / Math.max(1, x.h.maxhp))));
       x.h = nh;
     });
-    // a save in the Wet (the roam's SAVE on the floor, 10-14, Griz: "SAVE on the floor ... then reopen the floor where they stood"): a load opens the floor again on the square
-    // it was saved on, as the warp in does (a load fires no map's enter hook); the 8-bit's own Wet when the roam is off (DS.roam8.on)
-    var F0 = DS.field;
-    if (F0 && F0.map && F0.map.id === 'warrens_d' && DS.roam8 && DS.roam8.on()) DS.run(function* () { yield* DS.roam8.enter(); });
+    // a save from the Skylights' weeks (10-05 to 10-20) lands on the first game's own ending (RULED 10-20, Griz: "Revert to the old ending in 8-bit before the edifice fight
+    // was added and call it the first game"): the runner heard or the Skylights won are no longer anything, and THE SNOOT pinned points where the road does -- the door once
+    // the road is held, else the road to it (the raid's own pin). A save in the Wet loads on the 8-bit's own floor: the roam is gone with them ("8 bit solely 8-bit after this")
+    var gS = G();
+    if (gS.flags.surfaceCall || gS.flags.skylightsWon) { delete gS.flags.surfaceCall; delete gS.flags.skylightsWon; console.warn('save: the call from the surface left the first game (10-20): the road as it was'); }
+    if (gS.flags.pin === 'thesnoot') { if (gS.flags.expansionDone) delete gS.flags.pin; else gS.flags.pin = gS.flags.highwaySecured ? 'thedoor' : 'solskaft'; }
   };
   EV.dropGuests = function () { G().guests = []; };
   EV.dropGuest = function (key) { var g = G(); g.guests = (g.guests || []).filter(function (x) { return x.id !== key; }); };
@@ -550,54 +552,15 @@
     var f = G().flags;
     return f.captainHome && f['lamp' + n] && !(n === 3 && f.wordBelow && !f.raidWon);
   }
-  // the call up (10-05 night, Griz: "a fella running in after lamp 3 is clear, saying there's an attack on the surface - chance to save - them lamping from 3 starts this fight -
-  // with xp reward hand back to 8 bit after the battle"): a runner down the lamps from Solskaft -- giants and trolls at the Edifice, for the skylights -- then the save offered, and the
-  // lamps' way up is the way into the fight (EV.roadMenu: TO THE SURFACE!, S.skylights). Once, at the end of the raid; a save already past the raid hears it at the next lamp it
-  // touches. The lines are the seat's drafts (invented.json skylights-call)
-  EV.surfaceCall = function* () {
-    var g = G(); if (!g.flags.raidWon || g.flags.surfaceCall || g.flags.skylightsWon || !DS.field || g.party.every(function (h) { return h.ko; })) return;
-    g.flags.surfaceCall = 1;
-    var f = F(), spots = [[g.x + 1, g.y], [g.x - 1, g.y], [g.x, g.y + 1], [g.x, g.y - 1]].filter(function (q) { return f.free(q[0], q[1]); });
-    var r = spots.length ? spawn({ id: 'surfacerunner', x: spots[0][0], y: spots[0][1], look: 'dtrooper2', dir: 'down' }) : null;
-    if (r) { faceTo(r, g.x, g.y); playerFace(r.x, r.y); }
-    yield DS.say(L('deep.surfaceCome'));
-    yield DS.say(L('deep.surfaceRunner'), who('A runner from Solskaft'));
-    if (r) r.path = ['wait20', 'hide'];
-    var s = yield DS.ask(L('g.saveAsk'), ['SAVE', 'NO']);
-    if (s === 0) yield W8.scene(new DS.SlotScene(true));
-    yield DS.say(L('deep.surfaceLamp'));
-  };
-  // the Skylights (DEEP16: deep16/data/fights.js edifice): up the lamps at a run and out through the vault onto Fountain Street, where the lamps' way up comes out; the grid
-  // fights it and hands back what it did, and the 8-bit's own ending pays it -- Victory!, the XP of two stone giants and four trolls, their silver; a loss is GAME OVER, as
-  // any is (the king's fall too: "Obviously that didn't happen") -- the save just made is the way back
-  S.skylights = function* () {
-    var g = G();
-    yield DS.fade(1, 20);
-    yield DS.say(L('deep.surfaceUp'), { top: true, auto: 70 });
-    DS.field.load('solskaft_deep', 36, 11, 'left'); DS.field.banner = 90;
-    yield DS.fade(0, 20);
-    // (Pyro: the fight's own guest -- deep16 fights.js edifice `guests` -- which the grid adds only on its own doors; inside the 8-bit game the scene sends its own (battle.js),
-    // so the king is a guest for this fight and goes back to his city after it. 10-05 night, Griz on the live game: "pyro never came out the door when I played")
-    var hadPyro = EV.hasGuest('pyro'); if (!hadPyro) EV.addGuest('pyro');
-    var res = yield* EV.fight(['stonegiant', 'stonegiant', 'troll', 'troll', 'troll', 'troll'], { bg: 'dwarf', music: 'boss', canRun: false, introText: L('deep.skylightsIntro'), deep16: 'edifice' });
-    if (!hadPyro) EV.dropGuest('pyro');
-    if (res !== 'win') return;
-    g.flags.skylightsWon = 1;
-    yield DS.say(L('deep.skylightsWon'));
-    // the Snoot's call (Griz 10-15: "we're going to move that to the half-way inn and start the snoot from there. For now, just auto-pin it as a mission in the journal that pops after the edifice fight"): the journal's
-    // THE SNOOT, pinned, its arrow on the runner in the Halfway Inn's yard (js/events.js S.snootCall)
-    g.flags.pin = 'thesnoot'; DS.audio.sfx('levelup');
-    yield DS.say(L('deep.snootCall'), { top: true });
-  };
+  // (the call from the surface and the Skylights, 10-05 night to 10-20: gone from the first game -- RULED 10-20, Griz: "Revert to the old ending in 8-bit before the edifice
+  // fight was added and call it the first game". The Skylights is the second game's, on the grid: deep16/data/fights.js edifice. A save that heard the runner: DS.startFrom)
   EV.roadMenu = function* (here) { // fast travel (spec §6.2) and, at a lamp, a night if you want one (re-cut F5)
-    if (here !== 'gate') yield* EV.surfaceCall(); // (a save past the raid that never heard the runner hears him here -- 10-05 night)
-    var g = G(), opts = [], vals = [], call = g.flags.surfaceCall && !g.flags.skylightsWon; // (the call out: the way up is the fight -- S.skylights)
-    if (here !== 'gate') { if (call) { opts.push('TO THE SURFACE!'); vals.push('surface'); } opts.push('REST HERE'); vals.push('rest'); if (g.flags.captainHome && !call) { opts.push('BACK UP TO SOLSKAFT'); vals.push('up'); } }
+    var g = G(), opts = [], vals = [];
+    if (here !== 'gate') { opts.push('REST HERE'); vals.push('rest'); if (g.flags.captainHome) { opts.push('BACK UP TO SOLSKAFT'); vals.push('up'); } }
     [1, 2, 3].forEach(function (n) { if (lampWarpable(n) && n !== here) { opts.push('TO ' + LAMP_NAME[n]); vals.push(n); } });
     if (here === 'gate') { opts.unshift('WALK THE ROAD'); vals.unshift('walk'); }
     opts.push('NOT NOW'); vals.push('no');
     var a = vals[yield DS.ask(L(here === 'gate' ? 'deep.roadMenuGate' : 'deep.roadMenuLamp'), opts)];
-    if (a === 'surface') { yield* S.skylights(); return; }
     if (a === 'rest') yield* lampRest();
     else if (a === 'up') yield* EV.lampWalk('solskaft_deep', 36, 11, 'left', 'deep.walkUp');
     else if (typeof a === 'number') { var at = LAMPS_AT[a]; yield* EV.lampWalk(at[0], at[1], at[2], 'right', a > (here === 'gate' ? 0 : here) ? 'deep.walkDown' : 'deep.walkUp'); }
@@ -611,7 +574,6 @@
   S.highwayGate = function* () {
     var g = G(), f = F(), GW = who('Gate watch');
     if (g.flags.wordBelow && !g.flags.mustered) { yield* S.muster(); return; }
-    if (g.flags.surfaceCall && !g.flags.skylightsWon) { yield* S.skylights(); return; } // (the call out and the road walked up to the gate: the fight is on -- 10-05 night)
     if (g.flags.roadOpen) { yield* EV.roadMenu('gate'); return; }
     if (g.flags.pyroLeads && !g.flags.captainHome) {
       yield DS.say(L('deep.gatePyro'), who('Pyronimus'));
@@ -906,7 +868,6 @@
     yield DS.say(L(guests ? 'deep.lamp3Lit' : 'deep.lamp3LitAlone'));
     if (guests) { yield DS.say(L('deep.escortsStay'), who('Hedda Greyseam')); EV.dropGuest('brann'); EV.dropGuest('hedda'); F().refreshNpcs(); }
     g.flags.pin = 'solskaft';
-    yield* EV.surfaceCall(); // (Third Lamp clear: the call from the surface -- 10-05 night)
   };
   S.captain = function* () { // the Greyseam knife: a sect blade on a garrison captain's body (spec §8: shown, not told)
     var g = G();
@@ -1192,7 +1153,7 @@
     yield* EV.expansionEnd();
   };
   EV.expansionEnd = function* () {
-    var g2 = G(), base = DS.DATA.credits, lines = [{ t: 'DRAGONSLEEP', big: true }, { t: 'Behind the Fountains', c: '#C8D0E8', gap: 16 }];
+    var base = DS.DATA.credits, lines = [{ t: 'DRAGONSLEEP', big: true }, { t: 'Behind the Fountains', c: '#C8D0E8', gap: 16 }];
     base.slice(2).forEach(function (l) {
       if (l.t === 'Thanks for playing.') {
         lines.push({ t: L(EV.receiptKey()), c: '#E0C8A0', gap: 20 });
@@ -1210,16 +1171,7 @@
       // the Sunshaft floor (Solskaft widened ten columns west in the re-cut)
       f2.load('solskaft', 28, 20, 'down'); DS.fadeLevel = 0;
       yield DS.say(L('deep.afterMorning'));
-    }, pastDoor: (g2.flags.expansionDone || g2.flags.highwaySecured) ? EV.pastTheDoor : null }));
-  };
-  // PAST THE DOOR (the DEEP16 POC's seam, handoff-2026-09-26-deep16-poc-spec.md §4): the save as it stands goes into
-  // `deep16.handoff` (same origin, one localStorage) and the page goes to deep16/, which reads it. No slot is written.
-  // The visual crossing (the frame gaining resolution) is a later handoff.
-  EV.pastTheDoor = function () {
-    var g3 = G();
-    var snap = JSON.parse(JSON.stringify({ v: g3.v, lead: g3.lead, party: g3.party, inv: g3.inv, silver: g3.silver, flags: g3.flags, renown: g3.renown, map: g3.map, x: g3.x, y: g3.y, dir: g3.dir, steps: g3.steps, time: g3.time, kills: g3.kills, hired: g3.hired, guests: g3.guests || [] }));
-    DS.store.set('deep16.handoff', { at: Date.now(), save: snap });
-    window.location.href = 'deep16/';
+    } })); // (no PAST THE DOOR since 10-20: it carried the save into deep16/ -- "8 bit solely 8-bit after this"; deep16/js/save.js still reads deep16.handoff, for the second game)
   };
 
   // ================================================================== the smoke (spec §12): Tam Vere's couch on vice row
@@ -1413,8 +1365,6 @@
     if (pre) { g.flags['said:' + D.id + ':pre:' + pre.key] = 1; yield DS.say(pre.say, who(pre.who || D.name)); return; }
     yield* baseTalk(npc);
   };
-  // the Wet on the grid (js/embed.js DS.roam8 -- the party-token map's seam, 10-14, Griz: "You should handle the seam given context?"): set down in warrens_d by a warp, the
-  // party walks the whole floor in DEEP16 and comes back at a way off it; the 8-bit's own Wet when the grid is off (DS.roam8.on: &noroam, or the stair drained)
-  var enterWet0 = S['enter:warrens_d'];
-  S['enter:warrens_d'] = function* () { if (enterWet0) yield* enterWet0.apply(this, arguments); if (DS.roam8 && DS.roam8.on()) yield* DS.roam8.enter(); };
+  // (the Wet on the grid -- the party-token map's roam, 10-14 to 10-20 -- is gone from the first game: the Wet is walked on its own 8-bit floor again, as before 0368220.
+  // RULED 10-20, Griz: "the 8-bit handoff (at the cradle and with light) are so jarring"; "8 bit solely 8-bit after this". The roam is the second game's: deep16/js/roam.js)
 })();

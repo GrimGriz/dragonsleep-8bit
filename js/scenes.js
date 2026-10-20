@@ -443,7 +443,6 @@
       onCancel: function () { DS.pop(self); }
     });
   }
-  DS.SlotScene = SlotScene; // (the roam's SAVE on the floor opens it from the seam: js/embed.js DS.roam8.hand)
   SlotScene.prototype.update = function () { if (this.done > 0) { if (--this.done === 0) DS.pop(this); return; } this.menu.update(); };
   // the list drawn here, not by DS.Menu's draw: a save's row is two lines tall, its name and under it the six eggs (10-15, the menus lane §2.2); the window
   // rises as far as it must for the message box under it to stay on the screen. DS.Menu still keeps the cursor and the keys
@@ -630,11 +629,12 @@
       }
     }
     if (what === 'sell') {
-      // most shops buy at half and won't touch gristle; Percy buys only parts, at a fifth of their rendered price
+      // most shops buy at half and won't touch gristle; Percy buys only parts, at a fifth of their rendered price. What a quest gave (noSell: the +1s, GreyFang's bow)
+      // no ordinary shop takes; Winters does (`buysNoSell` -- Griz, 10-20: "Winters is supposed to be the magic items guy"; the first game lane)
       var d = this.def, rate = d.buyRate || 0.5;
       var offer = function (it) { return Math.max(1, Math.floor(it.price * rate)); };
       while (true) {
-        var inv = G.inv.filter(function (s) { var it = DS.DATA.items[s.id]; return it.kind !== 'key' && it.price > 0 && (d.buysKind ? d.buysKind.indexOf(it.kind) >= 0 : it.kind !== 'part'); })
+        var inv = G.inv.filter(function (s) { var it = DS.DATA.items[s.id]; return it.kind !== 'key' && it.price > 0 && (!it.noSell || d.buysNoSell) && (d.buysKind ? d.buysKind.indexOf(it.kind) >= 0 : it.kind !== 'part'); })
           .map(function (s) { var it = DS.DATA.items[s.id]; return { label: it.name + ' x' + s.n, right: offer(it) + ' sp', value: s.id }; });
         if (!inv.length) { this.msg = d.nothingText || 'You have nothing I want.'; return; }
         var sid = yield DS.choose({ items: inv, x: 70, y: 68, w: 182, visible: 9, rowH: 12 });
@@ -764,16 +764,14 @@
     }
     if (I.pressed('menu')) DS.openKofi();
   };
-  // after the ending: carry on in a corridor with the lake quiet, or go to the title
+  // after the ending: carry on in a corridor with the lake quiet, or go to the title (PAST THE DOOR, the DEEP16 POC's seam, left with the hand-offs, 10-20)
   function AfterCredits(o) {
     var self = this;
     this.kind = 'after'; this.opaque = true; this.t = 0; this.o = o || {};
     var items = [{ label: 'CONTINUE', value: 'go' }, { label: 'TITLE', value: 'title' }];
-    if (this.o.pastDoor) items.push({ label: 'PAST THE DOOR', value: 'door', color: '#F8D878' }); // the DEEP16 POC's seam
     this.menu = new DS.Menu({ items: items, x: 76, y: 150, w: 104, cancelable: false,
       onSelect: function (it) {
         if (it.value === 'title') { DS.clearScenes(); DS.push(new Title()); return; }
-        if (it.value === 'door') { self.o.pastDoor(); return; }
         DS.run(self.o.onContinue || function* () { yield* DS.EV.afterTheLake(); });
       } });
   }
