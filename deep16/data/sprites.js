@@ -168,133 +168,416 @@
 }
 },
 "aurdin_p2": {
-"image": "art/aurdin_p2.png?v=a992ea26b0",
+"image": "art/aurdin_p2.png?v=c1a4b496fc",
 "fw": 64,
-"fh": 96,
+"fh": 112,
 "ax": 32,
-"ay": 84,
-"top": 50,
+"ay": 96,
+"top": 49,
 "anims": {
 "idle": {
 "y": 0,
 "fw": 64,
-"fh": 96,
+"fh": 112,
 "ax": 32,
-"ay": 84,
+"ay": 96,
 "frames": 6,
 "fps": 6
 },
 "walk": {
-"y": 768,
+"y": 896,
 "fw": 64,
-"fh": 96,
+"fh": 112,
 "ax": 32,
-"ay": 84,
+"ay": 96,
 "frames": 8,
 "fps": 10
 },
 "attack": {
-"y": 1536,
+"y": 1792,
 "fw": 64,
-"fh": 96,
+"fh": 112,
 "ax": 32,
-"ay": 84,
+"ay": 96,
 "frames": 6,
 "fps": 10,
 "release": 2
 },
 "hurt": {
-"y": 2304,
+"y": 2688,
 "fw": 80,
-"fh": 96,
+"fh": 112,
 "ax": 40,
-"ay": 84,
+"ay": 96,
 "frames": 6,
 "fps": 10
 },
 "sit": {
-"y": 3072,
+"y": 3584,
 "fw": 64,
-"fh": 96,
+"fh": 112,
 "ax": 32,
-"ay": 84,
+"ay": 96,
 "frames": 2,
 "fps": 2
 },
 "cast": {
-"y": 3840,
+"y": 4480,
 "fw": 64,
-"fh": 96,
+"fh": 112,
 "ax": 32,
-"ay": 84,
+"ay": 96,
 "frames": 6,
 "fps": 10
 },
 "flinch": {
-"y": 4608,
+"y": 5376,
 "fw": 64,
-"fh": 96,
+"fh": 112,
 "ax": 32,
-"ay": 84,
+"ay": 96,
 "frames": 4,
 "fps": 12
 },
 "prone": {
-"y": 5376,
-"fw": 88,
-"fh": 96,
-"ax": 44,
-"ay": 84,
+"y": 6272,
+"fw": 80,
+"fh": 112,
+"ax": 40,
+"ay": 96,
 "frames": 5,
 "fps": 10
 },
 "castup": {
-"y": 6144,
+"y": 7168,
 "fw": 64,
-"fh": 96,
+"fh": 112,
 "ax": 32,
-"ay": 84,
+"ay": 96,
 "frames": 6,
 "fps": 10
 },
 "defend": {
-"y": 6912,
+"y": 8064,
 "fw": 64,
-"fh": 96,
+"fh": 112,
 "ax": 32,
-"ay": 84,
+"ay": 96,
 "frames": 4,
 "fps": 8
 },
 "getup": {
-"y": 7680,
+"y": 8960,
 "fw": 80,
-"fh": 96,
+"fh": 112,
 "ax": 40,
-"ay": 84,
+"ay": 96,
 "frames": 6,
 "fps": 10
 },
-"useitem": {
-"y": 8448,
+"interact": {
+"y": 9856,
 "fw": 64,
-"fh": 96,
+"fh": 112,
 "ax": 32,
-"ay": 84,
+"ay": 96,
+"frames": 6,
+"fps": 10,
+"release": 2
+},
+"useitem": {
+"y": 10752,
+"fw": 64,
+"fh": 112,
+"ax": 32,
+"ay": 96,
 "frames": 4,
 "fps": 8
 },
 "victory": {
-"y": 9216,
+"y": 11648,
 "fw": 64,
-"fh": 96,
+"fh": 112,
 "ax": 32,
-"ay": 84,
+"ay": 96,
 "frames": 6,
 "fps": 8
+},
+"staffidle": {
+"y": 12544,
+"fw": 64,
+"fh": 112,
+"ax": 32,
+"ay": 96,
+"frames": 6,
+"fps": 6
+},
+"staffwalk": {
+"y": 13440,
+"fw": 64,
+"fh": 112,
+"ax": 32,
+"ay": 96,
+"frames": 8,
+"fps": 10
+},
+"staffcast": {
+"y": 14336,
+"fw": 88,
+"fh": 112,
+"ax": 44,
+"ay": 96,
+"frames": 6,
+"fps": 10,
+"release": 3
+},
+"staffrest": {
+"y": 15232,
+"fw": 64,
+"fh": 112,
+"ax": 32,
+"ay": 96,
+"frames": 6,
+"fps": 6
+},
+"staffstrike": {
+"y": 16128,
+"fw": 88,
+"fh": 112,
+"ax": 44,
+"ay": 96,
+"frames": 6,
+"fps": 10,
+"release": 3
+},
+"dagger": {
+"y": 17024,
+"fw": 72,
+"fh": 112,
+"ax": 36,
+"ay": 96,
+"frames": 6,
+"fps": 10,
+"release": 3
+},
+"wandcast": {
+"y": 17920,
+"fw": 72,
+"fh": 112,
+"ax": 36,
+"ay": 96,
+"frames": 6,
+"fps": 10,
+"release": 3
 }
 },
-"source": "drawn by the art desk (2026-10-18, ART-72, the Ochre Mantle: every row in all five views), cut and snapped by tools/aurdin-sheet.py"
+"source": "drawn by the art desk (ART-72, the Ochre Mantle and its supplements: every row in all five views), cut and snapped by tools/aurdin-sheet.py"
+},
+"aurdin_p3": {
+"image": "art/aurdin_p3.png?v=79042949c8",
+"fw": 64,
+"fh": 112,
+"ax": 32,
+"ay": 96,
+"top": 49,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 64,
+"fh": 112,
+"ax": 32,
+"ay": 96,
+"frames": 6,
+"fps": 6
+},
+"walk": {
+"y": 896,
+"fw": 64,
+"fh": 112,
+"ax": 32,
+"ay": 96,
+"frames": 8,
+"fps": 10
+},
+"attack": {
+"y": 1792,
+"fw": 64,
+"fh": 112,
+"ax": 32,
+"ay": 96,
+"frames": 6,
+"fps": 10,
+"release": 2
+},
+"hurt": {
+"y": 2688,
+"fw": 72,
+"fh": 112,
+"ax": 36,
+"ay": 96,
+"frames": 6,
+"fps": 10
+},
+"sit": {
+"y": 3584,
+"fw": 64,
+"fh": 112,
+"ax": 32,
+"ay": 96,
+"frames": 2,
+"fps": 2
+},
+"cast": {
+"y": 4480,
+"fw": 64,
+"fh": 112,
+"ax": 32,
+"ay": 96,
+"frames": 6,
+"fps": 10
+},
+"flinch": {
+"y": 5376,
+"fw": 64,
+"fh": 112,
+"ax": 32,
+"ay": 96,
+"frames": 4,
+"fps": 12
+},
+"prone": {
+"y": 6272,
+"fw": 72,
+"fh": 112,
+"ax": 36,
+"ay": 96,
+"frames": 5,
+"fps": 10
+},
+"castup": {
+"y": 7168,
+"fw": 64,
+"fh": 112,
+"ax": 32,
+"ay": 96,
+"frames": 6,
+"fps": 10
+},
+"defend": {
+"y": 8064,
+"fw": 64,
+"fh": 112,
+"ax": 32,
+"ay": 96,
+"frames": 4,
+"fps": 8
+},
+"getup": {
+"y": 8960,
+"fw": 72,
+"fh": 112,
+"ax": 36,
+"ay": 96,
+"frames": 6,
+"fps": 10
+},
+"interact": {
+"y": 9856,
+"fw": 64,
+"fh": 112,
+"ax": 32,
+"ay": 96,
+"frames": 6,
+"fps": 10,
+"release": 2
+},
+"useitem": {
+"y": 10752,
+"fw": 64,
+"fh": 112,
+"ax": 32,
+"ay": 96,
+"frames": 4,
+"fps": 8
+},
+"victory": {
+"y": 11648,
+"fw": 64,
+"fh": 112,
+"ax": 32,
+"ay": 96,
+"frames": 6,
+"fps": 8
+},
+"staffidle": {
+"y": 12544,
+"fw": 64,
+"fh": 112,
+"ax": 32,
+"ay": 96,
+"frames": 6,
+"fps": 6
+},
+"staffwalk": {
+"y": 13440,
+"fw": 64,
+"fh": 112,
+"ax": 32,
+"ay": 96,
+"frames": 8,
+"fps": 10
+},
+"staffcast": {
+"y": 14336,
+"fw": 96,
+"fh": 112,
+"ax": 48,
+"ay": 96,
+"frames": 6,
+"fps": 10,
+"release": 3
+},
+"staffrest": {
+"y": 15232,
+"fw": 64,
+"fh": 112,
+"ax": 32,
+"ay": 96,
+"frames": 6,
+"fps": 6
+},
+"staffstrike": {
+"y": 16128,
+"fw": 88,
+"fh": 112,
+"ax": 44,
+"ay": 96,
+"frames": 6,
+"fps": 10,
+"release": 3
+},
+"dagger": {
+"y": 17024,
+"fw": 64,
+"fh": 112,
+"ax": 32,
+"ay": 96,
+"frames": 6,
+"fps": 10,
+"release": 3
+},
+"wandcast": {
+"y": 17920,
+"fw": 72,
+"fh": 112,
+"ax": 36,
+"ay": 96,
+"frames": 6,
+"fps": 10,
+"release": 3
+}
+},
+"source": "drawn by the art desk (ART-73, the Red Mantle and its supplements: every row in all five views), cut and snapped by tools/aurdin-sheet.py"
 },
 "axebeak_p1": {
 "image": "art/axebeak_p1.png?v=c6f20857b8",

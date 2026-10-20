@@ -65,9 +65,9 @@
     this.rebuild();
     // the four's figures before the camp draws, and the coming fight's foes and scenery fetched behind (10-03, the lazy sheets: js/sprites.js)
     var self = this, F = this.F, mapDef = D.MAPS[F.map] || {};
-    D.spr.gate(this, this.data.party.map(function (h) { return self.look(h.id).sheet || h.id + '_p0'; }));
+    D.spr.gate(this, this.data.party.map(function (h) { return self.look(h.id, h).sheet || h.id + '_p0'; }));
     D.spr.prefetch((F.foes || mapDef.foes || []).map(function (f) { return D.FOES[f.kind] && D.FOES[f.kind].sheet; })
-      .concat((F.riders || []).map(function (r) { return r.sheet; }), this.o.ours ? [] : this.data.party.map(function (h) { return SV.look(h.id, self.o.climb ? null : F).sheet; })));
+      .concat((F.riders || []).map(function (r) { return r.sheet; }), this.o.ours ? [] : this.data.party.map(function (h) { return SV.look(h.id, self.o.climb ? null : F, h).sheet; })));
   };
   Camp.prototype.fresh = function () {
     if (this.o.ours) return { equip: {}, prep: {}, cast: { mageArmor: { on: true, who: null }, aid: { on: false, out: null }, light: { on: null, who: null }, elemental: { on: false, kind: null } }, torch: null, torchKind: 'torch' };
@@ -78,9 +78,9 @@
     if (this.o.ours) { var oa = D.store.get(KEY + '.ours') || {}; oa[this.L] = this.st; D.store.set(KEY + '.ours', oa); return; }
     var all = D.store.get(KEY) || {}; all[this.L] = this.st; D.store.set(KEY, all);
   };
-  Camp.prototype.look = function (id) {
+  Camp.prototype.look = function (id, h0) { // (h0: the hero, for the look by what he wears -- save.js SV.look, 10-20)
     if (this.o.ours) { var h = this.hero(id); return h ? { name: h.name, sheet: D.npc.lookOf(h.spec) } : {}; } // (a named one's own figure, else the class's)
-    return SV.look(id, this.o.climb ? null : this.F); // the climb: Barley is Barley
+    return SV.look(id, this.o.climb ? null : this.F, h0); // the climb: Barley is Barley
   };
   Camp.prototype.dark = function () { return !!(this.F.dark != null ? this.F.dark : D.MAPS[this.F.map] && D.MAPS[this.F.map].dark); };
   // the day's spells: the heroes' by js/save.js; our four's by js/classes.js NPC.prepInfo (o.ours)
@@ -514,14 +514,14 @@
     // the backdrop: the four round the fire in a night clearing (Griz, 09-28), the panels over it let it through
     // (our four take the fire's four seats in order -- the seats are keyed by the 8-bit four's ids: Griz, 09-29, "bring the test campfire up to snuff")
     var SEATKEY = ['barley', 'aurdin', 'lymen', 'vivian'], seatKey = function (id) { if (!self.o.ours) return id; for (var k = 0; k < hs.length; k++) if (hs[k].id === id) return SEATKEY[k] || id; return id; };
-    D.campfire.draw(ctx, { cx: FIRE_AT[0], cy: FIRE_AT[1], t: this.t, dim: 0.8, heroes: hs.map(function (h) { return { id: seatKey(h.id), sheet: self.look(h.id).sheet || h.id + '_p0' }; }) });
+    D.campfire.draw(ctx, { cx: FIRE_AT[0], cy: FIRE_AT[1], t: this.t, dim: 0.8, heroes: hs.map(function (h) { return { id: seatKey(h.id), sheet: self.look(h.id, h).sheet || h.id + '_p0' }; }) });
     var seat = focus && D.campfire.seatAt(seatKey(focus), FIRE_AT[0], FIRE_AT[1]);
     if (seat) { var bob = Math.round(Math.sin(this.t / 8) * 2); D.text(ctx, '▼', seat.x, seat.y - 50 + bob, P('gold', 4), 'center'); }
     ctx.save(); ctx.translate(6, 5); ctx.scale(2, 2); D.text(ctx, 'THE CAMP', 0, 0, P('gold', 4)); ctx.restore();
     D.text(ctx, (this.o.climb ? '{p}the climb{/}  ·  ' : this.o.ours ? '{p}ours{/}  ·  ' : '') + 'level ' + this.L + '  ·  before {y}' + this.F.name + '{/}  ·  ' + (this.F.sub || ''), 98, 9, P('silver', 5));
     // the four
     hs.forEach(function (h, i) {
-      var x = 6, y = PY + i * 56, w = 232, hh = 53, look = self.look(h.id), on = focus === h.id;
+      var x = 6, y = PY + i * 56, w = 232, hh = 53, look = self.look(h.id, h), on = focus === h.id;
       box(ctx, x, y, w, hh, on ? P('gold', 4) : P('stone', 3), 0.8);
       ctx.save(); ctx.beginPath(); ctx.rect(x + 3, y + 3, 32, hh - 6); ctx.clip();
       var sheet = look.sheet || h.id + '_p0';

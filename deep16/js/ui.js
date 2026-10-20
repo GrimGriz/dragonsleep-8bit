@@ -1541,6 +1541,7 @@
         // (a flier whose sheet walks on the ground -- the bat stand-in -- is drawn up in the air when out on the field, bobbing; its shadow stays below)
         var lift = u.lift && !u.riding && !down ? u.lift + Math.round(2 * Math.sin(B.t / 6)) : 0;
         var wet = !down && !lift ? UI.wading(B, u) : null, an0 = anim === 'hurt' && !has('hurt') ? 'idle' : anim;
+        if (!down) an0 = D.spr.inHand(u, an0, !!B.roam); // (what is in the hand: Aurdin's staff rows while he holds it, its planted rest on the roam -- sprites.js S.inHand, 10-20)
         if (u.kind === 'keeper' && u.flooding) { /* it is the swirl about someone: drawn with the walls' props (js/keeper.js), no humanoid */ }
         else if (wet) { // (in the water: the figure above its line, the rest a ghost under it, a ripple on the line; held by the Keeper, drawn down under it -- 10-02)
           var wl = p.y - wet.cut, sy = p.y + wet.sink, tallW = D.spr.unitTop(u) * sk + 8;
@@ -1557,7 +1558,7 @@
         }
         // what was drawn, for the x-ray after the world (a standing figure only: the fallen lie low)
         var hw = 10 * (u.size || 1) * sk, tall = D.spr.unitTop(u);
-        obj.shown = down || u.ethereal ? null : { anim: anim, t: t, once: !!o.once, frame: o.frame, x: p.x, y: p.y, k: sk, box: [p.x - hw, p.y - tall, p.x + hw, p.y] };
+        obj.shown = down || u.ethereal ? null : { anim: an0, t: t, once: !!o.once, frame: o.frame, x: p.x, y: p.y, k: sk, box: [p.x - hw, p.y - tall, p.x + hw, p.y] };
         if (u.rider && !down) D.spr.drawRider(ctx, u, anim, t, p.x, p.y, o);
         if (u.knit && !down && D.looks && D.looks.knit) D.looks.knit(ctx, B, u, p); // (a troll's wounds closing as it lies knitting: js/looks.js)
         // ((!down || u.cine): one a cutscene holds ripples where it lies too -- the Harbinger's body, GreyFang's end, 10-08: "start the mirror effect while he's still down please")

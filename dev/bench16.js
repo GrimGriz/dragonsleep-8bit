@@ -4719,11 +4719,22 @@
     function runAu(g) { var v, k = 0, st; while (g && k++ < 4000) { st = g.next(v); v = undefined; if (st.done) return st.value; if (st.value && st.value.prompt) v = st.value.prompt.opts[0].value; } }
     function firstAu(g) { var st = g.next(); while (st.value && st.value.prompt && !st.done) st = g.next(st.value.prompt.opts[0].value); return g; }   // to the first pause, the pose set
     try {
-      var shAu = D.SHEETS && D.SHEETS.aurdin_p2, wantAu = ['idle', 'walk', 'attack', 'hurt', 'sit', 'cast', 'flinch', 'prone', 'castup', 'defend', 'getup', 'useitem', 'victory'];
-      okAu('the story Aurdin wears ' + D.save.look('aurdin').sheet, D.save.look('aurdin').sheet === 'aurdin_p2');
-      var gotAu = shAu ? Object.keys(shAu.anims) : [];
-      okAu('aurdin_p2 rows: ' + gotAu.join(' ') + ' (prone ' + (shAu && shAu.anims.prone.frames) + ', getup ' + (shAu && shAu.anims.getup.frames) + ', the blow on ' + (shAu && shAu.anims.attack.release) + ')',
-        shAu && wantAu.every(function (r) { return gotAu.indexOf(r) >= 0; }) && shAu.anims.prone.frames === 5 && shAu.anims.getup.frames === 6 && shAu.anims.attack.release === 2);
+      var wantAu = ['idle', 'walk', 'attack', 'hurt', 'sit', 'cast', 'flinch', 'prone', 'castup', 'defend', 'getup', 'interact', 'useitem', 'victory', 'staffidle', 'staffwalk', 'staffcast',
+        'staffrest', 'staffstrike', 'dagger', 'wandcast'];
+      // (10-20, Griz: "We're going to try mantle as starter gear and ochre when wizard robes equpped": the Red Mantle out of robes, the Ochre in them -- save.js SV.look)
+      var inRobe = D.save.look('aurdin', null, { equip: { armor: 'robes' } }).sheet, inPlus = D.save.look('aurdin', null, { equip: { armor: 'robes1' } }).sheet,
+        bare = D.save.look('aurdin', null, { equip: { armor: null } }).sheet, story = D.save.look('aurdin', null, window.DS.DATA.heroes.aurdin).sheet;
+      okAu('his look by what he wears: Wizard\'s Robes ' + inRobe + ', Robes +1 ' + inPlus + ', no armour ' + bare + ', the story\'s start (' + window.DS.DATA.heroes.aurdin.equip.armor + ') ' + story,
+        inRobe === 'aurdin_p2' && inPlus === 'aurdin_p2' && bare === 'aurdin_p3' && story === (window.DS.DATA.heroes.aurdin.equip.armor === 'robes' ? 'aurdin_p2' : 'aurdin_p3'));
+      var hsAu = D.npc.heroSheet(D.npc.spec('aurdin', 5)), offAu = Object.assign({}, hsAu, { equip: Object.assign({}, hsAu.equip, { armor: null }) });
+      var uIn = D.save.unitOf(hsAu, false, null).sheet, uOff = D.save.unitOf(offAu, false, null).sheet, card = D.npc.lookOf(D.npc.spec('aurdin', 5));
+      okAu('the Pocket DM\'s Aurdin in his ' + hsAu.equip.armor + ': a fight\'s ' + uIn + ', the card\'s ' + card + '; his armour off: ' + uOff,
+        uIn === (hsAu.equip.armor === 'robes' ? 'aurdin_p2' : 'aurdin_p3') && card === uIn && uOff === 'aurdin_p3');
+      ['aurdin_p2', 'aurdin_p3'].forEach(function (nm) {
+        var shAu = D.SHEETS && D.SHEETS[nm], gotAu = shAu ? Object.keys(shAu.anims) : [];
+        okAu(nm + ' rows: ' + gotAu.join(' ') + ' (prone ' + (shAu && shAu.anims.prone.frames) + ', getup ' + (shAu && shAu.anims.getup.frames) + ', the blow on ' + (shAu && shAu.anims.attack.release) + ', the staff\'s on ' + (shAu && shAu.anims.staffstrike && shAu.anims.staffstrike.release) + ')',
+          shAu && wantAu.every(function (r) { return gotAu.indexOf(r) >= 0; }) && shAu.anims.prone.frames === 5 && shAu.anims.getup.frames === 6 && shAu.anims.attack.release === 2 && shAu.anims.staffstrike.release === 3);
+      });
       var Ba = mkAu('?npc=wizard:5&lvl=5&vs=wizard:5'), fw = sideAu(Ba, 'foe')[0], pw = sideAu(Ba, 'party')[0];
       pw.sheet = 'aurdin_p2'; [fw, pw].forEach(function (w) { w.hp = w.maxhp = 400; w.reaction = 1; w.slots[0] = 4; w.slots[2] = 2; w.conds = {}; });
       pw.known = (pw.known || []).concat(['shield']); fw.known = (fw.known || []).filter(function (id) { return id !== 'shield' && id !== 'counterspell'; });
@@ -4740,6 +4751,15 @@
       okAu('the fight won: plays ' + pw.anim, pw.anim === 'victory');
       var durAu = ['cast', 'castup', 'defend', 'useitem', 'victory'].map(function (r) { return r + ' ' + D.spr.duration('aurdin_p2', r); });
       okAu('each once-row lasts: ' + durAu.join(', '), ['cast', 'castup', 'defend', 'useitem', 'victory'].every(function (r) { return D.spr.duration('aurdin_p2', r) > 0; }));
+      // what is in the hand (10-20, "there's quarterstaff zips in Fresh"; js/sprites.js S.inHand): his quarterstaff drawn through idle, walk, every cast and the blow; its rest on
+      // the roam; put away, his empty hands; a dagger's stab for the blow; a row the staff has none of stays the base row; each held row as long as the row it stands for
+      var hw = { sheet: 'aurdin_p3', weapon: { kind: 'quarterstaff' } }, H = function (u, a, calm) { return D.spr.inHand(u, a, calm); };
+      var heldAu = ['idle', 'walk', 'cast', 'castup', 'attack', 'flinch'].map(function (a) { return a + '>' + H(hw, a); }).join(' ');
+      okAu('the staff in hand: ' + heldAu + '; on the roam idle>' + H(hw, 'idle', true) + '; put away idle>' + H(Object.assign({}, hw, { sheathed: true }), 'idle') + '; a dagger attack>' + H({ sheet: 'aurdin_p3', weapon: { kind: 'dagger' } }, 'attack') + '; on his LPC sheet idle>' + H({ sheet: 'aurdin_p0', weapon: { kind: 'quarterstaff' } }, 'idle'),
+        heldAu === 'idle>staffidle walk>staffwalk cast>staffcast castup>staffcast attack>staffstrike flinch>flinch' && H(hw, 'idle', true) === 'staffrest' && H(Object.assign({}, hw, { sheathed: true }), 'idle') === 'idle'
+        && H({ sheet: 'aurdin_p3', weapon: { kind: 'dagger' } }, 'attack') === 'dagger' && H({ sheet: 'aurdin_p0', weapon: { kind: 'quarterstaff' } }, 'idle') === 'idle');
+      var lenAu = [['idle', 'staffidle'], ['walk', 'staffwalk'], ['cast', 'staffcast'], ['attack', 'staffstrike'], ['attack', 'dagger']].filter(function (p) { return D.spr.duration('aurdin_p3', p[0]) !== D.spr.duration('aurdin_p3', p[1]); });
+      okAu('each held row as long as its own: ' + (lenAu.length ? lenAu.map(function (p) { return p.join('/') + ' ' + D.spr.duration('aurdin_p3', p[0]) + '/' + D.spr.duration('aurdin_p3', p[1]); }).join(', ') : 'all'), !lenAu.length);
     } catch (eAu) { repAu.errors.push(String(eAu && eAu.stack || eAu).slice(0, 900)); }
     if (errs.length) repAu.errors = repAu.errors.concat(errs);
     var preAu = document.createElement('pre'); preAu.id = 'out'; preAu.textContent = 'BENCH16 ' + JSON.stringify(repAu);

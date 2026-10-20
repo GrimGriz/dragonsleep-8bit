@@ -113,7 +113,7 @@
     return out;
   };
   function unitOf(h, guest, fight) {
-    var look = SV.look(h.id, fight), wp = SV.weaponOf(h);
+    var look = SV.look(h.id, fight, h), wp = SV.weaponOf(h);
     if (R.ward) R.ward(h); // (a condition a worn thing bars ends on the sheet before it is carried in: the Periapt of Proof against Poison on one already poisoned -- 10-07, js/rules.js R.ward)
     return {
       // (a guest by its 8-bit key: two troopers are two)
@@ -171,6 +171,13 @@
   // special monsters or fights")
   // Barley is Barley again everywhere but the level-9 fight (Griz, 09-27: "put Barley back except in the lvl 9 fight"):
   // a fight may carry `looks` over these (data/fights.js, the Cocoon Gallery keeps Denny)
-  SV.LOOK = { barley: { sheet: 'barley_p2' }, aurdin: { sheet: 'aurdin_p2' }, vivian: { sheet: 'vivian_p0' }, lymen: { sheet: 'lymen_p0' }, dace: { sheet: 'npcwizard_p0' } }; // (Corwen Dace, a guest: the class floor's wizard till he has a sheet of his own -- art someday, 10-01c) (Aurdin in the Ochre Mantle, the art desk's ART-72, all eight facings: aurdin_p2 on main since 10-18, Griz: "Try cut 72 in Fresh for Aurdin on the grid on main please"; his LPC sheet aurdin_p0 kept, put it back here to have him back) (Barley in his battered coat with the threshing flail, the art desk's ART-75/76: barley_p2 since 10-20, Griz: "Spin up a Fable cutter for Barley's legs (art 75 & 76 in Fresh)"; the views the desk left OPEN play the nearest drawn facing, and his walk barley_p0's but facing S -- js/sprites.js frameOf; his LPC sheet barley_p0 kept, put it back here to have him back)
-  SV.look = function (id, fight) { return (fight && fight.looks && fight.looks[id]) || SV.LOOK[id] || {}; };
+  SV.LOOK = { barley: { sheet: 'barley_p2' }, aurdin: { sheet: 'aurdin_p3', robe: 'aurdin_p2' }, vivian: { sheet: 'vivian_p0' }, lymen: { sheet: 'lymen_p0' }, dace: { sheet: 'npcwizard_p0' } }; // (Corwen Dace, a guest: the class floor's wizard till he has a sheet of his own -- art someday, 10-01c) (Aurdin in the Ochre Mantle, the art desk's ART-72, all eight facings: aurdin_p2 on main since 10-18, Griz: "Try cut 72 in Fresh for Aurdin on the grid on main please"; his LPC sheet aurdin_p0 kept, put it back here to have him back) (Barley in his battered coat with the threshing flail, the art desk's ART-75/76: barley_p2 since 10-20, Griz: "Spin up a Fable cutter for Barley's legs (art 75 & 76 in Fresh)"; the views the desk left OPEN play the nearest drawn facing, and his walk barley_p0's but facing S -- js/sprites.js frameOf; his LPC sheet barley_p0 kept, put it back here to have him back)
+  // the look by what he wears (10-20, Griz: "We're going to try mantle as starter gear and ochre when wizard robes equpped"): a look with a `robe` sheet
+  // wears it while the hero `h` has a robe on (an item whose armor type is robe: Wizard's Robes, Robes +1), its own sheet otherwise -- Aurdin's Red
+  // Mantle (aurdin_p3, ART-73) out of robes, the Ochre Mantle (aurdin_p2, ART-72) in them. A caller without the hero gets the plain look
+  SV.look = function (id, fight, h) {
+    var L = (fight && fight.looks && fight.looks[id]) || SV.LOOK[id] || {};
+    var a = L.robe && h && h.equip && h.equip.armor, it = a && window.DS && window.DS.DATA && window.DS.DATA.items[a];
+    return it && it.armor && it.armor.type === 'robe' ? Object.assign({}, L, { sheet: L.robe }) : L;
+  };
 })();

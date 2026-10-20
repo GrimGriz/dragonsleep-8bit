@@ -208,6 +208,18 @@
   // as knocked flat -- Griz: "The old one might be a good prone if 3 is no good"): it falls through that row, lies at its last frame, and gets
   // up through it backwards; one that dies lying there stays as it lies. Any other: a frame of its death row, as above
   S.proneRow = function (name) { return S.anim(name, 'prone') ? 'prone' : 'hurt'; };
+  // what is in the hand (10-20, Griz: "there's quarterstaff zips in Fresh"; Aurdin's ART-72/73 supplements; S.inHand, not S.held -- that is the sheet gate's): a sheet with rows for a held thing plays
+  // them while the hand holds it, its weapon by its sort (u.weapon.kind) and not put away -- the staff's guard for idle (its planted rest out of a
+  // fight, `calm`), its carry for walk, the staff as focus for every cast, its strike for a blow (the cast's thrust where no strike is drawn); the
+  // dagger's stab for a blow. Drawn only: what the engine sets (u.anim) and times stays the row it names, each pair the same length
+  S.HELD = { quarterstaff: { idle: 'staffidle', walk: 'staffwalk', cast: 'staffcast', castup: 'staffcast', attack: 'staffstrike|staffcast' }, dagger: { attack: 'dagger' } };
+  S.inHand = function (u, anim, calm) {
+    var sh = u && D.SHEETS && D.SHEETS[u.sheet], w = u && !u.sheathed && u.weapon, m = sh && w && S.HELD[w.kind]; if (!m) return anim;
+    if (anim === 'idle' && calm && m === S.HELD.quarterstaff && sh.anims.staffrest) return 'staffrest';
+    var to = m[anim]; if (!to) return anim;
+    var opts = to.split('|'); for (var i = 0; i < opts.length; i++) if (sh.anims[opts[i]]) return opts[i];
+    return anim;
+  };
   // one frame's drawn pixels, from its anchor (the foot), cached; null till the sheet has loaded. Where a figure lying flat is under the mouse (ui.js
   // UI.pickUnit -- 10-05, his play: Lymen's flask at the troll lying at 32,22 went to the floor five clicks of six, the troll's body drawn three squares
   // long and the mouse finding it only in a box over its feet). S.frameHit: is a drawn pixel within `pad` of (lx, ly), the mouse from the foot in the

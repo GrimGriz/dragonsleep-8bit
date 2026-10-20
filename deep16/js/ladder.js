@@ -44,7 +44,7 @@
   function gains(L, F) {
     var R = DS.R;
     return ['barley', 'aurdin', 'vivian', 'lymen'].map(function (id) {
-      var h = L < DS.DATA.heroes[id].level ? D.save.levelOne(R.makeHero(id)) : R.makeHero(id, L), look = D.save.look(id, F), hp0 = h.maxhp;
+      var h = L < DS.DATA.heroes[id].level ? D.save.levelOne(R.makeHero(id)) : R.makeHero(id, L), look = D.save.look(id, F, h), hp0 = h.maxhp;
       var msgs = (R.levelUp(h) || []).map(function (m) { return window.DS.stripCodes ? window.DS.stripCodes(String(m)) : String(m); });
       return { name: look.name || h.name, cls: h.cls, lvl: h.lvl, hp: h.maxhp - hp0, msgs: msgs };
     });
@@ -98,7 +98,7 @@
     var F = this.cur(L); if (!F) return [];
     var mapDef = D.MAPS[F.map] || {}, fam = F.familiar && D.FOES['fam_' + F.familiar];
     var four = this.ours ? D.npc.ours(L, F).map(function (k) { return D.npc.lookOf(D.npc.spec(k)); })
-      : ['barley', 'aurdin', 'vivian', 'lymen'].map(function (id) { return D.save.look(id, F).sheet || id + '_p0'; });
+      : ['barley', 'aurdin', 'vivian', 'lymen'].map(function (id) { return D.save.look(id, F, window.DS.DATA.heroes[id]).sheet || id + '_p0'; }); // (a look by what he wears, his own record's: save.js SV.look, 10-20)
     return four.concat((F.foes || mapDef.foes || []).map(function (f) { return D.FOES[f.kind] && D.FOES[f.kind].sheet; }), (F.riders || []).map(function (r) { return r.sheet; }), fam ? [fam.sheet] : []);
   };
   Ladder.prototype.update = function () {
@@ -272,7 +272,7 @@
     }));
     var data = D.save.fixture(L);
     return (this.cache[key] = data.party.map(function (h) {
-      var look = D.save.look(h.id, F), w = R.weaponOf(h);
+      var look = D.save.look(h.id, F, h), w = R.weaponOf(h);
       return { name: look.name || h.name, cls: h.cls, lvl: h.lvl, hp: h.maxhp, ac: R.ac(h), weapon: w ? w.name : '', slots: h.slotsMax && h.slotsMax.length ? 'slots ' + h.slotsMax.map(function (n, k) { return (k + 1) + ':' + n; }).join(' ') : '' };
     }));
   };

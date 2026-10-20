@@ -500,7 +500,11 @@
   // the class's figure, or its race's where one is drawn (npc<class>_<race>_p0: the dragonborn's and the tiefling's, 10-03, Griz: "1 per class")
   function classLook(cls, race) { var k = C[cls] && C[cls].look, r = k && race && race !== 'human' ? k.replace('_p0', '_' + race + '_p0') : null; return r && D.SHEETS && D.SHEETS[r] ? r : k || null; }
   // the figure the camp draws for a spec: a named one's own, else the class's (its race's)
-  NPC.lookOf = function (spec) { return spec.look || classLook(spec.cls, spec.race); };
+  NPC.lookOf = function (spec) {
+    var L = spec && spec.hero && D.save && D.save.LOOK && D.save.LOOK[spec.hero]; // (a hero's look by what he wears -- Aurdin's two mantles, save.js SV.look, 10-20)
+    if (L && L.robe) { var hs = null; try { hs = NPC.heroSheet(spec); } catch (e) { hs = null; } return D.save.look(spec.hero, null, hs).sheet; }
+    return spec.look || classLook(spec.cls, spec.race);
+  };
 
   // ------------------------------------------------------------------ the unit (on either side): the heroes' shape (save.js unitOf), and the rest
   NPC.unit = function (h, side, o) {

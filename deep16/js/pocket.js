@@ -77,7 +77,7 @@
   PK.specOf = function (st, slot) { var w = PK.wordOf(st, slot); return w ? NPC.spec(w) : null; };
   // a sheet for the card (the 8-bit's shape: hp, equip, abil...), and its figure
   PK.sheetOf = function (sp) { if (!sp) return null; try { return sp.hero ? NPC.heroSheet(sp) : NPC.sheet(sp); } catch (e) { return null; } };
-  PK.lookOf = function (sp) { return sp ? (sp.hero ? sp.look : NPC.lookOf(sp)) : null; };
+  PK.lookOf = function (sp) { return sp ? NPC.lookOf(sp) : null; }; // (a hero's by what he wears, as NPC.lookOf reads it: Aurdin's two mantles, 10-20)
   PK.baseKey = function (word) { return String(word || '').split('+')[0].split(':')[0].split('.')[0].replace(/^~/, ''); };
 
   // ------------------------------------------------------------------ the DMG's table (5E 2014: XP thresholds a character, the multiplier for a crowd)

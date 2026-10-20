@@ -2215,7 +2215,7 @@
     }
     // (a blow from a row that names its release frame -- the goblin's shortbow, 10-07: the arrow leaves as the bow hand opens, not 10 ticks in; and since 10-08 a melee row's too,
     // the Harbinger's pounce landing on its frame 6. A melee row with no release still strikes 10 ticks in)
-    var rel = !atk.spell && D.spr.anim(att.sheet, att.anim), relT = rel && rel.release != null ? Math.ceil(rel.release * 60 / (rel.fps || 8)) : 0;
+    var rel = !atk.spell && D.spr.anim(att.sheet, D.spr.inHand(att, att.anim)), relT = rel && rel.release != null ? Math.ceil(rel.release * 60 / (rel.fps || 8)) : 0;
     if (o.ride) yield 4; // (riding the blow before it: no new wind-up)
     // (on the release frame at every pace -- RULED 10-15, Griz: "Arrow timing to the grid lane please"; the hobgoblin seat's find: the wait to it was stretched by the pace (step) while
     // the row plays on the unstretched clock, so an AI's arrow left a frame late -- the hobgoblin's on its 6th, not its 5th. Battle.unpace asks for the wait the pace will stretch back)

@@ -110,7 +110,7 @@
     if (!this.s.fight) CL.draw(this.s);
     CL.save(this.s);
     this.sel = 0; this.card = null;
-    D.spr.gate(this, this.s.party.map(function (h) { return SV.look(h.id, null).sheet || h.id + '_p0'; })); // (the four's figures before it draws: js/sprites.js, 10-03; the level-up draws the same four)
+    D.spr.gate(this, this.s.party.map(function (h) { return SV.look(h.id, null, h).sheet || h.id + '_p0'; })); // (the four's figures before it draws: js/sprites.js, 10-03; the level-up draws the same four)
     D.music('title');
   };
   // the camp's view of the climb
@@ -189,7 +189,7 @@
   Climb.prototype.drawHands = function (ctx) {
     var c = this.card, s = this.s, tt = this.t - (c.t0 || 0), CF = D.campfire, cx = D.W / 2, cy = 172;
     var back = Math.max(0, Math.min(1, (tt - 70) / 80));
-    CF.draw(ctx, { cx: cx, cy: cy, t: this.t, dim: 1, heroes: s.party.map(function (h) { return { id: h.id, sheet: SV.look(h.id, null).sheet || h.id + '_p0', alpha: c.down.indexOf(h.id) >= 0 ? back : 1 }; }) });
+    CF.draw(ctx, { cx: cx, cy: cy, t: this.t, dim: 1, heroes: s.party.map(function (h) { return { id: h.id, sheet: SV.look(h.id, null, h).sheet || h.id + '_p0', alpha: c.down.indexOf(h.id) >= 0 ? back : 1 }; }) });
     if (tt > 45 && tt < 175) c.down.forEach(function (id) { var st = CF.seatAt(id, cx, cy); if (st) CF.sparkle(ctx, st.x, st.y - 10, tt); });
     var hy = tt < 40 ? -100 + tt / 40 * 160 : tt < 190 ? 60 : 60 - (tt - 190) * 4;
     if (hy > -100) {
@@ -222,7 +222,7 @@
       var x = 46, y = 30 + i * 46, w = 188;
       box(ctx, x, y, w, 43, P('stone', 3));
       ctx.save(); ctx.beginPath(); ctx.rect(x + 3, y + 3, 30, 37); ctx.clip();
-      var sheet = SV.look(h.id, null).sheet || h.id + '_p0';
+      var sheet = SV.look(h.id, null, h).sheet || h.id + '_p0';
       D.spr.draw(ctx, sheet, 'idle', 0, self.t, x + 18, D.spr.portraitY(sheet, y + 3, 37), {}); // (the head in the box: sprites.js S.portraitY, 10-14)
       ctx.restore();
       var w0 = R.weaponOf(h);
