@@ -1,0 +1,118 @@
+{
+ "_readme": {
+  "what": "Playtest feedback from situations.html: one verdict and note a row -- an eyes row (js/eyes.js: built, not yet seen) or a story situation (?at=<id>, js/situations.js).",
+  "fold_back": "Fold every eyes row noted here that is still live in js/eyes.js (a folded row is already cut, so nothing folds twice; previous_save and new_since_last_save only hint at what is new -- RULED 10-15); a story situation note folds when its `at` is after the save of the last ear file folded. An eyes row noted at all is SEEN: a `seen` line in PATCHLOG.md with the note verbatim, and the row cut from js/eyes.js whatever the verdict (a fix that wants another look writes a fresh row). Broken and unclear become the fix list (in the lane its pt names); too hard / too easy are tuning; notes are the tester's words, verbatim."
+ },
+ "saved_at": "2026-10-17T21:44:32.917Z",
+ "previous_save": "2026-10-17T15:39:48.250Z",
+ "items": [
+  {
+   "id": "eyes-hand-breath-legend-1015",
+   "eyes": true,
+   "pri": 2,
+   "title": "A breath and legendary actions played by hand: BREATH on the ring, and the legendary ask at the end of each other turn (10-15)",
+   "pt": "the grid’s rules §2.20 (deep16/js/battle.js BREATH, the &mine knob; js/traits.js legAsk) · eyes",
+   "url": "deep16/?npc=goblin,goblin,goblin&vs=fighter:5&lvl=5&breath=fire&mine&legend&fresh=1",
+   "verdict": "works",
+   "note": "that dash away left goblins more than 5 away at the end of their turn (and none hiding) so the legendaries didn't fire often but seemed to work fine. The dragon breath as a skill and recharging on 5-6 worked as far as I could tell. ",
+   "at": "2026-10-17T21:30:22.586Z",
+   "new_since_last_save": true
+  },
+  {
+   "id": "eyes-gaze-look-mirror-1015",
+   "eyes": true,
+   "pri": 2,
+   "title": "The gaze: LOOK AT IT in the meantime, and the basilisk’s reflection in a steel mirror (10-15)",
+   "pt": "the grid’s rules §2.20 (js/traits.js M.lookAt, M.mirror; battle.js the attack’s ask, LOOK AT, the &gaze knob; content/items.json mirror) · eyes",
+   "url": "deep16/?npc=goblin&vs=fighter:5&lvl=5&gaze&items=mirror:1&fresh=1",
+   "verdict": "broken",
+   "note": "turning to stone added a 'break free' option for the fighter that talked about him struggling against web",
+   "at": "2026-10-17T21:33:16.295Z",
+   "new_since_last_save": true
+  },
+  {
+   "id": "eyes-areas-height-1015",
+   "eyes": true,
+   "pri": 2,
+   "title": "Areas by height: a Fireball, a cone and a line meet a flier only where they reach it, and Shift+wheel lifts the point (10-15)",
+   "pt": "the grid’s rules §2.19 (deep16/js/magic.js M.area, M.aimZ; grid.js G.inArea; ui.js UI.stepAim) · eyes",
+   "url": "deep16/?npc=goblin,goblin,goblin&vs=wizard:9&lvl=9&fly&spells=burninghands&fresh=1",
+   "verdict": "unclear",
+   "note": "setting target altitude only works when flying\nflying out of threatened squares didn't allow attack of opportunity?\nshow all effected squares when targeting altitude? Do some spells require a non point-based target?\ncone of cold at altitude questionable if it should have hit the goblin closest to me, see 10/17 fight record around 4:40 central\n\nShowing 20 feet of distance (floor distance vs altitude) instead of hypotenuse distance",
+   "at": "2026-10-17T21:44:22.559Z",
+   "new_since_last_save": true
+  },
+  {
+   "id": "wet",
+   "eyes": false,
+   "pri": 4,
+   "title": "The Wet: the bucket and the landlord",
+   "pt": "§5 the wet · the landlord's pictures (new 10-01)",
+   "url": "?at=wet",
+   "verdict": "works",
+   "note": "This works. I think we made it such that no one can to this spot in the 8-bit without already being pulled on to the grid (check to make sure). We should put a light nearby the bucket and double check the sprite we're using to make it more a visible draw on the grid. The tiles around the Landlords pool should be switched to solid stone. ",
+   "at": "2026-10-04T05:23:43.178Z",
+   "new_since_last_save": false
+  },
+  {
+   "id": "wet3",
+   "eyes": false,
+   "pri": 4,
+   "title": "The gates down to the wet, at level 3",
+   "pt": "§5 the wet · §3 battle feel (new 10-03)",
+   "url": "?at=wet3",
+   "verdict": "unclear",
+   "note": "No encounters between town and warrens. Running back and forth on the road and got 2 giant rats. \nNo encounters in the mine until down in the wet itself. There either are not exit squares in the fight with the landlord, or party members are not allowed to use the flee under action (not on wheel). ",
+   "at": "2026-10-04T05:24:47.498Z",
+   "new_since_last_save": false
+  },
+  {
+   "id": "gulch",
+   "eyes": false,
+   "pri": 4,
+   "title": "Web Gulch: the strung end",
+   "pt": "§7 the braiding ettercap · §11 the snared traveler",
+   "url": "?at=gulch",
+   "verdict": "works",
+   "note": "",
+   "at": "2026-10-04T05:30:38.432Z",
+   "new_since_last_save": false
+  },
+  {
+   "id": "cloaker",
+   "eyes": false,
+   "pri": 4,
+   "title": "The guano slide and the cloaker",
+   "pt": "§6 the cloaker · §11 guano slide",
+   "url": "?at=cloaker",
+   "verdict": "works",
+   "note": "",
+   "at": "2026-10-04T05:30:46.273Z",
+   "new_since_last_save": false
+  },
+  {
+   "id": "roost",
+   "eyes": false,
+   "pri": 4,
+   "title": "Under the roost",
+   "pt": "§6 the one law · §11/§12 NOT THIS KIND OF NAME",
+   "url": "?at=roost",
+   "verdict": "works",
+   "note": "",
+   "at": "2026-10-04T05:34:59.719Z",
+   "new_since_last_save": false
+  },
+  {
+   "id": "cradle",
+   "eyes": false,
+   "pri": 4,
+   "title": "A shift at the cradle",
+   "pt": "§13 the cradle, rebuilt",
+   "url": "?at=cradle",
+   "verdict": "works",
+   "note": "",
+   "at": "2026-10-04T05:35:12.626Z",
+   "new_since_last_save": false
+  }
+ ]
+}
