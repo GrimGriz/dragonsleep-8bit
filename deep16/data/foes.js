@@ -870,9 +870,11 @@
     src: 'content/monsters.json crawler (the 8-bit game\'s own, the Warrens\' crawler -- the cradle\'s): feelers at 10 ft, CON 13 or poisoned and paralyzed (a save each turn), then the mandibles'
   },
   // ------------------------------------------------------------------ swarms (09-27): resist blades and blows, bite for less at half their hit
-  // points (halfHP), never knocked down; one creature's sheet stands for the cloud
+  // points (halfHP), never knocked down; one creature's sheet stands for the cloud -- but the rats' own since 10-20: ratswarm_p1, the art desk's
+  // ART-74, many Tiny rats in its square, a row for the Bites, a Flinch, the Scatter it dies in, and an Oil Fire it lives through (js/oil.js;
+  // tools/ratswarm-sheet.py -- Griz, 10-20: "Negative, except for Rat swarm")
   ratswarm: {
-    name: 'Rat Swarm', type: 'beast', sheet: 'giantrat_p1', cr: '1/4', ac: 10, hp: 24, speed: 30, size: 1, reach: 5, darkvision: 30,
+    name: 'Rat Swarm', type: 'beast', sheet: 'ratswarm_p1', cr: '1/4', ac: 10, hp: 24, speed: 30, size: 1, reach: 5, darkvision: 30,
     abil: { str: 9, dex: 11, con: 9, int: 2, wis: 10, cha: 3 }, init: 0, perception: 10,
     saves: { str: -1, dex: 0, con: -1, int: -4, wis: 0, cha: -4 },
     attacks: { bites: { name: 'Bites', atk: 2, dice: '2d6', halfHP: '1d6', mod: 0, type: 'piercing', reach: 5 } },

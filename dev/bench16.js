@@ -4766,6 +4766,44 @@
     document.body.appendChild(preAu);
     return;
   }
+  // THE RAT SWARM AS A SWARM (mode=ratswarm1020; 10-20, Griz: "Negative, except for Rat swarm"): the art desk's ART-74 cut to ratswarm_p1 (tools/ratswarm-sheet.py) and worn
+  // by the foe; its rows played where the engine plays them: its Bites the `attack` row (no row of the blow's own name), a blow it lives through the flinch, burning oil it
+  // lives through its Oil Fire (js/oil.js oilfire: the coat catching, a lit square at its turn's end -- not mid-stride, and a sheet without the row only flinches), the blow
+  // that kills it its Scatter, the death row held; never prone
+  if (get('mode', '') === 'ratswarm1020') {
+    var repRs = { checks: [], errors: [] };
+    function okRs(what, v) { repRs.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function mkRs(q) { var Bx = D.npcFight(q, {}); D.battle = Bx; Bx.enter(); while (!Bx.order.length) Bx.co.next(); Bx.dark = false; return Bx; }
+    function runRs(g, u, seen) { var v, k = 0, st; while (g && k++ < 4000) { st = g.next(v); v = undefined; if (seen && seen.indexOf(u.anim) < 0) seen.push(u.anim); if (st.done) return st.value; if (st.value && st.value.prompt) v = st.value.prompt.opts[0].value; } }
+    try {
+      var shRs = D.SHEETS && D.SHEETS.ratswarm_p1, wantRs = ['idle', 'walk', 'attack', 'hurt', 'flinch', 'oilfire'], gotRs = shRs ? Object.keys(shRs.anims) : [];
+      okRs('the swarm wears ' + D.FOES.ratswarm.sheet + ', the giant rat still ' + D.FOES.giantrat.sheet, D.FOES.ratswarm.sheet === 'ratswarm_p1' && D.FOES.giantrat.sheet === 'giantrat_p1');
+      okRs('ratswarm_p1 rows: ' + gotRs.map(function (r) { return r + ' ' + shRs.anims[r].frames; }).join(', ') + ' (the jaws meet on ' + (shRs && shRs.anims.attack.release) + '; prone frame ' + D.spr.proneFrame('ratswarm_p1') + ')',
+        shRs && gotRs.join() === wantRs.join() && shRs.anims.attack.release === 3 && D.spr.proneFrame('ratswarm_p1') < 0 && gotRs.every(function (r) { return !shRs.anims[r].drawn; }));
+      var Br = mkRs('?npc=ratswarm&lvl=3&vs=fighter:3'), fo = Br.units.filter(function (u) { return u.side === 'foe'; })[0], pf = Br.units.filter(function (u) { return u.side === 'party'; })[0];
+      fo.hp = fo.maxhp = 400; pf.hp = pf.maxhp = 400; fo.conds = {}; pf.conds = {}; fo.x = pf.x + 1; fo.y = pf.y; fo.anim = 'idle';
+      okRs('in the fight it wears ' + fo.sheet, fo.sheet === 'ratswarm_p1');
+      D.rules.startTurn(fo); var bt = []; runRs(Br.attack(fo, pf, fo.attacks.bites), fo, bt);
+      okRs('its Bites plays ' + bt.join('>'), bt.indexOf('attack') >= 0);
+      fo.anim = 'idle'; Br.hurt(fo, 4, 'slashing');
+      okRs('a blow it lives through: ' + fo.anim, fo.anim === 'flinch');
+      fo.anim = 'idle'; D.oil.coat(Br, fo); var hC = fo.hp; Br.hurt(fo, 1, 'fire');
+      okRs('coated in oil, then a fire on it: the oil catches (' + hC + ' -> ' + fo.hp + ' hp), the coat ' + (fo.conds.oiled ? 'on' : 'gone') + ', plays ' + fo.anim, fo.anim === 'oilfire' && !fo.conds.oiled && hC - fo.hp === 1 + D.oil.BURN);
+      okRs('the Oil Fire lasts ' + D.spr.duration('ratswarm_p1', 'oilfire') + ' ticks, once', D.spr.duration('ratswarm_p1', 'oilfire') > 0);
+      fo.anim = 'idle'; delete fo.oilBurnt; Br.round = 3; Br.active = fo; var oS = D.oil.spill(Br, fo.x, fo.y, true, pf); var hS = fo.hp; D.magic.onEnd(Br, fo);
+      okRs('a lit square under it at its turn\'s end: ' + hS + ' -> ' + fo.hp + ' hp, plays ' + fo.anim, oS && oS.lit != null && hS - fo.hp === D.oil.BURN && fo.anim === 'oilfire');
+      fo.anim = 'walk'; D.oil.oilfire(Br, fo);
+      okRs('mid-stride it keeps its stride: ' + fo.anim, fo.anim === 'walk');
+      fo.sheet = 'barley_p2'; fo.anim = 'idle'; D.oil.coat(Br, fo); Br.hurt(fo, 1, 'fire');
+      okRs('the same swarm in a sheet with a Flinch row and no Oil Fire row (barley_p2) flinches instead: ' + fo.anim, fo.anim === 'flinch');
+      fo.sheet = 'ratswarm_p1'; fo.anim = 'idle'; fo.hp = 3; D.oil.coat(Br, fo); Br.hurt(fo, 1, 'fire');
+      okRs('the fire that kills it: ' + fo.hp + ' hp, plays ' + fo.anim + ' (the Scatter, ' + shRs.anims.hurt.frames + ' frames, the last held), prone ' + !!fo.conds.prone, fo.hp <= 0 && fo.anim === 'hurt' && !fo.conds.prone);
+    } catch (eRs) { repRs.errors.push(String(eRs && eRs.stack || eRs).slice(0, 900)); }
+    if (errs.length) repRs.errors = repRs.errors.concat(errs);
+    var preRs = document.createElement('pre'); preRs.id = 'out'; preRs.textContent = 'BENCH16 ' + JSON.stringify(repRs);
+    document.body.appendChild(preRs);
+    return;
+  }
   // BARLEY IN HIS BATTERED COAT (mode=barley1020; 10-20, Griz: "Spin up a Fable cutter for Barley's legs (art 75 & 76 in Fresh)"): the art desk's ART-75/76 cut to barley_p2
   // (tools/barley-sheet.py) and worn by the story's Barley; the views the desk left OPEN left out (a row's `drawn`), his walk under barley_p0 (js/sprites.js frameOf: the old walk
   // where the desk has no clean one, the nearest drawn facing for any other row); and his rows played where the engine plays them: the blow `attack`, the turn's second blow

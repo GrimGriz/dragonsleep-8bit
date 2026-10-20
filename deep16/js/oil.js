@@ -54,6 +54,13 @@
     B.card(['{o}The oil on the ground catches{/}: it burns for 2 rounds -- 5 fire to whoever enters it or ends a turn in it.'], 300);
   };
   OIL.lightIn = function (B, sq) { (B.oils || []).forEach(function (o) { if (o.lit == null && (sq || []).some(function (q) { return q[0] === o.x && q[1] === o.y; })) OIL.light(B, o); }); };
+  // a sheet's Oil Fire row (the rat swarm's, the art desk's ART-74, 10-20): burning oil -- a lit square, or the coat on it catching -- hurts it and it
+  // lives: the row plays once, the oil alight among it and the swarm drawing back round the flames, then it stands idle (js/ui.js, the once-rows);
+  // as the flinch, not mid-stride or mid-blow. A swarm the fire kills plays its death row, as any blow's
+  function oilfire(B, w) {
+    if (w && w.hp > 0 && !w.dead && (!w.anim || w.anim === 'idle' || w.anim === 'flinch') && D.spr.anim(w.sheet, 'oilfire')) { w.anim = 'oilfire'; w.animT = B.t; }
+  }
+  OIL.oilfire = oilfire; // (dev/bench16.js mode=ratswarm1020)
   // the burning square's 5 fire: once a turn for any one creature, whatever square of it
   function burn(B, o, w, how) {
     if (!w || w.dead || w.object || !G.standing(w) || w.under || (w.hang && G.hanging(w))) return; // (one hanging over it on a rope, or under the ground, is not in it)
@@ -61,6 +68,7 @@
     FX.sparkle(w, 'fire', 12);
     B.card([nm(w) + ' ' + how + ': {r}' + OIL.BURN + '{/} fire'], 240);
     B.hurt(w, OIL.BURN, 'fire');
+    oilfire(B, w);
   }
   function litOn(B, w) { return (B.oils || []).filter(function (o) { return o.lit != null && G.inArea(w, [[o.x, o.y]]); }); }
   // the squares that burn out: at the start of the turn of the one who lit it, two rounds on (or, that one gone, the round after that)
@@ -98,6 +106,7 @@
     delete w.conds.oiled; FX.sparkle(w, 'fire', 16);
     B.card(['{o}The campfire catches the oil on ' + nm(w) + ':{/} {r}' + OIL.BURN + '{/} fire'], 260);
     B.hurt(w, OIL.BURN, 'fire', { oilBurn: true });
+    oilfire(B, w);
   }
   OIL.campBurn = campBurn; OIL.catchCoat = catchCoat; // (dev/bench16.js mode=campfire1014)
   var onStartC = M.onStart;
@@ -119,6 +128,7 @@
       delete u.conds.oiled; FX.sparkle(u, 'fire', 16);
       this.card(['{o}The oil on ' + nm(u) + ' catches:{/} {r}' + OIL.BURN + '{/} fire more'], 260);
       hurt0.call(this, u, OIL.BURN, 'fire', Object.assign({}, o || {}, { oilBurn: true }));
+      oilfire(this, u);
     }
     return r;
   };

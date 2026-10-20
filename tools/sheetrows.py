@@ -32,6 +32,9 @@ STANDS = {
     'npcpaladin_p0':     {'S': (48, 50, 39), 'SW': (49, 51, 48), 'W': (51, 53, 45), 'NW': (51, 53, 45), 'N': (47, 49, 40), 'NE': (51, 53, 45), 'E': (52, 54, 45), 'SE': (49, 51, 48)},
     'gnollmatriarch_p1': {'S': (80, 81, 69), 'SW': (71, 72, 60), 'W': (78, 79, 61), 'NW': (72, 73, 71), 'N': (84, 85, 64), 'NE': (72, 73, 71), 'E': (78, 79, 61), 'SE': (71, 72, 60)},
     'newlandrider_p1':   {'S': (69, 70, 46), 'SW': (65, 66, 73), 'W': (69, 70, 103), 'NW': (66, 67, 67), 'N': (73, 74, 39), 'NE': (66, 67, 67), 'E': (69, 70, 103), 'SE': (65, 66, 73)},
+    # the rat swarm (10-20, the ART-74 seat, tools/ratswarm-sheet.py): a carpet with no feet -- its `ay` is its square's middle and its front edge 11 to
+    # 16 px below it (the stills' mean width 64 with the ring, the square's floor diamond), so tall is not above + 1 here; each rat about 12 px long
+    'ratswarm_p1':       {'S': (27, 40, 61), 'SW': (23, 35, 65), 'W': (24, 38, 61), 'NW': (26, 42, 60), 'N': (26, 43, 55), 'NE': (26, 42, 60), 'E': (24, 38, 61), 'SE': (23, 35, 65)},
 }
 
 
