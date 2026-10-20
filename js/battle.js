@@ -714,7 +714,7 @@
     });
     if (c.cloud && this.cloud && this.cloud.by === id) { gone.push(this.cloud.kind === 'fog' ? 'The fog thins and is gone.' : this.cloud.kind === 'stink' ? 'The yellow cloud drifts apart.' : 'The sleet stops.'); this.cloud = null; }
     if (c.litWas != null) { // Dancing Lights: the four lights go out, and the dark comes back unless another light stands (a torch, the Light cantrip, a burning blade)
-      var other = this.bright || this.litSpell || this.heroes.some(function (x) { return !down(x) && (R.carriesLight(x.h) || !!(x.h.conds && x.h.conds.continualFlame)); }) || (this.torchBy && this.heroes.some(function (x) { return x.h.id === self.torchBy && !down(x); }));
+      var other = this.bright || this.litSpell || this.heroes.some(function (x) { return !down(x) && R.carriesLight(x.h); }) /* (a Continual Flame too, while its weapon is in hand: R.carriesLight, 10-20) */ || (this.torchBy && this.heroes.some(function (x) { return x.h.id === self.torchBy && !down(x); }));
       if (this.dark && !c.litWas && !other) this.lit = false;
       gone.push('The dancing lights wink out.' + (this.dark && !this.lit ? ' Dark again.' : ''));
     }

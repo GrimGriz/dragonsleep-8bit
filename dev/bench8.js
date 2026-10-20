@@ -2107,6 +2107,14 @@
         check('(e) the wagon let go, the chuul killed off the rowboat: on its corpse ' + c1.want + ' x' + c1.got + ' ("' + DS.L('lake.corpseGift').slice(0, 30) + '..." ' + c1.said + '), lakeGiftGot ' + c1.g.flags.lakeGiftGot, c1.done && c1.got === 1 && c1.said && c1.g.flags.lakeGiftGot === 1);
         check('(e) the wagon stopped and Elsbeth\'s gift had: nothing on it (' + c2.got + ', said ' + c2.said + ')', c2.done && c2.got === 0 && !c2.said);
         check('(e) the wagon stopped, her thanks still owed: on the corpse (' + c3.got + '), owed no longer (wagonGift ' + !!c3.g.flags.wagonGift + ')', c3.done && c3.got === 1 && !c3.g.flags.wagonGift);
+        // (f) the lane's §6 (the desk, probed 10-20): a Continual Flame lights only while the weapon it was set on is in hand (js/rules.js R.carriesLight) -- left with
+        // Ottilie at the roost's mouth, a dark 8-bit fight no longer counts its hero lit
+        function darkLit(gF) { T.startFight(['giantrat'], { dark: true, torch: null }); for (var wF = 0; wF < 200 && !DS.find('battle'); wF++) T.step(1); var bF = DS.find('battle'), lit = !!(bF && bF.lit); if (bF) { bF.foes.forEach(function (f) { f.hp = 0; f.dead = true; }); drive({}, 1500); } return lit; }
+        var gF = SETUP(5), auF = gF.hero('aurdin'), wpF = auF.equip.weapon; delete gF.flags.torchBy;
+        auF.conds = auF.conds || {}; auF.conds.continualFlame = wpF;
+        var inHand = R.carriesLight(auF), litIn = darkLit(gF);
+        auF.equip.weapon = null; var leftWith = R.carriesLight(auF), litOut = darkLit(gF); auF.equip.weapon = wpF;
+        check('(f) a Continual Flame on ' + auF.name + '\'s ' + wpF + ': in hand it lights (' + inHand + ', a dark fight lit ' + litIn + '); the weapon left with Ottilie, nothing (' + !leftWith + ', the dark fight lit ' + litOut + ')', inHand && litIn && !leftWith && !litOut);
       } catch (e21) { check('threw: ' + String(e21 && e21.stack || e21).slice(0, 400), false); }
       DS.say = say21; DS.choose = ch21; window.setTimeout = st21; DS.autoPicks = auto21;
     } else if (test === 'scourge1014') {

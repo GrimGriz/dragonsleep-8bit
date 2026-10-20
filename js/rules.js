@@ -707,7 +707,10 @@
   // has a `hood` (the Ledger-Lamp). `k` is a pack id, or the field's g.flags.torchKind ('torch' | 'lantern' | 'ledgerlamp'). One law, both games
   R.hooded = function (k) { var it = k && k !== 'torch' ? R.item(k) : null; return k === 'lantern' || !!(it && it.light && it.light.hood); };
   R.carriesLight = function (h) {
-    if (h.conds && h.conds.continualFlame) return true;
+    // a Continual Flame rides the thing it was set on (the 8-bit keeps its id): it lights only while that is in a hand or worn -- left with Ottilie at the roost's mouth
+    // (js/events.js S.roostDoor) or in the pack, it lights nothing; the grid's deep16/js/light.js the same (the first game lane §6, 10-20)
+    var cf = h.conds && h.conds.continualFlame;
+    if (cf && (typeof cf !== 'string' || Object.keys(h.equip || {}).some(function (s) { return h.equip[s] === cf; }))) return true;
     return Object.keys(h.equip || {}).some(function (s) { var it = R.item(h.equip[s]); return !!(it && it.light && it.light.when === 'always' && R.bonded(h, h.equip[s])); }); // (a Mace of Disruption's light is its magic: bonded -- 10-06)
   };
   R.attackBonus = function (h, w) {
