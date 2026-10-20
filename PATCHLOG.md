@@ -2,6 +2,10 @@
 
 What landed, newest first, one line each: **date · commit · lane · one sentence · his word** when there is one. **A line is a line** (RULED 10-06, on a consult and its fork: 20 of the first 55 ran past 400 characters): the hash, one sentence of what, his words verbatim; the files, the numbers and the why are the bolt's and the commit's. The lines before this rule stand as written. A lane is a live handoff at `..\handoff-*.md`, named by its title (the table at the head of the todo is the list); "the house" is the gate, the build and the repo. When an item lands it is cut from its lane and from `..\dragonsleep-todo-2026-10-03.md` and written here (RULED 2026-10-06, Griz: *"I'm on board"*). The story of each line is in the bolt (`..\weaving-room\dragonsleep-8bit.md`); before 2026-10-03, `git log` and the bolt are the record. A line is never edited once written. A ruling that something stays as it is gets a line too, marked `ruled`.
 
+## 2026-10-20
+- 2026-10-20 · `e58cdd8` · the bestiary · Aurdin in the Ochre Mantle on the grid: the art desk's ART-72 cut to `aurdin_p2`, every row in all eight facings, worn by the story's Aurdin on main, the engine playing its castup, defend, useitem and victory rows · *"Try cut 72 in Fresh for Aurdin on the grid on main please"*
+- 2026-10-20 · `e58cdd8` · the house · `tools/sheetrows.py` STANDS: the heroes' standing heights in every facing, for every cutter to read · *"add to cutter tool helper orientation ... the measurements, not to measure again"*
+
 ## 2026-10-18
 - 2026-10-18 · seen · the menus · The eggs on the load screen, six under each save (`eyes-load-eggs-1015` folded; his re-cut to the menus lane §2.9) · *"Note about easter eggs on load menu - show the six slots over the dragonsleep background not under the save, big pretty eggs that show as you change selected save"*
 
