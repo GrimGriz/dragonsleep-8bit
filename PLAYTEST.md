@@ -131,7 +131,7 @@ Tested so far only by bots (49 battles, every scripted scene) and a map-reachabi
 ## 15. Round four, second pass: Griz's 09-25 asks
 
 - [ ] The party is long-rested (HP, slots, Lay on Hands) before the wagon rolls in
-- [ ] Aurdin wears Wizard's Robes (AC 11 + DEX) from the start; Vilar sells them; Winters' shelves have Robes +1; Mage Armor still works over robes; an older save's Aurdin has them on CONTINUE
+- [ ] Aurdin starts with no armour, in his Red Mantle (RULED 10-20: "Start him with no armour and leave the Wizard's Robes for later"); Vilar sells Wizard's Robes (AC 11 + DEX), and on him he wears the Ochre Mantle; Winters' shelves have Robes +1; Mage Armor still works over robes; an older save's Aurdin keeps what he wore, and robes taken off stay off
 - [ ] KEEP WATCH: Katarina goes in with the others before the lantern walk and rides out with the wagon at first light (the morning line says so); her book is in the drawer at the stair
 - [ ] Steel comes out: Katarina is inside before the fight; the next day she gives you her book
 - [ ] They flee: the chase first (the road dark, no doors or map edges until it ends), then back in the yard at night with a closing line, then the wagon, the strongbox, the children (+1 renown), Doran's drive, and the morning inside. The same whether you catch them on the road, at the fork, or they reach the Tower

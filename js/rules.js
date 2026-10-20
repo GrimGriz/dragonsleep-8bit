@@ -247,7 +247,8 @@
     // RULED 09-25: every level is a max hit die. An older save's heroes catch up (Aid's +5 set aside first).
     var c = R.CLASSES[h.cls], want = h.lvl * Math.max(1, c.hd + DS.mod(h.abil.con)), base = h.maxhp - ((h.conds && h.conds.aid) || 0);
     if (base < want) { h.maxhp += want - base; h.hp += want - base; }
-    if (h.id === 'aurdin' && !h.equip.armor && DS.DATA.items.robes) h.equip.armor = 'robes'; // 09-25: robes for the armor slot
+    // (09-25 put Wizard's Robes on an Aurdin with an empty armour slot; RULED 10-20, Griz: "Start him with no armour and leave the Wizard's Robes for later" --
+    // he starts in his Red Mantle and wears the robes when he gets them, so an empty slot stays empty: one taken off is not put back on)
     if (h.id === 'aurdin' && DS.DATA.spells.findfamiliar && h.known.indexOf('findfamiliar') < 0) h.known.push('findfamiliar'); // 09-29: the ritual in his book
     // what his sheet says is due by his level, learned now (10-01c: Aurdin's book filled to the SRD's count -- "match SRD expectations when possible" --
     // an older save's Aurdin had fewer; nothing is taken away, a sheet's spell included)
