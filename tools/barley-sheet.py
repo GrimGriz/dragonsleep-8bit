@@ -15,8 +15,9 @@ Facings (RULED 10-14, five drawn views): S, SE, E, NE, N as drawn; SW, W, NW the
 shortcut, its manifest `mirrors`). A view the desk left OPEN (ART-76-PASS2-CUTTER-NOTES.md, "Remaining 20 slots") is left out: its cells are empty
 and the row's `drawn` lists the facings it has. The engine (js/sprites.js frameOf) plays a missing facing from the row's `under` sheet where it names
 one -- the walk's is barley_p0, his LPC sheet, so a walk the desk has not drawn clean is the old walk -- and otherwise from the nearest drawn facing.
-Rows (ENGINE below): Idle -> idle; Walk -> walk (S only: the desk's whole-frame salvage, 1,2,7,5,6,6,3,8; SE NE E N still repeat the leading leg,
-OPEN); FlailSweep -> attack (every blow; the contact on 4, `release` 3); FlailOverhead -> attack2 (the second blow of a turn -- Extra Attack, or the
+Rows (ENGINE below): Idle -> idle; Walk -> walk (S: the desk's whole-frame salvage, 1,2,7,5,6,6,3,8; N: this seat's whole-frame reorder of the desk's
+unselected attempt, SALVAGE below, on his word -- ART-76-barley-repair-and-weapon-overlay.md 5, "Salvage/compositing from supplied frames or parts is
+authorized"; SE NE E repeat the leading leg in every attempt delivered, OPEN); FlailSweep -> attack (every blow; the contact on 4, `release` 3); FlailOverhead -> attack2 (the second blow of a turn -- Extra Attack, or the
 blow after an Action Surge: js/battle.js plays a sheet's attack2 there; N OPEN); Defend -> defend (the Dodge, battle.js); Flinch -> flinch; Fall ->
 hurt (S OPEN); Prone -> prone (Fall 2-5 then Prone 1, where he lies while prone; S OPEN); GetUp -> getup (NE and E only), and `sit` (GetUp 3, sat up:
 the campfire, js/campfire.js); Interact -> interact (a hand on a thing -- the rope, the barrel, the bucket: battle.js); UseItem -> useitem (a potion);
@@ -91,6 +92,12 @@ FPS = {'idle': 6, 'walk': 10, 'attack': 12, 'attack2': 12, 'hurt': 10, 'sit': 2,
 RELEASE = {'attack': 3, 'attack2': 3}        # the beater meets the target on frame 4 of both swings (the desk: SE sweep "contact 4"; the overhead's
                                              # strike on 4, its 5 the follow-through) -- js/battle.js times a blow by its release
 UNDER_ROWS = {'walk': UNDER}                 # a missing facing of these rows plays the old sheet's row (the desk: walks that repeat a leg stay unwired)
+# a walk assembled by this seat from the desk's unselected attempts (ART-76/superseded/, the REVIEW zip; the page used copied to ART-76/salvage/):
+# whole frames reordered, nothing mirrored, warped or repainted; the provenance written beside the page, <view>-WALK-provenance.json, in the shape
+# of the desk's S-WALK-provenance.json. N (10-20): the attempt's legs alternate -- 2-5 lead with one leg, 6-8 and 1 with the other (`legs` below) --
+# so 1 goes to the end and each half-stride is four frames; its flail hand is the desk's open question (its notes), his eye's.
+SALVAGE = {'N': dict(file=os.path.join('ART-76', 'salvage', 'exec-daee575e-928e-4d2d-a277-9d6296aca577.png'), attempt='walkN2, exec-daee575e (ART-76/superseded/attempt-history.json)',
+                     bands=[(1, 4), (5, 8)], order=[2, 3, 4, 5, 6, 7, 8, 1])}
 
 
 # ---------------------------------------------------------------- the pages
@@ -113,6 +120,13 @@ def pages():
             seen[k] = path
             bands = [tuple(b['frame_range']) for b in e['printed_bands_top_to_bottom']]
             out.append(dict(path=path, head=e['head'], view=e['facing'], action=e['action'], bands=bands))
+    for v, sv in SALVAGE.items():
+        if (v, 'Walk') in seen:
+            raise SystemExit('Walk %s: the desk selected a page and the seat a salvage' % v)
+        path = os.path.join(BAR, sv['file'])
+        if not os.path.isfile(path):
+            raise SystemExit('missing salvage page: ' + path)
+        out.append(dict(path=path, head={w: h for h, w in VIEW.items()}[v], view=v, action='Walk', bands=sv['bands'], order=sv['order'], attempt=sv['attempt']))
     return out
 
 
@@ -210,6 +224,12 @@ def cut_page(pg, check=False):
             for w in l:
                 dr.rectangle(w[:4], outline=(255, 255, 255))
         im.resize((im.width // 2, im.height // 2), Image.BOX).save(os.path.join(d, 'cut-%s-%s.png' % (pg['view'], pg['action'])))
+    if pg.get('order'):                                     # a salvage: the frames in the seat's order, each its own lowest point (views: 'own')
+        out = [out[i - 1] for i in pg['order']]
+        prov = {'source': os.path.relpath(pg['path'], BAR).replace('\\', '/'), 'attempt': pg['attempt'], 'order': pg['order'],
+                'changed': 'whole-frame reorder; no mirroring, warping, recolouring or part edit; each frame set on its own lowest foot at the page\'s one scale',
+                'frames': [{'output_frame': k + 1, 'source_numbered_frame': nm, 'source_box': list(box)} for k, (nm, im, box, _) in enumerate(out)]}
+        json.dump(prov, open(os.path.join(os.path.dirname(pg['path']), '%s-WALK-provenance.json' % pg['view']), 'w'), indent=1)
     return out
 
 
@@ -289,26 +309,59 @@ def measure(check=False, say=False):
 HIS = {'S': ('R', 'L'), 'N': ('L', 'R')}       # facing the camera his right leg is on the screen's left; from behind, his left
 
 
+DIR = {'S': (0, 1), 'N': (0, -1), 'E': (1, 0), 'SE': (0.894, 0.447), 'NE': (0.894, -0.447)}   # the walk's direction on the screen (x right, y down)
+
+
+def footprints(al):
+    """a figure's two footprints, the lowest first: [(x centre, bottom y)] -- the lowest opaque row of each column, a footprint the columns within 7 px
+    of a local lowest, the second found clear of the first"""
+    H, W = al.shape
+    ys = np.array([np.where(al[:, x])[0][-1] if al[:, x].any() else -1 for x in range(W)])
+    fp, taken = [], np.zeros(W, bool)
+    for _ in range(2):
+        cand = np.where((ys >= 0) & ~taken)[0]
+        if not len(cand):
+            break
+        top = cand[np.argmax(ys[cand])]
+        run = [top]; x = top - 1
+        while x >= 0 and ys[x] >= ys[top] - 7 and not taken[x]: run.append(x); x -= 1
+        x = top + 1
+        while x < W and ys[x] >= ys[top] - 7 and not taken[x]: run.append(x); x += 1
+        fp.append((float(np.mean(run)), int(ys[top])))
+        taken[max(0, min(run) - 10):max(run) + 11] = True
+    return fp
+
+
 def legs(frs, view):
-    """a walk's frames (page px) -> [(frame, leading leg 'R'/'L', how far the other foot stands above it in page px)], and the number of times
-    the lead changes round the loop (an alternating gait changes twice; one that repeats a leg, never)"""
+    """a walk's frames (page px) -> [(frame, the forward foot's side, the stride in page px)], and the number of times the side changes round the loop.
+    The forward foot is the footprint further along the walk's direction; its side is which of the two it is across the walk -- facing S or N the
+    screen's left or right (his R or L: HIS), in profile or on a diagonal the near or the far leg. An alternating gait changes side twice round the
+    loop with a run of three or more each way; one that repeats a leg changes only at the crossing frame, if at all (proved on the desk's raw S walk
+    against its own RIGHT/LEFT labels)"""
+    dx, dy = DIR[view]; px, py = -dy, dx
     out = []
     for nm, im, box, _ in frs:
-        al = np.asarray(im)[..., 3] > 0
-        rows = np.where(al.any(1))[0]
-        top, bot = rows[0], rows[-1]
-        low = al.copy(); low[:int(bot - 0.07 * (bot - top))] = False        # the lowest foot alone: the one in front
-        mid = core_x(np.asarray(im))
-        fx = np.where(low)[1].mean()
-        lead = HIS[view][0] if fx < mid else HIS[view][1]
-        legs_ = al.copy(); legs_[:int(bot - 0.25 * (bot - top))] = False    # the other: the lowest point past the front foot, the other side
-        fc = np.where(low.any(0))[0]
-        side = legs_[:, fc[-1] + 1:] if fx < mid else legs_[:, :fc[0]]
-        other = np.where(side.any(1))[0]
-        out.append((nm, lead, int(bot - other[-1]) if len(other) else None))
+        fp = footprints(np.asarray(im)[..., 3] > 0)
+        if len(fp) < 2:
+            out.append((nm, '?', 0)); continue
+        (ax, ay), (bx, by) = fp
+        fa, fb = ax * dx + ay * dy, bx * dx + by * dy
+        fwd, oth = ((ax, ay), (bx, by)) if fa >= fb else ((bx, by), (ax, ay))
+        across = (fwd[0] - oth[0]) * px + (fwd[1] - oth[1]) * py
+        if view in HIS:
+            side = HIS[view][0] if across < 0 else HIS[view][1]
+        else:
+            side = 'near' if across > 0 else 'far'
+        out.append((nm, side, int(round(abs(fa - fb)))))
     seq = [s for _, s, _ in out]
     changes = sum(seq[i] != seq[i - 1] for i in range(len(seq)))
     return out, changes
+
+
+def alternates(seq):
+    """an alternating gait: the side changes twice round the loop and the shorter run is three frames or more"""
+    n = len(seq); ch = sum(seq[i] != seq[i - 1] for i in range(n))
+    return ch == 2 and min(seq.count(seq[0]), n - seq.count(seq[0])) >= 3
 
 
 def walk_report(cuts=None):
@@ -321,8 +374,8 @@ def walk_report(cuts=None):
             continue
         fr, ch = legs(cuts[(v, 'Walk')], v)
         rep[v] = (fr, ch)
-        print('  walk %-2s  ' % v + '  '.join('%d %s%s' % (n, s, '' if l is None else '+%d' % l) for n, s, l in fr) +
-              '   (the lead changes %d times round the loop: %s)' % (ch, 'alternates' if ch == 2 else 'REPEATS a leg' if ch == 0 else 'uneven'))
+        print('  walk %-2s  ' % v + '  '.join('%d %s(%d)' % (n, s, l) for n, s, l in fr) +
+              '   (the forward foot\'s side changes %d times round the loop: %s)' % (ch, 'ALTERNATES' if alternates([s for _, s, _ in fr]) else 'REPEATS a leg'))
     return rep
 
 
@@ -361,7 +414,7 @@ def views(check=False):
             seq = []
             for row, which, ground in parts:
                 frs, k = cuts[(v, row)], K[(v, row)]
-                for n in (which or [f[0] for f in frs]):
+                for n in (which or range(1, len(frs) + 1)):     # (positions, not the printed numbers: a salvage is reordered)
                     nm, im, box, floor = frs[n - 1]
                     a = pix.pixelate(game_size(im, k), 1, do_lift=False)
                     up = 0 if ground == 'own' else int(round((floor - box[3]) / k))

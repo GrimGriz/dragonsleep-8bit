@@ -4747,8 +4747,8 @@
       okBa('barley_p2 rows: ' + gotBa.join(' ') + ' (the blows land on ' + (shBa && shBa.anims.attack.release) + ' and ' + (shBa && shBa.anims.attack2.release) + ')',
         shBa && wantBa.every(function (r) { return gotBa.indexOf(r) >= 0; }) && shBa.anims.attack.release === 3 && shBa.anims.attack2.release === 3);
       var openBa = gotBa.filter(function (r) { return shBa.anims[r].drawn; }).map(function (r) { return r + ' ' + shBa.anims[r].drawn.join(''); });
-      okBa('the OPEN views left out, each row its drawn facings: ' + openBa.join(', ') + '; the walk drawn S only, under barley_p0',
-        shBa && shBa.anims.walk.drawn.join() === '0' && shBa.anims.walk.under === 'barley_p0' && shBa.anims.hurt.drawn.indexOf(0) < 0 && !shBa.anims.idle.drawn && !shBa.anims.attack.drawn);
+      okBa('the OPEN views left out, each row its drawn facings: ' + openBa.join(', ') + '; the walk drawn S and N only (N the seat\'s salvage), under barley_p0',
+        shBa && shBa.anims.walk.drawn.join() === '0,4' && shBa.anims.walk.under === 'barley_p0' && shBa.anims.hurt.drawn.indexOf(0) < 0 && !shBa.anims.idle.drawn && !shBa.anims.attack.drawn);
       var nf = D.spr.nearFacing, nfBa = [nf([1, 2, 3, 4, 5, 6, 7], 0), nf([2, 3, 5, 6], 0), nf([2, 3, 5, 6], 4), nf([2, 3, 5, 6], 1), nf([2, 3, 5, 6], 7), nf([0, 1, 2, 4, 6, 7], 5), nf([0, 1, 2, 4, 6, 7], 3)];
       okBa('the nearest drawn facing: hurt S plays SE, getup S plays E, N NE, SW W, SE E; secondwind NE plays E, NW W -- ' + nfBa.join(' '), nfBa.join() === '7,6,5,2,6,6,2');
       var Bb = mkBa('?npc=ogre&lvl=5&vs=fighter:5'), fo = sideBa(Bb, 'foe')[0], pf = sideBa(Bb, 'party')[0];

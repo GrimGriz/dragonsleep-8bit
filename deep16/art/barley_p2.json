@@ -24,7 +24,8 @@
    "frames": 8,
    "fps": 10,
    "drawn": [
-    0
+    0,
+    4
    ],
    "under": "barley_p0"
   },

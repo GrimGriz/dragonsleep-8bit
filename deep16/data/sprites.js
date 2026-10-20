@@ -528,7 +528,7 @@
 }
 },
 "barley_p2": {
-"image": "art/barley_p2.png?v=ce65c9417f",
+"image": "art/barley_p2.png?v=98cd86eadc",
 "fw": 64,
 "fh": 72,
 "ax": 32,
@@ -553,7 +553,8 @@
 "frames": 8,
 "fps": 10,
 "drawn": [
-0
+0,
+4
 ],
 "under": "barley_p0"
 },
