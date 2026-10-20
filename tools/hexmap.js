@@ -73,10 +73,31 @@
       { id: 'city', name: 'Silverton city v6 (1 px = 1 ft)', file: 'silverton-city-map-v6.png', pxmi: 5280, x0: s.x - 1260 / 5280, y0: s.y - 470 / 5280, on: false, op: 0.8 }
     ];
   }
+  // each terrain's ground for the altitude and the world map's going (10-20): [height ft, roughness ft, difficult by the SRD]. The heights are the
+  // seat's draft (the realm names none), each his to change on the terrain. DIFFICULT is the SRD's (07-adventuring: "dense forests, deep swamps,
+  // rubble-filled ruins, steep mountains, and ice-covered ground"; half the distance) -- RULED 10-20, his "SRD for world map and book III for
+  // snoot-play": `cost` stays Book III's for the Snoot, `diff` is the world map's. A gulch and the Rift are ours (his "If DMG has rules SRD
+  // doesn't, we can author our own fill in of the gap"); hills are not difficult (the SRD names none)
+  var DEFT = { plains: [250, 60, 0], verge: [150, 40, 0], farms: [220, 30, 0], foothills: [1400, 600, 0], hills: [900, 650, 0], woods: [500, 150, 1],
+    gulch: [60, 220, 1], bog: [60, 15, 1], black: [6000, 2600, 1], gray: [5000, 2200, 1], coastal: [3200, 1500, 1], town: [300, 30, 0], lake: [0, 0, 0],
+    sea: [0, 0, 0], rift: [-1500, 400, 1] };
+  function terrDefaults(list) {
+    list.forEach(function (t) { var d = DEFT[t.k] || [300, 80, 0]; if (t.alt == null) t.alt = d[0]; if (t.rough == null) t.rough = d[1]; if (t.diff == null) t.diff = !!d[2]; });
+    return list;
+  }
+  function seedPeaks(sites) { // three named heights to start his lifts from (the seat's placing, his to move)
+    var out = [], by = function (f) { return sites.filter(f)[0]; };
+    var add = function (s, name, dx, dy, h, r) { if (s) out.push({ id: 'k' + out.length, name: name, x: s.x + dx, y: s.y + dy, h: h, r: r }); };
+    add(by(function (s) { return s.id === 'monks'; }), 'the lone mountain', 0, 0, 5000, 5);
+    add(by(function (s) { return /doors/i.test(s.name); }), 'the Doors’ heights', 0, -3, 3500, 9);
+    add(by(function (s) { return s.id === 'silverton'; }), 'the Edifice’s mountain', 0, -2.2, 2500, 3);
+    return out;
+  }
   function fresh() {
     var sites = seedSites();
-    return { v: 2, terr: seedTerr(), paint: { 1: {}, 2: {}, 3: {} }, sites: sites, paths: seedPaths(), under: seedUnder(sites),
-      pace: { foot: 24, cart: 17 }, opts: { paintOp: 0.7, grid: true, labels: true, terr: 'hills', brush: 0, tool: 'select', uSel: 'corridor' }, view: null };
+    return { v: 2, terr: terrDefaults(seedTerr()), paint: { 1: {}, 2: {}, 3: {} }, sites: sites, paths: seedPaths(), under: seedUnder(sites), peaks: seedPeaks(sites),
+      pace: { foot: 24, cart: 17 }, opts: { paintOp: 0.7, grid: true, labels: true, terr: 'hills', brush: 0, tool: 'select', uSel: 'corridor',
+        look: 'flat', exag: 6, contours: true, iso: true, liftR: 4, seed: 1 }, view: null };
   }
 
   // ---------------------------------------------------------------- hex math (axial q, r; pointy-top)
@@ -125,8 +146,37 @@
     ['paint', 'pace', 'opts', 'under', 'terr', 'sites', 'paths'].forEach(function (k) { if (!S[k]) S[k] = f[k]; });
     [1, 2, 3].forEach(function (L) { S.paint[L] = S.paint[L] || {}; });
     Object.keys(f.opts).forEach(function (k) { if (S.opts[k] == null) S.opts[k] = f.opts[k]; });
+    terrDefaults(S.terr); if (!S.peaks) S.peaks = seedPeaks(S.sites);
     if (S.view) { view.cx = S.view.cx; view.cy = S.view.cy; view.z = S.view.z; view.L = S.view.L || 1; }
     reindex(); rebuildDC();
+    S.paths.forEach(function (P) { if (/coldridge/i.test(P.name || '') && !P.drawn) SHAPED = shapeColdridge(P) || SHAPED; });
+  }
+  // THE COLDRIDGE ROUTE (10-20; his "the coldridge route I'm leaning on you the most for"): RULED 10-17 "3 days ... due to mountain and weather -
+  // alternately the road i drew is inaccurate because of switchbacks". The seat's shaping, once, on load: the road is DIFFICULT (a steep mountain
+  // road, the SRD's half pace -- ours, the SRD names no roads that are), and its climb to the Doors is drawn in switchbacks until it reads three
+  // wagon-days, 25.5 mi at 17 a day counted twice. His own points are kept on the road as `drawn`.
+  var SHAPED = false;
+  function shapeColdridge(P) {
+    var pts = ptsOf(P); if (pts.length < 2) return false;
+    var len = 0, i; for (i = 0; i + 1 < pts.length; i++) len += Math.hypot(pts[i + 1][0] - pts[i][0], pts[i + 1][1] - pts[i][1]);
+    var cart = +S.pace.cart || 17, want = 3 * cart / 2; // (three wagon-days of going, counted twice: the road's own length)
+    P.drawn = P.pts.slice(); P.difficult = true;
+    if (len >= want - 0.05) return true;
+    // the switchbacks go on the climb: the last K miles to the Doors, each run s long, swinging a to either side (a found so the whole reads `want`)
+    var K = Math.min(len - 1, Math.max(4, (want - len) * 2.6)), s = 0.45, from = len - K;
+    var zig = function (a) {
+      var out = [P.pts[0]], acc = 0, side = 1;
+      for (var j = 0; j + 1 < pts.length; j++) {
+        var A = pts[j], B = pts[j + 1], L = Math.hypot(B[0] - A[0], B[1] - A[1]), ux = (B[0] - A[0]) / L, uy = (B[1] - A[1]) / L, t = Math.max(0, from - acc);
+        while (t + s < L - s * 0.5) { t += s; out.push([A[0] + ux * t - uy * a * side, A[1] + uy * t + ux * a * side]); side = -side; }
+        acc += L; out.push(P.pts[j + 1]);
+      }
+      return out;
+    };
+    var lenOf = function (q) { var p = q.map(ptOf), n = 0; for (var j = 0; j + 1 < p.length; j++) n += Math.hypot(p[j + 1][0] - p[j][0], p[j + 1][1] - p[j][1]); return n; };
+    var lo = 0, hi = 3;
+    for (i = 0; i < 40; i++) { var mid = (lo + hi) / 2; if (lenOf(zig(mid)) < want) lo = mid; else hi = mid; }
+    P.pts = zig((lo + hi) / 2); return true;
   }
   var saveT = 0;
   function save() { clearTimeout(saveT); saveT = setTimeout(saveNow, 250); }
@@ -138,7 +188,7 @@
   var viewT = 0;
   function saveView() { clearTimeout(viewT); viewT = setTimeout(function () { saveNow(true); }, 400); }
   // undo: a paint stroke is its list of changes; anything else is the places, roads, terrains and underlays before and after
-  function body() { return JSON.stringify({ terr: S.terr, sites: S.sites, paths: S.paths, under: S.under }); }
+  function body() { return JSON.stringify({ terr: S.terr, sites: S.sites, paths: S.paths, under: S.under, peaks: S.peaks }); }
   function begin() { if (!OP) OP = { paint: [], b: body() }; }
   function rawSet(L, k, t) {
     var b = S.paint[L][k] || null; t = t || null; if (b === t) return b;
@@ -153,7 +203,7 @@
     if (rec.paint.length || rec.b) { UNDO.push(rec); if (UNDO.length > 300) UNDO.shift(); REDO = []; save(); }
     panels(); draw();
   }
-  function snap(j) { var o = JSON.parse(j); S.terr = o.terr; S.sites = o.sites; S.paths = o.paths; S.under = o.under; reindex(); }
+  function snap(j) { var o = JSON.parse(j); S.terr = o.terr; S.sites = o.sites; S.paths = o.paths; S.under = o.under; S.peaks = o.peaks || []; reindex(); }
   function undo() {
     var rec = UNDO.pop(); if (!rec) return msg('nothing to undo');
     for (var i = rec.paint.length - 1; i >= 0; i--) rawSet(rec.paint[i][0], rec.paint[i][1], rec.paint[i][2]);
@@ -241,6 +291,203 @@
   function ptOf(p) { if (typeof p === 'string') { var s = SB[p]; return s ? [s.x, s.y] : null; } return p; }
   function ptsOf(P) { return P.pts.map(ptOf).filter(Boolean); }
 
+  // ---------------------------------------------------------------- ALTITUDE (10-20, the world map seat; Griz: "Can you altitude the hexmap via html, i.e.
+  // lift specific mountain and pull up nearby hexes through some kind of fractal map, hill the knoll hills etc - which we hope to visually use as the
+  // world map?"; his "excellent" to LIFT and "precisely" to the two looks). A height in feet at any point: the ground his paint says (each terrain's
+  // height and roughness, blended over a few miles so a range rises out of its foothills), a fractal on it (rolling noise on soft ground, ridges on
+  // rough), his LIFTs (peaks kept in miles, like places: every level shows them), and the roads' beds (a road is graded along itself, a river cuts).
+  function hash(i, j, s) { var h = (Math.imul(i, 374761393) + Math.imul(j, 668265263) + Math.imul(s, 1442695041)) | 0; h = Math.imul(h ^ (h >>> 13), 1274126177); h ^= h >>> 16; return (h >>> 0) / 4294967296; }
+  function vnoise(x, y, s) {
+    var i = Math.floor(x), j = Math.floor(y), fx = x - i, fy = y - j, u = fx * fx * (3 - 2 * fx), v = fy * fy * (3 - 2 * fy);
+    var a = hash(i, j, s), b = hash(i + 1, j, s), c = hash(i, j + 1, s), d = hash(i + 1, j + 1, s);
+    return (a + (b - a) * u + (c - a) * v + (a - b - c + d) * u * v) * 2 - 1;
+  }
+  function fbm(x, y, s, oct) { var t = 0, amp = 0.5, f = 1, n = 0; for (var o = 0; o < oct; o++) { t += amp * vnoise(x * f, y * f, s + o * 17); n += amp; amp *= 0.5; f *= 2.03; } return t / n; }
+  function ridged(x, y, s, oct) {
+    var t = 0, amp = 0.5, f = 1, n = 0, w = 1;
+    for (var o = 0; o < oct; o++) { var r = 1 - Math.abs(vnoise(x * f, y * f, s + o * 31)); r *= r * w; w = Math.min(1, r * 2); t += amp * r; n += amp; amp *= 0.5; f *= 2.1; }
+    return t / n;
+  }
+  var isWet = function (t) { return t === 'sea' || t === 'lake'; };
+  // the blended ground: a raster over the paint, 0.6 mi a cell, each terrain's height and roughness box-blurred three times (about 2.7 mi)
+  var AR = null, ARV = -1, ART = 0, arT = 0;
+  function boxLine(a, off, st, n, r, tmp) {
+    var s = 0, i; for (i = -r; i <= r; i++) s += a[off + st * Math.min(n - 1, Math.max(0, i))];
+    for (i = 0; i < n; i++) { tmp[i] = s / (2 * r + 1); s += a[off + st * Math.min(n - 1, i + r + 1)] - a[off + st * Math.max(0, i - r)]; }
+    for (i = 0; i < n; i++) a[off + st * i] = tmp[i];
+  }
+  function blur(a, nx, ny, r) { var tmp = new Float32Array(Math.max(nx, ny)); for (var p = 0; p < 3; p++) { for (var j = 0; j < ny; j++) boxLine(a, j * nx, 1, nx, r, tmp); for (var i = 0; i < nx; i++) boxLine(a, i, nx, ny, r, tmp); } }
+  function buildAR() {
+    var b = [1e9, 1e9, -1e9, -1e9];
+    [1, 2, 3].forEach(function (L) { for (var k in S.paint[L]) { var h = unK(k), c = hc(L, h[0], h[1]); if (c[0] < b[0]) b[0] = c[0]; if (c[1] < b[1]) b[1] = c[1]; if (c[0] > b[2]) b[2] = c[0]; if (c[1] > b[3]) b[3] = c[1]; } });
+    if (b[0] > b[2]) b = [0, 0, 100, 60];
+    var cs = 0.6, x0 = b[0] - 12, y0 = b[1] - 12, nx = Math.ceil((b[2] + 12 - x0) / cs), ny = Math.ceil((b[3] + 12 - y0) / cs), n = nx * ny;
+    var A = new Float32Array(n), R = new Float32Array(n), W = new Float32Array(n);
+    for (var j = 0; j < ny; j++) for (var i = 0; i < nx; i++) {
+      var t = terrAtMi(x0 + (i + 0.5) * cs, y0 + (j + 0.5) * cs), T = t && TB[t], o = j * nx + i, w = !T ? 0.3 : t === 'lake' ? 0.02 : 1; // (a lake takes the land round it)
+      W[o] = w; A[o] = (T ? +T.alt || 0 : 200) * w; R[o] = (T ? +T.rough || 0 : 50) * w;
+    }
+    blur(A, nx, ny, 4); blur(R, nx, ny, 4); blur(W, nx, ny, 4);
+    for (var o2 = 0; o2 < n; o2++) { var ww = W[o2] || 1e-6; A[o2] /= ww; R[o2] /= ww; }
+    AR = { x0: x0, y0: y0, cs: cs, nx: nx, ny: ny, A: A, R: R };
+  }
+  function ar() { // (rebuilt when the paint changes, at most every 0.6 s while he paints; the view catches up after)
+    if (!AR || (ARV !== VER && Date.now() - ART > 600)) { buildAR(); ARV = VER; ART = Date.now(); }
+    else if (ARV !== VER && !arT) arT = setTimeout(function () { arT = 0; HSIG = ''; LAYERKEY = ''; draw(); }, 650);
+    return AR;
+  }
+  function bil(a, x, y) {
+    var g = AR, fx = (x - g.x0) / g.cs - 0.5, fy = (y - g.y0) / g.cs - 0.5, i = Math.floor(fx), j = Math.floor(fy), u = fx - i, v = fy - j;
+    var cl = function (k, n) { return k < 0 ? 0 : k >= n ? n - 1 : k; }, I0 = cl(i, g.nx), I1 = cl(i + 1, g.nx), J0 = cl(j, g.ny) * g.nx, J1 = cl(j + 1, g.ny) * g.nx;
+    return (a[J0 + I0] * (1 - u) + a[J0 + I1] * u) * (1 - v) + (a[J1 + I0] * (1 - u) + a[J1 + I1] * u) * v;
+  }
+  function peaksAt(x, y) { // his LIFTs: each a height over a spread, its edge and its spurs fractal ("pull up nearby hexes through some kind of fractal map")
+    var h = 0, P = S.peaks || [];
+    for (var i = 0; i < P.length; i++) {
+      var p = P[i], dx = x - p.x, dy = y - p.y, r = +p.r || 1; if (Math.abs(dx) > r * 1.5 || Math.abs(dy) > r * 1.5) continue;
+      var warp = 1 + 0.35 * fbm(x / r * 1.3 + 7.1 * i, y / r * 1.3, 77, 4), u = Math.hypot(dx, dy) / (r * warp); if (u >= 1) continue;
+      var f = 1 - u * u; f *= f; h += (+p.h || 0) * f * (0.7 + 0.6 * ridged(x / r * 2.5, y / r * 2.5, 300 + i, 5));
+    }
+    return h;
+  }
+  var KLOC = 0.45; // (how far a hex's own ground pulls it from the blend: a lone lake or crag reads, a border stays soft)
+  function hRaw(x, y, tk) {
+    ar(); if (tk === undefined) tk = terrAtMi(x, y);
+    var b = bil(AR.A, x, y), rr = bil(AR.R, x, y);
+    if (tk === 'sea') return 0;
+    if (tk === 'lake') return Math.max(0, b - 40); // (a lake lies flat a little under the land round it)
+    var T = tk && TB[tk], la = T ? +T.alt : b, lr = T ? +T.rough : rr, h = b + KLOC * (la - b), R = rr + KLOC * (lr - rr);
+    var m = Math.max(0, Math.min(1, (R - 400) / 1600)), sd = +S.opts.seed || 1;
+    h += R * ((1 - m) * fbm(x / 4.5, y / 4.5, sd, 8) + m * (2.2 * ridged(x / 11, y / 11, sd + 101, 8) - 0.9)); // (rolling hills a few miles across; ridges on the rough)
+    h += peaksAt(x, y);
+    return tk === 'rift' ? h : Math.max(10, h);
+  }
+  // the roads' beds: a road or track graded along itself (its heights smoothed over about two miles each way), a river a little under the lowest
+  // ground near it; the land within a few hundred yards eased toward the bed. So a road climbs to a pass, and the Coldridge Route's switchbacks
+  // climb as one grade.
+  var BEDS = null;
+  function buildBeds() {
+    var g = { cell: 0.5, grid: new Map() };
+    S.paths.forEach(function (P) {
+      var pts = ptsOf(P); if (pts.length < 2) return;
+      var river = P.kind === 'river', smp = [];
+      for (var i = 0; i + 1 < pts.length; i++) {
+        var A = pts[i], B = pts[i + 1], L = Math.hypot(B[0] - A[0], B[1] - A[1]), n = Math.max(1, Math.ceil(L / 0.2));
+        for (var j = 0; j < n; j++) { var t = j / n, x = A[0] + (B[0] - A[0]) * t, y = A[1] + (B[1] - A[1]) * t; smp.push([x, y, hRaw(x, y)]); }
+      }
+      var e = pts[pts.length - 1]; smp.push([e[0], e[1], hRaw(e[0], e[1])]);
+      var W = river ? 4 : 10;
+      smp.forEach(function (s, i) {
+        var a = 0, n = 0, lo = 1e9; for (var k = Math.max(0, i - W); k <= Math.min(smp.length - 1, i + W); k++) { a += smp[k][2]; n++; if (smp[k][2] < lo) lo = smp[k][2]; }
+        var gk = Math.floor(s[0] / g.cell) + ',' + Math.floor(s[1] / g.cell), list = g.grid.get(gk); if (!list) g.grid.set(gk, list = []);
+        list.push([s[0], s[1], river ? lo - 60 : a / n, river]);
+      });
+    });
+    BEDS = g;
+  }
+  function bedAt(x, y, h) {
+    var g = BEDS; if (!g) return h;
+    var ci = Math.floor(x / g.cell), cj = Math.floor(y / g.cell), best = null, bd = 0.45;
+    for (var dj = -1; dj <= 1; dj++) for (var di = -1; di <= 1; di++) {
+      var L = g.grid.get((ci + di) + ',' + (cj + dj)); if (!L) continue;
+      for (var k = 0; k < L.length; k++) { var e = L[k], d = Math.hypot(e[0] - x, e[1] - y); if (d < bd) { bd = d; best = e; } }
+    }
+    if (!best) return h;
+    var w = 1 - bd / (best[3] ? 0.3 : 0.45); if (w <= 0) return h; w = w * w * 0.9;
+    return best[3] ? Math.min(h, h + (best[2] - h) * w) : h + (best[2] - h) * w;
+  }
+  function hAt(x, y, tk) { if (tk === undefined) tk = terrAtMi(x, y); var h = hRaw(x, y, tk); return isWet(tk) ? h : bedAt(x, y, h); }
+  // the caches: a hex's height and its shown ground, cleared when the paint, the roads, the lifts or the seed change
+  var HC = new Map(), DT = new Map(), HSIG = '';
+  function sigOf() { return VER + '|' + S.opts.seed + '|' + JSON.stringify(S.peaks) + '|' + JSON.stringify(S.paths) + '|' + JSON.stringify(S.sites); }
+  function hcheck() { var s = sigOf(); if (s !== HSIG) { HC.clear(); DT.clear(); HSIG = s; LAYERKEY = ''; buildBeds(); } }
+  function dirtyAround(x, y, R) { // (a lift dragged: only the hexes it reaches are measured again)
+    HC.forEach(function (v, k) { if (Math.abs(v[1] - x) < R && Math.abs(v[2] - y) < R) HC.delete(k); });
+    HSIG = sigOf(); LAYERKEY = '';
+  }
+  function domT(L, q, r) { // the ground a hex shows: its own (or its parent's), or where he painted finer inside it, the most of what is there
+    var k = K(q, r);
+    if (L < 3 && DC[L].get(k)) {
+      var ck = L + '|' + k, v = DT.get(ck); if (v !== undefined) return v;
+      var n = LV[L + 1].n, cnt = {}, best = null, bn = 0;
+      kids(n).forEach(function (c) { var t = domT(L + 1, n * q + c[0], n * r + c[1]); if (t) { cnt[t] = (cnt[t] || 0) + 1; if (cnt[t] > bn) { bn = cnt[t]; best = t; } } });
+      DT.set(ck, best); return best;
+    }
+    var e = effAt(L, q, r); return e ? e.t : null;
+  }
+  function hexH(L, q, r) {
+    var k = L + '|' + q + ',' + r, v = HC.get(k); if (v) return v[0];
+    var c = hc(L, q, r), h = hAt(c[0], c[1], domT(L, q, r)); HC.set(k, [h, c[0], c[1]]); return h;
+  }
+  function shadeOf(L, q, r, ex) { // light from the north-west, high: 1 on the flat
+    var w = LV[L].w, gx = (hexH(L, q + 1, r) - hexH(L, q - 1, r)) / (2 * w), gy = (hexH(L, q, r + 1) + hexH(L, q - 1, r + 1) - hexH(L, q + 1, r - 1) - hexH(L, q, r - 1)) / (2 * w * SQ3);
+    var k = ex / 5280, nl = Math.sqrt(gx * gx * k * k + gy * gy * k * k + 1), d = (0.503 * gx * k + 0.503 * gy * k + 0.704) / nl / 0.704;
+    return Math.round(Math.max(0.42, Math.min(1.4, d)) * 16) / 16;
+  }
+  var RGB = {};
+  function rgbOf(c, deep) {
+    if (RGB[c]) return RGB[c];
+    var m = /^#([0-9a-f]{6})$/i.exec(c);
+    if (!m) { if (deep) return [255, 0, 255]; var g = document.createElement('canvas').getContext('2d'); g.fillStyle = '#ff00ff'; g.fillStyle = c; return (RGB[c] = rgbOf(g.fillStyle, true)); }
+    var n = parseInt(m[1], 16); return (RGB[c] = [n >> 16, (n >> 8) & 255, n & 255]);
+  }
+  function tone(t, s, h, wall) { // a hex's colour lit: its terrain's, shaded, snow on the highest; a wall the same ground darker and earthier
+    var T = TB[t], c = rgbOf(T ? T.color : t ? '#ff00ff' : '#5a5244'), r = c[0], g = c[1], b = c[2]; // (no paint: a dim ground, so the world reads whole)
+    if (wall) { r = r * 0.6 + 92 * 0.4; g = g * 0.6 + 74 * 0.4; b = b * 0.6 + 56 * 0.4; }
+    r *= s; g *= s; b *= s;
+    var sn = wall ? 0 : Math.round(Math.max(0, Math.min(0.75, (h - 7000) / 2600)) * 8) / 8;
+    if (sn) { r += (236 - r) * sn; g += (238 - g) * sn; b += (246 - b) * sn; }
+    var cl = function (v) { return v < 0 ? 0 : v > 255 ? 255 : v | 0; };
+    return 'rgb(' + cl(r) + ',' + cl(g) + ',' + cl(b) + ')';
+  }
+  // THE WORLD LOOK: the map tilted, each hex a column at its height, lit, drawn north to south (painter's order); a cam is any window on it --
+  // the WORLD view itself, or the iso preview inset over the flat ones (his "if a preview of isometric when working on the flat would probably be great")
+  var TILT = 0.62;
+  function exagAt(z) { return (+S.opts.exag || 6) * Math.min(1, Math.pow(8 / z, 0.35)); } // (heights drawn taller when far out, nearer true when close in)
+  function wlev(z) { for (var L = 3; L >= 1; L--) if (LV[L].w * z >= 13) return L; return 1; }
+  function camMain() { return { cx: view.cx, cy: view.cy, z: view.z, W: Wd, H: Ht, E: exagAt(view.z) }; }
+  function wproj(cam, x, y, h) { return [(x - cam.cx) * cam.z + cam.W / 2, (y - cam.cy) * cam.z * TILT + cam.H / 2 - h / 5280 * cam.z * cam.E]; }
+  var HCO = []; for (var hci = 0; hci < 6; hci++) { var hca = (30 + 60 * hci) * Math.PI / 180; HCO.push([Math.cos(hca) / SQ3, Math.sin(hca) / SQ3]); }
+  function worldDraw(g, cam) {
+    ar(); var L = wlev(cam.z), w = LV[L].w, hh = w * SQ3 / 2, lmax = 15000 / 5280 * cam.z * cam.E, outline = w * cam.z >= 9;
+    var y0 = cam.cy - (cam.H / 2) / (cam.z * TILT) - w, y1 = cam.cy + (cam.H / 2 + lmax) / (cam.z * TILT) + w, x0 = cam.cx - cam.W / 2 / cam.z - w, x1 = cam.cx + cam.W / 2 / cam.z + w;
+    var poly = function (path, P) { path.moveTo(P[0][0], P[0][1]); for (var i = 1; i < P.length; i++) path.lineTo(P[i][0], P[i][1]); path.closePath(); };
+    for (var r = Math.floor(y0 / hh); r <= Math.ceil(y1 / hh); r++) {
+      var groups = {}, tops = outline ? new Path2D() : null, add = function (col, P) { poly(groups[col] || (groups[col] = new Path2D()), P); };
+      for (var q = Math.floor(x0 / w - r / 2); q <= Math.ceil(x1 / w - r / 2); q++) {
+        var t = domT(L, q, r), c = hc(L, q, r);
+        if (!t && (c[0] < AR.x0 || c[1] < AR.y0 || c[0] > AR.x0 + AR.nx * AR.cs || c[1] > AR.y0 + AR.ny * AR.cs)) continue; // (unpainted ground drawn dim, near the paint)
+        var h = hexH(L, q, r), wet = isWet(t);
+        var P = HCO.map(function (o) { return wproj(cam, c[0] + o[0] * w, c[1] + o[1] * w, h); });
+        if (!wet) [[0, 1, q, r + 1, 0.62], [1, 2, q - 1, r + 1, 0.82]].forEach(function (f) { // the two south faces, down to the neighbour's top
+          var hn = hexH(L, f[2], f[3]); if (hn >= h - 1) return;
+          var a = HCO[f[0]], b = HCO[f[1]];
+          add(tone(t, f[4], 0, true), [P[f[0]], P[f[1]], wproj(cam, c[0] + b[0] * w, c[1] + b[1] * w, hn), wproj(cam, c[0] + a[0] * w, c[1] + a[1] * w, hn)]);
+        });
+        add(tone(t, wet ? 1 : shadeOf(L, q, r, cam.E), h), P); if (tops) poly(tops, P);
+      }
+      Object.keys(groups).forEach(function (col) { g.fillStyle = col; g.strokeStyle = col; g.lineWidth = 0.6; g.fill(groups[col]); g.stroke(groups[col]); });
+      if (tops) { g.strokeStyle = 'rgba(20,12,6,.28)'; g.lineWidth = 0.7; g.stroke(tops); }
+    }
+  }
+  function worldMarks(g, cam) { // (the inset's roads and places, on the ground)
+    var L = wlev(cam.z), hp = function (x, y) { var a = at(L, x, y); return wproj(cam, x, y, hexH(L, a[0], a[1])); };
+    S.paths.forEach(function (P) {
+      var pts = ptsOf(P); if (pts.length < 2) return; var st = PSTYLE[P.kind] || PSTYLE.road; g.beginPath();
+      for (var i = 0; i + 1 < pts.length; i++) {
+        var A = pts[i], B = pts[i + 1], n = Math.max(1, Math.ceil(Math.hypot(B[0] - A[0], B[1] - A[1]) / (LV[L].w * 0.5)));
+        for (var j = 0; j <= n; j++) { var s = hp(A[0] + (B[0] - A[0]) * j / n, A[1] + (B[1] - A[1]) * j / n); if (!i && !j) g.moveTo(s[0], s[1]); else g.lineTo(s[0], s[1]); }
+      }
+      g.setLineDash([]); g.strokeStyle = st.c; g.lineWidth = Math.max(1.2, st.w * 0.6); g.lineJoin = 'round'; g.stroke();
+    });
+    g.font = 'italic 11px Georgia, serif';
+    S.sites.forEach(function (st) {
+      var s = hp(st.x, st.y); if (s[0] < -40 || s[0] > cam.W + 40 || s[1] < -20 || s[1] > cam.H + 20) return;
+      g.fillStyle = '#efe0b8'; g.strokeStyle = '#2a180a'; g.lineWidth = 1.5; g.beginPath(); g.arc(s[0], s[1], 3.5, 0, 7); g.fill(); g.stroke();
+      if (st.kind === 'city' || st.kind === 'castle' || st.kind === 'inn' || st.kind === 'town' || st.kind === 'seat') { g.lineWidth = 3; g.strokeStyle = 'rgba(30,16,6,.85)'; g.strokeText(st.name, s[0] + 6, s[1] + 4); g.fillStyle = '#f6e9c5'; g.fillText(st.name, s[0] + 6, s[1] + 4); }
+    });
+  }
+
   // ---------------------------------------------------------------- the view
   var cv = $('c'), ctx = cv.getContext('2d'), layer = document.createElement('canvas'), lctx = layer.getContext('2d');
   var Wd = 0, Ht = 0, DPR = 1, drawQ = 0;
@@ -248,8 +495,19 @@
     var r = cv.parentNode.getBoundingClientRect(); DPR = window.devicePixelRatio || 1; Wd = r.width; Ht = r.height;
     cv.width = layer.width = Math.max(1, Math.round(Wd * DPR)); cv.height = layer.height = Math.max(1, Math.round(Ht * DPR)); LAYERKEY = ''; draw();
   }
-  function toS(x, y) { return [(x - view.cx) * view.z + Wd / 2, (y - view.cy) * view.z + Ht / 2]; }
-  function toM(sx, sy) { return [(sx - Wd / 2) / view.z + view.cx, (sy - Ht / 2) / view.z + view.cy]; }
+  function isW() { return S.opts.look === 'world'; }
+  function zy() { return view.z * (isW() ? TILT : 1); } // (a drag's screen y in miles: the world look is tilted)
+  function ptH(x, y) { var L = wlev(view.z), a = at(L, x, y); return hexH(L, a[0], a[1]); } // (the world look's ground under a point: its column's top)
+  function toS(x, y, h) {
+    if (!isW()) return [(x - view.cx) * view.z + Wd / 2, (y - view.cy) * view.z + Ht / 2];
+    return wproj(camMain(), x, y, h == null ? ptH(x, y) : h);
+  }
+  function toM(sx, sy) {
+    if (!isW()) return [(sx - Wd / 2) / view.z + view.cx, (sy - Ht / 2) / view.z + view.cy];
+    var E = exagAt(view.z), x = (sx - Wd / 2) / view.z + view.cx, y = 0, h = 0; // (the ground under the cursor: walk the height in, a few times)
+    for (var i = 0; i < 5; i++) { y = (sy - Ht / 2 + h / 5280 * view.z * E) / (view.z * TILT) + view.cy; h = ptH(x, y); }
+    return [x, y];
+  }
   function hexPx(L) { return LV[L].w * view.z; }
   function autoLevel() {
     var L0 = view.L;
@@ -277,8 +535,14 @@
 
   function draw() { if (!drawQ) drawQ = requestAnimationFrame(drawNow); }
   function hexPath(c2, L, q, r, grow) {
-    var c = hc(L, q, r), s = toS(c[0], c[1]), R = LV[L].w / SQ3 * view.z + (grow || 0);
-    for (var i = 0; i < 6; i++) { var a = (30 + 60 * i) * Math.PI / 180, x = s[0] + R * Math.cos(a), y = s[1] + R * Math.sin(a); if (i) c2.lineTo(x, y); else c2.moveTo(x, y); }
+    var c = hc(L, q, r), i;
+    if (isW()) { // (on the column's top)
+      var cam = camMain(), h = hexH(L, q, r), w = LV[L].w;
+      for (i = 0; i < 6; i++) { var p = wproj(cam, c[0] + HCO[i][0] * w, c[1] + HCO[i][1] * w, h); if (i) c2.lineTo(p[0], p[1]); else c2.moveTo(p[0], p[1]); }
+      c2.closePath(); return;
+    }
+    var s = toS(c[0], c[1]), R = LV[L].w / SQ3 * view.z + (grow || 0);
+    for (i = 0; i < 6; i++) { var a = (30 + 60 * i) * Math.PI / 180, x = s[0] + R * Math.cos(a), y = s[1] + R * Math.sin(a); if (i) c2.lineTo(x, y); else c2.moveTo(x, y); }
     c2.closePath();
   }
   function onScreen(L, q, r) { var c = hc(L, q, r), s = toS(c[0], c[1]), rad = LV[L].w * view.z; return s[0] > -rad && s[0] < Wd + rad && s[1] > -rad && s[1] < Ht + rad; }
@@ -298,29 +562,58 @@
     ctx.drawImage(rec.el, sx0, sy0, sx1 - sx0, sy1 - sy0, a[0], a[1], b[0] - a[0], b[1] - a[1]); ctx.globalAlpha = 1;
   }
   function fills() {
-    var key = [view.cx, view.cy, view.z, Wd, Ht, DPR, VER].join();
-    if (key !== LAYERKEY) { LAYERKEY = key; fillLayer(); }
-    ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = S.opts.paintOp; ctx.drawImage(layer, 0, 0); ctx.restore();
+    var key = [S.opts.look, S.opts.exag, view.cx, view.cy, view.z, Wd, Ht, DPR, VER].join();
+    if (key !== LAYERKEY) { LAYERKEY = key; if (isW()) { lctx.setTransform(1, 0, 0, 1, 0, 0); lctx.clearRect(0, 0, layer.width, layer.height); lctx.setTransform(DPR, 0, 0, DPR, 0, 0); worldDraw(lctx, camMain()); } else fillLayer(); }
+    ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = isW() ? 1 : S.opts.paintOp; ctx.drawImage(layer, 0, 0); ctx.restore();
   }
   function fillLayer() {
     lctx.setTransform(1, 0, 0, 1, 0, 0); lctx.clearRect(0, 0, layer.width, layer.height); lctx.setTransform(DPR, 0, 0, DPR, 0, 0);
-    var groups = {};
+    var groups = {}, rel = S.opts.look === 'relief';
     var walk = function (L, q, r, inh) {
       var k = K(q, r), t = S.paint[L][k] || inh;
       if (L < 3 && DC[L].get(k) && hexPx(L + 1) >= 2.5) {
         var n = LV[L + 1].n, ch = kids(n);
         for (var i = 0; i < ch.length; i++) { var cq = n * q + ch[i][0], cr = n * r + ch[i][1]; if (onScreen(L + 1, cq, cr)) walk(L + 1, cq, cr, t); }
-      } else if (t) (groups[t] = groups[t] || []).push([L, q, r]);
+      } else if (t) { var g = rel ? tone(t, isWet(t) ? 1 : shadeOf(L, q, r, 14), hexH(L, q, r)) : t; (groups[g] = groups[g] || []).push([L, q, r]); } // (relief: lit from the north-west)
     };
     visit(1, function (q, r) { walk(1, q, r, null); });
     Object.keys(groups).forEach(function (t) {
-      var c = TB[t] ? TB[t].color : '#ff00ff'; lctx.fillStyle = c; lctx.strokeStyle = c; lctx.lineWidth = 1; lctx.beginPath();
+      var c = rel ? t : TB[t] ? TB[t].color : '#ff00ff'; lctx.fillStyle = c; lctx.strokeStyle = c; lctx.lineWidth = 1; lctx.beginPath();
       groups[t].forEach(function (h) { hexPath(lctx, h[0], h[1], h[2]); }); lctx.fill(); lctx.stroke();
     });
   }
+  function contours() { // (relief: a line along each hex edge where the height crosses a step -- 1000 ft at 5 mi, 500 at a mile, 100 at 330 ft; every fifth bold)
+    var A = view.L; if (S.opts.look !== 'relief' || !S.opts.contours || hexPx(A) < 5) return;
+    var CI = [0, 1000, 500, 100][A], minor = new Path2D(), major = new Path2D(), R = LV[A].w / SQ3 * view.z;
+    visit(A, function (q, r) {
+      if (!domT(A, q, r)) return;
+      var c = hc(A, q, r), s = toS(c[0], c[1]), b = Math.floor(hexH(A, q, r) / CI);
+      for (var d = 0; d < 3; d++) {
+        var nq = q + DIRS[d][0], nr = r + DIRS[d][1]; if (!domT(A, nq, nr)) continue;
+        var bn = Math.floor(hexH(A, nq, nr) / CI); if (bn === b) continue;
+        var into = Math.floor(b / 5) !== Math.floor(bn / 5) ? major : minor, a = corner(s, R, DANG[d] - 30), e = corner(s, R, DANG[d] + 30);
+        into.moveTo(a[0], a[1]); into.lineTo(e[0], e[1]);
+      }
+    });
+    ctx.lineCap = 'round'; ctx.strokeStyle = 'rgba(52,26,8,.5)'; ctx.lineWidth = 1; ctx.stroke(minor);
+    ctx.strokeStyle = 'rgba(40,18,4,.9)'; ctx.lineWidth = 2; ctx.stroke(major); ctx.lineCap = 'butt';
+  }
+  function isoInset() { // the iso preview over the flat looks: the world look under the cursor (or the view's middle), at the view's scale
+    if (isW() || !S.opts.iso) return;
+    var iw = Math.round(Math.min(440, Wd * 0.38)), ih = Math.round(Math.min(280, Ht * 0.36)), x = Wd - iw - 14, y = Ht - ih - 46;
+    if (iw < 120 || ih < 80) return;
+    var f = HOV || [view.cx, view.cy], cam = { cx: f[0], cy: f[1], z: view.z, W: iw, H: ih, E: exagAt(view.z) };
+    ctx.save(); ctx.fillStyle = '#1b1915'; ctx.fillRect(x, y, iw, ih); ctx.beginPath(); ctx.rect(x, y, iw, ih); ctx.clip(); ctx.translate(x, y);
+    worldDraw(ctx, cam); worldMarks(ctx, cam);
+    var L = wlev(cam.z), a = at(L, f[0], f[1]), m = wproj(cam, f[0], f[1], hexH(L, a[0], a[1]));
+    ctx.strokeStyle = '#ffd23c'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(m[0] - 6, m[1]); ctx.lineTo(m[0] + 6, m[1]); ctx.moveTo(m[0], m[1] - 6); ctx.lineTo(m[0], m[1] + 6); ctx.stroke();
+    ctx.restore();
+    ctx.strokeStyle = '#6b5a3c'; ctx.lineWidth = 1.5; ctx.strokeRect(x - 0.5, y - 0.5, iw + 1, ih + 1);
+    ctx.font = '11px ui-monospace, Consolas, monospace'; ctx.fillStyle = '#f6e9c5'; ctx.fillText('ISO PREVIEW · I hides it', x + 6, y + 14);
+  }
   function corner(s, R, deg) { var a = deg * Math.PI / 180; return [s[0] + R * Math.cos(a), s[1] + R * Math.sin(a)]; }
   function gridLines() {
-    var A = view.L; if (!S.opts.grid || hexPx(A) < 6) return;
+    var A = view.L; if (!S.opts.grid || hexPx(A) < 6 || isW()) return; // (the world look outlines its own hexes)
     var thin = new Path2D(), mid = new Path2D(), thick = new Path2D(), R = LV[A].w / SQ3 * view.z;
     visit(A, function (q, r) {
       var c = hc(A, q, r), s = toS(c[0], c[1]);
@@ -348,6 +641,11 @@
     S.paths.forEach(function (P) {
       var pts = ptsOf(P); if (pts.length < 2) return;
       var st = PSTYLE[P.kind] || PSTYLE.road, sel = SEL.path === P.id;
+      if (isW()) { // (on the ground: each leg walked in half-hexes over the columns)
+        var dn = [pts[0]], step = LV[wlev(view.z)].w * 0.5;
+        for (var i = 0; i + 1 < pts.length; i++) { var A = pts[i], B = pts[i + 1], n = Math.max(1, Math.ceil(Math.hypot(B[0] - A[0], B[1] - A[1]) / step)); for (var j = 1; j <= n; j++) dn.push([A[0] + (B[0] - A[0]) * j / n, A[1] + (B[1] - A[1]) * j / n]); }
+        pts = dn;
+      }
       ctx.beginPath(); pts.forEach(function (p, i) { var s = toS(p[0], p[1]); if (i) ctx.lineTo(s[0], s[1]); else ctx.moveTo(s[0], s[1]); });
       if (sel) { ctx.setLineDash([]); ctx.strokeStyle = 'rgba(255,214,60,.45)'; ctx.lineWidth = st.w + 8; ctx.lineJoin = 'round'; ctx.stroke(); }
       ctx.setLineDash(st.d); ctx.strokeStyle = st.c; ctx.lineWidth = st.w; ctx.lineJoin = 'round'; ctx.stroke(); ctx.setLineDash([]);
@@ -406,6 +704,15 @@
       ctx.setLineDash([6, 5]); ctx.strokeStyle = '#ffd23c'; ctx.lineWidth = 2; ctx.beginPath();
       dp.forEach(function (p, i) { var s = toS(p[0], p[1]); if (i) ctx.lineTo(s[0], s[1]); else ctx.moveTo(s[0], s[1]); }); ctx.stroke(); ctx.setLineDash([]);
     }
+    if (S.opts.tool === 'lift' || SEL.peak) (S.peaks || []).forEach(function (pk) { // the lifts: a triangle (down for a sink), its height, its spread when chosen
+      var s = toS(pk.x, pk.y), on = SEL.peak === pk.id, up = (+pk.h || 0) >= 0;
+      if (on) { ctx.setLineDash([5, 4]); ctx.strokeStyle = 'rgba(255,214,60,.8)'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.ellipse(s[0], s[1], pk.r * view.z, pk.r * zy(), 0, 0, 7); ctx.stroke(); ctx.setLineDash([]); }
+      ctx.beginPath(); ctx.moveTo(s[0], s[1] + (up ? -9 : 9)); ctx.lineTo(s[0] + 8, s[1] + (up ? 5 : -5)); ctx.lineTo(s[0] - 8, s[1] + (up ? 5 : -5)); ctx.closePath();
+      ctx.fillStyle = on ? '#ffd23c' : up ? '#f6e9c5' : '#8fd0e0'; ctx.strokeStyle = '#2a180a'; ctx.lineWidth = 1.5; ctx.fill(); ctx.stroke();
+      var t = (up ? '+' : '') + Math.round(+pk.h || 0).toLocaleString() + ' ft' + (on ? ' · ' + (+pk.r) + ' mi' : '');
+      ctx.font = '12px ui-monospace, Consolas, monospace'; ctx.lineWidth = 3; ctx.strokeStyle = 'rgba(0,0,0,.8)'; ctx.fillStyle = on ? '#ffd23c' : '#f6e9c5';
+      ctx.strokeText(t, s[0] + 11, s[1] + 4); ctx.fillText(t, s[0] + 11, s[1] + 4);
+    });
   }
   function scaleBar() {
     var want = 140 / view.z, steps = [1 / 64, 1 / 32, 1 / 16, 1 / 8, 1 / 4, 1 / 2, 1, 2, 5, 10, 20, 50], len = steps[0];
@@ -418,9 +725,10 @@
   }
   function drawNow() {
     drawQ = 0;
-    ctx.setTransform(DPR, 0, 0, DPR, 0, 0); ctx.fillStyle = '#24211d'; ctx.fillRect(0, 0, Wd, Ht);
-    S.under.forEach(drawUnder);
-    fills(); gridLines(); paths(); sites(); marks(); scaleBar();
+    hcheck();
+    ctx.setTransform(DPR, 0, 0, DPR, 0, 0); ctx.fillStyle = isW() ? '#141a1f' : '#24211d'; ctx.fillRect(0, 0, Wd, Ht);
+    if (!isW()) S.under.forEach(drawUnder);
+    fills(); gridLines(); contours(); paths(); sites(); marks(); isoInset(); scaleBar();
     $('lvl').innerHTML = '<b>LEVEL ' + view.L + '</b> · ' + esc(LV[view.L].long);
   }
 
@@ -438,21 +746,24 @@
   }
   function hitPath(sx, sy) { for (var i = S.paths.length - 1; i >= 0; i--) { var h = hitSeg(S.paths[i], sx, sy); if (h) return S.paths[i]; } return null; }
 
-  // ---------------------------------------------------------------- the measure (Book III's going: each terrain's cost; a road or track counts 1)
+  // ---------------------------------------------------------------- the measure: the SRD's going (RULED 10-20, his "SRD for world map and book III for
+  // snoot-play"): a mile of difficult ground counts two, anything else one; a road or track counts one, a road marked difficult two (the Coldridge
+  // Route). Wagons: the SRD moves them at the walkers' paces; the road register's 17 a wagon-day is ours (his "we can author our own fill in")
   function onRoad(x, y) {
+    var hit = null;
     for (var i = 0; i < S.paths.length; i++) {
       var P = S.paths[i]; if (P.kind === 'river') continue; var pts = ptsOf(P);
-      for (var j = 0; j + 1 < pts.length; j++) if (segD([x, y], pts[j], pts[j + 1])[0] < 0.25) return true;
+      for (var j = 0; j + 1 < pts.length; j++) if (segD([x, y], pts[j], pts[j + 1])[0] < 0.25) { if (!P.difficult) return P; hit = P; break; }
     }
-    return false;
+    return hit; // (an easy road wins where two meet)
   }
   function measure(pts) {
     var mi = 0, go = 0, wet = false, road = 0;
     for (var i = 0; i + 1 < pts.length; i++) {
       var a = pts[i], b = pts[i + 1], len = Math.hypot(b[0] - a[0], b[1] - a[1]), n = Math.max(1, Math.ceil(len / 0.05)), seg = len / n;
       for (var j = 0; j < n; j++) {
-        var t = (j + 0.5) / n, x = a[0] + (b[0] - a[0]) * t, y = a[1] + (b[1] - a[1]) * t, cost;
-        if (onRoad(x, y)) { cost = 1; road += seg; } else { var k = terrAtMi(x, y), T = k && TB[k]; cost = T ? +T.cost : 1; if (!cost) { wet = true; cost = 1; } }
+        var t = (j + 0.5) / n, x = a[0] + (b[0] - a[0]) * t, y = a[1] + (b[1] - a[1]) * t, cost, rd = onRoad(x, y);
+        if (rd) { cost = rd.difficult ? 2 : 1; road += seg; } else { var k = terrAtMi(x, y), T = k && TB[k]; cost = !T ? 1 : !+T.cost ? 0 : T.diff ? 2 : 1; if (!cost) { wet = true; cost = 1; } }
         go += seg * cost; mi += seg;
       }
     }
@@ -463,9 +774,9 @@
     if (mp.length < 2) return 'M, then click along a way (double-click ends; Esc clears)';
     var m = measure(mp), f = +S.pace.foot || 24, c = +S.pace.cart || 17;
     return m.mi.toFixed(1) + ' mi (' + m.road.toFixed(1) + ' on a road) · ' + m.go.toFixed(1) + ' mi of going\n' +
-      'on foot ' + (m.go / f).toFixed(2) + ' days at ' + f + '/day\nby cart ' + (m.mi / c).toFixed(2) + ' days at ' + c + '/day (if it is all road)' +
+      'on foot ' + (m.go / f).toFixed(2) + ' days at ' + f + '/day\nby wagon ' + (m.go / c).toFixed(2) + ' days at ' + c + '/day' +
       (m.wet ? '\nit crosses water or the impassable (counted as plain)' : '') +
-      '\n(going: each mile times its terrain’s cost; on a road or track 1)';
+      '\n(the SRD’s going: a mile of difficult ground counts two; a road or track one, a difficult road two)';
   }
 
   // ---------------------------------------------------------------- the mouse
@@ -483,12 +794,22 @@
   }
   function snapSite(sx, sy, not) { for (var i = 0; i < S.sites.length; i++) { var st = S.sites[i]; if (st.id === not) continue; var s = toS(st.x, st.y); if (Math.hypot(s[0] - sx, s[1] - sy) <= 12) return st; } return null; }
   cv.addEventListener('contextmenu', function (e) { e.preventDefault(); });
+  var LIFTR = [0.5, 1, 2, 4, 8, 15], FTPX = 25; // (a lift's spreads in miles; a drag of a pixel up is 25 ft)
+  function hitPeak(sx, sy) { var P = S.peaks || []; for (var i = P.length - 1; i >= 0; i--) { var s = toS(P[i].x, P[i].y); if (Math.hypot(s[0] - sx, s[1] - sy) <= 12) return P[i]; } return null; }
+  function peakBy(id) { return (S.peaks || []).filter(function (p) { return p.id === id; })[0] || null; }
   cv.addEventListener('mousedown', function (e) {
+    hcheck();
     var p = evPt(e), m = toM(p[0], p[1]), tool = S.opts.tool;
     if (e.button === 1 || e.button === 2 || space) { drag = { kind: 'pan', p: p, c: [view.cx, view.cy] }; e.preventDefault(); return; }
     if (e.button !== 0) return;
     if (DRAW) { // a new road or river: each click a point, on a place it binds
       var hs = snapSite(p[0], p[1]); DRAW.pts.push(hs ? hs.id : m); draw(); return;
+    }
+    if (tool === 'lift') { // LIFT: drag up to raise (down to sink) a height, or a chosen one; Shift-drag moves it
+      var pk = hitPeak(p[0], p[1]); begin();
+      if (!pk) { pk = { id: 'k' + Date.now().toString(36), name: 'a height', x: m[0], y: m[1], h: 0, r: S.opts.liftR }; S.peaks.push(pk); drag = { kind: 'lift', pk: pk, p: p, h0: 0, o: [m[0], m[1]], fresh: true }; }
+      else drag = { kind: 'lift', pk: pk, p: p, h0: +pk.h || 0, o: [pk.x, pk.y], move: e.shiftKey };
+      SEL.peak = pk.id; panels(); draw(); return;
     }
     if (tool === 'paint' || tool === 'erase') { begin(); drag = { kind: 'paint', last: m }; paintAt(m); draw(); return; }
     if (tool === 'measure') { if (M.done) { M.pts = []; M.done = false; } M.pts.push(m); panelsMeasure(); draw(); return; }
@@ -513,21 +834,31 @@
     drag = { kind: 'click', p: p, c: [view.cx, view.cy], m: m }; // a click, or a pan once it moves
   });
   window.addEventListener('mousemove', function (e) {
-    var p = evPt(e), m = toM(p[0], p[1]); HOV = (p[0] >= 0 && p[1] >= 0 && p[0] <= Wd && p[1] <= Ht) ? m : null;
+    hcheck(); var p = evPt(e), m = toM(p[0], p[1]); HOV = (p[0] >= 0 && p[1] >= 0 && p[0] <= Wd && p[1] <= Ht) ? m : null;
     if (M.pts.length && !M.done) { M.live = m; panelsMeasure(); }
     status(m);
     if (!drag) { if (HOV) draw(); return; }
     if (drag.kind === 'click' && Math.hypot(p[0] - drag.p[0], p[1] - drag.p[1]) > 4) drag.kind = 'pan';
-    if (drag.kind === 'pan') { view.cx = drag.c[0] - (p[0] - drag.p[0]) / view.z; view.cy = drag.c[1] - (p[1] - drag.p[1]) / view.z; }
+    if (drag.kind === 'pan') { view.cx = drag.c[0] - (p[0] - drag.p[0]) / view.z; view.cy = drag.c[1] - (p[1] - drag.p[1]) / zy(); }
     else if (drag.kind === 'paint') strokeTo(m);
-    else if (drag.kind === 'site') { drag.s.x = drag.o[0] + (p[0] - drag.p[0]) / view.z; drag.s.y = drag.o[1] + (p[1] - drag.p[1]) / view.z; }
-    else if (drag.kind === 'vtx') drag.P.pts[drag.i] = [drag.o[0] + (p[0] - drag.p[0]) / view.z, drag.o[1] + (p[1] - drag.p[1]) / view.z];
+    else if (drag.kind === 'site') { drag.s.x = drag.o[0] + (p[0] - drag.p[0]) / view.z; drag.s.y = drag.o[1] + (p[1] - drag.p[1]) / zy(); }
+    else if (drag.kind === 'vtx') drag.P.pts[drag.i] = [drag.o[0] + (p[0] - drag.p[0]) / view.z, drag.o[1] + (p[1] - drag.p[1]) / zy()];
     else if (drag.kind === 'under') { drag.u.x0 = drag.o[0] + (p[0] - drag.p[0]) / view.z; drag.u.y0 = drag.o[1] + (p[1] - drag.p[1]) / view.z; }
+    else if (drag.kind === 'lift') {
+      var pk = drag.pk, R = (+pk.r || 1) * 1.6;
+      if (drag.move) { dirtyAround(pk.x, pk.y, R); pk.x = drag.o[0] + (p[0] - drag.p[0]) / view.z; pk.y = drag.o[1] + (p[1] - drag.p[1]) / zy(); }
+      else pk.h = Math.round((drag.h0 + (drag.p[1] - p[1]) * FTPX) / 50) * 50;
+      dirtyAround(pk.x, pk.y, R); panels();
+    }
     draw();
   });
   window.addEventListener('mouseup', function (e) {
     if (!drag) return;
     var d = drag; drag = null; var p = evPt(e);
+    if (d.kind === 'lift') { // (a click that lifted nothing leaves no height behind)
+      if (d.fresh && Math.abs(+d.pk.h || 0) < 50) { S.peaks = S.peaks.filter(function (x) { return x !== d.pk; }); SEL.peak = null; }
+      HSIG = ''; commit(); return;
+    }
     if (d.kind === 'click') {
       var tool = S.opts.tool;
       if (tool === 'select') { var h = at(view.L, d.m[0], d.m[1]); SEL.hex = { L: view.L, q: h[0], r: h[1] }; SEL.site = null; SEL.path = null; }
@@ -550,7 +881,7 @@
     if (tool === 'select') { var h = at(view.L, m[0], m[1]); into({ L: view.L, q: h[0], r: h[1] }); }
   });
   cv.addEventListener('wheel', function (e) {
-    e.preventDefault();
+    e.preventDefault(); hcheck();
     var p = evPt(e), m = toM(p[0], p[1]); view.z = Math.max(ZMIN, Math.min(ZMAX, view.z * Math.exp(-e.deltaY * 0.0015)));
     var m2 = toM(p[0], p[1]); view.cx += m[0] - m2[0]; view.cy += m[1] - m2[1]; autoLevel(); draw(); saveView();
   }, { passive: false });
@@ -562,18 +893,26 @@
     if (e.ctrlKey || e.metaKey || e.altKey) return;
     if (k === ' ') { space = true; e.preventDefault(); return; }
     if (k === '1' || k === '2' || k === '3') return setLevel(+k);
-    var T = { s: 'select', b: 'paint', e: 'erase', c: 'places', r: 'roads', m: 'measure', u: 'under' };
+    var T = { s: 'select', b: 'paint', e: 'erase', c: 'places', r: 'roads', m: 'measure', u: 'under', l: 'lift' };
     if (T[k]) return setTool(T[k]);
+    if (k === 'v') return setLook(LOOKS[(LOOKS.indexOf(S.opts.look) + 1) % LOOKS.length]);
+    if (k === 'i') { S.opts.iso = !S.opts.iso; panels(); draw(); save(); return; }
+    if ((k === '[' || k === ']') && S.opts.tool === 'lift') { // (a lift's spread: the next one's, and the chosen one's)
+      var li = LIFTR.indexOf(+S.opts.liftR); li = Math.max(0, Math.min(LIFTR.length - 1, (li < 0 ? 3 : li) + (k === ']' ? 1 : -1))); S.opts.liftR = LIFTR[li];
+      var spk = peakBy(SEL.peak); if (spk) { begin(); dirtyAround(spk.x, spk.y, Math.max(+spk.r, LIFTR[li]) * 1.6); spk.r = LIFTR[li]; dirtyAround(spk.x, spk.y, spk.r * 1.6); commit(); }
+      panels(); draw(); save(); return;
+    }
     if (k === '[') { S.opts.brush = Math.max(0, S.opts.brush - 1); panels(); draw(); return; }
     if (k === ']') { S.opts.brush = Math.min(3, S.opts.brush + 1); panels(); draw(); return; }
     if (k === 'backspace') { e.preventDefault(); return outOf(); }
     if (k === 'enter') { if (DRAW) return endDraw(); if (M.pts.length) { M.done = true; M.live = null; panelsMeasure(); draw(); } return; }
-    if (k === 'escape') { if (DRAW) { DRAW = null; msg('the new way dropped'); draw(); return; } if (M.pts.length) { M.pts = []; M.live = null; M.done = false; panelsMeasure(); draw(); return; } SEL.hex = null; SEL.site = null; SEL.path = null; SEL.vtx = -1; panels(); draw(); return; }
+    if (k === 'escape') { if (DRAW) { DRAW = null; msg('the new way dropped'); draw(); return; } if (M.pts.length) { M.pts = []; M.live = null; M.done = false; panelsMeasure(); draw(); return; } SEL.hex = null; SEL.site = null; SEL.path = null; SEL.vtx = -1; SEL.peak = null; panels(); draw(); return; }
     if (k === 'delete') return delSel();
   });
   window.addEventListener('keyup', function (e) { if (e.key === ' ') space = false; });
 
   function delSel() {
+    if (SEL.peak) { var pk = peakBy(SEL.peak); if (pk) { begin(); S.peaks = S.peaks.filter(function (x) { return x !== pk; }); SEL.peak = null; HSIG = ''; commit(); } return; }
     if (SEL.path && SEL.vtx >= 0) { var P = pathBy(SEL.path); if (P && P.pts.length > 2) { begin(); P.pts.splice(SEL.vtx, 1); SEL.vtx = -1; commit(); } else msg('a way keeps two points at least (delete the way in the panel)'); return; }
     if (SEL.site) return delSite(SEL.site);
   }
@@ -595,7 +934,13 @@
   function setTool(t) { // (a tool keeps only its own kind of selection)
     S.opts.tool = t; if (t !== 'measure') M.live = null;
     if (t !== 'select') SEL.hex = null; if (t !== 'roads') { SEL.path = null; SEL.vtx = -1; } if (t !== 'places' && t !== 'roads' && t !== 'select') SEL.site = null;
+    if (t !== 'lift') SEL.peak = null;
     panels(); draw(); save();
+  }
+  var LOOKS = ['flat', 'relief', 'world'];
+  function setLook(l) { // (the world look keeps the same middle of the map on screen)
+    S.opts.look = l; LAYERKEY = ''; panels(); draw(); save();
+    msg(l === 'world' ? 'WORLD: the map tilted, each hex a column at its height (V for the next look; the height slider stands them taller)' : l === 'relief' ? 'RELIEF: lit from the north-west, with contour lines' : 'FLAT: the painted map');
   }
   function underSel() { var u = S.under.filter(function (x) { return x.id === S.opts.uSel; })[0]; return u || null; }
 
@@ -674,7 +1019,7 @@
   function status(m) {
     var L = view.L, h = at(L, m[0], m[1]), e = effAt(L, h[0], h[1]);
     $('status').textContent = 'level ' + L + ' hex (' + col(h[0], h[1]) + ', ' + h[1] + ') · ' + (e ? (TB[e.t] ? TB[e.t].name : e.t) + (e.L !== L ? ' (from level ' + e.L + ')' : '') : 'unpainted') +
-      '\n' + m[0].toFixed(2) + ' mi east, ' + m[1].toFixed(2) + ' mi south of v3’s corner';
+      ' · ' + Math.round(hexH(L, h[0], h[1])).toLocaleString() + ' ft\n' + m[0].toFixed(2) + ' mi east, ' + m[1].toFixed(2) + ' mi south of v3’s corner';
   }
   function btn(label, on, fn, title) { var b = document.createElement('button'); b.textContent = label; if (on) b.className = 'on'; if (title) b.title = title; b.onclick = fn; return b; }
   function panels() {
@@ -682,12 +1027,18 @@
     [1, 2, 3].forEach(function (L) { lv.appendChild(btn(L + ' · ' + LV[L].name, view.L === L, function () { setLevel(L); })); });
     $('lvlnote').textContent = LV[view.L].long + (hexPx(view.L) < 4 ? ' -- zoom in to paint' : '');
     var tl = $('tools'); tl.innerHTML = '';
-    [['select', 'S select'], ['paint', 'B paint'], ['erase', 'E erase'], ['places', 'C places'], ['roads', 'R roads'], ['measure', 'M measure'], ['under', 'U underlay']].forEach(function (t) {
-      tl.appendChild(btn(t[1], S.opts.tool === t[0], function () { setTool(t[0]); }));
+    [['select', 'S select'], ['paint', 'B paint'], ['erase', 'E erase'], ['places', 'C places'], ['roads', 'R roads'], ['measure', 'M measure'], ['under', 'U underlay'], ['lift', 'L lift']].forEach(function (t) {
+      tl.appendChild(btn(t[1], S.opts.tool === t[0], function () { setTool(t[0]); }, t[0] === 'lift' ? 'drag up to raise a height (down to sink one); Shift-drag moves it; [ ] its spread; Del drops it' : null));
     });
     var br = $('brushes'); br.innerHTML = '';
     [0, 1, 2, 3].forEach(function (R) { br.appendChild(btn(String(1 + 3 * R * (R + 1)), S.opts.brush === R, function () { S.opts.brush = R; panels(); draw(); save(); }, 'hexes in the brush')); });
     $('brushrow').style.display = S.opts.tool === 'paint' || S.opts.tool === 'erase' ? '' : 'none';
+    var lr = $('liftrs'); lr.innerHTML = '';
+    LIFTR.forEach(function (R) { lr.appendChild(btn(R + ' mi', +S.opts.liftR === R, function () { S.opts.liftR = R; var pk = peakBy(SEL.peak); if (pk) { begin(); dirtyAround(pk.x, pk.y, Math.max(+pk.r, R) * 1.6); pk.r = R; commit(); } panels(); draw(); save(); }, 'the spread of the next lift (and the chosen one)')); });
+    $('liftrow').style.display = S.opts.tool === 'lift' ? '' : 'none';
+    var lk = $('looks'); lk.innerHTML = '';
+    [['flat', 'flat'], ['relief', 'relief'], ['world', 'world (iso)']].forEach(function (l) { lk.appendChild(btn(l[1], S.opts.look === l[0], function () { setLook(l[0]); }, 'V: the next look')); });
+    $('exag').value = S.opts.exag; $('conton').checked = !!S.opts.contours; $('isoon').checked = !!S.opts.iso;
     terrPanel(); infoPanel(); listPanels(); panelsMeasure(); underPanel();
     $('pfoot').value = S.pace.foot; $('pcart').value = S.pace.cart; $('paintop').value = S.opts.paintOp; $('gridon').checked = !!S.opts.grid; $('labon').checked = !!S.opts.labels;
   }
@@ -696,8 +1047,8 @@
     var box = $('terrs'); box.innerHTML = '';
     S.terr.forEach(function (t) {
       var d = document.createElement('div'); d.className = 'sw' + (S.opts.terr === t.k ? ' on' : '');
-      d.innerHTML = '<i style="background:' + esc(t.color) + '"></i>' + esc(t.name) + '<small>' + (+t.cost ? '×' + t.cost : '—') + '</small>';
-      d.title = t.name + ' -- going ' + (+t.cost ? 'x' + t.cost : 'none: no one walks it') + '. Click to paint with it; with a hex selected, it sets that hex.';
+      d.innerHTML = '<i style="background:' + esc(t.color) + '"></i>' + esc(t.name) + '<small>' + (!+t.cost ? '—' : t.diff ? '×2' : '×1') + '</small>';
+      d.title = t.name + ' -- ' + (!+t.cost ? 'no one walks it' : t.diff ? 'difficult (the SRD: half pace)' : 'easy going') + '; Book III (the Snoot) x' + t.cost + '; ' + Math.round(+t.alt).toLocaleString() + ' ft, rough ' + Math.round(+t.rough) + '. Click to paint with it; with a hex selected, it sets that hex.';
       d.onclick = function () {
         S.opts.terr = t.k;
         if (SEL.hex && S.opts.tool === 'select') { begin(); setPaint(SEL.hex.L, K(SEL.hex.q, SEL.hex.r), t.k); commit(); }
@@ -709,12 +1060,17 @@
     });
     if (EDT && TB[EDT]) {
       var t = TB[EDT], ed = document.createElement('div'); ed.className = 'box'; ed.style.gridColumn = '1 / 3';
-      ed.innerHTML = '<div class="row"><input type="text" id="te-name"></div><div class="row"><input type="color" id="te-color"><span class="dim">going ×</span><input type="number" id="te-cost" min="0" step="1"><span class="dim">(0: no one walks it)</span></div>' +
+      ed.innerHTML = '<div class="row"><input type="text" id="te-name"></div><div class="row"><input type="color" id="te-color"><label><input type="checkbox" id="te-diff"> difficult (SRD)</label></div>' +
+        '<div class="row"><span class="dim">Book III ×</span><input type="number" id="te-cost" min="0" step="1"><span class="dim">(the Snoot; 0: no one walks it)</span></div>' +
+        '<div class="row"><span class="dim">height</span><input type="number" id="te-alt" step="100" style="width:76px"><span class="dim">ft · rough</span><input type="number" id="te-rough" min="0" step="50" style="width:64px"></div>' +
         '<div class="row"><button id="te-del">delete</button><button id="te-done">done</button><span class="dim" id="te-used"></span></div>';
       box.appendChild(ed);
       $('te-name').value = t.name; $('te-color').value = t.color; $('te-cost').value = t.cost; $('te-used').textContent = used(t.k) + ' hexes painted with it';
+      $('te-diff').checked = !!t.diff; $('te-alt').value = Math.round(+t.alt); $('te-rough').value = Math.round(+t.rough);
       var edit = function (f) { return function () { begin(); f(this.value); commit(); }; };
       $('te-name').onchange = edit(function (v) { t.name = v; }); $('te-cost').onchange = edit(function (v) { t.cost = Math.max(0, +v || 0); });
+      $('te-diff').onchange = function () { begin(); t.diff = this.checked; commit(); };
+      $('te-alt').onchange = edit(function (v) { t.alt = +v || 0; VER++; }); $('te-rough').onchange = edit(function (v) { t.rough = Math.max(0, +v || 0); VER++; });
       $('te-color').oninput = function () { begin(); t.color = this.value; VER++; draw(); }; $('te-color').onchange = function () { t.color = this.value; VER++; commit(); };
       $('te-done').onclick = function () { EDT = null; panels(); };
       $('te-del').onclick = function () {
@@ -740,11 +1096,28 @@
       $('ed-go').onclick = function () { zoomTo(view.z, st.x, st.y); };
       return;
     }
+    if (SEL.peak && peakBy(SEL.peak)) { // a lift
+      var pk = peakBy(SEL.peak);
+      info.textContent = 'a lift · ' + ((+pk.h >= 0 ? '+' : '') + Math.round(+pk.h).toLocaleString()) + ' ft over ' + pk.r + ' mi\ndrag it up or down; Shift-drag moves it; [ ] its spread; Del drops it';
+      ed.innerHTML = '<div class="row"><input type="text" id="ed-name"></div><div class="row"><span class="dim">height</span><input type="number" id="ed-h" step="100" style="width:80px"><span class="dim">ft · spread</span><input type="number" id="ed-r" min="0.2" step="0.5" style="width:56px"><span class="dim">mi</span></div>' +
+        '<div class="row"><button id="ed-del">delete</button><button id="ed-go">centre</button></div>';
+      $('ed-name').value = pk.name || ''; $('ed-h').value = Math.round(+pk.h); $('ed-r').value = pk.r;
+      $('ed-name').onfocus = begin; $('ed-name').onchange = function () { pk.name = this.value; commit(); };
+      $('ed-h').onchange = function () { begin(); pk.h = +this.value || 0; dirtyAround(pk.x, pk.y, pk.r * 1.6); commit(); };
+      $('ed-r').onchange = function () { var v = Math.max(0.2, +this.value || 1); begin(); dirtyAround(pk.x, pk.y, Math.max(v, pk.r) * 1.6); pk.r = v; commit(); };
+      $('ed-del').onclick = delSel; $('ed-go').onclick = function () { zoomTo(view.z, pk.x, pk.y); };
+      return;
+    }
     if (SEL.path && pathBy(SEL.path)) {
       var P = pathBy(SEL.path), pts = ptsOf(P), len = 0; for (var i = 0; i + 1 < pts.length; i++) len += Math.hypot(pts[i + 1][0] - pts[i][0], pts[i + 1][1] - pts[i][1]);
-      info.textContent = P.kind + ' · ' + len.toFixed(1) + ' mi · ' + P.pts.length + ' points\ndrag a point; drag a line to add one; Del drops the yellow one;\na point dropped on a place binds to it (green) and moves with it';
-      ed.innerHTML = '<div class="row"><input type="text" id="ed-name"></div><div class="row"><select id="ed-kind"></select><button id="ed-del">delete the way</button><button id="ed-rev">extend</button></div>';
+      var pm = P.kind === 'river' ? null : measure(pts);
+      info.textContent = P.kind + ' · ' + len.toFixed(1) + ' mi · ' + P.pts.length + ' points' + (pm ? '\n' + (P.difficult ? 'difficult · ' : '') + 'by wagon ' + (pm.go / (+S.pace.cart || 17)).toFixed(1) + ' days, on foot ' + (pm.go / (+S.pace.foot || 24)).toFixed(1) : '') +
+        '\ndrag a point; drag a line to add one; Del drops the yellow one;\na point dropped on a place binds to it (green) and moves with it';
+      ed.innerHTML = '<div class="row"><input type="text" id="ed-name"></div><div class="row"><select id="ed-kind"></select><button id="ed-del">delete the way</button><button id="ed-rev">extend</button></div>' +
+        (P.kind === 'river' ? '' : '<div class="row"><label title="a steep or weather-bound road: the SRD\'s difficult terrain, half pace (ours: the SRD names no road that is)"><input type="checkbox" id="ed-diff"> a difficult road</label>' + (P.drawn ? '<button id="ed-drawn" title="put back the points as you drew them (before the seat\'s switchbacks)">as you drew it</button>' : '') + '</div>');
       $('ed-name').value = P.name;
+      if ($('ed-diff')) { $('ed-diff').checked = !!P.difficult; $('ed-diff').onchange = function () { begin(); P.difficult = this.checked; commit(); }; }
+      if ($('ed-drawn')) $('ed-drawn').onclick = function () { begin(); P.pts = P.drawn.slice(); commit(); msg('the Coldridge Route as you drew it (its switchbacks gone; it stays difficult)'); };
       PKINDS.forEach(function (k) { var o = document.createElement('option'); o.value = o.textContent = k; if (k === P.kind) o.selected = true; $('ed-kind').appendChild(o); });
       $('ed-name').oninput = function () { P.name = this.value; }; $('ed-name').onfocus = begin; $('ed-name').onchange = function () { commit(); };
       $('ed-kind').onchange = function () { begin(); P.kind = this.value; commit(); };
@@ -816,13 +1189,16 @@
   $('paintop').oninput = function () { S.opts.paintOp = +this.value; draw(); }; $('paintop').onchange = save;
   $('gridon').onchange = function () { S.opts.grid = this.checked; draw(); save(); };
   $('labon').onchange = function () { S.opts.labels = this.checked; draw(); save(); };
+  $('exag').oninput = function () { S.opts.exag = +this.value; LAYERKEY = ''; draw(); }; $('exag').onchange = save;
+  $('conton').onchange = function () { S.opts.contours = this.checked; draw(); save(); };
+  $('isoon').onchange = function () { S.opts.iso = this.checked; draw(); save(); };
   $('undo').onclick = undo; $('redo').onclick = redo;
   function stamp() { var d = new Date(); return d.toISOString().slice(0, 16).replace(/[:]/g, '').replace('T', '-') + 'Z'; }
   function download(blob, name) { var a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name; document.body.appendChild(a); a.click(); setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 2000); }
   function outObj() {
     var o = JSON.parse(JSON.stringify(S));
     o.exported = new Date().toISOString();
-    o.about = 'the realm hex map (dragonsleep-8bit tools/hexmap.html, the maps lane): levels 1-3 are pointy-top hexes 5 mi, 1 mi and 1/16 mi across the flats, axial "q,r" keys, a level-k+1 hex the child of the level-k hex its centre lies in; x/y in miles east/south of corridor v3\'s top-left corner (v3 at ' + V3.toFixed(3) + ' px a mile)';
+    o.about = 'the realm hex map (dragonsleep-8bit tools/hexmap.html, the maps lane): levels 1-3 are pointy-top hexes 5 mi, 1 mi and 1/16 mi across the flats, axial "q,r" keys, a level-k+1 hex the child of the level-k hex its centre lies in; x/y in miles east/south of corridor v3\'s top-left corner (v3 at ' + V3.toFixed(3) + ' px a mile; version 2, Silverton to the Pit 68 mi by the road); terr[].alt/rough feet and diff (the SRD\'s difficult), cost Book III\'s; peaks: his lifts, h ft over r mi';
     return o;
   }
   $('export').onclick = function () { saveNow(); download(new Blob([JSON.stringify(outObj(), null, 1)], { type: 'application/json' }), 'realm-hexmap-' + stamp() + '.json'); msg('exported'); };
@@ -851,7 +1227,7 @@
 
   // ---------------------------------------------------------------- go
   load();
-  window.HEXMAP = { S: function () { return S; }, view: view, at: at, up: up, kids: kids, hc: hc, effAt: effAt, measure: measure, LV: LV, GROW: GROW, grow: grow, // (for the seat's probes)
+  window.HEXMAP = { S: function () { return S; }, view: view, at: at, up: up, kids: kids, hc: hc, effAt: effAt, measure: measure, LV: LV, GROW: GROW, grow: grow, hAt: function (x, y) { hcheck(); return hAt(x, y); }, hexH: hexH, // (for the seat's probes)
     redraw: function () { LAYERKEY = ''; drawNow(); } };
   window.addEventListener('resize', resize);
   S.under.forEach(function (u) { if (u.on) loadUnder(u); });
@@ -859,5 +1235,6 @@
   resize(); panels();
   $('origin').textContent = 'this browser keeps its copy for ' + location.host + ' (another port is another copy)';
   if (GREW) { saveNow(); msg('Your version 1 map has grown ×' + GROW + ' to the four-wagon-day road (Silverton to the Pit 68 mi). Version 1 is still kept in this browser, untouched. EXPORT is the save.'); }
+  else if (SHAPED) { saveNow(); msg('The Coldridge Route is a difficult road now, its climb to the Doors in switchbacks: three wagon-days (its panel puts back your drawing). EXPORT is the save.'); }
   else msg('Kept in this browser as you go; EXPORT is the save.');
 })();

@@ -49,6 +49,10 @@
     <h2>Tool</h2>
     <div class="row" id="tools"></div>
     <div class="row" id="brushrow"><span class="dim">brush</span><span id="brushes"></span></div>
+    <div class="row" id="liftrow"><span class="dim">spread</span><span id="liftrs"></span></div>
+    <h2>Look</h2>
+    <div class="row" id="looks"></div>
+    <div class="row"><span class="dim">heights ×</span><input type="range" id="exag" min="1" max="10" step="0.5" style="width:90px"><label><input type="checkbox" id="conton"> contours</label><label><input type="checkbox" id="isoon"> iso preview</label></div>
     <h2>Terrain <span class="dim" style="text-transform:none;letter-spacing:0">(double-click one to edit it)</span></h2>
     <div id="terrs"></div>
     <div class="row"><button id="addterr">+ terrain</button><button id="guess" title="Guess the current level's hexes from the corridor v3 underlay (only hexes you have not painted at this level)">guess this level from v3</button></div>
@@ -76,11 +80,12 @@
     <h2>Keys</h2>
     <div class="dim" style="white-space:pre-wrap">wheel: zoom (the level follows) · right- or middle-drag, or a drag on empty ground: pan
 1 2 3: level · double-click a hex: into it · Backspace: up a level
-S select · B paint · E erase · C places · R roads · M measure · U move an underlay
-[ ] brush · Ctrl+Z / Ctrl+Y · Del: the selected place or road point · Esc: let go</div>
+S select · B paint · E erase · C places · R roads · M measure · U move an underlay · L lift
+[ ] brush (a lift's spread) · Ctrl+Z / Ctrl+Y · Del: the selected place, road point or lift · Esc: let go
+V the next look (flat, relief, world) · I the iso preview</div>
   </div>
   <div id="view"><canvas id="c"></canvas><div id="lvl"></div><div id="status"></div></div>
 </div>
-<script src="hexmap.js?v=2"></script>
+<script src="hexmap.js?v=3"></script>
 </body>
 </html>
