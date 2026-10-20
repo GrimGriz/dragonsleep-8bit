@@ -10,10 +10,29 @@ How a frame is cut: a pixel is figure when it is grey, not navy (blue minus red 
 glow) -- a spec may set its own `grey` and `far` (Rascal's second round: a bluer navy, 47-66, and black bands on his tail that read 10-30), or `chan`, a test of each channel alone (Beholda's purple outline, Denny's grey navy, 10-07); `join` gives two numbers under one drawing one frame (Denny's Cannonball 6 and 7). The labels' x centres are found in each strip (bright columns, clustered). Each row's band is split among its labels: the bodies'
 cores (the mask eroded, a core of 200 px or more) go to the nearest label, the rest of each blob to the core that reaches it first along
 the blob (so a feeler stays with its own body), and loose bits (a stone let fly, sparkles, a honk's lines) to the nearest frame.
+
+How big a figure stands: read STANDS below, don't measure the heroes again (10-18, Griz: "add to cutter tool helper orientation ... the
+measurements, not to measure again"). A new sheet cut to stand beside them is measured the same way and gets its own line there.
 """
 import numpy as np
 from PIL import Image, ImageDraw
 from scipy import ndimage
+
+# STANDS: how tall the house's figures stand on the grid, measured once (10-18, the ART-72 seat, on main at be78aaa). Each sheet's idle frame 1 in
+# every facing, S SW W NW N NE E SE: (how far its top rises above the foot -- the sheet's `ay`, the engine's anchor; how tall it is, outline to
+# outline, the 1-px outline ring included; how wide). The LPC sheets (_p0) stand with the feet 2 px below `ay` (tall = above + 2); the generated
+# and rendered sheets put the outline's last row on `ay` (tall = above + 1). The four heroes are 49 to 54 tall; Aurdin's LPC hair makes him the
+# tallest bare head. A paladin at the old measure "stands 49" (tools/snoothorse-sheet.py's 1.5-a-man) is npcpaladin_p0's S here.
+STANDS = {
+    'aurdin_p0':         {'S': (52, 54, 30), 'SW': (52, 54, 30), 'W': (50, 53, 28), 'NW': (48, 50, 30), 'N': (48, 50, 30), 'NE': (48, 50, 30), 'E': (50, 53, 28), 'SE': (52, 54, 30)},
+    'barley_p0':         {'S': (49, 51, 33), 'SW': (49, 51, 33), 'W': (49, 51, 35), 'NW': (47, 49, 32), 'N': (47, 49, 32), 'NE': (47, 49, 32), 'E': (49, 51, 35), 'SE': (49, 51, 33)},
+    'vivian_p0':         {'S': (48, 50, 30), 'SW': (48, 50, 30), 'W': (49, 51, 33), 'NW': (47, 49, 30), 'N': (47, 49, 30), 'NE': (47, 49, 30), 'E': (49, 51, 33), 'SE': (48, 50, 30)},
+    'lymen_p0':          {'S': (52, 54, 39), 'SW': (52, 54, 39), 'W': (51, 53, 45), 'NW': (48, 50, 41), 'N': (48, 50, 41), 'NE': (48, 50, 41), 'E': (52, 54, 45), 'SE': (52, 54, 39)},
+    'npcwizard_p0':      {'S': (56, 58, 30), 'SW': (56, 58, 30), 'W': (56, 59, 31), 'NW': (56, 58, 30), 'N': (56, 58, 30), 'NE': (56, 58, 30), 'E': (56, 59, 31), 'SE': (56, 58, 30)},
+    'npcpaladin_p0':     {'S': (48, 50, 39), 'SW': (49, 51, 48), 'W': (51, 53, 45), 'NW': (51, 53, 45), 'N': (47, 49, 40), 'NE': (51, 53, 45), 'E': (52, 54, 45), 'SE': (49, 51, 48)},
+    'gnollmatriarch_p1': {'S': (80, 81, 69), 'SW': (71, 72, 60), 'W': (78, 79, 61), 'NW': (72, 73, 71), 'N': (84, 85, 64), 'NE': (72, 73, 71), 'E': (78, 79, 61), 'SE': (71, 72, 60)},
+    'newlandrider_p1':   {'S': (69, 70, 46), 'SW': (65, 66, 73), 'W': (69, 70, 103), 'NW': (66, 67, 67), 'N': (73, 74, 39), 'NE': (66, 67, 67), 'E': (69, 70, 103), 'SE': (65, 66, 73)},
+}
 
 
 def figure_mask(a, grey=20, far=150, chan=None):

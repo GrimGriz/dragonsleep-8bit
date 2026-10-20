@@ -4691,6 +4691,45 @@
     document.body.appendChild(preTw);
     return;
   }
+  // AURDIN IN THE OCHRE MANTLE (mode=aurdin1018; 10-18, Griz: "Try cut 72 in Fresh for Aurdin on the grid on main please"): the art desk's ART-72 cut to aurdin_p2
+  // (tools/aurdin-sheet.py) and worn by the story's Aurdin; every row on the sheet in all eight facings; and the rows the show cannot stage (it tallies a creature's
+  // own blows) played where the engine does them: Magic Missile the cast row, Fireball the castup row (an area: js/magic.js M.cast), his Shield against darts the
+  // defend row, a potion the useitem row (js/battle.js useItem), the fight won the victory row (battle.js finish)
+  if (get('mode', '') === 'aurdin1018') {
+    var repAu = { checks: [], errors: [] };
+    function okAu(what, v) { repAu.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function mkAu(q) { var Bx = D.npcFight(q, {}); D.battle = Bx; Bx.enter(); while (!Bx.order.length) Bx.co.next(); Bx.dark = false; return Bx; }
+    function sideAu(Bx, s) { return Bx.units.filter(function (u) { return u.side === s; }); }
+    function runAu(g) { var v, k = 0, st; while (g && k++ < 4000) { st = g.next(v); v = undefined; if (st.done) return st.value; if (st.value && st.value.prompt) v = st.value.prompt.opts[0].value; } }
+    function firstAu(g) { var st = g.next(); while (st.value && st.value.prompt && !st.done) st = g.next(st.value.prompt.opts[0].value); return g; }   // to the first pause, the pose set
+    try {
+      var shAu = D.SHEETS && D.SHEETS.aurdin_p2, wantAu = ['idle', 'walk', 'attack', 'hurt', 'sit', 'cast', 'flinch', 'prone', 'castup', 'defend', 'getup', 'useitem', 'victory'];
+      okAu('the story Aurdin wears ' + D.save.look('aurdin').sheet, D.save.look('aurdin').sheet === 'aurdin_p2');
+      var gotAu = shAu ? Object.keys(shAu.anims) : [];
+      okAu('aurdin_p2 rows: ' + gotAu.join(' ') + ' (prone ' + (shAu && shAu.anims.prone.frames) + ', getup ' + (shAu && shAu.anims.getup.frames) + ', the blow on ' + (shAu && shAu.anims.attack.release) + ')',
+        shAu && wantAu.every(function (r) { return gotAu.indexOf(r) >= 0; }) && shAu.anims.prone.frames === 5 && shAu.anims.getup.frames === 6 && shAu.anims.attack.release === 2);
+      var Ba = mkAu('?npc=wizard:5&lvl=5&vs=wizard:5'), fw = sideAu(Ba, 'foe')[0], pw = sideAu(Ba, 'party')[0];
+      pw.sheet = 'aurdin_p2'; [fw, pw].forEach(function (w) { w.hp = w.maxhp = 400; w.reaction = 1; w.slots[0] = 4; w.slots[2] = 2; w.conds = {}; });
+      pw.known = (pw.known || []).concat(['shield']); fw.known = (fw.known || []).filter(function (id) { return id !== 'shield' && id !== 'counterspell'; });
+      fw.x = pw.x; fw.y = pw.y - 6; D.rules.startTurn(pw);
+      var gA = firstAu(D.magic.cast(Ba, pw, 'magicmissile', 1, { units: [fw, fw, fw] })), animA = pw.anim; runAu(gA);
+      D.rules.startTurn(pw); var gB = firstAu(D.magic.cast(Ba, pw, 'fireball', 3, { x: fw.x, y: fw.y })), animB = pw.anim; runAu(gB);
+      okAu('Magic Missile plays ' + animA + ', Fireball ' + animB, animA === 'cast' && animB === 'castup');
+      D.rules.startTurn(fw); pw.reaction = 1; pw.conds = {}; pw.anim = 'idle'; runAu(D.magic.cast(Ba, fw, 'magicmissile', 1, { units: [pw, pw, pw] }));
+      okAu('his Shield against three darts: up ' + !!pw.conds.shield + ', plays ' + pw.anim, !!pw.conds.shield && pw.anim === 'defend');
+      D.rules.startTurn(pw); pw.anim = 'idle'; pw.hp = 100; Ba.inv = (Ba.inv || []).filter(function (x) { return x.id !== 'potion'; }).concat([{ id: 'potion', n: 1 }]);
+      runAu(Ba.useItem(pw, 'potion', pw));
+      okAu('a potion drunk: plays ' + pw.anim + ', HP ' + pw.hp, pw.anim === 'useitem' && pw.hp > 100);
+      fw.hp = 0; fw.dead = true; pw.anim = 'idle'; var gF = Ba.finish('won'); gF.next();
+      okAu('the fight won: plays ' + pw.anim, pw.anim === 'victory');
+      var durAu = ['cast', 'castup', 'defend', 'useitem', 'victory'].map(function (r) { return r + ' ' + D.spr.duration('aurdin_p2', r); });
+      okAu('each once-row lasts: ' + durAu.join(', '), ['cast', 'castup', 'defend', 'useitem', 'victory'].every(function (r) { return D.spr.duration('aurdin_p2', r) > 0; }));
+    } catch (eAu) { repAu.errors.push(String(eAu && eAu.stack || eAu).slice(0, 900)); }
+    if (errs.length) repAu.errors = repAu.errors.concat(errs);
+    var preAu = document.createElement('pre'); preAu.id = 'out'; preAu.textContent = 'BENCH16 ' + JSON.stringify(repAu);
+    document.body.appendChild(preAu);
+    return;
+  }
   // END CONCENTRATION, free (mode=conc1017; 10-17, Griz: "i just discovered in the pane the need for a free action 'end concentration spell' i think.."; SRD 5.1: "You can end
   // concentration at any time (no action required)"): a cleric holding Bless has END BLESS among the commands, cost F, on RING and RING2; it holds no turn open (UI.spent the same
   // with it as without); picked, the spell lets go -- the undo run, the card said -- and the action, the bonus and the move are all still hers; no spell held, no END

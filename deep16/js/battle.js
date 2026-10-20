@@ -995,6 +995,7 @@
     if (D.magic && D.magic.globeLift) D.magic.globeLift(this); // (what a Globe of Invulnerability held off anyone is put back on, the globes gone: what the 8-bit's sheet saves after sees the creature whole -- js/grimoire.js, 10-01c)
     // the glamour broken: the riders are what they were all along (the wagon yard's children)
     if (o === 'won') this.riders.forEach(function (r) { if (r.after) { r.sheet = r.after; FX.sparkle({ x: r.x, y: r.y, size: 1 }, 'gold', 14); } });
+    if (o === 'won') this.units.forEach(function (u) { if (u.side === 'party' && !u.dead && u.hp > 0 && D.spr.anim(u.sheet, 'victory')) { u.anim = 'victory'; u.animT = this.t; } }, this); // (a sheet's Victory row, once, the fight won: Aurdin's ART-72, 10-18)
     if (o !== 'fled' && o !== 'yielded') D.music(o === 'won' ? 'victory' : 'gameover'); // (one got away: the boss tune runs on into the chase)
     // the roost coming down as a picture on the grid (torchdark 09-28; the 8-bit's swarm() the model): the ceiling lets go over the
     // iso map, the shake every ten frames, then the hand-off to the 8-bit game's RoostFail as before
@@ -2300,6 +2301,7 @@
       if (yes) {
         var sl = slotFor(tgt, 1); tgt.slots[sl - 1]--; tgt.reaction = 0; tgt.conds.shield = true;
         FX.ring(tgt, 'glow', 50); D.sfx('buff');
+        if (D.spr.anim(tgt.sheet, 'defend')) { tgt.anim = 'defend'; tgt.animT = this.t; } // (a sheet's Defend row as the barrier goes up: Aurdin's ART-72, 10-18)
         ac += 5; hit = false; crit = false;
         line += '  {c}SHIELD +5{/}';
       }
@@ -3382,6 +3384,7 @@
     if (id === 'rope') return; // (the Rope & Grapple is set with exec 'rope', on a face's top -- never as a target's item; a READY on it springs nothing)
     var it = window.DS.DATA.items[id], use = it.use, s = this.inv.filter(function (x) { return x.id === id; })[0];
     if (((use.effect === 'light' && torchFast(u)) || u.subclass === 'Thief') && u.turn.bonus > 0) u.turn.bonus = 0; else u.turn.action = 0; // Fast Hands
+    if (D.spr.anim(u.sheet, 'useitem')) { u.anim = 'useitem'; u.animT = this.t; } // (a sheet's UseItem row: the thing out of the pouch, used, put away -- Aurdin's ART-72, 10-18)
     if (use.effect === 'light') { yield* D.light.lightTorch(this, u, id); yield 20; return; } // (lightTorch takes it from the pack)
     if (id === 'oil' && u.ownFlask != null) u.ownFlask = Math.max(0, u.ownFlask - 1); else if (!use.keep) s.n--; // (use.keep: a thing used and kept -- the steel mirror)
     if (use.effect === 'mirror') { yield* D.magic.mirror(this, u, w); return; } // (a story guest throws its own flask, never the pack's: itemList)

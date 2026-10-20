@@ -171,6 +171,6 @@
   // special monsters or fights")
   // Barley is Barley again everywhere but the level-9 fight (Griz, 09-27: "put Barley back except in the lvl 9 fight"):
   // a fight may carry `looks` over these (data/fights.js, the Cocoon Gallery keeps Denny)
-  SV.LOOK = { barley: { sheet: 'barley_p0' }, aurdin: { sheet: 'aurdin_p0' }, vivian: { sheet: 'vivian_p0' }, lymen: { sheet: 'lymen_p0' }, dace: { sheet: 'npcwizard_p0' } }; // (Corwen Dace, a guest: the class floor's wizard till he has a sheet of his own -- art someday, 10-01c)
+  SV.LOOK = { barley: { sheet: 'barley_p0' }, aurdin: { sheet: 'aurdin_p2' }, vivian: { sheet: 'vivian_p0' }, lymen: { sheet: 'lymen_p0' }, dace: { sheet: 'npcwizard_p0' } }; // (Corwen Dace, a guest: the class floor's wizard till he has a sheet of his own -- art someday, 10-01c) (Aurdin in the Ochre Mantle, the art desk's ART-72, all eight facings: aurdin_p2 on main since 10-18, Griz: "Try cut 72 in Fresh for Aurdin on the grid on main please"; his LPC sheet aurdin_p0 kept, put it back here to have him back)
   SV.look = function (id, fight) { return (fight && fight.looks && fight.looks[id]) || SV.LOOK[id] || {}; };
 })();

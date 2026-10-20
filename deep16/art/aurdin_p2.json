@@ -1,0 +1,129 @@
+{
+ "image": "art/aurdin_p2.png",
+ "fw": 64,
+ "fh": 96,
+ "ax": 32,
+ "ay": 84,
+ "top": 50,
+ "anims": {
+  "idle": {
+   "y": 0,
+   "fw": 64,
+   "fh": 96,
+   "ax": 32,
+   "ay": 84,
+   "frames": 6,
+   "fps": 6
+  },
+  "walk": {
+   "y": 768,
+   "fw": 64,
+   "fh": 96,
+   "ax": 32,
+   "ay": 84,
+   "frames": 8,
+   "fps": 10
+  },
+  "attack": {
+   "y": 1536,
+   "fw": 64,
+   "fh": 96,
+   "ax": 32,
+   "ay": 84,
+   "frames": 6,
+   "fps": 10,
+   "release": 2
+  },
+  "hurt": {
+   "y": 2304,
+   "fw": 80,
+   "fh": 96,
+   "ax": 40,
+   "ay": 84,
+   "frames": 6,
+   "fps": 10
+  },
+  "sit": {
+   "y": 3072,
+   "fw": 64,
+   "fh": 96,
+   "ax": 32,
+   "ay": 84,
+   "frames": 2,
+   "fps": 2
+  },
+  "cast": {
+   "y": 3840,
+   "fw": 64,
+   "fh": 96,
+   "ax": 32,
+   "ay": 84,
+   "frames": 6,
+   "fps": 10
+  },
+  "flinch": {
+   "y": 4608,
+   "fw": 64,
+   "fh": 96,
+   "ax": 32,
+   "ay": 84,
+   "frames": 4,
+   "fps": 12
+  },
+  "prone": {
+   "y": 5376,
+   "fw": 88,
+   "fh": 96,
+   "ax": 44,
+   "ay": 84,
+   "frames": 5,
+   "fps": 10
+  },
+  "castup": {
+   "y": 6144,
+   "fw": 64,
+   "fh": 96,
+   "ax": 32,
+   "ay": 84,
+   "frames": 6,
+   "fps": 10
+  },
+  "defend": {
+   "y": 6912,
+   "fw": 64,
+   "fh": 96,
+   "ax": 32,
+   "ay": 84,
+   "frames": 4,
+   "fps": 8
+  },
+  "getup": {
+   "y": 7680,
+   "fw": 80,
+   "fh": 96,
+   "ax": 40,
+   "ay": 84,
+   "frames": 6,
+   "fps": 10
+  },
+  "useitem": {
+   "y": 8448,
+   "fw": 64,
+   "fh": 96,
+   "ax": 32,
+   "ay": 84,
+   "frames": 4,
+   "fps": 8
+  },
+  "victory": {
+   "y": 9216,
+   "fw": 64,
+   "fh": 96,
+   "ax": 32,
+   "ay": 84,
+   "frames": 6,
+   "fps": 8
+  }
+ },
+ "source": "drawn by the art desk (2026-10-18, ART-72, the Ochre Mantle: every row in all five views), cut and snapped by tools/aurdin-sheet.py"
+}

@@ -385,6 +385,7 @@
     if (u.famPerk) dc += (id === 'web' ? u.famPerk('webDC') : 0) + (window.DS.R.CHARM_SPELLS.indexOf(id) >= 0 ? u.famPerk('charmDC') : 0); // (the spider's and the snake's, js/familiar.js)
     if (g.shape !== 'self' && g.shape !== 'touch' && g.shape !== 'around') { var at = t && t.x != null ? { x: t.x, y: t.y, size: 1 } : t && t.units ? t.units[0] : t; if (at) u.facing = B.faceTo(u, at); }
     u.anim = D.spr.anim(u.sheet, 'cast') ? 'cast' : 'attack'; u.animT = B.t; // (a caster's own pose where the sheet has one: the spell animation pass, 09-28h)
+    if (D.spr.anim(u.sheet, 'castup') && /^(self|allies|sphere|cube|wall|teleport|around|none)$/.test(g.shape)) u.anim = 'castup'; // (a sheet's second casting gesture, the hand lifted, for a spell aimed at no one creature -- himself, the party, an area: Aurdin's ART-72 CastOverhead, 10-18; the aimed ones keep the cast row's hand along the facing)
     D.sfx(M.sound(sp));
     yield Math.max(10, Math.round((D.spr.duration(u.sheet, u.anim) || 18) * 0.55)); // (the release at the height of the cast pose)
     if (carry && !(yield* D.familiar.carry(B, u, t))) { u.anim = 'idle'; return; } // (it goes with the spell; one lost on the way loses it)
@@ -448,7 +449,7 @@
       // deep gallery), the first Magic Missile thrown at the darkness is a cutscene -- a close-up of the caster and his clip, then the
       // cloaker hit, then its face and the line -- and the thing struck comes for the caster (ai.js brute: grudge)
       var gim = B.fight && B.fight.gimmick === 'darkness' && atDark && u.side === 'party' && !B.gimmickDone;
-      if (gim) yield { scene: { who: u, anim: 'attack', facing: 0, scale: 3, frames: 250, clip: 'audio/attacking_the_darkness.mp3', caption: 'MAGIC MISSILE. AT THE DARKNESS.' } };
+      if (gim) yield { scene: { who: u, anim: D.spr.anim(u.sheet, 'cast') ? 'cast' : 'attack', facing: 0, scale: 3, frames: 250, clip: 'audio/attacking_the_darkness.mp3', caption: 'MAGIC MISSILE. AT THE DARKNESS.' } };
       // Shield (SRD 5.1: "1 reaction, which you take when you are hit by an attack or targeted by the magic missile spell ... you take no damage from magic missile"
       // -- 10-03): one with the barrier already up takes none of the darts; one who knows it, with a slot and the reaction, may raise it as they fly (a player is
       // asked; the AI raises it when two darts or more come at it, or the darts could drop it). The 8-bit's Shield is the claude/8bit-reactions branch's
@@ -458,7 +459,7 @@
         var nAt = darts.filter(function (x) { return x === sw; }).length, ssl = M.slotLevels(sw, 1)[0];
         if (!sw.conds.shield && sw.reaction > 0 && RU.canAct(sw) && (sw.known || []).indexOf('shield') >= 0 && ssl && (!sw.guest || sw.classAI)) {
           var shYes = sw.side !== 'party' || sw.guest ? (nAt >= 2 || sw.hp <= 5 * nAt) : yield { prompt: { who: sw, title: sw.name + ': SHIELD?', lines: [nAt + (nAt > 1 ? ' darts' : ' dart') + ' of Magic Missile at you.', 'Shield: no damage from them, and +5 AC till your turn. (a level-' + ssl + ' slot, the reaction)'], opts: [{ label: 'CAST SHIELD', value: true }, { label: 'TAKE THEM', value: false }] } };
-          if (shYes) { sw.slots[ssl - 1]--; sw.reaction = 0; sw.conds.shield = true; FX.ring(sw, 'glow', 50); D.sfx('buff'); shLines.push('  ' + sw.name + ': {c}SHIELD{/} -- the barrier goes up as they fly'); }
+          if (shYes) { sw.slots[ssl - 1]--; sw.reaction = 0; sw.conds.shield = true; FX.ring(sw, 'glow', 50); D.sfx('buff'); if (D.spr.anim(sw.sheet, 'defend')) { sw.anim = 'defend'; sw.animT = B.t; } /* (a sheet's Defend row as the barrier goes up: Aurdin's ART-72, 10-18) */ shLines.push('  ' + sw.name + ': {c}SHIELD{/} -- the barrier goes up as they fly'); }
         }
         if (sw.conds.shield) barred.push(sw);
       }
