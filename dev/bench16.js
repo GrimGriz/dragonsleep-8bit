@@ -1110,6 +1110,22 @@
     document.body.appendChild(preSS);
     return;
   }
+  // Barley, shown (mode=barleyshow; 10-20, Griz: "please do a show (not a gallery) of the eyes needed in question, with pauses between frame and 'enter' replay"):
+  // deep16/js/barleyshow.js's beats run headless with &fast, each beat's own check a line here (a FAIL for a beat that did not show)
+  if (get('mode', '') === 'barleyshow') {
+    var repBS = { checks: [], errors: [] };
+    try {
+      var BBS = D.barleyshow.make('?barleyshow&fast' + (get('only', '') ? '&only=' + get('only', '') : '')); D.battle = BBS; BBS.enter();
+      var vBS, kBS = 0;
+      while (BBS.co && kBS++ < 400000) { var rBS = BBS.co.next(vBS); vBS = undefined; if (rBS.done) break; var yBS = rBS.value; if (yBS && yBS.prompt) vBS = yBS.prompt.opts[0].value; }
+      (BBS.barleyReport || []).forEach(function (b) { repBS.checks.push((b.ok ? 'ok   ' : 'FAIL ') + b.name + ' -- ' + b.why + ' (seen: ' + (b.seen || []).join(' ') + ')'); });
+      if (!(BBS.barleyReport || []).length) repBS.checks.push('FAIL no beat ran');
+    } catch (eBS) { repBS.errors.push(String(eBS && eBS.stack || eBS).slice(0, 900)); }
+    if (errs.length) repBS.errors = repBS.errors.concat(errs);
+    var preBS = document.createElement('pre'); preBS.id = 'out'; preBS.textContent = 'BENCH16 ' + JSON.stringify(repBS);
+    document.body.appendChild(preBS);
+    return;
+  }
   // READY ends the turn, springs only on another's, and no spell readied after a bonus-action spell (mode=ready1005; RULED 10-05, Griz: "Making yourself ready and
   // waiting to do it implies you've decided to wait for a trigger until your next turn and that you're done moving and using bonus actions - but the action stored as
   // reaction goes off if triggered on someone else's turn"; "Casting a spell with a bonus action means you can't ready a spell (other actions still ready-able)")
