@@ -6,10 +6,12 @@
    map). A hex at level k+1 belongs to the hex at level k its centre lies in, so every parent owns exactly n*n children and its outline at the finer
    level zig-zags. A hex shows its own terrain if painted, else its parent's: paint the country at 5 mi, then go in only where it matters.
 
-   THE PLANE is in miles, x east and y south, (0, 0) the corridor map v3's top-left corner at the road register's scale (Silverton to the Pit 35 mi,
-   2 cart-days: TarlynsPit/wiki/the-road.md; Griz, 10-15: "~35 seems right"). Places and roads are free of the grid; a road's point may be bound to a
-   place (it moves with it). Level 1 hex (0, 0) is centred on that corner; a hex's name is its offset column and row (odd rows half a hex right, as
-   the Snoot's map). What he paints lives in this browser (localStorage) and comes back by EXPORT. */
+   THE PLANE is in miles, x east and y south, (0, 0) the corridor map v3's top-left corner. Version 2 (10-20, the world map seat): Silverton to the
+   Pit is four wagon-days, 68 mi by the road (RULED 10-17, his "4 days by wagon sounds just right"); version 1 drew v3 at 35 mi badge to badge, where
+   his road measured 37.65 mi, so v3 is drawn GROW times larger and a version 1 map grows with it on load (grow(), below). Places and roads are free
+   of the grid; a road's point may be bound to a place (it moves with it). Level 1 hex (0, 0) is centred on that corner; a hex's name is its offset
+   column and row (odd rows half a hex right, as the Snoot's map). What he paints lives in this browser (localStorage); EXPORT is the save (RULED
+   10-20, his "Export is save"). */
 'use strict';
 (function () {
   var SQ3 = Math.sqrt(3);
@@ -17,8 +19,10 @@
     { w: 5, n: 1, name: '5 mi', long: '5-mile hexes: the wilderness (the Snoot’s scale)', px: 46 },
     { w: 1, n: 5, name: '1 mi', long: 'mile hexes: 25 to a 5-mile hex', px: 40 },
     { w: 1 / 16, n: 16, name: '330 ft', long: '330 ft hexes: a city block, about 66 grid squares; 256 to a mile hex', px: 34 }];
-  var V3 = Math.hypot(1560 - 1530, 1180 - 360) / 35; // px a mile on corridor v3: Silverton's badge (1530, 360) to the Pit's (1560, 1180) is 35 miles
-  var KEY = 'realm-hexmap-v1', ZMIN = 1.2, ZMAX = 6000;
+  var V3_1 = Math.hypot(1560 - 1530, 1180 - 360) / 35; // version 1's px a mile on corridor v3: Silverton's badge (1530, 360) to the Pit's (1560, 1180) at 35 mi
+  var GROW = 1.8062; // 68 / 37.649: his road, the Pit road and the mile, as drawn on 10-16 (his EXPORT 2306Z), reads 68.0 mi
+  var V3 = V3_1 / GROW;
+  var KEY = 'realm-hexmap-v2', KEY1 = 'realm-hexmap-v1', ZMIN = 1.2, ZMAX = 6000; // (version 1 is left as it was in the browser: grown, never written)
   var KINDS = ['city', 'town', 'castle', 'inn', 'cave', 'junction', 'seat', 'hamlet', 'mark'];
   var PKINDS = ['road', 'track', 'river'];
   var $ = function (id) { return document.getElementById(id); };
@@ -52,7 +56,8 @@
     return [
       { id: 'pitroad', name: 'the Pit road', kind: 'road', pts: P(['pit', [1540, 1000], [1490, 860], [1470, 700], [1450, 560], 'fork']) },
       { id: 'mile', name: 'the mile (the fork to Silverton)', kind: 'road', pts: P(['fork', [1446, 436], 'jct', [1496, 378], 'silverton']) },
-      { id: 'doors', name: 'up-mountain to the Doors', kind: 'track', pts: P(['silverton', [1478, 300], [1425, 232], [1365, 165]]) },
+      // (v3's "up-mountain to the Doors" out of Silverton is not seeded: no road goes north out of Silverton, RULED 10-17 -- the Doors road, the
+      // Coldridge Route, runs on from the Galleries junction, "you take a right to silverton instead of going to the doors")
       { id: 'galleries', name: 'the Galleries road', kind: 'track', pts: P(['jct', [1400, 406], 'mouth']) },
       { id: 'castegut', name: 'the Castegut road (the west road)', kind: 'track', pts: P(['fork', [1300, 510], [1100, 540], [900, 560], [700, 560], [520, 570], [380, 560], [300, 560], 'castegut']) },
       { id: 'pirate', name: 'the pirate road', kind: 'road', pts: P(['pit', [1800, 1120], [2100, 1080], [2400, 1040]]) },
@@ -70,7 +75,7 @@
   }
   function fresh() {
     var sites = seedSites();
-    return { v: 1, terr: seedTerr(), paint: { 1: {}, 2: {}, 3: {} }, sites: sites, paths: seedPaths(), under: seedUnder(sites),
+    return { v: 2, terr: seedTerr(), paint: { 1: {}, 2: {}, 3: {} }, sites: sites, paths: seedPaths(), under: seedUnder(sites),
       pace: { foot: 24, cart: 17 }, opts: { paintOp: 0.7, grid: true, labels: true, terr: 'hills', brush: 0, tool: 'select', uSel: 'corridor' }, view: null };
   }
 
@@ -109,10 +114,13 @@
     var p = unK(k);
     for (var l = L; l > 1; l--) { p = up(l, p[0], p[1]); var pk = K(p[0], p[1]), v = (DC[l - 1].get(pk) || 0) + d; if (v > 0) DC[l - 1].set(pk, v); else DC[l - 1].delete(pk); }
   }
+  var GREW = null;
   function load() {
-    var raw = null; try { raw = localStorage.getItem(KEY); } catch (e) { /* (no storage: the page still works, EXPORT keeps it) */ }
+    var raw = null, old = null;
+    try { raw = localStorage.getItem(KEY); if (!raw) old = localStorage.getItem(KEY1); } catch (e) { /* (no storage: the page still works, EXPORT keeps it) */ }
     S = null; if (raw) try { S = JSON.parse(raw); } catch (e) { S = null; }
-    if (!S || S.v !== 1) S = fresh();
+    if (!S && old) try { var o1 = JSON.parse(old); if (o1 && o1.v === 1 && o1.paint) { S = grow(o1); GREW = 'this browser’s version 1 map'; } } catch (e) { S = null; }
+    if (!S || S.v !== 2) S = fresh();
     var f = fresh();
     ['paint', 'pace', 'opts', 'under', 'terr', 'sites', 'paths'].forEach(function (k) { if (!S[k]) S[k] = f[k]; });
     [1, 2, 3].forEach(function (L) { S.paint[L] = S.paint[L] || {}; });
@@ -126,7 +134,6 @@
     S.view = { cx: view.cx, cy: view.cy, z: view.z, L: view.L };
     if (!viewOnly) S.saved = new Date().toISOString();
     try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) { msg('Could not keep it in this browser (' + e.message + ') -- EXPORT now.', true); }
-    if (!viewOnly) fileSoon();
   }
   var viewT = 0;
   function saveView() { clearTimeout(viewT); viewT = setTimeout(function () { saveNow(true); }, 400); }
@@ -160,9 +167,74 @@
   function fixSel() { if (SEL.site && !SB[SEL.site]) SEL.site = null; if (SEL.path && !pathBy(SEL.path)) { SEL.path = null; SEL.vtx = -1; } }
 
   // the terrain a hex shows, and where it comes from
-  function effAt(L, q, r) {
-    for (var l = L; l >= 1; l--) { var t = S.paint[l][K(q, r)]; if (t) return { t: t, L: l, q: q, r: r }; if (l > 1) { var p = up(l, q, r); q = p[0]; r = p[1]; } }
+  function effIn(paint, L, q, r) {
+    for (var l = L; l >= 1; l--) { var t = paint[l][K(q, r)]; if (t) return { t: t, L: l, q: q, r: r }; if (l > 1) { var p = up(l, q, r); q = p[0]; r = p[1]; } }
     return null;
+  }
+  function effAt(L, q, r) { return effIn(S.paint, L, q, r); }
+
+  // ---------------------------------------------------------------- version 1 to 2: the road four wagon-days (RULED 10-17). Everything drawn over
+  // corridor v3 grows GROW times about v3's corner: places, road points, the paint at all three levels. Each level keeps its look: a new hex takes
+  // what the old map showed at its own level where its centre falls (centre / GROW), and is painted only where that differs from its new parent;
+  // a mile hex is filled in 330 ft hexes only where the old map had 330 ft paint near it. The two Silverton maps are true scale: they keep their
+  // size and move with Silverton (the seat's lean, 10-20).
+  function grow(o) {
+    var F = GROW, P1 = o.paint, sv = (o.sites || []).filter(function (s) { return s.id === 'silverton'; })[0];
+    [1, 2, 3].forEach(function (L) { P1[L] = P1[L] || {}; });
+    // his Coldridge Route, drawn before its two places were set: its ends bound to the Galleries junction and The DOORS (10-20, his "sounds like my
+    // sloppy drawing being addressed")
+    (o.paths || []).forEach(function (P) {
+      if (!/coldridge/i.test(P.name || '') || P.pts.length < 2) return;
+      var bind = function (i, test) {
+        var p = P.pts[i]; if (typeof p === 'string') return;
+        (o.sites || []).forEach(function (s) { if (test(s) && Math.hypot(s.x - p[0], s.y - p[1]) < 0.6) P.pts[i] = s.id; });
+      };
+      bind(0, function (s) { return s.id === 'jct'; }); bind(P.pts.length - 1, function (s) { return /doors/i.test(s.name); });
+    });
+    (o.under || []).forEach(function (u) {
+      if (u.id === 'corridor') { u.pxmi /= F; u.x0 *= F; u.y0 *= F; }
+      else if (sv) { u.x0 += sv.x * (F - 1); u.y0 += sv.y * (F - 1); } // (where it stood from Silverton, kept: Silverton has not grown yet here)
+      else { u.x0 *= F; u.y0 *= F; }
+    });
+    (o.sites || []).forEach(function (s) { s.x *= F; s.y *= F; });
+    (o.paths || []).forEach(function (P) { P.pts = P.pts.map(function (p) { return typeof p === 'string' ? p : [p[0] * F, p[1] * F]; }); });
+    if (o.view) { o.view.cx *= F; o.view.cy *= F; o.view.z /= F; }
+    // the paint: where the old map had any, a box around it, grown
+    var box = [1e9, 1e9, -1e9, -1e9], in1 = {}, in2 = {};
+    [1, 2, 3].forEach(function (L) {
+      Object.keys(P1[L]).forEach(function (k) {
+        var h = unK(k), c = hc(L, h[0], h[1]);
+        box[0] = Math.min(box[0], c[0]); box[1] = Math.min(box[1], c[1]); box[2] = Math.max(box[2], c[0]); box[3] = Math.max(box[3], c[1]);
+        if (L === 3) { var p2 = up(3, h[0], h[1]); in2[K(p2[0], p2[1])] = 1; }
+      });
+    });
+    var N = { 1: {}, 2: {}, 3: {} };
+    if (box[0] > box[2]) { o.paint = N; o.v = 2; o.grown = { from: 1, by: F, at: new Date().toISOString() }; return o; }
+    var pad = 6, x0 = (box[0] - pad) * F, y0 = (box[1] - pad) * F, x1 = (box[2] + pad) * F, y1 = (box[3] + pad) * F;
+    var old = function (L, c) { var h = at(L, c[0] / F, c[1] / F), e = effIn(P1, L, h[0], h[1]); return e ? e.t : null; };
+    var w = LV[1].w, hh = w * SQ3 / 2, ones = [];
+    for (var r = Math.floor(y0 / hh); r <= Math.ceil(y1 / hh); r++) for (var q = Math.floor(x0 / w - r / 2); q <= Math.ceil(x1 / w - r / 2); q++) {
+      var t1 = old(1, hc(1, q, r)); if (t1) N[1][K(q, r)] = t1; ones.push([q, r, t1]);
+    }
+    var k2 = kids(LV[2].n), k3 = kids(LV[3].n), R2 = LV[2].w / SQ3;
+    ones.forEach(function (o1) {
+      k2.forEach(function (d) {
+        var q2 = LV[2].n * o1[0] + d[0], r2 = LV[2].n * o1[1] + d[1], c2 = hc(2, q2, r2), t2 = old(2, c2);
+        if (t2 && t2 !== o1[2]) N[2][K(q2, r2)] = t2;
+        var e2 = t2 || o1[2], near = false; // (330 ft paint in the old map under this mile hex: its centre or a corner)
+        for (var i = -1; i < 6 && !near; i++) {
+          var a = (30 + 60 * i) * Math.PI / 180, px = i < 0 ? c2[0] : c2[0] + R2 * Math.cos(a), py = i < 0 ? c2[1] : c2[1] + R2 * Math.sin(a), oh = at(2, px / F, py / F);
+          if (in2[K(oh[0], oh[1])]) near = true;
+        }
+        if (!near) return;
+        k3.forEach(function (d3) {
+          var q3 = LV[3].n * q2 + d3[0], r3 = LV[3].n * r2 + d3[1], t3 = old(3, hc(3, q3, r3));
+          if (t3 && t3 !== e2) N[3][K(q3, r3)] = t3;
+        });
+      });
+    });
+    o.paint = N; o.v = 2; o.grown = { from: 1, by: F, at: new Date().toISOString() };
+    return o;
   }
   function terrAtMi(x, y) { var p = at(3, x, y), e = effAt(3, p[0], p[1]); return e ? e.t : null; }
   function pathBy(id) { for (var i = 0; i < S.paths.length; i++) if (S.paths[i].id === id) return S.paths[i]; return null; }
@@ -755,78 +827,37 @@
   }
   $('export').onclick = function () { saveNow(); download(new Blob([JSON.stringify(outObj(), null, 1)], { type: 'application/json' }), 'realm-hexmap-' + stamp() + '.json'); msg('exported'); };
   $('import').onclick = function () { $('file').click(); };
-  function takeIn(text, name) { // a hex map file in place of this browser's copy
+  function takeIn(text, name) { // a hex map file in place of this browser's copy (a version 1 file grows on the way in)
     var o; try { o = JSON.parse(text); } catch (e) { msg('not a hex map file: ' + e.message, true); return false; }
-    if (!o || o.v !== 1 || !o.paint) { msg('not a hex map file (no v: 1)', true); return false; }
-    delete o.exported; delete o.about; S = o; try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) { /* (shown on the next save) */ }
-    UNDO = []; REDO = []; SEL = { hex: null, site: null, path: null, vtx: -1 }; load(); S.under.forEach(function (u) { if (u.on) loadUnder(u); }); panels(); draw(); msg('took in ' + name);
+    if (!o || (o.v !== 1 && o.v !== 2) || !o.paint) { msg('not a hex map file (no v: 1 or 2)', true); return false; }
+    var was1 = o.v === 1; delete o.exported; delete o.about; if (was1) o = grow(o); S = o; try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) { /* (shown on the next save) */ }
+    UNDO = []; REDO = []; SEL = { hex: null, site: null, path: null, vtx: -1 }; load(); S.under.forEach(function (u) { if (u.on) loadUnder(u); }); panels(); draw();
+    msg('took in ' + name + (was1 ? ' (a version 1 map, grown ×' + GROW + ' to the four-wagon-day road)' : ''));
     return true;
   }
   $('file').onchange = function () {
     var f = this.files[0]; this.value = ''; if (!f) return; var rd = new FileReader();
     rd.onload = function () { takeIn(rd.result, f.name); }; rd.readAsText(f);
   };
-
-  // ---------------------------------------------------------------- a file on disk, written as he goes (the browser's copy belongs to one
-  // address -- localhost:8931 and :8932 are two -- and the file is the one the seat reads). Chromium's file pickers; the handle kept in IndexedDB
-  var FH = null, FOK = false, fileT = 0;
-  function idb() { return new Promise(function (res, rej) { var r = indexedDB.open('realm-hexmap', 1); r.onupgradeneeded = function () { r.result.createObjectStore('h'); }; r.onsuccess = function () { res(r.result); }; r.onerror = function () { rej(r.error); }; }); }
-  function idbGet(k) { return idb().then(function (db) { return new Promise(function (res) { var t = db.transaction('h').objectStore('h').get(k); t.onsuccess = function () { res(t.result); }; t.onerror = function () { res(null); }; }); }).catch(function () { return null; }); }
-  function idbSet(k, v) { return idb().then(function (db) { return new Promise(function (res) { var tx = db.transaction('h', 'readwrite'); tx.objectStore('h').put(v, k); tx.oncomplete = function () { res(); }; tx.onerror = function () { res(); }; }); }).catch(function () {}); }
-  function fileNote(t, warn) { $('filenote').innerHTML = warn ? '<b class="warn">' + esc(t) + '</b>' : esc(t); }
-  function fileSoon() { if (FH && FOK) { clearTimeout(fileT); fileT = setTimeout(writeFile, 1200); } }
-  async function writeFile() {
-    if (!FH || !FOK) return;
-    try {
-      var w = await FH.createWritable(); await w.write(JSON.stringify(outObj(), null, 1)); await w.close();
-      fileNote('writing ' + FH.name + ' as you go (last ' + new Date().toLocaleTimeString() + ')');
-    } catch (e) { FOK = false; fileNote('could not write ' + FH.name + ' (' + e.message + ')', true); filePanel(); }
-  }
-  async function linkTo(h, how) { // the file's copy wins if it is newer than this browser's, else this browser's is written to it
-    var perm = await h.requestPermission({ mode: 'readwrite' }); if (perm !== 'granted') { fileNote('not allowed to write ' + h.name, true); return; }
-    FH = h; FOK = true; await idbSet('file', h);
-    var text = ''; try { text = await (await h.getFile()).text(); } catch (e) { text = ''; }
-    var o = null; try { o = text ? JSON.parse(text) : null; } catch (e) { o = null; }
-    if (o && o.v === 1 && o.paint && (how === 'open' || !S.saved || (o.saved && o.saved > S.saved))) { takeIn(text, h.name); fileNote('opened ' + h.name + ' and writing it as you go'); }
-    else await writeFile();
-    filePanel();
-  }
-  function filePanel() {
-    var box = $('filerow'); box.innerHTML = '';
-    if (!window.showSaveFilePicker) { fileNote('this browser cannot write a file as you go: EXPORT now and then'); return; }
-    box.appendChild(btn('save to a file…', false, async function () {
-      try { var h = await window.showSaveFilePicker({ suggestedName: 'realm-hexmap.json', types: [{ description: 'hex map', accept: { 'application/json': ['.json'] } }] }); await linkTo(h, 'save'); }
-      catch (e) { if (e.name !== 'AbortError') fileNote('no file (' + e.message + ')', true); }
-    }, 'pick a file (TarlynsPit/map/realm-hexmap.json, say): the map is written to it after every change'));
-    box.appendChild(btn('open a file…', false, async function () {
-      try { var hs = await window.showOpenFilePicker({ types: [{ description: 'hex map', accept: { 'application/json': ['.json'] } }] }); await linkTo(hs[0], 'open'); }
-      catch (e) { if (e.name !== 'AbortError') fileNote('no file (' + e.message + ')', true); }
-    }, 'open a hex map file and go on writing it'));
-    if (FH && !FOK) box.appendChild(btn('go on writing ' + FH.name, true, function () { linkTo(FH, 'resume'); }));
-  }
-  async function fileStart() {
-    filePanel(); if (!window.showSaveFilePicker) return;
-    var h = await idbGet('file'); if (!h) { fileNote('not written to a file yet: SAVE TO A FILE keeps it on disk as you go'); return; }
-    FH = h; var perm = 'prompt'; try { perm = await h.queryPermission({ mode: 'readwrite' }); } catch (e) { perm = 'prompt'; }
-    if (perm === 'granted') { FOK = true; fileNote('writing ' + h.name + ' as you go'); } else fileNote(h.name + ' was this map’s file: click GO ON WRITING (the newer of the two wins)');
-    filePanel();
-  }
+  // (SAVE TO A FILE, Chromium's file pickers, was dropped 10-20 on his "Export is save": Brave hides the pickers, and the file it linked was never
+  // written -- the maps lane §2e)
   $('png').onclick = function () { drawNow(); cv.toBlob(function (b) { if (b) download(b, 'realm-hexmap-view-' + stamp() + '.png'); else msg('the browser would not make a picture', true); }); };
   var armed = 0;
   $('reset').onclick = function () {
     if (Date.now() - armed > 4000) { armed = Date.now(); this.textContent = 'sure? click again'; var b = this; setTimeout(function () { b.textContent = 'start over'; }, 4000); return; }
     S = fresh(); UNDO = []; REDO = []; SEL = { hex: null, site: null, path: null, vtx: -1 }; reindex(); rebuildDC(); saveNow(); this.textContent = 'start over'; armed = 0;
-    S.under.forEach(loadUnder); setLevel(1, [54, 30]); msg('started over from corridor v3’s places and roads');
+    S.under.forEach(loadUnder); setLevel(1, [54 * GROW, 30 * GROW]); msg('started over from corridor v3’s places and roads');
   };
 
   // ---------------------------------------------------------------- go
   load();
-  window.HEXMAP = { S: function () { return S; }, view: view, at: at, up: up, kids: kids, hc: hc, effAt: effAt, measure: measure, LV: LV, // (for the seat's probes)
+  window.HEXMAP = { S: function () { return S; }, view: view, at: at, up: up, kids: kids, hc: hc, effAt: effAt, measure: measure, LV: LV, GROW: GROW, grow: grow, // (for the seat's probes)
     redraw: function () { LAYERKEY = ''; drawNow(); } };
   window.addEventListener('resize', resize);
   S.under.forEach(function (u) { if (u.on) loadUnder(u); });
-  if (!S.view) { view.L = 1; view.cx = 54; view.cy = 30; view.z = 11; }
-  resize(); panels(); fileStart();
+  if (!S.view) { view.L = 1; view.cx = 54 * GROW; view.cy = 30 * GROW; view.z = 11 / GROW; }
+  resize(); panels();
   $('origin').textContent = 'this browser keeps its copy for ' + location.host + ' (another port is another copy)';
-  msg('Kept in this browser as you go; SAVE TO A FILE keeps it on disk too.');
+  if (GREW) { saveNow(); msg('Your version 1 map has grown ×' + GROW + ' to the four-wagon-day road (Silverton to the Pit 68 mi). Version 1 is still kept in this browser, untouched. EXPORT is the save.'); }
+  else msg('Kept in this browser as you go; EXPORT is the save.');
 })();

@@ -7,7 +7,8 @@
 <!-- the realm's hex map (10-16, the maps lane; Griz, 10-15: "at each zoom level I can select the hex and change the terrain type in order to reconstruct
      the corridor-silver-pit"; "1 B" -- three levels, 5 mi / 1 mi / 330 ft; "I'll need to be able to move the cities and roads around as well").
      Serve it from the they-live preview (http://localhost:8931/dragonsleep-8bit/tools/hexmap.html): that server reaches TarlynsPit/map for the underlays.
-     What he paints lives in this browser (localStorage) and is taken back by EXPORT (a .json the seat reads). -->
+     What he paints lives in this browser (localStorage) and is taken back by EXPORT (a .json the seat reads); EXPORT is the save (10-20).
+     Version 2 (10-20): the road four wagon-days, Silverton to the Pit 68 mi; a version 1 map grows to it on load (hexmap.js grow()). -->
 <style>
   :root { --bg: #15171c; --panel: #1d2027; --line: #2c313b; --text: #d9dce3; --dim: #8a90a0; --a: #ff9a3c; --b: #3cc8ff; --warn: #ff6a5c; --ok: #7ad37a; }
   * { box-sizing: border-box; }
@@ -66,9 +67,7 @@
     <div id="unders"></div>
     <div class="row"><span class="dim">paint</span><input type="range" id="paintop" min="0" max="1" step="0.05"><label><input type="checkbox" id="gridon"> grid</label><label><input type="checkbox" id="labon"> labels</label></div>
     <h2>Taken back</h2>
-    <div class="row" id="filerow"></div>
-    <div id="filenote" class="dim"></div>
-    <div class="row"><button id="export">export .json</button><button id="import">import .json</button><button id="png">view .png</button></div>
+    <div class="row"><button id="export" title="the save: a .json of the whole map">export .json</button><button id="import">import .json</button><button id="png">view .png</button></div>
     <div class="row"><button id="undo">undo</button><button id="redo">redo</button><button id="reset">start over</button></div>
     <input type="file" id="file" accept=".json,application/json" style="display:none">
     <input type="file" id="imgfile" accept="image/*" style="display:none">
@@ -82,6 +81,6 @@ S select · B paint · E erase · C places · R roads · M measure · U move an 
   </div>
   <div id="view"><canvas id="c"></canvas><div id="lvl"></div><div id="status"></div></div>
 </div>
-<script src="hexmap.js"></script>
+<script src="hexmap.js?v=2"></script>
 </body>
 </html>
