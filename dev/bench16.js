@@ -4730,6 +4730,51 @@
     document.body.appendChild(preAu);
     return;
   }
+  // BARLEY IN HIS BATTERED COAT (mode=barley1020; 10-20, Griz: "Spin up a Fable cutter for Barley's legs (art 75 & 76 in Fresh)"): the art desk's ART-75/76 cut to barley_p2
+  // (tools/barley-sheet.py) and worn by the story's Barley; the views the desk left OPEN left out (a row's `drawn`), his walk under barley_p0 (js/sprites.js frameOf: the old walk
+  // where the desk has no clean one, the nearest drawn facing for any other row); and his rows played where the engine plays them: the blow `attack`, the turn's second blow
+  // `attack2` (Extra Attack, the blow after an Action Surge), Second Wind, Action Surge, the Dodge's `defend`, a potion's `useitem`, the win's `victory`
+  if (get('mode', '') === 'barley1020') {
+    var repBa = { checks: [], errors: [] };
+    function okBa(what, v) { repBa.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function mkBa(q) { var Bx = D.npcFight(q, {}); D.battle = Bx; Bx.enter(); while (!Bx.order.length) Bx.co.next(); Bx.dark = false; return Bx; }
+    function sideBa(Bx, s) { return Bx.units.filter(function (u) { return u.side === s; }); }
+    function runBa(g, u, seen) { var v, k = 0, st; while (g && k++ < 4000) { st = g.next(v); v = undefined; if (seen && seen.indexOf(u.anim) < 0) seen.push(u.anim); if (st.done) return st.value; if (st.value && st.value.prompt) v = st.value.prompt.opts[0].value; } }
+    try {
+      var shBa = D.SHEETS && D.SHEETS.barley_p2, wantBa = ['idle', 'walk', 'attack', 'attack2', 'hurt', 'sit', 'flinch', 'prone', 'defend', 'getup', 'useitem', 'victory', 'interact', 'secondwind', 'actionsurge'];
+      okBa('the story Barley wears ' + D.save.look('barley').sheet, D.save.look('barley').sheet === 'barley_p2');
+      var gotBa = shBa ? Object.keys(shBa.anims) : [];
+      okBa('barley_p2 rows: ' + gotBa.join(' ') + ' (the blows land on ' + (shBa && shBa.anims.attack.release) + ' and ' + (shBa && shBa.anims.attack2.release) + ')',
+        shBa && wantBa.every(function (r) { return gotBa.indexOf(r) >= 0; }) && shBa.anims.attack.release === 3 && shBa.anims.attack2.release === 3);
+      var openBa = gotBa.filter(function (r) { return shBa.anims[r].drawn; }).map(function (r) { return r + ' ' + shBa.anims[r].drawn.join(''); });
+      okBa('the OPEN views left out, each row its drawn facings: ' + openBa.join(', ') + '; the walk drawn S only, under barley_p0',
+        shBa && shBa.anims.walk.drawn.join() === '0' && shBa.anims.walk.under === 'barley_p0' && shBa.anims.hurt.drawn.indexOf(0) < 0 && !shBa.anims.idle.drawn && !shBa.anims.attack.drawn);
+      var nf = D.spr.nearFacing, nfBa = [nf([1, 2, 3, 4, 5, 6, 7], 0), nf([2, 3, 5, 6], 0), nf([2, 3, 5, 6], 4), nf([2, 3, 5, 6], 1), nf([2, 3, 5, 6], 7), nf([0, 1, 2, 4, 6, 7], 5), nf([0, 1, 2, 4, 6, 7], 3)];
+      okBa('the nearest drawn facing: hurt S plays SE, getup S plays E, N NE, SW W, SE E; secondwind NE plays E, NW W -- ' + nfBa.join(' '), nfBa.join() === '7,6,5,2,6,6,2');
+      var Bb = mkBa('?npc=ogre&lvl=5&vs=fighter:5'), fo = sideBa(Bb, 'foe')[0], pf = sideBa(Bb, 'party')[0];
+      pf.sheet = 'barley_p2'; pf.feats = pf.feats || {}; pf.feats.secondWind = 1; pf.feats.actionSurge = 1; pf.hp = 10; pf.maxhp = 60; fo.hp = fo.maxhp = 900; pf.conds = {}; fo.conds = {};
+      fo.x = pf.x + 1; fo.y = pf.y; D.rules.startTurn(pf);
+      var sw = []; runBa(Bb.exec(pf, { do: 'secondwind' }), pf, sw);
+      okBa('Second Wind plays ' + sw.join('>') + ', HP ' + pf.hp, sw.indexOf('secondwind') >= 0 && pf.hp > 10);
+      var a1 = [], a2 = []; runBa(Bb.exec(pf, { do: 'attack', target: fo }), pf, a1); runBa(Bb.exec(pf, { do: 'attack', target: fo }), pf, a2);
+      okBa('Extra Attack: the first blow plays ' + a1.join('>') + ', the second ' + a2.join('>'), a1.indexOf('attack') >= 0 && a1.indexOf('attack2') < 0 && a2.indexOf('attack2') >= 0);
+      var su = [], a3 = []; runBa(Bb.exec(pf, { do: 'surge' }), pf, su); runBa(Bb.exec(pf, { do: 'attack', target: fo }), pf, a3);
+      okBa('Action Surge plays ' + su.join('>') + '; the blow after it ' + a3.join('>'), su.indexOf('actionsurge') >= 0 && (a3.indexOf('attack') >= 0 || a3.indexOf('attack2') >= 0));
+      D.rules.startTurn(pf); pf.anim = 'idle'; var dg = []; runBa(Bb.exec(pf, { do: 'dodge' }), pf, dg);
+      okBa('the Dodge plays ' + dg.join('>'), dg.indexOf('defend') >= 0 && pf.conds.dodge);
+      D.rules.startTurn(pf); pf.anim = 'idle'; pf.hp = 20; Bb.inv = (Bb.inv || []).filter(function (x) { return x.id !== 'potion'; }).concat([{ id: 'potion', n: 1 }]);
+      var ui = []; runBa(Bb.useItem(pf, 'potion', pf), pf, ui);
+      okBa('a potion drunk plays ' + ui.join('>') + ', HP ' + pf.hp, ui.indexOf('useitem') >= 0 && pf.hp > 20);
+      fo.hp = 0; fo.dead = true; pf.anim = 'idle'; var gW = Bb.finish('won'); gW.next();
+      okBa('the fight won: plays ' + pf.anim, pf.anim === 'victory');
+      var durBa = ['attack', 'attack2', 'secondwind', 'actionsurge', 'defend', 'interact', 'useitem', 'victory'].map(function (r) { return r + ' ' + D.spr.duration('barley_p2', r); });
+      okBa('each once-row lasts: ' + durBa.join(', '), durBa.every(function (s) { return +s.split(' ')[1] > 0; }));
+    } catch (eBa) { repBa.errors.push(String(eBa && eBa.stack || eBa).slice(0, 900)); }
+    if (errs.length) repBa.errors = repBa.errors.concat(errs);
+    var preBa = document.createElement('pre'); preBa.id = 'out'; preBa.textContent = 'BENCH16 ' + JSON.stringify(repBa);
+    document.body.appendChild(preBa);
+    return;
+  }
   // END CONCENTRATION, free (mode=conc1017; 10-17, Griz: "i just discovered in the pane the need for a free action 'end concentration spell' i think.."; SRD 5.1: "You can end
   // concentration at any time (no action required)"): a cleric holding Bless has END BLESS among the commands, cost F, on RING and RING2; it holds no turn open (UI.spent the same
   // with it as without); picked, the spell lets go -- the undo run, the card said -- and the action, the bonus and the move are all still hers; no spell held, no END

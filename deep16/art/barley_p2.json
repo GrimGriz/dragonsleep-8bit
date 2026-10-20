@@ -1,0 +1,217 @@
+{
+ "image": "art/barley_p2.png",
+ "fw": 64,
+ "fh": 72,
+ "ax": 32,
+ "ay": 60,
+ "top": 47,
+ "anims": {
+  "idle": {
+   "y": 0,
+   "fw": 64,
+   "fh": 72,
+   "ax": 32,
+   "ay": 60,
+   "frames": 6,
+   "fps": 6
+  },
+  "walk": {
+   "y": 576,
+   "fw": 64,
+   "fh": 72,
+   "ax": 32,
+   "ay": 60,
+   "frames": 8,
+   "fps": 10,
+   "drawn": [
+    0
+   ],
+   "under": "barley_p0"
+  },
+  "attack": {
+   "y": 1152,
+   "fw": 72,
+   "fh": 72,
+   "ax": 36,
+   "ay": 60,
+   "frames": 6,
+   "fps": 12,
+   "release": 3
+  },
+  "hurt": {
+   "y": 1728,
+   "fw": 64,
+   "fh": 72,
+   "ax": 32,
+   "ay": 60,
+   "frames": 6,
+   "fps": 10,
+   "drawn": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7
+   ]
+  },
+  "sit": {
+   "y": 2304,
+   "fw": 64,
+   "fh": 72,
+   "ax": 32,
+   "ay": 60,
+   "frames": 2,
+   "fps": 2,
+   "drawn": [
+    2,
+    3,
+    5,
+    6
+   ]
+  },
+  "flinch": {
+   "y": 2880,
+   "fw": 64,
+   "fh": 72,
+   "ax": 32,
+   "ay": 60,
+   "frames": 4,
+   "fps": 12
+  },
+  "prone": {
+   "y": 3456,
+   "fw": 64,
+   "fh": 72,
+   "ax": 32,
+   "ay": 60,
+   "frames": 5,
+   "fps": 10,
+   "drawn": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7
+   ]
+  },
+  "attack2": {
+   "y": 4032,
+   "fw": 64,
+   "fh": 72,
+   "ax": 32,
+   "ay": 60,
+   "frames": 6,
+   "fps": 12,
+   "release": 3,
+   "drawn": [
+    0,
+    1,
+    2,
+    3,
+    5,
+    6,
+    7
+   ]
+  },
+  "defend": {
+   "y": 4608,
+   "fw": 64,
+   "fh": 72,
+   "ax": 32,
+   "ay": 60,
+   "frames": 4,
+   "fps": 8
+  },
+  "getup": {
+   "y": 5184,
+   "fw": 64,
+   "fh": 72,
+   "ax": 32,
+   "ay": 60,
+   "frames": 6,
+   "fps": 10,
+   "drawn": [
+    2,
+    3,
+    5,
+    6
+   ]
+  },
+  "useitem": {
+   "y": 5760,
+   "fw": 64,
+   "fh": 72,
+   "ax": 32,
+   "ay": 60,
+   "frames": 4,
+   "fps": 8
+  },
+  "victory": {
+   "y": 6336,
+   "fw": 64,
+   "fh": 72,
+   "ax": 32,
+   "ay": 60,
+   "frames": 6,
+   "fps": 8,
+   "drawn": [
+    0,
+    1,
+    2,
+    3,
+    5,
+    6,
+    7
+   ]
+  },
+  "interact": {
+   "y": 6912,
+   "fw": 64,
+   "fh": 72,
+   "ax": 32,
+   "ay": 60,
+   "frames": 6,
+   "fps": 10
+  },
+  "secondwind": {
+   "y": 7488,
+   "fw": 64,
+   "fh": 72,
+   "ax": 32,
+   "ay": 60,
+   "frames": 6,
+   "fps": 8,
+   "drawn": [
+    0,
+    1,
+    2,
+    4,
+    6,
+    7
+   ]
+  },
+  "actionsurge": {
+   "y": 8064,
+   "fw": 64,
+   "fh": 72,
+   "ax": 32,
+   "ay": 60,
+   "frames": 6,
+   "fps": 10,
+   "drawn": [
+    0,
+    1,
+    2,
+    3,
+    5,
+    6,
+    7
+   ]
+  }
+ },
+ "source": "drawn by the art desk (2026-10-19/20, ART-75 retained sheets and ART-76 repairs, five views; the views it left OPEN left out: a row's `drawn` lists its facings), cut and snapped by tools/barley-sheet.py"
+}

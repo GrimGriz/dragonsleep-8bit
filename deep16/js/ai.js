@@ -1537,8 +1537,9 @@
     // a fighter's second wind when hurt -- not a wounded one (Halldor at a third of himself neither winds nor surges, the 8-bit's `wounded`)
     if (u.hp < u.maxhp / 2 && f.secondWind && !h.wounded) {
       T.bonus = 0; f.secondWind = 0;
+      var swR = D.spr.anim(u.sheet, 'secondwind'); if (swR) { u.anim = 'secondwind'; u.animT = B.t; } // (a sheet's Second Wind row -- Barley's ART-75, 10-20; battle.js the same for a hand on the ring)
       var r = D.roll('1d10+' + u.lvl); B.heal(u, r.total);
-      B.card(['{y}' + u.name + '{/}: SECOND WIND  +' + r.total]); yield 20;
+      B.card(['{y}' + u.name + '{/}: SECOND WIND  +' + r.total]); yield swR ? Math.max(20, D.spr.duration(u.sheet, 'secondwind')) : 20;
     }
     var tgt = fs.slice().sort(function (a, b) { return G.dist(u, a) - G.dist(u, b); })[0];
     if (G.dist(u, tgt) > G.reachOf(u)) yield* walkTo(B, u, approach(u, tgt, G.reach(u, T.move)));
@@ -1546,7 +1547,7 @@
     T.action = 0;
     // Action Surge (Pyro: the 8-bit's `surgeAI`), once, when two or more stand against him: the attacks over again
     var rounds = h.surgeAI && f.actionSurge && !h.wounded && heroes(B, u).filter(function (w) { return G.dist(u, w) <= G.reachOf(u); }).length >= 2 ? 2 : 1;
-    if (rounds > 1) { f.actionSurge = 0; D.sfx('buff'); B.card(['{y}' + u.name + '{/} surges!  {g}(Action Surge: the attacks again){/}']); yield 16; }
+    if (rounds > 1) { f.actionSurge = 0; D.sfx('buff'); var asR = D.spr.anim(u.sheet, 'actionsurge'); if (asR) { u.anim = 'actionsurge'; u.animT = B.t; } /* (a sheet's Action Surge row -- Barley's ART-75, 10-20) */ B.card(['{y}' + u.name + '{/} surges!  {g}(Action Surge: the attacks again){/}']); yield asR ? Math.max(16, D.spr.duration(u.sheet, 'actionsurge')) : 16; }
     for (var rr = 0; rr < rounds; rr++) for (var k = 0; k < (u.attacks || 1); k++) {
       var t = heroes(B, u).filter(function (w) { return G.dist(u, w) <= G.reachOf(u); })[0];
       if (!t) break;

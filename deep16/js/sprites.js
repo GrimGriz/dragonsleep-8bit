@@ -19,7 +19,9 @@
   S.offline = false; // (the benches: nothing fetched, nothing waits -- dev/bench16.js sets it)
   var pend = {}; // image path -> its promise, so each is fetched once and a fetch under way is shared
   function srcOf(name) { var sh = D.SHEETS && D.SHEETS[name]; return sh ? sh.image : null; }
-  function srcsOf(names) { var out = []; [].concat(names || []).forEach(function (n) { var s = srcOf(n); if (s && out.indexOf(s) < 0) out.push(s); }); return out; }
+  function srcsOf(names) { var out = []; [].concat(names || []).forEach(function (n) { [n].concat(undersOf(n)).forEach(function (m) { var s = srcOf(m); if (s && out.indexOf(s) < 0) out.push(s); }); }); return out; }
+  function undersOf(name) { var sh = D.SHEETS && D.SHEETS[name], out = []; if (sh) Object.keys(sh.anims).forEach(function (k) { var u = sh.anims[k].under; if (u && out.indexOf(u) < 0) out.push(u); }); return out; } // (the sheets a sheet's rows fall back on, fetched with it: frameOf below; a fight counts them among its own, js/battle.js sheets)
+  S.unders = undersOf;
   // fetched and settled (loaded, or failed: a broken image never holds a frame)
   function settled(src) { var im = D.images[src]; return !!(im && im.getAttribute('src') && im.complete); }
   S.load = function (src, low) {
@@ -77,14 +79,32 @@
   // draw one frame; t in frames at 60 Hz; returns the sprite's height above the foot (for labels and HP bars)
   // o.once: play through once and hold the last frame (an attack, a fall); o.alpha; o.flip: mirror; o.tint: a flash colour
   // the frame a sheet shows for anim and facing at t (S.draw and S.outline share it)
+  // a row the art desk has not drawn in every view (10-20, Barley's ART-75/76: the views it left OPEN are left out of barley_p2): its `drawn` lists the
+  // facings it has; another facing plays the row from its `under` sheet where it names one and that sheet has it (his walk: barley_p0's, the old walk
+  // till the desk draws a walk that does not repeat a leg), and otherwise from the nearest drawn facing, on its own side of the screen first
   function frameOf(sh, anim, facing, t, o, name) {
     var a = sh.anims[anim] || sh.anims.idle;
+    if (a.drawn && a.drawn.indexOf(facing % 8) < 0) {
+      var un = a.under && D.SHEETS[a.under];
+      if (un && un.anims[anim] && S.has(a.under)) return frameOf(un, anim, facing, t, o, a.under);
+      facing = S.nearFacing(a.drawn, facing % 8);
+    }
     var fw = a.fw || sh.fw, fh = a.fh || sh.fh, ax = a.ax != null ? a.ax : sh.ax, ay = a.ay != null ? a.ay : sh.ay;
     var n = Math.floor(t * (a.fps || 8) / 60), fr = o && o.frame != null ? Math.max(0, Math.min(a.frames - 1, o.frame)) : o && o.once ? Math.min(a.frames - 1, n) : n % a.frames; // (o.frame: one frame by number -- the prone, ui.js)
     return { img: S.rock(name, sh.eyes ? S.eyed(name, sh, D.images[sh.image]) : D.images[sh.image]), sx: fr * fw, sy: (a.y != null ? a.y : a.row * sh.fh) + (facing % 8) * fh, fw: fw, fh: fh, ax: ax, ay: ay };
   }
   // the frame S.draw would draw for these arguments: { img, sx, sy, fw, fh, ax, ay }, or null while the sheet is on its way (the mirror ripple
   // reads it to lay its scales over the same pixels: js/looks.js LK.ripple, 10-08)
+  // the drawn facing nearest f round the eight (S SW W NW N NE E SE); of two as near, the one on f's side of the screen (SW W NW the left, NE E SE the
+  // right; S and N take the right, the side the desk draws)
+  S.nearFacing = function (drawn, f) {
+    var side = function (x) { return x >= 1 && x <= 3 ? -1 : 1; };
+    for (var d = 1; d <= 4; d++) {
+      var c = [(f + d) % 8, (f + 8 - d) % 8].filter(function (x) { return drawn.indexOf(x) >= 0; });
+      if (c.length) return c.sort(function (p, q) { return (side(p) === side(f) ? 0 : 1) - (side(q) === side(f) ? 0 : 1); })[0];
+    }
+    return f;
+  };
   S.frameAt = function (name, anim, facing, t, o) { var sh = D.SHEETS && D.SHEETS[name]; return sh && S.has(name) ? frameOf(sh, anim, facing, t, o, name) : null; };
   // a creature made of the cavern's own stone (10-01e, Griz approving "browser recolor with new field"): drawn in the map's stone where
   // the map names one (data/maps.js `stone`; js/iso.js iso.ramp) -- the sheet's brown stone ramp swapped, colour for colour, for the

@@ -191,7 +191,7 @@
   Battle.prototype.sheets = function () {
     var now = [], soon = [], kinds = [], add = function (to, n) { if (n && to.indexOf(n) < 0) to.push(n); };
     var all = this.units.concat(this.reserve || [], this.stayed || []);
-    all.forEach(function (u) { add(now, u.sheet); add(now, u.rider); add(soon, u.small); });
+    all.forEach(function (u) { add(now, u.sheet); add(now, u.rider); add(soon, u.small); (D.spr.unders ? D.spr.unders(u.sheet) : []).forEach(function (n) { add(now, n); }); }); // (a sheet's `under` sheets stand with it: Barley's walk on barley_p0, 10-20)
     (this.riders || []).forEach(function (r) { add(now, r.sheet); add(soon, r.after); });
     var kind = function (k) { if (k && kinds.indexOf(k) < 0) kinds.push(k); };
     all.forEach(function (u) {
@@ -1455,7 +1455,7 @@
         var rq = Battle.ropeSq(this, u, c.x, c.y, c.foot), rs0 = (this.inv || []).filter(function (x) { return x.id === 'rope' && x.n > 0; })[0];
         var ownR = u.ownRope != null; // (a lent ally's own Rope & Grapple, never the party's pack -- 10-05, Griz: "do the 'each trooper get one grappling hook' we did for the guests using party inventory - had to send barley back coz the troopers kept throwing them")
         if (!rq || (ownR ? !(u.ownRope > 0) : !rs0) || !T.action || T.attacksLeft) return;
-        T.action = 0; u.facing = D.spr.facingFor(c.x - u.x, c.y - u.y); u.anim = 'attack'; u.animT = this.t; yield 10;
+        T.action = 0; u.facing = D.spr.facingFor(c.x - u.x, c.y - u.y); u.anim = D.spr.anim(u.sheet, 'interact') ? 'interact' : 'attack'; u.animT = this.t; yield 10; // (a sheet's Interact row for a hand on a thing -- here and at the rope taken, the barrel, the bucket: Barley's ART-75, 10-20)
         if (!rq.top) {
           var re = RU.checkEdges(u, 'dex'), rr = re.dis.length && !re.adv.length ? Math.min(D.d(20), D.d(20)) : re.adv.length && !re.dis.length ? Math.max(D.d(20), D.d(20)) : D.d(20), rb = D.mod(u.abil ? u.abil.dex : 10) - RU.shaken(u), rt = rr + rb;
           var tdc = rq.dc || 10; // (10 to 30 ft, 2 more each 5 ft past: Battle.throwDC, 10-05)
@@ -1476,7 +1476,7 @@
           if (ansT === 'step') { var pT = G.path(rmT, rT.at[0], rT.at[1]); if (pT) yield* this.moveAlong(u, pT, { spend: true }); return; }
           if (ansT !== 'take') return;
         }
-        T.action = 0; u.facing = D.spr.facingFor(rT.at[0] - u.x, rT.at[1] - u.y); u.anim = 'attack'; u.animT = this.t; yield 10;
+        T.action = 0; u.facing = D.spr.facingFor(rT.at[0] - u.x, rT.at[1] - u.y); u.anim = D.spr.anim(u.sheet, 'interact') ? 'interact' : 'attack'; u.animT = this.t; yield 10;
         rT.cut = true; var iT = this.ropes.indexOf(rT); if (iT >= 0) this.ropes.splice(iT, 1);
         var rsT = (this.inv || []).filter(function (x) { return x.id === 'rope'; })[0]; if (rsT) rsT.n = (rsT.n || 0) + 1; else (this.inv = this.inv || []).push({ id: 'rope', n: 1 });
         D.sfx('confirm'); this.card(['{y}' + nameOf(u) + '{/} hauls the rope up and coils it, grapple and all, back into the pack.'], 240);
@@ -1501,14 +1501,14 @@
       }
       case 'barreltorch': { // a lit torch out of the barrel behind the houses (10-05 night, Griz: "barrel yes"; lit and free, "no, that's good"): the turn's free object, a hand for it, never the last
         if (!this.torchBarrel || !Battle.besideBarrel(this, u) || u.torch || T.freeObj || !D.light.handForLight(u) || (u.hang && G.hanging(u))) return;
-        T.freeObj = true; u.facing = D.spr.facingFor(this.torchBarrel[0] - u.x, this.torchBarrel[1] - u.y); u.anim = 'attack'; u.animT = this.t; yield 8;
+        T.freeObj = true; u.facing = D.spr.facingFor(this.torchBarrel[0] - u.x, this.torchBarrel[1] - u.y); u.anim = D.spr.anim(u.sheet, 'interact') ? 'interact' : 'attack'; u.animT = this.t; yield 8;
         u.torch = { lit: true }; D.light.regrip(u); D.sfx('fire');
         this.card(['{y}' + nameOf(u) + '{/} takes a torch from the barrel and strikes it alight.  {g}(there is always another){/}'], 220);
         u.anim = 'idle'; yield 12; return;
       }
       case 'bucketrope': { // a Rope & Grapple out of Fountain Street's bucket (10-04 night, Griz): free, one a turn, never the last
         if (!this.ropeBucket || !Battle.besideBucket(this, u) || T.tookRope || u.guest) return;
-        T.tookRope = true; u.facing = D.spr.facingFor(this.ropeBucket[0] - u.x, this.ropeBucket[1] - u.y); u.anim = 'attack'; u.animT = this.t; yield 8;
+        T.tookRope = true; u.facing = D.spr.facingFor(this.ropeBucket[0] - u.x, this.ropeBucket[1] - u.y); u.anim = D.spr.anim(u.sheet, 'interact') ? 'interact' : 'attack'; u.animT = this.t; yield 8;
         var rsB = (this.inv || []).filter(function (x) { return x.id === 'rope'; })[0]; if (u.ownRope != null) u.ownRope++; else if (rsB) rsB.n = (rsB.n || 0) + 1; else (this.inv = this.inv || []).push({ id: 'rope', n: 1 }); // (a lent ally's own: never the party's pack, 10-05)
         D.sfx('confirm'); this.card(['{y}' + nameOf(u) + '{/} takes a Rope & Grapple out of the bucket.  {g}(there is always another){/}'], 220);
         u.anim = 'idle'; yield 12; return;
@@ -1693,7 +1693,7 @@
         this.card(sacredLines);
         return;
       }
-      case 'dodge': D.sfx('bump'); T.action = 0; u.conds.dodge = true; this.card(['{y}' + u.name + '{/} dodges: attacks against at disadvantage till the next turn.']); return;
+      case 'dodge': D.sfx('bump'); T.action = 0; u.conds.dodge = true; if (D.spr.anim(u.sheet, 'defend')) { u.anim = 'defend'; u.animT = this.t; } /* (a sheet's Defend row: the guard up -- Barley's ART-75, 10-20) */ this.card(['{y}' + u.name + '{/} dodges: attacks against at disadvantage till the next turn.']); return;
       case 'breath': { // (a breath on the ring, its action -- the grid's rules §2.20, 10-15: js/traits.js M.breathe)
         if (!u.breath || u.breathSpent || !T.action || T.attacksLeft || !c.target || c.target.x == null) return;
         yield* D.magic.breathe(this, u, c.target);
@@ -1855,16 +1855,18 @@
       }
       case 'secondwind': {
         T.bonus = 0; u.feats.secondWind = 0;
+        var swRow = D.spr.anim(u.sheet, 'secondwind'); if (swRow) { u.anim = 'secondwind'; u.animT = this.t; } // (a sheet's Second Wind row: the breath caught, the guard back -- Barley's ART-75, 10-20)
         var r = D.roll('1d10+' + u.lvl), n = Math.min(u.maxhp - u.hp, r.total);
         u.hp += n; FX.float('+' + n, u, D.PAL.ramps.moss[2]); FX.sparkle(u, 'moss', 10);
         this.card(['{y}' + u.name + '{/}: SECOND WIND  1d10+' + u.lvl + ' ' + RU.fmtRolls(r.rolls) + ' = {n}' + r.total + '{/}' + (n < r.total ? ' (' + n + ' to full)' : '')]);
-        yield 20; return;
+        yield swRow ? Math.max(20, D.spr.duration(u.sheet, 'secondwind')) : 20; return;
       }
       case 'surge': {
         D.sfx('buff');
         u.feats.actionSurge = 0; T.action = 1;
+        var asRow = D.spr.anim(u.sheet, 'actionsurge'); if (asRow) { u.anim = 'actionsurge'; u.animT = this.t; } // (a sheet's Action Surge row: set for the extra action -- Barley's ART-75, 10-20)
         this.card(['{y}' + u.name + '{/}: ACTION SURGE -- a second action.']); FX.ring(u, 'gold', 30);
-        yield 20; return;
+        yield asRow ? Math.max(20, D.spr.duration(u.sheet, 'actionsurge')) : 20; return;
       }
       case 'hide': { yield* this.hide(u); return; }
       case 'search': { yield* this.search(u); return; }
@@ -2198,6 +2200,7 @@
       var rt = att.turn || {}, rn = ((rt.rowN = rt.rowN || {})[rk] = (rt.rowN[rk] || 0) + 1);
       var rw = rn > 1 && D.spr.anim(att.sheet, rk + rn) ? rk + rn : rk;
       if (rk && D.spr.anim(att.sheet, rw)) att.anim = rw;
+      else if (rn > 1 && D.spr.anim(att.sheet, 'attack' + rn)) att.anim = 'attack' + rn; // (a sheet's attack2: the second blow of a turn where no row is named for the weapon -- Extra Attack, or the blow after an Action Surge: Barley's FlailOverhead, ART-75, 10-20)
       // (Surprise Attack's blow: a foe with it, its first melee blow of round one, plays its ambush row -- the bugbears' sheets, 10-07)
       if (att.surprise && this.round === 1 && melee && rn === 1 && D.spr.anim(att.sheet, 'ambush')) att.anim = 'ambush';
       // (Martial Advantage's blow: the drilled lunge where the sheet has one, a melee blow while an ally who can act stands by the target and the
