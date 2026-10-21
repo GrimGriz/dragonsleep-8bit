@@ -1214,11 +1214,12 @@
     // no one it can see: it goes for where the last blow or spell against its side came from (SRD 5.1, Hiding: "you give away your location when the attack
     // hits or misses" -- battle.js noteHeard); there, one beside it is found by touch (heroes: within 5 ft) -- 10-01c, the rogue runner's find
     if (!hs.length && !grudge && B.heardOf && T.move > 0) {
-      var hd = B.heardOf(u);
+      var hd = B.heardOf(u), seenH = !hd && B.lastSeenOf ? B.lastSeenOf(u) : null; hd = hd || seenH; // (nothing heard: where it last saw one of them -- battle.js lastSeenOf, 10-21)
       if (hd) {
         var rkH = Object.keys(u.attacks || {}).map(function (k) { return u.attacks[k]; }).filter(function (a) { return a && a.ranged; })[0];
         var eh = belowIt(u, hd) ? ledgeSq(B, u, hd, B.units.filter(function (w) { return G.hostile(u, w) && G.standing(w) && !w.object; }), rkH) : approach(u, hd, G.reach(u, T.move), reachOf(u)); // (held to the roof: to the lip over the sound -- 10-05)
-        if (eh && (eh.x !== u.x || eh.y !== u.y)) { B.card(['{r}' + the(B, u) + '{/} goes for where the last blow came from.'], 200); yield* walkTo(B, u, eh); if (u.dead || u.hp <= 0) return; }
+        if (eh && (eh.x !== u.x || eh.y !== u.y)) { B.card(['{r}' + the(B, u) + '{/} ' + (seenH ? 'goes to look where ' + seenH.who.name + ' was last seen.' : 'goes for where the last blow came from.')], 200); yield* walkTo(B, u, eh); if (u.dead || u.hp <= 0) return; }
+        if (seenH && G.dist(u, seenH) <= 5) B.lookedAt(u, seenH);
         hs = heroes(B, u);
       }
     }

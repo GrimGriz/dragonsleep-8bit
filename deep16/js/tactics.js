@@ -574,8 +574,9 @@
       // no one it knows of: toward the nearest it can hear, then wait
       var any = B.units.filter(function (w) { return G.hostile(u, w) && G.standing(w) && !w.conds.hidden; }).sort(function (a, b) { return G.dist(u, a) - G.dist(u, b); })[0];
       if (!any && B.heardOf) any = B.heardOf(u); // (no one to hear but where the last blow came from: it goes there -- SRD 5.1, Hiding; battle.js noteHeard, 10-01c)
-      var clue = !!(B.heardOf && B.heardOf(u)); // (a blow or a spell heard, this round or the last: a place to look)
-      if (any) { yield* walk(B, u, AI.approach(u, any, G.reach(u, T.move), G.reachOf(u))); if (!u.dead && u.hp > 0 && (yield* TX.burnDown(B, u))) return; } // (the walk may bring the troll lying out of range into it: the burn from there)
+      var seenAt = !any && B.lastSeenOf ? B.lastSeenOf(u) : null; if (seenAt) { any = seenAt; B.card(['{g}' + (u.side === 'foe' ? AI.the(B, u) : u.name) + ' goes to look where ' + (seenAt.who.side === 'foe' ? D.Battle.nm(seenAt.who) : seenAt.who.name) + ' was last seen.{/}'], 160); } // (nothing heard either: where it last saw one -- battle.js lastSeenOf, 10-21)
+      var clue = !!(B.heardOf && B.heardOf(u)) || !!seenAt; // (a blow or a spell heard, this round or the last, or a last sight of one: a place to look)
+      if (any) { yield* walk(B, u, AI.approach(u, any, G.reach(u, T.move), G.reachOf(u))); if (seenAt && G.dist(u, seenAt) <= 5) B.lookedAt(u, seenAt); if (!u.dead && u.hp > 0 && (yield* TX.burnDown(B, u))) return; } // (the walk may bring the troll lying out of range into it: the burn from there)
       // it still sees no one, with a place to look and a hidden enemy about: the Search action, a Perception check against the hider's Stealth (SRD 5.1; battle.js search, 10-04 --
       // either side's class NPC: Griz, "oversight on my part limiting to 'foes'")
       if ((clue || B.round >= 2) && !u.dead && u.hp > 0 && T.action > 0 && !u.conds.disarmed && B.units.some(function (w) { return w.conds.hidden && G.hostile(u, w) && G.standing(w); })) yield* B.search(u);

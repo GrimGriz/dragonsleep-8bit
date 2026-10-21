@@ -885,6 +885,7 @@
         else { if (G.aloft(u) && !u.floats && !(this.fight && this.fight.fliers && u.flies)) yield* this.flyTo(u, G.groundAt(u, u.x, u.y), true); yield* D.ai.turn(this, u); } // (the AI keeps to the surface: one aloft comes down first -- flight at a height, 10-08)
         this.active = null;
         this.flyCheck();
+        this.noteSeen(); // (what each one sees of its enemies at this turn's end: where an AI that sees no one goes to look, lastSeenOf)
         if (D.traits && D.traits.legendary && !this.over()) yield* D.traits.legendary(this, u); // (at the end of another creature's turn: a legendary action -- js/traits.js, 10-08)
         if (D.traits && D.traits.afterTurn && !this.over()) yield* D.traits.afterTurn(this, u); // (the mirror hyenas' laugh at a fall, the fear scale's turn-end save, the Harbinger's double -- js/traits.js, 10-08)
         if (this.readyArmed()) yield* this.readyAfter({ turnOf: u }); // (one of us down by what no blow or spell of the turn told: a turn's-end save, the ring's spirits -- the readied healers, 10-02)
@@ -3501,6 +3502,24 @@
   // 10-01c, the rogue runner: a foe that could see no one did nothing, so a rogue who shot and hid again was never answered (a troll at 9, thirty
   // fights in thirty, at full health)
   Battle.prototype.noteHeard = function (u) { if (u && u.id) (this.heard = this.heard || {})[u.id] = { x: u.x, y: u.y, round: this.round }; };
+  // what each one last saw of its enemies (10-21, the AI and the dark §5: an AI that knew of no foe stood where it was -- Rascal and Vivian on the Mascot bench, both hidden,
+  // never walked toward where the other had been; the lean, "walks toward where it last saw one ... and searches from there"): at every turn's end, the square each enemy it
+  // sees stands on, and the round. lastSeenOf: the newest of them for one standing and out of its sight now, not yet looked at -- where it goes when it sees no one and heard
+  // nothing (ai.js, tactics.js TX.turn); lookedAt: that square reached, the memory spent
+  Battle.prototype.noteSeen = function () {
+    var self = this, S = this.seen = this.seen || {};
+    this.units.forEach(function (u) { if (!G.standing(u) || u.object) return; self.units.forEach(function (w) { if (w !== u && G.hostile(u, w) && G.standing(w) && !w.object && !w.conds.hidden && D.magic.sees(self, u, w)) (S[u.id] = S[u.id] || {})[w.id] = { x: w.x, y: w.y, round: self.round }; }); });
+  };
+  Battle.prototype.lastSeenOf = function (u) {
+    var self = this, mine = (this.seen || {})[u.id] || {}, best = null;
+    Object.keys(mine).forEach(function (id) {
+      var h = mine[id], w = self.units.filter(function (x) { return x.id === id; })[0];
+      if (!w || !G.standing(w) || !G.hostile(u, w) || (!w.conds.hidden && D.magic.sees(self, u, w))) return;
+      if (!best || h.round > best.round) best = { x: h.x, y: h.y, size: 1, round: h.round, who: w, id: id };
+    });
+    return best;
+  };
+  Battle.prototype.lookedAt = function (u, spot) { if (spot && spot.id && this.seen && this.seen[u.id]) delete this.seen[u.id][spot.id]; };
   Battle.prototype.heardOf = function (u) {
     var self = this, best = null;
     Object.keys(this.heard || {}).forEach(function (id) {

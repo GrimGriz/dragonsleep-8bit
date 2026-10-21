@@ -2238,7 +2238,7 @@
     if (w.torch) c.push('{o}' + (w.torch.kind === 'lantern' ? (w.torch.hood ? D.light.word(w.torch) + ' in hand, hooded' : D.light.word(w.torch) + ' in hand') : 'torch in hand') + '{/}');
     if (w.conds.light) c.push('{y}light{/}');
     if (w.conds.daylight) c.push('{y}daylight{/}');
-    if (w.conds.continualFlame) c.push('{o}continual flame{/}');
+    var fl = D.light.flameOn && D.light.flameOn(w); if (fl) c.push(fl.lit ? '{o}continual flame{/}' : '{g}continual flame on the ' + fl.on + ', not in hand{/}'); // (named lit only while it shines: light.js L.flameOn)
     if (w.conds.darkvision) c.push('{c}darkvision{/}');
     if (w.conds.seeInvisible) c.push('{c}sees the invisible{/}');
     if (w.conds.truesight) c.push('{c}truesight{/}');
@@ -2339,6 +2339,7 @@
     c = c.concat(tail);
     return c.length ? '  ' + c.join(' ') : '';
   }
+  UI.condText = conds; // (the inspect's and the hover's words for a figure's state; the bench reads them)
 
   // ------------------------------------------------------------------ the bottom bar: portrait, HP, BARM, the keys, END TURN
   function bar(ctx, B, hero) {

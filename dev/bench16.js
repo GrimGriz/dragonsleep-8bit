@@ -3211,6 +3211,27 @@
       wz8.conc = null; D.rules.startTurn(wz8); B8.active = wz8; D.d = function (n) { return n === 20 ? 2 : 1; }; run21(M21.cast(B8, wz8, 'holdperson', 2, gb8[1])); D.d = d021;
       var p8 = !!(gb8[1].conds.paralyzed && wz8.conc); gb8[1].hp = 0; gb8[1].dead = false; gb8[1].regenDown = true; B8.sweep(); // (a troll's way down: at 0 and knitting, not dead)
       ok21('6 and held on one at 0 but not dead (knitting): still holding ' + (wz8.conc ? wz8.conc.name : 'nothing') + ' (want Hold Person -- it lies there held)', p8 && !!wz8.conc);
+      // 7b. CONTINUAL FLAME'S HOVER (the AI and the dark lane, 10-20; his 10-19 "mousing over in fight shows him as having it cast on him (but he's not providing light)"):
+      // the flame rides the weapon it was set on and shines while it is in hand -- the hover names it lit only then
+      var f9 = side21(B8, 'party')[0], w09 = f9.weapon, cfId = (w09 && w09.id) || 'dagger';
+      f9.conds.continualFlame = cfId; f9.weapon = null;
+      var t9a = UIx && UIx.condText ? UIx.condText(f9).replace(/\{\/?[a-z]*\}/g, '') : '', lit9a = D.light.carried(f9).some(function (l) { return l.kind === 'flame'; });
+      f9.weapon = w09 || { id: cfId, name: 'Dagger' };
+      var t9b = UIx && UIx.condText ? UIx.condText(f9).replace(/\{\/?[a-z]*\}/g, '') : '', lit9b = D.light.carried(f9).some(function (l) { return l.kind === 'flame'; });
+      ok21('7b the flame on the ' + cfId + ', the weapon put away: lit ' + lit9a + ', the hover "' + t9a.trim() + '"; in hand: lit ' + lit9b + ', the hover "' + t9b.trim() + '" (want false, not in hand; true, continual flame)', !lit9a && /continual flame on the [^,]+, not in hand/.test(t9a) && lit9b && /continual flame/.test(t9b) && !/not in hand/.test(t9b));
+      delete f9.conds.continualFlame; f9.weapon = w09;
+      // 7a. AN AI THAT KNOWS OF NO FOE GOES TO LOOK (the AI and the dark §5: "an AI that knows of no foe stands where it is, and nobody walks toward where a foe was last seen";
+      // the duel at deep16/?npc=rascal:4&vs=vivian:4&lvl=4&watch&seed=1220): the rogue seen at one square, then hidden 30 ft from it and quiet -- the goblin (the brute's AI)
+      // and a fighter (the class AI) each walk to where she was last seen
+      [['goblin', 'the brute'], ['fighter:4', 'the class AI']].forEach(function (pr) {
+        var Bq = mk21('?npc=' + pr[0] + '&vs=rogue:4&lvl=4'), fq = side21(Bq, 'foe')[0], rq = side21(Bq, 'party')[0], oq = open21(Bq, 10, 6);
+        if (!oq) { ok21('7a an open stretch (' + pr[1] + ')', false); return; }
+        fq.x = oq[0]; fq.y = oq[1] + 2; rq.x = oq[0] + 5; rq.y = oq[1] + 2; Bq.cache = null; Bq.round = 3;
+        if (Bq.noteSeen) Bq.noteSeen();
+        var spot = { x: rq.x, y: rq.y, size: 1 }; rq.x = oq[0] + 9; rq.y = oq[1] + 5; rq.conds.hidden = true; rq.hidTotal = 40; Bq.heard = {}; Bq.cache = null;
+        var d0 = G21.dist(fq, spot); D.rules.startTurn(fq); Bq.active = fq; var nq = (Bq.log || []).length; run21(D.ai.turn(Bq, fq)); var lq = log21(Bq, nq);
+        ok21('7a ' + pr[1] + ' (' + fq.name + '), the rogue last seen ' + d0 + ' ft off and hidden since: now ' + G21.dist(fq, spot) + ' ft from that square (want 5 or less), said ' + /last seen/.test(lq), G21.dist(fq, spot) <= 5 && /last seen/.test(lq));
+      });
     } catch (e21) { rep21.errors.push(String(e21 && e21.stack || e21).slice(0, 900)); D.d = d021; }
     if (errs.length) rep21.errors = rep21.errors.concat(errs);
     var pre21 = document.createElement('pre'); pre21.id = 'out'; pre21.textContent = 'BENCH16 ' + JSON.stringify(rep21);
