@@ -42,12 +42,24 @@
   // front of it would hide it; none sits there)
   function fireObj(t) {
     return { depth: FIRE[0] + FIRE[1] + 0.5, gz: 0, draw: function (ctx) {
-      var c = D.iso.center(FIRE[0], FIRE[1], 0), s = D.iso.toScreen(c.x, c.y), x = s.x, y = s.y + 2;
+      var c = D.iso.center(FIRE[0], FIRE[1], 0), s = D.iso.toScreen(c.x, c.y);
+      fireAt(ctx, s.x, s.y + 2, t);
+    } };
+  }
+  // THE CAMP'S FIRE in a fight (RULED 10-21, Griz: "add a campfire when the party encounters during a camp"): a fight whose def names a `camp` square (js/world.js
+  // World.fight, the night's watches -- its light the def's `lights`) draws this fire there, in the sort with the figures
+  CF.fieldFire = function (B, at) {
+    return { depth: at[0] + at[1] + 0.5, gz: B.map.gz(at[0], at[1]), draw: function (ctx) {
+      var c = D.iso.center(at[0], at[1], B.map.gz(at[0], at[1])), s = D.iso.toScreen(c.x, c.y);
+      fireAt(ctx, s.x, s.y + 2, B.t || 0);
+    } };
+  };
+  if (D.looks && D.looks.props) { var props0 = D.looks.props; D.looks.props = function (B) { var r = props0.apply(this, arguments); return B && B.fight && B.fight.camp && B.map ? (r || []).concat([CF.fieldFire(B, B.fight.camp)]) : r; }; }
+  function fireAt(ctx, x, y, t) { // (the ring of stones, two logs crossed, the flames: the clearing's and the field's)
       for (var k = 0; k < 10; k++) { var a = k / 10 * Math.PI * 2, sx = Math.round(x + Math.cos(a) * 11), sy = Math.round(y + Math.sin(a) * 5.5); ctx.fillStyle = k % 3 ? P('stone', 3) : P('stone', 4); ctx.fillRect(sx - 2, sy - 1, 4, 3); ctx.fillStyle = P('stone', 5); ctx.fillRect(sx - 1, sy - 1, 2, 1); }
       ctx.fillStyle = P('leather', 1); ctx.fillRect(x - 8, y - 2, 16, 3); ctx.fillStyle = P('leather', 2); ctx.fillRect(x - 3, y - 4, 6, 7);
       ctx.fillStyle = P('red', 2); ctx.fillRect(x - 6, y - 1, 12, 2);
       CF.flames(ctx, x, y - 2, t, 1.3);
-    } };
   }
   // flames: tongues that rise and lick, hottest at the heart
   CF.flames = function (ctx, x, y, t, k) {

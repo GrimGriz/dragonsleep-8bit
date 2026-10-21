@@ -4,21 +4,25 @@
    uses the simplified for 8-bit stuff with no movement (except they step a square closer to the enemy on their turn) and start them further apart. Party area needs to
    include room for guests"; "correct, spell targeting is single foe"; "correct - up for debate later tho" (anyone strikes anyone); "correct - probably need to have a
    'spell effect scaler' accompanying simple combat..."; "yes, watch for compatibility issues due to simplifications" (DEEP16's own fight underneath); "yes" (an OPTIONS
-   row, simple by default, and the encounter card's second button); "sand is 'hex' fights, silverton internal" (THE WORLD's hex fights take it).
-   The screen: the line of words on top (the newest card, or whose turn it is), the grid's picture under it with the turn order along its top, and the 8-bit's two
-   boxes below -- FIGHT MAGIC SKILL ITEM RUN on the left (the foes' names between turns), the party's hit points on the right, guests in a column of their own.
-   A click on the picture only picks a target; every command, list row and target is a click as well as a key (his "playable by mouse only").
-   How it sits on the grid: the field is the road's compact lineup (S.PARTY, S.seat: a square between the lines), so DEEP16's reach, rules and AI run as they are.
-   The picture draws every one at its own square of a wider lineup (u.drawAt: the party 4 squares east, the foes 2 west), the one whose turn it is a square forward.
-   Nobody walks: a walk is a jump to its end (moveAlong), nothing provokes (every turn disengaged), and at each turn's start every one not held stands on its own
-   square again. A blow out of reach is struck from a square beside the target (attack). An area takes the creature it is aimed at and the nearest of its side by the
-   first game's counts (S.AREA: the seat's lean for his scaler). The turn is the first game's: the bonus actions first, and the action ends it -- FIGHT's attacks at
-   the one picked, then the off hand's swing; ACTION SURGE asked after. */
+   row, simple by default, and the encounter card's second button); "sand is 'hex' fights, silverton internal" (the Hex's arena bouts, when built, take it too).
+   Then, seeing the first build: "(paste) is exactly what I asked for - can we keep the theme and do it better? Initial thoughts are that it's asking for the bottom to
+   be side menus (right side) instead, with maybe one zoom deeper. Try it with some larger monsters as well"; and "yes to the simple fight leans" (the bonus action
+   after the swing; the spell effect scaler as built; the Hex's sand fights simple by default).
+   The screen: the line of words across the top (the newest card, or whose turn it is); the grid's picture on the left, the turn order along its top, the two lines
+   across it as the first game's -- the foes on the left, the party on the right, each a column down the screen; the 8-bit's windows in a column down the right side --
+   the party's hit points (guests under them), and FIGHT MAGIC SKILL ITEM RUN at the foot (the foes' names between turns). A click on the picture only picks a target;
+   every command, list row and target is a click as well as a key (his "playable by mouse only").
+   How it sits on the grid: the field is the simple fight's own (S.fieldOpts), the lines standing across the screen on it -- a square apart by the rules (a diagonal
+   counts one: 128 px on the screen at the deeper zoom), so DEEP16's reach, rules, light and AI run as they are on the squares the picture shows. The one whose turn it
+   is is drawn half a square forward (u.drawAt). Nobody walks: a walk is a jump to its end (moveAlong), nothing provokes (every turn disengaged), and at each turn's
+   start every one not held stands on its own square again. A blow out of reach is struck from a square beside the target (attack). An area takes the creature it is
+   aimed at and the nearest of its side by the first game's counts (S.AREA, THE SPELL EFFECT SCALER). The turn: any number of commands while the action or a bonus
+   action is left -- FIGHT's attacks at the one picked, then the menu again for the bonus action (OFF HAND, Cunning Action, Healing Word) or END TURN. */
 'use strict';
 (function () {
   var D = window.D16, G = D.grid, RU = D.rules, UI = D.ui, I = D.input, Battle = D.Battle;
   var S = D.simple = {};
-  var W8 = D.WIN8, OFF = 30, BOX_Y = 180, LW = 150, GREY = '#7a7890'; // (OFF: the picture a band down, under two lines of words -- the turn order shows under them)
+  var W8 = D.WIN8, OFF = 30, RW = 152, PX0 = D.W - RW, GREY = '#7a7890'; // (OFF: the picture a band down, under two lines of words; RW: the side column's width)
 
   // ------------------------------------------------------------------ the switch: OPTIONS' RANDOM FIGHTS, simple by default (his "yes"); a per-device convenience
   S.KEY = 'deep16.randomfights';
@@ -27,33 +31,56 @@
   var MN = window.DS && window.DS.MENU; // (the one OPTIONS page, js/menu.js: its grid rows gain this one in the second game only -- this file loads only in deep16/)
   if (MN && MN.gridRows) { var rows0 = MN.gridRows; MN.gridRows = function () { var r = rows0.apply(this, arguments); r.push({ label: 'RANDOM FIGHTS', key: 'randomfights', get: function () { return S.on() ? 'SIMPLE' : 'FULL GRID'; }, step: function () { S.set(!S.on()); } }); return r; }; }
 
-  // ------------------------------------------------------------------ the lineup (js/world.js W.field takes these): the field's squares, and the picture's
-  // the four at x 8 (y 1-4), guests behind them at x 9 and 10; the foes' line at x 6, more and the Large behind it to x 3 -- a square between the lines
-  S.PARTY = [[8, 1], [8, 2], [8, 3], [8, 4], [9, 1], [9, 2], [9, 3], [9, 4], [9, 5], [10, 2], [10, 3], [10, 4]];
-  S.PD = 4; S.FD = 2; // (the picture: the party drawn 4 squares east, the foes 2 west -- seven squares between the lines, his "start them further apart")
-  S.LANE = [1, 14]; // (the field's open squares, x: the picture's lineup must stand on open ground)
+  // ------------------------------------------------------------------ the lineup, across the screen (his "keep the theme and do it better")
+  // A square's place on the screen: c = x - y across (32 px a step at zoom 1), r = x + y down (16 px a step). Each side stands in columns of four down the screen,
+  // three rows (48 px) apart and staggered half a square, as the first game staggers its four: the party's front at c +2/+3, the foes' at c -2/-1 -- the same row
+  // a square apart by the rules on either side of the gap (a diagonal counts one), 128 px on the screen. Guests stand in the columns behind the four; the camp's fire
+  // burns between. The foes fill their front column first, then the next back; the Large and the Huge after the small, as near the front as their bodies fit (none
+  // past c -1). The field is 16 by 16 round C, open where the lineup can stand, its road across the screen
+  S.W = 16; S.H = 16; S.C = [8, 7];
+  S.FACE = [[-1, 1], [1, -1]]; // (the facing across the screen: the party to its left, the foes to its right -- D.spr.facingFor)
+  function sq(c, r, s) { s = s || 1; var x2 = c + r - (s - 1); if (x2 % 2) return null; var x = x2 / 2; return [S.C[0] + x, S.C[1] + x - c]; } // (the anchor of a body s squares a side, its middle at c, r)
+  // a column j of four, top to bottom: rows -5, -2, 1, 4, the odd rows half a square to the right -- both lines zigzag together, so a row's two stay a square
+  // apart (side +1 the party's, -1 the foes')
+  function column(side, j) { var e = side * (2 + 2 * j), o = e + 1; return [[o, -5], [e, -2], [o, 1], [e, 4]]; }
+  S.PARTY = column(1, 0).concat(column(1, 1), column(1, 2)).map(function (q) { return sq(q[0], q[1]); });
+  S.CAMP = sq(4, 0);
+  S.TALL = { 1: 50, 2: 90, 3: 140 }; // (a figure's height by its size, px at zoom 1: the troll's 75, the ettin's 101, the stone giant's 137)
+  S.lane = function (x, y) { var rx = x - S.C[0], ry = y - S.C[1], c = rx - ry, r = rx + ry; return x > 0 && y > 0 && x < S.W - 1 && y < S.H - 1 && c >= -12 && c <= 9 && r >= -9 && r <= 9; };
+  S.road = function (x, y) { var r = (x - S.C[0]) + (y - S.C[1]); return r === -1 || r === 0; };
+  S.fieldOpts = function () { return { w: S.W, h: S.H, lane: S.lane, road: S.road, entry: S.PARTY }; };
   S.seat = function (list) {
-    var taken = {}, out = [], C = { 1: [], 2: [[4, 1], [4, 3], [3, 1], [3, 3], [5, 1], [5, 3], [4, 2]], 3: [[3, 1], [3, 2], [4, 1]] };
-    [6, 5, 4, 3].forEach(function (x) { [3, 2, 4, 1, 5].forEach(function (y) { C[1].push([x, y]); }); });
-    function fits(x, y, s) { for (var j = 0; j < s; j++) for (var i = 0; i < s; i++) if (taken[(x + i) + ',' + (y + j)] || x + i < 3 || x + i > 6 || y + j < 1 || y + j > 5) return false; return true; }
+    var taken = {}, out = [], smalls = [];
+    S.PARTY.concat([S.CAMP]).forEach(function (q) { taken[q[0] + ',' + q[1]] = 1; });
+    [0, 1, 2, 3].forEach(function (j) { var cl = column(-1, j); [cl[1], cl[2], cl[0], cl[3]].forEach(function (q) { smalls.push(q); }); }); // (the middle rows first)
+    function fits(a, s) { for (var j = 0; j < s; j++) for (var i = 0; i < s; i++) { var x = a[0] + i, y = a[1] + j; if (taken[x + ',' + y] || !S.lane(x, y) || (x - S.C[0]) - (y - S.C[1]) > -1) return false; } return true; }
     list.map(function (k, i) { var f = D.FOES && D.FOES[k]; return { k: k, i: i, s: Math.max(1, Math.min(3, (f && f.size) || 1)) }; })
-      .sort(function (a, b) { return b.s - a.s || a.i - b.i; })
+      .sort(function (a, b) { return (a.s > 1) - (b.s > 1) || b.s - a.s || a.i - b.i; }) // (the small first: they hold the front; then the Huge before the Large, for a front place)
       .forEach(function (o) {
-        var at = C[o.s].filter(function (q) { return fits(q[0], q[1], o.s); })[0]; if (!at) return;
+        var at = null;
+        if (o.s === 1) for (var q = 0; q < smalls.length && !at; q++) { var a1 = sq(smalls[q][0], smalls[q][1]); if (a1 && fits(a1, 1)) at = a1; }
+        // (a big one, or a small past the four columns: the open place nearest the front and the middle rows together -- a column back before a row far down -- and
+        // a tall one low enough that its head stays under the party's top row (S.TALL px of figure; 16 px a row), so the picture stays one zoom deep)
+        var best = 1e9, rmin = Math.ceil((S.TALL[o.s] - 128) / 16);
+        if (!at) for (var c = -1 - o.s; c >= -12; c--) for (var r = -8; r <= 8; r++) {
+          var a = sq(c, r, o.s), cost = (-1 - o.s - c) * 2 + (r < rmin ? (rmin - r) * 4 : 0) + (r > 5 ? (r - 5) * 4 : 0) + Math.abs(r - 0.5) * 0.4;
+          if (a && cost < best && fits(a, o.s)) { best = cost; at = a; }
+        }
+        if (!at) return;
         for (var j = 0; j < o.s; j++) for (var i = 0; i < o.s; i++) taken[(at[0] + i) + ',' + (at[1] + j)] = 1;
-        out.push({ id: 'w' + o.i + '-' + o.k, kind: o.k, at: at.slice() });
+        out.push({ id: 'w' + o.i + '-' + o.k, kind: o.k, at: at });
       });
     return out;
   };
-  S.fieldOpts = function () { return { lane: S.LANE, entry: S.PARTY }; };
-  // the test door (js/eyes.js): deep16/?world&simple=wolf,wolf,bandit -- THE WORLD with that encounter's card up at once, FIGHT and ON THE GRID on it
+  // the test doors (js/eyes.js): deep16/?world&simple=wolf,wolf,bandit -- THE WORLD with that encounter's card up at once, FIGHT and ON THE GRID on it;
+  // &camp -- a fight in the night's watches, the camp's fire behind the party (js/world.js W.CAMP)
   var WW = D.world && D.world.World;
   if (WW) { var wen0 = WW.prototype.enter; WW.prototype.enter = function () {
     var r = wen0.apply(this, arguments), mq = /[?&]simple=([a-z0-9,]+)/.exec(this.q || '');
     if (mq && !this.simpleDoor) {
       this.simpleDoor = true;
       var list = mq[1].split(',').filter(function (k) { return D.FOES && D.FOES[k]; }).slice(0, 8), st = D.world.state(), e = D.world.M().hex[D.world.K(st.at[0], st.at[1])];
-      if (list.length && e) this.encounter({ zone: D.world.zoneOf(e), list: list, mirror: false }, e);
+      if (list.length && e) this.encounter({ zone: D.world.zoneOf(e), list: list, mirror: false, camp: /[?&]camp\b/.test(this.q) }, e);
     }
     return r;
   }; }
@@ -61,7 +88,8 @@
   // ------------------------------------------------------------------ the fight's state: each one's own square, and where the picture draws it
   S.setup = function (B) { B.simple = { home: {}, last: {}, m: null, act: null, cam: null }; B.units.forEach(function (u) { S.homeOf(B, u); }); };
   S.homeOf = function (B, u) { var h = B.simple.home[u.id]; if (!h) h = B.simple.home[u.id] = [u.x, u.y]; return h; };
-  S.dispOf = function (B, u) { var h = S.homeOf(B, u), x = h[0] + (u.side === 'party' ? S.PD : -S.FD); return [Math.max(0, Math.min(G.map.w - (u.size || 1), x)), h[1]]; };
+  S.dispOf = function (B, u) { return S.homeOf(B, u); };
+  S.faceOf = function (u) { var f = S.FACE[u.side === 'party' ? 0 : 1]; return D.spr.facingFor(f[0], f[1]); };
   // held or holding (a grapple, a swallow, a rider, the carried): it stays where the rules put it, and the picture draws it by the one it is bound to
   S.boundTo = function (B, u) {
     var c = u.conds || {}, id = (c.grappled && c.grappled.by) || (c.engulfed && c.engulfed.by) || (u.carriedBy && (u.carriedBy.id || u.carriedBy)) || null;
@@ -71,36 +99,29 @@
     if (!id) return c.grappled || c.engulfed ? { w: null } : null;
     return { w: B.units.filter(function (x) { return x.id === id; })[0] || null };
   };
-  // every one not held back on its own square (each turn's start): the rules' positions are the lineup again
+  // every one not held back on its own square (each turn's start): the rules' positions are the lineup again, each facing across
   S.snap = function (B) {
     B.units.forEach(function (u) {
       if (!G.present(u) || u.left || u.object || u.familiar || S.boundTo(B, u)) return;
       var h = S.homeOf(B, u);
-      if (u.x === h[0] && u.y === h[1]) return;
+      if (u.x === h[0] && u.y === h[1]) { if (u.hp > 0) u.facing = S.faceOf(u); return; }
       var x0 = u.x, y0 = u.y; u.x = -99; u.y = -99; // (its own body out of the way of the test)
       var ok = G.canStand(u, h[0], h[1]); u.x = x0; u.y = y0;
       if (!ok) return;
       u.x = h[0]; u.y = h[1]; delete u.tween;
-      if (u.hp > 0 && D.spr && D.spr.facingFor) u.facing = D.spr.facingFor(u.side === 'party' ? -1 : 1, 0);
+      if (u.hp > 0) u.facing = S.faceOf(u);
     });
   };
-  // where the picture draws each one: its lineup square, a square forward on its turn; one bound drawn by its partner
+  // where the picture draws each one: its own square, half a square forward on its turn (his "they step a square closer to the enemy on their turn"); one bound
+  // drawn by its partner -- the grappler beside the one it holds, on its own side
   S.place = function (B) {
-    var at = {};
     B.units.forEach(function (u) {
-      if (S.boundTo(B, u)) return;
-      var d = S.dispOf(B, u);
-      if (B.simple.act === u && u.hp > 0 && !u.dead) d = [d[0] + (u.side === 'party' ? -1 : 1), d[1]];
-      at[u.id] = d; u.drawAt = { x: d[0], y: d[1] }; delete u.tween;
-    });
-    B.units.forEach(function (u) {
-      var b = S.boundTo(B, u); if (!b) return;
-      var w = b.w, dw = w && (at[w.id] || S.dispOf(B, w));
-      if (!dw) { u.drawAt = { x: S.dispOf(B, u)[0], y: S.dispOf(B, u)[1] }; return; }
-      if (b.rides || (u.conds && u.conds.engulfed)) { u.drawAt = { x: dw[0], y: dw[1] }; return; }
-      // the grappler beside the one it holds, on its own side of the gap; the held one at its own square
-      if (b.holds) { var dh = at[w.id] || S.dispOf(B, w); u.drawAt = { x: dh[0] + (w.side === 'party' ? -1 : 1), y: dh[1] }; }
-      else u.drawAt = { x: S.dispOf(B, u)[0], y: S.dispOf(B, u)[1] };
+      var b = S.boundTo(B, u), h = S.homeOf(B, u), f = S.FACE[u.side === 'party' ? 0 : 1];
+      if (!b) { u.drawAt = B.simple.act === u && u.hp > 0 && !u.dead ? { x: h[0] + f[0] / 2, y: h[1] + f[1] / 2 } : { x: h[0], y: h[1] }; delete u.tween; return; }
+      var w = b.w;
+      if (!w || b.rides || (u.conds && u.conds.engulfed)) { delete u.drawAt; return; }
+      if (b.holds) { var hw = S.homeOf(B, w), g = S.FACE[w.side === 'party' ? 0 : 1]; u.drawAt = { x: hw[0] + g[0], y: hw[1] + g[1] }; } // (beside the held, on the side it came from)
+      else u.drawAt = { x: h[0], y: h[1] };
       delete u.tween;
     });
   };
@@ -109,8 +130,8 @@
   var run0 = Battle.prototype.run;
   Battle.prototype.run = function* () { if (this.o.simple && !this.simple) S.setup(this); return yield* run0.apply(this, arguments); };
   // each turn's start (the hand's, battle.js heroTurn, and the AI's, ai.js AI.turn, both open with it): every one not held back on its own square, the one whose
-  // turn it is drawn a square forward, its menu fresh; and nothing provokes all turn (no one walks). (A hook here, not a wrap of the turns: rulings0930 reads
-  // the AI turn's own words)
+  // turn it is drawn forward, its menu fresh; and nothing provokes all turn (no one walks). (A hook here, not a wrap of the turns: rulings0930 reads the AI turn's
+  // own words)
   var st0 = RU.startTurn;
   RU.startTurn = function (u) {
     var B = D.battle, on = !!(B && B.simple && u && B.units.indexOf(u) >= 0);
@@ -164,9 +185,10 @@
   };
 
   // ------------------------------------------------------------------ THE SPELL EFFECT SCALER (his "probably need to have a 'spell effect scaler' accompanying simple
-  // combat"; the seat's lean, his to change): an area is aimed at one creature, and takes it and the nearest standing of its side -- the first game's counts
-  // (js/battle.js: a cone 3, a line 4, a wide burst every one), read off the grid's template: a cone, a cube, a wave or round the caster 3; a line 4; a sphere of
-  // 15 ft or more, a cube of 20 ft or more, every one of that side; a smaller sphere 3. Both sides alike: a foe's Fireball takes the party, never its own
+  // combat"; the seat's lean, RULED 10-21 on his "yes to the simple fight leans"): an area is aimed at one creature, and takes it and the nearest standing of its side
+  // -- the first game's counts (js/battle.js: a cone 3, a line 4, a wide burst every one), read off the grid's template: a cone, a cube, a wave or round the caster 3;
+  // a line 4; a sphere of 15 ft or more, a cube of 20 ft or more, every one of that side; a smaller sphere 3. Both sides alike: a foe's Fireball takes the party, never
+  // its own
   S.AREA = { cone: 3, cube: 3, wave: 3, around: 3, line: 4, sphere: 3, bigSphere: 15, bigCube: 20 };
   S.areaCount = function (g) {
     if (g.shape === 'sphere' && (g.r || 0) >= S.AREA.bigSphere) return 99;
@@ -198,25 +220,31 @@
   S.acts = function (u) { var T = T_(u); return T.action > 0 || T.attacksLeft > 0 || T.hasteAction > 0; };
   S.cmd = function (B, u, id) { return B.commands(u).filter(function (c) { return c.id === id; })[0] || null; };
   function live(w) { return G.standing(w) && !w.object && !w.left && !w.ethereal; }
-  S.foes = function (B, u) { return B.units.filter(function (w) { return G.hostile(u, w) && live(w) && !w.riding; }).sort(function (a, b) { return S.dispOf(B, a)[1] - S.dispOf(B, b)[1] || S.dispOf(B, a)[0] - S.dispOf(B, b)[0]; }); };
+  S.foes = function (B, u) { return B.units.filter(function (w) { return G.hostile(u, w) && live(w) && !w.riding; }).sort(function (a, b) { var ha = S.homeOf(B, a), hb = S.homeOf(B, b); return (ha[0] + ha[1]) - (hb[0] + hb[1]) || (hb[0] - hb[1]) - (ha[0] - ha[1]); }); }; // (top of the screen first)
   S.friends = function (B, u, down) { return B.units.filter(function (w) { return w.side === u.side && G.present(w) && !w.object && !w.left && !w.familiar && (down || w.hp > 0); }); };
   function nearestFoe(B, u, t) { var fs = S.foes(B, u); if (t) fs.sort(function (a, b) { return G.dist(t, a) - G.dist(t, b); }); return fs[0] || null; }
-  // what follows a command by itself: FIGHT's attacks left at the one picked (the next nearest if it fell), then the off hand; the action spent, ACTION SURGE asked
-  // once, else the turn ends. null: the hand is asked
+  // the action spent, is a bonus action (or ACTION SURGE) still worth the menu? (his "yes to the simple fight leans": Cunning Action and Healing Word after the
+  // swing, the SRD's bonus action any time in the turn). Second Wind at full health keeps no one waiting
+  S.bonusLeft = function (B, u) {
+    var T = T_(u), sg = S.cmd(B, u, 'surge');
+    if (sg && sg.ok && S.foes(B, u).length) return true;
+    if (!(T.bonus > 0) || !S.foes(B, u).length) return false;
+    var off = S.cmd(B, u, 'offhand');
+    if (off && off.ok) return true;
+    if (S.spells(B, u).some(function (e) { return e.ok && /bonus/.test(e.right); })) return true;
+    if (S.items(B, u).some(function (e) { return e.ok && e.right === 'bonus'; })) return true;
+    return S.skills(B, u).some(function (e) { return e.ok && e.right === 'bonus' && !(e.c.id === 'secondwind' && u.hp >= u.maxhp); });
+  };
+  // what follows a command by itself: FIGHT's attacks left at the one picked (the next nearest if it fell); the action spent and no bonus action worth the menu,
+  // the turn ends. null: the hand is asked
   S.autoNext = function (B, u) {
     var m = S.menu(B, u), T = T_(u);
     if (m.fight) {
       if (T.attacksLeft > 0 && T.attacksLeft !== m.left0) { var t = live(m.fight) ? m.fight : nearestFoe(B, u, m.fight); if (t) { m.fight = t; m.left0 = T.attacksLeft; return { do: 'attack', target: t }; } }
-      var off = S.cmd(B, u, 'offhand');
-      if (off && off.ok && !m.offDone) { m.offDone = true; var t2 = live(m.fight) ? m.fight : nearestFoe(B, u, m.fight); if (t2) return { do: 'offhand', target: t2 }; }
-      m.fight = null;
+      m.lastPick = m.fight; m.fight = null;
     }
-    if (!S.acts(u) || !S.foes(B, u).length) {
-      var sg = S.cmd(B, u, 'surge');
-      if (sg && sg.ok && S.foes(B, u).length && !m.surgeAsked) { m.surgeAsked = true; m.mode = 'surge'; m.sel = 0; return null; }
-      if (m.mode === 'surge') return null;
-      return { do: 'end' };
-    }
+    if (!S.foes(B, u).length) return { do: 'end' };
+    if (!S.acts(u)) { if (m.after == null) m.after = S.bonusLeft(B, u); if (!m.after) return { do: 'end' }; }
     return null;
   };
   S.menu = function (B, u) {
@@ -224,19 +252,26 @@
     if (!m || m.u !== u) m = B.simple.m = { u: u, mode: 'cmd', sel: B.simple.last[u.id] || 0, stack: [], t0: B.t };
     return m;
   };
-  // the root's five (the first game's): FIGHT, MAGIC, SKILL, ITEM, RUN
+  // the column's commands: the first game's five while the action is left -- FIGHT, MAGIC, SKILL, ITEM, RUN; after it, what a bonus action can do -- OFF HAND (the
+  // second weapon's swing), MAGIC, SKILL, ITEM -- and END TURN
   S.root = function (B, u) {
     var T = T_(u), mg = S.spells(B, u), sk = S.skills(B, u), it = S.items(B, u), fast = u.subclass === 'Thief' && T.bonus > 0;
+    var MAGIC = { label: 'MAGIC', ok: mg.some(function (e) { return e.ok; }), why: mg.length ? 'nothing castable now' : 'no spells', go: function () { S.openList(B, u, 'MAGIC', mg); } };
+    var SKILL = { label: 'SKILL', ok: sk.some(function (e) { return e.ok; }), why: 'nothing to use now', go: function () { S.openList(B, u, 'SKILL', sk); } };
+    var ITEM = { label: 'ITEM', right: fast ? 'bonus' : '', ok: it.some(function (e) { return e.ok; }), why: it.length ? 'nothing usable now' : 'nothing in the pack for a fight', go: function () { S.openList(B, u, 'ITEM', it); } };
+    if (!S.acts(u)) {
+      var off = S.cmd(B, u, 'offhand');
+      return (off ? [{ label: 'OFF HAND', right: 'bonus', ok: !!off.ok, why: off.why, go: function () { S.pickFoe(B, u, 'OFF HAND', null, function (t) { return { do: 'offhand', target: t }; }); } }] : [])
+        .concat([MAGIC, SKILL, ITEM, { label: 'END TURN', ok: true, go: function () { S.send(B, u, { do: 'end' }); } }]);
+    }
     return [
-      { label: 'FIGHT', ok: S.acts(u) && !!S.foes(B, u).length, why: 'the action is spent', go: function () { S.pickFoe(B, u, 'FIGHT', null, function (t) { return S.fightCmd(B, u, t); }); } },
-      { label: 'MAGIC', ok: mg.some(function (e) { return e.ok; }), why: mg.length ? 'nothing castable now' : 'no spells', go: function () { S.openList(B, u, 'MAGIC', mg); } },
-      { label: 'SKILL', ok: sk.some(function (e) { return e.ok; }), why: 'nothing to use now', go: function () { S.openList(B, u, 'SKILL', sk); } },
-      { label: 'ITEM', right: fast ? 'bonus' : '', ok: it.some(function (e) { return e.ok; }), why: it.length ? 'nothing usable now' : 'nothing in the pack for a fight', go: function () { S.openList(B, u, 'ITEM', it); } },
-      { label: 'RUN', ok: S.acts(u) && B.takesParty(), why: 'there is no running from this', go: function () { S.send(B, u, { do: 'simplerun' }); } }
+      { label: 'FIGHT', ok: !!S.foes(B, u).length, why: 'no foe standing', go: function () { S.pickFoe(B, u, 'FIGHT', null, function (t) { return S.fightCmd(B, u, t); }); } },
+      MAGIC, SKILL, ITEM,
+      { label: 'RUN', ok: B.takesParty(), why: 'there is no running from this', go: function () { S.send(B, u, { do: 'simplerun' }); } }
     ];
   };
   // ---- FIGHT
-  S.fightCmd = function (B, u, t) { var m = S.menu(B, u); m.fight = t; m.offDone = false; m.left0 = null; return { do: 'attack', target: t }; };
+  S.fightCmd = function (B, u, t) { var m = S.menu(B, u); m.fight = t; m.left0 = null; return { do: 'attack', target: t }; };
   // ---- MAGIC: the grid's own list (js/magic.js M.list) with range and reach let go -- a spell aimed at one creature, any one of the kind it takes
   var AIMS = { self: 'none', around: 'none', single: 'side', touch: 'friend', attack: 'foe', rays: 'foe', darts: 'foe', splash: 'foe', sphere: 'side', cube: 'side', cone: 'foe', line: 'foe', wave: 'foe', allies: 'friends' };
   // whom a spell offers, in the order the list shows them: the foes for a harm (an area with no side named is a harm -- Fireball offered our own first, and the
@@ -322,7 +357,7 @@
     S.pickFrom(B, u, c.label + ': at whom?', list, function (t) { return S.skillCmd(B, u, c, t); });
   };
 
-  // ------------------------------------------------------------------ the menu's modes: a list (MAGIC, ITEM, SKILL, a spell's levels), a target pick, ACTION SURGE
+  // ------------------------------------------------------------------ the menu's modes: the column's commands, a list (MAGIC, ITEM, SKILL, a spell's levels), a target pick
   S.openList = function (B, u, title, items) { var m = S.menu(B, u); m.stack.push({ mode: m.mode, sel: m.sel, list: m.list, pick: m.pick }); var f = 0; items.some(function (e, i) { if (e.ok) { f = i; return true; } return false; }); m.mode = 'list'; m.list = { title: title, items: items, top: 0 }; m.sel = f; m.msg = null; D.sfx('confirm'); };
   S.pickFrom = function (B, u, title, cands, then) {
     var m = S.menu(B, u);
@@ -334,17 +369,16 @@
   S.back = function (B, u) { var m = S.menu(B, u), p = m.stack.pop(); if (!p) return; m.mode = p.mode; m.sel = p.sel; m.list = p.list; m.pick = p.pick; m.msg = null; D.sfx('cancel'); };
   S.send = function (B, u, cmd, auto) {
     var m = S.menu(B, u);
-    if (!auto) { B.clearCards(); B.simple.last[u.id] = m.mode === 'cmd' ? m.sel : B.simple.last[u.id]; m.stack = []; m.mode = 'cmd'; m.list = null; m.pick = null; m.msg = null; }
-    m.wait = true; m.root = null; B.answer(cmd);
+    if (!auto) { B.clearCards(); B.simple.last[u.id] = m.mode === 'cmd' && S.acts(u) ? m.sel : B.simple.last[u.id]; m.stack = []; m.mode = 'cmd'; m.list = null; m.pick = null; m.msg = null; m.sel = 0; }
+    m.wait = true; m.root = null; m.after = null; B.answer(cmd);
   };
   S.rootOf = function (B, u) { var m = S.menu(B, u); if (!m.root) m.root = S.root(B, u); return m.root; }; // (built once a request: the lists ask the grid's rules)
-  S.rows = function (B, u) { var m = S.menu(B, u); return m.mode === 'cmd' ? S.rootOf(B, u) : m.mode === 'surge' ? S.surgeRows(B, u) : m.mode === 'list' ? m.list.items : []; };
-  S.surgeRows = function (B, u) { return [{ label: 'ACTION SURGE', ok: true, go: function () { var mm = S.menu(B, u); mm.mode = 'cmd'; mm.sel = 0; S.send(B, u, { do: 'surge' }, true); } }, { label: 'DONE', ok: true, go: function () { S.send(B, u, { do: 'end' }); } }]; };
+  S.rows = function (B, u) { var m = S.menu(B, u); return m.mode === 'cmd' ? S.rootOf(B, u) : m.mode === 'list' ? m.list.items : []; };
   function choose(B, u, r) {
     var m = S.menu(B, u);
     if (!r) return;
     if (!r.ok) { D.sfx('error'); m.msg = '{g}' + r.label + ': ' + (r.why || 'not now') + '.{/}'; return; }
-    if (m.mode === 'cmd') B.simple.last[u.id] = m.sel;
+    if (m.mode === 'cmd' && S.acts(u)) B.simple.last[u.id] = m.sel;
     r.go();
   }
   function pickDone(B, u, t) { var m = S.menu(B, u); if (!t) return; m.lastPick = t; D.sfx('confirm'); S.send(B, u, m.pick.then(t)); }
@@ -384,29 +418,35 @@
   UI.input = function (B, req) {
     if (!B.simple) return in0.apply(this, arguments);
     if (req && req.turn && !B.menu) return S.turnInput(B, req.turn);
-    var my = I.mouse.y; I.mouse.y = my - OFF; // (the grid's own windows -- a prompt, the entry card -- are drawn a band lower: js/simple.js S.draw)
+    var my = I.mouse.y; I.mouse.y = my - OFF; // (the grid's own windows -- a prompt, the entry card -- are drawn a band lower: S.draw)
     try { return in0.apply(this, arguments); } finally { I.mouse.y = my; }
   };
   var or0 = UI.onRequest;
   UI.onRequest = function (B, req) { var r = or0.apply(this, arguments); if (B.simple && req && req.turn) { var m = S.menu(B, req.turn); m.wait = false; m.root = null; } return r; };
 
-  // ------------------------------------------------------------------ the picture's camera: the lineup filling the band under the words, held still
+  // ------------------------------------------------------------------ the picture's camera: the lineup filling the picture, one zoom deeper where it fits (his "maybe one
+  // zoom deeper"), held still
+  S.PIC = function () { return { x: 0, y: OFF + 14, w: PX0, h: D.H - OFF - 14 }; }; // (the picture: left of the column, under the words and the turn order)
   S.camera = function (B) {
     var iso = D.iso, c = B.simple.cam;
     if (!c) {
-      var xs = [], ys = [], x0 = S.LANE[0] - 0.5, x1 = S.LANE[1] + 0.5, y0 = 0.5, y1 = 5.5;
-      [[x0, y0], [x1, y0], [x0, y1], [x1, y1]].forEach(function (q) { var p = iso.center(q[0], q[1], 0); xs.push(p.x); ys.push(p.y); });
-      var mnx = Math.min.apply(null, xs), mxx = Math.max.apply(null, xs), mny = Math.min.apply(null, ys) - 34, mxy = Math.max.apply(null, ys) + 4;
-      var z = Math.min((D.W - 8) / (mxx - mnx), (BOX_Y - OFF - 14) / (mxy - mny)), R = D.R || 1;
-      z = Math.max(1 / R, Math.floor(z * R) / R);
-      c = B.simple.cam = { z: z, x: (mnx + mxx) / 2, y: (mny + mxy) / 2 + (D.H / 2 + OFF - (OFF + 12 + BOX_Y) / 2) / z };
+      var mnx = 1e9, mxx = -1e9, mny = 1e9, mxy = -1e9, P = S.PIC();
+      B.units.forEach(function (u) {
+        if (!G.present(u) || u.left || u.object) return;
+        var h = S.homeOf(B, u), s = u.size || 1, p = iso.center(h[0] + (s - 1) / 2, h[1] + (s - 1) / 2, 0), top = (D.spr.unitTop ? D.spr.unitTop(u) : 40) || 40, hw = 18 * s;
+        mnx = Math.min(mnx, p.x - hw); mxx = Math.max(mxx, p.x + hw); mny = Math.min(mny, p.y - top - 6); mxy = Math.max(mxy, p.y + 10 * s);
+      });
+      if (mnx > mxx) { var p0 = iso.center(S.C[0], S.C[1], 0); mnx = p0.x - 100; mxx = p0.x + 100; mny = p0.y - 80; mxy = p0.y + 80; }
+      var R = D.R || 1, fit = Math.min(P.w / (mxx - mnx), P.h / (mxy - mny)), z = fit >= 1 ? 1 : Math.max(1 / R, Math.floor(fit * R) / R);
+      // the screen's middle of the picture: the world drawn a band down (S.draw), so its y is the band's
+      c = B.simple.cam = { z: z, x: (mnx + mxx) / 2 - (P.x + P.w / 2 - D.W / 2) / z, y: (mny + mxy) / 2 - (P.y + P.h / 2 - OFF - D.H / 2) / z };
     }
     iso.zoom = c.z; iso.cam.x = Math.round(c.x); iso.cam.y = Math.round(c.y);
   };
   // the screen point a unit is drawn at (its feet), and the one under the mouse among `cands`
   S.screenOf = function (B, u) { var d = u.drawAt || u, s = u.size || 1, p = D.iso.center(d.x + (s - 1) / 2, d.y + (s - 1) / 2, G.gzAt(u, Math.round(d.x), Math.round(d.y))), q = D.iso.toScreen(p.x, p.y); return { x: q.x, y: q.y + OFF }; };
   S.unitAt = function (B, mx, my, cands) {
-    if (my < OFF || my >= BOX_Y) return null;
+    if (my < OFF || mx >= PX0) return null;
     var z = D.iso.zoom, best = null, bd = 1e9;
     (cands || B.units).forEach(function (u) {
       var p = S.screenOf(B, u), top = (u.hp > 0 && D.spr.unitTop ? D.spr.unitTop(u) : 16) * z, hw = 12 * (u.size || 1) * z;
@@ -416,18 +456,19 @@
     return best;
   };
 
-  // ------------------------------------------------------------------ the draw: the grid's picture a band down, the words over it, the 8-bit's boxes under it
+  // ------------------------------------------------------------------ the draw: the grid's picture a band down, the words over it, the 8-bit's windows down the right
   var draw0 = UI.drawBattle;
   UI.drawBattle = function (ctx, B) {
     if (!B.o || !B.o.simple) return draw0.apply(this, arguments);
     if (!B.simple) S.setup(B);
     S.place(B); S.camera(B);
-    var req = B.req, cards = B.cards, cur = B.cursor, my = I.mouse.y;
-    B.req = null; B.cards = []; B.cursor = { x: -99, y: -99 }; I.mouse.y = my - OFF; // (no ring, bar, cursor or cards of the grid's: the boxes and the words are this file's)
+    var req = B.req, cards = B.cards, cur = B.cursor, cine = B.cine, ins = I.mouse.inside, act = B.active;
+    B.req = null; B.cards = []; B.cursor = { x: -99, y: -99 }; B.cine = true; I.mouse.inside = false; B.active = null; // (no ring, bar, strip, cursor, active square, hover or cards of the grid's: the windows, the words and the turn order are this file's)
     ctx.save(); ctx.translate(0, OFF);
-    try { draw0.call(this, ctx, B); } finally { ctx.restore(); B.req = req; B.cards = cards; B.cursor = cur; I.mouse.y = my; }
+    try { draw0.call(this, ctx, B); } finally { ctx.restore(); B.req = req; B.cards = cards; B.cursor = cur; B.cine = cine; I.mouse.inside = ins; B.active = act; }
     S.draw(ctx, B);
-    if (req && (req.prompt || req.entry || req.scene) && UI.drawReq) { // (the grid's own window -- a prompt, the entry card -- over the boxes, a band lower as the picture is)
+    var my = I.mouse.y;
+    if (req && (req.prompt || req.entry || req.scene) && UI.drawReq) { // (the grid's own window -- a prompt, the entry card -- over the windows, a band lower as the picture is)
       I.mouse.y = my - OFF; ctx.save(); ctx.translate(0, OFF);
       try { UI.drawReq(ctx, B, req); } finally { ctx.restore(); I.mouse.y = my; }
     }
@@ -435,32 +476,54 @@
   S.banner = function (B) {
     var m = B.simple.m, act = B.simple.act, now = (B.cards || []).filter(function (c) { return B.t - c.t0 < c.life && (!m || c.t0 >= m.t0); }), c = now[now.length - 1];
     if (m && m.msg) return [m.msg];
-    if (m && !m.wait && m.mode === 'surge') return ['{y}' + m.u.name + '{/}: ACTION SURGE -- one more action this turn?'];
     if (c) return c.lines.slice(0, 4);
-    if (m && !m.wait) return [m.mode === 'pick' ? m.pick.title : m.u.name];
+    if (m && !m.wait) return [m.mode === 'pick' ? m.pick.title : !S.acts(m.u) ? '{y}' + m.u.name + '{/}: the action is spent -- a bonus action, or END TURN' : m.u.name];
     return act ? [act.side === 'party' ? act.name : '{r}' + (B.shortName ? B.shortName(act) : act.name) + '{/}'] : [''];
   };
   function fit(s, w) { s = String(s); if (D.textWidth(s) <= w) return s; while (s.length > 3 && D.textWidth(s + '…') > w) s = s.slice(0, -1); return s + '…'; }
+  // the column: the four's hit points at its head, guests under them; the commands (or the foes' names between turns) at its foot
+  S.COL = function (B) {
+    var guests = B.units.filter(function (w) { return w.side === 'party' && (w.guest || w.ally || w.summon) && !w.familiar && !w.object && !w.left && !w.dead; }).slice(0, 6);
+    var ph = 8 + 4 * 20, gh = guests.length ? 8 + guests.length * 12 : 0, rowsN = 5, ch = 10 + rowsN * 14, fy = OFF + ph + gh;
+    return { x: PX0, w: RW, party: { y: OFF, h: ph }, guests: { y: OFF + ph, h: gh, list: guests }, foes: { y: fy, h: D.H - ch - fy }, cmds: { y: D.H - ch, h: ch } };
+  };
   S.draw = function (ctx, B) {
-    var m = B.simple.m, u = m && !m.wait ? m.u : null, rects = B.simple.rects = [], blink = ((B.t >> 4) & 1) === 0;
+    var m = B.simple.m, u = m && !m.wait ? m.u : null, rects = B.simple.rects = [], blink = ((B.t >> 4) & 1) === 0, L = S.COL(B);
     // the words
     var lines = S.banner(B), bh = Math.max(OFF, 8 + lines.length * 10), ty = Math.round((bh - lines.length * 10) / 2) + 1;
     D.win8(ctx, 0, 0, D.W, bh);
     lines.forEach(function (l, i) { D.text(ctx, fit(l, D.W - 16), 8, ty + i * 10, W8.text); });
-    // the boxes
-    var H = D.H - BOX_Y;
-    D.win8(ctx, 0, BOX_Y, LW, H); D.win8(ctx, LW, BOX_Y, D.W - LW, H);
-    if (u && m.mode === 'cmd') S.drawRows(ctx, B, S.rootOf(B, u), m.sel, 10, BOX_Y + 8, LW - 20, 14, rects);
-    else if (u && m.mode === 'surge') S.drawRows(ctx, B, S.surgeRows(B, u), m.sel, 10, BOX_Y + 8, LW - 20, 14, rects);
-    else S.drawFoes(ctx, B);
-    S.drawParty(ctx, B, rects);
-    // a list or a pick: a window rising over the picture from the left box
+    S.drawStrip(ctx, B);
+    // the column
+    ctx.fillStyle = '#05050c'; ctx.fillRect(L.x, OFF, L.w, D.H - OFF);
+    D.win8(ctx, L.x, L.party.y, L.w, L.party.h);
+    if (L.guests.h) D.win8(ctx, L.x, L.guests.y, L.w, L.guests.h);
+    if (L.foes.h >= 20) D.win8(ctx, L.x, L.foes.y, L.w, L.foes.h);
+    D.win8(ctx, L.x, L.cmds.y, L.w, L.cmds.h);
+    S.drawParty(ctx, B, L, rects);
+    S.drawFoes(ctx, B, L);
+    if (u && m.mode === 'cmd') S.drawRows(ctx, B, S.rootOf(B, u), m.sel, L.x + 10, L.cmds.y + 7, L.w - 20, 14, rects);
+    // a list or a pick: a window out of the column, over the picture, its foot on the screen's
     if (u && m.mode === 'list') S.drawList(ctx, B, m.list.title, m.list.items, m, rects);
     if (u && m.mode === 'pick') {
       var C = m.pick.cands;
       S.drawList(ctx, B, m.pick.title, C.map(function (w) { return { label: w.side === 'party' ? w.name : (B.shortName ? B.shortName(w) : w.name), right: w.hp > 0 ? (w.side === 'party' ? w.hp + '/' + w.maxhp : '') : 'down', ok: true, u: w }; }), m, rects, 'pick');
       var t = C[m.sel]; if (t && blink) { var p = S.screenOf(B, t), top = (D.spr.unitTop ? D.spr.unitTop(t) : 20) * D.iso.zoom; D.text(ctx, '▼', p.x, p.y - top - 12, W8.gold, 'center'); }
     }
+  };
+  // the turn order along the picture's top: the round, then each one still in it, ours blue and theirs red, whose turn it is in a box
+  S.drawStrip = function (ctx, B) {
+    var x = 6, y = OFF + 4, act = B.simple.act;
+    ctx.fillStyle = 'rgba(6,6,16,.55)'; ctx.fillRect(0, OFF, PX0, 14);
+    x += D.text(ctx, 'R' + Math.max(1, B.round || 1), x, y, W8.gold) + 6;
+    (B.order || []).forEach(function (w) {
+      if (w.dead || w.left || x > PX0 - 20) return;
+      var nm = w.side === 'party' ? w.name : (B.shortName ? B.shortName(w) : w.name), tw = D.textWidth(nm);
+      if (x + tw > PX0 - 6) { D.text(ctx, '…', x, y, GREY); x = PX0; return; }
+      if (w === act) { ctx.fillStyle = W8.sel; ctx.fillRect(x - 2, y - 2, tw + 4, 11); ctx.strokeStyle = W8.gold; ctx.strokeRect(x - 1.5, y - 1.5, tw + 3, 10); }
+      D.text(ctx, nm, x, y, w.side === 'party' ? (w === act ? W8.gold : '#9cc8f8') : '#f88070');
+      x += tw + 6;
+    });
   };
   S.drawRows = function (ctx, B, rows, sel, x, y, w, rh, rects) {
     rows.forEach(function (r, i) {
@@ -472,10 +535,10 @@
     });
   };
   S.drawList = function (ctx, B, title, items, m, rects, kind) {
-    var vis = 10, n = items.length, rh = 11, w = 236, top = Math.max(0, Math.min(m.list && kind !== 'pick' ? m.list.top || 0 : 0, n - vis));
+    var vis = 12, n = items.length, rh = 11, w = 236, top = Math.max(0, Math.min(m.list && kind !== 'pick' ? m.list.top || 0 : 0, n - vis));
     if (m.sel < top) top = m.sel; if (m.sel >= top + vis) top = m.sel - vis + 1;
     if (m.list && kind !== 'pick') m.list.top = top;
-    var shown = Math.min(vis, n), h = 22 + shown * rh + 14, y = D.H - h, x = 0;
+    var shown = Math.min(vis, n), h = 22 + shown * rh + 14, y = D.H - h, x = PX0 - w;
     D.win8(ctx, x, y, w, h);
     D.text(ctx, fit(title, w - 16), x + 8, y + 6, W8.gold);
     for (var i = top; i < top + shown; i++) {
@@ -491,29 +554,32 @@
     var bk = { kind: 'back', x: x + 8, y: y + h - 13, w: 44, h: 11 }; rects.push(bk);
     D.text(ctx, 'BACK', bk.x + 10, bk.y + 1, hit(bk) ? W8.gold : '#b8b8f8');
   };
-  // between turns the left box names the foes, the first game's way (a name and how many)
-  S.drawFoes = function (ctx, B) {
-    var groups = {}, order = [];
+  // the foes' window between: their names, the first game's way (a name and how many)
+  S.drawFoes = function (ctx, B, L) {
+    var groups = {}, order = [], n = Math.max(0, Math.floor((L.foes.h - 10) / 12));
     B.units.forEach(function (w) { if (w.side !== 'foe' || !live(w) || w.riding) return; var nm = B.shortName ? B.shortName(w) : w.name; if (!groups[nm]) { groups[nm] = 0; order.push(nm); } groups[nm]++; });
-    order.slice(0, 6).forEach(function (nm, i) { var y = BOX_Y + 10 + i * 13; D.text(ctx, fit(nm, LW - 44), 12, y, W8.text); if (groups[nm] > 1) D.text(ctx, 'x' + groups[nm], LW - 12, y, '#c8d0e8', 'right'); });
+    order.slice(0, n).forEach(function (nm, i) { var y = L.foes.y + 6 + i * 12; D.text(ctx, fit(nm, L.w - 46), L.x + 10, y, '#f0b8a8'); if (groups[nm] > 1) D.text(ctx, 'x' + groups[nm], L.x + L.w - 10, y, '#c8d0e8', 'right'); });
   };
   var TAGS = { prone: 'PRONE', grappled: 'HELD', restrained: 'HELD', poisoned: 'POISON', frightened: 'FEAR', charmed: 'CHARM', paralyzed: 'PARA', stunned: 'STUN', blinded: 'BLIND', invisible: 'INVIS', hidden: 'HID', blessed: 'BLESS', asleep: 'SLEEP', exhaustion: 'EXH', dodge: 'DODGE', raging: 'RAGE', hasted: 'HASTE', slowed: 'SLOW' };
-  S.drawParty = function (ctx, B, rects) {
-    var four = B.units.filter(function (w) { return w.side === 'party' && !w.guest && !w.familiar && !w.summon && !w.object && !w.ally; }), rest = B.units.filter(function (w) { return w.side === 'party' && (w.guest || w.ally || w.summon) && !w.familiar && !w.object && !w.left && !w.dead; });
-    var act = B.simple.act, cols = rest.length ? [four.slice(0, 4), rest.slice(0, 4)] : [four.slice(0, 4)], cw = (D.W - LW - 12) / cols.length;
-    cols.forEach(function (col, ci) {
-      col.forEach(function (w, i) {
-        var x = LW + 8 + ci * cw, y = BOX_Y + 7 + i * 21, bw = cw - 14, hp = Math.max(0, w.hp), down = w.hp <= 0 || w.dead;
-        var col0 = down ? '#9c9c9c' : hp < w.maxhp / 4 ? '#f85838' : hp < w.maxhp / 2 ? '#f8d878' : W8.text;
-        D.text(ctx, fit(w.name, bw - 60), x, y, act === w ? W8.gold : col0 === W8.text ? W8.text : col0);
-        D.text(ctx, (w.left ? 'OUT ' : down ? 'KO ' : '') + hp + '/' + w.maxhp, x + bw, y, col0, 'right');
-        ctx.fillStyle = '#1a1a2a'; ctx.fillRect(x, y + 11, bw, 3);
-        ctx.fillStyle = col0 === W8.text ? '#58d854' : col0; ctx.fillRect(x, y + 11, Math.round(bw * Math.max(0, Math.min(1, hp / w.maxhp))), 3);
-        var tags = Object.keys(w.conds || {}).filter(function (k) { return TAGS[k] && w.conds[k]; }).map(function (k) { return TAGS[k]; });
-        if (w.conc && w.conc.name) tags.unshift('*' + String(w.conc.name).slice(0, 4).toUpperCase());
-        if (tags.length) D.text(ctx, tags.slice(0, 2).join(' '), x + Math.min(bw - 70, D.textWidth(w.name) + 6), y, '#b8b8f8');
-        rects.push({ kind: 'party', u: w, x: x - 2, y: y - 2, w: bw + 4, h: 19 });
-      });
+  function hpCol(w) { var hp = Math.max(0, w.hp); return w.hp <= 0 || w.dead ? '#9c9c9c' : hp < w.maxhp / 4 ? '#f85838' : hp < w.maxhp / 2 ? '#f8d878' : W8.text; }
+  S.drawParty = function (ctx, B, L, rects) {
+    var four = B.units.filter(function (w) { return w.side === 'party' && !w.guest && !w.familiar && !w.summon && !w.object && !w.ally; }).slice(0, 4), act = B.simple.act, x = L.x + 8, bw = L.w - 16;
+    four.forEach(function (w, i) {
+      var y = L.party.y + 6 + i * 20, hp = Math.max(0, w.hp), c0 = hpCol(w);
+      D.text(ctx, fit(w.name, bw - 44), x, y, act === w ? W8.gold : c0);
+      D.text(ctx, (w.left ? 'OUT ' : w.hp <= 0 || w.dead ? 'KO ' : '') + hp + '/' + w.maxhp, x + bw, y, c0, 'right');
+      ctx.fillStyle = '#1a1a2a'; ctx.fillRect(x, y + 11, bw, 3);
+      ctx.fillStyle = c0 === W8.text ? '#58d854' : c0; ctx.fillRect(x, y + 11, Math.round(bw * Math.max(0, Math.min(1, hp / w.maxhp))), 3);
+      var tags = Object.keys(w.conds || {}).filter(function (k) { return TAGS[k] && w.conds[k]; }).map(function (k) { return TAGS[k]; });
+      if (w.conc && w.conc.name) tags.unshift('*' + String(w.conc.name).slice(0, 4).toUpperCase());
+      if (tags.length) { ctx.fillStyle = W8.bg; var tx = tags.slice(0, 2).join(' '), tw = D.textWidth(tx); ctx.fillRect(x + bw - tw - 2, y + 9, tw + 2, 8); D.text(ctx, tx, x + bw, y + 8, '#b8b8f8', 'right'); }
+      rects.push({ kind: 'party', u: w, x: x - 2, y: y - 2, w: bw + 4, h: 19 });
+    });
+    L.guests.list.forEach(function (w, i) {
+      var y = L.guests.y + 5 + i * 12, c0 = hpCol(w);
+      D.text(ctx, fit(w.name, bw - 44), x, y, act === w ? W8.gold : '#c8d0e8');
+      D.text(ctx, Math.max(0, w.hp) + '/' + w.maxhp, x + bw, y, c0, 'right');
+      rects.push({ kind: 'party', u: w, x: x - 2, y: y - 1, w: bw + 4, h: 12 });
     });
   };
 })();

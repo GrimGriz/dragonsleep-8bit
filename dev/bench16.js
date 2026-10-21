@@ -2026,16 +2026,18 @@
     document.body.appendChild(preT);
     return;
   }
-  // THE SIMPLE FIGHT, 10-21 (mode=simple1021; js/simple.js, ..\handoff-2026-10-08-the-maps.md -- RULED 10-21, Griz, on the simple encounter seat's seven: THE WORLD's
-  // random fights as the first game's battle screen, DEEP16's fight underneath): OPTIONS' row and the encounter card's second button; the lineup (the field's squares
-  // and the picture's, further apart, room for guests); a fight by the hand's FIGHT to its end -- no opportunity attack, every one on its own square at each turn's
-  // start, the farthest foe struck from the far end of the line; the scaler's counts, and a Fireball at one foe that takes every foe and none of ours; RUN; a frame
-  // drawn and a foe picked by the mouse. (The house's road fight runs simple too: house1021 takes the party back from it.)
+  // THE SIMPLE FIGHT, 10-21 (mode=simple1021; js/simple.js, ..\handoff-2026-10-08-the-maps.md -- RULED 10-21, Griz, on the simple encounter seat's seven, then his
+  // "keep the theme and do it better ... side menus (right side) ... one zoom deeper ... larger monsters" and "yes to the simple fight leans"): OPTIONS' row and the
+  // encounter card's second button; the lineup across the screen (the four on their squares, a square between the rows' two, 128 px; the big ones behind the front,
+  // the Huge low enough); a fight by the hand's FIGHT to its end -- no opportunity attack, every one on its own square at each turn's start; the scaler's counts, and a
+  // Fireball at one foe that takes every foe and none of ours; a bonus action after the swing (HIDE), then the turn's end by itself; RUN; the camp's fire, in the simple
+  // fight and the grid's, and the night's card with ON THE GRID; a frame drawn and a foe picked by the mouse. (The house's road fight runs simple too: house1021)
   if (get('mode', '') === 'simple1021') {
     var repS = { checks: [], errors: [] }, SS = D.simple, WS = D.world, key0 = null;
     function okS(what, v) { repS.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
     function topS() { var s = D.top(); if (s && s.baking) { s.baking = false; s.enter(); } return s; }
-    // the coroutine to its end (or to stop(y)): prompts declined, a turn first to what follows by itself (FIGHT's attacks, the off hand, the turn's end), then the plan
+    // the coroutine to its end (or to stop(y)): prompts declined, a turn first to what follows by itself (FIGHT's attacks, the turn's end), then the plan -- its
+    // `after` once the action is spent and a bonus action keeps the menu up (none: END TURN)
     function driveS(B, plan, stop, cap) {
       var v, guard = 0;
       while (B.co && guard++ < (cap || 200000)) {
@@ -2045,11 +2047,13 @@
         if (typeof y === 'number' || !y || y.fx || y.entry || y.scene) continue;
         if (stop && stop(y)) return y;
         if (y.prompt) { v = y.prompt.opts[y.prompt.opts.length - 1].value; continue; }
-        if (y.turn) { var u = y.turn, a = SS.autoNext(B, u); if (a) { v = a; continue; } if (SS.menu(B, u).mode === 'surge') { v = { do: 'end' }; continue; } v = plan(B, u) || { do: 'end' }; continue; }
+        if (y.turn) { var u = y.turn, a = SS.autoNext(B, u), mS = SS.menu(B, u); if (!a) a = (SS.acts(u) ? plan(B, u) : plan.after ? plan.after(B, u) : null) || { do: 'end' }; mS.after = null; mS.root = null; v = a; continue; } // (as S.send leaves the menu)
       }
       return B.result || (guard >= (cap || 200000) ? 'stalled' : 'none');
     }
     function farFoe(B, u) { var h = SS.homeOf(B, u), fs = SS.foes(B, u); fs.sort(function (a, b) { var ha = SS.homeOf(B, a), hb = SS.homeOf(B, b); return (Math.abs(hb[0] - h[0]) + Math.abs(hb[1] - h[1])) - (Math.abs(ha[0] - h[0]) + Math.abs(ha[1] - h[1])); }); return fs[0] || null; }
+    function cr(q, s) { s = s || 1; var x = q[0] - SS.C[0], y = q[1] - SS.C[1]; return { c: x - y, r: x + y + (s - 1) }; } // (a square's place on the screen: across, down)
+    function feet(u) { return D.grid.foot(u, SS.homeOf(D.battle, u)[0], SS.homeOf(D.battle, u)[1]); }
     try { key0 = window.localStorage.getItem(SS.KEY); window.localStorage.removeItem(SS.KEY); } catch (eK) { }
     try {
       D.seed = +get('seed', 1021);
@@ -2064,24 +2068,30 @@
       var kS = (wsS.cards[0] && wsS.cards[0].keys) || [];
       okS('the encounter card: ' + kS.map(function (k) { return k[2]; }).join(' / '), kS.length === 2 && kS[0][2] === 'FIGHT' && kS[1][2] === 'ON THE GRID');
       wsS.cards = []; kS[1][1](); var bG = topS();
-      okS('ON THE GRID: the grid\'s fight (' + (bG && bG.o && bG.o.simple ? 'simple!' : 'the grid') + '), its lineup a square apart', !!bG && bG.o && bG.o.simple === false && !bG.simple);
+      okS('ON THE GRID: the grid\'s fight (' + (bG && bG.o && bG.o.simple ? 'simple!' : 'the grid') + ')', !!bG && bG.o && bG.o.simple === false && !bG.simple);
       D.pop();
-      // the lineup: the four on the field's party squares, the foes from x 6 back (the Large behind), the picture's further apart
+      // the lineup across the screen: the four on their squares, each row's two a square apart (128 px), none of the foes past the front, the picture's width
       var listS = ['bandit', 'bandit', 'wolf', 'worg', 'wolf'];
-      wsS.fight({ zone: 'north', list: listS, mirror: false }, eS); var B1 = topS();
+      wsS.fight({ zone: 'north', list: listS, mirror: false }, eS); var B1 = topS(); D.battle = B1;
       if (!B1.simple) SS.setup(B1); SS.place(B1);
-      var pS = B1.units.filter(function (u) { return u.side === 'party'; }), fS = B1.units.filter(function (u) { return u.side === 'foe'; }), wg = fS.filter(function (u) { return u.kind === 'worg'; })[0];
-      okS('the four on their squares (' + pS.map(function (u) { return u.x + ',' + u.y; }).join(' ') + '), the foes at x 3-6 (' + fS.map(function (u) { return u.kind + ' ' + u.x + ',' + u.y + (u.size > 1 ? ' size ' + u.size : ''); }).join(', ') + ')',
-        B1.o.simple === true && pS.every(function (u, i) { return u.x === SS.PARTY[i][0] && u.y === SS.PARTY[i][1]; }) && fS.length === listS.length && fS.every(function (u) { return u.x >= 3 && u.x + (u.size || 1) - 1 <= 6; }) && (!wg || wg.size < 2 || wg.x < 6));
-      var gapS = Math.min.apply(null, pS.map(function (u) { return u.drawAt.x; })) - Math.max.apply(null, fS.map(function (u) { return u.drawAt.x + (u.size || 1) - 1; })) - 1, gap0 = Math.min.apply(null, pS.map(function (u) { return u.x; })) - Math.max.apply(null, fS.map(function (u) { return u.x + (u.size || 1) - 1; })) - 1;
-      okS('the picture: the party ' + SS.PD + ' squares east, the foes ' + SS.FD + ' west -- ' + gapS + ' squares between the lines (the field\'s ' + gap0 + '), guests\' squares behind the four (' + SS.PARTY.slice(4).length + ')',
-        pS.every(function (u) { return u.drawAt.x === u.x + SS.PD && u.drawAt.y === u.y; }) && fS.every(function (u) { return u.drawAt.x === u.x - SS.FD; }) && gapS >= 5 && gap0 === 1 && SS.PARTY.length >= 12);
+      var pS = B1.units.filter(function (u) { return u.side === 'party'; }), fS = B1.units.filter(function (u) { return u.side === 'foe'; });
+      var pairs = pS.map(function (h) { var hc = cr(SS.homeOf(B1, h)), f = fS.filter(function (w) { var wc = cr(SS.homeOf(B1, w), w.size); return Math.abs(wc.r - hc.r) <= 0.5; })[0]; return f ? D.grid.dist(h, f) + 'ft/' + ((hc.c - cr(SS.homeOf(B1, f), f.size).c) * 32) + 'px' : '-'; });
+      var front = fS.every(function (u) { return feet(u).every(function (q) { return cr(q).c <= -1; }); });
+      var xs = B1.units.map(function (u) { var h = SS.homeOf(B1, u), s = u.size || 1, p = D.iso.center(h[0] + (s - 1) / 2, h[1] + (s - 1) / 2, 0); return [p.x - 18 * s, p.x + 18 * s]; }), wS = Math.max.apply(null, xs.map(function (q) { return q[1]; })) - Math.min.apply(null, xs.map(function (q) { return q[0]; }));
+      okS('across the screen: the four on their squares (' + pS.map(function (u) { var c = cr(SS.homeOf(B1, u)); return c.c + '/' + c.r; }).join(' ') + '), each row\'s two ' + pairs.join(' ') + ', no foe past the front (' + front + '), the lineup ' + wS + ' px wide of the picture\'s ' + SS.PIC().w,
+        B1.o.simple === true && pS.every(function (u, i) { return u.x === SS.PARTY[i][0] && u.y === SS.PARTY[i][1]; }) && fS.length === listS.length && front && pairs.filter(function (p) { return p === '10ft/128px'; }).length >= 3 && wS <= SS.PIC().w);
+      // the larger monsters (his "Try it with some larger monsters as well"): all seated, none on another, none past the front, the Huge in front and low enough
+      var big = SS.seat(['troll', 'ettin', 'stonegiant', 'worg', 'troll']), tk = {}, overlap = 0;
+      big.forEach(function (b) { var s = D.FOES[b.kind].size; for (var j = 0; j < s; j++) for (var i = 0; i < s; i++) { var k = (b.at[0] + i) + ',' + (b.at[1] + j); if (tk[k]) overlap++; tk[k] = 1; } });
+      var gi = big.filter(function (b) { return b.kind === 'stonegiant'; })[0], gc = gi && cr(gi.at, 3);
+      okS('the larger monsters: ' + big.map(function (b) { var c = cr(b.at, D.FOES[b.kind].size); return b.kind + ' ' + c.c + '/' + c.r; }).join(', ') + '; ' + overlap + ' squares shared',
+        big.length === 5 && !overlap && big.every(function (b) { var s = D.FOES[b.kind].size, c = cr(b.at, s); return c.c + (s - 1) <= -1; }) && !!gc && gc.c >= -5 && gc.r >= Math.ceil((SS.TALL[3] - 128) / 16));
       // a fight by the hand's FIGHT, each time at the farthest foe: to its end, no opportunity attack, every one on its own square at each turn's start
       var off0 = 0, moved0 = 0, snapN = 0, snap0 = SS.snap;
       function offHome(B) { var k = 0; B.units.forEach(function (u) { if (!G0(u)) return; var h = SS.homeOf(B, u); if (u.x !== h[0] || u.y !== h[1]) k++; }); return k; }
       SS.snap = function (B) { snapN++; moved0 += offHome(B); snap0.apply(this, arguments); off0 += offHome(B); };
       function G0(u) { return D.grid.present(u) && !u.left && !u.object && !u.familiar && !SS.boundTo(B1, u); }
-      var far = [], resS = driveS(B1, function (B, u) { var t = farFoe(B, u); if (t) far.push(u.name + '>' + (B.shortName ? B.shortName(t) : t.name) + '@' + SS.homeOf(B, t).join(',')); return t ? SS.fightCmd(B, u, t) : null; });
+      var far = [], resS = driveS(B1, function (B, u) { var t = farFoe(B, u); if (t) far.push(u.name + '>' + (B.shortName ? B.shortName(t) : t.name)); return t ? SS.fightCmd(B, u, t) : null; });
       SS.snap = snap0;
       var logS = B1.log || [], oaS = logS.filter(function (l) { return /opportunity attack/i.test(l); }), struck = pS.filter(function (u) { return logS.some(function (l) { return l.indexOf(u.name + ' > ') >= 0; }); });
       okS('FIGHT to the end: ' + resS + ' in ' + B1.round + ' rounds; the hand struck the farthest foe (' + far.slice(0, 4).join(', ') + '); ' + struck.length + ' of the four struck', (resS === 'won' || resS === 'lost') && struck.length >= Math.min(4, pS.length) - 1);
@@ -2106,10 +2116,42 @@
       var fbBody = []; for (var iF = fbI + 1; fbI >= 0 && iF < lgS.length && /^R\d+ {3}\S/.test(lgS[iF]); iF++) fbBody.push(lgS[iF]);
       var fbOurs = fbBody.filter(function (l) { return pS.some(function (h) { return l.indexOf('   ' + h.name + ':') >= 0; }); });
       okS('Fireball by the hand at one foe (' + (fbI >= 0 ? lgS[fbI].slice(0, 60) : 'not cast') + '): its card takes ' + fbBody.length + ' of the ' + upS + ' foes standing, ' + fbOurs.length + ' of ours; the fight ' + resFB, fbI >= 0 && fbBody.length === upS && !fbOurs.length);
+      // a bonus action after the swing (his "yes to the simple fight leans"): Vivian's FIGHT, the menu up again with END TURN, Cunning Action's HIDE, then her turn ends by itself
+      wsS.fight({ zone: 'north', list: ['bandit', 'bandit', 'bandit', 'bandit'], mirror: false }, eS); var B5 = topS();
+      var vv = B5.units.filter(function (u) { return u.id === 'vivian'; })[0], seenRows = null, hid = 0, afterCalls = 0;
+      var planV = function (B, u) { var t = SS.foes(B, u)[0]; return t ? SS.fightCmd(B, u, t) : null; };
+      planV.after = function (B, u) {
+        if (u !== vv) return null;
+        afterCalls++; if (hid) return null; seenRows = SS.root(B, u).map(function (r) { return r.label; });
+        var hs = SS.skills(B, u).filter(function (e) { return e.c.id === 'hide' && e.ok; })[0]; if (!hs) return null;
+        hid++; return { do: 'hide' };
+      };
+      driveS(B5, planV, function (y) { return !!(hid && y.turn && y.turn !== vv); });
+      okS('after the swing: Vivian\'s menu up again (' + (seenRows || []).join(' ') + '), HIDE taken with the bonus action, and her turn ended by itself (' + afterCalls + ' ask)', !!seenRows && seenRows.indexOf('END TURN') >= 0 && hid === 1 && afterCalls === 1);
       // RUN: the first game's roll, the grid's escape
       wsS.fight({ zone: 'north', list: ['bandit', 'bandit'], mirror: false }, eS); var B3 = topS();
       var resR = driveS(B3, function () { return { do: 'simplerun' }; }), runL = (B3.log || []).filter(function (l) { return /RUN --/.test(l); });
       okS('RUN: ' + resR + ' after ' + runL.length + ' tr' + (runL.length === 1 ? 'y' : 'ies') + ' (' + (runL[runL.length - 1] || '').slice(0, 60) + ')', resR === 'escaped' && runL.length >= 1 && /slips away/.test(runL[runL.length - 1]));
+      // THE CAMP'S FIRE (his "add a campfire when the party encounters during a camp"): a light behind the party in the dark, the four in its bright light, the fire drawn
+      // in the sort -- in the simple fight and on the grid's road field
+      var campS = []; [true, false].forEach(function (simple) {
+        wsS.fight({ zone: 'north', list: ['wolf', 'wolf'], mirror: false }, eS, { camp: true, simple: simple }); var Bc = topS(), fc = Bc.fight && Bc.fight.camp;
+        var lc = (Bc.lights || []).filter(function (l) { return fc && l.x === fc[0] && l.y === fc[1]; })[0], four = Bc.units.filter(function (u) { return u.side === 'party'; });
+        var lit = four.filter(function (u) { return D.light.levelAt(Bc, u.x, u.y) === 2; }).length, pr = (D.looks.props(Bc) || []).filter(function (o) { return fc && o.depth === fc[0] + fc[1] + 0.5; }).length;
+        campS.push((simple ? 'simple' : 'grid') + ': ' + (fc ? fc.join(',') : 'no fire') + ', dark ' + !!Bc.dark + ', light ' + (lc ? lc.bright + '/' + lc.dim : '-') + ', ' + lit + ' of ' + four.length + ' in bright light, drawn ' + pr);
+        campS.ok = (campS.ok !== false) && !!fc && !!Bc.dark && !!lc && lc.bright === 20 && lit === four.length && pr === 1 && Bc.fight.name === 'The camp';
+        D.pop();
+      });
+      okS('the camp\'s fire -- ' + campS.join('; '), campS.ok === true);
+      // the night's card (js/house.js H.runNight): FIGHT and ON THE GRID, each at the camp's fire
+      var HHs = D.house, cur0 = HHs.cur, pl0 = HHs.playing, fake = { card: function (l, x, k) { this.k = k; }, say: function () { }, fight: function (p, e, o) { this.o = o; } };
+      try {
+        HHs.cur = HHs.fresh(); HHs.playing = true; var stS = WS.state(); stS.zone = WS.zoneOf(eS); stS.count = -1;
+        HHs.runNight(fake, HHs.watchDefault(HHs.cur.party));
+        var nk = fake.k || [], o1 = null, o2 = null; if (nk[0]) { nk[0][1](); o1 = fake.o; } if (nk[1]) { nk[1][1](); o2 = fake.o; }
+        okS('the night\'s card: ' + nk.map(function (k) { return k[2]; }).join(' / ') + '; FIGHT simple ' + (o1 && o1.simple) + ', the other ' + (o2 && o2.simple) + ', both at the camp (' + !!(o1 && o1.camp) + ', ' + !!(o2 && o2.camp) + ')',
+          nk.length === 2 && nk[1][2] === 'ON THE GRID' && o1 && o1.simple === true && o2 && o2.simple === false && o1.camp && o2.camp);
+      } finally { HHs.cur = cur0; HHs.playing = pl0; }
       // a frame of the screen, and a foe picked by the mouse off the picture
       wsS.fight({ zone: 'north', list: ['bandit', 'wolf'], mirror: false }, eS); var B4 = topS();
       var y4 = driveS(B4, function () { return { do: 'end' }; }, function (y) { return !!y.turn; }), h4 = y4 && y4.turn, cv = document.createElement('canvas'); cv.width = D.W; cv.height = D.H;
@@ -2120,7 +2162,7 @@
         var f4 = SS.foes(B4, h4)[0], p4 = f4 && SS.screenOf(B4, f4); if (p4) got = SS.unitAt(B4, p4.x, p4.y - 6, SS.foes(B4, h4));
       }
       var rc = (B4.simple && B4.simple.rects) || [];
-      okS('a frame of the simple screen (' + drew + '): ' + rc.filter(function (r) { return r.kind === 'row'; }).length + ' command rows, ' + rc.filter(function (r) { return r.kind === 'party'; }).length + ' party rows; the mouse on a foe picks ' + (got ? got.name : 'nothing'),
+      okS('a frame of the simple screen (' + drew + ', zoom ' + (B4.simple && B4.simple.cam && B4.simple.cam.z) + '): ' + rc.filter(function (r) { return r.kind === 'row'; }).length + ' command rows, ' + rc.filter(function (r) { return r.kind === 'party'; }).length + ' party rows; the mouse on a foe picks ' + (got ? got.name : 'nothing'),
         drew === 'drawn' && rc.filter(function (r) { return r.kind === 'row'; }).length === 5 && rc.filter(function (r) { return r.kind === 'party'; }).length >= 4 && !!got && got.side === 'foe');
     } catch (eS2) { repS.errors.push(String(eS2 && eS2.stack || eS2).slice(0, 900)); }
     try { if (key0 == null) window.localStorage.removeItem(SS.KEY); else window.localStorage.setItem(SS.KEY, key0); } catch (eK2) { }

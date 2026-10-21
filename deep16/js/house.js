@@ -198,9 +198,11 @@
       var names = on.map(function (id) { var h = H.cur.party.filter(function (x) { return (x.key || x.id) === id; })[0]; return h ? h.name : id; });
       var so = H.sleepersOff(H.living(H.cur), on), who = p.list.length + ' come out of the dark';
       D.sfx('encounter');
-      scene.card(['{r}THE ' + ['FIRST', 'SECOND', 'THIRD'][k - 1] + ' WATCH{/}: ' + who + '.', (names.length ? names.join(' and ') + ' on watch' : 'no one on watch') + '; the rest wake with their armor off.', '', D.keys('{g}E{/}: fight')], null,
-        [['a', function () {
-          scene.fight(p, e, { data: so.data, dark: true, intro: 'In the ' + ['first', 'second', 'third'][k - 1] + ' watch, out of the dark: ' + (names.length ? names.join(' and ') + ' standing it, the rest up from their blankets.' : 'no one standing it.'),
+      // FIGHT the way OPTIONS says, or the other way for this fight alone (RULED 10-21, Griz: "yes to the simple fight leans" -- js/simple.js); at the camp's fire either way
+      // (his "add a campfire when the party encounters during a camp": js/world.js W.CAMP)
+      var simple = !D.simple || D.simple.on(), other = simple ? 'ON THE GRID' : 'SIMPLE';
+      var go = function (how) {
+          scene.fight(p, e, { simple: how, camp: true, data: so.data, dark: true, intro: 'In the ' + ['first', 'second', 'third'][k - 1] + ' watch, out of the dark: ' + (names.length ? names.join(' and ') + ' standing it, the rest up from their blankets.' : 'no one standing it.'),
             after: function (res, b) {
               try { D.music('corridor'); } catch (e2) { }
               var ln = H.afterFight(b, res); if (ln === null) return;
@@ -208,7 +210,9 @@
               scene.say((res === 'won' ? 'The watch holds. ' : 'The party got clear of them. ') + ln.join(' '));
               next();
             } });
-        }, 'FIGHT']]);
+      };
+      scene.card(['{r}THE ' + ['FIRST', 'SECOND', 'THIRD'][k - 1] + ' WATCH{/}: ' + who + '.', (names.length ? names.join(' and ') + ' on watch' : 'no one on watch') + '; the rest wake with their armor off.', '', D.keys('{g}E{/}: fight' + (D.simple ? '    {g}R{/}: ' + other.toLowerCase() : ''))], null,
+        [['a', function () { go(simple); }, 'FIGHT']].concat(D.simple ? [['rec', function () { go(!simple); }, other]] : []));
     };
     next();
   };

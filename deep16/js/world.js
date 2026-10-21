@@ -540,16 +540,17 @@
       [['a', function () { self.fight(p, e); }, 'FIGHT']].concat(D.simple ? [['rec', function () { self.fight(p, e, { simple: !simple }); }, other]] : []));
   };
   // the field: 16 x 7 squares of the hex's ground, the lineup's squares kept open (x 3 to 10), the road along the middle where the hex has one
-  // (o: the simple fight's -- its wider lane, the picture's lineup on open ground, and the party's squares with room for guests: js/simple.js S.fieldOpts)
+  // (o: the simple fight's own ground -- its size, the open squares its lineup stands on, the road's squares, and the party's squares with room for guests: js/simple.js S.fieldOpts)
   W.field = function (e, o) {
-    var w = 16, h = 7, rows = [], road = !!M.road[K(e.q, e.r)], t = e.t, wet = e.wet || t === 'bog', lx = (o && o.lane) || [3, 10];
+    var w = (o && o.w) || 16, h = (o && o.h) || 7, rows = [], road = !!M.road[K(e.q, e.r)], t = e.t, wet = e.wet || t === 'bog';
+    var inLane = (o && o.lane) || function (x, y) { return x >= 3 && x <= 10 && y >= 1 && y <= 5; }, onRoad = (o && o.road) || function (x, y) { return y === 3; };
     var mtn = /^(black|gray|coastal)$/.test(t), wood = t === 'woods', hill = t === 'hills' || t === 'foothills' || t === 'gulch';
     for (var y = 0; y < h; y++) {
       var row = '';
       for (var x = 0; x < w; x++) {
-        var lane = x >= lx[0] && x <= lx[1] && y >= 1 && y <= 5, r0 = D.rand(), ch = '.';
-        if (road && y === 3) ch = '=';
-        else if (y === 0 || y === h - 1) ch = mtn ? (r0 < 0.6 ? '#' : 'r') : wood ? (r0 < 0.55 ? 'T' : '.') : hill ? (r0 < 0.3 ? 'r' : '.') : wet ? (r0 < 0.4 ? '~' : '.') : (r0 < 0.15 ? 'r' : '.');
+        var lane = inLane(x, y), r0 = D.rand(), ch = '.';
+        if (road && onRoad(x, y)) ch = '=';
+        else if (y === 0 || y === h - 1 || (o && (x === 0 || x === w - 1))) ch = mtn ? (r0 < 0.6 ? '#' : 'r') : wood ? (r0 < 0.55 ? 'T' : '.') : hill ? (r0 < 0.3 ? 'r' : '.') : wet ? (r0 < 0.4 ? '~' : '.') : (r0 < 0.15 ? 'r' : '.');
         else if (!lane) ch = mtn ? (r0 < 0.12 ? '#' : r0 < 0.3 ? 'r' : '.') : wood ? (r0 < 0.25 ? 'T' : '.') : hill ? (r0 < 0.15 ? 'r' : '.') : wet ? (r0 < 0.3 ? '~' : '.') : (r0 < 0.06 ? 'r' : '.');
         else ch = wet && r0 < 0.12 ? '~' : '.';
         row += ch;
@@ -565,18 +566,23 @@
     list.forEach(function (k, i) { var big = D.FOES[k] && D.FOES[k].size >= 2, at = big ? back.shift() : front.shift() || small2.shift(); if (at) out.push({ id: 'w' + i + '-' + k, kind: k, at: at }); });
     return out;
   };
-  World.prototype.fight = function (p, e, o) { // (o: { data: the party as it walks in, dark, intro, after(res, b) } -- the night's watches, js/house.js; o.simple: this fight's way, else OPTIONS')
-    var self = this, night = W.timeOfDay() === 'night' || !!(o && o.dark), simple = !!D.simple && (o && o.simple != null ? !!o.simple : D.simple.on()); // (THE SIMPLE FIGHT: js/simple.js)
+  // THE CAMP'S FIRE (RULED 10-21, Griz: "add a campfire when the party encounters during a camp"): a fight in the night's watches (o.camp, js/house.js H.runNight) has the
+  // camp's fire on the field behind the party -- a light as a torch's (bright 20 ft, dim 20 more: the SRD names no campfire), drawn by js/campfire.js CF.fieldFire
+  W.CAMP = [10, 3]; // (the grid's road field: behind the party's squares)
+  World.prototype.fight = function (p, e, o) { // (o: { data: the party as it walks in, dark, intro, camp, after(res, b) } -- the night's watches, js/house.js; o.simple: this fight's way, else OPTIONS')
+    var self = this, camp = !!((o && o.camp) || p.camp), night = W.timeOfDay() === 'night' || !!(o && o.dark) || camp, simple = !!D.simple && (o && o.simple != null ? !!o.simple : D.simple.on()); // (THE SIMPLE FIGHT: js/simple.js)
     W.field(e, simple ? D.simple.fieldOpts() : null);
-    var F = { id: 'worldfield', map: 'world-field', level: W.LEVEL, name: 'On the road', sub: (p.mirror ? 'mirror-made: ' : '') + p.zone, dark: night,
-      intro: (o && o.intro) || ((p.mirror ? 'Mirror-made: ' : '') + 'They come at the party on the ' + (M.road[K(e.q, e.r)] ? 'road' : M.terr[e.t].name) + '.'), won: 'THE ROAD IS CLEAR.', lost: 'THE ROAD TAKES THEM.',
+    var fire = camp ? (simple ? D.simple.CAMP : W.CAMP).slice() : null;
+    var F = { id: 'worldfield', map: 'world-field', level: W.LEVEL, name: camp ? 'The camp' : 'On the road', sub: (p.mirror ? 'mirror-made: ' : '') + p.zone, dark: night, camp: fire, lights: fire ? [[fire[0], fire[1], 20, 'fire']] : null,
+      intro: (o && o.intro) || ((p.mirror ? 'Mirror-made: ' : '') + 'They come at the party on the ' + (M.road[K(e.q, e.r)] ? 'road' : M.terr[e.t].name) + '.'), won: camp ? 'THE CAMP HOLDS.' : 'THE ROAD IS CLEAR.', lost: 'THE ROAD TAKES THEM.',
       foes: simple ? D.simple.seat(p.list) : W.seat(p.list), wave: null };
     var b = new D.Battle(W.house() ? { fightDef: F, simple: simple, data: (o && o.data) || D.house.living(D.house.cur), house: true, world: true, record: { fight: 'worldfield', name: 'On the road', level: (D.house.cur.party[0] || {}).lvl, simple: simple }, onDone: function (res) { if (o && o.after) o.after(res, b); else self.afterFight(res, p, b); } } // (the house's party, wounds and all, and its play record: js/house.js)
       : { fightDef: F, simple: simple, ladder: true, level: W.LEVEL, world: true, onDone: function (res) { self.afterFight(res, p); } }), e0 = b.enter;
     b.enter = function () {
       e0.apply(this, arguments);
-      // the two lines face each other (his "they seem to be facing NE with NW foes"): the four toward the foes (-x), the foes toward the four (+x)
-      this.units.forEach(function (u) { u.facing = D.spr.facingFor(u.side === 'party' ? -1 : 1, 0); });
+      // the two lines face each other (his "they seem to be facing NE with NW foes"): the four toward the foes (-x), the foes toward the four (+x) -- in the simple fight
+      // across the screen, the four to its left and the foes to its right (js/simple.js S.FACE)
+      this.units.forEach(function (u) { var f = simple ? D.simple.FACE[u.side === 'party' ? 0 : 1] : [u.side === 'party' ? -1 : 1, 0]; u.facing = D.spr.facingFor(f[0], f[1]); });
       if (p.mirror) this.units.forEach(function (u) { if (u.side === 'foe' && !/^mirror/.test(u.kind)) { u.mirrorEye = true; u.name = 'Mirror-made ' + u.name.toLowerCase(); } });
     };
     D.push(b);
