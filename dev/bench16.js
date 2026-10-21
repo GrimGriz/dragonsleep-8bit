@@ -2084,9 +2084,11 @@
       var shareN = function (night) { var n = 0, b = 0; D.seed = 77; for (var i = 0; i < 400; i++) { var pk = WH.pick('north', night); if (!pk) continue; n++; if (pk.list.indexOf('bandit') >= 0) b++; } return b / Math.max(1, n); }, dayB = shareN(false), nightB = shareN(true);
       okH('the night\'s table: bandits ' + Math.round(dayB * 100) + '% of the north\'s groups by day, ' + Math.round(nightB * 100) + '% by night', nightB < dayB * 0.7);
       // the three watches: the sleepers' armor off for the fight, back on after; then the long rest
-      var lN = HH.cur.party.filter(function (h) { return h.id === 'lymen'; })[0], lArm = lN.equip.armor, lSh = lN.equip.shield, so0 = HH.sleepersOff(HH.cur, ['vivian']);
-      var lC = so0.data.party.filter(function (h) { return h.id === 'lymen'; })[0], vC2 = so0.data.party.filter(function (h) { return h.id === 'vivian'; })[0];
-      okH('a watch fight\'s party: Vivian on watch in her ' + vC2.equip.armor + ', Lymen asleep out of his ' + lArm + (lSh ? ' and shield' : '') + ' (the light-armor exception his word: off)', vC2.equip.armor === HH.cur.party.filter(function (h) { return h.id === 'vivian'; })[0].equip.armor && !lC.equip.armor && !lC.equip.shield && !!lArm);
+      var lN = HH.cur.party.filter(function (h) { return h.id === 'lymen'; })[0], lArm = lN.equip.armor, lSh = lN.equip.shield, so0 = HH.sleepersOff(HH.cur, ['barley']);
+      var lC = so0.data.party.filter(function (h) { return h.id === 'lymen'; })[0], vC2 = so0.data.party.filter(function (h) { return h.id === 'vivian'; })[0], aC2 = so0.data.party.filter(function (h) { return h.id === 'aurdin'; })[0];
+      aC2.equip.armor = 'robes'; var so1 = HH.sleepersOff(so0.data, ['barley']), aR = so1.data.party.filter(function (h) { return h.id === 'aurdin'; })[0]; // (Aurdin in his robes: slept in)
+      okH('a watch fight\'s party (RULED: "go with the sleeping in light and robes, let them have the shield on the way"): Vivian asleep in her ' + vC2.equip.armor + ', Aurdin in his robes, Lymen out of his ' + lArm + ' but with his shield',
+        vC2.equip.armor === HH.cur.party.filter(function (h) { return h.id === 'vivian'; })[0].equip.armor && aR.equip.armor === 'robes' && !lC.equip.armor && lC.equip.shield === lSh && !!lArm && !!lSh);
       lN.hp = Math.max(1, lN.hp - 6); var SN = WH.state(); SN.zone = WH.zoneOf(WH.M().hex[WH.K(SN.at[0], SN.at[1])]); SN.count = 0.5; HH.runNight(wC, { vivian: 1, lymen: 2, barley: 3, aurdin: 3 });
       var cN = wC.cards[0], okCard = !!(cN && cN.keys && /FIRST WATCH/.test(cN.lines[0]) && cN.keys[0][2] === 'FIGHT');
       okH('the first watch\'s check finds them: ' + (cN ? cN.lines[0] : 'no card') + ' (a FIGHT button)', okCard);

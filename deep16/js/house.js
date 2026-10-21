@@ -96,18 +96,19 @@
   // ---------------------------------------------------------------- THE NIGHT (RULED 10-21, Griz: "when not rope-trick or tiny hut, they'll have to assign 3 watches for a
   // long rest. Each watch will roll an encounter check - less than if traveling, but on encounter party members not on that watch will be out of armor for that combat
   // (discuss exception for wizard and thief light armor sleeping)"): the camp's night on THE WORLD -- three watches, each standing hero on one; each watch an encounter check
-  // on the night's tables (js/world.js W.pick, night) at W.WATCHX of the road's going for its hours; a fight wakes the rest with their armor off (H.SLEEP_LIGHT: his word
-  // on light armor, off till he gives it); then the long rest (W.camp -> H.longRest). Rope Trick and the Tiny Hut keep the night with no watch (js/house.js H.field)
-  H.WATCHES = 3; H.WATCHX = 0.5; H.SLEEP_LIGHT = false;
+  // on the night's tables (js/world.js W.pick, night) at W.WATCHX of the road's going for its hours; a fight wakes the rest with their medium and heavy armor off -- RULED
+  // 10-21, his "go with the sleeping in light and robes, let them have the shield on the way to watch-interrupt combat": light armor and robes are slept in (H.SLEEP_IN), a
+  // shield is taken up on the way; then the long rest (W.camp -> H.longRest). Rope Trick and the Tiny Hut keep the night with no watch (js/house.js H.field)
+  H.WATCHES = 3; H.WATCHX = 0.5; H.SLEEP_IN = ['light', 'robe'];
   H.watchDefault = function (party) { var up = party.filter(function (h) { return !down(h); }); var a = {}; up.forEach(function (h, i) { a[h.key || h.id] = (i % H.WATCHES) + 1; }); return a; };
   // the sleepers' armor off (a copy of the save for the fight): what they wore, kept to put back after
   H.sleepersOff = function (rec, on) {
     var d = JSON.parse(JSON.stringify(rec)), off = {};
     d.party.forEach(function (h) {
       var id = h.key || h.id; if (on.indexOf(id) >= 0) return;
-      var ar = h.equip && h.equip.armor && DS.DATA.items[h.equip.armor], light = ar && ar.armor && ar.armor.type === 'light';
-      if (H.SLEEP_LIGHT && (!ar || light)) return;
-      off[id] = { armor: h.equip.armor || null, shield: h.equip.shield || null }; h.equip.armor = null; h.equip.shield = null;
+      var ar = h.equip && h.equip.armor && DS.DATA.items[h.equip.armor];
+      if (!ar || (ar.armor && H.SLEEP_IN.indexOf(ar.armor.type) >= 0)) return; // (no armor, light armor or robes: slept in)
+      off[id] = { armor: h.equip.armor }; h.equip.armor = null; // (the shield stays: taken up on the way)
     });
     return { data: d, off: off };
   };
@@ -132,7 +133,7 @@
             after: function (res, b) {
               try { D.music('corridor'); } catch (e2) { }
               var ln = H.afterFight(b, res); if (ln === null) return;
-              H.cur.party.forEach(function (h) { var o = so.off[h.key || h.id]; if (o) { h.equip.armor = o.armor; h.equip.shield = o.shield; } }); // (their armor back on for the morning)
+              H.cur.party.forEach(function (h) { var o = so.off[h.key || h.id]; if (o) h.equip.armor = o.armor; }); // (their armor back on for the morning)
               scene.say((res === 'won' ? 'The watch holds. ' : 'The party got clear of them. ') + ln.join(' '));
               next();
             } });
