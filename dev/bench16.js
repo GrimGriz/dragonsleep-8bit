@@ -2362,6 +2362,9 @@
       var cvW = document.createElement('canvas'); cvW.width = D.W; cvW.height = D.H; var ctxW = cvW.getContext('2d'), errD = null;
       try { var scD = new CW.Counter(B, { id: 'winters', name: 'Ambrose Winters', script: function (s) { return CW.winters(s); } }); scD.draw(ctxW); CW.paintPin(ctxW, B); } catch (eD) { errD = String(eD).slice(0, 120); }
       okW('the screen draws' + (errD ? ' THREW ' + errD : ''), !errD);
+      var LYW = CW.LAYOUT, bW = scD.buttons();
+      okW('the portrait on the right, the words and every button to its left (his "can we put them on the right side of the screen instead?": they face screen left) -- the portrait at x ' + LYW.portrait[0] + ', the words ' + LYW.words[0] + ' to ' + (LYW.words[0] + LYW.words[2]),
+        LYW.portrait[0] + LYW.portrait[2] <= D.W && LYW.portrait[0] > LYW.words[0] + LYW.words[2] && bW.every(function (q) { return q.x + q.w <= LYW.portrait[0]; }));
       // the other keepers: their portraits and their words; Kessler's and Calla Voss's counters open by their first-game shops (10-21, Griz: "Yes, open Kessler's and Calla
       // Voss's counters with their first-game shops") -- one line each in the one vendor table (his "art for all the vendors like this should come in at some point")
       outW(B); inW(B, 'shop:kessler'); var gK = fireW(B, 'talk:kessler'), scK = D.top(), wK = readW(scK);

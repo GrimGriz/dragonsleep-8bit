@@ -118,7 +118,9 @@
   };
 
   // ---------------------------------------------------------------- the screen
-  var PX = 8, PY = 8, PW = 190, PH = 214, CY = PY + PH - 26, RX = 206, RW = D.W - 206 - 8, WY = 34, WH = 100;
+  // the portrait on the right, the words and buttons on the left (10-21, Griz: "looks like all the portraits are facing left - can we put them on the right side of the
+  // screen instead?" -- every keeper is drawn looking screen left, so from the right they look at the conversation)
+  var PW = 190, PX = D.W - 8 - PW, PY = 8, PH = 214, CY = PY + PH - 26, RX = 8, RW = PX - 8 - RX, WY = 34, WH = 100;
   function Counter(B, o) {
     this.kind = 'counter'; this.opaque = true; this.t = 0; this.B = B; this.o = o; this.st = C.state(B);
     this.id = o.id; this.sheet = C.PT[o.id] || null; this.face = null; this.wait = null; this.msg = ''; this.hov = -1; this.i = 0; this.done = false; this.regear = false;
@@ -126,6 +128,7 @@
     this.step();
   }
   C.Counter = Counter;
+  C.LAYOUT = { portrait: [PX, PY, PW, PH], words: [RX, WY, RW, WH] };
   Counter.prototype.say = function (lines, face) { return { say: [].concat(lines), face: face }; };
   Counter.prototype.ask = function (prompt, opts, face) { return { ask: [].concat(prompt), opts: opts, face: face }; };
   Counter.prototype.shelves = function (shop) { return { shelves: shop }; };
@@ -255,7 +258,7 @@
     var w = this.wait || {};
     if (m.click && m.inside) {
       if (hit) { this.press(hit); return; }
-      if (w.say && !this.sub && m.x >= RX && m.y >= WY && m.y < WY + WH) { this.press(bs[0]); return; } // (a click on the words goes on)
+      if (w.say && !this.sub && m.x >= RX && m.x < RX + RW && m.y >= WY && m.y < WY + WH) { this.press(bs[0]); return; } // (a click on the words goes on)
     }
     if (m.wheel && this.shop && !this.sub) { this.scroll = Math.max(0, (this.scroll || 0) + (m.wheel > 0 ? 1 : -1)); m.wheel = 0; }
     var live = bs.filter(function (q) { return !q.off; });
