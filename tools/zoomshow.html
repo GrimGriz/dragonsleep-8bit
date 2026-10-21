@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Zoom and pixels</title>
+<!-- the zoom show (10-21, Griz, to the lanes desk: "can you put together a show of what the pixelation problems would be at the zoom levels we're working with
+     and let that seat stick with whats working for now"). The game draws its world at the art's own size, then lays it on the screen scaled by the zoom into a
+     backing store R times the 480x270 screen (deep16/js/core.js D.fit, ui.js drawBattle): where zoom x R is a whole number every art pixel lands on whole device
+     pixels and the game draws it crisp; anywhere between, the game turns smoothing on (blur) -- left off, the pixels come out uneven instead. Here: real sheets,
+     the crisp steps the simple fight uses at this screen's scale, and the zooms a fit-to-the-encounter camera would pick between them, each both ways. -->
+<style>
+  :root { --bg: #14121c; --fg: #e8e4d8; --dim: #9a96a8; --gold: #f8d67a; --edge: #2c2840; --ok: #7ccf7a; --warn: #e8a24a; --bad: #e8624a; }
+  body { margin: 0; background: var(--bg); color: var(--fg); font: 14px/1.45 system-ui, sans-serif; }
+  main { max-width: 1280px; margin: 0 auto; padding: 16px; }
+  h1 { font-size: 20px; margin: 4px 0 6px; } h2 { font-size: 15px; margin: 22px 0 8px; color: var(--gold); }
+  p { margin: 4px 0 10px; color: var(--dim); max-width: 900px; }
+  .bar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 10px 0; }
+  button { background: #262238; color: var(--fg); border: 1px solid var(--edge); border-radius: 6px; padding: 6px 12px; font: inherit; cursor: pointer; }
+  button.on { border-color: var(--gold); color: var(--gold); }
+  .grid { display: flex; flex-wrap: wrap; gap: 14px; }
+  .panel { background: #1b1828; border: 1px solid var(--edge); border-radius: 8px; padding: 8px; }
+  .panel .t { font-weight: 600; margin-bottom: 2px; } .panel .s { font-size: 12px; color: var(--dim); margin-bottom: 6px; }
+  .pair { display: flex; flex-wrap: wrap; gap: 8px; } .pair div { text-align: center; font-size: 12px; color: var(--dim); }
+  canvas { display: block; image-rendering: pixelated; background: #000; }
+  .ok { color: var(--ok); } .warn { color: var(--warn); } .bad { color: var(--bad); }
+</style></head>
+<body><main>
+  <h1>Zoom and pixels</h1>
+  <p>The same little scene drawn the way the game draws a fight: the world at the art's own size, then scaled onto the screen by the zoom. Each picture is magnified so you see the device pixels themselves. <b>Crisp</b> rows are the steps the simple fight uses now. <b>Between</b> rows are what a fit-to-the-encounter zoom would land on.</p>
+  <div class="bar">Screen scale (the game's R for your window: <b id="rnow"></b>):
+    <button data-r="1">1x</button><button data-r="2">2x</button><button data-r="3">3x</button>
+    <span style="margin-left:12px">Magnify:</span><button data-m="2">x2</button><button data-m="3">x3</button><button data-m="4">x4</button>
+    <button id="drift" style="margin-left:12px">Drift: off</button>
+  </div>
+  <div id="out"></div>
+</main>
+<script>
+(function () {
+  'use strict';
+  var W0 = 200, H0 = 112; // the scene, in art pixels
+  var SHEETS = [ // (each idle's first frame; facing rows 2 = west for the party, 6 = east for the foes -- js/topview.js TOPSTEP)
+    { n: 'worg_p1', x: 40, y: 100, row: 6 }, { n: 'goblin_p1', x: 78, y: 102, row: 6 }, { n: 'barley_p2', x: 150, y: 101, row: 2 }
+  ];
+  var R = Math.max(1, Math.floor(Math.min(window.innerWidth / 480, (window.innerHeight - 24) / 270))) || 1, MAG = 2, drift = false, t = 0, imgs = {}, metas = {};
+  document.getElementById('rnow').textContent = R + 'x';
+  function steps(r) { var L = []; for (var k = r; k >= 1; k--) if (k / r >= 0.33) L.push(k / r); if (L.length < 2) L.push(0.5); return L; } // (js/ui.js zooms(), the near steps)
+  function fits(r) { var c = steps(r), out = []; [0.9, 0.8, 0.75, 0.66, 0.6].forEach(function (z) { if (!c.some(function (s) { return Math.abs(s - z) < 0.02; })) out.push(z); }); return out.slice(0, 4); }
+  // the world at art size: a dithered dirt ground (as the town's tiles are), a stone edge, a checker strip (the finest dither), the three figures
+  function scene(off) {
+    var c = document.createElement('canvas'); c.width = W0; c.height = H0; var x = c.getContext('2d'), im = x.createImageData(W0, H0), p = im.data;
+    var dirt = [[62, 64, 30], [76, 50, 28], [98, 70, 40], [140, 100, 48]], stone = [[52, 40, 34], [118, 94, 74]];
+    for (var yy = 0; yy < H0; yy++) for (var xx = 0; xx < W0; xx++) {
+      var h = ((xx * 73856093) ^ (yy * 19349663)) >>> 0, v = (h % 1000) / 1000, c0;
+      if (yy < 10) c0 = (xx + yy) % 2 ? [200, 196, 180] : [40, 36, 52]; // (a checker: the finest dither there is)
+      else if (yy < 14) c0 = stone[(xx >> 1) % 2];
+      else c0 = dirt[v < 0.15 ? 0 : v < 0.55 ? 1 : v < 0.93 ? 2 : 3];
+      var o = (yy * W0 + xx) * 4; p[o] = c0[0]; p[o + 1] = c0[1]; p[o + 2] = c0[2]; p[o + 3] = 255;
+    }
+    x.putImageData(im, 0, 0);
+    SHEETS.forEach(function (s) { var m = metas[s.n], a = m && m.anims.idle, I = imgs[s.n]; if (!a || !I) return; x.drawImage(I, 0, a.y + s.row * a.fh, a.fw, a.fh, Math.round(s.x - a.ax), Math.round(s.y - a.ay), a.fw, a.fh); });
+    return c;
+  }
+  // the game's blit: the world scaled by z into a backing R times the screen; smoothing as the game sets it (on between whole device pixels), or forced
+  function blit(src, z, r, smooth, off) {
+    var dev = z * r, w = Math.round(W0 * dev), h = Math.round(H0 * dev), c = document.createElement('canvas'); c.width = w; c.height = h;
+    var x = c.getContext('2d'); x.imageSmoothingEnabled = smooth; x.drawImage(src, off, 0, W0, H0, 0, 0, W0 * dev, H0 * dev); return c;
+  }
+  function panel(z, r, src, off) {
+    var dev = z * r, crisp = Math.abs(dev - Math.round(dev)) < 1e-6, d = document.createElement('div'); d.className = 'panel';
+    var name = crisp ? (dev >= 1 ? 'crisp: each art pixel ' + Math.round(dev) + 'x' + Math.round(dev) + ' device pixels' : 'crisp, far: ' + Math.round(1 / dev) + ' art pixels to a device pixel (detail drops out, evenly)') : 'between: ' + dev.toFixed(2) + ' device pixels an art pixel';
+    d.innerHTML = '<div class="t">zoom ' + (Math.abs(z - 2 / 3) < 1e-6 ? '2/3' : Math.abs(z - 1 / 3) < 1e-6 ? '1/3' : z) + ' <span class="' + (crisp ? 'ok' : 'warn') + '">' + (crisp ? 'CRISP' : 'BETWEEN') + '</span></div><div class="s">' + name + '</div>';
+    var pr = document.createElement('div'); pr.className = 'pair';
+    var ways = crisp ? [[false, 'as the game draws it']] : [[true, 'as the game would draw it: smoothing on (soft, blurred)'], [false, 'smoothing off: uneven pixels, they crawl as it moves']];
+    ways.forEach(function (w) { var b = blit(src, z, r, w[0], off), cv = document.createElement('canvas'); cv.width = b.width; cv.height = b.height; cv.getContext('2d').drawImage(b, 0, 0); cv.style.width = (b.width * MAG / (window.devicePixelRatio || 1)) + 'px'; cv.style.height = (b.height * MAG / (window.devicePixelRatio || 1)) + 'px'; var hold = document.createElement('div'); hold.appendChild(cv); hold.appendChild(document.createTextNode(w[1])); pr.appendChild(hold); });
+    d.appendChild(pr); return d;
+  }
+  function draw() {
+    var out = document.getElementById('out'); out.innerHTML = '';
+    var off = drift ? (Math.sin(t / 40) + 1) * 3 : 0, src = scene();
+    var h1 = document.createElement('h2'); h1.textContent = 'The steps the simple fight uses at ' + R + 'x (it picks the one the lineup fits, then one further out)' + (R === 1 ? ' -- at 1x only zoom 1 lands on whole pixels, so the step out is drawn soft too' : ''); out.appendChild(h1);
+    var g1 = document.createElement('div'); g1.className = 'grid'; steps(R).forEach(function (z) { g1.appendChild(panel(z, R, src, off)); }); out.appendChild(g1);
+    var h2 = document.createElement('h2'); h2.textContent = 'Between: what a fit-to-the-encounter zoom would pick'; out.appendChild(h2);
+    var g2 = document.createElement('div'); g2.className = 'grid'; fits(R).forEach(function (z) { g2.appendChild(panel(z, R, src, off)); }); out.appendChild(g2);
+    var note = document.createElement('p'); note.innerHTML = 'Look at the top strip (a one-pixel checker, the finest dither the tiles use) and the edges of the figures: between the crisp steps the checker turns to smear or stripes, and outlines thicken in some columns and thin in others. With Drift on, the smoothing-off pictures shimmer as the camera slides. The crisp steps stay clean at any position.'; out.appendChild(note);
+  }
+  function load() {
+    var left = SHEETS.length;
+    SHEETS.forEach(function (s) {
+      fetch('../deep16/art/' + s.n + '.json').then(function (r) { return r.json(); }).then(function (m) {
+        metas[s.n] = m; var I = new Image(); I.onload = function () { imgs[s.n] = I; if (--left === 0) draw(); }; I.src = '../deep16/' + m.image;
+      }).catch(function () { if (--left === 0) draw(); });
+    });
+  }
+  document.querySelectorAll('[data-r]').forEach(function (b) { b.onclick = function () { R = +b.dataset.r; document.getElementById('rnow').textContent = R + 'x (chosen)'; mark(); draw(); }; });
+  document.querySelectorAll('[data-m]').forEach(function (b) { b.onclick = function () { MAG = +b.dataset.m; mark(); draw(); }; });
+  document.getElementById('drift').onclick = function () { drift = !drift; this.textContent = 'Drift: ' + (drift ? 'on' : 'off'); mark(); if (!drift) draw(); };
+  function mark() { document.querySelectorAll('[data-r]').forEach(function (b) { b.classList.toggle('on', +b.dataset.r === R); }); document.querySelectorAll('[data-m]').forEach(function (b) { b.classList.toggle('on', +b.dataset.m === MAG); }); document.getElementById('drift').classList.toggle('on', drift); }
+  setInterval(function () { if (drift) { t++; draw(); } }, 80);
+  mark(); load();
+})();
+</script>
+</body></html>
