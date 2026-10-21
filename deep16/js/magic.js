@@ -774,8 +774,22 @@
   }
 
   // ------------------------------------------------------------------ the conditions' turns
-  // the start of a creature's turn: Heroism's temporary HP; a restrained or paralyzed creature has no move
+  // Aura of Devotion (SRD 5.1, the paladin's 7: "can't be charmed while you are conscious"): a charm already on one in the aura ends at the start of its turn (RULED 10-21, Griz:
+  // "accept leans" -- his 10-20 immunity ruling, "immune from includes what was effecting you when the immunity kicked in", read for the aura). One dominated stands in the aura
+  // of the side it was taken from; a Hypnotic Pattern's helplessness goes with its charm
+  M.devotionFrees = function (B, u) {
+    var c = u && u.conds; if (!B || !c || !(c.charmed || c.hypnotized)) return false;
+    var dm = u.dominated, me = dm ? { side: dm.side0, x: u.x, y: u.y, size: u.size } : u;
+    if (!RU.inAura(me, 'devotion')) return false;
+    if (dm) { var by = B.units.filter(function (w) { return w.id === dm.by; })[0]; if (by && by.conc && by.conc.t === u) M.endConc(B, by, 'Aura of Devotion'); if (u.dominated) return false; }
+    if (c.hypnotized) { delete c.hypnotized; delete c.incapacitated; }
+    delete c.charmed;
+    B.card([(u.side === 'foe' ? '{r}The ' + B.shortName(u) + '{/}' : '{y}' + u.name + '{/}') + ' {n}is free of the charm: Aura of Devotion.{/}'], 200);
+    return true;
+  };
+  // the start of a creature's turn: Heroism's temporary HP; a restrained or paralyzed creature has no move; a charm in an Aura of Devotion ends (above)
   M.startTurn = function (B, u) {
+    M.devotionFrees(B, u);
     // True Strike (SRD 5.1: "on your next turn, you gain advantage on your first attack roll against the target, provided that this spell hasn't
     // ended"): its one round is that next turn -- held through it, and let go at its end (M.endTurn), or when the swing spends it (battle.js attack).
     // The advantage is for that turn and not the one it was cast in (rules.js edges reads `ready`)

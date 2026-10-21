@@ -502,12 +502,13 @@
   // a square's creature, or the Keeper's Ice Wall there as something to strike (js/keeper.js K.wallAt): the four places a click or a key aims a blow
   function occ(x, y) { return G.occupant(x, y) || (D.keeper && D.keeper.wallAt ? D.keeper.wallAt(D.battle, x, y) || D.keeper.swirlAt(D.battle, x, y) : null); }
   // the hero's turn, the mouse on the grid: the figure under it, else a rope's rung, else the tile. MOVE takes the tile (10-21, his 10-19 note: "when move is active, mouse hover
-  // should ignore enemy hotboxes other than tiles (investigate 'fly' movement handling also)"): a foe's figure -- or, for a flier picking at its height, any figure -- only when
-  // the tile under the mouse is on its footprint, so a tall sprite drawn over the squares behind it never takes the walk's square from them
+  // should ignore enemy hotboxes other than tiles (investigate 'fly' movement handling also)", and on the seat's lean "allies yes, the menu no", his "accept leans"): another's
+  // figure, foe or friend -- or, for a flier picking at its height, any figure -- only when the tile under the mouse is on its footprint, so a tall sprite drawn over the squares
+  // behind it never takes the walk's square from them; the menu's pick is as it was
   UI.hoverPick = function (B, u, mx, my) {
     var lz = UI.flyer(B) === u ? UI.layerZ(B, u) : null, tile = function () { return lz != null ? D.iso.pickAt(mx, my, lz) : D.iso.pick(mx, my, G.map.gz(B.cursor.x, B.cursor.y)); };
     var pu = UI.pickUnit(B, mx, my, foeWanted(B, u));
-    if (pu && B.tool === 'move' && (G.hostile(u, pu) || lz != null)) { var t0 = tile(), s0 = pu.size || 1; if (!t0 || t0.x < pu.x || t0.y < pu.y || t0.x >= pu.x + s0 || t0.y >= pu.y + s0) pu = null; }
+    if (pu && B.tool === 'move' && (pu !== u || lz != null)) { var t0 = tile(), s0 = pu.size || 1; if (!t0 || t0.x < pu.x || t0.y < pu.y || t0.x >= pu.x + s0 || t0.y >= pu.y + s0) pu = null; }
     var rg = pu ? null : ropeRung(B, u, mx, my);
     return { unit: pu, rung: rg, sq: pu ? { x: pu.x, y: pu.y } : rg ? { x: rg.rope.foot[0], y: rg.rope.foot[1] } : tile() };
   };

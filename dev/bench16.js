@@ -3250,6 +3250,27 @@
         var d0 = G21.dist(fq, spot); D.rules.startTurn(fq); Bq.active = fq; var nq = (Bq.log || []).length; run21(D.ai.turn(Bq, fq)); var lq = log21(Bq, nq);
         ok21('7a ' + pr[1] + ' (' + fq.name + '), the rogue last seen ' + d0 + ' ft off and hidden since: now ' + G21.dist(fq, spot) + ' ft from that square (want 5 or less), said ' + /last seen/.test(lq), G21.dist(fq, spot) <= 5 && /last seen/.test(lq));
       });
+      // 8. HIS "accept leans" (10-21): Aura of Devotion ends a charm already on, at the start of the charmed one's turn; MOVE's hover drops a friend's figure too
+      var Ba = mk21('?npc=goblin,goblin&vs=lymen:7,fighter:7,wizard:7&lvl=7'), ly = side21(Ba, 'party').filter(function (w) { return w.id === 'lymen' || w.cls === 'paladin'; })[0], fa = side21(Ba, 'party').filter(function (w) { return w.cls === 'fighter'; })[0], wa = side21(Ba, 'party').filter(function (w) { return w.cls === 'wizard'; })[0], ga = side21(Ba, 'foe')[0];
+      ly.x = 3; ly.y = 3; fa.x = 4; fa.y = 3; wa.x = 8; wa.y = 7; ga.x = 12; ga.y = 9; Ba.cache = null;
+      fa.conds.charmed = { by: ga.id, breaks: true }; wa.conds.charmed = { by: ga.id, breaks: true };
+      wa.conds.hypnotized = { by: ga.id }; wa.conds.incapacitated = { by: ga.id };
+      D.rules.startTurn(fa); D.rules.startTurn(wa);
+      ok21('8 Aura of Devotion (Lymen at 7): the fighter beside him, charmed, at his turn\'s start: charmed ' + !!fa.conds.charmed + '; the wizard 25 ft off, hypnotized: charmed ' + !!wa.conds.charmed + ' (want false, true)', !!(D.rules.auraOf(ly) && D.rules.auraOf(ly).devotion) && !fa.conds.charmed && !!wa.conds.charmed);
+      wa.x = 5; wa.y = 4; Ba.cache = null; D.rules.startTurn(wa);
+      ok21('8 and the wizard brought into the aura: charmed ' + !!wa.conds.charmed + ', hypnotized ' + !!wa.conds.hypnotized + ', helpless ' + !!wa.conds.incapacitated + ' (want false, false, false)', !wa.conds.charmed && !wa.conds.hypnotized && !wa.conds.incapacitated);
+      var B9 = mk21('?npc=goblin&vs=fighter:5,fighter:5&lvl=5'), p9 = side21(B9, 'party'), o9 = open21(B9, 6, 6);
+      if (!o9 || !UIx || !UIx.hoverPick) ok21('8 an open stretch and the hover', false);
+      else {
+        p9[0].x = o9[0] + 1; p9[0].y = o9[1] + 4; p9[1].x = o9[0] + 3; p9[1].y = o9[1] + 3; side21(B9, 'foe')[0].x = o9[0] + 5; side21(B9, 'foe')[0].y = o9[1]; B9.cursor = { x: p9[0].x, y: p9[0].y }; D.rules.startTurn(p9[0]); B9.req = { turn: p9[0] }; B9.active = p9[0]; B9.tool = 'move';
+        var gz9 = G21.map.gz(p9[1].x, p9[1].y), c9 = D.iso.toScreen(D.iso.center(p9[1].x, p9[1].y, gz9).x, D.iso.center(p9[1].x, p9[1].y, gz9).y), at9 = null;
+        for (var dy9 = 0; dy9 < 120 && !at9; dy9 += 1) { var py9 = c9.y - dy9, t9 = D.iso.pick(c9.x, py9, gz9); if (UIx.pickUnit(B9, c9.x, py9) === p9[1] && t9 && !(t9.x === p9[1].x && t9.y === p9[1].y) && !G21.occupant(t9.x, t9.y)) at9 = { x: c9.x, y: py9, t: t9 }; }
+        var h9 = at9 ? UIx.hoverPick(B9, p9[0], at9.x, at9.y) : null;
+        ok21('8 MOVE, the mouse on the other fighter\'s sprite over ' + (at9 ? '(' + at9.t.x + ',' + at9.t.y + ')' : '?') + ': the square ' + (h9 && h9.sq ? h9.sq.x + ',' + h9.sq.y : 'none') + ', the figure ' + (h9 && h9.unit ? h9.unit.name : 'none') + ' (want the square behind, no figure)', !!h9 && !h9.unit && h9.sq && h9.sq.x === at9.t.x && h9.sq.y === at9.t.y);
+        B9.tool = 'menu'; var hm9 = at9 ? UIx.hoverPick(B9, p9[0], at9.x, at9.y) : null;
+        ok21('8 the menu up, the same point: the figure ' + (hm9 && hm9.unit ? hm9.unit.name : 'none') + ' (want the fighter -- the menu as it was)', !!hm9 && hm9.unit === p9[1]);
+        B9.req = null;
+      }
     } catch (e21) { rep21.errors.push(String(e21 && e21.stack || e21).slice(0, 900)); D.d = d021; }
     if (errs.length) rep21.errors = rep21.errors.concat(errs);
     var pre21 = document.createElement('pre'); pre21.id = 'out'; pre21.textContent = 'BENCH16 ' + JSON.stringify(rep21);
