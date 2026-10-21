@@ -8,7 +8,7 @@ views (side, front, top), and rows seen from the side facing right: idle 8, craw
 Its colours stand as drawn (pale yellow body, red tentacles), snapped to the palette; no regrade (the chuul's was).
 Facings (until ART-44, below): the front view takes S; the top view takes N (Griz, 09-27: "build it with the top view for N": the sheet has no
 rear view); the side rows take the other six (mirrored for the west side). The death row plays as `hurt` (the engine
-plays it once when a creature goes down), as the chuul's does. The bite and the flinch rows are cut but not yet played.
+plays it once when a creature goes down), as the chuul's does. The bite and the flinch rows are not cut.
 Boxes from a component pass over the sheet (warm pixels against the navy ground).
 ART-44 (10-21): the art desk drew the views the sheet lacked (RULED 10-14, five drawn views: S, SE, E, NE, N; SE mirrors to SW, E
 to W, NE to NW), six pages in deep16/_src/crawler/ART-44/ (sorted out of Fresh by its ART-44-sort.py; the desk's papers in
