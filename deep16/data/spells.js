@@ -115,7 +115,7 @@
   enhanceability: { shape: 'touch', side: 'ally', time: 'A', conc: true },
   enlargereduce: { see: true, shape: 'single', range: 30, time: 'A', conc: true, noStack: 'enlarged', obj: true }, // (obj: "a creature or an object you can see within range") // (noStack: no target already carrying the same way -- js/magic.js targetWhy; the other way replaces)
   flameblade: { shape: 'self', time: 'B', conc: true },
-  gustofwind: { shape: 'line', len: 60, time: 'A' },
+  gustofwind: { shape: 'line', len: 60, wide: 10, time: 'A', conc: true },  // (SRD 5.1: 60 ft long, 10 ft wide, held a minute -- js/grimoire.js E.gustofwind, 10-21 night)
   heatmetal: { see: true, shape: 'single', side: 'foe', range: 60, time: 'A', conc: true },
   magicweapon: { shape: 'touch', side: 'ally', time: 'B', conc: true, nonmagical: true }, // (nonmagical: "You touch a nonmagical weapon", SRD 5.1 -- M.targetWhy, 10-03)
   mirrorimage: { shape: 'self', time: 'A' },

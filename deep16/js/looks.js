@@ -321,6 +321,7 @@
     (B.globesGone || []).forEach(function (g) { out.push({ depth: g.x + g.y + 4.7, gz: D.iso.map.gz(g.x, g.y), layer: 2, draw: function (ctx) { drawGlobe(ctx, B, g, (B.t - g.t0) / GONE); } }); });
     // the zones that move (09-29): the moonbeam's shaft, the flaming sphere rolling
     (B.zones || []).forEach(function (z) {
+      if (z.id === 'gustofwind') return; // (the wind has no body: its line is drawn on the floor, LK.ground's zones below)
       if (shut(B, z, z.x, z.y)) return; // (the shaft or the ball on a square inside a globe it was cast from outside of: nothing stands there to draw)
       out.push({ depth: z.x + z.y + (z.id === 'moonbeam' ? 0.3 : 0.5), gz: D.iso.map.gz(z.x, z.y), layer: 1, draw: function (ctx) { if (z.id === 'moonbeam') drawBeam(ctx, B, z); else drawSphere(ctx, B, z); } });
     });
@@ -473,14 +474,18 @@
     // the zones that move (09-29): Moonbeam's squares washed pale and the Flaming Sphere's reach warm, so one can see what is in them, and a
     // ring at the feet of each creature caught in one (the beam takes whoever enters it or starts a turn there; the sphere whoever ends a turn beside it)
     (B.zones || []).forEach(function (z) {
-      var moon = z.id === 'moonbeam', sqs = zoneSquares(z).filter(function (q) { return !shut(B, z, q[0], q[1]); }), ZC = moon ? [P('bone', 2), P('glow', 2)] : [P('fire', 1), P('fire', 0)], zp = 0.6 + 0.4 * Math.sin(t / 10);
+      // (Gust of Wind's line, 10-21 night: washed silver, streaks blowing along it the way it points, and a ring at the feet of whoever stands in it -- the caster's own not drawn)
+      var gust = z.id === 'gustofwind', moon = z.id === 'moonbeam' || gust, sqs = zoneSquares(z, B).filter(function (q) { return !shut(B, z, q[0], q[1]); }), ZC = gust ? [P('silver', 6), P('silver', 6)] : moon ? [P('bone', 2), P('glow', 2)] : [P('fire', 1), P('fire', 0)], zp = 0.6 + 0.4 * Math.sin(t / 10);
+      var gdx = gust ? (z.vx - z.vy) * D.iso.TW / 2 : 0, gdy = gust ? (z.vx + z.vy) * D.iso.TH / 2 : 0, gl = Math.hypot(gdx, gdy) || 1; gdx /= gl; gdy /= gl;
       sqs.forEach(function (q) {
         onSq(q[0], q[1], function (c) {
-          D.iso.rhombus(c, q[0], q[1], D.iso.map.gz(q[0], q[1]), 2); c.globalAlpha = 0.08 + 0.06 * zp; c.fillStyle = ZC[0]; c.fill();
-          c.globalAlpha = 0.3 * zp; c.strokeStyle = ZC[1]; c.lineWidth = 1; c.stroke(); c.globalAlpha = 1;
+          D.iso.rhombus(c, q[0], q[1], D.iso.map.gz(q[0], q[1]), 2); c.globalAlpha = (gust ? 0.13 : 0.08) + 0.06 * zp; c.fillStyle = ZC[0]; c.fill();
+          c.globalAlpha = (gust ? 0.45 : 0.3) * zp; c.strokeStyle = ZC[1]; c.lineWidth = 1; c.stroke(); c.globalAlpha = 1;
+          if (gust) { var s = sq(q[0], q[1]); for (var k = 0; k < 3; k++) { var ph = ((t * 0.9 + hsh(q[0] + k * 7, q[1]) * 40) % 40) - 20, ox = (hsh(q[0], q[1] + k * 5) - 0.5) * 16, oy = (hsh(q[0] + k, q[1] - k) - 0.5) * 7, px0 = s.x + ox + gdx * ph, py0 = s.y + oy + gdy * ph; c.globalAlpha = 0.85 * (1 - Math.abs(ph) / 20); c.strokeStyle = P('bone', 1); c.beginPath(); c.moveTo(px0, py0); c.lineTo(px0 + gdx * 9, py0 + gdy * 9); c.stroke(); } c.globalAlpha = 1; }
         });
       });
       B.units.forEach(function (u) {
+        if (gust && u.id === z.by) return;
         if (!G.standing(u) || u.left || u.fled || !(moon ? G.inArea(u, sqs) : G.dist(u, { x: z.x, y: z.y, size: 1 }) <= 5 && !shut(B, z, u.x, u.y))) return; // (no ring at the feet of one a globe keeps it off)
         var p = D.ui.unitPos(B, u);
         ctx.save(); ctx.globalAlpha = 0.75; ctx.strokeStyle = ZC[1]; ctx.lineWidth = 1; ctx.setLineDash([3, 2]); ctx.lineDashOffset = t / 4;
@@ -490,8 +495,9 @@
     });
   };
   // the squares a zone bites: the beam's (js/grimoire.js zoneSq), and every open square within 5 ft of the sphere
-  function zoneSquares(z) {
+  function zoneSquares(z, B) {
     if (z.id === 'moonbeam') return M.zoneSq ? M.zoneSq(z) : [[z.x, z.y]];
+    if (z.id === 'gustofwind') return M.gustSq ? M.gustSq(B, z) : []; // (the line from where the caster stands now: js/grimoire.js gustSq)
     var out = [];
     for (var dy = -1; dy <= 1; dy++) for (var dx = -1; dx <= 1; dx++) { var s = G.map.at(z.x + dx, z.y + dy); if (s && s.open) out.push([z.x + dx, z.y + dy]); }
     return out;

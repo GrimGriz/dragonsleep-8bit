@@ -175,6 +175,40 @@
       return [acs[0] === ac0 - 1 && acs[1] === ac0 - 2 && gone && acs[2] === ac0 - 5, 'AC ' + ac0 + ' -> ' + acs.join(' -> ') + (gone ? ' (the mail gone, the shield kept)' : ' (the mail never eaten through)')];
     }
 
+    // an open flat run of n squares east and two rows deep, nearest the floor's middle, as offsets from it (the wind's line wants room)
+    function flatRun(n) {
+      var best = null, bd = 1e9;
+      for (var y = 1; y < G.map.h - 2; y++) for (var x = 1; x < G.map.w - n - 1; x++) {
+        var ok = true; for (var k = 0; k <= n && ok; k++) for (var j = 0; j <= 1; j++) { var s = G.map.at(x + k, y + j); if (!s || !s.open || G.map.gz(x + k, y + j) !== G.map.gz(x, y)) ok = false; }
+        var d = Math.abs(x + n / 2 - cx) + Math.abs(y - cy); if (ok && d < bd) { bd = d; best = [x - cx, y - cy]; }
+      }
+      return best || [-4, 0];
+    }
+    function* gust() {
+      // the wizard's Gust of Wind east (SRD 5.1, built 10-21 night): the cast pushes no one, and its line blows the fog apart and puts out the cleric's torch (back in the pack); the
+      // hobgoblin starts its turn in it, its save pinned to fail: blown 15 ft along it; the gray ooze's pinned to pass: it stands, and toward the wizard its 10 ft of move is 5;
+      // the wizard's bonus action turns the line north
+      var r = flatRun(10), o = [r[0], r[1]];
+      stage([wizard, hob, ooze, cleric], [[o[0], o[1]], [o[0] + 3, o[1]], [o[0] + 4, o[1] + 1], [o[0] + 1, o[1] + 1]]); hob.maxhp = hob.hp = 80; ooze.maxhp = ooze.hp = 80;
+      if ((wizard.known || []).indexOf('gustofwind') < 0) (wizard.known = wizard.known || []).push('gustofwind');
+      wizard.slots = [4, 3, 2, 0, 0, 0, 0, 0, 0]; cleric.torch = { lit: true }; B.inv.push({ id: 'torch', n: 1 });
+      B.darks = (B.darks || []).concat([{ kind: 'fog', sq: [[wizard.x + 6, wizard.y], [wizard.x + 6, wizard.y + 1], [wizard.x + 7, wizard.y], [wizard.x + 7, wizard.y + 1]], by: 'show' }]); if (B.lightMap) B.lightMap = null;
+      say(['The wizard casts Gust of Wind east: a line of wind 60 ft long and 10 ft wide, held. The cleric\'s torch and a patch of fog are in it.']); yield W(60);
+      var hx = hob.x, ox = ooze.x, n = mark(); turn(wizard); yield* fire(B.exec(wizard, { do: 'cast', id: 'gustofwind', slot: 2, target: { x: wizard.x + 6, y: wizard.y } })); B.active = null; yield W(60);
+      var still = hob.x === hx && ooze.x === ox, fogGone = !(B.darks || []).some(function (d) { return d.by === 'show'; }), torchOut = !cleric.torch && (B.inv.filter(function (s) { return s.id === 'torch'; })[0] || {}).n === 2;
+      say(['The hobgoblin starts its turn in the wind: its STR save pinned to fail.']); yield W(40);
+      setPin(null, [2]); turn(hob); B.active = null; yield W(60); var blown = hob.x - hx;
+      say(['The gray ooze starts its turn in it: its save pinned to pass. Toward the wizard every foot costs two.']); yield W(40);
+      setPin(null, [19]); turn(ooze); B.active = null; yield W(40); setPin(null, null);
+      var rc = G.reach(ooze, ooze.turn.move), one = rc[(ooze.x - 1) + ',' + ooze.y], two = rc[(ooze.x - 2) + ',' + ooze.y], away = rc[(ooze.x + 1) + ',' + ooze.y], creep = !!one && one.cost === 10 && !two && !!away && away.cost === 5;
+      say(['The wizard\'s next turn: the bonus action turns the line north.']); yield W(40);
+      B.round++; turn(wizard); var again = (D.magic.list(B, wizard) || []).filter(function (e) { return e.id === 'gustofwind' && e.g && e.g.again; })[0];
+      if (again) { yield* fire(B.exec(wizard, { do: 'cast', id: 'gustofwind', slot: again.slot, target: { x: wizard.x, y: wizard.y - 6 } })); yield W(60); }
+      var z = (B.zones || []).filter(function (q) { return q.id === 'gustofwind'; })[0], north = !!z && z.vy < -0.9;
+      B.active = null; if (wizard.conc) D.magic.endConc(B, wizard, 'the show'); yield W(30);
+      return [still && fogGone && torchOut && blown === 3 && ooze.x === ox && creep && !!again && north, (still ? 'the cast pushed no one' : 'the cast pushed someone') + '; the fog ' + (fogGone ? 'torn apart' : 'still there') + ', the cleric\'s torch ' + (torchOut ? 'out and back in the pack' : 'still lit') + '; the hobgoblin blown ' + blown * 5 + ' ft, the ooze ' + (ooze.x === ox ? 'stood firm' : 'moved') + ', toward the wizard ' + (creep ? 'its 10 ft goes 5' : 'not at double cost') + '; ' + (again && north ? 'the bonus action turned it north' : 'not turned')];
+    }
+
     var BEATS = [
       { id: 'antitoxin', group: 'antitoxin', name: 'The antitoxin', what: 'A giant spider\'s bite is a CON save against poison (DC 11; 2d8 poison, half on a save). Without the antitoxin the cleric rolls one die; with it, two, and keeps the better -- the SRD\'s advantage on saves against poison. The bar reads antitoxin while it lasts (the fight).', run: antitoxin },
       { id: 'puddingweapon', group: 'pudding', name: 'The pudding and a plain weapon', what: 'The cleric\'s mace is plain (nothing magic in this party): each blow that lands on the black pudding burns the cleric (its Corrosive Form, 1d8 acid) and eats the mace, -1 and -2 to its damage, and the third eats it through -- gone, fists after.', run: puddingWeapon },
@@ -182,7 +216,8 @@
       { id: 'puddingmagic', group: 'pudding', name: 'The pudding and magic', what: 'The same blows and bites with the mace made +1 and the mail magic: the acid eats neither (a magic weapon and magic armour are never eaten).', run: puddingMagic },
       { id: 'heatmetal', group: 'heatmetal', name: 'Heat Metal ends with the one it heats', what: 'The bard heats the hobgoblin\'s chain mail (it cannot shed it: attacks and checks at disadvantage) and flares it with a bonus action the next turn. The cleric fells the hobgoblin: at its turn\'s end the bard lets go of Heat Metal (nothing left to hold) -- no flare offered, no END HEAT METAL on the ring, and the bard is free to concentrate on something else.', run: heatMetal },
       { id: 'metalgrasp', group: 'metal', name: 'Shocking Grasp and a foe\'s mail', what: 'A foe\'s sheet names its metal armour now, by the SRD block\'s AC (the hobgoblin\'s chain mail, the guard\'s chain shirt, the veteran\'s splint). The wizard\'s Shocking Grasp at the hobgoblin has advantage (metal armour); at the giant spider, none.', run: metalGrasp },
-      { id: 'oozemail', group: 'metal', name: 'The gray ooze and a foe\'s mail', what: 'The gray ooze\'s pseudopod eats metal armour: on the hobgoblin\'s chain mail -1 AC, -2, and the third bite eats it through -- the mail gone, its shield still counting (AC 13).', run: oozeMail }
+      { id: 'oozemail', group: 'metal', name: 'The gray ooze and a foe\'s mail', what: 'The gray ooze\'s pseudopod eats metal armour: on the hobgoblin\'s chain mail -1 AC, -2, and the third bite eats it through -- the mail gone, its shield still counting (AC 13).', run: oozeMail },
+      { id: 'gust', group: 'gust', name: 'Gust of Wind, held', what: 'The SRD\'s Gust of Wind: a line of wind 60 ft long and 10 ft wide blasts from the wizard while it is held (a minute). The cast pushes no one; it tears the fog apart and blows the torch out (a lantern half the time). Whoever starts a turn in it saves STR or is blown 15 ft along it; walking toward the wizard in it costs 2 ft a foot; a bonus action turns the line.', run: gust }
     ];
 
     var only = get('only'), list = BEATS.filter(function (b) { return !only || only.split(',').some(function (o) { return o === b.id || o === b.group; }); });

@@ -949,18 +949,68 @@
       return { score: 10.5 * 0.6 * 2, t: u, keep: 6 };
     }
   };
+  // Gust of Wind (SRD 5.1): "A line of strong wind 60 feet long and 10 feet wide blasts from you in a direction you choose for the spell's duration" (concentration, a
+  // minute). A creature that starts its turn in it saves STR or is pushed 15 ft away along the line (M.onStart, below); one in it spends 2 ft a foot moving closer to the caster
+  // (G.stepCost, below); it disperses gas and vapour -- the fog, the stinking cloud, Cloudkill -- puts out torches and candles in it, and a lantern's flame half the time
+  // (js/light.js L.gust); "as a bonus action on each of your turns before the spell ends", the line turns. Built 10-21 night (the grid's rules, the lane's next 3, from
+  // his 10-16 "one of the spell choices says 'not built' gust of wind?"): before, one push at the cast and nothing after. By the SRD the cast itself pushes no one -- the
+  // wind takes whoever starts a turn in it. The line blasts from the caster: it goes where the caster goes, the way it was pointed (B.zones: { id, by, vx, vy, dz, dc })
   E.gustofwind = {
-    summary: function () { return '60-ft line from you · STR or pushed 15 ft away; the fog and the cloud in it blown apart'; },
+    geo: function (B, u, g) { return zoneOf(B, u, 'gustofwind') ? Object.assign({}, g, { time: 'B', free: true, move: true, again: true }) : null; },
+    againName: 'Gust of Wind: turn the line',
+    summary: function (e) { return (e.g && e.g.again ? 'bonus action · the line turns where you point it' : '60-ft line, 10 ft wide, from you (concentration, a minute; a bonus action turns it)') + ' · whoever starts a turn in it, STR or blown 15 ft along it; moving toward you costs double; gas blown away, torches out, a lantern half the time'; },
     cast: function* (B, u, t, slot, head, x) {
-      var sq = M.area(u, x.g, t.x, t.y, t.z); FX.bloom(u.x, u.y, sq, 'silver');
-      var before = (B.darks || []).length;
-      B.darks = (B.darks || []).filter(function (d) { return !((d.kind === 'fog' || d.kind === 'stink' || d.kind === 'kill') && d.sq.some(function (q) { return sq.some(function (p) { return p[0] === q[0] && p[1] === q[1]; }); })); });
-      if (B.darks.length < before) { B.card(['{c}The wind tears the cloud apart.{/}'], 240); if (B.lightMap) B.lightMap = null; }
-      var pushed = caughtIn(B, sq).filter(function (w) { return w !== u; });
-      yield* saveAll(B, u, pushed, 'str', x.dc, null, '', false, head + ': a howling wind', { failText: 'blown back', cond: function (w) { M.push(B, u, w, 3); } });
+      var z = zoneOf(B, u, 'gustofwind'), first = !z;
+      if (first) {
+        z = { id: 'gustofwind', by: u.id, dc: x.dc, hit: {} };
+        B.zones = (B.zones || []).concat([z]);
+        M.concentrate(B, u, 'gustofwind', 'Gust of Wind', function () { B.zones = (B.zones || []).filter(function (q) { return q !== z; }); B.cache = null; B.card(['{g}The wind dies down.{/}'], 240); });
+      }
+      gustAim(u, z, t, x.g);
+      var sq = gustSq(B, z); B.cache = null; // (the reach maps: the wind's cost on the way toward the caster)
+      D.sfx('magic'); FX.bloom(u.x, u.y, sq, 'silver');
+      B.card([first ? head + ': a line of howling wind, 60 ft long and 10 ft wide, blasts out (concentration; a bonus action turns it).' : '{y}' + u.name + '{/} turns the wind.'], 300);
+      yield 20;
+      gustSweep(B, z, sq);
+      yield 16;
     },
-    ai: function () { return null; }
+    ai: function () { return null; } // (the AI does not cast it: it never did)
   };
+  function gustCaster(B, z) { return B.units.filter(function (w) { return w.id === z.by; })[0] || null; }
+  // the way the line points, kept as a direction off the caster (and, where height matters, the aim's height off the caster's middle)
+  function gustAim(u, z, t, g) {
+    var ox = u.x + ((u.size || 1) - 1) / 2, oy = u.y + ((u.size || 1) - 1) / 2, dx = t.x - ox, dy = t.y - oy, L = Math.hypot(dx, dy);
+    if (L < 0.01) { if (z.vx == null) { z.vx = u.facing === 3 || u.facing === 4 ? -1 : 1; z.vy = 0; } } else { z.vx = dx / L; z.vy = dy / L; }
+    z.dz = G.tall() ? (t.z != null ? Math.max(t.z, G.map.gz(t.x, t.y)) : M.aimZ(g, t.x, t.y)) - M.midZ(u) : 0;
+  }
+  // its squares now: the line from wherever the caster stands (none while the caster is down or gone)
+  function gustSq(B, z) {
+    var c = gustCaster(B, z); if (!c || !G.standing(c) || z.vx == null) return [];
+    var ox = c.x + ((c.size || 1) - 1) / 2, oy = c.y + ((c.size || 1) - 1) / 2;
+    return M.aimLine(c, ox + z.vx * 12, oy + z.vy * 12, 60, G.tall() ? M.midZ(c) + (z.dz || 0) : null, 10);
+  }
+  M.gustSq = gustSq;
+  // the same as a lookup for the movement cost, made once for where the caster stands and the way the line points
+  function gustSet(B, z) {
+    var c = gustCaster(B, z), k = c ? [c.x, c.y, c.fz, z.vx, z.vy, z.dz, G.tall(), G.standing(c)].join(',') : '';
+    if (z.setKey !== k) { var sq = gustSq(B, z), set = {}; sq.forEach(function (q) { set[q[0] + ',' + q[1]] = 1; }); z.setKey = k; z.set = set; z.setSq = sq; }
+    return z.set;
+  }
+  // the gas blown away and the flames put out in it: at the cast, when it turns, and at the start of each of the caster's turns (a cloud laid in it since)
+  function gustSweep(B, z, sq) {
+    sq = sq || gustSq(B, z); if (!sq.length) return;
+    var before = (B.darks || []).length, lines = [];
+    B.darks = (B.darks || []).filter(function (d) { return !((d.kind === 'fog' || d.kind === 'stink' || d.kind === 'kill') && d.sq.some(function (q) { return sq.some(function (p) { return p[0] === q[0] && p[1] === q[1]; }); })); });
+    if (B.darks.length < before) lines.push('{c}The wind tears the cloud apart.{/}');
+    var out = D.light && D.light.gust ? D.light.gust(B, sq) : [];
+    if (out.length) lines.push('{o}' + out.join('; ') + '.{/}');
+    if (lines.length) { B.card(lines, 300); if (B.lightMap) B.lightMap = null; }
+  }
+  // blown 15 ft along the line (SRD 5.1: "pushed 15 feet away from you in a direction following the line"): the line's way to the nearest of the eight
+  function gustPush(B, z, w) {
+    var sx = Math.abs(z.vx) > 0.383 ? Math.sign(z.vx) : 0, sy = Math.abs(z.vy) > 0.383 ? Math.sign(z.vy) : 0;
+    if (sx || sy) M.push(B, { x: w.x - sx, y: w.y - sy }, w, 3);
+  }
   // Heat Metal (SRD 5.1): worn or held metal glows; 2d8 fire, no save, and again with a bonus action each turn (concentration); CON or it
   // drops what it holds (armour it cannot: disadvantage on its attacks till the caster's next turn). Held on the one it heats (M.concentrate's `on`): that one dead or
   // gone, nothing is left to heat and the caster lets go -- no flare offered, END off the ring (10-21 night, his "heat metal concentration continues after target dies";
@@ -1104,7 +1154,7 @@
   function effectSq(B, k, z) {
     if (k === 'darks') return M.darkSq(B, z) || z.sq || [];
     if (z.sq) return z.sq;
-    if (k === 'zones') return z.id === 'moonbeam' ? zoneSq(z) : G.sphere(z.x, z.y, 5);
+    if (k === 'zones') return z.id === 'moonbeam' ? zoneSq(z) : z.id === 'gustofwind' ? gustSq(B, z) : G.sphere(z.x, z.y, 5);
     var c = B.units.filter(function (w) { return w.id === z.by; })[0];
     if (k === 'auras' || k === 'shells') { if (!c) return []; var r = k === 'shells' ? 10 : (z.r || 15), out = []; for (var y = 0; y < G.map.h; y++) for (var x = 0; x < G.map.w; x++) if (G.dist(c, { x: x, y: y, size: 1 }) <= r) out.push([x, y]); return out; }
     if (k === 'lights') { var rr = Math.max(0, Math.floor((z.bright || 0) / 5)), o2 = []; for (var dy = -rr; dy <= rr; dy++) for (var dx = -rr; dx <= rr; dx++) o2.push([z.x + dx, z.y + dy]); return o2; }
@@ -1487,6 +1537,42 @@
   M.onEnd = function (B, u) { onEndZ(B, u); (B.zones || []).forEach(function (z) { if (z.id === 'flamingsphere' && G.standing(u) && G.dist(u, { x: z.x, y: z.y, size: 1 }) <= 5) zoneHit(B, z, u, 'ends its turn beside the flaming sphere', true); }); };
   var stepIntoZ = M.stepInto;
   M.stepInto = function (B, u) { var stop = stepIntoZ(B, u); (B.zones || []).forEach(function (z) { if (z.id === 'moonbeam' && G.inArea(u, zoneSq(z))) zoneHit(B, z, u, 'steps into the moonbeam'); }); return stop || u.hp <= 0; };
+  // Gust of Wind's: a creature that starts its turn in the line, STR or blown 15 ft along it; the caster's own turn, the line swept again (a cloud laid in it since, a torch lit)
+  var onStartGust = M.onStart;
+  M.onStart = function (B, u) {
+    onStartGust(B, u);
+    (B.zones || []).forEach(function (z) {
+      if (z.id !== 'gustofwind') return;
+      if (z.by === u.id) { gustSweep(B, z); return; }
+      if (!G.standing(u) || u.object || u.ethereal) return;
+      var sq = gustSq(B, z); if (!sq.length || !G.inArea(u, sq)) return;
+      if (M.zoneShut(B, z, u, 'starts a turn in the gust')) return;
+      var sv = RU.save(u, 'str', z.dc), x0 = u.x, y0 = u.y;
+      if (!sv.ok) gustPush(B, z, u);
+      var moved = Math.max(Math.abs(u.x - x0), Math.abs(u.y - y0)) * 5;
+      B.card([Nm(B, u) + ' starts a turn in the gust: STR ' + RU.saveText(sv) + ' vs DC ' + z.dc + '  ' + (sv.ok ? '{n}stands firm{/}' : '{o}blown ' + moved + ' ft along it{/}' + (moved < 15 ? ' {g}(stopped)' + '{/}' : ''))], 260);
+    });
+  };
+  // ... and moving toward its caster in it, 2 ft of movement a foot (SRD 5.1: "Any creature in the line must spend 2 feet of movement for every 1 foot it moves when moving closer
+  // to you"): a step that starts or ends in the line and comes nearer the caster costs 5 more. Every walker's reach map asks it, the AI's too
+  var stepCostGust = G.stepCost;
+  G.stepCost = function (u, x0, y0, x1, y1, o) {
+    var c = stepCostGust.apply(this, arguments), B = D.battle;
+    if (c === Infinity || (o && o.ghost) || !B || !B.zones || !B.zones.length) return c;
+    for (var i = 0; i < B.zones.length; i++) {
+      var z = B.zones[i]; if (z.id !== 'gustofwind' || z.by === u.id) continue;
+      var cz = gustCaster(B, z), set = cz && gustSet(B, z); if (!set) continue;
+      if (!gustIn(u, z, set, x0, y0) && !gustIn(u, z, set, x1, y1)) continue;
+      if (G.dist(u, cz, x1, y1) < G.dist(u, cz, x0, y0)) return c + 5;
+    }
+    return c;
+  };
+  // is u's body in the line, standing at (x, y)? (its footprint on the line's squares, and at a height the line meets there)
+  function gustIn(u, z, set, x, y) {
+    var f = G.foot(u, x, y), inZ = z.setSq && z.setSq.inZ, lo = inZ ? G.gzAt(u, x, y) : 0, hi = inZ ? lo + G.bodyH(u) * G.map.def.step : 0;
+    for (var i = 0; i < f.length; i++) if (set[f[i][0] + ',' + f[i][1]] && (!inZ || inZ(f[i][0], f[i][1], lo, hi))) return true;
+    return false;
+  }
 
   // ------------------------------------------------------------------ 4th level (09-28, batch D: the foes' casters and the NPCs past 6)
   // Banishment (SRD 5.1): CHA or gone from the field while the caster holds it; one from another plane (fiend, celestial, elemental, fey)

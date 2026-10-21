@@ -141,12 +141,15 @@
   // cone and line: from the caster toward the cursor. A cone is as wide as it is far (half-angle ~26.6); a line 5 ft wide.
   // (by height, 10-15: `tz`, the aim's height in drawing px, tilts it from the middle of the caster's body toward that point -- a cone widens up and down as it does across, a
   // line is 5 ft high as it is wide (SRD 5.1 Areas of Effect) -- and the squares are what lies under it; with no `tz` it is the flat cone it always was)
-  function aimed(u, cx, cy, len, cone, tz) {
+  // (`wide`: a line's width in ft, 5 unless the spell names more -- Gust of Wind's 10, data/spells.js `wide`, 10-21 night: two squares across, the axis set half a square to the
+  // clockwise side of the caster's middle, since a 10-ft band about a square's middle would be one square or three)
+  function aimed(u, cx, cy, len, cone, tz, wide) {
     var ox = u.x + ((u.size || 1) - 1) / 2, oy = u.y + ((u.size || 1) - 1) / 2, dx = cx - ox, dy = cy - oy, L = Math.hypot(dx, dy);
     if (L < 0.01) return [];
+    var two = !cone && wide === 10; if (two) { ox -= dy / L * 0.5; oy += dx / L * 0.5; } // (the band's axis off the middle; the caster's own squares and the sight line stay his)
     var LY = tz != null ? G.LAYER() : 1, oz = tz != null ? M.midZ(u) / LY : 0, dz = tz != null ? tz / LY - oz : 0, L3 = Math.hypot(L, dz), lim = len / 5 + 0.5, span = lim + 1;
-    var ax = dx / L3, ay = dy / L3, az = dz / L3, tilt = Math.abs(dz) > 0.01; // (heights in squares, 5 ft each, as across)
-    function inside(x, y, z) { var vx = x - ox, vy = y - oy, vz = z - oz, al = vx * ax + vy * ay + vz * az; if (al <= 0.3 || al > lim) return false; var pp = Math.sqrt(Math.max(0, vx * vx + vy * vy + vz * vz - al * al)); return cone ? pp <= al / 2 + 0.35 : pp <= 0.55; }
+    var ax = dx / L3, ay = dy / L3, az = dz / L3, tilt = Math.abs(dz) > 0.01, half = two ? 1 : 0.55; // (heights in squares, 5 ft each, as across)
+    function inside(x, y, z) { var vx = x - ox, vy = y - oy, vz = z - oz, al = vx * ax + vy * ay + vz * az; if (al <= 0.3 || al > lim) return false; var pp = Math.sqrt(Math.max(0, vx * vx + vy * vy + vz * vz - al * al)); return cone ? pp <= al / 2 + 0.35 : pp <= half; }
     function colIn(x, y, z0, z1) { var n = Math.max(2, Math.ceil((z1 - z0) / 0.25)); for (var i = 0; i <= n; i++) if (inside(x, y, z0 + (z1 - z0) * i / n)) return true; return false; }
     var out = [], R = Math.ceil(len / 5) + 1;
     for (var y = Math.floor(oy) - R; y <= Math.ceil(oy) + R; y++) for (var x = Math.floor(ox) - R; x <= Math.ceil(ox) + R; x++) {
@@ -198,9 +201,10 @@
     if (g.shape === 'wave') return waveHeight(u, g, M.wave(u, g, cx, cy));
     if (g.shape === 'around') return M.around(u, u.x, u.y); // (wherever the cursor is: it is always round the caster)
     if (g.shape === 'cone') return aimed(u, cx, cy, g.len, true, z);
-    if (g.shape === 'line') return aimed(u, cx, cy, g.len, false, z);
+    if (g.shape === 'line') return aimed(u, cx, cy, g.len, false, z, g.wide);
     return [];
   };
+  M.aimLine = function (u, cx, cy, len, tz, wide) { return aimed(u, cx, cy, len, false, tz, wide); }; // (a line that blasts from the caster while it lasts: Gust of Wind, js/grimoire.js gustSq)
   // a cube out from the caster (Thunderwave): 3 x 3 squares against the side (or the corner) of him the cursor is toward
   M.waveDir = function (u, cx, cy) {
     var dx = cx - u.x, dy = cy - u.y;

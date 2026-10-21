@@ -49,7 +49,7 @@
       target: function (c) { return { x: c.cx, y: c.cy - 6 }; },
       after: function* (c, t, e) { yield* c.B.exec(c.u, { do: 'cast', id: 'flamingsphere', slot: e.slot, target: c.foes[1] }); yield 20; } },
     // the foes in a column down the line of the wind, so every one of them is in it
-    gustofwind: { tip: "Gust of Wind: a 60-ft line that shoves creatures that fail STR 15 ft back, and blows apart clouds of fog and gas. Line foes up with it to push them out of melee, or clear a cloud.",
+    gustofwind: { tip: "Gust of Wind: a 60-ft line of wind, 10 ft wide, held: whoever starts a turn in it saves STR or is blown 15 ft along it, and walking toward you through it costs double. It blows apart fog and gas and puts out torches; a bonus action turns it. Point it down a corridor to hold foes off, or clear a cloud.",
       foes: [foe3(-1, 3, { abil: { str: 2 } }), foe3(-1, 5, { abil: { str: 2 } }), foe3(-1, 7, { abil: { str: 2 } })],
       target: function (c) { return c.foes[0]; } },
     // a tight bunch (the beam is one 5-ft square): all three in it at once, and weak Constitution

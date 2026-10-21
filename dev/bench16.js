@@ -3778,6 +3778,52 @@
       while (B2c.co && k2c++ < 400000) { var r2c = B2c.co.next(v2c); v2c = undefined; if (r2c.done) break; var y2c = r2c.value; if (y2c && y2c.prompt) v2c = y2c.prompt.opts[0].value; }
       (B2c.rulesReport || []).forEach(function (b) { okC('2 the show: ' + b.name + ' -- ' + b.why + (b.ok && !get('logs', '') ? '' : ' || LOG: ' + String(b.log || '').replace(/\{\/?[a-z]*\}/g, '').slice(0, 2400)), b.ok); });
       if ((B2c.rulesReport || []).length !== 3) okC('2 the show ran ' + (B2c.rulesReport || []).length + ' beats of heatmetal,metal (want 3)', false);
+      // 3. GUST OF WIND BY THE SRD 5.1 (his 10-16 "one of the spell choices says 'not built' gust of wind?"): a line 60 ft by 10 ft held by concentration; the cast pushes no one; a
+      // goblin that starts its turn in it, its save failed, blown 15 ft along it, one that saves stays; toward the caster in it 2 ft a foot; the fog in it blown away and torches out
+      // at the caster's turn, a lantern on a d100 of 50 or less; a bonus action turns it; let go, the wind is gone
+      var B3 = mkC('?npc=goblin,goblin&vs=wizard:5,fighter:5&lvl=5'), wz3 = clsC(B3, 'wizard'), fg3 = clsC(B3, 'fighter'), gb3 = sideC(B3, 'foe'), G3 = D.grid, run3 = null;
+      for (var y3 = 2; y3 < G3.map.h - 3 && !run3; y3++) for (var x3 = 1; x3 < G3.map.w - 11 && !run3; x3++) { var okR3 = true; for (var k3 = 0; k3 <= 10 && okR3; k3++) for (var j3 = 0; j3 <= 1; j3++) { var s3 = G3.map.at(x3 + k3, y3 + j3); if (!s3 || !s3.open || G3.map.gz(x3 + k3, y3 + j3) !== G3.map.gz(x3, y3)) okR3 = false; } if (okR3) run3 = [x3, y3]; }
+      if (!run3) okC('3 a flat run 11 squares by 2 on the class floor for the line', false);
+      else {
+        var X3 = run3[0], Y3 = run3[1], pin3 = function (d20, d100, f) { D.d = function (n) { return n === 20 && d20 ? d20 : n === 100 && d100 ? d100 : d0C(n); }; try { return f(); } finally { D.d = d0C; } };
+        wz3.x = X3; wz3.y = Y3; gb3[0].x = X3 + 3; gb3[0].y = Y3; gb3[1].x = X3 + 4; gb3[1].y = Y3 + 1; fg3.x = X3 + 9; fg3.y = Y3 + 1; B3.cache = null; learnC(wz3, 'gustofwind');
+        D.rules.startTurn(wz3); B3.active = wz3; runC(MC.cast(B3, wz3, 'gustofwind', 2, { x: X3 + 6, y: Y3 }));
+        var z3 = (B3.zones || []).filter(function (z) { return z.id === 'gustofwind'; })[0], sq3 = z3 && MC.gustSq ? MC.gustSq(B3, z3) : [], rows3 = {}; sq3.forEach(function (q) { rows3[q[1]] = (rows3[q[1]] || 0) + 1; });
+        var span3 = sq3.every(function (q) { return (q[1] === Y3 || q[1] === Y3 + 1) && q[0] > X3 && q[0] <= X3 + 12; }), full3 = true; for (var k3b = 1; k3b <= 10; k3b++) for (var j3b = 0; j3b <= 1; j3b++) if (!sq3.some(function (q) { return q[0] === X3 + k3b && q[1] === Y3 + j3b; })) full3 = false;
+        okC('3 Gust of Wind cast east: held ' + !!(wz3.conc && wz3.conc.id === 'gustofwind') + ', the line ' + sq3.length + ' squares, rows ' + JSON.stringify(rows3) + ' (inside 60 ft by the caster\'s row and the next: ' + span3 + '; the open 50 ft of both rows: ' + full3 + '); the goblins where they stood ' + (gb3[0].x === X3 + 3 && gb3[1].x === X3 + 4) + ' (want true; true, true -- 10 ft wide; true: the cast pushes no one)',
+          !!z3 && !!(wz3.conc && wz3.conc.id === 'gustofwind') && span3 && full3 && gb3[0].x === X3 + 3 && gb3[1].x === X3 + 4);
+        var pre3 = gb3[0].x;
+        pin3(2, 0, function () { D.rules.startTurn(gb3[0]); B3.active = gb3[0]; }); // (D.rules.startTurn -> magic.js M.startTurn -> M.onStart: the wind's save)
+        pin3(19, 0, function () { D.rules.startTurn(gb3[1]); B3.active = gb3[1]; });
+        okC('3 and the goblins start their turns in it: the one that fails from ' + pre3 + ' to ' + gb3[0].x + ', the one that saves at ' + gb3[1].x + ' (want ' + (X3 + 3) + ' to ' + (X3 + 6) + ', ' + (X3 + 4) + ': blown 15 ft along the line at its turn; stood firm)', pre3 === X3 + 3 && gb3[0].x === X3 + 6 && gb3[0].y === Y3 && gb3[1].x === X3 + 4);
+        B3.cache = null; var toward3 = G3.stepCost(gb3[1], X3 + 4, Y3 + 1, X3 + 3, Y3 + 1), away3 = G3.stepCost(gb3[1], X3 + 4, Y3 + 1, X3 + 5, Y3 + 1);
+        okC('3 and in it, a step toward the wizard costs ' + toward3 + ' ft, a step away ' + away3 + ' (want 10, 5: 2 ft a foot toward the caster)', toward3 === 10 && away3 === 5);
+        B3.darks = (B3.darks || []).concat([{ kind: 'fog', sq: [[X3 + 2, Y3], [X3 + 2, Y3 + 1]], by: 'x' }]);
+        fg3.x = X3 + 2; fg3.y = Y3 + 1; fg3.torch = { lit: true }; gb3[1].torch = { lit: true, kind: 'lantern', hood: false }; var inv3 = (B3.inv || []).filter(function (s) { return s.id === 'torch'; }).reduce(function (a, s) { return a + s.n; }, 0);
+        B3.lights = (B3.lights || []).concat([{ id: 'floortorch3', kind: 'torch', x: X3 + 7, y: Y3, bright: 20, dim: 20, color: 'gold', flame: true }, { id: 'floortorch3b', kind: 'torch', x: X3 + 7, y: Y3 + 4, bright: 20, dim: 20, color: 'gold', flame: true }]);
+        pin3(0, 80, function () { D.rules.startTurn(wz3); B3.active = wz3; });
+        var fog3 = (B3.darks || []).some(function (d) { return d.kind === 'fog'; }), inv3b = (B3.inv || []).filter(function (s) { return s.id === 'torch'; }).reduce(function (a, s) { return a + s.n; }, 0), fl3 = (B3.lights || []).map(function (l) { return l.id; });
+        okC('3 and the wizard\'s turn: the fog in it ' + (fog3 ? 'still there' : 'blown away') + '; the fighter\'s torch ' + (fg3.torch ? 'lit' : 'out') + ' (the pack ' + inv3 + ' -> ' + inv3b + '); the goblin\'s lantern on a d100 of 80 ' + (gb3[1].torch ? 'lit' : 'out') + '; the floor torch in it ' + (fl3.indexOf('floortorch3') >= 0 ? 'lit' : 'out') + ', the one outside ' + (fl3.indexOf('floortorch3b') >= 0 ? 'lit' : 'out') + ' (want blown away; out, +1; lit; out, lit)',
+          !fog3 && !fg3.torch && inv3b === inv3 + 1 && !!gb3[1].torch && fl3.indexOf('floortorch3') < 0 && fl3.indexOf('floortorch3b') >= 0);
+        pin3(0, 30, function () { D.rules.startTurn(wz3); B3.active = wz3; });
+        okC('3 and on a d100 of 30 the goblin\'s lantern ' + (gb3[1].torch ? 'lit' : 'out') + ' (want out)', !gb3[1].torch);
+        D.rules.startTurn(wz3); B3.active = wz3; var slots3 = wz3.slots.slice(), turn3 = (MC.list(B3, wz3) || []).filter(function (e) { return e.id === 'gustofwind'; })[0];
+        if (turn3) runC(MC.cast(B3, wz3, 'gustofwind', turn3.slot, { x: X3 - 6, y: Y3 }));
+        var sq3b = z3 ? MC.gustSq(B3, z3) : [];
+        okC('3 and the next turn the ring offers ' + (turn3 ? turn3.name + ' (' + turn3.g.time + ')' : 'nothing') + '; turned west: vx ' + (z3 && z3.vx) + ', none of it east of the wizard ' + !sq3b.some(function (q) { return q[0] > X3; }) + ', the bonus action spent ' + (wz3.turn.bonus === 0) + ', the action not ' + !!wz3.turn.action + ', no slot ' + (JSON.stringify(slots3) === JSON.stringify(wz3.slots)) + ' (want Gust of Wind: turn the line (B); < 0, true, true, true, true)',
+          !!turn3 && turn3.g.time === 'B' && !!z3 && z3.vx < 0 && !sq3b.some(function (q) { return q[0] > X3; }) && wz3.turn.bonus === 0 && !!wz3.turn.action && JSON.stringify(slots3) === JSON.stringify(wz3.slots));
+        D.rules.startTurn(wz3); B3.active = wz3; var back3 = (MC.list(B3, wz3) || []).filter(function (e) { return e.id === 'gustofwind'; })[0]; if (back3) runC(MC.cast(B3, wz3, 'gustofwind', back3.slot, { x: X3 + 6, y: Y3 }));
+        B3.cache = null; var before3 = G3.stepCost(gb3[1], X3 + 4, Y3 + 1, X3 + 3, Y3 + 1);
+        MC.endConc(B3, wz3, 'the bench'); B3.cache = null; var after3 = G3.stepCost(gb3[1], X3 + 4, Y3 + 1, X3 + 3, Y3 + 1);
+        okC('3 and turned back east, then let go: a step toward the wizard ' + before3 + ' ft, then ' + after3 + '; the wind ' + ((B3.zones || []).some(function (z) { return z.id === 'gustofwind'; }) ? 'still up' : 'gone') + ' (want 10, 5, gone)', before3 === 10 && after3 === 5 && !(B3.zones || []).some(function (z) { return z.id === 'gustofwind'; }));
+        var desc3 = ((window.DS.DATA.spells || {}).gustofwind || {}).desc || '';
+        okC('3 and its words (content/spells.json): ' + (/Not built/.test(desc3) ? '"Not built" still in them' : 'no "Not built"') + ' (want none)', !!desc3 && !/Not built/.test(desc3));
+      }
+      var B3s = D.rulesshow.make('?rulesshow&fast&only=gust'); D.battle = B3s; B3s.enter();
+      var v3s, k3s = 0;
+      while (B3s.co && k3s++ < 400000) { var r3s = B3s.co.next(v3s); v3s = undefined; if (r3s.done) break; var y3s = r3s.value; if (y3s && y3s.prompt) v3s = y3s.prompt.opts[0].value; }
+      (B3s.rulesReport || []).forEach(function (b) { okC('3 the show: ' + b.name + ' -- ' + b.why + (b.ok && !get('logs', '') ? '' : ' || LOG: ' + String(b.log || '').replace(/\{\/?[a-z]*\}/g, '').slice(0, 2400)), b.ok); });
+      if ((B3s.rulesReport || []).length !== 1) okC('3 the show ran ' + (B3s.rulesReport || []).length + ' beats of gust (want 1)', false);
     } catch (eC) { repC.errors.push(String(eC && eC.stack || eC).slice(0, 900)); D.d = d0C; }
     if (errs.length) repC.errors = repC.errors.concat(errs);
     var preC = document.createElement('pre'); preC.id = 'out'; preC.textContent = 'BENCH16 ' + JSON.stringify(repC);

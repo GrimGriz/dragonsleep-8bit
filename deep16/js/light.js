@@ -367,6 +367,27 @@
     B.lights = (B.lights || []).filter(function (l) { var hit = l.kind === 'torch' && sq.some(function (q) { return q[0] === l.x && q[1] === l.y; }); if (hit) out.push('a torch on the floor'); return !hit; });
     return out;
   };
+  // Gust of Wind's line (SRD 5.1: "it extinguishes candles, torches, and similar unprotected flames in the area. It causes protected flames, such as those of lanterns, to dance
+  // wildly and has a 50 percent chance to extinguish them"; 10-21 night): a torch in a hero's hand goes out and back in the pack, unspent (lit again, an action: LIGHT); one on the
+  // floor goes out, gone as Sleet Storm's; a lantern goes out on a d100 of 50 or less -- in a hand, back in the pack; on the floor, back in the pack (a lantern is never lost:
+  // the seam's law). A foe's light is just out. A map's own lights (its sconces and braziers) are its scenery and burn on; a spell's flame is no candle
+  L.gust = function (B, sq) {
+    var out = [], half = function () { var r = D.d(100); return { out: r <= 50, r: r }; }, stow = function (id) { var s = packOf(B, id); if (s) s.n++; else (B.inv = B.inv || []).push({ id: id, n: 1 }); };
+    (B.units || []).forEach(function (u) {
+      if (!u.torch || !u.torch.lit || !G.inArea(u, sq)) return;
+      var t = u.torch, lantern = L.kindOf(t) === 'lantern', h = lantern ? half() : null, who = u.side === 'foe' ? 'the ' + (D.battle && D.battle.shortName ? D.battle.shortName(u) : u.name) : u.name;
+      if (h && !h.out) { out.push(who + '\'s ' + L.word(t) + ' dances but burns on (d100 ' + h.r + ')'); return; }
+      delete u.torch; L.regrip(u);
+      if (u.side === 'party' && !u.familiar) stow(lantern ? (t.item || 'lantern') : 'torch');
+      out.push(who + '\'s ' + L.word(t) + ' blown out' + (h ? ' (d100 ' + h.r + ')' : '') + (u.side === 'party' && !u.familiar ? ': back in the pack' : ''));
+    });
+    B.lights = (B.lights || []).filter(function (l) {
+      if ((l.kind !== 'torch' && l.kind !== 'lantern') || !sq.some(function (q) { return q[0] === l.x && q[1] === l.y; })) return true;
+      if (l.kind === 'lantern') { var h = half(); if (!h.out) { out.push('the ' + L.word(l) + ' on the floor dances but burns on (d100 ' + h.r + ')'); return true; } stow(l.item || 'lantern'); out.push('the ' + L.word(l) + ' on the floor blown out (d100 ' + h.r + '): back in the pack'); return false; }
+      out.push('a torch on the floor blown out'); return false;
+    });
+    return out;
+  };
 
   // ---------------------------------------------------------------- the look: the campfire's pass (js/campfire.js) over the fight's world canvas,
   // called from ui.js drawBattle while iso.inWorld: a night ambient multiplied over everything, each light's pool added in

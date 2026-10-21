@@ -461,7 +461,7 @@ The spell also effectively extends the time limit on raising the target from the
 
 *2nd-level evocation*
 
-> **The game:** A 60-ft line from you, once: creatures in it save STR or are pushed 15 ft away, and fog, stinking and killing clouds in it blow apart. Not built: the minute-long gust, its drag on movement, snuffed flames.
+> **The game:** A line of wind 60 ft long and 10 ft wide blasts from you for as long as you hold it (concentration, a minute): a creature that starts its turn in it saves STR or is blown 15 ft along it, and one in it moving toward you spends 2 ft a foot. It blows fog, stinking and killing clouds apart, puts out torches, and a lantern half the time. A bonus action on your turn turns the line.
 
 **Casting Time:** 1 action
 
