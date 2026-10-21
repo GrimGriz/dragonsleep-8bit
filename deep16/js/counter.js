@@ -40,9 +40,11 @@
     return ((it.weapon && it.weapon.bonus) || (it.armor && it.armor.bonus) || 0) > 0 || !!(it.attune || it.resist || it.immune || it.condImmune || it.adv || it.aura) || C.MAGIC_USE.indexOf(id) >= 0;
   };
 
-  // the one new line (invented.json winters-journal-grid): the first game's winters.journalHint with the grid's menu key (RULED 10-21, Griz, on the JOURNAL and
-  // its marker: "should function the same as the 8-bit unless we add a feature")
-  C.LINES = { journalGrid: 'Winters\' errand is in your JOURNAL now (M, then JOURNAL), and pinned: the gold arrow marks who is next, and the NEXT line says it in words.' };
+  // the grid's own lines: the JOURNAL's hint (invented.json winters-journal-grid), the first game's winters.journalHint with the grid's menu key (RULED 10-21, Griz,
+  // on the JOURNAL and its marker: "should function the same as the 8-bit unless we add a feature"); and Winters' word when his work is put off (invented.json
+  // winters-not-now: the first game has no NOT NOW -- his 10-21 "Need to 'not now' option the work/mission 'offers'")
+  C.LINES = { journalGrid: 'Winters\' errand is in your JOURNAL now (M, then JOURNAL), and pinned: the gold arrow marks who is next, and the NEXT line says it in words.',
+    notNow: '"The dead keep. Come back when your hands are free."' };
   function L(k, o) { var r = (DS.DATA.text || {})[k], s = r ? r.t : k; var sub = function (x) { Object.keys(o || {}).forEach(function (n) { x = x.split('{' + n + '}').join(o[n]); }); return x; }; return Array.isArray(s) ? s.map(sub) : sub(s); }
   C.L = L;
   function pick(a) { return a[Math.floor(D.rand() * a.length)]; }
@@ -386,10 +388,17 @@
       } else break;
     }
   };
+  // an offer of work or a mission, any keeper's (10-21, Griz, on the counter: "Need to 'not now' option the work/mission 'offers'"): its words, the last as the
+  // question, then TAKE IT or NOT NOW -- NOT NOW (a click, or X) closes it untaken, and it is offered again on a later visit. True when taken
+  C.offerWork = function* (sc, lines, face) {
+    lines = [].concat(lines);
+    if (lines.length > 1) yield sc.say(lines.slice(0, -1), face);
+    return (yield sc.ask(lines[lines.length - 1], ['TAKE IT', 'NOT NOW'], face)) === 0;
+  };
   C.wintersWork = function* (sc) {
     var st = sc.st, f = st.flags, items = DS.DATA.items;
     if (!f.wErrA) {
-      yield sc.say(L('winters.errandA'), 'attentive');
+      if (!(yield* C.offerWork(sc, L('winters.errandA'), 'attentive'))) { yield sc.say(C.LINES.notNow, 'attentive'); return; }
       f.wErrA = 1; give(st, 'estatepapers', 1); D.sfx('chest');
       yield sc.say(L('g.got', { item: items.estatepapers.name }));
       if (!f.pin) f.pin = 'errands'; // (the first errand teaches the journal: the first game's playtest 09-25)
@@ -404,7 +413,7 @@
       return;
     }
     if (!f.wErrB) {
-      yield sc.say(L('winters.errandB'), 'attentive');
+      if (!(yield* C.offerWork(sc, L('winters.errandB'), 'attentive'))) { yield sc.say(C.LINES.notNow, 'attentive'); return; }
       f.wErrB = 1; give(st, 'debtpurse', 1); D.sfx('chest');
       yield sc.say(L('g.got', { item: items.debtpurse.name }));
       return 'leave';

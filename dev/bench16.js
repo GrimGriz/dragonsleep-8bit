@@ -2347,8 +2347,16 @@
       okW('then WORK / THE SHELVES / LEAVE, every one a button: ' + (sc.wait.opts || []).join(', '), sc.wait.ask && sc.buttons().filter(function (q) { return q.go === 'opt'; }).length === 3);
       goW(sc, 'opt', 'THE SHELVES'); var shut = readW(sc);
       okW('THE SHELVES before an errand: shut ("' + String(shut[0]).slice(0, 44) + '...", his concerned face)', /people I know/.test(shut.join(' ')) && sc.face && sc.face.anim === 'concerned' && !sc.shop);
-      goW(sc, 'opt', 'WORK'); var wA = readW(sc);
-      okW('WORK: the inventory to carry ("' + String(wA[0]).slice(0, 40) + '..."), the Estate Papers in the pack, the JOURNAL pinned', R0.flags.wErrA === 1 && CW.count(st, 'estatepapers') === 1 && R0.flags.pin === 'errands' && wA.join(' ').indexOf('JOURNAL') >= 0);
+      // an offer can be put off (10-21, Griz: "Need to 'not now' option the work/mission 'offers'"): TAKE IT or NOT NOW, and NOT NOW leaves it for a later visit
+      goW(sc, 'opt', 'WORK'); var wO = readW(sc);
+      okW('WORK offers the errand: its words, then TAKE IT / NOT NOW, every one a button (' + (sc.wait && sc.wait.opts || []).join(', ') + ')', sc.wait && sc.wait.ask && sc.wait.opts.join() === 'TAKE IT,NOT NOW' && /settle themselves/.test(wO.join(' ')) && /inventory/.test(sc.wait.ask.join(' ')) && !R0.flags.wErrA);
+      goW(sc, 'opt', 'NOT NOW'); var wN = readW(sc);
+      okW('NOT NOW puts it off untaken: no papers, no flag, his "' + wN.join(' ') + '", and his question again', !R0.flags.wErrA && !CW.count(st, 'estatepapers') && /keep/.test(wN.join(' ')) && sc.wait && sc.wait.ask && sc.wait.opts.indexOf('WORK') >= 0);
+      goW(sc, 'opt', 'LEAVE'); driveW(g1, null, 200);
+      g1 = fireW(B, 'talk:winters'); sc = D.top(); readW(sc); goW(sc, 'opt', 'WORK'); readW(sc);
+      okW('a later visit: WORK offers it again', sc.wait && sc.wait.ask && sc.wait.opts.join() === 'TAKE IT,NOT NOW' && !R0.flags.wErrA);
+      goW(sc, 'opt', 'TAKE IT'); var wA = readW(sc);
+      okW('TAKE IT: the inventory to carry, the Estate Papers in the pack, the JOURNAL pinned', R0.flags.wErrA === 1 && CW.count(st, 'estatepapers') === 1 && R0.flags.pin === 'errands' && wA.join(' ').indexOf('JOURNAL') >= 0);
       driveW(g1, null, 200);
       okW('a job in hand ends the talk: the screen gone, the floor again', !upW() && sc.done && D.top() === B);
       var jn = CW.journal(B), qE = jn.quests[0];
@@ -2371,7 +2379,11 @@
       okW('Casper Venn values it: "' + String(wC[1] || wC[0]).slice(0, 50) + '..."', R0.flags.wValued === 1 && /fair estate/.test(wC.join(' ')));
       // back to Winters: paid, and the second errand with it
       var sv0 = R0.silver; outW(B); inW(B, 'warp:winters'); var g2 = fireW(B, 'talk:winters'), sc2 = D.top(), back = readW(sc2);
-      okW('back at his counter: the papers taken, ' + (R0.silver - sv0) + ' sp, and straight into the Pryor estate (' + back.length + ' lines)', R0.flags.wErrADone === 1 && R0.silver - sv0 === 12 && !CW.count(st, 'estatepapers') && R0.flags.wErrB === 1 && CW.count(st, 'debtpurse') === 1 && /Brennan/.test(back.join(' ')));
+      okW('back at his counter: the papers taken, ' + (R0.silver - sv0) + ' sp, and the Pryor estate offered straight after (TAKE IT / NOT NOW)', R0.flags.wErrADone === 1 && R0.silver - sv0 === 12 && !CW.count(st, 'estatepapers') && sc2.wait && sc2.wait.ask && sc2.wait.opts.join() === 'TAKE IT,NOT NOW' && !R0.flags.wErrB);
+      var moB = D.input.mouse, kB = { rclick: moB.rclick, inside: moB.inside }; moB.inside = true; moB.rclick = true; sc2.update(); Object.assign(moB, kB); readW(sc2);
+      okW('a right click (X) is NOT NOW: the purse not taken, his question again', !R0.flags.wErrB && !CW.count(st, 'debtpurse') && sc2.wait && sc2.wait.ask && sc2.wait.opts.indexOf('WORK') >= 0);
+      goW(sc2, 'opt', 'WORK'); var backB = readW(sc2); goW(sc2, 'opt', 'TAKE IT'); backB = backB.concat(readW(sc2));
+      okW('WORK, TAKE IT: the Pryor purse (' + backB.length + ' lines)', R0.flags.wErrB === 1 && CW.count(st, 'debtpurse') === 1 && /Brennan/.test(backB.join(' ') + ' ' + (sc2.wait && sc2.wait.ask || []).join(' ') + ' ' + back.join(' ')));
       driveW(g2, null, 200);
       // the purse: Mical signs first (her door), then Brennan (his door) -- the first game's words, done
       outW(B); driveW(TW.fire(B, trigW('keeper:mical')), null, 200);
