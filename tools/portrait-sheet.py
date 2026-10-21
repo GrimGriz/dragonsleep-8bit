@@ -41,8 +41,8 @@ ACTIONS = ['idle', 'attentive', 'welcoming', 'skeptical', 'concerned', 'work']  
 FPS = {'idle': 3, 'work': 4, 'stretch': 4}   # (the idle a slow breath and blink; the work a deliberate unwrap)
 # a person's pages: (page, its bands' counts top to bottom, each drawing's action in reading order) -- the art desk's six-page plan by default
 LAYOUT = [(1, [3, 3], ['idle'] * 6), (2, [1], ['attentive']), (3, [1], ['welcoming']), (4, [1], ['skeptical']), (5, [1], ['concerned']), (6, [3, 3], ['work'] * 6)]
-# name: (pages' folder, ART id, the keeper's door in deep16/js/town.js, overrides). The art desk's numbers -- ART-78 to ART-81 are also its own
-# four heroes' 8-bit makeovers (received-2026-10-20-ART-77/desk-updates): flagged in the ENGINE-RETURN, not renumbered here
+# name: (pages' folder, ART id, the keeper's door in deep16/js/town.js, overrides). The art desk's numbers: bare ART-78 to ART-81 are these shopkeepers --
+# its four heroes' 8-bit makeovers are ART-77-8BIT-<HERO> since its numbering resolution of 10-21 (Griz authorized; the collision is struck)
 PEOPLE = {
     # Sylvia Swann's own two pages (the visible-owl final, 10-16): page 1 her idle, four stills (welcoming, amused, concerned, startled) and her
     # divining (played as her work), page 2 the owl's stretch -- the owl and the divining's glow kept with her (ART-SYLVIA-CUTTER-NOTES-v2.md)
@@ -69,6 +69,7 @@ PEOPLE = {
     # two of the non-shop folk (10-21 night; Griz to the lanes desk: "non shop folk also have art in Fresh"): portraits only, no town page asked
     'mela': ('mela/ART-90', 'ART-90', 'keeper:mela', {}),
     'mical': ('mical/ART-91', 'ART-91', 'keeper:mical', {}),
+    'merrick': ('merrick/ART-93', 'ART-93', 'keeper:merrick', {}),  # (10-21 night, the same word: the message-lantern house's window)
 }
 
 

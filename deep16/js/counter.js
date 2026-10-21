@@ -37,7 +37,8 @@
     ned: { sheet: 'pt_ned', script: 'ned' }, // (Percy's partner, behind the same counter -- C.BESIDE; Percy's counter is Percy's face, Ned's own word his scene: C.ned)
     // two of the non-shop folk at their doors (10-21 night, Griz to the lanes desk: "non shop folk also have art in Fresh"): Mela Sorris of the Stew, and Mical of the
     // riverside warehouse, whose door signs Winters' crate off her books (her first-game talk, its `set` done by C.words); Mical sells nothing, so no line for a counter to come
-    mela: { sheet: 'pt_mela' }, mical: { sheet: 'pt_mical', wait: '' }
+    mela: { sheet: 'pt_mela' }, mical: { sheet: 'pt_mical', wait: '' },
+    merrick: { sheet: 'pt_merrick', wait: 'His window -- the sendings -- is to come.' } // (the message-lantern house, behind its grille: he sells nothing on a shelf, his window sends)
   };
   C.BESIDE = { percy: ['ned'] }; // (who stands behind a counter beside its keeper: js/town.js T.goIn)
   C.PETS = { ned: 'rat' }; // (a keeper's familiar on the counter in front of them: Ned's rat -- js/rules.js R.FAMILIARS, js/town.js T.goIn)

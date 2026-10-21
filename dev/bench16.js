@@ -2560,7 +2560,11 @@
       okW('Mela Sorris at the Stew\'s door, on her portrait (' + (scMe && scMe.sheet) + '): "' + String(wMe[0]).slice(0, 40) + '...", the party still in the street', scMe && scMe.sheet === 'pt_mela' && /Three coppers the common bath/.test(wMe[0]) && !D.roam.def.room && !upW());
       var gMi2 = TW.fire(B, trigW('keeper:mical')); driveW(gMi2, upW, 200); var scMi2 = upW() ? D.top() : null, wMi2 = scMi2 ? readW(scMi2) : []; driveW(gMi2, null, 200);
       okW('Mical again, the crate signed: her other first-game word ("' + String(wMi2[0]).slice(0, 40) + '..."), on her portrait', scMi2 && scMi2.sheet === 'pt_mical' && wMi2.join('|') === window.DS.DATA.npcs.mical.talk[1].say.join('|') && !upW());
-      inW(B, 'keeper:sylvia'); var gS = fireW(B, 'talk:sylvia'), scS = D.top(), wS = readW(scS); driveW(gS, null, 200);
+      // Merrick (10-21 night, the same word: ART-93): behind the message-lantern house's grille, on his portrait, his first-game word and its rumour heard
+      inW(B, 'keeper:merrick'); var gMr = fireW(B, 'talk:merrick'), scMr = D.top(), wMr = upW() ? readW(scMr) : []; driveW(gMr, null, 200);
+      okW('Merrick behind the message-lantern house\'s grille (door ' + (D.roam.def.room === 'keeper:merrick' ? 'in' : 'NOT in') + '), on his portrait (' + (scMr && scMr.sheet) + '): "' + String(wMr[0]).slice(0, 40) + '...", the lantern rumour heard, and "' + String(wMr[wMr.length - 1]).replace(/\{.\}|\{\/\}/g, '') + '"',
+        D.roam.def.room === 'keeper:merrick' && scMr && scMr.sheet === 'pt_merrick' && wMr.slice(0, 2).join('|') === window.DS.DATA.npcs.merrick.talk[0].say.join('|') && R0.flags['heard:r-lantern'] === 1 && /sendings -- is to come/.test(wMr.join(' ')) && !upW());
+      outW(B); inW(B, 'keeper:sylvia'); var gS = fireW(B, 'talk:sylvia'), scS = D.top(), wS = readW(scS); driveW(gS, null, 200);
       okW('Sylvia Swann at her booth (' + scS.sheet + '): his own -- "' + wS.join(' ') + '"', scS.sheet === 'pt_sylvia' && /his word/.test(wS.join(' ')));
       outW(B); var gV = TW.fire(B, trigW('keeper:barber')); driveW(gV, upW, 200); var scV = D.top(), wV = upW() ? readW(scV) : []; driveW(gV, null, 200);
       okW('Venn the barber at his door, on his portrait (' + (scV && scV.sheet) + ')', scV && scV.sheet === 'pt_barber' && /Shave/.test(wV.join(' ')));

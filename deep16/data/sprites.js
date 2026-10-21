@@ -11149,6 +11149,102 @@ true
 "door": "keeper:mela",
 "source": "deep16/_src/mela/ART-90 (the art desk's ART-90, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
 },
+"pt_merrick": {
+"image": "art/pt_merrick.png?v=179395e41f",
+"fw": 166,
+"fh": 156,
+"ax": 92,
+"ay": 154,
+"top": 154,
+"portrait": true,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 166,
+"fh": 156,
+"ax": 92,
+"ay": 154,
+"frames": 6,
+"fps": 3,
+"ledge": [
+false,
+false,
+false,
+false,
+false,
+false
+]
+},
+"attentive": {
+"y": 156,
+"fw": 166,
+"fh": 156,
+"ax": 92,
+"ay": 154,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"welcoming": {
+"y": 312,
+"fw": 166,
+"fh": 156,
+"ax": 92,
+"ay": 154,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"skeptical": {
+"y": 468,
+"fw": 166,
+"fh": 156,
+"ax": 92,
+"ay": 154,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"concerned": {
+"y": 624,
+"fw": 166,
+"fh": 156,
+"ax": 92,
+"ay": 154,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"work": {
+"y": 780,
+"fw": 166,
+"fh": 156,
+"ax": 92,
+"ay": 154,
+"frames": 6,
+"fps": 4,
+"ledge": [
+true,
+true,
+true,
+true,
+true,
+true
+]
+}
+},
+"art": "ART-93",
+"door": "keeper:merrick",
+"source": "deep16/_src/merrick/ART-93 (the art desk's ART-93, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
+},
 "pt_mical": {
 "image": "art/pt_mical.png?v=acbb0cfb00",
 "fw": 153,
