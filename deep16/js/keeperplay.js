@@ -179,7 +179,7 @@
     var T = u.turn, rm = G.reach(u, T.move), moves = [], k;
     Object.keys(rm).forEach(function (key) { var e = rm[key]; if (e.stand) moves.push({ x: e.x, y: e.y, lane: lane(e), cost: e.cost }); });
     var melee = !(u.weapon && u.weapon.ranged), range = melee ? G.reachOf(u, 5) : ((u.weapon && u.weapon.range) || 60), targets = [];
-    B.units.forEach(function (w) { if (w.side !== u.side && G.standing(w) && G.dist(u, w) <= range) targets.push({ id: w.id, name: w.name, dist: G.dist(u, w) }); });
+    B.units.forEach(function (w) { if (w.side !== u.side && G.standing(w) && (melee ? G.dist : G.range)(u, w) <= range) targets.push({ id: w.id, name: w.name, dist: (melee ? G.dist : G.range)(u, w) }); });
     var kp = B.kp, wall = [];
     if (kp && kp.wall) kp.wall.sections.forEach(function (sec) { (sec.targets || []).forEach(function (p) { if (G.dist(u, p) <= range) wall.push({ wall: [p.x, p.y], dist: G.dist(u, p) }); }); });
     var spells = []; try { spells = M.list(B, u).filter(function (e) { return e.ok; }).map(function (e) { return { id: e.id, name: e.name, slot: e.slot, shape: e.g && e.g.shape, range: e.g && e.g.range }; }); } catch (e) { spells = []; }

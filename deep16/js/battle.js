@@ -1158,7 +1158,7 @@
     var avU = u.conds.averted, gzU = avU ? this.units.filter(function (m) { return m.gaze && G.standing(m) && avU.from.indexOf(m.id) >= 0; })[0] : null;
     if (gzU) out.push({ id: 'lookat', label: 'LOOK AT ' + Battle.nm(gzU, true).toUpperCase(), cost: 'F', icon: 'search', ok: true, why: '', note: 'your eyes are averted: look now, and the gaze save at once (' + (gzU.gaze.ab || 'con').toUpperCase() + ' DC ' + gzU.gaze.dc + '); then you see it' });
     var thW = Battle.throwable(u);
-    if (thW) { var thIn = this.units.some(function (w) { return G.hostile(u, w) && G.standing(w) && !w.ethereal && G.dist(u, w) <= thW.range[1] && G.los(u, w).clear; }), thN = Battle.thrownLeft(u, thW);
+    if (thW) { var thIn = this.units.some(function (w) { return G.hostile(u, w) && G.standing(w) && !w.ethereal && G.range(u, w) <= thW.range[1] && G.los(u, w).clear; }), thN = Battle.thrownLeft(u, thW);
       out.push({ id: 'throw', label: 'THROW ' + thW.name.toUpperCase().replace(/^THROWN /, ''), cost: 'A', icon: 'attack', ok: (T.action > 0 || T.attacksLeft > 0 || T.hasteAction > 0) && thIn, why: !thIn ? 'no foe within ' + thW.range[1] + ' ft in sight' : 'no attack left', tool: 'throw', note: 'one attack of the Attack action: a ranged attack, ' + thW.range[0] + ' ft, out to ' + thW.range[1] + ' at disadvantage -- ' + thN + (thN === 1 ? ' left' : ' left to throw') + ', none picked up' }); }
     // GRAPPLE (a hero's grapple (SRD 5.1, srd/08-combat.md Grappling; RULED 10-15, Griz: "Grapple should go on the action menu with dodge and help and such, appearing conditionally (empty hand, adjacent enemy)")): with DODGE and HELP, shown only with an empty hand and a foe beside no more than one size
     // larger; the SRD's special melee attack -- one attack of the Attack action, the rest left (ATTACK (n) says so); LET GO, free ("no action required")
@@ -1283,7 +1283,7 @@
   Battle.besideBucket = function (B, u) { var b = B && B.ropeBucket; return !!(b && Math.max(Math.abs(u.x - b[0]), Math.abs(u.y - b[1])) <= 1 && Math.abs(G.gzAt(u, u.x, u.y) - G.map.gz(b[0], b[1])) <= G.map.def.step); };
   function canCut0(B, u, r) {
     var T = u.turn || {}, h = Battle.ropeHanger(B, r); if (!h || !G.hostile(u, h)) return null;
-    var w = u.weapon, spot = { x: r.at[0], y: r.at[1], size: 1 }, d = G.dist(u, spot), reach = w && w.ranged ? ((w.range && (w.range[1] || w.range[0])) || 0) : G.reachOf(u);
+    var w = u.weapon, spot = { x: r.at[0], y: r.at[1], size: 1 }, d = (w && w.ranged ? G.range : G.dist)(u, spot), reach = w && w.ranged ? ((w.range && (w.range[1] || w.range[0])) || 0) : G.reachOf(u);
     var inR = d <= reach && (!(w && w.ranged) || G.losPoint(u.x, u.y, r.at[0], r.at[1]));
     return { foe: h, ok: !!(w && inR && (T.attacksLeft || T.action > 0) && !u.conds.disarmed), why: !w ? 'no weapon' : !inR ? 'the rope\'s top is ' + d + ' ft off (' + (w.ranged ? 'range' : 'reach') + ' ' + reach + ')' : u.conds.disarmed ? 'the weapon is dropped' : 'no attack left this turn',
       ft: Math.round((h.hang.z - G.map.gz(h.x, h.y)) / G.map.def.step) * 2.5 };
@@ -1707,7 +1707,7 @@
       case 'throw': { // (a hand's throw of its thrown weapon, one attack of the Attack action -- the grid's rules §2.21, 10-15)
         var thw = Battle.throwable(u), tht = c.target; if (!thw || !tht || tht.dead || (tht.hp <= 0 && !tht.regenDown)) return;
         if (RU.charmedBy(u, tht)) { this.card(['{o}' + u.name + ' is charmed: no raising a hand to ' + (tht.side === 'foe' ? Battle.nm(tht) : tht.name) + '.{/}'], 200); return; }
-        if (G.dist(u, tht) > thw.range[1] || !G.los(u, tht).clear) { this.card(['{o}Throw: a foe within ' + thw.range[1] + ' ft, in sight.{/}'], 160); return; }
+        if (G.range(u, tht) > thw.range[1] || !G.los(u, tht).clear) { this.card(['{o}Throw: a foe within ' + thw.range[1] + ' ft, in sight.{/}'], 160); return; }
         if (!Battle.openAttack(u)) return;
         T.attacksLeft--;
         yield* this.attack(u, tht, thw);
@@ -2147,8 +2147,8 @@
     var melee = !atk.ranged && (!atk.spell || atk.touch), self = this;
     var cand = this.units.filter(function (w) {
       if (w === was || w === att || !G.hostile(att, w) || !G.standing(w) || w.ethereal || w.dead || w.isWall || (w.conds && (w.conds.sanctuary || w.conds.hidden))) return false;
-      if (o.g && D.magic.targetOK) return D.magic.targetOK(self, att, o.g, w) && (melee ? G.dist(att, w) <= G.reachOf(att, atk.reach || att.reach) : G.dist(att, w) <= ((atk.range && atk.range[1]) || 60));
-      return melee ? G.dist(att, w) <= G.reachOf(att, atk.reach || att.reach) : G.dist(att, w) <= ((atk.range && atk.range[1]) || 60) && G.los(att, w).clear;
+      if (o.g && D.magic.targetOK) return D.magic.targetOK(self, att, o.g, w) && (melee ? G.dist(att, w) <= G.reachOf(att, atk.reach || att.reach) : G.range(att, w) <= ((atk.range && atk.range[1]) || 60));
+      return melee ? G.dist(att, w) <= G.reachOf(att, atk.reach || att.reach) : G.range(att, w) <= ((atk.range && atk.range[1]) || 60) && G.los(att, w).clear;
     });
     var human = att.side === 'foe' ? !!(D.keeperPlay && D.keeperPlay.human && D.keeperPlay.human(this, att)) : !(att.classAI || att.guest || att.ally || att.summon || att.familiar || att.ai);
     if (!cand.length) { this.card(['{g}' + nameOf(att) + ' has no other target: the ' + (atk.spell ? 'spell' : 'attack') + ' is lost.{/}'], 160); return null; }
@@ -2652,9 +2652,9 @@
     var self = this, wp = rd && rd.wp, g = rd && rd.id ? D.magic.geo(rd.id) : null;
     return this.units.filter(function (w) {
       if (!G.hostile(u, w) || !G.standing(w) || w.ethereal || w.under || (w.riding && !w.attached) || RU.charmedBy(u, w)) return false;
-      if (rd && rd.range) return G.dist(u, w) <= rd.range && (!rd.see || G.dist(u, w) <= 5 || (G.los(u, w).clear && D.magic.sees(self, u, w))); // (a readied special: its own reach, and sight where it aims by sight -- 10-08)
+      if (rd && rd.range) return G.range(u, w) <= rd.range && (!rd.see || G.dist(u, w) <= 5 || (G.los(u, w).clear && D.magic.sees(self, u, w))); // (a readied special: its own reach, and sight where it aims by sight -- 10-08)
       if (g) return !!D.magic.targetOK(self, u, g, w);
-      if (wp && wp.ranged) return G.dist(u, w) <= wp.range[1] && G.los(u, w).clear && (D.magic.sees(self, u, w) || G.dist(u, w) <= 5);
+      if (wp && wp.ranged) return G.range(u, w) <= wp.range[1] && G.los(u, w).clear && (D.magic.sees(self, u, w) || G.dist(u, w) <= 5);
       return G.dist(u, w) <= G.reachOf(u, wp && wp.reach);
     });
   };
@@ -3367,7 +3367,7 @@
   Battle.prototype.itemTargetOK = function (u, id, w) {
     var use = window.DS.DATA.items[id].use;
     if (!w || w.dead) return false;
-    if (use.effect === 'damage') return G.hostile(u, w) && (w.hp > 0 || !!w.regenDown) && G.dist(u, w) <= 20 && G.los(u, w).clear; // (a troll lying at 0 and knitting is a target for the flask: the oil runner's find, 10-05)
+    if (use.effect === 'damage') return G.hostile(u, w) && (w.hp > 0 || !!w.regenDown) && G.range(u, w) <= 20 && G.los(u, w).clear; // (a troll lying at 0 and knitting is a target for the flask: the oil runner's find, 10-05)
     if (use.effect === 'light') return w === u;
     if (use.effect === 'mirror') return !!(D.magic.mirrorWhy && !D.magic.mirrorWhy(this, u, w)); // (a gazer that sees its own reflection: js/traits.js, 10-15)
     if (w.side !== u.side || (w !== u && G.dist(u, w) > 5)) return false;
@@ -3461,6 +3461,7 @@
     for (var y = u.y - n; y <= u.y + n; y++) for (var x = u.x - n; x <= u.x + n; x++) {
       if (x === u.x && y === u.y) continue;
       if (!G.canStand(u, x, y) || !G.losPoint(u.x, u.y, x, y)) continue;
+      if (D.magic.inRange && !D.magic.inRange(u, { shape: 'teleport', range: range || 30 }, x, y)) continue; // (the true distance, up and down as well as across: G.range, 10-21)
       if (see && D.magic.seesSq && !D.magic.seesSq(this, u, x, y)) continue;
       out.push([x, y]);
     }
@@ -3657,7 +3658,7 @@
   Battle.prototype.canHit = function (u, w) {
     if (RU.charmedBy(u, w)) return false; // (charmed: never its charmer)
     var wp = u.weapon;
-    if (wp && wp.ranged) return G.dist(u, w) <= wp.range[1] && G.los(u, w).clear;
+    if (wp && wp.ranged) return G.range(u, w) <= wp.range[1] && G.los(u, w).clear;
     return G.dist(u, w) <= G.reachOf(u);
   };
   Battle.prototype.focus = function (u) { var c = FX.at(u); D.iso.lookAt(c.gx, c.gy, c.gz); };

@@ -171,7 +171,7 @@
   M.unward = function (B, u, why) { if (u.conds.sanctuary) { delete u.conds.sanctuary; B.card(['{g}' + Nm(B, u) + '\'s sanctuary ends (' + why + ').{/}'], 200); } };
   // Hellish Rebuke (SRD 5.1): the reaction of one who took a blow, at the one who gave it, within 60 ft, seen
   M.rebuke = function* (B, u, att) {
-    if (!u.known || u.known.indexOf('hellishrebuke') < 0 || !u.reaction || !RU.canAct(u) || !G.hostile(u, att) || G.dist(u, att) > 60 || !M.sees(B, u, att)) return;
+    if (!u.known || u.known.indexOf('hellishrebuke') < 0 || !u.reaction || !RU.canAct(u) || !G.hostile(u, att) || G.range(u, att) > 60 || !M.sees(B, u, att)) return;
     var lv = M.slotLevels(u, 1)[0]; if (!lv) return;
     if (B.fight && B.fight.roost) return;
     var yes = (u.side !== 'party' || u.guest) ? true : yield { prompt: { who: u, title: u.name + ': HELLISH REBUKE?', lines: [Nm(B, att) + ' hurt you. Wreathe it in fire: DEX DC ' + u.spellDC + ', ' + (1 + lv) + 'd10 fire (half). (a level-' + lv + ' slot, the reaction)'], opts: [{ label: 'REBUKE', value: true }, { label: 'LET IT GO', value: false }] } };
@@ -752,7 +752,7 @@
     summary: function () { return 'bonus action · an ally within 30 ft (or you) · a foe must save WIS to strike or spell them; it ends if they attack'; },
     cast: function* (B, u, t, slot, head, x) { var sa = t.conds.sanctuary = { dc: x.dc, by: u.id }; M.expire(B, u, 'sanctuary', function () { if (t.conds.sanctuary === sa) delete t.conds.sanctuary; }); FX.ring(t, 'gold', 34); B.card([head + ' on ' + t.name + ': a ward -- whoever would strike must first save WIS ' + x.dc + '.']); yield 16; },
     ai: function (B, u, e, slot, fs, allies) {
-      var t = allies.filter(function (w) { return G.standing(w) && G.dist(u, w) <= 30 && !w.conds.sanctuary && w.hp < w.maxhp * 0.4; }).sort(function (a, b) { return a.hp / a.maxhp - b.hp / b.maxhp; })[0];
+      var t = allies.filter(function (w) { return G.standing(w) && G.range(u, w) <= 30 && !w.conds.sanctuary && w.hp < w.maxhp * 0.4; }).sort(function (a, b) { return a.hp / a.maxhp - b.hp / b.maxhp; })[0];
       if (!t) return null;
       var near = B.units.filter(function (w) { return G.hostile(t, w) && G.standing(w) && G.dist(t, w) <= 10; }).length;
       return near ? { score: near * 3 + 2, t: t } : null;
@@ -1055,8 +1055,8 @@
   E.beaconofhope = {
     summary: function () { return 'your allies within 30 ft · advantage on WIS saves, and healing on them always the most (concentration)'; },
     // (the Globe of Invulnerability: an ally in range that stands inside one the caster is outside of is not given it -- the card says so)
-    cast: function* (B, u, t, slot, head) { var all = B.units.filter(function (w) { return w.side === u.side && !w.dead && G.dist(u, w) <= 30; }), shut = all.filter(function (w) { return M.globed(B, u, w, 3); }), who = all.filter(function (w) { return shut.indexOf(w) < 0; }); who.forEach(function (w) { w.conds.beacon = { by: u.id }; FX.sparkle(w, 'gold', 10); }); M.concentrate(B, u, 'beaconofhope', 'Beacon of Hope', function () { lift(B, who, 'beacon', u.id); }); B.card([head + ': hope on ' + who.map(function (w) { return w.name; }).join(', ') + ' (concentration).'].concat(shut.map(function (w) { return '  ' + Nm(B, w) + ': {c}inside the globe: untouched{/}'; }))); yield 20; },
-    ai: function (B, u, e, slot, fs, allies) { if (u.conc) return null; var hurt = allies.filter(function (w) { return !w.dead && w.hp < w.maxhp / 2 && G.dist(u, w) <= 30; }).length; return hurt >= 2 ? { score: hurt * 3, t: u, keep: hurt * 2 } : null; }
+    cast: function* (B, u, t, slot, head) { var all = B.units.filter(function (w) { return w.side === u.side && !w.dead && G.range(u, w) <= 30; }), shut = all.filter(function (w) { return M.globed(B, u, w, 3); }), who = all.filter(function (w) { return shut.indexOf(w) < 0; }); who.forEach(function (w) { w.conds.beacon = { by: u.id }; FX.sparkle(w, 'gold', 10); }); M.concentrate(B, u, 'beaconofhope', 'Beacon of Hope', function () { lift(B, who, 'beacon', u.id); }); B.card([head + ': hope on ' + who.map(function (w) { return w.name; }).join(', ') + ' (concentration).'].concat(shut.map(function (w) { return '  ' + Nm(B, w) + ': {c}inside the globe: untouched{/}'; }))); yield 20; },
+    ai: function (B, u, e, slot, fs, allies) { if (u.conc) return null; var hurt = allies.filter(function (w) { return !w.dead && w.hp < w.maxhp / 2 && G.range(u, w) <= 30; }).length; return hurt >= 2 ? { score: hurt * 3, t: u, keep: hurt * 2 } : null; }
   };
   E.bestowcurse = {
     summary: function () { return 'touch · WIS or cursed: your attacks on it +1d8 necrotic, or its attacks at you at disadvantage (concentration)'; },
@@ -1230,7 +1230,7 @@
     },
     ai: function (B, u, e, slot, fs, allies) {
       var best = null;
-      allies.forEach(function (w) { if (!G.standing(w) || G.dist(u, w) > 120) return; var held = w.conds.paralyzed && w.conds.paralyzed.by && !w.conds.paralyzed.poison, sc = (held ? TX().dpr(w) * 2.5 : 0) + (w.conds.laughing || w.conds.hypnotized ? TX().dpr(w) * 2 : 0) + (w.conds.baned || w.conds.slowed ? 3 : 0); if (sc > 0 && (!best || sc > best.score)) best = { score: sc, t: w }; });
+      allies.forEach(function (w) { if (!G.standing(w) || G.range(u, w) > 120) return; var held = w.conds.paralyzed && w.conds.paralyzed.by && !w.conds.paralyzed.poison, sc = (held ? TX().dpr(w) * 2.5 : 0) + (w.conds.laughing || w.conds.hypnotized ? TX().dpr(w) * 2 : 0) + (w.conds.baned || w.conds.slowed ? 3 : 0); if (sc > 0 && (!best || sc > best.score)) best = { score: sc, t: w }; });
       fs.forEach(function (w) { if (!M.targetOK(B, u, Object.assign({}, e.g, { side: 'foe' }), w)) return; var sc = (w.conds.hasted ? TX().dpr(w) * 1.5 : 0) + (w.images ? 4 : 0) + (w.conc ? 5 * dispelOdds(u, slot, spellLvl(w.conc.id)) : 0) + (w.conds.blessed || w.conds.shieldOfFaith ? 2 : 0) + (w.conds.sanctuary ? 3 : 0); if (sc > 0 && (!best || sc > best.score)) best = { score: sc, t: w }; });
       return best;
     }
@@ -1273,7 +1273,7 @@
     // (the doubled speed on the casting turn is movement a dancer ("must use all its movement to dance without leaving its space") or a restrained creature
     // ("speed becomes 0, and it can't benefit from any bonus to its speed") does not get; the extra action is theirs either way -- 10-01)
     cast: function* (B, u, t, slot, head) { t.conds.hasted = { by: u.id }; if (t.turn && t === u) { if (!(t.conds.restrained || t.conds.dancing)) t.turn.move += t.speed; if (t.turn.moveFull != null) t.turn.moveFull += t.speed; t.turn.hasteAction = 1; } FX.sparkle(t, 'glow', 20); M.concentrate(B, u, 'haste', 'Haste', function () { if (t.conds.hasted) { delete t.conds.hasted; if (!t.dead && t.hp > 0) t.conds.lethargic = true; } }); B.card([head + ' on ' + t.name + ': the world slows round them (+2 AC, double speed, an attack more; concentration).']); yield 20; },
-    ai: function (B, u, e, slot, fs, allies) { if (u.conc) return null; var t = allies.filter(function (w) { return G.standing(w) && G.dist(u, w) <= 30 && !w.conds.hasted && typeof w.attacks === 'number'; }).sort(function (a, b) { return TX().dpr(b) - TX().dpr(a); })[0]; if (!t) return null; var sc = TX().dpr(t) / Math.max(1, t.attacksBase || 1) * 0.9 * 3 + 2; return { score: sc, t: t, keep: sc * 0.6 }; }
+    ai: function (B, u, e, slot, fs, allies) { if (u.conc) return null; var t = allies.filter(function (w) { return G.standing(w) && G.range(u, w) <= 30 && !w.conds.hasted && typeof w.attacks === 'number'; }).sort(function (a, b) { return TX().dpr(b) - TX().dpr(a); })[0]; if (!t) return null; var sc = TX().dpr(t) / Math.max(1, t.attacksBase || 1) * 0.9 * 3 + 2; return { score: sc, t: t, keep: sc * 0.6 }; }
   };
   E.hypnoticpattern = {
     summary: function () { return '30-ft cube within 120 ft · WIS or charmed: helpless, speed 0, till hurt (concentration)'; },
@@ -1287,7 +1287,7 @@
   E.masshealingword = {
     summary: function (e, u) { return 'bonus action · up to six allies within 60 ft · ' + more('1d4', Math.max(0, e.slot - 3)) + RU.sign(M.mod(u) + lifeBonus(u, e.slot)) + ' each'; },
     cast: function* (B, u, t, slot, head, x) { var list = (t.units || [t]).slice(0, 6); for (var i = 0; i < list.length; i++) yield* healOne(B, u, list[i], x.sp, slot, head, '1d4'); yield 16; },
-    ai: function (B, u, e, slot, fs, allies) { var amt = avg(more('1d4', Math.max(0, slot - 3))) + M.mod(u) + lifeBonus(u, slot); var who = allies.filter(function (w) { return !w.dead && G.dist(u, w) <= 60 && TX().healNeed(B, u, w) > 0; }).sort(function (a, b) { return a.hp / a.maxhp - b.hp / b.maxhp; }).slice(0, 6); if (who.length < 2 && !who.some(function (w) { return w.hp <= 0; })) return null; var sc = who.reduce(function (s, w) { return s + Math.min(amt, w.maxhp - Math.max(0, w.hp)) * TX().healNeed(B, u, w) + (w.hp <= 0 ? TX().dpr(w) * 2.5 : 0); }, 0); return { score: sc, t: { units: who } }; }
+    ai: function (B, u, e, slot, fs, allies) { var amt = avg(more('1d4', Math.max(0, slot - 3))) + M.mod(u) + lifeBonus(u, slot); var who = allies.filter(function (w) { return !w.dead && G.range(u, w) <= 60 && TX().healNeed(B, u, w) > 0; }).sort(function (a, b) { return a.hp / a.maxhp - b.hp / b.maxhp; }).slice(0, 6); if (who.length < 2 && !who.some(function (w) { return w.hp <= 0; })) return null; var sc = who.reduce(function (s, w) { return s + Math.min(amt, w.maxhp - Math.max(0, w.hp)) * TX().healNeed(B, u, w) + (w.hp <= 0 ? TX().dpr(w) * 2.5 : 0); }, 0); return { score: sc, t: { units: who } }; }
   };
   E.protectionfromenergy = {
     summary: function () { return 'touch · resistance to one element -- the one most thrown at them (concentration)'; },
@@ -1334,7 +1334,7 @@
     (B.spirits || []).forEach(function (s) { if (s.by === u.id && s.rounds > 0 && --s.rounds <= 0) B.card(['{g}' + u.name + '\'s spectral weapon fades.{/}'], 200); }); // (once: 09-28h, it said so every turn after)
     if (u.ethereal && u.conds.blink) { u.ethereal = false; FX.sparkle(u, 'violet', 14); B.card(['{p}' + u.name + ' blinks back into the world.{/}'], 200); }
     // Warding Bond: it breaks when the two are more than 60 ft apart, or the binder is down
-    var wb = u.conds.wardingBond; if (wb) { var by = B.units.filter(function (w) { return w.id === wb.by; })[0]; if (!by || by.hp <= 0 || G.dist(by, u) > 60) delete u.conds.wardingBond; }
+    var wb = u.conds.wardingBond; if (wb) { var by = B.units.filter(function (w) { return w.id === wb.by; })[0]; if (!by || by.hp <= 0 || G.range(by, u) > 60) delete u.conds.wardingBond; }
   };
   var onEnd0 = M.onEnd;
   M.onEnd = function (B, u) {
@@ -1451,9 +1451,9 @@
       if (!z) {
         if (u.conc) return null;
         fs.forEach(function (w) {
-          if (G.dist(u, w) > 60 || !G.los(u, w).clear) return;
+          if (G.range(u, w) > 60 || !G.los(u, w).clear) return;
           for (var dy = -1; dy <= 1; dy++) for (var dx = -1; dx <= 1; dx++) {
-            var x = w.x + dx, y = w.y + dy, s = G.map.at(x, y); if ((!dx && !dy) || !s || !s.open || G.occupant(x, y) || G.dist(u, { x: x, y: y, size: 1 }) > 60) continue;
+            var x = w.x + dx, y = w.y + dy, s = G.map.at(x, y); if ((!dx && !dy) || !s || !s.open || G.occupant(x, y) || G.range(u, { x: x, y: y, size: 1 }) > 60) continue;
             var near = unshut(B, u, e, B.units.filter(function (v) { return G.standing(v) && G.dist(v, { x: x, y: y, size: 1 }) <= 5; }));
             var sc = zoneWorth(B, u, zz, near, d) * 1.6;
             if (sc > 0 && (!best || sc > best.score)) best = { score: sc, t: { x: x, y: y }, keep: sc * 0.5 };
@@ -1766,7 +1766,7 @@
     var spots = [];
     for (var y = 0; y < G.map.h; y++) for (var x = 0; x < G.map.w; x++) {
       var q = { x: x, y: y, size: d.size || 1, conds: {} };
-      if (G.dist(u, q) > S.range || !G.losPoint(u.x, u.y, x, y) || !M.sees(B, u, q)) continue;
+      if (G.range(u, q) > S.range || !G.losPoint(u.x, u.y, x, y) || !M.sees(B, u, q)) continue;
       spots.push({ x: x, y: y, k: Math.max(Math.abs(x - at.x), Math.abs(y - at.y)) + 0.01 * Math.hypot(x - at.x, y - at.y) });
     }
     spots.sort(function (a, b) { return a.k - b.k; });
@@ -1908,7 +1908,7 @@
       if (u.conc) return null;
       var best = null;
       fs.forEach(function (f) {
-        if (f.beast || f.hp <= 0 || G.dist(u, f) > 60 || !M.sees(B, u, f)) return;
+        if (f.beast || f.hp <= 0 || G.range(u, f) > 60 || !M.sees(B, u, f)) return;
         var P = D.pool('beast', capOf(f)); if (!P.length) return;
         var low = P.slice().sort(function (a, b) { return beastWorth(a) - beastWorth(b); })[0];
         var sc = TX().pFail(f, 'wis', u.spellDC) * Math.max(0, TX().dpr(f) - beastWorth(low) * 0.5) * 3;
@@ -1943,7 +1943,7 @@
         if (u.conc) return null;
         var best = null;
         fs.forEach(function (f) {
-          if (!test(f) || f.hp <= 0 || f.dominated || G.dist(u, f) > 60 || !M.sees(B, u, f) || RU.immuneTo(f, 'charmed', u)) return;
+          if (!test(f) || f.hp <= 0 || f.dominated || G.range(u, f) > 60 || !M.sees(B, u, f) || RU.immuneTo(f, 'charmed', u)) return;
           var pf = TX().pFail(f, 'wis', u.spellDC); pf = pf * pf; // (advantage)
           var sc = pf * TX().dpr(f) * 3 * 2 + pf * f.hp * 0.1;
           if (sc > 0 && (!best || sc > best.score)) best = { score: sc, t: f, keep: sc * 0.6 };
@@ -1978,7 +1978,7 @@
       ai: function (B, u, e, slot, fs) {
         var best = null;
         fs.forEach(function (f) {
-          if (!test(f) || f.conds.charmed || G.dist(u, f) > 30 || G.dist(u, f) > 5 + (f.speed || 30) || !M.sees(B, u, f) || RU.immuneTo(f, 'charmed', u)) return;
+          if (!test(f) || f.conds.charmed || G.range(u, f) > 30 || G.dist(u, f) > 5 + (f.speed || 30) || !M.sees(B, u, f) || RU.immuneTo(f, 'charmed', u)) return;
           var pf = TX().pFail(f, 'wis', u.spellDC); if (adv) pf = pf * pf;
           var sc = pf * TX().dpr(f) * 1.5;
           if (sc > 0 && (!best || sc > best.score)) best = { score: sc, t: f };
@@ -2006,7 +2006,7 @@
   E.masscurewounds = {
     summary: function (e, u) { return 'up to six allies within 60 ft · ' + more('3d8', Math.max(0, e.slot - 5)) + RU.sign(M.mod(u) + lifeBonus(u, e.slot)) + ' each'; },
     cast: function* (B, u, t, slot, head, x) { var list = (t.units || [t]).slice(0, 6); for (var i = 0; i < list.length; i++) yield* healOne(B, u, list[i], x.sp, slot, head, '3d8'); yield 16; },
-    ai: function (B, u, e, slot, fs, allies) { var amt = avg(more('3d8', Math.max(0, slot - 5))) + M.mod(u), who = allies.filter(function (w) { return !w.dead && G.dist(u, w) <= 60 && TX().healNeed(B, u, w) > 0; }).slice(0, 6); if (who.length < 2) return null; return { score: who.reduce(function (s, w) { return s + Math.min(amt, w.maxhp - Math.max(0, w.hp)) * TX().healNeed(B, u, w) + (w.hp <= 0 ? TX().dpr(w) * 2.5 : 0); }, 0), t: { units: who } }; }
+    ai: function (B, u, e, slot, fs, allies) { var amt = avg(more('3d8', Math.max(0, slot - 5))) + M.mod(u), who = allies.filter(function (w) { return !w.dead && G.range(u, w) <= 60 && TX().healNeed(B, u, w) > 0; }).slice(0, 6); if (who.length < 2) return null; return { score: who.reduce(function (s, w) { return s + Math.min(amt, w.maxhp - Math.max(0, w.hp)) * TX().healNeed(B, u, w) + (w.hp <= 0 ? TX().dpr(w) * 2.5 : 0); }, 0), t: { units: who } }; }
   };
   // the grounds' and the wards' turns (batch D): the tentacles at a turn's start, the locusts at its end, the guardian's reach
   var onStartD = M.onStart;
@@ -2072,7 +2072,7 @@
   }
   E.chainlightning = {
     summary: function () { return 'a creature within 150 ft and three more within 30 ft of it · DEX · 10d8 lightning (half)'; },
-    cast: function* (B, u, t, slot, head, x) { var more3 = B.units.filter(function (w) { return w !== t && G.hostile(u, w) && G.standing(w) && G.dist(t, w) <= 30; }).slice(0, 3); FX.projectile(u, t, 'bolt'); yield* saveAll(B, u, [t].concat(more3), 'dex', x.dc, '10d8', 'lightning', true, head + ': lightning leaps from ' + nm(B, t)); },
+    cast: function* (B, u, t, slot, head, x) { var more3 = B.units.filter(function (w) { return w !== t && G.hostile(u, w) && G.standing(w) && G.range(t, w) <= 30; }).slice(0, 3); FX.projectile(u, t, 'bolt'); yield* saveAll(B, u, [t].concat(more3), 'dex', x.dc, '10d8', 'lightning', true, head + ': lightning leaps from ' + nm(B, t)); },
     ai: function (B, u, e, slot, fs) { var best = null; fs.forEach(function (t) { if (!M.targetOK(B, u, Object.assign({}, e.g, { side: 'foe' }), t)) return; var n = 1 + Math.min(3, fs.filter(function (w) { return w !== t && G.dist(t, w) <= 30; }).length), sc = n * 35 * 0.75; if (!best || sc > best.score) best = { score: sc, t: t }; }); return best; }
   };
   E.circleofdeath = areaSave('con', '8d6', 'necrotic', true, 'violet', { up: 2 });
@@ -2482,7 +2482,7 @@
   E.divineword = {
     summary: function () { return 'every foe within 30 ft that you see and that hears you (not the deafened) · CHA, by its HP: 50 or fewer deafened a minute; 40, and blinded; 30, and stunned; 20 drops; more is untouched; the otherworldly sent home for good'; },
     cast: function* (B, u, t, slot, head, x) {
-      var list = B.units.filter(function (w) { return G.hostile(u, w) && G.standing(w) && G.dist(u, w) <= 30 && M.sees(B, u, w); }), lines = [head + ': a word of the first speech  CHA DC ' + x.dc];
+      var list = B.units.filter(function (w) { return G.hostile(u, w) && G.standing(w) && G.range(u, w) <= 30 && M.sees(B, u, w); }), lines = [head + ': a word of the first speech  CHA DC ' + x.dc];
       FX.ring(u, 'gold', 60); D.sfx('encounter');
       list.forEach(function (w) {
         if (cantHear(w)) { lines.push('  ' + Nm(B, w) + ': {g}cannot hear it{/}'); return; } // (SRD 5.1: "each creature that can hear you")
@@ -2506,7 +2506,7 @@
       });
       B.card(lines.slice(0, 8), 420); yield 30;
     },
-    ai: function (B, u, e, slot, fs) { var near = unshut(B, u, e, fs.filter(function (w) { return G.dist(u, w) <= 30 && !cantHear(w); })); if (!near.length) return null; return { score: near.reduce(function (s, w) { return s + TX().pFail(w, 'cha', u.spellDC) * (HOME.test(w.type || '') ? w.hp * 0.5 + TX().dpr(w) * 3 : w.hp <= 20 ? w.hp + TX().dpr(w) * 2 : w.hp <= 40 ? TX().dpr(w) * 2 : w.hp <= 50 ? 1 : 0); }, 0), t: u }; }
+    ai: function (B, u, e, slot, fs) { var near = unshut(B, u, e, fs.filter(function (w) { return G.range(u, w) <= 30 && !cantHear(w); })); if (!near.length) return null; return { score: near.reduce(function (s, w) { return s + TX().pFail(w, 'cha', u.spellDC) * (HOME.test(w.type || '') ? w.hp * 0.5 + TX().dpr(w) * 3 : w.hp <= 20 ? w.hp + TX().dpr(w) * 2 : w.hp <= 40 ? TX().dpr(w) * 2 : w.hp <= 50 ? 1 : 0); }, 0), t: u }; }
   };
   E.etherealness = {
     summary: function () { return 'yourself · into the Ethereal: out of the fight, back where you choose next turn'; },
@@ -2563,8 +2563,8 @@
   E.holyaura = {
     summary: function () { return 'your allies within 30 ft · advantage on saves, attacks at them at disadvantage (concentration)'; },
     // (the Globe of Invulnerability, from a 9th-level slot: the 8th-level aura is not laid on one inside it, the caster outside)
-    cast: function* (B, u, t, slot, head) { var all = B.units.filter(function (w) { return w.side === u.side && !w.dead && G.dist(u, w) <= 30; }), shut = all.filter(function (w) { return M.globed(B, u, w, 8); }), who = all.filter(function (w) { return shut.indexOf(w) < 0; }); who.forEach(function (w) { w.conds.holyAura = { by: u.id }; FX.sparkle(w, 'gold', 12); }); M.concentrate(B, u, 'holyaura', 'Holy Aura', function () { who.forEach(function (w) { if (w.conds.holyAura && w.conds.holyAura.by === u.id) delete w.conds.holyAura; }); }); B.card([head + ': divine light about ' + who.map(function (w) { return w.name; }).join(', ') + ' (concentration).'].concat(shut.map(function (w) { return '  ' + Nm(B, w) + ': {c}inside the globe: untouched{/}'; }))); yield 20; },
-    ai: function (B, u, e, slot, fs, allies) { if (u.conc) return null; return { score: allies.filter(function (w) { return G.standing(w) && G.dist(u, w) <= 30; }).length * 8, t: u }; }
+    cast: function* (B, u, t, slot, head) { var all = B.units.filter(function (w) { return w.side === u.side && !w.dead && G.range(u, w) <= 30; }), shut = all.filter(function (w) { return M.globed(B, u, w, 8); }), who = all.filter(function (w) { return shut.indexOf(w) < 0; }); who.forEach(function (w) { w.conds.holyAura = { by: u.id }; FX.sparkle(w, 'gold', 12); }); M.concentrate(B, u, 'holyaura', 'Holy Aura', function () { who.forEach(function (w) { if (w.conds.holyAura && w.conds.holyAura.by === u.id) delete w.conds.holyAura; }); }); B.card([head + ': divine light about ' + who.map(function (w) { return w.name; }).join(', ') + ' (concentration).'].concat(shut.map(function (w) { return '  ' + Nm(B, w) + ': {c}inside the globe: untouched{/}'; }))); yield 20; },
+    ai: function (B, u, e, slot, fs, allies) { if (u.conc) return null; return { score: allies.filter(function (w) { return G.standing(w) && G.range(u, w) <= 30; }).length * 8, t: u }; }
   };
   E.maze = {
     summary: function () { return 'a creature within 60 ft · no save: gone into a labyrinth till it finds its way (INT 20, its action) or you let go (concentration)'; },

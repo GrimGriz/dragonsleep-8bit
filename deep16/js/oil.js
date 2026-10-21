@@ -27,7 +27,7 @@
   OIL.squareOK = function (B, u, x, y) {
     var s = G.map.at(x, y); if (!s || !s.open || !s.walk || s.deep) return false;
     if (G.occupant(x, y)) return false;
-    return G.dist(u, { x: x, y: y, size: 1 }) <= OIL.RANGE && G.losPoint(u.x, u.y, x, y);
+    return G.range(u, { x: x, y: y, size: 1 }) <= OIL.RANGE && G.losPoint(u.x, u.y, x, y);
   };
   // a creature covered in oil: a minute (its own turns' ends -- grimoire.js's till), the next fire on it 5 more
   OIL.coat = function (B, w) {

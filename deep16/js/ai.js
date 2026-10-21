@@ -321,7 +321,7 @@
       var rm2 = G.reach(u, T.move), pick = null, ps = -1e9;
       Object.keys(rm2).forEach(function (k) {
         var e = rm2[k]; if (!e.stand) return;
-        var vis = visibleFrom(u, e.x, e.y, hs).filter(function (w) { return G.dist(u, w, e.x, e.y) <= bow.range[1]; });
+        var vis = visibleFrom(u, e.x, e.y, hs).filter(function (w) { return G.range(u, w, e.x, e.y) <= bow.range[1]; });
         if (!vis.length) return;
         var tgt = vis.sort(function (p, q) { return RU.ac(p) - RU.ac(q) || p.hp - q.hp; })[0];
         var d = G.dist(u, tgt, e.x, e.y), besides = G.foesNear(u, e.x, e.y, 5).length;
@@ -336,7 +336,7 @@
     if (!T.action) return;
     T.action = 0;
     for (var s2 = 0; s2 < u.multi; s2++) {
-      var inSight = visibleFrom(u, u.x, u.y, heroes(B, u)).filter(function (w) { return G.dist(u, w) <= bow.range[1]; });
+      var inSight = visibleFrom(u, u.x, u.y, heroes(B, u)).filter(function (w) { return G.range(u, w) <= bow.range[1]; });
       if (!inSight.length) { B.card(['{g}The captain has no clear shot.{/}']); yield 20; break; }
       var t3 = inSight.sort(function (p, q) { return RU.ac(p) - RU.ac(q) || p.hp - q.hp; })[0];
       yield* B.attack(u, t3, bow);
@@ -372,7 +372,7 @@
       return;
     }
     for (var s = 0; s < u.multi; s++) {
-      var seen = visibleFrom(u, u.x, u.y, heroes(B, u)).filter(function (w) { return G.dist(u, w) <= bow.range[1]; });
+      var seen = visibleFrom(u, u.x, u.y, heroes(B, u)).filter(function (w) { return G.range(u, w) <= bow.range[1]; });
       if (!seen.length) { B.card(['{g}The drider has no clear shot.{/}']); yield 20; break; }
       yield* B.attack(u, seen.sort(function (p, q) { return RU.ac(p) - RU.ac(q) || p.hp - q.hp; })[0], bow);
       if (u.dead || u.hp <= 0) return;
@@ -414,7 +414,7 @@
     if (!T.action || !hs.length) return;
     // Hold, once, in the first rounds: the hardest hitter she can see within range
     if (!W.hold.used && B.round <= 3) {
-      var ht = visibleFrom(u, u.x, u.y, hs).filter(function (w) { return !w.conds.paralyzed && G.dist(u, w) <= W.hold.range && !w.fey; })
+      var ht = visibleFrom(u, u.x, u.y, hs).filter(function (w) { return !w.conds.paralyzed && G.range(u, w) <= W.hold.range && !w.fey; })
         .sort(function (a, b) { return (b.attacks || 1) * (b.lvl || 1) + b.maxhp / 20 - ((a.attacks || 1) * (a.lvl || 1) + a.maxhp / 20); })[0];
       if (ht) {
         T.action = 0; W.hold.used = true; u.anim = D.spr.anim(u.sheet, 'cast') ? 'cast' : 'attack'; u.animT = B.t; D.sfx('charm'); FX.ring(ht, 'violet', 40); FX.reach(u, ht, 'charm');
@@ -448,7 +448,7 @@
     // no bolt of her own (the naga): the bite, as any brute
     if (!bolt) { yield* brute(B, u); return; }
     // Fire Bolt at the lowest AC in sight
-    var seen = visibleFrom(u, u.x, u.y, hs).filter(function (w) { return G.dist(u, w) <= bolt.range[1]; });
+    var seen = visibleFrom(u, u.x, u.y, hs).filter(function (w) { return G.range(u, w) <= bolt.range[1]; });
     if (!seen.length) { B.card(['{g}The weaver has no one in sight.{/}']); yield 20; return; }
     T.action = 0;
     yield* B.attack(u, seen.sort(function (p, q) { return RU.ac(p) - RU.ac(q) || p.hp - q.hp; })[0], bolt);
@@ -556,19 +556,19 @@
     if (!keys.length) {
       var rks = Object.keys(u.attacks).filter(function (k) { return u.attacks[k].ranged; }), see0 = visibleFrom(u, u.x, u.y, aimable()), bestS = -1;
       rks.forEach(function (k) {
-        var a = u.attacks[k], tg = see0.filter(function (w) { return G.dist(u, w) <= a.range[1]; }).sort(function (p, q) { return RU.ac(p) - RU.ac(q); })[0]; if (!tg) return;
-        var p1 = Math.max(0.05, Math.min(0.95, (21 - (RU.ac(tg) - a.atk)) / 20)), pp = G.dist(u, tg) > a.range[0] ? p1 * p1 : p1, sc = pp * D.tactics.avg(a.dice) + pp * (a.mod || 0);
+        var a = u.attacks[k], tg = see0.filter(function (w) { return G.range(u, w) <= a.range[1]; }).sort(function (p, q) { return RU.ac(p) - RU.ac(q); })[0]; if (!tg) return;
+        var p1 = Math.max(0.05, Math.min(0.95, (21 - (RU.ac(tg) - a.atk)) / 20)), pp = G.range(u, tg) > a.range[0] ? p1 * p1 : p1, sc = pp * D.tactics.avg(a.dice) + pp * (a.mod || 0);
         if (sc > bestS + 1e-9) { bestS = sc; keys = [k]; }
       });
       if (!keys.length) keys = rks.slice(0, 1);
     }
     if (!keys.length || !u.turn.action) return false;
     var first = u.attacks[keys[0]];
-    if (!visibleFrom(u, u.x, u.y, aimable()).some(function (w) { return G.dist(u, w) <= first.range[1]; })) return false;
+    if (!visibleFrom(u, u.x, u.y, aimable()).some(function (w) { return G.range(u, w) <= first.range[1]; })) return false;
     u.turn.action = 0;
     for (var i = 0; i < keys.length; i++) {
       var atk = u.attacks[keys[i]]; if (!atk) break; // (its last dagger thrown the throw before: battle.js spendThrow takes it off the sheet)
-      var seen = visibleFrom(u, u.x, u.y, aimable()).filter(function (w) { return G.dist(u, w) <= atk.range[1]; });
+      var seen = visibleFrom(u, u.x, u.y, aimable()).filter(function (w) { return G.range(u, w) <= atk.range[1]; });
       if (!seen.length) break;
       yield* B.attack(u, seen.sort(function (p, q) { return RU.ac(p) - RU.ac(q) || p.hp - q.hp; })[0], atk);
       if (u.dead || u.hp <= 0) break;
@@ -610,7 +610,7 @@
   function* spit(B, u, hs) {
     var S = u.spittle, best = null;
     hs.forEach(function (t) {
-      if (G.dist(u, t) > S.range || t.conds.blinded) return;
+      if (G.range(u, t) > S.range || t.conds.blinded) return;
       var n = hs.filter(function (w) { return !w.conds.blinded && G.dist(t, w) <= S.r; }).length;
       if (!best || n > best.n) best = { t: t, n: n };
     });
@@ -633,7 +633,7 @@
   function* leap(B, u, hs) {
     var L = u.leap, best = null;
     hs.forEach(function (t) {
-      if (G.dist(u, t) > L.range || !G.los(u, t).clear) return;
+      if (G.range(u, t) > L.range || !G.los(u, t).clear) return;
       var pair = hs.filter(function (w) { return w !== t && G.dist(w, t) <= 5; }).length;
       // a landing: free for its body, beside the target
       var land = null, ld = Infinity;
@@ -706,7 +706,7 @@
       var rm = G.reach(u, T.move), pick = null, ps = -1e9;
       Object.keys(rm).forEach(function (k) {
         var e = rm[k]; if (!e.stand || G.foesNear(u, e.x, e.y, 5).length) return;
-        var vis = visibleFrom(u, e.x, e.y, hs).filter(function (w) { return G.dist(u, w, e.x, e.y) <= ra.range[1]; }); if (!vis.length) return;
+        var vis = visibleFrom(u, e.x, e.y, hs).filter(function (w) { return G.range(u, w, e.x, e.y) <= ra.range[1]; }); if (!vis.length) return;
         var near = Math.min.apply(null, hs.map(function (w) { return G.dist(u, w, e.x, e.y); }));
         var s = Math.min(near, 40) - e.cost / 20; if (s > ps) { ps = s; pick = e; }
       });
@@ -725,7 +725,7 @@
         var e = rm2[k]; if (!e.stand || e.cost >= cc || (e.x === ox && e.y === oy)) return;
         u.x = e.x; u.y = e.y;
         try {
-          if (foesAll.every(function (f) { return B.seenBy(f, u) < 2; }) && !G.foesNear(u, e.x, e.y, 5).length && visibleFrom(u, e.x, e.y, hs).some(function (w) { return G.dist(u, w, e.x, e.y) <= ra.range[1]; })) { cov = e; cc = e.cost; }
+          if (foesAll.every(function (f) { return B.seenBy(f, u) < 2; }) && !G.foesNear(u, e.x, e.y, 5).length && visibleFrom(u, e.x, e.y, hs).some(function (w) { return G.range(u, w, e.x, e.y) <= ra.range[1]; })) { cov = e; cc = e.cost; }
         } finally { u.x = ox; u.y = oy; }
       });
       if (cov) { yield* walkTo(B, u, cov); if (u.dead || u.hp <= 0) return true; if (!(yield* volley(B, u))) { B.card(['{g}' + the(B, u) + ' has no clear shot.{/}']); yield 12; } return true; }
@@ -925,7 +925,7 @@
     var across = function (x, y) { var d = 1e9; G.foot(tgt).forEach(function (p) { d = Math.min(d, Math.max(Math.abs(p[0] - x), Math.abs(p[1] - y))); }); return d; };
     [{ x: u.x, y: u.y, cost: 0, stand: true }].concat(Object.keys(rm).map(function (k) { return rm[k]; })).forEach(function (e) {
       if (!e.stand || Math.abs(G.gzAt(u, e.x, e.y) - zU) > st) return;
-      var shot = rk && rk.range ? visibleFrom(u, e.x, e.y, hs).filter(function (w) { return !w.object && G.dist(u, w, e.x, e.y) <= rk.range[1]; }).length : 0;
+      var shot = rk && rk.range ? visibleFrom(u, e.x, e.y, hs).filter(function (w) { return !w.object && G.range(u, w, e.x, e.y) <= rk.range[1]; }).length : 0;
       var s = (shot ? 1000 + shot * 10 : 0) - across(e.x, e.y) * 5 - e.cost / 10 - G.foesNear(u, e.x, e.y, 5).length * 50;
       if (e.x === u.x && e.y === u.y) here = s;
       if (!best || s > best.s) best = { s: s, e: e };
@@ -1283,10 +1283,10 @@
     // the Moan (the cloaker): every hero within 60 ft, WIS or frightened till the end of its next turn -- moan: { dc, recharge, cond, range, text }
     // (the mouther's Gibbering read this way till 10-06, stunned within 20 ft; it is the SRD's own now, js/traits.js)
     var MO = u.moan, mcond = MO && (MO.cond || 'frightened'), mrange = MO && (MO.range || 60);
-    if (!grudge && MO && MO.ready && T.action && hs.filter(function (w) { return G.dist(u, w) <= mrange && !w.conds[mcond]; }).length >= (MO.min || 2)) {
+    if (!grudge && MO && MO.ready && T.action && hs.filter(function (w) { return G.range(u, w) <= mrange && !w.conds[mcond]; }).length >= (MO.min || 2)) {
       T.action = 0; MO.ready = false; D.sfx('encounter');
       var ml = ['{r}' + the(B, u) + '{/} ' + (MO.text || 'moans. The sound gets inside you.') + '  WIS DC ' + MO.dc];
-      hs.filter(function (w) { return G.dist(u, w) <= mrange; }).forEach(function (w) {
+      hs.filter(function (w) { return G.range(u, w) <= mrange; }).forEach(function (w) {
         if (mcond === 'frightened' && w.conds.heroism) { ml.push('  ' + w.name + ': {n}fearless{/} (Heroism)'); return; }
         if (mcond === 'frightened' && RU.immuneTo(w, 'frightened', u)) { ml.push('  ' + w.name + ': {n}fearless{/} (proof against it)'); return; } // (Mindless Rage)
         var sv = RU.save(w, 'wis', MO.dc, false, mcond === 'frightened' ? 'frightened' : 'stunned');
@@ -1333,7 +1333,7 @@
     var near = hs.filter(function (w) { return G.dist(u, w) <= reachOf(u, hs); }).sort(function (a, b) { return a.hp - b.hp; }); // (reachOf with hs: a tendril no one in its reach can be held by counts for nothing, and it walks in to bite -- 10-02)
     // Web: at the start, or whenever no one is in reach -- the nearest free hero it can see, in range
     if (u.web && u.web.ready && T.action && (!near.length || B.round === 1)) {
-      var free = hs.filter(function (w) { return !w.conds.restrained && G.dist(u, w) <= u.web.range[1] && G.los(u, w).clear; }).sort(function (a, b) { return G.dist(u, a) - G.dist(u, b); });
+      var free = hs.filter(function (w) { return !w.conds.restrained && G.range(u, w) <= u.web.range[1] && G.los(u, w).clear; }).sort(function (a, b) { return G.dist(u, a) - G.dist(u, b); });
       if (free.length) {
         yield* webShot(B, u, free[0]);
         if (u.dead || u.hp <= 0) return;
@@ -1403,7 +1403,7 @@
     var rk = ranged[0], rocksLeft = function () { return u.rocks == null || u.rocks > 0; }; // (no throw from the face: a climber's hands are on the wall -- 10-05, Griz: "he seems to be throwing during wall climb in pane")
     if (u.missionOnly && rk && rk.range && rocksLeft() && !(u.hang && G.hanging(u))) {
       var skyR = B.units.filter(function (w) { return w.object && w.id === u.mission && G.standing(w); })[0];
-      var edgeT = skyR && G.dist(u, skyR) <= reachOf(u) ? heroes(B, u).filter(function (w) { return !w.object && G.standing(w) && D.Battle.knockSq(u, w) && G.dist(u, w) <= rk.range[1] && G.los(u, w).clear; }).sort(function (a, b) { return G.dist(u, a) - G.dist(u, b); })[0] : null;
+      var edgeT = skyR && G.dist(u, skyR) <= reachOf(u) ? heroes(B, u).filter(function (w) { return !w.object && G.standing(w) && D.Battle.knockSq(u, w) && G.range(u, w) <= rk.range[1] && G.los(u, w).clear; }).sort(function (a, b) { return G.dist(u, a) - G.dist(u, b); })[0] : null;
       if (edgeT) { T.action = 0; yield* rockAt(edgeT, Object.assign({}, rk, { knockOff: true })); return; }
     }
     function* rockAt(t, a) { if (u.rocks != null) u.rocks--; yield* B.attack(u, t, a); if (u.rocks != null && !u.dead && u.hp > 0) { B.card(['{g}(' + (u.rocks ? u.rocks + ' rock' + (u.rocks > 1 ? 's' : '') + ' left' : 'its last rock') + '){/}'], 160); yield 10; } }

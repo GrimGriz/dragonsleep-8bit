@@ -125,7 +125,7 @@
   // ------------------------------------------------------------------ shapes
   // (a teleport's 30 ft is a distance, up and down as well as across -- height as a diagonal, as G.dist has it: from the roof's edge the street 45 ft below is out of Misty Step's
   // reach, where the flat count had let it jump down; 10-05, Griz: "1 agreed")
-  M.inRange = function (u, g, x, y, z) { var dzT = (g.shape === 'teleport' || z != null) && G.tall() ? Math.floor(Math.abs((z != null ? z : G.map.gz(x, y)) - G.gzAt(u, u.x, u.y)) / G.map.def.step / 2) : 0; return Math.max(Math.abs(x - u.x), Math.abs(y - u.y), dzT) * 5 <= (g.range || 0) && G.losPoint(u.x, u.y, x, y) && !(g.see && g.shape !== 'darts' && D.battle && !M.seesSq(D.battle, u, x, y)); }; // (a point you can see -- Call Lightning, Black Tentacles, Guardian of Faith, the Conjures: data/spells.js `see`, 10-02)
+  M.inRange = function (u, g, x, y, z) { var dzT = (g.shape === 'teleport' || z != null) && G.tall() ? Math.floor(Math.abs((z != null ? z : G.map.gz(x, y)) - G.gzAt(u, u.x, u.y)) / G.map.def.step / 2) : 0; return G.hyp(Math.max(Math.abs(x - u.x), Math.abs(y - u.y)), dzT) <= (g.range || 0) && G.losPoint(u.x, u.y, x, y) && !(g.see && g.shape !== 'darts' && D.battle && !M.seesSq(D.battle, u, x, y)); }; // (a point you can see -- Call Lightning, Black Tentacles, Guardian of Faith, the Conjures: data/spells.js `see`, 10-02)
   M.seesSq = function (B, u, x, y) { return M.seeWhy(B, u, { x: x, y: y, size: 1, conds: {} }).ok; };
   // a foe's square aimed at in the dark by a spell that names one creature and asks no sight of it (10-02, Griz: "allow unseen foes only by guessing the square"): whoever
   // stands there takes it -- an empty square takes nothing but the slot (js/magic.js M.cast). Not a friend's spell: a friend is found where you know them (M.targetOK)
@@ -316,7 +316,7 @@
     // swung at all the same, at disadvantage (SRD 5.1, unseen attackers and targets). 10-07, Griz, after the show: "darkmantle attack error denny (regular attack,
     // but not denim damage or flurry - says out of range of the darkmantle on your head)" -- over his head it blinds him, and the aim wanted to see it)
     if (unseen && !g.swing && (g.see || (G.hostile(u, w) && (g.shape === 'single' || g.shape === 'splash')))) return false;
-    if (G.dist(u, w) > (g.range || 5)) return false;
+    if ((M.touchRange(g) || (g.range || 5) <= 5 ? G.dist : G.range)(u, w) > (g.range || 5)) return false; // (a touch is reach, by squares; a range by the true distance -- G.range, 10-21)
     return G.los(u, w).clear || w === u;
   };
 
@@ -484,7 +484,7 @@
         if (MO && !c.dead && c.hp > 0) {
           MO.ready = false; D.sfx('encounter');
           var ml = ['{r}' + c.name + '{/} ' + (MO.text || 'moans. The sound gets inside you.') + '  WIS DC ' + MO.dc];
-          B.units.filter(function (w) { return G.hostile(c, w) && G.standing(w) && G.dist(c, w) <= (MO.range || 60); }).forEach(function (w) {
+          B.units.filter(function (w) { return G.hostile(c, w) && G.standing(w) && G.range(c, w) <= (MO.range || 60); }).forEach(function (w) {
             if (w.conds.heroism) { ml.push('  ' + w.name + ': {n}fearless{/} (Heroism)'); return; }
             if (RU.immuneTo(w, 'frightened', c)) { ml.push('  ' + w.name + ': {n}fearless{/} (proof against it)'); return; } // (Mindless Rage)
             var sv = RU.save(w, 'wis', MO.dc, false, 'frightened');
@@ -594,7 +594,7 @@
         B.card([head + ': he is gone, and a double of him stands where he stood (a blow may go at it; the invisibility ends if he attacks or casts; concentration).']);
       } else if (id === 'passwithouttrace') {
         // (the Globe of Invulnerability: one in range that stands inside a globe the caster is outside of is not veiled -- the card says so)
-        var inRng = B.units.filter(function (w) { return w.side === u.side && G.standing(w) && G.dist(u, w) <= 30; }), shutV = M.globed ? inRng.filter(function (w) { return M.globed(B, u, w, sp.level); }) : [], veiled = inRng.filter(function (w) { return shutV.indexOf(w) < 0; });
+        var inRng = B.units.filter(function (w) { return w.side === u.side && G.standing(w) && G.range(u, w) <= 30; }), shutV = M.globed ? inRng.filter(function (w) { return M.globed(B, u, w, sp.level); }) : [], veiled = inRng.filter(function (w) { return shutV.indexOf(w) < 0; });
         veiled.forEach(function (w) { w.conds.pwt = { by: u.id }; });
         M.concentrate(B, u, id, sp.name, function () { lift(B, veiled, 'pwt'); });
         B.card([head + ': a veil of shadow over ' + veiled.map(function (w) { return w.name; }).join(', ') + ' -- {c}+10 Stealth{/} (concentration).'].concat(shutV.map(function (w) { return '  ' + w.name + ': {c}inside the globe: untouched{/}'; })));

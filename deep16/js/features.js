@@ -272,7 +272,7 @@
   TX.AFTER.push(function* (B, u) {
     var T = u.turn;
     if (u.cls !== 'bard' || !T.bonus || !feat(u, 'inspiration') || u.lvl >= 3 && u.feats.inspiration <= 1) return; // (Lore: one kept for the Cutting Words)
-    var t = TX.alliesOf(B, u).filter(function (w) { return w !== u && G.standing(w) && !w.conds.inspired && G.dist(u, w) <= 60; }).sort(function (a, b) { return TX.dpr(b) - TX.dpr(a); })[0];
+    var t = TX.alliesOf(B, u).filter(function (w) { return w !== u && G.standing(w) && !w.conds.inspired && G.range(u, w) <= 60; }).sort(function (a, b) { return TX.dpr(b) - TX.dpr(a); })[0];
     if (!t) return;
     T.bonus = 0; u.feats.inspiration--; t.conds.inspired = { die: inspDie(u), by: u.id };
     FX.sparkle(t, 'gold', 12); B.card(['{y}' + Nm(B, u) + '{/} inspires ' + t.name + ' {g}(a ' + inspDie(u) + ' for a roll that needs it){/}'], 200); yield 12;
@@ -285,7 +285,7 @@
   };
   // Cutting Words: a bard within 60 ft of the attacker, on the target's side, with a use and its reaction, and the blow within reach of the die
   F.cutting = function (B, att, tgt, over) {
-    var bard = B.units.filter(function (w) { return w.cls === 'bard' && w.lvl >= 3 && w.subclass === 'College of Lore' && w.side === tgt.side && w.reaction > 0 && RU.canAct(w) && feat(w, 'inspiration') && G.dist(w, att) <= 60 && M.sees(B, w, att) && (w.side !== 'party' || w.guest); })[0];
+    var bard = B.units.filter(function (w) { return w.cls === 'bard' && w.lvl >= 3 && w.subclass === 'College of Lore' && w.side === tgt.side && w.reaction > 0 && RU.canAct(w) && feat(w, 'inspiration') && G.range(w, att) <= 60 && M.sees(B, w, att) && (w.side !== 'party' || w.guest); })[0];
     if (!bard) return 0;
     var faces = +inspDie(bard).slice(1); if (over >= faces) return 0;
     bard.reaction = 0; bard.feats.inspiration--;
@@ -719,7 +719,7 @@
       var best = null;
       B.units.forEach(function (a) {
         if (a === u || a.side !== u.side || !G.standing(a) || a.familiar || !M.sees(B, u, a)) return;
-        var near = fs.filter(function (t) { return G.standing(t) && G.dist(a, t) <= 10 && G.dist(u, t) <= bw.range[1] && G.los(u, t).clear && M.sees(B, u, t); }).sort(function (x, y) { return TX.dpr(y) - TX.dpr(x); }).slice(0, 3);
+        var near = fs.filter(function (t) { return G.standing(t) && G.dist(a, t) <= 10 && G.range(u, t) <= bw.range[1] && G.los(u, t).clear && M.sees(B, u, t); }).sort(function (x, y) { return TX.dpr(y) - TX.dpr(x); }).slice(0, 3);
         if (near.length < 2) return;
         var vs = 0; near.forEach(function (t) { var p = hitWorth(bw, t); vs += TX.worth(p, t) + (p > 0 ? 0.6 : 0) * TX.dpr(t) * 0.25; });
         if (!best || vs > best.score) best = { score: vs, a: a, near: near };

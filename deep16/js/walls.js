@@ -114,7 +114,7 @@
         if (u.conc) return null;
         var n = Math.max(0, slot - K.base), d = TX().avg(more(K.rise[1], n)), best = null;
         fs.forEach(function (f) {
-          if (G.dist(u, f) > e.g.range || !M.sees(B, u, f)) return;
+          if (G.range(u, f) > e.g.range || !M.sees(B, u, f)) return;
           var sq = M.wallSq(u, e.g, f.x, f.y), sc = 0, fake = { sq: sq, band: null, cx: f.x, cy: f.y, dir: dirTo(u, f.x, f.y) };
           if (K.band) { fake.band = {}; sq.forEach(function (q) { for (var k = 1; k <= K.band; k++) fake.band[(q[0] + fake.dir[0] * k) + ',' + (q[1] + fake.dir[1] * k)] = 1; }); }
           B.units.forEach(function (v) {

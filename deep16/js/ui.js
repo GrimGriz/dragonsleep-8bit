@@ -434,7 +434,7 @@
     if (rd.what === 'weapon') {
       var foe = (w && G.hostile(u, w) && !w.dead && (w.hp > 0 || !!w.regenDown) ? w : null) || D.Battle.riderOn(u, w, B.units) || D.Battle.tendrilOn(u, w, B.units);
       if (foe && B.canHit(u, foe)) return UI.command(B, u, { do: 'attack', target: foe });
-      D.sfx('error'); return B.card(['{o}' + (foe ? 'The ' + B.shortName(foe) + ' is out of ' + (u.weapon && u.weapon.ranged ? 'range' : 'reach') + ' (' + G.dist(u, foe) + ' ft)' : 'Not a foe there') + '.  X holds it.{/}'], 120);
+      D.sfx('error'); return B.card(['{o}' + (foe ? 'The ' + B.shortName(foe) + ' is out of ' + (u.weapon && u.weapon.ranged ? 'range' : 'reach') + ' (' + (u.weapon && u.weapon.ranged ? G.range : G.dist)(u, foe) + ' ft)' : 'Not a foe there') + '.  X holds it.{/}'], 120);
     }
     if (rd.what === 'move') {
       if (w && w !== u) { D.sfx('error'); return; }
@@ -813,10 +813,10 @@
       return 'no';
     }
     if (tool === 'rope') return D.Battle.ropeSq(B, u, x, y) ? 'ok' : 'no';
-    if (tool === 'throw') { var thV = D.Battle.throwable(u); return foe && thV && G.standing(foe) && G.dist(u, foe) <= thV.range[1] && G.los(u, foe).clear && !D.rules.charmedBy(u, foe) ? 'ok' : 'no'; } // (the ring's THROW: a foe in its long range, in sight -- 10-15)
+    if (tool === 'throw') { var thV = D.Battle.throwable(u); return foe && thV && G.standing(foe) && G.range(u, foe) <= thV.range[1] && G.los(u, foe).clear && !D.rules.charmedBy(u, foe) ? 'ok' : 'no'; } // (the ring's THROW: a foe in its long range, in sight -- 10-15)
     if (tool === 'shove') return foe && G.standing(foe) && !foe.object && G.dist(u, foe) <= G.reachOf(u) && D.Battle.sizeCat(foe) <= D.Battle.sizeCat(u) + 1 ? 'ok' : 'no'; // (the SRD's Shove: 10-13)
     if (tool === 'grapple') return foe && D.Battle.grabbable(u, foe) ? 'ok' : 'no'; // (a hero's grapple: a foe beside, no more than one size larger -- 10-15)
-    if (tool === 'offhand') { var thO = D.Battle.offThrow(u); return foe && G.hostile(u, foe) && (foe.hp > 0 || foe.regenDown) && (G.dist(u, foe) <= G.reachOf(u) || (thO && G.dist(u, foe) <= thO.range[1] && G.los(u, foe).clear)) ? 'ok' : 'no'; } // (two-weapon fighting's swing, or its throw: 10-15)
+    if (tool === 'offhand') { var thO = D.Battle.offThrow(u); return foe && G.hostile(u, foe) && (foe.hp > 0 || foe.regenDown) && (G.dist(u, foe) <= G.reachOf(u) || (thO && G.range(u, foe) <= thO.range[1] && G.los(u, foe).clear)) ? 'ok' : 'no'; } // (two-weapon fighting's swing, or its throw: 10-15)
     if (tool === 'help') return (foe && G.dist(u, foe) <= 5) || D.Battle.helpable(u, w) ? 'ok' : 'no'; // (a friend beside you who needs a hand, too: 10-01c)
     if (tool === 'lay') return w && w.side === u.side && !w.dead && (w === u || G.dist(u, w) <= 5) ? 'ok' : 'no';
     if (tool === 'item') { if (B.itemId === 'oil' && !w && D.oil) return D.oil.squareOK(B, u, x, y) ? 'ok' : 'no'; return B.itemTargetOK(u, B.itemId, w) ? 'ok' : 'no'; } // (the flask at the ground: js/oil.js, 10-05)
@@ -830,7 +830,7 @@
       if (g.shape === 'teleport') return B.mistyTargets(u, g.range, g.see).some(function (q) { return q[0] === x && q[1] === y; }) ? 'ok' : 'no';
       if (g.shape === 'allies' && B.picks.length && !(w && M.targetOK(B, u, g, w))) return 'self';
       if (spellTarget(B, u, g, x, y)) return 'ok';
-      if (g.effects && !w && M.effectsAt(B, x, y).length && G.dist(u, { x: x, y: y, size: 1 }) <= g.range && G.losPoint(u.x, u.y, x, y)) return 'ok'; // (a spell's area, its square empty: Dispel Magic -- js/grimoire.js M.effectsAt, 10-02)
+      if (g.effects && !w && M.effectsAt(B, x, y).length && G.range(u, { x: x, y: y, size: 1 }) <= g.range && G.losPoint(u.x, u.y, x, y)) return 'ok'; // (a spell's area, its square empty: Dispel Magic -- js/grimoire.js M.effectsAt, 10-02)
       return M.missileDark(B, u, g, x, y) || M.guessDark(B, u, g, x, y) ? 'ok' : 'no'; // (Magic Missile at the darkness: a square the caster cannot see into; a foe's square guessed in the dark, M.guessDark 10-02)
     }
     return 'no';
@@ -846,7 +846,7 @@
     // a roper's tendril on the one there -- a friend's, or the one on the caster -- for a spell attack whose SRD 5.1 words take an object (`obj`: Fire Bolt, "a creature or
     // object"): the tendril is a thing, AC 20 and 10 HP (battle.js strikeTendril). 10-06, the grid's rules §2.4: "Fire Bolt at an object (the tendril, AC 20, 10 HP)"
     var tn = g.obj && g.shape === 'attack' ? D.Battle.tendrilOn(u, w, B.units) : null;
-    return tn && G.dist(u, tn) <= (g.range || 5) && (tn.held === u || G.los(u, tn.held).clear) ? tn : null;
+    return tn && ((g.range || 5) <= 5 ? G.dist : G.range)(u, tn) <= (g.range || 5) && (tn.held === u || G.los(u, tn.held).clear) ? tn : null;
   }
   UI.spellTarget = spellTarget;
   // a hostile rider on (x, y) the mouse is on (B.hoverUnit, set as the mouse moves): a darkmantle on a head, outlined red
@@ -1000,7 +1000,7 @@
         D.sfx('error');
         if (D.rules.charmedBy(u, foe)) return B.card(['{o}' + u.name + ' is charmed: no raising a hand to the ' + B.shortName(foe) + '.{/}'], 160);
         if (B.canHit(u, foe)) return B.card(['{o}No attack left this turn: the action is spent.{/}'], 120);
-        return B.card(['{o}The ' + B.shortName(foe) + ' is out of ' + (u.weapon && u.weapon.ranged ? 'range' : 'reach') + ' (' + G.dist(u, foe) + ' ft).{/}'], 120);
+        return B.card(['{o}The ' + B.shortName(foe) + ' is out of ' + (u.weapon && u.weapon.ranged ? 'range' : 'reach') + ' (' + (u.weapon && u.weapon.ranged ? G.range : G.dist)(u, foe) + ' ft).{/}'], 120);
       }
       if (v === 'no' && (u.size || 1) > 1 && D.keeperPlay && D.keeperPlay.human(B, u)) { D.sfx('error'); return B.card(['{o}MOVE: ' + (D.keeperPlay.moveWhy(B, u, x, y) || 'not there') + '.{/}'], 160); } // (a big creature's refused pick says why)
       if (v === 'ok') { var fzC = UI.flyer(B) === u ? UI.layerZ(B, u) : null; if (fzC != null) { B.flyZ = null; return UI.command(B, u, { do: 'move', x: x, y: y, fz: fzC }); } var czC = UI.climber(B) === u ? UI.climbPick(B, u, x, y) : null; if (czC != null) { B.climbZ = null; return UI.command(B, u, { do: 'move', x: x, y: y, cz: czC }); } return UI.command(B, u, { do: 'move', x: x, y: y }); } // (cz: a climber's height on the face, §2.18) // (fz: the layer, flight at a height)
@@ -1018,7 +1018,7 @@
     // (askSelf: a click on your own square with an item aimed is asked first -- 10-05 night, his play: the Bat-Wing Pie refused on Aurdin, down, and the next click, on Lymen's own square, ate it
     // and the action with it; battle.js exec 'item')
     if (tool === 'item') { if (v === 'ok') return UI.command(B, u, { do: 'item', id: B.itemId, target: w, x: x, y: y, askSelf: w === u }); // (x, y: the oil flask's square when no one stands there -- js/oil.js) // (the refusal says why when it is the reach: his play of 10-05, the flask at a troll 45 ft below the roof read as "oil flask at 0 hp trolls")
-      var itR = window.DS.DATA.items[B.itemId], whyR = itR && itR.use.effect === 'damage' && w && G.hostile(u, w) ? (G.dist(u, w) > 20 ? 'the flask goes 20 ft, and ' + D.Battle.nm(w) + ' is ' + G.dist(u, w) + ' ft off (the height counts)' : !G.los(u, w).clear ? 'no line to ' + D.Battle.nm(w) : '') : '';
+      var itR = window.DS.DATA.items[B.itemId], whyR = itR && itR.use.effect === 'damage' && w && G.hostile(u, w) ? (G.range(u, w) > 20 ? 'the flask goes 20 ft, and ' + D.Battle.nm(w) + ' is ' + G.range(u, w) + ' ft off (the height counts)' : !G.los(u, w).clear ? 'no line to ' + D.Battle.nm(w) : '') : '';
       if (!whyR && itR && itR.use.effect === 'fortify' && w && !G.hostile(u, w) && !w.object && w.hp <= 0) whyR = w.name + ' is down: a ' + itR.name + ' is for someone on their feet'; // (the pie raises no one: 10-05 night, his "failing to rez from 0 (fine)")
       return B.card(['{o}Not a target for that' + (whyR ? ': ' + whyR : '') + '.{/}'], whyR ? 200 : 120); }
     if (tool === 'torch') { if (v === 'ok') return UI.command(B, u, { do: 'throwtorch', x: x, y: y }); return B.card(['{o}Throw it to a square within 20 ft you can see.{/}'], 120); }
@@ -2054,7 +2054,7 @@
         }
       }
     }
-    if (tool === 'throw') { var thD = D.Battle.throwable(u); if (thD) B.units.forEach(function (w) { if (G.hostile(u, w) && G.standing(w) && !w.ethereal && G.dist(u, w) <= thD.range[1] && G.los(u, w).clear) G.foot(w).forEach(function (q) { lineSq(ctx, q[0], q[1], G.dist(u, w) <= thD.range[0] ? R('fire', 3) : R('gold', 2), 0.9); }); }); } // (a foe in its reach: red, gold at long range)
+    if (tool === 'throw') { var thD = D.Battle.throwable(u); if (thD) B.units.forEach(function (w) { if (G.hostile(u, w) && G.standing(w) && !w.ethereal && G.range(u, w) <= thD.range[1] && G.los(u, w).clear) G.foot(w).forEach(function (q) { lineSq(ctx, q[0], q[1], G.range(u, w) <= thD.range[0] ? R('fire', 3) : R('gold', 2), 0.9); }); }); } // (a foe in its reach: red, gold at long range)
     if (tool === 'grapple') B.units.forEach(function (w) { if (D.Battle.grabbable(u, w)) G.foot(w).forEach(function (q) { lineSq(ctx, q[0], q[1], R('bone', 2), 0.9); }); }); // (the foes a grapple may seize: 10-15)
     if (tool === 'offhand') B.units.forEach(function (w) { if (UI.valid(B, u, w.x, w.y) === 'ok') G.foot(w).forEach(function (q) { lineSq(ctx, q[0], q[1], R('bone', 2), 0.9); }); }); // (the foes the off hand may reach: 10-15)
     if (tool === 'shove') B.units.forEach(function (w) { if (G.hostile(u, w) && G.standing(w) && !w.object && G.dist(u, w) <= G.reachOf(u) && D.Battle.sizeCat(w) <= D.Battle.sizeCat(u) + 1) G.foot(w).forEach(function (q) { lineSq(ctx, q[0], q[1], D.Battle.knockSq(u, w) ? R('fire', 3) : R('bone', 2), 0.9); }); }); // (one at an edge: fire-orange)
@@ -2140,7 +2140,8 @@
       if (u && G.hostile(u, w) && !w.dead) {
         var d = G.dist(u, w), l = G.los(u, w), sp = B.tool === 'spell' && (B.spell.g.shape === 'attack' || B.spell.g.shape === 'rays');
         var e = RU.edges(u, w, sp ? { spell: true, ranged: true, range: [B.spell.g.range, B.spell.g.range] } : u.weapon);
-        var bits = [d + ' ft' + (!sp && B.canHit(u, w) ? (u.weapon && u.weapon.ranged ? ' {n}in range{/}' : ' {n}in reach{/}') : '')];
+        var dR = G.range(u, w), rngd = B.tool === 'spell' && B.spell && B.spell.g ? !D.magic.touchRange(B.spell.g) && (B.spell.g.range || 5) > 5 : !!(u.weapon && u.weapon.ranged);
+        var bits = [(rngd ? dR : d) + ' ft' + (dR !== d ? ' {g}(' + (rngd ? d + ' by squares' : dR + ' true') + '){/}' : '') + (!sp && B.canHit(u, w) ? (u.weapon && u.weapon.ranged ? ' {n}in range{/}' : ' {n}in reach{/}') : '')];
         if (!l.clear) bits.push('{o}no line{/}');
         else if (l.cover && d > 5) bits.push('{c}half cover (+2): ' + l.why + '{/}');
         if (e.adv.length) bits.push('{n}adv: ' + e.adv.join(', ') + '{/}');
@@ -2153,7 +2154,7 @@
         if (!s2.ok) sb.push('{n}it cannot see ' + u.name + ': ' + s2.why + '{/}');
         if (sb.length) lines.push(sb.join('  '));
       } else if (u && w !== u && !w.dead) { // (a friend's distance too, and whether the spell aimed reaches: Griz, 10-08, "trying to target flying ally with haste and bottom right card does not report distance like when i target the goblin?")
-        var dA = G.dist(u, w), gA = B.tool === 'spell' && B.spell && B.spell.g, rgA = gA && gA.shape === 'touch' ? 5 : gA && gA.range;
+        var gA = B.tool === 'spell' && B.spell && B.spell.g, rgA = gA && gA.shape === 'touch' ? 5 : gA && gA.range, dA = rgA && rgA > 5 ? G.range(u, w) : G.dist(u, w);
         lines.push(dA + ' ft' + (rgA ? (dA <= rgA ? '  {n}in range{/}' : '  {o}out of range: ' + (gA.shape === 'touch' ? 'touch' : rgA + ' ft') + '{/}') : ''));
       }
       if (G.aloft(w)) lines.push('{c}aloft{/}: ' + Math.round((w.fz - G.groundAt(w, w.x, w.y)) / G.map.def.step * 2.5) + ' ft up'); // (flight at a height, 10-08)

@@ -113,7 +113,7 @@
   S.oilDown = function* (B, u) {
     var T = u.turn; if (!T || !T.action || T.attacksLeft || !(u.ownFlask > 0) || !D.oil) return false;
     var fl = B.itemList(u).filter(function (x) { return x.id === 'oil' && x.n > 0 && x.ok; })[0]; if (!fl) return false;
-    var t = B.units.filter(function (w) { return w.side === 'foe' && !w.dead && w.regenDown && !w.burned && !(w.conds && w.conds.oiled) && G.dist(u, w) <= D.oil.RANGE && G.los(u, w).clear && M.sees(B, u, w); }).sort(function (a, b) { return G.dist(u, a) - G.dist(u, b); })[0];
+    var t = B.units.filter(function (w) { return w.side === 'foe' && !w.dead && w.regenDown && !w.burned && !(w.conds && w.conds.oiled) && G.range(u, w) <= D.oil.RANGE && G.los(u, w).clear && M.sees(B, u, w); }).sort(function (a, b) { return G.dist(u, a) - G.dist(u, b); })[0];
     if (!t) return false;
     B.card(['{y}' + u.name + '{/}: "Torch him!"'], 240); yield 20;
     yield* B.exec(u, { do: 'item', id: 'oil', target: t });
@@ -128,7 +128,7 @@
   function axeOf(u) { var s = D.mod(u.abil.str); return { id: 'handaxe3', name: 'Handaxe +3', atk: (u.prof || 4) + s + 3, dice: '1d6', mod: s + 3, type: 'slashing', props: ['light', 'thrown'], magic: true, ranged: true, thrown: true, range: [20, 60], fx: 'bolt' }; }
   S.axe = function* (B, u) {
     var T = u.turn; if (!T || !T.action || T.attacksLeft || u.axeOut || u.conds.disarmed) return false;
-    var a = axeOf(u), seen = foesUp(B, u).filter(function (w) { return !w.object && G.standing(w) && G.dist(u, w) <= a.range[1] && G.los(u, w).clear && M.sees(B, u, w); });
+    var a = axeOf(u), seen = foesUp(B, u).filter(function (w) { return !w.object && G.standing(w) && G.range(u, w) <= a.range[1] && G.los(u, w).clear && M.sees(B, u, w); });
     if (!seen.length) return false;
     var up = function (w) { return w.hang && G.hanging(w) ? w.hang.z - G.map.gz(w.x, w.y) : -1; };
     var t = seen.sort(function (p, q) { return up(q) - up(p) || G.dist(u, p) - G.dist(u, q); })[0];

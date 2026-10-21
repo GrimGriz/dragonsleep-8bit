@@ -203,7 +203,7 @@
   F.exec = function* (B, u, c) {
     if (!c || c.do !== 'gs-throw') { yield* fexec0.apply(this, arguments); return; }
     var T = u.turn, t = c.target;
-    if (!u.banHammer || u.hammerOut != null || !t || !t.side || !G.hostile(u, t) || !G.standing(t) || G.dist(u, t) > 60 || !G.los(u, t).clear) { D.sfx('error'); B.card(['{o}The Ban Hammer: a foe you see within 60 ft.{/}'], 160); return; }
+    if (!u.banHammer || u.hammerOut != null || !t || !t.side || !G.hostile(u, t) || !G.standing(t) || G.range(u, t) > 60 || !G.los(u, t).clear) { D.sfx('error'); B.card(['{o}The Ban Hammer: a foe you see within 60 ft.{/}'], 160); return; }
     if (!D.Battle.openAttack(u)) return; // (the action's attacks, else Haste's one -- battle.js, 10-13)
     T.attacksLeft--;
     B.card(['{y}' + u.name + '{/} throws the Ban Hammer.'], 160);

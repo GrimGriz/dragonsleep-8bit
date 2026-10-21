@@ -431,7 +431,7 @@
     if (!best && !(w.hang && G.hanging(w)) && (w.rocks == null || w.rocks > 0)) {
       Object.keys(w.attacks || {}).map(function (k) { return w.attacks[k]; }).concat([w.weapon, w.alt]).forEach(function (a) {
         if (shot || !a || !a.ranged || a.spell || !Array.isArray(a.range)) return;
-        var tg = B.units.filter(function (x) { return x !== w && x.side === w.side && standing(x) && G.dist(w, x) <= a.range[1] && D.magic.sees(B, w, x); }).sort(function (p, q) { return G.dist(w, p) - G.dist(w, q); })[0];
+        var tg = B.units.filter(function (x) { return x !== w && x.side === w.side && standing(x) && G.range(w, x) <= a.range[1] && D.magic.sees(B, w, x); }).sort(function (p, q) { return G.dist(w, p) - G.dist(w, q); })[0];
         if (tg) shot = { x: tg, atk: a };
       });
     }
@@ -757,7 +757,7 @@
   // HOT TAKE (DPS, 6th; a reaction): a foe he sees within 60 ft hits him -- it saves DEX (his DC) or takes 2d10 fire, half on a save (Hellish Rebuke at its 1st
   // level, SRD 5.1, asked where js/grimoire.js M.rebuke is: after a hit's damage), his proficiency bonus of times a fight. The player is asked; the AI answers yes
   var rebuke0 = M.rebuke; M.rebuke = function* (B, u, att) {
-    if (!(MP.has(u, 'dps', 6) && u.reaction > 0 && RU.canAct(u) && (u.feats.hotTake || 0) > 0 && G.hostile(u, att) && standing(att) && G.dist(u, att) <= 60 && M.sees(B, u, att))) { if (rebuke0) yield* rebuke0.apply(this, arguments); return; }
+    if (!(MP.has(u, 'dps', 6) && u.reaction > 0 && RU.canAct(u) && (u.feats.hotTake || 0) > 0 && G.hostile(u, att) && standing(att) && G.range(u, att) <= 60 && M.sees(B, u, att))) { if (rebuke0) yield* rebuke0.apply(this, arguments); return; }
     var yes = (u.side !== 'party' || u.guest) ? true : yield { prompt: { who: u, title: u.name + ': HOT TAKE?', lines: [Nm(B, att) + ' hit you. Fire back: DEX DC ' + u.spellDC + ', 2d10 fire, half on a save. (the reaction; ' + u.feats.hotTake + ' left this fight)'], opts: [{ label: 'HOT TAKE', value: true }, { label: 'LET IT GO', value: false }] } };
     if (!yes) return;
     u.reaction = 0; u.feats.hotTake--;

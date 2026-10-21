@@ -251,7 +251,7 @@
     if (G.standing(u)) { f.away = false; f.left = false; f.dead = false; f.riding = true; f.anim = 'idle'; f.animT = B.t; FX.sparkle(u, 'glow', 14); D.sfx('magic'); B.card(['{y}' + u.name + '{/} calls, and ' + f.name.replace(/^.*'s /, 'the ') + ' is back with him.']); yield 20; return; }
     var spot = null, bd = Infinity;
     for (var y = 0; y < G.map.h; y++) for (var x = 0; x < G.map.w; x++) {
-      if (G.dist(u, { x: x, y: y, size: 1 }) > 30 || G.occupant(x, y) || !G.canStand(f, x, y)) continue;
+      if (G.range(u, { x: x, y: y, size: 1 }) > 30 || G.occupant(x, y) || !G.canStand(f, x, y)) continue;
       var dd = G.dist(u, { x: x, y: y, size: 1 }) + (B.units.some(function (w) { return G.hostile(u, w) && G.standing(w) && G.dist(w, { x: x, y: y, size: 1 }) <= 5; }) ? 100 : 0);
       if (dd < bd) { bd = dd; spot = [x, y]; }
     }

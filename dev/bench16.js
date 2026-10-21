@@ -2998,7 +2998,7 @@
       // 2. A RISE OUT OF REACH PROVOKES (the fold's 2(b), his "flying out of threatened squares didn't allow attack of opportunity?"; RULED 10-20 "reach to include height-squares
       // against flying opponents"): the wizard flying beside three goblins on an open stretch of the class floor, as in his 10-17 fight
       function open21(Bx, w, h) { var m = G21.map; for (var y = 1; y + h < m.h; y++) for (var x = 1; x + w < m.w; x++) { var z = m.gz(x, y), good = true; for (var j = 0; j < h && good; j++) for (var i = 0; i < w && good; i++) { var s = m.at(x + i, y + j); if (!s || !s.walk || m.gz(x + i, y + j) !== z) good = false; } if (good) return [x, y]; } return null; }
-      var B2 = mk21('?npc=goblin,goblin,goblin&vs=wizard:9&lvl=9'), gs2 = side21(B2, 'foe'), wz2 = side21(B2, 'party')[0], o2 = open21(B2, 8, 6), LY = G21.LAYER();
+      var B2 = mk21('?npc=goblin,goblin,goblin&vs=wizard:9&lvl=9'), gs2 = side21(B2, 'foe'), wz2 = side21(B2, 'party')[0], o2 = open21(B2, 10, 6), LY = G21.LAYER();
       if (!o2) ok21('2 an open stretch of the class floor', false);
       else {
         var X2 = o2[0], Y2 = o2[1], gz2 = G21.map.gz(X2, Y2);
@@ -3013,6 +3013,31 @@
         set2(gz2 + 2 * LY); gs2[1].x = X2 + 5; gs2[2].x = X2 + 6; gs2[0].flies = true; gs2[0].fz = gz2 + 2 * LY; n2 = (B2.log || []).length; run21(B2.exec(wz2, { do: 'land' }));
         ok21('2 the wizard 10 ft up lands beside a goblin flying at 10 ft: ' + oas2(n2, 'dropping out of reach') + ' (want 1), on the ground ' + (wz2.fz == null), oas2(n2, 'dropping out of reach') === 1 && (wz2.fz == null || wz2.hp <= 0));
         wz2.flies = false; wz2.fz = null; gs2[0].flies = false; gs2[0].fz = null;
+        // 4. TRUE DISTANCE FOR RANGES (RULED 10-20, his "true distance for ranges, - reach to include height-squares against flying opponents"): a range (a spell's, a bow's, a
+        // throw's) by the floor's squares and the height's as a right angle's two sides; reach by squares, the height's counted
+        var g4 = gs2[0], fly4 = function (w, ft) { w.flies = !!ft; w.fz = ft ? gz2 + ft / 5 * LY : null; B2.cache = null; };
+        wz2.x = X2; wz2.y = Y2 + 2; wz2.hp = wz2.maxHp; gs2[1].x = X2 + 7; gs2[1].y = Y2 + 5; gs2[2].x = X2 + 6; gs2[2].y = Y2 + 5;
+        g4.x = X2 + 4; g4.y = Y2 + 2; fly4(g4, 20);
+        var dd4 = G21.dist(wz2, g4), rr4 = G21.range ? G21.range(wz2, g4) : dd4;
+        ok21('4 a goblin 20 ft across and 20 ft up (its feet; 15 ft over the wizard\'s head): by squares ' + dd4 + ' ft, the true distance ' + rr4 + ' ft (want 20, 30 -- 28 rounded up)', dd4 === 20 && rr4 === 30);
+        g4.x = X2 + 9; fly4(g4, 45);
+        var hp4 = M21.geo('holdperson'), ok4 = M21.targetOK(B2, wz2, hp4, g4);
+        ok21('4 Hold Person (60 ft) at a goblin 45 ft across and 45 ft up (' + G21.dist(wz2, g4) + ' by squares, ' + (G21.range ? G21.range(wz2, g4) : '?') + ' true): in range ' + ok4 + ' (want false)', !ok4);
+        g4.x = X2 + 5; fly4(g4, 25);
+        ok21('4 and 25 ft across, 25 ft up (' + (G21.range ? G21.range(wz2, g4) : '?') + ' true): in range ' + M21.targetOK(B2, wz2, hp4, g4) + ' (want true)', M21.targetOK(B2, wz2, hp4, g4));
+        // a sling's long range (30/120), from the goblin on the ground at the wizard flying: 30 ft across, 20 ft up
+        fly4(g4, 0); g4.x = X2; g4.y = Y2 + 2; wz2.x = X2 + 6; fly4(wz2, 20);
+        var bw4 = { name: 'Sling', atk: 4, dice: '1d4', mod: 2, type: 'bludgeoning', range: [30, 120], ranged: true }, ed4 = D.rules.edges(g4, wz2, bw4);
+        ok21('4 a goblin\'s sling (30/120) at the wizard ' + (wz2.x - g4.x) * 5 + ' ft across and 20 ft up (' + G21.dist(g4, wz2) + ' by squares, ' + (G21.range ? G21.range(g4, wz2) : '?') + ' true): long range ' + (ed4.dis.indexOf('long range') >= 0) + ' (want true)', wz2.x - g4.x === 6 && ed4.dis.indexOf('long range') >= 0);
+        fly4(wz2, 0); wz2.x = X2 + 2; wz2.y = Y2 + 2;
+        // a sphere's point aimed 25 ft across and 20 ft up: a 30-ft range by squares, 35 ft true
+        fly4(g4, 20); // (someone aloft: the height is read, G.tall)
+        var sph4 = { shape: 'sphere', range: 30, r: 5 }, in4 =M21.inRange(wz2, sph4, wz2.x + 5, wz2.y, gz2 + 4 * LY);
+        ok21('4 a 30-ft sphere\'s point 25 ft across and 20 ft up: in range ' + in4 + ' (want false -- 35 ft true)', !in4);
+        // reach by squares: the goblin flying 5 ft up on the square beside the wizard (diagonal) is in a sword's reach, as it was
+        g4.x = wz2.x + 1; g4.y = wz2.y + 1; fly4(g4, 5);
+        ok21('4 reach: a goblin 5 ft up on the square diagonal to the wizard, by squares ' + G21.dist(wz2, g4) + ' ft (want 5 -- reach is squares)', G21.dist(wz2, g4) === 5);
+        fly4(g4, 0);
       }
     } catch (e21) { rep21.errors.push(String(e21 && e21.stack || e21).slice(0, 900)); D.d = d021; }
     if (errs.length) rep21.errors = rep21.errors.concat(errs);

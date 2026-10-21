@@ -96,7 +96,7 @@
       // "fought" the roper from 15 ft at 16 % a throw, and the fight ran seventeen rounds)
       var h = B.units.filter(function (w) { return w.id === r.by; })[0];
       if (!h || G.dist(u, h) <= G.reachOf(u) || TX.caster(u)) return 'fight';
-      var th = weapons(u).filter(function (wp) { return wp.ranged && G.dist(u, h) <= wp.range[1]; }).map(function (wp) { var s = swing(B, u, h, wp, u.x, u.y); return attacksWith(u, wp) * s.p * s.d; }).sort(function (a, b) { return b - a; })[0] || 0;
+      var th = weapons(u).filter(function (wp) { return wp.ranged && G.range(u, h) <= wp.range[1]; }).map(function (wp) { var s = swing(B, u, h, wp, u.x, u.y); return attacksWith(u, wp) * s.p * s.d; }).sort(function (a, b) { return b - a; })[0] || 0;
       var es = pE * TX.dpr(u) * 0.5;
       if (B.o && B.o.bench) (B.benchLog = B.benchLog || []).push(u.name + ' R' + B.round + ' held, out of reach: the throw ' + th.toFixed(1) + ' | the escape ' + es.toFixed(1));
       if (th >= es) return 'fight';
@@ -212,7 +212,7 @@
     // Reckless Attack (the barbarian, 2): advantage on its STR swings this turn, and at it till its next (js/features.js decides)
     if (!wp.ranged && D.features && D.features.reckless(u) && !u.conds.reckless) { u.conds.reckless = { till: { who: u.id, at: 'start', n: 1 } }; B.card(['{r}' + (u.side === 'foe' ? AI.the(B, u) : u.name) + ' swings recklessly.{/}'], 160); }
     while (T.attacksLeft > 0 && !u.dead && u.hp > 0) {
-      var t = first && t0 && G.standing(t0) && G.dist(u, t0) <= rng ? t0 : foesOf(B, u).filter(function (w) { return G.dist(u, w) <= rng && (!wp.ranged || G.los(u, w).clear); }).sort(function (a, b) { return a.hp - b.hp; })[0];
+      var t = first && t0 && G.standing(t0) && (wp.ranged ? G.range : G.dist)(u, t0) <= rng ? t0 : foesOf(B, u).filter(function (w) { return (wp.ranged ? G.range : G.dist)(u, w) <= rng && (!wp.ranged || G.los(u, w).clear); }).sort(function (a, b) { return a.hp - b.hp; })[0];
       first = false;
       if (!t || B.thrownLeft(u, wp) <= 0) break; // (the handaxes all thrown: battle.js spendThrow)
       T.attacksLeft--;
@@ -276,7 +276,7 @@
   TX.spellPlansFor = function (B, u) { return spellPlans(B, u, foesOf(B, u), alliesOf(B, u)); };
   TX.EVAL = {};
   var EV = TX.EVAL;
-  function inRangeOf(u, g, w, x, y) { return G.dist(u, w, x, y) <= (g.range || 5); }
+  function inRangeOf(u, g, w, x, y) { return (M.touchRange(g) || (g.range || 5) <= 5 ? G.dist : G.range)(u, w, x, y) <= (g.range || 5); } // (a touch by squares, a range by the true distance: magic.js targetOK)
   // a spell attack (Fire Bolt, Guiding Bolt ...)
   EV['shape:attack'] = function (B, u, e, slot, fs) {
     var sp = e.sp, g = e.g, d = avg(M.dice(sp, u, slot)), best = null;
@@ -437,7 +437,7 @@
   // Bless: +1d4 to the attacks and saves of three of its own for the fight
   EV.bless = function (B, u, e, slot, fs, allies) {
     if (u.conc && u.conc.id === 'bless') return null;
-    var n = 3 + Math.max(0, slot - 1), who = allies.filter(function (w) { return G.standing(w) && !w.conds.blessed && G.dist(u, w) <= 30; }).sort(function (a, b) { return TX.dpr(b) - TX.dpr(a); }).slice(0, n);
+    var n = 3 + Math.max(0, slot - 1), who = allies.filter(function (w) { return G.standing(w) && !w.conds.blessed && G.range(u, w) <= 30; }).sort(function (a, b) { return TX.dpr(b) - TX.dpr(a); }).slice(0, n);
     if (!who.length || !fs.length) return null;
     var sc = who.reduce(function (s, w) { return s + TX.dpr(w) * 0.12 * 3 + 1; }, 0);
     return { score: sc, t: { units: who }, keep: sc * 0.6 };
@@ -445,14 +445,14 @@
   EV.aid = function (B, u, e, slot, fs, allies) {
     // (what it adds over the Aid already on each: the same spell doesn't combine -- 09-28h; one already aided at this slot gains nothing)
     var add = 5 * Math.max(1, slot - 1), had = function (w) { return +(w.conds.aid || (w.src && w.src.conds && w.src.conds.aid) || 0); };
-    var who = allies.filter(function (w) { return !w.dead && G.dist(u, w) <= 30 && add > had(w); }).sort(function (a, b) { return (a.hp / a.maxhp) - (b.hp / b.maxhp); }).slice(0, 3 + Math.max(0, slot - 2));
+    var who = allies.filter(function (w) { return !w.dead && G.range(u, w) <= 30 && add > had(w); }).sort(function (a, b) { return (a.hp / a.maxhp) - (b.hp / b.maxhp); }).slice(0, 3 + Math.max(0, slot - 2));
     if (!who.length) return null;
     var sc = who.reduce(function (s, w) { var more = add - had(w); return s + (w.hp <= 0 ? more * 3 + TX.dpr(w) : w.hp < w.maxhp / 2 ? more * 1.3 : more * 0.7); }, 0);
     return { score: sc, t: { units: who } };
   };
   EV.shieldoffaith = function (B, u, e, slot, fs, allies) {
     if (u.conc) return null;
-    var t = allies.filter(function (w) { return G.standing(w) && G.dist(u, w) <= 60 && !w.conds.shieldOfFaith; }).sort(function (a, b) { return foesNear(B, b) - foesNear(B, a) || a.baseAC - b.baseAC; })[0];
+    var t = allies.filter(function (w) { return G.standing(w) && G.range(u, w) <= 60 && !w.conds.shieldOfFaith; }).sort(function (a, b) { return foesNear(B, b) - foesNear(B, a) || a.baseAC - b.baseAC; })[0];
     if (!t) return null;
     var sc = 2 + foesNear(B, t) * 2.5;
     return { score: sc, t: t, keep: sc * 0.6 };
@@ -588,7 +588,7 @@
     yield* act(B, u);
     if (u.dead || u.hp <= 0 || B.over()) return;
     // Action Surge (the fighter): the action again, once, while there is someone to hit
-    if (u.cls === 'fighter' && u.lvl >= 2 && u.feats && u.feats.actionSurge > 0 && !T.action && !T.attacksLeft && foesOf(B, u).some(function (t) { return G.dist(u, t) <= (u.weapon.ranged ? u.weapon.range[1] : 5 + T.move); }) && (!u.src || !u.src.wounded)) {
+    if (u.cls === 'fighter' && u.lvl >= 2 && u.feats && u.feats.actionSurge > 0 && !T.action && !T.attacksLeft && foesOf(B, u).some(function (t) { return (u.weapon.ranged ? G.range : G.dist)(u, t) <= (u.weapon.ranged ? u.weapon.range[1] : 5 + T.move); }) && (!u.src || !u.src.wounded)) {
       u.feats.actionSurge = 0; T.action = 1; D.sfx('buff'); B.card(['{y}' + u.name + '{/} surges!  {g}(Action Surge: a second action){/}']); yield 16;
       yield* act(B, u);
       if (u.dead || u.hp <= 0 || B.over()) return;
@@ -867,7 +867,7 @@
     var spec = D.oil.atk(u, true), dmg = D.oil.BURN, best = null;
     AI.heroes(B, u).forEach(function (w) {
       if (!G.hostile(u, w) || w.dead || !(w.regen > 0) || w.burned || !G.standing(w)) return;
-      if (G.dist(u, w) > 20 || !G.los(u, w).clear || !M.sees(B, u, w)) return;
+      if (G.range(u, w) > 20 || !G.los(u, w).clear || !M.sees(B, u, w)) return;
       var ed = RU.edges(u, w, spec), p = TX.pHit(spec.atk + (ed.pen || 0), RU.ac(w) + G.los(u, w).cover, ed.net), sc = w.regenDown ? 90 * p : TX.worth(dmg * p, w, true) + TX.dpr(w) * 2 * p;
       if (!best || sc > best.score) best = { t: w, score: sc };
     });
@@ -886,7 +886,7 @@
     var spec = D.light.torchAtk(u), best = null;
     AI.heroes(B, u).forEach(function (w) {
       if (!G.hostile(u, w) || w.dead || !(w.regen > 0) || w.burned || !G.standing(w) || w.object || w.isWall) return;
-      if (G.dist(u, w) > 20 || !G.los(u, w).clear || !M.sees(B, u, w)) return;
+      if (G.range(u, w) > 20 || !G.los(u, w).clear || !M.sees(B, u, w)) return;
       var sq = G.foot(w).filter(function (q) { return Math.max(Math.abs(q[0] - u.x), Math.abs(q[1] - u.y)) * 5 <= 20 && G.losPoint(u.x, u.y, q[0], q[1]); }).sort(function (a, b) { return Math.max(Math.abs(a[0] - u.x), Math.abs(a[1] - u.y)) - Math.max(Math.abs(b[0] - u.x), Math.abs(b[1] - u.y)); })[0];
       if (!sq) return;
       var ed = RU.edges(u, w, spec), p = TX.pHit(spec.atk + (ed.pen || 0), RU.ac(w) + G.los(u, w).cover, ed.net), sc = w.regenDown ? 90 * p : TX.worth(p, w, true) + TX.dpr(w) * 2 * p;
@@ -963,7 +963,7 @@
       weapons(u).forEach(function (wp) {
         var rng = wp.ranged ? wp.range[1] : G.reachOf(u, wp.reach), best = null;
         [{ x: u.x, y: u.y, cost: 0, stand: true }].concat(Object.keys(rm).map(function (k) { return rm[k]; })).forEach(function (e) {
-          if (!e.stand || G.dist(u, w, e.x, e.y) > rng || (wp.ranged && !G.los(u, w, e.x, e.y).clear)) return;
+          if (!e.stand || (wp.ranged ? G.range : G.dist)(u, w, e.x, e.y) > rng || (wp.ranged && !G.los(u, w, e.x, e.y).clear)) return;
           var pc = TX.pCut(B, u, st, wp, e.x, e.y), sc = pc * worth - e.cost / 30 - (wp.ranged && G.foesNear(u, e.x, e.y, 5).length ? 2 : 0);
           if (!best || sc > best.score) best = { score: sc, e: e, wp: wp };
         });
@@ -1010,7 +1010,7 @@
     sq.forEach(function (e) {
       wps.forEach(function (wp) {
         fs.forEach(function (t) {
-          if (G.dist(u, t, e.x, e.y) > wp.range[1]) return;
+          if (G.range(u, t, e.x, e.y) > wp.range[1]) return;
           var los = G.los(u, t, e.x, e.y); if (!los.clear) return;
           var ed = RU.edges(u, t, wp, e.x, e.y), p = TX.pHit(wp.atk + (ed.pen || 0), RU.ac(t) + los.cover, ed.net);
           var d = avg(wp.dice) + (wp.mod || 0) + (ed.net > 0 || all.some(function (w) { return w !== u && w.side === u.side && G.dist(w, t) <= 5; }) ? avg(RU.sneakDice(u)) : 0);

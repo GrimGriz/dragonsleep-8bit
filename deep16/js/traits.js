@@ -320,7 +320,7 @@
   // somebody in reach, his blows as ever. His pack gone, he hunts again
   function* stand(B, u) {
     if (G.foesNear(u, u.x, u.y, G.reachOf(u)).length) return false;
-    var T = u.turn, hs = AI.heroes(B, u).filter(function (w) { return G.standing(w) && !w.conds.paralyzed && G.dist(u, w) <= 60 && M.sees(B, u, w); });
+    var T = u.turn, hs = AI.heroes(B, u).filter(function (w) { return G.standing(w) && !w.conds.paralyzed && G.range(u, w) <= 60 && M.sees(B, u, w); });
     hs.sort(function (a, b) { return G.dist(u, a) - G.dist(u, b); });
     var g = M.geo('holdperson'), t = hs.filter(function (w) { return !g || M.targetOK(B, u, g, w); })[0];
     if (t && T && T.action > 0 && u.slots && u.slots[1] > 0 && (u.known || []).indexOf('holdperson') >= 0) yield* B.exec(u, { do: 'cast', id: 'holdperson', slot: 2, target: t });
@@ -351,7 +351,7 @@
       yield* foretellUp(B, u);
       return true;
     }
-    var hs = AI.heroes(B, u).filter(function (w) { return G.standing(w) && !w.conds.paralyzed && G.dist(u, w) <= 60 && M.sees(B, u, w); });
+    var hs = AI.heroes(B, u).filter(function (w) { return G.standing(w) && !w.conds.paralyzed && G.range(u, w) <= 60 && M.sees(B, u, w); });
     hs.sort(function (a, b) { return G.dist(u, a) - G.dist(u, b); });
     var g = M.geo('holdperson'), t = hs.filter(function (w) { return !g || M.targetOK(B, u, g, w); })[0];
     if (t && T && T.action > 0 && u.slots && u.slots[1] > 0 && (u.known || []).indexOf('holdperson') >= 0) {
@@ -558,7 +558,7 @@
       lines.push(Nm(B, u) + ' in the doughlike ground: STR ' + RU.saveText(sv) + ' vs DC ' + m.aberrant.dc + '  ' + (sv.ok ? '{n}pulls free{/}' : '{o}stuck fast: no move this turn{/}'));
       if (!sv.ok) T.move = 0;
     });
-    ms.filter(function (m) { return m.gibber && RU.canAct(m) && !m.conds.blinded && !u.conds.deafened && G.dist(m, u) <= m.gibber.range; }).forEach(function (m) {
+    ms.filter(function (m) { return m.gibber && RU.canAct(m) && !m.conds.blinded && !u.conds.deafened && G.range(m, u) <= m.gibber.range; }).forEach(function (m) {
       if (u.conds.confused) return; // (one babble is enough to lose a turn to)
       var sv = RU.save(u, 'wis', m.gibber.dc);
       lines.push('{p}' + Nm(B, m) + ' gibbers{/} at ' + Nm(B, u) + ': WIS ' + RU.saveText(sv) + ' vs DC ' + m.gibber.dc + '  ' + (sv.ok ? '{n}steady{/}' : '{p}the mind slips: no reactions, a d8 for the turn{/}'));
@@ -574,7 +574,7 @@
   // the end of its next turn); with `now5` (the medusa) a failure by 5 or more is stone at once (M.petrify). The AI looks away when the save is lost one time in three or more; a
   // player's hero is asked (M.gazeAsk, battle.js heroTurn). Not built: looking at it in the meantime forcing the save; the reflection in bright light turning it on itself
   function gazersOf(B, u) {
-    return B.units.filter(function (m) { return m !== u && m.gaze && G.standing(m) && RU.canAct(m) && G.hostile(m, u) && G.dist(m, u) <= (m.gaze.range || 30) && M.sees(B, m, u) && M.sees(B, u, m); });
+    return B.units.filter(function (m) { return m !== u && m.gaze && G.standing(m) && RU.canAct(m) && G.hostile(m, u) && G.range(m, u) <= (m.gaze.range || 30) && M.sees(B, m, u) && M.sees(B, u, m); });
   }
   M.gazeSave = function (B, u, m) {
     var g = m.gaze, ab = g.ab || 'con', sv = RU.save(u, ab, g.dc, false, g.stone ? 'petrified' : null), now = !!(g.now5 && !sv.ok && sv.total <= g.dc - 5);
@@ -603,7 +603,7 @@
   M.lookAt = function (B, u, m) {
     var av = u.conds.averted; if (av) { av.from = av.from.filter(function (id) { return id !== m.id; }); if (!av.from.length) delete u.conds.averted; }
     B.card(['{y}' + Nm(B, u) + '{/} looks at ' + (m.side === 'foe' && !m.named ? 'the ' + B.shortName(m) : m.name) + '.'], 180);
-    if (m.gaze && G.standing(m) && RU.canAct(m) && G.dist(m, u) <= (m.gaze.range || 30) && M.sees(B, m, u)) M.gazeSave(B, u, m);
+    if (m.gaze && G.standing(m) && RU.canAct(m) && G.range(m, u) <= (m.gaze.range || 30) && M.sees(B, m, u)) M.gazeSave(B, u, m);
   };
   // THE REFLECTION (SRD 5.1 the basilisk: "If the basilisk sees its reflection within 30 feet of it in bright light, it mistakes itself for a rival and targets itself with its
   // gaze"; the grid's rules §2.20, 10-15): a sheet's `gaze.mirror` (the basilisk's; the medusa's SRD block has none). The steel mirror (content/items.json `mirror`, SRD 5.1
@@ -612,7 +612,7 @@
   M.mirrorWhy = function (B, u, m) {
     if (!m || !m.gaze || !m.gaze.mirror) return 'no gaze that a mirror turns';
     if (!G.standing(m) || !RU.canAct(m)) return 'it cannot look';
-    if (G.dist(m, u) > (m.gaze.range || 30)) return 'not within ' + (m.gaze.range || 30) + ' ft';
+    if (G.range(m, u) > (m.gaze.range || 30)) return 'not within ' + (m.gaze.range || 30) + ' ft';
     if (!M.sees(B, m, u)) return 'it cannot see the mirror';
     if (!(D.light && D.light.brightAt && D.light.brightAt(B, m))) return 'not in bright light';
     return '';
@@ -661,7 +661,7 @@
   function legHand(L) { return L.side === 'party' && !L.guest && !L.ally; }
   function legAtk(L, a) { return a.atk === 'weapon' ? L.weapon : L.attacks && typeof L.attacks === 'object' ? L.attacks[a.atk] : null; } // ('weapon': a hero's own blade)
   function legTargets(B, L, a) {
-    if (a.atk) { var at = legAtk(L, a); if (!at) return []; var rng = at.ranged ? at.range[1] : G.reachOf(L, at.reach); return B.units.filter(function (w) { return G.hostile(L, w) && G.standing(w) && !w.object && G.dist(L, w) <= rng && M.sees(B, L, w) && (!at.ranged || G.los(L, w).clear) && !RU.charmedBy(L, w); }); }
+    if (a.atk) { var at = legAtk(L, a); if (!at) return []; var rng = at.ranged ? at.range[1] : G.reachOf(L, at.reach); return B.units.filter(function (w) { return G.hostile(L, w) && G.standing(w) && !w.object && (at.ranged ? G.range : G.dist)(L, w) <= rng && M.sees(B, L, w) && (!at.ranged || G.los(L, w).clear) && !RU.charmedBy(L, w); }); }
     if (a.detect) return B.units.some(function (w) { return G.hostile(L, w) && G.standing(w) && w.conds.hidden; }) ? [null] : [];
     if (a.drain) return B.units.filter(function (w) { return G.standing(w) && w.conds.charmed && w.conds.charmed.by === L.id; });
     if (a.cast) return legCastTargets(B, L, a);
@@ -675,7 +675,7 @@
   // half its speed toward the nearest foe and make one melee attack
   function legCastTargets(B, L, a) {
     var sp = D.SPELLS && D.SPELLS[a.cast]; if (!sp || !(L.known || []).length && !a.free) return [];
-    return B.units.filter(function (w) { return G.hostile(L, w) && G.standing(w) && !w.object && G.dist(L, w) <= (sp.range || 60) && M.sees(B, L, w) && G.los(L, w).clear && !RU.charmedBy(L, w); });
+    return B.units.filter(function (w) { return G.hostile(L, w) && G.standing(w) && !w.object && G.range(L, w) <= (sp.range || 60) && M.sees(B, L, w) && G.los(L, w).clear && !RU.charmedBy(L, w); });
   }
   function legMelee(w) { if (w.weapon && !w.weapon.ranged) return w.weapon; var ks = Object.keys(w.attacks || {}).filter(function (k) { var at = w.attacks[k]; return at && !at.ranged && !at.spell; }); return ks.length ? w.attacks[ks[0]] : null; }
   function legCallers(B, L, a) {
@@ -719,7 +719,7 @@
       var c = a.cost || 1, t = null, v = 0; if (c > L.legLeft) return;
       if (a.atk && legAtk(L, a)) {
         var at = legAtk(L, a), rng = at.ranged ? at.range[1] : G.reachOf(L, at.reach);
-        t = B.units.filter(function (w) { return G.hostile(L, w) && G.standing(w) && !w.object && G.dist(L, w) <= rng && M.sees(B, L, w) && (!at.ranged || G.los(L, w).clear) && !RU.charmedBy(L, w); }).sort(function (p, q) { return p.hp - q.hp; })[0];
+        t = B.units.filter(function (w) { return G.hostile(L, w) && G.standing(w) && !w.object && (at.ranged ? G.range : G.dist)(L, w) <= rng && M.sees(B, L, w) && (!at.ranged || G.los(L, w).clear) && !RU.charmedBy(L, w); }).sort(function (p, q) { return p.hp - q.hp; })[0];
         if (t) v = 2;
       } else if (a.detect) { if (B.units.some(function (w) { return G.hostile(L, w) && G.standing(w) && w.conds.hidden; })) v = 1; }
       else if (a.drain) { t = B.units.filter(function (w) { return G.standing(w) && w.conds.charmed && w.conds.charmed.by === L.id; })[0]; if (t) v = 3 * c; }

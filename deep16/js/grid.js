@@ -287,8 +287,13 @@
     return out;
   };
 
-  // distance in feet between two creatures' footprints (a is optionally stood at ax, ay)
-  G.dist = function (a, b, ax, ay, bx, by) {
+  // distance in feet between two creatures' footprints (a is optionally stood at ax, ay): reach and movement, by squares
+  G.dist = function (a, b, ax, ay, bx, by) { return apart(a, b, ax, ay, bx, by, false); };
+  // a range's distance (10-21; RULED 10-20, Griz: "true distance for ranges, - reach to include height-squares against flying opponents"): the floor's squares and the height's
+  // as the two sides of a right angle, rounded up to the 5 ft -- 20 across and 20 up is 30 ft. A spell's, a bow's, a throw's, a gaze's; the same as G.dist with nobody above
+  G.range = function (a, b, ax, ay, bx, by) { return apart(a, b, ax, ay, bx, by, true); };
+  G.hyp = function (fl, up) { return Math.ceil(Math.sqrt(fl * fl + up * up) - 1e-9) * 5; }; // (squares across and up -> feet)
+  function apart(a, b, ax, ay, bx, by, hyp) {
     ax = ax == null ? a.x : ax; ay = ay == null ? a.y : ay; bx = bx == null ? b.x : bx; by = by == null ? b.y : by;
     var as = a.size || 1, bs = b.size || 1;
     var dx = Math.max(0, bx - (ax + as - 1), ax - (bx + bs - 1)), dy = Math.max(0, by - (ay + as - 1), ay - (by + bs - 1));
@@ -302,8 +307,8 @@
       var st = G.map.def.step, za = G.gzAt(a, ax, ay), zb = G.gzAt(b, bx, by), ha = G.bodyH(a) * st, hb = G.bodyH(b) * st;
       if (!(za < zb + hb && zb < za + ha)) dz = 1 + Math.floor((zb >= za + ha ? zb - (za + ha) : za - (zb + hb)) / st / 2);
     }
-    return Math.max(dx, dy, dz) * 5;
-  };
+    return hyp ? G.hyp(Math.max(dx, dy), dz) : Math.max(dx, dy, dz) * 5;
+  }
   // does the map rise 10 ft (four steps) or more anywhere? (G.dist and the light read height only then: the flat maps pay nothing for it)
   G.tall = function () { var m = G.map; if (!m || !m.def || !m.def.step) return false; if (G.units && G.units.some(G.aloft)) return true; if (m.tallK == null) { var lo = 1e9, hi = -1e9; for (var y = 0; y < m.h; y++) for (var x = 0; x < m.w; x++) { var s = m.at(x, y); if (s && s.walk) { var z = m.gz(x, y); lo = Math.min(lo, z); hi = Math.max(hi, z); } } m.tallK = hi - lo >= 4 * m.def.step; } return m.tallK; };
   // a creature's melee reach in feet, the one place it is read (Enlarge, 09-29: an enlarged creature reaches 5 ft further; reduced does

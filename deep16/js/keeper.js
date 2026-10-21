@@ -919,8 +919,8 @@
     return heroes.some(function (h) {
       if (h.conds.restrained) return false;
       var rm = G.reach(h, 300), rch = G.reachOf(h, h.reach), ranged = h.weapon && h.weapon.ranged;
-      for (var key in rm) { var e = rm[key]; if (!e.stand) continue; if (G.dist(h, k, e.x, e.y) <= (ranged ? h.weapon.range[1] : rch) && (!ranged || G.los(h, k).clear)) return true; if (G.dist(h, k, e.x, e.y) <= rch) return true; }
-      var sp = D.magic && D.magic.list ? D.magic.list(B, h) : []; return sp.some(function (m) { return m.ok && m.g && /^(attack|single|rays|darts)$/.test(m.g.shape) && G.dist(h, k) <= (m.g.range || 0) && G.los(h, k).clear; });
+      for (var key in rm) { var e = rm[key]; if (!e.stand) continue; if ((ranged ? G.range : G.dist)(h, k, e.x, e.y) <= (ranged ? h.weapon.range[1] : rch) && (!ranged || G.los(h, k).clear)) return true; if (G.dist(h, k, e.x, e.y) <= rch) return true; }
+      var sp = D.magic && D.magic.list ? D.magic.list(B, h) : []; return sp.some(function (m) { return m.ok && m.g && /^(attack|single|rays|darts)$/.test(m.g.shape) && G.range(h, k) <= (m.g.range || 0) && G.los(h, k).clear; });
     });
   };
   K.upkeep = function* (B, k) {
