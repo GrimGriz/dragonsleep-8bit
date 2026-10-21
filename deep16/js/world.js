@@ -205,14 +205,22 @@
     if (w.f < STEPF) return;
     var hrs = W.house() ? D.house.marchHours(st) : st.h; // (the house: an exhausted party's half speed takes twice the hours)
     w.f = 0; S.from = S.at; S.at = next; S.pos = hc(next[0], next[1]); S.t += hrs; S.today += hrs; w.path.shift();
-    if (W.house()) { var ml = D.house.marchStep(st); if (ml === null) { this.walk = null; return; } if (ml.length) this.say(ml.join(' ')); } // (the forced march's saves, each hex past the day's)
+    if (W.house()) { // (the forced march's saves, each hex past the day's: a failure stops the walk on a card till OK -- his 10-21 "probably need a quick popup every time someone moves a hex and loses the save"; the bottom line was written over by the next hex)
+      var ml = D.house.marchStep(st), self = this; if (ml === null) { this.walk = null; return; }
+      if (ml.length) { W.save(); D.sfx('popup'); this.card(D.house.marchCard(ml), null, [['a', function () { self.arrive(st); }, 'OK']]); return; }
+    }
+    this.arrive(st);
+  };
+  // the step's end: kept, the road's chance of a fight, a door, the places here, and the walk's end
+  World.prototype.arrive = function (st) {
+    var w = this.walk;
     W.save();
     st.mi = M.w;
     if (W.onStep && W.onStep(this, st)) { this.walk = null; return; } // (pass B: a fight on the way stops the walk)
     var door = this.doorHere(), sites = M.siteAt[K(S.at[0], S.at[1])];
     if (door) { this.walk = null; this.offerDoor(door); return; }
     if (sites && sites.length) this.say(sites.map(function (s) { return s.name; }).join(', ') + '.');
-    if (!w.path.length) { this.walk = null; var rt = this.routeHere(); if (rt) this.offerRoute(rt); else this.lookHere(true); }
+    if (!w || !w.path.length) { this.walk = null; var rt = this.routeHere(); if (rt) this.offerRoute(rt); else this.lookHere(true); }
   };
   // a road up into the mountains, at either end: its days pass and the party is at the other end (its roam to come)
   World.prototype.routeHere = function () {

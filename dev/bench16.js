@@ -2112,6 +2112,13 @@
       var lM = HH.cur.party.filter(function (h) { return h.id === 'lymen'; })[0]; HH.exhaust(lM, 6);
       okH('exhausted 6 is death: Lymen dead, out of the fights\' party (' + HH.living(HH.cur).party.map(function (h) { return h.id; }).join(', ') + '), past healing (' + HH.field.item('potion', lM, { take: function () { } })[0] + ')', lM.dead && HH.living(HH.cur).party.length === 3 && /dead/.test(HH.field.item('potion', lM, { take: function () { } })[0]));
       WH.camp(); okH('a long rest leaves the dead dead (Lymen ' + lM.hp + ', ' + (lM.dead ? 'dead' : 'up') + ')', lM.dead && lM.hp === 0);
+      // a save lost on the walk stops it on a card till OK (his 10-21 "probably need a quick popup every time someone moves a hex and loses the save")
+      var nxW = [[1, 0], [-1, 0], [0, -1], [1, -1], [-1, 1], [0, 1]].map(function (d) { return [SM.at[0] + d[0], SM.at[1] + d[1]]; }).filter(function (n) { return WH.stepHours(SM.at, n); })[0], onS0 = WH.onStep, cdW = null, okW = false, exW = HH.exh(bM);
+      if (nxW) { SM.todayHex = 5; SM.pushing = true; wC.cards = []; wC.walk = { path: [nxW], f: 0 }; WH.onStep = null; D.roll = function () { return { total: 1 }; };
+        for (var fW = 0; fW < 60 && wC.walk && !wC.cards.length; fW++) wC.stepWalk();
+        D.roll = roll0; cdW = wC.cards[0]; var heldW = !!wC.walk; if (cdW && cdW.keys) { wC.cards.shift(); cdW.keys[0][1](); } okW = heldW && !wC.walk; WH.onStep = onS0; }
+      okH('a hex pushed past with every save lost: the walk held on a card till OK (' + (cdW ? cdW.lines.filter(function (l) { return l; }).slice(0, 3).join(' / ') : 'no card') + ')', !!nxW && okW && !!cdW && /FORCED MARCH/.test(cdW.lines[0]) && cdW.keys.length === 1 && cdW.keys[0][2] === 'OK' && cdW.lines.some(function (l) { return /Barley fails the march/.test(l); }) && HH.exh(bM) === exW + 1 && SM.at[0] === nxW[0] && SM.at[1] === nxW[1]);
+      WH.onStep = onS0; D.roll = roll0; wC.cards = []; wC.walk = null; SM.pushing = false;
       // a loss: the title, the last save standing
       wC.fight({ zone: 'north', list: ['goblin'], mirror: false }, WH.M().hex[WH.K(WH.state().at[0], WH.state().at[1])]); var bL = enterTop(); D.pop(); bL.o.onDone('lost');
       okH('a loss is the first game\'s game over: the title (' + (D.top() && D.top().kind) + '), the house shut, slot 3 as it was', D.top() && D.top().kind === 'housetitle' && D.top().lost && !HH.playing && memH['deep16.game.3'] === JSON.stringify(s3));

@@ -143,6 +143,12 @@
     if (H.cur.party.every(function (h) { return h.dead; })) { H.lost(); return null; }
     return lines;
   };
+  // the card THE WORLD stops the walk on when a save is lost (js/world.js stepWalk): each failure on two lines, its roll, then the level and what it does
+  H.marchCard = function (lines) {
+    var out = ['{r}THE FORCED MARCH{/} (' + (D.world.state().todayHex || 0) + ' hexes today)', ''];
+    lines.forEach(function (l) { var i = l.indexOf('): '); if (i < 0) out.push(l); else out.push(l.slice(0, i + 2), '{y}' + l.slice(i + 3) + '{/}'); });
+    return out;
+  };
 
   // ---------------------------------------------------------------- THE NIGHT (RULED 10-21, Griz: "when not rope-trick or tiny hut, they'll have to assign 3 watches for a
   // long rest. Each watch will roll an encounter check - less than if traveling, but on encounter party members not on that watch will be out of armor for that combat
