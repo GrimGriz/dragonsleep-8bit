@@ -23,7 +23,7 @@
   var GROW = 1.8062; // 68 / 37.649: his road, the Pit road and the mile, as drawn on 10-16 (his EXPORT 2306Z), reads 68.0 mi
   var V3 = V3_1 / GROW;
   var KEY = 'realm-hexmap-v2', KEY1 = 'realm-hexmap-v1', ZMIN = 1.2, ZMAX = 6000; // (version 1 is left as it was in the browser: grown, never written)
-  var KINDS = ['city', 'town', 'castle', 'inn', 'cave', 'junction', 'seat', 'hamlet', 'mark'];
+  var KINDS = ['city', 'town', 'castle', 'inn', 'cave', 'junction', 'seat', 'school', 'hamlet', 'mark']; // (school: a seat of the Doors, 10-20)
   var PKINDS = ['road', 'track', 'river'];
   var $ = function (id) { return document.getElementById(id); };
   var esc = function (s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); };
@@ -78,11 +78,19 @@
   // rubble-filled ruins, steep mountains, and ice-covered ground"; half the distance) -- RULED 10-20, his "SRD for world map and book III for
   // snoot-play": `cost` stays Book III's for the Snoot, `diff` is the world map's. A gulch and the Rift are ours (his "If DMG has rules SRD
   // doesn't, we can author our own fill in of the gap"); hills are not difficult (the SRD names none)
+  // (10-20 later: [4] OWN, how much a hex's own ground wins over the blend -- a town sits on its own ground, his "1 yes"; a bog lies low and flat at a
+  // range's foot; [5] CUT, a ground that is a cut below the land round it, not a height of its own -- a gulch, his "is a gulch where the land rises up on
+  // your sides because you're in like a valley with walls?" -- yes: the gulch 350 ft under its banks, the Rift 1,800)
   var DEFT = { plains: [250, 60, 0], verge: [150, 40, 0], farms: [220, 30, 0], foothills: [1400, 600, 0], hills: [900, 650, 0], woods: [500, 150, 1],
-    gulch: [60, 220, 1], bog: [60, 15, 1], black: [6000, 2600, 1], gray: [5000, 2200, 1], coastal: [3200, 1500, 1], town: [300, 30, 0], lake: [0, 0, 0],
-    sea: [0, 0, 0], rift: [-1500, 400, 1] };
+    gulch: [60, 60, 1, 0.45, 350], bog: [60, 15, 1, 0.7], black: [6000, 2600, 1], gray: [5000, 2200, 1], coastal: [3200, 1500, 1], town: [300, 30, 0, 1], lake: [0, 0, 0],
+    sea: [0, 0, 0], rift: [-1500, 300, 1, 0.45, 1800] };
   function terrDefaults(list) {
-    list.forEach(function (t) { var d = DEFT[t.k] || [300, 80, 0]; if (t.alt == null) t.alt = d[0]; if (t.rough == null) t.rough = d[1]; if (t.diff == null) t.diff = !!d[2]; });
+    list.forEach(function (t) {
+      var d = DEFT[t.k] || [300, 80, 0];
+      if (t.alt == null) t.alt = d[0]; if (t.rough == null) t.rough = d[1]; if (t.diff == null) t.diff = !!d[2];
+      if (t.own == null) t.own = d[3] == null ? 0.45 : d[3];
+      if (t.cut == null) { t.cut = d[4] || 0; if (t.cut && DEFT[t.k] && +t.rough > d[1]) t.rough = d[1]; } // (a cut's own roughness is its floor's)
+    });
     return list;
   }
   function seedPeaks(sites) { // three named heights to start his lifts from (the seat's placing, his to move)
@@ -150,6 +158,45 @@
     if (S.view) { view.cx = S.view.cx; view.cy = S.view.cy; view.z = S.view.z; view.L = S.view.L || 1; }
     reindex(); rebuildDC();
     S.paths.forEach(function (P) { if (/coldridge/i.test(P.name || '') && !P.drawn) SHAPED = shapeColdridge(P) || SHAPED; });
+    if (!(S.seeded && S.seeded.doors1020) && S.sites.some(function (s) { return /doors/i.test(s.name); })) SEEDED = seedDoors();
+  }
+  // THE DOORS' SCHOOLS AND THE MOUNTAIN-FOOT WATER (10-20, once, on load; the seat's placing in miles of version 2, his to move). His words: "please
+  // place the doors schools - the one with 5 of the schools, and the rest solo amongst the black mountains, adjusting height as needed (a valley for
+  // the 5 or something?) in reference locations we can move later but probably never will"; "can we lower a spot at the foot of the black mountains
+  // so the bog and the glowseep have a thin layer all the way to the glowseep section we harvest". The realm (TarlynsPit/wiki/the-doors.md,
+  // black-mountains.md 215-237, glowseep.md 17): the five-school valley -- Enchantment (keyholder), Transmutation, Divination, Illusion, Abjuration,
+  // "the northernmost post of human civilization" -- and the farm valley beside it, the Council of Mages' demesne; Conjuration's hub is his The DOORS;
+  // Thresholding Hold, the Necro school's seat, "the other frost-giant lair, west coast above the Black"; the Furnace, Evocation's seat "on the
+  // geothermal seam, a day from Thresholding Hold"; the Sealward, Abjuration's cold station at the ice line; the Glowseep "against the range's
+  // southern foot immediately below the Guano Galleries' block", its water draining south to Halfway Lake.
+  var SEEDED = false;
+  function seedDoors() {
+    var has = {}, hasK = {}; S.sites.forEach(function (s) { has[s.id] = 1; }); S.peaks.forEach(function (p) { hasK[p.id] = 1; });
+    var note = 'the seat’s placing 10-20 (his “reference locations we can move later but probably never will”); ';
+    var site = function (id, name, kind, x, y, n) { if (!has[id]) S.sites.push({ id: id, name: name, kind: kind, x: x, y: y, note: note + n }); };
+    var lift = function (o) { if (!hasK[o.id]) S.peaks.push(o); };
+    // the five-school valley, its floor a livable 2,000-odd feet down among the black mountains, north-east of the hub toward the coast
+    var V = [[97.5, 6.2], [103.5, 8.9], [110, 12.2]], at = function (t, off) {
+      var L = t * 2, i = Math.min(1, Math.floor(L)), u = L - i, a = V[i], b = V[i + 1], dx = b[0] - a[0], dy = b[1] - a[1], n = Math.hypot(dx, dy);
+      return [a[0] + dx * u - dy / n * off, a[1] + dy * u + dx / n * off];
+    };
+    lift({ id: 'v-five', name: 'the five-school valley', pts: V, h: -3600, r: 2.6 });
+    [['sch-abj', 'Abjuration', 0.08, 0.8], ['sch-trans', 'Transmutation', 0.29, -0.8], ['sch-ench', 'Enchantment (the keyholder)', 0.5, 0.7], ['sch-div', 'Divination', 0.71, -0.8], ['sch-ill', 'Illusion', 0.92, 0.8]]
+      .forEach(function (s) { var p = at(s[2], s[3]); site(s[0], s[1], 'school', p[0], p[1], 'the five-school valley (the-doors.md 34)'); });
+    lift({ id: 'v-farm', name: 'the farm valley', pts: [[103.6, 13.6], [106.4, 15.1], [109.2, 16.6]], h: -3000, r: 1.8 });
+    site('farmvalley', 'the farm valley (the Granger)', 'hamlet', 106.4, 15.1, 'the Council of Mages’ demesne, coinless by design (the-doors.md 35)');
+    // the solo seats
+    site('thresholding', 'Thresholding Hold (Necromancy)', 'school', 24, 14, 'the west hold: the Necro school’s seat, the other frost-giant lair, west coast above the Black (black-mountains.md 215); Vindicar’s School of Thresholding');
+    lift({ id: 'k-thresh', name: 'Thresholding Hold’s height', x: 24, y: 14, h: 1200, r: 2.5 });
+    site('furnace', 'the Furnace (Evocation)', 'school', 35.2, 18, 'Evocation’s seat on the geothermal seam, a day from Thresholding Hold (black-mountains.md 224); the Galleries module’s “a day up the mountain” is from the west road here');
+    lift({ id: 'k-furnace', name: 'the Furnace’s hollow', x: 35.2, y: 18, h: -900, r: 2 });
+    site('sealward', 'the Sealward (Abjuration)', 'school', 60, 3, 'Abjuration’s cold station at the ice line, over the survivor giants’ country (black-mountains.md 225)');
+    lift({ id: 'k-seal', name: 'the ice line', x: 60, y: 3, h: 2800, r: 3 });
+    // the mountain-foot water: the bogs to the Glowseep, a shallow wet trough along the range's foot
+    lift({ id: 'v-foot', name: 'the mountain-foot water', water: true, h: 0, level: [420, 320], r: 1.6, // (a water table falling east: the seep drains on south to Halfway Lake, lower still)
+      pts: [[34, 28.5], [46, 27.5], [58, 28.5], [68, 30.5], [78, 31.2], [88, 31.2], [96, 31.5], [101, 32.6], [104, 34.2]] });
+    site('glowseep', 'the Glowseep (the light-crews’ harvest)', 'mark', 103.2, 33.6, 'immediately below the Guano Galleries’ block, its water draining south to Halfway Lake (glowseep.md 17)');
+    S.seeded = S.seeded || {}; S.seeded.doors1020 = true; reindex(); return true;
   }
   // THE COLDRIDGE ROUTE (10-20; his "the coldridge route I'm leaning on you the most for"): RULED 10-17 "3 days ... due to mountain and weather -
   // alternately the road i drew is inaccurate because of switchbacks". The seat's shaping, once, on load: the road is DIFFICULT (a steep mountain
@@ -324,7 +371,7 @@
     var cs = 0.6, x0 = b[0] - 12, y0 = b[1] - 12, nx = Math.ceil((b[2] + 12 - x0) / cs), ny = Math.ceil((b[3] + 12 - y0) / cs), n = nx * ny;
     var A = new Float32Array(n), R = new Float32Array(n), W = new Float32Array(n);
     for (var j = 0; j < ny; j++) for (var i = 0; i < nx; i++) {
-      var t = terrAtMi(x0 + (i + 0.5) * cs, y0 + (j + 0.5) * cs), T = t && TB[t], o = j * nx + i, w = !T ? 0.3 : t === 'lake' ? 0.02 : 1; // (a lake takes the land round it)
+      var t = terrAtMi(x0 + (i + 0.5) * cs, y0 + (j + 0.5) * cs), T = t && TB[t], o = j * nx + i, w = !T ? 0.3 : t === 'lake' || +T.cut ? 0.02 : 1; // (a lake or a cut takes the land round it)
       W[o] = w; A[o] = (T ? +T.alt || 0 : 200) * w; R[o] = (T ? +T.rough || 0 : 50) * w;
     }
     blur(A, nx, ny, 4); blur(R, nx, ny, 4); blur(W, nx, ny, 4);
@@ -341,26 +388,52 @@
     var cl = function (k, n) { return k < 0 ? 0 : k >= n ? n - 1 : k; }, I0 = cl(i, g.nx), I1 = cl(i + 1, g.nx), J0 = cl(j, g.ny) * g.nx, J1 = cl(j + 1, g.ny) * g.nx;
     return (a[J0 + I0] * (1 - u) + a[J0 + I1] * u) * (1 - v) + (a[J1 + I0] * (1 - u) + a[J1 + I1] * u) * v;
   }
+  // a lift is a point (x, y) or a LINE (pts: a valley, a ridge, a trough along a range's foot): h ft over r mi either side; a sink has a flat floor
+  // and calms the ground's fractal on it (a livable valley floor), and a WET one holds a thin sheet of water on its floor
+  function liftBox(p) {
+    if (!p.pts) return [p.x - p.r * 1.5, p.y - p.r * 1.5, p.x + p.r * 1.5, p.y + p.r * 1.5];
+    var b = [1e9, 1e9, -1e9, -1e9]; p.pts.forEach(function (q) { b[0] = Math.min(b[0], q[0]); b[1] = Math.min(b[1], q[1]); b[2] = Math.max(b[2], q[0]); b[3] = Math.max(b[3], q[1]); });
+    var m = p.r * 1.5; return [b[0] - m, b[1] - m, b[2] + m, b[3] + m];
+  }
+  function liftMid(p) { if (!p.pts) return [p.x, p.y]; var a = p.pts[Math.floor((p.pts.length - 1) / 2)], b = p.pts[Math.ceil((p.pts.length - 1) / 2)]; return [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2]; }
+  var PW = 0, PC = 0, PL = []; // (the last point's wet, calm and levels, read by hRaw and hexH)
+  function lvlOf(p) { return Array.isArray(p.level) ? p.level : [+p.level, +p.level]; }
   function peaksAt(x, y) { // his LIFTs: each a height over a spread, its edge and its spurs fractal ("pull up nearby hexes through some kind of fractal map")
-    var h = 0, P = S.peaks || [];
+    var h = 0, P = S.peaks || []; PW = 0; PC = 0; PL = [];
     for (var i = 0; i < P.length; i++) {
-      var p = P[i], dx = x - p.x, dy = y - p.y, r = +p.r || 1; if (Math.abs(dx) > r * 1.5 || Math.abs(dy) > r * 1.5) continue;
-      var warp = 1 + 0.35 * fbm(x / r * 1.3 + 7.1 * i, y / r * 1.3, 77, 4), u = Math.hypot(dx, dy) / (r * warp); if (u >= 1) continue;
-      var f = 1 - u * u; f *= f; h += (+p.h || 0) * f * (0.7 + 0.6 * ridged(x / r * 2.5, y / r * 2.5, 300 + i, 5));
+      var p = P[i], r = +p.r || 1, hh = +p.h || 0, d, s = 0;
+      if (p.pts) {
+        var bx = liftBox(p); if (x < bx[0] || y < bx[1] || x > bx[2] || y > bx[3]) continue;
+        d = 1e9; var acc = 0, tot = 0, at0 = 0;
+        for (var j = 0; j + 1 < p.pts.length; j++) {
+          var sl = Math.hypot(p.pts[j + 1][0] - p.pts[j][0], p.pts[j + 1][1] - p.pts[j][1]), sg = segD([x, y], p.pts[j], p.pts[j + 1]);
+          if (sg[0] < d) { d = sg[0]; at0 = acc + sg[1] * sl; } acc += sl;
+        }
+        tot = acc; s = tot ? at0 / tot : 0; // (how far along the line: a level runs from its first end to its last)
+      } else { if (Math.abs(x - p.x) > r * 1.5 || Math.abs(y - p.y) > r * 1.5) continue; d = Math.hypot(x - p.x, y - p.y); }
+      var warp = 1 + 0.3 * fbm(x / r * 1.3 + 7.1 * i, y / r * 1.3, 77, 4), u = d / (r * warp); if (u >= 1) continue;
+      var sink = hh < 0 || p.level != null, fl = sink ? 0.35 : 0, f = u <= fl ? 1 : 1 - Math.pow((u - fl) / (1 - fl), 2); f *= f;
+      if (p.level != null) { var lv = lvlOf(p); PL.push([lv[0] + (lv[1] - lv[0]) * s, f]); } // (a level: the ground brought to it, a water table)
+      else h += hh * f * (hh < 0 ? 1 : 0.7 + 0.6 * ridged(x / r * 2.5, y / r * 2.5, 300 + i, 5));
+      if (sink) PC = Math.max(PC, f * 0.9);
+      if (p.water && f > 0.62) PW = 1;
     }
     return h;
   }
-  var KLOC = 0.45; // (how far a hex's own ground pulls it from the blend: a lone lake or crag reads, a border stays soft)
   function hRaw(x, y, tk) {
     ar(); if (tk === undefined) tk = terrAtMi(x, y);
     var b = bil(AR.A, x, y), rr = bil(AR.R, x, y);
-    if (tk === 'sea') return 0;
-    if (tk === 'lake') return Math.max(0, b - 40); // (a lake lies flat a little under the land round it)
-    var T = tk && TB[tk], la = T ? +T.alt : b, lr = T ? +T.rough : rr, h = b + KLOC * (la - b), R = rr + KLOC * (lr - rr);
-    var m = Math.max(0, Math.min(1, (R - 400) / 1600)), sd = +S.opts.seed || 1;
-    h += R * ((1 - m) * fbm(x / 4.5, y / 4.5, sd, 8) + m * (2.2 * ridged(x / 11, y / 11, sd + 101, 8) - 0.9)); // (rolling hills a few miles across; ridges on the rough)
-    h += peaksAt(x, y);
-    return tk === 'rift' ? h : Math.max(10, h);
+    if (tk === 'sea') { PW = 0; return 0; }
+    if (tk === 'lake') { PW = 0; return Math.max(0, b - 40); } // (a lake lies flat a little under the land round it)
+    var T = tk && TB[tk], sd = +S.opts.seed || 1, h, R;
+    if (T && +T.cut) { h = b - +T.cut; R = +T.rough || 0; } // (a cut: under the land round it, its banks rising on either side)
+    else { var own = T ? +T.own : 0.45, la = T ? +T.alt : b, lr = T ? +T.rough : rr; h = b + own * (la - b); R = rr + own * (lr - rr); }
+    var lift = peaksAt(x, y), m = Math.max(0, Math.min(1, (R - 400) / 1600));
+    h += (1 - PC) * R * ((1 - m) * fbm(x / 4.5, y / 4.5, sd, 8) + m * (2.2 * ridged(x / 11, y / 11, sd + 101, 8) - 0.9)); // (rolling hills a few miles across; ridges on the rough)
+    h += lift;
+    for (var k = 0; k < PL.length; k++) h += (PL[k][0] - h) * PL[k][1];
+    PLIFT = lift;
+    return tk === 'rift' || (T && +T.cut) ? h : Math.max(10, h);
   }
   // the roads' beds: a road or track graded along itself (its heights smoothed over about two miles each way), a river a little under the lowest
   // ground near it; the land within a few hundred yards eased toward the bed. So a road climbs to a pass, and the Coldridge Route's switchbacks
@@ -396,7 +469,21 @@
     var w = 1 - bd / (best[3] ? 0.3 : 0.45); if (w <= 0) return h; w = w * w * 0.9;
     return best[3] ? Math.min(h, h + (best[2] - h) * w) : h + (best[2] - h) * w;
   }
-  function hAt(x, y, tk) { if (tk === undefined) tk = terrAtMi(x, y); var h = hRaw(x, y, tk); return isWet(tk) ? h : bedAt(x, y, h); }
+  var PLIFT = 0;
+  function hAt(x, y, tk) {
+    if (tk === undefined) tk = terrAtMi(x, y);
+    var h = hRaw(x, y, tk); if (isWet(tk)) return h;
+    h = bedAt(x, y, h);
+    // a city sits on its own ground (his "1 yes", 10-20): the land within a mile brought to the town ground's height, with the lifts it is under
+    // (a city only: a place of kind town is any new place's kind, and the Doors' hub stands up the mountain)
+    var TT = TB.town, ta = (TT ? +TT.alt : 300) + PLIFT;
+    for (var si = 0; si < S.sites.length; si++) {
+      var st = S.sites[si]; if (st.kind !== 'city') continue;
+      var R0 = 1.1, dd = Math.hypot(x - st.x, y - st.y); if (dd >= R0) continue;
+      var w = dd < R0 * 0.45 ? 1 : 1 - Math.pow((dd - R0 * 0.45) / (R0 * 0.55), 2); h += (ta - h) * w * w * 0.95;
+    }
+    return h;
+  }
   // the caches: a hex's height and its shown ground, cleared when the paint, the roads, the lifts or the seed change
   var HC = new Map(), DT = new Map(), HSIG = '';
   function sigOf() { return VER + '|' + S.opts.seed + '|' + JSON.stringify(S.peaks) + '|' + JSON.stringify(S.paths) + '|' + JSON.stringify(S.sites); }
@@ -405,6 +492,7 @@
     HC.forEach(function (v, k) { if (Math.abs(v[1] - x) < R && Math.abs(v[2] - y) < R) HC.delete(k); });
     HSIG = sigOf(); LAYERKEY = '';
   }
+  function dirtyLift(p) { var b = liftBox(p), m = 1; HC.forEach(function (v, k) { if (v[1] > b[0] - m && v[2] > b[1] - m && v[1] < b[2] + m && v[2] < b[3] + m) HC.delete(k); }); HSIG = sigOf(); LAYERKEY = ''; }
   function domT(L, q, r) { // the ground a hex shows: its own (or its parent's), or where he painted finer inside it, the most of what is there
     var k = K(q, r);
     if (L < 3 && DC[L].get(k)) {
@@ -415,10 +503,11 @@
     }
     var e = effAt(L, q, r); return e ? e.t : null;
   }
-  function hexH(L, q, r) {
-    var k = L + '|' + q + ',' + r, v = HC.get(k); if (v) return v[0];
-    var c = hc(L, q, r), h = hAt(c[0], c[1], domT(L, q, r)); HC.set(k, [h, c[0], c[1]]); return h;
+  function hexE(L, q, r) { // [height, x, y, wet]
+    var k = L + '|' + q + ',' + r, v = HC.get(k); if (v) return v;
+    var c = hc(L, q, r), h = hAt(c[0], c[1], domT(L, q, r)); v = [h, c[0], c[1], PW]; HC.set(k, v); return v;
   }
+  function hexH(L, q, r) { return hexE(L, q, r)[0]; }
   function shadeOf(L, q, r, ex) { // light from the north-west, high: 1 on the flat
     var w = LV[L].w, gx = (hexH(L, q + 1, r) - hexH(L, q - 1, r)) / (2 * w), gy = (hexH(L, q, r + 1) + hexH(L, q - 1, r + 1) - hexH(L, q + 1, r - 1) - hexH(L, q, r - 1)) / (2 * w * SQ3);
     var k = ex / 5280, nl = Math.sqrt(gx * gx * k * k + gy * gy * k * k + 1), d = (0.503 * gx * k + 0.503 * gy * k + 0.704) / nl / 0.704;
@@ -431,9 +520,10 @@
     if (!m) { if (deep) return [255, 0, 255]; var g = document.createElement('canvas').getContext('2d'); g.fillStyle = '#ff00ff'; g.fillStyle = c; return (RGB[c] = rgbOf(g.fillStyle, true)); }
     var n = parseInt(m[1], 16); return (RGB[c] = [n >> 16, (n >> 8) & 255, n & 255]);
   }
-  function tone(t, s, h, wall) { // a hex's colour lit: its terrain's, shaded, snow on the highest; a wall the same ground darker and earthier
+  function tone(t, s, h, wall, wet) { // a hex's colour lit: its terrain's, shaded, snow on the highest; a wall the same ground darker and earthier; a wet floor filmed
     var T = TB[t], c = rgbOf(T ? T.color : t ? '#ff00ff' : '#5a5244'), r = c[0], g = c[1], b = c[2]; // (no paint: a dim ground, so the world reads whole)
     if (wall) { r = r * 0.6 + 92 * 0.4; g = g * 0.6 + 74 * 0.4; b = b * 0.6 + 56 * 0.4; }
+    if (wet) { r = r * 0.5 + 70 * 0.5; g = g * 0.5 + 132 * 0.5; b = b * 0.5 + 128 * 0.5; s = 0.9 + (s - 1) * 0.3; } // (a thin sheet of water: the ground under it shows)
     r *= s; g *= s; b *= s;
     var sn = wall ? 0 : Math.round(Math.max(0, Math.min(0.75, (h - 7000) / 2600)) * 8) / 8;
     if (sn) { r += (236 - r) * sn; g += (238 - g) * sn; b += (246 - b) * sn; }
@@ -464,7 +554,7 @@
           var a = HCO[f[0]], b = HCO[f[1]];
           add(tone(t, f[4], 0, true), [P[f[0]], P[f[1]], wproj(cam, c[0] + b[0] * w, c[1] + b[1] * w, hn), wproj(cam, c[0] + a[0] * w, c[1] + a[1] * w, hn)]);
         });
-        add(tone(t, wet ? 1 : shadeOf(L, q, r, cam.E), h), P); if (tops) poly(tops, P);
+        add(tone(t, wet ? 1 : shadeOf(L, q, r, cam.E), h, false, !wet && hexE(L, q, r)[3]), P); if (tops) poly(tops, P);
       }
       Object.keys(groups).forEach(function (col) { g.fillStyle = col; g.strokeStyle = col; g.lineWidth = 0.6; g.fill(groups[col]); g.stroke(groups[col]); });
       if (tops) { g.strokeStyle = 'rgba(20,12,6,.28)'; g.lineWidth = 0.7; g.stroke(tops); }
@@ -484,7 +574,7 @@
     S.sites.forEach(function (st) {
       var s = hp(st.x, st.y); if (s[0] < -40 || s[0] > cam.W + 40 || s[1] < -20 || s[1] > cam.H + 20) return;
       g.fillStyle = '#efe0b8'; g.strokeStyle = '#2a180a'; g.lineWidth = 1.5; g.beginPath(); g.arc(s[0], s[1], 3.5, 0, 7); g.fill(); g.stroke();
-      if (st.kind === 'city' || st.kind === 'castle' || st.kind === 'inn' || st.kind === 'town' || st.kind === 'seat') { g.lineWidth = 3; g.strokeStyle = 'rgba(30,16,6,.85)'; g.strokeText(st.name, s[0] + 6, s[1] + 4); g.fillStyle = '#f6e9c5'; g.fillText(st.name, s[0] + 6, s[1] + 4); }
+      if (st.kind === 'city' || st.kind === 'castle' || st.kind === 'inn' || st.kind === 'town' || st.kind === 'seat' || st.kind === 'school') { g.lineWidth = 3; g.strokeStyle = 'rgba(30,16,6,.85)'; g.strokeText(st.name, s[0] + 6, s[1] + 4); g.fillStyle = '#f6e9c5'; g.fillText(st.name, s[0] + 6, s[1] + 4); }
     });
   }
 
@@ -574,7 +664,7 @@
       if (L < 3 && DC[L].get(k) && hexPx(L + 1) >= 2.5) {
         var n = LV[L + 1].n, ch = kids(n);
         for (var i = 0; i < ch.length; i++) { var cq = n * q + ch[i][0], cr = n * r + ch[i][1]; if (onScreen(L + 1, cq, cr)) walk(L + 1, cq, cr, t); }
-      } else if (t) { var g = rel ? tone(t, isWet(t) ? 1 : shadeOf(L, q, r, 14), hexH(L, q, r)) : t; (groups[g] = groups[g] || []).push([L, q, r]); } // (relief: lit from the north-west)
+      } else if (t) { var g = rel ? tone(t, isWet(t) ? 1 : shadeOf(L, q, r, 14), hexH(L, q, r), false, !isWet(t) && hexE(L, q, r)[3]) : t; (groups[g] = groups[g] || []).push([L, q, r]); } // (relief: lit from the north-west)
     };
     visit(1, function (q, r) { walk(1, q, r, null); });
     Object.keys(groups).forEach(function (t) {
@@ -665,6 +755,7 @@
     else if (kind === 'cave') { ctx.arc(x, y + 3, 7, Math.PI, 0); ctx.closePath(); ctx.fillStyle = '#2a180a'; }
     else if (kind === 'junction') { ctx.moveTo(x, y - 6); ctx.lineTo(x + 6, y); ctx.lineTo(x, y + 6); ctx.lineTo(x - 6, y); ctx.closePath(); }
     else if (kind === 'seat') { ctx.moveTo(x, y - 7); ctx.lineTo(x + 7, y + 5); ctx.lineTo(x - 7, y + 5); ctx.closePath(); ctx.fillStyle = '#b5452a'; }
+    else if (kind === 'school') { ctx.moveTo(x, y - 10); ctx.lineTo(x + 4, y - 4); ctx.lineTo(x + 4, y + 6); ctx.lineTo(x - 4, y + 6); ctx.lineTo(x - 4, y - 4); ctx.closePath(); ctx.fillStyle = '#9b84d0'; } // (a tower)
     else if (kind === 'mark') { ctx.moveTo(x - 6, y - 6); ctx.lineTo(x + 6, y + 6); ctx.moveTo(x + 6, y - 6); ctx.lineTo(x - 6, y + 6); ctx.stroke(); return; }
     else ctx.arc(x, y, kind === 'hamlet' ? 4 : 6, 0, 7);
     ctx.fill(); ctx.stroke();
@@ -705,11 +796,17 @@
       dp.forEach(function (p, i) { var s = toS(p[0], p[1]); if (i) ctx.lineTo(s[0], s[1]); else ctx.moveTo(s[0], s[1]); }); ctx.stroke(); ctx.setLineDash([]);
     }
     if (S.opts.tool === 'lift' || SEL.peak) (S.peaks || []).forEach(function (pk) { // the lifts: a triangle (down for a sink), its height, its spread when chosen
-      var s = toS(pk.x, pk.y), on = SEL.peak === pk.id, up = (+pk.h || 0) >= 0;
-      if (on) { ctx.setLineDash([5, 4]); ctx.strokeStyle = 'rgba(255,214,60,.8)'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.ellipse(s[0], s[1], pk.r * view.z, pk.r * zy(), 0, 0, 7); ctx.stroke(); ctx.setLineDash([]); }
+      var mid = liftMid(pk), s = toS(mid[0], mid[1]), on = SEL.peak === pk.id, up = pk.level == null && (+pk.h || 0) >= 0;
+      if (pk.pts) { // (a line lift: its line, dashed; its width when chosen)
+        ctx.setLineDash([7, 5]); ctx.strokeStyle = on ? 'rgba(255,214,60,.9)' : pk.water ? 'rgba(120,200,210,.8)' : 'rgba(246,233,197,.7)'; ctx.lineWidth = on ? 2.5 : 1.6; ctx.beginPath();
+        pk.pts.forEach(function (q, i) { var a = toS(q[0], q[1]); if (i) ctx.lineTo(a[0], a[1]); else ctx.moveTo(a[0], a[1]); }); ctx.stroke();
+        if (on) { ctx.setLineDash([]); ctx.strokeStyle = '#ffd23c'; ctx.lineWidth = 2 * pk.r * view.z; ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.globalAlpha = 0.16; ctx.stroke(); ctx.globalAlpha = 1; ctx.lineCap = 'butt'; }
+        ctx.setLineDash([]);
+      } else if (on) { ctx.setLineDash([5, 4]); ctx.strokeStyle = 'rgba(255,214,60,.8)'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.ellipse(s[0], s[1], pk.r * view.z, pk.r * zy(), 0, 0, 7); ctx.stroke(); ctx.setLineDash([]); }
       ctx.beginPath(); ctx.moveTo(s[0], s[1] + (up ? -9 : 9)); ctx.lineTo(s[0] + 8, s[1] + (up ? 5 : -5)); ctx.lineTo(s[0] - 8, s[1] + (up ? 5 : -5)); ctx.closePath();
       ctx.fillStyle = on ? '#ffd23c' : up ? '#f6e9c5' : '#8fd0e0'; ctx.strokeStyle = '#2a180a'; ctx.lineWidth = 1.5; ctx.fill(); ctx.stroke();
-      var t = (up ? '+' : '') + Math.round(+pk.h || 0).toLocaleString() + ' ft' + (on ? ' · ' + (+pk.r) + ' mi' : '');
+      var lv = pk.level != null ? lvlOf(pk) : null;
+      var t = (pk.pts && pk.name ? pk.name + ' · ' : '') + (lv ? 'level ' + Math.round(lv[0]) + (lv[1] !== lv[0] ? '–' + Math.round(lv[1]) : '') + ' ft' : (up ? '+' : '') + Math.round(+pk.h || 0).toLocaleString() + ' ft') + (on ? ' · ' + (+pk.r) + ' mi' : '');
       ctx.font = '12px ui-monospace, Consolas, monospace'; ctx.lineWidth = 3; ctx.strokeStyle = 'rgba(0,0,0,.8)'; ctx.fillStyle = on ? '#ffd23c' : '#f6e9c5';
       ctx.strokeText(t, s[0] + 11, s[1] + 4); ctx.fillText(t, s[0] + 11, s[1] + 4);
     });
@@ -795,20 +892,20 @@
   function snapSite(sx, sy, not) { for (var i = 0; i < S.sites.length; i++) { var st = S.sites[i]; if (st.id === not) continue; var s = toS(st.x, st.y); if (Math.hypot(s[0] - sx, s[1] - sy) <= 12) return st; } return null; }
   cv.addEventListener('contextmenu', function (e) { e.preventDefault(); });
   var LIFTR = [0.5, 1, 2, 4, 8, 15], FTPX = 25; // (a lift's spreads in miles; a drag of a pixel up is 25 ft)
-  function hitPeak(sx, sy) { var P = S.peaks || []; for (var i = P.length - 1; i >= 0; i--) { var s = toS(P[i].x, P[i].y); if (Math.hypot(s[0] - sx, s[1] - sy) <= 12) return P[i]; } return null; }
+  function hitPeak(sx, sy) { var P = S.peaks || []; for (var i = P.length - 1; i >= 0; i--) { var m = liftMid(P[i]), s = toS(m[0], m[1]); if (Math.hypot(s[0] - sx, s[1] - sy) <= 12) return P[i]; } return null; }
   function peakBy(id) { return (S.peaks || []).filter(function (p) { return p.id === id; })[0] || null; }
   cv.addEventListener('mousedown', function (e) {
     hcheck();
     var p = evPt(e), m = toM(p[0], p[1]), tool = S.opts.tool;
     if (e.button === 1 || e.button === 2 || space) { drag = { kind: 'pan', p: p, c: [view.cx, view.cy] }; e.preventDefault(); return; }
     if (e.button !== 0) return;
-    if (DRAW) { // a new road or river: each click a point, on a place it binds
-      var hs = snapSite(p[0], p[1]); DRAW.pts.push(hs ? hs.id : m); draw(); return;
+    if (DRAW) { // a new road or river: each click a point, on a place it binds (a line lift's points stay free)
+      var hs = DRAW.kind === 'liftline' ? null : snapSite(p[0], p[1]); DRAW.pts.push(hs ? hs.id : m); draw(); return;
     }
     if (tool === 'lift') { // LIFT: drag up to raise (down to sink) a height, or a chosen one; Shift-drag moves it
       var pk = hitPeak(p[0], p[1]); begin();
       if (!pk) { pk = { id: 'k' + Date.now().toString(36), name: 'a height', x: m[0], y: m[1], h: 0, r: S.opts.liftR }; S.peaks.push(pk); drag = { kind: 'lift', pk: pk, p: p, h0: 0, o: [m[0], m[1]], fresh: true }; }
-      else drag = { kind: 'lift', pk: pk, p: p, h0: +pk.h || 0, o: [pk.x, pk.y], move: e.shiftKey };
+      else drag = { kind: 'lift', pk: pk, p: p, h0: +pk.h || 0, lv0: pk.level != null ? lvlOf(pk).slice() : null, o: pk.pts ? JSON.parse(JSON.stringify(pk.pts)) : [pk.x, pk.y], move: e.shiftKey };
       SEL.peak = pk.id; panels(); draw(); return;
     }
     if (tool === 'paint' || tool === 'erase') { begin(); drag = { kind: 'paint', last: m }; paintAt(m); draw(); return; }
@@ -845,10 +942,13 @@
     else if (drag.kind === 'vtx') drag.P.pts[drag.i] = [drag.o[0] + (p[0] - drag.p[0]) / view.z, drag.o[1] + (p[1] - drag.p[1]) / zy()];
     else if (drag.kind === 'under') { drag.u.x0 = drag.o[0] + (p[0] - drag.p[0]) / view.z; drag.u.y0 = drag.o[1] + (p[1] - drag.p[1]) / view.z; }
     else if (drag.kind === 'lift') {
-      var pk = drag.pk, R = (+pk.r || 1) * 1.6;
-      if (drag.move) { dirtyAround(pk.x, pk.y, R); pk.x = drag.o[0] + (p[0] - drag.p[0]) / view.z; pk.y = drag.o[1] + (p[1] - drag.p[1]) / zy(); }
+      var pk = drag.pk, dx = (p[0] - drag.p[0]) / view.z, dy = (p[1] - drag.p[1]) / zy();
+      if (drag.move) {
+        dirtyLift(pk);
+        if (pk.pts) pk.pts = drag.o.map(function (q) { return [q[0] + dx, q[1] + dy]; }); else { pk.x = drag.o[0] + dx; pk.y = drag.o[1] + dy; }
+      } else if (drag.lv0) { var dl = Math.round((drag.p[1] - p[1]) * FTPX / 10) * 10; pk.level = [drag.lv0[0] + dl, drag.lv0[1] + dl]; } // (a level: the whole water table up or down)
       else pk.h = Math.round((drag.h0 + (drag.p[1] - p[1]) * FTPX) / 50) * 50;
-      dirtyAround(pk.x, pk.y, R); panels();
+      dirtyLift(pk); panels();
     }
     draw();
   });
@@ -899,7 +999,7 @@
     if (k === 'i') { S.opts.iso = !S.opts.iso; panels(); draw(); save(); return; }
     if ((k === '[' || k === ']') && S.opts.tool === 'lift') { // (a lift's spread: the next one's, and the chosen one's)
       var li = LIFTR.indexOf(+S.opts.liftR); li = Math.max(0, Math.min(LIFTR.length - 1, (li < 0 ? 3 : li) + (k === ']' ? 1 : -1))); S.opts.liftR = LIFTR[li];
-      var spk = peakBy(SEL.peak); if (spk) { begin(); dirtyAround(spk.x, spk.y, Math.max(+spk.r, LIFTR[li]) * 1.6); spk.r = LIFTR[li]; dirtyAround(spk.x, spk.y, spk.r * 1.6); commit(); }
+      var spk = peakBy(SEL.peak); if (spk) { begin(); dirtyLift(spk); spk.r = LIFTR[li]; dirtyLift(spk); commit(); }
       panels(); draw(); save(); return;
     }
     if (k === '[') { S.opts.brush = Math.max(0, S.opts.brush - 1); panels(); draw(); return; }
@@ -927,6 +1027,11 @@
     var pts = d.pts.filter(function (p, i) { return !i || !same(p, d.pts[i - 1]); }); // (a double-click's two clicks land one point twice)
     if (pts.length < 2) { msg('a way needs two points'); draw(); return; }
     begin();
+    if (d.kind === 'liftline') { // a valley (or, dragged up, a ridge) along the line
+      var lk = { id: 'k' + Date.now().toString(36), name: 'a valley', pts: pts, h: -1500, r: S.opts.liftR };
+      S.peaks.push(lk); SEL.peak = lk.id; HSIG = ''; commit(); setTool('lift'); SEL.peak = lk.id; panels(); draw();
+      msg('a valley along your line, 1,500 ft down: drag its marker up or down, Shift-drag moves it, [ ] its width'); return;
+    }
     if (d.keep && pathBy(d.keep)) { pathBy(d.keep).pts = pts; SEL.path = d.keep; }
     else { var P = { id: 'p' + Date.now().toString(36), name: d.kind === 'river' ? 'a new river' : 'a new road', kind: d.kind, pts: pts }; S.paths.push(P); SEL.path = P.id; }
     SEL.vtx = -1; commit(); setTool('roads');
@@ -1034,7 +1139,7 @@
     [0, 1, 2, 3].forEach(function (R) { br.appendChild(btn(String(1 + 3 * R * (R + 1)), S.opts.brush === R, function () { S.opts.brush = R; panels(); draw(); save(); }, 'hexes in the brush')); });
     $('brushrow').style.display = S.opts.tool === 'paint' || S.opts.tool === 'erase' ? '' : 'none';
     var lr = $('liftrs'); lr.innerHTML = '';
-    LIFTR.forEach(function (R) { lr.appendChild(btn(R + ' mi', +S.opts.liftR === R, function () { S.opts.liftR = R; var pk = peakBy(SEL.peak); if (pk) { begin(); dirtyAround(pk.x, pk.y, Math.max(+pk.r, R) * 1.6); pk.r = R; commit(); } panels(); draw(); save(); }, 'the spread of the next lift (and the chosen one)')); });
+    LIFTR.forEach(function (R) { lr.appendChild(btn(R + ' mi', +S.opts.liftR === R, function () { S.opts.liftR = R; var pk = peakBy(SEL.peak); if (pk) { begin(); dirtyLift(pk); pk.r = R; dirtyLift(pk); commit(); } panels(); draw(); save(); }, 'the spread of the next lift (and the chosen one)')); });
     $('liftrow').style.display = S.opts.tool === 'lift' ? '' : 'none';
     var lk = $('looks'); lk.innerHTML = '';
     [['flat', 'flat'], ['relief', 'relief'], ['world', 'world (iso)']].forEach(function (l) { lk.appendChild(btn(l[1], S.opts.look === l[0], function () { setLook(l[0]); }, 'V: the next look')); });
@@ -1063,10 +1168,12 @@
       ed.innerHTML = '<div class="row"><input type="text" id="te-name"></div><div class="row"><input type="color" id="te-color"><label><input type="checkbox" id="te-diff"> difficult (SRD)</label></div>' +
         '<div class="row"><span class="dim">Book III ×</span><input type="number" id="te-cost" min="0" step="1"><span class="dim">(the Snoot; 0: no one walks it)</span></div>' +
         '<div class="row"><span class="dim">height</span><input type="number" id="te-alt" step="100" style="width:76px"><span class="dim">ft · rough</span><input type="number" id="te-rough" min="0" step="50" style="width:64px"></div>' +
+        '<div class="row" title="a cut sits this far under the land round it, its banks rising on either side (a gulch); 0: a height of its own"><span class="dim">or a cut</span><input type="number" id="te-cut" min="0" step="50" style="width:64px"><span class="dim">ft under its banks</span></div>' +
         '<div class="row"><button id="te-del">delete</button><button id="te-done">done</button><span class="dim" id="te-used"></span></div>';
       box.appendChild(ed);
       $('te-name').value = t.name; $('te-color').value = t.color; $('te-cost').value = t.cost; $('te-used').textContent = used(t.k) + ' hexes painted with it';
-      $('te-diff').checked = !!t.diff; $('te-alt').value = Math.round(+t.alt); $('te-rough').value = Math.round(+t.rough);
+      $('te-diff').checked = !!t.diff; $('te-alt').value = Math.round(+t.alt); $('te-rough').value = Math.round(+t.rough); $('te-cut').value = Math.round(+t.cut || 0);
+      $('te-cut').onchange = edit(function (v) { t.cut = Math.max(0, +v || 0); VER++; });
       var edit = function (f) { return function () { begin(); f(this.value); commit(); }; };
       $('te-name').onchange = edit(function (v) { t.name = v; }); $('te-cost').onchange = edit(function (v) { t.cost = Math.max(0, +v || 0); });
       $('te-diff').onchange = function () { begin(); t.diff = this.checked; commit(); };
@@ -1098,14 +1205,17 @@
     }
     if (SEL.peak && peakBy(SEL.peak)) { // a lift
       var pk = peakBy(SEL.peak);
-      info.textContent = 'a lift · ' + ((+pk.h >= 0 ? '+' : '') + Math.round(+pk.h).toLocaleString()) + ' ft over ' + pk.r + ' mi\ndrag it up or down; Shift-drag moves it; [ ] its spread; Del drops it';
+      var plv = pk.level != null ? lvlOf(pk) : null;
+      info.textContent = (pk.pts ? 'a line lift' : 'a lift') + ' · ' + (plv ? 'the ground brought to ' + Math.round(plv[0]) + (plv[1] !== plv[0] ? '–' + Math.round(plv[1]) : '') + ' ft' : ((+pk.h >= 0 ? '+' : '') + Math.round(+pk.h).toLocaleString()) + ' ft') + ' over ' + pk.r + ' mi\ndrag it up or down; Shift-drag moves it; [ ] its spread; Del drops it';
       ed.innerHTML = '<div class="row"><input type="text" id="ed-name"></div><div class="row"><span class="dim">height</span><input type="number" id="ed-h" step="100" style="width:80px"><span class="dim">ft · spread</span><input type="number" id="ed-r" min="0.2" step="0.5" style="width:56px"><span class="dim">mi</span></div>' +
+        (pk.pts ? '<div class="row"><label title="a thin sheet of water on its floor"><input type="checkbox" id="ed-wet"> wet floor</label></div>' : '') +
         '<div class="row"><button id="ed-del">delete</button><button id="ed-go">centre</button></div>';
       $('ed-name').value = pk.name || ''; $('ed-h').value = Math.round(+pk.h); $('ed-r').value = pk.r;
+      if ($('ed-wet')) { $('ed-wet').checked = !!pk.water; $('ed-wet').onchange = function () { begin(); pk.water = this.checked; dirtyLift(pk); commit(); }; }
       $('ed-name').onfocus = begin; $('ed-name').onchange = function () { pk.name = this.value; commit(); };
-      $('ed-h').onchange = function () { begin(); pk.h = +this.value || 0; dirtyAround(pk.x, pk.y, pk.r * 1.6); commit(); };
-      $('ed-r').onchange = function () { var v = Math.max(0.2, +this.value || 1); begin(); dirtyAround(pk.x, pk.y, Math.max(v, pk.r) * 1.6); pk.r = v; commit(); };
-      $('ed-del').onclick = delSel; $('ed-go').onclick = function () { zoomTo(view.z, pk.x, pk.y); };
+      $('ed-h').onchange = function () { begin(); pk.h = +this.value || 0; dirtyLift(pk); commit(); };
+      $('ed-r').onchange = function () { var v = Math.max(0.2, +this.value || 1); begin(); dirtyLift(pk); pk.r = v; dirtyLift(pk); commit(); };
+      $('ed-del').onclick = delSel; $('ed-go').onclick = function () { var c = liftMid(pk); zoomTo(view.z, c[0], c[1]); };
       return;
     }
     if (SEL.path && pathBy(SEL.path)) {
@@ -1183,6 +1293,7 @@
   };
   $('guess').onclick = guess;
   $('newroad').onclick = function () { DRAW = { kind: 'road', pts: [] }; SEL.path = null; msg('click along the new road (on a place it binds); Enter or double-click ends, Esc drops it'); draw(); };
+  $('newline').onclick = function () { DRAW = { kind: 'liftline', pts: [] }; SEL.path = null; msg('click along the valley (or ridge) to be; Enter or double-click ends, Esc drops it'); draw(); };
   $('newriver').onclick = function () { DRAW = { kind: 'river', pts: [] }; SEL.path = null; msg('click along the new river; Enter or double-click ends, Esc drops it'); draw(); };
   $('pfoot').onchange = function () { S.pace.foot = Math.max(1, +this.value || 24); panelsMeasure(); draw(); save(); };
   $('pcart').onchange = function () { S.pace.cart = Math.max(1, +this.value || 17); panelsMeasure(); draw(); save(); };
@@ -1228,6 +1339,7 @@
   // ---------------------------------------------------------------- go
   load();
   window.HEXMAP = { S: function () { return S; }, view: view, at: at, up: up, kids: kids, hc: hc, effAt: effAt, measure: measure, LV: LV, GROW: GROW, grow: grow, hAt: function (x, y) { hcheck(); return hAt(x, y); }, hexH: hexH, // (for the seat's probes)
+    dbg: function (x, y) { hcheck(); var t = terrAtMi(x, y), raw = hRaw(x, y, t), lift = peaksAt(x, y); return { t: t, blend: bil(AR.A, x, y), raw: raw, lift: lift, bed: bedAt(x, y, raw) }; },
     redraw: function () { LAYERKEY = ''; drawNow(); } };
   window.addEventListener('resize', resize);
   S.under.forEach(function (u) { if (u.on) loadUnder(u); });
@@ -1235,6 +1347,6 @@
   resize(); panels();
   $('origin').textContent = 'this browser keeps its copy for ' + location.host + ' (another port is another copy)';
   if (GREW) { saveNow(); msg('Your version 1 map has grown ×' + GROW + ' to the four-wagon-day road (Silverton to the Pit 68 mi). Version 1 is still kept in this browser, untouched. EXPORT is the save.'); }
-  else if (SHAPED) { saveNow(); msg('The Coldridge Route is a difficult road now, its climb to the Doors in switchbacks: three wagon-days (its panel puts back your drawing). EXPORT is the save.'); }
+  else if (SHAPED || SEEDED) { saveNow(); msg((SHAPED ? 'The Coldridge Route is a difficult road now, its climb to the Doors in switchbacks: three wagon-days (its panel puts back your drawing). ' : '') + (SEEDED ? 'The Doors’ schools are placed (the five in their valley, the rest solo), and the mountain-foot water runs from the bogs to the Glowseep (L shows the lifts). ' : '') + 'EXPORT is the save.'); }
   else msg('Kept in this browser as you go; EXPORT is the save.');
 })();
