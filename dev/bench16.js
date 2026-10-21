@@ -2012,6 +2012,108 @@
     document.body.appendChild(preT);
     return;
   }
+  // THE SIMPLE FIGHT, 10-21 (mode=simple1021; js/simple.js, ..\handoff-2026-10-08-the-maps.md -- RULED 10-21, Griz, on the simple encounter seat's seven: THE WORLD's
+  // random fights as the first game's battle screen, DEEP16's fight underneath): OPTIONS' row and the encounter card's second button; the lineup (the field's squares
+  // and the picture's, further apart, room for guests); a fight by the hand's FIGHT to its end -- no opportunity attack, every one on its own square at each turn's
+  // start, the farthest foe struck from the far end of the line; the scaler's counts, and a Fireball at one foe that takes every foe and none of ours; RUN; a frame
+  // drawn and a foe picked by the mouse. (The house's road fight runs simple too: house1021 takes the party back from it.)
+  if (get('mode', '') === 'simple1021') {
+    var repS = { checks: [], errors: [] }, SS = D.simple, WS = D.world, key0 = null;
+    function okS(what, v) { repS.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function topS() { var s = D.top(); if (s && s.baking) { s.baking = false; s.enter(); } return s; }
+    // the coroutine to its end (or to stop(y)): prompts declined, a turn first to what follows by itself (FIGHT's attacks, the off hand, the turn's end), then the plan
+    function driveS(B, plan, stop, cap) {
+      var v, guard = 0;
+      while (B.co && guard++ < (cap || 200000)) {
+        var r = B.co.next(v); v = undefined;
+        if (r.done) break;
+        var y = r.value;
+        if (typeof y === 'number' || !y || y.fx || y.entry || y.scene) continue;
+        if (stop && stop(y)) return y;
+        if (y.prompt) { v = y.prompt.opts[y.prompt.opts.length - 1].value; continue; }
+        if (y.turn) { var u = y.turn, a = SS.autoNext(B, u); if (a) { v = a; continue; } if (SS.menu(B, u).mode === 'surge') { v = { do: 'end' }; continue; } v = plan(B, u) || { do: 'end' }; continue; }
+      }
+      return B.result || (guard >= (cap || 200000) ? 'stalled' : 'none');
+    }
+    function farFoe(B, u) { var h = SS.homeOf(B, u), fs = SS.foes(B, u); fs.sort(function (a, b) { var ha = SS.homeOf(B, a), hb = SS.homeOf(B, b); return (Math.abs(hb[0] - h[0]) + Math.abs(hb[1] - h[1])) - (Math.abs(ha[0] - h[0]) + Math.abs(ha[1] - h[1])); }); return fs[0] || null; }
+    try { key0 = window.localStorage.getItem(SS.KEY); window.localStorage.removeItem(SS.KEY); } catch (eK) { }
+    try {
+      D.seed = +get('seed', 1021);
+      // OPTIONS' RANDOM FIGHTS (js/menu.js gridRows, this game's row)
+      var rrS = window.DS.MENU.gridRows(null).filter(function (r) { return r.label === 'RANDOM FIGHTS'; })[0], r0S = rrS && rrS.get();
+      if (rrS) rrS.step(1); var r1S = rrS && rrS.get(), offS = SS.on(); if (rrS) rrS.step(1); var r2S = rrS && rrS.get();
+      okS('OPTIONS: RANDOM FIGHTS ' + r0S + ' by default, ' + r1S + ' a step on, ' + r2S + ' back', !!rrS && r0S === 'SIMPLE' && r1S === 'FULL GRID' && !offS && r2S === 'SIMPLE' && SS.on());
+      // THE WORLD's card: FIGHT the option's way, the other way its second button
+      var wsS = WS.make('?world&fresh&noenc'); D.scenes.length = 0; D.push(wsS); wsS.enter();
+      var eS = WS.M().hex[WS.K(WS.state().at[0], WS.state().at[1])];
+      wsS.encounter({ zone: 'north', list: ['bandit', 'bandit'], mirror: false }, eS);
+      var kS = (wsS.cards[0] && wsS.cards[0].keys) || [];
+      okS('the encounter card: ' + kS.map(function (k) { return k[2]; }).join(' / '), kS.length === 2 && kS[0][2] === 'FIGHT' && kS[1][2] === 'ON THE GRID');
+      wsS.cards = []; kS[1][1](); var bG = topS();
+      okS('ON THE GRID: the grid\'s fight (' + (bG && bG.o && bG.o.simple ? 'simple!' : 'the grid') + '), its lineup a square apart', !!bG && bG.o && bG.o.simple === false && !bG.simple);
+      D.pop();
+      // the lineup: the four on the field's party squares, the foes from x 6 back (the Large behind), the picture's further apart
+      var listS = ['bandit', 'bandit', 'wolf', 'worg', 'wolf'];
+      wsS.fight({ zone: 'north', list: listS, mirror: false }, eS); var B1 = topS();
+      if (!B1.simple) SS.setup(B1); SS.place(B1);
+      var pS = B1.units.filter(function (u) { return u.side === 'party'; }), fS = B1.units.filter(function (u) { return u.side === 'foe'; }), wg = fS.filter(function (u) { return u.kind === 'worg'; })[0];
+      okS('the four on their squares (' + pS.map(function (u) { return u.x + ',' + u.y; }).join(' ') + '), the foes at x 3-6 (' + fS.map(function (u) { return u.kind + ' ' + u.x + ',' + u.y + (u.size > 1 ? ' size ' + u.size : ''); }).join(', ') + ')',
+        B1.o.simple === true && pS.every(function (u, i) { return u.x === SS.PARTY[i][0] && u.y === SS.PARTY[i][1]; }) && fS.length === listS.length && fS.every(function (u) { return u.x >= 3 && u.x + (u.size || 1) - 1 <= 6; }) && (!wg || wg.size < 2 || wg.x < 6));
+      var gapS = Math.min.apply(null, pS.map(function (u) { return u.drawAt.x; })) - Math.max.apply(null, fS.map(function (u) { return u.drawAt.x + (u.size || 1) - 1; })) - 1, gap0 = Math.min.apply(null, pS.map(function (u) { return u.x; })) - Math.max.apply(null, fS.map(function (u) { return u.x + (u.size || 1) - 1; })) - 1;
+      okS('the picture: the party ' + SS.PD + ' squares east, the foes ' + SS.FD + ' west -- ' + gapS + ' squares between the lines (the field\'s ' + gap0 + '), guests\' squares behind the four (' + SS.PARTY.slice(4).length + ')',
+        pS.every(function (u) { return u.drawAt.x === u.x + SS.PD && u.drawAt.y === u.y; }) && fS.every(function (u) { return u.drawAt.x === u.x - SS.FD; }) && gapS >= 5 && gap0 === 1 && SS.PARTY.length >= 12);
+      // a fight by the hand's FIGHT, each time at the farthest foe: to its end, no opportunity attack, every one on its own square at each turn's start
+      var off0 = 0, moved0 = 0, snapN = 0, snap0 = SS.snap;
+      function offHome(B) { var k = 0; B.units.forEach(function (u) { if (!G0(u)) return; var h = SS.homeOf(B, u); if (u.x !== h[0] || u.y !== h[1]) k++; }); return k; }
+      SS.snap = function (B) { snapN++; moved0 += offHome(B); snap0.apply(this, arguments); off0 += offHome(B); };
+      function G0(u) { return D.grid.present(u) && !u.left && !u.object && !u.familiar && !SS.boundTo(B1, u); }
+      var far = [], resS = driveS(B1, function (B, u) { var t = farFoe(B, u); if (t) far.push(u.name + '>' + (B.shortName ? B.shortName(t) : t.name) + '@' + SS.homeOf(B, t).join(',')); return t ? SS.fightCmd(B, u, t) : null; });
+      SS.snap = snap0;
+      var logS = B1.log || [], oaS = logS.filter(function (l) { return /opportunity attack/i.test(l); }), struck = pS.filter(function (u) { return logS.some(function (l) { return l.indexOf(u.name + ' > ') >= 0; }); });
+      okS('FIGHT to the end: ' + resS + ' in ' + B1.round + ' rounds; the hand struck the farthest foe (' + far.slice(0, 4).join(', ') + '); ' + struck.length + ' of the four struck', (resS === 'won' || resS === 'lost') && struck.length >= Math.min(4, pS.length) - 1);
+      okS('no opportunity attack (' + oaS.length + '); at each of ' + snapN + ' turns\' starts every one back on its own square (' + moved0 + ' stepped off before, ' + off0 + ' off after)', !oaS.length && snapN >= 4 && moved0 > 0 && off0 === 0);
+      // THE SPELL EFFECT SCALER: an area at one foe takes it and the nearest of its side -- a cone 3, a line 4, a 10 ft sphere 3, Fireball every one; none of ours
+      wsS.fight({ zone: 'north', list: ['bandit', 'bandit', 'wolf', 'wolf', 'goblin'], mirror: false }, eS); var B2 = topS();
+      var t0S = driveS(B2, function () { return { do: 'end' }; }, function (y) { return !!y.turn; }), au = B2.units.filter(function (u) { return u.id === 'aurdin'; })[0], f2 = B2.units.filter(function (u) { return u.side === 'foe'; }), ft = f2[0];
+      var cnt = {}, oursS = 0; ['burninghands', 'lightningbolt', 'shatter', 'fireball'].forEach(function (id) { var hit = SS.areaUnits(B2, au, D.magic.geo(id), ft.x, ft.y); cnt[id] = hit.length; oursS += hit.filter(function (w) { return w.side !== 'foe'; }).length; });
+      var sqS = D.magic.area(au, D.magic.geo('fireball'), ft.x, ft.y).length;
+      okS('the scaler at one foe of ' + f2.length + ': Burning Hands ' + cnt.burninghands + ', Lightning Bolt ' + cnt.lightningbolt + ', Shatter ' + cnt.shatter + ', Fireball ' + cnt.fireball + ' (its squares ' + sqS + '), ours in them ' + oursS,
+        !!t0S && cnt.burninghands === 3 && cnt.lightningbolt === 4 && cnt.shatter === 3 && cnt.fireball === f2.length && sqS === f2.length && !oursS);
+      // a Fireball cast by the hand at one foe: every foe in its card, none of ours hurt by it
+      var didFB = false, upS = f2.filter(function (w) { return w.hp > 0; }).length;
+      var resFB = driveS(B2, function (B, u) {
+        var fbE = u === au && !didFB && SS.acts(u) && D.magic.list(B, u, { anyTarget: true }).filter(function (e) { return e.id === 'fireball' && e.ok; })[0];
+        if (fbE) { didFB = true; upS = SS.foes(B, u).length; return SS.spellCmd(B, u, fbE, 3, SS.foes(B, u)[0]); }
+        if (!didFB) return { do: 'end' }; // (the rest wait for it: every foe still up when it goes off)
+        var t = farFoe(B, u); return t ? SS.fightCmd(B, u, t) : null;
+      });
+      // its card: the head line, then a line a creature it took ("R1   Bandit: ...")
+      var lgS = B2.log || [], fbI = -1; lgS.some(function (l, i) { if (/FIREBALL/.test(l)) { fbI = i; return true; } return false; });
+      var fbBody = []; for (var iF = fbI + 1; fbI >= 0 && iF < lgS.length && /^R\d+ {3}\S/.test(lgS[iF]); iF++) fbBody.push(lgS[iF]);
+      var fbOurs = fbBody.filter(function (l) { return pS.some(function (h) { return l.indexOf('   ' + h.name + ':') >= 0; }); });
+      okS('Fireball by the hand at one foe (' + (fbI >= 0 ? lgS[fbI].slice(0, 60) : 'not cast') + '): its card takes ' + fbBody.length + ' of the ' + upS + ' foes standing, ' + fbOurs.length + ' of ours; the fight ' + resFB, fbI >= 0 && fbBody.length === upS && !fbOurs.length);
+      // RUN: the first game's roll, the grid's escape
+      wsS.fight({ zone: 'north', list: ['bandit', 'bandit'], mirror: false }, eS); var B3 = topS();
+      var resR = driveS(B3, function () { return { do: 'simplerun' }; }), runL = (B3.log || []).filter(function (l) { return /RUN --/.test(l); });
+      okS('RUN: ' + resR + ' after ' + runL.length + ' tr' + (runL.length === 1 ? 'y' : 'ies') + ' (' + (runL[runL.length - 1] || '').slice(0, 60) + ')', resR === 'escaped' && runL.length >= 1 && /slips away/.test(runL[runL.length - 1]));
+      // a frame of the screen, and a foe picked by the mouse off the picture
+      wsS.fight({ zone: 'north', list: ['bandit', 'wolf'], mirror: false }, eS); var B4 = topS();
+      var y4 = driveS(B4, function () { return { do: 'end' }; }, function (y) { return !!y.turn; }), h4 = y4 && y4.turn, cv = document.createElement('canvas'); cv.width = D.W; cv.height = D.H;
+      var drew = '', got = null;
+      if (h4) {
+        B4.req = y4; SS.menu(B4, h4);
+        try { D.ui.drawBattle(cv.getContext('2d'), B4); drew = 'drawn'; } catch (eD) { drew = String(eD && eD.message || eD).slice(0, 120); }
+        var f4 = SS.foes(B4, h4)[0], p4 = f4 && SS.screenOf(B4, f4); if (p4) got = SS.unitAt(B4, p4.x, p4.y - 6, SS.foes(B4, h4));
+      }
+      var rc = (B4.simple && B4.simple.rects) || [];
+      okS('a frame of the simple screen (' + drew + '): ' + rc.filter(function (r) { return r.kind === 'row'; }).length + ' command rows, ' + rc.filter(function (r) { return r.kind === 'party'; }).length + ' party rows; the mouse on a foe picks ' + (got ? got.name : 'nothing'),
+        drew === 'drawn' && rc.filter(function (r) { return r.kind === 'row'; }).length === 5 && rc.filter(function (r) { return r.kind === 'party'; }).length >= 4 && !!got && got.side === 'foe');
+    } catch (eS2) { repS.errors.push(String(eS2 && eS2.stack || eS2).slice(0, 900)); }
+    try { if (key0 == null) window.localStorage.removeItem(SS.KEY); else window.localStorage.setItem(SS.KEY, key0); } catch (eK2) { }
+    var preS = document.createElement('pre'); preS.id = 'out'; preS.textContent = 'BENCH16 ' + JSON.stringify(repS);
+    document.body.appendChild(preS);
+    return;
+  }
   // THE SECOND GAME's house, 10-21 (mode=house1021; js/house.js, ..\handoff-2026-10-21-the-second-games-house.md -- RULED 10-21, Griz: "2 sounds problematic - the rest
   // sound good"): one save of its own in three slots, nothing of the Pocket DM's touched; NEW GAME walks the four in at Silverton's west gate; SAVE in town keeps the
   // square and the wounds; out by a road to THE WORLD with the same party; a road fight takes it and gives it back, XP banked and no level till the long rest; camp is

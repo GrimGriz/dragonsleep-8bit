@@ -1295,6 +1295,7 @@
     if (req && req.scene) scene(ctx, B, req.scene);
     if (B.menu) menu(ctx, B);
   };
+  UI.drawReq = function (ctx, B, req) { if (req.prompt) prompt(ctx, B, req.prompt); if (req.entry) entry(ctx, B); if (req.scene) scene(ctx, B, req.scene); }; // (the simple fight's: its boxes under them -- js/simple.js)
 
   // the far steps' marks (10-04 night): a diamond on every standing figure in the side's colour -- ours glow-blue, a guest or an ally moss, a foe red -- the active one ringed gold
   function farMarks(ctx, B) {

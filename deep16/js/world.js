@@ -529,22 +529,25 @@
     var p = W.pick(zone, W.isNight()); if (!p || !p.list.length) return false;
     scene.encounter(p, e); return true;
   };
-  function foeName(k, n) { var f = D.FOES && D.FOES[k], nm = (f && f.name) || k; return n > 1 ? nm.replace(/y$/, 'ie').replace(/(s|x|ch|sh)$/, '$1e') + 's' : nm; }
+  function foeName(k, n) { var f = D.FOES && D.FOES[k], nm = (f && f.name) || k; return n > 1 ? nm.replace(/y$/, 'ie').replace(/(s|x|ch|sh)$/, '$1e').replace(/([lr])f$/, '$1ve') + 's' : nm; } // (wolves, not wolfs)
   World.prototype.encounter = function (p, e) {
     var self = this, cnt = {}; p.list.forEach(function (k) { cnt[k] = (cnt[k] || 0) + 1; });
     var who = Object.keys(cnt).map(function (k) { return (cnt[k] > 1 ? cnt[k] + ' ' : 'a ') + foeName(k, cnt[k]).toLowerCase(); }).join(', ');
     D.sfx('encounter');
-    this.card([(p.mirror ? '{p}MIRROR-MADE{/} ' : '{r}') + 'On the ' + (M.road[K(e.q, e.r)] ? 'road' : M.terr[e.t].name) + '{/}, ' + W.timeOfDay() + ':', who + (p.mirror ? ', with the Mirror in their eyes' : '') + '.', '', D.keys('{g}E{/}: fight')], null,
-      [['a', function () { self.fight(p, e); }, 'FIGHT']]);
+    // FIGHT the way OPTIONS' RANDOM FIGHTS says (simple, the first game's screen, by default: js/simple.js), or the other way for this fight alone (RULED 10-21, Griz: "yes")
+    var simple = !D.simple || D.simple.on(), other = simple ? 'ON THE GRID' : 'SIMPLE';
+    this.card([(p.mirror ? '{p}MIRROR-MADE{/} ' : '{r}') + 'On the ' + (M.road[K(e.q, e.r)] ? 'road' : M.terr[e.t].name) + '{/}, ' + W.timeOfDay() + ':', who + (p.mirror ? ', with the Mirror in their eyes' : '') + '.', '', D.keys('{g}E{/}: fight' + (D.simple ? '    {g}R{/}: ' + other.toLowerCase() : ''))], null,
+      [['a', function () { self.fight(p, e); }, 'FIGHT']].concat(D.simple ? [['rec', function () { self.fight(p, e, { simple: !simple }); }, other]] : []));
   };
   // the field: 16 x 7 squares of the hex's ground, the lineup's squares kept open (x 3 to 10), the road along the middle where the hex has one
-  W.field = function (e) {
-    var w = 16, h = 7, rows = [], road = !!M.road[K(e.q, e.r)], t = e.t, wet = e.wet || t === 'bog';
+  // (o: the simple fight's -- its wider lane, the picture's lineup on open ground, and the party's squares with room for guests: js/simple.js S.fieldOpts)
+  W.field = function (e, o) {
+    var w = 16, h = 7, rows = [], road = !!M.road[K(e.q, e.r)], t = e.t, wet = e.wet || t === 'bog', lx = (o && o.lane) || [3, 10];
     var mtn = /^(black|gray|coastal)$/.test(t), wood = t === 'woods', hill = t === 'hills' || t === 'foothills' || t === 'gulch';
     for (var y = 0; y < h; y++) {
       var row = '';
       for (var x = 0; x < w; x++) {
-        var lane = x >= 3 && x <= 10 && y >= 1 && y <= 5, r0 = D.rand(), ch = '.';
+        var lane = x >= lx[0] && x <= lx[1] && y >= 1 && y <= 5, r0 = D.rand(), ch = '.';
         if (road && y === 3) ch = '=';
         else if (y === 0 || y === h - 1) ch = mtn ? (r0 < 0.6 ? '#' : 'r') : wood ? (r0 < 0.55 ? 'T' : '.') : hill ? (r0 < 0.3 ? 'r' : '.') : wet ? (r0 < 0.4 ? '~' : '.') : (r0 < 0.15 ? 'r' : '.');
         else if (!lane) ch = mtn ? (r0 < 0.12 ? '#' : r0 < 0.3 ? 'r' : '.') : wood ? (r0 < 0.25 ? 'T' : '.') : hill ? (r0 < 0.15 ? 'r' : '.') : wet ? (r0 < 0.3 ? '~' : '.') : (r0 < 0.06 ? 'r' : '.');
@@ -554,7 +557,7 @@
       rows.push(row);
     }
     var def = D.MAPS['world-field'] = { name: M.terr[t].name.replace(/^the /, 'The ').replace(/^./, function (c) { return c.toUpperCase(); }), sub: 'the road, ' + W.timeOfDay(), step: 10, ground: 'earth', rows: rows,
-      entry: [[8, 3], [8, 2], [8, 4], [9, 3], [9, 1], [9, 5], [8, 1], [8, 5]], foes: [], wave: null };
+      entry: (o && o.entry) || [[8, 3], [8, 2], [8, 4], [9, 3], [9, 1], [9, 5], [8, 1], [8, 5]], foes: [], wave: null };
     return def;
   };
   W.seat = function (list) { // the foes' line facing the four: the front at x 6, the Large behind it (two squares each)
@@ -562,14 +565,14 @@
     list.forEach(function (k, i) { var big = D.FOES[k] && D.FOES[k].size >= 2, at = big ? back.shift() : front.shift() || small2.shift(); if (at) out.push({ id: 'w' + i + '-' + k, kind: k, at: at }); });
     return out;
   };
-  World.prototype.fight = function (p, e, o) { // (o: { data: the party as it walks in, dark, intro, after(res, b) } -- the night's watches, js/house.js)
-    var self = this, night = W.timeOfDay() === 'night' || !!(o && o.dark);
-    W.field(e);
+  World.prototype.fight = function (p, e, o) { // (o: { data: the party as it walks in, dark, intro, after(res, b) } -- the night's watches, js/house.js; o.simple: this fight's way, else OPTIONS')
+    var self = this, night = W.timeOfDay() === 'night' || !!(o && o.dark), simple = !!D.simple && (o && o.simple != null ? !!o.simple : D.simple.on()); // (THE SIMPLE FIGHT: js/simple.js)
+    W.field(e, simple ? D.simple.fieldOpts() : null);
     var F = { id: 'worldfield', map: 'world-field', level: W.LEVEL, name: 'On the road', sub: (p.mirror ? 'mirror-made: ' : '') + p.zone, dark: night,
       intro: (o && o.intro) || ((p.mirror ? 'Mirror-made: ' : '') + 'They come at the party on the ' + (M.road[K(e.q, e.r)] ? 'road' : M.terr[e.t].name) + '.'), won: 'THE ROAD IS CLEAR.', lost: 'THE ROAD TAKES THEM.',
-      foes: W.seat(p.list), wave: null };
-    var b = new D.Battle(W.house() ? { fightDef: F, data: (o && o.data) || D.house.living(D.house.cur), house: true, world: true, record: { fight: 'worldfield', name: 'On the road', level: (D.house.cur.party[0] || {}).lvl }, onDone: function (res) { if (o && o.after) o.after(res, b); else self.afterFight(res, p, b); } } // (the house's party, wounds and all, and its play record: js/house.js)
-      : { fightDef: F, ladder: true, level: W.LEVEL, world: true, onDone: function (res) { self.afterFight(res, p); } }), e0 = b.enter;
+      foes: simple ? D.simple.seat(p.list) : W.seat(p.list), wave: null };
+    var b = new D.Battle(W.house() ? { fightDef: F, simple: simple, data: (o && o.data) || D.house.living(D.house.cur), house: true, world: true, record: { fight: 'worldfield', name: 'On the road', level: (D.house.cur.party[0] || {}).lvl, simple: simple }, onDone: function (res) { if (o && o.after) o.after(res, b); else self.afterFight(res, p, b); } } // (the house's party, wounds and all, and its play record: js/house.js)
+      : { fightDef: F, simple: simple, ladder: true, level: W.LEVEL, world: true, onDone: function (res) { self.afterFight(res, p); } }), e0 = b.enter;
     b.enter = function () {
       e0.apply(this, arguments);
       // the two lines face each other (his "they seem to be facing NE with NW foes"): the four toward the foes (-x), the foes toward the four (+x)
