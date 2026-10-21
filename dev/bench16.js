@@ -5635,6 +5635,21 @@
       var vOf = function (L) { return D.save.fixture(L).party.filter(function (h) { return h.id === 'vivian'; })[0]; }, v3 = vOf(3), v8 = vOf(8), cut5 = D.npc.heroSheet(D.npc.spec('vivian:5+^3r:Cutthroat'));
       okPq('the fixture\'s Vivian at 3rd and 8th: ' + v3.subclass + ', ' + v8.subclass + ' (nothing waiting: ' + (v8.pendingChoice || 'none') + '); a card that picked Cutthroat: ' + cut5.subclass,
         v3.subclass === 'Thief' && v8.subclass === 'Thief' && !v8.pendingChoice && !v8.picks && cut5.subclass === 'Cutthroat');
+      // (7) a druid wears no metal (SRD 5.1; RULED 10-21, Griz: "yes to all 3"): R.canEquip refuses a druid metal armour, so the winnings, the market's GEAR and the maker
+      // never put it on one; his own Druid (his party file of 10-19, verbatim) has the Chain Shirt +1 taken off into the pack, once, the leather it took the place of back on
+      var Rm = window.DS.R, IT = window.DS.DATA.items, drH = D.npc.sheet(D.npc.spec('druid:5')), clH = D.npc.sheet(D.npc.spec('cleric:5'));
+      var eqM = { cs: Rm.canEquip(drH, IT.chainshirt1), sm: Rm.canEquip(drH, IT.scalemail), hide: Rm.canEquip(drH, IT.hide1), lea: Rm.canEquip(drH, IT.leather), sh: Rm.canEquip(drH, IT.shield), cl: Rm.canEquip(clH, IT.chainshirt1) };
+      drH.equip.armor = 'hide'; var lootM = PKq.lootFor(drH, true, 12).filter(function (id) { return IT[id].kind === 'armor'; });
+      okPq('a druid may wear no metal: chain shirt ' + eqM.cs + ', scale ' + eqM.sm + ', hide +1 ' + eqM.hide + ', leather ' + eqM.lea + ', the shield ' + eqM.sh + '; a cleric the chain shirt ' + eqM.cl + '; a druid in hide is won only ' + lootM.join(', '),
+        !eqM.cs && !eqM.sm && eqM.hide && eqM.lea && eqM.sh && eqM.cl && lootM.every(function (id) { return !IT[id].armor.metal; }) && lootM.length > 0);
+      var hisDr = { name: 'Druid', cls: 'druid', lvl: 3, code: '~druid.3.human.9-14-15-13-16-11.quarterstaff_chainshirt1_shield______periaptpoison.Druid.produceflame-shillelagh-guidance', loot: [{ id: 'chainshirt1', place: 'armor', was: 'leather' }, { id: 'periaptpoison', place: 'neck', was: null }] };
+      var urlDr = PKq.sheetOf(D.npc.spec(hisDr.code));
+      try { window.localStorage.setItem('deep16.pocket', JSON.stringify({ roster: [hisDr], party: [{ custom: 0, gear: {} }, { w: 'katarina', lvl: 3, loot: [], gear: { armor: 'chainmail1' } }], pack: [{ id: 'torch', n: 2 }], purse: 100, fights: [] })); } catch (eLm) { }
+      var Pm7 = new D.Pocket(); Pm7.enter(); var st7 = Pm7.st, c7 = st7.roster[0], msg7 = Pm7.msg && Pm7.msg.text, sh7 = PKq.sheetOf(PKq.specOf(st7, st7.party[0]));
+      var Pm8 = new D.Pocket(); Pm8.enter(); var again7 = Pm8.st.pack.filter(function (s) { return s.id === 'chainshirt1'; }).map(function (s) { return s.n; }).join() || '0';
+      okPq('his Druid on loading: "' + msg7 + '"; wears ' + (sh7 && sh7.equip.armor) + ', the shirt in the pack (' + PKq.packN(st7, 'chainshirt1') + '), its winnings now ' + JSON.stringify((c7.loot || []).map(function (x) { return x.id; })) + '; Katarina keeps her chain +1 (' + st7.party[1].gear.armor + '); loaded again, nothing more moves (' + again7 + '); his old URL\'s druid wears ' + (urlDr && urlDr.equip.armor),
+        /Druid's Chain Shirt \+1 to the pack/.test(msg7 || '') && !!sh7 && sh7.equip.armor === 'leather' && PKq.packN(st7, 'chainshirt1') === 1 && (c7.loot || []).length === 1 && st7.party[1].gear.armor === 'chainmail1' && again7 === '1' && !!urlDr && urlDr.equip.armor === 'leather');
+      try { window.localStorage.removeItem('deep16.pocket'); } catch (eLm2) { }
     } catch (ePq) { repPq.errors.push(String(ePq && ePq.stack || ePq).slice(0, 800)); }
     var prePq = document.createElement('pre'); prePq.id = 'out'; prePq.textContent = 'BENCH16 ' + JSON.stringify(repPq);
     document.body.appendChild(prePq);

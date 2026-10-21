@@ -353,6 +353,28 @@
     (st.party || []).forEach(function (s) { if (s && s.custom != null && s.custom > i) s.custom--; });
     return { ok: true, name: c.name, seats: seats, wins: (c.loot || []).map(function (x) { return x.id; }) };
   };
+  // a druid wears no metal (SRD 5.1; RULED 10-21, Griz: "yes to all 3" -- the question put: the Chain Shirt +1 off his Druid and into the pack): a card made
+  // or won into metal armour before the ruling has it taken off into the pack, once -- a winning gives back what it took the place of (PK.dropWin), a made one's
+  // own goes to its kit's; a seat's GEAR from the pack, and a stock druid's winning, back to the pack. What moved, for the say (js/rules.js R.canEquip keeps it so)
+  PK.druidMetal = function (st) {
+    var out = [], kit = NPC.CLASSES.druid.kit.armor || null, metal = function (id) { var it = id && DS.DATA.items[id]; return !!(it && it.kind === 'armor' && it.armor && it.armor.metal); };
+    var said = function (who, id) { PK.packAdd(st, id, 1); out.push(who + '\'s ' + DS.DATA.items[id].name); };
+    (st.roster || []).forEach(function (c, i) {
+      var parts = String(c.code || '').split('+'), sp = null; try { sp = NPC.decode(parts[0]); } catch (e) { sp = null; }
+      if (!sp || sp.cls !== 'druid' || !metal(sp.equip && sp.equip.armor)) return;
+      var id = sp.equip.armor;
+      if (!PK.dropWin(st, { custom: i }, id)) { sp.equip.armor = kit; c.code = [NPC.code(sp)].concat(parts.slice(1)).join('+'); }
+      said(c.name, id);
+    });
+    (st.party || []).forEach(function (slot) {
+      var sp = null; try { sp = PK.specOf(st, slot); } catch (e) { sp = null; } if (!sp || (sp.cls || (DS.DATA.heroes[sp.hero] || {}).cls) !== 'druid') return;
+      var nm = (sp.name || slot.w || 'the druid');
+      if (slot.gear && metal(slot.gear.armor)) { out.push(nm + '\'s ' + DS.DATA.items[slot.gear.armor].name); PK.gearOff(st, slot, 'armor'); }
+      (slot.loot || []).slice().forEach(function (id) { if (metal(id)) { slot.loot.splice(slot.loot.indexOf(id), 1); said(nm, id); } });
+    });
+    return out;
+  };
+  Pocket.prototype.metalOff = function () { var mv = PK.druidMetal(this.st); if (mv.length) { this.cache = {}; this.keep(); this.msg = { text: mv.join(', ') + ' to the pack: a druid wears no metal (the SRD)', t: 600, sticky: true }; } return mv; };
   // a table whose GEAR was written before the kit went to the pack (10-17 early: its own kit offered free, never packed): what it took off its kit, packed once
   PK.kitToPack = function (st) {
     if (st.kitPacked) return; st.kitPacked = true;
@@ -385,6 +407,7 @@
     PK.kitToPack(this.st);
     this.screen = this.st.run ? (this.st.run.atCamp ? 'hub' : 'cr') : 'title'; // (a run resting at the camp comes back to the fire, 10-17)
     this.btns = []; this.ksel = 0; this.scroll = 0; this.msg = null; this.field = null;
+    this.metalOff(); // (a druid's metal armour to the pack, once: PK.druidMetal, 10-21)
     this.mapSel = this.st.mapId || null; this.crI = this.st.crI == null ? -1 : this.st.crI; this.foes = this.st.foes || null; this.watch = !!this.st.watch;
     this.cache = {};
     if (this.st.run && !this.foes) this.foes = this.st.run.foes;
@@ -1161,6 +1184,7 @@
       if (st.run && this.mapIds().indexOf(st.run.map) < 0) { this.fightMap = st.run.map = this.randomMap(); } // (as at the door: a floor the table no longer deals draws a fresh one)
     }
     this.cache = {};
+    this.metalOff(); // (a campaign from before 10-21's ruling: a druid's metal to the pack -- PK.druidMetal)
     var res = { added: added, bad: bad, seats: st.party ? st.party.length : 0, run: st.run ? (st.run.trial ? 'trial' : st.run.rung) : null, saved: this.keep(), whole: whole };
     if (this.screen !== 'title' && this.screen !== 'party' && this.screen !== 'camp') this.go('title'); // (before the line: a screen change clears what is said)
     if (res.saved) this.say(whole ? 'the campaign brought in: ' + res.seats + ' at the table' + (added ? ', ' + added + ' new to the roster' : '') + (bad ? ', ' + bad + ' would not build' : '') + (st.run ? ', the ladder at ' + (st.run.trial ? 'the trial' : 'rung ' + st.run.rung) : '')
@@ -2029,6 +2053,7 @@
     });
     st.party = party; st.pack = Array.isArray(f.pack) ? f.pack : []; st.purse = typeof f.purse === 'number' ? f.purse : 100; st.run = null; st.dayMorning = null;
     this.cache = {}; this.keep(); this.say('the party: ' + party.length + ' seats, the pack and ' + st.purse + ' sp', 300);
+    this.metalOff(); // (a party file from before 10-21's ruling: a druid's metal to the pack)
     return st.party;
   };
   Pocket.prototype.loadParty = function () { var self = this; PK.readJSON(function (text) { self.takeParty(text); }); };

@@ -17,6 +17,9 @@
   var DS = window.DS = window.DS || {};
   var G1 = 'Eyes: first', G2 = 'Eyes: built this week', G3 = 'Eyes: built before, never seen';
   DS.EYES = {
+    'eyes-druidmetal-1021': { pri: 2, group: G2, title: 'A druid wears no metal: your Druid’s Chain Shirt +1 to the pack (10-21)', pt: 'the Pocket DM and the races 2n (js/rules.js R.canEquip; deep16/js/pocket.js PK.druidMetal; content/items.json `metal`) · eyes',
+      url: 'deep16/?pocket&fresh=21',
+      look: 'Your “yes to all 3”. Open the Pocket DM in your own browser: the first time, the message says your Druid’s Chain Shirt +1 went to the pack, and he stands in the leather it took the place of. The market’s GEAR and the winnings offer a druid no chain shirt or scale mail now (hide, leather, studded, padded and the shield still); a cleric or a ranger wears them as before.' },
     'eyes-devotion-1021': { pri: 2, group: G2, title: 'Aura of Devotion frees one already charmed (10-21)', pt: 'the grid’s rules, the 10-21 question 2 (deep16/js/magic.js M.devotionFrees) · eyes',
       url: 'deep16/?npc=wizard:5,goblin,goblin&vs=lymen:7,fighter:7,wizard:7&lvl=7&fresh=21',
       look: 'Your “accept leans”: a charm already on ends in the aura, by your 10-20 immunity ruling. Keep the fighter or the wizard out past Lymen’s 10 ft till the foe’s wizard charms one (Charm Person; the dice must bring it), then walk Lymen to them: at the start of the charmed one’s turn the card says “is free of the charm: Aura of Devotion”, and a Hypnotic Pattern’s helplessness goes with it. Inside the aura no charm takes them, as before.' },

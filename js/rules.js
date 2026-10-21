@@ -588,7 +588,7 @@
     if (!it) return true;
     var c = R.CLASSES[h.cls];
     if (it.kind === 'weapon') return R.isProfWeapon(h, it);
-    if (it.kind === 'armor') return c.armor.indexOf(it.armor.type) >= 0;
+    if (it.kind === 'armor') return c.armor.indexOf(it.armor.type) >= 0 && !(h.cls === 'druid' && it.armor.metal); // (SRD 5.1: druids "will not wear armor or use shields made of metal" -- RULED 10-21, Griz: "yes to all 3"; the game's shield is wood or metal, so a druid keeps it)
     if (it.kind === 'shield') {
       var w = R.item(h.equip.weapon);
       return c.armor.indexOf('shield') >= 0;
