@@ -343,7 +343,7 @@
   M.duration = function (id) { var d = D.DURATION && D.DURATION[String(id).toLowerCase().replace(/[^a-z0-9]/g, '')]; return d ? d.r : null; };
   // `on`: the creatures the spell is held on, where it is held on creatures alone (Hold Person's one, Bless's three) -- when every one of them is dead or gone, there is
   // nothing left to hold and the caster is free of it (Battle.sweep; 10-21, the grid's side of his 10-19 "'end hold person' on guy vivian just killed ... should have
-  // dropped when he was killed", the 8-bit's e63e49d)
+  // dropped when he was killed", the 8-bit's e63e49d); js/grimoire.js's own since 10-21 night (Heat Metal's, his "heat metal concentration continues after target dies")
   M.concentrate = function (B, u, id, name, undo, on) {
     if (u.conc) M.endConc(B, u, 'a new spell');
     var r = M.duration(id);

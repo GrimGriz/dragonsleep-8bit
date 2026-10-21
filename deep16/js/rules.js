@@ -156,7 +156,7 @@
     }
     // advantage: Dodge and Haste on DEX; Beacon of Hope on WIS; a creature's own (Danger Sense, Magic Resistance: o.adv). Disadvantage: restrained on DEX
     var ccm = !!(against && FRIGHT_CHARM.test(against) && RU.countercharmed(u)), stw = !!(against && u.hunterDef === 'steelwill' && /^(frightened|feared)$/.test(against)), counter = ccm ? 1 : stw ? 2 : 0; // (Countercharm; Steel Will, the Hunter's 7)
-    var pfp = !!((c.poisonWard || c.antitoxin) && /^poison(ed)?$/.test(against || '')), atx = !!(pfp && !c.poisonWard); // (Protection from Poison: advantage on saves against being poisoned, and against poison -- js/grimoire.js lays the ward)
+    var pfp = !!((c.poisonWard || c.antitoxin) && (/^poison(ed)?$/.test(against || '') || adv0 === 'poison')), atx = !!(pfp && !c.poisonWard); // (Protection from Poison: advantage on saves against being poisoned, and against poison -- js/grimoire.js lays the ward)
     // Protection from Evil and Good, a charm or fright already on it from one of the six types (SRD 5.1: "advantage on any new saving throw against the relevant effect" -- 10-03)
     var held = c.pfeg && against && FEAR_CHARM.test(against) ? c[/^(frightened|feared)$/.test(against) ? 'frightened' : against] || (/^(frightened|feared)$/.test(against) && c.feared) : null;
     var pfg = !!(held && held.by && D.battle && (D.battle.units || []).some(function (w) { return w.id === held.by && OTHERWORLD.test(w.type || ''); }));
@@ -295,7 +295,7 @@
   // (the condition) or 'poison' (the stinking cloud's, a poison that does harm) -- RU.save reads it; a caller with no `against` to give
   // (a damage save, where `against` would also wake Dark One's Own Luck) passes RU.vsPoison(w) as the save's `adv0` when the harm is poison
   // (the duergar's Resilience too -- "advantage on saving throws against poison": its sheet's `resilient`, 10-02 runner; RU.save reads the rest of it)
-  RU.vsPoison = function (u) { return !!(u && ((u.conds && (u.conds.poisonWard || u.conds.antitoxin)) || u.resilient)); }; // (the antitoxin too, by the SRD: advantage on saves against poison -- 10-14)
+  RU.vsPoison = function (u) { return u && u.conds && (u.conds.poisonWard || u.conds.antitoxin) ? 'poison' : !!(u && u.resilient); }; // ('poison': the ward's or the antitoxin's, which RU.save then names on the card -- 10-21 night, his "antitoxin not tested": the spider's bite rolled two dice and the line never said why) // (the antitoxin too, by the SRD: advantage on saves against poison -- 10-14)
   // advantage and disadvantage on an ability check of `abil` (SRD 5.1), each with its reason: Enhance Ability (conds.enhanced.abil is the aspect's
   // ability, the one the caster chose among the six -- con, str, dex, cha, int, wis; a record with none is Bear's Endurance, so CON) and Heat Metal's burning armour (disAt '*': every attack roll
   // and ability check). The grid's checks: a web's or a grip's break-free (js/magic.js breakFree) and Hide (js/battle.js)

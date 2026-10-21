@@ -3686,6 +3686,83 @@
     document.body.appendChild(pre21);
     return;
   }
+  // the grid's rules lane, 10-21 night (mode=rules1021b; the lanes desk's order on his "Get that Grid lane going please, that's the important fixes", from his ear file of
+  // 10-21: "heat metal concentration continues after target dies / bane can't be cast on a single target / antitoxin not tested", and the pudding's door's magic weapons);
+  // 1 and 2 failed on the code before them; 3 is deep16/js/rulesshow.js run headless, a FAIL for a beat that did not show
+  if (get('mode', '') === 'rules1021b') {
+    var repB = { checks: [], errors: [] }, d0B = D.d, MB = D.magic, UIb = D.ui;
+    function okB(what, v) { repB.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function runB(g) { var v, k = 0, st; while (g && k++ < 4000) { st = g.next(v); v = undefined; if (st.done) return st.value; if (st.value && st.value.prompt) v = st.value.prompt.opts[0].value; } }
+    function mkB(q) { var Bx = D.npcFight(q, {}); D.battle = Bx; Bx.enter(); while (!Bx.order.length) Bx.co.next(); Bx.dark = false; return Bx; }
+    function sideB(Bx, s) { return Bx.units.filter(function (u) { return u.side === s; }); }
+    function clsB(Bx, c) { return sideB(Bx, 'party').filter(function (w) { return w.cls === c; })[0]; }
+    function cmdB(Bx, u, id) { D.rules.startTurn(u); return Bx.commands(u).filter(function (c) { return c.id === id; })[0]; }
+    function failSaves(f) { D.d = function (n) { return n === 20 ? 2 : d0B(n); }; try { return f(); } finally { D.d = d0B; } }
+    function learn(u, id) { if ((u.known || []).indexOf(id) < 0) (u.known = u.known || []).push(id); u.slots = [4, 3, 3, 0, 0, 0, 0, 0, 0]; }
+    function kill(Bx, w) { Bx.hurt(w, 999, 'force'); if (w.side === 'party') { w.dead = true; } Bx.sweep(); }
+    try {
+      // 1. HEAT METAL ENDS WITH THE ONE IT HEATS (his "heat metal concentration continues after target dies"): the bard's Heat Metal on a hobgoblin in chain mail, the hobgoblin
+      // killed -- let go, no flare offered, no END on the ring; and the grimoire's other spells held on creatures alone, the same (M.concentrate's `on`)
+      var B1 = mkB('?npc=hobgoblin,goblin,goblin&vs=bard:5,cleric:5,ranger:5&lvl=5'), bd1 = clsB(B1, 'bard'), fs1 = sideB(B1, 'foe');
+      bd1.x = 3; bd1.y = 3; fs1.forEach(function (w, i) { w.x = 6; w.y = 2 + i * 2; }); B1.cache = null; learn(bd1, 'heatmetal'); fs1[0].maxhp = fs1[0].hp = 80; // (deep: the first 2d8 must not fell it before the flare)
+      D.rules.startTurn(bd1); B1.active = bd1; failSaves(function () { runB(MB.cast(B1, bd1, 'heatmetal', 2, fs1[0])); });
+      var held1 = !!(bd1.conc && bd1.conc.id === 'heatmetal' && fs1[0].conds.heated);
+      D.rules.startTurn(bd1); var fl1 = MB.list(B1, bd1).some(function (e) { return e.id === 'heatmetal' && e.g && e.g.again; });
+      kill(B1, fs1[0]); D.rules.startTurn(bd1);
+      var fl1b = MB.list(B1, bd1).some(function (e) { return e.id === 'heatmetal' && e.g && e.g.again; });
+      okB('1 Heat Metal on the hobgoblin (held ' + held1 + ', the flare offered ' + fl1 + '), the hobgoblin killed: still holding ' + (bd1.conc ? bd1.conc.name : 'nothing') + ', the flare offered ' + fl1b + ', END on the ring ' + !!cmdB(B1, bd1, 'endconc') + ' (want true true; nothing, false, false)',
+        held1 && fl1 && fs1[0].dead && !bd1.conc && !fl1b && !cmdB(B1, bd1, 'endconc'));
+      // the others, a sample: Hideous Laughter on a goblin; Bane on two (one killed: held; both: let go); Haste on the cleric, the cleric dead; Hunter's Mark kept (the SRD moves it)
+      bd1.conc = null; learn(bd1, 'hideouslaughter'); D.rules.startTurn(bd1); B1.active = bd1; failSaves(function () { runB(MB.cast(B1, bd1, 'hideouslaughter', 1, fs1[1])); });
+      var hl1 = !!(bd1.conc && bd1.conc.id === 'hideouslaughter'); kill(B1, fs1[1]);
+      okB('1 and Hideous Laughter on a goblin (held ' + hl1 + '), the goblin killed: still holding ' + (bd1.conc ? bd1.conc.name : 'nothing') + ' (want nothing)', hl1 && !bd1.conc);
+      var B1b = mkB('?npc=goblin,goblin,goblin&vs=cleric:5,fighter:5,ranger:5,wizard:5&lvl=5'), cl1 = clsB(B1b, 'cleric'), fg1 = clsB(B1b, 'fighter'), rg1 = clsB(B1b, 'ranger'), wz1 = clsB(B1b, 'wizard'), gb1 = sideB(B1b, 'foe');
+      cl1.x = 3; cl1.y = 3; fg1.x = 4; fg1.y = 3; rg1.x = 3; rg1.y = 5; wz1.x = 4; wz1.y = 5; gb1.forEach(function (w, i) { w.x = 7; w.y = 2 + i * 2; }); B1b.cache = null;
+      learn(cl1, 'bane'); D.rules.startTurn(cl1); B1b.active = cl1; failSaves(function () { runB(MB.cast(B1b, cl1, 'bane', 1, { units: [gb1[0], gb1[1]] })); });
+      var bn1 = !!(cl1.conc && cl1.conc.id === 'bane' && gb1[0].conds.baned && gb1[1].conds.baned); kill(B1b, gb1[0]); var bn1a = !!cl1.conc; kill(B1b, gb1[1]);
+      okB('1 and Bane on two goblins (held ' + bn1 + '): one killed, still held ' + bn1a + '; both, still holding ' + (cl1.conc ? cl1.conc.name : 'nothing') + ' (want true; true, nothing)', bn1 && bn1a && !cl1.conc);
+      learn(wz1, 'haste'); D.rules.startTurn(wz1); B1b.active = wz1; runB(MB.cast(B1b, wz1, 'haste', 3, fg1));
+      var hs1 = !!(wz1.conc && wz1.conc.id === 'haste' && fg1.conds.hasted); kill(B1b, fg1);
+      okB('1 and Haste on the fighter (held ' + hs1 + '), the fighter dead: still holding ' + (wz1.conc ? wz1.conc.name : 'nothing') + ' (want nothing)', hs1 && fg1.dead && !wz1.conc);
+      learn(rg1, 'huntersmark'); D.rules.startTurn(rg1); B1b.active = rg1; runB(MB.cast(B1b, rg1, 'huntersmark', 1, gb1[2]));
+      var hm1 = !!(rg1.conc && gb1[2].conds.marked); kill(B1b, gb1[2]);
+      okB('1 and Hunter\'s Mark on a goblin (held ' + hm1 + '), the goblin killed: still holding ' + (rg1.conc ? rg1.conc.name : 'nothing') + ' (want Hunter\'s Mark -- the SRD moves it to a new creature)', hm1 && !!rg1.conc);
+      // 2. BANE ON A LONE FOE BY THE CLICKS (his "bane can't be cast on a single target": his second click on the Patrol Lady took her back off, "0 of 3"): the goblin
+      // clicked, then clicked again -- Bane is cast on it alone; three clicked cast at once; Bless's caster, picked by default, still leaves at a click
+      var B2 = mkB('?npc=goblin,goblin,goblin&vs=cleric:5,fighter:5&lvl=5'), cl2 = clsB(B2, 'cleric'), fg2 = clsB(B2, 'fighter'), gb2 = sideB(B2, 'foe'), got2 = null;
+      cl2.x = 3; cl2.y = 3; fg2.x = 4; fg2.y = 4; gb2.forEach(function (w, i) { w.x = 6; w.y = 2 + i * 2; }); B2.cache = null; learn(cl2, 'bane'); learn(cl2, 'bless');
+      B2.answer = function (c) { got2 = c; }; D.rules.startTurn(cl2); B2.active = cl2; B2.req = { turn: cl2 }; B2.cursor = { x: cl2.x, y: cl2.y };
+      var aim2 = function (id) { var e = MB.list(B2, cl2).filter(function (x) { return x.id === id; })[0]; if (!e) return false; e.kind = 'spell'; got2 = null; UIb.spellAim(B2, cl2, e); return true; };
+      var click2 = function (w) { UIb.actAt(B2, cl2, w.x, w.y, false); };
+      if (!UIb.spellAim || !UIb.actAt || !aim2('bane')) okB('2 the UI\'s aim (' + !!UIb.spellAim + ', ' + !!UIb.actAt + ') and Bane on the list', false);
+      else {
+        click2(gb2[0]); var one2 = (B2.picks || []).length; click2(gb2[0]);
+        var t2 = got2 && got2.target && got2.target.units;
+        okB('2 Bane, the goblin clicked (' + one2 + ' of 3 picked) and clicked again: cast ' + (got2 ? got2.do + ' ' + got2.id + ' on ' + (t2 ? t2.length + ' (' + t2.map(function (w) { return w.name; }).join(', ') + ')' : '?') : 'nothing') + ' (want cast bane on 1, that goblin)',
+          one2 === 1 && !!got2 && got2.do === 'cast' && got2.id === 'bane' && !!t2 && t2.length === 1 && t2[0] === gb2[0]);
+        if (got2) { failSaves(function () { runB(B2.exec(cl2, got2)); }); }
+        okB('2 and cast: the goblin baned ' + !!gb2[0].conds.baned + ', the cleric holding ' + (cl2.conc ? cl2.conc.name : 'nothing') + ' (want true, Bane)', !!gb2[0].conds.baned && !!cl2.conc && cl2.conc.id === 'bane');
+        delete gb2[0].conds.baned; cl2.conc = null; D.rules.startTurn(cl2); B2.active = cl2; B2.req = { turn: cl2 }; aim2('bane');
+        click2(gb2[0]); click2(gb2[1]); var two2 = got2; click2(gb2[2]); var t2c = got2 && got2.target && got2.target.units;
+        okB('2 and three clicked: nothing cast at two (' + !two2 + '), cast at the third on ' + (t2c ? t2c.length : 0) + ' (want true, 3)', !two2 && !!t2c && t2c.length === 3);
+        D.rules.startTurn(cl2); B2.active = cl2; B2.req = { turn: cl2 }; aim2('bless');
+        var pk0 = (B2.picks || []).slice(); click2(cl2); var pk1 = (B2.picks || []).slice(); click2(fg2); click2(fg2); var t2b = got2 && got2.target && got2.target.units;
+        okB('2 Bless: the cleric picked at the start (' + (pk0[0] === cl2) + '), clicked: picked ' + pk1.length + ' (left out); the fighter clicked twice: cast on ' + (t2b ? t2b.map(function (w) { return w.cls; }).join(', ') : 'nothing') + ' (want true, 0, fighter)',
+          pk0.length === 1 && pk0[0] === cl2 && pk1.length === 0 && !!t2b && t2b.length === 1 && t2b[0] === fg2);
+      }
+      B2.req = null;
+      // 3. THE SHOW (deep16/?rulesshow&fast, headless): the antitoxin, the pudding's acid on plain gear and not on magic, Heat Metal's end
+      var B3 = D.rulesshow.make('?rulesshow&fast'); D.battle = B3; B3.enter();
+      var v3, k3 = 0;
+      while (B3.co && k3++ < 400000) { var r3 = B3.co.next(v3); v3 = undefined; if (r3.done) break; var y3 = r3.value; if (y3 && y3.prompt) v3 = y3.prompt.opts[0].value; }
+      (B3.rulesReport || []).forEach(function (b) { okB('3 the show: ' + b.name + ' -- ' + b.why + (b.ok && !get('logs', '') ? '' : ' || LOG: ' + String(b.log || '').replace(/\{\/?[a-z]*\}/g, '').slice(0, 2400)), b.ok); });
+      if ((B3.rulesReport || []).length !== 5) okB('3 the show ran ' + (B3.rulesReport || []).length + ' beats (want 5)', false);
+    } catch (eB) { repB.errors.push(String(eB && eB.stack || eB).slice(0, 900)); D.d = d0B; }
+    if (errs.length) repB.errors = repB.errors.concat(errs);
+    var preB = document.createElement('pre'); preB.id = 'out'; preB.textContent = 'BENCH16 ' + JSON.stringify(repB);
+    document.body.appendChild(preB);
+    return;
+  }
   // the grid's rules lane, 10-15 (mode=rules1015; the coordinating desk's order on his "spin up ... the grid lane as well", handoff-2026-10-04-the-grids-rules.md §2.18-2.22):
   // a cantrip's dice at 17th; each check failed on the code before it
   if (get('mode', '') === 'rules1015') {
