@@ -231,9 +231,18 @@
     });
     // the keepers with no room who now have a figure of their own stand beside their door on the street, facing south (js/counter.js C.AT_DOOR -- 10-21, Griz:
     // "Got south idles for several existing shopkeeps in Fresh"): Marin Voss, Venn the barber
+    // (10-21 night, Mela Sorris and Mical: a door may open north -- the Stew's, its street above it -- or onto a lane one square wide -- the warehouse's -- so every side
+    // is tried, and a square that would wall the door off from the west gate is passed over: the reach walked again with the figure standing there, as T.lay walks it)
+    var WALK = '.,=dr~', reachedWith = function (dq, cand) {
+      var seen = {}, qq = [L.marks.gates.west], key = function (x, y) { return x + ',' + y; }, ok = function (x, y) { var r = L.rows[y]; return !!r && x >= 0 && x < r.length && WALK.indexOf(r.charAt(x)) >= 0 && (x === dq[0] && y === dq[1] || !used[key(x, y)]) && !(x === cand[0] && y === cand[1]); };
+      seen[key(qq[0][0], qq[0][1])] = 1;
+      for (var i = 0; i < qq.length; i++) { var c = qq[i]; if (c[0] === dq[0] && c[1] === dq[1]) return true;
+        for (var dy = -1; dy <= 1; dy++) for (var dx = -1; dx <= 1; dx++) { var nx = c[0] + dx, ny = c[1] + dy; if ((!dx && !dy) || seen[key(nx, ny)] || !ok(nx, ny)) continue; if (dx && dy && (!ok(c[0] + dx, c[1]) || !ok(c[0], c[1] + dy))) continue; seen[key(nx, ny)] = 1; qq.push([nx, ny]); } }
+      return false;
+    };
     ((D.counter && D.counter.AT_DOOR) || []).forEach(function (k) {
       var dq = M.doors[k.door]; if (!dq || !inW(dq)) return;
-      var sq = [[1, 0], [-1, 0], [1, 1], [-1, 1], [0, 1]].map(function (o) { return [dq[0] + o[0], dq[1] + o[1]]; }).filter(function (q) { var r = L.rows[q[1]]; return r && '.,='.indexOf(r.charAt(q[0])) >= 0 && !used[q[0] + ',' + q[1]] && inW(q); })[0];
+      var sq = [[1, 0], [-1, 0], [1, 1], [-1, 1], [0, 1], [0, -1], [1, -1], [-1, -1]].map(function (o) { return [dq[0] + o[0], dq[1] + o[1]]; }).filter(function (q) { var r = L.rows[q[1]]; return r && '.,='.indexOf(r.charAt(q[0])) >= 0 && !used[q[0] + ',' + q[1]] && inW(q) && (!L.reach || L.reach[q[1] * L.w + q[0]]) && reachedWith(dq, q); })[0];
       if (!sq) return;
       used[sq[0] + ',' + sq[1]] = 1;
       var s = to(sq); people.push({ id: k.id, at: s, kind: 'crewman', face: [0, 1], look: null, hire: null });

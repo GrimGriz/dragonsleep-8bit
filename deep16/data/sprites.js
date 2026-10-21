@@ -6591,6 +6591,81 @@
 "source": "deep16/_src/marko/ART-94/ART-94_HEAD-2_PAGE-1.png (the art desk's south idle, 10-21), cut by tools/keeper-town-sheet.py",
 "door": "shop:marko"
 },
+"mela_p1": {
+"image": "art/mela_p1.png?v=dd8a1d3900",
+"fw": 30,
+"fh": 53,
+"ax": 15,
+"ay": 51,
+"top": 49,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 30,
+"fh": 53,
+"ax": 15,
+"ay": 51,
+"frames": 14,
+"fps": 4,
+"drawn": [
+0
+],
+"under": "crewman_p1"
+}
+},
+"source": "deep16/_src/mela/ART-90/ART-90_HEAD-2_PAGE-1.png (the art desk's south idle, 10-21), cut by tools/keeper-town-sheet.py",
+"door": "keeper:mela"
+},
+"merrick_p1": {
+"image": "art/merrick_p1.png?v=636fc7412f",
+"fw": 26,
+"fh": 53,
+"ax": 14,
+"ay": 51,
+"top": 49,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 26,
+"fh": 53,
+"ax": 14,
+"ay": 51,
+"frames": 14,
+"fps": 4,
+"drawn": [
+0
+],
+"under": "crewman_p1"
+}
+},
+"source": "deep16/_src/merrick/ART-93/ART-93_HEAD-2_PAGE-1.png (the art desk's south idle, 10-21), cut by tools/keeper-town-sheet.py",
+"door": "keeper:merrick"
+},
+"mical_p1": {
+"image": "art/mical_p1.png?v=f15e909fc8",
+"fw": 26,
+"fh": 53,
+"ax": 14,
+"ay": 51,
+"top": 49,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 26,
+"fh": 53,
+"ax": 14,
+"ay": 51,
+"frames": 14,
+"fps": 4,
+"drawn": [
+0
+],
+"under": "crewman_p1"
+}
+},
+"source": "deep16/_src/mical/ART-91/ART-91_HEAD-2_PAGE-1.png (the art desk's south idle, 10-21), cut by tools/keeper-town-sheet.py",
+"door": "keeper:mical"
+},
 "mirrorgnoll_p1": {
 "image": "art/mirrorgnoll_p1.png?v=e44cb0c511",
 "fw": 96,

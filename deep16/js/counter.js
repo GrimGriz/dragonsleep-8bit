@@ -47,8 +47,9 @@
   // south (C.dress; js/town.js T.fire turns no one who holds it). Behind their counters (js/town.js T.goIn), and beside their doors where they have no room
   C.FIG = { winters: 'winters_p1', casper: 'casper_p1', androit: 'androit_p1', hessle: 'hessle_p1', aldric: 'aldric_p1', kessler: 'kessler_p1', calla: 'calla_p1', barber: 'barber_p1', marin: 'marin_p1', kasten: 'kasten_p1', lucia: 'lucia_p1',
     cassia: 'cassia_p1', lisbet: 'lisbet_p1', marko: 'marko_p1', vilar: 'vilar_p1', percy: 'percy_p1', ned: 'ned_p1',
-    sylvia: 'sylvia_p1' }; // (Sylvia Swann at her booth, her owl on her shoulder -- 10-21 night, Griz: "I got sylvia's - let's put it together as best we can and push it to live")
-  C.AT_DOOR = [{ id: 'marin', door: 'keeper:marin' }, { id: 'barber', door: 'keeper:barber' }];
+    sylvia: 'sylvia_p1', // (Sylvia Swann at her booth, her owl on her shoulder -- 10-21 night, Griz: "I got sylvia's - let's put it together as best we can and push it to live")
+    mela: 'mela_p1', mical: 'mical_p1', merrick: 'merrick_p1' }; // (10-21 night, Griz: "got 3 more south idles in Fresh too": Mela and Mical beside their doors, Merrick behind his grille)
+  C.AT_DOOR = [{ id: 'marin', door: 'keeper:marin' }, { id: 'barber', door: 'keeper:barber' }, { id: 'mela', door: 'keeper:mela' }, { id: 'mical', door: 'keeper:mical' }];
   C.dress = function (u, id) {
     var f = C.FIG[id]; if (!u || !f || !D.SHEETS || !D.SHEETS[f]) return false;
     u.sheet = f; u.holdFacing = true; u.facing = 0; // (0: south, on the town's north-up floor and on the diamonds alike)

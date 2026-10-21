@@ -55,6 +55,9 @@ KEEPERS = {
     # (10-21 night, Griz: "I got sylvia's - let's put it together as best we can and push it to live": her owl on her shoulder, below her crown. Her warm skin
     # snapped to the fire ramp and the lightest red, an orange face: left out of her snap, the face goes lighter; her magenta shawl stays the palette's red, as on her portrait)
     'sylvia': ('sylvia/ART-SYLVIA', 'ART-SPECIAL-SYLVIA', 'keeper:sylvia', {'avoid': ['fire', '#e8624a']}),
+    'mela': ('mela/ART-90', 'ART-90', 'keeper:mela'),                # (10-21 night, Griz: "got 3 more south idles in Fresh too": beside their doors, and Merrick in his room)
+    'mical': ('mical/ART-91', 'ART-91', 'keeper:mical'),
+    'merrick': ('merrick/ART-93', 'ART-93', 'keeper:merrick'),
 }
 
 
