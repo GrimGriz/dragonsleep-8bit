@@ -105,7 +105,7 @@
     var sites = seedSites();
     return { v: 2, terr: terrDefaults(seedTerr()), paint: { 1: {}, 2: {}, 3: {} }, sites: sites, paths: seedPaths(), under: seedUnder(sites), peaks: seedPeaks(sites),
       pace: { foot: 24, cart: 17 }, opts: { paintOp: 0.7, grid: true, labels: true, terr: 'hills', brush: 0, tool: 'select', uSel: 'corridor',
-        look: 'flat', exag: 6, contours: true, iso: true, liftR: 4, seed: 1 }, view: null };
+        look: 'flat', exag: 6, contours: true, iso: true, liftR: 4, seed: 1, fill: true }, view: null };
   }
 
   // ---------------------------------------------------------------- hex math (axial q, r; pointy-top)
@@ -558,7 +558,8 @@
   }
   function hexE(L, q, r) { // [height, x, y, wet]
     var k = L + '|' + q + ',' + r, v = HC.get(k); if (v) return v;
-    var c = hc(L, q, r), h = hAt(c[0], c[1], domT(L, q, r)); v = [h, c[0], c[1], PW]; HC.set(k, v); return v;
+    var c = hc(L, q, r), t = domT(L, q, r); if (!t && S.opts.fill && FL) t = fillAt(FL, c[0], c[1]); // (FILL: an unpainted hex stands at the height the bake gives it)
+    var h = hAt(c[0], c[1], t); v = [h, c[0], c[1], PW]; HC.set(k, v); return v;
   }
   function hexH(L, q, r) { return hexE(L, q, r)[0]; }
   function shadeOf(L, q, r, ex) { // light from the north-west, high: 1 on the flat
@@ -598,16 +599,16 @@
     for (var r = Math.floor(y0 / hh); r <= Math.ceil(y1 / hh); r++) {
       var groups = {}, tops = outline ? new Path2D() : null, add = function (col, P) { poly(groups[col] || (groups[col] = new Path2D()), P); };
       for (var q = Math.floor(x0 / w - r / 2); q <= Math.ceil(x1 / w - r / 2); q++) {
-        var t = domT(L, q, r), c = hc(L, q, r);
+        var t = domT(L, q, r), c = hc(L, q, r), fl = !t && S.opts.fill ? fillAt(fillNow(), c[0], c[1]) : null; if (fl) t = fl; // (FILL: the world's ground where he has not painted, a shade darker)
         if (!t && (c[0] < AR.x0 || c[1] < AR.y0 || c[0] > AR.x0 + AR.nx * AR.cs || c[1] > AR.y0 + AR.ny * AR.cs)) continue; // (unpainted ground drawn dim, near the paint)
-        var h = hexH(L, q, r), wet = isWet(t);
+        var h = hexH(L, q, r), wet = isWet(t), dk = fl ? 0.82 : 1;
         var P = HCO.map(function (o) { return wproj(cam, c[0] + o[0] * w, c[1] + o[1] * w, h); });
         if (!wet) [[0, 1, q, r + 1, 0.62], [1, 2, q - 1, r + 1, 0.82]].forEach(function (f) { // the two south faces, down to the neighbour's top
           var hn = hexH(L, f[2], f[3]); if (hn >= h - 1) return;
           var a = HCO[f[0]], b = HCO[f[1]];
-          add(tone(t, f[4], 0, true), [P[f[0]], P[f[1]], wproj(cam, c[0] + b[0] * w, c[1] + b[1] * w, hn), wproj(cam, c[0] + a[0] * w, c[1] + a[1] * w, hn)]);
+          add(tone(t, f[4] * dk, 0, true), [P[f[0]], P[f[1]], wproj(cam, c[0] + b[0] * w, c[1] + b[1] * w, hn), wproj(cam, c[0] + a[0] * w, c[1] + a[1] * w, hn)]);
         });
-        add(tone(t, wet ? 1 : shadeOf(L, q, r, cam.E), h, false, !wet && hexE(L, q, r)[3]), P); if (tops) poly(tops, P);
+        add(tone(t, (wet ? 1 : shadeOf(L, q, r, cam.E)) * dk, h, false, !wet && hexE(L, q, r)[3]), P); if (tops) poly(tops, P);
       }
       Object.keys(groups).forEach(function (col) { g.fillStyle = col; g.strokeStyle = col; g.lineWidth = 0.6; g.fill(groups[col]); g.stroke(groups[col]); });
       if (tops) { g.strokeStyle = 'rgba(20,12,6,.28)'; g.lineWidth = 0.7; g.stroke(tops); }
@@ -711,6 +712,7 @@
   function fillLayer() {
     lctx.setTransform(1, 0, 0, 1, 0, 0); lctx.clearRect(0, 0, layer.width, layer.height); lctx.setTransform(DPR, 0, 0, DPR, 0, 0);
     var groups = {}, rel = S.opts.look === 'relief';
+    if (S.opts.fill) fillUnder();
     var walk = function (L, q, r, inh) {
       var k = K(q, r), t = S.paint[L][k] || inh;
       if (L < 3 && DC[L].get(k) && hexPx(L + 1) >= 2.5) {
@@ -723,6 +725,15 @@
       var c = rel ? t : TB[t] ? TB[t].color : '#ff00ff'; lctx.fillStyle = c; lctx.strokeStyle = c; lctx.lineWidth = 1; lctx.beginPath();
       groups[t].forEach(function (h) { hexPath(lctx, h[0], h[1], h[2]); }); lctx.fill(); lctx.stroke();
     });
+  }
+  var HATCH = null;
+  function fillUnder() { // (FILL on, the flat looks: each 5-mile hex's ground as the bake gives it, dim and hatched under his paint -- seen where he has not painted)
+    var F = fillNow(), groups = {};
+    visit(1, function (q, r) { var t = F.g[K(q, r)]; if (t) (groups[t] = groups[t] || []).push([q, r]); });
+    if (!HATCH) { var c = document.createElement('canvas'); c.width = c.height = 8; var g = c.getContext('2d'); g.strokeStyle = 'rgba(20,12,6,.5)'; g.lineWidth = 1.2; g.beginPath(); g.moveTo(-1, 9); g.lineTo(9, -1); g.stroke(); HATCH = lctx.createPattern(c, 'repeat'); }
+    lctx.save(); lctx.globalAlpha = 0.55;
+    Object.keys(groups).forEach(function (t) { var p = new Path2D(); groups[t].forEach(function (h) { hexPath(p, 1, h[0], h[1]); }); lctx.fillStyle = TB[t] ? TB[t].color : '#ff00ff'; lctx.fill(p); lctx.fillStyle = HATCH; lctx.fill(p); });
+    lctx.restore();
   }
   function contours() { // (relief: a line along each hex edge where the height crosses a step -- 1000 ft at 5 mi, 500 at a mile, 100 at 330 ft; every fifth bold)
     var A = view.L; if (S.opts.look !== 'relief' || !S.opts.contours || hexPx(A) < 5) return;
@@ -1176,8 +1187,8 @@
   // ---------------------------------------------------------------- the side panel
   function msg(t, warn) { $('msg').innerHTML = warn ? '<b class="warn">' + esc(t) + '</b>' : esc(t); }
   function status(m) {
-    var L = view.L, h = at(L, m[0], m[1]), e = effAt(L, h[0], h[1]);
-    $('status').textContent = 'level ' + L + ' hex (' + col(h[0], h[1]) + ', ' + h[1] + ') · ' + (e ? (TB[e.t] ? TB[e.t].name : e.t) + (e.L !== L ? ' (from level ' + e.L + ')' : '') : 'unpainted') +
+    var L = view.L, h = at(L, m[0], m[1]), e = effAt(L, h[0], h[1]), f = !e && S.opts.fill ? fillAt(fillNow(), m[0], m[1]) : null;
+    $('status').textContent = 'level ' + L + ' hex (' + col(h[0], h[1]) + ', ' + h[1] + ') · ' + (e ? (TB[e.t] ? TB[e.t].name : e.t) + (e.L !== L ? ' (from level ' + e.L + ')' : '') : 'unpainted' + (f ? ' (the fill: ' + (TB[f] ? TB[f].name : f) + ')' : '')) +
       ' · ' + Math.round(hexH(L, h[0], h[1])).toLocaleString() + ' ft\n' + m[0].toFixed(2) + ' mi east, ' + m[1].toFixed(2) + ' mi south of v3’s corner';
   }
   function btn(label, on, fn, title) { var b = document.createElement('button'); b.textContent = label; if (on) b.className = 'on'; if (title) b.title = title; b.onclick = fn; return b; }
@@ -1199,7 +1210,7 @@
     [['flat', 'flat'], ['relief', 'relief'], ['world', 'world (iso)']].forEach(function (l) { lk.appendChild(btn(l[1], S.opts.look === l[0], function () { setLook(l[0]); }, 'V: the next look')); });
     $('exag').value = S.opts.exag; $('conton').checked = !!S.opts.contours; $('isoon').checked = !!S.opts.iso;
     terrPanel(); infoPanel(); listPanels(); panelsMeasure(); underPanel();
-    $('pfoot').value = S.pace.foot; $('pcart').value = S.pace.cart; $('paintop').value = S.opts.paintOp; $('gridon').checked = !!S.opts.grid; $('labon').checked = !!S.opts.labels;
+    $('pfoot').value = S.pace.foot; $('pcart').value = S.pace.cart; $('paintop').value = S.opts.paintOp; $('gridon').checked = !!S.opts.grid; $('labon').checked = !!S.opts.labels; $('fillon').checked = !!S.opts.fill;
   }
   function used(k) { var n = 0; [1, 2, 3].forEach(function (L) { for (var x in S.paint[L]) if (S.paint[L][x] === k) n++; }); return n; }
   function terrPanel() {
@@ -1295,7 +1306,7 @@
       var nm = function (t) { return TB[t] ? TB[t].name : t; };
       info.textContent = 'level ' + hx.L + ' hex (' + col(hx.q, hx.r) + ', ' + hx.r + '), ' + LV[hx.L].name + ' across\n' +
         (own ? 'painted ' + nm(own) : e ? 'shows ' + nm(e.t) + ', from its level ' + e.L + ' hex (' + col(e.q, e.r) + ', ' + e.r + ')' : 'unpainted') +
-        (inside ? '\n' + inside + ' finer hexes painted inside it' : '') + '\nclick a terrain to set it';
+        (inside ? '\n' + inside + ' finer hexes painted inside it' : '') + fillNote(hx, k) + '\nclick a terrain to set it';
       ed.appendChild(btn('inherit (clear it)', false, function () { begin(); setPaint(hx.L, k, null); commit(); }));
       if (inside) ed.appendChild(btn('clear the finer paint inside', false, function () { begin(); clearInside(hx.L, hx.q, hx.r); commit(); }));
       if (hx.L < 3) ed.appendChild(btn('into it ↓', false, function () { into(hx); }));
@@ -1303,6 +1314,11 @@
       return;
     }
     info.textContent = 'nothing selected';
+  }
+  function fillNote(hx, k) { // (a 5-mile hex the fill grounds: what the world gives it)
+    if (hx.L !== 1 || !S.opts.fill) return '';
+    var F = fillNow(), t = F.g[k], mine = domT(1, hx.q, hx.r); if (!t || F.own[k]) return '';
+    return '\nthe world fills it ' + (TB[t] ? TB[t].name : t) + ', ' + F.ring[k] + ' hex' + (F.ring[k] > 1 ? 'es' : '') + ' from the paint beside it' + (mine ? ' (your ' + (TB[mine] ? TB[mine].name : mine) + ' in a corner of it: its second)' : '');
   }
   function clearInside(L, q, r) {
     var n = LV[L + 1].n; kids(n).forEach(function (c) { var cq = n * q + c[0], cr = n * r + c[1], ck = K(cq, cr); if (L + 1 < 3 && DC[L + 1].get(ck)) clearInside(L + 1, cq, cr); setPaint(L + 1, ck, null); });
@@ -1354,6 +1370,7 @@
   $('paintop').oninput = function () { S.opts.paintOp = +this.value; draw(); }; $('paintop').onchange = save;
   $('gridon').onchange = function () { S.opts.grid = this.checked; draw(); save(); };
   $('labon').onchange = function () { S.opts.labels = this.checked; draw(); save(); };
+  $('fillon').onchange = function () { S.opts.fill = this.checked; HC.clear(); LAYERKEY = ''; panels(); draw(); save(); };
   $('exag').oninput = function () { S.opts.exag = +this.value; LAYERKEY = ''; draw(); }; $('exag').onchange = save;
   $('conton').onchange = function () { S.opts.contours = this.checked; draw(); save(); };
   $('isoon').onchange = function () { S.opts.iso = this.checked; draw(); save(); };
@@ -1394,54 +1411,90 @@
   // world is baked from his EXPORT by this page's own engine -- tools/world-build.py opens it headless and writes deep16/data/world.js). The walked level is
   // the 5-mile one (his "only the 5-mile level is walked"): each painted hex its ground (the most of what is in it), its height and wet floor as the world
   // look draws it, and its second ground with its share (a hex mostly plain with some woods); the places; the roads and rivers as the hexes they run through
-  // (a 5-mile hex he has not painted, inside the painted country, is GUESSED from corridor v3's picture, as GUESS guesses -- the road's own hexes had holes;
-  // it is marked so, the game's look and the bake's count show where to paint)
-  function v3data() {
-    return new Promise(function (res) {
-      var u = S.under.filter(function (x) { return x.id === 'corridor'; })[0]; if (!u) return res(null);
-      var el = new Image(), bases = ['/TarlynsPit/map/', '../../TarlynsPit/map/', '../../../../../TarlynsPit/map/'], i = 0;
-      var next = function () { if (i >= bases.length) return res(null); el.src = bases[i++] + u.file; };
-      el.onload = function () {
-        var c = document.createElement('canvas'); c.width = el.naturalWidth; c.height = el.naturalHeight; var g = c.getContext('2d'); g.drawImage(el, 0, 0);
-        try { res({ u: u, D: g.getImageData(0, 0, c.width, c.height) }); } catch (e) { res(null); }
-      };
-      el.onerror = next; next();
-    });
-  }
-  async function bake() {
-    var V = await v3data();
-    hcheck(); ar();
-    var L = 1, out = { v: 1, baked: new Date().toISOString(), hexMi: LV[1].w, saved: S.saved || null, terr: {}, hexes: [], sites: [], paths: [], guessed: 0, v3: !!V };
-    S.terr.forEach(function (t) { out.terr[t.k] = { name: t.name, color: t.color, cost: +t.cost, diff: !!t.diff, alt: +t.alt, cut: +t.cut || 0 }; });
+  // (a 5-mile hex he has not painted takes THE FILL's ground, below -- since 10-21; it was corridor v3's guess. Each hex's [8]: 1 the fill's, 2 the fill's
+  // ground with his paint under half of it its second, 0 his; [7], the guess, is 0 now)
+  //
+  // THE FILL (10-21, RULED his "all the unpainted hexes should take on paint of adjacent regions", the world fill seat): every 5-mile hex in the bake's box
+  // he has not painted takes the paint of the regions beside it, ring by ring outward from his paint -- each the most of its six neighbours already
+  // grounded (his, or the fill's a ring nearer, so the order within a ring does not matter); a tie by the nearer (the ground whose own painted hex is
+  // fewest hexes away), then the lower ground (its terrain's alt), then its key. A lake, a cut (the gulch, the Rift) and a town are places, not regions:
+  // the fill spreads from the regions alone, as the heights' blend lets a lake or a cut take the land round it (else Halfway Lake, winning its ties as
+  // the lowest ground and the only paint beside the road's holes, grew over the Pit road); a place fills only a hole it walls in. The sea is a region.
+  // A hex is his wherever he painted it or anything in it, its ground the most of what he painted, as the world look shows it (a mile hex counted
+  // where it or any 330 ft hex in it is painted) -- save a place painted under half of it (Halfway Lake in its corner, the gulch's cut along the road):
+  // that one is filled like the rest and keeps his place as its second ground. The fill is the bake's and the flat looks' (FILL), never written to his
+  // paint; corridor v3's guess (classify) stays GUESS's, paint he chooses to take.
+  function paintBox() {
     var b = [1e9, 1e9, -1e9, -1e9];
     [1, 2, 3].forEach(function (l) { for (var k in S.paint[l]) { var h = unK(k), c = hc(l, h[0], h[1]); b[0] = Math.min(b[0], c[0]); b[1] = Math.min(b[1], c[1]); b[2] = Math.max(b[2], c[0]); b[3] = Math.max(b[3], c[1]); } });
-    var w = LV[1].w, hh = w * SQ3 / 2;
+    return b;
+  }
+  function milesIn(q, r) { var n = LV[2].n, m = 0; kids(n).forEach(function (d) { if (domT(2, n * q + d[0], n * r + d[1])) m++; }); return m; } // (its mile hexes painted, finer paint counted)
+  function fillOf(b) {
+    hcheck();
+    var w = LV[1].w, hh = w * SQ3 / 2, half = Math.ceil(kids(LV[2].n).length / 2), F = { g: {}, ring: {}, own: {}, box: [], n: 0 }, inB = {}, src = {};
+    var place = function (t) { return !TB[t] || t === 'lake' || t === 'town' || +TB[t].cut > 0; };
     for (var r = Math.floor(b[1] / hh) - 1; r <= Math.ceil(b[3] / hh) + 1; r++) for (var q = Math.floor(b[0] / w - r / 2) - 1; q <= Math.ceil(b[2] / w - r / 2) + 1; q++) {
-      var t = domT(L, q, r), guessed = 0, cc = hc(L, q, r);
-      if (!t && V) { // (v3's guess, its own pixels: as guess() reads them)
-        var px = (cc[0] - V.u.x0) * V.u.pxmi, py = (cc[1] - V.u.y0) * V.u.pxmi;
-        if (px >= 0 && py >= 0 && px < V.D.width && py < V.D.height) { t = classify(V.D, px, py, w * V.u.pxmi * 0.42, L); if (t && TB[t]) guessed = 1; else t = null; }
+      var k = K(q, r), t = domT(1, q, r); F.box.push(k); inB[k] = 1;
+      if (t && (!place(t) || S.paint[1][k] || milesIn(q, r) >= half)) { F.g[k] = t; F.ring[k] = 0; F.own[k] = 1; (src[t] = src[t] || []).push([q, r]); }
+    }
+    var alt = function (t) { return TB[t] ? +TB[t].alt || 0 : 0; }, near = function (h, t) { var d = 1e9; (src[t] || []).forEach(function (s) { d = Math.min(d, hdist(h, s)); }); return d; };
+    var spread = function (front) {
+      for (var ring = 1; front.length; ring++) {
+        var cand = {}, got = [];
+        front.forEach(function (k) { var h = unK(k); DIRS.forEach(function (o) { var kk = K(h[0] + o[0], h[1] + o[1]); if (inB[kk] && !F.g[kk]) cand[kk] = 1; }); });
+        Object.keys(cand).forEach(function (k) {
+          var h = unK(k), n = {}, best = null;
+          DIRS.forEach(function (o) { var t = F.g[K(h[0] + o[0], h[1] + o[1])]; if (t) n[t] = (n[t] || 0) + 1; });
+          if (Object.keys(n).some(function (t) { return !place(t); })) Object.keys(n).forEach(function (t) { if (place(t)) delete n[t]; });
+          Object.keys(n).forEach(function (t) {
+            if (!best || n[t] > n[best]) { best = t; return; }
+            if (n[t] < n[best]) return;
+            var a = near(h, t), c = near(h, best); if (a !== c) { if (a < c) best = t; return; }
+            if (alt(t) !== alt(best)) { if (alt(t) < alt(best)) best = t; return; }
+            if (t < best) best = t;
+          });
+          got.push([k, best]);
+        });
+        got.forEach(function (e) { F.g[e[0]] = e[1]; F.ring[e[0]] = ring; F.n++; });
+        front = got.map(function (e) { return e[0]; });
       }
-      if (!t) continue;
-      // (a 5-mile hex he painted only in part, under half its mile hexes and not itself: v3's guess is its ground, his paint its second -- else a lake
-      // painted in a corner, Halfway Lake, made five whole hexes of lake)
-      var k0 = K(q, r), part = null;
-      if (!guessed && V && !S.paint[1][k0] && DC[1].get(k0)) {
-        var np = 0; kids(LV[2].n).forEach(function (d) { if (effAt(2, 5 * q + d[0], 5 * r + d[1])) np++; });
-        if (np < 13) { var px2 = (cc[0] - V.u.x0) * V.u.pxmi, py2 = (cc[1] - V.u.y0) * V.u.pxmi, g2 = px2 >= 0 && py2 >= 0 && px2 < V.D.width && py2 < V.D.height ? classify(V.D, px2, py2, w * V.u.pxmi * 0.42, L) : null; if (g2 && TB[g2] && g2 !== t) part = { t: g2, was: t, sh: Math.round(np / 25 * 100) / 100 }; }
-      }
-      if (part) t = part.t;
-      var e = guessed || part ? [hAt(cc[0], cc[1], t), 0, 0, 0] : hexE(L, q, r), k = K(q, r), t2 = null, sh = 0;
-      if (part) { e[3] = PW; }
-      if (guessed) { out.guessed++; peaksAt(cc[0], cc[1]); e[3] = PW; }
-      if (part) { t2 = part.was; sh = part.sh; }
-      else if (DC[1].get(k)) { // (its second ground: the next most of its mile hexes)
+    };
+    spread(Object.keys(F.own).filter(function (k) { return !place(F.g[k]); })); // (the regions)
+    if (F.n + Object.keys(F.own).length < F.box.length) spread(Object.keys(F.g)); // (a hole a place walls in)
+    return F;
+  }
+  var FL = null, FLV = -1, FLT = 0, flT = 0;
+  function fillNow() { // (the looks': rebuilt when the paint changes, at most every 0.6 s while he paints, as ar())
+    if (!FL || (FLV !== VER && Date.now() - FLT > 600)) { FL = fillOf(paintBox()); FLV = VER; FLT = Date.now(); }
+    else if (FLV !== VER && !flT) flT = setTimeout(function () { flT = 0; HC.clear(); LAYERKEY = ''; draw(); }, 650);
+    return FL;
+  }
+  function fillAt(F, x, y) { // (a point he has not painted: its 5-mile hex's ground as baked; past the box's edge, the nearest hex's)
+    var h = at(1, x, y), t = F.g[K(h[0], h[1])], bd = 1e9;
+    if (t) return t;
+    for (var dr = -3; dr <= 3; dr++) for (var dq = -3; dq <= 3; dq++) { var d = hdist([0, 0], [dq, dr]), tt = F.g[K(h[0] + dq, h[1] + dr)]; if (tt && d < bd) { bd = d; t = tt; } }
+    return t || null;
+  }
+  async function bake() {
+    hcheck(); ar();
+    var L = 1, out = { v: 1, baked: new Date().toISOString(), hexMi: LV[1].w, saved: S.saved || null, terr: {}, hexes: [], sites: [], paths: [], guessed: 0, filled: 0, parted: 0 };
+    S.terr.forEach(function (t) { out.terr[t.k] = { name: t.name, color: t.color, cost: +t.cost, diff: !!t.diff, alt: +t.alt, cut: +t.cut || 0 }; });
+    var b = paintBox(), F = fillOf(b), nk = kids(LV[2].n).length;
+    F.box.forEach(function (k) {
+      var h = unK(k), q = h[0], r = h[1], t = F.g[k], mine = domT(L, q, r), cc = hc(L, q, r), fill = 0;
+      if (!t) return; // (no paint anywhere)
+      if (!F.own[k]) fill = mine && mine !== t ? 2 : mine ? 0 : 1; // (painted under half with the ground the fill gives it: his, as it was)
+      var e = fill ? [hAt(cc[0], cc[1], t), cc[0], cc[1], PW] : hexE(L, q, r), t2 = null, sh = 0;
+      if (fill === 1) out.filled++;
+      if (fill === 2) { out.parted++; t2 = mine; sh = Math.round(milesIn(q, r) / nk * 100) / 100; }
+      else if (!fill && DC[1].get(k)) { // (its second ground: the next most of its mile hexes)
         var cnt = {}, n = 0; kids(LV[2].n).forEach(function (d) { var tt = domT(2, 5 * q + d[0], 5 * r + d[1]); if (tt) { cnt[tt] = (cnt[tt] || 0) + 1; n++; } });
         Object.keys(cnt).forEach(function (tt) { if (tt !== t && cnt[tt] > sh) { sh = cnt[tt]; t2 = tt; } }); sh = n ? Math.round(sh / n * 100) / 100 : 0;
       }
-      out.hexes.push([q, r, t, Math.round(e[0]), e[3] ? 1 : 0, t2, sh, guessed]);
-    }
-    out.tiles = bakeTiles(V, b);
+      out.hexes.push([q, r, t, Math.round(e[0]), e[3] ? 1 : 0, t2, sh, 0, fill]);
+    });
+    out.tiles = bakeTiles(F, b);
     S.sites.forEach(function (s) { var h = at(1, s.x, s.y); out.sites.push({ id: s.id, name: s.name, kind: s.kind, x: +s.x.toFixed(3), y: +s.y.toFixed(3), hex: [h[0], h[1]], note: s.note || '' }); });
     S.paths.forEach(function (P) {
       var pts = ptsOf(P); if (pts.length < 2) return;
@@ -1457,10 +1510,10 @@
   }
 
   // THE TILES (10-20, his "let's yes the 1-4 above and see what comes out": the world as half-mile tiles, a 16-bit top-down walk, its heights as ledges): every
-  // half mile its ground (the finest he painted, else v3's guess), its height's band (500 ft a ledge), its road, track or river. Run-length rows, a char a
-  // ground; the bands one char a tile (0-9a-z)
+  // half mile its ground (the finest he painted, else THE FILL's for its 5-mile hex), its height's band (500 ft a ledge), its road, track or river. Run-length
+  // rows, a char a ground; the bands one char a tile (0-9a-z)
   var TCH = { plains: '.', verge: ',', farms: 'f', foothills: 'h', hills: 'H', woods: 'T', gulch: 'g', bog: 'b', black: 'M', gray: 'G', coastal: 'C', town: 't', lake: 'l', sea: 's', rift: 'R' };
-  function bakeTiles(V, b) {
+  function bakeTiles(F, b) {
     var mi = 0.5, x0 = Math.floor((b[0] - 6) / mi) * mi, y0 = Math.floor((b[1] - 6) / mi) * mi, w = Math.ceil((b[2] + 6 - x0) / mi), h = Math.ceil((b[3] + 6 - y0) / mi);
     var chars = {}, used = {}, pool = 'ABDEFIJKLNOPQSUVXYZcdeijkmnopqruvxyz'.split(''), chOf = function (k) {
       if (chars[k]) return chars[k]; var c = TCH[k]; if (!c || used[c]) c = pool.shift() || '?'; chars[k] = c; used[c] = k; return c;
@@ -1479,7 +1532,7 @@
       var tr = [], br = '', rr = [];
       for (var tx = 0; tx < w; tx++) {
         var x = x0 + (tx + 0.5) * mi, y = y0 + (ty + 0.5) * mi, t = terrAtMi(x, y);
-        if (!t && V) { var px = (x - V.u.x0) * V.u.pxmi, py = (y - V.u.y0) * V.u.pxmi; if (px >= 0 && py >= 0 && px < V.D.width && py < V.D.height) { t = classify(V.D, px, py, mi * V.u.pxmi * 0.5, 2); if (t && !TB[t]) t = null; } }
+        if (!t) t = fillAt(F, x, y);
         if (!t) t = 'plains';
         var hv = hAt(x, y, t), bd = Math.max(0, Math.min(35, Math.floor(hv / 500)));
         if (PW && t !== 'lake' && t !== 'sea') wet.push(tx + ty * w);
@@ -1495,7 +1548,7 @@
   load();
   window.HEXMAP = { S: function () { return S; }, view: view, at: at, up: up, kids: kids, hc: hc, effAt: effAt, measure: measure, LV: LV, GROW: GROW, grow: grow, hAt: function (x, y) { hcheck(); return hAt(x, y); }, hexH: hexH, // (for the seat's probes)
     dbg: function (x, y) { hcheck(); var t = terrAtMi(x, y), raw = hRaw(x, y, t), lift = peaksAt(x, y); return { t: t, blend: bil(AR.A, x, y), raw: raw, lift: lift, bed: bedAt(x, y, raw) }; },
-    bake: bake,
+    bake: bake, fill: function () { return fillOf(paintBox()); },
     redraw: function () { LAYERKEY = ''; drawNow(); } };
   window.addEventListener('resize', resize);
   S.under.forEach(function (u) { if (u.on) loadUnder(u); });

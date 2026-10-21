@@ -69,7 +69,7 @@
     <div id="measure" class="dim">M, then click along a way (double-click ends; Esc clears)</div>
     <h2>Underlays</h2>
     <div id="unders"></div>
-    <div class="row"><span class="dim">paint</span><input type="range" id="paintop" min="0" max="1" step="0.05"><label><input type="checkbox" id="gridon"> grid</label><label><input type="checkbox" id="labon"> labels</label></div>
+    <div class="row"><span class="dim">paint</span><input type="range" id="paintop" min="0" max="1" step="0.05"><label><input type="checkbox" id="gridon"> grid</label><label><input type="checkbox" id="labon"> labels</label><label title="where you have not painted, what THE WORLD gives each 5-mile hex: the paint of the regions beside it (dim, hatched; never your paint)"><input type="checkbox" id="fillon"> fill</label></div>
     <h2>Taken back</h2>
     <div class="row"><button id="export" title="the save: a .json of the whole map">export .json</button><button id="import">import .json</button><button id="png">view .png</button></div>
     <div class="row"><button id="undo">undo</button><button id="redo">redo</button><button id="reset">start over</button></div>
@@ -86,6 +86,6 @@ V the next look (flat, relief, world) · I the iso preview</div>
   </div>
   <div id="view"><canvas id="c"></canvas><div id="lvl"></div><div id="status"></div></div>
 </div>
-<script src="hexmap.js?v=6"></script>
+<script src="hexmap.js?v=7"></script>
 </body>
 </html>

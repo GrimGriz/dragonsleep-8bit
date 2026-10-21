@@ -1,7 +1,9 @@
 """THE WORLD BAKE (10-20, the world map seat; RULED his "go on all leans"): the second game's world map from his realm hex map. His newest EXPORT
 (play-records/realm-hexmap-<UTC>.json, or a path given) is opened in tools/hexmap.html headless -- the tool's own engine, so the heights, the wet floors
 and the ground are the world look he sees -- and HEXMAP.bake() is written to deep16/data/world.js (D16.WORLD). Then python tools/deep16-build.py stamps it.
-He paints and EXPORTs; this bakes. Run from PowerShell (the benches' headless browser): python tools/world-build.py [export.json]"""
+A hex he has not painted takes the paint of the regions beside it (THE FILL, tools/hexmap.js, 10-21: RULED his "all the unpainted hexes should take on
+paint of adjacent regions"; corridor v3's guess before). He paints and EXPORTs; this bakes. Run from PowerShell (the benches' headless browser):
+python tools/world-build.py [export.json]"""
 import glob, json, os, re, sys
 HERE = os.path.dirname(os.path.abspath(__file__)); ROOT = os.path.dirname(HERE)
 sys.path.insert(0, os.path.join(ROOT, 'dev'))
@@ -22,7 +24,7 @@ def main():
     if not src: print('FAIL no hex map EXPORT found (play-records/realm-hexmap-<UTC>.json)'); return 1
     o = json.load(open(src, encoding='utf-8')); o.pop('exported', None); o.pop('about', None)
     key = 'realm-hexmap-v1' if o.get('v') == 1 else 'realm-hexmap-v2'
-    # served (not file://), from the folder that holds TarlynsPit, so the tool reads corridor v3's pixels for the hexes he has not painted (its GUESS)
+    # served (not file://), from the folder that holds TarlynsPit, as he opens it (its underlays)
     top = ROOT
     while not os.path.isdir(os.path.join(top, 'TarlynsPit')) and os.path.dirname(top) != top: top = os.path.dirname(top)
     import socket, subprocess, time
@@ -44,7 +46,6 @@ def main():
     finally:
         srv.terminate()
     if errs: print('FAIL the tool threw: ' + '; '.join(errs[:3])); return 1
-    if not W.get('v3'): print('note: corridor v3 was not read, so no unpainted hex was guessed')
     W['from'] = os.path.basename(src)
     # the tiles (the top-down view's half-mile ground) go in a file of their own, loaded only when that view opens (deep16/js/overworld.js): not on every DEEP16 page
     import hashlib
@@ -65,8 +66,10 @@ def main():
     old = open(out, encoding='utf-8').read() if os.path.exists(out) else None
     if old is None or re.sub(r'"baked":"[^"]*"', '', old) != re.sub(r'"baked":"[^"]*"', '', text):
         with open(out, 'w', encoding='utf-8', newline='\n') as f: f.write(text)
-        print('wrote deep16/data/world.js: %d hexes (%d of them guessed from v3: not painted yet), %d places, %d roads and rivers, from %s' % (len(W['hexes']), W.get('guessed', 0), len(W['sites']), len(W['paths']), W['from']))
+        print('wrote deep16/data/world.js: %d hexes, %d places, %d roads and rivers, from %s' % (len(W['hexes']), len(W['sites']), len(W['paths']), W['from']))
     else: print('deep16/data/world.js unchanged (%s)' % W['from'])
+    print('the fill: %d hexes not painted took the paint beside them, %d with only a lake, a cut or a town of his in a corner took it as their ground (his place their second); guessed %d'
+          % (W.get('filled', 0), W.get('parted', 0), W.get('guessed', 0)))
     return 0
 
 
