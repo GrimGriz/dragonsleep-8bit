@@ -23,7 +23,7 @@
   var GROW = 1.8062; // 68 / 37.649: his road, the Pit road and the mile, as drawn on 10-16 (his EXPORT 2306Z), reads 68.0 mi
   var V3 = V3_1 / GROW;
   var KEY = 'realm-hexmap-v2', KEY1 = 'realm-hexmap-v1', ZMIN = 1.2, ZMAX = 6000; // (version 1 is left as it was in the browser: grown, never written)
-  var KINDS = ['city', 'town', 'castle', 'inn', 'cave', 'junction', 'seat', 'school', 'hamlet', 'mark']; // (school: a seat of the Doors, 10-20)
+  var KINDS = ['city', 'town', 'castle', 'inn', 'cave', 'junction', 'seat', 'school', 'gulch', 'hamlet', 'mark']; // (school: a seat of the Doors, 10-20)
   var PKINDS = ['road', 'track', 'river'];
   var $ = function (id) { return document.getElementById(id); };
   var esc = function (s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); };
@@ -160,6 +160,40 @@
     S.paths.forEach(function (P) { if (/coldridge/i.test(P.name || '') && !P.drawn) SHAPED = shapeColdridge(P) || SHAPED; });
     if (!(S.seeded && S.seeded.doors1020) && S.sites.some(function (s) { return /doors/i.test(s.name); })) SEEDED = seedDoors();
     if (!(S.seeded && S.seeded.lake1020)) LAKED = seedLake();
+    if (!(S.seeded && S.seeded.going1020)) WENT = seedGoing();
+    if (!(S.seeded && S.seeded.gulch1020)) GULCHED = seedGulch();
+  }
+  // THE COLDRIDGE ROUTE'S GOING (10-20, his "1 yes" to the seat's lean): a road carries its own going, a number -- 1 a road, 2 the SRD's difficult, between them
+  // ours (the weather, the switchbacks); the Coldridge Route's set once so his redrawn road (35.7 mi) reads the ruled three wagon-days
+  var WENT = false, GULCHED = false;
+  function seedGoing() {
+    S.seeded = S.seeded || {}; S.seeded.going1020 = true; var n = 0;
+    S.paths.forEach(function (P) {
+      if (!/coldridge/i.test(P.name || '') || P.going != null) return;
+      var pts = ptsOf(P), len = 0; for (var i = 0; i + 1 < pts.length; i++) len += Math.hypot(pts[i + 1][0] - pts[i][0], pts[i + 1][1] - pts[i][1]);
+      if (len > 0) { P.going = Math.round(3 * (+S.pace.cart || 17) / len * 100) / 100; P.difficult = P.going >= 2; n++; }
+    });
+    return n > 0;
+  }
+  // WEB GULCH (10-20, his "gulch isn't gulching or a location"): the realm's (TarlynsPit/wiki/web-gulch.md: north of the Halfway Inn, between the fork and the
+  // inn, the road running through it -- coming down from town you clear the gulch, then the inn; corridor v3's ellipse) -- once, on load: a place on the Pit road
+  // where v3 draws it, and the mile hexes along the road there painted gulch: a cut, its banks rising either side, the road down through it
+  function seedGulch() {
+    S.seeded = S.seeded || {}; S.seeded.gulch1020 = true;
+    if (S.sites.some(function (s) { return /web gulch/i.test(s.name); })) return false;
+    var P = pathBy('pitroad'); if (!P) return false;
+    var want = [1460 / V3, 640 / V3], pts = ptsOf(P), best = null, bd = 1e9, i;
+    for (i = 0; i + 1 < pts.length; i++) { var sg = segD(want, pts[i], pts[i + 1]); if (sg[0] < bd) { bd = sg[0]; best = [pts[i][0] + (pts[i + 1][0] - pts[i][0]) * sg[1], pts[i][1] + (pts[i + 1][1] - pts[i][1]) * sg[1]]; } }
+    if (!best || bd > 8) return false;
+    S.sites.push({ id: 'webgulch', name: 'Web Gulch', kind: 'gulch', x: best[0], y: best[1], note: 'placed 10-20 where corridor v3 draws it, on the Pit road between the fork and the inn (wiki/web-gulch.md); its own roam to come' });
+    var w = LV[2].w, hh2 = w * SQ3 / 2, n = 0;
+    for (var r = Math.floor((best[1] - 4) / hh2); r <= Math.ceil((best[1] + 4) / hh2); r++) for (var q = Math.floor((best[0] - 4) / w - r / 2); q <= Math.ceil((best[0] + 4) / w - r / 2); q++) {
+      var c = hc(2, q, r); if (Math.hypot(c[0] - best[0], c[1] - best[1]) > 3.2) continue;
+      var dr = 1e9; for (i = 0; i + 1 < pts.length; i++) dr = Math.min(dr, segD(c, pts[i], pts[i + 1])[0]);
+      if (dr > 0.75 || S.paint[2][K(q, r)] === 'lake') continue;
+      rawSet(2, K(q, r), 'gulch'); n++;
+    }
+    reindex(); return true;
   }
   // HALFWAY LAKE (10-20; his "looked like the half way inn lake got moved over to the forest by sanctuary", then "it's been missing since the gulch questions, I
   // didn't paint it back where it goes"): never painted -- corridor v3's picture drew it -- so once, on load, its mile hexes painted lake inside v3's own outline
@@ -773,6 +807,7 @@
     else if (kind === 'cave') { ctx.arc(x, y + 3, 7, Math.PI, 0); ctx.closePath(); ctx.fillStyle = '#2a180a'; }
     else if (kind === 'junction') { ctx.moveTo(x, y - 6); ctx.lineTo(x + 6, y); ctx.lineTo(x, y + 6); ctx.lineTo(x - 6, y); ctx.closePath(); }
     else if (kind === 'seat') { ctx.moveTo(x, y - 7); ctx.lineTo(x + 7, y + 5); ctx.lineTo(x - 7, y + 5); ctx.closePath(); ctx.fillStyle = '#b5452a'; }
+    else if (kind === 'gulch') { ctx.moveTo(x - 7, y - 5); ctx.lineTo(x - 2, y + 6); ctx.lineTo(x + 2, y + 6); ctx.lineTo(x + 7, y - 5); ctx.lineTo(x + 3, y - 5); ctx.lineTo(x, y + 2); ctx.lineTo(x - 3, y - 5); ctx.closePath(); ctx.fillStyle = '#5a3e26'; } // (a ravine)
     else if (kind === 'school') { ctx.moveTo(x, y - 10); ctx.lineTo(x + 4, y - 4); ctx.lineTo(x + 4, y + 6); ctx.lineTo(x - 4, y + 6); ctx.lineTo(x - 4, y - 4); ctx.closePath(); ctx.fillStyle = '#9b84d0'; } // (a tower)
     else if (kind === 'mark') { ctx.moveTo(x - 6, y - 6); ctx.lineTo(x + 6, y + 6); ctx.moveTo(x + 6, y - 6); ctx.lineTo(x - 6, y + 6); ctx.stroke(); return; }
     else ctx.arc(x, y, kind === 'hamlet' ? 4 : 6, 0, 7);
@@ -864,11 +899,12 @@
   // ---------------------------------------------------------------- the measure: the SRD's going (RULED 10-20, his "SRD for world map and book III for
   // snoot-play"): a mile of difficult ground counts two, anything else one; a road or track counts one, a road marked difficult two (the Coldridge
   // Route). Wagons: the SRD moves them at the walkers' paces; the road register's 17 a wagon-day is ours (his "we can author our own fill in")
+  function roadGoing(P) { return P.going != null ? +P.going : P.difficult ? 2 : 1; } // (a road's own going: 1 a road, 2 the SRD's difficult, between ours -- 10-20)
   function onRoad(x, y) {
     var hit = null;
     for (var i = 0; i < S.paths.length; i++) {
       var P = S.paths[i]; if (P.kind === 'river') continue; var pts = ptsOf(P);
-      for (var j = 0; j + 1 < pts.length; j++) if (segD([x, y], pts[j], pts[j + 1])[0] < 0.25) { if (!P.difficult) return P; hit = P; break; }
+      for (var j = 0; j + 1 < pts.length; j++) if (segD([x, y], pts[j], pts[j + 1])[0] < 0.25) { if (roadGoing(P) <= 1) return P; hit = P; break; }
     }
     return hit; // (an easy road wins where two meet)
   }
@@ -878,7 +914,7 @@
       var a = pts[i], b = pts[i + 1], len = Math.hypot(b[0] - a[0], b[1] - a[1]), n = Math.max(1, Math.ceil(len / 0.05)), seg = len / n;
       for (var j = 0; j < n; j++) {
         var t = (j + 0.5) / n, x = a[0] + (b[0] - a[0]) * t, y = a[1] + (b[1] - a[1]) * t, cost, rd = onRoad(x, y);
-        if (rd) { cost = rd.difficult ? 2 : 1; road += seg; } else { var k = terrAtMi(x, y), T = k && TB[k]; cost = !T ? 1 : !+T.cost ? 0 : T.diff ? 2 : 1; if (!cost) { wet = true; cost = 1; } }
+        if (rd) { cost = roadGoing(rd); road += seg; } else { var k = terrAtMi(x, y), T = k && TB[k]; cost = !T ? 1 : !+T.cost ? 0 : T.diff ? 2 : 1; if (!cost) { wet = true; cost = 1; } }
         go += seg * cost; mi += seg;
       }
     }
@@ -891,7 +927,7 @@
     return m.mi.toFixed(1) + ' mi (' + m.road.toFixed(1) + ' on a road) · ' + m.go.toFixed(1) + ' mi of going\n' +
       'on foot ' + (m.go / f).toFixed(2) + ' days at ' + f + '/day\nby wagon ' + (m.go / c).toFixed(2) + ' days at ' + c + '/day' +
       (m.wet ? '\nit crosses water or the impassable (counted as plain)' : '') +
-      '\n(the SRD’s going: a mile of difficult ground counts two; a road or track one, a difficult road two)';
+      '\n(the SRD’s going: a mile of difficult ground counts two; a road or track its own going, 1 unless set)';
   }
 
   // ---------------------------------------------------------------- the mouse
@@ -1239,12 +1275,12 @@
     if (SEL.path && pathBy(SEL.path)) {
       var P = pathBy(SEL.path), pts = ptsOf(P), len = 0; for (var i = 0; i + 1 < pts.length; i++) len += Math.hypot(pts[i + 1][0] - pts[i][0], pts[i + 1][1] - pts[i][1]);
       var pm = P.kind === 'river' ? null : measure(pts);
-      info.textContent = P.kind + ' · ' + len.toFixed(1) + ' mi · ' + P.pts.length + ' points' + (pm ? '\n' + (P.difficult ? 'difficult · ' : '') + 'by wagon ' + (pm.go / (+S.pace.cart || 17)).toFixed(1) + ' days, on foot ' + (pm.go / (+S.pace.foot || 24)).toFixed(1) : '') +
+      info.textContent = P.kind + ' · ' + len.toFixed(1) + ' mi · ' + P.pts.length + ' points' + (pm ? '\n' + (roadGoing(P) !== 1 ? 'going ×' + roadGoing(P) + ' · ' : '') + 'by wagon ' + (pm.go / (+S.pace.cart || 17)).toFixed(1) + ' days, on foot ' + (pm.go / (+S.pace.foot || 24)).toFixed(1) : '') +
         '\ndrag a point; drag a line to add one; Del drops the yellow one;\na point dropped on a place binds to it (green) and moves with it';
       ed.innerHTML = '<div class="row"><input type="text" id="ed-name"></div><div class="row"><select id="ed-kind"></select><button id="ed-del">delete the way</button><button id="ed-rev">extend</button></div>' +
-        (P.kind === 'river' ? '' : '<div class="row"><label title="a steep or weather-bound road: the SRD\'s difficult terrain, half pace (ours: the SRD names no road that is)"><input type="checkbox" id="ed-diff"> a difficult road</label>' + (P.drawn ? '<button id="ed-drawn" title="put back the points as you drew them (before the seat\'s switchbacks)">as you drew it</button>' : '') + '</div>');
+        (P.kind === 'river' ? '' : '<div class="row"><span class="dim" title="how hard the road is going: 1 a road, 2 the SRD\'s difficult terrain (half pace), between them ours -- weather, switchbacks">going ×</span><input type="number" id="ed-going" min="1" step="0.05" style="width:60px">' + (P.drawn ? '<button id="ed-drawn" title="put back the points as you drew them (before the seat\'s switchbacks)">as you drew it</button>' : '') + '</div>');
       $('ed-name').value = P.name;
-      if ($('ed-diff')) { $('ed-diff').checked = !!P.difficult; $('ed-diff').onchange = function () { begin(); P.difficult = this.checked; commit(); }; }
+      if ($('ed-going')) { $('ed-going').value = roadGoing(P); $('ed-going').onchange = function () { var v = Math.max(1, +this.value || 1); begin(); P.going = v; P.difficult = v >= 2; commit(); }; }
       if ($('ed-drawn')) $('ed-drawn').onclick = function () { begin(); P.pts = P.drawn.slice(); commit(); msg('the Coldridge Route as you drew it (its switchbacks gone; it stays difficult)'); };
       PKINDS.forEach(function (k) { var o = document.createElement('option'); o.value = o.textContent = k; if (k === P.kind) o.selected = true; $('ed-kind').appendChild(o); });
       $('ed-name').oninput = function () { P.name = this.value; }; $('ed-name').onfocus = begin; $('ed-name').onchange = function () { commit(); };
@@ -1413,7 +1449,7 @@
         var A = pts[i], B2 = pts[i + 1], sl = Math.hypot(B2[0] - A[0], B2[1] - A[1]), n2 = Math.max(1, Math.ceil(sl / 0.25)); len += sl;
         for (var j = 0; j <= n2; j++) { var hx = at(1, A[0] + (B2[0] - A[0]) * j / n2, A[1] + (B2[1] - A[1]) * j / n2), hk = K(hx[0], hx[1]); if (hk !== last) { hexes.push([hx[0], hx[1]]); last = hk; } }
       }
-      out.paths.push({ id: P.id, name: P.name, kind: P.kind, difficult: !!P.difficult, mi: +len.toFixed(2), pts: pts.map(function (p) { return [+p[0].toFixed(3), +p[1].toFixed(3)]; }), hexes: hexes,
+      out.paths.push({ id: P.id, name: P.name, kind: P.kind, difficult: !!P.difficult, going: roadGoing(P), mi: +len.toFixed(2), pts: pts.map(function (p) { return [+p[0].toFixed(3), +p[1].toFixed(3)]; }), hexes: hexes,
         ends: [typeof P.pts[0] === 'string' ? P.pts[0] : null, typeof P.pts[P.pts.length - 1] === 'string' ? P.pts[P.pts.length - 1] : null] });
     });
     return out;
@@ -1431,6 +1467,6 @@
   resize(); panels();
   $('origin').textContent = 'this browser keeps its copy for ' + location.host + ' (another port is another copy)';
   if (GREW) { saveNow(); msg('Your version 1 map has grown ×' + GROW + ' to the four-wagon-day road (Silverton to the Pit 68 mi). Version 1 is still kept in this browser, untouched. EXPORT is the save.'); }
-  else if (SHAPED || SEEDED || LAKED) { saveNow(); msg((LAKED ? 'Halfway Lake is painted back at the inn, from corridor v3’s outline. ' : '') + (SHAPED ?'The Coldridge Route is a difficult road now, its climb to the Doors in switchbacks: three wagon-days (its panel puts back your drawing). ' : '') + (SEEDED ? 'The Doors’ schools are placed (the five in their valley, the rest solo), and the mountain-foot water runs from the bogs to the Glowseep (L shows the lifts). ' : '') + 'EXPORT is the save.'); }
+  else if (SHAPED || SEEDED || LAKED || WENT || GULCHED) { saveNow(); msg((LAKED ? 'Halfway Lake is painted back at the inn, from corridor v3’s outline. ' : '') + (WENT ? 'The Coldridge Route goes at its own going now: three wagon-days. ' : '') + (GULCHED ? 'Web Gulch is a place on the Pit road, its mile hexes painted gulch. ' : '') + (SHAPED ?'The Coldridge Route is a difficult road now, its climb to the Doors in switchbacks: three wagon-days (its panel puts back your drawing). ' : '') + (SEEDED ? 'The Doors’ schools are placed (the five in their valley, the rest solo), and the mountain-foot water runs from the bogs to the Glowseep (L shows the lifts). ' : '') + 'EXPORT is the save.'); }
   else msg('Kept in this browser as you go; EXPORT is the save.');
 })();

@@ -45,6 +45,14 @@
       }
     });
     B.sites.forEach(function (s) { var k = K(s.hex[0], s.hex[1]); (m.siteAt[k] = m.siteAt[k] || []).push(s); });
+    // the roads up into the mountains (his, 10-20: "the coldridge route as a roam probably"): a door at each end, crossed in the road's ruled days till its
+    // roam is built (the Coldridge Route, the Galleries junction to The DOORS: 3 days, RULED 10-17)
+    m.routes = [];
+    B.paths.forEach(function (P) {
+      if (!/coldridge/i.test(P.name || '') || !P.ends) return;
+      var a = B.sites.filter(function (s) { return s.id === P.ends[0]; })[0], b = B.sites.filter(function (s) { return s.id === P.ends[1]; })[0];
+      if (a && b) m.routes.push({ P: P, ends: [a, b], days: 3, name: 'the Coldridge Route' });
+    });
     // each hex lit once (light from the north-west, high: 1 on the flat), as the hex map's world look lights it
     Object.keys(m.hex).forEach(function (k) {
       var e = m.hex[k], H = function (dq, dr) { var n = m.hex[K(e.q + dq, e.r + dr)]; return n ? n.h : e.h; };
@@ -55,28 +63,34 @@
     return m;
   };
   W.hexAt = function (q, r) { return M && M.hex[K(q, r)] || null; };
-  W.walkable = function (e) { var T = e && M.terr[e.t]; return !!(T && +T.cost) || !!(e && M.siteAt[K(e.q, e.r)]); }; // (water and the Rift: no one walks them -- Book III's cost 0 -- but a hex with a place in it has its shore: the inn on its lake)
-  // the hours a step from hex a to its neighbour b takes: the road's going between two hexes of one road, else the ground's
+  // THE MOUNTAINS are not walked on the world map (his, 10-20: "the coldridge route as a roam probably, with up into and on mountain hexes not a thing on the
+  // world map"): a mountain hex is drawn, never stepped on -- save a place on the range's skirt, stepped into from the low ground (the Galleries' mouth); a road
+  // up into them is a door (W.ROUTES), its own roam to come
+  W.MOUNTAIN = { black: 1, gray: 1, coastal: 1 };
+  W.walkable = function (e) { var T = e && M.terr[e.t]; return !!(T && +T.cost && !W.MOUNTAIN[e.t]) || !!(e && M.siteAt[K(e.q, e.r)]); }; // (water and the Rift: no one walks them -- Book III's cost 0 -- but a hex with a place in it has its shore: the inn on its lake)
+  // the hours a step from hex a to its neighbour b takes: the road's own going between two hexes of one road, else the ground's
   W.stepHours = function (a, b) {
-    var eb = M.hex[K(b[0], b[1])]; if (!W.walkable(eb)) return null;
-    var road = M.link[K(a[0], a[1]) + '|' + K(b[0], b[1])], going = road ? (road.difficult ? 2 : 1) : (+M.terr[eb.t].cost && M.terr[eb.t].diff ? 2 : 1);
+    var ea = M.hex[K(a[0], a[1])], eb = M.hex[K(b[0], b[1])]; if (!W.walkable(eb)) return null;
+    if (W.MOUNTAIN[eb.t] && ea && W.MOUNTAIN[ea.t]) return null; // (a place in the mountains from the low ground only, never mountain to mountain)
+    var road = M.link[K(a[0], a[1]) + '|' + K(b[0], b[1])], going = road ? (road.going || (road.difficult ? 2 : 1)) : (+M.terr[eb.t].cost && M.terr[eb.t].diff ? 2 : 1);
     return { h: M.w * going / W.PACE, road: road || null, going: going };
   };
+  W.OFFROAD = 1.35; // (the way-finding's leaning to the roads -- his "mouse routing doesn't seem to prefer the roads": a hex off the road weighs a third more in the choosing, and costs only its own hours)
   // the quickest way there (Dijkstra over the painted hexes; the world is a few thousand)
   W.route = function (from, to) {
     var start = K(from[0], from[1]), goal = K(to[0], to[1]); if (start === goal || !M.hex[goal] || !W.walkable(M.hex[goal])) return null;
-    var dist = {}, prev = {}, open = [[0, from[0], from[1]]], done = {}; dist[start] = 0;
+    var dist = {}, hrs = {}, prev = {}, open = [[0, from[0], from[1]]], done = {}; dist[start] = 0; hrs[start] = 0;
     while (open.length) {
       var bi = 0; for (var i = 1; i < open.length; i++) if (open[i][0] < open[bi][0]) bi = i;
       var cur = open.splice(bi, 1)[0], ck = K(cur[1], cur[2]); if (done[ck]) continue; done[ck] = 1; if (ck === goal) break;
       for (var d = 0; d < 6; d++) {
         var n = [cur[1] + DIRS[d][0], cur[2] + DIRS[d][1]], nk = K(n[0], n[1]), st = W.stepHours([cur[1], cur[2]], n); if (!st || done[nk]) continue;
-        var nd = cur[0] + st.h; if (dist[nk] == null || nd < dist[nk]) { dist[nk] = nd; prev[nk] = [cur[1], cur[2]]; open.push([nd, n[0], n[1]]); }
+        var nd = cur[0] + st.h * (st.road ? 1 : W.OFFROAD); if (dist[nk] == null || nd < dist[nk]) { dist[nk] = nd; hrs[nk] = hrs[ck] + st.h; prev[nk] = [cur[1], cur[2]]; open.push([nd, n[0], n[1]]); }
       }
     }
     if (dist[goal] == null) return null;
     var path = [], k = goal, p = to; while (k !== start) { path.unshift(p); p = prev[k]; k = K(p[0], p[1]); }
-    return { hexes: path, hours: dist[goal] };
+    return { hexes: path, hours: hrs[goal] };
   };
 
   // ---------------------------------------------------------------- the clock: hours from midnight before the first morning; the walk spends them, and the
@@ -128,20 +142,31 @@
       if (I.pressed('a') || I.pressed('b') || m.click) { this.cards.shift(); D.sfx('confirm'); if (cd.then) cd.then(); }
       return;
     }
-    // the camera: the wheel and -/= zoom, the middle button or the arrows pan, C comes back to the party
+    // the camera: the wheel and -/= zoom, the middle button pans, C comes back to the party
     if (m.wheel) this.zi = Math.max(0, Math.min(W.ZOOMS.length - 1, this.zi - m.wheel));
     if (I.pressed('zoomin')) this.zi = Math.min(W.ZOOMS.length - 1, this.zi + 1);
     if (I.pressed('zoomout')) this.zi = Math.max(0, this.zi - 1);
-    var z = W.ZOOMS[this.zi], pan = 6 / z;
-    if (I.held.left) this.cam.cx -= pan; if (I.held.right) this.cam.cx += pan; if (I.held.up) this.cam.cy -= pan / TILT; if (I.held.down) this.cam.cy += pan / TILT;
+    var z = W.ZOOMS[this.zi];
     if (m.panX || m.panY) { this.cam.cx -= (m.panX || 0) / z; this.cam.cy -= (m.panY || 0) / (z * TILT); m.panX = m.panY = 0; }
     if (I.pressed('center')) { var c0 = hc(S.at[0], S.at[1]); this.cam.cx = c0[0]; this.cam.cy = c0[1]; }
     if (this.walk) { this.stepWalk(); return; }
+    // the arrows walk the party a hex (his "arrow keys should move the party not the mouse selector"): left and right west and east; up and down north-west
+    // and north-east by turns (a hex row is half a hex over), or as the side arrow held with it says
+    var ud = I.repeat('up') ? -1 : I.repeat('down') ? 1 : 0, lr = I.repeat('left') ? -1 : I.repeat('right') ? 1 : 0;
+    if (ud || lr) {
+      var lh = I.held.left ? -1 : I.held.right ? 1 : 0, dir;
+      if (!ud) dir = lr < 0 ? [-1, 0] : [1, 0];
+      else { var side = lh || (this.zig = -(this.zig || 1)); dir = ud < 0 ? (side < 0 ? [0, -1] : [1, -1]) : (side < 0 ? [-1, 1] : [0, 1]); }
+      var nx = [S.at[0] + dir[0], S.at[1] + dir[1]], st0 = W.stepHours(S.at, nx);
+      if (st0) { this.walk = { path: [nx], f: 0 }; this.plan = null; }
+      else { var en = M.hex[K(nx[0], nx[1])]; this.say(!en ? 'Off the map that way.' : W.MOUNTAIN[en.t] ? 'The mountains: no way up on the world map.' : 'No one walks that way (' + M.terr[en.t].name + ').'); }
+      return;
+    }
     // where the mouse points: the hex, and the way there
     var hv = m.inside ? this.pick(m.x, m.y) : null, hk = hv ? K(hv[0], hv[1]) : null;
     if (hk !== (this.hov ? K(this.hov[0], this.hov[1]) : null)) { this.hov = hv; this.plan = hv ? W.route(S.at, hv) : null; }
     if (m.click && m.inside && this.plan) { this.walk = { path: this.plan.hexes.slice(), f: 0 }; this.plan = null; D.sfx('confirm'); return; }
-    if (I.pressed('a')) { var here = this.doorHere(); if (here) this.offerDoor(here); else this.lookHere(); }
+    if (I.pressed('a')) { var here = this.doorHere(), rt = this.routeHere(); if (here) this.offerDoor(here); else if (rt) this.offerRoute(rt); else this.lookHere(); }
     if (I.pressed('end')) { W.camp(); D.sfx('confirm'); this.say('The party makes camp, and walks on at first light: ' + W.timeOfDay() + '.'); }
   };
   // a step a time: the hours spent at its end (past the day's 8, a camp first), the place there, and (pass B) the road's chance of a fight
@@ -157,7 +182,20 @@
     var door = this.doorHere(), sites = M.siteAt[K(S.at[0], S.at[1])];
     if (door) { this.walk = null; this.offerDoor(door); return; }
     if (sites && sites.length) this.say(sites.map(function (s) { return s.name; }).join(', ') + '.');
-    if (!w.path.length) { this.walk = null; this.lookHere(true); }
+    if (!w.path.length) { this.walk = null; var rt = this.routeHere(); if (rt) this.offerRoute(rt); else this.lookHere(true); }
+  };
+  // a road up into the mountains, at either end: its days pass and the party is at the other end (its roam to come)
+  World.prototype.routeHere = function () {
+    var k = K(S.at[0], S.at[1]);
+    for (var i = 0; i < M.routes.length; i++) for (var j = 0; j < 2; j++) if (K(M.routes[i].ends[j].hex[0], M.routes[i].ends[j].hex[1]) === k) return { r: M.routes[i], end: j };
+    return null;
+  };
+  World.prototype.offerRoute = function (o) {
+    var self = this, r = o.r, to = r.ends[1 - o.end], up = o.end === 0;
+    this.card(['{y}' + r.name.charAt(0).toUpperCase() + r.name.slice(1) + '{/}', (up ? 'Up into the mountains' : 'Down out of the mountains') + ': ' + r.days + ' days to ' + to.name + '.', '{g}(its own roam is to come: for now the days pass){/}', '',
+      D.keys('{g}E{/}: go ' + (up ? 'up' : 'down') + ' it    {g}X{/}: stay')], null,
+      [['a', function () { var fr = S.at.slice(); W.passDays(r.days, r.days + ' days ' + (up ? 'up' : 'down') + ' ' + r.name + ': ' + to.name + ', ' + W.timeOfDay() + '.'); S.from = fr; S.at = to.hex.slice(); W.save(); var c = hc(S.at[0], S.at[1]); self.cam.cx = c[0]; self.cam.cy = c[1]; self.plan = null; }],
+       ['b', function () { self.say('The party stays at ' + r.ends[o.end].name + '.'); }]]);
   };
   World.prototype.doorHere = function () { var ss = M.siteAt[K(S.at[0], S.at[1])] || []; for (var i = 0; i < ss.length; i++) if (W.DOORS[ss[i].id]) return ss[i]; return null; };
   World.prototype.lookHere = function (arrived) {
@@ -253,6 +291,7 @@
     if (kind === 'school') { g.fillStyle = '#9b84d0'; g.moveTo(x, y - 10); g.lineTo(x + 3, y - 6); g.lineTo(x + 3, y + 1); g.lineTo(x - 3, y + 1); g.lineTo(x - 3, y - 6); g.closePath(); g.fill(); g.stroke(); return; }
     if (kind === 'inn' || kind === 'town' || kind === 'hamlet') { var s = kind === 'hamlet' ? 2.5 : 3.5; g.fillRect(x - s, y - s - 1, s * 2, s * 2); g.strokeRect(x - s - 0.5, y - s - 1.5, s * 2 + 1, s * 2 + 1); return; }
     if (kind === 'cave') { g.fillStyle = '#1a1008'; g.arc(x, y, 3.5, Math.PI, 0); g.closePath(); g.fill(); g.strokeStyle = '#efe0b8'; g.stroke(); return; }
+    if (kind === 'gulch') { g.fillStyle = '#4a321e'; g.moveTo(x - 5, y - 4); g.lineTo(x - 1, y + 3); g.lineTo(x + 1, y + 3); g.lineTo(x + 5, y - 4); g.lineTo(x + 2, y - 4); g.lineTo(x, y); g.lineTo(x - 2, y - 4); g.closePath(); g.fill(); g.strokeStyle = '#efe0b8'; g.stroke(); return; } // (a ravine)
     if (kind === 'seat') { g.fillStyle = '#b5452a'; g.moveTo(x, y - 6); g.lineTo(x + 4, y + 1); g.lineTo(x - 4, y + 1); g.closePath(); g.fill(); g.stroke(); return; }
     if (kind === 'junction') { g.moveTo(x, y - 3); g.lineTo(x + 3, y); g.lineTo(x, y + 3); g.lineTo(x - 3, y); g.closePath(); g.fill(); g.stroke(); return; }
     g.strokeStyle = '#efe0b8'; g.moveTo(x - 2.5, y - 2.5); g.lineTo(x + 2.5, y + 2.5); g.moveTo(x + 2.5, y - 2.5); g.lineTo(x - 2.5, y + 2.5); g.stroke(); // (a mark)
@@ -292,6 +331,22 @@
         else if (t === 'sea' || t === 'lake') { if (((D.frame >> 4) + i + e.q) % 3) continue; g.fillStyle = 'rgba(220,240,250,.55)'; g.fillRect(x - 2, y, 3, 1); }
       }
     };
+    // a gulch (his "gulch isn't gulching"): a ravine cut across the hex's top, dark between pale banks, along the road where one runs down through it
+    if (e.t === 'gulch' || (e.t2 === 'gulch' && e.sh2 >= 0.08)) {
+      var rd = M.road[K(e.q, e.r)], dx = 0.9, dy = 0.45, bd = 1e9;
+      if (rd) for (var j = 0; j + 1 < rd.pts.length; j++) {
+        var a = rd.pts[j], b = rd.pts[j + 1], vx = b[0] - a[0], vy = b[1] - a[1], l2 = vx * vx + vy * vy || 1, t0 = Math.max(0, Math.min(1, ((c[0] - a[0]) * vx + (c[1] - a[1]) * vy) / l2)), dd = Math.hypot(c[0] - a[0] - vx * t0, c[1] - a[1] - vy * t0);
+        if (dd < bd) { bd = dd; dx = vx; dy = vy; }
+      }
+      var nl = Math.hypot(dx, dy) || 1; dx /= nl; dy /= nl;
+      var L0 = M.w * 0.42, rv = [];
+      for (var k2 = -3; k2 <= 3; k2++) { var jt = (hh(e.q, e.r, 40 + k2) - 0.5) * M.w * 0.1; rv.push(proj(cam, c[0] + dx * (k2 / 3) * L0 - dy * jt, c[1] + dy * (k2 / 3) * L0 + dx * jt, e.h)); }
+      var line = function () { g.beginPath(); g.moveTo(rv[0][0], rv[0][1]); for (var i2 = 1; i2 < rv.length; i2++) g.lineTo(rv[i2][0], rv[i2][1]); };
+      g.lineCap = 'round'; g.lineJoin = 'round';
+      line(); g.strokeStyle = '#c8a878'; g.lineWidth = Math.max(2.4, 6 * s); g.stroke();
+      line(); g.strokeStyle = '#26160a'; g.lineWidth = Math.max(1.4, 3.6 * s); g.stroke();
+      g.lineCap = 'butt';
+    }
     var main = e.wet ? 'wet' : e.t, nMain = { woods: 4, black: 1, gray: 1, coastal: 1, hills: 2, foothills: 1, bog: 3, wet: 3, farms: 1, town: 2, verge: 2, plains: 1, sea: 2, lake: 2 }[main] || 0;
     draw1(main, nMain * (e.t2 ? 1 - (e.sh2 || 0) : 1));
     if (e.t2 && e.sh2 >= 0.2) draw1(e.t2, ({ woods: 4, hills: 2, farms: 1, bog: 3, black: 1, gray: 1 }[e.t2] || 0) * e.sh2 * 1.5);
@@ -325,6 +380,7 @@
         var ss = (M.siteAt[K(this.hov[0], this.hov[1])] || []).map(function (s) { return s.name; });
         lines.push((ss.length ? ss.join(', ') + ' · ' : '') + M.terr[he.t].name + (he.guess ? ' {g}(v3’s guess){/}' : '') + ' · ' + Math.round(he.h).toLocaleString() + ' ft');
         if (this.plan) { var hrs = this.plan.hours, d = Math.floor((S.today + hrs) / W.DAYHOURS - 1e-6); lines.push(this.plan.hexes.length + ' hex' + (this.plan.hexes.length > 1 ? 'es' : '') + ' · ' + (hrs < 10 ? hrs.toFixed(1) + ' hours' : (hrs / W.DAYHOURS).toFixed(1) + ' days of walking') + (d > 0 ? ' · ' + d + ' camp' + (d > 1 ? 's' : '') : '')); }
+        else if (W.MOUNTAIN[he.t]) lines.push('{g}the mountains: their roads are roams (to come){/}');
         else if (!W.walkable(he)) lines.push('{r}no one walks it{/}');
         else if (K(this.hov[0], this.hov[1]) !== K(S.at[0], S.at[1])) lines.push('{r}no way there{/}');
       } else lines.push('{g}off the map{/}');
@@ -351,9 +407,10 @@
   W.LEVEL = 5; W.HEXSTEPS = 4; W.MIRROR = { hyena: 'mirrorhyena' };
   W.zoneOf = function (e) {
     var inn = M.sites.filter(function (s) { return s.id === 'inn'; })[0];
+    var ss = M.siteAt[K(e.q, e.r)] || [];
+    if (e.t === 'gulch' || (e.t2 === 'gulch' && e.sh2 >= 0.08) || ss.some(function (s) { return s.kind === 'gulch'; })) return 'gulch'; // (Web Gulch: his "gulch isn't gulching or a location")
     if (/^(black|gray|coastal)$/.test(e.t)) return 'doors';
     if (e.wet || e.t === 'bog') return 'glowseep';
-    if (e.t === 'gulch') return 'gulch';
     if (e.t === 'hills' || e.t === 'foothills') return 'gnollhills';
     if (e.t === 'verge') return 'verge';
     return inn && hc(e.q, e.r)[1] > inn.y + 2 ? 'south' : 'north';
@@ -420,8 +477,13 @@
     var F = { id: 'worldfield', map: 'world-field', level: W.LEVEL, name: 'On the road', sub: (p.mirror ? 'mirror-made: ' : '') + p.zone, dark: night,
       intro: (p.mirror ? 'Mirror-made: ' : '') + 'They come at the party on the ' + (M.road[K(e.q, e.r)] ? 'road' : M.terr[e.t].name) + '.', won: 'THE ROAD IS CLEAR.', lost: 'THE ROAD TAKES THEM.',
       foes: W.seat(p.list), wave: null };
-    var b = new D.Battle({ fightDef: F, ladder: true, level: W.LEVEL, world: true, onDone: function (res) { self.afterFight(res, p); } });
-    if (p.mirror) { var e0 = b.enter; b.enter = function () { e0.apply(this, arguments); this.units.forEach(function (u) { if (u.side === 'foe' && !/^mirror/.test(u.kind)) { u.mirrorEye = true; u.name = 'Mirror-made ' + u.name.toLowerCase(); } }); }; }
+    var b = new D.Battle({ fightDef: F, ladder: true, level: W.LEVEL, world: true, onDone: function (res) { self.afterFight(res, p); } }), e0 = b.enter;
+    b.enter = function () {
+      e0.apply(this, arguments);
+      // the two lines face each other (his "they seem to be facing NE with NW foes"): the four toward the foes (-x), the foes toward the four (+x)
+      this.units.forEach(function (u) { u.facing = D.spr.facingFor(u.side === 'party' ? -1 : 1, 0); });
+      if (p.mirror) this.units.forEach(function (u) { if (u.side === 'foe' && !/^mirror/.test(u.kind)) { u.mirrorEye = true; u.name = 'Mirror-made ' + u.name.toLowerCase(); } });
+    };
     D.push(b);
   };
   World.prototype.afterFight = function (res, p) {
