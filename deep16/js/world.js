@@ -13,7 +13,7 @@
 (function () {
   var D = window.D16 = window.D16 || {}, I = D.input;
   var W = D.world = {};
-  var SQ3 = Math.sqrt(3), TILT = 0.62, STEPF = 14; // (frames a hex takes to walk)
+  var SQ3 = Math.sqrt(3), TILT = 0.62, STEPF = 28; // (frames a hex takes to walk: 14 till 10-21 night, when Silverton to the Guano Mine "feels short" -- RULED his "The screen": the miles and the SRD's pace kept, the token slower, the sky turning as the hours pass)
   W.PACE = 3; W.DAYHOURS = 8; W.MORNING = 7; // (the SRD: 3 mi an hour, 8 hours a day; the day starts at seven)
   W.ZOOMS = [3.2, 4.4, 6, 8.5, 12]; // (px a mile: a 5-mile hex 16 to 60 px across)
   // the places with a door (his "when they reach the location it goes to the roam map"): only what is built; the rest say so
@@ -124,7 +124,8 @@
   W.state = function () { return S; };
   W.day = function () { return Math.floor(S.t / 24) + 1; };
   W.hour = function () { return S.t % 24; };
-  W.timeOfDay = function () { var h = W.hour(); return h < 5 ? 'night' : h < 7 ? 'dawn' : h < 11 ? 'morning' : h < 14 ? 'midday' : h < 17 ? 'afternoon' : h < 20 ? 'dusk' : 'night'; };
+  W.todAt = function (h) { return h < 5 ? 'night' : h < 7 ? 'dawn' : h < 11 ? 'morning' : h < 14 ? 'midday' : h < 17 ? 'afternoon' : h < 20 ? 'dusk' : 'night'; };
+  W.timeOfDay = function () { return W.todAt(W.hour()); };
   W.passDays = function (n, why) { S.t = (Math.floor(S.t / 24) + (n | 0)) * 24 + W.MORNING; S.today = 0; S.todayHex = 0; S.pushing = false; W.save(); if (W.scene) W.scene.say(why || (n === 1 ? 'A day passes.' : n + ' days pass.')); }; // (the other path: a mission's end, a ruling's fiat)
   W.camp = function () { var d = Math.floor(S.t / 24) + (W.hour() >= W.MORNING ? 1 : 0); S.t = d * 24 + W.MORNING; S.today = 0; S.todayHex = 0; S.pushing = false; W.save(); if (W.house()) return D.house.longRest(W.scene); return []; }; // (in the house the camp is the long rest: js/house.js H.longRest, its levels and their picks)
 
@@ -433,6 +434,21 @@
     if (e.t2 && e.sh2 >= 0.2) draw1(e.t2, ({ woods: 4, hills: 2, farms: 1, bog: 3, black: 1, gray: 1 }[e.t2] || 0) * e.sh2 * 1.5);
   };
   var SKY = { night: 'rgba(16,24,72,.45)', dawn: 'rgba(255,160,110,.14)', morning: null, midday: null, afternoon: 'rgba(255,220,150,.06)', dusk: 'rgba(255,110,50,.2)' };
+  // the sky turning as the hours pass (RULED 10-21 night, his "The screen"): an hour's sky is its time of day's, and through the last half hour before the next
+  // it fades to that one's -- while the party walks, the hour drawn runs on with the token, so the light goes over a day's march as it goes
+  var SKYC = {}; Object.keys(SKY).forEach(function (k) { var m = SKY[k] && /rgba\((\d+),(\d+),(\d+),([\d.]+)\)/.exec(SKY[k]); SKYC[k] = m ? [+m[1], +m[2], +m[3], +m[4]] : null; });
+  W.skyAt = function (h) {
+    h = ((h % 24) + 24) % 24; var a = W.todAt(h), B = [5, 7, 11, 14, 17, 20, 29].filter(function (b) { return b > h; })[0], left = B - h;
+    if (left >= 0.5) return SKY[a];
+    var b = W.todAt(B % 24), A = SKYC[a], C = SKYC[b]; if (a === b || (!A && !C)) return SKY[a];
+    var u = 1 - left / 0.5, A2 = A || [C[0], C[1], C[2], 0], C2 = C || [A[0], A[1], A[2], 0], mix = function (i) { return A2[i] + (C2[i] - A2[i]) * u; };
+    return 'rgba(' + Math.round(mix(0)) + ',' + Math.round(mix(1)) + ',' + Math.round(mix(2)) + ',' + mix(3).toFixed(3) + ')';
+  };
+  World.prototype.hourShown = function () { // (the clock's hour, run on through the step the token is taking)
+    var w = this.walk; if (!w || !w.path.length || !w.f) return W.hour();
+    var st = W.stepHours(S.at, w.path[0]); if (!st) return W.hour(); var hrs = W.house() ? D.house.marchHours(st) : st.h;
+    return (S.t + hrs * w.f / STEPF) % 24;
+  };
   World.prototype.draw = function (ctx) {
     if (this.view === 'tiles') { W.OV.draw(this, ctx); return; }
     var cam = this.camObj(), hi = {};
@@ -450,12 +466,12 @@
     ctx.fillStyle = '#3a2410'; ctx.fillRect(tx - 1, ty - 15, 2, 15);
     ctx.fillStyle = '#d8402c'; ctx.beginPath(); ctx.moveTo(tx + 1, ty - 15); ctx.lineTo(tx + 10, ty - 12); ctx.lineTo(tx + 1, ty - 8); ctx.closePath(); ctx.fill();
     ctx.fillStyle = '#f8d878'; ctx.fillRect(tx + 2, ty - 13, 2, 2);
-    var sky = SKY[W.timeOfDay()]; if (sky) { ctx.fillStyle = sky; ctx.fillRect(0, 0, D.W, D.H); }
+    var sky = W.skyAt(this.hourShown()); if (sky) { ctx.fillStyle = sky; ctx.fillRect(0, 0, D.W, D.H); }
     this.hud(ctx);
     if (this.pm) { ctx.fillStyle = 'rgba(4,3,10,.6)'; ctx.fillRect(0, 0, D.W, D.H); D.ui.drawMenu(ctx, this.pm); }
   };
   World.prototype.hud = function (ctx) {
-    var e = M.hex[K(S.at[0], S.at[1])], T = M.terr[e.t], tod = W.timeOfDay();
+    var e = M.hex[K(S.at[0], S.at[1])], T = M.terr[e.t], tod = W.todAt(this.hourShown());
     D.win8(ctx, 4, 4, 196, 30);
     D.text(ctx, '{y}' + tod.charAt(0).toUpperCase() + tod.slice(1) + '{/}' + (this.dev ? '  {g}(day ' + W.day() + ', ' + W.hour().toFixed(1) + 'h, ' + S.today.toFixed(1) + 'h walked){/}' : ''), 10, 9, D.WIN8.text);
     D.text(ctx, T.name + (M.road[K(S.at[0], S.at[1])] ? ', on ' + M.road[K(S.at[0], S.at[1])].name.replace(/ \(.*\)$/, '') : '') + ' · ' + Math.round(e.h).toLocaleString() + ' ft', 10, 20, '#c8c4b8');
@@ -546,22 +562,41 @@
     D.sfx('encounter');
     // FIGHT the way OPTIONS' RANDOM FIGHTS says (simple, the first game's screen, by default: js/simple.js), or the other way for this fight alone (RULED 10-21, Griz: "yes")
     var simple = !D.simple || D.simple.on(), other = simple ? 'ON THE GRID' : 'SIMPLE';
-    this.card([(p.mirror ? '{p}MIRROR-MADE{/} ' : '{r}') + 'On the ' + (M.road[K(e.q, e.r)] ? 'road' : M.terr[e.t].name) + '{/}, ' + W.timeOfDay() + ':', who + (p.mirror ? ', with the Mirror in their eyes' : '') + '.', '', D.keys('{g}E{/}: fight' + (D.simple ? '    {g}R{/}: ' + other.toLowerCase() : ''))], null,
+    this.card([(p.mirror ? '{p}MIRROR-MADE{/} ' : '{r}') + 'On the ' + (M.road[K(e.q, e.r)] ? 'road' : W.groundName(e.t)) + '{/}, ' + W.timeOfDay() + ':', who + (p.mirror ? ', with the Mirror in their eyes' : '') + '.', '', D.keys('{g}E{/}: fight' + (D.simple ? '    {g}R{/}: ' + other.toLowerCase() : ''))], null,
       [['a', function () { self.fight(p, e); }, 'FIGHT']].concat(D.simple ? [['rec', function () { self.fight(p, e, { simple: !simple }); }, other]] : []));
   };
   // the field: 16 x 7 squares of the hex's ground, the lineup's squares kept open (x 3 to 10), the road along the middle where the hex has one
   // (o: the simple fight's own ground -- its size, the open squares its lineup stands on, the road's squares, and the party's squares with room for guests: js/simple.js S.fieldOpts)
+  // BY TYPE, READ FINER (RULED 10-21 night, his "By type, read finer", the world map seat's lean on his "Can a random sampling from somewhere in that grid a
+  // big zoom be sent to random encounters, or just random generated from that hex type where we consider if different ones need props made": a field is a
+  // quarter of one 330 ft hex, and at 99% of the road's spots that hex is the 5-mile hex's own ground, flat, so a sample would hand back the type): the field
+  // is made from the hex's ground as before, each ground with its own props from what the grid already draws -- grass, rubble, trees, still water, a field's
+  // fence and woodpile, a gulch's rock walls -- and read finer where the map knows more: the hex's second ground in patches by its share (a plains hex with
+  // some wood has its trees), a river through the hex as a stream across the field (the road fords it), and the road as the grid's rutted dirt road (it
+  // was drawn as dressed stone). New props (reeds, crops, bushes, boulders) wait for his word on the art. One D.rand() a square as before (the seeds hold).
+  var FIELD = { // a ground's squares: [the edge's chances, the inside's] as [char, under this roll] in turn, else '.'
+    mtn: [[['#', 0.6], ['r', 1]], [['#', 0.12], ['r', 0.3]]], woods: [[['T', 0.55], ['g', 0.7]], [['T', 0.25], ['g', 0.4]]],
+    hills: [[['r', 0.3], ['g', 0.45]], [['r', 0.15], ['g', 0.25]]], gulch: [[['#', 0.85], ['r', 1]], [['r', 0.2]]],
+    wet: [[['~', 0.4], ['g', 0.55]], [['~', 0.3], ['g', 0.4]]], farms: [[['f', 0.7], ['g', 0.85]], [['k', 0.04], ['g', 0.3]]],
+    verge: [[['g', 0.5], ['T', 0.58], ['~', 0.64]], [['g', 0.35], ['T', 0.38]]], plains: [[['r', 0.15], ['g', 0.45]], [['r', 0.06], ['g', 0.2]]],
+    town: [[['k', 0.3], ['f', 0.5]], [['k', 0.05]]], water: [[['D', 0.8], ['~', 1]], [['~', 0.6]]], rift: [[['#', 1]], [['r', 0.3], ['#', 0.4]]]
+  };
+  function fieldKind(t, wet) { return /^(black|gray|coastal)$/.test(t) ? 'mtn' : t === 'woods' ? 'woods' : t === 'hills' || t === 'foothills' ? 'hills' : t === 'gulch' ? 'gulch' : wet || t === 'bog' ? 'wet' : t === 'farms' ? 'farms' : t === 'verge' ? 'verge' : t === 'town' ? 'town' : t === 'lake' || t === 'sea' ? 'water' : t === 'rift' ? 'rift' : 'plains'; }
+  W.groundName = function (t) { return M.terr[t].name.replace(/^the /i, '').replace(/ \(.*\)$/, ''); }; // ("on the Verge", not "on the the Verge (grass)")
   W.field = function (e, o) {
     var w = (o && o.w) || 16, h = (o && o.h) || 7, rows = [], road = !!M.road[K(e.q, e.r)], t = e.t, wet = e.wet || t === 'bog';
     var inLane = (o && o.lane) || function (x, y) { return x >= 3 && x <= 10 && y >= 1 && y <= 5; }, onRoad = (o && o.road) || function (x, y) { return y === 3; };
-    var mtn = /^(black|gray|coastal)$/.test(t), wood = t === 'woods', hill = t === 'hills' || t === 'foothills' || t === 'gulch';
+    var k1 = fieldKind(t, wet), k2 = e.t2 && e.sh2 >= 0.1 && e.t2 !== t ? fieldKind(e.t2, false) : null, sh2 = k2 ? Math.min(0.5, e.sh2) : 0, salt = Math.floor(S ? S.t * 7 : 0);
+    var river = M.paths.some(function (P) { return P.kind === 'river' && P.hexes && P.hexes.some(function (x) { return x[0] === e.q && x[1] === e.r; }); }), rx = -1;
+    if (river) { var cols = []; for (var cx = w - 3; cx > w / 2; cx--) cols.push(cx); cols.push(w - 2, w - 1); for (var ci = 0; ci < cols.length && rx < 0; ci++) { var free = true; for (var cy = 0; cy < h; cy++) if (inLane(cols[ci], cy)) free = false; if (free) rx = cols[ci]; } } // (the stream: a column the lineup leaves free, toward the far side, else the field's edge)
     for (var y = 0; y < h; y++) {
       var row = '';
       for (var x = 0; x < w; x++) {
-        var lane = inLane(x, y), r0 = D.rand(), ch = '.';
-        if (road && onRoad(x, y)) ch = '=';
-        else if (y === 0 || y === h - 1 || (o && (x === 0 || x === w - 1))) ch = mtn ? (r0 < 0.6 ? '#' : 'r') : wood ? (r0 < 0.55 ? 'T' : '.') : hill ? (r0 < 0.3 ? 'r' : '.') : wet ? (r0 < 0.4 ? '~' : '.') : (r0 < 0.15 ? 'r' : '.');
-        else if (!lane) ch = mtn ? (r0 < 0.12 ? '#' : r0 < 0.3 ? 'r' : '.') : wood ? (r0 < 0.25 ? 'T' : '.') : hill ? (r0 < 0.15 ? 'r' : '.') : wet ? (r0 < 0.3 ? '~' : '.') : (r0 < 0.06 ? 'r' : '.');
+        var lane = inLane(x, y), r0 = D.rand(), ch = '.', edge = y === 0 || y === h - 1 || (o && (x === 0 || x === w - 1));
+        var kind = k2 && hh(e.q * 64 + (x >> 2), e.r * 64 + (y >> 1), salt) < sh2 ? k2 : k1; // (the second ground in patches, four squares by two)
+        if (road && onRoad(x, y)) ch = ',';
+        else if (x === rx) ch = r0 < 0.75 ? '~' : 'D';
+        else if (edge || !lane) { var P = FIELD[kind][edge ? 0 : 1]; for (var pi = 0; pi < P.length; pi++) if (r0 < P[pi][1]) { ch = P[pi][0]; break; } }
         else ch = wet && r0 < 0.12 ? '~' : '.';
         row += ch;
       }
@@ -584,7 +619,7 @@
     W.field(e, simple ? D.simple.fieldOpts() : null);
     var fire = camp ? (simple ? D.simple.CAMP : W.CAMP).slice() : null;
     var F = { id: 'worldfield', map: 'world-field', level: W.LEVEL, name: camp ? 'The camp' : 'On the road', sub: (p.mirror ? 'mirror-made: ' : '') + p.zone, dark: night, camp: fire, lights: fire ? [[fire[0], fire[1], 20, 'fire']] : null,
-      intro: (o && o.intro) || ((p.mirror ? 'Mirror-made: ' : '') + 'They come at the party on the ' + (M.road[K(e.q, e.r)] ? 'road' : M.terr[e.t].name) + '.'), won: camp ? 'THE CAMP HOLDS.' : 'THE ROAD IS CLEAR.', lost: 'THE ROAD TAKES THEM.',
+      intro: (o && o.intro) || ((p.mirror ? 'Mirror-made: ' : '') + 'They come at the party on the ' + (M.road[K(e.q, e.r)] ? 'road' : W.groundName(e.t)) + '.'), won: camp ? 'THE CAMP HOLDS.' : 'THE ROAD IS CLEAR.', lost: 'THE ROAD TAKES THEM.',
       foes: simple ? D.simple.seat(p.list) : W.seat(p.list), wave: null, fliers: !simple }; // (fliers: the SRD's fly on the grid, not in the simple fight's lineup -- js/flight-ai.js FA.on, 10-21 night)
     var b = new D.Battle(W.house() ? { fightDef: F, simple: simple, data: (o && o.data) || D.house.living(D.house.cur), house: true, world: true, record: { fight: 'worldfield', name: 'On the road', level: (D.house.cur.party[0] || {}).lvl, simple: simple }, onDone: function (res) { if (o && o.after) o.after(res, b); else self.afterFight(res, p, b); } } // (the house's party, wounds and all, and its play record: js/house.js)
       : { fightDef: F, simple: simple, ladder: true, level: W.LEVEL, world: true, onDone: function (res) { self.afterFight(res, p); } }), e0 = b.enter;
