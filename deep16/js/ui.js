@@ -108,6 +108,15 @@
   // ... and the same area aimed where height cannot matter (no one aloft, the floor flat): the height keys say why the point stays on the ground (the fold's 2(a), 10-21 night,
   // his 10-17 "setting target altitude only works when flying" -- by design, the lean kept: a hint card)
   UI.aimFlat = function (B) { var u = B.req && B.req.turn, S = B.spell; return u && B.tool === 'spell' && S && S.g && /^(sphere|cube|cone|line)$/.test(S.g.shape) && !S.g.ground && !G.tall() ? u : null; };
+  // AN AREA'S PREVIEW BY HEIGHT (the fold's 2(c), 10-21 night, his 10-17 "show all effected squares when targeting altitude?"): the tint lies on the squares where one standing
+  // there would be caught -- not every column the area passes through at any height (a Cone of Cold tilted down from 20 ft up tinted the nearest goblin's square and passed over
+  // him); whoever it catches is outlined, and one caught in the air (aloft, or clinging up a face) is ringed where it is. Flat and no one aloft: every square, as ever
+  UI.areaShow = function (B, u, g, cx, cy) {
+    var sqA = D.magic.area(u, g, cx, cy, UI.aimZ(B, cx, cy)), st = G.map.def.step, tint = sqA;
+    if (sqA.inZ) tint = sqA.filter(function (q) { var lo = G.map.gz(q[0], q[1]); return sqA.inZ(q[0], q[1], lo, lo + G.bodyH({ size: 1 }) * st); });
+    var caught = sqA.inZ ? B.units.filter(function (w) { return G.present(w) && !w.object && G.inArea(w, sqA); }) : [];
+    return { sq: sqA, tint: tint, caught: caught, air: caught.filter(function (w) { return G.aloft(w) || !!(w.hang && G.hanging(w)); }) };
+  };
   UI.flatHint = function (B) { D.sfx('error'); B.card(['{c}AIM{/} on the ground  {g}(the height keys aim up only while someone is aloft, or on a floor that rises 10 ft){/}'], 200, 'aim-layer'); };
   UI.stepAim = function (B, d) {
     var u = UI.aimer(B); if (!u || !B.cursor) return false;
@@ -2116,9 +2125,10 @@
         // M.globed, js/grimoire.js, asks the globe against the spell's own level (S.sp.level, not the slot), from where the caster would cast it: where he stands, or, for a spell used again
         // (g.free: Moonbeam moved, the sphere rolled), where it was first cast, M.castOrigin -- as magic.js M.globeShuts does. 10-01, the fog-and-dark runner's find: the preview tinted them)
         var org = g.free && M.castOrigin ? M.castOrigin(B, u, g) : u, globes = (B.globes || []).length && M.globed;
-        var sqA = M.area(u, g, cx, cy, UI.aimZ(B, cx, cy)); sqA.forEach(function (q) { if (globes && M.globed(B, org, { x: q[0], y: q[1] }, S.sp.level)) return; fillSq(ctx, q[0], q[1], col, 0.38); });
+        var shA = UI.areaShow(B, u, g, cx, cy), sqA = shA.sq; shA.tint.forEach(function (q) { if (globes && M.globed(B, org, { x: q[0], y: q[1] }, S.sp.level)) return; fillSq(ctx, q[0], q[1], col, 0.38); });
         if (sqA.oz != null && sqA.oz > G.map.gz(cx, cy) + G.map.def.step + 0.5) airColumn(cx, cy, sqA.oz, null, 0, 'ok'); // (a point in the air: the column up to it and its height, as a flier's layer -- areas by height, 10-15)
-        if (sqA.inZ) B.units.forEach(function (w) { if (G.present(w) && !w.object && G.inArea(w, sqA)) G.foot(w).forEach(function (q) { lineSq(ctx, q[0], q[1], G.hostile(u, w) ? R('red', 4) : R('gold', 4), 0.8, 1); }); }); // (by height, who it catches is ringed: one in the air over its squares, not)
+        shA.caught.forEach(function (w) { G.foot(w).forEach(function (q) { lineSq(ctx, q[0], q[1], G.hostile(u, w) ? R('red', 4) : R('gold', 4), 0.8, 1); }); }); // (by height, who it catches is outlined: one in the air over its squares, not)
+        shA.air.forEach(function (w) { var pa = UI.unitPos(B, w), ca = G.hostile(u, w) ? R('red', 4) : R('gold', 4); DEFER.push({ depth: 1e6, gz: 0, draw: function (c) { c.save(); c.globalAlpha = 0.9; c.strokeStyle = ca; c.lineWidth = 1; c.setLineDash([3, 2]); c.lineDashOffset = B.t / 4; c.beginPath(); c.ellipse(pa.x, pa.y, 12, 5.5, 0, 0, 7); c.stroke(); c.restore(); } }); }); // (caught up there: a ring where it flies -- the fold's 2(c))
       } else if (g.shape === 'teleport') B.mistyTargets(u, g.range, g.see).forEach(function (q) { lineSq(ctx, q[0], q[1], R('glow', 2), 0.6, 4); });
       else B.units.forEach(function (w) {
         if (!M.targetOK(B, u, g, w)) return;

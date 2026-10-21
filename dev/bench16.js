@@ -3839,6 +3839,25 @@
         okC('4 and the goblin aloft (tall ' + G4.tall() + '), Shift+wheel: the card "' + c4b + '", the point ' + (B4.aimZ != null ? 'lifted' : 'on the ground') + ' (want true; AIM 5 ft up; lifted)', G4.tall() && /AIM 5 ft up/.test(c4b) && B4.aimZ != null);
       }
       B4.req = null;
+      // 5. THE FOLD'S 2(c) (his 10-17 "show all effected squares when targeting altitude?"): Fireball's point 40 ft over the goblin aloft -- no square tinted (one standing on any of them
+      // is under the 20-ft sphere), the goblin aloft caught and ringed, the one on the ground beside it not caught; the point on the ground, the squares tinted as ever
+      var B5 = mkC('?npc=goblin,goblin&vs=wizard:5,fighter:5&lvl=5'), wz5 = clsC(B5, 'wizard'), gb5 = sideC(B5, 'foe'), G5 = D.grid;
+      learnC(wz5, 'fireball'); D.rules.startTurn(wz5); B5.active = wz5; B5.req = { turn: wz5 }; B5.list = null; B5.inspect = null;
+      var X5 = run3 ? run3[0] : 2, Y5 = run3 ? run3[1] : 2, A5 = X5 + 6; // (the flat run Gust's line had, 3 above)
+      wz5.x = X5; wz5.y = Y5; gb5[0].x = A5 - 1; gb5[0].y = Y5; gb5[1].x = A5; gb5[1].y = Y5; B5.cache = null; G5.setup(G5.map, B5.units);
+      gb5[1].flies = true; gb5[1].fz = G5.groundAt(gb5[1], A5, Y5) + 8 * G5.LAYER();
+      var e5 = (MC.list(B5, wz5) || []).filter(function (e) { return e.id === 'fireball'; })[0];
+      if (!e5 || !UIc.areaShow) okC('5 Fireball listed (' + !!e5 + ') and UI.areaShow (' + !!UIc.areaShow + ')', false);
+      else {
+        e5.kind = 'spell'; UIc.spellAim(B5, wz5, e5); B5.cursor = { x: A5, y: Y5 }; B5.aimFor = B5.spell; B5.aimZ = G5.map.gz(A5, Y5) + 8 * G5.LAYER();
+        var sh5 = UIc.areaShow(B5, wz5, B5.spell.g, A5, Y5);
+        okC('5 Fireball\'s point 40 ft over the goblin aloft: ' + sh5.sq.length + ' squares under it, ' + sh5.tint.length + ' tinted; caught ' + sh5.caught.map(function (w) { return w === gb5[1] ? 'the flier' : w.name; }).join(', ') + '; ringed in the air ' + sh5.air.length + ' (want some, 0; the flier; 1)',
+          sh5.sq.length > 0 && sh5.tint.length === 0 && sh5.caught.length === 1 && sh5.caught[0] === gb5[1] && sh5.air.length === 1);
+        B5.aimZ = null; B5.aimFor = null; var sh5b = UIc.areaShow(B5, wz5, B5.spell.g, A5 - 1, Y5);
+        okC('5 and its point on the ground at the goblin there: ' + sh5b.sq.length + ' squares, ' + sh5b.tint.length + ' tinted; caught ' + sh5b.caught.length + ' (the flier 40 ft up not: ' + (sh5b.caught.indexOf(gb5[1]) < 0) + ') (want the same two, the flier not caught)',
+          sh5b.sq.length > 0 && sh5b.tint.length === sh5b.sq.length && sh5b.caught.indexOf(gb5[0]) >= 0 && sh5b.caught.indexOf(gb5[1]) < 0);
+      }
+      B5.req = null;
     } catch (eC) { repC.errors.push(String(eC && eC.stack || eC).slice(0, 900)); D.d = d0C; }
     if (errs.length) repC.errors = repC.errors.concat(errs);
     var preC = document.createElement('pre'); preC.id = 'out'; preC.textContent = 'BENCH16 ' + JSON.stringify(repC);
