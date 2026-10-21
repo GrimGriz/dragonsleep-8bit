@@ -37,7 +37,7 @@
     var W = D.world, dr = W.DOORS[id]; if (!dr) return;
     W.inDoor = { site: H.siteOf(id), gate: gate };
     H.cur.at = { town: id, gate: gate, sq: null, dir: null };
-    D.push(D.roam.make('?roam=' + dr.roam + '&gate=' + gate, { save: H.cur, opts: sq ? { at8: sq.slice(), dir: dir || null } : {}, house: true }));
+    D.push(D.roam.make('?roam=' + dr.roam + '&gate=' + gate, { save: H.living(H.cur), opts: sq ? { at8: sq.slice(), dir: dir || null } : {}, house: true }));
   };
   // the floor's party back into the save (js/roam.js R.handMsg: each sheet with its hurt, slots, uses and what lasts; the pack as the floor holds it, a lantern in hand
   // counted back; the flags, the kills, the purse)
@@ -58,6 +58,7 @@
       var h = JSON.parse(JSON.stringify(u.src));
       h.hp = Math.max(0, Math.min(h.maxhp, u.hp)); h.ko = h.hp <= 0; h.slots = (u.slots || []).slice(); h.feats = JSON.parse(JSON.stringify(u.feats || {}));
       h.conds = Object.assign({}, h.conds || {}, last(u.conds)); if (!(u.conds && u.conds.mageArmor)) delete h.conds.mageArmor;
+      var ue = (u.conds && u.conds.exhaustion && u.conds.exhaustion.n) || 0; if (ue > exh(h)) H.exhaust(h, ue - exh(h)); // (a level the fight laid on, kept on the sheet: js/rules.js RU.exhaust)
       byId[h.key || h.id] = h;
     });
     H.cur.party = H.cur.party.map(function (h) { return byId[h.key || h.id] || h; });
@@ -93,6 +94,56 @@
   // R.XP_LEVEL); the first game's own cap stands wherever the house is not being played (this file loads only in deep16/)
   var cap0 = DS.R.cap; DS.R.cap = function () { return H.playing ? DS.R.XP_LEVEL.length - 1 : cap0.apply(this, arguments); };
 
+  // ---------------------------------------------------------------- THE MARCH (RULED 10-21, Griz: "we'd do be hexes traveled instead of hours - pacing may be a bit much",
+  // then "yes - build the forced march by hexes, no paces"): a day's march is H.DAYHEX hexes (the SRD's 24 miles; a hex of difficult going counts 2); before a hex past it
+  // THE WORLD asks -- PUSH ON, MAKE CAMP, STAY; each hex pushed past it, everyone up makes a CON save, DC 10 + 1 for each hex past (the SRD's forced march, by the hex), a
+  // failure a level of exhaustion kept on the sheet (H.exhaust: the SRD's six -- a fight reads conds.exhaustion, js/rules.js RU.exhaust). A long rest takes a level off.
+  // Exhausted 2, the march goes at half speed (the slowest sets it); 5, not at all; 6 is death
+  H.DAYHEX = 5;
+  H.EXH = ['', 'disadvantage on ability checks', 'speed halved', 'disadvantage on attacks and saves', 'hit point maximum halved', 'speed 0', 'dead'];
+  function exh(h) { return (h && h.conds && h.conds.exhaustion && h.conds.exhaustion.n) || 0; }
+  H.exh = exh;
+  // a sheet's exhaustion up or down k levels: the fourth halves the HP maximum (given back below it), the sixth kills. Returns the change
+  H.exhaust = function (h, k) {
+    var c = h.conds = h.conds || {}, was = exh(h), now = Math.min(6, Math.max(0, was + k)), cut = (c.exhaustion && c.exhaustion.cut) || 0;
+    if (now === was) return 0;
+    if (now >= 4 && !cut) { cut = Math.floor(h.maxhp / 2); h.maxhp -= cut; if (h.hp > h.maxhp) h.hp = h.maxhp; }
+    if (now < 4 && cut) { h.maxhp += cut; cut = 0; }
+    if (now <= 0) delete c.exhaustion; else c.exhaustion = { n: now, cut: cut };
+    if (now >= 6) { h.hp = 0; h.ko = true; h.dead = true; }
+    return now - was;
+  };
+  H.living = function (rec) { return Object.assign({}, rec, { party: rec.party.filter(function (h) { return !h.dead; }) }); }; // (the party a fight or a floor takes: the dead stay behind)
+  H.hexCost = function (st) { return Math.max(1, Math.round(st.going || 1)); };
+  H.pace = function () { var x = 0; H.cur.party.forEach(function (h) { if (!h.dead) x = Math.max(x, exh(h)); }); return x >= 5 ? 0 : x >= 2 ? 0.5 : 1; };
+  // before a step (js/world.js World.stepWalk): true if the walk stops here -- too worn to walk, or the day's march walked and no word yet to push on
+  H.marchAsk = function (scene, st, w) {
+    var W = D.world, S = W.state();
+    if (!H.pace()) { scene.walk = null; scene.say('Exhausted past walking: the party can go no further till it rests.'); return true; }
+    if ((S.todayHex || 0) + H.hexCost(st) <= H.DAYHEX || S.pushing) return false;
+    var path = w.path.slice(); scene.walk = null;
+    scene.card(['{y}THE DAY\'S MARCH IS WALKED{/} (' + (S.todayHex || 0) + ' hexes), ' + W.timeOfDay() + '.', 'Push on: each hex past ' + H.DAYHEX + ', a CON save for everyone (DC 10 + 1 a hex past);', 'a failure, a level of exhaustion.', '', D.keys('{g}E{/}: push on    {g}R{/}: make camp    {g}X{/}: stay')], null,
+      [['a', function () { S.pushing = true; scene.walk = { path: path, f: 0 }; }, 'PUSH ON'], ['rec', function () { H.night(scene); }, 'MAKE CAMP'], ['b', function () { scene.say('The party stands where it is, ' + W.timeOfDay() + '.'); }, 'STAY']]);
+    return true;
+  };
+  H.marchHours = function (st) { return st.h / (H.pace() || 1); };
+  // after a step: the day's hexes counted, the forced march's saves for each hex past. Returns the lines, or null if the march killed them all (the title)
+  H.marchStep = function (st) {
+    var R = DS.R, S = D.world.state(), before = S.todayHex || 0, cost = H.hexCost(st), lines = [];
+    S.todayHex = before + cost;
+    for (var i = 1; i <= cost; i++) {
+      var past = before + i - H.DAYHEX; if (past <= 0) continue;
+      var dc = 10 + past;
+      H.cur.party.forEach(function (h) {
+        if (h.dead || down(h)) return; // (the fallen are carried)
+        var r = D.roll('1d20').total + R.saveBonus(h, 'con');
+        if (r < dc && H.exhaust(h, 1)) lines.push(h.name + ' fails the march (' + r + ' vs DC ' + dc + '): exhausted ' + exh(h) + (exh(h) >= 6 ? ' -- dead.' : ', ' + H.EXH[exh(h)] + '.'));
+      });
+    }
+    if (H.cur.party.every(function (h) { return h.dead; })) { H.lost(); return null; }
+    return lines;
+  };
+
   // ---------------------------------------------------------------- THE NIGHT (RULED 10-21, Griz: "when not rope-trick or tiny hut, they'll have to assign 3 watches for a
   // long rest. Each watch will roll an encounter check - less than if traveling, but on encounter party members not on that watch will be out of armor for that combat
   // (discuss exception for wizard and thief light armor sleeping)"): the camp's night on THE WORLD -- three watches, each standing hero on one; each watch an encounter check
@@ -125,7 +176,7 @@
       var p = S.count <= 0 ? (W.resetCount(zone), W.pick(zone, true)) : null;
       if (!p || !p.list.length) { next(); return; }
       var names = on.map(function (id) { var h = H.cur.party.filter(function (x) { return (x.key || x.id) === id; })[0]; return h ? h.name : id; });
-      var so = H.sleepersOff(H.cur, on), who = p.list.length + ' come out of the dark';
+      var so = H.sleepersOff(H.living(H.cur), on), who = p.list.length + ' come out of the dark';
       D.sfx('encounter');
       scene.card(['{r}THE ' + ['FIRST', 'SECOND', 'THIRD'][k - 1] + ' WATCH{/}: ' + who + '.', (names.length ? names.join(' and ') + ' on watch' : 'no one on watch') + '; the rest wake with their armor off.', '', D.keys('{g}E{/}: fight')], null,
         [['a', function () {
@@ -185,8 +236,14 @@
     if (!H.playing) return [];
     var R = DS.R, lines = [];
     DS.G = { flags: H.cur.flags };
-    H.cur.party.forEach(function (h) { h.conds = h.conds || {}; if (h.conds.aid) { h.maxhp -= h.conds.aid; delete h.conds.aid; } delete h.conds.mageArmor; R.refresh(h, true); h.hdLeft = Math.min(h.lvl, (h.hdLeft != null ? h.hdLeft : h.lvl) + Math.max(1, Math.floor(h.lvl / 2))); }); // (the SRD: a long rest gives back half the hit dice spent, at least one)
-    H.cur.party.forEach(function (h) { lines = lines.concat(R.gainXP(h, 0)); });
+    H.cur.party.forEach(function (h) {
+      if (h.dead) return; // (the dead stay dead: exhaustion's sixth level, H.exhaust)
+      h.conds = h.conds || {}; var ex = h.conds.exhaustion ? JSON.parse(JSON.stringify(h.conds.exhaustion)) : null;
+      if (h.conds.aid) { h.maxhp -= h.conds.aid; delete h.conds.aid; } delete h.conds.mageArmor; R.refresh(h, true);
+      if (ex) { h.conds.exhaustion = ex; H.exhaust(h, -1); h.hp = h.maxhp; lines.push(h.name + (exh(h) ? ' is less worn (exhausted ' + exh(h) + ').' : ' is rested out of the exhaustion.')); } // (the SRD: a long rest takes a level off -- with food and drink, not counted yet)
+      h.hdLeft = Math.min(h.lvl, (h.hdLeft != null ? h.hdLeft : h.lvl) + Math.max(1, Math.floor(h.lvl / 2))); // (the SRD: a long rest gives back half the hit dice spent, at least one)
+    });
+    H.cur.party.forEach(function (h) { if (!h.dead) lines = lines.concat(R.gainXP(h, 0)); });
     var who = H.cur.party.filter(function (h) { return R.picksDue(h); });
     if (who.length && scene) {
       if (DS.autoPicks || !D.ctx || !DS.MENU) who.forEach(R.autoPicks);
@@ -239,6 +296,7 @@
     if (sp.kind === 'heal' || sp.kind === 'cure' || (sp.kind === 'buff' && sp.target !== 'allies')) {
       var ma = sp.buff === 'mageArmor', armored = function (x) { return R.armored(sheetOf(x)); };
       t = t || (sp.target === 'self' ? c : null); if (!t) return ['On whom?'];
+      if (t.dead) return [t.name + ' is dead.'];
       if (sp.kind === 'heal' && t.hp >= t.maxhp) return [say('g.fullHP', { name: t.name })];
       if (ma && armored(t)) return [env.party.every(function (x) { return armored(x) || down(x); }) ? say('g.mageArmorNone') : t.name + ' wears armor: Mage Armor will not take.'];
       if (sp.buff === 'continualFlame' && !gearOf(t).weapon) return [say('g.flameNothing')];
@@ -289,6 +347,7 @@
   FD.item = function (id, h, env) {
     var it = DS.DATA.items[id], use = it && it.use; if (!use) return null;
     var R = DS.R;
+    if (h.dead && (use.effect === 'heal' || use.effect === 'revive' || use.effect === 'cure')) return [h.name + ' is dead: beyond any of that.'];
     if (use.effect === 'heal') { if (h.hp >= h.maxhp) return [say('g.fullHP', { name: h.name })]; env.take(id); D.sfx('heal'); return healed(h, FD.heal(h, D.roll(use.dice).total)); }
     if (use.effect === 'cure') { if (!ILLS.some(function (k) { return (h.conds || {})[k]; })) return [say('g.nothingToCure', { name: h.name })]; env.take(id); cure(h); D.sfx('heal'); return [say('g.cured', { name: h.name })]; }
     if (use.effect === 'revive') { if (!down(h)) return [say('g.notDown', { name: h.name })]; env.take(id); h.ko = false; h.hp = use.hp || 1; D.sfx('heal'); return [say('g.revived', { name: h.name })]; }
@@ -307,6 +366,7 @@
   H.shortRest = function (party) {
     var R = DS.R, lines = [];
     party.forEach(function (h) {
+      if (h.dead) return;
       var hd = (R.CLASSES[h.cls] || {}).hd || 8, left = h.hdLeft != null ? h.hdLeft : h.lvl, got = 0, n = 0;
       if (down(h)) { h.hp = 1; h.ko = false; }
       while (h.hp < h.maxhp && left > 0) { var r = Math.max(0, D.roll('1d' + hd).total + DS.mod(h.abil.con)); h.hp = Math.min(h.maxhp, h.hp + r); got += r; left--; n++; }

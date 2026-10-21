@@ -2096,6 +2096,22 @@
         okH('in the fight Lymen is out of his armor (AC ' + lBase + '), Vivian in hers', !!lU && lBase < RH.ac(lN));
         bN.units.forEach(function (u) { if (u.side === 'foe') { u.hp = 0; u.dead = true; } }); D.pop(); bN.o.onDone('won'); }
       okH('after the night: Lymen\'s ' + lN.equip.armor + ' back on, everyone whole at dawn (' + HH.cur.party.map(function (h) { return h.hp + '/' + h.maxhp; }).join(', ') + '), ' + (wC.msg && wC.msg.s || '').slice(0, 60), lN.equip.armor === lArm && lN.equip.shield === lSh && HH.cur.party.every(function (h) { return h.hp === h.maxhp; }));
+      // THE MARCH (RULED 10-21: "yes - build the forced march by hexes, no paces"): five hexes a day, then the ask; each hex past a CON save, exhaustion on the sheet
+      var SM = WH.state(), roll0 = D.roll, nxM = [SM.at[0] + 1, SM.at[1]];
+      okH('a hex\'s march cost: plain 1, difficult 2', HH.hexCost({ going: 1 }) === 1 && HH.hexCost({ going: 2 }) === 2 && HH.hexCost({ going: 1.43 }) === 1);
+      wC.cards = []; SM.todayHex = 5; SM.pushing = false; var askM = HH.marchAsk(wC, { going: 1, h: 5 / 3 }, { path: [nxM] }), cM = wC.cards[0];
+      okH('past the day\'s five hexes THE WORLD asks (' + (cM ? cM.lines[0] : 'no card') + '): ' + (cM ? cM.keys.map(function (k) { return k[2]; }).join(', ') : ''), askM && !!cM && cM.keys[0][2] === 'PUSH ON' && cM.keys[1][2] === 'MAKE CAMP');
+      wC.cards.shift(); cM.keys[0][1]();
+      D.roll = function () { return { total: 1 }; }; var upM = HH.cur.party.filter(function (h) { return !h.dead && h.hp > 0; }), lnM = HH.marchStep({ going: 1, h: 5 / 3 }); D.roll = roll0;
+      okH('pushed on, every one up fails a save on a 1 (DC 11): ' + (lnM || []).join(' ').slice(0, 120), SM.pushing && !!wC.walk && lnM && lnM.length === upM.length && upM.every(function (h) { return HH.exh(h) === 1; }) && SM.todayHex === 6);
+      var bM = HH.cur.party.filter(function (h) { return h.id === 'barley'; })[0], mx0 = bM.maxhp; HH.exhaust(bM, 3);
+      okH('exhausted 4: Barley\'s HP maximum halved (' + mx0 + ' to ' + bM.maxhp + '), the march at half speed (' + HH.marchHours({ going: 1, h: 2 }) + ' hours a 2-hour hex)', bM.maxhp === mx0 - Math.floor(mx0 / 2) && HH.pace() === 0.5 && HH.marchHours({ going: 1, h: 2 }) === 4);
+      HH.exhaust(bM, 1); okH('exhausted 5: no further walk (pace ' + HH.pace() + ')', HH.pace() === 0 && HH.marchAsk(wC, { going: 1, h: 2 }, { path: [nxM] }) === true);
+      WH.camp(); okH('a long rest takes a level off each (Barley 5 to ' + HH.exh(bM) + ', his HP maximum ' + bM.maxhp + ' back to ' + mx0 + ' at 3), the day\'s count new (' + SM.todayHex + ')', HH.exh(bM) === 4 && SM.todayHex === 0 && !SM.pushing);
+      WH.camp(); okH('and the next: Barley 3, whole again (' + bM.hp + '/' + bM.maxhp + ')', HH.exh(bM) === 3 && bM.maxhp === mx0 && bM.hp === mx0);
+      var lM = HH.cur.party.filter(function (h) { return h.id === 'lymen'; })[0]; HH.exhaust(lM, 6);
+      okH('exhausted 6 is death: Lymen dead, out of the fights\' party (' + HH.living(HH.cur).party.map(function (h) { return h.id; }).join(', ') + '), past healing (' + HH.field.item('potion', lM, { take: function () { } })[0] + ')', lM.dead && HH.living(HH.cur).party.length === 3 && /dead/.test(HH.field.item('potion', lM, { take: function () { } })[0]));
+      WH.camp(); okH('a long rest leaves the dead dead (Lymen ' + lM.hp + ', ' + (lM.dead ? 'dead' : 'up') + ')', lM.dead && lM.hp === 0);
       // a loss: the title, the last save standing
       wC.fight({ zone: 'north', list: ['goblin'], mirror: false }, WH.M().hex[WH.K(WH.state().at[0], WH.state().at[1])]); var bL = enterTop(); D.pop(); bL.o.onDone('lost');
       okH('a loss is the first game\'s game over: the title (' + (D.top() && D.top().kind) + '), the house shut, slot 3 as it was', D.top() && D.top().kind === 'housetitle' && D.top().lost && !HH.playing && memH['deep16.game.3'] === JSON.stringify(s3));

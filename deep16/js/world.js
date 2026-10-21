@@ -124,8 +124,8 @@
   W.day = function () { return Math.floor(S.t / 24) + 1; };
   W.hour = function () { return S.t % 24; };
   W.timeOfDay = function () { var h = W.hour(); return h < 5 ? 'night' : h < 7 ? 'dawn' : h < 11 ? 'morning' : h < 14 ? 'midday' : h < 17 ? 'afternoon' : h < 20 ? 'dusk' : 'night'; };
-  W.passDays = function (n, why) { S.t = (Math.floor(S.t / 24) + (n | 0)) * 24 + W.MORNING; S.today = 0; W.save(); if (W.scene) W.scene.say(why || (n === 1 ? 'A day passes.' : n + ' days pass.')); }; // (the other path: a mission's end, a ruling's fiat)
-  W.camp = function () { var d = Math.floor(S.t / 24) + (W.hour() >= W.MORNING ? 1 : 0); S.t = d * 24 + W.MORNING; S.today = 0; W.save(); if (W.house()) return D.house.longRest(W.scene); return []; }; // (in the house the camp is the long rest: js/house.js H.longRest, its levels and their picks)
+  W.passDays = function (n, why) { S.t = (Math.floor(S.t / 24) + (n | 0)) * 24 + W.MORNING; S.today = 0; S.todayHex = 0; S.pushing = false; W.save(); if (W.scene) W.scene.say(why || (n === 1 ? 'A day passes.' : n + ' days pass.')); }; // (the other path: a mission's end, a ruling's fiat)
+  W.camp = function () { var d = Math.floor(S.t / 24) + (W.hour() >= W.MORNING ? 1 : 0); S.t = d * 24 + W.MORNING; S.today = 0; S.todayHex = 0; S.pushing = false; W.save(); if (W.house()) return D.house.longRest(W.scene); return []; }; // (in the house the camp is the long rest: js/house.js H.longRest, its levels and their picks)
 
   // ---------------------------------------------------------------- the scene
   function World(q) { this.kind = 'world'; this.opaque = true; this.q = q || ''; this.cam = null; this.zi = 2; this.hov = null; this.plan = null; this.walk = null; this.cards = []; this.msg = null; this.t = 0; }
@@ -197,11 +197,15 @@
   World.prototype.stepWalk = function () {
     var w = this.walk, next = w.path[0], st = W.stepHours(S.at, next);
     if (!st) { this.walk = null; return; }
-    if (w.f === 0 && S.today > 0 && S.today + st.h > W.DAYHOURS + 0.01) { if (W.house()) { this.walk = null; this.say('Eight hours walked: the party makes camp.'); D.house.night(this); return; } var ups = W.camp(); this.say('The party makes camp; on at first light.' + (ups && ups.length ? ' ' + ups.join(' ') : '')); if (this.pm) { this.walk = null; return; } } // (the house: the night's watches first -- js/house.js H.night)
+    if (w.f === 0 && W.house() && D.house.marchAsk(this, st, w)) return; // (the house: the day's march by the hex, the forced march past it -- js/house.js THE MARCH)
+    if (w.f === 0 && !W.house() && S.today > 0 && S.today + st.h > W.DAYHOURS + 0.01) { var ups = W.camp(); this.say('The party makes camp; on at first light.' + (ups && ups.length ? ' ' + ups.join(' ') : '')); if (this.pm) { this.walk = null; return; } } // (the house: the night's watches first -- js/house.js H.night)
     w.f++;
     var a = hc(S.at[0], S.at[1]), b = hc(next[0], next[1]), u = w.f / STEPF; this.cam.cx += ((a[0] + (b[0] - a[0]) * u) - this.cam.cx) * 0.2; this.cam.cy += ((a[1] + (b[1] - a[1]) * u) - this.cam.cy) * 0.2;
     if (w.f < STEPF) return;
-    w.f = 0; S.from = S.at; S.at = next; S.pos = hc(next[0], next[1]); S.t += st.h; S.today += st.h; w.path.shift(); W.save();
+    var hrs = W.house() ? D.house.marchHours(st) : st.h; // (the house: an exhausted party's half speed takes twice the hours)
+    w.f = 0; S.from = S.at; S.at = next; S.pos = hc(next[0], next[1]); S.t += hrs; S.today += hrs; w.path.shift();
+    if (W.house()) { var ml = D.house.marchStep(st); if (ml === null) { this.walk = null; return; } if (ml.length) this.say(ml.join(' ')); } // (the forced march's saves, each hex past the day's)
+    W.save();
     st.mi = M.w;
     if (W.onStep && W.onStep(this, st)) { this.walk = null; return; } // (pass B: a fight on the way stops the walk)
     var door = this.doorHere(), sites = M.siteAt[K(S.at[0], S.at[1])];
@@ -530,7 +534,7 @@
     var F = { id: 'worldfield', map: 'world-field', level: W.LEVEL, name: 'On the road', sub: (p.mirror ? 'mirror-made: ' : '') + p.zone, dark: night,
       intro: (o && o.intro) || ((p.mirror ? 'Mirror-made: ' : '') + 'They come at the party on the ' + (M.road[K(e.q, e.r)] ? 'road' : M.terr[e.t].name) + '.'), won: 'THE ROAD IS CLEAR.', lost: 'THE ROAD TAKES THEM.',
       foes: W.seat(p.list), wave: null };
-    var b = new D.Battle(W.house() ? { fightDef: F, data: (o && o.data) || D.house.cur, house: true, world: true, record: { fight: 'worldfield', name: 'On the road', level: (D.house.cur.party[0] || {}).lvl }, onDone: function (res) { if (o && o.after) o.after(res, b); else self.afterFight(res, p, b); } } // (the house's party, wounds and all, and its play record: js/house.js)
+    var b = new D.Battle(W.house() ? { fightDef: F, data: (o && o.data) || D.house.living(D.house.cur), house: true, world: true, record: { fight: 'worldfield', name: 'On the road', level: (D.house.cur.party[0] || {}).lvl }, onDone: function (res) { if (o && o.after) o.after(res, b); else self.afterFight(res, p, b); } } // (the house's party, wounds and all, and its play record: js/house.js)
       : { fightDef: F, ladder: true, level: W.LEVEL, world: true, onDone: function (res) { self.afterFight(res, p); } }), e0 = b.enter;
     b.enter = function () {
       e0.apply(this, arguments);
