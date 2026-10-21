@@ -604,6 +604,8 @@
     var t = B.roam.token; if (G.canStand(t, t.x + dir[0], t.y + dir[1])) return null;
     var tries = [dir].concat(dir[0] && dir[1] ? [[dir[0], 0], [0, dir[1]]] : []);
     for (var i = 0; i < tries.length; i++) { var x = t.x + tries[i][0], y = t.y + tries[i][1], s = G.map.at(x, y); if (!s || s.walk) continue; var tr = R.useAt(B, x, y); if (tr) return { trig: tr, sq: [x, y] }; }
+    var own = R.def.town && dir[1] < 0 ? R.useAt(B, t.x, t.y) : null; // (on a store's threshold, an arrow pressed into its wall is the door -- 10-21, Griz: "the click-E-arrow into doors")
+    if (own && own.town === 'door') return { trig: own, sq: [t.x, t.y] };
     return null;
   };
   // the 8-bit's USE: a trigger on a square beside the token (the way it faces first) -- the mark is in the wall, so a click cannot pick it (iso.pick picks only open squares)
