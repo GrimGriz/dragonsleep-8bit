@@ -339,6 +339,20 @@
     Object.keys(slot.gear || {}).forEach(function (pl) { PK.gearOff(st, slot, pl); });
     if (slot.custom == null) (slot.loot || []).forEach(function (id) { PK.packAdd(st, id, 1); });
   };
+  // a made character off the roster for good (10-21, Griz: "the tiefling was perma-deathed. We have no way to remove characters from the roster."): nothing he made is
+  // lost with it -- its winnings and what its seat wore from the pack go to the pack, its seat stands empty (the ?), and the seats of the ones made after it follow
+  // them down the list; refused while a ladder or a module under way holds it (its fights are the run's: finish it or put it away first). What a campaign bought of
+  // it is the campaign's, by its word (js/pocketdm.js PD.buy), and stays
+  PK.dropMade = function (st, i) {
+    var c = st.roster[i]; if (!c) return { ok: false, why: 'no such character' };
+    var seats = []; (st.party || []).forEach(function (s, k) { if (s && s.custom === i) seats.push(k); });
+    if (st.run && seats.length) return { ok: false, why: c.name + ' is in the ' + (st.run.module ? 'module' : 'ladder') + ' under way: finish it, or put it away first' };
+    seats.forEach(function (k) { PK.slotToPack(st, st.party[k]); if (st.light && st.light.seat === k) st.light = null; st.party[k] = { w: 'new' }; });
+    (c.loot || []).forEach(function (x) { PK.packAdd(st, x.id, 1); });
+    st.roster.splice(i, 1);
+    (st.party || []).forEach(function (s) { if (s && s.custom != null && s.custom > i) s.custom--; });
+    return { ok: true, name: c.name, seats: seats, wins: (c.loot || []).map(function (x) { return x.id; }) };
+  };
   // a table whose GEAR was written before the kit went to the pack (10-17 early: its own kit offered free, never packed): what it took off its kit, packed once
   PK.kitToPack = function (st) {
     if (st.kitPacked) return; st.kitPacked = true;
@@ -1398,6 +1412,15 @@
     else this.st.party[i] = { w: 'new' };
     this.cache = {}; this.keep(); D.sfx('cursor');
   };
+  // DROP on a made card (10-21): asked first, then off the roster for good (PK.dropMade)
+  Pocket.prototype.dropMade = function (i) {
+    var c = this.st.roster[i], ask = this.ask || function (q) { return window.confirm(q); }; if (!c) return;
+    var wins = (c.loot || []).length;
+    if (!ask('Take ' + c.name + ' off the roster for good?' + (wins ? ' ' + (wins > 1 ? 'Their ' + wins + ' winnings go' : 'Their winning goes') + ' to the pack.' : '') + ' Their seat stands empty. (SAVE THE PARTY first keeps them in a file.)')) return;
+    var r = PK.dropMade(this.st, i);
+    if (!r.ok) { D.sfx('error'); this.say(r.why, 300); return; }
+    this.cache = {}; this.keep(); D.sfx('cursor'); this.say(r.name + ' is off the roster' + (r.wins.length ? ': ' + r.wins.length + ' to the pack' : ''), 240);
+  };
   Pocket.prototype.levelSlot = function (i, dir) {
     var slot = this.st.party[i], e = PK.STOCK.filter(function (x) { return x.w === slot.w; })[0]; if (!e || e.king) return;
     var L = Math.max(e.lo, Math.min(e.hi || 12, PK.cap(this.st), (slot.lvl || e.lo) + dir));
@@ -1513,7 +1536,7 @@
         else {
           var wn = R.weaponOf(s.h); D.text(ctx, 'HP ' + s.h.maxhp + ' AC ' + R.ac(s.h), x + cw / 2, top + 93, P('silver', 5), 'center');
           D.text(ctx, wn ? (wn.name.length > 13 ? wn.name.slice(0, 13) : wn.name) : '', x + cw / 2, top + 102, P('stone', 5), 'center');
-          if (custom) self.btn(ctx, 'EDIT', x + 8, top + 113, cw - 16, 12, function () { self.makeNew(i, st.roster[slot.custom]); }, { small: true });
+          if (custom) { self.btn(ctx, 'EDIT', x + 5, top + 113, 30, 12, function () { self.makeNew(i, st.roster[slot.custom]); }, { small: true }); self.btn(ctx, 'DROP', x + 37, top + 113, 28, 12, function () { self.dropMade(slot.custom); }, { small: true }); } // (DROP: off the roster for good, asked first -- 10-21)
           else if (e && e.king) D.text(ctx, 'the king\'s own gear', x + cw / 2, top + 115, P('stone', 4), 'center');
           else { self.btn(ctx, '<', x + 8, top + 113, 14, 12, function () { self.levelSlot(i, -1); }, { small: true }); D.text(ctx, 'L' + s.h.lvl, x + cw / 2, top + 115, P('gold', 4), 'center'); self.btn(ctx, '>', x + cw - 22, top + 113, 14, 12, function () { self.levelSlot(i, 1); }, { small: true }); }
         }

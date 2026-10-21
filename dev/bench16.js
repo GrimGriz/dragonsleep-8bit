@@ -5290,6 +5290,21 @@
       // a morning kept before 10-21 reads as the spells' own
       Pq.st.morning = { prep: {}, ma: { on: false, who: null }, aid: { on: true, out: 3 }, light: { on: false, who: null } }; var mOld = Pq.morning();
       okPq('a morning kept before 10-21: Mage Armor off, Aid on the first three, Light off (' + JSON.stringify(mOld.cast) + ')', !!mOld.cast && mOld.cast.mageArmor && mOld.cast.mageArmor.who.length === 0 && mOld.cast.aid && mOld.cast.aid.who.join() === '0,1,2' && mOld.cast.light && mOld.cast.light.who.length === 0 && !mOld.ma);
+      // (2) a made character off the roster (Griz: "the tiefling was perma-deathed. We have no way to remove characters from the roster."): DROP on its card, asked
+      // first; its winnings and its seat's gear to the pack, its seat the ?, the seats of those made after it following them down; refused while a run holds it
+      var mkq = function (n, cls) { return { code: '~' + cls + '.3.human.12-14-14-10-12-10.dagger.' + n.replace(/ /g, '_') + '.', name: n, cls: cls, lvl: 3 }; };
+      Pq.st.roster = [mkq('Ann A', 'fighter'), mkq('Bo B', 'rogue'), mkq('Cy C', 'fighter')]; Pq.st.roster[2].loot = [{ id: 'longsword1', place: 'weapon', was: 'dagger' }];
+      Pq.st.party = [{ custom: 0 }, { custom: 2, gear: { shield: 'shield' } }, { w: 'barley', lvl: 3, loot: [] }, { w: 'vivian', lvl: 3, loot: [] }]; Pq.st.pack = []; Pq.st.run = null; Pq.cache = {};
+      Pq.ask = function () { return true; }; Pq.dropMade(1);
+      okPq('DROP Bo B, not seated: the roster is ' + Pq.st.roster.map(function (c) { return c.name; }).join(', ') + ', Cy C\'s seat follows it down (custom ' + Pq.st.party[1].custom + '), Ann A\'s stays (' + Pq.st.party[0].custom + ')',
+        Pq.st.roster.map(function (c) { return c.name; }).join() === 'Ann A,Cy C' && Pq.st.party[1].custom === 1 && Pq.st.party[0].custom === 0 && PKq.wordOf(Pq.st, Pq.st.party[1]).indexOf('Cy_C') >= 0);
+      Pq.st.run = { rung: 1, plan: [] }; Pq.msg = null; Pq.dropMade(1); var whyRun = Pq.msg && Pq.msg.text; Pq.st.run = null;
+      Pq.ask = function () { return false; }; Pq.dropMade(1); var keptNo = Pq.st.roster.length;
+      okPq('refused while a ladder holds Cy C (' + whyRun + '); a NO to the ask keeps them (' + keptNo + ' on the roster)', Pq.st.roster.length === 2 && /under way/.test(whyRun || '') && keptNo === 2);
+      Pq.ask = function () { return true; }; Pq.go('party'); drawPq(Pq, 'party'); var drops = Pq.btns.filter(function (b) { return b.label === 'DROP'; });
+      if (drops[1]) Pq.fire(drops[1]); drawPq(Pq, 'party after');
+      okPq('DROP on Cy C\'s card: off the roster (' + Pq.st.roster.map(function (c) { return c.name; }).join(', ') + '), the seat the ? (' + JSON.stringify(Pq.st.party[1]) + '), the winning and the seat\'s shield in the pack (' + JSON.stringify(Pq.st.pack) + '), one DROP left (' + Pq.btns.filter(function (b) { return b.label === 'DROP'; }).length + ')',
+        drops.length === 2 && Pq.st.roster.length === 1 && Pq.st.party[1].w === 'new' && PKq.packN(Pq.st, 'longsword1') === 1 && PKq.packN(Pq.st, 'shield') === 1 && Pq.btns.filter(function (b) { return b.label === 'DROP'; }).length === 1);
     } catch (ePq) { repPq.errors.push(String(ePq && ePq.stack || ePq).slice(0, 800)); }
     var prePq = document.createElement('pre'); prePq.id = 'out'; prePq.textContent = 'BENCH16 ' + JSON.stringify(repPq);
     document.body.appendChild(prePq);
