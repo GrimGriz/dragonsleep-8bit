@@ -703,7 +703,7 @@
     if (TX.cornered(B, u)) {
       if (u.conds.turned) {
         B.card(['{p}' + nm + ' has nowhere to run.{/}'], 200);
-        if (u.conds.restrained && T.action) yield* M.breakFree(B, u); else if (T.action) yield* B.exec(u, { do: 'dodge' });
+        if (u.conds.restrained && u.conds.restrained.kind !== 'stone' && T.action) yield* M.breakFree(B, u); else if (T.action) yield* B.exec(u, { do: 'dodge' });
         return true;
       }
       B.card(['{p}' + nm + ' has nowhere to run from its fear, and turns at bay.{/}  {g}(frightened: disadvantage while it sees the one it fears){/}'], 220);

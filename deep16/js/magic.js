@@ -1071,7 +1071,9 @@
     if (w.torch && D.light && D.light.dropTorch) D.light.dropTorch(B, w);
   };
   M.breakFree = function* (B, u) {
-    // a grip is escaped with Athletics or Acrobatics, whichever is better (the SRD's escape); a web is torn with STR
+    // a grip is escaped with Athletics or Acrobatics, whichever is better (the SRD's escape); a web is torn with STR. Stone is no web: the stoning's restraint
+    // ends only by its save at the end of the next turn (SRD 5.1, the basilisk's gaze; 10-21, his "turning to stone added a 'break free' option ... struggling against web")
+    if (!u.conds.restrained || u.conds.restrained.kind === 'stone') return;
     var r = u.conds.restrained, gd = u.conds.guidance ? D.d(4) : 0, grip = r.grapple || r.kind === 'tentacles', en0 = u.conds.enlarged; // (r.weak: the roper's tendril, js/traits.js)
     // a STR check: Enlarge is advantage on it, Reduce disadvantage (SRD), against poisoned, frightened and the weak grip's disadvantage
     // ... and Enhance Ability on the ability it raised, Heat Metal's burning armour on every check (rules.js checkEdges). One ability's check, looked at:

@@ -130,7 +130,7 @@
     if (B.retreat && !(B.fight && B.fight.oneLeavesAll) && u.side === 'party' && !D.Battle.isHero(u) && !u.summon && !u.familiar && !u.object && D.tactics.retreatTurn) { yield* D.tactics.retreatTurn(B, u); if (!u.left) D.magic.endTurn(B, u); u.anim = 'idle'; return; }
     // Fear's run (js/grimoire.js): any creature under it Dashes away from the one it fears
     if (D.magic.mustFlee && D.magic.mustFlee(u) && !u.classAI && (yield* D.tactics.fleeFear(B, u))) { D.magic.endTurn(B, u); u.anim = 'idle'; return; } // (cornered: it fights after all, js/tactics.js TX.cornered)
-    if (u.conds.restrained && !u.conds.restrained.pin && !(u.conds.restrained.ice && D.keeper)) { // (not the Keeper's ice: it breaks out in js/keeper.js, a bonus action and then its action) a web: tear at it first. A grip -- the class AI weighs the escape, cutting the roper's tendril, or fighting from where it is (js/tactics.js freeHow, 10-02)
+    if (u.conds.restrained && !u.conds.restrained.pin && u.conds.restrained.kind !== 'stone' && !(u.conds.restrained.ice && D.keeper)) { // (not the Keeper's ice: it breaks out in js/keeper.js, a bonus action and then its action) a web: tear at it first. A grip -- the class AI weighs the escape, cutting the roper's tendril, or fighting from where it is (js/tactics.js freeHow, 10-02)
       var how = u.classAI && D.tactics && D.tactics.freeHow ? D.tactics.freeHow(B, u) : 'escape';
       if (how === 'escape') yield* D.magic.breakFree(B, u); else if (how === 'strike') yield* D.tactics.strikeHeld(B, u);
     }

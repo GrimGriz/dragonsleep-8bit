@@ -2967,6 +2967,40 @@
     document.body.appendChild(preS);
     return;
   }
+  // the grid's rules lane, 10-21 (mode=rules1021; the grid bug seat on the lanes desk's order: handoff-2026-10-04-the-grids-rules.md's two 10-20 sections and two of
+  // handoff-2026-10-04-the-ai-and-the-dark.md's); each check failed on the code before it
+  if (get('mode', '') === 'rules1021') {
+    var rep21 = { checks: [], errors: [] }, d021 = D.d, M21 = D.magic, G21 = D.grid;
+    function ok21(what, v) { rep21.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function run21(g) { var v, k = 0, st; while (g && k++ < 4000) { st = g.next(v); v = undefined; if (st.done) return st.value; if (st.value && st.value.prompt) v = st.value.prompt.opts[0].value; } }
+    function mk21(q) { var Bx = D.npcFight(q, {}); D.battle = Bx; Bx.enter(); while (!Bx.order.length) Bx.co.next(); Bx.dark = false; return Bx; }
+    function side21(Bx, s) { return Bx.units.filter(function (u) { return u.side === s; }); }
+    function log21(Bx, n) { return (Bx.log || []).slice(n).join(' | ').replace(/\{\/?[a-z]*\}/g, ''); }
+    function cmd21(Bx, u, id) { D.rules.startTurn(u); return Bx.commands(u).filter(function (c) { return c.id === id; })[0]; }
+    try {
+      // 1. STONE IS NO WEB (eyes-gaze-look-mirror-1015, BROKEN; his "turning to stone added a 'break free' option for the fighter that talked about him struggling against web"):
+      // the SRD's stoning restrains, and only the save at the end of the next turn ends it -- no check tears it off. No BREAK FREE on the ring, no try by the AI
+      var B1 = mk21('?npc=goblin,fighter:5&vs=fighter:5&lvl=5'), f1 = side21(B1, 'party')[0], g1 = side21(B1, 'foe')[0], cf1 = side21(B1, 'foe')[1];
+      f1.x = 2; f1.y = 2; g1.x = 9; g1.y = 9; cf1.x = 12; cf1.y = 2;
+      M21.stoneBegin(B1, f1, { dc: 12, by: g1.id });
+      ok21('1 the fighter turning to stone by the gaze: BREAK FREE on the ring ' + !!cmd21(B1, f1, 'breakfree') + ' (want false)', f1.conds.restrained && f1.conds.restrained.kind === 'stone' && !cmd21(B1, f1, 'breakfree'));
+      delete f1.conds.restrained; delete f1.conds.stoning;
+      f1.conds.restrained = { dc: 12, by: g1.id }; // (a web's restraint keeps its BREAK FREE)
+      ok21('1 and a web on him: BREAK FREE on the ring ' + !!cmd21(B1, f1, 'breakfree') + ' (want true)', !!cmd21(B1, f1, 'breakfree'));
+      delete f1.conds.restrained;
+      var n1 = (B1.log || []).length; M21.stoneBegin(B1, g1, { dc: 12, by: f1.id }); D.rules.startTurn(g1); B1.active = g1; run21(D.ai.turn(B1, g1)); var l1 = log21(B1, n1);
+      ok21('1 a goblin turning to stone, its turn: no try at it (' + (/tears at|wrenches at/.test(l1) ? 'tried' : 'none') + ', want none)', !/tears at|wrenches at/.test(l1));
+      n1 = (B1.log || []).length; M21.stoneBegin(B1, cf1, { dc: 12, by: f1.id }); D.rules.startTurn(cf1); B1.active = cf1; run21(D.ai.turn(B1, cf1)); l1 = log21(B1, n1);
+      ok21('1 a class AI fighter turning to stone, its turn: no try at it (' + (/tears at|wrenches at/.test(l1) ? 'tried' : 'none') + ', want none)', !/tears at|wrenches at/.test(l1));
+      delete cf1.conds.restrained; delete cf1.conds.stoning; delete cf1.conds.petrified; M21.stoneBegin(B1, cf1, { dc: 12, by: f1.id }); // (its end-of-turn save has had its say)
+      n1 = (B1.log || []).length; D.rules.startTurn(cf1); run21(M21.breakFree(B1, cf1)); l1 = log21(B1, n1);
+      ok21('1 and BREAK FREE sent by hand: no roll at it, the action kept (' + cf1.turn.action + ', want 1)', !/tears at|wrenches at/.test(l1) && cf1.turn.action === 1);
+    } catch (e21) { rep21.errors.push(String(e21 && e21.stack || e21).slice(0, 900)); D.d = d021; }
+    if (errs.length) rep21.errors = rep21.errors.concat(errs);
+    var pre21 = document.createElement('pre'); pre21.id = 'out'; pre21.textContent = 'BENCH16 ' + JSON.stringify(rep21);
+    document.body.appendChild(pre21);
+    return;
+  }
   // the grid's rules lane, 10-15 (mode=rules1015; the coordinating desk's order on his "spin up ... the grid lane as well", handoff-2026-10-04-the-grids-rules.md §2.18-2.22):
   // a cantrip's dice at 17th; each check failed on the code before it
   if (get('mode', '') === 'rules1015') {
