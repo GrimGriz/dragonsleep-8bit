@@ -105,14 +105,15 @@
   function noted(id) { var f = FB[id]; return !!(f && (f.v || (f.note || '').trim())); }
   // six a page, most wanted first (10-06, Griz: "Bulk processing is good, but do like 6 items per page by any priority they might have"):
   // the eyes rows (js/eyes.js: built, never seen) by their pri, then the story situations (pri 4) in the story's order; a row already
-  // noted when the page opened sinks below the unnoted of its priority (sorted at load, so a row doesn't jump while you mark it)
+  // noted when the page opened sinks below the unnoted of its priority (sorted at load, so a row doesn't jump while you mark it). Within a
+  // priority the newest eyes row first, by its place in js/eyes.js (10-21, Griz: "yes, I thought thats how it worked" -- the house's rows had sat on page 4)
   var PER = 6, ROWS = [], pg = +(get('dsl-situations-page') || 0) || 0;
   function build() {
     var E = window.DS.EYES || {}, S = window.DS.SITUATIONS || {}, all = [], n = 0;
     Object.keys(E).forEach(function (id) { all.push({ id: id, s: E[id], pri: E[id].pri || 3, eyes: true, o: n++ }); });
     Object.keys(S).forEach(function (id) { all.push({ id: id, s: S[id], pri: S[id].pri || 4, eyes: false, o: n++ }); });
     all.forEach(function (r) { r.done = noted(r.id) ? 1 : 0; });
-    all.sort(function (a, b) { return a.pri - b.pri || a.done - b.done || a.o - b.o; });
+    all.sort(function (a, b) { return a.pri - b.pri || a.done - b.done || (b.eyes - a.eyes) || (a.eyes ? b.o - a.o : a.o - b.o); });
     ROWS = all;
   }
   function pages() { return Math.max(1, Math.ceil(ROWS.length / PER)); }

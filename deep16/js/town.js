@@ -177,9 +177,14 @@
     var gate = (/[?&]gate=([a-z]+)/.exec(q) || [])[1] || 'west', at = M.gates[gate] || M.gates.west, face = { west: [1, 0], south: [0, -1], east: [-1, 0] }[gate] || [1, 0];
     var at0 = /[?&]at=(\d+),(\d+)/.exec(q); if (at0) at = [+at0[1], +at0[2]];
     if (!inW(at)) { for (var y = 0; y < h && !inW(at); y++) for (var x = 0; x < w; x++) if (rows[y][x] === ',' || rows[y][x] === '=') { at = [x + ox, y + oy]; break; } } // (a window without the gate in it: its first street square)
-    // the ways off the floor: the roads where they run off its edge (the world map takes the party on there, later)
-    var ways = [];
-    for (var y1 = 0; y1 < h; y1++) for (var x1 = 0; x1 < w; x1++) if ((x1 === 0 || y1 === 0 || x1 === w - 1 || y1 === h - 1) && rows[y1][x1] === ',') ways.push([x1, y1]);
+    // the ways off the floor: every open square of its west, south and east edges (10-21, Griz: "leaving the far tile on west, south or E should kick you out of
+    // town"), and a road where it runs off the north (the world map takes the party on there -- js/world.js)
+    var ways = [], offEdge = {};
+    for (var y1 = 0; y1 < h; y1++) for (var x1 = 0; x1 < w; x1++) {
+      var c1 = rows[y1][x1], side1 = x1 === 0 ? 'west' : x1 === w - 1 ? 'east' : y1 === h - 1 ? 'south' : null;
+      if (c1 === ',' && (side1 || y1 === 0)) ways.push([x1, y1]);
+      else if (side1 && '.=dr'.indexOf(c1) >= 0) { ways.push([x1, y1]); offEdge[x1 + ',' + y1] = side1; }
+    }
     var trig = [];
     Object.keys(M.doors).forEach(function (id) { var d = M.doors[id], dd = T.DOORS.filter(function (z) { return z.id === id; })[0]; if (inW(d)) trig.push({ id: id, on: 'step', rect: to(d).concat([1, 1]), town: 'door', door: dd }); });
     var people = [], npc8 = (((window.DS || {}).DATA || {}).maps || {}).silverton, used = {};
@@ -198,7 +203,7 @@
     var mk = function (p) { return Array.isArray(p) && Array.isArray(p[0]) ? p.map(to) : to(p); }, marks = {};
     Object.keys(M).forEach(function (k) { var v = M[k]; marks[k] = v && !Array.isArray(v) ? Object.keys(v).reduce(function (a, k2) { a[k2] = to(v[k2]); return a; }, {}) : mk(v); });
     var id = function (x, y) { return [x, y]; }, V = D.TOWN_V6, ft = function (p) { return [T.X0 + (p[0] + ox + 0.5) * L.F, T.Y0 + (p[1] + oy + 0.5) * L.F]; };
-    var wayName = {}; ways.forEach(function (p) { var f = ft(p), best = 0, bd = 1e9; V.road.forEach(function (r, k) { for (var i = 0; i + 1 < r[0].length; i++) { var a = r[0][i], b = r[0][i + 1], vx = b[0] - a[0], vy = b[1] - a[1], L2 = vx * vx + vy * vy, t = L2 ? Math.max(0, Math.min(1, ((f[0] - a[0]) * vx + (f[1] - a[1]) * vy) / L2)) : 0, d = Math.hypot(f[0] - a[0] - t * vx, f[1] - a[1] - t * vy); if (d < bd) { bd = d; best = k; } } }); wayName[p[0] + ',' + p[1]] = T.ROADS[best] || 'the road'; });
+    var wayName = {}; ways.forEach(function (p) { if (offEdge[p[0] + ',' + p[1]]) { wayName[p[0] + ',' + p[1]] = 'out of town to the ' + offEdge[p[0] + ',' + p[1]]; return; } var f = ft(p), best = 0, bd = 1e9; V.road.forEach(function (r, k) { for (var i = 0; i + 1 < r[0].length; i++) { var a = r[0][i], b = r[0][i + 1], vx = b[0] - a[0], vy = b[1] - a[1], L2 = vx * vx + vy * vy, t = L2 ? Math.max(0, Math.min(1, ((f[0] - a[0]) * vx + (f[1] - a[1]) * vy) / L2)) : 0, d = Math.hypot(f[0] - a[0] - t * vx, f[1] - a[1] - t * vy); if (d < bd) { bd = d; best = k; } } }); wayName[p[0] + ',' + p[1]] = T.ROADS[best] || 'the road'; });
     var districts = (V.label || []).filter(function (l) { return /district/.test(l[3]) && !/S I L V E R T O N/.test(l[2]); });
     var def = D.MAPS.silverton = {
       name: 'Silverton', sub: 'the town, true scale from the city map v6', key: 'silverton', town: true, wet: false, dark: false, ground: 'earth', step: 10,

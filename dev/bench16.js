@@ -1956,8 +1956,13 @@
       });
       D.iso.map = townMapT; GT.setup(townMapT, BT.units);
       okT('every room laid behind a vendor\'s or an interaction\'s door (' + D.town.ROOMS.length + ' of the ' + D.town.DOORS.length + ' doors: ' + Object.keys(sizesR).map(function (k) { return k + ' ' + sizesR[k]; }).join(', ') + '), each walkable from its door to its counter' + (badR.length ? ' -- NOT: ' + badR.join(', ') : ''), !badR.length);
-      var wayT = defT.doors.filter(function (q) { return /fork/.test(defT.wayName[q[0] + ',' + q[1]]); })[0], nO = wayT ? walkT(BT, RT, wayT, 80000) : null;
+      var wayT = defT.doors.filter(function (q) { return /fork/.test(defT.wayName[q[0] + ',' + q[1]]); })[0], nO = wayT ? walkT(BT, RT, [wayT[0] + 1, wayT[1]], 80000) : null; BT.cards = []; if (wayT) walkT(BT, RT, wayT, 4000); // (up beside the road's end, then onto it: every far square west leads out now, and a walk along the edge would leave first)
       okT('THE road west off the floor (' + wayT + ', ' + nO + ' steps): the world map\'s, later, and the town keeps the party', !!wayT && cardT(/THE road west/) && cardT(/world map/) && BT.units.indexOf(tkT) >= 0);
+      // the far squares west, south and east lead out (10-21, Griz: "leaving the far tile on west, south or E should kick you out of town"); the town keeps its one zoom
+      var sidesT = {}; defT.doors.forEach(function (q) { var nmE = /^out of town to the (west|south|east)$/.exec(defT.wayName[q[0] + ',' + q[1]] || ''); if (nmE) sidesT[nmE[1]] = (sidesT[nmE[1]] || 0) + 1; });
+      var openEdgeT = 0; defT.rows.forEach(function (rw, yE) { for (var xE = 0; xE < rw.length; xE++) if ((xE === 0 || xE === rw.length - 1 || yE === defT.rows.length - 1) && '.=dr'.indexOf(rw.charAt(xE)) >= 0) openEdgeT++; });
+      var z0T = D.iso.zoom; D.ui.setZoom(1); D.ui.setZoom(-1); D.ui.setZoom(-1);
+      okT('the far squares lead out of town (west ' + sidesT.west + ', south ' + sidesT.south + ', east ' + sidesT.east + ' of ' + openEdgeT + ' open), and the zoom holds in town (' + z0T + ' -> ' + D.iso.zoom + ')', sidesT.west > 0 && sidesT.south > 0 && sidesT.east > 0 && sidesT.west + sidesT.south + sidesT.east === openEdgeT && D.iso.zoom === z0T);
       okT('the floor painted only where the camera went: ' + mT.bake.baked + ' of ' + mT.bake.pages.filter(function (p) { return p.list.length; }).length + ' pages (none on a bench page, nothing drawn)', mT.bake.baked === 0);
       // the town by default, drawn as if the party stood 30 ft tall (10-20, Griz: "render it as if the player token is 30 feet tall", then "try the party token scaling
       // first"): v6 six times smaller round the same figure -- one picture, no pages; its roofs a sixth as tall; the gates, every door, the people; the walk to the Hexagon; a

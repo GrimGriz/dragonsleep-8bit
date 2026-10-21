@@ -316,6 +316,7 @@
   }
   UI.zooms = zooms;
   UI.setZoom = function (dir, ax, ay) {
+    if (D.roam && D.roam.def && D.roam.def.town && D.iso.map && D.iso.map.def === D.roam.def) return; // (a town's floor keeps its one scale -- 10-21, Griz: "Still allows zoom, which maybe it shouldn't"; L is the whole town)
     var L = zooms(), iso = D.iso, cam = iso.cam, z0 = iso.zoom, i = 0, best = 1e9;
     L.forEach(function (z, k) { if (Math.abs(z - z0) < best) { best = Math.abs(z - z0); i = k; } });
     var z1 = L[D.clamp(i + dir, 0, L.length - 1)];
