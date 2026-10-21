@@ -2045,8 +2045,20 @@
       D.pop(); bH.o.onDone('won');
       var gxH = HH.cur.party.map(function (h, i) { return h.xp - exH[i]; }), aS = HH.cur.party.filter(function (h) { return h.id === 'aurdin'; })[0];
       okH('won: each standing banks ' + gxH.join('/') + ' XP (' + (wsH.msg && wsH.msg.s) + '), Aurdin\'s wound kept (' + aS.hp + ')', gxH.every(function (x) { return x > 0; }) && aS.hp === aHurt && HH.playing);
+      // THE FIELD on THE WORLD (js/house.js H.field: the first game's field rules on the save's sheets) -- Mage Armor, Lay on Hands, a short rest's hit dice, Light carried
+      var spH = window.DS.DATA.spells, envH = { where: 'world', party: HH.cur.party, tent: true, has: function () { return true; }, take: function () { }, ward: function () { }, longRest: function () { return []; } };
+      var heroH = function (id) { return HH.cur.party.filter(function (h) { return h.id === id; })[0]; }, lW = heroH('lymen'), bW = heroH('barley');
+      var sl0 = aS.slots[0], lnMA = HH.field.cast(aS, spH.mageArmor, aS, envH);
+      okH('MAGIC on the road: Mage Armor on Aurdin (' + lnMA.join(' ') + '), a slot spent', !!aS.conds.mageArmor && aS.slots[0] === sl0 - 1);
+      var ah0 = aS.hp, lay0 = lW.feats.lay, lnLay = HH.field.skill(lW, 'lay', aS);
+      okH('SKILLS: Lymen\'s Lay on Hands on Aurdin (' + lnLay.join(' ') + '; the pool ' + lay0 + ' to ' + lW.feats.lay + ')', aS.hp > ah0 && lW.feats.lay === lay0 - (aS.hp - ah0));
+      bW.hp = Math.max(1, bW.hp - 10); var hd0 = bW.hdLeft != null ? bW.hdLeft : bW.lvl, bh0 = bW.hp, lnSR = HH.shortRest(HH.cur.party);
+      okH('a short rest\'s hit dice (' + lnSR.join(' ').slice(0, 110) + ')', bW.hp > bh0 && bW.hdLeft === hd0 - 1);
+      var lnL = HH.field.cast(aS, spH.light, null, envH);
+      okH('Light out of a fight (' + lnL.join(' ').slice(0, 60) + '): on Aurdin, kept on his sheet till the long rest', !!aS.conds.light);
       // camp is the long rest: whole again, and the level the XP reached
       aS.xp = RH.XP_LEVEL[aS.lvl + 1]; var lv0 = aS.lvl, upsH = WH.camp();
+      okH('the long rest ends Mage Armor and the Light, gives back hit dice (Barley ' + bW.hdLeft + ')', !aS.conds.mageArmor && !aS.conds.light && bW.hdLeft === bW.lvl);
       okH('camp is the long rest: everyone whole (' + HH.cur.party.map(function (h) { return h.hp + '/' + h.maxhp; }).join(', ') + '), Aurdin L' + lv0 + ' to L' + aS.lvl + ' (' + (upsH || []).join(' ').slice(0, 80) + ')',
         HH.cur.party.every(function (h) { return h.hp === h.maxhp && !h.ko; }) && aS.lvl === lv0 + 1 && !RH.picksDue(aS));
       // SAVE on THE WORLD into slot 3, then CONTINUE from slot 2: back in Silverton on the saved square
@@ -2054,8 +2066,34 @@
       okH('SAVE on THE WORLD (slot 3): on the hex ' + (s3 && s3.world && s3.world.at) + ', Aurdin L' + (s3 && s3.party.filter(function (h) { return h.id === 'aurdin'; })[0].lvl), !!s3 && !s3.at.town && s3.world && s3.world.at && s3.party.filter(function (h) { return h.id === 'aurdin'; })[0].lvl === lv0 + 1);
       HH.begin(HH.read(2), 2); var BC = enterTop(), tC = BC.roam.token, vC = BC.roam.members.filter(function (u) { return u.id === 'vivian'; })[0];
       okH('CONTINUE slot 2: Silverton, on the saved square (' + tC.x + ',' + tC.y + '), Vivian at ' + vC.hp, D.roam.def.key === 'silverton' && tC.x === s2.at.sq[0] && tC.y === s2.at.sq[1] && vC.hp === hurtH);
+      // THE FIELD on the town floor (js/roam.js R.menuAct in the house -> H.fieldOnFloor): the figures, the same rules, nothing to the 8-bit
+      var idU = function (x) { return x; }, uA = BC.roam.members.filter(function (u) { return u.id === 'aurdin'; })[0], uL = BC.roam.members.filter(function (u) { return u.id === 'lymen'; })[0];
+      var lnF = HH.fieldOnFloor(BC, 'cast', { h: uA, sp: window.DS.DATA.spells.light }, idU);
+      okH('MAGIC on the town floor: Light on Aurdin\'s figure (' + (lnF || []).join(' ').slice(0, 60) + '), which lights the floor (js/light.js reads conds.light)', !!uA.conds.light);
+      vC.hp = Math.max(1, vC.hp - 2); var vh0 = vC.hp, cw0 = uL.slots[0], lnCW = HH.fieldOnFloor(BC, 'cast', { h: uL, sp: window.DS.DATA.spells.curewounds, t: vC }, idU);
+      okH('Lymen\'s Cure Wounds on Vivian\'s figure (' + (lnCW || []).join(' ') + '), a slot spent', vC.hp > vh0 && uL.slots[0] === cw0 - 1);
+      (BC.inv = BC.inv || []).push({ id: 'chalk', n: 1 }); var enc0 = BC.roam.encIn, lnW = HH.fieldOnFloor(BC, 'item', { id: 'chalk', h: uA }, idU);
+      okH('the warding chalk on the floor (' + (lnW || []).join(' ').slice(0, 50) + '): the next fight 60 of the 8-bit\'s steps further, at the floor\'s rate', BC.roam.encIn === enc0 + 60 * D.roam.RATE && !BC.inv.some(function (s) { return s.id === 'chalk' && s.n > 0; }));
       HH.begin(HH.read(3), 3); var wC = enterTop();
       okH('CONTINUE slot 3: on THE WORLD at its hex (' + WH.state().at + ')', wC.kind === 'world' && WH.state().at[0] === s3.world.at[0] && WH.state().at[1] === s3.world.at[1]);
+      // no level cap (RULED 10-21: "we won't have a level cap"): the house's cap the XP table's top; the first game's stands outside the house
+      var vN = HH.cur.party.filter(function (h) { return h.id === 'vivian'; })[0], errN = null; vN.xp = RH.XP_LEVEL[RH.XP_LEVEL.length - 1];
+      try { HH.longRest(null); } catch (eN) { errN = String(eN).slice(0, 120); }
+      okH('no level cap in the house: Vivian to L' + vN.lvl + ' at the long rest (the cap ' + RH.cap() + ')' + (errN ? ' THREW ' + errN : ''), !errN && vN.lvl === RH.XP_LEVEL.length - 1 && RH.cap() === RH.XP_LEVEL.length - 1);
+      // the night (RULED 10-21): the night's creatures weighted up, the day's down
+      var shareN = function (night) { var n = 0, b = 0; D.seed = 77; for (var i = 0; i < 400; i++) { var pk = WH.pick('north', night); if (!pk) continue; n++; if (pk.list.indexOf('bandit') >= 0) b++; } return b / Math.max(1, n); }, dayB = shareN(false), nightB = shareN(true);
+      okH('the night\'s table: bandits ' + Math.round(dayB * 100) + '% of the north\'s groups by day, ' + Math.round(nightB * 100) + '% by night', nightB < dayB * 0.7);
+      // the three watches: the sleepers' armor off for the fight, back on after; then the long rest
+      var lN = HH.cur.party.filter(function (h) { return h.id === 'lymen'; })[0], lArm = lN.equip.armor, lSh = lN.equip.shield, so0 = HH.sleepersOff(HH.cur, ['vivian']);
+      var lC = so0.data.party.filter(function (h) { return h.id === 'lymen'; })[0], vC2 = so0.data.party.filter(function (h) { return h.id === 'vivian'; })[0];
+      okH('a watch fight\'s party: Vivian on watch in her ' + vC2.equip.armor + ', Lymen asleep out of his ' + lArm + (lSh ? ' and shield' : '') + ' (the light-armor exception his word: off)', vC2.equip.armor === HH.cur.party.filter(function (h) { return h.id === 'vivian'; })[0].equip.armor && !lC.equip.armor && !lC.equip.shield && !!lArm);
+      lN.hp = Math.max(1, lN.hp - 6); var SN = WH.state(); SN.zone = WH.zoneOf(WH.M().hex[WH.K(SN.at[0], SN.at[1])]); SN.count = 0.5; HH.runNight(wC, { vivian: 1, lymen: 2, barley: 3, aurdin: 3 });
+      var cN = wC.cards[0], okCard = !!(cN && cN.keys && /FIRST WATCH/.test(cN.lines[0]) && cN.keys[0][2] === 'FIGHT');
+      okH('the first watch\'s check finds them: ' + (cN ? cN.lines[0] : 'no card') + ' (a FIGHT button)', okCard);
+      if (okCard) { wC.cards.shift(); cN.keys[0][1](); var bN = enterTop(), lU = bN.units.filter(function (u) { return u.id === 'lymen'; })[0], lBase = lU && lU.baseAC;
+        okH('in the fight Lymen is out of his armor (AC ' + lBase + '), Vivian in hers', !!lU && lBase < RH.ac(lN));
+        bN.units.forEach(function (u) { if (u.side === 'foe') { u.hp = 0; u.dead = true; } }); D.pop(); bN.o.onDone('won'); }
+      okH('after the night: Lymen\'s ' + lN.equip.armor + ' back on, everyone whole at dawn (' + HH.cur.party.map(function (h) { return h.hp + '/' + h.maxhp; }).join(', ') + '), ' + (wC.msg && wC.msg.s || '').slice(0, 60), lN.equip.armor === lArm && lN.equip.shield === lSh && HH.cur.party.every(function (h) { return h.hp === h.maxhp; }));
       // a loss: the title, the last save standing
       wC.fight({ zone: 'north', list: ['goblin'], mirror: false }, WH.M().hex[WH.K(WH.state().at[0], WH.state().at[1])]); var bL = enterTop(); D.pop(); bL.o.onDone('lost');
       okH('a loss is the first game\'s game over: the title (' + (D.top() && D.top().kind) + '), the house shut, slot 3 as it was', D.top() && D.top().kind === 'housetitle' && D.top().lost && !HH.playing && memH['deep16.game.3'] === JSON.stringify(s3));

@@ -154,6 +154,7 @@
     var m = I.mouse;
     if (this.cards.length) { // (a card waits for its key)
       var cd = this.cards[0];
+      if (cd.keys && m.click && cd.btns) for (var bi = 0; bi < cd.btns.length; bi++) { var bb = cd.btns[bi]; if (m.x >= bb.x && m.x < bb.x + bb.w && m.y >= bb.y && m.y < bb.y + bb.h) { this.cards.shift(); D.sfx('confirm'); cd.keys[bi][1](); return; } } // (a click on a choice: his 10-21 "playable by mouse only")
       if (cd.keys) { for (var ki = 0; ki < cd.keys.length; ki++) if (I.pressed(cd.keys[ki][0])) { this.cards.shift(); D.sfx('confirm'); cd.keys[ki][1](); return; } return; }
       if (I.pressed('a') || I.pressed('b') || m.click) { this.cards.shift(); D.sfx('confirm'); if (cd.then) cd.then(); }
       return;
@@ -183,18 +184,20 @@
       else { var en = M.hex[K(nx[0], nx[1])]; this.say(!en ? 'Off the map that way.' : W.MOUNTAIN[en.t] ? 'The mountains: no way up on the world map.' : 'No one walks that way (' + M.terr[en.t].name + ').'); }
       return;
     }
+    if (m.click && this.hudBtns) for (var hb = 0; hb < this.hudBtns.length; hb++) { var hbt = this.hudBtns[hb]; if (m.x >= hbt.x && m.x < hbt.x + hbt.w && m.y >= hbt.y && m.y < hbt.y + hbt.h) { D.sfx('confirm'); hbt.go(); return; } } // (the keys as buttons: his 10-21 "playable by mouse only")
     // where the mouse points: the hex, and the way there
     var hv = m.inside ? this.pick(m.x, m.y) : null, hk = hv ? K(hv[0], hv[1]) : null;
     if (hk !== (this.hov ? K(this.hov[0], this.hov[1]) : null)) { this.hov = hv; this.plan = hv ? W.route(S.at, hv) : null; }
     if (m.click && m.inside && this.plan) { this.walk = { path: this.plan.hexes.slice(), f: 0 }; this.plan = null; D.sfx('confirm'); return; }
-    if (I.pressed('a')) { var here = this.doorHere(), rt = this.routeHere(); if (here) this.offerDoor(here); else if (rt) this.offerRoute(rt); else this.lookHere(); }
+    if (I.pressed('a')) this.here();
+    if (I.pressed('end') && W.house()) { this.campCard(); return; }
     if (I.pressed('end')) { var ups = W.camp(); D.sfx('confirm'); this.say('The party makes camp, and walks on at first light: ' + W.timeOfDay() + '.' + (ups && ups.length ? ' ' + ups.join(' ') : '')); }
   };
   // a step a time: the hours spent at its end (past the day's 8, a camp first), the place there, and (pass B) the road's chance of a fight
   World.prototype.stepWalk = function () {
     var w = this.walk, next = w.path[0], st = W.stepHours(S.at, next);
     if (!st) { this.walk = null; return; }
-    if (w.f === 0 && S.today > 0 && S.today + st.h > W.DAYHOURS + 0.01) { var ups = W.camp(); this.say('The party makes camp; on at first light.' + (ups && ups.length ? ' ' + ups.join(' ') : '')); if (this.pm) { this.walk = null; return; } }
+    if (w.f === 0 && S.today > 0 && S.today + st.h > W.DAYHOURS + 0.01) { if (W.house()) { this.walk = null; this.say('Eight hours walked: the party makes camp.'); D.house.night(this); return; } var ups = W.camp(); this.say('The party makes camp; on at first light.' + (ups && ups.length ? ' ' + ups.join(' ') : '')); if (this.pm) { this.walk = null; return; } } // (the house: the night's watches first -- js/house.js H.night)
     w.f++;
     var a = hc(S.at[0], S.at[1]), b = hc(next[0], next[1]), u = w.f / STEPF; this.cam.cx += ((a[0] + (b[0] - a[0]) * u) - this.cam.cx) * 0.2; this.cam.cy += ((a[1] + (b[1] - a[1]) * u) - this.cam.cy) * 0.2;
     if (w.f < STEPF) return;
@@ -216,8 +219,15 @@
     var self = this, r = o.r, to = r.ends[1 - o.end], up = o.end === 0;
     this.card(['{y}' + r.name.charAt(0).toUpperCase() + r.name.slice(1) + '{/}', (up ? 'Up into the mountains' : 'Down out of the mountains') + ': ' + r.days + ' days to ' + to.name + '.', '{g}(its own roam is to come: for now the days pass){/}', '',
       D.keys('{g}E{/}: go ' + (up ? 'up' : 'down') + ' it    {g}X{/}: stay')], null,
-      [['a', function () { var fr = S.at.slice(); W.passDays(r.days, r.days + ' days ' + (up ? 'up' : 'down') + ' ' + r.name + ': ' + to.name + ', ' + W.timeOfDay() + '.'); S.from = fr; S.at = to.hex.slice(); W.save(); var c = hc(S.at[0], S.at[1]); self.cam.cx = c[0]; self.cam.cy = c[1]; self.plan = null; }],
-       ['b', function () { self.say('The party stays at ' + r.ends[o.end].name + '.'); }]]);
+      [['a', function () { var fr = S.at.slice(); W.passDays(r.days, r.days + ' days ' + (up ? 'up' : 'down') + ' ' + r.name + ': ' + to.name + ', ' + W.timeOfDay() + '.'); S.from = fr; S.at = to.hex.slice(); W.save(); var c = hc(S.at[0], S.at[1]); self.cam.cx = c[0]; self.cam.cy = c[1]; self.plan = null; }, up ? 'GO UP IT' : 'GO DOWN IT'],
+       ['b', function () { self.say('The party stays at ' + r.ends[o.end].name + '.'); }, 'STAY']]);
+  };
+  World.prototype.here = function () { var here = this.doorHere(), rt = this.routeHere(); if (here) this.offerDoor(here); else if (rt) this.offerRoute(rt); else this.lookHere(); };
+  // the house's camp (RULED 10-21): the night -- three watches, then the long rest (js/house.js H.night) -- or an hour's short rest
+  World.prototype.campCard = function () {
+    var me = this;
+    this.card(['{y}CAMP{/}, ' + W.timeOfDay() + '.', '', D.keys('{g}E{/}: the night (three watches, a long rest)    {g}R{/}: an hour (a short rest)    {g}X{/}: walk on')], null,
+      [['a', function () { D.house.night(me); }, 'THE NIGHT'], ['rec', function () { S.t += 1; W.save(); me.say(D.house.shortRest(D.house.cur.party).join(' ')); }, 'AN HOUR'], ['b', function () { }, 'WALK ON']]);
   };
   World.prototype.doorHere = function () { var ss = M.siteAt[K(S.at[0], S.at[1])] || []; for (var i = 0; i < ss.length; i++) if (W.DOORS[ss[i].id]) return ss[i]; return null; };
   World.prototype.lookHere = function (arrived) {
@@ -235,7 +245,7 @@
   World.prototype.offerDoor = function (site, pt) {
     var self = this, gate = W.gateFor(site, S.from, pt);
     this.card(['{y}' + site.name + '{/}', 'The ' + gate + ' gate is before you, ' + W.timeOfDay() + '.', '', D.keys('{g}E{/}: go in by the ' + gate + ' gate    {g}X{/}: stay on the road')], null,
-      [['a', function () { self.enterDoor(site, gate); }], ['b', function () { self.say('The party keeps to the road.'); }]]);
+      [['a', function () { self.enterDoor(site, gate); }, 'GO IN'], ['b', function () { self.say('The party keeps to the road.'); }, 'STAY ON THE ROAD']]);
   };
   World.prototype.enterDoor = function (site, gate) {
     var dr = W.DOORS[site.id]; if (!dr || !D.roam) return;
@@ -416,15 +426,23 @@
       ctx.fillStyle = 'rgba(8,8,20,.85)'; ctx.fillRect(bx, by, bw, 6 + lines.length * 10);
       lines.forEach(function (l, i) { D.text(ctx, l, bx + 4, by + 4 + i * 10, '#e8e4d8'); });
     }
+    var me = this; this.hudBtns = W.house() ? [['THE PARTY', function () { D.house.openMenu(me); }], ['CAMP', function () { me.campCard(); }], ['HERE', function () { me.here(); }]].map(function (q, i) { return { x: D.W - 4 - (3 - i) * 64, y: D.H - 50, w: 60, h: 13, label: q[0], go: q[1] }; }) : null; // (the keys as buttons: his 10-21 "playable by mouse only")
     this.hudBottom(ctx, 'click: travel  arrows: a hex  E: here  SPACE: camp  ' + (W.house() ? 'M: the party  ' : '') + 'V: tiles  wheel: zoom');
   };
+  W.button = function (ctx, b) { var mo = I.mouse, hov = mo.inside && mo.x >= b.x && mo.x < b.x + b.w && mo.y >= b.y && mo.y < b.y + b.h; ctx.fillStyle = hov ? D.WIN8.sel : 'rgba(16,18,58,.85)'; ctx.fillRect(b.x, b.y, b.w, b.h); ctx.strokeStyle = hov ? D.WIN8.gold : D.WIN8.mid; ctx.strokeRect(b.x + 0.5, b.y + 0.5, b.w - 1, b.h - 1); D.text(ctx, b.label, b.x + b.w / 2, b.y + 3, hov ? D.WIN8.gold : D.WIN8.text, 'center'); };
   World.prototype.hudBottom = function (ctx, hint) { // (the message, the keys and the card: both views')
     if (this.msg && this.msg.t < 360) { var mw = Math.min(D.W - 16, D.textWidth(this.msg.s) + 12); ctx.fillStyle = 'rgba(8,8,20,.8)'; ctx.fillRect((D.W - mw) / 2, D.H - 30, mw, 13); D.text(ctx, this.msg.s, D.W / 2, D.H - 27, '#f6e9c5', 'center'); }
     D.hint(ctx, hint, D.W / 2, D.H - 12, '#9a96a8', 'center');
     if (this.cards.length) {
-      var cd = this.cards[0], cw = 300, ch = 14 + cd.lines.length * 10, cx = (D.W - cw) / 2, cy = (D.H - ch) / 2;
+      var cd = this.cards[0], nb = cd.keys ? cd.keys.length : 0, cw = 300, ch = 14 + cd.lines.length * 10 + (nb ? 18 : 0), cx = (D.W - cw) / 2, cy = (D.H - ch) / 2;
       D.win8(ctx, cx, cy, cw, ch); cd.lines.forEach(function (l, i) { D.text(ctx, l, D.W / 2, cy + 8 + i * 10, D.WIN8.text, 'center'); });
+      if (nb) { // (each choice a button: a click is its key)
+        var KN = { a: 'E', b: 'X', rec: 'R' }, bw = Math.min(96, Math.floor((cw - 12 - (nb - 1) * 6) / nb)), bx0 = Math.round(D.W / 2 - (nb * bw + (nb - 1) * 6) / 2), by0 = cy + ch - 18;
+        cd.btns = cd.keys.map(function (k, i) { return { x: bx0 + i * (bw + 6), y: by0, w: bw, h: 13, label: k[2] || KN[k[0]] || k[0] }; });
+        cd.btns.forEach(function (b) { W.button(ctx, b); });
+      }
     }
+    if (this.hudBtns && this.view !== 'tiles' && !this.cards.length && !this.pm) this.hudBtns.forEach(function (b) { W.button(ctx, b); });
   };
   // ---------------------------------------------------------------- PASS B: THE ROAD'S FIGHTS (RULED 10-20: "let's try simplified random encounters suspecting we'll
   // let players turn on a 'full grid rando' option"; the SRD has none, so these are ours). Each hex walked counts down its zone's chance, the 8-bit's own
@@ -449,9 +467,13 @@
   W.mirrorWeight = function () { return Math.max(0, Math.min(6, (W.day() - 1) * 0.5)); };
   function tables() { return ((window.DS || {}).DATA || {}).encounters || {}; }
   W.resetCount = function (zone) { var Z = tables()[zone], rt = (Z && Z.rate) || [22, 40]; S.count = (rt[0] + D.rint(rt[1] - rt[0] + 1)) / W.HEXSTEPS * 5; S.zone = zone; }; // (in miles: a hex 5, a tile half of one)
-  W.pick = function (zone) {
+  // THE NIGHT (RULED 10-21, Griz: "Random encounter tables increase encounter activity at night (selected appropriate monsters)"): after dark the road's count runs
+  // W.NIGHTX as fast, and a group with a creature of the night in it weighs twice, one of the day's alone half (the seat's picks from the zones' tables, his to tune)
+  W.NIGHTX = 2; W.NIGHT_KINDS = ['wolf', 'worg', 'hyena', 'gnoll', 'giantrat', 'stirge', 'giantspider', 'wolfspider', 'wisp', 'giantbat']; W.DAY_KINDS = ['bandit', 'axebeak', 'giantboar'];
+  W.isNight = function () { return W.timeOfDay() === 'night'; };
+  W.pick = function (zone, night) {
     var Z = tables()[zone]; if (!Z) return null;
-    var gs = Z.groups.filter(function (g) { return !g.cond; }).slice(), mw = W.mirrorWeight(); if (!gs.length) return null;
+    var gs = Z.groups.filter(function (g) { return !g.cond; }).map(function (g) { if (!night) return g; var ks = g.e.map(function (x) { return x[0]; }), f = ks.some(function (k) { return W.NIGHT_KINDS.indexOf(k) >= 0; }) ? 2 : ks.every(function (k) { return W.DAY_KINDS.indexOf(k) >= 0; }) ? 0.5 : 1; return Object.assign({}, g, { w: (g.w || 1) * f }); }), mw = W.mirrorWeight(); if (!gs.length) return null;
     if (mw > 0) gs.push({ w: mw, mirror: true });
     var tot = 0; gs.forEach(function (g) { tot += g.w || 1; });
     var r = D.rand() * tot, grp = gs[0]; for (var i = 0; i < gs.length; i++) { r -= gs[i].w || 1; if (r < 0) { grp = gs[i]; break; } }
@@ -463,10 +485,10 @@
     if (/[?&]noenc\b/.test(scene.q)) return false;
     var e = M.hex[K(S.at[0], S.at[1])], zone = W.zoneOf(e);
     if (S.zone !== zone || S.count == null) W.resetCount(zone);
-    S.count -= (st.mi || M.w) * (st.road ? 0.5 : 1); W.save();
+    S.count -= (st.mi || M.w) * (st.road ? 0.5 : 1) * (W.isNight() ? W.NIGHTX : 1); W.save(); // (after dark the count runs faster: THE NIGHT, above)
     if (S.count > 0) return false;
     W.resetCount(zone); W.save();
-    var p = W.pick(zone); if (!p || !p.list.length) return false;
+    var p = W.pick(zone, W.isNight()); if (!p || !p.list.length) return false;
     scene.encounter(p, e); return true;
   };
   function foeName(k, n) { var f = D.FOES && D.FOES[k], nm = (f && f.name) || k; return n > 1 ? nm.replace(/y$/, 'ie').replace(/(s|x|ch|sh)$/, '$1e') + 's' : nm; }
@@ -475,7 +497,7 @@
     var who = Object.keys(cnt).map(function (k) { return (cnt[k] > 1 ? cnt[k] + ' ' : 'a ') + foeName(k, cnt[k]).toLowerCase(); }).join(', ');
     D.sfx('encounter');
     this.card([(p.mirror ? '{p}MIRROR-MADE{/} ' : '{r}') + 'On the ' + (M.road[K(e.q, e.r)] ? 'road' : M.terr[e.t].name) + '{/}, ' + W.timeOfDay() + ':', who + (p.mirror ? ', with the Mirror in their eyes' : '') + '.', '', D.keys('{g}E{/}: fight')], null,
-      [['a', function () { self.fight(p, e); }]]);
+      [['a', function () { self.fight(p, e); }, 'FIGHT']]);
   };
   // the field: 16 x 7 squares of the hex's ground, the lineup's squares kept open (x 3 to 10), the road along the middle where the hex has one
   W.field = function (e) {
@@ -502,13 +524,13 @@
     list.forEach(function (k, i) { var big = D.FOES[k] && D.FOES[k].size >= 2, at = big ? back.shift() : front.shift() || small2.shift(); if (at) out.push({ id: 'w' + i + '-' + k, kind: k, at: at }); });
     return out;
   };
-  World.prototype.fight = function (p, e) {
-    var self = this, night = W.timeOfDay() === 'night';
+  World.prototype.fight = function (p, e, o) { // (o: { data: the party as it walks in, dark, intro, after(res, b) } -- the night's watches, js/house.js)
+    var self = this, night = W.timeOfDay() === 'night' || !!(o && o.dark);
     W.field(e);
     var F = { id: 'worldfield', map: 'world-field', level: W.LEVEL, name: 'On the road', sub: (p.mirror ? 'mirror-made: ' : '') + p.zone, dark: night,
-      intro: (p.mirror ? 'Mirror-made: ' : '') + 'They come at the party on the ' + (M.road[K(e.q, e.r)] ? 'road' : M.terr[e.t].name) + '.', won: 'THE ROAD IS CLEAR.', lost: 'THE ROAD TAKES THEM.',
+      intro: (o && o.intro) || ((p.mirror ? 'Mirror-made: ' : '') + 'They come at the party on the ' + (M.road[K(e.q, e.r)] ? 'road' : M.terr[e.t].name) + '.'), won: 'THE ROAD IS CLEAR.', lost: 'THE ROAD TAKES THEM.',
       foes: W.seat(p.list), wave: null };
-    var b = new D.Battle(W.house() ? { fightDef: F, data: D.house.cur, house: true, world: true, onDone: function (res) { self.afterFight(res, p, b); } } // (the house's party, wounds and all: js/house.js)
+    var b = new D.Battle(W.house() ? { fightDef: F, data: (o && o.data) || D.house.cur, house: true, world: true, record: { fight: 'worldfield', name: 'On the road', level: (D.house.cur.party[0] || {}).lvl }, onDone: function (res) { if (o && o.after) o.after(res, b); else self.afterFight(res, p, b); } } // (the house's party, wounds and all, and its play record: js/house.js)
       : { fightDef: F, ladder: true, level: W.LEVEL, world: true, onDone: function (res) { self.afterFight(res, p); } }), e0 = b.enter;
     b.enter = function () {
       e0.apply(this, arguments);

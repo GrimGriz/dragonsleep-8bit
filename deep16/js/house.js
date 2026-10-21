@@ -89,6 +89,93 @@
     if (fell.length) { var sp = R.spoils(fell, standing, { roll: function (e) { return D.roll(e).total; }, rng: D.rand }, function (id, n) { add(H.cur.inv, id, n); }); H.cur.silver += sp.silver; lines = lines.concat(sp.lines); }
     return lines;
   };
+  // no level cap (RULED 10-21, Griz: "we won't have a level cap, these guys will be going against a clock"): in the house the cap is the XP table's top (js/rules.js
+  // R.XP_LEVEL); the first game's own cap stands wherever the house is not being played (this file loads only in deep16/)
+  var cap0 = DS.R.cap; DS.R.cap = function () { return H.playing ? DS.R.XP_LEVEL.length - 1 : cap0.apply(this, arguments); };
+
+  // ---------------------------------------------------------------- THE NIGHT (RULED 10-21, Griz: "when not rope-trick or tiny hut, they'll have to assign 3 watches for a
+  // long rest. Each watch will roll an encounter check - less than if traveling, but on encounter party members not on that watch will be out of armor for that combat
+  // (discuss exception for wizard and thief light armor sleeping)"): the camp's night on THE WORLD -- three watches, each standing hero on one; each watch an encounter check
+  // on the night's tables (js/world.js W.pick, night) at W.WATCHX of the road's going for its hours; a fight wakes the rest with their armor off (H.SLEEP_LIGHT: his word
+  // on light armor, off till he gives it); then the long rest (W.camp -> H.longRest). Rope Trick and the Tiny Hut keep the night with no watch (js/house.js H.field)
+  H.WATCHES = 3; H.WATCHX = 0.5; H.SLEEP_LIGHT = false;
+  H.watchDefault = function (party) { var up = party.filter(function (h) { return !down(h); }); var a = {}; up.forEach(function (h, i) { a[h.key || h.id] = (i % H.WATCHES) + 1; }); return a; };
+  // the sleepers' armor off (a copy of the save for the fight): what they wore, kept to put back after
+  H.sleepersOff = function (rec, on) {
+    var d = JSON.parse(JSON.stringify(rec)), off = {};
+    d.party.forEach(function (h) {
+      var id = h.key || h.id; if (on.indexOf(id) >= 0) return;
+      var ar = h.equip && h.equip.armor && DS.DATA.items[h.equip.armor], light = ar && ar.armor && ar.armor.type === 'light';
+      if (H.SLEEP_LIGHT && (!ar || light)) return;
+      off[id] = { armor: h.equip.armor || null, shield: h.equip.shield || null }; h.equip.armor = null; h.equip.shield = null;
+    });
+    return { data: d, off: off };
+  };
+  H.night = function (scene) { if (!H.playing) return; D.push(new Watches(scene)); };
+  H.runNight = function (scene, asg) {
+    var W = D.world, k = 0, ids = Object.keys(asg);
+    var next = function () {
+      if (!H.playing) return;
+      k++;
+      if (k > H.WATCHES) { var ups = W.camp(); scene.say('Dawn: the night\'s rest is had, ' + W.timeOfDay() + '.' + (ups && ups.length ? ' ' + ups.join(' ') : '')); return; }
+      var on = ids.filter(function (id) { return asg[id] === k; }), S = W.state(), e = W.M().hex[W.K(S.at[0], S.at[1])], zone = W.zoneOf(e);
+      if (S.zone !== zone || S.count == null) W.resetCount(zone);
+      S.count -= W.DAYHOURS / H.WATCHES * W.PACE * W.NIGHTX * H.WATCHX;
+      var p = S.count <= 0 ? (W.resetCount(zone), W.pick(zone, true)) : null;
+      if (!p || !p.list.length) { next(); return; }
+      var names = on.map(function (id) { var h = H.cur.party.filter(function (x) { return (x.key || x.id) === id; })[0]; return h ? h.name : id; });
+      var so = H.sleepersOff(H.cur, on), who = p.list.length + ' come out of the dark';
+      D.sfx('encounter');
+      scene.card(['{r}THE ' + ['FIRST', 'SECOND', 'THIRD'][k - 1] + ' WATCH{/}: ' + who + '.', (names.length ? names.join(' and ') + ' on watch' : 'no one on watch') + '; the rest wake with their armor off.', '', D.keys('{g}E{/}: fight')], null,
+        [['a', function () {
+          scene.fight(p, e, { data: so.data, dark: true, intro: 'In the ' + ['first', 'second', 'third'][k - 1] + ' watch, out of the dark: ' + (names.length ? names.join(' and ') + ' standing it, the rest up from their blankets.' : 'no one standing it.'),
+            after: function (res, b) {
+              try { D.music('corridor'); } catch (e2) { }
+              var ln = H.afterFight(b, res); if (ln === null) return;
+              H.cur.party.forEach(function (h) { var o = so.off[h.key || h.id]; if (o) { h.equip.armor = o.armor; h.equip.shield = o.shield; } }); // (their armor back on for the morning)
+              scene.say((res === 'won' ? 'The watch holds. ' : 'The party got clear of them. ') + ln.join(' '));
+              next();
+            } });
+        }, 'FIGHT']]);
+    };
+    next();
+  };
+  function Watches(scene) { this.kind = 'housewatches'; this.opaque = false; this.scene = scene; this.party = H.cur.party.filter(function (h) { return !down(h); }); this.asg = H.watchDefault(this.party); this.i = 0; this.t = 0; }
+  Watches.prototype.box = function () { var w = 300, h = 34 + this.party.length * 15 + 26, x = (D.W - w) / 2, y = (D.H - h) / 2 - 10; return { x: x, y: y, w: w, h: h }; };
+  Watches.prototype.rects = function () {
+    var b = this.box(), self = this, out = [];
+    this.party.forEach(function (h, r) { for (var k = 1; k <= H.WATCHES; k++) out.push({ x: b.x + 150 + (k - 1) * 46, y: b.y + 28 + r * 15, w: 42, h: 12, label: ['FIRST', 'SECOND', 'THIRD'][k - 1], id: h.key || h.id, k: k, row: r }); });
+    out.push({ x: b.x + b.w / 2 - 110, y: b.y + b.h - 20, w: 120, h: 14, label: 'BEGIN THE NIGHT', go: 'begin' }, { x: b.x + b.w / 2 + 16, y: b.y + b.h - 20, w: 90, h: 14, label: 'BACK', go: 'back' });
+    return out;
+  };
+  Watches.prototype.go = function (what) {
+    D.pop();
+    if (what === 'begin') { D.sfx('confirm'); H.runNight(this.scene, this.asg); } else D.sfx('cancel');
+  };
+  Watches.prototype.update = function () {
+    this.t++;
+    var m = I.mouse, n = this.party.length, self = this;
+    if (I.repeat('up')) { this.i = (this.i + n - 1) % n; D.sfx('cursor'); }
+    if (I.repeat('down')) { this.i = (this.i + 1) % n; D.sfx('cursor'); }
+    var h0 = this.party[this.i], id0 = h0 && (h0.key || h0.id);
+    if (h0 && I.repeat('left')) { this.asg[id0] = (this.asg[id0] + H.WATCHES - 2) % H.WATCHES + 1; D.sfx('cursor'); }
+    if (h0 && I.repeat('right')) { this.asg[id0] = this.asg[id0] % H.WATCHES + 1; D.sfx('cursor'); }
+    if (m.click && m.inside) { var hit = this.rects().filter(function (q) { return m.x >= q.x && m.x < q.x + q.w && m.y >= q.y && m.y < q.y + q.h; })[0]; if (hit) { if (hit.go) { this.go(hit.go); return; } this.asg[hit.id] = hit.k; this.i = hit.row; D.sfx('cursor'); } }
+    if (I.pressed('a')) { this.go('begin'); return; }
+    if (I.pressed('b') || m.rclick) this.go('back');
+  };
+  Watches.prototype.draw = function (ctx) {
+    var b = this.box(), self = this, W = D.world;
+    ctx.fillStyle = 'rgba(4,3,10,.55)'; ctx.fillRect(0, 0, D.W, D.H);
+    D.win8(ctx, b.x, b.y, b.w, b.h);
+    D.text(ctx, '{y}THE NIGHT\'S WATCHES{/}', b.x + 10, b.y + 7, D.WIN8.text);
+    D.text(ctx, 'who stands which watch', b.x + 10, b.y + 17, '#9c9cb4');
+    this.party.forEach(function (h, r) { var y = b.y + 30 + r * 15, on = r === self.i; if (on) { ctx.fillStyle = D.WIN8.sel; ctx.fillRect(b.x + 4, y - 3, 142, 13); } D.text(ctx, (on ? '> ' : '  ') + h.name + ' ' + Math.max(0, h.hp) + '/' + h.maxhp, b.x + 8, y, D.WIN8.text); });
+    this.rects().forEach(function (q) { var lit = q.go || self.asg[q.id] === q.k; W.button(ctx, { x: q.x, y: q.y, w: q.w, h: q.h, label: lit || q.go ? q.label : '' }); if (!q.go && lit) { ctx.strokeStyle = D.WIN8.gold; ctx.strokeRect(q.x + 0.5, q.y + 0.5, q.w - 1, q.h - 1); } });
+    ctx.fillStyle = 'rgba(4,3,10,.95)'; ctx.fillRect(0, D.H - 17, D.W, 17); // (its own line over the screen's)
+    D.hint(ctx, 'click a watch · up/down a hero, left/right the watch · E begin · X back', D.W / 2, D.H - 12, '#9a96a8', 'center');
+  };
+  H.Watches = Watches;
   H.lost = function () { H.playing = false; H.cur = null; D.scenes.length = 0; D.push(new Title({ lost: true })); };
   H.toTitle = function () { H.playing = false; H.cur = null; D.scenes.length = 0; D.push(new Title()); }; // (EXIT on a floor or in a fight: what is unsaved is left -- deep16/js/ui.js gridHost's exits)
   // the long rest (THE WORLD's camp; js/events.js EV.longRest, the first game's): Aid's and Mage Armor's hours over, each sheet whole again (js/rules.js R.refresh),
@@ -97,7 +184,7 @@
     if (!H.playing) return [];
     var R = DS.R, lines = [];
     DS.G = { flags: H.cur.flags };
-    H.cur.party.forEach(function (h) { h.conds = h.conds || {}; if (h.conds.aid) { h.maxhp -= h.conds.aid; delete h.conds.aid; } delete h.conds.mageArmor; R.refresh(h, true); });
+    H.cur.party.forEach(function (h) { h.conds = h.conds || {}; if (h.conds.aid) { h.maxhp -= h.conds.aid; delete h.conds.aid; } delete h.conds.mageArmor; R.refresh(h, true); h.hdLeft = Math.min(h.lvl, (h.hdLeft != null ? h.hdLeft : h.lvl) + Math.max(1, Math.floor(h.lvl / 2))); }); // (the SRD: a long rest gives back half the hit dice spent, at least one)
     H.cur.party.forEach(function (h) { lines = lines.concat(R.gainXP(h, 0)); });
     var who = H.cur.party.filter(function (h) { return R.picksDue(h); });
     if (who.length && scene) {
@@ -124,8 +211,128 @@
     return { n: n, l: 'SLOT ' + n + '   ' + lead.name + ' L' + lead.lvl + '   ' + H.where(rec), r: 'day ' + d + (when ? '  ' + (when.getMonth() + 1) + '/' + when.getDate() + ' ' + ('0' + when.getHours()).slice(-2) + ':' + ('0' + when.getMinutes()).slice(-2) : '') };
   };
 
-  // the party's menu on THE WORLD (M): the one menu over the save's own sheets and pack -- EQUIP, ITEMS, STATUS and SAVE (js/menu.js; the host as the Pocket DM's
-  // camp hands one, its own state). A potion on the road; casting and skills out of a fight come with the field menu (the house lane's next piece)
+  // ---------------------------------------------------------------- THE FIELD (RULED 10-21, lean 4, his "the rest sound good"): the first game's field menu -- js/events.js
+  // EV.fieldCast, EV.fieldSkill, EV.useFieldItem, their rules and their words (content/text.json g.*) -- on the second game's own bodies: a save's sheet on THE WORLD,
+  // a floor's figure in a town (its sheet behind it, u.src). Nothing hands back to the 8-bit. env: { where: 'world' | 'floor', party: the bodies, tent: a rest may be
+  // had here, has(id), take(id), ward(steps): the chalk's 60 of the 8-bit's steps, longRest() }. Each returns the lines to say
+  var FD = H.field = {};
+  function say(k, o) { var r = (DS.DATA.text || {})[k], s = r ? (typeof r === 'string' ? r : r.t) : k; Object.keys(o || {}).forEach(function (n) { s = s.split('{' + n + '}').join(o[n]); }); return s; }
+  function gearOf(x) { return x.equip || (x.src && x.src.equip) || {}; }
+  function sheetOf(x) { return x.src || x; }
+  function down(x) { return !!x.ko || x.hp <= 0; }
+  FD.heal = function (t, amt) { var before = Math.max(0, t.hp), n = Math.max(0, Math.min(t.maxhp - before, amt)), woke = down(t) && n > 0; t.hp = before + n; if (woke) t.ko = false; return { n: n, woke: woke }; };
+  function healed(t, hf) { return [say('g.healed', { name: t.name, n: hf.n })].concat(hf.woke ? [say('g.comesRound', { name: t.name })] : []); }
+  var ILLS = ['poisoned', 'paralyzed', 'blinded', 'deafened'];
+  function cure(t) { var cc = t.conds || {}, ills = ILLS.filter(function (k) { return cc[k]; }); ills.forEach(function (k) { delete cc[k]; }); Object.keys(cc).forEach(function (k) { var v = cc[k]; if (v && typeof v === 'object' && v.linked === 'poisoned') delete cc[k]; }); return ills.length; }
+  FD.cast = function (c, sp, t, env) {
+    var R = DS.R, slot = sp.level && !sp.ritual ? R.lowestSlot(c, sp.level) : 0, spend = function () { if (slot) c.slots[slot - 1]--; };
+    if (sp.level && !sp.ritual && !slot) return [say('g.noSlots')];
+    if (sp.kind === 'rest') { // (Rope Trick a short rest, the Tiny Hut a long one: only where a tent could go, each spending its component -- the first game's rule)
+      if (!env.tent) return [say('g.noRestHere')];
+      if (sp.component && !env.has(sp.component)) return [say('g.noComponent', { item: DS.DATA.items[sp.component].name })];
+      if (sp.component) env.take(sp.component); spend(); D.sfx('magic');
+      if (sp.rest === 'long') return [say('g.tinyHut')].concat(env.longRest() || []);
+      env.party.forEach(function (x) { if (!down(x)) x.hp = Math.min(x.maxhp, x.hp + Math.ceil(x.maxhp / 2)); R.refresh(x, false); });
+      return [say('g.ropeTrick'), say('g.tentRest')];
+    }
+    if (sp.kind === 'heal' || sp.kind === 'cure' || (sp.kind === 'buff' && sp.target !== 'allies')) {
+      var ma = sp.buff === 'mageArmor', armored = function (x) { return R.armored(sheetOf(x)); };
+      t = t || (sp.target === 'self' ? c : null); if (!t) return ['On whom?'];
+      if (sp.kind === 'heal' && t.hp >= t.maxhp) return [say('g.fullHP', { name: t.name })];
+      if (ma && armored(t)) return [env.party.every(function (x) { return armored(x) || down(x); }) ? say('g.mageArmorNone') : t.name + ' wears armor: Mage Armor will not take.'];
+      if (sp.buff === 'continualFlame' && !gearOf(t).weapon) return [say('g.flameNothing')];
+      if (sp.kind !== 'heal' && sp.kind !== 'cure' && down(t)) return [say('g.notDown', { name: t.name }).replace('still standing', 'down')];
+      spend(); D.sfx('heal');
+      if (sp.kind === 'heal') { var cm = (R.CLASSES[c.cls] || {}).cast || 'cha'; return healed(t, FD.heal(t, D.roll(sp.dmg.replace(/^(\d+)d/, function (m, k) { return (+k + (slot - sp.level)) + 'd'; })).total + DS.mod(c.abil[cm]))); }
+      t.conds = t.conds || {};
+      if (sp.kind === 'cure') { cure(t); return [say('g.cured', { name: t.name })]; } // (what it cures, as the Elixir out of a fight: the first game's cast only said so)
+      if (ma) { t.conds.mageArmor = true; return [say('g.mageArmor', { name: t.name, ac: R.ac(Object.assign({}, sheetOf(t), { conds: t.conds })) })]; }
+      if (sp.buff === 'darkvision') { t.conds.darkvision = true; return [say('g.darkvision', { name: t.name })]; }
+      if (sp.buff === 'continualFlame') { t.conds.continualFlame = gearOf(t).weapon; return [say('g.continualFlame', { name: t.name })]; }
+      return [say('g.nothingHappens')];
+    }
+    if (sp.buff === 'aid') { // (up to three: the three worst hurt, the caster's choice the first game asks -- the seat's, his to overrule; the higher Aid stands, the fallen come round)
+      var up3 = env.party.slice().sort(function (a, b) { return a.hp / a.maxhp - b.hp / b.maxhp; }).slice(0, 3), aN = 5 * Math.max(1, (slot || sp.level) - 1), woke = [];
+      spend();
+      up3.forEach(function (x) { x.conds = x.conds || {}; var had = x.conds.aid || 0, more = Math.max(0, aN - had); x.maxhp += more; x.hp = Math.max(0, x.hp) + more; x.conds.aid = Math.max(had, aN); if (x.ko && x.hp > 0) { x.ko = false; woke.push(x); } });
+      D.sfx('buff');
+      return [say('g.aid', { who: up3.map(function (x) { return x.name; }).join(', '), n: aN })].concat(woke.map(function (x) { return say('g.comesRound', { name: x.name }); }));
+    }
+    if (sp.kind === 'light') { // (the Light on the one chosen, carried till the long rest -- RULED 10-20, his "that seems aligned with SRD"; it lights a floor: js/light.js reads conds.light)
+      t = t || c; t.conds = t.conds || {}; t.conds.light = { by: c.key || c.id }; D.sfx('magic');
+      return [say('g.light')];
+    }
+    if (sp.kind === 'detect') { D.sfx('magic'); return [say('g.detectNo')]; }
+    return [say('g.nothingHappens')];
+  };
+  FD.skill = function (c, s, t) {
+    if (s === 'lay') { t = t || c; if (t.hp >= t.maxhp) return [say('g.fullHP', { name: t.name })]; var lh = FD.heal(t, c.feats.lay || 0); c.feats.lay -= lh.n; D.sfx('heal'); return healed(t, lh); }
+    if (s === 'arcane') {
+      var budget = Math.ceil(c.lvl / 2), got = 0;
+      for (var lv = Math.min(5, budget); lv >= 1; lv--) while (budget >= lv && c.slots[lv - 1] < c.slotsMax[lv - 1]) { c.slots[lv - 1]++; budget -= lv; got++; }
+      c.feats.arcaneRecovery = 0; D.sfx('magic');
+      return [say('g.arcane', { name: c.name, n: got })];
+    }
+    if (s === 'wind') { var w = Math.min(c.maxhp - c.hp, D.roll('1d10').total + c.lvl); c.hp += w; c.feats.secondWind = 0; D.sfx('heal'); return [say('g.healed', { name: c.name, n: w })]; }
+    return [say('g.nothingHappens')];
+  };
+  // a sheet learned from (the first game's js/events.js EV.learnWhy): '' if this one can, else why not
+  FD.learnWhy = function (id, h, party) {
+    var use = DS.DATA.items[id].use, sp = DS.DATA.spells[use.spell], cls = use.cls || 'wizard', lvl = sp.level || 0, x = sheetOf(h);
+    if (x.cls !== cls) return h.name + ' can make nothing of it: it wants a ' + cls + '.';
+    if ((x.known || []).indexOf(use.spell) >= 0) return h.name + ' knows ' + sp.name + ' already.';
+    if (lvl && !((h.slotsMax || x.slotsMax || [])[lvl - 1] > 0)) return h.name + ' cannot cast spells of its level yet.';
+    return '';
+  };
+  // an item from the pack (null: not the field's -- a light on THE WORLD, Katarina's book)
+  FD.item = function (id, h, env) {
+    var it = DS.DATA.items[id], use = it && it.use; if (!use) return null;
+    var R = DS.R;
+    if (use.effect === 'heal') { if (h.hp >= h.maxhp) return [say('g.fullHP', { name: h.name })]; env.take(id); D.sfx('heal'); return healed(h, FD.heal(h, D.roll(use.dice).total)); }
+    if (use.effect === 'cure') { if (!ILLS.some(function (k) { return (h.conds || {})[k]; })) return [say('g.nothingToCure', { name: h.name })]; env.take(id); cure(h); D.sfx('heal'); return [say('g.cured', { name: h.name })]; }
+    if (use.effect === 'revive') { if (!down(h)) return [say('g.notDown', { name: h.name })]; env.take(id); h.ko = false; h.hp = use.hp || 1; D.sfx('heal'); return [say('g.revived', { name: h.name })]; }
+    if (use.effect === 'rest') { if (!env.tent) return [say('g.noTentHere')]; env.take(id); env.party.forEach(function (x) { if (!down(x)) x.hp = Math.min(x.maxhp, x.hp + Math.ceil(x.maxhp / 2)); R.refresh(x, false); }); return [say('g.tentRest')]; }
+    if (use.effect === 'ward') { env.take(id); env.ward(60); D.sfx('magic'); return [say('g.chalk')]; }
+    if (use.effect === 'learn') {
+      var why = FD.learnWhy(id, h, env.party); if (why) return [why];
+      var sp0 = DS.DATA.spells[use.spell], x = sheetOf(h); x.known = x.known || []; x.known.push(use.spell); if (h !== x && Array.isArray(h.known) && h.known.indexOf(use.spell) < 0) h.known.push(use.spell);
+      env.take(id); D.sfx('magic');
+      return [h.name + ' copies ' + sp0.name + ' into the spellbook. The sheet is spent.'].concat(x.prepared ? ['New spells are prepared after a long rest.'] : []);
+    }
+    return null;
+  };
+  // a short rest (RULED 10-21, lean 3: "the SRD's hit dice"): an hour; the fallen up at 1 HP, then each spends hit dice -- a die of the class and the CON modifier
+  // -- till whole or out; the short rest's own uses back (js/rules.js R.refresh). A long rest gives back half the dice (H.longRest). h.hdLeft: the dice not yet spent
+  H.shortRest = function (party) {
+    var R = DS.R, lines = [];
+    party.forEach(function (h) {
+      var hd = (R.CLASSES[h.cls] || {}).hd || 8, left = h.hdLeft != null ? h.hdLeft : h.lvl, got = 0, n = 0;
+      if (down(h)) { h.hp = 1; h.ko = false; }
+      while (h.hp < h.maxhp && left > 0) { var r = Math.max(0, D.roll('1d' + hd).total + DS.mod(h.abil.con)); h.hp = Math.min(h.maxhp, h.hp + r); got += r; left--; n++; }
+      h.hdLeft = left; R.refresh(h, false);
+      if (n) lines.push(h.name + ' spends ' + n + ' hit ' + (n > 1 ? 'dice' : 'die') + ' (+' + got + ' HP, ' + left + ' left)');
+    });
+    D.sfx('heal');
+    return ['A short rest: an hour.' + (lines.length ? ' ' + lines.join('; ') + '.' : ' No one needs a die.')];
+  };
+  function worldEnv(scene) {
+    var rec = H.cur, W = D.world;
+    return { where: 'world', party: rec.party, tent: true, has: function (id) { return rec.inv.some(function (s) { return s.id === id && s.n > 0; }); }, take: function (id) { add(rec.inv, id, -1); },
+      ward: function (steps) { var S = W.state(); if (S.count != null) S.count += steps / W.HEXSTEPS * 5; }, longRest: function () { return W.camp(); } };
+  }
+  // the field on a town floor (js/roam.js R.menuAct, in the house): the menu's sheets to the floor's figures (unitOf), the same rules
+  H.fieldOnFloor = function (B, kind, a, unitOf) {
+    var R0 = B.roam, RR = D.roam, c = a.h ? unitOf(a.h) || null : null, t = a.t ? unitOf(a.t) || null : null;
+    var env = { where: 'floor', party: R0.members, tent: false, has: function (id) { return (B.inv || []).some(function (s) { return s.id === id && s.n > 0; }); },
+      take: function (id) { var s = (B.inv || []).filter(function (x) { return x.id === id; })[0]; if (s) s.n--; }, ward: function (steps) { R0.encIn += steps * RR.RATE; }, longRest: function () { return []; } };
+    if (kind === 'cast' && c && a.sp) return FD.cast(c, a.sp, t, env);
+    if (kind === 'skill' && c) return FD.skill(c, a.s, t);
+    if (kind === 'item' && a.id) return FD.item(a.id, c || R0.token, env);
+    return null;
+  };
+
+  // the party's menu on THE WORLD (M): the one menu over the save's own sheets and pack -- ITEMS, MAGIC, SKILLS, EQUIP, STATUS and SAVE (js/menu.js; the host as the
+  // Pocket DM's camp hands one, its own state), the field's rules (H.field)
   H.openMenu = function (scene) {
     var rec = H.cur, R = DS.R, figs = {};
     function figure(h, w, hh) { // (the grid's own figure in the panel and STATUS, as deep16/js/ui.js gridHost draws it; the sheet fetched the first time it is asked for)
@@ -146,11 +353,12 @@
       info: function () { return { silver: rec.silver, place: H.where(rec), time: D.world.timeOfDay() }; },
       canSave: function () { return true; },
       run: function (kind, a, done) {
-        var it = a && a.id ? DS.DATA.items[a.id] : null, h = a && a.h;
+        var env = worldEnv(scene), lines = null;
         if (kind === 'save') { scene.pm = null; D.push(new Slots('save')); }
-        else if (kind === 'item' && it && it.use && it.use.effect === 'heal' && h) { if (h.hp <= 0) scene.say(h.name + ' is down: a kit first.'); else { var was = h.hp; h.hp = Math.min(h.maxhp, h.hp + D.roll(it.use.dice).total); add(rec.inv, a.id, -1); D.sfx('heal'); scene.say(h.name + ' drinks the ' + it.name + ': +' + (h.hp - was) + ' HP (' + h.hp + '/' + h.maxhp + ').'); } }
-        else if (kind === 'item' && it && it.use && it.use.effect === 'revive' && h) { if (h.hp > 0) scene.say(h.name + ' is not down.'); else { h.hp = it.use.hp || 1; h.ko = false; add(rec.inv, a.id, -1); D.sfx('heal'); scene.say(h.name + ' is up (' + h.hp + ' HP).'); } }
-        else scene.say('On the road that waits for the field menu (the house lane\'s next piece).');
+        else if (kind === 'cast' && a.h && a.sp) lines = FD.cast(a.h, a.sp, a.t || null, env);
+        else if (kind === 'skill' && a.h) lines = FD.skill(a.h, a.s, a.t || null);
+        else if (kind === 'item' && a.id) lines = FD.item(a.id, a.h || rec.party[0], env) || ['On the road a light waits for the dark: it is lit on a floor, or in a fight.'];
+        if (lines && lines.length) { scene.say(lines.join(' ')); if (scene.pm && scene.pm.say) scene.pm.say(lines); }
         if (done) done();
       },
       close: function () { scene.pm = null; }
@@ -189,6 +397,7 @@
       if (r.r) D.text(ctx, r.r, b.x + b.w - 8, y, '#c8d0e8', 'right');
     });
     if (this.msg) D.text(ctx, '{y}' + this.msg + '{/}', D.W / 2, b.y + b.h - 12, D.WIN8.text, 'center');
+    ctx.fillStyle = 'rgba(4,3,10,.95)'; ctx.fillRect(0, D.H - 17, D.W, 17); // (its own line over the screen's)
     D.hint(ctx, 'up/down choose · E ' + (this.mode === 'save' ? 'save here' : 'load') + ' · X back', D.W / 2, D.H - 12, '#9a96a8', 'center');
   };
   H.Slots = Slots;

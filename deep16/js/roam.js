@@ -839,7 +839,7 @@
     return !!(R.triggerAt(B, p[0], p[1], 'step') || R.wadeAsk(B, [x, y]) || (R.def.doors || []).some(function (d) { return d[0] === x && d[1] === y; }));
   };
   // what a condition-set keeps past a fight (the 8-bit's finish clears the rest; js/embed.js carries these): Mage Armor till the long rest, the day's Darkvision, a Continual Flame
-  R.LASTING = ['mageArmor', 'darkvision', 'continualFlame', 'aid'];
+  R.LASTING = ['mageArmor', 'darkvision', 'continualFlame', 'aid', 'light']; // (light: the cantrip carried off a fight till the long rest -- RULED 10-20, his "that seems aligned with SRD"; the house lane's 10-19 note 5)
   R.lasting = function (c) { var o = {}; R.LASTING.forEach(function (k) { if (c && c[k]) o[k] = JSON.parse(JSON.stringify(c[k])); }); return o; };
   R.counts = function (inv) { var c = {}; (inv || []).forEach(function (s) { var id = Array.isArray(s) ? s[0] : s.id, n = Array.isArray(s) ? s[1] : s.n; c[id] = (c[id] || 0) + (n || 0); }); return c; };
   // a pulled-in fight's pack handed back as the change it made (js/embed.js's inv0 and inv1): what it used gone, what it found or stowed added, never below none -- so the
@@ -1539,6 +1539,7 @@
         if (!u || u.hp > 0) { B.card(['{g}' + (u ? u.name + ' is not down.' : 'Whom?') + '{/}'], 160); return true; }
         u.hp = it.use.hp || 1; u.ko = false; take(); D.sfx('heal'); B.card(['{y}' + u.name + '{/} is up (' + u.hp + ' HP).'], 200); return true;
       }
+      if (R.house()) { var lnI = D.house.fieldOnFloor(B, 'item', a, unitOf); if (lnI) { B.card(R.wrap(lnI), 260); return true; } } // (the house: the field's own rules -- js/house.js H.field)
       return R.actOut(B, { kind: 'item', id: a.id, h: a.h || null }, unitOf); // (the tent, a sheet to learn, the rest: the 8-bit's own -- R.actOut)
     }
     if (kind === 'light-off' && u && u.torch) {
@@ -1546,6 +1547,7 @@
       if (id) { var s2 = (B.inv || []).filter(function (x) { return x.id === id; })[0]; if (s2) s2.n++; else (B.inv = B.inv || []).push({ id: id, n: 1 }); }
       B.card(['{y}' + u.name + '{/} ' + (id ? 'puts the lantern away.' : 'puts the torch out (spent).')], 200); return true;
     }
+    if ((kind === 'cast' || kind === 'skill') && R.house()) { var lnC = D.house.fieldOnFloor(B, kind, a, unitOf); if (lnC) { B.card(R.wrap(lnC), 260); return true; } } // (the house: the field's own rules -- js/house.js H.field)
     if (kind === 'cast' || kind === 'skill') return R.actOut(B, { kind: kind, h: a.h, sp: a.sp, s: a.s, t: a.t }, unitOf); // (the 8-bit's own, by a hand-back: R.actOut)
     return false;
   };
