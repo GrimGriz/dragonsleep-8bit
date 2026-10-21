@@ -497,7 +497,7 @@ classes get at level 5"*; *"Build now"*. The design and its arithmetic (Monster 
 
 ### THE MASCOT (10-06 night) -- the class as races, a class and four roles
 
-Griz's rulings verbatim are in the MPMon lane (`..\..\handoff-2026-10-06-the-monster-party-monsters.md` §6). Where the section above says
+Griz's rulings verbatim are in the MPMon lane (`..\..\handoff-2026-10-06-the-monster-party-monsters.md` §6; since the lanes' 10-21 rescope cut its built sections, in its copy at `..\..\weaving-room\handoffs-pre-rescope-2026-10-21\`). Where the section above says
 otherwise, this stands.
 
 - **Named:** the class is the **Mascot** (R.CLASSES.mpmon's name; the code key stays `mpmon`). **The races:** `MP.RACES` -- the Lobstamonkee
