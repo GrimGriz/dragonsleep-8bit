@@ -398,7 +398,7 @@
   // file (SAVE ROSTER), but a reload would lose it -- the message outlasts the screen it was set on
   Pocket.prototype.keep = function () { this.st.mapId = this.mapSel; this.st.crI = this.crI; this.st.foes = this.foes; this.st.watch = this.watch; var ok = PK.save(this.st); if (!ok) this.failSay(); return ok; };
   Pocket.prototype.failSay = function () { this.msg = { text: 'NOT SAVED: this browser\'s storage is full or shut. SAVE CAMPAIGN to a file.', t: 480, sticky: true, bad: true }; };
-  Pocket.prototype.go = function (screen) { if (screen === 'modules') this.fold = null; this.dropField(); this.screen = screen; this.ksel = 0; this.scroll = 0; this.msg = this.msg && this.msg.sticky ? this.msg : null; this.cache = {}; };
+  Pocket.prototype.go = function (screen) { if (screen === 'modules') this.fold = null; this.dropField(); this.noteFrom = null; this.screen = screen; this.ksel = 0; this.scroll = 0; this.msg = this.msg && this.msg.sticky ? this.msg : null; this.cache = {}; }; // (noteFrom: where NOTES came from -- the result's card sets it after its go, 10-21)
 
   // a field over the canvas (a name, the notes): the game hears no key while it has the focus (core.js D.typing)
   Pocket.prototype.useField = function (kind, rect, value, oninput) {
@@ -502,7 +502,7 @@
     if (s === 'hub') { this.keep(); this.go('party'); return; }
     if (s === 'morning') { this.go(this.mFrom && this.mFrom !== 'morning' ? this.mFrom : 'hub'); return; }
     if (s === 'cr') { if (this.st.run) { this.go('title'); return; } this.go('map'); return; }
-    if (s === 'notes') { this.go('fights'); return; }
+    if (s === 'notes') { var nf = this.noteFrom; this.go(nf === 'result' && this.result ? 'result' : 'fights'); return; } // (opened from a fight's card: back to it)
     if (s === 'market') { this.go(this.marketFrom && this.marketFrom !== 'market' ? this.marketFrom : 'party'); return; }
     if (s === 'result' || s === 'rest' || s === 'unlock') return; // (a card with its own buttons)
     this.go('title');
@@ -1804,6 +1804,9 @@
     D.win8(ctx, x, y, w, h);
     var headT = r.unlocked ? '{y}THE TRIAL IS PASSED.{/}' : won ? '{y}WON{/}' : r.res === 'lost' ? '{r}LOST{/}' : r.res === 'escaped' ? '{o}OUT THE WAY THEY CAME IN{/}' : '{g}LEFT THE TABLE{/}';
     ctx.save(); ctx.translate(D.W / 2, y + 8); ctx.scale(2, 2); D.text(ctx, headT, 0, 0, P('gold', 4), 'center'); ctx.restore();
+    // NOTES after every fight, in one place (RULED 10-13, the Pocket DM lane 2e, Griz: "same as clicking that fight in fights list notes - yes"): this fight's own notes,
+    // the page THE FIGHTS opens; its BACK comes back to this card, so a ladder or a module goes on from here
+    this.btn(ctx, 'NOTES' + (r.rec.notes ? ' *' : ''), x + w - 66, y + 6, 58, 13, function () { self.note = Math.max(0, self.st.fights.indexOf(r.rec)); self.go('notes'); self.noteFrom = 'result'; }, { small: true });
     D.text(ctx, r.rec.foes + '  ·  CR ' + r.rec.cr + ', ' + r.rec.diff.toLowerCase() + '  ·  ' + r.rec.rounds + ' round' + (r.rec.rounds === 1 ? '' : 's') + (r.rec.downs ? '  ·  ' + r.rec.downs + ' down' : ''), D.W / 2, y + 30, P('bone', 1), 'center');
     var yy = y + 44;
     r.end.forEach(function (e) { D.text(ctx, (e.down ? '{r}' : '{y}') + e.name + '{/}  ' + e.hp + '/' + e.maxhp + (e.down ? '  down' : ''), D.W / 2, yy, P('bone', 1), 'center'); yy += 10; });
@@ -1820,7 +1823,6 @@
     var by = y + h - 22, slot = this.slotOf(run);
     if (r.moduleDone) {
       this.btn(ctx, 'THE CAMP', x + 20, by, 120, 15, function () { self.go('hub'); }, { pri: true });
-      this.btn(ctx, 'NOTES', x + 150, by, 70, 15, function () { self.note = 0; self.go('notes'); });
       this.btn(ctx, 'THE MODULES', x + w - 110, by, 90, 15, function () { self.go('modules'); });
     } else if (slot && won) {
       // a module's fight won: what its slot allows next (10-17, his "DM flag ... if he allows short rest, long rest, market visit between runs")
@@ -1847,7 +1849,6 @@
     } else {
       this.btn(ctx, 'AGAIN', x + 20, by, 70, 15, function () { self.launch(); }, { pri: true });
       this.btn(ctx, 'NEW FOES', x + 100, by, 90, 15, function () { self.go('cr'); });
-      this.btn(ctx, 'NOTES', x + 200, by, 70, 15, function () { self.note = 0; self.go('notes'); });
       this.btn(ctx, 'THE CAMP', x + w - 110, by, 90, 15, function () { self.go('hub'); });
     }
   };

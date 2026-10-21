@@ -5597,6 +5597,18 @@
       pmT.draw(cxT); pmT.update(KT('right')); var t2 = pgT && pgT.tab;
       okPq('the level-up page\'s ' + tabsT.length + ' tabs answer the mouse: a click on tab ' + (tT && tT.tab) + ' steps to it (' + t0 + ' to ' + t1 + '), marks nothing (' + (marks0 === marks1) + '); the keys still step (to ' + t2 + ')',
         tabsT.length >= 2 && !!tT && t1 === tT.tab && t1 !== t0 && marks0 === marks1 && t2 !== t1);
+      // (5) NOTES after every fight (RULED 10-13, Griz: "same as clicking that fight in fights list notes - yes"): the result's card opens this fight's own notes, BACK comes back to the card;
+      // a ladder's lost rung here (it had none before), and a single fight's
+      Pq.st.run = { rung: 2, plan: [{}, {}, {}, {}], won: 1 }; var recN = { t: Date.now(), started: 'x', result: 'lost', rounds: 3, q: '?npc=goblin', map: 'hexfloor', mapName: 'The Hex Floor', party: ['Barley (fighter 3)'], foes: 'a Goblin', kinds: ['goblin'], cr: '1/4', diff: 'EASY', downs: 1, rung: 2, notes: '' };
+      Pq.st.fights = [{ t: 1, started: 'old', result: 'won', rounds: 2, q: '', party: [], foes: 'an older one', cr: '1', diff: 'EASY', notes: '' }]; Pq.st.fights.unshift(recN);
+      Pq.result = { res: 'lost', rec: recN, end: [] }; Pq.go('result'); drawPq(Pq, 'result lost'); var nbN = btnPq(Pq, /^NOTES/);
+      if (nbN) Pq.fire(nbN); var scrN = Pq.screen, noteN = Pq.note; drawPq(Pq, 'notes'); recN.notes = 'the goblin hid'; Pq.back(); var backN = Pq.screen;
+      drawPq(Pq, 'result again'); var nbN2 = btnPq(Pq, /^NOTES/), stillN = !!btnPq(Pq, /^RETRY$/);
+      Pq.go('fights'); drawPq(Pq, 'fights'); var fbN = Pq.btns.filter(function (b) { return /R3/.test(b.label); })[0]; if (fbN) Pq.fire(fbN); var scrF = Pq.screen; Pq.back(); var backF = Pq.screen;
+      Pq.st.run = null; Pq.go('result'); drawPq(Pq, 'result single'); var nbS = btnPq(Pq, /^NOTES/);
+      okPq('NOTES on a ladder\'s lost rung opens its own notes (' + scrN + ', fight ' + noteN + '), BACK to the card (' + backN + ', RETRY still there ' + stillN + ', the button says it has notes: ' + (nbN2 && nbN2.label) + '); from THE FIGHTS, BACK to the list (' + scrF + ' -> ' + backF + '); on a single fight\'s card too (' + !!nbS + ')',
+        !!nbN && scrN === 'notes' && noteN === 0 && backN === 'result' && stillN && !!nbN2 && nbN2.label === 'NOTES *' && scrF === 'notes' && backF === 'fights' && !!nbS);
+      Pq.result = null; Pq.st.fights = [];
     } catch (ePq) { repPq.errors.push(String(ePq && ePq.stack || ePq).slice(0, 800)); }
     var prePq = document.createElement('pre'); prePq.id = 'out'; prePq.textContent = 'BENCH16 ' + JSON.stringify(repPq);
     document.body.appendChild(prePq);
