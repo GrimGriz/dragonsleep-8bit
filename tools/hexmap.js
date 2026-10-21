@@ -1483,7 +1483,7 @@
     hcheck(); ar();
     var L = 1, out = { v: 1, baked: new Date().toISOString(), hexMi: LV[1].w, saved: S.saved || null, terr: {}, hexes: [], sites: [], paths: [], guessed: 0, filled: 0, parted: 0 };
     S.terr.forEach(function (t) { out.terr[t.k] = { name: t.name, color: t.color, cost: +t.cost, diff: !!t.diff, alt: +t.alt, cut: +t.cut || 0 }; });
-    var b = paintBox(), F = fillOf(b), nk = kids(LV[2].n).length;
+    var b = paintBox(), F = fillOf(b), nk = kids(LV[2].n).length; FINE0 = { F: F, b: b }; // (THE FINE LAND, below, bakes on the same box and fill)
     F.box.forEach(function (k) {
       var h = unK(k), q = h[0], r = h[1], t = F.g[k], mine = domT(L, q, r), cc = hc(L, q, r), fill = 0;
       if (!t) return; // (no paint anywhere)
@@ -1573,11 +1573,41 @@
     return { mi: L.mi, x0: L.x0, y0: L.y0, w: w, h: h, png: c.toDataURL('image/png') };
   }
 
+  // THE FINE LAND (10-21 night, the world map seat; a TRIAL, Griz: "Rather than shading the tops of the big hexes, can we actually draw the 330 terrain with
+  // the exception of the two hexes around the hero (build as trial alternate, don't break existing)", then "(a) but two rings" and "The land, raised"): every
+  // 330 ft of the world its ground (the finest paint there, else THE FILL's) and a wet floor's mark, and every eighth of a mile its height (the mean of its
+  // four 330 ft points, the tool's own ground and fractal) -- one buffer that tools/world-build.py packs into deep16/data/world-fine.bin, raised as the land
+  // itself by deep16/js/worldfine.js. Called after bake(), on its box and its fill; it leaves bake()'s own output as it was.
+  var FINE0 = null;
+  function bakeFine() {
+    hcheck(); ar();
+    var F = FINE0 ? FINE0.F : fillOf(paintBox()), mi = 1 / 16, hs = 2, b = [1e9, 1e9, -1e9, -1e9], hw1 = LV[1].w; // (hs: 330 ft points to a height's side)
+    F.box.forEach(function (k) { if (!F.g[k]) return; var q = unK(k), c = hc(1, q[0], q[1]); b[0] = Math.min(b[0], c[0] - hw1); b[1] = Math.min(b[1], c[1] - hw1); b[2] = Math.max(b[2], c[0] + hw1); b[3] = Math.max(b[3], c[1] + hw1); }); // (the box: every hex the bake keeps, a hex round)
+    var x0 = Math.floor(b[0] / 0.5) * 0.5, y0 = Math.floor(b[1] / 0.5) * 0.5, hw = Math.ceil((b[2] - x0) / (mi * hs)), hh = Math.ceil((b[3] - y0) / (mi * hs)), w = hw * hs, h = hh * hs;
+    var keys = S.terr.map(function (t) { return t.k; }), ix = {}; keys.forEach(function (k, i) { ix[k] = i; }); if (ix.plains === undefined) { ix.plains = keys.length; keys.push('plains'); }
+    var T = new Uint8Array(w * h), H = new Int16Array(hw * hh), acc = new Float64Array(hw), t0 = Date.now();
+    for (var y = 0; y < h; y++) {
+      if (!(y % hs)) acc.fill(0);
+      for (var x = 0; x < w; x++) {
+        var px = x0 + (x + 0.5) * mi, py = y0 + (y + 0.5) * mi, t = terrAtMi(px, py);
+        if (!t) t = fillAt(F, px, py);
+        if (!t || ix[t] === undefined) t = 'plains';
+        var hv = hAt(px, py, t);
+        T[x + y * w] = ix[t] | (PW && t !== 'lake' && t !== 'sea' ? 128 : 0); // (128: a thin sheet of water on the ground, a wet LIFT's floor)
+        acc[(x / hs) | 0] += hv;
+      }
+      if (y % hs === hs - 1) for (var i = 0; i < hw; i++) H[i + ((y / hs) | 0) * hw] = Math.max(-32000, Math.min(32000, Math.round(acc[i] / (hs * hs))));
+    }
+    var u8 = new Uint8Array(T.length + H.length * 2); u8.set(T, 0); u8.set(new Uint8Array(H.buffer), T.length); // (the heights little-endian, as every PC and browser keeps them)
+    var bin = '', CH = 0x8000; for (var o = 0; o < u8.length; o += CH) bin += String.fromCharCode.apply(null, u8.subarray(o, o + CH));
+    return { v: 1, mi: mi, x0: x0, y0: y0, w: w, h: h, hs: hs, hw: hw, hh: hh, keys: keys, ms: Date.now() - t0, b64: btoa(bin) };
+  }
+
   // ---------------------------------------------------------------- go
   load();
   window.HEXMAP = { S: function () { return S; }, view: view, at: at, up: up, kids: kids, hc: hc, effAt: effAt, measure: measure, LV: LV, GROW: GROW, grow: grow, hAt: function (x, y) { hcheck(); return hAt(x, y); }, hexH: hexH, // (for the seat's probes)
     dbg: function (x, y) { hcheck(); var t = terrAtMi(x, y), raw = hRaw(x, y, t), lift = peaksAt(x, y); return { t: t, blend: bil(AR.A, x, y), raw: raw, lift: lift, bed: bedAt(x, y, raw) }; },
-    bake: bake, fill: function () { return fillOf(paintBox()); },
+    bake: bake, bakeFine: bakeFine, fill: function () { return fillOf(paintBox()); },
     redraw: function () { LAYERKEY = ''; drawNow(); } };
   window.addEventListener('resize', resize);
   S.under.forEach(function (u) { if (u.on) loadUnder(u); });

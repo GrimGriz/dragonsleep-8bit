@@ -134,6 +134,7 @@
     if (!W.index()) throw new Error('no world: data/world.js is not loaded (python tools/world-build.py)');
     W.load(this.q); W.scene = this; W.active = true; this.dev = /[?&]dev\b/.test(this.q);
     this.view = 'hex'; if (/[?&]tiles\b/.test(this.q) && W.OV) W.OV.open(this); // (the top-down view, js/overworld.js: V switches)
+    this.fineDoor = !!W.FINE && (/[?&]fine\b/.test(this.q) || /[?&]fine\b/.test(location.search)); if (this.fineDoor) { W.FINE.on = true; W.FINE.load(); } // (THE FINE LAND, a trial: js/worldfine.js, F switches)
     var c = hc(S.at[0], S.at[1]); this.cam = { cx: c[0], cy: c[1] };
     try { D.music('corridor'); } catch (e) { }
     this.say(W.unstuck ? 'The party found its way down out of the ' + W.unstuck + ', ' + W.timeOfDay() + '.' : 'The road, ' + W.timeOfDay() + '. Click a hex to travel there.');
@@ -145,6 +146,7 @@
   function proj(cam, x, y, h) { return [(x - cam.cx) * cam.z + cam.W / 2, (y - cam.cy) * cam.z * TILT + cam.H / 2 - h / 5280 * cam.z * cam.E]; }
   function hexTopH(q, r) { var e = M.hex[K(q, r)]; return e ? e.h : 0; }
   World.prototype.pick = function (mx, my) {
+    if (this.fineDoor && W.FINE.live()) { var fp = W.FINE.pick(mx, my); if (fp) return fp; } // (THE FINE LAND: the hex under the pixel)
     var cam = this.camObj(), x = (mx - cam.W / 2) / cam.z + cam.cx, y = cam.cy, h = 0;
     for (var i = 0; i < 6; i++) { y = (my - cam.H / 2 + h / 5280 * cam.z * cam.E) / (cam.z * TILT) + cam.cy; var a = at(x, y); h = hexTopH(a[0], a[1]); }
     return at(x, y);
@@ -163,6 +165,7 @@
     if (I.pressed('menu') && W.house() && !this.walk) { D.house.openMenu(this); D.sfx('menu'); return; } // (M: the party's menu -- EQUIP, ITEMS, STATUS, SAVE)
     if (I.pressed('verdict') && W.OV) { if (this.view === 'tiles') W.OV.close(this); else W.OV.open(this); return; } // (V: the hex view or the top-down tiles)
     if (this.view === 'tiles') { W.OV.update(this); return; }
+    if (this.fineDoor && I.pressed('dice')) { W.FINE.on = !W.FINE.on; D.sfx('confirm'); return; } // (F: THE FINE LAND or today's tops, the trial's door only)
     // the camera: the wheel and -/= zoom, the middle button pans, C comes back to the party
     if (m.wheel) this.zi = Math.max(0, Math.min(W.ZOOMS.length - 1, this.zi - m.wheel));
     if (I.pressed('zoomin')) this.zi = Math.min(W.ZOOMS.length - 1, this.zi + 1);
@@ -345,13 +348,14 @@
       }
     }
   };
-  function groundAt(cam, x, y) { var a = at(x, y); return proj(cam, x, y, hexTopH(a[0], a[1])); }
+  var GH = null, VIS = null; // (THE FINE LAND, while it draws: the ground's own height, and whether a point on it is seen -- js/worldfine.js)
+  function groundAt(cam, x, y) { if (GH) return proj(cam, x, y, GH(x, y)); var a = at(x, y); return proj(cam, x, y, hexTopH(a[0], a[1])); }
   W.drawWays = function (g, cam) {
     M.paths.forEach(function (P) {
-      var river = P.kind === 'river', step = M.w * 0.25; g.beginPath();
+      var river = P.kind === 'river', step = GH ? 0.25 : M.w * 0.25, pen = false; g.beginPath(); // (on the fine land a way follows the ground a quarter mile at a time)
       for (var i = 0; i + 1 < P.pts.length; i++) {
         var A = P.pts[i], B2 = P.pts[i + 1], n = Math.max(1, Math.ceil(Math.hypot(B2[0] - A[0], B2[1] - A[1]) / step));
-        for (var j = 0; j <= n; j++) { var s = groundAt(cam, A[0] + (B2[0] - A[0]) * j / n, A[1] + (B2[1] - A[1]) * j / n); if (!i && !j) g.moveTo(s[0], s[1]); else g.lineTo(s[0], s[1]); }
+        for (var j = 0; j <= n; j++) { var wy = A[1] + (B2[1] - A[1]) * j / n, s = groundAt(cam, A[0] + (B2[0] - A[0]) * j / n, wy); if (VIS && !VIS(s, wy)) { pen = false; continue; } if (!pen) g.moveTo(s[0], s[1]); else g.lineTo(s[0], s[1]); pen = true; }
       }
       g.lineJoin = 'round'; g.setLineDash(river ? [] : P.kind === 'track' ? [2, 2] : [4, 2]);
       g.strokeStyle = river ? 'rgba(80,160,200,.9)' : 'rgba(96,32,16,.95)'; g.lineWidth = river ? 1.6 : P.kind === 'track' ? 1 : 1.4; g.stroke(); g.setLineDash([]);
@@ -373,11 +377,12 @@
   var RANK = { city: 0, castle: 1, town: 2, inn: 2, seat: 3, school: 3, cave: 4, hamlet: 4, junction: 5, mark: 5 };
   W.drawPlaces = function (g, cam, names) {
     var boxes = [], order = M.sites.slice().sort(function (a, b) { return (RANK[a.kind] || 5) - (RANK[b.kind] || 5); });
-    order.forEach(function (s) { var p = groundAt(cam, s.x, s.y); if (p[0] < -40 || p[0] > cam.W + 40 || p[1] < -20 || p[1] > cam.H + 20) return; icon(g, s.kind, Math.round(p[0]), Math.round(p[1])); });
+    order.forEach(function (s) { var p = groundAt(cam, s.x, s.y); if (p[0] < -40 || p[0] > cam.W + 40 || p[1] < -20 || p[1] > cam.H + 20) return; if (VIS && !VIS(p, s.y)) return; icon(g, s.kind, Math.round(p[0]), Math.round(p[1])); });
     if (!names) return;
     order.forEach(function (s) { // (the names, the greater first; one that would overlap a name already written waits for a closer zoom)
       if (!BIG[s.kind] && cam.z < 8) return;
       var p = groundAt(cam, s.x, s.y), nm = s.name.replace(/ \(.*\)$/, ''), x = Math.round(p[0]) + 6, y = Math.round(p[1]) - 4, w = D.textWidth(nm), bx = [x - 1, y - 1, x + w + 1, y + 9];
+      if (VIS && !VIS(p, s.y)) return; // (THE FINE LAND: a place behind a ridge is not named)
       if (boxes.some(function (b) { return bx[0] < b[2] && bx[2] > b[0] && bx[1] < b[3] && bx[3] > b[1]; })) return;
       boxes.push(bx); D.text(g, nm, x, y, BIG[s.kind] ? '#f6e9c5' : '#c8bca0');
     });
@@ -432,7 +437,9 @@
     ctx.fillStyle = '#1b2433'; ctx.fillRect(0, 0, D.W, D.H);
     if (this.plan) this.plan.hexes.forEach(function (p) { hi[K(p[0], p[1])] = 'rgba(255,214,60,.55)'; });
     if (this.hov) hi[K(this.hov[0], this.hov[1])] = this.plan ? '#ffd23c' : 'rgba(255,90,80,.8)';
-    W.drawWorld(ctx, cam, hi); W.drawWays(ctx, cam); W.drawPlaces(ctx, cam, true);
+    var fine = this.fineDoor && W.FINE.live(); // (THE FINE LAND, a trial: js/worldfine.js; the hex view as it was without its door)
+    if (fine) { W.FINE.draw(ctx, cam, hi, S.at); GH = W.FINE.groundH; VIS = W.FINE.vis; } else W.drawWorld(ctx, cam, hi);
+    W.drawWays(ctx, cam); W.drawPlaces(ctx, cam, true); GH = VIS = null;
     // the party: a banner on the hex's top, bobbing as it walks
     var pa = hc(S.at[0], S.at[1]), ph = hexTopH(S.at[0], S.at[1]);
     if (this.walk && this.walk.path.length) { var nx = this.walk.path[0], pb = hc(nx[0], nx[1]), u = this.walk.f / STEPF; pa = [pa[0] + (pb[0] - pa[0]) * u, pa[1] + (pb[1] - pa[1]) * u]; ph = ph + (hexTopH(nx[0], nx[1]) - ph) * u; }
@@ -466,6 +473,7 @@
     }
     var me = this; this.hudBtns = W.house() ? [['THE PARTY', function () { D.house.openMenu(me); }], ['CAMP', function () { me.campCard(); }], ['HERE', function () { me.here(); }]].map(function (q, i) { return { x: D.W - 4 - (3 - i) * 64, y: D.H - 50, w: 60, h: 13, label: q[0], go: q[1] }; }) : null; // (the keys as buttons: his 10-21 "playable by mouse only")
     this.hudBottom(ctx, 'click: travel  arrows: a hex  E: here  SPACE: camp  ' + (W.house() ? 'M: the party  ' : '') + 'V: tiles  wheel: zoom');
+    if (this.fineDoor) { var fl = W.FINE.label(), fw = D.textWidth(fl) + 10; D.win8(ctx, D.W - fw - 4, 4, fw, 16); D.text(ctx, fl, D.W - fw + 1, 8, W.FINE.on ? D.WIN8.gold : D.WIN8.text); } // (the trial named on screen)
   };
   W.button = function (ctx, b) { var mo = I.mouse, hov = mo.inside && mo.x >= b.x && mo.x < b.x + b.w && mo.y >= b.y && mo.y < b.y + b.h; ctx.fillStyle = hov ? D.WIN8.sel : 'rgba(16,18,58,.85)'; ctx.fillRect(b.x, b.y, b.w, b.h); ctx.strokeStyle = hov ? D.WIN8.gold : D.WIN8.mid; ctx.strokeRect(b.x + 0.5, b.y + 0.5, b.w - 1, b.h - 1); D.text(ctx, b.label, b.x + b.w / 2, b.y + 3, hov ? D.WIN8.gold : D.WIN8.text, 'center'); };
   World.prototype.hudBottom = function (ctx, hint) { // (the message, the keys and the card: both views')
@@ -599,4 +607,5 @@
   W.make = function (q) { return new World(q); };
   W.World = World;
   W.M = function () { return M; }; W.hexOf = function (x, y) { return at(x, y); }; W.hc = function (q, r) { return hc(q, r); }; W.K = K; W.SKY = SKY; W.icon = icon; W.RANK = RANK; W.BIG = BIG; // (for the top-down view, js/overworld.js)
+  W.proj = proj; W.tone = tone; W.HCO = HCO; W.TILT = TILT; W.lookImg = function () { return LOOK; }; // (for THE FINE LAND, js/worldfine.js)
 })();
