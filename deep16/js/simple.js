@@ -38,7 +38,8 @@
   // on the back guest row? It didn't seem like only the active turn person was stepped forward": the half-square stagger read as a step, so it is gone): the
   // party's front at c +2, the foes' at c -2, a row's two a square apart by the rules (a diagonal counts one), 128 px on the screen.
   // ISO: the lines along the grid's own axis, as the road's grid fights and the first build stood -- the foes up the screen to the left, the four down it to the
-  // right, each a column of neighbouring squares; the fronts four squares apart (x -2 and +2), three between.
+  // right, each a column on every other square; the fronts four squares apart (x -2 and +2), three between. The simple fight's own view since 10-21 (his
+  // "the iso is better"), ACROSS the other.
   // Either way guests stand in the columns behind the four, the camp's fire burns between, and the foes fill their front column first, then the next back; the
   // Large and the Huge after the small, as near the front as their bodies fit, a tall one low enough that its head stays under the four's top row. The field is
   // 16 by 16 round C, open where the lineup can stand, its road between the rows
@@ -56,15 +57,16 @@
     },
     iso: {
       face: [[-1, 0], [1, 0]],
-      col: function (side, j) { var x = S.C[0] + side * (2 + 2 * j); return [-2, -1, 0, 1].map(function (r) { return [x, S.C[1] + r]; }); },
-      camp: function () { return [S.C[0] + 3, S.C[1] - 1]; },
-      front: function (rx) { return rx; }, frontMax: -2, midRow: -0.5, // (the foes stand up the screen of the four here: by the middle rows, not the heads)
+      col: function (side, j) { var x = S.C[0] + side * (2 + 2 * j); return [-3, -1, 1, 3].map(function (r) { return [x, S.C[1] + r]; }); }, // (every other square: neighbours hid each other at the opening zoom)
+      camp: function () { return [S.C[0] + 3, S.C[1]]; },
+      front: function (rx) { return rx; }, frontMax: -2, midRow: 0, // (the foes stand up the screen of the four here: by the middle rows, not the heads)
       lane: function (rx, ry) { return rx >= -9 && rx <= 7 && ry >= -6 && ry <= 6; },
       road: function (rx, ry) { return ry === -1 || ry === 0; }
     }
   };
-  S.VKEY = 'deep16.simpleview'; // (OPTIONS' SIMPLE VIEW: ACROSS by default; &view=iso or &view=across in a door's address for that page)
-  S.view = function () { var q = /[?&]view=(iso|across)\b/.exec(window.location.search || ''), v = null; if (q) return q[1]; try { v = window.localStorage.getItem(S.VKEY); } catch (e) { } return v === 'iso' ? 'iso' : 'across'; };
+  // (OPTIONS' SIMPLE VIEW: ISO by default -- RULED 10-21, Griz: "the iso is better" -- ACROSS the other; &view=iso or &view=across in a door's address for that page)
+  S.VKEY = 'deep16.simpleview';
+  S.view = function () { var q = /[?&]view=(iso|across)\b/.exec(window.location.search || ''), v = null; if (q) return q[1]; try { v = window.localStorage.getItem(S.VKEY); } catch (e) { } return v === 'across' ? 'across' : 'iso'; };
   S.setView = function (v) { try { window.localStorage.setItem(S.VKEY, v); } catch (e) { } };
   if (MN && MN.gridRows) { var rows1 = MN.gridRows; MN.gridRows = function () { var r = rows1.apply(this, arguments); r.push({ label: 'SIMPLE VIEW', key: 'simpleview', get: function () { return S.view() === 'iso' ? 'ISO' : 'ACROSS'; }, step: function () { S.setView(S.view() === 'iso' ? 'across' : 'iso'); } }); return r; }; }
   // the view a fight is laid out in: its party's squares (four, then guests), the camp's square, the facings
@@ -118,7 +120,33 @@
   }; }
 
   // ------------------------------------------------------------------ the fight's state: each one's own square, and where the picture draws it
-  S.setup = function (B) { B.simple = { home: {}, last: {}, m: null, act: null, cam: null }; B.units.forEach(function (u) { S.homeOf(B, u); }); };
+  S.setup = function (B) {
+    B.simple = { home: {}, last: {}, m: null, act: null, cam: null }; B.units.forEach(function (u) { S.homeOf(B, u); });
+    var fm0 = B.floorMarks, mo0 = B.marksOver; // (the turn's glow: under the feet with the floor's marks, its light over the night's -- js/ui.js drawBattle's hooks)
+    B.floorMarks = function (c) { if (fm0) fm0.apply(this, arguments); S.turnGlow(c, B, false); };
+    B.marksOver = function (c) { if (mo0) mo0.apply(this, arguments); S.turnGlow(c, B, true); };
+  };
+  // THE TURN'S GLOW (his "Some sort of lighting or effect on the character whose turn it is", 10-21): a ring of light pulsing under the feet of the one whose turn it
+  // is -- gold for ours, red for theirs -- and a soft light laid over the figure after the night's dark, so it reads at the opening zoom and at night
+  S.turnGlow = function (ctx, B, over) {
+    var u = B.simple && B.simple.act;
+    if (!u || u.dead || u.left || !(u.hp > 0) || !G.present(u)) return;
+    var d = u.drawAt || u, s = u.size || 1, p = D.iso.center(d.x + (s - 1) / 2, d.y + (s - 1) / 2, G.gzAt(u, Math.round(d.x), Math.round(d.y))), q = D.iso.toScreen(p.x, p.y);
+    var k = 0.5 + 0.5 * Math.sin((B.t || 0) / 7), ours = u.side === 'party', col = ours ? '248,216,120' : '248,112,80';
+    ctx.save();
+    if (!over) {
+      ctx.globalAlpha = 0.28 + 0.2 * k; ctx.fillStyle = 'rgb(' + col + ')';
+      ctx.beginPath(); ctx.ellipse(q.x, q.y, 17 * s, 8.5 * s, 0, 0, 7); ctx.fill();
+      ctx.globalAlpha = 0.85; ctx.strokeStyle = ours ? '#fff0b8' : '#ffc0a8'; ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.ellipse(q.x, q.y, (14 + 4 * k) * s, (7 + 2 * k) * s, 0, 0, 7); ctx.stroke();
+    } else {
+      var top = (D.spr.unitTop ? D.spr.unitTop(u) : 40) || 40, cy = q.y - top / 2, R = Math.max(26, top * 0.75) * (s > 1 ? 0.85 : 1);
+      var g = ctx.createRadialGradient(q.x, cy, 2, q.x, cy, R);
+      g.addColorStop(0, 'rgba(' + col + ',' + (0.22 + 0.12 * k).toFixed(3) + ')'); g.addColorStop(1, 'rgba(' + col + ',0)');
+      ctx.globalCompositeOperation = 'lighter'; ctx.fillStyle = g; ctx.fillRect(q.x - R, cy - R, R * 2, R * 2);
+    }
+    ctx.restore();
+  };
   S.homeOf = function (B, u) { var h = B.simple.home[u.id]; if (!h) h = B.simple.home[u.id] = [u.x, u.y]; return h; };
   S.dispOf = function (B, u) { return S.homeOf(B, u); };
   S.faceOf = function (u) { var f = S.FACE[u.side === 'party' ? 0 : 1]; return D.spr.facingFor(f[0], f[1]); };

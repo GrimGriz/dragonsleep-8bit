@@ -2061,6 +2061,7 @@
     function cr(q, s) { s = s || 1; var x = q[0] - SS.C[0], y = q[1] - SS.C[1]; return { c: x - y, r: x + y + (s - 1) }; } // (a square's place on the screen: across, down)
     function feet(u) { return D.grid.foot(u, SS.homeOf(D.battle, u)[0], SS.homeOf(D.battle, u)[1]); }
     try { key0 = window.localStorage.getItem(SS.KEY); window.localStorage.removeItem(SS.KEY); } catch (eK) { }
+    var vk0 = null; try { vk0 = window.localStorage.getItem(SS.VKEY); window.localStorage.setItem(SS.VKEY, 'across'); } catch (eV0) { } // (the ACROSS checks first; ISO, the default since 10-21, below)
     try {
       D.seed = +get('seed', 1021);
       // OPTIONS' RANDOM FIGHTS (js/menu.js gridRows, this game's row)
@@ -2191,18 +2192,27 @@
         drew2 === 'drawn' && !rc2.filter(function (r) { return r.kind === 'pick'; }).length && rc2.filter(function (r) { return r.kind === 'back'; }).length === 1 && /click the one/.test(bn2));
       // THE ISO VIEW (his "can we try with isometry back with the new side menu"): OPTIONS' SIMPLE VIEW, and the lines along the grid's axis -- the four at x +2 down
       // their column, the foes from x -2 back, each row's two four squares apart
-      var rvS = window.DS.MENU.gridRows(null).filter(function (r) { return r.label === 'SIMPLE VIEW'; })[0], v0S = rvS && rvS.get(); if (rvS) rvS.step(1); var v1S = rvS && rvS.get();
+      try { window.localStorage.removeItem(SS.VKEY); } catch (eV) { }
+      var rvS = window.DS.MENU.gridRows(null).filter(function (r) { return r.label === 'SIMPLE VIEW'; })[0], v0S = rvS && rvS.get();
       wsS.fight({ zone: 'north', list: ['bandit', 'bandit', 'wolf', 'worg', 'goblin'], mirror: false }, eS); var B6 = topS(); D.battle = B6;
       if (!B6.simple) SS.setup(B6);
       var p6 = B6.units.filter(function (u) { return u.side === 'party'; }), f6 = B6.units.filter(function (u) { return u.side === 'foe'; });
-      var iso4 = p6.slice(0, 4).every(function (u, i) { return u.x === SS.C[0] + 2 && u.y === SS.C[1] - 2 + i; }), isoF = f6.every(function (u) { return D.grid.foot(u).every(function (q) { return q[0] - SS.C[0] <= -2; }); });
+      var iso4 = p6.slice(0, 4).every(function (u, i) { return u.x === SS.C[0] + 2 && u.y === SS.C[1] - 3 + 2 * i; }), isoF = f6.every(function (u) { return D.grid.foot(u).every(function (q) { return q[0] - SS.C[0] <= -2; }); });
       var gaps6 = p6.slice(0, 4).map(function (h) { var f = f6.filter(function (w) { return w.y === h.y && w.size === 1; })[0]; return f ? D.grid.dist(h, f) : '-'; });
-      if (rvS) rvS.step(1); var v2S = rvS && rvS.get(); try { window.localStorage.removeItem(SS.VKEY); } catch (eV) { }
-      okS('SIMPLE VIEW ' + v0S + ' by default, ' + v1S + ' a step on, ' + v2S + ' back; in ISO the four down x +2 (' + iso4 + '), the foes from x -2 back (' + isoF + ', ' + f6.length + ' seated), a row\'s two ' + gaps6.join('/') + ' ft apart',
-        v0S === 'ACROSS' && v1S === 'ISO' && v2S === 'ACROSS' && iso4 && isoF && f6.length === 5 && gaps6.filter(function (g) { return g === 20; }).length >= 2);
+      if (rvS) rvS.step(1); var v1S = rvS && rvS.get(); if (rvS) rvS.step(1); var v2S = rvS && rvS.get(); try { window.localStorage.removeItem(SS.VKEY); } catch (eV2) { }
+      okS('SIMPLE VIEW ' + v0S + ' by default (his "the iso is better"), ' + v1S + ' a step on, ' + v2S + ' back; in ISO the four down x +2 (' + iso4 + '), the foes from x -2 back (' + isoF + ', ' + f6.length + ' seated), a row\'s two ' + gaps6.join('/') + ' ft apart',
+        v0S === 'ISO' && v1S === 'ACROSS' && v2S === 'ISO' && iso4 && isoF && f6.length === 5 && gaps6.filter(function (g) { return g === 20; }).length >= 2);
+      // THE TURN'S GLOW (his "Some sort of lighting or effect on the character whose turn it is"): a ring under the feet with the floor's marks, a light over the night's dark
+      B6.simple.act = p6[0]; var cvG = document.createElement('canvas'); cvG.width = D.W; cvG.height = D.H; var cvH = document.createElement('canvas'); cvH.width = D.W; cvH.height = D.H;
+      SS.camera(B6); D.iso.inWorld = false; SS.turnGlow(cvG.getContext('2d'), B6, false); SS.turnGlow(cvH.getContext('2d'), B6, true);
+      var pG = D.iso.center(p6[0].x, p6[0].y, 0), sG = D.iso.toScreen(pG.x, pG.y), tG = (D.spr.unitTop ? D.spr.unitTop(p6[0]) : 40) || 40;
+      var aU = cvG.getContext('2d').getImageData(Math.round(sG.x), Math.round(sG.y), 1, 1).data[3], aO = cvH.getContext('2d').getImageData(Math.round(sG.x), Math.round(sG.y - tG / 2), 1, 1).data[3];
+      okS('the turn\'s glow on ' + p6[0].name + ': under the feet (alpha ' + aU + '), a light over the figure (alpha ' + aO + '), hooked to the floor\'s marks and over the dark (' +(typeof B6.floorMarks) + ', ' + (typeof B6.marksOver) + ')',
+        aU > 0 && aO > 0 && typeof B6.floorMarks === 'function' && typeof B6.marksOver === 'function');
       D.pop();
     } catch (eS2) { repS.errors.push(String(eS2 && eS2.stack || eS2).slice(0, 900)); }
     try { if (key0 == null) window.localStorage.removeItem(SS.KEY); else window.localStorage.setItem(SS.KEY, key0); } catch (eK2) { }
+    try { if (vk0 == null) window.localStorage.removeItem(SS.VKEY); else window.localStorage.setItem(SS.VKEY, vk0); } catch (eV3) { }
     var preS = document.createElement('pre'); preS.id = 'out'; preS.textContent = 'BENCH16 ' + JSON.stringify(repS);
     document.body.appendChild(preS);
     return;
