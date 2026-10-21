@@ -26,11 +26,15 @@
     warrens: { src: 'warrens_a', door: 'warrens', place: 'The Crawler Warrens', sub: 'the mouth camp', save: true, out: 'silverton',
       gates: { feed: [20, 17, [0, -1]] } }, // (in off the feed track on the road below the bridge, where the first game's world warp sets the party down: content/maps/world.json)
     warrens_b: { src: 'warrens_b', place: 'The Crawler Warrens', sub: 'the stalls and the lit galleries', save: false },
+    warrens_c: { src: 'warrens_c', place: 'The Crawler Warrens', sub: 'the abandoned workings', save: false },
     galleries: { src: 'galleries_g1', door: 'mouth', place: 'The Guano Galleries', sub: 'the mouth', save: true, out: 'world',
       gates: { east: [34, 21, [-1, 0]], south: [17, 22, [0, -1]], west: [1, 21, [1, 0]] } }, // (THE WORLD's site: the road in from the junction east, a step inside each edge)
-    galleries_g2: { src: 'galleries_g2', place: 'The Guano Galleries', sub: 'the working gallery', save: false }
+    galleries_g2: { src: 'galleries_g2', place: 'The Guano Galleries', sub: 'the working gallery', save: false },
+    galleries_g3: { src: 'galleries_g3', place: 'The Guano Galleries', sub: 'the dens', save: false }
   };
-  M.KEY8 = { warrens_a: 'warrens', warrens_b: 'warrens_b', galleries_g1: 'galleries', galleries_g2: 'galleries_g2' };
+  // (the top levels, RULED 10-21 night, Griz to the desk: "rather than the cloaker fight, that hole floor. above it are top levels" -- the Galleries' to the dens, the deep
+  // gallery the hole floor below; the Warrens' to the abandoned workings, the Wet below them already the grid's own)
+  M.KEY8 = { warrens_a: 'warrens', warrens_b: 'warrens_b', warrens_c: 'warrens_c', galleries_g1: 'galleries', galleries_g2: 'galleries_g2', galleries_g3: 'galleries_g3' };
   M.FEED = [78, 10]; // (Silverton's feed track where it runs off the town floor's east edge -- the bench checks it is still the feed track's: mode=toplevels1021)
   M.key = function (q) { var m = /[?&]roam=([a-z0-9_]+)/.exec(q || ''); return m && M.FLOORS[m[1]] ? m[1] : null; };
 
@@ -113,16 +117,17 @@
     var gq = (/[?&]gate=([a-z]+)/.exec(q) || [])[1], aq = /[?&]at=(\d+),(\d+)/.exec(q), fq = /[?&]face=(-?\d),(-?\d)/.exec(q), at = null, face = [0, -1];
     if (aq) at = [+aq[1], +aq[2]];
     else { var gk = F.gates ? (F.gates[gq] ? gq : Object.keys(F.gates)[0]) : null, gt = gk && F.gates[gk]; if (gt) { at = [gt[0], gt[1]]; face = gt[2].slice(); gq = gk; } }
-    if (!at && warps.length) { var w0 = warps[0]; at = [w0.at[0], w0.at[1] + (w0.at[1] === h - 1 ? -1 : 1)]; } // (a floor below, walked into by the test door: by its way up)
+    if (!at && warps.length) { var w0 = warps[0]; at = [[0, -1], [0, 1], [1, 0], [-1, 0]].map(function (o) { return [w0.at[0] + o[0], w0.at[1] + o[1]]; }).filter(function (q) { return g[q[1]] && walkable(g[q[1]][q[0]] || '#') && !ways.some(function (z) { return z[0] === q[0] && z[1] === q[1]; }); })[0] || w0.at.slice(); } // (a floor below, walked into by the test door: a step in from its way up)
     if (fq) face = [+fq[1], +fq[2]];
     Object.keys(F.gates || {}).forEach(function (k) { marks.gates[k] = F.gates[k].slice(0, 2); });
     var rows = g.map(function (r) { return r.join(''); }), id = function (a, b) { return [a, b]; };
     var def = D.MAPS[key] = {
-      name: F.place, sub: F.sub, key: key, door: F.door || null, mine: true, town: true, wet: false, dark: false, ground: 'earth', step: 10,
+      name: F.place, sub: F.sub, key: key, door: F.door || null, mine: true, town: true, wet: false, dark: !!m8.dark, ground: 'earth', step: 10, // (dark: the dens and the workings, the party's own light -- js/light.js)
       view: 'top', ft: 30, roofs: T.roofsAt(30), slope: slope.map(function (r) { return r.join(''); }), look: lk.map(function (r) { return r.join(''); }), signs: {}, faceDoors: {},
       rows: rows, w: w, h: h, entry: [at], face: face, gate: gq || null, stairUp: [], doors: ways, marks: marks, people: people, foes: [], warps: warps, out: F.out || null, save: !!F.save,
       deepWater: 'D', music: m8.music || 'field', wayName: wayName,
-      src8: { id: F.src, rows: [], legend: {}, triggers: trig, warps: [], chests: (m8.chests || []).slice(), zones: [], save: !!F.save }, from8: id, to8: id, sig: '', zone8: null,
+      src8: { id: F.src, rows: [], legend: {}, triggers: trig, warps: [], chests: (m8.chests || []).slice(), zones: (m8.zones || []).slice(), save: !!F.save }, from8: id, to8: id, sig: '', // (zones: the first game's random fights where it has them -- the dens, the workings: js/roam.js R.encounter on the floor, its tables content/encounters.json)
+      zone8: (m8.zones && m8.zones[0] && m8.zones[0].zone) || null,
       hud: F.place.replace(/^The /, 'the ') + ': ' + F.sub,
       hello: ['{y}' + F.place.toUpperCase() + '{/} -- ' + F.sub + ': the first game\'s floor, north up as Silverton is (' + w + ' x ' + h + ' squares).', '{g}Click to walk, or the arrows. E: a word, a door. O: the formation. L: the floor map.{/}'],
       where: function () { return F.sub; }
@@ -150,7 +155,7 @@
     yield* M.go(B, key, [wp.tx, wp.ty], M.FACE[wp.dir] || null);
   };
   // the token a step back off a way it did not take
-  M.stepBack = function (B) { var t = B.roam.token, f = B.roam.fw; if (D.grid.canStand(t, t.x - f[0], t.y - f[1])) { t.x -= f[0]; t.y -= f[1]; t.tween = null; } };
+  M.stepBack = function (B) { var R0 = B.roam, t = R0.token, f = R0.fw; if (D.grid.canStand(t, t.x - f[0], t.y - f[1])) { t.x -= f[0]; t.y -= f[1]; t.tween = null; R0.path = null; D.grid.setup(B.map, B.units); B.focus(t); } };
   // to another of these floors: the house's party handed into the save and walked on (js/house.js H.fromFloor, as a town's door is); the test door's four carry the floor's flags
   M.go = function* (B, key, at, face, lines) {
     var R = D.roam, H = D.house, q = '?roam=' + key + '&at=' + at[0] + ',' + at[1] + (face ? '&face=' + face[0] + ',' + face[1] : ''), F = M.FLOORS[key];
@@ -277,10 +282,13 @@
     D.sfx('confirm'); yield sc.say(L('g1.ottilieLightKept'));
     return true;
   };
-  // the floor's own squares (the first game's triggers): the pens' shifts, Skarn's gate
-  M.trigger = function* (B, trig) {
+  // the floor's own squares (the first game's triggers): the pens' shifts, Skarn's gate, the dens' pits, their bad air, the rescue
+  M.trigger = function* (B, trig, at) {
     if (trig.script === 'pen') { yield* M.talk(B, 'pen' + trig.arg, function (sc) { return M.pen(sc, B, trig.arg); }, 'The pens, mouth ' + trig.arg); return; }
     if (trig.script === 'skarnGate') { yield* M.skarnGate(B); return; }
+    if (trig.script === 'pit') { B.card(D.roam.wrap(['{y}A pit{/}: it drops to the deep gallery, the hole floor.'].concat(M.held('galleries_g4').slice(1))), 320); D.sfx('popup'); M.stepBack(B); yield 20; return; } // (the first game's S.pit drops the party there, 1d6 each: the hole floor is not the top levels' -- his ruling)
+    if (trig.script === 'badAir') { yield* M.badAir(B); return; }
+    if (trig.script === 'rescue') { yield* M.rescue(B, trig, at); return; }
     B.card(D.roam.wrap(['{y}' + trig.id + '{/}: the first game\'s scene (' + trig.script + ') -- not on the grid yet.']), 240); D.sfx('popup'); yield 20;
   };
   // a shift at the pens (S.pen): Edric's book first; who milks; the draught if there is one; then the first game's own table rule for the shift, rolled straight -- its
@@ -323,11 +331,63 @@
     B.map = D.iso.load(def); D.grid.setup(B.map, B.units); R.layChests(B); B.cache = null;
   };
 
+  // the dens' low gallery (S.badAir): each standing hero a CON save at 12 or 1d4, never below 1; not again for three steps
+  M.badAir = function* (B) {
+    var R0 = B.roam, Rr = DS.R; if (R0.airAt != null && R0.steps - R0.airAt < 3) return; R0.airAt = R0.steps;
+    var hurt = []; R0.members.forEach(function (u) { if (u.hp > 0 && u.src && D.d(20) + Rr.saveBonus(u.src, 'con') < 12) { u.hp = Math.max(1, u.hp - D.roll('1d4').total); hurt.push(u.name); } });
+    if (hurt.length) { D.sfx('poison'); B.card(D.roam.wrap([L('g3.badAir', { names: hurt.join(', ') })]), 260); yield 20; }
+  };
+  // the rescue (S.rescue, Sabeth's cull taken): a drive gone wrong down the side gallery -- four giant bats, fought where it happens on the floor (js/roam.js R.encounter's
+  // set fight, as the Wet's oozes are); won, the driver up, the cull done, and the mine's hands saw it
+  M.rescue = function* (B, trig, at) {
+    var R = D.roam, f = B.roam.flags;
+    B.card(R.wrap([].concat(L('g3.rescue1'))), 320); yield 60;
+    yield* R.encounter(B, 'set', { list: ['giantbat', 'giantbat', 'giantbat', 'giantbat'], at: at, flag: 'rescued', line: [].concat(L('g3.rescueIntro'))[0], how: 'under the roost' });
+    if (!f.rescued) return;
+    f.cullDone = 1;
+    B.card(R.wrap([].concat(L('g3.rescue2'), D.counter.renown(D.counter.state(B), 1, 'renown.rescue'))), 360); yield 30;
+  };
+
+  // ---------------------------------------------------------------- THE BUNKHOUSES (RULED 10-21 night, Griz to the desk: "the bunkhouses wouldn't need watching (watched by
+  // staff) - free/cheap inn function"): a bed for the night and no watches -- the Warrens' bunkhouse at the mouth camp, the resident core's (free to the party once it has
+  // worked a shift at the cradles: crew; a silver otherwise), and the Pellam barns at the south landing, which bunk the day-crews for rent paid in thimbles (a thimble a silver,
+  // Skarn's board). The night is the house's long rest (js/house.js H.longRest: the clock to the morning, every sheet whole, the levels banked and their picks -- on the floor),
+  // the floor's figures given their rested sheets where they stand (js/roam.js R.resheet)
+  M.INNS = {
+    'keeper:bunkhouse': { id: 'bunkhouse', price: function (f) { return f.shifts ? 0 : 1; }, why: function (f) { return f.shifts ? 'crew sleep free' : 'a silver for a stranger'; } },
+    'keeper:pellambarn': { id: 'pellambarn', price: function () { return 1; }, why: function () { return 'rent paid in thimbles: a silver'; } }
+  };
+  M.LINES.bunk = { ask: 'A bunk for the night? ', sleep: 'The bunks fill with the shift coming off; somebody snores through the lot. Nobody stands a watch -- the staff keep the door.', morning: 'Morning, and the camp\'s bell.', poor: 'Not without the silver.' }; // (invented.json toplevels-bunkhouses)
+  M.inn = function* (sc, B, inn) {
+    var st = sc.st, f = st.flags, p = inn.price(f);
+    yield sc.say(M.words(B, inn.id));
+    var a = yield sc.ask(M.LINES.bunk.ask + '(' + (p ? p + ' sp, ' : 'free, ') + inn.why(f) + ')', [p ? 'A BUNK, ' + p + ' SP' : 'A BUNK', 'LEAVE']);
+    if (a !== 0) return false;
+    if (p && st.silver() < p) { D.sfx('error'); yield sc.say(M.LINES.bunk.poor); return false; }
+    if (p) { st.silver(-p); D.sfx('coin'); }
+    yield sc.say(M.LINES.bunk.sleep);
+    return true;
+  };
+  // the night slept: in the house, the floor's party into the save, THE WORLD's clock to the morning and the long rest on the save (its picks on the floor, not THE WORLD's), the
+  // rested sheets back on the figures; on the test door, the four rested in place
+  M.sleep = function* (B) {
+    var R = D.roam, H = D.house, W = D.world, R0 = B.roam, lines = [];
+    if (R.house() && H && H.playing) {
+      H.fromFloor(B);
+      var sc0 = W.scene; W.scene = null; try { lines = W.camp() || []; } finally { W.scene = sc0; } // (no scene: the level picks come on this floor, R.picks)
+      R0.members.forEach(function (u) { var sh = H.cur.party.filter(function (h) { return (h.key || h.id) === (u.src && (u.src.key || u.src.id)); })[0]; if (sh) { u.src.conds = JSON.parse(JSON.stringify(sh.conds || {})); R.resheet(B, u, sh); } });
+    } else R0.members.forEach(function (u) { if (!u.src) return; var sh = JSON.parse(JSON.stringify(u.src)); DS.R.refresh(sh, true); sh.hp = sh.maxhp; R.resheet(B, u, sh); });
+    R0.picksDue = R0.members.filter(function (u) { return u.src && DS.R.picksDue(u.src); });
+    D.sfx('confirm'); B.card(R.wrap([M.LINES.bunk.morning].concat(lines)), 320); yield 40;
+    yield* R.picks(B);
+  };
+
   // ---------------------------------------------------------------- the town's hooks (js/town.js): a word and a square on these floors, and their ways off
   var fire0 = T.fire;
   T.fire = function* (B, trig, at) {
     var def = D.roam.def;
     if (def && def.mine && trig.town === 'mine') { yield* M.trigger(B, trig, at); return; }
+    if (def && def.mine && trig.town === 'door' && M.INNS[trig.id]) { var inn = M.INNS[trig.id]; if (yield* M.talk(B, inn.id, function (sc) { return M.inn(sc, B, inn); })) yield* M.sleep(B); return; }
     if (def && def.mine && trig.town === 'talk' && M.SCENES[trig.npc]) { yield* M.talk(B, trig.npc); return; }
     yield* fire0(B, trig, at);
   };

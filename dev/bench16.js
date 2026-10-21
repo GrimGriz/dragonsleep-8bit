@@ -1912,7 +1912,7 @@
     // the counter screen read through: each question answered by `ans` (an option's index; with none left, its last -- LEAVE, NOT NOW); every line seen
     function answerM(B, sc, ans) { var seen = []; ans = (ans || []).slice(); for (var k = 0; k < 40 && !sc.done; k++) { var w = sc.wait || {}, bs = sc.buttons(); seen = seen.concat(w.say || w.ask || []); if (w.ask) { var a = ans.length ? ans.shift() : w.opts.length - 1; seen.push('> ' + w.opts[a]); sc.press(bs.filter(function (b) { return b.go === 'opt' && b.k === a; })[0]); } else sc.press(bs[0]); } driveM(B.co, function () { return D.top() !== sc; }, 60); driveM(B.co, null, 30); return seen.join(' / '); }
     // walk the token to a square as a click does, till it is there or the floor changes (and on a little: the square's own arrival); a screen it opens answered by `ans`
-    function walkM(B, to, ans) { var R0 = B.roam, p = D.roam.walkRoute(R0.token, to); if (!p) return null; B.cards = []; R0.path = p.slice(); driveM(B.co, function () { return D.top() !== B || (R0.token.x === to[0] && R0.token.y === to[1] && !(R0.path && R0.path.length)); }, 20000); if (D.top() === B) driveM(B.co, function () { return D.top() !== B; }, 80); if (D.top() instanceof CM.Counter) walkM.seen = answerM(B, D.top(), ans); return p.length; }
+    function walkM(B, to, ans) { var R0 = B.roam, p = D.roam.walkRoute(R0.token, to); if (!p) return null; B.cards = []; R0.encIn = 1e9; R0.path = p.slice(); driveM(B.co, function () { return D.top() !== B || (R0.token.x === to[0] && R0.token.y === to[1] && !(R0.path && R0.path.length)); }, 20000); if (D.top() === B) driveM(B.co, function () { return D.top() !== B; }, 80); if (D.top() instanceof CM.Counter) walkM.seen = answerM(B, D.top(), ans); return p.length; } // (no random fight breaks into the bench's walks: the dens' and the workings' are called up by hand)
     // E toward a square beside the token: what it opens, read through
     function useM(B, at, ans) { var R0 = B.roam, t = R0.token; R0.fw = [Math.sign(at[0] - t.x), Math.sign(at[1] - t.y)]; B.cards = []; R0.keys.push('use'); driveM(B.co, function () { return D.top() instanceof CM.Counter || (B.cards || []).length > 0 || D.top() !== B; }, 400); var sc = D.top(); if (sc instanceof CM.Counter) return { sc: sc, seen: answerM(B, sc, ans) }; return { sc: null, seen: (B.cards || []).map(function (c) { return c.lines.join(' '); }).join(' / ') }; }
     function besideM(B, at) { var t = B.roam.token, best = null; [[0, 1], [-1, 0], [1, 0], [0, -1], [-1, 1], [1, 1]].forEach(function (o) { var q = [at[0] + o[0], at[1] + o[1]]; if (!best && D.grid.canStand(t, q[0], q[1]) && D.roam.walkRoute(t, q)) best = q; }); if (best) walkM(B, best); return best; }
@@ -1938,8 +1938,8 @@
       okM('Skarn (S.skarn): his question, the party come as free hands (' + sW.seen.split(' / ').filter(function (l) { return /^> /.test(l); }).join('') + '): skarnOk ' + BW.roam.flags.skarnOk, !!sW.sc && BW.roam.flags.skarnOk === 1 && BW.roam.flags.heardPete === 1);
       walkM(BW, [6, 8]); var tyW = useM(BW, [6, 7]);
       okM('the tally-house\'s door: Edric\'s shop on the counter screen (' + (tyW.sc && tyW.sc.o.place) + ': "' + tyW.seen.slice(0, 60) + '"), the draught on its shelves', !!tyW.sc && tyW.sc.o.place === window.DS.DATA.shops.tally.name && tyW.seen.indexOf(window.DS.DATA.shops.tally.greeting) >= 0);
-      walkM(BW, [35, 8]); var bkW = useM(BW, [35, 7]);
-      okM('the bunkhouse\'s door: its words at the door ("' + bkW.seen.slice(0, 70) + '")', !bkW.sc && /resident core sleeps here/.test(bkW.seen));
+      walkM(BW, [29, 8]); var bkW = useM(BW, [29, 7]);
+      okM('the kitchen\'s door, Old Hob beside it: its words at the door, not his ("' + bkW.seen.slice(0, 70) + '")', !bkW.sc && /mine-head kitchen feeds/.test(bkW.seen));
       walkM(BW, [9, 5]); MM.d20 = function () { return 15; }; var s0W = BW.roam.silver, pW = useM(BW, [9, 4], [0, 0]); MM.d20 = d20M;
       okM('a shift at pen two (S.pen, the first game\'s table rule rolled straight, the die pinned at 15): ' + (BW.roam.silver - s0W) + ' sp, shifts ' + BW.roam.flags.shifts + ', Old Hob met (' + BW.roam.flags.hobMet + ')', !!pW.sc && BW.roam.silver - s0W === 6 && BW.roam.flags.shifts === 1 && BW.roam.flags.hobMet === 1 && pW.seen.indexOf('> WORK A SHIFT') >= 0);
       // down the mouth to the stalls, and Skarn's gate
@@ -1953,6 +1953,20 @@
       okM('the stair to the Wet (12,1): the dark floors wait for the grid\'s roam -- said, and the party kept (' + (D.top() === BB) + ', on ' + BB.roam.token.x + ',' + BB.roam.token.y + ')', D.top() === BB && D.roam.def.key === 'warrens_b' && (BB.cards || []).some(function (c) { return c.lines.some(function (l) { return /dark floors/.test(l); }); }));
       walkM(BB, [13, 27]); var BW2 = topM();
       okM('back up to the mouth camp, on the first game\'s square below the mouth (' + BW2.roam.token.x + ',' + BW2.roam.token.y + ')', D.roam.def.key === 'warrens' && BW2.roam.token.x === 15 && BW2.roam.token.y === 5 && BW2.roam.flags.skarnGateOpen === 1);
+      // the abandoned workings (warrens_c: the night crews' lateral way down from mouths 1 and 6, dark, its random fights), the Wet below them held
+      walkM(BW2, [3, 4]); walkM(BW2, [3, 3]); var BC = topM(), dC = D.roam.def, RC = BC.roam;
+      okM('mouth one (3,3) to the abandoned workings (warrens_c, ' + dC.w + ' x ' + dC.h + ', dark ' + dC.dark + ', fights ' + dC.zone8 + ', chests ' + dC.src8.chests.length + '), in on ' + RC.token.x + ',' + RC.token.y, dC.key === 'warrens_c' && dC.dark && dC.zone8 === 'warrens_c' && dC.src8.chests.length === 3 && RC.token.x === 2 && RC.token.y === 16);
+      walkM(BC, [24, 2]); walkM(BC, [24, 1]);
+      okM('the workings\' way down to the Wet (24,1): held, said, the party kept', D.top() === BC && D.roam.def.key === 'warrens_c' && (BC.cards || []).some(function (c) { return c.lines.some(function (l) { return /dark floors/.test(l); }); }));
+      walkM(BC, [45, 16]); walkM(BC, [45, 17]); var BW4 = topM();
+      okM('out by mouth six\'s stair (45,17): the mouth camp, below mouth six (' + D.roam.def.key + ', ' + BW4.roam.token.x + ',' + BW4.roam.token.y + ')', D.roam.def.key === 'warrens' && BW4.roam.token.x === 33 && BW4.roam.token.y === 5);
+      // the bunkhouses (RULED 10-21 night, his "the bunkhouses wouldn't need watching (watched by staff) - free/cheap inn function"): a bed, no watch, the long rest
+      var BI = testM('?roam=warrens&flags=shifts'), RI = BI.roam, hurtI = RI.members[1]; hurtI.hp = 3; RI.members[2].slots = (RI.members[2].slots || []).map(function () { return 0; });
+      walkM(BI, [35, 8]); var bk1 = useM(BI, [35, 7], [0]); driveM(BI.co, null, 200);
+      okM('the bunkhouse to crew (a shift worked): A BUNK free ("' + bk1.seen.split(' / ').filter(function (l) { return /bunk/i.test(l); })[0] + '"), no watch, the morning -- ' + hurtI.name + ' ' + hurtI.hp + '/' + hurtI.maxhp + ', ' + RI.members[2].name + '\'s slots ' + (RI.members[2].slots || []).join('/') + ', the purse ' + RI.silver, !!bk1.sc && hurtI.hp === hurtI.maxhp && RI.silver === 0 && bk1.seen.indexOf(MM.LINES.bunk.sleep) >= 0 && (BI.cards || []).some(function (c) { return c.lines.some(function (l) { return l.indexOf(MM.LINES.bunk.morning) >= 0; }); }));
+      var BP = testM('?roam=warrens'), RP = BP.roam; RP.members[0].hp = 4; walkM(BP, [5, 24]); walkM(BP, [5, 23]); var bp0 = useM(BP, [5, 22], [0]);
+      RP.silver = 3; var bp1 = useM(BP, [5, 22], [0]); driveM(BP.co, null, 200);
+      okM('the Pellam barns: a bunk for a thimble\'s silver -- with none, "' + MM.LINES.bunk.poor + '" (' + (bp0.seen.indexOf(MM.LINES.bunk.poor) >= 0) + '); with three, slept, 2 left, ' + RP.members[0].name + ' ' + RP.members[0].hp + '/' + RP.members[0].maxhp, bp0.seen.indexOf(MM.LINES.bunk.poor) >= 0 && RP.silver === 2 && RP.members[0].hp === RP.members[0].maxhp);
       var BG0 = testM('?roam=warrens_b'), gB0 = (walkM(BG0, [17, 20]), useM(BG0, [17, 19]));
       okM('a party Skarn has not taken on finds his gate shut ("' + gB0.seen.slice(0, 60) + '")', !BG0.roam.flags.skarnGateOpen && D.roam.def.rows[19].substr(17, 2) === 'ff' && gB0.seen.indexOf(textM('w.gateShut')) >= 0);
       // the camp and Silverton by the feed track, both ways
@@ -1974,9 +1988,24 @@
       okM('the weigh-shed\'s door: its words ("' + wsG.seen.slice(0, 60) + '")', /weighs its own sacks/.test(wsG.seen));
       walkM(BG, [17, 3]); var B2 = topM(), d2 = D.roam.def;
       okM('in at the mouth with nothing always lit: the working gallery (galleries_g2, ' + d2.w + ' x ' + d2.h + '), on ' + B2.roam.token.x + ',' + B2.roam.token.y + ', its scrapers (' + B2.units.filter(function (u) { return u.npc; }).map(function (u) { return u.npc; }).join(', ') + ')', d2.key === 'galleries_g2' && B2.roam.token.x === 17 && B2.roam.token.y === 26 && B2.units.filter(function (u) { return u.npc; }).length === 4);
-      walkM(B2, [35, 16]);
-      okM('the way east to the dens (35,16): held, said, the party kept', D.top() === B2 && D.roam.def.key === 'galleries_g2' && (B2.cards || []).some(function (c) { return c.lines.some(function (l) { return /dark floors/.test(l); }); }));
-      walkM(B2, [17, 27]); var BG2 = topM();
+      walkM(B2, [28, 4]); walkM(B2, [28, 3]);
+      okM('the slide at 28,3 to the deep gallery, the hole floor (his "rather than the cloaker fight, that hole floor. above it are top levels"): held, said, the party kept', D.top() === B2 && D.roam.def.key === 'galleries_g2' && (B2.cards || []).some(function (c) { return c.lines.some(function (l) { return /dark floors/.test(l); }); }));
+      // the dens: dark, the first game's random fights, a pit to the hole floor, the bad air, the rescue
+      walkM(B2, [35, 16]); var B3 = topM(), d3 = D.roam.def, R3 = B3.roam;
+      okM('east to the dens (galleries_g3, ' + d3.w + ' x ' + d3.h + '), in on ' + R3.token.x + ',' + R3.token.y + ': dark (' + d3.dark + ', the party\'s light), the first game\'s random fights (' + d3.zone8 + ')', d3.key === 'galleries_g3' && R3.token.x === 1 && R3.token.y === 9 && d3.dark && d3.zone8 === 'g3' && d3.src8.zones.length === 1);
+      function fightM(B) { var R0 = B.roam, k = 0; driveM(B.co, function () { return R0.mode !== 'walk' || !R0.groups.length; }, 600); while (k++ < 60000 && !(R0.mode === 'walk' && !R0.groups.length)) B.update(); driveM(B.co, null, 60); R0.encIn = 1e9; return k; }
+      driveM(D.roam.encounter(B3, 'asked'), null, 60); R3.keys.push('fight'); var who3 = R3.last && R3.last.who, k3 = fightM(B3);
+      okM('a fight in the dens on the town\'s tiles (' + who3 + '), to its end (' + k3 + ' frames; the party ' + R3.members.map(function (u) { return u.hp; }).join('/') + '), the kill tally by the first game\'s floor (' + Object.keys(R3.kills).join(', ') + ')', R3.mode === 'walk' && Object.keys(R3.kills).some(function (k) { return /^g3:/.test(k); }));
+      walkM(B3, [19, 10]); walkM(B3, [19, 11]);
+      okM('a pit (19,11): it drops to the hole floor -- held, said, the party a step back off it (' + R3.token.x + ',' + R3.token.y + ')', D.top() === B3 && !(R3.token.x === 19 && R3.token.y === 11) && (B3.cards || []).some(function (c) { return c.lines.some(function (l) { return /hole floor/.test(l); }); }));
+      walkM(B3, [24, 10]); walkM(B3, [36, 11]); walkM(B3, [40, 13]); walkM(B3, [43, 14]); // (off the first pit's column -- a click's walk takes north-south first -- and round the second, 30,13)
+      var dd0 = D.d; D.d = function () { return 1; }; walkM(B3, [44, 15]); D.d = dd0;
+      okM('the low gallery\'s bad air (S.badAir, the die pinned; on ' + R3.token.x + ',' + R3.token.y + ', top ' + (D.top() === B3) + '): ' + ((B3.cards || []).map(function (c) { return c.lines.join(' '); }).filter(function (l) { return /Bad air/.test(l); })[0] || 'nothing said').slice(0, 80), (B3.cards || []).some(function (c) { return c.lines.some(function (l) { return /Bad air/.test(l); }); }) && R3.members.every(function (u) { return u.hp >= 1; }));
+      R3.flags.cullHired = 1; walkM(B3, [25, 6]); walkM(B3, [25, 5]); var k3r = fightM(B3);
+      okM('the rescue (S.rescue, the cull taken): four giant bats fought where it happens (' + k3r + ' frames), the driver up -- rescued ' + R3.flags.rescued + ', the cull done ' + R3.flags.cullDone, R3.flags.rescued === 1 && R3.flags.cullDone === 1 && R3.flags['trig:rescue'] === 1);
+      walkM(B3, [0, 9]); var B2b = topM();
+      okM('west out of the dens: the working gallery again (' + D.roam.def.key + ', ' + B2b.roam.token.x + ',' + B2b.roam.token.y + ')', D.roam.def.key === 'galleries_g2' && B2b.roam.token.x === 34 && B2b.roam.token.y === 17);
+      walkM(B2b, [17, 27]); var BG2 = topM();
       okM('back out to the mouth, below the way in (' + BG2.roam.token.x + ',' + BG2.roam.token.y + ')', D.roam.def.key === 'galleries' && BG2.roam.token.x === 17 && BG2.roam.token.y === 4);
       // a light always lit: Ottilie at the mouth (S.roostDoor) -- TURN BACK, then LEAVE IT WITH HER, and back out it is the pack's again
       (BG2.inv = BG2.inv || []).push({ id: 'sunshaftstaff', n: 1 }); walkM(BG2, [17, 6]); walkM.seen = ''; walkM(BG2, [17, 3], [1]); var tb = walkM.seen;
@@ -1998,6 +2027,9 @@
       okM('down to the stalls in the house (' + D.roam.def.key + ', the save\'s party ' + D.roam.house() + '): no SAVE below the mouth (R.canSave ' + D.roam.canSave(BHB) + ')', D.roam.def.key === 'warrens_b' && D.roam.house() && !D.roam.canSave(BHB));
       HM.begin(HM.read(1), 1); var BHC = topM();
       okM('CONTINUE slot 1: the camp, on the saved square (' + BHC.roam.token.x + ',' + BHC.roam.token.y + ')', D.roam.def.key === 'warrens' && BHC.roam.token.x === sv1.at.sq[0] && BHC.roam.token.y === sv1.at.sq[1]);
+      var RHC = BHC.roam, vHC = RHC.members.filter(function (u) { return u.id === 'vivian'; })[0], t0HC = WM.state().t; vHC.hp = 2; RHC.flags.shifts = 1;
+      walkM(BHC, [35, 8]); var bkH = useM(BHC, [35, 7], [0]); driveM(BHC.co, null, 200); var vSave = HM.cur.party.filter(function (h) { return h.id === 'vivian'; })[0];
+      okM('in the house, the bunkhouse is the long rest with no watches: THE WORLD\'s clock from hour ' + t0HC + ' to ' + WM.state().t + ' (the morning, ' + WM.hour() + ':00), Vivian whole on the floor (' + vHC.hp + '/' + vHC.maxhp + ') and in the save (' + vSave.hp + '), still at the camp', !!bkH.sc && WM.state().t > t0HC && WM.hour() === WM.MORNING && vHC.hp === vHC.maxhp && vSave.hp === vSave.maxhp && D.roam.def.key === 'warrens' && D.top() === BHC);
       var siteG = HM.siteOf('mouth'); while (D.scenes.length > 1) D.pop(); WM.scene.enterDoor(siteG, 'east'); var BHG = topM();
       okM('THE WORLD\'s site "' + (siteG && siteG.name) + '": its door opens the Galleries\' mouth (' + D.roam.def.key + ', by the east gate, ' + BHG.roam.token.x + ',' + BHG.roam.token.y + ')', !!siteG && D.roam.def.key === 'galleries' && D.roam.house() && BHG.roam.token.x === 34 && BHG.roam.token.y === 21);
       BHG.roam.keys.push('save'); driveM(BHG.co, function () { return D.top() instanceof HM.Slots; }, 400); var slG = D.top(); if (slG instanceof HM.Slots) { slG.pick(1); for (var kG = 0; kG < 80 && D.top() === slG; kG++) slG.update(); }
