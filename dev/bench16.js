@@ -5223,6 +5223,78 @@
     document.body.appendChild(preQ);
     return;
   }
+  // THE POCKET DM SEAT, 10-21 (mode=pocket1021): his 10-20 notes. (1) The morning's casts by spell (Griz: "Morning spell cast options might need to be relabeled and allow
+  // to select for things like 'continual flame'"): THE LONG REST's rows are the spells the party can cast that outlast a short rest by the SRD 5.1's durations
+  // (js/pocket.js PK.CAST_AHEAD), each on whom the player picks, worn into the fight; what a fight ended stays ended till the long rest
+  if (get('mode', '') === 'pocket1021') {
+    var repPq = { checks: [], errors: [] };
+    function okPq(what, v) { repPq.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    try {
+      var PKq = D.pocket, cvPq = document.createElement('canvas'); cvPq.width = D.W; cvPq.height = D.H; var cxPq = cvPq.getContext('2d');
+      var drawPq = function (pk, what) { try { pk.btns = []; pk.draw(cxPq); return true; } catch (eDq) { repPq.errors.push('draw ' + what + ': ' + String(eDq && eDq.stack || eDq).slice(0, 400)); return false; } };
+      var btnPq = function (pk, re) { return pk.btns.filter(function (b) { return re.test(b.label); })[0] || null; };
+      try { window.localStorage.removeItem('deep16.pocket'); } catch (eLq) { }
+      var Pq = new D.Pocket(); Pq.enter(); Pq.ask = function () { return true; };
+      // the party: Barley, a wizard of our own who knows the long spells, Vivian, Lymen, all at 5th
+      var wizW = '~wizard.5.human.8-14-14-16-12-10.quarterstaff.Wenna_Test.firebolt-light-mageArmor-continualflame-darkvision-magicmissile-shield';
+      Pq.st.roster = [{ code: wizW, name: 'Wenna Test', cls: 'wizard', lvl: 5 }];
+      Pq.st.party = [{ w: 'barley', lvl: 5, loot: [] }, { custom: 0, lvl: 5 }, { w: 'vivian', lvl: 5, loot: [] }, { w: 'lymen', lvl: 5, loot: [] }];
+      Pq.st.run = null; Pq.st.morning = null; Pq.cache = {};
+      var m0 = Pq.morning(); m0.prep[1] = ['mageArmor', 'continualflame', 'darkvision', 'magicmissile', 'shield'];
+      var rowOf = function (mi, id) { return (mi.casts || []).filter(function (r) { return r.e.id === id; })[0] || null; };
+      var info0 = PKq.morningInfo(Pq.st, Pq.morning(), false), ids0 = (info0.casts || []).map(function (r) { return r.e.id; });
+      okPq('THE LONG REST lists the long spells the party can cast, by the SRD\'s durations: ' + ids0.join(', '),
+        !!PKq.CAST_AHEAD && ['mageArmor', 'continualflame', 'darkvision', 'light'].every(function (id) { return ids0.indexOf(id) >= 0; }) && ids0.indexOf('deathward') < 0 && ids0.indexOf('falselife') < 0);
+      var ma0 = rowOf(info0, 'mageArmor'), lt0 = rowOf(info0, 'light'), cf0 = rowOf(info0, 'continualflame');
+      okPq('the defaults: Mage Armor on its caster (' + (ma0 && ma0.got.map(function (c) { return c.h.name; }).join()) + '), Light off on a lit floor, Continual Flame off',
+        !!ma0 && ma0.got.length === 1 && ma0.got[0].i === 1 && !!lt0 && !lt0.got.length && !!cf0 && !cf0.got.length);
+      var info0d = PKq.morningInfo(Pq.st, Pq.morning(), true), lt0d = rowOf(info0d, 'light');
+      okPq('on a dark floor Light is on the front man (' + (lt0d && lt0d.got.map(function (c) { return c.h.name; }).join()) + ')', !!lt0d && lt0d.got.length === 1 && lt0d.got[0].h.cls === 'fighter');
+      // pick: Continual Flame on Barley, Darkvision on Vivian and Barley, Mage Armor on Vivian too (she wears leather: refused)
+      var m1 = Pq.morning(); m1.cast.continualflame = { who: [0] }; m1.cast.darkvision = { who: [2, 0] }; m1.cast.mageArmor = { who: [1, 2] };
+      var info1 = PKq.morningInfo(Pq.st, m1, false), cf1 = rowOf(info1, 'continualflame'), dv1 = rowOf(info1, 'darkvision'), ma1 = rowOf(info1, 'mageArmor'), wz1 = info1.cards[1], bl1 = info1.cards[0], vv1 = info1.cards[2];
+      var bW = bl1 && bl1.h.equip && bl1.h.equip.weapon;
+      okPq('picked: Continual Flame on Barley\'s ' + bW + ' (' + JSON.stringify(bl1 && bl1.fields.conds.continualFlame) + '), Darkvision on Vivian and Barley, Mage Armor not on Vivian in her leather (' + (ma1 && ma1.whyOf[2]) + ')',
+        !!cf1 && cf1.got.length === 1 && bl1.fields.conds.continualFlame === bW && !!dv1 && dv1.got.length === 2 && !!vv1.fields.conds.darkvision && !!bl1.fields.conds.darkvision && !!ma1 && ma1.got.length === 1 && ma1.whyOf[2] === 'wears armour' && !vv1.fields.conds.mageArmor);
+      var sp1 = (wz1 && wz1.fields.spend || []).slice().sort().join(',');
+      okPq('the wizard pays for each casting: slots spent ' + sp1 + ' (a 1st for Mage Armor, a 2nd for each of the three 2nd-level casts)', sp1 === '1,2,2,2');
+      // a 2nd-level slot short: a fourth 2nd-level cast is refused with a why
+      // the slots run out: Darkvision on all four and Continual Flame on two -- six castings of 2nd level or higher at 5th's three 2nd and two 3rd (a higher slot casts it, SRD 5.1)
+      m1.cast.darkvision = { who: [2, 0, 3, 1] }; m1.cast.continualflame = { who: [0, 3] }; var info2 = PKq.morningInfo(Pq.st, m1, false), dv2 = rowOf(info2, 'darkvision'), cf2 = rowOf(info2, 'continualflame'), wz2 = info2.cards[1];
+      okPq('no slot left: Darkvision on all four (' + (dv2 && dv2.got.length) + ', a 3rd-level slot for the fourth), then the Continual Flame on Lymen says so (' + (cf2 && cf2.why) + '; ' + (wz2 && wz2.slots.join('/')) + ' left)',
+        !!dv2 && dv2.got.length === 4 && !!cf2 && cf2.got.length === 1 && /no 2nd-level slot left/.test(cf2.why) && cf2.whyOf[3] === 'no slot left' && wz2.slots.join('/') === '3/0/0');
+      m1.cast.darkvision = { who: [2, 0] }; m1.cast.continualflame = { who: [0] };
+      // worn into the fight
+      Pq.mInfo = null; Pq.fightMap = 'hexfloor'; Pq.foes = ['goblin', 'goblin']; Pq.takeMorning();
+      var push0Pq = D.push, BqP = null; D.push = function (b) { BqP = b; }; try { Pq.launch(); } finally { D.push = push0Pq; }
+      if (BqP) { D.battle = BqP; BqP.enter(); for (var gq = 0; gq < 300 && !(BqP.order && BqP.order.length); gq++) BqP.co.next(); }
+      var uOf = function (pre) { return BqP ? BqP.units.filter(function (u) { return u.side === 'party' && (u.hero === pre || String(u.id).indexOf(pre) >= 0); })[0] || null : null; };
+      var uB = uOf('barley'), uV = uOf('vivian'), uW = uOf('wizard');
+      var flame = uB ? D.light.carried(uB).filter(function (l) { return l.kind === 'flame'; }).length : -1;
+      okPq('in the fight: Barley\'s weapon burns with the Continual Flame (' + flame + ' flame), Vivian sees 60 ft in the dark (' + (uV && uV.darkvision) + '), the wizard in Mage Armor with ' + (uW && uW.slots.join('/')) + ' left of ' + (uW && uW.slotsMax.join('/')),
+        flame === 1 && !!uV && uV.darkvision >= 60 && !!uW && !!uW.conds.mageArmor && uW.slots[0] === uW.slotsMax[0] - 1 && uW.slots[1] === uW.slotsMax[1] - 3);
+      // what a fight ended stays ended (SRD 5.1): a Death Ward that held, a Mage Armor dispelled; the Light is lit again
+      Pq.st.run = { rung: 2, plan: [], carry: [{ hp: 30, conds: ['continualFlame'] }, { hp: 20, conds: [] }, null, null], morning: { words: Pq.words(), cards: [{ conds: { continualFlame: 'x', deathWard: { by: 'w' }, light: { by: 'w' } }, spend: [], aid: 5 }, { conds: { mageArmor: 1 }, spend: [1] }, null, null] } };
+      var fwq = Pq.fightWords(); Pq.st.run = null;
+      okPq('a ladder\'s next fight: the Death Ward that held and Aid ended stay ended, the Continual Flame burns on, the Light lit again; the wizard\'s dispelled Mage Armor stays off (' + JSON.stringify(fwq[0] && fwq[0].conds) + ' aid ' + (fwq[0] && fwq[0].aid) + '; ' + JSON.stringify(fwq[1] && fwq[1].conds) + ')',
+        !!fwq[0] && !!fwq[0].conds.continualFlame && !fwq[0].conds.deathWard && !!fwq[0].conds.light && !fwq[0].aid && !!fwq[1] && !fwq[1].conds.mageArmor);
+      // the page: THE LONG SPELLS opens the rows; a click on a name casts it on them, again lets it go
+      Pq.toMorning({ label: 'DONE', fn: function () { } }, 'hub'); drawPq(Pq, 'morning');
+      var lsq = btnPq(Pq, /^THE LONG SPELLS/); if (lsq) Pq.fire(lsq); drawPq(Pq, 'morning cast');
+      var chips = Pq.btns.filter(function (b) { return b.label === 'LYMEN'; });
+      var info3 = Pq.mInfoNow(), cfIdx = info3.casts.map(function (r) { return r.e.id; }).indexOf('continualflame');
+      var chipCF = chips[cfIdx] || null; if (chipCF) Pq.fire(chipCF); var on1 = (rowOf(Pq.mInfoNow(), 'continualflame') || { got: [] }).got.map(function (c) { return c.h.name; }).join();
+      drawPq(Pq, 'morning cast 2'); chipCF = Pq.btns.filter(function (b) { return b.label === 'LYMEN'; })[cfIdx]; if (chipCF) Pq.fire(chipCF); var on2 = (rowOf(Pq.mInfoNow(), 'continualflame') || { got: [] }).got.map(function (c) { return c.h.name; }).join();
+      okPq('THE LONG REST\'s page: THE LONG SPELLS shows a row a spell (' + info3.casts.length + ') with the four under each; LYMEN on the Continual Flame row casts it on him (' + on1 + '), again lets it go (' + on2 + ')',
+        !!lsq && Pq.mCaster === 'cast' && chips.length === info3.casts.length && /Lymen/.test(on1) && !/Lymen/.test(on2) && /Barley/.test(on2));
+      // a morning kept before 10-21 reads as the spells' own
+      Pq.st.morning = { prep: {}, ma: { on: false, who: null }, aid: { on: true, out: 3 }, light: { on: false, who: null } }; var mOld = Pq.morning();
+      okPq('a morning kept before 10-21: Mage Armor off, Aid on the first three, Light off (' + JSON.stringify(mOld.cast) + ')', !!mOld.cast && mOld.cast.mageArmor && mOld.cast.mageArmor.who.length === 0 && mOld.cast.aid && mOld.cast.aid.who.join() === '0,1,2' && mOld.cast.light && mOld.cast.light.who.length === 0 && !mOld.ma);
+    } catch (ePq) { repPq.errors.push(String(ePq && ePq.stack || ePq).slice(0, 800)); }
+    var prePq = document.createElement('pre'); prePq.id = 'out'; prePq.textContent = 'BENCH16 ' + JSON.stringify(repPq);
+    document.body.appendChild(prePq);
+    return;
+  }
   // THE MODULES (mode=module1017; 10-17, Griz: "to test it can you make a 6 fight module for a starting lvl 1 party of 4 that we can include for new users to have
   // as example module?"): the game's own module whole -- its floors dealt, its foes in the bestiary, its rests as flagged -- the title's MODULES, THE MODULES' screen
   // and THE PARTY TO LEVEL 1, a DM's ladder file of 10-17 read as a module; then THE WAGON ROAD played through `runs` times (3 in the gate; runs=20 for a balance read) by the AI's party (watched, as the Pocket
@@ -5263,16 +5335,16 @@
       okMo('LOAD THIS MODULE: back at THE CAMP with PLAY THE WAGON ROAD lit', !!loadMo && Pm.screen === 'hub' && Pm.st.moduleKey === 'game:wagonroad' && !!playMo && !playMo.dis);
       // THE LONG REST (his "For ladder and module play, long rest and daily spells/pre-cast (aid, mage armor) then go to fight")
       if (playMo) Pm.fire(playMo); drawMo(Pm, 'morning');
-      var goM = btnMo(Pm, /^TO FIGHT 1$/), mInf = Pm.mInfoNow(), azM = mInf.cards.filter(function (c) { return c && c.sp.hero === 'aurdin'; })[0];
-      okMo('PLAY: THE LONG REST first -- Aurdin\'s day ' + (azM && azM.pi ? azM.prepared.length + ' of ' + azM.pi.n : 'none') + ', MAGE ARMOR ' + (mInf.ma.on ? 'on ' + (mInf.ma.target && mInf.ma.target.h.name) : 'off: ' + mInf.ma.why) + ', then TO FIGHT 1',
-        Pm.screen === 'morning' && !!goM && !!azM && !!azM.pi && azM.prepared.length === azM.pi.n && mInf.ma.on && !!mInf.ma.caster && mInf.ma.caster.sp.hero === 'aurdin');
+      var goM = btnMo(Pm, /^TO FIGHT 1$/), mInf = Pm.mInfoNow(), azM = mInf.cards.filter(function (c) { return c && c.sp.hero === 'aurdin'; })[0], maRow = mInf.casts.filter(function (r) { return r.e.id === 'mageArmor'; })[0]; // (the rows by spell since 10-21: PK.CAST_AHEAD)
+      okMo('PLAY: THE LONG REST first -- Aurdin\'s day ' + (azM && azM.pi ? azM.prepared.length + ' of ' + azM.pi.n : 'none') + ', MAGE ARMOR ' + (maRow && maRow.got.length ? 'on ' + maRow.got[0].h.name : 'off: ' + (maRow && maRow.why)) + ', then TO FIGHT 1',
+        Pm.screen === 'morning' && !!goM && !!azM && !!azM.pi && azM.prepared.length === azM.pi.n && !!maRow && maRow.got.length === 1 && !!maRow.caster && maRow.caster.sp.hero === 'aurdin');
       if (goM) Pm.fire(goM);
       var runMo = Pm.st.run;
       // what the morning puts on: Mage Armor on him from his 1st-level slot; turned off, he walks in bare with the slot -- the fixture casts nothing of itself under a morning
       var unitOf = function (who) { var Bq = null; D.push = function (b) { Bq = b; }; try { Pm.launch(); } finally { D.push = push0Mo0; } if (!Bq) return null; D.battle = Bq; Bq.enter(); for (var g = 0; g < 300 && !(Bq.order && Bq.order.length); g++) Bq.co.next(); return Bq.units.filter(function (u) { return u.hero === who; })[0] || null; };
       var push0Mo0 = D.push, azU = unitOf('aurdin'), maOn = azU && azU.conds.mageArmor === 1 && azU.slots[0] === azU.slotsMax[0] - 1;
-      Pm.morning().ma.on = false; Pm.mInfo = null; Pm.takeMorning(); var azU2 = unitOf('aurdin'), maOff = azU2 && !azU2.conds.mageArmor && azU2.slots[0] === azU2.slotsMax[0];
-      Pm.morning().ma.on = true; Pm.mInfo = null; Pm.takeMorning();
+      Pm.morning().cast.mageArmor = { who: [] }; Pm.mInfo = null; Pm.takeMorning(); var azU2 = unitOf('aurdin'), maOff = azU2 && !azU2.conds.mageArmor && azU2.slots[0] === azU2.slotsMax[0];
+      delete Pm.morning().cast.mageArmor; Pm.mInfo = null; Pm.takeMorning();
       okMo('the morning is worn: Aurdin in Mage Armor, a 1st-level slot spent (' + (azU && azU.slots.join('/')) + ' of ' + (azU && azU.slotsMax.join('/')) + '); MAGE ARMOR off, bare and the slot kept (' + (azU2 && azU2.slots.join('/')) + ')', !!maOn && !!maOff);
       okMo('PLAY THIS MODULE: ' + (runMo && Pm.rungName(runMo)) + ' on ' + (runMo && runMo.map) + ', ' + (runMo && PKm.foesText(runMo.foes)) + ', on THE FOES',
         !!runMo && !!runMo.module && runMo.rung === 1 && Pm.lastRung(runMo) === 6 && Pm.rungName(runMo) === 'FIGHT 1 OF 6' && runMo.map === 'snootroad' && runMo.foes.join() === 'bandit,bandit,bandit,bandit' && Pm.screen === 'cr' && !Pm.hasTrial(runMo));

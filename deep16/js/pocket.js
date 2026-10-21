@@ -554,6 +554,9 @@
       if (!c && !m) return w;
       var o = Object.assign({ word: w, id: 'p' + i + '-' + PK.baseKey(w) }, m ? JSON.parse(JSON.stringify(m)) : {});
       if (c) Object.assign(o, { hpLeft: c.hp, slotsLeft: c.slots, featsLeft: c.feats });
+      // (what the morning laid that a fight since has ended -- a Death Ward that held, a Mage Armor dispelled -- stays ended till the long rest, SRD 5.1; the Light is lit again, a cantrip -- 10-21)
+      if (c && c.conds && o.conds) Object.keys(o.conds).forEach(function (k) { if (k !== 'light' && c.conds.indexOf(k) < 0) delete o.conds[k]; });
+      if (c && c.conds && o.aid && c.conds.indexOf('aid') < 0) delete o.aid;
       return o;
     });
   };
@@ -605,7 +608,7 @@
     D.music('title');
     var self = this, run = this.st.run;
     var party = (B.units || []).filter(function (u) { return u.side === 'party' && !u.familiar && !u.summon && !u.dominated && !u.loose; });
-    var end = party.map(function (u) { return { id: u.id, name: u.name, hp: Math.max(0, u.hp), maxhp: u.maxhp, slots: (u.slots || []).slice(), slotsMax: (u.slotsMax || []).slice(), feats: JSON.parse(JSON.stringify(u.feats || {})), cls: u.cls, lvl: u.lvl, con: DS.mod((u.abil || {}).con || 10), cha: DS.mod((u.abil || {}).cha || 10), down: !!(u.ko || u.hp <= 0 || u.dead) }; });
+    var end = party.map(function (u) { return { id: u.id, name: u.name, hp: Math.max(0, u.hp), maxhp: u.maxhp, slots: (u.slots || []).slice(), slotsMax: (u.slotsMax || []).slice(), feats: JSON.parse(JSON.stringify(u.feats || {})), cls: u.cls, lvl: u.lvl, con: DS.mod((u.abil || {}).con || 10), cha: DS.mod((u.abil || {}).cha || 10), down: !!(u.ko || u.hp <= 0 || u.dead), conds: Object.keys(u.conds || {}).concat(u.gshelf && u.gshelf.recs ? Object.keys(u.gshelf.recs) : []) }; }); // (conds: what is on it at the end, a globe's shelf too -- the morning's that ended stay ended, Pocket.fightWords)
     var rec = { t: Date.now(), started: (B.rec && B.rec.started) || info.started, result: res || 'left', rounds: B.round || 0, q: info.q, map: info.mapId, mapName: (D.MAPS[info.mapId] || {}).name || info.mapId,
       party: end.map(function (e) { return e.name + ' (' + D.clsLabel(e.cls) + ' ' + e.lvl + ')'; }), foes: PK.foesText(info.kinds), kinds: info.kinds, cr: PK.fmt8(PK.sum8(info.kinds)), diff: info.d.label + (info.d.deadlyX > 1 ? ' x' + info.d.deadlyX : ''), adj: info.d.adj,
       downs: end.filter(function (e) { return e.down; }).length, rung: run ? (run.trial ? 'trial' : run.rung) : null, notes: '' };
@@ -621,7 +624,7 @@
       if (gift) { PK.packAdd(this.st, gift.item, 1); this.result.loot = gift; rec.loot = gift.name + ': ' + DS.DATA.items[gift.item].name + ' (to the pack)'; } // (into the pack, worn only on the player's word -- 10-17, Griz: "rewards should go into pack and not-auto equip unless player confirms equip")
       if (run) {
         // the party's slots are the fight's units in order (the familiars and summons left out above)
-        run.carry = this.st.party.map(function (s, i) { var e = end[i]; return e ? { hp: e.hp, maxhp: e.maxhp, slots: e.slots, slotsMax: e.slotsMax, feats: e.feats, cls: e.cls, lvl: e.lvl, con: e.con, cha: e.cha } : null; });
+        run.carry = this.st.party.map(function (s, i) { var e = end[i]; return e ? { hp: e.hp, maxhp: e.maxhp, slots: e.slots, slotsMax: e.slotsMax, feats: e.feats, cls: e.cls, lvl: e.lvl, con: e.con, cha: e.cha, conds: e.conds } : null; });
         run.won = (run.won || 0) + 1;
         if (run.trial) { if (!run.dmLadder) this.st.pyro = true; this.st.run = null; this.result.unlocked = !run.dmLadder; } // (a DM's ladder's trial lets no king in)
         else if (run.module && run.rung >= run.plan.length) { this.st.run = null; this.result.moduleDone = run.module.name; } // (a module's last fight won: it is done)
@@ -1002,10 +1005,28 @@
   // Armor on one in no armour, Aid on three of the party, Light on one's gear -- each by whoever has it ready and the slot for it. Its choices are kept (st.morning)
   // and become each card's morning (PK.morningOf: prepared, conds, spend, aid; no Mage Armor by itself any more), worn into every fight of that day: a single
   // fight, or a ladder's or a module's fights till the next long rest (run.morning). By slot index: a seat's card
-  PK.MORNING0 = function () { return { prep: {}, ma: { on: true, who: null }, aid: { on: false, out: null }, light: { on: null, who: null } }; }; // (the grid camp's own defaults: Mage Armor on, Aid off, Light by the dark)
+  // (10-21, Griz: "Morning spell cast options might need to be relabeled and allow to select for things like 'continual flame'"): the rows are the spells, not three:
+  // every one built on the grid that is cast on a creature or its gear with no concentration and that, by the SRD 5.1's duration, outlasts a short rest's hour --
+  // 8 hours or more, or till dispelled -- so it is on in each fight of the day; and Light, a cantrip, lit again before each fight. `cond`: the grid's condition it
+  // lays (js/magic.js, js/grimoire.js); `n`: the creatures one casting takes (Aid's three); `bare`: one in no armour. Each creature picked is a casting and a slot,
+  // spent in this order. (Left off: the 1-hour spells -- False Life, Longstrider, See Invisibility, Protection from Poison, Warding Bond, Freedom of Movement, True
+  // Seeing -- which a short rest outlasts)
+  PK.CAST_AHEAD = [
+    { id: 'mageArmor', dur: '8 hours', cond: 'mageArmor', bare: true },
+    { id: 'aid', dur: '8 hours', n: 3 },
+    { id: 'darkvision', dur: '8 hours', cond: 'darkvision' },
+    { id: 'continualflame', dur: 'till dispelled', cond: 'continualFlame' },
+    { id: 'deathward', dur: '8 hours, or till it holds', cond: 'deathWard' },
+    { id: 'mindblank', dur: '24 hours', cond: 'mindBlank' },
+    { id: 'foresight', dur: '8 hours', cond: 'foresight' },
+    { id: 'light', dur: '1 hour, lit before each fight', cond: 'light' }
+  ];
+  // m.cast[id] = { who: [seat, ...], by: seat }: who it is cast on and who casts it; a spell not there takes its defaults (Mage Armor on its caster, Light on the
+  // front man when the fight is dark -- the grid camp's own -- the rest off)
+  PK.MORNING0 = function () { return { prep: {}, cast: {} }; };
   function slotAt(h, lv) { for (var i = lv - 1; i < (h.slots || []).length; i++) if (h.slots[i] > 0) return i; return -1; }
   PK.morningInfo = function (st, m, dark) {
-    var slots = st.party, out = { cards: [], ma: null, aid: null, light: null };
+    var slots = st.party, out = { cards: [], casts: [] };
     slots.forEach(function (slot, i) {
       var sp = PK.specOf(st, slot); if (!sp) { out.cards.push(null); return; }
       var bare = PK.sheetOf(Object.assign({}, sp, { morning: true, mageArmor: false, prepared: null })); if (!bare) { out.cards.push(null); return; }
@@ -1017,31 +1038,46 @@
       var ready = (pi ? prepared.concat(pi.always || []) : []).concat(h.known || []);
       out.cards.push({ i: i, sp: sp, h: h, pi: pi, prepared: prepared, ready: ready, slots: (h.slots || []).slice(), unit: sp.hero || ('p' + i + '-' + PK.baseKey(PK.wordOf(st, slot))), fields: { morning: true, mageArmor: false, prepared: prepared || undefined, conds: {}, spend: [], aid: 0 } });
     });
-    var cs = out.cards.filter(Boolean), can = function (id, lv) { return cs.filter(function (c) { return (c.pi ? c.pi.pool.concat(c.pi.always || []).concat(c.h.known || []) : c.h.known || []).indexOf(id) >= 0 && (!lv || slotAt(c, lv) >= 0); }); };
-    var has = function (id, lv) { return cs.filter(function (c) { return c.ready.indexOf(id) >= 0 && (!lv || slotAt(c, lv) >= 0); })[0] || null; };
+    var cs = out.cards.filter(Boolean), knows = function (c, id) { return (c.pi ? c.pi.pool.concat(c.pi.always || []).concat(c.h.known || []) : c.h.known || []).indexOf(id) >= 0; };
     var byI = function (i) { return cs.filter(function (c) { return c.i === i; })[0] || null; };
     var spend = function (c, lv) { var k = slotAt(c, lv); if (k >= 0) c.slots[k]--; c.fields.spend.push(lv); };
-    // Mage Armor: whoever has it ready and a 1st-level slot, on one in no armour -- the caster unless told otherwise
-    var mc = has('mageArmor', 1), mt = byI(m.ma.who) || mc, mwhy = '';
-    if (!mc) mwhy = can('mageArmor').length ? 'not prepared, or no 1st-level slot' : 'nobody can cast it';
-    else if (!mt || R.armored(mt.h)) mwhy = (mt ? mt.h.name : 'nobody') + ' wears armour';
-    if (m.ma.on && !mwhy) { spend(mc, 1); mt.fields.conds.mageArmor = 1; }
-    out.ma = { has: !!mc || can('mageArmor').length > 0, on: !!m.ma.on && !mwhy, why: mwhy, caster: mc, target: mt };
-    // Aid: whoever has it ready and a 2nd-level slot, on three of the party (who goes without: the caster unless told otherwise)
-    var ac = has('aid', 2), wo = byI(m.aid.out) || (cs.length > 3 ? ac : null), tg = cs.filter(function (c) { return c !== wo; }).slice(0, 3), awhy = '';
-    if (!ac) awhy = can('aid').length ? 'not prepared, or no 2nd-level slot' : 'nobody can cast it yet';
-    if (m.aid.on && !awhy) { spend(ac, 2); tg.forEach(function (c) { c.fields.aid = 5; }); }
-    out.aid = { has: !!ac || can('aid').length > 0, on: !!m.aid.on && !awhy, why: awhy, caster: ac, targets: tg, out: wo };
-    // Light: a cantrip, free, on one's gear (on by itself when the fight is dark, as the camp's)
-    var lc = has('light'), lt = byI(m.light.who) || cs.filter(function (c) { return /barbarian|fighter|paladin|monk/.test(c.h.cls); })[0] || cs[0], lon = m.light.on != null ? !!m.light.on : !!dark;
-    if (lc && lon && lt) lt.fields.conds.light = { by: lc.unit };
-    out.light = { has: !!lc, on: !!lc && lon, why: lc ? '' : 'nobody knows it', caster: lc, target: lt };
+    var front = cs.filter(function (c) { return /barbarian|fighter|paladin|monk/.test(c.h.cls); })[0] || cs[0];
+    var dv0 = function (c) { return c.sp.hero ? (D.light && D.light.raceDV ? D.light.raceDV((DS.DATA.heroes[c.sp.hero] || {}).race) : 0) : ((NPC.RACES[c.h.race] || {}).dv || 0); }; // (the sight it had before: what a globe or Dispel Magic leaves, grimoire.js sense)
+    var ORD = ['', '1st', '2nd', '3rd', '4th', '5th', '6th', '7th', '8th', '9th'];
+    PK.CAST_AHEAD.forEach(function (e) {
+      var spl = SV.spell(e.id); if (!spl) return;
+      var can = cs.filter(function (c) { return knows(c, e.id); }); if (!can.length) return; // (a row only for a spell someone in the party can cast)
+      var lv = spl.level || 0, ready = cs.filter(function (c) { return c.ready.indexOf(e.id) >= 0; }), cur = m.cast[e.id] || {};
+      var slotOK = function (c) { return !lv || slotAt(c, lv) >= 0; };
+      var caster = (cur.by != null && ready.indexOf(byI(cur.by)) >= 0 ? byI(cur.by) : null) || ready.filter(slotOK)[0] || ready[0] || null;
+      var who = Array.isArray(cur.who) ? cur.who : e.id === 'mageArmor' ? (caster ? [caster.i] : []) : e.id === 'light' ? (dark && front ? [front.i] : []) : [];
+      var tg = who.map(byI).filter(Boolean), why = '', whyOf = {}, got = [];
+      if (!ready.length) why = 'not prepared today' + (can.length > 1 ? ' by any of ' + can.map(function (c) { return c.h.name; }).join(', ') : ' (' + can[0].h.name + ')');
+      if (e.bare) tg = tg.filter(function (c) { if (R.armored(c.h)) { whyOf[c.i] = 'wears armour'; return false; } return true; });
+      if (caster && !why) {
+        var val = function (c) { return e.cond === 'mageArmor' ? 1 : e.cond === 'continualFlame' ? ((c.h.equip && c.h.equip.weapon) || true) : e.cond === 'darkvision' ? { by: caster.unit, had: dv0(c) } : { by: caster.unit }; }; // (Continual Flame on the weapon in hand, the 8-bit's way: js/light.js)
+        if (e.n) { if (tg.length) { if (slotOK(caster)) { spend(caster, lv); tg.slice(0, e.n).forEach(function (c) { c.fields.aid = 5; got.push(c); }); } else why = caster.h.name + ' has no ' + ORD[lv] + '-level slot left'; } }
+        else tg.forEach(function (c) { if (!slotOK(caster)) { whyOf[c.i] = 'no slot left'; if (!why) why = caster.h.name + ' has no ' + ORD[lv] + '-level slot left'; return; } if (lv) spend(caster, lv); c.fields.conds[e.cond] = val(c); got.push(c); });
+      }
+      out.casts.push({ e: e, spell: spl, lv: lv, can: can, ready: ready, caster: caster, who: who, got: got, why: why, whyOf: whyOf });
+    });
     return out;
   };
+  PK.castText = function (r) { return r.spell.name + ' on ' + r.got.map(function (c) { return c.h.name; }).join(', '); };
   PK.morningOf = function (info) { return info.cards.map(function (c) { return c ? JSON.parse(JSON.stringify(c.fields)) : null; }); };
   // into THE LONG REST: what follows it (go: { label, fn }); the screen's BACK goes to `from`
   Pocket.prototype.toMorning = function (go, from) { this.mGo = go; this.mFrom = from || this.screen; this.mCaster = null; this.mInfo = null; this.go('morning'); };
-  Pocket.prototype.morning = function () { var st = this.st; st.morning = st.morning && st.morning.prep ? st.morning : PK.MORNING0(); return st.morning; };
+  Pocket.prototype.morning = function () {
+    var st = this.st, m = st.morning = st.morning && st.morning.prep ? st.morning : PK.MORNING0();
+    if (!m.cast) { // (a morning kept before 10-21: its three rows as the spells' own)
+      var c = m.cast = {}, seats = (st.party || []).map(function (s, i) { return i; });
+      if (m.ma && !m.ma.on) c.mageArmor = { who: [] }; else if (m.ma && m.ma.who != null) c.mageArmor = { who: [m.ma.who] };
+      if (m.aid && m.aid.on) c.aid = { who: seats.filter(function (i) { return i !== m.aid.out; }).slice(0, 3) };
+      if (m.light && m.light.on === false) c.light = { who: [] }; else if (m.light && m.light.on && m.light.who != null) c.light = { who: [m.light.who] };
+      delete m.ma; delete m.aid; delete m.light;
+    }
+    return m;
+  };
   Pocket.prototype.mInfoNow = function () {
     if (!this.mInfo) { var run = this.st.run, mapId = run ? run.map : this.fightMap || this.mapFor(), def = D.MAPS[mapId] || {}; this.mInfo = PK.morningInfo(this.st, this.morning(), def.dark); }
     return this.mInfo;
@@ -1976,28 +2012,48 @@
   Pocket.prototype.drawMorning = function (ctx) {
     var self = this, mi = this.mInfoNow(), m = this.morning(), cards = mi.cards.filter(function (c) { return c && c.pi; });
     head(ctx, 'THE LONG REST', 'a night of it -- everything back -- then the day\'s spells, and what is cast this morning');
-    if (this.mCaster == null || !cards.some(function (c) { return c.i === self.mCaster; })) this.mCaster = cards.length ? cards[0].i : -1;
+    if (this.mCaster == null || (this.mCaster !== 'cast' || !mi.casts.length) && !cards.some(function (c) { return c.i === self.mCaster; })) this.mCaster = cards.length ? cards[0].i : mi.casts.length ? 'cast' : -1;
     var yy = 36;
     D.text(ctx, '{y}THE DAY\'S SPELLS{/}', 14, yy, P('gold', 4)); yy += 10;
     if (!cards.length) { D.text(ctx, 'nobody here prepares spells', 14, yy + 3, P('stone', 5)); yy += 14; }
     cards.forEach(function (c) { self.btn(ctx, fitText(c.h.name.toUpperCase(), 100) + '  ' + c.prepared.length + ' OF ' + c.pi.n, 14, yy, 150, 14, function () { self.mCaster = c.i; self.scroll = 0; }, { on: self.mCaster === c.i, small: true }); yy += 16; });
+    // what is cast this morning (10-21: a row a spell, in the panel; here what is on, and on whom)
     yy += 6; D.text(ctx, '{y}CAST THIS MORNING{/}', 14, yy, P('gold', 4)); yy += 10;
-    var nm = function (c) { return c ? c.h.name : 'nobody'; }, cyc = function (key, field, d) { var cs = mi.cards.filter(Boolean), cur = m[key][field], k = cs.map(function (c) { return c.i; }).indexOf(cur); m[key][field] = cs[((k < 0 ? 0 : k) + d + cs.length) % cs.length].i; self.mChanged(); };
-    var row = function (o, key, label, who, field) {
-      if (!o.has) return;
-      self.btn(ctx, label + ': ' + (o.on ? 'ON' : 'OFF'), 14, yy, 96, 13, function () { m[key].on = !o.on; self.mChanged(); }, { on: o.on, small: true });
-      self.btn(ctx, fitText(who, 50), 114, yy, 50, 13, function () { cyc(key, field, 1); }, { small: true });
-      if (o.why && !o.on) D.text(ctx, fitText(o.why, 150), 14, yy + 15, P('fire', 1));
-      yy += o.why && !o.on ? 26 : 16;
-    };
-    row(mi.ma, 'ma', 'MAGE ARMOR', 'on ' + nm(mi.ma.target), 'who');
-    row(mi.aid, 'aid', 'AID', 'not ' + nm(mi.aid.out), 'out');
-    row(mi.light, 'light', 'LIGHT', 'on ' + nm(mi.light.target), 'who');
-    if (!mi.ma.has && !mi.aid.has && !mi.light.has) D.text(ctx, 'nobody here casts ahead', 14, yy + 3, P('stone', 5));
-    // the picked caster's spells
+    var castOn = mi.casts.filter(function (r) { return r.got.length; });
+    if (!mi.casts.length) D.text(ctx, 'nobody here casts ahead', 14, yy + 3, P('stone', 5));
+    else {
+      self.btn(ctx, 'THE LONG SPELLS  ' + castOn.length + ' ON', 14, yy, 150, 14, function () { self.mCaster = 'cast'; self.scroll = 0; }, { on: self.mCaster === 'cast', small: true }); yy += 18;
+      castOn.forEach(function (r) { if (yy > 222) return; D.text(ctx, fitText(PK.castText(r), 150), 16, yy, P('bone', 2)); yy += 10; });
+      if (!castOn.length) D.text(ctx, 'nothing cast ahead', 16, yy, P('stone', 5));
+    }
     var px = 172, py = 34, pw = D.W - px - 10, ph = 192, c = cards.filter(function (x) { return x.i === self.mCaster; })[0];
     ctx.fillStyle = 'rgba(10,8,16,.9)'; ctx.fillRect(px, py, pw, ph); ctx.strokeStyle = P('stone', 3); ctx.strokeRect(px + 0.5, py + 0.5, pw - 1, ph - 1);
-    if (c) {
+    if (this.mCaster === 'cast') {
+      // the long spells: a row a spell someone here can cast -- its level, how long it lasts by the SRD, who casts it (a click for the next who has it ready), and
+      // the party under it, lit where it is cast: a click on a name casts it on them, or lets it go (each one a casting and a slot; Aid's three one casting)
+      D.text(ctx, '{y}The long spells{/}: on as each fight starts, a slot a casting', px + 6, py + 5, P('bone', 1));
+      var rows = mi.casts, per = 6, from = Math.min(this.scroll, Math.max(0, rows.length - per)), seats = mi.cards.filter(Boolean), cw = Math.floor((pw - 12) / Math.max(1, seats.length)); this.scroll = from;
+      var ORD = ['cantrip', '1st', '2nd', '3rd', '4th', '5th', '6th', '7th', '8th', '9th'];
+      var mine = function (r) { var cur = m.cast[r.e.id] = m.cast[r.e.id] || {}; if (!Array.isArray(cur.who)) cur.who = r.who.slice(); return cur; };
+      rows.slice(from, from + per).forEach(function (r, k) {
+        var ry = py + 18 + k * 28;
+        var room = pw - 100 - D.textWidth(r.spell.name + '  ' + ORD[r.lv] + '  '); // (the duration, or why not, in what the line has left beside who casts it)
+        D.text(ctx, '{y}' + r.spell.name + '{/}  ' + ORD[r.lv] + (r.why ? '  {r}' + fitText(r.why, room) + '{/}' : '  {g}' + fitText(r.e.dur, room) + '{/}'), px + 6, ry + 2, P('bone', 1));
+        if (r.ready.length > 1) self.btn(ctx, fitText('by ' + r.caster.h.name, 74), px + pw - 86, ry, 80, 11, function () { var cur = mine(r), k2 = r.ready.indexOf(r.caster); cur.by = r.ready[(k2 + 1) % r.ready.length].i; self.mChanged(); }, { small: true });
+        else if (r.caster) D.text(ctx, fitText('by ' + r.caster.h.name, 80), px + pw - 8, ry + 2, P('silver', 5), 'right');
+        seats.forEach(function (sc, j) {
+          var w = r.whyOf[sc.i], got = r.got.indexOf(sc) >= 0;
+          self.btn(ctx, fitText(sc.h.name.toUpperCase(), cw - 10), px + 6 + j * cw, ry + 13, cw - 4, 12, function () {
+            var cur = mine(r), at = cur.who.indexOf(sc.i);
+            if (at >= 0) cur.who.splice(at, 1);
+            else if (r.e.n && cur.who.length >= r.e.n) { self.say(r.spell.name + ' is cast on ' + r.e.n + ': let one go first', 240); return; }
+            else cur.who.push(sc.i);
+            self.mChanged();
+          }, { on: got, small: true, dis: !!w && !got && r.e.bare, why: w ? sc.h.name + ' ' + w : null });
+        });
+      });
+      if (rows.length > per) D.text(ctx, 'wheel: ' + (from + 1) + '-' + Math.min(rows.length, from + per) + ' of ' + rows.length, px + 6, py + ph - 10, P('stone', 5));
+    } else if (c) {
       D.text(ctx, '{y}' + c.h.name + '{/}: ' + c.prepared.length + ' of ' + c.pi.n + ' prepared  {g}(cantrips' + ((c.pi.always || []).length ? ' and the always-ready' : '') + ' need none){/}', px + 6, py + 5, P('bone', 1));
       var pool = c.pi.pool, per = 26, from = Math.min(this.scroll, Math.max(0, pool.length - per)); this.scroll = from;
       pool.slice(from, from + per).forEach(function (id, k) {

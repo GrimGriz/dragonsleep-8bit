@@ -124,7 +124,7 @@
       feats: JSON.parse(JSON.stringify(h.feats || {})), subclass: h.subclass,
       displacement: SV.displaced(h), // a Cloak of Displacement (rules.js edges)
       resist: SV.wornLists(h, 'resist', h.resist), // (the 8-bit game's guests: Dwarven Resilience, poison halved; and a Ring of Resistance worn and bonded)
-      immune: SV.wornLists(h, 'immune'), condImmune: SV.wornLists(h, 'condImmune'), // (the Periapt of Proof against Poison: battle.js Battle.typed, rules.js RU.immuneTo)
+      immune: SV.wornLists(h, 'immune', h.conds && h.conds.mindBlank ? ['psychic'] : null), condImmune: SV.wornLists(h, 'condImmune', h.conds && h.conds.mindBlank ? ['charmed'] : null), // (the Periapt of Proof against Poison: battle.js Battle.typed, rules.js RU.immuneTo) (a Mind Blank cast that morning -- the Pocket DM's long rest, 10-21 -- as js/grimoire.js E.mindblank lays it)
       offhand: SV.offhandOf(h), script: h.script || null, // (a named NPC's own turn: js/pyro.js, 09-30)
       weapon: wp, attacksBase: R.attacksPerTurn(h), attacks: wp.loading ? 1 : R.attacksPerTurn(h), crit: R.critRange(h), spellDC: R.spellDC(h), spellAtk: R.spellAtk(h),
       saves: { str: R.saveBonus(h, 'str'), dex: R.saveBonus(h, 'dex'), con: R.saveBonus(h, 'con'), int: R.saveBonus(h, 'int'), wis: R.saveBonus(h, 'wis'), cha: R.saveBonus(h, 'cha') },
