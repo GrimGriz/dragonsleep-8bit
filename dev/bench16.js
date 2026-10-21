@@ -2643,7 +2643,7 @@
       outN(B); inN(B, 'warp:percy'); CN.nedRoll = function () { return 1; };
       var T6 = talkN(B), sc6 = T6.sc; readN(sc6); var o6 = optsN(sc6), ins6 = CN.nedVisit(B).insight;
       okN('the next visit, the die 1: no roll at all, and the choice stays (' + o6.join(' / ') + ')', !ins6 && o6.indexOf('BECAUSE THE COMPONENTS ARE FASCINATING? (insight)') >= 0);
-      // the quest taken: the JOURNAL pinned, no sale; Percy holds one tongue back
+      // the quest taken: the JOURNAL pinned, no sale; Percy remarks on a tongue sold him, and buys it
       goN(sc6, 'opt', 'BECAUSE THE COMPONENTS ARE FASCINATING? (insight)'); readN(sc6); goN(sc6, 'opt', 'TAKE IT'); var w6 = readN(sc6), o6b = optsN(sc6);
       goN(sc6, 'opt', 'CAN I COPY IT FROM YOU?'); var w6c = readN(sc6), o6c = optsN(sc6); goN(sc6, 'opt', 'LEAVE'); readN(sc6); endN(T6);
       var jN = CN.journal(B), qN = jN.quests.filter(function (q) { return q.id === 'nedpage'; })[0];
@@ -2656,8 +2656,11 @@
       CN.give(st, 'snaketongue', 1);
       outN(B); inN(B, 'warp:percy'); var gPc = TN.fire(B, trigN('talk:percy')); driveN(gPc, upN, 600); var scPc = D.top(); readN(scPc); goN(scPc, 'opt', 'THE SHELVES'); goN(scPc, 'tab', 'SELL');
       var tRow = scPc.rows().filter(function (r) { return r.id === 'snaketongue'; })[0], sv0N = R0.silver; clickN(scPc, scPc.buttons().filter(function (q) { return q.row && scPc.rows()[q.k].id === 'snaketongue'; })[0]); if (scPc.sub) goN(scPc, 'qok');
-      var tRow2 = scPc.rows().filter(function (r) { return r.id === 'snaketongue'; })[0];
-      okN('Percy holds one tongue back while Ned\'s is asked for: two in the pack, "' + (tRow && tRow.label) + '" on his SELL list; one sold (' + (R0.silver - sv0N) + ' sp), Ned\'s still in the pack and off the list', !!tRow && tRow.label === 'Snake Tongue x1' && R0.silver - sv0N === 1 && CN.count(st, 'snaketongue') === 1 && !tRow2);
+      var tRow2 = scPc.rows().filter(function (r) { return r.id === 'snaketongue'; })[0], msgPc = scPc.msg;
+      okN('Percy, sold a snake tongue while Ned\'s is asked for (RULED, his "have percy \'Didn\'t Ned want one of those?\' ... but will buy them anyway"): both on his SELL list ("' + (tRow && tRow.label) + '"), one sold (' + (R0.silver - sv0N) + ' sp, his fifth) -- ' + msgPc + '; one left (' + (tRow2 && tRow2.label) + ')',
+        !!tRow && tRow.label === 'Snake Tongue x2' && R0.silver - sv0N === 1 && msgPc === '"Didn\'t Ned want one of those?"' && CN.count(st, 'snaketongue') === 1 && !!tRow2 && tRow2.label === 'Snake Tongue x1');
+      CN.give(st, 'batfur', 1); var bfB = scPc.buttons().filter(function (q) { return q.row && scPc.rows()[q.k].id === 'batfur'; })[0]; clickN(scPc, bfB); if (scPc.sub) goN(scPc, 'qok'); var msgBf = scPc.msg;
+      okN('any other part, the quest open: his own thanks, not the remark ("' + msgBf + '")', window.DS.DATA.shops.percy.boughtText.indexOf(msgBf) >= 0 && CN.count(st, 'batfur') === 0);
       goN(scPc, 'back'); goN(scPc, 'opt', 'LEAVE'); driveN(gPc, null, 300);
       var pinN = CN.pinned(st);
       okN('the marker with the tongue in the pack: Percy\'s door on the street, Ned\'s square in the room (' + (pinN && pinN.door + ', ' + pinN.who) + ' -> ' + (D.roam.def.beside && D.roam.def.beside.ned.at) + ')', !!pinN && pinN.door === 'warp:percy' && pinN.who === 'ned' && D.roam.def.room === 'warp:percy' && D.roam.def.beside.ned.at.join() === kNd.x + ',' + kNd.y);
@@ -2682,7 +2685,7 @@
       okN('the sale: PAY 50 SILVER -- ' + (60 - R0.silver) + ' sp, "' + w11[0] + '", the talk over', R0.silver === 10 && au.known.indexOf('findfamiliar') >= 0 && /copies Find Familiar/.test(w11[0]) && sc11.done && !upN());
       // the show: every beat stages and plays
       var cvN = document.createElement('canvas'); cvN.width = D.W; cvN.height = D.H; var ctxN = cvN.getContext('2d'), errS = null, beatsN = [];
-      try { var showN = CN.nedShow(''); showN.draw(ctxN); CN.NED_BEATS.forEach(function (bt) { var Bs = CN.nedStage(bt), roll1 = CN.nedRoll; CN.nedRoll = function () { return bt.d20; }; var s = CN.nedTalk(Bs); s.draw(ctxN); readN(s); beatsN.push(bt.id + ':' + (s.wait && s.wait.ask ? optsN(s).length + 'opts' : s.done ? 'done' : '?')); CN.nedRoll = roll1; }); } catch (eS) { errS = String(eS).slice(0, 120); }
+      try { var showN = CN.nedShow(''); showN.draw(ctxN); CN.NED_BEATS.forEach(function (bt) { var Bs = CN.nedStage(bt), roll1 = CN.nedRoll; CN.nedRoll = function () { return bt.d20; }; var s = CN.beatTalk(bt, Bs); s.draw(ctxN); readN(s); beatsN.push(bt.id + ':' + (s.wait && s.wait.ask ? optsN(s).length + 'opts' : s.done ? 'done' : '?')); CN.nedRoll = roll1; }); } catch (eS) { errS = String(eS).slice(0, 120); }
       okN('the show (deep16/?nedshow) draws, and each of its ' + CN.NED_BEATS.length + ' beats stages Ned\'s screen: ' + beatsN.join(' ') + (errS ? ' THREW ' + errS : ''), !errS && beatsN.length === CN.NED_BEATS.length);
       var errP = null; try { var psN = CN.portraitShow('?portraits&who=mela,mical,ned'); psN.update(); var pc = D.top(); pc.draw(ctxN); } catch (eP) { errP = String(eP).slice(0, 120); }
       okN('the portraits\' show (deep16/?portraits&who=...) opens each one\'s counter screen: ' + (psN && psN.ids.join(', ')) + (errP ? ' THREW ' + errP : ''), !errP && psN.ids.join() === 'mela,mical,ned' && pc instanceof CN.Counter && pc.sheet === 'pt_mela');

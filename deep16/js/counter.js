@@ -207,11 +207,12 @@
   Counter.prototype.rows = function () {
     var self = this, st = this.st, d = this.shop, v = C.VENDORS[this.id];
     if (this.tab === 'buy') return (d.items || []).map(function (id) { var it = DS.DATA.items[id], p = self.price(id); return { id: id, label: it.name, right: p + ' sp', off: p > st.silver() }; });
-    return st.inv.filter(function (s) { var it = DS.DATA.items[s.id]; return it && s.n - self.held(s.id) > 0 && C.buys(v, d, s.id, it); }).map(function (s) { var it = DS.DATA.items[s.id]; return { id: s.id, label: it.name + ' x' + (s.n - self.held(s.id)), right: self.offer(it) + ' sp' }; });
+    return st.inv.filter(function (s) { var it = DS.DATA.items[s.id]; return it && s.n > 0 && C.buys(v, d, s.id, it); }).map(function (s) { var it = DS.DATA.items[s.id]; return { id: s.id, label: it.name + ' x' + s.n, right: self.offer(it) + ' sp' }; });
   };
-  // what the shelves will not take while a quest wants it: one snake tongue at Percy's while Ned's tongue is asked for (the keepers cutter seat's call, 10-21 night:
-  // Percy buys parts at a fifth, and the one Ned waits on would go for 1 sp by a slip of the mouse)
-  Counter.prototype.held = function (id) { return this.shopId === 'percy' && id === C.NED.part && C.nedOpen(this.st) ? 1 : 0; };
+  // what a keeper says, buying a thing a quest wants: Percy, sold a snake tongue while Ned's is asked for, says so -- and buys it anyway, at his fifth (RULED 10-21
+  // night, Griz: "looks good - have percy 'Didn't Ned want one of those?' while the quest is active, but will buy them anyway after saying it"; the house lane's
+  // THE SCENE item 12 -- the seat had held one back from his list)
+  Counter.prototype.remark = function (id) { return this.shopId === 'percy' && id === C.NED.part && C.nedOpen(this.st) ? C.NED_LINES.percyTongue : null; };
   function stacks(it) { return it.kind === 'use' || !!it.stack; }
   function gear(it) { return it.kind === 'weapon' || it.kind === 'armor' || it.kind === 'shield'; }
   Counter.prototype.buy = function (id, n) {
@@ -224,7 +225,7 @@
   Counter.prototype.sell = function (id, k) {
     var st = this.st, it = DS.DATA.items[id];
     take(st, id, k); st.silver(this.offer(it) * k); D.sfx('coin');
-    this.msg = pick(this.shop.boughtText || ['Done.']); this.setFace('work'); // (his acquisition: unwrapped, looked over, set on the counter)
+    this.msg = this.remark(id) || pick(this.shop.boughtText || ['Done.']); this.setFace('work'); // (his acquisition: unwrapped, looked over, set on the counter)
   };
   // the first game's equip-it-now (js/scenes.js Shop.go): a two-hander takes the shield off, a shield will not go on beside one, what was worn goes to the pack
   Counter.prototype.equip = function (h, id) {
@@ -269,7 +270,7 @@
       var r = this.rows()[b.k]; if (!r) return; this.cur = b.k;
       var it = DS.DATA.items[r.id];
       if (this.tab === 'buy') { var p = this.price(r.id); if (stacks(it)) { var mx = Math.min(99, Math.floor(this.st.silver() / p)); if (mx > 1) { this.sub = { kind: 'qty', id: r.id, n: 1, max: mx, price: p }; return; } } this.buy(r.id, 1); }
-      else { var cnt = count(this.st, r.id) - this.held(r.id); if (cnt > 1) { this.sub = { kind: 'qty', id: r.id, n: 1, max: cnt, price: this.offer(it), sell: true }; this.setFace('skeptical'); return; } this.sell(r.id, 1); }
+      else { var cnt = count(this.st, r.id); if (cnt > 1) { this.sub = { kind: 'qty', id: r.id, n: 1, max: cnt, price: this.offer(it), sell: true }; this.setFace('skeptical'); return; } this.sell(r.id, 1); }
       return;
     }
     if (s && b.go === 'qminus') { s.n--; return; }
@@ -501,7 +502,8 @@
     page: ['"It was always going to be somebody\'s."'],
     after: ['"How is it? The familiar. Mine eats better than I do."'],
     bye: ['"Mind how you go."'],
-    journal: '{g}Ned\'s page is in your JOURNAL now (M, then JOURNAL), pinned.{/}'
+    journal: '{g}Ned\'s page is in your JOURNAL now (M, then JOURNAL), pinned.{/}',
+    percyTongue: '"Didn\'t Ned want one of those?"' // (Percy's, selling him a snake tongue while Ned's is asked for: his words, RULED 10-21 night -- Counter.remark)
   };
   C.nedRoll = function () { return D.roll('1d20').total; }; // (the Insight's die: the bench and the show pin it)
   C.nedAurdin = function (st) { return st.party.filter(function (h) { return (h.key || h.id) === 'aurdin' && !h.dead; })[0] || null; };
@@ -691,8 +693,10 @@
     { id: 'tongue', label: 'THE TONGUE BROUGHT: the page', note: 'A snake tongue in the pack: THE SNAKE TONGUE -- the page, the ritual copied.', d20: 1, flags: { nedStory: 1, nedSaw: 1, nedQuest: 1 }, inv: [['snaketongue', 1]] },
     { id: 'nohands', label: 'NO ONE TO TAKE IT (no Survival, no Nature)', note: 'Barley away: the Insight made, and Ned explains the job wants someone with the hands for it.', d20: 15, away: ['barley'] },
     { id: 'noaurdin', label: 'NO AURDIN: the harvest line', note: 'Aurdin away: Ned says where spell components come from.', d20: 1, away: ['aurdin'] },
-    { id: 'knows', label: 'AURDIN KNOWS IT: no spell talk', note: 'After the page: his school line, and how the familiar is.', d20: 1, flags: { nedStory: 1, nedSaw: 1, nedQuest: 1, nedDone: 1 }, knows: true }
+    { id: 'knows', label: 'AURDIN KNOWS IT: no spell talk', note: 'After the page: his school line, and how the familiar is.', d20: 1, flags: { nedStory: 1, nedSaw: 1, nedQuest: 1, nedDone: 1 }, knows: true },
+    { id: 'percy', label: 'PERCY, SOLD A SNAKE TONGUE WHILE NED WAITS', note: 'THE SHELVES, SELL a tongue: "Didn\'t Ned want one of those?" -- and he buys it anyway.', d20: 1, flags: { nedStory: 1, nedSaw: 1, nedQuest: 1 }, inv: [['snaketongue', 2]], who: 'percy' }
   ];
+  C.beatTalk = function (bt, B) { return bt.who === 'percy' ? new Counter(B, { id: 'percy', name: 'Percy', place: 'Percy\'s Particulars', what: 'Percy at the counter', script: function (sc) { return C.shopkeeper(sc, B, 'percy'); } }) : C.nedTalk(B); };
   C.nedStage = function (bt) { // a beat's party, purse, pack and flags -- the second game's start (js/house.js H.start), the beat's own on top
     var R = DS.R, party = ['barley', 'aurdin', 'vivian', 'lymen'].filter(function (id) { return (bt.away || []).indexOf(id) < 0; }).map(function (id) { var h = R.makeHero(id); return D.house && D.house.start ? D.house.start(h) : h; });
     if (bt.knows) party.forEach(function (h) { if (h.id === 'aurdin') h.known.push(C.NED.spell); });
@@ -705,9 +709,9 @@
   }
   NedShow.prototype.play = function (bt) {
     var self = this; this.bt = bt; this.B = C.nedStage(bt); this.n = 0; this.roll0 = C.nedRoll; C.nedRoll = function () { return bt.d20; };
-    this.cur = C.nedTalk(this.B); D.push(this.cur);
+    this.cur = C.beatTalk(bt, this.B); D.push(this.cur);
   };
-  NedShow.prototype.buttons = function () { return C.NED_BEATS.map(function (bt, k) { return { x: 12, y: 28 + k * 24, w: D.W - 24, h: 22, bt: bt }; }); };
+  NedShow.prototype.buttons = function () { return C.NED_BEATS.map(function (bt, k) { return { x: 12, y: 24 + k * 23, w: D.W - 24, h: 21, bt: bt }; }); };
   NedShow.prototype.update = function () {
     this.t++; var m = I.mouse, self = this;
     if (this.pending) { var p0 = this.pending; this.pending = null; this.play(p0); return; }
