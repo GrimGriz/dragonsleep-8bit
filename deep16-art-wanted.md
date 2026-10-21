@@ -350,3 +350,177 @@ HEAD 6 (optional) -- PEN DOWN (1, one drawing): "For once he sets the pen down."
 16-bit pixel-art cut-scene portrait animation, comparable to his ART-78 pages and to Sylvia Swann's. Waist-up, the stable eye-level three-quarter front camera of ART-78, his head and body the same size on every page as on its Idle page; crisp pixel clusters and restrained shading. Flat dark navy background (a deep blue, not grey and not black). Each image 1440 x 810, ONE action an image, the frames in bands of three with clear gutters between them; the counter ledge under his hands on every frame, as on the Acquisition page, its top edge at the same height on every frame. A title and frame numbers as on ART-78's pages, kept well clear of the drawings: a clear gap of navy between the title and the top of his hair, and between each number and the drawing. Nothing overlaps a neighbour. No scenery, no shop interior, no UI or border.
 ```
 Cut as: `tools/portrait-sheet.py`, one line for his supplement in `PEOPLE` (its folder `deep16/_src/winters/<id>/` and a layout: HEAD 1 PRESENT 6 as two bands, HEAD 2 NOD 3 as one band, HEAD 3 AVERTED 1, HEAD 4 DRAWER 6 as two bands, HEADs 5-6 if drawn) into rows `present`, `nod`, `averted`, `drawer` (`write`, `pendown`) on `pt_winters`; the counter is cut off at its top as on his six pages. `deep16/js/counter.js` plays them in the ring's scene (winters.ready, winters.ring), the scraping's (deep.wintersCurl, deep.wintersPaid), and his menu's "pen lifted" -- when those scenes come to the grid with the lake.
+
+## 20. Silverton's shopkeepers: each a talking portrait and a south-facing town figure (added 10-21, the Winters seat) -- READY to carry
+
+His words, 2026-10-21 (to the lanes desk): *"Include a south-facing 16 bit in the request for the shopkeepers and land them in the outbox please. Everything currently in the outbox has been sent."* The seven first-game shopkeepers with no portrait yet, Percy and Ned Halloway as two (the counter screen shows one face): each block is the talking portrait in ART-78's six-page plan (Idle, the four stills, Work -- `tools/portrait-sheet.py` cuts it with a `PEOPLE` line, `deep16/js/counter.js` plays it at the counter) and a seventh image, the keeper standing as the grid's figure facing south, the way a keeper stands behind the counter facing the door (deep16/js/town.js T.goIn). South only, by his word; the other four drawn views of the eight-facings rule (RULED 10-14) wait for a keeper who walks. Who each is: quoted from `TarlynsPit/silverton-portrait-sheets.md` (its *[seat]* marks kept), Lucia from the realm wiki and the first game's look. The numbers are the art desk's own, from its ART-78-SHOPKEEPERS-INDEX.md (ART-88 Kasten Wheal, ART-89 Cassia, ART-92 Lisbet Crane, ART-94 Marko Thorne, ART-97 Vilar, ART-102 Percy, ART-103 Ned Halloway); Lucia has none there (the family is his reserved core); its ART-78 to ART-81 still clash with its heroes' 8-bit makeovers (`deep16/_src/art-desk/sent/` ENGINE-RETURN-2026-10-21a). In the outbox as `deep16/_src/outbox/ASK-2026-10-21-silverton-shopkeepers.md`, with `REF-2026-10-21-town-figure-size.png`.
+
+### ART-97 -- Vilar, the Show-Armorer (content/shops.json `vilar`) (shop:vilar)
+
+```text
+VILAR, SILVERTON SHOPKEEPER: TALKING PORTRAIT AND TOWN FIGURE (one image a HEAD, seven). ATTACH deep16/_src/winters/ART-78/ART-78_HEAD-1_PAGE-1.png and ART-78_HEAD-1_PAGE-6.png (the shape of the portrait pages: Winters' Idle and Acquisition -- for the format only, not the face) and deep16/_src/outbox/REF-2026-10-21-town-figure-size.png (the size of the town figure: two of the heroes as the game draws them, 4x).
+
+VILAR -- the show-armorer. Mid-years, ambiguous of gender, built like someone used to swinging weight -- thick through the shoulders and wrists. Dark hair tied back off a soot-marked face. Both hands burn-scarred across the fingers. Heavy scorched apron, a leather thumb-guard [seat]. A patient half-smile, and the flat evaluating gaze of someone reading a blade's balance from across a room. Vilar is written they/them: keep the ambiguity on the page.
+
+HEAD 1 -- IDLE (6, two bands of three): a breathing and blink loop at the counter, hands resting on it; a half-close and a blink in frames 4-5; loops cleanly.
+HEAD 2 -- ATTENTIVE (1, one drawing): neutral listening.
+HEAD 3 -- WELCOMING (1, one drawing): restrained warmth.
+HEAD 4 -- SKEPTICAL (1, one drawing): assessing an offer.
+HEAD 5 -- CONCERNED (1, one drawing): a guarded refusal.
+HEAD 6 -- WORK (6, two bands of three): lifts a short stage blade across two fingers to find its balance, sights down the edge with one eye, then lays it on the counter (anatomical right hand does the lifting; the left stays on the counter); the last frame the hands back at rest.
+HEAD 7 -- STANDING, FACING SOUTH (the town floor's figure): Idle (4: standing at ease in the heavy scorched apron over dark work clothes, the leather thumb-guard, dark hair tied back, burn-scarred hands at the sides, a slow breath; the same pose on every frame but the breath).
+
+HEADs 1-6 (the talking portrait): 16-bit pixel-art cut-scene portrait animation, comparable to the art desk's ART-78 (Ambrose Winters) and Sylvia Swann. Waist-up behind a plain dark wooden counter ledge, a stable eye-level three-quarter front camera, looking screen left at someone just beside the camera; the head and body the same size on every page as on the Idle page. Crisp pixel clusters and restrained shading. Flat dark navy background (a deep blue, not grey and not black). Each image 1440 x 810, ONE action an image, six-frame actions in two bands of three with clear gutters; the counter ledge under the hands on every frame, its top edge at the same height. A title and frame numbers as on ART-78's pages, kept well clear of the drawings (a gap of navy between the title and the top of the hair). No scenery, no shop interior, no UI or border.
+
+HEAD 7 (the town figure): 16-bit pixel art animation sheet, SNES-era action RPG style, crisp dark outline, readable at small size. Isometric three-quarter view from above, the camera looking down at about thirty degrees, as in a tactics game -- the grid's own figures; every frame facing straight toward the viewer (south). The whole figure head to foot, the same size and proportions as the attached figures (the four heroes: a grown man stands about 50 pixels from sole to crown at game size; draw it large, the cutter brings it down). Flat dark navy background (a deep blue, not grey and not black). ONE sheet filling the whole image: no portrait, no other panels, no title. One labelled row of frames, its name at its left, numbered 1 to N under each frame -- every number used once, none skipped. Every frame stands apart with clear space around it. Feet on one baseline. No scenery, no counter.
+```
+Cut as: the portrait by `tools/portrait-sheet.py` (a `PEOPLE` line: `deep16/_src/vilar/<id>/`, the default layout) into `pt_vilar`, a line in `deep16/js/counter.js` C.VENDORS (its first-game shop on the line, Griz's word); the figure, HEAD 7, its S idle cut into `vilar_p1` (rows `idle`, S only; `tools/sheetrows.py`, measured beside the heroes in its STANDS) and stood at the counter in place of the stand-in (T.goIn).
+
+### ART-94 -- Marko Thorne, the Provisioner (content/shops.json `marko`) (shop:marko)
+
+```text
+MARKO THORNE, SILVERTON SHOPKEEPER: TALKING PORTRAIT AND TOWN FIGURE (one image a HEAD, seven). ATTACH deep16/_src/winters/ART-78/ART-78_HEAD-1_PAGE-1.png and ART-78_HEAD-1_PAGE-6.png (the shape of the portrait pages: Winters' Idle and Acquisition -- for the format only, not the face) and deep16/_src/outbox/REF-2026-10-21-town-figure-size.png (the size of the town figure: two of the heroes as the game draws them, 4x).
+
+MARKO THORNE -- provisioner and hirer of caravan guards. Mid-fifties, weather-cut face, grey stubble, a soldier's neck and a soldier's flat stare. Leather doublet dusted grey at the shoulders, a scarf gone shapeless at the throat [seat]. Stands as though still standing a watch.
+
+HEAD 1 -- IDLE (6, two bands of three): a breathing and blink loop at the counter, hands resting on it; a half-close and a blink in frames 4-5; loops cleanly.
+HEAD 2 -- ATTENTIVE (1, one drawing): neutral listening.
+HEAD 3 -- WELCOMING (1, one drawing): restrained warmth.
+HEAD 4 -- SKEPTICAL (1, one drawing): assessing an offer.
+HEAD 5 -- CONCERNED (1, one drawing): a guarded refusal.
+HEAD 6 -- WORK (6, two bands of three): coils a length of rope over his forearm, ties the coil off with its own end, and sets it on the counter (anatomical right hand does the coiling); the last frame the hands back at rest.
+HEAD 7 -- STANDING, FACING SOUTH (the town floor's figure): Idle (4: standing like a man on watch, feet planted, in the leather doublet dusted grey at the shoulders, the shapeless scarf at his throat, grey stubble, a slow breath; the same pose on every frame but the breath).
+
+HEADs 1-6 (the talking portrait): 16-bit pixel-art cut-scene portrait animation, comparable to the art desk's ART-78 (Ambrose Winters) and Sylvia Swann. Waist-up behind a plain dark wooden counter ledge, a stable eye-level three-quarter front camera, looking screen left at someone just beside the camera; the head and body the same size on every page as on the Idle page. Crisp pixel clusters and restrained shading. Flat dark navy background (a deep blue, not grey and not black). Each image 1440 x 810, ONE action an image, six-frame actions in two bands of three with clear gutters; the counter ledge under the hands on every frame, its top edge at the same height. A title and frame numbers as on ART-78's pages, kept well clear of the drawings (a gap of navy between the title and the top of the hair). No scenery, no shop interior, no UI or border.
+
+HEAD 7 (the town figure): 16-bit pixel art animation sheet, SNES-era action RPG style, crisp dark outline, readable at small size. Isometric three-quarter view from above, the camera looking down at about thirty degrees, as in a tactics game -- the grid's own figures; every frame facing straight toward the viewer (south). The whole figure head to foot, the same size and proportions as the attached figures (the four heroes: a grown man stands about 50 pixels from sole to crown at game size; draw it large, the cutter brings it down). Flat dark navy background (a deep blue, not grey and not black). ONE sheet filling the whole image: no portrait, no other panels, no title. One labelled row of frames, its name at its left, numbered 1 to N under each frame -- every number used once, none skipped. Every frame stands apart with clear space around it. Feet on one baseline. No scenery, no counter.
+```
+Cut as: the portrait by `tools/portrait-sheet.py` (a `PEOPLE` line: `deep16/_src/marko/<id>/`, the default layout) into `pt_marko`, a line in `deep16/js/counter.js` C.VENDORS (its first-game shop on the line, Griz's word); the figure, HEAD 7, its S idle cut into `marko_p1` (rows `idle`, S only; `tools/sheetrows.py`, measured beside the heroes in its STANDS) and stood at the counter in place of the stand-in (T.goIn).
+
+### ART-88 -- Kasten Wheal, the Chandler (content/shops.json `kasten`) (shop:kasten)
+
+```text
+KASTEN WHEAL, SILVERTON SHOPKEEPER: TALKING PORTRAIT AND TOWN FIGURE (one image a HEAD, seven). ATTACH deep16/_src/winters/ART-78/ART-78_HEAD-1_PAGE-1.png and ART-78_HEAD-1_PAGE-6.png (the shape of the portrait pages: Winters' Idle and Acquisition -- for the format only, not the face) and deep16/_src/outbox/REF-2026-10-21-town-figure-size.png (the size of the town figure: two of the heroes as the game draws them, 4x).
+
+KASTEN WHEAL -- the chandler. Sixty-something, strong shoulders gone to a thick middle, broad red face, wax under every fingernail and a pale bloom of it on his cuffs. Greasy dark wool, apron shining with tallow. Genial, and looking off downhill at something he has not forgiven.
+
+HEAD 1 -- IDLE (6, two bands of three): a breathing and blink loop at the counter, hands resting on it; a half-close and a blink in frames 4-5; loops cleanly.
+HEAD 2 -- ATTENTIVE (1, one drawing): neutral listening.
+HEAD 3 -- WELCOMING (1, one drawing): restrained warmth.
+HEAD 4 -- SKEPTICAL (1, one drawing): assessing an offer.
+HEAD 5 -- CONCERNED (1, one drawing): a guarded refusal.
+HEAD 6 -- WORK (6, two bands of three): gathers three tallow candles together, ties them with a twist of twine, and sets the bundle on the counter (anatomical right hand ties; the left holds the candles); the last frame the hands back at rest.
+HEAD 7 -- STANDING, FACING SOUTH (the town floor's figure): Idle (4: standing broad and heavy in greasy dark wool, the apron shining with tallow, his broad red face genial, a slow breath; the same pose on every frame but the breath).
+
+HEADs 1-6 (the talking portrait): 16-bit pixel-art cut-scene portrait animation, comparable to the art desk's ART-78 (Ambrose Winters) and Sylvia Swann. Waist-up behind a plain dark wooden counter ledge, a stable eye-level three-quarter front camera, looking screen left at someone just beside the camera; the head and body the same size on every page as on the Idle page. Crisp pixel clusters and restrained shading. Flat dark navy background (a deep blue, not grey and not black). Each image 1440 x 810, ONE action an image, six-frame actions in two bands of three with clear gutters; the counter ledge under the hands on every frame, its top edge at the same height. A title and frame numbers as on ART-78's pages, kept well clear of the drawings (a gap of navy between the title and the top of the hair). No scenery, no shop interior, no UI or border.
+
+HEAD 7 (the town figure): 16-bit pixel art animation sheet, SNES-era action RPG style, crisp dark outline, readable at small size. Isometric three-quarter view from above, the camera looking down at about thirty degrees, as in a tactics game -- the grid's own figures; every frame facing straight toward the viewer (south). The whole figure head to foot, the same size and proportions as the attached figures (the four heroes: a grown man stands about 50 pixels from sole to crown at game size; draw it large, the cutter brings it down). Flat dark navy background (a deep blue, not grey and not black). ONE sheet filling the whole image: no portrait, no other panels, no title. One labelled row of frames, its name at its left, numbered 1 to N under each frame -- every number used once, none skipped. Every frame stands apart with clear space around it. Feet on one baseline. No scenery, no counter.
+```
+Cut as: the portrait by `tools/portrait-sheet.py` (a `PEOPLE` line: `deep16/_src/kasten/<id>/`, the default layout) into `pt_kasten`, a line in `deep16/js/counter.js` C.VENDORS (its first-game shop on the line, Griz's word); the figure, HEAD 7, its S idle cut into `kasten_p1` (rows `idle`, S only; `tools/sheetrows.py`, measured beside the heroes in its STANDS) and stood at the counter in place of the stand-in (T.goIn).
+
+### ART-92 -- Lisbet Crane, Charms & Chalk (content/shops.json `lisbet`) (shop:lisbet)
+
+```text
+LISBET CRANE, SILVERTON SHOPKEEPER: TALKING PORTRAIT AND TOWN FIGURE (one image a HEAD, seven). ATTACH deep16/_src/winters/ART-78/ART-78_HEAD-1_PAGE-1.png and ART-78_HEAD-1_PAGE-6.png (the shape of the portrait pages: Winters' Idle and Acquisition -- for the format only, not the face) and deep16/_src/outbox/REF-2026-10-21-town-figure-size.png (the size of the town figure: two of the heroes as the game draws them, 4x).
+
+LISBET CRANE -- charm-peddler and warding-chalk seller. Late forties, hair gone chalk-white early, a long face, lips parted as though testing a word before releasing it. Dark wool powdered white at the cuffs and shoulders with chalk-dust [seat]. Fingers moving, counting something that is not there.
+
+HEAD 1 -- IDLE (6, two bands of three): a breathing and blink loop at the counter, hands resting on it; a half-close and a blink in frames 4-5; loops cleanly.
+HEAD 2 -- ATTENTIVE (1, one drawing): neutral listening.
+HEAD 3 -- WELCOMING (1, one drawing): restrained warmth.
+HEAD 4 -- SKEPTICAL (1, one drawing): assessing an offer.
+HEAD 5 -- CONCERNED (1, one drawing): a guarded refusal.
+HEAD 6 -- WORK (6, two bands of three): takes up a stick of white warding chalk, snaps it in two with a small puff of dust, wraps one half in a twist of paper, and sets it on the counter (both hands at the snap; the right wraps); the last frame the hands back at rest.
+HEAD 7 -- STANDING, FACING SOUTH (the town floor's figure): Idle (4: standing tall and narrow in dark wool powdered white at the cuffs and shoulders, chalk-white hair, her fingers moving at her sides, a slow breath; the same pose on every frame but the breath).
+
+HEADs 1-6 (the talking portrait): 16-bit pixel-art cut-scene portrait animation, comparable to the art desk's ART-78 (Ambrose Winters) and Sylvia Swann. Waist-up behind a plain dark wooden counter ledge, a stable eye-level three-quarter front camera, looking screen left at someone just beside the camera; the head and body the same size on every page as on the Idle page. Crisp pixel clusters and restrained shading. Flat dark navy background (a deep blue, not grey and not black). Each image 1440 x 810, ONE action an image, six-frame actions in two bands of three with clear gutters; the counter ledge under the hands on every frame, its top edge at the same height. A title and frame numbers as on ART-78's pages, kept well clear of the drawings (a gap of navy between the title and the top of the hair). No scenery, no shop interior, no UI or border.
+
+HEAD 7 (the town figure): 16-bit pixel art animation sheet, SNES-era action RPG style, crisp dark outline, readable at small size. Isometric three-quarter view from above, the camera looking down at about thirty degrees, as in a tactics game -- the grid's own figures; every frame facing straight toward the viewer (south). The whole figure head to foot, the same size and proportions as the attached figures (the four heroes: a grown man stands about 50 pixels from sole to crown at game size; draw it large, the cutter brings it down). Flat dark navy background (a deep blue, not grey and not black). ONE sheet filling the whole image: no portrait, no other panels, no title. One labelled row of frames, its name at its left, numbered 1 to N under each frame -- every number used once, none skipped. Every frame stands apart with clear space around it. Feet on one baseline. No scenery, no counter.
+```
+Cut as: the portrait by `tools/portrait-sheet.py` (a `PEOPLE` line: `deep16/_src/lisbet/<id>/`, the default layout) into `pt_lisbet`, a line in `deep16/js/counter.js` C.VENDORS (its first-game shop on the line, Griz's word); the figure, HEAD 7, its S idle cut into `lisbet_p1` (rows `idle`, S only; `tools/sheetrows.py`, measured beside the heroes in its STANDS) and stood at the counter in place of the stand-in (T.goIn).
+
+### (no number yet: not on your index) -- Lucia, Mama's Pharmakaiea, in the Hex's own wall (content/shops.json `lucia`) (shop:lucia)
+
+**His to check before it is pasted:** the arena family and Mama's are Griz's reserved core (the realm wiki, the-hex.md); nothing in this block beyond the wiki's facts and the first game's colours is canon.
+
+```text
+LUCIA, SILVERTON SHOPKEEPER: TALKING PORTRAIT AND TOWN FIGURE (one image a HEAD, seven). ATTACH deep16/_src/winters/ART-78/ART-78_HEAD-1_PAGE-1.png and ART-78_HEAD-1_PAGE-6.png (the shape of the portrait pages: Winters' Idle and Acquisition -- for the format only, not the face) and deep16/_src/outbox/REF-2026-10-21-town-figure-size.png (the size of the town figure: two of the heroes as the game draws them, 4x).
+
+LUCIA -- of Mama's Pharmakaiea, Papa Urtusk's wife and the brains of the Hex. Human, late seventies (the realm wiki, the-urtusks.md). From the first game's look: white hair, a dark green robe with gold trim. A woman who sold the slave owners on arena profits and has never told how the warlord died.
+
+HEAD 1 -- IDLE (6, two bands of three): a breathing and blink loop at the counter, hands resting on it; a half-close and a blink in frames 4-5; loops cleanly.
+HEAD 2 -- ATTENTIVE (1, one drawing): neutral listening.
+HEAD 3 -- WELCOMING (1, one drawing): restrained warmth.
+HEAD 4 -- SKEPTICAL (1, one drawing): assessing an offer.
+HEAD 5 -- CONCERNED (1, one drawing): a guarded refusal.
+HEAD 6 -- WORK (6, two bands of three): wraps a small stoppered vial in a twist of brown paper, ties it with thread, and sets it on the counter (the shop's line: "Mama mixes, I sell"); the last frame the hands back at rest.
+HEAD 7 -- STANDING, FACING SOUTH (the town floor's figure): Idle (4: standing small and upright in a dark green robe with gold trim, white hair, the bearing of the woman who runs the Hex, a slow breath; the same pose on every frame but the breath).
+
+HEADs 1-6 (the talking portrait): 16-bit pixel-art cut-scene portrait animation, comparable to the art desk's ART-78 (Ambrose Winters) and Sylvia Swann. Waist-up behind a plain dark wooden counter ledge, a stable eye-level three-quarter front camera, looking screen left at someone just beside the camera; the head and body the same size on every page as on the Idle page. Crisp pixel clusters and restrained shading. Flat dark navy background (a deep blue, not grey and not black). Each image 1440 x 810, ONE action an image, six-frame actions in two bands of three with clear gutters; the counter ledge under the hands on every frame, its top edge at the same height. A title and frame numbers as on ART-78's pages, kept well clear of the drawings (a gap of navy between the title and the top of the hair). No scenery, no shop interior, no UI or border.
+
+HEAD 7 (the town figure): 16-bit pixel art animation sheet, SNES-era action RPG style, crisp dark outline, readable at small size. Isometric three-quarter view from above, the camera looking down at about thirty degrees, as in a tactics game -- the grid's own figures; every frame facing straight toward the viewer (south). The whole figure head to foot, the same size and proportions as the attached figures (the four heroes: a grown man stands about 50 pixels from sole to crown at game size; draw it large, the cutter brings it down). Flat dark navy background (a deep blue, not grey and not black). ONE sheet filling the whole image: no portrait, no other panels, no title. One labelled row of frames, its name at its left, numbered 1 to N under each frame -- every number used once, none skipped. Every frame stands apart with clear space around it. Feet on one baseline. No scenery, no counter.
+```
+Cut as: the portrait by `tools/portrait-sheet.py` (a `PEOPLE` line: `deep16/_src/lucia/<id>/`, the default layout) into `pt_lucia`, a line in `deep16/js/counter.js` C.VENDORS (its first-game shop on the line, Griz's word); the figure, HEAD 7, its S idle cut into `lucia_p1` (rows `idle`, S only; `tools/sheetrows.py`, measured beside the heroes in its STANDS) and stood at the counter in place of the stand-in (T.goIn).
+
+### ART-89 -- Cassia, the Coaching Inn (content/shops.json `cassia`: its rooms) (inn:cassia)
+
+```text
+CASSIA, SILVERTON SHOPKEEPER: TALKING PORTRAIT AND TOWN FIGURE (one image a HEAD, seven). ATTACH deep16/_src/winters/ART-78/ART-78_HEAD-1_PAGE-1.png and ART-78_HEAD-1_PAGE-6.png (the shape of the portrait pages: Winters' Idle and Acquisition -- for the format only, not the face) and deep16/_src/outbox/REF-2026-10-21-town-figure-size.png (the size of the town figure: two of the heroes as the game draws them, 4x).
+
+CASSIA -- keeper of the coaching inn. Mid-forties, clear-eyed, dark hair bound up off a strong neck, hands that have never shaken. Good plain wool, sleeves pushed back, a ring of keys at the hip [seat]. A smile that forgives and forgets by choice. She is watching two games at once and giving no sign which.
+
+HEAD 1 -- IDLE (6, two bands of three): a breathing and blink loop at the counter, hands resting on it; a half-close and a blink in frames 4-5; loops cleanly.
+HEAD 2 -- ATTENTIVE (1, one drawing): neutral listening.
+HEAD 3 -- WELCOMING (1, one drawing): restrained warmth.
+HEAD 4 -- SKEPTICAL (1, one drawing): assessing an offer.
+HEAD 5 -- CONCERNED (1, one drawing): a guarded refusal.
+HEAD 6 -- WORK (6, two bands of three): unhooks one key from the ring at her hip, holds it up a moment, then sets it on the counter and slides it across (anatomical right hand); the last frame the hands back at rest.
+HEAD 7 -- STANDING, FACING SOUTH (the town floor's figure): Idle (4: standing easy in good plain wool, sleeves pushed back, dark hair bound up, the ring of keys at her hip, a slow breath; the same pose on every frame but the breath).
+
+HEADs 1-6 (the talking portrait): 16-bit pixel-art cut-scene portrait animation, comparable to the art desk's ART-78 (Ambrose Winters) and Sylvia Swann. Waist-up behind a plain dark wooden counter ledge, a stable eye-level three-quarter front camera, looking screen left at someone just beside the camera; the head and body the same size on every page as on the Idle page. Crisp pixel clusters and restrained shading. Flat dark navy background (a deep blue, not grey and not black). Each image 1440 x 810, ONE action an image, six-frame actions in two bands of three with clear gutters; the counter ledge under the hands on every frame, its top edge at the same height. A title and frame numbers as on ART-78's pages, kept well clear of the drawings (a gap of navy between the title and the top of the hair). No scenery, no shop interior, no UI or border.
+
+HEAD 7 (the town figure): 16-bit pixel art animation sheet, SNES-era action RPG style, crisp dark outline, readable at small size. Isometric three-quarter view from above, the camera looking down at about thirty degrees, as in a tactics game -- the grid's own figures; every frame facing straight toward the viewer (south). The whole figure head to foot, the same size and proportions as the attached figures (the four heroes: a grown man stands about 50 pixels from sole to crown at game size; draw it large, the cutter brings it down). Flat dark navy background (a deep blue, not grey and not black). ONE sheet filling the whole image: no portrait, no other panels, no title. One labelled row of frames, its name at its left, numbered 1 to N under each frame -- every number used once, none skipped. Every frame stands apart with clear space around it. Feet on one baseline. No scenery, no counter.
+```
+Cut as: the portrait by `tools/portrait-sheet.py` (a `PEOPLE` line: `deep16/_src/cassia/<id>/`, the default layout) into `pt_cassia`, a line in `deep16/js/counter.js` C.VENDORS (its first-game shop on the line, Griz's word); the figure, HEAD 7, its S idle cut into `cassia_p1` (rows `idle`, S only; `tools/sheetrows.py`, measured beside the heroes in its STANDS) and stood at the counter in place of the stand-in (T.goIn).
+
+### ART-102 -- Percy, Percy's Particulars (content/shops.json `percy`: road harvest rendered and jarred) (warp:percy)
+
+```text
+PERCY, SILVERTON SHOPKEEPER: TALKING PORTRAIT AND TOWN FIGURE (one image a HEAD, seven). ATTACH deep16/_src/winters/ART-78/ART-78_HEAD-1_PAGE-1.png and ART-78_HEAD-1_PAGE-6.png (the shape of the portrait pages: Winters' Idle and Acquisition -- for the format only, not the face) and deep16/_src/outbox/REF-2026-10-21-town-figure-size.png (the size of the town figure: two of the heroes as the game draws them, 4x).
+
+PERCY -- proprietor of a components shop. Forty-ish [seat], small and neat and quick, thinning hair combed flat, a permanent obliging half-bow in the shoulders. Cheap clothes brushed to respectability, sleeve-guards, a wax-sealed thimble in his breast pocket. The face of a man who is loyal upward and has nothing at all left over.
+
+HEAD 1 -- IDLE (6, two bands of three): a breathing and blink loop at the counter, hands resting on it; a half-close and a blink in frames 4-5; loops cleanly.
+HEAD 2 -- ATTENTIVE (1, one drawing): neutral listening.
+HEAD 3 -- WELCOMING (1, one drawing): restrained warmth.
+HEAD 4 -- SKEPTICAL (1, one drawing): assessing an offer.
+HEAD 5 -- CONCERNED (1, one drawing): a guarded refusal.
+HEAD 6 -- WORK (6, two bands of three): measures a pinch of grey powder from a small jar into a paper twist with a tiny horn spoon, folds the twist shut, and sets it on the counter (anatomical right hand spoons and folds); the last frame the hands back at rest.
+HEAD 7 -- STANDING, FACING SOUTH (the town floor's figure): Idle (4: standing small and neat with the obliging half-bow in his shoulders, cheap clothes brushed to respectability, sleeve-guards, a slow breath; the same pose on every frame but the breath).
+
+HEADs 1-6 (the talking portrait): 16-bit pixel-art cut-scene portrait animation, comparable to the art desk's ART-78 (Ambrose Winters) and Sylvia Swann. Waist-up behind a plain dark wooden counter ledge, a stable eye-level three-quarter front camera, looking screen left at someone just beside the camera; the head and body the same size on every page as on the Idle page. Crisp pixel clusters and restrained shading. Flat dark navy background (a deep blue, not grey and not black). Each image 1440 x 810, ONE action an image, six-frame actions in two bands of three with clear gutters; the counter ledge under the hands on every frame, its top edge at the same height. A title and frame numbers as on ART-78's pages, kept well clear of the drawings (a gap of navy between the title and the top of the hair). No scenery, no shop interior, no UI or border.
+
+HEAD 7 (the town figure): 16-bit pixel art animation sheet, SNES-era action RPG style, crisp dark outline, readable at small size. Isometric three-quarter view from above, the camera looking down at about thirty degrees, as in a tactics game -- the grid's own figures; every frame facing straight toward the viewer (south). The whole figure head to foot, the same size and proportions as the attached figures (the four heroes: a grown man stands about 50 pixels from sole to crown at game size; draw it large, the cutter brings it down). Flat dark navy background (a deep blue, not grey and not black). ONE sheet filling the whole image: no portrait, no other panels, no title. One labelled row of frames, its name at its left, numbered 1 to N under each frame -- every number used once, none skipped. Every frame stands apart with clear space around it. Feet on one baseline. No scenery, no counter.
+```
+Cut as: the portrait by `tools/portrait-sheet.py` (a `PEOPLE` line: `deep16/_src/percy/<id>/`, the default layout) into `pt_percy`, a line in `deep16/js/counter.js` C.VENDORS (its first-game shop on the line, Griz's word); the figure, HEAD 7, its S idle cut into `percy_p1` (rows `idle`, S only; `tools/sheetrows.py`, measured beside the heroes in its STANDS) and stood at the counter in place of the stand-in (T.goIn).
+
+### ART-103 -- Edmund "Ned" Halloway, Percy's Particulars, behind the counter with Percy (warp:percy)
+
+```text
+EDMUND "NED" HALLOWAY, SILVERTON SHOPKEEPER: TALKING PORTRAIT AND TOWN FIGURE (one image a HEAD, seven). ATTACH deep16/_src/winters/ART-78/ART-78_HEAD-1_PAGE-1.png and ART-78_HEAD-1_PAGE-6.png (the shape of the portrait pages: Winters' Idle and Acquisition -- for the format only, not the face) and deep16/_src/outbox/REF-2026-10-21-town-figure-size.png (the size of the town figure: two of the heroes as the game draws them, 4x).
+
+EDMUND "NED" HALLOWAY -- Percy's partner, a young provincial scholar gone to trade. Late twenties to thirty [seat], soft-featured, an educated face without any hardness in it yet. Ink to the cuffs like a scrivener's. Good clothes from somewhere else, wearing out. He looks like a man who turned back halfway up a road and thinks about it daily.
+
+HEAD 1 -- IDLE (6, two bands of three): a breathing and blink loop at the counter, hands resting on it; a half-close and a blink in frames 4-5; loops cleanly.
+HEAD 2 -- ATTENTIVE (1, one drawing): neutral listening.
+HEAD 3 -- WELCOMING (1, one drawing): restrained warmth.
+HEAD 4 -- SKEPTICAL (1, one drawing): assessing an offer.
+HEAD 5 -- CONCERNED (1, one drawing): a guarded refusal.
+HEAD 6 -- WORK (6, two bands of three): writes a jar label in a careful court hand with a dip pen, blots it, and stands it against a small jar on the counter ("The labels are very good"); the last frame the hands back at rest.
+HEAD 7 -- STANDING, FACING SOUTH (the town floor's figure): Idle (4: standing slightly stooped like a scholar in good clothes from somewhere else, wearing out, ink to the cuffs, a slow breath; the same pose on every frame but the breath).
+
+HEADs 1-6 (the talking portrait): 16-bit pixel-art cut-scene portrait animation, comparable to the art desk's ART-78 (Ambrose Winters) and Sylvia Swann. Waist-up behind a plain dark wooden counter ledge, a stable eye-level three-quarter front camera, looking screen left at someone just beside the camera; the head and body the same size on every page as on the Idle page. Crisp pixel clusters and restrained shading. Flat dark navy background (a deep blue, not grey and not black). Each image 1440 x 810, ONE action an image, six-frame actions in two bands of three with clear gutters; the counter ledge under the hands on every frame, its top edge at the same height. A title and frame numbers as on ART-78's pages, kept well clear of the drawings (a gap of navy between the title and the top of the hair). No scenery, no shop interior, no UI or border.
+
+HEAD 7 (the town figure): 16-bit pixel art animation sheet, SNES-era action RPG style, crisp dark outline, readable at small size. Isometric three-quarter view from above, the camera looking down at about thirty degrees, as in a tactics game -- the grid's own figures; every frame facing straight toward the viewer (south). The whole figure head to foot, the same size and proportions as the attached figures (the four heroes: a grown man stands about 50 pixels from sole to crown at game size; draw it large, the cutter brings it down). Flat dark navy background (a deep blue, not grey and not black). ONE sheet filling the whole image: no portrait, no other panels, no title. One labelled row of frames, its name at its left, numbered 1 to N under each frame -- every number used once, none skipped. Every frame stands apart with clear space around it. Feet on one baseline. No scenery, no counter.
+```
+Cut as: the portrait by `tools/portrait-sheet.py` (a `PEOPLE` line: `deep16/_src/ned/<id>/`, the default layout) into `pt_ned`, a line in `deep16/js/counter.js` C.VENDORS; the figure, HEAD 7, its S idle cut into `ned_p1` (rows `idle`, S only; `tools/sheetrows.py`, measured beside the heroes in its STANDS) and stood at the counter in place of the stand-in (T.goIn).
