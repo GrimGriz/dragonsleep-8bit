@@ -30,7 +30,7 @@
   // ------------------------------------------------------------------ the lineup (js/world.js W.field takes these): the field's squares, and the picture's
   // the four at x 8 (y 1-4), guests behind them at x 9 and 10; the foes' line at x 6, more and the Large behind it to x 3 -- a square between the lines
   S.PARTY = [[8, 1], [8, 2], [8, 3], [8, 4], [9, 1], [9, 2], [9, 3], [9, 4], [9, 5], [10, 2], [10, 3], [10, 4]];
-  S.PD = 4; S.FD = 2; // (the picture: the party drawn 4 squares east, the foes 2 west -- six squares between the lines, his "start them further apart")
+  S.PD = 4; S.FD = 2; // (the picture: the party drawn 4 squares east, the foes 2 west -- seven squares between the lines, his "start them further apart")
   S.LANE = [1, 14]; // (the field's open squares, x: the picture's lineup must stand on open ground)
   S.seat = function (list) {
     var taken = {}, out = [], C = { 1: [], 2: [[4, 1], [4, 3], [3, 1], [3, 3], [5, 1], [5, 3], [4, 2]], 3: [[3, 1], [3, 2], [4, 1]] };
