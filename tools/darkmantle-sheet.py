@@ -41,6 +41,11 @@ Colour: each later sheet toned to sheet 1 per channel (TONE, mirrorgnoll-sheet.p
 the part every view draws alike; the Clamp's bag glows pink inside): the front and the back by their idles against the turnaround's Front
 and Back, the tricks by its Clamp against the turnaround's Right -- each later sheet drew it warmer. Still keeps its own cave-rock grey
 (the sheet's tone only).
+ART-38 (10-21): the art desk's eight pages give SE (SW mirrored) and NE (NW mirrored) every row, and S and N the rows the front and back
+sheets lacked (Darkness, Fall, Prone, Clamp, Still); E and W, and S and N's Idle, Fly, Crush and Flinch, are as they were. PAGES38 and
+scales38 below: SE by the mantle against its side row, S by its upright rows' mantles, NE and N (no eyes) each row by area against its SE
+or S row; each page toned per channel by the mantle to sheet 1's side idle, and its Still to the side's Still (a rock, one colour).
+    python tools/darkmantle-sheet.py measure    (each page row's K by the mantle and by area, against its side row)
 """
 import os, sys, json, subprocess, tempfile
 import importlib.util
@@ -106,6 +111,52 @@ FPS = {'idle': 5, 'walk': 9, 'attack': 10, 'crush': 10, 'darkness': 8, 'clamp': 
 IDLE_AREA = 322       # the stand-in's side idle (darkmantle_p1 facing E, the median of its 8 frames, outline in): drawn px of ours to match
 HOVER = 12            # every air row's lowest pixel this far over the foot (the owl's): the sheet drew none, see the head
 FH, AY = 48, 44       # (the tallest frame stands 38 px over its foot: crush, the hover in)
+
+# ART-38 (10-21): the art desk drew the views the four sheets lacked (RULED 10-14, five drawn views: S, SE, E, NE, N; SE mirrors to SW, E to W,
+# NE to NW), eight pages in deep16/_src/darkmantle/ART-38/ (sorted out of Fresh by its ART-38-sort.py; the desk's papers in
+# _src/art-desk/received-2026-10-21-ART-38-darkmantle-FINAL-SHEETS/): HEAD 1 SE and HEAD 2 NE every row on three pages (Idle, Fly, Crush;
+# Darkness, Flinch, Fall; Prone, Clamp, Still), HEAD 3 S and HEAD 5 N the rows the front and back sheets lacked (Darkness, Fall, Prone,
+# Clamp, Still). Each row's name at its left, its numbers under it; cut by sheetrows as the four sheets are, by `chan`. Every row goes
+# through the same frames_of as the four sheets' (the hover, Fall's drop, Prone backwards, Clamp's lowest pixel on ay, Still on the floor).
+ART38 = os.path.join(SRC, 'darkmantle', 'ART-38')
+PAGES38 = {
+  'H1P1': dict(file='ART-38_HEAD-1_PAGE-1.png', W=1536, text=[(0, 230, 140, 266), (0, 455, 140, 522), (0, 748, 150, 782)],
+               rows=[('idle', (0, 140, 1536, 324), (303, 321), NUM(6)), ('fly', (0, 330, 1536, 577), (556, 574), NUM(8)),
+                     ('crush', (0, 590, 1536, 848), (826, 845), NUM(6))]),
+  'H1P2': dict(file='ART-38_HEAD-1_PAGE-2.png', W=1536, text=[(0, 258, 150, 290), (0, 519, 140, 550), (0, 795, 140, 827)],
+               rows=[('darkness', (0, 150, 1536, 352), (331, 349), NUM(6)), ('flinch', (0, 400, 1536, 630), (608, 627), NUM(4)),
+                     ('fall', (0, 650, 1536, 890), (866, 887), NUM(6))]),
+  'H1P3': dict(file='ART-38_HEAD-1_PAGE-3.png', W=1774, text=[(0, 210, 150, 248), (0, 440, 150, 488), (0, 680, 150, 720)],
+               rows=[('prone', (0, 140, 1774, 322), (297, 319), NUM(2)), ('clamp', (0, 330, 1774, 556), (533, 553), NUM(4)),
+                     ('still', (0, 570, 1774, 798), (776, 795), NUM(4))]),
+  'H2P1': dict(file='ART-38_HEAD-2_PAGE-1.png', W=1536, text=[(0, 200, 140, 240), (0, 470, 140, 515), (0, 760, 150, 798)],
+               rows=[('idle', (0, 110, 1536, 316), (295, 313), NUM(6)), ('fly', (0, 400, 1536, 586), (565, 583), NUM(8)),
+                     ('crush', (0, 640, 1536, 887), (865, 884), NUM(6))]),
+  'H2P2': dict(file='ART-38_HEAD-2_PAGE-2.png', W=1536, text=[(0, 250, 145, 285), (0, 483, 140, 516), (0, 737, 140, 770)],
+               rows=[('darkness', (0, 150, 1536, 352), (331, 349), NUM(6)), ('flinch', (0, 400, 1536, 597), (576, 594), NUM(4)),
+                     ('fall', (0, 620, 1536, 868), (846, 865), NUM(6))]),
+  'H2P3': dict(file='ART-38_HEAD-2_PAGE-3.png', W=1536, text=[(0, 205, 200, 252), (0, 488, 210, 548), (0, 784, 200, 830)],   # (Clamp's 'p' hangs low)
+               rows=[('prone', (0, 100, 1536, 338), (309, 336), NUM(2)), ('clamp', (0, 345, 1536, 636), (606, 633), NUM(4)),
+                     ('still', (0, 650, 1536, 926), (895, 923), NUM(4))]),
+  'H3P1': dict(file='ART-38_HEAD-3_PAGE-1.png', W=1536, text=[(0, 143, 170, 176), (0, 334, 120, 367), (0, 511, 130, 544), (0, 686, 130, 726), (0, 877, 120, 911)],
+               rows=[('darkness', (0, 50, 1536, 231), (210, 228), NUM(6)), ('fall', (0, 240, 1536, 421), (398, 418), NUM(6)),
+                     ('prone', (0, 430, 1536, 601), (581, 598), NUM(2)), ('clamp', (0, 610, 1536, 784), (764, 781), NUM(4)),
+                     ('still', (0, 795, 1536, 978), (958, 975), NUM(4))]),
+  'H5P1': dict(file='ART-38_HEAD-5_PAGE-1.png', W=1536, text=[(0, 150, 160, 182), (0, 326, 120, 358), (0, 498, 130, 530), (0, 683, 130, 724), (0, 872, 120, 903)],
+               rows=[('darkness', (0, 60, 1536, 229), (205, 226), NUM(6)), ('fall', (0, 240, 1536, 415), (392, 412), NUM(6)),
+                     ('prone', (0, 425, 1536, 577), (557, 574), NUM(2)), ('clamp', (0, 590, 1536, 773), (753, 770), NUM(4)),
+                     ('still', (0, 790, 1536, 963), (943, 960), NUM(4))]),
+}
+# the views each page fills, by the engine's row: SE (SW its mirror), NE (NW its mirror), S and N (their front and back sheets keep idle,
+# walk, crush and attack, and flinch)
+VIEW38 = {}
+for _v, (_p1, _p2, _p3) in (('SE', ('H1P1', 'H1P2', 'H1P3')), ('NE', ('H2P1', 'H2P2', 'H2P3'))):
+    VIEW38[_v] = {'idle': (_p1, 'idle'), 'walk': (_p1, 'fly'), 'attack': (_p1, 'crush'), 'crush': (_p1, 'crush'), 'darkness': (_p2, 'darkness'),
+                  'flinch': (_p2, 'flinch'), 'hurt': (_p2, 'fall'), 'prone': (_p3, 'prone'), 'clamp': (_p3, 'clamp'), 'still': (_p3, 'still')}
+for _v, _p in (('S', 'H3P1'), ('N', 'H5P1')):
+    VIEW38[_v] = {'darkness': (_p, 'darkness'), 'hurt': (_p, 'fall'), 'prone': (_p, 'prone'), 'clamp': (_p, 'clamp'), 'still': (_p, 'still')}
+FACE38 = {7: 'SE', 1: 'SE', 5: 'NE', 3: 'NE', 0: 'S', 4: 'N'}     # (1 and 3 are mirrored where the side's 1-3 always were)
+PAINT38 = {'H5P1': [(1356, 207, 1380, 210)]}   # painted navy before the cut: HEAD 5's Darkness 6 ring touches its number '6' (a line between them)
 
 
 def toned(im, f):
@@ -317,6 +368,85 @@ def tones(c):
     return {L: tuple(float(v) for v in f) for L, f in t.items()}
 
 
+def cut38(L, check=False):
+    s = PAGES38[L]
+    spec = dict(text=s['text'] + [(0, l0 - 3, s['W'], l1 + 4) for _, _, (l0, l1), _ in s['rows']], rows=s['rows'], chan=CHAN)
+    over = [] if check else None
+    path = os.path.join(ART38, s['file'])
+    if L in PAINT38:
+        img = np.asarray(Image.open(path).convert('RGB')).copy()
+        navy = np.median(img.reshape(-1, 3)[::97], axis=0).astype(np.uint8)
+        for x0, y0, x1, y1 in PAINT38[L]:
+            img[y0:y1, x0:x1] = navy
+        path = os.path.join(tempfile.gettempdir(), 'darkmantle-%s.png' % L)
+        Image.fromarray(img).save(path)
+    out = SR.cut_sheet(path, spec, overlay=over, tag=L)
+    if check:
+        d = os.path.join(ROOT, 'dev', 'visions', 'darkmantle'); os.makedirs(d, exist_ok=True)
+        over[0].save(os.path.join(d, 'cut-%s.png' % L))
+    return out
+
+
+SIDE38 = {'idle': (1, 'idle'), 'fly': (1, 'fly'), 'crush': (1, 'crush'), 'darkness': (1, 'darkness'), 'flinch': (1, 'flinch'),
+          'fall': (1, 'fall'), 'prone': (1, 'prone'), 'clamp': (2, 'clamp'), 'still': (2, 'still')}   # each page row's side row, as cut
+
+
+def measure38(c, K, TONE):
+    """each page row's K two ways against its side row: by the mantle (tip to the eyes' middle, the rigid part; rows that show the eyes) and
+    by the area drawn at game size (outline in, the median)"""
+    for L in PAGES38:
+        for row, frs in c[L].items():
+            sl, sr = SIDE38[row]
+            side = c[sl][sr]
+            area = float(np.median([(game_frame(im, K[(sl, sr)], TONE.get(sl))[..., 3] > 0).sum() for _, im, _ in side]))
+            k_area = game_k(frs, area)
+            try:
+                k_m = K[(sl, sr)] * mantle(frs) / mantle(side)
+            except Exception:
+                k_m = float('nan')
+            print('  %s %-8s by area %.2f  by the mantle %s' % (L, row, k_area, '%.2f' % k_m if k_m == k_m else '--'))
+
+
+UPRIGHT = ('idle', 'fly', 'crush', 'darkness', 'flinch', 'clamp')   # rows whose mantle stands up: the tip-to-eyes measure holds
+
+
+def scales38(c, K):
+    """K per page row, the four sheets' way: SE by the mantle against its side row (the rows that lie or are a rock -- fall, prone, still --
+    by the page's upright rows' median); S by its upright rows' mantles (darkness, clamp: one K for the page; its fall and prone lie, and
+    measured alone they read 4.30 and 4.56 against the area's 5.10 and 4.87); NE and N, which show no eyes, each row by area against its
+    SE or S row (one motion from both sides, as the back sheet meets the front). The measure38 table is in the ENGINE-RETURN of 10-21h."""
+    def k_m(L, row):
+        sl, sr = SIDE38[row]
+        return K[(sl, sr)] * mantle(c[L][row]) / mantle(c[sl][sr])
+    med = lambda frs: float(np.median([body(im)[0] for _, im, _ in frs]))
+    K38 = {}
+    for L in ('H1P1', 'H1P2', 'H1P3'):
+        up = {r: k_m(L, r) for r in c[L] if r in UPRIGHT}
+        for r in c[L]:
+            K38[(L, r)] = up.get(r, float(np.median(list(up.values()))))
+    ks = float(np.median([k_m('H3P1', r) for r in ('darkness', 'clamp')]))
+    for r in c['H3P1']:
+        K38[('H3P1', r)] = ks
+    for Lb, La in (('H2P1', 'H1P1'), ('H2P2', 'H1P2'), ('H2P3', 'H1P3'), ('H5P1', 'H3P1')):
+        for r in c[Lb]:
+            K38[(Lb, r)] = K38[(La, r)] * med(c[Lb][r]) / med(c[La][r])
+    print('  K38: ' + ', '.join('%s %s %.2f' % (L, r, k) for (L, r), k in K38.items()))
+    return K38
+
+
+def tones38(c, tones_side):
+    """per channel, each page brought to sheet 1's side idle by the mantle's colour (cone_rgb), its darkness (the ring) and still (a rock) left
+    out of the measure (the tone is put on them too)"""
+    ref = cone_rgb(c[1]['idle'])
+    t = {L: ref / cone_rgb([fr for r, frs in c[L].items() if r not in ('darkness', 'still') for fr in frs]) for L in PAGES38}
+    # the Still is a rock, its own colour: each page's met per channel to the side's Still as built (sheet 2's, its tone in) by the mean --
+    # the pages drew it brown from the front and behind, grey-blue at SE, purplish at NE (the art desk's own note: materials differ)
+    rock = mean_rgb(c[2]['still']) * np.array(tones_side[2])
+    t.update({(L, 'still'): rock / mean_rgb(c[L]['still']) for L in PAGES38 if 'still' in c[L]})
+    print('  TONE38: ' + ', '.join('%s %s' % (L, ' '.join('%.3f' % v for v in f)) for L, f in t.items()))
+    return {L: tuple(float(v) for v in f) for L, f in t.items()}
+
+
 def place(a, x_ref, foot, up, fw, ax):
     """a 1x RGBA array onto an fw x FH frame: x_ref at ax, its row `foot` `up` px above AY"""
     out = np.zeros((FH, fw, 4), dtype=np.uint8)
@@ -328,10 +458,16 @@ def place(a, x_ref, foot, up, fw, ax):
     return out, (a[..., 3] > 0).sum() > (out[..., 3] > 0).sum()
 
 
-def main(check=False):
+def main(check=False, measure=False):
     c = {L: cut(L, check) for L in SHEETS}
     K = scales(c)
     TONE = tones(c)
+    c.update({L: cut38(L, check) for L in PAGES38})
+    if measure:
+        measure38(c, K, TONE)
+        return
+    K.update(scales38(c, K))
+    TONE.update(tones38(c, TONE))
     small = {}
     def frames_of(L, row):
         """the row's frames at game size: (array, x of its middle, its foot row in the array, how far its foot is over the floor)"""
@@ -341,7 +477,7 @@ def main(check=False):
             floor = max(foot_s)
             out = []
             for (nm, im, box), fs in zip(frs, foot_s):
-                a = game_frame(im, K[(L, row)], TONE.get(L))
+                a = game_frame(im, K[(L, row)], TONE.get((L, row), TONE.get(L)))
                 bottom = int(np.where(a[..., 3].any(axis=1))[0][-1])
                 foot = bottom if row != 'darkness' else min(bottom, int(round((fs - box[1]) * a.shape[0] / im.size[1])))
                 up = int(round((floor - fs) / K[(L, row)])) + (HOVER if row in AIR else 0)
@@ -357,7 +493,10 @@ def main(check=False):
         side = frames_of(L, row)
         per = []
         for f in range(8):
-            if f == 0 and L == 1 and row in FRONT:
+            v = FACE38.get(f)
+            if v and eng in VIEW38[v]:                            # ART-38: S, SE, NE, N in their own view (SW and NW flipped below)
+                per.append(frames_of(*VIEW38[v][eng]))
+            elif f == 0 and L == 1 and row in FRONT:
                 per.append(frames_of(3, row))
             elif f == 4 and L == 1 and row in BACK:
                 per.append(frames_of(4, row))
@@ -394,7 +533,7 @@ def main(check=False):
     for row, fps in FPS.items():
         meta['anims'][row]['fps'] = fps
     meta['source'] = ('generated by Griz (2026-10-08: the body and its rows, its Clamp and Still, from the front, from behind -- four GPT '
-                      'sheets), cut by tools/darkmantle-sheet.py')
+                      'sheets) and the art desk (2026-10-17, ART-38: SE and NE every row, S and N the rest), cut by tools/darkmantle-sheet.py')
     json.dump(meta, open(meta_p, 'w'), indent=1)
     side = [(fr[..., 3] > 0).sum() for fr in frames['idle'][6]]
     print('  the side idle: a median %d px drawn (the stand-in %d), %d px tall; hover %d px; the clamp %d px wide'
@@ -479,4 +618,4 @@ def facings(frames, sizes, path):
 
 
 if __name__ == '__main__':
-    main(check='check' in sys.argv[1:])
+    main(check='check' in sys.argv[1:], measure='measure' in sys.argv[1:])
