@@ -171,13 +171,19 @@
   // special monsters or fights")
   // Barley is Barley again everywhere but the level-9 fight (Griz, 09-27: "put Barley back except in the lvl 9 fight"):
   // a fight may carry `looks` over these (data/fights.js, the Cocoon Gallery keeps Denny)
-  SV.LOOK = { barley: { sheet: 'barley_p2' }, aurdin: { sheet: 'aurdin_p3', robe: 'aurdin_p2' }, vivian: { sheet: 'vivian_p0' }, lymen: { sheet: 'lymen_p0' }, dace: { sheet: 'npcwizard_p0' } }; // (Corwen Dace, a guest: the class floor's wizard till he has a sheet of his own -- art someday, 10-01c) (Aurdin in the Ochre Mantle, the art desk's ART-72, all eight facings: aurdin_p2 on main since 10-18, Griz: "Try cut 72 in Fresh for Aurdin on the grid on main please"; his LPC sheet aurdin_p0 kept, put it back here to have him back) (Barley in his battered coat with the threshing flail, the art desk's ART-75/76: barley_p2 since 10-20, Griz: "Spin up a Fable cutter for Barley's legs (art 75 & 76 in Fresh)"; the views the desk left OPEN play the nearest drawn facing, and his walk barley_p0's but facing S -- js/sprites.js frameOf; his LPC sheet barley_p0 kept, put it back here to have him back)
+  SV.LOOK = { barley: { sheet: 'barley_p2', mail: 'barley_p3' }, aurdin: { sheet: 'aurdin_p3', robe: 'aurdin_p2' }, vivian: { sheet: 'vivian_p0' }, lymen: { sheet: 'lymen_p0' }, dace: { sheet: 'npcwizard_p0' } }; // (Corwen Dace, a guest: the class floor's wizard till he has a sheet of his own -- art someday, 10-01c) (Aurdin in the Ochre Mantle, the art desk's ART-72, all eight facings: aurdin_p2 on main since 10-18, Griz: "Try cut 72 in Fresh for Aurdin on the grid on main please"; his LPC sheet aurdin_p0 kept, put it back here to have him back) (Barley in his battered coat with the threshing flail, the art desk's ART-75/76: barley_p2 since 10-20, Griz: "Spin up a Fable cutter for Barley's legs (art 75 & 76 in Fresh)"; the views the desk left OPEN play the nearest drawn facing, and his walk barley_p0's but facing S -- js/sprites.js frameOf; his LPC sheet barley_p0 kept, put it back here to have him back)
   // the look by what he wears (10-20, Griz: "We're going to try mantle as starter gear and ochre when wizard robes equpped"): a look with a `robe` sheet
   // wears it while the hero `h` has a robe on (an item whose armor type is robe: Wizard's Robes, Robes +1), its own sheet otherwise -- Aurdin's Red
   // Mantle (aurdin_p3, ART-73) out of robes, the Ochre Mantle (aurdin_p2, ART-72) in them. A caller without the hero gets the plain look
+  // A look with a `mail` sheet wears it while the hero has on body armour at or above a chain shirt's (10-20, Griz: "barley barefoot until he's wearing
+  // chain shirt+ AC gear"): medium or heavy armour of base AC 13 or more -- of the SRD's, the Chain Shirt (13), Scale Mail, Breastplate, Ring Mail (14),
+  // Half Plate (15), Chain Mail (16), Splint (17), Plate (18), and their +1s and the dwarven plate; not Hide (12), no light armour, no robe, no shield.
+  // Barley: his coat barefoot (barley_p2, ART-75/76/77) out of it, the chainmail and boots (barley_p3, ART-109) in it
+  SV.mailed = function (it) { return !!(it && it.armor && (it.armor.type === 'medium' || it.armor.type === 'heavy') && it.armor.base >= 13); };
   SV.look = function (id, fight, h) {
     var L = (fight && fight.looks && fight.looks[id]) || SV.LOOK[id] || {};
-    var a = L.robe && h && h.equip && h.equip.armor, it = a && window.DS && window.DS.DATA && window.DS.DATA.items[a];
-    return it && it.armor && it.armor.type === 'robe' ? Object.assign({}, L, { sheet: L.robe }) : L;
+    var a = (L.robe || L.mail) && h && h.equip && h.equip.armor, it = a && window.DS && window.DS.DATA && window.DS.DATA.items[a];
+    if (L.mail && SV.mailed(it)) return Object.assign({}, L, { sheet: L.mail });
+    return L.robe && it && it.armor && it.armor.type === 'robe' ? Object.assign({}, L, { sheet: L.robe }) : L;
   };
 })();

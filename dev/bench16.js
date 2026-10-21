@@ -4873,8 +4873,10 @@
       okBa('barley_p2 rows: ' + gotBa.join(' ') + ' (the blows land on ' + (shBa && shBa.anims.attack.release) + ' and ' + (shBa && shBa.anims.attack2.release) + ')',
         shBa && wantBa.every(function (r) { return gotBa.indexOf(r) >= 0; }) && shBa.anims.attack.release === 3 && shBa.anims.attack2.release === 3);
       var openBa = gotBa.filter(function (r) { return shBa.anims[r].drawn; }).map(function (r) { return r + ' ' + shBa.anims[r].drawn.join(''); });
-      okBa('the OPEN views left out, each row its drawn facings: ' + openBa.join(', ') + '; the walk drawn S and N only (N the seat\'s salvage), under barley_p0',
-        shBa && shBa.anims.walk.drawn.join() === '0,4' && shBa.anims.walk.under === 'barley_p0' && shBa.anims.hurt.drawn.indexOf(0) < 0 && !shBa.anims.idle.drawn && !shBa.anims.attack.drawn);
+      // (10-20, the chain seat: ART-77 and ART-76's third pass fill the views the desk had left OPEN, and the SE NE E walks play the least bad of the attempts that
+      // repeat a leg -- every row in all eight facings, no row under barley_p0)
+      okBa('every row drawn in all eight facings, none under barley_p0 (rows left out: ' + (openBa.join(', ') || 'none') + ')',
+        shBa && !openBa.length && !gotBa.some(function (r) { return shBa.anims[r].under; }));
       var nf = D.spr.nearFacing, nfBa = [nf([1, 2, 3, 4, 5, 6, 7], 0), nf([2, 3, 5, 6], 0), nf([2, 3, 5, 6], 4), nf([2, 3, 5, 6], 1), nf([2, 3, 5, 6], 7), nf([0, 1, 2, 4, 6, 7], 5), nf([0, 1, 2, 4, 6, 7], 3)];
       okBa('the nearest drawn facing: hurt S plays SE, getup S plays E, N NE, SW W, SE E; secondwind NE plays E, NW W -- ' + nfBa.join(' '), nfBa.join() === '7,6,5,2,6,6,2');
       var Bb = mkBa('?npc=ogre&lvl=5&vs=fighter:5'), fo = sideBa(Bb, 'foe')[0], pf = sideBa(Bb, 'party')[0];
@@ -4899,6 +4901,61 @@
     if (errs.length) repBa.errors = repBa.errors.concat(errs);
     var preBa = document.createElement('pre'); preBa.id = 'out'; preBa.textContent = 'BENCH16 ' + JSON.stringify(repBa);
     document.body.appendChild(preBa);
+    return;
+  }
+  // BARLEY IN MAIL, HIS WEAPON DRAWN BY CODE (mode=barleychain1020; 10-20, Griz: "barley barefoot until he's wearing chain shirt+ AC gear", "try code flail and battle axe
+  // implementation", "that new barley sheet is to use the best of the broken, as if it was good enough"): the art desk's ART-109 cut to barley_p3 (tools/barley-sheet.py chain),
+  // every row in all eight facings; his look by what he wears (js/save.js SV.look `mail`: medium or heavy armour of base AC 13 or more); the grips measured off the pixels for
+  // every frame of every row (js/sprites.js S.gripAt), the weapon by what the hand holds (S.wieldOf), the beater out straight on the blow's own frame; and the chain look
+  // through a fight: a mailed Barley's unit wears barley_p3, swings, surges and goes down with it
+  if (get('mode', '') === 'barleychain1020') {
+    var repBc = { checks: [], errors: [] };
+    function okBc(what, v) { repBc.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    try {
+      var shBc = D.SHEETS && D.SHEETS.barley_p3, rowsBc = ['idle', 'walk', 'attack', 'attack2', 'hurt', 'sit', 'flinch', 'prone', 'defend', 'getup', 'useitem', 'victory', 'interact', 'secondwind', 'actionsurge'];
+      var gotBc = shBc ? Object.keys(shBc.anims) : [];
+      okBc('barley_p3 rows: ' + gotBc.join(' ') + '; every one in all eight facings', shBc && rowsBc.every(function (r) { return gotBc.indexOf(r) >= 0 && !shBc.anims[r].drawn && !shBc.anims[r].under; }) && shBc.anims.attack.release === 3 && shBc.anims.attack2.release === 3);
+      var hBc = function (armor) { return D.save.look('barley', null, { id: 'barley', equip: { armor: armor } }).sheet; };
+      var armBc = { none: null, leather: 'leather', studded: 'studded', hide: 'hide', robes: 'robes', chainshirt: 'chainshirt', scalemail: 'scalemail', ringmail: 'ringmail', chainmail: 'chainmail', splint: 'splint', chainshirt1: 'chainshirt1', dwarfplate: 'dwarfplate', doubledenim: 'doubledenim' };
+      var lookBc = Object.keys(armBc).map(function (k) { return k + ' ' + hBc(armBc[k]).replace('barley_', ''); });
+      okBc('his look by what he wears: ' + lookBc.join(', '), lookBc.join() === 'none p2,leather p2,studded p2,hide p2,robes p2,chainshirt p3,scalemail p3,ringmail p3,chainmail p3,splint p3,chainshirt1 p3,dwarfplate p3,doubledenim p2' && D.save.look('barley').sheet === 'barley_p2' && D.save.look('aurdin', null, { equip: { armor: 'chainshirt' } }).sheet === 'aurdin_p3');
+      var nGr = 0, badGr = [];
+      rowsBc.forEach(function (r) {
+        var an = shBc.anims[r], g = shBc.grips && shBc.grips[r];
+        for (var f = 0; f < 8; f++) {
+          var row = g && g[f] ? g[f].split(';').map(function (k) { return k.split(' ').map(Number); }) : null;
+          if (!row || row.length !== an.frames) { badGr.push(r + '@' + f + ' ' + (row ? row.length : 0) + '/' + an.frames); continue; }
+          row.forEach(function (k, i) { nGr++; if (k.length !== 5 || k.some(isNaN) || Math.abs(k[0]) > an.fw || k[1] > 8 || k[1] < -an.ay - 20) badGr.push(r + '@' + f + '#' + i + ' ' + k.join(',')); });
+        }
+      });
+      okBc('the grips: ' + nGr + ' frames measured, every row and facing (' + (badGr.slice(0, 6).join('; ') || 'none bad') + ')', !badGr.length && nGr > 600);
+      var flBc = function (r, f, i) { return +shBc.grips[r][f].split(';')[i].split(' ')[4]; };
+      okBc('flags: N and NE drawn under him (' + flBc('idle', 4, 0) + ', ' + flBc('idle', 5, 0) + '), S over (' + flBc('idle', 0, 0) + '); prone on the floor (' + flBc('prone', 0, 4) + '), getup up at its end (' + flBc('getup', 0, 5) + ')',
+        (flBc('idle', 4, 0) & 1) && (flBc('idle', 5, 0) & 1) && !(flBc('idle', 0, 0) & 1) && (flBc('prone', 0, 4) & 8) && !(flBc('getup', 0, 5) & 8));
+      var wBc = function (id, kind) { return D.spr.wieldOf({ sheet: 'barley_p3', weapon: { id: id, kind: kind } }); };
+      okBc('what the hand holds: threshingflail ' + wBc('threshingflail', null) + ', threshingflail1 ' + wBc('threshingflail1', null) + ', battleaxe ' + wBc('battleaxe', 'battleaxe') + ', greataxe ' + wBc('greataxe', 'greataxe') + ', greatsword ' + wBc('greatsword', 'greatsword') + '; on barley_p2 ' + D.spr.wieldOf({ sheet: 'barley_p2', weapon: { id: 'threshingflail' } }) + '; sheathed ' + D.spr.wieldOf({ sheet: 'barley_p3', sheathed: true, weapon: { id: 'threshingflail' } }),
+        wBc('threshingflail', null) === 'flail' && wBc('threshingflail1', null) === 'flail' && wBc('battleaxe', 'battleaxe') === 'battleaxe' && wBc('greataxe', 'greataxe') === 'battleaxe' && wBc('greatsword', 'greatsword') === null && D.spr.wieldOf({ sheet: 'barley_p2', weapon: { id: 'threshingflail' } }) === null);
+      var gaBc = function (fr) { return D.spr.gripAt({ sheet: 'barley_p3', anim: 'attack', facing: 7, fr: fr, frames: 6, release: 3 }, 'flail'); };
+      var g3 = gaBc(3), g2 = gaBc(2);
+      okBc('the Sweep SE: the blow on frame 4 lays the beater out (' + (g3 && g3.blow) + '), frame 3 not (' + (g2 && g2.blow) + '); the shaft runs rear to lead (' + (g3 && g3.u.map(function (v) { return v.toFixed(2); }).join(',')) + '), fists drawn over it ' + (g3 && g3.fists.length),
+        g3 && g3.blow && g2 && !g2.blow && g3.fists.length >= 1 && Math.abs(Math.hypot(g3.u[0], g3.u[1]) - 1) < 1e-6);
+      var offBc = D.spr.WIELD.off; D.spr.WIELD.off = true; var gOff = gaBc(3); D.spr.WIELD.off = offBc;
+      okBc('?nowield draws none (' + gOff + ')', gOff === null);
+      // a mailed Barley in a fight: his unit wears barley_p3 by the look, and the engine plays his rows on it
+      var hsBc = D.npc.heroSheet(D.npc.spec('barley', 5)), mailBc = Object.assign({}, hsBc, { equip: Object.assign({}, hsBc.equip, { armor: 'chainmail' }) });
+      var uBc = D.save.unitOf(mailBc, false, null), u0Bc = D.save.unitOf(Object.assign({}, hsBc, { equip: Object.assign({}, hsBc.equip, { armor: null }) }), false, null), cardBc = D.npc.lookOf(D.npc.spec('barley', 5));
+      okBc('the Pocket DM\'s Barley (in ' + hsBc.equip.armor + ': the card\'s ' + cardBc + ') in chain mail fights as ' + uBc.sheet + ', holding ' + D.spr.wieldOf(uBc) + ' (AC ' + uBc.baseAC + '); bare, ' + u0Bc.sheet + ' holding ' + D.spr.wieldOf(u0Bc),
+        uBc.sheet === 'barley_p3' && D.spr.wieldOf(uBc) === 'flail' && uBc.baseAC === 16 && u0Bc.sheet === 'barley_p2' && D.spr.wieldOf(u0Bc) === null && cardBc === (D.save.mailed(window.DS.DATA.items[hsBc.equip.armor]) ? 'barley_p3' : 'barley_p2'));
+      var Bx = D.npcFight('?npc=ogre&lvl=5&vs=fighter:5', {}); D.battle = Bx; Bx.enter(); while (!Bx.order.length) Bx.co.next(); Bx.dark = false;
+      var pc = Bx.units.filter(function (w) { return w.side === 'party'; })[0], fo = Bx.units.filter(function (w) { return w.side === 'foe'; })[0];
+      pc.sheet = 'barley_p3'; pc.weapon = Object.assign({}, pc.weapon, { id: 'threshingflail', kind: null }); pc.feats = pc.feats || {}; pc.feats.actionSurge = 1; fo.hp = fo.maxhp = 900; pc.conds = {}; fo.conds = {}; fo.x = pc.x + 1; fo.y = pc.y; D.rules.startTurn(pc);
+      var seenBc = [], runBc = function (g) { var v, k = 0, st; while (g && k++ < 4000) { st = g.next(v); v = undefined; if (seenBc.indexOf(pc.anim) < 0) seenBc.push(pc.anim); if (st.done) return; if (st.value && st.value.prompt) v = st.value.prompt.opts[0].value; } };
+      runBc(Bx.exec(pc, { do: 'attack', target: fo })); runBc(Bx.exec(pc, { do: 'attack', target: fo })); runBc(Bx.exec(pc, { do: 'surge' }));
+      okBc('in a fight on barley_p3, holding ' + D.spr.wieldOf(pc) + ': plays ' + seenBc.join('>'), D.spr.wieldOf(pc) === 'flail' && seenBc.indexOf('attack') >= 0 && seenBc.indexOf('attack2') >= 0 && seenBc.indexOf('actionsurge') >= 0);
+    } catch (eBc) { repBc.errors.push(String(eBc && eBc.stack || eBc).slice(0, 900)); }
+    if (errs.length) repBc.errors = repBc.errors.concat(errs);
+    var preBc = document.createElement('pre'); preBc.id = 'out'; preBc.textContent = 'BENCH16 ' + JSON.stringify(repBc);
+    document.body.appendChild(preBc);
     return;
   }
   // END CONCENTRATION, free (mode=conc1017; 10-17, Griz: "i just discovered in the pane the need for a free action 'end concentration spell' i think.."; SRD 5.1: "You can end

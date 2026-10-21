@@ -22,12 +22,7 @@
    "ax": 32,
    "ay": 60,
    "frames": 8,
-   "fps": 10,
-   "drawn": [
-    0,
-    4
-   ],
-   "under": "barley_p0"
+   "fps": 10
   },
   "attack": {
    "y": 1152,
@@ -46,16 +41,7 @@
    "ax": 32,
    "ay": 60,
    "frames": 6,
-   "fps": 10,
-   "drawn": [
-    1,
-    2,
-    3,
-    4,
-    5,
-    6,
-    7
-   ]
+   "fps": 10
   },
   "sit": {
    "y": 2304,
@@ -64,13 +50,7 @@
    "ax": 32,
    "ay": 60,
    "frames": 2,
-   "fps": 2,
-   "drawn": [
-    2,
-    3,
-    5,
-    6
-   ]
+   "fps": 2
   },
   "flinch": {
    "y": 2880,
@@ -88,16 +68,7 @@
    "ax": 32,
    "ay": 60,
    "frames": 5,
-   "fps": 10,
-   "drawn": [
-    1,
-    2,
-    3,
-    4,
-    5,
-    6,
-    7
-   ]
+   "fps": 10
   },
   "attack2": {
    "y": 4032,
@@ -107,16 +78,7 @@
    "ay": 60,
    "frames": 6,
    "fps": 12,
-   "release": 3,
-   "drawn": [
-    0,
-    1,
-    2,
-    3,
-    5,
-    6,
-    7
-   ]
+   "release": 3
   },
   "defend": {
    "y": 4608,
@@ -134,13 +96,7 @@
    "ax": 32,
    "ay": 60,
    "frames": 6,
-   "fps": 10,
-   "drawn": [
-    2,
-    3,
-    5,
-    6
-   ]
+   "fps": 10
   },
   "useitem": {
    "y": 5760,
@@ -158,16 +114,7 @@
    "ax": 32,
    "ay": 60,
    "frames": 6,
-   "fps": 8,
-   "drawn": [
-    0,
-    1,
-    2,
-    3,
-    5,
-    6,
-    7
-   ]
+   "fps": 8
   },
   "interact": {
    "y": 6912,
@@ -185,15 +132,7 @@
    "ax": 32,
    "ay": 60,
    "frames": 6,
-   "fps": 8,
-   "drawn": [
-    0,
-    1,
-    2,
-    4,
-    6,
-    7
-   ]
+   "fps": 8
   },
   "actionsurge": {
    "y": 8064,
@@ -202,17 +141,8 @@
    "ax": 32,
    "ay": 60,
    "frames": 6,
-   "fps": 10,
-   "drawn": [
-    0,
-    1,
-    2,
-    3,
-    5,
-    6,
-    7
-   ]
+   "fps": 10
   }
  },
- "source": "drawn by the art desk (2026-10-19/20, ART-75 retained sheets and ART-76 repairs, five views; the views it left OPEN left out: a row's `drawn` lists its facings), cut and snapped by tools/barley-sheet.py"
+ "source": "drawn by the art desk (Barley barefoot in his battered brown coat, the threshing flail drawn in his hands), cut and snapped by tools/barley-sheet.py coat; 70 pages, 3 of them attempts the desk marked broken or did not select"
 }

@@ -91,7 +91,8 @@
     }
     var fw = a.fw || sh.fw, fh = a.fh || sh.fh, ax = a.ax != null ? a.ax : sh.ax, ay = a.ay != null ? a.ay : sh.ay;
     var n = Math.floor(t * (a.fps || 8) / 60), fr = o && o.frame != null ? Math.max(0, Math.min(a.frames - 1, o.frame)) : o && o.once ? Math.min(a.frames - 1, n) : n % a.frames; // (o.frame: one frame by number -- the prone, ui.js)
-    return { img: S.rock(name, sh.eyes ? S.eyed(name, sh, D.images[sh.image]) : D.images[sh.image]), sx: fr * fw, sy: (a.y != null ? a.y : a.row * sh.fh) + (facing % 8) * fh, fw: fw, fh: fh, ax: ax, ay: ay };
+    return { img: S.rock(name, sh.eyes ? S.eyed(name, sh, D.images[sh.image]) : D.images[sh.image]), sx: fr * fw, sy: (a.y != null ? a.y : a.row * sh.fh) + (facing % 8) * fh, fw: fw, fh: fh, ax: ax, ay: ay,
+      sheet: name, anim: sh.anims[anim] ? anim : 'idle', facing: facing % 8, fr: fr, frames: a.frames, release: a.release }; // (which frame it chose, for the weapon drawn in the hands: S.wield below)
   }
   // the frame S.draw would draw for these arguments: { img, sx, sy, fw, fh, ax, ay }, or null while the sheet is on its way (the mirror ripple
   // reads it to lay its scales over the same pixels: js/looks.js LK.ripple, 10-08)
@@ -159,11 +160,20 @@
     if (!S.has(name)) { S.load(sh.image); if (/^keeper_p/.test(name)) return S.capsule(ctx, x, y, o); return sh.top || sh.ay; } // (asked for by nobody, or still on its way: fetched now, drawn when it lands; the Keeper's sheets show a capsule meanwhile -- js/keeper.js)
     var f = frameOf(sh, anim, facing, t, o, name), img = f.img, fw = f.fw, fh = f.fh, ay = f.ay, sy = f.sy;
     var dx = Math.round(x - f.ax), dy = Math.round(y - ay), fr = f.sx / fw;
+    var wg = o && o.wield && !o.lie ? S.gripAt(f, o.wield) : null; // (the weapon drawn in the hands of an empty-handed sheet: S.wield below)
     ctx.save();
     if (o && o.alpha != null) ctx.globalAlpha = o.alpha;
     if (o && o.stone) ctx.filter = 'grayscale(1) brightness(1.08) contrast(0.92)'; // (a statue: its own shading in grey -- petrified, js/ui.js, 10-08)
     if (o && o.lie) { ctx.translate(x, y); ctx.rotate(-Math.PI / 2 + (o.rock || 0)); ctx.translate(-x, -y + 6); } // (o.rock: one down laughing shakes with it -- js/ui.js, 10-02)
+    if (wg && wg.under) S.wield(ctx, wg, Math.round(x), Math.round(y));
     ctx.drawImage(img, fr * fw, sy, fw, fh, dx, dy, fw, fh);
+    if (wg && !wg.under) { // over him, his fists drawn again on top so the hands close on the shaft
+      S.wield(ctx, wg, Math.round(x), Math.round(y));
+      wg.fists.forEach(function (p) { // (a 5x5 of the frame round each fist, kept inside the frame's own cell)
+        var cx0 = Math.max(0, Math.round(x + p[0]) - 2 - dx), cy0 = Math.max(0, Math.round(y + p[1]) - 2 - dy), cx1 = Math.min(fw, cx0 + 5), cy1 = Math.min(fh, cy0 + 5);
+        if (cx1 > cx0 && cy1 > cy0) ctx.drawImage(img, fr * fw + cx0, sy + cy0, cx1 - cx0, cy1 - cy0, dx + cx0, dy + cy0, cx1 - cx0, cy1 - cy0);
+      });
+    }
     if (o && o.tint) { // a hit flash: the frame's own silhouette filled with one colour
       var tc = S.tintCanvas(fw, fh);
       var tx = tc.getContext('2d');
@@ -219,6 +229,71 @@
     var to = m[anim]; if (!to) return anim;
     var opts = to.split('|'); for (var i = 0; i < opts.length; i++) if (sh.anims[opts[i]]) return opts[i];
     return anim;
+  };
+  // the weapon drawn by code in the hands (10-20, the Barley chain seat; Griz: "Had it make empty-handed two handed weapon strikes, try code flail and
+  // battle axe implementation"): a sheet drawn empty-handed carries `grips` (tools/barley-sheet.py, measured off the art desk's pixels: for each row,
+  // facing and frame the lead fist, the rear fist and flags, from the foot -- 1 under the figure, where his body hides the hands (N, NE, NW); 2 and 4
+  // the lead and the rear fist on the shaft; 8 the weapon on the floor, he being down). The shaft runs from the rear fist through the lead one and on;
+  // drawn over him, his fists are drawn again on top so the hands close on it. A shape a sort of weapon (S.wieldOf: what the hand holds), in game px:
+  // the THRESHING FLAIL his own -- a long wooden handstaff, a short link and one short wooden beater, no spikes, no ball; the beater hangs on its link and
+  // trails the swing (the hinge's way from the frame before), and lies out straight along the staff at the blow (the row's release frame); the
+  // BATTLEAXE a haft in both hands with one bearded blade at its head, the edge turned the way he faces. ?nowield (S.WIELD.off) draws none of it
+  S.WIELD = {
+    off: /[?&]nowield\b/.test(location.search),
+    flail: { staff: 30, over: 13, link: 2, beater: 10 }, // (over: the staff on past the lead fist to the hinge -- the beater hangs clear of his hands, his eye 10-20: "it put the business end of the flail in his hands")
+    battleaxe: { staff: 27, over: 9, blade: 6, beard: 4 }
+  };
+  S.wieldOf = function (u) {
+    var w = u && !u.sheathed && u.weapon, sh = u && D.SHEETS && D.SHEETS[u.sheet]; if (!w || !sh || !sh.grips) return null;
+    if (w.kind === 'flail' || /threshingflail/.test(w.id || '')) return 'flail';
+    if (w.kind === 'battleaxe' || w.kind === 'greataxe') return 'battleaxe';
+    return null;
+  };
+  // the grip of the frame S.frameAt chose: { kind, L, R, u (the shaft's way), under, floor, fists, prev (the lead fist a frame before), blow }
+  S.gripAt = function (f, kind) {
+    var sh = f && D.SHEETS[f.sheet], g = sh && sh.grips && sh.grips[f.anim], row = g && gripRow(f.sheet, f.anim, f.facing, g[f.facing]), k = row && row[f.fr];
+    if (!k || S.WIELD.off || !S.WIELD[kind]) return null;
+    var pk = row[(f.fr + row.length - 1) % row.length], ux = k[0] - k[2], uy = k[1] - k[3], n = Math.hypot(ux, uy) || 1;
+    var fists = []; if (k[4] & 2) fists.push([k[0], k[1]]); if (k[4] & 4) fists.push([k[2], k[3]]);
+    return { kind: kind, L: [k[0], k[1]], R: [k[2], k[3]], u: [ux / n, uy / n], under: !!(k[4] & 1), floor: !!(k[4] & 8), fists: fists, facing: f.facing,
+      prev: [pk[0], pk[1]], blow: f.release != null && f.fr === f.release }; // (the blow lands on the release frame: js/battle.js)
+  };
+  var gripRows = {}; // (a facing's frames come as one string, "lx ly rx ry flags;..." -- parsed once)
+  function gripRow(name, anim, facing, txt) {
+    var key = name + ':' + anim + ':' + facing; if (gripRows[key] !== undefined) return gripRows[key];
+    return (gripRows[key] = txt ? txt.split(';').map(function (k) { return k.split(' ').map(Number); }) : null);
+  }
+  var FACE = [[0, 1], [-0.89, 0.45], [-1, 0], [-0.89, -0.45], [0, -1], [0.89, -0.45], [1, 0], [0.89, 0.45]]; // (the way each facing looks, on the screen)
+  // stamp a line of s x s squares (pixel art: no smoothing), from (x0, y0) to (x1, y1)
+  function stamp(ctx, x0, y0, x1, y1, s, c) {
+    ctx.fillStyle = c; var n = Math.max(1, Math.ceil(Math.hypot(x1 - x0, y1 - y0) * 2)), h = (s - 1) / 2;
+    for (var i = 0; i <= n; i++) { var t = i / n; ctx.fillRect(Math.round(x0 + (x1 - x0) * t - h), Math.round(y0 + (y1 - y0) * t - h), s, s); }
+  }
+  S.wield = function (ctx, g, x, y) {
+    var P = function (r, i) { return D.PAL.ramps[r][i]; }, OUT = P('outline', 0), W = S.WIELD[g.kind], u = g.u, L = g.L, R = g.R;
+    if (g.floor) { u = [1, 0]; } // (on the floor: laid flat beside him, the lead end toward L)
+    var top = [x + L[0] + u[0] * W.over, y + L[1] + u[1] * W.over], len = Math.max(W.staff, Math.hypot(top[0] - x - R[0], top[1] - y - R[1]) + 3);
+    var butt = [top[0] - u[0] * len, top[1] - u[1] * len];
+    if (g.kind === 'flail') {
+      var b; // the beater's way: it hangs, trails the swing, and lies out straight at the blow
+      if (g.blow) b = u.slice();
+      else if (g.floor) b = [1, 0];
+      else { var vx = L[0] - g.prev[0], vy = L[1] - g.prev[1], bx = -vx * 0.35, by = 1 - vy * 0.35, bn = Math.hypot(bx, by) || 1; b = [bx / bn, by / bn]; }
+      var h0 = [top[0] + b[0] * W.link, top[1] + b[1] * W.link], h1 = [h0[0] + b[0] * W.beater, h0[1] + b[1] * W.beater];
+      stamp(ctx, butt[0], butt[1], top[0], top[1], 3, OUT); stamp(ctx, top[0], top[1], h0[0], h0[1], 2, OUT); stamp(ctx, h0[0], h0[1], h1[0], h1[1], 4, OUT);
+      stamp(ctx, butt[0], butt[1], top[0], top[1], 1, P('leather', 3)); stamp(ctx, top[0], top[1], h0[0], h0[1], 1, P('leather', 1));
+      stamp(ctx, h0[0], h0[1], h1[0], h1[1], 2, P('stone', 6)); stamp(ctx, h0[0] - b[1] * 0.5, h0[1] + b[0] * 0.5, h1[0] - b[1] * 0.5, h1[1] + b[0] * 0.5, 1, P('stone', 7));
+      return;
+    }
+    // the battleaxe: its haft, then one bearded blade on the side he faces (or up, on the floor)
+    stamp(ctx, butt[0], butt[1], top[0], top[1], 3, OUT); stamp(ctx, butt[0], butt[1], top[0], top[1], 1, P('leather', 3));
+    var fc = FACE[g.facing || 0], p = [-u[1], u[0]]; if (g.floor ? p[1] > 0 : p[0] * fc[0] + p[1] * fc[1] < 0 || (Math.abs(p[0] * fc[0] + p[1] * fc[1]) < 0.15 && p[0] < 0)) p = [u[1], -u[0]];
+    var x0 = Math.floor(top[0] - 10), y0 = Math.floor(top[1] - 10);
+    for (var pass = 0; pass < 2; pass++) for (var j = 0; j < 21; j++) for (var i = 0; i < 21; i++) {
+      var qx = x0 + i + 0.5 - top[0], qy = y0 + j + 0.5 - top[1], s = -(qx * u[0] + qy * u[1]), t = qx * p[0] + qy * p[1], o = pass ? 0 : 1;
+      var lo = 0.5 - 0.45 * (t - 1) - o, hi = 3.5 + (W.beard / W.blade) * (t - 1) + o; // (the blade flares toward its edge, its beard hanging down the haft)
+      if (t >= 1 - o && t <= W.blade + o && s >= lo && s <= hi) { ctx.fillStyle = pass ? (t > W.blade - 1.2 ? P('silver', 6) : t < 2 ? P('silver', 3) : P('silver', 5)) : OUT; ctx.fillRect(x0 + i, y0 + j, 1, 1); }
+    }
   };
   // one frame's drawn pixels, from its anchor (the foot), cached; null till the sheet has loaded. Where a figure lying flat is under the mouse (ui.js
   // UI.pickUnit -- 10-05, his play: Lymen's flask at the troll lying at 32,22 went to the floor five clicks of six, the troll's body drawn three squares

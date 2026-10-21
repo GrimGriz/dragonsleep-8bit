@@ -1438,7 +1438,7 @@
     if (u.dead && !has('hurt') && B.t - u.deadT > 50) return null;
     var obj = {
       depth: p.depth, gz: p.gz, layer: 1, unit: u, draw: function (ctx) {
-        var o = { color: u.side === 'foe' ? R('violet', 3) : R('silver', 4) }, anim = u.anim, t = B.t - (u.animT || 0);
+        var o = { color: u.side === 'foe' ? R('violet', 3) : R('silver', 4), wield: D.spr.wieldOf(u) }, anim = u.anim, t = B.t - (u.animT || 0); // (wield: the weapon drawn in an empty-handed sheet's hands -- sprites.js S.wield, 10-20)
         var down = u.dead || u.hp <= 0, sk = D.spr.scaleOf(u); // (sk: Enlarge and Reduce draw it bigger or smaller about its foot, sprites.js scaleOf)
         var oilDown = down && !u.dead && !!u.conds.oiled; // (one lying at 0 still shows its oil, and only that: js/looks.js -- 10-06, Griz: "we'll need on prone as well"; a troll is oiled where it lies)
         // the cloaker hangs as a cloak until something hurts it (Griz, 09-29)
