@@ -124,11 +124,11 @@
     var who = R0.mode === 'fight' ? R0.members.filter(function (u) { return u.hp > 0 && B.units.indexOf(u) >= 0; }) : [R0.token];
     var key = who.map(function (u) { return u.x + ',' + u.y; }).join(';') + '|' + !!(m.works && m.works.on) + '|' + (D.iso.WALL || 84);
     if (m.occKey === key) return; m.occKey = key;
-    var depth = Math.ceil(((D.iso.WALL || 84) + 40) / (D.iso.TH / 2)), cut = {}, dirty = {};
+    var RF = m.def.roofs, depth = Math.ceil((Math.max(D.iso.WALL || 84, m.roofTop || 0) + 40) / (D.iso.TH / 2)), cut = {}, dirty = {}; // (a town's roofs, as tall as they stand: js/iso.js roofCanvas)
     who.forEach(function (u) {
       for (var dx = -1; dx <= depth + 1; dx++) for (var dy = -1; dy <= depth + 1; dy++) {
         var s = dx + dy; if (s < 1 || s > depth || Math.abs(dx - dy) > 1) continue;
-        var q = m.at(u.x + dx, u.y + dy); if (q && !q.open && (q.rock === 'far' || q.occCut)) cut[q.x + ',' + q.y] = q;
+        var q = m.at(u.x + dx, u.y + dy); if (q && !q.open && (q.rock === 'far' || q.occCut || (RF && RF[q.ch] && s * (D.iso.TH / 2) < D.iso.roofPx(m, q.ch) + 40))) cut[q.x + ',' + q.y] = q;
       }
     });
     var mark = function (q) { for (var yy = -1; yy <= 1; yy++) for (var xx = -1; xx <= 1; xx++) dirty[(q.x + xx) + ',' + (q.y + yy)] = 1; };
@@ -142,7 +142,7 @@
   var props1 = D.walls && D.walls.props;
   if (props1) D.walls.props = function (B) {
     var out = props1.apply(this, arguments);
-    if (B && B.roam && B.map) { var fp = R.floatProp(B); if (fp) out.push(fp); } // (one of the five, floating at the stair's deep end: R.floatProp)
+    if (B && B.roam && B.map && R.def.wet) { var fp = R.floatProp(B); if (fp) out.push(fp); } // (one of the five, floating at the stair's deep end: R.floatProp)
     if (!B || !B.roam || !B.map || !B.map.works || !B.map.works.on) return out;
     var rq = R.def.from8(R.RUNE8[0], R.RUNE8[1]), gz = B.map.gz(rq[0] + 1, rq[1]), fx = rq[0] + 0.5, fy = rq[1];
     out.push({ roamRune: true, depth: rq[0] + rq[1] + 0.9, gz: gz, layer: 1, draw: function (ctx) {
@@ -170,10 +170,13 @@
     var num = function (k, d) { var m = new RegExp('[?&]' + k + '=(\\d+)').exec(q); return m ? +m[1] : d; };
     // the floor as its flags lay it: inside the 8-bit, the game's own; the test's from its address -- &flags=a,b (set), &drained (the stair pumped dry: stairHook)
     var fq = /[?&]flags=([A-Za-z0-9_,:]+)/.exec(q); R.flags0 = {}; if (fq) fq[1].split(',').forEach(function (k) { if (k) R.flags0[k] = 1; }); if (/[?&]drained\b/.test(q)) R.flags0.stairHook = 1;
-    R.def = R.wholeWet(emb && emb.save ? emb.save.flags || {} : R.flags0);
+    // the floor by the door's name: the Wet (deep16/?roam=wet, the first) or Silverton (deep16/?roam=silverton: the town from the city map v6, js/town.js -- 10-20)
+    var fl0 = emb && emb.save ? emb.save.flags || {} : R.flags0;
+    R.def = /[?&]roam=silverton\b/.test(q) && D.town ? D.town.floor(q, fl0) : R.wholeWet(fl0);
+    if (R.def.wet == null) R.def.wet = true; // (the Wet's own pieces -- its bucket, its stair, the rune, the floating one, its encounter table -- only on the Wet)
     R.q = q; R.PAD = num('pad', 4); R.FAR = num('far', 0); R.ENC = num('enc', 0); // (&far=0: no cap -- RULED 10-13 with the approach, his "1 yes")
     var lvl = num('lvl', 5), useSave = /[?&]save\b/.test(q);
-    var F = { map: 'wetwhole', foes: [], level: lvl, dark: !/[?&]lit\b/.test(q), entry: null, fliers: true, bucket: R.def.from8(3, 7) }; // (fliers: one with wings keeps to the air, js/flight-ai.js) (bucket: its square, so js/wet.js lifts the bucket onto the crate there -- his play, 10-14: "bucket rendered over crate not on top of crate")
+    var F = { map: R.def.key || 'wetwhole', foes: [], level: lvl, dark: R.def.dark !== false && !/[?&]lit\b/.test(q), entry: null, fliers: true, bucket: R.def.wet ? R.def.from8(3, 7) : null }; // (the town by day: no dark) // (fliers: one with wings keeps to the air, js/flight-ai.js) (bucket: its square, so js/wet.js lifts the bucket onto the crate there -- his play, 10-14: "bucket rendered over crate not on top of crate")
     var o = emb ? { fightDef: F, data: emb.save, embed: Object.assign({ canRun: true }, emb.opts || {}) } : useSave ? { fightDef: F } : { fightDef: F, ladder: true, level: lvl }; // (inside the 8-bit: its party and pack, no loan, a way out of any fight)
     var sd = /[?&]seed=(\d+)/.exec(q); if (sd) D.seed = +sd[1] | 0;
     R.party0 = o; // (a pulled-in fight walks in with the same four: the same level, or the same save)
@@ -184,8 +187,9 @@
       enter0.apply(this, arguments);
       R.stats = { enterMs: Math.round((window.performance || Date).now() - t0), squares: G.map.w * G.map.h, w: G.map.w, h: G.map.h, frames: 0, frameMs: 0 };
       this.order = []; this.active = null; this.req = null; this.exits = [];
-      if (D.wet) { D.wet.layLamp(this, R.def.lampAt); D.wet.layCrate(this, R.def.from8(3, 7)); D.wet.layStair(this, R.def.stairUp); }
+      if (D.wet && R.def.wet) { D.wet.layLamp(this, R.def.lampAt); D.wet.layCrate(this, R.def.from8(3, 7)); D.wet.layStair(this, R.def.stairUp); }
       R.setup(this);
+      if (R.def.town && D.town) D.town.people(this); // (the town's people, stood where v6 and the wiki put them: js/town.js)
       this.co = R.script(this);
     };
     B.update = function () {
@@ -200,7 +204,7 @@
         if (R0.mode === 'order' && m.rclick && m.inside) R0.keys.push('turn'); // (a right click in ORDER: the formation as it stands facing the next way -- Griz, 10-13: "rightclick shows the ordering in different facings")
       }
       if (R0 && I.pressed('list')) R.showMap = !R.showMap; // (L: the floor map -- the whole Wet, what they saw, the ground and its ways out)
-      if (R0) { R.works(this, R.inWorks(this)); R.occlude(this); } // (the works' walls whole while the party is in them; a wall face in front of the party cut while it hides them)
+      if (R0) { if (R.def.wet) R.works(this, R.inWorks(this)); R.occlude(this); } // (the works' walls whole while the party is in them; a wall face in front of the party cut while it hides them)
       return update0.apply(this, arguments);
     };
     B.paint = function (ctx) {
@@ -234,7 +238,7 @@
     else R0.flags = JSON.parse(JSON.stringify(R.flags0 || {})); // (the test's from its address: &flags=, &drained -- R.make)
     if (/[?&]watch\b/.test(R.q)) members.forEach(function (u) { u.guest = true; u.classAI = true; }); // (&watch: the class tactics run the four, as the bench does)
     // the light: the party's carried torch (&light=none | torch | lantern), in the first free hand in the marching order (js/light.js handsFree, then handForLight)
-    var lw = (/[?&]light=([a-z]+)/.exec(R.q) || [])[1] || 'torch';
+    var lw = (/[?&]light=([a-z]+)/.exec(R.q) || [])[1] || (R.def.dark === false ? 'none' : 'torch'); // (the town by day: no torch lit)
     if (lw !== 'none' && !R.emb && !members.some(function (u) { return u.torch && u.torch.lit; })) { // (inside the 8-bit, the light is the party's own: the battle's enter took up its torch)
       var bearer = members.filter(function (u) { return L.handsFree(u) > 0; })[0] || members.filter(function (u) { return L.handForLight(u); })[0] || lead; // (a free hand first: a two-hander drops it to swing)
       bearer.torch = lw === 'lantern' ? L.make('lantern', false) : { lit: true, kind: 'torch' }; L.regrip(bearer);
@@ -255,7 +259,7 @@
     // SV.armoury; the 8-bit's party carries only what it brought, Griz 09-27). The test's four keep the ladder's kit
     if (/[?&]save\b/.test(R.q)) B.inv = JSON.parse(JSON.stringify(data0.inv || [])).map(function (s) { return Array.isArray(s) ? { id: s[0], n: s[1] } : s; });
     // in by the stair up, where the 8-bit's warp from the Warrens' second floor lands (warrens_b to warrens_d (2, 12))
-    var e = R.def.entry[0]; lead.x = e[0]; lead.y = e[1]; lead.facing = D.spr.facingFor(0, -1); R0.fw = [0, -1];
+    var e = R.def.entry[0], fw0 = R.def.face || [0, -1]; lead.x = e[0]; lead.y = e[1]; lead.facing = D.spr.facingFor(fw0[0], fw0[1]); R0.fw = fw0.slice(); // (the town: in at its gate, facing in)
     // inside the 8-bit: on the square its warp set the party down on, the way it faced (the 8-bit's compass on the turned grid: R.FACE8)
     var eo = R.emb && R.emb.opts; if (eo && eo.at8) { var e8 = R.def.from8(eo.at8[0], eo.at8[1]); if (G.canStand(lead, e8[0], e8[1])) { lead.x = e8[0]; lead.y = e8[1]; } var fw8 = { up: [-1, 0], down: [1, 0], right: [0, -1], left: [0, 1] }[eo.dir]; if (fw8) { R0.fw = fw8; lead.facing = D.spr.facingFor(fw8[0], fw8[1]); } } // (in off the stair walking the 8-bit's east: the grid's -y)
     R.into(B, R0.rest);
@@ -265,14 +269,14 @@
     R.ropeUse(); // (the Rope & Grapple, usable from the menu on the floor: the floating one)
     // the pack's check at the stairs starts here: all the party owns as it walks on, the pack as it walks on, an empty ledger (R.handback)
     R0.ledger = []; R0.pack0 = R.owned(B); R0.inv0 = R.counts(B.inv);
-    // the zone's creatures fetched behind, so a fight's figures are there when it falls
-    var Z = window.DS.DATA.encounters.warrens_d, kinds = [];
+    // the zone's creatures fetched behind, so a fight's figures are there when it falls (the town has no table: no random fights in Silverton, as in the 8-bit)
+    var Z = window.DS.DATA.encounters[R.def.zone8 === undefined ? 'warrens_d' : R.def.zone8], kinds = [];
     (Z ? Z.groups : []).forEach(function (g) { g.e.forEach(function (e2) { var f = D.FOES[e2[0]]; if (f && f.sheet && kinds.indexOf(f.sheet) < 0) kinds.push(f.sheet); }); });
     if (D.spr.prefetch) D.spr.prefetch(kinds);
   };
   // random fights at half the 8-bit's rate (RULED 10-13, Griz: "default random encounter rate down 50% from 8bit"): the 8-bit's count between them, doubled
   R.RATE = 2;
-  R.resetEnc = function (R0) { var Z = window.DS.DATA.encounters.warrens_d, r = (Z && Z.rate) || [18, 40]; return (r[0] + D.rint(r[1] - r[0] + 1)) * R.RATE; };
+  R.resetEnc = function (R0) { var Z = window.DS.DATA.encounters[R.def && R.def.zone8 !== undefined ? R.def.zone8 : 'warrens_d'], r = (Z && Z.rate) || [18, 40]; return (r[0] + D.rint(r[1] - r[0] + 1)) * R.RATE; };
   // off the floor and into the token (no walk: the setup's and the formation's quiet return)
   R.into = function (B, list) { list.forEach(function (u) { var j = B.units.indexOf(u); if (j >= 0) B.units.splice(j, 1); }); R.famPlace(B, true); G.setup(G.map, B.units); B.cache = null; };
   // the wizard's familiar on the floor (10-14, Griz: "familiars aren't properly handled"): it rides its wizard (deep16/js/familiar.js FM.unit: its square is his), so it is on
@@ -316,7 +320,8 @@
   // ------------------------------------------------------------------ the script: walk, the formation, the fights
   R.script = function* (B) {
     var R0 = B.roam;
-    B.card(['{y}THE WET{/}, the whole floor (' + G.map.w + ' x ' + G.map.h + ' squares): one token, the party inside it.', '{g}Click to walk, or the arrows. O: the formation.' + (R.emb ? '' : ' F: a fight now.') + '{/}'], 420);
+    if (R.def.town) B.card(R.wrap(['{y}SILVERTON{/}, in at the ' + R.def.gate + ' gate: the town at true scale (' + G.map.w + ' x ' + G.map.h + ' squares), one token, the party inside it.', '{g}Click to walk, or the arrows. E: a word with someone beside you. O: the formation. L: the town map.{/}']), 420);
+    else B.card(['{y}THE WET{/}, the whole floor (' + G.map.w + ' x ' + G.map.h + ' squares): one token, the party inside it.', '{g}Click to walk, or the arrows. O: the formation.' + (R.emb ? '' : ' F: a fight now.') + '{/}'], 420);
     while (true) {
       var t = R0.token;
       if (R0.mode === 'over') { yield 1; continue; }
@@ -335,7 +340,7 @@
       if (k === 'use') { var un = R.useNear(B); if (un && !trk.length) yield* R.fire(B, un.trig, un.sq); else D.sfx('miss'); continue; }
       // (F: a group coming, the fight now at this range -- its card says so; nothing coming, a fight called up, the test door's alone -- 10-14, his play inside the game: "why
       // could i hit 'f' just then?", a Gray Ooze called up out of nothing on the real floor)
-      if (k === 'fight') { if (trk.length) yield* R.engage(B, trk[0], false, 'yours'); else if (!R.emb) yield* R.encounter(B, 'asked'); continue; }
+      if (k === 'fight') { if (trk.length) yield* R.engage(B, trk[0], false, 'yours'); else if (!R.emb && R.def.wet) yield* R.encounter(B, 'asked'); continue; } // (no fights called up in town)
       var ck = R0.clicks.shift();
       if (ck) {
         // a click walks a short way only (10-14, Griz: "trying to get the hand pop-up by clicking on the rune is hilarious. Click to move only on squares within x ft (30-50?)":
@@ -415,6 +420,7 @@
     var R0 = B.roam, t = R0.token, p8 = R.def.to8(t.x, t.y);
     if ((R.def.doors || []).some(function (d) { return d[0] === t.x && d[1] === t.y; })) {
       var up = R.def.stairUp.some(function (d) { return d[0] === t.x && d[1] === t.y; });
+      if (R.def.town) { yield* D.town.wayOut(B, [t.x, t.y]); return 'door'; } // (the town's roads off the floor: the world map takes the party on there, later -- js/town.js)
       if (R.emb) { yield* R.leaveFloor(B, 'out', [t.x, t.y]); return 'door'; } // (inside the 8-bit: off the floor, and the 8-bit takes its own warp from this square)
       var w8 = R.warpsOn(R.def.src8, R0.flags).filter(function (w) { return w.x === p8[0] && w.y === p8[1]; })[0], to8 = w8 ? w8.to : up ? 'warrens_b' : 'warrens_c', nm8 = ((window.DS.DATA.maps || {})[to8] || {}).name || to8; // (the map's own warp: the Burial's too, drained)
       B.card(R.wrap(['{y}The way to ' + nm8 + '{/}: here the 8-bit takes the party on (' + to8 + ').', '{g}(the test keeps you on the Wet){/}']), 300);
@@ -423,6 +429,7 @@
     }
     var trig = R.triggerAt(B, p8[0], p8[1], 'step');
     if (R.wadeAsk(B, [t.x, t.y])) { yield* R.stairScene(B, { id: 'stair' }, [t.x, t.y]); return 'trigger'; } // (come onto the row some other way: it asks there)
+    if (trig && trig.town === 'door' && R0.path && R0.path.length) return null; // (a town's door on the way is walked over: it opens where a walk ends, or an arrow's step onto it -- 10-20)
     if (trig) { yield* R.fire(B, trig, [t.x, t.y]); return 'trigger'; }
     return null;
   };
@@ -498,6 +505,7 @@
   R.fire = function* (B, trig, at) {
     var R0 = B.roam;
     if (trig.once) R0.flags['trig:' + trig.id] = 1;
+    if (trig.town && D.town) { yield* D.town.fire(B, trig, at); return; } // (the town's doors and people: js/town.js)
     var oz = R.OOZES[trig.id];
     if (oz) { yield* R.encounter(B, 'set', { list: oz.list, at: oz.at8 ? R.def.from8(oz.at8[0], oz.at8[1]) : at, swims: oz.swims, flag: oz.flag, trig: oz.trig, line: oz.line, how: 'where it lay' }); return; }
     if (R.WAKE[trig.id]) {
@@ -586,7 +594,7 @@
   R.FLOAT8 = [13, 21]; // (the 8-bit's square of the one at the back: the drowned stair's deep end, the sealed door beyond)
   // the hook reaches it from the landing, where the 8-bit asks ROPE THEM OUT: the token within two squares of the stair's first row, the five down, the stair water
   R.floatInReach = function (B) {
-    var R0 = B.roam, f = R0.flags, t = R0.token; if (f.fiveRecovered || (f.stairHook && !f.keeperWater)) return false;
+    var R0 = B.roam, f = R0.flags, t = R0.token; if (!R.def.wet || f.fiveRecovered || (f.stairHook && !f.keeperWater)) return false;
     return R.WADE8.some(function (q) { var g = R.def.from8(q[0], q[1]); return Math.max(Math.abs(g[0] - t.x), Math.abs(g[1] - t.y)) <= 2; });
   };
   // the Rope & Grapple used from the menu out of a fight (js/menu.js asks an item's `use.field`, and the rope has none -- it is set on a face in a fight): on the roam's own page
@@ -635,13 +643,13 @@
   // a square of the drowned stair's first row, its water as yet unsettled: the stair's USE stands there (its cond: the stair flooded), the five not up, the Keeper not beaten
   R.wadeAsk = function (B, sq) {
     var R0 = B.roam, f = R0.flags, s = G.map.at(sq[0], sq[1]);
-    if (!s || s.ch !== '~' || !R.isWade(sq[0], sq[1]) || f.keeperDone || f.fiveRecovered || R0.spent.stair) return false;
+    if (!R.def.wet || !s || s.ch !== '~' || !R.isWade(sq[0], sq[1]) || f.keeperDone || f.fiveRecovered || R0.spent.stair) return false;
     var p = R.def.to8(sq[0], sq[1]); return !!R.triggerAt(B, p[0], p[1], 'use');
   };
   // the bucket drawn on the deep station's crate while it is there -- not carried, not fed to the landlord (js/wet.js W.layBucket, the Settling's own picture; 10-14, his play:
   // "bucket was gone until settling triggered": the floor laid the crate and never the bucket)
   R.bucketProp = function (B) {
-    if (!D.wet || !D.wet.layBucket || !B.map) return;
+    if (!D.wet || !D.wet.layBucket || !B.map || !R.def.wet) return;
     var f = B.roam.flags, has = (B.inv || []).some(function (x) { return x.id === 'bucket' && x.n > 0; }), want = !has && !f.otyughFed && !f.otyughDead;
     B.wet = B.wet || {}; var bk = B.wet.bucket, laid = !!(bk && B.map.props.indexOf(bk.prop) >= 0); // (on this map: a map loaded again has none)
     if (want && !laid) { var g0 = G.map; G.map = B.map; D.wet.layBucket(B, R.def.from8(3, 7)); G.map = g0; B.map.sorted = null; }
@@ -1667,9 +1675,17 @@
   // while a fight is on, what the party saw from the token when it fell (light: seen lit, grey: seen by darkvision only), the ground's box, its ways out
   // (green), the four (blue, the token white) and the foes (red)
   R.MAPCOL = { '#': '#15131c', '.': '#4a4650', '~': '#24456a', D: '#1a3456', '=': '#7a5a34', y: '#5a3a1a', P: '#2a2630', k: '#5a4630' };
+  R.TOWNCOL = { '#': '#3a3228', '.': '#9a7c50', ',': '#c4a878', '=': '#b8b8bc', b: '#8a4430', D: '#2a5a78', '~': '#5a9ab0', f: '#3a2814', k: '#d8c070', w: '#141414', r: '#7a7468', d: '#f0e0b0' }; // (the town map, L: v6's own colours, near enough)
   R.paintMap = function (ctx, B, x0, y0, s) {
     var R0 = B.roam, m = G.map, C = R0.cut, sv = C || R0.mode === 'fight' ? R0.sightV : null;
     ctx.save(); ctx.globalAlpha = 0.92; ctx.fillStyle = '#05040a'; ctx.fillRect(x0 - 2, y0 - 2, m.w * s + 4, m.h * s + 4);
+    if (R.def.town) { // (the town: its squares painted once to a picture of their own and kept -- a hundred and forty thousand a frame was too many)
+      if (!m.townMap || m.townMap.s !== s) { var cv = document.createElement('canvas'); cv.width = m.w * s; cv.height = m.h * s; var cc = cv.getContext('2d'); for (var ty = 0; ty < m.h; ty++) for (var tx = 0; tx < m.w; tx++) { var tq = m.at(tx, ty); cc.fillStyle = R.TOWNCOL[tq.ch] || (tq.open ? '#8a7656' : '#2a2420'); cc.fillRect(tx * s, ty * s, s, s); } m.townMap = { canvas: cv, s: s }; }
+      ctx.drawImage(m.townMap.canvas, x0, y0);
+      B.units.forEach(function (u) { if (u.npc) { ctx.fillStyle = '#e8d070'; ctx.fillRect(x0 + u.x * s, y0 + u.y * s, s, s); } });
+      var tk = R0.token; ctx.fillStyle = '#ffffff'; ctx.fillRect(x0 + tk.x * s - s, y0 + tk.y * s - s, s * 3, s * 3);
+      ctx.restore(); return;
+    }
     for (var y = 0; y < m.h; y++) for (var x = 0; x < m.w; x++) {
       var q = m.at(x, y), col = R.MAPCOL[q.ch] || (q.open ? '#4a4650' : '#15131c');
       ctx.fillStyle = col; ctx.fillRect(x0 + x * s, y0 + y * s, s, s);
@@ -1697,10 +1713,10 @@
     }
     if ((R0.mode === 'walk' || R0.mode === 'order') && !B.menu) {
       var p8 = R.def.to8(R0.token.x, R0.token.y); // (no step count shown: a random fight comes unannounced -- 10-14, Griz: "removing the step warning regarding random encounters")
-      D.text(ctx, 'THE ROAM -- the Wet, ' + G.map.w + ' x ' + G.map.h + '   8-bit square ' + p8[0] + ',' + p8[1], 6, D.H - 30, '#e8d8a0');
-      D.text(ctx, R0.mode === 'order' ? 'ORDER (facing ' + R.faceName(R0.fw) + '): click one, then a lit square, or the leader to lead -- right click turns -- O when done' : 'click: walk   arrows: step   O: formation' + (R.tracking(R0).length ? '   F: the fight now' : R.emb ? '' : '   F: a fight now') + '   L: the floor map' + (function () { var un = R.useNear(B); return un ? '   E: ' + (R.USE_NAME[un.trig.id] || un.trig.id) : ''; })(), 6, D.H - 20, '#9a94a8');
+      D.text(ctx, R.def.town ? 'THE ROAM -- Silverton, ' + G.map.w + ' x ' + G.map.h + '   square ' + p8[0] + ',' + p8[1] + (R.def.where ? '   ' + R.def.where(p8[0], p8[1]) : '') : 'THE ROAM -- the Wet, ' + G.map.w + ' x ' + G.map.h + '   8-bit square ' + p8[0] + ',' + p8[1], 6, D.H - 30, '#e8d8a0');
+      D.text(ctx, R0.mode === 'order' ? 'ORDER (facing ' + R.faceName(R0.fw) + '): click one, then a lit square, or the leader to lead -- right click turns -- O when done' : 'click: walk   arrows: step   O: formation' + (R.tracking(R0).length ? '   F: the fight now' : R.emb || !R.def.wet ? '' : '   F: a fight now') + '   L: the floor map' + (function () { var un = R.useNear(B); if (!un) return ''; var tw = un.trig.town === 'talk' && B.units.filter(function (u) { return u.npc === un.trig.npc; })[0]; return '   E: ' + (tw ? 'a word with ' + tw.name : R.USE_NAME[un.trig.id] || un.trig.id); })(), 6, D.H - 20, '#9a94a8');
     }
-    if (R.showMap) R.paintMap(ctx, B, D.W - G.map.w * 4 - 6, 22, 4);
+    if (R.showMap) { var ms = Math.max(1, Math.min(4, Math.floor((D.W - 12) / G.map.w), Math.floor((D.H - 60) / G.map.h))); R.paintMap(ctx, B, D.W - G.map.w * ms - 6, 22, ms); } // (the town's 474 squares at a pixel each)
     if (R0.mode === 'order' && R0.sel) { var s = D.iso.center(R0.sel.x, R0.sel.y, 0), p = D.iso.toScreen(s.x, s.y); ctx.strokeStyle = '#ffe080'; ctx.strokeRect(p.x - 8, p.y - 30, 16, 32); }
     if (R0.mode === 'over' && I.pressed('rec')) location.reload();
   };

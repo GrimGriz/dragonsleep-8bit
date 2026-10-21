@@ -1898,6 +1898,58 @@
     document.body.appendChild(preF);
     return;
   }
+  // the town, 10-20 (mode=town1020; js/town.js, deep16/?roam=silverton -- the Silverton roam seat, Griz: "yes v6"): Silverton at true scale from the city map v6, walked as one
+  // token as the Wet is; its floor painted in pages as the camera comes (js/iso.js, a map's `page`); in at the west gate facing in, by day; the gates, the shops' doors (the five of
+  // the new buy/sell screens among them) and the people where v6 and the wiki put them; a word with the gate hand; walked from the west gate to the Hexagon's front doors, a
+  // shop's door stepped on, THE road west off the floor; the Wet's door still the Wet
+  if (get('mode', '') === 'town1020') {
+    var repT = { checks: [], errors: [] }, GT = D.grid, memT = {}, stGT = D.store.get, stST = D.store.set;
+    function okT(what, v) { repT.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function driveT(g, until, cap) { var v, k = 0, st; while (k++ < (cap || 20000)) { if (until && until()) return true; st = g.next(v); v = undefined; if (st.done) return !!(until && until()); if (typeof st.value === 'number' && D.battle) D.battle.t += Math.max(1, st.value); if (st.value && st.value.prompt) v = st.value.prompt.opts[0].value; } return !!(until && until()); }
+    function cardT(re) { return (D.battle.cards || []).some(function (c) { return c.lines.some(function (l) { return re.test(String(l)); }); }); }
+    function walkT(BT, RT, to, cap) { var p = D.Battle.route(RT.token, to); if (!p) return null; BT.cards = []; RT.path = p.slice(); driveT(BT.co, function () { return RT.token.x === to[0] && RT.token.y === to[1] && !(RT.path && RT.path.length); }, cap || 40000); driveT(BT.co, null, 40); return p.length; } // (and on a little: the square's own arrival -- a door, a way off -- runs after the step)
+    D.store.get = function (k) { return memT[k] ? JSON.parse(memT[k]) : null; }; D.store.set = function (k, v) { memT[k] = JSON.stringify(v); return true; };
+    try {
+      D.seed = +get('seed', 1020);
+      var t0T = performance.now(), BT = D.roam.make('?roam=silverton&watch'); D.scenes.length = 0; D.push(BT); D.battle = BT; BT.enter();
+      var msT = Math.round(performance.now() - t0T), RT = BT.roam, defT = D.roam.def, mT = BT.map, tkT = RT.token, cnT = {};
+      defT.rows.forEach(function (r) { for (var i = 0; i < r.length; i++) cnT[r[i]] = (cnT[r[i]] || 0) + 1; });
+      okT('the town from v6 at true scale: ' + defT.w + ' x ' + defT.h + ' squares in ' + msT + ' ms, its floor in pages of ' + D.iso.PAGE + ' px (' + mT.bake.cols + ' x ' + mT.bake.rows + ', ' + mT.bake.baked + ' painted before it is seen)', defT.w === 474 && defT.h === 310 && mT.bake.paged && mT.bake.baked === 0);
+      var sumT = function (cs) { return cs.split('').reduce(function (a, c) { return a + (cnT[c] || 0); }, 0); }, housesT = sumT(D.town.HOUSES), shacksT = sumT(D.town.SHACKS), roofedT = sumT(Object.keys(defT.roofs).join(''));
+      okT('v6\'s shapes laid: houses ' + housesT + ' (three heights), the Shaft Rows\' shacks ' + shacksT + ', the Hexagon and the tower ' + cnT.B + ', the yard wall ' + cnT.q + ', the Edifice and the mountain ' + cnT['#'] + ', dressed ' + cnT['='] + ', packed dirt ' + cnT[','] + ', the river ' + cnT.D + ', the stockade ' + cnT.f + ', the fountains\' water ' + cnT['~'] + ', doors ' + cnT.d, housesT > 14000 && D.town.HOUSES.split('').every(function (c) { return cnT[c] > 2000; }) && shacksT > 2000 && cnT.B > 3000 && cnT.q > 40 && cnT['#'] > 7000 && cnT['='] > 5000 && cnT[','] > 10000 && cnT.D > 500 && cnT.f > 1000 && cnT['~'] > 300 && cnT.d > 40);
+      okT('its buildings stand under roofs (' + Object.keys(defT.roofs).map(function (k) { return k + ' ' + defT.roofs[k].h + ' ft'; }).join(', ') + '): ' + mT.props.filter(function (p) { return p.kind === 'rock' && defT.roofs[p.sq.ch]; }).length + ' roofed squares, every one a prop', mT.props.filter(function (p) { return p.kind === 'rock' && defT.roofs[p.sq.ch]; }).length === roofedT);
+      var gWT = defT.marks.gates.west;
+      okT('in at the west gate (' + gWT + '; the token at ' + tkT.x + ',' + tkT.y + ' facing ' + RT.fw + '), one token, three inside it', tkT.x === gWT[0] && tkT.y === gWT[1] && RT.fw[0] === 1 && RT.fw[1] === 0 && RT.rest.length === 3);
+      okT('by day: no torch lit, the token\'s square in ' + D.light.name(D.light.levelAt(BT, tkT.x, tkT.y)), !RT.members.some(function (u) { return u.torch && u.torch.lit; }) && D.light.levelAt(BT, tkT.x, tkT.y) === 2);
+      okT('the three gates stood on (' + ['west', 'south', 'east'].map(function (k) { return k + ' ' + defT.marks.gates[k]; }).join(', ') + ')', ['west', 'south', 'east'].every(function (k) { var q = defT.marks.gates[k]; return q && GT.canStand(tkT, q[0], q[1]) || (q[0] === tkT.x && q[1] === tkT.y); }));
+      var dT = defT.marks.doors, artT = ['keeper:casper', 'keeper:androit', 'keeper:hessle', 'keeper:aldric', 'warp:winters'];
+      okT('the shops\' doors marked on the street (' + Object.keys(dT).length + ' of ' + D.town.DOORS.length + '), the five of the new buy/sell screens among them (' + artT.filter(function (k) { return dT[k]; }).length + ' of 5)', Object.keys(dT).length === D.town.DOORS.length && artT.every(function (k) { return dT[k] && defT.rows[dT[k][1]][dT[k][0]] === 'd'; }));
+      var folkT = BT.units.filter(function (u) { return u.npc; });
+      okT('the people stood (' + folkT.length + '): ' + folkT.map(function (u) { return u.name; }).join(', '), folkT.length >= 18 && ['marta', 'guard1', 'papa', 'gull'].every(function (id) { return folkT.some(function (u) { return u.npc === id; }); }) && !folkT.some(function (u) { return defT.rows[u.y][u.x] === 'd'; }));
+      var partyT = RT.members.map(function (u) { return String(u.name).toLowerCase(); }), hiresT = defT.people.filter(function (p) { return p.hire && partyT.indexOf(p.hire) >= 0; });
+      okT('a hero with the party is not also standing in town (' + (hiresT.map(function (p) { return p.hire; }).join(', ') || 'none of the party hires here') + ')', hiresT.every(function (p) { return !folkT.some(function (u) { return u.npc === p.id; }) && !defT.src8.triggers.some(function (t) { return t.npc === p.id; }); }));
+      // a word with the gate hand, from beside him: his line, no north gate (RULED 10-17)
+      var ghT = folkT.filter(function (u) { return u.npc === 'guard1'; })[0], besT = null;
+      for (var dyT = -1; dyT <= 1 && !besT; dyT++) for (var dxT = -1; dxT <= 1 && !besT; dxT++) if ((dxT || dyT) && GT.canStand(tkT, ghT.x + dxT, ghT.y + dyT)) besT = [ghT.x + dxT, ghT.y + dyT];
+      tkT.x = besT[0]; tkT.y = besT[1]; RT.fw = [Math.sign(ghT.x - tkT.x), Math.sign(ghT.y - tkT.y)]; BT.cards = []; RT.keys.push('use'); driveT(BT.co, function () { return cardT(/Gate hand/); }, 400);
+      okT('E beside the gate hand: his word (' + ((BT.cards[BT.cards.length - 1] || {}).lines || []).join(' / ').slice(0, 110) + '...), no north gate in it', cardT(/West gate/) && !cardT(/north gate/i));
+      tkT.x = gWT[0]; tkT.y = gWT[1]; GT.setup(GT.map, BT.units); driveT(BT.co, null, 30);
+      var hfT = defT.marks.hexFront[0], nT = walkT(BT, RT, hfT, 60000);
+      okT('walked from the west gate to the Hexagon\'s front doors (' + nT + ' steps; the token at ' + tkT.x + ',' + tkT.y + ', ' + (defT.where ? defT.where(tkT.x, tkT.y) : '') + ')', nT > 100 && tkT.x === hfT[0] && tkT.y === hfT[1]);
+      var wiT = dT['warp:winters'], nW = walkT(BT, RT, wiT, 60000);
+      okT('Winters\' door stepped on (' + nW + ' steps on, the token at ' + tkT.x + ',' + tkT.y + ', the door ' + wiT + '): ' + ((BT.cards[BT.cards.length - 1] || {}).lines || []).join(' / ').slice(0, 100), cardT(/Acquisitions|Winters/) && cardT(/marked/));
+      var wayT = defT.doors.filter(function (q) { return /fork/.test(defT.wayName[q[0] + ',' + q[1]]); })[0], nO = wayT ? walkT(BT, RT, wayT, 80000) : null;
+      okT('THE road west off the floor (' + wayT + ', ' + nO + ' steps): the world map\'s, later, and the town keeps the party', !!wayT && cardT(/THE road west/) && cardT(/world map/) && BT.units.indexOf(tkT) >= 0);
+      okT('the floor painted only where the camera went: ' + mT.bake.baked + ' of ' + mT.bake.pages.filter(function (p) { return p.list.length; }).length + ' pages (none on a bench page, nothing drawn)', mT.bake.baked === 0);
+      // the Wet's door is still the Wet
+      var BW2 = D.roam.make('?roam=wet&watch'); D.scenes.length = 0; D.push(BW2); D.battle = BW2; BW2.enter();
+      okT('the Wet\'s door still the Wet (' + D.roam.def.name + ', ' + D.roam.def.rows[0].length + ' x ' + D.roam.def.rows.length + ', its bucket and stair)', D.roam.def.wet === true && D.roam.def.rows[0].length === 30 && D.roam.def.rows.length === 44);
+    } catch (eT) { repT.errors.push(String(eT && eT.stack || eT).slice(0, 900)); }
+    D.store.get = stGT; D.store.set = stST;
+    var preT = document.createElement('pre'); preT.id = 'out'; preT.textContent = 'BENCH16 ' + JSON.stringify(repT);
+    document.body.appendChild(preT);
+    return;
+  }
   // the party-token map's feasibility test, 10-13 (mode=roam1013; js/roam.js, deep16/?roam=wet): the whole Wet from the 8-bit's rows, one token carrying the party's light;
   // the M menu with all four out of a fight; a group seen at the edge of sight walks in and the fight starts where they meet; no box -- the whole floor the fight's, the
   // ways out the stairs and the squares a full move clear of every foe by path; one of ours out takes all four into the token one square past; the unmotivated hold 6 steps,
