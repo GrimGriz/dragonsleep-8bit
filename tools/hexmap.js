@@ -188,7 +188,7 @@
     // the solo seats
     site('thresholding', 'Thresholding Hold (Necromancy)', 'school', 24, 14, 'the west hold: the Necro school’s seat, the other frost-giant lair, west coast above the Black (black-mountains.md 215); Vindicar’s School of Thresholding');
     lift({ id: 'k-thresh', name: 'Thresholding Hold’s height', x: 24, y: 14, h: 1200, r: 2.5 });
-    site('furnace', 'the Furnace (Evocation)', 'school', 35.2, 18, 'Evocation’s seat on the geothermal seam, a day from Thresholding Hold (black-mountains.md 224); the Galleries module’s “a day up the mountain” is from the west road here');
+    site('furnace', 'the Furnace (Evocation)', 'school', 35.2, 18, 'Evocation’s seat on the geothermal seam, a day from Thresholding Hold (black-mountains.md 224); the Galleries module’s “a day up the mountain” repaired to fit, 10-20 (his “module repair”)');
     lift({ id: 'k-furnace', name: 'the Furnace’s hollow', x: 35.2, y: 18, h: -900, r: 2 });
     site('sealward', 'the Sealward (Abjuration)', 'school', 60, 3, 'Abjuration’s cold station at the ice line, over the survivor giants’ country (black-mountains.md 225)');
     lift({ id: 'k-seal', name: 'the ice line', x: 60, y: 3, h: 2800, r: 3 });
@@ -599,10 +599,9 @@
     return [x, y];
   }
   function hexPx(L) { return LV[L].w * view.z; }
-  function autoLevel() {
-    var L0 = view.L;
-    while (view.L > 1 && hexPx(view.L) < 9) view.L--;
-    while (view.L < 3 && hexPx(view.L) > 420) view.L++;
+  function autoLevel() { // (the level is the zoom's, the same both ways, and the world look draws the same level: his "zoom ... 5 steps in to get to
+    // level 2, then stays level 2 as I zoom 5 steps out - hard to know what you're referencing", 10-20)
+    var L0 = view.L; view.L = wlev(view.z);
     if (view.L !== L0) { if (SEL.hex && SEL.hex.L !== view.L) SEL.hex = null; panels(); }
   }
   function zoomTo(z, cx, cy) { view.z = Math.max(ZMIN, Math.min(ZMAX, z)); if (cx != null) { view.cx = cx; view.cy = cy; } autoLevel(); draw(); saveView(); }
@@ -765,9 +764,9 @@
       var s = toS(st.x, st.y); if (s[0] < -200 || s[0] > Wd + 200 || s[1] < -40 || s[1] > Ht + 40) return;
       glyph(s, st.kind, SEL.site === st.id);
       if (!S.opts.labels) return;
-      var big = st.kind === 'city' || st.kind === 'castle';
-      if ((st.kind === 'junction' || st.kind === 'mark' || st.kind === 'cave' || st.kind === 'hamlet') && view.z < 24 && SEL.site !== st.id) return; // (the small ones' names when zoomed in)
-      ctx.font = (big ? 'italic bold 16px' : 'italic 13px') + ' Georgia, serif'; ctx.lineWidth = 4; ctx.strokeStyle = 'rgba(30,16,6,.85)'; ctx.fillStyle = '#f6e9c5';
+      var big = st.kind === 'city' || st.kind === 'castle', small = st.kind === 'junction' || st.kind === 'mark' || st.kind === 'cave' || st.kind === 'hamlet';
+      // (every place named at every level -- the small ones smaller: his "views that say their 1 hex per 5 mile don't show the guano mine entrance", 10-20)
+      ctx.font = (big ? 'italic bold 16px' : small && view.z < 24 ? 'italic 11px' : 'italic 13px') + ' Georgia, serif'; ctx.lineWidth = 4; ctx.strokeStyle = 'rgba(30,16,6,.85)'; ctx.fillStyle = '#f6e9c5';
       ctx.strokeText(st.name, s[0] + 11, s[1] + 5); ctx.fillText(st.name, s[0] + 11, s[1] + 5);
     });
   }
