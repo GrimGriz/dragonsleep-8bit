@@ -491,20 +491,33 @@
   // the level it starts on, and the slope off Fountain Street is a stair of single steps: 10-20); elsewhere the fight's own route
   R.walkRoute = function (u, to) {
     if (!(R.def && R.def.town)) return D.Battle.route(u, to);
-    var key = function (x, y) { return x + ',' + y; }, prev = {}, q = [[u.x, u.y]], seen = {}, st = G.map.def.step; seen[key(u.x, u.y)] = 1;
+    // the town's walk (10-20, Griz, on the north-up town: "i think it's using grid movement plotting (diagonal technically more efficient) and we should convince it
+    // north-south is more convenient mouse-click movement"): straight runs north-south and east-west, the fewest turns, the first leg north or south -- a diagonal
+    // costs DIAG (taken only where no straight way serves), a turn TURN, an east-west first step a hair more than a north-south one. Each square within a step of
+    // the height of the one before (a fight's route keeps to its own level; the slope off Fountain Street is a stair of single steps). Bounded at R.WALK_MAX
+    var W = G.map.w, st = G.map.def.step, DIAG = R.WALK_DIAG, TURN = R.WALK_TURN, MAX = R.WALK_MAX;
+    var DIRS = [[0, -1], [0, 1], [-1, 0], [1, 0], [-1, -1], [1, -1], [-1, 1], [1, 1]];
     var ok = function (x, y, fx, fy) { return G.canStand(u, x, y) && Math.abs(G.map.gz(x, y) - G.map.gz(fx, fy)) <= st; };
-    for (var qi = 0; qi < q.length; qi++) {
-      var c = q[qi]; if (c[0] === to[0] && c[1] === to[1]) break;
-      for (var dy = -1; dy <= 1; dy++) for (var dx = -1; dx <= 1; dx++) {
-        var nx = c[0] + dx, ny = c[1] + dy; if ((!dx && !dy) || seen[key(nx, ny)]) continue;
-        if (!ok(nx, ny, c[0], c[1]) || (dx && dy && (!ok(c[0] + dx, c[1], c[0], c[1]) || !ok(c[0], c[1] + dy, c[0], c[1])))) continue;
-        seen[key(nx, ny)] = 1; prev[key(nx, ny)] = c; q.push([nx, ny]);
+    var best = {}, prev = {}, heap = [], push = function (n) { heap.push(n); var i = heap.length - 1; while (i > 0) { var p2 = (i - 1) >> 1; if (heap[p2].c <= n.c) break; heap[i] = heap[p2]; i = p2; } heap[i] = n; };
+    var pop = function () { var top = heap[0], last = heap.pop(); if (heap.length) { var i = 0; for (;;) { var l = 2 * i + 1, r = l + 1, m = i; if (l < heap.length && heap[l].c < (m === i ? last.c : heap[m].c)) m = l; if (r < heap.length && heap[r].c < (m === i ? last.c : heap[m].c)) m = r; if (m === i) break; heap[i] = heap[m]; i = m; } heap[i] = last; } return top; };
+    var key = function (x, y, d) { return (y * W + x) * 9 + d; }, k0 = key(u.x, u.y, 8), goal = null;
+    best[k0] = 0; push({ x: u.x, y: u.y, d: 8, c: 0, k: k0 });
+    while (heap.length) {
+      var c = pop(); if (c.c > best[c.k] || c.c > MAX) continue;
+      if (c.x === to[0] && c.y === to[1]) { goal = c; break; }
+      for (var i = 0; i < 8; i++) {
+        var dx = DIRS[i][0], dy = DIRS[i][1], nx = c.x + dx, ny = c.y + dy;
+        if (!ok(nx, ny, c.x, c.y) || (dx && dy && (!ok(c.x + dx, c.y, c.x, c.y) || !ok(c.x, c.y + dy, c.x, c.y)))) continue;
+        var cost = c.c + (dx && dy ? DIAG : 1) + (c.d !== 8 && c.d !== i ? TURN : 0) + (c.d === 8 && dx && !dy ? 0.01 : 0), nk = key(nx, ny, i);
+        if (best[nk] != null && best[nk] <= cost) continue;
+        best[nk] = cost; prev[nk] = c.k; push({ x: nx, y: ny, d: i, c: cost, k: nk });
       }
     }
-    if (!seen[key(to[0], to[1])]) return null;
-    var out = [], pp = to; while (pp && !(pp[0] === u.x && pp[1] === u.y)) { out.unshift(pp); pp = prev[key(pp[0], pp[1])]; }
+    if (!goal) return null;
+    var out = [], kk = goal.k; while (kk !== k0) { var sq = Math.floor(kk / 9); out.unshift([sq % W, Math.floor(sq / W)]); kk = prev[kk]; }
     return out;
   };
+  R.WALK_DIAG = 2.5; R.WALK_TURN = 0.4; R.WALK_MAX = 900; // (a diagonal's cost against a straight step's 1, a turn's, the search's bound)
   R.CLICK_FT = 50; // (a click's walk, by the path: Griz's 30-50, the seat's pick the top of it)
   R.clickFt = function () { return R.def && R.def.town ? R.CLICK_FT * 2 : R.CLICK_FT; }; // (in town, twice: 10-20, Griz, on 50 ft in a town 2,300 ft across: "double for now")
   R.tooFar = function (B) { D.sfx('miss'); B.card(['{g}Too far for a click (' + R.clickFt() + ' ft): click nearer, or walk with the arrows.{/}'], 160); };

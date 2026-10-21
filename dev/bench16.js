@@ -1973,7 +1973,10 @@
       okT('in at its west gate (' + d30.marks.gates.west + '), the three gates on it, ' + Object.keys(d30.marks.doors).length + ' doors of ' + D.town.DOORS.length + ', ' + f30.length + ' people', t30.x === d30.marks.gates.west[0] && t30.y === d30.marks.gates.west[1] && ['west', 'south', 'east'].every(function (k) { return !!d30.marks.gates[k]; }) && Object.keys(d30.marks.doors).length === D.town.DOORS.length && f30.length >= 18);
       var unr30 = Object.keys(d30.marks.doors).filter(function (k) { return !D.roam.walkRoute(t30, d30.marks.doors[k]); });
       okT('every door reached on foot from the west gate (none in a yard closed in by houses' + (unr30.length ? ' -- NOT: ' + unr30.join(', ') : '') + ')', !unr30.length);
-      var hf30 = d30.marks.hexFront[0], n30 = walkT(B30, R30, hf30, 20000);
+      var hf30 = d30.marks.hexFront[0], pr30 = D.roam.walkRoute(t30, hf30) || [], dg30 = 0, tu30 = 0, pd30 = null, first30 = null;
+      pr30.forEach(function (q, i) { var pq = i ? pr30[i - 1] : [t30.x, t30.y], d = [q[0] - pq[0], q[1] - pq[1]]; if (d[0] && d[1]) dg30++; if (!first30) first30 = d; if (pd30 && (pd30[0] !== d[0] || pd30[1] !== d[1])) tu30++; pd30 = d; });
+      okT('a click\'s walk in town by straight runs (Griz: "we should convince it north-south is more convenient mouse-click movement"): gate to the Hexagon ' + pr30.length + ' steps, ' + dg30 + ' diagonal, ' + tu30 + ' turns, the first leg ' + (first30 && first30[1] ? 'north-south' : 'east-west'), pr30.length > 0 && dg30 <= 2 && tu30 <= 10 && first30 && !first30[0]); // (the turns: the streets' own corners between the gate and the Hexagon, 8 on 10-20)
+      var n30 = walkT(B30, R30, hf30, 20000);
       okT('walked from the west gate to the Hexagon\'s front doors (' + n30 + ' steps, the token at ' + t30.x + ',' + t30.y + ')', n30 > 15 && t30.x === hf30[0] && t30.y === hf30[1]);
       var me30 = d30.marks.doors['keeper:mela']; walkT(B30, R30, me30, 20000);
       okT('a door with no room behind it (the stew: ' + (D.town.hasRoom('keeper:mela') ? 'a room' : 'no room') + '): its keeper\'s word at the door, the party still in the street (' + ((B30.cards[B30.cards.length - 1] || {}).lines || []).join(' / ').slice(0, 70) + ')', !D.town.hasRoom('keeper:mela') && !D.roam.def.room && cardT(/Mela Sorris/));
