@@ -27,7 +27,7 @@
   T.COMPOUND = { x: 1560, y: 1582, w: 115, h: 90, gate: 'w' };
   // the town's one slope (10-20, Griz: "slope once off of fountain street, then leveled"): Fountain Street, the Gate Plaza's head and the Edifice's foot up on their level, the
   // ground falling DROP ft southward between SLOPE[0] and SLOPE[1] (v6's feet: the first sixty feet off the street), and level from there to the south gate
-  T.SLOPE = [560, 620]; T.DROP = 30;
+  T.SLOPE = [560, 620]; T.DROP = 30; T.FRONT = 60; T.RUN = 30; // (FRONT: how far south of the street the first houses may begin; RUN: the fall behind them, inside the lane)
 
   T.lay = function (V, F0) {
     V = V || D.TOWN_V6;
@@ -84,14 +84,7 @@
     V.stall.forEach(function (s) { rect(s[0], s[1], 0, 0, s[2], s[3], s[4], 'k', '.,='); });
     // the tower: its foot, a round of built stone (v6 draws it standing, 22 ft across)
     ellipse(V.tower[0], V.tower[1] - 8, Math.max(14, F * 0.55), Math.max(14, F * 0.55), 'B');
-    // the stockade, a rail, open at the gates between two posts
-    var gates = V.gate.map(function (q) { return { x: q[0], y: q[1] }; }), nearGate = function (x, y) { return gates.some(function (q) { return Math.hypot(x - q.x, y - q.y) < 30; }); };
-    for (var j = 0; j + 1 < V.stockade.length; j++) (function (a, b) {
-      var r = Math.max(8, F), hw = Math.max(3.6, F * 0.55); fill(Math.min(a[0], b[0]) - r, Math.min(a[1], b[1]) - r, Math.max(a[0], b[0]) + r, Math.max(a[1], b[1]) + r, function (x, y) { return segD(x, y, a, b) <= hw && !nearGate(x, y); }, 'f', OPEN);
-    })(V.stockade[j], V.stockade[j + 1]);
-    gates.forEach(function (q) { // (the posts: the stockade's squares just past the opening on either side)
-      for (var j2 = 0; j2 + 1 < V.stockade.length; j2++) { var a = V.stockade[j2], b = V.stockade[j2 + 1]; if (segD(q.x, q.y, a, b) > 20) continue; var L = Math.hypot(b[0] - a[0], b[1] - a[1]), ux = (b[0] - a[0]) / L, uy = (b[1] - a[1]) / L; [-1, 1].forEach(function (sg) { set(gxOf(q.x + sg * 32 * ux), gyOf(q.y + sg * 32 * uy), 'b'); set(gxOf(q.x + sg * 37 * ux), gyOf(q.y + sg * 37 * uy), 'b'); }); }
-    });
+    // (v6's stockade is not laid: 10-21, Griz, of the rail that fenced the floor's edges: "I think they're the stockade fences" -- "seem superfluous". The gates stay as marks)
     // Bloodsnout's compound: a stone wall round a yard, the barracks along the back (east), the gate on the plaza side shut -- drawn, never entered
     var C = T.COMPOUND, cg0 = gxOf(C.x), cg1 = gxOf(C.x + C.w), ch0 = gyOf(C.y), ch1 = gyOf(C.y + C.h), bk = Math.max(1, Math.round(25 / F));
     for (var yy = ch0; yy <= ch1; yy++) for (var xx = cg0; xx <= cg1; xx++) set(xx, yy, xx > cg1 - bk ? 'b' : (yy === ch0 || yy === ch1 || xx === cg0) ? 'q' : '.'); // (q: its wall, 10 ft; b: the barracks, 25 ft deep along the back)
@@ -129,10 +122,37 @@
       tk(q); set(q[0], q[1], 'd'); marks.doors[d.id] = q;
     });
     var v6pins = {}; V.PINS.forEach(function (p) { v6pins[p[2]] = [p[0], p[1]]; });
-    var heights = []; for (var y4 = 0; y4 < h; y4++) { var fy = cy(y4), e = fy <= T.SLOPE[0] ? T.DROP : fy >= T.SLOPE[1] ? 0 : T.DROP * (T.SLOPE[1] - fy) / (T.SLOPE[1] - T.SLOPE[0]), dg = Math.round(e * T.FT / F / 2.5); heights.push(new Array(w + 1).join(dg.toString(36))); } // (in the grid's steps, 2.5 ft, at the square's scale)
+    // the slope by the column (10-21, Griz: "the buildings facing fountain street would be on the same level as fountain street, the houses behind them on the worn down
+    // dirt that ends up a little lower"): a column keeps the street's level through the first houses south of it (begun within T.FRONT ft of SLOPE[0]) and falls behind
+    // them over T.RUN ft; a column with none there (a gap, a road south) takes the line from the houses on either side, else falls where the old band began
+    var RUN = F >= T.RUN ? T.RUN : Math.max(T.RUN, T.DROP * T.FT / 2.5), ends = []; // (a step of the grid's height a square at most: at the true scale the fall takes 60 ft)
+    for (var x6 = 0; x6 < w; x6++) {
+      var y6 = Math.max(0, gyOf(T.SLOPE[0])), seen = false, end = null;
+      for (; y6 < h; y6++) { var roofed = !!T.ROOFS[at(x6, y6)]; if (!seen && cy(y6) > T.SLOPE[0] + T.FRONT) break; if (roofed) seen = true; else if (seen) { end = cy(y6) - F / 2; break; } } // (the first houses, followed to their back wall)
+      ends.push(seen ? (end == null ? T.Y0 + h * F : end) : null);
+    }
+    var near6 = function (x, d) { for (var k = 1; k < w; k++) { var q = x + d * k; if (q < 0 || q >= w) return null; if (ends[q] != null) return { x: q, e: ends[q] }; } return null; };
+    var endAt = ends.map(function (e, x) { if (e == null) { var l = near6(x, -1), r = near6(x, 1); e = l && r ? l.e + (r.e - l.e) * (x - l.x) / (r.x - l.x) : l ? l.e : r ? r.e : T.SLOPE[0]; } return T.Y0 + Math.round((e - T.Y0) / F) * F; }); // (on a square's edge: the fall a step a square)
+    if (F < T.RUN) { // (at the fine scales the line moves a square at most from one column to the next, both ways: no cliff across the lane; at the town's 30 ft a square is the whole fall)
+      for (var xs = 1; xs < w; xs++) endAt[xs] = Math.max(endAt[xs - 1] - F, Math.min(endAt[xs - 1] + F, endAt[xs]));
+      for (xs = w - 2; xs >= 0; xs--) endAt[xs] = Math.max(endAt[xs + 1] - F, Math.min(endAt[xs + 1] + F, endAt[xs]));
+    }
+    var hg = []; for (var y4 = 0; y4 < h; y4++) { var fy = cy(y4); for (var x4 = 0; x4 < w; x4++) { var e0 = endAt[x4], e = fy <= e0 ? T.DROP : fy >= e0 + RUN ? 0 : T.DROP * (e0 + RUN - fy) / RUN; hg[y4 * w + x4] = Math.round(e * T.FT / F / 2.5); } } // (in the grid's steps, 2.5 ft, at the square's scale)
+    for (var x5 = 0; x5 < w; x5++) for (var y5b = 1; y5b < h; y5b++) if (T.ROOFS[at(x5, y5b)] && T.ROOFS[at(x5, y5b - 1)]) hg[y5b * w + x5] = hg[(y5b - 1) * w + x5]; // (a building stands on one level: never split by the fall)
+    var heights = []; for (var y9 = 0; y9 < h; y9++) { var hr = ''; for (var x9 = 0; x9 < w; x9++) hr += hg[y9 * w + x9].toString(36); heights.push(hr); }
+    // a door in every building's south wall (10-21, Griz: "We'll wanna stretch reality such that all the buildings have south doors"): the middle of each run of one roof
+    // along a row whose south is open ground -- drawn, not entered (the shops' own doors, a threshold 'd' south of the wall, are drawn already)
+    var faceDoors = {};
+    for (var y7 = 0; y7 < h; y7++) for (var x7 = 0; x7 < w; ) {
+      var c7 = at(x7, y7), isFace = function (x) { var c = at(x, y7), s = at(x, y7 + 1); return c === c7 && s != null && s !== c7 && OPEN.indexOf(s) >= 0 && s !== '~'; };
+      if (!c7 || 'bnuhj'.indexOf(c7) < 0 || !isFace(x7)) { x7++; continue; }
+      var x8 = x7, hasD = false; while (x8 < w && isFace(x8)) { if (at(x8, y7 + 1) === 'd') hasD = true; x8++; }
+      if (!hasD) faceDoors[Math.floor((x7 + x8 - 1) / 2) + ',' + y7] = 1;
+      x7 = x8;
+    }
     for (var si = 0; si < g.length; si++) if (!T.ROOFS[g[si]]) sl[si] = 0; // (a side only where a roof still stands: the streets, the doors and the yard laid over some)
     var slope = []; for (var y3 = 0; y3 < h; y3++) { var sr = ''; for (var x3 = 0; x3 < w; x3++) sr += sl[y3 * w + x3]; slope.push(sr); }
-    return { w: w, h: h, rows: (function () { var out = []; for (var y2 = 0; y2 < h; y2++) out.push(g.slice(y2 * w, y2 * w + w).join('')); return out; })(), slope: slope, heights: heights, reach: reach, marks: marks, v6pins: v6pins, F: F };
+    return { w: w, h: h, rows: (function () { var out = []; for (var y2 = 0; y2 < h; y2++) out.push(g.slice(y2 * w, y2 * w + w).join('')); return out; })(), slope: slope, heights: heights, reach: reach, marks: marks, v6pins: v6pins, F: F, faceDoors: faceDoors };
   };
 
   // the doors: the 8-bit's Silverton triggers (content/maps/silverton.json: shop, keeper, inn, leech, chapel, warp) at their slot's pin in v6's key (the wiki's slots are
@@ -209,6 +229,7 @@
       name: 'Silverton', sub: 'the town, true scale from the city map v6', key: 'silverton', town: true, wet: false, dark: false, ground: 'earth', step: 10,
       view: /[?&]view=iso\b/.test(q) ? null : 'top', // (north up the screen -- 10-20, Griz: "the iso is too much for the town"; &view=iso the grid's diamonds: js/topview.js)
       heights: L.heights.slice(oy, oy + h).map(function (r) { return r.slice(ox, ox + w); }),
+      faceDoors: (function () { var o = {}; Object.keys(L.faceDoors || {}).forEach(function (k) { var a = k.split(','), x = +a[0] - ox, y = +a[1] - oy; if (x >= 0 && y >= 0 && x < w && y < h) o[x + ',' + y] = 1; }); return o; })(), // (every building's south door, drawn: js/topview.js)
       ft: L.F, roofs: T.roofsAt(L.F), slope: L.slope.slice(oy, oy + h).map(function (r) { return r.slice(ox, ox + w); }), // (its buildings stand whole under their roofs, two sides and a ridge: js/iso.js roofCanvas)
       rows: rows, w: w, h: h, cut: cut ? [ox, oy, w, h] : null, page: w * h > 12000, // (page: a floor too big to paint as one picture, painted in pieces as the camera comes to them -- js/iso.js)
       entry: [to(at)], face: face, gate: gate, stairUp: [], doors: ways, marks: marks, people: people, foes: [],
@@ -220,7 +241,8 @@
   };
   // the buildings' heights and looks (rock to the rules, every one): the houses two floors under red tile (v6's roofs), the Shaft Rows' shacks one under old
   // timber, the Hexagon and the tower taller, Bloodsnout's yard wall a man and a half
-  T.ROOFS = { b: { h: 20, roof: 'red' }, n: { h: 16, roof: 'leather' }, u: { h: 24, roof: 'red' }, h: { h: 12, roof: 'leather' }, j: { h: 10, roof: 'stone' }, B: { h: 35, roof: 'stone' }, q: { h: 10, roof: 'silver', wall: 'silver' } };
+  // (10-21, Griz: "The roof brown and the road brown are too close together": the brown roofs went -- the low houses' blue slate, the shacks' grey shingle; silver is the paving's)
+  T.ROOFS = { b: { h: 20, roof: 'red' }, n: { h: 16, roof: 'blue' }, u: { h: 24, roof: 'red' }, h: { h: 12, roof: 'stone' }, j: { h: 10, roof: 'stone' }, B: { h: 35, roof: 'stone' }, q: { h: 10, roof: 'silver', wall: 'silver' } };
   T.HOUSES = 'bnu'; T.SHACKS = 'hj';
   T.roofsAt = function (F) { if (F === T.FT) return T.ROOFS; var o = {}; Object.keys(T.ROOFS).forEach(function (k) { o[k] = Object.assign({}, T.ROOFS[k], { h: T.ROOFS[k].h * T.FT / F }); }); return o; }; // (the heights shrink with the squares: the town as if the party stood F / 5 times taller)
   T.ROADS = ['the south gate track', 'THE road west: a mile to the fork', 'the road east: the farms and the coast', 'the old mine track', 'the feed track: the bridge and the Warrens mouths']; // (v6's roads in its own order)

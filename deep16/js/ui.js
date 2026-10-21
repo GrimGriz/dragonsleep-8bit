@@ -1276,7 +1276,10 @@
     // the square under the cursor, by the grid's own numbering, top right (Griz, 10-01: "Me getting better at pointing to the tile by
     // your numbering or some standardized tile referencing"): x counts from the far upper-left wall, y from the far upper-right, so
     // (0, 0) is the map's top corner; x grows down to the right, y down to the left -- he can say "4,1" and mean the seat's 4,1
-    if (B.cursor && G.map.at(B.cursor.x, B.cursor.y)) D.text(ctx, B.cursor.x + ',' + B.cursor.y, D.W - 5, 3, R('silver', 5), 'right');
+    // (walking a floor the grid's cursor stands still, so the square under the mouse is the roam's own hover -- 10-21, Griz: "that 5, 10 up in the corner used to
+    // identify the tile i was mousing over... that can help in communicating with seats")
+    var cq = B.roam && (B.roam.mode === 'walk' || B.roam.mode === 'order') && !B.req && !B.menu ? B.roam.hover : B.cursor;
+    if (cq && G.map.at(cq.x, cq.y)) D.text(ctx, cq.x + ',' + cq.y, D.W - 5, 3, R('silver', 5), 'right');
     if (!B.cine) bar(ctx, B, hero);
     if (hero && UI.style(B) === 'window') cmdWindow(ctx, B, hero);
     if (hero && UI.style(B) !== 'window') cmdRing(ctx, B, hero);

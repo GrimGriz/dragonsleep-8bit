@@ -91,12 +91,12 @@
     var cx = cv.getContext('2d'), x0 = p.c * PG, y0 = p.r * PG + top.y0, stone = R('stone');
     var gx0 = Math.max(0, Math.floor(x0 / T)), gx1 = Math.min(m.w - 1, Math.floor((x0 + PG) / T)), gy0 = Math.max(0, Math.floor(y0 / T)), gy1 = Math.min(m.h - 1, Math.floor((y0 + PG) / T) + 8);
     for (var gy = gy0; gy <= gy1; gy++) for (var gx = gx0; gx <= gx1; gx++) {
-      var s = m.at(gx, gy); if (!s || (!s.open && !s.block)) continue;
+      var s = m.at(gx, gy); if (!s) continue;
       var x = gx * T - x0, y = gy * T - s.gz - y0;
       if (y > PG || y + T < 0) continue;
-      cx.drawImage(tileCanvas(m, s), x, y);
-      var sb = m.at(gx, gy + 1), drop = s.gz - (sb && sb.open ? sb.gz : s.gz); // (a raised square's face toward the lower one south of it: the town's slope off Fountain Street)
-      if (drop > 0) { for (var j = 0; j < drop; j++) { cx.fillStyle = 'rgb(' + stone[j === 0 ? 5 : 3 - (j * 2 / drop | 0)].join(',') + ')'; cx.fillRect(x, y + T + j, T, 1); } }
+      if (s.open || s.block) cx.drawImage(tileCanvas(m, s), x, y); // (a built square's top is its roof, drawn standing; its bank below is still the page's)
+      var sb = m.at(gx, gy + 1), drop = sb ? s.gz - sb.gz : 0; // (a raised square's face toward the lower one south of it, open or built on: the town's slope off Fountain Street)
+      if (drop > 0) { var bank = R('leather'); for (var j = 0; j < drop; j++) { cx.fillStyle = 'rgb(' + (j === 0 ? stone[5] : bank[j < drop / 3 ? 3 : j < drop * 2 / 3 ? 2 : 1]).join(',') + ')'; cx.fillRect(x, y + T + j, T, 1); } } // (a bank of the worn dirt, lit at its lip, darker down to the lower ground -- it read as a black band)
     }
     p.cv = cv; m.top.baked++;
   }
@@ -104,7 +104,7 @@
   // ------------------------------------------------------------------ the standing things: a roof seen from above with its wall below, a rock's top and its face, a block
   function standCanvas(m, s) {
     var RF = m.def.roofs && m.def.roofs[s.ch], T = TV.TS, sb = m.at(s.x, s.y + 1), same = function (q) { return !!(q && !q.open && q.ch === s.ch); };
-    var rock = !RF && !s.open, face = RF ? !same(sb) : rock ? !!(sb && (sb.open || sb.block)) : true, door = !!(sb && sb.ch === 'd'), side = m.def.slope ? +m.def.slope[s.y].charAt(s.x) || 0 : 0, v0 = NZ.h2(s.x, s.y, 41) * 3 | 0;
+    var rock = !RF && !s.open, face = RF ? !same(sb) : rock ? !!(sb && (sb.open || sb.block)) : true, door = !!(sb && sb.ch === 'd') || !!(m.def.faceDoors && m.def.faceDoors[s.x + ',' + s.y]), side = m.def.slope ? +m.def.slope[s.y].charAt(s.x) || 0 : 0, v0 = NZ.h2(s.x, s.y, 41) * 3 | 0;
     var inRoom = rock && !!m.def.room, front = inRoom && s.y === m.h - 1;
     var hgt = RF ? iso.roofPx(m, s.ch) : inRoom ? (front ? 6 : TV.ROOMWALL) : rock ? TV.CLIFF : (TV.BLOCK[s.ch] || 8); // (the lift: a roof its height, every rock the cliff's -- one plane -- a room's wall its own, a block its own)
     var key = s.ch + side + (face ? 'F' : '') + (door ? 'D' : '') + v0 + ':' + hgt + (inRoom ? 'r' : '') + (s.ch === 'S' ? m.def.goods || '' : '');
