@@ -2082,14 +2082,24 @@
       var pairs = pS.map(function (h) { var hc = cr(SS.homeOf(B1, h)), f = fS.filter(function (w) { var wc = cr(SS.homeOf(B1, w), w.size); return Math.abs(wc.r - hc.r) <= 0.5; })[0]; return f ? D.grid.dist(h, f) + 'ft/' + ((hc.c - cr(SS.homeOf(B1, f), f.size).c) * 32) + 'px' : '-'; });
       var front = fS.every(function (u) { return feet(u).every(function (q) { return cr(q).c <= -1; }); });
       var xs = B1.units.map(function (u) { var h = SS.homeOf(B1, u), s = u.size || 1, p = D.iso.center(h[0] + (s - 1) / 2, h[1] + (s - 1) / 2, 0); return [p.x - 18 * s, p.x + 18 * s]; }), wS = Math.max.apply(null, xs.map(function (q) { return q[1]; })) - Math.min.apply(null, xs.map(function (q) { return q[0]; }));
-      okS('across the screen: the four on their squares (' + pS.map(function (u) { var c = cr(SS.homeOf(B1, u)); return c.c + '/' + c.r; }).join(' ') + '), each row\'s two ' + pairs.join(' ') + ', no foe past the front (' + front + '), the lineup ' + wS + ' px wide of the picture\'s ' + SS.PIC().w,
-        B1.o.simple === true && pS.every(function (u, i) { return u.x === SS.PARTY[i][0] && u.y === SS.PARTY[i][1]; }) && fS.length === listS.length && front && pairs.filter(function (p) { return p === '10ft/128px'; }).length >= 3 && wS <= SS.PIC().w);
+      var cols4 = pS.slice(0, 4).map(function (u) { return cr(SS.homeOf(B1, u)).c; });
+      okS('across the screen: the four in a straight column (' + pS.map(function (u) { var c = cr(SS.homeOf(B1, u)); return c.c + '/' + c.r; }).join(' ') + '), each row\'s two ' + pairs.join(' ') + ', no foe past the front (' + front + '), the lineup ' + wS + ' px wide of the picture\'s ' + SS.PIC().w,
+        B1.o.simple === true && pS.every(function (u, i) { return u.x === SS.PARTY[i][0] && u.y === SS.PARTY[i][1]; }) && cols4.every(function (c) { return c === cols4[0]; }) && fS.length === listS.length && front && pairs.filter(function (p) { return p === '10ft/128px'; }).length >= 3 && wS <= SS.PIC().w);
+      // only the one whose turn it is drawn forward (his "It didn't seem like only the active turn person was stepped forward")
+      B1.simple.act = pS[2]; SS.place(B1); var fwd = B1.units.filter(function (u) { var h = SS.homeOf(B1, u); return u.drawAt && (u.drawAt.x !== h[0] || u.drawAt.y !== h[1]); }).map(function (u) { return u.name; }); B1.simple.act = null; SS.place(B1);
+      okS('on ' + pS[2].name + '\'s turn only ' + fwd.join(', ') + ' drawn forward', fwd.length === 1 && fwd[0] === pS[2].name);
+      // the camera: a step further out than the deepest zoom the lineup fits at (his "zoom out at least a step"), the wheel over the picture a step either way
+      var R0 = D.R; D.R = 4; B1.simple.cam = null; SS.camera(B1); var Zs = SS.ZOOMS(), i0 = B1.simple.cam.i, z0 = D.iso.zoom, mo0 = D.input.mouse, wsv = { x: mo0.x, y: mo0.y, inside: mo0.inside, wheel: mo0.wheel };
+      mo0.x = 40; mo0.y = 120; mo0.inside = true; mo0.wheel = -1; SS.camera(B1); var z1 = D.iso.zoom; mo0.wheel = 1; SS.camera(B1); var z2 = D.iso.zoom;
+      mo0.x = wsv.x; mo0.y = wsv.y; mo0.inside = wsv.inside; mo0.wheel = wsv.wheel; D.R = R0; B1.simple.cam = null;
+      okS('the camera at the backing scale 4: zoom ' + z0 + ' (a step out from ' + (Zs[i0 - 1] || '-') + '), the wheel in ' + z1 + ', out again ' + z2, i0 >= 1 && z0 === Zs[i0] && z1 === Zs[i0 - 1] && z2 === z0);
       // the larger monsters (his "Try it with some larger monsters as well"): all seated, none on another, none past the front, the Huge in front and low enough
       var big = SS.seat(['troll', 'ettin', 'stonegiant', 'worg', 'troll']), tk = {}, overlap = 0;
       big.forEach(function (b) { var s = D.FOES[b.kind].size; for (var j = 0; j < s; j++) for (var i = 0; i < s; i++) { var k = (b.at[0] + i) + ',' + (b.at[1] + j); if (tk[k]) overlap++; tk[k] = 1; } });
-      var gi = big.filter(function (b) { return b.kind === 'stonegiant'; })[0], gc = gi && cr(gi.at, 3);
+      var gi = big.filter(function (b) { return b.kind === 'stonegiant'; })[0], gc = gi && cr(gi.at, 3), topS4 = Math.min.apply(null, SS.PARTY.slice(0, 4).map(function (q) { return (q[0] + q[1]) * 16; })) - SS.TALL[1];
+      var headG = gi ? (gi.at[0] + gi.at[1] + 2) * 16 - SS.TALL[3] : -1e9; // (the stone giant's head: its middle's row up the screen, less its height)
       okS('the larger monsters: ' + big.map(function (b) { var c = cr(b.at, D.FOES[b.kind].size); return b.kind + ' ' + c.c + '/' + c.r; }).join(', ') + '; ' + overlap + ' squares shared',
-        big.length === 5 && !overlap && big.every(function (b) { var s = D.FOES[b.kind].size, c = cr(b.at, s); return c.c + (s - 1) <= -1; }) && !!gc && gc.c >= -5 && gc.r >= Math.ceil((SS.TALL[3] - 128) / 16));
+        big.length === 5 && !overlap && big.every(function (b) { var s = D.FOES[b.kind].size, c = cr(b.at, s); return c.c + (s - 1) <= -2; }) && !!gc && gc.c >= -5 && headG >= topS4);
       // a fight by the hand's FIGHT, each time at the farthest foe: to its end, no opportunity attack, every one on its own square at each turn's start
       var off0 = 0, moved0 = 0, snapN = 0, snap0 = SS.snap;
       function offHome(B) { var k = 0; B.units.forEach(function (u) { if (!G0(u)) return; var h = SS.homeOf(B, u); if (u.x !== h[0] || u.y !== h[1]) k++; }); return k; }
@@ -2141,9 +2151,9 @@
       var campS = []; [true, false].forEach(function (simple) {
         wsS.fight({ zone: 'north', list: ['wolf', 'wolf'], mirror: false }, eS, { camp: true, simple: simple }); var Bc = topS(), fc = Bc.fight && Bc.fight.camp;
         var lc = (Bc.lights || []).filter(function (l) { return fc && l.x === fc[0] && l.y === fc[1]; })[0], four = Bc.units.filter(function (u) { return u.side === 'party'; });
-        var lit = four.filter(function (u) { return D.light.levelAt(Bc, u.x, u.y) === 2; }).length, pr = (D.looks.props(Bc) || []).filter(function (o) { return fc && o.depth === fc[0] + fc[1] + 0.5; }).length;
-        campS.push((simple ? 'simple' : 'grid') + ': ' + (fc ? fc.join(',') : 'no fire') + ', dark ' + !!Bc.dark + ', light ' + (lc ? lc.bright + '/' + lc.dim : '-') + ', ' + lit + ' of ' + four.length + ' in bright light, drawn ' + pr);
-        campS.ok = (campS.ok !== false) && !!fc && !!Bc.dark && !!lc && lc.bright === 20 && lit === four.length && pr === 1 && Bc.fight.name === 'The camp';
+        var lit = four.filter(function (u) { return D.light.levelAt(Bc, u.x, u.y) === 2; }).length, dim = four.filter(function (u) { return D.light.levelAt(Bc, u.x, u.y) >= 1; }).length, pr = (D.looks.props(Bc) || []).filter(function (o) { return fc && o.depth === fc[0] + fc[1] + 0.5; }).length;
+        campS.push((simple ? 'simple' : 'grid') + ': ' + (fc ? fc.join(',') : 'no fire') + ', dark ' + !!Bc.dark + ', light ' + (lc ? lc.bright + '/' + lc.dim : '-') + ', ' + lit + ' of ' + four.length + ' in bright light, ' + dim + ' lit, drawn ' + pr);
+        campS.ok = (campS.ok !== false) && !!fc && !!Bc.dark && !!lc && lc.bright === 20 && lit >= 2 && dim === four.length && pr === 1 && Bc.fight.name === 'The camp';
         D.pop();
       });
       okS('the camp\'s fire -- ' + campS.join('; '), campS.ok === true);
@@ -2166,8 +2176,29 @@
         var f4 = SS.foes(B4, h4)[0], p4 = f4 && SS.screenOf(B4, f4); if (p4) got = SS.unitAt(B4, p4.x, p4.y - 6, SS.foes(B4, h4));
       }
       var rc = (B4.simple && B4.simple.rects) || [];
-      okS('a frame of the simple screen (' + drew + ', zoom ' + (B4.simple && B4.simple.cam && B4.simple.cam.z) + '): ' + rc.filter(function (r) { return r.kind === 'row'; }).length + ' command rows, ' + rc.filter(function (r) { return r.kind === 'party'; }).length + ' party rows; the mouse on a foe picks ' + (got ? got.name : 'nothing'),
+      okS('a frame of the simple screen (' + drew + ', zoom ' + D.iso.zoom + '): ' + rc.filter(function (r) { return r.kind === 'row'; }).length + ' command rows, ' + rc.filter(function (r) { return r.kind === 'party'; }).length + ' party rows; the mouse on a foe picks ' + (got ? got.name : 'nothing'),
         drew === 'drawn' && rc.filter(function (r) { return r.kind === 'row'; }).length === 5 && rc.filter(function (r) { return r.kind === 'party'; }).length >= 4 && !!got && got.side === 'foe');
+      // FIGHT's target with no list (his "the fight 'at whom' type selection seems superfluous with the arrow indicator and direct character clicking"): the arrow and a click
+      var drew2 = '';
+      if (h4) {
+        SS.pickFoe(B4, h4, 'FIGHT', null, function (t) { return SS.fightCmd(B4, h4, t); });
+        try { D.ui.drawBattle(cv.getContext('2d'), B4); drew2 = 'drawn'; } catch (eD2) { drew2 = String(eD2 && eD2.message || eD2).slice(0, 120); }
+      }
+      var rc2 = (B4.simple && B4.simple.rects) || [], bn2 = h4 ? SS.banner(B4).join(' ') : '';
+      okS('a target by the arrow (' + drew2 + '): ' + rc2.filter(function (r) { return r.kind === 'pick'; }).length + ' list rows, ' + rc2.filter(function (r) { return r.kind === 'back'; }).length + ' BACK; the words "' + bn2.replace(/\{\/?[a-z]*\}/g, '').slice(0, 60) + '"',
+        drew2 === 'drawn' && !rc2.filter(function (r) { return r.kind === 'pick'; }).length && rc2.filter(function (r) { return r.kind === 'back'; }).length === 1 && /click the one/.test(bn2));
+      // THE ISO VIEW (his "can we try with isometry back with the new side menu"): OPTIONS' SIMPLE VIEW, and the lines along the grid's axis -- the four at x +2 down
+      // their column, the foes from x -2 back, each row's two four squares apart
+      var rvS = window.DS.MENU.gridRows(null).filter(function (r) { return r.label === 'SIMPLE VIEW'; })[0], v0S = rvS && rvS.get(); if (rvS) rvS.step(1); var v1S = rvS && rvS.get();
+      wsS.fight({ zone: 'north', list: ['bandit', 'bandit', 'wolf', 'worg', 'goblin'], mirror: false }, eS); var B6 = topS(); D.battle = B6;
+      if (!B6.simple) SS.setup(B6);
+      var p6 = B6.units.filter(function (u) { return u.side === 'party'; }), f6 = B6.units.filter(function (u) { return u.side === 'foe'; });
+      var iso4 = p6.slice(0, 4).every(function (u, i) { return u.x === SS.C[0] + 2 && u.y === SS.C[1] - 2 + i; }), isoF = f6.every(function (u) { return D.grid.foot(u).every(function (q) { return q[0] - SS.C[0] <= -2; }); });
+      var gaps6 = p6.slice(0, 4).map(function (h) { var f = f6.filter(function (w) { return w.y === h.y && w.size === 1; })[0]; return f ? D.grid.dist(h, f) : '-'; });
+      if (rvS) rvS.step(1); var v2S = rvS && rvS.get(); try { window.localStorage.removeItem(SS.VKEY); } catch (eV) { }
+      okS('SIMPLE VIEW ' + v0S + ' by default, ' + v1S + ' a step on, ' + v2S + ' back; in ISO the four down x +2 (' + iso4 + '), the foes from x -2 back (' + isoF + ', ' + f6.length + ' seated), a row\'s two ' + gaps6.join('/') + ' ft apart',
+        v0S === 'ACROSS' && v1S === 'ISO' && v2S === 'ACROSS' && iso4 && isoF && f6.length === 5 && gaps6.filter(function (g) { return g === 20; }).length >= 2);
+      D.pop();
     } catch (eS2) { repS.errors.push(String(eS2 && eS2.stack || eS2).slice(0, 900)); }
     try { if (key0 == null) window.localStorage.removeItem(SS.KEY); else window.localStorage.setItem(SS.KEY, key0); } catch (eK2) { }
     var preS = document.createElement('pre'); preS.id = 'out'; preS.textContent = 'BENCH16 ' + JSON.stringify(repS);
