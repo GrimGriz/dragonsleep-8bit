@@ -126,50 +126,14 @@
       var d = DS.loadSlot(i), mk = SLOT_GOLD[used.indexOf(i)]; // (gold: the slot this game last loaded from or saved to; darker: the one before)
       if (d) {
         var lead = d.party[0];
-        out.push({ label: 'SLOT ' + i + '  ' + lead.name + ' L' + lead.lvl + '  ' + (DS.DATA.maps[d.map] ? DS.DATA.maps[d.map].name : ''), right: fmtTime(d.time), value: i, color: mk, rightColor: mk, eggs: DS.eggsFound(d) });
+        out.push({ label: 'SLOT ' + i + '  ' + lead.name + ' L' + lead.lvl + '  ' + (DS.DATA.maps[d.map] ? DS.DATA.maps[d.map].name : ''), right: fmtTime(d.time), value: i, color: mk, rightColor: mk });
       } else out.push({ label: 'SLOT ' + i + '  — empty —', value: i, disabled: !saving });
     }
     return out;
   }
 
-  // the eggs on each save's row (10-15, the menus lane §2.2; Griz, 10-13: "visual indicators on load screen for easter eggs obtained (6 slots total) within
-  // that particular save file you're thinking about loading"; 10-11: "6 empty eggs slots on the load from save screen (full if that save has gotten that egg)
-  // - exclude pocket DM eggs"): js/events.js EV.EGGS are the six, in their order, each by the flag its egg leaves in the save. A found egg is lit in its own
-  // colour, shaded as the grid's eggs are (lit from the upper left), a glint going round the lit ones; on the row under the cursor they rock, as the grid's
-  // egg bobs. One not found -- or not built yet -- is an empty socket. The Pocket DM's eggs (deep16/js/pocketdm.js PD.EGGS) are the browser's, not a save's
-  DS.eggsFound = function (d) { var fl = (d && d.flags) || {}; return ((DS.EV && DS.EV.EGGS) || []).map(function (e) { return e.flag && fl[e.flag] ? e.hue : null; }); };
-  var EGG_ART = ['...ooo...', '..ollbo..', '.olhlbbo.', '.olhbbbo.', 'olbbbbbdo', 'olbbbbbdo', 'obbbbbddo', 'obbbbbddo', '.obbbddo.', '..odddo..', '...ooo...'];
-  var EGG_HUES = { // (the NES palette's own steps: outline, shade, body, light, shine)
-    red: { o: '#501000', d: '#A81000', b: '#D82800', l: '#F87858', h: '#FCD8A8' },
-    violet: { o: '#200C58', d: '#4428BC', b: '#6844FC', l: '#9878F8', h: '#D8B8F8' },
-    blue: { o: '#00186C', d: '#0000BC', b: '#0058F8', l: '#3CBCFC', h: '#A4E4FC' },
-    orange: { o: '#502000', d: '#A83C00', b: '#E45C10', l: '#FCA044', h: '#FCE0A8' },
-    green: { o: '#003000', d: '#007800', b: '#00A800', l: '#58D854', h: '#B8F8B8' },
-    empty: { o: '#4C4E80', d: '#181A48', b: '#181A48', l: '#1E2052', h: '#1E2052' } // (the socket: a dim rim round the window's own night, a breath lighter where the shine would be)
-  };
-  var EGG_W = 9, EGG_H = 11, EGG_GAP = 12, eggCache = {};
-  function eggImage(hue) {
-    if (eggCache[hue]) return eggCache[hue];
-    var cv = document.createElement('canvas'), cx, P = EGG_HUES[hue] || EGG_HUES.empty;
-    cv.width = EGG_W; cv.height = EGG_H; cx = cv.getContext('2d');
-    EGG_ART.forEach(function (row, y) { for (var x = 0; x < row.length; x++) { var c = row[x]; if (c === '.') continue; cx.fillStyle = P[c]; cx.fillRect(x, y, 1, 1); } });
-    return (eggCache[hue] = cv);
-  }
-  DS.eggRow = function (ctx, eggs, x, y, here) { // eggs: a hue or null for each of the six; here: the row under the cursor
-    var lit = [], t = DS.frame || 0;
-    eggs.forEach(function (hue, i) {
-      var ex = x + i * EGG_GAP, ey = y + (hue && here ? Math.round(Math.sin(t / 9 + i * 1.1)) : 0);
-      ctx.drawImage(eggImage(hue || 'empty'), ex, ey);
-      if (hue) lit.push([ex, ey]);
-    });
-    if (!lit.length) return;
-    var f = t % 90, at = lit[Math.floor(t / 90) % lit.length]; // (the glint: one lit egg at a time, a four-point star that opens and shuts)
-    if (f >= 14) return;
-    var r = f < 3 || f > 10 ? 1 : 2, gx = at[0] + 6, gy = at[1] + 2;
-    ctx.fillStyle = '#FCFCFC'; ctx.fillRect(gx, gy, 1, 1);
-    ctx.fillStyle = f < 3 || f > 10 ? '#FCFCFC' : '#C8D0E8';
-    ctx.fillRect(gx - r, gy, r, 1); ctx.fillRect(gx + 1, gy, r, 1); ctx.fillRect(gx, gy - r, 1, r); ctx.fillRect(gx, gy + 1, 1, r);
-  };
+  // (the eggs came off the first game's load screen 10-21, Griz: "pull the eggs off the 8 bit loads" -- the first game awards none of them, the grid
+  // set them; the six slots were 10-15's, bf1b0d1. js/events.js EV.EGGS stays the register of the eggs.)
 
   // ------------------------------------------------------------------ Title
   function Title() { this.kind = 'title'; this.opaque = true; this.t = 0; this.stars = []; for (var i = 0; i < 70; i++) this.stars.push([DS.fxInt(256), DS.fxInt(120), DS.fxInt(3)]); this.menu = null; }
@@ -194,19 +158,7 @@
       }
     });
   };
-  Title.prototype.update = function () { this.t++; if (this.t === 2 && EGG_DOOR && !eggShown) { eggShown = true; eggSlotsShow(); return; } this.menu.update(); };
-  // ?eggslots (10-15, the menus lane §2.2, the eggs' look for an eye): the title opens CONTINUE FROM over three made-up saves -- the red and the blue found, the
-  // three built found, none -- read here and never written; no EXPORT or IMPORT, a pick only says so, and X is the title with his own saves as they were
-  var EGG_DOOR = /[?&]eggslots\b/.test(location.search || ''), eggShown = false;
-  function eggSlotsShow() {
-    var real = DS.loadSlot, mk = function (lead, map, t, fl) { var s = DS.freshState(lead); s.map = DS.DATA.maps[map] ? map : DS.DATA.config.start.map; s.time = t; s.flags = fl; return s; };
-    var fake = { 1: mk('aurdin', 'silverton', 60 * 60 * 95, { eggJoke: 1, eggDunk: 1 }), 2: mk('vivian', 'solskaft_deep', 60 * 60 * 400, { eggJoke: 1, eggDarkness: 1, eggDunk: 1 }), 3: mk('lymen', 'halfway', 60 * 60 * 20, {}) };
-    DS.loadSlot = function (n) { return fake[n] ? JSON.parse(JSON.stringify(fake[n])) : null; };
-    var sc; try { sc = new SlotScene(false); } finally { DS.loadSlot = real; }
-    sc.menu.items = sc.menu.items.filter(function (it) { return typeof it.value === 'number'; });
-    sc.menu.onSelect = function () { DS.audio.sfx('error'); sc.msg = 'A look only: these three saves are made up. X is the title.'; };
-    DS.push(sc);
-  }
+  Title.prototype.update = function () { this.t++; this.menu.update(); };
   Title.prototype.draw = function (ctx) {
     drawNightScene(ctx, this.stars, this.t);
     DS.bigText(ctx, 'DRAGONSLEEP', 128, 34, 3);
@@ -444,23 +396,8 @@
     });
   }
   SlotScene.prototype.update = function () { if (this.done > 0) { if (--this.done === 0) DS.pop(this); return; } this.menu.update(); };
-  // the list drawn here, not by DS.Menu's draw: a save's row is two lines tall, its name and under it the six eggs (10-15, the menus lane §2.2); the window
-  // rises as far as it must for the message box under it to stay on the screen. DS.Menu still keeps the cursor and the keys
   SlotScene.prototype.draw = function (ctx) {
-    var m = this.menu, hs = m.items.map(function (it) { return it.eggs ? 25 : 14; }), H = m.pad * 2 - 2 + m.titleH, k;
-    for (k = 0; k < hs.length; k++) H += hs[k];
-    m.h = H; m.y = Math.min(80, DS.H - H - 40);
-    DS.win(ctx, m.x, m.y, m.w, H);
-    m.titleLines.forEach(function (l, i) { DS.text(ctx, l, m.x + m.pad, m.y + m.pad - 1 + i * 10, '#F8D878'); });
-    var x = m.x + m.pad + 8, y = m.y + m.pad + m.titleH, under = DS.textWidth('SLOT 1  ');
-    for (k = 0; k < m.items.length; k++) {
-      var it = m.items[k];
-      DS.text(ctx, it.label, x, y, it.disabled ? '#6C6C84' : (it.color || '#F8F8F8'));
-      if (it.right != null) DS.textRight(ctx, String(it.right), m.x + m.w - m.pad, y, it.disabled ? '#6C6C84' : (it.rightColor || '#C8D0E8'));
-      if (it.eggs) DS.eggRow(ctx, it.eggs, x + under, y + 11, k === m.i);
-      if (k === m.i) DS.cursor(ctx, x - 8, y, !m.active);
-      y += hs[k];
-    }
+    this.menu.draw(ctx);
     if (this.msg) { var ln = DS.wrap(this.msg, 208).slice(0, 2); DS.win(ctx, 16, this.menu.y + this.menu.h + 6, 224, 8 + ln.length * 11); ln.forEach(function (l, i) { DS.textCenter(ctx, l, 128, this.menu.y + this.menu.h + 12 + i * 11, '#F8D878'); }, this); }
   };
   DS.SlotScene = SlotScene;

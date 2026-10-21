@@ -51,7 +51,7 @@ ALL_SCRIPTS = [['dev/bench8.py', 'lymen'], ['dev/bench8.py', 'ingrith'], ['dev/b
                ['dev/bench8.py', 'conc1017'], # (END <the spell held>, free, in the 8-bit: SKILL's row, the turn goes on -- 10-17)
                ['dev/bench8.py', 'twf1015'], # (two-weapon fighting in the 8-bit, 10-15: FIGHT's off-hand swing without the modifier, and Pyro's own swings as they were)
                ['dev/bench8.py', 'offhand1015'], # (the OFFHAND, 10-15, the menus lane §2.5: EQUIP's place, its list, the light there in the field and the fight, a shield the action)
-               ['dev/bench8.py', 'eggs1015'], # (the eggs on the load screen, 10-15, the menus lane §2.2: EV.EGGS the six, a save's flags light its own, CONTINUE FROM and SAVE WHERE? draw them on the screen)
+               ['dev/bench8.py', 'noeggs1021'], # (the eggs off the first game's load screen, 10-21, his "pull the eggs off the 8 bit loads": no row carries them, CONTINUE FROM and SAVE WHERE? draw one line a save; eggs1015 before it)
                ['dev/bench8.py', 'wetfloor1020'], # (the Wet on its own 8-bit floor again, 10-20 -- in place of roam8, the Wet on the grid: no frame in warrens_d, a save there loads on the floor, the Settling's triggers play the 8-bit battle)
                ['dev/bench8.py', 'payout1014'], # (a won fight's payout lifted into js/rules.js, 10-14, the party-token map lane: the same XP, coin, drops, parts, tally and lines -- one copy the grid's roam pays by too)
                ['dev/bench8.py', 'fixes1013'], # (the bug-fix seat's 8-bit checks, 10-13: a paladin's level-up names what opens; the Elixir of Health in the field; walking into a person talks)
