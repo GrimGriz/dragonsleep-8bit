@@ -27,7 +27,7 @@
   T.COMPOUND = { x: 1560, y: 1582, w: 115, h: 90, gate: 'w' };
   // the town's one slope (10-20, Griz: "slope once off of fountain street, then leveled"): Fountain Street, the Gate Plaza's head and the Edifice's foot up on their level, the
   // ground falling DROP ft southward between SLOPE[0] and SLOPE[1] (v6's feet: the first sixty feet off the street), and level from there to the south gate
-  T.SLOPE = [560, 620]; T.DROP = 30; T.FRONT = 60; T.RUN = 30; // (FRONT: how far south of the street the first houses may begin; RUN: the fall behind them, inside the lane)
+  T.SLOPE = [560, 620]; T.DROP = 30; T.FRONT = 60; T.RUN = 30; T.SHUT = 0.08; // (SHUT: the share of houses showing a shut door) // (FRONT: how far south of the street the first houses may begin; RUN: the fall behind them, inside the lane)
 
   T.lay = function (V, F0) {
     V = V || D.TOWN_V6;
@@ -140,14 +140,15 @@
     var hg = []; for (var y4 = 0; y4 < h; y4++) { var fy = cy(y4); for (var x4 = 0; x4 < w; x4++) { var e0 = endAt[x4], e = fy <= e0 ? T.DROP : fy >= e0 + RUN ? 0 : T.DROP * (e0 + RUN - fy) / RUN; hg[y4 * w + x4] = Math.round(e * T.FT / F / 2.5); } } // (in the grid's steps, 2.5 ft, at the square's scale)
     for (var x5 = 0; x5 < w; x5++) for (var y5b = 1; y5b < h; y5b++) if (T.ROOFS[at(x5, y5b)] && T.ROOFS[at(x5, y5b - 1)]) hg[y5b * w + x5] = hg[(y5b - 1) * w + x5]; // (a building stands on one level: never split by the fall)
     var heights = []; for (var y9 = 0; y9 < h; y9++) { var hr = ''; for (var x9 = 0; x9 < w; x9++) hr += hg[y9 * w + x9].toString(36); heights.push(hr); }
-    // a door in every building's south wall (10-21, Griz: "We'll wanna stretch reality such that all the buildings have south doors"): the middle of each run of one roof
-    // along a row whose south is open ground -- drawn, not entered (the shops' own doors, a threshold 'd' south of the wall, are drawn already)
-    var faceDoors = {};
+    // the south doors are the stores' (their threshold 'd': js/topview.js draws the door and the 8-bit's sign over it), and a few houses' shut doors, plainly not a way in
+    // (10-21, Griz: "have only the stores have south-facing doors, or mix it up some and have a couple on houses that are clearly different (you can't go in) doors"):
+    // the middle of a house's south wall where the hash picks it, T.SHUT of them (before, every building had one -- his "all the buildings have south doors", re-cut)
+    var faceDoors = {}, pick7 = function (a, b) { var q = (a * 374761393 + b * 668265263) | 0; q = Math.imul(q ^ (q >>> 13), 1274126177); return ((q ^ (q >>> 16)) >>> 0) / 4294967296; };
     for (var y7 = 0; y7 < h; y7++) for (var x7 = 0; x7 < w; ) {
       var c7 = at(x7, y7), isFace = function (x) { var c = at(x, y7), s = at(x, y7 + 1); return c === c7 && s != null && s !== c7 && OPEN.indexOf(s) >= 0 && s !== '~'; };
-      if (!c7 || 'bnuhj'.indexOf(c7) < 0 || !isFace(x7)) { x7++; continue; }
+      if (!c7 || T.HOUSES.indexOf(c7) < 0 || !isFace(x7)) { x7++; continue; }
       var x8 = x7, hasD = false; while (x8 < w && isFace(x8)) { if (at(x8, y7 + 1) === 'd') hasD = true; x8++; }
-      if (!hasD) faceDoors[Math.floor((x7 + x8 - 1) / 2) + ',' + y7] = 1;
+      var mid = Math.floor((x7 + x8 - 1) / 2); if (!hasD && pick7(Math.floor(cx(mid)), Math.floor(cy(y7))) < T.SHUT) faceDoors[mid + ',' + y7] = 1; // (by the place in feet: the same houses at any scale)
       x7 = x8;
     }
     for (var si = 0; si < g.length; si++) if (!T.ROOFS[g[si]]) sl[si] = 0; // (a side only where a roof still stands: the streets, the doors and the yard laid over some)
@@ -206,7 +207,7 @@
       else if (side1 && '.=dr'.indexOf(c1) >= 0) { ways.push([x1, y1]); offEdge[x1 + ',' + y1] = side1; }
     }
     var trig = [];
-    Object.keys(M.doors).forEach(function (id) { var d = M.doors[id], dd = T.DOORS.filter(function (z) { return z.id === id; })[0]; if (inW(d)) trig.push({ id: id, on: 'step', rect: to(d).concat([1, 1]), town: 'door', door: dd }); });
+    Object.keys(M.doors).forEach(function (id) { var d = M.doors[id], dd = T.DOORS.filter(function (z) { return z.id === id; })[0]; if (inW(d)) trig.push({ id: id, on: 'use', rect: to(d).concat([1, 1]), town: 'door', door: dd }); }); // (a click on the door, or E beside it -- not a step onto it: 10-21, Griz: "swap the stand on this tile to go in the shop to clicking on the door")
     var people = [], npc8 = (((window.DS || {}).DATA || {}).maps || {}).silverton, used = {};
     [M.gates.west, M.gates.south, M.gates.east, M.vault].concat(M.hexFront, M.hexBack, Object.keys(M.doors).map(function (k) { return M.doors[k]; })).forEach(function (q) { if (q) used[q[0] + ',' + q[1]] = 1; }); // (no one stands on a gate, a door or the Hexagon's doors -- at the town's scale a few feet off a mark is the mark)
     ((npc8 && npc8.npcs) || []).forEach(function (n) {
@@ -229,6 +230,7 @@
       name: 'Silverton', sub: 'the town, true scale from the city map v6', key: 'silverton', town: true, wet: false, dark: false, ground: 'earth', step: 10,
       view: /[?&]view=iso\b/.test(q) ? null : 'top', // (north up the screen -- 10-20, Griz: "the iso is too much for the town"; &view=iso the grid's diamonds: js/topview.js)
       heights: L.heights.slice(oy, oy + h).map(function (r) { return r.slice(ox, ox + w); }),
+      signs: (function () { var o = {}, ic = {}; ((npc8 && npc8.triggers) || []).forEach(function (t) { if (t.icon) ic[t.id] = t.icon; }); Object.keys(M.doors).forEach(function (id) { var q = M.doors[id]; if (!q || !ic[id]) return; var x = q[0] - ox, y = q[1] - 1 - oy; if (x >= 0 && y >= 0 && x < w && y < h) o[x + ',' + y] = ic[id]; }); return o; })(), // (the 8-bit's sign over each door that had one, on the wall above the threshold: js/topview.js)
       hexagon: (function () { var hx6 = D.TOWN_V6.hexagon; return { x: (hx6[0] - T.X0) / L.F - ox, y: (hx6[1] - T.Y0) / L.F - oy, r: hx6[2] / L.F }; })(), // (the Hex drawn whole: js/topview.js hexCanvas)
       faceDoors: (function () { var o = {}; Object.keys(L.faceDoors || {}).forEach(function (k) { var a = k.split(','), x = +a[0] - ox, y = +a[1] - oy; if (x >= 0 && y >= 0 && x < w && y < h) o[x + ',' + y] = 1; }); return o; })(), // (every building's south door, drawn: js/topview.js)
       ft: L.F, roofs: T.roofsAt(L.F), slope: L.slope.slice(oy, oy + h).map(function (r) { return r.slice(ox, ox + w); }), // (its buildings stand whole under their roofs, two sides and a ridge: js/iso.js roofCanvas)
@@ -247,6 +249,20 @@
   T.HOUSES = 'bnu'; T.SHACKS = 'hj';
   T.roofsAt = function (F) { if (F === T.FT) return T.ROOFS; var o = {}; Object.keys(T.ROOFS).forEach(function (k) { o[k] = Object.assign({}, T.ROOFS[k], { h: T.ROOFS[k].h * T.FT / F }); }); return o; }; // (the heights shrink with the squares: the town as if the party stood F / 5 times taller)
   T.ROADS = ['the south gate track', 'THE road west: a mile to the fork', 'the road east: the farms and the coast', 'the old mine track', 'the feed track: the bridge and the Warrens mouths']; // (v6's roads in its own order)
+  // a click on a door where it is drawn, in the wall of the building north of its threshold (10-21, Griz: "swap the stand on this tile to go in the shop to clicking on the
+  // door"): the door's trigger and its threshold square, or null. (A click on the threshold itself finds the door by js/roam.js R.useAt, as a click on any USE square)
+  T.doorClick = function (B, sx, sy) {
+    var def = D.roam && D.roam.def, m = D.iso.map; if (!def || !def.town || !m || !m.top || !D.topview) return null;
+    var TS = D.topview.TS, z = D.iso.inWorld ? 1 : D.iso.zoom, hw = D.iso.inWorld ? D.W / D.iso.zoom / 2 : D.W / 2, hh = D.iso.inWorld ? D.H / D.iso.zoom / 2 : D.H / 2;
+    var wx = (sx + 0.5 - hw) / z + D.iso.cam.x, wy = (sy + 0.5 - hh) / z + D.iso.cam.y, gx = Math.floor(wx / TS), R0 = B.roam;
+    var ds = (def.src8.triggers || []).filter(function (t) { return t.town === 'door' && t.on === 'use' && t.rect[0] === gx && D.roam.cond(t.cond, (R0 && R0.flags) || {}); });
+    for (var i = 0; i < ds.length; i++) {
+      var dx = ds[i].rect[0], dy = ds[i].rect[1], b = m.at(dx, dy - 1); if (!b || b.open) continue;
+      var bz = b.gz || 0, top = (dy - 1) * TS - bz - (D.iso.roofPx(m, b.ch) || 0), bot = dy * TS - bz; // (the building's raised top and its wall down to its own ground: the door is in that wall)
+      if (wy >= top && wy < bot) return { trig: ds[i], sq: [dx, dy] };
+    }
+    return null;
+  };
   T.wayOut = function* (B, sq) { // a road running off the floor: the world map takes the party on there, later (the world map seat's: how a hex opens into a grid floor)
     var nm = (D.roam.def.wayName || {})[sq[0] + ',' + sq[1]] || 'the road';
     B.card(D.roam.wrap(['{y}' + nm.charAt(0).toUpperCase() + nm.slice(1) + '{/}.', '{g}The world map takes the party on from here, when it is built. The town keeps you for now.{/}']), 300);
@@ -375,6 +391,7 @@
       view: 'top', // (north up, as the street outside: 10-20, Griz, asked whether the rooms stay on the diamonds, "1 north up" -- js/topview.js)
       rows: g.map(function (r) { return r.join(''); }), entry: [[dx, h - 2]], face: [0, -1], doors: [[dx, h - 1]], stairUp: [], foes: [], marks: {}, people: [],
       keeper: { id: arg, name: nm, at: keep, own: !!t.own, art: door && door.art || null },
+      across: g[3][keep[0]] === 'K' && '.,=o'.indexOf(g[4][keep[0]]) >= 0 ? [keep[0], 4] : null, // (the customer's spot, across the counter from the keeper: where a word is had -- T.fire)
       src8: { id: 'room:' + id, rows: [], legend: {}, triggers: trig, warps: [], chests: [], zones: [], save: false }, from8: id2, to8: id2, sig: '', zone8: null
     }, extra);
   };
@@ -403,6 +420,14 @@
   };
   T.fire = function* (B, trig) {
     var R = D.roam, R0 = B.roam;
+    if (trig.town === 'talk' && R.def.room && R.def.across && R.def.keeper && trig.npc === R.def.keeper.id) { // (10-21, Griz: "the spot across from them at the counter should be the
+      // interact, with 'other side of the counter' response if they interact in the current method"): from behind the counter the keeper sends you round; from the customer's
+      // side anywhere, the party walks to the spot across from the keeper and the word is had there, facing the counter
+      var ac = R.def.across, tk = R0.token;
+      if (tk.y < ac[1]) { var ku = B.units.filter(function (x) { return x.npc === trig.npc; })[0]; if (ku) ku.facing = D.spr.facingFor(tk.x - ku.x, tk.y - ku.y); B.card(R.wrap(['{y}' + (ku ? ku.name : trig.npc) + '{/}', '"Other side of the counter."']), 240); D.sfx('popup'); yield 20; return; }
+      if ((tk.x !== ac[0] || tk.y !== ac[1]) && !(yield* R.walkTo(B, ac))) return;
+      R0.fw = [0, -1]; tk.facing = D.spr.facingFor(0, -1);
+    }
     if (trig.town === 'talk') {
       var u = B.units.filter(function (x) { return x.npc === trig.npc; })[0], t = R0.token;
       if (u) u.facing = D.spr.facingFor(t.x - u.x, t.y - u.y);

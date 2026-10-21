@@ -354,8 +354,12 @@
           else R.tooFar(B);
           continue;
         }
+        var dc = !mk && R.def.town && D.town && D.town.doorClick ? D.town.doorClick(B, ck.x, ck.y) : null; // (a click on a door drawn in its wall: in by it, from beside its threshold -- js/town.js)
+        if (dc) { var pd = R.besidePath(B, dc.sq); if (pd && pd.length * 5 <= R.clickFt()) { yield* R.walkBeside(B, dc.sq); yield* R.fire(B, dc.trig, dc.sq); } else R.tooFar(B); continue; }
         if (sq) {
           var use = R.useAt(B, sq.x, sq.y);
+          if (!use && R.def.room && R.def.across && sq.x === R.def.across[0] && sq.y === R.def.across[1]) use = R.useAt(B, sq.x, sq.y - 1); // (the spot across the counter clicked: the word with the keeper)
+          if (use && use.town === 'talk' && R.def.room && R.def.across) { yield* R.fire(B, use, [sq.x, sq.y]); continue; } // (the keeper or the counter clicked: the word across the counter -- js/town.js T.fire walks there)
           if (use) { var pu = R.besidePath(B, [sq.x, sq.y]); if (pu && pu.length * 5 <= R.clickFt()) { yield* R.walkBeside(B, [sq.x, sq.y]); yield* R.fire(B, use, [sq.x, sq.y]); } else R.tooFar(B); continue; }
           var pth = R.walkRoute(t, [sq.x, sq.y]);
           if (!pth) { D.sfx('miss'); B.card(['{g}No way there from here.{/}'], 120); }
@@ -480,6 +484,13 @@
     for (var dy = -1; dy <= 1; dy++) for (var dx = -1; dx <= 1; dx++) { var q = [at[0] + dx, at[1] + dy]; if ((!dx && !dy) || !G.canStand(t, q[0], q[1])) continue; var p = R.walkRoute(t, q); if (p && p.length < bl) { bl = p.length; best = p; } }
     return best;
   };
+  // the token onto a square, a step at a time as a click's walk (a room's spot across the counter from its keeper: js/town.js T.fire). True if it got there
+  R.walkTo = function* (B, at) {
+    var t = B.roam.token; if (t.x === at[0] && t.y === at[1]) return true;
+    var p = R.walkRoute(t, at); if (!p) return false;
+    while (p.length) { yield* R.step(B, t, p.shift()); var ev = yield* R.arrive(B); if (ev) return false; }
+    t.anim = 'idle'; t.animT = B.t; return t.x === at[0] && t.y === at[1];
+  };
   R.walkBeside = function* (B, at) {
     var t = B.roam.token, best = R.besidePath(B, at);
     while (best && best.length) { yield* R.step(B, t, best.shift()); var ev = yield* R.arrive(B); if (ev) return; }
@@ -600,6 +611,7 @@
     var R0 = B.roam, t = R0 && R0.token; if (!t) return null;
     var dirs = [R0.fw.slice()]; for (var dy = -1; dy <= 1; dy++) for (var dx = -1; dx <= 1; dx++) if ((dx || dy) && !(dx === R0.fw[0] && dy === R0.fw[1])) dirs.push([dx, dy]);
     for (var i = 0; i < dirs.length; i++) { var x = t.x + dirs[i][0], y = t.y + dirs[i][1], tr = R.useAt(B, x, y); if (tr) return { trig: tr, sq: [x, y] }; }
+    var own = R.useAt(B, t.x, t.y); if (own) return { trig: own, sq: [t.x, t.y] }; // (and the square it stands on: a town's door threshold, walked onto -- 10-21, his "clicking on the door" made doors a USE)
     return null;
   };
   // the mark (js/events.js S.mark, 10-13 his: "make sure the rune - hand trigger option is added from the 8-bit for the keeper fight"): seen, perhaps read (Arcana or

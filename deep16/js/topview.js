@@ -105,10 +105,10 @@
   // ------------------------------------------------------------------ the standing things: a roof seen from above with its wall below, a rock's top and its face, a block
   function standCanvas(m, s) {
     var RF = m.def.roofs && m.def.roofs[s.ch], T = TV.TS, sb = m.at(s.x, s.y + 1), same = function (q) { return !!(q && !q.open && q.ch === s.ch); };
-    var rock = !RF && !s.open, face = RF ? !same(sb) : rock ? !!(sb && (sb.open || sb.block)) : true, door = !!(sb && sb.ch === 'd') || !!(m.def.faceDoors && m.def.faceDoors[s.x + ',' + s.y]), side = m.def.slope ? +m.def.slope[s.y].charAt(s.x) || 0 : 0, v0 = NZ.h2(s.x, s.y, 41) * 3 | 0;
+    var rock = !RF && !s.open, face = RF ? !same(sb) : rock ? !!(sb && (sb.open || sb.block)) : true, door = !!(sb && sb.ch === 'd'), shut = !door && !!(m.def.faceDoors && m.def.faceDoors[s.x + ',' + s.y]), sign = (RF && m.def.signs && m.def.signs[s.x + ',' + s.y]) || '', side = m.def.slope ? +m.def.slope[s.y].charAt(s.x) || 0 : 0, v0 = NZ.h2(s.x, s.y, 41) * 3 | 0;
     var inRoom = rock && !!m.def.room, front = inRoom && s.y === m.h - 1;
     var hgt = RF ? iso.roofPx(m, s.ch) : inRoom ? (front ? 6 : TV.ROOMWALL) : rock ? TV.CLIFF : (TV.BLOCK[s.ch] || 8); // (the lift: a roof its height, every rock the cliff's -- one plane -- a room's wall its own, a block its own)
-    var key = s.ch + side + (face ? 'F' : '') + (door ? 'D' : '') + v0 + ':' + hgt + (inRoom ? 'r' : '') + (s.ch === 'S' ? m.def.goods || '' : '');
+    var key = s.ch + side + (face ? 'F' : '') + (door ? 'D' : '') + (shut ? 'X' : '') + (sign ? 'S' + sign : '') + v0 + ':' + hgt + (inRoom ? 'r' : '') + (s.ch === 'S' ? m.def.goods || '' : '');
     m.top.stand = m.top.stand || {}; if (m.top.stand[key]) return m.top.stand[key];
     var Hh = T + (face ? hgt : 0), cv = document.createElement('canvas'); cv.width = T; cv.height = Hh;
     var cx = cv.getContext('2d'), img = cx.createImageData(T, Hh), px = img.data, seed = 600 + v0 * 13 + s.ch.charCodeAt(0);
@@ -137,6 +137,7 @@
         c2 = NZ.rampPick(wall, (j > hgt - 3 ? 0.3 : 0.6) - (post || beam ? 0.25 : 0) + (NZ.vnoise(x2 * 0.3, j * 0.2, seed + 2) - 0.5) * 0.1, x2, y2);
         if (win && !door) c2 = stone[0];
         if (door && x2 >= T / 2 - 9 && x2 <= T / 2 + 8 && up < 0.92) { var fr = x2 === T / 2 - 9 || x2 === T / 2 + 8 || up > 0.86; c2 = fr ? silver[4] : up > 0.8 ? leather[1] : NZ.rampPick(leather, 0.35 + ((x2 - T / 2) % 4 === 0 ? -0.15 : 0), x2, y2); } // (a door: a frame, planks, plain to see -- his "obvious doors on the shops")
+        else if (shut && x2 >= T / 2 - 7 && x2 <= T / 2 + 6 && up < 0.84) { var bar = Math.abs(up - 0.42) < 0.08, edge = x2 === T / 2 - 7 || x2 === T / 2 + 6 || up > 0.78; c2 = bar ? leather[3] : edge ? stone[0] : NZ.rampPick(stone, 0.1 + ((x2 + 1) % 4 === 0 ? -0.06 : 0), x2, y2); } // (a house's shut door: a dark slab with a plank nailed across, no frame -- "clearly different (you can't go in)")
       } else if (inRoom) { var pst = x2 % 16 === 0, skirt = j > hgt - 5, rail = Math.abs(up - 0.62) < 0.05; c2 = NZ.rampPick(R('bone').length ? stone : stone, (skirt ? 0.25 : 0.62) - (pst || rail ? 0.22 : 0) + (NZ.vnoise(x2 * 0.3, j * 0.2, seed + 2) - 0.5) * 0.08, x2, y2); } // (plaster between timbers, a skirting at the floor)
       else if (s.ch === 'K') { if (x2 === 0 || x2 === T - 1) { put(x2, y2, red[0]); continue; } c2 = NZ.rampPick(red, (x2 % 8 === 0 ? 0.15 : 0.45) - (j > hgt - 3 ? 0.15 : 0), x2, y2); } // (the counter's front, planks)
       else if (s.ch === 'S') { var shelf = j % 10 === 0 || x2 % 16 === 0, gk = NZ.h2((x2 >> 2) + s.x * 17, (j / 10 | 0) + s.y * 13, seed + 3); c2 = shelf ? NZ.rampPick(leather, 0.6, x2, y2) : gk > 0.35 && (j % 10) > 1 && (j % 10) < 9 - ((x2 >> 2) % 3) ? NZ.rampPick(goods, 0.25 + gk * 0.7, x2, y2) : NZ.rampPick(leather, 0.08, x2, y2); } // (the shelves' face: boards, and the trade's goods on them)
@@ -147,9 +148,43 @@
       if ((s.ch === 'k') && (x2 < T * 0.12 || x2 > T * 0.88)) continue;
       put(x2, y2, c2);
     }
+    if (sign) { var NS = 8 * TV.SIGNX + 4; TV.signPx(put, T / 2 - NS / 2, T - NS + 3, sign); } // (the store's sign hung over its door, from the eave)
     cx.putImageData(img, 0, 0);
     return (m.top.stand[key] = { canvas: cv, h: hgt, face: face });
   }
+
+  // ------------------------------------------------------------------ the stores' signs (10-21, Griz: "do versions of the shop icons from the 8bit outside the stores"): the
+  // 8-bit's door signs (js/world.js SIGNS, its 8x8 glyphs, one a store by content/maps/silverton.json's trigger `icon`) at twice the size on a 16-bit board -- each glyph
+  // square two by two, lit at its top-left, a shadow at its foot; the board's planks framed dark, its top edge catching the light, two chains up to the eave
+  TV.SIGNS = {
+    ring: ['........', '..oooo..', '.o....o.', 'o......o', 'o......o', '.o....o.', '..oooo..', '........'],
+    scales: ['...##...', 'oooooooo', 'o..##..o', 'o..##..o', 'ooo##ooo', '...##...', '...##...', '.######.'],
+    coin: ['..oooo..', '.o#oo#o.', 'o#oooo#o', 'o#oooo#o', 'o#oooo#o', 'o#oooo#o', '.o#oo#o.', '..oooo..'],
+    potion: ['...##...', '...ww...', '...ww...', '..rrrr..', '.rrrrrr.', '.rrwrrr.', '.rrrrrr.', '..rrrr..'],
+    bed: ['........', '#.......', '#ww.....', '#wwbbbbb', '#bbbbbbb', '########', '#......#', '........'],
+    star: ['...o....', '...o....', 'ooooooo.', '.ooooo..', '..ooo...', '.oo.oo..', '.o...o..', '........'],
+    pack: ['..####..', '.#oooo#.', '#oooooo#', '#o####o#', '#oooooo#', '#oooooo#', '#oooooo#', '.######.'],
+    candle: ['...o....', '..ooo...', '...o....', '..www...', '..www...', '..www...', '..www...', '.#####..'],
+    sword: ['......w.', '.....w..', '....w...', '...w....', '#.w.....', '.#......', 'o.#.....', '........'],
+    stitch: ['...rr...', '...rr...', '.rrrrrr.', '.rrrrrr.', '...rr...', '...rr...', '...rr...', '........'],
+    sun: ['o..o..o.', '.o.o.o..', '..ooo...', 'oooooooo', '..ooo...', '.o.o.o..', 'o..o..o.', '........'],
+    mortar: ['.....#..', '....#...', '...#....', 'ogggggo.', '.ooooo..', '.ooooo..', '..ooo...', '.#####..'],
+    jar: ['..####..', '..#ww#..', '.#gggg#.', '#gg#ggg#', '#ggg#gg#', '#gggggg#', '.######.', '........']
+  };
+  TV.signPx = function (put, x0, y0, kind) {
+    var g = TV.SIGNS[kind]; if (!g) return;
+    var lea = R('leather'), gold = R('gold'), red = R('red'), bone = R('bone'), orc = R('orc'), blue = R('blue'), ink = [16, 16, 24];
+    var COL = { '#': [ink, ink], o: [gold[4], gold[3]], w: [bone[2], bone[0]], r: [red[4], red[3]], g: [orc[3], orc[2]], b: [blue[3], blue[2]] };
+    var S = TV.SIGNX, N = 8 * S + 4; // (the glyph's square S px; the board N across and down)
+    for (var cy = 0; cy < 2; cy++) { put(x0 + 5, y0 - 2 + cy, ink); put(x0 + N - 6, y0 - 2 + cy, ink); } // (the chains)
+    for (var y = 0; y < N; y++) for (var x = 0; x < N; x++) put(x0 + x, y0 + y, x === 0 || y === 0 || x === N - 1 || y === N - 1 ? lea[0] : y === 1 ? lea[3] : (y - 2) % 7 === 6 ? lea[1] : lea[2]); // (the board: frame, lit edge, planks)
+    for (var gy = 0; gy < 8; gy++) for (var gx = 0; gx < 8; gx++) {
+      var c = COL[g[gy].charAt(gx)]; if (!c) continue;
+      for (var j = 0; j < S; j++) for (var i = 0; i < S; i++) put(x0 + 2 + gx * S + i, y0 + 2 + gy * S + j, i === 0 && j === 0 ? c[0] : (j === 0 || i === 0) && c[0] !== c[1] ? c[0] : c[1]); // (lit along its top and left)
+      var below = g[gy + 1] && COL[g[gy + 1].charAt(gx)]; if (!below && gy < 7) for (var i2 = 0; i2 < S; i2++) put(x0 + 3 + gx * S + i2, y0 + 2 + (gy + 1) * S, lea[1]); // (its shadow on the board)
+    }
+  };
+  TV.SIGNX = 3;
 
   // ------------------------------------------------------------------ the Hex, drawn whole (10-21, Griz: "Can we get some diagonal looking tiles to try and make the hex look
   // better?" -- "The hex has an arena with a sand floor inside it. It is in silverton"): Silverton's Hexagon is one picture, not its squares' stair-steps -- pointy-top, a vertex
