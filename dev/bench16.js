@@ -2014,6 +2014,28 @@
       okM('LEAVE IT WITH HER: in, the staff kept at the mouth (ottilieHolds ' + JSON.stringify(B22.roam.flags.ottilieHolds) + ')', D.roam.def.key === 'galleries_g2' && lw.indexOf('> LEAVE IT WITH HER') >= 0 && (B22.roam.flags.ottilieHolds || []).indexOf('sunshaftstaff') >= 0 && !CM.count(CM.state(B22), 'sunshaftstaff'));
       walkM(B22, [17, 27]); var BG3 = topM();
       okM('and back out it is in the pack again, said as the mouth comes up', D.roam.def.key === 'galleries' && CM.count(CM.state(BG3), 'sunshaftstaff') === 1 && !BG3.roam.flags.ottilieHolds && (BG3.cards || []).some(function (c) { return c.lines.some(function (l) { return /Sunshaft/.test(l); }); }));
+      // THE GLOWSEEP (his "Go on the Glowseep - run with its leans for all, including the time-slowing but that might be adjusted. Thematically correct"): the second game's own
+      // floor by the mile, the crew by day and by night, its fights by the hour, THE WORLD's clock on the floor (M.SEEP), the crews' fire a long rest with no watch
+      var SP = MM.SEEP, ES = window.DS.DATA.encounters, BS2 = testM('?roam=glowseep&gate=east&hour=12'), dS2 = D.roam.def, RS2 = BS2.roam, fS2 = BS2.units.filter(function (u) { return u.npc; });
+      okM('the Glowseep: the second game\'s own floor (' + dS2.w + ' x ' + dS2.h + ', north up), in from the mile by the east gate (' + RS2.token.x + ',' + RS2.token.y + '), at noon: lit (dark ' + dS2.dark + '), the day\'s fights (' + dS2.zone8 + '), the crew at their camp (' + fS2.map(function (u) { return u.name + ' ' + u.x + ',' + u.y; }).join('; ') + '); THE WORLD\'s door ' + JSON.stringify(WM.DOORS.glowseep && WM.DOORS.glowseep.gates),
+        dS2.w === 40 && dS2.h === 28 && !!BS2.map.top && RS2.token.x === 38 && RS2.token.y === 14 && !dS2.dark && dS2.zone8 === 'glowseep_day' && fS2.length === 3 && MM.CREW.every(function (c) { return fS2.some(function (u) { return u.npc === c.id && u.x === c.day[0] && u.y === c.day[1] && u.name === c.name; }); }) && !!WM.DOORS.glowseep);
+      okM('its fights by the hour (content/encounters.json glowseep): by day no wisp (' + ES.glowseep_day.groups.length + ' groups), by night the wisp and the stirges weigh ' + SP.nightWeigh + 'x and come at ' + JSON.stringify(ES.glowseep_night.rate) + ' against the day\'s ' + JSON.stringify(ES.glowseep_day.rate),
+        !ES.glowseep_day.groups.some(function (g) { return g.e.some(function (x) { return x[0] === 'wisp'; }); }) && ES.glowseep_night.groups.some(function (g) { return g.e.some(function (x) { return x[0] === 'wisp'; }); }) && ES.glowseep_night.rate[1] < ES.glowseep_day.rate[1]);
+      besideM(BS2, MM.CREW[1].day); var cw = useM(BS2, MM.CREW[1].day);
+      okM('a word with a pole-hand by day, on the counter screen: "' + cw.seen.slice(0, 70) + '..."', !!cw.sc && cw.seen.indexOf('Rillo') >= 0);
+      var h0S = RS2.hour != null ? RS2.hour : dS2.hour; RS2.clockSq = SP.squaresPerHour - 1; var stepS = [RS2.token.x, RS2.token.y + 1]; walkM(BS2, stepS);
+      okM('the clock on the floor: the ' + SP.squaresPerHour + 'th square walked is an hour (' + h0S + ' -> ' + RS2.hour + ')', RS2.hour === h0S + 1);
+      walkM(BS2, [24, 14]); var hF = RS2.hour; driveM(D.roam.encounter(BS2, 'asked'), null, 60); RS2.keys.push('fight'); var whoS = RS2.last && RS2.last.who; fightM(BS2); besideM(BS2, [RS2.token.x, RS2.token.y]); // (into the bog, where its fights are; after the fight, a step)
+      okM('a fight in the bog (' + whoS + ', the kills ' + Object.keys(RS2.kills).join(', ') + ') is an hour more (' + hF + ' -> ' + RS2.hour + ')', RS2.hour === hF + SP.fightHours && Object.keys(RS2.kills).some(function (k) { return /^glowseep_day:/.test(k); }));
+      RS2.hour = 19; driveM(MM.pass(BS2, 1), null, 60); var dN = D.roam.def, fN = BS2.units.filter(function (u) { return u.npc; });
+      okM('dusk to night on the floor (hour ' + RS2.hour + '): the floor dark (' + dN.dark + ', the battle\'s ' + BS2.dark + '), the night\'s fights (' + dN.zone8 + '), the crew out at the moss with their poles (' + fN.map(function (u) { return u.x + ',' + u.y; }).join(' ') + '), the poles and moss lit (' + BS2.lights.filter(function (l) { return l.seep; }).length + '), said',
+        dN.dark && BS2.dark && dN.zone8 === 'glowseep_night' && MM.CREW.every(function (c) { return fN.some(function (u) { return u.npc === c.id && u.x === c.night[0] && u.y === c.night[1]; }); }) && BS2.lights.filter(function (l) { return l.seep; }).length > 8 && (BS2.cards || []).some(function (c) { return c.lines.some(function (l) { return l.indexOf(MM.LINES.seep.night) >= 0; }); }));
+      var hurtS = RS2.members[2]; hurtS.hp = 2; besideM(BS2, MM.SEEP_FIRE); var fr = useM(BS2, MM.SEEP_FIRE, [0]); driveM(BS2.co, null, 300);
+      okM('the crews\' fire: SLEEP HERE, no watch ("' + MM.LINES.seep.fire.slice(0, 40) + '..."), the morning (hour ' + RS2.hour + ', dark ' + D.roam.def.dark + '), ' + hurtS.name + ' ' + hurtS.hp + '/' + hurtS.maxhp, !!fr.sc && fr.seen.indexOf('> SLEEP HERE') >= 0 && RS2.hour === 7 && !D.roam.def.dark && hurtS.hp === hurtS.maxhp);
+      var BSN = testM('?roam=glowseep&hour=22'), cvS = document.createElement('canvas'), ctxS0 = D.ctx, drawErr = null; cvS.width = D.W; cvS.height = D.H; D.ctx = cvS.getContext('2d'); D.R = D.R || 1;
+      try { BSN.update(); D.draw(); } catch (eS) { drawErr = String(eS).slice(0, 160); } D.ctx = ctxS0;
+      okM('the night\'s floor paints, its poles and moss lit among the party\'s light (' + (drawErr || 'no throw') + ')', !drawErr);
+      okM('the night\'s door (hour 22): dark, the night\'s fights, the crew at the moss', D.roam.def.dark && D.roam.def.zone8 === 'glowseep_night' && BSN.units.filter(function (u) { return u.npc; }).every(function (u) { var c = MM.CREW.filter(function (z) { return z.id === u.npc; })[0]; return c && u.x === c.night[0] && u.y === c.night[1]; }));
       // THE HOUSE: Silverton's feed track to the camp and SAVE there; the stalls no SAVE; CONTINUE in the camp; the Galleries' mouth off THE WORLD's site, a SAVE, out by
       // its far edge onto THE WORLD, and CONTINUE there
       HM.begin(HM.fresh(), 0); var BHS = topM();
@@ -2039,6 +2061,10 @@
       okM('out by the far square east: THE WORLD again (' + (wsM && wsM.kind) + '), the save not in a town (' + JSON.stringify(HM.cur.at) + ')', wsM && wsM.kind === 'world' && !HM.cur.at.town);
       HM.begin(HM.read(2), 2); topM();
       okM('CONTINUE slot 2: the Galleries\' mouth (' + D.roam.def.key + ')', D.roam.def.key === 'galleries' && D.roam.house());
+      var siteS = HM.siteOf('glowseep'); while (D.scenes.length > 1) D.pop(); WM.state().t = 22; WM.scene.enterDoor(siteS, 'east'); var BHS2 = topM();
+      okM('THE WORLD\'s site "' + (siteS && siteS.name) + '": its door opens the Glowseep in the house, by THE WORLD\'s hour (' + WM.hour() + ': dark ' + D.roam.def.dark + '), SAVE there ' + D.roam.canSave(BHS2), !!siteS && D.roam.def.key === 'glowseep' && D.roam.house() && D.roam.def.dark && D.roam.canSave(BHS2));
+      var tS0 = WM.state().t; besideM(BHS2, MM.SEEP_FIRE); useM(BHS2, MM.SEEP_FIRE, [0]); driveM(BHS2.co, null, 300);
+      okM('the crews\' fire in the house: THE WORLD\'s clock from hour ' + tS0 + ' to ' + WM.state().t + ' (the morning), no watch, the floor lit again (dark ' + D.roam.def.dark + ')', WM.state().t > tS0 && WM.hour() === WM.MORNING && !D.roam.def.dark && D.top() === BHS2);
       HM.playing = false; HM.cur = null;
       // the first game's floors untouched, and its own Silverton and the Wet still theirs
       okM('the first game\'s nine floors (warrens_a-d, galleries_g1-g4, gulch) byte for byte as they were', print8() === before8);

@@ -100,6 +100,9 @@
     Y: function (u, w, n, fine, x, y) { var st = R('stone'); return fine > 0.9 ? st[6] : fine < 0.08 ? st[1] : NZ.rampPick(st, 0.32 + n * 0.25, x, y); },
     M: function (u, w, n, fine, x, y, seed) { var mo = R('moss'), vi = R('violet'), bn = R('bone'), cap = NZ.h2(x >> 2, y >> 2, seed + 13); return cap > 0.93 ? (fine > 0.5 ? bn[0] : vi[4]) : cap > 0.86 ? vi[3] : NZ.rampPick(mo, 0.25 + n * 0.5, x, y); },
     X: function (u, w, n, fine, x, y) { var st = R('stone'); return NZ.rampPick(st, 0.02 + w * 0.14 + n * 0.05, x, y); },
+    A: function (u, w, n, fine, x, y, seed) { var le = R('leather'), st = R('stone'), bl = R('blue'), wet = NZ.vnoise(u * 3, w * 3, seed + 14); return fine > 0.985 ? bl[3] : wet > 0.66 ? NZ.rampPick(st, 0.12 + n * 0.12, x, y) : NZ.rampPick(le, 0.1 + n * 0.35, x, y); }, // (bog mud: dark and wet, a glint of water)
+    E: function (u, w, n, fine, x, y, seed) { var mo = R('moss'), le = R('leather'), stalk = (x + (NZ.h2(x >> 2, 0, seed + 15) * 6 | 0)) % 6 === 0 && NZ.h2(x, y >> 3, seed + 16) > 0.3; return stalk ? NZ.rampPick(le, 0.55 + n * 0.3, x, y) : NZ.rampPick(mo, 0.15 + n * 0.45, x, y); }, // (reeds: stalks standing out of the green)
+    N: function (u, w, n, fine, x, y, seed) { var mo = R('moss'), gl = R('glow'), sp = NZ.h2(x >> 1, y >> 1, seed + 17); return sp > 0.94 ? gl[sp > 0.98 ? 2 : 1] : sp > 0.88 ? gl[0] : NZ.rampPick(mo, 0.35 + n * 0.5, x, y); }, // (the Glowseep's moss: green, flecked with its light)
     Z: function (u, w, n, fine, x, y) { var le = R('leather'), side = Math.abs(u - 0.28) < 0.05 || Math.abs(u - 0.72) < 0.05, rung = u > 0.28 && u < 0.72 && (Math.floor(w * 48) % 12) < 3; return side || rung ? NZ.rampPick(le, side ? 0.7 : 0.5, x, y) : TV.LOOKS.U(u, w, n, fine, x, y, 0); }
   };
   // a cart track: two iron rails along it (a, the across fraction; b, the along), sleepers under them every quarter, the cave's floor between

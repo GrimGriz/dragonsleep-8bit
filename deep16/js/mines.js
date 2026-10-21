@@ -30,7 +30,11 @@
     galleries: { src: 'galleries_g1', door: 'mouth', place: 'The Guano Galleries', sub: 'the mouth', save: true, out: 'world',
       gates: { east: [34, 21, [-1, 0]], south: [17, 22, [0, -1]], west: [1, 21, [1, 0]] } }, // (THE WORLD's site: the road in from the junction east, a step inside each edge)
     galleries_g2: { src: 'galleries_g2', place: 'The Guano Galleries', sub: 'the working gallery', save: false },
-    galleries_g3: { src: 'galleries_g3', place: 'The Guano Galleries', sub: 'the dens', save: false }
+    galleries_g3: { src: 'galleries_g3', place: 'The Guano Galleries', sub: 'the dens', save: false },
+    // the Glowseep (10-21 night, Griz to the desk: "Go on the Glowseep - run with its leans for all, including the time-slowing but that might be adjusted. Thematically
+    // correct"): no first game's map -- the seat's own (M.SEEP), for his paint later; THE WORLD's site 'glowseep', in from the mile
+    glowseep: { src: 'glowseep', own: true, door: 'glowseep', place: 'The Glowseep', sub: 'the light-crews\' ground by the mile', save: true, out: 'world', clock: true,
+      gates: { east: [38, 14, [-1, 0]], north: [35, 1, [0, 1]], south: [35, 26, [0, -1]] } }
   };
   // (the top levels, RULED 10-21 night, Griz to the desk: "rather than the cloaker fight, that hole floor. above it are top levels" -- the Galleries' to the dens, the deep
   // gallery the hole floor below; the Warrens' to the abandoned workings, the Wet below them already the grid's own)
@@ -41,7 +45,8 @@
   // the first game's legend, by name, as the grid's squares (js/iso.js OPEN, STANDS) and the look under them (js/topview.js TV.LOOKS)
   M.LAY = {
     void: ['#'], caveWall: ['#'], timber: ['#'], mountain: ['#'], range: ['#'], cliff: ['#'], runeWall: ['#'], dwarfWall: ['#'], sealDoor: ['#'], chimney: ['#'],
-    caveFloor: ['.', 'C'], bones: ['.', 'C'], webFloor: ['.', 'C'], dwarfFloor: ['='], rails: ['.', 'R'], railsH: ['.', 'H'], gravel: ['.', 'Y'], fungus: ['.', 'M'], glowmoss: ['.', 'M'],
+    caveFloor: ['.', 'C'], bones: ['.', 'C'], webFloor: ['.', 'C'], dwarfFloor: ['='], rails: ['.', 'R'], railsH: ['.', 'H'], gravel: ['.', 'Y'], fungus: ['.', 'M'], glowmoss: ['.', 'N'],
+    mud: ['.', 'A'], reeds: ['.', 'E'], stump: ['k'], firepit: ['w'],
     guano: ['.', 'U'], guanoDeep: ['r', 'Q'], ladder: ['.', 'Z'], pool: ['~'], ooze: ['~'], deep: ['D'], water: ['D'],
     stairsDown: ['d', 'X'], stairsUp: ['d', 'X'], holeDown: ['d', 'X'], drownStair: ['d', 'X'],
     gate: ['f'], fence: ['f'], lamp: ['f'], minecart: ['k'], crateCave: ['k'], crate: ['k'], tent: ['k'], stalag: ['k'], tree: ['k'], cradle: ['y'], well: ['w'], headframe: ['w'],
@@ -54,9 +59,10 @@
 
   // ---------------------------------------------------------------- a floor from the first game's map: deep16/?roam=<key> (js/roam.js R.make)
   // &gate=<one of the floor's gates> or &at=x,y (&face=dx,dy): where the party stands
-  M.floor = function (key, q, flags) {
+  M.floor = function (key, q, flags, hour) {
     q = q || ''; flags = flags || {};
-    var F = M.FLOORS[key], m8 = DS.DATA.maps[F.src], leg = m8.legend, r8 = m8.rows, w = r8[0].length, h = r8.length;
+    var F = M.FLOORS[key]; if (hour == null) hour = M.hourNow(q);
+    var m8 = F.own ? M.seepMap(hour) : DS.DATA.maps[F.src], leg = m8.legend, r8 = m8.rows, w = r8[0].length, h = r8.length;
     var nm = function (x, y) { return x < 0 || y < 0 || x >= w || y >= h ? 'void' : leg[r8[y].charAt(x)] || 'void'; };
     var g = [], lk = [], y, x;
     for (y = 0; y < h; y++) { g.push([]); lk.push([]); for (x = 0; x < w; x++) { var n = nm(x, y), L = M.LAY[n] || (M.ROOF[n] || M.WALL[n] ? ['B'] : n === 'lantern' ? ['l'] : ['#']); g[y].push(L[0]); lk[y].push(L[1] || ' '); } }
@@ -122,14 +128,15 @@
     Object.keys(F.gates || {}).forEach(function (k) { marks.gates[k] = F.gates[k].slice(0, 2); });
     var rows = g.map(function (r) { return r.join(''); }), id = function (a, b) { return [a, b]; };
     var def = D.MAPS[key] = {
-      name: F.place, sub: F.sub, key: key, door: F.door || null, mine: true, town: true, wet: false, dark: !!m8.dark, ground: 'earth', step: 10, // (dark: the dens and the workings, the party's own light -- js/light.js)
+      name: F.place, sub: F.sub, key: key, door: F.door || null, mine: true, town: true, wet: false, dark: !!m8.dark, ground: 'earth', step: 10, // (dark: the dens and the workings, the party's own light -- js/light.js; the Glowseep by night)
+      clock: !!F.clock, hour: hour, ownLights: m8.lights || null, // (the Glowseep: THE WORLD's clock moves as the party walks and fights there -- M.SEEP; its poles and moss lit by night)
       view: 'top', ft: 30, roofs: T.roofsAt(30), slope: slope.map(function (r) { return r.join(''); }), look: lk.map(function (r) { return r.join(''); }), signs: {}, faceDoors: {},
       rows: rows, w: w, h: h, entry: [at], face: face, gate: gq || null, stairUp: [], doors: ways, marks: marks, people: people, foes: [], warps: warps, out: F.out || null, save: !!F.save,
       deepWater: 'D', music: m8.music || 'field', wayName: wayName,
       src8: { id: F.src, rows: [], legend: {}, triggers: trig, warps: [], chests: (m8.chests || []).slice(), zones: (m8.zones || []).slice(), save: !!F.save }, from8: id, to8: id, sig: '', // (zones: the first game's random fights where it has them -- the dens, the workings: js/roam.js R.encounter on the floor, its tables content/encounters.json)
       zone8: (m8.zones && m8.zones[0] && m8.zones[0].zone) || null,
       hud: F.place.replace(/^The /, 'the ') + ': ' + F.sub,
-      hello: ['{y}' + F.place.toUpperCase() + '{/} -- ' + F.sub + ': the first game\'s floor, north up as Silverton is (' + w + ' x ' + h + ' squares).', '{g}Click to walk, or the arrows. E: a word, a door. O: the formation. L: the floor map.{/}'],
+      hello: ['{y}' + F.place.toUpperCase() + '{/} -- ' + F.sub + ': ' + (F.own ? 'the second game\'s own floor' : 'the first game\'s floor') + ', north up as Silverton is (' + w + ' x ' + h + ' squares)' + (F.clock ? ', ' + W8tod(hour) : '') + '.', '{g}Click to walk, or the arrows. E: a word, a door. O: the formation. L: the floor map.{/}'],
       where: function () { return F.sub; }
     };
     return def;
@@ -289,6 +296,7 @@
     if (trig.script === 'pit') { B.card(D.roam.wrap(['{y}A pit{/}: it drops to the deep gallery, the hole floor.'].concat(M.held('galleries_g4').slice(1))), 320); D.sfx('popup'); M.stepBack(B); yield 20; return; } // (the first game's S.pit drops the party there, 1d6 each: the hole floor is not the top levels' -- his ruling)
     if (trig.script === 'badAir') { yield* M.badAir(B); return; }
     if (trig.script === 'rescue') { yield* M.rescue(B, trig, at); return; }
+    if (trig.script === 'seepFire') { yield* M.seepFire(B); return; }
     B.card(D.roam.wrap(['{y}' + trig.id + '{/}: the first game\'s scene (' + trig.script + ') -- not on the grid yet.']), 240); D.sfx('popup'); yield 20;
   };
   // a shift at the pens (S.pen): Edric's book first; who milks; the draught if there is one; then the first game's own table rule for the shift, rolled straight -- its
@@ -325,10 +333,13 @@
     D.sfx('confirm'); B.card(R.wrap([].concat(L('w.gateOpens'))), 260); yield 20;
   };
   // the floor laid again from its flags where the party stands (a flag tile changed): its map swapped as a room's is (js/town.js T.goOut), its people and chests kept
-  M.relay = function (B) {
-    var R = D.roam, old = R.def, def = M.floor(old.key, R.q, B.roam.flags);
+  // (restand: the people stood again where the floor now has them -- the Glowseep's crew, day or night -- with its lights; and the dark as the floor now is)
+  M.relay = function (B, hour, restand) {
+    var R = D.roam, old = R.def, def = M.floor(old.key, R.q, B.roam.flags, hour != null ? hour : old.hour);
     def.entry = old.entry; def.face = old.face; R.def = def;
     B.map = D.iso.load(def); D.grid.setup(B.map, B.units); R.layChests(B); B.cache = null;
+    B.dark = def.dark; if (B.fight) B.fight.dark = def.dark;
+    if (restand) { B.units = B.units.filter(function (u) { return !u.npc; }); T.people(B); }
   };
 
   // the dens' low gallery (S.badAir): each standing hero a CON save at 12 or 1d4, never below 1; not again for three steps
@@ -380,6 +391,109 @@
     R0.picksDue = R0.members.filter(function (u) { return u.src && DS.R.picksDue(u.src); });
     D.sfx('confirm'); B.card(R.wrap([M.LINES.bunk.morning].concat(lines)), 320); yield 40;
     yield* R.picks(B);
+  };
+
+  // ---------------------------------------------------------------- THE GLOWSEEP (10-21 night, Griz to the desk, on the top levels seat's five leans: "Go on the Glowseep - run with
+  // its leans for all, including the time-slowing but that might be adjusted. Thematically correct"; his first word on it, "he hung out with them where they worked and they walked
+  // together after, possible watch-less camp location with roam (with associated timeslow) that allows player grinding"). The light-crews' ground by the mile (TarlynsPit/wiki/
+  // glowseep.md): the bog's margin, its moss beds and the drain south to Halfway Lake, the three veterans' camp by the road. A camp with no watch (the crews' fire, free); the
+  // Glowseep's own fights (content/encounters.json glowseep) at the floor's rate, never run out, more by night and the wisp only by night; THE WORLD's clock moving as the party
+  // walks and fights there. Its tuning, one place:
+  M.SEEP = {
+    squaresPerHour: 150, // (walked on the floor: an hour of THE WORLD's clock)
+    fightHours: 1,       // (each fight: an hour)
+    nightRate: 0.5,      // (by night the fights come twice as often: the table's rate halved)
+    nightWeigh: 2,       // (by night the stirges and the wisp weigh twice)
+    dayHour: 12          // (the test door's hour, with no THE WORLD under it; &hour= sets it)
+  };
+  // the seat's draft of the ground (his paint later): 40 x 28, north up, the mile down the east side (in and out by it north, south and east), the camp by it
+  M.SEEP_ROWS = [
+    '~~~rrrww~~~~::::""""*""""":::::""",,""""', '~~~::::ww~~~::::"""""""""":::::""",,""""', '~~~:*::ww~~:::::::*"""""""***""""",,""""', '~~~:::::ww~:r"""rrr::r:::::"*""""",,""""',
+    '~~~::rrrww~r*"""r:~::::rrr""*""""",,""""', '~~~r::rrww:r:"""r:~~:::rrr""*""""",,""""', '~~~r::**wwrr:"I":::rr::rr"""*""""",,""""', '~rrrr:**wwrr*::::::::""""""""""""",,""""',
+    '::**rr**wwrrr**:rr""""""""","""",",,""""', 'rrr:rr*:wwr:rrrrr"""""I""",k"""k"",,""""', 'rrr:::::wwr:rrrrr"*""""""""""",""",,""""', 'rr::::::ww:rrr::rrrr""*""""""o,,,I,,""""',
+    '::::::*r~~::r::::::rr**"""I",",,,,,,""""', '::*::::r~~:::::::rrr::rr""",""""k",,""""', 'r**::::r:ww::::::rrr::r:"","""t,"",,""""', 'rrrr::::rww::::::rr:r:::""""I",""",,""""',
+    'rrrr::*:rww::rr****:r:"""***"""""",,""""', '::r:rr::rww:""""":*I""""""*""""""",,""""', '**r:rr::rrww""""""*"""""""*""""""",,""""', '~rr:rr::*rww""""":::"""""""""""""",,""""',
+    '~~rrrr::*r*wwrrrrrrrrrrr"""""""""",,""""', '~~r:::::"""ww:::::::::::rrr"*""""",,""""', '~~~:rr::"""Iwwr:::*:::rr::**r**""",,""""', '~~~:rr::"""rwwr:::*::::::::*r**""",,""""',
+    '~~~~rrr:r"*r*ww:::*:rr::rrrr*""""",,""""', '~~~~~rrr:rr::ww::rr:::rrrrrr:""""",,""""', '~~~~~~~r::*::ww:***"""*""""""""""",,""""', '~~~~~~~~r:::::ww:"""""*""""""""""",,""""'
+  ];
+  M.SEEP_LEGEND = { '~': 'pool', 'w': 'deep', ':': 'mud', 'r': 'reeds', '*': 'glowmoss', '"': 'grass', ',': 'road', 'k': 'tent', 'I': 'lamp', 't': 'stump', 'o': 'firepit' };
+  M.SEEP_FIRE = [29, 11]; M.SEEP_BOG = [0, 0, 26, 28]; // (the crews' fire pit; the bog the fights come in -- not the camp, not the road)
+  // the three veterans (their names OPEN by his ruling, 09-09): at the camp by day, asleep or near it; out at the moss beds with their poles by night (invented.json toplevels-seep-crew)
+  M.CREW = [{ id: 'seepcrew1', name: 'The eldest of the three', day: [28, 12], night: [15, 7] }, { id: 'seepcrew2', name: 'A pole-hand', day: [31, 12], night: [21, 10] }, { id: 'seepcrew3', name: 'The quiet one', day: [30, 13], night: [18, 17] }];
+  M.NAMES = {}; M.CREW.forEach(function (c) { M.NAMES[c.id] = c.name; });
+  var W8tod = function (h) { return D.world && D.world.todAt ? D.world.todAt(h) : (h < 5 || h >= 20 ? 'night' : 'day'); };
+  M.night = function (h) { return W8tod(h) === 'night'; };
+  // the hour now: THE WORLD's clock under the house (or a door from THE WORLD), else the test door's own (&hour=, kept on the floor as it passes)
+  M.hourNow = function (q, B) { var W = D.world, S = W && W.state && W.state(); if (S && S.t != null && D.house && D.house.playing) return W.hour(); var R0 = B && B.roam, m = /[?&]hour=(\d+)/.exec(q || ''); return R0 && R0.hour != null ? R0.hour : m ? (+m[1]) % 24 : M.SEEP.dayHour; };
+  // the first game's shape of a map (M.floor reads it as it reads theirs) for the hour: the crew where the hour puts them, the bog's fights by day or by night, by night the dark and its lights
+  M.seepMap = function (hour) {
+    var nt = M.night(hour), lights = [{ id: 'seepfire', kind: 'map', x: M.SEEP_FIRE[0], y: M.SEEP_FIRE[1], bright: 10, dim: 10, color: 'fire', flame: true, seep: true }];
+    if (nt) M.SEEP_ROWS.forEach(function (r, y) { for (var x = 0; x < r.length; x++) { var c = r.charAt(x); if (c === 'I') lights.push({ id: 'seeppole' + x + '_' + y, kind: 'map', x: x, y: y, bright: 5, dim: 10, color: 'fire', flame: true, seep: true }); else if (c === '*' && (x + y) % 3 === 0) lights.push({ id: 'seepmoss' + x + '_' + y, kind: 'map', x: x, y: y, bright: 0, dim: 5, color: 'glow', flame: false, seep: true }); } });
+    return { id: 'glowseep', name: 'The Glowseep', rows: M.SEEP_ROWS, legend: M.SEEP_LEGEND, music: 'field', exits: { north: 1, east: 1, south: 1 }, dark: nt, lights: lights,
+      npcs: M.CREW.map(function (c) { var p = nt ? c.night : c.day; return { id: c.id, x: p[0], y: p[1], look: 'oldhand', dir: 'down' }; }),
+      triggers: [{ id: 'seepfire', rect: [M.SEEP_FIRE[0], M.SEEP_FIRE[1], 1, 1], on: 'use', script: 'seepFire' }],
+      zones: [{ zone: nt ? 'glowseep_night' : 'glowseep_day', rect: M.SEEP_BOG.slice() }], chests: [] };
+  };
+  // the Glowseep's fights by the hour: its table by day without the wisp; by night all of it, the stirges and the wisp weighed up, coming faster (M.SEEP)
+  (function () {
+    var E = (DS.DATA && DS.DATA.encounters) || {}, Z = E.glowseep; if (!Z) return;
+    var wisp = function (g) { return g.e.some(function (x) { return x[0] === 'wisp'; }); }, up = function (g) { return g.e.some(function (x) { return x[0] === 'wisp' || x[0] === 'stirge'; }); };
+    E.glowseep_day = Object.assign({}, Z, { groups: Z.groups.filter(function (g) { return !wisp(g); }) });
+    E.glowseep_night = Object.assign({}, Z, { rate: Z.rate.map(function (r) { return Math.max(4, Math.round(r * M.SEEP.nightRate)); }), groups: Z.groups.map(function (g) { return up(g) ? Object.assign({}, g, { w: (g.w || 1) * M.SEEP.nightWeigh }) : g; }) });
+  })();
+  M.LINES.seep = {
+    night: 'Night comes down on the Glowseep: the moss lights, and the crews go out with their poles.', day: 'Day on the Glowseep: the moss goes dull, and the crews come in to sleep.',
+    fire: 'The crews\' fire. The veterans keep it; nobody stands a watch here.', sleep: 'You sleep by the crews\' fire. Somebody comes in off the bog before dawn, and nobody wakes you.', morning: 'Morning over the seep. The moss has gone back to green.'
+  }; // (invented.json toplevels-seep-crew)
+  M.CREW_LINES = { // (the seat's drafts: invented.json toplevels-seep-crew -- the laugh is the realm's, Aurdin I: "And don't go into debt," all three laughing)
+    seepcrew1: { day: ['"Day\'s for sleeping. The moss doesn\'t show till dark, and the bog\'s worse by day than it looks."'], night: ['"Pole up, not out. You hold it over the moss and it tells you where it\'s thick."'],
+      aurdin: ['"The evoker! You walked up the mile with us, the morning after the dark. Still got all your fingers?"'] },
+    seepcrew2: { day: ['"Rillo buys at his shed in town, by the clean warehouse. Tell him the seep sent you and he\'ll weigh you honest."'], night: ['"That light out past the far pool? Not one of ours. Don\'t go after it."', 'He doesn\'t look at it again.'] },
+    seepcrew3: { day: ['"Nobody owns a crop till it\'s picked. That\'s the whole of it."', '"And don\'t go into debt." The other two laugh; nobody says why.'], night: ['The quiet one keeps working, and only nods.'] }
+  };
+  M.CREW.forEach(function (c) {
+    M.SCENES[c.id] = function* (sc, B) {
+      var Ls = M.CREW_LINES[c.id], nt = M.night(D.roam.def.hour), au = sc.st.party.some(function (hh) { return (hh.key || hh.id) === 'aurdin' && !hh.dead; });
+      yield sc.say((au && Ls.aurdin && !nt ? Ls.aurdin : []).concat(nt ? Ls.night : Ls.day));
+    };
+  });
+  // the crews' fire (his "watch-less camp location"): a long rest with no watch, free -- the house's night (M.sleep), and the light the morning brings
+  M.seepFire = function* (B) {
+    var go = yield* M.talk(B, 'seepcrew1', function (sc) { return (function* () { yield sc.say(M.LINES.seep.fire); return (yield sc.ask('Sleep at the fire?', ['SLEEP HERE', 'LEAVE'])) === 0; })(); }, 'The crews\' fire');
+    if (!go) return;
+    B.card(D.roam.wrap([M.LINES.seep.sleep]), 200); yield 30;
+    var R0 = B.roam; if (!(D.roam.house() && D.house && D.house.playing)) R0.hour = 7; // (the test door's morning; the house's is THE WORLD's camp, M.sleep)
+    M.LINES.bunk.morningWas = M.LINES.bunk.morning; M.LINES.bunk.morning = M.LINES.seep.morning;
+    try { yield* M.sleep(B); } finally { M.LINES.bunk.morning = M.LINES.bunk.morningWas; }
+    yield* M.light(B);
+  };
+  // THE WORLD's clock on the floor: an hour each M.SEEP.squaresPerHour squares walked and each fight; the floor laid again when day turns to night or back
+  M.tick = function* (B) {
+    var R0 = B.roam, C = M.SEEP, hrs = 0;
+    R0.clockSq = (R0.clockSq || 0) + 1; if (R0.clockSq >= C.squaresPerHour) { R0.clockSq = 0; hrs++; }
+    if ((R0.fights || 0) > (R0.clockFights || 0)) { hrs += ((R0.fights || 0) - (R0.clockFights || 0)) * C.fightHours; R0.clockFights = R0.fights; }
+    if (hrs) yield* M.pass(B, hrs);
+  };
+  M.pass = function* (B, hrs) {
+    var W = D.world, S = W && W.state && W.state(), R0 = B.roam;
+    if (D.roam.house() && S && S.t != null) { S.t += hrs; W.save(); } else R0.hour = ((R0.hour != null ? R0.hour : D.roam.def.hour) + hrs) % 24;
+    yield* M.light(B);
+  };
+  // day or night as the hour now has it: if it changed, the floor laid again (its dark, its lights, its fights, the crew where the hour puts them) and said
+  M.light = function* (B) {
+    var def = D.roam.def, h = M.hourNow(D.roam.q, B); if (!def.clock || M.night(h) === M.night(def.hour)) { def.hour = h; return; }
+    M.relay(B, h, true);
+    D.sfx('popup'); B.card(D.roam.wrap([M.night(h) ? M.LINES.seep.night : M.LINES.seep.day]), 300); yield 20;
+  };
+  var arrive0 = D.roam.arrive;
+  D.roam.arrive = function* (B) { var ev = yield* arrive0(B); if (!ev && D.roam.def && D.roam.def.clock && B.roam && D.battle === B) yield* M.tick(B); return ev; };
+  // the floor's people named where the first game's npcs have no line of theirs (the Glowseep's crew), and a floor's own lights laid (its poles, its moss, the fire)
+  var people0 = T.people;
+  T.people = function (B) {
+    people0.apply(this, arguments);
+    var def = D.roam && D.roam.def; if (!def || !def.mine) return;
+    B.units.forEach(function (u) { if (u.npc && M.NAMES[u.npc]) u.name = M.NAMES[u.npc]; });
+    B.lights = (B.lights || []).filter(function (l) { return !l.seep; }).concat(def.ownLights || []); // (ownLights: not a map def's `lights`, which battle.js reads as [x, y, r, colour])
   };
 
   // ---------------------------------------------------------------- the town's hooks (js/town.js): a word and a square on these floors, and their ways off
