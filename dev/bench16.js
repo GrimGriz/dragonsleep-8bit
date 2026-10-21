@@ -3162,6 +3162,17 @@
       ok21('5c the wizard\'s AI weighs Enlarge, the fighter beside him unseen: ' + (e7 ? 'target ' + (!t7 ? 'none' : t7 === wz7 ? 'himself' : t7 === f7 ? 'the fighter' : t7.name) : 'no Enlarge on its list') + ' (want not the fighter)', !!e7 && t7 !== f7);
       delete f7.conds.invisible; f7.x = 10; B7.cache = null; why7 = M21.whyNot ? M21.whyNot(B7, wz7, en7, f7) : '';
       ok21('5c and the fighter seen 35 ft off: the card says ' + JSON.stringify(why7) + ' (want 35 ft off)', /35 ft off/.test(why7));
+      // 6. END HOLD ON A DEAD MARK (his 10-19 #8, the grid's side of the 8-bit's "'end hold person' on guy vivian just killed ... should have dropped when he was killed"):
+      // the wizard's Hold Person on a goblin, the goblin killed -- the hold is let go, and END HOLD PERSON leaves the ring
+      var B8 = mk21('?npc=goblin,goblin&vs=wizard:5&lvl=5'), wz8 = side21(B8, 'party')[0], gb8 = side21(B8, 'foe');
+      wz8.x = 3; wz8.y = 3; gb8[0].x = 6; gb8[0].y = 3; gb8[1].x = 6; gb8[1].y = 5; B8.cache = null;
+      D.rules.startTurn(wz8); B8.active = wz8; D.d = function (n) { return n === 20 ? 2 : 1; }; run21(M21.cast(B8, wz8, 'holdperson', 2, gb8[0])); D.d = d021;
+      var held8 = !!(gb8[0].conds.paralyzed && wz8.conc && wz8.conc.id === 'holdperson');
+      B8.hurt(gb8[0], 999, 'force'); B8.sweep();
+      ok21('6 Hold Person on a goblin (held ' + held8 + '), the goblin killed: still holding ' + (wz8.conc ? wz8.conc.name : 'nothing') + ', END on the ring ' + !!cmd21(B8, wz8, 'endconc') + ' (want true, nothing, false)', held8 && gb8[0].dead && !wz8.conc && !cmd21(B8, wz8, 'endconc'));
+      wz8.conc = null; D.rules.startTurn(wz8); B8.active = wz8; D.d = function (n) { return n === 20 ? 2 : 1; }; run21(M21.cast(B8, wz8, 'holdperson', 2, gb8[1])); D.d = d021;
+      var p8 = !!(gb8[1].conds.paralyzed && wz8.conc); gb8[1].hp = 0; gb8[1].dead = false; gb8[1].regenDown = true; B8.sweep(); // (a troll's way down: at 0 and knitting, not dead)
+      ok21('6 and held on one at 0 but not dead (knitting): still holding ' + (wz8.conc ? wz8.conc.name : 'nothing') + ' (want Hold Person -- it lies there held)', p8 && !!wz8.conc);
     } catch (e21) { rep21.errors.push(String(e21 && e21.stack || e21).slice(0, 900)); D.d = d021; }
     if (errs.length) rep21.errors = rep21.errors.concat(errs);
     var pre21 = document.createElement('pre'); pre21.id = 'out'; pre21.textContent = 'BENCH16 ' + JSON.stringify(rep21);

@@ -341,10 +341,14 @@
   // a spell's duration in rounds (SRD 5.1: deep16/data/durations.js; 09-28h, Griz: "spell durations are theoretically important"),
   // or null for one the SRD doesn't time (our own) or for as long as a fight lasts
   M.duration = function (id) { var d = D.DURATION && D.DURATION[String(id).toLowerCase().replace(/[^a-z0-9]/g, '')]; return d ? d.r : null; };
-  M.concentrate = function (B, u, id, name, undo) {
+  // `on`: the creatures the spell is held on, where it is held on creatures alone (Hold Person's one, Bless's three) -- when every one of them is dead or gone, there is
+  // nothing left to hold and the caster is free of it (Battle.sweep; 10-21, the grid's side of his 10-19 "'end hold person' on guy vivian just killed ... should have
+  // dropped when he was killed", the 8-bit's e63e49d)
+  M.concentrate = function (B, u, id, name, undo, on) {
     if (u.conc) M.endConc(B, u, 'a new spell');
     var r = M.duration(id);
     u.conc = { id: id, name: name, undo: undo, till: r && B && B.round != null ? B.round + r : null }; // (its time runs out at the start of his turn, r rounds on)
+    if (on && on.length) u.conc.on = on.slice();
   };
   // a timed effect that isn't concentration (Mirror Image, Sanctuary, Blink: a minute): undone at the start of the caster's turn when
   // its time is up
@@ -534,10 +538,10 @@
         B.card([head + ' on the ' + B.shortName(t) + '  WIS ' + RU.saveText(sv2) + ' vs DC ' + dc + '  ' + (sv2.ok ? '{n}SAVED{/}' : '{p}HELD FAST: paralyzed{/}')]);
         FX.ring(t, 'violet', 40);
         if (!sv2.ok && RU.immuneTo(t, 'paralyzed')) B.card(['  ' + t.name + ': {g}cannot be held{/}']);
-        else if (!sv2.ok) { t.conds.paralyzed = { dc: dc, save: 'wis', by: u.id }; M.concentrate(B, u, id, sp.name, function () { delete t.conds.paralyzed; }); }
+        else if (!sv2.ok) { t.conds.paralyzed = { dc: dc, save: 'wis', by: u.id }; M.concentrate(B, u, id, sp.name, function () { delete t.conds.paralyzed; }, [t]); }
       } else if (id === 'shieldoffaith') {
         t.conds.shieldOfFaith = { by: u.id }; FX.ring(t, 'gold', 40);
-        M.concentrate(B, u, id, sp.name, function () { delete t.conds.shieldOfFaith; });
+        M.concentrate(B, u, id, sp.name, function () { delete t.conds.shieldOfFaith; }, [t]);
         B.card([head + ': a shimmering field about ' + t.name + ', {c}+2 AC{/} (concentration).']);
       }
       yield 30;
@@ -545,7 +549,7 @@
       var who = t.units;
       if (id === 'bless') {
         who.forEach(function (w) { w.conds.blessed = { by: u.id }; FX.sparkle(w, 'gold', 10); });
-        M.concentrate(B, u, id, sp.name, function () { lift(B, who, 'blessed'); });
+        M.concentrate(B, u, id, sp.name, function () { lift(B, who, 'blessed'); }, who);
         B.card([head + ': ' + who.map(function (w) { return w.name; }).join(', ') + ' -- {y}+1d4{/} to attack rolls and saves (concentration).']);
       } else if (id === 'aid') {
         var add = 5 * Math.max(1, slot - 1);
@@ -571,11 +575,11 @@
         B.card([head + ' on ' + w2.name + ': {c}AC ' + RU.ac(w2) + '{/} (13 + DEX, no armour).']);
       } else if (id === 'greaterinvisibility') {
         w2.conds.invisible = { by: u.id }; delete w2.conds.hidden;
-        M.concentrate(B, u, id, sp.name, function () { delete w2.conds.invisible; });
+        M.concentrate(B, u, id, sp.name, function () { delete w2.conds.invisible; }, [w2]);
         B.card([head + ' on ' + w2.name + ': gone from sight -- attacks by them have advantage, at them disadvantage (concentration).']);
       } else if (id === 'stoneskin') {
         w2.conds.stoneskin = { by: u.id };
-        M.concentrate(B, u, id, sp.name, function () { delete w2.conds.stoneskin; });
+        M.concentrate(B, u, id, sp.name, function () { delete w2.conds.stoneskin; }, [w2]);
         B.card([head + ' on ' + w2.name + ': skin like stone -- {c}half damage{/} from mundane blades, bolts and bites (concentration).']);
       } else if (id === 'heroism') {
         // (SRD 5.1: "immune to being frightened" -- RU.immuneTo; and the fear already on ends where it stands, the fright, the run, the fear scale: RULED 10-20, Griz,
@@ -583,7 +587,7 @@
         var afraid = !!(w2.conds.frightened || w2.conds.feared || RU.fearLvl(w2));
         w2.conds.heroism = { by: u.id, each: Math.max(1, M.mod(u)) }; w2.temp = Math.max(w2.temp || 0, Math.max(1, M.mod(u)));
         if (afraid) { if (RU.fearLvl(w2)) RU.fearSet(w2, 0); delete w2.conds.frightened; delete w2.conds.feared; }
-        M.concentrate(B, u, id, sp.name, function () { delete w2.conds.heroism; w2.temp = 0; });
+        M.concentrate(B, u, id, sp.name, function () { delete w2.conds.heroism; w2.temp = 0; }, [w2]);
         B.card([head + ' on ' + w2.name + ': no fear' + (afraid ? ' -- {n}the fear on ' + w2.name + ' ends{/}' : '') + ', and {c}' + Math.max(1, M.mod(u)) + ' temporary HP{/} at the start of each turn (concentration).']);
       } else if (id === 'divinefavor') {
         u.conds.divineFavor = { by: u.id };
@@ -601,7 +605,7 @@
         B.card([head + ' on ' + w2.name + ': the dark opens out to {c}60 ft{/}, grey and plain.']);
       } else if (id === 'invisibility') {
         w2.conds.invisible = { by: u.id, ends: true }; delete w2.conds.hidden;
-        M.concentrate(B, u, id, sp.name, function () { delete w2.conds.invisible; });
+        M.concentrate(B, u, id, sp.name, function () { delete w2.conds.invisible; }, [w2]);
         B.card([head + ' on ' + w2.name + ': gone from sight till they attack or cast (concentration).']);
       } else if (id === 'trueseeing') {
         w2.conds.truesight = { by: u.id, had: w2.truesight || 0 }; w2.truesight = 120;
@@ -617,7 +621,7 @@
         // (the Globe of Invulnerability: one in range that stands inside a globe the caster is outside of is not veiled -- the card says so)
         var inRng = B.units.filter(function (w) { return w.side === u.side && G.standing(w) && G.range(u, w) <= 30; }), shutV = M.globed ? inRng.filter(function (w) { return M.globed(B, u, w, sp.level); }) : [], veiled = inRng.filter(function (w) { return shutV.indexOf(w) < 0; });
         veiled.forEach(function (w) { w.conds.pwt = { by: u.id }; });
-        M.concentrate(B, u, id, sp.name, function () { lift(B, veiled, 'pwt'); });
+        M.concentrate(B, u, id, sp.name, function () { lift(B, veiled, 'pwt'); }, veiled);
         B.card([head + ': a veil of shadow over ' + veiled.map(function (w) { return w.name; }).join(', ') + ' -- {c}+10 Stealth{/} (concentration).'].concat(shutV.map(function (w) { return '  ' + w.name + ': {c}inside the globe: untouched{/}'; })));
       }
       FX.sparkle(w2, g.shape === 'self' || id === 'divinefavor' ? 'gold' : 'glow', 14);
