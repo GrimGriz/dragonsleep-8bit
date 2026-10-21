@@ -2257,15 +2257,25 @@
       var cvW = document.createElement('canvas'); cvW.width = D.W; cvW.height = D.H; var ctxW = cvW.getContext('2d'), errD = null;
       try { var scD = new CW.Counter(B, { id: 'winters', name: 'Ambrose Winters', script: function (s) { return CW.winters(s); } }); scD.draw(ctxW); CW.paintPin(ctxW, B); } catch (eD) { errD = String(eD).slice(0, 120); }
       okW('the screen draws' + (errD ? ' THREW ' + errD : ''), !errD);
-      // the other keepers: their portraits and their words; Sylvia's booth his own
-      outW(B); inW(B, 'shop:kessler'); var gK = fireW(B, 'talk:kessler'), scK = D.top(), wK = readW(scK); driveW(gK, null, 200);
-      okW('Kessler at his counter on his portrait (' + scK.sheet + '): his first-game greeting and "' + wK.join(' ').slice(-50) + '"', scK.sheet === 'pt_kessler' && wK[0] === window.DS.DATA.shops.kessler.greeting && /buying and selling -- is to come/.test(wK.join(' ')));
-      // one shape for every vendor (his "art for all the vendors like this should come in at some point"): a shop on Kessler's line opens his counter, by the first game's rules
-      CW.VENDORS.kessler.shop = 'kessler';
-      gK = fireW(B, 'talk:kessler'); scK = D.top(); readW(scK); goW(scK, 'opt', 'THE SHELVES');
-      var kRows = scK.shop ? scK.rows().map(function (r) { return r.id; }) : [], kPot = scK.shop ? scK.price('potion') : 0; goW(scK, 'tab', 'SELL'); var kSell = scK.shop ? scK.rows().map(function (r) { return r.id; }) : [];
-      goW(scK, 'back'); goW(scK, 'opt', 'LEAVE'); driveW(gK, null, 200); delete CW.VENDORS.kessler.shop;
-      okW('a vendor is one line: `shop: \'kessler\'` opens his shelves -- his stock (' + kRows.length + ', the potion at his ' + kPot + ' sp) and the first game\'s rule for what he takes (' + kSell.join(', ') + ')', kRows.join() === window.DS.DATA.shops.kessler.items.join() && kPot === window.DS.DATA.shops.kessler.prices.potion && kSell.indexOf('simples') >= 0 && kSell.indexOf('threshingflail1') < 0 && !upW());
+      // the other keepers: their portraits and their words; Kessler's and Calla Voss's counters open by their first-game shops (10-21, Griz: "Yes, open Kessler's and Calla
+      // Voss's counters with their first-game shops") -- one line each in the one vendor table (his "art for all the vendors like this should come in at some point")
+      outW(B); inW(B, 'shop:kessler'); var gK = fireW(B, 'talk:kessler'), scK = D.top(), wK = readW(scK);
+      okW('Kessler at his counter on his portrait (' + scK.sheet + '): his first-game greeting ("' + String(wK[0]).slice(0, 40) + '...") and THE SHELVES / LEAVE', scK.sheet === 'pt_kessler' && wK[0] === window.DS.DATA.shops.kessler.greeting && scK.wait && scK.wait.ask && scK.wait.opts.join() === 'THE SHELVES,LEAVE' && scK.o.place === window.DS.DATA.shops.kessler.name);
+      goW(scK, 'opt', 'THE SHELVES');
+      var kRows = scK.shop ? scK.rows().map(function (r) { return r.id; }) : [], kPot = scK.shop ? scK.price('potion') : 0, kpv = CW.count(st, 'potion'), ks0 = R0.silver;
+      var kPB = scK.buttons().filter(function (q) { return q.row && scK.rows()[q.k].id === 'potion'; })[0]; clickW(scK, kPB); if (scK.sub) goW(scK, 'qok');
+      okW('his stock (' + kRows.length + ': ' + kRows.join(', ') + '), a potion bought at his own price (' + (ks0 - R0.silver) + ' sp, the first game\'s 375)', kRows.join() === window.DS.DATA.shops.kessler.items.join() && kPot === window.DS.DATA.shops.kessler.prices.potion && ks0 - R0.silver === 375 && CW.count(st, 'potion') === kpv + 1);
+      CW.give(st, 'greyfangbow', 1); goW(scK, 'tab', 'SELL'); var kSell = scK.shop ? scK.rows().map(function (r) { return r.id; }) : [], ks1 = R0.silver, ksm = CW.count(st, 'simples');
+      var kSB = scK.buttons().filter(function (q) { return q.row && scK.rows()[q.k].id === 'simples'; })[0]; clickW(scK, kSB); if (scK.sub) goW(scK, 'qok');
+      okW('he buys by the first game\'s rule -- what any shop takes, not a quest\'s (' + kSell.join(', ') + '); a Simples sold for ' + (R0.silver - ks1) + ' sp', kSell.indexOf('simples') >= 0 && kSell.indexOf('greyfangbow') < 0 && R0.silver - ks1 === 1 && CW.count(st, 'simples') === ksm - 1);
+      CW.take(st, 'greyfangbow', 1); goW(scK, 'back'); goW(scK, 'opt', 'LEAVE'); driveW(gK, null, 200);
+      okW('LEAVE: the floor again', !upW() && D.top() === B);
+      outW(B); inW(B, 'shop:calla'); var gCa = fireW(B, 'talk:calla'), scCa = D.top(), wCa = readW(scCa); goW(scCa, 'opt', 'THE SHELVES');
+      var cRows = scCa.shop ? scCa.rows().map(function (r) { return r.id; }) : [], ck = CW.count(st, 'kit'), cs0 = R0.silver;
+      var cKB = scCa.buttons().filter(function (q) { return q.row && scCa.rows()[q.k].id === 'kit'; })[0]; clickW(scCa, cKB); if (scCa.sub) goW(scCa, 'qok');
+      okW('Calla Voss at her counter on her portrait (' + scCa.sheet + '): her greeting, her stock (' + cRows.join(', ') + '), a Healer\'s Kit bought (' + (cs0 - R0.silver) + ' sp)', scCa.sheet === 'pt_calla' && wCa[0] === window.DS.DATA.shops.calla.greeting && cRows.join() === window.DS.DATA.shops.calla.items.join() && cs0 - R0.silver === window.DS.DATA.items.kit.price && CW.count(st, 'kit') === ck + 1);
+      goW(scCa, 'back'); goW(scCa, 'opt', 'LEAVE'); driveW(gCa, null, 200);
+      okW('a counter with no shop still speaks only: Hessle, Aldric Vest, Casper, Androit and Venn have no `shop:` line', ['hessle', 'aldric', 'casper', 'androit', 'barber'].every(function (k) { return !CW.VENDORS[k].shop; }) && !upW());
       outW(B); inW(B, 'keeper:sylvia'); var gS = fireW(B, 'talk:sylvia'), scS = D.top(), wS = readW(scS); driveW(gS, null, 200);
       okW('Sylvia Swann at her booth (' + scS.sheet + '): his own -- "' + wS.join(' ') + '"', scS.sheet === 'pt_sylvia' && /his word/.test(wS.join(' ')));
       outW(B); var gV = TW.fire(B, trigW('keeper:barber')); driveW(gV, upW, 200); var scV = D.top(), wV = upW() ? readW(scV) : []; driveW(gV, null, 200);

@@ -25,7 +25,7 @@
   C.VENDORS = {
     winters: { sheet: 'pt_winters', shop: 'winters', buys: 'magic', script: 'winters' }, // (his errands, then his shelves; he buys magic items only -- his word above)
     casper: { sheet: 'pt_casper' }, androit: { sheet: 'pt_androit' }, hessle: { sheet: 'pt_hessle' }, aldric: { sheet: 'pt_aldric' },
-    kessler: { sheet: 'pt_kessler' }, calla: { sheet: 'pt_calla' }, // (their first-game shops, `shop: 'kessler'` / `'calla'`, on his word of who sells what)
+    kessler: { sheet: 'pt_kessler', shop: 'kessler' }, calla: { sheet: 'pt_calla', shop: 'calla' }, // (the pawnbroker and the apothecary sell and buy by their first-game shops -- 10-21, Griz: "Yes, open Kessler's and Calla Voss's counters with their first-game shops")
     barber: { sheet: 'pt_barber' },
     sylvia: { sheet: 'pt_sylvia', own: true } // (Griz's own: her portrait at her booth, her particulars on his word -- js/town.js T.TRADE `own`)
   };
