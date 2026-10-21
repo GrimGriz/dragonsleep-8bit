@@ -3824,6 +3824,21 @@
       while (B3s.co && k3s++ < 400000) { var r3s = B3s.co.next(v3s); v3s = undefined; if (r3s.done) break; var y3s = r3s.value; if (y3s && y3s.prompt) v3s = y3s.prompt.opts[0].value; }
       (B3s.rulesReport || []).forEach(function (b) { okC('3 the show: ' + b.name + ' -- ' + b.why + (b.ok && !get('logs', '') ? '' : ' || LOG: ' + String(b.log || '').replace(/\{\/?[a-z]*\}/g, '').slice(0, 2400)), b.ok); });
       if ((B3s.rulesReport || []).length !== 1) okC('3 the show ran ' + (B3s.rulesReport || []).length + ' beats of gust (want 1)', false);
+      // 4. THE FOLD'S 2(a) (his 10-17 "setting target altitude only works when flying"; the lean kept, by design: an area's height only while someone is aloft or the floor rises): on
+      // the flat class floor, Shift+wheel on Fireball's aim says so in a card and the point stays on the ground; one aloft, the same keys lift the point
+      var B4 = mkC('?npc=goblin,goblin&vs=wizard:5,fighter:5&lvl=5'), wz4 = clsC(B4, 'wizard'), gb4 = sideC(B4, 'foe'), G4 = D.grid, mo4 = D.input.mouse;
+      learnC(wz4, 'fireball'); D.rules.startTurn(wz4); B4.active = wz4; B4.req = { turn: wz4 }; B4.list = null; B4.inspect = null; B4.cursor = { x: gb4[0].x, y: gb4[0].y };
+      var e4 = (MC.list(B4, wz4) || []).filter(function (e) { return e.id === 'fireball'; })[0];
+      var shift4 = function () { var in0 = mo4.inside, x0 = mo4.x, y0 = mo4.y; mo4.wheel = -1; mo4.wheelShift = true; mo4.inside = true; mo4.x = 120; mo4.y = 100; try { UIc.camera(B4); } finally { mo4.wheel = 0; mo4.wheelShift = false; mo4.inside = in0; mo4.x = x0; mo4.y = y0; } };
+      var card4 = function () { var c = B4.cards[B4.cards.length - 1]; return c ? c.lines.join(' ').replace(/\{\/?[a-z]*\}/g, '') : ''; };
+      if (!e4) okC('4 Fireball on the wizard\'s list', false);
+      else {
+        e4.kind = 'spell'; UIc.spellAim(B4, wz4, e4); var tall4 = G4.tall(); shift4(); var c4 = card4(), z4 = B4.aimZ;
+        okC('4 the flat floor (tall ' + tall4 + '), Fireball aimed, Shift+wheel: the card "' + c4 + '", the point ' + (z4 == null ? 'on the ground' : 'lifted') + ' (want false; the height only while someone is aloft; on the ground)', !tall4 && /only while someone is aloft/.test(c4) && z4 == null);
+        gb4[1].flies = true; gb4[1].fz = G4.groundAt(gb4[1], gb4[1].x, gb4[1].y) + 4 * G4.LAYER(); B4.aimZ = null; B4.aimFor = null; UIc.spellAim(B4, wz4, e4); shift4(); var c4b = card4();
+        okC('4 and the goblin aloft (tall ' + G4.tall() + '), Shift+wheel: the card "' + c4b + '", the point ' + (B4.aimZ != null ? 'lifted' : 'on the ground') + ' (want true; AIM 5 ft up; lifted)', G4.tall() && /AIM 5 ft up/.test(c4b) && B4.aimZ != null);
+      }
+      B4.req = null;
     } catch (eC) { repC.errors.push(String(eC && eC.stack || eC).slice(0, 900)); D.d = d0C; }
     if (errs.length) repC.errors = repC.errors.concat(errs);
     var preC = document.createElement('pre'); preC.id = 'out'; preC.textContent = 'BENCH16 ' + JSON.stringify(repC);
