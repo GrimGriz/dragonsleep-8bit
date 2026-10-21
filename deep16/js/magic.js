@@ -561,9 +561,13 @@
         M.concentrate(B, u, id, sp.name, function () { delete w2.conds.stoneskin; });
         B.card([head + ' on ' + w2.name + ': skin like stone -- {c}half damage{/} from mundane blades, bolts and bites (concentration).']);
       } else if (id === 'heroism') {
+        // (SRD 5.1: "immune to being frightened" -- RU.immuneTo; and the fear already on ends where it stands, the fright, the run, the fear scale: RULED 10-20, Griz,
+        // "Heroism - immune from includes what was effecting you when the immunity kicked in", on his "Heroism from pally doesn't cancel frightened state on barley?")
+        var afraid = !!(w2.conds.frightened || w2.conds.feared || RU.fearLvl(w2));
         w2.conds.heroism = { by: u.id, each: Math.max(1, M.mod(u)) }; w2.temp = Math.max(w2.temp || 0, Math.max(1, M.mod(u)));
+        if (afraid) { if (RU.fearLvl(w2)) RU.fearSet(w2, 0); delete w2.conds.frightened; delete w2.conds.feared; }
         M.concentrate(B, u, id, sp.name, function () { delete w2.conds.heroism; w2.temp = 0; });
-        B.card([head + ' on ' + w2.name + ': no fear, and {c}' + Math.max(1, M.mod(u)) + ' temporary HP{/} at the start of each turn (concentration).']);
+        B.card([head + ' on ' + w2.name + ': no fear' + (afraid ? ' -- {n}the fear on ' + w2.name + ' ends{/}' : '') + ', and {c}' + Math.max(1, M.mod(u)) + ' temporary HP{/} at the start of each turn (concentration).']);
       } else if (id === 'divinefavor') {
         u.conds.divineFavor = { by: u.id };
         M.concentrate(B, u, id, sp.name, function () { delete u.conds.divineFavor; });

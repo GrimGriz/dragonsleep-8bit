@@ -3039,6 +3039,15 @@
         ok21('4 reach: a goblin 5 ft up on the square diagonal to the wizard, by squares ' + G21.dist(wz2, g4) + ' ft (want 5 -- reach is squares)', G21.dist(wz2, g4) === 5);
         fly4(g4, 0);
       }
+      // 3. HEROISM ENDS A FEAR ALREADY ON (his 10-19 #5, "Heroism from pally doesn't cancel frightened state on barley?"; RULED 10-20: "Heroism - immune from includes what was
+      // effecting you when the immunity kicked in"): the fright, the Fear spell's run and the fear scale end when it comes on, and none is laid while it lasts
+      var B3 = mk21('?npc=goblin&vs=paladin:5,fighter:5&lvl=5'), p3 = side21(B3, 'party').filter(function (w) { return w.cls === 'paladin'; })[0], f3 = side21(B3, 'party').filter(function (w) { return w.cls === 'fighter'; })[0], g3 = side21(B3, 'foe')[0];
+      p3.x = 3; p3.y = 3; f3.x = 4; f3.y = 3; g3.x = 6; g3.y = 3;
+      D.rules.fearSet(f3, 3, g3.id, 13); var had3 = !!(f3.conds.frightened && f3.conds.feared && f3.conds.fearScale);
+      D.rules.startTurn(p3); B3.active = p3; run21(M21.cast(B3, p3, 'heroism', 1, f3));
+      ok21('3 Heroism on the fighter panicked by the fear scale (frightened and running, ' + had3 + '): heroism ' + !!f3.conds.heroism + ', frightened ' + !!f3.conds.frightened + ', running ' + !!f3.conds.feared + ', the scale ' + D.rules.fearLvl(f3) + ' (want true, false, false, 0)', had3 && !!f3.conds.heroism && !f3.conds.frightened && !f3.conds.feared && !D.rules.fearLvl(f3));
+      D.rules.fearSet(f3, 2, g3.id, 13);
+      ok21('3 and a fright laid under it: frightened ' + !!f3.conds.frightened + ', immune ' + D.rules.immuneTo(f3, 'frightened') + ', the -2 ' + D.rules.shaken(f3) + ' (want false, true, 0)', !f3.conds.frightened && D.rules.immuneTo(f3, 'frightened') && !D.rules.shaken(f3));
     } catch (e21) { rep21.errors.push(String(e21 && e21.stack || e21).slice(0, 900)); D.d = d021; }
     if (errs.length) rep21.errors = rep21.errors.concat(errs);
     var pre21 = document.createElement('pre'); pre21.id = 'out'; pre21.textContent = 'BENCH16 ' + JSON.stringify(rep21);

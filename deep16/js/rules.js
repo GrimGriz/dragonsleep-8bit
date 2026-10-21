@@ -21,6 +21,7 @@
   var OTHERWORLD = /^(aberration|celestial|elemental|fey|fiend|undead)$/, FEAR_CHARM = /^(charmed|hypnotized|frightened|feared|possessed)$/;
   RU.immuneTo = function (u, cond, by) { return !!(u && ((u.condImmune && (u.condImmune.all || (u.condImmune.indexOf && u.condImmune.indexOf(cond) >= 0))) || /* (condImmune { all: true }: a thing, the Edifice's skylight -- a giant's rock that knocks prone threw on it, 10-05 bench) */ (u.natureWard && by && /^(elemental|fey)$/.test(by.type) && /^(charmed|hypnotized|frightened|feared)$/.test(cond)) || (u.conds && u.conds.freeMove && /restrained|paralyzed|grappled/.test(cond))
     || (u.conds && u.conds.pfeg && by && OTHERWORLD.test(by.type || '') && FEAR_CHARM.test(cond))
+    || (u.conds && u.conds.heroism && /^(frightened|feared)$/.test(cond)) // (Heroism, SRD 5.1: "immune to being frightened" -- every fear's source asks it; js/magic.js ends the one already on)
     || (u.conds && u.conds.raging && u.subclass === 'Path of the Berserker' && u.lvl >= 6 && /^(charmed|hypnotized|frightened|feared)$/.test(cond)) // (Mindless Rage, the Berserker's 6: js/features.js F.mindless suspends what it had)
     || (/^(charmed|hypnotized)$/.test(cond) && G.units && RU.inAura(u, 'devotion'))
     || (u.conds && u.conds.petrified && /^(poisoned|diseased)$/.test(cond))
