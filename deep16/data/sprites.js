@@ -12916,6 +12916,31 @@ true
 }
 }
 },
+"sylvia_p1": {
+"image": "art/sylvia_p1.png?v=f9656867ca",
+"fw": 31,
+"fh": 53,
+"ax": 16,
+"ay": 51,
+"top": 49,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 31,
+"fh": 53,
+"ax": 16,
+"ay": 51,
+"frames": 14,
+"fps": 4,
+"drawn": [
+0
+],
+"under": "crewman_p1"
+}
+},
+"source": "deep16/_src/sylvia/ART-SYLVIA/ART-SPECIAL-SYLVIA_HEAD-2_PAGE-1.png (the art desk's south idle, 10-21), cut by tools/keeper-town-sheet.py",
+"door": "keeper:sylvia"
+},
 "talmok_p1": {
 "image": "art/talmok_p1.png?v=2e42fadeaa",
 "fw": 96,

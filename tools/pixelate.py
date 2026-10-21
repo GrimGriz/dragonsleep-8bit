@@ -44,6 +44,7 @@ def to_lab(rgb):
 
 
 PAL_RGB, PAL_LAB, OUTLINE = palette()
+PAL_RAMP = [n for n, r in json.load(open(os.path.join(D16, 'palette.json'), encoding='utf-8'))['ramps'].items() for c in r]  # (each colour's ramp, in PAL_RGB's order)
 
 
 def lift(rgb, sat=1.18, gain=1.12, gamma=0.92):
@@ -53,13 +54,18 @@ def lift(rgb, sat=1.18, gain=1.12, gamma=0.92):
     return np.clip(g + (x - g) * sat, 0, 1)
 
 
-def snap(rgb01):
-    lab = to_lab(rgb01)
-    d = ((lab[..., None, :] - PAL_LAB[None, None, :, :]) ** 2).sum(-1)
-    return PAL_RGB[d.argmin(-1)].astype(np.uint8)
+def snap(rgb01, avoid=None):
+    """the nearest palette colour in Lab; `avoid`: ramps left out of the search -- still the 64 colours, never a new one (Sylvia's town figure, 10-21: her
+    warm skin went to the fire ramp and her magenta shawl to red, and the palette has no magenta)"""
+    lab, P, R = to_lab(rgb01), PAL_LAB, PAL_RGB
+    if avoid: # (a ramp's name, or one colour as '#rrggbb')
+        hexes = ['#%02x%02x%02x' % tuple(int(v) for v in c) for c in PAL_RGB]
+        keep = np.array([r not in avoid and hx not in avoid for r, hx in zip(PAL_RAMP, hexes)]); P, R = P[keep], R[keep]
+    d = ((lab[..., None, :] - P[None, None, :, :]) ** 2).sum(-1)
+    return R[d.argmin(-1)].astype(np.uint8)
 
 
-def pixelate(img, ss, do_lift=True, alpha_cut=0.5):
+def pixelate(img, ss, do_lift=True, alpha_cut=0.5, avoid=None):
     """img: RGBA PIL at ss x -> RGBA uint8 array at 1x, palette-snapped, outlined."""
     a = np.asarray(img.convert('RGBA'), dtype=np.float32) / 255.0
     if ss > 1:
@@ -74,7 +80,7 @@ def pixelate(img, ss, do_lift=True, alpha_cut=0.5):
         rgb = lift(rgb)
     solid = alpha >= alpha_cut
     out = np.zeros(rgb.shape[:2] + (4,), dtype=np.uint8)
-    out[solid, :3] = snap(rgb)[solid]
+    out[solid, :3] = snap(rgb, avoid)[solid]
     out[solid, 3] = 255
     # the outline: every empty pixel 4-touching the figure
     e = np.zeros_like(solid)

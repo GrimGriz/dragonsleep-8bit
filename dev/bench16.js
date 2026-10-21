@@ -2565,7 +2565,8 @@
       okW('Merrick behind the message-lantern house\'s grille (door ' + (D.roam.def.room === 'keeper:merrick' ? 'in' : 'NOT in') + '), on his portrait (' + (scMr && scMr.sheet) + '): "' + String(wMr[0]).slice(0, 40) + '...", the lantern rumour heard, and "' + String(wMr[wMr.length - 1]).replace(/\{.\}|\{\/\}/g, '') + '"',
         D.roam.def.room === 'keeper:merrick' && scMr && scMr.sheet === 'pt_merrick' && wMr.slice(0, 2).join('|') === window.DS.DATA.npcs.merrick.talk[0].say.join('|') && R0.flags['heard:r-lantern'] === 1 && /sendings -- is to come/.test(wMr.join(' ')) && !upW());
       outW(B); inW(B, 'keeper:sylvia'); var gS = fireW(B, 'talk:sylvia'), scS = D.top(), wS = readW(scS); driveW(gS, null, 200);
-      okW('Sylvia Swann at her booth (' + scS.sheet + '): his own -- "' + wS.join(' ') + '"', scS.sheet === 'pt_sylvia' && /his word/.test(wS.join(' ')));
+      var kuSy = B.units.filter(function (u) { return u.npc === 'sylvia'; })[0];
+      okW('Sylvia Swann at her booth in her own figure (' + (kuSy && kuSy.sheet) + ', facing ' + (kuSy && kuSy.facing) + ', her owl on her shoulder: 10-21 night) and on her portrait (' + scS.sheet + '): his own -- "' + wS.join(' ') + '"', kuSy && kuSy.sheet === 'sylvia_p1' && kuSy.facing === 0 && kuSy.holdFacing && scS.sheet === 'pt_sylvia' && /his word/.test(wS.join(' ')));
       outW(B); var gV = TW.fire(B, trigW('keeper:barber')); driveW(gV, upW, 200); var scV = D.top(), wV = upW() ? readW(scV) : []; driveW(gV, null, 200);
       okW('Venn the barber at his door, on his portrait (' + (scV && scV.sheet) + ')', scV && scV.sheet === 'pt_barber' && /Shave/.test(wV.join(' ')));
       // into the house's save: the floor's flags, purse and pack, the renown on the save

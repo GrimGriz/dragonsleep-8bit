@@ -52,11 +52,14 @@ KEEPERS = {
     'vilar': ('vilar/ART-97', 'ART-97', 'shop:vilar'),
     'percy': ('percy/ART-102', 'ART-102', 'warp:percy'),
     'ned': ('ned/ART-103', 'ART-103', 'warp:percy'),                 # (beside Percy behind his counter)
+    # (10-21 night, Griz: "I got sylvia's - let's put it together as best we can and push it to live": her owl on her shoulder, below her crown. Her warm skin
+    # snapped to the fire ramp and the lightest red, an orange face: left out of her snap, the face goes lighter; her magenta shawl stays the palette's red, as on her portrait)
+    'sylvia': ('sylvia/ART-SYLVIA', 'ART-SPECIAL-SYLVIA', 'keeper:sylvia', {'avoid': ['fire', '#e8624a']}),
 }
 
 
 def cut(name):
-    folder, art, door = KEEPERS[name]
+    folder, art, door = KEEPERS[name][:3]; ov = KEEPERS[name][3] if len(KEEPERS[name]) > 3 else {}   # (ov: `avoid`, ramps the snap leaves out -- tools/pixelate.py snap)
     path = os.path.join(SRC, folder, '%s_HEAD-2_PAGE-1.png' % art)
     a = np.asarray(Image.open(path).convert('RGB')).astype(np.int32)
     found = PS.drawings(a, [4])
@@ -78,7 +81,7 @@ def cut(name):
         im = Image.fromarray(rgba, 'RGBA').convert('RGBa')
         w2, h2 = max(1, round(rgba.shape[1] * k)), max(1, round(rgba.shape[0] * k))
         im = im.resize((w2, h2), Image.BOX).convert('RGBA')
-        px = pix.pixelate(im, 1, do_lift=False)                       # (the outline adds a pixel all round)
+        px = pix.pixelate(im, 1, do_lift=False, avoid=ov.get('avoid'))  # (the outline adds a pixel all round)
         small.append((px, fx * k + 1, px.shape[0]))
     L = max(f[1] for f in small) + 2; R = max(f[0].shape[1] - f[1] for f in small) + 2; T = max(f[2] for f in small) + 2
     fw, fh, ax, ay = int(np.ceil(L + R)), int(np.ceil(T)) + 1, int(round(L)), int(np.ceil(T)) - 1
