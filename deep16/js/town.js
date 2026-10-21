@@ -229,6 +229,7 @@
       name: 'Silverton', sub: 'the town, true scale from the city map v6', key: 'silverton', town: true, wet: false, dark: false, ground: 'earth', step: 10,
       view: /[?&]view=iso\b/.test(q) ? null : 'top', // (north up the screen -- 10-20, Griz: "the iso is too much for the town"; &view=iso the grid's diamonds: js/topview.js)
       heights: L.heights.slice(oy, oy + h).map(function (r) { return r.slice(ox, ox + w); }),
+      hexagon: (function () { var hx6 = D.TOWN_V6.hexagon; return { x: (hx6[0] - T.X0) / L.F - ox, y: (hx6[1] - T.Y0) / L.F - oy, r: hx6[2] / L.F }; })(), // (the Hex drawn whole: js/topview.js hexCanvas)
       faceDoors: (function () { var o = {}; Object.keys(L.faceDoors || {}).forEach(function (k) { var a = k.split(','), x = +a[0] - ox, y = +a[1] - oy; if (x >= 0 && y >= 0 && x < w && y < h) o[x + ',' + y] = 1; }); return o; })(), // (every building's south door, drawn: js/topview.js)
       ft: L.F, roofs: T.roofsAt(L.F), slope: L.slope.slice(oy, oy + h).map(function (r) { return r.slice(ox, ox + w); }), // (its buildings stand whole under their roofs, two sides and a ridge: js/iso.js roofCanvas)
       rows: rows, w: w, h: h, cut: cut ? [ox, oy, w, h] : null, page: w * h > 12000, // (page: a floor too big to paint as one picture, painted in pieces as the camera comes to them -- js/iso.js)

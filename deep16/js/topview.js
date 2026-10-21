@@ -52,7 +52,8 @@
     m.top = { y0: -top, cols: cols, rows: rows, pages: pages, tiles: {}, props: [], baked: 0, frame: 0 };
     m.bake = { canvas: { width: W, height: H }, x: 0, y: -top, top: true }; // (the camera's bounds and the zoom steps read its size: js/ui.js)
     // the standing things: every rock and roofed square, every block (crates, the stockade's posts, wells), one prop a square, sorted by row
-    m.sq.forEach(function (s) { if ((!s.open || s.block) && !(s.ch === 'y' && m.def.cots)) m.top.props.push({ sq: s, depth: s.y + 0.5 + s.x * 1e-4 }); });
+    m.sq.forEach(function (s) { if ((!s.open || s.block) && !(s.ch === 'y' && m.def.cots) && !TV.isHexSq(m, s)) m.top.props.push({ sq: s, depth: s.y + 0.5 + s.x * 1e-4 }); });
+    if (m.def.hexagon) m.top.props.push({ hex: true, depth: m.def.hexagon.y + 0.5 }); // (the Hex, one picture: hexCanvas)
     m.top.props.sort(function (a, b) { return a.depth - b.depth; });
   };
 
@@ -94,7 +95,7 @@
       var s = m.at(gx, gy); if (!s) continue;
       var x = gx * T - x0, y = gy * T - s.gz - y0;
       if (y > PG || y + T < 0) continue;
-      if (s.open || s.block) cx.drawImage(tileCanvas(m, s), x, y); // (a built square's top is its roof, drawn standing; its bank below is still the page's)
+      if (s.open || s.block || TV.isHexSq(m, s)) cx.drawImage(tileCanvas(m, s), x, y); // (a built square's top is its roof, drawn standing; its bank below is still the page's -- the Hex's squares the ground round its picture)
       var sb = m.at(gx, gy + 1), drop = sb ? s.gz - sb.gz : 0; // (a raised square's face toward the lower one south of it, open or built on: the town's slope off Fountain Street)
       if (drop > 0) { var bank = R('leather'); for (var j = 0; j < drop; j++) { cx.fillStyle = 'rgb(' + (j === 0 ? stone[5] : bank[j < drop / 3 ? 3 : j < drop * 2 / 3 ? 2 : 1]).join(',') + ')'; cx.fillRect(x, y + T + j, T, 1); } } // (a bank of the worn dirt, lit at its lip, darker down to the lower ground -- it read as a black band)
     }
@@ -150,6 +151,50 @@
     return (m.top.stand[key] = { canvas: cv, h: hgt, face: face });
   }
 
+  // ------------------------------------------------------------------ the Hex, drawn whole (10-21, Griz: "Can we get some diagonal looking tiles to try and make the hex look
+  // better?" -- "The hex has an arena with a sand floor inside it. It is in silverton"): Silverton's Hexagon is one picture, not its squares' stair-steps -- pointy-top, a vertex
+  // due north, its roof a ring open to the sky over the sand (the realm wiki's the-hex.md, CANON 09-12), the roof's courses running along each face, the tiers stepping down
+  // to the sand, the two south faces' log walls hanging under it with the front doors where the town's marks are (js/town.js marks.hexFront). The squares stay the grid's
+  TV.isHexSq = function (m, s) { var hx = m.def.hexagon; return !!hx && s.ch === 'B' && Math.hypot(s.x + 0.5 - hx.x, s.y + 0.5 - hx.y) <= hx.r + 1; };
+  TV.HEXIN = 0.625; TV.HEXTIER = [0.6, 0.51]; TV.HEXSAND = 0.43; // (the roof's opening: the rail hexagon's 40 ft side of 64; the tiers and the sand, 38.1 and 32.8 ft, 27.6 ft -- the wiki's)
+  function hexCanvas(m) {
+    if (m.top.hex) return m.top.hex;
+    var hx = m.def.hexagon, T = TV.TS, R0 = hx.r * T, ap = R0 * Math.cos(Math.PI / 6), wall = iso.roofPx(m, 'B') || 24, pad = 2;
+    var W = Math.ceil(2 * ap) + 2 * pad, H = Math.ceil(2 * R0 + wall) + 2 * pad, ox = W / 2, oy = pad + R0; // (the roof's centre in the picture)
+    var cv = document.createElement('canvas'); cv.width = W; cv.height = H;
+    var cx = cv.getContext('2d'), img = cx.createImageData(W, H), px = img.data;
+    var stone = R('stone'), leather = R('leather'), gold = R('gold'), silver = R('silver'), N6 = [0, 60, 120, 180, 240, 300].map(function (d) { var a = d * Math.PI / 180; return [Math.cos(a), Math.sin(a)]; });
+    var hexD = function (x, y) { var best = -1e9, k = 0; for (var i = 0; i < 6; i++) { var d = x * N6[i][0] + y * N6[i][1]; if (d > best) { best = d; k = i; } } return { d: best, k: k }; }; // (the apothem's measure, and the face it is nearest)
+    var lit = [0.0, -0.06, -0.1, 0.0, 0.12, 0.08]; // (the faces by the light from the north-west: E, SSE, SSW, W, NNW, NNE)
+    var doors = (m.def.marks && m.def.marks.hexFront || []).filter(Boolean).map(function (q) { return (q[0] + 0.5 - hx.x) * T; });
+    var put = function (x, y, c) { var o = (y * W + x) * 4; px[o] = c[0]; px[o + 1] = c[1]; px[o + 2] = c[2]; px[o + 3] = 255; };
+    for (var y = 0; y < H; y++) for (var x = 0; x < W; x++) {
+      var dx = x + 0.5 - ox, dy = y + 0.5 - oy, h = hexD(dx, dy), n = NZ.vnoise(x * 0.07, y * 0.07, 811), c = null;
+      if (h.d <= ap * TV.HEXIN) { // the open centre: the ground a wall's height down -- the inner logs, the tiers, the sand
+        var g = hexD(dx, dy - wall).d, rr = g / ap;
+        if (rr <= TV.HEXSAND) c = NZ.rampPick(gold, 0.3 + n * 0.2 + (NZ.h2(x, y, 812) > 0.93 ? 0.1 : 0) - (NZ.h2(x, y, 813) > 0.95 ? 0.1 : 0), x, y); // (the sand, raked and trodden)
+        else if (rr <= TV.HEXSAND + 0.015) c = leather[2]; // (the board lip at the pit's edge)
+        else if (rr <= TV.HEXTIER[1]) c = NZ.rampPick(leather, 0.42 + n * 0.12 - ((g | 0) % 6 === 0 ? 0.15 : 0), x, y);
+        else if (rr <= TV.HEXTIER[0]) c = NZ.rampPick(leather, 0.55 + n * 0.1 - ((g | 0) % 6 === 0 ? 0.15 : 0), x, y);
+        else c = NZ.rampPick(leather, 0.18 + n * 0.1 - ((y % 6) === 0 ? 0.1 : 0), x, y); // (the inner wall: logs, in the roof's shadow)
+      } else if (h.d <= ap) { // the roof's ring: courses along its face, the hips between the faces
+        var into = ap - h.d, hd = hexD(dx, dy), second = -1e9; for (var i2 = 0; i2 < 6; i2++) if (i2 !== hd.k) second = Math.max(second, dx * N6[i2][0] + dy * N6[i2][1]);
+        var hip = h.d - second < 1.6, course = (into | 0) % 7 === 0, joint = ((((dx * -N6[h.k][1] + dy * N6[h.k][0]) | 0) + ((into / 7 | 0) % 2) * 5) % 10 + 10) % 10 === 0;
+        c = NZ.rampPick(stone, Math.max(0.04, 0.5 + lit[h.k] + n * 0.18 - (course ? 0.18 : 0) - (joint ? 0.08 : 0) - (hip ? 0.22 : 0) - (into < 2 || h.d > ap - 0.5 ? 0.25 : 0) - (h.d - ap * TV.HEXIN < 2 ? 0.2 : 0)), x, y);
+      } else if (Math.abs(dx) <= ap) { // under the two south faces: their log walls, a wall's height
+        var yb = R0 - Math.abs(dx) * Math.tan(Math.PI / 6), j = dy - yb;
+        if (j > 0 && j <= wall) {
+          var up = 1 - j / wall, door = doors.some(function (d0) { return Math.abs(dx - d0) <= T * 0.18; }) && up < 0.72;
+          c = door ? (up > 0.66 || Math.abs(Math.abs(dx - doors.reduce(function (a, d0) { return Math.abs(dx - d0) < Math.abs(dx - a) ? d0 : a; }, 1e9)) - T * 0.18) < 1 ? silver[3] : NZ.rampPick(leather, 0.2 + ((x % 4) === 0 ? -0.1 : 0), x, y))
+            : NZ.rampPick(leather, (dx > 0 ? 0.45 : 0.36) + n * 0.12 - ((j | 0) % 6 === 0 ? 0.16 : 0) - (j > wall - 2 ? 0.15 : 0), x, y); // (the logs follow the slant: the diagonal his eye asked for)
+        }
+      }
+      if (c) put(x, y, c);
+    }
+    cx.putImageData(img, 0, 0);
+    return (m.top.hex = { canvas: cv, ox: ox, oy: oy, wall: wall });
+  }
+
   // ------------------------------------------------------------------ the drawing: the floor's pages in view (and one more nearby a frame), then everything standing, by row
   iso.draw = function (ctx, objs, overlay) {
     if (!on()) return draw0.apply(this, arguments);
@@ -167,12 +212,13 @@
     // the standing things in the rows the view shows (a tall one below the view may reach up into it), the map's own props and the frame's figures among them by row
     var g0 = iso.toScreen(0, 0), gyLo = Math.floor((-g0.y / z) / T) - 1, gyHi = Math.ceil(((vh - g0.y) / z + TV.CLIFF + 80) / T) + 1;
     var list = [];
-    top.props.forEach(function (pp) { if (pp.sq.y >= gyLo && pp.sq.y <= gyHi) list.push({ d: pp.depth, stand: pp.sq }); });
+    top.props.forEach(function (pp) { if (pp.hex) list.push({ d: pp.depth, hex: true }); else if (pp.sq.y >= gyLo && pp.sq.y <= gyHi) list.push({ d: pp.depth, stand: pp.sq }); });
     (m.props || []).forEach(function (pp) { if (pp.draw || (pp.img && pp.kind !== 'rock' && pp.kind !== 'block' && pp.kind !== 'stone' && pp.kind !== 'tile')) list.push({ d: pp.sq ? pp.sq.y + 0.55 + pp.sq.x * 1e-4 : pp.depth, prop: pp }); });
     (objs || []).forEach(function (ob) { var u = ob.unit; list.push({ d: u ? u.y + 0.6 + u.x * 1e-4 + (ob.depth % 1) * 1e-3 : ob.depth != null && ob.depth < 0 ? -1 : 1e6 + (ob.depth || 0), obj: ob }); });
     list.sort(function (a, b) { return a.d - b.d; });
     list.forEach(function (it) {
       if (it.obj) { it.obj.draw(ctx); return; }
+      if (it.hex) { var hx = m.def.hexagon, hp = hexCanvas(m), gq = m.at(Math.floor(hx.x), Math.floor(hx.y)), hg = gq ? gq.gz : 0, ha = iso.toScreen(hx.x * T - hp.ox, hx.y * T - hg - hp.wall - hp.oy); ctx.drawImage(hp.canvas, ha.x, ha.y, hp.canvas.width * z, hp.canvas.height * z); return; }
       if (it.prop) { var pp = it.prop; if (pp.draw) { pp.draw(ctx); return; } var c0 = iso.center(pp.sq.x, pp.sq.y, pp.gz || 0), s0 = iso.toScreen(c0.x, c0.y); ctx.drawImage(pp.img.canvas, s0.x - pp.img.ax * z, s0.y - pp.img.ay * z, pp.img.canvas.width * z, pp.img.canvas.height * z); return; }
       var s = it.stand, pic = standCanvas(m, s), a = iso.toScreen(s.x * T, s.y * T - s.gz - pic.h);
       var wpx = T * z, hpx = pic.canvas.height * z; if (a.x >= vw || a.y >= vh || a.x + wpx <= 0 || a.y + hpx <= 0) return;
