@@ -116,7 +116,10 @@
   // wall behind the ledge can never paint over it.
   function bake(m) {
     var minX = -(m.h) * HW - HW, maxX = m.w * HW + HW, minY = -WALL - 60, maxY = (m.w + m.h) * HH + HH;
-    var cv = document.createElement('canvas'); cv.width = maxX - minX; cv.height = maxY - minY;
+    // a map's `page` (10-20, the Silverton roam seat: the town at true scale, 474 x 310 squares, is a picture 24,000 px wide -- past what a browser will make, and half a
+    // minute to paint): the floor painted in pieces of PAGE px as the camera comes to them, each square into every piece it touches (iso.draw, m.bake.paged). Off, as before
+    var paged = !!m.def.page, cv = document.createElement('canvas');
+    if (paged) { cv.width = HW * 2; cv.height = TH * 2; } else { cv.width = maxX - minX; cv.height = maxY - minY; }
     var ctx = cv.getContext('2d');
     var stone = iso.ramp('stone'), silver = iso.ramp('silver'), blue = iso.ramp('blue'), violet = iso.ramp('violet'), moss = iso.ramp('moss');
     // an open-air map (ground: 'earth', 09-27: the road, the gnolls' country, the bridge) lays its raw floor as packed dirt
@@ -141,8 +144,11 @@
       var wn = vnoise(u * 0.4 + 3.1, v * 0.15, seed + 33);
       return wn > 0.62 ? mix(leather[3], gold[2], 0.5) : wn < 0.3 ? leather[2] : leather[3];
     }
-    var W, H, px, sqc; // the current square's buffer
-    function put(ix, iy, c) { ix -= sqc.x0; iy -= sqc.y0; if (ix < 0 || iy < 0 || ix >= W || iy >= H) return; var o = (iy * W + ix) * 4; px[o] = c[0]; px[o + 1] = c[1]; px[o + 2] = c[2]; px[o + 3] = 255; }
+    var W, H, px, sqc, pb = null, PGW = 0; // the current square's buffer (pb: a page's own pixels, written straight -- a paged floor, below)
+    function put(ix, iy, c) {
+      if (pb) { ix -= dx0; iy -= dy0; if (ix < 0 || iy < 0 || ix >= PGW || iy >= PGW) return; var q = (iy * PGW + ix) * 4; pb[q] = c[0]; pb[q + 1] = c[1]; pb[q + 2] = c[2]; pb[q + 3] = 255; return; }
+      ix -= sqc.x0; iy -= sqc.y0; if (ix < 0 || iy < 0 || ix >= W || iy >= H) return; var o = (iy * W + ix) * 4; px[o] = c[0]; px[o + 1] = c[1]; px[o + 2] = c[2]; px[o + 3] = 255;
+    }
     // distance to the nearest rock square, for the floor's darkening at the walls
     function nearRock(gx, gy) {
       var best = 9;
@@ -158,13 +164,17 @@
     }
     // draw squares back to front so a raised square's faces cover the floor behind it
     var order = m.sq.filter(function (s) { return s.open; }).sort(function (a, b) { return (a.x + a.y) - (b.x + b.y) || a.gz - b.gz; });
-    order.forEach(function (s) {
+    var dst = ctx, dx0 = 0, dy0 = 0; // (where a square's picture goes: the one floor canvas, or the page being painted, offset by its corner)
+    var paintSq = function (s) {
       var c = iso.center(s.x, s.y, s.gz), ox = c.x - minX, oy = c.y - minY;
+      // (no rock within reach of any of its pixels' look-round -- three squares, the pixel's own square one off the square's at the rhombus edge: nearRock is 9 for each, so skip
+      // its 25 looks a pixel; the same pixels, for the town's streets and plazas a fifth of the time -- 10-20)
+      var rockNear = false; for (var ry = -3; ry <= 3 && !rockNear; ry++) for (var rx = -3; rx <= 3; rx++) { var rq = m.at(s.x + rx, s.y + ry); if (rq && !rq.open) { rockNear = true; break; } }
       // the square's own canvas: its top, and its faces down to the lower neighbours in front of it -- only as tall as the tallest face it shows (a square inside a
       // plateau shows none and is 32 px tall, not 32 + its height: the Edifice's deck was 16 MB of mostly blank canvas -- 10-04 night, the huge maps)
       var faceH = 0; if (s.gz) [[1, 0], [0, 1]].forEach(function (d) { var nz = m.isOpen(s.x + d[0], s.y + d[1]) ? m.gz(s.x + d[0], s.y + d[1]) : 0; faceH = Math.max(faceH, s.gz - nz); });
       W = TW; H = TH + faceH; sqc = { x0: ox - HW, y0: oy - HH };
-      var sqImg = ctx.createImageData(W, H); px = sqImg.data;
+      var sqImg = pb ? null : ctx.createImageData(W, H); px = sqImg ? sqImg.data : null;
       for (var dy = -HH; dy < HH; dy++) {
         var half = HW - Math.abs(dy + 0.5) * 2;
         for (var dx = -Math.floor(half); dx < half; dx++) {
@@ -174,7 +184,7 @@
           var gx = (wx / HW + wy / HH) / 2 - 0.5, gy = (wy / HH - wx / HW) / 2 - 0.5;
           var n = fbm(gx * 1.3, gy * 1.3, seed), fine = vnoise(gx * 9, gy * 9, seed + 3);
           var shade = 0.18 + n * 0.42 + (fine - 0.5) * 0.12;
-          var rock = nearRock(gx + 0.5, gy + 0.5);
+          var rock = rockNear ? nearRock(gx + 0.5, gy + 0.5) : 9;
           shade -= Math.max(0, 0.9 - rock) * 0.22;             // darker where the floor meets the wall
           if (s.gz) shade += 0.08;                                // the ledge catches a little more light
           var col;
@@ -275,9 +285,10 @@
           }
         });
       }
+      if (pb) { doorOpen = []; return; } // (a page's pixels, written straight: no square's own canvas, no raised square's tile -- a paged floor's heights fall away from the eye, so nothing behind them is lower)
       var tc = document.createElement('canvas'); tc.width = W; tc.height = H;
       tc.getContext('2d').putImageData(sqImg, 0, 0);
-      ctx.drawImage(tc, sqc.x0, sqc.y0);
+      dst.drawImage(tc, sqc.x0 - dx0, sqc.y0 - dy0);
       if (s.gz) s.tile = { canvas: tc, ax: HW, ay: HH };
       if (doorOpen.length) { // the same square with its door standing open: the doorway dark within (iso.draw shows it while the map's doorsOpen is set -- battle.js)
         var oImg = ctx.createImageData(W, H); oImg.data.set(sqImg.data);
@@ -285,8 +296,44 @@
         var tcO = document.createElement('canvas'); tcO.width = W; tcO.height = H; tcO.getContext('2d').putImageData(oImg, 0, 0);
         s.tileOpen = { canvas: tcO, ax: HW, ay: HH }; doorOpen = [];
       }
+    };
+    if (!paged) { order.forEach(paintSq); m.bake = { canvas: cv, x: minX, y: minY }; return; }
+    // paged: each page's squares, back to front as above (a square is in every page its picture touches: its top, and the faces below it as tall as they drop)
+    var PG = iso.PAGE, cols = Math.ceil((maxX - minX) / PG), rows = Math.ceil((maxY - minY) / PG), pages = [];
+    for (var pi = 0; pi < cols * rows; pi++) pages.push({ c: pi % cols, r: Math.floor(pi / cols), list: [], cv: null, used: 0 });
+    order.forEach(function (s, k) {
+      var c = iso.center(s.x, s.y, s.gz), x0 = c.x - minX - HW, y0 = c.y - minY - HH, fh = 0;
+      if (s.gz) [[1, 0], [0, 1]].forEach(function (d) { var nz = m.isOpen(s.x + d[0], s.y + d[1]) ? m.gz(s.x + d[0], s.y + d[1]) : 0; fh = Math.max(fh, s.gz - nz); });
+      for (var r = Math.max(0, Math.floor(y0 / PG)); r <= Math.min(rows - 1, Math.floor((y0 + TH + fh) / PG)); r++) for (var cc = Math.max(0, Math.floor(x0 / PG)); cc <= Math.min(cols - 1, Math.floor((x0 + TW) / PG)); cc++) pages[r * cols + cc].list.push(k);
     });
-    m.bake = { canvas: cv, x: minX, y: minY };
+    m.bake = { canvas: { width: maxX - minX, height: maxY - minY }, x: minX, y: minY, paged: true, cols: cols, rows: rows, pages: pages, baked: 0, frame: 0,
+      // a page painted whole (budget none), or as much as `budget` ms allow, carried on next time (the pages just outside the view, a frame at a time): true when done
+      paint: function (p, budget) {
+        if (!p.pim) { p.pc = document.createElement('canvas'); p.pc.width = PG; p.pc.height = PG; p.pim = p.pc.getContext('2d').createImageData(PG, PG); p.k = 0; }
+        pb = p.pim.data; PGW = PG; dx0 = p.c * PG; dy0 = p.r * PG;
+        var t0 = budget ? performance.now() : 0;
+        while (p.k < p.list.length) { paintSq(order[p.list[p.k++]]); if (budget && (p.k & 15) === 0 && performance.now() - t0 > budget) break; }
+        pb = null; dx0 = dy0 = 0;
+        if (p.k < p.list.length) return false;
+        p.pc.getContext('2d').putImageData(p.pim, 0, 0); p.cv = p.pc; p.pim = p.pc = null; this.baked++; return true;
+      } };
+  }
+  iso.PAGE = 1024; iso.PAGES_KEPT = 48; iso.PAGE_MS = 6; // (a page's px; the pages kept painted at once, the least lately seen let go past that -- 4 MB each)
+  // the paged floor on the canvas being drawn: the pages in view painted now, one more a frame from those just outside it, and the least lately seen let go
+  function drawPages(ctx, b, o, vw, vh) {
+    var PG = iso.PAGE, f = ++b.frame, near = null;
+    for (var r = 0; r < b.rows; r++) for (var c = 0; c < b.cols; c++) {
+      var x = o.x + c * PG, y = o.y + r * PG, p = b.pages[r * b.cols + c];
+      if (!p.list.length) continue;
+      var inView = x < vw && y < vh && x + PG > 0 && y + PG > 0, nearView = x < vw + PG && y < vh + PG && x + PG > -PG && y + PG > -PG;
+      if (inView) { if (!p.cv) b.paint(p); p.used = f; ctx.drawImage(p.cv, x, y); }
+      else if (nearView && !p.cv && (!near || (p.pim && !near.pim))) near = p; // (one begun first)
+    }
+    if (near) { b.paint(near, iso.PAGE_MS); near.used = f; } // (a few ms of it a frame: walking never waits on a page)
+    if (b.baked > iso.PAGES_KEPT) {
+      var held = b.pages.filter(function (p) { return p.cv && p.used < f; }).sort(function (a, z) { return a.used - z.used; });
+      for (var i = 0; i < held.length && b.baked > iso.PAGES_KEPT; i++) { held[i].cv = null; b.baked--; }
+    }
   }
   function nearOpen(m, gx, gy, ch) { // distance from (gx,gy) to the edge of the region made of `ch`
     var best = 2;
@@ -305,20 +352,24 @@
   function buildProps(m) {
     var seed = D.hash(m.def.name) + 77;
     m.props = [];
+    var RF = m.def.roofs;
+    m.roofTop = RF ? Math.max.apply(null, Object.keys(RF).map(function (k) { return iso.roofPx(m, k); })) : 0; // (the tallest roof: iso.draw's bound on what may still show from below the view)
     m.sq.forEach(function (s) {
-      if (s.rock === 'far' || s.rock === 'near') m.props.push({ kind: 'rock', sq: s, depth: s.x + s.y, gz: 0 });
+      if (s.rock === 'far' || s.rock === 'near' || (RF && !s.open && RF[s.ch])) m.props.push({ kind: 'rock', sq: s, depth: s.x + s.y, gz: 0 }); // (a roofed square stands whole, its roof seen: every one, not only the edges -- roofCanvas)
       if (s.tile) m.props.push({ kind: 'tile', sq: s, depth: s.x + s.y, gz: s.gz, layer: -1, img: s.tile, imgOpen: s.tileOpen || null }); // (imgOpen: a door's square standing open -- iso.draw, m.doorsOpen)
-      if (s.ch === 'P') m.props.push({ kind: 'pillar', sq: s, depth: s.x + s.y + 0.5, gz: s.gz, img: D.art.stalagmite(D.hash('p' + s.x + ',' + s.y)) });
-      if (s.tree) m.props.push({ kind: 'tree', sq: s, depth: s.x + s.y + 0.5, gz: s.gz, img: D.art.tree(D.hash('t' + s.x + ',' + s.y)) });
-      if (s.block) m.props.push({ kind: 'block', sq: s, depth: s.x + s.y + 0.5, gz: 0, img: blockCanvas(m, s) });
-      if (s.cocoon) m.props.push({ kind: 'cocoon', sq: s, depth: s.x + s.y + 0.5, gz: s.gz, img: D.art.cocoon(D.hash('c' + s.x + ',' + s.y)) });
+      // (on a paged floor each picture is made when it is first drawn, as a rock's is: the town has thousands of stalls, rails and wells -- iso.draw, p.make)
+      var lazy = !!m.def.page, mk = function (p, f) { if (lazy) p.make = f; else p.img = f(); m.props.push(p); };
+      if (s.ch === 'P') mk({ kind: 'pillar', sq: s, depth: s.x + s.y + 0.5, gz: s.gz }, function () { return D.art.stalagmite(D.hash('p' + s.x + ',' + s.y)); });
+      if (s.tree) mk({ kind: 'tree', sq: s, depth: s.x + s.y + 0.5, gz: s.gz }, function () { return D.art.tree(D.hash('t' + s.x + ',' + s.y)); });
+      if (s.block) mk({ kind: 'block', sq: s, depth: s.x + s.y + 0.5, gz: 0 }, function () { return blockCanvas(m, s); });
+      if (s.cocoon) mk({ kind: 'cocoon', sq: s, depth: s.x + s.y + 0.5, gz: s.gz }, function () { return D.art.cocoon(D.hash('c' + s.x + ',' + s.y)); });
       // (a rough square's stones stand at its own height -- on a raised square they had sunk under it: the Gnoll Hills' scrub showed no rough ground, 10-08)
       if (s.ch === 'r') {
         for (var k = 0; k < 3; k++) {
           var r = h2(s.x * 7 + k, s.y * 13, seed);
           if (r < 0.45) continue;
           var ox = (h2(s.x, s.y + k * 3, seed + 1) - 0.5) * 0.7, oy = (h2(s.x + k * 5, s.y, seed + 2) - 0.5) * 0.7;
-          m.props.push({ kind: 'stone', sq: s, fx: s.x + 0.5 + ox, fy: s.y + 0.5 + oy, depth: s.x + s.y + 0.5 + ox + oy, gz: s.gz || 0, img: D.art.rubble(D.hash('r' + s.x + ',' + s.y + ',' + k)) });
+          (function (k2) { mk({ kind: 'stone', sq: s, fx: s.x + 0.5 + ox, fy: s.y + 0.5 + oy, depth: s.x + s.y + 0.5 + ox + oy, gz: s.gz || 0 }, function () { return D.art.rubble(D.hash('r' + s.x + ',' + s.y + ',' + k2)); }); })(k);
         }
       }
     });
@@ -371,6 +422,47 @@
     return { canvas: cv, ax: ox, ay: oy };
   }
 
+  // ------------------------------------------------------------------ a town's buildings (a map's `roofs`: { ch: { h: feet, roof: ramp, wall: ramp } } -- 10-20, the Silverton roam seat:
+  // the cave's rock -- walls fading up into the dark, the inside black -- read as pits in a town). A roofed square stands its height whole: its roof on top, its walls toward
+  // +gx and +gy where the building ends, lime-washed timber courses, a window band on the upper floor; cut to a stub while the party is behind it (js/roam.js R.occlude, s.occCut).
+  // One picture for each look (which faces show, cut or not, three roofs), not one a square: the town has thirty-six thousand of them
+  iso.roofPx = function (m, ch) { var r = m.def.roofs && m.def.roofs[ch]; return r ? Math.round(r.h / 2.5 * m.def.step) : 0; };
+  function roofCanvas(m, s) {
+    var RF = m.def.roofs[s.ch], isR = function (x, y) { var n = m.at(x, y); return !!(n && !n.open && n.ch === s.ch); }; // (a wall shows where this building ends -- the next one along another height, its own)
+    var fR = !isR(s.x + 1, s.y), fL = !isR(s.x, s.y + 1), cut = !!s.occCut, v0 = h2(s.x, s.y, 41) * 3 | 0;
+    var side = m.def.slope ? +m.def.slope[s.y].charAt(s.x) || 0 : 0; // (the roof's side: 1 toward the light, 2 away, 3 the ridge -- a map's `slope`, js/town.js)
+    var key = s.ch + (fR ? 'R' : '') + (fL ? 'L' : '') + (cut ? 'c' : '') + v0 + 's' + side;
+    m.roofImgs = m.roofImgs || {}; if (m.roofImgs[key]) return m.roofImgs[key];
+    var top = cut ? STUB : iso.roofPx(m, s.ch), W = TW, H = TH + top + 2, ox = HW, oy = top + HH;
+    var cv = document.createElement('canvas'); cv.width = W; cv.height = H;
+    var cx = cv.getContext('2d'), img = cx.createImageData(W, H), px = img.data, wall = iso.ramp(RF.wall || 'stone'), roof = iso.ramp(RF.roof || 'red'), seed = 913 + v0 * 31;
+    function put(ix, iy, c) { if (ix < 0 || iy < 0 || ix >= W || iy >= H) return; var o = (iy * W + ix) * 4; px[o] = c[0]; px[o + 1] = c[1]; px[o + 2] = c[2]; px[o + 3] = 255; }
+    [['R', fR], ['L', fL]].forEach(function (f) {
+      if (!f[1]) return;
+      var right = f[0] === 'R';
+      for (var k = 0; k < HW; k++) {
+        var fx = right ? ox + k : ox - HW + k, yb = right ? oy + HH - Math.floor(k / 2) : oy + Math.floor(k / 2);
+        for (var j = 0; j < top; j++) {
+          var y = yb - j - 1, up = j / Math.max(1, top), v = (right ? 0.42 : 0.62) + (vnoise(k * 0.4 + v0 * 7, j * 0.3, seed) - 0.5) * 0.12;
+          if (j < 3) v -= 0.18;                                          // the footing
+          if (!cut && (k % 16 === 0 || Math.abs(up - 0.5) < 0.02)) v -= 0.22; // the timbers: posts and the floor's beam
+          if (!cut && up > 0.62 && up < 0.82 && (k % 16) > 5 && (k % 16) < 11) v = 0.08; // the upper floor's windows
+          if (j === top - 1) v += cut ? 0.25 : -0.1;
+          put(fx, y, rampPick(wall, D.clamp(v, 0, 0.99), fx, y));
+        }
+      }
+    });
+    for (var dy = -HH; dy < HH; dy++) { // the roof (or the cut's section, lighter)
+      var half = HW - Math.abs(dy + 0.5) * 2;
+      for (var dx = -Math.floor(half); dx < half; dx++) {
+        var tile = ((dx + dy * 2 + 512) % 8) < 1, edge = half - Math.abs(dx + 0.5) < 1.5;
+        var v2 = cut ? 0.55 : 0.4 + [0, 0.14, -0.1, -0.22][side] + (vnoise((dx + v0 * 64) * 0.15, dy * 0.3, seed + 9) - 0.5) * 0.25 - (tile ? 0.14 : 0) - (edge ? 0.1 : 0);
+        put(ox + dx, oy - top + dy, rampPick(cut ? wall : roof, D.clamp(v2, 0, 0.99), ox + dx, oy - top + dy));
+      }
+    }
+    cx.putImageData(img, 0, 0);
+    return (m.roofImgs[key] = { canvas: cv, ax: ox, ay: oy });
+  }
   // a cut stub stands a little above the highest open floor around it (so a stub beside the ledge is cut at the ledge)
   function stubTop(m, s) {
     var z = 0;
@@ -447,18 +539,26 @@
   function byDepth(a, b2) { return a.depth - b2.depth || a.gz - b2.gz || (a.layer || 0) - (b2.layer || 0); }
   iso.draw = function (ctx, objs, overlay) {
     var m = iso.map, b = m.bake, o = iso.toScreen(b.x, b.y);
-    ctx.drawImage(b.canvas, o.x, o.y);
+    if (b.paged) drawPages(ctx, b, o, iso.inWorld ? D.W / iso.zoom : D.W, iso.inWorld ? D.H / iso.zoom : D.H); // (a floor too big for one picture: js/town.js's Silverton)
+    else ctx.drawImage(b.canvas, o.x, o.y);
     if (overlay) overlay(ctx);
     if (!m.sorted || m.sortedN !== m.props.length) { m.sorted = m.props.slice().sort(byDepth); m.sortedN = m.props.length; }
-    var A = m.sorted, Bl = (objs || []).slice().sort(byDepth), list = [], i = 0, j = 0;
-    while (i < A.length || j < Bl.length) list.push(j >= Bl.length || (i < A.length && byDepth(A[i], Bl[j]) <= 0) ? A[i++] : Bl[j++]);
+    var A = m.sorted, Bl = (objs || []).slice().sort(byDepth), list = [], i = 0, j = 0, iEnd = A.length;
     var vw = iso.inWorld ? D.W / iso.zoom : D.W, vh = iso.inWorld ? D.H / iso.zoom : D.H;
+    if (b.paged) { // (a paged floor: only the props in the depth band the view can show -- the town has tens of thousands, the props sorted by depth, x + y)
+      var y0d = iso.toScreen(iso.center(0, 0, 0).x, iso.center(0, 0, 0).y).y, kd = iso.toScreen(iso.center(1, 0, 0).x, iso.center(1, 0, 0).y).y - y0d, upH = Math.max(WALL, m.roofTop || 0) + (m.maxGz || 0) + 60;
+      var dLo = (-TH - y0d) / kd - 2, dHi = (vh + upH - y0d) / kd + 2, lo = 0, hi = A.length;
+      while (lo < hi) { var mid = (lo + hi) >> 1; if (A[mid].depth < dLo) lo = mid + 1; else hi = mid; }
+      i = lo; while (iEnd > i && A[iEnd - 1].depth > dHi) iEnd--;
+    }
+    while (i < iEnd || j < Bl.length) list.push(j >= Bl.length || (i < iEnd && byDepth(A[i], Bl[j]) <= 0) ? A[i++] : Bl[j++]);
     for (var k = 0; k < list.length; k++) {
       var p = list[k];
       if (p.draw) { p.draw(ctx); continue; }
       var rock = p.kind === 'rock', c = rock ? iso.center(p.sq.x, p.sq.y, 0) : iso.center(p.fx != null ? p.fx - 0.5 : p.sq.x, p.fy != null ? p.fy - 0.5 : p.sq.y, p.gz), s = iso.toScreen(c.x, c.y);
+      if (p.make && !p.img) { if (s.x + TW < 0 || s.x - TW > vw || s.y + TH < 0 || s.y - 120 > vh) continue; p.img = p.make(); } // (a paged floor's prop, its picture made the first time it is near the view)
       var img = rock ? null : p.imgOpen && m.doorsOpen ? p.imgOpen : p.img, x0 = s.x - (rock ? HW : img.ax), y0 = s.y - (rock ? 0 : img.ay); // (a door baked shut stands open while the map says so: the Edifice's vault as the party comes out -- battle.js arrive)
-      if (rock) { if (x0 >= vw || x0 + TW <= 0 || s.y - WALL - (m.maxGz || 0) - 60 >= vh || s.y + TH <= 0) continue; img = rockCanvas(m, p.sq); x0 = s.x - img.ax; y0 = s.y - img.ay; } // (a far wall can rise WALL above a raised neighbour's floor: the bound before its canvas is made)
+      if (rock) { if (x0 >= vw || x0 + TW <= 0 || s.y - Math.max(WALL, m.roofTop || 0) - (m.maxGz || 0) - 60 >= vh || s.y + TH <= 0) continue; img = m.def.roofs && m.def.roofs[p.sq.ch] ? roofCanvas(m, p.sq) : rockCanvas(m, p.sq); x0 = s.x - img.ax; y0 = s.y - img.ay; } // (a town's building: its roof -- roofCanvas) // (a far wall can rise WALL above a raised neighbour's floor: the bound before its canvas is made)
       if (x0 >= vw || y0 >= vh || x0 + img.canvas.width <= 0 || y0 + img.canvas.height <= 0) continue;
       if (rock) { ctx.drawImage(img.canvas, x0, y0); continue; }
       ctx.globalAlpha = p.alpha == null ? 1 : p.alpha;
