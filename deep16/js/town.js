@@ -185,7 +185,7 @@
       rows: rows, w: w, h: h, cut: cut ? [ox, oy, w, h] : null, page: w * h > 12000, // (page: a floor too big to paint as one picture, painted in pieces as the camera comes to them -- js/iso.js)
       entry: [to(at)], face: face, gate: gate, stairUp: [], doors: ways, marks: marks, people: people, foes: [],
       src8: { id: 'silverton16', rows: [], legend: {}, triggers: trig, warps: [], chests: [], zones: [], save: false }, from8: id, to8: id, sig: '', zone8: null,
-      wayName: wayName,
+      wayName: wayName, music: (npc8 && npc8.music) || 'town', // (the 8-bit's Silverton's own tune: content/maps/silverton.json)
       where: function (x, y) { var f = ft([x, y]), best = null, bd = 1e9; districts.forEach(function (l) { var d = Math.hypot(f[0] - l[0], f[1] - l[1]); if (d < bd) { bd = d; best = l[2]; } }); return best ? best.replace(/^THE /, 'the ').toLowerCase().replace(/^the gate plaza & arena quarter$/, 'the Gate Plaza and the arena quarter') : ''; } // (the HUD's line: the nearest of v6's district names)
     };
     return def;

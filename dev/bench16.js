@@ -1921,6 +1921,7 @@
       var gWT = defT.marks.gates.west;
       okT('in at the west gate (' + gWT + '; the token at ' + tkT.x + ',' + tkT.y + ' facing ' + RT.fw + '), one token, three inside it', tkT.x === gWT[0] && tkT.y === gWT[1] && RT.fw[0] === 1 && RT.fw[1] === 0 && RT.rest.length === 3);
       okT('by day: no torch lit, the token\'s square in ' + D.light.name(D.light.levelAt(BT, tkT.x, tkT.y)), !RT.members.some(function (u) { return u.torch && u.torch.lit; }) && D.light.levelAt(BT, tkT.x, tkT.y) === 2);
+      okT('the town\'s own tune at the door (' + defT.music + ', the 8-bit Silverton\'s: the lane\'s 10-20 note 1, no music on the floor)', defT.music === ((window.DS.DATA.maps.silverton || {}).music || 'town'));
       okT('the three gates stood on (' + ['west', 'south', 'east'].map(function (k) { return k + ' ' + defT.marks.gates[k]; }).join(', ') + ')', ['west', 'south', 'east'].every(function (k) { var q = defT.marks.gates[k]; return q && GT.canStand(tkT, q[0], q[1]) || (q[0] === tkT.x && q[1] === tkT.y); }));
       var dT = defT.marks.doors, artT = ['keeper:casper', 'keeper:androit', 'keeper:hessle', 'keeper:aldric', 'warp:winters'];
       okT('the shops\' doors marked on the street (' + Object.keys(dT).length + ' of ' + D.town.DOORS.length + '), the five of the new buy/sell screens among them (' + artT.filter(function (k) { return dT[k]; }).length + ' of 5)', Object.keys(dT).length === D.town.DOORS.length && artT.every(function (k) { return dT[k] && defT.rows[dT[k][1]][dT[k][0]] === 'd'; }));

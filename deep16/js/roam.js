@@ -320,6 +320,7 @@
   // ------------------------------------------------------------------ the script: walk, the formation, the fights
   R.script = function* (B) {
     var R0 = B.roam;
+    if (R.def.music) D.music(R.def.music); // (a floor's own tune at the door -- the town's, the 8-bit's Silverton's: the party-token map lane's 10-20 note 1, "no music in roam")
     if (R.def.town) B.card(R.wrap(['{y}SILVERTON{/}, in at the ' + R.def.gate + ' gate: the town at true scale (' + G.map.w + ' x ' + G.map.h + ' squares), one token, the party inside it.', '{g}Click to walk, or the arrows. E: a word with someone beside you. O: the formation. L: the town map.{/}']), 420);
     else B.card(['{y}THE WET{/}, the whole floor (' + G.map.w + ' x ' + G.map.h + ' squares): one token, the party inside it.', '{g}Click to walk, or the arrows. O: the formation.' + (R.emb ? '' : ' F: a fight now.') + '{/}'], 420);
     while (true) {
