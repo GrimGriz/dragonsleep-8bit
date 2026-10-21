@@ -426,6 +426,114 @@ def hurt_fb(name, idle):
     return out
 
 
+# ------------------------------------------------------------------ the stirge's diagonals: the art desk's ART-48 (10-21)
+# Six pages in deep16/_src/stirge/ART-48/ (sorted out of Fresh by its ART-48-sort.py; the desk's papers in
+# _src/art-desk/received-2026-10-21-ART-48-stirge-FINAL-SHEETS/): HEAD 1 SE and HEAD 2 NE every row on two pages (Idle, Fly, Blood Drain;
+# Flinch, Fall, Latched), HEAD 3 S and HEAD 5 N its Latched. Cut by tools/sheetrows.py, each row's name at its left, its numbers under it.
+# SE and NE fill every row (SW and NW their mirror, codeart.lay); S and N keep the code's front and back and his GPT fall, and take the
+# drawn Latched. Placed the HURT_FB way: each row's first frame where the code's own does (its centroid on the code frame's: the hover for
+# the flying rows, the shoulder for the latch), the rest where the page drew them against their numbers; the Fall lands on FLOOR by the
+# code's own drop. K (page px a game px) by area, the frame drawn at game size outline and all: each page 1's Idle (the median) against the
+# code's Idle between its side and its front (a diagonal sees the wings between edge-on and spread), each page 2 by its Flinch 1 (hovering,
+# the idle's pose) against its page 1's Idle 1, S and N's Latched against SE's and NE's Latched (the same latch seen from another side: against
+# the code's compact side latch they drew 40-50 px tall, the wings folded upright; the abdomen, a ball, swells at a pace of its own in each view).
+ART48 = dict(
+    H1P1=dict(file='ART-48_HEAD-1_PAGE-1.png', W=1774, text=[(0, 188, 110, 225), (0, 450, 95, 495), (0, 693, 175, 727)],
+              rows=[('idle', (0, 110, 1774, 308), (282, 305)), ('walk', (0, 360, 1774, 565), (539, 562)), ('attack', (0, 600, 1774, 811), (784, 808))]),
+    H1P2=dict(file='ART-48_HEAD-1_PAGE-2.png', W=1774, text=[(0, 192, 145, 231), (0, 450, 105, 489), (0, 691, 162, 729)],
+              rows=[('flinch', (0, 110, 1774, 309), (283, 306)), ('hurt', (0, 360, 1774, 574), (547, 571)), ('latched', (0, 625, 1774, 814), (785, 811))]),
+    H2P1=dict(file='ART-48_HEAD-2_PAGE-1.png', W=1774, text=[(0, 187, 110, 225), (0, 450, 95, 496), (0, 697, 170, 731)],
+              rows=[('idle', (0, 105, 1774, 309), (280, 306)), ('walk', (0, 365, 1774, 566), (539, 563)), ('attack', (0, 615, 1774, 813), (786, 810))]),
+    H2P2=dict(file='ART-48_HEAD-2_PAGE-2.png', W=1774, text=[(0, 197, 152, 236), (0, 446, 105, 485), (0, 699, 170, 737)],
+              rows=[('flinch', (0, 100, 1774, 310), (279, 307)), ('hurt', (0, 360, 1774, 582), (554, 579)), ('latched', (0, 625, 1774, 837), (810, 834))]),
+    H3P1=dict(file='ART-48_HEAD-3_PAGE-1.png', W=2172, text=[(0, 355, 225, 420)], rows=[('latched', (0, 270, 2172, 523), (491, 520))]),   # (the 'd' of Latched rode into Latched 1 on a tight box)
+    H5P1=dict(file='ART-48_HEAD-5_PAGE-1.png', W=2172, text=[(0, 361, 225, 425)], rows=[('latched', (0, 225, 2172, 538), (505, 535))]),
+)
+VIEWS48 = {'SE': ('H1P1', 'H1P2'), 'NE': ('H2P1', 'H2P2'), 'S': ('H3P1',), 'N': ('H5P1',)}
+DROP48 = [min(30, (i / 7) * 36) / 30 for i in range(8)]       # the code's own fall (stirge_rows' hurt): how far down, of the way to the floor
+FH48 = 112          # the stirge's cells since ART-48: 16 px more under the foot (AY stays 84) -- the drawn latch hangs its proboscis and its
+                    # drops some 20 px under the shoulder it rides, where the code's sat on it; every other frame is padded below, unmoved
+
+
+def art48(rows):
+    """-> {view: {anim: [8 Images or 6]}} from ART-48's pages; `rows` the code's rows ({'idle': {'side':, 'S':, 'N':}, ..., 'latched': [...]})"""
+    import importlib.util
+    from scipy import ndimage
+
+    def load(nm):
+        spec = importlib.util.spec_from_file_location(nm, os.path.join(ca.ROOT, 'tools', nm + '.py'))
+        mod = importlib.util.module_from_spec(spec); spec.loader.exec_module(mod)
+        return mod
+    SR, pix = load('sheetrows'), load('pixelate')
+    arr = lambda im: np.asarray(im)
+    area = lambda a: int((a[..., 3] > 0).sum())
+    cen = lambda a: tuple(float(v.mean()) for v in np.where(a[..., 3] > 0)[::-1])   # (x, y)
+
+    def fit(im, k):
+        w, hh = im.size
+        img = im.convert('RGBa').resize((max(1, round(w / k)), max(1, round(hh / k))), Image.BOX).convert('RGBA')
+        pad = Image.new('RGBA', (img.width + 2, img.height + 2), (0, 0, 0, 0)); pad.paste(img, (1, 1))
+        return pix.pixelate(pad, 1, do_lift=False)
+
+    def k_for(ims, target):
+        lo, hi = 1.5, 12.0
+        for _ in range(24):
+            k = (lo + hi) / 2
+            got = float(np.median([area(fit(im, k)) for im in ims]))
+            lo, hi = (k, hi) if got > target else (lo, k)
+        return (lo + hi) / 2
+
+    cuts = {}
+    for L, s in ART48.items():
+        a = np.asarray(Image.open(os.path.join(_src_dir(), 'stirge', 'ART-48', s['file'])).convert('RGB')).astype(np.int32)
+        spec = dict(text=s['text'] + [(0, l0 - 3, s['W'], l1 + 4) for _, _, (l0, l1) in s['rows']],
+                    rows=[(r, b, l, [str(i + 1) for i in range(8 if r not in ('flinch',) else 6)]) for r, b, l in s['rows']])
+        got = SR.cut_sheet(os.path.join(_src_dir(), 'stirge', 'ART-48', s['file']), spec, tag=L)
+        lx = {r: SR.label_xs(a, b[0], b[2], l[0], l[1]) for r, b, l in s['rows']}
+        cuts[L] = {r: [(im, box, lx[r][i]) for i, (_, im, box) in enumerate(frs)] for r, frs in got.items()}
+    code_idle = float(np.median([area(arr(im)) for im in rows['idle']['side']] + [area(arr(im)) for im in rows['idle']['S']]))
+    K = {}
+    for v, (p1, p2) in (('SE', ('H1P1', 'H1P2')), ('NE', ('H2P1', 'H2P2'))):
+        K[p1] = k_for([im for im, _, _ in cuts[p1]['idle']], code_idle)
+        K[p2] = K[p1] * np.sqrt(area(fit(cuts[p2]['flinch'][0][0], K[p1])) / area(fit(cuts[p1]['idle'][0][0], K[p1])))
+    sq = lambda L: float(np.median([np.sqrt(ndimage.binary_fill_holes(arr(im)[..., 3] > 0).sum()) for im, _, _ in cuts[L]['latched']]))
+    for L, by in (('H3P1', 'H1P2'), ('H5P1', 'H2P2')):         # the same latch from the front and behind: by area against SE's and NE's
+        K[L] = K[by] * sq(L) / sq(by)
+    print('  ART-48 K: ' + ', '.join('%s %.2f' % kv for kv in K.items()))
+    hover = cen(arr(rows['idle']['side'][0]))                  # where the code's stirge hovers (its idle 1's centroid)
+    latch = cen(arr(rows['latched'][0]))                       # and where it rides a shoulder (its latched 1's)
+    out = {}
+    for v, pages in VIEWS48.items():
+        out[v] = {}
+        for L in pages:
+            k = K[L]
+            for an, frs in cuts[L].items():
+                fits = [fit(im, k) for im, _, _ in frs]
+                # each frame's centroid where the page drew it, against its number (x) and the row (y), page px -> game px
+                rel = [((box[0] + cen(arr(im))[0] - x) / k, (box[1] + cen(arr(im))[1]) / k) for im, box, x in frs]
+                if an == 'latched':
+                    at = (AX, latch[1]) if v in ('S', 'N') else latch          # (S and N, from the front and behind: on the shoulder's column)
+                else:
+                    at = hover
+                pos = [(at[0] + rx - rel[0][0], at[1] + ry - rel[0][1]) for rx, ry in rel]
+                if an == 'hurt':                                            # from the hover to the floor, by the code's own fall
+                    low = pos[-1][1] + (np.where(fits[-1][..., 3].any(axis=1))[0][-1] - cen(fits[-1])[1])
+                    pos = [(x, y + (FLOOR - low) * d) for (x, y), d in zip(pos, DROP48)]
+                row = []
+                for a, (x, y) in zip(fits, pos):
+                    gx, gy = cen(a)
+                    ox, oy = int(round(x - gx)), int(round(y - gy))
+                    fr = np.zeros((FH48, FW, 4), np.uint8)
+                    ah, aw = a.shape[:2]
+                    y0, x0, y1, x1 = max(0, oy), max(0, ox), min(FH48, oy + ah), min(FW, ox + aw)
+                    fr[y0:y1, x0:x1] = a[y0 - oy:y1 - oy, x0 - ox:x1 - ox]
+                    if (fr[..., 3] > 0).sum() < (a[..., 3] > 0).sum():
+                        raise SystemExit('stirge %s %s %s: cut off at the frame edge (rows %d..%d cols %d..%d)' % (L, an, len(row) + 1, oy, oy + ah - 1, ox, ox + aw - 1))
+                    row.append(Image.fromarray(fr, 'RGBA'))
+                out[v][an] = row
+    return out
+
+
 def with_fb(name, rows):
     """Bring each row's front (S) and back (N) beside its side frames; hurt takes his generated sheet's where there is one (10-08), else
     keeps the side frames (as the clacker's sheet)."""
@@ -455,6 +563,15 @@ def with_fb(name, rows):
     fb = hurt_fb(name, out['idle'])
     if fb:
         out['hurt'] = dict(side=out['hurt'], **fb)
+    if name == 'stirge':                                    # ART-48 (10-21): SE and NE every row, S and N their Latched
+        dg = art48(out)
+        out['latched'] = dict(side=out['latched'])
+        tall = lambda im: im if im.size[1] == FH48 else (lambda c: (c.paste(im, (0, 0)), c)[1])(Image.new('RGBA', (FW, FH48), (0, 0, 0, 0)))
+        for an in out:                                       # (the code's 96-px frames padded below to FH48, the foot where it was)
+            out[an] = {v: [tall(im) for im in fs] for v, fs in out[an].items()}
+        for v, an_rows in dg.items():
+            for an, fr in an_rows.items():
+                out[an][v] = fr
     return out
 
 
@@ -470,5 +587,6 @@ if __name__ == '__main__':
         if 'preview' in sys.argv:
             ca.preview(rows, os.path.join(ca.ROOT, 'dev', 'shots', 'bugs-%s.png' % nm))
         else:
-            sh, meta = ca.lay(rows, FW, FH, AX, AY, top, 'drawn in code by tools/bugs-sheet.py (10-05)', out, fps_of=fps)
+            src = 'drawn in code by tools/bugs-sheet.py (10-05)' + ('; SE and NE every row and S and N its latch drawn by the art desk (ART-48, 10-21)' if nm == 'stirge' else '')
+            sh, meta = ca.lay(rows, FW, FH48 if nm == 'stirge' else FH, AX, AY, top, src, out, fps_of=fps)
             print('wrote deep16/art/%s.png' % out, sh.size)

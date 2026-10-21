@@ -123,8 +123,11 @@ def lay(anims, FW, FH, AX, AY, top, source, name, fps_of=None, flipset=(1, 2, 3)
         meta[an] = {'y': y, 'fw': FW, 'fh': FH, 'ax': AX, 'ay': AY, 'frames': len(side), 'fps': fps}
         for f in range(FACINGS):
             frames = fr.get({0: 'S', 4: 'N'}.get(f), side) if isinstance(fr, dict) else side
+            flip = f in flipset and frames is side
+            if isinstance(fr, dict) and {7: 'SE', 5: 'NE', 1: 'SE', 3: 'NE'}.get(f) in fr:   # a row may bring its drawn diagonals too (the art desk's
+                frames, flip = fr[{7: 'SE', 5: 'NE', 1: 'SE', 3: 'NE'}[f]], f in (1, 3)     # pages, 10-21): SE and NE as drawn, SW and NW their mirror
             for i, im in enumerate(frames):
-                sheet.paste(mirror(im) if (f in flipset and frames is side) else im, (i * FW, y + f * FH))
+                sheet.paste(mirror(im) if flip else im, (i * FW, y + f * FH))
         y += FH * FACINGS
     sheet.save(os.path.join(D16, 'art', name + '.png'), optimize=True)
     json.dump({'image': 'art/%s.png' % name, 'fw': FW, 'fh': FH, 'ax': AX, 'ay': AY, 'top': top, 'source': source, 'anims': meta},
