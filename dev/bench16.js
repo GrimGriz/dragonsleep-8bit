@@ -5609,6 +5609,11 @@
       okPq('NOTES on a ladder\'s lost rung opens its own notes (' + scrN + ', fight ' + noteN + '), BACK to the card (' + backN + ', RETRY still there ' + stillN + ', the button says it has notes: ' + (nbN2 && nbN2.label) + '); from THE FIGHTS, BACK to the list (' + scrF + ' -> ' + backF + '); on a single fight\'s card too (' + !!nbS + ')',
         !!nbN && scrN === 'notes' && noteN === 0 && backN === 'result' && stillN && !!nbN2 && nbN2.label === 'NOTES *' && scrF === 'notes' && backF === 'fights' && !!nbS);
       Pq.result = null; Pq.st.fights = [];
+      // (6) the fixture's Vivian has her archetype (the lane's 2h): no one to ask at the fixture, so the build's picks and the first archetype (R.autoPicks), as the benches give her;
+      // a Pocket DM card's own pick still lays over it
+      var vOf = function (L) { return D.save.fixture(L).party.filter(function (h) { return h.id === 'vivian'; })[0]; }, v3 = vOf(3), v8 = vOf(8), cut5 = D.npc.heroSheet(D.npc.spec('vivian:5+^3r:Cutthroat'));
+      okPq('the fixture\'s Vivian at 3rd and 8th: ' + v3.subclass + ', ' + v8.subclass + ' (nothing waiting: ' + (v8.pendingChoice || 'none') + '); a card that picked Cutthroat: ' + cut5.subclass,
+        v3.subclass === 'Thief' && v8.subclass === 'Thief' && !v8.pendingChoice && !v8.picks && cut5.subclass === 'Cutthroat');
     } catch (ePq) { repPq.errors.push(String(ePq && ePq.stack || ePq).slice(0, 800)); }
     var prePq = document.createElement('pre'); prePq.id = 'out'; prePq.textContent = 'BENCH16 ' + JSON.stringify(repPq);
     document.body.appendChild(prePq);

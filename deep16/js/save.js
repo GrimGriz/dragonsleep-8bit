@@ -47,6 +47,9 @@
     var L = level || 9, bare = !!(o && o.bare);
     var party = ['barley', 'aurdin', 'vivian', 'lymen'].map(function (id) {
       var h = L < DS.DATA.heroes[id].level ? SV.levelOne(R.makeHero(id)) : R.makeHero(id, L), d = DS.DATA.heroes[id], tier = L >= 9 ? 1 : L >= 5 ? 0 : -1;
+      // no one to ask at the fixture: the build's picks and the first archetype (js/rules.js R.autoPicks, what the benches always gave her) -- Vivian dealt from 3rd
+      // stood with none, waiting on a page no fight opens (10-21, the Pocket DM lane 2h; the Snoot's frozen party had her so). A card's own pick lays over it (R.repick)
+      R.autoPicks(h);
       if (tier >= 0 && d.rewardWeapons && d.rewardWeapons[tier] && DS.DATA.items[d.rewardWeapons[tier]]) h.equip.weapon = d.rewardWeapons[tier];
       // the 8-bit sheet gives Barley no armour (a thresher: AC 11); the ladder dresses him (Griz, 09-27: "let's go with splint-mail")
       if (id === 'barley' && !h.equip.armor) h.equip.armor = 'splint';
