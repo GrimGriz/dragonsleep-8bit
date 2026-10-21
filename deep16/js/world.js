@@ -103,7 +103,18 @@
     if (!/[?&]fresh\b/.test(q || '')) try { S = JSON.parse(localStorage.getItem(W.KEY) || 'null'); } catch (e) { S = null; }
     if (!S || !S.at || !M.hex[K(S.at[0], S.at[1])]) S = fresh();
     var aq = /[?&]at=(-?\d+),(-?\d+)/.exec(q || ''); if (aq && M.hex[K(+aq[1], +aq[2])]) { S.at = [+aq[1], +aq[2]]; S.from = null; }
+    W.unstuck = W.unstick();
     return S;
+  };
+  // a party with no step out (his "seems i've left the party in an impossible position in the pane": walked up into the mountains before they were closed,
+  // 10-20) is put on the nearest open hex it could walk on from -- unless it stands at a road's door (The DOORS: the Coldridge Route down)
+  W.unstick = function () {
+    var free = function (p) { var e = M.hex[K(p[0], p[1])]; if (!e || !W.walkable(e) || W.MOUNTAIN[e.t]) return false; for (var d = 0; d < 6; d++) if (W.stepHours(p, [p[0] + DIRS[d][0], p[1] + DIRS[d][1]])) return true; return false; };
+    var atDoor = M.routes.some(function (r) { return r.ends.some(function (s) { return s.hex[0] === S.at[0] && s.hex[1] === S.at[1]; }); });
+    if (atDoor || free(S.at)) return null;
+    var seen = {}, q = [S.at], k0 = K(S.at[0], S.at[1]); seen[k0] = 1;
+    while (q.length) { var p = q.shift(); if (free(p)) { var was = M.hex[k0]; S.at = p; S.from = null; W.save(); return was ? M.terr[was.t].name : 'off the map'; } for (var d = 0; d < 6; d++) { var n = [p[0] + DIRS[d][0], p[1] + DIRS[d][1]], nk = K(n[0], n[1]); if (!seen[nk] && M.hex[nk] && q.length < 4000) { seen[nk] = 1; q.push(n); } } }
+    return null;
   };
   W.save = function () { try { localStorage.setItem(W.KEY, JSON.stringify(S)); } catch (e) { /* (the walk goes on unkept) */ } };
   W.state = function () { return S; };
@@ -118,9 +129,10 @@
   World.prototype.enter = function () {
     if (!W.index()) throw new Error('no world: data/world.js is not loaded (python tools/world-build.py)');
     W.load(this.q); W.scene = this; W.active = true; this.dev = /[?&]dev\b/.test(this.q);
+    this.view = 'hex'; if (/[?&]tiles\b/.test(this.q) && W.OV) W.OV.open(this); // (the top-down view, js/overworld.js: V switches)
     var c = hc(S.at[0], S.at[1]); this.cam = { cx: c[0], cy: c[1] };
     try { D.music('corridor'); } catch (e) { }
-    this.say('The road, ' + W.timeOfDay() + '. Click a hex to travel there.');
+    this.say(W.unstuck ? 'The party found its way down out of the ' + W.unstuck + ', ' + W.timeOfDay() + '.' : 'The road, ' + W.timeOfDay() + '. Click a hex to travel there.');
   };
   World.prototype.exit = function () { W.active = false; };
   World.prototype.say = function (s) { this.msg = { s: s, t: 0 }; };
@@ -142,12 +154,16 @@
       if (I.pressed('a') || I.pressed('b') || m.click) { this.cards.shift(); D.sfx('confirm'); if (cd.then) cd.then(); }
       return;
     }
+    if (I.pressed('verdict') && W.OV) { if (this.view === 'tiles') W.OV.close(this); else W.OV.open(this); return; } // (V: the hex view or the top-down tiles)
+    if (this.view === 'tiles') { W.OV.update(this); return; }
     // the camera: the wheel and -/= zoom, the middle button pans, C comes back to the party
     if (m.wheel) this.zi = Math.max(0, Math.min(W.ZOOMS.length - 1, this.zi - m.wheel));
     if (I.pressed('zoomin')) this.zi = Math.min(W.ZOOMS.length - 1, this.zi + 1);
     if (I.pressed('zoomout')) this.zi = Math.max(0, this.zi - 1);
     var z = W.ZOOMS[this.zi];
     if (m.panX || m.panY) { this.cam.cx -= (m.panX || 0) / z; this.cam.cy -= (m.panY || 0) / (z * TILT); m.panX = m.panY = 0; }
+    // the mouse at the screen's edge scrolls the map (his "i'm getting no 'mouse on the edge scroll map'"), as the grid's fights do; not for a finger
+    if (m.inside && m.inWin !== false && !D.touch) { var EG = 8, sp = 5 / z; if (m.x < EG) this.cam.cx -= sp; else if (m.x > D.W - EG) this.cam.cx += sp; if (m.y < EG) this.cam.cy -= sp / TILT; else if (m.y > D.H - EG) this.cam.cy += sp / TILT; }
     if (I.pressed('center')) { var c0 = hc(S.at[0], S.at[1]); this.cam.cx = c0[0]; this.cam.cy = c0[1]; }
     if (this.walk) { this.stepWalk(); return; }
     // the arrows walk the party a hex (his "arrow keys should move the party not the mouse selector"): left and right west and east; up and down north-west
@@ -177,7 +193,8 @@
     w.f++;
     var a = hc(S.at[0], S.at[1]), b = hc(next[0], next[1]), u = w.f / STEPF; this.cam.cx += ((a[0] + (b[0] - a[0]) * u) - this.cam.cx) * 0.2; this.cam.cy += ((a[1] + (b[1] - a[1]) * u) - this.cam.cy) * 0.2;
     if (w.f < STEPF) return;
-    w.f = 0; S.from = S.at; S.at = next; S.t += st.h; S.today += st.h; w.path.shift(); W.save();
+    w.f = 0; S.from = S.at; S.at = next; S.pos = hc(next[0], next[1]); S.t += st.h; S.today += st.h; w.path.shift(); W.save();
+    st.mi = M.w;
     if (W.onStep && W.onStep(this, st)) { this.walk = null; return; } // (pass B: a fight on the way stops the walk)
     var door = this.doorHere(), sites = M.siteAt[K(S.at[0], S.at[1])];
     if (door) { this.walk = null; this.offerDoor(door); return; }
@@ -204,14 +221,14 @@
     this.say((arrived ? 'Arrived: ' : '') + (sn.length ? sn.join(', ') + ' -- ' : '') + T.name + ', ' + Math.round(e.h).toLocaleString() + ' ft. ' + W.timeOfDay() + '.' + (sn.length ? ' (its map is not built yet)' : ''));
   };
   // the gate by the side the party comes from (his "angle of approach"): the gate whose way out faces back along the last step
-  W.gateFor = function (site, from) {
-    var dr = W.DOORS[site.id], gates = Object.keys(dr.gates); if (!from) return gates[0];
-    var a = hc(from[0], from[1]), b = [site.x, site.y], v = [a[0] - b[0], a[1] - b[1]], best = gates[0], bd = -1e9;
+  W.gateFor = function (site, from, pt) { // (from: the hex the party came from; pt: or the point in miles it stepped from -- the top-down view's)
+    var dr = W.DOORS[site.id], gates = Object.keys(dr.gates); if (!from && !pt) return gates[0];
+    var a = pt || hc(from[0], from[1]), b = [site.x, site.y], v = [a[0] - b[0], a[1] - b[1]], best = gates[0], bd = -1e9;
     gates.forEach(function (g) { var n = dr.gates[g], d = n[0] * v[0] + n[1] * v[1]; if (d > bd) { bd = d; best = g; } });
     return best;
   };
-  World.prototype.offerDoor = function (site) {
-    var self = this, gate = W.gateFor(site, S.from);
+  World.prototype.offerDoor = function (site, pt) {
+    var self = this, gate = W.gateFor(site, S.from, pt);
     this.card(['{y}' + site.name + '{/}', 'The ' + gate + ' gate is before you, ' + W.timeOfDay() + '.', '', D.keys('{g}E{/}: go in by the ' + gate + ' gate    {g}X{/}: stay on the road')], null,
       [['a', function () { self.enterDoor(site, gate); }], ['b', function () { self.say('The party keeps to the road.'); }]]);
   };
@@ -224,6 +241,8 @@
   W.leaveTown = function (side) {
     while (D.scenes.length && D.top() !== W.scene) D.pop();
     if (!W.scene) return;
+    var site = W.inDoor && W.inDoor.site, gv = site && W.DOORS[site.id] && W.DOORS[site.id].gates[side];
+    if (site) { S.pos = [site.x + (gv ? gv[0] : 0) * 0.75, site.y + (gv ? gv[1] : 0) * 0.75]; S.at = at(S.pos[0], S.pos[1]); } // (out by the side's gate: a step beyond it)
     W.inDoor = null; W.save(); try { D.music('corridor'); } catch (e) { }
     W.scene.say('Out on the road by the ' + side + ', ' + W.timeOfDay() + '.');
   };
@@ -353,6 +372,7 @@
   };
   var SKY = { night: 'rgba(16,24,72,.45)', dawn: 'rgba(255,160,110,.14)', morning: null, midday: null, afternoon: 'rgba(255,220,150,.06)', dusk: 'rgba(255,110,50,.2)' };
   World.prototype.draw = function (ctx) {
+    if (this.view === 'tiles') { W.OV.draw(this, ctx); return; }
     var cam = this.camObj(), hi = {};
     ctx.fillStyle = '#1b2433'; ctx.fillRect(0, 0, D.W, D.H);
     if (this.plan) this.plan.hexes.forEach(function (p) { hi[K(p[0], p[1])] = 'rgba(255,214,60,.55)'; });
@@ -388,8 +408,11 @@
       ctx.fillStyle = 'rgba(8,8,20,.85)'; ctx.fillRect(bx, by, bw, 6 + lines.length * 10);
       lines.forEach(function (l, i) { D.text(ctx, l, bx + 4, by + 4 + i * 10, '#e8e4d8'); });
     }
+    this.hudBottom(ctx, 'click: travel  arrows: a hex  E: here  SPACE: camp  V: tiles  wheel: zoom');
+  };
+  World.prototype.hudBottom = function (ctx, hint) { // (the message, the keys and the card: both views')
     if (this.msg && this.msg.t < 360) { var mw = Math.min(D.W - 16, D.textWidth(this.msg.s) + 12); ctx.fillStyle = 'rgba(8,8,20,.8)'; ctx.fillRect((D.W - mw) / 2, D.H - 30, mw, 13); D.text(ctx, this.msg.s, D.W / 2, D.H - 27, '#f6e9c5', 'center'); }
-    D.hint(ctx, 'click: travel  E: here  SPACE: camp  C: the party  wheel: zoom', D.W / 2, D.H - 12, '#9a96a8', 'center');
+    D.hint(ctx, hint, D.W / 2, D.H - 12, '#9a96a8', 'center');
     if (this.cards.length) {
       var cd = this.cards[0], cw = 300, ch = 14 + cd.lines.length * 10, cx = (D.W - cw) / 2, cy = (D.H - ch) / 2;
       D.win8(ctx, cx, cy, cw, ch); cd.lines.forEach(function (l, i) { D.text(ctx, l, D.W / 2, cy + 8 + i * 10, D.WIN8.text, 'center'); });
@@ -417,7 +440,7 @@
   };
   W.mirrorWeight = function () { return Math.max(0, Math.min(6, (W.day() - 1) * 0.5)); };
   function tables() { return ((window.DS || {}).DATA || {}).encounters || {}; }
-  W.resetCount = function (zone) { var Z = tables()[zone], rt = (Z && Z.rate) || [22, 40]; S.count = (rt[0] + D.rint(rt[1] - rt[0] + 1)) / W.HEXSTEPS; S.zone = zone; };
+  W.resetCount = function (zone) { var Z = tables()[zone], rt = (Z && Z.rate) || [22, 40]; S.count = (rt[0] + D.rint(rt[1] - rt[0] + 1)) / W.HEXSTEPS * 5; S.zone = zone; }; // (in miles: a hex 5, a tile half of one)
   W.pick = function (zone) {
     var Z = tables()[zone]; if (!Z) return null;
     var gs = Z.groups.filter(function (g) { return !g.cond; }).slice(), mw = W.mirrorWeight(); if (!gs.length) return null;
@@ -432,7 +455,7 @@
     if (/[?&]noenc\b/.test(scene.q)) return false;
     var e = M.hex[K(S.at[0], S.at[1])], zone = W.zoneOf(e);
     if (S.zone !== zone || S.count == null) W.resetCount(zone);
-    S.count -= st.road ? 0.5 : 1; W.save();
+    S.count -= (st.mi || M.w) * (st.road ? 0.5 : 1); W.save();
     if (S.count > 0) return false;
     W.resetCount(zone); W.save();
     var p = W.pick(zone); if (!p || !p.list.length) return false;
@@ -496,4 +519,5 @@
 
   W.make = function (q) { return new World(q); };
   W.World = World;
+  W.M = function () { return M; }; W.hexOf = function (x, y) { return at(x, y); }; W.hc = function (q, r) { return hc(q, r); }; W.K = K; W.SKY = SKY; W.icon = icon; W.RANK = RANK; W.BIG = BIG; // (for the top-down view, js/overworld.js)
 })();

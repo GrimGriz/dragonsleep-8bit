@@ -1441,6 +1441,7 @@
       }
       out.hexes.push([q, r, t, Math.round(e[0]), e[3] ? 1 : 0, t2, sh, guessed]);
     }
+    out.tiles = bakeTiles(V, b);
     S.sites.forEach(function (s) { var h = at(1, s.x, s.y); out.sites.push({ id: s.id, name: s.name, kind: s.kind, x: +s.x.toFixed(3), y: +s.y.toFixed(3), hex: [h[0], h[1]], note: s.note || '' }); });
     S.paths.forEach(function (P) {
       var pts = ptsOf(P); if (pts.length < 2) return;
@@ -1453,6 +1454,41 @@
         ends: [typeof P.pts[0] === 'string' ? P.pts[0] : null, typeof P.pts[P.pts.length - 1] === 'string' ? P.pts[P.pts.length - 1] : null] });
     });
     return out;
+  }
+
+  // THE TILES (10-20, his "let's yes the 1-4 above and see what comes out": the world as half-mile tiles, a 16-bit top-down walk, its heights as ledges): every
+  // half mile its ground (the finest he painted, else v3's guess), its height's band (500 ft a ledge), its road, track or river. Run-length rows, a char a
+  // ground; the bands one char a tile (0-9a-z)
+  var TCH = { plains: '.', verge: ',', farms: 'f', foothills: 'h', hills: 'H', woods: 'T', gulch: 'g', bog: 'b', black: 'M', gray: 'G', coastal: 'C', town: 't', lake: 'l', sea: 's', rift: 'R' };
+  function bakeTiles(V, b) {
+    var mi = 0.5, x0 = Math.floor((b[0] - 6) / mi) * mi, y0 = Math.floor((b[1] - 6) / mi) * mi, w = Math.ceil((b[2] + 6 - x0) / mi), h = Math.ceil((b[3] + 6 - y0) / mi);
+    var chars = {}, used = {}, pool = 'ABDEFIJKLNOPQSUVXYZcdeijkmnopqruvxyz'.split(''), chOf = function (k) {
+      if (chars[k]) return chars[k]; var c = TCH[k]; if (!c || used[c]) c = pool.shift() || '?'; chars[k] = c; used[c] = k; return c;
+    };
+    var B36 = '0123456789abcdefghijklmnopqrstuvwxyz', rle = function (arr) { var o = [], i = 0; while (i < arr.length) { var j = i; while (j < arr.length && arr[j] === arr[i]) j++; o.push(arr[i] + (j - i)); i = j; } return o.join(' '); };
+    var roadAt = {}; // (each road's, track's and river's tiles, sampled every eighth of a mile)
+    S.paths.forEach(function (P) {
+      var pts = ptsOf(P), code = P.kind === 'river' ? '3' : roadGoing(P) > 1 ? '4' : P.kind === 'track' ? '2' : '1'; // (4: a mountain road, its own roam -- not walked on the world map)
+      for (var i = 0; i + 1 < pts.length; i++) {
+        var A = pts[i], B2 = pts[i + 1], n = Math.max(1, Math.ceil(Math.hypot(B2[0] - A[0], B2[1] - A[1]) / 0.125));
+        for (var j = 0; j <= n; j++) { var tx = Math.floor((A[0] + (B2[0] - A[0]) * j / n - x0) / mi), ty = Math.floor((A[1] + (B2[1] - A[1]) * j / n - y0) / mi), k = tx + ',' + ty; if (!roadAt[k] || (roadAt[k] === '3' && code !== '3')) roadAt[k] = code; }
+      }
+    });
+    var tRows = [], bRows = [], rRows = [], wet = [];
+    for (var ty = 0; ty < h; ty++) {
+      var tr = [], br = '', rr = [];
+      for (var tx = 0; tx < w; tx++) {
+        var x = x0 + (tx + 0.5) * mi, y = y0 + (ty + 0.5) * mi, t = terrAtMi(x, y);
+        if (!t && V) { var px = (x - V.u.x0) * V.u.pxmi, py = (y - V.u.y0) * V.u.pxmi; if (px >= 0 && py >= 0 && px < V.D.width && py < V.D.height) { t = classify(V.D, px, py, mi * V.u.pxmi * 0.5, 2); if (t && !TB[t]) t = null; } }
+        if (!t) t = 'plains';
+        var hv = hAt(x, y, t), bd = Math.max(0, Math.min(35, Math.floor(hv / 500)));
+        if (PW && t !== 'lake' && t !== 'sea') wet.push(tx + ty * w);
+        tr.push(chOf(t)); br += B36.charAt(bd); rr.push(roadAt[tx + ',' + ty] || '.');
+      }
+      tRows.push(rle(tr)); bRows.push(br); rRows.push(rle(rr));
+    }
+    var key = {}; Object.keys(chars).forEach(function (k) { key[chars[k]] = k; });
+    return { mi: mi, x0: x0, y0: y0, w: w, h: h, key: key, t: tRows, b: bRows, r: rRows, wet: wet };
   }
 
   // ---------------------------------------------------------------- go
