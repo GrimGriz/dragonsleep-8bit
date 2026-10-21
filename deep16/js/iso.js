@@ -441,7 +441,7 @@
   function roofCanvas(m, s) {
     var RF = m.def.roofs[s.ch], isR = function (x, y) { var n = m.at(x, y); return !!(n && !n.open && n.ch === s.ch); }; // (a wall shows where this building ends -- the next one along another height, its own)
     var fR = !isR(s.x + 1, s.y), fL = !isR(s.x, s.y + 1), cut = !!s.occCut, v0 = h2(s.x, s.y, 41) * 3 | 0;
-    var side = m.def.slope ? +m.def.slope[s.y].charAt(s.x) || 0 : 0; // (the roof's side: 1 toward the light, 2 away, 3 the ridge -- a map's `slope`, js/town.js)
+    var side = m.def.slope ? +m.def.slope[s.y].charAt(s.x) || 0 : 0; if (side > 3) side -= 3; // (the roof's side: 1 toward the light, 2 away, 3 the ridge -- a map's `slope`, js/town.js; 4-6 the same with the ridge north-south)
     var key = s.ch + (fR ? 'R' : '') + (fL ? 'L' : '') + (cut ? 'c' : '') + v0 + 's' + side;
     m.roofImgs = m.roofImgs || {}; if (m.roofImgs[key]) return m.roofImgs[key];
     var top = cut ? STUB : iso.roofPx(m, s.ch), W = TW, H = TH + top + 2, ox = HW, oy = top + HH;
@@ -566,7 +566,7 @@
     for (var k = 0; k < list.length; k++) {
       var p = list[k];
       if (p.draw) { p.draw(ctx); continue; }
-      var rock = p.kind === 'rock', c = rock ? iso.center(p.sq.x, p.sq.y, 0) : iso.center(p.fx != null ? p.fx - 0.5 : p.sq.x, p.fy != null ? p.fy - 0.5 : p.sq.y, p.gz), s = iso.toScreen(c.x, c.y);
+      var rock = p.kind === 'rock', c = rock ? iso.center(p.sq.x, p.sq.y, m.def.roofs && m.def.roofs[p.sq.ch] ? p.sq.gz : 0) : iso.center(p.fx != null ? p.fx - 0.5 : p.sq.x, p.fy != null ? p.fy - 0.5 : p.sq.y, p.gz), s = iso.toScreen(c.x, c.y);
       if (p.make && !p.img) { if (s.x + TW < 0 || s.x - TW > vw || s.y + TH < 0 || s.y - 120 > vh) continue; p.img = p.make(); } // (a paged floor's prop, its picture made the first time it is near the view)
       var img = rock ? null : p.imgOpen && m.doorsOpen ? p.imgOpen : p.img, x0 = s.x - (rock ? HW : img.ax), y0 = s.y - (rock ? 0 : img.ay); // (a door baked shut stands open while the map says so: the Edifice's vault as the party comes out -- battle.js arrive)
       if (rock) { if (x0 >= vw || x0 + TW <= 0 || s.y - Math.max(WALL, m.roofTop || 0) - (m.maxGz || 0) - 60 >= vh || s.y + TH <= 0) continue; img = m.def.roofs && m.def.roofs[p.sq.ch] ? roofCanvas(m, p.sq) : rockCanvas(m, p.sq); x0 = s.x - img.ax; y0 = s.y - img.ay; } // (a town's building: its roof -- roofCanvas) // (a far wall can rise WALL above a raised neighbour's floor: the bound before its canvas is made)

@@ -349,22 +349,23 @@
         var mk = R.runeAt(B, ck.x, ck.y), sq = mk ? null : D.iso.pick(ck.x, ck.y, 0);
         if (mk) {
           var pm = R.besidePath(B, mk.sq);
-          if (pm && pm.length * 5 <= R.CLICK_FT) { yield* R.walkBeside(B, mk.sq); if (Math.max(Math.abs(R0.token.x - mk.sq[0]), Math.abs(R0.token.y - mk.sq[1])) <= 1) yield* R.fire(B, mk.trig, mk.sq); }
+          if (pm && pm.length * 5 <= R.clickFt()) { yield* R.walkBeside(B, mk.sq); if (Math.max(Math.abs(R0.token.x - mk.sq[0]), Math.abs(R0.token.y - mk.sq[1])) <= 1) yield* R.fire(B, mk.trig, mk.sq); }
           else R.tooFar(B);
           continue;
         }
         if (sq) {
           var use = R.useAt(B, sq.x, sq.y);
-          if (use) { var pu = R.besidePath(B, [sq.x, sq.y]); if (pu && pu.length * 5 <= R.CLICK_FT) { yield* R.walkBeside(B, [sq.x, sq.y]); yield* R.fire(B, use, [sq.x, sq.y]); } else R.tooFar(B); continue; }
-          var pth = D.Battle.route(t, [sq.x, sq.y], R.solid());
+          if (use) { var pu = R.besidePath(B, [sq.x, sq.y]); if (pu && pu.length * 5 <= R.clickFt()) { yield* R.walkBeside(B, [sq.x, sq.y]); yield* R.fire(B, use, [sq.x, sq.y]); } else R.tooFar(B); continue; }
+          var pth = R.walkRoute(t, [sq.x, sq.y]);
           if (!pth) { D.sfx('miss'); B.card(['{g}No way there from here.{/}'], 120); }
-          else if (pth.length * 5 > R.CLICK_FT) R.tooFar(B);
+          else if (pth.length * 5 > R.clickFt()) R.tooFar(B);
           else R0.path = pth;
         }
       }
       // the arrows: the screen's own directions, a square's diagonal on the grid (10-13, Griz: "Can arrow keys default move diagonal?"); two at once are the grid's
       // straight ways (up and right: the screen's upper right). A diagonal into a corner slides along the open side
       var dx0 = (I.held.down ? 1 : 0) - (I.held.up ? 1 : 0) + (I.held.right ? 1 : 0) - (I.held.left ? 1 : 0), dy0 = (I.held.down ? 1 : 0) - (I.held.up ? 1 : 0) - (I.held.right ? 1 : 0) + (I.held.left ? 1 : 0);
+      if (D.topview && D.iso.map && D.iso.map.top) { var ar = D.topview.arrows(I.held); dx0 = ar[0]; dy0 = ar[1]; } // (north up the screen: up is north, the grid's -y -- js/topview.js)
       var dir = dx0 || dy0 ? [Math.sign(dx0), Math.sign(dy0)] : null, dk = dir ? dir.join(',') : '';
       // a press against a wall that holds the 8-bit's USE -- the mark -- is a hand on it, as E is (10-14, Griz: "let activation as well as directional press against it trigger it
       // (diagonal is tricky)"): once a press, held or new, till the arrows let go or turn (R.pressInto)
@@ -475,7 +476,7 @@
     var t = B.roam.token;
     if (Math.max(Math.abs(t.x - at[0]), Math.abs(t.y - at[1])) <= 1) return [];
     var best = null, bl = Infinity;
-    for (var dy = -1; dy <= 1; dy++) for (var dx = -1; dx <= 1; dx++) { var q = [at[0] + dx, at[1] + dy]; if ((!dx && !dy) || !G.canStand(t, q[0], q[1])) continue; var p = D.Battle.route(t, q, R.solid()); if (p && p.length < bl) { bl = p.length; best = p; } }
+    for (var dy = -1; dy <= 1; dy++) for (var dx = -1; dx <= 1; dx++) { var q = [at[0] + dx, at[1] + dy]; if ((!dx && !dy) || !G.canStand(t, q[0], q[1])) continue; var p = R.walkRoute(t, q); if (p && p.length < bl) { bl = p.length; best = p; } }
     return best;
   };
   R.walkBeside = function* (B, at) {
@@ -486,8 +487,27 @@
   // the token's walk round the people standing in the street (a town: js/town.js), not through them -- a route by default ghosts through every figure, and on the Wet
   // nobody stood on the floor but the token (10-20)
   R.solid = function () { return !!(R.def && R.def.town); };
+  // a walk's way on the floor: in town, round the people and down the slope a step at a time (each square within a step of the one before -- a fight's route keeps to
+  // the level it starts on, and the slope off Fountain Street is a stair of single steps: 10-20); elsewhere the fight's own route
+  R.walkRoute = function (u, to) {
+    if (!(R.def && R.def.town)) return D.Battle.route(u, to);
+    var key = function (x, y) { return x + ',' + y; }, prev = {}, q = [[u.x, u.y]], seen = {}, st = G.map.def.step; seen[key(u.x, u.y)] = 1;
+    var ok = function (x, y, fx, fy) { return G.canStand(u, x, y) && Math.abs(G.map.gz(x, y) - G.map.gz(fx, fy)) <= st; };
+    for (var qi = 0; qi < q.length; qi++) {
+      var c = q[qi]; if (c[0] === to[0] && c[1] === to[1]) break;
+      for (var dy = -1; dy <= 1; dy++) for (var dx = -1; dx <= 1; dx++) {
+        var nx = c[0] + dx, ny = c[1] + dy; if ((!dx && !dy) || seen[key(nx, ny)]) continue;
+        if (!ok(nx, ny, c[0], c[1]) || (dx && dy && (!ok(c[0] + dx, c[1], c[0], c[1]) || !ok(c[0], c[1] + dy, c[0], c[1])))) continue;
+        seen[key(nx, ny)] = 1; prev[key(nx, ny)] = c; q.push([nx, ny]);
+      }
+    }
+    if (!seen[key(to[0], to[1])]) return null;
+    var out = [], pp = to; while (pp && !(pp[0] === u.x && pp[1] === u.y)) { out.unshift(pp); pp = prev[key(pp[0], pp[1])]; }
+    return out;
+  };
   R.CLICK_FT = 50; // (a click's walk, by the path: Griz's 30-50, the seat's pick the top of it)
-  R.tooFar = function (B) { D.sfx('miss'); B.card(['{g}Too far for a click (' + R.CLICK_FT + ' ft): click nearer, or walk with the arrows.{/}'], 160); };
+  R.clickFt = function () { return R.def && R.def.town ? R.CLICK_FT * 2 : R.CLICK_FT; }; // (in town, twice: 10-20, Griz, on 50 ft in a town 2,300 ft across: "double for now")
+  R.tooFar = function (B) { D.sfx('miss'); B.card(['{g}Too far for a click (' + R.clickFt() + ' ft): click nearer, or walk with the arrows.{/}'], 160); };
   // the mark's glyph on the screen while the works' walls stand whole (the props hook draws it there): a click within its ring
   R.runeAt = function (B, x, y) {
     if (!B.map || !B.map.works || !B.map.works.on) return null;
@@ -1570,21 +1590,21 @@
     }
   };
   // walking: the square under the mouse, and the way a click would walk there (10-14, Griz: "move indicator under mouse with pathing"): the path's squares and a ring on the
-  // square -- green, a click walks there; gold, a click uses what is there (the bucket, the deep water, the mark on its wall); grey, too far for a click (R.CLICK_FT); red, no way
+  // square -- green, a click walks there; gold, a click uses what is there (the bucket, the deep water, the mark on its wall); grey, too far for a click (R.clickFt()); red, no way
   R.hoverMarks = function (c, B) {
     var R0 = B.roam, hv = R0.hover, xy = R0.hoverXY, t = R0.token, iso = D.iso;
     if (B.req || B.menu || (R0.path && R0.path.length) || !xy) return;
     var mk = R.runeAt(B, xy[0], xy[1]);
     if (mk) {
-      var pm = R.besidePath(B, mk.sq), okm = pm && pm.length * 5 <= R.CLICK_FT, rq = mk.sq, gz = B.map.gz(rq[0] + 1, rq[1]), cc = iso.center(rq[0] + 0.5, rq[1], gz + 22 * (D.hscale || 1)), s = iso.toScreen(cc.x, cc.y);
+      var pm = R.besidePath(B, mk.sq), okm = pm && pm.length * 5 <= R.clickFt(), rq = mk.sq, gz = B.map.gz(rq[0] + 1, rq[1]), cc = iso.center(rq[0] + 0.5, rq[1], gz + 22 * (D.hscale || 1)), s = iso.toScreen(cc.x, cc.y);
       (okm ? pm : []).forEach(function (q) { iso.rhombus(c, q[0], q[1], G.map.gz(q[0], q[1]), 11); c.fillStyle = 'rgba(232,208,112,0.5)'; c.fill(); });
       c.strokeStyle = okm ? 'rgba(232,208,112,0.95)' : 'rgba(160,160,170,0.85)'; c.lineWidth = 1.5; c.beginPath(); c.ellipse(s.x, s.y, 12 * (iso.zoom || 1), 12 * (iso.zoom || 1), 0, 0, 7); c.stroke(); c.lineWidth = 1;
       return;
     }
     if (!hv || (hv.x === t.x && hv.y === t.y)) return;
     var key = hv.x + ',' + hv.y + ':' + t.x + ',' + t.y + ':' + G.map.sq.length;
-    if (R0.hk !== key) { R0.hk = key; var use = R.useAt(B, hv.x, hv.y); R0.huse = !!use; R0.hpath = use ? R.besidePath(B, [hv.x, hv.y]) : D.Battle.route(t, [hv.x, hv.y], R.solid()); }
-    var p = R0.hpath, ok = !!p && p.length * 5 <= R.CLICK_FT, col = !p ? 'rgba(240,90,80,0.9)' : !ok ? 'rgba(160,160,170,0.85)' : R0.huse ? 'rgba(232,208,112,0.95)' : 'rgba(150,235,150,0.95)';
+    if (R0.hk !== key) { R0.hk = key; var use = R.useAt(B, hv.x, hv.y); R0.huse = !!use; R0.hpath = use ? R.besidePath(B, [hv.x, hv.y]) : R.walkRoute(t, [hv.x, hv.y]); }
+    var p = R0.hpath, ok = !!p && p.length * 5 <= R.clickFt(), col = !p ? 'rgba(240,90,80,0.9)' : !ok ? 'rgba(160,160,170,0.85)' : R0.huse ? 'rgba(232,208,112,0.95)' : 'rgba(150,235,150,0.95)';
     if (ok) p.forEach(function (q) { iso.rhombus(c, q[0], q[1], G.map.gz(q[0], q[1]), 11); c.fillStyle = R0.huse ? 'rgba(232,208,112,0.45)' : 'rgba(150,235,150,0.45)'; c.fill(); });
     iso.rhombus(c, hv.x, hv.y, G.map.gz(hv.x, hv.y), 2); c.strokeStyle = col; c.lineWidth = 1.5; c.stroke(); c.lineWidth = 1;
   };
@@ -1595,7 +1615,7 @@
     if (R0.mode === 'walk') { R.hoverMarks(c, B); return; }
     if (R0.mode !== 'order') return;
     var t = R0.token, who = R0.sel || R0.rest[0] || t, iso = D.iso;
-    var wp = function (gx, gy) { return iso.toScreen((gx - gy) * iso.TW / 2, (gx + gy) * iso.TH / 2); };
+    var wp = function (gx, gy) { var w = iso.cornerW ? iso.cornerW(gx, gy) : { x: (gx - gy) * iso.TW / 2, y: (gx + gy) * iso.TH / 2 }; return iso.toScreen(w.x, w.y); };
     for (var y = t.y - 2; y <= t.y + 2; y++) for (var x = t.x - 2; x <= t.x + 2; x++) {
       if (!R.legit(B, who, x, y) && !R0.rest.some(function (u) { return u.x === x && u.y === y; })) continue;
       iso.rhombus(c, x, y, 0, 2); c.globalAlpha = 0.75; c.strokeStyle = 'rgb(150,210,255)'; c.lineWidth = 1; c.stroke(); c.globalAlpha = 1;
@@ -1707,7 +1727,7 @@
   };
 
   // ------------------------------------------------------------------ the picture: the ground's edge while a fight is on, a line of help
-  function corner(gx, gy) { var w = { x: (gx - gy) * D.iso.TW / 2, y: (gx + gy) * D.iso.TH / 2 }; return D.iso.toScreen(w.x, w.y); }
+  function corner(gx, gy) { var w = D.iso.cornerW ? D.iso.cornerW(gx, gy) : { x: (gx - gy) * D.iso.TW / 2, y: (gx + gy) * D.iso.TH / 2 }; return D.iso.toScreen(w.x, w.y); } // (a square's corner, the diamonds' or the town's north-up view: js/topview.js)
   R.paintOver = function (ctx, B) {
     var R0 = B.roam; if (!R0) return;
     var C = R0.cut;

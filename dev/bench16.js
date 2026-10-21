@@ -1907,14 +1907,14 @@
     function okT(what, v) { repT.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
     function driveT(g, until, cap) { var v, k = 0, st; while (k++ < (cap || 20000)) { if (until && until()) return true; st = g.next(v); v = undefined; if (st.done) return !!(until && until()); if (typeof st.value === 'number' && D.battle) D.battle.t += Math.max(1, st.value); if (st.value && st.value.prompt) v = st.value.prompt.opts[0].value; } return !!(until && until()); }
     function cardT(re) { return (D.battle.cards || []).some(function (c) { return c.lines.some(function (l) { return re.test(String(l)); }); }); }
-    function walkT(BT, RT, to, cap) { var p = D.Battle.route(RT.token, to, D.roam.solid()); /* (as a click walks: round the people) */ if (!p) return null; BT.cards = []; RT.path = p.slice(); driveT(BT.co, function () { return RT.token.x === to[0] && RT.token.y === to[1] && !(RT.path && RT.path.length); }, cap || 40000); driveT(BT.co, null, 40); return p.length; } // (and on a little: the square's own arrival -- a door, a way off -- runs after the step)
+    function walkT(BT, RT, to, cap) { var p = D.roam.walkRoute(RT.token, to); /* (as a click walks: round the people, down the slope) */ if (!p) return null; BT.cards = []; RT.path = p.slice(); driveT(BT.co, function () { return RT.token.x === to[0] && RT.token.y === to[1] && !(RT.path && RT.path.length); }, cap || 40000); driveT(BT.co, null, 40); return p.length; } // (and on a little: the square's own arrival -- a door, a way off -- runs after the step)
     D.store.get = function (k) { return memT[k] ? JSON.parse(memT[k]) : null; }; D.store.set = function (k, v) { memT[k] = JSON.stringify(v); return true; };
     try {
       D.seed = +get('seed', 1020);
-      var t0T = performance.now(), BT = D.roam.make('?roam=silverton&watch&ft=5'); D.scenes.length = 0; D.push(BT); D.battle = BT; BT.enter();
+      var t0T = performance.now(), BT = D.roam.make('?roam=silverton&watch&ft=5&view=iso'); D.scenes.length = 0; D.push(BT); D.battle = BT; BT.enter();
       var msT = Math.round(performance.now() - t0T), RT = BT.roam, defT = D.roam.def, mT = BT.map, tkT = RT.token, cnT = {};
       defT.rows.forEach(function (r) { for (var i = 0; i < r.length; i++) cnT[r[i]] = (cnT[r[i]] || 0) + 1; });
-      okT('the town from v6 at true scale (&ft=5): ' + defT.w + ' x ' + defT.h + ' squares in ' + msT + ' ms, its floor in pages of ' + D.iso.PAGE + ' px (' + mT.bake.cols + ' x ' + mT.bake.rows + ', ' + mT.bake.baked + ' painted before it is seen)', defT.w === 474 && defT.h === 310 && mT.bake.paged && mT.bake.baked === 0);
+      okT('the town from v6 at true scale on the diamonds (&ft=5&view=iso): ' + defT.w + ' x ' + defT.h + ' squares in ' + msT + ' ms, its floor in pages of ' + D.iso.PAGE + ' px (' + mT.bake.cols + ' x ' + mT.bake.rows + ', ' + mT.bake.baked + ' painted before it is seen)', defT.w === 474 && defT.h === 310 && mT.bake.paged && mT.bake.baked === 0);
       var sumT = function (cs) { return cs.split('').reduce(function (a, c) { return a + (cnT[c] || 0); }, 0); }, housesT = sumT(D.town.HOUSES), shacksT = sumT(D.town.SHACKS), roofedT = sumT(Object.keys(defT.roofs).join(''));
       okT('v6\'s shapes laid: houses ' + housesT + ' (three heights), the Shaft Rows\' shacks ' + shacksT + ', the Hexagon and the tower ' + cnT.B + ', the yard wall ' + cnT.q + ', the Edifice and the mountain ' + cnT['#'] + ', dressed ' + cnT['='] + ', packed dirt ' + cnT[','] + ', the river ' + cnT.D + ', the stockade ' + cnT.f + ', the fountains\' water ' + cnT['~'] + ', doors ' + cnT.d, housesT > 14000 && D.town.HOUSES.split('').every(function (c) { return cnT[c] > 2000; }) && shacksT > 2000 && cnT.B > 3000 && cnT.q > 40 && cnT['#'] > 7000 && cnT['='] > 5000 && cnT[','] > 10000 && cnT.D > 500 && cnT.f > 1000 && cnT['~'] > 300 && cnT.d > 40);
       okT('its buildings stand under roofs (' + Object.keys(defT.roofs).map(function (k) { return k + ' ' + defT.roofs[k].h + ' ft'; }).join(', ') + '): ' + mT.props.filter(function (p) { return p.kind === 'rock' && defT.roofs[p.sq.ch]; }).length + ' roofed squares, every one a prop', mT.props.filter(function (p) { return p.kind === 'rock' && defT.roofs[p.sq.ch]; }).length === roofedT);
@@ -1947,7 +1947,7 @@
       okT('out by the door: the street again (the town\'s own map kept, ' + BT.units.filter(function (u) { return u.npc; }).length + ' people back), on Winters\' doorstep (' + tkT.x + ',' + tkT.y + ') facing the street', !D.roam.def.room && BT.map === townMapT && D.iso.map === townMapT && BT.units.filter(function (u) { return u.npc; }).length === folkN && tkT.x === wiT[0] && tkT.y === wiT[1]);
       // every door's room: the one shape, varied by the trade -- the door in the front wall, the way in walkable, the keeper behind the counter, a way from the door to the counter
       var badR = [], sizesR = {};
-      D.town.DOORS.forEach(function (dd) {
+      D.town.DOORS.filter(function (dd) { return D.town.hasRoom(dd.id); }).forEach(function (dd) {
         var rd = D.town.room(dd.id, dd), m2 = D.iso.load(rd), e = rd.entry[0], k = rd.keeper.at, tk2 = { x: e[0], y: e[1], size: 1, side: 'party' };
         sizesR[rd.rows[0].length + 'x' + rd.rows.length] = (sizesR[rd.rows[0].length + 'x' + rd.rows.length] || 0) + 1;
         GT.setup(m2, [tk2]); var ctr = null; for (var x2 = 1; x2 < m2.w - 1; x2++) if (m2.at(x2, 3).ch === 'K' && m2.at(x2, 4).walk) { ctr = [x2, 4]; break; }
@@ -1955,7 +1955,7 @@
         if (!ok) badR.push(dd.id);
       });
       D.iso.map = townMapT; GT.setup(townMapT, BT.units);
-      okT('every door\'s room laid (' + D.town.DOORS.length + ': ' + Object.keys(sizesR).map(function (k) { return k + ' ' + sizesR[k]; }).join(', ') + '), each walkable from its door to its counter' + (badR.length ? ' -- NOT: ' + badR.join(', ') : ''), !badR.length);
+      okT('every room laid behind a vendor\'s or an interaction\'s door (' + D.town.ROOMS.length + ' of the ' + D.town.DOORS.length + ' doors: ' + Object.keys(sizesR).map(function (k) { return k + ' ' + sizesR[k]; }).join(', ') + '), each walkable from its door to its counter' + (badR.length ? ' -- NOT: ' + badR.join(', ') : ''), !badR.length);
       var wayT = defT.doors.filter(function (q) { return /fork/.test(defT.wayName[q[0] + ',' + q[1]]); })[0], nO = wayT ? walkT(BT, RT, wayT, 80000) : null;
       okT('THE road west off the floor (' + wayT + ', ' + nO + ' steps): the world map\'s, later, and the town keeps the party', !!wayT && cardT(/THE road west/) && cardT(/world map/) && BT.units.indexOf(tkT) >= 0);
       okT('the floor painted only where the camera went: ' + mT.bake.baked + ' of ' + mT.bake.pages.filter(function (p) { return p.list.length; }).length + ' pages (none on a bench page, nothing drawn)', mT.bake.baked === 0);
@@ -1964,10 +1964,22 @@
       // room behind a door at true scale
       var B30 = D.roam.make('?roam=silverton&watch'); D.scenes.length = 0; D.push(B30); D.battle = B30; B30.enter();
       var R30 = B30.roam, d30 = D.roam.def, t30 = R30.token, f30 = B30.units.filter(function (u) { return u.npc; });
-      okT('the town by default as if the party stood ' + d30.ft + ' ft tall: ' + d30.w + ' x ' + d30.h + ' squares, one picture (' + (B30.map.bake.paged ? 'paged' : 'not paged') + '), the houses\' roofs ' + Math.round(d30.roofs.b.h * 10) / 10 + ' ft on the grid', d30.ft === 30 && d30.w === 79 && d30.h === 52 && !B30.map.bake.paged && Math.abs(d30.roofs.b.h - 20 / 6) < 0.01);
+      okT('the town by default as if the party stood ' + d30.ft + ' ft tall, north up the screen (' + d30.view + '): ' + d30.w + ' x ' + d30.h + ' squares, the houses\' roofs ' + Math.round(d30.roofs.b.h * 10) / 10 + ' ft on the grid', d30.ft === 30 && d30.view === 'top' && !!B30.map.top && d30.w === 79 && d30.h === 52 && Math.abs(d30.roofs.b.h - 20 / 6) < 0.01);
+      var gwz = B30.map.gz(t30.x, t30.y), hfz = B30.map.gz(d30.marks.hexFront[0][0], d30.marks.hexFront[0][1]);
+      okT('one slope off Fountain Street, then level (Griz: "slope once off of fountain street, then leveled"): the west gate ' + gwz + ' px up, the Hexagon\'s doors ' + hfz + '; rows ' + d30.heights.slice(5, 11).map(function (r) { return r.charAt(40); }).join(''), gwz > 0 && hfz === 0 && d30.heights.every(function (r, i) { return i === 0 || Math.abs(parseInt(r.charAt(40), 36) - parseInt(d30.heights[i - 1].charAt(40), 36)) <= 1; }));
+      okT('a click walks ' + D.roam.clickFt() + ' ft in town (twice the Wet\'s ' + D.roam.CLICK_FT + ': his "double for now")', D.roam.clickFt() === 2 * D.roam.CLICK_FT);
+      var pk = D.iso.pick(D.W / 2, D.H / 2, 0), cc30 = D.iso.center(t30.x, t30.y, B30.map.gz(t30.x, t30.y));
+      okT('north up: the token\'s square at ' + Math.round(cc30.x) + ',' + Math.round(cc30.y) + ' (a square ' + D.topview.TS + ' px), up the screen the grid\'s north (' + D.spr.FACINGS[D.spr.facingFor(0, -1)] + '), a pick finds a square (' + (pk ? pk.x + ',' + pk.y : 'none') + ')', D.spr.FACINGS[D.spr.facingFor(0, -1)] === 'N' && D.spr.FACINGS[D.spr.facingFor(1, 0)] === 'E' && Math.round(cc30.x) === (t30.x + 0.5) * D.topview.TS);
       okT('in at its west gate (' + d30.marks.gates.west + '), the three gates on it, ' + Object.keys(d30.marks.doors).length + ' doors of ' + D.town.DOORS.length + ', ' + f30.length + ' people', t30.x === d30.marks.gates.west[0] && t30.y === d30.marks.gates.west[1] && ['west', 'south', 'east'].every(function (k) { return !!d30.marks.gates[k]; }) && Object.keys(d30.marks.doors).length === D.town.DOORS.length && f30.length >= 18);
+      var unr30 = Object.keys(d30.marks.doors).filter(function (k) { return !D.roam.walkRoute(t30, d30.marks.doors[k]); });
+      okT('every door reached on foot from the west gate (none in a yard closed in by houses' + (unr30.length ? ' -- NOT: ' + unr30.join(', ') : '') + ')', !unr30.length);
       var hf30 = d30.marks.hexFront[0], n30 = walkT(B30, R30, hf30, 20000);
       okT('walked from the west gate to the Hexagon\'s front doors (' + n30 + ' steps, the token at ' + t30.x + ',' + t30.y + ')', n30 > 15 && t30.x === hf30[0] && t30.y === hf30[1]);
+      var me30 = d30.marks.doors['keeper:mela']; walkT(B30, R30, me30, 20000);
+      okT('a door with no room behind it (the stew: ' + (D.town.hasRoom('keeper:mela') ? 'a room' : 'no room') + '): its keeper\'s word at the door, the party still in the street (' + ((B30.cards[B30.cards.length - 1] || {}).lines || []).join(' / ').slice(0, 70) + ')', !D.town.hasRoom('keeper:mela') && !D.roam.def.room && cardT(/Mela Sorris/));
+      var sy30 = d30.marks.doors['keeper:sylvia']; walkT(B30, R30, sy30, 20000);
+      okT('Sylvia Swann\'s booth (his "sylvia will get one"): ' + (D.roam.def.room === 'keeper:sylvia' ? 'in, ' + D.roam.def.name + ', ' + B30.map.w + ' x ' + B30.map.h : 'not in'), D.roam.def.room === 'keeper:sylvia');
+      if (D.roam.def.room) walkT(B30, R30, D.roam.def.doors[0], 4000);
       var ca30 = d30.marks.doors['keeper:casper'], m30 = B30.map; walkT(B30, R30, ca30, 20000);
       okT('Casper Venn\'s door opens his room at true scale (' + D.roam.def.name + ', ' + B30.map.w + ' x ' + B30.map.h + ')', D.roam.def.room === 'keeper:casper' && B30.map.w === 10);
       walkT(B30, R30, D.roam.def.doors[0], 4000);

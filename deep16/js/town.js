@@ -25,6 +25,9 @@
   // Bloodsnout's compound (10-20, his words above): the seat's draft -- behind the fighters' stables (19) and the arena family's house (24), on the open
   // ground east of the Arena Plaza against the stockade, its gate to the plaza; walled stone, a barracks along its back, the yard between, shut (invented.json bloodsnout-compound)
   T.COMPOUND = { x: 1560, y: 1582, w: 115, h: 90, gate: 'w' };
+  // the town's one slope (10-20, Griz: "slope once off of fountain street, then leveled"): Fountain Street, the Gate Plaza's head and the Edifice's foot up on their level, the
+  // ground falling DROP ft southward between SLOPE[0] and SLOPE[1] (v6's feet: the first sixty feet off the street), and level from there to the south gate
+  T.SLOPE = [560, 620]; T.DROP = 30;
 
   T.lay = function (V, F0) {
     V = V || D.TOWN_V6;
@@ -42,7 +45,7 @@
       var c = Math.cos(a), s = Math.sin(a), r = Math.hypot(Math.abs(ox) + bw, Math.abs(oy) + bh) + F;
       fill(px - r, py - r, px + r, py + r, function (x, y) {
         var dx = x - px, dy = y - py, u = dx * c + dy * s - ox, v = -dx * s + dy * c - oy, inside = u >= 0 && u < bw && v >= 0 && v < bh;
-        if (inside && gable) { var across = bw >= bh ? v : u, span = bw >= bh ? bh : bw, gx2 = gxOf(x), gy2 = gyOf(y); if (gx2 >= 0 && gy2 >= 0 && gx2 < w && gy2 < h) sl[gy2 * w + gx2] = span >= 3 * F && Math.abs(across - span / 2) < F / 2 ? 3 : across < span / 2 ? 1 : 2; } // (the ridge along the long way)
+        if (inside && gable) { var across = bw >= bh ? v : u, span = bw >= bh ? bh : bw, gx2 = gxOf(x), gy2 = gyOf(y); if (gx2 >= 0 && gy2 >= 0 && gx2 < w && gy2 < h) sl[gy2 * w + gx2] = (bw >= bh ? 0 : 3) + (span >= 3 * F && Math.abs(across - span / 2) < F / 2 ? 3 : across < span / 2 ? 1 : 2); } // (1-3: the ridge east-west; 4-6: north-south -- js/topview.js reads the way) // (the ridge along the long way)
         return inside;
       }, ch, only);
     };
@@ -104,7 +107,11 @@
     var GATE = { 0: 'south', 1: 'west', 2: 'east' }; // (v6's gateposts in its own order: the south gate track, THE road's west gate, the east road to the farms)
     V.gate.forEach(function (q, k) { marks.gates[GATE[k] || 'g' + k] = nearestOpen(q[0] + (k === 1 ? 14 : 0), q[1] + (k === 1 ? -14 : 0)); }); // (the west gate's mark a step inside, where the road from the fork arrives)
     V.PINS.forEach(function (p) { marks.pins[p[2]] = nearestOpen(p[0], p[1]); });
-    marks.compound = nearestOpen(C.x - 6, C.y + C.h / 2, 30); // (outside its shut gate)
+    // the ground the streets reach from the west gate (a door or a person in a yard closed in by houses would be out of reach: at a town's scale a block's back yards close up)
+    var reach = new Uint8Array(w * h), WALK = '.,=dr~', qq = [marks.gates.west]; reach[marks.gates.west[1] * w + marks.gates.west[0]] = 1;
+    for (var qi = 0; qi < qq.length; qi++) { var c1 = qq[qi]; for (var ddy = -1; ddy <= 1; ddy++) for (var ddx = -1; ddx <= 1; ddx++) { var nx = c1[0] + ddx, ny = c1[1] + ddy; if ((!ddx && !ddy) || nx < 0 || ny < 0 || nx >= w || ny >= h || reach[ny * w + nx] || WALK.indexOf(g[ny * w + nx]) < 0) continue; if (ddx && ddy && (WALK.indexOf(at(c1[0] + ddx, c1[1])) < 0 || WALK.indexOf(at(c1[0], c1[1] + ddy)) < 0)) continue; reach[ny * w + nx] = 1; qq.push([nx, ny]); } }
+    var out = {}; for (var ri = 0; ri < g.length; ri++) if (!reach[ri] && OPEN.indexOf(g[ri]) >= 0) out[(ri % w) + ',' + Math.floor(ri / w)] = 1;
+    marks.compound = nearestOpen(C.x - 6, C.y + C.h / 2, 30, out); // (outside its shut gate)
     // the Hexagon's doors (v6: black at 62 and 118 degrees -- the front, south, to the Arena Plaza -- and at -62 and -118, the back to the falls): the square outside each
     var hexDoor = function (deg) { var a = Math.PI / 180 * deg; var o2 = hx[2] + Math.max(6, F * 0.6); return nearestOpen(hx[0] + Math.cos(a) * o2, hx[1] + Math.sin(a) * o2, 20); };
     marks.hexFront = [hexDoor(62), hexDoor(118)]; marks.hexBack = [hexDoor(-62), hexDoor(-118)];
@@ -112,17 +119,20 @@
     var vy = gyOf(V.EDBOT) + 1; for (var vx = gxOf(V.AX - 64); vx <= gxOf(V.AX + 64); vx++) set(vx, vy, 'd');
     marks.vault = [gxOf(V.AX), vy];
     // the doors of the shops and the keepers (the 8-bit's trigger at each, content/maps/silverton.json, by its slot's pin): a threshold 'd' on the street, marked, not built
-    var taken = {}, tk = function (q) { for (var dy2 = -1; dy2 <= 1; dy2++) for (var dx2 = -1; dx2 <= 1; dx2++) taken[(q[0] + dx2) + ',' + (q[1] + dy2)] = 1; };
+    var taken = Object.assign({}, out), tk = function (q) { for (var dy2 = -1; dy2 <= 1; dy2++) for (var dx2 = -1; dx2 <= 1; dx2++) taken[(q[0] + dx2) + ',' + (q[1] + dy2)] = 1; };
     marks.doors = {};
     T.DOORS.forEach(function (d) {
       var p = V.PINS.filter(function (q) { return q[2] === d.pin; })[0]; if (!p) return;
-      var q = nearestOpen(p[0], p[1], 150, taken); if (!q) return;
+      var q = null, g0 = gxOf(p[0]), g1 = gyOf(p[1]), c0 = at(g0, g1);
+      if (c0 && T.ROOFS[c0]) { var y5 = g1; while (at(g0, y5 + 1) === c0 && y5 - g1 < 8) y5++; var below = at(g0, y5 + 1); if (below && '.,='.indexOf(below) >= 0 && !taken[g0 + ',' + (y5 + 1)]) q = [g0, y5 + 1]; } // (straight south of the pin, past its own building, onto the ground: the door in its south wall)
+      if (!q) q = nearestOpen(p[0], p[1], 150, taken); if (!q) return;
       tk(q); set(q[0], q[1], 'd'); marks.doors[d.id] = q;
     });
     var v6pins = {}; V.PINS.forEach(function (p) { v6pins[p[2]] = [p[0], p[1]]; });
+    var heights = []; for (var y4 = 0; y4 < h; y4++) { var fy = cy(y4), e = fy <= T.SLOPE[0] ? T.DROP : fy >= T.SLOPE[1] ? 0 : T.DROP * (T.SLOPE[1] - fy) / (T.SLOPE[1] - T.SLOPE[0]), dg = Math.round(e * T.FT / F / 2.5); heights.push(new Array(w + 1).join(dg.toString(36))); } // (in the grid's steps, 2.5 ft, at the square's scale)
     for (var si = 0; si < g.length; si++) if (!T.ROOFS[g[si]]) sl[si] = 0; // (a side only where a roof still stands: the streets, the doors and the yard laid over some)
     var slope = []; for (var y3 = 0; y3 < h; y3++) { var sr = ''; for (var x3 = 0; x3 < w; x3++) sr += sl[y3 * w + x3]; slope.push(sr); }
-    return { w: w, h: h, rows: (function () { var out = []; for (var y2 = 0; y2 < h; y2++) out.push(g.slice(y2 * w, y2 * w + w).join('')); return out; })(), slope: slope, marks: marks, v6pins: v6pins, F: F };
+    return { w: w, h: h, rows: (function () { var out = []; for (var y2 = 0; y2 < h; y2++) out.push(g.slice(y2 * w, y2 * w + w).join('')); return out; })(), slope: slope, heights: heights, reach: reach, marks: marks, v6pins: v6pins, F: F };
   };
 
   // the doors: the 8-bit's Silverton triggers (content/maps/silverton.json: shop, keeper, inn, leech, chapel, warp) at their slot's pin in v6's key (the wiki's slots are
@@ -134,8 +144,14 @@
     { id: 'keeper:marin', pin: '13' }, { id: 'keeper:brennan', pin: '14' }, { id: 'shop:marko', pin: '15' }, { id: 'shop:kasten', pin: '16' }, { id: 'keeper:venhale', pin: '19' },
     { id: 'shop:vilar', pin: '20' }, { id: 'leech:davos', pin: '21' }, { id: 'keeper:kess', pin: '29' }, { id: 'chapel:aldwin', pin: '30' }, { id: 'keeper:mical', pin: '32' },
     { id: 'shop:lisbet', pin: '33' }, { id: 'keeper:merrick', pin: '34' }, { id: 'warp:winters', pin: '35', art: 'ART-78' }, { id: 'warp:percy', pin: '38' },
-    { id: 'keeper:tam', pin: '40' }, { id: 'shop:lucia', pin: '42' }
+    { id: 'keeper:tam', pin: '40' }, { id: 'shop:lucia', pin: '42' },
+    { id: 'keeper:sylvia', pin: '37', name: 'Sylvia Swann', what: 'the fortune-teller\'s booth', art: 'ART-SYLVIA-SWANN' } // (10-20, Griz: "sylvia will get one" -- not in the 8-bit's doors: its sign says she isn't in)
   ];
+  // the doors with rooms behind them (10-20, Griz: "just vendors and interactions (sylvia will get one)"): the 8-bit's shops, the five of the new buy/sell screens, the inn, the
+  // leech, the chapel, the lantern house's window, and Sylvia. The rest are doors whose keeper speaks at the door (T.fire)
+  T.ROOMS = ['shop:kessler', 'shop:calla', 'shop:marko', 'shop:kasten', 'shop:vilar', 'shop:lisbet', 'shop:lucia', 'warp:winters', 'warp:percy', 'keeper:casper', 'keeper:androit',
+    'keeper:hessle', 'keeper:aldric', 'inn:cassia', 'leech:davos', 'chapel:aldwin', 'keeper:merrick', 'keeper:sylvia'];
+  T.hasRoom = function (id) { return T.ROOMS.indexOf(id) >= 0; };
   // the people: the 8-bit's Silverton NPCs (their list and conditions read from its own data, DS.DATA.maps.silverton.npcs), each where v6 and the wiki put them -- by
   // their slot's pin, a few feet off it (d: feet east, south), or a mark (at). Standing, facing as the 8-bit has them; their stand-in figures the plain sheets the
   // Skylights' townsfolk wear (battle.js townsfolk) until the art desk's townsfolk are cut (ART-52), the gate hand a guard
@@ -186,6 +202,8 @@
     var districts = (V.label || []).filter(function (l) { return /district/.test(l[3]) && !/S I L V E R T O N/.test(l[2]); });
     var def = D.MAPS.silverton = {
       name: 'Silverton', sub: 'the town, true scale from the city map v6', key: 'silverton', town: true, wet: false, dark: false, ground: 'earth', step: 10,
+      view: /[?&]view=iso\b/.test(q) ? null : 'top', // (north up the screen -- 10-20, Griz: "the iso is too much for the town"; &view=iso the grid's diamonds: js/topview.js)
+      heights: L.heights.slice(oy, oy + h).map(function (r) { return r.slice(ox, ox + w); }),
       ft: L.F, roofs: T.roofsAt(L.F), slope: L.slope.slice(oy, oy + h).map(function (r) { return r.slice(ox, ox + w); }), // (its buildings stand whole under their roofs, two sides and a ridge: js/iso.js roofCanvas)
       rows: rows, w: w, h: h, cut: cut ? [ox, oy, w, h] : null, page: w * h > 12000, // (page: a floor too big to paint as one picture, painted in pieces as the camera comes to them -- js/iso.js)
       entry: [to(at)], face: face, gate: gate, stairUp: [], doors: ways, marks: marks, people: people, foes: [],
@@ -210,7 +228,7 @@
   T.openNear = function (L, x, y, used) {
     var F = L.F || T.FT, R = Math.max(3, Math.round(60 / F)), g0 = Math.floor((x - T.X0) / F), g1 = Math.floor((y - T.Y0) / F), best = null, bd = 1e9;
     for (var dy = -R; dy <= R; dy++) for (var dx = -R; dx <= R; dx++) {
-      var gx = g0 + dx, gy = g1 + dy, row = L.rows[gy]; if (!row || gx < 0 || gx >= row.length || '.,='.indexOf(row.charAt(gx)) < 0 || (used && used[gx + ',' + gy])) continue; // (never on a door's threshold)
+      var gx = g0 + dx, gy = g1 + dy, row = L.rows[gy]; if (!row || gx < 0 || gx >= row.length || '.,='.indexOf(row.charAt(gx)) < 0 || (used && used[gx + ',' + gy]) || (L.reach && !L.reach[gy * L.w + gx])) continue; // (never on a door's threshold, nor out of the streets' reach)
       var d = Math.hypot(dx, dy); if (d < bd) { bd = d; best = [gx, gy]; }
     }
     return best;
@@ -286,9 +304,10 @@
     'warp:winters': { size: 'm', floor: '=', goods: 'glow', own: true },                                   // the magic-item shop: Griz's own proprietor
     'warp:percy': { size: 's', floor: 'o', goods: 'glow', side: true },                                    // Percy's Particulars: jars in ranks, the counter (invented.json percy-interior)
     'keeper:tam': { size: 'm', floor: 'o', goods: 'violet', counter: 'none', dress: ['cots'] },            // the dream-smoke den's couches
-    'shop:lucia': { size: 's', floor: 'o', goods: 'moss', own: true }                                      // Mama's Pharmakaiea: Griz's own
+    'shop:lucia': { size: 's', floor: 'o', goods: 'moss', own: true },                                     // Mama's Pharmakaiea: Griz's own
+    'keeper:sylvia': { size: 's', floor: 'o', goods: 'violet', counter: 'short', own: true }                // Sylvia Swann's booth: Griz's own (the vice-row fortune-teller)
   };
-  T.KEEPER = { 'shop:kessler': 'Kessler', 'shop:calla': 'Calla Voss', 'shop:marko': 'Marko Thorne', 'shop:kasten': 'Kasten Wheal', 'shop:vilar': 'Vilar', 'shop:lisbet': 'Lisbet Crane', 'inn:cassia': 'Cassia', 'leech:davos': 'Davos Kren', 'warp:percy': 'Percy', 'warp:winters': 'Ambrose Winters', 'shop:lucia': 'Mama', 'keeper:aldric': 'Aldric Vest' }; // (the shops' keepers by the register; the keepers' own names come from the 8-bit's npcs)
+  T.KEEPER = { 'shop:kessler': 'Kessler', 'shop:calla': 'Calla Voss', 'shop:marko': 'Marko Thorne', 'shop:kasten': 'Kasten Wheal', 'shop:vilar': 'Vilar', 'shop:lisbet': 'Lisbet Crane', 'inn:cassia': 'Cassia', 'leech:davos': 'Davos Kren', 'warp:percy': 'Percy', 'warp:winters': 'Ambrose Winters', 'shop:lucia': 'Mama', 'keeper:aldric': 'Aldric Vest', 'keeper:sylvia': 'Sylvia Swann' }; // (the shops' keepers by the register; the keepers' own names come from the 8-bit's npcs)
   T.room = function (id, door) {
     var t = T.TRADE[id] || { size: 'm', floor: 'o', goods: 'leather' }, S = { s: [10, 8], m: [12, 10], l: [16, 12] }[t.size] || [12, 10], w = S[0], h = S[1], g = [];
     for (var y = 0; y < h; y++) { g.push([]); for (var x = 0; x < w; x++) g[y].push(x === 0 || y === 0 || x === w - 1 || y === h - 1 ? 'b' : t.floor); }
@@ -363,6 +382,10 @@
       B.card(R.wrap(['{y}' + (u ? u.name : trig.npc) + '{/}'].concat(said)), 420);
       D.sfx('popup'); yield 20; return;
     }
-    if (trig.town === 'door') { yield* T.goIn(B, trig); return; } // (in: the room behind it -- T.room)
+    if (trig.town === 'door' && T.hasRoom(trig.id)) { yield* T.goIn(B, trig); return; } // (in: the room behind it -- T.room)
+    if (trig.town === 'door') { // (a door with no room behind it: its keeper's word at the door, as the 8-bit's keeper card)
+      var arg2 = trig.id.split(':')[1], N2 = ((window.DS.DATA || {}).npcs || {})[arg2] || {}, d2 = trig.door || {};
+      B.card(R.wrap(['{y}' + (d2.name || N2.name || arg2) + '{/}' + (d2.what ? ' -- ' + d2.what : '')].concat(T.say(B, arg2))), 420); D.sfx('popup'); yield 10; return;
+    }
   };
 })();
