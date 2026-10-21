@@ -2149,7 +2149,10 @@
       okH('slot 2 kept: in Silverton at ' + (s2 && s2.at.sq) + ', Vivian at ' + (v2 && v2.hp) + ' (the floor\'s ' + hurtH + '), the Pocket DM\'s table untouched (' + (memH['deep16.pocket'] ? 'written!' : 'none') + ')',
         !!s2 && s2.at.town === 'silverton' && s2.at.sq[0] === tkH.x && s2.at.sq[1] === tkH.y && v2.hp === hurtH && !memH['deep16.pocket'] && D.top() === BH);
       // out by a road to THE WORLD, the same party
+      var stH0 = HH.cur.steps, stS2 = s2 && s2.steps; RH0.steps += 7; // (seven more squares walked after the SAVE: the way out banks them, the SAVE's not again)
       var wayH = defH.doors[0]; driveH(D.town.wayOut(BH, wayH), null, 400);
+      okH('the save counts the floor\'s steps (RULED 10-21, Griz: "I don\'t see any harm in counting steps"): NEW GAME ' + HH.fresh().steps + ', slot 2 at its SAVE ' + stS2 + ', out of town ' + HH.cur.steps + ' (+7 after the SAVE); an old save filled with ' + HH.fill({ party: [] }).steps,
+        HH.fresh().steps === 0 && stS2 === stH0 && HH.cur.steps === stH0 + 7 && HH.fill({ party: [] }).steps === 0);
       var wsH = D.top(), vW = HH.cur.party.filter(function (h) { return h.id === 'vivian'; })[0];
       okH('out by ' + ((defH.wayName || {})[wayH[0] + ',' + wayH[1]] || 'a road') + ' to THE WORLD (' + (wsH && wsH.kind) + '), Vivian still ' + vW.hp + '/' + vW.maxhp, wsH && wsH.kind === 'world' && vW.hp === hurtH && !HH.cur.at.town);
       // a road fight: the save's party, wounds and all; won, its XP banked and no level yet

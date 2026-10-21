@@ -23,12 +23,15 @@
   H.fresh = function () {
     var R = DS.R, C = DS.DATA.config || {};
     return { v: H.V, lead: H.HEROES[0], hired: H.HEROES.slice(), party: H.HEROES.map(function (id) { return R.makeHero(id); }), guests: [], inv: (C.startItems || []).map(function (s) { return { id: s[0], n: s[1] }; }),
-      silver: C.startSilver || 10, renown: 0, flags: {}, kills: {}, world: null, at: { town: 'silverton', gate: 'west', sq: null, dir: null }, made: Date.now(), saved: 0 };
+      silver: C.startSilver || 10, renown: 0, steps: 0, flags: {}, kills: {}, world: null, at: { town: 'silverton', gate: 'west', sq: null, dir: null }, made: Date.now(), saved: 0 };
   };
-  // a save made before the house kept them: the renown none yet, the lead its first hero, hired the four it holds
+  // a save made before the house kept them: the renown none yet, the lead its first hero, hired the four it holds, no steps counted
+  // (steps: every square walked on a floor, banked as the floor hands back -- H.fromFloor. RULED 10-21, Griz: "I don't see any harm in counting steps, and we might use it to
+  // measure and pass time on some roam maps later and it'll be good to already have it")
   H.fill = function (rec) {
     var ids = (rec.party || []).map(function (h) { return h.key || h.id; });
     if (rec.renown == null) rec.renown = 0;
+    if (rec.steps == null) rec.steps = 0;
     if (!rec.lead) rec.lead = ids[0] || H.HEROES[0];
     if (!Array.isArray(rec.hired)) rec.hired = ids.slice();
     return rec;
@@ -59,6 +62,7 @@
     if (m.order && m.order.length) H.cur.party.sort(function (a, b) { return m.order.indexOf(a.key || a.id) - m.order.indexOf(b.key || b.id); });
     H.cur.inv = Object.keys(m.inv1 || {}).filter(function (id) { return m.inv1[id] > 0; }).map(function (id) { return { id: id, n: m.inv1[id] }; });
     H.cur.flags = m.flags || H.cur.flags; H.cur.kills = m.kills || H.cur.kills; if (m.silver != null) H.cur.silver = m.silver;
+    var R0 = B.roam, nS = (R0.steps || 0) - (R0.banked || 0); if (nS > 0) { H.cur.steps = (H.cur.steps || 0) + nS; R0.banked = R0.steps; } // (the floor's squares walked since it last handed back: a SAVE in town and the way out both bank, never twice)
     DS.G = { flags: H.cur.flags };
   };
   // a fight's party back into the save: each hero's sheet as the fight left it (its hurt, slots, uses; what lasts -- js/roam.js R.LASTING), the pack as the fight left it
