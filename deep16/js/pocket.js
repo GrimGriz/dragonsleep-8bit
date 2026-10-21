@@ -1021,19 +1021,19 @@
   // fight, or a ladder's or a module's fights till the next long rest (run.morning). By slot index: a seat's card
   // (10-21, Griz: "Morning spell cast options might need to be relabeled and allow to select for things like 'continual flame'"): the rows are the spells, not three:
   // every one built on the grid that is cast on a creature or its gear with no concentration and that, by the SRD 5.1's duration, outlasts a short rest's hour --
-  // 8 hours or more, or till dispelled -- so it is on in each fight of the day; and Light, a cantrip, lit again before each fight. `cond`: the grid's condition it
+  // 8 hours or more, or till dispelled -- so it is on in each fight of the day; and Light, a cantrip, lit again before each fight. `lays`: the grid's condition it
   // lays (js/magic.js, js/grimoire.js); `n`: the creatures one casting takes (Aid's three); `bare`: one in no armour. Each creature picked is a casting and a slot,
   // spent in this order. (Left off: the 1-hour spells -- False Life, Longstrider, See Invisibility, Protection from Poison, Warding Bond, Freedom of Movement, True
   // Seeing -- which a short rest outlasts)
   PK.CAST_AHEAD = [
-    { id: 'mageArmor', dur: '8 hours', cond: 'mageArmor', bare: true },
+    { id: 'mageArmor', dur: '8 hours', lays: 'mageArmor', bare: true },
     { id: 'aid', dur: '8 hours', n: 3 },
-    { id: 'darkvision', dur: '8 hours', cond: 'darkvision' },
-    { id: 'continualflame', dur: 'till dispelled', cond: 'continualFlame' },
-    { id: 'deathward', dur: '8 hours, or till it holds', cond: 'deathWard' },
-    { id: 'mindblank', dur: '24 hours', cond: 'mindBlank' },
-    { id: 'foresight', dur: '8 hours', cond: 'foresight' },
-    { id: 'light', dur: '1 hour, lit before each fight', cond: 'light' }
+    { id: 'darkvision', dur: '8 hours', lays: 'darkvision' },
+    { id: 'continualflame', dur: 'till dispelled', lays: 'continualFlame' },
+    { id: 'deathward', dur: '8 hours, or till it holds', lays: 'deathWard' },
+    { id: 'mindblank', dur: '24 hours', lays: 'mindBlank' },
+    { id: 'foresight', dur: '8 hours', lays: 'foresight' },
+    { id: 'light', dur: '1 hour, lit before each fight', lays: 'light' }
   ];
   // m.cast[id] = { who: [seat, ...], by: seat }: who it is cast on and who casts it; a spell not there takes its defaults (Mage Armor on its caster, Light on the
   // front man when the fight is dark -- the grid camp's own -- the rest off)
@@ -1069,9 +1069,9 @@
       if (!ready.length) why = 'not prepared today' + (can.length > 1 ? ' by any of ' + can.map(function (c) { return c.h.name; }).join(', ') : ' (' + can[0].h.name + ')');
       if (e.bare) tg = tg.filter(function (c) { if (R.armored(c.h)) { whyOf[c.i] = 'wears armour'; return false; } return true; });
       if (caster && !why) {
-        var val = function (c) { return e.cond === 'mageArmor' ? 1 : e.cond === 'continualFlame' ? ((c.h.equip && c.h.equip.weapon) || true) : e.cond === 'darkvision' ? { by: caster.unit, had: dv0(c) } : { by: caster.unit }; }; // (Continual Flame on the weapon in hand, the 8-bit's way: js/light.js)
+        var val = function (c) { return e.lays === 'mageArmor' ? 1 : e.lays === 'continualFlame' ? ((c.h.equip && c.h.equip.weapon) || true) : e.lays === 'darkvision' ? { by: caster.unit, had: dv0(c) } : { by: caster.unit }; }; // (Continual Flame on the weapon in hand, the 8-bit's way: js/light.js)
         if (e.n) { if (tg.length) { if (slotOK(caster)) { spend(caster, lv); tg.slice(0, e.n).forEach(function (c) { c.fields.aid = 5; got.push(c); }); } else why = caster.h.name + ' has no ' + ORD[lv] + '-level slot left'; } }
-        else tg.forEach(function (c) { if (!slotOK(caster)) { whyOf[c.i] = 'no slot left'; if (!why) why = caster.h.name + ' has no ' + ORD[lv] + '-level slot left'; return; } if (lv) spend(caster, lv); c.fields.conds[e.cond] = val(c); got.push(c); });
+        else tg.forEach(function (c) { if (!slotOK(caster)) { whyOf[c.i] = 'no slot left'; if (!why) why = caster.h.name + ' has no ' + ORD[lv] + '-level slot left'; return; } if (lv) spend(caster, lv); c.fields.conds[e.lays] = val(c); got.push(c); });
       }
       out.casts.push({ e: e, spell: spl, lv: lv, can: can, ready: ready, caster: caster, who: who, got: got, why: why, whyOf: whyOf });
     });
