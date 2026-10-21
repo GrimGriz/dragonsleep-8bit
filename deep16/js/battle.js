@@ -939,6 +939,8 @@
   // its advantage against the one it holds (rules.js RU.edges)
   Battle.grappler = function (u) { var h = u && u.src; return !!(h && window.DS.R.hasFeat(h, 'grappler') && (u.abil || h.abil).str >= 13); };
   Battle.grapplerOn = function (att, tgt) { return !!(tgt && tgt.conds && tgt.conds.grappled && tgt.conds.grappled.by === att.id && Battle.grappler(att)); };
+  // the reach a creature's grip holds at: its longest attack's (the roper's 50-ft tendril, the chuul's 10-ft pincer -- js/ai.js keeps the same at its turn's start)
+  Battle.gripReach = function (u) { var r = u.reach; Object.keys(u.attacks || {}).forEach(function (k) { r = Math.max(r || 0, (u.attacks[k] && u.attacks[k].reach) || 0); }); return G.reachOf(u, r); };
   Battle.prototype.letGo = function (g, w, why) {
     if (!w || !w.conds.grappled) return;
     delete w.conds.grappled; if (g && g.grappling === w.id) delete g.grappling;
@@ -966,6 +968,12 @@
       if (incap && s.holding && s.holding.length) self.release(s);
       // a hero's grapple ends when the grappler is incapacitated, or when the one held is out of its reach (SRD 5.1, grappled: "if an effect removes the grappled creature from the reach") -- 10-15
       if (s.conds.grappled) { var gS = self.units.filter(function (x) { return x.id === s.conds.grappled.by; })[0], gIn = !gS || gS.dead || gS.fled || gS.left || gS.hp <= 0 || gS.conds.paralyzed || gS.conds.stunned || gS.conds.asleep || gS.conds.incapacitated; if (gone || gIn) self.letGo(gS, s, gone ? 'gone' : 'incap'); else if (G.dist(gS, s) > G.reachOf(gS)) self.letGo(gS, s, 'reach'); }
+      // and a creature's grip (restrained { grapple, by }: the chuul's pincer, the roper's tendril, a hug) the moment the one held is out of the holder's reach -- a shove, a
+      // push, a step it was moved -- not at the holder's next turn (10-21, his 10-19 question "if chull grapple vivian and is shoved 5ft is vivian dragged 5 ft?": the SRD 5.1,
+      // no -- the shove moves only the one shoved -- and the grapple ends when "an effect removes the grappled creature from the reach of the grappler"). The swirl and Whelm hold
+      // within the holder's own space: theirs
+      var rH = s.conds.restrained;
+      if (rH && rH.grapple && !rH.pin && !rH.water && !rH.whelm && !gone && !s.conds.grappled) { var hH = self.units.filter(function (x) { return x.id === rH.by; })[0]; if (hH && !hH.dead && hH.hp > 0 && G.dist(hH, s) > Battle.gripReach(hH)) { self.release(hH, s); self.card(['{g}' + Battle.nm(s, true) + ' is out of ' + Battle.nm(hH) + "'s reach: the grip lets go.{/}"], 200); } }
       // a blinding hold (the darkmantle over the head, the cloaker's fold) ends with the grip, however the grip ended
       var bl = s.conds.blinded;
       if (bl && bl.held && !(s.conds.restrained && s.conds.restrained.by === bl.by && s.conds.restrained.grapple) && !(s.conds.attached && s.conds.attached.by === bl.by)) { delete s.conds.blinded; self.card(['{g}' + (s.side === 'foe' ? Battle.nm(s, true) : s.name) + ' can see again.{/}'], 200); }

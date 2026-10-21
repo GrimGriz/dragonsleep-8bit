@@ -301,6 +301,19 @@
     var foe = g.shape === 'attack' || g.shape === 'rays' || g.shape === 'splash' || g.side === 'foe';
     return 'no ' + (g.only || 'one') + (foe ? (g.only ? ' foe' : ' of the foes') : '') + ' standing to take it';
   };
+  // why a spell will not take w from here, in words, for the click it turns away (10-21, his 10-19 note: Enlarge refused on a friend in the dark, by the SRD's "a creature you can
+  // see", and the click said nothing): the spell's own refusals, the kind, the sight it asks, the range by the true distance, the line. '' when it would take it
+  M.whyNot = function (B, u, g, w) {
+    if (!w || w.dead) return '';
+    var why = M.targetWhy(u, g, w, B); if (why) return 'is ' + why;
+    if (!M.targetKind(B, u, g, w)) return w.object ? 'is no creature this spell takes' : 'is not one this spell takes';
+    if (g.shape === 'touch') return M.targetOK(B, u, g, w) ? '' : 'is out of reach (a touch)';
+    if (w !== u && !M.sees(B, u, w) && !g.swing && (g.see || (G.hostile(u, w) && (g.shape === 'single' || g.shape === 'splash')))) { var sw = M.seeWhy(B, u, w); return 'is not seen' + (sw && sw.why ? ' (' + sw.why + ')' : '') + ': the spell asks for one you can see'; }
+    var rg = g.range || 5, d = (M.touchRange(g) || rg <= 5 ? G.dist : G.range)(u, w);
+    if (d > rg) return 'is ' + d + ' ft off (the spell reaches ' + rg + ' ft)';
+    if (w !== u && !G.los(u, w).clear) return 'has no clear line to it';
+    return '';
+  };
   // a spell with a range of touch, which a familiar may deliver (SRD 5.1 Find Familiar: "when you cast a spell with a range of touch, your
   // familiar can deliver the spell as if it had cast the spell"; RULED 09-30): the touch spells, the touch attacks, and a touch that asks a
   // save (Bestow Curse) -- 10-01b, Griz: "don't forget touch casters with familiars default to touching via familiar within range"

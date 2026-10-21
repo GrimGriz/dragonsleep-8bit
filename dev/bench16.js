@@ -3120,6 +3120,48 @@
       ok21('3 Heroism on the fighter panicked by the fear scale (frightened and running, ' + had3 + '): heroism ' + !!f3.conds.heroism + ', frightened ' + !!f3.conds.frightened + ', running ' + !!f3.conds.feared + ', the scale ' + D.rules.fearLvl(f3) + ' (want true, false, false, 0)', had3 && !!f3.conds.heroism && !f3.conds.frightened && !f3.conds.feared && !D.rules.fearLvl(f3));
       D.rules.fearSet(f3, 2, g3.id, 13);
       ok21('3 and a fright laid under it: frightened ' + !!f3.conds.frightened + ', immune ' + D.rules.immuneTo(f3, 'frightened') + ', the -2 ' + D.rules.shaken(f3) + ' (want false, true, 0)', !f3.conds.frightened && D.rules.immuneTo(f3, 'frightened') && !D.rules.shaken(f3));
+      // 5a. MOVE TAKES THE TILE (his 10-19 #1, "when move is active, mouse hover should ignore enemy hotboxes other than tiles"): the mouse on the goblin's sprite where it is
+      // drawn over the square behind it -- MOVE's square is that one, not the goblin's; aiming an attack it is still the goblin
+      var UIx = D.ui || window.D16 && window.D16.ui, B5 = mk21('?npc=goblin&vs=fighter:5&lvl=5'), f5 = side21(B5, 'party')[0], g5 = side21(B5, 'foe')[0], o5 = open21(B5, 6, 6);
+      if (!o5 || !UIx) ok21('5a an open stretch and the UI (' + !!UIx + ')', false);
+      else {
+        f5.x = o5[0] + 1; f5.y = o5[1] + 4; g5.x = o5[0] + 3; g5.y = o5[1] + 3; B5.cursor = B5.cursor || { x: f5.x, y: f5.y }; D.rules.startTurn(f5); B5.req = { turn: f5 }; B5.active = f5;
+        var gz5 = G21.map.gz(g5.x, g5.y), c5 = D.iso.toScreen(D.iso.center(g5.x, g5.y, gz5).x, D.iso.center(g5.x, g5.y, gz5).y), at5 = null;
+        for (var dy5 = 0; dy5 < 120 && !at5; dy5 += 1) { var py5 = c5.y - dy5, t5 = D.iso.pick(c5.x, py5, gz5); if (UIx.pickUnit(B5, c5.x, py5) === g5 && t5 && !(t5.x === g5.x && t5.y === g5.y) && !G21.occupant(t5.x, t5.y)) at5 = { x: c5.x, y: py5, t: t5 }; }
+        if (!at5) ok21('5a a point on the goblin\'s sprite over an empty square behind it', false);
+        else {
+          B5.tool = 'move'; var hm5 = UIx.hoverPick ? UIx.hoverPick(B5, f5, at5.x, at5.y) : null;
+          ok21('5a MOVE, the mouse on the goblin\'s sprite over (' + at5.t.x + ',' + at5.t.y + '): the square ' + (hm5 && hm5.sq ? hm5.sq.x + ',' + hm5.sq.y : 'none') + ', the figure ' + (hm5 && hm5.unit ? hm5.unit.name : 'none') + ' (want the square behind, no figure)', !!hm5 && !!hm5.sq && hm5.sq.x === at5.t.x && hm5.sq.y === at5.t.y && !hm5.unit);
+          B5.tool = 'attack'; var ha5 = UIx.hoverPick ? UIx.hoverPick(B5, f5, at5.x, at5.y) : null;
+          ok21('5a ATTACK, the same point: the figure ' + (ha5 && ha5.unit ? ha5.unit.name : 'none') + ' (want the goblin)', !!ha5 && ha5.unit === g5);
+          B5.tool = 'move'; var cg5 = D.iso.toScreen(D.iso.center(g5.x, g5.y, gz5).x, D.iso.center(g5.x, g5.y, gz5).y), hf5 = UIx.hoverPick ? UIx.hoverPick(B5, f5, cg5.x, cg5.y) : null;
+          ok21('5a MOVE, the mouse on the goblin\'s own square: the figure ' + (hf5 && hf5.unit ? hf5.unit.name : 'none') + ' (want the goblin)', !!hf5 && hf5.unit === g5);
+        }
+        B5.req = null;
+      }
+      // 5b. A PUSH PAST THE HOLDER'S REACH ENDS THE GRIP AT ONCE (his 10-19 #4, "if chull grapple vivian and is shoved 5ft is vivian dragged 5 ft?"; the SRD 5.1: not dragged, and
+      // the grapple ends when "an effect removes the grappled creature from the reach of the grappler"): the chuul's pincer (reach 10 ft) on a fighter moved 10 ft, then 15
+      var B6 = mk21('?npc=chuul&vs=fighter:5&lvl=5'), ch6 = side21(B6, 'foe')[0], f6 = side21(B6, 'party')[0], o6 = open21(B6, 8, 4);
+      if (!o6 || !ch6 || ch6.kind !== 'chuul') ok21('5b an open stretch and the chuul', false);
+      else {
+        ch6.x = o6[0]; ch6.y = o6[1]; f6.x = o6[0] + 2; f6.y = o6[1]; f6.conds.restrained = { dc: 14, by: ch6.id, grapple: true, only: true }; ch6.holding = [f6]; B6.cache = null;
+        f6.x = o6[0] + 3; B6.sweep(); var held10 = !!(f6.conds.restrained && f6.conds.restrained.by === ch6.id), d10 = G21.dist(ch6, f6);
+        f6.x = o6[0] + 4; var n6 = (B6.log || []).length; B6.sweep(); var held15 = !!(f6.conds.restrained && f6.conds.restrained.by === ch6.id), d15 = G21.dist(ch6, f6);
+        ok21('5b the chuul\'s pincer on the fighter shoved to ' + d10 + ' ft: held ' + held10 + '; to ' + d15 + ' ft: held ' + held15 + ', the chuul still holding ' + (ch6.holding || []).length + ' (want true, false, 0)', d10 === 10 && held10 && d15 === 15 && !held15 && !(ch6.holding || []).length && /grip lets go/.test(log21(B6, n6)));
+      }
+      // 5c. THE REFUSED CLICK SAYS WHY, AND THE AI'S ENLARGE ASKS SIGHT (his 10-19 #6, Enlarge refused on the unseen -- the SRD's "a creature or an object you can see"; the
+      // click said nothing, and the class AI's Enlarge looked only at the 30 ft)
+      var B7 = mk21('?npc=goblin&vs=wizard:5,fighter:5&lvl=5'), wz7 = side21(B7, 'party').filter(function (w) { return w.cls === 'wizard'; })[0], f7 = side21(B7, 'party').filter(function (w) { return w.cls === 'fighter'; })[0], g7 = side21(B7, 'foe')[0];
+      wz7.x = 3; wz7.y = 3; f7.x = 5; f7.y = 3; g7.x = 14; g7.y = 9; B7.cache = null;
+      if ((wz7.known || []).indexOf('enlargereduce') < 0) (wz7.known = wz7.known || []).push('enlargereduce');
+      var en7 = M21.geo('enlargereduce'); f7.conds.invisible = { by: f7.id };
+      var why7 = M21.whyNot ? M21.whyNot(B7, wz7, en7, f7) : '';
+      ok21('5c Enlarge at the fighter, invisible (seen ' + M21.sees(B7, wz7, f7) + '): refused ' + !M21.targetOK(B7, wz7, en7, f7) + ', the card says ' + JSON.stringify(why7) + ' (want false, true, not seen)', !M21.targetOK(B7, wz7, en7, f7) && /not seen/.test(why7));
+      D.rules.startTurn(wz7); var e7 = D.magic.list(B7, wz7).filter(function (e) { return e.id === 'enlargereduce'; })[0];
+      var plan7 = e7 && M21.EFFECT.enlargereduce.ai(B7, wz7, e7, 2, [g7], [wz7, f7]), t7 = plan7 && plan7.t && plan7.t.length != null ? plan7.t[0] : plan7 && plan7.t; // (the plan's target as a list: the engine's wrapper)
+      ok21('5c the wizard\'s AI weighs Enlarge, the fighter beside him unseen: ' + (e7 ? 'target ' + (!t7 ? 'none' : t7 === wz7 ? 'himself' : t7 === f7 ? 'the fighter' : t7.name) : 'no Enlarge on its list') + ' (want not the fighter)', !!e7 && t7 !== f7);
+      delete f7.conds.invisible; f7.x = 10; B7.cache = null; why7 = M21.whyNot ? M21.whyNot(B7, wz7, en7, f7) : '';
+      ok21('5c and the fighter seen 35 ft off: the card says ' + JSON.stringify(why7) + ' (want 35 ft off)', /35 ft off/.test(why7));
     } catch (e21) { rep21.errors.push(String(e21 && e21.stack || e21).slice(0, 900)); D.d = d021; }
     if (errs.length) rep21.errors = rep21.errors.concat(errs);
     var pre21 = document.createElement('pre'); pre21.id = 'out'; pre21.textContent = 'BENCH16 ' + JSON.stringify(rep21);

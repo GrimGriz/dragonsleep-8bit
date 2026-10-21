@@ -922,7 +922,7 @@
     },
     ai: function (B, u, e, slot, fs, allies) {
       if (u.conc) return null;
-      var a = allies.filter(function (w) { return G.standing(w) && G.dist(u, w) <= 30 && !w.conds.enlarged && typeof w.attacks === 'number' && !(w.weapon || {}).ranged; }).sort(function (p, q) { return (q.attacksBase || 1) - (p.attacksBase || 1); })[0];
+      var a = allies.filter(function (w) { return G.standing(w) && M.targetOK(B, u, Object.assign({}, e.g, { side: 'ally' }), w) && !w.conds.enlarged && typeof w.attacks === 'number' && !(w.weapon || {}).ranged; }) // (the spell's own reach and sight: "a creature ... you can see within range" -- 10-21, his 10-19 #6).sort(function (p, q) { return (q.attacksBase || 1) - (p.attacksBase || 1); })[0];
       var sa = a ? (a.attacksBase || 1) * 2.5 * 0.65 * 3 : 0;
       var f = fs.filter(function (w) { return M.targetOK(B, u, Object.assign({}, e.g, { side: 'foe' }), w) && !w.conds.enlarged; }).sort(function (p, q) { return TX().dpr(q) - TX().dpr(p); })[0];
       var sf = f ? TX().pFail(f, 'con', u.spellDC) * 2.5 * 3 : 0;
