@@ -1,0 +1,166 @@
+{
+ "_readme": {
+  "what": "Playtest feedback from situations.html: one verdict and note a row -- an eyes row (js/eyes.js: built, not yet seen) or a story situation (?at=<id>, js/situations.js).",
+  "fold_back": "Fold every eyes row noted here that is still live in js/eyes.js (a folded row is already cut, so nothing folds twice; previous_save and new_since_last_save only hint at what is new -- RULED 10-15); a story situation note folds when its `at` is after the save of the last ear file folded. An eyes row noted at all is SEEN: a `seen` line in PATCHLOG.md with the note verbatim, and the row cut from js/eyes.js whatever the verdict (a fix that wants another look writes a fresh row). Broken and unclear become the fix list (in the lane its pt names); too hard / too easy are tuning; notes are the tester's words, verbatim."
+ },
+ "saved_at": "2026-10-21T17:52:19.139Z",
+ "previous_save": "2026-10-17T21:44:32.917Z",
+ "items": [
+  {
+   "id": "eyes-silverton-hex-1021",
+   "eyes": true,
+   "pri": 1,
+   "title": "Silverton: the Hex drawn whole -- diagonal sides, a ring roof open over the sand (10-21, evening)",
+   "pt": "the second game's house 10-21 (deep16/js/topview.js hexCanvas; deep16/js/town.js def.hexagon) · eyes",
+   "url": "deep16/?roam=silverton&at=38,43",
+   "verdict": "works",
+   "note": "much better - try default zoom one step further out\nthose doors should be double doors at the southern tip (carved away so the doors are straight n/s) - the point isn't carved out on the upper floors, but can be if needed to visualize doors)\n\nSimilarly mama's shop may have to come out adjacent like the 8 bit did it, as the door is technically on the north face and will be invis to players\n",
+   "at": "2026-10-21T17:46:58.641Z",
+   "new_since_last_save": true
+  },
+  {
+   "id": "eyes-winters-counter-1021",
+   "eyes": true,
+   "pri": 1,
+   "title": "Ambrose Winters at his counter: Winters' Errands door to door, his shelves, the keepers' portraits (10-21, later)",
+   "pt": "the second game's house 10-21 (deep16/js/counter.js; deep16/js/town.js T.fire; tools/portrait-sheet.py) · eyes",
+   "url": "deep16/",
+   "verdict": "works",
+   "note": "Need to 'not now' option the work/mission 'offers'",
+   "at": "2026-10-21T17:48:51.834Z",
+   "new_since_last_save": true
+  },
+  {
+   "id": "eyes-silverton-look-1021",
+   "eyes": true,
+   "pri": 1,
+   "title": "Silverton: no stockade, the street's houses on its level, blue and red roofs, a door on every building, the square under the mouse (10-21, later)",
+   "pt": "the second game's house 10-21 (deep16/js/town.js T.lay; deep16/js/topview.js; deep16/js/ui.js the corner) · eyes",
+   "url": "deep16/?roam=silverton",
+   "verdict": "works",
+   "note": "older build, doors were revised?\ndefault zoom one further out (stated elsewhere also)",
+   "at": "2026-10-21T17:51:22.850Z",
+   "new_since_last_save": true
+  },
+  {
+   "id": "eyes-silverton-edges-1021",
+   "eyes": true,
+   "pri": 1,
+   "title": "Silverton: out of town by any far square west, south or east; no zoom in town (10-21, later)",
+   "pt": "the second game's house 10-21 (deep16/js/town.js T.floor ways; deep16/js/ui.js UI.setZoom) · eyes",
+   "url": "deep16/",
+   "verdict": "works",
+   "note": "",
+   "at": "2026-10-21T17:51:31.896Z",
+   "new_since_last_save": true
+  },
+  {
+   "id": "eyes-march-card-1021",
+   "eyes": true,
+   "pri": 1,
+   "title": "THE FORCED MARCH's popup: a lost save stops the walk on a card (10-21, later)",
+   "pt": "the second game's house 10-21 (deep16/js/house.js H.marchCard; deep16/js/world.js stepWalk, arrive) · eyes",
+   "url": "deep16/",
+   "verdict": "works",
+   "note": "",
+   "at": "2026-10-21T17:52:09.005Z",
+   "new_since_last_save": true
+  },
+  {
+   "id": "eyes-antitoxin-reroll-1014",
+   "eyes": true,
+   "pri": 3,
+   "title": "The antitoxin by the SRD; the reroll after a lost rung (10-14)",
+   "pt": "the grid’s rules §2i; the Pocket DM and the races §2.2 (deep16/js/battle.js useItem; js/pocket.js)",
+   "url": "deep16/?pocket&fresh=1",
+   "verdict": "works",
+   "note": "heat metal concentration continues after target dies\nbane can't be cast on a single target \nantitoxin not tested\nladder checks work, battles saved 20261019",
+   "at": "2026-10-19T05:46:59.928Z",
+   "new_since_last_save": true
+  },
+  {
+   "id": "eyes-pudding-1013",
+   "eyes": true,
+   "pri": 3,
+   "title": "The black pudding’s third bite (10-13)",
+   "pt": "the grid’s rules §2h (deep16/js/traits.js)",
+   "url": "deep16/?npc=pudding&lvl=5",
+   "verdict": "works",
+   "note": "Successfully ate Vivians Leather. All the weapons except crossbow in that link are magic.",
+   "at": "2026-10-21T14:23:48.393Z",
+   "new_since_last_save": true
+  },
+  {
+   "id": "wet",
+   "eyes": false,
+   "pri": 4,
+   "title": "The Wet: the bucket and the landlord",
+   "pt": "§5 the wet · the landlord's pictures (new 10-01)",
+   "url": "?at=wet",
+   "verdict": "works",
+   "note": "This works. I think we made it such that no one can to this spot in the 8-bit without already being pulled on to the grid (check to make sure). We should put a light nearby the bucket and double check the sprite we're using to make it more a visible draw on the grid. The tiles around the Landlords pool should be switched to solid stone. ",
+   "at": "2026-10-04T05:23:43.178Z",
+   "new_since_last_save": false
+  },
+  {
+   "id": "wet3",
+   "eyes": false,
+   "pri": 4,
+   "title": "The gates down to the wet, at level 3",
+   "pt": "§5 the wet · §3 battle feel (new 10-03)",
+   "url": "?at=wet3",
+   "verdict": "unclear",
+   "note": "No encounters between town and warrens. Running back and forth on the road and got 2 giant rats. \nNo encounters in the mine until down in the wet itself. There either are not exit squares in the fight with the landlord, or party members are not allowed to use the flee under action (not on wheel). ",
+   "at": "2026-10-04T05:24:47.498Z",
+   "new_since_last_save": false
+  },
+  {
+   "id": "gulch",
+   "eyes": false,
+   "pri": 4,
+   "title": "Web Gulch: the strung end",
+   "pt": "§7 the braiding ettercap · §11 the snared traveler",
+   "url": "?at=gulch",
+   "verdict": "works",
+   "note": "",
+   "at": "2026-10-04T05:30:38.432Z",
+   "new_since_last_save": false
+  },
+  {
+   "id": "cloaker",
+   "eyes": false,
+   "pri": 4,
+   "title": "The guano slide and the cloaker",
+   "pt": "§6 the cloaker · §11 guano slide",
+   "url": "?at=cloaker",
+   "verdict": "works",
+   "note": "",
+   "at": "2026-10-04T05:30:46.273Z",
+   "new_since_last_save": false
+  },
+  {
+   "id": "roost",
+   "eyes": false,
+   "pri": 4,
+   "title": "Under the roost",
+   "pt": "§6 the one law · §11/§12 NOT THIS KIND OF NAME",
+   "url": "?at=roost",
+   "verdict": "works",
+   "note": "",
+   "at": "2026-10-04T05:34:59.719Z",
+   "new_since_last_save": false
+  },
+  {
+   "id": "cradle",
+   "eyes": false,
+   "pri": 4,
+   "title": "A shift at the cradle",
+   "pt": "§13 the cradle, rebuilt",
+   "url": "?at=cradle",
+   "verdict": "works",
+   "note": "",
+   "at": "2026-10-04T05:35:12.626Z",
+   "new_since_last_save": false
+  }
+ ]
+}
