@@ -303,7 +303,7 @@
   E.shockinggrasp = {
     summary: function (e, u) { return 'touch: melee spell attack · ' + dice(e.sp, u, 0) + ' lightning, advantage on metal armour · no reactions for it after'; },
     cast: function* (B, u, t, slot, head, x) {
-      var metal = (E.shockinggrasp.metal || M.metalArmor)(t); // (SRD 5.1: a target wearing metal armour -- not leather, hide or a robe; a foe's sheet names no armour, so only a hero or class NPC in mail or plate, or a unit marked metalArmor)
+      var metal = (E.shockinggrasp.metal || M.metalArmor)(t); // (SRD 5.1: a target wearing metal armour -- not leather, hide or a robe: a hero or class NPC in mail or plate, or a foe whose sheet names it, data/foes.js metalArmor)
       if (metal) t.conds.metalEdge = { till: { who: u.id, at: 'end', n: 1 } };
       yield* spellAttack(B, u, t, x.sp, x.g, dice(x.sp, u, 0), { onHit: function (w) { w.reaction = 0; w.conds.noReact = { till: { who: w.id, at: 'start', n: 1 } }; FX.sparkle(w, 'glow', 12); } });
       delete t.conds.metalEdge;
@@ -820,9 +820,12 @@
     yield 40;
   };
   // ------------------------------------------------------------------ metal, for the spells that ask (Heat Metal, Shocking Grasp)
+  // (a foe's sheet names its metal armour by the SRD block's AC line -- data/foes.js `metalArmor`, the hobgoblin's chain mail, the guard's chain shirt, the veteran's splint;
+  // 10-21 night, the grid's rules seat's find: no sheet did, so Heat Metal on a hobgoblin was its sword's case. Eaten through, the unit's own false wins)
   M.metalArmor = function (w) {
     if (w.metalArmor != null) return !!w.metalArmor;
     var R = window.DS.R, h = w.src, a = h && h.equip && R.item(h.equip.armor);
+    if (!(h && h.equip)) { var sh = w.kind && D.FOES && D.FOES[w.kind]; if (sh && sh.metalArmor) return true; }
     return !!(a && a.armor && (a.armor.type === 'heavy' || (a.armor.type === 'medium' && !/hide/.test(h.equip.armor))));
   };
   M.metalWeapon = function (w) {
@@ -972,7 +975,8 @@
       var dz = x.g.again ? t.conds.heated.dice : more('2d8', up(x.sp, slot)), r = D.roll(dz);
       if (!x.g.again) { t.conds.heated = { by: u.id, dice: dz }; M.concentrate(B, u, 'heatmetal', 'Heat Metal', function () { delete t.conds.heated; }, [t]); }
       FX.sparkle(t, 'fire', 16);
-      B.card([head + (x.g.again ? ': the metal on ' + nm(B, t) + ' flares again' : ': the metal on ' + nm(B, t) + ' glows red-hot') + '  ' + dz + ' ' + RU.fmtRolls(r.rolls) + ' = {r}' + r.total + '{/} fire'], 300);
+      var mtl = typeof t.metalArmor === 'string' && t.metalArmor ? 'the ' + t.metalArmor : 'the metal'; // (a foe's armour by its sheet's name: data/foes.js metalArmor, 10-21 night)
+      B.card([head + (x.g.again ? ': ' + mtl + ' on ' + nm(B, t) + ' flares again' : ': ' + mtl + ' on ' + nm(B, t) + ' glows red-hot') + '  ' + dz + ' ' + RU.fmtRolls(r.rolls) + ' = {r}' + r.total + '{/} fire'], 300);
       B.hurt(t, r.total, 'fire', MAGIC);
       if (t.hp > 0 && !t.dead) {
         var sv = RU.save(t, 'con', x.dc), held = M.metalWeapon(t) && !M.metalArmor(t);

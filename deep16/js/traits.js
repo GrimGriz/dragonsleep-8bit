@@ -48,9 +48,10 @@
   function wornArmour(u) { var R = window.DS.R, h = u.src; return h && h.equip && h.equip.armor ? { id: h.equip.armor, it: R.item(h.equip.armor) } : null; }
   // magic armour: one with a bonus (+1 and up), or Dwarven Plate (SRD 5.1's own, magic for all its plain number here); a foe's armour is plain unless its block says
   M.magicArmor = function (u) { if (u.armorMagic != null) return !!u.armorMagic; var a = wornArmour(u); return !!(a && a.it && a.it.armor && ((a.it.armor.bonus || 0) > 0 || a.it.magic || a.id === 'dwarfplate')); };
-  function armourName(u) { var a = wornArmour(u); return a && a.it ? a.it.name.toLowerCase() : 'armour'; }
-  // the AC without the armour: the sheet's own reckoning with it off (a shield, a ring, the class's Unarmored Defense still count), or 10 + DEX for a foe
-  function acWithout(u) { var R = window.DS.R; if (u.src && u.src.equip && R.ac) return R.ac(Object.assign({}, u.src, { equip: Object.assign({}, u.src.equip, { armor: null }) })); return 10 + D.mod(u.abil ? u.abil.dex : 10); }
+  function armourName(u) { var a = wornArmour(u); return a && a.it ? a.it.name.toLowerCase() : typeof u.metalArmor === 'string' ? u.metalArmor : 'armour'; } // (a foe's: its sheet's words, data/foes.js metalArmor)
+  // the AC without the armour: the sheet's own reckoning with it off (a shield, a ring, the class's Unarmored Defense still count), or 10 + DEX for a foe -- and its shield
+  // where the SRD block's AC names one (data/foes.js `shield`, 10-21 night: the hobgoblin's chain mail eaten through leaves 13, not 11)
+  function acWithout(u) { var R = window.DS.R; if (u.src && u.src.equip && R.ac) return R.ac(Object.assign({}, u.src, { equip: Object.assign({}, u.src.equip, { armor: null }) })); return 10 + D.mod(u.abil ? u.abil.dex : 10) + (u.shield ? 2 : 0); }
   var owh = M.onWeaponHit;
   M.onWeaponHit = function* (B, att, tgt, atk, crit) {
     if (owh) yield* owh(B, att, tgt, atk, crit);

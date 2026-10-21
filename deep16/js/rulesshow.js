@@ -3,7 +3,7 @@
    that link are magic."): the rules his eye wants played where the engine plays them, on the class floor, one beat after another, the dice pinned where a beat needs
    them to fall one way (its card says so). At the end of each beat the show waits: ENTER (or E, or a click) plays it again, → the next, ← the one before.
 
-     deep16/?rulesshow             every beat, in order · &only=antitoxin,pudding,heatmetal keeps to those (a beat's id or its group) · &beat=N starts at the Nth
+     deep16/?rulesshow             every beat, in order · &only=antitoxin,pudding,heatmetal,metal keeps to those (a beat's id or its group) · &beat=N starts at the Nth
                                    · &fast no pauses, no waits (the bench)
 
    Each beat is staged (who stands where, as its card says) and then run by the engine itself -- the bite and the blows B.attack, the antitoxin B.useItem, Heat Metal
@@ -19,7 +19,7 @@
     q = q || '';
     var get = function (k) { var m = new RegExp('[?&]' + k + '=([^&]*)').exec(q); return m ? decodeURIComponent(m[1]) : null; };
     var FAST = /[?&]fast\b/.test(q), L = 5;
-    var B = new D.Battle({ npc: { foes: ['giantspider', 'pudding', 'hobgoblin'], party: ['cleric:' + L + ':human', 'bard:' + L + ':human'] },
+    var B = new D.Battle({ npc: { foes: ['giantspider', 'pudding', 'hobgoblin', 'grayooze'], party: ['cleric:' + L + ':human', 'bard:' + L + ':human', 'wizard:' + L + ':human'] },
       fightDef: D.classFight(L, { what: 'The grid\'s rules, shown', intro: 'A beat at a time. ENTER plays a beat again.' }) });
     B.rulesshow = true;
     var enter0 = B.enter;
@@ -30,9 +30,9 @@
   function* show(B, get, FAST) {
     var W = function (n) { return FAST ? 1 : n * 2; }; // (time to read each card before the next blow)
     var all = B.units.slice(), party = all.filter(function (w) { return w.side === 'party' && !w.familiar; }), foes = all.filter(function (w) { return w.side === 'foe'; });
-    var cleric = party.filter(function (w) { return w.cls === 'cleric'; })[0], bard = party.filter(function (w) { return w.cls === 'bard'; })[0];
+    var cleric = party.filter(function (w) { return w.cls === 'cleric'; })[0], bard = party.filter(function (w) { return w.cls === 'bard'; })[0], wizard = party.filter(function (w) { return w.cls === 'wizard'; })[0];
     var kind = function (k) { return foes.filter(function (w) { return w.kind === k; })[0]; };
-    var spider = kind('giantspider'), pudding = kind('pudding'), hob = kind('hobgoblin');
+    var spider = kind('giantspider'), pudding = kind('pudding'), hob = kind('hobgoblin'), ooze = kind('grayooze');
     var keep = all.map(function (w) { return { u: w, hp: w.maxhp, baseAC: w.baseAC, armored: w.armored, metalArmor: w.metalArmor, weapon: w.weapon, equip: w.src && w.src.equip ? Object.assign({}, w.src.equip) : null, slots: w.slots ? w.slots.slice() : null, known: w.known ? w.known.slice() : null }; });
     var cx = Math.floor(G.map.w / 2), cy = Math.floor(G.map.h / 2);
     var report = B.rulesReport = [];
@@ -132,13 +132,14 @@
       return [held, held ? 'the mace +1 and the magic mail whole after three blows and three bites, AC ' + ac0 : 'the acid ate magic: ' + (l.match(/eaten[^|]*/g) || []).slice(0, 2).join('; ')];
     }
     function* heatMetal() {
-      // the bard's Heat Metal on the hobgoblin's longsword (no foe sheet marks its armour metal yet: the grimoire's M.metalArmor reads a hero's gear); the bard's bonus action flares it the next turn; the cleric fells it -- the bard lets go, no flare, no END
+      // the bard's Heat Metal on the hobgoblin's chain mail (its sheet names it since 10-21 night, data/foes.js metalArmor: the armour's case, not the longsword's -- it cannot
+      // shed it, so attacks and checks at disadvantage); the bard's bonus action flares it the next turn; the cleric fells it -- the bard lets go, no flare, no END
       stage([bard, hob, cleric], [[-2, 0], [1, 0], [2, 1]]); setPin(15, [3]); hob.maxhp = hob.hp = 80;
       if ((bard.known || []).indexOf('heatmetal') < 0) (bard.known = bard.known || []).push('heatmetal');
       bard.slots = [4, 3, 2, 0, 0, 0, 0, 0, 0];
-      say(['The bard heats the hobgoblin\'s longsword. Its saves are pinned to fail (its hit points deep for the show).']); yield W(60);
+      say(['The bard heats the hobgoblin\'s chain mail. Its saves are pinned to fail (its hit points deep for the show).']); yield W(60);
       var n = mark(); turn(bard); yield* fire(B.exec(bard, { do: 'cast', id: 'heatmetal', slot: 2, target: hob })); B.active = null; yield W(40);
-      var held = !!(bard.conc && bard.conc.id === 'heatmetal' && hob.conds.heated);
+      var held = !!(bard.conc && bard.conc.id === 'heatmetal' && hob.conds.heated), mail = !!(hob.conds.disAt && hob.conds.disAt.id === '*') && !hob.conds.disarmed;
       B.round++; turn(bard);
       var again = (D.magic.list(B, bard) || []).filter(function (e) { return e.id === 'heatmetal' && e.g && e.g.again; })[0];
       say(['The bard\'s next turn: the bonus action flares the metal again.']); yield W(40);
@@ -150,7 +151,28 @@
       var l = since(n), free = !bard.conc && /lets go of Heat Metal \(nothing left to hold\)/.test(l), endOn = (B.commands(bard) || []).some(function (c) { return c.id === 'endconc'; });
       var flare = (D.magic.list(B, bard) || []).some(function (e) { return e.id === 'heatmetal' && e.g && e.g.again; });
       B.active = null;
-      return [held && !!again && hob.dead && free && !endOn && !flare, (held ? 'heated' : 'never heated') + ', ' + (again ? 'flared again' : 'no flare the next turn') + ', the hobgoblin ' + (hob.dead ? 'dead' : 'up') + '; the bard ' + (free ? 'let go (nothing left to hold)' : 'still holding ' + (bard.conc ? bard.conc.name : '?')) + ', END on the ring ' + endOn + ', the flare offered ' + flare];
+      return [held && mail && !!again && hob.dead && free && !endOn && !flare, (held ? 'heated' : 'never heated') + (mail ? ' (the mail: attacks and checks at disadvantage)' : hob.conds.disarmed ? ' (the sword dropped: its mail not read as metal)' : ' (no disadvantage)') + ', ' + (again ? 'flared again' : 'no flare the next turn') + ', the hobgoblin ' + (hob.dead ? 'dead' : 'up') + '; the bard ' + (free ? 'let go (nothing left to hold)' : 'still holding ' + (bard.conc ? bard.conc.name : '?')) + ', END on the ring ' + endOn + ', the flare offered ' + flare];
+    }
+    function* metalGrasp() {
+      // the wizard's Shocking Grasp at the hobgoblin in chain mail (SRD 5.1: "advantage on the attack roll if the target is wearing armor made of metal"), then at the giant spider
+      stage([wizard, hob, spider], [[0, 0], [1, 0], [0, 1]]); setPin(12, null); hob.maxhp = hob.hp = 80; spider.maxhp = spider.hp = 80;
+      if ((wizard.known || []).indexOf('shockinggrasp') < 0) (wizard.known = wizard.known || []).push('shockinggrasp');
+      say(['The wizard\'s Shocking Grasp at the hobgoblin in chain mail, then at the giant spider (the d20s pinned to 12, the hit points deep for the show).']); yield W(60);
+      var n = mark(); turn(wizard); yield* fire(B.exec(wizard, { do: 'cast', id: 'shockinggrasp', slot: 0, target: hob })); B.active = null; yield W(50);
+      var l1 = since(n), n2 = mark(); turn(wizard); yield* fire(B.exec(wizard, { do: 'cast', id: 'shockinggrasp', slot: 0, target: spider })); B.active = null; yield W(50);
+      var l2 = since(n2), adv1 = /metal armou?r/.test(l1), adv2 = /metal armou?r/.test(l2);
+      return [adv1 && !adv2, 'at the hobgoblin ' + (adv1 ? 'with advantage (metal armour)' : 'no advantage') + '; at the spider ' + (adv2 ? 'with advantage: wrong' : 'none')];
+    }
+    function* oozeMail() {
+      // the gray ooze's pseudopod at the hobgoblin's chain mail, three bites pinned to land (SRD 5.1 Corrode Metal; the grid's third bite eats it through, his 10-13 ruling): AC 18,
+      // 17, 16, then the mail gone -- 13, the shield still on its arm
+      stage([hob, ooze], [[0, 0], [1, 0]]); setPin(15, null); hob.maxhp = hob.hp = 120;
+      var ac0 = RU.ac(hob);
+      say(['The gray ooze\'s pseudopod at the hobgoblin in chain mail, three bites pinned to land (AC ' + ac0 + '; the show sets one foe on another, the hobgoblin\'s hit points deep).']); yield W(60);
+      var n = mark(), acs = [];
+      for (var i = 0; i < 3; i++) { turn(ooze); yield* fire(B.attack(ooze, hob, ooze.attacks.pseudopod)); B.active = null; acs.push(RU.ac(hob)); yield W(50); }
+      var l = since(n), gone = /chain mail is eaten through and falls away/.test(l) && !hob.metalArmor;
+      return [acs[0] === ac0 - 1 && acs[1] === ac0 - 2 && gone && acs[2] === ac0 - 5, 'AC ' + ac0 + ' -> ' + acs.join(' -> ') + (gone ? ' (the mail gone, the shield kept)' : ' (the mail never eaten through)')];
     }
 
     var BEATS = [
@@ -158,7 +180,9 @@
       { id: 'puddingweapon', group: 'pudding', name: 'The pudding and a plain weapon', what: 'The cleric\'s mace is plain (nothing magic in this party): each blow that lands on the black pudding burns the cleric (its Corrosive Form, 1d8 acid) and eats the mace, -1 and -2 to its damage, and the third eats it through -- gone, fists after.', run: puddingWeapon },
       { id: 'puddingarmour', group: 'pudding', name: 'The pudding and plain armour', what: 'Its pseudopod on the cleric\'s plain chain mail: -1 AC, -2, and the third bite eats it through -- the mail gone, the AC what it is without it (the shield still counts).', run: puddingArmour },
       { id: 'puddingmagic', group: 'pudding', name: 'The pudding and magic', what: 'The same blows and bites with the mace made +1 and the mail magic: the acid eats neither (a magic weapon and magic armour are never eaten).', run: puddingMagic },
-      { id: 'heatmetal', group: 'heatmetal', name: 'Heat Metal ends with the one it heats', what: 'The bard heats the hobgoblin\'s longsword and flares it with a bonus action the next turn. The cleric fells the hobgoblin: at its turn\'s end the bard lets go of Heat Metal (nothing left to hold) -- no flare offered, no END HEAT METAL on the ring, and the bard is free to concentrate on something else.', run: heatMetal }
+      { id: 'heatmetal', group: 'heatmetal', name: 'Heat Metal ends with the one it heats', what: 'The bard heats the hobgoblin\'s chain mail (it cannot shed it: attacks and checks at disadvantage) and flares it with a bonus action the next turn. The cleric fells the hobgoblin: at its turn\'s end the bard lets go of Heat Metal (nothing left to hold) -- no flare offered, no END HEAT METAL on the ring, and the bard is free to concentrate on something else.', run: heatMetal },
+      { id: 'metalgrasp', group: 'metal', name: 'Shocking Grasp and a foe\'s mail', what: 'A foe\'s sheet names its metal armour now, by the SRD block\'s AC (the hobgoblin\'s chain mail, the guard\'s chain shirt, the veteran\'s splint). The wizard\'s Shocking Grasp at the hobgoblin has advantage (metal armour); at the giant spider, none.', run: metalGrasp },
+      { id: 'oozemail', group: 'metal', name: 'The gray ooze and a foe\'s mail', what: 'The gray ooze\'s pseudopod eats metal armour: on the hobgoblin\'s chain mail -1 AC, -2, and the third bite eats it through -- the mail gone, its shield still counting (AC 13).', run: oozeMail }
     ];
 
     var only = get('only'), list = BEATS.filter(function (b) { return !only || only.split(',').some(function (o) { return o === b.id || o === b.group; }); });

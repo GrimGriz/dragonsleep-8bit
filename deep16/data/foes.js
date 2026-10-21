@@ -148,7 +148,7 @@
     src: 'content/monsters.json bugbearchief (game-original from SRD 5.1 pieces: the Bugbear, two attacks); Surprise Attack as the 8-bit game reads it (+2d6 in the first round)'
   },
   hobsergeant: {
-    name: 'Hobgoblin Sergeant', type: 'humanoid', sheet: 'hobsergeant_p2', cr: '3', ac: 18, hp: 39, speed: 30, size: 1, reach: 5, darkvision: 60,
+    name: 'Hobgoblin Sergeant', type: 'humanoid', sheet: 'hobsergeant_p2', cr: '3', ac: 18, metalArmor: 'chain mail', shield: true, hp: 39, speed: 30, size: 1, reach: 5, darkvision: 60,
     abil: { str: 15, dex: 14, con: 14, int: 12, wis: 10, cha: 13 }, init: 2, perception: 10,
     saves: { str: 2, dex: 2, con: 2, int: 1, wis: 0, cha: 1 },
     attacks: { longsword: { name: 'Longsword', atk: 5, dice: '1d8', mod: 2, type: 'slashing', reach: 5 } },
@@ -156,7 +156,7 @@
     src: 'content/monsters.json hobsergeant (game-original from SRD 5.1 pieces: the Hobgoblin and the Veteran); Martial Advantage'
   },
   hobgoblin: {
-    name: 'Hobgoblin', type: 'humanoid', sheet: 'hobgoblin_p2', cr: '1/2', ac: 18, hp: 11, speed: 30, size: 1, reach: 5, darkvision: 60,
+    name: 'Hobgoblin', type: 'humanoid', sheet: 'hobgoblin_p2', cr: '1/2', ac: 18, metalArmor: 'chain mail', shield: true, hp: 11, speed: 30, size: 1, reach: 5, darkvision: 60,
     abil: { str: 13, dex: 12, con: 12, int: 10, wis: 10, cha: 9 }, init: 1, perception: 10,
     saves: { str: 1, dex: 1, con: 1, int: 0, wis: 0, cha: -1 },
     attacks: {
@@ -189,7 +189,7 @@
     src: 'content/monsters.json spellweaver (game-original, CR 6): Fire Bolt; a line of lightning (recharge 5-6, DEX 14, 8d6); Hold once (WIS 14, paralyzed, a save each turn)'
   },
   drowling: {
-    name: 'Drow', type: 'humanoid', sheet: 'drow_p1', humanoid: true, cr: '1/4', ac: 15, hp: 13, speed: 30, size: 1, reach: 5, darkvision: 120,
+    name: 'Drow', type: 'humanoid', sheet: 'drow_p1', humanoid: true, cr: '1/4', ac: 15, metalArmor: 'chain shirt', hp: 13, speed: 30, size: 1, reach: 5, darkvision: 120,
     abil: { str: 10, dex: 14, con: 10, int: 11, wis: 11, cha: 12 }, init: 2, perception: 12,
     saves: { str: 0, dex: 2, con: 0, int: 0, wis: 0, cha: 1 },
     attacks: {
@@ -227,7 +227,7 @@
     src: 'SRD 5.1 Stone Giant (CR 7, Huge, greatclub reach 15 ft; Rock as a ranged attack, thrown when no one is in reach); content/monsters.json stonegiant; the rock knocks prone (STR 17)'
   },
   duergar: {
-    name: 'Duergar', type: 'humanoid', sheet: 'duergar_p0', cr: '1', ac: 16, hp: 26, speed: 25, size: 1, reach: 5, darkvision: 120, invisibility: true,
+    name: 'Duergar', type: 'humanoid', sheet: 'duergar_p0', cr: '1', ac: 16, metalArmor: 'scale mail', shield: true, hp: 26, speed: 25, size: 1, reach: 5, darkvision: 120, invisibility: true,
     abil: { str: 14, dex: 11, con: 14, int: 11, wis: 10, cha: 9 }, init: 0, perception: 10,
     saves: { str: 2, dex: 0, con: 2, int: 0, wis: 0, cha: -1 },
     attacks: { warpick: { name: 'War Pick', atk: 4, dice: '1d8', mod: 2, type: 'piercing', reach: 5 }, javelin: { name: 'Javelin', atk: 4, dice: '1d6', mod: 2, type: 'piercing', range: [30, 120], ranged: true, count: 2, enlarged: '2d6' } }, // (the javelin, SRD 5.1: 2d6 enlarged; ai.js brute grows it first -- 10-02)
@@ -255,7 +255,7 @@
   // ------------------------------------------------------------------ people (09-27): KayKit Adventurers greyed or turned (tools/deep16-figures.json)
   // the line across the bridge (events.js, enter:warrens_a): the Captain's stable, five guards and their sergeant
   guard: {
-    name: 'Line Guard', type: 'humanoid', sheet: 'guard_p1', cr: '1/8', ac: 16, hp: 11, speed: 30, size: 1, reach: 5,
+    name: 'Line Guard', type: 'humanoid', sheet: 'guard_p1', cr: '1/8', ac: 16, metalArmor: 'chain shirt', shield: true, hp: 11, speed: 30, size: 1, reach: 5,
     abil: { str: 13, dex: 12, con: 12, int: 10, wis: 11, cha: 10 }, init: 1, perception: 12,
     saves: { str: 1, dex: 1, con: 1, int: 0, wis: 0, cha: 0 },
     attacks: { spear: { name: 'Spear', atk: 3, dice: '1d6', mod: 1, type: 'piercing', reach: 5 } },
@@ -263,7 +263,7 @@
   },
   // the ladder's wagon yard: two who rode guard on the wagon (SRD 5.1 Guard; the ladder's own, not the 8-bit game's)
   hiredsword: {
-    name: 'Hired Sword', type: 'humanoid', sheet: 'guard_p1', humanoid: true, cr: '1/8', ac: 16, hp: 11, speed: 30, size: 1, reach: 5,
+    name: 'Hired Sword', type: 'humanoid', sheet: 'guard_p1', humanoid: true, cr: '1/8', ac: 16, metalArmor: 'chain shirt', shield: true, hp: 11, speed: 30, size: 1, reach: 5,
     abil: { str: 13, dex: 12, con: 12, int: 10, wis: 11, cha: 10 }, init: 1, perception: 12,
     saves: { str: 1, dex: 1, con: 1, int: 0, wis: 0, cha: 0 },
     attacks: { spear: { name: 'Spear', atk: 3, dice: '1d6', mod: 1, type: 'piercing', reach: 5 } },
@@ -274,7 +274,7 @@
   // patrol's LINE SOLDIERS (dominion-patrol-the-fare-home.pdf: fighter 2, "two with glaives, two with sword and shield"); two
   // rolled d4 3 and 4, the sword-and-shield pair: half plate, shield, Defense style
   dominion: {
-    name: 'Dominion Soldier', type: 'humanoid', sheet: 'dominion_p1', humanoid: true, cr: '1/2', ac: 19, hp: 20, speed: 30, size: 1, reach: 5,
+    name: 'Dominion Soldier', type: 'humanoid', sheet: 'dominion_p1', humanoid: true, cr: '1/2', ac: 19, metalArmor: 'half plate', shield: true, hp: 20, speed: 30, size: 1, reach: 5,
     abil: { str: 15, dex: 12, con: 14, int: 10, wis: 10, cha: 10 }, init: 1, perception: 10,
     saves: { str: 4, dex: 1, con: 4, int: 0, wis: 0, cha: 0 },
     attacks: {
@@ -285,7 +285,7 @@
     src: 'dominion-patrol-the-fare-home.pdf LINE SOLDIERS (fighter 2, sword and shield: AC 19, HP 20, longsword +4 1d8+2, light crossbow +3 1d8+1 80/320)'
   },
   veteran: {
-    name: 'Sergeant', type: 'humanoid', sheet: 'veteran_p1', cr: '3', ac: 17, hp: 58, speed: 30, size: 1, reach: 5,
+    name: 'Sergeant', type: 'humanoid', sheet: 'veteran_p1', cr: '3', ac: 17, metalArmor: 'splint', hp: 58, speed: 30, size: 1, reach: 5,
     abil: { str: 16, dex: 13, con: 14, int: 10, wis: 11, cha: 10 }, init: 1, perception: 12,
     saves: { str: 3, dex: 1, con: 2, int: 0, wis: 0, cha: 0 },
     attacks: {
@@ -472,7 +472,7 @@
   // poison resistance: SRD 5.1 Dwarf). Their looks LPC-composed as the 8-bit's dwarves are (10-05, Griz: "LPC the pop-op dwarves more like the NPC dwarves instead of Duergar"): the troopers
   // on the garrison trooper's sheet (`trooper_p0`, composed 09-27: nasal helm, chainmail, a brown beard), the sergeant on his own (`drillsergeant_p0`: a bronze helm, armoured arms, a black beard)
   trooper: {
-    name: 'Trooper', type: 'humanoid', sheet: 'trooper_p0', humanoid: true, cr: '1/8', ac: 16, hp: 11, speed: 25, size: 1, reach: 5, darkvision: 60,
+    name: 'Trooper', type: 'humanoid', sheet: 'trooper_p0', humanoid: true, cr: '1/8', ac: 16, metalArmor: 'chain shirt', shield: true, hp: 11, speed: 25, size: 1, reach: 5, darkvision: 60,
     abil: { str: 13, dex: 12, con: 12, int: 10, wis: 11, cha: 10 }, init: 1, perception: 12,
     saves: { str: 1, dex: 1, con: 1, int: 0, wis: 0, cha: 0 },
     attacks: { spear: { name: 'Spear', atk: 3, dice: '1d6', mod: 1, type: 'piercing', reach: 5 } },
@@ -481,14 +481,14 @@
   // the first two out of the falls carry crossbows (10-05, Griz: "at least the first two out ... should have crossbows and bolts"): the Trooper, and the SRD light crossbow (80/320, 1d8)
   // at the Guard's +3 (DEX 12, proficient) -- from the roof at whatever climbs the face, the spear for one who makes the top
   trooperxbow: {
-    name: 'Trooper', type: 'humanoid', sheet: 'trooper_p0', humanoid: true, cr: '1/8', ac: 16, hp: 11, speed: 25, size: 1, reach: 5, darkvision: 60,
+    name: 'Trooper', type: 'humanoid', sheet: 'trooper_p0', humanoid: true, cr: '1/8', ac: 16, metalArmor: 'chain shirt', shield: true, hp: 11, speed: 25, size: 1, reach: 5, darkvision: 60,
     abil: { str: 13, dex: 12, con: 12, int: 10, wis: 11, cha: 10 }, init: 1, perception: 12,
     saves: { str: 1, dex: 1, con: 1, int: 0, wis: 0, cha: 0 },
     attacks: { spear: { name: 'Spear', atk: 3, dice: '1d6', mod: 1, type: 'piercing', reach: 5 }, crossbow: { name: 'Light Crossbow', atk: 3, dice: '1d8', mod: 1, type: 'piercing', ranged: true, range: [80, 320] } },
     multi: 1, resist: ['poison'], src: 'SRD 5.1 Guard (CR 1/8) with the SRD light crossbow, a dwarf of the garrison; content/npcs.json drill1-4 (the Troopers)'
   },
   drillsergeant: {
-    name: 'Drill-sergeant', type: 'humanoid', sheet: 'drillsergeant_p0', humanoid: true, cr: '3', ac: 17, hp: 58, speed: 25, size: 1, reach: 5, darkvision: 60,
+    name: 'Drill-sergeant', type: 'humanoid', sheet: 'drillsergeant_p0', humanoid: true, cr: '3', ac: 17, metalArmor: 'splint', hp: 58, speed: 25, size: 1, reach: 5, darkvision: 60,
     abil: { str: 16, dex: 13, con: 14, int: 10, wis: 11, cha: 10 }, init: 1, perception: 12,
     saves: { str: 3, dex: 1, con: 2, int: 0, wis: 0, cha: 0 },
     attacks: { longsword: { name: 'Longsword', atk: 5, dice: '1d8', mod: 3, type: 'slashing', reach: 5 } },

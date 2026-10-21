@@ -312,6 +312,7 @@
       // (athletics: the block's own skill -- the stone giant's +12 never reached the unit, so his Shove rolled STR's +6: 10-05 night, the Skylights show's find)
       init: d.init, perception: d.perception, athletics: d.athletics != null ? d.athletics : undefined, attacks: d.attacks, multi: d.multi, jaunt: d.jaunt, faerie: d.faerieFire ? JSON.parse(JSON.stringify(d.faerieFire)) : null,
       fey: !!d.fey, webWalker: !!d.webWalker, regen: d.regen || 0, conds: {}, lvl: 5, inorganic: !!d.inorganic, // (inorganic: stone, crystal or metal -- Shatter's save at disadvantage, js/magic.js; 10-06)
+      metalArmor: d.metalArmor || undefined, shield: !!d.shield, // (the armour the SRD block's AC names, when it is metal -- Heat Metal, Shocking Grasp, the pudding's and the ooze's corrosion: grimoire.js M.metalArmor, 10-21 night; `shield`: kept when the armour is eaten through, traits.js acWithout)
       climbs: d.climbs || 0, // (a climb speed, SRD 5.1: up and down a map's cliffs at no extra cost, no check -- grid.js G.climbsUp, 10-04)
       spiderClimb: !!d.spiderClimb, // (Spider Climb, SRD 5.1: it climbs "without needing to make an ability check" -- read as the hold no blow shakes off the face: hurt, below; a push still does. data/foes.js giantspider -- 10-05 night)
       // the bestiary's traits (09-27, the ladder): read by rules.js (packTactics), hurt() (resist/immune/vulnerable),

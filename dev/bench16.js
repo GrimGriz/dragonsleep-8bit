@@ -3733,6 +3733,22 @@
         okC('1 and Bless, the fighter clicked, the two of them all it could take: cast ' + on1() + ' (want cleric+fighter)', on1() === 'cleric+fighter');
       }
       B1.req = null;
+      // 2. A FOE'S METAL ARMOUR (the 10-21 night seat's find: no foe sheet marked it): the sheets whose SRD block's AC names chain, scale, ring or splint mail, a breastplate,
+      // half plate or plate read as metal (a unit made of each), the leather and hide ones not; Heat Metal on the hobgoblin, its save failed, is the armour's case
+      // (disadvantage), not the sword's; the show's beats (Heat Metal's, Shocking Grasp's advantage, the gray ooze eating its mail)
+      var METAL2 = ['hobgoblin', 'hobsergeant', 'drowling', 'duergar', 'guard', 'hiredsword', 'dominion', 'veteran', 'trooper', 'trooperxbow', 'drillsergeant'], PLAIN2 = ['goblin', 'bandit', 'gnoll', 'bugbear', 'skeleton', 'banditcaptain', 'thug', 'berserker'];
+      var B2 = mkC('?npc=goblin&vs=bard:5,cleric:5&lvl=5'), wrong2 = [];
+      METAL2.concat(PLAIN2).forEach(function (k, i) { var w = B2.makeFoe({ id: 'm2-' + i, kind: k, at: [1, 1] }); if (MC.metalArmor(w) !== (METAL2.indexOf(k) >= 0)) wrong2.push(k + (MC.metalArmor(w) ? ' metal' : ' not metal')); });
+      okC('2 metal armour by the sheets: ' + METAL2.length + ' in mail or plate, ' + PLAIN2.length + ' in leather, hide or scraps -- wrong: ' + (wrong2.join(', ') || 'none') + ' (want none)', !wrong2.length);
+      var B2b = mkC('?npc=hobgoblin,goblin&vs=bard:5,cleric:5&lvl=5'), bd2 = clsC(B2b, 'bard'), hb2 = sideC(B2b, 'foe').filter(function (w) { return w.kind === 'hobgoblin'; })[0];
+      bd2.x = 3; bd2.y = 3; hb2.x = 6; hb2.y = 3; B2b.cache = null; learnC(bd2, 'heatmetal'); hb2.maxhp = hb2.hp = 80; D.rules.startTurn(bd2); B2b.active = bd2;
+      failC(function () { runC(MC.cast(B2b, bd2, 'heatmetal', 2, hb2)); });
+      okC('2 and Heat Metal on the hobgoblin, its CON save failed: ' + (hb2.conds.disAt && hb2.conds.disAt.id === '*' ? 'attacks and checks at disadvantage' : '') + (hb2.conds.disarmed ? 'its sword dropped' : '') + ' (want the disadvantage: its chain mail, not its sword)', !!(hb2.conds.disAt && hb2.conds.disAt.id === '*') && !hb2.conds.disarmed);
+      var B2c = D.rulesshow.make('?rulesshow&fast&only=heatmetal,metal'); D.battle = B2c; B2c.enter();
+      var v2c, k2c = 0;
+      while (B2c.co && k2c++ < 400000) { var r2c = B2c.co.next(v2c); v2c = undefined; if (r2c.done) break; var y2c = r2c.value; if (y2c && y2c.prompt) v2c = y2c.prompt.opts[0].value; }
+      (B2c.rulesReport || []).forEach(function (b) { okC('2 the show: ' + b.name + ' -- ' + b.why + (b.ok && !get('logs', '') ? '' : ' || LOG: ' + String(b.log || '').replace(/\{\/?[a-z]*\}/g, '').slice(0, 2400)), b.ok); });
+      if ((B2c.rulesReport || []).length !== 3) okC('2 the show ran ' + (B2c.rulesReport || []).length + ' beats of heatmetal,metal (want 3)', false);
     } catch (eC) { repC.errors.push(String(eC && eC.stack || eC).slice(0, 900)); D.d = d0C; }
     if (errs.length) repC.errors = repC.errors.concat(errs);
     var preC = document.createElement('pre'); preC.id = 'out'; preC.textContent = 'BENCH16 ' + JSON.stringify(repC);
@@ -3811,7 +3827,7 @@
       var v3, k3 = 0;
       while (B3.co && k3++ < 400000) { var r3 = B3.co.next(v3); v3 = undefined; if (r3.done) break; var y3 = r3.value; if (y3 && y3.prompt) v3 = y3.prompt.opts[0].value; }
       (B3.rulesReport || []).forEach(function (b) { okB('3 the show: ' + b.name + ' -- ' + b.why + (b.ok && !get('logs', '') ? '' : ' || LOG: ' + String(b.log || '').replace(/\{\/?[a-z]*\}/g, '').slice(0, 2400)), b.ok); });
-      if ((B3.rulesReport || []).length !== 5) okB('3 the show ran ' + (B3.rulesReport || []).length + ' beats (want 5)', false);
+      if ((B3.rulesReport || []).length < 5) okB('3 the show ran ' + (B3.rulesReport || []).length + ' beats (want 5 or more: rules1021c added the metal beats)', false);
     } catch (eB) { repB.errors.push(String(eB && eB.stack || eB).slice(0, 900)); D.d = d0B; }
     if (errs.length) repB.errors = repB.errors.concat(errs);
     var preB = document.createElement('pre'); preB.id = 'out'; preB.textContent = 'BENCH16 ' + JSON.stringify(repB);
