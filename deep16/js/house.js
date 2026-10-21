@@ -17,15 +17,25 @@
   H.add = add;
 
   // NEW GAME: the four as the first game starts them (content/heroes.json: each at its own level and kit), the first game's purse and pack (content/config.json)
-  // -- the first game starts one lead and hires the rest in Silverton; here the four walk in together (the story's own start is the second game's story pass)
+  // -- the first game starts one lead and hires the rest in Silverton; here the four walk in together (the story's own start is the second game's story pass).
+  // The save keeps what the first game's does (js/scenes.js's save: RULED 10-21, Griz: "not sure why the second game isn't tracking everything the first one was"):
+  // its renown, its lead (the one who leads, the first of the four) and who is hired (all four at NEW GAME); THE WORLD's clock and hex stand for its time and map
   H.fresh = function () {
     var R = DS.R, C = DS.DATA.config || {};
-    return { v: H.V, party: H.HEROES.map(function (id) { return R.makeHero(id); }), guests: [], inv: (C.startItems || []).map(function (s) { return { id: s[0], n: s[1] }; }),
+    return { v: H.V, lead: H.HEROES[0], hired: H.HEROES.slice(), party: H.HEROES.map(function (id) { return R.makeHero(id); }), guests: [], inv: (C.startItems || []).map(function (s) { return { id: s[0], n: s[1] }; }),
       silver: C.startSilver || 10, renown: 0, flags: {}, kills: {}, world: null, at: { town: 'silverton', gate: 'west', sq: null, dir: null }, made: Date.now(), saved: 0 };
+  };
+  // a save made before the house kept them: the renown none yet, the lead its first hero, hired the four it holds
+  H.fill = function (rec) {
+    var ids = (rec.party || []).map(function (h) { return h.key || h.id; });
+    if (rec.renown == null) rec.renown = 0;
+    if (!rec.lead) rec.lead = ids[0] || H.HEROES[0];
+    if (!Array.isArray(rec.hired)) rec.hired = ids.slice();
+    return rec;
   };
   // a game begun or loaded: THE WORLD under it (its clock and hex the save's), and the town on top if that is where they stood
   H.begin = function (rec, slot) {
-    H.cur = rec; H.slot = slot || 0; H.playing = true;
+    H.cur = H.fill(rec); H.slot = slot || 0; H.playing = true;
     DS.G = { flags: rec.flags }; // (the rules read the save's flags: js/rules.js R.cap)
     D.scenes.length = 0;
     D.push(D.world.make('?house'));

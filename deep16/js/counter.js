@@ -18,14 +18,31 @@
 'use strict';
 (function () {
   var D = window.D16, DS = window.DS, I = D.input, C = D.counter = {};
-  // the keepers with a portrait, by their door's name (js/town.js T.DOORS: the art desk's sheets, `art`)
-  C.PT = { winters: 'pt_winters', casper: 'pt_casper', androit: 'pt_androit', hessle: 'pt_hessle', aldric: 'pt_aldric', kessler: 'pt_kessler', calla: 'pt_calla', barber: 'pt_barber', sylvia: 'pt_sylvia' };
-  C.OWN = { sylvia: 1 };                  // (Griz's own: her portrait at her booth, her particulars on his word -- js/town.js T.TRADE `own`)
-  C.SHOPS = { winters: 'winters' };       // (the counters that sell: Winters' today; the others' sales follow his screen -- the desk's word, 10-21)
-  C.takes = function (id) { return !!(C.PT[id] && D.SHEETS && D.SHEETS[C.PT[id]]) || id === 'winters'; };
+  // THE VENDORS, one shape for every keeper (RULED 10-21, Griz: "Winters should only buy magic items - art for all the vendors like this should come in at some
+  // point"): by their door's name (js/town.js T.DOORS), each `sheet` its talking portrait (tools/portrait-sheet.py); `shop` the first game's shop it sells from
+  // (content/shops.json: its stock, prices, greeting, thanks) -- a counter with no shop speaks only; `buys` what it takes in (default the first game's rule for that
+  // shop, js/scenes.js Shop; 'magic' only magic items, C.magic); `script` a scene of its own (Winters'); `own` Griz's own, waiting on his word. A new vendor is a line
+  C.VENDORS = {
+    winters: { sheet: 'pt_winters', shop: 'winters', buys: 'magic', script: 'winters' }, // (his errands, then his shelves; he buys magic items only -- his word above)
+    casper: { sheet: 'pt_casper' }, androit: { sheet: 'pt_androit' }, hessle: { sheet: 'pt_hessle' }, aldric: { sheet: 'pt_aldric' },
+    kessler: { sheet: 'pt_kessler' }, calla: { sheet: 'pt_calla' }, // (their first-game shops, `shop: 'kessler'` / `'calla'`, on his word of who sells what)
+    barber: { sheet: 'pt_barber' },
+    sylvia: { sheet: 'pt_sylvia', own: true } // (Griz's own: her portrait at her booth, her particulars on his word -- js/town.js T.TRADE `own`)
+  };
+  C.PT = {}; C.OWN = {}; C.SHOPS = {};
+  Object.keys(C.VENDORS).forEach(function (id) { var v = C.VENDORS[id]; if (v.sheet) C.PT[id] = v.sheet; if (v.own) C.OWN[id] = 1; if (v.shop) C.SHOPS[id] = v.shop; });
+  C.takes = function (id) { var v = C.VENDORS[id]; return !!v && (!!v.script || !!v.shop || !!(v.sheet && D.SHEETS && D.SHEETS[v.sheet])); };
+  // a magic item, by the SRD's: a weapon or armour +N, a thing that takes attunement or gives a resistance, an immunity or advantage (a ring, the boots, the
+  // periapt), and the SRD's potions and elixir by name -- not the Charm (Lisbet's trinket), plain plate, antitoxin or a diamond
+  C.MAGIC_USE = ['potion', 'greaterpotion', 'superiorpotion', 'elixir'];
+  C.magic = function (id, it) {
+    it = it || DS.DATA.items[id]; if (!it) return false;
+    return ((it.weapon && it.weapon.bonus) || (it.armor && it.armor.bonus) || 0) > 0 || !!(it.attune || it.resist || it.immune || it.condImmune || it.adv || it.aura) || C.MAGIC_USE.indexOf(id) >= 0;
+  };
 
-  // the one new line (invented.json winters-journal-grid): the first game's winters.journalHint with the grid's menu and its marker named
-  C.LINES = { journalGrid: 'Winters\' errand is in your JOURNAL now (M, then JOURNAL), and pinned: the gold arrow marks who is next, and the line at the top of the screen says it in words.' };
+  // the one new line (invented.json winters-journal-grid): the first game's winters.journalHint with the grid's menu key (RULED 10-21, Griz, on the JOURNAL and
+  // its marker: "should function the same as the 8-bit unless we add a feature")
+  C.LINES = { journalGrid: 'Winters\' errand is in your JOURNAL now (M, then JOURNAL), and pinned: the gold arrow marks who is next, and the NEXT line says it in words.' };
   function L(k, o) { var r = (DS.DATA.text || {})[k], s = r ? r.t : k; var sub = function (x) { Object.keys(o || {}).forEach(function (n) { x = x.split('{' + n + '}').join(o[n]); }); return x; }; return Array.isArray(s) ? s.map(sub) : sub(s); }
   C.L = L;
   function pick(a) { return a[Math.floor(D.rand() * a.length)]; }
@@ -41,10 +58,11 @@
   function give(st, id, n) { n = n || 1; var s = st.inv.filter(function (x) { return x.id === id; })[0]; if (s) s.n += n; else st.inv.push({ id: id, n: n }); }
   function take(st, id, n) { n = n || 1; var s = st.inv.filter(function (x) { return x.id === id; })[0]; if (!s) return false; s.n -= n; if (s.n <= 0) st.inv.splice(st.inv.indexOf(s), 1); return true; }
   C.count = count; C.give = give; C.take = take;
-  // the 8-bit's conditions (flag:, has:, hired:, lead:, &, |, !) on what the party holds -- js/town.js T.cond's reading
+  // the 8-bit's conditions (flag:, has:, hired:, lead:, &, |, !) on what the party holds -- js/town.js T.cond's reading; in the house, hired: and lead: read its save
+  // as the first game's do (G.hired, ever hired; G.lead, the one who leads -- js/house.js H.fresh)
   C.cond = function (c, st) {
-    var names = st.party.map(function (h) { return h.key || h.id; });
-    return D.town.cond(c, st.flags, function (k, v) { return k === 'has' ? count(st, v) > 0 || st.party.some(function (h) { return h.equip && Object.keys(h.equip).some(function (s) { return h.equip[s] === v; }); }) : k === 'hired' ? names.indexOf(v) >= 0 : k === 'lead' ? names[0] === v : false; });
+    var names = st.party.map(function (h) { return h.key || h.id; }), rec = D.house && D.house.playing && D.house.cur, hired = rec && rec.hired || names, lead = rec && rec.lead || names[0];
+    return D.town.cond(c, st.flags, function (k, v) { return k === 'has' ? count(st, v) > 0 || st.party.some(function (h) { return h.equip && Object.keys(h.equip).some(function (s) { return h.equip[s] === v; }); }) : k === 'hired' ? hired.indexOf(v) >= 0 : k === 'lead' ? lead === v : false; });
   };
   // renown (the first game's js/events.js EV.renown): a point on the save, and the milestone XP -- 250 a point to everyone standing -- banked for the long rest (the
   // house's way, js/house.js H.bank). Returns the lines
@@ -154,10 +172,12 @@
   Counter.prototype.price = function (id) { var o = this.shop.prices && this.shop.prices[id]; return o != null ? o : DS.DATA.items[id].price; };
   Counter.prototype.offer = function (it) { return Math.max(1, Math.floor(it.price * (this.shop.buyRate || 0.5))); };
   C.sellable = function (shop, it) { return it.kind !== 'key' && it.price > 0 && (!it.noSell || shop.buysNoSell) && (shop.buysKind ? shop.buysKind.indexOf(it.kind) >= 0 : it.kind !== 'part'); };
+  // what a vendor takes in: its own rule (`buys`), else the first game's for its shop -- a quest's magic weapon is magic, so Winters takes it (the first game's buysNoSell)
+  C.buys = function (v, shop, id, it) { if (v && v.buys === 'magic') return it.kind !== 'key' && it.price > 0 && C.magic(id, it); return C.sellable(shop, it); };
   Counter.prototype.rows = function () {
-    var self = this, st = this.st, d = this.shop;
+    var self = this, st = this.st, d = this.shop, v = C.VENDORS[this.id];
     if (this.tab === 'buy') return (d.items || []).map(function (id) { var it = DS.DATA.items[id], p = self.price(id); return { id: id, label: it.name, right: p + ' sp', off: p > st.silver() }; });
-    return st.inv.filter(function (s) { var it = DS.DATA.items[s.id]; return it && s.n > 0 && C.sellable(d, it); }).map(function (s) { var it = DS.DATA.items[s.id]; return { id: s.id, label: it.name + ' x' + s.n, right: self.offer(it) + ' sp' }; });
+    return st.inv.filter(function (s) { var it = DS.DATA.items[s.id]; return it && s.n > 0 && C.buys(v, d, s.id, it); }).map(function (s) { var it = DS.DATA.items[s.id]; return { id: s.id, label: it.name + ' x' + s.n, right: self.offer(it) + ' sp' }; });
   };
   function stacks(it) { return it.kind === 'use' || !!it.stack; }
   function gear(it) { return it.kind === 'weapon' || it.kind === 'armor' || it.kind === 'shield'; }
@@ -313,10 +333,10 @@
   C.talk = function* (B, id, door) {
     var N = ((DS.DATA || {}).npcs || {})[id] || {}, T = D.town, kp = B.roam && D.roam.def && D.roam.def.keeper && D.roam.def.keeper.id === id ? D.roam.def : null;
     var nm = (door && door.name) || T.KEEPER['shop:' + id] || T.KEEPER['warp:' + id] || T.KEEPER['keeper:' + id] || N.name || id;
-    var shop = (DS.DATA.shops || {})[C.SHOPS[id]];
+    var v = C.VENDORS[id] || {}, shop = (DS.DATA.shops || {})[v.shop];
     var o = { id: id, name: nm, place: kp ? kp.name : (door && door.name) || nm, what: kp ? (kp.name !== nm ? nm + ' at the counter' : '') : (door && door.what) || '' };
-    o.script = id === 'winters' ? function (sc) { return C.winters(sc); } : function (sc) { return C.keeper(sc, B, id); };
-    if (shop && id === 'winters') o.place = shop.name;
+    o.script = v.script === 'winters' ? function (sc) { return C.winters(sc); } : shop && !v.own ? function (sc) { return C.shopkeeper(sc, B, id); } : function (sc) { return C.keeper(sc, B, id); };
+    if (shop) o.place = shop.name;
     var sc = new Counter(B, o); D.push(sc);
     while (!sc.done) yield 1;
     if (sc.regear && B.roam && D.roam.regear) D.roam.regear(B); // (bought and put on: the floor's figures wear it -- js/roam.js R.regear)
@@ -328,6 +348,14 @@
     var said = C.words(B, id), wait = /^\{g\}\(Their scene/.test(said[0] || ''), shop = (DS.DATA.shops || {})[id];
     if (wait && shop && shop.greeting) { said = [shop.greeting]; wait = false; }
     yield sc.say((wait ? [] : said).concat([wait ? '{g}Their scene is the 8-bit\'s; on the grid it is to come.{/}' : '{g}The counter -- buying and selling -- is to come.{/}']), wait ? 'attentive' : 'welcoming');
+  };
+
+  // a vendor with a shop and no scene of its own (one line in C.VENDORS opens it): their word, then THE SHELVES / LEAVE -- the first game's shop on this screen
+  C.shopkeeper = function* (sc, B, id) {
+    var said = C.words(B, id), shop = (DS.DATA.shops || {})[C.VENDORS[id].shop];
+    if (/^\{g\}\(Their scene/.test(said[0] || '')) said = [shop.greeting || 'Welcome.'];
+    yield sc.say(said, 'welcoming');
+    while ((yield sc.ask(said[said.length - 1], ['THE SHELVES', 'LEAVE'])) === 0) yield sc.shelves(C.VENDORS[id].shop);
   };
 
   // ---------------------------------------------------------------- Ambrose Winters (the first game's js/events.js S.winters and S.wintersWork, on the grid). His words
@@ -415,16 +443,16 @@
     var who = s.npc || s.door, door = D.town.DOORS.filter(function (d) { return d.id.split(':')[1] === who; })[0];
     return door ? { q: q, who: who, door: door.id } : null;
   };
-  // on the town floor: a gold marker over the next door -- or, in a room, over the keeper it wants, else over the way out -- held at the screen's edge, pointing,
-  // when the square is off it; and the step in words at the screen's head (the first game's pinned arrow and NEXT line, js/world.js DS.pinnedQuest)
+  // on the town floor: a gold marker over the next door -- or, in a room, over the keeper it wants, else over the way out -- the first game's pinned marker (js/world.js
+  // DS.pinnedQuest: "a marker bobs over whoever (or whatever) it wants next. On another map, the marker sits on the way there"), held at the screen's edge, pointing,
+  // when the square is off it (the town is bigger than the screen); the step in words is the JOURNAL's NEXT line, as the first game's (RULED 10-21, Griz: "should
+  // function the same as the 8-bit unless we add a feature")
   C.paintPin = function (ctx, B) {
     var R = D.roam, R0 = B && B.roam, def = R && R.def; if (!R0 || !def || !def.town || B.menu) return;
     var st = C.state(B), p = C.pinned(st); if (!p) return;
     var sq = null;
     if (def.room) sq = def.keeper && def.keeper.id === p.who ? def.keeper.at : (def.doors || [])[0];
     else sq = def.marks && def.marks.doors && def.marks.doors[p.door];
-    var line = '◆ ' + p.q.name + ': ' + p.q.where; ctx.fillStyle = 'rgba(4,3,10,.72)'; ctx.fillRect(0, 2, Math.min(D.W - 40, D.textWidth(line) + 12), 14); // (its own strip: readable over a room's shelves)
-    D.text(ctx, line, 6, 6, D.WIN8.gold);
     if (!sq) return;
     var iso = D.iso, c = iso.center(sq[0], sq[1], (B.map && B.map.gz ? B.map.gz(sq[0], sq[1]) : 0) + 30), s = iso.toScreen(c.x, c.y);
     var m = 14, x = Math.max(m, Math.min(D.W - m, s.x)), y = Math.max(m + 14, Math.min(D.H - 40, s.y)), off = x !== s.x || y !== s.y, bob = Math.sin(B.t / 10) * 2;

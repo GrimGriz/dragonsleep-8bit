@@ -2172,6 +2172,11 @@
       okW('every keeper\'s portrait cut (tools/portrait-sheet.py): ' + sheets.length + ' of ' + names.length + ' with a six-frame idle and work (' + names.map(function (n) { var s = D.SHEETS[CW.PT[n]]; return n + (s ? ' ' + Object.keys(s.anims).length : ' NONE'); }).join(', ') + ')', sheets.length === names.length && ['attentive', 'welcoming', 'skeptical', 'concerned'].every(function (a) { return !!D.SHEETS.pt_winters.anims[a]; }));
       HW.begin(HW.fresh(), 0); var B = topW(), R0 = B.roam, st = CW.state(B);
       okW('NEW GAME in Silverton: the floor\'s flags, pack and purse are what the counter reads (' + R0.silver + ' sp)', !!st && st.flags === R0.flags && st.inv === B.inv && st.silver() === R0.silver && st.party.length === 4);
+      // the save keeps what the first game's does (RULED 10-21, Griz: "not sure why the second game isn't tracking everything the first one was"): renown, lead, hired
+      okW('the save keeps the first game\'s renown, lead and hired: ' + HW.cur.renown + ', ' + HW.cur.lead + ', ' + (HW.cur.hired || []).join('/'), HW.cur.renown === 0 && HW.cur.lead === 'barley' && (HW.cur.hired || []).join() === 'barley,aurdin,vivian,lymen');
+      okW('the talk reads them as the first game\'s does: hired:vivian and lead:barley hold, lead:lymen does not', CW.cond('hired:vivian & lead:barley', st) && !CW.cond('lead:lymen', st));
+      var oldW = HW.fresh(); delete oldW.renown; delete oldW.lead; delete oldW.hired; var filled = HW.fill(JSON.parse(JSON.stringify(oldW)));
+      okW('a save made before them gets them on load (H.fill): renown ' + filled.renown + ', lead ' + filled.lead + ', hired ' + filled.hired.length, filled.renown === 0 && filled.lead === 'barley' && filled.hired.length === 4);
       // in at his door: his room, the counter's screen at E
       var inWin = inW(B, 'warp:winters'); okW('in at Winters\' door (warp:winters): his room, ' + D.roam.def.name, inWin && D.roam.def.keeper.id === 'winters');
       var g1 = fireW(B, 'talk:winters'), sc = D.top();
@@ -2192,6 +2197,9 @@
       B.menu = null;
       var pin1 = CW.pinned(st);
       okW('the pinned marker\'s door: ' + (pin1 && pin1.door) + ' (in his room it points at the way out)', pin1 && pin1.door === 'keeper:androit');
+      var cvP = document.createElement('canvas'); cvP.width = D.W; cvP.height = D.H; var tP = D.text, nP = 0; D.text = function () { nP++; return tP.apply(this, arguments); };
+      try { CW.paintPin(cvP.getContext('2d'), B); } finally { D.text = tP; }
+      okW('the marker as the first game\'s: no words of its own on the floor (' + nP + ' lines) -- the step in words is the JOURNAL\'s NEXT (his "should function the same as the 8-bit")', nP === 0);
       // the seal, then the value -- out of order first: Casper won't touch unsealed paper
       outW(B); inW(B, 'keeper:casper'); var gC = fireW(B, 'talk:casper'), scC = D.top(), wC = readW(scC); driveW(gC, null, 200);
       okW('Casper Venn before the seal, on his portrait (' + scC.sheet + '): "' + String(wC[0]).slice(0, 50) + '..." -- not valued', scC.sheet === 'pt_casper' && /Androit first/.test(wC.join(' ')) && !R0.flags.wValued);
@@ -2233,7 +2241,7 @@
       // SELL: what any shop buys at the half, and what a quest gave (buysNoSell); never a key
       CW.give(st, 'threshingflail1', 1); CW.give(st, 'estatepapers', 1); goW(sc3, 'tab', 'SELL');
       var sl = sc3.rows().map(function (r) { return r.id; });
-      okW('SELL: his skeptical face, the quest\'s Threshing Flail +1 on offer, no key item (' + sl.join(', ') + ')', sc3.face.anim === 'skeptical' && sl.indexOf('threshingflail1') >= 0 && sl.indexOf('estatepapers') < 0);
+      okW('SELL: his skeptical face; magic items only (RULED 10-21, his "Winters should only buy magic items"): the quest\'s Threshing Flail +1 and the potions, not the simples, the kit, the plain flail or a key (' + sl.join(', ') + ')', sc3.face.anim === 'skeptical' && sl.indexOf('threshingflail1') >= 0 && sl.indexOf('potion') >= 0 && sl.indexOf('estatepapers') < 0 && sl.indexOf('simples') < 0 && sl.indexOf('kit') < 0 && sl.indexOf('threshingflail') < 0 && sl.every(function (id) { return CW.magic(id); }));
       var it1 = window.DS.DATA.items.threshingflail1, s1 = R0.silver, kF = sl.indexOf('threshingflail1'); sc3.scroll = Math.max(0, kF - 3);
       var rF = sc3.buttons().filter(function (q) { return q.row && q.k === kF; })[0]; clickW(sc3, rF);
       okW('sold: +' + (R0.silver - s1) + ' sp (half of ' + it1.price + '), and his acquisition plays (the work row)', R0.silver - s1 === Math.max(1, Math.floor(it1.price / 2)) && !CW.count(st, 'threshingflail1') && sc3.face.anim === 'work');
@@ -2252,6 +2260,12 @@
       // the other keepers: their portraits and their words; Sylvia's booth his own
       outW(B); inW(B, 'shop:kessler'); var gK = fireW(B, 'talk:kessler'), scK = D.top(), wK = readW(scK); driveW(gK, null, 200);
       okW('Kessler at his counter on his portrait (' + scK.sheet + '): his first-game greeting and "' + wK.join(' ').slice(-50) + '"', scK.sheet === 'pt_kessler' && wK[0] === window.DS.DATA.shops.kessler.greeting && /buying and selling -- is to come/.test(wK.join(' ')));
+      // one shape for every vendor (his "art for all the vendors like this should come in at some point"): a shop on Kessler's line opens his counter, by the first game's rules
+      CW.VENDORS.kessler.shop = 'kessler';
+      gK = fireW(B, 'talk:kessler'); scK = D.top(); readW(scK); goW(scK, 'opt', 'THE SHELVES');
+      var kRows = scK.shop ? scK.rows().map(function (r) { return r.id; }) : [], kPot = scK.shop ? scK.price('potion') : 0; goW(scK, 'tab', 'SELL'); var kSell = scK.shop ? scK.rows().map(function (r) { return r.id; }) : [];
+      goW(scK, 'back'); goW(scK, 'opt', 'LEAVE'); driveW(gK, null, 200); delete CW.VENDORS.kessler.shop;
+      okW('a vendor is one line: `shop: \'kessler\'` opens his shelves -- his stock (' + kRows.length + ', the potion at his ' + kPot + ' sp) and the first game\'s rule for what he takes (' + kSell.join(', ') + ')', kRows.join() === window.DS.DATA.shops.kessler.items.join() && kPot === window.DS.DATA.shops.kessler.prices.potion && kSell.indexOf('simples') >= 0 && kSell.indexOf('threshingflail1') < 0 && !upW());
       outW(B); inW(B, 'keeper:sylvia'); var gS = fireW(B, 'talk:sylvia'), scS = D.top(), wS = readW(scS); driveW(gS, null, 200);
       okW('Sylvia Swann at her booth (' + scS.sheet + '): his own -- "' + wS.join(' ') + '"', scS.sheet === 'pt_sylvia' && /his word/.test(wS.join(' ')));
       outW(B); var gV = TW.fire(B, trigW('keeper:barber')); driveW(gV, upW, 200); var scV = D.top(), wV = upW() ? readW(scV) : []; driveW(gV, null, 200);
