@@ -27,6 +27,8 @@
   T.COMPOUND = { x: 1560, y: 1582, w: 115, h: 90, gate: 'w' };
   // the town's one slope (10-20, Griz: "slope once off of fountain street, then leveled"): Fountain Street, the Gate Plaza's head and the Edifice's foot up on their level, the
   // ground falling DROP ft southward between SLOPE[0] and SLOPE[1] (v6's feet: the first sixty feet off the street), and level from there to the south gate
+  var T_MAMA = [1435, 1295, 24]; // (Mama's booth, in v6's feet: its middle and its side -- outside the Hex's north-east, by the plaza)
+  T.MAMA = T_MAMA; T.ZOOMSTEP = 1; // (ZOOMSTEP: the town's own zoom, a step out from the closest -- his "default zoom one step further out")
   T.SLOPE = [560, 620]; T.DROP = 30; T.FRONT = 60; T.RUN = 30; T.SHUT = 0.08; // (SHUT: the share of houses showing a shut door) // (FRONT: how far south of the street the first houses may begin; RUN: the fall behind them, inside the lane)
 
   T.lay = function (V, F0) {
@@ -75,6 +77,9 @@
     V.bldg.forEach(function (b, k) { rect(b[0] + b[2] / 2, b[1] + b[3] / 2, -b[2] / 2, -b[3] / 2, b[2], b[3], b[4], 'bnu'.charAt((k * 7 + (k >> 2)) % 3), null, true); });
     var hx = V.hexagon, hexP = []; for (var k = 0; k < 6; k++) { var an = Math.PI / 180 * (60 * k - 90); hexP.push([hx[0] + hx[2] * Math.cos(an), hx[1] + hx[2] * Math.sin(an)]); }
     poly(hexP, 'B');
+    // Mama's Pharmakaiea out of the Hex, a booth beside its north-east face (10-21, Griz: "mama's shop may have to come out adjacent like the 8 bit did it, as the door is
+    // technically on the north face and will be invis to players"): a low roof, its door south of it on the street (T.DOORS shop:lucia `at`)
+    rect(T.MAMA[0], T.MAMA[1], -T.MAMA[2] / 2, -T.MAMA[2] / 2, T.MAMA[2], T.MAMA[2], 0, 'n', null, true);
     fill(V.EDW[0], T.Y0, V.EDW[1], V.EDBOT, function () { return true; }, '#'); // (the Edifice: the dwarves' facade in the mountain's face, drawn as the cliff it stands in)
     // the fountains at the Edifice's foot: a pool in a dressed rim (v6: the basin 30 ft across the rim, 22 the water)
     V.FOUNT.forEach(function (x) { ellipse(x, V.EDBOT + 26, Math.max(30, F * 0.75), Math.max(30, F * 0.75), '='); ellipse(x, V.EDBOT + 26, Math.max(22, F * 0.55), Math.max(22, F * 0.55), '~'); });
@@ -107,7 +112,10 @@
     marks.compound = nearestOpen(C.x - 6, C.y + C.h / 2, 30, out); // (outside its shut gate)
     // the Hexagon's doors (v6: black at 62 and 118 degrees -- the front, south, to the Arena Plaza -- and at -62 and -118, the back to the falls): the square outside each
     var hexDoor = function (deg) { var a = Math.PI / 180 * deg; var o2 = hx[2] + Math.max(6, F * 0.6); return nearestOpen(hx[0] + Math.cos(a) * o2, hx[1] + Math.sin(a) * o2, 20); };
-    marks.hexFront = [hexDoor(62), hexDoor(118)]; marks.hexBack = [hexDoor(-62), hexDoor(-118)];
+    // (10-21, Griz: "those doors should be double doors at the southern tip (carved away so the doors are straight n/s)" -- the wiki's corner double doors at the north and
+    // south points: the front at the south tip, the back at the north; at the town's scale one square each, finer two)
+    var tipDoors = function (deg) { var q = [hexDoor(deg - 5), hexDoor(deg + 5)].filter(Boolean); return q.length === 2 && q[0][0] === q[1][0] && q[0][1] === q[1][1] ? [q[0]] : q; };
+    marks.hexFront = tipDoors(90); marks.hexBack = tipDoors(-90);
     // the vault door: its threshold across the Gate Plaza's foot of the Edifice, v6's door 128 ft wide
     var vy = gyOf(V.EDBOT) + 1; for (var vx = gxOf(V.AX - 64); vx <= gxOf(V.AX + 64); vx++) set(vx, vy, 'd');
     marks.vault = [gxOf(V.AX), vy];
@@ -115,7 +123,7 @@
     var taken = Object.assign({}, out), tk = function (q) { for (var dy2 = -1; dy2 <= 1; dy2++) for (var dx2 = -1; dx2 <= 1; dx2++) taken[(q[0] + dx2) + ',' + (q[1] + dy2)] = 1; };
     marks.doors = {};
     T.DOORS.forEach(function (d) {
-      var p = V.PINS.filter(function (q) { return q[2] === d.pin; })[0]; if (!p) return;
+      var p = d.at ? [d.at[0], d.at[1], d.pin] : V.PINS.filter(function (q) { return q[2] === d.pin; })[0]; if (!p) return; // (`at`: a door moved off v6's pin -- Mama's booth)
       var q = null, g0 = gxOf(p[0]), g1 = gyOf(p[1]), c0 = at(g0, g1);
       if (c0 && T.ROOFS[c0]) { var y5 = g1; while (at(g0, y5 + 1) === c0 && y5 - g1 < 8) y5++; var below = at(g0, y5 + 1); if (below && '.,='.indexOf(below) >= 0 && !taken[g0 + ',' + (y5 + 1)]) q = [g0, y5 + 1]; } // (straight south of the pin, past its own building, onto the ground: the door in its south wall)
       if (!q) q = nearestOpen(p[0], p[1], 150, taken); if (!q) return;
@@ -165,7 +173,7 @@
     { id: 'keeper:marin', pin: '13' }, { id: 'keeper:brennan', pin: '14' }, { id: 'shop:marko', pin: '15' }, { id: 'shop:kasten', pin: '16' }, { id: 'keeper:venhale', pin: '19' },
     { id: 'shop:vilar', pin: '20' }, { id: 'leech:davos', pin: '21' }, { id: 'keeper:kess', pin: '29' }, { id: 'chapel:aldwin', pin: '30' }, { id: 'keeper:mical', pin: '32' },
     { id: 'shop:lisbet', pin: '33' }, { id: 'keeper:merrick', pin: '34' }, { id: 'warp:winters', pin: '35', art: 'ART-78' }, { id: 'warp:percy', pin: '38' },
-    { id: 'keeper:tam', pin: '40' }, { id: 'shop:lucia', pin: '42' },
+    { id: 'keeper:tam', pin: '40' }, { id: 'shop:lucia', pin: '42', at: [T_MAMA[0], T_MAMA[1]] },
     { id: 'keeper:sylvia', pin: '37', name: 'Sylvia Swann', what: 'the fortune-teller\'s booth', art: 'ART-SYLVIA-SWANN' } // (10-20, Griz: "sylvia will get one" -- not in the 8-bit's doors: its sign says she isn't in)
   ];
   // the doors with rooms behind them (10-20, Griz: "just vendors and interactions (sylvia will get one)"): the 8-bit's shops, the five of the new buy/sell screens, the inn, the
@@ -286,6 +294,7 @@
   // ---------------------------------------------------------------- on the floor: the people stood, a door stepped on, a word with someone
   T.people = function (B) {
     var def = D.roam && D.roam.def; if (!def || !def.town) return;
+    if (!def.room && D.ui && D.ui.zooms) { var Lz = D.ui.zooms(); D.iso.zoom = Lz[Math.min(T.ZOOMSTEP, Lz.length - 1)]; } // (the town's one zoom, a step out: 10-21, Griz, "try default zoom one step further out" -- the zoom is held there, js/ui.js)
     var kinds = [], party = ((B.roam && B.roam.members) || []).map(function (u) { return String(u.name || '').toLowerCase(); });
     def.people.forEach(function (p, i) {
       // (a hero who walks with the party is not also standing in town: the 8-bit's hire NPCs -- Vivian on vice row, Aurdin at the chapel -- as the 8-bit hides them once hired)

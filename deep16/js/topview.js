@@ -191,7 +191,7 @@
   // due north, its roof a ring open to the sky over the sand (the realm wiki's the-hex.md, CANON 09-12), the roof's courses running along each face, the tiers stepping down
   // to the sand, the two south faces' log walls hanging under it with the front doors where the town's marks are (js/town.js marks.hexFront). The squares stay the grid's
   TV.isHexSq = function (m, s) { var hx = m.def.hexagon; return !!hx && s.ch === 'B' && Math.hypot(s.x + 0.5 - hx.x, s.y + 0.5 - hx.y) <= hx.r + 1; };
-  TV.HEXIN = 0.625; TV.HEXTIER = [0.6, 0.51]; TV.HEXSAND = 0.43; // (the roof's opening: the rail hexagon's 40 ft side of 64; the tiers and the sand, 38.1 and 32.8 ft, 27.6 ft -- the wiki's)
+  TV.HEXIN = 0.625; TV.HEXTIER = [0.6, 0.51]; TV.HEXSAND = 0.43; TV.HEXCARVE = 0.42; // (HEXCARVE: half the carved tip's width, in squares) // (the roof's opening: the rail hexagon's 40 ft side of 64; the tiers and the sand, 38.1 and 32.8 ft, 27.6 ft -- the wiki's)
   function hexCanvas(m) {
     if (m.top.hex) return m.top.hex;
     var hx = m.def.hexagon, T = TV.TS, R0 = hx.r * T, ap = R0 * Math.cos(Math.PI / 6), wall = iso.roofPx(m, 'B') || 24, pad = 2;
@@ -201,7 +201,6 @@
     var stone = R('stone'), leather = R('leather'), gold = R('gold'), silver = R('silver'), N6 = [0, 60, 120, 180, 240, 300].map(function (d) { var a = d * Math.PI / 180; return [Math.cos(a), Math.sin(a)]; });
     var hexD = function (x, y) { var best = -1e9, k = 0; for (var i = 0; i < 6; i++) { var d = x * N6[i][0] + y * N6[i][1]; if (d > best) { best = d; k = i; } } return { d: best, k: k }; }; // (the apothem's measure, and the face it is nearest)
     var lit = [0.0, -0.06, -0.1, 0.0, 0.12, 0.08]; // (the faces by the light from the north-west: E, SSE, SSW, W, NNW, NNE)
-    var doors = (m.def.marks && m.def.marks.hexFront || []).filter(Boolean).map(function (q) { return (q[0] + 0.5 - hx.x) * T; });
     var put = function (x, y, c) { var o = (y * W + x) * 4; px[o] = c[0]; px[o + 1] = c[1]; px[o + 2] = c[2]; px[o + 3] = 255; };
     for (var y = 0; y < H; y++) for (var x = 0; x < W; x++) {
       var dx = x + 0.5 - ox, dy = y + 0.5 - oy, h = hexD(dx, dy), n = NZ.vnoise(x * 0.07, y * 0.07, 811), c = null;
@@ -217,12 +216,15 @@
         var hip = h.d - second < 1.6, course = (into | 0) % 7 === 0, joint = ((((dx * -N6[h.k][1] + dy * N6[h.k][0]) | 0) + ((into / 7 | 0) % 2) * 5) % 10 + 10) % 10 === 0;
         c = NZ.rampPick(stone, Math.max(0.04, 0.5 + lit[h.k] + n * 0.18 - (course ? 0.18 : 0) - (joint ? 0.08 : 0) - (hip ? 0.22 : 0) - (into < 2 || h.d > ap - 0.5 ? 0.25 : 0) - (h.d - ap * TV.HEXIN < 2 ? 0.2 : 0)), x, y);
       } else if (Math.abs(dx) <= ap) { // under the two south faces: their log walls, a wall's height
-        var yb = R0 - Math.abs(dx) * Math.tan(Math.PI / 6), j = dy - yb;
-        if (j > 0 && j <= wall) {
-          var up = 1 - j / wall, door = doors.some(function (d0) { return Math.abs(dx - d0) <= T * 0.18; }) && up < 0.72;
-          c = door ? (up > 0.66 || Math.abs(Math.abs(dx - doors.reduce(function (a, d0) { return Math.abs(dx - d0) < Math.abs(dx - a) ? d0 : a; }, 1e9)) - T * 0.18) < 1 ? silver[3] : NZ.rampPick(leather, 0.2 + ((x % 4) === 0 ? -0.1 : 0), x, y))
-            : NZ.rampPick(leather, (dx > 0 ? 0.45 : 0.36) + n * 0.12 - ((j | 0) % 6 === 0 ? 0.16 : 0) - (j > wall - 2 ? 0.15 : 0), x, y); // (the logs follow the slant: the diagonal his eye asked for)
-        }
+        var yb = R0 - Math.abs(dx) * Math.tan(Math.PI / 6), j = dy - yb, cw = T * TV.HEXCARVE, ybc = R0 - cw * Math.tan(Math.PI / 6);
+        if (Math.abs(dx) < cw) { // the south tip carved flat at the ground floor, its double doors straight south (10-21, Griz: "those doors should be double doors at the southern
+          // tip (carved away so the doors are straight n/s) - the point isn't carved out on the upper floors") -- the roof keeps its point; the flat wall shows under it
+          var jc = dy - ybc;
+          if (dy > yb && jc <= wall) {
+            var upc = 1 - jc / wall, leaf = Math.abs(dx) < cw - 2 && upc < 0.8 && jc > 0, frame = leaf && (Math.abs(dx) >= cw - 4 || Math.abs(dx) < 1 || upc > 0.74);
+            c = frame ? silver[3] : leaf ? NZ.rampPick(leather, 0.24 + ((x % 4) === 0 ? -0.1 : 0) + (Math.abs(upc - 0.4) < 0.04 ? 0.25 : 0), x, y) : NZ.rampPick(leather, 0.2 + n * 0.08 - ((jc | 0) % 6 === 0 ? 0.1 : 0), x, y); // (two leaves, the great log between; the recess in shadow)
+          }
+        } else if (j > 0 && j <= wall) c = NZ.rampPick(leather, (dx > 0 ? 0.45 : 0.36) + n * 0.12 - ((j | 0) % 6 === 0 ? 0.16 : 0) - (j > wall - 2 ? 0.15 : 0), x, y); // (the logs follow the slant: the diagonal his eye asked for)
       }
       if (c) put(x, y, c);
     }
