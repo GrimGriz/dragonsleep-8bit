@@ -596,8 +596,12 @@
     if (I.mouse.rbtn && B.list && B.hoverBtn < 0) { D.sfx('cancel'); B.list = B.list.back || null; return; }
     if (I.mouse.rbtn && B.tool === 'menu' && B.hoverBtn < 0) { D.sfx('cancel'); B.tool = rest() === 'menu' ? 'move' : rest(); B.spell = null; B.picks = []; B.clearCards(); return; }
     if (I.mouse.rbtn && B.tool === 'spell') {
+      // (an "up to N" pick with someone picked: the right button casts with the picks and never drops one -- 10-21 night, his "right click doing anything at that
+      // moment?" on Bane's picks, the desk's call; Bless's caster picked by default alone is no one picked yet, and the right button puts the spell away)
+      var allies = B.spell && B.spell.g.shape === 'allies';
+      if (allies && B.picks.some(function (p) { return p !== B.spell.auto; })) return castPicks(B, u);
       D.sfx('cancel');
-      if (B.picks && B.picks.length) { B.picks.pop(); return; }
+      if (B.picks && B.picks.length && !allies) { B.picks.pop(); return; } // (rays and darts: the last one aimed back)
       B.tool = rest(); B.spell = null; B.peek = null; B.clearCards(); return;
     }
     // (an item or a feature aimed -- the Rope & Grapple, a torch to throw, a potion to give, Help, Lay on Hands, PULL IT OFF, BREAK THE TENDRIL: the right button puts it away, as X does --
@@ -687,6 +691,13 @@
     return s > 0 ? 1 : s < 0 ? -1 : 0;
   }
   function castPicks(B, u) { var S = B.spell; if (S && B.picks.length) UI.command(B, u, aimedCmd(S, { units: B.picks.slice() })); }
+  // a spell's "up to N" picks hold every creature it could take from here: the rest of the picks have no one new to go to, so the ones picked fill them (10-21 night, his
+  // "let 1 of 3 be all 3 on the same guy if there isn't multiples (even if the effect only applies once)") -- Bane with one foe in sight casts at the first click. Not a
+  // stack's (Social Sharing's dice go one a click) and not the Mascots' aims (S.cmd: their picks keep their own order and count)
+  UI.picksFill = function (B, u, S) {
+    if (!S || S.cmd || S.g.stack || !B.picks.length) return false;
+    return B.units.every(function (w) { return B.picks.indexOf(w) >= 0 || !D.magic.targetOK(B, u, S.g, w); });
+  };
   // what an aim's click answers: a spell's cast, or a class feature's own command when the aim was a ring button's (`aim` below: the MPMons' specials)
   function aimedCmd(S, t) { return S.cmd ? { do: S.id, target: t } : { do: 'cast', id: S.id, slot: S.slot, target: t }; }
   // a ring button aimed the way a spell is (10-06 night, Griz on the MPMons' specials: "the abilities weren't using the normal targeting - it had the menu popups
@@ -782,7 +793,7 @@
     if (g.shape === 'self') return UI.command(B, u, { do: 'cast', id: e.id, slot: e.slot, target: u });
     B.tool = 'spell';
     if (g.shape === 'allies' && e.id === 'bless' && (!u.conds.blessed)) { B.picks = [u]; B.spell.auto = u; } // Bless takes the caster by default; click him again to leave him out
-    var how = { attack: 'a foe in sight within ' + g.range + ' ft', rays: n + ' rays: click a foe for each (the same foe again is fine)', darts: n + ' darts: click a foe for each (the same foe again is fine)', splash: 'a foe within ' + g.range + ' ft (one beside it is caught too)', single: (g.side === 'foe' ? 'a foe' : 'an ally') + ' within ' + g.range + ' ft', touch: 'yourself, or an ally beside you', allies: 'up to ' + n + (g.side === 'foe' ? ' foes' : ' allies') + ' within ' + g.range + ' ft (click to add; one clicked again, CAST, or E off a target casts with fewer)', sphere: 'a point within ' + g.range + ' ft (the ' + g.r + '-ft sphere shows)', cube: 'a point within ' + g.range + ' ft', cone: 'aim the ' + g.len + '-ft cone', line: 'aim the ' + g.len + '-ft line', around: 'every square round you (shown): click yourself or one of them', teleport: 'a square you can see within 30 ft' }[g.shape] || '';
+    var how = { attack: 'a foe in sight within ' + g.range + ' ft', rays: n + ' rays: click a foe for each (the same foe again is fine)', darts: n + ' darts: click a foe for each (the same foe again is fine)', splash: 'a foe within ' + g.range + ' ft (one beside it is caught too)', single: (g.side === 'foe' ? 'a foe' : 'an ally') + ' within ' + g.range + ' ft', touch: 'yourself, or an ally beside you', allies: 'up to ' + n + (g.side === 'foe' ? ' foes' : ' allies') + ' within ' + g.range + ' ft (click to add or drop; CAST, the right button, or E off a target casts with fewer; with no one else to take, the ones picked fill the rest)', sphere: 'a point within ' + g.range + ' ft (the ' + g.r + '-ft sphere shows)', cube: 'a point within ' + g.range + ' ft', cone: 'aim the ' + g.len + '-ft cone', line: 'aim the ' + g.len + '-ft line', around: 'every square round you (shown): click yourself or one of them', teleport: 'a square you can see within 30 ft' }[g.shape] || '';
     if (g.effects) how = 'a creature within ' + g.range + ' ft, or an empty square in the area of a spell (that spell)'; // (Dispel Magic: M.effectsAt, 10-02)
     B.clearCards(); B.card(['{y}' + e.name.toUpperCase() + (e.level ? ' (L' + e.slot + ')' : '') + '{/}: ' + how + D.keys('.  {g}X back{/}')], 100000);
   }
@@ -1044,15 +1055,17 @@
         return B.card(['{y}' + S.name + '{/}: ' + B.picks.length + ' of ' + S.n + ' aimed.  {g}X takes the last back{/}'], 100000);
       }
       if (g.shape === 'allies') {
-        // one picked clicked again casts with the picks -- Bane on a lone foe (10-21 night, his "bane can't be cast on a single target": his second click on the Patrol Lady
-        // took her back off, "0 of 3"); X takes the last back, and Bless's caster, picked by default, still leaves at a click. stack: a friend clicked again takes another --
-        // Social Sharing's dice
-        if (v === 'ok') { var i = B.picks.indexOf(w); if (i >= 0 && !g.stack) { if (w !== S.auto) return cast({ units: B.picks.slice() }); B.picks.splice(i, 1); S.auto = null; } else B.picks.push(w); }
+        // one picked clicked again is dropped again, and a spell's picks that hold every one it could take cast at once -- Bane on a lone foe, the one filling every pick
+        // (10-21 night, his "Let it deselect, let 1 of 3 be all 3 on the same guy if there isn't multiples (even if the effect only applies once)"; 2e60774 had made the
+        // second click cast, and with two foes there was no taking one back). The right button casts with the picks (turnInput). stack: a friend clicked again takes
+        // another -- Social Sharing's dice; the Mascots' aims (S.cmd) keep their own count
+        var added = false;
+        if (v === 'ok') { var i = B.picks.indexOf(w); if (i >= 0 && !g.stack) { B.picks.splice(i, 1); if (w === S.auto) S.auto = null; } else { B.picks.push(w); added = true; } }
         else if (byKey && B.picks.length) return cast({ units: B.picks.slice() });
         else return;
-        if (B.picks.length >= S.n) return cast({ units: B.picks.slice() });
+        if (B.picks.length >= S.n || (added && UI.picksFill(B, u, S))) return cast({ units: B.picks.slice() });
         var pn = []; B.picks.forEach(function (p) { var e = pn.filter(function (q) { return q.p === p; })[0]; if (e) e.n++; else pn.push({ p: p, n: 1 }); });
-        return B.card(['{y}' + S.name + '{/}: ' + (pn.length ? pn.map(function (q) { return q.p.name + (q.n > 1 ? ' x' + q.n : ''); }).join(', ') : 'no one yet') + ' (' + B.picks.length + ' of ' + S.n + ').  {g}One clicked again, CAST below, or E off a target casts with these{/}'], 100000);
+        return B.card(['{y}' + S.name + '{/}: ' + (pn.length ? pn.map(function (q) { return q.p.name + (q.n > 1 ? ' x' + q.n : ''); }).join(', ') : 'no one yet') + ' (' + B.picks.length + ' of ' + S.n + ').  {g}' + (pn.length ? 'One clicked again drops it; CAST below, the right button, or E off a target casts with these' : 'X back') + '{/}'], 100000);
       }
       if (v !== 'ok') { // (a target the spell turns away, said why: Enlarge on one already enlarged, or one it cannot see, out of range, no line -- js/magic.js whyNot, 10-21)
         var refused = w && M.whyNot(B, u, g, w);

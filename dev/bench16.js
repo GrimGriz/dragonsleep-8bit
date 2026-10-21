@@ -3692,6 +3692,53 @@
     document.body.appendChild(pre21);
     return;
   }
+  // the grid's rules lane, 10-21 night, its second seat (mode=rules1021c; the lanes desk's order on his "Grid lane should be go", the lane's next six -- his "grid seats leans
+  // and above into grid's next lane"); each check failed on the code before it
+  if (get('mode', '') === 'rules1021c') {
+    var repC = { checks: [], errors: [] }, d0C = D.d, MC = D.magic, UIc = D.ui;
+    function okC(what, v) { repC.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function runC(g) { var v, k = 0, st; while (g && k++ < 4000) { st = g.next(v); v = undefined; if (st.done) return st.value; if (st.value && st.value.prompt) v = st.value.prompt.opts[0].value; } }
+    function mkC(q) { var Bx = D.npcFight(q, {}); D.battle = Bx; Bx.enter(); while (!Bx.order.length) Bx.co.next(); Bx.dark = false; return Bx; }
+    function sideC(Bx, s) { return Bx.units.filter(function (u) { return u.side === s; }); }
+    function clsC(Bx, c) { return sideC(Bx, 'party').filter(function (w) { return w.cls === c; })[0]; }
+    function learnC(u, id) { if ((u.known || []).indexOf(id) < 0) (u.known = u.known || []).push(id); u.slots = [4, 3, 3, 0, 0, 0, 0, 0, 0]; }
+    function failC(f) { D.d = function (n) { return n === 20 ? 2 : d0C(n); }; try { return f(); } finally { D.d = d0C; } }
+    function killC(Bx, w) { Bx.hurt(w, 999, 'force'); Bx.sweep(); }
+    try {
+      // 1. BANE'S PICKS RE-CUT (his "Let it deselect, let 1 of 3 be all 3 on the same guy if there isn't multiples (even if the effect only applies once)?" and "right click
+      // doing anything at that moment?"): a goblin clicked twice is dropped again; two of three picked and the right button casts with the two; the third gone, the second
+      // click casts on both; one goblin left, the first click casts on it; Bless's caster alone (picked by default) and the right button puts the spell away
+      var B1 = mkC('?npc=goblin,goblin,goblin&vs=cleric:5,fighter:5&lvl=5'), cl1 = clsC(B1, 'cleric'), fg1 = clsC(B1, 'fighter'), gb1 = sideC(B1, 'foe'), got1 = null;
+      cl1.x = 3; cl1.y = 3; fg1.x = 4; fg1.y = 4; gb1.forEach(function (w, i) { w.x = 6; w.y = 2 + i * 2; }); B1.cache = null; learnC(cl1, 'bane'); learnC(cl1, 'bless');
+      B1.answer = function (c) { got1 = c; };
+      var aim1 = function (id) { D.rules.startTurn(cl1); B1.active = cl1; B1.req = { turn: cl1 }; B1.cursor = { x: cl1.x, y: cl1.y }; B1.list = null; B1.inspect = null; var e = MC.list(B1, cl1).filter(function (x) { return x.id === id; })[0]; if (!e) return false; e.kind = 'spell'; got1 = null; UIc.spellAim(B1, cl1, e); return true; };
+      var click1 = function (w) { UIc.actAt(B1, cl1, w.x, w.y, false); };
+      var right1 = function () { var m = D.input.mouse; m.rbtn = true; m.rclick = true; try { UIc.input(B1, B1.req); } finally { m.rbtn = false; m.rclick = false; } };
+      var on1 = function () { var t = got1 && got1.do === 'cast' && got1.target && got1.target.units; return t ? t.map(function (w) { var k = gb1.indexOf(w); return k >= 0 ? 'goblin' + k : w.cls; }).join('+') : 'nothing'; };
+      if (!aim1('bane')) okC('1 Bane on the cleric\'s list', false);
+      else {
+        click1(gb1[0]); var pA = B1.picks.length; click1(gb1[0]);
+        okC('1 Bane, three goblins in sight: goblin0 clicked (' + pA + ' picked), clicked again: ' + B1.picks.length + ' picked, cast ' + on1() + ' (want 1, 0, nothing)', pA === 1 && B1.picks.length === 0 && !got1);
+        click1(gb1[0]); click1(gb1[1]); var at2 = on1(); right1();
+        okC('1 and goblin0, goblin1 clicked: cast ' + at2 + '; the right button: cast ' + on1() + ' (want nothing; goblin0+goblin1)', at2 === 'nothing' && on1() === 'goblin0+goblin1');
+        killC(B1, gb1[2]); aim1('bane'); click1(gb1[0]); var at1 = on1(); click1(gb1[1]);
+        okC('1 and goblin2 dead, two left: goblin0 clicked, cast ' + at1 + '; goblin1 clicked, cast ' + on1() + ' (want nothing; goblin0+goblin1 -- no one else to take)', at1 === 'nothing' && on1() === 'goblin0+goblin1');
+        killC(B1, gb1[1]); aim1('bane'); click1(gb1[0]);
+        okC('1 and one goblin left: clicked once, cast ' + on1() + ' (want goblin0 -- 1 of 3 is all 3, the effect once)', on1() === 'goblin0');
+        aim1('bane'); right1();
+        okC('1 and Bane aimed, no one picked, the right button: the spell ' + (B1.spell ? 'still aimed' : 'put away') + ', cast ' + on1() + ' (want put away, nothing)', !B1.spell && !got1);
+        aim1('bless'); var pk0 = B1.picks.slice(); right1();
+        okC('1 Bless: the cleric picked by default (' + (pk0.length === 1 && pk0[0] === cl1) + '), the right button: the spell ' + (B1.spell ? 'still aimed' : 'put away') + ', cast ' + on1() + ' (want true, put away, nothing)', pk0.length === 1 && pk0[0] === cl1 && !B1.spell && !got1);
+        aim1('bless'); click1(fg1);
+        okC('1 and Bless, the fighter clicked, the two of them all it could take: cast ' + on1() + ' (want cleric+fighter)', on1() === 'cleric+fighter');
+      }
+      B1.req = null;
+    } catch (eC) { repC.errors.push(String(eC && eC.stack || eC).slice(0, 900)); D.d = d0C; }
+    if (errs.length) repC.errors = repC.errors.concat(errs);
+    var preC = document.createElement('pre'); preC.id = 'out'; preC.textContent = 'BENCH16 ' + JSON.stringify(repC);
+    document.body.appendChild(preC);
+    return;
+  }
   // the grid's rules lane, 10-21 night (mode=rules1021b; the lanes desk's order on his "Get that Grid lane going please, that's the important fixes", from his ear file of
   // 10-21: "heat metal concentration continues after target dies / bane can't be cast on a single target / antitoxin not tested", and the pudding's door's magic weapons);
   // 1 and 2 failed on the code before them; 3 is deep16/js/rulesshow.js run headless, a FAIL for a beat that did not show
@@ -3742,18 +3789,20 @@
       var click2 = function (w) { UIb.actAt(B2, cl2, w.x, w.y, false); };
       if (!UIb.spellAim || !UIb.actAt || !aim2('bane')) okB('2 the UI\'s aim (' + !!UIb.spellAim + ', ' + !!UIb.actAt + ') and Bane on the list', false);
       else {
-        click2(gb2[0]); var one2 = (B2.picks || []).length; click2(gb2[0]);
+        // (re-cut 10-21 night by the lane's next seat, his "Let it deselect": a second click drops the pick again, and the right button casts with the picks -- mode=rules1021c 1)
+        var right2 = function () { var m = D.input.mouse; m.rbtn = true; m.rclick = true; try { UIb.input(B2, B2.req); } finally { m.rbtn = false; m.rclick = false; } };
+        click2(gb2[0]); var one2 = (B2.picks || []).length; click2(gb2[0]); var zero2 = (B2.picks || []).length, early2 = got2; click2(gb2[0]); right2();
         var t2 = got2 && got2.target && got2.target.units;
-        okB('2 Bane, the goblin clicked (' + one2 + ' of 3 picked) and clicked again: cast ' + (got2 ? got2.do + ' ' + got2.id + ' on ' + (t2 ? t2.length + ' (' + t2.map(function (w) { return w.name; }).join(', ') + ')' : '?') : 'nothing') + ' (want cast bane on 1, that goblin)',
-          one2 === 1 && !!got2 && got2.do === 'cast' && got2.id === 'bane' && !!t2 && t2.length === 1 && t2[0] === gb2[0]);
+        okB('2 Bane, the goblin clicked (' + one2 + ' of 3 picked), clicked again (' + zero2 + ' picked, cast ' + !!early2 + '), clicked and the right button: cast ' + (got2 ? got2.do + ' ' + got2.id + ' on ' + (t2 ? t2.length + ' (' + t2.map(function (w) { return w.name; }).join(', ') + ')' : '?') : 'nothing') + ' (want 1, 0, false; cast bane on 1, that goblin)',
+          one2 === 1 && zero2 === 0 && !early2 && !!got2 && got2.do === 'cast' && got2.id === 'bane' && !!t2 && t2.length === 1 && t2[0] === gb2[0]);
         if (got2) { failSaves(function () { runB(B2.exec(cl2, got2)); }); }
         okB('2 and cast: the goblin baned ' + !!gb2[0].conds.baned + ', the cleric holding ' + (cl2.conc ? cl2.conc.name : 'nothing') + ' (want true, Bane)', !!gb2[0].conds.baned && !!cl2.conc && cl2.conc.id === 'bane');
         delete gb2[0].conds.baned; cl2.conc = null; D.rules.startTurn(cl2); B2.active = cl2; B2.req = { turn: cl2 }; aim2('bane');
         click2(gb2[0]); click2(gb2[1]); var two2 = got2; click2(gb2[2]); var t2c = got2 && got2.target && got2.target.units;
         okB('2 and three clicked: nothing cast at two (' + !two2 + '), cast at the third on ' + (t2c ? t2c.length : 0) + ' (want true, 3)', !two2 && !!t2c && t2c.length === 3);
         D.rules.startTurn(cl2); B2.active = cl2; B2.req = { turn: cl2 }; aim2('bless');
-        var pk0 = (B2.picks || []).slice(); click2(cl2); var pk1 = (B2.picks || []).slice(); click2(fg2); click2(fg2); var t2b = got2 && got2.target && got2.target.units;
-        okB('2 Bless: the cleric picked at the start (' + (pk0[0] === cl2) + '), clicked: picked ' + pk1.length + ' (left out); the fighter clicked twice: cast on ' + (t2b ? t2b.map(function (w) { return w.cls; }).join(', ') : 'nothing') + ' (want true, 0, fighter)',
+        var pk0 = (B2.picks || []).slice(); click2(cl2); var pk1 = (B2.picks || []).slice(); click2(fg2); right2(); var t2b = got2 && got2.target && got2.target.units;
+        okB('2 Bless: the cleric picked at the start (' + (pk0[0] === cl2) + '), clicked: picked ' + pk1.length + ' (left out); the fighter clicked and the right button: cast on ' + (t2b ? t2b.map(function (w) { return w.cls; }).join(', ') : 'nothing') + ' (want true, 0, fighter)',
           pk0.length === 1 && pk0[0] === cl2 && pk1.length === 0 && !!t2b && t2b.length === 1 && t2b[0] === fg2);
       }
       B2.req = null;
