@@ -59,7 +59,7 @@
   iso.noise = { vnoise: vnoise, fbm: fbm, dith: dith, rampPick: rampPick, h2: h2 };
 
   // ------------------------------------------------------------------ the map
-  var OPEN = { '.': 1, '=': 1, 'r': 1, '~': 1, 'L': 1, '/': 1, 'P': 1, 'c': 1, ',': 1, 'g': 1, 'T': 1, 'W': 1, 'V': 1, 'k': 1, 'f': 1, 'w': 1, 'D': 1, 'y': 1, 'G': 1, 'd': 1 }; // (G: a roof of glass -- the Edifice's skylights, walkable, the orchard seen through it: bake, 10-04 night; d: a door's threshold, dressed stone, the doorway painted on the face above it)
+  var OPEN = { '.': 1, '=': 1, 'r': 1, '~': 1, 'L': 1, '/': 1, 'P': 1, 'c': 1, ',': 1, 'g': 1, 'T': 1, 'W': 1, 'V': 1, 'k': 1, 'f': 1, 'w': 1, 'D': 1, 'y': 1, 'G': 1, 'd': 1, 'o': 1, 'K': 1, 'S': 1 }; // (o: a floor of boards, K: a counter, S: shelves -- a town's rooms, 10-20) (G: a roof of glass -- the Edifice's skylights, walkable, the orchard seen through it: bake, 10-04 night; d: a door's threshold, dressed stone, the doorway painted on the face above it)
   // (the Settling, 09-30: D deep water, the landlord's under the fall; y a cradle, the crawler pens' timber crib. A map's `deepWater`
   // names the water nothing walks in -- grid.js lets only what lives there (bound to it, or a swimmer) in)
   // set design (09-27, Griz: "proceed with set design"): the things a square can hold that stand in the way -- not walked
@@ -67,7 +67,7 @@
   //   ,  a road (packed dirt, rutted)   g  grass   T  a tree   W  a wagon under its cover (squares side by side make one)
   //   V  a wagon's open bed (lower; a fight's `riders` stand in it)
   //   k  a woodpile or crates   f  a rail or fence (posts and bars)   w  a well   b  a building's wall
-  var STANDS = { P: 'a stalagmite', T: 'a tree', W: 'the wagon', V: 'the wagon', k: 'the woodpile', f: 'the rail', w: 'the well', y: 'the cradle' };
+  var STANDS = { P: 'a stalagmite', T: 'a tree', W: 'the wagon', V: 'the wagon', k: 'the woodpile', f: 'the rail', w: 'the well', y: 'the cradle', K: 'the counter', S: 'the shelves' };
   iso.load = function (def) {
     // heights at D.hscale (RULED 10-14, Griz: "now want that default across the board for grid mappings"; js/main.js sets it, 2 unless &hscale= says): a map's
     // `step` is its own number in data/maps.js (kept as `step0`) times D.hscale, done here so a map made at runtime takes it too. The rules read feet through
@@ -81,7 +81,7 @@
         walk: !!OPEN[ch] && ch !== 'c' && !STANDS[ch] && (def.deepWater || '').indexOf(ch) < 0, // (deep water: grid.js walkable lets its own in)
         difficult: ch === 'r' || ch === '~', deep: (def.deepWater || '').indexOf(ch) >= 0,
         gz: def.heights ? (parseInt(def.heights[y][x], 36) || 0) * def.step : ch === 'L' ? def.step * 2 : ch === '/' ? def.step : 0, // (a map's `heights`: a digit a square, in steps -- the Flooded Stair's flight, 10-02)
-        pillar: !!STANDS[ch], stands: STANDS[ch] || null, cocoon: ch === 'c', tree: ch === 'T', block: 'WVkfwy'.indexOf(ch) >= 0 ? ch : null
+        pillar: !!STANDS[ch], stands: STANDS[ch] || null, cocoon: ch === 'c', tree: ch === 'T', block: 'WVkfwyKS'.indexOf(ch) >= 0 ? ch : null
       });
     }
     m.at = function (x, y) { return (x < 0 || y < 0 || x >= m.w || y >= m.h) ? null : m.sq[y * m.w + x]; };
@@ -232,6 +232,9 @@
             if (s.ch === ',') {                                   // the road: packed dirt, two ruts along it, no grass
               var rx = gx + 0.5 - Math.floor(gx + 0.5), ry = gy + 0.5 - Math.floor(gy + 0.5), rut = (m.def.road === 'y' ? Math.abs(rx - 0.3) < 0.05 || Math.abs(rx - 0.7) < 0.05 : Math.abs(ry - 0.3) < 0.05 || Math.abs(ry - 0.7) < 0.05);
               col = rut ? leather[0] : pebble ? stone[5] : rampPick(leather, 0.12 + n * 0.4 + (fine - 0.5) * 0.15, ix, iy);
+            } else if (s.ch === 'o') {                            // a floor of boards (a town's rooms, 10-20): planks along the grid's x, their seams and pegs, worn paler down the middle
+              var bx = gx + 0.5 - Math.floor(gx + 0.5), by = gy + 0.5 - Math.floor(gy + 0.5), board = Math.floor(by * 4), seamB = (by * 4) % 1 < 0.1 || ((bx + board * 0.37) % 1) < 0.03;
+              col = seamB ? leather[0] : rampPick(leather, 0.45 + (h2(Math.floor(gx + 0.5) * 4 + board, Math.floor(gy + 0.5), seed + 11) - 0.5) * 0.3 + n * 0.25 - Math.max(0, 0.9 - rock) * 0.3, ix, iy);
             } else if (s.ch === 'g') {                            // grass, all of it
               col = pebble ? stone[4] : rampPick(moss, 0.12 + n * 0.75 + (fine - 0.5) * 0.2 - Math.max(0, 0.9 - rock) * 0.3, ix, iy);
             } else if (earth) {
@@ -380,11 +383,14 @@
   // the same block doesn't carry on (so a wagon two squares wide by four long is one box), lit as the rock is
   var BLOCK = { W: { h: 24, side: 'leather', top: 'silver', planks: true, wheels: true }, V: { h: 12, side: 'leather', top: 'leather', planks: true, wheels: true, bed: true }, k: { h: 14, side: 'leather', top: 'leather', planks: true, logs: true },
     f: { h: 11, side: 'leather', top: 'leather', rail: true }, w: { h: 11, side: 'stone', top: 'stone', well: true },
-    y: { h: 13, side: 'leather', top: 'leather', rail: true } }; // (a cradle: a timber crib, slats and a bar -- the rail's drawing, taller)
+    y: { h: 13, side: 'leather', top: 'leather', rail: true }, // (a cradle: a timber crib, slats and a bar -- the rail's drawing, taller)
+    // a town's rooms (10-20, the Silverton roam seat; Griz: "We're going to need slightly varied 16 bit shop interiors for the vendors"): a shop's counter, waist-high boards;
+    // shelves to the head, boards every course and the trade's goods on them in the map's `goods` ramp (js/town.js T.room)
+    K: { h: 18, side: 'red', top: 'stone', planks: true, counter: true }, S: { h: 40, side: 'leather', top: 'leather', shelves: true } }; // (the counter a darker wood than a board floor, its top worn pale: it stands out of the room)
   function blockCanvas(m, s) {
     var b = BLOCK[s.ch], hgt = b.h, W = TW, H = TH + hgt + 2, ox = HW, oy = hgt + HH;
     var same = function (x, y) { var n = m.at(x, y); return !!(n && n.ch === s.ch); };
-    var seed = D.hash(m.def.name) + s.x * 31 + s.y * 17, side = iso.ramp(b.side), top = iso.ramp(b.top), stone = iso.ramp('stone');
+    var seed = D.hash(m.def.name) + s.x * 31 + s.y * 17, side = iso.ramp(b.side), top = iso.ramp(b.top), stone = iso.ramp('stone'), goods = b.shelves && m.def.goods ? iso.ramp(m.def.goods) : null;
     var cv = document.createElement('canvas'); cv.width = W; cv.height = H;
     var cx = cv.getContext('2d'), img = cx.createImageData(W, H), px = img.data;
     function put(ix, iy, c) { if (ix < 0 || iy < 0 || ix >= W || iy >= H) return; var o = (iy * W + ix) * 4; px[o] = c[0]; px[o + 1] = c[1]; px[o + 2] = c[2]; px[o + 3] = 255; }
@@ -401,6 +407,10 @@
           if (b.well && (j % 4 === 0 || (k + (j >> 2) * 4) % 8 === 0)) v -= 0.14;           // the well's courses
           if (j === 0) v -= 0.1;
           var col = rampPick(side, v, fx, y);
+          if (b.shelves) { // a shelf's board every ten px, and between them the goods: jars, bolts, ledgers, in the trade's colours (the map's `goods`)
+            if (j % 10 === 0 || k % 16 === 0) col = rampPick(side, 0.62, fx, y);
+            else { var gk = h2((k >> 2) + s.x * 17, (j / 10 | 0) + s.y * 13, seed + 3), gr = goods || side; col = gk > 0.35 && (j % 10) > 1 && (j % 10) < 9 - ((k >> 2) % 3) ? rampPick(gr, 0.25 + gk * 0.7, fx, y) : rampPick(side, 0.08, fx, y); }
+          }
           if (wheel) { var d = Math.hypot(k - HW / 2, (j - 7) * 1.1); if (d < 7.5 && d > 5) col = stone[1]; else if (d < 1.6) col = stone[3]; else if (d < 5 && ((k + j) % 3 === 0)) col = stone[2]; }
           put(fx, y, col);
         }
@@ -414,6 +424,7 @@
         if (b.rail && Math.abs(dy) > 1) continue;
         if (b.well) { var r2 = Math.hypot(dx / HW, dy / HH); if (r2 < 0.5) { put(tx, ty, stone[0]); continue; } v2 = 0.42 + (r2 > 0.85 ? -0.1 : 0.08); }
         if (b.bed) v2 = (Math.abs(((dx - dy * 2) % 8 + 8) % 8) < 1 ? 0.12 : 0.36) + (vnoise(dx * 0.4, dy * 0.4, seed) - 0.5) * 0.15; // the bed's boards
+        if (b.counter) v2 = (Math.abs(((dx + dy * 2) % 10 + 10) % 10) < 1 ? 0.2 : 0.55) + (vnoise(dx * 0.3, dy * 0.6, seed) - 0.5) * 0.15; // the counter's top, worn boards
         if (s.ch === 'W') v2 = 0.3 + 0.28 * Math.abs(Math.sin((dx + dy * 2 + s.x * 13) * 0.35)) + (half - Math.abs(dx + 0.5) < 2 ? -0.18 : 0); // the cover's folds: dusky canvas at night
         put(tx, ty, rampPick(top, v2, tx, ty));
       }

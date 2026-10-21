@@ -247,20 +247,116 @@
   T.LINE = { // the floor's own words where the 8-bit's would be wrong here (invented.json silverton16-gate-hand)
     guard1: 'West gate. The road runs a mile to the fork: the Tower north of it, the Pit south down the long road. East gate\'s the farms and the coast. Nobody bothers the dwarves.'
   };
+  // ---------------------------------------------------------------- the rooms behind the doors (10-20, Griz, to the lanes desk: "We're going to need slightly varied 16 bit
+  // shop interiors for the vendors"): one shop's shape -- walls of built stone, the door in the front wall (the grid's +y, the side the eye sees through: the near walls cut
+  // low), shelves along the back wall with the trade's goods on them, a counter across with the keeper behind it, the floor between -- varied by the trade (the town's register,
+  // TarlynsPit/silverton-personae.md, by v6's slot): its size (s 10 x 8, m 12 x 10, l 16 x 12 squares), its floor (o boards, = flags, . beaten earth), the goods' colour, the
+  // counter's run (across; short; a grille; a long bar; none), shelves down the side too, and what stands about. Built from what the grid has: crates, the cots, a campfire for
+  // a forge, water, a counter and shelves drawn in code (js/iso.js BLOCK K and S). Griz's own (the magic-item shop's proprietor, 35; Mama's Pharmakaiea, 42) get the shape and
+  // nothing of their particulars. Walked in through the door on the street and out by the same door
+  T.TRADE = {
+    'keeper:casper': { size: 's', floor: '=', goods: 'gold', counter: 'grille', dress: ['bench'] },          // the moneychanger and his assay bench
+    'keeper:androit': { size: 'm', floor: 'o', goods: 'bone', side: true, dress: ['desks'] },                 // the notary's scriptorium: ledgers and copy-desks
+    'keeper:hessle': { size: 'l', floor: '=', goods: 'silver', dress: ['scale'] },                           // the Weigh-House: its weights, the beam's floor
+    'keeper:falstaff': { size: 'm', floor: '=', goods: 'violet', dress: ['desks'] },                         // the wizard-nation factor's clerk
+    'keeper:aldric': { size: 'm', floor: 'o', goods: 'leather', dress: ['sacks'] },                          // the wool-and-grain factor: sacks and bales
+    'shop:kessler': { size: 'm', floor: 'o', goods: 'stone', counter: 'grille', side: true, dress: ['crates', 'clutter'] }, // the pawnbroker: pledges everywhere
+    'shop:calla': { size: 's', floor: 'o', goods: 'glow', side: true },                                     // the apothecary: jars in ranks
+    'keeper:barber': { size: 's', floor: 'o', goods: 'red', counter: 'short', dress: ['chair'] },           // the barber-surgeon's chair
+    'inn:cassia': { size: 'l', floor: 'o', goods: 'red', counter: 'bar', dress: ['tables'] },               // the coaching inn and wine arcade
+    'keeper:mela': { size: 'l', floor: '=', goods: 'blue', counter: 'short', door: 3, dress: ['pool'] },     // the stew: the bath
+    'keeper:marin': { size: 'm', floor: 'o', goods: 'red', side: true, dress: ['crates'] },                  // cloth and the dyer's bolts
+    'keeper:brennan': { size: 'l', floor: '.', goods: 'silver', counter: 'none', dress: ['forge', 'crates'] }, // the smithy's forge
+    'shop:marko': { size: 'm', floor: 'o', goods: 'leather', dress: ['crates', 'sacks'] },                  // the provisioner: the road's stores
+    'shop:kasten': { size: 's', floor: 'o', goods: 'gold' },                                                // the chandler: tallow and wicks
+    'keeper:venhale': { size: 'l', floor: '.', goods: 'leather', counter: 'short', dress: ['stalls'] },     // the fighters' stables
+    'shop:vilar': { size: 'm', floor: '.', goods: 'silver', side: true, dress: ['crates'] },               // the show-armorer's racks
+    'leech:davos': { size: 'm', floor: 'o', goods: 'red', counter: 'short', dress: ['cots'] },              // the leech-house's beds
+    'keeper:kess': { size: 'm', floor: '.', goods: 'stone', counter: 'none', dress: ['cots'] },            // the flop-cellar's doss beds
+    'chapel:aldwin': { size: 'l', floor: '=', goods: 'gold', counter: 'short', dress: ['pews'] },          // the mission chapel: bread at six
+    'keeper:mical': { size: 'l', floor: '.', goods: 'leather', counter: 'short', dress: ['crates', 'sacks'] }, // the riverside warehouse
+    'shop:lisbet': { size: 's', floor: 'o', goods: 'violet' },                                              // charms and warding chalk
+    'keeper:merrick': { size: 'm', floor: '=', goods: 'gold', counter: 'grille' },                         // the message-lantern house and its window
+    'warp:winters': { size: 'm', floor: '=', goods: 'glow', own: true },                                   // the magic-item shop: Griz's own proprietor
+    'warp:percy': { size: 's', floor: 'o', goods: 'glow', side: true },                                    // Percy's Particulars: jars in ranks, the counter (invented.json percy-interior)
+    'keeper:tam': { size: 'm', floor: 'o', goods: 'violet', counter: 'none', dress: ['cots'] },            // the dream-smoke den's couches
+    'shop:lucia': { size: 's', floor: 'o', goods: 'moss', own: true }                                      // Mama's Pharmakaiea: Griz's own
+  };
+  T.KEEPER = { 'shop:kessler': 'Kessler', 'shop:calla': 'Calla Voss', 'shop:marko': 'Marko Thorne', 'shop:kasten': 'Kasten Wheal', 'shop:vilar': 'Vilar', 'shop:lisbet': 'Lisbet Crane', 'inn:cassia': 'Cassia', 'leech:davos': 'Davos Kren', 'warp:percy': 'Percy', 'warp:winters': 'Ambrose Winters', 'shop:lucia': 'Mama', 'keeper:aldric': 'Aldric Vest' }; // (the shops' keepers by the register; the keepers' own names come from the 8-bit's npcs)
+  T.room = function (id, door) {
+    var t = T.TRADE[id] || { size: 'm', floor: 'o', goods: 'leather' }, S = { s: [10, 8], m: [12, 10], l: [16, 12] }[t.size] || [12, 10], w = S[0], h = S[1], g = [];
+    for (var y = 0; y < h; y++) { g.push([]); for (var x = 0; x < w; x++) g[y].push(x === 0 || y === 0 || x === w - 1 || y === h - 1 ? 'b' : t.floor); }
+    var set = function (x, y, c) { if (x > 0 && y > 0 && x < w - 1 && y < h - 1) g[y][x] = c; }, dx = t.door != null ? t.door : Math.floor(w / 2);
+    g[h - 1][dx] = 'd';
+    for (x = 1; x < w - 1; x++) set(x, 1, 'S');                                              // the shelves along the back wall
+    if (t.side) for (y = 2; y < h - 3; y++) set(1, y, 'S');                                   // and down the side
+    var cr = t.counter || 'across', c0 = t.side ? 3 : 2, c1 = cr === 'short' ? Math.min(w - 3, c0 + 3) : w - 3, keep = [Math.floor((c0 + c1) / 2), 2];
+    if (cr !== 'none') for (x = c0; x <= c1; x++) set(x, 3, 'K');                             // the counter across, the keeper's way round its far end
+    if (cr === 'grille') set(c1, 3, 'f');                                                     // (a grille: the rail at its end -- the moneychanger's, the pawnbroker's, the lantern window)
+    if (cr === 'bar') for (y = 4; y < h - 4; y++) set(c1, y, 'K');                            // (a bar: down the side too)
+    if (cr === 'none') keep = [dx + 2, 4];
+    var free = function (x, y) { return x > 0 && y > 4 && x < w - 1 && y < h - 2 && g[y][x] === t.floor && Math.abs(x - dx) > 1; }, put = function (x, y, c) { if (free(x, y)) g[y][x] = c; };
+    var extra = {};
+    (t.dress || []).forEach(function (d) {
+      if (d === 'crates') [[2, h - 3], [3, h - 3], [2, h - 4], [w - 3, h - 3], [w - 4, h - 3]].forEach(function (q) { put(q[0], q[1], 'k'); });
+      if (d === 'sacks') for (y = 5; y < h - 2; y++) put(t.side ? 2 : 1, y, 'k');
+      if (d === 'clutter') for (y = 5; y < h - 2; y++) for (x = 2; x < w - 2; x++) if (((x * 7 + y * 13) % 5) === 0) put(x, y, 'k');
+      if (d === 'desks' || d === 'bench') [[2, 6], [3, 6], [w - 4, 6], [w - 3, 6]].slice(0, d === 'bench' ? 2 : 4).forEach(function (q) { put(q[0], q[1], 'K'); });
+      if (d === 'tables') [[3, 6], [4, 6], [3, 7], [4, 7], [w - 5, 6], [w - 4, 6], [w - 5, 7], [w - 4, 7]].forEach(function (q) { put(q[0], q[1], 'K'); });
+      if (d === 'scale') for (y = 6; y <= 7; y++) for (x = 3; x <= 6; x++) put(x, y, 'K');
+      if (d === 'chair') put(w - 3, 6, 'K');
+      if (d === 'pool') for (y = 5; y <= 8; y++) for (x = dx + 3; x <= w - 3; x++) put(x, y, '~');
+      if (d === 'cots') { for (y = 5; y < h - 2; y += 2) [2, 3, w - 4, w - 3].forEach(function (x2) { put(x2, y, 'y'); }); extra.cots = { sheet: 'gsbed_p1' }; }
+      if (d === 'forge') { put(3, 5, '.'); extra.fire = [3, 6]; [[2, 5], [4, 5]].forEach(function (q) { put(q[0], q[1], 'k'); }); }
+      if (d === 'stalls') for (y = 5; y < h - 2; y++) if (y % 3 !== 1) { put(2, y, 'f'); put(w - 3, y, 'f'); }
+      if (d === 'pews') for (y = 6; y < h - 2; y += 2) for (x = 2; x < w - 2; x++) put(x, y, 'K');
+    });
+    var arg = id.split(':')[1], N = ((window.DS && window.DS.DATA) || {}).npcs || {}, Sh = ((window.DS && window.DS.DATA) || {}).shops || {};
+    var nm = (door && door.name) || T.KEEPER[id] || (N[arg] && N[arg].name) || arg, shopNm = (Sh[arg] && Sh[arg].name) || null;
+    var trig = [], k0 = keep;
+    for (x = 1; x < w - 1; x++) if (g[3][x] === 'K' || g[3][x] === 'f') trig.push({ id: 'talk:' + arg, on: 'use', rect: [x, 3, 1, 1], town: 'talk', npc: arg }); // (E at the counter: a word with the keeper behind it)
+    trig.push({ id: 'talk:' + arg, on: 'use', rect: [k0[0], k0[1], 1, 1], town: 'talk', npc: arg });
+    var id2 = function (x2, y2) { return [x2, y2]; };
+    return Object.assign({
+      name: shopNm || nm, sub: 'a room on the Silverton floor', key: 'room', room: id, town: true, wet: false, dark: false, step: 10, goods: t.goods,
+      rows: g.map(function (r) { return r.join(''); }), entry: [[dx, h - 2]], face: [0, -1], doors: [[dx, h - 1]], stairUp: [], foes: [], marks: {}, people: [],
+      keeper: { id: arg, name: nm, at: keep, own: !!t.own, art: door && door.art || null },
+      src8: { id: 'room:' + id, rows: [], legend: {}, triggers: trig, warps: [], chests: [], zones: [], save: false }, from8: id2, to8: id2, sig: '', zone8: null
+    }, extra);
+  };
+  // in at a door: the floor set aside (its map kept as it stands, its people with it) and the room laid; the token just inside the door, facing in, the keeper behind the counter
+  T.goIn = function* (B, trig) {
+    var R = D.roam, R0 = B.roam, t = R0.token, def = T.room(trig.id, trig.door), N = ((window.DS.DATA || {}).npcs || {})[def.keeper.id];
+    B.townAway = { map: B.map, def: R.def, at: [t.x, t.y], fw: R0.fw.slice(), folk: B.units.filter(function (u) { return u.npc; }) };
+    B.units = B.units.filter(function (u) { return !u.npc; });
+    R.def = def; D.MAPS.room = def; B.map = D.iso.load(def);
+    t.x = def.entry[0][0]; t.y = def.entry[0][1]; t.tween = null; R0.fw = def.face.slice(); t.facing = D.spr.facingFor(R0.fw[0], R0.fw[1]); t.anim = 'idle'; t.animT = B.t; R0.path = null;
+    var kp = def.keeper, u = B.makeFoe({ id: 'keeper', kind: T.KIND[(N && N.look) || ''] || 'crewman', at: kp.at.slice(), side: 'party', ally: true });
+    u.name = kp.name; u.look = true; u.npc = kp.id; u.attacks = {}; u.multi = 1; u.hp = u.maxhp = 4; u.lvl = 1; u.facing = D.spr.facingFor(0, 1); u.anim = 'idle'; u.animT = 0;
+    B.units.push(u); if (D.spr.prefetch && u.sheet) D.spr.prefetch([u.sheet]);
+    R.famPlace(B, true); B.cache = null; B.exits = []; D.grid.setup(B.map, B.units); B.focus(t);
+    B.card(D.roam.wrap(['{y}' + def.name + '{/}' + (def.name !== kp.name ? ' -- ' + kp.name + ' at the counter' : '') + '.', '{g}E at the counter: a word. The door behind you: back to the street.' + (kp.own ? ' (Griz\'s own: the room waits on his word.)' : '') + '{/}']), 360);
+    D.sfx('popup'); yield 10;
+  };
+  // out by the door: the room let go, the floor as it was, the party on the door's square facing the street
+  T.goOut = function* (B) {
+    var R = D.roam, R0 = B.roam, t = R0.token, o = B.townAway; if (!o) return;
+    B.units = B.units.filter(function (u) { return !u.npc; }).concat(o.folk);
+    R.def = o.def; D.MAPS[o.def.key] = o.def; B.map = o.map; D.iso.map = o.map; o.map.occKey = null;
+    t.x = o.at[0]; t.y = o.at[1]; t.tween = null; R0.fw = [-o.fw[0], -o.fw[1]]; t.facing = D.spr.facingFor(R0.fw[0], R0.fw[1]); t.anim = 'idle'; t.animT = B.t; R0.path = null;
+    R.famPlace(B, true); B.cache = null; B.exits = []; D.grid.setup(o.map, B.units); B.focus(t); B.townAway = null;
+    D.sfx('popup'); yield 6;
+  };
   T.fire = function* (B, trig) {
     var R = D.roam, R0 = B.roam;
     if (trig.town === 'talk') {
       var u = B.units.filter(function (x) { return x.npc === trig.npc; })[0], t = R0.token;
       if (u) u.facing = D.spr.facingFor(t.x - u.x, t.y - u.y);
-      B.card(R.wrap(['{y}' + (u ? u.name : trig.npc) + '{/}'].concat(trig.npc === 'guard1' ? [T.LINE.guard1] : T.say(B, trig.npc))), 420);
+      var kp = R.def.room && R.def.keeper && R.def.keeper.id === trig.npc ? R.def.keeper : null, said = trig.npc === 'guard1' ? [T.LINE.guard1] : T.say(B, trig.npc);
+      if (kp) said = (/^\{g\}\(Their scene/.test(said[0]) ? [] : said).concat(['{g}' + (kp.own ? 'Griz\'s own: the counter waits on his word.' : 'The counter -- buying and selling -- is to come.') + '{/}']); // (a room's keeper: the 8-bit's word where it has one, and the counter's screen to come)
+      B.card(R.wrap(['{y}' + (u ? u.name : trig.npc) + '{/}'].concat(said)), 420);
       D.sfx('popup'); yield 20; return;
     }
-    if (trig.town === 'door') {
-      var d = trig.door || {}, arg = trig.id.split(':')[1], S = ((window.DS.DATA || {}).shops || {})[arg], N = ((window.DS.DATA || {}).npcs || {})[arg];
-      var key = (D.TOWN_V6.key || []).reduce(function (a, col) { return a.concat(col); }, []).filter(function (r) { return r[0] === d.pin; })[0];
-      var nm = d.name || (S && S.name) || (N && N.name) || arg, what = d.what || (key ? key[1] : '');
-      B.card(R.wrap(['{y}' + nm + '{/}' + (what ? ' -- ' + what : '') + ' (' + d.pin + ' on the city map)', '{g}The door is marked; the counter inside is to come.{/}']), 300);
-      D.sfx('popup'); yield 10;
-    }
+    if (trig.town === 'door') { yield* T.goIn(B, trig); return; } // (in: the room behind it -- T.room)
   };
 })();

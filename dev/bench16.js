@@ -1936,8 +1936,25 @@
       tkT.x = gWT[0]; tkT.y = gWT[1]; GT.setup(GT.map, BT.units); driveT(BT.co, null, 30);
       var hfT = defT.marks.hexFront[0], nT = walkT(BT, RT, hfT, 60000);
       okT('walked from the west gate to the Hexagon\'s front doors (' + nT + ' steps; the token at ' + tkT.x + ',' + tkT.y + ', ' + (defT.where ? defT.where(tkT.x, tkT.y) : '') + ')', nT > 100 && tkT.x === hfT[0] && tkT.y === hfT[1]);
-      var wiT = dT['warp:winters'], nW = walkT(BT, RT, wiT, 60000);
-      okT('Winters\' door stepped on (' + nW + ' steps on, the token at ' + tkT.x + ',' + tkT.y + ', the door ' + wiT + '): ' + ((BT.cards[BT.cards.length - 1] || {}).lines || []).join(' / ').slice(0, 100), cardT(/Acquisitions|Winters/) && cardT(/marked/));
+      var townMapT = BT.map, folkN = folkT.length, wiT = dT['warp:winters'], nW = walkT(BT, RT, wiT, 60000);
+      var inT = D.roam.def.room === 'warp:winters', kpT = BT.units.filter(function (u) { return u.npc === 'winters'; })[0];
+      okT('Winters\' door stepped on (' + nW + ' steps on): in his room (' + D.roam.def.name + ', ' + BT.map.w + ' x ' + BT.map.h + ', the token at ' + tkT.x + ',' + tkT.y + ' facing in), ' + (kpT ? kpT.name : 'no one') + ' behind the counter, the street\'s people set aside', inT && !!kpT && tkT.x === D.roam.def.entry[0][0] && tkT.y === D.roam.def.entry[0][1] && !BT.units.some(function (u) { return u.npc && u.npc !== 'winters'; }));
+      var ctrT = null; for (var cxT = 1; cxT < BT.map.w - 1 && !ctrT; cxT++) if (BT.map.at(cxT, 3).ch === 'K') ctrT = [cxT, 4];
+      walkT(BT, RT, ctrT, 4000); RT.fw = [0, -1]; BT.cards = []; RT.keys.push('use'); driveT(BT.co, function () { return cardT(/Winters/); }, 400);
+      okT('E at his counter: ' + ((BT.cards[BT.cards.length - 1] || {}).lines || []).join(' / ').slice(0, 110), cardT(/Ambrose Winters/) && cardT(/Griz's own/));
+      var outDT = D.roam.def.doors[0]; walkT(BT, RT, outDT, 4000);
+      okT('out by the door: the street again (the town\'s own map kept, ' + BT.units.filter(function (u) { return u.npc; }).length + ' people back), on Winters\' doorstep (' + tkT.x + ',' + tkT.y + ') facing the street', !D.roam.def.room && BT.map === townMapT && D.iso.map === townMapT && BT.units.filter(function (u) { return u.npc; }).length === folkN && tkT.x === wiT[0] && tkT.y === wiT[1]);
+      // every door's room: the one shape, varied by the trade -- the door in the front wall, the way in walkable, the keeper behind the counter, a way from the door to the counter
+      var badR = [], sizesR = {};
+      D.town.DOORS.forEach(function (dd) {
+        var rd = D.town.room(dd.id, dd), m2 = D.iso.load(rd), e = rd.entry[0], k = rd.keeper.at, tk2 = { x: e[0], y: e[1], size: 1, side: 'party' };
+        sizesR[rd.rows[0].length + 'x' + rd.rows.length] = (sizesR[rd.rows[0].length + 'x' + rd.rows.length] || 0) + 1;
+        GT.setup(m2, [tk2]); var ctr = null; for (var x2 = 1; x2 < m2.w - 1; x2++) if (m2.at(x2, 3).ch === 'K' && m2.at(x2, 4).walk) { ctr = [x2, 4]; break; }
+        var ok = rd.rows[rd.rows.length - 1].charAt(rd.doors[0][0]) === 'd' && m2.at(e[0], e[1]).walk && m2.at(k[0], k[1]).walk && (rd.rows[3].indexOf('K') < 0 || (ctr && D.Battle.route(tk2, ctr)));
+        if (!ok) badR.push(dd.id);
+      });
+      D.iso.map = townMapT; GT.setup(townMapT, BT.units);
+      okT('every door\'s room laid (' + D.town.DOORS.length + ': ' + Object.keys(sizesR).map(function (k) { return k + ' ' + sizesR[k]; }).join(', ') + '), each walkable from its door to its counter' + (badR.length ? ' -- NOT: ' + badR.join(', ') : ''), !badR.length);
       var wayT = defT.doors.filter(function (q) { return /fork/.test(defT.wayName[q[0] + ',' + q[1]]); })[0], nO = wayT ? walkT(BT, RT, wayT, 80000) : null;
       okT('THE road west off the floor (' + wayT + ', ' + nO + ' steps): the world map\'s, later, and the town keeps the party', !!wayT && cardT(/THE road west/) && cardT(/world map/) && BT.units.indexOf(tkT) >= 0);
       okT('the floor painted only where the camera went: ' + mT.bake.baked + ' of ' + mT.bake.pages.filter(function (p) { return p.list.length; }).length + ' pages (none on a bench page, nothing drawn)', mT.bake.baked === 0);

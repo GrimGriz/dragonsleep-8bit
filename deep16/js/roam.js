@@ -420,6 +420,7 @@
     var R0 = B.roam, t = R0.token, p8 = R.def.to8(t.x, t.y);
     if ((R.def.doors || []).some(function (d) { return d[0] === t.x && d[1] === t.y; })) {
       var up = R.def.stairUp.some(function (d) { return d[0] === t.x && d[1] === t.y; });
+      if (R.def.room) { yield* D.town.goOut(B); return 'door'; } // (a room's door: back to the street -- js/town.js)
       if (R.def.town) { yield* D.town.wayOut(B, [t.x, t.y]); return 'door'; } // (the town's roads off the floor: the world map takes the party on there, later -- js/town.js)
       if (R.emb) { yield* R.leaveFloor(B, 'out', [t.x, t.y]); return 'door'; } // (inside the 8-bit: off the floor, and the 8-bit takes its own warp from this square)
       var w8 = R.warpsOn(R.def.src8, R0.flags).filter(function (w) { return w.x === p8[0] && w.y === p8[1]; })[0], to8 = w8 ? w8.to : up ? 'warrens_b' : 'warrens_c', nm8 = ((window.DS.DATA.maps || {})[to8] || {}).name || to8; // (the map's own warp: the Burial's too, drained)
@@ -1713,7 +1714,7 @@
     }
     if ((R0.mode === 'walk' || R0.mode === 'order') && !B.menu) {
       var p8 = R.def.to8(R0.token.x, R0.token.y); // (no step count shown: a random fight comes unannounced -- 10-14, Griz: "removing the step warning regarding random encounters")
-      D.text(ctx, R.def.town ? 'THE ROAM -- Silverton, ' + G.map.w + ' x ' + G.map.h + '   square ' + p8[0] + ',' + p8[1] + (R.def.where ? '   ' + R.def.where(p8[0], p8[1]) : '') : 'THE ROAM -- the Wet, ' + G.map.w + ' x ' + G.map.h + '   8-bit square ' + p8[0] + ',' + p8[1], 6, D.H - 30, '#e8d8a0');
+      D.text(ctx, R.def.town ? 'THE ROAM -- ' + (R.def.room ? 'Silverton: ' + R.def.name : 'Silverton') + ', ' + G.map.w + ' x ' + G.map.h + '   square ' + p8[0] + ',' + p8[1] + (R.def.where ? '   ' + R.def.where(p8[0], p8[1]) : '') : 'THE ROAM -- the Wet, ' + G.map.w + ' x ' + G.map.h + '   8-bit square ' + p8[0] + ',' + p8[1], 6, D.H - 30, '#e8d8a0');
       D.text(ctx, R0.mode === 'order' ? 'ORDER (facing ' + R.faceName(R0.fw) + '): click one, then a lit square, or the leader to lead -- right click turns -- O when done' : 'click: walk   arrows: step   O: formation' + (R.tracking(R0).length ? '   F: the fight now' : R.emb || !R.def.wet ? '' : '   F: a fight now') + '   L: the floor map' + (function () { var un = R.useNear(B); if (!un) return ''; var tw = un.trig.town === 'talk' && B.units.filter(function (u) { return u.npc === un.trig.npc; })[0]; return '   E: ' + (tw ? 'a word with ' + tw.name : R.USE_NAME[un.trig.id] || un.trig.id); })(), 6, D.H - 20, '#9a94a8');
     }
     if (R.showMap) { var ms = Math.max(1, Math.min(4, Math.floor((D.W - 12) / G.map.w), Math.floor((D.H - 60) / G.map.h))); R.paintMap(ctx, B, D.W - G.map.w * ms - 6, 22, ms); } // (the town's 474 squares at a pixel each)
