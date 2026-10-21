@@ -1981,7 +1981,7 @@
       okT('Sylvia Swann\'s booth (his "sylvia will get one"): ' + (D.roam.def.room === 'keeper:sylvia' ? 'in, ' + D.roam.def.name + ', ' + B30.map.w + ' x ' + B30.map.h : 'not in'), D.roam.def.room === 'keeper:sylvia');
       if (D.roam.def.room) walkT(B30, R30, D.roam.def.doors[0], 4000);
       var ca30 = d30.marks.doors['keeper:casper'], m30 = B30.map; walkT(B30, R30, ca30, 20000);
-      okT('Casper Venn\'s door opens his room at true scale (' + D.roam.def.name + ', ' + B30.map.w + ' x ' + B30.map.h + ')', D.roam.def.room === 'keeper:casper' && B30.map.w === 10);
+      okT('Casper Venn\'s door opens his room at true scale, north up as the street is (' + D.roam.def.name + ', ' + B30.map.w + ' x ' + B30.map.h + ', ' + (B30.map.top ? 'north up' : 'on the diamonds') + ')', D.roam.def.room === 'keeper:casper' && B30.map.w === 10 && !!B30.map.top);
       walkT(B30, R30, D.roam.def.doors[0], 4000);
       okT('and out to the street again, the 30 ft town\'s own map', !D.roam.def.room && B30.map === m30);
       // the Wet's door is still the Wet

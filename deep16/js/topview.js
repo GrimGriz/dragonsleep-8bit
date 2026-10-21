@@ -12,6 +12,8 @@
   TV.TS = 48;        // a square's px across and down
   TV.PAGE = 1024;    // a page of the floor's px
   TV.CLIFF = 64;     // a rock's face where open ground lies south of it (the mountain's foot, the Edifice's front), px
+  TV.ROOMWALL = 40;  // a room's wall (js/town.js T.room): its back wall's face over the floor; the front wall a stub, so the floor and the door show (10-20, Griz: "1 north up", the rooms too)
+  TV.BLOCK = { k: 10, f: 12, w: 8, K: 16, S: 40, y: 6 }; // (a block's px: a crate or a stall, a rail, a well, a shop's counter and its shelves, a cot's frame)
   var on = function () { return !!(iso.map && iso.map.top); };
 
   // ------------------------------------------------------------------ the view's geometry, while a top map is loaded
@@ -50,7 +52,7 @@
     m.top = { y0: -top, cols: cols, rows: rows, pages: pages, tiles: {}, props: [], baked: 0, frame: 0 };
     m.bake = { canvas: { width: W, height: H }, x: 0, y: -top, top: true }; // (the camera's bounds and the zoom steps read its size: js/ui.js)
     // the standing things: every rock and roofed square, every block (crates, the stockade's posts, wells), one prop a square, sorted by row
-    m.sq.forEach(function (s) { if (!s.open || s.block) m.top.props.push({ sq: s, depth: s.y + 0.5 + s.x * 1e-4 }); });
+    m.sq.forEach(function (s) { if ((!s.open || s.block) && !(s.ch === 'y' && m.def.cots)) m.top.props.push({ sq: s, depth: s.y + 0.5 + s.x * 1e-4 }); });
     m.top.props.sort(function (a, b) { return a.depth - b.depth; });
   };
 
@@ -58,7 +60,7 @@
   var R = function (n) { return iso.ramp(n); };
   function tileKey(m, s) {
     var ch = s.ch, v = NZ.h2(s.x * 3 + 1, s.y * 5 + 2, 71) * 4 | 0, kind = ch;
-    if (ch === '.') kind = NZ.fbm(s.x * 0.13, s.y * 0.13, 77) > 0.52 ? 'g' : '.'; // (the ground: grass in patches over the dirt)
+    if (ch === '.' && !m.def.room) kind = NZ.fbm(s.x * 0.13, s.y * 0.13, 77) > 0.52 ? 'g' : '.'; // (the ground: grass in patches over the dirt -- not in a room)
     if (s.block || !s.open) kind = '.';
     var n = m.at(s.x, s.y - 1), shade = n && (!n.open || n.block) ? 1 : 0; // (a building or a rock to the north: its shadow on the top of this one)
     return kind + v + (shade ? 's' : '');
@@ -71,6 +73,7 @@
     for (var y = 0; y < T; y++) for (var x = 0; x < T; x++) {
       var u = x / T, w = y / T, n = NZ.vnoise(u * 3 + v0 * 7, w * 3, seed), fine = NZ.h2(x, y, seed + 3), col;
       if (kind === '=' || kind === 'd') { var seam = x % (T / 2) === 0 || y % (T / 2) === 0 || (y % (T / 4) === 0 && ((x / (T / 2)) | 0) % 2); col = seam ? silver[1] : NZ.rampPick(silver, 0.3 + n * 0.3 + (kind === 'd' ? 0.15 : 0), x, y); }
+      else if (kind === 'o') { var bd = (y / 8) | 0, sm = y % 8 === 0 || (x + bd * 19) % 32 === 0; col = sm ? leather[0] : NZ.rampPick(leather, 0.42 + (NZ.h2(bd, ((x + bd * 19) / 32) | 0, seed + 4) - 0.5) * 0.25 + n * 0.15, x, y); } // (boards along the row, their ends staggered)
       else if (kind === 'g') col = fine > 0.985 ? stone[4] : NZ.rampPick(moss, 0.2 + n * 0.65, x, y);
       else if (kind === ',') col = fine > 0.99 ? stone[5] : NZ.rampPick(leather, 0.45 + n * 0.3, x, y);
       else if (kind === '~' || kind === 'D') { var gl = NZ.h2(x >> 1, y, seed + 8) > 0.985; col = gl ? silver[5] : NZ.rampPick(blue, (kind === 'D' ? 0.15 : 0.4) + n * 0.25, x, y); if (!gl && NZ.vnoise(u * 2, w * 6, seed + 9) > 0.8) col = violet[2]; }
@@ -102,12 +105,13 @@
   function standCanvas(m, s) {
     var RF = m.def.roofs && m.def.roofs[s.ch], T = TV.TS, sb = m.at(s.x, s.y + 1), same = function (q) { return !!(q && !q.open && q.ch === s.ch); };
     var rock = !RF && !s.open, face = RF ? !same(sb) : rock ? !!(sb && (sb.open || sb.block)) : true, door = !!(sb && sb.ch === 'd'), side = m.def.slope ? +m.def.slope[s.y].charAt(s.x) || 0 : 0, v0 = NZ.h2(s.x, s.y, 41) * 3 | 0;
-    var hgt = RF ? iso.roofPx(m, s.ch) : rock ? TV.CLIFF : ({ k: 10, f: 12, w: 8 }[s.ch] || 8); // (the lift: a roof its height, every rock the cliff's -- one plane -- a block its own)
-    var key = s.ch + side + (face ? 'F' : '') + (door ? 'D' : '') + v0 + ':' + hgt;
+    var inRoom = rock && !!m.def.room, front = inRoom && s.y === m.h - 1;
+    var hgt = RF ? iso.roofPx(m, s.ch) : inRoom ? (front ? 6 : TV.ROOMWALL) : rock ? TV.CLIFF : (TV.BLOCK[s.ch] || 8); // (the lift: a roof its height, every rock the cliff's -- one plane -- a room's wall its own, a block its own)
+    var key = s.ch + side + (face ? 'F' : '') + (door ? 'D' : '') + v0 + ':' + hgt + (inRoom ? 'r' : '') + (s.ch === 'S' ? m.def.goods || '' : '');
     m.top.stand = m.top.stand || {}; if (m.top.stand[key]) return m.top.stand[key];
     var Hh = T + (face ? hgt : 0), cv = document.createElement('canvas'); cv.width = T; cv.height = Hh;
     var cx = cv.getContext('2d'), img = cx.createImageData(T, Hh), px = img.data, seed = 600 + v0 * 13 + s.ch.charCodeAt(0);
-    var roof = R((RF && RF.roof) || 'red'), wall = R((RF && RF.wall) || 'stone'), stone = R('stone'), leather = R('leather'), silver = R('silver');
+    var roof = R((RF && RF.roof) || 'red'), wall = R((RF && RF.wall) || 'stone'), stone = R('stone'), leather = R('leather'), silver = R('silver'), red = R('red'), goods = R(m.def.goods || 'gold');
     var put = function (x, y, c) { if (x < 0 || y < 0 || x >= T || y >= Hh) return; var o = (y * T + x) * 4; px[o] = c[0]; px[o + 1] = c[1]; px[o + 2] = c[2]; px[o + 3] = 255; };
     var ns = side > 3, sd = ns ? side - 3 : side; // (the ridge: 1-3 a roof whose ridge runs east-west, 4-6 north-south -- js/town.js)
     for (var y = 0; y < T; y++) for (var x = 0; x < T; x++) { // the top
@@ -116,7 +120,10 @@
         var row = ns ? x : y, along = ns ? y : x, lit = sd === 1 ? 0.14 : sd === 2 ? -0.1 : 0;
         var course = row % 6 === 0, joint = (along + ((row / 6 | 0) % 2) * 4) % 8 === 0, ridge = sd === 3 && Math.abs((ns ? u : w) - 0.5) < 0.12;
         c = NZ.rampPick(roof, Math.max(0.02, 0.42 + lit + n * 0.2 - (course ? 0.16 : 0) - (joint ? 0.08 : 0) - (ridge ? 0.18 : 0)), x, y);
-      } else if (rock) c = NZ.rampPick(stone, 0.12 + n * 0.3 + (NZ.h2(x, y, seed) > 0.97 ? 0.2 : 0), x, y);
+      } else if (inRoom) c = NZ.rampPick(leather, 0.12 + n * 0.1 + (x % 12 === 0 ? -0.08 : 0), x, y); // (a room's wall from above: its timber cap)
+      else if (rock) c = NZ.rampPick(stone, 0.12 + n * 0.3 + (NZ.h2(x, y, seed) > 0.97 ? 0.2 : 0), x, y);
+      else if (s.ch === 'K') { if (w < 0.18 || w > 0.82) continue; c = NZ.rampPick(stone, (x + y * 2) % 10 === 0 ? 0.3 : 0.62 + n * 0.12, x, y); } // (the counter's top, worn pale)
+      else if (s.ch === 'S') { if (w > 0.4) continue; c = NZ.rampPick(leather, 0.25 + n * 0.1, x, y); } // (the shelves' top, a board against the wall)
       else if (s.ch === 'w') { var rr = Math.hypot(u - 0.5, w - 0.5); if (rr > 0.42) continue; c = rr < 0.26 ? stone[0] : NZ.rampPick(stone, 0.5 + n * 0.2, x, y); }
       else if (s.ch === 'f') { if (x % 12 > 3 && !(w > 0.4 && w < 0.6)) continue; c = NZ.rampPick(leather, 0.55 + n * 0.2, x, y); } // (the stockade's posts and its rail)
       else { if (u < 0.12 || u > 0.88 || w < 0.12 || w > 0.88) continue; c = NZ.rampPick(leather, (x + y) % 9 === 0 ? 0.2 : 0.5 + n * 0.2, x, y); } // (a crate or a stall)
@@ -129,7 +136,10 @@
         c2 = NZ.rampPick(wall, (j > hgt - 3 ? 0.3 : 0.6) - (post || beam ? 0.25 : 0) + (NZ.vnoise(x2 * 0.3, j * 0.2, seed + 2) - 0.5) * 0.1, x2, y2);
         if (win && !door) c2 = stone[0];
         if (door && x2 >= T / 2 - 9 && x2 <= T / 2 + 8 && up < 0.92) { var fr = x2 === T / 2 - 9 || x2 === T / 2 + 8 || up > 0.86; c2 = fr ? silver[4] : up > 0.8 ? leather[1] : NZ.rampPick(leather, 0.35 + ((x2 - T / 2) % 4 === 0 ? -0.15 : 0), x2, y2); } // (a door: a frame, planks, plain to see -- his "obvious doors on the shops")
-      } else if (rock) { var band = NZ.vnoise(x2 * 0.08 + s.x * 3, (j + s.y * 11) * 0.2, seed); c2 = NZ.rampPick(stone, 0.3 + (band - 0.5) * 0.35 - up * 0.15, x2, y2); if (door && x2 > 6 && x2 < T - 6 && up < 0.7) c2 = (x2 % 8 === 0 || up > 0.66) ? silver[3] : NZ.rampPick(leather, 0.3, x2, y2); }
+      } else if (inRoom) { var pst = x2 % 16 === 0, skirt = j > hgt - 5, rail = Math.abs(up - 0.62) < 0.05; c2 = NZ.rampPick(R('bone').length ? stone : stone, (skirt ? 0.25 : 0.62) - (pst || rail ? 0.22 : 0) + (NZ.vnoise(x2 * 0.3, j * 0.2, seed + 2) - 0.5) * 0.08, x2, y2); } // (plaster between timbers, a skirting at the floor)
+      else if (s.ch === 'K') { if (x2 === 0 || x2 === T - 1) { put(x2, y2, red[0]); continue; } c2 = NZ.rampPick(red, (x2 % 8 === 0 ? 0.15 : 0.45) - (j > hgt - 3 ? 0.15 : 0), x2, y2); } // (the counter's front, planks)
+      else if (s.ch === 'S') { var shelf = j % 10 === 0 || x2 % 16 === 0, gk = NZ.h2((x2 >> 2) + s.x * 17, (j / 10 | 0) + s.y * 13, seed + 3); c2 = shelf ? NZ.rampPick(leather, 0.6, x2, y2) : gk > 0.35 && (j % 10) > 1 && (j % 10) < 9 - ((x2 >> 2) % 3) ? NZ.rampPick(goods, 0.25 + gk * 0.7, x2, y2) : NZ.rampPick(leather, 0.08, x2, y2); } // (the shelves' face: boards, and the trade's goods on them)
+      else if (rock) { var band = NZ.vnoise(x2 * 0.08 + s.x * 3, (j + s.y * 11) * 0.2, seed); c2 = NZ.rampPick(stone, 0.3 + (band - 0.5) * 0.35 - up * 0.15, x2, y2); if (door && x2 > 6 && x2 < T - 6 && up < 0.7) c2 = (x2 % 8 === 0 || up > 0.66) ? silver[3] : NZ.rampPick(leather, 0.3, x2, y2); }
       else c2 = NZ.rampPick(s.ch === 'w' ? stone : leather, 0.3, x2, y2);
       if (s.ch === 'f' && x2 % 12 > 3) continue;
       if (s.ch === 'w' && Math.abs(x2 - T / 2) > T * 0.42) continue;
