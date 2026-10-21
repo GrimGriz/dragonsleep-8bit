@@ -22,8 +22,17 @@
   // its renown, its lead (the one who leads, the first of the four) and who is hired (all four at NEW GAME); THE WORLD's clock and hex stand for its time and map
   H.fresh = function () {
     var R = DS.R, C = DS.DATA.config || {};
-    return { v: H.V, lead: H.HEROES[0], hired: H.HEROES.slice(), party: H.HEROES.map(function (id) { return R.makeHero(id); }), guests: [], inv: (C.startItems || []).map(function (s) { return { id: s[0], n: s[1] }; }),
+    return { v: H.V, lead: H.HEROES[0], hired: H.HEROES.slice(), party: H.HEROES.map(function (id) { return H.start(R.makeHero(id)); }), guests: [], inv: (C.startItems || []).map(function (s) { return { id: s[0], n: s[1] }; }),
       silver: C.startSilver || 10, renown: 0, steps: 0, flags: {}, kills: {}, world: null, at: { town: 'silverton', gate: 'west', sq: null, dir: null }, made: Date.now(), saved: 0 };
+  };
+  // a hero as the second game starts them: the first game's (content/heroes.json, untouched -- the first game keeps it) less what the second game makes a page found in
+  // the world -- Aurdin's Find Familiar, Ned's page (RULED 10-21 night, the house lane's "Ned and Find Familiar" item 11; his 10-06: "Aurdin has it for familiar testing
+  // at present, gonna be a story page he gets from Ned"). A save made before keeps what its Aurdin has
+  H.PAGES = { aurdin: ['findfamiliar'] };
+  H.start = function (h) {
+    var out = H.PAGES[h.id] || [];
+    if (out.length) { h.known = (h.known || []).filter(function (s) { return out.indexOf(s) < 0; }); if (Array.isArray(h.prepared)) h.prepared = h.prepared.filter(function (s) { return out.indexOf(s) < 0; }); }
+    return h;
   };
   // a save made before the house kept them: the renown none yet, the lead its first hero, hired the four it holds, no steps counted
   // (steps: every square walked on a floor, banked as the floor hands back -- H.fromFloor. RULED 10-21, Griz: "I don't see any harm in counting steps, and we might use it to

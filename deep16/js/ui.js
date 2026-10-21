@@ -1593,7 +1593,7 @@
         if (sk !== 1) { ctx.save(); ctx.translate(p.x, p.y); ctx.scale(sk, sk); ctx.translate(-p.x, -p.y); } // (the figure and what stands behind it, grown about the foot)
         if (D.looks && (!down || oilDown) && !u.ethereal) D.looks.behind(ctx, B, u, p, anim === 'hurt' && !has('hurt') ? 'idle' : anim, t, o); // (false images, blur, haste: js/looks.js)
         // (a flier whose sheet walks on the ground -- the bat stand-in -- is drawn up in the air when out on the field, bobbing; its shadow stays below)
-        var lift = u.lift && !u.riding && !down ? u.lift + Math.round(2 * Math.sin(B.t / 6)) : 0;
+        var lift = u.lift && !u.riding && !down ? u.lift + (u.onCounter ? 0 : Math.round(2 * Math.sin(B.t / 6))) : 0; // (one sat on a counter does not bob: Ned's rat, js/town.js)
         var wet = !down && !lift ? UI.wading(B, u) : null, an0 = anim === 'hurt' && !has('hurt') ? 'idle' : anim;
         if (!down) an0 = D.spr.inHand(u, an0, !!B.roam); // (what is in the hand: Aurdin's staff rows while he holds it, its planted rest on the roam -- sprites.js S.inHand, 10-20)
         if (u.kind === 'keeper' && u.flooding) { /* it is the swirl about someone: drawn with the walls' props (js/keeper.js), no humanoid */ }
@@ -1619,7 +1619,7 @@
         if ((!down || u.cine) && !wet && !u.ethereal && D.looks && D.looks.ripple) D.looks.ripple(ctx, B, u, an0, t, p.x, p.y - lift, body); // (the mirror ripple, over the figure just drawn: js/looks.js, 10-08)
         if (sk !== 1) ctx.restore();
         if (D.looks && (!down || oilDown) && !u.ethereal) D.looks.over(ctx, B, u, p); // (the marks of its conditions: js/looks.js; down, the oil's alone)
-        if (!u.dead && !u.ethereal && (!u.riding || u.attached)) { // (a darkmantle on someone keeps its bar, over it)
+        if (!u.dead && !u.ethereal && (!u.riding || u.attached) && !u.onCounter) { // (a darkmantle on someone keeps its bar, over it; Ned's rat on the counter has none)
           var top = Math.max(tall, D.looks && D.looks.flameTop ? D.looks.flameTop(u, B) : 0), w = u.size > 1 ? 30 : 20, bx = p.x - w / 2, by = p.y - top - 5; // (a smouldering troll's bar over its flames, not across them -- facing north its head stands 30 px over `tall`: js/looks.js LK.flameTop, 10-07)
           ctx.fillStyle = R('outline', 0); ctx.fillRect(bx - 1, by - 1, w + 2, 4);
           ctx.fillStyle = R('stone', 1); ctx.fillRect(bx, by, w, 2);

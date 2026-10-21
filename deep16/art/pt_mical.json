@@ -1,0 +1,96 @@
+{
+ "image": "art/pt_mical.png",
+ "fw": 153,
+ "fh": 160,
+ "ax": 79,
+ "ay": 157,
+ "top": 157,
+ "portrait": true,
+ "anims": {
+  "idle": {
+   "y": 0,
+   "fw": 153,
+   "fh": 160,
+   "ax": 79,
+   "ay": 157,
+   "frames": 6,
+   "fps": 3,
+   "ledge": [
+    false,
+    false,
+    false,
+    false,
+    false,
+    false
+   ]
+  },
+  "attentive": {
+   "y": 160,
+   "fw": 153,
+   "fh": 160,
+   "ax": 79,
+   "ay": 157,
+   "frames": 1,
+   "fps": 1,
+   "ledge": [
+    false
+   ]
+  },
+  "welcoming": {
+   "y": 320,
+   "fw": 153,
+   "fh": 160,
+   "ax": 79,
+   "ay": 157,
+   "frames": 1,
+   "fps": 1,
+   "ledge": [
+    false
+   ]
+  },
+  "skeptical": {
+   "y": 480,
+   "fw": 153,
+   "fh": 160,
+   "ax": 79,
+   "ay": 157,
+   "frames": 1,
+   "fps": 1,
+   "ledge": [
+    false
+   ]
+  },
+  "concerned": {
+   "y": 640,
+   "fw": 153,
+   "fh": 160,
+   "ax": 79,
+   "ay": 157,
+   "frames": 1,
+   "fps": 1,
+   "ledge": [
+    false
+   ]
+  },
+  "work": {
+   "y": 800,
+   "fw": 153,
+   "fh": 160,
+   "ax": 79,
+   "ay": 157,
+   "frames": 6,
+   "fps": 4,
+   "ledge": [
+    false,
+    false,
+    false,
+    false,
+    false,
+    false
+   ]
+  }
+ },
+ "art": "ART-91",
+ "door": "keeper:mical",
+ "source": "deep16/_src/mical/ART-91 (the art desk's ART-91, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
+}

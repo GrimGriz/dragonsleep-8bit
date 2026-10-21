@@ -434,6 +434,23 @@
       var N2 = ((window.DS.DATA || {}).npcs || {})[bid], b = B.makeFoe({ id: 'keeper' + (i + 2), kind: T.KIND[(N2 && N2.look) || ''] || 'crewman', at: sq, side: 'party', ally: true });
       b.name = (N2 && N2.name) || bid; b.look = true; b.npc = bid; b.attacks = {}; b.multi = 1; b.hp = b.maxhp = 4; b.lvl = 1; b.facing = D.spr.facingFor(0, 1); b.anim = 'idle'; b.animT = 0;
       D.counter.dress(b, bid); B.units.push(b); if (D.spr.prefetch && b.sheet) D.spr.prefetch([b.sheet]);
+      // one with a scene of their own (Ned, 10-21 night: js/counter.js C.ned) takes the word at the counter in front of them and on their own square, had from the
+      // spot across the counter as the keeper's is (T.fire); and Ned's rat sits on that counter (his "on counter on floor screen if possible": the grid's rat
+      // familiar, js/familiar.js fam_rat, at its own half scale, lifted onto the counter's top)
+      var V = D.counter.VENDORS[bid] || {}; def.beside = def.beside || {}; def.beside[bid] = { at: sq.slice(), across: null };
+      if (V.script) {
+        var trs = def.src8.triggers, ky = sq[1] + 1;
+        trs.forEach(function (tr) { if (tr.town === 'talk' && tr.rect[0] === sq[0] && tr.rect[1] === ky) { tr.id = 'talk:' + bid; tr.npc = bid; } });
+        trs.push({ id: 'talk:' + bid, on: 'use', rect: [sq[0], sq[1], 1, 1], town: 'talk', npc: bid });
+        var ka = def.rows[ky] && def.rows[ky].charAt(sq[0]), kb = def.rows[ky + 1] && def.rows[ky + 1].charAt(sq[0]);
+        if (ka === 'K' && kb && '.,=o'.indexOf(kb) >= 0) def.beside[bid].across = [sq[0], ky + 1];
+      }
+      var pet = D.counter.PETS && D.counter.PETS[bid];
+      if (pet && D.FOES['fam_' + pet] && def.rows[sq[1] + 1] && def.rows[sq[1] + 1].charAt(sq[0]) === 'K') {
+        var F = window.DS.R.FAMILIARS[pet], rr = B.makeFoe({ id: bid + 'pet', kind: 'fam_' + pet, at: [sq[0], sq[1] + 1], side: 'party', ally: true });
+        rr.name = (b.name || bid) + '\'s ' + F.name; rr.look = true; rr.npc = bid + 'pet'; rr.attacks = {}; rr.multi = 0; rr.hp = rr.maxhp = 1; rr.lvl = 0; rr.cls = null; rr.drawScale = F.scale || 1;
+        rr.facing = D.spr.facingFor(0, 1); rr.anim = 'idle'; rr.animT = 0; rr.onCounter = true; rr.lift = (D.topview && D.topview.BLOCK && D.topview.BLOCK.K) || 16; rr.holdFacing = true; B.units.push(rr); if (D.spr.prefetch) D.spr.prefetch([F.sheet]);
+      }
     });
     R.famPlace(B, true); B.cache = null; B.exits = []; D.grid.setup(B.map, B.units); B.focus(t);
     B.card(D.roam.wrap(['{y}' + def.name + '{/}' + (def.name !== kp.name ? ' -- ' + kp.name + ' at the counter' : '') + '.', '{g}E at the counter: a word. The door behind you: back to the street.' + (kp.own && !(D.counter && D.counter.SHOPS[kp.id]) ?' (Griz\'s own: the room waits on his word.)' : '') + '{/}']), 360);
@@ -450,10 +467,11 @@
   };
   T.fire = function* (B, trig) {
     var R = D.roam, R0 = B.roam;
-    if (trig.town === 'talk' && R.def.room && R.def.across && R.def.keeper && trig.npc === R.def.keeper.id) { // (10-21, Griz: "the spot across from them at the counter should be the
+    var acK = trig.town === 'talk' && R.def.room && R.def.keeper ? (trig.npc === R.def.keeper.id ? R.def.across : ((R.def.beside || {})[trig.npc] || {}).across) : null; // (the keeper's, or one beside them with a word of their own: Ned)
+    if (acK) { // (10-21, Griz: "the spot across from them at the counter should be the
       // interact, with 'other side of the counter' response if they interact in the current method"): from behind the counter the keeper sends you round; from the customer's
       // side anywhere, the party walks to the spot across from the keeper and the word is had there, facing the counter
-      var ac = R.def.across, tk = R0.token;
+      var ac = acK, tk = R0.token;
       if (tk.y < ac[1]) { var ku = B.units.filter(function (x) { return x.npc === trig.npc; })[0]; if (ku && !ku.holdFacing) ku.facing = D.spr.facingFor(tk.x - ku.x, tk.y - ku.y); B.card(R.wrap(['{y}' + (ku ? ku.name : trig.npc) + '{/}', '"Other side of the counter."']), 240); D.sfx('popup'); yield 20; return; }
       if ((tk.x !== ac[0] || tk.y !== ac[1]) && !(yield* R.walkTo(B, ac))) return;
       R0.fw = [0, -1]; tk.facing = D.spr.facingFor(0, -1);

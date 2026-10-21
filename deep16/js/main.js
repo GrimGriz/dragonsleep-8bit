@@ -50,6 +50,8 @@
   else if (/[?&]gameshow\b/.test(q) && D.gameshow) D.push(D.gameshow.make(q)); // the Monster Party Game Show: the lighthouse, the circles, Third Lamp (js/gameshow.js, 10-07)
   else if (/[?&]world\b/.test(q) && D.world) D.push(D.world.make(q)); // THE WORLD: the second game's world map, his hex map's 5-mile hexes walked as one token (js/world.js, 10-20)
   else if (/[?&]keepers\b/.test(q) && D.counter) D.push(D.counter.keepersShow(q)); // Silverton's keepers standing, shown: their own figures facing south (js/counter.js, 10-21)
+  else if (/[?&]portraits\b/.test(q) && D.counter) D.push(D.counter.portraitShow(q)); // the keepers' talking portraits, shown on their own counter screens, a face at a time (js/counter.js, 10-21 night)
+  else if (/[?&]nedshow\b/.test(q) && D.counter) D.push(D.counter.nedShow(q)); // Ned Halloway and Find Familiar, a beat at a time, the Insight's die pinned (js/counter.js, 10-21 night)
   else if (/[?&]roam=/.test(q) && D.roam) D.push(D.roam.make(q)); // the party-token map's feasibility test: the whole Wet walked as one token, its fights made where they fall (js/roam.js, 10-13)
   else if (/[?&]gallery\b/.test(q) && D.oneGallery) D.push(D.oneGallery.door(q)); // THE ONE GALLERY: the spell, feature, Mascot and row galleries as shelves of one tool, one key map (js/onegallery.js, 10-08)
   else if (/[?&]mpgallery\b/.test(q) && D.fxMascots) D.push(D.oneGallery ? D.oneGallery.door(q) : D.fxMascots(q)); // the Mascot gallery: the four's abilities one at a time, up/down the level (js/mpgallery.js, 10-07; also ?fxgallery&mascots)

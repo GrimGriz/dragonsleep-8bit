@@ -66,6 +66,9 @@ PEOPLE = {
     'vilar': ('vilar/ART-97', 'ART-97', 'shop:vilar', {}),
     'percy': ('percy/ART-102', 'ART-102', 'warp:percy', {}),
     'ned': ('ned/ART-103', 'ART-103', 'warp:percy', {}),               # (Percy's partner: behind the same counter; the counter screen shows Percy's face)
+    # two of the non-shop folk (10-21 night; Griz to the lanes desk: "non shop folk also have art in Fresh"): portraits only, no town page asked
+    'mela': ('mela/ART-90', 'ART-90', 'keeper:mela', {}),
+    'mical': ('mical/ART-91', 'ART-91', 'keeper:mical', {}),
 }
 
 

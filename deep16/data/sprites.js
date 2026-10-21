@@ -11053,6 +11053,198 @@ true
 "door": "shop:marko",
 "source": "deep16/_src/marko/ART-94 (the art desk's ART-94, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
 },
+"pt_mela": {
+"image": "art/pt_mela.png?v=de520d4f84",
+"fw": 187,
+"fh": 155,
+"ax": 104,
+"ay": 153,
+"top": 153,
+"portrait": true,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 187,
+"fh": 155,
+"ax": 104,
+"ay": 153,
+"frames": 6,
+"fps": 3,
+"ledge": [
+true,
+true,
+true,
+true,
+true,
+true
+]
+},
+"attentive": {
+"y": 155,
+"fw": 187,
+"fh": 155,
+"ax": 104,
+"ay": 153,
+"frames": 1,
+"fps": 1,
+"ledge": [
+true
+]
+},
+"welcoming": {
+"y": 310,
+"fw": 187,
+"fh": 155,
+"ax": 104,
+"ay": 153,
+"frames": 1,
+"fps": 1,
+"ledge": [
+true
+]
+},
+"skeptical": {
+"y": 465,
+"fw": 187,
+"fh": 155,
+"ax": 104,
+"ay": 153,
+"frames": 1,
+"fps": 1,
+"ledge": [
+true
+]
+},
+"concerned": {
+"y": 620,
+"fw": 187,
+"fh": 155,
+"ax": 104,
+"ay": 153,
+"frames": 1,
+"fps": 1,
+"ledge": [
+true
+]
+},
+"work": {
+"y": 775,
+"fw": 187,
+"fh": 155,
+"ax": 104,
+"ay": 153,
+"frames": 6,
+"fps": 4,
+"ledge": [
+true,
+true,
+true,
+true,
+true,
+true
+]
+}
+},
+"art": "ART-90",
+"door": "keeper:mela",
+"source": "deep16/_src/mela/ART-90 (the art desk's ART-90, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
+},
+"pt_mical": {
+"image": "art/pt_mical.png?v=acbb0cfb00",
+"fw": 153,
+"fh": 160,
+"ax": 79,
+"ay": 157,
+"top": 157,
+"portrait": true,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 153,
+"fh": 160,
+"ax": 79,
+"ay": 157,
+"frames": 6,
+"fps": 3,
+"ledge": [
+false,
+false,
+false,
+false,
+false,
+false
+]
+},
+"attentive": {
+"y": 160,
+"fw": 153,
+"fh": 160,
+"ax": 79,
+"ay": 157,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"welcoming": {
+"y": 320,
+"fw": 153,
+"fh": 160,
+"ax": 79,
+"ay": 157,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"skeptical": {
+"y": 480,
+"fw": 153,
+"fh": 160,
+"ax": 79,
+"ay": 157,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"concerned": {
+"y": 640,
+"fw": 153,
+"fh": 160,
+"ax": 79,
+"ay": 157,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"work": {
+"y": 800,
+"fw": 153,
+"fh": 160,
+"ax": 79,
+"ay": 157,
+"frames": 6,
+"fps": 4,
+"ledge": [
+false,
+false,
+false,
+false,
+false,
+false
+]
+}
+},
+"art": "ART-91",
+"door": "keeper:mical",
+"source": "deep16/_src/mical/ART-91 (the art desk's ART-91, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
+},
 "pt_ned": {
 "image": "art/pt_ned.png?v=7a58c16d78",
 "fw": 211,

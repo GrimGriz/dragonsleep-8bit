@@ -2014,8 +2014,9 @@
       okT('a click\'s walk in town by straight runs (Griz: "we should convince it north-south is more convenient mouse-click movement"): gate to the Hexagon ' + pr30.length + ' steps, ' + dg30 + ' diagonal, ' + tu30 + ' turns, the first leg ' + (first30 && first30[1] ? 'north-south' : 'east-west'), pr30.length > 0 && dg30 <= 2 && tu30 <= 10 && first30 && !first30[0]); // (the turns: the streets' own corners between the gate and the Hexagon, 8 on 10-20)
       var n30 = walkT(B30, R30, hf30, 20000);
       okT('walked from the west gate to the Hexagon\'s front doors (' + n30 + ' steps, the token at ' + t30.x + ',' + t30.y + ')', n30 > 15 && t30.x === hf30[0] && t30.y === hf30[1]);
-      var me30 = d30.marks.doors['keeper:mela']; walkT(B30, R30, me30, 20000); R30.keys.push('use'); driveT(B30.co, function () { return (B30.cards || []).length > 0; }, 600); // (a door is E or a click now, not a step: 10-21)
-      okT('a door with no room behind it (the stew: ' + (D.town.hasRoom('keeper:mela') ? 'a room' : 'no room') + '): its keeper\'s word at the door, the party still in the street (' + ((B30.cards[B30.cards.length - 1] || {}).lines || []).join(' / ').slice(0, 70) + ')', !D.town.hasRoom('keeper:mela') && !D.roam.def.room && cardT(/Mela Sorris/));
+      var me30 = d30.marks.doors['keeper:mela'], upT = function () { return D.counter && D.top() instanceof D.counter.Counter; }; walkT(B30, R30, me30, 20000); R30.keys.push('use'); driveT(B30.co, function () { return (B30.cards || []).length > 0 || upT(); }, 600); // (a door is E or a click now, not a step: 10-21)
+      var scMe = upT() ? D.top() : null, wMe = scMe && scMe.wait && scMe.wait.say ? scMe.wait.say.join(' / ') : ''; if (scMe) { scMe.close(); driveT(B30.co, null, 60); } // (since 10-21 night her portrait: the counter's screen at her door -- js/counter.js C.VENDORS mela)
+      okT('a door with no room behind it (the stew: ' + (D.town.hasRoom('keeper:mela') ? 'a room' : 'no room') + '): its keeper\'s word at the door on her portrait (' + (scMe && scMe.sheet) + ': ' + wMe.slice(0, 60) + '), the party still in the street', !D.town.hasRoom('keeper:mela') && !D.roam.def.room && scMe && scMe.sheet === 'pt_mela' && /Three coppers the common bath/.test(wMe));
       var sy30 = d30.marks.doors['keeper:sylvia']; walkT(B30, R30, sy30, 20000); R30.keys.push('use'); driveT(B30.co, function () { return D.roam.def.room === 'keeper:sylvia'; }, 600); // (a door is E or a click now, not a step: 10-21)
       okT('Sylvia Swann\'s booth (his "sylvia will get one"): ' + (D.roam.def.room === 'keeper:sylvia' ? 'in, ' + D.roam.def.name + ', ' + B30.map.w + ' x ' + B30.map.h : 'not in'), D.roam.def.room === 'keeper:sylvia');
       if (D.roam.def.room) walkT(B30, R30, D.roam.def.doors[0], 4000);
@@ -2449,8 +2450,8 @@
       okW('WORK, TAKE IT: the Pryor purse (' + backB.length + ' lines)', R0.flags.wErrB === 1 && CW.count(st, 'debtpurse') === 1 && /Brennan/.test(backB.join(' ') + ' ' + (sc2.wait && sc2.wait.ask || []).join(' ') + ' ' + back.join(' ')));
       driveW(g2, null, 200);
       // the purse: Mical signs first (her door), then Brennan (his door) -- the first game's words, done
-      outW(B); driveW(TW.fire(B, trigW('keeper:mical')), null, 200);
-      okW('Mical at her door signs the crate off her books', R0.flags.wSigned === 1);
+      outW(B); var gMi = TW.fire(B, trigW('keeper:mical')); driveW(gMi, upW, 200); var scMi = upW() ? D.top() : null, wMi = scMi ? readW(scMi) : []; driveW(gMi, null, 200);
+      okW('Mical at her door signs the crate off her books, on her portrait (' + (scMi && scMi.sheet) + ', ' + wMi.length + ' lines, no counter to come: she sells nothing)', R0.flags.wSigned === 1 && scMi && scMi.sheet === 'pt_mical' && /Brennan's next/.test(wMi.join(' ')) && !/is to come/.test(wMi.join(' ')) && !upW());
       driveW(TW.fire(B, trigW('keeper:brennan')), null, 200);
       okW('Brennan at his door takes the purse ("the forge is square")', R0.flags.wPaid === 1 && !CW.count(st, 'debtpurse'));
       var xp0 = st.party.map(function (h) { return h.xp || 0; }), sv1 = R0.silver, pot0 = CW.count(st, 'potion');
@@ -2538,8 +2539,8 @@
           inX && ku && ku.sheet === id + '_p1' && ku.facing === 0 && ku.holdFacing && sc.sheet === 'pt_' + id && w[0] === sh.greeting && ask === 'THE SHELVES,LEAVE' && rows.join() === sh.items.join() && sc.o.place === sh.name && !upW());
       });
       outW(B); var inP = inW(B, 'warp:percy'), kuP = B.units.filter(function (u) { return u.npc === 'percy'; })[0], kuN = B.units.filter(function (u) { return u.npc === 'ned'; })[0];
-      okW('Percy behind his counter in his own figure (' + (kuP && kuP.sheet) + '), Ned Halloway beside him in his (' + (kuN && kuN.sheet) + ' at ' + (kuN && kuN.x + ',' + kuN.y) + ', Percy at ' + (kuP && kuP.x + ',' + kuP.y) + '), both facing south; no word of Ned\'s own at the counter',
-        inP && kuP && kuP.sheet === 'percy_p1' && kuN && kuN.sheet === 'ned_p1' && kuN.y === kuP.y && Math.abs(kuN.x - kuP.x) === 1 && kuN.facing === 0 && kuN.holdFacing && D.roam.def.rows[kuN.y].charAt(kuN.x) !== 'K' && !trigW('talk:ned') && !CW.VENDORS.ned.shop && !!D.SHEETS[CW.VENDORS.ned.sheet]);
+      okW('Percy behind his counter in his own figure (' + (kuP && kuP.sheet) + '), Ned Halloway beside him in his (' + (kuN && kuN.sheet) + ' at ' + (kuN && kuN.x + ',' + kuN.y) + ', Percy at ' + (kuP && kuP.x + ',' + kuP.y) + '), both facing south; Ned\'s word his own scene (mode=ned1021), no shop of his',
+        inP && kuP && kuP.sheet === 'percy_p1' && kuN && kuN.sheet === 'ned_p1' && kuN.y === kuP.y && Math.abs(kuN.x - kuP.x) === 1 && kuN.facing === 0 && kuN.holdFacing && D.roam.def.rows[kuN.y].charAt(kuN.x) !== 'K' && !!trigW('talk:ned') && CW.VENDORS.ned.script === 'ned' && !CW.VENDORS.ned.shop && !!D.SHEETS[CW.VENDORS.ned.sheet]);
       var gP = fireW(B, 'talk:percy'), scP = D.top(), wP = upW() ? readW(scP) : [], shP = window.DS.DATA.shops.percy, pSay = window.DS.DATA.npcs.percy.talk[0].say;
       okW('Percy at the counter on his portrait (' + (scP && scP.sheet) + ', the place ' + (scP && scP.o.place) + '): his first-game word with the party hired ("' + String(wP[0]).slice(0, 40) + '...", Ned nodding at Aurdin), then THE SHELVES / LEAVE',
         scP && scP.sheet === 'pt_percy' && scP.o.place === shP.name && wP.join('|') === pSay.join('|') && scP.wait && scP.wait.ask && scP.wait.opts.join() === 'THE SHELVES,LEAVE');
@@ -2553,7 +2554,13 @@
       var inCa = inW(B, 'inn:cassia'), kuCs = B.units.filter(function (u) { return u.npc === 'cassia'; })[0], gCs = fireW(B, 'talk:cassia'), scCs = D.top(), wCs = upW() ? readW(scCs) : []; driveW(gCs, null, 200);
       okW('Cassia behind her bar in her own figure (' + (kuCs && kuCs.sheet) + '), on her portrait (' + (scCs && scCs.sheet) + ', named ' + (scCs && scCs.o.name) + '): her first-game greeting and "' + String(wCs[wCs.length - 1]).replace(/\{.\}|\{\/\}/g, '') + '" -- no shelves',
         inCa && kuCs && kuCs.sheet === 'cassia_p1' && kuCs.facing === 0 && scCs && scCs.sheet === 'pt_cassia' && scCs.o.name === 'Cassia' && wCs[0] === window.DS.DATA.shops.cassia.greeting && /rooms -- a bed, the long room -- are to come/.test(wCs.join(' ')) && !CW.VENDORS.cassia.shop && !upW());
-      outW(B); inW(B, 'keeper:sylvia'); var gS = fireW(B, 'talk:sylvia'), scS = D.top(), wS = readW(scS); driveW(gS, null, 200);
+      // two of the non-shop folk (10-21 night, Griz: "non shop folk also have art in Fresh"): Mela Sorris at the Stew's door on her portrait, her first-game word;
+      // Mical's after the errand, her other word, and still no counter line
+      outW(B); var gMe = TW.fire(B, trigW('keeper:mela')); driveW(gMe, upW, 200); var scMe = upW() ? D.top() : null, wMe = scMe ? readW(scMe) : []; driveW(gMe, null, 200);
+      okW('Mela Sorris at the Stew\'s door, on her portrait (' + (scMe && scMe.sheet) + '): "' + String(wMe[0]).slice(0, 40) + '...", the party still in the street', scMe && scMe.sheet === 'pt_mela' && /Three coppers the common bath/.test(wMe[0]) && !D.roam.def.room && !upW());
+      var gMi2 = TW.fire(B, trigW('keeper:mical')); driveW(gMi2, upW, 200); var scMi2 = upW() ? D.top() : null, wMi2 = scMi2 ? readW(scMi2) : []; driveW(gMi2, null, 200);
+      okW('Mical again, the crate signed: her other first-game word ("' + String(wMi2[0]).slice(0, 40) + '..."), on her portrait', scMi2 && scMi2.sheet === 'pt_mical' && wMi2.join('|') === window.DS.DATA.npcs.mical.talk[1].say.join('|') && !upW());
+      inW(B, 'keeper:sylvia'); var gS = fireW(B, 'talk:sylvia'), scS = D.top(), wS = readW(scS); driveW(gS, null, 200);
       okW('Sylvia Swann at her booth (' + scS.sheet + '): his own -- "' + wS.join(' ') + '"', scS.sheet === 'pt_sylvia' && /his word/.test(wS.join(' ')));
       outW(B); var gV = TW.fire(B, trigW('keeper:barber')); driveW(gV, upW, 200); var scV = D.top(), wV = upW() ? readW(scV) : []; driveW(gV, null, 200);
       okW('Venn the barber at his door, on his portrait (' + (scV && scV.sheet) + ')', scV && scV.sheet === 'pt_barber' && /Shave/.test(wV.join(' ')));
@@ -2566,6 +2573,124 @@
     D.store.get = stGW; D.store.set = stSW; if (D.house) { D.house.playing = false; D.house.cur = null; }
     var preW = document.createElement('pre'); preW.id = 'out'; preW.textContent = 'BENCH16 ' + JSON.stringify(repW);
     document.body.appendChild(preW);
+    return;
+  }
+  // NED HALLOWAY AND FIND FAMILIAR, 10-21 night (mode=ned1021; deep16/js/counter.js C.ned -- the house lane's "Ned and Find Familiar", THE SCENE, RULED): the second game's
+  // Aurdin starts without the ritual (js/house.js H.start; the first game's heroes.json keeps it); Ned beside Percy behind the one counter with his rat on it and a word
+  // of his own; every branch of his scene pressed by a mouse click on its drawn box, the Insight's die pinned -- the bluff caught and the harvest line till the party
+  // leaves; NO, his story, the Insight missed, the sale refused, too poor; the Insight made on a later visit, the choice in its own colour, turned down and still there;
+  // the quest taken and no sale; Percy holding the tongue back; the tongue harvested off a snake and handed in, the page copied; no harvester, no Aurdin, Aurdin knowing it
+  // already; the sale for 50 silver; the JOURNAL and its marker; the house's save
+  if (get('mode', '') === 'ned1021') {
+    var repN = { checks: [], errors: [] }, memN = {}, stGN = D.store.get, stSN = D.store.set, HN = D.house, CN = D.counter, TN = D.town, roll0N = CN && CN.nedRoll;
+    function okN(what, v) { repN.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function driveN(g, until, cap) { var v, k = 0, st; while (k++ < (cap || 4000)) { if (until && until()) return true; st = g.next(v); v = undefined; if (st.done) return !!(until && until()); } return !!(until && until()); }
+    function upN() { return D.top() instanceof CN.Counter; }
+    function trigN(id) { return (D.roam.def.src8.triggers || []).filter(function (t) { return t.id === id; })[0]; }
+    function clickN(sc, b) { if (!b) return false; var mo = D.input.mouse, k = { x: mo.x, y: mo.y, click: mo.click, inside: mo.inside, moved: mo.moved }; mo.x = b.x + b.w / 2; mo.y = b.y + b.h / 2; mo.inside = true; mo.click = true; mo.moved = true; sc.update(); Object.assign(mo, k); return true; }
+    function goN(sc, go, label) { return clickN(sc, sc.buttons().filter(function (q) { return q.go === go && (label == null || q.label === label); })[0]); }
+    function readN(sc) { var out = [], k = 0; while (!sc.done && sc.wait && sc.wait.say && k++ < 40) { out = out.concat(sc.wait.say); goN(sc, 'next'); } return out; }
+    function optsN(sc) { return sc && sc.wait && sc.wait.ask ? sc.wait.opts.map(function (o) { return typeof o === 'object' ? o.label : o; }) : []; }
+    function inN(B, id) { driveN(TN.fire(B, trigN(id)), null, 600); return D.roam.def.room === id; }
+    function outN(B) { driveN(TN.goOut(B), null, 200); return !D.roam.def.room; }
+    function talkN(B) { var g = TN.fire(B, trigN('talk:ned')); driveN(g, upN, 600); return { g: g, sc: upN() ? D.top() : null }; }
+    function endN(t) { driveN(t.g, null, 400); }
+    D.store.get = function (k) { return memN[k] ? JSON.parse(memN[k]) : null; }; D.store.set = function (k, v) { memN[k] = JSON.stringify(v); return true; };
+    try {
+      D.seed = +get('seed', 1021);
+      var NL = CN.NED_LINES, d8N = window.DS.DATA.heroes.aurdin;
+      // Aurdin's start: the second game's without the ritual, the first game's with it
+      var fN = HN.fresh(), auN0 = fN.party.filter(function (h) { return h.id === 'aurdin'; })[0];
+      okN('the second game\'s Aurdin starts without Find Familiar (js/house.js H.start), the first game\'s with it (content/heroes.json untouched; R.makeHero): ' + auN0.known.length + ' known, heroes.json ' + (d8N.spells.indexOf('findfamiliar') >= 0) + ', makeHero ' + (window.DS.R.makeHero('aurdin').known.indexOf('findfamiliar') >= 0),
+        auN0.known.indexOf('findfamiliar') < 0 && !(auN0.prepared || []).some(function (s) { return s === 'findfamiliar'; }) && d8N.spells.indexOf('findfamiliar') >= 0 && window.DS.R.makeHero('aurdin').known.indexOf('findfamiliar') >= 0);
+      HN.begin(fN, 0); var B = D.top(); if (B.baking) { B.baking = false; B.enter(); } B = D.top(); var R0 = B.roam, st = CN.state(B), f = R0.flags, au = CN.nedAurdin(st);
+      // Ned's place behind the counter, his rat, his word
+      var inP = inN(B, 'warp:percy'), kP = B.units.filter(function (u) { return u.npc === 'percy'; })[0], kNd = B.units.filter(function (u) { return u.npc === 'ned'; })[0], rat = B.units.filter(function (u) { return u.npc === 'nedpet'; })[0], bs = D.roam.def.beside && D.roam.def.beside.ned;
+      okN('in Percy\'s: Ned at ' + (kNd && kNd.x + ',' + kNd.y) + ' beside Percy (' + (kP && kP.x + ',' + kP.y) + '), his rat on the counter in front of him (' + (rat && rat.sheet + ' at ' + rat.x + ',' + rat.y + ', x' + rat.drawScale + ', lifted ' + rat.lift) + '), no bar, no bob',
+        inP && kNd && kP && kNd.y === kP.y && rat && rat.x === kNd.x && rat.y === kNd.y + 1 && D.roam.def.rows[rat.y].charAt(rat.x) === 'K' && rat.kind === 'fam_rat' && rat.drawScale === window.DS.R.FAMILIARS.rat.scale && rat.onCounter && rat.lift === D.topview.BLOCK.K);
+      var tN = trigN('talk:ned'), tNs = (D.roam.def.src8.triggers || []).filter(function (t) { return t.npc === 'ned'; }).map(function (t) { return t.rect[0] + ',' + t.rect[1]; });
+      okN('his word at the counter in front of him and on his own square (' + tNs.join(' ') + '), had from across (' + (bs && bs.across) + '); the rest of the counter is Percy\'s',
+        tNs.join(' ') === (kNd.x + ',' + (kNd.y + 1) + ' ' + kNd.x + ',' + kNd.y) && bs && bs.across && bs.across.join() === kNd.x + ',' + (kNd.y + 2) && (D.roam.def.src8.triggers || []).filter(function (t) { return t.npc === 'percy'; }).length >= 4);
+      // the bluff: YES, YES -- "Show me.", the laugh; then the harvest line till they leave
+      CN.nedRoll = function () { return 3; };
+      var T1 = talkN(B), sc1 = T1.sc, w1 = sc1 ? readN(sc1) : [], o1 = optsN(sc1);
+      okN('E at his counter: the party walks across (' + R0.token.x + ',' + R0.token.y + '), his own screen, his portrait (' + (sc1 && sc1.sheet) + ', ' + (sc1 && sc1.o.place) + '), his first-game school line and his story, then YOU KNOW THAT SPELL? (' + o1.join(' / ') + ')',
+        sc1 && sc1.sheet === 'pt_ned' && sc1.o.place === 'Percy\'s Particulars' && R0.token.x === bs.across[0] && R0.token.y === bs.across[1] && /road he didn't finish/.test(w1.join(' ')) && /Doorwardens/.test(w1.join(' ')) && /Conjuration/.test(w1.join(' ')) && /won't take a student without one/.test(w1.join(' ')) && sc1.wait.ask[0] === NL.know && o1.join() === 'YES,NO');
+      goN(sc1, 'opt', 'YES'); var o1b = optsN(sc1); goN(sc1, 'opt', 'YES'); var w1b = readN(sc1); endN(T1);
+      okN('YES: CAN YOU CAST IT? (' + o1b.join(' / ') + ') -- YES: "Show me." and the laugh, the talk over (' + w1b.length + ' lines); the story not marked heard', sc1.done && /Show me/.test(w1b.join(' ')) && /laughs/.test(w1b.join(' ')) && !f.nedStory && !f.nedSaw && !upN() && au.known.indexOf('findfamiliar') < 0);
+      var T2 = talkN(B), w2 = T2.sc ? readN(T2.sc) : []; endN(T2);
+      okN('talked to again the same visit: the harvest line only ("' + String(w2[0]).slice(0, 44) + '..."), no question', w2.join('|') === NL.harvest.join('|') && T2.sc.done);
+      // NO: what a familiar is for, the rest of his story, the Insight missed (the die 3), the sale turned down and too poor
+      outN(B); inN(B, 'warp:percy');
+      var T3 = talkN(B), sc3 = T3.sc; readN(sc3); goN(sc3, 'opt', 'NO'); var w3 = readN(sc3), o3 = optsN(sc3), ins3 = CN.nedVisit(B).insight;
+      okN('a new visit, the story again; NO: what a familiar is for (its senses, a touch spell carried), the rest of his story (' + w3.length + ' lines); the silent Insight (' + (ins3 && ins3.d20 + ' + ' + (ins3.total - ins3.d20) + ' = ' + ins3.total) + ' vs 12) missed: ' + o3.join(' / '),
+        /see through its eyes/.test(w3.join(' ')) && /carries the touch/.test(w3.join(' ')) && /stick around/.test(w3.join(' ')) && f.nedStory === 1 && ins3 && ins3.total === 3 + window.DS.R.skill(au, 'Insight', 'wis') && ins3.total < 12 && !f.nedSaw && o3.join() === 'CAN I COPY IT FROM YOU?,LEAVE' && !/\(insight\)/.test(o3.join()));
+      goN(sc3, 'opt', 'CAN I COPY IT FROM YOU?'); var o3b = optsN(sc3), p3 = sc3.wait.ask[0]; goN(sc3, 'opt', 'NOT NOW'); var w3n = readN(sc3);
+      R0.silver = 10; goN(sc3, 'opt', 'CAN I COPY IT FROM YOU?'); goN(sc3, 'opt', 'PAY 50 SILVER'); var w3p = readN(sc3);
+      okN('CAN I COPY IT FROM YOU?: "' + p3.slice(0, 40) + '..." (' + o3b.join(' / ') + '); NOT NOW, then too poor at 10 sp -- nothing taken, the ritual not copied', o3b.join() === 'PAY 50 SILVER,NOT NOW' && /Fifty silver/.test(p3) && w3n.join('|') === NL.notNow.join('|') && w3p.join('|') === NL.poor.join('|') && R0.silver === 10 && au.known.indexOf('findfamiliar') < 0);
+      goN(sc3, 'opt', 'LEAVE'); var w3l = readN(sc3); endN(T3);
+      var T4 = talkN(B), sc4 = T4.sc, w4 = readN(sc4), o4 = optsN(sc4); goN(sc4, 'opt', 'LEAVE'); readN(sc4); endN(T4);
+      okN('again the same visit: "Back again.", no second roll (once a visit), still no Insight choice: ' + o4.join(' / '), /Back again/.test(w4.join(' ')) && !f.nedSaw && o4.join() === 'CAN I COPY IT FROM YOU?,LEAVE');
+      // a later visit: the Insight made (the die 15), its choice in its own colour; turned down, and there again on the next visit with no roll
+      outN(B); inN(B, 'warp:percy'); CN.nedRoll = function () { return 15; };
+      var T5 = talkN(B), sc5 = T5.sc; readN(sc5); var o5 = optsN(sc5), b5 = sc5.buttons().filter(function (q) { return /\(insight\)/.test(q.label); })[0], ins5 = CN.nedVisit(B).insight;
+      okN('a later visit, the die 15: the Insight made (' + (ins5 && ins5.total) + ' vs 12) -- "' + (b5 && b5.label) + '" in its own colour (' + (b5 && b5.color) + ', on ' + (b5 && b5.lines ? b5.lines.length + ' lines' : 'one line') + ')',
+        f.nedSaw === 1 && !!b5 && b5.color === CN.NED.insight && b5.label === 'BECAUSE THE COMPONENTS ARE FASCINATING? (insight)' && o5.join() === 'CAN I COPY IT FROM YOU?,BECAUSE THE COMPONENTS ARE FASCINATING? (insight),LEAVE');
+      clickN(sc5, b5); var w5 = readN(sc5), o5b = optsN(sc5), p5 = sc5.wait && sc5.wait.ask ? sc5.wait.ask[0] : '';
+      okN('he owns it, and offers the tongue: "' + String(w5[w5.length - 1]).slice(0, 50) + '..." -- ' + p5.slice(0, 40) + ' (' + o5b.join(' / ') + ')', /caught out/.test(w5.join(' ')) && /snake's tongue from the Glowseep/.test(w5.join(' ')) && /page is yours/.test(p5) && o5b.join() === 'TAKE IT,NOT NOW');
+      goN(sc5, 'opt', 'NOT NOW'); readN(sc5); var o5c = optsN(sc5); goN(sc5, 'opt', 'LEAVE'); readN(sc5); endN(T5);
+      okN('NOT NOW: no quest, the choice still there (' + o5c.join(' / ') + ')', !f.nedQuest && o5c.indexOf('BECAUSE THE COMPONENTS ARE FASCINATING? (insight)') >= 0);
+      outN(B); inN(B, 'warp:percy'); CN.nedRoll = function () { return 1; };
+      var T6 = talkN(B), sc6 = T6.sc; readN(sc6); var o6 = optsN(sc6), ins6 = CN.nedVisit(B).insight;
+      okN('the next visit, the die 1: no roll at all, and the choice stays (' + o6.join(' / ') + ')', !ins6 && o6.indexOf('BECAUSE THE COMPONENTS ARE FASCINATING? (insight)') >= 0);
+      // the quest taken: the JOURNAL pinned, no sale; Percy holds one tongue back
+      goN(sc6, 'opt', 'BECAUSE THE COMPONENTS ARE FASCINATING? (insight)'); readN(sc6); goN(sc6, 'opt', 'TAKE IT'); var w6 = readN(sc6), o6b = optsN(sc6);
+      goN(sc6, 'opt', 'CAN I COPY IT FROM YOU?'); var w6c = readN(sc6), o6c = optsN(sc6); goN(sc6, 'opt', 'LEAVE'); readN(sc6); endN(T6);
+      var jN = CN.journal(B), qN = jN.quests.filter(function (q) { return q.id === 'nedpage'; })[0];
+      okN('TAKE IT: the quest, pinned (' + f.pin + '), in the JOURNAL ("' + (qN && qN.name) + '": ' + (qN && String(qN.where).slice(0, 44)) + '...); the insight choice gone (' + o6b.join(' / ') + ')',
+        f.nedQuest === 1 && f.pin === 'nedpage' && /JOURNAL/.test(w6.join(' ')) && !!qN && !qN.done && /Glowseep/.test(qN.where) && o6b.indexOf('BECAUSE THE COMPONENTS ARE FASCINATING? (insight)') < 0);
+      okN('no sale now: "' + String(w6c[0]).slice(0, 56) + '..." -- the quest named, no price asked', w6c.join('|') === NL.copyQuest.join('|') && o6c.indexOf('PAY 50 SILVER') < 0);
+      var dN = window.DS.DATA, spN = dN.monsters.snake, giveN = [], barN = st.party.filter(function (h) { return h.id === 'barley'; })[0];
+      var spoils = window.DS.R.spoils([{ m: spN }], st.party.filter(function (h) { return !h.dead; }), { roll: function () { return 0; }, rng: function () { return 1; } }, function (id, n) { giveN.push(id + ' x' + n); CN.give(st, id, n); });
+      okN('the tongue off a snake in the Glowseep, by one with the hands for it (Barley\'s Survival; the house\'s spoils, js/rules.js R.spoils): ' + giveN.join(', '), giveN.join() === 'snaketongue x1' && CN.count(st, 'snaketongue') === 1);
+      CN.give(st, 'snaketongue', 1);
+      outN(B); inN(B, 'warp:percy'); var gPc = TN.fire(B, trigN('talk:percy')); driveN(gPc, upN, 600); var scPc = D.top(); readN(scPc); goN(scPc, 'opt', 'THE SHELVES'); goN(scPc, 'tab', 'SELL');
+      var tRow = scPc.rows().filter(function (r) { return r.id === 'snaketongue'; })[0], sv0N = R0.silver; clickN(scPc, scPc.buttons().filter(function (q) { return q.row && scPc.rows()[q.k].id === 'snaketongue'; })[0]); if (scPc.sub) goN(scPc, 'qok');
+      var tRow2 = scPc.rows().filter(function (r) { return r.id === 'snaketongue'; })[0];
+      okN('Percy holds one tongue back while Ned\'s is asked for: two in the pack, "' + (tRow && tRow.label) + '" on his SELL list; one sold (' + (R0.silver - sv0N) + ' sp), Ned\'s still in the pack and off the list', !!tRow && tRow.label === 'Snake Tongue x1' && R0.silver - sv0N === 1 && CN.count(st, 'snaketongue') === 1 && !tRow2);
+      goN(scPc, 'back'); goN(scPc, 'opt', 'LEAVE'); driveN(gPc, null, 300);
+      var pinN = CN.pinned(st);
+      okN('the marker with the tongue in the pack: Percy\'s door on the street, Ned\'s square in the room (' + (pinN && pinN.door + ', ' + pinN.who) + ' -> ' + (D.roam.def.beside && D.roam.def.beside.ned.at) + ')', !!pinN && pinN.door === 'warp:percy' && pinN.who === 'ned' && D.roam.def.room === 'warp:percy' && D.roam.def.beside.ned.at.join() === kNd.x + ',' + kNd.y);
+      // the tongue handed in: the page, the ritual copied
+      var T7 = talkN(B), sc7 = T7.sc; readN(sc7); var o7 = optsN(sc7); goN(sc7, 'opt', 'THE SNAKE TONGUE'); var w7 = readN(sc7); endN(T7);
+      okN('THE SNAKE TONGUE (first of ' + o7.join(' / ') + '): "Fresh. Good.", the page, Aurdin copies Find Familiar (' + w7.filter(function (l) { return /copies/.test(l); })[0] + '); the tongue gone, the quest done, the pin off',
+        o7[0] === 'THE SNAKE TONGUE' && /Fresh\. Good\./.test(w7.join(' ')) && /copies Find Familiar into the spellbook/.test(w7.join(' ')) && au.known.indexOf('findfamiliar') >= 0 && CN.count(st, 'snaketongue') === 0 && f.nedDone === 1 && !f.pin && CN.journal(B).quests.filter(function (q) { return q.id === 'nedpage'; })[0].done);
+      var T8 = talkN(B), w8 = T8.sc ? readN(T8.sc) : []; endN(T8);
+      okN('Aurdin knows it now: his school line and how the familiar is -- none of the spell talk (' + w8.length + ' lines)', /road he didn't finish/.test(w8.join(' ')) && /Mine eats better/.test(w8.join(' ')) && !/You know that spell/.test(w8.join(' ')) && T8.sc.done);
+      HN.fromFloor(B);
+      okN('into the house\'s save: Aurdin\'s book with the ritual, the flags (' + ['nedStory', 'nedSaw', 'nedQuest', 'nedDone'].map(function (k) { return k + ' ' + HN.cur.flags[k]; }).join(', ') + ')', HN.cur.party.filter(function (h) { return h.id === 'aurdin'; })[0].known.indexOf('findfamiliar') >= 0 && HN.cur.flags.nedDone === 1);
+      // no one to take it: the story heard, the Insight made, and no Survival or Nature standing
+      var reset = function (fl) { Object.keys(f).filter(function (k) { return /^ned/.test(k); }).forEach(function (k) { delete f[k]; }); Object.assign(f, fl || {}); au.known = au.known.filter(function (s) { return s !== 'findfamiliar'; }); };
+      reset({ nedStory: 1, nedSaw: 1 }); barN.dead = true; outN(B); inN(B, 'warp:percy');
+      var T9 = talkN(B), sc9 = T9.sc; readN(sc9); goN(sc9, 'opt', 'BECAUSE THE COMPONENTS ARE FASCINATING? (insight)'); var w9 = readN(sc9), o9 = optsN(sc9); goN(sc9, 'opt', 'LEAVE'); readN(sc9); endN(T9); barN.dead = false;
+      okN('no one with the hands for it (Barley down): he explains the job wants someone who knows animals or the wild -- no offer, the choice stays (' + o9.join(' / ') + ')', w9.join('|') === NL.owned.concat(NL.noHands).join('|') && !f.nedQuest && o9.indexOf('BECAUSE THE COMPONENTS ARE FASCINATING? (insight)') >= 0);
+      au.dead = true; var T10 = talkN(B), w10 = T10.sc ? readN(T10.sc) : []; endN(T10); au.dead = false;
+      okN('without Aurdin (down): the harvest line, nothing of the spell', w10.join('|') === NL.harvest.join('|'));
+      // the sale: 50 silver, the ritual copied
+      reset({}); R0.silver = 60; outN(B); inN(B, 'warp:percy'); CN.nedRoll = function () { return 3; };
+      var T11 = talkN(B), sc11 = T11.sc; readN(sc11); goN(sc11, 'opt', 'NO'); readN(sc11); goN(sc11, 'opt', 'CAN I COPY IT FROM YOU?'); goN(sc11, 'opt', 'PAY 50 SILVER'); var w11 = readN(sc11); endN(T11);
+      okN('the sale: PAY 50 SILVER -- ' + (60 - R0.silver) + ' sp, "' + w11[0] + '", the talk over', R0.silver === 10 && au.known.indexOf('findfamiliar') >= 0 && /copies Find Familiar/.test(w11[0]) && sc11.done && !upN());
+      // the show: every beat stages and plays
+      var cvN = document.createElement('canvas'); cvN.width = D.W; cvN.height = D.H; var ctxN = cvN.getContext('2d'), errS = null, beatsN = [];
+      try { var showN = CN.nedShow(''); showN.draw(ctxN); CN.NED_BEATS.forEach(function (bt) { var Bs = CN.nedStage(bt), roll1 = CN.nedRoll; CN.nedRoll = function () { return bt.d20; }; var s = CN.nedTalk(Bs); s.draw(ctxN); readN(s); beatsN.push(bt.id + ':' + (s.wait && s.wait.ask ? optsN(s).length + 'opts' : s.done ? 'done' : '?')); CN.nedRoll = roll1; }); } catch (eS) { errS = String(eS).slice(0, 120); }
+      okN('the show (deep16/?nedshow) draws, and each of its ' + CN.NED_BEATS.length + ' beats stages Ned\'s screen: ' + beatsN.join(' ') + (errS ? ' THREW ' + errS : ''), !errS && beatsN.length === CN.NED_BEATS.length);
+      var errP = null; try { var psN = CN.portraitShow('?portraits&who=mela,mical,ned'); psN.update(); var pc = D.top(); pc.draw(ctxN); } catch (eP) { errP = String(eP).slice(0, 120); }
+      okN('the portraits\' show (deep16/?portraits&who=...) opens each one\'s counter screen: ' + (psN && psN.ids.join(', ')) + (errP ? ' THREW ' + errP : ''), !errP && psN.ids.join() === 'mela,mical,ned' && pc instanceof CN.Counter && pc.sheet === 'pt_mela');
+    } catch (eN) { repN.errors.push(String(eN && eN.stack || eN).slice(0, 900)); }
+    if (CN && roll0N) CN.nedRoll = roll0N;
+    D.store.get = stGN; D.store.set = stSN; if (D.house) { D.house.playing = false; D.house.cur = null; }
+    var preN = document.createElement('pre'); preN.id = 'out'; preN.textContent = 'BENCH16 ' + JSON.stringify(repN);
+    document.body.appendChild(preN);
     return;
   }
   // the party-token map's feasibility test, 10-13 (mode=roam1013; js/roam.js, deep16/?roam=wet): the whole Wet from the 8-bit's rows, one token carrying the party's light;
