@@ -321,7 +321,7 @@
   R.script = function* (B) {
     var R0 = B.roam;
     if (R.def.music) D.music(R.def.music); // (a floor's own tune at the door -- the town's, the 8-bit's Silverton's: the party-token map lane's 10-20 note 1, "no music in roam")
-    if (R.def.town) B.card(R.wrap(['{y}SILVERTON{/}, in at the ' + R.def.gate + ' gate: the town at true scale (' + G.map.w + ' x ' + G.map.h + ' squares), one token, the party inside it.', '{g}Click to walk, or the arrows. E: a word with someone beside you. O: the formation. L: the town map.{/}']), 420);
+    if (R.def.town) B.card(R.wrap(['{y}SILVERTON{/}, in at the ' + R.def.gate + ' gate: ' + (R.def.ft === 5 ? 'the town at true scale' : 'the town drawn as if the party stood ' + R.def.ft + ' ft tall') + ' (' + G.map.w + ' x ' + G.map.h + ' squares), one token, the party inside it.', '{g}Click to walk, or the arrows. E: a word with someone beside you. O: the formation. L: the town map.{/}']), 420);
     else B.card(['{y}THE WET{/}, the whole floor (' + G.map.w + ' x ' + G.map.h + ' squares): one token, the party inside it.', '{g}Click to walk, or the arrows. O: the formation.' + (R.emb ? '' : ' F: a fight now.') + '{/}'], 420);
     while (true) {
       var t = R0.token;
@@ -356,7 +356,7 @@
         if (sq) {
           var use = R.useAt(B, sq.x, sq.y);
           if (use) { var pu = R.besidePath(B, [sq.x, sq.y]); if (pu && pu.length * 5 <= R.CLICK_FT) { yield* R.walkBeside(B, [sq.x, sq.y]); yield* R.fire(B, use, [sq.x, sq.y]); } else R.tooFar(B); continue; }
-          var pth = D.Battle.route(t, [sq.x, sq.y]);
+          var pth = D.Battle.route(t, [sq.x, sq.y], R.solid());
           if (!pth) { D.sfx('miss'); B.card(['{g}No way there from here.{/}'], 120); }
           else if (pth.length * 5 > R.CLICK_FT) R.tooFar(B);
           else R0.path = pth;
@@ -475,7 +475,7 @@
     var t = B.roam.token;
     if (Math.max(Math.abs(t.x - at[0]), Math.abs(t.y - at[1])) <= 1) return [];
     var best = null, bl = Infinity;
-    for (var dy = -1; dy <= 1; dy++) for (var dx = -1; dx <= 1; dx++) { var q = [at[0] + dx, at[1] + dy]; if ((!dx && !dy) || !G.canStand(t, q[0], q[1])) continue; var p = D.Battle.route(t, q); if (p && p.length < bl) { bl = p.length; best = p; } }
+    for (var dy = -1; dy <= 1; dy++) for (var dx = -1; dx <= 1; dx++) { var q = [at[0] + dx, at[1] + dy]; if ((!dx && !dy) || !G.canStand(t, q[0], q[1])) continue; var p = D.Battle.route(t, q, R.solid()); if (p && p.length < bl) { bl = p.length; best = p; } }
     return best;
   };
   R.walkBeside = function* (B, at) {
@@ -483,6 +483,9 @@
     while (best && best.length) { yield* R.step(B, t, best.shift()); var ev = yield* R.arrive(B); if (ev) return; }
     t.anim = 'idle'; t.animT = B.t;
   };
+  // the token's walk round the people standing in the street (a town: js/town.js), not through them -- a route by default ghosts through every figure, and on the Wet
+  // nobody stood on the floor but the token (10-20)
+  R.solid = function () { return !!(R.def && R.def.town); };
   R.CLICK_FT = 50; // (a click's walk, by the path: Griz's 30-50, the seat's pick the top of it)
   R.tooFar = function (B) { D.sfx('miss'); B.card(['{g}Too far for a click (' + R.CLICK_FT + ' ft): click nearer, or walk with the arrows.{/}'], 160); };
   // the mark's glyph on the screen while the works' walls stand whole (the props hook draws it there): a click within its ring
@@ -1580,7 +1583,7 @@
     }
     if (!hv || (hv.x === t.x && hv.y === t.y)) return;
     var key = hv.x + ',' + hv.y + ':' + t.x + ',' + t.y + ':' + G.map.sq.length;
-    if (R0.hk !== key) { R0.hk = key; var use = R.useAt(B, hv.x, hv.y); R0.huse = !!use; R0.hpath = use ? R.besidePath(B, [hv.x, hv.y]) : D.Battle.route(t, [hv.x, hv.y]); }
+    if (R0.hk !== key) { R0.hk = key; var use = R.useAt(B, hv.x, hv.y); R0.huse = !!use; R0.hpath = use ? R.besidePath(B, [hv.x, hv.y]) : D.Battle.route(t, [hv.x, hv.y], R.solid()); }
     var p = R0.hpath, ok = !!p && p.length * 5 <= R.CLICK_FT, col = !p ? 'rgba(240,90,80,0.9)' : !ok ? 'rgba(160,160,170,0.85)' : R0.huse ? 'rgba(232,208,112,0.95)' : 'rgba(150,235,150,0.95)';
     if (ok) p.forEach(function (q) { iso.rhombus(c, q[0], q[1], G.map.gz(q[0], q[1]), 11); c.fillStyle = R0.huse ? 'rgba(232,208,112,0.45)' : 'rgba(150,235,150,0.45)'; c.fill(); });
     iso.rhombus(c, hv.x, hv.y, G.map.gz(hv.x, hv.y), 2); c.strokeStyle = col; c.lineWidth = 1.5; c.stroke(); c.lineWidth = 1;

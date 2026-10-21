@@ -15,16 +15,20 @@
 (function () {
   var D = window.D16 = window.D16 || {};
   var T = D.town = {};
-  T.FT = 5;                               // a square
+  T.FT = 5;                               // a square at true scale
+  // the town's square by default: drawn as if the party stood 30 ft tall (10-20, Griz, on his first look at the true-scale town: "Immediate impression is to render it
+  // as if the player token is 30 feet tall...") -- v6's town six times smaller round a figure of the same size, as an RPG's town is; &ft=5 the true scale. The rooms behind the
+  // doors stay true scale (T.room)
+  T.SCALE = 30;
   T.X0 = 100; T.Y0 = 330; T.X1 = 2470; T.Y1 = 1880; // the floor's window on v6, in feet: the tower and THE road's way west to the river's bend east, the cliff's foot to past the south gate
   T.CLIFF = 352;                          // v6's cliff base: the mountain north of it
   // Bloodsnout's compound (10-20, his words above): the seat's draft -- behind the fighters' stables (19) and the arena family's house (24), on the open
   // ground east of the Arena Plaza against the stockade, its gate to the plaza; walled stone, a barracks along its back, the yard between, shut (invented.json bloodsnout-compound)
   T.COMPOUND = { x: 1560, y: 1582, w: 115, h: 90, gate: 'w' };
 
-  T.lay = function (V) {
+  T.lay = function (V, F0) {
     V = V || D.TOWN_V6;
-    var F = T.FT, w = Math.round((T.X1 - T.X0) / F), h = Math.round((T.Y1 - T.Y0) / F), g = new Array(w * h), sl = new Uint8Array(w * h); // (sl: a roof's side -- 1 the half toward the light, 2 the other, 3 the ridge: js/iso.js roofCanvas)
+    var F = F0 || T.FT, w = Math.round((T.X1 - T.X0) / F), h = Math.round((T.Y1 - T.Y0) / F), g = new Array(w * h), sl = new Uint8Array(w * h); // (sl: a roof's side -- 1 the half toward the light, 2 the other, 3 the ridge: js/iso.js roofCanvas)
     var cx = function (gx) { return T.X0 + (gx + 0.5) * F; }, cy = function (gy) { return T.Y0 + (gy + 0.5) * F; };
     var gxOf = function (x) { return Math.floor((x - T.X0) / F); }, gyOf = function (y) { return Math.floor((y - T.Y0) / F); };
     var set = function (gx, gy, ch, only) { if (gx < 0 || gy < 0 || gx >= w || gy >= h) return; var i = gy * w + gx; if (only && only.indexOf(g[i]) < 0) return; g[i] = ch; };
@@ -38,15 +42,15 @@
       var c = Math.cos(a), s = Math.sin(a), r = Math.hypot(Math.abs(ox) + bw, Math.abs(oy) + bh) + F;
       fill(px - r, py - r, px + r, py + r, function (x, y) {
         var dx = x - px, dy = y - py, u = dx * c + dy * s - ox, v = -dx * s + dy * c - oy, inside = u >= 0 && u < bw && v >= 0 && v < bh;
-        if (inside && gable) { var across = bw >= bh ? v : u, span = bw >= bh ? bh : bw, gx2 = gxOf(x), gy2 = gyOf(y); if (gx2 >= 0 && gy2 >= 0 && gx2 < w && gy2 < h) sl[gy2 * w + gx2] = Math.abs(across - span / 2) < F / 2 ? 3 : across < span / 2 ? 1 : 2; } // (the ridge along the long way)
+        if (inside && gable) { var across = bw >= bh ? v : u, span = bw >= bh ? bh : bw, gx2 = gxOf(x), gy2 = gyOf(y); if (gx2 >= 0 && gy2 >= 0 && gx2 < w && gy2 < h) sl[gy2 * w + gx2] = span >= 3 * F && Math.abs(across - span / 2) < F / 2 ? 3 : across < span / 2 ? 1 : 2; } // (the ridge along the long way)
         return inside;
       }, ch, only);
     };
     var segD = function (x, y, a, b) { var vx = b[0] - a[0], vy = b[1] - a[1], L = vx * vx + vy * vy, t = L ? Math.max(0, Math.min(1, ((x - a[0]) * vx + (y - a[1]) * vy) / L)) : 0; return Math.hypot(x - a[0] - t * vx, y - a[1] - t * vy); };
     var line = function (pts, width, ch, only) {
       for (var i = 0; i + 1 < pts.length; i++) {
-        var a = pts[i], b = pts[i + 1], r = width / 2 + F;
-        fill(Math.min(a[0], b[0]) - r, Math.min(a[1], b[1]) - r, Math.max(a[0], b[0]) + r, Math.max(a[1], b[1]) + r, function (x, y) { return segD(x, y, a, b) <= width / 2; }, ch, only);
+        var a = pts[i], b = pts[i + 1], hw = Math.max(width, F * 0.9) / 2, r = hw + F; // (never thinner than a square: a road stays unbroken at any scale)
+        fill(Math.min(a[0], b[0]) - r, Math.min(a[1], b[1]) - r, Math.max(a[0], b[0]) + r, Math.max(a[1], b[1]) + r, function (x, y) { return segD(x, y, a, b) <= hw; }, ch, only);
       }
     };
     var pip = function (x, y, poly) { var c = false; for (var i = 0, j = poly.length - 1; i < poly.length; j = i++) { var xi = poly[i][0], yi = poly[i][1], xj = poly[j][0], yj = poly[j][1]; if (((yi > y) !== (yj > y)) && (x < (xj - xi) * (y - yi) / (yj - yi) + xi)) c = !c; } return c; };
@@ -70,39 +74,39 @@
     poly(hexP, 'B');
     fill(V.EDW[0], T.Y0, V.EDW[1], V.EDBOT, function () { return true; }, '#'); // (the Edifice: the dwarves' facade in the mountain's face, drawn as the cliff it stands in)
     // the fountains at the Edifice's foot: a pool in a dressed rim (v6: the basin 30 ft across the rim, 22 the water)
-    V.FOUNT.forEach(function (x) { ellipse(x, V.EDBOT + 26, 30, 30, '='); ellipse(x, V.EDBOT + 26, 22, 22, '~'); });
+    V.FOUNT.forEach(function (x) { ellipse(x, V.EDBOT + 26, Math.max(30, F * 0.75), Math.max(30, F * 0.75), '='); ellipse(x, V.EDBOT + 26, Math.max(22, F * 0.55), Math.max(22, F * 0.55), '~'); });
     // the headframes: the spoil heap, the mouth on it
-    V.headframe.forEach(function (f) { var s = f[2]; ellipse(f[0] + 26 * s, f[1] + 16 * s, 44 * s, 24 * s, 'r', OPEN); ellipse(f[0], f[1] + 16 * s, Math.max(7, 15 * s), Math.max(5, 8 * s), 'w', OPEN); });
+    V.headframe.forEach(function (f) { var s = f[2]; ellipse(f[0] + 26 * s, f[1] + 16 * s, 44 * s, 24 * s, 'r', OPEN); ellipse(f[0], f[1] + 16 * s, Math.max(7, 15 * s, F * 0.55), Math.max(5, 8 * s, F * 0.55), 'w', OPEN); });
     // the stalls in the open ground (v6 turns each about its corner)
     V.stall.forEach(function (s) { rect(s[0], s[1], 0, 0, s[2], s[3], s[4], 'k', '.,='); });
     // the tower: its foot, a round of built stone (v6 draws it standing, 22 ft across)
-    ellipse(V.tower[0], V.tower[1] - 8, 14, 14, 'B');
+    ellipse(V.tower[0], V.tower[1] - 8, Math.max(14, F * 0.55), Math.max(14, F * 0.55), 'B');
     // the stockade, a rail, open at the gates between two posts
     var gates = V.gate.map(function (q) { return { x: q[0], y: q[1] }; }), nearGate = function (x, y) { return gates.some(function (q) { return Math.hypot(x - q.x, y - q.y) < 30; }); };
     for (var j = 0; j + 1 < V.stockade.length; j++) (function (a, b) {
-      var r = 8; fill(Math.min(a[0], b[0]) - r, Math.min(a[1], b[1]) - r, Math.max(a[0], b[0]) + r, Math.max(a[1], b[1]) + r, function (x, y) { return segD(x, y, a, b) <= 3.6 && !nearGate(x, y); }, 'f', OPEN);
+      var r = Math.max(8, F), hw = Math.max(3.6, F * 0.55); fill(Math.min(a[0], b[0]) - r, Math.min(a[1], b[1]) - r, Math.max(a[0], b[0]) + r, Math.max(a[1], b[1]) + r, function (x, y) { return segD(x, y, a, b) <= hw && !nearGate(x, y); }, 'f', OPEN);
     })(V.stockade[j], V.stockade[j + 1]);
     gates.forEach(function (q) { // (the posts: the stockade's squares just past the opening on either side)
       for (var j2 = 0; j2 + 1 < V.stockade.length; j2++) { var a = V.stockade[j2], b = V.stockade[j2 + 1]; if (segD(q.x, q.y, a, b) > 20) continue; var L = Math.hypot(b[0] - a[0], b[1] - a[1]), ux = (b[0] - a[0]) / L, uy = (b[1] - a[1]) / L; [-1, 1].forEach(function (sg) { set(gxOf(q.x + sg * 32 * ux), gyOf(q.y + sg * 32 * uy), 'b'); set(gxOf(q.x + sg * 37 * ux), gyOf(q.y + sg * 37 * uy), 'b'); }); }
     });
     // Bloodsnout's compound: a stone wall round a yard, the barracks along the back (east), the gate on the plaza side shut -- drawn, never entered
-    var C = T.COMPOUND, cg0 = gxOf(C.x), cg1 = gxOf(C.x + C.w), ch0 = gyOf(C.y), ch1 = gyOf(C.y + C.h);
-    for (var yy = ch0; yy <= ch1; yy++) for (var xx = cg0; xx <= cg1; xx++) set(xx, yy, xx >= cg1 - 5 ? 'b' : (yy === ch0 || yy === ch1 || xx === cg0) ? 'q' : '.'); // (q: its wall, 10 ft; b: the barracks)
-    for (yy = ch0 + 4; yy <= ch0 + 7; yy++) for (xx = cg0 + 4; xx <= cg0 + 9; xx++) set(xx, yy, 'b'); // (the master's house in the yard's north-west corner)
+    var C = T.COMPOUND, cg0 = gxOf(C.x), cg1 = gxOf(C.x + C.w), ch0 = gyOf(C.y), ch1 = gyOf(C.y + C.h), bk = Math.max(1, Math.round(25 / F));
+    for (var yy = ch0; yy <= ch1; yy++) for (var xx = cg0; xx <= cg1; xx++) set(xx, yy, xx > cg1 - bk ? 'b' : (yy === ch0 || yy === ch1 || xx === cg0) ? 'q' : '.'); // (q: its wall, 10 ft; b: the barracks, 25 ft deep along the back)
+    if (F <= 10) for (yy = gyOf(C.y + 20); yy <= gyOf(C.y + 40); yy++) for (xx = gxOf(C.x + 20); xx <= gxOf(C.x + 50); xx++) set(xx, yy, 'b'); // (the master's house in the yard's north-west corner: too small to show at a town's scale)
 
     // ---------------------------------------------------------------- the marks
     var marks = { gates: {}, pins: {}, doors: {} };
-    var nearestOpen = function (x, y, maxR, skip) { // the open square nearest a point in feet (a pin sits on its building; its door is the street square nearest it), not one in `skip`
-      var g0 = gxOf(x), g1 = gyOf(y), best = null, bd = 1e9; maxR = maxR || 30;
+    var nearestOpen = function (x, y, maxFt, skip) { // the open square nearest a point in feet, within maxFt (a pin sits on its building; its door is the street square nearest it), not one in `skip`
+      var g0 = gxOf(x), g1 = gyOf(y), best = null, bd = 1e9, maxR = Math.max(2, Math.ceil((maxFt || 150) / F));
       for (var dy = -maxR; dy <= maxR; dy++) for (var dx = -maxR; dx <= maxR; dx++) { var t = at(g0 + dx, g1 + dy); if (t == null || OPEN.indexOf(t) < 0 || t === '~' || t === 'r' || (skip && skip[(g0 + dx) + ',' + (g1 + dy)])) continue; var d = Math.hypot(cx(g0 + dx) - x, cy(g1 + dy) - y); if (d < bd) { bd = d; best = [g0 + dx, g1 + dy]; } }
       return best;
     };
     var GATE = { 0: 'south', 1: 'west', 2: 'east' }; // (v6's gateposts in its own order: the south gate track, THE road's west gate, the east road to the farms)
     V.gate.forEach(function (q, k) { marks.gates[GATE[k] || 'g' + k] = nearestOpen(q[0] + (k === 1 ? 14 : 0), q[1] + (k === 1 ? -14 : 0)); }); // (the west gate's mark a step inside, where the road from the fork arrives)
     V.PINS.forEach(function (p) { marks.pins[p[2]] = nearestOpen(p[0], p[1]); });
-    marks.compound = nearestOpen(C.x - 6, C.y + C.h / 2, 6); // (outside its shut gate)
+    marks.compound = nearestOpen(C.x - 6, C.y + C.h / 2, 30); // (outside its shut gate)
     // the Hexagon's doors (v6: black at 62 and 118 degrees -- the front, south, to the Arena Plaza -- and at -62 and -118, the back to the falls): the square outside each
-    var hexDoor = function (deg) { var a = Math.PI / 180 * deg; return nearestOpen(hx[0] + Math.cos(a) * (hx[2] + 6), hx[1] + Math.sin(a) * (hx[2] + 6), 4); };
+    var hexDoor = function (deg) { var a = Math.PI / 180 * deg; var o2 = hx[2] + Math.max(6, F * 0.6); return nearestOpen(hx[0] + Math.cos(a) * o2, hx[1] + Math.sin(a) * o2, 20); };
     marks.hexFront = [hexDoor(62), hexDoor(118)]; marks.hexBack = [hexDoor(-62), hexDoor(-118)];
     // the vault door: its threshold across the Gate Plaza's foot of the Edifice, v6's door 128 ft wide
     var vy = gyOf(V.EDBOT) + 1; for (var vx = gxOf(V.AX - 64); vx <= gxOf(V.AX + 64); vx++) set(vx, vy, 'd');
@@ -112,13 +116,13 @@
     marks.doors = {};
     T.DOORS.forEach(function (d) {
       var p = V.PINS.filter(function (q) { return q[2] === d.pin; })[0]; if (!p) return;
-      var q = nearestOpen(p[0], p[1], 30, taken); if (!q) return;
+      var q = nearestOpen(p[0], p[1], 150, taken); if (!q) return;
       tk(q); set(q[0], q[1], 'd'); marks.doors[d.id] = q;
     });
     var v6pins = {}; V.PINS.forEach(function (p) { v6pins[p[2]] = [p[0], p[1]]; });
     for (var si = 0; si < g.length; si++) if (!T.ROOFS[g[si]]) sl[si] = 0; // (a side only where a roof still stands: the streets, the doors and the yard laid over some)
     var slope = []; for (var y3 = 0; y3 < h; y3++) { var sr = ''; for (var x3 = 0; x3 < w; x3++) sr += sl[y3 * w + x3]; slope.push(sr); }
-    return { w: w, h: h, rows: (function () { var out = []; for (var y2 = 0; y2 < h; y2++) out.push(g.slice(y2 * w, y2 * w + w).join('')); return out; })(), slope: slope, marks: marks, v6pins: v6pins };
+    return { w: w, h: h, rows: (function () { var out = []; for (var y2 = 0; y2 < h; y2++) out.push(g.slice(y2 * w, y2 * w + w).join('')); return out; })(), slope: slope, marks: marks, v6pins: v6pins, F: F };
   };
 
   // the doors: the 8-bit's Silverton triggers (content/maps/silverton.json: shop, keeper, inn, leech, chapel, warp) at their slot's pin in v6's key (the wiki's slots are
@@ -150,7 +154,7 @@
   // &cut=x,y,w,h: a window of the town, in squares (the whole town is 474 x 310)
   T.floor = function (q, flags) {
     q = q || ''; flags = flags || {};
-    var L = T.laid || (T.laid = T.lay()), cut = /[?&]cut=(\d+),(\d+),(\d+),(\d+)/.exec(q), ox = 0, oy = 0, w = L.w, h = L.h;
+    var F = +((/[?&]ft=(\d+)/.exec(q) || [])[1] || T.SCALE), L = (T.laidF = T.laidF || {})[F] || (T.laidF[F] = T.lay(null, F)), cut = /[?&]cut=(\d+),(\d+),(\d+),(\d+)/.exec(q), ox = 0, oy = 0, w = L.w, h = L.h;
     if (cut) { ox = +cut[1]; oy = +cut[2]; w = Math.min(+cut[3], L.w - ox); h = Math.min(+cut[4], L.h - oy); }
     var inW = function (p) { return !!p && p[0] >= ox && p[1] >= oy && p[0] < ox + w && p[1] < oy + h; }, to = function (p) { return p ? [p[0] - ox, p[1] - oy] : null; };
     var rows = L.rows.slice(oy, oy + h).map(function (r) { return r.slice(ox, ox + w); }), M = L.marks;
@@ -163,11 +167,12 @@
     var trig = [];
     Object.keys(M.doors).forEach(function (id) { var d = M.doors[id], dd = T.DOORS.filter(function (z) { return z.id === id; })[0]; if (inW(d)) trig.push({ id: id, on: 'step', rect: to(d).concat([1, 1]), town: 'door', door: dd }); });
     var people = [], npc8 = (((window.DS || {}).DATA || {}).maps || {}).silverton, used = {};
+    [M.gates.west, M.gates.south, M.gates.east, M.vault].concat(M.hexFront, M.hexBack, Object.keys(M.doors).map(function (k) { return M.doors[k]; })).forEach(function (q) { if (q) used[q[0] + ',' + q[1]] = 1; }); // (no one stands on a gate, a door or the Hexagon's doors -- at the town's scale a few feet off a mark is the mark)
     ((npc8 && npc8.npcs) || []).forEach(function (n) {
       var pl = T.PLACE[n.id]; if (!pl || !T.cond(n.cond, flags)) return;
       var p0 = pl.pin ? (L.v6pins[pl.pin] || null) : null, sq = null;
       if (pl.at === 'gate:west') sq = M.gates.west; else if (pl.at === 'hexFront') sq = M.hexFront[0];
-      if (sq) p0 = [T.X0 + (sq[0] + 0.5) * T.FT, T.Y0 + (sq[1] + 0.5) * T.FT];
+      if (sq) p0 = [T.X0 + (sq[0] + 0.5) * L.F, T.Y0 + (sq[1] + 0.5) * L.F];
       if (!p0) return;
       sq = T.openNear(L, p0[0] + ((pl.d || [])[0] || 0), p0[1] + ((pl.d || [])[1] || 0), used); if (!sq || !inW(sq)) return;
       used[sq[0] + ',' + sq[1]] = 1;
@@ -176,12 +181,12 @@
     });
     var mk = function (p) { return Array.isArray(p) && Array.isArray(p[0]) ? p.map(to) : to(p); }, marks = {};
     Object.keys(M).forEach(function (k) { var v = M[k]; marks[k] = v && !Array.isArray(v) ? Object.keys(v).reduce(function (a, k2) { a[k2] = to(v[k2]); return a; }, {}) : mk(v); });
-    var id = function (x, y) { return [x, y]; }, V = D.TOWN_V6, ft = function (p) { return [T.X0 + (p[0] + ox + 0.5) * T.FT, T.Y0 + (p[1] + oy + 0.5) * T.FT]; };
+    var id = function (x, y) { return [x, y]; }, V = D.TOWN_V6, ft = function (p) { return [T.X0 + (p[0] + ox + 0.5) * L.F, T.Y0 + (p[1] + oy + 0.5) * L.F]; };
     var wayName = {}; ways.forEach(function (p) { var f = ft(p), best = 0, bd = 1e9; V.road.forEach(function (r, k) { for (var i = 0; i + 1 < r[0].length; i++) { var a = r[0][i], b = r[0][i + 1], vx = b[0] - a[0], vy = b[1] - a[1], L2 = vx * vx + vy * vy, t = L2 ? Math.max(0, Math.min(1, ((f[0] - a[0]) * vx + (f[1] - a[1]) * vy) / L2)) : 0, d = Math.hypot(f[0] - a[0] - t * vx, f[1] - a[1] - t * vy); if (d < bd) { bd = d; best = k; } } }); wayName[p[0] + ',' + p[1]] = T.ROADS[best] || 'the road'; });
     var districts = (V.label || []).filter(function (l) { return /district/.test(l[3]) && !/S I L V E R T O N/.test(l[2]); });
     var def = D.MAPS.silverton = {
       name: 'Silverton', sub: 'the town, true scale from the city map v6', key: 'silverton', town: true, wet: false, dark: false, ground: 'earth', step: 10,
-      roofs: T.ROOFS, slope: L.slope.slice(oy, oy + h).map(function (r) { return r.slice(ox, ox + w); }), // (its buildings stand whole under their roofs, two sides and a ridge: js/iso.js roofCanvas)
+      ft: L.F, roofs: T.roofsAt(L.F), slope: L.slope.slice(oy, oy + h).map(function (r) { return r.slice(ox, ox + w); }), // (its buildings stand whole under their roofs, two sides and a ridge: js/iso.js roofCanvas)
       rows: rows, w: w, h: h, cut: cut ? [ox, oy, w, h] : null, page: w * h > 12000, // (page: a floor too big to paint as one picture, painted in pieces as the camera comes to them -- js/iso.js)
       entry: [to(at)], face: face, gate: gate, stairUp: [], doors: ways, marks: marks, people: people, foes: [],
       src8: { id: 'silverton16', rows: [], legend: {}, triggers: trig, warps: [], chests: [], zones: [], save: false }, from8: id, to8: id, sig: '', zone8: null,
@@ -194,6 +199,7 @@
   // timber, the Hexagon and the tower taller, Bloodsnout's yard wall a man and a half
   T.ROOFS = { b: { h: 20, roof: 'red' }, n: { h: 16, roof: 'leather' }, u: { h: 24, roof: 'red' }, h: { h: 12, roof: 'leather' }, j: { h: 10, roof: 'stone' }, B: { h: 35, roof: 'stone' }, q: { h: 10, roof: 'silver', wall: 'silver' } };
   T.HOUSES = 'bnu'; T.SHACKS = 'hj';
+  T.roofsAt = function (F) { if (F === T.FT) return T.ROOFS; var o = {}; Object.keys(T.ROOFS).forEach(function (k) { o[k] = Object.assign({}, T.ROOFS[k], { h: T.ROOFS[k].h * T.FT / F }); }); return o; }; // (the heights shrink with the squares: the town as if the party stood F / 5 times taller)
   T.ROADS = ['the south gate track', 'THE road west: a mile to the fork', 'the road east: the farms and the coast', 'the old mine track', 'the feed track: the bridge and the Warrens mouths']; // (v6's roads in its own order)
   T.wayOut = function* (B, sq) { // a road running off the floor: the world map takes the party on there, later (the world map seat's: how a hex opens into a grid floor)
     var nm = (D.roam.def.wayName || {})[sq[0] + ',' + sq[1]] || 'the road';
@@ -202,8 +208,8 @@
   };
   // the open square nearest a point in feet, not one of `used` (on the laid town)
   T.openNear = function (L, x, y, used) {
-    var g0 = Math.floor((x - T.X0) / T.FT), g1 = Math.floor((y - T.Y0) / T.FT), best = null, bd = 1e9;
-    for (var dy = -12; dy <= 12; dy++) for (var dx = -12; dx <= 12; dx++) {
+    var F = L.F || T.FT, R = Math.max(3, Math.round(60 / F)), g0 = Math.floor((x - T.X0) / F), g1 = Math.floor((y - T.Y0) / F), best = null, bd = 1e9;
+    for (var dy = -R; dy <= R; dy++) for (var dx = -R; dx <= R; dx++) {
       var gx = g0 + dx, gy = g1 + dy, row = L.rows[gy]; if (!row || gx < 0 || gx >= row.length || '.,='.indexOf(row.charAt(gx)) < 0 || (used && used[gx + ',' + gy])) continue; // (never on a door's threshold)
       var d = Math.hypot(dx, dy); if (d < bd) { bd = d; best = [gx, gy]; }
     }
