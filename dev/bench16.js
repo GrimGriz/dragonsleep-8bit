@@ -3858,6 +3858,16 @@
           sh5b.sq.length > 0 && sh5b.tint.length === sh5b.sq.length && sh5b.caught.indexOf(gb5[0]) >= 0 && sh5b.caught.indexOf(gb5[1]) < 0);
       }
       B5.req = null;
+      // 6. §2.21, THE SRD'S FLIERS FLY IN EVERY FIGHT (the desk's order on his "grid seats leans and above into grid's next lane"): the roper's story fight (its darkmantles) and the
+      // cloaker's, neither marked `fliers`, field them with wings; so does the class floor (a darkmantle, a stirge, a giant bat); a fight marked `fliers: false` (the simple fight's
+      // lineup) keeps them walking. The story fights benched before and after: the seat's section in the lane
+      var wings6 = function (Bx) { return Bx.units.filter(function (w) { return w.side === 'foe' && D.FOES[w.kind] && D.FOES[w.kind].fly; }).map(function (w) { return w.kind + (w.flies ? ':wings' : ':walks'); }); };
+      var B6a = new D.Battle({ fight: 'roper', bench: true }); D.battle = B6a; B6a.enter(); var r6 = wings6(B6a);
+      var B6b = new D.Battle({ fight: 'cloaker', bench: true }); D.battle = B6b; B6b.enter(); var c6 = wings6(B6b);
+      var B6c = mkC('?npc=darkmantle,stirge,giantbat&vs=wizard:5,fighter:5&lvl=5'), n6 = wings6(B6c);
+      var on6 = D.flightAI && D.flightAI.on, off6 = on6 ? on6({ fliers: false }) : 'no FA.on', def6 = on6 ? on6({}) : 'no FA.on';
+      okC('6 the roper\'s story fight ' + r6.join(',') + '; the cloaker\'s ' + c6.join(',') + '; the class floor ' + n6.join(',') + '; a fight marked fliers: false flies ' + off6 + ', one unmarked ' + def6 + ' (want every one :wings; false, true)',
+        r6.length >= 2 && c6.length >= 1 && n6.length === 3 && r6.concat(c6, n6).every(function (s) { return /:wings$/.test(s); }) && off6 === false && def6 === true);
     } catch (eC) { repC.errors.push(String(eC && eC.stack || eC).slice(0, 900)); D.d = d0C; }
     if (errs.length) repC.errors = repC.errors.concat(errs);
     var preC = document.createElement('pre'); preC.id = 'out'; preC.textContent = 'BENCH16 ' + JSON.stringify(repC);

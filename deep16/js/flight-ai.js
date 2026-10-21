@@ -3,8 +3,8 @@
    lane's flight at a height (§2.17: js/grid.js u.fz, G.flyReach, G.flyTop; battle.js flyMove, flyTo, flyCheck), whose two leftovers the lanes window took for
    this, on that seat's go: the SRD's fliers flying, and the AI flying.
 
-     a fight's `fliers: true`     every foe whose sheet has a fly speed (data/foes.js `fly`) has wings in it -- the bats, the stirges, the darkmantle, the cloaker.
-                                  Everywhere else they still move their fly speed on the ground: switching them on for good is the bestiary lane's, on his word.
+     every fight, since 10-21     every foe whose sheet has a fly speed (data/foes.js `fly`) has wings in it -- the bats, the stirges, the darkmantle, the cloaker
+                                  (FA.on; before, a fight's `fliers: true` only). A fight's `fliers: false` keeps them walking (the simple fight's lineup).
      a fight's `pack: [{ id, n }]` in the party's pack as the fight begins (not inside the 8-bit game: its pack is the save's)
      a worn ring with `ring.fly`  (content/items.json ringofflying -- ours, the SRD 5.1 Winged Boots' flying speed on a finger) PUT ON from the pack: the free object
                                   interaction (SRD 5.1, as drawing a blade), and the one who wears it has wings: a flying speed equal to the walking one
@@ -21,6 +21,10 @@
   function item(id) { return window.DS && DS.DATA && DS.DATA.items ? DS.DATA.items[id] : null; }
   FA.finger = function (u) { var e = u.src && u.src.equip; return !e ? 'ring' : !e.ring ? 'ring' : !e.ring2 ? 'ring2' : null; }; // (the ring finger free for one: two rings at most)
   FA.ringsIn = function (B) { return (B.inv || []).filter(function (x) { var it = x.n > 0 && item(x.id); return !!(it && it.ring && it.ring.fly); }); };
+  // the SRD's fliers fly in every fight (the grid's rules §2.21, 10-21 night, the lanes desk's order on his "grid seats leans and above into grid's next lane": before, only a
+  // fight marked `fliers: true` had them -- the roost's two, the testing room, the roam -- and everywhere else they moved their fly speed on the ground). A fight that must keep
+  // them on the ground says `fliers: false` (THE SIMPLE FIGHT's lineup, js/world.js). Those on the field as it begins (a wave brought in later walks, as before)
+  FA.on = function (F) { return !F || F.fliers !== false; };
 
   // ------------------------------------------------------------------ the fight's own: the pack, the wings
   var enter0 = Battle.prototype.enter;
@@ -30,7 +34,7 @@
       this.packed = true; inv = this.inv = this.inv || [];
       F.pack.forEach(function (p) { var h = inv.filter(function (x) { return x.id === p.id; })[0]; if (h) h.n = (h.n || 0) + p.n; else inv.push({ id: p.id, n: p.n }); });
     }
-    if (F.fliers) this.units.forEach(function (u) { var d = u.side === 'foe' && u.kind && D.FOES[u.kind]; if (d && d.fly) { u.flies = true; u.speed = Math.max(u.speed || 0, d.fly); } });
+    if (FA.on(F)) this.units.forEach(function (u) { var d = u.side === 'foe' && u.kind && D.FOES[u.kind]; if (d && d.fly) { u.flies = true; u.speed = Math.max(u.speed || 0, d.fly); } });
     // a Ring of Flying already worn -- on a ring finger by the camp's EQUIP or the save's -- has its wings from the first round (10-13, the menus §2.3; Griz: "should use
     // standard equip ring interface (but make the not the binding type i think)": a ring slot like any ring, and no bond, as content/items.json has it)
     this.units.forEach(function (u) { if (u.side !== 'party' || u.flies || !u.src || !u.src.equip) return; var id = [u.src.equip.ring, u.src.equip.ring2].filter(function (x) { var it = x && item(x); return !!(it && it.ring && it.ring.fly); })[0]; if (id) { u.flies = true; u.ringFly = id; } });
@@ -103,6 +107,10 @@
   FA.foeTurn = function* (B, u) {
     var T = u.turn, AI = D.ai;
     var hs = AI.heroes(B, u).filter(function (w) { return !w.object && G.standing(w); });
+    // (the brute's own aims first, as ai.js brute has them: the one the darts found in the dark comes first (the darkness's grudge, the gimmick), and the cloaker hunts the vital
+    // one (RULED 10-01c) -- it flies for that one. 10-21 night: with every flier flying, the sleep1001c bench found the cloaker biting the fighter beside it instead)
+    var grH = u.grudge && B.units.filter(function (w) { return w.id === u.grudge && G.standing(w); })[0];
+    if (grH) hs = [grH]; else if (u.kind === 'cloaker') { var vtH = hs.filter(function (w) { return w.vital; })[0]; if (vtH) hs = [vtH]; }
     var rch = AI.reachOf(u, hs);
     if (hs.length && T.move > 0 && G.winged(u) && !u.riding && !u.conds.grappled && !hs.some(function (w) { return G.dist(u, w) <= rch; })) {
       var spot = FA.spotFor(B, u, hs, rch);

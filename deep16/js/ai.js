@@ -165,7 +165,7 @@
     else if (u.kind === 'drow') yield* drow(B, u);
     else if (u.kind === 'drider') yield* drider(B, u);
     else if (u.weave) yield* weaver(B, u);
-    else if (u.side === 'foe' && u.flies && B.fight && B.fight.fliers && D.flightAI) yield* D.flightAI.foeTurn(B, u); // (wings in a fight whose fliers fly: it keeps to the air -- js/flight-ai.js, 10-08)
+    else if (u.side === 'foe' && u.flies && D.flightAI && D.flightAI.on(B.fight)) yield* D.flightAI.foeTurn(B, u); // (wings in a fight whose fliers fly: it keeps to the air -- js/flight-ai.js, 10-08)
     else if (u.side === 'foe') yield* brute(B, u);
     else yield* guest(B, u);
     if (u.side === 'foe' && D.traits && D.traits.after) yield* D.traits.after(B, u); // (the gnoll's Rampage, the goblin's Nimble Escape)
