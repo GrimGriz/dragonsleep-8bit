@@ -34,8 +34,9 @@
   function rgb(c) { var m = /^#?([0-9a-f]{6})$/i.exec(c || ''); if (!m) return [200, 0, 200]; var n = parseInt(m[1], 16); return [n >> 16, (n >> 8) & 255, n & 255]; }
   W.index = function () {
     var B = D.WORLD; if (!B) return null;
-    var m = M = { w: B.hexMi, hex: {}, terr: B.terr, sites: B.sites, paths: B.paths, link: {}, road: {}, siteAt: {}, col: {} };
+    var m = M = { w: B.hexMi, hex: {}, terr: B.terr, sites: B.sites, paths: B.paths, link: {}, road: {}, siteAt: {}, col: {}, look: B.look || null };
     Object.keys(B.terr).forEach(function (k) { m.col[k] = rgb(B.terr[k].color); });
+    if (B.look && !(LOOK && LOOK.v === B.look.v) && typeof Image === 'function') { var im = new Image(), lk = LOOK = { v: B.look.v, img: im, ok: false }; im.onload = function () { lk.ok = true; }; im.src = 'data/world-look.png?v=' + B.look.v; } // (THE LOOK, below: the solid tops till it comes)
     B.hexes.forEach(function (h) { m.hex[K(h[0], h[1])] = { q: h[0], r: h[1], t: h[2], h: h[3], wet: !!h[4], t2: h[5], sh2: h[6], guess: !!h[7] }; }); // (guess: not painted, corridor v3's guess)
     B.paths.forEach(function (P) {
       if (P.kind === 'river') return;
@@ -291,24 +292,49 @@
     var cl = function (v) { return v < 0 ? 0 : v > 255 ? 255 : v | 0; };
     return 'rgb(' + cl(r) + ',' + cl(g) + ',' + cl(b) + ')';
   }
+  // THE LOOK (10-21, the world bake seat; RULED his "agree with lean" to the mosaic, then his "it seems to me the second image could look more like the
+  // first with a clever paintjob"): each column's top is the finest view of the ground under it, not one colour -- data/world-look.png, a half mile a pixel,
+  // baked by tools/world-build.py (its ground the finest paint, its relief the hex map's own heights lit from the north-west), laid on the top as a pattern
+  // in the world's plane raised to the column's height. A pattern fill costs some times a plain one, so a row's tops go in one fill for each raised
+  // plane, the heights taken in steps of a sample and a half (the picture shifts under a half mile, unseen): a column's walls and top keep to its own
+  // strip of the screen, so within a row the walls go first, then the tops, then the outlines and the decorations -- the painter's order kept row by row
+  var LOOK = null;
+  function lookPat(g, cam, off) { // (off: the plane raised that many px)
+    var L = M.look; if (!L || !LOOK || !LOOK.ok || LOOK.v !== L.v) return null;
+    if (!LOOK.pat || LOOK.g !== g) { LOOK.pat = g.createPattern(LOOK.img, 'no-repeat'); LOOK.g = g; }
+    LOOK.pat.setTransform(new DOMMatrix([L.mi * cam.z, 0, 0, L.mi * cam.z * TILT, (L.x0 - cam.cx) * cam.z + cam.W / 2, (L.y0 - cam.cy) * cam.z * TILT + cam.H / 2 - off]));
+    return LOOK.pat;
+  }
   W.drawWorld = function (g, cam, hi) {
     var w = M.w, hh = w * SQ3 / 2, lmax = 14000 / 5280 * cam.z * cam.E, outline = w * cam.z >= 22;
     var y0 = cam.cy - (cam.H / 2) / (cam.z * TILT) - w, y1 = cam.cy + (cam.H / 2 + lmax) / (cam.z * TILT) + w, x0 = cam.cx - cam.W / 2 / cam.z - w, x1 = cam.cx + cam.W / 2 / cam.z + w;
     var poly = function (P) { g.beginPath(); g.moveTo(P[0][0], P[0][1]); for (var i = 1; i < P.length; i++) g.lineTo(P[i][0], P[i][1]); g.closePath(); };
-    var wetT = Math.sin(D.frame / 40);
-    for (var r = Math.floor(y0 / hh); r <= Math.ceil(y1 / hh); r++) for (var q = Math.floor(x0 / w - r / 2); q <= Math.ceil(x1 / w - r / 2); q++) {
-      var e = M.hex[K(q, r)]; if (!e) continue;
-      var c = hc(q, r), h = e.h, water = e.t === 'sea' || e.t === 'lake';
-      var P = HCO.map(function (o) { return proj(cam, c[0] + o[0] * w, c[1] + o[1] * w, h); });
-      if (!water) [[0, 1, q, r + 1, 0.62], [1, 2, q - 1, r + 1, 0.82]].forEach(function (f) {
-        var n = M.hex[K(f[2], f[3])], hn = n ? n.h : Math.min(0, h) - 400; if (hn >= h - 1) return;
-        var A = HCO[f[0]], B2 = HCO[f[1]];
-        g.fillStyle = tone(e, f[4], true); poly([P[f[0]], P[f[1]], proj(cam, c[0] + B2[0] * w, c[1] + B2[1] * w, hn), proj(cam, c[0] + A[0] * w, c[1] + A[1] * w, hn)]); g.fill();
+    var wetT = Math.sin(D.frame / 40), look = !!lookPat(g, cam, 0), step = M.look ? Math.max(1, M.look.mi * cam.z * TILT * 1.5) : 1, rise = cam.z * cam.E / 5280;
+    for (var r = Math.floor(y0 / hh); r <= Math.ceil(y1 / hh); r++) {
+      var row = [], planes = {};
+      for (var q = Math.floor(x0 / w - r / 2); q <= Math.ceil(x1 / w - r / 2); q++) {
+        var e = M.hex[K(q, r)]; if (!e) continue;
+        var c = hc(q, r), h = e.h, water = e.t === 'sea' || e.t === 'lake';
+        var P = HCO.map(function (o) { return proj(cam, c[0] + o[0] * w, c[1] + o[1] * w, h); });
+        if (!water) [[0, 1, q, r + 1, 0.62], [1, 2, q - 1, r + 1, 0.82]].forEach(function (f) {
+          var n = M.hex[K(f[2], f[3])], hn = n ? n.h : Math.min(0, h) - 400; if (hn >= h - 1) return;
+          var A = HCO[f[0]], B2 = HCO[f[1]];
+          g.fillStyle = tone(e, f[4], true); poly([P[f[0]], P[f[1]], proj(cam, c[0] + B2[0] * w, c[1] + B2[1] * w, hn), proj(cam, c[0] + A[0] * w, c[1] + A[1] * w, hn)]); g.fill();
+        });
+        row.push([e, c, P, q]);
+        if (look && !water) { var pk = Math.round(h * rise / step); (planes[pk] = planes[pk] || []).push(P); }
+        else { g.fillStyle = water ? tone(e, 1 + 0.04 * wetT * ((q + r) & 1 ? 1 : -1)) : tone(e, e.lit); poly(P); g.fill(); }
+      }
+      Object.keys(planes).forEach(function (pk) {
+        g.fillStyle = lookPat(g, cam, pk * step); g.beginPath();
+        planes[pk].forEach(function (P) { g.moveTo(P[0][0], P[0][1]); for (var i = 1; i < 6; i++) g.lineTo(P[i][0], P[i][1]); g.closePath(); });
+        g.fill();
       });
-      g.fillStyle = water ? tone(e, 1 + 0.04 * wetT * ((q + r) & 1 ? 1 : -1)) : tone(e, e.lit); poly(P); g.fill();
-      if (outline) { g.strokeStyle = 'rgba(20,12,6,.3)'; g.lineWidth = 0.6; g.stroke(); }
-      if (hi && hi[K(q, r)]) { g.strokeStyle = hi[K(q, r)]; g.lineWidth = 1.5; g.stroke(); }
-      if (W.decorate) W.decorate(g, cam, e, c, P); // (pass C: the trees, the peaks, the reeds)
+      for (var j = 0; j < row.length; j++) {
+        var o = row[j], k = K(o[3], r);
+        if (outline || (hi && hi[k])) { poly(o[2]); if (outline) { g.strokeStyle = 'rgba(20,12,6,.3)'; g.lineWidth = 0.6; g.stroke(); } if (hi && hi[k]) { g.strokeStyle = hi[k]; g.lineWidth = 1.5; g.stroke(); } }
+        if (W.decorate) W.decorate(g, cam, o[0], o[1], o[2]); // (pass C: the trees, the peaks, the reeds)
+      }
     }
   };
   function groundAt(cam, x, y) { var a = at(x, y); return proj(cam, x, y, hexTopH(a[0], a[1])); }

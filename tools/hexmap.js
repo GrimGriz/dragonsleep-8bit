@@ -575,6 +575,9 @@
     var n = parseInt(m[1], 16); return (RGB[c] = [n >> 16, (n >> 8) & 255, n & 255]);
   }
   function tone(t, s, h, wall, wet) { // a hex's colour lit: its terrain's, shaded, snow on the highest; a wall the same ground darker and earthier; a wet floor filmed
+    var c = toneRGB(t, s, h, wall, wet); return 'rgb(' + c[0] + ',' + c[1] + ',' + c[2] + ')';
+  }
+  function toneRGB(t, s, h, wall, wet) { // (tone's numbers: the world's look image is baked from them)
     var T = TB[t], c = rgbOf(T ? T.color : t ? '#ff00ff' : '#5a5244'), r = c[0], g = c[1], b = c[2]; // (no paint: a dim ground, so the world reads whole)
     if (wall) { r = r * 0.6 + 92 * 0.4; g = g * 0.6 + 74 * 0.4; b = b * 0.6 + 56 * 0.4; }
     if (wet) { r = r * 0.5 + 70 * 0.5; g = g * 0.5 + 132 * 0.5; b = b * 0.5 + 128 * 0.5; s = 0.9 + (s - 1) * 0.3; } // (a thin sheet of water: the ground under it shows)
@@ -582,7 +585,7 @@
     var sn = wall ? 0 : Math.round(Math.max(0, Math.min(0.75, (h - 7000) / 2600)) * 8) / 8;
     if (sn) { r += (236 - r) * sn; g += (238 - g) * sn; b += (246 - b) * sn; }
     var cl = function (v) { return v < 0 ? 0 : v > 255 ? 255 : v | 0; };
-    return 'rgb(' + cl(r) + ',' + cl(g) + ',' + cl(b) + ')';
+    return [cl(r), cl(g), cl(b)];
   }
   // THE WORLD LOOK: the map tilted, each hex a column at its height, lit, drawn north to south (painter's order); a cam is any window on it --
   // the WORLD view itself, or the iso preview inset over the flat ones (his "if a preview of isometric when working on the flat would probably be great")
@@ -1494,7 +1497,7 @@
       }
       out.hexes.push([q, r, t, Math.round(e[0]), e[3] ? 1 : 0, t2, sh, 0, fill]);
     });
-    out.tiles = bakeTiles(F, b);
+    out.tiles = bakeTiles(F, b); out.look = bakeLook();
     S.sites.forEach(function (s) { var h = at(1, s.x, s.y); out.sites.push({ id: s.id, name: s.name, kind: s.kind, x: +s.x.toFixed(3), y: +s.y.toFixed(3), hex: [h[0], h[1]], note: s.note || '' }); });
     S.paths.forEach(function (P) {
       var pts = ptsOf(P); if (pts.length < 2) return;
@@ -1528,6 +1531,7 @@
       }
     });
     var tRows = [], bRows = [], rRows = [], wet = [];
+    LK = { mi: mi, x0: x0, y0: y0, w: w, h: h, H: new Float32Array(w * h), T: [], W: new Uint8Array(w * h) }; // (the same samples light THE LOOK, below)
     for (var ty = 0; ty < h; ty++) {
       var tr = [], br = '', rr = [];
       for (var tx = 0; tx < w; tx++) {
@@ -1535,13 +1539,38 @@
         if (!t) t = fillAt(F, x, y);
         if (!t) t = 'plains';
         var hv = hAt(x, y, t), bd = Math.max(0, Math.min(35, Math.floor(hv / 500)));
-        if (PW && t !== 'lake' && t !== 'sea') wet.push(tx + ty * w);
+        if (PW && t !== 'lake' && t !== 'sea') { wet.push(tx + ty * w); LK.W[tx + ty * w] = 1; }
+        LK.H[tx + ty * w] = hv; LK.T[tx + ty * w] = t;
         tr.push(chOf(t)); br += B36.charAt(bd); rr.push(roadAt[tx + ',' + ty] || '.');
       }
       tRows.push(rle(tr)); bRows.push(br); rRows.push(rle(rr));
     }
     var key = {}; Object.keys(chars).forEach(function (k) { key[chars[k]] = k; });
     return { mi: mi, x0: x0, y0: y0, w: w, h: h, key: key, t: tRows, b: bRows, r: rRows, wet: wet };
+  }
+
+  // THE LOOK (10-21, RULED his "agree with lean" to the desk's mosaic, then his "it seems to me the second image could look more like the first with a
+  // clever paintjob": the 5-mile columns read as blocks, the 330 ft preview as rolling relief). Every half mile of the world as the finest view lights it:
+  // its ground the finest paint there (330 ft, else 1 mile, else the hex's own, else THE FILL's), its height the tool's own ground and fractal, lit by
+  // its own slope from the north-west, filmed where wet, snowed where high -- one small picture, deep16/data/world-look.png (tools/world-build.py), that
+  // THE WORLD lays on each hex's top. LOOKE: the heights' exaggeration in the lighting (the 5-mile columns light at 6 across 5 miles; a half mile's
+  // slopes are gentler, so more)
+  var LK = null, LOOKE = 14;
+  function bakeLook() {
+    var L = LK, w = L.w, h = L.h, k = LOOKE / 5280, c = document.createElement('canvas'); c.width = w; c.height = h;
+    var g = c.getContext('2d'), im = g.createImageData(w, h), d = im.data, H = L.H;
+    for (var y = 0; y < h; y++) for (var x = 0; x < w; x++) {
+      var i = x + y * w, t = L.T[i], s = 1;
+      if (!isWet(t)) {
+        var xa = Math.max(0, x - 1), xb = Math.min(w - 1, x + 1), ya = Math.max(0, y - 1), yb = Math.min(h - 1, y + 1);
+        var gx = (H[xb + y * w] - H[xa + y * w]) / ((xb - xa) * L.mi), gy = (H[x + yb * w] - H[x + ya * w]) / ((yb - ya) * L.mi);
+        var nl = Math.sqrt(gx * gx * k * k + gy * gy * k * k + 1); s = (0.503 * gx * k + 0.503 * gy * k + 0.704) / nl / 0.704;
+        s = Math.round(Math.max(0.42, Math.min(1.4, s)) * 16) / 16;
+      }
+      var col = toneRGB(t, s, H[i], false, !!L.W[i]); d[i * 4] = col[0]; d[i * 4 + 1] = col[1]; d[i * 4 + 2] = col[2]; d[i * 4 + 3] = 255;
+    }
+    g.putImageData(im, 0, 0);
+    return { mi: L.mi, x0: L.x0, y0: L.y0, w: w, h: h, png: c.toDataURL('image/png') };
   }
 
   // ---------------------------------------------------------------- go
