@@ -173,7 +173,7 @@
     var fq = /[?&]flags=([A-Za-z0-9_,:]+)/.exec(q); R.flags0 = {}; if (fq) fq[1].split(',').forEach(function (k) { if (k) R.flags0[k] = 1; }); if (/[?&]drained\b/.test(q)) R.flags0.stairHook = 1;
     // the floor by the door's name: the Wet (deep16/?roam=wet, the first) or Silverton (deep16/?roam=silverton: the town from the city map v6, js/town.js -- 10-20)
     var fl0 = emb && emb.save ? emb.save.flags || {} : R.flags0;
-    R.def = /[?&]roam=silverton\b/.test(q) && D.town ? D.town.floor(q, fl0) : R.wholeWet(fl0);
+    R.def = /[?&]roam=silverton\b/.test(q) && D.town ? D.town.floor(q, fl0) : D.mines && D.mines.key(q) ? D.mines.floor(D.mines.key(q), q, fl0) : R.wholeWet(fl0); // (or the Warrens' and the Galleries' top floors: js/mines.js, 10-21 night)
     if (R.def.wet == null) R.def.wet = true; // (the Wet's own pieces -- its bucket, its stair, the rune, the floating one, its encounter table -- only on the Wet)
     R.q = q; R.PAD = num('pad', 4); R.FAR = num('far', 0); R.ENC = num('enc', 0); // (&far=0: no cap -- RULED 10-13 with the approach, his "1 yes")
     var lvl = num('lvl', 5), useSave = /[?&]save\b/.test(q);
@@ -322,7 +322,8 @@
   R.script = function* (B) {
     var R0 = B.roam;
     if (R.def.music) D.music(R.def.music); // (a floor's own tune at the door -- the town's, the 8-bit's Silverton's: the party-token map lane's 10-20 note 1, "no music in roam")
-    if (R.def.town) B.card(R.wrap(['{y}SILVERTON{/}, in at the ' + R.def.gate + ' gate: ' + (R.def.ft === 5 ? 'the town at true scale' : 'the town drawn as if the party stood ' + R.def.ft + ' ft tall') + ' (' + G.map.w + ' x ' + G.map.h + ' squares), one token, the party inside it.', '{g}Click to walk, or the arrows. E: a word with someone beside you. O: the formation. L: the town map.{/}']), 420);
+    if (R.def.town && R.def.hello) B.card(R.wrap(R.def.hello), 420); // (a floor of its own words: the mines' top floors, js/mines.js)
+    else if (R.def.town) B.card(R.wrap(['{y}SILVERTON{/}, in at the ' + R.def.gate + ' gate: ' + (R.def.ft === 5 ? 'the town at true scale' : 'the town drawn as if the party stood ' + R.def.ft + ' ft tall') + ' (' + G.map.w + ' x ' + G.map.h + ' squares), one token, the party inside it.', '{g}Click to walk, or the arrows. E: a word with someone beside you. O: the formation. L: the town map.{/}']), 420);
     else B.card(['{y}THE WET{/}, the whole floor (' + G.map.w + ' x ' + G.map.h + ' squares): one token, the party inside it.', '{g}Click to walk, or the arrows. O: the formation.' + (R.emb ? '' : ' F: a fight now.') + '{/}'], 420);
     while (true) {
       var t = R0.token;
@@ -612,7 +613,9 @@
   R.useNear = function (B) {
     var R0 = B.roam, t = R0 && R0.token; if (!t) return null;
     var dirs = [R0.fw.slice()]; for (var dy = -1; dy <= 1; dy++) for (var dx = -1; dx <= 1; dx++) if ((dx || dy) && !(dx === R0.fw[0] && dy === R0.fw[1])) dirs.push([dx, dy]);
-    for (var i = 0; i < dirs.length; i++) { var x = t.x + dirs[i][0], y = t.y + dirs[i][1], tr = R.useAt(B, x, y); if (tr) return { trig: tr, sq: [x, y] }; }
+    var tr0 = R.useAt(B, t.x + R0.fw[0], t.y + R0.fw[1]); if (tr0) return { trig: tr0, sq: [t.x + R0.fw[0], t.y + R0.fw[1]] };
+    var door0 = R.def.town && R0.fw[1] < 0 ? R.useAt(B, t.x, t.y) : null; if (door0 && door0.town === 'door') return { trig: door0, sq: [t.x, t.y] }; // (on a threshold facing its wall, the door before anyone beside it -- the first game stands Edric Pellam beside his tally-house's: js/mines.js, 10-21 night)
+    for (var i = 1; i < dirs.length; i++) { var x = t.x + dirs[i][0], y = t.y + dirs[i][1], tr = R.useAt(B, x, y); if (tr) return { trig: tr, sq: [x, y] }; }
     var own = R.useAt(B, t.x, t.y); if (own) return { trig: own, sq: [t.x, t.y] }; // (and the square it stands on: a town's door threshold, walked onto -- 10-21, his "clicking on the door" made doors a USE)
     return null;
   };
@@ -968,10 +971,10 @@
   // SAVE on the floor (10-14, his "SAVE on the floor ... by a hand-back"): out of a fight, nothing coming, inside the 8-bit, where the 8-bit's own map lets a save be made (every
   // dungeon floor's is save=False -- tools/mapgen.py: his "yes to both", 10-14, SAVE greyed as the 8-bit greys it) -- the 8-bit's own slots, on the square the party stands on
   // (a load opens the floor there again: js/deep.js); the M menu's SAVE (deep16/js/ui.js gridHost canSave, through B.menuSave, and R.menuAct)
-  R.canSave = function (B) { var R0 = B.roam; if (R.house()) return !!(R0.mode === 'walk' && !R.tracking(R0).length && R.def.town); return !!(R.emb && D.embed && D.embed.roamOut && R0.mode === 'walk' && !R.tracking(R0).length && R.def.src8 && R.def.src8.save !== false); };
+  R.canSave = function (B) { var R0 = B.roam; if (R.house()) return !!(R0.mode === 'walk' && !R.tracking(R0).length && R.def.town && R.def.save !== false); return !!(R.emb && D.embed && D.embed.roamOut && R0.mode === 'walk' && !R.tracking(R0).length && R.def.src8 && R.def.src8.save !== false); }; // (the house: not on the mines' worked floors below their mouths, the first game's `save: false` -- js/mines.js)
   R.save = function* (B) {
     if (R.house()) { // (the house: in a town, its three slots -- js/house.js; the square and the way they face kept, a load stands them there again)
-      var t = B.roam.token, done = false; D.house.fromFloor(B); D.house.cur.at = { town: R.def.key, gate: R.def.gate || 'west', sq: [t.x, t.y], dir: R.DIR8[B.roam.fw[0] + ',' + B.roam.fw[1]] || null };
+      var t = B.roam.token, done = false; D.house.fromFloor(B); D.house.cur.at = { town: R.def.door || R.def.key, gate: R.def.gate || 'west', sq: [t.x, t.y], dir: R.DIR8[B.roam.fw[0] + ',' + B.roam.fw[1]] || null };
       D.push(new D.house.Slots('save', function () { done = true; })); while (!done) yield 1; return;
     }
     var m = yield* R.handOut(B, 'save'); if (m && m.saved) { B.card(['{g}' + m.saved + '{/}'], 200); yield 10; }
@@ -1776,7 +1779,7 @@
     }
     if ((R0.mode === 'walk' || R0.mode === 'order') && !B.menu) {
       var p8 = R.def.to8(R0.token.x, R0.token.y); // (no step count shown: a random fight comes unannounced -- 10-14, Griz: "removing the step warning regarding random encounters")
-      D.text(ctx, R.def.town ? 'THE ROAM -- ' + (R.def.room ? 'Silverton: ' + R.def.name : 'Silverton') + ', ' + G.map.w + ' x ' + G.map.h + '   square ' + p8[0] + ',' + p8[1] + (R.def.where ? '   ' + R.def.where(p8[0], p8[1]) : '') : 'THE ROAM -- the Wet, ' + G.map.w + ' x ' + G.map.h + '   8-bit square ' + p8[0] + ',' + p8[1], 6, D.H - 30, '#e8d8a0');
+      D.text(ctx, R.def.town ? 'THE ROAM -- ' + (R.def.room ? 'Silverton: ' + R.def.name : R.def.hud || 'Silverton') + ', ' + G.map.w + ' x ' + G.map.h + '   square ' + p8[0] + ',' + p8[1] + (R.def.where ? '   ' + R.def.where(p8[0], p8[1]) : '') : 'THE ROAM -- the Wet, ' + G.map.w + ' x ' + G.map.h + '   8-bit square ' + p8[0] + ',' + p8[1], 6, D.H - 30, '#e8d8a0');
       D.text(ctx, R0.mode === 'order' ? 'ORDER (facing ' + R.faceName(R0.fw) + '): click one, then a lit square, or the leader to lead -- right click turns -- O when done' : 'click: walk   arrows: step   O: formation' + (R.tracking(R0).length ? '   F: the fight now' : R.emb || !R.def.wet ? '' : '   F: a fight now') + '   L: the floor map' + (function () { var un = R.useNear(B); if (!un) return ''; var tw = un.trig.town === 'talk' && B.units.filter(function (u) { return u.npc === un.trig.npc; })[0]; return '   E: ' + (tw ? 'a word with ' + tw.name : R.USE_NAME[un.trig.id] || un.trig.id); })(), 6, D.H - 20, '#9a94a8');
     }
     if (R.showMap) { var ms = Math.max(1, Math.min(4, Math.floor((D.W - 12) / G.map.w), Math.floor((D.H - 60) / G.map.h))); R.paintMap(ctx, B, D.W - G.map.w * ms - 6, 22, ms); } // (the town's 474 squares at a pixel each)

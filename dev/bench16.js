@@ -1898,6 +1898,126 @@
     document.body.appendChild(preF);
     return;
   }
+  // THE TOP LEVELS, 10-21 night (mode=toplevels1021; js/mines.js, ..\handoff-2026-10-21-the-warrens-and-galleries-on-the-tiles.md -- Griz, to the lanes desk: "spin up a
+  // lane to convert the warrens top levels and the guano mines top levels from 18 bit onto the tiling engine we're using for silverton"): the Warrens' mouth camp and its
+  // stalls, the Galleries' mouth and its working gallery, north up on the town's tiles from the first game's own maps; their people and words by their ids, the scripted ones
+  // on the counter screen; every way walked in and out -- down and up between a place's floors, a dark floor held, the Galleries' mouth off THE WORLD's site and back out to
+  // it, the Warrens by Silverton's feed track and back; SAVE on the mouths only, and a save loads there; the first game's floors untouched
+  if (get('mode', '') === 'toplevels1021') {
+    var repM = { checks: [], errors: [] }, memM = {}, stGM = D.store.get, stSM = D.store.set, MM = D.mines, HM = D.house, CM = D.counter, WM = D.world, d20M = MM.d20;
+    function okM(what, v) { repM.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function driveM(g, until, cap) { var v, k = 0, st; while (k++ < (cap || 4000)) { if (until && until()) return true; st = g.next(v); v = undefined; if (st.done) return !!(until && until()); if (typeof st.value === 'number' && D.battle) D.battle.t += Math.max(1, st.value); if (st.value && st.value.prompt) v = st.value.prompt.opts[0].value; } return !!(until && until()); }
+    function topM() { var s = D.top(); if (s && s.baking) { s.baking = false; s.enter(); } if (s && s.roam) driveM(s.co, null, 2); return s; }
+    function textM(k) { return [].concat(CM.L(k))[0]; }
+    // the counter screen read through: each question answered by `ans` (an option's index; with none left, its last -- LEAVE, NOT NOW); every line seen
+    function answerM(B, sc, ans) { var seen = []; ans = (ans || []).slice(); for (var k = 0; k < 40 && !sc.done; k++) { var w = sc.wait || {}, bs = sc.buttons(); seen = seen.concat(w.say || w.ask || []); if (w.ask) { var a = ans.length ? ans.shift() : w.opts.length - 1; seen.push('> ' + w.opts[a]); sc.press(bs.filter(function (b) { return b.go === 'opt' && b.k === a; })[0]); } else sc.press(bs[0]); } driveM(B.co, function () { return D.top() !== sc; }, 60); driveM(B.co, null, 30); return seen.join(' / '); }
+    // walk the token to a square as a click does, till it is there or the floor changes (and on a little: the square's own arrival); a screen it opens answered by `ans`
+    function walkM(B, to, ans) { var R0 = B.roam, p = D.roam.walkRoute(R0.token, to); if (!p) return null; B.cards = []; R0.path = p.slice(); driveM(B.co, function () { return D.top() !== B || (R0.token.x === to[0] && R0.token.y === to[1] && !(R0.path && R0.path.length)); }, 20000); if (D.top() === B) driveM(B.co, function () { return D.top() !== B; }, 80); if (D.top() instanceof CM.Counter) walkM.seen = answerM(B, D.top(), ans); return p.length; }
+    // E toward a square beside the token: what it opens, read through
+    function useM(B, at, ans) { var R0 = B.roam, t = R0.token; R0.fw = [Math.sign(at[0] - t.x), Math.sign(at[1] - t.y)]; B.cards = []; R0.keys.push('use'); driveM(B.co, function () { return D.top() instanceof CM.Counter || (B.cards || []).length > 0 || D.top() !== B; }, 400); var sc = D.top(); if (sc instanceof CM.Counter) return { sc: sc, seen: answerM(B, sc, ans) }; return { sc: null, seen: (B.cards || []).map(function (c) { return c.lines.join(' '); }).join(' / ') }; }
+    function besideM(B, at) { var t = B.roam.token, best = null; [[0, 1], [-1, 0], [1, 0], [0, -1], [-1, 1], [1, 1]].forEach(function (o) { var q = [at[0] + o[0], at[1] + o[1]]; if (!best && D.grid.canStand(t, q[0], q[1]) && D.roam.walkRoute(t, q)) best = q; }); if (best) walkM(B, best); return best; }
+    function testM(q) { var B = D.roam.make(q + '&watch'); D.scenes.length = 0; D.push(B); return topM(); }
+    D.store.get = function (k) { return memM[k] ? JSON.parse(memM[k]) : null; }; D.store.set = function (k, v) { memM[k] = JSON.stringify(v); return true; };
+    window.DS.autoPicks = true;
+    try {
+      D.seed = +get('seed', 1021);
+      var SRC8 = ['warrens_a', 'warrens_b', 'warrens_c', 'warrens_d', 'galleries_g1', 'galleries_g2', 'galleries_g3', 'galleries_g4', 'gulch'], print8 = function () { return SRC8.map(function (id) { return JSON.stringify(window.DS.DATA.maps[id]); }).join('|'); }, before8 = print8();
+      // the Warrens' mouth camp, by its test door
+      var BW = testM('?roam=warrens'), dW = D.roam.def, tW = BW.roam.token, fW = BW.units.filter(function (u) { return u.npc; }), n8W = window.DS.DATA.maps.warrens_a.npcs;
+      okM('the Warrens\' mouth camp from the first game\'s warrens_a: ' + dW.w + ' x ' + dW.h + ', north up on the town\'s tiles (' + dW.view + '), in off the feed track at ' + tW.x + ',' + tW.y + ' facing north', dW.w === 40 && dW.h === 27 && dW.view === 'top' && !!BW.map.top && tW.x === 20 && tW.y === 17 && BW.roam.fw[0] === 0 && BW.roam.fw[1] === -1);
+      okM('its people by their ids, where the first game stands them (' + fW.map(function (u) { return u.npc + ' ' + u.x + ',' + u.y; }).join(', ') + '); the line at the bridge not till the stock is dead', ['skarn', 'edric', 'jory', 'hobCamp', 'linnet'].every(function (id) { var n = n8W.filter(function (z) { return z.id === id; })[0]; return fW.some(function (u) { return u.npc === id && u.x === n.x && u.y === n.y; }); }) && !fW.some(function (u) { return u.npc === 'dunmoreLine'; }));
+      var drW = Object.keys(dW.marks.doors), cnW = {}; dW.rows.forEach(function (r) { for (var i = 0; i < r.length; i++) cnW[r[i]] = (cnW[r[i]] || 0) + 1; });
+      okM('its five doors a USE at a threshold under their building\'s wall (' + drW.map(function (k) { return k + ' ' + dW.marks.doors[k]; }).join(', ') + ')', drW.length === 5 && drW.every(function (k) { var q = dW.marks.doors[k]; return dW.rows[q[1]][q[0]] === 'd' && !!D.town.ROOFS[dW.rows[q[1] - 1][q[0]]] && dW.src8.triggers.some(function (t) { return t.id === k && t.on === 'use' && t.town === 'door' && t.rect[0] === q[0] && t.rect[1] === q[1]; }); }));
+      okM('roofs ' + (cnW.n || 0) + ' blue slate (the first game\'s brown) and ' + (cnW.h || 0) + ' grey shingle, the mountain and its mouths rock (' + cnW['#'] + '), the river not walked (' + cnW.D + '), the bridge boards (' + cnW.o + '), the cradles ' + cnW.y + '; no random fights (zones ' + dW.src8.zones.length + ')',
+        cnW.n > 40 && cnW.h > 5 && cnW['#'] > 150 && cnW.D > 100 && cnW.o === 3 && cnW.y > 40 && !dW.src8.zones.length && !BW.map.at(5, 14).walk && BW.map.at(20, 14).walk);
+      okM('a mine\'s mouth in the mountain\'s face: the first game\'s stair at 15,4 with the rock behind it (' + dW.rows[3].charAt(15) + '), its look the dark (' + dW.look[4].charAt(15) + ')', dW.rows[3].charAt(15) === '#' && dW.rows[4].charAt(15) === 'd' && dW.look[4].charAt(15) === 'X');
+      // the scripted people on the counter screen, the first game's scenes in its words
+      besideM(BW, [7, 8]); var eW = useM(BW, [7, 8]);
+      okM('Edric Pellam on the counter screen (the first game\'s S.edric: "' + eW.seen.slice(0, 70) + '..."): his book has the party (tallyMet ' + BW.roam.flags.tallyMet + ')', !!eW.sc && eW.sc.o.name === 'Edric Pellam' && BW.roam.flags.tallyMet === 1 && eW.seen.indexOf(textM('w.edricFirst')) >= 0);
+      besideM(BW, [15, 8]); var sW = useM(BW, [15, 8], [0]);
+      okM('Skarn (S.skarn): his question, the party come as free hands (' + sW.seen.split(' / ').filter(function (l) { return /^> /.test(l); }).join('') + '): skarnOk ' + BW.roam.flags.skarnOk, !!sW.sc && BW.roam.flags.skarnOk === 1 && BW.roam.flags.heardPete === 1);
+      walkM(BW, [6, 8]); var tyW = useM(BW, [6, 7]);
+      okM('the tally-house\'s door: Edric\'s shop on the counter screen (' + (tyW.sc && tyW.sc.o.place) + ': "' + tyW.seen.slice(0, 60) + '"), the draught on its shelves', !!tyW.sc && tyW.sc.o.place === window.DS.DATA.shops.tally.name && tyW.seen.indexOf(window.DS.DATA.shops.tally.greeting) >= 0);
+      walkM(BW, [35, 8]); var bkW = useM(BW, [35, 7]);
+      okM('the bunkhouse\'s door: its words at the door ("' + bkW.seen.slice(0, 70) + '")', !bkW.sc && /resident core sleeps here/.test(bkW.seen));
+      walkM(BW, [9, 5]); MM.d20 = function () { return 15; }; var s0W = BW.roam.silver, pW = useM(BW, [9, 4], [0, 0]); MM.d20 = d20M;
+      okM('a shift at pen two (S.pen, the first game\'s table rule rolled straight, the die pinned at 15): ' + (BW.roam.silver - s0W) + ' sp, shifts ' + BW.roam.flags.shifts + ', Old Hob met (' + BW.roam.flags.hobMet + ')', !!pW.sc && BW.roam.silver - s0W === 6 && BW.roam.flags.shifts === 1 && BW.roam.flags.hobMet === 1 && pW.seen.indexOf('> WORK A SHIFT') >= 0);
+      // down the mouth to the stalls, and Skarn's gate
+      walkM(BW, [15, 4]); var BB = topM(), dB = D.roam.def, tB = BB.roam.token;
+      okM('down the mouth at 15,4: the stalls and the lit galleries (warrens_b, ' + dB.w + ' x ' + dB.h + '), on ' + tB.x + ',' + tB.y + ', the floor\'s flags carried (tallyMet ' + BB.roam.flags.tallyMet + ', skarnOk ' + BB.roam.flags.skarnOk + ')', dB.key === 'warrens_b' && tB.x === 13 && tB.y === 26 && BB.roam.flags.tallyMet === 1 && BB.roam.flags.skarnOk === 1 && BB.roam.flags.shifts === 1);
+      walkM(BB, [17, 20]); var gB = useM(BB, [17, 19]);
+      okM('Skarn\'s gate (S.skarnGate): it swings back for the party Skarn took on and stays open (' + D.roam.def.rows[19].substr(17, 2) + ', skarnGateOpen ' + BB.roam.flags.skarnGateOpen + ')', BB.roam.flags.skarnGateOpen === 1 && D.roam.def.rows[19].substr(17, 2) === '..' && BB.map.at(17, 19).walk && gB.seen.indexOf(textM('w.gateOpens')) >= 0);
+      var nG = walkM(BB, [17, 15]);
+      okM('through the gate to the galleries above it (' + nG + ' steps, on ' + BB.roam.token.x + ',' + BB.roam.token.y + ')', BB.roam.token.x === 17 && BB.roam.token.y === 15);
+      walkM(BB, [12, 1]);
+      okM('the stair to the Wet (12,1): the dark floors wait for the grid\'s roam -- said, and the party kept (' + (D.top() === BB) + ', on ' + BB.roam.token.x + ',' + BB.roam.token.y + ')', D.top() === BB && D.roam.def.key === 'warrens_b' && (BB.cards || []).some(function (c) { return c.lines.some(function (l) { return /dark floors/.test(l); }); }));
+      walkM(BB, [13, 27]); var BW2 = topM();
+      okM('back up to the mouth camp, on the first game\'s square below the mouth (' + BW2.roam.token.x + ',' + BW2.roam.token.y + ')', D.roam.def.key === 'warrens' && BW2.roam.token.x === 15 && BW2.roam.token.y === 5 && BW2.roam.flags.skarnGateOpen === 1);
+      var BG0 = testM('?roam=warrens_b'), gB0 = (walkM(BG0, [17, 20]), useM(BG0, [17, 19]));
+      okM('a party Skarn has not taken on finds his gate shut ("' + gB0.seen.slice(0, 60) + '")', !BG0.roam.flags.skarnGateOpen && D.roam.def.rows[19].substr(17, 2) === 'ff' && gB0.seen.indexOf(textM('w.gateShut')) >= 0);
+      // the camp and Silverton by the feed track, both ways
+      BW2 = testM('?roam=warrens&flags=tallyMet'); var wayW = D.roam.def.doors.filter(function (q) { return q[0] === 0; })[0]; walkM(BW2, [1, wayW[1]]); walkM(BW2, wayW); var BS = topM(), dS = D.roam.def;
+      okM('off the camp\'s far square (' + wayW + ', "' + D.mines.FLOORS.warrens.out + '"): Silverton, on its feed track a step in from the east edge (' + BS.roam.token.x + ',' + BS.roam.token.y + '), the floor\'s flags with them (tallyMet ' + BS.roam.flags.tallyMet + ')', dS.key === 'silverton' && BS.roam.token.x === MM.FEED[0] - 1 && BS.roam.token.y === MM.FEED[1] && BS.roam.flags.tallyMet === 1);
+      okM('Silverton\'s feed track runs off its floor at ' + MM.FEED + ' (' + (dS.wayName || {})[MM.FEED.join(',')] + ')', /feed track/.test((dS.wayName || {})[MM.FEED.join(',')] || '') && dS.doors.some(function (q) { return q[0] === MM.FEED[0] && q[1] === MM.FEED[1]; }));
+      walkM(BS, MM.FEED); var BW3 = topM();
+      okM('and Silverton\'s feed track opens the camp, by the road below the bridge (' + D.roam.def.key + ', ' + BW3.roam.token.x + ',' + BW3.roam.token.y + ')', D.roam.def.key === 'warrens' && BW3.roam.token.x === 20 && BW3.roam.token.y === 17);
+      // the Galleries' mouth
+      var BG = testM('?roam=galleries&gate=east'), dG = D.roam.def, tG = BG.roam.token, fG = BG.units.filter(function (u) { return u.npc; });
+      okM('the Galleries\' mouth from galleries_g1: ' + dG.w + ' x ' + dG.h + ' north up, in by the east gate on the road (' + tG.x + ',' + tG.y + ' facing west), its people (' + fG.map(function (u) { return u.npc; }).join(', ') + '), its doors (' + Object.keys(dG.marks.doors).join(', ') + ')',
+        dG.w === 36 && dG.h === 24 && !!BG.map.top && tG.x === 34 && tG.y === 21 && BG.roam.fw[0] === -1 && ['sabeth', 'ottilie', 'wynn', 'dace'].every(function (id) { return fG.some(function (u) { return u.npc === id; }); }) && Object.keys(dG.marks.doors).length === 2);
+      okM('its ground: the guano apron below the mouth (' + dG.look[6].substr(13, 10) + '), the gravel (' + dG.look[11].substr(24, 6) + ')', /U{4}/.test(dG.look[6]) && /Y{6}/.test(dG.look[11]));
+      besideM(BG, [13, 9]); var sbG = useM(BG, [13, 9], [0]);
+      okM('Sabeth Pollard (S.sabeth): the cull, TAKE THE WORK, the one law (cullHired ' + BG.roam.flags.cullHired + ')', !!sbG.sc && BG.roam.flags.cullHired === 1 && sbG.seen.indexOf(textM('g1.sabethLaw')) >= 0);
+      besideM(BG, [25, 10]); var dcG = useM(BG, [25, 10], [0]);
+      okM('Corwen Dace (S.dace): TAKE HIM -- his join, and he waits by the beam till the dark galleries and the house\'s guests come (daceWith ' + (BG.roam.flags.daceWith || 0) + ')', !!dcG.sc && !BG.roam.flags.daceWith && dcG.seen.indexOf(MM.LINES.daceWaits) >= 0 && BG.roam.flags.daceLight === 1);
+      walkM(BG, [10, 9]); var wsG = useM(BG, [10, 8]);
+      okM('the weigh-shed\'s door: its words ("' + wsG.seen.slice(0, 60) + '")', /weighs its own sacks/.test(wsG.seen));
+      walkM(BG, [17, 3]); var B2 = topM(), d2 = D.roam.def;
+      okM('in at the mouth with nothing always lit: the working gallery (galleries_g2, ' + d2.w + ' x ' + d2.h + '), on ' + B2.roam.token.x + ',' + B2.roam.token.y + ', its scrapers (' + B2.units.filter(function (u) { return u.npc; }).map(function (u) { return u.npc; }).join(', ') + ')', d2.key === 'galleries_g2' && B2.roam.token.x === 17 && B2.roam.token.y === 26 && B2.units.filter(function (u) { return u.npc; }).length === 4);
+      walkM(B2, [35, 16]);
+      okM('the way east to the dens (35,16): held, said, the party kept', D.top() === B2 && D.roam.def.key === 'galleries_g2' && (B2.cards || []).some(function (c) { return c.lines.some(function (l) { return /dark floors/.test(l); }); }));
+      walkM(B2, [17, 27]); var BG2 = topM();
+      okM('back out to the mouth, below the way in (' + BG2.roam.token.x + ',' + BG2.roam.token.y + ')', D.roam.def.key === 'galleries' && BG2.roam.token.x === 17 && BG2.roam.token.y === 4);
+      // a light always lit: Ottilie at the mouth (S.roostDoor) -- TURN BACK, then LEAVE IT WITH HER, and back out it is the pack's again
+      (BG2.inv = BG2.inv || []).push({ id: 'sunshaftstaff', n: 1 }); walkM(BG2, [17, 6]); walkM.seen = ''; walkM(BG2, [17, 3], [1]); var tb = walkM.seen;
+      okM('the Sunshaft Staff in the pack: Ottilie stops the party at the mouth (' + tb.slice(0, 70) + '...), TURN BACK keeps them out (' + D.roam.def.key + ', on ' + BG2.roam.token.x + ',' + BG2.roam.token.y + ')', D.top() === BG2 && D.roam.def.key === 'galleries' && BG2.roam.token.y > 3 && tb.indexOf('> TURN BACK') >= 0 && CM.count(CM.state(BG2), 'sunshaftstaff') === 1);
+      walkM(BG2, [17, 6]); walkM.seen = ''; walkM(BG2, [17, 3], [0]); var lw = walkM.seen, B22 = topM();
+      okM('LEAVE IT WITH HER: in, the staff kept at the mouth (ottilieHolds ' + JSON.stringify(B22.roam.flags.ottilieHolds) + ')', D.roam.def.key === 'galleries_g2' && lw.indexOf('> LEAVE IT WITH HER') >= 0 && (B22.roam.flags.ottilieHolds || []).indexOf('sunshaftstaff') >= 0 && !CM.count(CM.state(B22), 'sunshaftstaff'));
+      walkM(B22, [17, 27]); var BG3 = topM();
+      okM('and back out it is in the pack again, said as the mouth comes up', D.roam.def.key === 'galleries' && CM.count(CM.state(BG3), 'sunshaftstaff') === 1 && !BG3.roam.flags.ottilieHolds && (BG3.cards || []).some(function (c) { return c.lines.some(function (l) { return /Sunshaft/.test(l); }); }));
+      // THE HOUSE: Silverton's feed track to the camp and SAVE there; the stalls no SAVE; CONTINUE in the camp; the Galleries' mouth off THE WORLD's site, a SAVE, out by
+      // its far edge onto THE WORLD, and CONTINUE there
+      HM.begin(HM.fresh(), 0); var BHS = topM();
+      walkM(BHS, [MM.FEED[0] - 1, MM.FEED[1]]); walkM(BHS, MM.FEED); var BHW = topM();
+      okM('in the house: Silverton\'s feed track to the camp (' + D.roam.def.key + ', ' + (D.roam.house() ? 'the save\'s party' : 'NOT the house') + ', THE WORLD under it: ' + D.scenes.map(function (s) { return s.kind || 'roam'; }).join(' > ') + ')', D.roam.def.key === 'warrens' && D.roam.house() && D.scenes[0].kind === 'world' && BHW.roam.members.length === 4);
+      okM('SAVE at the mouth camp (R.canSave ' + D.roam.canSave(BHW) + ')', D.roam.canSave(BHW));
+      BHW.roam.keys.push('save'); driveM(BHW.co, function () { return D.top() instanceof HM.Slots; }, 400); var slM = D.top(); if (slM instanceof HM.Slots) { slM.pick(0); for (var kM = 0; kM < 80 && D.top() === slM; kM++) slM.update(); }
+      var sv1 = memM['deep16.game.1'] ? JSON.parse(memM['deep16.game.1']) : null;
+      okM('slot 1 kept at the camp\'s door (' + (sv1 && JSON.stringify(sv1.at)) + ')', !!sv1 && sv1.at.town === 'warrens' && sv1.at.sq[0] === BHW.roam.token.x && sv1.at.sq[1] === BHW.roam.token.y);
+      walkM(BHW, [15, 5]); walkM(BHW, [15, 4]); var BHB = topM();
+      okM('down to the stalls in the house (' + D.roam.def.key + ', the save\'s party ' + D.roam.house() + '): no SAVE below the mouth (R.canSave ' + D.roam.canSave(BHB) + ')', D.roam.def.key === 'warrens_b' && D.roam.house() && !D.roam.canSave(BHB));
+      HM.begin(HM.read(1), 1); var BHC = topM();
+      okM('CONTINUE slot 1: the camp, on the saved square (' + BHC.roam.token.x + ',' + BHC.roam.token.y + ')', D.roam.def.key === 'warrens' && BHC.roam.token.x === sv1.at.sq[0] && BHC.roam.token.y === sv1.at.sq[1]);
+      var siteG = HM.siteOf('mouth'); while (D.scenes.length > 1) D.pop(); WM.scene.enterDoor(siteG, 'east'); var BHG = topM();
+      okM('THE WORLD\'s site "' + (siteG && siteG.name) + '": its door opens the Galleries\' mouth (' + D.roam.def.key + ', by the east gate, ' + BHG.roam.token.x + ',' + BHG.roam.token.y + ')', !!siteG && D.roam.def.key === 'galleries' && D.roam.house() && BHG.roam.token.x === 34 && BHG.roam.token.y === 21);
+      BHG.roam.keys.push('save'); driveM(BHG.co, function () { return D.top() instanceof HM.Slots; }, 400); var slG = D.top(); if (slG instanceof HM.Slots) { slG.pick(1); for (var kG = 0; kG < 80 && D.top() === slG; kG++) slG.update(); }
+      var sv2 = memM['deep16.game.2'] ? JSON.parse(memM['deep16.game.2']) : null;
+      okM('SAVE at the Galleries\' mouth: slot 2 kept by its door (' + (sv2 && JSON.stringify(sv2.at)) + ')', !!sv2 && sv2.at.town === 'mouth');
+      walkM(BHG, [35, 21]); var wsM = D.top();
+      okM('out by the far square east: THE WORLD again (' + (wsM && wsM.kind) + '), the save not in a town (' + JSON.stringify(HM.cur.at) + ')', wsM && wsM.kind === 'world' && !HM.cur.at.town);
+      HM.begin(HM.read(2), 2); topM();
+      okM('CONTINUE slot 2: the Galleries\' mouth (' + D.roam.def.key + ')', D.roam.def.key === 'galleries' && D.roam.house());
+      HM.playing = false; HM.cur = null;
+      // the first game's floors untouched, and its own Silverton and the Wet still theirs
+      okM('the first game\'s nine floors (warrens_a-d, galleries_g1-g4, gulch) byte for byte as they were', print8() === before8);
+      var BWet = testM('?roam=wet');
+      okM('the Wet\'s door still the Wet (' + D.roam.def.name + '), Silverton\'s still Silverton', D.roam.def.wet === true && D.roam.def.rows[0].length === 30 && (testM('?roam=silverton'), D.roam.def.key === 'silverton'));
+    } catch (eM) { repM.errors.push(String(eM && eM.stack || eM).slice(0, 900)); }
+    MM.d20 = d20M; D.store.get = stGM; D.store.set = stSM;
+    var preM = document.createElement('pre'); preM.id = 'out'; preM.textContent = 'BENCH16 ' + JSON.stringify(repM);
+    document.body.appendChild(preM);
+    return;
+  }
   // the town, 10-20 (mode=town1020; js/town.js, deep16/?roam=silverton -- the Silverton roam seat, Griz: "yes v6"): Silverton at true scale from the city map v6, walked as one
   // token as the Wet is; its floor painted in pages as the camera comes (js/iso.js, a map's `page`); in at the west gate facing in, by day; the gates, the shops' doors (the five of
   // the new buy/sell screens among them) and the people where v6 and the wiki put them; a word with the gate hand; walked from the west gate to the Hexagon's front doors, a

@@ -63,6 +63,7 @@
     var ch = s.ch, v = NZ.h2(s.x * 3 + 1, s.y * 5 + 2, 71) * 4 | 0, kind = ch;
     if (ch === '.' && !m.def.room) kind = NZ.fbm(s.x * 0.13, s.y * 0.13, 77) > 0.52 ? 'g' : '.'; // (the ground: grass in patches over the dirt -- not in a room)
     if (s.block || !s.open) kind = '.';
+    var lk = m.def.look && m.def.look[s.y] ? m.def.look[s.y].charAt(s.x) : ' '; if (lk && lk !== ' ') kind = lk; // (a floor's own ground under its squares: the Warrens' and the Galleries' -- js/mines.js, TV.LOOKS)
     var n = m.at(s.x, s.y - 1), shade = n && (!n.open || n.block) ? 1 : 0; // (a building or a rock to the north: its shadow on the top of this one)
     return kind + v + (shade ? 's' : '');
   }
@@ -79,6 +80,7 @@
       else if (kind === ',') col = fine > 0.99 ? stone[5] : NZ.rampPick(leather, 0.45 + n * 0.3, x, y);
       else if (kind === '~' || kind === 'D') { var gl = NZ.h2(x >> 1, y, seed + 8) > 0.985; col = gl ? silver[5] : NZ.rampPick(blue, (kind === 'D' ? 0.15 : 0.4) + n * 0.25, x, y); if (!gl && NZ.vnoise(u * 2, w * 6, seed + 9) > 0.8) col = violet[2]; }
       else if (kind === 'r') { var st = NZ.vnoise(u * 5, w * 5, seed + 5); col = st > 0.62 ? NZ.rampPick(stone, 0.35 + (st - 0.62) * 1.2, x, y) : NZ.rampPick(leather, 0.25 + n * 0.3, x, y); }
+      else if (TV.LOOKS[kind]) col = TV.LOOKS[kind](u, w, n, fine, x, y, seed);
       else col = fine > 0.985 ? stone[5] : NZ.rampPick(leather, 0.22 + n * 0.4, x, y); // (beaten earth)
       if (key.indexOf('s') > 0 && w < 0.22) col = [col[0] * 0.62 | 0, col[1] * 0.6 | 0, col[2] * 0.66 | 0]; // (the shadow of what stands to the north)
       var o = (y * T + x) * 4; px[o] = col[0]; px[o + 1] = col[1]; px[o + 2] = col[2]; px[o + 3] = 255;
@@ -86,6 +88,27 @@
     cx.putImageData(img, 0, 0);
     return (m.top.tiles[key] = cv);
   }
+  // the mines' grounds (10-21 night, the top levels seat: the Warrens' and the Galleries' worked floors on these tiles -- js/mines.js): a floor's `look` names one a
+  // square, by a letter that is no square's own. C the cave's floor, U guano's crust, Q the deep guano, R / H the cart rails north-south / east-west, Y gravel, M the
+  // fungus beds, X a mine's dark mouth, Z a ladder laid on the guano. Each (u, w: the tile's fraction across and down; n its noise; fine a per-pixel hash) a colour
+  TV.LOOKS = {
+    C: function (u, w, n, fine, x, y) { var st = R('stone'); return fine > 0.975 ? st[5] : NZ.rampPick(st, 0.16 + n * 0.28, x, y); },
+    U: function (u, w, n, fine, x, y, seed) { var bn = R('bone'), st = R('stone'), cr = NZ.vnoise(u * 7, w * 7, seed + 11); return fine > 0.95 ? bn[fine > 0.985 ? 1 : 0] : fine < 0.03 ? st[2] : cr > 0.68 ? NZ.rampPick(bn, 0.1 + n * 0.3, x, y) : NZ.rampPick(st, 0.58 + n * 0.32, x, y); }, // (a dusty brown crust, chalk-white where it has dried)
+    Q: function (u, w, n, fine, x, y, seed) { var st = R('stone'), sv = R('silver'); return fine > 0.97 ? sv[4] : NZ.rampPick(st, 0.2 + n * 0.25 + (NZ.vnoise(u * 4, w * 4, seed + 12) > 0.65 ? 0.08 : 0), x, y); },
+    R: function (u, w, n, fine, x, y) { return TV.rails(u, w, n, fine, x, y, false); },
+    H: function (u, w, n, fine, x, y) { return TV.rails(w, u, n, fine, x, y, true); },
+    Y: function (u, w, n, fine, x, y) { var st = R('stone'); return fine > 0.9 ? st[6] : fine < 0.08 ? st[1] : NZ.rampPick(st, 0.32 + n * 0.25, x, y); },
+    M: function (u, w, n, fine, x, y, seed) { var mo = R('moss'), vi = R('violet'), bn = R('bone'), cap = NZ.h2(x >> 2, y >> 2, seed + 13); return cap > 0.93 ? (fine > 0.5 ? bn[0] : vi[4]) : cap > 0.86 ? vi[3] : NZ.rampPick(mo, 0.25 + n * 0.5, x, y); },
+    X: function (u, w, n, fine, x, y) { var st = R('stone'); return NZ.rampPick(st, 0.02 + w * 0.14 + n * 0.05, x, y); },
+    Z: function (u, w, n, fine, x, y) { var le = R('leather'), side = Math.abs(u - 0.28) < 0.05 || Math.abs(u - 0.72) < 0.05, rung = u > 0.28 && u < 0.72 && (Math.floor(w * 48) % 12) < 3; return side || rung ? NZ.rampPick(le, side ? 0.7 : 0.5, x, y) : TV.LOOKS.U(u, w, n, fine, x, y, 0); }
+  };
+  // a cart track: two iron rails along it (a, the across fraction; b, the along), sleepers under them every quarter, the cave's floor between
+  TV.rails = function (a, b, n, fine, x, y) {
+    var sv = R('silver'), le = R('leather'), rail = Math.abs(a - 0.3) < 0.035 || Math.abs(a - 0.7) < 0.035, tie = (Math.floor(b * 48) % 12) < 3 && a > 0.2 && a < 0.8;
+    if (rail) return Math.abs(a - 0.3) < 0.015 || Math.abs(a - 0.7) < 0.015 ? sv[5] : sv[3];
+    if (tie) return NZ.rampPick(le, 0.35 + n * 0.2, x, y);
+    return TV.LOOKS.C(a, b, n, fine, x, y);
+  };
   // a page of the floor: each open square's tile at its height, a raised one's south face down to the square below it
   function paintPage(m, p) {
     var T = TV.TS, PG = TV.PAGE, top = m.top, cv = document.createElement('canvas'); cv.width = PG; cv.height = PG;
