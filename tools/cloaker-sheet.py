@@ -15,17 +15,36 @@ The anims are made from the poses: the idle is the flap slowed and cycled 1-2-3-
 winds up (wings up), dives (5-7) and recovers, lunging the way it faces; the death (played as `hurt`, as the gnolls' and chuul's are)
 is a shake, the wings folding, and a fall into a heap of cloak. The face close-up (js/ui.js scene `face`) draws the idle's first
 frame blown up, so it is a pose with the face clear.
+ART-46 (10-21): the art desk drew the views the sheet lacked (RULED 10-14, five drawn views: S, SE, E, NE, N; SE mirrors to SW, E to W,
+NE to NW), eight pages in deep16/_src/cloaker/ART-46/ (sorted out of Fresh by its ART-46-sort.py; the desk's papers in
+_src/art-desk/received-2026-10-21-ART-46-cloaker-FINAL-SHEETS/), each cut by its own row and number labels (tools/sheetrows.py):
+    H1P1 SE Idle 8, Glide 8, Attack 8      H1P2 SE Fall 8, Fly 8
+    H2P1 NE the rows of H1P1               H2P2 NE the rows of H1P2
+    H3P1 S  the rows of H1P1               H3P2 S  the rows of H1P2
+    H5P1 N  the rows of H1P1               H5P2 N  the rows of H1P2
+Idle plays as `idle`, Glide as `walk`, Attack as `attack`, Fall as `hurt`, Fly as `fly`. S, SE, NE and N draw every row from their own
+view (SW and NW mirrored); E and W keep the side poses, and every facing keeps the roost, the reveal and the moan (the Magic Missile egg's
+close-up plays them; the desk was not asked for them). Scale: the wings-out-flat pose (each page's first Idle or Fly frame) is a flat
+cloak, and the floor's projection draws a flat thing the same area at any heading, so each page's is met by area to the side's (K46).
+Each row hovers where the side does: its first frame's middle on the side's flat pose's middle, every other frame where the page drew it
+against its number; the attack lunges as the side's does, and the fall drops to the floor by the side's own curve.
+    python tools/cloaker-sheet.py check      dev/visions/cloaker/: each ART-46 page's cut (a colour a frame), every facing of every row
 """
-import os, sys, json
+import os, sys, json, subprocess
 import numpy as np
-from PIL import Image
+from PIL import Image, ImageDraw
 from scipy import ndimage
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 import importlib.util
 spec = importlib.util.spec_from_file_location('pix', os.path.join(ROOT, 'tools', 'pixelate.py'))
 pix = importlib.util.module_from_spec(spec); spec.loader.exec_module(pix)
-SRC = os.path.join(ROOT, 'deep16', '_src')
+spec = importlib.util.spec_from_file_location('sheetrows', os.path.join(ROOT, 'tools', 'sheetrows.py'))
+SR = importlib.util.module_from_spec(spec); spec.loader.exec_module(SR)
+SRC = os.path.join(ROOT, 'deep16', '_src')                 # the sheets live in the main checkout (_src is not in git): a worktree reads them there
+if not os.path.exists(os.path.join(SRC, 'cloaker_grok_3.jpg')):
+    _common = subprocess.run(['git', '-C', ROOT, 'rev-parse', '--git-common-dir'], capture_output=True, text=True).stdout.strip()
+    SRC = os.path.join(os.path.dirname(os.path.abspath(os.path.join(ROOT, _common))), 'deep16', '_src')
 CW, CH = 292, 392                       # one panel
 FW, FH, AX, AY = 128, 128, 64, 112      # a frame; the foot (the shadow) at AX, AY; it hovers above it
 NAME = 'cloaker_p2'
@@ -169,7 +188,155 @@ def ghost_cut(s1, n=8):
     return Image.fromarray(np.dstack([cc.astype(np.uint8), (am * 255).astype(np.uint8)]), 'RGBA')
 
 
-def build():
+# ART-46 (10-21): the art desk's eight pages. Per page: text boxes (each row's name, at its left on HEAD 1 and 2, above its first frame
+# on HEAD 3 and 5, with room for the drop shadow under a 'y' -- Fly's 'y' rode into Fly 1 on a tight box; each number strip the width of the
+# page), and the rows -- (the page's row name, band x0 y0 x1 y1, its number strip).
+ART46 = os.path.join(SRC, 'cloaker', 'ART-46')
+N8 = [str(i + 1) for i in range(8)]
+PAGES46 = {
+    'H1P1': dict(file='ART-46_HEAD-1_PAGE-1.png', W=2158, text=[(0, 125, 140, 182), (0, 345, 140, 398), (0, 560, 140, 612)],
+                 rows=[('idle', (0, 25, 2158, 225), (202, 222)), ('glide', (0, 240, 2158, 443), (420, 441)), ('attack', (0, 460, 2158, 677), (650, 675))]),
+    'H1P2': dict(file='ART-46_HEAD-1_PAGE-2.png', W=2157, text=[(0, 205, 125, 262), (0, 515, 120, 580)],
+                 rows=[('fall', (0, 50, 2157, 329), (303, 327)), ('fly', (0, 375, 2157, 653), (627, 651))]),
+    'H2P1': dict(file='ART-46_HEAD-2_PAGE-1.png', W=1774, text=[(0, 140, 112, 202), (0, 395, 110, 450), (0, 680, 120, 735)],
+                 rows=[('idle', (0, 45, 1774, 265), (241, 263)), ('glide', (0, 300, 1774, 547), (519, 545)), ('attack', (0, 575, 1774, 817), (793, 815))]),
+    'H2P2': dict(file='ART-46_HEAD-2_PAGE-2.png', W=1983, text=[(0, 212, 112, 275), (0, 540, 115, 605)],
+                 rows=[('fall', (0, 115, 1983, 370), (345, 368)), ('fly', (0, 420, 1983, 711), (684, 709))]),
+    'H3P1': dict(file='ART-46_HEAD-3_PAGE-1.png', W=1881, text=[(0, 72, 72, 108), (0, 330, 92, 368), (0, 596, 130, 632)],
+                 rows=[('idle', (0, 30, 1881, 258), (236, 255)), ('glide', (0, 290, 1881, 518), (496, 516)), ('attack', (0, 550, 1881, 788), (765, 786))]),
+    'H3P2': dict(file='ART-46_HEAD-3_PAGE-2.png', W=2079, text=[(0, 120, 98, 158), (0, 430, 95, 480)],
+                 rows=[('fall', (0, 95, 2079, 375), (348, 373)), ('fly', (0, 415, 2079, 683), (658, 681))]),
+    'H5P1': dict(file='ART-46_HEAD-5_PAGE-1.png', W=1942, text=[(0, 16, 98, 52), (0, 276, 108, 312), (0, 528, 138, 564)],
+                 rows=[('idle', (0, 15, 1942, 252), (233, 250)), ('glide', (0, 270, 1942, 495), (476, 493)), ('attack', (0, 520, 1942, 766), (745, 764))]),
+    'H5P2': dict(file='ART-46_HEAD-5_PAGE-2.png', W=2048, text=[(0, 33, 118, 78), (0, 400, 102, 458)],
+                 rows=[('fall', (0, 85, 2048, 354), (330, 352)), ('fly', (0, 415, 2048, 701), (677, 699))]),
+}
+for _s in PAGES46.values():
+    _s['text'] = _s['text'] + [(0, ly0 - 2, _s['W'], ly1 + 3) for _, _, (ly0, ly1) in _s['rows']]
+    _s['rows'] = [(r, b, l, N8) for r, b, l in _s['rows']]
+ENGINE46 = {'idle': 'idle', 'glide': 'walk', 'attack': 'attack', 'fall': 'hurt', 'fly': 'fly'}
+HEADS46 = {'SE': ('H1P1', 'H1P2'), 'NE': ('H2P1', 'H2P2'), 'S': ('H3P1', 'H3P2'), 'N': ('H5P1', 'H5P2')}
+FLAT_A = 2902                       # the side's wings-out-flat pose (p1, the idle's first frame) at game size, outline and all, in px
+FLAT_Y = -53                        # its centroid's height against the foot (AY; the side's idle 1 as built: 53.0 px up): every row's
+                                    # first frame hovers there, its centroid on the foot's column (a centroid, not a box: a tail that
+                                    # stands up behind the S view's head would sink a box's middle)
+# K46, page px a game px: each page's flat frame (Idle 1 on a page 1, Fly 1 on a page 2) met by area to FLAT_A -- `measure` solves them.
+# The eyes, where a view shows them, say a tenth to a seventh smaller (SE 2.47, S 2.72 by the red's area against the side pose's), and the
+# page 2s are drawn 12-15 per cent bigger than their page 1s -- the art desk's own note: "rendered sprite sizes vary".
+K46 = {'H1P1': 2.26, 'H1P2': 2.59, 'H2P1': 2.40, 'H2P2': 2.69, 'H3P1': 2.38, 'H3P2': 2.70, 'H5P1': 2.28, 'H5P2': 2.62}
+DIR46 = {'S': (0, 1), 'SE': (1, 1), 'NE': (1, -1), 'N': (0, -1)}    # the lunge, as the side rows' (the attack's DIR): down 0.6 a unit, up 0.2
+LUNGE = [0, -3, -5, 6, 11, 11, 5, 1]                                # the side attack's own offsets, frame by frame
+DROP = [0, 2, 6, 18, 32, 40, 44, 46]                                # the side death's own drop, frame by frame: the fall lands by its curve
+
+
+def fit46(img, scale):
+    """one scale: premultiplied box down, a 1-px margin for the outline, snapped to the palette."""
+    w, h = img.size
+    img = img.convert('RGBa').resize((max(1, round(w / scale)), max(1, round(h / scale))), Image.BOX).convert('RGBA')
+    pad = Image.new('RGBA', (img.width + 2, img.height + 2), (0, 0, 0, 0))
+    pad.paste(img, (1, 1))
+    return pix.pixelate(pad, 1, do_lift=False)
+
+
+CLIPPED = []
+
+
+def centroid(a):
+    ys, xs = np.where(a[..., 3] > 0)
+    return xs.mean(), ys.mean()
+
+
+def put46(a, cx, cy, tag):
+    """a fitted cut onto a frame, its centroid at (AX + cx, AY + cy)"""
+    out = np.zeros((FH, FW, 4), dtype=np.uint8)
+    rr = np.where(a[..., 3].any(axis=1))[0]; cc = np.where(a[..., 3].any(axis=0))[0]
+    gx, gy = centroid(a)
+    ox, oy = int(round(AX + cx - gx)), int(round(AY + cy - gy))
+    ox = min(max(ox, -cc[0]), FW - 1 - cc[-1]) if cc[-1] - cc[0] < FW else ox   # (a lunge that would cut a wingtip stops at the frame's edge)
+    if ox + cc[0] < 0 or ox + cc[-1] >= FW or oy + rr[0] < 0 or oy + rr[-1] >= FH:
+        CLIPPED.append((tag, ox + cc[0], ox + cc[-1], oy + rr[0], oy + rr[-1]))
+    h, w = a.shape[:2]
+    y0, x0 = max(0, oy), max(0, ox)
+    y1, x1 = min(FH, oy + h), min(FW, ox + w)
+    out[y0:y1, x0:x1] = a[y0 - oy:y1 - oy, x0 - ox:x1 - ox]
+    return out
+
+
+def cuts46(L, check=False):
+    s = PAGES46[L]
+    over = [] if check else None
+    path = os.path.join(ART46, s['file'])
+    cuts = SR.cut_sheet(path, s, overlay=over, tag=L)
+    if check:
+        d = os.path.join(ROOT, 'dev', 'visions', 'cloaker'); os.makedirs(d, exist_ok=True)
+        over[0].save(os.path.join(d, 'cut-%s.png' % L))
+    a = np.asarray(Image.open(path).convert('RGB')).astype(np.int32)
+    lx = {row: SR.label_xs(a, b[0], b[2], l[0], l[1]) for row, b, l, _ in s['rows']}   # each number's x: a frame's place in its cell
+    return cuts, lx
+
+
+def heads46(check=False):
+    """ART-46's pages -> {view: {sheet row: [frame, ...]}}: each row's first frame hovering at FLAT_Y, the others where the page drew them
+    against their numbers, the attack lunging and the fall dropping as the side's do."""
+    views = {v: {} for v in HEADS46}
+    for v, pages in HEADS46.items():
+        dxv, dyv = DIR46[v]
+        for L in pages:
+            k = K46[L]
+            cuts, lx = cuts46(L, check)
+            for row, frs in cuts.items():
+                mid = [(b[0] + centroid(np.asarray(im))[0] - lx[row][i], b[1] + centroid(np.asarray(im))[1]) for i, (_, im, b) in enumerate(frs)]   # (page px; x against its number)
+                fits = [fit46(im, k) for _, im, _ in frs]
+                pos = [((mx - mid[0][0]) / k, FLAT_Y + (my - mid[0][1]) / k) for mx, my in mid]   # (on the foot's column)
+                if row == 'attack':
+                    pos = [(x + dxv * o, y + dyv * o * (0.6 if dyv > 0 else 0.2)) for (x, y), o in zip(pos, LUNGE)]
+                if row == 'fall':                         # the drop the page draws, and the rest to the floor by the side death's curve
+                    low8 = pos[-1][1] + np.where(fits[-1][..., 3].any(axis=1))[0][-1] - centroid(fits[-1])[1]   # frame 8's lowest row against the foot, before the drop
+                    pos = [(x, y + (0 - low8) * d / DROP[-1]) for (x, y), d in zip(pos, DROP)]
+                views[v][ENGINE46[row]] = [put46(a, x, y, '%s-%s%d' % (L, row, i + 1)) for i, (a, (x, y)) in enumerate(zip(fits, pos))]
+    return views
+
+
+def measure46():
+    """K46 solved: each page's flat frame's area at game size (outline and all) against FLAT_A"""
+    for L, s in PAGES46.items():
+        cuts, _ = cuts46(L)
+        im = (cuts.get('idle') or cuts['fly'])[0][1]
+        lo, hi = 1.5, 4.0
+        for _ in range(30):
+            k = (lo + hi) / 2
+            a = (fit46(im, k)[..., 3] > 0).sum()
+            lo, hi = (k, hi) if a > FLAT_A else (lo, k)
+        print('  %s flat frame: k %.3f (area %d)' % (L, k, (fit46(im, k)[..., 3] > 0).sum()))
+
+
+def mirror46(seq):
+    """west of the drawn east: a flip, then a pixel back so the anchor column stays put (FW is even)"""
+    return [np.roll(fr[:, ::-1], 1, axis=1).copy() for fr in seq]
+
+
+FN = ['S', 'SW', 'W', 'NW', 'N', 'NE', 'E', 'SE']
+
+
+def facings(frames):
+    """dev/visions/cloaker/facings-<row>.png: every facing of every row, S SW W NW N NE E SE top to bottom, 2x on a grey floor (the
+    foot's line drawn)"""
+    d = os.path.join(ROOT, 'dev', 'visions', 'cloaker'); os.makedirs(d, exist_ok=True)
+    for name in ('idle', 'walk', 'attack', 'hurt', 'fly'):
+        per = frames[name]
+        n = len(per[0])
+        cv = Image.new('RGBA', (FW * n + 4 * (n + 1), FH * 8), (70, 74, 70, 255))
+        dr = ImageDraw.Draw(cv)
+        for f in range(8):
+            dr.line([(0, f * FH + AY + 1), (cv.width, f * FH + AY + 1)], fill=(110, 114, 110, 255))
+            dr.text((2, f * FH + 2), FN[f], fill=(255, 255, 255, 255))
+            for i, fr in enumerate(per[f]):
+                cv.alpha_composite(Image.fromarray(fr, 'RGBA'), (4 + i * (FW + 4), f * FH))
+        cv.resize((cv.width * 2, cv.height * 2), Image.NEAREST).save(os.path.join(d, 'facings-%s.png' % name))
+    print('  wrote', d)
+
+
+def build(check=False):
     cuts = cuts_all()
     # the roost (Griz, 09-29: "have him be in that form when we show the magic missiles hitting"): the cloak hung on the roof, from the
     # first sheet's first two panels, a two-frame sway; the easter egg's hit scene shows it (js/magic.js), the same from every side
@@ -209,13 +376,28 @@ def build():
         frames['hurt'].append(death if not MIR[f] else [frame(cuts['p3'], mirror=True, dx=2)] + [frame(cuts[k], mirror=True, **kw) for k, kw in
                              [('p3', dict(dx=-2, dy=2)), ('p5', dict(dy=6)), ('p6', dict(sy=0.85, dy=18)), ('p6', dict(sx=1.05, sy=0.6, dy=32)),
                               ('p6', dict(sx=1.12, sy=0.42, dy=40)), ('p6', dict(sx=1.18, sy=0.33, dy=44)), ('p6', dict(sx=1.2, sy=0.28, dy=46))]])
+    # ART-46 (10-21): S, SE (SW mirrored), NE (NW mirrored) and N drawn from their own views in every row the engine plays; E and W keep
+    # the side poses (RULED 10-14, five drawn views); the roost, the reveal and the moan stay as they were in every facing
+    hd = heads46(check)
+    for f, rows in ((0, hd['S']), (1, {r: mirror46(fs) for r, fs in hd['SE'].items()}), (3, {r: mirror46(fs) for r, fs in hd['NE'].items()}),
+                    (4, hd['N']), (5, hd['NE']), (7, hd['SE'])):
+        for r, fs in rows.items():
+            frames[r][f] = fs
+    for r in ('idle', 'walk', 'attack', 'hurt', 'fly'):
+        assert len({len(x) for x in frames[r]}) == 1, r     # a row plays one frame count in every facing
+    for t in CLIPPED:
+        print('  CLIPPED', t)
+    if check:
+        facings(frames)
+        return
     top = pix.top_of(frames['idle'][0] + frames['idle'][6], AY)
     pix.write_sheet(NAME, frames, FW, FH, AX, AY, top)
     mp = os.path.join(ROOT, 'deep16', 'art', NAME + '.json')
     meta = json.load(open(mp))
     for a, fps in (('idle', 5), ('walk', 9), ('attack', 12), ('hurt', 8), ('fly', 9), ('roost', 2), ('reveal', 6), ('moan', 8)):
         meta['anims'][a]['fps'] = fps
-    meta['source'] = 'generated by Griz (2026-09-29, the third cloaker sheet), keyed, posed and snapped by tools/cloaker-sheet.py'
+    meta['source'] = ('generated by Griz (2026-09-29, the third cloaker sheet: the side poses, E and W, and the roost, reveal and moan) and the art '
+                      'desk (2026-10-17, ART-46: S, SE, NE and N in every row), keyed, posed, cut and snapped by tools/cloaker-sheet.py')
     json.dump(meta, open(mp, 'w'), indent=1)
 
 
@@ -224,4 +406,7 @@ if __name__ == '__main__':
         preview(cuts_all())
         print('preview written')
         sys.exit(0)
-    build()
+    if 'measure' in sys.argv:                            # K46 solved, page by page
+        measure46()
+        sys.exit(0)
+    build(check='check' in sys.argv)
