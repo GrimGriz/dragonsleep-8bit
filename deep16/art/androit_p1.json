@@ -1,0 +1,25 @@
+{
+ "image": "art/androit_p1.png",
+ "fw": 31,
+ "fh": 53,
+ "ax": 16,
+ "ay": 51,
+ "top": 49,
+ "anims": {
+  "idle": {
+   "y": 0,
+   "fw": 31,
+   "fh": 53,
+   "ax": 16,
+   "ay": 51,
+   "frames": 14,
+   "fps": 4,
+   "drawn": [
+    0
+   ],
+   "under": "crewman_p1"
+  }
+ },
+ "source": "deep16/_src/androit/ART-80/ART-80_HEAD-2_PAGE-1.png (the art desk's south idle, 10-21), cut by tools/keeper-town-sheet.py",
+ "door": "keeper:androit"
+}

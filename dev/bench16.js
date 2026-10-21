@@ -2376,7 +2376,23 @@
       var oldW = HW.fresh(); delete oldW.renown; delete oldW.lead; delete oldW.hired; var filled = HW.fill(JSON.parse(JSON.stringify(oldW)));
       okW('a save made before them gets them on load (H.fill): renown ' + filled.renown + ', lead ' + filled.lead + ', hired ' + filled.hired.length, filled.renown === 0 && filled.lead === 'barley' && filled.hired.length === 4);
       // in at his door: his room, the counter's screen at E
+      // the keepers' own figures (10-21, Griz: "Got south idles for several existing shopkeeps in Fresh"): S only over the stand-in, the heroes' height
+      var figW = Object.keys(CW.FIG).map(function (k) { return [k, D.SHEETS[CW.FIG[k]]]; }), heroTop = D.SHEETS.barley_p2.top;
+      okW('every keeper\'s figure cut (tools/keeper-town-sheet.py): ' + figW.map(function (f) { return f[0] + (f[1] ? ' ' + f[1].top : ' NONE'); }).join(', ') + ' above the foot (Barley ' + heroTop + ', Aurdin ' + D.SHEETS.aurdin_p2.top + '); the idle drawn S only, the stand-in under it',
+        figW.every(function (f) { var s = f[1], a = s && s.anims.idle; return a && a.drawn.join() === '0' && a.under === 'crewman_p1' && !!D.SHEETS[a.under] && s.top >= 45 && s.top <= 54; }));
+      var atDoorW = CW.AT_DOOR.map(function (k) { var u = B.units.filter(function (x) { return x.npc === k.id; })[0], dq = D.roam.def.marks.doors[k.door]; return { k: k, u: u, d: u && dq ? Math.max(Math.abs(u.x - dq[0]), Math.abs(u.y - dq[1])) : 99 }; });
+      okW('at their doors on the street, in their own figures facing south: ' + atDoorW.map(function (a) { return a.k.id + (a.u ? ' ' + a.u.sheet + ' at ' + a.u.x + ',' + a.u.y + ' (' + a.d + ' from the door)' : ' MISSING'); }).join('; '),
+        atDoorW.every(function (a) { return a.u && a.u.sheet === CW.FIG[a.k.id] && a.d === 1 && a.u.facing === 0 && a.u.holdFacing && !!trigW('talk:' + a.k.id); }));
+      var mW = atDoorW[0].u, tkM = [R0.token.x, R0.token.y]; R0.token.x = mW.x + 1; R0.token.y = mW.y + 1; var wouldM = D.spr.facingFor(R0.token.x - mW.x, R0.token.y - mW.y);
+      driveW(TW.fire(B, trigW('talk:marin')), null, 200); R0.token.x = tkM[0]; R0.token.y = tkM[1];
+      okW('Marin Voss spoken to from a diagonal: her word on a card ("' + String(((B.cards || [])[B.cards.length - 1] || {}).lines || '').slice(0, 50) + '..."), and she still faces south (she would have turned to facing ' + wouldM + ')', mW.facing === 0 && wouldM !== 0);
       var inWin = inW(B, 'warp:winters'); okW('in at Winters\' door (warp:winters): his room, ' + D.roam.def.name, inWin && D.roam.def.keeper.id === 'winters');
+      var kuW = B.units.filter(function (u) { return u.npc === 'winters'; })[0];
+      okW('behind his counter in his own figure (' + (kuW && kuW.sheet) + '), facing south', kuW && kuW.sheet === 'winters_p1' && kuW.facing === 0 && kuW.holdFacing);
+      var tk0 = [R0.token.x, R0.token.y]; R0.token.x = kuW.x + 1; R0.token.y = kuW.y; var wouldW = D.spr.facingFor(R0.token.x - kuW.x, R0.token.y - kuW.y); // (behind the counter beside him: the desk's "Other side of the counter.")
+      driveW(TW.fire(B, trigW('talk:winters')), null, 400);
+      okW('spoken to from behind the counter beside him (he would have turned to facing ' + wouldW + '), he still faces south (facing ' + kuW.facing + ')', kuW.facing === 0 && wouldW !== 0);
+      R0.token.x = tk0[0]; R0.token.y = tk0[1];
       var g1 = fireW(B, 'talk:winters'), sc = D.top();
       okW('E at his counter: the counter\'s screen, his portrait (' + sc.sheet + '), opaque over the floor', upW() && sc.sheet === 'pt_winters' && sc.opaque && sc.o.place === window.DS.DATA.shops.winters.name);
       var first = []; while (sc.wait && sc.wait.say) { first = first.concat(sc.wait.say); goW(sc, 'next'); }
@@ -2395,8 +2411,7 @@
       goW(sc, 'opt', 'TAKE IT'); var wA = readW(sc);
       okW('TAKE IT: the inventory to carry, the Estate Papers in the pack, the JOURNAL pinned', R0.flags.wErrA === 1 && CW.count(st, 'estatepapers') === 1 && R0.flags.pin === 'errands' && wA.join(' ').indexOf('JOURNAL') >= 0);
       driveW(g1, null, 200);
-      okW('a job in hand ends the talk: the screen gone, the floor again', !upW() && sc.done && D.top() === B);
-      var jn = CW.journal(B), qE = jn.quests[0];
+      okW('a job in hand ends the talk: the screen gone, the floor again', !upW() && sc.done && D.top() === B);      var jn = CW.journal(B), qE = jn.quests[0];
       okW('the house\'s JOURNAL: ' + qE.name + ', open, pinned, NEXT: ' + qE.where, jn.quests.length === 1 && qE.id === 'errands' && !qE.done && jn.pin === 'errands' && /Androit/.test(qE.where));
       D.ui.openMenu(B); var hostW = B.menu && B.menu.m && B.menu.m.host, infW = hostW && hostW.info();
       okW('the floor\'s M menu has the JOURNAL and the purse (' + (infW && infW.silver) + ' sp, renown ' + (infW && infW.renown) + ', pinned ' + (infW && infW.pin) + ')', !!hostW && typeof hostW.journal === 'function' && hostW.journal().quests.length === 1 && infW.silver === R0.silver && infW.pin === qE.name);
@@ -2467,12 +2482,16 @@
       var cvW = document.createElement('canvas'); cvW.width = D.W; cvW.height = D.H; var ctxW = cvW.getContext('2d'), errD = null;
       try { var scD = new CW.Counter(B, { id: 'winters', name: 'Ambrose Winters', script: function (s) { return CW.winters(s); } }); scD.draw(ctxW); CW.paintPin(ctxW, B); } catch (eD) { errD = String(eD).slice(0, 120); }
       okW('the screen draws' + (errD ? ' THREW ' + errD : ''), !errD);
+      var errK = null; try { var ksW = CW.keepersShow(); ksW.update(); ksW.draw(ctxW); } catch (eK) { errK = String(eK).slice(0, 120); }
+      okW('the keepers\' show (deep16/?keepers, the eyes row\'s door) draws: ' + (ksW && ksW.rows ? ksW.rows.map(function (r) { return r.length; }).join(' + ') + ' figures' : '') + (errK ? ' THREW ' + errK : ''), !errK && ksW.rows[0].length + ksW.rows[1].length === Object.keys(CW.FIG).length + 2);
       var LYW = CW.LAYOUT, bW = scD.buttons();
       okW('the portrait on the right, the words and every button to its left (his "can we put them on the right side of the screen instead?": they face screen left) -- the portrait at x ' + LYW.portrait[0] + ', the words ' + LYW.words[0] + ' to ' + (LYW.words[0] + LYW.words[2]),
         LYW.portrait[0] + LYW.portrait[2] <= D.W && LYW.portrait[0] > LYW.words[0] + LYW.words[2] && bW.every(function (q) { return q.x + q.w <= LYW.portrait[0]; }));
       // the other keepers: their portraits and their words; Kessler's and Calla Voss's counters open by their first-game shops (10-21, Griz: "Yes, open Kessler's and Calla
       // Voss's counters with their first-game shops") -- one line each in the one vendor table (his "art for all the vendors like this should come in at some point")
-      outW(B); inW(B, 'shop:kessler'); var gK = fireW(B, 'talk:kessler'), scK = D.top(), wK = readW(scK);
+      outW(B); inW(B, 'shop:kessler'); var kuK = B.units.filter(function (u) { return u.npc === 'kessler'; })[0];
+      okW('Kessler behind his counter in his own figure (' + (kuK && kuK.sheet) + ')', kuK && kuK.sheet === 'kessler_p1' && kuK.facing === 0);
+      var gK = fireW(B, 'talk:kessler'), scK = D.top(), wK = readW(scK);
       okW('Kessler at his counter on his portrait (' + scK.sheet + '): his first-game greeting ("' + String(wK[0]).slice(0, 40) + '...") and THE SHELVES / LEAVE', scK.sheet === 'pt_kessler' && wK[0] === window.DS.DATA.shops.kessler.greeting && scK.wait && scK.wait.ask && scK.wait.opts.join() === 'THE SHELVES,LEAVE' && scK.o.place === window.DS.DATA.shops.kessler.name);
       goW(scK, 'opt', 'THE SHELVES');
       var kRows = scK.shop ? scK.rows().map(function (r) { return r.id; }) : [], kPot = scK.shop ? scK.price('potion') : 0, kpv = CW.count(st, 'potion'), ks0 = R0.silver;

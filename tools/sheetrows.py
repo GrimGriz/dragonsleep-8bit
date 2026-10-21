@@ -35,6 +35,9 @@ STANDS = {
     # the rat swarm (10-20, the ART-74 seat, tools/ratswarm-sheet.py): a carpet with no feet -- its `ay` is its square's middle and its front edge 11 to
     # 16 px below it (the stills' mean width 64 with the ring, the square's floor diamond), so tall is not above + 1 here; each rat about 12 px long
     'ratswarm_p1':       {'S': (27, 40, 61), 'SW': (23, 35, 65), 'W': (24, 38, 61), 'NW': (26, 42, 60), 'N': (26, 43, 55), 'NE': (26, 42, 60), 'E': (24, 38, 61), 'SE': (23, 35, 65)},
+    # Silverton's keepers on the town floor (10-21, the Winters seat, tools/keeper-town-sheet.py): drawn facing south only, cut to the heroes' height
+    'winters_p1': {'S': (49, 50, 21)}, 'casper_p1': {'S': (49, 50, 23)}, 'androit_p1': {'S': (49, 50, 26)}, 'hessle_p1': {'S': (49, 50, 22)}, 'aldric_p1': {'S': (49, 50, 28)},
+    'kessler_p1': {'S': (50, 51, 27)}, 'calla_p1': {'S': (49, 50, 21)}, 'barber_p1': {'S': (49, 50, 26)}, 'marin_p1': {'S': (49, 50, 20)},
 }
 
 

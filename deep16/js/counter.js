@@ -29,6 +29,17 @@
     barber: { sheet: 'pt_barber' },
     sylvia: { sheet: 'pt_sylvia', own: true } // (Griz's own: her portrait at her booth, her particulars on his word -- js/town.js T.TRADE `own`)
   };
+  // the keepers' own figures on the town floor (10-21, Griz: "Got south idles for several existing shopkeeps in Fresh"): the art desk's south idles, cut by
+  // tools/keeper-town-sheet.py, drawn facing south only -- every other facing falls back on the stand-in (the sheet's `under`), so a keeper in one stays facing
+  // south (C.dress; js/town.js T.fire turns no one who holds it). Behind their counters (js/town.js T.goIn), and beside their doors where they have no room
+  C.FIG = { winters: 'winters_p1', casper: 'casper_p1', androit: 'androit_p1', hessle: 'hessle_p1', aldric: 'aldric_p1', kessler: 'kessler_p1', calla: 'calla_p1', barber: 'barber_p1', marin: 'marin_p1' };
+  C.AT_DOOR = [{ id: 'marin', door: 'keeper:marin' }, { id: 'barber', door: 'keeper:barber' }];
+  C.dress = function (u, id) {
+    var f = C.FIG[id]; if (!u || !f || !D.SHEETS || !D.SHEETS[f]) return false;
+    u.sheet = f; u.holdFacing = true; u.facing = 0; // (0: south, on the town's north-up floor and on the diamonds alike)
+    if (D.spr.prefetch) D.spr.prefetch([f]);
+    return true;
+  };
   C.PT = {}; C.OWN = {}; C.SHOPS = {};
   Object.keys(C.VENDORS).forEach(function (id) { var v = C.VENDORS[id]; if (v.sheet) C.PT[id] = v.sheet; if (v.own) C.OWN[id] = 1; if (v.shop) C.SHOPS[id] = v.shop; });
   C.takes = function (id) { var v = C.VENDORS[id]; return !!v && (!!v.script || !!v.shop || !!(v.sheet && D.SHEETS && D.SHEETS[v.sheet])); };
@@ -474,4 +485,26 @@
     ctx.fillStyle = D.WIN8.gold; ctx.beginPath(); ctx.moveTo(-5, -8); ctx.lineTo(5, -8); ctx.lineTo(0, 1); ctx.closePath(); ctx.fill();
     ctx.restore();
   };
+
+  // ---------------------------------------------------------------- the keepers standing, shown (deep16/?keepers -- the eyes row's door, 10-21): every keeper's own
+  // figure in its south idle, named, at twice the game's size, with Barley and Aurdin among them for the size; X or a click back to the title
+  function KeepersShow() { this.kind = 'keepersshow'; this.opaque = true; this.t = 0; var ks = Object.keys(C.FIG).map(function (k) { return C.FIG[k]; }); this.rows = [['barley_p2'].concat(ks.slice(0, 5)), ['aurdin_p2'].concat(ks.slice(5))]; if (D.spr.prefetch) D.spr.prefetch(['barley_p2', 'aurdin_p2'].concat(ks, ['crewman_p1'])); }
+  KeepersShow.prototype.update = function () { this.t++; if (I.pressed('b') || I.mouse.rclick) { D.scenes.length = 0; if (D.house && D.house.Title) D.push(new D.house.Title()); } };
+  KeepersShow.prototype.draw = function (ctx) {
+    var self = this, k = 2, names = {}; Object.keys(C.FIG).forEach(function (id) { names[C.FIG[id]] = (D.town.KEEPER['shop:' + id] || D.town.KEEPER['warp:' + id] || D.town.KEEPER['keeper:' + id] || (((DS.DATA || {}).npcs || {})[id] || {}).name || id); });
+    names.barley_p2 = 'Barley (hero)'; names.aurdin_p2 = 'Aurdin (hero)';
+    ctx.fillStyle = '#0e1634'; ctx.fillRect(0, 0, D.W, D.H);
+    D.text(ctx, '{y}SILVERTON\'S KEEPERS{/}, their town figures, facing south (x2; two heroes for size)', 8, 6, D.WIN8.text);
+    this.rows.forEach(function (row, r) {
+      var base = 118 + r * 122, gap = (D.W - 16) / row.length;
+      ctx.fillStyle = '#2a2236'; ctx.fillRect(4, base + 1, D.W - 8, 2);
+      row.forEach(function (name, i) {
+        var x = 8 + gap * (i + 0.5);
+        ctx.save(); ctx.translate(Math.round(x), base); ctx.scale(k, k); D.spr.draw(ctx, name, 'idle', 0, self.t, 0, 0, {}); ctx.restore();
+        D.text(ctx, names[name] || name, Math.round(x), base + 6, name.indexOf('_p2') > 0 ? '#9c9cb4' : D.WIN8.gold, 'center');
+      });
+    });
+    D.hint(ctx, 'X back to the title', D.W / 2, D.H - 12, '#9a96a8', 'center');
+  };
+  C.keepersShow = function () { return new KeepersShow(); };
 })();

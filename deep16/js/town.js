@@ -229,6 +229,16 @@
       var s = to(sq); people.push({ id: n.id, at: s, kind: T.KIND[n.look] || 'bandit', face: T.FACE[n.dir] || [0, 1], look: n.look, hire: n.hire || null });
       trig.push({ id: 'talk:' + n.id, on: 'use', rect: s.concat([1, 1]), town: 'talk', npc: n.id });
     });
+    // the keepers with no room who now have a figure of their own stand beside their door on the street, facing south (js/counter.js C.AT_DOOR -- 10-21, Griz:
+    // "Got south idles for several existing shopkeeps in Fresh"): Marin Voss, Venn the barber
+    ((D.counter && D.counter.AT_DOOR) || []).forEach(function (k) {
+      var dq = M.doors[k.door]; if (!dq || !inW(dq)) return;
+      var sq = [[1, 0], [-1, 0], [1, 1], [-1, 1], [0, 1]].map(function (o) { return [dq[0] + o[0], dq[1] + o[1]]; }).filter(function (q) { var r = L.rows[q[1]]; return r && '.,='.indexOf(r.charAt(q[0])) >= 0 && !used[q[0] + ',' + q[1]] && inW(q); })[0];
+      if (!sq) return;
+      used[sq[0] + ',' + sq[1]] = 1;
+      var s = to(sq); people.push({ id: k.id, at: s, kind: 'crewman', face: [0, 1], look: null, hire: null });
+      trig.push({ id: 'talk:' + k.id, on: 'use', rect: s.concat([1, 1]), town: 'talk', npc: k.id });
+    });
     var mk = function (p) { return Array.isArray(p) && Array.isArray(p[0]) ? p.map(to) : to(p); }, marks = {};
     Object.keys(M).forEach(function (k) { var v = M[k]; marks[k] = v && !Array.isArray(v) ? Object.keys(v).reduce(function (a, k2) { a[k2] = to(v[k2]); return a; }, {}) : mk(v); });
     var id = function (x, y) { return [x, y]; }, V = D.TOWN_V6, ft = function (p) { return [T.X0 + (p[0] + ox + 0.5) * L.F, T.Y0 + (p[1] + oy + 0.5) * L.F]; };
@@ -303,6 +313,7 @@
       var u = B.makeFoe({ id: 'town' + i, kind: kind, at: p.at.slice(), side: 'party', ally: true });
       u.name = n8.name || p.id; u.look = true; u.npc = p.id; u.attacks = {}; u.multi = 1; u.hp = u.maxhp = 4; u.lvl = 1;
       u.facing = D.spr.facingFor(p.face[0], p.face[1]); u.anim = 'idle'; u.animT = 0;
+      if (D.counter) D.counter.dress(u, p.id); // (a keeper with a figure of their own wears it: js/counter.js C.FIG)
       B.units.push(u); if (u.sheet && kinds.indexOf(u.sheet) < 0) kinds.push(u.sheet);
     });
     if (D.spr.prefetch) D.spr.prefetch(kinds);
@@ -413,6 +424,7 @@
     t.x = def.entry[0][0]; t.y = def.entry[0][1]; t.tween = null; R0.fw = def.face.slice(); t.facing = D.spr.facingFor(R0.fw[0], R0.fw[1]); t.anim = 'idle'; t.animT = B.t; R0.path = null;
     var kp = def.keeper, u = B.makeFoe({ id: 'keeper', kind: T.KIND[(N && N.look) || ''] || 'crewman', at: kp.at.slice(), side: 'party', ally: true });
     u.name = kp.name; u.look = true; u.npc = kp.id; u.attacks = {}; u.multi = 1; u.hp = u.maxhp = 4; u.lvl = 1; u.facing = D.spr.facingFor(0, 1); u.anim = 'idle'; u.animT = 0;
+    if (D.counter) D.counter.dress(u, kp.id); // (the keeper behind the counter in their own figure, facing south: js/counter.js C.FIG)
     B.units.push(u); if (D.spr.prefetch && u.sheet) D.spr.prefetch([u.sheet]);
     R.famPlace(B, true); B.cache = null; B.exits = []; D.grid.setup(B.map, B.units); B.focus(t);
     B.card(D.roam.wrap(['{y}' + def.name + '{/}' + (def.name !== kp.name ? ' -- ' + kp.name + ' at the counter' : '') + '.', '{g}E at the counter: a word. The door behind you: back to the street.' + (kp.own && !(D.counter && D.counter.SHOPS[kp.id]) ?' (Griz\'s own: the room waits on his word.)' : '') + '{/}']), 360);
@@ -433,13 +445,13 @@
       // interact, with 'other side of the counter' response if they interact in the current method"): from behind the counter the keeper sends you round; from the customer's
       // side anywhere, the party walks to the spot across from the keeper and the word is had there, facing the counter
       var ac = R.def.across, tk = R0.token;
-      if (tk.y < ac[1]) { var ku = B.units.filter(function (x) { return x.npc === trig.npc; })[0]; if (ku) ku.facing = D.spr.facingFor(tk.x - ku.x, tk.y - ku.y); B.card(R.wrap(['{y}' + (ku ? ku.name : trig.npc) + '{/}', '"Other side of the counter."']), 240); D.sfx('popup'); yield 20; return; }
+      if (tk.y < ac[1]) { var ku = B.units.filter(function (x) { return x.npc === trig.npc; })[0]; if (ku && !ku.holdFacing) ku.facing = D.spr.facingFor(tk.x - ku.x, tk.y - ku.y); B.card(R.wrap(['{y}' + (ku ? ku.name : trig.npc) + '{/}', '"Other side of the counter."']), 240); D.sfx('popup'); yield 20; return; }
       if ((tk.x !== ac[0] || tk.y !== ac[1]) && !(yield* R.walkTo(B, ac))) return;
       R0.fw = [0, -1]; tk.facing = D.spr.facingFor(0, -1);
     }
     if (trig.town === 'talk') {
       var u = B.units.filter(function (x) { return x.npc === trig.npc; })[0], t = R0.token;
-      if (u) u.facing = D.spr.facingFor(t.x - u.x, t.y - u.y);
+      if (u && !u.holdFacing) u.facing = D.spr.facingFor(t.x - u.x, t.y - u.y); // (a keeper drawn facing south only stays facing south: js/counter.js C.dress)
       if (D.counter && D.counter.takes(trig.npc)) { yield* D.counter.talk(B, trig.npc, trig.door); return; } // (a keeper with a portrait, and Winters: the counter's screen -- js/counter.js, 10-21)
       var kp = R.def.room && R.def.keeper && R.def.keeper.id === trig.npc ? R.def.keeper : null, said = trig.npc === 'guard1' ? [T.LINE.guard1] : D.counter ? D.counter.words(B, trig.npc) : T.say(B, trig.npc); // (the word with its doing: an errand's seal or signature -- js/counter.js C.words)
       if (kp) said = (/^\{g\}\(Their scene/.test(said[0]) ? [] : said).concat(['{g}' + (kp.own ? 'Griz\'s own: the counter waits on his word.' : 'The counter -- buying and selling -- is to come.') + '{/}']); // (a room's keeper: the 8-bit's word where it has one, and the counter's screen to come)

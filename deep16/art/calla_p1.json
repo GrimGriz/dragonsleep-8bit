@@ -1,0 +1,25 @@
+{
+ "image": "art/calla_p1.png",
+ "fw": 26,
+ "fh": 53,
+ "ax": 14,
+ "ay": 51,
+ "top": 49,
+ "anims": {
+  "idle": {
+   "y": 0,
+   "fw": 26,
+   "fh": 53,
+   "ax": 14,
+   "ay": 51,
+   "frames": 14,
+   "fps": 4,
+   "drawn": [
+    0
+   ],
+   "under": "crewman_p1"
+  }
+ },
+ "source": "deep16/_src/calla/ART-84/ART-84_HEAD-2_PAGE-1.png (the art desk's south idle, 10-21), cut by tools/keeper-town-sheet.py",
+ "door": "shop:calla"
+}
