@@ -106,12 +106,20 @@
     if (this.scroll > 0) text(ctx, '▲', x + w - 5, y - 10, C.pale);
     if (this.scroll + this.vis < this.items.length) text(ctx, '▼', x + w - 5, y + this.vis * rowH - 4, C.pale);
   };
-  // tabs: glyphs or words along a row; left/right steps them
-  function tabStep(k, n, i) { if (n < 2) return i; if (k.repeat('right')) { sfx('cursor'); return (i + 1) % n; } if (k.repeat('left')) { sfx('cursor'); return (i - 1 + n) % n; } return i; }
-  function drawTabs(ctx, tabs, i, x, y, w) {
+  // tabs: glyphs or words along a row; left/right steps them -- and, on a host with a mouse (the grid's), a click on one (10-21, the menus lane, Griz: "menu - no
+  // reason mouse-click on the tabs shouldn't work"): drawTabs puts each tab in HITS, Menu.update leaves the one clicked here (TABCLICK), and the page's own
+  // tabStep takes it as it takes the keys' steps, so each page does what it does on a step. `to`: the step each drawn tab stands for (STATUS draws its groups
+  // and steps its pages). The 8-bit's host has no mouse: nothing changes there
+  var TABCLICK = null;
+  function tabStep(k, n, i) {
+    if (TABCLICK != null) { var j = TABCLICK; TABCLICK = null; if (j >= 0 && j < n && j !== i) { sfx('cursor'); return j; } return i; }
+    if (n < 2) return i; if (k.repeat('right')) { sfx('cursor'); return (i + 1) % n; } if (k.repeat('left')) { sfx('cursor'); return (i - 1 + n) % n; } return i;
+  }
+  function drawTabs(ctx, tabs, i, x, y, w, to) {
     var each = Math.floor(w / tabs.length);
     tabs.forEach(function (t, k) {
       var tx = x + k * each, on = k === i;
+      HITS.push({ tab: to ? to[k] : k, owner: OWNER, x: tx, y: y - 2, w: each - 2, h: 14 });
       if (on) { ctx.fillStyle = '#2c3070'; ctx.fillRect(tx, y - 2, each - 2, 14); }
       var gx = tx + 2;
       if (t.glyph) { ctx.drawImage(glyph(t.glyph), gx, y); gx += 12; }
@@ -141,15 +149,16 @@
     this.host.run(kind, args || {}, function (r) { self.busy = false; self.pages.forEach(function (p) { if (p.refresh) p.refresh(); }); if (then) then(r); });
   };
   Menu.prototype.update = function (k) {
-    this.t++;
+    this.t++; TABCLICK = null; // (a tab clicked is taken this update or not at all)
     if (this.busy || this.closed) return;
     // the mouse (a host that has one: k.mouse = { x, y, moved, click, rclick } in the menu's own 256x240): pointing at a row of the page on top moves the
     // cursor there, a click is E on it, a right click is X
     if (k.mouse && !this.toast) {
       var ms = k.mouse, top = this.root.mode === 'pick' ? null : this.top(), hit = null;
       if (top) for (var hi = this.hits.length - 1; hi >= 0; hi--) { var hh = this.hits[hi]; if (hh.owner === top && ms.x >= hh.x && ms.x < hh.x + hh.w && ms.y >= hh.y && ms.y < hh.y + hh.h) { hit = hh; break; } }
-      if (hit && (ms.moved || ms.click) && hit.list.i !== hit.k) { hit.list.i = hit.k; hit.list.fix(); }
-      if (ms.click && hit) k = MN.keyAlso(k, 'a');
+      if (hit && hit.tab != null) { if (ms.click) TABCLICK = hit.tab; } // (a tab: the page's tabStep takes it -- above)
+      else if (hit && (ms.moved || ms.click) && hit.list.i !== hit.k) { hit.list.i = hit.k; hit.list.fix(); }
+      if (ms.click && hit && hit.tab == null) k = MN.keyAlso(k, 'a');
       else if (ms.rclick) k = MN.keyAlso(k, 'b');
     }
     // (a click or a right click lets a message go, as E or X does -- 10-14, Griz: "right-click as esc after confirmation click text shows (also on misclick for spell choice)")
@@ -929,7 +938,7 @@
     // the tabs: the page's group lit; a spell page names its level
     var groups = [], gi = 0;
     this.pages.forEach(function (pg, i) { if (!groups.length || groups[groups.length - 1].g !== pg.g) groups.push({ g: pg.g, first: i }); if (i === self.p) gi = groups.length - 1; });
-    drawTabs(ctx, groups.map(function (g) { return { label: g.g }; }), gi, 8, 100, 240);
+    drawTabs(ctx, groups.map(function (g) { return { label: g.g }; }), gi, 8, 100, 240, groups.map(function (g) { return g.first; })); // (a click on a group: its first page)
     var pg = this.pages[this.p];
     if (pg.k === 'spells') { text(ctx, lvWord(pg.lv), 12, 114, C.pale); if (pg.lv && h.slotsMax) right(ctx, 'slots ' + (h.slots[pg.lv - 1] || 0) + '/' + (h.slotsMax[pg.lv - 1] || 0), 244, 114, C.magic); }
     var ls = this.lines(), y0 = pg.k === 'spells' ? 126 : 116;

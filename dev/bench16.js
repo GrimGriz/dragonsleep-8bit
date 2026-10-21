@@ -5495,6 +5495,20 @@
       if (D.scenes[D.scenes.length - 1] === Bd) D.scenes.pop();
       var avgq = lumq.length ? lumq.reduce(function (p, q) { return p + q; }, 0) / lumq.length : -1;
       okPq('the dark Lymen\'s darkvision reaches, on The North Cut: ' + lumq.length + ' squares at ' + avgq.toFixed(1) + ' (as dim light: 20 or more; at the night\'s dark they were 14)', lumq.length > 10 && avgq >= 20);
+      // (4) tabs by the mouse on the grid's host (the menus lane, Griz: "menu - no reason mouse-click on the tabs shouldn't work"): a click on a tab steps the page to it, as the keys do,
+      // and presses nothing else; the keys still step them. The level-up page here: its tabs a row along the top
+      var RT = window.DS.R, hT = RT.makeHero('aurdin', 4); RT.settlePicks(hT, null);
+      var recT = { lvl: 4, asks: [{ kind: 'asi', need: 2 }, { kind: 'spells', need: 2 }] }; hT.picks = [recT]; RT.pendSync(hT);
+      var pmT = window.DS.MENU.openPicks({ party: function () { return [hT]; }, close: function () { } }, [hT], { built: D.climb.built }, function () { }), pgT = pmT && pmT.top();
+      var cvT = document.createElement('canvas'); cvT.width = 256; cvT.height = 240; var cxT = cvT.getContext('2d');
+      var KT = function (b, ms) { return { pressed: function (x) { return x === b; }, repeat: function (x) { return x === b; }, mouse: ms || null }; };
+      pmT.draw(cxT); var tabsT = (pmT.hits || []).filter(function (hh) { return hh.tab != null && hh.owner === pgT; }), t0 = pgT ? pgT.tab : -1;
+      var tT = tabsT.filter(function (hh) { return hh.tab !== t0; })[0], marks0 = JSON.stringify(pgT && pgT.groups.map(function (g) { return g.marks; }));
+      if (tT) pmT.update(KT(null, { x: tT.x + 3, y: tT.y + 4, moved: false, click: true, rclick: false, wheel: 0 }));
+      var t1 = pgT && pgT.tab, marks1 = JSON.stringify(pgT && pgT.groups.map(function (g) { return g.marks; }));
+      pmT.draw(cxT); pmT.update(KT('right')); var t2 = pgT && pgT.tab;
+      okPq('the level-up page\'s ' + tabsT.length + ' tabs answer the mouse: a click on tab ' + (tT && tT.tab) + ' steps to it (' + t0 + ' to ' + t1 + '), marks nothing (' + (marks0 === marks1) + '); the keys still step (to ' + t2 + ')',
+        tabsT.length >= 2 && !!tT && t1 === tT.tab && t1 !== t0 && marks0 === marks1 && t2 !== t1);
     } catch (ePq) { repPq.errors.push(String(ePq && ePq.stack || ePq).slice(0, 800)); }
     var prePq = document.createElement('pre'); prePq.id = 'out'; prePq.textContent = 'BENCH16 ' + JSON.stringify(repPq);
     document.body.appendChild(prePq);

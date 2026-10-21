@@ -17,6 +17,9 @@
   var DS = window.DS = window.DS || {};
   var G1 = 'Eyes: first', G2 = 'Eyes: built this week', G3 = 'Eyes: built before, never seen';
   DS.EYES = {
+    'eyes-menutabs-1021': { pri: 2, group: G2, title: 'The menu’s tabs by the mouse, on the grid (10-21)', pt: 'the menus, 10-20 1 (js/menu.js drawTabs, tabStep, Menu.update) · eyes',
+      url: 'deep16/?npc=goblin,goblin&vs=aurdin:5,barley:5,lymen:5&lvl=5&fresh=21',
+      look: 'Your note: “menu - no reason mouse-click on the tabs shouldn’t work”. In the fight, M (or the ring’s MENU): click the tabs along the top of ITEMS, GEAR, the spell levels under MAGIC, the level-up page, and STATUS’s groups (a click on a group opens its first page). Each click steps to that tab as the arrow keys do, and picks nothing on the list under it. The arrows still step them. (The first game’s menu has no mouse yet: unchanged.)' },
     'eyes-sorcerer-1021': { pri: 2, group: G2, title: 'The sorcerer: QUICKENED with only the bonus action left, and the wheel’s levels by her slots (10-21)', pt: 'the Pocket DM and the races, the 10-20 notes 2 (deep16/js/magic.js M.list; deep16/js/classes.js NPC.sheet) · eyes',
       url: 'deep16/?npc=goblin,goblin,goblin&vs=sorcerer:3,fighter:3&lvl=3&fresh=21',
       look: 'Your notes: “MetaMagic on Sorc didn’t allow spell cast when action was gone and bonus action remained” and “The Sorc was showing spell slots for like 3rd and 4th level (0 slots, but on the wheel)”. On the sorcerer’s turn, DASH (or anything that takes the action), then QUICKENED, then SPELLS: her leveled spells are there under the bonus action, and one casts (2 sorcery points, the slot). After a leveled spell cast with the action, QUICKENED casts nothing more that turn (the SRD’s bonus-action law). In the Pocket DM, your Dracona’s wheel shows only the levels she has slots for: the 3rd and 4th-level spells in her word wait there till her level brings the slots (2 at 1st, 4 at 3rd, 6 at 5th, the SRD’s count).' },
