@@ -61,6 +61,7 @@
   else if (/[?&]ladder\b/.test(q)) D.push(new D.Ladder({ party: /[?&]party=ours\b/.test(q) ? 'ours' : null, play: /[?&]play\b/.test(q) })); // (&party=ours: the tester ladder; &play: you run our four, recorded)
   else if (/[?&]gate\b/.test(q)) D.push(new D.Gate());
   else if (/[?&]view\b/.test(q)) D.push(new D.MapView('cavern'));
+  else if (D.house && D.house.Title) D.push(new D.house.Title()); // THE SECOND GAME's title (10-21, the house lane: his "the rest sound good" on the desk's lean 5): NEW GAME, CONTINUE, OPTIONS, the Pocket DM, the first game (js/house.js)
   else D.push(new D.Battle());
   } catch (e) {
     if (D.embed.on) throw e;

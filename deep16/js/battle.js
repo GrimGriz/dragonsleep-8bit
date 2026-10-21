@@ -32,13 +32,13 @@
     // Otherwise walk in from the save (the door's snapshot or the newest slot), or as the fixture: the entry card offers both
     // from the camp (js/camp.js): the four as the morning left them; copied, so RESTART starts from the camp again
     // inside the 8-bit game (js/embed.js, this.o.embed): the party it handed over, as it stood when the fight began
-    if (this.o.data) this.from = { from: this.o.embed ? 'the 8-bit game' : 'the camp', when: null, data: JSON.parse(JSON.stringify(this.o.data)) };
+    if (this.o.data) this.from = { from: this.o.embed ? 'the 8-bit game' : this.o.house ? 'the road' : 'the camp', when: null, data: JSON.parse(JSON.stringify(this.o.data)) }; // (the road: THE SECOND GAME's house, js/house.js)
     else if (this.o.ladder || this.o.npc) this.from = { from: this.o.pocket ? 'the Pocket DM' : this.o.npc ? 'the class floor' : 'the ladder', when: null, data: D.save.fixture(Math.min(9, this.o.level || F.level)) }; // (the four stop at 9: a druid 12 on the class floor meets them at 9) (o.level: a fight's door or bench at another level -- ?fight=edifice&lvl=7, 10-05)
     else this.from = this.o.fixture ? { from: 'the fixture', when: null, data: D.save.fixture() } : D.save.load();
     // a story fight's own guests, made as the 8-bit game makes them (js/deep.js EV.guestSheet), where the party walking in brings none of that name: the Edifice's Pyro (10-05, Griz:
     // "Have pyro come out followed by the party"). Inside the 8-bit game the scene sends its own
     if (F.guests && !this.o.embed && this.from && this.from.data) { var gd = this.from.data; gd.guests = (gd.guests || []).slice(); F.guests.forEach(function (gid) { if (!gd.guests.some(function (g) { return (g.key || g.id) === gid; })) gd.guests.push(D.save.guest(gid)); }); }
-    this.canSwap = !this.o.ladder && !this.o.npc && !this.o.embed && (this.o.fixture || this.from.from !== 'the fixture');
+    this.canSwap = !this.o.ladder && !this.o.npc && !this.o.embed && !this.o.house && (this.o.fixture || this.from.from !== 'the fixture'); // (the house's party is the save's: no swap for the fixture)
     var party = D.save.units(this.from.data, this.o.climb ? Object.assign({}, F, { looks: null }) : F); // the climb: Barley is Barley
     // the class floor (js/classes.js): a band of class NPCs instead of the four when asked (class against class), and on the bench
     // everyone on the party's side is run by the class tactics too (js/tactics.js); so in a watch (09-28h: ?npc=...&watch, and the
@@ -124,7 +124,7 @@
     // the pack: DEEP16 lends every ladder and climb party a crossbow and bolts (save.js armoury); inside the 8-bit game the party
     // carries only what it brought (Griz, 09-27: "unless the players bring crossbows/range, they shouldn't have one")
     var pack = JSON.parse(JSON.stringify(this.o.pack || this.from.data.inv || [])).map(function (s) { return Array.isArray(s) ? { id: s[0], n: s[1] } : s; }); // (o.pack: the Pocket DM's party pack, 10-17)
-    this.inv = this.o.embed ? pack : D.save.armoury(pack);
+    this.inv = this.o.embed || this.o.house ? pack : D.save.armoury(pack); // (the second game's house: its party carries what it owns, no loan -- js/house.js)
     (this.o.itemsTest || []).forEach(function (s) { var st = self.inv.filter(function (x) { return x.id === s[0]; })[0]; if (st) st.n = s[1]; else self.inv.push({ id: s[0], n: s[1] }); }); // (the class floor's &items=: js/classes.js npcFight)
     // a class hero's second weapon in the pack too, so a player's hand has what the class turn swaps to -- the rogue's shortbow (10-01c, the rogue runner: "a human
     // rogue needs a ranged weapon: EQUIP offers only the Lt. Crossbow"; Griz: "yes")

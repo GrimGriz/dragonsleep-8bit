@@ -1136,6 +1136,7 @@
         B.swapGear(gu, o);
       },
       exits: function () {
+        if (D.house && D.house.playing && (B.o.house || B.roam)) return [{ label: 'TO THE TITLE', value: 'title' }]; // (THE SECOND GAME's house: no way round a fight; the title, what is unsaved left -- js/house.js)
         if (story) return []; // (inside the 8-bit game the fight is the story's: no way round it)
         return [{ label: 'RESTART THE FIGHT', value: 'restart' }].concat(B.o.onDone ? [] : [{ label: 'THE LADDER', value: 'ladder' }], [{ label: UI.backLabel(), value: 'out' }]);
       },
@@ -1147,6 +1148,7 @@
         if (kind === 'kofi') { try { window.open('https://ko-fi.com/grimgriz', '_blank'); } catch (e) { } }
         if (kind === 'exit') {
           B.menu = null;
+          if (a.to === 'title' && D.house) { D.house.toTitle(); done(); return; }
           if (a.to === 'restart') { D.pop(); D.push(new D.Battle(B.o)); }
           if (a.to === 'ladder') location.search = '?ladder';
           if (a.to === 'out') { if (B.o.onDone) { D.pop(); B.o.onDone(null); } else location.href = '../'; } // the ladder, or back to the 8-bit game: nothing is written

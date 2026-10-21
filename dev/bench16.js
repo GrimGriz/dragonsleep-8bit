@@ -1996,6 +1996,78 @@
     document.body.appendChild(preT);
     return;
   }
+  // THE SECOND GAME's house, 10-21 (mode=house1021; js/house.js, ..\handoff-2026-10-21-the-second-games-house.md -- RULED 10-21, Griz: "2 sounds problematic - the rest
+  // sound good"): one save of its own in three slots, nothing of the Pocket DM's touched; NEW GAME walks the four in at Silverton's west gate; SAVE in town keeps the
+  // square and the wounds; out by a road to THE WORLD with the same party; a road fight takes it and gives it back, XP banked and no level till the long rest; camp is
+  // the long rest and the level comes; CONTINUE stands them where they saved; a loss is the title; the bare ?world door keeps its own key
+  if (get('mode', '') === 'house1021') {
+    var repH = { checks: [], errors: [] }, memH = {}, stGH = D.store.get, stSH = D.store.set, HH = D.house, WH = D.world, RH = window.DS.R;
+    function okH(what, v) { repH.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function driveH(g, until, cap) { var v, k = 0, st; while (k++ < (cap || 4000)) { if (until && until()) return true; st = g.next(v); v = undefined; if (st.done) return !!(until && until()); } return !!(until && until()); }
+    function enterTop() { var s = D.top(); if (s && s.baking) { s.baking = false; s.enter(); } return s; }
+    D.store.get = function (k) { return memH[k] ? JSON.parse(memH[k]) : null; }; D.store.set = function (k, v) { memH[k] = JSON.stringify(v); return true; };
+    window.DS.autoPicks = true; // (the bench's: the build's picks at once, as js/climb.js D.levelPicks does with no one to ask)
+    try {
+      D.seed = +get('seed', 1021);
+      // the title: CONTINUE dim with no save; the rows
+      var tH = new HH.Title(); D.scenes.length = 0; D.push(tH);
+      okH('the title at deep16/ (js/main.js): NEW GAME, CONTINUE (' + (tH.any ? 'a save' : 'no save: dim') + '), OPTIONS, THE POCKET DM, THE FIRST GAME', !tH.any && typeof tH.draw === 'function');
+      // NEW GAME: the four as the first game starts them, at Silverton's west gate
+      var f0 = HH.fresh(), d8 = window.DS.DATA.heroes;
+      okH('NEW GAME\'s four as the first game starts them: ' + f0.party.map(function (h) { return h.name + ' L' + h.lvl; }).join(', ') + '; ' + f0.silver + ' sp; the pack ' + f0.inv.map(function (s) { return s.id + ' x' + s.n; }).join(', '),
+        f0.party.length === 4 && f0.party.every(function (h) { return h.lvl === d8[h.id].level; }) && f0.silver === (window.DS.DATA.config.startSilver || 10) && !f0.inv.some(function (s) { return s.id === 'lightcrossbow'; }));
+      HH.begin(f0, 0); var BH = enterTop(), RH0 = BH.roam, defH = D.roam.def, tkH = RH0.token;
+      okH('in at Silverton\'s west gate (' + defH.name + ', the token at ' + tkH.x + ',' + tkH.y + '), THE WORLD under it (' + D.scenes.map(function (s) { return s.kind || s.constructor.name; }).join(' > ') + ')',
+        defH.key === 'silverton' && tkH.x === defH.marks.gates.west[0] && tkH.y === defH.marks.gates.west[1] && D.scenes[0].kind === 'world' && D.roam.house());
+      okH('the floor\'s four are the save\'s (' + RH0.members.map(function (u) { return u.id + ' ' + u.hp + '/' + u.maxhp; }).join(', ') + '), its pack the save\'s with no loan (' + (BH.inv || []).map(function (s) { return s.id; }).join(', ') + ')',
+        RH0.members.length === 4 && RH0.members.every(function (u) { return HH.cur.party.some(function (h) { return h.id === u.id && h.maxhp === u.maxhp; }); }) && !(BH.inv || []).some(function (s) { return s.id === 'lightcrossbow' || s.id === 'rope'; }));
+      // SAVE in town: the square and a wound kept, in slot 2
+      var vH = RH0.members.filter(function (u) { return u.id === 'vivian'; })[0]; vH.hp = Math.max(1, vH.hp - 5); var hurtH = vH.hp;
+      okH('SAVE on the town\'s M menu (R.canSave: in a town, walking, nothing coming)', D.roam.canSave(BH));
+      RH0.keys.push('save'); driveH(BH.co, function () { return D.top() instanceof HH.Slots; }, 400);
+      var slH = D.top(); okH('SAVE WHERE? over the floor (' + (slH && slH.kind) + ')', slH instanceof HH.Slots && slH.mode === 'save');
+      slH.pick(1); for (var kH = 0; kH < 80 && D.top() === slH; kH++) slH.update();
+      var s2 = memH['deep16.game.2'] ? JSON.parse(memH['deep16.game.2']) : null, v2 = s2 && s2.party.filter(function (h) { return h.id === 'vivian'; })[0];
+      okH('slot 2 kept: in Silverton at ' + (s2 && s2.at.sq) + ', Vivian at ' + (v2 && v2.hp) + ' (the floor\'s ' + hurtH + '), the Pocket DM\'s table untouched (' + (memH['deep16.pocket'] ? 'written!' : 'none') + ')',
+        !!s2 && s2.at.town === 'silverton' && s2.at.sq[0] === tkH.x && s2.at.sq[1] === tkH.y && v2.hp === hurtH && !memH['deep16.pocket'] && D.top() === BH);
+      // out by a road to THE WORLD, the same party
+      var wayH = defH.doors[0]; driveH(D.town.wayOut(BH, wayH), null, 400);
+      var wsH = D.top(), vW = HH.cur.party.filter(function (h) { return h.id === 'vivian'; })[0];
+      okH('out by ' + ((defH.wayName || {})[wayH[0] + ',' + wayH[1]] || 'a road') + ' to THE WORLD (' + (wsH && wsH.kind) + '), Vivian still ' + vW.hp + '/' + vW.maxhp, wsH && wsH.kind === 'world' && vW.hp === hurtH && !HH.cur.at.town);
+      // a road fight: the save's party, wounds and all; won, its XP banked and no level yet
+      var exH = HH.cur.party.map(function (h) { return h.xp; }), eH = WH.M().hex[WH.K(WH.state().at[0], WH.state().at[1])];
+      wsH.fight({ zone: 'north', list: ['goblin', 'goblin'], mirror: false }, eH); var bH = enterTop();
+      var vB = bH.units.filter(function (u) { return u.id === 'vivian'; })[0];
+      okH('the road fight takes the save\'s party (' + bH.units.filter(function (u) { return u.side === 'party'; }).map(function (u) { return u.id + ' ' + u.hp; }).join(', ') + '), Vivian in at ' + (vB && vB.hp) + ', no loan in the pack',
+        !!vB && vB.hp === hurtH && bH.o.house && !bH.canSwap && !(bH.inv || []).some(function (s) { return s.id === 'lightcrossbow'; })); // (canSwap: no "walk in as the fixture instead" for the save's party)
+      bH.units.forEach(function (u) { if (u.side === 'foe') { u.hp = 0; u.dead = true; } });
+      var aB = bH.units.filter(function (u) { return u.id === 'aurdin'; })[0]; aB.hp = Math.max(1, aB.hp - 3); var aHurt = aB.hp;
+      D.pop(); bH.o.onDone('won');
+      var gxH = HH.cur.party.map(function (h, i) { return h.xp - exH[i]; }), aS = HH.cur.party.filter(function (h) { return h.id === 'aurdin'; })[0];
+      okH('won: each standing banks ' + gxH.join('/') + ' XP (' + (wsH.msg && wsH.msg.s) + '), Aurdin\'s wound kept (' + aS.hp + ')', gxH.every(function (x) { return x > 0; }) && aS.hp === aHurt && HH.playing);
+      // camp is the long rest: whole again, and the level the XP reached
+      aS.xp = RH.XP_LEVEL[aS.lvl + 1]; var lv0 = aS.lvl, upsH = WH.camp();
+      okH('camp is the long rest: everyone whole (' + HH.cur.party.map(function (h) { return h.hp + '/' + h.maxhp; }).join(', ') + '), Aurdin L' + lv0 + ' to L' + aS.lvl + ' (' + (upsH || []).join(' ').slice(0, 80) + ')',
+        HH.cur.party.every(function (h) { return h.hp === h.maxhp && !h.ko; }) && aS.lvl === lv0 + 1 && !RH.picksDue(aS));
+      // SAVE on THE WORLD into slot 3, then CONTINUE from slot 2: back in Silverton on the saved square
+      HH.saveTo(3); var s3 = JSON.parse(memH['deep16.game.3'] || 'null');
+      okH('SAVE on THE WORLD (slot 3): on the hex ' + (s3 && s3.world && s3.world.at) + ', Aurdin L' + (s3 && s3.party.filter(function (h) { return h.id === 'aurdin'; })[0].lvl), !!s3 && !s3.at.town && s3.world && s3.world.at && s3.party.filter(function (h) { return h.id === 'aurdin'; })[0].lvl === lv0 + 1);
+      HH.begin(HH.read(2), 2); var BC = enterTop(), tC = BC.roam.token, vC = BC.roam.members.filter(function (u) { return u.id === 'vivian'; })[0];
+      okH('CONTINUE slot 2: Silverton, on the saved square (' + tC.x + ',' + tC.y + '), Vivian at ' + vC.hp, D.roam.def.key === 'silverton' && tC.x === s2.at.sq[0] && tC.y === s2.at.sq[1] && vC.hp === hurtH);
+      HH.begin(HH.read(3), 3); var wC = enterTop();
+      okH('CONTINUE slot 3: on THE WORLD at its hex (' + WH.state().at + ')', wC.kind === 'world' && WH.state().at[0] === s3.world.at[0] && WH.state().at[1] === s3.world.at[1]);
+      // a loss: the title, the last save standing
+      wC.fight({ zone: 'north', list: ['goblin'], mirror: false }, WH.M().hex[WH.K(WH.state().at[0], WH.state().at[1])]); var bL = enterTop(); D.pop(); bL.o.onDone('lost');
+      okH('a loss is the first game\'s game over: the title (' + (D.top() && D.top().kind) + '), the house shut, slot 3 as it was', D.top() && D.top().kind === 'housetitle' && D.top().lost && !HH.playing && memH['deep16.game.3'] === JSON.stringify(s3));
+      // the bare ?world door: its own key, as before
+      var wB = WH.make('?world&fresh'); D.scenes.length = 0; D.push(wB); WH.save();
+      okH('the bare ?world door keeps its own key (deep16.world, by localStorage as ever), the house shut', !!window.localStorage.getItem('deep16.world') && !WH.house() && !memH['deep16.game.0']);
+    } catch (eH) { repH.errors.push(String(eH && eH.stack || eH).slice(0, 900)); }
+    D.store.get = stGH; D.store.set = stSH; window.DS.autoPicks = false; if (D.house) { D.house.playing = false; D.house.cur = null; }
+    var preH = document.createElement('pre'); preH.id = 'out'; preH.textContent = 'BENCH16 ' + JSON.stringify(repH);
+    document.body.appendChild(preH);
+    return;
+  }
   // the party-token map's feasibility test, 10-13 (mode=roam1013; js/roam.js, deep16/?roam=wet): the whole Wet from the 8-bit's rows, one token carrying the party's light;
   // the M menu with all four out of a fight; a group seen at the edge of sight walks in and the fight starts where they meet; no box -- the whole floor the fight's, the
   // ways out the stairs and the squares a full move clear of every foe by path; one of ours out takes all four into the token one square past; the unmotivated hold 6 steps,

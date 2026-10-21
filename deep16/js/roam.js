@@ -165,6 +165,7 @@
   // ------------------------------------------------------------------ the door: deep16/?roam=wet
   // emb (the seam, 10-14 -- Griz: "You should handle the seam given context?"): the 8-bit game's own party, walked in by its warp (deep16/js/embed.js E.roam, from js/embed.js
   // there): { save: the party, guests, pack, flags, kills, silver as the 8-bit holds them; opts: { at8 (the square it arrived on), dir, torch, torchKind } }. Without it, the test
+  R.house = function () { return !!(R.emb && R.emb.house); }; // (THE SECOND GAME's house, js/house.js: its party walks in as the 8-bit's did, and nothing hands back to the 8-bit)
   R.make = function (q, emb) {
     q = q || ''; R.emb = emb || null;
     var num = function (k, d) { var m = new RegExp('[?&]' + k + '=(\\d+)').exec(q); return m ? +m[1] : d; };
@@ -569,7 +570,7 @@
   // fight in its own frame, its flags). What it did to the floor's flag tiles (the stair held, the water back) opens the floor again for them where the party stands
   R.scene8 = function* (B, trig, at) {
     var R0 = B.roam;
-    if (!R.emb) { B.card(R.wrap(['{y}' + trig.id + '{/}: the 8-bit\'s own scene (' + trig.script + ') -- inside the game the floor hands the party back for it (?at=roam).']), 300); D.sfx('popup'); yield 30; return; }
+    if (!R.emb || R.house()) { B.card(R.wrap(['{y}' + trig.id + '{/}: the 8-bit\'s own scene (' + trig.script + ') -- ' + (R.house() ? 'held till the floor is the second game\'s (the house lane).' : 'inside the game the floor hands the party back for it (?at=roam).')]), 300); D.sfx('popup'); yield 30; return; }
     var m = yield* R.handOut(B, 'script', { script: trig.script, arg: trig.arg != null ? trig.arg : null, trig: trig.id });
     if (m && !R0.out && R.tileSig(R.def.src8, R0.flags) !== R.def.sig) yield* R.leaveFloor(B, 'reopen', [R0.token.x, R0.token.y]);
   };
@@ -898,6 +899,7 @@
   };
   R.leaveFloor = function* (B, result, at) {
     var R0 = B.roam; if (R0.out) return; R0.out = true; R0.mode = 'over';
+    if (R.house()) { D.house.fromFloor(B); if (result === 'lose') D.house.lost(); else if (D.world && D.world.leaveTown) D.world.leaveTown('west'); yield 1; return; } // (the house: the party back into the save, out to THE WORLD)
     var msg = R.handMsg(B, 'd16:roam', result, at);
     R.lastOut = msg;
     if (D.embed && D.embed.roamOut) D.embed.roamOut(msg);
@@ -911,7 +913,7 @@
   R.DIR8 = { '-1,0': 'up', '1,0': 'down', '0,-1': 'right', '0,1': 'left' }; // (the 8-bit's facing for the token's: R.setup's fw8 the other way)
   R.handOut = function* (B, kind, extra) {
     var R0 = B.roam, t = R0.token;
-    if (!R.emb || !D.embed || !D.embed.roamOut) return null;
+    if (!R.emb || R.house() || !D.embed || !D.embed.roamOut) return null; // (the house hands nothing to the 8-bit)
     var msg = Object.assign(R.handMsg(B, 'd16:hand', null, [t.x, t.y]), { kind: kind, dir: R.DIR8[R0.fw[0] + ',' + R0.fw[1]] || null }, extra || {});
     var mode0 = R0.mode; R0.mode = 'hand'; R0.resume = null; R.lastHand = msg;
     D.embed.roamOut(msg);
@@ -942,7 +944,7 @@
   // hand-back from where the party stands; each hero comes back as it left them (R.resheet). Named by id: the hero, the spell, the one it is cast on
   R.actOut = function (B, a, unitOf) {
     var R0 = B.roam, idOf = function (h) { var u = h && unitOf ? unitOf(h) : null; return u && u.src ? (u.src.key || u.src.id) : h && h.id || null; };
-    if (!R.emb) { B.card(R.wrap(['{g}Spells, skills and that out of a fight are the 8-bit\'s own: inside the game the floor hands the party back for them (?at=roam).{/}']), 240); return true; }
+    if (!R.emb || R.house()) { B.card(R.wrap(['{g}' + (R.house() ? 'Spells, skills and that out of a fight come with the second game\'s field menu (the house lane\'s next piece).' : 'Spells, skills and that out of a fight are the 8-bit\'s own: inside the game the floor hands the party back for them (?at=roam).') + '{/}']), 240); return true; }
     var spells = window.DS.DATA.spells || {}, spId = a.sp ? (a.sp.id || Object.keys(spells).filter(function (k) { return spells[k] === a.sp; })[0] || null) : null;
     (R0.acts = R0.acts || []).push({ kind: a.kind, h: idOf(a.h), id: a.id || null, sp: spId, s: a.s != null ? a.s : null, t: idOf(a.t) });
     R0.keys.push('act'); B.menu = null; if (B.menuClosed) B.menuClosed();
@@ -952,13 +954,19 @@
   // SAVE on the floor (10-14, his "SAVE on the floor ... by a hand-back"): out of a fight, nothing coming, inside the 8-bit, where the 8-bit's own map lets a save be made (every
   // dungeon floor's is save=False -- tools/mapgen.py: his "yes to both", 10-14, SAVE greyed as the 8-bit greys it) -- the 8-bit's own slots, on the square the party stands on
   // (a load opens the floor there again: js/deep.js); the M menu's SAVE (deep16/js/ui.js gridHost canSave, through B.menuSave, and R.menuAct)
-  R.canSave = function (B) { var R0 = B.roam; return !!(R.emb && D.embed && D.embed.roamOut && R0.mode === 'walk' && !R.tracking(R0).length && R.def.src8 && R.def.src8.save !== false); };
-  R.save = function* (B) { var m = yield* R.handOut(B, 'save'); if (m && m.saved) { B.card(['{g}' + m.saved + '{/}'], 200); yield 10; } };
+  R.canSave = function (B) { var R0 = B.roam; if (R.house()) return !!(R0.mode === 'walk' && !R.tracking(R0).length && R.def.town); return !!(R.emb && D.embed && D.embed.roamOut && R0.mode === 'walk' && !R.tracking(R0).length && R.def.src8 && R.def.src8.save !== false); };
+  R.save = function* (B) {
+    if (R.house()) { // (the house: in a town, its three slots -- js/house.js; the square and the way they face kept, a load stands them there again)
+      var t = B.roam.token, done = false; D.house.fromFloor(B); D.house.cur.at = { town: R.def.key, gate: R.def.gate || 'west', sq: [t.x, t.y], dir: R.DIR8[B.roam.fw[0] + ',' + B.roam.fw[1]] || null };
+      D.push(new D.house.Slots('save', function () { done = true; })); while (!done) yield 1; return;
+    }
+    var m = yield* R.handOut(B, 'save'); if (m && m.saved) { B.card(['{g}' + m.saved + '{/}'], 200); yield 10; }
+  };
   // a cradle (the 8-bit's deep rate, RULED 09-30g; js/events.js EV.deepRate): the 8-bit's own scene by a hand-back, the floor again after it; the animal roused, the fight is on
   // the floor at its cradle -- the milker on the square the party worked it from, stiff with the poison if the touch took (the Settling's harness: deep16/js/wet.js)
   R.cradle = function* (B, trig, at) {
     var R0 = B.roam;
-    if (!R.emb) { B.card(R.wrap(['{y}the cradle{/}: the deep rate is the 8-bit\'s own scene -- inside the game the floor hands the party back for it (?at=roam).']), 300); D.sfx('popup'); yield 30; return; }
+    if (!R.emb || R.house()) { B.card(R.wrap(['{y}the cradle{/}: the deep rate is the 8-bit\'s own scene -- ' + (R.house() ? 'held till the floor is the second game\'s (the house lane).' : 'inside the game the floor hands the party back for it (?at=roam).')]), 300); D.sfx('popup'); yield 30; return; }
     var m = yield* R.handOut(B, 'cradle', { n: +String(trig.id).replace(/\D/g, '') || 0 }), c = m && m.cradle;
     if (!c || !c.roused) return;
     yield* R.encounter(B, 'set', { list: ['crawler'], at: at, line: R.say8('w.deepRoused'), how: 'loose at its cradle', onSpill: function (B2) {
@@ -1024,6 +1032,7 @@
     if (!(xp > 0)) return [];
     var up = R.standing(R0), heroes = up.filter(function (u) { return u.src; });
     var guests = B.units.filter(function (u) { return u.side === 'party' && u.guest && !u.familiar && !u.summon && !u.object && u.hp > 0 && R0.members.indexOf(u) < 0; }).length;
+    if (R.house()) { var bk = D.house.bank(xp, heroes.map(function (u) { return u.src; })); R0.xpPaid = (R0.xpPaid || 0) + bk.each; return bk.line ? [line ? line.replace('{n}', bk.each) : bk.line] : []; } // (the house: banked, the level at the long rest)
     var before = heroes.map(function (u) { return { u: u, lvl: u.src.lvl, feats: JSON.parse(JSON.stringify(u.src.feats || {})) }; });
     var sx = window.DS.R.shareXP(xp, heroes.map(function (u) { return u.src; }), guests);
     before.forEach(function (b) { if (b.u.src.lvl !== b.lvl) { R.relevel(B, b.u, b.feats); R0.picksDue = (R0.picksDue || []).concat([b.u]); } });
