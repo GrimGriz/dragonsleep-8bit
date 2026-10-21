@@ -2995,6 +2995,25 @@
       delete cf1.conds.restrained; delete cf1.conds.stoning; delete cf1.conds.petrified; M21.stoneBegin(B1, cf1, { dc: 12, by: f1.id }); // (its end-of-turn save has had its say)
       n1 = (B1.log || []).length; D.rules.startTurn(cf1); run21(M21.breakFree(B1, cf1)); l1 = log21(B1, n1);
       ok21('1 and BREAK FREE sent by hand: no roll at it, the action kept (' + cf1.turn.action + ', want 1)', !/tears at|wrenches at/.test(l1) && cf1.turn.action === 1);
+      // 2. A RISE OUT OF REACH PROVOKES (the fold's 2(b), his "flying out of threatened squares didn't allow attack of opportunity?"; RULED 10-20 "reach to include height-squares
+      // against flying opponents"): the wizard flying beside three goblins on an open stretch of the class floor, as in his 10-17 fight
+      function open21(Bx, w, h) { var m = G21.map; for (var y = 1; y + h < m.h; y++) for (var x = 1; x + w < m.w; x++) { var z = m.gz(x, y), good = true; for (var j = 0; j < h && good; j++) for (var i = 0; i < w && good; i++) { var s = m.at(x + i, y + j); if (!s || !s.walk || m.gz(x + i, y + j) !== z) good = false; } if (good) return [x, y]; } return null; }
+      var B2 = mk21('?npc=goblin,goblin,goblin&vs=wizard:9&lvl=9'), gs2 = side21(B2, 'foe'), wz2 = side21(B2, 'party')[0], o2 = open21(B2, 8, 6), LY = G21.LAYER();
+      if (!o2) ok21('2 an open stretch of the class floor', false);
+      else {
+        var X2 = o2[0], Y2 = o2[1], gz2 = G21.map.gz(X2, Y2);
+        var set2 = function (fz) { wz2.x = X2 + 2; wz2.y = Y2 + 2; wz2.flies = true; wz2.fz = fz; wz2.hp = wz2.maxHp; delete wz2.conds.prone; [[1, 2], [3, 2], [2, 3]].forEach(function (p, i) { var g = gs2[i]; g.x = X2 + p[0]; g.y = Y2 + p[1]; g.fz = null; g.flies = false; g.hp = g.maxHp || g.hp; g.reaction = 1; }); D.rules.startTurn(wz2); B2.active = wz2; B2.cache = null; };
+        var oas2 = function (n, why) { return (log21(B2, n).match(new RegExp('opportunity attack on [^|]*' + why, 'g')) || []).length; };
+        set2(null); var n2 = (B2.log || []).length; run21(B2.flyMove(wz2, wz2.x, wz2.y, gz2 + 2 * LY));
+        ok21('2 the wizard rises 10 ft beside three goblins: ' + oas2(n2, 'rising out of reach') + ' opportunity attacks, up ' + (wz2.fz != null ? Math.round((wz2.fz - gz2) / LY * 5) : 0) + ' ft (want 3 -- the height\'s squares put him 10 ft from each)', oas2(n2, 'rising out of reach') === 3);
+        set2(null); n2 = (B2.log || []).length; run21(B2.flyMove(wz2, wz2.x, wz2.y, gz2 + LY));
+        ok21('2 and 5 ft up: ' + oas2(n2, 'out of reach') + ' (want 0 -- still in their reach)', oas2(n2, 'out of reach') === 0 && wz2.fz != null);
+        set2(null); wz2.turn.disengaged = true; n2 = (B2.log || []).length; run21(B2.flyMove(wz2, wz2.x, wz2.y, gz2 + 2 * LY));
+        ok21('2 and 10 ft up after Disengage: ' + oas2(n2, 'out of reach') + ' (want 0)', oas2(n2, 'out of reach') === 0);
+        set2(gz2 + 2 * LY); gs2[1].x = X2 + 5; gs2[2].x = X2 + 6; gs2[0].flies = true; gs2[0].fz = gz2 + 2 * LY; n2 = (B2.log || []).length; run21(B2.exec(wz2, { do: 'land' }));
+        ok21('2 the wizard 10 ft up lands beside a goblin flying at 10 ft: ' + oas2(n2, 'dropping out of reach') + ' (want 1), on the ground ' + (wz2.fz == null), oas2(n2, 'dropping out of reach') === 1 && (wz2.fz == null || wz2.hp <= 0));
+        wz2.flies = false; wz2.fz = null; gs2[0].flies = false; gs2[0].fz = null;
+      }
     } catch (e21) { rep21.errors.push(String(e21 && e21.stack || e21).slice(0, 900)); D.d = d021; }
     if (errs.length) rep21.errors = rep21.errors.concat(errs);
     var pre21 = document.createElement('pre'); pre21.id = 'out'; pre21.textContent = 'BENCH16 ' + JSON.stringify(rep21);

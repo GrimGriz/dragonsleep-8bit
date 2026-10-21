@@ -1646,7 +1646,7 @@
         }
         T.freeObj = true; D.light.pickUp(this, u, lxP, lyP); return;
       }
-      case 'land': { if (!G.aloft(u)) return; var ftL = G.feetUp(u.fz - G.groundAt(u, u.x, u.y)); if (T.move < ftL) return; T.move -= ftL; yield* this.flyTo(u, G.groundAt(u, u.x, u.y), true); this.cache = null; return; } // (a flier straight down: flight at a height, 10-08)
+      case 'land': { if (!G.aloft(u)) return; var ftL = G.feetUp(u.fz - G.groundAt(u, u.x, u.y)); if (T.move < ftL) return; T.move -= ftL; yield* this.flyLeave(u, G.groundAt(u, u.x, u.y)); if (u.dead || u.hp <= 0 || !G.aloft(u)) { this.cache = null; return; } yield* this.flyTo(u, G.groundAt(u, u.x, u.y), true); this.cache = null; return; } // (a flier straight down: flight at a height, 10-08)
       case 'throwtorch': { yield* D.light.throwTorch(this, u, c.x, c.y); return; }
       case 'hooddown': T.freeObj = true; yield* D.light.hood(this, u, true); return;
       case 'hoodup': T.freeObj = true; yield* D.light.hood(this, u, false); return;
@@ -2853,10 +2853,13 @@
   };
   // leaving everyone's reach at once -- down into the ground, up into the air -- with no step to provoke on (moveAlong provokes square by square): the opportunity attacks of
   // those beside it that see it, each asked of a player's hero (SRD 5.1: "when a hostile creature that you can see moves out of your reach"). 10-02
-  Battle.prototype.provoke = function* (u, why) {
+  // `to` { fz }: a flier's rise or drop in place (flyLeave) -- only those whose reach it leaves at that height, the height's squares counted (10-21, his "reach to include
+  // height-squares against flying opponents"; the fold's 2(b): the wizard rose 10 ft beside three goblins and no one struck)
+  Battle.prototype.provoke = function* (u, why, to) {
     var T = u.turn || {}, self = this;
     if (T.disengaged || u.ethereal) return;
-    var prov = this.units.filter(function (w) { return G.hostile(u, w) && G.standing(w) && RU.canAct(w) && w.reaction > 0 && !w.conds.turned && !w.ethereal && !w.riding && !(w.weapon && w.weapon.ranged) && G.dist(w, u) <= G.reachOf(w) && D.magic.sees(self, w, u) && !RU.charmedBy(w, u); });
+    var outAt = function (w) { if (!to) return true; var f0 = u.fz; u.fz = to.fz; try { return G.dist(w, u) > G.reachOf(w); } finally { u.fz = f0; } };
+    var prov = this.units.filter(function (w) { return G.hostile(u, w) && G.standing(w) && RU.canAct(w) && w.reaction > 0 && !w.conds.turned && !w.ethereal && !w.riding && !(w.weapon && w.weapon.ranged) && G.dist(w, u) <= G.reachOf(w) && outAt(w) && D.magic.sees(self, w, u) && !RU.charmedBy(w, u); });
     for (var k = 0; k < prov.length; k++) {
       var w = prov[k], take = true;
       if (w.side === 'party' && !w.guest && !w.ally) take = yield { prompt: { who: w, title: w.name + ': OPPORTUNITY ATTACK?', lines: [(u.side === 'foe' ? Battle.nm(u, true) : u.name) + ' is ' + (why || 'leaving') + ', out of ' + w.name + "'s reach." + (w.ready ? '  (the reaction is what the readied ' + w.ready.name + ' waits on)' : '')], opts: [{ label: 'STRIKE', value: true }, { label: 'LET IT GO', value: false }] } };
@@ -3028,13 +3031,15 @@
     if (!e || !e.stand) return false;
     var cur = G.gzAt(u, u.x, u.y), tr = Math.max(cur, z), v = G.feetUp(z - cur), path = [];
     if (x !== u.x || y !== u.y) { var f0 = u.fz; u.fz = tr; try { path = G.path(G.reach(u, T.move - v), x, y); } finally { u.fz = f0; } if (!path || !path.length) return false; }
-    if (z > cur) { T.move -= v; yield* this.flyTo(u, z); } else if (path.length) u.fz = tr;
+    if (z > cur) { T.move -= v; yield* this.flyLeave(u, z); if (u.dead || u.hp <= 0 || !G.winged(u)) { this.cache = null; return true; } yield* this.flyTo(u, z); } else if (path.length) u.fz = tr;
     if (path.length) yield* this.moveAlong(u, path, { spend: true });
-    if (z < cur && !u.dead && u.hp > 0 && G.winged(u) && T.move >= v) { T.move -= v; yield* this.flyTo(u, z); }
+    if (z < cur && !u.dead && u.hp > 0 && G.winged(u) && T.move >= v) { T.move -= v; yield* this.flyLeave(u, z); if (!u.dead && u.hp > 0 && G.winged(u)) yield* this.flyTo(u, z); }
     if (u.fz != null && u.fz <= G.groundAt(u, u.x, u.y)) u.fz = null; // (down on the ground there: on the surface again)
     this.cache = null;
     return true;
   };
+  // a rise or a drop in place to z leaves the reach of those it was beside: their opportunity attacks first (provoke's `to`; Disengage spares it, as a walk's)
+  Battle.prototype.flyLeave = function* (u, z) { yield* this.provoke(u, z > G.gzAt(u, u.x, u.y) ? 'rising out of reach' : 'dropping out of reach', { fz: z <= G.groundAt(u, u.x, u.y) ? null : z }); };
   // up or down in place to z, a frame at a time (`land`: to the ground under it, and on the surface)
   Battle.prototype.flyTo = function* (u, z, land) {
     var z0 = G.gzAt(u, u.x, u.y), n = Math.max(4, Math.round(Math.abs(z - z0) / 4));
