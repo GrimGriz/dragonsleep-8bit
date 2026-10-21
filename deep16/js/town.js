@@ -426,6 +426,15 @@
     u.name = kp.name; u.look = true; u.npc = kp.id; u.attacks = {}; u.multi = 1; u.hp = u.maxhp = 4; u.lvl = 1; u.facing = D.spr.facingFor(0, 1); u.anim = 'idle'; u.animT = 0;
     if (D.counter) D.counter.dress(u, kp.id); // (the keeper behind the counter in their own figure, facing south: js/counter.js C.FIG)
     B.units.push(u); if (D.spr.prefetch && u.sheet) D.spr.prefetch([u.sheet]);
+    // who stands behind the counter beside them (js/counter.js C.BESIDE -- Ned Halloway beside Percy, 10-21 evening): on the floor at the keeper's side, facing south, no word
+    // of their own at the counter (the counter's E is the keeper's)
+    ((D.counter && D.counter.BESIDE[kp.id]) || []).forEach(function (bid, i) {
+      var sq = [[1, 0], [-1, 0], [2, 0], [-2, 0]].map(function (o) { return [kp.at[0] + o[0], kp.at[1] + o[1]]; }).filter(function (q) { var r = def.rows[q[1]]; return r && '.,=o'.indexOf(r.charAt(q[0])) >= 0 && !B.units.some(function (x) { return x.x === q[0] && x.y === q[1]; }); })[0];
+      if (!sq) return;
+      var N2 = ((window.DS.DATA || {}).npcs || {})[bid], b = B.makeFoe({ id: 'keeper' + (i + 2), kind: T.KIND[(N2 && N2.look) || ''] || 'crewman', at: sq, side: 'party', ally: true });
+      b.name = (N2 && N2.name) || bid; b.look = true; b.npc = bid; b.attacks = {}; b.multi = 1; b.hp = b.maxhp = 4; b.lvl = 1; b.facing = D.spr.facingFor(0, 1); b.anim = 'idle'; b.animT = 0;
+      D.counter.dress(b, bid); B.units.push(b); if (D.spr.prefetch && b.sheet) D.spr.prefetch([b.sheet]);
+    });
     R.famPlace(B, true); B.cache = null; B.exits = []; D.grid.setup(B.map, B.units); B.focus(t);
     B.card(D.roam.wrap(['{y}' + def.name + '{/}' + (def.name !== kp.name ? ' -- ' + kp.name + ' at the counter' : '') + '.', '{g}E at the counter: a word. The door behind you: back to the street.' + (kp.own && !(D.counter && D.counter.SHOPS[kp.id]) ?' (Griz\'s own: the room waits on his word.)' : '') + '{/}']), 360);
     D.sfx('popup'); yield 10;

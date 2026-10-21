@@ -29,12 +29,19 @@
     barber: { sheet: 'pt_barber' },
     marin: { sheet: 'pt_marin' }, kasten: { sheet: 'pt_kasten' }, // (10-21, Griz: "is the marin voss lack the zip file I just put in Fresh? Lucia and 88 should be in there now")
     lucia: { sheet: 'pt_lucia', name: 'Lucia' }, // (Mama's Pharmakaiea's keeper -- the first game's shop names her; the town's keeper table says "Mama")
-    sylvia: { sheet: 'pt_sylvia', own: true } // (Griz's own: her portrait at her booth, her particulars on his word -- js/town.js T.TRADE `own`)
+    sylvia: { sheet: 'pt_sylvia', own: true }, // (Griz's own: her portrait at her booth, her particulars on his word -- js/town.js T.TRADE `own`)
+    // the last six of art-wanted section 20, each on its first-game shop (10-21 evening, Griz to the lanes desk: "we have shopkeep NPCs in Fresh"; his "shops and the rest
+    // of NPC portraits next session"): the show-armorer, the provisioner, charms and chalk, Percy's Particulars (a fifth for road harvest, rendered: its buyRate)
+    vilar: { sheet: 'pt_vilar', shop: 'vilar' }, marko: { sheet: 'pt_marko', shop: 'marko' }, lisbet: { sheet: 'pt_lisbet', shop: 'lisbet' }, percy: { sheet: 'pt_percy', shop: 'percy' },
+    cassia: { sheet: 'pt_cassia', wait: 'The rooms -- a bed, the long room -- are to come.' }, // (the coaching inn: the counter screen has no rooms to let yet, so her counter speaks)
+    ned: { sheet: 'pt_ned' } // (Percy's partner, behind the same counter -- C.BESIDE; the counter screen shows Percy's face, the desk's word; Ned's own word waits)
   };
+  C.BESIDE = { percy: ['ned'] }; // (who stands behind a counter beside its keeper: js/town.js T.goIn)
   // the keepers' own figures on the town floor (10-21, Griz: "Got south idles for several existing shopkeeps in Fresh"): the art desk's south idles, cut by
   // tools/keeper-town-sheet.py, drawn facing south only -- every other facing falls back on the stand-in (the sheet's `under`), so a keeper in one stays facing
   // south (C.dress; js/town.js T.fire turns no one who holds it). Behind their counters (js/town.js T.goIn), and beside their doors where they have no room
-  C.FIG = { winters: 'winters_p1', casper: 'casper_p1', androit: 'androit_p1', hessle: 'hessle_p1', aldric: 'aldric_p1', kessler: 'kessler_p1', calla: 'calla_p1', barber: 'barber_p1', marin: 'marin_p1', kasten: 'kasten_p1', lucia: 'lucia_p1' };
+  C.FIG = { winters: 'winters_p1', casper: 'casper_p1', androit: 'androit_p1', hessle: 'hessle_p1', aldric: 'aldric_p1', kessler: 'kessler_p1', calla: 'calla_p1', barber: 'barber_p1', marin: 'marin_p1', kasten: 'kasten_p1', lucia: 'lucia_p1',
+    cassia: 'cassia_p1', lisbet: 'lisbet_p1', marko: 'marko_p1', vilar: 'vilar_p1', percy: 'percy_p1', ned: 'ned_p1' };
   C.AT_DOOR = [{ id: 'marin', door: 'keeper:marin' }, { id: 'barber', door: 'keeper:barber' }];
   C.dress = function (u, id) {
     var f = C.FIG[id]; if (!u || !f || !D.SHEETS || !D.SHEETS[f]) return false;
@@ -351,7 +358,7 @@
   C.talk = function* (B, id, door) {
     var N = ((DS.DATA || {}).npcs || {})[id] || {}, T = D.town, kp = B.roam && D.roam.def && D.roam.def.keeper && D.roam.def.keeper.id === id ? D.roam.def : null;
     var v = C.VENDORS[id] || {}, shop = (DS.DATA.shops || {})[v.shop];
-    var nm = v.name || (door && door.name) || T.KEEPER['shop:' + id] || T.KEEPER['warp:' + id] || T.KEEPER['keeper:' + id] || N.name || id;
+    var nm = v.name || (door && door.name) || T.KEEPER['shop:' + id] || T.KEEPER['warp:' + id] || T.KEEPER['keeper:' + id] || T.KEEPER['inn:' + id] || N.name || id; // (inn: Cassia's)
     var o = { id: id, name: nm, place: kp ? kp.name : (door && door.name) || nm, what: kp ? (kp.name !== nm ? nm + ' at the counter' : '') : (door && door.what) || '' };
     o.script = v.script === 'winters' ? function (sc) { return C.winters(sc); } : shop && !v.own ? function (sc) { return C.shopkeeper(sc, B, id); } : function (sc) { return C.keeper(sc, B, id); };
     if (shop) o.place = shop.name;
@@ -363,9 +370,9 @@
   // for the counter (js/town.js T.fire's, as before the screen)
   C.keeper = function* (sc, B, id) {
     if (C.OWN[id]) { yield sc.say(['{g}Griz\'s own: the counter waits on his word.{/}'], 'welcoming'); return; }
-    var said = C.words(B, id), wait = /^\{g\}\(Their scene/.test(said[0] || ''), shop = (DS.DATA.shops || {})[id];
+    var said = C.words(B, id), wait = /^\{g\}\(Their scene/.test(said[0] || ''), shop = (DS.DATA.shops || {})[id], v = C.VENDORS[id] || {};
     if (wait && shop && shop.greeting) { said = [shop.greeting]; wait = false; }
-    yield sc.say((wait ? [] : said).concat([wait ? '{g}Their scene is the 8-bit\'s; on the grid it is to come.{/}' : '{g}The counter -- buying and selling -- is to come.{/}']), wait ? 'attentive' : 'welcoming');
+    yield sc.say((wait ? [] : said).concat([wait ? '{g}Their scene is the 8-bit\'s; on the grid it is to come.{/}' : '{g}' + (v.wait || 'The counter -- buying and selling -- is to come.') + '{/}']), wait ? 'attentive' : 'welcoming');
   };
 
   // a vendor with a shop and no scene of its own (one line in C.VENDORS opens it): their word, then THE SHELVES / LEAVE -- the first game's shop on this screen
@@ -489,11 +496,28 @@
   };
 
   // ---------------------------------------------------------------- the keepers standing, shown (deep16/?keepers -- the eyes row's door, 10-21): every keeper's own
-  // figure in its south idle, named, at twice the game's size, with Barley and Aurdin among them for the size; X or a click back to the title
-  function KeepersShow() { this.kind = 'keepersshow'; this.opaque = true; this.t = 0; var ks = Object.keys(C.FIG).map(function (k) { return C.FIG[k]; }); var half = Math.ceil(ks.length / 2); this.rows = [['barley_p2'].concat(ks.slice(0, half)), ['aurdin_p2'].concat(ks.slice(half))]; if (D.spr.prefetch) D.spr.prefetch(['barley_p2', 'aurdin_p2'].concat(ks, ['crewman_p1'])); }
-  KeepersShow.prototype.update = function () { this.t++; if (I.pressed('b') || I.mouse.rclick) { D.scenes.length = 0; if (D.house && D.house.Title) D.push(new D.house.Title()); } };
+  // figure in its south idle, named, at twice the game's size, with Barley and Aurdin among them for the size; X or a right click back to the title. Two rows a page, at most
+  // C.SHOW_PAGE keepers on one (seventeen since the last six of art-wanted section 20, 10-21 evening): the arrows or a click on either half turn the page; &page=N opens
+  // on one, and &who=cassia,lisbet,... stands only those (an eyes row's door)
+  C.SHOW_PAGE = 12;
+  function KeepersShow(q) {
+    this.kind = 'keepersshow'; this.opaque = true; this.t = 0; q = String(q || '');
+    var who = /[?&]who=([a-z0-9_,]+)/.exec(q), ids = Object.keys(C.FIG).filter(function (k) { return !who || who[1].split(',').indexOf(k) >= 0; }), ks = ids.map(function (k) { return C.FIG[k]; });
+    var np = Math.max(1, Math.ceil(ks.length / C.SHOW_PAGE)), per = Math.ceil(ks.length / np);
+    this.pages = [];
+    for (var p = 0; p < np; p++) { var pk = ks.slice(p * per, (p + 1) * per), half = Math.ceil(pk.length / 2); this.pages.push([['barley_p2'].concat(pk.slice(0, half)), ['aurdin_p2'].concat(pk.slice(half))]); }
+    var pg = /[?&]page=(\d+)/.exec(q); this.page = Math.max(0, Math.min(np - 1, (pg ? +pg[1] : 1) - 1)); this.rows = this.pages[this.page];
+    if (D.spr.prefetch) D.spr.prefetch(['barley_p2', 'aurdin_p2'].concat(ks, ['crewman_p1']));
+  }
+  KeepersShow.prototype.turn = function (d) { var n = this.pages.length; if (n < 2) return; this.page = (this.page + d + n) % n; this.rows = this.pages[this.page]; D.sfx('cursor'); };
+  KeepersShow.prototype.update = function () {
+    this.t++; var m = I.mouse;
+    if (I.pressed('b') || m.rclick) { D.scenes.length = 0; if (D.house && D.house.Title) D.push(new D.house.Title()); return; }
+    if (I.pressed('right') || I.pressed('down') || (m.click && m.inside && m.x >= D.W / 2)) this.turn(1);
+    else if (I.pressed('left') || I.pressed('up') || (m.click && m.inside && m.x < D.W / 2)) this.turn(-1);
+  };
   KeepersShow.prototype.draw = function (ctx) {
-    var self = this, k = 2, names = {}; Object.keys(C.FIG).forEach(function (id) { names[C.FIG[id]] = ((C.VENDORS[id] || {}).name || D.town.KEEPER['shop:' + id] || D.town.KEEPER['warp:' + id] || D.town.KEEPER['keeper:' + id] || (((DS.DATA || {}).npcs || {})[id] || {}).name || id); });
+    var self = this, k = 2, names = {}; Object.keys(C.FIG).forEach(function (id) { names[C.FIG[id]] = ((C.VENDORS[id] || {}).name || D.town.KEEPER['shop:' + id] || D.town.KEEPER['warp:' + id] || D.town.KEEPER['keeper:' + id] || D.town.KEEPER['inn:' + id] || (((DS.DATA || {}).npcs || {})[id] || {}).name || id); });
     names.barley_p2 = 'Barley (hero)'; names.aurdin_p2 = 'Aurdin (hero)';
     ctx.fillStyle = '#0e1634'; ctx.fillRect(0, 0, D.W, D.H);
     D.text(ctx, '{y}SILVERTON\'S KEEPERS{/}, their town figures, facing south (x2; two heroes for size)', 8, 6, D.WIN8.text);
@@ -506,7 +530,7 @@
         D.text(ctx, names[name] || name, Math.round(x), base + 6, name.indexOf('_p2') > 0 ? '#9c9cb4' : D.WIN8.gold, 'center');
       });
     });
-    D.hint(ctx, 'X back to the title', D.W / 2, D.H - 12, '#9a96a8', 'center');
+    D.hint(ctx, (this.pages.length > 1 ? 'page ' + (this.page + 1) + ' of ' + this.pages.length + ' -- arrows or a click turn it   ' : '') + 'X back to the title', D.W / 2, D.H - 12, '#9a96a8', 'center');
   };
-  C.keepersShow = function () { return new KeepersShow(); };
+  C.keepersShow = function (q) { return new KeepersShow(q); }; // (q: the page's query -- &page=, &who=)
 })();

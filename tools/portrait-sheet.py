@@ -36,6 +36,7 @@ ART = os.path.join(ROOT, 'deep16', 'art')
 
 BUST = 150                        # px from the head's top to the hands' line at game size (the screen is 480 x 270)
 MASK_D = 22                       # how far from the navy a channel must be to be figure
+HOLE_D, HOLE_MIN = 4, 1000        # a hole the counter closed: the page's navy to within HOLE_D, HOLE_MIN source px of it in one piece (Percy's work frame 1)
 ACTIONS = ['idle', 'attentive', 'welcoming', 'skeptical', 'concerned', 'work']   # (the default six; a layout may name its own: Sylvia's)
 FPS = {'idle': 3, 'work': 4, 'stretch': 4}   # (the idle a slow breath and blink; the work a deliberate unwrap)
 # a person's pages: (page, its bands' counts top to bottom, each drawing's action in reading order) -- the art desk's six-page plan by default
@@ -58,6 +59,13 @@ PEOPLE = {
     'marin': ('marin/ART-86', 'ART-86', 'keeper:marin', {}),          # (10-21, Griz: "is the marin voss lack the zip file I just put in Fresh?")
     'kasten': ('kasten/ART-88', 'ART-88', 'shop:kasten', {}),         # (and "Lucia and 88 should be in there now")
     'lucia': ('lucia/ART-110', 'ART-110', 'shop:lucia', {}),
+    # the last six of art-wanted section 20 (10-21 evening, the keepers cutter seat; Griz to the lanes desk: "we have shopkeep NPCs in Fresh")
+    'cassia': ('cassia/ART-89', 'ART-89', 'inn:cassia', {}),
+    'lisbet': ('lisbet/ART-92', 'ART-92', 'shop:lisbet', {}),
+    'marko': ('marko/ART-94', 'ART-94', 'shop:marko', {}),
+    'vilar': ('vilar/ART-97', 'ART-97', 'shop:vilar', {}),
+    'percy': ('percy/ART-102', 'ART-102', 'warp:percy', {}),
+    'ned': ('ned/ART-103', 'ART-103', 'warp:percy', {}),               # (Percy's partner: behind the same counter; the counter screen shows Percy's face)
 }
 
 
@@ -179,6 +187,14 @@ def cut_person(name):
             keep = piece.copy(); keep[foot:, :] = False
             if foot < y1:                                        # (the counter's top edge left in slivers over the cut: anything there under 5 px tall goes)
                 band = keep[foot - 8:foot]; keep[foot - 8:foot] = band & ndimage.binary_opening(keep, structure=np.ones((5, 1)))[foot - 8:foot]
+                # a hole the counter closed opens again with the counter gone (Percy's work, 10-21: the navy between his arm, the jar and his waistcoat, filled
+                # as a hole while the counter's top shut it in): a wide piece of the page's own navy inside the figure
+                dn = np.abs(a - np.median(a.reshape(-1, 3)[::97], axis=0)).max(-1)
+                lb, nb = ndimage.label(keep & (dn <= HOLE_D), structure=np.ones((3, 3)))
+                if nb:
+                    sz = ndimage.sum(np.ones_like(lb), lb, range(1, nb + 1))
+                    big = 1 + np.where(sz >= HOLE_MIN)[0]
+                    if len(big): keep &= ~np.isin(lb, big)
             ys, xs = np.where(keep)
             top = ys.min()
             bust = foot - top

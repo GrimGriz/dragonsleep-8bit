@@ -46,6 +46,12 @@ KEEPERS = {
     'marin': ('marin/ART-86', 'ART-86', 'keeper:marin'),
     'kasten': ('kasten/ART-88', 'ART-88', 'shop:kasten'),             # (10-21, Griz: "Lucia and 88 should be in there now")
     'lucia': ('lucia/ART-110', 'ART-110', 'shop:lucia'),
+    'cassia': ('cassia/ART-89', 'ART-89', 'inn:cassia'),             # (the last six of art-wanted section 20, 10-21 evening: "we have shopkeep NPCs in Fresh")
+    'lisbet': ('lisbet/ART-92', 'ART-92', 'shop:lisbet'),
+    'marko': ('marko/ART-94', 'ART-94', 'shop:marko'),
+    'vilar': ('vilar/ART-97', 'ART-97', 'shop:vilar'),
+    'percy': ('percy/ART-102', 'ART-102', 'warp:percy'),
+    'ned': ('ned/ART-103', 'ART-103', 'warp:percy'),                 # (beside Percy behind his counter)
 }
 
 

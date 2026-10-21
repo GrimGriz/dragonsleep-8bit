@@ -2493,8 +2493,11 @@
       var cvW = document.createElement('canvas'); cvW.width = D.W; cvW.height = D.H; var ctxW = cvW.getContext('2d'), errD = null;
       try { var scD = new CW.Counter(B, { id: 'winters', name: 'Ambrose Winters', script: function (s) { return CW.winters(s); } }); scD.draw(ctxW); CW.paintPin(ctxW, B); } catch (eD) { errD = String(eD).slice(0, 120); }
       okW('the screen draws' + (errD ? ' THREW ' + errD : ''), !errD);
-      var errK = null; try { var ksW = CW.keepersShow(); ksW.update(); ksW.draw(ctxW); } catch (eK) { errK = String(eK).slice(0, 120); }
-      okW('the keepers\' show (deep16/?keepers, the eyes row\'s door) draws: ' + (ksW && ksW.rows ? ksW.rows.map(function (r) { return r.length; }).join(' + ') + ' figures' : '') + (errK ? ' THREW ' + errK : ''), !errK && ksW.rows[0].length + ksW.rows[1].length === Object.keys(CW.FIG).length + 2);
+      var errK = null, ksN = function (k) { return k.pages.map(function (p) { return p.map(function (r) { return r.length; }).join(' + '); }).join(' | '); }, ksSum = function (k) { return k.pages.reduce(function (a, p) { return a + p[0].length + p[1].length - 2; }, 0); };
+      try { var ksW = CW.keepersShow(), pg0 = ksW.page; ksW.update(); ksW.draw(ctxW); ksW.turn(1); var pg1 = ksW.page; ksW.draw(ctxW); var ksSix = CW.keepersShow('?keepers&who=cassia,lisbet,marko,vilar,percy,ned'); ksSix.draw(ctxW); var ks2 = CW.keepersShow('?keepers&page=2'); } catch (eK) { errK = String(eK).slice(0, 120); }
+      okW('the keepers\' show (deep16/?keepers, the eyes rows\' door) draws every keeper, at most ' + CW.SHOW_PAGE + ' a page with a hero heading each row: ' + (ksW && ksW.pages ? ksN(ksW) + ' figures, the page turned ' + pg0 + ' -> ' + pg1 : '') + (errK ? ' THREW ' + errK : ''),
+        !errK && ksSum(ksW) === Object.keys(CW.FIG).length && ksW.pages.every(function (p) { return p[0].length + p[1].length - 2 <= CW.SHOW_PAGE && p[0][0] === 'barley_p2' && p[1][0] === 'aurdin_p2'; }) && (ksW.pages.length < 2 || pg1 === pg0 + 1) && ks2.page === Math.min(1, ks2.pages.length - 1));
+      okW('&who= stands only those named (the six\'s eyes row): ' + (ksSix ? ksN(ksSix) + ' -- ' + [].concat(ksSix.pages[0][0], ksSix.pages[0][1]).join(', ') : ''), !errK && ksSix.pages.length === 1 && ksSum(ksSix) === 6 && ['cassia', 'lisbet', 'marko', 'vilar', 'percy', 'ned'].every(function (k) { return [].concat(ksSix.pages[0][0], ksSix.pages[0][1]).indexOf(CW.FIG[k]) >= 0; }));
       var LYW = CW.LAYOUT, bW = scD.buttons();
       okW('the portrait on the right, the words and every button to its left (his "can we put them on the right side of the screen instead?": they face screen left) -- the portrait at x ' + LYW.portrait[0] + ', the words ' + LYW.words[0] + ' to ' + (LYW.words[0] + LYW.words[2]),
         LYW.portrait[0] + LYW.portrait[2] <= D.W && LYW.portrait[0] > LYW.words[0] + LYW.words[2] && bW.every(function (q) { return q.x + q.w <= LYW.portrait[0]; }));
@@ -2524,6 +2527,32 @@
       okW('Kasten Wheal behind his counter in his own figure (' + (kuKa && kuKa.sheet) + '), on his portrait (' + scKa.sheet + '): his first-game greeting, his sales to come', kuKa && kuKa.sheet === 'kasten_p1' && kuKa.facing === 0 && scKa.sheet === 'pt_kasten' && wKa[0] === window.DS.DATA.shops.kasten.greeting && /buying and selling -- is to come/.test(wKa.join(' ')) && !upW());
       outW(B); inW(B, 'shop:lucia'); var kuLu = B.units.filter(function (u) { return u.npc === 'lucia'; })[0], gLu = fireW(B, 'talk:lucia'), scLu = D.top(), wLu = readW(scLu); driveW(gLu, null, 200);
       okW('Lucia in her booth beside the Hex in her own figure (' + (kuLu && kuLu.sheet) + '), on her portrait (' + scLu.sheet + ', named ' + scLu.o.name + '): "' + String(wLu[0]).slice(0, 40) + '...", her sales to come', kuLu && kuLu.sheet === 'lucia_p1' && kuLu.facing === 0 && scLu.sheet === 'pt_lucia' && scLu.o.name === 'Lucia' && wLu[0] === window.DS.DATA.shops.lucia.greeting && /is to come/.test(wLu.join(' ')) && !upW());
+      // the last six of art-wanted section 20 (10-21 evening, Griz to the lanes desk: "we have shopkeep NPCs in Fresh"): each behind their counter in their own figure, on
+      // their portrait; Vilar, Marko Thorne, Lisbet Crane and Percy on their first-game shops (their stock on the shelves), Cassia's inn speaking (its rooms to come), Ned
+      // Halloway beside Percy behind the one counter (the screen shows Percy's face), no word at the counter of his own
+      ['vilar', 'marko', 'lisbet'].forEach(function (id) {
+        var sh = window.DS.DATA.shops[id]; outW(B); var inX = inW(B, 'shop:' + id), ku = B.units.filter(function (u) { return u.npc === id; })[0], g = fireW(B, 'talk:' + id), sc = D.top(), w = upW() ? readW(sc) : [];
+        var ask = sc && sc.wait && sc.wait.ask ? sc.wait.opts.join() : ''; if (upW()) goW(sc, 'opt', 'THE SHELVES'); var rows = upW() && sc.shop ? sc.rows().map(function (r) { return r.id; }) : [];
+        if (upW()) { goW(sc, 'back'); goW(sc, 'opt', 'LEAVE'); } driveW(g, null, 200);
+        okW(sh.keeper + ' behind the counter in their own figure (' + (ku && ku.sheet) + ', facing ' + (ku && ku.facing) + '), on their portrait (' + (sc && sc.sheet) + '): the first-game greeting, ' + ask + ', the shelves ' + rows.length + ' of ' + sh.items.length,
+          inX && ku && ku.sheet === id + '_p1' && ku.facing === 0 && ku.holdFacing && sc.sheet === 'pt_' + id && w[0] === sh.greeting && ask === 'THE SHELVES,LEAVE' && rows.join() === sh.items.join() && sc.o.place === sh.name && !upW());
+      });
+      outW(B); var inP = inW(B, 'warp:percy'), kuP = B.units.filter(function (u) { return u.npc === 'percy'; })[0], kuN = B.units.filter(function (u) { return u.npc === 'ned'; })[0];
+      okW('Percy behind his counter in his own figure (' + (kuP && kuP.sheet) + '), Ned Halloway beside him in his (' + (kuN && kuN.sheet) + ' at ' + (kuN && kuN.x + ',' + kuN.y) + ', Percy at ' + (kuP && kuP.x + ',' + kuP.y) + '), both facing south; no word of Ned\'s own at the counter',
+        inP && kuP && kuP.sheet === 'percy_p1' && kuN && kuN.sheet === 'ned_p1' && kuN.y === kuP.y && Math.abs(kuN.x - kuP.x) === 1 && kuN.facing === 0 && kuN.holdFacing && D.roam.def.rows[kuN.y].charAt(kuN.x) !== 'K' && !trigW('talk:ned') && !CW.VENDORS.ned.shop && !!D.SHEETS[CW.VENDORS.ned.sheet]);
+      var gP = fireW(B, 'talk:percy'), scP = D.top(), wP = upW() ? readW(scP) : [], shP = window.DS.DATA.shops.percy, pSay = window.DS.DATA.npcs.percy.talk[0].say;
+      okW('Percy at the counter on his portrait (' + (scP && scP.sheet) + ', the place ' + (scP && scP.o.place) + '): his first-game word with the party hired ("' + String(wP[0]).slice(0, 40) + '...", Ned nodding at Aurdin), then THE SHELVES / LEAVE',
+        scP && scP.sheet === 'pt_percy' && scP.o.place === shP.name && wP.join('|') === pSay.join('|') && scP.wait && scP.wait.ask && scP.wait.opts.join() === 'THE SHELVES,LEAVE');
+      goW(scP, 'opt', 'THE SHELVES'); var pRows = scP.shop ? scP.rows().map(function (r) { return r.id; }) : [];
+      CW.give(st, 'darkmantlehide', 1); CW.give(st, 'rope', 1); goW(scP, 'tab', 'SELL'); var pSell = scP.shop ? scP.rows().map(function (r) { return r.id; }) : [], ps0 = R0.silver;
+      var pHB = scP.buttons().filter(function (q) { return q.row && scP.rows()[q.k].id === 'darkmantlehide'; })[0]; clickW(scP, pHB); if (scP.sub) goW(scP, 'qok');
+      okW('his shelf (' + pRows.join(', ') + ') and his buying: road harvest only (' + pSell.join(', ') + '), a darkmantle hide at a fifth (' + (R0.silver - ps0) + ' sp of its ' + window.DS.DATA.items.darkmantlehide.price + ')',
+        pRows.join() === shP.items.join() && pSell.indexOf('darkmantlehide') >= 0 && pSell.indexOf('rope') < 0 && R0.silver - ps0 === Math.floor(window.DS.DATA.items.darkmantlehide.price * shP.buyRate) && CW.count(st, 'darkmantlehide') === 0);
+      CW.take(st, 'rope', 1); goW(scP, 'back'); goW(scP, 'opt', 'LEAVE'); driveW(gP, null, 200);
+      outW(B); okW('out of Percy\'s: Ned leaves the floor with the room', !B.units.some(function (u) { return u.npc === 'ned'; }));
+      var inCa = inW(B, 'inn:cassia'), kuCs = B.units.filter(function (u) { return u.npc === 'cassia'; })[0], gCs = fireW(B, 'talk:cassia'), scCs = D.top(), wCs = upW() ? readW(scCs) : []; driveW(gCs, null, 200);
+      okW('Cassia behind her bar in her own figure (' + (kuCs && kuCs.sheet) + '), on her portrait (' + (scCs && scCs.sheet) + ', named ' + (scCs && scCs.o.name) + '): her first-game greeting and "' + String(wCs[wCs.length - 1]).replace(/\{.\}|\{\/\}/g, '') + '" -- no shelves',
+        inCa && kuCs && kuCs.sheet === 'cassia_p1' && kuCs.facing === 0 && scCs && scCs.sheet === 'pt_cassia' && scCs.o.name === 'Cassia' && wCs[0] === window.DS.DATA.shops.cassia.greeting && /rooms -- a bed, the long room -- are to come/.test(wCs.join(' ')) && !CW.VENDORS.cassia.shop && !upW());
       outW(B); inW(B, 'keeper:sylvia'); var gS = fireW(B, 'talk:sylvia'), scS = D.top(), wS = readW(scS); driveW(gS, null, 200);
       okW('Sylvia Swann at her booth (' + scS.sheet + '): his own -- "' + wS.join(' ') + '"', scS.sheet === 'pt_sylvia' && /his word/.test(wS.join(' ')));
       outW(B); var gV = TW.fire(B, trigW('keeper:barber')); driveW(gV, upW, 200); var scV = D.top(), wV = upW() ? readW(scV) : []; driveW(gV, null, 200);
