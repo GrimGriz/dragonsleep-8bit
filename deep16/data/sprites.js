@@ -9430,6 +9430,884 @@
 },
 "source": "drawn by the art desk (2026-10-17, ART-70: every row in all five views), cut and snapped by tools/snoothorse-sheet.py"
 },
+"pt_aldric": {
+"image": "art/pt_aldric.png?v=2bc1fb3d02",
+"fw": 190,
+"fh": 155,
+"ax": 92,
+"ay": 153,
+"top": 153,
+"portrait": true,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 190,
+"fh": 155,
+"ax": 92,
+"ay": 153,
+"frames": 6,
+"fps": 3,
+"ledge": [
+true,
+true,
+true,
+true,
+true,
+true
+]
+},
+"attentive": {
+"y": 155,
+"fw": 190,
+"fh": 155,
+"ax": 92,
+"ay": 153,
+"frames": 1,
+"fps": 1,
+"ledge": [
+true
+]
+},
+"welcoming": {
+"y": 310,
+"fw": 190,
+"fh": 155,
+"ax": 92,
+"ay": 153,
+"frames": 1,
+"fps": 1,
+"ledge": [
+true
+]
+},
+"skeptical": {
+"y": 465,
+"fw": 190,
+"fh": 155,
+"ax": 92,
+"ay": 153,
+"frames": 1,
+"fps": 1,
+"ledge": [
+true
+]
+},
+"concerned": {
+"y": 620,
+"fw": 190,
+"fh": 155,
+"ax": 92,
+"ay": 153,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"work": {
+"y": 775,
+"fw": 190,
+"fh": 155,
+"ax": 92,
+"ay": 153,
+"frames": 6,
+"fps": 4,
+"ledge": [
+true,
+true,
+true,
+true,
+true,
+true
+]
+}
+},
+"art": "ART-82",
+"door": "keeper:aldric",
+"source": "deep16/_src/aldric/ART-82 (the art desk's ART-82, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
+},
+"pt_androit": {
+"image": "art/pt_androit.png?v=afd6fdf634",
+"fw": 205,
+"fh": 156,
+"ax": 110,
+"ay": 154,
+"top": 154,
+"portrait": true,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 205,
+"fh": 156,
+"ax": 110,
+"ay": 154,
+"frames": 6,
+"fps": 3,
+"ledge": [
+true,
+true,
+true,
+true,
+true,
+true
+]
+},
+"attentive": {
+"y": 156,
+"fw": 205,
+"fh": 156,
+"ax": 110,
+"ay": 154,
+"frames": 1,
+"fps": 1,
+"ledge": [
+true
+]
+},
+"welcoming": {
+"y": 312,
+"fw": 205,
+"fh": 156,
+"ax": 110,
+"ay": 154,
+"frames": 1,
+"fps": 1,
+"ledge": [
+true
+]
+},
+"skeptical": {
+"y": 468,
+"fw": 205,
+"fh": 156,
+"ax": 110,
+"ay": 154,
+"frames": 1,
+"fps": 1,
+"ledge": [
+true
+]
+},
+"concerned": {
+"y": 624,
+"fw": 205,
+"fh": 156,
+"ax": 110,
+"ay": 154,
+"frames": 1,
+"fps": 1,
+"ledge": [
+true
+]
+},
+"work": {
+"y": 780,
+"fw": 205,
+"fh": 156,
+"ax": 110,
+"ay": 154,
+"frames": 6,
+"fps": 4,
+"ledge": [
+true,
+true,
+true,
+true,
+true,
+true
+]
+}
+},
+"art": "ART-80",
+"door": "keeper:androit",
+"source": "deep16/_src/androit/ART-80 (the art desk's ART-80, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
+},
+"pt_barber": {
+"image": "art/pt_barber.png?v=38daba79df",
+"fw": 153,
+"fh": 156,
+"ax": 77,
+"ay": 153,
+"top": 153,
+"portrait": true,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 153,
+"fh": 156,
+"ax": 77,
+"ay": 153,
+"frames": 6,
+"fps": 3,
+"ledge": [
+true,
+true,
+true,
+true,
+true,
+true
+]
+},
+"attentive": {
+"y": 156,
+"fw": 153,
+"fh": 156,
+"ax": 77,
+"ay": 153,
+"frames": 1,
+"fps": 1,
+"ledge": [
+true
+]
+},
+"welcoming": {
+"y": 312,
+"fw": 153,
+"fh": 156,
+"ax": 77,
+"ay": 153,
+"frames": 1,
+"fps": 1,
+"ledge": [
+true
+]
+},
+"skeptical": {
+"y": 468,
+"fw": 153,
+"fh": 156,
+"ax": 77,
+"ay": 153,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"concerned": {
+"y": 624,
+"fw": 153,
+"fh": 156,
+"ax": 77,
+"ay": 153,
+"frames": 1,
+"fps": 1,
+"ledge": [
+true
+]
+},
+"work": {
+"y": 780,
+"fw": 153,
+"fh": 156,
+"ax": 77,
+"ay": 153,
+"frames": 6,
+"fps": 4,
+"ledge": [
+true,
+true,
+true,
+true,
+true,
+true
+]
+}
+},
+"art": "ART-85",
+"door": "keeper:barber",
+"source": "deep16/_src/barber/ART-85 (the art desk's ART-85, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
+},
+"pt_calla": {
+"image": "art/pt_calla.png?v=bdd99396a6",
+"fw": 168,
+"fh": 156,
+"ax": 91,
+"ay": 153,
+"top": 153,
+"portrait": true,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 168,
+"fh": 156,
+"ax": 91,
+"ay": 153,
+"frames": 6,
+"fps": 3,
+"ledge": [
+true,
+true,
+true,
+true,
+true,
+true
+]
+},
+"attentive": {
+"y": 156,
+"fw": 168,
+"fh": 156,
+"ax": 91,
+"ay": 153,
+"frames": 1,
+"fps": 1,
+"ledge": [
+true
+]
+},
+"welcoming": {
+"y": 312,
+"fw": 168,
+"fh": 156,
+"ax": 91,
+"ay": 153,
+"frames": 1,
+"fps": 1,
+"ledge": [
+true
+]
+},
+"skeptical": {
+"y": 468,
+"fw": 168,
+"fh": 156,
+"ax": 91,
+"ay": 153,
+"frames": 1,
+"fps": 1,
+"ledge": [
+true
+]
+},
+"concerned": {
+"y": 624,
+"fw": 168,
+"fh": 156,
+"ax": 91,
+"ay": 153,
+"frames": 1,
+"fps": 1,
+"ledge": [
+true
+]
+},
+"work": {
+"y": 780,
+"fw": 168,
+"fh": 156,
+"ax": 91,
+"ay": 153,
+"frames": 6,
+"fps": 4,
+"ledge": [
+true,
+true,
+true,
+true,
+true,
+true
+]
+}
+},
+"art": "ART-84",
+"door": "shop:calla",
+"source": "deep16/_src/calla/ART-84 (the art desk's ART-84, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
+},
+"pt_casper": {
+"image": "art/pt_casper.png?v=30ccb8ed00",
+"fw": 185,
+"fh": 158,
+"ax": 101,
+"ay": 155,
+"top": 155,
+"portrait": true,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 185,
+"fh": 158,
+"ax": 101,
+"ay": 155,
+"frames": 6,
+"fps": 3,
+"ledge": [
+false,
+false,
+false,
+false,
+false,
+false
+]
+},
+"attentive": {
+"y": 158,
+"fw": 185,
+"fh": 158,
+"ax": 101,
+"ay": 155,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"welcoming": {
+"y": 316,
+"fw": 185,
+"fh": 158,
+"ax": 101,
+"ay": 155,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"skeptical": {
+"y": 474,
+"fw": 185,
+"fh": 158,
+"ax": 101,
+"ay": 155,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"concerned": {
+"y": 632,
+"fw": 185,
+"fh": 158,
+"ax": 101,
+"ay": 155,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"work": {
+"y": 790,
+"fw": 185,
+"fh": 158,
+"ax": 101,
+"ay": 155,
+"frames": 6,
+"fps": 4,
+"ledge": [
+true,
+true,
+true,
+true,
+true,
+true
+]
+}
+},
+"art": "ART-79",
+"door": "keeper:casper",
+"source": "deep16/_src/casper/ART-79 (the art desk's ART-79, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
+},
+"pt_hessle": {
+"image": "art/pt_hessle.png?v=540878fd2e",
+"fw": 182,
+"fh": 159,
+"ax": 98,
+"ay": 157,
+"top": 157,
+"portrait": true,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 182,
+"fh": 159,
+"ax": 98,
+"ay": 157,
+"frames": 6,
+"fps": 3,
+"ledge": [
+true,
+true,
+true,
+true,
+true,
+true
+]
+},
+"attentive": {
+"y": 159,
+"fw": 182,
+"fh": 159,
+"ax": 98,
+"ay": 157,
+"frames": 1,
+"fps": 1,
+"ledge": [
+true
+]
+},
+"welcoming": {
+"y": 318,
+"fw": 182,
+"fh": 159,
+"ax": 98,
+"ay": 157,
+"frames": 1,
+"fps": 1,
+"ledge": [
+true
+]
+},
+"skeptical": {
+"y": 477,
+"fw": 182,
+"fh": 159,
+"ax": 98,
+"ay": 157,
+"frames": 1,
+"fps": 1,
+"ledge": [
+true
+]
+},
+"concerned": {
+"y": 636,
+"fw": 182,
+"fh": 159,
+"ax": 98,
+"ay": 157,
+"frames": 1,
+"fps": 1,
+"ledge": [
+true
+]
+},
+"work": {
+"y": 795,
+"fw": 182,
+"fh": 159,
+"ax": 98,
+"ay": 157,
+"frames": 6,
+"fps": 4,
+"ledge": [
+true,
+true,
+true,
+true,
+true,
+true
+]
+}
+},
+"art": "ART-81",
+"door": "keeper:hessle",
+"source": "deep16/_src/hessle/ART-81 (the art desk's ART-81, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
+},
+"pt_kessler": {
+"image": "art/pt_kessler.png?v=e6f9d9766b",
+"fw": 184,
+"fh": 164,
+"ax": 92,
+"ay": 162,
+"top": 162,
+"portrait": true,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 184,
+"fh": 164,
+"ax": 92,
+"ay": 162,
+"frames": 6,
+"fps": 3,
+"ledge": [
+true,
+true,
+true,
+true,
+true,
+true
+]
+},
+"attentive": {
+"y": 164,
+"fw": 184,
+"fh": 164,
+"ax": 92,
+"ay": 162,
+"frames": 1,
+"fps": 1,
+"ledge": [
+true
+]
+},
+"welcoming": {
+"y": 328,
+"fw": 184,
+"fh": 164,
+"ax": 92,
+"ay": 162,
+"frames": 1,
+"fps": 1,
+"ledge": [
+true
+]
+},
+"skeptical": {
+"y": 492,
+"fw": 184,
+"fh": 164,
+"ax": 92,
+"ay": 162,
+"frames": 1,
+"fps": 1,
+"ledge": [
+true
+]
+},
+"concerned": {
+"y": 656,
+"fw": 184,
+"fh": 164,
+"ax": 92,
+"ay": 162,
+"frames": 1,
+"fps": 1,
+"ledge": [
+true
+]
+},
+"work": {
+"y": 820,
+"fw": 184,
+"fh": 164,
+"ax": 92,
+"ay": 162,
+"frames": 6,
+"fps": 4,
+"ledge": [
+false,
+true,
+true,
+true,
+true,
+true
+]
+}
+},
+"art": "ART-83",
+"door": "shop:kessler",
+"source": "deep16/_src/kessler/ART-83 (the art desk's ART-83, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
+},
+"pt_sylvia": {
+"image": "art/pt_sylvia.png?v=6d3dd1db4d",
+"fw": 178,
+"fh": 155,
+"ax": 89,
+"ay": 152,
+"top": 152,
+"portrait": true,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 178,
+"fh": 155,
+"ax": 89,
+"ay": 152,
+"frames": 6,
+"fps": 3,
+"ledge": [
+false,
+false,
+false,
+false,
+false,
+false
+]
+},
+"welcoming": {
+"y": 155,
+"fw": 178,
+"fh": 155,
+"ax": 89,
+"ay": 152,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"amused": {
+"y": 310,
+"fw": 178,
+"fh": 155,
+"ax": 89,
+"ay": 152,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"concerned": {
+"y": 465,
+"fw": 178,
+"fh": 155,
+"ax": 89,
+"ay": 152,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"startled": {
+"y": 620,
+"fw": 178,
+"fh": 155,
+"ax": 89,
+"ay": 152,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"work": {
+"y": 775,
+"fw": 178,
+"fh": 155,
+"ax": 89,
+"ay": 152,
+"frames": 6,
+"fps": 4,
+"ledge": [
+false,
+false,
+false,
+false,
+false,
+false
+]
+},
+"stretch": {
+"y": 930,
+"fw": 178,
+"fh": 155,
+"ax": 89,
+"ay": 152,
+"frames": 3,
+"fps": 4,
+"ledge": [
+false,
+false,
+false
+]
+}
+},
+"art": "ART-SPECIAL-SYLVIA",
+"door": "keeper:sylvia",
+"source": "deep16/_src/sylvia/ART-SYLVIA (the art desk's ART-SPECIAL-SYLVIA, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
+},
+"pt_winters": {
+"image": "art/pt_winters.png?v=d266107e53",
+"fw": 176,
+"fh": 157,
+"ax": 96,
+"ay": 155,
+"top": 155,
+"portrait": true,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 176,
+"fh": 157,
+"ax": 96,
+"ay": 155,
+"frames": 6,
+"fps": 3,
+"ledge": [
+false,
+false,
+false,
+false,
+false,
+false
+]
+},
+"attentive": {
+"y": 157,
+"fw": 176,
+"fh": 157,
+"ax": 96,
+"ay": 155,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"welcoming": {
+"y": 314,
+"fw": 176,
+"fh": 157,
+"ax": 96,
+"ay": 155,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"skeptical": {
+"y": 471,
+"fw": 176,
+"fh": 157,
+"ax": 96,
+"ay": 155,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"concerned": {
+"y": 628,
+"fw": 176,
+"fh": 157,
+"ax": 96,
+"ay": 155,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"work": {
+"y": 785,
+"fw": 176,
+"fh": 157,
+"ax": 96,
+"ay": 155,
+"frames": 6,
+"fps": 4,
+"ledge": [
+true,
+true,
+true,
+true,
+true,
+true
+]
+}
+},
+"art": "ART-78",
+"door": "warp:winters",
+"source": "deep16/_src/winters/ART-78 (the art desk's ART-78, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
+},
 "pudding_p1": {
 "image": "art/pudding_p1.png?v=fcd8d60dfc",
 "fw": 120,

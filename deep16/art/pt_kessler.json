@@ -1,0 +1,96 @@
+{
+ "image": "art/pt_kessler.png",
+ "fw": 184,
+ "fh": 164,
+ "ax": 92,
+ "ay": 162,
+ "top": 162,
+ "portrait": true,
+ "anims": {
+  "idle": {
+   "y": 0,
+   "fw": 184,
+   "fh": 164,
+   "ax": 92,
+   "ay": 162,
+   "frames": 6,
+   "fps": 3,
+   "ledge": [
+    true,
+    true,
+    true,
+    true,
+    true,
+    true
+   ]
+  },
+  "attentive": {
+   "y": 164,
+   "fw": 184,
+   "fh": 164,
+   "ax": 92,
+   "ay": 162,
+   "frames": 1,
+   "fps": 1,
+   "ledge": [
+    true
+   ]
+  },
+  "welcoming": {
+   "y": 328,
+   "fw": 184,
+   "fh": 164,
+   "ax": 92,
+   "ay": 162,
+   "frames": 1,
+   "fps": 1,
+   "ledge": [
+    true
+   ]
+  },
+  "skeptical": {
+   "y": 492,
+   "fw": 184,
+   "fh": 164,
+   "ax": 92,
+   "ay": 162,
+   "frames": 1,
+   "fps": 1,
+   "ledge": [
+    true
+   ]
+  },
+  "concerned": {
+   "y": 656,
+   "fw": 184,
+   "fh": 164,
+   "ax": 92,
+   "ay": 162,
+   "frames": 1,
+   "fps": 1,
+   "ledge": [
+    true
+   ]
+  },
+  "work": {
+   "y": 820,
+   "fw": 184,
+   "fh": 164,
+   "ax": 92,
+   "ay": 162,
+   "frames": 6,
+   "fps": 4,
+   "ledge": [
+    false,
+    true,
+    true,
+    true,
+    true,
+    true
+   ]
+  }
+ },
+ "art": "ART-83",
+ "door": "shop:kessler",
+ "source": "deep16/_src/kessler/ART-83 (the art desk's ART-83, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
+}

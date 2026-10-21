@@ -1767,6 +1767,7 @@
     }
     if (R.showMap) { var ms = Math.max(1, Math.min(4, Math.floor((D.W - 12) / G.map.w), Math.floor((D.H - 60) / G.map.h))); R.paintMap(ctx, B, D.W - G.map.w * ms - 6, 22, ms); } // (the town's 474 squares at a pixel each)
     if (R0.mode === 'order' && R0.sel) { var s = D.iso.center(R0.sel.x, R0.sel.y, 0), p = D.iso.toScreen(s.x, s.y); ctx.strokeStyle = '#ffe080'; ctx.strokeRect(p.x - 8, p.y - 30, 16, 32); }
+    if (R0.mode === 'walk' && D.counter) D.counter.paintPin(ctx, B); // (the pinned quest's next door, a gold marker, and its step in words -- js/counter.js, 10-21)
     if (R0.mode === 'over' && I.pressed('rec')) location.reload();
   };
 })();

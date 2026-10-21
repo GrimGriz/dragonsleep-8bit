@@ -1082,6 +1082,7 @@
     // (B.menuUnits / menuCalm / menuAct / menuClosed / menuOrder: a host of the grid's own that walks out of a fight -- the roam's party token, js/roam.js 10-13, Griz:
     // "Gonna have to see the whole party menu on menu even when it's in party token mode, and even if barley is front man should be able to have Aurdin equip a lantern")
     var calm = !!(B.menuCalm && B.menuCalm());
+    var houseFloor = calm && !!(B.roam && D.house && D.house.playing && D.counter); // (THE SECOND GAME's house, walking a floor: its JOURNAL, purse and renown on the menu)
     function heroes(guest) { return (B.menuUnits ? B.menuUnits() : B.units).filter(function (u) { return u.side === 'party' && !u.object && u.src && u.src.equip && !u.summon && !u.familiar && !!u.guest === guest; }); }
     // the grid's own figures for the panel and STATUS (10-07, the menus lane §2.2: "the grid's own sheets could stand in"): the hero's sheet standing, facing out, its
     // head and shoulders in the panel's 20x32 (as the old PARTY panel cut it) and head to foot in STATUS's 32x48; drawn once its image is in, null till then
@@ -1117,14 +1118,18 @@
       pack: function () { return B.inv.filter(function (s) { return s.n > 0; }); },
       give: function (id, n) { var s = B.inv.filter(function (x) { return x.id === id; })[0]; if (s) s.n += n || 1; else B.inv.push({ id: id, n: n || 1 }); },
       take: function (id, n) { var s = B.inv.filter(function (x) { return x.id === id; })[0]; if (s) s.n -= n || 1; },
-      info: function () { return { place: (B.fight && (B.fight.title || B.fight.name)) || (D.MAPS[B.o.map] || {}).name || '' }; },
+      info: function () {
+        var o = { place: (B.fight && (B.fight.title || B.fight.name)) || (D.MAPS[B.o.map] || {}).name || '' };
+        if (houseFloor) { var jn = D.counter.journal(B), pq = jn && jn.quests.filter(function (q) { return q.id === jn.pin && !q.done; })[0]; o.silver = B.roam.silver || 0; o.renown = jn ? jn.renown : 0; o.pin = pq ? pq.name : null; } // (the house's floor: its purse, renown and pinned quest -- js/counter.js, 10-21)
+        return o;
+      },
       canSave: function () { return !!(calm && B.menuSave && B.menuSave()); }, // (the roam's floor inside the 8-bit: SAVE by a hand-back, js/roam.js R.save)
       walker: function (h) { return figure(h, 20, 32); }, portrait: function (h) { return figure(h, 32, 48); },
       whyNot: function () { return ''; },
       // the light in a hero's hand on the grid (u.torch, js/light.js): EQUIP's LIGHT row
       light: function (h) { var u = unitOf(h), L = D.light; if (!u || !u.torch) return null; var id = u.torch.item || L.kindOf(u.torch), it = window.DS.DATA.items[id]; return { id: id, name: it ? it.name : L.word(u.torch), hooded: L.kindOf(u.torch) === 'lantern' }; }, // (u.torch: { lit, kind, item, hood }, item set only for the lamp)
       wielding: function (h) { var u = unitOf(h); return u && u.sheathed ? 'away' : ''; }, // (a weapon PUT AWAY: EQUIP says so)
-      journal: null,
+      journal: houseFloor ? function () { return D.counter.journal(B); } : null, // (the house's JOURNAL on its floor: Winters' Errands -- js/counter.js C.journal, 10-21)
       // EQUIP's choices in the fight: battle.js gearOptions (a weapon from the pack, the shield on or off: the action), and the free hand's -- the weapon PUT AWAY or
       // DRAWN (10-07, his find: "cannot stow from menu"; the ring's PUT AWAY, exec 'putaway'), and the LIGHT: the one in hand set down, thrown, put out or hooded, or one
       // taken up off the floor, out of the barrel or the pack (his find: "torches cannot be equipped") -- each the ring's own command, with its cost and its why

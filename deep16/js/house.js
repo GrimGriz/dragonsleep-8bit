@@ -21,7 +21,7 @@
   H.fresh = function () {
     var R = DS.R, C = DS.DATA.config || {};
     return { v: H.V, party: H.HEROES.map(function (id) { return R.makeHero(id); }), guests: [], inv: (C.startItems || []).map(function (s) { return { id: s[0], n: s[1] }; }),
-      silver: C.startSilver || 10, flags: {}, kills: {}, world: null, at: { town: 'silverton', gate: 'west', sq: null, dir: null }, made: Date.now(), saved: 0 };
+      silver: C.startSilver || 10, renown: 0, flags: {}, kills: {}, world: null, at: { town: 'silverton', gate: 'west', sq: null, dir: null }, made: Date.now(), saved: 0 };
   };
   // a game begun or loaded: THE WORLD under it (its clock and hex the save's), and the town on top if that is where they stood
   H.begin = function (rec, slot) {
@@ -417,7 +417,8 @@
       pack: function () { return rec.inv.filter(function (s) { return s.n > 0 && DS.DATA.items[s.id]; }); },
       give: function (id, n) { add(rec.inv, id, n || 1); },
       take: function (id, n) { add(rec.inv, id, -(n || 1)); },
-      info: function () { return { silver: rec.silver, place: H.where(rec), time: D.world.timeOfDay() }; },
+      info: function () { var jn = D.counter && D.counter.journal(null), pq = jn && jn.quests.filter(function (q) { return q.id === jn.pin && !q.done; })[0]; return { silver: rec.silver, renown: rec.renown || 0, place: H.where(rec), time: D.world.timeOfDay(), pin: pq ? pq.name : null }; },
+      journal: D.counter ? function () { return D.counter.journal(null); } : null, // (the house's JOURNAL: Winters' Errands -- js/counter.js, 10-21)
       canSave: function () { return true; },
       run: function (kind, a, done) {
         var env = worldEnv(scene), lines = null;

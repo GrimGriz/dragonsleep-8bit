@@ -1,0 +1,96 @@
+{
+ "image": "art/pt_aldric.png",
+ "fw": 190,
+ "fh": 155,
+ "ax": 92,
+ "ay": 153,
+ "top": 153,
+ "portrait": true,
+ "anims": {
+  "idle": {
+   "y": 0,
+   "fw": 190,
+   "fh": 155,
+   "ax": 92,
+   "ay": 153,
+   "frames": 6,
+   "fps": 3,
+   "ledge": [
+    true,
+    true,
+    true,
+    true,
+    true,
+    true
+   ]
+  },
+  "attentive": {
+   "y": 155,
+   "fw": 190,
+   "fh": 155,
+   "ax": 92,
+   "ay": 153,
+   "frames": 1,
+   "fps": 1,
+   "ledge": [
+    true
+   ]
+  },
+  "welcoming": {
+   "y": 310,
+   "fw": 190,
+   "fh": 155,
+   "ax": 92,
+   "ay": 153,
+   "frames": 1,
+   "fps": 1,
+   "ledge": [
+    true
+   ]
+  },
+  "skeptical": {
+   "y": 465,
+   "fw": 190,
+   "fh": 155,
+   "ax": 92,
+   "ay": 153,
+   "frames": 1,
+   "fps": 1,
+   "ledge": [
+    true
+   ]
+  },
+  "concerned": {
+   "y": 620,
+   "fw": 190,
+   "fh": 155,
+   "ax": 92,
+   "ay": 153,
+   "frames": 1,
+   "fps": 1,
+   "ledge": [
+    false
+   ]
+  },
+  "work": {
+   "y": 775,
+   "fw": 190,
+   "fh": 155,
+   "ax": 92,
+   "ay": 153,
+   "frames": 6,
+   "fps": 4,
+   "ledge": [
+    true,
+    true,
+    true,
+    true,
+    true,
+    true
+   ]
+  }
+ },
+ "art": "ART-82",
+ "door": "keeper:aldric",
+ "source": "deep16/_src/aldric/ART-82 (the art desk's ART-82, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
+}

@@ -388,7 +388,7 @@
     u.name = kp.name; u.look = true; u.npc = kp.id; u.attacks = {}; u.multi = 1; u.hp = u.maxhp = 4; u.lvl = 1; u.facing = D.spr.facingFor(0, 1); u.anim = 'idle'; u.animT = 0;
     B.units.push(u); if (D.spr.prefetch && u.sheet) D.spr.prefetch([u.sheet]);
     R.famPlace(B, true); B.cache = null; B.exits = []; D.grid.setup(B.map, B.units); B.focus(t);
-    B.card(D.roam.wrap(['{y}' + def.name + '{/}' + (def.name !== kp.name ? ' -- ' + kp.name + ' at the counter' : '') + '.', '{g}E at the counter: a word. The door behind you: back to the street.' + (kp.own ? ' (Griz\'s own: the room waits on his word.)' : '') + '{/}']), 360);
+    B.card(D.roam.wrap(['{y}' + def.name + '{/}' + (def.name !== kp.name ? ' -- ' + kp.name + ' at the counter' : '') + '.', '{g}E at the counter: a word. The door behind you: back to the street.' + (kp.own && !(D.counter && D.counter.SHOPS[kp.id]) ?' (Griz\'s own: the room waits on his word.)' : '') + '{/}']), 360);
     D.sfx('popup'); yield 10;
   };
   // out by the door: the room let go, the floor as it was, the party on the door's square facing the street
@@ -405,7 +405,8 @@
     if (trig.town === 'talk') {
       var u = B.units.filter(function (x) { return x.npc === trig.npc; })[0], t = R0.token;
       if (u) u.facing = D.spr.facingFor(t.x - u.x, t.y - u.y);
-      var kp = R.def.room && R.def.keeper && R.def.keeper.id === trig.npc ? R.def.keeper : null, said = trig.npc === 'guard1' ? [T.LINE.guard1] : T.say(B, trig.npc);
+      if (D.counter && D.counter.takes(trig.npc)) { yield* D.counter.talk(B, trig.npc, trig.door); return; } // (a keeper with a portrait, and Winters: the counter's screen -- js/counter.js, 10-21)
+      var kp = R.def.room && R.def.keeper && R.def.keeper.id === trig.npc ? R.def.keeper : null, said = trig.npc === 'guard1' ? [T.LINE.guard1] : D.counter ? D.counter.words(B, trig.npc) : T.say(B, trig.npc); // (the word with its doing: an errand's seal or signature -- js/counter.js C.words)
       if (kp) said = (/^\{g\}\(Their scene/.test(said[0]) ? [] : said).concat(['{g}' + (kp.own ? 'Griz\'s own: the counter waits on his word.' : 'The counter -- buying and selling -- is to come.') + '{/}']); // (a room's keeper: the 8-bit's word where it has one, and the counter's screen to come)
       B.card(R.wrap(['{y}' + (u ? u.name : trig.npc) + '{/}'].concat(said)), 420);
       D.sfx('popup'); yield 20; return;
@@ -413,7 +414,8 @@
     if (trig.town === 'door' && T.hasRoom(trig.id)) { yield* T.goIn(B, trig); return; } // (in: the room behind it -- T.room)
     if (trig.town === 'door') { // (a door with no room behind it: its keeper's word at the door, as the 8-bit's keeper card)
       var arg2 = trig.id.split(':')[1], N2 = ((window.DS.DATA || {}).npcs || {})[arg2] || {}, d2 = trig.door || {};
-      B.card(R.wrap(['{y}' + (d2.name || N2.name || arg2) + '{/}' + (d2.what ? ' -- ' + d2.what : '')].concat(T.say(B, arg2))), 420); D.sfx('popup'); yield 10; return;
+      if (D.counter && D.counter.takes(arg2)) { yield* D.counter.talk(B, arg2, d2); return; } // (a keeper at the door with a portrait: Venn the barber)
+      B.card(R.wrap(['{y}' + (d2.name || N2.name || arg2) + '{/}' + (d2.what ? ' -- ' + d2.what : '')].concat(D.counter ? D.counter.words(B, arg2) : T.say(B, arg2))), 420); D.sfx('popup'); yield 10; return;
     }
   };
 })();

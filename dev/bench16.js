@@ -1941,8 +1941,11 @@
       var inT = D.roam.def.room === 'warp:winters', kpT = BT.units.filter(function (u) { return u.npc === 'winters'; })[0];
       okT('Winters\' door stepped on (' + nW + ' steps on): in his room (' + D.roam.def.name + ', ' + BT.map.w + ' x ' + BT.map.h + ', the token at ' + tkT.x + ',' + tkT.y + ' facing in), ' + (kpT ? kpT.name : 'no one') + ' behind the counter, the street\'s people set aside', inT && !!kpT && tkT.x === D.roam.def.entry[0][0] && tkT.y === D.roam.def.entry[0][1] && !BT.units.some(function (u) { return u.npc && u.npc !== 'winters'; }));
       var ctrT = null; for (var cxT = 1; cxT < BT.map.w - 1 && !ctrT; cxT++) if (BT.map.at(cxT, 3).ch === 'K') ctrT = [cxT, 4];
-      walkT(BT, RT, ctrT, 4000); RT.fw = [0, -1]; BT.cards = []; RT.keys.push('use'); driveT(BT.co, function () { return cardT(/Winters/); }, 400);
-      okT('E at his counter: ' + ((BT.cards[BT.cards.length - 1] || {}).lines || []).join(' / ').slice(0, 110), cardT(/Ambrose Winters/) && cardT(/Griz's own/));
+      walkT(BT, RT, ctrT, 4000); RT.fw = [0, -1]; BT.cards = []; RT.keys.push('use'); driveT(BT.co, function () { return D.top() instanceof D.counter.Counter; }, 400);
+      var scT = D.top(), upT = scT instanceof D.counter.Counter; // (since 10-21 his counter is the counter's screen, not a card: deep16/js/counter.js -- mode=winters1021 walks it whole)
+      okT('E at his counter: the counter\'s screen, his portrait (' + (upT && scT.sheet) + '): ' + (upT && scT.wait ? (scT.wait.say || scT.wait.ask || []).join(' / ').slice(0, 90) : ''), upT && scT.sheet === 'pt_winters');
+      for (var kqT = 0; upT && !scT.done && kqT < 30; kqT++) { var bqT = scT.buttons(); scT.press(scT.wait && scT.wait.ask ? bqT[bqT.length - 1] : bqT[0]); } // (read on, then LEAVE)
+      driveT(BT.co, function () { return D.top() === BT && !(D.top() instanceof D.counter.Counter); }, 60);
       var outDT = D.roam.def.doors[0]; walkT(BT, RT, outDT, 4000);
       okT('out by the door: the street again (the town\'s own map kept, ' + BT.units.filter(function (u) { return u.npc; }).length + ' people back), on Winters\' doorstep (' + tkT.x + ',' + tkT.y + ') facing the street', !D.roam.def.room && BT.map === townMapT && D.iso.map === townMapT && BT.units.filter(function (u) { return u.npc; }).length === folkN && tkT.x === wiT[0] && tkT.y === wiT[1]);
       // every door's room: the one shape, varied by the trade -- the door in the front wall, the way in walkable, the keeper behind the counter, a way from the door to the counter
@@ -2139,6 +2142,126 @@
     D.store.get = stGH; D.store.set = stSH; window.DS.autoPicks = false; if (D.house) { D.house.playing = false; D.house.cur = null; }
     var preH = document.createElement('pre'); preH.id = 'out'; preH.textContent = 'BENCH16 ' + JSON.stringify(repH);
     document.body.appendChild(preH);
+    return;
+  }
+  // AMBROSE WINTERS at his counter, 10-21 (mode=winters1021; deep16/js/counter.js -- Griz, to the lanes desk: "There's a handful of vendor art in Fresh, start a seat to
+  // get Winters set up for giving the starter mission and doing sales"): the house's NEW GAME walked to his room, Winters' Errands door to door by the first game's
+  // words and flags (Androit and Casper Venn in their rooms on their portraits, Mical and Brennan at their doors), the pay, the renown and its banked XP, the JOURNAL
+  // and its pinned marker, his shelves bought and sold by the first game's rules, every choice a button (one pressed by a mouse click), the floor's purse, pack and
+  // flags into the house's save; the other keepers' portraits at their counters; every portrait sheet cut
+  if (get('mode', '') === 'winters1021') {
+    var repW = { checks: [], errors: [] }, memW = {}, stGW = D.store.get, stSW = D.store.set, HW = D.house, CW = D.counter, TW = D.town;
+    function okW(what, v) { repW.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function driveW(g, until, cap) { var v, k = 0, st; while (k++ < (cap || 4000)) { if (until && until()) return true; st = g.next(v); v = undefined; if (st.done) return !!(until && until()); } return !!(until && until()); }
+    function topW() { var s = D.top(); if (s && s.baking) { s.baking = false; s.enter(); } return s; }
+    function upW() { return D.top() instanceof CW.Counter; }
+    function trigW(id) { return (D.roam.def.src8.triggers || []).filter(function (t) { return t.id === id; })[0]; }
+    function fireW(B, id) { var tr = trigW(id); if (!tr) return null; var g = TW.fire(B, tr); driveW(g, upW, 600); return g; }
+    function goW(sc, go, label) { var b = sc.buttons().filter(function (q) { return q.go === go && (label == null || q.label === label); })[0]; return clickW(sc, b); }
+    function clickW(sc, b) { if (!b) return false; var mo = D.input.mouse, k = { x: mo.x, y: mo.y, click: mo.click, inside: mo.inside, moved: mo.moved }; mo.x = b.x + b.w / 2; mo.y = b.y + b.h / 2; mo.inside = true; mo.click = true; mo.moved = true; sc.update(); Object.assign(mo, k); return true; } // (every choice pressed by a click on its drawn box: the mouse alone -- a button whose box will not take a click fails here)
+    function readW(sc) { var out = [], k = 0; while (!sc.done && sc.wait && sc.wait.say && k++ < 40) { out = out.concat(sc.wait.say); goW(sc, 'next'); } return out; } // (every page read, till a question or the end)
+    function inW(B, id) { driveW(TW.fire(B, trigW(id)), null, 600); return D.roam.def.room === id; }
+    function outW(B) { driveW(TW.goOut(B), null, 200); return !D.roam.def.room; }
+    D.store.get = function (k) { return memW[k] ? JSON.parse(memW[k]) : null; }; D.store.set = function (k, v) { memW[k] = JSON.stringify(v); return true; };
+    try {
+      D.seed = +get('seed', 1021);
+      var names = Object.keys(CW.PT), sheets = names.filter(function (n) { var s = D.SHEETS[CW.PT[n]]; return s && s.portrait && s.anims.idle && s.anims.idle.frames === 6 && s.anims.work && s.anims.work.frames === 6; });
+      okW('every keeper\'s portrait cut (tools/portrait-sheet.py): ' + sheets.length + ' of ' + names.length + ' with a six-frame idle and work (' + names.map(function (n) { var s = D.SHEETS[CW.PT[n]]; return n + (s ? ' ' + Object.keys(s.anims).length : ' NONE'); }).join(', ') + ')', sheets.length === names.length && ['attentive', 'welcoming', 'skeptical', 'concerned'].every(function (a) { return !!D.SHEETS.pt_winters.anims[a]; }));
+      HW.begin(HW.fresh(), 0); var B = topW(), R0 = B.roam, st = CW.state(B);
+      okW('NEW GAME in Silverton: the floor\'s flags, pack and purse are what the counter reads (' + R0.silver + ' sp)', !!st && st.flags === R0.flags && st.inv === B.inv && st.silver() === R0.silver && st.party.length === 4);
+      // in at his door: his room, the counter's screen at E
+      var inWin = inW(B, 'warp:winters'); okW('in at Winters\' door (warp:winters): his room, ' + D.roam.def.name, inWin && D.roam.def.keeper.id === 'winters');
+      var g1 = fireW(B, 'talk:winters'), sc = D.top();
+      okW('E at his counter: the counter\'s screen, his portrait (' + sc.sheet + '), opaque over the floor', upW() && sc.sheet === 'pt_winters' && sc.opaque && sc.o.place === window.DS.DATA.shops.winters.name);
+      var first = []; while (sc.wait && sc.wait.say) { first = first.concat(sc.wait.say); goW(sc, 'next'); }
+      okW('the first time: the first game\'s words (' + first.length + ' lines: "' + String(first[0]).slice(0, 40) + '...") and Vivian\'s hands', first.join(' ').indexOf('CONSULT DM') >= 0 && first.join(' ').indexOf('Miss Venn') >= 0 && R0.flags.wintersMet === 1);
+      okW('then WORK / THE SHELVES / LEAVE, every one a button: ' + (sc.wait.opts || []).join(', '), sc.wait.ask && sc.buttons().filter(function (q) { return q.go === 'opt'; }).length === 3);
+      goW(sc, 'opt', 'THE SHELVES'); var shut = readW(sc);
+      okW('THE SHELVES before an errand: shut ("' + String(shut[0]).slice(0, 44) + '...", his concerned face)', /people I know/.test(shut.join(' ')) && sc.face && sc.face.anim === 'concerned' && !sc.shop);
+      goW(sc, 'opt', 'WORK'); var wA = readW(sc);
+      okW('WORK: the inventory to carry ("' + String(wA[0]).slice(0, 40) + '..."), the Estate Papers in the pack, the JOURNAL pinned', R0.flags.wErrA === 1 && CW.count(st, 'estatepapers') === 1 && R0.flags.pin === 'errands' && wA.join(' ').indexOf('JOURNAL') >= 0);
+      driveW(g1, null, 200);
+      okW('a job in hand ends the talk: the screen gone, the floor again', !upW() && sc.done && D.top() === B);
+      var jn = CW.journal(B), qE = jn.quests[0];
+      okW('the house\'s JOURNAL: ' + qE.name + ', open, pinned, NEXT: ' + qE.where, jn.quests.length === 1 && qE.id === 'errands' && !qE.done && jn.pin === 'errands' && /Androit/.test(qE.where));
+      D.ui.openMenu(B); var hostW = B.menu && B.menu.m && B.menu.m.host, infW = hostW && hostW.info();
+      okW('the floor\'s M menu has the JOURNAL and the purse (' + (infW && infW.silver) + ' sp, renown ' + (infW && infW.renown) + ', pinned ' + (infW && infW.pin) + ')', !!hostW && typeof hostW.journal === 'function' && hostW.journal().quests.length === 1 && infW.silver === R0.silver && infW.pin === qE.name);
+      B.menu = null;
+      var pin1 = CW.pinned(st);
+      okW('the pinned marker\'s door: ' + (pin1 && pin1.door) + ' (in his room it points at the way out)', pin1 && pin1.door === 'keeper:androit');
+      // the seal, then the value -- out of order first: Casper won't touch unsealed paper
+      outW(B); inW(B, 'keeper:casper'); var gC = fireW(B, 'talk:casper'), scC = D.top(), wC = readW(scC); driveW(gC, null, 200);
+      okW('Casper Venn before the seal, on his portrait (' + scC.sheet + '): "' + String(wC[0]).slice(0, 50) + '..." -- not valued', scC.sheet === 'pt_casper' && /Androit first/.test(wC.join(' ')) && !R0.flags.wValued);
+      outW(B); inW(B, 'keeper:androit'); var gA = fireW(B, 'talk:androit'), scA = D.top(), wA2 = readW(scA); driveW(gA, null, 200);
+      okW('Aldwyn Androit seals it (' + scA.sheet + '): "' + String(wA2[0]).slice(0, 50) + '..."', scA.sheet === 'pt_androit' && R0.flags.wSealed === 1 && /seal/.test(wA2.join(' ')));
+      okW('the marker moves on: ' + (CW.pinned(st) || {}).door, (CW.pinned(st) || {}).door === 'keeper:casper');
+      outW(B); inW(B, 'keeper:casper'); gC = fireW(B, 'talk:casper'); scC = D.top(); wC = readW(scC); driveW(gC, null, 200);
+      okW('Casper Venn values it: "' + String(wC[1] || wC[0]).slice(0, 50) + '..."', R0.flags.wValued === 1 && /fair estate/.test(wC.join(' ')));
+      // back to Winters: paid, and the second errand with it
+      var sv0 = R0.silver; outW(B); inW(B, 'warp:winters'); var g2 = fireW(B, 'talk:winters'), sc2 = D.top(), back = readW(sc2);
+      okW('back at his counter: the papers taken, ' + (R0.silver - sv0) + ' sp, and straight into the Pryor estate (' + back.length + ' lines)', R0.flags.wErrADone === 1 && R0.silver - sv0 === 12 && !CW.count(st, 'estatepapers') && R0.flags.wErrB === 1 && CW.count(st, 'debtpurse') === 1 && /Brennan/.test(back.join(' ')));
+      driveW(g2, null, 200);
+      // the purse: Mical signs first (her door), then Brennan (his door) -- the first game's words, done
+      outW(B); driveW(TW.fire(B, trigW('keeper:mical')), null, 200);
+      okW('Mical at her door signs the crate off her books', R0.flags.wSigned === 1);
+      driveW(TW.fire(B, trigW('keeper:brennan')), null, 200);
+      okW('Brennan at his door takes the purse ("the forge is square")', R0.flags.wPaid === 1 && !CW.count(st, 'debtpurse'));
+      var xp0 = st.party.map(function (h) { return h.xp || 0; }), sv1 = R0.silver, pot0 = CW.count(st, 'potion');
+      inW(B, 'warp:winters'); var g3 = fireW(B, 'talk:winters'), sc3 = D.top(), done3 = readW(sc3);
+      var gainW = st.party.map(function (h, i) { return (h.xp || 0) - xp0[i]; });
+      okW('the estate settled: +' + (R0.silver - sv1) + ' sp, a potion, renown ' + HW.cur.renown + ' (' + String(done3.filter(function (l) { return /Renown/.test(l); })[0]).slice(0, 60) + ') and ' + gainW.join('/') + ' XP banked', R0.flags.wErrBDone === 1 && R0.silver - sv1 === 20 && CW.count(st, 'potion') === pot0 + 1 && HW.cur.renown === 1 && gainW.every(function (x) { return x === 250; }));
+      var jn2 = CW.journal(B);
+      okW('the JOURNAL: Winters\' Errands done -- "' + jn2.quests[0].doneText + '"; renown ' + jn2.renown + ', "' + jn2.title + '"; no marker', jn2.quests[0].done && jn2.renown === 1 && !CW.pinned(st));
+      // his shelves: the first game's rules
+      if (sc3.wait && sc3.wait.ask) goW(sc3, 'opt', 'THE SHELVES');
+      okW('THE SHELVES open after the errand: BUY lists his ' + (sc3.shop ? sc3.rows().length : 0) + ' (' + (sc3.shop ? sc3.rows().map(function (r) { return r.label + ' ' + r.right; }).slice(0, 3).join(', ') : '') + '...), all too dear for ' + R0.silver + ' sp', !!sc3.shop && sc3.tab === 'buy' && sc3.rows().length === window.DS.DATA.shops.winters.items.length && sc3.rows().every(function (r) { return r.off; }));
+      R0.silver += 9000; var pv0 = CW.count(st, 'potion'), s0 = R0.silver;
+      var rowsB = sc3.buttons().filter(function (q) { return q.row; }); clickW(sc3, rowsB[0]);
+      okW('a potion: HOW MANY? (' + (sc3.sub && sc3.sub.kind) + ', up to ' + (sc3.sub && sc3.sub.max) + ')', sc3.sub && sc3.sub.kind === 'qty' && sc3.sub.max === Math.min(99, Math.floor(R0.silver / 500)));
+      goW(sc3, 'qplus'); goW(sc3, 'qok');
+      okW('two bought: ' + (s0 - R0.silver) + ' sp, the pack ' + pv0 + ' to ' + CW.count(st, 'potion') + ', "' + sc3.msg + '" (welcoming)', s0 - R0.silver === 1000 && CW.count(st, 'potion') === pv0 + 2 && sc3.face.anim === 'welcoming');
+      var rDag = sc3.rows().map(function (r) { return r.id; }).indexOf('dagger1'), dB = sc3.buttons().filter(function (q) { return q.row && q.k === rDag; })[0];
+      if (!dB) { sc3.scroll = rDag; dB = sc3.buttons().filter(function (q) { return q.row && q.k === rDag; })[0]; }
+      clickW(sc3, dB);
+      var fitsW = sc3.sub && sc3.sub.fits ? sc3.sub.fits.map(function (h) { return h.name; }) : [];
+      okW('a +1 dagger: EQUIP IT NOW? -- who: ' + fitsW.join(', ') + ' (each with the first game\'s better-or-worse mark)', sc3.sub && sc3.sub.kind === 'equip' && fitsW.length > 0 && sc3.buttons().every(function (q) { return q.go !== 'who' || q.cmp != null; }));
+      var whoB = sc3.buttons().filter(function (q) { return q.go === 'who'; })[0], hW = whoB && whoB.hero, was = hW && hW.equip.weapon; clickW(sc3, whoB);
+      okW((hW && hW.name) + ' takes it (was ' + was + '): the old one in the pack', !!hW && hW.equip.weapon === 'dagger1' && (!was || CW.count(st, was) >= 1) && sc3.regear);
+      // SELL: what any shop buys at the half, and what a quest gave (buysNoSell); never a key
+      CW.give(st, 'threshingflail1', 1); CW.give(st, 'estatepapers', 1); goW(sc3, 'tab', 'SELL');
+      var sl = sc3.rows().map(function (r) { return r.id; });
+      okW('SELL: his skeptical face, the quest\'s Threshing Flail +1 on offer, no key item (' + sl.join(', ') + ')', sc3.face.anim === 'skeptical' && sl.indexOf('threshingflail1') >= 0 && sl.indexOf('estatepapers') < 0);
+      var it1 = window.DS.DATA.items.threshingflail1, s1 = R0.silver, kF = sl.indexOf('threshingflail1'); sc3.scroll = Math.max(0, kF - 3);
+      var rF = sc3.buttons().filter(function (q) { return q.row && q.k === kF; })[0]; clickW(sc3, rF);
+      okW('sold: +' + (R0.silver - s1) + ' sp (half of ' + it1.price + '), and his acquisition plays (the work row)', R0.silver - s1 === Math.max(1, Math.floor(it1.price / 2)) && !CW.count(st, 'threshingflail1') && sc3.face.anim === 'work');
+      CW.take(st, 'estatepapers', 1);
+      // the mouse alone: a click on BACK, then on LEAVE
+      var bk = sc3.buttons().filter(function (q) { return q.go === 'back'; })[0], mo = D.input.mouse, keep = { x: mo.x, y: mo.y, click: mo.click, inside: mo.inside };
+      mo.x = bk.x + 2; mo.y = bk.y + 2; mo.inside = true; mo.click = true; sc3.update(); mo.click = false;
+      okW('a mouse click on BACK: the shelves shut, his question again', !sc3.shop && sc3.wait && sc3.wait.ask);
+      var lv = sc3.buttons().filter(function (q) { return q.label === 'LEAVE'; })[0]; mo.x = lv.x + 2; mo.y = lv.y + 2; mo.click = true; sc3.update(); mo.click = false; Object.assign(mo, keep);
+      driveW(g3, null, 200);
+      okW('a click on LEAVE: the floor again, and the dagger on ' + (hW && hW.name) + '\'s figure (R.regear)', !upW() && D.top() === B && R0.members.some(function (u) { return u.src === hW && u.weapon && /dagger/i.test(u.weapon.name || u.weapon.id || ''); }));
+      // drawn without a throw (the portrait itself is fetched in a browser; the bench fetches nothing)
+      var cvW = document.createElement('canvas'); cvW.width = D.W; cvW.height = D.H; var ctxW = cvW.getContext('2d'), errD = null;
+      try { var scD = new CW.Counter(B, { id: 'winters', name: 'Ambrose Winters', script: function (s) { return CW.winters(s); } }); scD.draw(ctxW); CW.paintPin(ctxW, B); } catch (eD) { errD = String(eD).slice(0, 120); }
+      okW('the screen draws' + (errD ? ' THREW ' + errD : ''), !errD);
+      // the other keepers: their portraits and their words; Sylvia's booth his own
+      outW(B); inW(B, 'shop:kessler'); var gK = fireW(B, 'talk:kessler'), scK = D.top(), wK = readW(scK); driveW(gK, null, 200);
+      okW('Kessler at his counter on his portrait (' + scK.sheet + '): his first-game greeting and "' + wK.join(' ').slice(-50) + '"', scK.sheet === 'pt_kessler' && wK[0] === window.DS.DATA.shops.kessler.greeting && /buying and selling -- is to come/.test(wK.join(' ')));
+      outW(B); inW(B, 'keeper:sylvia'); var gS = fireW(B, 'talk:sylvia'), scS = D.top(), wS = readW(scS); driveW(gS, null, 200);
+      okW('Sylvia Swann at her booth (' + scS.sheet + '): his own -- "' + wS.join(' ') + '"', scS.sheet === 'pt_sylvia' && /his word/.test(wS.join(' ')));
+      outW(B); var gV = TW.fire(B, trigW('keeper:barber')); driveW(gV, upW, 200); var scV = D.top(), wV = upW() ? readW(scV) : []; driveW(gV, null, 200);
+      okW('Venn the barber at his door, on his portrait (' + (scV && scV.sheet) + ')', scV && scV.sheet === 'pt_barber' && /Shave/.test(wV.join(' ')));
+      // into the house's save: the floor's flags, purse and pack, the renown on the save
+      HW.fromFloor(B);
+      okW('the save takes it all (H.fromFloor): wErrBDone, ' + HW.cur.silver + ' sp, potions ' + (HW.cur.inv.filter(function (s) { return s.id === 'potion'; })[0] || {}).n + ', renown ' + HW.cur.renown, HW.cur.flags.wErrBDone === 1 && HW.cur.silver === R0.silver && HW.cur.inv.some(function (s) { return s.id === 'potion' && s.n === CW.count(st, 'potion'); }) && HW.cur.renown === 1);
+      var jw = CW.journal(null);
+      okW('THE WORLD\'s JOURNAL reads the save: the errand done, renown ' + jw.renown, jw.quests[0].done && jw.renown === 1);
+    } catch (eW) { repW.errors.push(String(eW && eW.stack || eW).slice(0, 900)); }
+    D.store.get = stGW; D.store.set = stSW; if (D.house) { D.house.playing = false; D.house.cur = null; }
+    var preW = document.createElement('pre'); preW.id = 'out'; preW.textContent = 'BENCH16 ' + JSON.stringify(repW);
+    document.body.appendChild(preW);
     return;
   }
   // the party-token map's feasibility test, 10-13 (mode=roam1013; js/roam.js, deep16/?roam=wet): the whole Wet from the 8-bit's rows, one token carrying the party's light;

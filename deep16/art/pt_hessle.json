@@ -1,0 +1,96 @@
+{
+ "image": "art/pt_hessle.png",
+ "fw": 182,
+ "fh": 159,
+ "ax": 98,
+ "ay": 157,
+ "top": 157,
+ "portrait": true,
+ "anims": {
+  "idle": {
+   "y": 0,
+   "fw": 182,
+   "fh": 159,
+   "ax": 98,
+   "ay": 157,
+   "frames": 6,
+   "fps": 3,
+   "ledge": [
+    true,
+    true,
+    true,
+    true,
+    true,
+    true
+   ]
+  },
+  "attentive": {
+   "y": 159,
+   "fw": 182,
+   "fh": 159,
+   "ax": 98,
+   "ay": 157,
+   "frames": 1,
+   "fps": 1,
+   "ledge": [
+    true
+   ]
+  },
+  "welcoming": {
+   "y": 318,
+   "fw": 182,
+   "fh": 159,
+   "ax": 98,
+   "ay": 157,
+   "frames": 1,
+   "fps": 1,
+   "ledge": [
+    true
+   ]
+  },
+  "skeptical": {
+   "y": 477,
+   "fw": 182,
+   "fh": 159,
+   "ax": 98,
+   "ay": 157,
+   "frames": 1,
+   "fps": 1,
+   "ledge": [
+    true
+   ]
+  },
+  "concerned": {
+   "y": 636,
+   "fw": 182,
+   "fh": 159,
+   "ax": 98,
+   "ay": 157,
+   "frames": 1,
+   "fps": 1,
+   "ledge": [
+    true
+   ]
+  },
+  "work": {
+   "y": 795,
+   "fw": 182,
+   "fh": 159,
+   "ax": 98,
+   "ay": 157,
+   "frames": 6,
+   "fps": 4,
+   "ledge": [
+    true,
+    true,
+    true,
+    true,
+    true,
+    true
+   ]
+  }
+ },
+ "art": "ART-81",
+ "door": "keeper:hessle",
+ "source": "deep16/_src/hessle/ART-81 (the art desk's ART-81, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
+}

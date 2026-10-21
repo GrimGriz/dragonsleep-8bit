@@ -1,0 +1,110 @@
+{
+ "image": "art/pt_sylvia.png",
+ "fw": 178,
+ "fh": 155,
+ "ax": 89,
+ "ay": 152,
+ "top": 152,
+ "portrait": true,
+ "anims": {
+  "idle": {
+   "y": 0,
+   "fw": 178,
+   "fh": 155,
+   "ax": 89,
+   "ay": 152,
+   "frames": 6,
+   "fps": 3,
+   "ledge": [
+    false,
+    false,
+    false,
+    false,
+    false,
+    false
+   ]
+  },
+  "welcoming": {
+   "y": 155,
+   "fw": 178,
+   "fh": 155,
+   "ax": 89,
+   "ay": 152,
+   "frames": 1,
+   "fps": 1,
+   "ledge": [
+    false
+   ]
+  },
+  "amused": {
+   "y": 310,
+   "fw": 178,
+   "fh": 155,
+   "ax": 89,
+   "ay": 152,
+   "frames": 1,
+   "fps": 1,
+   "ledge": [
+    false
+   ]
+  },
+  "concerned": {
+   "y": 465,
+   "fw": 178,
+   "fh": 155,
+   "ax": 89,
+   "ay": 152,
+   "frames": 1,
+   "fps": 1,
+   "ledge": [
+    false
+   ]
+  },
+  "startled": {
+   "y": 620,
+   "fw": 178,
+   "fh": 155,
+   "ax": 89,
+   "ay": 152,
+   "frames": 1,
+   "fps": 1,
+   "ledge": [
+    false
+   ]
+  },
+  "work": {
+   "y": 775,
+   "fw": 178,
+   "fh": 155,
+   "ax": 89,
+   "ay": 152,
+   "frames": 6,
+   "fps": 4,
+   "ledge": [
+    false,
+    false,
+    false,
+    false,
+    false,
+    false
+   ]
+  },
+  "stretch": {
+   "y": 930,
+   "fw": 178,
+   "fh": 155,
+   "ax": 89,
+   "ay": 152,
+   "frames": 3,
+   "fps": 4,
+   "ledge": [
+    false,
+    false,
+    false
+   ]
+  }
+ },
+ "art": "ART-SPECIAL-SYLVIA",
+ "door": "keeper:sylvia",
+ "source": "deep16/_src/sylvia/ART-SYLVIA (the art desk's ART-SPECIAL-SYLVIA, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
+}
