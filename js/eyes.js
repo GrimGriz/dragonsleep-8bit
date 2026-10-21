@@ -17,6 +17,9 @@
   var DS = window.DS = window.DS || {};
   var G1 = 'Eyes: first', G2 = 'Eyes: built this week', G3 = 'Eyes: built before, never seen';
   DS.EYES = {
+    'eyes-worldmap-1020': { pri: 2, group: G2, title: 'THE WORLD: the second game’s world map, walked (10-20)', pt: 'the maps §2f (deep16/js/world.js; deep16/data/world.js baked by tools/world-build.py from his hex map EXPORT) · eyes',
+      url: 'deep16/?world&fresh&dev',
+      look: 'Your hex map at DEEP16’s size: the 5-mile hexes as columns at their heights, decorated (trees, peaks, reeds, furrows), roads and places on them. Hover a hex: the hours and camps to get there. Click it: the banner walks, the sky and the HUD say the time (&dev shows the day). SPACE camps till morning. Walk to Silverton: the card offers the gate on the side you came from, E walks you onto the town floor, and its roads off the edge bring you back out. On the road a fight may come (the 8-bit’s zone tables, the mirror-made weighing more each day): the four and the foes face each other on a small field, one square between. Greyer hexes are corridor v3’s guess where nothing is painted yet. Does it read as a 16-bit world map, is the walk the right length (Silverton to the inn about a day and a half), and the fights the right pace?' },
     'eyes-release-frame-1015': { pri: 2, group: G2, title: 'The arrow leaves on the bow hand’s frame, at every pace (10-15)', pt: 'the grid’s rules, arrow timing (deep16/js/battle.js attack, Battle.unpace) · eyes',
       url: 'deep16/?show=hobgoblin&fresh=1',
       look: 'The hobgoblin’s rows, each played twice. Watch the LONGBOW: the arrow leaves as the bow hand opens (its release frame), not a beat after -- at the pace you play at (PACE in the M menu: 1, 1.25, 1.5), the same frame. It was a frame late at 1.25 and two at 1.5, for every row that names its release: the goblin’s shortbow, GreyFang’s bow, the Harbinger’s pounce.' },

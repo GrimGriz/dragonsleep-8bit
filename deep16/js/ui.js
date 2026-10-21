@@ -1166,7 +1166,7 @@
   UI.menuKeys = menuKeys; // (the climb's level-up pick drives the one menu with the grid's keys too, 10-14)
   // the hero whose turn it is, for EQUIP (a guest's gear is its own)
   function gearHero(B) { var u = B && B.req && B.req.turn; return u && u.side === 'party' && !u.guest && u.src ? u : null; }
-  UI.backLabel = function () { var B = D.battle; return B && B.o.onDone ? (B.o.climb ? 'BACK TO THE CLIMB' : B.o.pocket ? 'BACK TO THE POCKET DM' : 'BACK TO THE LADDER') : 'RETURN TO SILVERTON'; };
+  UI.backLabel = function () { var B = D.battle; return B && B.o.onDone ? (B.o.climb ? 'BACK TO THE CLIMB' : B.o.pocket ? 'BACK TO THE POCKET DM' : B.o.world ? 'BACK TO THE ROAD' : 'BACK TO THE LADDER') : 'RETURN TO SILVERTON'; };
   UI.menuInput = function (B) {
     if (B.menu && B.menu.m) B.menu.m.update(menuKeys()); // (the one menu, 10-06; the old grid menu cut 10-07, unreached since 3431a54)
   };

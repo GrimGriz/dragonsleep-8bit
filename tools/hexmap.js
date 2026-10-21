@@ -159,6 +159,25 @@
     reindex(); rebuildDC();
     S.paths.forEach(function (P) { if (/coldridge/i.test(P.name || '') && !P.drawn) SHAPED = shapeColdridge(P) || SHAPED; });
     if (!(S.seeded && S.seeded.doors1020) && S.sites.some(function (s) { return /doors/i.test(s.name); })) SEEDED = seedDoors();
+    if (!(S.seeded && S.seeded.lake1020)) LAKED = seedLake();
+  }
+  // HALFWAY LAKE (10-20; his "looked like the half way inn lake got moved over to the forest by sanctuary", then "it's been missing since the gulch questions, I
+  // didn't paint it back where it goes"): never painted -- corridor v3's picture drew it -- so once, on load, its mile hexes painted lake inside v3's own outline
+  // (the guess's LAKE, below, in v3's px), where no lake is painted within 4 mi of the inn; and a place by its name (the Snoot names it). The lake by the
+  // Sanctuary woods is his own paint of 10-16 and is left as it is.
+  var LAKED = false;
+  function seedLake() {
+    S.seeded = S.seeded || {}; S.seeded.lake1020 = true;
+    var inn = S.sites.filter(function (s) { return s.id === 'inn'; })[0]; if (!inn) return false;
+    for (var L = 1; L <= 3; L++) for (var k in S.paint[L]) if (S.paint[L][k] === 'lake') { var h = unK(k), c = hc(L, h[0], h[1]); if (Math.hypot(c[0] - inn.x, c[1] - inn.y) < 4) return false; }
+    var poly = LAKE.map(function (p) { return [p[0] / V3, p[1] / V3]; }), xs = poly.map(function (p) { return p[0]; }), ys = poly.map(function (p) { return p[1]; });
+    var x0 = Math.min.apply(null, xs) - 1, x1 = Math.max.apply(null, xs) + 1, y0 = Math.min.apply(null, ys) - 1, y1 = Math.max.apply(null, ys) + 1, w = LV[2].w, hh2 = w * SQ3 / 2, n = 0, sx = 0, sy = 0;
+    for (var r = Math.floor(y0 / hh2); r <= Math.ceil(y1 / hh2); r++) for (var q = Math.floor(x0 / w - r / 2); q <= Math.ceil(x1 / w - r / 2); q++) {
+      var cc = hc(2, q, r); if (!inPoly(cc[0], cc[1], poly)) continue;
+      rawSet(2, K(q, r), 'lake'); n++; sx += cc[0]; sy += cc[1];
+    }
+    if (n && !S.sites.some(function (s) { return s.id === 'halfwaylake'; })) { S.sites.push({ id: 'halfwaylake', name: 'Halfway Lake', kind: 'mark', x: sx / n, y: sy / n, note: 'painted 10-20 from corridor v3’s outline (the inn on its west shore; the Glowseep drains to it, the chuul sleeps in it)' }); reindex(); }
+    return n > 0;
   }
   // THE DOORS' SCHOOLS AND THE MOUNTAIN-FOOT WATER (10-20, once, on load; the seat's placing in miles of version 2, his to move). His words: "please
   // place the doors schools - the one with 5 of the schools, and the rest solo amongst the black mountains, adjusting height as needed (a valley for
@@ -1335,10 +1354,76 @@
     S.under.forEach(loadUnder); setLevel(1, [54 * GROW, 30 * GROW]); msg('started over from corridor v3’s places and roads');
   };
 
+  // ---------------------------------------------------------------- THE BAKE: the second game's world map from this map (10-20, RULED his "go on all leans": the
+  // world is baked from his EXPORT by this page's own engine -- tools/world-build.py opens it headless and writes deep16/data/world.js). The walked level is
+  // the 5-mile one (his "only the 5-mile level is walked"): each painted hex its ground (the most of what is in it), its height and wet floor as the world
+  // look draws it, and its second ground with its share (a hex mostly plain with some woods); the places; the roads and rivers as the hexes they run through
+  // (a 5-mile hex he has not painted, inside the painted country, is GUESSED from corridor v3's picture, as GUESS guesses -- the road's own hexes had holes;
+  // it is marked so, the game's look and the bake's count show where to paint)
+  function v3data() {
+    return new Promise(function (res) {
+      var u = S.under.filter(function (x) { return x.id === 'corridor'; })[0]; if (!u) return res(null);
+      var el = new Image(), bases = ['/TarlynsPit/map/', '../../TarlynsPit/map/', '../../../../../TarlynsPit/map/'], i = 0;
+      var next = function () { if (i >= bases.length) return res(null); el.src = bases[i++] + u.file; };
+      el.onload = function () {
+        var c = document.createElement('canvas'); c.width = el.naturalWidth; c.height = el.naturalHeight; var g = c.getContext('2d'); g.drawImage(el, 0, 0);
+        try { res({ u: u, D: g.getImageData(0, 0, c.width, c.height) }); } catch (e) { res(null); }
+      };
+      el.onerror = next; next();
+    });
+  }
+  async function bake() {
+    var V = await v3data();
+    hcheck(); ar();
+    var L = 1, out = { v: 1, baked: new Date().toISOString(), hexMi: LV[1].w, saved: S.saved || null, terr: {}, hexes: [], sites: [], paths: [], guessed: 0, v3: !!V };
+    S.terr.forEach(function (t) { out.terr[t.k] = { name: t.name, color: t.color, cost: +t.cost, diff: !!t.diff, alt: +t.alt, cut: +t.cut || 0 }; });
+    var b = [1e9, 1e9, -1e9, -1e9];
+    [1, 2, 3].forEach(function (l) { for (var k in S.paint[l]) { var h = unK(k), c = hc(l, h[0], h[1]); b[0] = Math.min(b[0], c[0]); b[1] = Math.min(b[1], c[1]); b[2] = Math.max(b[2], c[0]); b[3] = Math.max(b[3], c[1]); } });
+    var w = LV[1].w, hh = w * SQ3 / 2;
+    for (var r = Math.floor(b[1] / hh) - 1; r <= Math.ceil(b[3] / hh) + 1; r++) for (var q = Math.floor(b[0] / w - r / 2) - 1; q <= Math.ceil(b[2] / w - r / 2) + 1; q++) {
+      var t = domT(L, q, r), guessed = 0, cc = hc(L, q, r);
+      if (!t && V) { // (v3's guess, its own pixels: as guess() reads them)
+        var px = (cc[0] - V.u.x0) * V.u.pxmi, py = (cc[1] - V.u.y0) * V.u.pxmi;
+        if (px >= 0 && py >= 0 && px < V.D.width && py < V.D.height) { t = classify(V.D, px, py, w * V.u.pxmi * 0.42, L); if (t && TB[t]) guessed = 1; else t = null; }
+      }
+      if (!t) continue;
+      // (a 5-mile hex he painted only in part, under half its mile hexes and not itself: v3's guess is its ground, his paint its second -- else a lake
+      // painted in a corner, Halfway Lake, made five whole hexes of lake)
+      var k0 = K(q, r), part = null;
+      if (!guessed && V && !S.paint[1][k0] && DC[1].get(k0)) {
+        var np = 0; kids(LV[2].n).forEach(function (d) { if (effAt(2, 5 * q + d[0], 5 * r + d[1])) np++; });
+        if (np < 13) { var px2 = (cc[0] - V.u.x0) * V.u.pxmi, py2 = (cc[1] - V.u.y0) * V.u.pxmi, g2 = px2 >= 0 && py2 >= 0 && px2 < V.D.width && py2 < V.D.height ? classify(V.D, px2, py2, w * V.u.pxmi * 0.42, L) : null; if (g2 && TB[g2] && g2 !== t) part = { t: g2, was: t, sh: Math.round(np / 25 * 100) / 100 }; }
+      }
+      if (part) t = part.t;
+      var e = guessed || part ? [hAt(cc[0], cc[1], t), 0, 0, 0] : hexE(L, q, r), k = K(q, r), t2 = null, sh = 0;
+      if (part) { e[3] = PW; }
+      if (guessed) { out.guessed++; peaksAt(cc[0], cc[1]); e[3] = PW; }
+      if (part) { t2 = part.was; sh = part.sh; }
+      else if (DC[1].get(k)) { // (its second ground: the next most of its mile hexes)
+        var cnt = {}, n = 0; kids(LV[2].n).forEach(function (d) { var tt = domT(2, 5 * q + d[0], 5 * r + d[1]); if (tt) { cnt[tt] = (cnt[tt] || 0) + 1; n++; } });
+        Object.keys(cnt).forEach(function (tt) { if (tt !== t && cnt[tt] > sh) { sh = cnt[tt]; t2 = tt; } }); sh = n ? Math.round(sh / n * 100) / 100 : 0;
+      }
+      out.hexes.push([q, r, t, Math.round(e[0]), e[3] ? 1 : 0, t2, sh, guessed]);
+    }
+    S.sites.forEach(function (s) { var h = at(1, s.x, s.y); out.sites.push({ id: s.id, name: s.name, kind: s.kind, x: +s.x.toFixed(3), y: +s.y.toFixed(3), hex: [h[0], h[1]], note: s.note || '' }); });
+    S.paths.forEach(function (P) {
+      var pts = ptsOf(P); if (pts.length < 2) return;
+      var hexes = [], last = null, len = 0;
+      for (var i = 0; i + 1 < pts.length; i++) {
+        var A = pts[i], B2 = pts[i + 1], sl = Math.hypot(B2[0] - A[0], B2[1] - A[1]), n2 = Math.max(1, Math.ceil(sl / 0.25)); len += sl;
+        for (var j = 0; j <= n2; j++) { var hx = at(1, A[0] + (B2[0] - A[0]) * j / n2, A[1] + (B2[1] - A[1]) * j / n2), hk = K(hx[0], hx[1]); if (hk !== last) { hexes.push([hx[0], hx[1]]); last = hk; } }
+      }
+      out.paths.push({ id: P.id, name: P.name, kind: P.kind, difficult: !!P.difficult, mi: +len.toFixed(2), pts: pts.map(function (p) { return [+p[0].toFixed(3), +p[1].toFixed(3)]; }), hexes: hexes,
+        ends: [typeof P.pts[0] === 'string' ? P.pts[0] : null, typeof P.pts[P.pts.length - 1] === 'string' ? P.pts[P.pts.length - 1] : null] });
+    });
+    return out;
+  }
+
   // ---------------------------------------------------------------- go
   load();
   window.HEXMAP = { S: function () { return S; }, view: view, at: at, up: up, kids: kids, hc: hc, effAt: effAt, measure: measure, LV: LV, GROW: GROW, grow: grow, hAt: function (x, y) { hcheck(); return hAt(x, y); }, hexH: hexH, // (for the seat's probes)
     dbg: function (x, y) { hcheck(); var t = terrAtMi(x, y), raw = hRaw(x, y, t), lift = peaksAt(x, y); return { t: t, blend: bil(AR.A, x, y), raw: raw, lift: lift, bed: bedAt(x, y, raw) }; },
+    bake: bake,
     redraw: function () { LAYERKEY = ''; drawNow(); } };
   window.addEventListener('resize', resize);
   S.under.forEach(function (u) { if (u.on) loadUnder(u); });
@@ -1346,6 +1431,6 @@
   resize(); panels();
   $('origin').textContent = 'this browser keeps its copy for ' + location.host + ' (another port is another copy)';
   if (GREW) { saveNow(); msg('Your version 1 map has grown ×' + GROW + ' to the four-wagon-day road (Silverton to the Pit 68 mi). Version 1 is still kept in this browser, untouched. EXPORT is the save.'); }
-  else if (SHAPED || SEEDED) { saveNow(); msg((SHAPED ? 'The Coldridge Route is a difficult road now, its climb to the Doors in switchbacks: three wagon-days (its panel puts back your drawing). ' : '') + (SEEDED ? 'The Doors’ schools are placed (the five in their valley, the rest solo), and the mountain-foot water runs from the bogs to the Glowseep (L shows the lifts). ' : '') + 'EXPORT is the save.'); }
+  else if (SHAPED || SEEDED || LAKED) { saveNow(); msg((LAKED ? 'Halfway Lake is painted back at the inn, from corridor v3’s outline. ' : '') + (SHAPED ?'The Coldridge Route is a difficult road now, its climb to the Doors in switchbacks: three wagon-days (its panel puts back your drawing). ' : '') + (SEEDED ? 'The Doors’ schools are placed (the five in their valley, the rest solo), and the mountain-foot water runs from the bogs to the Glowseep (L shows the lifts). ' : '') + 'EXPORT is the save.'); }
   else msg('Kept in this browser as you go; EXPORT is the save.');
 })();
