@@ -44,6 +44,8 @@ KEEPERS = {
     'calla': ('calla/ART-84', 'ART-84', 'shop:calla'),
     'barber': ('barber/ART-85', 'ART-85', 'keeper:barber'),
     'marin': ('marin/ART-86', 'ART-86', 'keeper:marin'),
+    'kasten': ('kasten/ART-88', 'ART-88', 'shop:kasten'),             # (10-21, Griz: "Lucia and 88 should be in there now")
+    'lucia': ('lucia/ART-110', 'ART-110', 'shop:lucia'),
 }
 
 

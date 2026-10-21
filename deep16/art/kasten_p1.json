@@ -1,0 +1,25 @@
+{
+ "image": "art/kasten_p1.png",
+ "fw": 37,
+ "fh": 54,
+ "ax": 19,
+ "ay": 52,
+ "top": 50,
+ "anims": {
+  "idle": {
+   "y": 0,
+   "fw": 37,
+   "fh": 54,
+   "ax": 19,
+   "ay": 52,
+   "frames": 14,
+   "fps": 4,
+   "drawn": [
+    0
+   ],
+   "under": "crewman_p1"
+  }
+ },
+ "source": "deep16/_src/kasten/ART-88/ART-88_HEAD-2_PAGE-1.png (the art desk's south idle, 10-21), cut by tools/keeper-town-sheet.py",
+ "door": "shop:kasten"
+}

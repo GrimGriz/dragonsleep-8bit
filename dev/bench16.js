@@ -2394,8 +2394,9 @@
       okW('at their doors on the street, in their own figures facing south: ' + atDoorW.map(function (a) { return a.k.id + (a.u ? ' ' + a.u.sheet + ' at ' + a.u.x + ',' + a.u.y + ' (' + a.d + ' from the door)' : ' MISSING'); }).join('; '),
         atDoorW.every(function (a) { return a.u && a.u.sheet === CW.FIG[a.k.id] && a.d === 1 && a.u.facing === 0 && a.u.holdFacing && !!trigW('talk:' + a.k.id); }));
       var mW = atDoorW[0].u, tkM = [R0.token.x, R0.token.y]; R0.token.x = mW.x + 1; R0.token.y = mW.y + 1; var wouldM = D.spr.facingFor(R0.token.x - mW.x, R0.token.y - mW.y);
-      driveW(TW.fire(B, trigW('talk:marin')), null, 200); R0.token.x = tkM[0]; R0.token.y = tkM[1];
-      okW('Marin Voss spoken to from a diagonal: her word on a card ("' + String(((B.cards || [])[B.cards.length - 1] || {}).lines || '').slice(0, 50) + '..."), and she still faces south (she would have turned to facing ' + wouldM + ')', mW.facing === 0 && wouldM !== 0);
+      var gMa = TW.fire(B, trigW('talk:marin')); driveW(gMa, upW, 200); var scMa = D.top(), wMa = upW() ? readW(scMa) : []; driveW(gMa, null, 200); R0.token.x = tkM[0]; R0.token.y = tkM[1];
+      okW('Marin Voss spoken to from a diagonal at her door: her counter screen on her portrait (' + (scMa && scMa.sheet) + '), her first-game word ("' + String(wMa[0]).slice(0, 40) + '..."), and she still faces south (she would have turned to facing ' + wouldM + ')',
+        scMa && scMa.sheet === 'pt_marin' && /Common clothes/.test(wMa.join(' ')) && /is to come/.test(wMa.join(' ')) && !upW() && mW.facing === 0 && wouldM !== 0);
       var inWin = inW(B, 'warp:winters'); okW('in at Winters\' door (warp:winters): his room, ' + D.roam.def.name, inWin && D.roam.def.keeper.id === 'winters');
       var kuW = B.units.filter(function (u) { return u.npc === 'winters'; })[0];
       okW('behind his counter in his own figure (' + (kuW && kuW.sheet) + '), facing south', kuW && kuW.sheet === 'winters_p1' && kuW.facing === 0 && kuW.holdFacing);
@@ -2518,6 +2519,11 @@
       okW('Calla Voss at her counter on her portrait (' + scCa.sheet + '): her greeting, her stock (' + cRows.join(', ') + '), a Healer\'s Kit bought (' + (cs0 - R0.silver) + ' sp)', scCa.sheet === 'pt_calla' && wCa[0] === window.DS.DATA.shops.calla.greeting && cRows.join() === window.DS.DATA.shops.calla.items.join() && cs0 - R0.silver === window.DS.DATA.items.kit.price && CW.count(st, 'kit') === ck + 1);
       goW(scCa, 'back'); goW(scCa, 'opt', 'LEAVE'); driveW(gCa, null, 200);
       okW('a counter with no shop still speaks only: Hessle, Aldric Vest, Casper, Androit and Venn have no `shop:` line', ['hessle', 'aldric', 'casper', 'androit', 'barber'].every(function (k) { return !CW.VENDORS[k].shop; }) && !upW());
+      // Kasten Wheal and Lucia (10-21, Griz: "Lucia and 88 should be in there now"): their own figures behind their counters, their portraits, their sales as they were
+      outW(B); inW(B, 'shop:kasten'); var kuKa = B.units.filter(function (u) { return u.npc === 'kasten'; })[0], gKa = fireW(B, 'talk:kasten'), scKa = D.top(), wKa = readW(scKa); driveW(gKa, null, 200);
+      okW('Kasten Wheal behind his counter in his own figure (' + (kuKa && kuKa.sheet) + '), on his portrait (' + scKa.sheet + '): his first-game greeting, his sales to come', kuKa && kuKa.sheet === 'kasten_p1' && kuKa.facing === 0 && scKa.sheet === 'pt_kasten' && wKa[0] === window.DS.DATA.shops.kasten.greeting && /buying and selling -- is to come/.test(wKa.join(' ')) && !upW());
+      outW(B); inW(B, 'shop:lucia'); var kuLu = B.units.filter(function (u) { return u.npc === 'lucia'; })[0], gLu = fireW(B, 'talk:lucia'), scLu = D.top(), wLu = readW(scLu); driveW(gLu, null, 200);
+      okW('Lucia in her booth beside the Hex in her own figure (' + (kuLu && kuLu.sheet) + '), on her portrait (' + scLu.sheet + ', named ' + scLu.o.name + '): "' + String(wLu[0]).slice(0, 40) + '...", her sales to come', kuLu && kuLu.sheet === 'lucia_p1' && kuLu.facing === 0 && scLu.sheet === 'pt_lucia' && scLu.o.name === 'Lucia' && wLu[0] === window.DS.DATA.shops.lucia.greeting && /is to come/.test(wLu.join(' ')) && !upW());
       outW(B); inW(B, 'keeper:sylvia'); var gS = fireW(B, 'talk:sylvia'), scS = D.top(), wS = readW(scS); driveW(gS, null, 200);
       okW('Sylvia Swann at her booth (' + scS.sheet + '): his own -- "' + wS.join(' ') + '"', scS.sheet === 'pt_sylvia' && /his word/.test(wS.join(' ')));
       outW(B); var gV = TW.fire(B, trigW('keeper:barber')); driveW(gV, upW, 200); var scV = D.top(), wV = upW() ? readW(scV) : []; driveW(gV, null, 200);

@@ -55,6 +55,9 @@ PEOPLE = {
     'kessler': ('kessler/ART-83', 'ART-83', 'shop:kessler', {}),
     'calla': ('calla/ART-84', 'ART-84', 'shop:calla', {}),
     'barber': ('barber/ART-85', 'ART-85', 'keeper:barber', {}),
+    'marin': ('marin/ART-86', 'ART-86', 'keeper:marin', {}),          # (10-21, Griz: "is the marin voss lack the zip file I just put in Fresh?")
+    'kasten': ('kasten/ART-88', 'ART-88', 'shop:kasten', {}),         # (and "Lucia and 88 should be in there now")
+    'lucia': ('lucia/ART-110', 'ART-110', 'shop:lucia', {}),
 }
 
 
@@ -139,6 +142,7 @@ def ledge_top(piece, box):
 def cut_person(name):
     folder, art, door, ov = PEOPLE[name]
     raw, order = {}, []                                          # action -> [(rgba crop at source size, anchor x, anchor y, bust, ledge)]
+    pages = []
     for pg, bands, acts in ov.get('layout', LAYOUT):
         a = np.asarray(Image.open(page_path(folder, art, pg, ov.get('pat', '%s_HEAD-1_PAGE-%d.png'))).convert('RGB')).astype(np.int32)
         for bx0, by0, bx1, by1 in ov.get('blank', {}).get(pg, []):
@@ -146,13 +150,30 @@ def cut_person(name):
         found = [(piece, box, ledge_top(piece, box)) for piece, box in drawings(a, bands, ov.get('mask_d', MASK_D))]
         if len(found) != len(acts):
             raise SystemExit('%s page %d: %d drawings found, %d wanted' % (name, pg, len(found), len(acts)))
-        cut = [b[3] - f for p, b, f in found if f < b[3]]
-        for i, (piece, box, foot) in enumerate(found):     # (the page's counter is one counter: a frame whose foot is as wide as its counter
-            if cut and foot >= box[3]:                       # frames' but whose run was broken -- a hand over its edge -- is cut at their depth)
-                x0, y0, x1, y1 = box
-                wid = [np.count_nonzero(piece[y, x0:x1]) for y in range(y1 - int((y1 - y0) * 0.25), y1)]
-                if max(wid[-6:]) >= 0.97 * max(wid):
-                    found[i] = (piece, box, y1 - int(np.median(cut)))
+        pages.append((pg, a, found, acts))
+    def wide_foot(piece, box):                               # (the drawing's foot as wide as anything near it: a counter's front, not a hem)
+        x0, y0, x1, y1 = box
+        wid = [np.count_nonzero(piece[y, x0:x1]) for y in range(y1 - int((y1 - y0) * 0.25), y1)]
+        return max(wid[-6:]) >= 0.97 * max(wid)
+    def top_of(piece): return np.where(piece.any(axis=1))[0][0]
+    # the counter where a hand or a cloth broke its edge (Marin's work, Kasten's skeptical still, 10-21): a frame in a band whose neighbours' counter was found takes
+    # their line (the counter stands at one height across a band); a lone still of a keeper whose Idle stands at a counter takes the depth of the counters found
+    # on the other pages, as a share of the drawing's height
+    idle_at_counter = any(f < b[3] for pg, a, found, acts in pages for p, b, f in found if acts[0] == 'idle')
+    shares = [(b[3] - f) / float(b[3] - top_of(p)) for pg, a, found, acts in pages for p, b, f in found if f < b[3]]
+    for pg, a, found, acts in pages:
+        for i, (piece, box, foot) in enumerate(found):
+            if foot < box[3]:
+                continue
+            mid = (box[1] + box[3]) / 2.0
+            band = [f for p, b, f in found if f < b[3] and b[1] < mid < b[3]]
+            if band:
+                line = int(np.median(band))
+                if top_of(piece) + 0.6 * (box[3] - top_of(piece)) < line < box[3]:
+                    found[i] = (piece, box, line)
+            elif idle_at_counter and shares and wide_foot(piece, box):
+                found[i] = (piece, box, box[3] - int(round(np.median(shares) * (box[3] - top_of(piece)))))
+    for pg, a, found, acts in pages:
         for (piece, box, foot), act in zip(found, acts):
             x0, y0, x1, y1 = box
             keep = piece.copy(); keep[foot:, :] = False
