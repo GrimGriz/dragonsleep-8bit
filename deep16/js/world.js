@@ -142,7 +142,8 @@
   World.prototype.exit = function () { W.active = false; };
   World.prototype.say = function (s) { this.msg = { s: s, t: 0 }; };
   World.prototype.card = function (lines, then, keys) { this.cards.push({ lines: lines, then: then || null, keys: keys || null }); };
-  World.prototype.camObj = function () { var z = W.ZOOMS[this.zi]; return { cx: this.cam.cx, cy: this.cam.cy, z: z, W: D.W, H: D.H, E: 6 * Math.min(1, Math.pow(8 / z, 0.35)) }; };
+  World.prototype.zooms = function () { return this.fineDoor && W.FINE.on ? W.FINE.ZOOMS : W.ZOOMS; }; // (THE FINE LAND's one zoom closer, js/worldfine.js; else THE WORLD's five)
+  World.prototype.camObj = function () { var z = this.zooms()[this.zi]; return { cx: this.cam.cx, cy: this.cam.cy, z: z, W: D.W, H: D.H, E: 6 * Math.min(1, Math.pow(8 / z, 0.35)) }; };
   function proj(cam, x, y, h) { return [(x - cam.cx) * cam.z + cam.W / 2, (y - cam.cy) * cam.z * TILT + cam.H / 2 - h / 5280 * cam.z * cam.E]; }
   function hexTopH(q, r) { var e = M.hex[K(q, r)]; return e ? e.h : 0; }
   World.prototype.pick = function (mx, my) {
@@ -165,12 +166,13 @@
     if (I.pressed('menu') && W.house() && !this.walk) { D.house.openMenu(this); D.sfx('menu'); return; } // (M: the party's menu -- EQUIP, ITEMS, STATUS, SAVE)
     if (I.pressed('verdict') && W.OV) { if (this.view === 'tiles') W.OV.close(this); else W.OV.open(this); return; } // (V: the hex view or the top-down tiles)
     if (this.view === 'tiles') { W.OV.update(this); return; }
-    if (this.fineDoor && I.pressed('dice')) { W.FINE.on = !W.FINE.on; D.sfx('confirm'); return; } // (F: THE FINE LAND or today's tops, the trial's door only)
+    if (this.fineDoor && I.pressed('dice')) { W.FINE.on = !W.FINE.on; this.zi = Math.min(this.zi, this.zooms().length - 1); D.sfx('confirm'); return; } // (F: THE FINE LAND or today's tops, the trial's door only)
     // the camera: the wheel and -/= zoom, the middle button pans, C comes back to the party
-    if (m.wheel) this.zi = Math.max(0, Math.min(W.ZOOMS.length - 1, this.zi - m.wheel));
-    if (I.pressed('zoomin')) this.zi = Math.min(W.ZOOMS.length - 1, this.zi + 1);
+    var ZS = this.zooms();
+    if (m.wheel) this.zi = Math.max(0, Math.min(ZS.length - 1, this.zi - m.wheel));
+    if (I.pressed('zoomin')) this.zi = Math.min(ZS.length - 1, this.zi + 1);
     if (I.pressed('zoomout')) this.zi = Math.max(0, this.zi - 1);
-    var z = W.ZOOMS[this.zi];
+    var z = ZS[this.zi];
     if (m.panX || m.panY) { this.cam.cx -= (m.panX || 0) / z; this.cam.cy -= (m.panY || 0) / (z * TILT); m.panX = m.panY = 0; }
     // the mouse at the screen's edge scrolls the map (his "i'm getting no 'mouse on the edge scroll map'"), as the grid's fights do; not for a finger
     if (m.inside && m.inWin !== false && !D.touch) { var EG = 8, sp = 5 / z; if (m.x < EG) this.cam.cx -= sp; else if (m.x > D.W - EG) this.cam.cx += sp; if (m.y < EG) this.cam.cy -= sp / TILT; else if (m.y > D.H - EG) this.cam.cy += sp / TILT; }

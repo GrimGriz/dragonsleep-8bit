@@ -30,7 +30,7 @@
     for (var j = 0; j < hd.hh; j++) { var s = 0; for (var i = 0; i < hd.hw; i++) { var k = i + j * hd.hw, d = lo[k] | hi[k] << 8; if (d & 0x8000) d -= 0x10000; s += d; H[k] = s; } }
     // each eighth of a mile's colour: its four grounds' (the hex map's toneRGB, as THE LOOK's), lit by the eighth's own slope, snowed where high
     var base = hd.keys.map(function (k) { return M.col[k] || [90, 82, 68]; }), water = hd.keys.map(function (k) { return k === 'sea' || k === 'lake'; }), woods = hd.keys.indexOf('woods');
-    var hw = hd.hw, hh = hd.hh, ds = hd.mi * hd.hs, kk = F.LIT / 5280, C = new Uint32Array(hn), CW = new Uint32Array(hn), WF = new Float32Array(hn), hs = hd.hs, w = hd.w, n4 = hs * hs;
+    var hw = hd.hw, hh = hd.hh, ds = hd.mi * hd.hs, kk = F.LIT / 5280, C = new Uint32Array(hn), CW = new Uint32Array(hn), WF = new Float32Array(hn), SL = new Float32Array(hn), hs = hd.hs, w = hd.w, n4 = hs * hs;
     var dap = function (i, j) { var h = (Math.imul(i, 73856093) ^ Math.imul(j, 19349663)) >>> 0; h = Math.imul(h ^ (h >>> 13), 1274126177) >>> 0; return (h % 1000) / 1000 - 0.5; }; // (a wood's canopy, dappled)
     for (var y = 0; y < hh; y++) for (var x = 0; x < hw; x++) {
       var i0 = x + y * hw, xa = Math.max(0, x - 1), xb = Math.min(hw - 1, x + 1), ya = Math.max(0, y - 1), yb = Math.min(hh - 1, y + 1);
@@ -47,7 +47,7 @@
       r /= n4; g /= n4; b /= n4;
       var sn = land ? Math.max(0, Math.min(0.75, (H[i0] - 7000) / 2600)) * land / n4 : 0;
       if (sn) { r += (236 - r) * sn; g += (238 - g) * sn; b += (246 - b) * sn; }
-      C[i0] = pack(Math.min(255, r), Math.min(255, g), Math.min(255, b)); CW[i0] = pack(wr / n4, wg / n4, wb / n4); WF[i0] = nw0 / n4;
+      C[i0] = pack(Math.min(255, r), Math.min(255, g), Math.min(255, b)); CW[i0] = pack(wr / n4, wg / n4, wb / n4); WF[i0] = nw0 / n4; SL[i0] = sl;
     }
     var L = [{ ds: ds, w: hw, h: hh, H: H, C: C, CW: CW, WF: WF }];
     var mean4 = function (A, q0, q1, q2, q3) { var cs = [A[q0], A[q1], A[q2], A[q3]], rr = 0, gg = 0, bb = 0; for (var ci = 0; ci < 4; ci++) { rr += cs[ci] & 255; gg += cs[ci] >> 8 & 255; bb += cs[ci] >> 16 & 255; } return pack(rr >> 2, gg >> 2, bb >> 2); };
@@ -69,7 +69,20 @@
     var inWorld = function (x, y) { var a = W.hexOf(x, y), qi = a[0] - qs[0], ri = a[1] - rs[0]; return qi >= 0 && ri >= 0 && qi < qn && ri <= rs[1] - rs[0] && IN[qi + ri * qn] === 1; };
     var hmin = 1e9, hmax = -1e9; for (var hi2 = 0; hi2 < hn; hi2++) { if (H[hi2] < hmin) hmin = H[hi2]; if (H[hi2] > hmax) hmax = H[hi2]; }
     L.forEach(function (lv) { lv.IN = new Uint8Array(lv.w * lv.h); for (var y3 = 0; y3 < lv.h; y3++) for (var x3 = 0; x3 < lv.w; x3++) if (inWorld(hd.x0 + (x3 + 0.5) * lv.ds, hd.y0 + (y3 + 0.5) * lv.ds)) lv.IN[x3 + y3 * lv.w] = 1; });
-    return { hd: hd, T: T, L: L, x0: hd.x0, y0: hd.y0, hmin: hmin, hmax: hmax };
+    return { hd: hd, T: T, L: L, x0: hd.x0, y0: hd.y0, hmin: hmin, hmax: hmax, SL: SL, base: base, water: water, woods: woods, dap: dap };
+  }
+  // THE CLOSER ZOOM (10-21 night, his add: "build that alternate at one zoom closer as well"): one step past THE WORLD's nearest (12 px a mile), only while the
+  // land is drawn; there a 330 ft ground is about a pixel, so each is drawn as itself -- its own colour, lit by its eighth of a mile's slope, at the height
+  // between the eighths' (a wood's canopy dappled 330 ft by 330 ft)
+  F.ZOOMS = W.ZOOMS.concat([17]);
+  function colour16(i, j, k0, h) {
+    var t = G.T[i + j * G.hd.w], ti = t & 127, c = G.base[ti] || G.base[0], sl = G.SL[k0], m = sl, r = c[0], g = c[1], b = c[2];
+    if (G.water[ti]) m = 1;
+    else if (t & 128) { r = r * 0.5 + 35; g = g * 0.5 + 66; b = b * 0.5 + 64; m = 0.9 + (sl - 1) * 0.3; }
+    else if (ti === G.woods) m *= 1 + 0.3 * G.dap(i, j);
+    r *= m; g *= m; b *= m;
+    var sn = G.water[ti] ? 0 : Math.max(0, Math.min(0.75, (h - 7000) / 2600)); if (sn) { r += (236 - r) * sn; g += (238 - g) * sn; b += (246 - b) * sn; }
+    return pack(Math.min(255, r), Math.min(255, g), Math.min(255, b));
   }
 
   // ---------------------------------------------------------------- the hero's hexes: the hex the party stands on and its two rings, today's columns
@@ -104,23 +117,26 @@
   function render(cam, at) {
     var Wd = cam.W, Hd = cam.H;
     if (!CV || CV.width !== Wd || CV.height !== Hd) { CV = document.createElement('canvas'); CV.width = Wd; CV.height = Hd; IMG = CV.getContext('2d').createImageData(Wd, Hd); BUF = new Uint32Array(IMG.data.buffer); DEPTH = new Float32Array(Wd * Hd); }
-    var M = W.M(), near = nearOf(at), lp = lookPx(), lv = level(cam), ds = lv.ds, zy = cam.z * W.TILT, rise = cam.z * cam.E / 5280, BG = pack(0x1b, 0x24, 0x33);
+    var M = W.M(), near = nearOf(at), lp = lookPx(), zy = cam.z * W.TILT, rise = cam.z * cam.E / 5280, BG = pack(0x1b, 0x24, 0x33);
+    var f16 = 1 / zy < G.L[0].ds * 0.8, lv = f16 ? G.L[0] : level(cam), ds = f16 ? G.hd.mi : lv.ds, gw = f16 ? G.hd.w : lv.w, gh = f16 ? G.hd.h : lv.h; // (f16: THE CLOSER ZOOM, the 330 ft grounds themselves)
     BUF.fill(BG); DEPTH.fill(NaN);
     var ySouth = cam.cy + (Hd / 2 + Math.max(G.hmax, 0) * rise) / zy + ds, yNorth = cam.cy - (Hd / 2 - Math.min(G.hmin, 0) * rise) / zy - ds;
-    var j0 = Math.min(lv.h - 1, Math.floor((ySouth - G.y0) / ds)), j1 = Math.max(0, Math.floor((yNorth - G.y0) / ds)), topLen = Math.max(1, Math.ceil(ds * zy));
+    var j0 = Math.min(gh - 1, Math.floor((ySouth - G.y0) / ds)), j1 = Math.max(0, Math.floor((yNorth - G.y0) / ds)), topLen = Math.max(1, Math.ceil(ds * zy));
     for (var sx = 0; sx < Wd; sx++) {
-      var gx = cam.cx + (sx + 0.5 - Wd / 2) / cam.z, ci = Math.floor((gx - G.x0) / ds); if (ci < 0 || ci >= lv.w) continue;
+      var gx = cam.cx + (sx + 0.5 - Wd / 2) / cam.z, ci = Math.floor((gx - G.x0) / ds); if (ci < 0 || ci >= gw) continue;
       var ybuf = Hd, nearCol = Math.abs(gx - NEARC[0]) <= 14, edge = true;
       for (var cj = j0; cj >= j1 && ybuf > 0; cj--) {
-        var k = ci + cj * lv.w; if (!lv.IN[k]) { edge = true; continue; }
+        var k = f16 ? (ci >> 1) + (cj >> 1) * lv.w : ci + cj * lv.w; if (!lv.IN[k]) { edge = true; continue; }
         var gy = G.y0 + (cj + 0.5) * ds, e = nearCol ? nearAt(gx, gy) : null, h, col, wall = 0;
         if (e) { // a hex of the hero's: its column, today's top on it and its south walls under it
           h = e.h; var tn = tonesOf(e); wall = gx > W.hc(e.q, e.r)[0] ? tn[1] : tn[2];
           if (lp && e.t !== 'sea' && e.t !== 'lake') { var lx = Math.floor((gx - lp.m.x0) / lp.m.mi), ly = Math.floor((gy - lp.m.y0) / lp.m.mi); col = lx >= 0 && ly >= 0 && lx < lp.m.w && ly < lp.m.h ? lp.d[lx + ly * lp.m.w] : tn[0]; }
           else col = tn[0];
-        } else { h = lv.H[k]; col = lv.C[k]; wall = lv.CW[k]; }
+        } else if (f16) { h = hL0(gx, gy); col = 0; wall = lv.CW[k]; } // (its colour only if it is drawn, below)
+        else { h = lv.H[k]; col = lv.C[k]; wall = lv.CW[k]; }
         if (edge) { ybuf = Math.min(ybuf, Math.ceil((gy + ds / 2 - cam.cy) * zy + Hd / 2 - (Math.min(0, h) - 400) * rise)); edge = false; } // (the world's edge: a wall down to 400 ft under the sea, as THE WORLD's edge columns)
         var top = Math.ceil((gy - cam.cy) * zy + Hd / 2 - h * rise); if (top >= ybuf) continue;
+        if (f16 && !e) col = colour16(ci, cj, k, h);
         var py0 = Math.max(0, top), pyT = Math.min(ybuf, top + topLen + (e ? 0 : 1)); // (the land's face starts a pixel lower: a gentle rise keeps its own light)
         for (var py = py0; py < ybuf; py++) { var o = py * Wd + sx; BUF[o] = wall && py >= pyT ? wall : col; DEPTH[o] = gy; }
         ybuf = py0;
@@ -131,9 +147,10 @@
   // the far woods' trees: today's tops carry a hex's few by the hex; the land carries them by its own ground -- a tree on a scatter about ten pixels
   // apart wherever the 330 ft ground under it is woods, north to south, each hidden where nearer ground covers its foot
   function hash2(i, j, s) { var h = (Math.imul(i, 374761393) + Math.imul(j, 668265263) + Math.imul(s, 1442695041)) | 0; h = Math.imul(h ^ (h >>> 13), 1274126177); h ^= h >>> 16; return (h >>> 0) / 4294967296; }
+  function th0(s) { return Math.max(3, Math.min(13, Math.round(6 * s))); } // (a tree's height: today's tops', no taller than THE WORLD's nearest zoom draws them)
   function trees(g, cam, hexW) {
     var s = cam.z * hexW / 30, hd = G.hd, wi = hd.keys.indexOf('woods'), L0 = G.L[0]; if (s < 0.45 || wi < 0) return;
-    var sp = 10 / cam.z, zy = cam.z * W.TILT, th = Math.max(3, Math.round(6 * s)), x0 = cam.cx - cam.W / 2 / cam.z - sp, x1 = cam.cx + cam.W / 2 / cam.z + sp, y0 = cam.cy - cam.H / 2 / zy - sp, y1 = cam.cy + (cam.H / 2 + Math.max(0, G.hmax) * cam.E / 5280 * cam.z) / zy + sp;
+    var sp = Math.max(10, th0(s)) / cam.z, zy = cam.z * W.TILT, th = th0(s), x0 = cam.cx - cam.W / 2 / cam.z - sp, x1 = cam.cx + cam.W / 2 / cam.z + sp, y0 = cam.cy - cam.H / 2 / zy - sp, y1 = cam.cy + (cam.H / 2 + Math.max(0, G.hmax) * cam.E / 5280 * cam.z) / zy + sp;
     for (var j = Math.floor(y0 / sp); j <= Math.ceil(y1 / sp); j++) for (var i = Math.floor(x0 / sp); i <= Math.ceil(x1 / sp); i++) {
       var x = (i + 0.1 + 0.8 * hash2(i, j, 11)) * sp, y = (j + 0.1 + 0.8 * hash2(i, j, 12)) * sp, ti = Math.floor((x - G.x0) / hd.mi), tj = Math.floor((y - G.y0) / hd.mi);
       if (ti < 0 || tj < 0 || ti >= hd.w || tj >= hd.h || (G.T[ti + tj * hd.w] & 127) !== wi || !L0.IN[(ti / hd.hs | 0) + (tj / hd.hs | 0) * L0.w] || nearAt(x, y)) continue;
@@ -166,10 +183,10 @@
     if (hi) Object.keys(hi).forEach(function (k) { var e = M.hex[k]; if (!e) return; polyAt(e, !near[k]); g.strokeStyle = hi[k]; g.lineWidth = 1.5; g.stroke(); });
   };
   // the ground's height at a point (a hero's hex: its column's top), for the roads, the places and the pointer
-  F.groundH = function (x, y) {
-    var e = nearAt(x, y); if (e) return e.h;
+  F.groundH = function (x, y) { var e = nearAt(x, y); return e ? e.h : hL0(x, y); };
+  function hL0(x, y) { // (the eighths' heights, between them)
     var lv = G.L[0], fx = (x - G.x0) / lv.ds - 0.5, fy = (y - G.y0) / lv.ds - 0.5, i = Math.floor(fx), j = Math.floor(fy), u = fx - i, v = fy - j;
-    var cl = function (a, n) { return a < 0 ? 0 : a >= n ? n - 1 : a; }, I0 = cl(i, lv.w), I1 = cl(i + 1, lv.w), J0 = cl(j, lv.h) * lv.w, J1 = cl(j + 1, lv.h) * lv.w;
+    var nw = lv.w - 1, nh = lv.h - 1, I0 = i < 0 ? 0 : i > nw ? nw : i, I1 = i + 1 < 0 ? 0 : i + 1 > nw ? nw : i + 1, J0 = (j < 0 ? 0 : j > nh ? nh : j) * lv.w, J1 = (j + 1 < 0 ? 0 : j + 1 > nh ? nh : j + 1) * lv.w;
     return (lv.H[J0 + I0] * (1 - u) + lv.H[J0 + I1] * u) * (1 - v) + (lv.H[J1 + I0] * (1 - u) + lv.H[J1 + I1] * u) * v;
   };
   // a point on the ground is seen unless ground two miles and more nearer covers its pixel (the drawn land keeps, for each pixel, how far north the
