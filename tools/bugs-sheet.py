@@ -534,6 +534,94 @@ def art48(rows):
     return out
 
 
+# ------------------------------------------------------------------ the fire beetle's diagonals: the art desk's ART-49 (10-21)
+# Four pages in deep16/_src/firebeetle/ART-49/ (sorted out of Fresh by its ART-49-sort.py; the desk's papers in
+# _src/art-desk/received-2026-10-21-ART-49-firebeetle-FINAL-SHEETS/): HEAD 1 SE and HEAD 2 NE, Idle, Walk, Bite on page 1, Flinch and Fall on
+# page 2, each row's name over it. SE and NE fill every row (SW and NW their mirror); S and N keep the code's front and back and his GPT fall.
+# As art48, but on the ground: each row's first frame with its centroid on the code idle's column and its lowest row on the code idle's
+# floor, the rest where the page drew them against their numbers and the row's ground (the fall ends belly up on it). K by area: page 1's Idle
+# against the code's idle between its side and its front, page 2 by its Flinch 1 (standing, the idle's pose) against its page 1's Idle 1.
+ART49 = dict(
+    H1P1=dict(file='ART-49_HEAD-1_PAGE-1.png', W=1983, text=[(30, 70, 125, 108), (30, 298, 130, 335), (30, 527, 125, 564)],
+              rows=[('idle', (0, 105, 1983, 278), (253, 275)), ('walk', (0, 332, 1983, 501), (477, 498)), ('attack', (0, 561, 1983, 737), (712, 734))]),
+    H1P2=dict(file='ART-49_HEAD-1_PAGE-2.png', W=1983, text=[(30, 135, 210, 192), (30, 425, 150, 486)],
+              rows=[('flinch', (0, 192, 1983, 377), (347, 374)), ('hurt', (0, 486, 1983, 694), (664, 691))]),
+    H2P1=dict(file='ART-49_HEAD-2_PAGE-1.png', W=1983, text=[(30, 70, 125, 108), (30, 298, 130, 336), (30, 528, 125, 566)],
+              rows=[('idle', (0, 105, 1983, 279), (254, 276)), ('walk', (0, 333, 1983, 503), (478, 500)), ('attack', (0, 562, 1983, 738), (713, 735))]),
+    H2P2=dict(file='ART-49_HEAD-2_PAGE-2.png', W=1983, text=[(20, 143, 190, 202), (20, 430, 135, 490)],
+              rows=[('flinch', (0, 202, 1983, 381), (352, 378)), ('hurt', (0, 490, 1983, 683), (654, 680))]),
+)
+VIEWS49 = {'SE': ('H1P1', 'H1P2'), 'NE': ('H2P1', 'H2P2')}
+
+
+def art49(rows):
+    """-> {view: {anim: [Images]}} from ART-49's pages; `rows` the code's rows ({'idle': {'side':, 'S':, 'N':}, ...})"""
+    import importlib.util
+
+    def load(nm):
+        spec = importlib.util.spec_from_file_location(nm, os.path.join(ca.ROOT, 'tools', nm + '.py'))
+        mod = importlib.util.module_from_spec(spec); spec.loader.exec_module(mod)
+        return mod
+    SR, pix = load('sheetrows'), load('pixelate')
+    arr = lambda im: np.asarray(im)
+    area = lambda a: int((a[..., 3] > 0).sum())
+    cen = lambda a: tuple(float(v.mean()) for v in np.where(a[..., 3] > 0)[::-1])   # (x, y)
+    low = lambda a: int(np.where(a[..., 3].any(axis=1))[0][-1])
+
+    def fit(im, k):
+        w, hh = im.size
+        img = im.convert('RGBa').resize((max(1, round(w / k)), max(1, round(hh / k))), Image.BOX).convert('RGBA')
+        pad = Image.new('RGBA', (img.width + 2, img.height + 2), (0, 0, 0, 0)); pad.paste(img, (1, 1))
+        return pix.pixelate(pad, 1, do_lift=False)
+
+    def k_for(ims, target):
+        lo, hi = 1.5, 12.0
+        for _ in range(24):
+            k = (lo + hi) / 2
+            got = float(np.median([area(fit(im, k)) for im in ims]))
+            lo, hi = (k, hi) if got > target else (lo, k)
+        return (lo + hi) / 2
+
+    cuts = {}
+    for L, s in ART49.items():
+        path = os.path.join(_src_dir(), 'firebeetle', 'ART-49', s['file'])
+        a = np.asarray(Image.open(path).convert('RGB')).astype(np.int32)
+        spec = dict(text=s['text'] + [(0, l0 - 3, s['W'], l1 + 4) for _, _, (l0, l1) in s['rows']],
+                    rows=[(r, b, l, [str(i + 1) for i in range(6 if r == 'flinch' else 8)]) for r, b, l in s['rows']])
+        got = SR.cut_sheet(path, spec, tag=L)
+        lx = {r: SR.label_xs(a, b[0], b[2], l[0], l[1]) for r, b, l in s['rows']}
+        cuts[L] = {r: [(im, box, lx[r][i]) for i, (_, im, box) in enumerate(frs)] for r, frs in got.items()}
+    code_idle = float(np.median([area(arr(im)) for im in rows['idle']['side']] + [area(arr(im)) for im in rows['idle']['S']]))
+    K = {}
+    for p1, p2 in VIEWS49.values():
+        K[p1] = k_for([im for im, _, _ in cuts[p1]['idle']], code_idle)
+        K[p2] = K[p1] * np.sqrt(area(fit(cuts[p2]['flinch'][0][0], K[p1])) / area(fit(cuts[p1]['idle'][0][0], K[p1])))
+    print('  ART-49 K: ' + ', '.join('%s %.2f' % kv for kv in K.items()))
+    i0 = arr(rows['idle']['side'][0])
+    stand = (cen(i0)[0], low(i0))                                # the code beetle's column and its floor (idle 1)
+    out = {}
+    for v, pages in VIEWS49.items():
+        out[v] = {}
+        for L in pages:
+            k = K[L]
+            for an, frs in cuts[L].items():
+                fits = [fit(im, k) for im, _, _ in frs]
+                rel = [((box[0] + cen(arr(im))[0] - x) / k, box[3] / k) for im, box, x in frs]   # (x against its number, the foot on the row's ground)
+                row = []
+                for a, (rx, rb) in zip(fits, rel):
+                    gx = cen(a)[0]
+                    ox, oy = int(round(stand[0] + rx - rel[0][0] - gx)), int(round(stand[1] + rb - rel[0][1] - low(a)))
+                    fr = np.zeros((FH, FW, 4), np.uint8)
+                    ah, aw = a.shape[:2]
+                    y0, x0, y1, x1 = max(0, oy), max(0, ox), min(FH, oy + ah), min(FW, ox + aw)
+                    fr[y0:y1, x0:x1] = a[y0 - oy:y1 - oy, x0 - ox:x1 - ox]
+                    if (fr[..., 3] > 0).sum() < (a[..., 3] > 0).sum():
+                        raise SystemExit('firebeetle %s %s %s: cut off at the frame edge' % (L, an, len(row) + 1))
+                    row.append(Image.fromarray(fr, 'RGBA'))
+                out[v][an] = row
+    return out
+
+
 def with_fb(name, rows):
     """Bring each row's front (S) and back (N) beside its side frames; hurt takes his generated sheet's where there is one (10-08), else
     keeps the side frames (as the clacker's sheet)."""
@@ -563,6 +651,10 @@ def with_fb(name, rows):
     fb = hurt_fb(name, out['idle'])
     if fb:
         out['hurt'] = dict(side=out['hurt'], **fb)
+    if name == 'firebeetle':                                # ART-49 (10-21): SE and NE every row
+        for v, an_rows in art49(out).items():
+            for an, fr in an_rows.items():
+                out[an][v] = fr
     if name == 'stirge':                                    # ART-48 (10-21): SE and NE every row, S and N their Latched
         dg = art48(out)
         out['latched'] = dict(side=out['latched'])
@@ -587,6 +679,7 @@ if __name__ == '__main__':
         if 'preview' in sys.argv:
             ca.preview(rows, os.path.join(ca.ROOT, 'dev', 'shots', 'bugs-%s.png' % nm))
         else:
-            src = 'drawn in code by tools/bugs-sheet.py (10-05)' + ('; SE and NE every row and S and N its latch drawn by the art desk (ART-48, 10-21)' if nm == 'stirge' else '')
+            src = 'drawn in code by tools/bugs-sheet.py (10-05)' + {'stirge': '; SE and NE every row and S and N its latch drawn by the art desk (ART-48, 10-21)',
+                                                                    'firebeetle': '; SE and NE every row drawn by the art desk (ART-49, 10-21)'}.get(nm, '')
             sh, meta = ca.lay(rows, FW, FH48 if nm == 'stirge' else FH, AX, AY, top, src, out, fps_of=fps)
             print('wrote deep16/art/%s.png' % out, sh.size)

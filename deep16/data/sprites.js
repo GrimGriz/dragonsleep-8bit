@@ -3765,13 +3765,13 @@
 "source": "the big face off mirrorgnoll\\Battered Mirror-Eyed Gnoll Close-Up-2.png (Griz, 10-08), cut by tools/faces-sheet.py"
 },
 "firebeetle_p1": {
-"image": "art/firebeetle_p1.png?v=41ee7cce6c",
+"image": "art/firebeetle_p1.png?v=d22701c6f1",
 "fw": 96,
 "fh": 96,
 "ax": 48,
 "ay": 84,
 "top": 52,
-"source": "drawn in code by tools/bugs-sheet.py (10-05)",
+"source": "drawn in code by tools/bugs-sheet.py (10-05); SE and NE every row drawn by the art desk (ART-49, 10-21)",
 "anims": {
 "idle": {
 "y": 0,
