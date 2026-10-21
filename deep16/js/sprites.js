@@ -241,7 +241,7 @@
   S.WIELD = {
     off: /[?&]nowield\b/.test(location.search),
     flail: { staff: 30, over: 13, link: 2, beater: 10 }, // (over: the staff on past the lead fist to the hinge -- the beater hangs clear of his hands, his eye 10-20: "it put the business end of the flail in his hands")
-    battleaxe: { staff: 27, over: 9, blade: 6, beard: 4 }
+    battleaxe: { staff: 24, butt: 2, blade: 6, beard: 4 } // (held by the handle: the butt just past the rear fist, the head the haft's length out -- his eye 10-20: the first swing "has him holding the middle of it, rather than the handle or the business end")
   };
   S.wieldOf = function (u) {
     var w = u && !u.sheathed && u.weapon, sh = u && D.SHEETS && D.SHEETS[u.sheet]; if (!w || !sh || !sh.grips) return null;
@@ -272,8 +272,14 @@
   S.wield = function (ctx, g, x, y) {
     var P = function (r, i) { return D.PAL.ramps[r][i]; }, OUT = P('outline', 0), W = S.WIELD[g.kind], u = g.u, L = g.L, R = g.R;
     if (g.floor) { u = [1, 0]; } // (on the floor: laid flat beside him, the lead end toward L)
-    var top = [x + L[0] + u[0] * W.over, y + L[1] + u[1] * W.over], len = Math.max(W.staff, Math.hypot(top[0] - x - R[0], top[1] - y - R[1]) + 3);
-    var butt = [top[0] - u[0] * len, top[1] - u[1] * len];
+    var top, butt, len;
+    if (W.over != null) { // the flail by its head: the staff on past the lead fist to the hinge, the rest back through both hands
+      top = [x + L[0] + u[0] * W.over, y + L[1] + u[1] * W.over]; len = Math.max(W.staff, Math.hypot(top[0] - x - R[0], top[1] - y - R[1]) + 3);
+      butt = [top[0] - u[0] * len, top[1] - u[1] * len];
+    } else { // the axe by its handle: the butt just past the rear fist, the head the haft's length out beyond the lead
+      butt = [x + R[0] - u[0] * W.butt, y + R[1] - u[1] * W.butt]; len = Math.max(W.staff, Math.hypot(x + L[0] - butt[0], y + L[1] - butt[1]) + 6);
+      top = [butt[0] + u[0] * len, butt[1] + u[1] * len];
+    }
     if (g.kind === 'flail') {
       var b; // the beater's way: it hangs, trails the swing, and lies out straight at the blow
       if (g.blow) b = u.slice();
