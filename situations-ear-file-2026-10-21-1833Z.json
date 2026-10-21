@@ -1,0 +1,46 @@
+{
+ "_readme": {
+  "what": "Playtest feedback from situations.html: one verdict and note a row -- an eyes row (js/eyes.js: built, not yet seen) or a story situation (?at=<id>, js/situations.js).",
+  "fold_back": "Fold every eyes row noted here that is still live in js/eyes.js (a folded row is already cut, so nothing folds twice; previous_save and new_since_last_save only hint at what is new -- RULED 10-15); a story situation note folds when its `at` is after the save of the last ear file folded. An eyes row noted at all is SEEN: a `seen` line in PATCHLOG.md with the note verbatim, and the row cut from js/eyes.js whatever the verdict (a fix that wants another look writes a fresh row). Broken and unclear become the fix list (in the lane its pt names); too hard / too easy are tuning; notes are the tester's words, verbatim."
+ },
+ "saved_at": "2026-10-21T18:33:20.868Z",
+ "previous_save": null,
+ "items": [
+  {
+   "id": "eyes-simple-views-1021",
+   "eyes": true,
+   "pri": 1,
+   "title": "THE SIMPLE FIGHT, his five notes: a zoom step out, only the one whose turn it is forward, the slimmer side windows, the ISO view, no AT WHOM list (10-21, evening)",
+   "pt": "the maps lane 10-21, the simple encounter seat (deep16/js/simple.js) · eyes",
+   "url": "deep16/?world&fresh=simple4&simple=worg,goblin,worg,goblin,goblin&camp",
+   "verdict": "works",
+   "note": "Works - can we dynamically zoom based on encounter size or are we locked into steps? \nSome sort of lighting or effect on the character whose turn it is",
+   "at": "2026-10-21T18:33:10.014Z",
+   "new_since_last_save": true
+  },
+  {
+   "id": "eyes-silverton-hextip-1021b",
+   "eyes": true,
+   "pri": 1,
+   "title": "Silverton a zoom step out; the Hex's double doors at its south tip; Mama's booth beside the Hex (10-21, night)",
+   "pt": "the second game's house 10-21 (deep16/js/town.js T.ZOOMSTEP, T.MAMA, marks.hexFront; deep16/js/topview.js hexCanvas) · eyes",
+   "url": "deep16/?roam=silverton&at=40,43",
+   "verdict": "works",
+   "note": "",
+   "at": "2026-10-21T18:28:41.612Z",
+   "new_since_last_save": true
+  },
+  {
+   "id": "eyes-winters-notnow-1021",
+   "eyes": true,
+   "pri": 1,
+   "title": "Winters' work can be put off: TAKE IT or NOT NOW (10-21, late)",
+   "pt": "the second game's house 10-21 (deep16/js/counter.js C.offerWork, C.wintersWork) · eyes",
+   "url": "deep16/",
+   "verdict": "works",
+   "note": "",
+   "at": "2026-10-21T18:30:14.108Z",
+   "new_since_last_save": true
+  }
+ ]
+}
