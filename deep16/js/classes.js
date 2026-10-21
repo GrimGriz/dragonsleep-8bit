@@ -356,6 +356,10 @@
       // a named one's own list, with its domain's always-prepared spells on top (09-28g: Torvald's Vigil)
       h.known = spec.known && spec.away ? awayList(cc, cls, lvl, abil, spec.known, spec.grow, h.land)
         : spec.known ? spec.known.concat(subAlways(sub, lvl), landSpells(cc, lvl, h.land)).filter(function (id, i, a) { return a.indexOf(id) === i; }) : spellsFor(cc, cls, lvl, abil, sub, h.land);
+      // a word's spells above its highest slot wait in the word for the levels that bring the slots (SRD 5.1: a caster learns spells of a level it has slots
+      // for) -- a word made at a higher level and walked down, or made before the maker's list kept to the slots; 10-21, Griz: "The Sorc was showing spell slots
+      // for like 3rd and 4th level (0 slots, but on the wheel)"
+      if (spec.known && !spec.away) { var topS = 0; (h.slotsMax || []).forEach(function (n, i) { if (n > 0) topS = i + 1; }); h.known = h.known.filter(function (id) { var s0 = D.magic.data(id); return !s0 || !(s0.level > 0) || s0.level <= topS; }); }
       // the camp's morning (js/camp.js o.ours, 09-29): the day's spells as chosen there, over the cantrips and the always-prepared
       if (spec.prepared) {
         var alw = alwaysOf(cc, sub, lvl, h.land), keep = h.known.filter(function (id) { var s = D.magic.data(id); return !s || !(s.level > 0) || alw.indexOf(id) >= 0; });

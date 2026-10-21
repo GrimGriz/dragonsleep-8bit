@@ -379,6 +379,13 @@
     l.globalCompositeOperation = 'source-over';
     l.fillStyle = 'rgb(52,56,86)'; l.fillRect(0, 0, W, H);   // the night: blue-black, not black -- the player sees
     l.globalCompositeOperation = 'lighter';
+    var a = B.active, own = a && a.side === 'party' && !a.guest && G.standing(a) ? a : null;
+    var va = B.viewAs && G.standing(B.viewAs) ? B.viewAs : null, pm = va ? L.viewMap(B, va) : L.partyMap(B); // (whose eyes: below)
+    // what darkvision sees in the dark it sees as in dim light, in shades of grey (SRD 5.1 Darkvision: "in darkness as if it were dim light ... only shades of
+    // gray"): its squares lifted to a dim light's level here, and greyed with the rest below -- they were greyed at the night's dark (10-21, Griz: "darkvision -
+    // brighter and more grayed out?")
+    l.fillStyle = 'rgb(72,70,66)';
+    for (var yd = 0; yd < m.h; yd++) for (var xd = 0; xd < m.w; xd++) { var sd = m.sq[yd * m.w + xd]; if (!sd.open || pm.v[yd * m.w + xd] !== 1 || !inView(iso, xd, yd, sd.gz, W, H)) continue; iso.rhombus(l, xd, yd, sd.gz, 0); l.fill(); }
     var lights = L.all(B);
     lights.forEach(function (lg) {
       var gx = Math.round(lg.x), gy = Math.round(lg.y), c = iso.center(lg.x, lg.y, m.gz(gx, gy)), s = iso.toScreen(c.x, c.y);
@@ -405,8 +412,6 @@
     // of the light... (the characters telepathic bond resulting from being played by a single human)" -- then, of the three ways, "yes 3"):
     // every turn draws what the party sees together, lit or not -- the 09-30 own-eyes filter in a room with no light is gone -- and the one
     // whose turn it is keeps its own senses on top (the sonar, the tongue); the mouse on one of ours still shows the dark by that one's eyes
-    var a = B.active, own = a && a.side === 'party' && !a.guest && G.standing(a) ? a : null;
-    var va = B.viewAs && G.standing(B.viewAs) ? B.viewAs : null, pm = va ? L.viewMap(B, va) : L.partyMap(B);
     B.eyes = va; // (whose eyes these are: ui.js names them over the tooltip)
     ctx.globalCompositeOperation = 'saturation'; ctx.fillStyle = '#7c7c84';
     for (var y = 0; y < m.h; y++) for (var x = 0; x < m.w; x++) { var s2 = m.sq[y * m.w + x]; if (!s2.open || pm.v[y * m.w + x] === 2 || !inView(iso, x, y, s2.gz, W, H)) continue; iso.rhombus(ctx, x, y, s2.gz, 0); ctx.fill(); }

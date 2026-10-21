@@ -5411,6 +5411,48 @@
       if (drops[1]) Pq.fire(drops[1]); drawPq(Pq, 'party after');
       okPq('DROP on Cy C\'s card: off the roster (' + Pq.st.roster.map(function (c) { return c.name; }).join(', ') + '), the seat the ? (' + JSON.stringify(Pq.st.party[1]) + '), the winning and the seat\'s shield in the pack (' + JSON.stringify(Pq.st.pack) + '), one DROP left (' + Pq.btns.filter(function (b) { return b.label === 'DROP'; }).length + ')',
         drops.length === 2 && Pq.st.roster.length === 1 && Pq.st.party[1].w === 'new' && PKq.packN(Pq.st, 'longsword1') === 1 && PKq.packN(Pq.st, 'shield') === 1 && Pq.btns.filter(function (b) { return b.label === 'DROP'; }).length === 1);
+      // (3) his 10-18 leads, each probed against his records (play-records/pocket-dm-fights-2026-10-18-1306.json): what was a bug by the SRD, fixed; what works as the SRD says, kept so
+      var GQ = D.grid, MQ = D.magic, runQ = function (Bx, u, cmd) { Bx.co = (function* () { yield* Bx.exec(u, cmd); })(); var gd = 0, vq; while (Bx.co && gd++ < 2000) { var rq = Bx.co.next(vq); vq = undefined; if (rq.done) break; if (rq.value && rq.value.prompt) vq = rq.value.prompt.opts[0].value; } };
+      var mkB = function (party, foes, map) { var Bx = new D.Battle({ bench: true, npc: { party: party, foes: foes }, fightDef: D.classFight(5, { map: map || 'hexfloor' }) }); D.battle = Bx; Bx.enter(); Bx.co.next(); Bx.round = 1; return Bx; };
+      // (3a) QUICKENED with the action gone and the bonus action left (his 12:55 PM fight: a Dash, QUICKENED, then "SPELLS: not now")
+      var Bq = mkB(['sorcerer:3', 'fighter:3'], ['goblin', 'goblin']), so = Bq.units.filter(function (w) { return w.side === 'party' && w.cls === 'sorcerer'; })[0], gb = Bq.units.filter(function (w) { return w.side === 'foe'; });
+      so.known = ['firebolt', 'magicmissile']; so.slots = [4, 2]; so.slotsMax = [4, 2]; so.feats.sorcery = 3; so.metamagic = ['quickened', 'twinned'];
+      gb.forEach(function (w, i) { w.x = so.x + 1 + i; w.y = so.y - 3; });
+      D.rules.startTurn(so); so.turn.action = 0; so.turn.meta = { name: 'quickened' };
+      var mmQ = MQ.list(Bq, so).filter(function (e) { return e.id === 'magicmissile'; })[0];
+      runQ(Bq, so, { do: 'cast', id: 'magicmissile', slot: 1, target: { units: [gb[0], gb[0], gb[1]] } });
+      var logQ = (Bq.log || []).join(' / ');
+      okPq('QUICKENED after a Dash: Magic Missile listed with the bonus action (' + (mmQ && mmQ.ok) + ', ' + (mmQ && mmQ.g.time) + ') and cast with it -- the bonus action spent (' + so.turn.bonus + '), 2 sorcery points (' + so.feats.sorcery + ' left), a 1st-level slot (' + so.slots.join('/') + ')',
+        !!mmQ && mmQ.ok && mmQ.g.time === 'B' && so.turn.bonus === 0 && so.feats.sorcery === 1 && so.slots[0] === 3 && /QUICKENED SPELL/.test(logQ));
+      D.rules.startTurn(so); so.feats.sorcery = 3; so.turn.spellAction = 'leveled'; so.turn.action = 0; so.turn.meta = { name: 'quickened' };
+      var mmQ2 = MQ.list(Bq, so).filter(function (e) { return e.id === 'magicmissile'; })[0], fbQ = MQ.list(Bq, so).filter(function (e) { return e.id === 'firebolt'; })[0];
+      okPq('...but not after a leveled spell with the action, the SRD\'s bonus-action law (' + (mmQ2 && mmQ2.why) + '); the cantrip is not quickened (' + (fbQ && fbQ.g.time) + ')', !!mmQ2 && !mmQ2.ok && /levelled spell/.test(mmQ2.why) && !!fbQ && fbQ.g.time === 'A');
+      // (3b) Moonbeam moved is an action, and no spell cast (SRD 5.1: "you can use an action to move the beam") -- a bonus-action Healing Word still goes after it
+      var Bm2 = mkB(['druid:5', 'fighter:5'], ['goblin', 'goblin']), dr = Bm2.units.filter(function (w) { return w.side === 'party' && w.cls === 'druid'; })[0], fq = Bm2.units.filter(function (w) { return w.side === 'party' && w.cls === 'fighter'; })[0], gm = Bm2.units.filter(function (w) { return w.side === 'foe'; })[0];
+      dr.known = ['moonbeam', 'healingword']; dr.slots = [4, 3, 2]; dr.slotsMax = [4, 3, 2]; fq.hp = 5;
+      D.rules.startTurn(dr); runQ(Bm2, dr, { do: 'cast', id: 'moonbeam', slot: 2, target: { x: gm.x, y: gm.y } });
+      Bm2.round = 2; D.rules.startTurn(dr); var mvQ = MQ.list(Bm2, dr).filter(function (e) { return e.id === 'moonbeam'; })[0];
+      runQ(Bm2, dr, { do: 'cast', id: 'moonbeam', slot: 2, target: { x: gm.x + 1, y: gm.y } });
+      var hwQ = MQ.list(Bm2, dr).filter(function (e) { return e.id === 'healingword'; })[0];
+      okPq('Moonbeam moved: the action (' + dr.turn.action + '), no slot (' + dr.slots.join('/') + '), and Healing Word still the bonus action\'s (' + (hwQ && (hwQ.ok || hwQ.why)) + ')',
+        !!mvQ && mvQ.g.again && dr.turn.action === 0 && dr.slots[1] === 2 && !!hwQ && hwQ.ok);
+      // (3c) a made sorcerer's word holding 3rd and 4th-level spells at 1st (his Dracona, 10-17): the ring shows what her slots cast, the rest wait in the word
+      var draW = '~sorcerer.1.human.9-14-15-11-13-16.lightcrossbow___dagger_____.Dracona.firebolt-shockinggrasp-poisonspray-chilltouch-polymorph-banishment-icestorm-counterspell-fireball-dimensiondoor-dominatebeast-walloffire-blight-shield-burninghands';
+      var dra1 = PKq.sheetOf(D.npc.spec(draW)), dra3 = PKq.sheetOf(D.npc.spec(draW.replace('~sorcerer.1.', '~sorcerer.3.') + '-magicmissile-scorchingray')), dra5 = PKq.sheetOf(D.npc.spec(draW.replace('~sorcerer.1.', '~sorcerer.5.') + '-magicmissile-scorchingray'));
+      var lvls = function (h) { return (h && h.known || []).map(function (id) { var s = MQ.data(id); return s ? s.level : -1; }); }, leveled = function (h) { return lvls(h).filter(function (L) { return L > 0; }); };
+      okPq('Dracona at 1st knows ' + leveled(dra1).length + ' leveled spells, none past 1st (' + Math.max.apply(null, lvls(dra1)) + '); at 3rd ' + leveled(dra3).length + ', none past 2nd; at 5th ' + leveled(dra5).length + ' (Counterspell, Fireball come with the 3rd-level slots) -- the SRD\'s 2, 4 and 6',
+        Math.max.apply(null, lvls(dra1)) <= 1 && leveled(dra1).length === 2 && Math.max.apply(null, lvls(dra3)) <= 2 && leveled(dra3).length === 4 && leveled(dra5).length === 6 && dra5.known.indexOf('fireball') >= 0);
+      // (3e) darkvision sees the dark as dim light, in grey (SRD 5.1): the squares only darkvision reaches drawn brighter than the night (his "darkvision - brighter and more grayed out?")
+      var Bd = new D.Battle({ bench: true, npc: { party: ['lymen:5', 'barley:5'], foes: ['goblin'] }, fightDef: D.classFight(5, { map: 'cut' }) }); D.battle = Bd; Bd.enter(); D.scenes.push(Bd); // (on the stack to be drawn, entered once)
+      for (var gq2 = 0; gq2 < 300 && !(Bd.order && Bd.order.length); gq2++) Bd.co.next();
+      var lyq = Bd.units.filter(function (u) { return /lymen/.test(u.id); })[0];
+      if (!D.ctx) { var scq = document.getElementById('screen') || document.createElement('canvas'); scq.id = 'screen'; scq.width = 480; scq.height = 270; if (!scq.parentNode) document.body.appendChild(scq); D.initCanvas(); } // (the bench page draws nothing of itself: a screen for this one frame)
+      if (Bd.clearCards) Bd.clearCards(); Bd.viewAs = null; Bd.focus(lyq); D.draw();
+      var pmq = D.light.partyMap(Bd), mq = Bd.map, cxq = D.canvas.getContext('2d'), lumq = [];
+      for (var yq = 0; yq < mq.h; yq++) for (var xq = 0; xq < mq.w; xq++) { var sq0 = mq.sq[yq * mq.w + xq]; if (!sq0.open || pmq.v[yq * mq.w + xq] !== 1 || GQ.occupant(xq, yq)) continue; var cq = D.iso.center(xq, yq, sq0.gz), sq1 = D.iso.toScreen(cq.x, cq.y); if (sq1.x < 2 || sq1.y < 2 || sq1.x > D.W - 3 || sq1.y > D.H - 40) continue; var dq = cxq.getImageData(Math.round(sq1.x) * D.canvas.width / D.W - 1, Math.round(sq1.y) * D.canvas.height / D.H - 1, 3, 3).data, tq = 0; for (var iq = 0; iq < dq.length; iq += 4) tq += dq[iq] + dq[iq + 1] + dq[iq + 2]; lumq.push(tq / 27); }
+      if (D.scenes[D.scenes.length - 1] === Bd) D.scenes.pop();
+      var avgq = lumq.length ? lumq.reduce(function (p, q) { return p + q; }, 0) / lumq.length : -1;
+      okPq('the dark Lymen\'s darkvision reaches, on The North Cut: ' + lumq.length + ' squares at ' + avgq.toFixed(1) + ' (as dim light: 20 or more; at the night\'s dark they were 14)', lumq.length > 10 && avgq >= 20);
     } catch (ePq) { repPq.errors.push(String(ePq && ePq.stack || ePq).slice(0, 800)); }
     var prePq = document.createElement('pre'); prePq.id = 'out'; prePq.textContent = 'BENCH16 ' + JSON.stringify(repPq);
     document.body.appendChild(prePq);

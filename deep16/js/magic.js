@@ -60,6 +60,10 @@
       var ex = M.EFFECT && M.EFFECT[id];
       if (ex && ex.geo) { var g2 = ex.geo(B, u, g); if (g2) { e.g = g = g2; if (g.again && ex.againName) e.name = ex.againName; } } // (the ring says what casting it again does: the swing, the beam moved -- 09-29)
       if (g.free) e.levels = [e.level];
+      // QUICKENED chosen on the ring (js/features.js T.meta): a leveled spell of an action is listed as the bonus action it is cast with, so the bonus action
+      // alone casts it (SRD 5.1 Quickened Spell; 10-21, Griz: "MetaMagic on Sorc didn't allow spell cast when action was gone and bonus action remained").
+      // The bonus-action spell's own law below still holds: none after a leveled spell this turn. (Not T.quicken: the AI's own plan, features.js TX.FIRST)
+      if (T && T.meta && T.meta.name === 'quickened' && sp.level && g.time === 'A' && !g.free && !g.again && ((u.feats && u.feats.sorcery) || 0) >= 2) e.g = g = Object.assign({}, g, { time: 'B', quick: true });
       var why = '';
       // under a roost (the rescue in the dens), its one law: no fire, no thunder (the 8-bit game greys them too, RULED 09-24)
       if (B.fight && B.fight.roost && /fire|thunder/.test(sp.el || '')) why = 'the roost overhead: no fire, no thunder';
