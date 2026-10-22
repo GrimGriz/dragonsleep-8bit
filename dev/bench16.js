@@ -2891,7 +2891,8 @@
   }
   // THE HOUSE SEAT, 10-22 (mode=house1022; the lanes desk on Griz's "looks like its opens that weren't art is the bat wing cooking in silverton", then "If there's another
   // seat needs spun up go with that"): Marta Venn's bat-wing pies on her counter screen (deep16/js/counter.js C.marta, the first game's S.marta; Percy's word on the wings,
-  // S.percyShop); Kasten Wheal's shelves (his first-game shop); the show ?houseshow. Every choice pressed by a click on its drawn box, as services1022 does
+  // S.percyShop); Kasten Wheal's shelves (his first-game shop); every door in a wall (deep16/js/town.js T.lay); the show ?houseshow. Every choice pressed by a click on
+  // its drawn box, as services1022 does
   if (get('mode', '') === 'house1022') {
     var repHs = { checks: [], errors: [] }, memHs = {}, stGHs = D.store.get, stSHs = D.store.set, HHs = D.house, CHs = D.counter, THs = D.town;
     function okHs(what, v) { repHs.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
@@ -2956,6 +2957,32 @@
       okHs('SELL: he buys at half -- ' + sellK.join('; '), sellK.some(function (r) { return /^Hooded Lantern x\d+ 25 sp$/.test(r); }));
       goHs(scK, 'back'); goHs(scK, 'opt', 'LEAVE'); driveHs(gK, null, 200);
       okHs('BACK, LEAVE: the floor again', !upHs() && D.top() === B);
+      // EVERY DOOR IN A WALL (his 10-22 note: "A lot of the buildings (cassia) are still floor tile entry with no south-facing door"; 10-21 night "still have floor tile
+      // entrancing on a lot"): every door's threshold at the foot of a building's south wall -- the door drawn there (js/topview.js: a wall over a 'd') -- at the town's
+      // scale and the finer two, in reach of the west gate
+      var WALLHs = THs.HOUSES + THs.SHACKS;
+      [THs.SCALE, 10, 5].forEach(function (F) {
+        var Lt = THs.lay(null, F), bad = [], n = 0, noWay = [];
+        THs.DOORS.forEach(function (d) { var q = Lt.marks.doors[d.id]; if (!q) { bad.push(d.id + ' none'); return; } n++; var nc = Lt.rows[q[1] - 1].charAt(q[0]), sc0 = (Lt.rows[q[1] + 1] || '').charAt(q[0]); if (WALLHs.indexOf(nc) < 0 || Lt.rows[q[1]].charAt(q[0]) !== 'd' || !Lt.reach[q[1] * Lt.w + q[0]]) bad.push(d.id + ' at ' + q + ' under ' + nc); if (!sc0 || '.,='.indexOf(sc0) < 0) noWay.push(d.id + ' (' + sc0 + ')'); });
+        okHs('at ' + F + ' ft a square: ' + (n - bad.length) + ' of ' + THs.DOORS.length + ' doors at the foot of a wall, in reach, ' + (n - noWay.length) + ' with the street in front' + (bad.length ? ' -- not: ' + bad.join('; ') : '') + (noWay.length ? ' (a lane in front: ' + noWay.join(', ') + ')' : ''), n === THs.DOORS.length && !bad.length && noWay.length <= 3);
+      });
+      // Cassia's, the one he named: on its threshold, her wall above; a click on the door where it is drawn finds it, and the arrow up into the wall; in, and out to the threshold
+      B = beatHs('cassia'); R0 = B.roam; var dC = D.roam.def.marks.doors['inn:cassia'], TSHs = D.topview.TS, bwC = B.map.at(dC[0], dC[1] - 1);
+      okHs('Cassia\'s beat: on her threshold (' + R0.token.x + ',' + R0.token.y + '), her wall above it (' + (bwC && bwC.ch) + ')', R0.token.x === dC[0] && R0.token.y === dC[1] && !!bwC && WALLHs.indexOf(bwC.ch) >= 0);
+      var atDoorHs = CHs.AT_DOOR.map(function (k) { return k.id; }), mdHs = D.roam.def.marks.doors, rwHs = D.roam.def.rows, opHs = function (x, y) { return !!rwHs[y] && '.,='.indexOf(rwHs[y].charAt(x)) >= 0; };
+      var wayHs = function (q, x, y) { return opHs(q[0], q[1] + 1) ? x === q[0] && y === q[1] + 1 : y === q[1] && Math.abs(x - q[0]) === 1; }; // (the square in front, or on a lane the squares beside)
+      var inFront = B.units.filter(function (u) { return u.npc && atDoorHs.indexOf(u.npc) < 0 && Object.keys(mdHs).some(function (k) { return wayHs(mdHs[k], u.x, u.y); }); });
+      okHs('no townsperson stands on the way up to a door (' + (inFront.length ? inFront.map(function (u) { return u.name + ' at ' + u.x + ',' + u.y; }).join('; ') : 'none') + ')', !inFront.length);
+      D.iso.cam.x = (dC[0] + 0.5) * TSHs; D.iso.cam.y = dC[1] * TSHs;
+      var scC = D.iso.toScreen((dC[0] + 0.5) * TSHs, dC[1] * TSHs - (bwC.gz || 0) - 4), dcC = THs.doorClick(B, scC.x, scC.y), prC = D.roam.pressInto(B, [0, -1]);
+      okHs('a click in her wall where the door is drawn finds it (' + (dcC ? dcC.trig.id : 'nothing') + '); the arrow pressed up into it too (' + (prC ? prC.trig.id : 'nothing') + ')', !!dcC && dcC.trig.id === 'inn:cassia' && !!prC && prC.trig.id === 'inn:cassia');
+      if (dcC) driveHs(D.roam.fire(B, dcC.trig, dcC.sq), null, 600); var inC = D.roam.def.room;
+      driveHs(THs.goOut(B), null, 200);
+      okHs('the click takes them in (' + inC + '), and out by the same door onto her threshold (' + R0.token.x + ',' + R0.token.y + ')', inC === 'inn:cassia' && !D.roam.def.room && R0.token.x === dC[0] && R0.token.y === dC[1]);
+      // every room's door, on the floor: in by it, out by it -- the stores, the services, the keepers' rooms
+      var roomsBad = [];
+      THs.ROOMS.forEach(function (id) { var t = trigHs(id), q = D.roam.def.marks.doors[id], b = q && B.map.at(q[0], q[1] - 1); if (!t || !b || WALLHs.indexOf(b.ch) < 0) { roomsBad.push(id + ' no door in a wall'); return; } R0.token.x = q[0]; R0.token.y = q[1]; if (!inHs(B, id)) roomsBad.push(id + ' not in'); driveHs(THs.goOut(B), null, 200); if (D.roam.def.room || R0.token.x !== q[0] || R0.token.y !== q[1]) roomsBad.push(id + ' not out at its door'); });
+      okHs('every room behind a door (' + THs.ROOMS.length + ') entered by its door in a wall and left by it' + (roomsBad.length ? ' -- not: ' + roomsBad.join('; ') : ''), !roomsBad.length);
     } catch (eHs) { repHs.errors.push(String(eHs && eHs.stack || eHs).slice(0, 900)); }
     D.store.get = stGHs; D.store.set = stSHs; if (D.house) { D.house.playing = false; D.house.cur = null; }
     var preHs = document.createElement('pre'); preHs.id = 'out'; preHs.textContent = 'BENCH16 ' + JSON.stringify(repHs);

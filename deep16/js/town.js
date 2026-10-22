@@ -121,14 +121,24 @@
     marks.vault = [gxOf(V.AX), vy];
     // the doors of the shops and the keepers (the 8-bit's trigger at each, content/maps/silverton.json, by its slot's pin): a threshold 'd' on the street, marked, not built
     var taken = Object.assign({}, out), tk = function (q) { for (var dy2 = -1; dy2 <= 1; dy2++) for (var dx2 = -1; dx2 <= 1; dx2++) taken[(q[0] + dx2) + ',' + (q[1] + dy2)] = 1; };
+    [marks.gates.west, marks.gates.south, marks.gates.east].concat(marks.hexFront, marks.hexBack).forEach(function (q) { if (q) taken[q[0] + ',' + q[1]] = 1; }); // (no door on a gate or the Hex's)
     marks.doors = {};
-    T.DOORS.forEach(function (d) {
-      var p = d.at ? [d.at[0], d.at[1], d.pin] : V.PINS.filter(function (q) { return q[2] === d.pin; })[0]; if (!p) return; // (`at`: a door moved off v6's pin -- Mama's booth)
-      var q = null, g0 = gxOf(p[0]), g1 = gyOf(p[1]), c0 = at(g0, g1);
-      if (c0 && T.ROOFS[c0]) { var y5 = g1; while (at(g0, y5 + 1) === c0 && y5 - g1 < 8) y5++; var below = at(g0, y5 + 1); if (below && '.,='.indexOf(below) >= 0 && !taken[g0 + ',' + (y5 + 1)]) q = [g0, y5 + 1]; } // (straight south of the pin, past its own building, onto the ground: the door in its south wall)
-      if (!q) q = nearestOpen(p[0], p[1], 150, taken); if (!q) return;
-      tk(q); set(q[0], q[1], 'd'); marks.doors[d.id] = q;
-    });
+    // every door in a wall (10-22, the house seat; Griz: "A lot of the buildings (cassia) are still floor tile entry with no south-facing door", and 10-21 night "still have
+    // floor tile entrancing on a lot"): a door's threshold is the ground at the foot of a building's south wall, so the door is drawn in that wall (js/topview.js) and clicked
+    // there (T.doorClick). First, straight south of the pin past its own building, as before; then, for a pin off its building at this scale (it falls in a lane between
+    // two) or one whose south is built over, the wall foot nearest the pin; only where no foot is free, the open square nearest it, as before
+    var WALLS = T.HOUSES + T.SHACKS, foot = function (x, y, way) { var c = at(x, y), n = at(x, y - 1), s = at(x, y + 1); return !!c && '.,='.indexOf(c) >= 0 && !!n && WALLS.indexOf(n) >= 0 && !taken[x + ',' + y] && (!way || (!!s && '.,='.indexOf(s) >= 0 && !out[x + ',' + (y + 1)])); };
+    var nearestFoot = function (x, y, maxFt, way) { // (by the wall's square nearest the pin: the nearest building's door; `way`: with open ground south of it, the way up to the door from the street)
+      var g0 = gxOf(x), g1 = gyOf(y), R = Math.max(2, Math.ceil(maxFt / F)), best = null, bd = 1e9;
+      for (var dy = -R; dy <= R + 1; dy++) for (var dx = -R; dx <= R; dx++) { if (!foot(g0 + dx, g1 + dy, way)) continue; var d = Math.hypot(cx(g0 + dx) - x, cy(g1 + dy - 1) - y); if (d < bd) { bd = d; best = [g0 + dx, g1 + dy]; } }
+      return best;
+    };
+    var pinOf = function (d) { return d.at ? [d.at[0], d.at[1], d.pin] : V.PINS.filter(function (q) { return q[2] === d.pin; })[0]; }; // (`at`: a door moved off v6's pin -- Mama's booth)
+    var southOf = function (p) { var g0 = gxOf(p[0]), g1 = gyOf(p[1]), c0 = at(g0, g1); if (!c0 || !T.ROOFS[c0]) return null; var y5 = g1; while (at(g0, y5 + 1) === c0 && y5 - g1 < 8) y5++; var below = at(g0, y5 + 1); return below && '.,='.indexOf(below) >= 0 && !taken[g0 + ',' + (y5 + 1)] ? [g0, y5 + 1] : null; }; // (straight south of the pin, past its own building, onto the ground: the door in its south wall)
+    var place = function (d, q) { tk(q); set(q[0], q[1], 'd'); marks.doors[d.id] = q; };
+    T.DOORS.forEach(function (d) { var p = pinOf(d), q = p && southOf(p); if (q) place(d, q); }); // (the doors on their own buildings first, so a door searched for never takes their ground)
+    T.DOORS.forEach(function (d) { if (marks.doors[d.id]) return; var p = pinOf(d); if (!p) return; var q = nearestFoot(p[0], p[1], 150, true) || nearestFoot(p[0], p[1], 300, true) || nearestFoot(p[0], p[1], 300) || nearestOpen(p[0], p[1], 150, taken); if (q) place(d, q); });
+    var inOrder = {}; T.DOORS.forEach(function (d) { if (marks.doors[d.id]) inOrder[d.id] = marks.doors[d.id]; }); marks.doors = inOrder; // (in T.DOORS' order, as before)
     var v6pins = {}; V.PINS.forEach(function (p) { v6pins[p[2]] = [p[0], p[1]]; });
     // the slope by the column (10-21, Griz: "the buildings facing fountain street would be on the same level as fountain street, the houses behind them on the worn down
     // dirt that ends up a little lower"): a column keeps the street's level through the first houses south of it (begun within T.FRONT ft of SLOPE[0]) and falls behind
@@ -218,13 +228,16 @@
     Object.keys(M.doors).forEach(function (id) { var d = M.doors[id], dd = T.DOORS.filter(function (z) { return z.id === id; })[0]; if (inW(d)) trig.push({ id: id, on: 'use', rect: to(d).concat([1, 1]), town: 'door', door: dd }); }); // (a click on the door, or E beside it -- not a step onto it: 10-21, Griz: "swap the stand on this tile to go in the shop to clicking on the door")
     var people = [], npc8 = (((window.DS || {}).DATA || {}).maps || {}).silverton, used = {};
     [M.gates.west, M.gates.south, M.gates.east, M.vault].concat(M.hexFront, M.hexBack, Object.keys(M.doors).map(function (k) { return M.doors[k]; })).forEach(function (q) { if (q) used[q[0] + ',' + q[1]] = 1; }); // (no one stands on a gate, a door or the Hexagon's doors -- at the town's scale a few feet off a mark is the mark)
+    // (nor on the way up to a door: the square in front of it, or for a door on a lane between two houses the lane's squares beside it -- 10-22, a door in a nook had one)
+    var noStand = Object.create(used), openSq = function (x, y) { var r = L.rows[y]; return !!r && '.,='.indexOf(r.charAt(x)) >= 0; };
+    Object.keys(M.doors).forEach(function (k) { var q = M.doors[k]; if (openSq(q[0], q[1] + 1)) noStand[q[0] + ',' + (q[1] + 1)] = 1; else [-1, 1].forEach(function (o) { if (openSq(q[0] + o, q[1])) noStand[(q[0] + o) + ',' + q[1]] = 1; }); });
     ((npc8 && npc8.npcs) || []).forEach(function (n) {
       var pl = T.PLACE[n.id]; if (!pl || !T.cond(n.cond, flags)) return;
       var p0 = pl.pin ? (L.v6pins[pl.pin] || null) : null, sq = null;
       if (pl.at === 'gate:west') sq = M.gates.west; else if (pl.at === 'hexFront') sq = M.hexFront[0];
       if (sq) p0 = [T.X0 + (sq[0] + 0.5) * L.F, T.Y0 + (sq[1] + 0.5) * L.F];
       if (!p0) return;
-      sq = T.openNear(L, p0[0] + ((pl.d || [])[0] || 0), p0[1] + ((pl.d || [])[1] || 0), used); if (!sq || !inW(sq)) return;
+      sq = T.openNear(L, p0[0] + ((pl.d || [])[0] || 0), p0[1] + ((pl.d || [])[1] || 0), noStand); if (!sq || !inW(sq)) return;
       used[sq[0] + ',' + sq[1]] = 1;
       var s = to(sq); people.push({ id: n.id, at: s, kind: T.KIND[n.look] || 'bandit', face: T.FACE[n.dir] || [0, 1], look: n.look, hire: n.hire || null });
       trig.push({ id: 'talk:' + n.id, on: 'use', rect: s.concat([1, 1]), town: 'talk', npc: n.id });

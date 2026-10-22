@@ -697,11 +697,14 @@
     D.hint(ctx, 'click a beat · in town: click the square they stand on, E at the counter · X: the title', D.W / 2, D.H - 12, '#9a96a8', 'center');
   };
   C.servicesShow = function (q) { return new ServicesShow(q); };
-  // the house seat's show (deep16/?houseshow -- its eyes rows' door, 10-22): a NEW GAME staged beside Marta with bat wings in the pack, at Percy's door with them, at Kasten's
+  // the house seat's show (deep16/?houseshow -- its eyes rows' door, 10-22): a NEW GAME staged beside Marta with bat wings in the pack, at Percy's door with them, at Kasten's,
+  // and on two thresholds of doors moved into a wall (js/town.js T.lay)
   C.HOUSE_BEATS = [
     { id: 'marta', near: 'marta', label: 'MARTA VENN\'S PIES: six bat wings, Vivian along', note: 'A click on Marta (or E beside her): COOK THEM, free for Viv\'s friends -- six pies into the pack, eaten in a fight. NOT NOW: her word, as before.', inv: [['batwings', 6]] },
     { id: 'percy', door: 'warp:percy', label: 'PERCY: the wings he won\'t have', note: 'Two bat wings in the pack. In at the door, E at the counter: his word, then "Wings? Not in my jars. Take them to Marta Venn..."', inv: [['batwings', 2]] },
-    { id: 'kasten', door: 'shop:kasten', label: 'KASTEN WHEAL, THE CHANDLER: his shelves', note: 'In at his door, E at the counter: his greeting, THE SHELVES -- oil, torches, the hooded lantern, candles -- and he buys, at half.', silver: 60 }
+    { id: 'kasten', door: 'shop:kasten', label: 'KASTEN WHEAL, THE CHANDLER: his shelves', note: 'In at his door, E at the counter: his greeting, THE SHELVES -- oil, torches, the hooded lantern, candles -- and he buys, at half.', silver: 60 },
+    { id: 'cassia', door: 'inn:cassia', label: 'THE DOORS IN THE WALLS: Cassia\'s inn', note: 'On her threshold, her door in the inn\'s south wall now -- it was a square of street in the lane between two houses. A click on the door, E, or the arrow up into it: in.' },
+    { id: 'davos', door: 'leech:davos', label: 'THE DOORS IN THE WALLS: the leech-house', note: 'Davos Kren\'s door in a wall too, three squares west of where it lay in the street. Thirteen doors moved so (the eyes row: eyes-doors-walls-1022).' }
   ];
   C.houseShow = function (q) { return new ServicesShow(q, C.HOUSE_BEATS, '{y}THE HOUSE, 10-22{/} -- a NEW GAME staged; the rest is yours (a show)'); };
 
