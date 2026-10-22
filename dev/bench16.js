@@ -2771,6 +2771,9 @@
   // leaves; NO, his story, the Insight missed, the sale refused, too poor; the Insight made on a later visit, the choice in its own colour, turned down and still there;
   // the quest taken and no sale; Percy holding the tongue back; the tongue harvested off a snake and handed in, the page copied; no harvester, no Aurdin, Aurdin knowing it
   // already; the sale for 50 silver; the JOURNAL and its marker; the house's save
+  // 10-22, his notes on it (his ear file, eyes-ned-familiar-1021e): Aurdin bottom left and his answers in his bubble, Ned's line still up while he answers, "Deal.", "What did
+  // you want for that Find Familiar spell?" with the quest taken, the page a sheet in the pack (torn out, or a fair copy) used from it by the house's learn, the quest taken
+  // with no harvester, and Aurdin knowing it: "Looks like you're learning without the classes", his familiar asked after by its kind only when it is out
   if (get('mode', '') === 'ned1021') {
     var repN = { checks: [], errors: [] }, memN = {}, stGN = D.store.get, stSN = D.store.set, HN = D.house, CN = D.counter, TN = D.town, roll0N = CN && CN.nedRoll;
     function okN(what, v) { repN.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
@@ -2779,7 +2782,8 @@
     function trigN(id) { return (D.roam.def.src8.triggers || []).filter(function (t) { return t.id === id; })[0]; }
     function clickN(sc, b) { if (!b) return false; var mo = D.input.mouse, k = { x: mo.x, y: mo.y, click: mo.click, inside: mo.inside, moved: mo.moved }; mo.x = b.x + b.w / 2; mo.y = b.y + b.h / 2; mo.inside = true; mo.click = true; mo.moved = true; sc.update(); Object.assign(mo, k); return true; }
     function goN(sc, go, label) { return clickN(sc, sc.buttons().filter(function (q) { return q.go === go && (label == null || q.label === label); })[0]); }
-    function readN(sc) { var out = [], k = 0; while (!sc.done && sc.wait && sc.wait.say && k++ < 40) { out = out.concat(sc.wait.say); goN(sc, 'next'); } return out; }
+    function readN(sc) { var out = [], k = 0; while (!sc.done && sc.wait && k++ < 40) { if (sc.wait.say) { out = out.concat(sc.wait.say); goN(sc, 'next'); } else if (sc.paging && sc.paging()) goN(sc, 'next'); else break; } return out; } // (the says read, and a hero's question paged to its answers)
+    function askN(sc) { return sc && sc.wait && sc.wait.ask ? sc.wait.ask.slice() : []; } // (the keeper's words on the screen while the hero answers)
     function optsN(sc) { return sc && sc.wait && sc.wait.ask ? sc.wait.opts.map(function (o) { return typeof o === 'object' ? o.label : o; }) : []; }
     function inN(B, id) { driveN(TN.fire(B, trigN(id)), null, 600); return D.roam.def.room === id; }
     function outN(B) { driveN(TN.goOut(B), null, 200); return !D.roam.def.room; }
@@ -2788,7 +2792,8 @@
     D.store.get = function (k) { return memN[k] ? JSON.parse(memN[k]) : null; }; D.store.set = function (k, v) { memN[k] = JSON.stringify(v); return true; };
     try {
       D.seed = +get('seed', 1021);
-      var NL = CN.NED_LINES, d8N = window.DS.DATA.heroes.aurdin;
+      var NL = CN.NED_LINES, AS = CN.NED_REPLIES, d8N = window.DS.DATA.heroes.aurdin, LB = CN.LAYOUT.bubble, LH = CN.LAYOUT.hero, SHT = CN.NED.sheet, INS = AS.insight + ' (insight)';
+      var GOT = 'Received: ' + window.DS.DATA.items[SHT].name + '.';
       // Aurdin's start: the second game's without the ritual, the first game's with it
       var fN = HN.fresh(), auN0 = fN.party.filter(function (h) { return h.id === 'aurdin'; })[0];
       okN('the second game\'s Aurdin starts without Find Familiar (js/house.js H.start), the first game\'s with it (content/heroes.json untouched; R.makeHero): ' + auN0.known.length + ' known, heroes.json ' + (d8N.spells.indexOf('findfamiliar') >= 0) + ', makeHero ' + (window.DS.R.makeHero('aurdin').known.indexOf('findfamiliar') >= 0),
@@ -2801,45 +2806,48 @@
       var tN = trigN('talk:ned'), tNs = (D.roam.def.src8.triggers || []).filter(function (t) { return t.npc === 'ned'; }).map(function (t) { return t.rect[0] + ',' + t.rect[1]; });
       okN('his word at the counter in front of him and on his own square (' + tNs.join(' ') + '), had from across (' + (bs && bs.across) + '); the rest of the counter is Percy\'s',
         tNs.join(' ') === (kNd.x + ',' + (kNd.y + 1) + ' ' + kNd.x + ',' + kNd.y) && bs && bs.across && bs.across.join() === kNd.x + ',' + (kNd.y + 2) && (D.roam.def.src8.triggers || []).filter(function (t) { return t.npc === 'percy'; }).length >= 4);
-      // the bluff: YES, YES -- "Show me.", the laugh; then the harvest line till they leave
+      // the bluff: Yes., Yes. -- "Show me.", the laugh; then the harvest line till they leave
       CN.nedRoll = function () { return 3; };
       var T1 = talkN(B), sc1 = T1.sc, w1 = sc1 ? readN(sc1) : [], o1 = optsN(sc1);
       okN('E at his counter: the party walks across (' + R0.token.x + ',' + R0.token.y + '), his own screen, his portrait (' + (sc1 && sc1.sheet) + ', ' + (sc1 && sc1.o.place) + '), his first-game school line and his story, then YOU KNOW THAT SPELL? (' + o1.join(' / ') + ')',
-        sc1 && sc1.sheet === 'pt_ned' && sc1.o.place === 'Percy\'s Particulars' && R0.token.x === bs.across[0] && R0.token.y === bs.across[1] && /road he didn't finish/.test(w1.join(' ')) && /Doorwardens/.test(w1.join(' ')) && /Conjuration/.test(w1.join(' ')) && /won't take a student without one/.test(w1.join(' ')) && sc1.wait.ask[0] === NL.know && o1.join() === 'YES,NO');
-      goN(sc1, 'opt', 'YES'); var o1b = optsN(sc1); goN(sc1, 'opt', 'YES'); var w1b = readN(sc1); endN(T1);
-      okN('YES: CAN YOU CAST IT? (' + o1b.join(' / ') + ') -- YES: "Show me." and the laugh, the talk over (' + w1b.length + ' lines); the story not marked heard', sc1.done && /Show me/.test(w1b.join(' ')) && /laughs/.test(w1b.join(' ')) && !f.nedStory && !f.nedSaw && !upN() && au.known.indexOf('findfamiliar') < 0);
+        sc1 && sc1.sheet === 'pt_ned' && sc1.o.place === 'Percy\'s Particulars' && R0.token.x === bs.across[0] && R0.token.y === bs.across[1] && /road he didn't finish/.test(w1.join(' ')) && /Doorwardens/.test(w1.join(' ')) && /Conjuration/.test(w1.join(' ')) && /won't take a student without one/.test(w1.join(' ')) && sc1.wait.ask[0] === NL.know && o1.join() === 'Yes.,No.');
+      var bb1 = sc1.buttons(), inB = function (q) { return q.x >= LB[0] && q.x + q.w <= LB[0] + LB[2] && q.y >= LB[1] && q.y + q.h <= LB[1] + LB[3]; }, cv1 = document.createElement('canvas'); cv1.width = D.W; cv1.height = D.H; var er1 = null; try { sc1.draw(cv1.getContext('2d')); } catch (e1) { er1 = String(e1).slice(0, 100); }
+      okN('10-22, his "Aurdin\'s portrait in the bottom left and have his text choices be in his speech bubble": Aurdin the screen\'s hero (' + (sc1.hero && sc1.hero.name) + ', his figure ' + CN.heroSheet(au) + ' by what he wears (' + au.equip.armor + '), at ' + LH.join(',') + '), the answers in his bubble (' + bb1.map(function (q) { return q.label + '@' + q.x + ',' + q.y; }).join(' ') + ' inside ' + LB.join(',') + ')' + (er1 ? ' THREW ' + er1 : ''),
+        sc1.hero === au && !er1 && /^aurdin_p[23]$/.test(CN.heroSheet(au)) && CN.heroSheet(au) === D.save.look('aurdin', null, au).sheet && LH[0] < 20 && LH[1] + LH[3] > 200 && bb1.length === 2 && bb1.every(function (q) { return q.go === 'opt' && q.bubble && inB(q); }) && LB[0] >= LH[0] + LH[2]);
+      goN(sc1, 'opt', AS.yes); var o1b = optsN(sc1); goN(sc1, 'opt', AS.yes); var ech1 = (sc1.echo || []).join(' '), w1b = readN(sc1); endN(T1);
+      okN('Yes.: CAN YOU CAST IT? (' + o1b.join(' / ') + ') -- Yes.: his "' + ech1 + '" in his bubble, "Show me." and the laugh, the talk over (' + w1b.length + ' lines); the story not marked heard', sc1.done && ech1 === 'Yes.' && /Show me/.test(w1b.join(' ')) && /laughs/.test(w1b.join(' ')) && !f.nedStory && !f.nedSaw && !upN() && au.known.indexOf('findfamiliar') < 0);
       var T2 = talkN(B), w2 = T2.sc ? readN(T2.sc) : []; endN(T2);
       okN('talked to again the same visit: the harvest line only ("' + String(w2[0]).slice(0, 44) + '..."), no question', w2.join('|') === NL.harvest.join('|') && T2.sc.done);
-      // NO: what a familiar is for, the rest of his story, the Insight missed (the die 3), the sale turned down and too poor
+      // No.: what a familiar is for, the rest of his story on the screen while Aurdin answers it, the Insight missed (the die 3), the sale turned down and too poor
       outN(B); inN(B, 'warp:percy');
-      var T3 = talkN(B), sc3 = T3.sc; readN(sc3); goN(sc3, 'opt', 'NO'); var w3 = readN(sc3), o3 = optsN(sc3), ins3 = CN.nedVisit(B).insight;
-      okN('a new visit, the story again; NO: what a familiar is for (its senses, a touch spell carried), the rest of his story (' + w3.length + ' lines); the silent Insight (' + (ins3 && ins3.d20 + ' + ' + (ins3.total - ins3.d20) + ' = ' + ins3.total) + ' vs 12) missed: ' + o3.join(' / '),
-        /see through its eyes/.test(w3.join(' ')) && /carries the touch/.test(w3.join(' ')) && /stick around/.test(w3.join(' ')) && f.nedStory === 1 && ins3 && ins3.total === 3 + window.DS.R.skill(au, 'Insight', 'wis') && ins3.total < 12 && !f.nedSaw && o3.join() === 'CAN I COPY IT FROM YOU?,LEAVE' && !/\(insight\)/.test(o3.join()));
-      goN(sc3, 'opt', 'CAN I COPY IT FROM YOU?'); var o3b = optsN(sc3), p3 = sc3.wait.ask[0]; goN(sc3, 'opt', 'NOT NOW'); var w3n = readN(sc3);
-      R0.silver = 10; goN(sc3, 'opt', 'CAN I COPY IT FROM YOU?'); goN(sc3, 'opt', 'PAY 50 SILVER'); var w3p = readN(sc3);
-      okN('CAN I COPY IT FROM YOU?: "' + p3.slice(0, 40) + '..." (' + o3b.join(' / ') + '); NOT NOW, then too poor at 10 sp -- nothing taken, the ritual not copied', o3b.join() === 'PAY 50 SILVER,NOT NOW' && /Fifty silver/.test(p3) && w3n.join('|') === NL.notNow.join('|') && w3p.join('|') === NL.poor.join('|') && R0.silver === 10 && au.known.indexOf('findfamiliar') < 0);
-      goN(sc3, 'opt', 'LEAVE'); var w3l = readN(sc3); endN(T3);
-      var T4 = talkN(B), sc4 = T4.sc, w4 = readN(sc4), o4 = optsN(sc4); goN(sc4, 'opt', 'LEAVE'); readN(sc4); endN(T4);
-      okN('again the same visit: "Back again.", no second roll (once a visit), still no Insight choice: ' + o4.join(' / '), /Back again/.test(w4.join(' ')) && !f.nedSaw && o4.join() === 'CAN I COPY IT FROM YOU?,LEAVE');
+      var T3 = talkN(B), sc3 = T3.sc; readN(sc3); goN(sc3, 'opt', AS.no); var w3 = readN(sc3), a3 = askN(sc3), r3 = (sc3.pages[sc3.page] || []).join(' '), o3 = optsN(sc3), ins3 = CN.nedVisit(B).insight;
+      okN('a new visit, the story again; No.: what a familiar is for (its senses, a touch spell carried), then the rest of his story -- and with Aurdin choosing, "I decided to stick around." still in Ned\'s box ("' + r3.slice(-48) + '"); the silent Insight (' + (ins3 && ins3.d20 + ' + ' + (ins3.total - ins3.d20) + ' = ' + ins3.total) + ' vs 12) missed: ' + o3.join(' / '),
+        /see through its eyes/.test(w3.join(' ')) && /carries the touch/.test(w3.join(' ')) && a3.join('|') === NL.rest.join('|') && sc3.bubbling() && /stick around\.?"$/.test(r3) && f.nedStory === 1 && ins3 && ins3.total === 3 + window.DS.R.skill(au, 'Insight', 'wis') && ins3.total < 12 && !f.nedSaw && o3.join() === AS.copy + ',' + AS.leave && !/\(insight\)/.test(o3.join()));
+      goN(sc3, 'opt', AS.copy); var o3b = optsN(sc3), p3 = sc3.wait.ask[0]; goN(sc3, 'opt', AS.notNow); var a3n = askN(sc3);
+      R0.silver = 10; goN(sc3, 'opt', AS.copy); goN(sc3, 'opt', AS.pay); var a3p = askN(sc3);
+      okN('Can I copy it from you?: "' + p3.slice(0, 40) + '..." (' + o3b.join(' / ') + '); Not now., then too poor at 10 sp -- his reply on the screen under the next choice, nothing taken, no page', o3b.join() === AS.pay + ',' + AS.notNow && /Fifty silver/.test(p3) && a3n.join('|') === NL.notNow.join('|') && a3p.join('|') === NL.poor.join('|') && R0.silver === 10 && au.known.indexOf('findfamiliar') < 0 && !CN.count(st, SHT));
+      goN(sc3, 'opt', AS.leave); var w3l = readN(sc3); endN(T3);
+      var T4 = talkN(B), sc4 = T4.sc, w4 = readN(sc4), a4 = askN(sc4), o4 = optsN(sc4); goN(sc4, 'opt', AS.leave); readN(sc4); endN(T4);
+      okN('again the same visit: "Back again.", no second roll (once a visit), still no Insight choice: ' + o4.join(' / '), /Back again/.test(a4.join(' ')) && !f.nedSaw && o4.join() === AS.copy + ',' + AS.leave);
       // a later visit: the Insight made (the die 15), its choice in its own colour; turned down, and there again on the next visit with no roll
       outN(B); inN(B, 'warp:percy'); CN.nedRoll = function () { return 15; };
       var T5 = talkN(B), sc5 = T5.sc; readN(sc5); var o5 = optsN(sc5), b5 = sc5.buttons().filter(function (q) { return /\(insight\)/.test(q.label); })[0], ins5 = CN.nedVisit(B).insight;
-      okN('a later visit, the die 15: the Insight made (' + (ins5 && ins5.total) + ' vs 12) -- "' + (b5 && b5.label) + '" in its own colour (' + (b5 && b5.color) + ', on ' + (b5 && b5.lines ? b5.lines.length + ' lines' : 'one line') + ')',
-        f.nedSaw === 1 && !!b5 && b5.color === CN.NED.insight && b5.label === 'BECAUSE THE COMPONENTS ARE FASCINATING? (insight)' && o5.join() === 'CAN I COPY IT FROM YOU?,BECAUSE THE COMPONENTS ARE FASCINATING? (insight),LEAVE');
-      clickN(sc5, b5); var w5 = readN(sc5), o5b = optsN(sc5), p5 = sc5.wait && sc5.wait.ask ? sc5.wait.ask[0] : '';
-      okN('he owns it, and offers the tongue: "' + String(w5[w5.length - 1]).slice(0, 50) + '..." -- ' + p5.slice(0, 40) + ' (' + o5b.join(' / ') + ')', /caught out/.test(w5.join(' ')) && /snake's tongue from the Glowseep/.test(w5.join(' ')) && /page is yours/.test(p5) && o5b.join() === 'TAKE IT,NOT NOW');
-      goN(sc5, 'opt', 'NOT NOW'); readN(sc5); var o5c = optsN(sc5); goN(sc5, 'opt', 'LEAVE'); readN(sc5); endN(T5);
-      okN('NOT NOW: no quest, the choice still there (' + o5c.join(' / ') + ')', !f.nedQuest && o5c.indexOf('BECAUSE THE COMPONENTS ARE FASCINATING? (insight)') >= 0);
+      okN('a later visit, the die 15: the Insight made (' + (ins5 && ins5.total) + ' vs 12) -- "' + (b5 && b5.label) + '" in its own colour (' + (b5 && b5.color) + ', on ' + (b5 && b5.lines ? b5.lines.length + ' lines' : 'one line') + ' of his bubble)',
+        f.nedSaw === 1 && !!b5 && b5.color === CN.NED.insight && b5.bubble && b5.label === INS && o5.join() === [AS.copy, INS, AS.leave].join());
+      clickN(sc5, b5); var w5 = readN(sc5), a5 = askN(sc5), o5b = optsN(sc5), r5 = (sc5.pages[sc5.page] || []).join(' ');
+      okN('he owns it, and offers the tongue ("' + r5.slice(-40) + '" on the screen) -- Aurdin answers ' + o5b.join(' / ') + ' (10-22, his "where he\'ll say \'deal\' instead of player clicking \'take it\'")', /caught out/.test(a5.join(' ')) && /snake's tongue from the Glowseep/.test(a5.join(' ')) && /page is yours/.test(r5) && o5b.join() === AS.deal + ',' + AS.notNow && o5b.indexOf('TAKE IT') < 0);
+      goN(sc5, 'opt', AS.notNow); readN(sc5); var o5c = optsN(sc5); goN(sc5, 'opt', AS.leave); readN(sc5); endN(T5);
+      okN('Not now.: no quest, the choice still there (' + o5c.join(' / ') + ')', !f.nedQuest && o5c.indexOf(INS) >= 0);
       outN(B); inN(B, 'warp:percy'); CN.nedRoll = function () { return 1; };
       var T6 = talkN(B), sc6 = T6.sc; readN(sc6); var o6 = optsN(sc6), ins6 = CN.nedVisit(B).insight;
-      okN('the next visit, the die 1: no roll at all, and the choice stays (' + o6.join(' / ') + ')', !ins6 && o6.indexOf('BECAUSE THE COMPONENTS ARE FASCINATING? (insight)') >= 0);
-      // the quest taken: the JOURNAL pinned, no sale; Percy remarks on a tongue sold him, and buys it
-      goN(sc6, 'opt', 'BECAUSE THE COMPONENTS ARE FASCINATING? (insight)'); readN(sc6); goN(sc6, 'opt', 'TAKE IT'); var w6 = readN(sc6), o6b = optsN(sc6);
-      goN(sc6, 'opt', 'CAN I COPY IT FROM YOU?'); var w6c = readN(sc6), o6c = optsN(sc6); goN(sc6, 'opt', 'LEAVE'); readN(sc6); endN(T6);
+      okN('the next visit, the die 1: no roll at all, and the choice stays (' + o6.join(' / ') + ')', !ins6 && o6.indexOf(INS) >= 0);
+      // the quest taken: the JOURNAL pinned, no sale -- Aurdin asks what he wanted for it; Percy remarks on a tongue sold him, and buys it
+      goN(sc6, 'opt', INS); readN(sc6); goN(sc6, 'opt', AS.deal); var w6 = readN(sc6).concat(askN(sc6)), o6b = optsN(sc6);
+      goN(sc6, 'opt', AS.whatFor); var a6c = askN(sc6), o6c = optsN(sc6); goN(sc6, 'opt', AS.leave); readN(sc6); endN(T6);
       var jN = CN.journal(B), qN = jN.quests.filter(function (q) { return q.id === 'nedpage'; })[0];
-      okN('TAKE IT: the quest, pinned (' + f.pin + '), in the JOURNAL ("' + (qN && qN.name) + '": ' + (qN && String(qN.where).slice(0, 44)) + '...); the insight choice gone (' + o6b.join(' / ') + ')',
-        f.nedQuest === 1 && f.pin === 'nedpage' && /JOURNAL/.test(w6.join(' ')) && !!qN && !qN.done && /Glowseep/.test(qN.where) && o6b.indexOf('BECAUSE THE COMPONENTS ARE FASCINATING? (insight)') < 0);
-      okN('no sale now: "' + String(w6c[0]).slice(0, 56) + '..." -- the quest named, no price asked', w6c.join('|') === NL.copyQuest.join('|') && o6c.indexOf('PAY 50 SILVER') < 0);
+      okN('Deal.: the quest, pinned (' + f.pin + '), in the JOURNAL ("' + (qN && qN.name) + '": ' + (qN && String(qN.where).slice(0, 44)) + '...); the insight choice gone (' + o6b.join(' / ') + ')',
+        f.nedQuest === 1 && f.pin === 'nedpage' && /JOURNAL/.test(w6.join(' ')) && !!qN && !qN.done && /Glowseep/.test(qN.where) && o6b.indexOf(INS) < 0);
+      okN('10-22, his "with quest taken Aurdin "what did you want for that find familiar spell?" instead of \'can i copy it" again": ' + o6b.join(' / ') + ' -- "' + String(a6c[0]).slice(0, 50) + '...", the quest named, no price asked', o6b.indexOf(AS.whatFor) >= 0 && o6b.indexOf(AS.copy) < 0 && a6c.join('|') === NL.copyQuest.join('|') && o6c.indexOf(AS.pay) < 0);
       var dN = window.DS.DATA, spN = dN.monsters.snake, giveN = [], barN = st.party.filter(function (h) { return h.id === 'barley'; })[0];
       var spoils = window.DS.R.spoils([{ m: spN }], st.party.filter(function (h) { return !h.dead; }), { roll: function () { return 0; }, rng: function () { return 1; } }, function (id, n) { giveN.push(id + ' x' + n); CN.give(st, id, n); });
       okN('the tongue off a snake in the Glowseep, by one with the hands for it (Barley\'s Survival; the house\'s spoils, js/rules.js R.spoils): ' + giveN.join(', '), giveN.join() === 'snaketongue x1' && CN.count(st, 'snaketongue') === 1);
@@ -2847,36 +2855,42 @@
       outN(B); inN(B, 'warp:percy'); var gPc = TN.fire(B, trigN('talk:percy')); driveN(gPc, upN, 600); var scPc = D.top(); readN(scPc); goN(scPc, 'opt', 'THE SHELVES'); goN(scPc, 'tab', 'SELL');
       var tRow = scPc.rows().filter(function (r) { return r.id === 'snaketongue'; })[0], sv0N = R0.silver; clickN(scPc, scPc.buttons().filter(function (q) { return q.row && scPc.rows()[q.k].id === 'snaketongue'; })[0]); if (scPc.sub) goN(scPc, 'qok');
       var tRow2 = scPc.rows().filter(function (r) { return r.id === 'snaketongue'; })[0], msgPc = scPc.msg;
-      okN('Percy, sold a snake tongue while Ned\'s is asked for (RULED, his "have percy \'Didn\'t Ned want one of those?\' ... but will buy them anyway"): both on his SELL list ("' + (tRow && tRow.label) + '"), one sold (' + (R0.silver - sv0N) + ' sp, his fifth) -- ' + msgPc + '; one left (' + (tRow2 && tRow2.label) + ')',
-        !!tRow && tRow.label === 'Snake Tongue x2' && R0.silver - sv0N === 1 && msgPc === '"Didn\'t Ned want one of those?"' && CN.count(st, 'snaketongue') === 1 && !!tRow2 && tRow2.label === 'Snake Tongue x1');
+      okN('Percy, sold a snake tongue while Ned\'s is asked for (RULED, his "have percy \'Didn\'t Ned want one of those?\' ... but will buy them anyway"): both on his SELL list ("' + (tRow && tRow.label) + '"), one sold (' + (R0.silver - sv0N) + ' sp, his fifth) -- ' + msgPc + '; one left (' + (tRow2 && tRow2.label) + '); Percy\'s own screen has no hero',
+        !!tRow && tRow.label === 'Snake Tongue x2' && R0.silver - sv0N === 1 && msgPc === '"Didn\'t Ned want one of those?"' && CN.count(st, 'snaketongue') === 1 && !!tRow2 && tRow2.label === 'Snake Tongue x1' && !scPc.hero);
       CN.give(st, 'batfur', 1); var bfB = scPc.buttons().filter(function (q) { return q.row && scPc.rows()[q.k].id === 'batfur'; })[0]; clickN(scPc, bfB); if (scPc.sub) goN(scPc, 'qok'); var msgBf = scPc.msg;
       okN('any other part, the quest open: his own thanks, not the remark ("' + msgBf + '")', window.DS.DATA.shops.percy.boughtText.indexOf(msgBf) >= 0 && CN.count(st, 'batfur') === 0);
       goN(scPc, 'back'); goN(scPc, 'opt', 'LEAVE'); driveN(gPc, null, 300);
       var pinN = CN.pinned(st);
       okN('the marker with the tongue in the pack: Percy\'s door on the street, Ned\'s square in the room (' + (pinN && pinN.door + ', ' + pinN.who) + ' -> ' + (D.roam.def.beside && D.roam.def.beside.ned.at) + ')', !!pinN && pinN.door === 'warp:percy' && pinN.who === 'ned' && D.roam.def.room === 'warp:percy' && D.roam.def.beside.ned.at.join() === kNd.x + ',' + kNd.y);
-      // the tongue handed in: the page, the ritual copied
-      var T7 = talkN(B), sc7 = T7.sc; readN(sc7); var o7 = optsN(sc7); goN(sc7, 'opt', 'THE SNAKE TONGUE'); var w7 = readN(sc7); endN(T7);
-      okN('THE SNAKE TONGUE (first of ' + o7.join(' / ') + '): "Fresh. Good.", the page, Aurdin copies Find Familiar (' + w7.filter(function (l) { return /copies/.test(l); })[0] + '); the tongue gone, the quest done, the pin off',
-        o7[0] === 'THE SNAKE TONGUE' && /Fresh\. Good\./.test(w7.join(' ')) && /copies Find Familiar into the spellbook/.test(w7.join(' ')) && au.known.indexOf('findfamiliar') >= 0 && CN.count(st, 'snaketongue') === 0 && f.nedDone === 1 && !f.pin && CN.journal(B).quests.filter(function (q) { return q.id === 'nedpage'; })[0].done);
+      // the tongue handed in: the page torn out -- a sheet in the pack, as a fight's end gives one, not the ritual copied
+      var T7 = talkN(B), sc7 = T7.sc; readN(sc7); var o7 = optsN(sc7); goN(sc7, 'opt', AS.tongue); var w7 = readN(sc7); endN(T7);
+      okN('10-22, his "text should be same as fight end, where \'sheet: Find Familiar" ... is awarded ... some times Ned rips it out page (good)": ' + o7[0] + ' -- "Fresh. Good.", the page torn out, "' + w7.filter(function (l) { return /^Received/.test(l); })[0] + '" (the sheet x' + CN.count(st, SHT) + ' in the pack, Aurdin not yet knowing it); the tongue gone, the quest done, the pin off',
+        o7[0] === AS.tongue && /Fresh\. Good\./.test(w7.join(' ')) && /tears a page out/.test(w7.join(' ')) && w7.indexOf(GOT) >= 0 && !/copies/.test(w7.join(' ')) && CN.count(st, SHT) === 1 && au.known.indexOf('findfamiliar') < 0 && CN.count(st, 'snaketongue') === 0 && f.nedDone === 1 && !f.pin && CN.journal(B).quests.filter(function (q) { return q.id === 'nedpage'; })[0].done);
+      var T7b = talkN(B), w7b = T7b.sc ? readN(T7b.sc) : []; endN(T7b);
+      okN('talked to with the page still in the pack: "' + String(w7b[0]).slice(0, 50) + '..." -- no spell talk, no sale', w7b.join('|') === NL.pageWaits.join('|') && T7b.sc.done);
+      var unitN = function (h) { return R0.members.filter(function (u) { return (u.src || u) === h; })[0] || null; }, useN = HN.fieldOnFloor(B, 'item', { id: SHT, h: au }, unitN) || [];
+      okN('the sheet used from the pack, the house\'s learn (js/house.js FD.item): "' + useN[0] + '" -- Find Familiar in his book, the sheet spent', /copies Find Familiar into the spellbook\. The sheet is spent\./.test(useN[0]) && au.known.indexOf('findfamiliar') >= 0 && !CN.count(st, SHT));
       var T8 = talkN(B), w8 = T8.sc ? readN(T8.sc) : []; endN(T8);
-      okN('Aurdin knows it now: his school line and how the familiar is -- none of the spell talk (' + w8.length + ' lines)', /road he didn't finish/.test(w8.join(' ')) && /Mine eats better/.test(w8.join(' ')) && !/You know that spell/.test(w8.join(' ')) && T8.sc.done);
+      okN('10-22, his "Aurdin knows it - no spell talk:  Looks like you\'re learning without the classes": his school line and "' + w8[w8.length - 1] + '" -- with no familiar out, nothing of one; none of the spell talk (' + w8.length + ' lines)', /road he didn't finish/.test(w8.join(' ')) && w8[w8.length - 1] === NL.learning && !/How's the/.test(w8.join(' ')) && !/You know that spell/.test(w8.join(' ')) && T8.sc.done && T8.sc.hero === au);
+      f.familiar = { kind: 'owl', by: 'aurdin', hp: 1 }; var T8o = talkN(B), w8o = T8o.sc ? readN(T8o.sc) : []; endN(T8o); delete f.familiar;
+      okN('his "only asks about familiar by type if Aurdin has one with him": his owl out -- "' + w8o[w8o.length - 1] + '"', w8o[w8o.length - 2] === NL.learning && w8o[w8o.length - 1] === '"How\'s the owl? Mine eats better than I do."');
       HN.fromFloor(B);
       okN('into the house\'s save: Aurdin\'s book with the ritual, the flags (' + ['nedStory', 'nedSaw', 'nedQuest', 'nedDone'].map(function (k) { return k + ' ' + HN.cur.flags[k]; }).join(', ') + ')', HN.cur.party.filter(function (h) { return h.id === 'aurdin'; })[0].known.indexOf('findfamiliar') >= 0 && HN.cur.flags.nedDone === 1);
-      // no one to take it: the story heard, the Insight made, and no Survival or Nature standing
-      var reset = function (fl) { Object.keys(f).filter(function (k) { return /^ned/.test(k); }).forEach(function (k) { delete f[k]; }); Object.assign(f, fl || {}); au.known = au.known.filter(function (s) { return s !== 'findfamiliar'; }); };
+      // no one to take it: the story heard, the Insight made, and no Survival or Nature standing -- he says so, and the quest is taken all the same
+      var reset = function (fl) { Object.keys(f).filter(function (k) { return /^ned/.test(k); }).forEach(function (k) { delete f[k]; }); delete f.pin; Object.assign(f, fl || {}); au.known = au.known.filter(function (s) { return s !== 'findfamiliar'; }); var n0 = CN.count(st, SHT); if (n0) CN.take(st, SHT, n0); };
       reset({ nedStory: 1, nedSaw: 1 }); barN.dead = true; outN(B); inN(B, 'warp:percy');
-      var T9 = talkN(B), sc9 = T9.sc; readN(sc9); goN(sc9, 'opt', 'BECAUSE THE COMPONENTS ARE FASCINATING? (insight)'); var w9 = readN(sc9), o9 = optsN(sc9); goN(sc9, 'opt', 'LEAVE'); readN(sc9); endN(T9); barN.dead = false;
-      okN('no one with the hands for it (Barley down): he explains the job wants someone who knows animals or the wild -- no offer, the choice stays (' + o9.join(' / ') + ')', w9.join('|') === NL.owned.concat(NL.noHands).join('|') && !f.nedQuest && o9.indexOf('BECAUSE THE COMPONENTS ARE FASCINATING? (insight)') >= 0);
+      var T9 = talkN(B), sc9 = T9.sc; readN(sc9); goN(sc9, 'opt', INS); readN(sc9); var a9 = askN(sc9), o9 = optsN(sc9); goN(sc9, 'opt', AS.deal); readN(sc9); goN(sc9, 'opt', AS.leave); readN(sc9); endN(T9); barN.dead = false;
+      okN('10-22, his "Not having harvester shouldn\'t prevent quest acceptance" (Barley down): Ned says the job wants someone who knows animals or the wild, offers it all the same (' + o9.join(' / ') + '), and Deal. takes it', a9.join('|') === NL.owned.concat(NL.noHands, NL.quest).join('|') && o9.join() === AS.deal + ',' + AS.notNow && f.nedQuest === 1);
       au.dead = true; var T10 = talkN(B), w10 = T10.sc ? readN(T10.sc) : []; endN(T10); au.dead = false;
-      okN('without Aurdin (down): the harvest line, nothing of the spell', w10.join('|') === NL.harvest.join('|'));
-      // the sale: 50 silver, the ritual copied
+      okN('without Aurdin (down): the harvest line, nothing of the spell, no hero on the screen', w10.join('|') === NL.harvest.join('|') && !T10.sc.hero);
+      // the sale: 50 silver -- a fair copy handed over, a sheet in the pack, not the ritual copied out of his book
       reset({}); R0.silver = 60; outN(B); inN(B, 'warp:percy'); CN.nedRoll = function () { return 3; };
-      var T11 = talkN(B), sc11 = T11.sc; readN(sc11); goN(sc11, 'opt', 'NO'); readN(sc11); goN(sc11, 'opt', 'CAN I COPY IT FROM YOU?'); goN(sc11, 'opt', 'PAY 50 SILVER'); var w11 = readN(sc11); endN(T11);
-      okN('the sale: PAY 50 SILVER -- ' + (60 - R0.silver) + ' sp, "' + w11[0] + '", the talk over', R0.silver === 10 && au.known.indexOf('findfamiliar') >= 0 && /copies Find Familiar/.test(w11[0]) && sc11.done && !upN());
+      var T11 = talkN(B), sc11 = T11.sc; readN(sc11); goN(sc11, 'opt', AS.no); readN(sc11); goN(sc11, 'opt', AS.copy); goN(sc11, 'opt', AS.pay); var w11 = readN(sc11); endN(T11);
+      okN('10-22, his "hands him a copied page is good too, letting him copy out of book text is not": Fifty it is. -- ' + (60 - R0.silver) + ' sp, "' + String(w11[0]).slice(0, 60) + '...", "' + w11[1] + '"; the sheet in the pack, the book untouched, the talk over', R0.silver === 10 && w11.join('|') === NL.copied.concat([GOT], NL.paid).join('|') && CN.count(st, SHT) === 1 && au.known.indexOf('findfamiliar') < 0 && f.nedDone === 1 && sc11.done && !upN());
       // the show: every beat stages and plays
       var cvN = document.createElement('canvas'); cvN.width = D.W; cvN.height = D.H; var ctxN = cvN.getContext('2d'), errS = null, beatsN = [];
-      try { var showN = CN.nedShow(''); showN.draw(ctxN); CN.NED_BEATS.forEach(function (bt) { var Bs = CN.nedStage(bt), roll1 = CN.nedRoll; CN.nedRoll = function () { return bt.d20; }; var s = CN.beatTalk(bt, Bs); s.draw(ctxN); readN(s); beatsN.push(bt.id + ':' + (s.wait && s.wait.ask ? optsN(s).length + 'opts' : s.done ? 'done' : '?')); CN.nedRoll = roll1; }); } catch (eS) { errS = String(eS).slice(0, 120); }
-      okN('the show (deep16/?nedshow) draws, and each of its ' + CN.NED_BEATS.length + ' beats stages Ned\'s screen: ' + beatsN.join(' ') + (errS ? ' THREW ' + errS : ''), !errS && beatsN.length === CN.NED_BEATS.length);
+      try { var showN = CN.nedShow(''); showN.draw(ctxN); var lastB = showN.buttons()[showN.buttons().length - 1]; CN.NED_BEATS.forEach(function (bt) { var Bs = CN.nedStage(bt), roll1 = CN.nedRoll; CN.nedRoll = function () { return bt.d20; }; var s = CN.beatTalk(bt, Bs); s.draw(ctxN); readN(s); s.draw(ctxN); beatsN.push(bt.id + ':' + (s.wait && s.wait.ask ? optsN(s).length + 'opts' : s.done ? 'done' : '?')); CN.nedRoll = roll1; }); } catch (eS) { errS = String(eS).slice(0, 120); }
+      okN('the show (deep16/?nedshow) draws, its ' + CN.NED_BEATS.length + ' beats on the screen (the last to y ' + (lastB && lastB.y + lastB.h) + '), and each stages Ned\'s screen: ' + beatsN.join(' ') + (errS ? ' THREW ' + errS : ''), !errS && beatsN.length === CN.NED_BEATS.length && lastB.y + lastB.h <= D.H - 16);
       var errP = null; try { var psN = CN.portraitShow('?portraits&who=mela,mical,ned'); psN.update(); var pc = D.top(); pc.draw(ctxN); } catch (eP) { errP = String(eP).slice(0, 120); }
       okN('the portraits\' show (deep16/?portraits&who=...) opens each one\'s counter screen: ' + (psN && psN.ids.join(', ')) + (errP ? ' THREW ' + errP : ''), !errP && psN.ids.join() === 'mela,mical,ned' && pc instanceof CN.Counter && pc.sheet === 'pt_mela');
     } catch (eN) { repN.errors.push(String(eN && eN.stack || eN).slice(0, 900)); }

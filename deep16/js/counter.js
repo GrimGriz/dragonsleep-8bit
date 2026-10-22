@@ -150,6 +150,10 @@
   // the portrait on the right, the words and buttons on the left (10-21, Griz: "looks like all the portraits are facing left - can we put them on the right side of the
   // screen instead?" -- every keeper is drawn looking screen left, so from the right they look at the conversation)
   var PW = 190, PX = D.W - 8 - PW, PY = 8, PH = 214, CY = PY + PH - 26, RX = 8, RW = PX - 8 - RX, WY = 34, WH = 100;
+  // a hero in the talk (10-22, Griz, at Ned's counter: "Can we put Aurdin's portrait in the bottom left and have his text choices be in his speech bubble? / Such that
+  // when Aurdin is choosing what to say, his line it answers "I decided to stick around" is still on the screen"): a script that sets sc.hero has that hero's portrait
+  // bottom left (HB) and every question's answers in the hero's bubble beside it (BB), the keeper's words paged in their box as a say's, the answers up on the last page
+  var HB = { x: 8, y: 146, w: 86, h: 104 }, BB = { x: 104, y: 142, w: RX + RW - 104, h: 108 };
   function Counter(B, o) {
     this.kind = 'counter'; this.opaque = true; this.t = 0; this.B = B; this.o = o; this.st = C.state(B);
     this.id = o.id; this.sheet = C.PT[o.id] || null; this.face = null; this.wait = null; this.msg = ''; this.hov = -1; this.i = 0; this.done = false; this.regear = false;
@@ -157,7 +161,7 @@
     this.step();
   }
   C.Counter = Counter;
-  C.LAYOUT = { portrait: [PX, PY, PW, PH], words: [RX, WY, RW, WH] };
+  C.LAYOUT = { portrait: [PX, PY, PW, PH], words: [RX, WY, RW, WH], hero: [HB.x, HB.y, HB.w, HB.h], bubble: [BB.x, BB.y, BB.w, BB.h] };
   Counter.prototype.say = function (lines, face) { return { say: [].concat(lines), face: face }; };
   Counter.prototype.ask = function (prompt, opts, face) { return { ask: [].concat(prompt), opts: opts, face: face }; };
   Counter.prototype.shelves = function (shop) { return { shelves: shop }; };
@@ -168,8 +172,12 @@
     this.wait = r.value; this.i = 0; this.hov = this.wait.ask ? 0 : -1; this.page = 0;
     if (this.wait.face) this.setFace(this.wait.face);
     if (this.wait.say) this.pages = this.paginate(this.wait.say);
+    if (this.wait.ask && this.hero) { this.pages = this.paginate(this.wait.ask); this.echo = null; } // (a hero's question: the keeper's words paged, the answers in the bubble)
     if (this.wait.shelves) this.openShelves(this.wait.shelves);
   };
+  // the hero's answers up: a question in a hero's talk, on its last page of the keeper's words
+  Counter.prototype.bubbling = function () { var w = this.wait || {}; return !!(this.hero && w.ask && this.page >= this.pages.length - 1); };
+  Counter.prototype.paging = function () { var w = this.wait || {}; return !!(w.say || (this.hero && w.ask && !this.bubbling())); };
   Counter.prototype.close = function () { if (this.done) return; this.done = true; if (D.top() === this) D.pop(); };
   // the words in the box: each line wrapped, and as many boxes as they need (a page a box)
   Counter.prototype.paginate = function (lines) {
@@ -182,9 +190,10 @@
   Counter.prototype.buttons = function () {
     var w = this.wait || {}, out = [], self = this;
     if (this.sub) return this.subButtons();
-    if (w.say) { var last = this.page >= this.pages.length - 1; out.push({ x: RX + RW - 70, y: WY + WH - 20, w: 62, h: 15, label: last ? 'OK' : 'NEXT', go: 'next' }); }
+    if (this.paging()) { var last = this.page >= this.pages.length - 1; out.push({ x: RX + RW - 70, y: WY + WH - 20, w: 62, h: 15, label: w.say && last ? 'OK' : 'NEXT', go: 'next' }); }
+    if (this.bubbling()) return this.bubbleButtons();
     var yo = 0; // (an option may be { label, color }: Ned's Insight, his "insight text a different color"; one too long for its box wraps onto two lines in a taller one)
-    if (w.ask) w.opts.forEach(function (lb, k) { var o = typeof lb === 'object' ? lb : { label: lb }, ls = D.textWidth(o.label) > RW - 28 ? D.wrap(o.label, RW - 28) : null, h = ls ? 6 + ls.length * 10 : 16; out.push({ x: RX + 8, y: WY + WH + 8 + k * 19 + yo, w: RW - 16, h: h, label: o.label, lines: ls, color: o.color, go: 'opt', k: k }); yo += h - 16; });
+    if (w.ask && !this.hero) w.opts.forEach(function (lb, k) { var o = typeof lb === 'object' ? lb : { label: lb }, ls = D.textWidth(o.label) > RW - 28 ? D.wrap(o.label, RW - 28) : null, h = ls ? 6 + ls.length * 10 : 16; out.push({ x: RX + 8, y: WY + WH + 8 + k * 19 + yo, w: RW - 16, h: h, label: o.label, lines: ls, color: o.color, go: 'opt', k: k }); yo += h - 16; });
     if (w.shelves) {
       var tw = 76;
       out.push({ x: RX, y: 86, w: tw, h: 15, label: 'BUY', go: 'tab', tab: 'buy', on: this.tab === 'buy', off: !this.shop.items || !this.shop.items.length });
@@ -195,6 +204,12 @@
       rows.slice(this.scroll, this.scroll + vis).forEach(function (r, k) { out.push({ x: RX, y: 106 + k * 13, w: RW - (rows.length > vis ? 14 : 0), h: 12, label: r.label, right: r.right, go: 'row', k: self.scroll + k, off: r.off, row: true }); });
       if (rows.length > vis) { out.push({ x: RX + RW - 12, y: 106, w: 12, h: 12, label: '▲', go: 'up', off: !this.scroll }); out.push({ x: RX + RW - 12, y: 106 + (vis - 1) * 13, w: 12, h: 12, label: '▼', go: 'down', off: this.scroll + vis >= rows.length }); }
     }
+    return out;
+  };
+  // the hero's answers, a line each in the bubble (wrapped to its width), hovered or picked as any choice
+  Counter.prototype.bubbleButtons = function () {
+    var out = [], y = BB.y + 6, tw = BB.w - 20;
+    this.wait.opts.forEach(function (lb, k) { var o = typeof lb === 'object' ? lb : { label: lb }, ls = D.wrap(o.label, tw), h = 4 + ls.length * 10; out.push({ x: BB.x + 4, y: y, w: BB.w - 8, h: h, label: o.label, lines: ls, color: o.color, go: 'opt', k: k, bubble: true }); y += h + 3; });
     return out;
   };
   // a first-game shop's greeting said the second game's way, by the shop's id (the first game's content/shops.json left as it is): Marko hires out no guards
@@ -268,7 +283,7 @@
     if (!b || b.off) { D.sfx('error'); return; }
     D.sfx(b.go === 'back' || b.go === 'qback' || b.go === 'notnow' ? 'cancel' : 'cursor');
     if (b.go === 'next') { if (this.page < this.pages.length - 1) this.page++; else this.step(); return; }
-    if (b.go === 'opt') { this.step(b.k); return; }
+    if (b.go === 'opt') { if (b.bubble) this.echo = D.wrap(b.label.replace(/ \(insight\)$/, ''), BB.w - 20); this.step(b.k); return; } // (the hero's line stays in the bubble while the keeper answers)
     if (b.go === 'tab') { this.tab = b.tab; this.scroll = 0; this.cur = 0; if (b.tab === 'sell') { this.setFace('skeptical'); if (!this.rows().length) this.msg = this.shop.nothingText || 'You have nothing I want.'; } return; }
     if (b.go === 'back') { this.shop = null; this.step(); return; }
     if (b.go === 'up') { this.scroll = Math.max(0, this.scroll - 1); return; }
@@ -296,7 +311,7 @@
     var w = this.wait || {};
     if (m.click && m.inside) {
       if (hit) { this.press(hit); return; }
-      if (w.say && !this.sub && m.x >= RX && m.x < RX + RW && m.y >= WY && m.y < WY + WH) { this.press(bs[0]); return; } // (a click on the words goes on)
+      if (this.paging() && !this.sub && m.x >= RX && m.x < RX + RW && m.y >= WY && m.y < WY + WH) { this.press(bs[0]); return; } // (a click on the words goes on)
     }
     if (m.wheel && this.shop && !this.sub) { this.scroll = Math.max(0, (this.scroll || 0) + (m.wheel > 0 ? 1 : -1)); m.wheel = 0; }
     var live = bs.filter(function (q) { return !q.off; });
@@ -331,10 +346,11 @@
       D.wrap(this.msg, RW - 18).slice(0, 4).forEach(function (l, i) { D.text(ctx, l, RX + 9, WY + 6 + i * 10, W8.text); });
     } else {
       D.win8(ctx, RX, WY, RW, WH);
-      var rows = w.say ? this.pages[this.page] || [] : w.ask ? this.paginate(w.ask)[0] : [];
+      var rows = w.say || (this.hero && w.ask) ? this.pages[this.page] || [] : w.ask ? this.paginate(w.ask)[0] : [];
       rows.forEach(function (l, i) { D.text(ctx, l, RX + 9, WY + 6 + i * 10, W8.text); });
-      if (w.say && this.pages.length > 1) D.text(ctx, (this.page + 1) + '/' + this.pages.length, RX + 10, WY + WH - 16, '#9c9cb4');
+      if ((w.say || (this.hero && w.ask)) && this.pages.length > 1) D.text(ctx, (this.page + 1) + '/' + this.pages.length, RX + 10, WY + WH - 16, '#9c9cb4');
     }
+    if (this.hero) this.drawHero(ctx);
     var bs = this.buttons();
     if (this.sub) {
       var s = this.sub, it = DS.DATA.items[s.id];
@@ -347,6 +363,11 @@
     }
     bs.forEach(function (q, k) {
       var hov = k === self.hov, on = q.on;
+      if (q.bubble) { // (a hero's answer: a line of the bubble, lit under the mouse)
+        if (hov) { ctx.fillStyle = W8.sel; ctx.fillRect(q.x, q.y, q.w, q.h); }
+        q.lines.forEach(function (l, i) { D.text(ctx, l, q.x + 6, q.y + 2 + i * 10, hov ? W8.gold : q.color || W8.text); });
+        return;
+      }
       if (q.row) {
         if (hov || (self.cur === q.k && !self.sub && !(bs[self.hov] && bs[self.hov].row))) { ctx.fillStyle = W8.sel; ctx.fillRect(q.x, q.y - 1, q.w, q.h); } // (the row under the mouse, else the last one picked)
         D.text(ctx, q.label, q.x + 6, q.y + 1, q.off ? '#6c6c84' : hov ? W8.gold : W8.text);
@@ -369,6 +390,37 @@
     }
     ctx.fillStyle = 'rgba(4,3,10,.95)'; ctx.fillRect(0, D.H - 14, D.W, 14);
     D.hint(ctx, 'click a choice · arrows choose · E pick · X back', D.W / 2, D.H - 11, '#9a96a8', 'center');
+  };
+  // the hero bottom left, and the bubble beside: the answers while the hero chooses, the line chosen while the keeper answers it
+  Counter.prototype.drawHero = function (ctx) {
+    var W8 = D.WIN8, h = this.hero, w = this.wait || {}, bs = this.bubbling() ? this.bubbleButtons() : null;
+    D.win8(ctx, HB.x, HB.y, HB.w, HB.h, '#0b1430');
+    ctx.save(); ctx.beginPath(); ctx.rect(HB.x + 3, HB.y + 3, HB.w - 6, HB.h - 20); ctx.clip();
+    C.drawHeroFace(ctx, h, HB.x + 3, HB.y + 3, HB.w - 6, HB.h - 20, this.t);
+    ctx.restore();
+    D.text(ctx, '{y}' + h.name + '{/}', HB.x + HB.w / 2, HB.y + HB.h - 14, W8.text, 'center');
+    var echo = !bs && w.say && this.echo, bh = bs ? bs[bs.length - 1].y + bs[bs.length - 1].h + 5 - BB.y : echo ? 8 + echo.length * 10 : 0;
+    if (!bh) return;
+    bubble(ctx, BB.x, BB.y, BB.w, Math.max(30, bh));
+    if (echo) echo.forEach(function (l, i) { D.text(ctx, l, BB.x + 10, BB.y + 6 + i * 10, '#9c9cb4'); });
+  };
+  function bubble(ctx, x, y, w, h) { // (a speech bubble, its tail at the portrait)
+    ctx.fillStyle = 'rgba(14,16,46,.96)'; ctx.strokeStyle = '#c8d0e8'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(x + 4, y + 0.5); ctx.lineTo(x + w - 4, y + 0.5); ctx.lineTo(x + w - 0.5, y + 4); ctx.lineTo(x + w - 0.5, y + h - 4); ctx.lineTo(x + w - 4, y + h - 0.5);
+    ctx.lineTo(x + 4, y + h - 0.5); ctx.lineTo(x + 0.5, y + h - 4); ctx.lineTo(x + 0.5, y + 22); ctx.lineTo(x - 9, y + 15); ctx.lineTo(x + 0.5, y + 9); ctx.lineTo(x + 0.5, y + 4); ctx.closePath();
+    ctx.fill(); ctx.stroke();
+  }
+  // a hero's face, till the heroes have portraits of their own (none yet): the figure the hero wears on the floor (js/save.js SV.look -- Aurdin's mantle by his robe),
+  // turned to the keeper (south-east), head and shoulders at HERO_FACE.zoom, breathing in its idle
+  C.HERO_FACE = { facing: 7, zoom: 3, anim: 'idle', above: 4 }; // (at 2 the whole figure shows small; at 3 the head and the mantle: the seat's eye, 10-22)
+  C.heroSheet = function (h) { var id = h.key || h.id, L0 = D.save && D.save.look ? D.save.look(id, null, h) : null; return (L0 && L0.sheet) || id + '_p0'; };
+  C.drawHeroFace = function (ctx, h, x, y, w, hh, t) {
+    var F = C.HERO_FACE, name = C.heroSheet(h), sh = D.SHEETS && D.SHEETS[name]; if (!sh) return false;
+    if (!D.spr.has(name)) { if (!D.spr.offline) D.spr.load(sh.image); return false; }
+    var fr = D.spr.frameAt(name, F.anim, F.facing, t); if (!fr || !fr.img) return false;
+    var sw = w / F.zoom, sht = hh / F.zoom, sx = fr.sx + fr.ax - sw / 2, sy = fr.sy + Math.max(0, fr.ay - (sh.top || 52) - F.above);
+    ctx.save(); ctx.imageSmoothingEnabled = false; ctx.drawImage(fr.img, Math.round(sx), Math.round(sy), sw, sht, x, y, w, hh); ctx.restore();
+    return true;
   };
 
   // ---------------------------------------------------------------- at a counter or a door: the screen up, the floor waiting under it (js/town.js T.fire)
@@ -479,7 +531,15 @@
   // after it". Ned's words are the seat's drafts (invented.json ned-familiar-grid; his "Griz's words set them later"), his two first-game lines his own (content/npcs.json
   // `ned`). The save's flags (the floor's): nedStory his story heard, nedSaw the Insight made (its choice stays), nedQuest the tongue asked for, nedDone the page
   // given. A visit's own -- the bluff caught, the Insight rolled -- ride the room's visit (B.townAway, new at every door: "until they leave and come back")
-  C.NED = { price: 50, dc: 12, part: 'snaketongue', spell: 'findfamiliar', insight: '#8ce0f8', harvest: ['Survival', 'Nature'], rat: { sheet: 'giantrat_p1', dx: 42, dy: -80, facing: 1, scale: 1 } };
+  // His notes of 10-22 (his ear file, eyes-ned-familiar-1021e, "easy"): "Can we put Aurdin's portrait in the bottom left and have his text choices be in his speech
+  // bubble? / Such that when Aurdin is choosing what to say, his line it answers "I decided to stick around" is still on the screen / where he'll say 'deal' instead of
+  // player clicking 'take it' / with quest taken Aurdin "what did you want for that find familiar spell?" instead of 'can i copy it" again / text should be same as
+  // fight end, where 'sheet: Find Familiar" or whatever is awarded, where player has to use it as an item to put it in spellbook (vs text saying he copied it into his
+  // book) - some times Ned rips it out page (good) - hands him a copied page is good too, letting him copy out of book text is not" · "Not having harvester shouldn't
+  // prevent quest acceptance" · "Aurdin knows it - no spell talk:  Looks like you're learning without the classes - only asks about familiar by type if Aurdin has one
+  // with him". So Aurdin is the screen's hero (sc.hero: Counter.drawHero), his answers C.NED_REPLIES; the page is a sheet in the pack (C.nedPage), torn out for the
+  // tongue or a fair copy for the silver, and nedDone is the page given either way
+  C.NED = { price: 50, dc: 12, part: 'snaketongue', spell: 'findfamiliar', sheet: 'sheet_findfamiliar', insight: '#8ce0f8', harvest: ['Survival', 'Nature'], rat: { sheet: 'giantrat_p1', dx: 42, dy: -80, facing: 1, scale: 1 } };
   C.NED_LINES = {
     harvest: ['"Spell components? Half of them are walking around inside whatever comes at you on the road. A snake\'s tongue, a bat\'s fur, a spider\'s silk."',
       '"Take them off what attacks you, if one of you has the hands for it, and bring them here. Percy pays a fifth, once they\'re rendered."'],
@@ -495,23 +555,29 @@
     rest: ['"I learned it in the end. Down here, out of a book I paid too much for."', 'The rat on his shoulder washes its face.',
       '"And then I didn\'t go back up. The road was still there in the morning. I decided to stick around."'],
     back: ['"Back again." Ned looks at Aurdin\'s book, then at the rat.'],
-    ask: 'Ned waits, a jar label half-lettered under his hand.',
     copyPrice: '"I can let you copy it. Fifty silver -- the book cost me more than that, and the ink isn\'t free."',
     poor: ['"Fifty. I\'m sorry. Come back when the purse is heavier."'],
+    copied: ['Ned counts the silver twice, then slides a loose page out from under the jar labels -- the ritual, copied out fair in his own hand.'],
     paid: ['"Feed it, whatever it turns out to be. They remember who feeds them."'],
     notNow: ['"It\'ll keep. So will I."'],
     copyQuest: ['"We said a snake\'s tongue from the Glowseep. A fresh one. I\'ll keep to that, if you will."'],
     owned: ['Ned stops, then smiles, caught out.', '"They are. The spell is the easy part. It\'s the components I can\'t get any more -- I don\'t go out past the gate."'],
-    noHands: ['"It wants someone who can take a tongue off a snake without ruining it, though. Someone who knows animals, or the wild. Bring them, and we\'ll talk."'],
+    noHands: ['"It wants someone who can take a tongue off a snake without ruining it, though -- someone who knows animals, or the wild. Find one, and bring them along."'],
     quest: ['"Bring me a snake\'s tongue from the Glowseep. Fresh -- off the snake, not out of a jar."', '"Do that, and the page is yours. No silver."'],
     taken: ['"The bog, then. Mind the frogs."'],
     tongue: ['Ned turns the tongue over in the lamplight. "Fresh. Good."', 'He tears a page out of his book along a fold worn soft, and holds it out.'],
     page: ['"It was always going to be somebody\'s."'],
-    after: ['"How is it? The familiar. Mine eats better than I do."'],
+    pageWaits: ['"That page wants to be in your book, not your pack. The rat has opinions about loose paper."'],
+    learning: '"Looks like you\'re learning without the classes."', // (his words, 10-22)
+    famAsk: '"How\'s the {kind}? Mine eats better than I do."', // (only with Aurdin's familiar out with him: flags.familiar, js/familiar.js)
     bye: ['"Mind how you go."'],
     journal: '{g}Ned\'s page is in your JOURNAL now (M, then JOURNAL), pinned.{/}',
     percyTongue: '"Didn\'t Ned want one of those?"' // (Percy's, selling him a snake tongue while Ned's is asked for: his words, RULED 10-21 night -- Counter.remark)
   };
+  // Aurdin's side, in his bubble: his words where he gave them ("Can I copy it from you?", "Because the components are fascinating?", "Deal.", "What did you want for
+  // that Find Familiar spell?"), the rest the seat's drafts (invented.json ned-aurdin-replies-grid)
+  C.NED_REPLIES = { yes: 'Yes.', no: 'No.', copy: 'Can I copy it from you?', whatFor: 'What did you want for that Find Familiar spell?', insight: 'Because the components are fascinating?',
+    tongue: 'One snake\'s tongue. Fresh.', pay: 'Fifty it is.', deal: 'Deal.', notNow: 'Not now.', leave: 'We should get going.' };
   C.nedRoll = function () { return D.roll('1d20').total; }; // (the Insight's die: the bench and the show pin it)
   C.nedAurdin = function (st) { return st.party.filter(function (h) { return (h.key || h.id) === 'aurdin' && !h.dead; })[0] || null; };
   C.knowsFF = function (h) { return !!h && (h.known || []).indexOf(C.NED.spell) >= 0; };
@@ -519,53 +585,52 @@
   C.canHarvest = function (st) { return st.party.some(function (h) { return !h.dead && C.NED.harvest.some(function (s) { return h.skills && h.skills[s] != null; }); }); };
   C.nedOpen = function (st) { return !!(st && st.flags.nedQuest && !st.flags.nedDone); };
   C.nedVisit = function (B) { var o = B && B.townAway; if (!o) o = C.nedLoose = C.nedLoose || {}; return o.ned = o.ned || {}; };
-  // the ritual into his book: the house's learn (js/house.js FD.item `learn`) -- the floor's figure too, where it keeps its own list
-  C.nedLearn = function (st, h) {
-    var sp = DS.DATA.spells[C.NED.spell]; if (!C.knowsFF(h)) { h.known = h.known || []; h.known.push(C.NED.spell); }
-    var R0 = st.B && st.B.roam; ((R0 && R0.members) || []).forEach(function (u) { if (u.src === h && Array.isArray(u.known) && u.known !== h.known && u.known.indexOf(C.NED.spell) < 0) u.known.push(C.NED.spell); });
-    D.sfx('magic');
-    return [h.name + ' copies ' + sp.name + ' into the spellbook.'].concat(h.prepared ? ['New spells are prepared after a long rest.'] : []);
-  };
+  // the page into the pack, as a story's end gives a sheet (js/mines.js, Edric's page): "Received: Sheet: Find Familiar." -- used from the pack, the house's learn
+  // copies it into the book (js/house.js FD.item `learn`). The page given: nedDone, by the tongue or the silver
+  C.nedPage = function (st) { give(st, C.NED.sheet, 1); st.flags.nedDone = 1; D.sfx('chest'); return [L('g.got', { item: DS.DATA.items[C.NED.sheet].name })]; };
+  // his familiar by its kind, if it is out with him (js/familiar.js: flags.familiar, by whom)
+  C.nedFam = function (st, h) { var fm = st.flags.familiar, form = fm && fm.by === (h.key || h.id) && DS.R.FAMILIARS[fm.kind]; return form ? [C.NED_LINES.famAsk.split('{kind}').join(form.name)] : []; };
   C.ned = function* (sc, B) {
-    var st = sc.st, f = st.flags, NL = C.NED_LINES, au = C.nedAurdin(st), vis = C.nedVisit(B);
+    var st = sc.st, f = st.flags, NL = C.NED_LINES, AS = C.NED_REPLIES, au = C.nedAurdin(st), vis = C.nedVisit(B);
     var school = ((((DS.DATA.npcs || {}).ned || {}).talk || []).filter(function (e) { return e['if'] === 'hired:aurdin'; })[0] || {}).say || [];
+    sc.hero = au; // (Aurdin bottom left, his answers in his bubble; no one without him)
     if (!au || vis.laughed) { yield sc.say(NL.harvest, vis.laughed ? 'skeptical' : 'attentive'); return; } // (8: no Aurdin, or the bluff caught this visit)
-    if (C.knowsFF(au)) { yield sc.say(school.concat(f.nedDone ? NL.after : []), 'welcoming'); return; } // (2: he knows it -- none of the spell talk)
+    if (C.knowsFF(au)) { yield sc.say(school.concat([NL.learning], C.nedFam(st, au)), 'welcoming'); return; } // (2: he knows it -- none of the spell talk)
+    if (f.nedDone) { yield sc.say(NL.pageWaits, 'welcoming'); return; } // (the page his and still in the pack)
+    var said;
     if (!f.nedStory) {
       yield sc.say(school, 'attentive');
       yield sc.say(NL.story, 'concerned');
-      if ((yield sc.ask(NL.know, ['YES', 'NO'], 'attentive')) === 0) { // (4: YES, CAN YOU CAST IT? -- YES is the bluff, "Show me.")
-        if ((yield sc.ask(NL.cast, ['YES', 'NO'], 'skeptical')) === 0) { yield sc.say(NL.showMe, 'skeptical'); vis.laughed = 1; yield sc.say(NL.laugh, 'welcoming'); return; }
+      if ((yield sc.ask(NL.know, [AS.yes, AS.no], 'attentive')) === 0) { // (4: YES, CAN YOU CAST IT? -- YES is the bluff, "Show me.")
+        if ((yield sc.ask(NL.cast, [AS.yes, AS.no], 'skeptical')) === 0) { yield sc.say(NL.showMe, 'skeptical'); vis.laughed = 1; yield sc.say(NL.laugh, 'welcoming'); return; }
       } else yield sc.say(NL.explain, 'attentive'); // (3: NO -- what a familiar is for)
-      yield sc.say(NL.rest, 'welcoming'); f.nedStory = 1; // (5: the rest of his story)
-    } else yield sc.say(NL.back, 'attentive');
+      said = NL.rest; f.nedStory = 1; // (5: the rest of his story, on the screen while Aurdin answers it)
+    } else said = NL.back;
     // 6: the silent Insight -- Aurdin's, DC 12, once a visit; nothing on the screen but the choice it opens
     if (!vis.rolled && !f.nedSaw && !f.nedQuest) { vis.rolled = 1; var d20 = C.nedRoll(); vis.insight = { d20: d20, total: d20 + DS.R.skill(au, 'Insight', 'wis') }; if (vis.insight.total >= C.NED.dc) f.nedSaw = 1; }
-    while (true) {
+    while (true) { // (each answer's reply stays in Ned's box under the next choice)
       var opts = [], acts = [];
-      if (C.nedOpen(st) && C.count(st, C.NED.part) > 0) { opts.push('THE SNAKE TONGUE'); acts.push('tongue'); }
-      opts.push('CAN I COPY IT FROM YOU?'); acts.push('copy');
-      if (f.nedSaw && !f.nedQuest) { opts.push({ label: 'BECAUSE THE COMPONENTS ARE FASCINATING? (insight)', color: C.NED.insight }); acts.push('insight'); }
-      opts.push('LEAVE'); acts.push('leave');
-      var a = acts[yield sc.ask(NL.ask, opts, 'attentive')];
+      if (C.nedOpen(st) && C.count(st, C.NED.part) > 0) { opts.push(AS.tongue); acts.push('tongue'); }
+      opts.push(f.nedQuest ? AS.whatFor : AS.copy); acts.push('copy');
+      if (f.nedSaw && !f.nedQuest) { opts.push({ label: AS.insight + ' (insight)', color: C.NED.insight }); acts.push('insight'); }
+      opts.push(AS.leave); acts.push('leave');
+      var a = acts[yield sc.ask(said, opts, 'attentive')];
       if (a === 'leave') { yield sc.say(NL.bye, 'welcoming'); return; }
       if (a === 'copy') { // (5: the sale -- not while the quest he gave stands: his line names it)
-        if (f.nedQuest) { yield sc.say(NL.copyQuest, 'skeptical'); continue; }
-        if ((yield sc.ask(NL.copyPrice, ['PAY 50 SILVER', 'NOT NOW'], 'attentive')) !== 0) { yield sc.say(NL.notNow, 'attentive'); continue; }
-        if (st.silver() < C.NED.price) { D.sfx('error'); yield sc.say(NL.poor, 'concerned'); continue; }
-        st.silver(-C.NED.price); D.sfx('coin'); yield sc.say(C.nedLearn(st, au).concat(NL.paid), 'work'); return;
+        if (f.nedQuest) { said = NL.copyQuest; continue; }
+        if ((yield sc.ask(NL.copyPrice, [AS.pay, AS.notNow], 'attentive')) !== 0) { said = NL.notNow; continue; }
+        if (st.silver() < C.NED.price) { D.sfx('error'); said = NL.poor; continue; }
+        st.silver(-C.NED.price); D.sfx('coin'); yield sc.say(NL.copied, 'work'); yield sc.say(C.nedPage(st).concat(NL.paid), 'welcoming'); return;
       }
-      if (a === 'insight') { // (6, 7: he owns it, and offers the tongue -- if someone in the party can take one)
-        yield sc.say(NL.owned, 'welcoming');
-        if (!C.canHarvest(st)) { yield sc.say(NL.noHands, 'concerned'); continue; }
-        if (!(yield* C.offerWork(sc, NL.quest, 'attentive'))) { yield sc.say(NL.notNow, 'attentive'); continue; } // (9: turned down, the choice stays)
+      if (a === 'insight') { // (6, 7: he owns it, and offers the tongue -- with no one to take it he says so, and offers it all the same)
+        if ((yield sc.ask(NL.owned.concat(C.canHarvest(st) ? [] : NL.noHands, NL.quest), [AS.deal, AS.notNow], 'welcoming')) !== 0) { said = NL.notNow; continue; } // (9: turned down, the choice stays)
         f.nedQuest = 1; var live = C.quests(st).filter(function (q) { return q.id === f.pin && !q.done; })[0];
         if (!live) f.pin = 'nedpage';
-        yield sc.say(NL.taken.concat(f.pin === 'nedpage' ? [NL.journal] : []), 'welcoming'); continue;
+        said = NL.taken.concat(f.pin === 'nedpage' ? [NL.journal] : []); continue;
       }
-      if (a === 'tongue') { // (9: the tongue handed in: the page, the ritual copied)
-        C.take(st, C.NED.part, 1); f.nedDone = 1; if (f.pin === 'nedpage') delete f.pin;
-        yield sc.say(NL.tongue, 'work'); yield sc.say(C.nedLearn(st, au).concat(NL.page), 'welcoming'); return;
+      if (a === 'tongue') { // (9: the tongue handed in: the page torn out and given)
+        C.take(st, C.NED.part, 1); if (f.pin === 'nedpage') delete f.pin;
+        yield sc.say(NL.tongue, 'work'); yield sc.say(C.nedPage(st).concat(NL.page), 'welcoming'); return;
       }
     }
   };
@@ -583,7 +648,7 @@
   // the second game's own quests, in the first game's record shape (content/quests.json stays the first game's): Ned's page (C.ned)
   C.OWN_QUESTS = [{ id: 'nedpage', name: 'Ned\'s Page', show: 'flag:nedQuest', done: 'flag:nedDone',
     text: 'Ned Halloway, behind Percy\'s counter, will trade the page with Find Familiar on it for a snake\'s tongue from the Glowseep -- a fresh one, off the snake. Someone with Survival or Nature has to take it.',
-    doneText: 'Aurdin has the ritual in his book. Ned has his tongue.',
+    doneText: 'Ned has his tongue, and Aurdin the page: Sheet: Find Familiar, to copy into his book from the pack.',
     steps: [{ 'if': '!has:snaketongue', where: 'A fresh snake\'s tongue, off one of the Glowseep\'s snakes: the bog, out on THE WORLD.' },
       { 'if': 'has:snaketongue', door: 'percy', npc: 'ned', where: 'Ned Halloway, behind the counter at Percy\'s Particulars: the tongue for the page.' }] }];
   C.quests = function (st) {
@@ -692,15 +757,17 @@
   // ---------------------------------------------------------------- Ned's scene, shown (deep16/?nedshow -- the eyes row's door, 10-21 night): every branch of C.ned staged
   // on his own counter screen, the Insight's die pinned; pick a beat, play it by the mouse, X back to the beats. &beat=<id> opens one
   C.NED_BEATS = [
-    { id: 'bluff', label: 'THE BLUFF: YES, then YES -- "Show me."', note: 'He laughs; talk to him again and it is the harvest line, till you leave and come back.', d20: 3, again: true },
-    { id: 'no', label: 'NO: what a familiar is for, his story, the sale', note: 'The Insight missed (the die 3): CAN I COPY IT FROM YOU? -- 50 silver, the purse 60.', d20: 3, silver: 60 },
-    { id: 'insight', label: 'THE INSIGHT MADE (the die 15)', note: 'BECAUSE THE COMPONENTS ARE FASCINATING? (insight), in its own colour: the quest offered.', d20: 15 },
+    { id: 'bluff', label: 'THE BLUFF: Yes., then Yes. -- "Show me."', note: 'Aurdin bottom left, his answers in his bubble. He laughs; talk again: the harvest line, till you leave.', d20: 3, again: true },
+    { id: 'no', label: 'NO: what a familiar is for, his story, the sale', note: '"I decided to stick around." stays up while Aurdin answers; Fifty it is.: a copied page, the sheet.', d20: 3, silver: 60 },
+    { id: 'insight', label: 'THE INSIGHT MADE (the die 15)', note: 'Because the components are fascinating? (insight), in its own colour: the quest offered -- Deal.', d20: 15 },
     { id: 'stays', label: 'TURNED DOWN BEFORE: the choice stays', note: 'A later visit: his story heard, the Insight made once; no roll, the choice is there.', d20: 1, flags: { nedStory: 1, nedSaw: 1 } },
-    { id: 'taken', label: 'THE QUEST TAKEN: no sale', note: 'CAN I COPY IT FROM YOU? -- his line names the tongue you said you would bring.', d20: 1, flags: { nedStory: 1, nedSaw: 1, nedQuest: 1 } },
-    { id: 'tongue', label: 'THE TONGUE BROUGHT: the page', note: 'A snake tongue in the pack: THE SNAKE TONGUE -- the page, the ritual copied.', d20: 1, flags: { nedStory: 1, nedSaw: 1, nedQuest: 1 }, inv: [['snaketongue', 1]] },
-    { id: 'nohands', label: 'NO ONE TO TAKE IT (no Survival, no Nature)', note: 'Barley away: the Insight made, and Ned explains the job wants someone with the hands for it.', d20: 15, away: ['barley'] },
+    { id: 'taken', label: 'THE QUEST TAKEN: no sale', note: 'What did you want for that Find Familiar spell? -- his line names the tongue you said you would bring.', d20: 1, flags: { nedStory: 1, nedSaw: 1, nedQuest: 1 } },
+    { id: 'tongue', label: 'THE TONGUE BROUGHT: the page torn out', note: 'One snake\'s tongue. Fresh. -- the page torn out of his book: Received: Sheet: Find Familiar.', d20: 1, flags: { nedStory: 1, nedSaw: 1, nedQuest: 1 }, inv: [['snaketongue', 1]] },
+    { id: 'nohands', label: 'NO ONE TO TAKE IT (no Survival, no Nature)', note: 'Barley away: Ned says the job wants someone with the hands for it, and offers it anyway -- Deal.', d20: 15, away: ['barley'] },
     { id: 'noaurdin', label: 'NO AURDIN: the harvest line', note: 'Aurdin away: Ned says where spell components come from.', d20: 1, away: ['aurdin'] },
-    { id: 'knows', label: 'AURDIN KNOWS IT: no spell talk', note: 'After the page: his school line, and how the familiar is.', d20: 1, flags: { nedStory: 1, nedSaw: 1, nedQuest: 1, nedDone: 1 }, knows: true },
+    { id: 'pagewaits', label: 'THE PAGE IN THE PACK, NOT YET IN HIS BOOK', note: 'After the page: Ned says it wants to be in his book. Use it from the pack (M, then ITEMS).', d20: 1, flags: { nedStory: 1, nedSaw: 1, nedQuest: 1, nedDone: 1 }, inv: [['sheet_findfamiliar', 1]] },
+    { id: 'knows', label: 'AURDIN KNOWS IT: no spell talk, no familiar out', note: '"Looks like you\'re learning without the classes." -- nothing of a familiar, with none out.', d20: 1, flags: { nedStory: 1, nedSaw: 1, nedQuest: 1, nedDone: 1 }, knows: true },
+    { id: 'knowsowl', label: 'AURDIN KNOWS IT, HIS OWL WITH HIM', note: 'The same, and his familiar asked after by its kind: "How\'s the owl?"', d20: 1, flags: { nedStory: 1, nedSaw: 1, nedQuest: 1, nedDone: 1, familiar: { kind: 'owl', by: 'aurdin', hp: 1 } }, knows: true },
     { id: 'percy', label: 'PERCY, SOLD A SNAKE TONGUE WHILE NED WAITS', note: 'THE SHELVES, SELL a tongue: "Didn\'t Ned want one of those?" -- and he buys it anyway.', d20: 1, flags: { nedStory: 1, nedSaw: 1, nedQuest: 1 }, inv: [['snaketongue', 2]], who: 'percy' }
   ];
   C.beatTalk = function (bt, B) { return bt.who === 'percy' ? new Counter(B, { id: 'percy', name: 'Percy', place: 'Percy\'s Particulars', what: 'Percy at the counter', script: function (sc) { return C.shopkeeper(sc, B, 'percy'); } }) : C.nedTalk(B); };
@@ -718,7 +785,7 @@
     var self = this; this.bt = bt; this.B = C.nedStage(bt); this.n = 0; this.roll0 = C.nedRoll; C.nedRoll = function () { return bt.d20; };
     this.cur = C.beatTalk(bt, this.B); D.push(this.cur);
   };
-  NedShow.prototype.buttons = function () { return C.NED_BEATS.map(function (bt, k) { return { x: 12, y: 24 + k * 23, w: D.W - 24, h: 21, bt: bt }; }); };
+  NedShow.prototype.buttons = function () { var dy = Math.min(23, Math.floor((D.H - 42) / C.NED_BEATS.length)); return C.NED_BEATS.map(function (bt, k) { return { x: 12, y: 24 + k * dy, w: D.W - 24, h: dy - 2, bt: bt }; }); }; // (as many beats as fit the screen)
   NedShow.prototype.update = function () {
     this.t++; var m = I.mouse, self = this;
     if (this.pending) { var p0 = this.pending; this.pending = null; this.play(p0); return; }
@@ -738,7 +805,7 @@
     D.text(ctx, '{y}NED HALLOWAY AND FIND FAMILIAR{/} -- a beat at a time, the Insight\'s die pinned (a show)', 10, 10, W8.text);
     this.buttons().forEach(function (q, k) {
       var on = k === self.hov; D.win8(ctx, q.x, q.y, q.w, q.h, on ? W8.sel : null);
-      D.text(ctx, q.bt.label, q.x + 8, q.y + 2, on ? W8.gold : W8.text); D.text(ctx, q.bt.note, q.x + 8, q.y + 11, '#9c9cb4');
+      var tight = q.h < 21; D.text(ctx, q.bt.label, q.x + 8, q.y + (tight ? 1 : 2), on ? W8.gold : W8.text); D.text(ctx, q.bt.note, q.x + 8, q.y + (tight ? 9 : 11), '#9c9cb4');
     });
     D.hint(ctx, 'click a beat · arrows and E · X back to the title', D.W / 2, D.H - 12, '#9a96a8', 'center');
   };
