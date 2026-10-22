@@ -539,6 +539,18 @@
     multi: 1, burrow: 10, walkWithin: 30, // (its dig is 10 ft a turn against a 30-ft walk: it walks to one it can reach this turn, else goes under and comes up beside them -- js/ai.js burrower; the xorn's walkWithin)
     src: 'SRD 5.1 Ankheg (CR 2, Large; AC 14, 39 HP, speed 30, burrow 10 ft; darkvision and tremorsense 60 ft): its Bite +5, 2d6+3 slashing plus 1d6 acid, a Large or smaller target grappled (escape DC 13; grappled, not restrained -- the chuul pincer `only`); burrow 10 ft (js/ai.js burrower: it walks to one within 30 ft, else digs). Its Acid Spray (recharge 6: a line 30 ft long and 5 ft wide, DC 13 DEX, 3d6 acid, half on a save, only with no creature grappled) on the grid breath rule since 10-22 (js/traits.js M.breathe, notHolding). Not on the grid yet, plain stand-ins: the bite only at the one it holds, with advantage -- it bites as any grappler; AC 11 while prone -- 14 always'
   },
+  // the winter wolf (10-22, the monster cutter seat's third run, on Griz's "close the desk but have the cutter run us out of usage for the
+  // week. See y'all tueday"; asked 10-08 among "a creature a biome": deep16-srd-not-yet.md): the SRD 5.1 Winter Wolf from the mechanics the
+  // grid has; its sheet tools/winterwolf-sheet.py (the art desk's ART-11 SE and NE, ART-54 S, E and N), its Cold Breath a row of its own.
+  winterwolf: {
+    name: 'Winter Wolf', type: 'monstrosity', sheet: 'winterwolf_p1', cr: '3', ac: 13, hp: 75, speed: 50, size: 2, reach: 5,
+    abil: { str: 18, dex: 13, con: 14, int: 7, wis: 12, cha: 8 }, init: 1, perception: 15, stealth: 3,
+    saves: { str: 4, dex: 1, con: 2, int: -2, wis: 1, cha: -1 },
+    attacks: { bite: { name: 'Bite', atk: 6, dice: '2d6', mod: 4, type: 'piercing', reach: 5, prone: 14 } },
+    breath: { name: 'Cold Breath', shape: 'cone', ft: 15, ab: 'dex', dc: 12, dice: '4d8', type: 'cold', recharge: 5 }, // (SRD 5.1 Cold Breath, Recharge 5-6: a 15-ft cone, DC 12 DEX, 4d8 cold, half on a save -- js/traits.js M.breathe, its sheet's breath row)
+    multi: 1, packTactics: true, keenSenses: true, immune: ['cold'],
+    src: 'SRD 5.1 Winter Wolf (CR 3, Large; AC 13, 75 HP, speed 50; Perception +5, Stealth +3; immune to cold): its Bite +6, 2d6+4 piercing, DC 14 STR or prone (the worg way); Cold Breath on the grid breath rule (recharge 5-6, a 15-ft cone, DC 12 DEX, 4d8 cold, half on a save); Pack Tactics; Keen Hearing and Smell as GreyFang has it (advantage on the roll to find one hidden, battle.js). Not on the grid, a plain stand-in: Snow Camouflage (advantage on Stealth to hide in snowy terrain) -- the grid has no snow to hide in'
+  },
   cloaker: {
     name: 'Cloaker', type: 'aberration', sheet: 'cloaker_p2', cr: '8', ac: 14, hp: 78, speed: 40, fly: 40, size: 2, reach: 5, darkvision: 60,
     abil: { str: 17, dex: 15, con: 12, int: 13, wis: 12, cha: 14 }, init: 2, perception: 11,

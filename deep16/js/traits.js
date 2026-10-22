@@ -773,7 +773,7 @@
   M.breathe = function* (B, u, aim) {
     var br = u.breath, sq = M.area(u, { shape: br.shape || 'cone', len: br.ft }, aim.x, aim.y, aim.z), ab = br.ab || 'dex';
     var ramp = br.stone ? 'stone' : br.type === 'cold' || br.type === 'lightning' ? 'glow' : br.type === 'poison' || br.type === 'acid' ? 'moss' : br.type === 'thunder' ? 'silver' : 'fire';
-    if (u.turn) u.turn.action = 0; u.breathSpent = true; u.anim = 'attack'; u.animT = B.t;
+    if (u.turn) u.turn.action = 0; u.breathSpent = true; u.anim = D.spr && D.spr.anim(u.sheet, 'breath') ? 'breath' : 'attack'; u.animT = B.t; // (a sheet's own breath row: the winter wolf's Cold Breath, 10-22)
     var caught = B.units.filter(function (w) { return w !== u && G.present(w) && (w.hp > 0 || w.regenDown) && !w.object && G.inArea(w, sq); });
     FX.bloom(u.x, u.y, sq, ramp); D.sfx('crit'); yield { fx: 1 };
     var dmg = br.dice ? D.roll(br.dice) : null, lines = ['{r}' + Nm(B, u) + '{/}: ' + (br.name || 'its breath').toUpperCase() + '  ' + (br.ft + '-ft ' + (br.shape || 'cone')) + '  ' + ab.toUpperCase() + ' DC ' + br.dc + (dmg ? '  ' + br.dice + ' = ' + dmg.total + ' ' + br.type : '')];

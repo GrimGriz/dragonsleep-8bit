@@ -15003,6 +15003,80 @@ true
 "source": "deep16/_src/winters/ART-78/ART-78_HEAD-2_PAGE-1.png (the art desk's south idle, 10-21), cut by tools/keeper-town-sheet.py",
 "door": "warp:winters"
 },
+"winterwolf_p1": {
+"image": "art/winterwolf_p1.png?v=a352bc67a7",
+"fw": 228,
+"fh": 142,
+"ax": 114,
+"ay": 96,
+"top": 57,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 228,
+"fh": 142,
+"ax": 114,
+"ay": 96,
+"frames": 6,
+"fps": 6
+},
+"walk": {
+"y": 1136,
+"fw": 228,
+"fh": 142,
+"ax": 114,
+"ay": 96,
+"frames": 8,
+"fps": 10
+},
+"attack": {
+"y": 2272,
+"fw": 228,
+"fh": 142,
+"ax": 114,
+"ay": 96,
+"frames": 6,
+"fps": 10
+},
+"hurt": {
+"y": 3408,
+"fw": 228,
+"fh": 142,
+"ax": 114,
+"ay": 96,
+"frames": 6,
+"fps": 8
+},
+"flinch": {
+"y": 4544,
+"fw": 228,
+"fh": 142,
+"ax": 114,
+"ay": 96,
+"frames": 4,
+"fps": 10
+},
+"prone": {
+"y": 5680,
+"fw": 228,
+"fh": 142,
+"ax": 114,
+"ay": 96,
+"frames": 2,
+"fps": 6
+},
+"breath": {
+"y": 6816,
+"fw": 228,
+"fh": 142,
+"ax": 114,
+"ay": 96,
+"frames": 6,
+"fps": 8
+}
+},
+"source": "drawn by the art desk (ART-11 SE and NE, 10-10, SE page 1 his pick \"Corrected winter wolf sprite sheet\"; ART-54 S, E and N, 10-19), cut by tools/winterwolf-sheet.py through tools/artdesk.py (10-22)"
+},
 "wisp_p1": {
 "image": "art/wisp_p1.png?v=da9cdff960",
 "fw": 96,

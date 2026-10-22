@@ -150,6 +150,8 @@ def cut_sheet(path, spec, fix=None, cuts=None, touch_ok=(), only=None, overlay=N
             xs = [mid if i == at[0] else x for i, x in enumerate(xs) if i not in at[1:]]
             names = ['+'.join(grp) if i == at[0] else n for i, n in enumerate(names) if i not in at[1:]]
         band = np.zeros_like(m); band[y0:y1, x0:x1] = m[y0:y1, x0:x1]
+        for bx0, by0, bx1, by1 in spec.get('away', {}).get(row, ()):   # (a corner of the band that is another row's: the winter wolf's SE breath
+            band[by0:by1, bx0:bx1] = False                              # hangs down beside the flinch below it, 10-22 -- each band keeps its own)
         blab, bn = ndimage.label(band, structure=np.ones((3, 3)))   # specks under 6 px are noise
         sz = ndimage.sum(band, blab, range(1, bn + 1))
         band = np.isin(blab, 1 + np.where(sz >= 6)[0])

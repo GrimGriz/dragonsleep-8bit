@@ -334,7 +334,7 @@
       // a burrower (SRD 5.1 burrow; the bulette, 10-01d: js/ai.js burrower): under the ground it is out of reach the way an ethereal one is
       // (ethereal too, for every rule that asks), drawn as its mound (js/ui.js); a fight may start it there (fights.js `under`)
       burrow: d.burrow || 0, under: !!f.under, walkWithin: d.walkWithin || 0,
-      weave: d.weave ? JSON.parse(JSON.stringify(d.weave)) : null, sneak: d.sneak || null, assassinate: !!d.assassinate, stealth: d.stealth || 0,
+      weave: d.weave ? JSON.parse(JSON.stringify(d.weave)) : null, sneak: d.sneak || null, assassinate: !!d.assassinate, stealth: d.stealth || 0, keenSenses: !!d.keenSenses, /* (keen hearing and smell on a sheet: the winter wolf's, 10-22 -- GreyFang's rule, below) */
       enlarge: d.enlarge ? { dice: d.enlarge.dice, used: false } : null, split: !!d.split, small: d.small || null,
       bolts: d.bolts || null, // runs for the map's exit when the named one falls (the wheelwright, when Hask does)
       reckless: !!d.reckless, rageOnHit: !!d.rageOnHit, raging: false,

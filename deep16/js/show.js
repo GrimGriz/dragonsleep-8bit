@@ -203,6 +203,16 @@
         yield* B.attack(u, tw, ra); u.anim = 'idle';
       }
     }
+    // one with a breath row of its own it has not shown twice, from the end of its second turn (the winter wolf's Cold Breath, 10-22: the AI breathes when it catches
+    // two, or one with nobody in its reach, and walked in among the watchers it seldom has either; spent, it comes back on a 5 or 6): the breath back, and at the
+    // watchers through the rule's own M.breathe, aimed as the AI aims it
+    if (u.breath && D.spr.anim(u.sheet, 'breath') && ((u.showSeen || {}).breath || 0) < 2 && u.showTurns >= 2 && RU.canAct(u) && !u.conds.prone && !D.magic.breathHeld(u)) {
+      var aimB = D.magic.breathAim(B, u);
+      if (aimB) {
+        B.card(['{c}THE SHOW{/}: the ' + u.name + ' has not shown its ' + String(u.breath.name || 'breath').toLowerCase() + (seen.breath ? ' twice' : '') + ' yet. Its breath back, to see it.'], 200);
+        u.breathSpent = false; yield* D.magic.breathe(B, u, aimB); u.anim = 'idle';
+      }
+    }
     // one with a catch row it has not shown by the end of its second turn (the stone giant's Rock Catching, 10-08: in a fight only another giant ever throws a rock at
     // her): a rock hurled at it through the engine's own attack -- a fellow's Rock where one stands (its own kind first), else the nearest watcher's stone -- with the
     // d20 pinned to a 20, so the DEX save holds and the catch is seen (js/battle.js attack: CAUGHT, its row)

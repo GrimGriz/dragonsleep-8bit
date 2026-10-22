@@ -72,6 +72,8 @@ def cut(root, sub, art, pages, chan=None, fix=None, cuts=None):
                   rows=[(r, b, l, [str(i + 1) for i in range(n)]) for r, b, l, n in rows])
         if chan:
             sp['chan'] = chan
+        if s.get('away'):                                   # (`away` {row: [boxes]}: a corner of that row's band left out -- another row's drawing reaches into it)
+            sp['away'] = s['away']
         orig = SR.label_xs
         SR.label_xs = lambda a_, x0, x1, y0, y1: hand.get((y0, y1)) or orig(a_, x0, x1, y0, y1)
         try:
@@ -172,14 +174,16 @@ def stamp_shadow(fr, cx, cy, rx, ry, colour):
 
 
 def views(root, sub, art, pages, view_pages, idle_h, fit, torso_x, cell, chan=None, fix=None, tone_ref=None, cuts=None, stand_of=None,
-          shadows=None, shadow_rgb=None, targets=None, joins=None):
+          shadows=None, shadow_rgb=None, targets=None, joins=None, feet=None):
     """tone_ref: the sheet's own frames to tone each page to (see `tones`), or None to cut the pages' colour as drawn; fix and cuts:
     sheetrows' own, a page at a time ({L: {row: [...]}}: a loose part's box and its frame, a line cleared where two frames touch); stand_of:
     see `scales`; shadows: {row: (frame indices)} -- each such frame's ground shadow measured off its page (`page_shadow`) and drawn under it
     in shadow_rgb, the way a cutter draws its own leap's (fit is taken to pad its cut by one px, as every cutter's does); targets: {L:
     (row, index, height)} -- that page scaled so that frame stands that tall, in place of the rule in `scales` (the otyugh's: a half-sunk
     idle must not set its walk's scale); joins: {row2: row} -- a row wrapped onto a second line of the page (the otyugh's Fall, 1-5 then
-    6-9), placed against the first line's anchor and appended to it"""
+    6-9), placed against the first line's anchor and appended to it; feet: {row or (page, row): f(game-size frame) -> its foot row} -- that row's frames each
+    stood with its foot on AY, in place of its box's foot against the row's ground (the winter wolf's breath: its frost hangs below the paws,
+    and on a second line the first frame's frost would set the line's ground)"""
     FW, FH, AX, AY = cell
     lines = cuts
     cuts = cut(root, sub, art, pages, chan, fix, lines)          # (the cut lines in, the cut frames out)
@@ -219,6 +223,9 @@ def views(root, sub, art, pages, view_pages, idle_h, fit, torso_x, cell, chan=No
                     rx, rb = rr
                     ox = int(round(AX - tx + (rx - rx0)))
                     oy = int(round(AY + (rb - rel[0][1]))) - int(np.where(a[..., 3].any(axis=1))[0][-1])
+                    ff = (feet or {}).get((L, an)) or (feet or {}).get(an)
+                    if ff:
+                        oy = AY - int(ff(a))
                     fr = np.zeros((FH, FW, 4), dtype=np.uint8)
                     h, w = a.shape[:2]
                     y0, x0, y1, x1 = max(0, oy), max(0, ox), min(FH, oy + h), min(FW, ox + w)
