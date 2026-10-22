@@ -4951,6 +4951,34 @@
     document.body.appendChild(pre21);
     return;
   }
+  // the rust monster's Rust Metal (mode=rust1022; the monster cutter seat's third run, 10-22): `corrosive: 'rust'` goes the gray ooze's metal way --
+  // a nonmagical metal weapon that hits it eaten, -1 a hit, and its bite eating metal armour (a stand-in for its Antennae) -- in rust's words
+  if (get('mode', '') === 'rust1022') {
+    var repR = { checks: [], errors: [] }, d0R = D.d, MR = D.magic, RR = D.rules;
+    function okR(what, v) { repR.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function runR(g) { var v, k = 0, st; while (g && k++ < 4000) { st = g.next(v); v = undefined; if (st.done) return st.value; if (st.value && st.value.prompt) v = st.value.prompt.opts[0].value; } }
+    function mkR(q) { var Bx = D.npcFight(q, {}); D.battle = Bx; Bx.enter(); while (!Bx.order.length) Bx.co.next(); Bx.dark = false; return Bx; }
+    function pinR(d20, f) { D.d = function (n) { return n === 20 ? d20 : d0R(n); }; try { return f(); } finally { D.d = d0R; } }
+    try {
+      var B1 = mkR('?npc=rustmonster&vs=fighter&lvl=3'), rm = B1.units.filter(function (u) { return u.side === 'foe'; })[0], ft = B1.units.filter(function (u) { return u.cls === 'fighter'; })[0];
+      ft.x = 3; ft.y = 3; rm.x = 4; rm.y = 3; B1.cache = null; rm.maxhp = rm.hp = 200; ft.maxhp = ft.hp = 200;
+      okR('the sheet: corrosive ' + rm.corrosive + ' (want rust); the fighter carries ' + (ft.weapon && ft.weapon.name) + ', metal ' + MR.metalWeapon(ft) + ', in metal armour ' + MR.metalArmor(ft), rm.corrosive === 'rust' && MR.metalWeapon(ft) && MR.metalArmor(ft));
+      var mod0 = ft.weapon.mod || 0, n1 = (B1.log || []).length, cardsR = [], cardR0 = B1.card;
+      B1.card = function (lines) { cardsR.push([].concat(lines).join(' ').replace(/\{\/?[a-z]*\}/g, '')); return cardR0.apply(this, arguments); };
+      RR.startTurn(ft); B1.active = ft; pinR(15, function () { runR(B1.attack(ft, rm, ft.weapon)); }); B1.active = null;
+      var c1 = cardsR.join(' | ');
+      okR('1 the fighter hits it with the ' + ft.weapon.name.toLowerCase() + ': its damage ' + mod0 + ' -> ' + (ft.weapon.mod || 0) + ', corroded ' + (ft.weapon.corroded || 0) + '; the card ' + (/rusts at the touch/.test(c1) ? 'says it rusts' : /acid/.test(c1) ? 'says acid' : 'says nothing') + ' (want ' + (mod0 - 1) + ', 1, rusts)',
+        (ft.weapon.mod || 0) === mod0 - 1 && ft.weapon.corroded === 1 && /rusts at the touch/.test(c1) && !/acid/.test(c1));
+      var ac0 = ft.baseAC; cardsR.length = 0;
+      RR.startTurn(rm); B1.active = rm; pinR(19, function () { runR(B1.attack(rm, ft, rm.attacks.bite)); }); B1.active = null;
+      okR('2 its bite lands on the fighter in chain mail: AC ' + ac0 + ' -> ' + ft.baseAC + ', corroded ' + (ft.corrodedAC || 0) + ' (want ' + (ac0 - 1) + ', 1: the armour rust, its Antennae stand-in)', ft.baseAC === ac0 - 1 && ft.corrodedAC === 1);
+      B1.card = cardR0;
+    } catch (eR) { repR.errors.push(String(eR && eR.stack || eR).slice(0, 900)); D.d = d0R; }
+    if (errs.length) repR.errors = repR.errors.concat(errs);
+    var preR = document.createElement('pre'); preR.id = 'out'; preR.textContent = 'BENCH16 ' + JSON.stringify(repR);
+    document.body.appendChild(preR);
+    return;
+  }
   // the ankheg's Acid Spray (mode=spray1022; the monster cutter seat's third run, 10-22, the lane's §36 and the desk's answer (1): a data line on the grid's breath rule,
   // js/traits.js M.breathe, with the SRD's gate "if it has no creature grappled" -- `notHolding`, M.breathHeld). Each check failed on the code before it (no breath on the sheet)
   if (get('mode', '') === 'spray1022') {

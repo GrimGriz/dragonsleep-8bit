@@ -1,0 +1,65 @@
+{
+ "image": "art/rustmonster_p1.png",
+ "fw": 108,
+ "fh": 56,
+ "ax": 54,
+ "ay": 50,
+ "top": 39,
+ "anims": {
+  "idle": {
+   "y": 0,
+   "fw": 108,
+   "fh": 56,
+   "ax": 54,
+   "ay": 50,
+   "frames": 6,
+   "fps": 6
+  },
+  "walk": {
+   "y": 448,
+   "fw": 108,
+   "fh": 56,
+   "ax": 54,
+   "ay": 50,
+   "frames": 8,
+   "fps": 10
+  },
+  "attack": {
+   "y": 896,
+   "fw": 108,
+   "fh": 56,
+   "ax": 54,
+   "ay": 50,
+   "frames": 6,
+   "fps": 10
+  },
+  "hurt": {
+   "y": 1344,
+   "fw": 108,
+   "fh": 56,
+   "ax": 54,
+   "ay": 50,
+   "frames": 6,
+   "fps": 8
+  },
+  "flinch": {
+   "y": 1792,
+   "fw": 108,
+   "fh": 56,
+   "ax": 54,
+   "ay": 50,
+   "frames": 4,
+   "fps": 10
+  },
+  "prone": {
+   "y": 2240,
+   "fw": 108,
+   "fh": 56,
+   "ax": 54,
+   "ay": 50,
+   "frames": 2,
+   "fps": 6
+  }
+ },
+ "source": "drawn by the art desk (ART-16 SE and NE, 10-10, SE page 1 the revised \"Rustmonster front-facing animation sheet\"; ART-57 S, E and N, 10-20), cut by tools/rustmonster-sheet.py through tools/artdesk.py (10-22)"
+}

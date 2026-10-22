@@ -566,6 +566,17 @@
     multi: ['bite', 'claw', 'claw'], rangedMulti: ['tailspike', 'tailspike', 'tailspike'], // (Multiattack: its bite and two claws, or three tail spikes -- the volley with no one in its reach, js/ai.js volley)
     src: 'SRD 5.1 Manticore (CR 3, Large; AC 14, 68 HP, speed 30, fly 50 -- wings in every fight, js/flight-ai.js; darkvision 60): Multiattack, its Bite +5 1d8+3 piercing and two Claws +5 1d6+3 slashing, or three Tail Spikes +5 100/200 ft 1d8+3 piercing (the volley, rangedMulti); Tail Spike Regrowth, its twenty-four spikes spent in the fight (count). Its Fly row is drawn and not cut: no rule plays a fly row in a fight (it flies on its idle and walk)'
   },
+  // the rust monster (10-22, the monster cutter seat's third run, on Griz's "close the desk but have the cutter run us out of usage for the
+  // week. See y'all tueday"): the SRD 5.1 Rust Monster from the mechanics the grid has; its sheet tools/rustmonster-sheet.py (the art desk's
+  // ART-16 SE and NE, ART-57 S, E and N). Rust Metal is the gray ooze's Corrode Metal (js/traits.js `corrosive: 'rust'`, the metal way in rust's words).
+  rustmonster: {
+    name: 'Rust Monster', type: 'monstrosity', sheet: 'rustmonster_p1', cr: '1/2', ac: 14, hp: 27, speed: 40, size: 1, reach: 5, darkvision: 60,
+    abil: { str: 13, dex: 12, con: 13, int: 2, wis: 13, cha: 6 }, init: 1, perception: 11,
+    saves: { str: 1, dex: 1, con: 1, int: -4, wis: 1, cha: -2 },
+    attacks: { bite: { name: 'Bite', atk: 3, dice: '1d8', mod: 1, type: 'piercing', reach: 5 } },
+    multi: 1, corrosive: 'rust', // (Rust Metal, the metal way in rust's words: a nonmagical metal weapon that hits it is eaten, -1 a hit, gone at the grid's third -- and, a plain stand-in for its Antennae, its bite eats metal armour the same way: js/traits.js)
+    src: 'SRD 5.1 Rust Monster (CR 1/2, Medium; AC 14, 27 HP, speed 40; darkvision 60): its Bite +3, 1d8+1 piercing; Rust Metal as the gray ooze Corrode Metal (corrosive: rust, the metal way in its own words -- a nonmagical metal weapon that hits it, -1 damage a hit, eaten through at the third: his 10-13 ruling for the oozes). Not on the grid, plain stand-ins: the Antennae (an action, DC 11 DEX, metal armour -1 AC a touch) -- its bite eats metal armour instead, the ooze way; Iron Scent (ferrous metal within 30 ft by smell) -- none; Gobble (a dropped weapon to eat) -- none. Its Antennae and Gobble rows are drawn and not cut'
+  },
   cloaker: {
     name: 'Cloaker', type: 'aberration', sheet: 'cloaker_p2', cr: '8', ac: 14, hp: 78, speed: 40, fly: 40, size: 2, reach: 5, darkvision: 60,
     abil: { str: 17, dex: 15, con: 12, int: 13, wis: 12, cha: 14 }, init: 2, perception: 11,

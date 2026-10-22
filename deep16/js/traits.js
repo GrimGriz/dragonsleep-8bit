@@ -57,7 +57,8 @@
     if (owh) yield* owh(B, att, tgt, atk, crit);
     var melee = !atk.ranged;
     // struck in melee: the pudding's Corrosive Form burns the striker (1d8 acid), and a nonmagical weapon of metal or wood that hit it is
-    // eaten (-1 damage, cumulative); the gray ooze's Corrode Metal eats a nonmagical metal one
+    // eaten (-1 damage, cumulative); the gray ooze's Corrode Metal eats a nonmagical metal one (`rust`: the same, in rust's words -- the rust
+    // monster's Rust Metal, SRD 5.1, 10-22; only `form` is told apart by name below, so `rust` goes every way `metal` does)
     if (tgt.corrosive && melee && att.weapon && att.weapon === atk) {
       if (tgt.corrosive === 'form' && G.dist(att, tgt) <= 5 && !att.dead && att.hp > 0) { var r = D.roll('1d8'); B.card(['{o}' + Nm(B, att) + ' is burned by the pudding\'s touch{/}  1d8 [' + r.rolls.join(',') + '] = ' + r.total + ' acid'], 240); B.hurt(att, r.total, 'acid'); }
       // (a magic weapon is never eaten -- a Magic Weapon cast on it before or after counts while it holds, the spell's copy carrying `magic` (grimoire.js E.magicweapon); and the third
@@ -67,8 +68,8 @@
         att.weapon = Object.assign({}, att.weapon, { mod: (att.weapon.mod || 0) - 1, corroded: (att.weapon.corroded || 0) + 1 });
         if (att.weapon.corroded >= M.EATEN_THROUGH && att.src && att.src.equip) {
           var wn = att.weapon.name; att.src.equip.weapon = null; att.weapon = D.save.weaponOf(Object.assign({}, att.src, { equip: Object.assign({}, att.src.equip, { weapon: null }) })); // (the 8-bit takes it back: embed.js sends src.equip)
-          B.card(['{o}' + Nm(B, att) + '\'s ' + wn.toLowerCase() + ' is eaten through and comes apart in the acid.{/}  {g}(gone: ' + att.weapon.name.toLowerCase() + ' now){/}'], 300);
-        } else B.card(['{o}' + Nm(B, att) + '\'s ' + att.weapon.name.toLowerCase() + ' is eaten by the acid: -' + att.weapon.corroded + ' to its damage.{/}  {g}(for the fight; the ' + ordinal(M.EATEN_THROUGH) + ' bite eats it through){/}'], 260);
+          B.card(['{o}' + Nm(B, att) + '\'s ' + wn.toLowerCase() + ' ' + (tgt.corrosive === 'rust' ? 'rusts through and crumbles' : 'is eaten through and comes apart in the acid') + '.{/}  {g}(gone: ' + att.weapon.name.toLowerCase() + ' now){/}'], 300);
+        } else B.card(['{o}' + Nm(B, att) + '\'s ' + att.weapon.name.toLowerCase() + ' ' + (tgt.corrosive === 'rust' ? 'rusts at the touch' : 'is eaten by the acid') + ': -' + att.weapon.corroded + ' to its damage.{/}  {g}(for the fight; the ' + ordinal(M.EATEN_THROUGH) + ' bite eats it through){/}'], 260);
       }
     }
     // its pseudopod on a creature in armour: the armour is eaten (-1 AC, cumulative; the ooze only metal) -- magic armour never (10-13, his "magic armor immune"), and the third
