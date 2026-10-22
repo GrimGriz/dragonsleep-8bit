@@ -15,7 +15,8 @@ The engine's rows: idle; walk the slither; bite and attack (the fallback) the bi
 flinch; hurt the fall; prone the sheet's Prone played lying-last (flat, then rearing up: reversed, so it lies at its last frame and gets up by
 playing it back -- deep16/js/sprites.js S.proneRow, the goblin's way).
 Facings: NE, E and SE take the side rows as drawn, SW, W and NW mirrored; S takes sheet 2's rows and N sheet 3's for idle, walk, bite (and
-attack), cast and flinch; the fall and prone play side-on from S and N too. A row has one frame count in every facing: the front's and the
+attack), cast and flinch; the fall and prone play side-on from S and N too. Since 10-22 the art desk's ART-36 (art36 below) draws SE and NE
+every row, and S, N and E the spiral fall and its prone: E keeps sheet 1's idle, slither, bite, cast and flinch, S and N sheets 2's and 3's. A row has one frame count in every facing: the front's and the
 back's slither drop one of their eight to meet the side's seven (DROP: the frame whose neighbours are likest, so the loop skips least).
 Scale: one K per sheet, sheet px a game px. Sheet 1's rows set HEIGHT, the side idle's standing px (the stand-in's side idle stood 94-97);
 its turnaround (drawn bigger than its rows) meets them by its Right and Left against the side idle, by area; sheets 2 and 3 meet the
@@ -292,6 +293,99 @@ def drop_one(frs):
     return [f for j, f in enumerate(frs) if j != i], i
 
 
+# ---------------------------------------------------------------- ART-36 (10-22, the monster cutter seat's fourth run, on Griz's "close the desk but
+# have the cutter run us out of usage for the week. See y'all tueday"): the art desk's facings package, nine pages -- HEAD 1 SE and HEAD 2 NE every
+# row (Idle 6, Slither 7, Bite 6, Cast 6, Flinch 4, Fall 6, Prone 2), HEAD 3 S and HEAD 5 N their Fall and Prone, and HEAD 4 E its Fall and Prone
+# (his side-view spiral supplement, 10-17: "to match the existing E/W fall to the new spiral action" -- it replaces sheet 1's fall and prone east
+# and west; E's idle, slither, bite, cast and flinch stay sheet 1's). Every Fall is the spiral he asked for: the raised neck curls down into flat
+# coils, and played backwards it rises. Sorted out of Fresh into _src/naga/ART-36/ by _src/art-desk/sort-delivery.py (the zip with HEAD 4 in it;
+# the first, eight pages, filed as superseded). Cut by tools/artdesk.py with this cutter's own figure_mask (the blue-black scales, the light);
+# scaled there: SE's Idle meets the mean of this sheet's side and front idles, NE's of its side and back (the facings ruling's rule), a later page
+# by its Fall 1 (a page's fall is its `hurt`; the bite page by its Bite 1) against its Idle 1, S's, N's and E's Fall 1 their own idle; toned per colour, as sheets 2 and 3 are (tones36). Placed as this
+# cutter places its own: each frame's coils on the anchor, its foot by its box against the row's ground. The boxes by the seat's draft (each
+# page's bodies into the art desk's bands).
+AD = _load('artdesk', os.path.join(ROOT, 'tools', 'artdesk.py'))
+
+def R(*rows):
+    return [(r, b, s, n) for r, b, s, n, _ in rows], {r: xs for r, _, _, _, xs in rows}
+
+SPEC36 = {
+  'H1P1': (dict(file='ART-36_HEAD-1_PAGE-1.png', W=2172, text=[(24, 406, 49, 440), (31, 198, 51, 232), (49, 406, 63, 440), (50, 198, 75, 232), (65, 406, 78, 440), (76, 198, 90, 232), (77, 406, 99, 440), (90, 205, 115, 232), (97, 406, 169, 440), (183, 636, 201, 664), (305, 322, 323, 350), (478, 636, 499, 664), (615, 322, 637, 350), (784, 636, 805, 664), (933, 322, 955, 350), (1084, 636, 1105, 664), (1250, 322, 1271, 350), (1391, 636, 1412, 664), (1569, 322, 1590, 350), (1687, 636, 1708, 664), (1889, 322, 1911, 350), (1998, 636, 2019, 664)]),
+           R(('idle', (0, 0, 2172, 435), (276, 435), 6, [316, 633, 948, 1266, 1584, 1903]), ('slither', (0, 436, 2172, 721), (594, 721), 7, [188, 487, 788, 1111, 1407, 1712, 2018]))),
+  # (H3P1, H4P1: the row name Fall boxed whole by hand -- the draft missed its second l, and a letter's shadow fell outside its box)
+  # (H1P2: the bite band ends under its numbers, 316-344 -- Cast 4's violet ring reaches up to 372, past them, as sheet 1's SPLIT)
+  'H1P2': (dict(file='ART-36_HEAD-1_PAGE-2.png', W=2172, text=[(26, 532, 51, 564), (27, 227, 52, 260), (49, 538, 74, 564), (51, 227, 86, 260), (72, 538, 94, 564), (84, 233, 108, 260), (92, 532, 113, 564), (263, 316, 281, 344), (263, 633, 281, 661), (579, 633, 601, 661), (580, 317, 601, 345), (898, 317, 919, 345), (898, 633, 919, 661), (1271, 317, 1293, 345), (1271, 635, 1292, 664), (1621, 633, 1643, 661), (1641, 317, 1662, 345), (1972, 318, 1993, 346), (1972, 636, 1993, 663)]),
+           R(('bite', (0, 0, 2172, 356), (275, 356), 6, [290, 608, 923, 1291, 1666, 1988]), ('cast', (0, 357, 2172, 721), (591, 721), 6, [293, 600, 922, 1239, 1639, 1979]))),
+  'H1P3': (dict(file='ART-36_HEAD-1_PAGE-3.png', W=1983, text=[(29, 385, 54, 418), (37, 137, 62, 170), (43, 614, 70, 647), (51, 391, 76, 418), (59, 135, 76, 170), (69, 620, 92, 647), (73, 383, 90, 418), (76, 136, 97, 170), (91, 383, 107, 418), (91, 620, 117, 647), (96, 143, 123, 170), (117, 620, 143, 647), (122, 143, 147, 170), (142, 620, 168, 647), (146, 135, 174, 170), (247, 506, 264, 534), (396, 247, 414, 275), (538, 507, 559, 534), (690, 749, 708, 777), (780, 247, 802, 275), (831, 509, 853, 536), (874, 123, 892, 132), (1102, 749, 1123, 777), (1131, 509, 1152, 537), (1137, 247, 1159, 275), (1465, 511, 1486, 538), (1479, 247, 1500, 275), (1780, 511, 1802, 539)]),
+           R(('flinch', (0, 0, 1983, 276), (205, 276), 4, [403, 780, 1141, 1493]), ('hurt', (0, 277, 1983, 558), (464, 558), 6, [259, 559, 851, 1147, 1457, 1782]), ('prone', (0, 559, 1983, 790), (708, 790), 2, [681, 1118]))),
+  'H2P1': (dict(file='ART-36_HEAD-2_PAGE-1.png', W=1705, text=[(22, 251, 41, 285), (22, 567, 45, 599), (39, 251, 64, 285), (44, 567, 69, 598), (64, 251, 77, 285), (67, 567, 87, 598), (77, 258, 101, 285), (85, 567, 149, 598), (158, 785, 176, 812), (232, 404, 250, 431), (418, 785, 439, 812), (488, 404, 509, 431), (650, 785, 671, 812), (740, 404, 761, 431), (874, 785, 896, 812), (990, 404, 1012, 431), (1103, 785, 1124, 812), (1252, 404, 1273, 431), (1332, 785, 1352, 812), (1514, 404, 1535, 431), (1562, 785, 1583, 812)]),
+           R(('idle', (0, 0, 1705, 515), (364, 515), 6, [271, 532, 784, 1041, 1309, 1562]), ('slither', (0, 516, 1705, 919), (745, 919), 7, [206, 466, 697, 916, 1139, 1371, 1593]))),
+  'H2P2': (dict(file='ART-36_HEAD-2_PAGE-2.png', W=1706, text=[(20, 251, 44, 284), (20, 568, 44, 601), (43, 251, 57, 284), (43, 573, 68, 601), (55, 251, 75, 284), (66, 573, 90, 601), (74, 257, 98, 285), (88, 568, 108, 601), (183, 797, 202, 827), (232, 405, 251, 434), (443, 797, 466, 827), (488, 405, 510, 434), (703, 797, 726, 827), (739, 405, 761, 434), (974, 797, 999, 827), (990, 405, 1014, 434), (1247, 797, 1270, 827), (1253, 405, 1275, 434), (1515, 405, 1537, 434), (1518, 797, 1541, 827)]),
+           R(('bite', (0, 0, 1706, 472), (368, 472), 6, [270, 528, 783, 1058, 1316, 1563]), ('cast', (0, 473, 1706, 919), (761, 919), 6, [237, 491, 742, 1020, 1283, 1555]))),
+  'H2P3': (dict(file='ART-36_HEAD-2_PAGE-3.png', W=1705, text=[(23, 138, 48, 172), (23, 456, 48, 490), (23, 744, 48, 778), (47, 138, 61, 172), (47, 463, 72, 490), (47, 750, 69, 778), (60, 138, 74, 172), (66, 750, 91, 778), (71, 456, 85, 490), (73, 145, 99, 172), (84, 456, 98, 490), (89, 750, 115, 778), (97, 145, 122, 172), (113, 750, 138, 778), (120, 138, 145, 172), (201, 604, 219, 633), (319, 867, 337, 895), (337, 286, 355, 314), (448, 604, 470, 633), (638, 286, 660, 315), (705, 604, 727, 633), (705, 867, 727, 895), (939, 286, 961, 315), (969, 604, 992, 633), (1235, 286, 1259, 315), (1243, 604, 1265, 633), (1536, 604, 1557, 633)]),
+           R(('flinch', (0, 0, 1705, 343), (252, 343), 4, [361, 665, 969, 1271]), ('hurt', (0, 344, 1705, 646), (565, 646), 6, [238, 482, 723, 986, 1258, 1542]), ('prone', (0, 647, 1705, 919), (838, 919), 2, [355, 736]))),
+  'H3P1': (dict(file='ART-36_HEAD-3_PAGE-1.png', W=2172, text=[(20, 205, 125, 255), (28, 214, 53, 248), (28, 532, 54, 565), (52, 222, 76, 248), (53, 539, 99, 565), (77, 214, 91, 248), (99, 539, 148, 565), (400, 671, 418, 699), (798, 671, 820, 699), (894, 375, 916, 402), (1215, 375, 1235, 402), (1555, 375, 1577, 403), (1938, 375, 1960, 403)]),
+           R(('hurt', (0, 0, 2172, 429), (331, 429), 6, [299, 613, 914, 1224, 1569, 1953]), ('prone', (0, 430, 2172, 721), (632, 721), 2, [417, 816]))),
+  'H4P1': (dict(file='ART-36_HEAD-4_PAGE-1.png', W=2172, text=[(20, 205, 125, 255), (29, 211, 55, 245), (30, 511, 56, 544), (53, 218, 78, 245), (55, 518, 103, 544), (78, 210, 108, 245), (101, 517, 153, 544), (261, 348, 280, 377), (569, 349, 592, 378), (799, 635, 818, 665), (878, 348, 901, 378), (1203, 348, 1226, 378), (1208, 635, 1231, 665), (1539, 349, 1562, 378), (1921, 349, 1944, 378)]),
+           R(('hurt', (0, 0, 2172, 399), (307, 399), 6, [296, 606, 906, 1229, 1548, 1932]), ('prone', (0, 400, 2172, 721), (592, 721), 2, [814, 1243]))),
+  'H5P1': (dict(file='ART-36_HEAD-5_PAGE-1.png', W=1774, text=[(29, 260, 53, 293), (29, 617, 57, 650), (49, 267, 73, 293), (55, 623, 78, 649), (73, 260, 88, 293), (76, 623, 100, 650), (90, 260, 105, 293), (98, 623, 145, 649), (228, 422, 247, 449), (342, 762, 361, 788), (468, 422, 489, 449), (716, 422, 737, 449), (744, 765, 765, 792), (976, 422, 996, 449), (1246, 422, 1266, 449), (1562, 422, 1582, 449)]),
+           R(('hurt', (0, 0, 1774, 504), (379, 504), 6, [259, 500, 745, 997, 1262, 1575]), ('prone', (0, 505, 1774, 884), (720, 884), 2, [377, 778]))),
+}
+PAGES36 = {L: dict(p, rows=rows, xs=xs) for L, (p, (rows, xs)) in SPEC36.items()}
+VIEWS36 = {'SE': ('H1P1', 'H1P2', 'H1P3'), 'NE': ('H2P1', 'H2P2', 'H2P3'), 'S': ('H3P1',), 'N': ('H5P1',), 'E': ('H4P1',)}
+ENG36 = {'idle': 'idle', 'walk': 'slither', 'bite': 'bite', 'attack': 'bite', 'cast': 'cast', 'flinch': 'flinch', 'hurt': 'hurt', 'prone': 'prone'}
+
+
+def tones36(cuts, K, own):
+    """each page's body brought to this sheet's own frame for its view per colour (the red bands, the light, the dark: classes), as tones()
+    brings sheets 2 and 3 -- its standing frame (Idle 1, else Fall 1, else Bite 1) against the sheet's idle 1 for the view (SE, NE and E against the side),
+    both at game size and snapped, twice (the snap moves what the tone moved); the cast's light is never toned; a colour with under 20 px
+    on either side keeps its factor"""
+    def means(a):
+        p = a[a[..., 3] > 0, :3].astype(float)
+        return [((w[:, None] * p).sum(0) / max(w.sum(), 1e-6), w.sum()) for w in classes(p)]
+    T = {}
+    for v, ls in VIEWS36.items():
+        want = means(own['side' if v in ('SE', 'NE', 'E') else v][0][0])
+        for L in ls:
+            im = (cuts[L]['idle'] if 'idle' in cuts[L] else cuts[L]['hurt'] if 'hurt' in cuts[L] else next(iter(cuts[L].values())))[0][0]
+            f = ((1.0, 1.0, 1.0),) * 3
+            for _ in range(2):
+                got = means(game_frame(im, K[L], f))
+                f = tuple(fc if min(nw, ng) < 20 else tuple(fi * w / max(g, 1.0) for fi, w, g in zip(fc, wc, gc))
+                          for fc, (wc, nw), (gc, ng) in zip(f, want, got))
+            T[L] = tuple(tuple(float('%.3f' % x) for x in fc) for fc in f)
+    print('  ART-36 tone: ' + '; '.join('%s %s' % (L, ' / '.join('%.2f %.2f %.2f' % fc for fc in T[L])) for L in T))
+    return T
+
+
+def art36(frames_of):
+    """{view: {engine row: [(1x frame, core x, up)]}} from ART-36, at this sheet's sizes"""
+    fit = lambda im, k: game_frame(im, k)
+    tall = lambda a: int(np.ptp(np.where(a[..., 3].any(axis=1))[0]) + 1)
+    own = {'side': frames_of(1, 'idle'), 'S': frames_of(2, 'idle'), 'N': frames_of(3, 'idle')}
+    idle_h = {v: float(np.median([tall(a) for a, _, _ in fs])) for v, fs in own.items()}
+    idle_h['E'] = idle_h['side']
+    cuts = AD.cut(ROOT, 'naga', 'ART-36', PAGES36, mask=figure_mask)
+    K = AD.scales(cuts, VIEWS36, idle_h, fit)
+    T = tones36(cuts, K, own)
+    print('  ART-36 K: ' + ', '.join('%s %.2f' % (L, K[L]) for L in PAGES36) + '; this sheet stands %.0f side-on, %.0f front, %.0f back' % (idle_h['side'], idle_h['S'], idle_h['N']))
+    out = {}
+    for v, ls in VIEWS36.items():
+        rows = {}
+        for L in ls:
+            for r, frs in cuts[L].items():
+                floor = max(b[3] for _, b, _ in frs)
+                fs = []
+                for im, box, _ in frs:
+                    a = game_frame(im, K[L], T[L], glowrow=(r == 'cast'))
+                    fs.append((a, core_x(a), int(round((floor - box[3]) / K[L]))))
+                rows[r] = fs
+        out[v] = {eng: (rows[r][::-1] if eng == 'prone' else rows[r]) for eng, r in ENG36.items() if r in rows}
+    return out
+
+
+
 def main(check=False):
     global TONE
     c = {L: cut(L, check) for L in SHEETS}
@@ -308,6 +402,7 @@ def main(check=False):
                 out.append((a, core_x(a), int(round((floor - box[3]) / K[L]))))
             small[(L, row)] = out
         return small[(L, row)]
+    A36 = art36(frames_of)
     src, dropped = {}, {}
     for eng, row in ROWS.items():
         side = frames_of(1, row)
@@ -315,6 +410,9 @@ def main(check=False):
             side = side[::-1]                                  # rearing, then flat: it lies at its last frame and gets up by playing it back
         per = []
         for f in range(8):
+            v36 = {7: 'SE', 1: 'SE', 5: 'NE', 3: 'NE', 0: 'S', 4: 'N', 6: 'E', 2: 'E'}.get(f)     # (ART-36: SW, W and NW mirrored below, as every west)
+            if v36 and eng in A36.get(v36, {}):
+                per.append(A36[v36][eng]); continue
             fs = side
             if (f == 0 and row in FRONT) or (f == 4 and row in BACK):
                 L = 2 if f == 0 else 3

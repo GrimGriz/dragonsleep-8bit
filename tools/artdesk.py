@@ -49,12 +49,15 @@ def tall(a):
     return int(ys[-1] - ys[0] + 1)
 
 
-def cut(root, sub, art, pages, chan=None, fix=None, cuts=None):
+def cut(root, sub, art, pages, chan=None, fix=None, cuts=None, mask=None):
     """-> {L: {row: [(page image, its box, its number's x)]}}. A page may say: `dir` (its folder under _src/<sub>/, when not <art>: the
     ankheg's older ART-10 pages lie in _src/ankheg/ itself), `blank` {row: n} (its last n numbers stand over nothing on purpose -- the
     ankheg's Burrow 6, under the ground: the band stops short of them and the row ends in n empty frames, (None, None, None)), `own_strip`
-    [rows] (no blanking box over that row's numbers: they sit among its drawing, so each digit is boxed in `text` instead)"""
+    [rows] (no blanking box over that row's numbers: they sit among its drawing, so each digit is boxed in `text` instead). mask: the
+    cutter's own figure_mask(a, grey, far, chan), in place of sheetrows' (the naga's: its blue-black scales and the cast's violet light)"""
     SR = _sheetrows(root)
+    if mask:
+        SR.figure_mask = mask
     out = {}
     for L, s in pages.items():
         path = os.path.join(src_dir(root), sub, s.get('dir', art), s['file'])
