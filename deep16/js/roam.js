@@ -590,9 +590,46 @@
   // fight in its own frame, its flags). What it did to the floor's flag tiles (the stair held, the water back) opens the floor again for them where the party stands
   R.scene8 = function* (B, trig, at) {
     var R0 = B.roam;
+    if (R.SCENES[trig.script] && (!R.emb || R.house())) { yield* R.SCENES[trig.script](B, trig, at); return; } // (the second game's own: the drained stair's two, below)
     if (!R.emb || R.house()) { B.card(R.wrap(['{y}' + trig.id + '{/}: the 8-bit\'s own scene (' + trig.script + ') -- ' + (R.house() ? 'held till the floor is the second game\'s (the house lane).' : 'inside the game the floor hands the party back for it (?at=roam).')]), 300); D.sfx('popup'); yield 30; return; }
     var m = yield* R.handOut(B, 'script', { script: trig.script, arg: trig.arg != null ? trig.arg : null, trig: trig.id });
     if (m && !R0.out && R.tileSig(R.def.src8, R0.flags) !== R.def.sig) yield* R.leaveFloor(B, 'reopen', [R0.token.x, R0.token.y]);
+  };
+
+  // the drained stair's two scenes on the second game's floor (10-22, the Wet seat: no hand-back since the two games split), the first game's js/deep.js S.dryStair and
+  // S.holdStair in its own words (content/text.json deep.*): the dry stair seen, and Pete's five up off its bottom step if they are not up yet; held three nights against the
+  // night crews, the water back and the floor laid again with it
+  R.SCENES = {
+    dryStair: function* (B, trig, at) {
+      var R0 = B.roam, f = R0.flags; f.drySeen = 1;
+      B.card(R.wrap(R.say8('deep.drySee')), 420); yield 60;
+      if (!f.fiveRecovered) { window.DS.R.fiveUp(f, function (id, n) { R.give(B, id, n, 'the dry stair'); }, R0.kills); D.sfx('chest'); B.card(R.wrap([R.say8('deep.dryFive'), R.say8('g.got').replace('{item}', window.DS.DATA.items.fivetokens.name)]), 320); yield 50; }
+      B.card(R.wrap([R.say8(f.keeperDone ? 'deep.puddleStill' : 'deep.puddle'), R.say8('deep.doorCut')]), 420); yield 60;
+    },
+    holdStair: function* (B, trig, at) {
+      var R0 = B.roam, f = R0.flags, t = R0.token;
+      // the night crews down the daytime way: a set fight a few steps off the stair (the first game's EV.fight five -- a crew boss, two thugs, two robbers -- on the floor, as the oozes'
+      // are where they lie), from the roomiest square the party could walk to three to six steps off -- the most open floor round it, so all five stand (the landing's corridor is
+      // a square wide), the farther the better
+      var reach = R.flood(t, [t.x, t.y], 6), far = null, best = -1, room = function (q) { var n = 0; for (var y = q[1] - 3; y <= q[1] + 3; y++) for (var x = q[0] - 3; x <= q[0] + 3; x++) if (reach[x + ',' + y] != null && !(x === t.x && y === t.y)) n++; return n; };
+      Object.keys(reach).forEach(function (k) { var a = k.split(','), q = [+a[0], +a[1]], sc = room(q) * 10 + reach[k]; if (reach[k] >= 3 && sc > best && !R.trapAt(B, q[0], q[1])) { best = sc; far = q; } });
+      R0.lastOutcome = null; R0.spent[trig.id] = 1; // (spent while it is fought: the gather after a win stands the party on the stair, and the scene is not asked twice)
+      yield* R.encounter(B, 'set', { list: R.HOLD_CREW.slice(), at: far || [t.x, t.y], line: R.say8('deep.holdStair'), how: 'down the daytime way' });
+      if (R0.lastOutcome !== 'won' || R0.mode === 'over') { delete R0.spent[trig.id]; return; } // (a run leaves them on the floor after the party, the first game's walk off the stair, and the stair asks again; a loss is the house's)
+      B.card(R.wrap([R.say8('deep.holdNights')]), 260); yield 50;
+      f.keeperWater = 1;
+      B.card(R.wrap([R.say8('deep.waterBack')]), 360); yield 60;
+      yield* R.reopen(B);
+    }
+  };
+  R.HOLD_CREW = ['crewboss', 'thug', 'thug', 'robber', 'robber'];
+  // the floor laid again where the party stands, by its flags as they are now (a flag tile changed: the water back on the stair) -- the house's party into the save and onto
+  // the new floor, as a stair's is (js/mines.js M.go); the test door's four with the floor's flags, pack and purse (M.testMake)
+  R.reopen = function* (B) {
+    var R0 = B.roam, t = R0.token, a8 = R.def.to8(t.x, t.y), H = D.house, M = D.mines;
+    if (R.house() && H && H.playing) { H.fromFloor(B); M.off(B); D.push(R.make('?roam=wet', { save: H.living(H.cur), opts: { at8: a8, dir: R.DIR8[R0.fw[0] + ',' + R0.fw[1]] || null }, house: true })); }
+    else if (M) D.push(M.testMake(B, 'wet', '?roam=wet&at=' + a8[0] + ',' + a8[1]));
+    yield 1;
   };
 
   // ------------------------------------------------------------------ the 8-bit's scenes on the floor, in its own words (DS.DATA.text, js/events.js S.mark, S.stair, S.bucket)
@@ -644,6 +681,7 @@
   // the stair (js/events.js S.stair): ROPE THEM OUT (the rope; the Keeper awake fights by the rune, asleep the five come up), WADE IN (the fight from the ledge), LEAVE
   R.stairScene = function* (B, trig, at) {
     var R0 = B.roam, f = R0.flags;
+    if (f.keeperWater) { B.card(R.wrap([R.say8('deep.stairFlooded')]), 300); yield 20; return; } // (held three nights, the water back: the keeper is home -- the first game's js/deep.js S.stair)
     if (f.fiveRecovered) { B.card([R.say8('w.stairDone')], 260); yield 20; return; }
     var awake = R.awake(f); // (the 8-bit's S.stair, 10-14: woken and not yet beaten, the stair says so and WADE IN meets it waiting)
     var a = yield { prompt: { who: R0.token, title: 'THE FLOODED STAIR', lines: R.wrap([R.say8(awake ? 'w.stairAwake' : 'w.stairSee'), R.say8('w.stairAsk')]), opts: [{ label: 'ROPE THEM OUT', value: 0 }, { label: 'WADE IN', value: 1 }, { label: 'LEAVE', value: 2 }] } };
@@ -975,13 +1013,20 @@
   // hand-back from where the party stands; each hero comes back as it left them (R.resheet). Named by id: the hero, the spell, the one it is cast on
   R.actOut = function (B, a, unitOf) {
     var R0 = B.roam, idOf = function (h) { var u = h && unitOf ? unitOf(h) : null; return u && u.src ? (u.src.key || u.src.id) : h && h.id || null; };
-    if (!R.emb || R.house()) { B.card(R.wrap(['{g}' + (R.house() ? 'Spells, skills and that out of a fight come with the second game\'s field menu (the house lane\'s next piece).' : 'Spells, skills and that out of a fight are the 8-bit\'s own: inside the game the floor hands the party back for them (?at=roam).') + '{/}']), 240); return true; }
+    if (!R.emb || R.house()) { B.card(R.wrap(R.fieldLeft(B, a)), 300); return true; } // (nothing to the 8-bit: what the house's field (js/house.js H.field) left unanswered, answered here)
     var spells = window.DS.DATA.spells || {}, spId = a.sp ? (a.sp.id || Object.keys(spells).filter(function (k) { return spells[k] === a.sp; })[0] || null) : null;
     (R0.acts = R0.acts || []).push({ kind: a.kind, h: idOf(a.h), id: a.id || null, sp: spId, s: a.s != null ? a.s : null, t: idOf(a.t) });
     R0.keys.push('act'); B.menu = null; if (B.menuClosed) B.menuClosed();
     return true;
   };
   R.act = function* (B) { var R0 = B.roam, a = (R0.acts || []).shift(); if (a) yield* R.handOut(B, 'act', { act: a }); };
+  // a field action the house's field has no rule for (10-22, the Wet seat): Katarina's book opened where they stand (the first game's EV.useFieldItem 'read' pages it in its
+  // book scene, content/text.json kat.book: its opening line here, the pages with a book screen of the grid's), the rest the first game's "nothing happens" -- never the 8-bit's
+  R.fieldLeft = function (B, a) {
+    var it = a && a.id ? window.DS.DATA.items[a.id] : null, use = it && it.use;
+    if (use && use.effect === 'read') return ['{y}' + it.name.toUpperCase() + '{/}', [].concat(R.say8('kat.book'))[0], '{g}(Its pages read in the first game\'s book scene; the grid has no book screen yet.){/}'];
+    return [R.say8('g.nothingHappens')];
+  };
   // SAVE on the floor (10-14, his "SAVE on the floor ... by a hand-back"): out of a fight, nothing coming, inside the 8-bit, where the 8-bit's own map lets a save be made (every
   // dungeon floor's is save=False -- tools/mapgen.py: his "yes to both", 10-14, SAVE greyed as the 8-bit greys it) -- the 8-bit's own slots, on the square the party stands on
   // (a load opens the floor there again: js/deep.js); the M menu's SAVE (deep16/js/ui.js gridHost canSave, through B.menuSave, and R.menuAct)
@@ -996,15 +1041,51 @@
   // a cradle (the 8-bit's deep rate, RULED 09-30g; js/events.js EV.deepRate): the 8-bit's own scene by a hand-back, the floor again after it; the animal roused, the fight is on
   // the floor at its cradle -- the milker on the square the party worked it from, stiff with the poison if the touch took (the Settling's harness: deep16/js/wet.js)
   R.cradle = function* (B, trig, at) {
-    var R0 = B.roam;
-    if (!R.emb || R.house()) { B.card(R.wrap(['{y}the cradle{/}: the deep rate is the 8-bit\'s own scene -- ' + (R.house() ? 'held till the floor is the second game\'s (the house lane).' : 'inside the game the floor hands the party back for it (?at=roam).')]), 300); D.sfx('popup'); yield 30; return; }
-    var m = yield* R.handOut(B, 'cradle', { n: +String(trig.id).replace(/\D/g, '') || 0 }), c = m && m.cradle;
+    var R0 = B.roam, n = +String(trig.id).replace(/\D/g, '') || 0, c = null;
+    if (R.emb && !R.house()) { var m = yield* R.handOut(B, 'cradle', { n: n }); c = m && m.cradle; } // (inside the 8-bit, as it was: nothing sends ds8:roam since the two games split, 10-20)
+    else c = yield* R.deepTalk(B, n); // (the second game's own: the deep rate on the counter screen -- R.deepRate)
     if (!c || !c.roused) return;
     yield* R.encounter(B, 'set', { list: ['crawler'], at: at, line: R.say8('w.deepRoused'), how: 'loose at its cradle', onSpill: function (B2) {
       var mk = R0.members.filter(function (u) { return u.id === c.milker && u.hp > 0; })[0], ld = R0.token;
       if (mk && mk !== ld) { var x = mk.x, y = mk.y; mk.x = ld.x; mk.y = ld.y; ld.x = x; ld.y = y; G.setup(G.map, B2.units); }
       if (mk && c.touched) { mk.conds.poisoned = { paralysis: true }; mk.conds.paralyzed = { save: 'con', dc: 13, by: 'harness', poison: true }; }
     } });
+  };
+  // the deep rate on the second game's own screen (10-22, the Wet seat; the lanes desk, Griz: "yeah, work the wet"): the first game's EV.deepRate (js/events.js, RULED 09-30g --
+  // "being in the book is enough"; "if player error makes a whip, start your combat that's great") in its own words on the counter screen (deep16/js/counter.js, as the pens'
+  // shift is: js/mines.js M.pen) -- Edric's book first, the ask, who milks, the draught; six draws at the module's DC 15, a natural 1 or a touch rouses the animal; three silver
+  // a thimble. Returns { n, roused, milker, touched } as the 8-bit's did, or null when they leave it
+  R.deepTalk = function* (B, n) { return yield* D.mines.talk(B, 'deepCradle', function (sc) { return R.deepRate(sc, B, n); }, 'The deep station: cradle ' + (n + 1)); };
+  R.DEEP_DC = 15; R.DEEP_DRAWS = 6;
+  R.deepRate = function* (sc, B, n) {
+    var R0 = B.roam, st = sc.st, f = st.flags, C = D.counter, L = C.L, Rr = window.DS.R;
+    if (!f.tallyMet) { yield sc.say(L('w.deepNoBook')); return null; }
+    if ((yield sc.ask(L('w.deepAsk'), ['WORK THE DEEP RATE', 'LEAVE'])) !== 0) return null;
+    var up = R0.members.filter(function (u) { return u.src && u.hp > 0 && !u.dead; }); if (!up.length) return null; // (the figures as they stand on the floor: their sheets for the skills)
+    var u = up.length === 1 ? up[0] : up[yield sc.ask('WHO MILKS?', up.map(function (z) { return z.name; }))]; if (!u) return null;
+    var h = u.src, draught = C.count(st, 'draught') > 0; if (draught) C.take(st, 'draught', 1);
+    var best = Math.max(Rr.skill(h, 'Animal Handling', 'wis'), Rr.skill(h, 'Nature', 'int'));
+    var r = R.shiftRoll(h, best, draught);
+    var pay = 3 * r.got, lines = [];
+    if (r.touched) lines.push(L('w.touchedDeep', { name: u.name }));
+    if (pay) { st.silver(pay); D.sfx('coin'); }
+    f.deepShifts = (f.deepShifts || 0) + 1;
+    lines.push(L('w.deepPaid', { n: r.got, s: pay }));
+    yield sc.say(lines);
+    return { n: n, roused: r.roused, milker: u.id, touched: r.touched };
+  };
+  // the register's table rule at the wet (js/events.js EV.deepRate's, with no cradle scene): a d20 and the hands' best against DC 15, a natural 1 rouses it; 10 or under a CON
+  // save at 13 (the draught: the better of two), failed a touch, and either rouses it
+  R.d20 = function () { return D.d(20); }; // (the shift's die: the bench pins it)
+  R.shiftRoll = function (h, best, draught) {
+    var Rr = window.DS.R, r = { got: 0, touched: false, roused: false };
+    for (var i = 0; i < R.DEEP_DRAWS && !r.roused; i++) {
+      var d = R.d20(), roll = d + best;
+      if (d === 1) r.roused = true;
+      else if (roll >= R.DEEP_DC) r.got++;
+      else if (roll <= 10) { var sv = R.d20() + Rr.saveBonus(h, 'con'); if (draught) sv = Math.max(sv, R.d20() + Rr.saveBonus(h, 'con')); if (sv < 13) r.touched = true; r.roused = true; }
+    }
+    return r;
   };
   // the hand-back said at a way off the floor: what the 8-bit's pack would take, and the check's word
   R.packCard = function (B) {

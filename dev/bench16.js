@@ -3023,6 +3023,40 @@
       walkX(BW2, D.roam.def.from8(41, 27)); var BC2 = topX();
       okX('and back up (8-bit 41,27): the workings on 24,2 (' + D.roam.def.key + ' ' + BC2.roam.token.x + ',' + BC2.roam.token.y + ')', D.roam.def.key === 'warrens_c' && BC2.roam.token.x === 24 && BC2.roam.token.y === 2);
       okX('nothing handed to the 8-bit on the way (' + handX.length + ': ' + handX.join(', ') + ')', !handX.length);
+      // B. THE CRADLES: the deep rate on the counter screen (the first game's EV.deepRate, its words), the die pinned; a whip, the fight on the floor at the cradle
+      var wetX = function (flags, at8, more) { HX.cur.flags = Object.assign({ tallyMet: 1 }, flags || {}); var B = houseFloorX('?roam=wet&watch' + (more || ''), at8); B.roam.encIn = 1e9; return B; };
+      var BD = wetX({}, [15, 7]), RD = BD.roam, qD = D.roam.def.from8(15, 6), trD = RX.useAt(BD, qD[0], qD[1]), d20X = RX.d20;
+      function talkX(g, ans) { var seen = []; driveX(g, function () { return D.top() instanceof CX.Counter; }, 600); var sc = D.top(); if (!(sc instanceof CX.Counter)) return { sc: null, seen: '' }; ans = (ans || []).slice();
+        for (var k = 0; k < 40 && !sc.done; k++) { var w = sc.wait || {}, bs = sc.buttons(); seen = seen.concat(w.say || w.ask || []); if (w.ask) { var a = ans.length ? ans.shift() : w.opts.length - 1; seen.push('> ' + w.opts[a]); sc.press(bs.filter(function (b) { return b.go === 'opt' && b.k === a; })[0]); } else if (bs[0]) sc.press(bs[0]); else break; }
+        return { sc: sc, seen: seen.join(' / ') }; }
+      RX.d20 = function () { return 15; }; var sD0 = RD.silver, gD = RX.fire(BD, trD, qD), tkD = talkX(gD, [0, 0]); driveX(gD, null, 400); RX.d20 = d20X;
+      okX('a cradle (8-bit 15,6), E: the deep station on the counter screen (' + (tkD.sc && tkD.sc.o.name) + '), the first game\'s words -- "' + tkD.seen.slice(0, 120) + '..."; six thimbles at the deep rate, the die at 15: +' + (RD.silver - sD0) + ' sp, deepShifts ' + RD.flags.deepShifts,
+        trD && trD.id === 'deepCradle0' && !!tkD.sc && tkD.seen.indexOf(CX.L('w.deepAsk')) >= 0 && tkD.seen.indexOf('> WORK THE DEEP RATE') >= 0 && RD.silver - sD0 === 18 && RD.flags.deepShifts === 1 && RD.mode === 'walk');
+      HX.cur.flags = {}; var BD0 = houseFloorX('?roam=wet&watch', [15, 7]), tk0 = talkX(RX.fire(BD0, trD, qD));
+      okX('no name in Edric\'s book: the first game\'s word and nothing worked ("' + tk0.seen.slice(0, 70) + '")', tk0.seen.indexOf(CX.L('w.deepNoBook')) >= 0 && !BD0.roam.flags.deepShifts);
+      BD = wetX({}, [15, 7]); RD = BD.roam; RX.d20 = function () { return 1; }; gD = RX.fire(BD, trD, qD); var tkR = talkX(gD, [0, 1]); driveX(gD, function () { return RD.mode === 'fight'; }, 2000); RX.d20 = d20X;
+      var crD = BD.units.filter(function (u) { return u.side === 'foe' && u.kind === 'crawler' && !u.dead; })[0], mkD = RD.members[1];
+      okX('a natural 1: the animal out of the harness ("' + CX.L('w.deepRoused').slice(0, 40) + '..."), the fight on the floor at its cradle -- a crawler ' + (crD ? 'at ' + crD.x + ',' + crD.y : 'none') + ', the milker (' + mkD.name + ') at ' + mkD.x + ',' + mkD.y,
+        RD.mode === 'fight' && !!crD && Math.max(Math.abs(crD.x - qD[0]), Math.abs(crD.y - qD[1])) <= 4 && tkR.seen.indexOf('> ' + mkD.name) >= 0 && RD.flags.deepShifts === 1);
+      // C. THE DRAINED STAIR: walked onto dry (the first game's js/deep.js S.dryStair), then held three nights (S.holdStair) and the water back
+      var BY = wetX({ stairHook: 1 }, [21, 21]), RY = BY.roam, sgY = D.roam.def.sig; walkX(BY, D.roam.def.from8(19, 21)); driveX(BY.co, null, 200);
+      var cY = cardsX(BY);
+      okX('the dry stair (8-bit 19,21, drained): "' + cY.slice(0, 90) + '...", Pete\'s five up off its bottom step (fiveRecovered ' + RY.flags.fiveRecovered + ', the tokens ' + CX.count(CX.state(BY), 'fivetokens') + '), the cut door, drySeen ' + RY.flags.drySeen,
+        RY.flags.drySeen === 1 && RY.flags.fiveRecovered === 1 && CX.count(CX.state(BY), 'fivetokens') === 1 && cY.indexOf([].concat(CX.L('deep.drySee'))[0]) >= 0 && cY.indexOf(CX.L('deep.doorCut')) >= 0 && cY.indexOf(CX.L('deep.puddle')) >= 0);
+      var BH = wetX({ stairHook: 1, drySeen: 1, waterAsked: 1, fiveRecovered: 1 }, [21, 21]), RH = BH.roam; walkX(BH, D.roam.def.from8(19, 21)); driveX(BH.co, function () { return RH.mode === 'fight'; }, 3000);
+      var crewH = BH.units.filter(function (u) { return u.side === 'foe' && !u.dead; });
+      var kH = (RH.last && RH.last.kinds || []).slice();
+      okX('held: "' + CX.L('deep.holdStair') + '" -- the night crews on the floor, a fight (' + kH.join(', ') + ', down the daytime way at ' + JSON.stringify(RH.last && RH.last.spot) + ')', RH.mode === 'fight' && kH.sort().join() === RX.HOLD_CREW.slice().sort().join());
+      crewH.forEach(function (u) { u.hp = 0; u.dead = true; }); driveX(BH.co, function () { return D.top() !== BH; }, 4000); var BH2 = topX(), cH = cardsX(BH);
+      okX('won: three nights held, the water back ("' + CX.L('deep.waterBack').slice(0, 50) + '..."), keeperWater ' + (BH2.roam && BH2.roam.flags.keeperWater) + ', the Wet laid again where they stood (its stair water: ' + (D.roam.def.sig !== sgY) + ')',
+        BH2 !== BH && !!D.roam.def.wet && BH2.roam.flags.keeperWater === 1 && HX.cur.flags.keeperWater === 1 && cH.indexOf(CX.L('deep.holdNights')) >= 0 && cH.indexOf(CX.L('deep.waterBack')) >= 0 && D.roam.def.sig !== sgY);
+      var gF = RX.stairScene(BH2, { id: 'stair' }, D.roam.def.from8(19, 21)); BH2.cards = []; driveX(gF, null, 60);
+      okX('the stair after: "' + CX.L('deep.stairFlooded').slice(0, 60) + '..." (the first game\'s S.stair with the water back)', cardsX(BH2).indexOf(CX.L('deep.stairFlooded')) >= 0);
+      // D. THE FIELD: what the house's field has no rule for answered on the floor, never the 8-bit's
+      var BF = wetX({}, [15, 7]), RF = BF.roam, uF = RF.token, idF = function (h) { return h; }; BF.cards = [];
+      RX.menuAct(BF, 'cast', { h: uF, sp: window.DS.DATA.spells.light, t: uF }, idF); RX.menuAct(BF, 'item', { id: 'katbook', h: uF }, idF);
+      okX('the M menu on the Wet: Light cast on ' + uF.name + ' (conds.light ' + !!(uF.conds && uF.conds.light) + '), Katarina\'s book opened (' + cardsX(BF).slice(0, 80) + '...)', !!(uF.conds && uF.conds.light) && /KATARINA|BOOK/i.test(cardsX(BF)) && !/field menu/.test(cardsX(BF)));
+      okX('and nothing at all handed to the 8-bit (' + handX.length + ')', !handX.length);
     } catch (eX) { repX.errors.push(String(eX && eX.stack || eX)); }
     embX.roamOut = outX0; if (HX) { HX.playing = false; HX.cur = null; }
     var fX = repX.checks.filter(function (c) { return /^FAIL/.test(c); }).length;
