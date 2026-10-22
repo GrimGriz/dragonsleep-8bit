@@ -1,0 +1,74 @@
+{
+ "image": "art/basilisk_p1.png",
+ "fw": 112,
+ "fh": 54,
+ "ax": 56,
+ "ay": 50,
+ "top": 41,
+ "anims": {
+  "idle": {
+   "y": 0,
+   "fw": 112,
+   "fh": 54,
+   "ax": 56,
+   "ay": 50,
+   "frames": 6,
+   "fps": 6
+  },
+  "walk": {
+   "y": 432,
+   "fw": 112,
+   "fh": 54,
+   "ax": 56,
+   "ay": 50,
+   "frames": 8,
+   "fps": 10
+  },
+  "attack": {
+   "y": 864,
+   "fw": 112,
+   "fh": 54,
+   "ax": 56,
+   "ay": 50,
+   "frames": 6,
+   "fps": 10
+  },
+  "hurt": {
+   "y": 1296,
+   "fw": 112,
+   "fh": 54,
+   "ax": 56,
+   "ay": 50,
+   "frames": 6,
+   "fps": 8
+  },
+  "flinch": {
+   "y": 1728,
+   "fw": 112,
+   "fh": 54,
+   "ax": 56,
+   "ay": 50,
+   "frames": 4,
+   "fps": 10
+  },
+  "prone": {
+   "y": 2160,
+   "fw": 112,
+   "fh": 54,
+   "ax": 56,
+   "ay": 50,
+   "frames": 2,
+   "fps": 6
+  },
+  "gaze": {
+   "y": 2592,
+   "fw": 112,
+   "fh": 54,
+   "ax": 56,
+   "ay": 50,
+   "frames": 6,
+   "fps": 8
+  }
+ },
+ "source": "drawn by the art desk (ART-17, all five views, 10-21), cut by tools/basilisk-sheet.py through tools/artdesk.py (10-22)"
+}

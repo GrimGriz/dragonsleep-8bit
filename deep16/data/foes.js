@@ -577,6 +577,18 @@
     multi: 1, corrosive: 'rust', // (Rust Metal, the metal way in rust's words: a nonmagical metal weapon that hits it is eaten, -1 a hit, gone at the grid's third -- and, a plain stand-in for its Antennae, its bite eats metal armour the same way: js/traits.js)
     src: 'SRD 5.1 Rust Monster (CR 1/2, Medium; AC 14, 27 HP, speed 40; darkvision 60): its Bite +3, 1d8+1 piercing; Rust Metal as the gray ooze Corrode Metal (corrosive: rust, the metal way in its own words -- a nonmagical metal weapon that hits it, -1 damage a hit, eaten through at the third: his 10-13 ruling for the oozes). Not on the grid, plain stand-ins: the Antennae (an action, DC 11 DEX, metal armour -1 AC a touch) -- its bite eats metal armour instead, the ooze way; Iron Scent (ferrous metal within 30 ft by smell) -- none; Gobble (a dropped weapon to eat) -- none. Its Antennae and Gobble rows are drawn and not cut'
   },
+  // the basilisk (10-22, the monster cutter seat's third run, on Griz's "close the desk but have the cutter run us out of usage for the
+  // week. See y'all tueday"): the SRD 5.1 Basilisk from the mechanics the grid has -- its Petrifying Gaze the grid's gaze rule (js/traits.js,
+  // the rules before the bestiary's eleven, 10-08; the testing room's &gaze carried its numbers); its sheet tools/basilisk-sheet.py (ART-17).
+  basilisk: {
+    name: 'Basilisk', type: 'monstrosity', sheet: 'basilisk_p1', cr: '3', ac: 15, hp: 52, speed: 20, size: 1, reach: 5, darkvision: 60,
+    abil: { str: 16, dex: 8, con: 15, int: 2, wis: 8, cha: 7 }, init: -1, perception: 9,
+    saves: { str: 3, dex: -1, con: 2, int: -4, wis: -1, cha: -2 },
+    attacks: { bite: { name: 'Bite', atk: 5, dice: '2d6', mod: 3, type: 'piercing', extra: '2d6', extraType: 'poison', reach: 5 } },
+    gaze: { range: 30, dc: 12, ab: 'con', stone: true, mirror: true, title: 'THE BASILISK GAZE' }, // (Petrifying Gaze, SRD 5.1: 30 ft, DC 12 CON, the stone begun and restrained, the save again at its next turn's end; averting the eyes; its reflection in bright light turns it on itself -- js/traits.js gaze, M.stoneBegin, the mirror)
+    multi: 1,
+    src: 'SRD 5.1 Basilisk (CR 3, Medium; AC 15, 52 HP, speed 20; darkvision 60): its Bite +5, 2d6+3 piercing plus 2d6 poison; Petrifying Gaze on the grid gaze rule (30 ft, DC 12 CON: restrained as the stone begins, petrified on the second failure, Greater Restoration ends it; a hero may avert its eyes; its reflection in bright light, the steel mirror, turns the gaze on itself) -- its sheet plays its Gaze row as the gaze falls'
+  },
   cloaker: {
     name: 'Cloaker', type: 'aberration', sheet: 'cloaker_p2', cr: '8', ac: 14, hp: 78, speed: 40, fly: 40, size: 2, reach: 5, darkvision: 60,
     abil: { str: 17, dex: 15, con: 12, int: 13, wis: 12, cha: 14 }, init: 2, perception: 11,

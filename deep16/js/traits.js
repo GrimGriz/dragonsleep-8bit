@@ -581,6 +581,7 @@
     return B.units.filter(function (m) { return m !== u && m.gaze && G.standing(m) && RU.canAct(m) && G.hostile(m, u) && G.range(m, u) <= (m.gaze.range || 30) && M.sees(B, m, u) && M.sees(B, u, m); });
   }
   M.gazeSave = function (B, u, m) {
+    if (D.spr && D.spr.anim(m.sheet, 'gaze')) { m.facing = B.faceTo(m, u); m.anim = 'gaze'; m.animT = B.t; } // (a sheet's own Gaze row as its gaze falls: the basilisk's, 10-22 -- played once, js/ui.js)
     var g = m.gaze, ab = g.ab || 'con', sv = RU.save(u, ab, g.dc, false, g.stone ? 'petrified' : null), now = !!(g.now5 && !sv.ok && sv.total <= g.dc - 5);
     B.card(['{p}' + Nm(B, m) + '\'s gaze{/} on ' + Nm(B, u) + ': ' + ab.toUpperCase() + ' ' + RU.saveText(sv) + ' vs DC ' + g.dc + '  ' + (sv.ok ? '{n}it holds{/}' : now ? '{o}stone at once{/}' : '{o}it begins to turn to stone{/}')], 260);
     if (!sv.ok && g.stone) { if (now) M.petrify(B, u, { by: m.id }); else M.stoneBegin(B, u, { dc: g.dc, by: m.id }); }
