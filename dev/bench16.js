@@ -1995,16 +1995,26 @@
       // the dens: dark, the first game's random fights, a pit to the hole floor, the bad air, the rescue
       walkM(B2, [35, 16]); var B3 = topM(), d3 = D.roam.def, R3 = B3.roam;
       okM('east to the dens (galleries_g3, ' + d3.w + ' x ' + d3.h + '), in on ' + R3.token.x + ',' + R3.token.y + ': dark (' + d3.dark + ', the party\'s light), the first game\'s random fights (' + d3.zone8 + ')', d3.key === 'galleries_g3' && R3.token.x === 1 && R3.token.y === 9 && d3.dark && d3.zone8 === 'g3' && d3.src8.zones.length === 1);
-      function fightM(B) { var R0 = B.roam, k = 0; driveM(B.co, function () { return R0.mode !== 'walk' || !R0.groups.length; }, 600); while (k++ < 60000 && !(R0.mode === 'walk' && !R0.groups.length)) B.update(); driveM(B.co, null, 60); R0.encIn = 1e9; return k; }
-      driveM(D.roam.encounter(B3, 'asked'), null, 60); R3.keys.push('fight'); var who3 = R3.last && R3.last.who, k3 = fightM(B3);
-      okM('a fight in the dens on the town\'s tiles (' + who3 + '), to its end (' + k3 + ' frames; the party ' + R3.members.map(function (u) { return u.hp; }).join('/') + '), the kill tally by the first game\'s floor (' + Object.keys(R3.kills).join(', ') + ')', R3.mode === 'walk' && Object.keys(R3.kills).some(function (k) { return /^g3:/.test(k); }));
+      // (10-22, his "not a grid fight": a floor's fight goes to a field of its own, the road's way -- js/mines.js M.fieldFight; the four run by the class AI in there, &watch)
+      function fieldM(B, g) {
+        var R0 = B.roam, k = 0, v, r; g = g || B.co;
+        driveM(g, function () { return D.top() !== B; }, 4000);
+        var b = D.top(); if (b === B || !(b instanceof D.Battle)) return 0;
+        if (b.baking) { b.baking = false; b.enter(); }
+        fieldM.b = b;
+        while (b.co && k++ < 400000) { r = b.co.next(v); v = undefined; if (r.done) break; var y = r.value; if (typeof y === 'number' || !y || y.fx || y.entry || y.scene) continue; if (y.prompt) { v = y.prompt.opts[0].value; continue; } if (y.turn) v = { do: 'end' }; }
+        if (D.top() === b) D.pop(); b.o.onDone(b.result);
+        driveM(g, function () { return !R0.pulling && D.top() === B; }, 4000); driveM(g, null, 60); R0.encIn = 1e9; return k;
+      }
+      var k3 = fieldM(B3, D.roam.encounter(B3, 'asked')), who3 = R3.last && R3.last.who;
+      okM('a fight in the dens on a field of its own (' + who3 + ', ' + (fieldM.b && fieldM.b.map.def.name) + '), to its end (' + k3 + ' steps; the party ' + R3.members.map(function (u) { return u.hp; }).join('/') + '), the kill tally by the first game\'s floor (' + Object.keys(R3.kills).join(', ') + ')', R3.mode === 'walk' && D.top() === B3 && Object.keys(R3.kills).some(function (k) { return /^g3:/.test(k); }));
       walkM(B3, [19, 10]); walkM(B3, [19, 11]);
       okM('a pit (19,11): it drops to the hole floor -- held, said, the party a step back off it (' + R3.token.x + ',' + R3.token.y + ')', D.top() === B3 && !(R3.token.x === 19 && R3.token.y === 11) && (B3.cards || []).some(function (c) { return c.lines.some(function (l) { return /hole floor/.test(l); }); }));
       walkM(B3, [24, 10]); walkM(B3, [36, 11]); walkM(B3, [40, 13]); walkM(B3, [43, 14]); // (off the first pit's column -- a click's walk takes north-south first -- and round the second, 30,13)
       var dd0 = D.d; D.d = function () { return 1; }; walkM(B3, [44, 15]); D.d = dd0;
       okM('the low gallery\'s bad air (S.badAir, the die pinned; on ' + R3.token.x + ',' + R3.token.y + ', top ' + (D.top() === B3) + '): ' + ((B3.cards || []).map(function (c) { return c.lines.join(' '); }).filter(function (l) { return /Bad air/.test(l); })[0] || 'nothing said').slice(0, 80), (B3.cards || []).some(function (c) { return c.lines.some(function (l) { return /Bad air/.test(l); }); }) && R3.members.every(function (u) { return u.hp >= 1; }));
-      R3.flags.cullHired = 1; walkM(B3, [25, 6]); walkM(B3, [25, 5]); var k3r = fightM(B3);
-      okM('the rescue (S.rescue, the cull taken): four giant bats fought where it happens (' + k3r + ' frames), the driver up -- rescued ' + R3.flags.rescued + ', the cull done ' + R3.flags.cullDone, R3.flags.rescued === 1 && R3.flags.cullDone === 1 && R3.flags['trig:rescue'] === 1);
+      R3.flags.cullHired = 1; walkM(B3, [25, 6]); walkM(B3, [25, 5]); var k3r = fieldM(B3);
+      okM('the rescue (S.rescue, the cull taken): four giant bats fought on their own field (' + k3r + ' steps), the driver up -- rescued ' + R3.flags.rescued + ', the cull done ' + R3.flags.cullDone, R3.flags.rescued === 1 && R3.flags.cullDone === 1 && R3.flags['trig:rescue'] === 1);
       walkM(B3, [0, 9]); var B2b = topM();
       okM('west out of the dens: the working gallery again (' + D.roam.def.key + ', ' + B2b.roam.token.x + ',' + B2b.roam.token.y + ')', D.roam.def.key === 'galleries_g2' && B2b.roam.token.x === 34 && B2b.roam.token.y === 17);
       walkM(B2b, [17, 27]); var BG2 = topM();
@@ -2027,7 +2037,7 @@
       okM('a word with a pole-hand by day, on the counter screen: "' + cw.seen.slice(0, 70) + '..."', !!cw.sc && cw.seen.indexOf('Rillo') >= 0);
       var h0S = RS2.hour != null ? RS2.hour : dS2.hour; RS2.clockSq = SP.squaresPerHour - 1; var stepS = [RS2.token.x, RS2.token.y + 1]; walkM(BS2, stepS);
       okM('the clock on the floor: the ' + SP.squaresPerHour + 'th square walked is an hour (' + h0S + ' -> ' + RS2.hour + ')', RS2.hour === h0S + 1);
-      walkM(BS2, [24, 14]); var hF = RS2.hour; driveM(D.roam.encounter(BS2, 'asked'), null, 60); RS2.keys.push('fight'); var whoS = RS2.last && RS2.last.who; fightM(BS2); besideM(BS2, [RS2.token.x, RS2.token.y]); // (into the bog, where its fights are; after the fight, a step)
+      walkM(BS2, [24, 14]); var hF = RS2.hour; fieldM(BS2, D.roam.encounter(BS2, 'asked')); var whoS = RS2.last && RS2.last.who; besideM(BS2, [RS2.token.x, RS2.token.y]); // (into the bog, where its fights are; after the fight, a step)
       okM('a fight in the bog (' + whoS + ', the kills ' + Object.keys(RS2.kills).join(', ') + ') is an hour more (' + hF + ' -> ' + RS2.hour + ')', RS2.hour === hF + SP.fightHours && Object.keys(RS2.kills).some(function (k) { return /^glowseep_day:/.test(k); }));
       RS2.hour = 19; driveM(MM.pass(BS2, 1), null, 60); var dN = D.roam.def, fN = BS2.units.filter(function (u) { return u.npc; });
       okM('dusk to night on the floor (hour ' + RS2.hour + '): the floor dark (' + dN.dark + ', the battle\'s ' + BS2.dark + '), the night\'s fights (' + dN.zone8 + '), the crew out at the moss with their poles (' + fN.map(function (u) { return u.x + ',' + u.y; }).join(' ') + '), the poles and moss lit (' + BS2.lights.filter(function (l) { return l.seep; }).length + '), said',
@@ -2128,6 +2138,23 @@
         backP = D.top() === BW; for (kP = 0; kP < 400; kP++) { if (gP.next().done) break; }
       }
       okF2('the landlord fed from the bucket: the Settling over (' + (bP.brokeHow ? 'BROKE: ' + bP.brokeHow : BW.roam.flags.otyughFed ? 'fed' : 'not fed') + '), the Wet\'s tune again (' + mus2.join(' > ') + ')', bP !== BW && backP && !bP.brokeHow && BW.roam.flags.otyughFed && mus2.indexOf('boss') >= 0 && mus2.indexOf('title') < 0 && mus2[mus2.length - 1] === w8m);
+      // 2. THE FIGHTS (his "combat turns the whole zone into a fight and the stirges kill npc", the Glowseep by night; "not a grid fight", the dens): each on a field of its own,
+      // the road's way, the crew out of it
+      var BS = testF2('?roam=glowseep&hour=22'), RS = BS.roam; RS.token.x = 20; RS.token.y = 14; D.grid.setup(BS.map, BS.units); BS.focus(RS.token); // (in the bog, where its fights come)
+      var crew0 = crewOf(BS), at0 = [RS.token.x, RS.token.y]; mus2.length = 0;
+      var fS = fieldF2(BS, 0, true), crew1 = crewOf(BS), ourS = fS.units.filter(function (u) { return u.side === 'party' && !u.familiar; });
+      okF2('a fight on the Glowseep by night goes to a field of its own (' + (fS.b ? fS.map.name + ', ' + fS.b.map.w + ' x ' + fS.b.map.h + ', ' + (fS.simple ? 'simple' : 'the grid') : 'none') + ' by OPTIONS\' RANDOM FIGHTS), its card ' + (fS.asked ? fS.asked.opts.map(function (o) { return o.label; }).join(' / ') : 'none') + ': ' + (RS.last && RS.last.who),
+        !!fS.b && fS.b !== BS && fS.map === D.MAPS['mine-field'] && fS.simple && !!fS.asked && fS.asked.opts[0].label === 'FIGHT' && fS.asked.opts[1].label === 'ON THE GRID');
+      okF2('the crew not in it (its side: ' + fS.units.map(function (u) { return u.npc || u.id.split('-').pop(); }).join(' ') + '), the floor\'s four in it, and on the floor the crew as they were, unhurt (' + crew1 + ')',
+        !!fS.b && !fS.units.some(function (u) { return u.npc; }) && ourS.length === RS.members.length && ourS.every(function (u) { return RS.members.some(function (w) { return w.id === u.id; }); }) && crew1 === crew0 && crew0.split(' ').length === 3);
+      okF2('fought to its end (' + fS.res + '): back on the floor on its square (' + RS.token.x + ',' + RS.token.y + '), the tally by the night\'s table (' + Object.keys(RS.kills).join(', ') + '), the fight counted for THE WORLD\'s hour (' + RS.fights + '), the floor\'s tune after (' + mus2.join(' > ') + ')',
+        D.top() === BS && RS.mode === 'walk' && RS.token.x === at0[0] && RS.token.y === at0[1] && fS.res === 'won' && Object.keys(RS.kills).some(function (k) { return /^glowseep_night:/.test(k); }) && RS.fights === 1 && mus2[mus2.length - 1] === RF.def.music);
+      var fG = fieldF2(BS, 1, false);
+      okF2('the card\'s other button: this one on the grid (' + (fG.b ? (fG.simple ? 'simple!' : 'the grid') + ', ' + fG.b.map.w + ' x ' + fG.b.map.h + ', ' + fG.units.filter(function (u) { return u.side === 'foe'; }).length + ' foes' : 'none') + '); got away, the party on the floor again', !!fG.b && !fG.simple && fG.b.map.w === 16 && fG.b.map.h === 7 && D.top() === BS && BS.roam.mode === 'walk');
+      var B3 = testF2('?roam=galleries_g3&flags=cullHired'), R3 = B3.roam; R3.token.x = 6; R3.token.y = 10; D.grid.setup(B3.map, B3.units); B3.focus(R3.token);
+      var f3 = fieldF2(B3, 0, false), rows3 = f3.b ? f3.map.rows : [], edge3 = 0, n3 = 0;
+      rows3.forEach(function (r, y) { for (var x = 0; x < r.length; x++) if (y === 0 || x === 0 || y === rows3.length - 1 || x === r.length - 1) { n3++; if (r[x] === '#' || r[x] === 'r') edge3++; } });
+      okF2('a fight in the dens on a cave\'s field (' + edge3 + ' of its ' + n3 + ' edge squares rock or rubble), dark (' + (f3.b && f3.b.fight.dark) + '), its ceiling ' + (f3.map && f3.map.sky) + ' ft, back where the party stood (' + R3.token.x + ',' + R3.token.y + ')', !!f3.b && edge3 > n3 * 0.6 && f3.b.fight.dark === true && f3.map.sky === 20 && R3.token.x === 6 && R3.token.y === 10 && D.top() === B3);
     } catch (eF2) { repF2.errors.push(String(eF2 && eF2.stack || eF2).slice(0, 900)); }
     D.store.get = stGF2; D.store.set = stSF2; D.music = mu0; try { if (sk0 != null) window.localStorage.setItem(D.simple.KEY, sk0); } catch (eK2) { }
     var preF2 = document.createElement('pre'); preF2.id = 'out'; preF2.textContent = 'BENCH16 ' + JSON.stringify(repF2);

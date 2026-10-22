@@ -734,7 +734,9 @@
     var R0 = B.roam, done = null, hp = {}, own0 = R.owned(B);
     // (and the light in each hand, and what lasts past a fight -- Mage Armor, the day's Darkvision, a Continual Flame: 10-14, his "check landlord handoff as well")
     R0.members.forEach(function (u) { hp[u.id] = { hp: u.hp, ko: !!u.ko, slots: (u.slots || []).slice(), feats: JSON.parse(JSON.stringify(u.feats || {})), torch: u.torch ? JSON.parse(JSON.stringify(u.torch)) : null, conds: R.lasting(u.conds) }; });
-    var o = Object.assign({}, R.party0, { fightDef: null, fight: which === 'keeper' ? 'keeper' : 'wet', onDone: function (res) { done = res || 'out'; } });
+    // (which 'field': a floor's random fight on a field of its own, the road's way -- js/mines.js M.fieldFight, 10-22: trig.field its fight def, simple or on the grid by OPTIONS)
+    var fd = which === 'field' ? trig.field : null;
+    var o = Object.assign({}, R.party0, { fightDef: fd ? fd.F : null, fight: fd ? undefined : which === 'keeper' ? 'keeper' : 'wet', simple: !!(fd && fd.simple), onDone: function (res) { done = res || 'out'; } });
     delete o.embed; // (the floor's 8-bit options are the floor's: a pulled-in fight is the grid's own, its party and pack handed in and back below)
     // the floor's own state goes in with them, as the 8-bit's seam sends it (js/embed.js): the flags it has set (the landlord fed, who holds the bucket, the dead) and the
     // pack as it stands (the bucket in it) -- and comes back out below (10-13, his play: "they did the bucket then left the zone, and the bucket refreshed and was triggered again")
@@ -759,6 +761,7 @@
         Object.assign(u.conds, h.conds); if (h.torch) u.torch = JSON.parse(JSON.stringify(h.torch)); else delete u.torch; L.regrip(u); // (the light as each carried it on the floor)
       });
       this.roamInv0 = R.counts(this.inv); // (the pack as this fight holds it at the start, its loan in it: what comes back is the change from here -- R.packBack)
+      if (fd) { if (fd.enter) fd.enter(this); return; } // (a field's fight: its own lineup, as the road's stands it -- js/mines.js)
       // seated by the formation (Griz, 10-13: "'order' gonna have to be passed to every grid fight"): the lead on the trigger's square in the Settling (as the 8-bit's
       // seam puts him, embed.at -- the Settling's squares are the floor's own), on the map's way in at the Keeper's; each of the rest on its slot round the lead the way
       // the token faced, or the nearest open square to it
@@ -824,8 +827,9 @@
     // (the Settling counts a walk-out with something dead behind it a win, as the 8-bit's does)
     var ids8 = which === 'wet' ? (b.enemies8 || (done === 'fed' && D.wet && D.wet.killed && b.wet ? D.wet.killed(b) : []))
       : (b.units || []).filter(function (u) { return u.side === 'foe' && !u.summon && !u.fled && !u.left && (u.dead || u.hp <= 0); }).map(function (u) { return (D.id8 ? D.id8(u.kind) : u.kind) || u.kind; });
-    var fell8 = done === 'lost' ? [] : R.fallen8(B, ids8), loot8 = done === 'won' || (done === 'fed' && ids8.length) ? R.spoils(B, fell8) : [];
-    if (done === 'won') R0.spent[trig.id] = 1;
+    var fell8 = done === 'lost' ? [] : R.fallen8(B, ids8, fd && fd.zone), loot8 = done === 'won' || (done === 'fed' && ids8.length) ? R.spoils(B, fell8) : []; // (a field's tally by its floor's zone: the dens' bats for Sabeth's pay)
+    if (done === 'won' && !fd) R0.spent[trig.id] = 1;
+    if (done === 'won' && fd) { if (fd.flag) R0.flags[fd.flag] = 1; [].concat(fd.trig || []).forEach(function (id) { R0.spent[id] = 1; }); } // (a set fight's flag: the rescue's -- js/mines.js M.rescue)
     if (which === 'wet' && done === 'won') ['jelly', 'jellyNorth', 'poolOoze', 'landlordStep'].forEach(function (id) { R0.spent[id] = 1; });
     if (which === 'keeper' && done === 'won') { ['stair', 'mark'].forEach(function (id) { R0.spent[id] = 1; }); R0.flags.keeperDone = 1; }
     if (which === 'keeper' && done !== 'won' && done !== 'lost') R0.flags.keeperAwake = 1; // (a run leaves it awake and unbeaten: the rope then fights it by the rune -- the 8-bit's, 10-04)
@@ -843,9 +847,9 @@
       }
     }
     B.focus(R0.token);
-    if (done === 'fed') B.card(['{y}The landlord settles under the water.{/}', '{g}The party gathers into ' + R0.token.name + '.{/}'], 260); else if (which !== 'wet') B.card(['{y}Back on the Wet{/} (' + done + ').'], 260);
-    if (done === 'fed') { FX.ring(R0.token, 'glow', 22); D.sfx('popup'); }
-    if (!R.standing(R0).length) { R0.mode = 'over'; if (R.emb) { yield* R.leaveFloor(B, 'lose', null); return; } B.card(['{r}The party has fallen.{/}  R to walk the Wet again.'], 100000); return; }
+    if (done === 'fed') B.card(['{y}The landlord settles under the water.{/}', '{g}The party gathers into ' + R0.token.name + '.{/}'], 260); else if (fd) B.card(R.wrap(fd.back ? fd.back(done) : ['{y}Back on the floor{/} (' + done + ').']), 260); else if (which !== 'wet') B.card(['{y}Back on the Wet{/} (' + done + ').'], 260);
+    if (done === 'fed' || fd) { FX.ring(R0.token, 'glow', 22); D.sfx('popup'); }
+    if (!R.standing(R0).length) { R0.mode = 'over'; if (R.emb) { yield* R.leaveFloor(B, 'lose', null); return; } B.card(['{r}The party has fallen.{/}  R to walk ' + (fd ? 'the floor' : 'the Wet') + ' again.'], 100000); return; }
     // the gather pays (R.pay): what fell in there, and the landlord fed from the bucket -- a quarter again its XP, once (js/rules.js R.fedPool, the 8-bit's EV.fedXp)
     var xpL = R.pay(B), fedL = [];
     if (R0.flags.otyughFed && !R0.flags.otyughFedXp) { R0.flags.otyughFedXp = 1; fedL = R.pay(B, window.DS.R.fedPool(), R.say8('w.fedXp')); }
@@ -1038,9 +1042,9 @@
     return out;
   };
   // the fallen of a pulled-in fight, by the 8-bit's ids (the Settling's own count, js/wet.js W.killed; the Keeper by its kind)
-  R.fallen8 = function (B, ids) {
+  R.fallen8 = function (B, ids, zone) {
     var R0 = B.roam, out = [];
-    ids.forEach(function (id8) { var m = R.mon8(id8); if (!m) return; R0.xpBank += m.xp || 0; window.DS.R.tally(R0.kills, [id8]); out.push({ m: m, id: id8 }); });
+    ids.forEach(function (id8) { var m = R.mon8(id8); if (!m) return; R0.xpBank += m.xp || 0; window.DS.R.tally(R0.kills, [id8], zone); out.push({ m: m, id: id8 }); });
     return out;
   };
   // the floor's own tune (R.def.music: the first game's for the floor), again after a fight pulled in (R.pullIn0)

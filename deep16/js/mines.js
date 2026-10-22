@@ -134,7 +134,7 @@
       rows: rows, w: w, h: h, entry: [at], face: face, gate: gq || null, stairUp: [], doors: ways, marks: marks, people: people, foes: [], warps: warps, out: F.out || null, save: !!F.save,
       deepWater: 'D', music: m8.music || 'field', wayName: wayName,
       names8: { rows: r8.slice(), legend: leg }, // (the first game's name of each square -- bones, webbing, a fence or a lamp, a tent or a stump: the art's piece for it, js/topview.js TV.ART)
-      src8: { id: F.src, rows: [], legend: {}, triggers: trig, warps: [], chests: (m8.chests || []).slice(), zones: (m8.zones || []).slice(), save: !!F.save }, from8: id, to8: id, sig: '', // (zones: the first game's random fights where it has them -- the dens, the workings: js/roam.js R.encounter on the floor, its tables content/encounters.json)
+      src8: { id: F.src, rows: [], legend: {}, triggers: trig, warps: [], chests: (m8.chests || []).slice(), zones: (m8.zones || []).slice(), save: !!F.save }, from8: id, to8: id, sig: '', // (zones: the first game's random fights where it has them -- the dens, the workings: each on a field of its own, M.fieldFight, its tables content/encounters.json)
       zone8: (m8.zones && m8.zones[0] && m8.zones[0].zone) || null,
       hud: F.place.replace(/^The /, 'the ') + ': ' + F.sub,
       hello: ['{y}' + F.place.toUpperCase() + '{/} -- ' + F.sub + ': ' + (F.own ? 'the second game\'s own floor' : 'the first game\'s floor') + ', north up as Silverton is (' + w + ' x ' + h + ' squares)' + (F.clock ? ', ' + W8tod(hour) : '') + '.', '{g}Click to walk, or the arrows. E: a word, a door. O: the formation. L: the floor map.{/}'],
@@ -349,8 +349,8 @@
     var hurt = []; R0.members.forEach(function (u) { if (u.hp > 0 && u.src && D.d(20) + Rr.saveBonus(u.src, 'con') < 12) { u.hp = Math.max(1, u.hp - D.roll('1d4').total); hurt.push(u.name); } });
     if (hurt.length) { D.sfx('poison'); B.card(D.roam.wrap([L('g3.badAir', { names: hurt.join(', ') })]), 260); yield 20; }
   };
-  // the rescue (S.rescue, Sabeth's cull taken): a drive gone wrong down the side gallery -- four giant bats, fought where it happens on the floor (js/roam.js R.encounter's
-  // set fight, as the Wet's oozes are); won, the driver up, the cull done, and the mine's hands saw it
+  // the rescue (S.rescue, Sabeth's cull taken): a drive gone wrong down the side gallery -- four giant bats, a set fight on its own field as the floor's random ones are
+  // (M.fieldFight); won, the driver up, the cull done, and the mine's hands saw it
   M.rescue = function* (B, trig, at) {
     var R = D.roam, f = B.roam.flags;
     B.card(R.wrap([].concat(L('g3.rescue1'))), 320); yield 60;
@@ -359,6 +359,62 @@
     f.cullDone = 1;
     B.card(R.wrap([].concat(L('g3.rescue2'), D.counter.renown(D.counter.state(B), 1, 'renown.rescue'))), 360); yield 30;
   };
+
+  // ---------------------------------------------------------------- THE FLOORS' FIGHTS ON A FIELD OF THEIR OWN (10-22, his eye on the floors: the Glowseep by night, "combat turns
+  // the whole zone into a fight and the stirges kill npc"; the dens, "not a grid fight"). A random fight here goes as THE WORLD's road fights go (js/world.js
+  // World.prototype.encounter and .fight): its card, FIGHT the way OPTIONS' RANDOM FIGHTS says (simple by default, js/simple.js) or the other way for this one, on a field cut
+  // to the floor's ground -- the party as it walks (js/roam.js R.pullIn0's field: hit points, slots, lights, pack in and back), the floor's people not in it and unhurt -- and
+  // back on the floor on the square it stood, the tally by the floor's zone (Sabeth's cull), THE WORLD's hour on the Glowseep, the floor's tune again
+  M.FIELD = { // a floor's ground: [the edge's chances, the inside's] as [char, under this roll] in turn, else '.' (js/world.js FIELD's way)
+    cave: [[['#', 0.7], ['r', 0.9]], [['#', 0.05], ['r', 0.18]]],
+    bog: [[['~', 0.4], ['g', 0.62]], [['~', 0.25], ['g', 0.45]]]
+  };
+  M.groundOf = function (def) { return def.key === 'glowseep' ? 'bog' : 'cave'; };
+  M.fieldDef = function (def, list, simple, set) {
+    var o = simple ? D.simple.fieldOpts() : null, kind = M.groundOf(def), P = M.FIELD[kind], w = (o && o.w) || 16, h = (o && o.h) || 7, rows = [];
+    var inLane = (o && o.lane) || function (x, y) { return x >= 3 && x <= 10 && y >= 1 && y <= 5; };
+    for (var y = 0; y < h; y++) {
+      var row = '';
+      for (var x = 0; x < w; x++) {
+        var r0 = D.rand(), ch = '.', edge = y === 0 || y === h - 1 || x === 0 || x === w - 1; // (a cave's field walled all round: no road runs through it)
+        if (edge || !inLane(x, y)) { var E = P[edge ? 0 : 1]; for (var i = 0; i < E.length; i++) if (r0 < E[i][1]) { ch = E[i][0]; break; } }
+        else if (kind === 'bog' && r0 < 0.12) ch = '~';
+        row += ch;
+      }
+      rows.push(row);
+    }
+    D.MAPS['mine-field'] = { name: def.name, sub: def.sub, step: 10, ground: 'earth', rows: rows, sky: kind === 'cave' ? 20 : null, // (a cave's ceiling 20 ft up, the Wet's: a darkmantle hangs from it)
+      entry: (o && o.entry) || [[8, 3], [8, 2], [8, 4], [9, 3], [9, 1], [9, 5], [8, 1], [8, 5]], foes: [], wave: null };
+    var moss = kind === 'bog' && def.dark ? [[1, 1, 10, 'glow', 1], [w - 2, h - 2, 10, 'glow', 1], [w - 2, 1, 10, 'glow', 1], [1, h - 2, 10, 'glow', 1]] : null; // (the Glowseep by night: its moss, dim)
+    return { id: 'minefield', map: 'mine-field', level: (D.roam.party0 && D.roam.party0.level) || 5, name: def.name, sub: def.sub, dark: !!def.dark, lights: moss,
+      intro: (set && set.line) || 'They come at the party out of the dark.', won: 'THE WAY IS CLEAR.', lost: 'THE DARK TAKES THEM.',
+      foes: simple ? D.simple.seat(list) : D.world.seat(list), wave: null, fliers: !simple }; // (fliers: the SRD's fly on the grid, not in the simple fight's lineup -- js/world.js's)
+  };
+  M.fieldBack = function (done) { return done === 'won' ? ['{y}The way is clear.{/}', '{g}Back where the party stood.{/}'] : done === 'escaped' ? ['{y}Away{/}: the party gets clear of them.', '{g}Back where it stood.{/}'] : ['{y}Back on the floor{/} (' + done + ').']; };
+  M.fieldFight = function* (B, why, set) {
+    var R = D.roam, R0 = B.roam, t = R0.token, zone = set ? null : R.zoneAt(B, t.x, t.y) || R.def.zone8;
+    var p = set ? { list: set.list, grp: {} } : R.pick(zone, R0.flags);
+    if (!p || !p.list.length) return;
+    if (p.grp.flee && D.rand() < p.grp.flee) { B.card(['{g}Something scuttles off into the dark.{/}'], 200); yield 30; return; }
+    var list = p.list.filter(function (k) { return D.FOES && D.FOES[k]; }).slice(0, 8); if (!list.length) return;
+    R0.fights++; // (THE WORLD's hour on the Glowseep counts it: M.tick)
+    var cnt = {}; list.forEach(function (k) { cnt[k] = (cnt[k] || 0) + 1; });
+    var who = Object.keys(cnt).map(function (k) { var nm = (D.FOES[k].name || k).toLowerCase(); return cnt[k] > 1 ? cnt[k] + ' ' + nm.replace(/y$/, 'ie').replace(/(s|x|ch|sh)$/, '$1e') + 's' : 'a ' + nm; }).join(', ');
+    R0.last = { why: why, who: who, kinds: list.slice(), at: [t.x, t.y], field: true }; R0.log.push(R0.last);
+    var simple = !D.simple || D.simple.on();
+    D.sfx('encounter'); t.anim = 'idle'; t.animT = B.t;
+    var a = yield { prompt: { who: t, title: 'ENCOUNTER', lines: R.wrap([(set && set.line) || ('{r}' + who.charAt(0).toUpperCase() + who.slice(1) + '{/}, out of the dark.')]),
+      opts: [{ label: 'FIGHT', value: 0 }].concat(D.simple ? [{ label: simple ? 'ON THE GRID' : 'SIMPLE', value: 1 }] : []) } };
+    if (a === 1) simple = !simple; // (the other way, for this fight alone -- the road's card, RULED 10-21, Griz: "yes")
+    var F = M.fieldDef(R.def, list, simple, set);
+    R.party0.backTo = R.def.sub; // (the fight's last card: E back to the dens -- js/battle.js o.backTo)
+    var watch = /[?&]watch\b/.test(R.q || ''); // (the test door's &watch: the four run by the class AI in there too, as on the floor)
+    var enter = function (b) { if (watch) b.units.forEach(function (u) { if (u.side === 'party') { u.guest = true; u.classAI = true; } }); };
+    yield* R.pullIn(B, 'field', { id: 'field', field: { F: F, simple: simple, zone: zone, flag: set && set.flag, trig: set && set.trig, back: M.fieldBack, enter: enter } }, [t.x, t.y]);
+    delete R.party0.backTo;
+  };
+  var enc0 = D.roam.encounter;
+  D.roam.encounter = function* (B, why, set) { if (D.roam.def && D.roam.def.mine) { yield* M.fieldFight(B, why, set); return; } yield* enc0.apply(this, arguments); };
 
   // ---------------------------------------------------------------- THE BUNKHOUSES (RULED 10-21 night, Griz to the desk: "the bunkhouses wouldn't need watching (watched by
   // staff) - free/cheap inn function"): a bed for the night and no watches -- the Warrens' bunkhouse at the mouth camp, the resident core's (free to the party once it has
