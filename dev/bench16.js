@@ -3184,6 +3184,14 @@
       var gVh = fireW(B, 'talk:venhale'), scVh = upW() ? D.top() : null, wVh = scVh ? readW(scVh) : []; driveW(gVh, null, 200);
       okW('Venn Hale at the fighters\' stables, spoken to at her figure: on her portrait (' + (scVh && scVh.sheet) + ', named ' + (scVh && scVh.o.name) + '), "' + String(wVh[0]).slice(0, 40) + '...", the Hex card\'s rumour heard, no counter line',
         scVh && scVh.sheet === 'pt_venhale' && scVh.o.name === 'Venn Hale' && wVh.join('|') === window.DS.DATA.npcs.venhale.talk[0].say.join('|') && R0.flags['heard:r-hexcard'] === 1 && !/is to come/.test(wVh.join(' ')) && !upW());
+      // Marta Venn and Madame Ondine Vess (10-22, the desk's relay of Griz's "more NPC in fresh"): Marta at her stalls on the street in her own figure, on her portrait,
+      // her first-game word with Vivian hired and not the lead, her pies to come; Madame Ondine Vess by name in the portraits' show, standing nowhere yet; Tam Vere held
+      var kuMt = B.units.filter(function (u) { return u.npc === 'marta'; })[0], gMt = fireW(B, 'talk:marta'), scMt = upW() ? D.top() : null, wMt = scMt ? readW(scMt) : []; driveW(gMt, null, 200);
+      okW('Marta Venn at her stalls in her own figure (' + (kuMt && kuMt.sheet) + ', facing ' + (kuMt && kuMt.facing) + '), on her portrait (' + (scMt && scMt.sheet) + '): "' + String(wMt[0]).slice(0, 40) + '...", and "' + String(wMt[wMt.length - 1]).replace(/\{.\}|\{\/\}/g, '') + '"',
+        kuMt && kuMt.sheet === 'marta_p1' && kuMt.facing === 0 && kuMt.holdFacing && scMt && scMt.sheet === 'pt_marta' && wMt.slice(0, 2).join('|') === window.DS.DATA.npcs.marta.talk[0].say.join('|') && /bat-wing pies are to come/.test(wMt.join(' ')) && !upW());
+      var psO = CW.portraitShow('?portraits&who=marta,ondine,tam');
+      okW('the portraits\' show takes Marta and Madame Ondine Vess (' + psO.ids.join(', ') + '), her name ' + CW.VENDORS.ondine.name + ', her figure cut and standing nowhere; Tam Vere held (no sheet)',
+        psO.ids.join() === 'marta,ondine' && CW.VENDORS.ondine.name === 'Madame Ondine Vess' && !!D.SHEETS[CW.FIG.ondine] && !B.units.some(function (u) { return u.npc === 'ondine'; }) && !CW.PT.tam && !D.SHEETS.pt_tam);
       // Merrick (10-21 night, the same word: ART-93): behind the message-lantern house's grille, on his portrait, his first-game word and its rumour heard
       inW(B, 'keeper:merrick'); var kuMr = B.units.filter(function (u) { return u.npc === 'merrick'; })[0], gMr = fireW(B, 'talk:merrick'), scMr = D.top(), wMr = upW() ? readW(scMr) : []; driveW(gMr, null, 200);
       okW('Merrick behind the message-lantern house\'s grille (door ' + (D.roam.def.room === 'keeper:merrick' ? 'in' : 'NOT in') + ') in his own figure (' + (kuMr && kuMr.sheet) + ', his south idle 10-21 night), on his portrait (' + (scMr && scMr.sheet) + '): "' + String(wMr[0]).slice(0, 40) + '...", the lantern rumour heard, and "' + String(wMr[wMr.length - 1]).replace(/\{.\}|\{\/\}/g, '') + '"',

@@ -81,6 +81,12 @@ PEOPLE = {
     # panel -- the palette's silver ramp, clear of Percy's brown and Merrick's, where a dark blue sank into the navy behind him
     'korvin': ('korvin/ART-95', 'ART-95', 'hex:korvinSlate', {'recolour': {'hue': 215, 'sat': 0.22}}),
     'davos': ('davos/ART-98', 'ART-98', 'leech:davos', {}),         # (10-22, the desk's relay of Griz's "4 should be in fresh": the leech-house's face)
+    # (10-22, the desk's relay of Griz's "more NPC in fresh": Marta Venn's cook-stalls, and Madame Ondine Vess of the School, whose door neither game has yet.
+    # HELD, not cut: Tam Vere, ART-100, sorted to _src/tam/ART-100 -- the art desk drew her a man (its prompts: "watchful man"), and the realm's Tam and the
+    # first game's are a woman (wiki vice-row.md; content/npcs.json `tam`); his word on a re-roll first)
+    'marta': ('marta/ART-99', 'ART-99', 'npc:marta', {'gap': {6: 3}, 'match': {6: 1}}),   # (her work's bottom band stands 11 px apart; that page is drawn
+    # warmer than her idle, its skin snapping to the reds: its colours matched to the idle's)
+    'ondine': ('ondine/ART-101', 'ART-101', 'the School (no door yet)', {'gap': {6: 3}, 'pxjoin': (6,)}),   # (her work: the hand gesturing off-panel reaches into the frame before's box)
 }
 
 
@@ -91,10 +97,11 @@ def page_path(folder, art, n, pat='%s_HEAD-1_PAGE-%d.png'):
     return fs[0]
 
 
-def drawings(a, bands, mask_d=MASK_D, gap=12):
+def drawings(a, bands, mask_d=MASK_D, gap=12, pxjoin=False):
     """the page's drawings, `bands` of them a band, each (mask of it over the page, its box), read in order: top band first, left to right. A pixel is figure
     when a channel is mask_d from the navy, or half that and touching one that is (a dark coat's shadows against the navy: Winters'); a drawing
-    is its biggest piece and the pieces within `gap` px of it (a sleeve the mask parted from the body: Casper's); a printed word or number is small and short"""
+    is its biggest piece and the pieces within `gap` px of it (a sleeve the mask parted from the body: Casper's) -- by their boxes, or with `pxjoin` by their
+    own pixels (a hand reaching into the next frame's box: Madame Ondine Vess's work); a printed word or number is small and short"""
     navy = np.median(a.reshape(-1, 3)[::97], axis=0)
     d = np.abs(a - navy).max(-1)
     strong = ndimage.binary_opening(d > mask_d, structure=np.ones((3, 3)))
@@ -121,6 +128,10 @@ def drawings(a, bands, mask_d=MASK_D, gap=12):
         if sz[i] < 800 or b[3] - b[1] < 40:
             continue                                            # (a letter, a number, a speck)
         g = [q for q in groups if near(q[1], b, gap)]
+        if pxjoin and g:                                        # (only a group whose own pixels come within gap px of this piece's)
+            wx0, wy0, wx1, wy1 = max(0, b[0] - gap - 1), max(0, b[1] - gap - 1), b[2] + gap + 1, b[3] + gap + 1
+            win = lab[wy0:wy1, wx0:wx1]; me = ndimage.binary_dilation(win == i + 1, iterations=max(1, gap))
+            g = [q for q in g if np.isin(win[me], q[0]).any()]
         if g:
             q = g[0]; q[0].append(i + 1); q[1] = (min(q[1][0], b[0]), min(q[1][1], b[1]), max(q[1][2], b[2]), max(q[1][3], b[3]))
         elif len(groups) < want:
@@ -247,7 +258,7 @@ def cut_person(name):
         a = np.asarray(Image.open(page_path(folder, art, pg, ov.get('pat', '%s_HEAD-1_PAGE-%d.png'))).convert('RGB')).astype(np.int32)
         for bx0, by0, bx1, by1 in ov.get('blank', {}).get(pg, []):
             a[by0:by1, bx0:bx1] = np.median(a.reshape(-1, 3)[::97], axis=0)   # (a printed title touching a head: Winters' ACQUISITION)
-        found = [(piece, box, ledge_top(piece, box)) for piece, box in drawings(a, bands, ov.get('mask_d', MASK_D), ov.get('gap', {}).get(pg, 12))]
+        found = [(piece, box, ledge_top(piece, box)) for piece, box in drawings(a, bands, ov.get('mask_d', MASK_D), ov.get('gap', {}).get(pg, 12), pg in ov.get('pxjoin', ()))]
         if len(found) != len(acts):
             raise SystemExit('%s page %d: %d drawings found, %d wanted' % (name, pg, len(found), len(acts)))
         pages.append((pg, a, found, acts))
@@ -293,6 +304,17 @@ def cut_person(name):
         for i, (piece, box, foot) in enumerate(found):
             if foot == box[3] and ledge_deep(piece, box, dep - 2):
                 found[i] = (piece, box, box[3] - dep)
+    # a page drawn warmer than the rest (Marta's work, 10-22: its skin snapped to the reds, a burnt face over the stew): its figures' colours matched to
+    # another page's, channel by channel (the mean and spread of the figures' pixels), before the cut -- `match`: {page: the page it takes its colours from}
+    for pg, a, found, acts in pages:
+        ref = ov.get('match', {}).get(pg)
+        if ref is None:
+            continue
+        rp = [q for q in pages if q[0] == ref][0]
+        src = np.concatenate([a[pc & (np.arange(a.shape[0])[:, None] < f)] for pc, b, f in found])
+        dst = np.concatenate([rp[1][pc & (np.arange(rp[1].shape[0])[:, None] < f)] for pc, b, f in rp[2]])
+        k = dst.std(0) / np.maximum(src.std(0), 1e-6)
+        a[...] = np.clip(np.round((a - src.mean(0)) * k + dst.mean(0)), 0, 255).astype(a.dtype)
     for pg, a, found, acts in pages:
         for (piece, box, foot), act in zip(found, acts):
             x0, y0, x1, y1 = box
@@ -330,7 +352,7 @@ def cut_person(name):
             im = Image.fromarray(rgba, 'RGBA').convert('RGBa')
             w, h = max(1, round(rgba.shape[1] * k)), max(1, round(rgba.shape[0] * k))
             im = im.resize((w, h), Image.BOX).convert('RGBA')
-            px = pix.pixelate(im, 1, do_lift=False)
+            px = pix.pixelate(im, 1, do_lift=False, avoid=ov.get('avoid'))   # (`avoid`: ramps or colours the snap leaves out -- tools/pixelate.py)
             out.append((px, ax * k, ay * k, ledge))
         small[act] = out
     # one box for every frame, round the anchor

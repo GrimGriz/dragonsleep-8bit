@@ -46,7 +46,11 @@
     // three more (10-22, Griz to the lanes desk: "more NPC art is in", then "one cutter for all 3"): Brennan the smith at his forge's door, his first-game talk (the
     // Pryor purse taken when Mical has signed: C.words) and no first-game shop, so his counter is to come; Venn Hale at the fighters' stables' door, her word and its
     // rumour (the Hex's card), selling nothing; Korvin of the Hex's betting slate, his portrait for the Hex seat to place (his slate and card are its scene)
-    brennan: { sheet: 'pt_brennan' }, venhale: { sheet: 'pt_venhale', wait: '' }, korvin: { sheet: 'pt_korvin', name: 'Korvin', words: 'hex.korvin' } // (`words`: his first-game line, content/text.json, for the portraits' show -- his own talk is the slate's)
+    brennan: { sheet: 'pt_brennan' }, venhale: { sheet: 'pt_venhale', wait: '' }, korvin: { sheet: 'pt_korvin', name: 'Korvin', words: 'hex.korvin' }, // (`words`: his first-game line, content/text.json, for the portraits' show -- his own talk is the slate's)
+    // two more (10-22, the desk's relay of Griz's "more NPC in fresh"): Marta Venn at her cook-stalls on the street, her first-game talk (her bat-wing pies, the first
+    // game's S.marta, are to come); Madame Ondine Vess of the School, whose door neither game has yet -- her portrait for the show till it comes. (Tam Vere's, ART-100,
+    // is held: drawn a man, and Tam is a woman -- tools/portrait-sheet.py)
+    marta: { sheet: 'pt_marta', wait: 'Her bat-wing pies are to come.' }, ondine: { sheet: 'pt_ondine', name: 'Madame Ondine Vess', wait: '' }
   };
   C.BESIDE = { percy: ['ned'] }; // (who stands behind a counter beside its keeper: js/town.js T.goIn)
   C.PETS = { ned: 'rat' }; // (a keeper's familiar on the counter in front of them: Ned's rat -- js/rules.js R.FAMILIARS, js/town.js T.goIn)
@@ -58,7 +62,8 @@
     sylvia: 'sylvia_p1', // (Sylvia Swann at her booth, her owl on her shoulder -- 10-21 night, Griz: "I got sylvia's - let's put it together as best we can and push it to live")
     mela: 'mela_p1', mical: 'mical_p1', merrick: 'merrick_p1', // (10-21 night, Griz: "got 3 more south idles in Fresh too": Mela and Mical beside their doors, Merrick behind his grille)
     brennan: 'brennan_p1', venhale: 'venhale_p1', korvin: 'korvin_p1', // (10-22: Brennan and Venn Hale beside their doors; Korvin's for the Hex seat, his waistcoat slate as on his portrait)
-    davos: 'davos_p1' }; // (10-22: Davos Kren behind the leech-house's counter)
+    davos: 'davos_p1', // (10-22: Davos Kren behind the leech-house's counter)
+    marta: 'marta_p1', ondine: 'ondine_p1' }; // (10-22: Marta Venn at her stalls on the street -- js/town.js T.PLACE; Madame Ondine Vess's for a door to come)
   C.AT_DOOR = [{ id: 'marin', door: 'keeper:marin' }, { id: 'barber', door: 'keeper:barber' }, { id: 'mela', door: 'keeper:mela' }, { id: 'mical', door: 'keeper:mical' },
     { id: 'brennan', door: 'keeper:brennan' }, { id: 'venhale', door: 'keeper:venhale' }];
   C.dress = function (u, id) {

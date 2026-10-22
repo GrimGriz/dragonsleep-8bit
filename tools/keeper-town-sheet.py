@@ -64,6 +64,8 @@ KEEPERS = {
     'venhale': ('venhale/ART-96', 'ART-96', 'keeper:venhale', {'avoid': ['red', 'fire']}),   # (her nose and forearms' flush snapped to the reds, a dot of paint at this size: left out, they go to skin)
     'korvin': ('korvin/ART-95', 'ART-95', 'hex:korvinSlate', {'recolour': {'hue': 215, 'sat': 0.22}}),
     'davos': ('davos/ART-98', 'ART-98', 'leech:davos'),             # (10-22: Davos Kren behind the leech-house's counter)
+    'marta': ('marta/ART-99', 'ART-99', 'npc:marta'),               # (10-22, "more NPC in fresh": Marta at her stalls, Madame Ondine Vess for a door to come; Tam Vere HELD, tools/portrait-sheet.py)
+    'ondine': ('ondine/ART-101', 'ART-101', 'the School (no door yet)'),
 }
 
 
