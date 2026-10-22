@@ -47,10 +47,10 @@
     // Pryor purse taken when Mical has signed: C.words) and no first-game shop, so his counter is to come; Venn Hale at the fighters' stables' door, her word and its
     // rumour (the Hex's card), selling nothing; Korvin of the Hex's betting slate, his portrait for the Hex seat to place (his slate and card are its scene)
     brennan: { sheet: 'pt_brennan' }, venhale: { sheet: 'pt_venhale', wait: '' }, korvin: { sheet: 'pt_korvin', name: 'Korvin', words: 'hex.korvin' }, // (`words`: his first-game line, content/text.json, for the portraits' show -- his own talk is the slate's)
-    // two more (10-22, the desk's relay of Griz's "more NPC in fresh"): Marta Venn at her cook-stalls on the street, her first-game talk (her bat-wing pies, the first
-    // game's S.marta, are to come); Madame Ondine Vess of the School, whose door neither game has yet -- her portrait for the show till it comes. (Tam Vere's, ART-100,
+    // two more (10-22, the desk's relay of Griz's "more NPC in fresh"): Marta Venn at her cook-stalls on the street, her first-game talk and her bat-wing pies (the first
+    // game's S.marta: C.marta, 10-22); Madame Ondine Vess of the School, whose door neither game has yet -- her portrait for the show till it comes. (Tam Vere's, ART-100,
     // is held: drawn a man, and Tam is a woman -- tools/portrait-sheet.py)
-    marta: { sheet: 'pt_marta', wait: 'Her bat-wing pies are to come.' }, ondine: { sheet: 'pt_ondine', name: 'Madame Ondine Vess', wait: '' }
+    marta: { sheet: 'pt_marta', script: 'marta' }, ondine: { sheet: 'pt_ondine', name: 'Madame Ondine Vess', wait: '' }
   };
   C.BESIDE = { percy: ['ned'] }; // (who stands behind a counter beside its keeper: js/town.js T.goIn)
   C.PETS = { ned: 'rat' }; // (a keeper's familiar on the counter in front of them: Ned's rat -- js/rules.js R.FAMILIARS, js/town.js T.goIn)
@@ -474,6 +474,7 @@
     var said = C.words(B, id), shop = (DS.DATA.shops || {})[C.VENDORS[id].shop];
     if (/^\{g\}\(Their scene/.test(said[0] || '')) said = [C.greeting(C.VENDORS[id].shop) || 'Welcome.'];
     yield sc.say(said, 'welcoming');
+    if (C.VENDORS[id].shop === 'percy' && count(sc.st, 'batwings') > 0) yield sc.say(L('percy.wings'), 'skeptical'); // (the wings he won't have, sent on to Marta: the first game's S.percyShop)
     while ((yield sc.ask(said[said.length - 1], ['THE SHELVES', 'LEAVE'])) === 0) yield sc.shelves(C.VENDORS[id].shop);
   };
 
@@ -621,6 +622,24 @@
     if (lines.length) { D.sfx('chest'); return [L('g.rewardKind')].concat(lines); }
     return [];
   };
+  // MARTA VENN's bat-wing pies (10-22, the house seat, started by the lanes desk on Griz's "looks like its opens that weren't art is the bat wing cooking in silverton"): the
+  // first game's js/events.js S.marta on her counter screen, in its words (content/text.json marta.*). Wings in the pack: COOK THEM or NOT NOW -- a silver a wing, free with
+  // Vivian in the party (her daughter, RULED 09-24) -- and the pies into the pack (the floor's, which the house saves: C.state; the grid's fights eat them, js/battle.js
+  // fortify). NOT NOW, or no wings: her word, as before
+  C.SCRIPTS.marta = C.marta = function* (sc, B) {
+    var st = sc.st, n = count(st, 'batwings');
+    if (n > 0) {
+      var free = st.party.some(function (h) { return (h.key || h.id) === 'vivian'; }), cost = free ? 0 : n;
+      if ((yield sc.ask(L(free ? 'marta.wingsViv' : 'marta.wings', { n: n, cost: cost }), ['COOK THEM', 'NOT NOW'], 'attentive')) === 0) {
+        if (cost > st.silver()) { D.sfx('error'); yield sc.say(L('g.poor'), 'concerned'); return; }
+        if (cost) { st.silver(-cost); D.sfx('coin'); }
+        take(st, 'batwings', n); give(st, 'batpie', n); D.sfx('chest');
+        yield sc.say(L('marta.pies', { n: n }), 'work');
+        return;
+      }
+    }
+    yield sc.say(C.words(B, 'marta'), 'welcoming');
+  };
   // the services, shown (deep16/?services -- the eyes row's door, 10-22): a NEW GAME staged by the beat -- the four hurt, a level banked, a ring that wants a bond, the
   // fallen, the bounties' proofs -- and stood at the door (the camp's on THE WORLD), the rest in the player's hands: a click on the door (or E), E at the counter.
   // &beat=<id> opens one; X back to the title
@@ -642,18 +661,22 @@
     (bt.inv || []).forEach(function (s) { H.add(rec.inv, s[0], s[1]); });
     if (bt.silver != null) rec.silver = bt.silver;
     if (bt.world) rec.at = { town: null };
-    else { var F = D.town.SCALE, Lt = (D.town.laidF = D.town.laidF || {})[F] || (D.town.laidF[F] = D.town.lay(null, F)), dq = Lt.marks.doors[bt.door]; rec.at = { town: 'silverton', gate: 'west', sq: dq.slice(), dir: D.roam.DIR8['0,-1'] }; } // (on the door's threshold, facing it)
+    else if (bt.near) { // (beside a person on the street, facing them: Marta at her stalls -- the house seat's show, 10-22)
+      var fl = D.town.floor('', rec.flags || {}), pp = fl.people.filter(function (p) { return p.id === bt.near; })[0], taken = {}; fl.people.forEach(function (p) { taken[p.at[0] + ',' + p.at[1]] = 1; });
+      var o0 = [[0, 1], [-1, 0], [1, 0], [0, -1]].filter(function (o) { var x = pp.at[0] + o[0], y = pp.at[1] + o[1], r = fl.rows[y]; return r && '.,='.indexOf(r.charAt(x)) >= 0 && !taken[x + ',' + y]; })[0];
+      rec.at = { town: 'silverton', gate: 'west', sq: [pp.at[0] + o0[0], pp.at[1] + o0[1]], dir: D.roam.DIR8[(-o0[0]) + ',' + (-o0[1])] };
+    } else { var F = D.town.SCALE, Lt = (D.town.laidF = D.town.laidF || {})[F] || (D.town.laidF[F] = D.town.lay(null, F)), dq = Lt.marks.doors[bt.door]; rec.at = { town: 'silverton', gate: 'west', sq: dq.slice(), dir: D.roam.DIR8['0,-1'] }; } // (on the door's threshold, facing it)
     return rec;
   };
   C.servicePlay = function (bt) {
     var H = D.house, W = D.world; H.begin(C.serviceStage(bt), 0);
     if (bt.world) { var S = W.state(), e = W.M().hex[W.K(S.at[0], S.at[1])]; S.zone = W.zoneOf(e); S.count = 1e9; } // (a quiet night: nothing out of the dark on the watches' checks)
   };
-  function ServicesShow(q) {
-    this.kind = 'servicesshow'; this.opaque = true; this.t = 0; this.hov = 0;
-    var b = /[?&]beat=([a-z]+)/.exec(String(q || '')); if (b) this.pending = C.SERVICE_BEATS.filter(function (x) { return x.id === b[1]; })[0] || null;
+  function ServicesShow(q, beats, title) { // (beats, title: another show of NEW GAMEs staged the same way -- C.houseShow, 10-22)
+    this.kind = 'servicesshow'; this.opaque = true; this.t = 0; this.hov = 0; this.beats = beats || C.SERVICE_BEATS; this.title = title || '{y}SILVERTON\'S SERVICES{/} -- a NEW GAME staged at the door; the rest is yours (a show)';
+    var b = /[?&]beat=([a-z0-9]+)/.exec(String(q || '')); if (b) this.pending = this.beats.filter(function (x) { return x.id === b[1]; })[0] || null;
   }
-  ServicesShow.prototype.buttons = function () { return C.SERVICE_BEATS.map(function (bt, k) { return { x: 12, y: 26 + k * 34, w: D.W - 24, h: 31, bt: bt }; }); };
+  ServicesShow.prototype.buttons = function () { return this.beats.map(function (bt, k) { return { x: 12, y: 26 + k * 34, w: D.W - 24, h: 31, bt: bt }; }); };
   ServicesShow.prototype.update = function () {
     this.t++; var m = I.mouse;
     if (this.pending) { var p0 = this.pending; this.pending = null; C.servicePlay(p0); return; }
@@ -665,7 +688,7 @@
   };
   ServicesShow.prototype.draw = function (ctx) {
     var self = this, W8 = D.WIN8; ctx.fillStyle = '#0a0c22'; ctx.fillRect(0, 0, D.W, D.H);
-    D.text(ctx, '{y}SILVERTON\'S SERVICES{/} -- a NEW GAME staged at the door; the rest is yours (a show)', 10, 10, W8.text);
+    D.text(ctx, this.title, 10, 10, W8.text);
     this.buttons().forEach(function (q, k) {
       var on = k === self.hov; D.win8(ctx, q.x, q.y, q.w, q.h, on ? W8.sel : null);
       D.text(ctx, q.bt.label, q.x + 8, q.y + 3, on ? W8.gold : W8.text);
@@ -674,6 +697,12 @@
     D.hint(ctx, 'click a beat · in town: click the square they stand on, E at the counter · X: the title', D.W / 2, D.H - 12, '#9a96a8', 'center');
   };
   C.servicesShow = function (q) { return new ServicesShow(q); };
+  // the house seat's show (deep16/?houseshow -- its eyes rows' door, 10-22): a NEW GAME staged beside Marta with bat wings in the pack, and at Percy's door with them
+  C.HOUSE_BEATS = [
+    { id: 'marta', near: 'marta', label: 'MARTA VENN\'S PIES: six bat wings, Vivian along', note: 'A click on Marta (or E beside her): COOK THEM, free for Viv\'s friends -- six pies into the pack, eaten in a fight. NOT NOW: her word, as before.', inv: [['batwings', 6]] },
+    { id: 'percy', door: 'warp:percy', label: 'PERCY: the wings he won\'t have', note: 'Two bat wings in the pack. In at the door, E at the counter: his word, then "Wings? Not in my jars. Take them to Marta Venn..."', inv: [['batwings', 2]] }
+  ];
+  C.houseShow = function (q) { return new ServicesShow(q, C.HOUSE_BEATS, '{y}THE HOUSE, 10-22{/} -- a NEW GAME staged; the rest is yours (a show)'); };
 
   // ---------------------------------------------------------------- NED HALLOWAY and Find Familiar (10-21 night, the keepers cutter seat, on the house lane's "Ned and
   // Find Familiar", THE SCENE, RULED). His design: "pick a school that isn't evocation and Ned tell story about how if you didn't have a familiar, they wouldn't accept

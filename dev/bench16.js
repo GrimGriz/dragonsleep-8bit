@@ -2806,6 +2806,66 @@
     document.body.appendChild(preH);
     return;
   }
+  // THE HOUSE SEAT, 10-22 (mode=house1022; the lanes desk on Griz's "looks like its opens that weren't art is the bat wing cooking in silverton", then "If there's another
+  // seat needs spun up go with that"): Marta Venn's bat-wing pies on her counter screen (deep16/js/counter.js C.marta, the first game's S.marta; Percy's word on the wings,
+  // S.percyShop), the show ?houseshow. Every choice pressed by a click on its drawn box, as services1022 does
+  if (get('mode', '') === 'house1022') {
+    var repHs = { checks: [], errors: [] }, memHs = {}, stGHs = D.store.get, stSHs = D.store.set, HHs = D.house, CHs = D.counter, THs = D.town;
+    function okHs(what, v) { repHs.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function driveHs(g, until, cap) { var v, k = 0, st; while (k++ < (cap || 4000)) { if (until && until()) return true; st = g.next(v); v = undefined; if (st.done) return !!(until && until()); } return !!(until && until()); }
+    function topHs() { var s = D.top(); if (s && s.baking) { s.baking = false; s.enter(); } return s; }
+    function upHs() { return D.top() instanceof CHs.Counter; }
+    function trigHs(id) { return (D.roam.def.src8.triggers || []).filter(function (t) { return t.id === id; })[0]; }
+    function clickHs(sc, b) { if (!b) return false; var mo = D.input.mouse, k = { x: mo.x, y: mo.y, click: mo.click, inside: mo.inside, moved: mo.moved }; mo.x = b.x + b.w / 2; mo.y = b.y + b.h / 2; mo.inside = true; mo.click = true; mo.moved = true; sc.update(); Object.assign(mo, k); return true; }
+    function goHs(sc, go, label) { return clickHs(sc, sc.buttons().filter(function (q) { return q.go === go && (label == null || q.label === label); })[0]); }
+    function readHs(sc) { var out = [], k = 0; while (!sc.done && sc.wait && sc.wait.say && k++ < 40) { out = out.concat(sc.wait.say); goHs(sc, 'next'); } return out; }
+    function askHs(sc) { return sc && sc.wait && sc.wait.ask ? sc.wait.ask.join(' ') + ' [' + sc.wait.opts.join('/') + ']' : ''; }
+    function fireHs(B, id) { var g = THs.fire(B, trigHs(id)); driveHs(g, upHs, 600); return g; }
+    function inHs(B, id) { driveHs(THs.fire(B, trigHs(id)), null, 600); return D.roam.def.room === id; }
+    function packHs(B, id) { var s = (B.inv || []).filter(function (x) { return x.id === id; })[0]; return s ? s.n : 0; }
+    function beatHs(id) { var sh = CHs.houseShow('?houseshow&beat=' + id); D.scenes.length = 0; D.push(sh); sh.update(); return topHs(); }
+    D.store.get = function (k) { return memHs[k] ? JSON.parse(memHs[k]) : null; }; D.store.set = function (k, v) { memHs[k] = JSON.stringify(v); return true; };
+    try {
+      D.seed = +get('seed', 1022);
+      // MARTA'S PIES: the show's beat, a NEW GAME stood beside her with six wings
+      var shHs = CHs.houseShow('?houseshow'); okHs('the show deep16/?houseshow: ' + CHs.HOUSE_BEATS.length + ' beats (' + CHs.HOUSE_BEATS.map(function (b) { return b.id; }).join(', ') + '), each a box to click', shHs.buttons().length === CHs.HOUSE_BEATS.length && typeof shHs.draw === 'function');
+      var B = beatHs('marta'), R0 = B.roam, tk = R0.token, mU = B.units.filter(function (u) { return u.npc === 'marta'; })[0];
+      okHs('the beat: the house\'s floor, the party beside Marta at her stalls (' + tk.x + ',' + tk.y + ' by ' + (mU && mU.x) + ',' + (mU && mU.y) + ', in her own figure ' + (mU && mU.sheet) + '), six bat wings in the pack, ' + R0.silver + ' sp',
+        HHs.playing && D.roam.house() && !!mU && Math.abs(mU.x - tk.x) + Math.abs(mU.y - tk.y) === 1 && mU.sheet === 'marta_p1' && packHs(B, 'batwings') === 6 && packHs(B, 'batpie') === 0);
+      var sil0 = R0.silver, gM = fireHs(B, 'talk:marta'), scM = D.top();
+      okHs('a word with her: her portrait (' + (scM && scM.sheet) + '), the wings asked for, free with Vivian along -- ' + askHs(scM), upHs() && scM.sheet === 'pt_marta' && /For Viv's friends, no charge\. 6 wing\(s\)/.test(askHs(scM)) && scM.wait.opts.join() === 'COOK THEM,NOT NOW');
+      goHs(scM, 'opt', 'NOT NOW'); var wNo = readHs(scM); driveHs(gM, null, 200);
+      okHs('NOT NOW: her word as before -- "' + wNo.join(' / ').slice(0, 120) + '" -- the wings kept, no pie', /Pie two coppers/.test(wNo.join(' ')) && !/to come/.test(wNo.join(' ')) && packHs(B, 'batwings') === 6 && packHs(B, 'batpie') === 0 && D.top() === B);
+      gM = fireHs(B, 'talk:marta'); scM = D.top(); goHs(scM, 'opt', 'COOK THEM'); var faceM = scM.face && scM.face.anim, wCook = readHs(scM); driveHs(gM, null, 200);
+      okHs('COOK THEM: "' + wCook.join(' ') + '" over her stew (' + faceM + '), the six wings six pies in the pack, nothing paid (' + R0.silver + ' sp)', /6 bat-wing pie\(s\), hot/.test(wCook.join(' ')) && faceM === 'work' && packHs(B, 'batwings') === 0 && packHs(B, 'batpie') === 6 && R0.silver === sil0 && D.top() === B);
+      gM = fireHs(B, 'talk:marta'); scM = D.top(); var askNone = !!(scM.wait && scM.wait.ask), wNone = readHs(scM); driveHs(gM, null, 200);
+      okHs('no wings: no asking, her word ("' + wNone.join(' / ').slice(0, 60) + '")', !askNone && /Pie two coppers/.test(wNone.join(' ')));
+      // without Vivian (the first game's rule: a silver a wing): she taken out of the floor's party for the check, and put back
+      var vI = R0.members.findIndex(function (u) { return u.id === 'vivian'; }), vU = R0.members.splice(vI, 1)[0];
+      (B.inv = B.inv || []).push({ id: 'batwings', n: 3 }); R0.silver = 2;
+      gM = fireHs(B, 'talk:marta'); scM = D.top(); var askPay = askHs(scM); goHs(scM, 'opt', 'COOK THEM'); var wPoor = readHs(scM); driveHs(gM, null, 200);
+      okHs('without Vivian, three wings and 2 sp: ' + askPay + ' -- COOK THEM: "' + wPoor.join(' ') + '", the wings kept', /A silver apiece/.test(askPay) && /3 wing\(s\), 3 silver/.test(askPay) && /Not enough silver/.test(wPoor.join(' ')) && packHs(B, 'batwings') === 3 && packHs(B, 'batpie') === 6 && R0.silver === 2);
+      R0.silver = 10; gM = fireHs(B, 'talk:marta'); scM = D.top(); goHs(scM, 'opt', 'COOK THEM'); readHs(scM); driveHs(gM, null, 200);
+      okHs('with 10 sp: 3 paid (' + R0.silver + ' left), nine pies', R0.silver === 7 && packHs(B, 'batwings') === 0 && packHs(B, 'batpie') === 9);
+      R0.members.splice(vI, 0, vU);
+      // the pies are the house's: into its save with the floor's party, and into a floor fight's pack
+      HHs.fromFloor(B); var pSave = (HHs.cur.inv || []).filter(function (s) { return s.id === 'batpie'; })[0];
+      okHs('the floor\'s pack into the house\'s save: ' + (pSave ? pSave.n : 0) + ' Bat-Wing Pies, no wings', !!pSave && pSave.n === 9 && !(HHs.cur.inv || []).some(function (s) { return s.id === 'batwings' && s.n > 0; }));
+      // PERCY and the wings he won't have (the first game's S.percyShop)
+      B = beatHs('percy'); R0 = B.roam;
+      okHs('Percy\'s beat: at his door with two wings', packHs(B, 'batwings') === 2 && inHs(B, 'warp:percy'));
+      var gP = fireHs(B, 'talk:percy'), scP = D.top(), wP = upHs() ? readHs(scP) : [];
+      okHs('E at his counter: his word, then the wings sent on -- "' + wP.slice(-1).join('') + '", then ' + askHs(scP), upHs() && /Wings\? Not in my jars\. Take them to Marta Venn/.test(wP.join(' ')) && scP.wait.opts.join() === 'THE SHELVES,LEAVE');
+      goHs(scP, 'opt', 'LEAVE'); driveHs(gP, null, 200);
+      B.inv = B.inv.filter(function (s) { return s.id !== 'batwings'; }); gP = fireHs(B, 'talk:percy'); scP = D.top(); wP = upHs() ? readHs(scP) : [];
+      okHs('no wings: no word of them', upHs() && !/Wings\?/.test(wP.join(' ')));
+      goHs(scP, 'opt', 'LEAVE'); driveHs(gP, null, 200);
+    } catch (eHs) { repHs.errors.push(String(eHs && eHs.stack || eHs).slice(0, 900)); }
+    D.store.get = stGHs; D.store.set = stSHs; if (D.house) { D.house.playing = false; D.house.cur = null; }
+    var preHs = document.createElement('pre'); preHs.id = 'out'; preHs.textContent = 'BENCH16 ' + JSON.stringify(repHs);
+    document.body.appendChild(preHs);
+    return;
+  }
   // SILVERTON'S SERVICES, 10-22 (mode=services1022; deep16/js/counter.js C.inn, C.chapel, C.leech, C.hessle, the show ?services; deep16/js/house.js THE MORNING, H.sleepOnFloor,
   // H.atOf -- the lanes desk, on his word: "Start a seat on Silverton's services: Cassia's rooms, Aldwin's chapel sleep, Davos's leech-house, Hessle's board, Merrick's sendings,
   // from the first game's scenes"; his 10-22 note: "camping the night with no encounter doesn't prompt the same as 'you just stayed at inn' - can't tell it's morning, no
