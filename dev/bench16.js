@@ -2396,6 +2396,69 @@
     document.body.appendChild(preS);
     return;
   }
+  // THE SILVERTON AREA, 10-22 (mode=near1022; tools/near-build.py -> deep16/data/world-near.js; js/world.js its 'near' map, W.planTo, W.place -- RULED, Griz: "2 - 1.5 mile
+  // hexes", on his "a zoom where its somewhere between 4-10 hexes to the fork in the road"; the desk: "Build it, the map of its own beside THE WORLD, with edges
+  // handing the party back to THE WORLD and a save that remembers which map the party is on"): the benches' page has no area (bench16.py leaves it out), so it is read here
+  if (get('mode', '') === 'near1022') {
+    var repN = { checks: [], errors: [] }, memN = {}, stGN = D.store.get, stSN = D.store.set, HN2 = D.house, WN = D.world;
+    function okN(what, v) { repN.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function runN(sc, cap) { var k = 0; while (sc.walk && k++ < (cap || 6000)) { if (sc.cards.length) { var c = sc.cards[0]; sc.cards.shift(); if (c.keys) c.keys[0][1](); else if (c.then) c.then(); continue; } sc.update(); } return k; }
+    D.store.get = function (k) { return memN[k] ? JSON.parse(memN[k]) : null; }; D.store.set = function (k, v) { memN[k] = JSON.stringify(v); return true; };
+    window.DS.autoPicks = true; var onStepN = WN.onStep; WN.onStep = null;
+    try {
+      D.seed = +get('seed', 1022);
+      var xn = new XMLHttpRequest(); xn.open('GET', '../deep16/data/world-near.js', false); xn.send(); (0, eval)(xn.responseText);
+      WN.index(); var MN = WN.map('near'), MW = WN.map('world');
+      okN('the Silverton area baked: ' + (MN ? Object.keys(MN.hex).length + ' hexes of ' + MN.w + ' mi over ' + Object.keys(MN.area).length + ' of THE WORLD\'s, ' + MN.exits.length + ' steps off its edge' : 'none'), !!MN && MN.w === 1.5 && Object.keys(MN.hex).length > 3000 && MN.exits.length > 50);
+      // a new game stands on it at Silverton
+      HN2.worldDoor('?world&fresh&noenc'); var wN = D.top(), SN2 = WN.state(), z0 = wN.zooms()[wN.zi];
+      okN('deep16/?world: the four on the Silverton area (' + WN.M().key + ', S.map ' + SN2.map + ') at Silverton\'s hex ' + SN2.at + ', its hexes ' + Math.round(MN.w * z0) + ' px across at ' + z0 + ' px a mile',
+        WN.M().near && SN2.map === 'near' && SN2.at.join() === WN.startHex().join() && Math.round(MN.w * z0) === 30);
+      // the ways from Silverton by its hexes (his "somewhere between 4-10 hexes to the fork in the road")
+      var site = function (id) { return MN.sites.filter(function (s) { return s.id === id; })[0]; }, sv = site('silverton').hex, wayN = {};
+      ['jct', 'glowseep', 'fork', 'mouth', 'webgulch', 'inn'].forEach(function (id) { var r = WN.route(sv, site(id).hex); wayN[id] = r ? r.hexes.length + ' hexes, ' + r.hours.toFixed(1) + ' h' : 'none'; wayN[id + '_n'] = r ? r.hexes.length : 99; wayN[id + '_h'] = r ? r.hours : 99; });
+      okN('from Silverton by the area\'s hexes: the junction ' + wayN.jct + ', the Glowseep ' + wayN.glowseep + ', the fork ' + wayN.fork + ', the mouth ' + wayN.mouth + ', Web Gulch ' + wayN.webgulch + ', the Halfway Inn ' + wayN.inn,
+        wayN.fork_n >= 6 && wayN.fork_n <= 12 && wayN.glowseep_n < wayN.fork_n && wayN.inn_n > wayN.fork_n + 12 && Math.abs(wayN.fork_h - wayN.fork_n * 0.5) < 2.5);
+      var rI = WN.route(site('glowseep').hex, site('inn').hex);
+      okN('the Glowseep to the Halfway Inn: ' + (rI ? rI.hexes.length + ' hexes, ' + rI.hours.toFixed(1) + ' hours (his "about 8-9 hours from the half-way inn is ideal": the place as painted)' : 'no way'), !!rI);
+      var nbS = [[1, 0], [-1, 0], [0, -1], [1, -1], [-1, 1], [0, 1]].map(function (d) { return [sv[0] + d[0], sv[1] + d[1]]; }).map(function (n) { return WN.stepHours(sv, n); }).filter(function (s) { return s && !s.exit; })[0];
+      okN('a step on the area: ' + (nbS ? nbS.h.toFixed(2) + ' hours, ' + nbS.share.toFixed(2) + ' of THE MARCH\'s 5-mile hex' : 'none') + ' (16 a day of 8 hours)', !!nbS && Math.abs(nbS.share - 0.3 * nbS.going) < 1e-9 && Math.abs(nbS.h - 0.5 * nbS.going) < 1e-9);
+      // off the edge onto THE WORLD, and back
+      var exN = MN.exits.filter(function (e) { return !WN.MOUNTAIN[MW.hex[WN.K(e.pw[0], e.pw[1])].t] && [[1, 0], [-1, 0], [0, -1], [1, -1], [-1, 1], [0, 1]].some(function (d) { var b = [e.n[0] + d[0], e.n[1] + d[1]], st = MN.hex[WN.K(b[0], b[1])] && WN.stepHours(b, e.n, MN); if (st) e.b = b; return !!st; }); })[0];
+      SN2.at = exN.b.slice(); SN2.pushing = true; var tE = SN2.t; wN.walk = { path: [exN.n.slice()], f: 0 }; runN(wN);
+      okN('a step off the area\'s edge: on THE WORLD at ' + SN2.at + ' (' + WN.M().key + ', S.map ' + SN2.map + '), ' + (SN2.t - tE).toFixed(2) + ' hours to its middle', WN.M().key === 'world' && !SN2.map && SN2.at.join() === exN.pw.join() && SN2.t - tE > 0.3 && SN2.t - tE < 2.5);
+      var backN = [[1, 0], [-1, 0], [0, -1], [1, -1], [-1, 1], [0, 1]].map(function (d) { return [SN2.at[0] + d[0], SN2.at[1] + d[1]]; }).filter(function (n) { return WN.inArea(n[0], n[1]) && WN.stepHours(SN2.at, n, MW); })[0];
+      wN.walk = { path: [backN], f: 0 }; runN(wN); var cB = WN.hc(SN2.at[0], SN2.at[1]), wB2 = WN.worldHexOf(cB[0], cB[1]);
+      okN('a step from THE WORLD into a 5-mile hex the area covers: on the area again (' + WN.M().key + ') at ' + SN2.at + ', in that hex (' + wB2 + ')', WN.M().near && SN2.map === 'near' && wB2.join() === backN.join());
+      // a walk to a place beyond the edge goes on across it, and one from beyond comes in
+      var dayN = HN2.DAYHEX; HN2.DAYHEX = 999; // (no march's ask or its saves on these long walks: THE MARCH is benched in house1021 and world1022)
+      SN2.at = sv.slice(); WN.use('near'); SN2.map = 'near'; var far = MW.sites.filter(function (s) { return s.id === 'castegut'; })[0], plF = WN.planTo([far.x, far.y]);
+      okN('the way to Castegut from Silverton: ' + (plF ? plF.hexes.length + ' of the area\'s hexes and ' + plF.beyond + ' of THE WORLD, ' + (plF.hours / 8).toFixed(1) + ' days\' walking' : 'none'), !!plF && plF.beyond > 5 && plF.hexes.length > 10);
+      if (plF) { wN.walk = { path: plF.hexes.slice(), f: 0, goal: plF.goal }; runN(wN); }
+      okN('walked: at Castegut on THE WORLD (' + WN.M().key + ' ' + SN2.at + ', the town\'s ' + far.hex + ')', WN.M().key === 'world' && SN2.at.join() === far.hex.join());
+      var plB = WN.planTo(WN.hc(MW.sites.filter(function (s) { return s.id === 'fork'; })[0].hex[0], MW.sites.filter(function (s) { return s.id === 'fork'; })[0].hex[1]));
+      if (plB) { wN.walk = { path: plB.hexes.slice(), f: 0, goal: plB.goal }; runN(wN); }
+      var fkN = site('fork').hex, dF = Math.max(Math.abs(SN2.at[0] - fkN[0]), Math.abs(SN2.at[1] - fkN[1]), Math.abs(SN2.at[0] + SN2.at[1] - fkN[0] - fkN[1]));
+      okN('and back to the fork\'s 5-mile hex from there: on the area (' + WN.M().key + ') at ' + SN2.at + ', ' + dF + ' of its hexes from the fork', WN.M().near && dF <= 2); HN2.DAYHEX = dayN;
+      // the save keeps the map; a save from before stands on the area
+      HN2.saveTo(1); var s1 = memN['deep16.game.1'] ? JSON.parse(memN['deep16.game.1']) : null;
+      okN('SAVE on the area keeps its map (' + (s1 && s1.world.map) + ', at ' + (s1 && s1.world.at) + '), the slot\'s line says where (' + HN2.line(1, s1).l + ')', !!s1 && s1.world.map === 'near' && s1.world.at.join() === SN2.at.join());
+      HN2.begin(HN2.read(1), 1); var SC = WN.state();
+      okN('CONTINUE: on the area at the same hex (' + WN.M().key + ', ' + SC.at + ')', WN.M().near && SC.map === 'near' && SC.at.join() === s1.world.at.join());
+      var old = HN2.fresh(); old.at = { town: null }; old.world = { at: [20, 7], from: null, t: 30, today: 0, seed: 1 }; memN['deep16.game.2'] = JSON.stringify(old); HN2.begin(HN2.read(2), 2); var SO = WN.state(), cO = WN.hc(SO.at[0], SO.at[1]);
+      okN('a save from before the area (on THE WORLD\'s hex 20,7, Silverton\'s) loads on the area at Silverton (' + WN.M().key + ', ' + SO.at + ')', WN.M().near && SO.map === 'near' && SO.at.join() === site('silverton').hex.join());
+      // out of Silverton's gates onto the area
+      HN2.toTown('silverton', 'west'); var BT = D.top(); if (BT.baking) { BT.baking = false; BT.enter(); } WN.leaveTown('west'); var SL = WN.state();
+      okN('out of Silverton by the west gate: on the area (' + WN.M().key + ') at ' + SL.at, WN.M().near && SL.map === 'near' && !!WN.hexAt(SL.at[0], SL.at[1]) && D.top() === WN.scene);
+      // &far: THE WORLD alone
+      HN2.worldDoor('?world&fresh&noenc&far'); okN('&far keeps THE WORLD alone (' + WN.M().key + ', at ' + WN.state().at + ')', WN.M().key === 'world' && WN.state().at.join() === '20,7');
+    } catch (eN) { repN.errors.push(String(eN && eN.stack || eN).slice(0, 900)); }
+    WN.onStep = onStepN; WN.far = false; D.store.get = stGN; D.store.set = stSN; window.DS.autoPicks = false; if (D.house) { D.house.playing = false; D.house.cur = null; }
+    delete D.WORLD_NEAR; if (WN.use) WN.use('world');
+    var preN = document.createElement('pre'); preN.id = 'out'; preN.textContent = 'BENCH16 ' + JSON.stringify(repN);
+    document.body.appendChild(preN);
+    return;
+  }
   // THE WORLD to his notes of 10-22 (mode=world1022; js/world.js, js/worldfine.js, js/overworld.js, js/house.js H.worldDoor and H.marchCost -- Griz, after walking
   // deep16/?world&fine: "The 330 ft land, raised is best" / "Right now moving seems to be auto-camping" / "M - menu isn't available" / "going up to the doors strands
   // you there, remove the option for now"): the land by default, F to the tops and the choice kept; deep16/?world a NEW GAME's four on THE WORLD, M walking or not;

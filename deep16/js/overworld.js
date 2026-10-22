@@ -96,7 +96,7 @@
     });
   };
   OV.close = function (sc) {
-    var S = W.state(), h = W.hexOf(S.pos[0], S.pos[1]); if (W.hexAt(h[0], h[1])) S.at = h;
+    var S = W.state(); if (W.place(S.pos)) sc.onMap();
     sc.view = 'hex'; var c = W.hc(S.at[0], S.at[1]); sc.cam.cx = c[0]; sc.cam.cy = c[1]; W.save(); sc.say('The hexes, ' + W.timeOfDay() + '.');
   };
 
@@ -137,7 +137,7 @@
   OV.stepWalk = function (sc) {
     var ov = sc.ov, w = ov.walk, S = W.state(), p0 = OV.tileOf(S.pos), next = w.path[0], st = OV.step(p0, next);
     if (!st) { ov.walk = null; return; }
-    if (W.house()) st.share = st.mi * st.going / W.M().w;
+    if (W.house()) st.share = st.mi * st.going / W.MARCHMI; // (a tile's share of THE MARCH's 5-mile hex, on either map)
     if (w.f === 0) {
       var resume = function (p) { ov.walk = { path: p, f: 0 }; ov.free = false; };
       if (W.house() ? D.house.marchAsk(sc, st, w, resume) : sc.dayAsk(st, w.path.slice(), resume)) { ov.walk = null; return; }
@@ -145,7 +145,7 @@
     }
     w.f++; if (w.f < OV.STEPF) return;
     var hrs = W.house() ? D.house.marchHours(st) : st.h; // (the house: an exhausted party's half speed takes twice the hours)
-    w.f = 0; ov.last = S.pos.slice(); S.pos = OV.centre(next); var hx = W.hexOf(S.pos[0], S.pos[1]); if (W.hexAt(hx[0], hx[1])) { if (hx[0] !== S.at[0] || hx[1] !== S.at[1]) S.from = S.at; S.at = hx; }
+    w.f = 0; ov.last = S.pos.slice(); S.pos = OV.centre(next); if (W.place(S.pos)) sc.onMap(); // (the hex under it, on the map that covers it: the Silverton area's edge crossed)
     S.t += hrs; S.today += hrs; w.path.shift(); W.save();
     if (W.house()) { // (the forced march's saves as a tile completes a hex past the day's: a failure holds the walk on a card till OK, as the hex view's)
       var ml = D.house.marchStep(st); if (ml === null) { ov.walk = null; return; }

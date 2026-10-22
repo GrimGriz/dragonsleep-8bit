@@ -24,25 +24,41 @@
   W.KEY = 'deep16.world'; W.ROUTES_ON = false; // (the roads up into the mountains, held: W.index)
 
   // ---------------------------------------------------------------- the baked world, indexed (the hex map's axial pointy-top hexes; a step is a neighbour)
-  var M = null;
+  // THE SILVERTON AREA (10-22, RULED, Griz: "2 - 1.5 mile hexes", on his "3 - most of the world map is between silverton and the other locations - so a zoom
+  // where its somewhere between 4-10 hexes to the fork in the road and a few more down to the glowseep. Whats a good zoom that shows about what the old corridor
+  // map did?"): two maps, one plane of miles -- THE WORLD's 5-mile hexes (D.WORLD, 'world') and the Silverton area's of a mile and a half (D.WORLD_NEAR, 'near',
+  // tools/near-build.py), the corridor's span. M is the map the party is on (S.map); a step off the area's edge is a step onto THE WORLD, a step into it from
+  // THE WORLD puts the party on the area at that hex's middle, and a walk to a point beyond goes on across the edge (W.planTo). &far keeps THE WORLD alone
+  var M = null, MS = {}, SRC = {};
   function K(q, r) { return q + ',' + r; }
-  function hc(q, r) { var w = M.w; return [w * (q + r / 2), w * SQ3 / 2 * r]; }
+  function hcw(q, r, w) { return [w * (q + r / 2), w * SQ3 / 2 * r]; }
+  function hc(q, r) { return hcw(q, r, M.w); }
   function round(qf, rf) {
     var x = qf, z = rf, y = -x - z, rx = Math.round(x), ry = Math.round(y), rz = Math.round(z), dx = Math.abs(rx - x), dy = Math.abs(ry - y), dz = Math.abs(rz - z);
     if (dx > dy && dx > dz) rx = -ry - rz; else if (dy > dz) ry = -rx - rz; else rz = -rx - ry;
     return [rx + 0, rz + 0];
   }
-  function at(x, y) { var w = M.w, r = y / (w * SQ3 / 2); return round(x / w - r / 2, r); }
+  function atw(x, y, w) { var r = y / (w * SQ3 / 2); return round(x / w - r / 2, r); }
+  function at(x, y) { return atw(x, y, M.w); }
   var DIRS = [[1, 0], [1, -1], [0, -1], [-1, 0], [-1, 1], [0, 1]];
   function rgb(c) { var m = /^#?([0-9a-f]{6})$/i.exec(c || ''); if (!m) return [200, 0, 200]; var n = parseInt(m[1], 16); return [n >> 16, (n >> 8) & 255, n & 255]; }
   W.index = function () {
-    var B = D.WORLD; if (!B) return null;
-    var m = M = { w: B.hexMi, hex: {}, terr: B.terr, sites: B.sites, paths: B.paths, link: {}, road: {}, siteAt: {}, col: {}, look: B.look || null };
+    if (!D.WORLD) return null;
+    if (SRC.world !== D.WORLD) { MS.world = build(D.WORLD, 'world'); SRC.world = D.WORLD; }
+    if (D.WORLD_NEAR && SRC.near !== D.WORLD_NEAR) { MS.near = build(D.WORLD_NEAR, 'near'); SRC.near = D.WORLD_NEAR; }
+    M = MS[W.mapKey] || MS.world; W.mapKey = M.key; return M;
+  };
+  W.use = function (key) { if (MS[key]) { M = MS[key]; W.mapKey = key; } return M; }; // (the map the party walks)
+  W.map = function (key) { return MS[key || W.mapKey] || null; };
+  W.nearOn = function () { return !!MS.near && !W.far; };
+  function build(B, key) {
+    var m = { key: key, near: key === 'near', w: B.hexMi, hex: {}, terr: B.terr, sites: B.sites, paths: B.paths, link: {}, road: {}, siteAt: {}, col: {}, look: B.look || null, area: {}, exitAt: {} };
     Object.keys(B.terr).forEach(function (k) { m.col[k] = rgb(B.terr[k].color); });
     if (B.look && !(LOOK && LOOK.v === B.look.v) && typeof Image === 'function') { var im = new Image(), lk = LOOK = { v: B.look.v, img: im, ok: false }; im.onload = function () { lk.ok = true; }; im.src = 'data/world-look.png?v=' + B.look.v; } // (THE LOOK, below: the solid tops till it comes)
-    B.hexes.forEach(function (h) { m.hex[K(h[0], h[1])] = { q: h[0], r: h[1], t: h[2], h: h[3], wet: !!h[4], t2: h[5], sh2: h[6], guess: !!h[7] }; }); // (guess: not painted, corridor v3's guess)
+    B.hexes.forEach(function (h) { m.hex[K(h[0], h[1])] = { q: h[0], r: h[1], t: h[2], h: h[3], wet: !!h[4], t2: h[5], sh2: h[6], guess: !!h[7], rd: !!h[8] }; }); // (guess: not painted, corridor v3's guess; rd: a road's hex, the area's)
     B.paths.forEach(function (P) {
       if (P.kind === 'river') return;
+      if (!W.ROUTES_ON && /coldridge/i.test(P.name || '')) return; // (the held road up to The DOORS: not a way, on either map)
       for (var i = 0; i < P.hexes.length; i++) {
         var a = K(P.hexes[i][0], P.hexes[i][1]); m.road[a] = m.road[a] || P;
         if (i + 1 < P.hexes.length) { var b = K(P.hexes[i + 1][0], P.hexes[i + 1][1]); m.link[a + '|' + b] = m.link[b + '|' + a] = P; }
@@ -65,37 +81,97 @@
       var nl = Math.sqrt(gx * gx * kk * kk + gy * gy * kk * kk + 1), d = (0.503 * gx * kk + 0.503 * gy * kk + 0.704) / nl / 0.704;
       e.lit = Math.round(Math.max(0.45, Math.min(1.4, d)) * 16) / 16;
     });
+    // the area's edge (the near map): THE WORLD's 5-mile hexes it covers, and each step off it -- the outside neighbour's key to THE WORLD's hex it steps onto
+    if (m.near && B.area && MS.world) {
+      B.area.hexes.forEach(function (k) { m.area[K(k[0], k[1])] = 1; });
+      Object.keys(m.hex).forEach(function (k) {
+        var e = m.hex[k];
+        for (var d = 0; d < 6; d++) {
+          var n = [e.q + DIRS[d][0], e.r + DIRS[d][1]], nk = K(n[0], n[1]); if (m.hex[nk] || m.exitAt[nk]) continue;
+          var c = hcw(n[0], n[1], m.w), pw = atw(c[0], c[1], MS.world.w), pk = K(pw[0], pw[1]);
+          if (!m.area[pk] && walkIn(MS.world, MS.world.hex[pk])) m.exitAt[nk] = pw;
+        }
+      });
+      m.exits = Object.keys(m.exitAt).map(function (nk) { var p = nk.split(','); return { n: [+p[0], +p[1]], pw: m.exitAt[nk] }; });
+    }
     return m;
-  };
+  }
   W.hexAt = function (q, r) { return M && M.hex[K(q, r)] || null; };
+  W.inArea = function (wq, wr) { return !!(MS.near && MS.near.area[K(wq, wr)]); }; // (a 5-mile hex of THE WORLD the Silverton area covers)
+  W.worldHexOf = function (x, y) { return atw(x, y, MS.world.w); };
   // THE MOUNTAINS are not walked on the world map (his, 10-20: "the coldridge route as a roam probably, with up into and on mountain hexes not a thing on the
   // world map"): a mountain hex is drawn, never stepped on -- save a place on the range's skirt, stepped into from the low ground (the Galleries' mouth); a road
   // up into them is a door (W.ROUTES), its own roam to come
   W.MOUNTAIN = { black: 1, gray: 1, coastal: 1 };
-  W.walkable = function (e) { var T = e && M.terr[e.t]; return !!(T && +T.cost && !W.MOUNTAIN[e.t]) || !!(e && M.siteAt[K(e.q, e.r)]); }; // (water and the Rift: no one walks them -- Book III's cost 0 -- but a hex with a place in it has its shore: the inn on its lake)
-  // the hours a step from hex a to its neighbour b takes: the road's own going between two hexes of one road, else the ground's
-  W.stepHours = function (a, b) {
-    var ea = M.hex[K(a[0], a[1])], eb = M.hex[K(b[0], b[1])]; if (!W.walkable(eb)) return null;
-    if (W.MOUNTAIN[eb.t] && ea && W.MOUNTAIN[ea.t]) return null; // (a place in the mountains from the low ground only, never mountain to mountain)
-    var road = M.link[K(a[0], a[1]) + '|' + K(b[0], b[1])], going = road ? (road.going || (road.difficult ? 2 : 1)) : (+M.terr[eb.t].cost && M.terr[eb.t].diff ? 2 : 1);
-    return { h: M.w * going / W.PACE, road: road || null, going: going };
+  function walkIn(m, e) { var T = e && m.terr[e.t]; return !!(T && +T.cost && !W.MOUNTAIN[e.t]) || !!(e && (m.siteAt[K(e.q, e.r)] || (m.near && e.rd))); } // (the area's road hexes walk where the road goes)
+  W.walkable = function (e) { return walkIn(M, e); }; // (water and the Rift: no one walks them -- Book III's cost 0 -- but a hex with a place in it has its shore: the inn on its lake)
+  W.MARCHMI = 5; // (THE MARCH's hex: js/house.js H.DAYHEX of these a day; a smaller hex counts its share, st.share)
+  // the hours a step from hex a to its neighbour b takes: the road's own going between two hexes of one road, else the ground's; on the area a step off its
+  // edge (st.exit: THE WORLD's hex it steps onto, the hours to that hex's middle)
+  W.stepHours = function (a, b, mm) {
+    var m = mm || M, ea = m.hex[K(a[0], a[1])], eb = m.hex[K(b[0], b[1])];
+    if (!eb && m.near && ea && !W.far) {
+      var pw = m.exitAt[K(b[0], b[1])]; if (!pw) return null;
+      var ew0 = MS.world.hex[K(pw[0], pw[1])]; if (W.MOUNTAIN[ew0.t] && W.MOUNTAIN[ea.t]) return null; // (never mountain to mountain: a school's hex up there from the low ground only)
+      var ca = hcw(a[0], a[1], m.w), cw = hcw(pw[0], pw[1], MS.world.w), ew = ew0, go = +MS.world.terr[ew.t].cost && MS.world.terr[ew.t].diff ? 2 : 1, mi = Math.hypot(cw[0] - ca[0], cw[1] - ca[1]);
+      return { h: mi * go / W.PACE, road: null, going: go, exit: pw, mi: mi, share: mi * go / W.MARCHMI };
+    }
+    if (!walkIn(m, eb)) return null;
+    var road = m.link[K(a[0], a[1]) + '|' + K(b[0], b[1])];
+    if (W.MOUNTAIN[eb.t] && ea && W.MOUNTAIN[ea.t] && !(m.near && road)) return null; // (a place in the mountains from the low ground only, never mountain to mountain -- but the area's roads)
+    var going = road ? (road.going || (road.difficult ? 2 : 1)) : (+m.terr[eb.t].cost && m.terr[eb.t].diff ? 2 : 1);
+    return { h: m.w * going / W.PACE, road: road || null, going: going, share: m.w !== W.MARCHMI ? m.w * going / W.MARCHMI : undefined };
   };
   W.OFFROAD = 1.35; // (the way-finding's leaning to the roads -- his "mouse routing doesn't seem to prefer the roads": a hex off the road weighs a third more in the choosing, and costs only its own hours)
-  // the quickest way there (Dijkstra over the painted hexes; the world is a few thousand)
-  W.route = function (from, to) {
-    var start = K(from[0], from[1]), goal = K(to[0], to[1]); if (start === goal || !M.hex[goal] || !W.walkable(M.hex[goal])) return null;
-    var dist = {}, hrs = {}, mc = {}, prev = {}, open = [[0, from[0], from[1]]], done = {}; dist[start] = 0; hrs[start] = 0; mc[start] = 0; // (mc: THE MARCH's hexes -- js/house.js H.hexCost)
+  // the quickest way there (Dijkstra over the painted hexes, a heap since the area's thousands came; mm: the map, else the party's; never off the map's edge)
+  function push(h, it) { h.push(it); var i = h.length - 1; while (i > 0) { var p = (i - 1) >> 1; if (h[p][0] <= h[i][0]) break; var t = h[p]; h[p] = h[i]; h[i] = t; i = p; } }
+  function pop(h) { var top = h[0], last = h.pop(); if (h.length) { h[0] = last; var i = 0; for (;;) { var l = 2 * i + 1, r = l + 1, s = i; if (l < h.length && h[l][0] < h[s][0]) s = l; if (r < h.length && h[r][0] < h[s][0]) s = r; if (s === i) break; var t = h[s]; h[s] = h[i]; h[i] = t; i = s; } } return top; }
+  W.route = function (from, to, mm) {
+    var m = mm || M, start = K(from[0], from[1]), goal = K(to[0], to[1]); if (start === goal || !m.hex[goal] || !walkIn(m, m.hex[goal])) return null;
+    var dist = {}, hrs = {}, mc = {}, prev = {}, open = [[0, from[0], from[1]]], done = {}; dist[start] = 0; hrs[start] = 0; mc[start] = 0; // (mc: THE MARCH's hexes -- js/house.js H.hexCost, or a smaller hex's share)
     while (open.length) {
-      var bi = 0; for (var i = 1; i < open.length; i++) if (open[i][0] < open[bi][0]) bi = i;
-      var cur = open.splice(bi, 1)[0], ck = K(cur[1], cur[2]); if (done[ck]) continue; done[ck] = 1; if (ck === goal) break;
+      var cur = pop(open), ck = K(cur[1], cur[2]); if (done[ck]) continue; done[ck] = 1; if (ck === goal) break;
       for (var d = 0; d < 6; d++) {
-        var n = [cur[1] + DIRS[d][0], cur[2] + DIRS[d][1]], nk = K(n[0], n[1]), st = W.stepHours([cur[1], cur[2]], n); if (!st || done[nk]) continue;
-        var nd = cur[0] + st.h * (st.road ? 1 : W.OFFROAD); if (dist[nk] == null || nd < dist[nk]) { dist[nk] = nd; hrs[nk] = hrs[ck] + st.h; mc[nk] = mc[ck] + Math.max(1, Math.round(st.going)); prev[nk] = [cur[1], cur[2]]; open.push([nd, n[0], n[1]]); }
+        var n = [cur[1] + DIRS[d][0], cur[2] + DIRS[d][1]], nk = K(n[0], n[1]); if (done[nk] || !m.hex[nk]) continue;
+        var st = W.stepHours([cur[1], cur[2]], n, m); if (!st) continue;
+        var nd = cur[0] + st.h * (st.road ? 1 : W.OFFROAD); if (dist[nk] == null || nd < dist[nk]) { dist[nk] = nd; hrs[nk] = hrs[ck] + st.h; mc[nk] = mc[ck] + (st.share != null ? st.share : Math.max(1, Math.round(st.going))); prev[nk] = [cur[1], cur[2]]; push(open, [nd, n[0], n[1]]); }
       }
     }
     if (dist[goal] == null) return null;
     var path = [], k = goal, p = to; while (k !== start) { path.unshift(p); p = prev[k]; k = K(p[0], p[1]); }
     return { hexes: path, hours: hrs[goal], march: mc[goal] };
+  };
+  // the way to a point in miles (a click's), from the party's hex: on its own map, or on the area to its edge nearest the point and a step onto THE WORLD,
+  // the rest of the way THE WORLD's -- the hours and the march counted through; from THE WORLD into the area the walk is planned again at its edge
+  W.planTo = function (pt) {
+    var g = at(pt[0], pt[1]), r;
+    if (M.hex[K(g[0], g[1])]) { r = W.route(S.at, g); if (r) r.goal = pt.slice(); return r; }
+    if (!M.near || W.far) return null;
+    var tw = atw(pt[0], pt[1], MS.world.w); if (!MS.world.hex[K(tw[0], tw[1])] || !walkIn(MS.world, MS.world.hex[K(tw[0], tw[1])])) return null;
+    var cands = M.exits.slice().sort(function (a, b) { var A = hcw(a.pw[0], a.pw[1], MS.world.w), B = hcw(b.pw[0], b.pw[1], MS.world.w); return Math.hypot(A[0] - pt[0], A[1] - pt[1]) - Math.hypot(B[0] - pt[0], B[1] - pt[1]); });
+    for (var i = 0; i < cands.length && i < 24; i++) {
+      var ex = cands[i], best = null;
+      for (var d = 0; d < 6; d++) { // (the area's hex beside the step off)
+        var b = [ex.n[0] + DIRS[d][0], ex.n[1] + DIRS[d][1]]; if (!M.hex[K(b[0], b[1])]) continue;
+        var st = W.stepHours(b, ex.n); if (!st || !st.exit) continue;
+        var rb = b[0] === S.at[0] && b[1] === S.at[1] ? { hexes: [], hours: 0, march: 0 } : W.route(S.at, b); if (!rb) continue;
+        if (!best || rb.hours + st.h < best.hours) best = { hexes: rb.hexes.concat([ex.n]), hours: rb.hours + st.h, march: rb.march + st.share, pw: ex.pw };
+      }
+      if (!best) continue;
+      var rw = best.pw[0] === tw[0] && best.pw[1] === tw[1] ? { hexes: [], hours: 0, march: 0 } : W.route(best.pw, tw, MS.world); if (!rw) continue;
+      return { hexes: best.hexes, hours: best.hours + rw.hours, march: best.march + rw.march, goal: hcw(tw[0], tw[1], MS.world.w), beyond: rw.hexes.length + 1 };
+    }
+    return null;
+  };
+  // the party onto the map a point lies on (the area where it covers THE WORLD's hex, else THE WORLD) at that point's hex, or the nearest it can stand on
+  W.place = function (pt) { // (true if the map changed: the scene's onMap then)
+    var tw = atw(pt[0], pt[1], MS.world.w), key = W.nearOn() && MS.near.area[K(tw[0], tw[1])] ? 'near' : 'world', was = W.mapKey, from = S.at;
+    W.use(key); S.map = key === 'near' ? 'near' : null;
+    var h = at(pt[0], pt[1]), seen = {}, q = [h]; seen[K(h[0], h[1])] = 1;
+    while (q.length) { var p = q.shift(), e = M.hex[K(p[0], p[1])]; if (e && walkIn(M, e)) { h = p; break; } for (var d = 0; d < 6 && q.length < 400; d++) { var n = [p[0] + DIRS[d][0], p[1] + DIRS[d][1]], nk = K(n[0], n[1]); if (!seen[nk] && M.hex[nk]) { seen[nk] = 1; q.push(n); } } }
+    if (was !== key) S.from = null; else if (from && (from[0] !== h[0] || from[1] !== h[1])) S.from = from;
+    S.at = h; W.save();
+    return was !== key;
   };
 
   // ---------------------------------------------------------------- the clock: hours from midnight before the first morning; the walk spends them, and the
@@ -105,11 +181,13 @@
   W.startHex = function () { var sv = M.sites.filter(function (s) { return s.id === 'silverton'; })[0]; return sv ? sv.hex.slice() : [M.hex[Object.keys(M.hex)[0]].q, M.hex[Object.keys(M.hex)[0]].r]; };
   W.house = function () { return !!(D.house && D.house.playing && D.house.cur); }; // (THE SECOND GAME's house, js/house.js: the clock and the hex are its save's)
   W.load = function (q) {
-    S = null;
+    S = null; W.far = /[?&]far\b/.test(q || '');
     if (W.house()) S = D.house.cur.world;
     else if (!/[?&]fresh\b/.test(q || '')) try { S = JSON.parse(localStorage.getItem(W.KEY) || 'null'); } catch (e) { S = null; }
-    if (!S || !S.at || !M.hex[K(S.at[0], S.at[1])]) S = fresh();
-    var aq = /[?&]at=(-?\d+),(-?\d+)/.exec(q || ''); if (aq && M.hex[K(+aq[1], +aq[2])]) { S.at = [+aq[1], +aq[2]]; S.from = null; }
+    W.use(S && S.map === 'near' && W.nearOn() ? 'near' : 'world'); if (S && S.map && M.key !== 'near') S.map = null; // (the map the save says, if it is here)
+    if (!S || !S.at || !M.hex[K(S.at[0], S.at[1])]) { W.use('world'); S = fresh(); }
+    var aq = /[?&]at=(-?\d+),(-?\d+)/.exec(q || ''); if (aq && MS.world.hex[K(+aq[1], +aq[2])]) { W.use('world'); S.map = null; S.at = [+aq[1], +aq[2]]; S.from = null; } // (&at=: THE WORLD's hex)
+    if (M.key === 'world' && W.inArea(S.at[0], S.at[1]) && W.nearOn()) { var sa = M.siteAt[K(S.at[0], S.at[1])]; W.place(S.pos && W.worldHexOf(S.pos[0], S.pos[1]).join() === S.at.join() ? S.pos : sa && sa.length ? [sa[0].x, sa[0].y] : hc(S.at[0], S.at[1])); } // (on the area where it covers -- a new game at Silverton, a save from before it -- at the place in that hex, else its middle)
     if (W.house()) D.house.cur.world = S;
     W.unstuck = W.unstick();
     return S;
@@ -117,7 +195,7 @@
   // a party with no step out (his "seems i've left the party in an impossible position in the pane": walked up into the mountains before they were closed,
   // 10-20) is put on the nearest open hex it could walk on from -- unless it stands at a road's door (The DOORS: the Coldridge Route down)
   W.unstick = function () {
-    var free = function (p) { var e = M.hex[K(p[0], p[1])]; if (!e || !W.walkable(e) || W.MOUNTAIN[e.t]) return false; for (var d = 0; d < 6; d++) if (W.stepHours(p, [p[0] + DIRS[d][0], p[1] + DIRS[d][1]])) return true; return false; };
+    var free = function (p) { var e = M.hex[K(p[0], p[1])]; if (!e || !W.walkable(e) || (W.MOUNTAIN[e.t] && !(M.near && (e.rd || M.siteAt[K(p[0], p[1])])))) return false; /* (on the area a road's or a place's hex in the mountains stands: Silverton against its mountain) */ for (var d = 0; d < 6; d++) if (W.stepHours(p, [p[0] + DIRS[d][0], p[1] + DIRS[d][1]])) return true; return false; };
     var atDoor = M.routes.some(function (r) { return r.ends.some(function (s) { return s.hex[0] === S.at[0] && s.hex[1] === S.at[1]; }); });
     if (atDoor || free(S.at)) return null;
     var seen = {}, q = [S.at], k0 = K(S.at[0], S.at[1]); seen[k0] = 1;
@@ -140,17 +218,25 @@
     W.load(this.q); W.scene = this; W.active = true; this.dev = /[?&]dev\b/.test(this.q);
     this.view = 'hex'; if (/[?&]tiles\b/.test(this.q) && W.OV) W.OV.open(this); // (the top-down view, js/overworld.js: V switches)
     this.fineDoor = !!W.FINE; if (this.fineDoor) W.FINE.start(this.q); // (THE LAND, RAISED by default since 10-22: js/worldfine.js F.start, F switches to the hex tops)
-    var c = hc(S.at[0], S.at[1]); this.cam = { cx: c[0], cy: c[1] };
+    var c = hc(S.at[0], S.at[1]); this.cam = { cx: c[0], cy: c[1] }; this.zi = M.near ? W.NEARZ : 2; // (the area's hexes as big on the screen as THE WORLD's at its opening zoom)
     try { D.music('corridor'); } catch (e) { }
     this.say(W.unstuck ? 'The party found its way down out of the ' + W.unstuck + ', ' + W.timeOfDay() + '.' : 'The road, ' + W.timeOfDay() + '. Click a hex to travel there.');
   };
   World.prototype.exit = function () { W.active = false; };
   World.prototype.say = function (s) { this.msg = { s: s, t: 0 }; };
   World.prototype.card = function (lines, then, keys) { this.cards.push({ lines: lines, then: then || null, keys: keys || null }); };
-  World.prototype.zooms = function () { return this.fineDoor && W.FINE.on ? W.FINE.ZOOMS : W.ZOOMS; }; // (THE FINE LAND's one zoom closer, js/worldfine.js; else THE WORLD's five)
+  W.NEARZOOMS = [6, 8.5, 12, 17, 20, 28]; W.NEARZ = 4; // (the area's px a mile: its 1.5-mile hexes 9 to 42 px across, 30 at the opening -- as THE WORLD's 5-mile hexes at its own)
+  World.prototype.zooms = function () { return M.near ? W.NEARZOOMS : this.fineDoor && W.FINE.on ? W.FINE.ZOOMS : W.ZOOMS; }; // (THE FINE LAND's one zoom closer, js/worldfine.js; else THE WORLD's five; the area's its own)
+  // the party onto another map (the area's edge crossed, a town left, the top-down view shut): the land kept at the scale it was, the way planned again
+  World.prototype.onMap = function () {
+    var ZS = this.zooms(), z0 = this.zpx || ZS[this.zi], bi = 0;
+    for (var i = 1; i < ZS.length; i++) if (Math.abs(Math.log(ZS[i] / z0)) < Math.abs(Math.log(ZS[bi] / z0))) bi = i;
+    this.zi = bi; this.plan = null; this.hov = null;
+    this.say(M.near ? 'The Silverton area, ' + W.timeOfDay() + ': its hexes a mile and a half.' : 'Out on THE WORLD, ' + W.timeOfDay() + ': its hexes five miles.');
+  };
   World.prototype.camObj = function () { var z = this.zooms()[this.zi]; return { cx: this.cam.cx, cy: this.cam.cy, z: z, W: D.W, H: D.H, E: 6 * Math.min(1, Math.pow(8 / z, 0.35)) }; };
   function proj(cam, x, y, h) { return [(x - cam.cx) * cam.z + cam.W / 2, (y - cam.cy) * cam.z * TILT + cam.H / 2 - h / 5280 * cam.z * cam.E]; }
-  function hexTopH(q, r) { var e = M.hex[K(q, r)]; return e ? e.h : 0; }
+  function hexTopH(q, r) { var e = M.hex[K(q, r)]; if (e) return e.h; if (M.near) { var c = hc(q, r), pw = atw(c[0], c[1], MS.world.w), ew = MS.world.hex[K(pw[0], pw[1])]; if (ew) return ew.h; } return 0; } // (past the area's edge: THE WORLD's hex there)
   World.prototype.pick = function (mx, my) {
     if (this.fineDoor && W.FINE.live()) { var fp = W.FINE.pick(mx, my); if (fp) return fp; } // (THE FINE LAND: the hex under the pixel)
     var cam = this.camObj(), x = (mx - cam.W / 2) / cam.z + cam.cx, y = cam.cy, h = 0;
@@ -178,7 +264,7 @@
     if (m.wheel) this.zi = Math.max(0, Math.min(ZS.length - 1, this.zi - m.wheel));
     if (I.pressed('zoomin')) this.zi = Math.min(ZS.length - 1, this.zi + 1);
     if (I.pressed('zoomout')) this.zi = Math.max(0, this.zi - 1);
-    var z = ZS[this.zi];
+    var z = this.zpx = ZS[this.zi]; // (zpx: the scale kept across a map's change, onMap)
     if (m.panX || m.panY) { this.cam.cx -= (m.panX || 0) / z; this.cam.cy -= (m.panY || 0) / (z * TILT); m.panX = m.panY = 0; }
     // the mouse at the screen's edge scrolls the map (his "i'm getting no 'mouse on the edge scroll map'"), as the grid's fights do; not for a finger
     if (m.inside && m.inWin !== false && !D.touch) { var EG = 8, sp = 5 / z; if (m.x < EG) this.cam.cx -= sp; else if (m.x > D.W - EG) this.cam.cx += sp; if (m.y < EG) this.cam.cy -= sp / TILT; else if (m.y > D.H - EG) this.cam.cy += sp / TILT; }
@@ -199,8 +285,8 @@
     if (m.click && this.hudBtns) for (var hb = 0; hb < this.hudBtns.length; hb++) { var hbt = this.hudBtns[hb]; if (m.x >= hbt.x && m.x < hbt.x + hbt.w && m.y >= hbt.y && m.y < hbt.y + hbt.h) { D.sfx('confirm'); hbt.go(); return; } } // (the keys as buttons: his 10-21 "playable by mouse only")
     // where the mouse points: the hex, and the way there
     var hv = m.inside ? this.pick(m.x, m.y) : null, hk = hv ? K(hv[0], hv[1]) : null;
-    if (hk !== (this.hov ? K(this.hov[0], this.hov[1]) : null)) { this.hov = hv; this.plan = hv ? W.route(S.at, hv) : null; }
-    if (m.click && m.inside && this.plan) { this.walk = { path: this.plan.hexes.slice(), f: 0 }; this.plan = null; D.sfx('confirm'); return; }
+    if (hk !== (this.hov ? K(this.hov[0], this.hov[1]) : null)) { this.hov = hv; this.plan = hv ? W.planTo(hc(hv[0], hv[1])) : null; } // (past the area's edge: to it, and on across THE WORLD)
+    if (m.click && m.inside && this.plan) { this.walk = { path: this.plan.hexes.slice(), f: 0, goal: this.plan.goal }; this.plan = null; D.sfx('confirm'); return; }
     if (I.pressed('a')) this.here();
     if (I.pressed('end') && W.house()) { this.campCard(); return; }
     if (I.pressed('end')) { var ups = W.camp(); D.sfx('confirm'); this.say('The party makes camp, and walks on at first light: ' + W.timeOfDay() + '.' + (ups && ups.length ? ' ' + ups.join(' ') : '')); }
@@ -209,13 +295,15 @@
   World.prototype.stepWalk = function () {
     var w = this.walk, next = w.path[0], st = W.stepHours(S.at, next);
     if (!st) { this.walk = null; return; }
-    if (w.f === 0 && W.house() && D.house.marchAsk(this, st, w)) return; // (the house: the day's march by the hex, the forced march past it -- js/house.js THE MARCH)
-    if (w.f === 0 && !W.house() && this.dayAsk(st, w.path.slice())) { this.walk = null; return; } // (the bare door: the day's walk asks, as the house's march does)
+    var me = this, resume = function (p) { me.walk = { path: p, f: 0, goal: w.goal }; }; // (taken up again with its goal: across the area's edge)
+    if (w.f === 0 && W.house() && D.house.marchAsk(this, st, w, resume)) return; // (the house: the day's march by the hex, the forced march past it -- js/house.js THE MARCH)
+    if (w.f === 0 && !W.house() && this.dayAsk(st, w.path.slice(), resume)) { this.walk = null; return; } // (the bare door: the day's walk asks, as the house's march does)
     w.f++;
     var a = hc(S.at[0], S.at[1]), b = hc(next[0], next[1]), u = w.f / STEPF; this.cam.cx += ((a[0] + (b[0] - a[0]) * u) - this.cam.cx) * 0.2; this.cam.cy += ((a[1] + (b[1] - a[1]) * u) - this.cam.cy) * 0.2;
     if (w.f < STEPF) return;
     var hrs = W.house() ? D.house.marchHours(st) : st.h; // (the house: an exhausted party's half speed takes twice the hours)
     w.f = 0; S.from = S.at; S.at = next; S.pos = hc(next[0], next[1]); S.t += hrs; S.today += hrs; w.path.shift();
+    if (st.exit) { var fw = atw(hc(S.from[0], S.from[1])[0], hc(S.from[0], S.from[1])[1], MS.world.w); W.use('world'); S.map = null; S.at = st.exit.slice(); S.from = fw; S.pos = hc(S.at[0], S.at[1]); } // (off the area's edge: THE WORLD's hex, from the 5-mile hex the area's covered)
     if (W.house()) { // (the forced march's saves, each hex past the day's: a failure stops the walk on a card till OK -- his 10-21 "probably need a quick popup every time someone moves a hex and loses the save"; the bottom line was written over by the next hex)
       var ml = D.house.marchStep(st), self = this; if (ml === null) { this.walk = null; return; }
       if (ml.length) { W.save(); D.sfx('popup'); this.card(D.house.marchCard(ml), null, [['a', function () { self.arrive(st); }, 'OK']]); return; }
@@ -225,13 +313,16 @@
   // the step's end: kept, the road's chance of a fight, a door, the places here, and the walk's end
   World.prototype.arrive = function (st) {
     var w = this.walk;
+    st.mi = st.mi || M.w; // (the step's own miles, before a change of map)
+    // the area's edge: a step off it came onto THE WORLD in stepWalk; a step from THE WORLD into a 5-mile hex the area covers puts the party on the area at its middle
+    var sw = !!st.exit || (M.key === 'world' && W.nearOn() && W.inArea(S.at[0], S.at[1]) && (W.place(hc(S.at[0], S.at[1])), true));
     W.save();
-    st.mi = M.w;
+    if (sw) { this.onMap(); if (w) { var pl = w.goal ? W.planTo(w.goal) : null; w = this.walk = pl && pl.hexes.length ? { path: pl.hexes.slice(), f: 0, goal: w.goal } : null; } } // (the rest of the way on this map)
     if (W.onStep && W.onStep(this, st)) { this.walk = null; return; } // (pass B: a fight on the way stops the walk)
     var door = this.doorHere(), sites = M.siteAt[K(S.at[0], S.at[1])];
-    if (door) { this.walk = null; this.offerDoor(door); return; }
+    if (door && (!w || !w.path.length)) { this.walk = null; this.offerDoor(door); return; } // (a door where the walk ends; walked past, it is named -- the area's places sit on its roads: the Glowseep on the mile)
     if (sites && sites.length) this.say(sites.map(function (s) { return s.name; }).join(', ') + '.');
-    if (!w || !w.path.length) { this.walk = null; var rt = this.routeHere(); if (rt) this.offerRoute(rt); else this.lookHere(true); }
+    if (!w || !w.path.length) { this.walk = null; var rt = this.routeHere(); if (rt) this.offerRoute(rt); else if (!sw) this.lookHere(true); }
   };
   // a road up into the mountains, at either end: its days pass and the party is at the other end (its roam to come)
   World.prototype.routeHere = function () {
@@ -292,7 +383,7 @@
     while (D.scenes.length && D.top() !== W.scene) D.pop();
     if (!W.scene) return;
     var site = W.inDoor && W.inDoor.site, gv = site && W.DOORS[site.id] && W.DOORS[site.id].gates[side];
-    if (site) { S.pos = [site.x + (gv ? gv[0] : 0) * 0.75, site.y + (gv ? gv[1] : 0) * 0.75]; S.at = at(S.pos[0], S.pos[1]); } // (out by the side's gate: a step beyond it)
+    if (site) { S.pos = [site.x + (gv ? gv[0] : 0) * 0.75, site.y + (gv ? gv[1] : 0) * 0.75]; if (W.place(S.pos)) W.scene.onMap(); var cl = hc(S.at[0], S.at[1]); W.scene.cam.cx = cl[0]; W.scene.cam.cy = cl[1]; } // (out by the side's gate: a step beyond it, on the map that covers it)
     W.inDoor = null; if (W.house()) D.house.cur.at = { town: null }; W.save(); try { D.music('corridor'); } catch (e) { }
     W.scene.say('Out on the road by the ' + side + ', ' + W.timeOfDay() + '.');
   };
@@ -488,14 +579,15 @@
   World.prototype.hud = function (ctx) {
     var e = M.hex[K(S.at[0], S.at[1])], T = M.terr[e.t], tod = W.todAt(this.hourShown());
     D.win8(ctx, 4, 4, 196, 30);
-    D.text(ctx, '{y}' + tod.charAt(0).toUpperCase() + tod.slice(1) + '{/}' + (this.dev ? '  {g}(day ' + W.day() + ', ' + W.hour().toFixed(1) + 'h, ' + S.today.toFixed(1) + 'h walked){/}' : ''), 10, 9, D.WIN8.text);
+    D.text(ctx, '{y}' + tod.charAt(0).toUpperCase() + tod.slice(1) + '{/}' + (M.near ? '  {g}the Silverton area{/}' : '') + (this.dev ? '  {g}(day ' + W.day() + ', ' + W.hour().toFixed(1) + 'h, ' + S.today.toFixed(1) + 'h walked){/}' : ''), 10, 9, D.WIN8.text);
     D.text(ctx, T.name + (M.road[K(S.at[0], S.at[1])] ? ', on ' + M.road[K(S.at[0], S.at[1])].name.replace(/ \(.*\)$/, '') : '') + ' · ' + Math.round(e.h).toLocaleString() + ' ft', 10, 20, '#c8c4b8');
     if (this.hov && !this.walk) {
-      var he = M.hex[K(this.hov[0], this.hov[1])], lines = [];
+      var he = M.hex[K(this.hov[0], this.hov[1])], lines = [], hcv = hc(this.hov[0], this.hov[1]), pwv = M.near && !he ? atw(hcv[0], hcv[1], MS.world.w) : null, past = pwv && MS.world.hex[K(pwv[0], pwv[1])];
+      if (past) he = past; // (past the area's edge: THE WORLD's hex there)
       if (he) {
-        var ss = (M.siteAt[K(this.hov[0], this.hov[1])] || []).map(function (s) { return s.name; });
-        lines.push((ss.length ? ss.join(', ') + ' · ' : '') + M.terr[he.t].name + (he.guess ? ' {g}(v3’s guess){/}' : '') + ' · ' + Math.round(he.h).toLocaleString() + ' ft');
-        if (this.plan) { var hrs = this.plan.hours, d = W.house() ? Math.floor(((S.todayHex || 0) + this.plan.march) / D.house.DAYHEX - 1e-6) : Math.floor((S.today + hrs) / W.DAYHOURS - 1e-6); /* (the camps the walk will ask for: the house's by the day's hexes) */ lines.push(this.plan.hexes.length + ' hex' + (this.plan.hexes.length > 1 ? 'es' : '') + ' · ' + (hrs < 10 ? hrs.toFixed(1) + ' hours' : (hrs / W.DAYHOURS).toFixed(1) + ' days of walking') + (d > 0 ? ' · ' + d + ' camp' + (d > 1 ? 's' : '') : '')); }
+        var ss = ((past ? MS.world : M).siteAt[K(he.q, he.r)] || []).map(function (s) { return s.name; });
+        lines.push((ss.length ? ss.join(', ') + ' · ' : '') + M.terr[he.t].name + (he.guess ? ' {g}(v3’s guess){/}' : '') + ' · ' + Math.round(he.h).toLocaleString() + ' ft' + (past ? ' {g}(THE WORLD){/}' : ''));
+        if (this.plan) { var hrs = this.plan.hours, d = W.house() ? Math.floor(((S.todayHex || 0) + this.plan.march) / D.house.DAYHEX - 1e-6) : Math.floor((S.today + hrs) / W.DAYHOURS - 1e-6); /* (the camps the walk will ask for: the house's by the day's hexes) */ lines.push(this.plan.hexes.length + ' hex' + (this.plan.hexes.length > 1 ? 'es' : '') + (this.plan.beyond ? ' and ' + this.plan.beyond + ' of THE WORLD' : '') + ' · ' + (hrs < 10 ? hrs.toFixed(1) + ' hours' : (hrs / W.DAYHOURS).toFixed(1) + ' days of walking') + (d > 0 ? ' · ' + d + ' camp' + (d > 1 ? 's' : '') : '')); }
         else if (W.MOUNTAIN[he.t]) lines.push('{g}the mountains: their roads are roams (to come){/}');
         else if (!W.walkable(he)) lines.push('{r}no one walks it{/}');
         else if (K(this.hov[0], this.hov[1]) !== K(S.at[0], S.at[1])) lines.push('{r}no way there{/}');
@@ -658,6 +750,6 @@
 
   W.make = function (q) { return new World(q); };
   W.World = World;
-  W.M = function () { return M; }; W.hexOf = function (x, y) { return at(x, y); }; W.hc = function (q, r) { return hc(q, r); }; W.K = K; W.SKY = SKY; W.icon = icon; W.RANK = RANK; W.BIG = BIG; // (for the top-down view, js/overworld.js)
+  W.M = function () { return M; }; W.Mworld = function () { return MS.world || M; }; W.hexOf = function (x, y) { return at(x, y); }; W.hc = function (q, r) { return hc(q, r); }; W.K = K; W.SKY = SKY; W.icon = icon; W.RANK = RANK; W.BIG = BIG; // (for the top-down view, js/overworld.js)
   W.proj = proj; W.tone = tone; W.HCO = HCO; W.TILT = TILT; W.lookImg = function () { return LOOK; }; // (for THE FINE LAND, js/worldfine.js)
 })();

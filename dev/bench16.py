@@ -37,7 +37,7 @@ def build_page():
         src, body = m.group(1), m.group(2)
         if src:
             src = src.split('?')[0]
-            if src.endswith('js/main.js'):
+            if src.endswith('js/main.js') or src.endswith('data/world-near.js'): # (the Silverton area's map, 10-22: the benches walk THE WORLD alone, as before it; mode=near1022 loads it)
                 continue
             path = src[3:] if src.startswith('../') else 'deep16/' + src
             tags.append('<script src="../%s"></script>' % path)

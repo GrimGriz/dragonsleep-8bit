@@ -300,7 +300,7 @@
   H.where = function (rec) {
     var W = D.world, M = W.M(), at = rec.at || {}, s = at.town && H.siteOf(at.town);
     if (s) return s.name;
-    var w = rec.world, e = M && w && w.at ? M.hex[W.K(w.at[0], w.at[1])] : null;
+    var w = rec.world, Mw = W.map((w && w.map) || 'world') || M, e = Mw && w && w.at ? Mw.hex[W.K(w.at[0], w.at[1])] : null; // (the hex on the map the save stands on: THE WORLD's or the Silverton area's)
     return e ? M.terr[e.t].name : 'the road';
   };
   H.line = function (n, rec) {
