@@ -896,6 +896,7 @@
     while (!done) yield 1; // (the floor waits under it: only the top scene runs -- js/core.js)
     if (b.rec && D.rec && D.rec.finish) { try { D.rec.finish(b, done); } catch (eR) { /* (the record must never stop the way back) */ } } // (a fight with an onDone closes its own record: js/record.js)
     R0.pulled = done; // (how it ended, for the floor's own answer after: js/mines.js, the roost)
+    if (fd && fd.ends && fd.ends(done)) return; // (an ending that ends the run -- the roost come down, js/mines.js M.roostFail: nothing of it comes back to the floor)
     // back on the floor: the four's hit points as the fight left them; the trigger spent if the fight was won
     D.battle = B; G.setup(B.map, B.units); D.iso.map = B.map;
     if (done !== 'won' && done !== 'lost') R.tune(); // (the floor's own tune again: the landlord fed, a getaway -- the boss tune ran on past the bucket, his 10-22; a win's after its fanfare, below)

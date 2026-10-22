@@ -2194,11 +2194,28 @@
       var gl5 = testF2('?roam=glowseep&hour=22'); gl5.roam.token.x = 20; gl5.roam.token.y = 14; D.grid.setup(gl5.map, gl5.units);
       var fgl5 = fieldF2(gl5, 0, false, function (b) { return !!b.fight.roost; });
       okF2('the Glowseep\'s field is not (' + fgl5.hooked + ')', !!fgl5.b && fgl5.hooked === false);
-      var B5b = testF2('?roam=galleries_g3&flags=cullHired&at=6,10'), R5b = B5b.roam;
-      var f5b = fieldF2(B5b, 0, true, function (b) { b.roostBroken = 'light'; return true; }), said5 = (B5b.cards || []).map(function (c) { return c.lines.join(' '); }).join(' / '), g5 = [].concat(D.counter.L('g.roostBroken'))[0];
-      okF2('bright light cast there (B.roostBroken, as magic.js M.brighten marks it): the fight ends ' + f5b.res + ', the party back on the floor (' + R5b.token.x + ',' + R5b.token.y + '), the first game\'s roostBroken ' + R5b.flags.roostBroken + ' and its words said once ("' + String(g5).slice(0, 50) + '...")',
-        f5b.res === 'roost' && D.top() === B5b && R5b.token.x === 6 && R5b.token.y === 10 && R5b.flags.roostBroken === 1 && R5b.flags.roostTold === 1 && said5.indexOf(String(g5).slice(0, 40)) >= 0);
-      var sb5 = null; try { var st5 = D.counter.state(B5b), fake5 = { st: st5, say: function (l) { sb5 = [].concat(l).join(' '); return 1; }, ask: function () { return 0; } }, g5s = MF.SCENES.sabeth(fake5, B5b), s5; do { s5 = g5s.next(); } while (!s5.done); } catch (eS5) { sb5 = 'threw: ' + eS5; }
+      // (bright light cast there -- B.roostBroken, as magic.js M.brighten marks it -- ends the RUN, as the first game's RoostFail: the lanes desk's call 10-22, standing for his
+      // overrule, on the seat's lean -- "yes, match the first game"): NOT THIS KIND OF NAME, the title or CONTINUE, nothing saved. In the house, by its own door's floor
+      var hs5 = D.house.fresh(), sv5 = Object.keys(memF2).filter(function (k) { return /^deep16\.game\./.test(k); }).join(','), H5 = D.house; H5.cur = hs5; H5.playing = true;
+      var B5b = RF.make('?roam=galleries_g3&flags=cullHired&at=6,10&watch', { save: H5.living(hs5), opts: {}, house: true }); D.scenes.length = 0; D.push(B5b); topF2();
+      var f5b = fieldF2(B5b, 0, true, function (b) { b.roostBroken = 'light'; return true; }), rf5 = D.top(), words5 = [].concat(D.counter.L('fail.roost')).join(' ');
+      okF2('bright light under the roost ends the fight ' + f5b.res + ' and the run, as the first game\'s RoostFail: ' + (rf5 && rf5.kind) + ' alone on the screen (' + D.scenes.length + '), the save let go (playing ' + H5.playing + ', cur ' + !!H5.cur + '), nothing saved (' + (Object.keys(memF2).filter(function (k) { return /^deep16\.game\./.test(k); }).join(',') || 'no slot') + ')',
+        f5b.res === 'roost' && !!rf5 && !!MF.RoostFail && rf5 instanceof MF.RoostFail && D.scenes.length === 1 && !H5.playing && !H5.cur && Object.keys(memF2).filter(function (k) { return /^deep16\.game\./.test(k); }).join(',') === sv5 && !B5b.roam.flags.roostBroken);
+      var cv5 = document.createElement('canvas'); cv5.width = D.W; cv5.height = D.H; var c5 = cv5.getContext('2d'), dr5 = null, sd5 = [], tx0 = D.text; D.text = function (ctx, s) { sd5.push(String(s)); return tx0.apply(this, arguments); };
+      try { for (var k5 = 0; k5 < 160; k5++) rf5.update(); rf5.draw(c5); } catch (eD5) { dr5 = String(eD5).slice(0, 120); } D.text = tx0;
+      var all5 = sd5.join(' ');
+      okF2('its card: NOT THIS KIND OF NAME, fail.roost\'s words ("' + words5.slice(0, 50) + '..."), then ' + (MF.RoostFail ? MF.RoostFail.ROWS.map(function (r) { return r[0]; }).join(' / ') : 'none') + ' (' + (dr5 || 'drawn') + ')',
+        !dr5 && /NOT THIS KIND/.test(all5) && /OF NAME/.test(all5) && all5.indexOf(words5.split(' ').slice(0, 5).join(' ')) >= 0 && /CONTINUE FROM A SAVE/.test(all5) && /TITLE/.test(all5));
+      try { rf5.go('title'); } catch (eG5) { } var tt5 = D.top();
+      okF2('TITLE: the second game\'s title (' + (tt5 && tt5.kind) + ')', !!tt5 && tt5.kind === 'housetitle' && D.scenes.length === 1);
+      // (the first game's other path: the fight WON with fire used under the roost -- its roostBroken, js/battle.js; no way to it on the grid is known, so the party's fire
+      // damage there is dealt by hand): the floor's answer, Sabeth's fired line after it
+      var B5f = testF2('?roam=galleries_g3&flags=cullHired&at=6,10'), R5f = B5f.roam;
+      var f5f = fieldF2(B5f, 0, true, function (b) { var us = b.units.filter(function (u) { return u.side === 'party'; })[0], fo = b.units.filter(function (u) { return u.side === 'foe'; })[0]; var a0 = b.active; b.active = us; b.hurt(fo, 1, 'fire'); b.active = a0; return !!b.firedRoost; });
+      var said5 = (B5f.cards || []).map(function (c) { return c.lines.join(' '); }).join(' / '), g5 = [].concat(D.counter.L('g.roostBroken'))[0];
+      okF2('won with fire dealt under the roost (' + f5f.hooked + ', the fight ' + f5f.res + '): the run goes on, back on the floor (' + R5f.token.x + ',' + R5f.token.y + '), the first game\'s roostBroken ' + R5f.flags.roostBroken + ' and its words said once ("' + String(g5).slice(0, 40) + '...")',
+        f5f.hooked === true && f5f.res === 'won' && D.top() === B5f && R5f.token.x === 6 && R5f.token.y === 10 && R5f.flags.roostBroken === 1 && R5f.flags.roostTold === 1 && said5.indexOf(String(g5).slice(0, 40)) >= 0);
+      var sb5 = null; try { var st5 = D.counter.state(B5f), fake5 = { st: st5, say: function (l) { sb5 = [].concat(l).join(' '); return 1; }, ask: function () { return 0; } }, g5s = MF.SCENES.sabeth(fake5, B5f), s5; do { s5 = g5s.next(); } while (!s5.done); } catch (eS5) { sb5 = 'threw: ' + eS5; }
       okF2('and Sabeth after it: "' + String(sb5).slice(0, 60) + '..." (the first game\'s fired line)', sb5 === [].concat(D.counter.L('g1.sabethFired')).join(' '));
       // 6. THE PLAY RECORD (the lanes desk's follow-up; the house lane's 10-19 note 6, "the floor's fights keep no play record"): a field fight in the house keeps its record, closed
       // with how it ended, as the road's fights keep theirs; the test door's keep none

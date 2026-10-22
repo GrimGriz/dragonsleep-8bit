@@ -428,13 +428,53 @@
       foes: simple ? D.simple.seat(list) : D.world.seat(list), wave: null, fliers: !simple, // (fliers: the SRD's fly on the grid, not in the simple fight's lineup -- js/world.js's)
       // THE ROOST (10-22, the lanes desk: the lane's 2c open 2 -- the grid's `roost` RULED 09-28, the one law canon): under a roosted floor its field is roosted too -- fire and
       // thunder greyed, a lantern hooded, and bright light (Light, Daylight, Sacred Weapon) brings the roof down, the fight's 'roost' (js/battle.js over); said as it opens,
-      // the first game's own line (js/battle.js's 'Overhead, the roost'); the floor's answer after it, M.roostBroke
+      // the first game's own line (js/battle.js's 'Overhead, the roost'); the run's end after it, M.roostFail
       roost: !!def.roost, announce: def.roost ? [M.LINES.roost] : null };
   };
   M.LINES.roost = '{y}Overhead, the roost{/}: millions of sleeping wings. No fire. No bright light.';
-  M.fieldBack = function (done) { return done === 'won' ? ['{y}The way is clear.{/}', '{g}Back where the party stood.{/}'] : done === 'escaped' ? ['{y}Away{/}: the party gets clear of them.', '{g}Back where it stood.{/}'] : done === 'roost' ? ['{r}The roof comes down in wings{/}: the party gets out from under it, back where it stood.'] : ['{y}Back on the floor{/} (' + done + ').']; };
-  // the roost broken in a field fight: the floor's answer, the first game's (js/battle.js roostBroken, js/events.js EV.afterBattle): the flag -- Sabeth's fired line and
-  // Ottilie's cold one after it (M.SCENES) -- and its words, once
+  M.fieldBack = function (done) { return done === 'won' ? ['{y}The way is clear.{/}', '{g}Back where the party stood.{/}'] : done === 'escaped' ? ['{y}Away{/}: the party gets clear of them.', '{g}Back where it stood.{/}'] : ['{y}Back on the floor{/} (' + done + ').']; };
+  // THE ROOST COMES DOWN (10-22, the lanes desk's call, standing for his overrule -- he was away -- on the seat's lean, "yes, match the first game"): a field fight that ends
+  // 'roost' ends the run, as the first game's RoostFail does (RULED 09-24, Griz: "you wanted to make a name for yourself, but not this kind of name"): NOT THIS KIND OF NAME,
+  // fail.roost's words, then CONTINUE FROM A SAVE or the title, and nothing saved (js/house.js H.lost's way). The test door: deep16/?roostfail
+  M.roostFail = function* (B) {
+    var H = D.house; D.sfx('error'); try { D.music('gameover'); } catch (e) { }
+    if (H) { H.playing = false; H.cur = null; }
+    D.scenes.length = 0; D.push(new RoostFail()); yield 1;
+  };
+  function RoostFail() { this.kind = 'roostfail'; this.opaque = true; this.t = 0; this.i = 0; this.bats = []; for (var k = 0; k < 220; k++) this.bats.push([Math.random() * D.W, Math.random() * D.H, (Math.random() - 0.5) * 3, -0.4 - Math.random() * 1.8, Math.random() * 8]); } // (Math.random: a picture's, never the fights' seeded dice)
+  RoostFail.ROWS = [['CONTINUE FROM A SAVE', 'load'], ['TITLE', 'title']];
+  RoostFail.prototype.enter = function () { this.any = [1, 2, 3].some(function (n) { return !!(D.house && D.house.read(n)); }); if (!this.any) this.i = 1; }; // (no save to go back to: TITLE first)
+  RoostFail.prototype.go = function (v) {
+    if (v === 'load') { if (!this.any) { D.sfx('error'); return; } D.sfx('confirm'); D.push(new D.house.Slots('load')); return; }
+    D.sfx('confirm'); D.scenes.length = 0; D.push(new D.house.Title());
+  };
+  RoostFail.prototype.update = function () {
+    this.t++; this.bats.forEach(function (b) { b[0] = (b[0] + b[2] + D.W) % D.W; b[1] += b[3]; if (b[1] < -6) b[1] += D.H + 12; b[4] += 0.35; });
+    if (this.t < 150) return; // (the swarm, the words; then the choice -- the first game's beat)
+    var m = D.input.mouse, R = RoostFail.ROWS, self = this;
+    if (D.input.repeat('up') || D.input.repeat('down')) { this.i = 1 - this.i; D.sfx('cursor'); }
+    if (m.inside) R.forEach(function (r, k) { var ry = 186 + k * 16; if (m.x >= D.W / 2 - 80 && m.x < D.W / 2 + 80 && m.y >= ry - 3 && m.y < ry + 12) { if (m.moved) self.i = k; if (m.click) { self.i = k; self.go(r[1]); } } });
+    if (D.input.pressed('a')) this.go(R[this.i][1]);
+  };
+  RoostFail.prototype.draw = function (ctx) {
+    ctx.fillStyle = '#060406'; ctx.fillRect(0, 0, D.W, D.H);
+    var keep = Math.max(40, this.bats.length - this.t * 2); // (the swarm thins out as the words come up, as the first game's)
+    ctx.fillStyle = '#2c2434'; this.bats.slice(0, keep).forEach(function (b) { var up = Math.sin(b[4]) > 0 ? 2 : 0; ctx.fillRect(b[0] - 3, b[1] - up, 3, 1); ctx.fillRect(b[0] + 1, b[1] - up, 3, 1); ctx.fillRect(b[0] - 1, b[1], 2, 2); });
+    ctx.save(); ctx.globalAlpha = Math.min(1, Math.max(0, (this.t - 30) / 60));
+    ctx.save(); ctx.translate(D.W / 2, 34); ctx.scale(2, 2); D.text(ctx, 'NOT THIS KIND', 0, 0, '#e8e0f0', 'center'); D.text(ctx, 'OF NAME', 0, 11, '#e8e0f0', 'center'); ctx.restore();
+    D.wrap([].concat(L('fail.roost')).join(' '), D.W - 140).forEach(function (l, k) { D.text(ctx, l, D.W / 2, 100 + k * 11, '#c8d0e8', 'center'); });
+    ctx.restore();
+    if (this.t < 150) return;
+    var self = this; RoostFail.ROWS.forEach(function (r, k) {
+      var y = 186 + k * 16, on = k === self.i, dim = r[1] === 'load' && !self.any;
+      if (on) { ctx.fillStyle = 'rgba(38,32,106,.85)'; ctx.fillRect(D.W / 2 - 80, y - 3, 160, 14); }
+      D.text(ctx, (on ? '> ' : '') + r[0], D.W / 2, y, dim ? '#6c6c84' : on ? '#f8d878' : '#f8f8f8', 'center');
+    });
+  };
+  M.RoostFail = RoostFail;
+  // the roost broken and the fight WON with fire (the first game's other path, js/battle.js: usedFire under the roost on a win -- roostBroken): the grid greys fire and
+  // thunder and fire's items there, and no way to it is known; kept for one that turns up (a party's fire damage dealt under the roost, the field's enter: M.fieldFight).
+  // The floor's answer: the flag -- Sabeth's fired line and Ottilie's cold one after it (M.SCENES) -- and the first game's words, once
   M.roostBroke = function* (B) {
     var f = B.roam.flags; f.roostBroken = (f.roostBroken || 0) + 1;
     if (f.roostTold) return;
@@ -458,12 +498,16 @@
     var F = M.fieldDef(R.def, list, simple, set);
     R.party0.backTo = R.def.sub; // (the fight's last card: E back to the dens -- js/battle.js o.backTo)
     var watch = /[?&]watch\b/.test(R.q || ''); // (the test door's &watch: the four run by the class AI in there too, as on the floor)
-    var enter = function (b) { if (watch) b.units.forEach(function (u) { if (u.side === 'party') { u.guest = true; u.classAI = true; } }); };
+    var fb = null, enter = function (b) {
+      fb = b; if (watch) b.units.forEach(function (u) { if (u.side === 'party') { u.guest = true; u.classAI = true; } });
+      if (F.roost) { var hurt0 = b.hurt; b.hurt = function (u, amt, type) { if (type === 'fire' && this.active && this.active.side === 'party' && amt > 0) this.firedRoost = true; return hurt0.apply(this, arguments); }; } // (fire dealt by the party under the roost: M.roostBroke)
+    };
     // its play record in the house, as the road's fights keep theirs (js/record.js; the house lane's 10-19 note 6, "the floor's fights keep no play record")
     var rec = R.house() ? { fight: 'minefield', name: R.def.name + ': ' + R.def.sub, level: ((R0.members[0] || {}).src || {}).lvl, simple: simple } : null;
-    yield* R.pullIn(B, 'field', { id: 'field', field: { F: F, simple: simple, zone: zone, flag: set && set.flag, trig: set && set.trig, back: M.fieldBack, enter: enter, record: rec } }, [t.x, t.y]);
+    yield* R.pullIn(B, 'field', { id: 'field', field: { F: F, simple: simple, zone: zone, flag: set && set.flag, trig: set && set.trig, back: M.fieldBack, enter: enter, record: rec, ends: function (d) { return d === 'roost'; } } }, [t.x, t.y]);
     delete R.party0.backTo;
-    if (R0.pulled === 'roost') yield* M.roostBroke(B);
+    if (R0.pulled === 'roost') { yield* M.roostFail(B); return; }
+    if (R0.pulled === 'won' && fb && fb.firedRoost) yield* M.roostBroke(B);
   };
   var enc0 = D.roam.encounter;
   D.roam.encounter = function* (B, why, set) { if (D.roam.def && D.roam.def.mine) { yield* M.fieldFight(B, why, set); return; } yield* enc0.apply(this, arguments); };
