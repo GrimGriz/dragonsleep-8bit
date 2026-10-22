@@ -256,7 +256,7 @@
     // one with a blow of its own row it has not shown by the end of its second turn, a watcher in its reach (the spirit naga casts every turn and never bit, 10-08):
     // one swing through the engine's own attack, the dice as they fall -- a miss shows the row as well as a hit
     // (or the `attack` row a blow with no row of its own plays -- the matriarch prays every turn and swung her skull-staff once, 10-15)
-    var rowOf = function (a, k) { var r = String(a.name || k).toLowerCase().replace(/[^a-z]/g, ''); return D.spr.anim(u.sheet, r) ? r : D.spr.anim(u.sheet, 'attack') ? 'attack' : null; };
+    var rowOf = function (a, k) { var r = a.row || String(a.name || k).toLowerCase().replace(/[^a-z]/g, ''); /* (a.row: a blow that names its row, battle.js -- the gargoyle's Claws, 10-22) */ return D.spr.anim(u.sheet, r) ? r : D.spr.anim(u.sheet, 'attack') ? 'attack' : null; };
     var mk = Object.keys(u.attacks || {}).filter(function (k) { var a = u.attacks[k], r = rowOf(a, k); return !a.ranged && !a.spell && !a.needsHeld && r && !(u.showSeen || {})[r]; })[0];
     if (mk && u.showTurns >= 2 && RU.canAct(u) && !u.conds.prone && u.hp > 0 && !u.riding) {
       var ma = u.attacks[mk], mw = (yield* inReach(B, u, ma.reach || u.reach || 5))[0];

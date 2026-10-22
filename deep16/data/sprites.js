@@ -4027,6 +4027,98 @@
 }
 }
 },
+"gargoyle_p1": {
+"image": "art/gargoyle_p1.png?v=c6f71dd3c4",
+"fw": 96,
+"fh": 72,
+"ax": 48,
+"ay": 67,
+"top": 52,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 96,
+"fh": 72,
+"ax": 48,
+"ay": 67,
+"frames": 6,
+"fps": 6
+},
+"walk": {
+"y": 576,
+"fw": 96,
+"fh": 72,
+"ax": 48,
+"ay": 67,
+"frames": 8,
+"fps": 10
+},
+"attack": {
+"y": 1152,
+"fw": 96,
+"fh": 72,
+"ax": 48,
+"ay": 67,
+"frames": 6,
+"fps": 10
+},
+"hurt": {
+"y": 1728,
+"fw": 96,
+"fh": 72,
+"ax": 48,
+"ay": 67,
+"frames": 6,
+"fps": 8
+},
+"reveal": {
+"y": 2304,
+"fw": 96,
+"fh": 72,
+"ax": 48,
+"ay": 67,
+"frames": 6,
+"fps": 8
+},
+"flinch": {
+"y": 2880,
+"fw": 96,
+"fh": 72,
+"ax": 48,
+"ay": 67,
+"frames": 4,
+"fps": 10
+},
+"claw": {
+"y": 3456,
+"fw": 96,
+"fh": 72,
+"ax": 48,
+"ay": 67,
+"frames": 6,
+"fps": 10
+},
+"still": {
+"y": 4032,
+"fw": 96,
+"fh": 72,
+"ax": 48,
+"ay": 67,
+"frames": 4,
+"fps": 4
+},
+"prone": {
+"y": 4608,
+"fw": 96,
+"fh": 72,
+"ax": 48,
+"ay": 67,
+"frames": 2,
+"fps": 6
+}
+},
+"source": "drawn by the art desk (ART-18 FINAL, all five views, 10-21), cut by tools/gargoyle-sheet.py through tools/artdesk.py (10-22)"
+},
 "giantbat_p1": {
 "image": "art/giantbat_p1.png?v=5fa2b4c149",
 "fw": 120,

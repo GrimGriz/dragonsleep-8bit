@@ -589,6 +589,20 @@
     multi: 1,
     src: 'SRD 5.1 Basilisk (CR 3, Medium; AC 15, 52 HP, speed 20; darkvision 60): its Bite +5, 2d6+3 piercing plus 2d6 poison; Petrifying Gaze on the grid gaze rule (30 ft, DC 12 CON: restrained as the stone begins, petrified on the second failure, Greater Restoration ends it; a hero may avert its eyes; its reflection in bright light, the steel mirror, turns the gaze on itself) -- its sheet plays its Gaze row as the gaze falls'
   },
+  // the gargoyle (10-22, the monster cutter seat's third run, on Griz's "close the desk but have the cutter run us out of usage for the
+  // week. See y'all tueday"): the SRD 5.1 Gargoyle from the mechanics the grid has -- its False Appearance the roper's (a `still` row till its
+  // first turn or a wound, then its `reveal`: js/ui.js, js/ai.js), its resistance the earth elemental's `mundane`; its sheet tools/gargoyle-sheet.py (ART-18).
+  gargoyle: {
+    name: 'Gargoyle', type: 'elemental', sheet: 'gargoyle_p1', cr: '2', ac: 15, hp: 52, speed: 30, fly: 60, size: 1, reach: 5, darkvision: 60,
+    abil: { str: 15, dex: 11, con: 16, int: 6, wis: 11, cha: 7 }, init: 0, perception: 10,
+    saves: { str: 2, dex: 0, con: 3, int: -2, wis: 0, cha: -2 },
+    attacks: {
+      bite: { name: 'Bite', atk: 4, dice: '1d6', mod: 2, type: 'piercing', reach: 5 },
+      claws: { name: 'Claws', atk: 4, dice: '1d6', mod: 2, type: 'slashing', reach: 5, row: 'claw' } // (its Claws row on the sheet: `claw`, played once -- js/ui.js)
+    },
+    multi: ['bite', 'claws'], resist: ['mundane'], immune: ['poison'], condImmune: ['exhaustion', 'petrified', 'poisoned'],
+    src: 'SRD 5.1 Gargoyle (CR 2, Medium elemental; AC 15, 52 HP, speed 30, fly 60 -- wings in every fight, js/flight-ai.js; darkvision 60): Multiattack, its Bite +4 1d6+2 piercing and Claws +4 1d6+2 slashing; resistant to nonmagical bludgeoning, piercing and slashing (mundane, the earth elemental way; adamantine not on the grid); immune to poison, exhaustion, petrified and poisoned; False Appearance as the roper (its Statue row stands till its first turn or a wound, then it Wakes). Its Fly row is drawn and not cut: no rule plays a fly row in a fight'
+  },
   cloaker: {
     name: 'Cloaker', type: 'aberration', sheet: 'cloaker_p2', cr: '8', ac: 14, hp: 78, speed: 40, fly: 40, size: 2, reach: 5, darkvision: 60,
     abil: { str: 17, dex: 15, con: 12, int: 13, wis: 12, cha: 14 }, init: 2, perception: 11,

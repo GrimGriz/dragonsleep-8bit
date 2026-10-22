@@ -86,7 +86,7 @@ def cut(root, sub, art, pages, chan=None, fix=None, cuts=None):
     return out
 
 
-def scales(cuts, views, idle_h, fit, stand_of=None, measure=None):
+def scales(cuts, views, idle_h, fit, stand_of=None, measure=None, idle_joined=False):
     """stand_of: {L: (row, index)} a page's standing frame where its Death 1 (or first frame) is not one (the bulette's S page: Emerge 6)"""
     def k_for(ims, target):                          # page px a game px: the fitted frames' median height meets target
         lo, hi = 1.0, 20.0
@@ -105,7 +105,7 @@ def scales(cuts, views, idle_h, fit, stand_of=None, measure=None):
         if 'idle' in cuts[ls[0]]:
             p1 = ls[0]
             target = idle_h[v] if v in ('S', 'N') else (idle_h['side'] + idle_h['S' if v == 'SE' else 'N']) / 2
-            K[p1] = k_for([im for im, _, _ in cuts[p1]['idle']], target)
+            K[p1] = k_for([im for im, _, _ in cuts[p1]['idle'] + (cuts[p1].get('idle_b', []) if idle_joined else [])], target)   # (idle_joined: the Idle's second printed line counts too -- the gargoyle's N, 10-22)
             mh = measure or body_h                    # (measure: a page frame's height by the cutter's own rule -- the manticore's, its tail ball left out)
             ref = mh(cuts[p1]['idle'][0][0])
             for L in ls[1:]:
@@ -175,7 +175,7 @@ def stamp_shadow(fr, cx, cy, rx, ry, colour):
 
 
 def views(root, sub, art, pages, view_pages, idle_h, fit, torso_x, cell, chan=None, fix=None, tone_ref=None, cuts=None, stand_of=None,
-          shadows=None, shadow_rgb=None, targets=None, joins=None, feet=None, measure=None):
+          shadows=None, shadow_rgb=None, targets=None, joins=None, feet=None, measure=None, idle_joined=False):
     """tone_ref: the sheet's own frames to tone each page to (see `tones`), or None to cut the pages' colour as drawn; fix and cuts:
     sheetrows' own, a page at a time ({L: {row: [...]}}: a loose part's box and its frame, a line cleared where two frames touch); stand_of:
     see `scales`; shadows: {row: (frame indices)} -- each such frame's ground shadow measured off its page (`page_shadow`) and drawn under it
@@ -189,7 +189,7 @@ def views(root, sub, art, pages, view_pages, idle_h, fit, torso_x, cell, chan=No
     FW, FH, AX, AY = cell
     lines = cuts
     cuts = cut(root, sub, art, pages, chan, fix, lines)          # (the cut lines in, the cut frames out)
-    K = scales(cuts, view_pages, idle_h, fit, stand_of, measure)
+    K = scales(cuts, view_pages, idle_h, fit, stand_of, measure, idle_joined)
     for L, (r, i, hgt) in (targets or {}).items():
         lo, hi = 1.0, 20.0
         for _ in range(26):
