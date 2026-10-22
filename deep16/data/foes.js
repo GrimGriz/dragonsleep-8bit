@@ -603,6 +603,21 @@
     multi: ['bite', 'claws'], resist: ['mundane'], immune: ['poison'], condImmune: ['exhaustion', 'petrified', 'poisoned'],
     src: 'SRD 5.1 Gargoyle (CR 2, Medium elemental; AC 15, 52 HP, speed 30, fly 60 -- wings in every fight, js/flight-ai.js; darkvision 60): Multiattack, its Bite +4 1d6+2 piercing and Claws +4 1d6+2 slashing; resistant to nonmagical bludgeoning, piercing and slashing (mundane, the earth elemental way; adamantine not on the grid); immune to poison, exhaustion, petrified and poisoned; False Appearance as the roper (its Statue row stands till its first turn or a wound, then it Wakes). Its Fly row is drawn and not cut: no rule plays a fly row in a fight'
   },
+  // the aboleth (10-22, the monster cutter seat's third run, on Griz's "close the desk but have the cutter run us out of usage for the
+  // week. See y'all tueday"): the SRD 5.1 Aboleth from the mechanics the grid has -- bound to the water as the otyugh, its legendary actions
+  // the rule built for it (js/traits.js, 10-08); its sheet tools/aboleth-sheet.py (ART-19). Its tentacles play `tentacles`, its tail `tail`.
+  aboleth: {
+    name: 'Aboleth', type: 'aberration', sheet: 'aboleth_p1', cr: '10', ac: 17, hp: 135, speed: 40, size: 2, reach: 10, darkvision: 120,
+    abil: { str: 21, dex: 9, con: 15, int: 18, wis: 15, cha: 18 }, init: -1, perception: 20,
+    saves: { str: 5, dex: -1, con: 6, int: 8, wis: 6, cha: 4 },
+    attacks: {
+      tentacle: { name: 'Tentacle', atk: 9, dice: '2d6', mod: 5, type: 'bludgeoning', reach: 10, row: 'tentacles' },
+      tail: { name: 'Tail', atk: 9, dice: '3d6', mod: 5, type: 'bludgeoning', reach: 10 }
+    },
+    multi: ['tentacle', 'tentacle', 'tentacle'], bound: '~', swims: true, // (Multiattack, three tentacles; swim 40 in the water it keeps to, the otyugh's way -- its 10 ft on land not on the grid)
+    legendary: { n: 3, acts: [{ name: 'Detect', cost: 1, detect: true }, { name: 'Tail Swipe', cost: 1, atk: 'tail' }, { name: 'Psychic Drain', cost: 2, drain: { dice: '3d6', type: 'psychic' } }] }, // (SRD 5.1 legendary actions -- Psychic Drain on one it has charmed: with no Enslave, none)
+    src: 'SRD 5.1 Aboleth (CR 10, Large; AC 17, 135 HP, speed 10, swim 40; darkvision 120): Multiattack, three Tentacles +9 reach 10, 2d6+5 bludgeoning; Tail +9 reach 10, 3d6+5; legendary actions (three): Detect, Tail Swipe, Psychic Drain (2, on one it has charmed). Bound to the water (swim 40; on land 10 ft, not on the grid). Not on the grid, plain stand-ins: the tentacle disease (DC 14 CON) -- none; Enslave (3/day, DC 14 WIS charm) -- none, so its Psychic Drain finds no one; Mucous Cloud (underwater) and Probing Telepathy -- none. Its Enslave row is drawn and not cut'
+  },
   cloaker: {
     name: 'Cloaker', type: 'aberration', sheet: 'cloaker_p2', cr: '8', ac: 14, hp: 78, speed: 40, fly: 40, size: 2, reach: 5, darkvision: 60,
     abil: { str: 17, dex: 15, con: 12, int: 13, wis: 12, cha: 14 }, init: 2, perception: 11,
