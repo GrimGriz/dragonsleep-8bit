@@ -2163,13 +2163,13 @@
 "door": "inn:cassia"
 },
 "centipede_p1": {
-"image": "art/centipede_p1.png?v=52049c6ffd",
+"image": "art/centipede_p1.png?v=243cd43def",
 "fw": 96,
 "fh": 96,
 "ax": 48,
 "ay": 84,
 "top": 50,
-"source": "drawn in code by tools/bugs-sheet.py (10-05)",
+"source": "drawn in code by tools/bugs-sheet.py (10-05); SE and NE every row drawn by the art desk (ART-50, 10-22)",
 "anims": {
 "idle": {
 "y": 0,

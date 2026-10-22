@@ -553,9 +553,38 @@ ART49 = dict(
 )
 VIEWS49 = {'SE': ('H1P1', 'H1P2'), 'NE': ('H2P1', 'H2P2')}
 
+# ------------------------------------------------------------------ the giant centipede's diagonals: the art desk's ART-50 (10-22)
+# Six pages in deep16/_src/centipede/ART-50/ (sorted out of Fresh by _src/art-desk/sort-delivery.py, the second cutter run; the desk's papers in
+# _src/art-desk/received-2026-10-22-ART-50-centipede-FINAL-SHEETS/): HEAD 1 SE and HEAD 2 NE, Idle and Walk on page 1, Bite on page 2, Flinch
+# and Fall on page 3 (the long bodies given room). Cut the beetle's way (art_ground): page 1's Idle against the code's idle between side and
+# front, pages 2 and 3 by their first frame (Bite 1 and Flinch 1, at rest) against page 1's Idle 1 -- the desk's note: the sparse pages drew
+# the body larger. Boxes read off the pages: the white numbers clustered by row, the row names over them.
+ART50 = dict(
+    H1P1=dict(file='ART-50_HEAD-1_PAGE-1.png', W=1946, text=[(22, 86, 125, 123), (22, 416, 128, 453)],
+              rows=[('idle', (0, 0, 1946, 371), (344, 371)), ('walk', (0, 372, 1946, 700), (673, 700))]),
+    H1P2=dict(file='ART-50_HEAD-1_PAGE-2.png', W=2172, text=[(25, 183, 140, 224)], rows=[('attack', (0, 0, 2172, 555), (522, 555))]),
+    H1P3=dict(file='ART-50_HEAD-1_PAGE-3.png', W=2172, text=[(36, 22, 205, 65), (30, 352, 128, 392)],
+              rows=[('flinch', (0, 0, 2172, 326), (294, 326)), ('hurt', (0, 327, 2172, 653), (621, 653))]),
+    H2P1=dict(file='ART-50_HEAD-2_PAGE-1.png', W=2171, text=[(19, 72, 121, 108), (19, 388, 127, 424)],
+              rows=[('idle', (0, 0, 2171, 328), (300, 328)), ('walk', (0, 329, 2171, 653), (625, 653))]),
+    H2P2=dict(file='ART-50_HEAD-2_PAGE-2.png', W=2172, text=[(60, 160, 225, 222)], rows=[('attack', (0, 0, 2172, 536), (506, 536))]),   # (its Bite's B from x 72)
+    H2P3=dict(file='ART-50_HEAD-2_PAGE-3.png', W=2172, text=[(18, 50, 172, 87), (18, 359, 117, 396)],
+              rows=[('flinch', (0, 0, 2172, 318), (289, 318)), ('hurt', (0, 319, 2172, 648), (617, 648))]),
+)
+VIEWS50 = {'SE': ('H1P1', 'H1P2', 'H1P3'), 'NE': ('H2P1', 'H2P2', 'H2P3')}
+
 
 def art49(rows):
-    """-> {view: {anim: [Images]}} from ART-49's pages; `rows` the code's rows ({'idle': {'side':, 'S':, 'N':}, ...})"""
+    return art_ground('firebeetle', 'ART-49', ART49, VIEWS49, rows)
+
+
+def art50(rows):
+    return art_ground('centipede', 'ART-50', ART50, VIEWS50, rows)
+
+
+def art_ground(name, art, pages, views, rows):
+    """-> {view: {anim: [Images]}} from an art desk package's pages (ART-49, ART-50); `rows` the code's rows ({'idle': {'side':, 'S':, 'N':}, ...}).
+    Each view's first page holds its Idle; each later page is scaled by its first row's frame 1 against that Idle 1."""
     import importlib.util
 
     def load(nm):
@@ -583,8 +612,8 @@ def art49(rows):
         return (lo + hi) / 2
 
     cuts = {}
-    for L, s in ART49.items():
-        path = os.path.join(_src_dir(), 'firebeetle', 'ART-49', s['file'])
+    for L, s in pages.items():
+        path = os.path.join(_src_dir(), name, art, s['file'])
         a = np.asarray(Image.open(path).convert('RGB')).astype(np.int32)
         spec = dict(text=s['text'] + [(0, l0 - 3, s['W'], l1 + 4) for _, _, (l0, l1) in s['rows']],
                     rows=[(r, b, l, [str(i + 1) for i in range(6 if r == 'flinch' else 8)]) for r, b, l in s['rows']])
@@ -593,16 +622,18 @@ def art49(rows):
         cuts[L] = {r: [(im, box, lx[r][i]) for i, (_, im, box) in enumerate(frs)] for r, frs in got.items()}
     code_idle = float(np.median([area(arr(im)) for im in rows['idle']['side']] + [area(arr(im)) for im in rows['idle']['S']]))
     K = {}
-    for p1, p2 in VIEWS49.values():
+    for p1, *more in views.values():
         K[p1] = k_for([im for im, _, _ in cuts[p1]['idle']], code_idle)
-        K[p2] = K[p1] * np.sqrt(area(fit(cuts[p2]['flinch'][0][0], K[p1])) / area(fit(cuts[p1]['idle'][0][0], K[p1])))
-    print('  ART-49 K: ' + ', '.join('%s %.2f' % kv for kv in K.items()))
+        for p in more:
+            first = next(iter(cuts[p].values()))[0][0]
+            K[p] = K[p1] * np.sqrt(area(fit(first, K[p1])) / area(fit(cuts[p1]['idle'][0][0], K[p1])))
+    print('  %s K: ' % art + ', '.join('%s %.2f' % kv for kv in K.items()))
     i0 = arr(rows['idle']['side'][0])
-    stand = (cen(i0)[0], low(i0))                                # the code beetle's column and its floor (idle 1)
+    stand = (cen(i0)[0], low(i0))                                # the code bug's column and its floor (idle 1)
     out = {}
-    for v, pages in VIEWS49.items():
+    for v, ls in views.items():
         out[v] = {}
-        for L in pages:
+        for L in ls:
             k = K[L]
             for an, frs in cuts[L].items():
                 fits = [fit(im, k) for im, _, _ in frs]
@@ -616,7 +647,7 @@ def art49(rows):
                     y0, x0, y1, x1 = max(0, oy), max(0, ox), min(FH, oy + ah), min(FW, ox + aw)
                     fr[y0:y1, x0:x1] = a[y0 - oy:y1 - oy, x0 - ox:x1 - ox]
                     if (fr[..., 3] > 0).sum() < (a[..., 3] > 0).sum():
-                        raise SystemExit('firebeetle %s %s %s: cut off at the frame edge' % (L, an, len(row) + 1))
+                        raise SystemExit('%s %s %s %s: cut off at the frame edge (rows %d..%d cols %d..%d)' % (name, L, an, len(row) + 1, oy, oy + ah - 1, ox, ox + aw - 1))
                     row.append(Image.fromarray(fr, 'RGBA'))
                 out[v][an] = row
     return out
@@ -651,8 +682,8 @@ def with_fb(name, rows):
     fb = hurt_fb(name, out['idle'])
     if fb:
         out['hurt'] = dict(side=out['hurt'], **fb)
-    if name == 'firebeetle':                                # ART-49 (10-21): SE and NE every row
-        for v, an_rows in art49(out).items():
+    if name in ('firebeetle', 'centipede'):                 # ART-49 (10-21), ART-50 (10-22): SE and NE every row
+        for v, an_rows in (art49 if name == 'firebeetle' else art50)(out).items():
             for an, fr in an_rows.items():
                 out[an][v] = fr
     if name == 'stirge':                                    # ART-48 (10-21): SE and NE every row, S and N their Latched
@@ -680,6 +711,7 @@ if __name__ == '__main__':
             ca.preview(rows, os.path.join(ca.ROOT, 'dev', 'shots', 'bugs-%s.png' % nm))
         else:
             src = 'drawn in code by tools/bugs-sheet.py (10-05)' + {'stirge': '; SE and NE every row and S and N its latch drawn by the art desk (ART-48, 10-21)',
-                                                                    'firebeetle': '; SE and NE every row drawn by the art desk (ART-49, 10-21)'}.get(nm, '')
+                                                                    'firebeetle': '; SE and NE every row drawn by the art desk (ART-49, 10-21)',
+                                                                    'centipede': '; SE and NE every row drawn by the art desk (ART-50, 10-22)'}.get(nm, '')
             sh, meta = ca.lay(rows, FW, FH48 if nm == 'stirge' else FH, AX, AY, top, src, out, fps_of=fps)
             print('wrote deep16/art/%s.png' % out, sh.size)

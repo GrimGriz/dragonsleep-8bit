@@ -5,7 +5,7 @@
  "ax": 48,
  "ay": 84,
  "top": 50,
- "source": "drawn in code by tools/bugs-sheet.py (10-05)",
+ "source": "drawn in code by tools/bugs-sheet.py (10-05); SE and NE every row drawn by the art desk (ART-50, 10-22)",
  "anims": {
   "idle": {
    "y": 0,
