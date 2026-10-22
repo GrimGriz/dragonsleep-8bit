@@ -2149,6 +2149,7 @@
         !!fS.b && !fS.units.some(function (u) { return u.npc; }) && ourS.length === RS.members.length && ourS.every(function (u) { return RS.members.some(function (w) { return w.id === u.id; }); }) && crew1 === crew0 && crew0.split(' ').length === 3);
       okF2('fought to its end (' + fS.res + '): back on the floor on its square (' + RS.token.x + ',' + RS.token.y + '), the tally by the night\'s table (' + Object.keys(RS.kills).join(', ') + '), the fight counted for THE WORLD\'s hour (' + RS.fights + '), the floor\'s tune after (' + mus2.join(' > ') + ')',
         D.top() === BS && RS.mode === 'walk' && RS.token.x === at0[0] && RS.token.y === at0[1] && fS.res === 'won' && Object.keys(RS.kills).some(function (k) { return /^glowseep_night:/.test(k); }) && RS.fights === 1 && mus2[mus2.length - 1] === RF.def.music);
+      okF2('the field opens on the fight, no entry card (its "walk in as the fixture" is not the floor\'s four: seen in the pane 10-22) -- noCards ' + (fS.b && fS.b.fight.noCards), !!fS.b && fS.b.fight.noCards === true);
       var fG = fieldF2(BS, 1, false);
       okF2('the card\'s other button: this one on the grid (' + (fG.b ? (fG.simple ? 'simple!' : 'the grid') + ', ' + fG.b.map.w + ' x ' + fG.b.map.h + ', ' + fG.units.filter(function (u) { return u.side === 'foe'; }).length + ' foes' : 'none') + '); got away, the party on the floor again', !!fG.b && !fG.simple && fG.b.map.w === 16 && fG.b.map.h === 7 && D.top() === BS && BS.roam.mode === 'walk');
       var B3 = testF2('?roam=galleries_g3&flags=cullHired'), R3 = B3.roam; R3.token.x = 6; R3.token.y = 10; D.grid.setup(B3.map, B3.units); B3.focus(R3.token);
@@ -2177,6 +2178,8 @@
       D.ctx = ctxW0;
       var cvM = document.createElement('canvas'); cvM.width = d2.w * 3; cvM.height = d2.h * 3; var cM = cvM.getContext('2d'); RF.paintMap(cM, B2, 0, 0, 3); var pxM = cM.getImageData(35 * 3 + 1, 17 * 3 + 1, 1, 1).data;
       okF2('on the floor map (L) the ways green (the passage\'s square ' + [pxM[0], pxM[1], pxM[2]].join(',') + ')', pxM[1] > 200 && pxM[0] < 120 && pxM[2] < 140);
+      var BSw = testF2('?roam=glowseep'), wsS = ((RF.def.hello || []).filter(function (l) { return /^Ways/.test(l); })[0] || '').replace(/^Ways: |\.$/g, '').split('; ');
+      okF2('the Glowseep\'s hello names each way once (' + wsS.join('; ') + ')', wsS.length > 1 && wsS.every(function (s, i) { return wsS.indexOf(s) === i; }));
       var BG = testF2('?roam=galleries&gate=east'), mkG = RF.def.wayMarks || [];
       okF2('the Galleries\' mouth, in by the east gate: the way into the mine named (' + mkG.map(function (k) { return k.name + ' ' + (k.side || k.at.join(',')); }).join('; ') + ')', mkG.some(function (k) { return k.name === 'the working gallery' && k.at[0] === 17 && k.at[1] === 3; }) && mkG.filter(function (k) { return k.name === 'the road'; }).length >= 2);
     } catch (eF2) { repF2.errors.push(String(eF2 && eF2.stack || eF2).slice(0, 900)); }

@@ -153,7 +153,7 @@
       zone8: (m8.zones && m8.zones[0] && m8.zones[0].zone) || null,
       hud: F.place.replace(/^The /, 'the ') + ': ' + F.sub,
       hello: ['{y}' + F.place.toUpperCase() + '{/} -- ' + F.sub + ': ' + (F.own ? 'the second game\'s own floor' : 'the first game\'s floor') + ', north up as Silverton is (' + w + ' x ' + h + ' squares)' + (F.clock ? ', ' + W8tod(hour) : '') + '.',
-        'Ways: ' + wayMarks.map(function (k) { return (k.side || 'at ' + k.at.join(',')) + ', ' + k.name; }).join('; ') + '.', '{g}Click to walk, or the arrows. E: a word, a door. O: the formation. L: the floor map.{/}'],
+        'Ways: ' + wayMarks.map(function (k) { return (k.side || 'at ' + k.at.join(',')) + ', ' + k.name; }).filter(function (s, i, a) { return a.indexOf(s) === i; }).join('; ') + '.', '{g}Click to walk, or the arrows. E: a word, a door. O: the formation. L: the floor map.{/}'], // (the ways each once: the Glowseep's road and grass edges are runs of their own)
       where: function () { return F.sub; }
     };
     return def;
@@ -410,7 +410,7 @@
       entry: (o && o.entry) || [[8, 3], [8, 2], [8, 4], [9, 3], [9, 1], [9, 5], [8, 1], [8, 5]], foes: [], wave: null };
     var moss = kind === 'bog' && def.dark ? [[1, 1, 10, 'glow', 1], [w - 2, h - 2, 10, 'glow', 1], [w - 2, 1, 10, 'glow', 1], [1, h - 2, 10, 'glow', 1]] : null; // (the Glowseep by night: its moss, dim)
     return { id: 'minefield', map: 'mine-field', level: (D.roam.party0 && D.roam.party0.level) || 5, name: def.name, sub: def.sub, dark: !!def.dark, lights: moss,
-      intro: (set && set.line) || 'They come at the party out of the dark.', won: 'THE WAY IS CLEAR.', lost: 'THE DARK TAKES THEM.',
+      intro: (set && set.line) || 'They come at the party out of the dark.', won: 'THE WAY IS CLEAR.', lost: 'THE DARK TAKES THEM.', noCards: true, // (no entry card: the encounter's card asked, and the four are the floor's -- its "walk in as the fixture" is not theirs, seen in the pane 10-22)
       foes: simple ? D.simple.seat(list) : D.world.seat(list), wave: null, fliers: !simple }; // (fliers: the SRD's fly on the grid, not in the simple fight's lineup -- js/world.js's)
   };
   M.fieldBack = function (done) { return done === 'won' ? ['{y}The way is clear.{/}', '{g}Back where the party stood.{/}'] : done === 'escaped' ? ['{y}Away{/}: the party gets clear of them.', '{g}Back where it stood.{/}'] : ['{y}Back on the floor{/} (' + done + ').']; };
