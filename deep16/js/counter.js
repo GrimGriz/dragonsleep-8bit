@@ -28,7 +28,7 @@
     kessler: { sheet: 'pt_kessler', shop: 'kessler' }, calla: { sheet: 'pt_calla', shop: 'calla' }, // (the pawnbroker and the apothecary sell and buy by their first-game shops -- 10-21, Griz: "Yes, open Kessler's and Calla Voss's counters with their first-game shops")
     barber: { sheet: 'pt_barber' },
     marin: { sheet: 'pt_marin' }, kasten: { sheet: 'pt_kasten' }, // (10-21, Griz: "is the marin voss lack the zip file I just put in Fresh? Lucia and 88 should be in there now")
-    lucia: { sheet: 'pt_lucia', name: 'Lucia' }, // (Mama's Pharmakaiea's keeper -- the first game's shop names her; the town's keeper table says "Mama")
+    lucia: { sheet: 'pt_lucia', name: 'Lucia', shop: 'lucia' }, // (Mama's Pharmakaiea's keeper -- the first game's shop names her; the town's keeper table says "Mama"; her first-game shelf since 10-22, Griz: "yes", on "Lucia also sells in 8 bit, dome whorls and calling herbs maybe?")
     sylvia: { sheet: 'pt_sylvia', own: true }, // (Griz's own: her portrait at her booth, her particulars on his word -- js/town.js T.TRADE `own`)
     // the last six of art-wanted section 20, each on its first-game shop (10-21 evening, Griz to the lanes desk: "we have shopkeep NPCs in Fresh"; his "shops and the rest
     // of NPC portraits next session"): the show-armorer, the provisioner, charms and chalk, Percy's Particulars (a fifth for road harvest, rendered: its buyRate)
@@ -197,10 +197,14 @@
     }
     return out;
   };
+  // a first-game shop's greeting said the second game's way, by the shop's id (the first game's content/shops.json left as it is): Marko hires out no guards
+  // here (10-22, Griz: "change line for now", on his "Gonna have to let the players hire fighters if we keep Marko's dialogue...")
+  C.GREET = { marko: 'Rope, tents, torches, lanterns. Arrows and bolts by the bundle.' };
+  C.greeting = function (shopId) { var sh = (DS.DATA.shops || {})[shopId]; return C.GREET[shopId] || (sh && sh.greeting); };
   // the shelves: the first game's js/scenes.js Shop -- its prices, what it buys and at what (the half, or the shop's own rate), the thanks
   Counter.prototype.openShelves = function (id) {
     this.shop = (DS.DATA.shops || {})[id] || { items: [] }; this.shopId = id; this.tab = this.shop.items && this.shop.items.length ? 'buy' : 'sell'; this.scroll = 0; this.cur = 0;
-    this.msg = this.shop.greeting || 'Welcome.'; this.setFace('welcoming');
+    this.msg = C.greeting(id) || 'Welcome.'; this.setFace('welcoming');
   };
   Counter.prototype.price = function (id) { var o = this.shop.prices && this.shop.prices[id]; return o != null ? o : DS.DATA.items[id].price; };
   Counter.prototype.offer = function (it) { return Math.max(1, Math.floor(it.price * (this.shop.buyRate || 0.5))); };
@@ -393,7 +397,7 @@
   // a vendor with a shop and no scene of its own (one line in C.VENDORS opens it): their word, then THE SHELVES / LEAVE -- the first game's shop on this screen
   C.shopkeeper = function* (sc, B, id) {
     var said = C.words(B, id), shop = (DS.DATA.shops || {})[C.VENDORS[id].shop];
-    if (/^\{g\}\(Their scene/.test(said[0] || '')) said = [shop.greeting || 'Welcome.'];
+    if (/^\{g\}\(Their scene/.test(said[0] || '')) said = [C.greeting(C.VENDORS[id].shop) || 'Welcome.'];
     yield sc.say(said, 'welcoming');
     while ((yield sc.ask(said[said.length - 1], ['THE SHELVES', 'LEAVE'])) === 0) yield sc.shelves(C.VENDORS[id].shop);
   };
@@ -671,7 +675,7 @@
     this.kind = 'portraitshow'; this.opaque = true; this.t = 0; this.k = -1; this.cur = null;
     var who = /[?&]who=([a-z0-9_,]+)/.exec(String(q || '')); this.ids = who ? who[1].split(',').filter(function (k) { return !!C.PT[k]; }) : Object.keys(C.PT); // (in the order asked)
   }
-  C.wordsOf = function (id) { var N = ((DS.DATA || {}).npcs || {})[id] || {}, plain = (N.talk || []).filter(function (e) { return !e['if']; })[0], sh = (DS.DATA.shops || {})[(C.VENDORS[id] || {}).shop || id]; return plain ? plain.say.slice() : sh && sh.greeting ? [sh.greeting] : ['(no first-game word)']; };
+  C.wordsOf = function (id) { var N = ((DS.DATA || {}).npcs || {})[id] || {}, plain = (N.talk || []).filter(function (e) { return !e['if']; })[0], sh = C.greeting((C.VENDORS[id] || {}).shop || id); return plain ? plain.say.slice() : sh ? [sh] : ['(no first-game word)']; };
   PortraitShow.prototype.update = function () {
     this.t++;
     if (this.cur && !this.cur.done) return;
