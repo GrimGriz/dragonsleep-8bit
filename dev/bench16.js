@@ -4238,18 +4238,7 @@
         var B4g = mkV('?npc=goblin,goblin&vs=wizard:5&lvl=5'), wz4g = clsV(B4g, 'wizard'), g4g = sideV(B4g, 'foe');
         wz4g.x = 2; wz4g.y = 3; g4g[0].x = 7; g4g[0].y = 3; g4g[1].x = 7; g4g[1].y = 4; B4g.cache = null; g4g[0].hp = 1; g4g[1].maxhp = g4g[1].hp = 100; learnV(wz4g, 'scorchingray');
         RV.startTurn(wz4g); B4g.active = wz4g; pinV(15, function () { runV(MV.cast(B4g, wz4g, 'scorchingray', 2, { units: [g4g[0], g4g[0], g4g[0]] })); }); B4g.active = null;
-        okV('4 and on the full grid (the desk\'s "the same fix fits the SRD": each ray its own attack, made as it goes), three rays aimed at a goblin on 1 with another beside it: it falls ' + (g4g[0].hp <= 0) + ', the other ' + (100 - g4g[1].hp) + ' fire (want true and some: the spare rays at the one beside it)', g4g[0].hp <= 0 && g4g[1].hp < 100);
-        // and none it can see: the other goblin unseen (invisible), the spare rays are lost
-        var B4h = mkV('?npc=goblin,goblin&vs=wizard:5&lvl=5'), wz4h = clsV(B4h, 'wizard'), g4h = sideV(B4h, 'foe');
-        wz4h.x = 2; wz4h.y = 3; g4h[0].x = 7; g4h[0].y = 3; g4h[1].x = 7; g4h[1].y = 4; B4h.cache = null; g4h[0].hp = 1; g4h[1].maxhp = g4h[1].hp = 100; g4h[1].conds.invisible = { by: 'bench' }; learnV(wz4h, 'scorchingray');
-        RV.startTurn(wz4h); B4h.active = wz4h; pinV(15, function () { runV(MV.cast(B4h, wz4h, 'scorchingray', 2, { units: [g4h[0], g4h[0], g4h[0]] })); }); B4h.active = null;
-        okV('4 and the one beside it invisible: it falls ' + (g4h[0].hp <= 0) + ', the unseen one ' + (100 - g4h[1].hp) + ' fire (want true, 0: a spare ray goes only at one the caster can see)', g4h[0].hp <= 0 && g4h[1].hp === 100);
-        // the show's beat (deep16/?rulesshow&only=rays): the wizard's three rays at a goblin on 1, the hobgoblin beside it
-        var B4s = D.rulesshow.make('?rulesshow&fast&only=rays' + (get('logs', '') ? '&logs=1' : '')); D.battle = B4s; B4s.enter();
-        var v4s, k4s = 0;
-        while (B4s.co && k4s++ < 400000) { var r4s = B4s.co.next(v4s); v4s = undefined; if (r4s.done) break; var y4s = r4s.value; if (y4s && y4s.prompt) v4s = y4s.prompt.opts[0].value; }
-        (B4s.rulesReport || []).forEach(function (b) { okV('4 the show: ' + b.name + ' -- ' + b.why, b.ok); });
-        if ((B4s.rulesReport || []).length !== 1) okV('4 the show ran ' + (B4s.rulesReport || []).length + ' beats of rays (want 1)', false);
+        okV('4 and on the full grid, three rays aimed at a goblin on 1 with another beside it: it falls ' + (g4g[0].hp <= 0) + ', the other ' + (100 - g4g[1].hp) + ' fire (want true, 0: the hand aimed each -- RULED 10-22, his "it\'s okay if they spend them wrong on the grid, they\'re getting to choose")', g4g[0].hp <= 0 && g4g[1].hp === 100);
         // 5. THE SIMPLE FIGHT'S HIDE AS THE FIRST GAME'S (RULED 10-22, his "1 - like the first game", on his "are we determining hide by grid rules (8 bit seemed way more
         // successful)"): Vivian's HIDE in his door, the d20 pinned to 1 (the grid's roll: 8 against the goblins' 18, the worgs' 23 -- seen) -- hidden, no roll; no foe's look
         // finds her, nor a Search on a 20; still hidden at her turn's end, gone at the end of her next (js/battle.js hideAttack's two rounds). The full grid keeps its roll,

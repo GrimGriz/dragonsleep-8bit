@@ -400,13 +400,10 @@
   // Acid Splash's second (SRD 5.1: "two creatures within range that are within 5 feet of each other"): a foe beside the first. The simple fight takes the first game's
   // two instead (js/simple.js, 10-22)
   M.splashSecond = function (B, u, first) { return B.units.filter(function (w) { return w !== first && G.hostile(u, w) && G.standing(w) && G.dist(first, w) <= 5; })[0] || null; };
-  // a ray (Scorching Ray, Eldritch Blast's beams) whose one has fallen before it flies: the foe nearest the fallen that the caster can see and the spell can reach (SRD 5.1:
-  // each ray its own attack, made as it goes -- the grid asks every aim up front, and a ray at the fallen was lost; 10-22, his "the rest of the beams should find their own
-  // if a nearby target dies", the simple fight's first, then the desk's "the same fix fits the SRD"); none, and it is lost. The simple fight's, any foe (js/simple.js)
-  M.spareRay = function (B, u, gone, g) {
-    return B.units.filter(function (w) { return w !== gone && G.hostile(u, w) && G.standing(w) && !w.object && M.sees(B, u, w) && (!g || M.targetOK(B, u, g, w)); })
-      .sort(function (a, b) { return G.dist(gone, a) - G.dist(gone, b); })[0] || null;
-  };
+  // a ray (Scorching Ray, Eldritch Blast's beams) whose one has fallen before it flies: none here -- the hand aimed each; the simple fight's one pick gives it the nearest (js/simple.js, 10-22).
+  // RULED 10-22, Griz, rolling back a day's full-grid spare rays (06945eb): "have grid rules roll back it's grid scorching ray - it's okay if they spend them wrong on the grid,
+  // they're getting to choose, simple gives only 1 choice so we split the scorch for them"
+  M.spareRay = function (B, u, gone) { return null; };
   M.cast = function* (B, u, id, slot, t) {
     var sp = M.data(id), g = M.geo(id), T = u.turn, self = this;
     if (id === 'dancinglights' && u.conc && u.conc.id === 'dancinglights') g = Object.assign({}, g, { time: 'B', move: true }); // (the lights are up: this is the bonus action that moves them)
@@ -464,7 +461,7 @@
       var shots = (g.shape === 'rays' ? t.units : [t]).slice(), dice = g.shape === 'rays' ? sp.dmg : M.dice(sp, u, slot);
       if (g.shape === 'rays') B.card([head + ' -- ' + shots.length + ' rays']);
       for (var i = 0; i < shots.length; i++) {
-        if (shots[i].dead || (shots[i].hp <= 0 && !shots[i].regenDown)) { var nx = g.shape === 'rays' ? M.spareRay(B, u, shots[i], g) : null; if (!nx) continue; shots[i] = nx; } // (a troll down and knitting takes the ray: fire on it where it lies -- 10-05, Griz: "is scorching ray supposed to stop regen? Aurdin was shooting him when they were down and there was no real card")
+        if (shots[i].dead || (shots[i].hp <= 0 && !shots[i].regenDown)) { var nx = g.shape === 'rays' ? M.spareRay(B, u, shots[i]) : null; if (!nx) continue; shots[i] = nx; } // (a troll down and knitting takes the ray: fire on it where it lies -- 10-05, Griz: "is scorching ray supposed to stop regen? Aurdin was shooting him when they were down and there was no real card")
         var spAtk = { name: sp.name, atk: u.spellAtk, dice: dice, mod: 0, type: sp.el, spell: true, ranged: true, range: [g.range, g.range], fx: 'fire' };
         if (shots[i].tendril) { yield* B.strikeTendril(u, shots[i], spAtk); continue; } // (a roper's tendril, the spell's object -- js/ui.js spellTarget, 10-06: the grid's rules §2.4)
         yield* B.attack(u, shots[i], spAtk);

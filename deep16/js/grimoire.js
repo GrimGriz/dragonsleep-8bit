@@ -331,7 +331,7 @@
       var shots = (t.units || [t]).slice(), a = agon(u), rep = (u.invocations || []).indexOf('repelling') >= 0;
       if (shots.length > 1) B.card([head + ' -- ' + shots.length + ' beams']);
       for (var i = 0; i < shots.length; i++) {
-        if (shots[i].dead || shots[i].hp <= 0) { var nx = M.spareRay(B, u, shots[i], x.g); if (!nx) continue; shots[i] = nx; } // (a spare beam, magic.js M.spareRay -- 10-22)
+        if (shots[i].dead || shots[i].hp <= 0) { var nx = M.spareRay(B, u, shots[i]); if (!nx) continue; shots[i] = nx; } // (the simple fight's spare beam, magic.js M.spareRay -- 10-22)
         yield* spellAttack(B, u, shots[i], x.sp, x.g, '1d10', { mod: a, fx: 'bolt', onHit: function (w) { if (rep && !w.dead && w.hp > 0 && (w.size || 1) <= 2) M.push(B, u, w, 2); } });
       }
     },

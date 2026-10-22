@@ -302,7 +302,7 @@
   D.magic.splashSecond = function (B, u, first) { return B && B.simple ? nearestTo(B, u, first)[0] || null : splash0.apply(this, arguments); };
   // THE SPARE BEAM (his "scorching ray peter's out when it kills its targets when he has beams left - since he doesn't get to pick more than one target, the rest of the
   // beams should find their own if a nearby target dies", 10-22): a ray or a beam whose one fell before it flew goes at the standing foe nearest it -- Scorching Ray and
-  // Eldritch Blast, however far (magic.js M.spareRay: on the full grid, the nearest the caster can see and reach)
+  // Eldritch Blast (magic.js M.spareRay; the full grid's hand aims each)
   var spare0 = D.magic.spareRay;
   D.magic.spareRay = function (B, u, gone) { return B && B.simple ? nearestTo(B, u, gone)[0] || null : spare0.apply(this, arguments); };
 
