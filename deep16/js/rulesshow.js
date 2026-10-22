@@ -3,7 +3,7 @@
    that link are magic."): the rules his eye wants played where the engine plays them, on the class floor, one beat after another, the dice pinned where a beat needs
    them to fall one way (its card says so). At the end of each beat the show waits: ENTER (or E, or a click) plays it again, → the next, ← the one before.
 
-     deep16/?rulesshow             every beat, in order · &only=antitoxin,pudding,leather,heatmetal,metal keeps to those (a beat's id or its group) · &beat=N starts at the Nth
+     deep16/?rulesshow             every beat, in order · &only=antitoxin,pudding,leather,rays,heatmetal,metal keeps to those (a beat's id or its group) · &beat=N starts at the Nth
                                    · &fast no pauses, no waits (the bench)
 
    Each beat is staged (who stands where, as its card says) and then run by the engine itself -- the bite and the blows B.attack, the antitoxin B.useItem, Heat Metal
@@ -130,6 +130,16 @@
       var l = since(n), gone = /leather armor is eaten through and falls away/.test(l) && !gob.armored;
       return [ac0 === 15 && acs.join() === '14,14,14' && gone, 'AC ' + ac0 + ' -> ' + acs.join(' -> ') + (gone ? ' (the leather gone, the shield kept)' : ' (the leather never eaten through)')];
     }
+    function* spareRays() {
+      // the wizard's Scorching Ray, all three rays at a goblin on 1 hit point with the hobgoblin beside it, the rays pinned to hit: the first drops it, and the two left go at
+      // the hobgoblin, the foe nearest it that the wizard can see and reach (10-22: before, they were lost on the fallen)
+      stage([wizard, gob, hob], [[0, 0], [4, 0], [4, 1]]); setPin(15, null); gob.hp = 1; hob.maxhp = hob.hp = 120;
+      if ((wizard.known || []).indexOf('scorchingray') < 0) wizard.known.push('scorchingray');
+      say(['The wizard\'s Scorching Ray, all three rays at the goblin on 1 hit point; the hobgoblin beside it. The rays pinned to hit (the hobgoblin\'s hit points deep).']); yield W(60);
+      var n = mark(), h0 = hob.hp; turn(wizard); yield* fire(B.exec(wizard, { do: 'cast', id: 'scorchingray', slot: 2, target: { units: [gob, gob, gob] } })); B.active = null; yield W(60);
+      var l = since(n), fell = gob.hp <= 0, took = h0 - hob.hp, at = (l.match(/Hobgoblin/g) || []).length;
+      return [fell && took > 0 && at >= 2, (fell ? 'the goblin fell to the first ray' : 'the goblin still up') + '; the hobgoblin took ' + took + ' fire from the spare rays (' + at + ' lines name it)' + (get('logs') ? ' || ' + l.slice(0, 600) : '')];
+    }
     function* puddingMagic() {
       // the same three blows with the mace made +1 (magic), and three bites on the mail made magic: neither is eaten
       stage([cleric, pudding], [[0, 0], [1, 0]]); cleric.maxhp = cleric.hp = 200; setPin(15, null);
@@ -225,6 +235,7 @@
       { id: 'puddingweapon', group: 'pudding', name: 'The pudding and a plain weapon', what: 'The cleric\'s mace is plain (nothing magic in this party): each blow that lands on the black pudding burns the cleric (its Corrosive Form, 1d8 acid) and eats the mace, -1 and -2 to its damage, and the third eats it through -- gone, fists after.', run: puddingWeapon },
       { id: 'puddingarmour', group: 'pudding', name: 'The pudding and plain armour', what: 'Its pseudopod on the cleric\'s plain chain mail: -1 AC, -2, and the third bite eats it through -- the mail gone, the AC what it is without it (the shield still counts).', run: puddingArmour },
       { id: 'leather', group: 'pudding', name: 'The pudding and a foe\'s leather', what: 'A foe\'s sheet names its leather and hide now, by the SRD block\'s AC (the goblin\'s leather armour and shield, the gnoll\'s hide, the bandit captain\'s studded leather). The pudding\'s pseudopod eats any plain armour: leather is worth 1 AC, so the first bite spends it (AC 14), no bite takes it lower than none, and the third eats it through -- the shield still counting.', run: puddingLeather },
+      { id: 'rays', group: 'rays', name: 'Scorching Ray\'s spare rays', what: 'Each ray of Scorching Ray is its own attack (SRD 5.1). All three at a goblin on 1 hit point, the hobgoblin beside it: the first ray drops the goblin, and the two left go at the foe nearest it that the wizard can see and reach -- not into nothing. Eldritch Blast\'s beams the same.', run: spareRays },
       { id: 'puddingmagic', group: 'pudding', name: 'The pudding and magic', what: 'The same blows and bites with the mace made +1 and the mail magic: the acid eats neither (a magic weapon and magic armour are never eaten).', run: puddingMagic },
       { id: 'heatmetal', group: 'heatmetal', name: 'Heat Metal ends with the one it heats', what: 'The bard heats the hobgoblin\'s chain mail (it cannot shed it: attacks and checks at disadvantage) and flares it with a bonus action the next turn. The cleric fells the hobgoblin: at its turn\'s end the bard lets go of Heat Metal (nothing left to hold) -- no flare offered, no END HEAT METAL on the ring, and the bard is free to concentrate on something else.', run: heatMetal },
       { id: 'metalgrasp', group: 'metal', name: 'Shocking Grasp and a foe\'s mail', what: 'A foe\'s sheet names its metal armour now, by the SRD block\'s AC (the hobgoblin\'s chain mail, the guard\'s chain shirt, the veteran\'s splint). The wizard\'s Shocking Grasp at the hobgoblin has advantage (metal armour); at the giant spider, none.', run: metalGrasp },
