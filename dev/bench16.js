@@ -2808,7 +2808,7 @@
   }
   // THE HOUSE SEAT, 10-22 (mode=house1022; the lanes desk on Griz's "looks like its opens that weren't art is the bat wing cooking in silverton", then "If there's another
   // seat needs spun up go with that"): Marta Venn's bat-wing pies on her counter screen (deep16/js/counter.js C.marta, the first game's S.marta; Percy's word on the wings,
-  // S.percyShop), the show ?houseshow. Every choice pressed by a click on its drawn box, as services1022 does
+  // S.percyShop); Kasten Wheal's shelves (his first-game shop); the show ?houseshow. Every choice pressed by a click on its drawn box, as services1022 does
   if (get('mode', '') === 'house1022') {
     var repHs = { checks: [], errors: [] }, memHs = {}, stGHs = D.store.get, stSHs = D.store.set, HHs = D.house, CHs = D.counter, THs = D.town;
     function okHs(what, v) { repHs.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
@@ -2860,6 +2860,19 @@
       B.inv = B.inv.filter(function (s) { return s.id !== 'batwings'; }); gP = fireHs(B, 'talk:percy'); scP = D.top(); wP = upHs() ? readHs(scP) : [];
       okHs('no wings: no word of them', upHs() && !/Wings\?/.test(wP.join(' ')));
       goHs(scP, 'opt', 'LEAVE'); driveHs(gP, null, 200);
+      // KASTEN WHEAL's shelves: his first-game shop (content/shops.json kasten, the Chandler), as Vilar, Marko, Lisbet and Percy sell since b4e9cdc
+      B = beatHs('kasten'); R0 = B.roam;
+      var inK = inHs(B, 'shop:kasten'); okHs('Kasten\'s beat: in at the chandler\'s door (' + D.roam.def.name + '), ' + R0.silver + ' sp', inK && D.roam.def.keeper.id === 'kasten' && R0.silver === 60);
+      var gK = fireHs(B, 'talk:kasten'), scK = D.top(), wK = upHs() ? readHs(scK) : [];
+      okHs('E at his counter: his portrait (' + (scK && scK.sheet) + '), "' + wK.join(' ') + '", then ' + askHs(scK), upHs() && scK.sheet === 'pt_kasten' && /Candles, soap, lamp-oil/.test(wK.join(' ')) && !/to come/.test(wK.join(' ')) && !!scK.wait.ask && scK.wait.opts.join() === 'THE SHELVES,LEAVE');
+      goHs(scK, 'opt', 'THE SHELVES'); var rowsK = scK.shop ? scK.rows().map(function (r) { return r.label + ' ' + r.right; }) : [];
+      okHs('THE SHELVES: the Chandler\'s (' + scK.o.place + '), BUY -- ' + rowsK.join('; '), scK.shopId === 'kasten' && scK.tab === 'buy' && rowsK.join() === 'Oil Flask 1 sp,Torch 1 sp,Hooded Lantern 50 sp,Candle 1 sp');
+      var lan0 = packHs(B, 'lantern'); clickHs(scK, scK.buttons().filter(function (q) { return q.go === 'row' && q.label === 'Hooded Lantern'; })[0]);
+      okHs('a click on the Hooded Lantern: bought (' + R0.silver + ' sp left, ' + packHs(B, 'lantern') + ' in the pack), "' + scK.msg + '"', R0.silver === 10 && packHs(B, 'lantern') === lan0 + 1);
+      goHs(scK, 'tab', 'SELL'); var sellK = scK.rows().map(function (r) { return r.label + ' ' + r.right; });
+      okHs('SELL: he buys at half -- ' + sellK.join('; '), sellK.some(function (r) { return /^Hooded Lantern x\d+ 25 sp$/.test(r); }));
+      goHs(scK, 'back'); goHs(scK, 'opt', 'LEAVE'); driveHs(gK, null, 200);
+      okHs('BACK, LEAVE: the floor again', !upHs() && D.top() === B);
     } catch (eHs) { repHs.errors.push(String(eHs && eHs.stack || eHs).slice(0, 900)); }
     D.store.get = stGHs; D.store.set = stSHs; if (D.house) { D.house.playing = false; D.house.cur = null; }
     var preHs = document.createElement('pre'); preHs.id = 'out'; preHs.textContent = 'BENCH16 ' + JSON.stringify(repHs);

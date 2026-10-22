@@ -28,7 +28,7 @@
     hessle: { sheet: 'pt_hessle', script: 'hessle' }, // (the Weigh-House board's bounties, the first game's S.hessle: C.hessle, 10-22)
     kessler: { sheet: 'pt_kessler', shop: 'kessler' }, calla: { sheet: 'pt_calla', shop: 'calla' }, // (the pawnbroker and the apothecary sell and buy by their first-game shops -- 10-21, Griz: "Yes, open Kessler's and Calla Voss's counters with their first-game shops")
     barber: { sheet: 'pt_barber' },
-    marin: { sheet: 'pt_marin' }, kasten: { sheet: 'pt_kasten' }, // (10-21, Griz: "is the marin voss lack the zip file I just put in Fresh? Lucia and 88 should be in there now")
+    marin: { sheet: 'pt_marin' }, kasten: { sheet: 'pt_kasten', shop: 'kasten' }, // (10-21, Griz: "is the marin voss lack the zip file I just put in Fresh? Lucia and 88 should be in there now"; Kasten Wheal the chandler sells by his first-game shop since 10-22, his 10-21 close: "shops and the rest of NPC portraits next session")
     lucia: { sheet: 'pt_lucia', name: 'Lucia', shop: 'lucia' }, // (Mama's Pharmakaiea's keeper -- the first game's shop names her; the town's keeper table says "Mama"; her first-game shelf since 10-22, Griz: "yes", on "Lucia also sells in 8 bit, dome whorls and calling herbs maybe?")
     sylvia: { sheet: 'pt_sylvia', own: true }, // (Griz's own: her portrait at her booth, her particulars on his word -- js/town.js T.TRADE `own`)
     // the last six of art-wanted section 20, each on its first-game shop (10-21 evening, Griz to the lanes desk: "we have shopkeep NPCs in Fresh"; his "shops and the rest
@@ -697,10 +697,11 @@
     D.hint(ctx, 'click a beat · in town: click the square they stand on, E at the counter · X: the title', D.W / 2, D.H - 12, '#9a96a8', 'center');
   };
   C.servicesShow = function (q) { return new ServicesShow(q); };
-  // the house seat's show (deep16/?houseshow -- its eyes rows' door, 10-22): a NEW GAME staged beside Marta with bat wings in the pack, and at Percy's door with them
+  // the house seat's show (deep16/?houseshow -- its eyes rows' door, 10-22): a NEW GAME staged beside Marta with bat wings in the pack, at Percy's door with them, at Kasten's
   C.HOUSE_BEATS = [
     { id: 'marta', near: 'marta', label: 'MARTA VENN\'S PIES: six bat wings, Vivian along', note: 'A click on Marta (or E beside her): COOK THEM, free for Viv\'s friends -- six pies into the pack, eaten in a fight. NOT NOW: her word, as before.', inv: [['batwings', 6]] },
-    { id: 'percy', door: 'warp:percy', label: 'PERCY: the wings he won\'t have', note: 'Two bat wings in the pack. In at the door, E at the counter: his word, then "Wings? Not in my jars. Take them to Marta Venn..."', inv: [['batwings', 2]] }
+    { id: 'percy', door: 'warp:percy', label: 'PERCY: the wings he won\'t have', note: 'Two bat wings in the pack. In at the door, E at the counter: his word, then "Wings? Not in my jars. Take them to Marta Venn..."', inv: [['batwings', 2]] },
+    { id: 'kasten', door: 'shop:kasten', label: 'KASTEN WHEAL, THE CHANDLER: his shelves', note: 'In at his door, E at the counter: his greeting, THE SHELVES -- oil, torches, the hooded lantern, candles -- and he buys, at half.', silver: 60 }
   ];
   C.houseShow = function (q) { return new ServicesShow(q, C.HOUSE_BEATS, '{y}THE HOUSE, 10-22{/} -- a NEW GAME staged; the rest is yours (a show)'); };
 
