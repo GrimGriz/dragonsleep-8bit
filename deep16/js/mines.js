@@ -380,19 +380,10 @@
     yield sc.say(M.LINES.bunk.sleep);
     return true;
   };
-  // the night slept: in the house, the floor's party into the save, THE WORLD's clock to the morning and the long rest on the save (its picks on the floor, not THE WORLD's), the
-  // rested sheets back on the figures; on the test door, the four rested in place
-  M.sleep = function* (B) {
-    var R = D.roam, H = D.house, W = D.world, R0 = B.roam, lines = [];
-    if (R.house() && H && H.playing) {
-      H.fromFloor(B);
-      var sc0 = W.scene; W.scene = null; try { lines = W.camp() || []; } finally { W.scene = sc0; } // (no scene: the level picks come on this floor, R.picks)
-      R0.members.forEach(function (u) { var sh = H.cur.party.filter(function (h) { return (h.key || h.id) === (u.src && (u.src.key || u.src.id)); })[0]; if (sh) { u.src.conds = JSON.parse(JSON.stringify(sh.conds || {})); R.resheet(B, u, sh); } });
-    } else R0.members.forEach(function (u) { if (!u.src) return; var sh = JSON.parse(JSON.stringify(u.src)); DS.R.refresh(sh, true); sh.hp = sh.maxhp; R.resheet(B, u, sh); });
-    R0.picksDue = R0.members.filter(function (u) { return u.src && DS.R.picksDue(u.src); });
-    D.sfx('confirm'); B.card(R.wrap([M.LINES.bunk.morning].concat(lines)), 320); yield 40;
-    yield* R.picks(B);
-  };
+  // the night slept, on the house's one sleep for a floor (js/house.js H.sleepOnFloor -- 10-22, Griz: "3 move to whole mornings"): in the house the floor's party into the
+  // save, THE WORLD's clock to the morning and the long rest on the save; on the test door the four rested in place; then the first game's whole morning -- the picks, the
+  // night's bonds, the day's spells, the save where the floor keeps one -- with this place's own morning on its card
+  M.sleep = function* (B) { yield* D.house.sleepOnFloor(B, { line: M.LINES.bunk.morning, music: 'inn' }); };
 
   // ---------------------------------------------------------------- THE GLOWSEEP (10-21 night, Griz to the desk, on the top levels seat's five leans: "Go on the Glowseep - run with
   // its leans for all, including the time-slowing but that might be adjusted. Thematically correct"; his first word on it, "he hung out with them where they worked and they walked

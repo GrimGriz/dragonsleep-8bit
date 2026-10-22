@@ -514,7 +514,7 @@
       lines = H.restSheets(sheets);
     }
     var byKey = {}; sheets.forEach(function (h) { byKey[h.key || h.id] = h; });
-    H.morning({ party: sheets, lines: lines, line: o.line || null, music: o.music, save: house, floor: B,
+    H.morning({ party: sheets, lines: lines, line: o.line || null, music: o.music, save: house && R.def.save !== false, floor: B, // (the save asked where the floor keeps one: js/roam.js R.canSave's rule)
       after: function () { R0.members.forEach(function (u) { var sh = u.src && byKey[u.src.key || u.src.id]; if (sh) { u.src.conds = JSON.parse(JSON.stringify(sh.conds || {})); R.resheet(B, u, sh); } }); R.regear(B); },
       saveAt: function () { H.cur.at = H.atOf(B); },
       done: function () { done = true; } });
