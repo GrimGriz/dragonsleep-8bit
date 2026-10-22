@@ -110,7 +110,7 @@ FPS = {'idle': 5, 'walk': 8, 'attack': 10, 'battleaxe': 10, 'morningstar': 10, '
 TONE = {2: (0.932, 0.970, 1.055), 3: (0.904, 0.939, 1.016), 4: (0.894, 0.918, 0.933)}
 FIT = (2, 3)          # the sheets whose rows meet their own idle by area (fits below)
 HEIGHT = 98           # the side idle, standing px
-FH, AY = 148, 136
+FH, AY = 162, 150     # (14 px more over the foot since 10-22: ART-35's SE battleaxe 3 raises its axe to 143)
 
 
 def toned(im, f):
@@ -247,6 +247,69 @@ def fits(c):
     return f
 
 
+# ---------------------------------------------------------------- ART-35 (10-22, the monster cutter seat's third run, on Griz's "close the desk but
+# have the cutter run us out of usage for the week. See y'all tueday"): the art desk's facings package -- HEAD 1 SE and HEAD 2 NE on three pages each
+# (Idle 6 + Walk 8; Battleaxe 6 + Morningstar 6; Flinch 4 + Fall 6 + Prone 2), HEAD 3 S and HEAD 5 N their Fall 6 + Prone 2 only (no HEAD 4: E stays
+# sheet 1's side rows). Sorted out of Fresh into _src/ettin/ART-35/ by _src/art-desk/sort-delivery.py. Cut and scaled by tools/artdesk.py: SE's Idle
+# meets the mean of this sheet's side and front idles, NE's of its side and back (the facings ruling's rule), a later page by its first standing
+# frame, S's and N's Fall 1 their front's and back's idle; toned per channel to this sheet's own frame for the view. The boxes by the seat's draft
+# (each page's bodies into its bands -- the art desk's table for a manifest, the zip had none), two pages by hand.
+AD = _load('artdesk', os.path.join(ROOT, 'tools', 'artdesk.py'))
+
+def R(*rows):
+    return [(r, b, s, n) for r, b, s, n, _ in rows], {r: xs for r, _, _, _, xs in rows}
+
+SPEC35 = {
+  'H1P1': (dict(file='ART-35_HEAD-1_PAGE-1.png', W=2032, text=[(27, 522, 70, 558), (28, 192, 71, 229), (62, 530, 89, 558), (68, 192, 106, 229), (86, 521, 130, 558), (240, 645, 259, 674), (275, 310, 293, 338), (469, 646, 490, 674), (577, 310, 598, 338), (700, 645, 721, 674), (882, 310, 903, 338), (933, 646, 955, 674), (1157, 645, 1178, 674), (1168, 310, 1190, 338), (1388, 645, 1409, 674), (1458, 310, 1478, 339), (1615, 645, 1637, 674), (1760, 310, 1781, 338), (1860, 645, 1881, 674)]),
+           R(('idle', (0, 0, 2032, 409), (271, 409), 6, [300, 602, 902, 1188, 1478, 1776]), ('walk', (0, 410, 2032, 771), (597, 771), 8, [258, 486, 718, 956, 1181, 1406, 1645, 1882]))),
+  'H1P2': (dict(file='ART-35_HEAD-1_PAGE-2.png', W=1774, text=[(15, 260, 41, 291), (15, 620, 46, 650), (38, 267, 61, 291), (42, 626, 62, 650), (56, 261, 73, 291), (57, 626, 75, 650), (68, 261, 86, 291), (71, 626, 103, 650), (81, 258, 114, 291), (98, 626, 120, 650), (110, 266, 133, 291), (115, 626, 136, 656), (128, 267, 154, 291), (132, 622, 162, 650), (149, 267, 171, 291), (158, 626, 192, 650), (296, 405, 314, 435), (296, 762, 314, 791), (557, 405, 578, 435), (557, 762, 578, 792), (814, 405, 836, 435), (814, 762, 836, 791), (1060, 762, 1084, 792), (1061, 405, 1084, 435), (1350, 405, 1371, 435), (1351, 762, 1371, 791), (1611, 405, 1633, 435), (1611, 762, 1633, 791)]),
+           R(('battleaxe', (0, 0, 1774, 518), (368, 518), 6, [314, 575, 816, 1095, 1356, 1629]), ('morningstar', (0, 519, 1774, 884), (724, 884), 6, [315, 584, 833, 1093, 1363, 1630]))),
+  'H1P3': (dict(file='ART-35_HEAD-1_PAGE-3.png', W=1536, text=[(22, 197, 45, 227), (22, 537, 46, 567), (22, 826, 46, 856), (40, 197, 56, 227), (41, 833, 61, 855), (42, 544, 65, 567), (51, 197, 67, 227), (60, 537, 76, 567), (62, 204, 87, 227), (72, 537, 87, 567), (73, 833, 97, 856), (83, 204, 103, 227), (92, 833, 112, 856), (98, 197, 123, 227), (236, 633, 252, 661), (599, 933, 619, 962), (668, 647, 688, 674), (895, 655, 915, 682), (899, 315, 919, 344), (1138, 655, 1157, 682), (1231, 315, 1252, 344), (1385, 656, 1405, 682)]),
+           R(('flinch', (0, 0, 1536, 380), (273, 380), 4, [289, 589, 907, 1248]), ('fall', (0, 381, 1536, 734), (593, 734), 6, [233, 443, 669, 894, 1134, 1389]), ('prone', (0, 735, 1536, 1021), (906, 1021), 2, [299, 597]))),
+  'H2P2': (dict(file='ART-35_HEAD-2_PAGE-2.png', W=1815, text=[(13, 604, 38, 627), (19, 239, 40, 265), (32, 608, 49, 627), (37, 245, 56, 265), (43, 608, 59, 627), (51, 240, 65, 265), (54, 608, 73, 627), (60, 240, 75, 265), (68, 604, 94, 627), (70, 239, 97, 265), (89, 608, 116, 632), (92, 245, 126, 265), (111, 604, 135, 627), (121, 245, 138, 265), (130, 608, 146, 627), (254, 750, 271, 778), (256, 384, 274, 411), (523, 384, 544, 411), (523, 752, 543, 779), (791, 384, 812, 411), (791, 753, 812, 779), (1055, 384, 1078, 411), (1055, 752, 1078, 779), (1345, 754, 1366, 781), (1346, 384, 1367, 411), (1620, 384, 1642, 411), (1620, 751, 1641, 779)]),
+           R(('battleaxe', (0, 0, 1815, 427), (349, 427), 6, [267, 537, 810, 1081, 1363, 1639]), ('morningstar', (0, 428, 1815, 864), (712, 864), 6, [265, 548, 813, 1092, 1361, 1638]))),
+  'H2P3': (dict(file='ART-35_HEAD-2_PAGE-3.png', W=1536, text=[(20, 177, 42, 204), (20, 511, 42, 538), (20, 832, 43, 859), (37, 176, 52, 204), (38, 516, 59, 538), (38, 837, 58, 859), (48, 175, 62, 204), (54, 837, 75, 859), (55, 511, 70, 538), (58, 182, 83, 204), (66, 511, 81, 538), (71, 837, 96, 859), (79, 182, 98, 204), (91, 837, 111, 859), (93, 176, 117, 204), (205, 647, 221, 673), (223, 317, 240, 343), (276, 938, 292, 964), (417, 647, 436, 673), (541, 316, 560, 343), (630, 648, 649, 673), (667, 934, 686, 960), (864, 317, 883, 343), (884, 654, 905, 680), (1133, 655, 1152, 681), (1153, 317, 1174, 343), (1385, 655, 1404, 681)]),
+           R(('flinch', (0, 0, 1536, 413), (276, 413), 4, [249, 570, 881, 1178]), ('fall', (0, 414, 1536, 751), (598, 751), 6, [209, 415, 658, 916, 1156, 1390]), ('prone', (0, 752, 1536, 1021), (882, 1021), 2, [302, 693]))),
+  'H3P1': (dict(file='ART-35_HEAD-3_PAGE-1.png', W=1983, text=[(15, 530, 45, 561), (37, 171, 72, 202), (60, 537, 83, 561), (67, 171, 84, 202), (79, 537, 123, 561), (213, 396, 231, 425), (514, 396, 537, 425), (534, 684, 553, 713), (829, 396, 852, 425), (992, 683, 1015, 713), (1149, 396, 1172, 425), (1788, 396, 1810, 425)]),
+           R(('fall', (0, 0, 1983, 496), (353, 496), 6, [223, 528, 841, 1170, 1479, 1798]), ('prone', (0, 497, 1983, 790), (627, 790), 2, [561, 1004]))),
+  'H2P1': (dict(file='ART-35_HEAD-2_PAGE-1.png', W=1810, text=[(21, 229, 95, 264), (20, 581, 106, 616)]),     # (by hand: two walkers touch)
+           R(('idle', (0, 0, 1810, 419), (392, 418), 6, [250, 518, 784, 1052, 1330, 1612]), ('walk', (0, 420, 1810, 781), (754, 780), 8, [218, 429, 642, 850, 1063, 1276, 1484, 1692]))),
+  'H5P1': (dict(file='ART-35_HEAD-5_PAGE-1.png', W=1774, text=[(21, 264, 92, 297), (21, 608, 129, 640)]),     # (by hand: two falls touch)
+           R(('fall', (0, 0, 1774, 438), (410, 437), 6, [240, 511, 766, 1026, 1309, 1579]), ('prone', (0, 439, 1774, 767), (740, 766), 2, [284, 652]))),
+}
+PAGES35 = {L: dict(p, rows=rows, xs=xs) for L, (p, (rows, xs)) in SPEC35.items()}
+for _L, _bs in {'H3P1': [(10, 160, 120, 205), (10, 530, 125, 565)], 'H1P3': [(18, 820, 126, 862)]}.items():     # (three label letters outside the draft's boxes)
+    PAGES35[_L]['text'] = PAGES35[_L]['text'] + _bs
+VIEWS35 = {'SE': ('H1P1', 'H1P2', 'H1P3'), 'NE': ('H2P1', 'H2P2', 'H2P3'), 'S': ('H3P1',), 'N': ('H5P1',)}
+ENG35 = {'idle': 'idle', 'walk': 'walk', 'attack': 'battleaxe', 'battleaxe': 'battleaxe', 'morningstar': 'morningstar', 'flinch': 'flinch',
+         'hurt': 'fall', 'prone': 'prone'}
+
+
+def art35(frames_of):
+    """{view: {engine row: [(1x frame, core x, up)]}} from ART-35, at this sheet's sizes"""
+    fit = lambda im, k: game_frame(im, k)
+    tall = lambda a: int(np.ptp(np.where(a[..., 3].any(axis=1))[0]) + 1)
+    own = {'side': frames_of(1, 'idle'), 'S': frames_of(2, 'idle'), 'N': frames_of(3, 'idle')}
+    idle_h = {v: float(np.median([tall(a) for a, _, _ in fs])) for v, fs in own.items()}
+    cuts = AD.cut(ROOT, 'ettin', 'ART-35', PAGES35)
+    K = AD.scales(cuts, VIEWS35, idle_h, fit)
+    T = AD.tones(cuts, VIEWS35, K, fit, {v: fs[0][0] for v, fs in own.items()})
+    print('  ART-35 K: ' + ', '.join('%s %.2f' % (L, K[L]) for L in PAGES35) + '; this sheet stands %.0f side-on, %.0f front, %.0f back' % (idle_h['side'], idle_h['S'], idle_h['N']))
+    out = {}
+    for v, ls in VIEWS35.items():
+        rows = {}
+        for L in ls:
+            for r, frs in cuts[L].items():
+                floor = max(b[3] for _, b, _ in frs)
+                fs = []
+                for im, box, _ in frs:
+                    a = game_frame(toned(im, T[L]), K[L])
+                    fs.append((a, core_x(a), int(round((floor - box[3]) / K[L]))))
+                rows[r] = fs
+        out[v] = {eng: (rows[r][::-1] if eng == 'prone' else rows[r]) for eng, r in ENG35.items() if r in rows}
+    return out
+
+
 def main(check=False):
     c = {L: cut(L, check) for L in SHEETS}
     K = scales(c)
@@ -263,6 +326,7 @@ def main(check=False):
                 out.append((a, core_x(a), int(round((floor - box[3]) / k))))
             small[(L, row)] = out
         return small[(L, row)]
+    A35 = art35(frames_of)
     src = {}
     for eng, by in ROWS.items():
         L, row = by if isinstance(by, tuple) else (1, by)
@@ -271,7 +335,10 @@ def main(check=False):
             side = side[::-1]                            # pushing up, then lying: it lies at its last frame and gets up by playing it backwards
         per = []
         for f in range(8):
-            if f == 0 and row in FRONT:
+            v35 = {7: 'SE', 1: 'SE', 5: 'NE', 3: 'NE', 0: 'S', 4: 'N'}.get(f)        # (ART-35: SW and NW mirrored below, as every west)
+            if v35 and eng in A35.get(v35, {}):
+                per.append(A35[v35][eng])
+            elif f == 0 and row in FRONT:
                 per.append(frames_of(2, row))
             elif f == 4 and row in BACK:
                 per.append(frames_of(3, row))
