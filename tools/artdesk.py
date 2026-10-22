@@ -49,7 +49,7 @@ def tall(a):
     return int(ys[-1] - ys[0] + 1)
 
 
-def cut(root, sub, art, pages, chan=None, fix=None):
+def cut(root, sub, art, pages, chan=None, fix=None, cuts=None):
     """-> {L: {row: [(page image, its box, its number's x)]}}"""
     SR = _sheetrows(root)
     out = {}
@@ -60,7 +60,7 @@ def cut(root, sub, art, pages, chan=None, fix=None):
                   rows=[(r, b, l, [str(i + 1) for i in range(n)]) for r, b, l, n in s['rows']])
         if chan:
             sp['chan'] = chan
-        got = SR.cut_sheet(path, sp, fix=(fix or {}).get(L), tag=L)
+        got = SR.cut_sheet(path, sp, fix=(fix or {}).get(L), cuts=(cuts or {}).get(L), tag=L)
         lx = {r: SR.label_xs(a, b[0], b[2], l[0], l[1]) for r, b, l, _ in s['rows']}
         out[L] = {r: [(im, box, lx[r][i]) for i, (_, im, box) in enumerate(frs)] for r, frs in got.items()}
     return out
@@ -116,10 +116,11 @@ def tones(cuts, view_pages, K, fit, ref):
     return T
 
 
-def views(root, sub, art, pages, view_pages, idle_h, fit, torso_x, cell, chan=None, fix=None, tone_ref=None):
-    """tone_ref: the sheet's own frames to tone each page to (see `tones`), or None to cut the pages' colour as drawn"""
+def views(root, sub, art, pages, view_pages, idle_h, fit, torso_x, cell, chan=None, fix=None, tone_ref=None, cuts=None):
+    """tone_ref: the sheet's own frames to tone each page to (see `tones`), or None to cut the pages' colour as drawn; fix and cuts:
+    sheetrows' own, a page at a time ({L: {row: [...]}}: a loose part's box and its frame, a line cleared where two frames touch)"""
     FW, FH, AX, AY = cell
-    cuts = cut(root, sub, art, pages, chan, fix)
+    cuts = cut(root, sub, art, pages, chan, fix, cuts)          # (the cut lines in, the cut frames out)
     K = scales(cuts, view_pages, idle_h, fit)
     print('  %s K: ' % art + ', '.join('%s %.2f' % (L, K[L]) for L in pages) +
           '; the sheet stands %.0f side-on, %.0f from the front, %.0f from behind' % (idle_h['side'], idle_h['S'], idle_h['N']))
