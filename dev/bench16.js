@@ -1951,15 +1951,15 @@
       okM('Skarn\'s gate (S.skarnGate): it swings back for the party Skarn took on and stays open (' + D.roam.def.rows[19].substr(17, 2) + ', skarnGateOpen ' + BB.roam.flags.skarnGateOpen + ')', BB.roam.flags.skarnGateOpen === 1 && D.roam.def.rows[19].substr(17, 2) === '..' && BB.map.at(17, 19).walk && gB.seen.indexOf(textM('w.gateOpens')) >= 0);
       var nG = walkM(BB, [17, 15]);
       okM('through the gate to the galleries above it (' + nG + ' steps, on ' + BB.roam.token.x + ',' + BB.roam.token.y + ')', BB.roam.token.x === 17 && BB.roam.token.y === 15);
-      walkM(BB, [12, 1]);
-      okM('the stair to the Wet (12,1): the dark floors wait for the grid\'s roam -- said, and the party kept (' + (D.top() === BB) + ', on ' + BB.roam.token.x + ',' + BB.roam.token.y + ')', D.top() === BB && D.roam.def.key === 'warrens_b' && (BB.cards || []).some(function (c) { return c.lines.some(function (l) { return /dark floors/.test(l); }); }));
+      var wpB = (D.roam.def.warps || []).filter(function (z) { return z.at[0] === 12 && z.at[1] === 1; })[0]; // (walked in the house since 10-22: mode=wet1022, the Wet seat)
+      okM('the stair to the Wet (12,1): the way down to the Wet on the grid (' + (wpB && wpB.to) + ' as ' + (wpB && MM.KEY8[wpB.to]) + ', the house\'s floor since 10-22)', !!wpB && wpB.to === 'warrens_d' && MM.KEY8[wpB.to] === 'wet' && MM.ROAMS.wet.save === false);
       walkM(BB, [13, 27]); var BW2 = topM();
       okM('back up to the mouth camp, on the first game\'s square below the mouth (' + BW2.roam.token.x + ',' + BW2.roam.token.y + ')', D.roam.def.key === 'warrens' && BW2.roam.token.x === 15 && BW2.roam.token.y === 5 && BW2.roam.flags.skarnGateOpen === 1);
       // the abandoned workings (warrens_c: the night crews' lateral way down from mouths 1 and 6, dark, its random fights), the Wet below them held
       walkM(BW2, [3, 4]); walkM(BW2, [3, 3]); var BC = topM(), dC = D.roam.def, RC = BC.roam;
       okM('mouth one (3,3) to the abandoned workings (warrens_c, ' + dC.w + ' x ' + dC.h + ', dark ' + dC.dark + ', fights ' + dC.zone8 + ', chests ' + dC.src8.chests.length + '), in on ' + RC.token.x + ',' + RC.token.y, dC.key === 'warrens_c' && dC.dark && dC.zone8 === 'warrens_c' && dC.src8.chests.length === 3 && RC.token.x === 2 && RC.token.y === 16);
-      walkM(BC, [24, 2]); walkM(BC, [24, 1]);
-      okM('the workings\' way down to the Wet (24,1): held, said, the party kept', D.top() === BC && D.roam.def.key === 'warrens_c' && (BC.cards || []).some(function (c) { return c.lines.some(function (l) { return /dark floors/.test(l); }); }));
+      var wpC = (D.roam.def.warps || []).filter(function (z) { return z.at[0] === 24 && z.at[1] === 1; })[0];
+      okM('the workings\' way down to the Wet (24,1): the Wet on the grid (' + (wpC && wpC.to) + ' as ' + (wpC && MM.KEY8[wpC.to]) + ', walked by mode=wet1022)', !!wpC && wpC.to === 'warrens_d' && MM.KEY8[wpC.to] === 'wet');
       walkM(BC, [45, 16]); walkM(BC, [45, 17]); var BW4 = topM();
       okM('out by mouth six\'s stair (45,17): the mouth camp, below mouth six (' + D.roam.def.key + ', ' + BW4.roam.token.x + ',' + BW4.roam.token.y + ')', D.roam.def.key === 'warrens' && BW4.roam.token.x === 33 && BW4.roam.token.y === 5);
       // the bunkhouses (RULED 10-21 night, his "the bunkhouses wouldn't need watching (watched by staff) - free/cheap inn function"): a bed, no watch, the long rest
@@ -2987,6 +2987,48 @@
     D.store.get = stGHs; D.store.set = stSHs; if (D.house) { D.house.playing = false; D.house.cur = null; }
     var preHs = document.createElement('pre'); preHs.id = 'out'; preHs.textContent = 'BENCH16 ' + JSON.stringify(repHs);
     document.body.appendChild(preHs);
+    return;
+  }
+  // THE WET ON THE HOUSE, 10-22 (mode=wet1022; ..\handoff-2026-10-21-the-second-games-house.md, the lanes desk's 10-22 section -- Griz: "yeah, work the wet - we have second
+  // game saves matching the first now, everything should be there it needs for handoff"): the Wet walked as the house's floor -- in by the stalls' stair and the workings',
+  // out by them again with the flags and the pack; no SAVE there; and nothing it does ever handed to the 8-bit (deep16/js/embed.js roamOut, stubbed here, counts each try)
+  if (get('mode', '') === 'wet1022') {
+    var repX = { checks: [], errors: [] }, memX = {}, MX = D.mines, HX = D.house, CX = D.counter, RX = D.roam, handX = [], embX = D.embed || (D.embed = {}), outX0 = embX.roamOut;
+    function okX(what, v) { repX.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function driveX(g, until, cap) { var v, k = 0, st; while (k++ < (cap || 4000)) { if (until && until()) return true; st = g.next(v); v = undefined; if (st.done) return !!(until && until()); if (typeof st.value === 'number' && D.battle) D.battle.t += Math.max(1, st.value); if (st.value && st.value.prompt) v = st.value.prompt.opts[driveX.pick || 0].value; } return !!(until && until()); }
+    function topX() { var s = D.top(); if (s && s.baking) { s.baking = false; s.enter(); } if (s && s.roam) driveX(s.co, null, 2); return s; }
+    // walk the token by the floor's own route to a square, till it is there or the floor changes (no random fight on the way: the bench calls its own)
+    function walkX(B, to) { var R0 = B.roam, p = RX.walkRoute(R0.token, to); if (!p) return null; B.cards = []; R0.encIn = 1e9; R0.path = p.slice(); driveX(B.co, function () { return D.top() !== B || (R0.token.x === to[0] && R0.token.y === to[1] && !(R0.path && R0.path.length)); }, 20000); if (D.top() === B) driveX(B.co, function () { return D.top() !== B; }, 80); return p.length; }
+    function cardsX(B) { return (B.cards || []).map(function (c) { return c.lines.join(' '); }).join(' / '); }
+    function houseFloorX(q, at) { var B = RX.make(q, { save: HX.living(HX.cur), opts: { at8: at.slice() }, house: true }); D.push(B); return topX(); }
+    D.store.get = function (k) { return memX[k] ? JSON.parse(memX[k]) : null; }; D.store.set = function (k, v) { memX[k] = JSON.stringify(v); return true; };
+    embX.roamOut = function (m) { handX.push(m && (m.kind || m.type)); }; // (the 8-bit's seam: anything sent through it is a hand-out the second game must not make)
+    window.DS.autoPicks = true;
+    try {
+      D.seed = +get('seed', 1022);
+      // A. THE WAY IN AND OUT: a NEW GAME's four on the stalls, Skarn's gate open (the first game's flags by their names)
+      var recX = HX.fresh(); recX.at = { town: null }; HX.begin(recX, 0); HX.cur.flags = { tallyMet: 1, skarnOk: 1, skarnGateOpen: 1 };
+      var BS = houseFloorX('?roam=warrens_b&at=12,3', [12, 3]);
+      okX('the house on the stalls (warrens_b), at 12,3', RX.house() && D.roam.def.key === 'warrens_b' && BS.roam.token.x === 12 && BS.roam.token.y === 3);
+      walkX(BS, [12, 1]); var BW = topX(), dW = D.roam.def, tW = BW.roam.token, eW = dW.from8 ? dW.from8(2, 12) : [-1, -1];
+      okX('down the stalls\' stair (12,1): the Wet, the house\'s floor (' + dW.name + ', wet ' + dW.wet + '), on the first game\'s square below its stair (8-bit 2,12: ' + tW.x + ',' + tW.y + '), the flags carried (skarnGateOpen ' + BW.roam.flags.skarnGateOpen + ')',
+        BW !== BS && !!dW.wet && RX.house() && tW.x === eW[0] && tW.y === eW[1] && BW.roam.flags.skarnGateOpen === 1);
+      okX('no SAVE on the Wet, as the first game has none there (warrens_d save ' + dW.src8.save + ')', !RX.canSave(BW) && dW.src8.save === false);
+      BW.roam.flags.wetX = 1; RX.give(BW, 'bucket', 1, 'the bench'); var upW = dW.from8(1, 12);
+      walkX(BW, upW); var BS2 = topX();
+      okX('up its stair (8-bit 1,12): the stalls again on 12,2 (' + D.roam.def.key + ' ' + BS2.roam.token.x + ',' + BS2.roam.token.y + '), the Wet\'s flag and the bucket in the save (' + HX.cur.flags.wetX + ', ' + JSON.stringify(HX.cur.inv.filter(function (s) { return s.id === 'bucket'; })) + ')',
+        D.roam.def.key === 'warrens_b' && BS2.roam.token.x === 12 && BS2.roam.token.y === 2 && HX.cur.flags.wetX === 1 && HX.cur.inv.some(function (s) { return s.id === 'bucket' && s.n === 1; }) && BS2.roam.flags.wetX === 1);
+      var BC = houseFloorX('?roam=warrens_c&at=24,2', [24, 2]); walkX(BC, [24, 1]); var BW2 = topX(), eW2 = D.roam.def.from8 ? D.roam.def.from8(41, 26) : [-1, -1];
+      okX('the workings\' way down (24,1): the Wet at the first game\'s 41,26 (' + BW2.roam.token.x + ',' + BW2.roam.token.y + ')', !!D.roam.def.wet && BW2.roam.token.x === eW2[0] && BW2.roam.token.y === eW2[1]);
+      walkX(BW2, D.roam.def.from8(41, 27)); var BC2 = topX();
+      okX('and back up (8-bit 41,27): the workings on 24,2 (' + D.roam.def.key + ' ' + BC2.roam.token.x + ',' + BC2.roam.token.y + ')', D.roam.def.key === 'warrens_c' && BC2.roam.token.x === 24 && BC2.roam.token.y === 2);
+      okX('nothing handed to the 8-bit on the way (' + handX.length + ': ' + handX.join(', ') + ')', !handX.length);
+    } catch (eX) { repX.errors.push(String(eX && eX.stack || eX)); }
+    embX.roamOut = outX0; if (HX) { HX.playing = false; HX.cur = null; }
+    var fX = repX.checks.filter(function (c) { return /^FAIL/.test(c); }).length;
+    repX.ok = !fX && !repX.errors.length; repX.summary = (repX.checks.length - fX) + '/' + repX.checks.length + ' checks';
+    var preX = document.createElement('pre'); preX.id = 'out'; preX.textContent = 'BENCH16 ' + JSON.stringify(repX);
+    document.body.appendChild(preX);
     return;
   }
   // SILVERTON'S SERVICES, 10-22 (mode=services1022; deep16/js/counter.js C.inn, C.chapel, C.leech, C.hessle, the show ?services; deep16/js/house.js THE MORNING, H.sleepOnFloor,

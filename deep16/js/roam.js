@@ -435,6 +435,9 @@
       var up = R.def.stairUp.some(function (d) { return d[0] === t.x && d[1] === t.y; });
       if (R.def.room) { yield* D.town.goOut(B); return 'door'; } // (a room's door: back to the street -- js/town.js)
       if (R.def.town) { yield* D.town.wayOut(B, [t.x, t.y]); return 'door'; } // (the town's roads off the floor: the world map takes the party on there, later -- js/town.js)
+      // the house's Wet (10-22, the Wet seat): its stairs up to the stalls and the workings are the top levels' floors, walked as their own ways are (js/mines.js M.warp: the
+      // party into the save and on); a way to a floor the grid has not got (the Burial, drained) is said there, the party kept
+      if (R.house() && R.def.wet && D.mines) { var wh = R.warpsOn(R.def.src8, R0.flags).filter(function (w) { return w.x === p8[0] && w.y === p8[1]; })[0]; if (wh) { yield* D.mines.warp(B, wh); return 'door'; } }
       if (R.emb) { yield* R.leaveFloor(B, 'out', [t.x, t.y]); return 'door'; } // (inside the 8-bit: off the floor, and the 8-bit takes its own warp from this square)
       var w8 = R.warpsOn(R.def.src8, R0.flags).filter(function (w) { return w.x === p8[0] && w.y === p8[1]; })[0], to8 = w8 ? w8.to : up ? 'warrens_b' : 'warrens_c', nm8 = ((window.DS.DATA.maps || {})[to8] || {}).name || to8; // (the map's own warp: the Burial's too, drained)
       B.card(R.wrap(['{y}The way to ' + nm8 + '{/}: here the 8-bit takes the party on (' + to8 + ').', '{g}(the test keeps you on the Wet){/}']), 300);

@@ -38,7 +38,11 @@
   };
   // (the top levels, RULED 10-21 night, Griz to the desk: "rather than the cloaker fight, that hole floor. above it are top levels" -- the Galleries' to the dens, the deep
   // gallery the hole floor below; the Warrens' to the abandoned workings, the Wet below them already the grid's own)
-  M.KEY8 = { warrens_a: 'warrens', warrens_b: 'warrens_b', warrens_c: 'warrens_c', galleries_g1: 'galleries', galleries_g2: 'galleries_g2', galleries_g3: 'galleries_g3' };
+  M.KEY8 = { warrens_a: 'warrens', warrens_b: 'warrens_b', warrens_c: 'warrens_c', warrens_d: 'wet', galleries_g1: 'galleries', galleries_g2: 'galleries_g2', galleries_g3: 'galleries_g3' };
+  // the floors below that are the grid's own roam, not these tiles: the Wet (js/roam.js R.wholeWet, the whole of warrens_d turned as the Settling's grid is), the house's floor
+  // since 10-22 (the lanes desk, Griz: "yeah, work the wet - we have second game saves matching the first now, everything should be there it needs for handoff") -- in by the
+  // stalls' stair and the workings', out by them again (js/roam.js R.landed); no SAVE there, as the first game has none
+  M.ROAMS = { wet: { place: 'The Crawler Warrens', sub: 'the Wet', save: false } };
   M.FEED = [78, 10]; // (Silverton's feed track where it runs off the town floor's east edge -- the bench checks it is still the feed track's: mode=toplevels1021)
   M.key = function (q) { var m = /[?&]roam=([a-z0-9_]+)/.exec(q || ''); return m && M.FLOORS[m[1]] ? m[1] : null; };
 
@@ -144,7 +148,7 @@
   };
 
   // ---------------------------------------------------------------- the ways: down and up between a place's floors, the dark floors waiting, out to THE WORLD or Silverton
-  M.held = function (to) { var n8 = ((DS.DATA.maps[to] || {}).name || to); return ['{y}' + n8 + '{/}.', '{g}The dark floors below come onto the grid with its roam (the Wet is there already, held for the house). The party keeps to the lit floors for now.{/}']; };
+  M.held = function (to) { var n8 = ((DS.DATA.maps[to] || {}).name || to); return ['{y}' + n8 + '{/}.', '{g}The dark floors below come onto the grid with its roam. The party keeps to the floors it has for now.{/}']; };
   // what is always lit on the party (the first game's EV.alight('always'): the Sunshaft Staff, a Continual Flame -- worn, wielded, or in the pack)
   M.alight = function (st) {
     var out = [], lit = function (id) { var it = id && DS.DATA.items[id]; return !!(it && it.light && it.light.when === 'always'); };
@@ -166,13 +170,15 @@
   M.stepBack = function (B) { var R0 = B.roam, t = R0.token, f = R0.fw; if (D.grid.canStand(t, t.x - f[0], t.y - f[1])) { t.x -= f[0]; t.y -= f[1]; t.tween = null; R0.path = null; D.grid.setup(B.map, B.units); B.focus(t); } };
   // to another of these floors: the house's party handed into the save and walked on (js/house.js H.fromFloor, as a town's door is); the test door's four carry the floor's flags
   M.go = function* (B, key, at, face, lines) {
-    var R = D.roam, H = D.house, q = '?roam=' + key + '&at=' + at[0] + ',' + at[1] + (face ? '&face=' + face[0] + ',' + face[1] : ''), F = M.FLOORS[key];
+    var R = D.roam, H = D.house, q = '?roam=' + key + '&at=' + at[0] + ',' + at[1] + (face ? '&face=' + face[0] + ',' + face[1] : ''), F = M.FLOORS[key] || M.ROAMS[key];
     B.card(['{y}' + F.place + '{/} -- ' + F.sub + '.'], 60); D.sfx('stairs'); yield 20;
     var back = M.giveBack(B, key), nb;
+    // (into the Wet: the first game's way it faces, by name -- the Wet's grid is turned, and js/roam.js R.setup reads the 8-bit's compass off it)
+    var dir8 = M.ROAMS[key] && face ? Object.keys(M.FACE).filter(function (k) { return M.FACE[k][0] === face[0] && M.FACE[k][1] === face[1]; })[0] || null : null;
     if (R.house() && H && H.playing) {
       H.fromFloor(B); M.off(B);
       if (F.save) H.cur.at = { town: F.door, gate: null, sq: null, dir: null };
-      nb = R.make(q, { save: H.living(H.cur), opts: { at8: at.slice() }, house: true });
+      nb = R.make(q, { save: H.living(H.cur), opts: dir8 ? { at8: at.slice(), dir: dir8 } : { at8: at.slice() }, house: true });
     } else nb = M.testMake(B, key, q);
     var say = (lines || []).concat(back), en = nb.enter;
     if (say.length) nb.enter = function () { en.apply(this, arguments); this.card(R.wrap(say), 300); }; // (said as the floor comes up -- it may bake first: core.js D.push)
@@ -186,7 +192,12 @@
     M.off(B);
     var nb = R.make(q + watch), en = nb.enter; R.flags0 = fl;
     if (M.FLOORS[key]) R.def = M.floor(key, q + watch, fl);
-    nb.enter = function () { en.apply(this, arguments); this.inv = inv; this.roam.silver = sp; };
+    var a8 = M.ROAMS[key] ? /[?&]at=(\d+),(\d+)/.exec(q) : null;
+    if (key === 'wet') R.def = R.wholeWet(fl); // (the Wet laid by the flags it is walked into with: the drained stair's tiles)
+    nb.enter = function () {
+      en.apply(this, arguments); this.inv = inv; this.roam.silver = sp;
+      if (a8) { var t = this.roam.token, e8 = R.def.from8(+a8[1], +a8[2]); if (D.grid.canStand(t, e8[0], e8[1])) { t.x = e8[0]; t.y = e8[1]; D.grid.setup(this.map, this.units); this.focus(t); } } // (on the first game's square the stair sets them down on, as the house's floor is: R.setup's at8)
+    };
     return nb;
   };
   // what Ottilie kept at the mouth, back in the pack as the party comes out of the roost (the first game's S['enter:galleries_g1'])
