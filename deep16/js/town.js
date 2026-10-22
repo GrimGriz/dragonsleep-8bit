@@ -29,6 +29,17 @@
   // ground falling DROP ft southward between SLOPE[0] and SLOPE[1] (v6's feet: the first sixty feet off the street), and level from there to the south gate
   var T_MAMA = [1435, 1295, 24]; // (Mama's booth, in v6's feet: its middle and its side -- outside the Hex's north-east, by the plaza)
   T.MAMA = T_MAMA; T.ZOOMSTEP = 1; T.OWNFT = 20; T.BOOTH = 24; // (OWNFT: how near v6's house a pin stands to be that house's door; BOOTH: the side of a booth for a pin with none, as Mama's)
+  // the buildings of their own for the pins v6 sets in open ground, sized by what each is (10-22, the desk's calls standing for Griz's overrule: "a building of its own at
+  // each pin with its door in the south wall. Size each by what it is, per the wiki"): Vilar the show-armorer's forge-booth on Mama's pattern; Davos Kren's leech-house, the
+  // arena's own surgery (the-hex.md's fighter trade), a small house round the room of cots the game builds behind its door (T.TRADE), the pin a square inside its south
+  // wall. Any other pin with no house gets Mama's booth. invented.json vilar-forge-booth, davos-leech-house
+  T.PINHOUSE = { 'shop:vilar': { booth: true, ch: 'n' }, 'leech:davos': { room: true, ch: 'b' } };
+  T.ROOMSIZE = { s: [10, 8], m: [12, 10], l: [16, 12] }; // (a room's size by its trade, in squares at T.FT: T.room)
+  T.pinHouse = function (id) {
+    var o = T.PINHOUSE[id] || { booth: true, ch: 'n' }, t = o.room && T.TRADE[id], S = t && T.ROOMSIZE[t.size];
+    if (!S) return { w: T.BOOTH, h: T.BOOTH, dy: 0, ch: o.ch }; // (a booth, centred on its pin as Mama's is)
+    return { w: S[0] * T.FT, h: S[1] * T.FT, dy: -S[1] * T.FT / 2 + T.FT, ch: o.ch };
+  };
   // (ZOOMSTEP: the town's own zoom, a step out from the closest -- his "default zoom one step further out")
   T.SLOPE = [560, 620]; T.DROP = 30; T.FRONT = 60; T.RUN = 30; T.SHUT = 0.08; // (SHUT: the share of houses showing a shut door) // (FRONT: how far south of the street the first houses may begin; RUN: the fall behind them, inside the lane)
 
@@ -85,7 +96,7 @@
     tag = 'mama'; rect(T.MAMA[0], T.MAMA[1], -T.MAMA[2] / 2, -T.MAMA[2] / 2, T.MAMA[2], T.MAMA[2], 0, 'n', null, true); tag = null;
     // whose building each door is (10-22, the desk's relay, on the house seat's open: "A door goes on the keeper's own building, never the next house along"): v6's house
     // or shack its pin stands in, or within T.OWNFT of (a pin set on the street at its front: Cassia's, Kess's); Mama's booth for hers; and a pin with no house that near
-    // -- Vilar's and Davos Kren's, out in the Arena Plaza among the stalls -- a booth of its own at the pin, as Mama's came (invented.json arena-plaza-booths)
+    // -- Vilar's and Davos Kren's, out in the Arena Plaza among the stalls -- a building of its own at the pin, sized by what it is (T.PINHOUSE), its door in the south wall
     var pinOf = function (d) { return d.at ? [d.at[0], d.at[1], d.pin] : V.PINS.filter(function (q) { return q[2] === d.pin; })[0]; }; // (`at`: a door moved off v6's pin -- Mama's booth)
     var boxFt = function (b, X, Y) { var c = Math.cos(b[6]), s = Math.sin(b[6]), dx = X - b[0], dy = Y - b[1], u = dx * c + dy * s - b[2], v = -dx * s + dy * c - b[3]; return Math.hypot(Math.max(0, -u, u - b[4]), Math.max(0, -v, v - b[5])); }; // (feet from the box, 0 inside)
     var whose = {};
@@ -94,14 +105,14 @@
       if (d.at) { whose[d.id] = 'mama'; return; }
       var best = null, bd = 1e9; BOX.forEach(function (o) { var f = boxFt(o.b, p[0], p[1]); if (f <= bd) { bd = f; best = o; } }); // (<=: the one laid last, on top, where two hold the pin)
       if (best && bd <= T.OWNFT) { whose[d.id] = best.tag; return; }
-      whose[d.id] = tag = 'booth:' + d.id; rect(p[0], p[1], -T.BOOTH / 2, -T.BOOTH / 2, T.BOOTH, T.BOOTH, 0, 'n', null, true); tag = null;
+      var ph = T.pinHouse(d.id); whose[d.id] = tag = 'pin:' + d.id; rect(p[0], p[1] + ph.dy, -ph.w / 2, -ph.h / 2, ph.w, ph.h, 0, ph.ch, null, true); tag = null;
     });
     // a door's building too small to hold a square's middle at this scale stands its middle square (on open ground only: never over another's)
     var sqOf = function () { var o = {}; for (var i2 = 0; i2 < g.length; i2++) if (own[i2] && T.ROOFS[g[i2]]) (o[own[i2]] = o[own[i2]] || []).push(i2); return o; }, have = sqOf();
     T.DOORS.forEach(function (d) {
       var tg = whose[d.id]; if (!tg || have[tg]) return;
-      var o = BOX.filter(function (z) { return z.tag === tg; })[0], m = o ? o.b : pinOf(d), gx = gxOf(m[0]), gy = gyOf(m[1]); // (a box's middle; a booth's, its pin)
-      if ('.,='.indexOf(at(gx, gy) || '#') >= 0) { tag = tg; set(gx, gy, o ? o.ch : 'n'); tag = null; sl[gy * w + gx] = 3; } // (one square: all ridge)
+      var o = BOX.filter(function (z) { return z.tag === tg; })[0], ph = o ? null : T.pinHouse(d.id), m = o ? o.b : [pinOf(d)[0], pinOf(d)[1] + ph.dy], gx = gxOf(m[0]), gy = gyOf(m[1]); // (a box's middle; a pin's own building's)
+      if ('.,='.indexOf(at(gx, gy) || '#') >= 0) { tag = tg; set(gx, gy, o ? o.ch : ph.ch); tag = null; sl[gy * w + gx] = 3; } // (one square: all ridge)
     });
     fill(V.EDW[0], T.Y0, V.EDW[1], V.EDBOT, function () { return true; }, '#'); // (the Edifice: the dwarves' facade in the mountain's face, drawn as the cliff it stands in)
     // the fountains at the Edifice's foot: a pool in a dressed rim (v6: the basin 30 ft across the rim, 22 the water)
@@ -459,7 +470,7 @@
   };
   T.KEEPER = { 'shop:kessler': 'Kessler', 'shop:calla': 'Calla Voss', 'shop:marko': 'Marko Thorne', 'shop:kasten': 'Kasten Wheal', 'shop:vilar': 'Vilar', 'shop:lisbet': 'Lisbet Crane', 'inn:cassia': 'Cassia', 'leech:davos': 'Davos Kren', 'warp:percy': 'Percy', 'warp:winters': 'Ambrose Winters', 'shop:lucia': 'Mama', 'keeper:aldric': 'Aldric Vest', 'keeper:sylvia': 'Sylvia Swann' }; // (the shops' keepers by the register; the keepers' own names come from the 8-bit's npcs)
   T.room = function (id, door) {
-    var t = T.TRADE[id] || { size: 'm', floor: 'o', goods: 'leather' }, S = { s: [10, 8], m: [12, 10], l: [16, 12] }[t.size] || [12, 10], w = S[0], h = S[1], g = [];
+    var t = T.TRADE[id] || { size: 'm', floor: 'o', goods: 'leather' }, S = T.ROOMSIZE[t.size] || [12, 10], w = S[0], h = S[1], g = [];
     for (var y = 0; y < h; y++) { g.push([]); for (var x = 0; x < w; x++) g[y].push(x === 0 || y === 0 || x === w - 1 || y === h - 1 ? 'b' : t.floor); }
     var set = function (x, y, c) { if (x > 0 && y > 0 && x < w - 1 && y < h - 1) g[y][x] = c; }, dx = t.door != null ? t.door : Math.floor(w / 2);
     g[h - 1][dx] = 'd';
