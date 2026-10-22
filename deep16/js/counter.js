@@ -24,7 +24,8 @@
   // shop, js/scenes.js Shop; 'magic' only magic items, C.magic); `script` a scene of its own (Winters'); `own` Griz's own, waiting on his word. A new vendor is a line
   C.VENDORS = {
     winters: { sheet: 'pt_winters', shop: 'winters', buys: 'magic', script: 'winters' }, // (his errands, then his shelves; he buys magic items only -- his word above)
-    casper: { sheet: 'pt_casper' }, androit: { sheet: 'pt_androit' }, hessle: { sheet: 'pt_hessle' }, aldric: { sheet: 'pt_aldric' },
+    casper: { sheet: 'pt_casper' }, androit: { sheet: 'pt_androit' }, aldric: { sheet: 'pt_aldric' },
+    hessle: { sheet: 'pt_hessle', script: 'hessle' }, // (the Weigh-House board's bounties, the first game's S.hessle: C.hessle, 10-22)
     kessler: { sheet: 'pt_kessler', shop: 'kessler' }, calla: { sheet: 'pt_calla', shop: 'calla' }, // (the pawnbroker and the apothecary sell and buy by their first-game shops -- 10-21, Griz: "Yes, open Kessler's and Calla Voss's counters with their first-game shops")
     barber: { sheet: 'pt_barber' },
     marin: { sheet: 'pt_marin' }, kasten: { sheet: 'pt_kasten' }, // (10-21, Griz: "is the marin voss lack the zip file I just put in Fresh? Lucia and 88 should be in there now")
@@ -33,7 +34,9 @@
     // the last six of art-wanted section 20, each on its first-game shop (10-21 evening, Griz to the lanes desk: "we have shopkeep NPCs in Fresh"; his "shops and the rest
     // of NPC portraits next session"): the show-armorer, the provisioner, charms and chalk, Percy's Particulars (a fifth for road harvest, rendered: its buyRate)
     vilar: { sheet: 'pt_vilar', shop: 'vilar' }, marko: { sheet: 'pt_marko', shop: 'marko' }, lisbet: { sheet: 'pt_lisbet', shop: 'lisbet' }, percy: { sheet: 'pt_percy', shop: 'percy' },
-    cassia: { sheet: 'pt_cassia', wait: 'The rooms -- a bed, the long room -- are to come.' }, // (the coaching inn: the counter screen has no rooms to let yet, so her counter speaks)
+    cassia: { sheet: 'pt_cassia', script: 'inn' }, // (the coaching inn: her rooms, the first game's S.inn -- C.inn, 10-22)
+    // the chapel and the leech-house (10-22, the services seat): no portrait yet, so the counter screen's plain shape where the face will go, as the keepers had before their art
+    aldwin: { script: 'chapel' }, davos: { name: 'Davos Kren', script: 'leech' },
     ned: { sheet: 'pt_ned', script: 'ned' }, // (Percy's partner, behind the same counter -- C.BESIDE; Percy's counter is Percy's face, Ned's own word his scene: C.ned)
     // two of the non-shop folk at their doors (10-21 night, Griz to the lanes desk: "non shop folk also have art in Fresh"): Mela Sorris of the Stew, and Mical of the
     // riverside warehouse, whose door signs Winters' crate off her books (her first-game talk, its `set` done by C.words); Mical sells nothing, so no line for a counter to come
@@ -436,11 +439,12 @@
     var nm = v.name || (door && door.name) || T.KEEPER['shop:' + id] || T.KEEPER['warp:' + id] || T.KEEPER['keeper:' + id] || T.KEEPER['inn:' + id] || N.name || id; // (inn: Cassia's)
     var rm = !kp && B.roam && D.roam.def && D.roam.def.room && (D.roam.def.beside || {})[id] ? D.roam.def : null; // (one who stands beside the keeper: Ned at Percy's)
     var o = { id: id, name: nm, place: kp ? kp.name : rm ? rm.name : (door && door.name) || nm, what: kp ? (kp.name !== nm ? nm + ' at the counter' : '') : rm ? nm + ', behind the counter' : (door && door.what) || '' };
-    o.script = v.script === 'winters' ? function (sc) { return C.winters(sc); } : v.script === 'ned' ? function (sc) { return C.ned(sc, B); } : shop && !v.own ? function (sc) { return C.shopkeeper(sc, B, id); } : function (sc) { return C.keeper(sc, B, id); };
+    o.script = v.script === 'winters' ? function (sc) { return C.winters(sc); } : v.script === 'ned' ? function (sc) { return C.ned(sc, B); } : v.script && C.SCRIPTS[v.script] ? function (sc) { return C.SCRIPTS[v.script](sc, B, id); } : shop && !v.own ? function (sc) { return C.shopkeeper(sc, B, id); } : function (sc) { return C.keeper(sc, B, id); };
     if (shop) o.place = shop.name;
     var sc = new Counter(B, o); D.push(sc);
     while (!sc.done) yield 1;
     if (sc.regear && B.roam && D.roam.regear) D.roam.regear(B); // (bought and put on: the floor's figures wear it -- js/roam.js R.regear)
+    if (sc.next) yield* sc.next(B); // (what the talk leads to once the screen is down: a night slept -- C.inn, C.chapel)
   };
   // a keeper whose sales are to come: their word (and its doing) -- a shopkeeper with no word of their own says their first-game shop's greeting -- then a line
   // for the counter (js/town.js T.fire's, as before the screen)
@@ -526,6 +530,137 @@
     }
     yield sc.say(L('winters.noWork'), 'concerned');
   };
+
+  // ---------------------------------------------------------------- SILVERTON'S SERVICES (10-22, the services seat, started by the lanes desk on his word: "do we have anyone
+  // adding functionality to silverton NPCs (the Inn, the Free church sleep, etc?)", then "Start a seat on Silverton's services: Cassia's rooms, Aldwin's chapel sleep, Davos's
+  // leech-house, Hessle's board, Merrick's sendings, from the first game's scenes"). The first game's own scenes (js/events.js S.inn, S.chapel, S.leech, S.hessle) on the
+  // counter screen, in its words (content/text.json; content/shops.json cassia; content/npcs.json aldwin); a night slept wakes to the house's morning (js/house.js
+  // H.sleepOnFloor: the night's bonds, the day's spells, the save). Merrick's window stays to come: the first game has no sendings -- his talk and a rumour only
+  C.SCRIPTS = {};
+  // a night slept on the floor once the screen is down (the first game's EV.rest('inn'): the inn's tune through the night, at the inn and on the chapel's floor)
+  C.sleep = function* (B) { if (B && B.roam && D.house && D.house.sleepOnFloor) yield* D.house.sleepOnFloor(B, { music: 'inn' }); };
+  // the inn (S.inn): STAY or LEAVE at her price -- the good bed for one, the long room for a company (content/shops.json cassia: price, partyPrice; RULED 09-24), then the night
+  C.SCRIPTS.inn = C.inn = function* (sc, B, id) {
+    var st = sc.st, inn = (DS.DATA.shops || {})[id] || {}, n = st.party.filter(function (h) { return !h.dead; }).length, cost = n > 1 && inn.partyPrice ? inn.partyPrice : inn.price * n;
+    if ((yield sc.ask(inn.greeting + ' ' + L('g.innAsk', { n: cost }), ['STAY', 'LEAVE'], 'welcoming')) !== 0) return;
+    if (st.silver() < cost) { D.sfx('error'); yield sc.say(L('g.poor'), 'concerned'); return; }
+    st.silver(-cost); D.sfx('coin');
+    sc.next = C.sleep;
+  };
+  // the mission chapel (S.chapel): Aldwin's word (his first talk whose condition holds, the first game's EV.dialog), then SLEEP or LEAVE -- the floor is free
+  C.SCRIPTS.chapel = C.chapel = function* (sc, B) {
+    yield sc.say(C.words(B, 'aldwin'));
+    if ((yield sc.ask(L('chapel.ask'), ['SLEEP', 'LEAVE'])) !== 0) return;
+    sc.next = C.sleep;
+  };
+  // the leech-house (S.leech): five silver a body for the fallen, stood up at half their hit points. On a floor the fallen are its figures, whose hit points are the floor's
+  // (as the floor's own revive: js/roam.js R.menuAct)
+  C.SCRIPTS.leech = C.leech = function* (sc, B) {
+    var st = sc.st, R0 = B && B.roam, bodies = R0 ? R0.members.filter(function (u) { return u.src; }) : st.party.filter(function (h) { return !h.dead; }), down = bodies.filter(function (u) { return u.hp <= 0 || u.ko; });
+    yield sc.say(L('leech.greet'));
+    if (!down.length) { yield sc.say(L('leech.none')); return; }
+    var cost = 5 * down.length;
+    if ((yield sc.ask(L('leech.ask', { n: cost, names: down.map(function (u) { return u.name; }).join(', ') }), ['PAY', 'LEAVE'])) !== 0) return;
+    if (st.silver() < cost) { D.sfx('error'); yield sc.say(L('g.poor')); return; }
+    st.silver(-cost); D.sfx('coin');
+    down.forEach(function (u) { u.ko = false; u.hp = Math.max(1, Math.floor(u.maxhp / 2)); if (u.hp > 0) u.dead = false; if (u.src) { u.src.ko = false; u.src.hp = u.hp; } });
+    D.sfx('heal');
+    yield sc.say(L('leech.done'));
+  };
+  // the Weigh-House (S.hessle): his word and the board heard; what is brought paid at the scales -- the ettercap's fangs (500 sp), the cloaker's tail (the drawer's 400), true
+  // word on the Snoot (the anchor-pin, 500), Amara's order (500, "not for any board") -- renown and a weapon in kind for the two beasts (EV.renown's MAJOR); then what still
+  // stands on the board, and the council's word on the five, once
+  C.bounties = function (f) { var out = []; if (!f.ettercapDone) out.push(L('hessle.boardEttercap')); if (!f.cloakerDone) out.push(L('hessle.boardCloaker')); if (!f.snootWord) out.push(L('hessle.boardSnoot')); return out; };
+  C.SCRIPTS.hessle = C.hessle = function* (sc) {
+    var st = sc.st, f = st.flags, paid = false;
+    var major = function* (why) { yield sc.say(C.renown(st, 1, why), 'welcoming'); var qw = C.questWeapons(st); if (qw.length) { sc.regear = true; yield sc.say(qw, 'welcoming'); } };
+    yield sc.say(L('hessle.greet'), 'attentive');
+    f.heardEttercap = 1; f.heardCloaker = 1; f['heard:r-ettercap'] = 1; f['heard:r-cloaker'] = 1;
+    if (count(st, 'ettercapfangs') > 0) { take(st, 'ettercapfangs', 1); st.silver(500); f.ettercapDone = 1; D.sfx('coin'); paid = true; yield sc.say(L('hessle.ettercapPaid'), 'work'); yield* major('renown.ettercap'); }
+    if (count(st, 'cloakertail') > 0) { take(st, 'cloakertail', 1); f.cloakerDone = 1; paid = true; yield sc.say(L('hessle.cloakerDrawer'), 'work'); st.silver(400); D.sfx('coin'); yield sc.say(L('g.foundSilver', { n: 400 }), 'welcoming'); yield* major('renown.cloaker'); }
+    if (count(st, 'anchorpin') > 0) { take(st, 'anchorpin', 1); f.snootWord = 1; paid = true; yield sc.say(L('hessle.snootWord'), 'work'); st.silver(500); D.sfx('coin'); yield sc.say(L('g.foundSilver', { n: 500 }), 'welcoming'); }
+    if (count(st, 'wagonorder') > 0) { take(st, 'wagonorder', 1); f.orderWord = 1; paid = true; yield sc.say(L('hessle.orderWord'), 'skeptical'); st.silver(500); D.sfx('coin'); yield sc.say(L('g.foundSilver', { n: 500 }), 'welcoming'); }
+    var open = C.bounties(f);
+    if (open.length) yield sc.say([L('hessle.boardRead')].concat(open), 'attentive');
+    else if (!paid) yield sc.say(L('hessle.boardClear'), 'attentive');
+    if (f.fiveDone && !f.fiveNotice) { f.fiveNotice = 1; yield sc.say(L(f.stockDead ? 'hessle.fiveDead' : 'hessle.fiveAlive'), 'concerned'); }
+  };
+  // major quests pay in kind (the first game's EV.questWeapons): a magic weapon for the lead (the save's, js/house.js H.fresh), and one for another of the four -- the
+  // first two majors the +1 (content/heroes.json rewardWeapons), the rest the +2; what was in hand to the pack, a shield off for a two-hander. Returns the lines
+  C.questWeapons = function (st) {
+    var R = DS.R, f = st.flags, HD = DS.DATA.heroes || {}, lines = []; f.majors = (f.majors || 0) + 1;
+    var tier = f.majors <= 2 ? 1 : 2;
+    var bonus = function (h) { var w = R.item(h.equip.weapon); return (w && w.weapon && w.weapon.bonus) || 0; };
+    var owns = function (h, b) { var ids = (HD[h.id] || {}).rewardWeapons || []; return ids.slice(b - 1).some(function (id) { return count(st, id) > 0 || h.equip.weapon === id; }); };
+    var giveW = function (h) {
+      var id = ((HD[h.id] || {}).rewardWeapons || [])[tier - 1]; if (!id || bonus(h) >= tier || owns(h, tier)) return false;
+      var it = DS.DATA.items[id];
+      if (h.equip.weapon && h.equip.weapon !== 'unarmed') give(st, h.equip.weapon, 1);
+      if ((it.weapon.props || []).indexOf('two-handed') >= 0 && h.equip.shield) { give(st, h.equip.shield, 1); h.equip.shield = null; }
+      h.equip.weapon = id; lines.push(L('g.rewardWeapon', { name: h.name, item: it.name }));
+      return true;
+    };
+    var party = st.party.filter(function (h) { return !h.dead && h.equip; }), rec = D.house && D.house.playing && D.house.cur, lead = (rec && rec.lead) || (party[0] && (party[0].key || party[0].id));
+    var main = party.filter(function (h) { return (h.key || h.id) === lead; })[0] || party[0]; if (!main) return [];
+    var gotMain = giveW(main), hires = party.filter(function (h) { return h !== main; }).sort(function (a, b) { return bonus(a) - bonus(b); });
+    for (var i = 0; i < hires.length; i++) if (giveW(hires[i])) break;
+    if (!gotMain) for (var j = 0; j < hires.length; j++) if (lines.length < 2 && giveW(hires[j])) break;
+    if (lines.length) { D.sfx('chest'); return [L('g.rewardKind')].concat(lines); }
+    return [];
+  };
+  // the services, shown (deep16/?services -- the eyes row's door, 10-22): a NEW GAME staged by the beat -- the four hurt, a level banked, a ring that wants a bond, the
+  // fallen, the bounties' proofs -- and stood at the door (the camp's on THE WORLD), the rest in the player's hands: a click on the door (or E), E at the counter.
+  // &beat=<id> opens one; X back to the title
+  C.SERVICE_BEATS = [
+    { id: 'cassia', door: 'inn:cassia', label: 'CASSIA\'S ROOMS: a night at the inn, and the morning', note: 'The four hurt, the slots spent, Aurdin a level due, Vivian in a ring not yet bonded; 40 silver. STAY: the night, MORNING, the picks, the bonds, the spells, the save.', hurt: true, spent: true, level: true, ring: true, silver: 40 },
+    { id: 'aldwin', door: 'chapel:aldwin', label: 'ALDWIN\'S FLOOR: the chapel\'s free sleep', note: 'The four hurt, no silver: Aldwin\'s word, SLEEP, the morning.', hurt: true, spent: true, silver: 0 },
+    { id: 'davos', door: 'leech:davos', label: 'DAVOS KREN: the fallen stitched', note: 'Vivian and Lymen down, 20 silver: five silver a body, PAY, both up at half their hit points.', down: ['vivian', 'lymen'], silver: 20 },
+    { id: 'hessle', door: 'keeper:hessle', label: 'HESSLE: the bounties paid at the scales', note: 'The ettercap\'s fangs, the cloaker\'s tail, the anchor-pin and Amara\'s order in the pack: paid, renown twice, weapons in kind, the board clear.', inv: [['ettercapfangs', 1], ['cloakertail', 1], ['anchorpin', 1], ['wagonorder', 1]] },
+    { id: 'board', door: 'keeper:hessle', label: 'HESSLE: nothing brought', note: 'His word, and the board read through the glass: the three bounties standing.' },
+    { id: 'camp', label: 'THE CAMP\'S MORNING, on THE WORLD', note: 'The four hurt at Silverton\'s hex, a quiet night: CAMP, THE NIGHT, BEGIN THE NIGHT -- the same morning as the inn\'s.', world: true, hurt: true, spent: true, level: true, ring: true }
+  ];
+  C.serviceStage = function (bt) { // a beat's NEW GAME: the second game's four (js/house.js H.fresh), the beat's own on top
+    var H = D.house, R = DS.R, rec = H.fresh(), hero = function (id) { return rec.party.filter(function (h) { return h.id === id; })[0]; };
+    if (bt.hurt) rec.party.forEach(function (h) { h.hp = Math.max(1, Math.round(h.maxhp * 0.45)); });
+    if (bt.spent) rec.party.forEach(function (h) { h.slots = (h.slots || []).map(function () { return 0; }); });
+    if (bt.level) { var a = hero('aurdin'); a.xp = R.XP_LEVEL[a.lvl + 1]; }
+    if (bt.ring) hero('vivian').equip.ring = 'ringofprotection'; // (worn and not yet bonded: the night bonds it -- NEW on THE NIGHT'S BONDS)
+    (bt.down || []).forEach(function (id) { var h = hero(id); h.hp = 0; h.ko = true; });
+    (bt.inv || []).forEach(function (s) { H.add(rec.inv, s[0], s[1]); });
+    if (bt.silver != null) rec.silver = bt.silver;
+    if (bt.world) rec.at = { town: null };
+    else { var F = D.town.SCALE, Lt = (D.town.laidF = D.town.laidF || {})[F] || (D.town.laidF[F] = D.town.lay(null, F)), dq = Lt.marks.doors[bt.door]; rec.at = { town: 'silverton', gate: 'west', sq: dq.slice(), dir: D.roam.DIR8['0,-1'] }; } // (on the door's threshold, facing it)
+    return rec;
+  };
+  C.servicePlay = function (bt) {
+    var H = D.house, W = D.world; H.begin(C.serviceStage(bt), 0);
+    if (bt.world) { var S = W.state(), e = W.M().hex[W.K(S.at[0], S.at[1])]; S.zone = W.zoneOf(e); S.count = 1e9; } // (a quiet night: nothing out of the dark on the watches' checks)
+  };
+  function ServicesShow(q) {
+    this.kind = 'servicesshow'; this.opaque = true; this.t = 0; this.hov = 0;
+    var b = /[?&]beat=([a-z]+)/.exec(String(q || '')); if (b) this.pending = C.SERVICE_BEATS.filter(function (x) { return x.id === b[1]; })[0] || null;
+  }
+  ServicesShow.prototype.buttons = function () { return C.SERVICE_BEATS.map(function (bt, k) { return { x: 12, y: 26 + k * 34, w: D.W - 24, h: 31, bt: bt }; }); };
+  ServicesShow.prototype.update = function () {
+    this.t++; var m = I.mouse;
+    if (this.pending) { var p0 = this.pending; this.pending = null; C.servicePlay(p0); return; }
+    var bs = this.buttons(), hit = m.inside ? bs.filter(function (q) { return m.x >= q.x && m.x < q.x + q.w && m.y >= q.y && m.y < q.y + q.h; })[0] : null;
+    if (m.moved || m.click) this.hov = hit ? bs.indexOf(hit) : this.hov;
+    if (I.repeat('down')) this.hov = (this.hov + 1) % bs.length; if (I.repeat('up')) this.hov = (this.hov - 1 + bs.length) % bs.length;
+    if ((m.click && hit) || I.pressed('a')) { D.sfx('confirm'); C.servicePlay((hit || bs[this.hov]).bt); return; }
+    if (I.pressed('b') || m.rclick) { D.scenes.length = 0; if (D.house && D.house.Title) D.push(new D.house.Title()); }
+  };
+  ServicesShow.prototype.draw = function (ctx) {
+    var self = this, W8 = D.WIN8; ctx.fillStyle = '#0a0c22'; ctx.fillRect(0, 0, D.W, D.H);
+    D.text(ctx, '{y}SILVERTON\'S SERVICES{/} -- a NEW GAME staged at the door; the rest is yours (a show)', 10, 10, W8.text);
+    this.buttons().forEach(function (q, k) {
+      var on = k === self.hov; D.win8(ctx, q.x, q.y, q.w, q.h, on ? W8.sel : null);
+      D.text(ctx, q.bt.label, q.x + 8, q.y + 3, on ? W8.gold : W8.text);
+      D.wrap(q.bt.note, q.w - 16).slice(0, 2).forEach(function (l, i) { D.text(ctx, l, q.x + 8, q.y + 12 + i * 9, '#9c9cb4'); });
+    });
+    D.hint(ctx, 'click a beat · in town: click the square they stand on, E at the counter · X: the title', D.W / 2, D.H - 12, '#9a96a8', 'center');
+  };
+  C.servicesShow = function (q) { return new ServicesShow(q); };
 
   // ---------------------------------------------------------------- NED HALLOWAY and Find Familiar (10-21 night, the keepers cutter seat, on the house lane's "Ned and
   // Find Familiar", THE SCENE, RULED). His design: "pick a school that isn't evocation and Ned tell story about how if you didn't have a familiar, they wouldn't accept

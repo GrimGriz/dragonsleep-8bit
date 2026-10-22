@@ -2673,6 +2673,158 @@
     document.body.appendChild(preH);
     return;
   }
+  // SILVERTON'S SERVICES, 10-22 (mode=services1022; deep16/js/counter.js C.inn, C.chapel, C.leech, C.hessle, the show ?services; deep16/js/house.js THE MORNING, H.sleepOnFloor,
+  // H.atOf -- the lanes desk, on his word: "Start a seat on Silverton's services: Cassia's rooms, Aldwin's chapel sleep, Davos's leech-house, Hessle's board, Merrick's sendings,
+  // from the first game's scenes"; his 10-22 note: "camping the night with no encounter doesn't prompt the same as 'you just stayed at inn' - can't tell it's morning, no
+  // bond-report or morning castings routines ran"). Every choice pressed by a click on its drawn box, as winters1021 does: a box that will not take a click fails here
+  if (get('mode', '') === 'services1022') {
+    var repV = { checks: [], errors: [] }, memV = {}, stGV = D.store.get, stSV = D.store.set, HV = D.house, CV = D.counter, TV = D.town, WV = D.world, RV = window.DS.R, apV = window.DS.autoPicks;
+    function okV(what, v) { repV.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function driveV(g, until, cap) { var v, k = 0, st; while (k++ < (cap || 4000)) { if (until && until()) return true; st = g.next(v); v = undefined; if (st.done) return !!(until && until()); } return !!(until && until()); }
+    function topV() { var s = D.top(); if (s && s.baking) { s.baking = false; s.enter(); } return s; }
+    function upV() { return D.top() instanceof CV.Counter; }
+    function mornV() { var s = D.top(); return s instanceof HV.Morning ? s : null; }
+    function trigV(id) { return (D.roam.def.src8.triggers || []).filter(function (t) { return t.id === id; })[0]; }
+    function clickV(sc, b) { if (!b) return false; var mo = D.input.mouse, k = { x: mo.x, y: mo.y, click: mo.click, inside: mo.inside, moved: mo.moved }; mo.x = b.x + b.w / 2; mo.y = b.y + b.h / 2; mo.inside = true; mo.click = true; mo.moved = true; sc.update(); Object.assign(mo, k); return true; }
+    function rclickV(sc) { var mo = D.input.mouse, k = { rclick: mo.rclick, inside: mo.inside }; mo.rclick = true; mo.inside = true; sc.update(); Object.assign(mo, k); }
+    function goV(sc, go, label) { return clickV(sc, sc.buttons().filter(function (q) { return q.go === go && (label == null || q.label === label); })[0]); }
+    function readV(sc) { var out = [], k = 0; while (!sc.done && sc.wait && sc.wait.say && k++ < 40) { out = out.concat(sc.wait.say); goV(sc, 'next'); } return out; }
+    function askV(sc) { return sc.wait && sc.wait.ask ? sc.wait.ask.join(' ') + ' [' + sc.wait.opts.join('/') + ']' : ''; }
+    function fireV(B, id) { var g = TV.fire(B, trigV(id)); driveV(g, upV, 600); return g; }
+    function inV(B, id) { driveV(TV.fire(B, trigV(id)), null, 600); return D.roam.def.room === id; }
+    function outV(B) { driveV(TV.goOut(B), null, 200); return !D.roam.def.room; }
+    // the morning's rows: one by its label, brought into sight, and a click on its box
+    function rowV(m, re) { var rows = m.list().rows, k = -1; for (var i = 0; i < rows.length; i++) if (re.test(rows[i].label)) { k = i; break; } if (k < 0) return null; m.i = k; return m.buttons().filter(function (b) { return b.k === k; })[0] || null; }
+    function pickV(m, re) { return clickV(m, rowV(m, re)); }
+    function rowsV(m) { return m.list().rows.map(function (r) { return r.label + (r.right != null ? ' ' + r.right : '') + (r.disabled ? ' (x)' : ''); }); }
+    function unitV(B, id) { return B.roam.members.filter(function (u) { return u.id === id; })[0]; }
+    D.store.get = function (k) { return memV[k] ? JSON.parse(memV[k]) : null; }; D.store.set = function (k, v) { memV[k] = JSON.stringify(v); return true; };
+    window.DS.autoPicks = true; // (the level's picks at once, as house1021: the picks' own page is checked apart, below)
+    try {
+      D.seed = +get('seed', 1022);
+      // the show (deep16/?services): its beats, and the inn's -- a NEW GAME staged on Cassia's threshold
+      var shV = CV.servicesShow('?services'); okV('the show deep16/?services: ' + CV.SERVICE_BEATS.length + ' beats (' + CV.SERVICE_BEATS.map(function (b) { return b.id; }).join(', ') + '), each a box to click', shV.buttons().length === CV.SERVICE_BEATS.length && typeof shV.draw === 'function');
+      var btC = CV.SERVICE_BEATS[0]; D.scenes.length = 0; D.push(shV); clickV(shV, shV.buttons()[0]); var B = topV(), R0 = B.roam, dqC = D.roam.def.marks.doors['inn:cassia'];
+      okV('the inn\'s beat: the house\'s floor on Cassia\'s threshold (' + R0.token.x + ',' + R0.token.y + ', the door ' + dqC + '), ' + R0.silver + ' sp, the four hurt (' + R0.members.map(function (u) { return u.id + ' ' + u.hp + '/' + u.maxhp; }).join(', ') + ')',
+        HV.playing && D.roam.house() && R0.token.x === dqC[0] && R0.token.y === dqC[1] && R0.silver === 40 && R0.members.every(function (u) { return u.hp < u.maxhp; }));
+      // CASSIA'S ROOMS (the first game's S.inn): her greeting and the long room's price, STAY / LEAVE
+      okV('in at the inn\'s door: ' + D.roam.def.name, inV(B, 'inn:cassia') && D.roam.def.keeper.id === 'cassia');
+      var gI = fireV(B, 'talk:cassia'), scI = D.top();
+      okV('E at her counter: her portrait (' + (scI && scI.sheet) + '), her greeting and the night\'s price for a company: ' + askV(scI), upV() && scI.sheet === 'pt_cassia' && /Eight silver the good bed/.test(askV(scI)) && /16 silver the night/.test(askV(scI)) && scI.wait.opts.join() === 'STAY,LEAVE');
+      goV(scI, 'opt', 'LEAVE'); driveV(gI, null, 200);
+      okV('LEAVE: the floor again, nothing paid, no night (' + R0.silver + ' sp)', !upV() && !mornV() && D.top() === B && R0.silver === 40);
+      R0.silver = 10; gI = fireV(B, 'talk:cassia'); scI = D.top(); goV(scI, 'opt', 'STAY'); var poorI = readV(scI); driveV(gI, null, 200);
+      okV('STAY with 10 sp: "' + poorI.join(' ') + '", no night', /Not enough silver/.test(poorI.join(' ')) && R0.silver === 10 && !mornV() && D.top() === B);
+      R0.silver = 40; var t0I = WV.state().t, aU = unitV(B, 'aurdin'), lv0 = aU.lvl, sl0 = (aU.slots || []).slice();
+      gI = fireV(B, 'talk:cassia'); scI = D.top(); goV(scI, 'opt', 'STAY'); driveV(gI, function () { return !!mornV(); }, 600); var mI = mornV();
+      okV('STAY: 16 sp paid (' + R0.silver + ' left), the screen down, the night over the floor (' + (mI && mI.phase) + '), THE WORLD\'s clock on to the morning (hour ' + t0I + ' to ' + WV.state().t + ', ' + WV.hour() + ':00)',
+        R0.silver === 24 && !!mI && mI.phase === 'night' && WV.state().t > t0I && WV.hour() === WV.MORNING && !upV());
+      clickV(mI, { x: 10, y: 10, w: 2, h: 2 }); var dawnI = mI.phase === 'dawn' ? mI.dawnLines().join(' / ') : '';
+      okV('a click: MORNING, and what the night did -- "' + dawnI.slice(0, 160) + '"', mI.phase === 'dawn' && /MORNING/.test(dawnI) && /wakes rested/.test(dawnI) && /Aurdin/.test(dawnI) && /day 2/.test(dawnI));
+      goV(mI, 'ok');
+      okV('OK: THE NIGHT\'S BONDS (' + rowsV(mI).join('; ') + ')', mI.phase === 'bonds' && rowsV(mI).some(function (r) { return /VIVIAN: Ring of Prot\. NEW/.test(r); }) && !RV.picksDue(HV.cur.party.filter(function (h) { return h.id === 'aurdin'; })[0]));
+      pickV(mI, /^VIVIAN: Ring/); var letGo = rowsV(mI).filter(function (r) { return /VIVIAN/.test(r); })[0]; pickV(mI, /^VIVIAN: Ring/); var bondAgain = rowsV(mI).filter(function (r) { return /VIVIAN/.test(r); })[0];
+      okV('a click on the ring lets it go (' + letGo + '), another bonds it again (' + bondAgain + ')', /WAITING/.test(letGo) && /NEW/.test(bondAgain));
+      pickV(mI, /^DONE$/);
+      var sAu = HV.cur.party.filter(function (h) { return h.id === 'aurdin'; })[0];
+      okV('DONE: THE DAY\'S SPELLS (' + rowsV(mI).join('; ') + ')', mI.phase === 'spells' && rowsV(mI)[0] === 'DONE' && rowsV(mI).some(function (r) { return /^PREPARE AURDIN/.test(r); }) && rowsV(mI).some(function (r) { return /^PREPARE LYMEN/.test(r); }));
+      pickV(mI, /^PREPARE AURDIN/); var t1 = mI.list().title, maOn = sAu.prepared.indexOf('mageArmor') >= 0;
+      if (!maOn && sAu.prepared.length >= RV.prepCount(sAu)) pickV(mI, /^■ (?!Mage Armor)/);
+      if (!maOn) pickV(mI, /^□ Mage Armor/);
+      var t2 = mI.list().title; rclickV(mI);
+      okV('PREPARE AURDIN (' + t1 + '): Mage Armor in his day (' + t2 + '), a right click back to the day\'s spells', sAu.prepared.indexOf('mageArmor') >= 0 && mI.phase === 'spells' && !mI.sub && /OF/.test(t2));
+      var castRow = rowsV(mI).filter(function (r) { return /^CAST MAGE ARMOR/.test(r); })[0]; pickV(mI, /^CAST MAGE ARMOR/); var whomI = rowsV(mI);
+      okV('CAST MAGE ARMOR (' + castRow + '): ON WHOM? -- ' + whomI.join('; '), mI.sub && mI.sub.whom && whomI.some(function (r) { return /^Lymen ARMORED \(x\)/.test(r); }) && whomI.some(function (r) { return /^Aurdin \d+\/\d+$/.test(r); }));
+      var slA = sAu.slots[0]; pickV(mI, /^Aurdin$/);
+      okV('on Aurdin: "' + (mI.msg || []).join(' ') + '" -- a 1st-level slot spent (' + slA + ' to ' + sAu.slots[0] + '), and the row says ON AURDIN', !!sAu.conds.mageArmor && sAu.slots[0] === slA - 1 && !mI.sub && rowsV(mI).some(function (r) { return /^CAST MAGE ARMOR ON AURDIN/.test(r); }));
+      pickV(mI, /^DONE$/);
+      var vU = unitV(B, 'vivian'); aU = unitV(B, 'aurdin');
+      okV('DONE: Write down the day? (' + rowsV(mI).join(' / ') + '), the floor\'s figures brought to the morning first -- Vivian ' + vU.hp + '/' + vU.maxhp + ', Aurdin L' + aU.lvl + ' (was ' + lv0 + '), his slots ' + (aU.slots || []).join('/') + ' (were ' + sl0.join('/') + '), his Mage Armor ' + !!(aU.conds && aU.conds.mageArmor),
+        mI.phase === 'save' && /Write down the day/.test(mI.list().title) && vU.hp === vU.maxhp && aU.lvl === lv0 + 1 && aU.slots[0] === aU.slotsMax[0] - 1 && !!(aU.conds && aU.conds.mageArmor) && (vU.src.attuned || []).indexOf('ringofprotection') >= 0);
+      pickV(mI, /^SAVE$/); var slV = D.top();
+      okV('SAVE: SAVE WHERE? over the morning (' + (slV && slV.kind) + ')', slV instanceof HV.Slots && slV.mode === 'save');
+      slV.pick(0); for (var kV = 0; kV < 80 && D.top() === slV; kV++) slV.update(); driveV(gI, null, 200);
+      var sv1 = memV['deep16.game.1'] ? JSON.parse(memV['deep16.game.1']) : null, sv1A = sv1 && sv1.party.filter(function (h) { return h.id === 'aurdin'; })[0];
+      okV('slot 1 kept from the inn: in Silverton at Cassia\'s door (' + (sv1 && JSON.stringify(sv1.at)) + '), Aurdin L' + (sv1A && sv1A.lvl) + ' in his Mage Armor, ' + (sv1 && sv1.silver) + ' sp; the floor again, still in the inn',
+        !!sv1 && sv1.at.town === 'silverton' && sv1.at.sq[0] === dqC[0] && sv1.at.sq[1] === dqC[1] && sv1A.lvl === lv0 + 1 && !!sv1A.conds.mageArmor && sv1.silver === 24 && D.top() === B && D.roam.def.room === 'inn:cassia');
+      // a SAVE from the floor's M menu in a room (js/roam.js R.save): the street's square, not the room's (H.atOf)
+      R0.keys.push('save'); driveV(B.co, function () { return D.top() instanceof HV.Slots; }, 400); var slR = D.top(); if (slR instanceof HV.Slots) { slR.pick(1); for (var kR = 0; kR < 80 && D.top() === slR; kR++) slR.update(); }
+      var sv2 = memV['deep16.game.2'] ? JSON.parse(memV['deep16.game.2']) : null;
+      okV('SAVE on the M menu inside the inn: slot 2 stands them at its door on the street (' + (sv2 && JSON.stringify(sv2.at)) + ')', !!sv2 && sv2.at.town === 'silverton' && sv2.at.sq[0] === dqC[0] && sv2.at.sq[1] === dqC[1]);
+      HV.begin(HV.read(2), 2); var B2 = topV();
+      okV('CONTINUE slot 2: Silverton, on Cassia\'s threshold (' + B2.roam.token.x + ',' + B2.roam.token.y + ', ' + D.roam.def.key + '), not THE WORLD', D.roam.def.key === 'silverton' && B2.roam.token.x === dqC[0] && B2.roam.token.y === dqC[1]);
+      B = B2; R0 = B.roam;
+      // ALDWIN'S FLOOR (the first game's S.chapel): his word, SLEEP / LEAVE, free
+      vU = unitV(B, 'vivian'); vU.hp = Math.max(1, vU.hp - 6); var silC = R0.silver;
+      okV('in at the chapel\'s door', inV(B, 'chapel:aldwin') && D.roam.def.keeper.id === 'aldwin');
+      var gA = fireV(B, 'talk:aldwin'), scA = D.top(), wA = upV() ? readV(scA) : [];
+      okV('E at Aldwin\'s counter: the counter\'s screen, no portrait yet (the plain shape, ' + (scA && scA.sheet) + '), "' + wA.join(' / ').slice(0, 150) + '", then ' + askV(scA),
+        upV() && !scA.sheet && scA.o.name === 'Aldwin' && /Bread at six/.test(wA.join(' ')) && /looks at Aurdin/.test(wA.join(' ')) && /The floor's free/.test(askV(scA)) && scA.wait.opts.join() === 'SLEEP,LEAVE');
+      goV(scA, 'opt', 'SLEEP'); driveV(gA, function () { return !!mornV(); }, 600); var mA = mornV();
+      okV('SLEEP: free (' + R0.silver + ' sp), the night', !!mA && R0.silver === silC);
+      clickV(mA, { x: 10, y: 10, w: 2, h: 2 }); goV(mA, 'ok');
+      okV('the morning: THE NIGHT\'S BONDS again, the ring held from the night before (' + rowsV(mA).filter(function (r) { return /VIVIAN/.test(r); }).join('') + ')', mA.phase === 'bonds' && rowsV(mA).some(function (r) { return /VIVIAN: Ring of Prot\. BONDED/.test(r); }));
+      rclickV(mA); okV('X on the bonds: as DONE, the day\'s spells (' + mA.phase + ')', mA.phase === 'spells');
+      rclickV(mA); okV('X on the day\'s spells: as DONE, the save asked (' + mA.phase + ')', mA.phase === 'save');
+      rclickV(mA); driveV(gA, null, 200); vU = unitV(B, 'vivian');
+      okV('X on the save: NO, the morning over -- the floor again, in the chapel, Vivian whole (' + vU.hp + '/' + vU.maxhp + ')', !mornV() && D.top() === B && D.roam.def.room === 'chapel:aldwin' && vU.hp === vU.maxhp);
+      // DAVOS KREN (the first game's S.leech): five silver a body for the fallen
+      outV(B); okV('in at the leech-house', inV(B, 'leech:davos') && D.roam.def.keeper.id === 'davos');
+      var gL = fireV(B, 'talk:davos'), scL = D.top(), wL = readV(scL); driveV(gL, null, 200);
+      okV('Davos Kren with no one down: the plain shape (' + (scL && scL.o.name) + '), "' + wL.join(' / ') + '"', !scL.sheet && scL.o.name === 'Davos Kren' && /Blood off the sand/.test(wL.join(' ')) && /Nobody here needs me/.test(wL.join(' ')));
+      var dV = unitV(B, 'vivian'), dL = unitV(B, 'lymen'); dV.hp = 0; dV.ko = true; dL.hp = 0; dL.ko = true; R0.silver = 7;
+      gL = fireV(B, 'talk:davos'); scL = D.top(); readV(scL); var askL = askV(scL); goV(scL, 'opt', 'PAY'); var poorL = readV(scL); driveV(gL, null, 200);
+      okV('two down, 7 sp: ' + askL + ' -- PAY: "' + poorL.join(' ') + '", both still down', /five silver a body\. Vivian, Lymen\. 10 silver/.test(askL) && /Not enough silver/.test(poorL.join(' ')) && dV.hp === 0 && dL.hp === 0 && R0.silver === 7);
+      R0.silver = 20; gL = fireV(B, 'talk:davos'); scL = D.top(); readV(scL); goV(scL, 'opt', 'PAY'); var doneL = readV(scL); driveV(gL, null, 200);
+      okV('with 20: PAY, 10 sp left, "' + doneL.join(' ') + '", Vivian up at ' + dV.hp + '/' + dV.maxhp + ', Lymen at ' + dL.hp + '/' + dL.maxhp, R0.silver === 10 && /Stitched and standing/.test(doneL.join(' ')) && dV.hp === Math.floor(dV.maxhp / 2) && dL.hp === Math.floor(dL.maxhp / 2) && !dV.ko && !dL.ko && dV.src.hp === dV.hp);
+      // HESSLE (the first game's S.hessle): the board, the bounties paid at the scales
+      outV(B); okV('in at the Weigh-House', inV(B, 'keeper:hessle') && D.roam.def.keeper.id === 'hessle');
+      var gH = fireV(B, 'talk:hessle'), scH = D.top(), wH = readV(scH); driveV(gH, null, 200);
+      okV('Hessle on his portrait (' + scH.sheet + '), nothing brought: his word and the board -- ' + wH.length + ' lines, "' + wH.join(' / ').slice(0, 140) + '..."; the bounties heard', scH.sheet === 'pt_hessle' && /That's the board/.test(wH.join(' ')) && /Standing bounties/.test(wH.join(' ')) && /ettercap/.test(wH.join(' ')) && /cloaker/.test(wH.join(' ')) && /Snoot/.test(wH.join(' ')) && R0.flags.heardEttercap === 1 && R0.flags['heard:r-cloaker'] === 1);
+      ['ettercapfangs', 'cloakertail', 'anchorpin', 'wagonorder'].forEach(function (id) { CV.give(CV.state(B), id, 1); });
+      var silH = R0.silver, renH = HV.cur.renown || 0, bW0 = unitV(B, 'barley').src.equip.weapon, bWU0 = JSON.stringify(unitV(B, 'barley').weapon), bRw = window.DS.DATA.heroes.barley.rewardWeapons[0];
+      gH = fireV(B, 'talk:hessle'); scH = D.top(); wH = readV(scH); driveV(gH, null, 200); var bU = unitV(B, 'barley'), cs = CV.state(B);
+      okV('the four brought: paid at the scales (+' + (R0.silver - silH) + ' sp), renown ' + renH + ' to ' + HV.cur.renown + ', the flags (' + ['ettercapDone', 'cloakerDone', 'snootWord', 'orderWord'].filter(function (k) { return R0.flags[k]; }).join(', ') + '), the proofs gone, no bounty left on the board',
+        R0.silver - silH === 1900 && HV.cur.renown === renH + 2 && R0.flags.ettercapDone && R0.flags.cloakerDone && R0.flags.snootWord && R0.flags.orderWord && ['ettercapfangs', 'cloakertail', 'anchorpin', 'wagonorder'].every(function (id) { return !CV.count(cs, id); }) && !/Standing bounties/.test(wH.join(' ')) && /gulch is quieter/.test(wH.join(' ')) && /FOR WHOEVER COMES BACK UP/.test(wH.join(' ')));
+      okV('the job pays in kind (EV.questWeapons): "' + wH.filter(function (l) { return /takes up|pays in kind/.test(l); }).join(' / ') + '" -- Barley in hand with ' + bU.src.equip.weapon + ' (was ' + bW0 + ', now in the pack), his figure regeared',
+        wH.some(function (l) { return /pays in kind/.test(l); }) && bU.src.equip.weapon === bRw && JSON.stringify(bU.weapon) !== bWU0 && CV.count(cs, bW0) === 1);
+      R0.flags.fiveDone = 1; gH = fireV(B, 'talk:hessle'); scH = D.top(); wH = readV(scH); driveV(gH, null, 200); var fiveW = wH.join(' ');
+      gH = fireV(B, 'talk:hessle'); scH = D.top(); wH = readV(scH); driveV(gH, null, 200);
+      okV('the board clear ("The old bounty papers are down"), the council\'s word on the five once ("' + fiveW.slice(-80) + '"), not again', /bounty papers are down/.test(fiveW) && /Worth more to Venn alive/.test(fiveW) && !/Venn alive/.test(wH.join(' ')) && /bounty papers are down/.test(wH.join(' ')));
+      // MERRICK: the first game has no sendings -- his word, and his window still to come
+      outV(B); inV(B, 'keeper:merrick'); var gM = fireV(B, 'talk:merrick'), scM = D.top(), wM = upV() ? readV(scM) : []; driveV(gM, null, 200);
+      okV('Merrick: his first-game word ("' + wM[0] + '") and "' + wM[wM.length - 1] + '"', /Dusk sendings/.test(wM.join(' ')) && /sendings -- is to come/.test(wM.join(' ')));
+      // THE CAMP'S MORNING (his 10-22 note): a quiet night on THE WORLD wakes to the same morning
+      D.scenes.length = 0; shV = CV.servicesShow('?services&beat=camp'); D.push(shV); shV.update(); var wC = topV(), SC = WV.state(), cA = HV.cur.party.filter(function (h) { return h.id === 'aurdin'; })[0], cLv = cA.lvl;
+      okV('the camp\'s beat: THE WORLD (' + (wC && wC.kind) + '), the four hurt, a quiet night', wC && wC.kind === 'world' && HV.cur.party.every(function (h) { return h.hp < h.maxhp; }) && SC.count > 1e6);
+      HV.runNight(wC, HV.watchDefault(HV.cur.party)); var mC = mornV();
+      okV('the three watches pass with nothing out of the dark, and the morning comes up over THE WORLD (' + (mC && mC.phase) + '; "' + (wC.msg && wC.msg.s || '').slice(0, 60) + '")', !!mC && mC.phase === 'night' && /Dawn/.test(wC.msg && wC.msg.s || ''));
+      clickV(mC, { x: 10, y: 10, w: 2, h: 2 }); var dawnC = mC.dawnLines().join(' / '); goV(mC, 'ok');
+      okV('MORNING on THE WORLD ("' + dawnC.slice(0, 120) + '"), then the bonds (' + mC.phase + ')', /MORNING\{\/\} -- day 2/.test(dawnC) && /wakes rested/.test(dawnC) && mC.phase === 'bonds' && cA.lvl === cLv + 1);
+      pickV(mC, /^DONE$/); okV('then THE DAY\'S SPELLS (' + rowsV(mC).slice(0, 4).join('; ') + ')', mC.phase === 'spells');
+      pickV(mC, /^DONE$/); okV('then the save asked on THE WORLD', mC.phase === 'save');
+      pickV(mC, /^NO$/); okV('NO: THE WORLD again, the four whole (' + HV.cur.party.map(function (h) { return h.hp + '/' + h.maxhp; }).join(', ') + ')', !mornV() && D.top() === wC && HV.cur.party.every(function (h) { return h.hp === h.maxhp; }));
+      // AID cast ahead (EV.fieldCast's WHO GOES WITHOUT?): Lymen at 5, four in the party
+      var sh4 = ['barley', 'aurdin', 'vivian', 'lymen'].map(function (id) { return HV.start(RV.makeHero(id, id === 'lymen' ? 5 : 2)); }), ly4 = sh4[3]; if (ly4.prepared.indexOf('aid') < 0) { ly4.prepared[ly4.prepared.length - 1] = 'aid'; }
+      var done4 = false, m4 = HV.morning({ party: sh4, lines: [], save: false, done: function () { done4 = true; } }); clickV(m4, { x: 10, y: 10, w: 2, h: 2 }); goV(m4, 'ok');
+      var aidRow = rowsV(m4).filter(function (r) { return /^CAST AID/.test(r); })[0], s2 = ly4.slots[1]; pickV(m4, /^CAST AID/); var wo = m4.list().title; pickV(m4, /^Barley$/);
+      okV('CAST AID (' + aidRow + '): ' + wo + ' -- Barley; "' + (m4.msg || []).join(' ') + '"; Aid on the other three (' + sh4.map(function (h) { return h.name + ' ' + (h.conds.aid || 0); }).join(', ') + '), a 2nd-level slot spent',
+        wo === 'WHO GOES WITHOUT?' && !sh4[0].conds.aid && sh4.slice(1).every(function (h) { return h.conds.aid === 5 && h.hp === h.maxhp; }) && ly4.slots[1] === s2 - 1 && rowsV(m4).some(function (r) { return /^CAST AID ON 3 \(x\)/.test(r); }));
+      pickV(m4, /^DONE$/); okV('no save asked off the house\'s own morning (save: false): done', done4 && !mornV());
+      // the level's picks on the morning (no bench to choose: the page opens)
+      window.DS.autoPicks = false; var sh5 = ['barley', 'aurdin'].map(function (id) { return HV.start(RV.makeHero(id)); }); sh5[1].xp = RV.XP_LEVEL[3]; RV.gainXP(sh5[1], 0);
+      var ctx5 = D.ctx; D.ctx = D.ctx || {}; // (a screen to ask on: with none the morning takes the build's picks at once, as the long rest always has)
+      var due5 = RV.picksDue(sh5[1]), m5 = HV.morning({ party: sh5, lines: [], save: false }); D.ctx = ctx5; clickV(m5, { x: 10, y: 10, w: 2, h: 2 }); goV(m5, 'ok'); var pk5 = m5.phase, pm5 = !!m5.pm;
+      RV.autoPicks(sh5[1]); if (m5.pm) m5.pm.close(); m5.update();
+      okV('(Aurdin\'s level 3 leaves a pick due: ' + due5 + ')', due5);
+      okV('a level due with no bench to choose: the picks page on the morning (' + pk5 + ', ' + pm5 + '), then on (' + m5.phase + ')', pk5 === 'picks' && pm5 && !m5.pm && m5.phase !== 'picks');
+      window.DS.autoPicks = true; while (mornV()) D.pop();
+    } catch (eV) { repV.errors.push(String(eV && eV.stack || eV).slice(0, 900)); }
+    D.store.get = stGV; D.store.set = stSV; window.DS.autoPicks = apV; if (D.house) { D.house.playing = false; D.house.cur = null; }
+    var preV = document.createElement('pre'); preV.id = 'out'; preV.textContent = 'BENCH16 ' + JSON.stringify(repV);
+    document.body.appendChild(preV);
+    return;
+  }
   // AMBROSE WINTERS at his counter, 10-21 (mode=winters1021; deep16/js/counter.js -- Griz, to the lanes desk: "There's a handful of vendor art in Fresh, start a seat to
   // get Winters set up for giving the starter mission and doing sales"): the house's NEW GAME walked to his room, Winters' Errands door to door by the first game's
   // words and flags (Androit and Casper Venn in their rooms on their portraits, Mical and Brennan at their doors), the pay, the renown and its banked XP, the JOURNAL
@@ -2875,9 +3027,9 @@
         pRows.join() === shP.items.join() && pSell.indexOf('darkmantlehide') >= 0 && pSell.indexOf('rope') < 0 && R0.silver - ps0 === Math.floor(window.DS.DATA.items.darkmantlehide.price * shP.buyRate) && CW.count(st, 'darkmantlehide') === 0);
       CW.take(st, 'rope', 1); goW(scP, 'back'); goW(scP, 'opt', 'LEAVE'); driveW(gP, null, 200);
       outW(B); okW('out of Percy\'s: Ned leaves the floor with the room', !B.units.some(function (u) { return u.npc === 'ned'; }));
-      var inCa = inW(B, 'inn:cassia'), kuCs = B.units.filter(function (u) { return u.npc === 'cassia'; })[0], gCs = fireW(B, 'talk:cassia'), scCs = D.top(), wCs = upW() ? readW(scCs) : []; driveW(gCs, null, 200);
-      okW('Cassia behind her bar in her own figure (' + (kuCs && kuCs.sheet) + '), on her portrait (' + (scCs && scCs.sheet) + ', named ' + (scCs && scCs.o.name) + '): her first-game greeting and "' + String(wCs[wCs.length - 1]).replace(/\{.\}|\{\/\}/g, '') + '" -- no shelves',
-        inCa && kuCs && kuCs.sheet === 'cassia_p1' && kuCs.facing === 0 && scCs && scCs.sheet === 'pt_cassia' && scCs.o.name === 'Cassia' && wCs[0] === window.DS.DATA.shops.cassia.greeting && /rooms -- a bed, the long room -- are to come/.test(wCs.join(' ')) && !CW.VENDORS.cassia.shop && !upW());
+      var inCa = inW(B, 'inn:cassia'), kuCs = B.units.filter(function (u) { return u.npc === 'cassia'; })[0], gCs = fireW(B, 'talk:cassia'), scCs = D.top(), wCs = upW() && scCs.wait && scCs.wait.ask ? scCs.wait.ask.slice() : []; if (upW()) goW(scCs, 'opt', 'LEAVE'); driveW(gCs, null, 200); // (her rooms since 10-22: her greeting is the inn's ask, STAY / LEAVE -- mode=services1022 walks the night)
+      okW('Cassia behind her bar in her own figure (' + (kuCs && kuCs.sheet) + '), on her portrait (' + (scCs && scCs.sheet) + ', named ' + (scCs && scCs.o.name) + '): her first-game greeting and her rooms, "' + wCs.join(' ').slice(-24) + '" STAY / LEAVE, LEAVE clicked -- no shelves',
+        inCa && kuCs && kuCs.sheet === 'cassia_p1' && kuCs.facing === 0 && scCs && scCs.sheet === 'pt_cassia' && scCs.o.name === 'Cassia' && wCs.join(' ').indexOf(window.DS.DATA.shops.cassia.greeting) === 0 && /silver the night/.test(wCs.join(' ')) && !CW.VENDORS.cassia.shop && !upW());
       // two of the non-shop folk (10-21 night, Griz: "non shop folk also have art in Fresh"): Mela Sorris at the Stew's door on her portrait, her first-game word;
       // Mical's after the errand, her other word, and still no counter line
       outW(B); var gMe = TW.fire(B, trigW('keeper:mela')); driveW(gMe, upW, 200); var scMe = upW() ? D.top() : null, wMe = scMe ? readW(scMe) : []; driveW(gMe, null, 200);

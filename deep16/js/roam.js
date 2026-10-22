@@ -974,7 +974,7 @@
   R.canSave = function (B) { var R0 = B.roam; if (R.house()) return !!(R0.mode === 'walk' && !R.tracking(R0).length && R.def.town && R.def.save !== false); return !!(R.emb && D.embed && D.embed.roamOut && R0.mode === 'walk' && !R.tracking(R0).length && R.def.src8 && R.def.src8.save !== false); }; // (the house: not on the mines' worked floors below their mouths, the first game's `save: false` -- js/mines.js)
   R.save = function* (B) {
     if (R.house()) { // (the house: in a town, its three slots -- js/house.js; the square and the way they face kept, a load stands them there again)
-      var t = B.roam.token, done = false; D.house.fromFloor(B); D.house.cur.at = { town: R.def.door || R.def.key, gate: R.def.gate || 'west', sq: [t.x, t.y], dir: R.DIR8[B.roam.fw[0] + ',' + B.roam.fw[1]] || null };
+      var done = false; D.house.fromFloor(B); D.house.cur.at = D.house.atOf(B); // (in a room behind a door, the street's square they went in from: js/house.js H.atOf -- a room's own key named no town, 10-22)
       D.push(new D.house.Slots('save', function () { done = true; })); while (!done) yield 1; return;
     }
     var m = yield* R.handOut(B, 'save'); if (m && m.saved) { B.card(['{g}' + m.saved + '{/}'], 200); yield 10; }

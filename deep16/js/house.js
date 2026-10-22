@@ -271,25 +271,259 @@
   H.lost = function () { H.playing = false; H.cur = null; D.scenes.length = 0; D.push(new Title({ lost: true })); };
   H.toTitle = function () { H.playing = false; H.cur = null; D.scenes.length = 0; D.push(new Title()); }; // (EXIT on a floor or in a fight: what is unsaved is left -- deep16/js/ui.js gridHost's exits)
   // the long rest (THE WORLD's camp; js/events.js EV.longRest, the first game's): Aid's and Mage Armor's hours over, each sheet whole again (js/rules.js R.refresh),
-  // then the levels banked come (R.gainXP with nothing new: every level the XP reaches) and their choices on the one pick page over the scene
-  H.longRest = function (scene) {
-    if (!H.playing) return [];
+  // then the levels banked come (R.gainXP with nothing new: every level the XP reaches). With a scene (THE WORLD's camp, its night's watches, the Tiny Hut) the
+  // morning follows (H.morning: the picks, the night's bonds, the day's spells, the save); with none the caller wakes the party itself (H.sleepOnFloor, js/mines.js)
+  H.restSheets = function (party) {
     var R = DS.R, lines = [];
-    DS.G = { flags: H.cur.flags };
-    H.cur.party.forEach(function (h) {
+    party.forEach(function (h) {
       if (h.dead) return; // (the dead stay dead: exhaustion's sixth level, H.exhaust)
       h.conds = h.conds || {}; var ex = h.conds.exhaustion ? JSON.parse(JSON.stringify(h.conds.exhaustion)) : null;
-      if (h.conds.aid) { h.maxhp -= h.conds.aid; delete h.conds.aid; } delete h.conds.mageArmor; R.refresh(h, true);
+      if (h.conds.aid) { h.maxhp -= h.conds.aid; delete h.conds.aid; } delete h.conds.mageArmor;
+      h.bondsBefore = (h.attuned || []).slice(); R.refresh(h, true); // (bondsBefore: the morning's sheet says what the night bonded -- the first game's EV.longRest, EV.bonds)
       if (ex) { h.conds.exhaustion = ex; H.exhaust(h, -1); h.hp = h.maxhp; lines.push(h.name + (exh(h) ? ' is less worn (exhausted ' + exh(h) + ').' : ' is rested out of the exhaustion.')); } // (the SRD: a long rest takes a level off -- with food and drink, not counted yet)
       h.hdLeft = Math.min(h.lvl, (h.hdLeft != null ? h.hdLeft : h.lvl) + Math.max(1, Math.floor(h.lvl / 2))); // (the SRD: a long rest gives back half the hit dice spent, at least one)
     });
-    H.cur.party.forEach(function (h) { if (!h.dead) lines = lines.concat(R.gainXP(h, 0)); });
+    party.forEach(function (h) { if (!h.dead) lines = lines.concat(R.gainXP(h, 0)); });
+    return lines;
+  };
+  H.longRest = function (scene) {
+    if (!H.playing) return [];
+    var R = DS.R;
+    DS.G = { flags: H.cur.flags };
+    var lines = H.restSheets(H.cur.party);
+    if (scene) { H.morning({ party: H.cur.party, lines: lines, save: true }); return lines; } // (the morning opens the picks: Morning)
     var who = H.cur.party.filter(function (h) { return R.picksDue(h); });
     if (who.length && scene) {
       if (DS.autoPicks || !D.ctx || !DS.MENU) who.forEach(R.autoPicks);
       else { D.sfx('levelup'); scene.pm = DS.MENU.openPicks({ party: function () { return who; }, close: function () { scene.pm = null; } }, who, { pages: true }, function () { scene.pm = null; }); }
     } else if (lines.length) D.sfx('levelup');
     return lines;
+  };
+  // ---------------------------------------------------------------- THE MORNING (10-22, the services seat, started by the lanes desk on his word: "Start a seat on Silverton's
+  // services: Cassia's rooms, Aldwin's chapel sleep, Davos's leech-house, Hessle's board, Merrick's sendings, from the first game's scenes"; and his 10-22 note on the house:
+  // "camping the night with no encounter doesn't prompt the same as 'you just stayed at inn' - can't tell it's morning, no bond-report or morning castings routines ran").
+  // Every long rest in the house wakes to the first game's morning (js/events.js EV.rest, EV.morning): the night (the screen dark, the inn's tune), MORNING and what the
+  // night did, the level picks, THE NIGHT'S BONDS (EV.bonds), THE DAY'S SPELLS (EV.prepare: each caster's day, and Mage Armor and Aid cast ahead) and "Write down the day?
+  // (Save)". THE WORLD's camp, its night's watches and the Tiny Hut (H.longRest), Cassia's rooms and Aldwin's floor (H.sleepOnFloor, js/counter.js). Its words are the
+  // first game's (content/text.json g.*, EV.bonds's own); every row a click (his aim: "playable by mouse only as well as our other options"), the arrows and E, X back.
+  // o: { party: the sheets, lines: what the rest said, line: the place's own morning, music: the night's tune, save: SAVE asked, floor: the floor's Battle, after(): its
+  // figures brought to the sheets, saveAt(): where a save stands them, done() }
+  H.NIGHT = 110;
+  function worn(h) { var R = DS.R, out = []; Object.keys(h.equip || {}).forEach(function (s) { var id = h.equip[s], it = R.item(id); if (s !== 'torch' && it && it.attune && out.indexOf(id) < 0) out.push(id); }); return out; }
+  function Morning(o) {
+    this.kind = 'housemorning'; this.opaque = false; this.o = o; this.t = 0; this.tp = 0; this.phase = 'night'; this.i = 0; this.scroll = 0; this.msg = null; this.pm = null; this.sub = null; this.over = false;
+    var R = DS.R; this.party = (o.party || []).filter(function (h) { return !h.dead; });
+    this.due = this.party.filter(function (h) { return R.picksDue(h); });
+    if (this.due.length && (DS.autoPicks || !D.ctx || !DS.MENU)) { this.due.forEach(R.autoPicks); this.due = []; } // (no one to ask -- a bench: the build's picks at once)
+    this.was = (DS.audio && DS.audio.songId) || null;
+  }
+  H.Morning = Morning;
+  H.morning = function (o) { var m = new Morning(o || {}); D.push(m); return m; };
+  Morning.prototype.enter = function () { try { D.music(this.o.music || 'inn'); } catch (e) { } }; // (the first game's EV.rest: the inn's tune through the night)
+  Morning.prototype.ORDER = ['night', 'dawn', 'picks', 'bonds', 'spells', 'save'];
+  Morning.prototype.wants = function (p) {
+    var R = DS.R;
+    if (p === 'dawn') return true;
+    if (p === 'picks') return this.due.length > 0;
+    if (p === 'bonds') return this.party.some(function (h) { return worn(h).length || (h.bondsBefore || []).length; }); // (EV.bonds: nothing worn that wants a bond, no page)
+    if (p === 'spells') return this.party.some(function (h) { return R.prepCount(h) > 0; });
+    if (p === 'save') return !!this.o.save && H.playing;
+    return false;
+  };
+  Morning.prototype.next = function () {
+    var k = this.ORDER.indexOf(this.phase); this.i = 0; this.scroll = 0; this.sub = null; this.msg = null; this.tp = 0;
+    while (++k < this.ORDER.length) { var p = this.ORDER[k]; if (this.wants(p)) { this.phase = p; this.start(p); return; } }
+    this.finish();
+  };
+  Morning.prototype.start = function (p) {
+    var self = this, R = DS.R;
+    if (p === 'dawn') { if (this.was) { try { D.music(this.was); } catch (e) { } } D.sfx('confirm'); } // (the place's own tune again, as the first game's fade up)
+    if (p === 'picks') { D.sfx('levelup'); this.pm = DS.MENU.openPicks({ party: function () { return self.due; }, close: function () { self.pm = null; } }, this.due, { pages: true }, function () { self.pm = null; }); }
+    if (p === 'spells') this.party.forEach(function (h) { if (R.prepCount(h) > 0) h.prepared = R.prepFill(h); }); // (on waking: yesterday's choices stand, and a day grown by a level fills with the build's next picks -- EV.prepare)
+    if (p === 'save') this.settle();
+  };
+  Morning.prototype.settle = function () { if (this.settled) return; this.settled = true; this.party.forEach(function (h) { delete h.bondsBefore; }); if (this.o.after) this.o.after(); }; // (the floor's figures to their sheets before a SAVE)
+  Morning.prototype.finish = function () {
+    if (this.over) return; this.over = true; this.settle();
+    if (D.top() === this) D.pop();
+    if (this.o.done) this.o.done();
+  };
+  // the field's casts here: Mage Armor on the one chosen, Aid on three (aidOut: the one who goes without) -- H.field's rules
+  Morning.prototype.env = function (aidOut) { return { where: this.o.floor ? 'floor' : 'world', party: this.party, tent: false, has: function () { return false; }, take: function () { }, ward: function () { }, longRest: function () { return []; }, aidOut: aidOut || null }; };
+  // the rows on the screen now: { title, rows: [{ label, right, rightColor, color, value, disabled, desc }] }
+  Morning.prototype.list = function () {
+    var R = DS.R, P = this.party, s = this.sub;
+    if (this.phase === 'bonds') { // (EV.bonds: every bond-wanting thing the four wear, what the night did with it -- BONDED, NEW, WAITING -- and what was set down and let go)
+      var rows = [{ label: 'DONE', value: 'done', desc: 'On to the day\'s spells. A bond lasts while the thing is worn; take it off, and the next rest lets it go.' }], MAX = R.ATTUNE_MAX || 3;
+      P.forEach(function (h) {
+        var was = h.bondsBefore || [], now = h.attuned || [];
+        worn(h).forEach(function (id) {
+          var it = R.item(id), on = now.indexOf(id) >= 0;
+          rows.push({ label: h.name.toUpperCase() + ': ' + it.name, right: on ? (was.indexOf(id) >= 0 ? 'BONDED' : 'NEW') : 'WAITING', rightColor: on ? (was.indexOf(id) >= 0 ? '#C8D0E8' : '#B8F8B8') : '#6C6C84',
+            value: { h: h, id: id }, desc: (it.desc || '') + (on ? '  E: let it go.' : now.length >= MAX ? '  Three bonds held: let one go first.' : '  E: bond with it.') });
+        });
+        was.filter(function (id) { return now.indexOf(id) < 0 && worn(h).indexOf(id) < 0; }).forEach(function (id) { var it = R.item(id); if (it) rows.push({ label: h.name.toUpperCase() + ': ' + it.name, right: 'LET GO', value: null, disabled: true, desc: 'Set down, and let go in the night.' }); });
+      });
+      return { title: 'THE NIGHT\'S BONDS', rows: rows };
+    }
+    if (this.phase === 'spells' && s && s.prep) { // (prepHero: a spell in or out; the oath's and the book's rituals listed, always ready, uncounted)
+      var h = s.prep, n = R.prepCount(h), pool = R.prepPool(h);
+      var pr = pool.map(function (id) { var sp = DS.DATA.spells[id], on = h.prepared.indexOf(id) >= 0; return { label: (on ? '■ ' : '□ ') + (sp.short || sp.name), right: 'L' + sp.level, value: id, color: on ? null : '#C8D0E8', desc: sp.desc }; });
+      R.oathSpells(h).forEach(function (id) { var sp = DS.DATA.spells[id]; pr.push({ label: '◆ ' + sp.name, right: 'OATH', value: id, disabled: true, desc: say('g.prepOath', { spell: sp.name }) }); });
+      R.ritualsOf(h).forEach(function (id) { var sp = DS.DATA.spells[id]; pr.push({ label: '◆ ' + sp.name, right: 'RITUAL', value: id, disabled: true, desc: say('g.prepRitual', { spell: sp.name }) }); });
+      return { title: h.name.toUpperCase() + ': ' + h.prepared.length + ' OF ' + n + ' PREPARED', rows: pr };
+    }
+    if (this.phase === 'spells' && s && s.whom) { var ma = s.sp.buff === 'mageArmor'; return { title: 'ON WHOM?', rows: P.map(function (x) { return { label: x.name, right: ma && R.armored(x) ? 'ARMORED' : (x.ko ? 'KO ' : '') + x.hp + '/' + x.maxhp, value: x, disabled: x.ko || x.hp <= 0 || (ma && R.armored(x)), desc: s.sp.desc }; }) }; }
+    if (this.phase === 'spells' && s && s.without) return { title: 'WHO GOES WITHOUT?', rows: P.map(function (x) { return { label: x.name, right: (x.ko ? 'KO ' : '') + x.hp + '/' + x.maxhp, value: x, desc: s.sp.desc }; }) };
+    if (this.phase === 'spells') { // (EV.prepare: DONE, each caster's day, and the cast-ahead -- by whoever prepared it and has the slot; Aid on those who have it already would be a slot for nothing)
+      var casters = P.filter(function (x) { return R.prepCount(x) > 0; }), rs = [{ label: 'DONE', value: 'done', desc: say('g.prepDone') }];
+      casters.forEach(function (x) { rs.push({ label: 'PREPARE ' + x.name.toUpperCase(), right: x.prepared.length + '/' + R.prepCount(x), value: { prep: x }, desc: say(x.cls === 'wizard' ? 'g.prepWizard' : 'g.prepPaladin', { name: x.name, n: R.prepCount(x) }) }); });
+      casters.forEach(function (x) {
+        ['mageArmor', 'aid'].forEach(function (id) {
+          if (R.castable(x, 'field').indexOf(id) < 0) return;
+          var sp = DS.DATA.spells[id], slot = R.lowestSlot(x, sp.level), on = P.filter(function (y) { return y.conds && y.conds[id]; });
+          rs.push({ label: 'CAST ' + sp.name.toUpperCase(), right: on.length ? 'ON ' + (on.length === 1 ? on[0].name.toUpperCase() : on.length) : slot ? 'L' + slot : 'NO SLOT', value: { cast: sp, h: x }, disabled: !slot || (id === 'aid' && on.length > 0), desc: sp.desc });
+        });
+      });
+      return { title: 'THE DAY\'S SPELLS', rows: rs };
+    }
+    if (this.phase === 'save') return { title: say('g.saveAsk'), rows: [{ label: 'SAVE', value: 'save' }, { label: 'NO', value: 'no' }] };
+    return { title: '', rows: [] };
+  };
+  Morning.prototype.pick = function (r) {
+    if (!r || r.disabled) { D.sfx('error'); return; }
+    var R = DS.R, v = r.value, s = this.sub, self = this; this.msg = null;
+    if (this.phase === 'bonds') {
+      if (v === 'done') { D.sfx('confirm'); this.next(); return; }
+      var hh = v.h, a = hh.attuned = (hh.attuned || []).slice(), i = a.indexOf(v.id), MAX = R.ATTUNE_MAX || 3;
+      // (a bond let go here stays let go while the thing is worn -- R.attune reads h.noBond -- and bonding it again clears that)
+      if (i >= 0) { a.splice(i, 1); hh.noBond = (hh.noBond || []).concat([v.id]); D.sfx('cancel'); }
+      else if (a.length >= MAX) { D.sfx('error'); this.msg = [hh.name + ' holds three bonds already. Let one go first.']; }
+      else { a.push(v.id); if (hh.noBond) { hh.noBond = hh.noBond.filter(function (x) { return x !== v.id; }); if (!hh.noBond.length) delete hh.noBond; } D.sfx('magic'); }
+      return;
+    }
+    if (this.phase === 'spells' && s && s.prep) {
+      var h = s.prep, n = R.prepCount(h), k = h.prepared.indexOf(v);
+      if (k >= 0) { h.prepared.splice(k, 1); D.sfx('cursor'); }
+      else if (h.prepared.length >= n) { D.sfx('error'); this.msg = [say('g.prepFull', { name: h.name, n: n })]; }
+      else { h.prepared.push(v); D.sfx('cursor'); }
+      return;
+    }
+    if (this.phase === 'spells' && s && (s.whom || s.without)) { var ln = H.field.cast(s.c, s.sp, s.whom ? v : null, this.env(s.without ? v : null)); this.back(true); this.msg = ln; return; }
+    if (this.phase === 'spells') {
+      if (v === 'done') { D.sfx('confirm'); this.next(); return; }
+      if (v.prep) { var pool = R.prepPool(v.prep); v.prep.prepared = (v.prep.prepared || []).filter(function (id) { return pool.indexOf(id) >= 0; }).slice(0, R.prepCount(v.prep)); D.sfx('confirm'); this.sub = { prep: v.prep, at: this.i }; this.i = 0; this.scroll = 0; return; }
+      if (v.cast && v.cast.buff === 'aid') { // (up to three: four in the party, one goes without -- EV.fieldCast's WHO GOES WITHOUT?)
+        if (this.party.length > 3) { D.sfx('confirm'); this.sub = { without: true, c: v.h, sp: v.cast, at: this.i }; this.i = 0; this.scroll = 0; return; }
+        this.msg = H.field.cast(v.h, v.cast, null, this.env(null)); return;
+      }
+      if (v.cast) {
+        if (v.cast.buff === 'mageArmor' && this.party.every(function (x) { return R.armored(x) || x.ko || x.hp <= 0; })) { D.sfx('error'); this.msg = [say('g.mageArmorNone')]; return; }
+        D.sfx('confirm'); this.sub = { whom: true, c: v.h, sp: v.cast, at: this.i }; this.i = 0; this.scroll = 0; return;
+      }
+    }
+    if (this.phase === 'save') {
+      if (v === 'save') { D.sfx('confirm'); this.settle(); if (this.o.saveAt) this.o.saveAt(); D.push(new Slots('save', function () { self.finish(); })); return; }
+      D.sfx('cancel'); this.finish();
+    }
+  };
+  Morning.prototype.back = function (quiet) { if (!this.sub) return; this.i = this.sub.at || 0; this.sub = null; this.scroll = 0; if (!quiet) D.sfx('cancel'); };
+  // X (or a right click): back out of a list within, else the first game's -- the morning's lists end on X as on DONE, the save's on NO
+  Morning.prototype.cancel = function () {
+    if (this.phase === 'dawn') { this.next(); return; }
+    if (this.sub) { this.back(); return; }
+    var L = this.list(), last = this.phase === 'save' ? L.rows[L.rows.length - 1] : L.rows[0];
+    this.pick(last);
+  };
+  Morning.prototype.box = function (n) { var vis = Math.min(12, Math.max(2, n)), w = 340; return { x: (D.W - w) / 2, y: 18, w: w, h: 30 + vis * 12, vis: vis }; };
+  Morning.prototype.dawnLines = function () {
+    var W = D.world, when = W && W.house && W.house() && W.state ? 'day ' + (Math.floor(W.state().t / 24) + 1) + ', ' + W.timeOfDay() : '';
+    var out = ['{y}MORNING{/}' + (when ? ' -- ' + when + '.' : '')].concat(this.o.line ? [this.o.line] : [], [say('g.rested')], this.o.lines || []), w = 320, ls = [];
+    out.forEach(function (l, k) { if (k) ls.push(''); ls = ls.concat(D.wrap(l, w - 20)); });
+    return ls;
+  };
+  // the buttons on the screen now: the rows in sight (k: the row), or the dawn's OK
+  Morning.prototype.buttons = function () {
+    if (this.phase === 'dawn') { var ls = this.dawnLines(), h = 30 + ls.length * 10, y = Math.max(8, (D.H - h) / 2 - 10); return [{ x: D.W / 2 - 30, y: y + h - 20, w: 60, h: 14, go: 'ok', label: 'OK', card: { x: (D.W - 320) / 2, y: y, w: 320, h: h, lines: ls } }]; }
+    if (this.phase === 'night' || this.pm) return [];
+    var L = this.list(), b = this.box(L.rows.length), out = [];
+    this.scroll = Math.max(0, Math.min(this.scroll, L.rows.length - b.vis));
+    if (this.i < this.scroll) this.scroll = this.i; if (this.i >= this.scroll + b.vis) this.scroll = this.i - b.vis + 1;
+    for (var r = 0; r < b.vis; r++) { var k = this.scroll + r; if (!L.rows[k]) break; out.push({ x: b.x + 4, y: b.y + 22 + r * 12, w: b.w - 8, h: 12, k: k }); }
+    return out;
+  };
+  Morning.prototype.update = function () {
+    this.t++; this.tp++;
+    if (this.phase === 'picks') { if (this.pm) { this.pm.update(D.ui.menuKeys()); if (this.pm && this.pm.closed) this.pm = null; } if (!this.pm) this.next(); return; } // (the page shut: on to the bonds)
+    var m = I.mouse;
+    if (this.phase === 'night') { if (this.tp >= H.NIGHT || I.pressed('a') || (m.click && m.inside)) this.next(); return; } // (a click or E: on to the morning)
+    var bs = this.buttons(), hit = m.inside ? bs.filter(function (q) { return m.x >= q.x && m.x < q.x + q.w && m.y >= q.y && m.y < q.y + q.h; })[0] : null;
+    if (hit && hit.k != null && (m.moved || m.click)) this.i = hit.k;
+    if (m.click && m.inside && hit) { if (hit.go === 'ok') { D.sfx('confirm'); this.next(); } else this.pick(this.list().rows[hit.k]); return; }
+    if (I.pressed('b') || m.rclick) { this.cancel(); return; }
+    if (this.phase === 'dawn') { if (I.pressed('a')) { D.sfx('confirm'); this.next(); } return; }
+    var L = this.list(), n = L.rows.length;
+    if (m.wheel && m.inside) { this.scroll = Math.max(0, Math.min(n - this.box(n).vis, this.scroll + (m.wheel > 0 ? 1 : -1))); this.i = Math.max(this.scroll, Math.min(this.scroll + this.box(n).vis - 1, this.i)); m.wheel = 0; }
+    if (n && I.repeat('down')) { this.i = (this.i + 1) % n; D.sfx('cursor'); }
+    if (n && I.repeat('up')) { this.i = (this.i + n - 1) % n; D.sfx('cursor'); }
+    if (I.pressed('a')) this.pick(L.rows[this.i]);
+  };
+  Morning.prototype.draw = function (ctx) {
+    var W8 = D.WIN8, self = this;
+    if (this.phase === 'night') { ctx.fillStyle = 'rgba(0,0,0,' + Math.min(1, this.tp / 20) + ')'; ctx.fillRect(0, 0, D.W, D.H); D.hint(ctx, 'click or E: on to the morning', D.W / 2, D.H - 12, '#4a4a5c', 'center'); return; }
+    ctx.fillStyle = 'rgba(4,3,10,' + (this.phase === 'dawn' ? Math.max(0.5, 1 - this.tp / 30) : 0.55) + ')'; ctx.fillRect(0, 0, D.W, D.H); // (up out of the dark: the first game's fade)
+    if (this.pm) { D.ui.drawMenu(ctx, this.pm); return; }
+    var bs = this.buttons();
+    if (this.phase === 'dawn') {
+      var q = bs[0], c = q.card; D.win8(ctx, c.x, c.y, c.w, c.h);
+      c.lines.forEach(function (l, i) { D.text(ctx, l, c.x + 10, c.y + 8 + i * 10, W8.text); });
+      var hov = I.mouse.inside && I.mouse.x >= q.x && I.mouse.x < q.x + q.w && I.mouse.y >= q.y && I.mouse.y < q.y + q.h;
+      ctx.fillStyle = hov ? W8.sel : 'rgba(16,18,58,.92)'; ctx.fillRect(q.x, q.y, q.w, q.h); ctx.strokeStyle = W8.gold; ctx.strokeRect(q.x + 0.5, q.y + 0.5, q.w - 1, q.h - 1);
+      D.text(ctx, 'OK', q.x + q.w / 2, q.y + 3, hov ? W8.gold : W8.text, 'center');
+      ctx.fillStyle = 'rgba(4,3,10,.95)'; ctx.fillRect(0, D.H - 17, D.W, 17); D.hint(ctx, 'click OK · E on', D.W / 2, D.H - 12, '#9a96a8', 'center');
+      return;
+    }
+    var L = this.list(), b = this.box(L.rows.length);
+    D.win8(ctx, b.x, b.y, b.w, b.h);
+    D.text(ctx, '{y}' + L.title + '{/}', b.x + 10, b.y + 7, W8.text);
+    bs.forEach(function (q) {
+      var r = L.rows[q.k], on = q.k === self.i;
+      if (on) { ctx.fillStyle = W8.sel; ctx.fillRect(q.x, q.y - 1, q.w, q.h); }
+      D.text(ctx, (on ? '> ' : '  ') + r.label, q.x + 4, q.y + 1, r.disabled ? '#6c6c84' : on ? W8.gold : r.color || W8.text);
+      if (r.right != null) D.text(ctx, r.right, q.x + q.w - 6, q.y + 1, r.disabled ? '#6c6c84' : r.rightColor || '#c8d0e8', 'right');
+    });
+    if (this.scroll > 0) D.text(ctx, '▲', b.x + b.w - 12, b.y + 8, '#c8d0e8');
+    if (this.scroll + b.vis < L.rows.length) D.text(ctx, '▼', b.x + b.w - 12, b.y + b.h - 10, '#c8d0e8');
+    var cur = L.rows[this.i], tx = this.msg ? this.msg.join(' ') : cur && cur.desc || '', dy = b.y + b.h + 6;
+    if (tx) { D.win8(ctx, b.x, dy, b.w, 44); D.wrap(tx, b.w - 20).slice(0, 3).forEach(function (l, i) { D.text(ctx, l, b.x + 10, dy + 7 + i * 10, self.msg ? '#b8f8b8' : '#e0c8a0'); }); }
+    ctx.fillStyle = 'rgba(4,3,10,.95)'; ctx.fillRect(0, D.H - 17, D.W, 17);
+    D.hint(ctx, 'click a row · arrows choose · E pick · X ' + (this.sub ? 'back' : this.phase === 'save' ? 'no' : 'done'), D.W / 2, D.H - 12, '#9a96a8', 'center');
+  };
+  // a night slept on a floor (Cassia's rooms, Aldwin's floor -- js/counter.js): in the house, the floor's party into the save, THE WORLD's clock to the morning and the long
+  // rest on the save (H.longRest with no scene: the picks are this morning's, over the floor), the morning, then the rested sheets back on the figures; on a test door, the
+  // floor's four rested in place. A SAVE in the morning stands them at the door they came in by (H.atOf)
+  H.sleepOnFloor = function* (B, o) {
+    o = o || {};
+    var R = D.roam, R0 = B.roam, W = D.world, house = !!(R.house() && H.playing), lines = [], sheets, done = false;
+    if (house) {
+      H.fromFloor(B);
+      var sc0 = W.scene; W.scene = null; try { lines = W.camp() || []; } finally { W.scene = sc0; }
+      sheets = H.cur.party.filter(function (h) { return !h.dead; });
+    } else {
+      sheets = R0.members.filter(function (u) { return u.src; }).map(function (u) { var sh = JSON.parse(JSON.stringify(u.src)); sh.hp = Math.max(0, u.hp); sh.slots = (u.slots || sh.slots || []).slice(); return sh; });
+      lines = H.restSheets(sheets);
+    }
+    var byKey = {}; sheets.forEach(function (h) { byKey[h.key || h.id] = h; });
+    H.morning({ party: sheets, lines: lines, line: o.line || null, music: o.music, save: house, floor: B,
+      after: function () { R0.members.forEach(function (u) { var sh = u.src && byKey[u.src.key || u.src.id]; if (sh) { u.src.conds = JSON.parse(JSON.stringify(sh.conds || {})); R.resheet(B, u, sh); } }); R.regear(B); },
+      saveAt: function () { H.cur.at = H.atOf(B); },
+      done: function () { done = true; } });
+    while (!done) yield 1;
+  };
+  // where a SAVE on a floor stands the party: the token's square -- or, in a room behind a door (js/town.js T.goIn), the square on the street they went in from, facing out
+  H.atOf = function (B) {
+    var R = D.roam, R0 = B.roam, o = B.townAway, def = o ? o.def : R.def, t = R0.token, sq = o ? o.at : [t.x, t.y], fw = o ? [-o.fw[0], -o.fw[1]] : R0.fw;
+    return { town: def.door || def.key, gate: def.gate || 'west', sq: sq.slice(), dir: R.DIR8[fw[0] + ',' + fw[1]] || null };
   };
   // SAVE: the game into a slot, from where they stand (the town's square, or the world's hex)
   H.saveTo = function (n) {
@@ -351,7 +585,8 @@
       return [say('g.nothingHappens')];
     }
     if (sp.buff === 'aid') { // (up to three: the three worst hurt, the caster's choice the first game asks -- the seat's, his to overrule; the higher Aid stands, the fallen come round)
-      var up3 = env.party.slice().sort(function (a, b) { return a.hp / a.maxhp - b.hp / b.maxhp; }).slice(0, 3), aN = 5 * Math.max(1, (slot || sp.level) - 1), woke = [];
+      // (env.aidOut: the one who goes without, asked as the first game asks it -- the morning's WHO GOES WITHOUT?, H.morning)
+      var up3 = (env.aidOut ? env.party.filter(function (x) { return x !== env.aidOut; }) : env.party.slice().sort(function (a, b) { return a.hp / a.maxhp - b.hp / b.maxhp; })).slice(0, 3), aN = 5 * Math.max(1, (slot || sp.level) - 1), woke = [];
       spend();
       up3.forEach(function (x) { x.conds = x.conds || {}; var had = x.conds.aid || 0, more = Math.max(0, aN - had); x.maxhp += more; x.hp = Math.max(0, x.hp) + more; x.conds.aid = Math.max(had, aN); if (x.ko && x.hp > 0) { x.ko = false; woke.push(x); } });
       D.sfx('buff');
