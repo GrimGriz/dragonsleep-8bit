@@ -86,7 +86,7 @@ def cut(root, sub, art, pages, chan=None, fix=None, cuts=None):
     return out
 
 
-def scales(cuts, views, idle_h, fit, stand_of=None):
+def scales(cuts, views, idle_h, fit, stand_of=None, measure=None):
     """stand_of: {L: (row, index)} a page's standing frame where its Death 1 (or first frame) is not one (the bulette's S page: Emerge 6)"""
     def k_for(ims, target):                          # page px a game px: the fitted frames' median height meets target
         lo, hi = 1.0, 20.0
@@ -106,9 +106,10 @@ def scales(cuts, views, idle_h, fit, stand_of=None):
             p1 = ls[0]
             target = idle_h[v] if v in ('S', 'N') else (idle_h['side'] + idle_h['S' if v == 'SE' else 'N']) / 2
             K[p1] = k_for([im for im, _, _ in cuts[p1]['idle']], target)
-            ref = body_h(cuts[p1]['idle'][0][0])
+            mh = measure or body_h                    # (measure: a page frame's height by the cutter's own rule -- the manticore's, its tail ball left out)
+            ref = mh(cuts[p1]['idle'][0][0])
             for L in ls[1:]:
-                K[L] = K[p1] * body_h(stand(L)) / ref
+                K[L] = K[p1] * mh(stand(L)) / ref
         else:                                            # a front or back page with no idle: its standing frame against the view's idle
             for L in ls:
                 K[L] = k_for([stand(L)], idle_h[v])
@@ -174,7 +175,7 @@ def stamp_shadow(fr, cx, cy, rx, ry, colour):
 
 
 def views(root, sub, art, pages, view_pages, idle_h, fit, torso_x, cell, chan=None, fix=None, tone_ref=None, cuts=None, stand_of=None,
-          shadows=None, shadow_rgb=None, targets=None, joins=None, feet=None):
+          shadows=None, shadow_rgb=None, targets=None, joins=None, feet=None, measure=None):
     """tone_ref: the sheet's own frames to tone each page to (see `tones`), or None to cut the pages' colour as drawn; fix and cuts:
     sheetrows' own, a page at a time ({L: {row: [...]}}: a loose part's box and its frame, a line cleared where two frames touch); stand_of:
     see `scales`; shadows: {row: (frame indices)} -- each such frame's ground shadow measured off its page (`page_shadow`) and drawn under it
@@ -183,11 +184,12 @@ def views(root, sub, art, pages, view_pages, idle_h, fit, torso_x, cell, chan=No
     idle must not set its walk's scale); joins: {row2: row} -- a row wrapped onto a second line of the page (the otyugh's Fall, 1-5 then
     6-9), placed against the first line's anchor and appended to it; feet: {row or (page, row): f(game-size frame) -> its foot row} -- that row's frames each
     stood with its foot on AY, in place of its box's foot against the row's ground (the winter wolf's breath: its frost hangs below the paws,
-    and on a second line the first frame's frost would set the line's ground)"""
+    and on a second line the first frame's frost would set the line's ground); measure: f(page frame) -> its height, in place of `body_h` in
+    `scales` (the manticore's: its biggest piece with the tail opened away, so a spike ball raised over the wings does not set a page's scale)"""
     FW, FH, AX, AY = cell
     lines = cuts
     cuts = cut(root, sub, art, pages, chan, fix, lines)          # (the cut lines in, the cut frames out)
-    K = scales(cuts, view_pages, idle_h, fit, stand_of)
+    K = scales(cuts, view_pages, idle_h, fit, stand_of, measure)
     for L, (r, i, hgt) in (targets or {}).items():
         lo, hi = 1.0, 20.0
         for _ in range(26):

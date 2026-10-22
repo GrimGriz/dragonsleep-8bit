@@ -551,6 +551,21 @@
     multi: 1, packTactics: true, keenSenses: true, immune: ['cold'],
     src: 'SRD 5.1 Winter Wolf (CR 3, Large; AC 13, 75 HP, speed 50; Perception +5, Stealth +3; immune to cold): its Bite +6, 2d6+4 piercing, DC 14 STR or prone (the worg way); Cold Breath on the grid breath rule (recharge 5-6, a 15-ft cone, DC 12 DEX, 4d8 cold, half on a save); Pack Tactics; Keen Hearing and Smell as GreyFang has it (advantage on the roll to find one hidden, battle.js). Not on the grid, a plain stand-in: Snow Camouflage (advantage on Stealth to hide in snowy terrain) -- the grid has no snow to hide in'
   },
+  // the manticore (10-22, the monster cutter seat's third run, on Griz's "close the desk but have the cutter run us out of usage for the
+  // week. See y'all tueday"): the SRD 5.1 Manticore from the mechanics the grid has; its sheet tools/manticore-sheet.py (the art desk's ART-12
+  // SE and NE, ART-55 S, E and N). Its bite plays `attack`, its claws `claw`, its tail spikes `tailspike` (battle.js: a row named for the blow).
+  manticore: {
+    name: 'Manticore', type: 'monstrosity', sheet: 'manticore_p1', cr: '3', ac: 14, hp: 68, speed: 30, fly: 50, size: 2, reach: 5, darkvision: 60,
+    abil: { str: 17, dex: 16, con: 17, int: 7, wis: 12, cha: 8 }, init: 3, perception: 11,
+    saves: { str: 3, dex: 3, con: 3, int: -2, wis: 1, cha: -1 },
+    attacks: {
+      bite: { name: 'Bite', atk: 5, dice: '1d8', mod: 3, type: 'piercing', reach: 5 },
+      claw: { name: 'Claw', atk: 5, dice: '1d6', mod: 3, type: 'slashing', reach: 5 },
+      tailspike: { name: 'Tail Spike', atk: 5, dice: '1d8', mod: 3, type: 'piercing', range: [100, 200], ranged: true, count: 24 } // (Tail Spike Regrowth: twenty-four, regrown on a long rest -- battle.js spendThrow)
+    },
+    multi: ['bite', 'claw', 'claw'], rangedMulti: ['tailspike', 'tailspike', 'tailspike'], // (Multiattack: its bite and two claws, or three tail spikes -- the volley with no one in its reach, js/ai.js volley)
+    src: 'SRD 5.1 Manticore (CR 3, Large; AC 14, 68 HP, speed 30, fly 50 -- wings in every fight, js/flight-ai.js; darkvision 60): Multiattack, its Bite +5 1d8+3 piercing and two Claws +5 1d6+3 slashing, or three Tail Spikes +5 100/200 ft 1d8+3 piercing (the volley, rangedMulti); Tail Spike Regrowth, its twenty-four spikes spent in the fight (count). Its Fly row is drawn and not cut: no rule plays a fly row in a fight (it flies on its idle and walk)'
+  },
   cloaker: {
     name: 'Cloaker', type: 'aberration', sheet: 'cloaker_p2', cr: '8', ac: 14, hp: 78, speed: 40, fly: 40, size: 2, reach: 5, darkvision: 60,
     abil: { str: 17, dex: 15, con: 12, int: 13, wis: 12, cha: 14 }, init: 2, perception: 11,

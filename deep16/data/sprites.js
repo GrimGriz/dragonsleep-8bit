@@ -6703,6 +6703,89 @@
 }
 }
 },
+"manticore_p1": {
+"image": "art/manticore_p1.png?v=b0866adc39",
+"fw": 160,
+"fh": 102,
+"ax": 80,
+"ay": 90,
+"top": 61,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 160,
+"fh": 102,
+"ax": 80,
+"ay": 90,
+"frames": 6,
+"fps": 6
+},
+"walk": {
+"y": 816,
+"fw": 160,
+"fh": 102,
+"ax": 80,
+"ay": 90,
+"frames": 8,
+"fps": 10
+},
+"attack": {
+"y": 1632,
+"fw": 160,
+"fh": 102,
+"ax": 80,
+"ay": 90,
+"frames": 6,
+"fps": 10
+},
+"hurt": {
+"y": 2448,
+"fw": 160,
+"fh": 102,
+"ax": 80,
+"ay": 90,
+"frames": 6,
+"fps": 8
+},
+"flinch": {
+"y": 3264,
+"fw": 160,
+"fh": 102,
+"ax": 80,
+"ay": 90,
+"frames": 4,
+"fps": 10
+},
+"claw": {
+"y": 4080,
+"fw": 160,
+"fh": 102,
+"ax": 80,
+"ay": 90,
+"frames": 6,
+"fps": 10
+},
+"prone": {
+"y": 4896,
+"fw": 160,
+"fh": 102,
+"ax": 80,
+"ay": 90,
+"frames": 2,
+"fps": 6
+},
+"tailspike": {
+"y": 5712,
+"fw": 160,
+"fh": 102,
+"ax": 80,
+"ay": 90,
+"frames": 6,
+"fps": 10
+}
+},
+"source": "drawn by the art desk (ART-12 SE and NE, 10-10; ART-55 S, E and N, 10-20 -- E Walk its OPEN page), cut by tools/manticore-sheet.py through tools/artdesk.py (10-22)"
+},
 "marin_p1": {
 "image": "art/marin_p1.png?v=41f3414c2f",
 "fw": 25,
