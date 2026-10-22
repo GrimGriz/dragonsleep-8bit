@@ -2078,6 +2078,137 @@
     document.body.appendChild(preM);
     return;
   }
+  // THE HEX, INSIDE, 10-22 (mode=hex1022; js/hex.js -- the Hex interior seat, started by the lanes desk; Griz: "1 - build all 3, where 3 can be just the meeting room and
+  // the offices upstairs and currently turned off for player access / 2-3 - match the 8-bit and let me know where you have to vary / 4 - let's see how that comes out"):
+  // the town floor's four Hex doors in and out; the three floors from the walkable's register, north up on the town's tiles; the first game's people by their ids and
+  // words; the spirals up and down, the way up from the second floor shut at Warda's word; Korvin's slate, a bout won on the simple screen and one lost, his word after,
+  // the purse, the flags and the hero's hit points; the sand's field and its crowd; the first game's two Hex floors untouched
+  if (get('mode', '') === 'hex1022') {
+    var repX = { checks: [], errors: [] }, memX = {}, stGX = D.store.get, stSX = D.store.set, HXX = D.hex, CXX = D.counter, SSX = D.simple, LX = CXX.L;
+    function okX(what, v) { repX.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    // a coroutine on, till `until`; a prompt answered by `pv` (else its first)
+    function driveX(g, until, cap, pv) { var v, k = 0, st; while (k++ < (cap || 4000)) { if (until && until()) return true; st = g.next(v); v = undefined; if (st.done) return !!(until && until()); if (typeof st.value === 'number' && D.battle) D.battle.t += Math.max(1, st.value); if (st.value && st.value.prompt) { v = pv != null ? pv : st.value.prompt.opts[0].value; driveX.asked = st.value.prompt; } } return !!(until && until()); }
+    function topX() { var s = D.top(); if (s && s.baking) { s.baking = false; s.enter(); } if (s && s.roam) driveX(s.co, null, 2); return s; }
+    function answerX(B, sc, ans) { var seen = []; ans = (ans || []).slice(); for (var k = 0; k < 40 && !sc.done; k++) { var w = sc.wait || {}, bs = sc.buttons(); seen = seen.concat(w.say || w.ask || []); if (w.ask) { var a = ans.length ? ans.shift() : w.opts.length - 1; seen.push('[' + w.opts.join(' | ') + ']'); seen.push('> ' + w.opts[a]); sc.press(bs.filter(function (b) { return b.go === 'opt' && b.k === a; })[0]); } else sc.press(bs[0]); } driveX(B.co, function () { return D.top() !== sc; }, 60); return seen.join(' / '); }
+    function walkX(B, to, pv) { var R0 = B.roam, p = D.roam.walkRoute(R0.token, to); if (!p) return null; B.cards = []; R0.encIn = 1e9; R0.path = p.slice(); driveX(B.co, function () { return D.top() !== B || (R0.token.x === to[0] && R0.token.y === to[1] && !(R0.path && R0.path.length)); }, 20000, pv); if (D.top() === B) driveX(B.co, function () { return D.top() !== B || D.roam.def !== walkX.def0; }, 80, pv); return p.length; }
+    function useX(B, at, ans, pv) { var R0 = B.roam, t = R0.token, seen = []; R0.fw = [Math.sign(at[0] - t.x), Math.sign(at[1] - t.y)]; B.cards = []; R0.keys.push('use'); driveX(B.co, function () { return D.top() instanceof CXX.Counter || (B.cards || []).length > 0 || D.top() !== B; }, 400, pv); var sc = D.top(); if (sc instanceof CXX.Counter) return { sc: sc, seen: answerX(B, sc, ans) }; (B.cards || []).forEach(function (c) { seen.push(c.lines.join(' ')); }); driveX(B.co, null, 30, pv); (B.cards || []).forEach(function (c) { var l = c.lines.join(' '); if (seen.indexOf(l) < 0) seen.push(l); }); return { sc: null, seen: seen.join(' / ') }; } // (a card's doing run on: a stair's floor laid)
+    function besideX(B, at) { var t = B.roam.token, best = null; [[0, 1], [-1, 0], [1, 0], [0, -1], [-1, 1], [1, 1], [-1, -1], [1, -1]].forEach(function (o) { var q = [at[0] + o[0], at[1] + o[1]]; if (!best && D.grid.canStand(t, q[0], q[1]) && D.roam.walkRoute(t, q)) best = q; }); if (best) walkX(B, best); return best; }
+    function testX(q) { var B = D.roam.make(q); D.scenes.length = 0; D.push(B); return topX(); }
+    function folkX(B) { return B.units.filter(function (u) { return u.npc; }); }
+    function sqX(id) { var u = folkX(D.top()).filter(function (z) { return z.npc === id; })[0]; return u ? [u.x, u.y] : null; }
+    function chX(x, y) { return (D.roam.def.rows[y] || '').charAt(x); }
+    // the bout pushed by the slate: driven to its end (a turn asked of us: the simple fight's FIGHT at the foe, or `plan`), E on its card, the floor on to Korvin's word
+    function boutX(BF, plan) {
+      driveX(BF.co, function () { var s0 = D.top(); return !!s0 && s0 !== BF && !!s0.fight; }, 400); // (the floor's next step after Korvin's screen closes: the bout pushed)
+      var b = D.top(); if (!b || b === BF || !b.fight) return null; if (b.baking) { b.baking = false; b.enter(); }
+      var crowd = D.looks && D.looks.props ? D.looks.props(b).filter(function (p) { return p.depth != null && b.fight.hexCrowd; }).length : 0, v, guard = 0;
+      boutX.seen = { b: b, crowd: crowd, mates: (HXX.crowd(b) || []).filter(function (p) { return p.mate; }).length, hero: b.units.filter(function (u) { return u.side === 'party'; }).map(function (u) { return u.id + '@' + u.x + ',' + u.y; }), foe: b.units.filter(function (u) { return u.side === 'foe'; }).map(function (u) { return u.kind + '@' + u.x + ',' + u.y; }) };
+      while (b.co && guard++ < 200000) {
+        var r = b.co.next(v); v = undefined; if (r.done) break; var y = r.value;
+        if (typeof y === 'number' || !y || y.fx || y.entry || y.scene) continue;
+        if (y.prompt) { v = y.prompt.opts[y.prompt.opts.length - 1].value; continue; }
+        if (y.turn) { var u = y.turn; if (plan) { v = plan(b, u); continue; } var a = b.simple ? SSX.autoNext(b, u) : null, f = b.units.filter(function (z) { return z.side === 'foe' && z.hp > 0 && !z.dead; })[0]; if (b.simple) { var mS = SSX.menu(b, u); if (!a) a = SSX.acts(u) && f ? SSX.fightCmd(b, u, f) : { do: 'end' }; mS.after = null; mS.root = null; } v = a || { do: 'end' }; continue; }
+      }
+      var res = b.result, card = (b.cards || []).map(function (c) { return (c.lines || []).join(' '); }).join(' / ');
+      if (D.top() === b) D.pop(); b.o.onDone(res);
+      driveX(BF.co, function () { return D.top() instanceof CXX.Counter; }, 4000);
+      var sc = D.top(), word = sc instanceof CXX.Counter ? answerX(BF, sc, []) : '';
+      driveX(BF.co, null, 40);
+      return { res: res, card: card, word: word, b: b };
+    }
+    D.store.get = function (k) { return memX[k] ? JSON.parse(memX[k]) : null; }; D.store.set = function (k, v) { memX[k] = JSON.stringify(v); return true; };
+    window.DS.autoPicks = true;
+    var rf0 = null; try { rf0 = window.localStorage.getItem(SSX.KEY); window.localStorage.removeItem(SSX.KEY); } catch (eR) { } // (OPTIONS' RANDOM FIGHTS at its default: SIMPLE)
+    try {
+      D.seed = +get('seed', 1022);
+      var before8 = JSON.stringify(window.DS.DATA.maps.hex) + JSON.stringify(window.DS.DATA.maps.hex2);
+      // the town's floor: the Hex's four doors a USE
+      var BT = testX('?roam=silverton&watch'), dT = D.roam.def, trT = dT.src8.triggers.filter(function (t) { return /^hex:/.test(t.id); });
+      okX('the town floor: the Hex\'s doors a USE (' + trT.map(function (t) { return t.id + ' ' + t.rect.slice(0, 2); }).join(', ') + ')', ['hex:front', 'hex:back', 'hex:east', 'hex:west'].every(function (id) { return trT.some(function (t) { return t.id === id && t.town === 'door'; }); }));
+      var fT = trT.filter(function (t) { return t.id === 'hex:front'; })[0].rect.slice(0, 2); besideX(BT, fT); walkX.def0 = D.roam.def; var inT = useX(BT, fT);
+      var B1 = D.top(), d1 = D.roam.def, t1 = B1.roam.token;
+      okX('in at the front doors: the ground floor (' + d1.key + ', ' + d1.w + ' x ' + d1.h + ', ' + d1.view + '), on ' + t1.x + ',' + t1.y + ' facing north; "' + inT.seen.slice(0, 50) + '"', d1.hexIn === 1 && d1.w === 24 && d1.h === 27 && d1.view === 'top' && !!B1.map.top && t1.x === 11 && t1.y === 24 && B1.roam.fw[1] === -1 && /THE HEX/.test(inT.seen));
+      var cnt = {}; d1.rows.forEach(function (r) { for (var i = 0; i < r.length; i++) cnt[r[i]] = (cnt[r[i]] || 0) + 1; });
+      okX('its squares: the sand shut at the middle (' + chX(12, 13) + chX(11, 13) + '), the tiers and the concourse boards (' + chX(12, 7) + chX(5, 12) + chX(2, 13) + '), the bars shut (' + chX(16, 21) + '), the doors and the spirals ways (' + chX(11, 25) + chX(11, 1) + chX(23, 13) + chX(0, 13) + '), the spirals a USE (' + chX(10, 6) + chX(13, 6) + ' ' + d1.src8.triggers.filter(function (t) { return t.stair; }).length + '): ' + JSON.stringify(cnt),
+        chX(12, 13) === '#' && chX(11, 13) === '#' && chX(12, 7) === 'o' && chX(5, 12) === 'o' && chX(2, 13) === 'o' && chX(11, 25) === 'd' && chX(11, 1) === 'd' && chX(23, 13) === 'd' && chX(0, 13) === 'd' && chX(10, 6) === '#' && chX(13, 6) === '#' && d1.src8.triggers.filter(function (t) { return t.stair; }).length === 2 && cnt.o > 200 && d1.doors.length === 6);
+      var f1 = folkX(B1), want1 = ['korvinSlate', 'talmok', 'bartenderS', 'bartenderE', 'warrenspete', 'hexpatron1', 'hexpatron2', 'warda'];
+      okX('Korvin in his own figure (' + ((f1.filter(function (u) { return u.npc === 'korvinSlate'; })[0] || {}).sheet) + '); the first game\'s people by their ids (' + f1.map(function (u) { return u.npc + ' ' + u.x + ',' + u.y; }).join(', ') + '); Barley and Lymen not standing, they walk with the party; Talmok in his own figure (' + (f1.filter(function (u) { return u.npc === 'talmok'; })[0] || {}).sheet + ')',
+        want1.every(function (id) { return f1.some(function (u) { return u.npc === id; }); }) && !f1.some(function (u) { return u.npc === 'barleyBench' || u.npc === 'lymenHex'; }) && (f1.filter(function (u) { return u.npc === 'talmok'; })[0] || {}).sheet === 'talmok_p1' && (f1.filter(function (u) { return u.npc === 'korvinSlate'; })[0] || {}).sheet === 'korvin_p1' && f1.every(function (u) { return chX(u.x, u.y) === 'o'; }));
+      var pcs = B1.map.props.filter(function (p) { return p.hexPiece; }), back = pcs.filter(function (p) { return p.depth === -1000; }).length, front = pcs.filter(function (p) { return p.depth === 1e5; }).length, t0P = performance.now(); HXX.pics = {}; var pic1 = HXX.picture(1), korvU = f1.filter(function (u) { return u.npc === 'korvinSlate'; })[0], msP = Math.round(performance.now() - t0P);
+      var px1 = function (x, z) { var d = pic1.getContext('2d').getImageData(Math.floor((x / 5 + 12) * 48), Math.floor((z / 5 + 13.5) * 48), 1, 1).data; return [d[0], d[1], d[2], d[3]]; }, sand = px1(0, 0), board = px1(-45, 10), out1 = px1(-58, -50);
+      okX('drawn on its true lines: ' + pcs.length + ' strips of standing pieces (the back walls ' + back + ', the front stub ' + front + '), the floor\'s picture ' + pic1.width + ' x ' + pic1.height + ' in ' + msP + ' ms -- the sand gold (' + sand + '), the concourse boards (' + board + '), outside the shell clear (' + out1[3] + ')',
+        pcs.length > 120 && back > 20 && front > 10 && pic1.width === 1152 && pic1.height === 1296 && sand[0] > sand[2] + 40 && sand[3] === 255 && board[3] === 255 && out1[3] === 0 && typeof d1.underlay === 'function');
+      // the people's words: the first game's
+      var pete = sqX('warrenspete'); besideX(B1, pete); var wP = useX(B1, pete);
+      okX('Warrens Pete\'s words ("' + wP.seen.slice(0, 60) + '")', /Past the wet the shaft/.test(wP.seen));
+      var wa = sqX('warda'); besideX(B1, wa); var wW = useX(B1, wa);
+      okX('Warda: the first game\'s line ("' + wW.seen.slice(0, 70) + '")', wW.seen.indexOf(LX('hex.warda')) >= 0);
+      var ta = sqX('talmok'); besideX(B1, ta); var wT = useX(B1, ta);
+      okX('Talmok\'s words ("' + wT.seen.slice(0, 60) + '")', /The champion, plains barbarian/.test(wT.seen));
+      var be = sqX('bartenderE'); var bsq = besideX(B1, be); var wB = bsq ? useX(B1, be) : { seen: '(no way to him)' };
+      okX('the east bar\'s bartender, behind his bar: a rumour of his ("' + wB.seen.slice(0, 60) + '")', wB.seen.length > 10 && !/Their scene is the 8-bit/.test(wB.seen));
+      var boxSq = null; d1.src8.triggers.forEach(function (t) { if (!boxSq && t.id === 'sign:boxes' && besideX.call(null, B1, t.rect.slice(0, 2))) boxSq = t.rect.slice(0, 2); });
+      var wX = boxSq ? useX(B1, boxSq) : { seen: '' };
+      okX('the Wall of Boxes behind the SSE bar: the first game\'s sign ("' + wX.seen.slice(0, 60) + '")', /The Wall of Boxes/.test(wX.seen));
+      // Korvin's slate: the brawl in the small sand, the first of the four, FIGHT (the simple screen by default)
+      var R1 = B1.roam, kv = sqX('korvinSlate'); besideX(B1, kv); var s0 = R1.silver; var hero1 = R1.members[0];
+      var sl1 = useX(B1, kv, [0, 0, 0]);
+      okX('Korvin at the slate on the counter screen, on his portrait (' + (sl1.sc && sl1.sc.sheet) + '): "' + LX('hex.korvin').slice(0, 40) + '..." and the card open to the brawl only (' + sl1.seen.split(' / ').filter(function (l) { return /^\[/.test(l); }).join(' ') + ')', !!sl1.sc && sl1.sc.o.name === 'Korvin' && sl1.sc.sheet === 'pt_korvin' && sl1.seen.indexOf(LX('hex.korvin')) >= 0 && /> BRAWL IN THE SMALL SAND/.test(sl1.seen) && !/FREEMAN/.test(sl1.seen) && R1.flags.heardHex === 1);
+      var bt1 = boutX(B1), sn1 = boutX.seen, fd = D.MAPS['hex-sand'];
+      okX('the bout on the simple screen (' + (bt1 && bt1.b.simple ? 'simple' : 'NOT simple') + ', no running: ' + (bt1 && !bt1.b.takesParty()) + ') on the Hex\'s sand (' + fd.ground + ', ' + fd.rows[SSX.C[1]].charAt(SSX.C[0]) + ' at the middle, the tiers up to ' + fd.heights[0].charAt(0) + '): ' + sn1.hero + ' against ' + sn1.foe + '; the crowd ' + sn1.crowd + ' round it, the party\'s three at the rail (' + sn1.mates + ')',
+        !!bt1 && !!bt1.b.simple && !bt1.b.takesParty() && fd.ground === 'sand' && fd.rows[SSX.C[1]].charAt(SSX.C[0]) === '.' && fd.heights[0].charAt(0) === '3' && sn1.hero.length === 1 && sn1.foe.length === 1 && /^brawler@/.test(sn1.foe[0]) && sn1.crowd > 10 && sn1.mates === 3);
+      okX('won (' + bt1.res + '): its card "' + bt1.card.slice(0, 50) + '"; Korvin\'s word "' + bt1.word.slice(0, 60) + '"; the purse ' + s0 + ' > ' + R1.silver + ', hex:brawl ' + R1.flags['hex:brawl'] + ', ' + hero1.name + ' ' + hero1.hp + '/' + hero1.maxhp + ', the log\'s bout lines ' + (B1.log || []).filter(function (l) { return /\[the Hex\]/.test(l); }).length,
+        bt1.res === 'won' && /THE ROOM ROARS/.test(bt1.card) && /E back to the Hex/.test(bt1.card) && bt1.word.indexOf(LX('hex.won', { name: hero1.name, n: 4 })) >= 0 && R1.silver === s0 + 4 && R1.flags['hex:brawl'] === 1 && hero1.hp >= 1 && D.top() === B1 && D.roam.def.hexIn === 1 && (B1.log || []).some(function (l) { return /\[the Hex\]/.test(l); }));
+      var sl2 = useX(B1, kv, [1]);
+      okX('the slate again: the freeman challenge open now, the brawl starred (' + sl2.seen.split(' / ').filter(function (l) { return /^\[/.test(l); })[0] + '); WHO TAKES THE SAND? NOT NOW: no stake taken (' + R1.silver + ')', !!sl2.sc && /FREEMAN CHALLENGE -- 5 IN/.test(sl2.seen) && /\* BRAWL IN THE SMALL SAND/.test(sl2.seen) && /WHO TAKES THE SAND\?/.test(sl2.seen) && R1.silver === s0 + 4);
+      // up the spiral to the gambling floor
+      besideX(B1, [10, 6]); useX(B1, [10, 6]); var B2 = topX(), d2 = D.roam.def, f2 = folkX(B2);
+      okX('E at the west spiral, up: the gambling floor (' + d2.key + '), on ' + B2.roam.token.x + ',' + B2.roam.token.y + '; its people (' + f2.map(function (u) { return u.npc + ' ' + u.x + ',' + u.y; }).join(', ') + '); the opening over the sand shut (' + chX(12, 13) + '), the ring and the bow boards (' + chX(1, 13) + chX(12, 8) + ')',
+        d2.hexIn === 2 && f2.some(function (u) { return u.npc === 'gambler1'; }) && f2.some(function (u) { return u.npc === 'gambler2'; }) && chX(12, 13) === '#' && chX(1, 13) === 'o' && chX(12, 8) === 'o' && !d2.doors.some(function (q) { return q[1] === 25; }));
+      var g1 = sqX('gambler1'); besideX(B2, g1); var wG = useX(B2, g1);
+      okX('a gambler\'s words ("' + wG.seen.slice(0, 60) + '")', /high-roller room/.test(wG.seen));
+      besideX(B2, HXX.CHAIR); var wV = useX(B2, HXX.CHAIR);
+      okX('Vair\'s empty chair: the first game\'s line ("' + wV.seen.slice(0, 60) + '")', wV.seen.indexOf(LX('hex.vairseat')) >= 0);
+      var railSq = null; d2.src8.triggers.forEach(function (t) { if (!railSq && t.id === 'sign:rail' && besideX(B2, t.rect.slice(0, 2))) railSq = t.rect.slice(0, 2); });
+      var wR = railSq ? useX(B2, railSq) : { seen: '' };
+      okX('the rail: the first game\'s sign ("' + wR.seen.slice(0, 50) + '")', /The rail\. Below, the sand/.test(wR.seen));
+      besideX(B2, [13, 6]); var upX = useX(B2, [13, 6], null, 1);
+      okX('the east spiral on the second floor asks DOWN / UP / STAY (' + ((driveX.asked || {}).opts || []).map(function (o) { return o.label; }).join(' / ') + '); UP: the way is Warda\'s ("' + upX.seen.slice(0, 90) + '"), the party still on the second floor (' + D.roam.def.key + ')',
+        D.roam.def.hexIn === 2 && upX.seen.indexOf(LX('hex.warda')) >= 0 && ((driveX.asked || {}).opts || []).length === 3);
+      useX(B2, [13, 6], null, 0); var B1b = topX();
+      okX('DOWN: the ground floor again, beside the spiral (' + D.roam.def.key + ', ' + B1b.roam.token.x + ',' + B1b.roam.token.y + ')', D.roam.def.hexIn === 1 && Math.abs(B1b.roam.token.x - 13) <= 1 && Math.abs(B1b.roam.token.y - 6) <= 1);
+      // out the back doors and in again, out the east door, out the front
+      walkX.def0 = D.roam.def; walkX(B1b, [11, 2]); walkX(B1b, [11, 1]); var BTb = topX(), dTb = D.roam.def;
+      okX('out the back (north) doors: the town at the Hex\'s back door, facing north (' + dTb.key + ', ' + BTb.roam.token.x + ',' + BTb.roam.token.y + ' = ' + (dTb.marks.hexBack || [])[0] + ', facing ' + BTb.roam.fw + ')', dTb.key === 'silverton' && !dTb.hexIn && BTb.roam.token.x === dTb.marks.hexBack[0][0] && BTb.roam.token.y === dTb.marks.hexBack[0][1] && BTb.roam.fw[1] === -1 && folkX(BTb).length > 10);
+      var bk = dTb.src8.triggers.filter(function (t) { return t.id === 'hex:back'; })[0].rect.slice(0, 2); besideX(BTb, bk); useX(BTb, bk); var B1c = D.top();
+      okX('in again by the back: just inside the north doors facing south (' + B1c.roam.token.x + ',' + B1c.roam.token.y + ')', D.roam.def.hexIn === 1 && B1c.roam.token.x === 11 && B1c.roam.token.y === 2 && B1c.roam.fw[1] === 1);
+      walkX.def0 = D.roam.def; walkX(B1c, [22, 13]); walkX(B1c, [23, 13]); var BTe = topX(), dTe = D.roam.def;
+      okX('out the east door: the town east of the Hex (' + BTe.roam.token.x + ',' + BTe.roam.token.y + ' = ' + dTe.marks.hexEast + ')', dTe.key === 'silverton' && BTe.roam.token.x === dTe.marks.hexEast[0] && BTe.roam.token.y === dTe.marks.hexEast[1] && BTe.roam.fw[0] === 1);
+      // a bout lost: Talmok, the card opened to him, the party's purse empty (the crowd fronts the five), the hero standing at 1 and ending every turn -- down, up at 1
+      var BL = testX('?roam=hex&flags=hex:brawl,hex:freeman,hex:card'), RL = BL.roam, hL = RL.members[0]; RL.silver = 0; hL.hp = 1;
+      var kL = sqX('korvinSlate'); besideX(BL, kL); var slL = useX(BL, kL, [3, 0, 0]);
+      var btL = boutX(BL, function () { return { do: 'end' }; });
+      okX('Talmok on the slate (' + slL.seen.split(' / ').filter(function (l) { return /^> /.test(l); }).join(' ') + '), no five in the purse: "' + LX('hex.fronted').slice(0, 30) + '..."; lost (' + (btL && btL.res) + '): "' + (btL ? btL.word : '').slice(0, 90) + '"; ' + hL.name + ' up at ' + hL.hp + ', no flag, the purse ' + RL.silver,
+        /TALMOK, THE CHAMPION/.test(slL.seen) && slL.seen.indexOf(LX('hex.fronted')) >= 0 && !!btL && btL.res === 'lost' && /DOWN ON THE SAND/.test(btL.card) && btL.word.indexOf(LX('hex.lostFronted', { name: hL.name })) >= 0 && btL.word.indexOf(LX('hex.stitched', { name: hL.name })) >= 0 && hL.hp === 1 && !RL.flags['hex:talmok'] && RL.silver === 0);
+      // ON THE GRID: the brawl again, the grid's own fight on the same sand
+      var BG = testX('?roam=hex&watch'), kG = sqX('korvinSlate'); besideX(BG, kG); useX(BG, kG, [0, 0, 1]); var btG = boutX(BG);
+      okX('ON THE GRID: the full grid on the Hex\'s sand (' + (btG && (btG.b.simple ? 'simple!' : 'the grid')) + ', ' + (btG && btG.res) + ')', !!btG && !btG.b.simple && !btG.b.o.simple && btG.b.map.def === D.MAPS['hex-sand'] && !!btG.res);
+      // the third floor: the test door only (his "currently turned off for player access")
+      var B3 = testX('?roam=hex&floor=3'), d3 = D.roam.def, off = [], arm = [], lng = [], shut = 0;
+      for (var y3 = 0; y3 < d3.h; y3++) for (var x3 = 0; x3 < d3.w; x3++) { var m3 = HXX.mid(x3, y3), c3 = d3.rows[y3].charAt(x3); if (c3 !== 'o') { if (HXX.hd(m3[0], m3[1]) < HXX.AP.inn && HXX.hd(m3[0], m3[1]) > HXX.AP.rail && !HXX.inLounge(m3[0], m3[1]) && !HXX.inOffice(m3[0], m3[1]) && !HXX.inArmory(m3[0], m3[1])) shut++; continue; } if (HXX.inOffice(m3[0], m3[1])) off.push([x3, y3]); else if (HXX.inArmory(m3[0], m3[1])) arm.push([x3, y3]); else lng.push([x3, y3]); }
+      var tk3 = B3.roam.token, toOff = off.length && D.roam.walkRoute(tk3, off[0]), toArm = arm.length && D.roam.walkRoute(tk3, arm[0]);
+      okX('the third floor by its test door (' + d3.key + '): the lounge ' + lng.length + ' squares, Urtusk\'s office ' + off.length + ' and the Armory ' + arm.length + ', each walked to through its midwall door (' + !!toOff + ', ' + !!toArm + '); the balcony and the rooms shut (' + shut + ' squares); no way up from the second floor',
+        d3.hexIn === 3 && lng.length > 15 && off.length > 6 && arm.length > 6 && !!toOff && !!toArm && shut > 100);
+      var sp3 = HXX.spiralSq()[1]; besideX(B3, sp3); useX(B3, sp3);
+      okX('E at the third floor\'s spiral, down: the gambling floor (' + D.roam.def.key + ')', D.roam.def.hexIn === 2);
+      // the first game's two Hex floors untouched
+      okX('the first game\'s hex and hex2 byte for byte as they were', JSON.stringify(window.DS.DATA.maps.hex) + JSON.stringify(window.DS.DATA.maps.hex2) === before8);
+    } catch (eX) { repX.errors.push(String(eX && eX.stack || eX).slice(0, 900)); }
+    D.store.get = stGX; D.store.set = stSX; try { if (rf0 != null) window.localStorage.setItem(SSX.KEY, rf0); } catch (eR2) { }
+    var preX = document.createElement('pre'); preX.id = 'out'; preX.textContent = 'BENCH16 ' + JSON.stringify(repX);
+    document.body.appendChild(preX);
+    return;
+  }
   // the town, 10-20 (mode=town1020; js/town.js, deep16/?roam=silverton -- the Silverton roam seat, Griz: "yes v6"): Silverton at true scale from the city map v6, walked as one
   // token as the Wet is; its floor painted in pages as the camera comes (js/iso.js, a map's `page`); in at the west gate facing in, by day; the gates, the shops' doors (the five of
   // the new buy/sell screens among them) and the people where v6 and the wiki put them; a word with the gate hand; walked from the west gate to the Hexagon's front doors, a

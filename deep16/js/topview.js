@@ -132,6 +132,7 @@
       if (drop > 0 && TV.artOn() && TV.place(m) === 'town') { artBank(m, cx, gx, gy, x, y + T, drop); continue; } // (the art desk's bank: its stone lip and its timbered face)
       if (drop > 0) { var bank = R('leather'); for (var j = 0; j < drop; j++) { cx.fillStyle = 'rgb(' + (j === 0 ? stone[5] : bank[j < drop / 3 ? 3 : j < drop * 2 / 3 ? 2 : 1]).join(',') + ')'; cx.fillRect(x, y + T + j, T, 1); } } // (a bank of the worn dirt, lit at its lip, darker down to the lower ground -- it read as a black band)
     }
+    if (m.def.underlay) m.def.underlay(cx, x0, y0); // (a floor's own picture over its tiles, drawn on its true lines: the Hex's inside, js/hex.js)
     p.cv = cv; m.top.baked++;
   }
 

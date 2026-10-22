@@ -1018,7 +1018,7 @@
     yield 30;
     var F = this.fight, gone = this.units.some(function (u) { return u.fled; }) && this.alive('party').length;
     var head = o === 'roost' ? '{r}THE ROOST COMES DOWN.{/}' : o === 'yielded' ? '{y}' + ((this.o.embed && this.o.embed.yieldText) || F.yielded || 'HE LOWERS HIS HANDS.') + '{/}' : o === 'won' ? '{y}' + (F.won || 'THE GALLERY IS STILL.') + '{/}' : o === 'escaped' ? '{y}OUT THE WAY THEY CAME IN.{/}' : '{r}' + (gone ? (F.escaped || 'THEY GOT AWAY.') : (F.lost || 'THE DARK KEEPS THEM.')) + '{/}';
-    this.card([head, D.keys('{g}' + (this.o.embed ? 'E to go on' : this.o.onDone ? (this.o.climb ? 'E back to the climb' : this.o.pocket ? 'E back to the Pocket DM' : this.o.world ? 'E back to the road' : 'E back to the ladder') : 'E fight again') + ' · M the menu{/}')], 1e9);
+    this.card([head, D.keys('{g}' + (this.o.embed ? 'E to go on' : this.o.onDone ? (this.o.backTo ? 'E back to ' + this.o.backTo : this.o.climb ? 'E back to the climb' : this.o.pocket ? 'E back to the Pocket DM' : this.o.world ? 'E back to the road' : 'E back to the ladder') : 'E fight again') + ' · M the menu{/}')], 1e9);
   };
 
   // ------------------------------------------------------------------ a hero's turn: the player acts until END TURN

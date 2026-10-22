@@ -237,6 +237,8 @@
               col = seamB ? leather[0] : rampPick(leather, 0.45 + (h2(Math.floor(gx + 0.5) * 4 + board, Math.floor(gy + 0.5), seed + 11) - 0.5) * 0.3 + n * 0.25 - Math.max(0, 0.9 - rock) * 0.3, ix, iy);
             } else if (s.ch === 'g') {                            // grass, all of it
               col = pebble ? stone[4] : rampPick(moss, 0.12 + n * 0.75 + (fine - 0.5) * 0.2 - Math.max(0, 0.9 - rock) * 0.3, ix, iy);
+            } else if (m.def.ground === 'sand' && s.ch === '.') {                // the Hex's sand (js/hex.js HX.field): raked gold, trodden darker, a stone in it now and then
+              col = pebble ? stone[5] : rampPick(gold, 0.3 + n * 0.25 + (fine - 0.5) * 0.12 - Math.max(0, 0.9 - rock) * 0.2, ix, iy);
             } else if (earth) {
               var grass = fbm(gx * 0.45, gy * 0.45, seed + 40) + (fine - 0.5) * 0.25 > 0.5 && s.ch !== 'r';
               col = crack ? leather[0] : pebble ? stone[5] : grass ? rampPick(moss, 0.15 + n * 0.7 - Math.max(0, 0.9 - rock) * 0.3, ix, iy) : rampPick(leather, 0.2 + n * 0.5 + (fine - 0.5) * 0.15 - Math.max(0, 0.9 - rock) * 0.25, ix, iy);
