@@ -31,7 +31,10 @@ import importlib.util
 spec = importlib.util.spec_from_file_location('pix', os.path.join(ROOT, 'tools', 'pixelate.py'))
 pix = importlib.util.module_from_spec(spec); spec.loader.exec_module(pix)
 
-SRC = os.path.join(ROOT, 'deep16', '_src')
+spec = importlib.util.spec_from_file_location('artdesk', os.path.join(ROOT, 'tools', 'artdesk.py'))
+AD = importlib.util.module_from_spec(spec); spec.loader.exec_module(AD)
+
+SRC = AD.src_dir(ROOT)                                  # (his sheet lives in the main checkout: a worktree reads it there)
 NAME = 'otyugh_p2'
 FW, FH, AX, AY = 180, 120, 90, 108
 HEIGHT = 66                 # the Walk row's figure, in px (the chuul_p2, also Large: 63)
@@ -96,6 +99,50 @@ def frames_in(band, n, maxw=190, blank=()):
         img = np.pad(img, ((PAD, PAD), (PAD, PAD), (0, 0)))
         out.append({'img': Image.fromarray(img, 'RGBA'), 'oy': y0 + ys.min() - PAD, 'bottom': y0 + ys.max(), 'h': int(ys.max() - ys.min() + 1)})
     return out
+
+
+# The five views (10-22, the monster cutter seat's second run): the art desk's ART-47 in deep16/_src/otyugh/ART-47/ (sorted out of Fresh
+# by _src/art-desk/sort-delivery.py; its papers in _src/art-desk/received-2026-10-22-ART-47-otyugh-FINAL-SHEETS/): HEAD 1 SE and HEAD 2 NE
+# on three pages each (Idle 8, Rise 6 -- in its pool; Walk 8, Tentacle Slam 8; Flinch 5, Fall 9 wrapped 1-5 then 6-9), HEAD 3 S and HEAD 5
+# N their Idle and Rise, Flinch and Fall. Cut and placed by tools/artdesk.py, each page scaled by a frame of its own to this sheet's (targets:
+# a half-sunk idle must not set a walk's scale) -- the pool pages by Idle 1 against the side's half-sunk idle, the walk pages by Walk 1 and
+# the reaction pages by Fall 1 against the side's and the still's mean (S and N against the still) -- toned to Griz's sheet, the Fall's
+# second line joined to its first. The pool rows go down by the side idle's ripple depth, so the waterline is on the foot as his are. The
+# row names boxed by hand at the left (the ripples' highlights read as letters). SE and SW, NE and NW take every row; S and N their idle,
+# reveal, flinch and hurt (his stills keep their walk bob and slam dip, as the art desk's brief says). Rise -> reveal, Tentacle Slam ->
+# attack, Fall -> hurt.
+ART47 = {
+  'H1P1': dict(file='ART-47_HEAD-1_PAGE-1.png', W=1536, text=[(20, 245, 159, 281), (10, 532, 159, 569)],
+               rows=[('idle', (0, 0, 1536, 476), (451, 476), 8), ('reveal', (0, 477, 1536, 790), (767, 790), 6)]),
+  'H1P2': dict(file='ART-47_HEAD-1_PAGE-2.png', W=1536, text=[(16, 227, 158, 261), (12, 562, 262, 596)],
+               rows=[('walk', (0, 0, 1536, 479), (457, 479), 8), ('attack', (0, 480, 1536, 829), (808, 829), 8)]),
+  'H1P3': dict(file='ART-47_HEAD-1_PAGE-3.png', W=1536, text=[(21, 86, 179, 121), (21, 409, 246, 443), (21, 725, 250, 758)],
+               rows=[('flinch', (0, 0, 1536, 369), (345, 369), 5), ('hurt', (0, 370, 1536, 687), (663, 687), 5), ('hurt2', (0, 688, 1536, 955), (931, 955), 4)]),
+  'H2P1': dict(file='ART-47_HEAD-2_PAGE-1.png', W=1536, text=[(20, 244, 160, 281), (10, 545, 160, 582)],
+               rows=[('idle', (0, 0, 1536, 474), (450, 474), 8), ('reveal', (0, 475, 1536, 813), (788, 813), 6)]),
+  'H2P2': dict(file='ART-47_HEAD-2_PAGE-2.png', W=1536, text=[(16, 220, 159, 256), (15, 550, 278, 586)],
+               rows=[('walk', (0, 0, 1536, 467), (444, 467), 8), ('attack', (0, 468, 1536, 811), (787, 811), 8)]),
+  'H2P3': dict(file='ART-47_HEAD-2_PAGE-3.png', W=1536, text=[(21, 99, 188, 136), (21, 419, 268, 457), (21, 727, 261, 764)],
+               rows=[('flinch', (0, 0, 1536, 376), (352, 376), 5), ('hurt', (0, 377, 1536, 688), (663, 688), 5), ('hurt2', (0, 689, 1536, 937), (913, 937), 4)]),
+  'H3P1': dict(file='ART-47_HEAD-3_PAGE-1.png', W=1536, text=[(19, 240, 161, 278), (10, 536, 164, 573)],
+               rows=[('idle', (0, 0, 1536, 477), (454, 477), 8), ('reveal', (0, 478, 1536, 811), (788, 811), 6)]),
+  'H3P2': dict(file='ART-47_HEAD-3_PAGE-2.png', W=1536, text=[(24, 97, 209, 135), (24, 433, 281, 470), (24, 734, 286, 771)],
+               rows=[('flinch', (0, 0, 1536, 403), (377, 403), 5), ('hurt', (0, 404, 1536, 715), (687, 715), 5), ('hurt2', (0, 716, 1536, 973), (948, 973), 4)]),
+  'H5P1': dict(file='ART-47_HEAD-5_PAGE-1.png', W=1536, text=[(20, 243, 161, 281), (10, 545, 161, 582)],
+               rows=[('idle', (0, 0, 1536, 474), (450, 474), 8), ('reveal', (0, 475, 1536, 830), (806, 830), 6)]),
+  'H5P2': dict(file='ART-47_HEAD-5_PAGE-2.png', W=1536, text=[(26, 74, 217, 114), (26, 401, 282, 439), (26, 732, 282, 770)],
+               rows=[('flinch', (0, 0, 1536, 366), (341, 366), 5), ('hurt', (0, 367, 1536, 689), (664, 689), 5), ('hurt2', (0, 690, 1536, 954), (928, 954), 4)]),
+}
+VIEWS47 = {'SE': ('H1P1', 'H1P2', 'H1P3'), 'NE': ('H2P1', 'H2P2', 'H2P3'), 'S': ('H3P1', 'H3P2'), 'N': ('H5P1', 'H5P2')}
+
+
+def fit47(img, k):
+    """an ART-47 page's cut at game size: premultiplied box down, a 1-px margin for the outline, snapped to the palette"""
+    w, h = img.size
+    img = img.convert('RGBa').resize((max(1, round(w / k)), max(1, round(h / k))), Image.BOX).convert('RGBA')
+    pad = Image.new('RGBA', (img.width + 2, img.height + 2), (0, 0, 0, 0))
+    pad.paste(img, (1, 1))
+    return pix.pixelate(pad, 1, do_lift=False)
 
 
 def fit(cut, scale):
@@ -183,6 +230,22 @@ def build_frames():
         else:
             frames['idle'].append(idle_l); frames['walk'].append(walk_l); frames['attack'].append(atk_l)
             frames['hurt'].append(death_l); frames['flinch'].append(flinch_l); frames['reveal'].append(rise_l)
+    tl = AD.tall
+    sideS, sideN = (tl(walk_r[0]) + tl(fS)) / 2, (tl(walk_r[0]) + tl(fN)) / 2
+    fallS, fallN = (tl(death_r[0]) + tl(fS)) / 2, (tl(death_r[0]) + tl(fN)) / 2
+    targets = {'H1P1': ('idle', 0, tl(idle_r[0])), 'H1P2': ('walk', 0, sideS), 'H1P3': ('hurt', 0, fallS),
+               'H2P1': ('idle', 0, tl(idle_r[0])), 'H2P2': ('walk', 0, sideN), 'H2P3': ('hurt', 0, fallN),
+               'H3P1': ('idle', 0, tl(idle_r[0])), 'H3P2': ('hurt', 0, tl(fS)), 'H5P1': ('idle', 0, tl(idle_r[0])), 'H5P2': ('hurt', 0, tl(fN))}
+    d47 = AD.views(ROOT, 'otyugh', 'ART-47', ART47, VIEWS47, {'side': tl(walk_r[0]), 'S': tl(fS), 'N': tl(fN)}, fit47, torso_x,
+                   (FW, FH, AX, AY), tone_ref={'side': walk_r[0], 'S': fS, 'N': fN}, targets=targets, joins={'hurt2': 'hurt'})   # ART-47 (10-22)
+    deep = int(np.where(idle_r[0][..., 3].any(axis=1))[0][-1]) - AY        # the side idle's ripples below its waterline (the foot)
+    for v in d47:
+        for an in ('idle', 'reveal'):
+            if an in d47[v]:
+                d47[v][an] = [np.roll(fr, deep, axis=0) if not fr[FH - deep:, :, 3].any() else fr for fr in d47[v][an]]
+    for f, v, flip in ((7, 'SE', False), (1, 'SE', True), (5, 'NE', False), (3, 'NE', True), (0, 'S', False), (4, 'N', False)):
+        for a, fs in d47[v].items():
+            frames[a][f] = mirror(fs) if flip else fs
     return frames, scale
 
 
@@ -225,7 +288,8 @@ def build():
     meta = json.load(open(mp))
     for a, fps in (('idle', 5), ('walk', 8), ('attack', 10), ('hurt', 8), ('flinch', 12), ('reveal', 6)):
         meta['anims'][a]['fps'] = fps
-    meta['source'] = 'generated by Griz (2026-09-29, one sheet), cut and snapped by tools/otyugh-sheet.py'
+    meta['source'] = ('generated by Griz (2026-09-29, one sheet), cut and snapped by tools/otyugh-sheet.py; SE and NE every row and S and '
+                      'N their idle, rise, flinch and fall drawn by the art desk (ART-47, 10-22)')
     json.dump(meta, open(mp, 'w'), indent=1)
     print('  scale %.3f (walk row %.1f px source -> %d px)' % (scale, scale * HEIGHT, HEIGHT))
 

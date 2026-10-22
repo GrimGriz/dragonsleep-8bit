@@ -154,15 +154,24 @@ def stamp_shadow(fr, cx, cy, rx, ry, colour):
 
 
 def views(root, sub, art, pages, view_pages, idle_h, fit, torso_x, cell, chan=None, fix=None, tone_ref=None, cuts=None, stand_of=None,
-          shadows=None, shadow_rgb=None):
+          shadows=None, shadow_rgb=None, targets=None, joins=None):
     """tone_ref: the sheet's own frames to tone each page to (see `tones`), or None to cut the pages' colour as drawn; fix and cuts:
     sheetrows' own, a page at a time ({L: {row: [...]}}: a loose part's box and its frame, a line cleared where two frames touch); stand_of:
     see `scales`; shadows: {row: (frame indices)} -- each such frame's ground shadow measured off its page (`page_shadow`) and drawn under it
-    in shadow_rgb, the way a cutter draws its own leap's (fit is taken to pad its cut by one px, as every cutter's does)"""
+    in shadow_rgb, the way a cutter draws its own leap's (fit is taken to pad its cut by one px, as every cutter's does); targets: {L:
+    (row, index, height)} -- that page scaled so that frame stands that tall, in place of the rule in `scales` (the otyugh's: a half-sunk
+    idle must not set its walk's scale); joins: {row2: row} -- a row wrapped onto a second line of the page (the otyugh's Fall, 1-5 then
+    6-9), placed against the first line's anchor and appended to it"""
     FW, FH, AX, AY = cell
     lines = cuts
     cuts = cut(root, sub, art, pages, chan, fix, lines)          # (the cut lines in, the cut frames out)
     K = scales(cuts, view_pages, idle_h, fit, stand_of)
+    for L, (r, i, hgt) in (targets or {}).items():
+        lo, hi = 1.0, 20.0
+        for _ in range(26):
+            k = (lo + hi) / 2
+            lo, hi = (k, hi) if tall(fit(cuts[L][r][i][0], k)) > hgt else (lo, k)
+        K[L] = (lo + hi) / 2
     pg = {}
     if shadows:
         SR = _sheetrows(root)
@@ -173,7 +182,7 @@ def views(root, sub, art, pages, view_pages, idle_h, fit, torso_x, cell, chan=No
     print('  %s K: ' % art + ', '.join('%s %.2f' % (L, K[L]) for L in pages) +
           '; the sheet stands %.0f side-on, %.0f from the front, %.0f from behind' % (idle_h['side'], idle_h['S'], idle_h['N']))
     T = tones(cuts, view_pages, K, fit, tone_ref, stand_of) if tone_ref else {}
-    out, lost = {}, []
+    out, lost, anchor = {}, [], {}
     for v, ls in view_pages.items():
         out[v] = {}
         for L in ls:
@@ -181,10 +190,13 @@ def views(root, sub, art, pages, view_pages, idle_h, fit, torso_x, cell, chan=No
             for an, frs in cuts[L].items():
                 fits = [fit(toned(im, T[L]) if L in T else im, k) for im, _, _ in frs]
                 rel = [((box[0] - x) / k, box[3] / k) for _, box, x in frs]     # (each frame's left against its number, its foot on the row's ground)
-                tx = torso_x(fits[0])
+                tx, rx0 = torso_x(fits[0]), rel[0][0]
+                if an in (joins or {}) and (L, joins[an]) in anchor:       # a second line: the first line's anchor, its own ground
+                    tx, rx0 = anchor[(L, joins[an])]
+                anchor[(L, an)] = (tx, rx0)
                 row = []
                 for a, (rx, rb) in zip(fits, rel):
-                    ox = int(round(AX - tx + (rx - rel[0][0])))
+                    ox = int(round(AX - tx + (rx - rx0)))
                     oy = int(round(AY + (rb - rel[0][1]))) - int(np.where(a[..., 3].any(axis=1))[0][-1])
                     fr = np.zeros((FH, FW, 4), dtype=np.uint8)
                     h, w = a.shape[:2]
@@ -206,6 +218,9 @@ def views(root, sub, art, pages, view_pages, idle_h, fit, torso_x, cell, chan=No
                             print('  %s %s %d: no shadow found on the page' % (L, an, i + 1))
                     row.append(fr)
                 out[v][an] = row
+        for an2, an in (joins or {}).items():
+            if an2 in out[v]:
+                out[v][an] = out[v].get(an, []) + out[v].pop(an2)
     if lost:
         raise SystemExit('%s cut off at the cell edge (%d x %d, anchor %d,%d): ' % (art, FW, FH, AX, AY) + '; '.join(lost))
     return out
