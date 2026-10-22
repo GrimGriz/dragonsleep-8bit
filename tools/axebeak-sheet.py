@@ -13,8 +13,9 @@ Sheet.png` beside them is the 8-bit game's, not cut here.)
 Rows: Run -> walk; Beak -> `beak` (battle.js plays a row named for the attack, "Beak") and `attack` (the fallback); Flinch -> flinch; Fall ->
 hurt; Prone -> prone, its two frames turned round (scrambling up, then lying): it lies at the last and gets up by playing it back
 (deep16/js/sprites.js S.proneRow, the goblins' way). Facings: NE, E and SE the side rows as drawn, SW, W and NW mirrored; S takes sheet 2's
-idle, walk, beak (and attack) and flinch, N sheet 3's; hurt and prone play side-on from S and N too. Every row has the same count in every
-facing as drawn (no frame repeated or dropped).
+idle, walk, beak (and attack) and flinch, N sheet 3's; hurt and prone play side-on from S and N too. Since 10-22 the art desk's ART-37 draws
+SE and NE every row (SW and NW their mirror) and S and N their hurt and prone (ART37 below); E and W keep sheet 1's side. Every row has the
+same count in every facing as drawn (no frame repeated or dropped).
 Scale: one creature in every row and facing. The side idle stands HEIGHT px (the stand-in's side idle, 94). The turnaround is drawn bigger
 than the rows: it meets them by its Right and Left against the side idle, and sheets 2 and 3 meet it by their idles against its Front and its
 Back -- every time by the area of the body and legs, not the neck (which the turnaround stretches up and the rows hunch): side-on the neck and
@@ -74,6 +75,31 @@ FIX = {1: {'flinch': [((100, 650, 170, 745), '1'), ((220, 705, 245, 730), '1'),
                       ((480, 650, 610, 735), '3'), ((630, 715, 655, 740), '3'),
                       ((680, 670, 712, 695), '4')]}}
 CUT, TOUCH_OK = {}, {}
+
+# The five views (10-22, the monster cutter seat's second run): the art desk's ART-37 in deep16/_src/axebeak/ART-37/ (sorted out of Fresh by
+# _src/art-desk/sort-delivery.py; its papers in _src/art-desk/received-2026-10-22-ART-37-axebeak-FINAL-SHEETS/): HEAD 1 SE and HEAD 2 NE
+# every row on two pages (Idle 6, Run 8, Beak 6; Flinch 4, Fall 6, Prone 2), HEAD 3 S and HEAD 5 N their Fall and Prone. Each row's name at
+# its left, its numbers under it; boxes read off the pages (the white numbers, islands in the navy, clustered by row). SE and SW, NE and NW
+# take every row; S and N their hurt and prone (sheets 2 and 3 keep their idle, run, beak and flinch). Scale by height, the idle standing
+# between the side's and the front's (or the back's): this sheet's front and back stand taller than its side (sheets 2 and 3 met the
+# turnaround by body and legs), so a diagonal meets the mean of the two; each page 2 by its Flinch 4 (recovered, the idle's stance) against
+# its page 1's idles; S and N by their Fall 1 (standing, before the blow takes it) against the front's and the back's idles.
+ART37 = {
+  'H1P1': dict(file='ART-37_HEAD-1_PAGE-1.png', W=1536, text=[(18, 178, 96, 214), (17, 453, 92, 489), (17, 735, 106, 771)],
+               rows=[('idle', (0, 0, 1536, 341), (316, 341), 6), ('run', (0, 342, 1536, 607), (578, 607), 8), ('beak', (0, 608, 1536, 897), (872, 897), 6)]),
+  'H1P2': dict(file='ART-37_HEAD-1_PAGE-2.png', W=1536, text=[(17, 200, 130, 236), (17, 495, 89, 530), (18, 790, 122, 825)],
+               rows=[('flinch', (0, 0, 1536, 358), (331, 358), 4), ('fall', (0, 359, 1536, 642), (615, 642), 6), ('prone', (0, 643, 1536, 930), (903, 930), 2)]),
+  'H2P1': dict(file='ART-37_HEAD-2_PAGE-1.png', W=1536, text=[(15, 135, 93, 170), (15, 433, 88, 467), (15, 755, 99, 788)],
+               rows=[('idle', (0, 0, 1536, 312), (289, 312), 6), ('run', (0, 313, 1536, 613), (590, 613), 8), ('beak', (0, 614, 1536, 931), (908, 931), 6)]),
+  'H2P2': dict(file='ART-37_HEAD-2_PAGE-2.png', W=1536, text=[(16, 186, 134, 222), (16, 489, 88, 526), (16, 796, 128, 832)],
+               rows=[('flinch', (0, 0, 1536, 369), (342, 369), 4), ('fall', (0, 370, 1536, 665), (638, 665), 6), ('prone', (0, 666, 1536, 952), (925, 952), 2)]),
+  'H3P1': dict(file='ART-37_HEAD-3_PAGE-1.png', W=1536, text=[(22, 283, 97, 320), (19, 628, 185, 677)],
+               rows=[('fall', (0, 0, 1536, 499), (470, 499), 6), ('prone', (0, 500, 1536, 843), (814, 843), 2)]),
+  'H5P1': dict(file='ART-37_HEAD-5_PAGE-1.png', W=1536, text=[(21, 316, 104, 360), (20, 753, 142, 794)],
+               rows=[('fall', (0, 0, 1536, 497), (465, 497), 6), ('prone', (0, 498, 1536, 910), (878, 910), 2)]),
+}
+VIEWS37 = {'SE': ('H1P1', 'H1P2'), 'NE': ('H2P1', 'H2P2'), 'S': ('H3P1',), 'N': ('H5P1',)}
+FACE37 = {7: 'SE', 1: 'SE', 5: 'NE', 3: 'NE', 0: 'S', 4: 'N'}       # facing -> the view drawn for it (SW and NW its mirror, below)
 
 # the engine's rows: sheet 1's row for the side (and for S and N where sheets 2 and 3 have none)
 ROWS = {'idle': 'idle', 'walk': 'run', 'attack': 'beak', 'beak': 'beak', 'flinch': 'flinch', 'hurt': 'fall', 'prone': 'prone'}
@@ -184,6 +210,31 @@ def cut(L, check=False):
     return out
 
 
+def cut37(L, check=False):
+    s = ART37[L]
+    spec = dict(text=s['text'] + [(0, l0 - 3, s['W'], l1 + 4) for _, _, (l0, l1), _ in s['rows']],
+                rows=[(r, b, l, NUM(n)) for r, b, l, n in s['rows']])
+    over = [] if check else None
+    out = SR.cut_sheet(os.path.join(SRC, 'axebeak', 'ART-37', s['file']), spec, overlay=over, tag=L)
+    if check:
+        d = os.path.join(ROOT, 'dev', 'visions', 'axebeak'); os.makedirs(d, exist_ok=True)
+        over[0].save(os.path.join(d, 'cut-%s.png' % L))
+    return out
+
+
+def scales37(c, K):
+    """K for ART-37's pages, by height against the game-size idles of this sheet's side (sheet 1), front (2) and back (3)"""
+    med = lambda vals: float(np.median(vals))
+    h = {L: med([height(im) for _, im, _ in c[L]['idle']]) / K[L] for L in (1, 2, 3)}
+    for p1, p2, other in (('H1P1', 'H1P2', 2), ('H2P1', 'H2P2', 3)):
+        K[p1] = med([height(im) for _, im, _ in c[p1]['idle']]) / ((h[1] + h[other]) / 2)
+        K[p2] = K[p1] * height(c[p2]['flinch'][-1][1]) / med([height(im) for _, im, _ in c[p1]['idle']])
+    K['H3P1'] = height(c['H3P1']['fall'][0][1]) / h[2]
+    K['H5P1'] = height(c['H5P1']['fall'][0][1]) / h[3]
+    print('  ART-37 K: ' + ', '.join('%s %.3f' % (L, K[L]) for L in ART37) +
+          '; the idles stand %.0f side-on, %.0f from the front, %.0f from behind' % (h[1], h[2], h[3]))
+
+
 def scales(c):
     """K per sheet (sheet px a game px), the turnaround the go-between for the front and behind"""
     med = lambda vals: float(np.median(vals))
@@ -211,10 +262,32 @@ def tones(c):
     return T
 
 
+def tones37(c):
+    """per channel, as sheets 2 and 3: ART-37 drew it lighter and redder (page 1s by a sixth, the SE page 2 by a fifth). Each page against its
+    like: the diagonals' idle and flinch against sheet 1's side idle and flinch, S's and N's Fall 1 (standing) against the turnaround's Front
+    and Back (what sheets 2 and 3 were brought to)"""
+    turn = {nm: im for nm, im, _ in c[1]['turn']}
+    T = {}
+    for L in ART37:
+        if L in ('H3P1', 'H5P1'):
+            row, got = 'fall 1', mean_rgb(c[L]['fall'][0][1])
+            ref = mean_rgb(turn['front' if L == 'H3P1' else 'back'])
+        else:
+            row = 'idle' if 'idle' in c[L] else 'flinch'
+            got = np.median([mean_rgb(im) for _, im, _ in c[L][row]], axis=0)
+            ref = np.median([mean_rgb(im) for _, im, _ in c[1][row]], axis=0)
+        T[L] = tuple(float(round(x, 3)) for x in ref / got)
+        print('  TONE %s: %s %s -> %s: x %s' % (L, row, np.round(got).astype(int).tolist(), np.round(ref).astype(int).tolist(), T[L]))
+    return T
+
+
 def main(check=False):
     c = {L: cut(L, check) for L in SHEETS}
+    c.update({L: cut37(L, check) for L in ART37})
     K = scales(c)
+    scales37(c, K)
     TONE = tones(c)
+    TONE.update(tones37(c))
     small = {}
     def frames_of(L, row):
         if (L, row) not in small:
@@ -232,6 +305,10 @@ def main(check=False):
         if row == 'prone':
             side = side[::-1]                                  # scrambling up, then lying: it lies at its last frame and gets up by playing it back
         per = [frames_of(2, row) if f == 0 and row in OWN else frames_of(3, row) if f == 4 and row in OWN else side for f in range(8)]
+        for f, v in FACE37.items():                            # ART-37's views where it drew the row (SW and NW flipped below, as W)
+            L37 = next((L for L in VIEWS37[v] if row in c[L]), None)
+            if L37:
+                per[f] = frames_of(L37, row)[::-1] if row == 'prone' else frames_of(L37, row)
         counts = {len(s) for s in per}
         if len(counts) > 1:
             raise SystemExit('%s: frame counts differ by facing %s' % (eng, sorted(counts)))
@@ -261,7 +338,7 @@ def main(check=False):
     for row, fps in FPS.items():
         meta['anims'][row]['fps'] = fps
     meta['source'] = ('generated by Griz (2026-10-08: three GPT sheets -- from the side with its turnaround, from the front, from behind), '
-                      'cut by tools/axebeak-sheet.py')
+                      'cut by tools/axebeak-sheet.py; SE and NE every row and S and N its fall and prone drawn by the art desk (ART-37, 10-22)')
     json.dump(meta, open(meta_p, 'w'), indent=1)
     if check:
         d = os.path.join(ROOT, 'dev', 'visions', 'axebeak')
