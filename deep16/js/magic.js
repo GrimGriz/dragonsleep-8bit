@@ -397,6 +397,11 @@
     if (k === 'buff' || k === 'light' || k === 'detect') return 'buff';
     return el === 'fire' ? 'fire' : el === 'cold' ? 'frost' : el === 'lightning' || el === 'thunder' ? 'zap' : 'magic';
   };
+  // Acid Splash's second (SRD 5.1: "two creatures within range that are within 5 feet of each other"): a foe beside the first. The simple fight takes the first game's
+  // two instead (js/simple.js, 10-22)
+  M.splashSecond = function (B, u, first) { return B.units.filter(function (w) { return w !== first && G.hostile(u, w) && G.standing(w) && G.dist(first, w) <= 5; })[0] || null; };
+  // a ray (Scorching Ray, Eldritch Blast's beams) whose one has fallen before it flies: none here -- the hand aimed each; the simple fight's one pick gives it the nearest (js/simple.js, 10-22)
+  M.spareRay = function (B, u, gone) { return null; };
   M.cast = function* (B, u, id, slot, t) {
     var sp = M.data(id), g = M.geo(id), T = u.turn, self = this;
     if (id === 'dancinglights' && u.conc && u.conc.id === 'dancinglights') g = Object.assign({}, g, { time: 'B', move: true }); // (the lights are up: this is the bonus action that moves them)
@@ -451,10 +456,10 @@
     }
 
     if (g.shape === 'attack' || g.shape === 'rays') {
-      var shots = g.shape === 'rays' ? t.units : [t], dice = g.shape === 'rays' ? sp.dmg : M.dice(sp, u, slot);
+      var shots = (g.shape === 'rays' ? t.units : [t]).slice(), dice = g.shape === 'rays' ? sp.dmg : M.dice(sp, u, slot);
       if (g.shape === 'rays') B.card([head + ' -- ' + shots.length + ' rays']);
       for (var i = 0; i < shots.length; i++) {
-        if (shots[i].dead || (shots[i].hp <= 0 && !shots[i].regenDown)) continue; // (a troll down and knitting takes the ray: fire on it where it lies -- 10-05, Griz: "is scorching ray supposed to stop regen? Aurdin was shooting him when they were down and there was no real card")
+        if (shots[i].dead || (shots[i].hp <= 0 && !shots[i].regenDown)) { var nx = g.shape === 'rays' ? M.spareRay(B, u, shots[i]) : null; if (!nx) continue; shots[i] = nx; } // (a troll down and knitting takes the ray: fire on it where it lies -- 10-05, Griz: "is scorching ray supposed to stop regen? Aurdin was shooting him when they were down and there was no real card")
         var spAtk = { name: sp.name, atk: u.spellAtk, dice: dice, mod: 0, type: sp.el, spell: true, ranged: true, range: [g.range, g.range], fx: 'fire' };
         if (shots[i].tendril) { yield* B.strikeTendril(u, shots[i], spAtk); continue; } // (a roper's tendril, the spell's object -- js/ui.js spellTarget, 10-06: the grid's rules §2.4)
         yield* B.attack(u, shots[i], spAtk);
@@ -522,7 +527,7 @@
         if (M.egg) yield* M.egg(B, 'darkness');
       }
     } else if (g.shape === 'splash') {
-      var first = t, second = B.units.filter(function (w) { return w !== first && G.hostile(u, w) && G.standing(w) && G.dist(first, w) <= 5; })[0];
+      var first = t, second = M.splashSecond(B, u, first);
       var potent = u.subclass === 'School of Evocation' && u.lvl >= 6; // (Potent Cantrip, the evoker's 6: half on a save)
       var dd = M.dice(sp, u, 0), r1 = D.roll(dd), lines2 = [head + '  ' + dd + ' ' + RU.fmtRolls(r1.rolls) + ' = ' + r1.total + ' acid  DEX DC ' + dc + (potent ? ', half on a save (potent)' : ', no half')];
       FX.projectile(u, first, 'fire'); yield { fx: 1 };

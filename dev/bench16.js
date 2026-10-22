@@ -4122,6 +4122,46 @@
       while (B2s.co && k2s++ < 400000) { var r2s = B2s.co.next(v2s); v2s = undefined; if (r2s.done) break; var y2s = r2s.value; if (y2s && y2s.prompt) v2s = y2s.prompt.opts[0].value; }
       (B2s.rulesReport || []).forEach(function (b) { okV('2 the show: ' + b.name + ' -- ' + b.why, b.ok); });
       if ((B2s.rulesReport || []).length !== 1) okV('2 the show ran ' + (B2s.rulesReport || []).length + ' beats of leather (want 1)', false);
+
+      // 3 and 4. THE SIMPLE FIGHT (his door deep16/?world&simple=worg,goblin,worg,goblin,goblin&camp, ISO; RULED 10-22, his "go ahead and let acid splash work like 8 bit in the
+      // simple - also, scorching ray peter's out when it kills its targets when he has beams left - since he doesn't get to pick more than one target, the rest of the beams
+      // should find their own if a nearby target dies"): Acid Splash at the goblin with no foe within 5 ft takes it and the nearest; the full grid keeps the SRD's 5 ft.
+      // Scorching Ray and Eldritch Blast at a goblin that falls to the first: the rest go at the foe nearest it; the full grid's hand aimed each, so a ray at the fallen is lost
+      var SSv = D.simple, WSv = D.world, k0v = null, v0v = null;
+      try { k0v = window.localStorage.getItem(SSv.KEY); window.localStorage.removeItem(SSv.KEY); v0v = window.localStorage.getItem(SSv.VKEY); window.localStorage.removeItem(SSv.VKEY); } catch (eV0) { }
+      try {
+        var wsV = WSv.make('?world&fresh&noenc'); D.scenes.length = 0; D.push(wsV); wsV.enter();
+        var eVw = WSv.M().hex[WSv.K(WSv.state().at[0], WSv.state().at[1])];
+        var simpleV = function () { wsV.fight({ zone: 'north', list: ['worg', 'goblin', 'worg', 'goblin', 'goblin'], mirror: false }, eVw, { camp: true }); var s = D.top(); if (s && s.baking) { s.baking = false; s.enter(); } D.battle = s; if (!s.simple) SSv.setup(s); return s; };
+        var castV = function (Bx, u, id, slot, t) { learnV(u, id); RV.startTurn(u); Bx.active = u; var e = MV.list(Bx, u, { anyTarget: true }).filter(function (x) { return x.id === id; })[0], n = (Bx.log || []).length; if (e) pinV(15, function () { runV(Bx.exec(u, SSv.spellCmd(Bx, u, e, slot, t))); }); Bx.active = null; return e ? (Bx.log || []).slice(n) : null; };
+        var B3 = simpleV(), f3 = sideV(B3, 'foe'), au3 = B3.units.filter(function (w) { return w.id === 'aurdin'; })[0];
+        var lone3 = f3.filter(function (w) { return w.kind === 'goblin' && !f3.some(function (x) { return x !== w && D.grid.dist(w, x) <= 5; }); })[0];
+        f3.forEach(function (w) { w.maxhp = w.hp = 100; });
+        var l3 = lone3 && au3 ? castV(B3, au3, 'acidsplash', 0, lone3) : null, hd3 = -1; (l3 || []).some(function (l, i) { if (/ACID SPLASH/.test(l)) { hd3 = i; return true; } return false; });
+        var took3 = []; for (var i3 = hd3 + 1; hd3 >= 0 && i3 < l3.length && /^R\d+ {3}\S/.test(l3[i3]); i3++) took3.push(l3[i3].replace(/^R\d+ {3}/, '').split(':')[0]);
+        okV('3 the simple fight: Acid Splash at the goblin with no foe within 5 ft' + (lone3 ? ' (at ' + lone3.x + ',' + lone3.y + ')' : ' (none in the lineup!)') + ' takes ' + (took3.join(' and ') || 'nothing') + ' (want two: it and the nearest foe)', !!lone3 && took3.length === 2);
+        var B3g = mkV('?npc=goblin,goblin&vs=wizard:5&lvl=5'), wz3g = clsV(B3g, 'wizard'), g3g = sideV(B3g, 'foe');
+        wz3g.x = 2; wz3g.y = 3; g3g[0].x = 7; g3g[0].y = 3; g3g[1].x = 7; g3g[1].y = 6; B3g.cache = null; g3g.forEach(function (w) { w.maxhp = w.hp = 100; }); learnV(wz3g, 'acidsplash');
+        RV.startTurn(wz3g); B3g.active = wz3g; pinV(2, function () { runV(MV.cast(B3g, wz3g, 'acidsplash', 0, g3g[0])); }); B3g.active = null;
+        okV('3 and on the full grid, two goblins 15 ft apart: the first ' + (100 - g3g[0].hp) + ' acid, the other ' + (100 - g3g[1].hp) + ' (want some, and 0: the SRD\'s 5 ft kept)', g3g[0].hp < 100 && g3g[1].hp === 100);
+        D.pop();
+        var B4 = simpleV(), f4 = sideV(B4, 'foe'), au4 = B4.units.filter(function (w) { return w.id === 'aurdin'; })[0], gb4 = f4.filter(function (w) { return w.kind === 'goblin'; })[0];
+        f4.forEach(function (w) { w.maxhp = w.hp = 100; }); gb4.hp = 1;
+        var near4 = f4.filter(function (w) { return w !== gb4; }).sort(function (a, b) { return D.grid.dist(gb4, a) - D.grid.dist(gb4, b); })[0];
+        castV(B4, au4, 'scorchingray', 2, gb4);
+        var hit4 = f4.filter(function (w) { return w !== gb4 && w.hp < 100; });
+        okV('4 the simple fight: Scorching Ray at a goblin on 1 hit point, the first ray pinned to hit: it falls ' + (gb4.hp <= 0) + '; the spare rays at ' + (hit4.map(function (w) { return B4.shortName ? B4.shortName(w) : w.name; }).join(', ') || 'no one') + ' (want true; a foe nearest it, ' + (near4 ? D.grid.dist(gb4, near4) : '?') + ' ft: ' + (hit4[0] ? D.grid.dist(gb4, hit4[0]) : '-') + ')', gb4.hp <= 0 && hit4.length === 1 && !!near4 && D.grid.dist(gb4, hit4[0]) === D.grid.dist(gb4, near4));
+        f4.forEach(function (w) { if (w.hp > 0) w.hp = 100; }); var gb4b = f4.filter(function (w) { return w.kind === 'goblin' && w.hp > 0; })[0], lv4 = au4.lvl; gb4b.hp = 1; au4.lvl = 5;
+        var near4b = f4.filter(function (w) { return w !== gb4b && w.hp > 0; }).sort(function (a, b) { return D.grid.dist(gb4b, a) - D.grid.dist(gb4b, b); })[0];
+        learnV(au4, 'eldritchblast'); RV.startTurn(au4); B4.active = au4; pinV(15, function () { runV(B4.exec(au4, { do: 'cast', id: 'eldritchblast', slot: 0, target: { units: [gb4b, gb4b] } })); }); B4.active = null; au4.lvl = lv4;
+        var hit4b = f4.filter(function (w) { return w !== gb4b && w.hp > 0 && w.hp < 100; });
+        okV('4 and Eldritch Blast\'s two beams at a goblin on 1: it falls ' + (gb4b.hp <= 0) + ', the second beam at ' + (hit4b.map(function (w) { return w.name; }).join(', ') || 'no one') + ' (want true; a foe nearest it, ' + (near4b ? D.grid.dist(gb4b, near4b) : '?') + ' ft: ' + (hit4b[0] ? D.grid.dist(gb4b, hit4b[0]) : '-') + ')', gb4b.hp <= 0 && hit4b.length === 1 && !!near4b && D.grid.dist(gb4b, hit4b[0]) === D.grid.dist(gb4b, near4b));
+        D.pop();
+        var B4g = mkV('?npc=goblin,goblin&vs=wizard:5&lvl=5'), wz4g = clsV(B4g, 'wizard'), g4g = sideV(B4g, 'foe');
+        wz4g.x = 2; wz4g.y = 3; g4g[0].x = 7; g4g[0].y = 3; g4g[1].x = 7; g4g[1].y = 4; B4g.cache = null; g4g[0].hp = 1; g4g[1].maxhp = g4g[1].hp = 100; learnV(wz4g, 'scorchingray');
+        RV.startTurn(wz4g); B4g.active = wz4g; pinV(15, function () { runV(MV.cast(B4g, wz4g, 'scorchingray', 2, { units: [g4g[0], g4g[0], g4g[0]] })); }); B4g.active = null;
+        okV('4 and on the full grid, three rays aimed at a goblin on 1 with another beside it: it falls ' + (g4g[0].hp <= 0) + ', the other ' + (100 - g4g[1].hp) + ' fire (want true, 0: the hand aimed each)', g4g[0].hp <= 0 && g4g[1].hp === 100);
+      } finally { try { if (k0v == null) window.localStorage.removeItem(SSv.KEY); else window.localStorage.setItem(SSv.KEY, k0v); if (v0v == null) window.localStorage.removeItem(SSv.VKEY); else window.localStorage.setItem(SSv.VKEY, v0v); } catch (eV1) { } }
     } catch (eV) { repV.errors.push(String(eV && eV.stack || eV).slice(0, 900)); D.d = d0V; }
     if (errs.length) repV.errors = repV.errors.concat(errs);
     var preV = document.createElement('pre'); preV.id = 'out'; preV.textContent = 'BENCH16 ' + JSON.stringify(repV);

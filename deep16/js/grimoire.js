@@ -328,10 +328,10 @@
     geo: function (B, u, g) { return Object.assign({}, g, { n: beams(u) }); },
     summary: function (e, u) { var n = beams(u), a = agon(u); return n + (n > 1 ? ' beams' : ' beam') + ', 120 ft · 1d10' + (a ? '+' + a : '') + ' force each' + ((u.invocations || []).indexOf('repelling') >= 0 ? ', pushed 10 ft' : ''); },
     cast: function* (B, u, t, slot, head, x) {
-      var shots = t.units || [t], a = agon(u), rep = (u.invocations || []).indexOf('repelling') >= 0;
+      var shots = (t.units || [t]).slice(), a = agon(u), rep = (u.invocations || []).indexOf('repelling') >= 0;
       if (shots.length > 1) B.card([head + ' -- ' + shots.length + ' beams']);
       for (var i = 0; i < shots.length; i++) {
-        if (shots[i].dead || shots[i].hp <= 0) continue;
+        if (shots[i].dead || shots[i].hp <= 0) { var nx = M.spareRay(B, u, shots[i]); if (!nx) continue; shots[i] = nx; } // (the simple fight's spare beam, magic.js M.spareRay -- 10-22)
         yield* spellAttack(B, u, shots[i], x.sp, x.g, '1d10', { mod: a, fx: 'bolt', onHit: function (w) { if (rep && !w.dead && w.hp > 0 && (w.size || 1) <= 2) M.push(B, u, w, 2); } });
       }
     },

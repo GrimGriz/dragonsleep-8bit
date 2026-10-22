@@ -274,6 +274,17 @@
     var out = []; S.areaUnits(B, u, g, cx, cy).forEach(function (w) { G.foot(w).forEach(function (q) { out.push(q); }); });
     return out;
   };
+  // the standing foes of u, the nearest the one w first (a tie, the top of the screen first)
+  function nearestTo(B, u, w) { return S.foes(B, u).filter(function (x) { return x !== w; }).sort(function (a, b) { return G.dist(w, a) - G.dist(w, b); }); }
+  // ACID SPLASH as the first game's (his "go ahead and let acid splash work like 8 bit in the simple", 10-22): the one aimed at and the standing foe nearest it, however
+  // far -- the lineup stands the small foes 10 ft apart, so the SRD's "within 5 feet of each other" took one. The full grid keeps the 5 ft (magic.js M.splashSecond)
+  var splash0 = D.magic.splashSecond;
+  D.magic.splashSecond = function (B, u, first) { return B && B.simple ? nearestTo(B, u, first)[0] || null : splash0.apply(this, arguments); };
+  // THE SPARE BEAM (his "scorching ray peter's out when it kills its targets when he has beams left - since he doesn't get to pick more than one target, the rest of the
+  // beams should find their own if a nearby target dies", 10-22): a ray or a beam whose one fell before it flew goes at the standing foe nearest it -- Scorching Ray and
+  // Eldritch Blast (magic.js M.spareRay; the full grid's hand aims each)
+  var spare0 = D.magic.spareRay;
+  D.magic.spareRay = function (B, u, gone) { return B && B.simple ? nearestTo(B, u, gone)[0] || null : spare0.apply(this, arguments); };
 
   // ------------------------------------------------------------------ the hand's turn: the commands, the lists, the targets (the first game's battle, js/battle.js heroTurn)
   function T_(u) { return u.turn || {}; }
