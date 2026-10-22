@@ -1,0 +1,96 @@
+{
+ "image": "art/pt_venhale.png",
+ "fw": 191,
+ "fh": 155,
+ "ax": 86,
+ "ay": 153,
+ "top": 153,
+ "portrait": true,
+ "anims": {
+  "idle": {
+   "y": 0,
+   "fw": 191,
+   "fh": 155,
+   "ax": 86,
+   "ay": 153,
+   "frames": 6,
+   "fps": 3,
+   "ledge": [
+    false,
+    false,
+    false,
+    false,
+    false,
+    false
+   ]
+  },
+  "attentive": {
+   "y": 155,
+   "fw": 191,
+   "fh": 155,
+   "ax": 86,
+   "ay": 153,
+   "frames": 1,
+   "fps": 1,
+   "ledge": [
+    false
+   ]
+  },
+  "welcoming": {
+   "y": 310,
+   "fw": 191,
+   "fh": 155,
+   "ax": 86,
+   "ay": 153,
+   "frames": 1,
+   "fps": 1,
+   "ledge": [
+    false
+   ]
+  },
+  "skeptical": {
+   "y": 465,
+   "fw": 191,
+   "fh": 155,
+   "ax": 86,
+   "ay": 153,
+   "frames": 1,
+   "fps": 1,
+   "ledge": [
+    false
+   ]
+  },
+  "concerned": {
+   "y": 620,
+   "fw": 191,
+   "fh": 155,
+   "ax": 86,
+   "ay": 153,
+   "frames": 1,
+   "fps": 1,
+   "ledge": [
+    false
+   ]
+  },
+  "work": {
+   "y": 775,
+   "fw": 191,
+   "fh": 155,
+   "ax": 86,
+   "ay": 153,
+   "frames": 6,
+   "fps": 4,
+   "ledge": [
+    false,
+    false,
+    false,
+    false,
+    false,
+    false
+   ]
+  }
+ },
+ "art": "ART-96",
+ "door": "keeper:venhale",
+ "source": "deep16/_src/venhale/ART-96 (the art desk's ART-96, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
+}

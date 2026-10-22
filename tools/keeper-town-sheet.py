@@ -58,11 +58,16 @@ KEEPERS = {
     'mela': ('mela/ART-90', 'ART-90', 'keeper:mela'),                # (10-21 night, Griz: "got 3 more south idles in Fresh too": beside their doors, and Merrick in his room)
     'mical': ('mical/ART-91', 'ART-91', 'keeper:mical'),
     'merrick': ('merrick/ART-93', 'ART-93', 'keeper:merrick'),
+    # (10-22, the NPC cutter seat, Griz: "more NPC art is in" and "one cutter for all 3": Brennan and Venn Hale beside their doors; Korvin for the Hex seat to place,
+    # his waistcoat dyed slate grey as on his portrait -- tools/portrait-sheet.py PEOPLE `recolour`, his "Go for recolor without reroll")
+    'brennan': ('brennan/ART-87', 'ART-87', 'keeper:brennan'),
+    'venhale': ('venhale/ART-96', 'ART-96', 'keeper:venhale', {'avoid': ['red', 'fire']}),   # (her nose and forearms' flush snapped to the reds, a dot of paint at this size: left out, they go to skin)
+    'korvin': ('korvin/ART-95', 'ART-95', 'hex:korvinSlate', {'recolour': {'hue': 215, 'sat': 0.22}}),
 }
 
 
 def cut(name):
-    folder, art, door = KEEPERS[name][:3]; ov = KEEPERS[name][3] if len(KEEPERS[name]) > 3 else {}   # (ov: `avoid`, ramps the snap leaves out -- tools/pixelate.py snap)
+    folder, art, door = KEEPERS[name][:3]; ov = KEEPERS[name][3] if len(KEEPERS[name]) > 3 else {}   # (ov: `avoid`, ramps the snap leaves out -- tools/pixelate.py snap; `recolour`, a cloth dyed -- tools/portrait-sheet.py)
     path = os.path.join(SRC, folder, '%s_HEAD-2_PAGE-1.png' % art)
     a = np.asarray(Image.open(path).convert('RGB')).astype(np.int32)
     found = PS.drawings(a, [4])
@@ -77,6 +82,8 @@ def cut(name):
         x0, x1 = xs.min(), xs.max() + 1
         rgba = np.zeros((foot - top, x1 - x0, 4), np.uint8)
         rgba[..., :3] = a[top:foot, x0:x1]; rgba[..., 3] = piece[top:foot, x0:x1] * 255
+        if ov.get('recolour'):
+            rgba[..., :3] = PS.recolour(rgba[..., :3], PS.hem_cut(rgba[..., :3], PS.cloth_mask(rgba[..., :3], piece[top:foot, x0:x1])), **ov['recolour'])  # (the trousers below the hem keep their brown)
         raw.append((rgba, fx - x0, foot - top))
     k = TALL / float(np.median([r[2] for r in raw]))
     small = []
@@ -101,6 +108,8 @@ def cut(name):
     meta = {'image': 'art/%s_p1.png' % name, 'fw': fw, 'fh': fh, 'ax': ax, 'ay': ay, 'top': int(ay - min(tops)),
             'anims': {'idle': {'y': 0, 'fw': fw, 'fh': fh, 'ax': ax, 'ay': ay, 'frames': len(SEQ), 'fps': FPS, 'drawn': [0], 'under': UNDER}},
             'source': 'deep16/_src/%s/%s_HEAD-2_PAGE-1.png (the art desk\'s south idle, 10-21), cut by tools/keeper-town-sheet.py' % (folder, art), 'door': door}
+    if ov.get('recolour'):
+        meta['recolour'] = ov['recolour']                       # (the dye put on at the cut, for the record: Korvin's)
     json.dump(meta, open(os.path.join(ART, name + '_p1.json'), 'w'), indent=1)
     wide = max(int(np.ptp(np.where(f[..., 3].any(axis=0))[0])) + 1 for f in frames)
     print('  %s_p1: %dx%d a frame, stands %d above the foot (%d tall with the outline), %d wide; idle %d frames from 4 drawn, S only, under %s' % (name, fw, fh, meta['top'], meta['top'] + 1, wide, len(SEQ), UNDER))

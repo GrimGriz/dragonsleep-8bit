@@ -41,7 +41,11 @@
     // two of the non-shop folk at their doors (10-21 night, Griz to the lanes desk: "non shop folk also have art in Fresh"): Mela Sorris of the Stew, and Mical of the
     // riverside warehouse, whose door signs Winters' crate off her books (her first-game talk, its `set` done by C.words); Mical sells nothing, so no line for a counter to come
     mela: { sheet: 'pt_mela' }, mical: { sheet: 'pt_mical', wait: '' },
-    merrick: { sheet: 'pt_merrick', wait: 'His window -- the sendings -- is to come.' } // (the message-lantern house, behind its grille: he sells nothing on a shelf, his window sends)
+    merrick: { sheet: 'pt_merrick', wait: 'His window -- the sendings -- is to come.' }, // (the message-lantern house, behind its grille: he sells nothing on a shelf, his window sends)
+    // three more (10-22, Griz to the lanes desk: "more NPC art is in", then "one cutter for all 3"): Brennan the smith at his forge's door, his first-game talk (the
+    // Pryor purse taken when Mical has signed: C.words) and no first-game shop, so his counter is to come; Venn Hale at the fighters' stables' door, her word and its
+    // rumour (the Hex's card), selling nothing; Korvin of the Hex's betting slate, his portrait for the Hex seat to place (his slate and card are its scene)
+    brennan: { sheet: 'pt_brennan' }, venhale: { sheet: 'pt_venhale', wait: '' }, korvin: { sheet: 'pt_korvin', name: 'Korvin', words: 'hex.korvin' } // (`words`: his first-game line, content/text.json, for the portraits' show -- his own talk is the slate's)
   };
   C.BESIDE = { percy: ['ned'] }; // (who stands behind a counter beside its keeper: js/town.js T.goIn)
   C.PETS = { ned: 'rat' }; // (a keeper's familiar on the counter in front of them: Ned's rat -- js/rules.js R.FAMILIARS, js/town.js T.goIn)
@@ -51,8 +55,10 @@
   C.FIG = { winters: 'winters_p1', casper: 'casper_p1', androit: 'androit_p1', hessle: 'hessle_p1', aldric: 'aldric_p1', kessler: 'kessler_p1', calla: 'calla_p1', barber: 'barber_p1', marin: 'marin_p1', kasten: 'kasten_p1', lucia: 'lucia_p1',
     cassia: 'cassia_p1', lisbet: 'lisbet_p1', marko: 'marko_p1', vilar: 'vilar_p1', percy: 'percy_p1', ned: 'ned_p1',
     sylvia: 'sylvia_p1', // (Sylvia Swann at her booth, her owl on her shoulder -- 10-21 night, Griz: "I got sylvia's - let's put it together as best we can and push it to live")
-    mela: 'mela_p1', mical: 'mical_p1', merrick: 'merrick_p1' }; // (10-21 night, Griz: "got 3 more south idles in Fresh too": Mela and Mical beside their doors, Merrick behind his grille)
-  C.AT_DOOR = [{ id: 'marin', door: 'keeper:marin' }, { id: 'barber', door: 'keeper:barber' }, { id: 'mela', door: 'keeper:mela' }, { id: 'mical', door: 'keeper:mical' }];
+    mela: 'mela_p1', mical: 'mical_p1', merrick: 'merrick_p1', // (10-21 night, Griz: "got 3 more south idles in Fresh too": Mela and Mical beside their doors, Merrick behind his grille)
+    brennan: 'brennan_p1', venhale: 'venhale_p1', korvin: 'korvin_p1' }; // (10-22: Brennan and Venn Hale beside their doors; Korvin's for the Hex seat, his waistcoat slate as on his portrait)
+  C.AT_DOOR = [{ id: 'marin', door: 'keeper:marin' }, { id: 'barber', door: 'keeper:barber' }, { id: 'mela', door: 'keeper:mela' }, { id: 'mical', door: 'keeper:mical' },
+    { id: 'brennan', door: 'keeper:brennan' }, { id: 'venhale', door: 'keeper:venhale' }];
   C.dress = function (u, id) {
     var f = C.FIG[id]; if (!u || !f || !D.SHEETS || !D.SHEETS[f]) return false;
     u.sheet = f; u.holdFacing = true; u.facing = 0; // (0: south, on the town's north-up floor and on the diamonds alike)
@@ -881,7 +887,7 @@
     this.kind = 'portraitshow'; this.opaque = true; this.t = 0; this.k = -1; this.cur = null;
     var who = /[?&]who=([a-z0-9_,]+)/.exec(String(q || '')); this.ids = who ? who[1].split(',').filter(function (k) { return !!C.PT[k]; }) : Object.keys(C.PT); // (in the order asked)
   }
-  C.wordsOf = function (id) { var N = ((DS.DATA || {}).npcs || {})[id] || {}, plain = (N.talk || []).filter(function (e) { return !e['if']; })[0], sh = C.greeting((C.VENDORS[id] || {}).shop || id); return plain ? plain.say.slice() : sh ? [sh] : ['(no first-game word)']; };
+  C.wordsOf = function (id) { var N = ((DS.DATA || {}).npcs || {})[id] || {}, plain = (N.talk || []).filter(function (e) { return !e['if']; })[0], sh = C.greeting((C.VENDORS[id] || {}).shop || id), wd = (C.VENDORS[id] || {}).words; return plain ? plain.say.slice() : wd ? [].concat(L(wd)) : sh ? [sh] : ['(no first-game word)']; };
   PortraitShow.prototype.update = function () {
     this.t++;
     if (this.cur && !this.cur.done) return;

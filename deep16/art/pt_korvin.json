@@ -1,0 +1,100 @@
+{
+ "image": "art/pt_korvin.png",
+ "fw": 225,
+ "fh": 160,
+ "ax": 123,
+ "ay": 157,
+ "top": 157,
+ "portrait": true,
+ "anims": {
+  "idle": {
+   "y": 0,
+   "fw": 225,
+   "fh": 160,
+   "ax": 123,
+   "ay": 157,
+   "frames": 6,
+   "fps": 3,
+   "ledge": [
+    false,
+    false,
+    false,
+    false,
+    false,
+    false
+   ]
+  },
+  "attentive": {
+   "y": 160,
+   "fw": 225,
+   "fh": 160,
+   "ax": 123,
+   "ay": 157,
+   "frames": 1,
+   "fps": 1,
+   "ledge": [
+    false
+   ]
+  },
+  "welcoming": {
+   "y": 320,
+   "fw": 225,
+   "fh": 160,
+   "ax": 123,
+   "ay": 157,
+   "frames": 1,
+   "fps": 1,
+   "ledge": [
+    false
+   ]
+  },
+  "skeptical": {
+   "y": 480,
+   "fw": 225,
+   "fh": 160,
+   "ax": 123,
+   "ay": 157,
+   "frames": 1,
+   "fps": 1,
+   "ledge": [
+    false
+   ]
+  },
+  "concerned": {
+   "y": 640,
+   "fw": 225,
+   "fh": 160,
+   "ax": 123,
+   "ay": 157,
+   "frames": 1,
+   "fps": 1,
+   "ledge": [
+    false
+   ]
+  },
+  "work": {
+   "y": 800,
+   "fw": 225,
+   "fh": 160,
+   "ax": 123,
+   "ay": 157,
+   "frames": 6,
+   "fps": 4,
+   "ledge": [
+    true,
+    true,
+    true,
+    true,
+    true,
+    true
+   ]
+  }
+ },
+ "art": "ART-95",
+ "door": "hex:korvinSlate",
+ "source": "deep16/_src/korvin/ART-95 (the art desk's ART-95, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py",
+ "recolour": {
+  "hue": 215,
+  "sat": 0.22
+ }
+}

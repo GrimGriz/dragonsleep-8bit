@@ -1656,6 +1656,31 @@
 }
 }
 },
+"brennan_p1": {
+"image": "art/brennan_p1.png?v=7b0161f9bc",
+"fw": 33,
+"fh": 53,
+"ax": 17,
+"ay": 51,
+"top": 49,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 33,
+"fh": 53,
+"ax": 17,
+"ay": 51,
+"frames": 14,
+"fps": 4,
+"drawn": [
+0
+],
+"under": "crewman_p1"
+}
+},
+"source": "deep16/_src/brennan/ART-87/ART-87_HEAD-2_PAGE-1.png (the art desk's south idle, 10-21), cut by tools/keeper-town-sheet.py",
+"door": "keeper:brennan"
+},
 "broodmother_p1": {
 "image": "art/broodmother_p1.png?v=7916acc02b",
 "fw": 176,
@@ -6376,6 +6401,35 @@
 }
 }
 },
+"korvin_p1": {
+"image": "art/korvin_p1.png?v=36721a9c4a",
+"fw": 31,
+"fh": 53,
+"ax": 16,
+"ay": 51,
+"top": 49,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 31,
+"fh": 53,
+"ax": 16,
+"ay": 51,
+"frames": 14,
+"fps": 4,
+"drawn": [
+0
+],
+"under": "crewman_p1"
+}
+},
+"source": "deep16/_src/korvin/ART-95/ART-95_HEAD-2_PAGE-1.png (the art desk's south idle, 10-21), cut by tools/keeper-town-sheet.py",
+"door": "hex:korvinSlate",
+"recolour": {
+"hue": 215,
+"sat": 0.22
+}
+},
 "lamptower_p1": {
 "_note": "the lamp tower at a waystation on the dwarven road (tools/roadprops-sheet.py, the art desk's ART-58): a plinth of dwarf-cut stone on one diamond, a banded shaft, a capital and an iron lamp cage, 12 ft to the ring on its roof. lit, four frames of the flame (the stone the same in all four); dark, the lamp gone out. (ax, ay) is the middle of the square it stands on. Its light is the map's own `lights` entry (js/circles.js draws it where a map's `tower` stands).",
 "image": "art/lamptower_p1.png?v=40e11e8c2e",
@@ -10332,6 +10386,102 @@ true
 "door": "keeper:barber",
 "source": "deep16/_src/barber/ART-85 (the art desk's ART-85, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
 },
+"pt_brennan": {
+"image": "art/pt_brennan.png?v=32a1aed5d3",
+"fw": 167,
+"fh": 156,
+"ax": 80,
+"ay": 154,
+"top": 154,
+"portrait": true,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 167,
+"fh": 156,
+"ax": 80,
+"ay": 154,
+"frames": 6,
+"fps": 3,
+"ledge": [
+false,
+false,
+false,
+false,
+false,
+false
+]
+},
+"attentive": {
+"y": 156,
+"fw": 167,
+"fh": 156,
+"ax": 80,
+"ay": 154,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"welcoming": {
+"y": 312,
+"fw": 167,
+"fh": 156,
+"ax": 80,
+"ay": 154,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"skeptical": {
+"y": 468,
+"fw": 167,
+"fh": 156,
+"ax": 80,
+"ay": 154,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"concerned": {
+"y": 624,
+"fw": 167,
+"fh": 156,
+"ax": 80,
+"ay": 154,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"work": {
+"y": 780,
+"fw": 167,
+"fh": 156,
+"ax": 80,
+"ay": 154,
+"frames": 6,
+"fps": 4,
+"ledge": [
+false,
+false,
+false,
+false,
+false,
+false
+]
+}
+},
+"art": "ART-87",
+"door": "keeper:brennan",
+"source": "deep16/_src/brennan/ART-87 (the art desk's ART-87, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
+},
 "pt_calla": {
 "image": "art/pt_calla.png?v=2eb8d3be61",
 "fw": 168,
@@ -10907,6 +11057,106 @@ true
 "art": "ART-83",
 "door": "shop:kessler",
 "source": "deep16/_src/kessler/ART-83 (the art desk's ART-83, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
+},
+"pt_korvin": {
+"image": "art/pt_korvin.png?v=ea44e228a2",
+"fw": 225,
+"fh": 160,
+"ax": 123,
+"ay": 157,
+"top": 157,
+"portrait": true,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 225,
+"fh": 160,
+"ax": 123,
+"ay": 157,
+"frames": 6,
+"fps": 3,
+"ledge": [
+false,
+false,
+false,
+false,
+false,
+false
+]
+},
+"attentive": {
+"y": 160,
+"fw": 225,
+"fh": 160,
+"ax": 123,
+"ay": 157,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"welcoming": {
+"y": 320,
+"fw": 225,
+"fh": 160,
+"ax": 123,
+"ay": 157,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"skeptical": {
+"y": 480,
+"fw": 225,
+"fh": 160,
+"ax": 123,
+"ay": 157,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"concerned": {
+"y": 640,
+"fw": 225,
+"fh": 160,
+"ax": 123,
+"ay": 157,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"work": {
+"y": 800,
+"fw": 225,
+"fh": 160,
+"ax": 123,
+"ay": 157,
+"frames": 6,
+"fps": 4,
+"ledge": [
+true,
+true,
+true,
+true,
+true,
+true
+]
+}
+},
+"art": "ART-95",
+"door": "hex:korvinSlate",
+"source": "deep16/_src/korvin/ART-95 (the art desk's ART-95, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py",
+"recolour": {
+"hue": 215,
+"sat": 0.22
+}
 },
 "pt_lisbet": {
 "image": "art/pt_lisbet.png?v=e4b4595ff1",
@@ -11881,6 +12131,102 @@ false
 "art": "ART-SPECIAL-SYLVIA",
 "door": "keeper:sylvia",
 "source": "deep16/_src/sylvia/ART-SYLVIA (the art desk's ART-SPECIAL-SYLVIA, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
+},
+"pt_venhale": {
+"image": "art/pt_venhale.png?v=e40547870a",
+"fw": 191,
+"fh": 155,
+"ax": 86,
+"ay": 153,
+"top": 153,
+"portrait": true,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 191,
+"fh": 155,
+"ax": 86,
+"ay": 153,
+"frames": 6,
+"fps": 3,
+"ledge": [
+false,
+false,
+false,
+false,
+false,
+false
+]
+},
+"attentive": {
+"y": 155,
+"fw": 191,
+"fh": 155,
+"ax": 86,
+"ay": 153,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"welcoming": {
+"y": 310,
+"fw": 191,
+"fh": 155,
+"ax": 86,
+"ay": 153,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"skeptical": {
+"y": 465,
+"fw": 191,
+"fh": 155,
+"ax": 86,
+"ay": 153,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"concerned": {
+"y": 620,
+"fw": 191,
+"fh": 155,
+"ax": 86,
+"ay": 153,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"work": {
+"y": 775,
+"fw": 191,
+"fh": 155,
+"ax": 86,
+"ay": 153,
+"frames": 6,
+"fps": 4,
+"ledge": [
+false,
+false,
+false,
+false,
+false,
+false
+]
+}
+},
+"art": "ART-96",
+"door": "keeper:venhale",
+"source": "deep16/_src/venhale/ART-96 (the art desk's ART-96, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
 },
 "pt_vilar": {
 "image": "art/pt_vilar.png?v=8b9816712c",
@@ -13735,6 +14081,31 @@ true
 ]
 }
 }
+},
+"venhale_p1": {
+"image": "art/venhale_p1.png?v=996810c01b",
+"fw": 30,
+"fh": 53,
+"ax": 15,
+"ay": 51,
+"top": 49,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 30,
+"fh": 53,
+"ax": 15,
+"ay": 51,
+"frames": 14,
+"fps": 4,
+"drawn": [
+0
+],
+"under": "crewman_p1"
+}
+},
+"source": "deep16/_src/venhale/ART-96/ART-96_HEAD-2_PAGE-1.png (the art desk's south idle, 10-21), cut by tools/keeper-town-sheet.py",
+"door": "keeper:venhale"
 },
 "veteran_p1": {
 "image": "art/veteran_p1.png?v=cbc79ac198",

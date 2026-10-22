@@ -70,6 +70,16 @@ PEOPLE = {
     'mela': ('mela/ART-90', 'ART-90', 'keeper:mela', {}),
     'mical': ('mical/ART-91', 'ART-91', 'keeper:mical', {}),
     'merrick': ('merrick/ART-93', 'ART-93', 'keeper:merrick', {}),  # (10-21 night, the same word: the message-lantern house's window)
+    # three more, each with a south idle (10-22, the NPC cutter seat; Griz to the lanes desk: "more NPC art is in", then "one cutter for all 3"): Brennan the smith
+    # and Venn Hale of the fighters' stables at their doors, Korvin of the Hex's betting slate (his place is the Hex seat's)
+    # (`gap`, by page: how near a piece must be to join a drawing -- Brennan's broad shoulders stand 5 px apart on his idle and work pages, Venn Hale's rows 11 px,
+    # and her taut strap touches the next frame's on her work page, so there only a piece that overlaps one joins it)
+    'brennan': ('brennan/ART-87', 'ART-87', 'keeper:brennan', {'gap': {1: 3, 6: 3}}),
+    'venhale': ('venhale/ART-96', 'ART-96', 'keeper:venhale', {'gap': {1: 3, 6: -1}}),   # (Venn Hale by the first game's id, content/npcs.json -- not Venn the barber)
+    # Korvin's waistcoat dyed slate grey at the cut, his shirt, skin, hair and inked fingers left alone (RULED 10-22, Griz: "Go for recolor without reroll"; the
+    # desk had found Percy his near-twin, the same brown waistcoat over a cream rolled-sleeve shirt): judged in a 4x lineup beside Percy and Merrick on the counter's
+    # panel -- the palette's silver ramp, clear of Percy's brown and Merrick's, where a dark blue sank into the navy behind him
+    'korvin': ('korvin/ART-95', 'ART-95', 'hex:korvinSlate', {'recolour': {'hue': 215, 'sat': 0.22}}),
 }
 
 
@@ -80,10 +90,10 @@ def page_path(folder, art, n, pat='%s_HEAD-1_PAGE-%d.png'):
     return fs[0]
 
 
-def drawings(a, bands, mask_d=MASK_D):
+def drawings(a, bands, mask_d=MASK_D, gap=12):
     """the page's drawings, `bands` of them a band, each (mask of it over the page, its box), read in order: top band first, left to right. A pixel is figure
     when a channel is mask_d from the navy, or half that and touching one that is (a dark coat's shadows against the navy: Winters'); a drawing
-    is its biggest piece and the pieces beside it (a sleeve the mask parted from the body: Casper's); a printed word or number is small and short"""
+    is its biggest piece and the pieces within `gap` px of it (a sleeve the mask parted from the body: Casper's); a printed word or number is small and short"""
     navy = np.median(a.reshape(-1, 3)[::97], axis=0)
     d = np.abs(a - navy).max(-1)
     strong = ndimage.binary_opening(d > mask_d, structure=np.ones((3, 3)))
@@ -109,7 +119,7 @@ def drawings(a, bands, mask_d=MASK_D):
         sl = objs[i]; b = (sl[1].start, sl[0].start, sl[1].stop, sl[0].stop)
         if sz[i] < 800 or b[3] - b[1] < 40:
             continue                                            # (a letter, a number, a speck)
-        g = [q for q in groups if near(q[1], b, 12)]
+        g = [q for q in groups if near(q[1], b, gap)]
         if g:
             q = g[0]; q[0].append(i + 1); q[1] = (min(q[1][0], b[0]), min(q[1][1], b[1]), max(q[1][2], b[2]), max(q[1][3], b[3]))
         elif len(groups) < want:
@@ -123,6 +133,83 @@ def drawings(a, bands, mask_d=MASK_D):
     for n in bands:
         rows += sorted(out[k:k + n], key=lambda p: p[1][0]); k += n
     return rows
+
+
+def hsv(rgb):
+    """hue (degrees), saturation and value (0-1) of an RGB array (0-255)"""
+    a = rgb.astype(float) / 255.0; mx = a.max(-1); d = mx - a.min(-1)
+    r, g, b = a[..., 0], a[..., 1], a[..., 2]
+    h = np.zeros_like(mx); m = d > 1e-6
+    rr = m & (mx == r); gg = m & (mx == g) & ~rr; bb = m & ~rr & ~gg
+    h[rr] = ((g - b)[rr] / d[rr]) % 6; h[gg] = ((b - r)[gg] / d[gg]) + 2; h[bb] = ((r - g)[bb] / d[bb]) + 4
+    return h * 60, np.where(mx > 0, d / np.maximum(mx, 1e-6), 0), mx
+
+
+def cloth_mask(rgb, fig, hues=(8, 48), smin=0.2, vmax=0.45):
+    """the dark brown cloth worn over a pale shirt (a waistcoat) in one drawing's crop, `fig` its figure: the brown of `hues` darker than vmax, its body the big
+    pieces left by a 9 px opening (the shirt's fold lines and a face's shadows are thin and fall away), its smaller parts within 30 px of that body (its back over
+    a shoulder, a side panel under an arm), its edges 4 px round, and the near-black of its seams inside it (not the ink on the fingers: a blue). A prop of a
+    redder, deeper leather in front of it is left out, by its colour smoothed over the dither (Korvin's pouch, his work 4-6)"""
+    h, s, v = hsv(rgb)
+    cand = fig & (h >= hues[0]) & (h <= hues[1]) & (s >= smin) & (v <= vmax)
+    body = ndimage.binary_opening(cand, structure=np.ones((9, 9)))
+    lab, n = ndimage.label(body)
+    if not n:
+        return np.zeros_like(fig)
+    sz = ndimage.sum(body, lab, range(1, n + 1))
+    main = np.isin(lab, 1 + np.where(sz >= 0.25 * sz.max())[0])
+    small = ndimage.binary_opening(cand, structure=np.ones((5, 5)))
+    ls, ns = ndimage.label(small)
+    if ns:
+        ssz = ndimage.sum(small, ls, range(1, ns + 1))
+        hit = np.unique(ls[ndimage.binary_dilation(main, iterations=30) & small]); hit = [k for k in hit if k > 0 and ssz[k - 1] >= 300]
+        main |= np.isin(ls, hit)
+    inside = ndimage.binary_fill_holes(ndimage.binary_closing(main, structure=np.ones((15, 15))))
+    seam = fig & (v < 0.24) & ~((h > 180) & (h < 260) & (s > 0.2))
+    out = (ndimage.binary_dilation(main, iterations=4) & cand) | (inside & seam)
+    bl = np.stack([ndimage.uniform_filter(rgb[..., c].astype(float), 9) for c in range(3)], -1)
+    bh, bs, bv = hsv(bl)
+    prop = fig & (bh <= 20) & (bs >= 0.5) & (bv <= 0.45)
+    lp, npp = ndimage.label(prop)
+    if npp:
+        psz = ndimage.sum(prop, lp, range(1, npp + 1))
+        out &= ~ndimage.binary_fill_holes(ndimage.binary_dilation(np.isin(lp, 1 + np.where(psz >= 800)[0]), iterations=4))
+    return out
+
+
+def hem_cut(rgb, mask, band=(0.5, 0.7)):
+    """a whole figure's cloth mask stopped at the waistcoat's hem, where trousers of the same brown go on below it (Korvin's town figure): the hem is the darkest
+    row in `band` of the figure's height down each column of the mask, fitted as a V from the sides to the middle by a median fit (the buttons' gap and a stray
+    dark fold fall away), and nothing below it is dyed"""
+    H = mask.shape[0]; v = ndimage.uniform_filter(hsv(rgb)[2], (5, 9))
+    y0, y1 = int(H * band[0]), int(H * band[1])
+    cols = np.where(mask[y0:y1].sum(0) > 10)[0]
+    if len(cols) < 3:
+        return mask
+    seam = np.array([y0 + int(np.argmin(np.where(mask[y0:y1, c], v[y0:y1, c], 9))) for c in cols], float)
+    xc = (cols.min() + cols.max()) / 2.0; d = np.abs(cols - xc)
+    best = None
+    for b in np.linspace(-0.6, 0.6, 61):
+        a0 = np.median(seam - b * d); err = np.median(np.abs(seam - a0 - b * d))
+        if best is None or err < best[0]:
+            best = (err, a0, b)
+    _, a0, b = best
+    out = mask.copy(); line = np.round(a0 + b * np.abs(np.arange(mask.shape[1]) - xc)).astype(int)
+    for x in range(mask.shape[1]):
+        out[max(0, line[x]):, x] = False
+    return out
+
+
+def recolour(rgb, mask, hue, sat):
+    """the pixels under `mask` turned to `hue` at saturation `sat`, each keeping its own value (its light and shade): a cloth dyed another colour before the
+    pixelating, so the palette's snap finds that colour's ramp"""
+    h, s, v = hsv(rgb)
+    out = rgb.astype(float).copy()
+    vv = v[mask]; ss = np.full(vv.shape, float(sat))
+    hh = (hue / 60.0) % 6; i = int(np.floor(hh)); f = hh - i
+    p, q, t = vv * (1 - ss), vv * (1 - ss * f), vv * (1 - ss * (1 - f))
+    out[mask] = np.stack([(vv, t, p), (q, vv, p), (p, vv, t), (p, q, vv), (t, p, vv), (vv, p, q)][i], -1) * 255
+    return np.clip(np.round(out), 0, 255).astype(np.uint8)
 
 
 def ledge_top(piece, box):
@@ -159,7 +246,7 @@ def cut_person(name):
         a = np.asarray(Image.open(page_path(folder, art, pg, ov.get('pat', '%s_HEAD-1_PAGE-%d.png'))).convert('RGB')).astype(np.int32)
         for bx0, by0, bx1, by1 in ov.get('blank', {}).get(pg, []):
             a[by0:by1, bx0:bx1] = np.median(a.reshape(-1, 3)[::97], axis=0)   # (a printed title touching a head: Winters' ACQUISITION)
-        found = [(piece, box, ledge_top(piece, box)) for piece, box in drawings(a, bands, ov.get('mask_d', MASK_D))]
+        found = [(piece, box, ledge_top(piece, box)) for piece, box in drawings(a, bands, ov.get('mask_d', MASK_D), ov.get('gap', {}).get(pg, 12))]
         if len(found) != len(acts):
             raise SystemExit('%s page %d: %d drawings found, %d wanted' % (name, pg, len(found), len(acts)))
         pages.append((pg, a, found, acts))
@@ -208,6 +295,8 @@ def cut_person(name):
             rgba = np.zeros((foot - top, cx1 - cx0, 4), np.uint8)
             rgba[..., :3] = a[top:foot, cx0:cx1]
             rgba[..., 3] = keep[top:foot, cx0:cx1] * 255
+            if ov.get('recolour'):                               # (a cloth dyed at the cut: Korvin's waistcoat off Percy's brown)
+                rgba[..., :3] = recolour(rgba[..., :3], cloth_mask(rgba[..., :3], keep[top:foot, cx0:cx1]), **ov['recolour'])
             if act not in raw:
                 raw[act] = []; order.append(act)
             raw[act].append((rgba, hx - cx0, foot - top, bust, foot < y1))
@@ -231,6 +320,8 @@ def cut_person(name):
     sheet = np.zeros((rows * fh, cols * fw, 4), np.uint8)
     meta = {'image': 'art/pt_%s.png' % name, 'fw': fw, 'fh': fh, 'ax': axx, 'ay': ayy, 'top': ayy, 'portrait': True, 'anims': {}, 'art': art, 'door': door,
             'source': 'deep16/_src/%s (the art desk\'s %s, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py' % (folder, art)}
+    if ov.get('recolour'):
+        meta['recolour'] = ov['recolour']                       # (the dye put on at the cut, for the record: Korvin's)
     for r, act in enumerate(order):
         for i, (px, ax, ay, ledge) in enumerate(small[act]):
             ox, oy = int(round(axx - ax)), int(round(ayy - ay))

@@ -2863,7 +2863,12 @@
       var atDoorW = CW.AT_DOOR.map(function (k) { var u = B.units.filter(function (x) { return x.npc === k.id; })[0], dq = D.roam.def.marks.doors[k.door]; return { k: k, u: u, d: u && dq ? Math.max(Math.abs(u.x - dq[0]), Math.abs(u.y - dq[1])) : 99 }; });
       okW('at their doors on the street, in their own figures facing south: ' + atDoorW.map(function (a) { return a.k.id + (a.u ? ' ' + a.u.sheet + ' at ' + a.u.x + ',' + a.u.y + ' (' + a.d + ' from the door)' : ' MISSING'); }).join('; '),
         atDoorW.every(function (a) { return a.u && a.u.sheet === CW.FIG[a.k.id] && a.d === 1 && a.u.facing === 0 && a.u.holdFacing && !!trigW('talk:' + a.k.id); }) &&
-        ['marin', 'barber', 'mela', 'mical'].every(function (id) { return atDoorW.some(function (a) { return a.k.id === id && a.u; }); })); // (Mela and Mical since 10-21 night, "got 3 more south idles in Fresh too")
+        ['marin', 'barber', 'mela', 'mical', 'brennan', 'venhale'].every(function (id) { return atDoorW.some(function (a) { return a.k.id === id && a.u; }); })); // (Mela and Mical since 10-21 night, "got 3 more south idles in Fresh too"; Brennan and Venn Hale 10-22, "more NPC art is in")
+      // Korvin's waistcoat dyed off Percy's brown at the cut (RULED 10-22, Griz: "Go for recolor without reroll"): his portrait and his town figure carry the dye the
+      // cutters put on them (the colour itself is the eyes row's), Percy's none; and the portraits' show takes the three, Korvin by name with his first-game line
+      var rcW = function (n) { var r = D.SHEETS[n] && D.SHEETS[n].recolour; return r ? r.hue + '/' + r.sat : 'none'; }, psK = CW.portraitShow('?portraits&who=brennan,korvin,venhale'), kwW = CW.wordsOf('korvin');
+      okW('Korvin dyed at the cut (pt_korvin ' + rcW('pt_korvin') + ', korvin_p1 ' + rcW('korvin_p1') + ', pt_percy ' + rcW('pt_percy') + '); the portraits\' show takes ' + psK.ids.join(', ') + ', Korvin\'s word "' + String(kwW[0]).slice(0, 34) + '..."',
+        rcW('pt_korvin') === '215/0.22' && rcW('korvin_p1') === '215/0.22' && rcW('pt_percy') === 'none' && rcW('percy_p1') === 'none' && psK.ids.join() === 'brennan,korvin,venhale' && /Book made openly on fights/.test(kwW[0]) && CW.VENDORS.korvin.name === 'Korvin');
       var mW = atDoorW[0].u, tkM = [R0.token.x, R0.token.y]; R0.token.x = mW.x + 1; R0.token.y = mW.y + 1; var wouldM = D.spr.facingFor(R0.token.x - mW.x, R0.token.y - mW.y);
       var gMa = TW.fire(B, trigW('talk:marin')); driveW(gMa, upW, 200); var scMa = D.top(), wMa = upW() ? readW(scMa) : []; driveW(gMa, null, 200); R0.token.x = tkM[0]; R0.token.y = tkM[1];
       okW('Marin Voss spoken to from a diagonal at her door: her counter screen on her portrait (' + (scMa && scMa.sheet) + '), her first-game word ("' + String(wMa[0]).slice(0, 40) + '..."), and she still faces south (she would have turned to facing ' + wouldM + ')',
@@ -2922,8 +2927,9 @@
       // the purse: Mical signs first (her door), then Brennan (his door) -- the first game's words, done
       outW(B); var gMi = TW.fire(B, trigW('keeper:mical')); driveW(gMi, upW, 200); var scMi = upW() ? D.top() : null, wMi = scMi ? readW(scMi) : []; driveW(gMi, null, 200);
       okW('Mical at her door signs the crate off her books, on her portrait (' + (scMi && scMi.sheet) + ', ' + wMi.length + ' lines, no counter to come: she sells nothing)', R0.flags.wSigned === 1 && scMi && scMi.sheet === 'pt_mical' && /Brennan's next/.test(wMi.join(' ')) && !/is to come/.test(wMi.join(' ')) && !upW());
-      driveW(TW.fire(B, trigW('keeper:brennan')), null, 200);
-      okW('Brennan at his door takes the purse ("the forge is square")', R0.flags.wPaid === 1 && !CW.count(st, 'debtpurse'));
+      var gBr = TW.fire(B, trigW('keeper:brennan')); driveW(gBr, upW, 200); var scBr = upW() ? D.top() : null, wBr = scBr ? readW(scBr) : []; driveW(gBr, null, 200);
+      okW('Brennan at his door takes the purse ("the forge is square"), on his portrait since 10-22 (' + (scBr && scBr.sheet) + ', ' + wBr.length + ' lines)',
+        R0.flags.wPaid === 1 && !CW.count(st, 'debtpurse') && scBr && scBr.sheet === 'pt_brennan' && /forge is square/.test(wBr.join(' ')) && !upW());
       var xp0 = st.party.map(function (h) { return h.xp || 0; }), sv1 = R0.silver, pot0 = CW.count(st, 'potion');
       inW(B, 'warp:winters'); var g3 = fireW(B, 'talk:winters'), sc3 = D.top(), done3 = readW(sc3);
       var gainW = st.party.map(function (h, i) { return (h.xp || 0) - xp0[i]; });
@@ -3036,6 +3042,14 @@
       okW('Mela Sorris at the Stew\'s door, on her portrait (' + (scMe && scMe.sheet) + '): "' + String(wMe[0]).slice(0, 40) + '...", the party still in the street', scMe && scMe.sheet === 'pt_mela' && /Three coppers the common bath/.test(wMe[0]) && !D.roam.def.room && !upW());
       var gMi2 = TW.fire(B, trigW('keeper:mical')); driveW(gMi2, upW, 200); var scMi2 = upW() ? D.top() : null, wMi2 = scMi2 ? readW(scMi2) : []; driveW(gMi2, null, 200);
       okW('Mical again, the crate signed: her other first-game word ("' + String(wMi2[0]).slice(0, 40) + '..."), on her portrait', scMi2 && scMi2.sheet === 'pt_mical' && wMi2.join('|') === window.DS.DATA.npcs.mical.talk[1].say.join('|') && !upW());
+      // Brennan and Venn Hale (10-22, Griz: "more NPC art is in"): Brennan's own word once the purse is paid, his counter to come (no first-game shop); Venn Hale at the
+      // fighters' stables' door, spoken to at her figure: her word, the Hex card's rumour heard, and no counter line (she sells nothing)
+      var gBr2 = TW.fire(B, trigW('keeper:brennan')); driveW(gBr2, upW, 200); var scBr2 = upW() ? D.top() : null, wBr2 = scBr2 ? readW(scBr2) : []; driveW(gBr2, null, 200);
+      okW('Brennan again, the purse paid: his own first-game word ("' + String(wBr2[0]).slice(0, 40) + '..."), on his portrait, and "' + String(wBr2[wBr2.length - 1]).replace(/\{.\}|\{\/\}/g, '') + '"',
+        scBr2 && scBr2.sheet === 'pt_brennan' && wBr2.slice(0, 2).join('|') === window.DS.DATA.npcs.brennan.talk[2].say.join('|') && /buying and selling -- is to come/.test(wBr2.join(' ')) && !upW());
+      var gVh = fireW(B, 'talk:venhale'), scVh = upW() ? D.top() : null, wVh = scVh ? readW(scVh) : []; driveW(gVh, null, 200);
+      okW('Venn Hale at the fighters\' stables, spoken to at her figure: on her portrait (' + (scVh && scVh.sheet) + ', named ' + (scVh && scVh.o.name) + '), "' + String(wVh[0]).slice(0, 40) + '...", the Hex card\'s rumour heard, no counter line',
+        scVh && scVh.sheet === 'pt_venhale' && scVh.o.name === 'Venn Hale' && wVh.join('|') === window.DS.DATA.npcs.venhale.talk[0].say.join('|') && R0.flags['heard:r-hexcard'] === 1 && !/is to come/.test(wVh.join(' ')) && !upW());
       // Merrick (10-21 night, the same word: ART-93): behind the message-lantern house's grille, on his portrait, his first-game word and its rumour heard
       inW(B, 'keeper:merrick'); var kuMr = B.units.filter(function (u) { return u.npc === 'merrick'; })[0], gMr = fireW(B, 'talk:merrick'), scMr = D.top(), wMr = upW() ? readW(scMr) : []; driveW(gMr, null, 200);
       okW('Merrick behind the message-lantern house\'s grille (door ' + (D.roam.def.room === 'keeper:merrick' ? 'in' : 'NOT in') + ') in his own figure (' + (kuMr && kuMr.sheet) + ', his south idle 10-21 night), on his portrait (' + (scMr && scMr.sheet) + '): "' + String(wMr[0]).slice(0, 40) + '...", the lantern rumour heard, and "' + String(wMr[wMr.length - 1]).replace(/\{.\}|\{\/\}/g, '') + '"',
