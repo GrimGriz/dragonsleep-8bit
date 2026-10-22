@@ -892,6 +892,7 @@
     R.stats.pull = (R.stats.pull || 0) + 1;
     D.push(b);
     while (!done) yield 1; // (the floor waits under it: only the top scene runs -- js/core.js)
+    R0.pulled = done; // (how it ended, for the floor's own answer after: js/mines.js, the roost)
     // back on the floor: the four's hit points as the fight left them; the trigger spent if the fight was won
     D.battle = B; G.setup(B.map, B.units); D.iso.map = B.map;
     if (done !== 'won' && done !== 'lost') R.tune(); // (the floor's own tune again: the landlord fed, a getaway -- the boss tune ran on past the bucket, his 10-22; a win's after its fanfare, below)

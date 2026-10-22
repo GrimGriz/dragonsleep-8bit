@@ -147,7 +147,7 @@
       clock: !!F.clock, hour: hour, ownLights: m8.lights || null, // (the Glowseep: THE WORLD's clock moves as the party walks and fights there -- M.SEEP; its poles and moss lit by night)
       view: 'top', ft: 30, roofs: T.roofsAt(30), slope: slope.map(function (r) { return r.join(''); }), look: lk.map(function (r) { return r.join(''); }), signs: {}, faceDoors: {},
       rows: rows, w: w, h: h, entry: [at], face: face, gate: gq || null, stairUp: [], doors: ways, marks: marks, people: people, foes: [], warps: warps, out: F.out || null, save: !!F.save,
-      deepWater: 'D', music: m8.music || 'field', wayName: wayName, wayMarks: wayMarks,
+      deepWater: 'D', music: m8.music || 'field', wayName: wayName, wayMarks: wayMarks, roost: !!m8.roost, // (roost: the first game's roosted ceiling -- the working gallery, the dens: M.fieldDef)
       names8: { rows: r8.slice(), legend: leg }, // (the first game's name of each square -- bones, webbing, a fence or a lamp, a tent or a stump: the art's piece for it, js/topview.js TV.ART)
       src8: { id: F.src, rows: [], legend: {}, triggers: trig, warps: [], chests: (m8.chests || []).slice(), zones: (m8.zones || []).slice(), save: !!F.save }, from8: id, to8: id, sig: '', // (zones: the first game's random fights where it has them -- the dens, the workings: each on a field of its own, M.fieldFight, its tables content/encounters.json)
       zone8: (m8.zones && m8.zones[0] && m8.zones[0].zone) || null,
@@ -411,9 +411,21 @@
     var moss = kind === 'bog' && def.dark ? [[1, 1, 10, 'glow', 1], [w - 2, h - 2, 10, 'glow', 1], [w - 2, 1, 10, 'glow', 1], [1, h - 2, 10, 'glow', 1]] : null; // (the Glowseep by night: its moss, dim)
     return { id: 'minefield', map: 'mine-field', level: (D.roam.party0 && D.roam.party0.level) || 5, name: def.name, sub: def.sub, dark: !!def.dark, lights: moss,
       intro: (set && set.line) || 'They come at the party out of the dark.', won: 'THE WAY IS CLEAR.', lost: 'THE DARK TAKES THEM.', noCards: true, // (no entry card: the encounter's card asked, and the four are the floor's -- its "walk in as the fixture" is not theirs, seen in the pane 10-22)
-      foes: simple ? D.simple.seat(list) : D.world.seat(list), wave: null, fliers: !simple }; // (fliers: the SRD's fly on the grid, not in the simple fight's lineup -- js/world.js's)
+      foes: simple ? D.simple.seat(list) : D.world.seat(list), wave: null, fliers: !simple, // (fliers: the SRD's fly on the grid, not in the simple fight's lineup -- js/world.js's)
+      // THE ROOST (10-22, the lanes desk: the lane's 2c open 2 -- the grid's `roost` RULED 09-28, the one law canon): under a roosted floor its field is roosted too -- fire and
+      // thunder greyed, a lantern hooded, and bright light (Light, Daylight, Sacred Weapon) brings the roof down, the fight's 'roost' (js/battle.js over); said as it opens,
+      // the first game's own line (js/battle.js's 'Overhead, the roost'); the floor's answer after it, M.roostBroke
+      roost: !!def.roost, announce: def.roost ? [M.LINES.roost] : null };
   };
-  M.fieldBack = function (done) { return done === 'won' ? ['{y}The way is clear.{/}', '{g}Back where the party stood.{/}'] : done === 'escaped' ? ['{y}Away{/}: the party gets clear of them.', '{g}Back where it stood.{/}'] : ['{y}Back on the floor{/} (' + done + ').']; };
+  M.LINES.roost = '{y}Overhead, the roost{/}: millions of sleeping wings. No fire. No bright light.';
+  M.fieldBack = function (done) { return done === 'won' ? ['{y}The way is clear.{/}', '{g}Back where the party stood.{/}'] : done === 'escaped' ? ['{y}Away{/}: the party gets clear of them.', '{g}Back where it stood.{/}'] : done === 'roost' ? ['{r}The roof comes down in wings{/}: the party gets out from under it, back where it stood.'] : ['{y}Back on the floor{/} (' + done + ').']; };
+  // the roost broken in a field fight: the floor's answer, the first game's (js/battle.js roostBroken, js/events.js EV.afterBattle): the flag -- Sabeth's fired line and
+  // Ottilie's cold one after it (M.SCENES) -- and its words, once
+  M.roostBroke = function* (B) {
+    var f = B.roam.flags; f.roostBroken = (f.roostBroken || 0) + 1;
+    if (f.roostTold) return;
+    f.roostTold = 1; D.sfx('error'); B.card(D.roam.wrap([].concat(L('g.roostBroken'))), 480); yield 60;
+  };
   M.fieldFight = function* (B, why, set) {
     var R = D.roam, R0 = B.roam, t = R0.token, zone = set ? null : R.zoneAt(B, t.x, t.y) || R.def.zone8;
     var p = set ? { list: set.list, grp: {} } : R.pick(zone, R0.flags);
@@ -435,6 +447,7 @@
     var enter = function (b) { if (watch) b.units.forEach(function (u) { if (u.side === 'party') { u.guest = true; u.classAI = true; } }); };
     yield* R.pullIn(B, 'field', { id: 'field', field: { F: F, simple: simple, zone: zone, flag: set && set.flag, trig: set && set.trig, back: M.fieldBack, enter: enter } }, [t.x, t.y]);
     delete R.party0.backTo;
+    if (R0.pulled === 'roost') yield* M.roostBroke(B);
   };
   var enc0 = D.roam.encounter;
   D.roam.encounter = function* (B, why, set) { if (D.roam.def && D.roam.def.mine) { yield* M.fieldFight(B, why, set); return; } yield* enc0.apply(this, arguments); };

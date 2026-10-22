@@ -2101,12 +2101,13 @@
     function crewOf(B) { return B.units.filter(function (u) { return u.npc; }).map(function (u) { return u.npc + '@' + u.x + ',' + u.y + ':' + u.hp; }).join(' '); }
     // a floor's fight called up where the party stands, to the field it pushes -- `pick` answering the encounter's card (0 FIGHT, 1 the other way); `run`: fought by the class
     // AI to its end and back on the floor, else got away from at once
-    function fieldF2(B, pick, run) {
+    function fieldF2(B, pick, run, hook) { // (hook(b): a look at the field, or a thing done there, before it is fought)
       var R0 = B.roam, g = RF.encounter(B, 'steps'), st, v, k = 0, asked = null;
       while (k++ < 400 && D.top() === B) { st = g.next(v); v = undefined; if (st.done) break; if (typeof st.value === 'number' && D.battle) D.battle.t += Math.max(1, st.value); if (st.value && st.value.prompt) { asked = st.value.prompt; v = asked.opts[pick || 0].value; } }
       var b = D.top(); if (b === B) return { b: null, asked: asked, units: [] };
       if (b.baking) { b.baking = false; b.enter(); }
       var out = { b: b, asked: asked, simple: !!b.o.simple, map: b.map.def, units: b.units.slice() };
+      if (hook) out.hooked = hook(b);
       if (run) { var r; k = 0; while (b.co && k++ < 400000) { r = b.co.next(v); v = undefined; if (r.done) break; var y = r.value; if (typeof y === 'number' || !y || y.fx || y.entry || y.scene) continue; if (y.prompt) { v = y.prompt.opts[0].value; continue; } if (y.turn) v = { do: 'end' }; } }
       out.res = run ? b.result : 'escaped';
       if (D.top() === b) D.pop(); b.o.onDone(out.res);
@@ -2182,6 +2183,23 @@
       okF2('the Glowseep\'s hello names each way once (' + wsS.join('; ') + ')', wsS.length > 1 && wsS.every(function (s, i) { return wsS.indexOf(s) === i; }));
       var BG = testF2('?roam=galleries&gate=east'), mkG = RF.def.wayMarks || [];
       okF2('the Galleries\' mouth, in by the east gate: the way into the mine named (' + mkG.map(function (k) { return k.name + ' ' + (k.side || k.at.join(',')); }).join('; ') + ')', mkG.some(function (k) { return k.name === 'the working gallery' && k.at[0] === 17 && k.at[1] === 3; }) && mkG.filter(function (k) { return k.name === 'the road'; }).length >= 2);
+      // 5. THE ROOST ON THE FIELDS (the lanes desk's follow-up, the lane's 2c open 2; the grid's roost RULED 09-28, the one law canon): a roosted floor's field roosted --
+      // fire and thunder greyed, the first game's line as it opens -- and bright light there brings the roof down: back on the floor, the first game's roostBroken and its words
+      var rq = {}; ['galleries_g2', 'galleries_g3', 'galleries', 'glowseep', 'warrens_c'].forEach(function (k) { testF2('?roam=' + k); rq[k] = !!RF.def.roost; });
+      okF2('the roosted floors are the first game\'s (' + JSON.stringify(rq) + ')', rq.galleries_g2 && rq.galleries_g3 && !rq.galleries && !rq.glowseep && !rq.warrens_c);
+      var B5 = testF2('?roam=galleries_g3&flags=cullHired&at=6,10'), R5 = B5.roam;
+      var f5 = fieldF2(B5, 0, false, function (b) { var au = b.units.filter(function (u) { return u.id === 'aurdin'; })[0], ls = []; try { D.rules.startTurn(au); ls = (D.magic.list(b, au) || []).filter(Boolean); } catch (eL) { ls = [{ id: 'threw: ' + eL }]; } finally { if (au) au.turn = null; } return { roost: b.fight.roost, ann: (b.fight.announce || []).join(' '), greyed: ls.filter(function (e) { return /roost overhead/.test(e.why || ''); }).map(function (e) { return e.id; }) }; });
+      var h5 = f5.hooked || {};
+      okF2('a dens field fight is roosted (' + h5.roost + '): "' + h5.ann + '"; Aurdin\'s fire and thunder greyed (' + (h5.greyed || []).join(', ') + ')', h5.roost === true && /Overhead, the roost/.test(h5.ann) && (h5.greyed || []).length > 0);
+      var gl5 = testF2('?roam=glowseep&hour=22'); gl5.roam.token.x = 20; gl5.roam.token.y = 14; D.grid.setup(gl5.map, gl5.units);
+      var fgl5 = fieldF2(gl5, 0, false, function (b) { return !!b.fight.roost; });
+      okF2('the Glowseep\'s field is not (' + fgl5.hooked + ')', !!fgl5.b && fgl5.hooked === false);
+      var B5b = testF2('?roam=galleries_g3&flags=cullHired&at=6,10'), R5b = B5b.roam;
+      var f5b = fieldF2(B5b, 0, true, function (b) { b.roostBroken = 'light'; return true; }), said5 = (B5b.cards || []).map(function (c) { return c.lines.join(' '); }).join(' / '), g5 = [].concat(D.counter.L('g.roostBroken'))[0];
+      okF2('bright light cast there (B.roostBroken, as magic.js M.brighten marks it): the fight ends ' + f5b.res + ', the party back on the floor (' + R5b.token.x + ',' + R5b.token.y + '), the first game\'s roostBroken ' + R5b.flags.roostBroken + ' and its words said once ("' + String(g5).slice(0, 50) + '...")',
+        f5b.res === 'roost' && D.top() === B5b && R5b.token.x === 6 && R5b.token.y === 10 && R5b.flags.roostBroken === 1 && R5b.flags.roostTold === 1 && said5.indexOf(String(g5).slice(0, 40)) >= 0);
+      var sb5 = null; try { var st5 = D.counter.state(B5b), fake5 = { st: st5, say: function (l) { sb5 = [].concat(l).join(' '); return 1; }, ask: function () { return 0; } }, g5s = MF.SCENES.sabeth(fake5, B5b), s5; do { s5 = g5s.next(); } while (!s5.done); } catch (eS5) { sb5 = 'threw: ' + eS5; }
+      okF2('and Sabeth after it: "' + String(sb5).slice(0, 60) + '..." (the first game\'s fired line)', sb5 === [].concat(D.counter.L('g1.sabethFired')).join(' '));
     } catch (eF2) { repF2.errors.push(String(eF2 && eF2.stack || eF2).slice(0, 900)); }
     D.store.get = stGF2; D.store.set = stSF2; D.music = mu0; try { if (sk0 != null) window.localStorage.setItem(D.simple.KEY, sk0); } catch (eK2) { }
     var preF2 = document.createElement('pre'); preF2.id = 'out'; preF2.textContent = 'BENCH16 ' + JSON.stringify(repF2);
