@@ -97,6 +97,89 @@
 "source": "deep16/_src/androit/ART-80/ART-80_HEAD-2_PAGE-1.png (the art desk's south idle, 10-21), cut by tools/keeper-town-sheet.py",
 "door": "keeper:androit"
 },
+"ankheg_p1": {
+"image": "art/ankheg_p1.png?v=bc83b17f7d",
+"fw": 180,
+"fh": 128,
+"ax": 90,
+"ay": 108,
+"top": 56,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 180,
+"fh": 128,
+"ax": 90,
+"ay": 108,
+"frames": 6,
+"fps": 6
+},
+"walk": {
+"y": 1024,
+"fw": 180,
+"fh": 128,
+"ax": 90,
+"ay": 108,
+"frames": 8,
+"fps": 10
+},
+"attack": {
+"y": 2048,
+"fw": 180,
+"fh": 128,
+"ax": 90,
+"ay": 108,
+"frames": 6,
+"fps": 10
+},
+"hurt": {
+"y": 3072,
+"fw": 180,
+"fh": 128,
+"ax": 90,
+"ay": 108,
+"frames": 6,
+"fps": 8
+},
+"reveal": {
+"y": 4096,
+"fw": 180,
+"fh": 128,
+"ax": 90,
+"ay": 108,
+"frames": 6,
+"fps": 8
+},
+"flinch": {
+"y": 5120,
+"fw": 180,
+"fh": 128,
+"ax": 90,
+"ay": 108,
+"frames": 4,
+"fps": 10
+},
+"burrow": {
+"y": 6144,
+"fw": 180,
+"fh": 128,
+"ax": 90,
+"ay": 108,
+"frames": 6,
+"fps": 8
+},
+"prone": {
+"y": 7168,
+"fw": 180,
+"fh": 128,
+"ax": 90,
+"ay": 108,
+"frames": 2,
+"fps": 6
+}
+},
+"source": "drawn by the art desk (ART-10 SE and NE, 10-10; ART-53 S, E and N, 10-19), cut by tools/ankheg-sheet.py through tools/artdesk.py (10-22)"
+},
 "assassin_p1": {
 "image": "art/assassin_p1.png?v=e0ee0f0998",
 "fw": 96,

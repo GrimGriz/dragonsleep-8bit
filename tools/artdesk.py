@@ -50,19 +50,37 @@ def tall(a):
 
 
 def cut(root, sub, art, pages, chan=None, fix=None, cuts=None):
-    """-> {L: {row: [(page image, its box, its number's x)]}}"""
+    """-> {L: {row: [(page image, its box, its number's x)]}}. A page may say: `dir` (its folder under _src/<sub>/, when not <art>: the
+    ankheg's older ART-10 pages lie in _src/ankheg/ itself), `blank` {row: n} (its last n numbers stand over nothing on purpose -- the
+    ankheg's Burrow 6, under the ground: the band stops short of them and the row ends in n empty frames, (None, None, None)), `own_strip`
+    [rows] (no blanking box over that row's numbers: they sit among its drawing, so each digit is boxed in `text` instead)"""
     SR = _sheetrows(root)
     out = {}
     for L, s in pages.items():
-        path = os.path.join(src_dir(root), sub, art, s['file'])
+        path = os.path.join(src_dir(root), sub, s.get('dir', art), s['file'])
         a = np.asarray(Image.open(path).convert('RGB')).astype(np.int32)
-        sp = dict(text=s['text'] + [(0, l0 - 3, s['W'], l1 + 4) for _, _, (l0, l1), _ in s['rows']],
-                  rows=[(r, b, l, [str(i + 1) for i in range(n)]) for r, b, l, n in s['rows']])
+        rows, blank, hand = [], s.get('blank', {}), {}      # (`xs` {row: [x]}: a row's numbers by hand, where a limb or a jet crosses its strip)
+        for r, b, l, n in s['rows']:
+            xs = s.get('xs', {}).get(r)
+            if blank.get(r):
+                xs = xs or SR.label_xs(a, b[0], b[2], l[0], l[1])
+                b, n, xs = (b[0], b[1], int((xs[n - blank[r] - 1] + xs[n - blank[r]]) / 2), b[3]), n - blank[r], xs[:n - blank[r]]
+            if xs:
+                hand[tuple(l)] = xs
+            rows.append((r, b, l, n))
+        sp = dict(text=s['text'] + [(0, l0 - 3, s['W'], l1 + 4) for r, _, (l0, l1), _ in rows if r not in s.get('own_strip', ())],
+                  rows=[(r, b, l, [str(i + 1) for i in range(n)]) for r, b, l, n in rows])
         if chan:
             sp['chan'] = chan
-        got = SR.cut_sheet(path, sp, fix=(fix or {}).get(L), cuts=(cuts or {}).get(L), tag=L)
-        lx = {r: SR.label_xs(a, b[0], b[2], l[0], l[1]) for r, b, l, _ in s['rows']}
-        out[L] = {r: [(im, box, lx[r][i]) for i, (_, im, box) in enumerate(frs)] for r, frs in got.items()}
+        orig = SR.label_xs
+        SR.label_xs = lambda a_, x0, x1, y0, y1: hand.get((y0, y1)) or orig(a_, x0, x1, y0, y1)
+        try:
+            got = SR.cut_sheet(path, sp, fix=(fix or {}).get(L), cuts=(cuts or {}).get(L), tag=L)
+            lx = {r: SR.label_xs(a, b[0], b[2], l[0], l[1]) for r, b, l, _ in rows}
+        finally:
+            SR.label_xs = orig
+        out[L] = {r: [(im, box, lx[r][i]) for i, (_, im, box) in enumerate(frs)] + [(None, None, None)] * blank.get(r, 0)
+                  for r, frs in got.items()}
     return out
 
 
@@ -111,7 +129,7 @@ def tones(cuts, view_pages, K, fit, ref, stand_of=None):
     'S':, 'N':} game-size arrays; SE and NE against the side), measured at game size, both snapped"""
     T = {}
     for v, ls in view_pages.items():
-        r = _mean(ref['side'] if v in ('SE', 'NE') else ref[v])
+        r = _mean(ref['side'] if v in ('SE', 'NE', 'E') else ref[v])          # (E: a package that draws the side too, the ankheg's)
         for L in ls:
             if L in (stand_of or {}):
                 im = cuts[L][stand_of[L][0]][stand_of[L][1]][0]
@@ -188,14 +206,17 @@ def views(root, sub, art, pages, view_pages, idle_h, fit, torso_x, cell, chan=No
         for L in ls:
             k = K[L]
             for an, frs in cuts[L].items():
-                fits = [fit(toned(im, T[L]) if L in T else im, k) for im, _, _ in frs]
-                rel = [((box[0] - x) / k, box[3] / k) for _, box, x in frs]     # (each frame's left against its number, its foot on the row's ground)
+                fits = [None if im is None else fit(toned(im, T[L]) if L in T else im, k) for im, _, _ in frs]
+                rel = [None if box is None else ((box[0] - x) / k, box[3] / k) for _, box, x in frs]     # (each frame's left against its number, its foot on the row's ground)
                 tx, rx0 = torso_x(fits[0]), rel[0][0]
                 if an in (joins or {}) and (L, joins[an]) in anchor:       # a second line: the first line's anchor, its own ground
                     tx, rx0 = anchor[(L, joins[an])]
                 anchor[(L, an)] = (tx, rx0)
                 row = []
-                for a, (rx, rb) in zip(fits, rel):
+                for a, rr in zip(fits, rel):
+                    if a is None:                                # a slot drawn empty on purpose (`blank`): an empty frame
+                        row.append(np.zeros((FH, FW, 4), dtype=np.uint8)); continue
+                    rx, rb = rr
                     ox = int(round(AX - tx + (rx - rx0)))
                     oy = int(round(AY + (rb - rel[0][1]))) - int(np.where(a[..., 3].any(axis=1))[0][-1])
                     fr = np.zeros((FH, FW, 4), dtype=np.uint8)

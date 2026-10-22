@@ -526,6 +526,18 @@
     diveAfter: true, // (up, the bite, and under again with the move it has left -- the opportunity attacks of those beside it first: js/ai.js diveAfter, 10-02; Griz, 10-01d: "If the mechanics allow it and a smart player or AI would do it, we'll allow it" -- READY is the answer, js/battle.js exec ready)
     src: 'SRD 5.1 Bulette (CR 5, Large; burrow 40 ft: js/ai.js burrower, 10-01d; it bites and dives when it has the move left, 10-02, handoff-2026-10-01-the-tendrils-and-ready: js/ai.js diveAfter); content/monsters.json bulette (its Deadly Leap by the SRD since 10-02: DC 16 STR or DEX, the target chooses; 3d6+4 bludgeoning plus 3d6+4 slashing, two of them, half and no prone on a save; recharge 5-6; it lands beside its mark, so no one is in its space to push out)'
   },
+  // the ankheg (10-22, the monster cutter seat's second run, on Griz's "spin up an one-at-a-time art cutter that goes until we're out"; asked
+  // 10-08 as "a creature a biome", the plains -- deep16-srd-not-yet.md): the SRD 5.1 Ankheg from the mechanics the grid has; its sheet
+  // tools/ankheg-sheet.py (the art desk's ART-10 SE and NE, ART-53 S, E and N). Its Acid Spray, its bite only at the one it holds, and its AC
+  // 11 while prone are not on the grid yet (src).
+  ankheg: {
+    name: 'Ankheg', type: 'monstrosity', sheet: 'ankheg_p1', cr: '2', ac: 14, hp: 39, speed: 30, size: 2, reach: 5, darkvision: 60, blindsight: 60, tremor: true, // (tremor: its 60 ft is the SRD's tremorsense, the bulette's way)
+    abil: { str: 17, dex: 11, con: 13, int: 1, wis: 13, cha: 6 }, init: 0, perception: 11,
+    saves: { str: 3, dex: 0, con: 1, int: -5, wis: 1, cha: -2 },
+    attacks: { bite: { name: 'Bite', atk: 5, dice: '2d6', mod: 3, type: 'slashing', extra: '1d6', extraType: 'acid', reach: 5, grapple: { dc: 13, max: 1, size: 'L', only: true } } },
+    multi: 1, burrow: 10, walkWithin: 30, // (its dig is 10 ft a turn against a 30-ft walk: it walks to one it can reach this turn, else goes under and comes up beside them -- js/ai.js burrower; the xorn's walkWithin)
+    src: 'SRD 5.1 Ankheg (CR 2, Large; AC 14, 39 HP, speed 30, burrow 10 ft; darkvision and tremorsense 60 ft): its Bite +5, 2d6+3 slashing plus 1d6 acid, a Large or smaller target grappled (escape DC 13; grappled, not restrained -- the chuul pincer `only`); burrow 10 ft (js/ai.js burrower: it walks to one within 30 ft, else digs). Not on the grid yet, plain stand-ins: Acid Spray (recharge 6: a line 30 ft long and 5 ft wide, DC 13 DEX, 3d6 acid, half on a save, only with no one grappled) -- not used; the bite only at the one it holds, with advantage -- it bites as any grappler; AC 11 while prone -- 14 always'
+  },
   cloaker: {
     name: 'Cloaker', type: 'aberration', sheet: 'cloaker_p2', cr: '8', ac: 14, hp: 78, speed: 40, fly: 40, size: 2, reach: 5, darkvision: 60,
     abil: { str: 17, dex: 15, con: 12, int: 13, wis: 12, cha: 14 }, init: 2, perception: 11,

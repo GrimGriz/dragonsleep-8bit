@@ -1,0 +1,83 @@
+{
+ "image": "art/ankheg_p1.png",
+ "fw": 180,
+ "fh": 128,
+ "ax": 90,
+ "ay": 108,
+ "top": 56,
+ "anims": {
+  "idle": {
+   "y": 0,
+   "fw": 180,
+   "fh": 128,
+   "ax": 90,
+   "ay": 108,
+   "frames": 6,
+   "fps": 6
+  },
+  "walk": {
+   "y": 1024,
+   "fw": 180,
+   "fh": 128,
+   "ax": 90,
+   "ay": 108,
+   "frames": 8,
+   "fps": 10
+  },
+  "attack": {
+   "y": 2048,
+   "fw": 180,
+   "fh": 128,
+   "ax": 90,
+   "ay": 108,
+   "frames": 6,
+   "fps": 10
+  },
+  "hurt": {
+   "y": 3072,
+   "fw": 180,
+   "fh": 128,
+   "ax": 90,
+   "ay": 108,
+   "frames": 6,
+   "fps": 8
+  },
+  "reveal": {
+   "y": 4096,
+   "fw": 180,
+   "fh": 128,
+   "ax": 90,
+   "ay": 108,
+   "frames": 6,
+   "fps": 8
+  },
+  "flinch": {
+   "y": 5120,
+   "fw": 180,
+   "fh": 128,
+   "ax": 90,
+   "ay": 108,
+   "frames": 4,
+   "fps": 10
+  },
+  "burrow": {
+   "y": 6144,
+   "fw": 180,
+   "fh": 128,
+   "ax": 90,
+   "ay": 108,
+   "frames": 6,
+   "fps": 8
+  },
+  "prone": {
+   "y": 7168,
+   "fw": 180,
+   "fh": 128,
+   "ax": 90,
+   "ay": 108,
+   "frames": 2,
+   "fps": 6
+  }
+ },
+ "source": "drawn by the art desk (ART-10 SE and NE, 10-10; ART-53 S, E and N, 10-19), cut by tools/ankheg-sheet.py through tools/artdesk.py (10-22)"
+}
