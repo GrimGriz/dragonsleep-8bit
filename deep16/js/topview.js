@@ -49,7 +49,8 @@
     var top = Math.max(TV.CLIFF, Math.max.apply(null, Object.keys(m.def.roofs || { x: 1 }).map(function (k) { return iso.roofPx ? iso.roofPx(m, k) : 0; }))) + maxZ + 8;
     var W = m.w * T, H = m.h * T + top, cols = Math.ceil(W / TV.PAGE), rows = Math.ceil(H / TV.PAGE), pages = [];
     for (var i = 0; i < cols * rows; i++) pages.push({ c: i % cols, r: Math.floor(i / cols), cv: null, used: 0 });
-    m.top = { y0: -top, cols: cols, rows: rows, pages: pages, tiles: {}, props: [], baked: 0, frame: 0 };
+    m.top = { y0: -top, cols: cols, rows: rows, pages: pages, tiles: {}, props: [], baked: 0, frame: 0, art: TV.artOn() };
+    TV.artLoad(); // (the atlases fetched now, if they are not here yet: the floor drawn by the code till they land)
     m.bake = { canvas: { width: W, height: H }, x: 0, y: -top, top: true }; // (the camera's bounds and the zoom steps read its size: js/ui.js)
     // the standing things: every rock and roofed square, every block (crates, the stockade's posts, wells), one prop a square, sorted by row
     m.sq.forEach(function (s) { if ((!s.open || s.block) && !(s.ch === 'y' && m.def.cots) && !TV.isHexSq(m, s)) m.top.props.push({ sq: s, depth: s.y + 0.5 + s.x * 1e-4 }); });
@@ -59,15 +60,20 @@
 
   // ------------------------------------------------------------------ the tiles: a few of each ground made once, in code (iso.noise, the palette's ramps)
   var R = function (n) { return iso.ramp(n); };
-  function tileKey(m, s) {
-    var ch = s.ch, v = NZ.h2(s.x * 3 + 1, s.y * 5 + 2, 71) * 4 | 0, kind = ch;
+  function tileKind(m, s) {
+    var ch = s.ch, kind = ch;
     if (ch === '.' && !m.def.room) kind = NZ.fbm(s.x * 0.13, s.y * 0.13, 77) > 0.52 ? 'g' : '.'; // (the ground: grass in patches over the dirt -- not in a room)
     if (s.block || !s.open) kind = '.';
     var lk = m.def.look && m.def.look[s.y] ? m.def.look[s.y].charAt(s.x) : ' '; if (lk && lk !== ' ') kind = lk; // (a floor's own ground under its squares: the Warrens' and the Galleries' -- js/mines.js, TV.LOOKS)
+    return kind;
+  }
+  function tileKey(m, s) {
+    var v = NZ.h2(s.x * 3 + 1, s.y * 5 + 2, 71) * 4 | 0, kind = tileKind(m, s);
     var n = m.at(s.x, s.y - 1), shade = n && (!n.open || n.block) ? 1 : 0; // (a building or a rock to the north: its shadow on the top of this one)
     return kind + v + (shade ? 's' : '');
   }
   function tileCanvas(m, s) {
+    if (TV.artOn()) { var at = artTile(m, s); if (at) return m.top.tiles[at.key] || (m.top.tiles[at.key] = artCanvas(at)); } // (the art desk's tile where it has one: THE ART, below)
     var key = tileKey(m, s), T = TV.TS; if (m.top.tiles[key]) return m.top.tiles[key];
     var cv = document.createElement('canvas'); cv.width = T; cv.height = T;
     var cx = cv.getContext('2d'), img = cx.createImageData(T, T), px = img.data, kind = key.charAt(0), v0 = +key.charAt(1), seed = 300 + v0 * 17 + kind.charCodeAt(0);
@@ -123,6 +129,7 @@
       if (y > PG || y + T < 0) continue;
       if (s.open || s.block || TV.isHexSq(m, s)) cx.drawImage(tileCanvas(m, s), x, y); // (a built square's top is its roof, drawn standing; its bank below is still the page's -- the Hex's squares the ground round its picture)
       var sb = m.at(gx, gy + 1), drop = sb ? s.gz - sb.gz : 0; // (a raised square's face toward the lower one south of it, open or built on: the town's slope off Fountain Street)
+      if (drop > 0 && TV.artOn() && TV.place(m) === 'town') { artBank(m, cx, gx, gy, x, y + T, drop); continue; } // (the art desk's bank: its stone lip and its timbered face)
       if (drop > 0) { var bank = R('leather'); for (var j = 0; j < drop; j++) { cx.fillStyle = 'rgb(' + (j === 0 ? stone[5] : bank[j < drop / 3 ? 3 : j < drop * 2 / 3 ? 2 : 1]).join(',') + ')'; cx.fillRect(x, y + T + j, T, 1); } } // (a bank of the worn dirt, lit at its lip, darker down to the lower ground -- it read as a black band)
     }
     p.cv = cv; m.top.baked++;
@@ -130,6 +137,10 @@
 
   // ------------------------------------------------------------------ the standing things: a roof seen from above with its wall below, a rock's top and its face, a block
   function standCanvas(m, s) {
+    if (TV.artOn()) { var ap = artStand(m, s); if (ap) return ap; } // (the art desk's roof, face, rock or prop where it has one: THE ART, below)
+    return standCode(m, s);
+  }
+  function standCode(m, s) {
     var RF = m.def.roofs && m.def.roofs[s.ch], T = TV.TS, sb = m.at(s.x, s.y + 1), same = function (q) { return !!(q && !q.open && q.ch === s.ch); };
     var rock = !RF && !s.open, face = RF ? !same(sb) : rock ? !!(sb && (sb.open || sb.block)) : true, door = !!(sb && sb.ch === 'd'), shut = !door && !!(m.def.faceDoors && m.def.faceDoors[s.x + ',' + s.y]), sign = (RF && m.def.signs && m.def.signs[s.x + ',' + s.y]) || '', side = m.def.slope ? +m.def.slope[s.y].charAt(s.x) || 0 : 0, v0 = NZ.h2(s.x, s.y, 41) * 3 | 0;
     var inRoom = rock && !!m.def.room, front = inRoom && s.y === m.h - 1;
@@ -224,6 +235,7 @@
     var W = Math.ceil(2 * ap) + 2 * pad, H = Math.ceil(2 * R0 + wall) + 2 * pad, ox = W / 2, oy = pad + R0; // (the roof's centre in the picture)
     var cv = document.createElement('canvas'); cv.width = W; cv.height = H;
     var cx = cv.getContext('2d'), img = cx.createImageData(W, H), px = img.data;
+    var sandPx = TV.artOn() ? TV.piecePx('hex_sand') : null, ringPx = TV.artOn() ? TV.piecePx('roof_stone_C') : null; // (the art desk's raked sand and pale stone roof, where they have come: THE ART)
     var stone = R('stone'), leather = R('leather'), gold = R('gold'), silver = R('silver'), N6 = [0, 60, 120, 180, 240, 300].map(function (d) { var a = d * Math.PI / 180; return [Math.cos(a), Math.sin(a)]; });
     var hexD = function (x, y) { var best = -1e9, k = 0; for (var i = 0; i < 6; i++) { var d = x * N6[i][0] + y * N6[i][1]; if (d > best) { best = d; k = i; } } return { d: best, k: k }; }; // (the apothem's measure, and the face it is nearest)
     var lit = [0.0, -0.06, -0.1, 0.0, 0.12, 0.08]; // (the faces by the light from the north-west: E, SSE, SSW, W, NNW, NNE)
@@ -232,7 +244,8 @@
       var dx = x + 0.5 - ox, dy = y + 0.5 - oy, h = hexD(dx, dy), n = NZ.vnoise(x * 0.07, y * 0.07, 811), c = null;
       if (h.d <= ap * TV.HEXIN) { // the open centre: the ground a wall's height down -- the inner logs, the tiers, the sand
         var g = hexD(dx, dy - wall).d, rr = g / ap;
-        if (rr <= TV.HEXSAND) c = NZ.rampPick(gold, 0.3 + n * 0.2 + (NZ.h2(x, y, 812) > 0.93 ? 0.1 : 0) - (NZ.h2(x, y, 813) > 0.95 ? 0.1 : 0), x, y); // (the sand, raked and trodden)
+        if (rr <= TV.HEXSAND && sandPx) { var sp = sandPx[(((x / 48) | 0) + ((y / 48) | 0) * 3) % sandPx.length], so = ((y % 48) * 48 + (x % 48)) * 4; c = [sp[so], sp[so + 1], sp[so + 2]]; }
+        else if (rr <= TV.HEXSAND) c = NZ.rampPick(gold, 0.3 + n * 0.2 + (NZ.h2(x, y, 812) > 0.93 ? 0.1 : 0) - (NZ.h2(x, y, 813) > 0.95 ? 0.1 : 0), x, y); // (the sand, raked and trodden)
         else if (rr <= TV.HEXSAND + 0.015) c = leather[2]; // (the board lip at the pit's edge)
         else if (rr <= TV.HEXTIER[1]) c = NZ.rampPick(leather, 0.42 + n * 0.12 - ((g | 0) % 6 === 0 ? 0.15 : 0), x, y);
         else if (rr <= TV.HEXTIER[0]) c = NZ.rampPick(leather, 0.55 + n * 0.1 - ((g | 0) % 6 === 0 ? 0.15 : 0), x, y);
@@ -241,6 +254,11 @@
         var into = ap - h.d, hd = hexD(dx, dy), second = -1e9; for (var i2 = 0; i2 < 6; i2++) if (i2 !== hd.k) second = Math.max(second, dx * N6[i2][0] + dy * N6[i2][1]);
         var hip = h.d - second < 1.6, course = (into | 0) % 7 === 0, joint = ((((dx * -N6[h.k][1] + dy * N6[h.k][0]) | 0) + ((into / 7 | 0) % 2) * 5) % 10 + 10) % 10 === 0;
         c = NZ.rampPick(stone, Math.max(0.04, 0.5 + lit[h.k] + n * 0.18 - (course ? 0.18 : 0) - (joint ? 0.08 : 0) - (hip ? 0.22 : 0) - (into < 2 || h.d > ap - 0.5 ? 0.25 : 0) - (h.d - ap * TV.HEXIN < 2 ? 0.2 : 0)), x, y);
+        if (ringPx) { // the art's pale stone, its courses along each face; each face lit by the light from the north-west, the hips and the lips a step down its ramp
+          var ua = ((Math.round(dx * -N6[h.k][1] + dy * N6[h.k][0]) % 48) + 48) % 48, ub = (Math.round(into) % 48 + 48) % 48, po = (ub * 48 + ua) * 4, rp = ringPx[h.k % ringPx.length];
+          var st = (lit[h.k] > 0.05 ? 1 : lit[h.k] < -0.05 ? -1 : 0) - (hip ? 2 : 0) - (into < 2 || h.d > ap - 0.5 || h.d - ap * TV.HEXIN < 2 ? 1 : 0);
+          c = TV.palStep([rp[po], rp[po + 1], rp[po + 2]], st);
+        }
       } else if (Math.abs(dx) <= ap) { // under the two south faces: their log walls, a wall's height
         var yb = R0 - Math.abs(dx) * Math.tan(Math.PI / 6), j = dy - yb, cw = T * TV.HEXCARVE, ybc = R0 - cw * Math.tan(Math.PI / 6);
         if (Math.abs(dx) < cw) { // the south tip carved flat at the ground floor, its double doors straight south (10-21, Griz: "those doors should be double doors at the southern
@@ -258,10 +276,281 @@
     return (m.top.hex = { canvas: cv, ox: ox, oy: oy, wall: wall });
   }
 
+  // ------------------------------------------------------------------ THE ART (10-22, the top tiles seat, on Griz's "art 111-113 are in to see if we can give the top down
+  // something to work with"): the art desk's tiles and props for Silverton, the Guano Mine's top levels and the Glowseep (deep16-art-wanted.md section 21), cut by
+  // tools/toptiles-sheet.py, minetiles-sheet.py and seeptiles-sheet.py into three atlases (data/sprites.js: each piece's box by its name, `tiles`). A square takes the
+  // art's piece where there is one and the code's drawing above where there is none -- the code's drawing stays whole, the fallback. While the atlases are on their
+  // way, and with &tiles=code on the page's address, the code draws everything as before (the switch to compare). &faces=tall stands the houses' south faces at the
+  // art's own heights (a low house 32 px, a tall one 48), where the town's are 7 to 23 px at its 30-ft squares (js/town.js T.SCALE)
+  var QS = typeof location !== 'undefined' ? location.search || '' : '';
+  TV.ART = { on: !/[?&]tiles=code\b/.test(QS), tall: /[?&]faces=tall\b/.test(QS), sheets: ['toptiles_p1', 'minetiles_p1', 'seeptiles_p1'] };
+  TV.FACEPX = { low: 32, tall: 48 };
+  function atlases() { // the three atlases, loaded; null while any is still on its way (or never fetched: the benches)
+    var out = [];
+    for (var i = 0; i < TV.ART.sheets.length; i++) { var sh = D.SHEETS && D.SHEETS[TV.ART.sheets[i]], im = sh && D.images && D.images[sh.image]; if (!sh) continue; if (!im || !im.naturalWidth) return null; out.push({ name: TV.ART.sheets[i], sh: sh, im: im }); }
+    return out.length ? out : null;
+  }
+  TV.artOn = function () { return TV.ART.on && !!atlases(); };
+  TV.artLoad = function () { if (!TV.ART.on || !D.spr || !D.spr.load) return; TV.ART.sheets.forEach(function (n) { var sh = D.SHEETS && D.SHEETS[n]; if (sh) D.spr.load(sh.image); }); };
+  TV.repaint = function (m) { var t = m.top; t.pages.forEach(function (p) { p.cv = null; }); t.baked = 0; t.tiles = {}; t.stand = {}; t.hex = null; t.kinds = null; };
+  // the place's own atlas first (Silverton's cliff and the mines' share a name)
+  TV.place = function (m) { var d = m.def; return d.room ? 'room' : d.key === 'glowseep' ? 'seep' : d.mine ? 'mine' : 'town'; };
+  var FIRST = { town: 'toptiles_p1', room: 'toptiles_p1', mine: 'minetiles_p1', seep: 'seeptiles_p1' }, PC = {};
+  TV.piece = function (name, v, place) {
+    var A = atlases(); if (!A) return null;
+    var pk = name + '|' + (place || ''), hit = PC[pk];
+    if (hit === undefined) {
+      hit = null; var first = FIRST[place] || '';
+      A.slice().sort(function (a, b) { return (b.name === first) - (a.name === first); }).forEach(function (a) { var t = !hit && a.sh.tiles && a.sh.tiles[name]; if (t && t.length) hit = { name: a.name, t: unpack(t) }; });
+      PC[pk] = hit;
+    }
+    if (!hit) return null;
+    var im = A.filter(function (a) { return a.name === hit.name; })[0].im, b = hit.t[((v || 0) % hit.t.length + hit.t.length) % hit.t.length];
+    return { im: im, x: b[0], y: b[1], w: b[2], h: b[3], ax: b[4], ay: b[5], n: hit.t.length };
+  };
+  var unpack = function (t) { return typeof t === 'string' ? t.split(' ').map(function (b) { return b.split(',').map(Number); }) : t; }; // (the cutter packs a name's boxes into one string: 'x,y,w,h,ax,ay x,y,...')
+  var ES = {};
+  TV.edgeSet = function (set) {
+    if (ES[set]) return ES[set]; var A = atlases(); if (!A) return null;
+    for (var i = 0; i < A.length; i++) { var d = A[i].sh.dual && A[i].sh.dual[set]; if (d) { var mk = {}; Object.keys(d.mask).forEach(function (k) { mk[k] = unpack(d.mask[k])[0]; }); return (ES[set] = { im: A[i].im, mask: mk }); } }
+    return null;
+  };
+  var STEP = null;
+  TV.palStep = function (c, k) { // a colour k steps lighter (or darker, k < 0) along its own ramp of the palette -- still one of the 64 (the accents, no ramp, stay)
+    if (!STEP) { STEP = {}; var rs = (D.PAL && D.PAL.ramps) || {}; Object.keys(rs).forEach(function (nm) { if (nm === 'accent' || nm === 'outline') return; var r = rs[nm].map(function (h) { return [parseInt(h.slice(1, 3), 16), parseInt(h.slice(3, 5), 16), parseInt(h.slice(5, 7), 16)]; }); r.forEach(function (cc, i) { STEP[cc.join(',')] = { r: r, i: i }; }); }); }
+    var e = STEP[c[0] + ',' + c[1] + ',' + c[2]]; if (!e || !k) return c;
+    return e.r[Math.max(0, Math.min(e.r.length - 1, e.i + k))];
+  };
+  var PX = {};
+  TV.piecePx = function (name, place) { // a piece's pixels, every variant (the Hex's sand, read as hexCanvas paints; a fringe's other ground)
+    var pk = name + '|' + (place || ''); if (PX[pk]) return PX[pk];
+    var out = [], p0 = TV.piece(name, 0, place); if (!p0) return null;
+    for (var i = 0; i < p0.n; i++) { var p = TV.piece(name, i, place), cv = document.createElement('canvas'); cv.width = p.w; cv.height = p.h; var cx = cv.getContext('2d', { willReadFrequently: true }); cx.drawImage(p.im, p.x, p.y, p.w, p.h, 0, 0, p.w, p.h); out.push(cx.getImageData(0, 0, p.w, p.h).data); }
+    return (PX[pk] = out);
+  };
+  function name8(m, x, y) { var n8 = m.def.names8, r = n8 && n8.rows[y]; return r ? n8.legend[r.charAt(x)] || '' : ''; } // (the first game's name of the square: js/mines.js)
+  function canvasOf(w, h, read) { var cv = document.createElement('canvas'); cv.width = w; cv.height = h; var cx = cv.getContext('2d', read ? { willReadFrequently: true } : undefined); cx.imageSmoothingEnabled = false; return { cv: cv, cx: cx }; } // (read: its pixels read back -- kept on the CPU, or each read waits on the GPU: 4 s for the Glowseep's first view, 10-22)
+
+  // the grounds: each ground kind's tile, by the place (a kind is a square's own letter or its floor's look, as tileKind reads it)
+  TV.GROUND = {
+    town: { '.': 'earth', g: 'grass', ',': 'road', '=': 'dressed_stone', d: 'threshold', '~': 'fountain_water', D: 'river_water', r: 'spoil' },
+    room: { o: 'room_floor_plank', '=': 'room_floor_flagstone', '.': 'room_floor_earth', d: 'threshold', '~': 'fountain_water' },
+    mine: { C: 'cave_floor', U: 'guano', Q: 'deep_guano', Y: 'gravel', M: 'fungus_bed', Z: 'ladder_slope', X: 'stair_down', '.': 'earth', g: 'grass', ',': 'road', '=': 'dressed_stone', d: 'threshold', D: 'river_frame', '~': 'river_frame', r: 'spoil' },
+    seep: { A: 'mud', E: 'reeds', N: 'moss_day', g: 'tussock', '~': 'still_pool_fill', D: 'drain_fill', ',': 'road', '.': 'mud', d: 'threshold', r: 'reeds' }
+  };
+  // the edges, a dual grid (tools/toptiles-sheet.py, its head): at each corner where four squares meet, when they are two grounds of one set, the edge tile the cutter
+  // named for that arrangement is centred on the corner and each square draws its own quarter of it. fg: the ground the edge tile's bits mean; bg: what it meets
+  TV.EDGES = {
+    town: [{ set: 'stone', fg: '=', bg: ',.' }, { set: 'river', fg: 'D', bg: '.g,r' }], // (the grass's edges are cut but not laid: drawn as thick turf against a fill of sparse tufts on earth, they rimmed each patch like a hedge)
+    room: [],
+    mine: [{ set: 'guano', fg: 'U', bg: 'CY' }, { set: 'deep', fg: 'Q', bg: 'U' }, { set: 'mriver', fg: 'D', bg: '.g,' }],
+    seep: [{ set: 'mudgrass', fg: 'AEN.', bg: 'g' }, { set: 'pool', fg: '~', bg: 'AEN.' }, { set: 'drain', fg: 'D', bg: 'AEN.' }]
+  };
+  function groundKind(m, x, y) { // (kept by the square: the edges and the roads ask a square's neighbours many times over)
+    if (x < 0 || y < 0 || x >= m.w || y >= m.h) return null;
+    var K = m.top.kinds || (m.top.kinds = {}), i = y * m.w + x; if (i in K) return K[i];
+    var q = m.at(x, y); return (K[i] = !q || q.block || !q.open ? null : tileKind(m, q)); // (a building, a rock, a block, the Hex: no ground of their own here)
+  }
+  // a cart track's piece by the rails beside it: straight, a bend (turned), an end (turned) -- the art desk drew one of each
+  TV.railPiece = function (m, s, kind) {
+    var lk = function (x, y) { var r = m.def.look && m.def.look[y], c = r ? r.charAt(x) : ' '; return c === 'R' || c === 'H'; }, inb = function (x, y) { return !!m.at(x, y); };
+    var n = lk(s.x, s.y - 1), so = lk(s.x, s.y + 1), e = lk(s.x + 1, s.y), w = lk(s.x - 1, s.y), c = n + so + e + w;
+    if (c === 2 && (n || so) && (e || w)) return ['rails_bend_n_e', n && e ? 0 : e && so ? 1 : so && w ? 2 : 3];
+    if (c === 1) { if (n && inb(s.x, s.y + 1)) return ['rails_end_s', 2]; if (so && inb(s.x, s.y - 1)) return ['rails_end_s', 0]; if (e && inb(s.x - 1, s.y)) return ['rails_end_s', 3]; if (w && inb(s.x + 1, s.y)) return ['rails_end_s', 1]; }
+    return [(c ? (e || w) && !(n || so) : kind === 'H') ? 'rails_ew' : 'rails_ns', 0];
+  };
+  function artTile(m, s) {
+    var P = TV.place(m), kind = tileKind(m, s), G = TV.GROUND[P] || {}, nm = G[kind], rot = 0, n8 = P === 'mine' || P === 'seep' ? name8(m, s.x, s.y) : '';
+    if (P === 'mine') {
+      if (kind === 'C' && n8 === 'bones') nm = 'bones'; else if (kind === 'C' && n8 === 'webFloor') nm = 'old_webbing';
+      else if (kind === 'X') nm = n8 === 'holeDown' ? 'pit' : 'stair_down';
+      else if (kind === 'R' || kind === 'H') { var rp = TV.railPiece(m, s, kind); nm = rp[0]; rot = rp[1]; }
+      else if (kind === 'o') { var up = (m.at(s.x, s.y - 1) || {}).ch === 'o', dn = (m.at(s.x, s.y + 1) || {}).ch === 'o'; nm = !up ? 'bridge_w_end' : !dn ? 'bridge_e_end' : 'bridge_middle'; rot = 1; } // (the first game's bridge runs north-south: the art's, turned)
+    }
+    if (P === 'seep' && kind === 'N' && m.def.dark) nm = 'moss_night'; // (the moss by night, its own tile: js/mines.js lays the floor for the hour)
+    if (!nm || !TV.piece(nm, 0, P)) return null;
+    var v = NZ.h2(s.x * 3 + 1, s.y * 5 + 2, 71) * 4 | 0;
+    if (kind === ',') { // a road's ruts along it where it is a road through other ground: turned where it runs east-west, one variant down its length so the ruts run on
+      // unbroken. Where the packed dirt is most of the open ground about it (a plaza, a crossing, a street between houses), the road with no ruts -- tiled every way
+      // across a plaza, the ruts read as a ploughed field
+      var rd = function (x, y) { return groundKind(m, x, y) === ','; }, ext = function (dx, dy) { var n = 1, k; for (k = 1; k <= 4 && rd(s.x + dx * k, s.y + dy * k); k++) n++; for (k = 1; k <= 4 && rd(s.x - dx * k, s.y - dy * k); k++) n++; return n; };
+      var gr = 0, rr = 0; for (var py = -3; py <= 3; py++) for (var px = -3; px <= 3; px++) { var gk = groundKind(m, s.x + px, s.y + py); if (gk) { gr++; if (gk === ',') rr++; } }
+      var ew = ext(1, 0), ns = ext(0, 1);
+      if ((rr >= gr * 0.8 || ew === ns) && TV.piece('road_plain', 0, P)) nm = 'road_plain';
+      else if (ew > ns) { rot = 1; v = NZ.h2(0, s.y, 73) * 4 | 0; } else v = NZ.h2(s.x, 0, 73) * 4 | 0;
+    }
+    var nq = m.at(s.x, s.y - 1), shade = !!(nq && !nq.open && !nq.block && !TV.isHexSq(m, nq)), E = TV.EDGES[P] || [], q = [];
+    for (var qi = 0; qi < 4; qi++) { // each quarter by the corner it touches: the four squares round that corner, this one at the corner's opposite quarter
+      var vx = s.x + (qi & 1), vy = s.y + (qi >> 1), ks = [[vx - 1, vy - 1], [vx, vy - 1], [vx - 1, vy], [vx, vy]].map(function (p) { return groundKind(m, p[0], p[1]) || kind; }), hit = null;
+      for (var e = 0; e < E.length && !hit; e++) {
+        var es = E[e], mask = 0, all = true;
+        for (var b = 0; b < 4; b++) { if (es.fg.indexOf(ks[b]) >= 0) mask |= 1 << b; else if (es.bg.indexOf(ks[b]) < 0) all = false; }
+        if (all && mask && mask !== 15) { var set = TV.edgeSet(es.set); if (set && set.mask[mask]) hit = [es.set, mask]; }
+      }
+      q.push(hit);
+    }
+    // the soft fringe: where two plain grounds meet along a side with no edge art between them (the road and the earth, the gravel and the cave floor), each
+    // takes a dither of the other's pixels in the FRINGE px nearest the side, half at the line and none at FRINGE in -- the art desk drew no edges for these
+    var fr = [], base = function (k) { var f = k === ',' ? 'road_plain' : G[k]; return f && TV.SOFT[f] ? f : null; }, mine = base(kind);
+    [[0, -1], [1, 0], [0, 1], [-1, 0]].forEach(function (o) {
+      var nk = groundKind(m, s.x + o[0], s.y + o[1]), nf = nk && nk !== kind ? base(nk) : null;
+      if (nf && mine && nf !== mine && !E.some(function (es) { return (es.fg.indexOf(kind) >= 0 && es.bg.indexOf(nk) >= 0) || (es.bg.indexOf(kind) >= 0 && es.fg.indexOf(nk) >= 0); })) fr.push(nf); else fr.push(null);
+    });
+    return { key: 'A' + nm + rot + ':' + v + ':' + q.map(function (h) { return h ? h[0] + h[1] : '-'; }).join(',') + (shade ? 's' : '') + '|' + fr.join(','), nm: nm, rot: rot, v: v, q: q, shade: shade, place: P, fr: fr };
+  }
+  TV.FRINGE = 7; // (px)
+  TV.ROCKDARK = 2; // (the mines' rock tops, steps down the palette's ramps)
+  TV.SOFT = { earth: 1, grass: 1, road: 1, road_plain: 1, spoil: 1, mud: 1, tussock: 1, reeds: 1, moss_day: 1, moss_night: 1, cave_floor: 1, gravel: 1, bones: 1, old_webbing: 1, fungus_bed: 1, room_floor_earth: 1 }; // (the grounds that fray into each other)
+  var BAYER = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5];
+  TV.artAt = function (m, x, y) { var s = m.at(x, y); return s ? artTile(m, s) : null; }; // (what the art lays on a square: the look's probes)
+  function artCanvas(a) {
+    var T = TV.TS, H = T / 2, c = canvasOf(T, T, a.fr && a.fr.some(Boolean)), cx = c.cx, p = TV.piece(a.nm, a.v, a.place);
+    if (a.rot) { cx.save(); cx.translate(H, H); cx.rotate(a.rot * Math.PI / 2); cx.drawImage(p.im, p.x, p.y, p.w, p.h, -H, -H, T, T); cx.restore(); }
+    else cx.drawImage(p.im, p.x, p.y, p.w, p.h, 0, 0, T, T);
+    if (a.fr && a.fr.some(Boolean)) {
+      var img = cx.getImageData(0, 0, T, T), px = img.data, F = TV.FRINGE;
+      a.fr.forEach(function (nf, side) {
+        if (!nf) return; var src = TV.piecePx(nf, a.place); if (!src) return; src = src[a.v % src.length];
+        for (var d = 0; d < F; d++) for (var t = 0; t < T; t++) {
+          var x = side === 1 ? T - 1 - d : side === 3 ? d : t, y = side === 0 ? d : side === 2 ? T - 1 - d : t;
+          if (BAYER[(y & 3) * 4 + (x & 3)] / 16 < 0.5 * (1 - d / F)) { var o = (y * T + x) * 4; px[o] = src[o]; px[o + 1] = src[o + 1]; px[o + 2] = src[o + 2]; }
+        }
+      });
+      cx.putImageData(img, 0, 0);
+    }
+    a.q.forEach(function (hit, qi) { if (!hit) return; var set = TV.edgeSet(hit[0]), b = set.mask[hit[1]], oq = 3 - qi; cx.drawImage(set.im, b[0] + (oq & 1) * H, b[1] + (oq >> 1) * H, H, H, (qi & 1) * H, (qi >> 1) * H, H, H); });
+    if (a.shade) { cx.fillStyle = 'rgba(0,0,0,0.38)'; cx.fillRect(0, 0, T, Math.round(T * 0.22)); } // (the shadow of a building or a rock to the north, as the code's -- not a crate's or a stall's: the art's props stand in their squares)
+    return c.cv;
+  }
+  // the town's bank down the slope off Fountain Street (js/town.js T.DROP): the art's stone lip and timbered face, the band of its bank tile stretched down the drop
+  function artBank(m, cx, gx, gy, x, y, drop) {
+    var dropAt = function (ax) { var a = m.at(ax, gy), b = m.at(ax, gy + 1); return !!(a && b && a.gz - b.gz > 0); };
+    var p = TV.piece('bank', !dropAt(gx - 1) ? 0 : !dropAt(gx + 1) ? 2 : 1, 'town'); if (!p) return;
+    cx.drawImage(p.im, p.x, p.y + 13, p.w, 24, x, y - 3, TV.TS, drop + 3); // (the lip rides 3 px up onto the higher ground)
+  }
+
+  // the standing things: a roof as nine pieces, its south face, a door, a sign; a rock's top and its cliff; a prop on its square
+  TV.ROOFART = { b: 'roof_clay_', u: 'roof_clay_', n: 'roof_slate_', h: 'roof_shingle_', j: 'roof_shingle_', B: 'roof_stone_', q: 'wallwalk_' };
+  TV.SIGNART = { ring: 'sign_ring', scales: 'sign_scales', coin: 'sign_coin', potion: 'sign_potion', bed: 'sign_bed', star: 'sign_star', pack: 'sign_pack', candle: 'sign_candle', sword: 'sign_sword', stitch: 'sign_needle_thread', jar: 'sign_jar', sun: 'sign_sun', mortar: 'sign_mortar_pestle' };
+  function artStand(m, s) {
+    var P = TV.place(m), RF = m.def.roofs && m.def.roofs[s.ch], rock = !RF && !s.open;
+    if (RF && TV.ROOFART[s.ch]) return artRoof(m, s, P, RF);
+    if (rock && m.def.room) return artRoomWall(m, s);
+    if (rock) return artRock(m, s, P);
+    if (s.block) return artProp(m, s, P);
+    return null;
+  }
+  function stash(m, key, make) { m.top.stand = m.top.stand || {}; return m.top.stand[key] || (m.top.stand[key] = make()); }
+  function artRoof(m, s, P, RF) {
+    var T = TV.TS, at = function (dx, dy) { return m.at(s.x + dx, s.y + dy); }, same = function (q) { return !!(q && !q.open && q.ch === s.ch); }, sb = at(0, 1);
+    var sd = m.def.slope ? +m.def.slope[s.y].charAt(s.x) || 0 : 0, ns = sd > 3, s3 = ns ? sd - 3 : sd;
+    var eN = !same(at(0, -1)), eS = !same(sb), eW = !same(at(-1, 0)), eE = !same(at(1, 0));
+    var a0 = ns ? eW : eN, a1 = ns ? eE : eS, b0 = ns ? eN : eW, b1 = ns ? eS : eE; // (a: across the ridge, its eaves; b: along it, its ends -- a ridge north-south the same, turned)
+    var row = a0 && a1 ? 'M' : a0 ? 'N' : a1 ? 'S' : s3 === 1 ? 'N' : s3 === 2 ? 'S' : 'M', col = b0 && b1 ? 'C' : b0 ? 'W' : b1 ? 'E' : 'C';
+    var pc = a0 && a1 && b0 && b1 ? 'single' : row === 'M' ? col : col === 'C' ? row : row + col, roof = TV.piece(TV.ROOFART[s.ch] + pc, 0, P);
+    var hgt = TV.ART.tall ? (/[buB]/.test(s.ch) ? TV.FACEPX.tall : TV.FACEPX.low) : iso.roofPx(m, s.ch), door = !!(sb && sb.ch === 'd'), shut = !door && !!(m.def.faceDoors && m.def.faceDoors[s.x + ',' + s.y]);
+    var sign = (m.def.signs && m.def.signs[s.x + ',' + s.y]) || '', v = NZ.h2(s.x, s.y, 41) * 4 | 0;
+    var wall = P === 'mine' ? 'bunkhouse_wall' : /[Bq]/.test(s.ch) ? 'face_stone_' : 'face_' + ['plaster', 'plaster', 'shutter', 'lit_window'][v] + '_', size = hgt > 26 ? 'tall' : 'low';
+    var pos = eW && eE ? 1 : eW ? 0 : eE ? 2 : 1, wn = P === 'mine' ? (door ? 'bunkhouse_door' : 'bunkhouse_wall') : wall + size, wp = TV.piece(wn, P === 'mine' ? 0 : pos, P);
+    if (!roof || (eS && !wp)) return null;
+    var key = 'R' + s.ch + pc + (ns ? 't' : '') + (eS ? 'F' + wn + pos : '') + (door ? 'D' : '') + (shut ? 'X' : '') + sign + ':' + hgt;
+    return stash(m, key, function () {
+      var c = canvasOf(T, T + (eS ? hgt : 0)), cx = c.cx;
+      if (ns) { cx.save(); cx.setTransform(0, 1, 1, 0, 0, 0); cx.drawImage(roof.im, roof.x, roof.y, roof.w, roof.h, 0, 0, T, T); cx.restore(); } // (turned over its diagonal: the north eave to the west, the light still from the upper left)
+      else cx.drawImage(roof.im, roof.x, roof.y, roof.w, roof.h, 0, 0, T, T);
+      if (eS) {
+        cx.drawImage(wp.im, wp.x, wp.y, wp.w, wp.h, 0, T, T, hgt);
+        var dn = P === 'mine' ? null : door ? 'door_store_open' : shut ? 'door_shut_barred' : null, dp = dn && TV.piece(dn, 0, P);
+        if (dp) { var dw = Math.max(18, Math.min(T, hgt)); cx.drawImage(dp.im, dp.x, dp.y, dp.w, dp.h, (T - dw) / 2 | 0, T, dw, hgt); }
+      }
+      var sp = sign && TV.piece(TV.SIGNART[sign], 0, P);
+      if (sp) cx.drawImage(sp.im, sp.x, sp.y, sp.w, sp.h, (T - sp.w) / 2 | 0, T + 3 - sp.h, sp.w, sp.h); // (hung over the door from the eave, as the code's)
+      return { canvas: c.cv, h: hgt, face: eS };
+    });
+  }
+  function artRoomWall(m, s) { // a room's back wall: the code's timber cap, the art's plaster and timbers under it
+    var T = TV.TS, sb = m.at(s.x, s.y + 1), face = !!(sb && (sb.open || sb.block)) && s.y !== m.h - 1; if (!face) return null;
+    var v = NZ.h2(s.x, s.y, 41) * 4 | 0, kind = v === 1 ? 'room_wall_window' : 'room_wall_plain', pos = s.x <= 1 ? 0 : s.x >= m.w - 2 ? 2 : 1, wp = TV.piece(kind, pos, 'room'); if (!wp) return null;
+    return stash(m, 'W' + kind + pos + ':' + TV.ROOMWALL, function () {
+      var code = standCode(m, s), c = canvasOf(T, code.canvas.height); c.cx.drawImage(code.canvas, 0, 0);
+      c.cx.drawImage(wp.im, wp.x, wp.y, wp.w, wp.h, 0, T, T, code.h);
+      return { canvas: c.cv, h: code.h, face: true };
+    });
+  }
+  function artRock(m, s, P) {
+    var T = TV.TS, H = TV.CLIFF, sb = m.at(s.x, s.y + 1), faceAt = function (x) { var q = m.at(x, s.y), b = m.at(x, s.y + 1); return !!(q && !q.open && !(m.def.roofs && m.def.roofs[q.ch]) && b && (b.open || b.block)); };
+    var face = faceAt(s.x), door = !!(sb && sb.ch === 'd'), n8 = name8(m, s.x, s.y), v = NZ.h2(s.x * 7 + 3, s.y * 3 + 1, 43) * 4 | 0;
+    var top = TV.piece(P === 'town' ? 'mountain_rock' : 'rock_top', v, P); if (!top) return null;
+    var fn = !face ? '' : door ? (P === 'town' ? 'cliff_vault_door' : 'outside_mouth') : ({ timber: 'shored_face', runeWall: 'rune_wall', chimney: 'chimney', sealDoor: 'mine_door' })[n8] || (!faceAt(s.x - 1) && !faceAt(s.x + 1) ? 'cliff_middle' : !faceAt(s.x - 1) ? 'cliff_left' : !faceAt(s.x + 1) ? 'cliff_right' : 'cliff_middle');
+    var fp = fn && TV.piece(fn, 0, P), lamp = face && n8 === 'lantern' ? TV.piece('wall_lantern_lit', 0, 'mine') : null; if (face && !fp) return null;
+    return stash(m, 'K' + P + v + fn + (lamp ? 'L' : ''), function () {
+      var c = canvasOf(T, T + (face ? H : 0), P !== 'town'), cx = c.cx;
+      cx.drawImage(top.im, top.x, top.y, top.w, top.h, 0, 0, T, T);
+      if (P !== 'town') { // (in the mines the rock's top two shades down its ramps: the art desk drew it like the cave floor, and the tunnels went into their walls)
+        var id = cx.getImageData(0, 0, T, T), d = id.data; for (var o = 0; o < d.length; o += 4) { var c2 = TV.palStep([d[o], d[o + 1], d[o + 2]], -TV.ROCKDARK); d[o] = c2[0]; d[o + 1] = c2[1]; d[o + 2] = c2[2]; } cx.putImageData(id, 0, 0);
+      }
+      if (face) cx.drawImage(fp.im, fp.x, fp.y, fp.w, fp.h, 0, T, T, H);
+      if (lamp) cx.drawImage(lamp.im, lamp.x, lamp.y, lamp.w, lamp.h, (T - lamp.w) / 2 | 0, T + H - 12 - lamp.h, lamp.w, lamp.h); // (a lantern hung on the face, where the first game's map has one in the wall)
+      return { canvas: c.cv, h: H, face: face };
+    });
+  }
+  // a prop's piece: the first game's name of the square where the floor is the mines' or the Glowseep's; the town's and the rooms' by the square's letter, where it stands
+  // and what the room is dressed with (js/town.js T.TRADE). A slice: a two-square piece's left, middle or right square along a run of the same, or the whole squeezed (W)
+  function propOf(m, s, P) {
+    var at = function (dx, dy) { return m.at(s.x + dx, s.y + dy); }, is = function (q, chs) { return !!(q && chs.indexOf(q.ch) >= 0); }, v = NZ.h2(s.x * 5 + 2, s.y * 7 + 1, 47) * 4 | 0;
+    var run = function () { var x0 = s.x, x1 = s.x; while (is(m.at(x0 - 1, s.y), s.ch)) x0--; while (is(m.at(x1 + 1, s.y), s.ch)) x1++; return x0 === x1 ? 'W' : s.x === x0 ? 'L' : s.x === x1 ? 'R' : 'M'; };
+    var fence = function () { var f = function (q) { return is(q, 'fb') && !(q.open); }, n = f(at(0, -1)) && at(0, -1).ch === 'f', so = f(at(0, 1)) && at(0, 1).ch === 'f', e = f(at(1, 0)), w = f(at(-1, 0)); return { nm: (n || so) && (e || w) ? 'stockade_corner' : (n || so) ? 'stockade_ns' : 'stockade_ew', flat: true }; };
+    if (P === 'mine' || P === 'seep') {
+      var n8 = name8(m, s.x, s.y);
+      if (n8 === 'fence') return fence();
+      if (n8 === 'gate') return { nm: 'stockade_gate', flat: true };
+      var by = { crate: 'crate', crateCave: 'crate', minecart: 'mine_cart', tent: 'tent_open', stump: 'offering_stump', tree: 'pine_tree', well: 'well', headframe: 'mine_headframe', cradle: 'milking_cradle', firepit: 'campfire', lamp: P === 'seep' ? 'light_pole_lit' : 'lantern_post_lit', lantern: 'lantern_post_lit' }[n8];
+      return by ? { nm: by } : null;
+    }
+    if (P === 'town') {
+      if (s.ch === 'k') { var x0 = s.x; while (is(m.at(x0 - 1, s.y), 'k')) x0--; var off = s.x - x0; if (off % 2 === 0 && is(at(1, 0), 'k')) return { nm: 'market_stall', span: 2 }; if (off % 2) return { skip: true }; return { nm: ['crate', 'barrel', 'sacks', 'crate'][v] }; } // (the stalls two squares a stall from the west end of a run, a lone square a crate, a barrel or sacks)
+      if (s.ch === 'w') return { nm: 'mine_headframe' }; // (a headframe's mouth on its spoil: js/town.js)
+      if (s.ch === 'f') return fence();
+      return null;
+    }
+    if (P === 'room') {
+      var tr = (D.town && D.town.TRADE && D.town.TRADE[m.def.room]) || {}, dr = tr.dress || [], has = function (d) { return dr.indexOf(d) >= 0; };
+      if (s.ch === 'S') return { nm: 'room_shelves', slice: s.y === 1 ? run() : 'M' };
+      if (s.ch === 'K') {
+        if (s.y === 3) return { nm: tr.counter === 'grille' ? 'room_grille' : 'room_counter', slice: run() };
+        if (tr.counter === 'bar' && !is(at(-1, 0), 'K') && !is(at(1, 0), 'K')) return { nm: 'room_counter', slice: 'M' };
+        if (has('chair')) return { nm: 'room_barber_chair' };
+        if (has('desks') || has('bench')) return { nm: 'room_desk' };
+        if (has('pews')) return { nm: 'room_pew', slice: run() };
+        return { nm: 'room_table', slice: run() };
+      }
+      if (s.ch === 'k') return { nm: has('sacks') && s.x === (tr.side ? 2 : 1) ? 'room_sacks' : ['crate', 'room_barrel', 'crate', 'room_sacks'][v] };
+      if (s.ch === 'f' && has('stalls')) return { nm: 'room_stable_stall', slice: 'M' };
+      return null;
+    }
+    return null;
+  }
+  TV.FIRE = 140; // (the campfire's frame, ms)
+  function artProp(m, s, P) {
+    var T = TV.TS, o = propOf(m, s, P); if (!o) return null;
+    if (o.skip) return { canvas: null, h: 0, skip: true };
+    var fr = o.nm === 'campfire' ? ((typeof performance !== 'undefined' ? performance.now() : Date.now()) / TV.FIRE | 0) % 4 : 0, p = TV.piece(o.nm, fr, P); if (!p) return null;
+    return stash(m, 'P' + o.nm + fr + (o.slice || '') + (o.span || '') + (o.flat ? 'f' : ''), function () {
+      if (o.flat) { var f = canvasOf(T, T); f.cx.drawImage(p.im, p.x, p.y, p.w, p.h, 0, 0, T, T); return { canvas: f.cv, h: 0, face: false }; } // (a stockade's square, its earth drawn with it)
+      var sx = 0, sw = p.w, dw = p.w;
+      if (o.slice === 'L') sw = Math.min(p.w, T); else if (o.slice === 'R') { sx = Math.max(0, p.w - T); sw = p.w - sx; } else if (o.slice === 'M') { sx = Math.max(0, (p.w - T) / 2 | 0); sw = Math.min(p.w, T); }
+      dw = o.slice === 'W' ? Math.min(p.w, T) : sw;
+      var foot = 3, span = (o.span || 1) * T, cw = Math.max(span, dw), ch = Math.max(T, p.h + foot), c = canvasOf(cw, ch);
+      c.cx.drawImage(p.im, p.x + sx, p.y, sw, p.h, o.slice ? 0 : (cw - dw) / 2 | 0, ch - foot - p.h, dw, p.h);
+      return { canvas: c.cv, h: ch - T, face: true, ox: o.span ? 0 : (cw - T) / 2 | 0 };
+    });
+  }
+
   // ------------------------------------------------------------------ the drawing: the floor's pages in view (and one more nearby a frame), then everything standing, by row
   iso.draw = function (ctx, objs, overlay) {
     if (!on()) return draw0.apply(this, arguments);
     var m = iso.map, top = m.top, T = TV.TS, PG = TV.PAGE, f = ++top.frame, vw = iso.inWorld ? D.W / iso.zoom : D.W, vh = iso.inWorld ? D.H / iso.zoom : D.H, z = iso.inWorld ? 1 : iso.zoom, near = null;
+    var artNow = TV.artOn(); if (artNow !== !!top.art) { TV.repaint(m); top.art = artNow; } // (the atlases landed, or the switch turned: every picture made again)
     var o = iso.toScreen(0, top.y0);
     for (var i = 0; i < top.pages.length; i++) {
       var p = top.pages[i], x = o.x + p.c * PG * z, y = o.y + p.r * PG * z;
@@ -283,8 +572,8 @@
       if (it.obj) { it.obj.draw(ctx); return; }
       if (it.hex) { var hx = m.def.hexagon, hp = hexCanvas(m), gq = m.at(Math.floor(hx.x), Math.floor(hx.y)), hg = gq ? gq.gz : 0, ha = iso.toScreen(hx.x * T - hp.ox, hx.y * T - hg - hp.wall - hp.oy); ctx.drawImage(hp.canvas, ha.x, ha.y, hp.canvas.width * z, hp.canvas.height * z); return; }
       if (it.prop) { var pp = it.prop; if (pp.draw) { pp.draw(ctx); return; } var c0 = iso.center(pp.sq.x, pp.sq.y, pp.gz || 0), s0 = iso.toScreen(c0.x, c0.y); ctx.drawImage(pp.img.canvas, s0.x - pp.img.ax * z, s0.y - pp.img.ay * z, pp.img.canvas.width * z, pp.img.canvas.height * z); return; }
-      var s = it.stand, pic = standCanvas(m, s), a = iso.toScreen(s.x * T, s.y * T - s.gz - pic.h);
-      var wpx = T * z, hpx = pic.canvas.height * z; if (a.x >= vw || a.y >= vh || a.x + wpx <= 0 || a.y + hpx <= 0) return;
+      var s = it.stand, pic = standCanvas(m, s); if (pic.skip) return; var a = iso.toScreen(s.x * T - (pic.ox || 0), s.y * T - s.gz - pic.h); // (ox: a prop wider than its square, the art's)
+      var wpx = pic.canvas.width * z, hpx = pic.canvas.height * z; if (a.x >= vw || a.y >= vh || a.x + wpx <= 0 || a.y + hpx <= 0) return;
       if (z === 1) ctx.drawImage(pic.canvas, a.x, a.y); else ctx.drawImage(pic.canvas, a.x, a.y, wpx, hpx);
     });
   };
