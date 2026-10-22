@@ -315,7 +315,7 @@
   };
   // the floor's own squares (the first game's triggers): the pens' shifts, Skarn's gate, the dens' pits, their bad air, the rescue
   M.trigger = function* (B, trig, at) {
-    if (trig.script === 'pen') { yield* M.talk(B, 'pen' + trig.arg, function (sc) { return M.pen(sc, B, trig.arg); }, 'The pens, mouth ' + trig.arg); return; }
+    if (trig.script === 'pen') { yield* M.penShift(B, trig.arg); return; }
     if (trig.script === 'skarnGate') { yield* M.skarnGate(B); return; }
     if (trig.script === 'pit') { B.card(D.roam.wrap(['{y}A pit{/}: it drops to the deep gallery, the hole floor.'].concat(M.held('galleries_g4').slice(1))), 320); D.sfx('popup'); M.stepBack(B); yield 20; return; } // (the first game's S.pit drops the party there, 1d6 each: the hole floor is not the top levels' -- his ruling)
     if (trig.script === 'badAir') { yield* M.badAir(B); return; }
@@ -323,25 +323,39 @@
     if (trig.script === 'seepFire') { yield* M.seepFire(B); return; }
     B.card(D.roam.wrap(['{y}' + trig.id + '{/}: the first game\'s scene (' + trig.script + ') -- not on the grid yet.']), 240); D.sfx('popup'); yield 20;
   };
-  // a shift at the pens (S.pen): Edric's book first; who milks; the draught if there is one; then the first game's own table rule for the shift, rolled straight -- its
-  // cradle scene is the first game's picture (js/cradle.js): six draws, each a d20 and the milker's Animal Handling or Nature against 12, a 6 or less a CON save at 13 (the
-  // draught: the better of two) or the shift ends touched
-  M.pen = function* (sc, B, n) {
+  // a shift at the pens (S.pen): on the counter screen Edric's book first, the ask, who milks, the draught (M.penAsk); then the shift itself, THE CRADLE (deep16/js/cradle.js,
+  // the grid's own scene with the first game's rules -- the lanes desk's ruling 10-22 on his "Crawler game needs rebuilt for this engine"; js/roam.js R.shiftPlay); then the pay at
+  // the board on the counter, and Old Hob after the first shift (M.penPay). With no scene (a bench's D.cradle.STRAIGHT), the first game's own table rule, rolled straight
+  // (M.shiftRoll): six draws, each a d20 and the milker's Animal Handling or Nature against 12, a 6 or less a CON save at 13 (the draught: the better of two) or the shift ends touched
+  M.penShift = function* (B, n) {
+    var nm = 'The pens, mouth ' + n, job = yield* M.talk(B, 'pen' + n, function (sc) { return M.penAsk(sc, B, n); }, nm);
+    if (!job) return;
+    var r = D.cradle && !D.cradle.STRAIGHT ? yield* D.roam.shiftPlay(B, job) : M.shiftRoll(job);
+    yield* M.talk(B, 'pen' + n, function (sc) { return M.penPay(sc, B, job, r); }, nm);
+  };
+  M.penAsk = function* (sc, B, n) {
     var st = sc.st, f = st.flags, C = D.counter, Rr = DS.R;
-    if (!f.tallyMet) { yield sc.say(L('w.penNoBook')); return; }
-    if ((yield sc.ask(L('w.penAsk'), ['WORK A SHIFT', 'LEAVE'])) !== 0) return;
-    var up = st.party.filter(function (hh) { return !hh.dead && !hh.ko && hh.hp > 0; }); if (!up.length) return;
-    var hh = up.length === 1 ? up[0] : up[yield sc.ask('WHO MILKS?', up.map(function (z) { return z.name; }))]; if (!hh) return;
+    if (!f.tallyMet) { yield sc.say(L('w.penNoBook')); return null; }
+    if ((yield sc.ask(L('w.penAsk'), ['WORK A SHIFT', 'LEAVE'])) !== 0) return null;
+    var up = st.party.filter(function (hh) { return !hh.dead && !hh.ko && hh.hp > 0; }); if (!up.length) return null;
+    var hh = up.length === 1 ? up[0] : up[yield sc.ask('WHO MILKS?', up.map(function (z) { return z.name; }))]; if (!hh) return null;
     var draught = C.count(st, 'draught') > 0; if (draught) C.take(st, 'draught', 1);
-    var ah = Rr.skill(hh, 'Animal Handling', 'wis'), na = Rr.skill(hh, 'Nature', 'int'), best = Math.max(ah, na);
+    var ah = Rr.skill(hh, 'Animal Handling', 'wis'), na = Rr.skill(hh, 'Nature', 'int');
     if (!f.shifts) yield sc.say(L('w.penHow'));
-    var got = 0, touched = false;
-    for (var i = 0; i < 6 && !touched; i++) {
-      var roll = M.d20() + best;
-      if (roll >= 12) got++;
-      else if (roll <= 6) { var sv = M.d20() + Rr.saveBonus(hh, 'con'); if (draught) sv = Math.max(sv, M.d20() + Rr.saveBonus(hh, 'con')); if (sv < 13) touched = true; }
+    return { n: n, hero: hh, skill: Math.max(ah, na), skillName: na > ah ? 'Nature' : 'Animal Handling', draught: draught, deep: false, mouth: +n || 2, shifts: f.shifts || 0 };
+  };
+  M.shiftRoll = function (job) {
+    var hh = job.hero, Rr = DS.R, r = { got: 0, touched: false };
+    for (var i = 0; i < 6 && !r.touched; i++) {
+      var roll = M.d20() + job.skill;
+      if (roll >= 12) r.got++;
+      else if (roll <= 6) { var sv = M.d20() + Rr.saveBonus(hh, 'con'); if (job.draught) sv = Math.max(sv, M.d20() + Rr.saveBonus(hh, 'con')); if (sv < 13) r.touched = true; }
     }
-    var lines = []; if (touched) lines.push(L('w.touched', { name: hh.name }));
+    return r;
+  };
+  M.penPay = function* (sc, B, job, r) {
+    var st = sc.st, f = st.flags, got = r.got || 0, lines = [];
+    if (r.touched) lines.push(L('w.touched', { name: job.hero.name }));
     if (got) { st.silver(got); D.sfx('coin'); }
     f.shifts = (f.shifts || 0) + 1; lines.push(L('w.shiftPaid', { n: got }));
     yield sc.say(lines);

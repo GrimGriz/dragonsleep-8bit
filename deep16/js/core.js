@@ -167,7 +167,7 @@
     D.unlockAudio();
   });
   window.addEventListener('keyup', function (e) { if (D.typing) return; var b = KEYMAP[e.code]; if (b) { e.preventDefault(); I.release(b); } });
-  window.addEventListener('blur', function () { I.held = {}; I.mouse.inWin = false; I.mouse.inside = false; });
+  window.addEventListener('blur', function () { I.held = {}; I.mouse.inWin = false; I.mouse.inside = false; I.mouse.down = false; });
 
   // the game pad (../js/pad.js, the 8-bit game's, loaded after this). RULED 09-28 (Griz): the right stick up/down zooms (up in,
   // down out), left/right calls the wheel up and turns it; the left stick pressed in, before anything on the wheel is
@@ -237,11 +237,11 @@
     c.addEventListener('mousedown', function (e) {
       if (ghost()) return;
       at(e); e.preventDefault(); c.focus(); D.unlockAudio();
-      if (e.button === 0) { I.mouse.click = true; I.mouse.shift = !!e.shiftKey; I.mouse.ctrl = !!(e.ctrlKey || e.metaKey); } // (shift and ctrl with the click: the Pocket DM's receipts pick that way, 10-09 -- js/pocketdm.js)
+      if (e.button === 0) { I.mouse.click = true; I.mouse.down = true; I.mouse.shift = !!e.shiftKey; I.mouse.ctrl = !!(e.ctrlKey || e.metaKey); } // (shift and ctrl with the click: the Pocket DM's receipts pick that way, 10-09 -- js/pocketdm.js)
       if (e.button === 1) I.mouse.drag = { x: I.mouse.x, y: I.mouse.y }; // the middle button drags the view
       if (e.button === 2) { I.mouse.rclick = true; I.mouse.rbtn = true; } // (rbtn: the mouse's own right button -- it puts the wheel down and backs out of an aimed spell, ui.js; the pad's INFO and a long press set rclick alone, and inspect)
     });
-    window.addEventListener('mouseup', function (e) { if (e.button === 1) I.mouse.drag = null; });
+    window.addEventListener('mouseup', function (e) { if (e.button === 1) I.mouse.drag = null; if (e.button === 0) I.mouse.down = false; }); // (down: the left button held -- the cradle's squeeze, js/cradle.js, 10-22)
     c.addEventListener('contextmenu', function (e) { e.preventDefault(); });
   };
   // a finger's taps also arrive as made-up mouse events a moment later in some browsers: those are ignored

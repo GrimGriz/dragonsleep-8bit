@@ -1106,28 +1106,41 @@
       if (mk && c.touched) { mk.conds.poisoned = { paralysis: true }; mk.conds.paralyzed = { save: 'con', dc: 13, by: 'harness', poison: true }; }
     } });
   };
-  // the deep rate on the second game's own screen (10-22, the Wet seat; the lanes desk, Griz: "yeah, work the wet"): the first game's EV.deepRate (js/events.js, RULED 09-30g --
-  // "being in the book is enough"; "if player error makes a whip, start your combat that's great") in its own words on the counter screen (deep16/js/counter.js, as the pens'
-  // shift is: js/mines.js M.pen) -- Edric's book first, the ask, who milks, the draught; six draws at the module's DC 15, a natural 1 or a touch rouses the animal; three silver
-  // a thimble. Returns { n, roused, milker, touched } as the 8-bit's did, or null when they leave it
-  R.deepTalk = function* (B, n) { return yield* D.mines.talk(B, 'deepCradle', function (sc) { return R.deepRate(sc, B, n); }, 'The deep station: cradle ' + (n + 1)); };
+  // the deep rate on the second game's own screens (10-22, the Wet seat; the lanes desk, Griz: "yeah, work the wet"): the first game's EV.deepRate (js/events.js, RULED 09-30g --
+  // "being in the book is enough"; "if player error makes a whip, start your combat that's great") in its own words. On the counter screen (deep16/js/counter.js, as the pens'
+  // shift is: js/mines.js M.penAsk): Edric's book first, the ask, who milks, the draught; then the shift itself, THE CRADLE (deep16/js/cradle.js, the desk's ruling 10-22 on
+  // his "Crawler game needs rebuilt for this engine": the grid's own scene, the first game's rules -- the deep rate unsettled, three silver a thimble, a whip rouses the animal);
+  // then the pay back on the counter. Returns { n, roused, milker, touched } as the 8-bit's did, or null when they leave it
+  R.deepTalk = function* (B, n) {
+    var nm = 'The deep station: cradle ' + (n + 1), job = yield* D.mines.talk(B, 'deepCradle', function (sc) { return R.deepAsk(sc, B, n); }, nm);
+    if (!job) return null;
+    var r = yield* R.shiftPlay(B, job);
+    return yield* D.mines.talk(B, 'deepCradle', function (sc) { return R.deepPay(sc, B, job, r); }, nm);
+  };
   R.DEEP_DC = 15; R.DEEP_DRAWS = 6;
-  R.deepRate = function* (sc, B, n) {
+  R.deepAsk = function* (sc, B, n) {
     var R0 = B.roam, st = sc.st, f = st.flags, C = D.counter, L = C.L, Rr = window.DS.R;
     if (!f.tallyMet) { yield sc.say(L('w.deepNoBook')); return null; }
     if ((yield sc.ask(L('w.deepAsk'), ['WORK THE DEEP RATE', 'LEAVE'])) !== 0) return null;
     var up = R0.members.filter(function (u) { return u.src && u.hp > 0 && !u.dead; }); if (!up.length) return null; // (the figures as they stand on the floor: their sheets for the skills)
     var u = up.length === 1 ? up[0] : up[yield sc.ask('WHO MILKS?', up.map(function (z) { return z.name; }))]; if (!u) return null;
     var h = u.src, draught = C.count(st, 'draught') > 0; if (draught) C.take(st, 'draught', 1);
-    var best = Math.max(Rr.skill(h, 'Animal Handling', 'wis'), Rr.skill(h, 'Nature', 'int'));
-    var r = R.shiftRoll(h, best, draught);
-    var pay = 3 * r.got, lines = [];
-    if (r.touched) lines.push(L('w.touchedDeep', { name: u.name }));
+    var ah = Rr.skill(h, 'Animal Handling', 'wis'), na = Rr.skill(h, 'Nature', 'int');
+    return { n: n, u: u, hero: h, skill: Math.max(ah, na), skillName: na > ah ? 'Nature' : 'Animal Handling', draught: draught, deep: true, shifts: (f.shifts || 0) + (f.deepShifts || 0) };
+  };
+  R.deepPay = function* (sc, B, job, r) {
+    var st = sc.st, f = st.flags, L = D.counter.L, pay = 3 * r.got, lines = [];
+    if (r.touched) lines.push(L('w.touchedDeep', { name: job.u.name }));
     if (pay) { st.silver(pay); D.sfx('coin'); }
     f.deepShifts = (f.deepShifts || 0) + 1;
     lines.push(L('w.deepPaid', { n: r.got, s: pay }));
     yield sc.say(lines);
-    return { n: n, roused: r.roused, milker: u.id, touched: r.touched };
+    return { n: job.n, roused: !!r.roused, milker: job.u.id, touched: !!r.touched };
+  };
+  // the shift itself: THE CRADLE's scene over the floor (deep16/js/cradle.js), or -- a bench's D.cradle.STRAIGHT, or no scene loaded -- the register's table rule rolled straight
+  R.shiftPlay = function* (B, job) {
+    if (D.cradle && !D.cradle.STRAIGHT) return yield* D.cradle.run(B, { hero: job.hero, skill: job.skill, skillName: job.skillName, draught: job.draught, deep: job.deep, mouth: job.mouth, shifts: job.shifts, auto: R.shiftAuto || null });
+    return R.shiftRoll(job.hero, job.skill, job.draught);
   };
   // the register's table rule at the wet (js/events.js EV.deepRate's, with no cradle scene): a d20 and the hands' best against DC 15, a natural 1 rouses it; 10 or under a CON
   // save at 13 (the draught: the better of two), failed a touch, and either rouses it

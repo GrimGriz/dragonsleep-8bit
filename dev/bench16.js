@@ -1916,7 +1916,7 @@
     // walk the token to a square as a click does, till it is there or the floor changes (and on a little: the square's own arrival); a screen it opens answered by `ans`
     function walkM(B, to, ans) { var R0 = B.roam, p = D.roam.walkRoute(R0.token, to); if (!p) return null; B.cards = []; R0.encIn = 1e9; R0.path = p.slice(); driveM(B.co, function () { return D.top() !== B || (R0.token.x === to[0] && R0.token.y === to[1] && !(R0.path && R0.path.length)); }, 20000); if (D.top() === B) driveM(B.co, function () { return D.top() !== B; }, 80); if (D.top() instanceof CM.Counter) walkM.seen = answerM(B, D.top(), ans); return p.length; } // (no random fight breaks into the bench's walks: the dens' and the workings' are called up by hand)
     // E toward a square beside the token: what it opens, read through
-    function useM(B, at, ans) { var R0 = B.roam, t = R0.token; R0.fw = [Math.sign(at[0] - t.x), Math.sign(at[1] - t.y)]; B.cards = []; R0.keys.push('use'); driveM(B.co, function () { return D.top() instanceof CM.Counter || (B.cards || []).length > 0 || D.top() !== B; }, 400); var sc = D.top(); if (sc instanceof CM.Counter) return { sc: sc, seen: answerM(B, sc, ans) }; return { sc: null, seen: (B.cards || []).map(function (c) { return c.lines.join(' '); }).join(' / ') }; }
+    function useM(B, at, ans) { var R0 = B.roam, t = R0.token; R0.fw = [Math.sign(at[0] - t.x), Math.sign(at[1] - t.y)]; B.cards = []; R0.keys.push('use'); driveM(B.co, function () { return D.top() instanceof CM.Counter || (B.cards || []).length > 0 || D.top() !== B; }, 400); var sc = D.top(); if (sc instanceof CM.Counter) { var seenU = answerM(B, sc, ans), kU = 0; while (D.top() instanceof CM.Counter && D.top() !== sc && kU++ < 3) seenU += ' / ' + answerM(B, D.top(), []); return { sc: sc, seen: seenU }; } /* (a counter that opens another after it: the pens' shift pays on a second -- js/mines.js M.penShift, 10-22) */ return { sc: null, seen: (B.cards || []).map(function (c) { return c.lines.join(' '); }).join(' / ') }; }
     function besideM(B, at) { var t = B.roam.token, best = null; [[0, 1], [-1, 0], [1, 0], [0, -1], [-1, 1], [1, 1]].forEach(function (o) { var q = [at[0] + o[0], at[1] + o[1]]; if (!best && D.grid.canStand(t, q[0], q[1]) && D.roam.walkRoute(t, q)) best = q; }); if (best) walkM(B, best); return best; }
     function testM(q) { var B = D.roam.make(q + '&watch'); D.scenes.length = 0; D.push(B); return topM(); }
     D.store.get = function (k) { return memM[k] ? JSON.parse(memM[k]) : null; }; D.store.set = function (k, v) { memM[k] = JSON.stringify(v); return true; };
@@ -1942,7 +1942,7 @@
       okM('the tally-house\'s door: Edric\'s shop on the counter screen (' + (tyW.sc && tyW.sc.o.place) + ': "' + tyW.seen.slice(0, 60) + '"), the draught on its shelves', !!tyW.sc && tyW.sc.o.place === window.DS.DATA.shops.tally.name && tyW.seen.indexOf(window.DS.DATA.shops.tally.greeting) >= 0);
       walkM(BW, [29, 8]); var bkW = useM(BW, [29, 7]);
       okM('the kitchen\'s door, Old Hob beside it: its words at the door, not his ("' + bkW.seen.slice(0, 70) + '")', !bkW.sc && /mine-head kitchen feeds/.test(bkW.seen));
-      walkM(BW, [9, 5]); MM.d20 = function () { return 15; }; var s0W = BW.roam.silver, pW = useM(BW, [9, 4], [0, 0]); MM.d20 = d20M;
+      walkM(BW, [9, 5]); MM.d20 = function () { return 15; }; if (D.cradle) D.cradle.STRAIGHT = true; var s0W = BW.roam.silver, pW = useM(BW, [9, 4], [0, 0]); MM.d20 = d20M; if (D.cradle) D.cradle.STRAIGHT = false; // (the table rule, rolled straight: THE CRADLE's scene is mode=wet1022's)
       okM('a shift at pen two (S.pen, the first game\'s table rule rolled straight, the die pinned at 15): ' + (BW.roam.silver - s0W) + ' sp, shifts ' + BW.roam.flags.shifts + ', Old Hob met (' + BW.roam.flags.hobMet + ')', !!pW.sc && BW.roam.silver - s0W === 6 && BW.roam.flags.shifts === 1 && BW.roam.flags.hobMet === 1 && pW.seen.indexOf('> WORK A SHIFT') >= 0);
       // down the mouth to the stalls, and Skarn's gate
       walkM(BW, [15, 4]); var BB = topM(), dB = D.roam.def, tB = BB.roam.token;
@@ -3084,12 +3084,20 @@
         for (var k = 0; k < 40 && !sc.done; k++) { var w = sc.wait || {}, bs = sc.buttons(); seen = seen.concat(w.say || w.ask || []); if (w.ask) { var a = ans.length ? ans.shift() : w.opts.length - 1; seen.push('> ' + w.opts[a]); sc.press(bs.filter(function (b) { return b.go === 'opt' && b.k === a; })[0]); } else if (bs[0]) sc.press(bs[0]); else break; }
         return seen.join(' / '); }
       function talkX(g, ans) { driveX(g, function () { return D.top() instanceof CX.Counter; }, 600); var sc = D.top(); if (!(sc instanceof CX.Counter)) return { sc: null, seen: '' }; return { sc: sc, seen: answerX(sc, ans) }; }
-      RX.d20 = function () { return 15; }; var sD0 = RD.silver, gD = RX.fire(BD, trD, qD), tkD = talkX(gD, [0, 0]); driveX(gD, null, 400); RX.d20 = d20X;
+      // a counter, the cradle, a counter again (the shift's three steps since the crawler game came onto the grid, 10-22): each counter answered, the scene run to its end
+      var CRX = D.cradle;
+      function runX(sc, cap) { for (var k = 0; k < (cap || 8000) && !sc.over; k++) { sc.update(); D.input.clear(); } return sc.result; }
+      function flowX(g, ans, until) { var seen = [], first = null, scene = null;
+        for (var st = 0; st < 6; st++) { driveX(g, function () { var t = D.top(); return (until && until()) || (t instanceof CX.Counter && !t.done) || (t instanceof CRX.Scene && !t.over); }, 3000); if (until && until()) break; var t = D.top();
+          if (t instanceof CX.Counter && !t.done) { if (!first) first = t; seen.push(answerX(t, first === t ? ans : [])); } else if (t instanceof CRX.Scene && !t.over) { scene = t; runX(t); } else break; }
+        driveX(g, until || null, 400); return { sc: first, seen: seen.join(' / '), scene: scene }; }
+      CRX.STRAIGHT = true; // (the table rule, the die pinned: these first three; THE CRADLE's own below, H)
+      RX.d20 = function () { return 15; }; var sD0 = RD.silver, gD = RX.fire(BD, trD, qD), tkD = flowX(gD, [0, 0]); RX.d20 = d20X;
       okX('a cradle (8-bit 15,6), E: the deep station on the counter screen (' + (tkD.sc && tkD.sc.o.name) + '), the first game\'s words -- "' + tkD.seen.slice(0, 120) + '..."; six thimbles at the deep rate, the die at 15: +' + (RD.silver - sD0) + ' sp, deepShifts ' + RD.flags.deepShifts,
         trD && trD.id === 'deepCradle0' && !!tkD.sc && tkD.seen.indexOf(CX.L('w.deepAsk')) >= 0 && tkD.seen.indexOf('> WORK THE DEEP RATE') >= 0 && RD.silver - sD0 === 18 && RD.flags.deepShifts === 1 && RD.mode === 'walk');
       HX.cur.flags = {}; var BD0 = houseFloorX('?roam=wet&watch', [15, 7]), tk0 = talkX(RX.fire(BD0, trD, qD));
       okX('no name in Edric\'s book: the first game\'s word and nothing worked ("' + tk0.seen.slice(0, 70) + '")', tk0.seen.indexOf(CX.L('w.deepNoBook')) >= 0 && !BD0.roam.flags.deepShifts);
-      BD = wetX({}, [15, 7]); RD = BD.roam; RX.d20 = function () { return 1; }; gD = RX.fire(BD, trD, qD); var tkR = talkX(gD, [0, 1]); driveX(gD, function () { return RD.mode === 'fight'; }, 2000); RX.d20 = d20X;
+      BD = wetX({}, [15, 7]); RD = BD.roam; RX.d20 = function () { return 1; }; gD = RX.fire(BD, trD, qD); var tkR = flowX(gD, [0, 1], function () { return RD.mode === 'fight'; }); driveX(gD, function () { return RD.mode === 'fight'; }, 2000); RX.d20 = d20X; CRX.STRAIGHT = false;
       var crD = BD.units.filter(function (u) { return u.side === 'foe' && u.kind === 'crawler' && !u.dead; })[0], mkD = RD.members[1];
       okX('a natural 1: the animal out of the harness ("' + CX.L('w.deepRoused').slice(0, 40) + '..."), the fight on the floor at its cradle -- a crawler ' + (crD ? 'at ' + crD.x + ',' + crD.y : 'none') + ', the milker (' + mkD.name + ') at ' + mkD.x + ',' + mkD.y,
         RD.mode === 'fight' && !!crD && Math.max(Math.abs(crD.x - qD[0]), Math.abs(crD.y - qD[1])) <= 4 && tkR.seen.indexOf('> ' + mkD.name) >= 0 && RD.flags.deepShifts === 1);
@@ -3136,6 +3144,45 @@
       var hG = RG.members.filter(function (u) { return u.torch && D.light.kindOf(u.torch) === 'lantern'; })[0];
       okX('won: the lantern lifted off the floor into ' + (hG && hG.name) + '\'s hand as the party gathers (' + liftN + ' lift), none left on the floor, the card says so ("' + (cardsX(BG).match(/The light on the floor is taken up \([^)]*\)/) || [''])[0] + '")',
         liftN === 1 && !!hG && hG.hp > 0 && !(BG.lights || []).some(function (l) { return l.kind === 'lantern'; }) && /The light on the floor is taken up/.test(cardsX(BG)));
+      // H. THE CRADLE (his "Crawler game needs rebuilt for this engine"; the desk's ruling 10-22, look 1: the grid's own scene, the first game's rules exactly, mouse first)
+      var hCr = HX.cur.party.filter(function (h) { return h.id === 'lymen'; })[0] || HX.cur.party[0], IX = D.input;
+      function sceneX(o) { var sc = CRX.make(Object.assign({ hero: hCr, skill: 4, skillName: 'Nature', mouth: 2, shifts: 1 }, o || {})); D.scenes.length = 0; D.push(sc); return sc; }
+      D.seed = 1022; var sR = sceneX(), ripes = sR.tents.map(function (T) { return T.ripe; });
+      okX('the first game\'s numbers: ' + CRX.DRAWS + ' draws, CON ' + CRX.DC + ', ' + sR.tents.length + ' feelers ripe ' + ripes.map(function (r) { return r.toFixed(2); }).join('/'), CRX.DRAWS === 6 && CRX.DC === 13 && sR.tents.length === 8 && ripes.every(function (r) { return r >= 0.75 && r <= 1.25; }));
+      sR.pickNext(); var Tb = sR.cur(), wB = Math.min(0.17, Math.max(0.035, 0.055 + 0.018 * 4)) * Tb.ripe, sDp = sceneX({ deep: true }); sDp.pickNext(); var wD = Math.min(0.17, Math.max(0.035, 0.055 + 0.018 * (4 - 3))) * sDp.cur().ripe * 0.7;
+      okX('the gold: settled, the ripest feeler first (' + Tb.ripe.toFixed(2) + ') at ' + sR.band.w.toFixed(4) + ' (the rule: ' + wB.toFixed(4) + '); the deep rate, no settle and as if three worse: ' + sDp.band.w.toFixed(4) + ' (' + wD.toFixed(4) + ')',
+        Tb.ripe === Math.max.apply(null, ripes) && Math.abs(sR.band.w - wB) < 1e-9 && Math.abs(sDp.band.w - wD) < 1e-9 && sR.band.c >= 0.42 && sR.band.c <= 0.76 && sDp.unrest() === 1 && sR.unrest() === 0);
+      var kindX = function (p) { var sc = sceneX(); sc.pickNext(); sc.setPhase('squeeze'); sc.band = { c: 0.5, w: 0.1, phase: 0, jump: 0 }; sc.bandC = function () { return 0.5; }; sc.p = p; sc.release(); return sc.phase === 'save' ? 'whip' : sc.slots[0] + (sc.got ? '+1' : ''); };
+      var kinds = [0.52, 0.58, 0.3, 0.65, 0.75].map(kindX);
+      okX('let go (the gold at 0.5 +/- 0.1): at 0.52 ' + kinds[0] + ', 0.58 ' + kinds[1] + ', 0.30 ' + kinds[2] + ', 0.65 ' + kinds[3] + ', 0.75 ' + kinds[4], kinds.join() === 'perfect+1,clean+1,dry,spilt,whip');
+      var sW = sceneX(); sW.pickNext(); sW.setPhase('squeeze'); sW.band = { c: 0.5, w: 0.1, phase: 0, jump: 0 }; sW.bandC = function () { return 0.5; }; sW.p = 0.8; sW.release(); var sv = sW.save;
+      okX('the whip: the feeler off the bar, a CON save at 13 -- d20 ' + sv.r1 + ' ' + (sv.bonus >= 0 ? '+' : '') + sv.bonus + ' = ' + sv.total + ', ' + (sv.holds ? 'held' : 'the touch'), sW.phase === 'save' && !sW.cur().pinned && sv.total === sv.r1 + sv.bonus && sv.holds === (sv.total >= 13) && !sv.r2);
+      // the mouse first: a click on another feeler chooses it; held on the work, the ring fills; let go, the draw
+      var mo = IX.mouse, mo0 = { x: mo.x, y: mo.y, click: mo.click, down: mo.down, inside: mo.inside }, sM = sceneX(); sM.pickNext(); sM.setPhase('ready');
+      var other = sM.tents.map(function (T, i) { return i; }).filter(function (i) { return i !== sM.sel; })[0], tpO = sM.tents[other].tip();
+      mo.x = Math.round(tpO.x); mo.y = Math.round(tpO.y); mo.inside = true; mo.click = true; sM.update(); IX.clear(); var selM = sM.sel;
+      mo.x = 240; mo.y = 230; mo.click = true; mo.down = true; sM.update(); IX.clear(); var phM = sM.phase; for (var kM = 0; kM < 20; kM++) { sM.update(); IX.clear(); } var pM = sM.p;
+      mo.down = false; sM.update(); IX.clear();
+      okX('by the mouse: a click on feeler ' + other + ' chooses it (' + selM + '), a press on the work squeezes (' + phM + '), held 20 frames the ring fills to ' + pM.toFixed(3) + ', let go: ' + sM.phase + ' (' + (sM.slots[0] || 'whip') + ')', selM === other && phM === 'squeeze' && pM > 0.15 && (sM.phase === 'result' || sM.phase === 'save'));
+      var sK = sceneX(); sK.pickNext(); sK.setPhase('ready'); IX.press('a'); sK.update(); IX.clear(); var phK = sK.phase; for (var kK = 0; kK < 10; kK++) { sK.update(); IX.clear(); } IX.release('a'); sK.update(); IX.clear();
+      okX('by the keys: E held squeezes (' + phK + '), let go the draw (' + sK.phase + ')', phK === 'squeeze' && (sK.phase === 'result' || sK.phase === 'save'));
+      Object.assign(mo, mo0);
+      D.seed = 1022; var sA = sceneX({ auto: 'perfect' }), rA = runX(sA);
+      okX('a whole shift, the hands letting go in the gold, the seed pinned: ' + (rA && rA.slots.join(', ')) + ' -- ' + (rA && rA.got) + ' sealed (' + (rA && rA.perfect) + ' full)', !!rA && rA.slots.length === 6 && rA.got >= 4 && !rA.touched && !rA.roused && sA.over && D.top() !== sA);
+      D.seed = 7; var sX = sceneX({ deep: true, draught: true, auto: 'wild' }), rX = runX(sX);
+      okX('the deep rate, a whip: the shift over at the first draw and the animal roused (' + (rX && rX.slots.join(',')) + ', touched ' + (rX && rX.touched) + '), the draught\'s two dice', !!rX && rX.roused && rX.slots.length === 1 && (rX.slots[0] === 'jerk' || rX.slots[0] === 'touch') && sX.save === null);
+      // the whole of it on the floor: E on the Wet's cradle, the counter, THE CRADLE, the pay back on the counter
+      RX.shiftAuto = 'perfect'; D.seed = 1022; var BE = wetX({}, [15, 7]), RE = BE.roam, sE0 = RE.silver, fE = flowX(RX.fire(BE, trD, qD), [0, 0]); RX.shiftAuto = null;
+      var rE = fE.scene && fE.scene.result;
+      okX('E on the Wet\'s cradle: the counter (WORK THE DEEP RATE, WHO MILKS?), THE CRADLE over the floor (deep ' + (fE.scene && fE.scene.deep) + ', ' + (rE && rE.got) + ' sealed), and the pay back on the counter (+' + (RE.silver - sE0) + ' sp, "' + fE.seen.split(' / ').filter(function (l) { return /deep rate:/.test(l); })[0] + '")',
+        !!fE.scene && fE.scene.deep && !!rE && RE.silver - sE0 === 3 * rE.got && RE.flags.deepShifts === 1 && fE.seen.indexOf('> WORK THE DEEP RATE') >= 0 && fE.seen.indexOf(CX.L('w.deepPaid', { n: rE.got, s: 3 * rE.got })) >= 0);
+      RX.shiftAuto = 'perfect'; D.seed = 1022; HX.cur.flags = { tallyMet: 1 }; var BP = houseFloorX('?roam=warrens&at=9,5', [9, 5]), RP = BP.roam, sP0 = RP.silver, fP = flowX(MX.penShift(BP, 2), [0, 3]); RX.shiftAuto = null;
+      var rP = fP.scene && fP.scene.result;
+      okX('a shift at pen two on the mouth camp: WORK A SHIFT, the first game\'s how-to, THE CRADLE (mouth ' + (fP.scene && fP.scene.mouth) + ', settled), the pay at the board (+' + (RP.silver - sP0) + ' sp), Old Hob after the first (hobMet ' + RP.flags.hobMet + ')',
+        !!fP.scene && !fP.scene.deep && fP.scene.mouth === 2 && !!rP && RP.silver - sP0 === rP.got && RP.flags.shifts === 1 && RP.flags.hobMet === 1 && fP.seen.indexOf('> WORK A SHIFT') >= 0 && fP.seen.indexOf(CX.L('w.shiftPaid', { n: rP.got })) >= 0);
+      // the show (deep16/?cradle, the eyes row's door): each beat opens the shift with the seed pinned
+      var shC = CRX.show('?cradle'), bC = CRX.BEATS.map(function (bt) { D.scenes.length = 0; CRX.play(bt, '?cradle', shC); var t = D.top(); if (t && t.baking) { t.baking = false; t.enter(); } return bt.id + ':' + (bt.counter ? (D.roam.def.key === 'warrens' && RX.house() ? 'floor' : 'X') : t instanceof CRX.Scene ? (t.deep ? 'deep' : 'pens') + (t.draught ? '+draught' : '') : 'X'); });
+      okX('the show deep16/?cradle: ' + bC.join(', '), bC.join() === 'pens:pens,deep:deep+draught,counter:floor' && shC.buttons().length === 3 && CRX.seedOf('?cradle') === 1022);
       // E. THE SHOW (deep16/?wetshow, the eyes row's door): each beat stands a NEW GAME on its floor, on its square
       var shX = RX.wetShow('?wetshow'), bxX = RX.WET_BEATS.map(function (bt) { D.scenes.length = 0; D.push(RX.wetShow('?wetshow&beat=' + bt.id)); D.top().update(); var B = topX(), want = bt.key ? bt.at : D.roam.def.from8(bt.at[0], bt.at[1]);
         return bt.id + (B && B.roam && RX.house() && B.roam.token.x === want[0] && B.roam.token.y === want[1] && (bt.key ? D.roam.def.key === bt.key : !!D.roam.def.wet) && B.roam.flags.tallyMet === 1 ? '' : ' (not staged)'); });
