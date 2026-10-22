@@ -14,6 +14,7 @@
   TV.CLIFF = 64;     // a rock's face where open ground lies south of it (the mountain's foot, the Edifice's front), px
   TV.ROOMWALL = 40;  // a room's wall (js/town.js T.room): its back wall's face over the floor; the front wall a stub, so the floor and the door show (10-20, Griz: "1 north up", the rooms too)
   TV.BLOCK = { k: 10, f: 12, w: 8, K: 16, S: 40, y: 6 }; // (a block's px: a crate or a stall, a rail, a well, a shop's counter and its shelves, a cot's frame)
+  TV.SEE = 0.38;     // a standing thing in front of the party on the mines' floors, drawn this faint (iso.draw; TV.seen counts them drawn so -- the bench's)
   var on = function () { return !!(iso.map && iso.map.top); };
 
   // ------------------------------------------------------------------ the view's geometry, while a top map is loaded
@@ -569,13 +570,25 @@
     (m.props || []).forEach(function (pp) { if (pp.draw || (pp.img && pp.kind !== 'rock' && pp.kind !== 'block' && pp.kind !== 'stone' && pp.kind !== 'tile')) list.push({ d: pp.sq ? pp.sq.y + 0.55 + pp.sq.x * 1e-4 : pp.depth, prop: pp }); });
     (objs || []).forEach(function (ob) { var u = ob.unit; list.push({ d: u ? u.y + 0.6 + u.x * 1e-4 + (ob.depth % 1) * 1e-3 : ob.depth != null && ob.depth < 0 ? -1 : 1e6 + (ob.depth || 0), obj: ob }); });
     list.sort(function (a, b) { return a.d - b.d; });
+    // SEEN THROUGH (10-22, his eye on the dens: "too often hidden behind walls that should probably transluce"): on the mines' floors a standing thing drawn in front of one of
+    // the party -- the rock's raised top over the gallery north of it, a tent, a stall -- is drawn faint where it covers them, so the party shows through it (TV.SEE)
+    var see = m.def.mine ? (objs || []).filter(function (ob) { var u = ob.unit; return u && u.side === 'party' && !u.dead && !u.riding; }).map(function (ob) {
+      var u = ob.unit, c = iso.center(u.x, u.y, m.at(u.x, u.y) ? m.at(u.x, u.y).gz : 0), p = iso.toScreen(c.x, c.y);
+      return { d: u.y + 0.6, x0: p.x - T * 0.4 * z, x1: p.x + T * 0.4 * z, y0: p.y - T * 1.5 * z, y1: p.y + T * 0.4 * z };
+    }) : [];
     list.forEach(function (it) {
       if (it.obj) { it.obj.draw(ctx); return; }
       if (it.hex) { var hx = m.def.hexagon, hp = hexCanvas(m), gq = m.at(Math.floor(hx.x), Math.floor(hx.y)), hg = gq ? gq.gz : 0, ha = iso.toScreen(hx.x * T - hp.ox, hx.y * T - hg - hp.wall - hp.oy); ctx.drawImage(hp.canvas, ha.x, ha.y, hp.canvas.width * z, hp.canvas.height * z); return; }
       if (it.prop) { var pp = it.prop; if (pp.draw) { pp.draw(ctx); return; } var c0 = iso.center(pp.sq.x, pp.sq.y, pp.gz || 0), s0 = iso.toScreen(c0.x, c0.y); ctx.drawImage(pp.img.canvas, s0.x - pp.img.ax * z, s0.y - pp.img.ay * z, pp.img.canvas.width * z, pp.img.canvas.height * z); return; }
       var s = it.stand, pic = standCanvas(m, s); if (pic.skip) return; var a = iso.toScreen(s.x * T - (pic.ox || 0), s.y * T - s.gz - pic.h); // (ox: a prop wider than its square, the art's)
       var wpx = pic.canvas.width * z, hpx = pic.canvas.height * z; if (a.x >= vw || a.y >= vh || a.x + wpx <= 0 || a.y + hpx <= 0) return;
-      if (z === 1) ctx.drawImage(pic.canvas, a.x, a.y); else ctx.drawImage(pic.canvas, a.x, a.y, wpx, hpx);
+      var over = see.filter(function (b) { return it.d > b.d && a.x < b.x1 && a.x + wpx > b.x0 && a.y < b.y1 && a.y + hpx > b.y0; });
+      var put = function () { if (z === 1) ctx.drawImage(pic.canvas, a.x, a.y); else ctx.drawImage(pic.canvas, a.x, a.y, wpx, hpx); };
+      if (!over.length) { put(); return; }
+      // (a window round each of them: the picture whole outside it, faint inside)
+      TV.seen = (TV.seen || 0) + 1;
+      ctx.save(); ctx.beginPath(); ctx.rect(a.x, a.y, wpx, hpx); over.forEach(function (b) { ctx.rect(b.x0, b.y0, b.x1 - b.x0, b.y1 - b.y0); }); ctx.clip('evenodd'); put(); ctx.restore();
+      ctx.save(); ctx.beginPath(); over.forEach(function (b) { ctx.rect(b.x0, b.y0, b.x1 - b.x0, b.y1 - b.y0); }); ctx.clip(); ctx.globalAlpha = TV.SEE; put(); ctx.restore();
     });
   };
 })();

@@ -2155,6 +2155,15 @@
       var f3 = fieldF2(B3, 0, false), rows3 = f3.b ? f3.map.rows : [], edge3 = 0, n3 = 0;
       rows3.forEach(function (r, y) { for (var x = 0; x < r.length; x++) if (y === 0 || x === 0 || y === rows3.length - 1 || x === r.length - 1) { n3++; if (r[x] === '#' || r[x] === 'r') edge3++; } });
       okF2('a fight in the dens on a cave\'s field (' + edge3 + ' of its ' + n3 + ' edge squares rock or rubble), dark (' + (f3.b && f3.b.fight.dark) + '), its ceiling ' + (f3.map && f3.map.sky) + ' ft, back where the party stood (' + R3.token.x + ',' + R3.token.y + ')', !!f3.b && edge3 > n3 * 0.6 && f3.b.fight.dark === true && f3.map.sky === 20 && R3.token.x === 6 && R3.token.y === 10 && D.top() === B3);
+      // 3. THE DENS' TOP VIEW (his "too often hidden behind walls that should probably transluce"): the rock in front of the party drawn through round them
+      var B3s = testF2('?roam=galleries_g3&flags=cullHired&at=6,10'), R3s = B3s.roam;
+      var cvF = document.createElement('canvas'); cvF.width = D.W; cvF.height = D.H; var ctxF0 = D.ctx; D.ctx = cvF.getContext('2d'); D.R = D.R || 1;
+      for (var kU = 0; kU < 40; kU++) B3s.update(); // (the floor settled -- its camera, its cards -- so the two pictures differ only by the rock in front)
+      function shotF(B, u) { D.draw(); var c = D.iso.center(u.x, u.y, 0), p = D.iso.toScreen(c.x, c.y), z = D.iso.zoom || 1, T = TVF.TS, x0 = Math.max(0, Math.round(p.x - T * 0.4 * z)), y0 = Math.max(0, Math.round(p.y - T * 1.5 * z)); return D.ctx.getImageData(x0, y0, Math.max(1, Math.round(T * 0.8 * z)), Math.max(1, Math.round(T * 1.9 * z))).data; }
+      var see0 = TVF.SEE, opq, thru, dF = 0; TVF.SEE = 1; opq = shotF(B3s, R3s.token); TVF.SEE = see0; TVF.seen = 0; thru = shotF(B3s, R3s.token);
+      for (var iF = 0; iF < opq.length; iF += 4) if (Math.abs(opq[iF] - thru[iF]) + Math.abs(opq[iF + 1] - thru[iF + 1]) + Math.abs(opq[iF + 2] - thru[iF + 2]) > 24) dF++;
+      okF2('on the dens\' top view, the party at 6,10 under the rock of 6,11: that rock drawn through round them (' + (TVF.seen || 0) + ' drawn so, ' + dF + ' px of the party\'s box changed from the rock drawn whole)', (TVF.seen || 0) > 0 && dF > 40);
+      D.ctx = ctxF0;
     } catch (eF2) { repF2.errors.push(String(eF2 && eF2.stack || eF2).slice(0, 900)); }
     D.store.get = stGF2; D.store.set = stSF2; D.music = mu0; try { if (sk0 != null) window.localStorage.setItem(D.simple.KEY, sk0); } catch (eK2) { }
     var preF2 = document.createElement('pre'); preF2.id = 'out'; preF2.textContent = 'BENCH16 ' + JSON.stringify(repF2);
