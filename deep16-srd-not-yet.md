@@ -37,6 +37,8 @@ Each: **recall** (what the seat wrote before looking) · **SRD** (what `srd/` sa
 
 ### 1. The ankheg (plains: the road, the Verge)
 
+**ON THE GRID 10-22** (`66271b1`, the monster cutter seat's second run): the foe `ankheg` by the SRD on its own sheet `ankheg_p1` (the art desk's ART-10 and ART-53), `?show=ankheg`, the creatures shelf. Not yet: its Acid Spray (no line mechanic for a foe), the bite only at the one it holds with advantage, AC 11 while prone -- plain stand-ins (its `src`). It is in no fight yet: the plains wait on the road (his 10-21: *"still later, we have to finish replacing the 8 bit first"*).
+
 - **Recall.** CR 2 Large; AC 14, 11 prone; 39 HP; 30 ft, burrow 10; darkvision and tremorsense 60; bite 2d6+3 + 1d6 acid, grapple DC 13; Acid Spray recharge 6, a 30x5 ft line, DEX 13, 3d6. A six-legged insect, brown to yellow-green chitin, long antennae, acid-dripping mandibles; waits under farmland and bursts up.
 - **SRD.** Every number as recalled. No description at all.
 - **Web.** 2e: worm-like, 10-20 ft, six hooked legs, a brown or yellow shell over a soft pink belly, shiny black eyes, a small mouth of tiny teeth behind mandibles that snap a sapling ([2e MM](https://discmaster.textfiles.com/file/30444/AD&D%20Core%20Rules%202.0%20Expansion.iso/webhelp/mm/dd03797.htm?html=true)). 5e's artist made it "beefier", with forelimbs built to tear through ground, studied from a mole cricket ([Christopher Burdett](http://christopherburdett.blogspot.com/2014/09/dungeon-dragons-monster-manual-ankheg.html)). It lies 5-10 ft down, feels footsteps, bursts up, crushes and dissolves; sprays only when desperate; solitary, no hoard. **The MM's blue dragons encourage ankhegs to live round their lairs as guards** (an MM mirror, unchecked against the book).
