@@ -2772,8 +2772,9 @@
       okV('X on the save: NO, the morning over -- the floor again, in the chapel, Vivian whole (' + vU.hp + '/' + vU.maxhp + ')', !mornV() && D.top() === B && D.roam.def.room === 'chapel:aldwin' && vU.hp === vU.maxhp);
       // DAVOS KREN (the first game's S.leech): five silver a body for the fallen
       outV(B); okV('in at the leech-house', inV(B, 'leech:davos') && D.roam.def.keeper.id === 'davos');
-      var gL = fireV(B, 'talk:davos'), scL = D.top(), wL = readV(scL); driveV(gL, null, 200);
-      okV('Davos Kren with no one down: the plain shape (' + (scL && scL.o.name) + '), "' + wL.join(' / ') + '"', !scL.sheet && scL.o.name === 'Davos Kren' && /Blood off the sand/.test(wL.join(' ')) && /Nobody here needs me/.test(wL.join(' ')));
+      var kuL = B.units.filter(function (u) { return u.npc === 'davos'; })[0], gL = fireV(B, 'talk:davos'), scL = D.top(), wL = readV(scL); driveV(gL, null, 200);
+      okV('Davos Kren with no one down, on his portrait since 10-22 (' + (scL && scL.sheet) + ', ' + (scL && scL.o.name) + ') and behind his counter in his own figure (' + (kuL && kuL.sheet) + '): "' + wL.join(' / ') + '"',
+        scL.sheet === 'pt_davos' && kuL && kuL.sheet === 'davos_p1' && kuL.facing === 0 && scL.o.name === 'Davos Kren' && /Blood off the sand/.test(wL.join(' ')) && /Nobody here needs me/.test(wL.join(' ')));
       var dV = unitV(B, 'vivian'), dL = unitV(B, 'lymen'); dV.hp = 0; dV.ko = true; dL.hp = 0; dL.ko = true; R0.silver = 7;
       gL = fireV(B, 'talk:davos'); scL = D.top(); readV(scL); var askL = askV(scL); goV(scL, 'opt', 'PAY'); var poorL = readV(scL); driveV(gL, null, 200);
       okV('two down, 7 sp: ' + askL + ' -- PAY: "' + poorL.join(' ') + '", both still down', /five silver a body\. Vivian, Lymen\. 10 silver/.test(askL) && /Not enough silver/.test(poorL.join(' ')) && dV.hp === 0 && dL.hp === 0 && R0.silver === 7);

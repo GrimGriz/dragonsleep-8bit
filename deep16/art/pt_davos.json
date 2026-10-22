@@ -1,0 +1,96 @@
+{
+ "image": "art/pt_davos.png",
+ "fw": 177,
+ "fh": 156,
+ "ax": 88,
+ "ay": 154,
+ "top": 154,
+ "portrait": true,
+ "anims": {
+  "idle": {
+   "y": 0,
+   "fw": 177,
+   "fh": 156,
+   "ax": 88,
+   "ay": 154,
+   "frames": 6,
+   "fps": 3,
+   "ledge": [
+    false,
+    false,
+    false,
+    false,
+    false,
+    false
+   ]
+  },
+  "attentive": {
+   "y": 156,
+   "fw": 177,
+   "fh": 156,
+   "ax": 88,
+   "ay": 154,
+   "frames": 1,
+   "fps": 1,
+   "ledge": [
+    false
+   ]
+  },
+  "welcoming": {
+   "y": 312,
+   "fw": 177,
+   "fh": 156,
+   "ax": 88,
+   "ay": 154,
+   "frames": 1,
+   "fps": 1,
+   "ledge": [
+    false
+   ]
+  },
+  "skeptical": {
+   "y": 468,
+   "fw": 177,
+   "fh": 156,
+   "ax": 88,
+   "ay": 154,
+   "frames": 1,
+   "fps": 1,
+   "ledge": [
+    false
+   ]
+  },
+  "concerned": {
+   "y": 624,
+   "fw": 177,
+   "fh": 156,
+   "ax": 88,
+   "ay": 154,
+   "frames": 1,
+   "fps": 1,
+   "ledge": [
+    false
+   ]
+  },
+  "work": {
+   "y": 780,
+   "fw": 177,
+   "fh": 156,
+   "ax": 88,
+   "ay": 154,
+   "frames": 6,
+   "fps": 4,
+   "ledge": [
+    true,
+    true,
+    true,
+    true,
+    true,
+    true
+   ]
+  }
+ },
+ "art": "ART-98",
+ "door": "leech:davos",
+ "source": "deep16/_src/davos/ART-98 (the art desk's ART-98, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
+}

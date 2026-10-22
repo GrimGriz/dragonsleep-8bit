@@ -80,6 +80,7 @@ PEOPLE = {
     # desk had found Percy his near-twin, the same brown waistcoat over a cream rolled-sleeve shirt): judged in a 4x lineup beside Percy and Merrick on the counter's
     # panel -- the palette's silver ramp, clear of Percy's brown and Merrick's, where a dark blue sank into the navy behind him
     'korvin': ('korvin/ART-95', 'ART-95', 'hex:korvinSlate', {'recolour': {'hue': 215, 'sat': 0.22}}),
+    'davos': ('davos/ART-98', 'ART-98', 'leech:davos', {}),         # (10-22, the desk's relay of Griz's "4 should be in fresh": the leech-house's face)
 }
 
 
@@ -272,6 +273,26 @@ def cut_person(name):
                     found[i] = (piece, box, line)
             elif idle_at_counter and shares and wide_foot(piece, box):
                 found[i] = (piece, box, box[3] - int(round(np.median(shares) * (box[3] - top_of(piece)))))
+    # a whole band of a page whose counter went unfound, where the page's other band found it (Davos's work, 10-22: his rolled sleeves stand wider than the
+    # ledge just above it on the top band, so no row stood out as the counter's): the page's own counter depth, its drawings drawn at one scale, where the
+    # drawing's foot is a ledge that deep -- every row of it standing within 3 px of the same two ends
+    def ledge_deep(piece, box, dep):
+        x0, y0, x1, y1 = box; ends = []
+        for y in range(y1 - dep, y1 - 2):
+            xs = np.where(piece[y, x0:x1])[0]
+            if not len(xs):
+                return False
+            ends.append((xs.min(), xs.max()))
+        l, r = np.median([e[0] for e in ends]), np.median([e[1] for e in ends])
+        return len(ends) >= 4 and all(abs(e[0] - l) <= 3 and abs(e[1] - r) <= 3 for e in ends)
+    for pg, a, found, acts in pages:
+        deps = [b[3] - f for p, b, f in found if f < b[3]]
+        if not deps:
+            continue
+        dep = int(np.median(deps))
+        for i, (piece, box, foot) in enumerate(found):
+            if foot == box[3] and ledge_deep(piece, box, dep - 2):
+                found[i] = (piece, box, box[3] - dep)
     for pg, a, found, acts in pages:
         for (piece, box, foot), act in zip(found, acts):
             x0, y0, x1, y1 = box
