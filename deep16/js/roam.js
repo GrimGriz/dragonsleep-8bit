@@ -339,6 +339,7 @@
         var hitG = R.tickGroups(B);
         if (hitG) { yield* R.engage(B, hitG, false, hitG.mode === 'pursue' ? 'caught' : hitG.why); continue; }
       }
+      if (R.warnDue(B)) { yield* R.lanternMan(B); continue; } // (the herd thinned: the lantern man comes down -- R.WARN_AT)
       var k = R0.keys.shift();
       var trk = R.tracking(R0);
       if (k === 'order') { if (trk.length) { D.sfx('miss'); B.card(['{g}Not with them coming.{/}'], 120); } else yield* R.order(B); continue; }
@@ -630,6 +631,57 @@
     if (R.house() && H && H.playing) { H.fromFloor(B); M.off(B); D.push(R.make('?roam=wet', { save: H.living(H.cur), opts: { at8: a8, dir: R.DIR8[R0.fw[0] + ',' + R0.fw[1]] || null }, house: true })); }
     else if (M) D.push(M.testMake(B, 'wet', '?roam=wet&at=' + a8[0] + ',' + a8[1]));
     yield 1;
+  };
+
+  // THE LANTERN MAN (10-22, the Wet seat; the lanes desk, Griz: "There's also a 'send a warning with a lantern man' to warn them about culling the herd too much when they've
+  // killed (I think 3 out of 6 before trigger?)"): the Wet's herd is the Warrens' stock -- six crawlers, all six dead the stock's fork (js/rules.js R.fiveUp stockDead, the
+  // module's clock: dead stock and Thrane hires Dunmore's stable, TarlynsPit/wiki/the-warrens.md). Once the party has put R.WARN_AT of them on the stone, Skarn sends word
+  // down: Jory Slade, the camp's crew boss (the first game's jory, content/npcs.json), with a lantern -- down the stalls' stair, to the party, his words on the counter screen,
+  // and back up. Once; the second game only (the house's floor); his lines the seat's drafts (invented.json wet-lantern-man-*)
+  R.WARN_AT = 3; R.HERD = 6;
+  R.herdDead = function (R0) { return ((R0 && R0.kills) || {}).crawler || 0; };
+  R.warnDue = function (B) { var R0 = B.roam; return !!(R.def && R.def.wet && R.house() && R0.mode === 'walk' && !R0.path && !R.tracking(R0).length && !R0.flags.herdWarned && !R0.flags.stockDead && R.herdDead(R0) >= R.WARN_AT); };
+  R.JORY = {
+    come: '{y}A lantern{/} comes down the stalls\' stair, and a man under it, picking his way round the wet.',
+    who: 'Jory Slade. Crew boss, up top. Skarn sent me down with the lamp.',
+    count: 'That\'s {n} of the stock you\'ve put on the stone. Every one of them is a cradle\'s worth of thimbles nobody milks, and Edric writes the short against somebody\'s name.',
+    word: 'Down here they\'re stock, not quarry. One comes at you, give it room and walk on. That\'s Skarn\'s word, not mine: kill the herd and the man who owns it hears, and he doesn\'t send a lamp.',
+    ask: 'Well?', yes: 'WE\'LL GIVE THEM ROOM', no: 'THEY CAME AT US',
+    yesSaid: 'Good. Keep your light off the cradles; they come at a lamp.',
+    noSaid: 'They come at anybody. Walk round them. A dead one\'s a line in the book, and the book goes up the hill.',
+    go: '{g}Jory takes his lantern back up the stair.{/}'
+  };
+  R.lanternMan = function* (B) {
+    var R0 = B.roam, t = R0.token, f = R0.flags, J = R.JORY, n8 = ((window.DS.DATA || {}).npcs || {}).jory || {};
+    f.herdWarned = 1;
+    // the man and his lantern, at the foot of the stalls' stair (the 8-bit's 2,12) -- or, the party far off down the floor, ten steps short of it along his way
+    var foot = R.def.from8(2, 12), u = B.makeFoe({ id: 'jory', kind: 'brawler', at: foot.slice(), side: 'party', ally: true });
+    u.name = n8.name || 'Jory Slade'; u.look = true; u.npc = 'jory'; u.attacks = {}; u.multi = 1; u.hp = u.maxhp = 4; u.lvl = 1; u.anim = 'idle'; u.animT = B.t;
+    if (D.counter) D.counter.dress(u, 'jory');
+    u.torch = L.make('lantern', false); L.regrip(u);
+    var to = null, bd = Infinity; for (var dy = -1; dy <= 1; dy++) for (var dx = -1; dx <= 1; dx++) { var q = [t.x + dx, t.y + dy]; if ((dx || dy) && G.canStand(u, q[0], q[1])) { var d = Math.hypot(q[0] - foot[0], q[1] - foot[1]); if (d < bd) { bd = d; to = q; } } }
+    var way = to ? D.Battle.route(u, to, true) || [] : [];
+    if (way.length > 10) { var s0 = way[way.length - 11]; u.x = s0[0]; u.y = s0[1]; way = way.slice(way.length - 10); }
+    B.units.push(u); G.setup(G.map, B.units); if (D.spr.prefetch && u.sheet) D.spr.prefetch([u.sheet]);
+    R0.jory = u; D.sfx('popup');
+    B.card(R.wrap([J.come]), 300);
+    B.focus({ x: Math.round((t.x + u.x) / 2), y: Math.round((t.y + u.y) / 2), size: 1 });
+    for (var i = 0; i < way.length; i++) { if (!G.canStand(u, way[i][0], way[i][1])) break; yield* R.step(B, u, way[i]); G.setup(G.map, B.units); }
+    u.anim = 'idle'; u.animT = B.t; u.facing = D.spr.facingFor(t.x - u.x, t.y - u.y); t.facing = D.spr.facingFor(u.x - t.x, u.y - t.y);
+    yield 20;
+    var dead = R.herdDead(R0);
+    yield* D.mines.talk(B, 'jory', function (sc) { return (function* () {
+      yield sc.say([J.who, J.count.replace('{n}', ['no', 'one', 'two', 'three', 'four', 'five', 'six'][dead] || String(dead))]);
+      yield sc.say([J.word]);
+      var a = yield sc.ask([J.ask], [J.yes, J.no]);
+      yield sc.say([a === 0 ? J.yesSaid : J.noSaid]);
+    })(); }, u.name);
+    // and back up the way he came, out of the light
+    B.card(R.wrap([J.go]), 200);
+    var back = way.slice(0, -1).reverse().slice(0, 4);
+    for (var j = 0; j < back.length; j++) { if (!G.canStand(u, back[j][0], back[j][1])) break; yield* R.step(B, u, back[j]); }
+    var k = B.units.indexOf(u); if (k >= 0) B.units.splice(k, 1); delete R0.jory; G.setup(G.map, B.units); B.cache = null;
+    t.anim = 'idle'; t.animT = B.t; B.focus(t);
   };
 
   // ------------------------------------------------------------------ the 8-bit's scenes on the floor, in its own words (DS.DATA.text, js/events.js S.mark, S.stair, S.bucket)
@@ -1891,14 +1943,21 @@
     { id: 'stair', label: 'DOWN TO THE WET, from the stalls', note: 'On the stalls below its stair, Skarn\'s gate open, Edric\'s book signed: walk up onto the stair, down into the Wet. Its own stair takes them back up.', key: 'warrens_b', at: [12, 2], dir: 'up' },
     { id: 'cradle', label: 'THE DEEP RATE at a cradle', note: 'On the Wet below cradle one, the book signed, a draught in the pack: E on the cradle (or a click): WORK THE DEEP RATE, WHO MILKS? -- a 1 rouses the animal.', at: [15, 7], dir: 'up', inv: [['draught', 1]] },
     { id: 'dry', label: 'THE DRY STAIR (drained)', note: 'The stair pumped dry, the four on the landing: step onto the stair -- the dry steps, Pete\'s five off the bottom step, the cut door.', at: [21, 21], dir: 'left', flags: { stairHook: 1 } },
-    { id: 'hold', label: 'HOLDING THE STAIR', note: 'Drained, the dry stair seen, Ragna\'s siphon asked: step onto the stair -- the night crews down the daytime way, a fight; won, three nights and the water back.', at: [21, 21], dir: 'left', flags: { stairHook: 1, drySeen: 1, waterAsked: 1, fiveRecovered: 1 } }
+    { id: 'hold', label: 'HOLDING THE STAIR', note: 'Drained, the dry stair seen, Ragna\'s siphon asked: step onto the stair -- the night crews down the daytime way, a fight; won, three nights and the water back.', at: [21, 21], dir: 'left', flags: { stairHook: 1, drySeen: 1, waterAsked: 1, fiveRecovered: 1 } },
+    { id: 'warn', label: 'THE LANTERN MAN: three of the herd dead', note: 'On the Wet near the stalls\' stair, three of its six crawlers already dead: a lantern comes down the stair -- Jory Slade, with Skarn\'s word. Once.', at: [6, 12], dir: 'left', kills: { crawler: 3, 'warrens_d:crawler': 3 } }
   ];
   R.wetPlay = function (bt) {
     var H = D.house, rec = H.fresh(); rec.at = { town: null };
-    rec.flags = Object.assign({ tallyMet: 1, skarnOk: 1, skarnGateOpen: 1 }, bt.flags || {});
-    (bt.inv || []).forEach(function (s) { H.add(rec.inv, s[0], s[1]); });
+    rec.flags = Object.assign({ tallyMet: 1, skarnOk: 1, skarnGateOpen: 1 }, bt.flags || {}); if (bt.kills) rec.kills = JSON.parse(JSON.stringify(bt.kills));
+    (bt.inv || []).concat([['torch', 2]]).forEach(function (s) { H.add(rec.inv, s[0], s[1]); }); // (two torches, as if from Kasten's shelves: the first game's start has none, and the Wet is dark)
     H.begin(rec, 0);
-    D.push(R.make('?roam=' + (bt.key || 'wet'), { save: H.living(H.cur), opts: bt.key ? { at8: bt.at.slice() } : { at8: bt.at.slice(), dir: bt.dir || null }, house: true }));
+    var nb = R.make('?roam=' + (bt.key || 'wet'), { save: H.living(H.cur), opts: bt.key ? { at8: bt.at.slice() } : { at8: bt.at.slice(), dir: bt.dir || null }, house: true }), en = nb.enter;
+    nb.enter = function () { // (a torch out of the pack, lit in the lead's hand, as the player would on a dark floor: the M menu's ITEMS -- the show is to be seen)
+      en.apply(this, arguments);
+      var t = this.roam.token, s = (this.inv || []).filter(function (x) { return x.id === 'torch' && x.n > 0; })[0];
+      if (this.dark && s && !t.torch && L.handForLight(t)) { s.n--; t.torch = { lit: true, kind: 'torch' }; L.regrip(t); }
+    };
+    D.push(nb);
   };
   function WetShow(q) {
     this.kind = 'wetshow'; this.opaque = true; this.t = 0; this.hov = 0; this.beats = R.WET_BEATS;

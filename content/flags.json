@@ -90,6 +90,7 @@
     "heardSnoot": "set: content/rumors.json, js/scenes.js; read: content/quests.json",
     "heardWarrens": "set: content/npcs.json, content/rumors.json, js/scenes.js; read: content/quests.json",
     "heardWinters": "set: content/rumors.json, js/scenes.js; read: content/quests.json",
+    "herdWarned": "set: deep16/js/roam.js; read: deep16/js/roam.js (the lantern man came down, once: R.lanternMan, 10-22)",
     "heirAsked": "set: js/deep.js; read: content/quests.json, js/deep.js",
     "heirDone": "set: js/deep.js; read: content/quests.json, js/deep.js, maps/silverton.json",
     "heirFound": "set: js/deep.js; read: content/quests.json, js/deep.js",

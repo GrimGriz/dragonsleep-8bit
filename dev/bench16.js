@@ -3026,9 +3026,10 @@
       // B. THE CRADLES: the deep rate on the counter screen (the first game's EV.deepRate, its words), the die pinned; a whip, the fight on the floor at the cradle
       var wetX = function (flags, at8, more) { HX.cur.flags = Object.assign({ tallyMet: 1 }, flags || {}); var B = houseFloorX('?roam=wet&watch' + (more || ''), at8); B.roam.encIn = 1e9; return B; };
       var BD = wetX({}, [15, 7]), RD = BD.roam, qD = D.roam.def.from8(15, 6), trD = RX.useAt(BD, qD[0], qD[1]), d20X = RX.d20;
-      function talkX(g, ans) { var seen = []; driveX(g, function () { return D.top() instanceof CX.Counter; }, 600); var sc = D.top(); if (!(sc instanceof CX.Counter)) return { sc: null, seen: '' }; ans = (ans || []).slice();
+      function answerX(sc, ans) { var seen = []; ans = (ans || []).slice();
         for (var k = 0; k < 40 && !sc.done; k++) { var w = sc.wait || {}, bs = sc.buttons(); seen = seen.concat(w.say || w.ask || []); if (w.ask) { var a = ans.length ? ans.shift() : w.opts.length - 1; seen.push('> ' + w.opts[a]); sc.press(bs.filter(function (b) { return b.go === 'opt' && b.k === a; })[0]); } else if (bs[0]) sc.press(bs[0]); else break; }
-        return { sc: sc, seen: seen.join(' / ') }; }
+        return seen.join(' / '); }
+      function talkX(g, ans) { driveX(g, function () { return D.top() instanceof CX.Counter; }, 600); var sc = D.top(); if (!(sc instanceof CX.Counter)) return { sc: null, seen: '' }; return { sc: sc, seen: answerX(sc, ans) }; }
       RX.d20 = function () { return 15; }; var sD0 = RD.silver, gD = RX.fire(BD, trD, qD), tkD = talkX(gD, [0, 0]); driveX(gD, null, 400); RX.d20 = d20X;
       okX('a cradle (8-bit 15,6), E: the deep station on the counter screen (' + (tkD.sc && tkD.sc.o.name) + '), the first game\'s words -- "' + tkD.seen.slice(0, 120) + '..."; six thimbles at the deep rate, the die at 15: +' + (RD.silver - sD0) + ' sp, deepShifts ' + RD.flags.deepShifts,
         trD && trD.id === 'deepCradle0' && !!tkD.sc && tkD.seen.indexOf(CX.L('w.deepAsk')) >= 0 && tkD.seen.indexOf('> WORK THE DEEP RATE') >= 0 && RD.silver - sD0 === 18 && RD.flags.deepShifts === 1 && RD.mode === 'walk');
@@ -3056,6 +3057,21 @@
       var BF = wetX({}, [15, 7]), RF = BF.roam, uF = RF.token, idF = function (h) { return h; }; BF.cards = [];
       RX.menuAct(BF, 'cast', { h: uF, sp: window.DS.DATA.spells.light, t: uF }, idF); RX.menuAct(BF, 'item', { id: 'katbook', h: uF }, idF);
       okX('the M menu on the Wet: Light cast on ' + uF.name + ' (conds.light ' + !!(uF.conds && uF.conds.light) + '), Katarina\'s book opened (' + cardsX(BF).slice(0, 80) + '...)', !!(uF.conds && uF.conds.light) && /KATARINA|BOOK/i.test(cardsX(BF)) && !/field menu/.test(cardsX(BF)));
+      // F. THE LANTERN MAN (his "send a warning with a lantern man ... when they've killed (I think 3 out of 6 before trigger?)"): two of the herd dead, nobody comes; the third,
+      // Jory Slade down the stalls' stair with a lantern lit, to the party, Skarn's word on the counter screen, then back up; once, and never on the test door
+      HX.cur.kills = { crawler: 2 }; var BL = wetX({}, [6, 12]), RL = BL.roam; driveX(BL.co, null, 60);
+      okX('two of the herd dead (' + RX.herdDead(RL) + ' of ' + RX.HERD + ', the knob R.WARN_AT ' + RX.WARN_AT + '): nobody comes down', !RL.jory && !RL.flags.herdWarned && D.top() === BL);
+      RL.kills.crawler = 3; driveX(BL.co, function () { return !!RL.jory; }, 60); var jL = RL.jory, litL = !!(jL && jL.torch && jL.torch.lit !== false), j0L = jL ? [jL.x, jL.y] : null;
+      okX('the third: "' + RX.JORY.come.slice(3, 60) + '..." -- ' + (jL && jL.name) + ' on the floor, his lantern lit (' + litL + '), from ' + j0L, !!jL && jL.npc === 'jory' && litL && BL.units.indexOf(jL) >= 0 && RL.flags.herdWarned === 1 && cardsX(BL).indexOf(RX.JORY.come) >= 0);
+      driveX(BL.co, function () { return D.top() instanceof CX.Counter; }, 3000); var scL = D.top(), byL = jL ? Math.max(Math.abs(jL.x - RL.token.x), Math.abs(jL.y - RL.token.y)) : 99, seenL = scL instanceof CX.Counter ? answerX(scL, [1]) : '';
+      okX('he walks to the party (beside the token: ' + byL + ' square), and his word on the counter screen (' + (scL && scL.o && scL.o.name) + '): "' + seenL.slice(0, 200) + '..."',
+        scL instanceof CX.Counter && byL <= 1 && seenL.indexOf(RX.JORY.who) >= 0 && seenL.indexOf('three of the stock') >= 0 && seenL.indexOf(RX.JORY.word) >= 0 && seenL.indexOf('> ' + RX.JORY.no) >= 0 && seenL.indexOf(RX.JORY.noSaid) >= 0);
+      driveX(BL.co, function () { return !RL.jory; }, 600);
+      okX('then back up the stair, gone off the floor (' + BL.units.indexOf(jL) + '), the party walking again (' + RL.mode + ')', !RL.jory && BL.units.indexOf(jL) < 0 && RL.mode === 'walk' && D.top() === BL);
+      RL.kills.crawler = 4; driveX(BL.co, null, 80);
+      okX('the fourth: he comes once (nobody down again)', !RL.jory && D.top() === BL);
+      var BT = RX.make('?roam=wet&watch'); D.push(BT); BT = topX(); BT.roam.kills = { crawler: 5 }; driveX(BT.co, null, 80);
+      okX('the test door (?roam=wet, no house): no lantern man, the floor\'s own test', !BT.roam.jory && !BT.roam.flags.herdWarned);
       // E. THE SHOW (deep16/?wetshow, the eyes row's door): each beat stands a NEW GAME on its floor, on its square
       var shX = RX.wetShow('?wetshow'), bxX = RX.WET_BEATS.map(function (bt) { D.scenes.length = 0; D.push(RX.wetShow('?wetshow&beat=' + bt.id)); D.top().update(); var B = topX(), want = bt.key ? bt.at : D.roam.def.from8(bt.at[0], bt.at[1]);
         return bt.id + (B && B.roam && RX.house() && B.roam.token.x === want[0] && B.roam.token.y === want[1] && (bt.key ? D.roam.def.key === bt.key : !!D.roam.def.wet) && B.roam.flags.tallyMet === 1 ? '' : ' (not staged)'); });
