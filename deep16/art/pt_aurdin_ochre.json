@@ -1,0 +1,24 @@
+{
+ "image": "art/pt_aurdin_ochre.png",
+ "fw": 80,
+ "fh": 72,
+ "ax": 40,
+ "ay": 72,
+ "top": 72,
+ "portrait": true,
+ "still": true,
+ "figure": "aurdin_p2",
+ "art": "ART-72",
+ "anims": {
+  "idle": {
+   "y": 0,
+   "fw": 80,
+   "fh": 72,
+   "ax": 40,
+   "ay": 72,
+   "frames": 1,
+   "fps": 1
+  }
+ },
+ "source": "deep16/_src/aurdin/ART-72/ART-72_16BIT_HEAD-1_PAGE-1.png (the art desk's ART-72, its portrait), cut by tools/hero-portrait.py, mirrored"
+}

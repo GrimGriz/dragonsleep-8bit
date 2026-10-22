@@ -1,0 +1,24 @@
+{
+ "image": "art/pt_aurdin_red.png",
+ "fw": 80,
+ "fh": 70,
+ "ax": 40,
+ "ay": 70,
+ "top": 70,
+ "portrait": true,
+ "still": true,
+ "figure": "aurdin_p3",
+ "art": "ART-73",
+ "anims": {
+  "idle": {
+   "y": 0,
+   "fw": 80,
+   "fh": 70,
+   "ax": 40,
+   "ay": 70,
+   "frames": 1,
+   "fps": 1
+  }
+ },
+ "source": "deep16/_src/aurdin/ART-73/ART-73_16BIT_HEAD-1_PAGE-1.png (the art desk's ART-73, its portrait), cut by tools/hero-portrait.py, mirrored"
+}

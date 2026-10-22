@@ -10072,6 +10072,54 @@ true
 "door": "keeper:androit",
 "source": "deep16/_src/androit/ART-80 (the art desk's ART-80, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
 },
+"pt_aurdin_ochre": {
+"image": "art/pt_aurdin_ochre.png?v=1a8b63dfd1",
+"fw": 80,
+"fh": 72,
+"ax": 40,
+"ay": 72,
+"top": 72,
+"portrait": true,
+"still": true,
+"figure": "aurdin_p2",
+"art": "ART-72",
+"anims": {
+"idle": {
+"y": 0,
+"fw": 80,
+"fh": 72,
+"ax": 40,
+"ay": 72,
+"frames": 1,
+"fps": 1
+}
+},
+"source": "deep16/_src/aurdin/ART-72/ART-72_16BIT_HEAD-1_PAGE-1.png (the art desk's ART-72, its portrait), cut by tools/hero-portrait.py, mirrored"
+},
+"pt_aurdin_red": {
+"image": "art/pt_aurdin_red.png?v=5987970686",
+"fw": 80,
+"fh": 70,
+"ax": 40,
+"ay": 70,
+"top": 70,
+"portrait": true,
+"still": true,
+"figure": "aurdin_p3",
+"art": "ART-73",
+"anims": {
+"idle": {
+"y": 0,
+"fw": 80,
+"fh": 70,
+"ax": 40,
+"ay": 70,
+"frames": 1,
+"fps": 1
+}
+},
+"source": "deep16/_src/aurdin/ART-73/ART-73_16BIT_HEAD-1_PAGE-1.png (the art desk's ART-73, its portrait), cut by tools/hero-portrait.py, mirrored"
+},
 "pt_barber": {
 "image": "art/pt_barber.png?v=38daba79df",
 "fw": 153,

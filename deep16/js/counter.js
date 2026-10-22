@@ -396,7 +396,9 @@
     var W8 = D.WIN8, h = this.hero, w = this.wait || {}, bs = this.bubbling() ? this.bubbleButtons() : null;
     D.win8(ctx, HB.x, HB.y, HB.w, HB.h, '#0b1430');
     ctx.save(); ctx.beginPath(); ctx.rect(HB.x + 3, HB.y + 3, HB.w - 6, HB.h - 20); ctx.clip();
-    C.drawHeroFace(ctx, h, HB.x + 3, HB.y + 3, HB.w - 6, HB.h - 20, this.t);
+    var pt = C.heroPortrait(h);
+    if (pt) C.drawPortrait(ctx, pt, 'idle', 0, HB.x + HB.w / 2, HB.y + HB.h - 17); // (his portrait, its cut edge on the name strip; nothing the frame it loads)
+    else C.drawHeroFace(ctx, h, HB.x + 3, HB.y + 3, HB.w - 6, HB.h - 20, this.t);
     ctx.restore();
     D.text(ctx, '{y}' + h.name + '{/}', HB.x + HB.w / 2, HB.y + HB.h - 14, W8.text, 'center');
     var echo = !bs && w.say && this.echo, bh = bs ? bs[bs.length - 1].y + bs[bs.length - 1].h + 5 - BB.y : echo ? 8 + echo.length * 10 : 0;
@@ -410,8 +412,12 @@
     ctx.lineTo(x + 4, y + h - 0.5); ctx.lineTo(x + 0.5, y + h - 4); ctx.lineTo(x + 0.5, y + 22); ctx.lineTo(x - 9, y + 15); ctx.lineTo(x + 0.5, y + 9); ctx.lineTo(x + 0.5, y + 4); ctx.closePath();
     ctx.fill(); ctx.stroke();
   }
-  // a hero's face, till the heroes have portraits of their own (none yet): the figure the hero wears on the floor (js/save.js SV.look -- Aurdin's mantle by his robe),
-  // turned to the keeper (south-east), head and shoulders at HERO_FACE.zoom, breathing in its idle
+  // a hero's portrait by the figure the hero wears (js/save.js SV.look): the big bust on the first page of the art desk's package, a still (tools/hero-portrait.py;
+  // 10-22, Griz: "The first page of the characters stuff was supposed to have a big one, if you can find that use the one based on the outfit he's in") --
+  // Aurdin's Red Mantle out of robes, his Ochre in them
+  C.HERO_PT = { aurdin_p3: 'pt_aurdin_red', aurdin_p2: 'pt_aurdin_ochre' };
+  C.heroPortrait = function (h) { var pt = C.HERO_PT[C.heroSheet(h)]; return pt && D.SHEETS && D.SHEETS[pt] ? pt : null; };
+  // a hero with no portrait: the figure the hero wears on the floor, turned to the keeper (south-east), head and shoulders at HERO_FACE.zoom, breathing in its idle
   C.HERO_FACE = { facing: 7, zoom: 3, anim: 'idle', above: 4 }; // (at 2 the whole figure shows small; at 3 the head and the mantle: the seat's eye, 10-22)
   C.heroSheet = function (h) { var id = h.key || h.id, L0 = D.save && D.save.look ? D.save.look(id, null, h) : null; return (L0 && L0.sheet) || id + '_p0'; };
   C.drawHeroFace = function (ctx, h, x, y, w, hh, t) {
@@ -757,7 +763,8 @@
   // ---------------------------------------------------------------- Ned's scene, shown (deep16/?nedshow -- the eyes row's door, 10-21 night): every branch of C.ned staged
   // on his own counter screen, the Insight's die pinned; pick a beat, play it by the mouse, X back to the beats. &beat=<id> opens one
   C.NED_BEATS = [
-    { id: 'bluff', label: 'THE BLUFF: Yes., then Yes. -- "Show me."', note: 'Aurdin bottom left, his answers in his bubble. He laughs; talk again: the harvest line, till you leave.', d20: 3, again: true },
+    { id: 'bluff', label: 'THE BLUFF: Yes., then Yes. -- "Show me."', note: 'Aurdin bottom left in his Red Mantle\'s portrait, his answers in his bubble. He laughs; talk again: the harvest line.', d20: 3, again: true },
+    { id: 'robes', label: 'IN HIS ROBES: the Ochre Mantle\'s portrait', note: 'Wizard\'s Robes on: the portrait is the Ochre\'s, as his figure on the floor is.', d20: 3, robe: 'robes' },
     { id: 'no', label: 'NO: what a familiar is for, his story, the sale', note: '"I decided to stick around." stays up while Aurdin answers; Fifty it is.: a copied page, the sheet.', d20: 3, silver: 60 },
     { id: 'insight', label: 'THE INSIGHT MADE (the die 15)', note: 'Because the components are fascinating? (insight), in its own colour: the quest offered -- Deal.', d20: 15 },
     { id: 'stays', label: 'TURNED DOWN BEFORE: the choice stays', note: 'A later visit: his story heard, the Insight made once; no roll, the choice is there.', d20: 1, flags: { nedStory: 1, nedSaw: 1 } },
@@ -774,6 +781,7 @@
   C.nedStage = function (bt) { // a beat's party, purse, pack and flags -- the second game's start (js/house.js H.start), the beat's own on top
     var R = DS.R, party = ['barley', 'aurdin', 'vivian', 'lymen'].filter(function (id) { return (bt.away || []).indexOf(id) < 0; }).map(function (id) { var h = R.makeHero(id); return D.house && D.house.start ? D.house.start(h) : h; });
     if (bt.knows) party.forEach(function (h) { if (h.id === 'aurdin') h.known.push(C.NED.spell); });
+    if (bt.robe) party.forEach(function (h) { if (h.id === 'aurdin') h.equip.armor = bt.robe; }); // (the look by what he wears: js/save.js SV.look)
     return { roam: { flags: Object.assign({}, bt.flags || {}), members: party, silver: bt.silver != null ? bt.silver : 20 }, inv: (bt.inv || []).map(function (s) { return { id: s[0], n: s[1] }; }), townAway: {}, show: bt.id };
   };
   C.nedTalk = function (B) { return new Counter(B, { id: 'ned', name: 'Ned Halloway', place: 'Percy\'s Particulars', what: 'Ned Halloway, behind the counter', script: function (sc) { return C.ned(sc, B); } }); };
