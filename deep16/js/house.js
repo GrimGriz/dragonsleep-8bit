@@ -46,13 +46,16 @@
     return rec;
   };
   // a game begun or loaded: THE WORLD under it (its clock and hex the save's), and the town on top if that is where they stood
-  H.begin = function (rec, slot) {
+  H.begin = function (rec, slot, q) { // (q: the door's own words for THE WORLD -- &at=, &tiles, &noenc, &tops: H.worldDoor)
     H.cur = H.fill(rec); H.slot = slot || 0; H.playing = true;
     DS.G = { flags: rec.flags }; // (the rules read the save's flags: js/rules.js R.cap)
     D.scenes.length = 0;
-    D.push(D.world.make('?house'));
+    D.push(D.world.make('?house' + (q ? '&' + String(q).replace(/^\?/, '') : '')));
     if (rec.at && rec.at.town) H.toTown(rec.at.town, rec.at.gate || 'west', rec.at.sq, rec.at.dir);
   };
+  // THE WORLD's door (10-22, his "M - menu isn't available", played on deep16/?world -- a door with no party, so no menu, its walk camping on its own): deep16/?world is
+  // a NEW GAME's four standing on THE WORLD at Silverton's hex, not saved till SAVE -- M, CAMP, the day's march and the night as the game has them; &bare is the old door
+  H.worldDoor = function (q) { var rec = H.fresh(); rec.at = { town: null }; H.begin(rec, 0, q); };
   H.siteOf = function (id) { var M = D.world.M(); return M ? M.sites.filter(function (s) { return s.id === id; })[0] || null : null; };
   // into a town by a gate (or onto the square it was saved on): the floor takes the save's party, pack and flags as the 8-bit's party walked in (js/roam.js R.make's emb)
   H.toTown = function (id, gate, sq, dir) {
@@ -138,24 +141,28 @@
   };
   H.living = function (rec) { return Object.assign({}, rec, { party: rec.party.filter(function (h) { return !h.dead; }) }); }; // (the party a fight or a floor takes: the dead stay behind)
   H.hexCost = function (st) { return Math.max(1, Math.round(st.going || 1)); };
+  // a step's share of the day's march: a hex its cost, a top-down tile its share of a hex (st.share: its miles and going over the hex's 5 -- js/overworld.js; till 10-22
+  // the top-down walk kept hours and camped on its own past 8, the night's watches skipped: his "moving seems to be auto-camping")
+  H.marchCost = function (st) { return st.share != null ? st.share : H.hexCost(st); };
+  H.hexes = function (n) { return Math.round((n || 0) * 10) / 10; }; // (the day's count as said: a tile's tenths)
   H.pace = function () { var x = 0; H.cur.party.forEach(function (h) { if (!h.dead) x = Math.max(x, exh(h)); }); return x >= 5 ? 0 : x >= 2 ? 0.5 : 1; };
   // before a step (js/world.js World.stepWalk): true if the walk stops here -- too worn to walk, or the day's march walked and no word yet to push on
-  H.marchAsk = function (scene, st, w) {
-    var W = D.world, S = W.state();
+  H.marchAsk = function (scene, st, w, resume) { // (resume(path): the walk taken up again on PUSH ON -- the hex view's by default, the top-down view's its own)
+    var W = D.world, S = W.state(); resume = resume || function (p) { scene.walk = { path: p, f: 0 }; };
     if (!H.pace()) { scene.walk = null; scene.say('Exhausted past walking: the party can go no further till it rests.'); return true; }
-    if ((S.todayHex || 0) + H.hexCost(st) <= H.DAYHEX || S.pushing) return false;
+    if ((S.todayHex || 0) + H.marchCost(st) <= H.DAYHEX + 1e-9 || S.pushing) return false;
     var path = w.path.slice(); scene.walk = null;
-    scene.card(['{y}THE DAY\'S MARCH IS WALKED{/} (' + (S.todayHex || 0) + ' hexes), ' + W.timeOfDay() + '.', 'Push on: each hex past ' + H.DAYHEX + ', a CON save for everyone (DC 10 + 1 a hex past);', 'a failure, a level of exhaustion.', '', D.keys('{g}E{/}: push on    {g}R{/}: make camp    {g}X{/}: stay')], null,
-      [['a', function () { S.pushing = true; scene.walk = { path: path, f: 0 }; }, 'PUSH ON'], ['rec', function () { H.night(scene); }, 'MAKE CAMP'], ['b', function () { scene.say('The party stands where it is, ' + W.timeOfDay() + '.'); }, 'STAY']]);
+    scene.card(['{y}THE DAY\'S MARCH IS WALKED{/} (' + H.hexes(S.todayHex) + ' hexes), ' + W.timeOfDay() + '.', 'Push on: each hex past ' + H.DAYHEX + ', a CON save for everyone (DC 10 + 1 a hex past);', 'a failure, a level of exhaustion.', '', D.keys('{g}E{/}: push on    {g}R{/}: make camp    {g}X{/}: stay')], null,
+      [['a', function () { S.pushing = true; resume(path); }, 'PUSH ON'], ['rec', function () { H.night(scene); }, 'MAKE CAMP'], ['b', function () { scene.say('The party stands where it is, ' + W.timeOfDay() + '.'); }, 'STAY']]);
     return true;
   };
   H.marchHours = function (st) { return st.h / (H.pace() || 1); };
   // after a step: the day's hexes counted, the forced march's saves for each hex past. Returns the lines, or null if the march killed them all (the title)
   H.marchStep = function (st) {
-    var R = DS.R, S = D.world.state(), before = S.todayHex || 0, cost = H.hexCost(st), lines = [];
+    var R = DS.R, S = D.world.state(), before = S.todayHex || 0, cost = H.marchCost(st), lines = [];
     S.todayHex = before + cost;
-    for (var i = 1; i <= cost; i++) {
-      var past = before + i - H.DAYHEX; if (past <= 0) continue;
+    for (var n = Math.floor(before + 1e-9) + 1; n <= Math.floor(before + cost + 1e-9); n++) { // (each whole hex the step completes: a tile's tenths add up to one)
+      var past = n - H.DAYHEX; if (past <= 0) continue;
       var dc = 10 + past;
       H.cur.party.forEach(function (h) {
         if (h.dead || down(h)) return; // (the fallen are carried)
@@ -168,7 +175,7 @@
   };
   // the card THE WORLD stops the walk on when a save is lost (js/world.js stepWalk): each failure on two lines, its roll, then the level and what it does
   H.marchCard = function (lines) {
-    var out = ['{r}THE FORCED MARCH{/} (' + (D.world.state().todayHex || 0) + ' hexes today)', ''];
+    var out = ['{r}THE FORCED MARCH{/} (' + H.hexes(D.world.state().todayHex) + ' hexes today)', ''];
     lines.forEach(function (l) { var i = l.indexOf('): '); if (i < 0) out.push(l); else out.push(l.slice(0, i + 2), '{y}' + l.slice(i + 3) + '{/}'); });
     return out;
   };

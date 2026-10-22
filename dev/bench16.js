@@ -2396,6 +2396,78 @@
     document.body.appendChild(preS);
     return;
   }
+  // THE WORLD to his notes of 10-22 (mode=world1022; js/world.js, js/worldfine.js, js/overworld.js, js/house.js H.worldDoor and H.marchCost -- Griz, after walking
+  // deep16/?world&fine: "The 330 ft land, raised is best" / "Right now moving seems to be auto-camping" / "M - menu isn't available" / "going up to the doors strands
+  // you there, remove the option for now"): the land by default, F to the tops and the choice kept; deep16/?world a NEW GAME's four on THE WORLD, M walking or not;
+  // no walk camps on its own -- the house's march asks in both views, a top-down tile its share of a hex, and the bare door's day asks; no road up to The DOORS
+  if (get('mode', '') === 'world1022') {
+    var repX = { checks: [], errors: [] }, memX = {}, stGX = D.store.get, stSX = D.store.set, HX = D.house, WX = D.world, FX = WX.FINE;
+    function okX(what, v) { repX.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function keyX(sc, k) { D.input.edge = {}; D.input.edge[k] = true; try { sc.update(); } finally { D.input.edge = {}; } }
+    function cardX(sc, re) { var c = sc.cards[0]; return c && re.test(c.lines[0]) ? c : null; }
+    D.store.get = function (k) { return memX[k] ? JSON.parse(memX[k]) : null; }; D.store.set = function (k, v) { memX[k] = JSON.stringify(v); return true; };
+    window.DS.autoPicks = true;
+    try {
+      D.seed = +get('seed', 1022);
+      var MX = (WX.index(), WX.M()), DX = [[1, 0], [-1, 0], [0, -1], [1, -1], [-1, 1], [0, 1]], onStepX = WX.onStep; WX.onStep = null; // (no road fights on these walks)
+      var nbX = function (at) { return DX.map(function (d) { return [at[0] + d[0], at[1] + d[1]]; }).filter(function (n) { return WX.stepHours(at, n); }); };
+      // 1. THE LAND, RAISED by default; F the hex tops, kept
+      var wa = WX.make('?world&fresh&noenc'); D.scenes.length = 0; D.push(wa);
+      okX('THE WORLD opens on the land, raised (his "The 330 ft land, raised is best"): F.on ' + FX.on + ', its file ' + FX.st, !!wa.fineDoor && FX.on === true && !!FX.st);
+      keyX(wa, 'dice'); okX('F: the hex tops, the choice kept (' + memX[FX.KEY] + ')', FX.on === false && memX[FX.KEY] === '"tops"');
+      var wb = WX.make('?world&fresh&noenc'); D.scenes.length = 0; D.push(wb); var keptX = FX.on;
+      okX('the next opening keeps the tops (' + keptX + '); &fine opens on the land, &tops on the tops', keptX === false && !!FX.start && FX.start('?world&fine') === true && FX.start('?world&tops') === false);
+      FX.on = false; keyX(wb, 'dice'); okX('F again: the land, kept (' + memX[FX.KEY] + ')', FX.on === true && memX[FX.KEY] === '"land"');
+      // 2. deep16/?world: a NEW GAME's four on THE WORLD
+      if (HX.worldDoor) HX.worldDoor('?world&fresh&noenc'); else { var rX = HX.fresh(); rX.at = { town: null }; HX.begin(rX, 0); okX('H.worldDoor: none', false); } // (else the game as NEW GAME begins it, so the checks below run on an older js/house.js)
+      var wd = D.top(), SD = WX.state();
+      okX('deep16/?world: a NEW GAME\'s four on THE WORLD (' + D.scenes.map(function (s) { return s.kind; }).join(' > ') + ') at Silverton\'s hex ' + SD.at + ', in no town, the house playing, the door\'s words kept (' + wd.q + ')',
+        wd.kind === 'world' && D.scenes.length === 1 && HX.playing && WX.house() && !HX.cur.at.town && HX.cur.party.length === 4 && SD.at.join() === WX.startHex().join() && /noenc/.test(wd.q));
+      // 3. M: the party's menu, walking or not
+      keyX(wd, 'menu'); okX('M: the party\'s menu on THE WORLD (' + (wd.pm ? 'open' : 'none') + ')', !!wd.pm); wd.pm = null;
+      var nX = nbX(SD.at), n2X = nX[0] && nbX(nX[0]).filter(function (n) { return n.join() !== SD.at.join(); })[0];
+      wd.walk = { path: [nX[0]], f: 5 }; keyX(wd, 'menu'); var fM = wd.walk && wd.walk.f; wd.update(); var fM2 = wd.walk && wd.walk.f;
+      okX('M while walking (his "M - menu isn\'t available"): the menu opens and the walk waits under it (the step\'s frame ' + fM + ', then ' + fM2 + ')', !!wd.pm && fM === 5 && fM2 === 5);
+      wd.pm = null; wd.update(); okX('the menu shut, the walk goes on (frame ' + (wd.walk && wd.walk.f) + ')', !!wd.walk && wd.walk.f === 6); wd.walk = null;
+      // 4. the house's hex view: past the day's march it asks, no camp
+      SD.todayHex = 5; SD.today = 8.3; SD.pushing = false; var tX = SD.t; wd.cards = []; wd.walk = { path: [nX[0], n2X], f: 0 }; wd.update(); var cX = cardX(wd, /DAY'S MARCH/);
+      okX('the house, the hexes: past the day\'s five THE WORLD asks (' + (cX ? cX.lines[0] : 'no card') + '), the clock where it was, no camp', !!cX && SD.t === tX && !wd.walk);
+      if (cX) { wd.cards.shift(); cX.keys[0][1](); } okX('PUSH ON takes the walk up again (' + (wd.walk ? wd.walk.path.length + ' hexes' : 'none') + ')', !!wd.walk && wd.walk.path.length === 2); wd.walk = null; wd.cards = [];
+      // 5. the top-down view in the house: the march by the day's hexes, a tile its share of one; SPACE the camp's card
+      var xt = new XMLHttpRequest(); xt.open('GET', '../deep16/data/world-tiles.js', false); xt.send(); (0, eval)(xt.responseText);
+      var openX = Object.keys(MX.hex).map(function (k) { return MX.hex[k]; }).filter(function (e) { var k = WX.K(e.q, e.r); return /^(farms|plains|verge)$/.test(e.t) && !MX.siteAt[k] && !MX.road[k] && nbX([e.q, e.r]).length === 6 && nbX([e.q, e.r]).every(function (n) { return !MX.siteAt[WX.K(n[0], n[1])]; }); }).sort(function (a, b) { return Math.abs(a.q - 20) + Math.abs(a.r - 7) - Math.abs(b.q - 20) - Math.abs(b.r - 7); })[0];
+      SD.at = [openX.q, openX.r]; SD.pos = null; SD.todayHex = 0; SD.today = 0; SD.pushing = false; WX.OV.open(wd); var ovX = wd.ov;
+      okX('the top-down view opens (' + wd.view + ') on ' + MX.terr[openX.t].name + ' at ' + SD.at, wd.view === 'tiles' && !!ovX);
+      var p0X = WX.OV.tileOf(SD.pos), tbX = [[1, 0], [-1, 0], [0, 1], [0, -1]].map(function (d) { return [p0X[0] + d[0], p0X[1] + d[1]]; }).filter(function (b) { return WX.OV.step(p0X, b) && WX.OV.step(b, p0X); })[0], pathX = [];
+      for (var iX = 0; iX < 10; iX++) pathX.push(iX % 2 ? p0X.slice() : tbX.slice());
+      ovX.walk = { path: pathX, f: 0 }; for (var fX = 0; fX < 400 && ovX.walk; fX++) wd.update();
+      okX('ten tiles walked: the day\'s march counts them as their share of a hex (' + (Math.round((SD.todayHex || 0) * 10) / 10) + ' hexes for ' + SD.today.toFixed(2) + ' hours)', !ovX.walk && SD.todayHex > 0.9 && Math.abs(SD.todayHex - SD.today * WX.PACE / MX.w) < 1e-6);
+      SD.todayHex = 4.95; SD.today = 8.25; SD.pushing = false; tX = SD.t; wd.cards = []; ovX.walk = { path: [tbX.slice(), p0X.slice()], f: 0 }; wd.update(); cX = cardX(wd, /DAY'S MARCH/);
+      okX('the top-down view past the day\'s march asks too (' + (cX ? cX.lines[0] : 'no card') + '): no camp on its own, the night\'s watches not skipped (the clock ' + (SD.t === tX ? 'where it was' : 'moved ' + (SD.t - tX).toFixed(1) + ' h') + ')', !!cX && SD.t === tX && !ovX.walk);
+      if (cX) { wd.cards.shift(); cX.keys[0][1](); } okX('PUSH ON there takes the top-down walk up again', !!ovX.walk && ovX.walk.path.length === 2); ovX.walk = null; wd.cards = [];
+      tX = SD.t; keyX(wd, 'end'); cX = cardX(wd, /CAMP/); okX('SPACE on the top-down view: the house\'s camp card (' + (cX ? cX.lines[0] : 'no card') + '), the night not had without its watches', !!cX && SD.t === tX); wd.cards = [];
+      WX.OV.close(wd);
+      okX('the way\'s camps counted as the house asks them: by the day\'s hexes (W.route\'s march ' + (WX.route(SD.at, nX[0] || SD.at) || {}).march + ')', (WX.route(SD.at, nbX(SD.at)[0]) || {}).march >= 1);
+      // 6. the bare door (&bare: no party): the day's walk asks; M says the menu is the game's
+      HX.playing = false; HX.cur = null;
+      var wn = WX.make('?world&fresh&noenc'); D.scenes.length = 0; D.push(wn); var SB = WX.state(), nB = nbX(SB.at)[0];
+      SB.today = 7; SB.pushing = false; var tB = SB.t; wn.walk = { path: [nB], f: 0 }; wn.update(); cX = cardX(wn, /DAY'S WALK/);
+      okX('the bare door past the day\'s 8 hours asks (' + (cX ? cX.lines[0] + ': ' + cX.keys.map(function (k) { return k[2]; }).join(', ') : 'no card') + '), no camp on its own', !!cX && SB.t === tB && !wn.walk && cX.keys[0][2] === 'WALK ON' && cX.keys[1][2] === 'MAKE CAMP');
+      if (cX) { wn.cards.shift(); cX.keys[0][1](); } for (var fB = 0; fB < 80 && wn.walk; fB++) wn.update();
+      okX('WALK ON: the hex walked past the 8 hours (' + SB.today.toFixed(1) + ' walked, at ' + SB.at + ')', SB.pushing && SB.today > 8 && SB.at.join() === nB.join());
+      keyX(wn, 'menu'); okX('M on the bare door says where the menu is (' + (wn.msg && wn.msg.s) + ')', !!wn.msg && /menu/.test(wn.msg.s) && !wn.pm);
+      // 7. The DOORS: no road up offered; a party left there brought down
+      var jX = MX.sites.filter(function (s) { return s.id === 'jct'; })[0], dX = MX.sites.filter(function (s) { return s.id === 'smvbknjci'; })[0];
+      SB.at = jX.hex.slice();
+      okX('no road up into the mountains (his "going up to the doors strands you there, remove the option for now"): ' + MX.routes.length + ' offered, ' + (MX.held || []).length + ' held; none at ' + jX.name, MX.routes.length === 0 && (MX.held || []).length === 1 && !wn.routeHere());
+      var wD = WX.make('?world&fresh&noenc&at=' + dX.hex.join(',')); D.scenes.length = 0; D.push(wD); var aD = WX.state().at;
+      okX('a party left at ' + dX.name + ' is brought down (' + WX.unstuck + ', to ' + aD + ')', !!WX.unstuck && aD.join() !== dX.hex.join() && WX.walkable(WX.hexAt(aD[0], aD[1])) && nbX(aD).length > 0);
+    } catch (eX) { repX.errors.push(String(eX && eX.stack || eX).slice(0, 900)); }
+    if (onStepX) WX.onStep = onStepX; D.store.get = stGX; D.store.set = stSX; window.DS.autoPicks = false; if (D.house) { D.house.playing = false; D.house.cur = null; }
+    var preX = document.createElement('pre'); preX.id = 'out'; preX.textContent = 'BENCH16 ' + JSON.stringify(repX);
+    document.body.appendChild(preX);
+    return;
+  }
   // THE SECOND GAME's house, 10-21 (mode=house1021; js/house.js, ..\handoff-2026-10-21-the-second-games-house.md -- RULED 10-21, Griz: "2 sounds problematic - the rest
   // sound good"): one save of its own in three slots, nothing of the Pocket DM's touched; NEW GAME walks the four in at Silverton's west gate; SAVE in town keeps the
   // square and the wounds; out by a road to THE WORLD with the same party; a road fight takes it and gives it back, XP banked and no level till the long rest; camp is

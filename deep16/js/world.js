@@ -21,7 +21,7 @@
     mouth: { roam: 'galleries', gates: { east: [1, 0], south: [0, 1], west: [-1, 0] } }, // (the Guano Galleries' mouth, its top floor on the town's tiles: js/mines.js, 10-21 night)
     warrens: { roam: 'warrens', gates: { feed: [1, 0] } }, // (the Crawler Warrens' mouth camp: no site of its own -- Silverton's feed track opens it, js/mines.js; here so the house's save loads there)
     glowseep: { roam: 'glowseep', gates: { east: [1, 0], north: [0, -1], south: [0, 1] } } }; // (the Glowseep: the light-crews' ground by the mile, its camp and its fights -- js/mines.js, 10-21 night)
-  W.KEY = 'deep16.world';
+  W.KEY = 'deep16.world'; W.ROUTES_ON = false; // (the roads up into the mountains, held: W.index)
 
   // ---------------------------------------------------------------- the baked world, indexed (the hex map's axial pointy-top hexes; a step is a neighbour)
   var M = null;
@@ -50,12 +50,13 @@
     });
     B.sites.forEach(function (s) { var k = K(s.hex[0], s.hex[1]); (m.siteAt[k] = m.siteAt[k] || []).push(s); });
     // the roads up into the mountains (his, 10-20: "the coldridge route as a roam probably"): a door at each end, crossed in the road's ruled days till its
-    // roam is built (the Coldridge Route, the Galleries junction to The DOORS: 3 days, RULED 10-17)
-    m.routes = [];
+    // roam is built (the Coldridge Route, the Galleries junction to The DOORS: 3 days, RULED 10-17). HELD 10-22 (his "going up to the doors strands you there,
+    // remove the option for now"): no road up is offered, so nothing reaches The DOORS -- m.held keeps them, W.ROUTES_ON brings them back
+    m.routes = []; m.held = [];
     B.paths.forEach(function (P) {
       if (!/coldridge/i.test(P.name || '') || !P.ends) return;
       var a = B.sites.filter(function (s) { return s.id === P.ends[0]; })[0], b = B.sites.filter(function (s) { return s.id === P.ends[1]; })[0];
-      if (a && b) m.routes.push({ P: P, ends: [a, b], days: 3, name: 'the Coldridge Route' });
+      if (a && b) (W.ROUTES_ON ? m.routes : m.held).push({ P: P, ends: [a, b], days: 3, name: 'the Coldridge Route' });
     });
     // each hex lit once (light from the north-west, high: 1 on the flat), as the hex map's world look lights it
     Object.keys(m.hex).forEach(function (k) {
@@ -83,18 +84,18 @@
   // the quickest way there (Dijkstra over the painted hexes; the world is a few thousand)
   W.route = function (from, to) {
     var start = K(from[0], from[1]), goal = K(to[0], to[1]); if (start === goal || !M.hex[goal] || !W.walkable(M.hex[goal])) return null;
-    var dist = {}, hrs = {}, prev = {}, open = [[0, from[0], from[1]]], done = {}; dist[start] = 0; hrs[start] = 0;
+    var dist = {}, hrs = {}, mc = {}, prev = {}, open = [[0, from[0], from[1]]], done = {}; dist[start] = 0; hrs[start] = 0; mc[start] = 0; // (mc: THE MARCH's hexes -- js/house.js H.hexCost)
     while (open.length) {
       var bi = 0; for (var i = 1; i < open.length; i++) if (open[i][0] < open[bi][0]) bi = i;
       var cur = open.splice(bi, 1)[0], ck = K(cur[1], cur[2]); if (done[ck]) continue; done[ck] = 1; if (ck === goal) break;
       for (var d = 0; d < 6; d++) {
         var n = [cur[1] + DIRS[d][0], cur[2] + DIRS[d][1]], nk = K(n[0], n[1]), st = W.stepHours([cur[1], cur[2]], n); if (!st || done[nk]) continue;
-        var nd = cur[0] + st.h * (st.road ? 1 : W.OFFROAD); if (dist[nk] == null || nd < dist[nk]) { dist[nk] = nd; hrs[nk] = hrs[ck] + st.h; prev[nk] = [cur[1], cur[2]]; open.push([nd, n[0], n[1]]); }
+        var nd = cur[0] + st.h * (st.road ? 1 : W.OFFROAD); if (dist[nk] == null || nd < dist[nk]) { dist[nk] = nd; hrs[nk] = hrs[ck] + st.h; mc[nk] = mc[ck] + Math.max(1, Math.round(st.going)); prev[nk] = [cur[1], cur[2]]; open.push([nd, n[0], n[1]]); }
       }
     }
     if (dist[goal] == null) return null;
     var path = [], k = goal, p = to; while (k !== start) { path.unshift(p); p = prev[k]; k = K(p[0], p[1]); }
-    return { hexes: path, hours: hrs[goal] };
+    return { hexes: path, hours: hrs[goal], march: mc[goal] };
   };
 
   // ---------------------------------------------------------------- the clock: hours from midnight before the first morning; the walk spends them, and the
@@ -138,7 +139,7 @@
     if (!W.index()) throw new Error('no world: data/world.js is not loaded (python tools/world-build.py)');
     W.load(this.q); W.scene = this; W.active = true; this.dev = /[?&]dev\b/.test(this.q);
     this.view = 'hex'; if (/[?&]tiles\b/.test(this.q) && W.OV) W.OV.open(this); // (the top-down view, js/overworld.js: V switches)
-    this.fineDoor = !!W.FINE && (/[?&]fine\b/.test(this.q) || /[?&]fine\b/.test(location.search)); if (this.fineDoor) { W.FINE.on = true; W.FINE.load(); } // (THE FINE LAND, a trial: js/worldfine.js, F switches)
+    this.fineDoor = !!W.FINE; if (this.fineDoor) W.FINE.start(this.q); // (THE LAND, RAISED by default since 10-22: js/worldfine.js F.start, F switches to the hex tops)
     var c = hc(S.at[0], S.at[1]); this.cam = { cx: c[0], cy: c[1] };
     try { D.music('corridor'); } catch (e) { }
     this.say(W.unstuck ? 'The party found its way down out of the ' + W.unstuck + ', ' + W.timeOfDay() + '.' : 'The road, ' + W.timeOfDay() + '. Click a hex to travel there.');
@@ -167,10 +168,11 @@
       if (I.pressed('a') || I.pressed('b') || m.click) { this.cards.shift(); D.sfx('confirm'); if (cd.then) cd.then(); }
       return;
     }
-    if (I.pressed('menu') && W.house() && !this.walk) { D.house.openMenu(this); D.sfx('menu'); return; } // (M: the party's menu -- EQUIP, ITEMS, STATUS, SAVE)
+    // M: the party's menu -- EQUIP, ITEMS, STATUS, SAVE -- walking or not (his 10-22 "M - menu isn't available": a walk waits under it); the bare door has no party
+    if (I.pressed('menu')) { if (W.house()) { D.house.openMenu(this); D.sfx('menu'); } else this.say('No party here: the menu is the game\'s (deep16/?world, or NEW GAME).'); return; }
     if (I.pressed('verdict') && W.OV) { if (this.view === 'tiles') W.OV.close(this); else W.OV.open(this); return; } // (V: the hex view or the top-down tiles)
     if (this.view === 'tiles') { W.OV.update(this); return; }
-    if (this.fineDoor && I.pressed('dice')) { W.FINE.on = !W.FINE.on; this.zi = Math.min(this.zi, this.zooms().length - 1); D.sfx('confirm'); return; } // (F: THE FINE LAND or today's tops, the trial's door only)
+    if (this.fineDoor && I.pressed('dice')) { W.FINE.flip(); this.fineT = this.t; this.zi = Math.min(this.zi, this.zooms().length - 1); D.sfx('confirm'); return; } // (F: THE LAND, RAISED or the hex tops, the choice kept)
     // the camera: the wheel and -/= zoom, the middle button pans, C comes back to the party
     var ZS = this.zooms();
     if (m.wheel) this.zi = Math.max(0, Math.min(ZS.length - 1, this.zi - m.wheel));
@@ -208,7 +210,7 @@
     var w = this.walk, next = w.path[0], st = W.stepHours(S.at, next);
     if (!st) { this.walk = null; return; }
     if (w.f === 0 && W.house() && D.house.marchAsk(this, st, w)) return; // (the house: the day's march by the hex, the forced march past it -- js/house.js THE MARCH)
-    if (w.f === 0 && !W.house() && S.today > 0 && S.today + st.h > W.DAYHOURS + 0.01) { var ups = W.camp(); this.say('The party makes camp; on at first light.' + (ups && ups.length ? ' ' + ups.join(' ') : '')); if (this.pm) { this.walk = null; return; } } // (the house: the night's watches first -- js/house.js H.night)
+    if (w.f === 0 && !W.house() && this.dayAsk(st, w.path.slice())) { this.walk = null; return; } // (the bare door: the day's walk asks, as the house's march does)
     w.f++;
     var a = hc(S.at[0], S.at[1]), b = hc(next[0], next[1]), u = w.f / STEPF; this.cam.cx += ((a[0] + (b[0] - a[0]) * u) - this.cam.cx) * 0.2; this.cam.cy += ((a[1] + (b[1] - a[1]) * u) - this.cam.cy) * 0.2;
     if (w.f < STEPF) return;
@@ -250,6 +252,16 @@
     var me = this;
     this.card(['{y}CAMP{/}, ' + W.timeOfDay() + '.', '', D.keys('{g}E{/}: the night (three watches, a long rest)    {g}R{/}: an hour (a short rest)    {g}X{/}: walk on')], null,
       [['a', function () { D.house.night(me); }, 'THE NIGHT'], ['rec', function () { S.t += 1; W.save(); me.say(D.house.shortRest(D.house.cur.party).join(' ')); }, 'AN HOUR'], ['b', function () { }, 'WALK ON']]);
+  };
+  // the bare door's day (10-22, his "Right now moving seems to be auto-camping"): past the day's 8 hours a walk never camps on its own -- it asks, as the house's
+  // march does (js/house.js H.marchAsk): WALK ON (no more asking till a camp), MAKE CAMP, STAY. resume(path): the walk taken up again -- the top-down view's own
+  World.prototype.dayAsk = function (st, path, resume) {
+    if (S.pushing || !(S.today > 0 && S.today + st.h > W.DAYHOURS + 0.01)) return false;
+    var me = this; resume = resume || function (p) { me.walk = { path: p, f: 0 }; };
+    this.card(['{y}THE DAY\'S WALK IS WALKED{/} (' + (Math.round(S.today * 10) / 10) + ' hours), ' + W.timeOfDay() + '.', '', D.keys('{g}E{/}: walk on    {g}R{/}: make camp    {g}X{/}: stay')], null,
+      [['a', function () { S.pushing = true; resume(path); }, 'WALK ON'], ['rec', function () { var ups = W.camp(); me.say('The party makes camp, and walks on at first light: ' + W.timeOfDay() + '.' + (ups && ups.length ? ' ' + ups.join(' ') : '')); }, 'MAKE CAMP'],
+       ['b', function () { me.say('The party stands where it is, ' + W.timeOfDay() + '.'); }, 'STAY']]);
+    return true;
   };
   World.prototype.doorHere = function () { var ss = M.siteAt[K(S.at[0], S.at[1])] || []; for (var i = 0; i < ss.length; i++) if (W.DOORS[ss[i].id]) return ss[i]; return null; };
   World.prototype.lookHere = function (arrived) {
@@ -483,7 +495,7 @@
       if (he) {
         var ss = (M.siteAt[K(this.hov[0], this.hov[1])] || []).map(function (s) { return s.name; });
         lines.push((ss.length ? ss.join(', ') + ' · ' : '') + M.terr[he.t].name + (he.guess ? ' {g}(v3’s guess){/}' : '') + ' · ' + Math.round(he.h).toLocaleString() + ' ft');
-        if (this.plan) { var hrs = this.plan.hours, d = Math.floor((S.today + hrs) / W.DAYHOURS - 1e-6); lines.push(this.plan.hexes.length + ' hex' + (this.plan.hexes.length > 1 ? 'es' : '') + ' · ' + (hrs < 10 ? hrs.toFixed(1) + ' hours' : (hrs / W.DAYHOURS).toFixed(1) + ' days of walking') + (d > 0 ? ' · ' + d + ' camp' + (d > 1 ? 's' : '') : '')); }
+        if (this.plan) { var hrs = this.plan.hours, d = W.house() ? Math.floor(((S.todayHex || 0) + this.plan.march) / D.house.DAYHEX - 1e-6) : Math.floor((S.today + hrs) / W.DAYHOURS - 1e-6); /* (the camps the walk will ask for: the house's by the day's hexes) */ lines.push(this.plan.hexes.length + ' hex' + (this.plan.hexes.length > 1 ? 'es' : '') + ' · ' + (hrs < 10 ? hrs.toFixed(1) + ' hours' : (hrs / W.DAYHOURS).toFixed(1) + ' days of walking') + (d > 0 ? ' · ' + d + ' camp' + (d > 1 ? 's' : '') : '')); }
         else if (W.MOUNTAIN[he.t]) lines.push('{g}the mountains: their roads are roams (to come){/}');
         else if (!W.walkable(he)) lines.push('{r}no one walks it{/}');
         else if (K(this.hov[0], this.hov[1]) !== K(S.at[0], S.at[1])) lines.push('{r}no way there{/}');
@@ -493,8 +505,8 @@
       lines.forEach(function (l, i) { D.text(ctx, l, bx + 4, by + 4 + i * 10, '#e8e4d8'); });
     }
     var me = this; this.hudBtns = W.house() ? [['THE PARTY', function () { D.house.openMenu(me); }], ['CAMP', function () { me.campCard(); }], ['HERE', function () { me.here(); }]].map(function (q, i) { return { x: D.W - 4 - (3 - i) * 64, y: D.H - 50, w: 60, h: 13, label: q[0], go: q[1] }; }) : null; // (the keys as buttons: his 10-21 "playable by mouse only")
-    this.hudBottom(ctx, 'click: travel  arrows: a hex  E: here  SPACE: camp  ' + (W.house() ? 'M: the party  ' : '') + 'V: tiles  wheel: zoom');
-    if (this.fineDoor) { var fl = W.FINE.label(), fw = D.textWidth(fl) + 10; D.win8(ctx, D.W - fw - 4, 4, fw, 16); D.text(ctx, fl, D.W - fw + 1, 8, W.FINE.on ? D.WIN8.gold : D.WIN8.text); } // (the trial named on screen)
+    this.hudBottom(ctx, 'click: travel  arrows: a hex  E: here  SPACE: camp  ' + (W.house() ? 'M: the party  ' : '') + (this.fineDoor ? 'F: ' + (W.FINE.on ? 'hex tops' : 'the land') + '  ' : '') + 'V: tiles  wheel: zoom');
+    if (this.fineDoor && W.FINE.showLabel(this.t - (this.fineT == null ? -999 : this.fineT))) { var fl = W.FINE.label(), fw = D.textWidth(fl) + 10; D.win8(ctx, D.W - fw - 4, 4, fw, 16); D.text(ctx, fl, D.W - fw + 1, 8, W.FINE.on ? D.WIN8.gold : D.WIN8.text); } // (the look named on screen: as it unpacks, and a moment after F)
   };
   W.button = function (ctx, b) { var mo = I.mouse, hov = mo.inside && mo.x >= b.x && mo.x < b.x + b.w && mo.y >= b.y && mo.y < b.y + b.h; ctx.fillStyle = hov ? D.WIN8.sel : 'rgba(16,18,58,.85)'; ctx.fillRect(b.x, b.y, b.w, b.h); ctx.strokeStyle = hov ? D.WIN8.gold : D.WIN8.mid; ctx.strokeRect(b.x + 0.5, b.y + 0.5, b.w - 1, b.h - 1); D.text(ctx, b.label, b.x + b.w / 2, b.y + 3, hov ? D.WIN8.gold : D.WIN8.text, 'center'); };
   World.prototype.hudBottom = function (ctx, hint) { // (the message, the keys and the card: both views')

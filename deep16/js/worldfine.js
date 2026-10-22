@@ -1,5 +1,5 @@
-/* DEEP16 — THE FINE LAND (10-21 night, the world map seat; a TRIAL behind its own door: deep16/?world&fine, or &fine on any DEEP16 address, where F turns
-   it on and off, named on screen; THE WORLD without it is as it was). Griz: "Rather than shading the tops of the big hexes, can we actually draw the 330
+/* DEEP16 — THE FINE LAND (10-21 night, the world map seat; a trial behind deep16/?world&fine till 10-22, when his "The 330 ft land, raised is best" made it
+   THE WORLD's look by default -- F.start below; F switches to the hex tops, the choice kept). Griz: "Rather than shading the tops of the big hexes, can we actually draw the 330
    terrain with the exception of the two hexes around the hero (build as trial alternate, don't break existing)"; asked which, "(a) but two rings" and "The
    land, raised". So past the hero's hex and the two rings round it the 5-mile columns give way to the land itself -- every eighth of a mile at its own
    height (the hex map's own ground and fractal), its colour the mean of its four 330 ft grounds (the finest paint, else THE FILL's: data/world-fine.bin,
@@ -13,6 +13,17 @@
   var F = W.FINE = { on: false, st: null, err: null, LIT: 9, RINGS: 2 }; // (st: null, 'loading', 'ok', 'fail'; LIT: the slopes' exaggeration in the light; RINGS: his "two rings")
   var G = null, SQ3 = Math.sqrt(3);
   F.live = function () { return F.on && F.st === 'ok' && !!G && !!W.M(); };
+  // THE LAND BY DEFAULT (10-22, his verdict on the trial: "The 330 ft land, raised is best"): THE WORLD opens on it, in the game and on the bare door alike; F switches to
+  // the hex tops and back, the choice kept (F.KEY); &tops opens on the tops, &fine on the land. Where the file cannot come (a page opened from the disk: the benches') the
+  // hex tops draw, as before
+  F.KEY = 'deep16.world.land';
+  F.start = function (q) {
+    var s = (q || '') + (typeof location !== 'undefined' ? location.search : '');
+    F.asked = /[?&]fine\b/.test(s); F.on = /[?&]tops\b/.test(s) ? false : F.asked ? true : (D.store && D.store.get(F.KEY)) !== 'tops';
+    if (F.on) F.load(); return F.on;
+  };
+  F.flip = function () { F.on = !F.on; if (F.on) F.load(); if (D.store) D.store.set(F.KEY, F.on ? 'land' : 'tops'); return F.on; };
+  F.showLabel = function (since) { return (F.on && F.st === 'loading') || (F.st === 'fail' && F.asked) || since < 150; }; // (since: frames since F)
   F.load = function () {
     if (F.st) return; F.st = 'loading';
     if (typeof DecompressionStream !== 'function' || typeof fetch !== 'function') { F.st = 'fail'; F.err = 'this browser cannot unpack it'; return; }
@@ -155,15 +166,21 @@
       var x = (i + 0.1 + 0.8 * hash2(i, j, 11)) * sp, y = (j + 0.1 + 0.8 * hash2(i, j, 12)) * sp, ti = Math.floor((x - G.x0) / hd.mi), tj = Math.floor((y - G.y0) / hd.mi);
       if (ti < 0 || tj < 0 || ti >= hd.w || tj >= hd.h || (G.T[ti + tj * hd.w] & 127) !== wi || !L0.IN[(ti / hd.hs | 0) + (tj / hd.hs | 0) * L0.w] || nearAt(x, y)) continue;
       var p = W.proj(cam, x, y, F.groundH(x, y)), px = Math.round(p[0]), py = Math.round(p[1]); if (px < -8 || px > cam.W + 8 || py < 0 || py >= cam.H) continue;
-      var d = DEPTH[py * cam.W + Math.max(0, Math.min(cam.W - 1, px))]; if (d !== d || d > y + 0.4) continue; // (its foot behind nearer ground)
+      var d = depthAt(Math.max(0, Math.min(cam.W - 1, px)), py); if (d !== d || d > y + 0.4) continue; // (its foot behind nearer ground)
       g.fillStyle = '#3a2410'; g.fillRect(px, py - 1, 1, 2); g.fillStyle = hash2(i, j, 13) < 0.5 ? '#2f5a2a' : '#3d6e30';
       g.beginPath(); g.moveTo(px + 0.5, py - th); g.lineTo(px + 0.5 + th * 0.45, py); g.lineTo(px + 0.5 - th * 0.45, py); g.closePath(); g.fill();
     }
   }
+  // THE LAND SLID (10-22, when it became the default look: a walk moved the camera every frame and the land was drawn again each time -- 18 ms a frame at the
+  // opening zoom in the pane, 66 at the closest): a camera's move is the picture's own shift, so the land is drawn F.MARGIN px wider all round and slid under the
+  // screen, drawn again only past the margin, at another zoom, or when the party's hex (the rings) changes. RC: the camera it was drawn for; OX, OY: its offset
+  F.MARGIN = 48; var RC = null, OX = 0, OY = 0;
+  function depthAt(sx, sy) { var x = sx - OX, y = sy - OY; return RC && x >= 0 && y >= 0 && x < RC.W && y < RC.H ? DEPTH[y * RC.W + x] : NaN; }
   F.draw = function (g, cam, hi, at) {
-    var M = W.M(), key = [cam.cx, cam.cy, cam.z, cam.W, cam.H, at[0], at[1], !!lookPx(), F.LIT].join('|');
-    if (key !== F.key) { var t0 = performance.now(); render(cam, at); F.key = key; F.ms = performance.now() - t0; }
-    LASTCAM = cam; g.drawImage(CV, 0, 0);
+    var M = W.M(), m = F.MARGIN, key = [cam.z, cam.W, cam.H, cam.E, at[0], at[1], !!lookPx(), F.LIT].join('|'), ox = RC ? (RC.cx - cam.cx) * cam.z : 0, oy = RC ? (RC.cy - cam.cy) * cam.z * W.TILT : 0;
+    if (key !== F.key || !RC || Math.abs(ox) > m - 1 || Math.abs(oy) > m - 1) { var t0 = performance.now(); RC = { cx: cam.cx, cy: cam.cy, z: cam.z, W: cam.W + 2 * m, H: cam.H + 2 * m, E: cam.E }; render(RC, at); F.key = key; F.ms = performance.now() - t0; F.renders = (F.renders || 0) + 1; ox = oy = 0; }
+    OX = Math.round(ox) - m; OY = Math.round(oy) - m;
+    LASTCAM = cam; g.drawImage(CV, OX, OY);
     trees(g, cam, M.w);
     // the hero's hexes as today: their outlines when the zoom is close, their decorations, north to south; and the way and the pointer's hex on any hex
     var near = nearOf(at), ks = Object.keys(near).sort(function (a, b) { return near[a].r - near[b].r || near[a].q - near[b].q; }), w = M.w, outline = w * cam.z >= 22;
@@ -194,13 +211,13 @@
   F.HIDE = 2;
   F.vis = function (s, y) {
     if (!DEPTH || !LASTCAM) return true; var px = Math.round(s[0]), py = Math.round(s[1]); if (px < 0 || py < 0 || px >= LASTCAM.W || py >= LASTCAM.H) return true;
-    var d = DEPTH[py * LASTCAM.W + px]; return d !== d || d <= y + Math.max(F.HIDE, 3 * level(LASTCAM).ds);
+    var d = depthAt(px, py); return d !== d || d <= y + Math.max(F.HIDE, 3 * level(LASTCAM).ds);
   };
   F.pick = function (mx, my) { // the hex under the pointer's pixel
     if (!DEPTH || !LASTCAM) return null; var px = Math.floor(mx), py = Math.floor(my); if (px < 0 || py < 0 || px >= LASTCAM.W || py >= LASTCAM.H) return null;
-    var d = DEPTH[py * LASTCAM.W + px]; if (d !== d) return null;
+    var d = depthAt(px, py); if (d !== d) return null;
     return W.hexOf(LASTCAM.cx + (px + 0.5 - LASTCAM.W / 2) / LASTCAM.z, d);
   };
   F.data = function () { return G; }; // (for the seat's probes)
-  F.label = function () { return F.st === 'fail' ? 'THE 330 FT LAND: ' + F.err : F.st !== 'ok' ? 'THE 330 FT LAND: unpacking...' : F.on ? 'THE 330 FT LAND (a trial)  F: today\'s tops' : 'TODAY\'S TOPS  F: the 330 ft land (a trial)'; };
+  F.label = function () { return !F.on ? 'THE HEX TOPS  F: the land, raised' : F.st === 'fail' ? 'THE LAND: ' + F.err : F.st !== 'ok' ? 'THE LAND, RAISED: unpacking...' : 'THE LAND, RAISED  F: the hex tops'; };
 })();

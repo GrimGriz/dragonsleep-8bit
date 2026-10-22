@@ -129,15 +129,33 @@
     if (!hv) ov.hov = null;
     if (m.click && m.inside && ov.plan) { ov.walk = { path: ov.plan.tiles.slice(), f: 0 }; ov.plan = null; ov.free = false; D.sfx('confirm'); return; }
     if (I.pressed('a')) { var here = OV.doorHere(), rt = OV.routeHere(); if (here) sc.offerDoor(here, ov.last || null); else if (rt) sc.offerRoute(rt); else OV.look(sc); }
+    if (I.pressed('end') && W.house()) { sc.campCard(); return; } // (the house's camp: the night's three watches, or an hour -- js/world.js campCard)
     if (I.pressed('end')) { W.camp(); D.sfx('confirm'); sc.say('The party makes camp, and walks on at first light: ' + W.timeOfDay() + '.'); }
   };
+  // a step a time, as the hex view's: past the day's march it asks, never camps on its own (10-22, his "Right now moving seems to be auto-camping" -- till then a camp
+  // past 8 hours here, the house's night and its watches skipped): the house's march by the day's hexes, a tile its share of one; the bare door's by the hours
   OV.stepWalk = function (sc) {
     var ov = sc.ov, w = ov.walk, S = W.state(), p0 = OV.tileOf(S.pos), next = w.path[0], st = OV.step(p0, next);
     if (!st) { ov.walk = null; return; }
-    if (w.f === 0) { if (S.today > 0 && S.today + st.h > W.DAYHOURS + 0.01) { W.camp(); sc.say('The party makes camp; on at first light.'); } ov.facing = [next[0] - p0[0], next[1] - p0[1]]; }
+    if (W.house()) st.share = st.mi * st.going / W.M().w;
+    if (w.f === 0) {
+      var resume = function (p) { ov.walk = { path: p, f: 0 }; ov.free = false; };
+      if (W.house() ? D.house.marchAsk(sc, st, w, resume) : sc.dayAsk(st, w.path.slice(), resume)) { ov.walk = null; return; }
+      ov.facing = [next[0] - p0[0], next[1] - p0[1]];
+    }
     w.f++; if (w.f < OV.STEPF) return;
+    var hrs = W.house() ? D.house.marchHours(st) : st.h; // (the house: an exhausted party's half speed takes twice the hours)
     w.f = 0; ov.last = S.pos.slice(); S.pos = OV.centre(next); var hx = W.hexOf(S.pos[0], S.pos[1]); if (W.hexAt(hx[0], hx[1])) { if (hx[0] !== S.at[0] || hx[1] !== S.at[1]) S.from = S.at; S.at = hx; }
-    S.t += st.h; S.today += st.h; w.path.shift(); W.save();
+    S.t += hrs; S.today += hrs; w.path.shift(); W.save();
+    if (W.house()) { // (the forced march's saves as a tile completes a hex past the day's: a failure holds the walk on a card till OK, as the hex view's)
+      var ml = D.house.marchStep(st); if (ml === null) { ov.walk = null; return; }
+      if (ml.length) { W.save(); D.sfx('popup'); var path = w.path.slice(); ov.walk = null; sc.card(D.house.marchCard(ml), null, [['a', function () { OV.arrive(sc, st, next, { path: path, arrows: w.arrows }); }, 'OK']]); return; }
+    }
+    OV.arrive(sc, st, next, w);
+  };
+  // the step's end: the road's chance of a fight, a door, the places here, and the walk's end (w: the walk, its path what is left)
+  OV.arrive = function (sc, st, next, w) {
+    var ov = sc.ov; if (w !== ov.walk && w.path.length) ov.walk = { path: w.path, f: 0, arrows: w.arrows };
     if (W.onStep && W.onStep(sc, st)) { ov.walk = null; return; } // (a fight on the way)
     var door = OV.doorHere(), ss = SITES[next[0] + ',' + next[1]];
     if (door) { ov.walk = null; sc.offerDoor(door, ov.last); return; }

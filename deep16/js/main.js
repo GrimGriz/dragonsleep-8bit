@@ -48,7 +48,7 @@
   else if (/[?&]barleyshow\b/.test(q) && D.barleyshow) D.push(D.barleyshow.make(q)); // Barley's new sheet, shown: its rows played where the engine plays them, slow, ENTER again (js/barleyshow.js, 10-20)
   else if (/[?&]skyshow\b/.test(q) && D.skyshow) D.push(D.skyshow.make(q)); // the Skylights, shown: today's beats of the Edifice fight, one after another (js/skyshow.js, 10-05 night)
   else if (/[?&]gameshow\b/.test(q) && D.gameshow) D.push(D.gameshow.make(q)); // the Monster Party Game Show: the lighthouse, the circles, Third Lamp (js/gameshow.js, 10-07)
-  else if (/[?&]world\b/.test(q) && D.world) D.push(D.world.make(q)); // THE WORLD: the second game's world map, his hex map's 5-mile hexes walked as one token (js/world.js, 10-20)
+  else if (/[?&]world\b/.test(q) && D.world) { if (D.house && D.house.worldDoor && !/[?&]bare\b/.test(q)) D.house.worldDoor(q); else D.push(D.world.make(q)); } // THE WORLD: the second game's world map, his hex map's 5-mile hexes walked as one token (js/world.js, 10-20); since 10-22 a NEW GAME's four on it (js/house.js H.worldDoor), &bare the door with no party
   else if (/[?&]keepers\b/.test(q) && D.counter) D.push(D.counter.keepersShow(q)); // Silverton's keepers standing, shown: their own figures facing south (js/counter.js, 10-21)
   else if (/[?&]portraits\b/.test(q) && D.counter) D.push(D.counter.portraitShow(q)); // the keepers' talking portraits, shown on their own counter screens, a face at a time (js/counter.js, 10-21 night)
   else if (/[?&]nedshow\b/.test(q) && D.counter) D.push(D.counter.nedShow(q)); // Ned Halloway and Find Familiar, a beat at a time, the Insight's die pinned (js/counter.js, 10-21 night)
