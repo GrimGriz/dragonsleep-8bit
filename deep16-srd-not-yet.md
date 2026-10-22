@@ -105,6 +105,8 @@ Each: **recall** (what the seat wrote before looking) · **SRD** (what `srd/` sa
 
 ### 8. The basilisk (highway, cavern: the four days to Deepholm)
 
+**ON THE GRID 10-22** (`a9c2c0d`, the monster cutter seat's third run): the foe `basilisk` by the SRD on its own sheet `basilisk_p1` (the art desk's ART-17), its Petrifying Gaze on the grid's gaze rule (js/traits.js: averting, the stone begun, the steel mirror) with its own Gaze row, `?show=basilisk`, the creatures shelf. It is in no fight yet: the road to Deepholm waits.
+
 - **Recall.** CR 3 Medium; AC 15; 52 HP; 20 ft; darkvision 60; Petrifying Gaze (start of turn within 30 ft, CON 12, restrained, then petrified on a second fail; avert the eyes; its reflection in bright light turns it on itself); bite 2d6+3 + 2d6 poison. Eight legs, a low lizard, dull scales, a spiny ridge, glowing eyes; statues round its den; its gullet softens stone and cures it.
 - **SRD.** Every number and the gaze as recalled. No description.
 - **Web.** The 5e text says only "multilegged, reptilian horror" ([D&D Beyond](https://www.dndbeyond.com/sources/dnd/basic-rules-2014/monster-stat-blocks-b)); eight legs in the Realms and elsewhere; dull brown with a yellowish belly (dark grey to dark orange), one row of bony spines, some a curved horn on the nose, **eyes glowing pale green**; about 6 ft of body and a 5-7 ft tail ([FR wiki via monstershuffler](https://www.monstershuffler.com/monsters/creature/basilisk-374.php)). It bites pieces off its statues, and its gullet's fluid turns stone back to flesh ([Walking Mind](https://walkingmind.evilhat.com/2014/08/28/5e-mm-basilisk-through-cyclops/)).
