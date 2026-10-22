@@ -37,7 +37,7 @@ Each: **recall** (what the seat wrote before looking) · **SRD** (what `srd/` sa
 
 ### 1. The ankheg (plains: the road, the Verge)
 
-**ON THE GRID 10-22** (`66271b1`, the monster cutter seat's second run): the foe `ankheg` by the SRD on its own sheet `ankheg_p1` (the art desk's ART-10 and ART-53), `?show=ankheg`, the creatures shelf. Not yet: its Acid Spray (no line mechanic for a foe), the bite only at the one it holds with advantage, AC 11 while prone -- plain stand-ins (its `src`). It is in no fight yet: the plains wait on the road (his 10-21: *"still later, we have to finish replacing the 8 bit first"*).
+**ON THE GRID 10-22** (`66271b1`, the monster cutter seat's second run): the foe `ankheg` by the SRD on its own sheet `ankheg_p1` (the art desk's ART-10 and ART-53), `?show=ankheg`, the creatures shelf. Its Acid Spray since 10-22 (`db7bc24`, on the grid's breath rule, never while its bite holds one). Not yet: the bite only at the one it holds with advantage, AC 11 while prone -- plain stand-ins (its `src`). It is in no fight yet: the plains wait on the road (his 10-21: *"still later, we have to finish replacing the 8 bit first"*).
 
 - **Recall.** CR 2 Large; AC 14, 11 prone; 39 HP; 30 ft, burrow 10; darkvision and tremorsense 60; bite 2d6+3 + 1d6 acid, grapple DC 13; Acid Spray recharge 6, a 30x5 ft line, DEX 13, 3d6. A six-legged insect, brown to yellow-green chitin, long antennae, acid-dripping mandibles; waits under farmland and bursts up.
 - **SRD.** Every number as recalled. No description at all.
@@ -46,6 +46,8 @@ Each: **recall** (what the seat wrote before looking) · **SRD** (what `srd/` sa
 - **The grid.** The bulette's `burrow`/`reveal` rows and the burrower AI; tremorsense waits on flight (the grid's rules §2.17); a line area (Lightning Bolt's); grapple and bite only the held one (the frog's grip); **AC 11 while prone** -- the first foe where knocking it down is worth a turn. It doubles for the desert.
 
 ### 2. The winter wolf (hills: the Doors' road)
+
+**ON THE GRID 10-22** (`f09d5ac`, the monster cutter seat's third run): the foe `winterwolf` by the SRD on its own sheet `winterwolf_p1` (the art desk's ART-11 and ART-54), its Cold Breath on the grid's breath rule (js/traits.js M.breathe) and a row of its own, `?show=winterwolf`, the creatures shelf. Not yet: Snow Camouflage (no snow on the grid) -- a plain stand-in (its `src`). It is in no fight yet: the hills wait on the road.
 
 - **Recall.** CR 3 Large; AC 13; 75 HP; 50 ft; Common, Giant, Winter Wolf; Keen Hearing and Smell, Pack Tactics, Snow Camouflage; bite 2d6+4, STR 14 or prone; Cold Breath recharge 5-6, 15 ft cone, DEX 12, 4d8; immune cold. Horse-sized, white, ice-blue eyes, frost on the muzzle; the frost giants' hounds.
 - **SRD.** Every number as recalled, **and a paragraph of description** (Appendix MM-A's beasts carry one, glued to Cold Breath in our markdown): as large as a dire wolf, snow-white fur, pale blue eyes; frost giants use them as guards and hunting companions; they growl and bark, and speak Common and Giant well enough for simple talk.
