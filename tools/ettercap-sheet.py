@@ -30,9 +30,13 @@ import importlib.util
 spec = importlib.util.spec_from_file_location('pix', os.path.join(ROOT, 'tools', 'pixelate.py'))
 pix = importlib.util.module_from_spec(spec); spec.loader.exec_module(pix)
 
-SRC = os.path.join(ROOT, 'deep16', '_src')
+SRC = os.path.join(ROOT, 'deep16', '_src')                 # his sheets live in the main checkout (_src is not in git): a worktree reads them there
+if not os.path.isdir(SRC):
+    import subprocess
+    _common = subprocess.run(['git', '-C', ROOT, 'rev-parse', '--git-common-dir'], capture_output=True, text=True).stdout.strip()
+    SRC = os.path.join(os.path.dirname(os.path.abspath(os.path.join(ROOT, _common))), 'deep16', '_src')
 NAME = 'ettercap_p2'
-FW, FH, AX, AY = 120, 96, 60, 86
+FW, FH, AX, AY = 136, 96, 68, 86         # (120 wide and AX 60 until 10-22: ART-39's NE web throw reaches 65 px past the torso)
 H = 52                                  # standing, in px: a man's height, hunched (the heroes stand ~50)
 
 
@@ -53,6 +57,109 @@ B1 = {'front': ((20, 110, 320, 305), 2), 'wfront': ((340, 110, 910, 305), 4), 'w
       'walk': ((20, 350, 720, 555), 4), 'hit': ((20, 595, 470, 785), 3), 'death': ((490, 595, 1525, 785), 6)}
 B2 = {'claw': ((782, 103, 1515, 263), 6), 'recov': ((1145, 535, 1515, 668), 3),
       'web': ((20, 330, 765, 478), 6, [105, 215, 348, 456, 576])}   # (frame 4's web tip overlaps frame 5's claws)
+
+
+# The five views (10-22, the monster cutter seat's second run): the art desk's ART-39 in deep16/_src/ettercap/ART-39/ (sorted out of Fresh by
+# _src/art-desk/sort-delivery.py; its papers in _src/art-desk/received-2026-10-22-ART-39-ettercap-FINAL-SHEETS/): HEAD 1 SE on four pages
+# (Idle 8, Walk 8; Claw 6; Web Shot 6; Hit 3, Death 6, Braid 8), HEAD 2 NE on three, HEAD 3 S and HEAD 5 N their Web Shot, Hit, Death and
+# Braid. On near-black with lavender labels: cut by tools/sheetrows.py with `chan` (any channel 24 off the page's ground; the default grey
+# test takes that ground for figure), each row's name at its left, its numbers under it; boxes read off the pages. SE and SW, NE and NW take
+# every row; S and N their cast, flinch, hurt and braid (Griz's sheets keep their idle, walk and claw, as the art desk's brief says).
+# Scale by height: this sheet stands 52 side-on and from the front, 50 from behind (H, every group by its standing height), so each view's
+# standing frame meets its own: SE and NE their Idle against the side and the front or back (52, 51); a later page by its first standing
+# frame (Claw 1, Web Shot 1, Death 1) against its view's Idle 1; S and N by Death 1 against the front's and the back's idles. Placed as the
+# page drew them: each row's first frame with its torso on AX and its lowest row on AY, the rest against their numbers and the row's ground
+# (the web thrown, the fall, the stump all where the page put them). Through `fit` (the hide's purple kept) as Griz's sheets are.
+ART39 = {
+  'H1P1': dict(file='ART-39_HEAD-1_PAGE-1.png', W=1881, text=[(27, 89, 145, 132), (26, 454, 150, 507)],
+               rows=[('idle', (0, 0, 1881, 408), (379, 408), 8), ('walk', (0, 409, 1881, 789), (760, 789), 8)]),
+  'H1P2': dict(file='ART-39_HEAD-1_PAGE-2.png', W=2172, text=[(67, 45, 228, 105)], rows=[('attack', (0, 0, 2172, 645), (599, 645), 6)]),
+  'H1P3': dict(file='ART-39_HEAD-1_PAGE-3.png', W=2172, text=[(27, 185, 219, 229)], rows=[('cast', (0, 0, 2172, 582), (544, 582), 6)]),
+  'H1P4': dict(file='ART-39_HEAD-1_PAGE-4.png', W=1536, text=[(50, 49, 127, 93), (50, 381, 181, 423), (51, 688, 172, 732)],
+               rows=[('flinch', (0, 0, 1536, 369), (343, 369), 3), ('hurt', (0, 370, 1536, 687), (659, 687), 6), ('braid', (0, 688, 1536, 988), (960, 988), 8)]),
+  'H2P1': dict(file='ART-39_HEAD-2_PAGE-1.png', W=2172, text=[(25, 156, 162, 199), (26, 481, 198, 537)],
+               rows=[('idle', (0, 0, 2172, 345), (320, 345), 8), ('walk', (0, 346, 2172, 677), (652, 677), 8)]),
+  'H2P2': dict(file='ART-39_HEAD-2_PAGE-2.png', W=2172, text=[(23, 166, 178, 211), (23, 501, 231, 544)],
+               rows=[('attack', (0, 0, 2172, 353), (327, 353), 6), ('cast', (0, 354, 2172, 701), (672, 701), 6)]),   # (Web Shot 4's net tops out at y 354)
+  'H2P3': dict(file='ART-39_HEAD-2_PAGE-3.png', W=2172, text=[(26, 119, 146, 159), (26, 332, 189, 373), (27, 557, 220, 611)],
+               rows=[('flinch', (0, 0, 2172, 249), (225, 249), 3), ('hurt', (0, 250, 2172, 480), (456, 480), 6), ('braid', (0, 481, 2172, 711), (686, 711), 8)]),
+  'H3P1': dict(file='ART-39_HEAD-3_PAGE-1.png', W=1536, text=[(13, 100, 177, 135), (13, 325, 231, 375), (13, 574, 146, 610), (13, 789, 131, 824)],
+               rows=[('cast', (0, 0, 1536, 252), (229, 252), 6), ('flinch', (0, 253, 1536, 500), (477, 500), 3), ('hurt', (0, 501, 1536, 731), (709, 731), 6),
+                     ('braid', (0, 732, 1536, 990), (967, 990), 8)]),
+  'H5P1': dict(file='ART-39_HEAD-5_PAGE-1.png', W=1536, text=[(23, 92, 122, 159), (25, 354, 98, 390), (24, 555, 137, 591), (24, 766, 124, 802)],
+               rows=[('cast', (0, 0, 1536, 288), (262, 288), 6), ('flinch', (0, 289, 1536, 519), (493, 519), 3), ('hurt', (0, 520, 1536, 746), (714, 746), 6),
+                     ('braid', (0, 747, 1536, 991), (964, 991), 8)]),
+}
+VIEWS39 = {'SE': ('H1P1', 'H1P2', 'H1P3', 'H1P4'), 'NE': ('H2P1', 'H2P2', 'H2P3'), 'S': ('H3P1',), 'N': ('H5P1',)}
+CHAN39 = 24
+FIX39 = {'H1P3': {'cast': [((1290, 330, 1535, 510), '4')]}}    # SE Web Shot 4's net, loose threads past the midpoint to 5's number: all 4's
+
+
+def art39(idle_h):
+    """-> {view: {anim: [FH x FW frames]}} from ART-39's pages; idle_h the game-size standing heights {'side':, 'S':, 'N':}"""
+    spec = importlib.util.spec_from_file_location('sheetrows', os.path.join(ROOT, 'tools', 'sheetrows.py'))
+    SR = importlib.util.module_from_spec(spec); spec.loader.exec_module(SR)
+    tall = lambda a: int(np.ptp(np.where(a[..., 3].any(axis=1))[0]) + 1)
+    def body(im):                                        # the page frame's height: its biggest piece filled (a web shred or a strand left out)
+        m = np.asarray(im)[..., 3] > 0
+        lab, n = ndimage.label(m, structure=np.ones((3, 3)))
+        m = lab == 1 + int(np.argmax(ndimage.sum(m, lab, range(1, n + 1))))
+        ys = np.where(m.any(axis=1))[0]
+        return float(ys[-1] - ys[0] + 1)
+    cuts = {}
+    for L, s in ART39.items():
+        path = os.path.join(SRC, 'ettercap', 'ART-39', s['file'])
+        a = np.asarray(Image.open(path).convert('RGB')).astype(np.int32)
+        sp = dict(text=s['text'] + [(0, l0 - 3, s['W'], l1 + 4) for _, _, (l0, l1), _ in s['rows']],
+                  rows=[(r, b, l, [str(i + 1) for i in range(n)]) for r, b, l, n in s['rows']], chan=CHAN39)
+        got = SR.cut_sheet(path, sp, fix=FIX39.get(L), tag=L)
+        lx = {r: SR.label_xs(a, b[0], b[2], l[0], l[1]) for r, b, l, _ in s['rows']}
+        cuts[L] = {r: [(im, box, lx[r][i]) for i, (_, im, box) in enumerate(frs)] for r, frs in got.items()}
+
+    def k_for(ims, target):                              # page px a game px: the fitted frames' median height meets target
+        lo, hi = 1.5, 16.0
+        for _ in range(24):
+            k = (lo + hi) / 2
+            got = float(np.median([tall(fit_pad(im, k)) for im in ims]))
+            lo, hi = (k, hi) if got > target else (lo, k)
+        return (lo + hi) / 2
+    K = {}
+    for v, ls in VIEWS39.items():
+        if v in ('SE', 'NE'):
+            p1 = ls[0]
+            K[p1] = k_for([im for im, _, _ in cuts[p1]['idle']], (idle_h['side'] + idle_h['S' if v == 'SE' else 'N']) / 2)
+            ref = float(np.median([body(im) for im, _, _ in cuts[p1]['idle'][:1]]))
+            for L in ls[1:]:
+                first = cuts[L]['hurt'][0][0] if 'hurt' in cuts[L] else next(iter(cuts[L].values()))[0][0]
+                K[L] = K[p1] * body(first) / ref
+        else:
+            K[ls[0]] = k_for([cuts[ls[0]]['hurt'][0][0]], idle_h[v])
+    print('  ART-39 K: ' + ', '.join('%s %.2f' % (L, K[L]) for L in ART39) +
+          '; standing %.0f side-on, %.0f from the front, %.0f from behind' % (idle_h['side'], idle_h['S'], idle_h['N']))
+    out, lost = {}, []
+    for v, ls in VIEWS39.items():
+        out[v] = {}
+        for L in ls:
+            k = K[L]
+            for an, frs in cuts[L].items():
+                fits = [fit_pad(im, k) for im, _, _ in frs]
+                rel = [((box[0] - x) / k, box[3] / k) for _, box, x in frs]     # (each frame's left against its number, its foot on the row's ground)
+                tx = torso_x(fits[0])
+                row = []
+                for a, (rx, rb) in zip(fits, rel):
+                    ox = int(round(AX - tx + (rx - rel[0][0])))
+                    oy = int(round(AY + (rb - rel[0][1]))) - (np.where(a[..., 3].any(axis=1))[0][-1])
+                    fr = np.zeros((FH, FW, 4), dtype=np.uint8)
+                    h, w = a.shape[:2]
+                    y0, x0, y1, x1 = max(0, oy), max(0, ox), min(FH, oy + h), min(FW, ox + w)
+                    fr[y0:y1, x0:x1] = a[y0 - oy:y1 - oy, x0 - ox:x1 - ox]
+                    if (fr[..., 3] > 0).sum() < (a[..., 3] > 0).sum():
+                        lost.append('%s %s %d (rows %d..%d cols %d..%d)' % (L, an, len(row) + 1, oy, oy + h - 1, ox, ox + w - 1))
+                    row.append(fr)
+                out[v][an] = row
+    if lost:
+        raise SystemExit('ART-39 cut off at the frame edge: ' + '; '.join(lost))
+    return out
 
 
 def frames_in(sheet, bg, band, n, splits=None):
@@ -226,10 +333,15 @@ def build():
              'hurt': death_r, 'flinch': hit_r, 'cast': web_r, 'braid': braid_r}
     north = {'idle': [fN] * 4 + [breathe(fN)] * 4, 'walk': wback * 2, 'attack': dip(fN, -1),
              'hurt': mirror(death_r), 'flinch': mirror(hit_r), 'cast': mirror(web_r), 'braid': mirror(braid_r)}
+    tall = lambda a: int(np.ptp(np.where(a[..., 3].any(axis=1))[0]) + 1)
+    d39 = art39({'side': tall(idle_r[0]), 'S': tall(front[0]), 'N': tall(fN)})     # ART-39 (10-22): the five views
+    get = lambda v, a, base: d39[v].get(a, base)
     frames = {a: [] for a in side}
     for f in range(8):                                   # facings S, SW, W, NW, N, NE, E, SE
         for a in frames:
-            frames[a].append(south[a] if f == 0 else north[a] if f == 4 else side[a] if f in (5, 6, 7) else mirror(side[a]))
+            frames[a].append(get('S', a, south[a]) if f == 0 else get('N', a, north[a]) if f == 4 else side[a] if f == 6 else
+                             get('SE', a, side[a]) if f == 7 else get('NE', a, side[a]) if f == 5 else
+                             mirror(get('SE', a, side[a])) if f == 1 else mirror(get('NE', a, side[a])) if f == 3 else mirror(side[a]))
     return frames
 
 
@@ -260,5 +372,6 @@ if __name__ == '__main__':
     meta = json.load(open(meta_p))
     for a, fps in (('idle', 4), ('walk', 8), ('attack', 10), ('hurt', 8), ('flinch', 10), ('cast', 9), ('braid', 5)):
         meta['anims'][a]['fps'] = fps
-    meta['source'] = 'generated by Griz (2026-09-29, two sheets; the braiding idle 2026-09-30), cut and snapped by tools/ettercap-sheet.py'
+    meta['source'] = ('generated by Griz (2026-09-29, two sheets; the braiding idle 2026-09-30), cut and snapped by tools/ettercap-sheet.py; '
+                      'SE and NE every row and S and N their web shot, hit, death and braid drawn by the art desk (ART-39, 10-22)')
     json.dump(meta, open(meta_p, 'w'), indent=1)
