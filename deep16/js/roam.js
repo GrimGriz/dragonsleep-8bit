@@ -1884,4 +1884,46 @@
     if (R0.mode === 'walk' && D.counter) D.counter.paintPin(ctx, B); // (the pinned quest's next door, a gold marker, and its step in words -- js/counter.js, 10-21)
     if (R0.mode === 'over' && I.pressed('rec')) location.reload();
   };
+
+  // ------------------------------------------------------------------ THE WET ON THE HOUSE, shown (deep16/?wetshow -- the eyes rows' door, 10-22, the Wet seat): a NEW GAME's four (js/house.js
+  // H.fresh) staged on the floor by the beat, the first game's flags by their names, the rest in the player's hands. &beat=<id> opens one; X back to the title
+  R.WET_BEATS = [
+    { id: 'stair', label: 'DOWN TO THE WET, from the stalls', note: 'On the stalls below its stair, Skarn\'s gate open, Edric\'s book signed: walk up onto the stair, down into the Wet. Its own stair takes them back up.', key: 'warrens_b', at: [12, 2], dir: 'up' },
+    { id: 'cradle', label: 'THE DEEP RATE at a cradle', note: 'On the Wet below cradle one, the book signed, a draught in the pack: E on the cradle (or a click): WORK THE DEEP RATE, WHO MILKS? -- a 1 rouses the animal.', at: [15, 7], dir: 'up', inv: [['draught', 1]] },
+    { id: 'dry', label: 'THE DRY STAIR (drained)', note: 'The stair pumped dry, the four on the landing: step onto the stair -- the dry steps, Pete\'s five off the bottom step, the cut door.', at: [21, 21], dir: 'left', flags: { stairHook: 1 } },
+    { id: 'hold', label: 'HOLDING THE STAIR', note: 'Drained, the dry stair seen, Ragna\'s siphon asked: step onto the stair -- the night crews down the daytime way, a fight; won, three nights and the water back.', at: [21, 21], dir: 'left', flags: { stairHook: 1, drySeen: 1, waterAsked: 1, fiveRecovered: 1 } }
+  ];
+  R.wetPlay = function (bt) {
+    var H = D.house, rec = H.fresh(); rec.at = { town: null };
+    rec.flags = Object.assign({ tallyMet: 1, skarnOk: 1, skarnGateOpen: 1 }, bt.flags || {});
+    (bt.inv || []).forEach(function (s) { H.add(rec.inv, s[0], s[1]); });
+    H.begin(rec, 0);
+    D.push(R.make('?roam=' + (bt.key || 'wet'), { save: H.living(H.cur), opts: bt.key ? { at8: bt.at.slice() } : { at8: bt.at.slice(), dir: bt.dir || null }, house: true }));
+  };
+  function WetShow(q) {
+    this.kind = 'wetshow'; this.opaque = true; this.t = 0; this.hov = 0; this.beats = R.WET_BEATS;
+    var b = /[?&]beat=([a-z0-9]+)/.exec(String(q || '')); if (b) this.pending = this.beats.filter(function (x) { return x.id === b[1]; })[0] || null;
+  }
+  WetShow.prototype.buttons = function () { return this.beats.map(function (bt, k) { return { x: 12, y: 26 + k * 34, w: D.W - 24, h: 31, bt: bt }; }); };
+  WetShow.prototype.update = function () {
+    this.t++; var m = I.mouse;
+    if (this.pending) { var p0 = this.pending; this.pending = null; R.wetPlay(p0); return; }
+    var bs = this.buttons(), hit = m.inside ? bs.filter(function (q) { return m.x >= q.x && m.x < q.x + q.w && m.y >= q.y && m.y < q.y + q.h; })[0] : null;
+    if (m.moved || m.click) this.hov = hit ? bs.indexOf(hit) : this.hov;
+    if (I.repeat('down')) this.hov = (this.hov + 1) % bs.length; if (I.repeat('up')) this.hov = (this.hov - 1 + bs.length) % bs.length;
+    if ((m.click && hit) || I.pressed('a')) { D.sfx('confirm'); R.wetPlay((hit || bs[this.hov]).bt); return; }
+    if (I.pressed('b') || m.rclick) { D.scenes.length = 0; if (D.house && D.house.Title) D.push(new D.house.Title()); }
+  };
+  WetShow.prototype.draw = function (ctx) {
+    var self = this, W8 = D.WIN8; ctx.fillStyle = '#0a0c22'; ctx.fillRect(0, 0, D.W, D.H);
+    D.text(ctx, '{y}THE WET ON THE HOUSE, 10-22{/} -- a NEW GAME staged on the floor; the rest is yours (a show)', 10, 10, W8.text);
+    this.buttons().forEach(function (q, k) {
+      var on = k === self.hov; D.win8(ctx, q.x, q.y, q.w, q.h, on ? W8.sel : null);
+      D.text(ctx, q.bt.label, q.x + 8, q.y + 3, on ? W8.gold : W8.text);
+      D.wrap(q.bt.note, q.w - 16).slice(0, 2).forEach(function (l, i) { D.text(ctx, l, q.x + 8, q.y + 12 + i * 9, '#9c9cb4'); });
+    });
+    D.hint(ctx, 'click a beat · on the floor: click to walk, E beside a thing · X: the title', D.W / 2, D.H - 12, '#9a96a8', 'center');
+  };
+  R.WetShow = WetShow;
+  R.wetShow = function (q) { return new WetShow(q); };
 })();

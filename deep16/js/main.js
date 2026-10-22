@@ -53,6 +53,7 @@
   else if (/[?&]portraits\b/.test(q) && D.counter) D.push(D.counter.portraitShow(q)); // the keepers' talking portraits, shown on their own counter screens, a face at a time (js/counter.js, 10-21 night)
   else if (/[?&]nedshow\b/.test(q) && D.counter) D.push(D.counter.nedShow(q)); // Ned Halloway and Find Familiar, a beat at a time, the Insight's die pinned (js/counter.js, 10-21 night)
   else if (/[?&]services\b/.test(q) && D.counter) D.push(D.counter.servicesShow(q)); // Silverton's services: a NEW GAME staged at the inn's, the chapel's, the leech-house's or the Weigh-House's door, or at camp (js/counter.js, 10-22)
+  else if (/[?&]wetshow\b/.test(q) && D.roam && D.roam.wetShow) D.push(D.roam.wetShow(q)); // the Wet on the house, 10-22: a NEW GAME staged by its stair, a cradle, the drained stair (js/roam.js R.WET_BEATS)
   else if (/[?&]houseshow\b/.test(q) && D.counter) D.push(D.counter.houseShow(q)); // the house seat's 10-22: Marta's bat-wing pies, Kasten's shelves, the doors in the walls -- a NEW GAME staged beside her, or at a door (js/counter.js)
   else if (/[?&]roam=/.test(q) && D.roam) D.push(D.roam.make(q)); // the party-token map's feasibility test: the whole Wet walked as one token, its fights made where they fall (js/roam.js, 10-13)
   else if (/[?&]gallery\b/.test(q) && D.oneGallery) D.push(D.oneGallery.door(q)); // THE ONE GALLERY: the spell, feature, Mascot and row galleries as shelves of one tool, one key map (js/onegallery.js, 10-08)

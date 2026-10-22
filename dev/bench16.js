@@ -3056,6 +3056,10 @@
       var BF = wetX({}, [15, 7]), RF = BF.roam, uF = RF.token, idF = function (h) { return h; }; BF.cards = [];
       RX.menuAct(BF, 'cast', { h: uF, sp: window.DS.DATA.spells.light, t: uF }, idF); RX.menuAct(BF, 'item', { id: 'katbook', h: uF }, idF);
       okX('the M menu on the Wet: Light cast on ' + uF.name + ' (conds.light ' + !!(uF.conds && uF.conds.light) + '), Katarina\'s book opened (' + cardsX(BF).slice(0, 80) + '...)', !!(uF.conds && uF.conds.light) && /KATARINA|BOOK/i.test(cardsX(BF)) && !/field menu/.test(cardsX(BF)));
+      // E. THE SHOW (deep16/?wetshow, the eyes row's door): each beat stands a NEW GAME on its floor, on its square
+      var shX = RX.wetShow('?wetshow'), bxX = RX.WET_BEATS.map(function (bt) { D.scenes.length = 0; D.push(RX.wetShow('?wetshow&beat=' + bt.id)); D.top().update(); var B = topX(), want = bt.key ? bt.at : D.roam.def.from8(bt.at[0], bt.at[1]);
+        return bt.id + (B && B.roam && RX.house() && B.roam.token.x === want[0] && B.roam.token.y === want[1] && (bt.key ? D.roam.def.key === bt.key : !!D.roam.def.wet) && B.roam.flags.tallyMet === 1 ? '' : ' (not staged)'); });
+      okX('the show deep16/?wetshow: ' + RX.WET_BEATS.length + ' beats, each a NEW GAME on its floor and square (' + bxX.join(', ') + ')', shX.buttons().length === RX.WET_BEATS.length && bxX.every(function (s) { return !/staged/.test(s); }));
       okX('and nothing at all handed to the 8-bit (' + handX.length + ')', !handX.length);
     } catch (eX) { repX.errors.push(String(eX && eX.stack || eX)); }
     embX.roamOut = outX0; if (HX) { HX.playing = false; HX.cur = null; }
