@@ -2409,7 +2409,7 @@
       D.seed = +get('seed', 1022);
       var xn = new XMLHttpRequest(); xn.open('GET', '../deep16/data/world-near.js', false); xn.send(); (0, eval)(xn.responseText);
       WN.index(); var MN = WN.map('near'), MW = WN.map('world');
-      okN('the Silverton area baked: ' + (MN ? Object.keys(MN.hex).length + ' hexes of ' + MN.w + ' mi over ' + Object.keys(MN.area).length + ' of THE WORLD\'s, ' + MN.exits.length + ' steps off its edge' : 'none'), !!MN && MN.w === 1.5 && Object.keys(MN.hex).length > 3000 && MN.exits.length > 50);
+      okN('the Silverton area baked: ' + (MN ? Object.keys(MN.hex).length + ' hexes of ' + MN.w + ' mi over ' + Object.keys(MN.area).length + ' of THE WORLD\'s, ' + MN.exits.length + ' steps off its edge' : 'none'), !!MN && MN.w === 1.5 && Object.keys(MN.hex).length > 2000 && MN.exits.length > 50);
       // a new game stands on it at Silverton
       HN2.worldDoor('?world&fresh&noenc'); var wN = D.top(), SN2 = WN.state(), z0 = wN.zooms()[wN.zi];
       okN('deep16/?world: the four on the Silverton area (' + WN.M().key + ', S.map ' + SN2.map + ') at Silverton\'s hex ' + SN2.at + ', its hexes ' + Math.round(MN.w * z0) + ' px across at ' + z0 + ' px a mile',
@@ -2418,9 +2418,13 @@
       var site = function (id) { return MN.sites.filter(function (s) { return s.id === id; })[0]; }, sv = site('silverton').hex, wayN = {};
       ['jct', 'glowseep', 'fork', 'mouth', 'webgulch', 'inn'].forEach(function (id) { var r = WN.route(sv, site(id).hex); wayN[id] = r ? r.hexes.length + ' hexes, ' + r.hours.toFixed(1) + ' h' : 'none'; wayN[id + '_n'] = r ? r.hexes.length : 99; wayN[id + '_h'] = r ? r.hours : 99; });
       okN('from Silverton by the area\'s hexes: the junction ' + wayN.jct + ', the Glowseep ' + wayN.glowseep + ', the fork ' + wayN.fork + ', the mouth ' + wayN.mouth + ', Web Gulch ' + wayN.webgulch + ', the Halfway Inn ' + wayN.inn,
-        wayN.fork_n >= 6 && wayN.fork_n <= 12 && wayN.glowseep_n < wayN.fork_n && wayN.inn_n > wayN.fork_n + 12 && Math.abs(wayN.fork_h - wayN.fork_n * 0.5) < 2.5);
-      var rI = WN.route(site('glowseep').hex, site('inn').hex);
-      okN('the Glowseep to the Halfway Inn: ' + (rI ? rI.hexes.length + ' hexes, ' + rI.hours.toFixed(1) + ' hours (his "about 8-9 hours from the half-way inn is ideal": the place as painted)' : 'no way'), !!rI);
+        wayN.inn_n > wayN.fork_n + 10 && Math.abs(wayN.fork_h - wayN.fork_n * 0.5) < 2.5);
+      var rI = WN.route(site('glowseep').hex, site('inn').hex), gfN = site('glowseep').hex, fkN0 = site('fork').hex, dGF = Math.max(Math.abs(gfN[0] - fkN0[0]), Math.abs(gfN[1] - fkN0[1]), Math.abs(gfN[0] + gfN[1] - fkN0[0] - fkN0[1]));
+      okN('the Glowseep to the Halfway Inn (his "about 8-9 hours from the half-way inn is ideal"; the fork dragged south, tools/hexmap.js seedFork): ' + (rI ? rI.hexes.length + ' hexes, ' + rI.hours.toFixed(1) + ' hours' : 'no way') + '; the Glowseep ' + dGF + ' of the area\'s hexes from the fork (his "it can be adjacent to the fork or nearby")',
+        !!rI && rI.hours >= 8 - 1e-9 && rI.hours <= 9 + 1e-9 && dGF <= 2);
+      var pitW = MW.sites.filter(function (s) { return s.id === 'pit'; })[0], innW = MW.sites.filter(function (s) { return s.id === 'inn'; })[0], ySouth = Math.max.apply(null, Object.keys(MN.hex).map(function (k) { return MN.w * Math.sqrt(3) / 2 * MN.hex[k].r; })) + MN.w / Math.sqrt(3);
+      okN('the area ends just past the Halfway Inn, north of Tarlyn\'s Pit (his "is it putting the edges north of tarlyn\'s pit (is good, just beyond halfway the old corridor is fine for early game)"): its south edge at ' + ySouth.toFixed(1) + ' mi, ' + (ySouth - innW.y).toFixed(1) + ' past the inn; the Pit on THE WORLD',
+        WN.inArea(innW.hex[0], innW.hex[1]) && !WN.inArea(pitW.hex[0], pitW.hex[1]) && ySouth - innW.y > 2 && ySouth - innW.y < 8);
       var nbS = [[1, 0], [-1, 0], [0, -1], [1, -1], [-1, 1], [0, 1]].map(function (d) { return [sv[0] + d[0], sv[1] + d[1]]; }).map(function (n) { return WN.stepHours(sv, n); }).filter(function (s) { return s && !s.exit; })[0];
       okN('a step on the area: ' + (nbS ? nbS.h.toFixed(2) + ' hours, ' + nbS.share.toFixed(2) + ' of THE MARCH\'s 5-mile hex' : 'none') + ' (16 a day of 8 hours)', !!nbS && Math.abs(nbS.share - 0.3 * nbS.going) < 1e-9 && Math.abs(nbS.h - 0.5 * nbS.going) < 1e-9);
       // off the edge onto THE WORLD, and back

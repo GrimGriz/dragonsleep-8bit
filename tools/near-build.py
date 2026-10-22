@@ -1,7 +1,7 @@
 """THE SILVERTON AREA BAKE (10-22, the world map seat; RULED, Griz, on the seat's lean: "2 - 1.5 mile hexes", after his "3 - most of the world map is between
 silverton and the other locations - so a zoom where its somewhere between 4-10 hexes to the fork in the road and a few more down to the glowseep. Whats a
 good zoom that shows about what the old corridor map did?"): the Silverton area as a map of its own beside THE WORLD -- hexes a mile and a half across,
-over the first game's corridor span (Silverton to the Pit, the west road's edge to the Verge), walked as THE WORLD is (deep16/js/world.js, its 'near' map).
+over the first game's corridor span (Silverton to just past the Halfway Inn, north of Tarlyn's Pit; the west road's edge to the Verge), walked as THE WORLD is (deep16/js/world.js, its 'near' map).
 Read from THE WORLD's own bake, never from the tool: data/world.js (the grounds' table, the places, the roads and rivers, the look) and data/world-fine.bin
 (every 330 ft its ground, every eighth of a mile its height). Each hex takes the ground most of its 330 ft cells have, its second ground and that one's share,
 a wet floor where most of it is wet, its height the mean of its eighths; a road's hexes are marked (a road walks where it goes, but the held Coldridge Route
@@ -11,7 +11,7 @@ import json, math, os, re, struct, sys, zlib
 import numpy as np
 HERE = os.path.dirname(os.path.abspath(__file__)); ROOT = os.path.dirname(HERE)
 NEAR_MI = 1.5
-NEAR_BOX = (70.0, 150.0, 12.0, 96.0) # (miles: the 5-mile hexes whose middles lie in it -- the corridor's span: 64 x 58 of its tiles at 1.1 to 1.5 mi a step)
+NEAR_BOX = (70.0, 150.0, 12.0, 66.0) # (miles: the 5-mile hexes whose middles lie in it -- the corridor's span to just past the Halfway Inn, north of Tarlyn's Pit: RULED 10-22, his "is it putting the edges north of tarlyn's pit (is good, just beyond halfway the old corridor is fine for early game)")
 S3 = math.sqrt(3)
 DIRS = [(1, 0), (1, -1), (0, -1), (-1, 0), (-1, 1), (0, 1)]
 

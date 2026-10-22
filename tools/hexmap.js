@@ -162,6 +162,48 @@
     if (!(S.seeded && S.seeded.lake1020)) LAKED = seedLake();
     if (!(S.seeded && S.seeded.going1020)) WENT = seedGoing();
     if (!(S.seeded && S.seeded.gulch1020)) GULCHED = seedGulch();
+    if (!(S.seeded && S.seeded.fork1022)) FORKED = seedFork();
+  }
+  // THE FORK DRAGGED SOUTH (10-22, the world map seat; RULED, Griz: "3 - about 8-9 hours from the half-way inn is ideal, the fork can be on either side, but there
+  // should be a thin row of plains between the gnoll hills and the bog that the road runs along, and the bog would all be north of it - it can be adjacent to the
+  // fork or nearby", then "3 I haven't changed the painting, it may have to drag the fork south a bit"): once, on load. The fork goes down the Pit road to the
+  // road's own bend 5.6 mi south (the Pit road ends there, the mile runs on from the fork's old place down to it); the west road leaves it west along that line
+  // and rejoins its own near x 69; the Glowseep sits in the bog beside the fork, north of the road. And on mile hexes he has not painted (neither the hex nor its
+  // 5-mile hex: THE FILL had made them bog), from the area's west edge to the fork: the bog down to the road, a thin row of plains along it, the gnoll hills
+  // south of that down to his own, plains along the Pit road to Web Gulch and east of it, so all the bog lies north of the road
+  var FORKED = false;
+  function seedFork() {
+    S.seeded = S.seeded || {}; S.seeded.fork1022 = true;
+    var fork = SB.fork, glow = SB.glowseep, pit = pathBy('pitroad'), mile = pathBy('mile'), west = pathBy('castegut');
+    if (!fork || !pit || !mile || !west || pit.pts[pit.pts.length - 1] !== 'fork' || mile.pts[0] !== 'fork' || west.pts[0] !== 'fork') return false;
+    var bend = pit.pts[pit.pts.length - 2]; if (typeof bend === 'string' || Math.hypot(bend[0] - fork.x, bend[1] - fork.y) > 9) return false;
+    var old = [fork.x, fork.y], j = 1; while (j < west.pts.length && (typeof west.pts[j] === 'string' || west.pts[j][0] > 75)) j++;
+    if (j >= west.pts.length || typeof west.pts[j] === 'string') return false;
+    fork.x = bend[0]; fork.y = bend[1]; fork.note = (fork.note ? fork.note + '; ' : '') + 'dragged 10-22 from (' + old[0].toFixed(2) + ', ' + old[1].toFixed(2) + ') down the Pit road to its bend (his “it may have to drag the fork south a bit”)';
+    pit.pts.splice(pit.pts.length - 2, 1); mile.pts.splice(1, 0, old);
+    var Y = fork.y, X0 = west.pts[j][0], Yj = west.pts[j][1];
+    west.pts.splice(1, j - 1, [fork.x - 11.5, Y + 0.08], [fork.x - 27, Y + 0.03]);
+    var rd = function (x) { return x >= fork.x ? Y : Y + (Yj - Y) * (fork.x - x) / (fork.x - X0); }; // (the west road's line, the fork to where it rejoins)
+    if (glow) { glow.x = fork.x - 1.5; glow.y = fork.y - 1.6; glow.note = (glow.note ? glow.note + '; ' : '') + 'moved 10-22 beside the fork, north of the west road, in the bog (his “it can be adjacent to the fork or nearby”)'; }
+    var pp = ptsOf(pit), pitD = function (c) { var d = 1e9; for (var i = 0; i + 1 < pp.length; i++) d = Math.min(d, segD(c, pp[i], pp[i + 1])[0]); return d; };
+    var pitX = function (y) { var a = [fork.x, fork.y], b = pp[pp.length - 2]; return a[0] + (b[0] - a[0]) * (y - a[1]) / (b[1] - a[1]); };
+    var w = LV[2].w, hh2 = w * SQ3 / 2, n = 0;
+    for (var r = Math.floor(30 / hh2); r <= Math.ceil(62 / hh2); r++) for (var q = Math.floor(60 / w - r / 2); q <= Math.ceil(120 / w - r / 2); q++) {
+      var k = K(q, r), c = hc(2, q, r), p1 = up(2, q, r); if (S.paint[2][k] || S.paint[1][K(p1[0], p1[1])]) continue; // (his paint, at the mile or the 5 miles: kept)
+      var x = c[0], y = c[1], ry = rd(x), t = null;
+      if (x < 60 || x > 119) continue;
+      if (x <= fork.x + 0.6) {
+        if (y >= ry - 0.6 && y <= ry + 1.1) t = 'plains'; // (the thin row the road runs along)
+        else if (y > 36.5 && y < ry - 0.6 && x <= fork.x - 0.6) t = 'bog'; // (north of it: the bog down to it, below his own band)
+      }
+      if (!t && y > ry + 1.1 && y <= 62) { // (south of the row)
+        if (pitD(c) <= 1.4) t = 'plains'; // (along the Pit road, down past Web Gulch)
+        else if (x < pitX(y)) { if (y <= 56) t = 'hills'; } // (the gnoll hills, down to his own)
+        else if (x <= 118) t = 'plains'; // (east of the Pit road: no bog south of the west road)
+      }
+      if (t) { rawSet(2, k, t); n++; }
+    }
+    reindex(); return true;
   }
   // THE COLDRIDGE ROUTE'S GOING (10-20, his "1 yes" to the seat's lean): a road carries its own going, a number -- 1 a road, 2 the SRD's difficult, between them
   // ours (the weather, the switchbacks); the Coldridge Route's set once so his redrawn road (35.7 mi) reads the ruled three wagon-days
@@ -1615,6 +1657,6 @@
   resize(); panels();
   $('origin').textContent = 'this browser keeps its copy for ' + location.host + ' (another port is another copy)';
   if (GREW) { saveNow(); msg('Your version 1 map has grown ×' + GROW + ' to the four-wagon-day road (Silverton to the Pit 68 mi). Version 1 is still kept in this browser, untouched. EXPORT is the save.'); }
-  else if (SHAPED || SEEDED || LAKED || WENT || GULCHED) { saveNow(); msg((LAKED ? 'Halfway Lake is painted back at the inn, from corridor v3’s outline. ' : '') + (WENT ? 'The Coldridge Route goes at its own going now: three wagon-days. ' : '') + (GULCHED ? 'Web Gulch is a place on the Pit road, its mile hexes painted gulch. ' : '') + (SHAPED ?'The Coldridge Route is a difficult road now, its climb to the Doors in switchbacks: three wagon-days (its panel puts back your drawing). ' : '') + (SEEDED ? 'The Doors’ schools are placed (the five in their valley, the rest solo), and the mountain-foot water runs from the bogs to the Glowseep (L shows the lifts). ' : '') + 'EXPORT is the save.'); }
+  else if (SHAPED || SEEDED || LAKED || WENT || GULCHED || FORKED) { saveNow(); msg((FORKED ? 'The fork is dragged 5.6 mi down the Pit road (your “drag the fork south a bit”): the west road leaves it along a thin row of plains, the bog north of it, the gnoll hills south, the Glowseep beside it. ' : '') + (LAKED ? 'Halfway Lake is painted back at the inn, from corridor v3’s outline. ' : '') + (WENT ? 'The Coldridge Route goes at its own going now: three wagon-days. ' : '') + (GULCHED ? 'Web Gulch is a place on the Pit road, its mile hexes painted gulch. ' : '') + (SHAPED ?'The Coldridge Route is a difficult road now, its climb to the Doors in switchbacks: three wagon-days (its panel puts back your drawing). ' : '') + (SEEDED ? 'The Doors’ schools are placed (the five in their valley, the rest solo), and the mountain-foot water runs from the bogs to the Glowseep (L shows the lifts). ' : '') + 'EXPORT is the save.'); }
   else msg('Kept in this browser as you go; EXPORT is the save.');
 })();
