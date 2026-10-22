@@ -4250,6 +4250,26 @@
         while (B4s.co && k4s++ < 400000) { var r4s = B4s.co.next(v4s); v4s = undefined; if (r4s.done) break; var y4s = r4s.value; if (y4s && y4s.prompt) v4s = y4s.prompt.opts[0].value; }
         (B4s.rulesReport || []).forEach(function (b) { okV('4 the show: ' + b.name + ' -- ' + b.why, b.ok); });
         if ((B4s.rulesReport || []).length !== 1) okV('4 the show ran ' + (B4s.rulesReport || []).length + ' beats of rays (want 1)', false);
+        // 5. THE SIMPLE FIGHT'S HIDE AS THE FIRST GAME'S (RULED 10-22, his "1 - like the first game", on his "are we determining hide by grid rules (8 bit seemed way more
+        // successful)"): Vivian's HIDE in his door, the d20 pinned to 1 (the grid's roll: 8 against the goblins' 18, the worgs' 23 -- seen) -- hidden, no roll; no foe's look
+        // finds her, nor a Search on a 20; still hidden at her turn's end, gone at the end of her next (js/battle.js hideAttack's two rounds). The full grid keeps its roll,
+        // and a foe's Hide in the simple fight (the goblin's Nimble Escape) keeps it too
+        var pin20 = function (d, f) { D.d = function (n) { return n === 20 ? d : d0V(n); }; try { return f(); } finally { D.d = d0V; } };
+        var B5 = simpleV(), v5 = B5.units.filter(function (w) { return w.id === 'vivian'; })[0], f5 = sideV(B5, 'foe'), wg5 = f5.filter(function (w) { return w.kind === 'worg'; })[0], gb5 = f5.filter(function (w) { return w.kind === 'goblin'; })[0];
+        RV.startTurn(v5); B5.active = v5; var n5 = (B5.log || []).length; pin20(1, function () { runV(B5.hide(v5)); }); B5.active = null; var l5 = logV(B5, n5), hid5 = !!v5.conds.hidden, bonus5 = v5.turn && v5.turn.bonus === 0;
+        okV('5 the simple fight: Vivian hides, the d20 pinned to 1: hidden ' + hid5 + ', a Stealth roll on the card ' + /Stealth d20/.test(l5) + ', the bonus action spent ' + bonus5 + ' ("' + l5.slice(0, 70) + '") (want true, false, true)', hid5 && !/Stealth d20/.test(l5) && bonus5);
+        if (hid5) {
+          B5.findsHidden(wg5); RV.startTurn(wg5); B5.active = wg5; pin20(20, function () { runV(B5.search(wg5)); }); B5.active = null;
+          var after5 = !!v5.conds.hidden; MV.tick(B5, v5, 'end'); var end1 = !!v5.conds.hidden; MV.tick(B5, v5, 'end'); var end2 = !!v5.conds.hidden;
+          okV('5 and the worg\'s look and its Search on a 20: still hidden ' + after5 + '; at the end of her turn ' + end1 + ', at the end of her next ' + end2 + ' (want true; true, false: two rounds, as the first game\'s)', after5 && end1 && !end2);
+        } else okV('5 and the worg\'s look, its Search, the two rounds (not hidden: nothing to test)', false);
+        RV.startTurn(gb5); B5.active = gb5; pin20(1, function () { runV(B5.hide(gb5, true)); }); B5.active = null;
+        okV('5 and a goblin\'s Hide in the simple fight, its d20 pinned to 1: hidden ' + !!gb5.conds.hidden + ' (want false: a foe keeps the grid\'s roll)', !gb5.conds.hidden);
+        D.pop();
+        var B5g = mkV('?npc=goblin,goblin&vs=rogue:5&lvl=5'), rg5 = clsV(B5g, 'rogue'), g5g = sideV(B5g, 'foe');
+        rg5.x = 3; rg5.y = 3; g5g[0].x = 6; g5g[0].y = 3; g5g[1].x = 6; g5g[1].y = 5; g5g.forEach(function (w) { w.facing = B5g.faceTo(w, rg5); }); B5g.cache = null;
+        RV.startTurn(rg5); B5g.active = rg5; pin20(1, function () { runV(B5g.hide(rg5)); }); B5g.active = null;
+        okV('5 and on the full grid, the rogue in the goblins\' sight in the light, the d20 pinned to 1: hidden ' + !!rg5.conds.hidden + ' (want false: the grid\'s roll kept)', !rg5.conds.hidden);
       } finally { try { if (k0v == null) window.localStorage.removeItem(SSv.KEY); else window.localStorage.setItem(SSv.KEY, k0v); if (v0v == null) window.localStorage.removeItem(SSv.VKEY); else window.localStorage.setItem(SSv.VKEY, v0v); } catch (eV1) { } }
     } catch (eV) { repV.errors.push(String(eV && eV.stack || eV).slice(0, 900)); D.d = d0V; }
     if (errs.length) repV.errors = repV.errors.concat(errs);

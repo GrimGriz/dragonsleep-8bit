@@ -243,6 +243,26 @@
     if (tot >= dc) { this.card(['{y}' + u.name + '{/}: RUN -- d20 ' + d + ' ' + RU.sign(md) + ' = ' + tot + ' against ' + dc + ': {n}the party slips away!{/}'], 300); yield 20; yield* this.leave(u); }
     else { D.sfx('miss'); this.card(['{y}' + u.name + '{/}: RUN -- d20 ' + d + ' ' + RU.sign(md) + ' = ' + tot + ' against ' + dc + ': {o}can\'t get away!{/}'], 300); yield 40; }
   };
+  // HIDE AS THE FIRST GAME'S (RULED 10-22, Griz: "1 - like the first game", on his "are we determining hide by grid rules (8 bit seemed way more successful)"): the
+  // lineup stands the hider in every foe's front cone, lit by the camp (the grid's Hide was 1 in 4 against the worgs), so one of ours hides here as in the first game --
+  // no roll, it always works: hidden till the end of its next turn (the turn after that from 9th level: js/battle.js hideAttack's two rounds, three), or till it attacks
+  // or is struck, its next attack with advantage. No foe's look and no Search finds it. A foe's Hide (the goblin's Nimble Escape) keeps the grid's roll; the Mirror's eye
+  // and faerie fire still forbid it (the grid's own card)
+  var hide0 = Battle.prototype.hide;
+  Battle.prototype.hide = function* (u, bonus) {
+    if (!this.simple || u.side !== 'party') return yield* hide0.apply(this, arguments);
+    var self = this, T = u.turn, mirror = this.units.some(function (w) { return G.hostile(u, w) && G.standing(w) && RU.canAct(w) && w.mirrorEye && G.los(w, u).clear && D.magic.inMirror(self, w, u); });
+    if (mirror || u.conds.faerie) return yield* hide0.apply(this, arguments);
+    if (T.bonus > 0 && (bonus || u.nimble || u.cunning || (u.cls === 'rogue' && u.lvl >= 2))) T.bonus = 0; else Battle.payAction(T); // (as the grid's: Cunning Action's bonus action, else the action)
+    T.hid = true; D.sfx('run');
+    var n = (u.lvl || 1) >= 9 ? 3 : 2;
+    u.conds.hidden = { simple: true, till: { who: u.id, at: 'end', n: n }, onEnd: function (w) { delete w.hidTotal; } }; u.hidTotal = 99; // (grimoire.js M.tick ends it; 99: no watch beats it, battle.js spots)
+    this.card(['{y}' + u.name + '{/} melts into the shadows: {n}HIDDEN{/}', '{g}No roll, as in the first game: hidden till the end of ' + (n > 2 ? 'the turn after next' : 'the next turn') + ', or the first attack -- which has advantage' + (u.cls === 'rogue' || u.sneak ? ' (and Sneak Attack)' : '') + '.{/}']);
+    if (D.spr.anim(u.sheet, 'hide')) { u.anim = 'hide'; u.animT = this.t; }
+    yield 30;
+  };
+  var sr0 = Battle.prototype.stealthRoll; // (a foe's Search re-rolls the hider's Stealth, battle.js search: one hidden the first game's way is not found)
+  Battle.prototype.stealthRoll = function (u) { var r = sr0.apply(this, arguments); if (this.simple && u.conds.hidden && u.conds.hidden.simple) r.total = 99; return r; };
 
   // ------------------------------------------------------------------ THE SPELL EFFECT SCALER (his "probably need to have a 'spell effect scaler' accompanying simple
   // combat"; the seat's lean, RULED 10-21 on his "yes to the simple fight leans"): an area is aimed at one creature, and takes it and the nearest standing of its side
