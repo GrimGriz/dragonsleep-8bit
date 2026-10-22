@@ -757,7 +757,9 @@
   // grid's rules, 10-08, Griz: "yes" -- one rule any sheet's `breath` reads, where each breath had been a creature's own code): `breath: { name, shape: 'cone' | 'line', ft, ab, dc,
   // dice, type, stone, recharge }` -- its action; each creature in the area (magic.js M.area, from its own square) saves: the damage, half on a save (Evasion as ever), or with
   // `stone` the stone begun (M.stoneBegin). Spent, it comes back on a d6 of `recharge` or more at the start of its turns. The AI breathes when it catches two of its foes and none of
-  // its friends, or one with nobody in its reach
+  // its friends, or one with nobody in its reach. `notHolding`: none while it has a creature grappled (the ankheg's Acid Spray, SRD 5.1 "if it has no creature grappled";
+  // the monster cutter seat's third run, 10-22, the lane's §36: a foe's hold is its `holding`, battle.js attack)
+  M.breathHeld = function (u) { return !!(u.breath && u.breath.notHolding) && (u.holding || []).some(function (w) { return w && !w.dead && w.hp > 0 && w.conds && w.conds.restrained && w.conds.restrained.by === u.id; }); };
   M.breathAim = function (B, u) {
     var br = u.breath, best = null;
     B.units.forEach(function (w) {
@@ -787,7 +789,7 @@
   };
   var turnBr = TR.turn;
   TR.turn = function* (B, u) {
-    if (u.breath && !u.breathSpent && u.side === 'foe' && RU.canAct(u) && u.turn && u.turn.action) {
+    if (u.breath && !u.breathSpent && !M.breathHeld(u) && u.side === 'foe' && RU.canAct(u) && u.turn && u.turn.action) {
       var aim = M.breathAim(B, u), inReach = B.units.some(function (w) { return G.hostile(u, w) && G.standing(w) && G.dist(u, w) <= G.reachOf(u); });
       // (from where it stands, or from a square its move reaches where the breath would catch two and none of its own: it walks there first)
       if (!(aim && !aim.friends && aim.foes >= 2) && u.turn.move > 0 && !u.conds.restrained) {

@@ -4951,6 +4951,54 @@
     document.body.appendChild(pre21);
     return;
   }
+  // the ankheg's Acid Spray (mode=spray1022; the monster cutter seat's third run, 10-22, the lane's §36 and the desk's answer (1): a data line on the grid's breath rule,
+  // js/traits.js M.breathe, with the SRD's gate "if it has no creature grappled" -- `notHolding`, M.breathHeld). Each check failed on the code before it (no breath on the sheet)
+  if (get('mode', '') === 'spray1022') {
+    var repS = { checks: [], errors: [] }, d0S = D.d, MS = D.magic, RS = D.rules, GS = D.grid;
+    function okS(what, v) { repS.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function runS(g) { var v, k = 0, st; while (g && k++ < 4000) { st = g.next(v); v = undefined; if (st.done) return st.value; if (st.value && st.value.prompt) v = st.value.prompt.opts[0].value; } }
+    function mkS(q) { var Bx = D.npcFight(q, {}); D.battle = Bx; Bx.enter(); while (!Bx.order.length) Bx.co.next(); Bx.dark = false; return Bx; }
+    function sideS(Bx, s) { return Bx.units.filter(function (u) { return u.side === s; }); }
+    function pinS(d20, d6, f) { D.d = function (n) { return n === 20 ? d20 : n === 6 ? d6 : d0S(n); }; try { return f(); } finally { D.d = d0S; } }
+    function logS(Bx, n) { return (Bx.log || []).slice(n).join(' | ').replace(/\{\/?[a-z]*\}/g, ''); }
+    function stripS(w) { var m = GS.map; for (var y = 2; y + 1 < m.h; y++) for (var x = 1; x + w < m.w; x++) { var z = m.gz(x, y), good = true; for (var j = -1; j <= 1 && good; j++) for (var i = 0; i < w && good; i++) { var s = m.at(x + i, y + j); if (!s || !s.walk || m.gz(x + i, y + j) !== z) good = false; } if (good) return [x, y]; } return null; }
+    function aiTurnS(Bx, u) { Bx.active = u; RS.startTurn(u); runS(D.ai.turn(Bx, u)); MS.endTurn(Bx, u); Bx.active = null; }
+    try {
+      var B1 = mkS('?npc=ankheg&vs=fighter,wizard&lvl=3'), an = sideS(B1, 'foe')[0], hs = sideS(B1, 'party').filter(function (w) { return !w.familiar; }), o1 = stripS(8);
+      var br = an.breath || {};
+      okS('the sheet: ' + (an.breath ? br.name + ', a ' + br.ft + '-ft ' + br.shape + ', ' + String(br.ab).toUpperCase() + ' DC ' + br.dc + ', ' + br.dice + ' ' + br.type + ', recharge ' + br.recharge + ', notHolding ' + !!br.notHolding : 'no breath') + ' (want Acid Spray, a 30-ft line, DEX DC 13, 3d6 acid, recharge 6, notHolding true)',
+        br.name === 'Acid Spray' && br.shape === 'line' && br.ft === 30 && br.ab === 'dex' && br.dc === 13 && br.dice === '3d6' && br.type === 'acid' && br.recharge === 6 && br.notHolding === true);
+      if (!o1) throw new Error('no flat 8 x 3 strip on the fight map');
+      B1.units.forEach(function (w) { if (w !== an && hs.indexOf(w) < 0) { w.x = 0; w.y = 0; w.hp = 0; w.dead = true; } });
+      var lay = function () { an.x = o1[0]; an.y = o1[1]; hs[0].x = o1[0] + 3; hs[0].y = o1[1]; hs[1].x = o1[0] + 5; hs[1].y = o1[1]; hs.forEach(function (w) { w.maxhp = w.hp = 200; w.dead = false; w.conds = {}; }); an.conds = {}; an.holding = []; an.breathSpent = false; an.facing = B1.faceTo(an, hs[0]); B1.cache = null; };
+      // 1. the AI breathes down the line at the two, out of its reach: each fails (the d20 pinned to 1), the 3d6 each a 6 -- 18 each
+      lay(); var aim1 = MS.breathAim(B1, an), n1 = (B1.log || []).length;
+      pinS(1, 6, function () { aiTurnS(B1, an); });
+      var l1 = logS(B1, n1), lost1 = hs.map(function (w) { return 200 - w.hp; });
+      okS('1 the AI\'s turn, the fighter and the wizard down a line, out of its reach: aimed at ' + (aim1 ? aim1.foes + ' foe(s)' : 'none') + '; ' + (/ACID SPRAY/.test(l1) ? 'it sprays' : 'no spray') + ', spent ' + !!an.breathSpent + '; they lose ' + lost1.join(' and ') + ' (want 2, it sprays, true, 18 and 18: 3d6 at 6s, both failed)',
+        !!aim1 && aim1.foes === 2 && /ACID SPRAY/.test(l1) && an.breathSpent === true && lost1[0] === 18 && lost1[1] === 18);
+      // 2. Recharge 6: a d6 of 5 leaves it spent, a 6 brings it back
+      an.breathSpent = true; pinS(10, 5, function () { RS.startTurn(an); }); var after5 = an.breathSpent;
+      pinS(10, 6, function () { RS.startTurn(an); }); var after6 = an.breathSpent;
+      okS('2 the recharge at its turn\'s start: a d6 of 5 -> spent ' + after5 + '; a 6 -> spent ' + after6 + ' (want true, false: Recharge 6)', after5 === true && after6 === false);
+      // 3. holding the fighter in its bite (the grapple, battle.js attack's own record): no spray, by the AI's turn or by the ring's menu; let go, it is back
+      lay(); hs[0].x = o1[0] + 2; hs[0].conds.restrained = { dc: 13, by: an.id, grapple: true, only: true }; an.holding = [hs[0]]; B1.cache = null;
+      var held3 = MS.breathHeld ? MS.breathHeld(an) : "no rule", n3 = (B1.log || []).length;
+      pinS(1, 6, function () { aiTurnS(B1, an); });
+      var l3 = logS(B1, n3);
+      okS('3 it holds the fighter beside it, the wizard down the line: breathHeld ' + held3 + '; its turn ' + (/ACID SPRAY/.test(l3) ? 'sprays' : 'does not spray') + ', spent ' + !!an.breathSpent + ' (want true, does not spray, false: "if it has no creature grappled")',
+        held3 === true && !/ACID SPRAY/.test(l3) && !an.breathSpent);
+      an.turn = { action: 1, move: 30, bonus: 1, attacksLeft: 0 }; var cm3 = (B1.commands(an) || []).filter(function (c) { return c.id === 'breath'; })[0];
+      okS('3 and the ring\'s menu for it while it holds: ' + (cm3 ? (cm3.ok ? 'open' : 'shut, "' + cm3.why + '"') : 'no BREATH row') + ' (want shut, not while it has a creature grappled)', !!cm3 && !cm3.ok && /grappled/.test(cm3.why));
+      if (hs[0].conds.restrained) delete hs[0].conds.restrained; var free3 = MS.breathHeld ? MS.breathHeld(an) : "no rule";
+      cm3 = (B1.commands(an) || []).filter(function (c) { return c.id === 'breath'; })[0];
+      okS('3 and the fighter breaks free: breathHeld ' + free3 + ', the menu ' + (cm3 && cm3.ok ? 'open' : 'shut') + ' (want false, open)', free3 === false && !!cm3 && cm3.ok);
+    } catch (eS) { repS.errors.push(String(eS && eS.stack || eS).slice(0, 900)); D.d = d0S; }
+    if (errs.length) repS.errors = repS.errors.concat(errs);
+    var preS = document.createElement('pre'); preS.id = 'out'; preS.textContent = 'BENCH16 ' + JSON.stringify(repS);
+    document.body.appendChild(preS);
+    return;
+  }
   // the grid's rules lane, 10-22 (mode=rules1022; the lanes desk's order on his "check grid lane for unfinished, then aurdin/ned"): Acid Arrow's later bite, played
   // through; a foe's leather and hide by its SRD block, the black pudding's bite on it, and no armour eaten below the AC its wearer has without it
   if (get('mode', '') === 'rules1022') {

@@ -157,7 +157,11 @@
     }
     // and its Drink Light (js/traits.js): once it has drunk one, the next it drinks is too much, to see it overfill
     if (u.drinkLight && D.spr.anim(u.sheet, 'overfill') && (u.showSeen || {}).drain && !(u.showSeen || {}).overfill) u.showOverfill = true;
-    yield* turn0(B, u);
+    // and one with a breath that burrows (the ankheg's Acid Spray, 10-22): the breath waits till it has dug and come up -- a spray from afar on its
+    // first turn, then walked in by the director, and it never digs (set aside for the turn, so its recharge is not rolled either: D.ai.turn starts the turn)
+    var brWait = u.breath && u.burrow && D.spr.anim(u.sheet, 'burrow') && !((u.showSeen || {}).burrow && (u.showSeen || {}).reveal) ? u.breath : null;
+    if (brWait) u.breath = null;
+    try { yield* turn0(B, u); } finally { if (brWait) u.breath = brWait; }
     if (u.hp <= 0 || u.dead) return;
     var seen = u.showSeen || {}, RU = D.rules;
     u.showTurns = (u.showTurns || 0) + 1;
