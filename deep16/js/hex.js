@@ -550,27 +550,28 @@
     { id: 'festival', label: 'FESTIVAL: A VISITING BARBARIAN', foe: 'berserker', stake: 5, win: 10, need: 'hex:talmok' }
   ];
   HX.lead = function (B) { var H = D.house; if (H && H.playing && H.cur && H.cur.lead) return H.cur.lead; var t = B.roam.token; return String((t.src && (t.src.key || t.src.id)) || t.id || '').toLowerCase(); };
-  // Korvin's screen: the slate, who takes the sand, the stake (or the crowd's five), FIGHT or the other way; then the bout, then his word on it
+  // Korvin's screen: the slate, who takes the sand, the stake (or the crowd's five), FIGHT or the other way; then the bout, then his word on it -- on his portrait
+  // (ART-95, pt_korvin) with its faces: attentive at the slate, counting the stake into the ledger, skeptical at a stranger's empty purse, welcoming or concerned after
   HX.card = function* (B) {
     var C = D.counter, L = C.L, pickR = null;
     var talk = function* (script) { var res = null, sc = new C.Counter(B, { id: C.PT.korvin ? 'korvin' : 'korvinSlate', name: 'Korvin', place: 'The Hex', what: 'the slate', script: function (s) { return (function* () { res = yield* script(s); })(); } }); D.push(sc); while (!sc.done) yield 1; return res; };
     pickR = yield* talk(function* (sc) {
       var st = sc.st, f = st.flags; f.heardHex = 1;
       var open = HX.CARD.filter(function (c) { return !c.need || f[c.need]; });
-      var a = yield sc.ask(L('hex.korvin'), open.map(function (c) { return (f['hex:' + c.id] ? '* ' : '') + c.label + ' -- ' + (c.stake ? c.stake + ' IN' : 'FLOOR'); }).concat(['LEAVE']));
+      var a = yield sc.ask(L('hex.korvin'), open.map(function (c) { return (f['hex:' + c.id] ? '* ' : '') + c.label + ' -- ' + (c.stake ? c.stake + ' IN' : 'FLOOR'); }).concat(['LEAVE']), 'attentive');
       if (a == null || a >= open.length) return null;
       var c = open[a], able = B.roam.members.filter(function (u) { return u.hp > 0 && !u.dead && u.src; });
-      if (!able.length) { yield sc.say(L('hex.nobody')); return null; }
+      if (!able.length) { yield sc.say(L('hex.nobody'), 'concerned'); return null; }
       var who = able[0];
-      if (able.length > 1) { var w = yield sc.ask('WHO TAKES THE SAND?', able.map(function (u) { return u.name + ' L' + (u.src.lvl || u.lvl) + ' ' + u.hp + '/' + u.maxhp; }).concat(['NOT NOW'])); if (w == null || w >= able.length) return null; who = able[w]; }
-      var fronted = false;
-      if (c.stake) { if (st.silver() >= c.stake) { st.silver(-c.stake); D.sfx('coin'); } else { fronted = true; yield sc.say(L(HX.lead(B) === 'lymen' ? 'hex.frontedLymen' : 'hex.fronted')); } }
-      var simple0 = !!D.simple && D.simple.on(), how = yield sc.ask(L('hex.intro.' + c.id, { name: who.name }), ['FIGHT', simple0 ? 'ON THE GRID' : 'SIMPLE']);
+      if (able.length > 1) { var w = yield sc.ask('WHO TAKES THE SAND?', able.map(function (u) { return u.name + ' L' + (u.src.lvl || u.lvl) + ' ' + u.hp + '/' + u.maxhp; }).concat(['NOT NOW']), 'attentive'); if (w == null || w >= able.length) return null; who = able[w]; }
+      var fronted = false, paid = false;
+      if (c.stake) { if (st.silver() >= c.stake) { st.silver(-c.stake); D.sfx('coin'); paid = true; } else { fronted = true; yield sc.say(L(HX.lead(B) === 'lymen' ? 'hex.frontedLymen' : 'hex.fronted'), 'skeptical'); } }
+      var simple0 = !!D.simple && D.simple.on(), how = yield sc.ask(L('hex.intro.' + c.id, { name: who.name }), ['FIGHT', simple0 ? 'ON THE GRID' : 'SIMPLE'], paid ? 'work' : 'attentive');
       return { c: c, u: who, fronted: fronted, simple: how === 1 ? !simple0 : simple0 };
     });
     if (!pickR) return;
     var res = yield* HX.bout(B, pickR);
-    yield* talk(function* (sc) { var lines = HX.settle(B, pickR, res); for (var i = 0; i < lines.length; i++) yield sc.say(lines[i]); });
+    yield* talk(function* (sc) { var lines = HX.settle(B, pickR, res); for (var i = 0; i < lines.length; i++) yield sc.say(lines[i], i ? null : res === 'won' ? 'welcoming' : 'concerned'); });
   };
 
   // ---------------------------------------------------------------- the bout: one hero on the Hex's own sand, the rest at the rail (js/roam.js R.pullIn0's shape: the floor's sheets in, back out)
