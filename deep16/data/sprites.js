@@ -3630,7 +3630,7 @@
 }
 },
 "earthelemental_p2": {
-"image": "art/earthelemental_p2.png?v=39ade4d08f",
+"image": "art/earthelemental_p2.png?v=ee26cbf8a8",
 "fw": 96,
 "fh": 140,
 "ax": 48,
@@ -3657,27 +3657,27 @@
 },
 "attack": {
 "y": 2240,
-"fw": 160,
+"fw": 176,
 "fh": 140,
-"ax": 80,
+"ax": 88,
 "ay": 128,
 "frames": 6,
 "fps": 10
 },
 "hurt": {
 "y": 3360,
-"fw": 120,
+"fw": 152,
 "fh": 140,
-"ax": 60,
+"ax": 76,
 "ay": 128,
 "frames": 6,
 "fps": 7
 },
 "reveal": {
 "y": 4480,
-"fw": 128,
+"fw": 152,
 "fh": 140,
-"ax": 64,
+"ax": 76,
 "ay": 128,
 "frames": 6,
 "fps": 7
@@ -3693,27 +3693,27 @@
 },
 "burrow": {
 "y": 6720,
-"fw": 120,
+"fw": 152,
 "fh": 140,
-"ax": 60,
+"ax": 76,
 "ay": 128,
 "frames": 6,
 "fps": 7
 },
 "prone": {
 "y": 7840,
-"fw": 152,
+"fw": 192,
 "fh": 140,
-"ax": 76,
+"ax": 96,
 "ay": 128,
 "frames": 2,
 "fps": 6
 },
 "slam": {
 "y": 8960,
-"fw": 160,
+"fw": 176,
 "fh": 140,
-"ax": 80,
+"ax": 88,
 "ay": 128,
 "frames": 6,
 "fps": 10

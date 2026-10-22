@@ -250,6 +250,74 @@ def fits(c, K):
               % (L, row, K[L], K[L] * v, med(c[L][row], 1) / K[L], med(c[L][row], 1) / (K[L] * v), med(c[L]['idle'], 1) / K[L]))
     return f
 
+# ---------------------------------------------------------------- ART-34 (10-22, the monster cutter seat's third run, on Griz's "close the desk but
+# have the cutter run us out of usage for the week. See y'all tueday"): the art desk's facings package -- HEAD 1 SE and HEAD 2 NE every row (Idle 6,
+# Walk 8, Slam 6, Slam 2 6, Sink 6 -- its 6th drawn empty, under the ground -- Rise 6, Flinch 4, Fall 6, Prone 2), HEAD 3 S and HEAD 5 N their Sink,
+# Rise, Fall and Prone only (no HEAD 4: E stays the side rows). Sorted out of Fresh into _src/earthelemental/ART-34/ by _src/art-desk/sort-delivery.py. Cut and scaled by tools/artdesk.py: SE's Idle
+# meets the mean of this sheet's side and front idles, NE's of its side and back (the facings ruling's rule), a later page by its first standing
+# frame, S's and N's Fall 1 their front's and back's idle; toned per channel to this sheet's own frame for the view. The boxes by the seat's draft
+# (each page's bodies into its bands -- the art desk's table for a manifest, the zip had none), the four Sink pages by hand.
+AD = _load('artdesk', os.path.join(ROOT, 'tools', 'artdesk.py'))
+
+def R(*rows):
+    return [(r, b, s, n) for r, b, s, n, _ in rows], {r: xs for r, _, _, _, xs in rows}
+
+SPEC34 = {
+  'H1P1': (dict(file='ART-34_HEAD-1_PAGE-1.png', W=1536, text=[(17, 485, 46, 515), (18, 211, 35, 242), (18, 797, 40, 827), (32, 211, 54, 242), (37, 797, 49, 827), (43, 491, 65, 515), (47, 804, 70, 827), (52, 211, 84, 242), (63, 485, 75, 515), (67, 804, 94, 827), (73, 485, 96, 515), (187, 601, 205, 624), (208, 928, 226, 951), (211, 326, 228, 349), (357, 601, 375, 624), (435, 928, 454, 951), (447, 326, 466, 349), (528, 601, 547, 624), (660, 928, 678, 951), (670, 326, 688, 349), (701, 601, 720, 624), (881, 601, 899, 624), (886, 326, 905, 349), (899, 928, 919, 952), (1059, 601, 1077, 624), (1116, 326, 1134, 350), (1150, 928, 1169, 952), (1233, 601, 1252, 624), (1343, 326, 1362, 349), (1374, 928, 1393, 952), (1409, 601, 1427, 624)]),
+           R(('idle', (0, 0, 1536, 414), (285, 414), 6, [226, 456, 678, 901, 1126, 1354]), ('walk', (0, 415, 1536, 680), (559, 680), 8, [198, 367, 548, 720, 896, 1072, 1244, 1423]), ('slam', (0, 681, 1536, 1021), (882, 1021), 6, [217, 451, 679, 931, 1161, 1378]))),
+  'H1P3': (dict(file='ART-34_HEAD-1_PAGE-3.png', W=1536, text=[(27, 179, 52, 209), (27, 483, 52, 514), (27, 778, 52, 809), (49, 179, 64, 209), (49, 489, 71, 514), (49, 784, 68, 809), (60, 179, 73, 209), (65, 784, 88, 809), (68, 483, 83, 514), (71, 185, 94, 209), (79, 483, 93, 514), (85, 784, 108, 809), (91, 185, 114, 209), (105, 784, 128, 809), (111, 179, 134, 210), (200, 621, 218, 647), (304, 320, 322, 346), (328, 924, 346, 950), (419, 621, 440, 647), (608, 320, 629, 346), (645, 621, 665, 647), (737, 924, 758, 950), (896, 621, 918, 647), (924, 320, 944, 346), (1140, 621, 1161, 647), (1236, 320, 1257, 346), (1381, 621, 1402, 647)]),
+           R(('flinch', (0, 0, 1536, 396), (280, 396), 4, [321, 626, 941, 1244]), ('fall', (0, 397, 1536, 723), (580, 723), 6, [212, 438, 661, 926, 1157, 1387]), ('prone', (0, 724, 1536, 1021), (877, 1021), 2, [338, 744]))),
+  'H2P1': (dict(file='ART-34_HEAD-2_PAGE-1.png', W=1536, text=[(16, 487, 40, 513), (17, 198, 34, 224), (17, 789, 37, 815), (31, 197, 51, 224), (35, 788, 48, 815), (37, 492, 57, 513), (45, 794, 65, 815), (49, 197, 61, 224), (54, 486, 68, 513), (58, 203, 78, 224), (62, 794, 87, 815), (65, 486, 86, 513), (167, 589, 183, 612), (195, 897, 212, 920), (201, 298, 218, 322), (348, 588, 367, 612), (420, 897, 439, 920), (434, 298, 452, 322), (522, 588, 542, 612), (647, 897, 666, 920), (664, 298, 683, 322), (695, 589, 714, 612), (878, 589, 897, 612), (886, 298, 905, 322), (894, 897, 914, 920), (1052, 589, 1071, 612), (1114, 299, 1133, 322), (1145, 897, 1164, 920), (1234, 589, 1253, 612), (1344, 299, 1363, 322), (1376, 897, 1395, 920), (1411, 588, 1429, 612)]),
+           R(('idle', (0, 0, 1536, 405), (258, 405), 6, [209, 446, 674, 896, 1121, 1355]), ('walk', (0, 406, 1536, 661), (548, 661), 8, [187, 367, 541, 717, 895, 1073, 1250, 1425]), ('slam', (0, 662, 1536, 1021), (856, 1021), 6, [208, 434, 669, 901, 1161, 1389]))),
+  'H2P2': (dict(file='ART-34_HEAD-2_PAGE-2.png', W=2172, text=[(34, 118, 161, 163), (174, 520, 201, 558), (185, 121, 218, 163), (530, 520, 560, 558), (888, 520, 918, 558), (1248, 520, 1280, 558), (1614, 520, 1644, 558), (1969, 520, 1999, 558)]),
+           R(('slam2', (0, 0, 2172, 721), (451, 721), 6, [190, 541, 899, 1267, 1630, 1991]))),
+  'H2P4': (dict(file='ART-34_HEAD-2_PAGE-4.png', W=1536, text=[(18, 178, 41, 207), (18, 485, 41, 515), (18, 795, 41, 824), (38, 178, 51, 207), (38, 491, 61, 515), (39, 800, 58, 824), (49, 177, 62, 207), (54, 800, 76, 824), (59, 184, 81, 207), (59, 485, 84, 515), (74, 800, 96, 824), (78, 184, 100, 207), (93, 800, 115, 824), (96, 178, 118, 207), (193, 627, 210, 651), (284, 327, 301, 352), (353, 906, 370, 931), (424, 627, 444, 651), (584, 327, 605, 352), (656, 627, 676, 651), (760, 906, 780, 931), (895, 327, 916, 352), (896, 627, 917, 651), (1148, 627, 1168, 651), (1218, 327, 1240, 352), (1395, 627, 1415, 651)]),
+           R(('flinch', (0, 0, 1536, 403), (288, 403), 4, [293, 621, 913, 1239]), ('fall', (0, 404, 1536, 705), (587, 705), 6, [216, 449, 682, 918, 1167, 1405]), ('prone', (0, 706, 1536, 1021), (866, 1021), 2, [389, 757]))),
+  # by hand (the sinking frames are too small for the draft's bodies; the numbers by the soft-digit probe, the empty Sink 6's too)
+  'H1P2': (dict(file='ART-34_HEAD-1_PAGE-2.png', W=1536, text=[(15, 225, 120, 265), (15, 503, 88, 543), (15, 777, 88, 818)], blank={'sink': 1}),
+           R(('slam2', (0, 0, 1536, 346), (321, 345), 6, [234, 463, 679, 921, 1168, 1384]), ('sink', (0, 347, 1536, 636), (612, 635), 6, [221, 449, 682, 932, 1168, 1400]),
+             ('rise', (0, 637, 1536, 914), (889, 913), 6, [219, 441, 675, 913, 1159, 1384]))),
+  'H2P3': (dict(file='ART-34_HEAD-2_PAGE-3.png', W=1536, text=[(10, 315, 88, 357), (10, 638, 86, 679)], blank={'sink': 1}),
+           R(('sink', (0, 0, 1536, 467), (441, 466), 6, [195, 426, 652, 907, 1164, 1404]), ('rise', (0, 468, 1536, 788), (762, 787), 6, [192, 425, 651, 906, 1163, 1400]))),
+  'H3P1': (dict(file='ART-34_HEAD-3_PAGE-1.png', W=1536, text=[(15, 151, 94, 193), (15, 395, 75, 437), (15, 642, 88, 684), (15, 855, 111, 897)], blank={'sink': 1}),
+           R(('sink', (0, 0, 1536, 292), (267, 291), 6, [217, 443, 665, 893, 1130, 1389]), ('rise', (0, 293, 1536, 542), (517, 541), 6, [217, 443, 665, 893, 1131, 1384]),
+             ('fall', (0, 543, 1536, 782), (758, 781), 6, [217, 442, 665, 893, 1130, 1384]), ('prone', (0, 783, 1536, 980), (955, 979), 2, [226, 495]))),
+  'H5P1': (dict(file='ART-34_HEAD-5_PAGE-1.png', W=1536, text=[(12, 141, 85, 180), (12, 381, 84, 420), (12, 627, 76, 666), (12, 845, 105, 885)], blank={'sink': 1}),
+           R(('sink', (0, 0, 1536, 271), (249, 270), 6, [209, 439, 670, 899, 1136, 1380]), ('rise', (0, 272, 1536, 521), (498, 520), 6, [208, 433, 662, 894, 1133, 1378]),
+             ('fall', (0, 522, 1536, 757), (734, 756), 6, [207, 433, 663, 892, 1133, 1378]), ('prone', (0, 758, 1536, 977), (955, 976), 2, [258, 555]))),
+}
+PAGES34 = {L: dict(p, rows=rows, xs=xs) for L, (p, (rows, xs)) in SPEC34.items()}
+VIEWS34 = {'SE': ('H1P1', 'H1P2', 'H1P3'), 'NE': ('H2P1', 'H2P2', 'H2P3', 'H2P4'), 'S': ('H3P1',), 'N': ('H5P1',)}
+ENG34 = {'idle': 'idle', 'walk': 'walk', 'attack': 'slam', 'slam': 'slam', 'slam2': 'slam2', 'burrow': 'sink', 'reveal': 'rise', 'flinch': 'flinch',
+         'hurt': 'fall', 'prone': 'prone'}
+
+
+def art34(frames_of):
+    """{view: {engine row: [(1x frame, core x, up)]}} from ART-34, at this sheet's sizes (an empty frame (None, 0.0, 0), as EMPTY's)"""
+    fit = lambda im, k: game_frame(im, k)
+    tall = lambda a: int(np.ptp(np.where(a[..., 3].any(axis=1))[0]) + 1)
+    own = {'side': frames_of(4, 'idle'), 'S': frames_of(2, 'idle'), 'N': frames_of(3, 'idle')}
+    idle_h = {v: float(np.median([tall(a) for a, _, _ in fs])) for v, fs in own.items()}
+    cuts = AD.cut(ROOT, 'earthelemental', 'ART-34', PAGES34)
+    K = AD.scales(cuts, VIEWS34, idle_h, fit)
+    T = AD.tones(cuts, VIEWS34, K, fit, {v: fs[0][0] for v, fs in own.items()})
+    print('  ART-34 K: ' + ', '.join('%s %.2f' % (L, K[L]) for L in PAGES34) + '; this sheet stands %.0f side-on, %.0f front, %.0f back' % (idle_h['side'], idle_h['S'], idle_h['N']))
+    out = {}
+    for v, ls in VIEWS34.items():
+        rows = {}
+        for L in ls:
+            for r, frs in cuts[L].items():
+                floor = max(b[3] for _, b, _ in frs if b is not None)
+                fs = []
+                for im, box, _ in frs:
+                    if im is None:
+                        fs.append((None, 0.0, 0)); continue
+                    a = game_frame(toned(im, T[L]), K[L])
+                    fs.append((a, core_x(a), int(round((floor - box[3]) / K[L]))))
+                rows[r] = fs
+        out[v] = {eng: (rows[r][::-1] if eng == 'prone' else rows[r]) for eng, r in ENG34.items() if r in rows}
+    return out
+
 
 def main(check=False):
     c = {L: cut(L, check) for L in SHEETS}
@@ -281,6 +349,7 @@ def main(check=False):
                 out.insert(EMPTY[(L, row)], (None, 0.0, 0))
             small[(L, row)] = out
         return small[(L, row)]
+    A34 = art34(frames_of)
     src = {}
     for eng, (L, row) in ROWS.items():
         side = frames_of(L, row)
@@ -288,7 +357,10 @@ def main(check=False):
             side = side[::-1]                            # up on a fist, then lying: it lies at its last frame and gets up by playing it backwards
         per = []
         for f in range(8):
-            if f == 0 and L in SIDE and row in FRONT:
+            v34 = {7: 'SE', 1: 'SE', 5: 'NE', 3: 'NE', 0: 'S', 4: 'N'}.get(f)        # (ART-34: SW and NW mirrored below, as every west)
+            if v34 and eng in A34.get(v34, {}):
+                per.append(A34[v34][eng])
+            elif f == 0 and L in SIDE and row in FRONT:
                 per.append(frames_of(2, row))
             elif f == 4 and L in SIDE and row in BACK:
                 per.append(frames_of(3, row))
