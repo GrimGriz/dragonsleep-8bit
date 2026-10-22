@@ -66,7 +66,8 @@ def cut(root, sub, art, pages, chan=None, fix=None, cuts=None):
     return out
 
 
-def scales(cuts, views, idle_h, fit):
+def scales(cuts, views, idle_h, fit, stand_of=None):
+    """stand_of: {L: (row, index)} a page's standing frame where its Death 1 (or first frame) is not one (the bulette's S page: Emerge 6)"""
     def k_for(ims, target):                          # page px a game px: the fitted frames' median height meets target
         lo, hi = 1.0, 20.0
         for _ in range(26):
@@ -74,7 +75,11 @@ def scales(cuts, views, idle_h, fit):
             got = float(np.median([tall(fit(im, k)) for im in ims]))
             lo, hi = (k, hi) if got > target else (lo, k)
         return (lo + hi) / 2
-    stand = lambda L: (cuts[L]['hurt'] if 'hurt' in cuts[L] else next(iter(cuts[L].values())))[0][0]
+    def stand(L):
+        if L in (stand_of or {}):
+            r, i = stand_of[L]
+            return cuts[L][r][i][0]
+        return (cuts[L]['hurt'] if 'hurt' in cuts[L] else next(iter(cuts[L].values())))[0][0]
     K = {}
     for v, ls in views.items():
         if 'idle' in cuts[ls[0]]:
@@ -101,14 +106,17 @@ def toned(im, f):
     return Image.fromarray(a.astype(np.uint8), 'RGBA')
 
 
-def tones(cuts, view_pages, K, fit, ref):
+def tones(cuts, view_pages, K, fit, ref, stand_of=None):
     """per channel, each page's standing frame (its Idle 1, else as `scales`) brought to the sheet's own frame for that view (ref: {'side':,
     'S':, 'N':} game-size arrays; SE and NE against the side), measured at game size, both snapped"""
     T = {}
     for v, ls in view_pages.items():
         r = _mean(ref['side'] if v in ('SE', 'NE') else ref[v])
         for L in ls:
-            im = (cuts[L]['idle'] if 'idle' in cuts[L] else cuts[L]['hurt'] if 'hurt' in cuts[L] else next(iter(cuts[L].values())))[0][0]
+            if L in (stand_of or {}):
+                im = cuts[L][stand_of[L][0]][stand_of[L][1]][0]
+            else:
+                im = (cuts[L]['idle'] if 'idle' in cuts[L] else cuts[L]['hurt'] if 'hurt' in cuts[L] else next(iter(cuts[L].values())))[0][0]
             f = r / _mean(fit(im, K[L]))
             f = f * r / _mean(fit(toned(im, f), K[L]))           # (once more: the snap moves what the tone moved)
             T[L] = tuple(float(round(x, 3)) for x in f)
@@ -116,15 +124,55 @@ def tones(cuts, view_pages, K, fit, ref):
     return T
 
 
-def views(root, sub, art, pages, view_pages, idle_h, fit, torso_x, cell, chan=None, fix=None, tone_ref=None, cuts=None):
+def page_shadow(rgb, fig, box, ground, pad=30):
+    """the ground shadow a page drew under an airborne frame: the pixels off the figure and off the page's ground colour (the bulette's SE
+    page draws a lighter grey-blue ellipse on the navy, its NE, S and N pages a faintly darker one) under the frame's columns, near the row's
+    ground line -> (x0, y0, x1, y1) page px, or None"""
+    navy = np.median(rgb.reshape(-1, 3)[::97], axis=0)
+    x0, x1 = max(0, box[0] - pad), min(rgb.shape[1], box[2] + pad)
+    y0, y1 = max(0, ground - pad), min(rgb.shape[0], ground + pad // 2)
+    sub = rgb[y0:y1, x0:x1]
+    m = ((np.abs(sub - navy).sum(-1) > 25) | (navy.sum() - sub.sum(-1) > 10)) & ~fig[y0:y1, x0:x1]
+    m = ndimage.binary_opening(m, iterations=1)                  # (the ground's own speckle out)
+    lab, n = ndimage.label(m)
+    if not n:
+        return None
+    sz = ndimage.sum(m, lab, range(1, n + 1))
+    i = int(np.argmax(sz))
+    if sz[i] < 150:
+        return None
+    sl = ndimage.find_objects(lab)[i]
+    return (x0 + sl[1].start, y0 + sl[0].start, x0 + sl[1].stop, y0 + sl[0].stop)
+
+
+def stamp_shadow(fr, cx, cy, rx, ry, colour):
+    """a hard, dithered ellipse (the palette has no half-alpha) under the figure: only where the frame is clear"""
+    h, w = fr.shape[:2]
+    yy, xx = np.mgrid[0:h, 0:w]
+    m = (((xx - cx) / max(rx, 1)) ** 2 + ((yy - cy) / max(ry, 1)) ** 2 <= 1) & (((xx + yy) & 1) == 0) & (fr[..., 3] == 0)
+    fr[m, :3] = colour; fr[m, 3] = 255
+
+
+def views(root, sub, art, pages, view_pages, idle_h, fit, torso_x, cell, chan=None, fix=None, tone_ref=None, cuts=None, stand_of=None,
+          shadows=None, shadow_rgb=None):
     """tone_ref: the sheet's own frames to tone each page to (see `tones`), or None to cut the pages' colour as drawn; fix and cuts:
-    sheetrows' own, a page at a time ({L: {row: [...]}}: a loose part's box and its frame, a line cleared where two frames touch)"""
+    sheetrows' own, a page at a time ({L: {row: [...]}}: a loose part's box and its frame, a line cleared where two frames touch); stand_of:
+    see `scales`; shadows: {row: (frame indices)} -- each such frame's ground shadow measured off its page (`page_shadow`) and drawn under it
+    in shadow_rgb, the way a cutter draws its own leap's (fit is taken to pad its cut by one px, as every cutter's does)"""
     FW, FH, AX, AY = cell
-    cuts = cut(root, sub, art, pages, chan, fix, cuts)          # (the cut lines in, the cut frames out)
-    K = scales(cuts, view_pages, idle_h, fit)
+    lines = cuts
+    cuts = cut(root, sub, art, pages, chan, fix, lines)          # (the cut lines in, the cut frames out)
+    K = scales(cuts, view_pages, idle_h, fit, stand_of)
+    pg = {}
+    if shadows:
+        SR = _sheetrows(root)
+        for L, s in pages.items():
+            if any(r in shadows for r, _, _, _ in s['rows']):
+                a = np.asarray(Image.open(os.path.join(src_dir(root), sub, art, s['file'])).convert('RGB')).astype(np.int32)
+                pg[L] = (a, SR.figure_mask(a, chan=chan) if chan else SR.figure_mask(a))
     print('  %s K: ' % art + ', '.join('%s %.2f' % (L, K[L]) for L in pages) +
           '; the sheet stands %.0f side-on, %.0f from the front, %.0f from behind' % (idle_h['side'], idle_h['S'], idle_h['N']))
-    T = tones(cuts, view_pages, K, fit, tone_ref) if tone_ref else {}
+    T = tones(cuts, view_pages, K, fit, tone_ref, stand_of) if tone_ref else {}
     out, lost = {}, []
     for v, ls in view_pages.items():
         out[v] = {}
@@ -145,6 +193,17 @@ def views(root, sub, art, pages, view_pages, idle_h, fit, torso_x, cell, chan=No
                         fr[y0:y1, x0:x1] = a[y0 - oy:y1 - oy, x0 - ox:x1 - ox]
                     if (fr[..., 3] > 0).sum() < (a[..., 3] > 0).sum():
                         lost.append('%s %s %d (rows %d..%d cols %d..%d)' % (L, an, len(row) + 1, oy, oy + h - 1, ox, ox + w - 1))
+                    i = len(row)
+                    if L in pg and i in (shadows or {}).get(an, ()):
+                        box = frs[i][1]
+                        sb = page_shadow(pg[L][0], pg[L][1], box, frs[0][1][3])
+                        if sb:                                   # page px -> this frame's px (fit's one px of pad)
+                            gx = lambda px: ox + 1 + (px - box[0]) / k
+                            gy = lambda py: oy + 1 + (py - box[1]) / k
+                            stamp_shadow(fr, (gx(sb[0]) + gx(sb[2])) / 2, (gy(sb[1]) + gy(sb[3])) / 2,
+                                         (sb[2] - sb[0]) / k / 2, max(1.5, (sb[3] - sb[1]) / k / 2), shadow_rgb)
+                        else:
+                            print('  %s %s %d: no shadow found on the page' % (L, an, i + 1))
                     row.append(fr)
                 out[v][an] = row
     if lost:

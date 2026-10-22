@@ -47,7 +47,10 @@ import importlib.util
 spec = importlib.util.spec_from_file_location('pix', os.path.join(ROOT, 'tools', 'pixelate.py'))
 pix = importlib.util.module_from_spec(spec); spec.loader.exec_module(pix)
 
-SRC = os.path.join(ROOT, 'deep16', '_src')
+spec = importlib.util.spec_from_file_location('artdesk', os.path.join(ROOT, 'tools', 'artdesk.py'))
+AD = importlib.util.module_from_spec(spec); spec.loader.exec_module(AD)
+
+SRC = AD.src_dir(ROOT)                                  # (his sheets live in the main checkout: a worktree reads them there)
 NAME = 'bulette_p2'
 FW, FH, AX, AY = 180, 120, 90, 108
 HEIGHT = 64                 # a standing figure, in px, to the top of its spines (the chuul_p2, also Large: 63; its 111 px long: the bulette is stockier, ~100)
@@ -63,6 +66,48 @@ BANDS2 = {'turn': ((0, 0, 1168, 163), 4), 'hurt': ((0, 190, 1168, 322), 6), 'dea
           'toward': ((0, 470, 1168, 610), 6), 'away': ((0, 620, 1168, 750), 6)}
 # sheet 1's leap row: the frames with a ground shadow under them (the airborne ones; the first is standing, the last has landed in a splash of dirt)
 SHADOW_FRAMES = {'leap': (1, 2, 3, 4)}
+
+# The five views (10-22, the monster cutter seat's second run): the art desk's ART-45 in deep16/_src/bulette/ART-45/ (sorted out of Fresh
+# by _src/art-desk/sort-delivery.py; its papers in _src/art-desk/received-2026-10-22-ART-45-bulette-FINAL-SHEETS/): HEAD 1 SE and HEAD 2 NE
+# on two pages each (Idle, Walk, Burrow, Emerge; Leap Bite, Flinch, Fall -- six frames a row), HEAD 3 S and HEAD 5 N their Burrow, Emerge
+# and Leap Bite, then Flinch and Fall. Cut, scaled and placed by tools/artdesk.py (by height to the spines: a diagonal's Idle between the
+# side's and the still's; a later page by its Fall 1, standing; S's and N's Burrow page by its Emerge 6, landed and standing), toned to
+# Griz's sheets, the leap's ground shadow measured off each page and drawn as this cutter draws its own (a hard, dithered ellipse). The row
+# names are boxed by hand at the far left (the dirt's clods read as letters to a probe); HEAD 1 PAGE 1's Burrow stops above its numbers
+# (its 2 touches frame 2's dirt). SE and SW, NE and NW take every row; S and N their burrow, reveal, attack, flinch and hurt (his stills and
+# walks toward and away keep their idle and walk). Leap Bite -> attack, Emerge -> reveal, Flinch -> flinch, Fall -> hurt, as his rows.
+ART45 = {
+  'H1P1': dict(file='ART-45_HEAD-1_PAGE-1.png', W=1536, text=[(18, 146, 88, 182), (14, 386, 89, 421), (14, 650, 126, 685), (16, 901, 124, 943)],
+               rows=[('idle', (0, 0, 1536, 243), (218, 243), 6), ('walk', (0, 244, 1536, 483), (458, 483), 6),
+                     ('burrow', (0, 484, 1536, 691), (689, 715), 6), ('reveal', (0, 716, 1536, 964), (939, 964), 6)]),
+  'H1P2': dict(file='ART-45_HEAD-1_PAGE-2.png', W=1536, text=[(12, 103, 138, 142), (12, 412, 98, 444), (12, 705, 68, 737)],
+               rows=[('attack', (0, 0, 1536, 354), (329, 354), 6), ('flinch', (0, 355, 1536, 653), (628, 653), 6), ('hurt', (0, 654, 1536, 940), (915, 940), 6)]),
+  'H2P1': dict(file='ART-45_HEAD-2_PAGE-1.png', W=1536, text=[(13, 121, 79, 155), (12, 352, 80, 386), (12, 584, 113, 618), (13, 821, 114, 861)],
+               rows=[('idle', (0, 0, 1536, 256), (234, 256), 6), ('walk', (0, 257, 1536, 494), (472, 494), 6),
+                     ('burrow', (0, 495, 1536, 720), (698, 720), 6), ('reveal', (0, 721, 1536, 963), (941, 963), 6)]),
+  'H2P2': dict(file='ART-45_HEAD-2_PAGE-2.png', W=1536, text=[(12, 172, 143, 213), (11, 470, 95, 503), (13, 725, 71, 758)],
+               rows=[('attack', (0, 0, 1536, 382), (356, 382), 6), ('flinch', (0, 383, 1536, 654), (626, 654), 6), ('hurt', (0, 655, 1536, 935), (907, 935), 6)]),
+  'H3P1': dict(file='ART-45_HEAD-3_PAGE-1.png', W=1536, text=[(16, 119, 156, 158), (17, 397, 152, 436), (17, 684, 185, 723)],
+               rows=[('burrow', (0, 0, 1536, 373), (347, 373), 6), ('reveal', (0, 374, 1536, 655), (628, 655), 6), ('attack', (0, 656, 1536, 956), (927, 956), 6)]),
+  'H3P2': dict(file='ART-45_HEAD-3_PAGE-2.png', W=1536, text=[(15, 198, 116, 236), (15, 513, 80, 550)],
+               rows=[('flinch', (0, 0, 1536, 465), (438, 465), 6), ('hurt', (0, 466, 1536, 783), (757, 783), 6)]),
+  'H5P1': dict(file='ART-45_HEAD-5_PAGE-1.png', W=1536, text=[(14, 85, 130, 125), (14, 396, 123, 443), (14, 708, 167, 757)],
+               rows=[('burrow', (0, 0, 1536, 334), (308, 334), 6), ('reveal', (0, 335, 1536, 651), (625, 651), 6), ('attack', (0, 652, 1536, 973), (948, 973), 6)]),
+  'H5P2': dict(file='ART-45_HEAD-5_PAGE-2.png', W=1536, text=[(20, 153, 130, 195), (20, 542, 89, 583)],
+               rows=[('flinch', (0, 0, 1536, 472), (445, 472), 6), ('hurt', (0, 473, 1536, 881), (851, 881), 6)]),
+}
+VIEWS45 = {'SE': ('H1P1', 'H1P2'), 'NE': ('H2P1', 'H2P2'), 'S': ('H3P2', 'H3P1'), 'N': ('H5P2', 'H5P1')}
+STAND45 = {'H3P1': ('reveal', 5), 'H5P1': ('reveal', 5)}     # (a page with no Fall: its Emerge 6, landed and standing)
+SHADOW45 = {'attack': (1, 2, 3, 4)}                            # the leap's airborne frames, 2 to 5, a shadow under each
+
+
+def fit45(img, k):
+    """an ART-45 page's cut at game size: premultiplied box down, a 1-px margin for the outline, snapped to the palette"""
+    w, h = img.size
+    img = img.convert('RGBa').resize((max(1, round(w / k)), max(1, round(h / k))), Image.BOX).convert('RGBA')
+    pad = Image.new('RGBA', (img.width + 2, img.height + 2), (0, 0, 0, 0))
+    pad.paste(img, (1, 1))
+    return pix.pixelate(pad, 1, do_lift=False)
 
 
 def load(name):
@@ -272,6 +317,12 @@ def build_frames():
         frames['walk'].append(walkS if f == 0 else walkN if f == 4 else walk_r if r else walk_l)
         frames['attack'].append(atk_r if r else atk_l); frames['reveal'].append(rev_r if r else rev_l); frames['burrow'].append(bur_r if r else bur_l)
         frames['flinch'].append(flinch_r if r else flinch_l); frames['hurt'].append(death_r if r else death_l)
+    d45 = AD.views(ROOT, 'bulette', 'ART-45', ART45, VIEWS45, {'side': AD.tall(idle_r[0]), 'S': AD.tall(fS), 'N': AD.tall(fN)},
+                   fit45, torso_x, (FW, FH, AX, AY), tone_ref={'side': idle_r[0], 'S': fS, 'N': fN}, stand_of=STAND45,
+                   shadows=SHADOW45, shadow_rgb=SHADOW)                     # ART-45 (10-22): the five views
+    for f, v, flip in ((7, 'SE', False), (1, 'SE', True), (5, 'NE', False), (3, 'NE', True), (0, 'S', False), (4, 'N', False)):
+        for a, fs in d45[v].items():
+            frames[a][f] = mirror(fs) if flip else fs
     return frames, {'sheet 1': s1, 'sheet 2 side': s2, 'front': sc(r2['front']), 'back': sc(r2['back']), 'toward': sc(r2['toward']), 'away': sc(r2['away'])}, (r1, r2)
 
 
@@ -321,7 +372,9 @@ def build():
     meta = json.load(open(mp))
     for a, fps in (('idle', 5), ('walk', 8), ('attack', 10), ('hurt', 8), ('flinch', 12), ('reveal', 8), ('burrow', 8)):
         meta['anims'][a]['fps'] = fps
-    meta['source'] = 'generated by Griz (2026-09-29, two sheets), keyed off the checkerboard and the flat ground and snapped by tools/bulette-sheet.py'
+    meta['source'] = ('generated by Griz (2026-09-29, two sheets), keyed off the checkerboard and the flat ground and snapped by '
+                      'tools/bulette-sheet.py; SE and NE every row and S and N their burrow, emerge, leap bite, flinch and fall drawn by '
+                      'the art desk (ART-45, 10-22)')
     json.dump(meta, open(mp, 'w'), indent=1)
     print('  top %d' % top)
     report(scales, frames)
