@@ -3015,10 +3015,24 @@
       // entrancing on a lot"): every door's threshold at the foot of a building's south wall -- the door drawn there (js/topview.js: a wall over a 'd') -- at the town's
       // scale and the finer two, in reach of the west gate
       var WALLHs = THs.HOUSES + THs.SHACKS;
+      // EVERY DOOR ON ITS OWN BUILDING (10-22, the desk, on the seat's open: "A door goes on the keeper's own building, never the next house along"): the house each pin
+      // names, worked out here from v6 itself -- the house or shack the pin stands in or within T.OWNFT of, Mama's booth for hers, else a booth of the door's own at its pin
+      var V6Hs = D.TOWN_V6, boxHs = V6Hs.shack.map(function (s, k) { return ['s' + k, s[0], s[1], -s[2] / 2, -s[3] / 2, s[2], s[3], s[4]]; }).concat(V6Hs.bldg.map(function (b, k) { return ['b' + k, b[0] + b[2] / 2, b[1] + b[3] / 2, -b[2] / 2, -b[3] / 2, b[2], b[3], b[4]]; }));
+      var ftHs = function (o, X, Y) { var c = Math.cos(o[7]), s = Math.sin(o[7]), dx = X - o[1], dy = Y - o[2], u = dx * c + dy * s - o[3], v = -dx * s + dy * c - o[4]; return Math.hypot(Math.max(0, -u, u - o[5]), Math.max(0, -v, v - o[6])); };
+      var ownerHs = {}; THs.DOORS.forEach(function (d) { if (d.at) { ownerHs[d.id] = 'mama'; return; } var p = V6Hs.PINS.filter(function (q) { return q[2] === d.pin; })[0], best = null, bd = 1e9; boxHs.forEach(function (o) { var f = ftHs(o, p[0], p[1]); if (f <= bd) { bd = f; best = o[0]; } }); ownerHs[d.id] = bd <= (THs.OWNFT || 20) ? best : 'booth:' + d.id; });
+      var boxOfHs = function (d, tg) { if (tg === 'mama') return ['mama', THs.MAMA[0], THs.MAMA[1], -THs.MAMA[2] / 2, -THs.MAMA[2] / 2, THs.MAMA[2], THs.MAMA[2], 0]; if (/^booth:/.test(tg)) { var p = V6Hs.PINS.filter(function (q) { return q[2] === d.pin; })[0], bs = THs.BOOTH || 24; return [tg, p[0], p[1], -bs / 2, -bs / 2, bs, bs, 0]; } return boxHs.filter(function (o) { return o[0] === tg; })[0]; };
+      var boothsHs = Object.keys(ownerHs).filter(function (k) { return /^booth:/.test(ownerHs[k]); });
+      okHs('the houses the pins name: ' + Object.keys(ownerHs).length + ' doors; a booth of their own for ' + boothsHs.join(', ') + ' (no v6 house within ' + (THs.OWNFT || 20) + ' ft of the pin: out in the Arena Plaza); Lisbet\'s on Calla\'s house (' + ownerHs['shop:lisbet'] + '), Aldric\'s on the factor house with Falstaff\'s (' + ownerHs['keeper:aldric'] + ')',
+        boothsHs.sort().join() === 'leech:davos,shop:vilar' && ownerHs['shop:lisbet'] === ownerHs['shop:calla'] && ownerHs['keeper:aldric'] === ownerHs['keeper:falstaff']);
+      [THs.SCALE, 10, 5].forEach(function (F) {
+        var Lo = THs.lay(null, F), wrong = [], ownLo = Lo.own || [], cutLo = Lo.cut || [], missLo = Lo.doorMiss || [];
+        THs.DOORS.forEach(function (d) { var q = Lo.marks.doors[d.id], wo = q && ownLo[(q[1] - 1) * Lo.w + q[0]], tg = ownerHs[d.id], bx = boxOfHs(d, tg), off = q ? ftHs(bx, THs.X0 + (q[0] + 0.5) * F, THs.Y0 + (q[1] - 0.5) * F) : 1e9; if (!q || off > F * 0.75 || (Lo.own && wo !== tg)) wrong.push(d.id + ' ' + Math.round(off) + ' ft off ' + tg + (Lo.own ? ' (on ' + wo + ')' : '')); }); // (its wall's square on the house, as v6 draws it -- and the lay's own record of whose it is)
+        okHs('at ' + F + ' ft a square: every door in its own building\'s wall (' + (THs.DOORS.length - wrong.length) + ' of ' + THs.DOORS.length + (cutLo.length ? '; a lane cut through ' + cutLo.length + ' squares of the next houses to reach five keepers\' south walls' : '') + ')' + (wrong.length ? ' -- not: ' + wrong.join('; ') : '') + (missLo.length ? ' -- no way: ' + missLo.join(', ') : ''), !wrong.length && !missLo.length);
+      });
       [THs.SCALE, 10, 5].forEach(function (F) {
         var Lt = THs.lay(null, F), bad = [], n = 0, noWay = [];
         THs.DOORS.forEach(function (d) { var q = Lt.marks.doors[d.id]; if (!q) { bad.push(d.id + ' none'); return; } n++; var nc = Lt.rows[q[1] - 1].charAt(q[0]), sc0 = (Lt.rows[q[1] + 1] || '').charAt(q[0]); if (WALLHs.indexOf(nc) < 0 || Lt.rows[q[1]].charAt(q[0]) !== 'd' || !Lt.reach[q[1] * Lt.w + q[0]]) bad.push(d.id + ' at ' + q + ' under ' + nc); if (!sc0 || '.,='.indexOf(sc0) < 0) noWay.push(d.id + ' (' + sc0 + ')'); });
-        okHs('at ' + F + ' ft a square: ' + (n - bad.length) + ' of ' + THs.DOORS.length + ' doors at the foot of a wall, in reach, ' + (n - noWay.length) + ' with the street in front' + (bad.length ? ' -- not: ' + bad.join('; ') : '') + (noWay.length ? ' (a lane in front: ' + noWay.join(', ') + ')' : ''), n === THs.DOORS.length && !bad.length && noWay.length <= 3);
+        okHs('at ' + F + ' ft a square: ' + (n - bad.length) + ' of ' + THs.DOORS.length + ' doors at the foot of a wall, in reach, ' + (n - noWay.length) + ' with the street in front' + (bad.length ? ' -- not: ' + bad.join('; ') : '') + (noWay.length ? ' (a lane in front: ' + noWay.join(', ') + ')' : ''), n === THs.DOORS.length && !bad.length); // (a lane in front is a door between two rows: reached along the lane -- town1020's walk -- and no one stands beside it, js/town.js noStand)
       });
       // Cassia's, the one he named: on its threshold, her wall above; a click on the door where it is drawn finds it, and the arrow up into the wall; in, and out to the threshold
       B = beatHs('cassia'); R0 = B.roam; var dC = D.roam.def.marks.doors['inn:cassia'], TSHs = D.topview.TS, bwC = B.map.at(dC[0], dC[1] - 1);
@@ -3027,6 +3041,10 @@
       var wayHs = function (q, x, y) { return opHs(q[0], q[1] + 1) ? x === q[0] && y === q[1] + 1 : y === q[1] && Math.abs(x - q[0]) === 1; }; // (the square in front, or on a lane the squares beside)
       var inFront = B.units.filter(function (u) { return u.npc && atDoorHs.indexOf(u.npc) < 0 && Object.keys(mdHs).some(function (k) { return wayHs(mdHs[k], u.x, u.y); }); });
       okHs('no townsperson stands on the way up to a door (' + (inFront.length ? inFront.map(function (u) { return u.name + ' at ' + u.x + ',' + u.y; }).join('; ') : 'none') + ')', !inFront.length);
+      var LtHs = THs.laidF[THs.SCALE], besideHs = CHs.AT_DOOR.map(function (k) { var u = B.units.filter(function (x) { return x.npc === k.id; })[0], dq = mdHs[k.door], tg = LtHs.doorOwner[k.door], near = false;
+        if (u) for (var oy = -1; oy <= 1 && !near; oy++) for (var ox = -1; ox <= 1 && !near; ox++) { var x = u.x + ox, y = u.y + oy; near = (x === dq[0] && y === dq[1]) || LtHs.own[y * LtHs.w + x] === tg; }
+        return { id: k.id, u: u, near: near, at: u ? u.x + ',' + u.y : 'missing' }; });
+      okHs('the keepers who stand at their doors stand beside the door or their own house (' + besideHs.map(function (b) { return b.id + ' ' + b.at + (b.near ? '' : ' NOT'); }).join('; ') + ')', besideHs.every(function (b) { return b.u && b.near; }));
       D.iso.cam.x = (dC[0] + 0.5) * TSHs; D.iso.cam.y = dC[1] * TSHs;
       var scC = D.iso.toScreen((dC[0] + 0.5) * TSHs, dC[1] * TSHs - (bwC.gz || 0) - 4), dcC = THs.doorClick(B, scC.x, scC.y), prC = D.roam.pressInto(B, [0, -1]);
       okHs('a click in her wall where the door is drawn finds it (' + (dcC ? dcC.trig.id : 'nothing') + '); the arrow pressed up into it too (' + (prC ? prC.trig.id : 'nothing') + ')', !!dcC && dcC.trig.id === 'inn:cassia' && !!prC && prC.trig.id === 'inn:cassia');
@@ -3037,6 +3055,13 @@
       var roomsBad = [];
       THs.ROOMS.forEach(function (id) { var t = trigHs(id), q = D.roam.def.marks.doors[id], b = q && B.map.at(q[0], q[1] - 1); if (!t || !b || WALLHs.indexOf(b.ch) < 0) { roomsBad.push(id + ' no door in a wall'); return; } R0.token.x = q[0]; R0.token.y = q[1]; if (!inHs(B, id)) roomsBad.push(id + ' not in'); driveHs(THs.goOut(B), null, 200); if (D.roam.def.room || R0.token.x !== q[0] || R0.token.y !== q[1]) roomsBad.push(id + ' not out at its door'); });
       okHs('every room behind a door (' + THs.ROOMS.length + ') entered by its door in a wall and left by it' + (roomsBad.length ? ' -- not: ' + roomsBad.join('; ') : ''), !roomsBad.length);
+      // THE FIRST CARD SAYS WHERE THEY STAND (the services seat's Found, the desk's relay: "At a door, the card should say where the party stands"): a NEW GAME staged at a
+      // door (the show, as a CONTINUE stands them -- H.begin, H.toTown's at8), beside Marta on the street, and the bare floor at its west gate
+      var cardHs = function (B1) { driveHs(B1.co, function () { return B1.cards.some(function (c) { return /SILVERTON/.test(c.lines.join(' ')); }); }, 60); var c1 = B1.cards.filter(function (c) { return /SILVERTON/.test(c.lines.join(' ')); })[0]; return c1 ? window.DS.stripCodes(c1.lines[0]) : ''; };
+      var cdC = cardHs(beatHs('cassia')), cdD = cardHs(beatHs('davos')), cdM = cardHs(beatHs('marta'));
+      D.scenes.length = 0; if (D.house) { D.house.playing = false; D.house.cur = null; } D.push(D.roam.make('?roam=silverton')); var cdG = cardHs(topHs());
+      okHs('the first card where they stand -- at her door: "' + cdC.slice(0, 40) + '"; at the leech-house: "' + cdD.slice(0, 40) + '"; beside Marta: "' + cdM.slice(0, 40) + '"; the bare floor: "' + cdG.slice(0, 40) + '"',
+        /^SILVERTON, at Cassia's door:/.test(cdC) && /^SILVERTON, at Davos Kren's door:/.test(cdD) && /^SILVERTON, in the /.test(cdM) && !/gate/.test(cdM) && /^SILVERTON, in at the west gate:/.test(cdG));
     } catch (eHs) { repHs.errors.push(String(eHs && eHs.stack || eHs).slice(0, 900)); }
     D.store.get = stGHs; D.store.set = stSHs; if (D.house) { D.house.playing = false; D.house.cur = null; }
     var preHs = document.createElement('pre'); preHs.id = 'out'; preHs.textContent = 'BENCH16 ' + JSON.stringify(repHs);
@@ -3384,9 +3409,11 @@
       var figW = Object.keys(CW.FIG).map(function (k) { return [k, D.SHEETS[CW.FIG[k]]]; }), heroTop = D.SHEETS.barley_p2.top;
       okW('every keeper\'s figure cut (tools/keeper-town-sheet.py): ' + figW.map(function (f) { return f[0] + (f[1] ? ' ' + f[1].top : ' NONE'); }).join(', ') + ' above the foot (Barley ' + heroTop + ', Aurdin ' + D.SHEETS.aurdin_p2.top + '); the idle drawn S only, the stand-in under it',
         figW.every(function (f) { var s = f[1], a = s && s.anims.idle; return a && a.drawn.join() === '0' && a.under === 'crewman_p1' && !!D.SHEETS[a.under] && s.top >= 45 && s.top <= 54; }));
-      var atDoorW = CW.AT_DOOR.map(function (k) { var u = B.units.filter(function (x) { return x.npc === k.id; })[0], dq = D.roam.def.marks.doors[k.door]; return { k: k, u: u, d: u && dq ? Math.max(Math.abs(u.x - dq[0]), Math.abs(u.y - dq[1])) : 99 }; });
+      // (a door at a lane's dead end -- two open squares round it at most: 10-22, the doors on their own houses -- has its keeper where the lane opens, a few squares off)
+      var laneEndW = function (dq) { var n = 0; for (var oy = -1; oy <= 1; oy++) for (var ox = -1; ox <= 1; ox++) if ((ox || oy) && '.,='.indexOf((D.roam.def.rows[dq[1] + oy] || '').charAt(dq[0] + ox) || '#') >= 0) n++; return n <= 2; };
+      var atDoorW = CW.AT_DOOR.map(function (k) { var u = B.units.filter(function (x) { return x.npc === k.id; })[0], dq = D.roam.def.marks.doors[k.door], d0 = u && dq ? Math.max(Math.abs(u.x - dq[0]), Math.abs(u.y - dq[1])) : 99; return { k: k, u: u, d: d0, ok: d0 === 1 || (d0 <= 4 && !!dq && laneEndW(dq)) }; });
       okW('at their doors on the street, in their own figures facing south: ' + atDoorW.map(function (a) { return a.k.id + (a.u ? ' ' + a.u.sheet + ' at ' + a.u.x + ',' + a.u.y + ' (' + a.d + ' from the door)' : ' MISSING'); }).join('; '),
-        atDoorW.every(function (a) { return a.u && a.u.sheet === CW.FIG[a.k.id] && a.d === 1 && a.u.facing === 0 && a.u.holdFacing && !!trigW('talk:' + a.k.id); }) &&
+        atDoorW.every(function (a) { return a.u && a.u.sheet === CW.FIG[a.k.id] && a.ok && a.u.facing === 0 && a.u.holdFacing && !!trigW('talk:' + a.k.id); }) &&
         ['marin', 'barber', 'mela', 'mical', 'brennan', 'venhale'].every(function (id) { return atDoorW.some(function (a) { return a.k.id === id && a.u; }); })); // (Mela and Mical since 10-21 night, "got 3 more south idles in Fresh too"; Brennan and Venn Hale 10-22, "more NPC art is in")
       // Korvin's waistcoat dyed off Percy's brown at the cut (RULED 10-22, Griz: "Go for recolor without reroll"): his portrait and his town figure carry the dye the
       // cutters put on them (the colour itself is the eyes row's), Percy's none; and the portraits' show takes the three, Korvin by name with his first-game line

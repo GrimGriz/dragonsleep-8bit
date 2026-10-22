@@ -328,7 +328,8 @@
     var R0 = B.roam;
     if (R.def.music) D.music(R.def.music); // (a floor's own tune at the door -- the town's, the 8-bit's Silverton's: the party-token map lane's 10-20 note 1, "no music in roam")
     if (R.def.town && R.def.hello) B.card(R.wrap(R.def.hello), 420); // (a floor of its own words: the mines' top floors, js/mines.js)
-    else if (R.def.town) B.card(R.wrap(['{y}SILVERTON{/}, in at the ' + R.def.gate + ' gate: ' + (R.def.ft === 5 ? 'the town at true scale' : 'the town drawn as if the party stood ' + R.def.ft + ' ft tall') + ' (' + G.map.w + ' x ' + G.map.h + ' squares), one token, the party inside it.', '{g}Click to walk, or the arrows. E: a word with someone beside you. O: the formation. L: the town map.{/}']), 420);
+    // (Silverton's card says where they stand: in at the gate, or at the door a CONTINUE or a show stands them at -- js/town.js T.whereAt)
+    else if (R.def.town) B.card(R.wrap(['{y}SILVERTON{/}, ' + (D.town.whereAt ? D.town.whereAt(R.def, R0.token.x, R0.token.y) : 'in at the ' + R.def.gate + ' gate') + ': ' + (R.def.ft === 5 ? 'the town at true scale' : 'the town drawn as if the party stood ' + R.def.ft + ' ft tall') + ' (' + G.map.w + ' x ' + G.map.h + ' squares), one token, the party inside it.', '{g}Click to walk, or the arrows. E: a word with someone beside you. O: the formation. L: the town map.{/}']), 420);
     else B.card(['{y}THE WET{/}, the whole floor (' + G.map.w + ' x ' + G.map.h + ' squares): one token, the party inside it.', '{g}Click to walk, or the arrows. O: the formation.' + (R.emb ? '' : ' F: a fight now.') + '{/}'], 420);
     while (true) {
       var t = R0.token;

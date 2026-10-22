@@ -28,7 +28,8 @@
   // the town's one slope (10-20, Griz: "slope once off of fountain street, then leveled"): Fountain Street, the Gate Plaza's head and the Edifice's foot up on their level, the
   // ground falling DROP ft southward between SLOPE[0] and SLOPE[1] (v6's feet: the first sixty feet off the street), and level from there to the south gate
   var T_MAMA = [1435, 1295, 24]; // (Mama's booth, in v6's feet: its middle and its side -- outside the Hex's north-east, by the plaza)
-  T.MAMA = T_MAMA; T.ZOOMSTEP = 1; // (ZOOMSTEP: the town's own zoom, a step out from the closest -- his "default zoom one step further out")
+  T.MAMA = T_MAMA; T.ZOOMSTEP = 1; T.OWNFT = 20; T.BOOTH = 24; // (OWNFT: how near v6's house a pin stands to be that house's door; BOOTH: the side of a booth for a pin with none, as Mama's)
+  // (ZOOMSTEP: the town's own zoom, a step out from the closest -- his "default zoom one step further out")
   T.SLOPE = [560, 620]; T.DROP = 30; T.FRONT = 60; T.RUN = 30; T.SHUT = 0.08; // (SHUT: the share of houses showing a shut door) // (FRONT: how far south of the street the first houses may begin; RUN: the fall behind them, inside the lane)
 
   T.lay = function (V, F0) {
@@ -36,7 +37,8 @@
     var F = F0 || T.FT, w = Math.round((T.X1 - T.X0) / F), h = Math.round((T.Y1 - T.Y0) / F), g = new Array(w * h), sl = new Uint8Array(w * h); // (sl: a roof's side -- 1 the half toward the light, 2 the other, 3 the ridge: js/iso.js roofCanvas)
     var cx = function (gx) { return T.X0 + (gx + 0.5) * F; }, cy = function (gy) { return T.Y0 + (gy + 0.5) * F; };
     var gxOf = function (x) { return Math.floor((x - T.X0) / F); }, gyOf = function (y) { return Math.floor((y - T.Y0) / F); };
-    var set = function (gx, gy, ch, only) { if (gx < 0 || gy < 0 || gx >= w || gy >= h) return; var i = gy * w + gx; if (only && only.indexOf(g[i]) < 0) return; g[i] = ch; };
+    var own = new Array(w * h), tag = null; // (whose each square is: 'b<k>' v6's house k, 's<k>' its shack k, 'mama', 'booth:<door>' -- the building a door goes in, T.DOORS below)
+    var set = function (gx, gy, ch, only) { if (gx < 0 || gy < 0 || gx >= w || gy >= h) return; var i = gy * w + gx; if (only && only.indexOf(g[i]) < 0) return; g[i] = ch; own[i] = tag; };
     var at = function (gx, gy) { return gx < 0 || gy < 0 || gx >= w || gy >= h ? null : g[gy * w + gx]; };
     // every square whose middle the test holds, over a box in feet
     var fill = function (x0, y0, x1, y1, test, ch, only) {
@@ -73,13 +75,34 @@
     V.road.forEach(function (r) { line(r[0], r[1] >= 9 ? 15 : 10, ',', '.'); }); // (THE road three squares wide, the tracks two)
     // the Shaft Rows' shacks, the houses, the Hexagon, the Edifice
     // (each house one of three heights and roofs, each shack one of two, by its place in v6's order: houses that touch read as two -- the step between their roofs)
-    V.shack.forEach(function (s, k) { rect(s[0], s[1], -s[2] / 2, -s[3] / 2, s[2], s[3], s[4], 'hj'.charAt((k * 5 + (k >> 1)) % 2), null, true); });
-    V.bldg.forEach(function (b, k) { rect(b[0] + b[2] / 2, b[1] + b[3] / 2, -b[2] / 2, -b[3] / 2, b[2], b[3], b[4], 'bnu'.charAt((k * 7 + (k >> 2)) % 3), null, true); });
+    var BOX = V.shack.map(function (s, k) { return { tag: 's' + k, ch: 'hj'.charAt((k * 5 + (k >> 1)) % 2), b: [s[0], s[1], -s[2] / 2, -s[3] / 2, s[2], s[3], s[4]] }; })
+      .concat(V.bldg.map(function (b, k) { return { tag: 'b' + k, ch: 'bnu'.charAt((k * 7 + (k >> 2)) % 3), b: [b[0] + b[2] / 2, b[1] + b[3] / 2, -b[2] / 2, -b[3] / 2, b[2], b[3], b[4]] }; }));
+    BOX.forEach(function (o) { tag = o.tag; rect(o.b[0], o.b[1], o.b[2], o.b[3], o.b[4], o.b[5], o.b[6], o.ch, null, true); }); tag = null;
     var hx = V.hexagon, hexP = []; for (var k = 0; k < 6; k++) { var an = Math.PI / 180 * (60 * k - 90); hexP.push([hx[0] + hx[2] * Math.cos(an), hx[1] + hx[2] * Math.sin(an)]); }
     poly(hexP, 'B');
     // Mama's Pharmakaiea out of the Hex, a booth beside its north-east face (10-21, Griz: "mama's shop may have to come out adjacent like the 8 bit did it, as the door is
     // technically on the north face and will be invis to players"): a low roof, its door south of it on the street (T.DOORS shop:lucia `at`)
-    rect(T.MAMA[0], T.MAMA[1], -T.MAMA[2] / 2, -T.MAMA[2] / 2, T.MAMA[2], T.MAMA[2], 0, 'n', null, true);
+    tag = 'mama'; rect(T.MAMA[0], T.MAMA[1], -T.MAMA[2] / 2, -T.MAMA[2] / 2, T.MAMA[2], T.MAMA[2], 0, 'n', null, true); tag = null;
+    // whose building each door is (10-22, the desk's relay, on the house seat's open: "A door goes on the keeper's own building, never the next house along"): v6's house
+    // or shack its pin stands in, or within T.OWNFT of (a pin set on the street at its front: Cassia's, Kess's); Mama's booth for hers; and a pin with no house that near
+    // -- Vilar's and Davos Kren's, out in the Arena Plaza among the stalls -- a booth of its own at the pin, as Mama's came (invented.json arena-plaza-booths)
+    var pinOf = function (d) { return d.at ? [d.at[0], d.at[1], d.pin] : V.PINS.filter(function (q) { return q[2] === d.pin; })[0]; }; // (`at`: a door moved off v6's pin -- Mama's booth)
+    var boxFt = function (b, X, Y) { var c = Math.cos(b[6]), s = Math.sin(b[6]), dx = X - b[0], dy = Y - b[1], u = dx * c + dy * s - b[2], v = -dx * s + dy * c - b[3]; return Math.hypot(Math.max(0, -u, u - b[4]), Math.max(0, -v, v - b[5])); }; // (feet from the box, 0 inside)
+    var whose = {};
+    T.DOORS.forEach(function (d) {
+      var p = pinOf(d); if (!p) return;
+      if (d.at) { whose[d.id] = 'mama'; return; }
+      var best = null, bd = 1e9; BOX.forEach(function (o) { var f = boxFt(o.b, p[0], p[1]); if (f <= bd) { bd = f; best = o; } }); // (<=: the one laid last, on top, where two hold the pin)
+      if (best && bd <= T.OWNFT) { whose[d.id] = best.tag; return; }
+      whose[d.id] = tag = 'booth:' + d.id; rect(p[0], p[1], -T.BOOTH / 2, -T.BOOTH / 2, T.BOOTH, T.BOOTH, 0, 'n', null, true); tag = null;
+    });
+    // a door's building too small to hold a square's middle at this scale stands its middle square (on open ground only: never over another's)
+    var sqOf = function () { var o = {}; for (var i2 = 0; i2 < g.length; i2++) if (own[i2] && T.ROOFS[g[i2]]) (o[own[i2]] = o[own[i2]] || []).push(i2); return o; }, have = sqOf();
+    T.DOORS.forEach(function (d) {
+      var tg = whose[d.id]; if (!tg || have[tg]) return;
+      var o = BOX.filter(function (z) { return z.tag === tg; })[0], m = o ? o.b : pinOf(d), gx = gxOf(m[0]), gy = gyOf(m[1]); // (a box's middle; a booth's, its pin)
+      if ('.,='.indexOf(at(gx, gy) || '#') >= 0) { tag = tg; set(gx, gy, o ? o.ch : 'n'); tag = null; sl[gy * w + gx] = 3; } // (one square: all ridge)
+    });
     fill(V.EDW[0], T.Y0, V.EDW[1], V.EDBOT, function () { return true; }, '#'); // (the Edifice: the dwarves' facade in the mountain's face, drawn as the cliff it stands in)
     // the fountains at the Edifice's foot: a pool in a dressed rim (v6: the basin 30 ft across the rim, 22 the water)
     V.FOUNT.forEach(function (x) { ellipse(x, V.EDBOT + 26, Math.max(30, F * 0.75), Math.max(30, F * 0.75), '='); ellipse(x, V.EDBOT + 26, Math.max(22, F * 0.55), Math.max(22, F * 0.55), '~'); });
@@ -106,9 +129,13 @@
     V.gate.forEach(function (q, k) { marks.gates[GATE[k] || 'g' + k] = nearestOpen(q[0] + (k === 1 ? 14 : 0), q[1] + (k === 1 ? -14 : 0)); }); // (the west gate's mark a step inside, where the road from the fork arrives)
     V.PINS.forEach(function (p) { marks.pins[p[2]] = nearestOpen(p[0], p[1]); });
     // the ground the streets reach from the west gate (a door or a person in a yard closed in by houses would be out of reach: at a town's scale a block's back yards close up)
-    var reach = new Uint8Array(w * h), WALK = '.,=dr~', qq = [marks.gates.west]; reach[marks.gates.west[1] * w + marks.gates.west[0]] = 1;
-    for (var qi = 0; qi < qq.length; qi++) { var c1 = qq[qi]; for (var ddy = -1; ddy <= 1; ddy++) for (var ddx = -1; ddx <= 1; ddx++) { var nx = c1[0] + ddx, ny = c1[1] + ddy; if ((!ddx && !ddy) || nx < 0 || ny < 0 || nx >= w || ny >= h || reach[ny * w + nx] || WALK.indexOf(g[ny * w + nx]) < 0) continue; if (ddx && ddy && (WALK.indexOf(at(c1[0] + ddx, c1[1])) < 0 || WALK.indexOf(at(c1[0], c1[1] + ddy)) < 0)) continue; reach[ny * w + nx] = 1; qq.push([nx, ny]); } }
-    var out = {}; for (var ri = 0; ri < g.length; ri++) if (!reach[ri] && OPEN.indexOf(g[ri]) >= 0) out[(ri % w) + ',' + Math.floor(ri / w)] = 1;
+    var reach = new Uint8Array(w * h), WALK = '.,=dr~', out = {};
+    var walkReach = function () { // (walked again once a way to a door is cut: T.DOORS below)
+      reach.fill(0); var qq = [marks.gates.west]; reach[marks.gates.west[1] * w + marks.gates.west[0]] = 1;
+      for (var qi = 0; qi < qq.length; qi++) { var c1 = qq[qi]; for (var ddy = -1; ddy <= 1; ddy++) for (var ddx = -1; ddx <= 1; ddx++) { var nx = c1[0] + ddx, ny = c1[1] + ddy; if ((!ddx && !ddy) || nx < 0 || ny < 0 || nx >= w || ny >= h || reach[ny * w + nx] || WALK.indexOf(g[ny * w + nx]) < 0) continue; if (ddx && ddy && (WALK.indexOf(at(c1[0] + ddx, c1[1])) < 0 || WALK.indexOf(at(c1[0], c1[1] + ddy)) < 0)) continue; reach[ny * w + nx] = 1; qq.push([nx, ny]); } }
+      out = {}; for (var ri = 0; ri < g.length; ri++) if (!reach[ri] && OPEN.indexOf(g[ri]) >= 0) out[(ri % w) + ',' + Math.floor(ri / w)] = 1;
+    };
+    walkReach();
     marks.compound = nearestOpen(C.x - 6, C.y + C.h / 2, 30, out); // (outside its shut gate)
     // the Hexagon's doors (v6: black at 62 and 118 degrees -- the front, south, to the Arena Plaza -- and at -62 and -118, the back to the falls): the square outside each
     var hexDoor = function (deg) { var a = Math.PI / 180 * deg; var o2 = hx[2] + Math.max(6, F * 0.6); return nearestOpen(hx[0] + Math.cos(a) * o2, hx[1] + Math.sin(a) * o2, 20); };
@@ -120,24 +147,43 @@
     var vy = gyOf(V.EDBOT) + 1; for (var vx = gxOf(V.AX - 64); vx <= gxOf(V.AX + 64); vx++) set(vx, vy, 'd');
     marks.vault = [gxOf(V.AX), vy];
     // the doors of the shops and the keepers (the 8-bit's trigger at each, content/maps/silverton.json, by its slot's pin): a threshold 'd' on the street, marked, not built
-    var taken = Object.assign({}, out), tk = function (q) { for (var dy2 = -1; dy2 <= 1; dy2++) for (var dx2 = -1; dx2 <= 1; dx2++) taken[(q[0] + dx2) + ',' + (q[1] + dy2)] = 1; };
-    [marks.gates.west, marks.gates.south, marks.gates.east].concat(marks.hexFront, marks.hexBack).forEach(function (q) { if (q) taken[q[0] + ',' + q[1]] = 1; }); // (no door on a gate or the Hex's)
-    marks.doors = {};
-    // every door in a wall (10-22, the house seat; Griz: "A lot of the buildings (cassia) are still floor tile entry with no south-facing door", and 10-21 night "still have
-    // floor tile entrancing on a lot"): a door's threshold is the ground at the foot of a building's south wall, so the door is drawn in that wall (js/topview.js) and clicked
-    // there (T.doorClick). First, straight south of the pin past its own building, as before; then, for a pin off its building at this scale (it falls in a lane between
-    // two) or one whose south is built over, the wall foot nearest the pin; only where no foot is free, the open square nearest it, as before
-    var WALLS = T.HOUSES + T.SHACKS, foot = function (x, y, way) { var c = at(x, y), n = at(x, y - 1), s = at(x, y + 1); return !!c && '.,='.indexOf(c) >= 0 && !!n && WALLS.indexOf(n) >= 0 && !taken[x + ',' + y] && (!way || (!!s && '.,='.indexOf(s) >= 0 && !out[x + ',' + (y + 1)])); };
-    var nearestFoot = function (x, y, maxFt, way) { // (by the wall's square nearest the pin: the nearest building's door; `way`: with open ground south of it, the way up to the door from the street)
-      var g0 = gxOf(x), g1 = gyOf(y), R = Math.max(2, Math.ceil(maxFt / F)), best = null, bd = 1e9;
-      for (var dy = -R; dy <= R + 1; dy++) for (var dx = -R; dx <= R; dx++) { if (!foot(g0 + dx, g1 + dy, way)) continue; var d = Math.hypot(cx(g0 + dx) - x, cy(g1 + dy - 1) - y); if (d < bd) { bd = d; best = [g0 + dx, g1 + dy]; } }
-      return best;
-    };
-    var pinOf = function (d) { return d.at ? [d.at[0], d.at[1], d.pin] : V.PINS.filter(function (q) { return q[2] === d.pin; })[0]; }; // (`at`: a door moved off v6's pin -- Mama's booth)
-    var southOf = function (p) { var g0 = gxOf(p[0]), g1 = gyOf(p[1]), c0 = at(g0, g1); if (!c0 || !T.ROOFS[c0]) return null; var y5 = g1; while (at(g0, y5 + 1) === c0 && y5 - g1 < 8) y5++; var below = at(g0, y5 + 1); return below && '.,='.indexOf(below) >= 0 && !taken[g0 + ',' + (y5 + 1)] ? [g0, y5 + 1] : null; }; // (straight south of the pin, past its own building, onto the ground: the door in its south wall)
+    var hard, taken, fixed = [marks.gates.west, marks.gates.south, marks.gates.east].concat(marks.hexFront, marks.hexBack).filter(Boolean); // (no door on a gate or the Hex's)
+    var tk = function (q) { hard[q[0] + ',' + q[1]] = 1; for (var dy2 = -1; dy2 <= 1; dy2++) for (var dx2 = -1; dx2 <= 1; dx2++) taken[(q[0] + dx2) + ',' + (q[1] + dy2)] = 1; };
+    var reserve = function () { hard = Object.assign({}, out); taken = Object.assign({}, out); fixed.forEach(function (q) { hard[q[0] + ',' + q[1]] = taken[q[0] + ',' + q[1]] = 1; }); Object.keys(marks.doors).forEach(function (k) { tk(marks.doors[k]); }); };
+    marks.doors = {}; reserve();
+    // every door in its own building's wall (10-22, the house seat; Griz: "A lot of the buildings (cassia) are still floor tile entry with no south-facing door", and 10-21 night
+    // "still have floor tile entrancing on a lot"; then the desk: "A door goes on the keeper's own building, never the next house along"): a door's threshold is the ground at
+    // the foot of its building's south wall (whose, above), so the door is drawn in that wall (js/topview.js) and clicked there (T.doorClick) -- the foot nearest the pin, with
+    // the street in front where it has one, a square clear of any other door where it can; the doors with the fewest feet placed first. At the town's 30 ft a keeper's house
+    // can stand back to back with the next row, or face a yard the coarse squares close up (Brennan's, Marin's, Venn Hale's, Mela's, the factor house's): there the way to its
+    // south wall is cut (cutWay). Only a building with no way at all would take the open square nearest its pin, as before, and say so (the lay's doorMiss)
+    var mine = sqOf(), ground = function (x, y) { var c = at(x, y); return !!c && '.,='.indexOf(c) >= 0; };
+    var feet = function (tg, way, loose) { var o = [], block = loose ? hard : taken; (mine[tg] || []).forEach(function (i) { var x = i % w, y = (i - x) / w; if (own[(y + 1) * w + x] === tg || !ground(x, y + 1) || block[x + ',' + (y + 1)]) return; if (way && (!ground(x, y + 2) || out[x + ',' + (y + 2)])) return; o.push([x, y + 1]); }); return o; };
+    var nearest = function (list, p) { var best = null, bd = 1e9; list.forEach(function (q) { var d = Math.hypot(cx(q[0]) - p[0], cy(q[1] - 1) - p[1]); if (d < bd) { bd = d; best = q; } }); return best; }; // (by its wall's square: the pin's own end of the house)
     var place = function (d, q) { tk(q); set(q[0], q[1], 'd'); marks.doors[d.id] = q; };
-    T.DOORS.forEach(function (d) { var p = pinOf(d), q = p && southOf(p); if (q) place(d, q); }); // (the doors on their own buildings first, so a door searched for never takes their ground)
-    T.DOORS.forEach(function (d) { if (marks.doors[d.id]) return; var p = pinOf(d); if (!p) return; var q = nearestFoot(p[0], p[1], 150, true) || nearestFoot(p[0], p[1], 300, true) || nearestFoot(p[0], p[1], 300) || nearestOpen(p[0], p[1], 150, taken); if (q) place(d, q); });
+    var doorMiss = [], cut = [], keeperOwn = {}; Object.keys(whose).forEach(function (k) { keeperOwn[whose[k]] = 1; });
+    // the way cut to a house's south wall: from every square in reach, four ways, the fewest squares of a plain house or shack (never a keeper's, a door, the Hex, water or
+    // the mountain) to a square at the foot of the house's south wall, up to CUTMAX; those squares laid as packed dirt, a lane. Then the reach walked again
+    var cutWay = function (tg, p) {
+      var N = w * h, cost = new Int16Array(N).fill(-1), prev = new Int32Array(N).fill(-1), bk = [[], [], [], []], CUTMAX = 3, goal = {};
+      (mine[tg] || []).forEach(function (i) { var j = i + w; if (j < N && own[j] !== tg && !fixed.some(function (q) { return q[1] * w + q[0] === j; })) goal[j] = 1; });
+      var pass = function (j) { var c = g[j]; if ('.,='.indexOf(c) >= 0) return 0; return (T.HOUSES + T.SHACKS).indexOf(c) >= 0 && !keeperOwn[own[j]] ? 1 : -1; };
+      for (var i = 0; i < N; i++) if (reach[i] && '.,='.indexOf(g[i]) >= 0) { cost[i] = 0; bk[0].push(i); }
+      for (var c = 0; c <= CUTMAX; c++) for (var k2 = 0; k2 < bk[c].length; k2++) {
+        var j0 = bk[c][k2]; if (cost[j0] !== c) continue; var x0 = j0 % w;
+        [x0 > 0 ? j0 - 1 : -1, x0 < w - 1 ? j0 + 1 : -1, j0 - w, j0 + w].forEach(function (j) { if (j < 0 || j >= N) return; var pc = pass(j); if (pc < 0) return; var nc = c + pc; if (nc > CUTMAX || (cost[j] >= 0 && cost[j] <= nc)) return; cost[j] = nc; prev[j] = j0; bk[nc].push(j); });
+      }
+      var best = -1, bestD = 1e9; Object.keys(goal).forEach(function (s) { var j = +s; if (cost[j] < 0) return; var d = Math.hypot(cx(j % w) - p[0], cy((j - j % w) / w - 1) - p[1]); if (best < 0 || cost[j] < cost[best] || (cost[j] === cost[best] && d < bestD)) { best = j; bestD = d; } });
+      if (best < 0) return false;
+      for (var j1 = best; j1 >= 0 && cost[j1] > 0; j1 = prev[j1]) if (pass(j1) === 1) { set(j1 % w, (j1 - j1 % w) / w, ','); sl[j1] = 0; cut.push([j1 % w, (j1 - j1 % w) / w]); }
+      walkReach(); reserve(); return true;
+    };
+    T.DOORS.filter(function (d) { return whose[d.id]; }).map(function (d, k) { return { d: d, k: k, n: feet(whose[d.id]).length }; }).sort(function (a, b) { return a.n - b.n || a.k - b.k; }).forEach(function (e) {
+      var d = e.d, p = pinOf(d), tg = whose[d.id], foot = function () { return nearest(feet(tg, true), p) || nearest(feet(tg), p) || nearest(feet(tg, false, true), p); }; // (the last: beside another door in the one wall -- the factor houses' two)
+      var q = foot() || (cutWay(tg, p) && foot());
+      if (!q) { q = nearestOpen(p[0], p[1], 150, taken); doorMiss.push(d.id); }
+      if (q) place(d, q);
+    });
     var inOrder = {}; T.DOORS.forEach(function (d) { if (marks.doors[d.id]) inOrder[d.id] = marks.doors[d.id]; }); marks.doors = inOrder; // (in T.DOORS' order, as before)
     var v6pins = {}; V.PINS.forEach(function (p) { v6pins[p[2]] = [p[0], p[1]]; });
     // the slope by the column (10-21, Griz: "the buildings facing fountain street would be on the same level as fountain street, the houses behind them on the worn down
@@ -171,7 +217,7 @@
     }
     for (var si = 0; si < g.length; si++) if (!T.ROOFS[g[si]]) sl[si] = 0; // (a side only where a roof still stands: the streets, the doors and the yard laid over some)
     var slope = []; for (var y3 = 0; y3 < h; y3++) { var sr = ''; for (var x3 = 0; x3 < w; x3++) sr += sl[y3 * w + x3]; slope.push(sr); }
-    return { w: w, h: h, rows: (function () { var out = []; for (var y2 = 0; y2 < h; y2++) out.push(g.slice(y2 * w, y2 * w + w).join('')); return out; })(), slope: slope, heights: heights, reach: reach, marks: marks, v6pins: v6pins, F: F, faceDoors: faceDoors };
+    return { own: own, doorOwner: whose, doorMiss: doorMiss, cut: cut, w: w, h: h, rows: (function () { var out = []; for (var y2 = 0; y2 < h; y2++) out.push(g.slice(y2 * w, y2 * w + w).join('')); return out; })(), slope: slope, heights: heights, reach: reach, marks: marks, v6pins: v6pins, F: F, faceDoors: faceDoors };
   };
 
   // the doors: the 8-bit's Silverton triggers (content/maps/silverton.json: shop, keeper, inn, leech, chapel, warp) at their slot's pin in v6's key (the wiki's slots are
@@ -247,7 +293,7 @@
     // (10-21 night, Mela Sorris and Mical: a door may open north -- the Stew's, its street above it -- or onto a lane one square wide -- the warehouse's -- so every side
     // is tried, and a square that would wall the door off from the west gate is passed over: the reach walked again with the figure standing there, as T.lay walks it)
     var WALK = '.,=dr~', reachedWith = function (dq, cand) {
-      var seen = {}, qq = [L.marks.gates.west], key = function (x, y) { return x + ',' + y; }, ok = function (x, y) { var r = L.rows[y]; return !!r && x >= 0 && x < r.length && WALK.indexOf(r.charAt(x)) >= 0 && (x === dq[0] && y === dq[1] || !used[key(x, y)]) && !(x === cand[0] && y === cand[1]); };
+      var seen = {}, qq = [L.marks.gates.west], key = function (x, y) { return x + ',' + y; }, ok = function (x, y) { var r = L.rows[y]; return !!r && x >= 0 && x < r.length && WALK.indexOf(r.charAt(x)) >= 0 && (x === dq[0] && y === dq[1] || r.charAt(x) === 'd' || !used[key(x, y)]) && !(x === cand[0] && y === cand[1]); }; // (a threshold is walked over, though no one stands on it: 10-22, a lane past two doors to Mela's)
       seen[key(qq[0][0], qq[0][1])] = 1;
       for (var i = 0; i < qq.length; i++) { var c = qq[i]; if (c[0] === dq[0] && c[1] === dq[1]) return true;
         for (var dy = -1; dy <= 1; dy++) for (var dx = -1; dx <= 1; dx++) { var nx = c[0] + dx, ny = c[1] + dy; if ((!dx && !dy) || seen[key(nx, ny)] || !ok(nx, ny)) continue; if (dx && dy && (!ok(c[0] + dx, c[1]) || !ok(c[0], c[1] + dy))) continue; seen[key(nx, ny)] = 1; qq.push([nx, ny]); } }
@@ -255,7 +301,13 @@
     };
     ((D.counter && D.counter.AT_DOOR) || []).forEach(function (k) {
       var dq = M.doors[k.door]; if (!dq || !inW(dq)) return;
-      var sq = [[1, 0], [-1, 0], [1, 1], [-1, 1], [0, 1], [0, -1], [1, -1], [-1, -1]].map(function (o) { return [dq[0] + o[0], dq[1] + o[1]]; }).filter(function (q) { var r = L.rows[q[1]]; return r && '.,='.indexOf(r.charAt(q[0])) >= 0 && !used[q[0] + ',' + q[1]] && inW(q) && (!L.reach || L.reach[q[1] * L.w + q[0]]) && reachedWith(dq, q); })[0];
+      var fits = function (q) { var r = L.rows[q[1]]; return r && '.,='.indexOf(r.charAt(q[0])) >= 0 && !used[q[0] + ',' + q[1]] && inW(q) && (!L.reach || L.reach[q[1] * L.w + q[0]]) && reachedWith(dq, q); };
+      var sq = [[1, 0], [-1, 0], [1, 1], [-1, 1], [0, 1], [0, -1], [1, -1], [-1, -1]].map(function (o) { return [dq[0] + o[0], dq[1] + o[1]]; }).filter(fits)[0];
+      // (a door at the dead end of a lane, at 30 ft -- Mela's, Marin's since their doors went on their own houses, 10-22: every square beside it is the way in, so the keeper
+      // stands beside their own house, the square nearest the door that leaves the way clear (its front on the street: Mela's, Marin's); else the nearest within four)
+      var byDoor = function (a, b) { return Math.hypot(a[0] - dq[0], a[1] - dq[1]) - Math.hypot(b[0] - dq[0], b[1] - dq[1]); }, tgK = L.doorOwner && L.doorOwner[k.door];
+      if (!sq && tgK) { var byHouse = {}; for (var io = 0; io < L.own.length; io++) if (L.own[io] === tgK) for (var oy3 = -1; oy3 <= 1; oy3++) for (var ox3 = -1; ox3 <= 1; ox3++) byHouse[(io % L.w + ox3) + ',' + (Math.floor(io / L.w) + oy3)] = 1; sq = Object.keys(byHouse).map(function (s) { return s.split(',').map(Number); }).sort(byDoor).filter(fits)[0]; }
+      if (!sq) { var near4 = []; for (var oy4 = -4; oy4 <= 4; oy4++) for (var ox4 = -4; ox4 <= 4; ox4++) near4.push([dq[0] + ox4, dq[1] + oy4]); sq = near4.sort(byDoor).filter(fits)[0]; }
       if (!sq) return;
       used[sq[0] + ',' + sq[1]] = 1;
       var s = to(sq); people.push({ id: k.id, at: s, kind: 'crewman', face: [0, 1], look: null, hire: null });
@@ -302,6 +354,18 @@
       if (wy >= top && wy < bot) return { trig: ds[i], sq: [dx, dy] };
     }
     return null;
+  };
+  // where the party stands, for the floor's first card (10-22, the house seat, on the services seat's Found: "A CONTINUE (or the show) that stands the party at a door still
+  // opens the floor on its 'in at the west gate' card"): on the gate it came in by, in at it; on a door's threshold, at that door; on the Hex's, at the Hex's doors; anywhere
+  // else, the district v6 names there
+  T.doorName = function (id) { var d = T.DOORS.filter(function (z) { return z.id === id; })[0] || {}, arg = id.split(':')[1], N = (((window.DS || {}).DATA || {}).npcs || {})[arg]; return d.name || T.KEEPER[id] || (N && N.name) || arg; };
+  T.whereAt = function (def, x, y) {
+    var M = def.marks || {}, on = function (q) { return !!q && q[0] === x && q[1] === y; }, e = def.entry && def.entry[0];
+    if (on(e)) return 'in at the ' + def.gate + ' gate';
+    var dr = Object.keys(M.doors || {}).filter(function (k) { return on(M.doors[k]); })[0]; if (dr) return 'at ' + T.doorName(dr) + '\'s door';
+    if ([].concat(M.hexFront || [], M.hexBack || []).some(on)) return 'at the Hex\'s doors';
+    var gt = Object.keys(M.gates || {}).filter(function (k) { return on(M.gates[k]); })[0]; if (gt) return 'in at the ' + gt + ' gate';
+    var wh = def.where ? def.where(x, y) : ''; return wh ? 'in ' + wh : 'in the town';
   };
   T.wayOut = function* (B, sq) { // a road running off the floor: the world map takes the party on there, later (the world map seat's: how a hex opens into a grid floor)
     var nm = (D.roam.def.wayName || {})[sq[0] + ',' + sq[1]] || 'the road';

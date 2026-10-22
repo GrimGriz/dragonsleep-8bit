@@ -676,7 +676,7 @@
     this.kind = 'servicesshow'; this.opaque = true; this.t = 0; this.hov = 0; this.beats = beats || C.SERVICE_BEATS; this.title = title || '{y}SILVERTON\'S SERVICES{/} -- a NEW GAME staged at the door; the rest is yours (a show)';
     var b = /[?&]beat=([a-z0-9]+)/.exec(String(q || '')); if (b) this.pending = this.beats.filter(function (x) { return x.id === b[1]; })[0] || null;
   }
-  ServicesShow.prototype.buttons = function () { return this.beats.map(function (bt, k) { return { x: 12, y: 26 + k * 34, w: D.W - 24, h: 31, bt: bt }; }); };
+  ServicesShow.prototype.buttons = function () { var st = Math.min(34, Math.floor((D.H - 46) / this.beats.length)); return this.beats.map(function (bt, k) { return { x: 12, y: 26 + k * st, w: D.W - 24, h: st - 3, bt: bt }; }); }; // (more than six beats: tighter rows, the note one line)
   ServicesShow.prototype.update = function () {
     this.t++; var m = I.mouse;
     if (this.pending) { var p0 = this.pending; this.pending = null; C.servicePlay(p0); return; }
@@ -692,7 +692,7 @@
     this.buttons().forEach(function (q, k) {
       var on = k === self.hov; D.win8(ctx, q.x, q.y, q.w, q.h, on ? W8.sel : null);
       D.text(ctx, q.bt.label, q.x + 8, q.y + 3, on ? W8.gold : W8.text);
-      D.wrap(q.bt.note, q.w - 16).slice(0, 2).forEach(function (l, i) { D.text(ctx, l, q.x + 8, q.y + 12 + i * 9, '#9c9cb4'); });
+      D.wrap(q.bt.note, q.w - 16).slice(0, q.h >= 30 ? 2 : 1).forEach(function (l, i) { D.text(ctx, l, q.x + 8, q.y + 12 + i * 9, '#9c9cb4'); });
     });
     D.hint(ctx, 'click a beat · in town: click the square they stand on, E at the counter · X: the title', D.W / 2, D.H - 12, '#9a96a8', 'center');
   };
@@ -703,8 +703,11 @@
     { id: 'marta', near: 'marta', label: 'MARTA VENN\'S PIES: six bat wings, Vivian along', note: 'A click on Marta (or E beside her): COOK THEM, free for Viv\'s friends -- six pies into the pack, eaten in a fight. NOT NOW: her word, as before.', inv: [['batwings', 6]] },
     { id: 'percy', door: 'warp:percy', label: 'PERCY: the wings he won\'t have', note: 'Two bat wings in the pack. In at the door, E at the counter: his word, then "Wings? Not in my jars. Take them to Marta Venn..."', inv: [['batwings', 2]] },
     { id: 'kasten', door: 'shop:kasten', label: 'KASTEN WHEAL, THE CHANDLER: his shelves', note: 'In at his door, E at the counter: his greeting, THE SHELVES -- oil, torches, the hooded lantern, candles -- and he buys, at half.', silver: 60 },
-    { id: 'cassia', door: 'inn:cassia', label: 'THE DOORS IN THE WALLS: Cassia\'s inn', note: 'On her threshold, her door in the inn\'s south wall now -- it was a square of street in the lane between two houses. A click on the door, E, or the arrow up into it: in.' },
-    { id: 'davos', door: 'leech:davos', label: 'THE DOORS IN THE WALLS: the leech-house', note: 'Davos Kren\'s door in a wall too, three squares west of where it lay in the street. Thirteen doors moved so (the eyes row: eyes-doors-walls-1022).' }
+    { id: 'cassia', door: 'inn:cassia', label: 'THE DOORS IN THE WALLS: Cassia\'s inn', note: 'On her threshold, her door in the inn\'s south wall -- the first card says "SILVERTON, at Cassia\'s door". A click on the door, E, or the arrow up into it: in.' },
+    { id: 'davos', door: 'leech:davos', label: 'THE DOORS ON THEIR OWN HOUSES: Davos Kren\'s booth', note: 'Out in the Arena Plaza, where v6 has no house for him: a booth of his own at his pin, the door under the leech sign. The first card: "at Davos Kren\'s door".' },
+    { id: 'vilar', door: 'shop:vilar', label: 'THE DOORS ON THEIR OWN HOUSES: Vilar\'s booth, by Mama\'s', note: 'The show-armorer\'s pin is in the open plaza too: his booth beside Mama\'s by the Hex, the sword sign over his door.' },
+    { id: 'lisbet', door: 'shop:lisbet', label: 'THE DOORS ON THEIR OWN HOUSES: Lisbet\'s and Calla\'s, one house', note: 'Both pins name the one house: their doors side by side in its wall (Lisbet\'s had been four squares west, on the next house).' },
+    { id: 'marin', door: 'keeper:marin', label: 'THE DOORS ON THEIR OWN HOUSES: Marin Voss, at the back', note: 'At the town\'s scale her house stands back to back with the next row: a lane cut through two squares of the house behind to her south wall. She stands at her front.' }
   ];
   C.houseShow = function (q) { return new ServicesShow(q, C.HOUSE_BEATS, '{y}THE HOUSE, 10-22{/} -- a NEW GAME staged; the rest is yours (a show)'); };
 
