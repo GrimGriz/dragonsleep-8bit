@@ -201,7 +201,7 @@
   },
   // the sect blades (deep.js, the first rest after Torvald): Sneak Attack, and Assassinate on a party caught unaware
   assassin: {
-    name: 'Sect Blade', type: 'humanoid', sheet: 'assassin_p1', cr: '8', ac: 15, hp: 78, speed: 30, size: 1, reach: 5,
+    name: 'Sect Blade', type: 'humanoid', sheet: 'assassin_p1', cr: '8', ac: 15, armor: 'studded leather', hp: 78, speed: 30, size: 1, reach: 5,
     abil: { str: 11, dex: 16, con: 14, int: 13, wis: 11, cha: 10 }, init: 3, perception: 13, stealth: 9,
     saves: { str: 0, dex: 6, con: 2, int: 4, wis: 0, cha: 0 },
     attacks: {
@@ -297,14 +297,14 @@
   },
   // the Snoot's glory-seekers on the road south (events.js S.snoot)
   gloryseeker: {
-    name: 'Glory-Seeker', type: 'humanoid', sheet: 'gloryseeker_p2', cr: '1', ac: 15, hp: 38, speed: 30, size: 1, reach: 5, darkvision: 60,
+    name: 'Glory-Seeker', type: 'humanoid', sheet: 'gloryseeker_p2', cr: '1', ac: 15, armor: 'hide armor', shield: true, hp: 38, speed: 30, size: 1, reach: 5, darkvision: 60,
     abil: { str: 16, dex: 12, con: 13, int: 7, wis: 10, cha: 9 }, init: 1, perception: 10,
     saves: { str: 3, dex: 1, con: 1, int: -2, wis: 0, cha: -1 },
     attacks: { spear: { name: 'Spear', atk: 5, dice: '1d8', mod: 3, type: 'piercing', reach: 5 }, bite: { name: 'Bite', atk: 5, dice: '1d4', mod: 3, type: 'piercing', reach: 5 } },
     multi: ['spear', 'bite'], src: 'content/monsters.json gloryseeker (the 8-bit game\'s own: the Snoot\'s young blood, from the SRD gnoll)'
   },
   gnoll: {
-    name: 'Gnoll', type: 'humanoid', sheet: 'gnoll_p2', cr: '1/2', ac: 15, hp: 22, speed: 30, size: 1, reach: 5, darkvision: 60,
+    name: 'Gnoll', type: 'humanoid', sheet: 'gnoll_p2', cr: '1/2', ac: 15, armor: 'hide armor', shield: true, hp: 22, speed: 30, size: 1, reach: 5, darkvision: 60,
     abil: { str: 14, dex: 12, con: 11, int: 6, wis: 10, cha: 7 }, init: 1, perception: 10,
     saves: { str: 2, dex: 1, con: 0, int: -2, wis: 0, cha: -2 },
     attacks: {
@@ -388,7 +388,7 @@
     src: 'content/monsters.json wheelwright (the SRD 5.1 Spy): when Hask falls he runs for the stair (the map\'s exit), dashing; Sneak Attack 2d6 once a turn, the Hand Crossbow +4 1d6+2 30/120 (SRD 5.1, loosed when nothing is in reach: ai.js volley), and Cunning Action as `nimble` (Disengage only; 10-02 runner)', todo: 'Cunning Action\'s Dash and Hide are not read (only Disengage, through nimble)'
   },
   crewman: {
-    name: 'Crewman', type: 'humanoid', sheet: 'crewman_p1', cr: '1/2', ac: 11, hp: 32, speed: 30, size: 1, reach: 5,
+    name: 'Crewman', type: 'humanoid', sheet: 'crewman_p1', cr: '1/2', ac: 11, armor: 'leather armor', hp: 32, speed: 30, size: 1, reach: 5,
     abil: { str: 15, dex: 11, con: 14, int: 10, wis: 10, cha: 11 }, init: 0, perception: 10,
     saves: { str: 2, dex: 0, con: 2, int: 0, wis: 0, cha: 0 },
     attacks: { bar: { name: 'Pry-bar', atk: 4, dice: '1d6', mod: 2, type: 'bludgeoning', reach: 5 } },
@@ -396,14 +396,14 @@
   },
   // holding the stair at the siphon (deep.js S.holdStair): the night crews come down the daytime way
   crewboss: {
-    name: 'Crew Boss', type: 'humanoid', sheet: 'hask_p1', cr: '1/2', ac: 11, hp: 32, speed: 30, size: 1, reach: 5,
+    name: 'Crew Boss', type: 'humanoid', sheet: 'hask_p1', cr: '1/2', ac: 11, armor: 'leather armor', hp: 32, speed: 30, size: 1, reach: 5,
     abil: { str: 15, dex: 11, con: 14, int: 10, wis: 10, cha: 11 }, init: 0, perception: 10,
     saves: { str: 2, dex: 0, con: 2, int: 0, wis: 0, cha: 0 },
     attacks: { mace: { name: 'Mace', atk: 4, dice: '1d6', mod: 2, type: 'bludgeoning', reach: 5 } },
     multi: 1, packTactics: true, src: 'content/monsters.json crewboss (a Thug with one blow); Hask\'s sheet; Pack Tactics (SRD 5.1 Thug, 10-02 runner)'
   },
   thug: {
-    name: 'Thug', type: 'humanoid', sheet: 'crewman_p1', cr: '1/2', ac: 11, hp: 32, speed: 30, size: 1, reach: 5,
+    name: 'Thug', type: 'humanoid', sheet: 'crewman_p1', cr: '1/2', ac: 11, armor: 'leather armor', hp: 32, speed: 30, size: 1, reach: 5,
     abil: { str: 15, dex: 11, con: 14, int: 10, wis: 10, cha: 11 }, init: 0, perception: 10,
     saves: { str: 2, dex: 0, con: 2, int: 0, wis: 0, cha: 0 },
     attacks: {
@@ -416,7 +416,7 @@
   // not the Hired Sword's or the Thug's -- the Blade is CR 1 with 40 HP, so the Hex's hardest bout before Talmok stays so. The Hex fights are the 8-bit's by design (no deep16 option in events.js S.hexCard);
   // these put them in the Pocket DM's pot and on the ladder, and stop the grid refusing a list that names them. The Blade wears the Hired Sword's sheet, the Stable Fighter the Crewman's.
   merc: {
-    name: 'Hired Blade', type: 'humanoid', sheet: 'guard_p1', humanoid: true, cr: '1', ac: 14, hp: 40, speed: 30, size: 1, reach: 5,
+    name: 'Hired Blade', type: 'humanoid', sheet: 'guard_p1', humanoid: true, cr: '1', ac: 14, armor: 'studded leather', hp: 40, speed: 30, size: 1, reach: 5,
     abil: { str: 14, dex: 15, con: 13, int: 12, wis: 11, cha: 13 }, init: 2, perception: 10,
     saves: { str: 2, dex: 2, con: 1, int: 1, wis: 0, cha: 1 },
     attacks: {
@@ -461,7 +461,7 @@
     multi: 1, src: 'SRD 5.1 Giant Centipede (CR 1/4); content/monsters.json centipede', todo: 'the SRD poison rule that drops a target to 0 HP leaves it stable, poisoned and paralysed for an hour: not read'
   },
   stablefighter: {
-    name: 'Stable Fighter', type: 'humanoid', sheet: 'crewman_p1', humanoid: true, cr: '1/2', ac: 11, hp: 32, speed: 30, size: 1, reach: 5,
+    name: 'Stable Fighter', type: 'humanoid', sheet: 'crewman_p1', humanoid: true, cr: '1/2', ac: 11, armor: 'leather armor', hp: 32, speed: 30, size: 1, reach: 5,
     abil: { str: 15, dex: 11, con: 14, int: 10, wis: 10, cha: 11 }, init: 0, perception: 10,
     saves: { str: 2, dex: 0, con: 2, int: 0, wis: 0, cha: 0 },
     attacks: { spear: { name: 'Spear', atk: 4, dice: '1d6', mod: 2, type: 'piercing', reach: 5 } },
@@ -495,7 +495,7 @@
     multi: ['longsword', 'longsword'], resist: ['poison'], src: 'SRD 5.1 Veteran (CR 3: AC 17, 58 HP, Multiattack: two longsword +5 1d8+3; the shortsword and the heavy crossbow not given), a dwarf; content/npcs.json drillmaster'
   },
   robber: {
-    name: 'Night Crew', type: 'humanoid', sheet: 'wheelwright_p1', cr: '1/8', ac: 12, hp: 11, speed: 30, size: 1, reach: 5,
+    name: 'Night Crew', type: 'humanoid', sheet: 'wheelwright_p1', cr: '1/8', ac: 12, armor: 'leather armor', hp: 11, speed: 30, size: 1, reach: 5,
     abil: { str: 11, dex: 12, con: 12, int: 10, wis: 10, cha: 10 }, init: 1, perception: 10,
     saves: { str: 0, dex: 1, con: 1, int: 0, wis: 0, cha: 0 },
     attacks: { knife: { name: 'Knife', atk: 3, dice: '1d4', mod: 1, type: 'piercing', reach: 5 } },
@@ -699,14 +699,14 @@
   },
   // the Hex floor (events.js, Fight Night's floor): brawlers and a card bruiser, the ladder's level-1 set piece
   brawler: {
-    name: 'Bar Brawler', type: 'humanoid', sheet: 'brawler_p1', cr: '1/8', ac: 12, hp: 11, speed: 30, size: 1, reach: 5,
+    name: 'Bar Brawler', type: 'humanoid', sheet: 'brawler_p1', cr: '1/8', ac: 12, armor: 'leather armor', hp: 11, speed: 30, size: 1, reach: 5,
     abil: { str: 11, dex: 12, con: 12, int: 10, wis: 10, cha: 10 }, init: 1, perception: 10,
     saves: { str: 0, dex: 1, con: 1, int: 0, wis: 0, cha: 0 },
     attacks: { fists: { name: 'Fists', atk: 3, dice: '1d4', mod: 1, type: 'bludgeoning', reach: 5 } },
     multi: 1, src: 'content/monsters.json brawler (the Hex floor)'
   },
   cardbruiser: {
-    name: 'Card Bruiser', type: 'humanoid', sheet: 'crewman_p1', cr: '1/4', ac: 12, hp: 22, speed: 30, size: 1, reach: 5,
+    name: 'Card Bruiser', type: 'humanoid', sheet: 'crewman_p1', cr: '1/4', ac: 12, armor: 'leather armor', hp: 22, speed: 30, size: 1, reach: 5,
     abil: { str: 14, dex: 12, con: 13, int: 9, wis: 10, cha: 10 }, init: 1, perception: 10,
     saves: { str: 2, dex: 1, con: 1, int: -1, wis: 0, cha: 0 },
     attacks: { club: { name: 'Cudgel', atk: 4, dice: '1d6', mod: 2, type: 'bludgeoning', reach: 5 } },
@@ -728,7 +728,7 @@
   },
   // ------------------------------------------------------------------ the bestiary from the 8-bit game's random tables (content/encounters.json), 09-27
   bandit: {
-    name: 'Bandit', type: 'humanoid', sheet: 'bandit_p1', cr: '1/8', ac: 12, hp: 11, speed: 30, size: 1, reach: 5,
+    name: 'Bandit', type: 'humanoid', sheet: 'bandit_p1', cr: '1/8', ac: 12, armor: 'leather armor', hp: 11, speed: 30, size: 1, reach: 5,
     abil: { str: 11, dex: 12, con: 12, int: 10, wis: 10, cha: 10 }, init: 1, perception: 10,
     saves: { str: 0, dex: 1, con: 1, int: 0, wis: 0, cha: 0 },
     attacks: {
@@ -766,7 +766,7 @@
     multi: 1, charge: { dice: '2d6', dc: 13 }, relentlessBeast: 10, src: 'SRD 5.1 Giant Boar (CR 2, Large); content/monsters.json giantboar; Charge (20 ft and a tusk: +2d6, STR 13 or prone) and Relentless (a blow of 10 or less that would drop it, once) (js/traits.js, 09-28)'
   },
   goblin: {
-    name: 'Goblin', type: 'humanoid', sheet: 'goblin_p2', cr: '1/4', ac: 15, hp: 7, speed: 30, size: 1, reach: 5, darkvision: 60,
+    name: 'Goblin', type: 'humanoid', sheet: 'goblin_p2', cr: '1/4', ac: 15, armor: 'leather armor', shield: true, hp: 7, speed: 30, size: 1, reach: 5, darkvision: 60,
     abil: { str: 8, dex: 14, con: 10, int: 10, wis: 8, cha: 8 }, init: 2, perception: 9,
     saves: { str: -1, dex: 2, con: 0, int: 0, wis: -1, cha: -1 },
     attacks: {
@@ -776,7 +776,7 @@
     multi: 1, nimble: true, stealth: 6, src: 'SRD 5.1 Goblin (CR 1/4); content/monsters.json goblin (the king\'s road, leg one); Nimble Escape: Disengage for the bonus action, and a step back (js/traits.js, 09-28), and the Hide for the bonus action (js/traits.js after, Stealth +6 -- SRD 5.1 Skills; 10-07, Griz: "4 yes"; its sheet\'s hide row plays: js/ui.js, battle.js hide); the Shortbow +4 1d6+2 80/320 (SRD 5.1, loosed when nothing is in reach: ai.js volley; 10-02 runner)'
   },
   bugbear: {
-    name: 'Bugbear', type: 'humanoid', sheet: 'bugbear_p1', cr: '1', ac: 16, hp: 27, speed: 30, size: 1, reach: 5, darkvision: 60,
+    name: 'Bugbear', type: 'humanoid', sheet: 'bugbear_p1', cr: '1', ac: 16, armor: 'hide armor', shield: true, hp: 27, speed: 30, size: 1, reach: 5, darkvision: 60,
     abil: { str: 15, dex: 14, con: 13, int: 8, wis: 11, cha: 9 }, init: 2, perception: 10,
     saves: { str: 2, dex: 2, con: 1, int: -1, wis: 0, cha: -1 },
     attacks: {
@@ -786,7 +786,7 @@
     multi: 1, surprise: '2d6', src: 'SRD 5.1 Bugbear (CR 1); content/monsters.json bugbear; the chief\'s sheet; the Javelin thrown +4 1d6+2 30/120 (SRD 5.1, when nothing is in reach: ai.js volley; 10-02 runner); its own look since 10-07, bugbear_p1 (his GPT sheet, tools/bugbear-sheet.py)'
   },
   ogre: {
-    name: 'Ogre', type: 'giant', sheet: 'ogre_p2', cr: '2', ac: 11, hp: 59, speed: 40, size: 2, reach: 5, darkvision: 60,
+    name: 'Ogre', type: 'giant', sheet: 'ogre_p2', cr: '2', ac: 11, armor: 'hide armor', hp: 59, speed: 40, size: 2, reach: 5, darkvision: 60,
     abil: { str: 19, dex: 8, con: 16, int: 5, wis: 7, cha: 7 }, init: -1, perception: 8,
     saves: { str: 4, dex: -1, con: 3, int: -3, wis: -2, cha: -2 },
     attacks: {
@@ -822,14 +822,14 @@
     src: 'content/monsters.json talmok (the 8-bit game\'s own pit fighter): Pit Fists 1d4+3 (+2 raging; a flat 4 till 09-28h, the SRD unarmed strike: the Path of the Sand and its PIT FISTS give them the die), reckless, rages on the first hit (here: two blows a turn, as a CR 2 brawler); the fists knock prone (STR 13)'
   },
   berserker: {
-    name: 'Visiting Barbarian', type: 'humanoid', sheet: 'berserker_p1', cr: '2', ac: 13, hp: 67, speed: 30, size: 1, reach: 5,
+    name: 'Visiting Barbarian', type: 'humanoid', sheet: 'berserker_p1', cr: '2', ac: 13, armor: 'hide armor', hp: 67, speed: 30, size: 1, reach: 5,
     abil: { str: 16, dex: 12, con: 17, int: 9, wis: 11, cha: 9 }, init: 1, perception: 10,
     saves: { str: 3, dex: 1, con: 3, int: -1, wis: 0, cha: -1 },
     attacks: { greataxe: { name: 'Greataxe', atk: 5, dice: '1d12', mod: 3, type: 'slashing', reach: 5 } },
     multi: 1, reckless: true, src: 'SRD 5.1 Berserker (CR 2, Reckless); content/monsters.json berserker (the Hex card\'s visiting barbarian)'
   },
   banditcaptain: {
-    name: 'Bandit Captain', type: 'humanoid', sheet: 'hask_p1', cr: '2', ac: 15, hp: 65, speed: 30, size: 1, reach: 5,
+    name: 'Bandit Captain', type: 'humanoid', sheet: 'hask_p1', cr: '2', ac: 15, armor: 'studded leather', hp: 65, speed: 30, size: 1, reach: 5,
     abil: { str: 15, dex: 16, con: 14, int: 14, wis: 11, cha: 14 }, init: 3, perception: 10,
     saves: { str: 4, dex: 5, con: 2, int: 2, wis: 2, cha: 2 }, // (SRD 5.1 Bandit Captain: Str +4, Dex +5, Wis +2 -- 10-06, the WIS +2 was dropped)
     attacks: {

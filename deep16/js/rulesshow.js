@@ -3,7 +3,7 @@
    that link are magic."): the rules his eye wants played where the engine plays them, on the class floor, one beat after another, the dice pinned where a beat needs
    them to fall one way (its card says so). At the end of each beat the show waits: ENTER (or E, or a click) plays it again, → the next, ← the one before.
 
-     deep16/?rulesshow             every beat, in order · &only=antitoxin,pudding,heatmetal,metal keeps to those (a beat's id or its group) · &beat=N starts at the Nth
+     deep16/?rulesshow             every beat, in order · &only=antitoxin,pudding,leather,heatmetal,metal keeps to those (a beat's id or its group) · &beat=N starts at the Nth
                                    · &fast no pauses, no waits (the bench)
 
    Each beat is staged (who stands where, as its card says) and then run by the engine itself -- the bite and the blows B.attack, the antitoxin B.useItem, Heat Metal
@@ -19,7 +19,7 @@
     q = q || '';
     var get = function (k) { var m = new RegExp('[?&]' + k + '=([^&]*)').exec(q); return m ? decodeURIComponent(m[1]) : null; };
     var FAST = /[?&]fast\b/.test(q), L = 5;
-    var B = new D.Battle({ npc: { foes: ['giantspider', 'pudding', 'hobgoblin', 'grayooze'], party: ['cleric:' + L + ':human', 'bard:' + L + ':human', 'wizard:' + L + ':human'] },
+    var B = new D.Battle({ npc: { foes: ['giantspider', 'pudding', 'hobgoblin', 'grayooze', 'goblin'], party: ['cleric:' + L + ':human', 'bard:' + L + ':human', 'wizard:' + L + ':human'] },
       fightDef: D.classFight(L, { what: 'The grid\'s rules, shown', intro: 'A beat at a time. ENTER plays a beat again.' }) });
     B.rulesshow = true;
     var enter0 = B.enter;
@@ -32,7 +32,7 @@
     var all = B.units.slice(), party = all.filter(function (w) { return w.side === 'party' && !w.familiar; }), foes = all.filter(function (w) { return w.side === 'foe'; });
     var cleric = party.filter(function (w) { return w.cls === 'cleric'; })[0], bard = party.filter(function (w) { return w.cls === 'bard'; })[0], wizard = party.filter(function (w) { return w.cls === 'wizard'; })[0];
     var kind = function (k) { return foes.filter(function (w) { return w.kind === k; })[0]; };
-    var spider = kind('giantspider'), pudding = kind('pudding'), hob = kind('hobgoblin'), ooze = kind('grayooze');
+    var spider = kind('giantspider'), pudding = kind('pudding'), hob = kind('hobgoblin'), ooze = kind('grayooze'), gob = kind('goblin');
     var keep = all.map(function (w) { return { u: w, hp: w.maxhp, baseAC: w.baseAC, armored: w.armored, metalArmor: w.metalArmor, weapon: w.weapon, equip: w.src && w.src.equip ? Object.assign({}, w.src.equip) : null, slots: w.slots ? w.slots.slice() : null, known: w.known ? w.known.slice() : null }; });
     var cx = Math.floor(G.map.w / 2), cy = Math.floor(G.map.h / 2);
     var report = B.rulesReport = [];
@@ -118,6 +118,17 @@
       for (var i = 0; i < 3; i++) { turn(pudding); yield* fire(B.attack(pudding, cleric, pudding.attacks.pseudopod)); B.active = null; acs.push(RU.ac(cleric)); yield W(50); }
       var l = since(n), gone = /eaten through and falls away/.test(l) && cleric.src.equip.armor == null;
       return [acs[0] === ac0 - 1 && acs[1] === ac0 - 2 && gone && acs[2] < ac0 - 2, 'AC ' + ac0 + ' -> ' + acs.join(' -> ') + (gone ? ' (the mail gone)' : ' (the mail never eaten through)')];
+    }
+    function* puddingLeather() {
+      // the pudding's pseudopod at the goblin's leather and shield, three bites pinned to land (SRD 5.1: any nonmagical armour; the third bite eats it through, his 10-13
+      // ruling): AC 15, then 14 -- leather gives 1, so the first bite spends it and none takes it lower than none (10-22) -- and the leather gone, the shield still on its arm
+      stage([gob, pudding], [[0, 0], [1, 0]]); setPin(15, null); gob.maxhp = gob.hp = 200;
+      var ac0 = RU.ac(gob);
+      say(['The pudding\'s pseudopod at the goblin in leather armour and a shield, three bites pinned to land (AC ' + ac0 + '; the show sets one foe on another, the goblin\'s hit points deep).']); yield W(60);
+      var n = mark(), acs = [];
+      for (var i = 0; i < 3; i++) { turn(pudding); yield* fire(B.attack(pudding, gob, pudding.attacks.pseudopod)); B.active = null; acs.push(RU.ac(gob)); yield W(50); }
+      var l = since(n), gone = /leather armor is eaten through and falls away/.test(l) && !gob.armored;
+      return [ac0 === 15 && acs.join() === '14,14,14' && gone, 'AC ' + ac0 + ' -> ' + acs.join(' -> ') + (gone ? ' (the leather gone, the shield kept)' : ' (the leather never eaten through)')];
     }
     function* puddingMagic() {
       // the same three blows with the mace made +1 (magic), and three bites on the mail made magic: neither is eaten
@@ -213,6 +224,7 @@
       { id: 'antitoxin', group: 'antitoxin', name: 'The antitoxin', what: 'A giant spider\'s bite is a CON save against poison (DC 11; 2d8 poison, half on a save). Without the antitoxin the cleric rolls one die; with it, two, and keeps the better -- the SRD\'s advantage on saves against poison. The bar reads antitoxin while it lasts (the fight).', run: antitoxin },
       { id: 'puddingweapon', group: 'pudding', name: 'The pudding and a plain weapon', what: 'The cleric\'s mace is plain (nothing magic in this party): each blow that lands on the black pudding burns the cleric (its Corrosive Form, 1d8 acid) and eats the mace, -1 and -2 to its damage, and the third eats it through -- gone, fists after.', run: puddingWeapon },
       { id: 'puddingarmour', group: 'pudding', name: 'The pudding and plain armour', what: 'Its pseudopod on the cleric\'s plain chain mail: -1 AC, -2, and the third bite eats it through -- the mail gone, the AC what it is without it (the shield still counts).', run: puddingArmour },
+      { id: 'leather', group: 'pudding', name: 'The pudding and a foe\'s leather', what: 'A foe\'s sheet names its leather and hide now, by the SRD block\'s AC (the goblin\'s leather armour and shield, the gnoll\'s hide, the bandit captain\'s studded leather). The pudding\'s pseudopod eats any plain armour: leather is worth 1 AC, so the first bite spends it (AC 14), no bite takes it lower than none, and the third eats it through -- the shield still counting.', run: puddingLeather },
       { id: 'puddingmagic', group: 'pudding', name: 'The pudding and magic', what: 'The same blows and bites with the mace made +1 and the mail magic: the acid eats neither (a magic weapon and magic armour are never eaten).', run: puddingMagic },
       { id: 'heatmetal', group: 'heatmetal', name: 'Heat Metal ends with the one it heats', what: 'The bard heats the hobgoblin\'s chain mail (it cannot shed it: attacks and checks at disadvantage) and flares it with a bonus action the next turn. The cleric fells the hobgoblin: at its turn\'s end the bard lets go of Heat Metal (nothing left to hold) -- no flare offered, no END HEAT METAL on the ring, and the bard is free to concentrate on something else.', run: heatMetal },
       { id: 'metalgrasp', group: 'metal', name: 'Shocking Grasp and a foe\'s mail', what: 'A foe\'s sheet names its metal armour now, by the SRD block\'s AC (the hobgoblin\'s chain mail, the guard\'s chain shirt, the veteran\'s splint). The wizard\'s Shocking Grasp at the hobgoblin has advantage (metal armour); at the giant spider, none.', run: metalGrasp },

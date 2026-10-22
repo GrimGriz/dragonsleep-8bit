@@ -4039,6 +4039,81 @@
     document.body.appendChild(pre21);
     return;
   }
+  // the grid's rules lane, 10-22 (mode=rules1022; the lanes desk's order on his "check grid lane for unfinished, then aurdin/ned"): Acid Arrow's later bite, played
+  // through; a foe's leather and hide by its SRD block, the black pudding's bite on it, and no armour eaten below the AC its wearer has without it
+  if (get('mode', '') === 'rules1022') {
+    var repV = { checks: [], errors: [] }, d0V = D.d, MV = D.magic, RV = D.rules;
+    function okV(what, v) { repV.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function runV(g) { var v, k = 0, st; while (g && k++ < 4000) { st = g.next(v); v = undefined; if (st.done) return st.value; if (st.value && st.value.prompt) v = st.value.prompt.opts[0].value; } }
+    function mkV(q) { var Bx = D.npcFight(q, {}); D.battle = Bx; Bx.enter(); while (!Bx.order.length) Bx.co.next(); Bx.dark = false; return Bx; }
+    function sideV(Bx, s) { return Bx.units.filter(function (u) { return u.side === s; }); }
+    function clsV(Bx, c) { return Bx.units.filter(function (w) { return w.cls === c; })[0]; }
+    function learnV(u, id) { if ((u.known || []).indexOf(id) < 0) (u.known = u.known || []).push(id); u.slots = [4, 3, 3, 3, 2, 1, 0, 0, 0]; }
+    function pinV(d20, f) { D.d = function (n) { return n === 20 ? d20 : n === 4 ? 4 : d0V(n); }; try { return f(); } finally { D.d = d0V; } } // (every d4 a 4: 4d4 is 16, 2d4 8)
+    function logV(Bx, n) { return (Bx.log || []).slice(n).join(' | ').replace(/\{\/?[a-z]*\}/g, ''); }
+    try {
+      // 1. ACID ARROW'S LATER BITE (the lane's 10-19 #9: coded, never fired in his records -- every arrow missed). SRD 5.1: "4d4 acid damage immediately and 2d4 acid
+      // damage at the end of its next turn. On a miss, the arrow splashes the target with acid for half as much of the initial damage and no damage at the end of its next
+      // turn"; a slot above 2nd, 1d4 more to both. The d20 pinned (15 hits, 1 misses), every d4 a 4
+      var B1 = mkV('?npc=goblin&vs=wizard:5&lvl=5'), wz1 = clsV(B1, 'wizard'), gb1 = sideV(B1, 'foe')[0];
+      wz1.x = 2; wz1.y = 3; gb1.x = 8; gb1.y = 3; B1.cache = null; learnV(wz1, 'acidarrow');
+      var arrow1 = function (slot, d20, own) { gb1.maxhp = gb1.hp = 200; delete gb1.conds.acid; RV.startTurn(own ? gb1 : wz1); B1.active = own ? gb1 : wz1; pinV(d20, function () { runV(MV.cast(B1, wz1, 'acidarrow', slot, gb1)); }); B1.active = null; return 200 - gb1.hp; };
+      var end1 = function (Bx, w) { var h0 = w.hp; pinV(10, function () { MV.onEnd(Bx, w); }); return h0 - w.hp; };
+      var now1 = arrow1(2, 15), a1 = gb1.conds.acid ? Object.assign({}, gb1.conds.acid) : null, wzEnd = end1(B1, wz1), n1 = (B1.log || []).length, later1 = end1(B1, gb1), l1 = logV(B1, n1), again1 = end1(B1, gb1);
+      okV('1 Acid Arrow at 2nd, a hit: ' + now1 + ' now (want 16, 4d4); the bite laid ' + (a1 ? a1.dice + ', ' + (a1.fresh ? 'fresh' : 'due') + ', stamped ' + (a1.from ? 'from where it was cast at level ' + a1.lv : 'nowhere') : 'none') + '; at the caster\'s turn\'s end ' + wzEnd + ', at the goblin\'s ' + later1 + ' ("' + l1.slice(0, 60) + '"), at its next ' + again1 + ' (want 2d4, due, from 2; 0, 8, 0)',
+        now1 === 16 && !!a1 && a1.dice === '2d4' && !a1.fresh && !!a1.from && a1.lv === 2 && wzEnd === 0 && later1 === 8 && /the acid eats on/.test(l1) && again1 === 0 && !gb1.conds.acid);
+      var now3 = arrow1(3, 15), later3 = end1(B1, gb1);
+      okV('1 and at 3rd: ' + now3 + ' now, ' + later3 + ' at the goblin\'s turn\'s end (want 20 and 12: 5d4, 3d4)', now3 === 20 && later3 === 12);
+      var miss1 = arrow1(2, 1), mA = !!gb1.conds.acid, mLater = end1(B1, gb1);
+      okV('1 and a miss (a natural 1): ' + miss1 + ' now, the bite laid ' + mA + ', ' + mLater + ' at its turn\'s end (want 8 -- half of the 16 -- false, 0)', miss1 === 8 && !mA && mLater === 0);
+      var own1 = arrow1(2, 15, true), oF = !!(gb1.conds.acid && gb1.conds.acid.fresh), oThis = end1(B1, gb1), oNext = end1(B1, gb1);
+      okV('1 and struck in the goblin\'s own turn (a readied arrow): ' + own1 + ' now, fresh ' + oF + '; at this turn\'s end ' + oThis + ', at its next ' + oNext + ' (want 16, true, 0, 8 -- "its next turn")', own1 === 16 && oF && oThis === 0 && oNext === 8);
+      // the Globe of Invulnerability raised round the struck one before its turn's end (the bite is the arrow's, a 2nd-level spell cast from outside): nothing, the bite spent
+      var B1g = mkV('?npc=wizard:9&lvl=9&vs=fighter,wizard'), p1g = sideV(B1g, 'party'), f1g = p1g.filter(function (u) { return u.cls === 'fighter'; })[0], w1g = p1g.filter(function (u) { return u.cls === 'wizard'; })[0], z1g = sideV(B1g, 'foe')[0];
+      z1g.x = 9; z1g.y = 2; w1g.x = 9; w1g.y = 8; f1g.x = 10; f1g.y = 8; f1g.maxhp = f1g.hp = 200; B1g.cache = null; learnV(z1g, 'acidarrow');
+      RV.startTurn(z1g); B1g.active = z1g; pinV(15, function () { runV(MV.cast(B1g, z1g, 'acidarrow', 2, f1g)); }); var gNow = 200 - f1g.hp, gA = !!f1g.conds.acid;
+      RV.startTurn(w1g); B1g.active = w1g; delete w1g.conc; runV(MV.cast(B1g, w1g, 'globeofinvulnerability', 6, w1g)); B1g.active = null;
+      var n1g = (B1g.log || []).length, gLater = end1(B1g, f1g), l1g = logV(B1g, n1g);
+      okV('1 and a globe raised round the fighter after the hit: ' + gNow + ' now, the bite laid ' + gA + '; at its turn\'s end ' + gLater + ' ("' + l1g.slice(0, 70) + '"), the bite spent ' + !f1g.conds.acid + ' (want 16, true, 0, inside the globe, true)',
+        gNow === 16 && gA && gLater === 0 && /inside the globe/.test(l1g) && !f1g.conds.acid);
+
+      // 2. A FOE'S LEATHER AND HIDE (the 10-21 night seat's find: the pudding's Corrosive Form eats any nonmagical armour, SRD 5.1, but only metal was marked): the sheets
+      // whose SRD block's AC line names leather, studded leather or hide wear it, each AC that armour's by the SRD (leather 11 + DEX, studded 12 + DEX, hide 12 + DEX to
+      // +2, a shield 2); the pudding's pseudopod on a goblin in leather and a shield, three bites; the gray ooze's on a bandit (metal only); and no armour eaten below the
+      // AC without it (SRD 5.1: "the armor is destroyed if the penalty reduces its AC to 10") -- the goblin and a rogue in leather went 15, 14, 13 and back up at the third
+      var ARM2 = { 'leather armor': [11, 99], 'studded leather': [12, 99], 'hide armor': [12, 2] };
+      var WORN2 = { bandit: 'leather armor', robber: 'leather armor', brawler: 'leather armor', cardbruiser: 'leather armor', thug: 'leather armor', crewman: 'leather armor', crewboss: 'leather armor',
+        stablefighter: 'leather armor', goblin: 'leather armor', banditcaptain: 'studded leather', merc: 'studded leather', assassin: 'studded leather', berserker: 'hide armor', ogre: 'hide armor',
+        bugbear: 'hide armor', gnoll: 'hide armor', gloryseeker: 'hide armor' }, BARE2 = ['pudding', 'wolf', 'skeleton', 'wheelwright', 'talmok', 'grayooze'];
+      var B2 = mkV('?npc=goblin,bandit&vs=rogue:5,cleric:5&lvl=5'), wrong2 = [];
+      Object.keys(WORN2).forEach(function (k, i) {
+        var w = B2.makeFoe({ id: 'l2-' + i, kind: k, at: [1, 1] }), a = ARM2[WORN2[k]], want = a[0] + Math.min(a[1], D.mod(w.abil.dex)) + (w.shield ? 2 : 0);
+        if (!w.armored || w.armor !== WORN2[k] || MV.metalArmor(w)) wrong2.push(k + ' ' + (w.armor || 'nothing') + (MV.metalArmor(w) ? ' metal' : ''));
+        else if (w.baseAC !== want) wrong2.push(k + ' AC ' + w.baseAC + ' not ' + WORN2[k] + '\'s ' + want);
+      });
+      BARE2.forEach(function (k, i) { var w = B2.makeFoe({ id: 'b2-' + i, kind: k, at: [1, 1] }); if (w.armored || w.armor) wrong2.push(k + ' armoured'); });
+      okV('2 leather and hide by the sheets: ' + Object.keys(WORN2).length + ' wear it, each AC that armour\'s; ' + BARE2.length + ' wear none -- wrong: ' + (wrong2.join(', ') || 'none') + ' (want none)', !wrong2.length);
+      var pd2 = B2.makeFoe({ id: 'pd2', kind: 'pudding', at: [1, 1] }), oz2 = B2.makeFoe({ id: 'oz2', kind: 'grayooze', at: [1, 1] }), gb2 = sideV(B2, 'foe').filter(function (w) { return w.kind === 'goblin'; })[0], bn2 = sideV(B2, 'foe').filter(function (w) { return w.kind === 'bandit'; })[0], rg2 = clsV(B2, 'rogue');
+      var bite2 = function (att, t) { runV(MV.onWeaponHit(B2, att, t, att.attacks.pseudopod, false)); return RV.ac(t); };
+      var n2 = (B2.log || []).length, acG = [RV.ac(gb2), bite2(pd2, gb2), bite2(pd2, gb2), bite2(pd2, gb2)], l2 = logV(B2, n2);
+      okV('2 the pudding\'s pseudopod on the goblin in leather and a shield, three bites: AC ' + acG.join(' -> ') + ', its leather gone ' + !gb2.armored + ', the card "' + (l2.match(/[^|]*eaten through[^|]*/) || [''])[0].trim().slice(0, 70) + '" (want 15 -> 14 -> 14 -> 14: the leather gives 1, the shield still counts; true; its leather armor)',
+        acG.join() === '15,14,14,14' && !gb2.armored && /leather armor is eaten through/.test(l2));
+      var acB = [RV.ac(bn2), bite2(oz2, bn2), bite2(oz2, bn2), bite2(oz2, bn2)];
+      okV('2 and the gray ooze on the bandit\'s leather: AC ' + acB.join(' -> ') + ', still worn ' + !!bn2.armored + ' (want 12 throughout, true: Corrode Metal eats metal)', acB.join() === '12,12,12,12' && !!bn2.armored);
+      var rgA = rg2.src && rg2.src.equip && rg2.src.equip.armor, acR = [RV.ac(rg2), bite2(pd2, rg2), bite2(pd2, rg2), bite2(pd2, rg2)], bareR = 10 + D.mod(rg2.abil.dex);
+      okV('2 and on the rogue in ' + rgA + ': AC ' + acR.join(' -> ') + ' (want never below ' + bareR + ', its AC without armour, and ' + bareR + ' at the end)', /leather/.test(rgA || '') && acR.slice(1).every(function (a) { return a >= bareR; }) && acR[3] === bareR && acR[1] === acR[0] - 1);
+      // the show's beat (deep16/?rulesshow&only=leather): the pudding at the goblin's leather
+      var B2s = D.rulesshow.make('?rulesshow&fast&only=leather'); D.battle = B2s; B2s.enter();
+      var v2s, k2s = 0;
+      while (B2s.co && k2s++ < 400000) { var r2s = B2s.co.next(v2s); v2s = undefined; if (r2s.done) break; var y2s = r2s.value; if (y2s && y2s.prompt) v2s = y2s.prompt.opts[0].value; }
+      (B2s.rulesReport || []).forEach(function (b) { okV('2 the show: ' + b.name + ' -- ' + b.why, b.ok); });
+      if ((B2s.rulesReport || []).length !== 1) okV('2 the show ran ' + (B2s.rulesReport || []).length + ' beats of leather (want 1)', false);
+    } catch (eV) { repV.errors.push(String(eV && eV.stack || eV).slice(0, 900)); D.d = d0V; }
+    if (errs.length) repV.errors = repV.errors.concat(errs);
+    var preV = document.createElement('pre'); preV.id = 'out'; preV.textContent = 'BENCH16 ' + JSON.stringify(repV);
+    document.body.appendChild(preV);
+    return;
+  }
   // the grid's rules lane, 10-21 night, its second seat (mode=rules1021c; the lanes desk's order on his "Grid lane should be go", the lane's next six -- his "grid seats leans
   // and above into grid's next lane"); each check failed on the code before it
   if (get('mode', '') === 'rules1021c') {

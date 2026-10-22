@@ -48,7 +48,7 @@
   function wornArmour(u) { var R = window.DS.R, h = u.src; return h && h.equip && h.equip.armor ? { id: h.equip.armor, it: R.item(h.equip.armor) } : null; }
   // magic armour: one with a bonus (+1 and up), or Dwarven Plate (SRD 5.1's own, magic for all its plain number here); a foe's armour is plain unless its block says
   M.magicArmor = function (u) { if (u.armorMagic != null) return !!u.armorMagic; var a = wornArmour(u); return !!(a && a.it && a.it.armor && ((a.it.armor.bonus || 0) > 0 || a.it.magic || a.id === 'dwarfplate')); };
-  function armourName(u) { var a = wornArmour(u); return a && a.it ? a.it.name.toLowerCase() : typeof u.metalArmor === 'string' ? u.metalArmor : 'armour'; } // (a foe's: its sheet's words, data/foes.js metalArmor)
+  function armourName(u) { var a = wornArmour(u); return a && a.it ? a.it.name.toLowerCase() : typeof u.metalArmor === 'string' ? u.metalArmor : typeof u.armor === 'string' ? u.armor : 'armour'; } // (a foe's: its sheet's words, data/foes.js metalArmor or armor)
   // the AC without the armour: the sheet's own reckoning with it off (a shield, a ring, the class's Unarmored Defense still count), or 10 + DEX for a foe -- and its shield
   // where the SRD block's AC names one (data/foes.js `shield`, 10-21 night: the hobgoblin's chain mail eaten through leaves 13, not 11)
   function acWithout(u) { var R = window.DS.R; if (u.src && u.src.equip && R.ac) return R.ac(Object.assign({}, u.src, { equip: Object.assign({}, u.src.equip, { armor: null }) })); return 10 + D.mod(u.abil ? u.abil.dex : 10) + (u.shield ? 2 : 0); }
@@ -72,14 +72,16 @@
       }
     }
     // its pseudopod on a creature in armour: the armour is eaten (-1 AC, cumulative; the ooze only metal) -- magic armour never (10-13, his "magic armor immune"), and the third
-    // eats it through: gone, the AC what it is without it
+    // eats it through: gone, the AC what it is without it. Never below that (SRD 5.1: "the armor is destroyed if the penalty reduces its AC to 10"): leather gives 1, so its
+    // first bite spends it -- 10-22, the grid's rules seat, a foe's leather and hide marked: a goblin and a rogue in leather went 15, 14, 13, and back up to 14 at the third
     if (att.corrosive && !tgt.dead && tgt.baseAC && (tgt.armored || tgt.metalArmor) && !M.magicArmor(tgt) && (att.corrosive === 'form' || M.metalArmor(tgt))) {
-      tgt.baseAC -= 1; tgt.corrodedAC = (tgt.corrodedAC || 0) + 1;
+      var bare = acWithout(tgt), an = armourName(tgt), spent = tgt.baseAC - 1 <= bare;
+      tgt.baseAC = Math.max(bare, tgt.baseAC - 1); tgt.corrodedAC = (tgt.corrodedAC || 0) + 1;
       if (tgt.corrodedAC >= M.EATEN_THROUGH) {
-        var an = armourName(tgt); tgt.armored = false; tgt.metalArmor = false; tgt.baseAC = acWithout(tgt);
+        tgt.armored = false; tgt.metalArmor = false; tgt.baseAC = bare;
         if (tgt.src && tgt.src.equip) tgt.src.equip.armor = null;
         B.card(['{o}' + Nm(B, tgt) + '\'s ' + an + ' is eaten through and falls away in pieces: AC ' + RU.ac(tgt) + '.{/}  {g}(gone){/}'], 300);
-      } else B.card(['{o}' + Nm(B, tgt) + '\'s armour is eaten: AC ' + RU.ac(tgt) + '.{/}  {g}(for the fight; the ' + ordinal(M.EATEN_THROUGH) + ' bite eats it through){/}'], 260);
+      } else B.card(['{o}' + Nm(B, tgt) + '\'s ' + an + ' is eaten' + (spent ? ' to nothing it can give' : '') + ': AC ' + RU.ac(tgt) + '.{/}  {g}(for the fight; the ' + ordinal(M.EATEN_THROUGH) + ' bite eats it through){/}'], 260);
     }
     // Fire Shield (js/grimoire.js): a blow from beside it burns back, 2d8 fire (the warm) or cold (the chill)
     if (tgt.conds.fireShield && melee && G.dist(att, tgt) <= 5 && !att.dead && att.hp > 0) { var fs0 = D.roll('2d8'); B.card(['{o}' + Nm(B, att) + ' is burned by the fire shield{/}  2d8 = ' + fs0.total + ' ' + tgt.conds.fireShield.type], 200); B.hurt(att, fs0.total, tgt.conds.fireShield.type); }
