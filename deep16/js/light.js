@@ -528,9 +528,13 @@
   L.props = function (B) {
     // (a Dancing Lights orb on a square inside a Globe of Invulnerability its spell was cast from outside of is not drawn: the light there is carved out of it, L.map, and the square is
     // no part of the spell -- SRD 5.1, "the area within the barrier is excluded". 10-01, the fog-and-dark runner's find: the orbs were still drawn inside)
+    // (a torch or a lantern on a square where someone stands or lies -- dropped by a fall, L.fell -- is drawn at the front edge of it, in front of them: the figure drawn on its
+    // own square, x + y + 0.6, hid it; 10-19, Griz, the house lane's note 2: "aurdin downed in a fight ... no lantern visualized")
+    var held = function (l) { return (l.kind === 'torch' || l.kind === 'lantern') && (B.units || []).some(function (u) { return !u.dead && !u.riding && u.x === l.x && u.y === l.y && B.units.indexOf(u) >= 0; }); };
     return (B.lights || []).filter(function (l) { return (l.kind === 'torch' || l.kind === 'lantern' || l.kind === 'dance' || l.kind === 'daylight') && !(l.kind === 'dance' && !L.reaches(B, l, l.x, l.y)); }).map(function (l) {
-      return { depth: l.x + l.y + 0.4, gz: B.map.gz(l.x, l.y), layer: 1, draw: function (ctx) {
-        var c = D.iso.center(l.x, l.y, B.map.gz(l.x, l.y)), s = D.iso.toScreen(c.x, c.y), P = D.PAL.ramps;
+      var by = held(l);
+      return { depth: l.x + l.y + (by ? 0.7 : 0.4), gz: B.map.gz(l.x, l.y), layer: 1, draw: function (ctx) {
+        var c = D.iso.center(l.x + (by ? 0.35 : 0), l.y + (by ? 0.35 : 0), B.map.gz(l.x, l.y)), s = D.iso.toScreen(c.x, c.y), P = D.PAL.ramps;
         if (l.kind === 'torch') {
           ctx.fillStyle = P.leather[2]; ctx.fillRect(s.x - 5, s.y - 3, 10, 2); ctx.fillStyle = P.leather[3]; ctx.fillRect(s.x - 5, s.y - 4, 10, 1);
           if (D.campfire) D.campfire.flames(ctx, s.x + 5, s.y - 4, B.t + l.x * 9, 0.5);

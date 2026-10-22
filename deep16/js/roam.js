@@ -1590,6 +1590,9 @@
     G.setup(G.map, B.units); B.cache = null;
     var up = R.standing(R0), lead = up[0];
     if (!lead) { R0.mode = 'over'; return; }
+    // the light on the floor taken up, seen going into the hand that takes it, before the party gathers -- won or got away (R.liftLight)
+    var lifts = (R0.tookLights || []).filter(function (t) { return t.to; });
+    if (lifts.length) { lifts.forEach(function (t) { R.liftLight(B, t.l, t.to); }); D.sfx('confirm'); for (var lw = 0; lw < R.LIFT + 4; lw++) yield 1; lifts.forEach(function (t) { FX.sparkle(t.to, 'glow', 8); }); }
     if (o === 'escaped' && outBy) {
       // one square past where the one who got out left: of the squares beside it, the one farthest by walking from the foes still up
       var fdist = function (x, y) { var best = Infinity; still.forEach(function (f) { var p = D.Battle.route(f, [x, y], false); best = Math.min(best, p ? p.length : 99); }); return best; };
@@ -1616,7 +1619,7 @@
         R0.groups.push(g2);
         still.forEach(function (u) { u.racc = 0; u.anim = 'idle'; u.animT = B.t; });
       }
-      if (!byStair) B.card(['{y}Away{/}: ' + outBy.name + ' gets clear, and the party with them -- into ' + lead.name + '.', still.length ? (grp && grp.motivated ? '{o}They come after you at once.{/}' : '{g}They hold a moment (6 steps) -- then follow your trail.{/}') : ''], 340);
+      if (!byStair) B.card(['{y}Away{/}: ' + outBy.name + ' gets clear, and the party with them -- into ' + lead.name + '.' + (took.length ? ' The light on the floor is taken up (' + took.join(', ') + ').' : ''), still.length ? (grp && grp.motivated ? '{o}They come after you at once.{/}' : '{g}They hold a moment (6 steps) -- then follow your trail.{/}') : ''], 340);
     } else {
       var meet2 = [lead.x, lead.y];
       B.card(['{y}The way is clear.{/}', '{g}The party gathers into ' + lead.name + '.' + (took.length ? ' The light on the floor is taken up (' + took.join(', ') + ').' : '') + '{/}'], 300);
@@ -1665,7 +1668,7 @@
   // in the hand that held it if it is free, else the first free hand, else the pack (the test's 24-fight batch found it: Barley's torch burned on at the
   // fight's square, and the party walked on in the dark)
   R.takeUpLights = function (B) {
-    var R0 = B.roam, C = R0.cut, back = [];
+    var R0 = B.roam, C = R0.cut, back = []; R0.tookLights = []; // (what was taken up, from where, into whose hand: R.after shows it lifted -- R.liftLight)
     var inside = function (l) { return C && l.x >= C.win.x0 && l.x <= C.win.x1 && l.y >= C.win.y0 && l.y <= C.win.y1; };
     B.lights = (B.lights || []).filter(function (l) {
       if (l.kind !== 'torch' && l.kind !== 'lantern') return true;
@@ -1675,9 +1678,29 @@
       var hand = [owner].concat(R0.members).filter(function (u) { return u && u.hp > 0 && !u.torch && L.handForLight(u); })[0];
       if (hand) { hand.torch = t; L.regrip(hand); back.push(hand.name); }
       else { var id = l.kind === 'lantern' ? (l.item || 'lantern') : 'torch', s = (B.inv || []).filter(function (x) { return x.id === id; })[0]; if (s) s.n++; else (B.inv = B.inv || []).push({ id: id, n: 1 }); back.push('the pack'); }
+      R0.tookLights.push({ l: l, to: hand || R0.members.filter(function (u) { return u.hp > 0; })[0] || null, owner: owner || null });
       return false;
     });
     return back;
+  };
+  // the light taken up off the floor as the party gathers, seen going (10-19, Griz, the house lane's note 2: "after fight on roam clicking that tile doesn't pick up the lantern
+  // (show it picking up during switch to party token)"): the lantern -- or the torch -- rises off its square on a little arc into the hand that takes it (or to the one who
+  // stows it in the pack), the glass lit as js/light.js L.props draws one set down
+  R.LIFT = 30;
+  R.liftLight = function (B, l, to) {
+    var gz0 = B.map.gz(l.x, l.y);
+    return FX.add({ kind: 'lift', dur: R.LIFT, draw: function (ctx) {
+      var k = Math.min(1, this.t / this.dur), e = k * k * (3 - 2 * k), b = FX.at(to), P = D.PAL.ramps;
+      var gx = l.x + (b.gx - l.x) * e, gy = l.y + (b.gy - l.y) * e, gz = gz0 + (b.gz - gz0) * e + 16 * e + Math.sin(k * Math.PI) * 10;
+      var c = D.iso.center(gx, gy, gz), s = D.iso.toScreen(c.x, c.y), x = Math.round(s.x), y = Math.round(s.y), fl = 0.6 + 0.4 * Math.sin(B.t / 5);
+      ctx.save(); ctx.globalAlpha = 0.22 * (1 - k * 0.5); ctx.fillStyle = P.gold[3]; ctx.beginPath(); ctx.ellipse(x, y - 7, 9, 9, 0, 0, 7); ctx.fill(); ctx.globalAlpha = 1; // (its glow round it)
+      if (l.kind === 'lantern') {
+        ctx.fillStyle = P.outline[0]; ctx.fillRect(x - 3, y - 3, 6, 2); ctx.fillRect(x - 2, y - 11, 4, 1); ctx.fillRect(x - 3, y - 10, 1, 7); ctx.fillRect(x + 2, y - 10, 1, 7);
+        ctx.fillStyle = P.gold[2]; ctx.fillRect(x - 1, y - 13, 2, 1);
+        ctx.globalAlpha = 0.85; ctx.fillStyle = P.gold[3]; ctx.fillRect(x - 2, y - 10, 4, 7); ctx.globalAlpha = 1; ctx.fillStyle = P.fire[1]; ctx.fillRect(x - 1, y - 8 + (fl > 0.8 ? -1 : 0), 2, 3);
+      } else { ctx.fillStyle = P.leather[2]; ctx.fillRect(x - 1, y - 8, 2, 9); if (D.campfire) D.campfire.flames(ctx, x, y - 8, B.t + l.x * 9, 0.5); }
+      ctx.restore();
+    } });
   };
 
   // ------------------------------------------------------------------ the menu out of a fight (ui.js gridHost's hooks): what the 8-bit's field menu does, on the grid's units
@@ -1944,8 +1967,19 @@
     { id: 'cradle', label: 'THE DEEP RATE at a cradle', note: 'On the Wet below cradle one, the book signed, a draught in the pack: E on the cradle (or a click): WORK THE DEEP RATE, WHO MILKS? -- a 1 rouses the animal.', at: [15, 7], dir: 'up', inv: [['draught', 1]] },
     { id: 'dry', label: 'THE DRY STAIR (drained)', note: 'The stair pumped dry, the four on the landing: step onto the stair -- the dry steps, Pete\'s five off the bottom step, the cut door.', at: [21, 21], dir: 'left', flags: { stairHook: 1 } },
     { id: 'hold', label: 'HOLDING THE STAIR', note: 'Drained, the dry stair seen, Ragna\'s siphon asked: step onto the stair -- the night crews down the daytime way, a fight; won, three nights and the water back.', at: [21, 21], dir: 'left', flags: { stairHook: 1, drySeen: 1, waterAsked: 1, fiveRecovered: 1 } },
-    { id: 'warn', label: 'THE LANTERN MAN: three of the herd dead', note: 'On the Wet near the stalls\' stair, three of its six crawlers already dead: a lantern comes down the stair -- Jory Slade, with Skarn\'s word. Once.', at: [6, 12], dir: 'left', kills: { crawler: 3, 'warrens_d:crawler': 3 } }
+    { id: 'warn', label: 'THE LANTERN MAN: three of the herd dead', note: 'On the Wet near the stalls\' stair, three of its six crawlers already dead: a lantern comes down the stair -- Jory Slade, with Skarn\'s word. Once.', at: [6, 12], dir: 'left', kills: { crawler: 3, 'warrens_d:crawler': 3 } },
+    { id: 'lantern', label: 'A DOWNED HERO\'S LANTERN', note: 'A giant rat (1 HP) at them, and Aurdin down as it starts, his lit lantern burning beside him on the floor. Win: as the party gathers, the lantern rises into a hand.', at: [8, 12], dir: 'left', downed: 'aurdin' }
   ];
+  // the downed beat's fight (the show's): one giant rat at a square three steps off, and at the spill the one named goes down with a lantern lit, dropped where he lies (js/light.js L.fell)
+  R.downedFight = function* (B, id) {
+    var R0 = B.roam, t = R0.token, reach = R.flood(t, [t.x, t.y], 3), at = null;
+    Object.keys(reach).forEach(function (k) { if (!at && reach[k] === 3) { var a = k.split(','); at = [+a[0], +a[1]]; } });
+    yield 40;
+    yield* R.encounter(B, 'set', { list: ['giantrat'], at: at || [t.x + 2, t.y], line: 'A giant rat comes at them out of the wet.', how: 'out of the wet', onSpill: function (B2) {
+      var u = R0.members.filter(function (m) { return m.id === id; })[0]; B2.units.forEach(function (f) { if (f.side === 'foe' && f.kind === 'giantrat') f.hp = 1; });
+      if (!u) return; if (!u.torch) { u.torch = L.make('lantern', false); L.regrip(u); } u.hp = 0; u.ko = true; L.fell(B2, u);
+    } });
+  };
   R.wetPlay = function (bt) {
     var H = D.house, rec = H.fresh(); rec.at = { town: null };
     rec.flags = Object.assign({ tallyMet: 1, skarnOk: 1, skarnGateOpen: 1 }, bt.flags || {}); if (bt.kills) rec.kills = JSON.parse(JSON.stringify(bt.kills));
@@ -1956,6 +1990,7 @@
       en.apply(this, arguments);
       var t = this.roam.token, s = (this.inv || []).filter(function (x) { return x.id === 'torch' && x.n > 0; })[0];
       if (this.dark && s && !t.torch && L.handForLight(t)) { s.n--; t.torch = { lit: true, kind: 'torch' }; L.regrip(t); }
+      if (bt.downed) { var B = this, co0 = this.co; this.co = (function* () { yield* R.downedFight(B, bt.downed); yield* co0; })(); } // (the fight first, then the floor's own)
     };
     D.push(nb);
   };

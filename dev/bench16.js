@@ -3096,6 +3096,16 @@
       okX('the fourth: he comes once (nobody down again)', !RL.jory && D.top() === BL);
       var BT = RX.make('?roam=wet&watch'); D.push(BT); BT = topX(); BT.roam.kills = { crawler: 5 }; driveX(BT.co, null, 80);
       okX('the test door (?roam=wet, no house): no lantern man, the floor\'s own test', !BT.roam.jory && !BT.roam.flags.herdWarned);
+      // G. A DOWNED HERO'S LANTERN (his 10-19 note 2: "aurdin downed in a fight, clicking on him only 'pick up lantern' - no lantern visualized, after fight on roam clicking that tile
+      // doesn't pick up the lantern (show it picking up during switch to party token)"): drawn in front of him where he lies; at the gather, lifted into a hand, said on the card
+      HX.cur.kills = {}; var BG = wetX({}, [8, 12]), RG = BG.roam, gG = RX.downedFight(BG, 'aurdin'), liftN = 0, lift0 = RX.liftLight; RX.liftLight = function () { liftN++; return lift0.apply(this, arguments); };
+      driveX(gG, function () { return RG.mode === 'fight'; }, 2000);
+      var aG = RG.members.filter(function (u) { return u.id === 'aurdin'; })[0], lG = (BG.lights || []).filter(function (l) { return l.kind === 'lantern'; })[0], dG = lG ? D.light.props(BG).filter(function (p) { return Math.abs(p.depth - (lG.x + lG.y + 0.7)) < 1e-6; }).length : 0;
+      okX('Aurdin down at the fight\'s start, his lantern on the floor where he lies (' + (lG && lG.x + ',' + lG.y) + ', he at ' + aG.x + ',' + aG.y + '), drawn in front of him (the light\'s depth past his figure\'s: ' + dG + ')', aG.hp === 0 && !aG.torch && !!lG && lG.x === aG.x && lG.y === aG.y && dG === 1);
+      BG.units.forEach(function (u) { if (u.side === 'foe') { u.hp = 0; u.dead = true; } }); BG.cards = []; driveX(gG, function () { return RG.mode === 'walk' && !(BG.lights || []).some(function (l) { return l.kind === 'lantern'; }) && liftN > 0 && (BG.cards || []).length > 1; }, 4000); driveX(gG, null, 200); RX.liftLight = lift0;
+      var hG = RG.members.filter(function (u) { return u.torch && D.light.kindOf(u.torch) === 'lantern'; })[0];
+      okX('won: the lantern lifted off the floor into ' + (hG && hG.name) + '\'s hand as the party gathers (' + liftN + ' lift), none left on the floor, the card says so ("' + (cardsX(BG).match(/The light on the floor is taken up \([^)]*\)/) || [''])[0] + '")',
+        liftN === 1 && !!hG && hG.hp > 0 && !(BG.lights || []).some(function (l) { return l.kind === 'lantern'; }) && /The light on the floor is taken up/.test(cardsX(BG)));
       // E. THE SHOW (deep16/?wetshow, the eyes row's door): each beat stands a NEW GAME on its floor, on its square
       var shX = RX.wetShow('?wetshow'), bxX = RX.WET_BEATS.map(function (bt) { D.scenes.length = 0; D.push(RX.wetShow('?wetshow&beat=' + bt.id)); D.top().update(); var B = topX(), want = bt.key ? bt.at : D.roam.def.from8(bt.at[0], bt.at[1]);
         return bt.id + (B && B.roam && RX.house() && B.roam.token.x === want[0] && B.roam.token.y === want[1] && (bt.key ? D.roam.def.key === bt.key : !!D.roam.def.wet) && B.roam.flags.tallyMet === 1 ? '' : ' (not staged)'); });
