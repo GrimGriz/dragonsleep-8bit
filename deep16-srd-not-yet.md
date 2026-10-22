@@ -116,6 +116,8 @@ Each: **recall** (what the seat wrote before looking) · **SRD** (what `srd/` sa
 
 ### 9. The gargoyle (dwarf: Sólskaft and the Edifice)
 
+**ON THE GRID 10-22** (`ab9f2b9`, the monster cutter seat's third run): the foe `gargoyle` by the SRD on its own sheet `gargoyle_p1` (the art desk's ART-18 FINAL), its False Appearance the roper's (`still`, then `reveal`), resist mundane, a flier; `?show=gargoyle`, the creatures shelf. Not yet: a fly row played aloft (its Fly drawn, not cut); adamantine (not on the grid). It is in no fight yet.
+
 - **Recall.** CR 2 Medium elemental; AC 15; 52 HP; 30 ft, fly 60; resists nonmagical weapons not adamantine; immune poison, petrified, exhaustion; Terran; False Appearance; bite and claws 1d6+2. A horned, bat-winged stone fiend with a tail; still for ages; serves evil masters.
 - **SRD.** Every number as recalled. No description beyond "statue".
 - **Web.** The MM: malevolent creatures of elemental earth that look like grotesque fiendish statues, lurking in masonry and ruins, loving the terror when they break the pose ([D&D Beyond](https://www.dndbeyond.com/monsters/16868-gargoyle)); horned, winged, demon-like, thick stone hide; torture though they need no food; fond of gems ([FR wiki via monstershuffler](https://www.monstershuffler.com/monsters/creature/gargoyle-1814.php)). **The Realms' blue dragon Iymrith, "the Dragon of the Statues", turns stone into gargoyles in Anauroch, a desert** ([FR wiki](https://forgottenrealms.fandom.com/wiki/Gargoyle), via search).
