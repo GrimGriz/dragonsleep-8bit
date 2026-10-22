@@ -82,7 +82,7 @@
     this.hand = { x: 0, y: 0 }; this.pinch = { x: 0, y: 0 }; this.jerk = false; this.thimble = { level: 0, sealed: false };
     this.fade = 1; this.over = false; this.result = null; this.squeezing = false;
     var MOUTHS = ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six'];
-    this.sub = (this.deep ? 'The Wet -- the deep rate' : 'Mouth ' + (MOUTHS[this.mouth] || this.mouth)) + ' -- ' + (this.h ? this.h.name : '') + ' -- ' + this.skillName + ' ' + sgn(this.skill) + (this.draught ? ' -- draught taken' : '');
+    this.sub = [this.deep ? 'The Wet -- the deep rate' : 'Mouth ' + (MOUTHS[this.mouth] || this.mouth), (this.h ? this.h.name : '') + ' -- ' + this.skillName + ' ' + sgn(this.skill) + (this.draught ? ' -- draught taken' : '')]; // (two lines: the place, then the hands)
     var tp = this.cur().tip(); this.hand.x = tp.x; this.hand.y = tp.y; this.pinch.x = tp.x; this.pinch.y = tp.y - 20;
   }
   CR.Scene = Cradle;
@@ -235,11 +235,14 @@
   }
   Cradle.prototype.drawBody = function (ctx) {
     var u = this.unrest(), sx = Math.round(Math.sin(this.t * 0.05) * (0.5 + 2.5 * u)), cx = 240 + sx, cy = 92, t = this.t;
-    for (var r = 0; r < 9; r++) { // the ringed body, back to front: each ring a band, its rim pale, its fold dark
-      var w = 150 - Math.abs(r - 3) * 12, h = 54 - Math.abs(r - 4) * 3, x = cx - w / 2 + (r - 4) * 3, y = cy - 26 + r * 3;
-      ctx.fillStyle = BODY[1]; ctx.fillRect(x, y, w, h); ctx.fillStyle = BODY[r % 2 ? 2 : 3]; ctx.fillRect(x + 2, y + 1, w - 4, h - 4); ctx.fillStyle = BODY[4]; ctx.fillRect(x + 6, y + 2, w - 12, 2);
-      ctx.fillStyle = BODY[0]; for (var k = 0; k < w; k += 14) ctx.fillRect(x + k + (r % 2 ? 7 : 0), y + 4, 1, h - 8);
+    var oval = function (x, y, rx, ry, col) { ctx.fillStyle = col; ctx.beginPath(); ctx.ellipse(Math.round(x), Math.round(y), rx, ry, 0, 0, TAU); ctx.fill(); };
+    // the ringed body, hunched up and back from the head: the far rings first, each a fold dark under a pale rim, breathing with the unrest
+    for (var r = 0; r < 6; r++) {
+      var br = Math.sin(t * 0.04 + r * 0.7) * (0.6 + 1.6 * u), rx = 46 + r * 9 + br, ry = 16 + r * 2.4, y = cy - 30 + r * 7, x = cx + (r - 3) * 0.6 * sx;
+      oval(x, y + 3, rx + 1, ry + 1, BODY[0]); oval(x, y, rx, ry, BODY[r % 2 ? 2 : 3]); oval(x, y - ry * 0.45, rx * 0.8, ry * 0.35, BODY[4]);
+      ctx.fillStyle = BODY[1]; for (var k = -3; k <= 3; k++) { var px = Math.round(x + k * rx * 0.27), py = Math.round(y + ry * 0.55 - Math.abs(k) * 1.5); ctx.fillRect(px, py, 1, 3); } // (the ring's fold lines)
     }
+    oval(cx, cy + 22, 60, 28, BODY[0]); oval(cx, cy + 20, 58, 26, BODY[2]); oval(cx, cy + 12, 46, 14, BODY[3]); oval(cx - 18, cy + 6, 14, 5, BODY[4]); // (the head, round, the maw in it)
     // the eye stalks off the crown, swaying; the eyes dark, a wet glint
     [-1, 1].forEach(function (s) { var bx = cx + s * 22, by = cy - 26, ex = bx + s * 8 + Math.round(Math.sin(t * 0.04 + s) * 3), ey = by - 22 - Math.round(2 * u * Math.sin(t * 0.09 + s));
       for (var k = 0; k <= 10; k++) { var x = Math.round(lerp(bx, ex, k / 10)), y = Math.round(lerp(by, ey, k / 10)); ctx.fillStyle = BODY[1]; ctx.fillRect(x - 1, y, 3, 2); }
@@ -325,14 +328,16 @@
     var a = this.phase === 'intro' ? smooth((this.pt - 20) / 40) : this.phase === 'paralysis' ? 1 - smooth(this.pt / 90) : 1;
     if (a <= 0) return;
     ctx.save(); ctx.globalAlpha = a;
-    D.text(ctx, '{y}THE CRADLE{/}', 10, 8, '#fff'); D.text(ctx, this.sub, 10, 18, '#9a96a8');
+    D.text(ctx, '{y}THE CRADLE{/}', 10, 8, '#fff'); D.text(ctx, this.sub[0], 10, 18, '#9a96a8'); D.text(ctx, this.sub[1], 10, 27, '#9a96a8');
     for (var k = 0; k < DRAWS; k++) thimbleIcon(ctx, D.W - 16 - (DRAWS - 1 - k) * 13, 8, this.slots[k], k === this.draws && (this.phase === 'ready' || this.phase === 'squeeze'));
     var settle = this.deep ? 0 : 1 - this.draws / DRAWS, bx = D.W - 88, by = 21;
     D.text(ctx, 'THE SETTLE', bx - 52, 19, '#9a96a8');
     ctx.fillStyle = 'rgba(255,255,255,0.14)'; ctx.fillRect(bx, by, 80, 3); ctx.fillStyle = settle > 0.5 ? P('gold', 3) : settle > 0 ? P('fire', 0) : P('red', 3); ctx.fillRect(bx + Math.round(80 * (1 - settle)), by, Math.round(80 * settle), 3);
     var prompt = this.phase === 'ready' ? 'hold E, or the mouse on the gland -- let go in the gold.   arrows or a click: another feeler' : this.phase === 'squeeze' ? 'let go in the gold' : '';
-    if (prompt) D.hint(ctx, prompt, D.W / 2, 236, '#e8e4d8', 'center');
-    if (this.cap) { var c = this.cap, ca = clamp(Math.min(1, c.t / 14, (c.life - c.t) / 24), 0, 1); ctx.globalAlpha = a * ca; D.wrap(c.s, D.W - 60).forEach(function (l, i, all) { D.hint(ctx, l, D.W / 2, 248 + (i - all.length + 1) * 10, '#fcfcf4', 'center'); }); ctx.globalAlpha = a; }
+    var capL = this.cap ? D.wrap(this.cap.s, D.W - 60).slice(0, 2) : [];
+    if (prompt || capL.length) { ctx.fillStyle = 'rgba(8,6,12,0.72)'; ctx.fillRect(0, 234, D.W, 36); } // (a band of its own under the work, the words on it)
+    if (prompt) D.hint(ctx, prompt, D.W / 2, 238, '#e8e4d8', 'center');
+    if (capL.length) { var c = this.cap, ca = clamp(Math.min(1, c.t / 14, (c.life - c.t) / 24), 0, 1); ctx.globalAlpha = a * ca; capL.forEach(function (l, i) { D.hint(ctx, l, D.W / 2, 249 + i * 10, '#fcfcf4', 'center'); }); ctx.globalAlpha = a; }
     if (this.phase === 'intro' && this.first) { ctx.globalAlpha = smooth((this.pt - 10) / 40) * (1 - smooth((this.pt - 110) / 40)); D.text(ctx, '{y}THE CRADLE{/}', D.W / 2 - 30, 196, '#fff'); }
     ctx.restore();
   };
