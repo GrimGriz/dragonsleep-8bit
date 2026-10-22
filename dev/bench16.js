@@ -2164,6 +2164,21 @@
       for (var iF = 0; iF < opq.length; iF += 4) if (Math.abs(opq[iF] - thru[iF]) + Math.abs(opq[iF + 1] - thru[iF + 1]) + Math.abs(opq[iF + 2] - thru[iF + 2]) > 24) dF++;
       okF2('on the dens\' top view, the party at 6,10 under the rock of 6,11: that rock drawn through round them (' + (TVF.seen || 0) + ' drawn so, ' + dF + ' px of the party\'s box changed from the rock drawn whole)', (TVF.seen || 0) > 0 && dF > 40);
       D.ctx = ctxF0;
+      // 4. THE WAYS (his "couldn't find the east passage the the combat area"): named on the floor near them, in the hello, and green on the floor map
+      var BCw = testF2('?roam=warrens_c'), wdC = (RF.def.wayMarks || []).filter(function (k) { return k.at[0] === 24 && k.at[1] === 1; })[0];
+      okF2('the workings\' stair (24,1) named the Wet, the house lane\'s way down since 10-22 (' + (wdC && wdC.name) + ')', !!wdC && wdC.name === 'the Wet');
+      var B2 = testF2('?roam=galleries_g2&at=26,16'), d2 = RF.def, mk2 = d2.wayMarks || [], dens2 = mk2.filter(function (k) { return k.name === 'the dens'; })[0];
+      okF2('the working gallery\'s ways (' + mk2.map(function (k) { return k.name + ' ' + (k.side || k.at.join(',')); }).join('; ') + '): the east passage to the dens one mark at its middle (' + (dens2 && dens2.at) + ')',
+        !!dens2 && dens2.side === 'east' && dens2.n === 3 && dens2.at[0] === 35 && dens2.at[1] === 17 && mk2.some(function (k) { return k.name === 'the mouth' && k.side === 'south'; }) && mk2.some(function (k) { return /deep gallery/.test(k.name) && /held/.test(k.name); }));
+      okF2('the hello names them ("' + (d2.hello || []).filter(function (l) { return /^Ways/.test(l); })[0] + '")', (d2.hello || []).some(function (l) { return /^Ways: .*east, the dens/.test(l); }));
+      var cvW = document.createElement('canvas'); cvW.width = D.W; cvW.height = D.H; var ctxW0 = D.ctx; D.ctx = cvW.getContext('2d'); D.R = D.R || 1;
+      MF.waysShown = null; for (var kW = 0; kW < 40; kW++) B2.update(); D.draw();
+      okF2('standing at 26,16 the way east is named on the floor (' + (MF.waysShown || []).join(', ') + ')', (MF.waysShown || []).indexOf('the dens') >= 0);
+      D.ctx = ctxW0;
+      var cvM = document.createElement('canvas'); cvM.width = d2.w * 3; cvM.height = d2.h * 3; var cM = cvM.getContext('2d'); RF.paintMap(cM, B2, 0, 0, 3); var pxM = cM.getImageData(35 * 3 + 1, 17 * 3 + 1, 1, 1).data;
+      okF2('on the floor map (L) the ways green (the passage\'s square ' + [pxM[0], pxM[1], pxM[2]].join(',') + ')', pxM[1] > 200 && pxM[0] < 120 && pxM[2] < 140);
+      var BG = testF2('?roam=galleries&gate=east'), mkG = RF.def.wayMarks || [];
+      okF2('the Galleries\' mouth, in by the east gate: the way into the mine named (' + mkG.map(function (k) { return k.name + ' ' + (k.side || k.at.join(',')); }).join('; ') + ')', mkG.some(function (k) { return k.name === 'the working gallery' && k.at[0] === 17 && k.at[1] === 3; }) && mkG.filter(function (k) { return k.name === 'the road'; }).length >= 2);
     } catch (eF2) { repF2.errors.push(String(eF2 && eF2.stack || eF2).slice(0, 900)); }
     D.store.get = stGF2; D.store.set = stSF2; D.music = mu0; try { if (sk0 != null) window.localStorage.setItem(D.simple.KEY, sk0); } catch (eK2) { }
     var preF2 = document.createElement('pre'); preF2.id = 'out'; preF2.textContent = 'BENCH16 ' + JSON.stringify(repF2);
