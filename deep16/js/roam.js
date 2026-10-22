@@ -830,6 +830,7 @@
     // (which 'field': a floor's random fight on a field of its own, the road's way -- js/mines.js M.fieldFight, 10-22: trig.field its fight def, simple or on the grid by OPTIONS)
     var fd = which === 'field' ? trig.field : null;
     var o = Object.assign({}, R.party0, { fightDef: fd ? fd.F : null, fight: fd ? undefined : which === 'keeper' ? 'keeper' : 'wet', simple: !!(fd && fd.simple), onDone: function (res) { done = res || 'out'; } });
+    if (fd && fd.record) o.record = fd.record; // (a field's play record in the house: js/record.js, finished below as the fight comes back)
     delete o.embed; // (the floor's 8-bit options are the floor's: a pulled-in fight is the grid's own, its party and pack handed in and back below)
     // the floor's own state goes in with them, as the 8-bit's seam sends it (js/embed.js): the flags it has set (the landlord fed, who holds the bucket, the dead) and the
     // pack as it stands (the bucket in it) -- and comes back out below (10-13, his play: "they did the bucket then left the zone, and the bucket refreshed and was triggered again")
@@ -892,6 +893,7 @@
     R.stats.pull = (R.stats.pull || 0) + 1;
     D.push(b);
     while (!done) yield 1; // (the floor waits under it: only the top scene runs -- js/core.js)
+    if (b.rec && D.rec && D.rec.finish) { try { D.rec.finish(b, done); } catch (eR) { /* (the record must never stop the way back) */ } } // (a fight with an onDone closes its own record: js/record.js)
     R0.pulled = done; // (how it ended, for the floor's own answer after: js/mines.js, the roost)
     // back on the floor: the four's hit points as the fight left them; the trigger spent if the fight was won
     D.battle = B; G.setup(B.map, B.units); D.iso.map = B.map;

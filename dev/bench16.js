@@ -2200,6 +2200,15 @@
         f5b.res === 'roost' && D.top() === B5b && R5b.token.x === 6 && R5b.token.y === 10 && R5b.flags.roostBroken === 1 && R5b.flags.roostTold === 1 && said5.indexOf(String(g5).slice(0, 40)) >= 0);
       var sb5 = null; try { var st5 = D.counter.state(B5b), fake5 = { st: st5, say: function (l) { sb5 = [].concat(l).join(' '); return 1; }, ask: function () { return 0; } }, g5s = MF.SCENES.sabeth(fake5, B5b), s5; do { s5 = g5s.next(); } while (!s5.done); } catch (eS5) { sb5 = 'threw: ' + eS5; }
       okF2('and Sabeth after it: "' + String(sb5).slice(0, 60) + '..." (the first game\'s fired line)', sb5 === [].concat(D.counter.L('g1.sabethFired')).join(' '));
+      // 6. THE PLAY RECORD (the lanes desk's follow-up; the house lane's 10-19 note 6, "the floor's fights keep no play record"): a field fight in the house keeps its record, closed
+      // with how it ended, as the road's fights keep theirs; the test door's keep none
+      var pl0 = (memF2['deep16.plays'] ? JSON.parse(memF2['deep16.plays']) : []).length;
+      var B6t = testF2('?roam=galleries_g3&flags=cullHired&at=6,10'); fieldF2(B6t, 0, true);
+      var pl1 = (memF2['deep16.plays'] ? JSON.parse(memF2['deep16.plays']) : []).length;
+      var B6 = RF.make('?roam=galleries_g3&flags=cullHired&at=6,10&watch', { save: D.house.living(D.house.fresh()), opts: {}, house: true }); D.scenes.length = 0; D.push(B6); topF2();
+      var f6 = fieldF2(B6, 0, true), pl6 = memF2['deep16.plays'] ? JSON.parse(memF2['deep16.plays']) : [], r6 = pl6[pl6.length - 1] || {};
+      okF2('a field fight in the house keeps its play record (' + pl6.length + ', was ' + pl1 + '; the test door\'s kept none: ' + (pl1 - pl0) + '): "' + r6.name + '", ' + r6.fight + ', ' + (r6.rounds || 0) + ' rounds, closed ' + r6.result + ' (the fight ' + f6.res + ')',
+        RF.house() && pl1 === pl0 && pl6.length === pl1 + 1 && r6.fight === 'minefield' && /the dens/.test(r6.name || '') && r6.result === f6.res && !!f6.res);
     } catch (eF2) { repF2.errors.push(String(eF2 && eF2.stack || eF2).slice(0, 900)); }
     D.store.get = stGF2; D.store.set = stSF2; D.music = mu0; try { if (sk0 != null) window.localStorage.setItem(D.simple.KEY, sk0); } catch (eK2) { }
     var preF2 = document.createElement('pre'); preF2.id = 'out'; preF2.textContent = 'BENCH16 ' + JSON.stringify(repF2);
