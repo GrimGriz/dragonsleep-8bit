@@ -71,6 +71,7 @@
     var at8 = function (l) { return l.map(function (p) { return from8(p[0], p[1]); }); };
     D.MAPS.wetwhole = {
       name: 'The Wet', sub: 'the whole floor, walked as one token', dark: true, step: 10, deepWater: 'D', // (the settling pools and the inflow wadable since 10-13, his "1 yes"; the landlord's water and the drowned stair deep)
+      music: M8.music || 'dungeon', // (the first game's tune for warrens_d, at the door and again after a fight pulled in: R.tune -- 10-22, his "boss music still doesn't stop after landlord gets bucket")
       lampAt: wet.lampAt, noBurrowAt: wet.noBurrowAt, // (the Settling's own: the same squares on the same turn)
       // the Settling's lights, and the mark's cold glow on the landing beside it, as the Keeper's own map lights it (data/maps.js floodstair: "the rune lights the landing")
       lights: (wet.lights || []).concat([from8(R.RUNE8[0], R.RUNE8[1] + 1).concat([20, 'glow'])]),
@@ -173,6 +174,10 @@
     var fq = /[?&]flags=([A-Za-z0-9_,:]+)/.exec(q); R.flags0 = {}; if (fq) fq[1].split(',').forEach(function (k) { if (k) R.flags0[k] = 1; }); if (/[?&]drained\b/.test(q)) R.flags0.stairHook = 1;
     // the floor by the door's name: the Wet (deep16/?roam=wet, the first) or Silverton (deep16/?roam=silverton: the town from the city map v6, js/town.js -- 10-20)
     var fl0 = emb && emb.save ? emb.save.flags || {} : R.flags0;
+    // a floor this build has not got is said, not walked as the Wet (10-22, his "threw me straight in the wet": the situations page's LIVE base opened ?roam=warrens_c on a
+    // build from before the top levels, and every name it did not know fell through to the Wet) -- js/main.js's door card says so, and the way back
+    var rk = (/[?&]roam=([a-z0-9_]*)/.exec(q) || [])[1];
+    if (rk && rk !== 'wet' && rk !== 'silverton' && !(D.mines && D.mines.key(q))) throw new Error('deep16/?roam=' + rk + ': no floor of that name on this build -- a page older than the floor? (the situations page\'s LIVE base can be behind main)');
     R.def = /[?&]roam=silverton\b/.test(q) && D.town ? D.town.floor(q, fl0) : D.mines && D.mines.key(q) ? D.mines.floor(D.mines.key(q), q, fl0) : R.wholeWet(fl0); // (or the Warrens' and the Galleries' top floors: js/mines.js, 10-21 night)
     if (R.def.wet == null) R.def.wet = true; // (the Wet's own pieces -- its bucket, its stair, the rune, the floating one, its encounter table -- only on the Wet)
     R.q = q; R.PAD = num('pad', 4); R.FAR = num('far', 0); R.ENC = num('enc', 0); // (&far=0: no cap -- RULED 10-13 with the approach, his "1 yes")
@@ -793,6 +798,7 @@
     while (!done) yield 1; // (the floor waits under it: only the top scene runs -- js/core.js)
     // back on the floor: the four's hit points as the fight left them; the trigger spent if the fight was won
     D.battle = B; G.setup(B.map, B.units); D.iso.map = B.map;
+    if (done !== 'won' && done !== 'lost') R.tune(); // (the floor's own tune again: the landlord fed, a getaway -- the boss tune ran on past the bucket, his 10-22; a win's after its fanfare, below)
     // what was said in there, in the floor's log after it (the pulled-in fight's own log goes with it: his pane history had nothing of a Settling, 10-14)
     var tag = which === 'keeper' ? '[the Keeper] ' : '[the Settling] ';
     B.logEntries = (B.logEntries || []).concat((b.logEntries || []).map(function (e) { return { id: null, text: e.text.replace(/^(R\d+ )/, '$1' + tag) }; }));
@@ -845,6 +851,7 @@
     if (R0.flags.otyughFed && !R0.flags.otyughFedXp) { R0.flags.otyughFedXp = 1; fedL = R.pay(B, window.DS.R.fedPool(), R.say8('w.fedXp')); }
     if (xpL.length || loot8.length) { B.card(R.wrap([done === 'won' ? '{y}Victory!{/}' : '{y}What fell{/}'].concat(xpL, loot8)), 420); yield 40; }
     if (fedL.length) { B.card(R.wrap(fedL), 360); yield 40; }
+    if (done === 'won') R.tune(); // (the fanfare heard, the floor's tune)
     yield* R.picks(B);
     // the Keeper beaten: it sinks back, and the five come up (the 8-bit's S.stair and S.mark: the rope's haul or its going, then fiveUp)
     if (which === 'keeper' && done === 'won') yield* R.five(B, how === 'rope' ? 'w.ropeOut' : 'w.keeperGone');
@@ -1036,6 +1043,8 @@
     ids.forEach(function (id8) { var m = R.mon8(id8); if (!m) return; R0.xpBank += m.xp || 0; window.DS.R.tally(R0.kills, [id8]); out.push({ m: m, id: id8 }); });
     return out;
   };
+  // the floor's own tune (R.def.music: the first game's for the floor), again after a fight pulled in (R.pullIn0)
+  R.tune = function () { if (R.def && R.def.music) D.music(R.def.music); };
   // a won fight's spoils, into the pack and the purse; the lines to say
   R.spoils = function (B, fell) {
     var R0 = B.roam; if (!fell.length) return [];

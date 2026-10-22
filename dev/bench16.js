@@ -2078,6 +2078,62 @@
     document.body.appendChild(preM);
     return;
   }
+  // THE WARRENS AND THE GALLERIES, FIXED, 10-22 (mode=mines1022; js/mines.js, js/roam.js, js/topview.js -- the Warrens and Galleries fix seat, started by the lanes desk on
+  // his "warrens/galleries fix go"; ..\handoff-2026-10-21-the-warrens-and-galleries-on-the-tiles.md 2e, his four broken): a door to a floor the build has not got said, not
+  // the Wet; the Wet's own tune again after the landlord's bucket; the floors' random fights on a field of their own, the road's way (simple by OPTIONS, the grid the
+  // card's other button), the crew out of them and unhurt, the party back on its square; a rock in front of the party on the dens' top view drawn through; the ways named
+  if (get('mode', '') === 'mines1022') {
+    var repF2 = { checks: [], errors: [] }, memF2 = {}, stGF2 = D.store.get, stSF2 = D.store.set, MF = D.mines, RF = D.roam, TVF = D.topview, mus2 = [], mu0 = D.music, sk0 = null;
+    function okF2(what, v) { repF2.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function driveF2(g, until, cap) { var v, k = 0, st; while (k++ < (cap || 4000)) { if (until && until()) return true; st = g.next(v); v = undefined; if (st.done) return !!(until && until()); if (typeof st.value === 'number' && D.battle) D.battle.t += Math.max(1, st.value); if (st.value && st.value.prompt) v = st.value.prompt.opts[0].value; } return !!(until && until()); }
+    function topF2() { var s = D.top(); if (s && s.baking) { s.baking = false; s.enter(); } if (s && s.roam) driveF2(s.co, null, 2); return s; }
+    function testF2(q) { var B = RF.make(q + '&watch'); D.scenes.length = 0; D.push(B); return topF2(); }
+    function crewOf(B) { return B.units.filter(function (u) { return u.npc; }).map(function (u) { return u.npc + '@' + u.x + ',' + u.y + ':' + u.hp; }).join(' '); }
+    // a floor's fight called up where the party stands, to the field it pushes -- `pick` answering the encounter's card (0 FIGHT, 1 the other way); `run`: fought by the class
+    // AI to its end and back on the floor, else got away from at once
+    function fieldF2(B, pick, run) {
+      var R0 = B.roam, g = RF.encounter(B, 'steps'), st, v, k = 0, asked = null;
+      while (k++ < 400 && D.top() === B) { st = g.next(v); v = undefined; if (st.done) break; if (typeof st.value === 'number' && D.battle) D.battle.t += Math.max(1, st.value); if (st.value && st.value.prompt) { asked = st.value.prompt; v = asked.opts[pick || 0].value; } }
+      var b = D.top(); if (b === B) return { b: null, asked: asked, units: [] };
+      if (b.baking) { b.baking = false; b.enter(); }
+      var out = { b: b, asked: asked, simple: !!b.o.simple, map: b.map.def, units: b.units.slice() };
+      if (run) { var r; k = 0; while (b.co && k++ < 400000) { r = b.co.next(v); v = undefined; if (r.done) break; var y = r.value; if (typeof y === 'number' || !y || y.fx || y.entry || y.scene) continue; if (y.prompt) { v = y.prompt.opts[0].value; continue; } if (y.turn) v = { do: 'end' }; } }
+      out.res = run ? b.result : 'escaped';
+      if (D.top() === b) D.pop(); b.o.onDone(out.res);
+      driveF2(g, null, 4000); R0.encIn = 1e9; return out;
+    }
+    D.store.get = function (k) { return memF2[k] ? JSON.parse(memF2[k]) : null; }; D.store.set = function (k, v) { memF2[k] = JSON.stringify(v); return true; };
+    window.DS.autoPicks = true; D.music = function (k) { mus2.push(k); };
+    try { sk0 = window.localStorage.getItem(D.simple.KEY); window.localStorage.removeItem(D.simple.KEY); } catch (eK) { } // (OPTIONS' RANDOM FIGHTS at its default: simple)
+    try {
+      D.seed = +get('seed', 1022);
+      // 1. THE WORKINGS (his "threw me straight in the wet - boss music still doesn't stop after landlord gets bucket"). The door first: the situations page's LIVE base opened
+      // ?roam=warrens_c on a build from before the top levels, and a name it did not know was walked as the Wet -- now the door's card says so
+      var thr = null; try { RF.make('?roam=nosuchfloor'); } catch (eT) { thr = String(eT && eT.message || eT); }
+      var BC = testF2('?roam=warrens_c');
+      okF2('a door to a floor this build has not got throws for the door\'s card ("' + String(thr).slice(0, 60) + '..."), never the Wet; the workings\' door the workings (' + RF.def.key + ')', !!thr && /no floor of that name/.test(thr) && RF.def.key === 'warrens_c' && D.top() === BC);
+      // the Wet's own tune at its door, and again when the landlord is fed from the bucket and the Settling ends (the boss tune ran on)
+      mus2.length = 0; var BW = testF2('?roam=wet'), defW = RF.def, w8m = window.DS.DATA.maps.warrens_d.music;
+      okF2('the Wet plays the first game\'s tune for it at the door (' + mus2.join(',') + '; warrens_d: ' + w8m + ')', defW.music === w8m && mus2[mus2.length - 1] === w8m);
+      var gP = RF.pullIn(BW, 'wet', { id: 'landlordStep' }, defW.from8(8, 8)), kP;
+      for (kP = 0; kP < 400 && D.top() === BW; kP++) gP.next();
+      var bP = D.top(), backP = false;
+      if (bP !== BW) {
+        if (bP.baking) { bP.baking = false; bP.enter(); }
+        // (its run to the first turn that waits on a player: the Settling's boss tune; then the landlord fed from the bucket, and the Settling ended as its peaceful bucket ends
+        // it -- js/roam.js R.pullIn0, its update hook: popped, 'fed'; mode=roam1013 walks the hook itself)
+        var vP, yP; for (kP = 0; kP < 20000 && bP.co; kP++) { yP = bP.co.next(vP); vP = undefined; if (yP.done) break; if (yP.value && yP.value.turn) break; if (yP.value && yP.value.prompt) vP = yP.value.prompt.opts[0].value; }
+        bP.flags8 = Object.assign(bP.flags8 || {}, { otyughFed: 1 }); bP.units.forEach(function (u) { if (u.wet === 'landlord') u.fed = true; });
+        if (D.top() === bP) D.pop(); bP.o.onDone('fed');
+        backP = D.top() === BW; for (kP = 0; kP < 400; kP++) { if (gP.next().done) break; }
+      }
+      okF2('the landlord fed from the bucket: the Settling over (' + (bP.brokeHow ? 'BROKE: ' + bP.brokeHow : BW.roam.flags.otyughFed ? 'fed' : 'not fed') + '), the Wet\'s tune again (' + mus2.join(' > ') + ')', bP !== BW && backP && !bP.brokeHow && BW.roam.flags.otyughFed && mus2.indexOf('boss') >= 0 && mus2.indexOf('title') < 0 && mus2[mus2.length - 1] === w8m);
+    } catch (eF2) { repF2.errors.push(String(eF2 && eF2.stack || eF2).slice(0, 900)); }
+    D.store.get = stGF2; D.store.set = stSF2; D.music = mu0; try { if (sk0 != null) window.localStorage.setItem(D.simple.KEY, sk0); } catch (eK2) { }
+    var preF2 = document.createElement('pre'); preF2.id = 'out'; preF2.textContent = 'BENCH16 ' + JSON.stringify(repF2);
+    document.body.appendChild(preF2);
+    return;
+  }
   // THE HEX, INSIDE, 10-22 (mode=hex1022; js/hex.js -- the Hex interior seat, started by the lanes desk; Griz: "1 - build all 3, where 3 can be just the meeting room and
   // the offices upstairs and currently turned off for player access / 2-3 - match the 8-bit and let me know where you have to vary / 4 - let's see how that comes out"):
   // the town floor's four Hex doors in and out; the three floors from the walkable's register, north up on the town's tiles; the first game's people by their ids and
