@@ -7772,6 +7772,88 @@
     document.body.appendChild(prePq);
     return;
   }
+  // THE CHARACTER SHEET AS A PDF (mode=sheetpdf1026; 10-26, Griz: "Somewhere in the pocket DM - reference user interface best practices - players should be able to save
+  // pdf of character sheet"): js/sheetpdf.js -- the file whole by the PDF's own rules (its header, every cross-reference offset at its object, each stream's length,
+  // the page count), the engine's numbers on the paper, a name past ASCII written as WinAnsi's bytes, a ladder's carry kept off it; THE PARTY's PDF on each card it
+  // may show (not the locked king's), its press a download named for the character and said; the maker's SHEET PDF on its last page. On a stand-in store
+  if (get('mode', '') === 'sheetpdf1026') {
+    var repS = { checks: [], errors: [] }, okS = function (c, s) { repS.checks.push((c ? 'ok   ' : 'FAIL ') + s); };
+    var Ps0S = null, memS = {}, stGS = D.store.get, stSS = D.store.set, aClkS = HTMLAnchorElement.prototype.click, dlS = [], cv0S = D.canvas;
+    D.store.get = function (k) { return memS[k] ? JSON.parse(memS[k]) : null; }; D.store.set = function (k, v) { memS[k] = JSON.stringify(v); return true; };
+    HTMLAnchorElement.prototype.click = function () { dlS.push({ name: this.download, href: this.href }); };
+    if (!D.canvas) { D.canvas = document.createElement('canvas'); D.canvas.width = D.W; D.canvas.height = D.H; document.body.appendChild(D.canvas); } // (the maker's name field sits over a canvas)
+    try {
+      var SPs = D.sheetPdf, PKs = D.pocket, Rs = window.DS.R;
+      okS(!!SPs && typeof SPs.save === 'function' && typeof PKs.bareSpec === 'function', 'js/sheetpdf.js is loaded: D.sheetPdf.save, PK.bareSpec');
+      // the file by the PDF's rules: every xref entry's offset begins its object, startxref begins the xref, each stream's /Length is its bytes, /Count is its pages
+      var wellS = function (s) {
+        var why = [];
+        if (s.indexOf('%PDF-1.4\n') !== 0) why.push('header');
+        if (!/%%EOF\n$/.test(s)) why.push('no %%EOF');
+        for (var c = 0; c < s.length; c++) if (s.charCodeAt(c) > 255) { why.push('a character past one byte at ' + c); break; }
+        var sx = /startxref\n(\d+)\n%%EOF\n$/.exec(s); if (!sx || s.substr(+sx[1], 5) !== 'xref\n') why.push('startxref');
+        var xr = sx ? s.slice(+sx[1]) : '', hd = /^xref\n0 (\d+)\n/.exec(xr), n = hd ? +hd[1] : 0;
+        var ents = xr.split('\n').slice(2, 2 + n);
+        if (!hd || ents.length !== n || ents[0] !== '0000000000 65535 f ') why.push('xref head');
+        for (var k = 1; k < n; k++) { var off = parseInt(ents[k], 10); if (!/^\d{10} 00000 n $/.test(ents[k]) || s.substr(off, String(k).length + 6) !== k + ' 0 obj') { why.push('xref ' + k + ' at ' + off); break; } }
+        var re = /<< \/Length (\d+) >>\nstream\n/g, mm, nS = 0; while ((mm = re.exec(s))) { nS++; var st0 = mm.index + mm[0].length; if (s.substr(st0 + +mm[1], 10) !== '\nendstream') why.push('stream length at ' + mm.index); if (/[^\x09\x0a\x0d\x20-\x7e]/.test(s.substr(st0, +mm[1]))) why.push('a stream not ASCII'); }
+        var cnt = /\/Count (\d+)/.exec(s), pg = (s.match(/\/Type \/Page\b/g) || []).length;
+        if (!cnt || +cnt[1] !== pg || pg !== nS || !pg) why.push('pages ' + (cnt && cnt[1]) + '/' + pg + '/' + nS);
+        if (!/\/Root 1 0 R/.test(s) || !/\/BaseFont \/Helvetica\b/.test(s)) why.push('trailer or font');
+        return { ok: !why.length, why: why.join(', '), pages: pg };
+      };
+      var pdfStrS = function (t) { return '(' + String(t).replace(/([()\\])/g, '\\$1') + ')'; };
+      var wordsS = ['barley:5', 'lymen:8', 'aurdin:6', 'vivian:5', 'cleric:1', '~wizard.8.elf.8-14-14-16-12-10.quarterstaff.Wenna_Test.firebolt-light-mageArmor-continualflame-darkvision-magicmissile-shield',
+        '~fighter.5.dwarf.16-14-16-10-12-8.greatsword_chainmail___handaxe__.Brokk'].concat(['barbarian', 'bard', 'cleric', 'druid', 'fighter', 'monk', 'paladin', 'ranger', 'rogue', 'sorcerer', 'warlock', 'wizard'].map(function (c) { return c + ':8'; }));
+      var badS = [], numS = [], pagesS = {};
+      wordsS.forEach(function (w) {
+        try {
+          var hS = PKs.sheetOf(PKs.bareSpec(D.npc.spec(w))), mS = SPs.model(hS, { word: w, xp: 900, cap: 8 }), sS = SPs.bytes(mS), wl = wellS(sS);
+          pagesS[w] = wl.pages;
+          if (!wl.ok) badS.push(w + ': ' + wl.why);
+          var wp = Rs.weaponOf(hS), hit = Rs.attackBonus(hS, wp);
+          if (mS.ac !== Rs.ac(hS) || mS.maxhp !== hS.maxhp || mS.attacks[0].hit !== (hit >= 0 ? '+' : '') + hit || mS.abil.some(function (a) { return a.save !== Rs.saveBonus(hS, a.k) || a.score !== hS.abil[a.k]; })
+            || sS.indexOf(pdfStrS(mS.name)) < 0 || sS.indexOf(pdfStrS(String(mS.ac))) < 0 || sS.indexOf(pdfStrS(String(mS.maxhp))) < 0 || sS.indexOf('(' + w.slice(0, 24)) < 0) numS.push(w); // (the word's head: a long one wraps)
+          if (wl.pages > 3) badS.push(w + ': ' + wl.pages + ' pages');
+        } catch (eW) { badS.push(w + ': ' + String(eW && eW.message || eW).slice(0, 200)); }
+      });
+      okS(!badS.length, 'every sheet a whole PDF by its rules, three pages at most (' + wordsS.length + ' characters: the heroes, a made wizard and fighter, the twelve classes at 8; pages ' + JSON.stringify(pagesS) + ')' + (badS.length ? ': ' + badS.join(' | ') : ''));
+      okS(!numS.length, 'the paper\'s numbers are the engine\'s: AC (R.ac), hit points, the first attack\'s bonus, each score and save, and the name, AC, HP and word written on the page' + (numS.length ? ': not for ' + numS.join(', ') : ''));
+      // a name past ASCII: WinAnsi's bytes, octal in the stream, the width table still wrapping it
+      var mN = SPs.model(PKs.sheetOf(PKs.bareSpec(D.npc.spec('fighter:3'))), {}); mN.name = 'Ærin “Ash” Dûn — the ½-elf'; var sN = SPs.bytes(mN), wN = wellS(sN);
+      okS(wN.ok && sN.indexOf('(\\306rin \\223Ash\\224 D\\373n \\227 the \\275-elf)') >= 0, 'a name past ASCII goes in as WinAnsi\'s bytes (Æ, curly quotes, an em dash, ½)' + (wN.ok ? '' : ': ' + wN.why));
+      // the file's name, and the carry kept off the paper
+      var hB = PKs.sheetOf(PKs.bareSpec(D.npc.spec('~fighter.5.dwarf.16-14-16-10-12-8.greatsword_chainmail___handaxe__.Brokk'))), hC = PKs.sheetOf(PKs.bareSpec(D.npc.spec('cleric:8')));
+      okS(SPs.fileName(SPs.model(hB, {})) === 'brokk-fighter5-sheet.pdf' && SPs.fileName(SPs.model(hC, {})) === 'cleric-8-sheet.pdf', 'the file is named for the character: ' + SPs.fileName(SPs.model(hB, {})) + ', ' + SPs.fileName(SPs.model(hC, {})));
+      var spF = Object.assign({}, D.npc.spec('fighter:5'), { hpLeft: 3, featsLeft: { secondWind: 0, actionSurge: 0 } }), mF = SPs.model(PKs.sheetOf(PKs.bareSpec(spF)), {});
+      var useF = function (nm) { return (mF.uses.filter(function (u) { return u.name === nm; })[0] || {}).n; };
+      okS(useF('Second Wind') === 1 && useF('Action Surge') === 1 && mF.maxhp > 3, 'a ladder\'s carry stays off the paper: Second Wind ' + useF('Second Wind') + ', Action Surge ' + useF('Action Surge') + ' though both were spent');
+      // THE PARTY: a PDF on each card it may show, not the locked king's; its press a download named for the character, and the message says so
+      var cvS = document.createElement('canvas'); cvS.width = D.W; cvS.height = D.H; var cxS = cvS.getContext('2d');
+      var Ps = Ps0S = new D.Pocket(); Ps.enter(); Ps.ask = function () { return true; };
+      Ps.st.roster = [{ code: '~wizard.5.human.8-14-14-16-12-10.quarterstaff.Wenna_Test.firebolt-light-mageArmor', name: 'Wenna Test', cls: 'wizard', lvl: 5 }];
+      Ps.st.party = [{ w: 'barley', lvl: 5, loot: [] }, { custom: 0, lvl: 5 }, { w: 'vivian', lvl: 3, loot: [] }, { w: 'pyro', lvl: 12, loot: [] }]; Ps.st.pyro = false; Ps.st.dm = false; Ps.st.run = null; Ps.cache = {};
+      Ps.go('party'); Ps.btns = []; Ps.draw(cxS);
+      var pdfB = Ps.btns.filter(function (b) { return b.label === 'PDF'; });
+      okS(pdfB.length === 3 && pdfB.every(function (b) { return /^PDF: saves .+'s character sheet/.test(b.tip || ''); }) && D.textWidth('PDF') <= pdfB[0].w - 4, 'THE PARTY: a PDF beside GEAR on the three cards that may show one (' + pdfB.length + '), none on the locked king\'s; each says what it saves when chosen');
+      var gearB = Ps.btns.filter(function (b) { return b.label === 'GEAR'; });
+      okS(gearB.length === 3 && gearB.every(function (g, i) { return g.y === pdfB[i].y && g.x + g.w < pdfB[i].x; }), 'GEAR and PDF side by side on one row, neither over the other');
+      Ps.msg = null; dlS.length = 0; Ps.fire(pdfB[1]);
+      okS(dlS.length === 1 && dlS[0].name === 'wenna-test-wizard5-sheet.pdf' && /^blob:/.test(dlS[0].href) && !!Ps.msg && Ps.msg.text.indexOf('wenna-test-wizard5-sheet.pdf') >= 0 && !!SPs.last && SPs.last.size > 2000,
+        'a card\'s PDF downloads its sheet (' + (dlS[0] && dlS[0].name) + ', ' + (SPs.last && SPs.last.size) + ' bytes) and says so: "' + (Ps.msg && Ps.msg.text) + '"');
+      Ps.msg = null; dlS.length = 0; Ps.fire(pdfB[0]);
+      okS(dlS.length === 1 && dlS[0].name === 'barley-fighter5-sheet.pdf' && SPs.last.model.features.length > 0 && SPs.last.model.about.length > 0, 'a hero\'s card the same, his own lines and blurb on it (' + (dlS[0] && dlS[0].name) + ')');
+      // the maker's last page: SHEET PDF before SAVE, the character as made so far
+      Ps.makeNew(0, null); Ps.mk.cls = 'cleric'; Ps.mk.lvl = 3; Ps.mk.name = 'Odo Sheet'; Ps.kitUp(); Ps.mk.step = 6; Ps.go('maker'); Ps.btns = []; Ps.draw(cxS);
+      var shB = Ps.btns.filter(function (b) { return b.label === 'SHEET PDF'; })[0], svB = Ps.btns.filter(function (b) { return b.label === 'SAVE'; })[0];
+      dlS.length = 0; if (shB) Ps.fire(shB);
+      okS(!!shB && !!svB && shB.x + shB.w < svB.x && dlS.length === 1 && dlS[0].name === 'odo-sheet-cleric3-sheet.pdf' && Ps.screen === 'maker', 'the maker\'s last page: SHEET PDF beside SAVE downloads the character as made (' + (dlS[0] && dlS[0].name) + '), and the maker stays open');
+    } catch (eS) { repS.errors.push(String(eS && eS.stack || eS).slice(0, 800)); }
+    finally { if (Ps0S && Ps0S.dropField) Ps0S.dropField(); if (D.canvas !== cv0S && D.canvas && D.canvas.remove) D.canvas.remove(); D.canvas = cv0S; D.store.get = stGS; D.store.set = stSS; HTMLAnchorElement.prototype.click = aClkS; }
+    var preS = document.createElement('pre'); preS.id = 'out'; preS.textContent = 'BENCH16 ' + JSON.stringify(repS);
+    document.body.appendChild(preS);
+    return;
+  }
   // THE MODULES (mode=module1017; 10-17, Griz: "to test it can you make a 6 fight module for a starting lvl 1 party of 4 that we can include for new users to have
   // as example module?"): the game's own module whole -- its floors dealt, its foes in the bestiary, its rests as flagged -- the title's MODULES, THE MODULES' screen
   // and THE PARTY TO LEVEL 1, a DM's ladder file of 10-17 read as a module; then THE WAGON ROAD played through `runs` times (3 in the gate; runs=20 for a balance read) by the AI's party (watched, as the Pocket

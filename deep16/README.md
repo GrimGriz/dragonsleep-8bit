@@ -424,6 +424,16 @@ the pages beside the game, the Discord) and THE 8-BIT GAME; the 8-bit title has 
   and BUILD THE LADDER's five slots, four rungs and the trial, each a floor at its CR (`run.plan`, `Pocket.planRung`; `lastRung` / `hasTrial` size a
   built ladder); three floors struck from every random draw (`randomMap`). Rascal's egg: the first unit bound. **Bench:** `mode=pocketdm1009` (in the
   quick gate).
+- **The character sheet as a PDF** (10-26, `js/sheetpdf.js`; Griz: *"Somewhere in the pocket DM - reference user interface best practices - players should be
+  able to save pdf of character sheet"*): **PDF** beside GEAR under each card of THE PARTY (not the locked king's: his gear is not to be seen), **SHEET PDF**
+  beside SAVE on the maker's last page. One press, a real file named for the character (`brokk-fighter5-sheet.pdf`, `cleric-8-sheet.pdf`), the message
+  naming it; a chosen PDF says what it saves on the hint line. The sheet: one Letter page that A4 prints whole, a 5e sheet's order -- the scores, saves and
+  the eighteen skills down the left (the Pocket DM keeps the ones its fights read; the rest stand at the modifier with an empty circle), AC (and with Mage
+  Armor), hit points, hit dice, speed, initiative, proficiency and passive Perception across the top; a pencil row for the day, the attacks, the uses with
+  boxes, the gear, the features (a hero's own lines, a class card's from `data/features.js`), the race's traits, the spells with their slots, the word. A
+  big caster runs to a second page. Built bare (`PK.bareSpec`): nothing cast ahead and nothing a ladder's fight took. No library -- the PDF is written in
+  the file (Helvetica and Courier, two of the fourteen every reader has; Helvetica's widths in it for the wrap). **Bench:** `mode=sheetpdf1026` (in the quick
+  gate): every sheet whole by the PDF's own rules, the engine's numbers on it, the buttons, a press's download.
 
 ## MPMon, the Monster Party Monster -- `js/mpmon.js` (10-06)
 

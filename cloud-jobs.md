@@ -32,6 +32,7 @@ Every seat's notes file ends with a **For the next seat** section (10-03): the g
 
 | job | branch | state |
 |---|---|---|
+| the character sheet as a PDF on the Pocket DM (Griz, 10-26: *"players should be able to save pdf of character sheet"*) | `ccr-fc0b66f4-7zmda2` | pushed, quick gate GREEN; `cloud-notes/sheet-pdf-notes.md`; waits on the desk's merge |
 
 ## Queued (ruled, not started)
 

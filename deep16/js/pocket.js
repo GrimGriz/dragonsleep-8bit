@@ -1566,7 +1566,10 @@
         }
       } else { D.text(ctx, '(no sheet)', x + cw / 2, top + 60, P('red', 4), 'center'); }
       self.btn(ctx, 'v', x + cw / 2 - 12, top + 134, 24, 11, function () { self.cycle(i, 1); }, { small: true });
-      if (!isNew && s.h && !locked && !(e && e.king)) self.btn(ctx, 'GEAR', x + 8, top + 147, cw - 16, 11, function () { self.openGear(i); }, { small: true }); // (10-17: below the down arrow, his word)
+      if (!isNew && s.h && !locked && !(e && e.king)) { // (10-17: below the down arrow, his word)
+        self.btn(ctx, 'GEAR', x + 4, top + 147, 33, 11, function () { self.openGear(i); }, { small: true });
+        self.btn(ctx, 'PDF', x + 39, top + 147, cw - 43, 11, function () { self.cardPdf(i); }, { small: true }).tip = 'PDF: saves ' + s.h.name + '\'s character sheet, to print or keep'; // (10-26: the card's sheet as a file, js/sheetpdf.js; the hint line says it when chosen)
+      }
     });
     var ready = this.ready();
     this.btn(ctx, '- a seat', 20, 200, 70, 14, function () { if (st.party.length > 1) { st.party.pop(); self.cache = {}; self.keep(); } }, { dis: n <= 1 });
@@ -1580,7 +1583,7 @@
     this.btn(ctx, 'LOAD A PARTY', 208, 236, 114, 15, function () { self.loadParty(); });
     this.btn(ctx, 'NEXT: THE CAMP', D.W - 150, 236, 130, 15, function () { self.keep(); self.go('hub'); }, { pri: true, dis: !ready, why: 'every seat wants someone in it: arrows cycle the roster, the ? makes one' }); // (THE CAMP at both tables, 10-17: TO THE CAMPAIGN and NEXT: THE MAP till then)
     if (!ready) D.text(ctx, 'every seat wants a character (a locked one cannot come)', D.W / 2, 222, P('fire', 1), 'center');
-    else D.hint(ctx, 'E on a card\'s arrows cycles · X back', D.W / 2, 222, P('stone', 4), 'center');
+    else { var kb = this.btns[this.ksel]; if (kb && kb.tip) D.hint(ctx, kb.tip, D.W / 2, 222, P('bone', 1), 'center'); else D.hint(ctx, 'E on a card\'s arrows cycles · X back', D.W / 2, 222, P('stone', 4), 'center'); } // (a chosen button with a tip says what it does: a card's PDF, 10-26)
   };
   // the maker, step by step
   Pocket.prototype.drawMaker = function (ctx) {
@@ -1747,7 +1750,10 @@
       if (step === 3) { self.walkLevels(function () { m.step = 4; self.scroll = 0; }); return; } // (the level's choices first, 10-17)
       m.step = step === 4 && !caster ? 6 : step + 1; self.scroll = 0; self.dropField();
     }, { pri: true });
-    else this.btn(ctx, 'SAVE', D.W - 100, 236, 80, 15, function () { self.saveMade(); }, { pri: true });
+    else {
+      this.btn(ctx, 'SHEET PDF', D.W - 194, 236, 86, 15, function () { var sp = self.mkSpec(), hS = null; try { hS = NPC.sheet(PK.bareSpec(sp)); } catch (eS) { hS = null; } self.sheetPdf(hS, NPC.code(sp), null); }); // (10-26: the sheet before it is saved, js/sheetpdf.js)
+      this.btn(ctx, 'SAVE', D.W - 100, 236, 80, 15, function () { self.saveMade(); }, { pri: true });
+    }
   };
   // the maps, the dark ones said so and shown so
   Pocket.prototype.drawMap = function (ctx) {
@@ -2039,6 +2045,19 @@
     catch (e) { this.say('could not save: ' + e); return null; }
     return name;
   };
+  // A CARD'S PDF (10-26, Griz: "Somewhere in the pocket DM - reference user interface best practices - players should be able to save pdf of character sheet"): the
+  // character as a sheet for the table at one press, its file's name said as SAVE THE PARTY says its own (js/sheetpdf.js) -- the sheet bare and whole, nothing cast
+  // ahead and nothing a ladder's fight took (the paper's boxes keep the day), with its word and its XP
+  PK.bareSpec = function (sp) { return sp ? Object.assign({}, sp, { morning: true, mageArmor: false, prepared: null, hpLeft: null, slotsLeft: null, featsLeft: null, condsLeft: null }) : null; };
+  Pocket.prototype.sheetPdf = function (h, word, xp) {
+    if (!h || !D.sheetPdf) { D.sfx('error'); this.say('no sheet to save', 240); return null; }
+    var name = null;
+    try { name = D.sheetPdf.save(h, { word: word, xp: xp, cap: PK.cap(this.st) }); } catch (e) { D.sfx('error'); this.say('could not make the sheet: ' + (e && e.message || e), 360); return null; }
+    if (name) { var said = 'saved ' + name + ' -- where your browser puts downloads'; this.say(D.textWidth(said) <= D.W - 24 ? said : 'saved ' + name + ' to your downloads', 420); } // (the line kept inside the screen: a long name takes the short one)
+    else { D.sfx('error'); this.say('the browser would not take the file', 300); }
+    return name;
+  };
+  Pocket.prototype.cardPdf = function (i) { var st = this.st, slot = st.party[i]; return slot ? this.sheetPdf(PK.sheetOf(PK.bareSpec(PK.specOf(st, slot))), PK.wordOf(st, slot), PK.xpNow(st, slot)) : null; };
   Pocket.prototype.takeParty = function (text) {
     var f = null; try { f = JSON.parse(text); } catch (e) { f = null; }
     if (!f || f.game !== 'DRAGONSLEEP' || f.kind !== PK.PARTY_KIND || !Array.isArray(f.party) || !f.party.length) { this.msg = { text: 'that file is not a party', t: 300, bad: true }; return null; }
