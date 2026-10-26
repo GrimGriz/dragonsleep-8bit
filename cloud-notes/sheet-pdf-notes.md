@@ -55,6 +55,7 @@ Griz, 10-26: *"Somewhere in the pocket DM - reference user interface best practi
 ## For the desk
 
 - A pointer on the todo under the Pocket DM and the races lane: this item landed, to main and to live on his word (*"Solid. Keep 3 and merge live please"*).
-- His answers to the seat's four: (3) the eighteen skills stay as built (*"Keep 3"*, a `ruled` line); he saw the party screen and Lymen's sheet in chat
-  (*"Solid."*, a `seen` line; `eyes-sheetpdf-1026` folded); (1) the placement and labels and (2) Pyro with no PDF at the DM's table stand as the seat's calls,
-  not ruled, his to overrule.
+- His answers to the seat's four, all `ruled` lines: *"Solid."* to all four (his correction: *"'Solid' was in reference to all 4. Only 3 and 4 indicated need
+  for response"*) -- (1) the placement and labels as built, (2) Pyro with no PDF at any table, (3) the eighteen skills stay (*"Keep 3"*), (4) to main and live.
+  The seat first read "Solid." as a verdict on the screenshot it sent, wrote a `seen` line and cut `eyes-sheetpdf-1026`; both undone the same day -- the
+  row is back, waiting on his eye at `deep16/?pocket` (on live now).
