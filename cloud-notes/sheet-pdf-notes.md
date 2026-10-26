@@ -52,5 +52,7 @@ Griz, 10-26: *"Somewhere in the pocket DM - reference user interface best practi
 
 ## For the desk
 
-- A pointer on the todo under the Pocket DM and the races lane: this item landed; the eyes row waits on his hands.
-- Nothing ruled by him past the ask itself; the placement and labels are the seat's calls (above), his to overrule.
+- A pointer on the todo under the Pocket DM and the races lane: this item landed, to main and to live on his word (*"Solid. Keep 3 and merge live please"*).
+- His answers to the seat's four: (3) the eighteen skills stay as built (*"Keep 3"*, a `ruled` line); he saw the party screen and Lymen's sheet in chat
+  (*"Solid."*, a `seen` line; `eyes-sheetpdf-1026` folded); (1) the placement and labels and (2) Pyro with no PDF at the DM's table stand as the seat's calls,
+  not ruled, his to overrule.

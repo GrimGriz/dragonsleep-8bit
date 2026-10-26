@@ -27,12 +27,12 @@ Every seat's notes file ends with a **For the next seat** section (10-03): the g
 | the 8-bit's reactions and concentration (the buff slot retired; his seven answers built) | `claude/8bit-reactions` | `cloud-notes/8bit-reactions-notes.md` | 1b18ac5, 10-03 (the desktop took main for it: eleven files, the records field by field) |
 | a review of the development (Griz, 10-03: *"Review the development of this game and make recommendations please"*) -- an opinion, nothing ruled, nothing in the game changed; the desk checked its five "broken now" claims against the code (all hold) | `claude/optimistic-mayer-782rhy` | `cloud-notes/dev-review-notes.md` | 2b1ddef, 10-03 (fast-forward) |
 | the Keeper after the stream (his two streamed logs: the retreat, the break-free, the swirl's end, the SRD's prone engine-wide, it opens with the wall, the log asked for on live with `&log`, its card) and the Pocket DM's roster in a file of its own with a failed save reported; his answers *"1 yes / 2 SRD / 3 have it open with the wall / 4 please ... / 5 yes"* and *"pocket dm roster should save in pocket dm and not overlap with the 8bit ideally / failed save should report"*; the desk reviewed 3524606 | `claude/modest-hawking-ya9wdy` | `cloud-notes/stream-fixes-notes.md` | the cloud seat merged it on his word (*"The merge is yours."*), 10-03: main's stamps kept but for the eight scripts the branch changed; the gate GREEN with the five empty probes run for real (135/135, a `--no-sandbox` wrapper as `DEEP16_BROWSER`) |
+| the character sheet as a PDF on the Pocket DM (Griz, 10-26: *"players should be able to save pdf of character sheet"*) | `ccr-fc0b66f4-7zmda2` | `cloud-notes/sheet-pdf-notes.md` | e17175f, 10-26 (to main and live on his word: *"Keep 3 and merge live please"*) |
 
 ## In flight
 
 | job | branch | state |
 |---|---|---|
-| the character sheet as a PDF on the Pocket DM (Griz, 10-26: *"players should be able to save pdf of character sheet"*) | `ccr-fc0b66f4-7zmda2` | pushed, quick gate GREEN; `cloud-notes/sheet-pdf-notes.md`; waits on the desk's merge |
 
 ## Queued (ruled, not started)
 
