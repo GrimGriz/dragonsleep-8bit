@@ -41,6 +41,8 @@ Griz, 10-26: *"Somewhere in the pocket DM - reference user interface best practi
 - **Run the benches here with the headless shell**, not `/opt/pw-browsers/chromium`: the full build sat five minutes calling Google's hosts through the
   proxy and timed out; `DEEP16_BROWSER=$(find /opt/pw-browsers/chromium_headless_shell-* -name chrome-headless-shell -type f | head -1)
   DEEP16_BROWSER_ARGS=--no-sandbox` runs a mode in about a second.
+- **A cloud clone is shallow** (53 commits here): `dev/keeper-probe.py` reads its reference at `ed7be2a` by `git show`, so `check.py all` reads RED on it
+  until the history is there -- `git fetch --shallow-since=2026-10-02 origin main` first (then 229/229, and the full gate GREEN at 167).
 - **The PDF is ASCII but for its second line**: `bytes()` returns a string of one-byte characters and `save()` makes a `Uint8Array` of it -- a `Blob` of the
   string would write UTF-8 and break every xref offset. Text past ASCII goes in as WinAnsi codes, octal-escaped in the stream (`codes`, `pdfStr`).
 - **The wrap trusts the width table**: `HELV` / `BOLD` are Helvetica's AFM widths for 32-126; a new glyph past those falls back to 540/700. If a sheet's text
