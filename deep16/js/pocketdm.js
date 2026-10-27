@@ -446,6 +446,7 @@
     var from = Math.min(this.scroll, Math.max(0, rows.length - per)); this.scroll = from;
     var have = {}; cp.bought.forEach(function (r) { have[r.kind] = (have[r.kind] || 0) + 1; }); cp.units.forEach(function (u) { PD.unitKinds(u).forEach(function (k) { have[k] = (have[k] || 0) + 1; }); });
     D.text(ctx, '{g}price{/}', 14, 34, P('stone', 5)); D.text(ctx, '{g}villain{/}', 112, 34, P('stone', 5)); D.text(ctx, '{g}level{/}', 240, 34, P('stone', 5)); D.text(ctx, '{g}CR{/}', 306, 34, P('stone', 5)); D.text(ctx, '{g}yours{/}', 334, 34, P('stone', 5));
+    var b0 = this.btns.length;
     rows.slice(from, from + per).forEach(function (r, i) {
       var yy = 44 + i * 16, k = r.word, cost = PD.price(k), f = PK.foe(k) || { name: k }, v = r.v;
       self.btn(ctx, 'BUY  ' + PD.fmt(cost), 14, yy, 92, 13, function () {
@@ -466,6 +467,7 @@
       if (v && v.i != null) self.btn(ctx, 'EDIT', D.W - 50, yy, 36, 13, function () { self.makeVillain(v.i); }, { small: true }); // (the maker on it: its level, its gear, its spells)
     });
     if (!PD.villainRows(st).length) D.text(ctx, '{g}none of your own yet: MAKE A VILLAIN, or mark one of the roster on THE MARKS{/}', D.W / 2, 44 + Math.min(per, rows.length) * 16 + 4, P('stone', 5), 'center');
+    this.listRows(b0, 44, 16, rows.length, per, from); // (the arrows scroll every list, js/pocket.js listRows: 10-27)
     this.pager(ctx, 14, 222, rows.length, per, from); // (^ v under every list, js/pocket.js pager: 10-27)
     this.btn(ctx, 'BACK', 20, 236, 60, 15, function () { self.back(); });
     this.btn(ctx, 'MAKE A VILLAIN', 88, 236, 120, 15, function () { self.makeVillain(null); }, { pri: true });
@@ -480,12 +482,14 @@
       .concat(st.roster.map(function (c, i) { return { kind: 'custom', i: i, word: c.code, made: !!c.dm }; }));
     head(ctx, 'THE MARKS', 'VILLAIN: on THE VILLAINS\' shelf too  ·  VILLAIN ONLY: there, and off the roster at this table');
     var from = Math.min(this.scroll, Math.max(0, es.length - per)); this.scroll = from;
+    var b0 = this.btns.length;
     es.slice(from, from + per).forEach(function (e, k) {
       var yy = 36 + k * 16, f = PK.foe(e.word) || {}, m = PK.markOf(st, e), at = PD.MARKS.indexOf(m);
       D.text(ctx, (m ? '{y}' : '') + cut(e.kind === 'custom' ? st.roster[e.i].name : PD.stockName(e.w), 150) + (m ? '{/}' : ''), 20, yy + 3, P('bone', 1));
       D.text(ctx, '{g}' + clsOf(f.cls) + (e.kind === 'custom' ? ' ' + st.roster[e.i].lvl + (e.made ? ', made in THE VILLAINS' : ', your own') : '') + '{/}', 180, yy + 3, P('stone', 5));
       self.btn(ctx, PD.markWord(m), D.W - 140, yy, 120, 13, function () { PD.setMark(st, e, PD.MARKS[(at + 1) % PD.MARKS.length]); self.cache = {}; self.keep(); }, { small: true, on: !!m });
     });
+    this.listRows(b0, 36, 16, es.length, per, from);
     this.pager(ctx, 20, 36 + per * 16 - 1, es.length, per, from);
     D.text(ctx, 'a seat already holding one marked VILLAIN ONLY keeps it till the arrows move on', D.W / 2, 224, P('stone', 5), 'center');
     this.btn(ctx, 'BACK', 20, 236, 60, 15, function () { self.back(); });
@@ -498,6 +502,7 @@
     PD.LANDS.forEach(function (L, k) { self.btn(ctx, L[1] + '  ' + PD.locations(self, L[0]).length, 20 + k * 148, 34, 142, 13, function () { self.landTab = L[0]; self.scroll = 0; }, { on: land === L[0], small: true }); });
     var list = PD.locations(this, land), from = Math.min(this.scroll, Math.max(0, list.length - per)); this.scroll = from;
     D.text(ctx, '{g}' + (PD.LANDS.filter(function (L) { return L[0] === land; })[0] || [])[2] + '{/}', 20, 52, P('stone', 5));
+    var b0 = this.btns.length;
     list.slice(from, from + per).forEach(function (id, i) {
       var yy = 62 + i * 16, d = D.MAPS[id], own = PD.owns(st, id), band = PD.bandOf(id), cost = band[2], struck = cp.strike.indexOf(id) >= 0;
       if (own) self.btn(ctx, 'YOURS: LET GO', 14, yy, 96, 13, function () { var r = PD.letGoMap(st, id); if (r && r.ok) { self.keep(); self.say((d.name || id) + ' let go: +' + PD.fmt(r.back), 240); } else { D.sfx('error'); self.say(r ? r.why : 'not yours', 300); } }, { small: true, on: true });
@@ -512,6 +517,7 @@
         self.keep();
       }, { small: true, on: struck });
     });
+    this.listRows(b0, 62, 16, list.length, per, from);
     this.pager(ctx, 14, 62 + per * 16, list.length, per, from);
     D.text(ctx, 'STRIKE keeps a floor out of every random draw at this table (' + cp.strike.length + ' of ' + PD.STRIKES + ') · BUILD offers the floors you own (' + cp.maps.length + ')', D.W / 2, 224, P('stone', 5), 'center');
     this.btn(ctx, 'BACK', 20, 236, 60, 15, function () { self.back(); });
@@ -523,7 +529,9 @@
     head(ctx, 'YOUR MODULES', 'open one on BUILD, copy it, let it go -- or take one in FROM A FILE to change it');
     if (!mods.some(function (m) { return m.id === self.dmSel; })) this.dmSel = mods.length ? mods[0].id : null;
     var from = Math.min(this.scroll, Math.max(0, mods.length - per)); this.scroll = from;
+    var b0 = this.btns.length;
     mods.slice(from, from + per).forEach(function (m, i) { self.btn(ctx, cut(m.name, 128), 14, 36 + i * 17, 140, 15, function () { self.dmSel = m.id; }, { on: self.dmSel === m.id, small: true }); });
+    this.listRows(b0, 36, 17, mods.length, per, from);
     this.pager(ctx, 14, 36 + per * 17, mods.length, per, from);
     var m = PD.module(st, this.dmSel), px = 162, py = 34, pw = D.W - px - 10, ph = 194;
     panel(ctx, px, py, pw, ph);
@@ -555,6 +563,7 @@
     var nmN = {}; list.forEach(function (k) { var n = D.FOES[k].name; nmN[n] = (nmN[n] || 0) + 1; });
     var label = function (k) { var f = D.FOES[k], a = f.attacks && f.attacks[Object.keys(f.attacks)[0]]; return nmN[f.name] > 1 && a ? f.name + ' (' + a.name + ')' : f.name; };
     D.text(ctx, '{g}price{/}', 14, 34, P('stone', 5)); D.text(ctx, '{g}creature{/}', 112, 34, P('stone', 5)); D.text(ctx, '{g}CR{/}', 300, 34, P('stone', 5)); D.text(ctx, '{g}yours{/}', 350, 34, P('stone', 5));
+    var b0 = this.btns.length;
     list.slice(from, from + per).forEach(function (k, i) {
       var yy = 44 + i * 15, cost = PD.price(k), f = D.FOES[k];
       self.btn(ctx, 'BUY  ' + PD.fmt(cost), 14, yy, 92, 13, function () {
@@ -567,6 +576,7 @@
       if (have[k]) D.text(ctx, '{n}' + have[k] + '{/}', 350, yy + 3, P('moss', 2));
       if (f.bound) D.text(ctx, '{g}water{/}', 380, yy + 3, P('stone', 5));
     });
+    this.listRows(b0, 44, 15, list.length, per, from);
     this.pager(ctx, 14, 44 + per * 15 - 1, list.length, per, from);
     var si = SORTS.map(function (s) { return s[0]; }).indexOf(sort);
     this.btn(ctx, 'BACK', 20, 236, 60, 15, function () { self.back(); });
@@ -598,6 +608,7 @@
     var lx = 10, lw = 228, rx = 246, rw = D.W - rx - 10;
     D.text(ctx, '{y}THE RECEIPTS{/}  ' + rs.length + (ids.length ? '  {g}' + ids.length + ' picked: CR ' + PK.fmt8(PK.sum8(pickedKinds)) + '{/}' : ''), lx, 34, P('bone', 1));
     var from = Math.min(this.scroll, Math.max(0, rs.length - per)); this.scroll = from;
+    var b0 = this.btns.length;
     rs.slice(from, from + per).forEach(function (r, k) {
       var i = from + k, yy = 44 + k * 14, on = !!sel[r.id];
       self.btn(ctx, '', lx, yy, lw, 13, function () { PD.pick(self, rs, i); }, { on: on, small: true });
@@ -607,10 +618,12 @@
       D.text(ctx, PD.fmt(r.paid || PD.price(r.kind)), lx + lw - 4, yy + 3, on ? P('stone', 1) : P('stone', 5), 'right');
     });
     if (!rs.length) D.text(ctx, 'none: buy in the shops, and they wait here', lx + 6, 50, P('stone', 5));
+    this.listRows(b0, 44, 14, rs.length, per, from);
     this.pager(ctx, lx, 44 + per * 14, rs.length, per, from);
     // the units
     D.text(ctx, '{y}YOUR UNITS{/}  ' + us.length + ' · in the order a table takes them', rx, 34, P('bone', 1));
     var per2 = 7, from2 = Math.min(this.scroll2 || 0, Math.max(0, us.length - per2)); this.scroll2 = from2; // (two lines a unit: its name whole, then its CR, its heads and UNBIND)
+    var b1 = this.btns.length;
     us.slice(from2, from2 + per2).forEach(function (u, k) {
       var yy = 44 + k * 24;
       ctx.fillStyle = 'rgba(20,16,30,.9)'; ctx.fillRect(rx, yy, rw, 22); ctx.strokeStyle = P('stone', 3); ctx.strokeRect(rx + 0.5, yy + 0.5, rw - 1, 21);
@@ -619,6 +632,7 @@
       self.btn(ctx, 'UNBIND', rx + rw - 48, yy + 10, 46, 11, function () { var g = PD.unbind(st, u.id); if (g) { self.keep(); self.say(PD.unitName(g) + ': receipts again', 240); } }, { small: true });
     });
     if (!us.length) D.text(ctx, 'none yet: pick receipts and BIND AS UNIT', rx + 6, 50, P('stone', 5));
+    this.listRows(b1, 44, 24, us.length, per2, from2, 'scroll2');
     this.pager(ctx, rx, 44 + per2 * 24, us.length, per2, from2, 'scroll2');
     D.text(ctx, 'on a ladder a unit fights whole, at the sum of its CRs, your newest first · E on a receipt adds or drops it', D.W / 2, 224, P('stone', 5), 'center');
     this.btn(ctx, 'BACK', 20, 236, 60, 15, function () { self.back(); });
@@ -646,6 +660,7 @@
     head(ctx, 'BUILD A MODULE', 'a map clicked adds a fight at its CR: your newest units first, the rest rolled');
     var from = Math.min(this.scroll, Math.max(0, ids.length - per)); this.scroll = from;
     var dflt = this.crI >= 0 ? this.crI : 5, full = m.slots.length >= PK.MODULE_MAX;
+    var b0 = this.btns.length;
     ids.slice(from, from + per).forEach(function (id, i) {
       var def = D.MAPS[id], yy = 36 + i * 16, ci = cp.mapCR[id] == null ? dflt : cp.mapCR[id];
       self.btn(ctx, cut(def.name || id, 124), 14, yy, 132, 14, function () {
@@ -658,6 +673,7 @@
       self.btn(ctx, '>', 236, yy, 14, 14, function () { cp.mapCR[id] = Math.min(PK.VALUES.length - 1, ci + 1); self.keep(); }, { small: true });
     });
     if (!ids.length) { D.text(ctx, 'no maps of your own yet:', 20, 44, P('stone', 5)); this.btn(ctx, 'THE LOCATIONS', 20, 56, 120, 14, function () { self.scroll = 0; self.go('locations'); }, { pri: true }); }
+    this.listRows(b0, 36, 16, ids.length, per, from);
     this.pager(ctx, 14, 36 + per * 16, ids.length, per, from);
     D.text(ctx, '{g}U{/} underground  {g}R{/} urban  {g}O{/} outdoors  {p}D{/} dark', 14, 226, P('stone', 5)); // (under ^ v since 10-27; it sat on the count before)
     // the module
@@ -744,11 +760,13 @@
     var self = this, per = 11, list = PD.doorsFor(this.st);
     head(ctx, 'DOORS', this.st.dm ? 'every door of the game, each in a tab of its own · the whole list is URLS.md' : 'the other doors of the grid and the pages beside the game, each in a tab of its own');
     var from = Math.min(this.scroll, Math.max(0, list.length - per)); this.scroll = from;
+    var b0 = this.btns.length;
     list.slice(from, from + per).forEach(function (r, i) {
       var yy = 36 + i * 16;
       self.btn(ctx, cut(r[0], 150), 14, yy, 160, 14, function () { if (r[1] === 'notes:') self.go('feedback'); else self.open(PD.doorUrl(r[1])); }, { small: true });
       D.text(ctx, cut(r[2], D.W - 200), 182, yy + 3, P('bone', 1));
     });
+    this.listRows(b0, 36, 16, list.length, per, from);
     this.pager(ctx, 14, 36 + per * 16, list.length, per, from);
     this.btn(ctx, 'BACK', 20, 236, 60, 15, function () { self.back(); });
   };

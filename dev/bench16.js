@@ -7772,6 +7772,50 @@
     document.body.appendChild(prePq);
     return;
   }
+  // THE ARROWS IN A LIST (mode=pocketkeys1027; 10-27, Griz: "if you were using the arrows to scroll through the list it jumped out of scrolling and only worked
+  // properly if you scrolled with the mousewheel. This would be considered catastrophic loss to testers if shipped"): each long list of both tables walked by the
+  // down arrow from its first row -- every row reached, the list scrolled to its end, then out -- and back by the up arrow to its top (js/pocket.js listRows,
+  // listStep); the cursor never on a ^ v; and the wheel a step a notch, not an event (js/core.js I.wheelStep). On a stand-in store
+  if (get('mode', '') === 'pocketkeys1027') {
+    var repK = { checks: [], errors: [] }, okK = function (c, s) { repK.checks.push((c ? 'ok   ' : 'FAIL ') + s); };
+    var memK = {}, stGK = D.store.get, stSK = D.store.set;
+    D.store.get = function (k) { return memK[k] ? JSON.parse(memK[k]) : null; }; D.store.set = function (k, v) { memK[k] = JSON.stringify(v); return true; };
+    try {
+      var IK = D.input, cvK = document.createElement('canvas'); cvK.width = D.W; cvK.height = D.H; var cxK = cvK.getContext('2d');
+      var Pk = new D.Pocket(); Pk.enter(); Pk.ask = function () { return true; };
+      var frameK = function () { Pk.draw(cxK); };
+      var keyK = function (b) { IK.press(b); Pk.update(); IK.release(b); IK.clear(); frameK(); };
+      var inK = function () { return (Pk.lists || []).some(function (L) { return L.rows.some(function (r) { return r.indexOf(Pk.ksel) >= 0; }); }); };
+      var walkK = function (name, setup, key) {
+        try {
+          setup(); frameK(); frameK();
+          var L = (Pk.lists || [])[0]; if (!L || !L.rows.length) return okK(false, name + ': no list drawn');
+          var k = key || 'scroll', max = Math.max(0, L.n - L.per), seen = 1, hi = 0, n = 0, onPager = false;
+          Pk.ksel = L.rows[0][0]; frameK();
+          while (n++ < 500) { keyK('down'); var b = Pk.btns[Pk.ksel]; if (b && (b.label === '^' || b.label === 'v')) onPager = true; if (!inK()) break; seen++; hi = Math.max(hi, Pk[k] || 0); }
+          var out = (Pk.btns[Pk.ksel] || {}).label, up = 0; n = 0;
+          keyK('up'); while (inK() && n++ < 500) { up++; var was = Pk.ksel + ':' + Pk[k]; keyK('up'); if (Pk.ksel + ':' + Pk[k] === was) break; } // (at the top with nothing above, the cursor stays: the walk is done)
+          okK(seen === L.n && hi === max && up === L.n && (Pk[k] || 0) === 0 && !onPager, name + ': down walks ' + seen + ' of ' + L.n + ', the list to ' + hi + ' of ' + max + ', then out to ' + out + '; up walks ' + up + ' back to the top' + (onPager ? '; the cursor stopped on a ^ v' : ''));
+        } catch (eW) { okK(false, name + ': ' + String(eW && eW.message || eW).slice(0, 200)); }
+      };
+      var cpK = function () { return D.pocketdm.camp(Pk.st); };
+      walkK('DOORS, the DM\'s 36', function () { Pk.st.dm = true; Pk.go('doors'); });
+      walkK('THE MAP', function () { Pk.st.dm = false; Pk.go('map'); });
+      walkK('THE LOCATIONS', function () { Pk.st.dm = true; Pk.go('locations'); });
+      walkK('THE MARKS', function () { Pk.st.dm = true; Pk.go('marks'); });
+      walkK('a shop with every BUY greyed', function () { Pk.st.dm = true; cpK().purse = 0; Pk.toShop('beasts'); });
+      walkK('THE FIGHTS, 15 kept', function () { Pk.st.fights = []; for (var i = 0; i < 15; i++) Pk.st.fights.push({ t: 1e12 + i * 6e4, result: i % 2 ? 'won' : 'lost', rounds: 3, foes: 'goblin x' + (i + 1), cr: '1', diff: 'EASY' }); Pk.go('fights'); });
+      walkK('THE UNITS\' receipts, 15', function () { Pk.st.dm = true; var cp = cpK(); cp.bought = []; for (var i = 0; i < 15; i++) cp.bought.push({ id: 900 + i, kind: 'goblin', paid: 50 }); Pk.scroll2 = 0; Pk.go('units'); });
+      walkK('THE MARKET\'s stock', function () { Pk.st.dm = false; Pk.st.purse = 100; Pk.openMarket('party'); Pk.marketTab = 'arms'; });
+      // the wheel: a notch a step, a touchpad's burst by its travel, a line-mode notch one step
+      var w0 = IK.wheelStep(100, 1000), w20 = 0; for (var q = 0; q < 20; q++) w20 += IK.wheelStep(4, 2000 + q); var w3 = IK.wheelStep(3 * 33, 5000);
+      okK(w0 === 1 && w20 === 0 && w3 === 1, 'the wheel: a notch is a step (' + w0 + '), twenty 4 px deltas are no step (' + w20 + '), three lines are one (' + w3 + ')');
+    } catch (eK) { repK.errors.push(String(eK && eK.stack || eK).slice(0, 800)); }
+    D.store.get = stGK; D.store.set = stSK;
+    var preK = document.createElement('pre'); preK.id = 'out'; preK.textContent = 'BENCH16 ' + JSON.stringify(repK);
+    document.body.appendChild(preK);
+    return;
+  }
   // THE CHARACTER SHEET AS A PDF (mode=sheetpdf1026; 10-26, Griz: "Somewhere in the pocket DM - reference user interface best practices - players should be able to save
   // pdf of character sheet"): js/sheetpdf.js -- the file whole by the PDF's own rules (its header, every cross-reference offset at its object, each stream's length,
   // the page count), the engine's numbers on the paper, a name past ASCII written as WinAnsi's bytes, a ladder's carry kept off it; THE PARTY's PDF on each card it

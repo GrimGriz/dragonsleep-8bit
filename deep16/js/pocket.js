@@ -421,7 +421,7 @@
   // file (SAVE ROSTER), but a reload would lose it -- the message outlasts the screen it was set on
   Pocket.prototype.keep = function () { this.st.mapId = this.mapSel; this.st.crI = this.crI; this.st.foes = this.foes; this.st.watch = this.watch; var ok = PK.save(this.st); if (!ok) this.failSay(); return ok; };
   Pocket.prototype.failSay = function () { this.msg = { text: 'NOT SAVED: this browser\'s storage is full or shut. SAVE CAMPAIGN to a file.', t: 480, sticky: true, bad: true }; };
-  Pocket.prototype.go = function (screen) { if (screen === 'modules') this.fold = null; this.dropField(); this.noteFrom = null; this.screen = screen; this.ksel = 0; this.scroll = 0; this.msg = this.msg && this.msg.sticky ? this.msg : null; this.cache = {}; }; // (noteFrom: where NOTES came from -- the result's card sets it after its go, 10-21)
+  Pocket.prototype.go = function (screen) { if (screen === 'modules') this.fold = null; this.dropField(); this.noteFrom = null; this.screen = screen; this.ksel = 0; this.scroll = 0; this.kwant = null; this.msg = this.msg && this.msg.sticky ? this.msg : null; this.cache = {}; }; // (noteFrom: where NOTES came from -- the result's card sets it after its go, 10-21)
 
   // a field over the canvas (a name, the notes): the game hears no key while it has the focus (core.js D.typing)
   Pocket.prototype.useField = function (kind, rect, value, oninput) {
@@ -457,7 +457,7 @@
     var sel = this.ksel === i && !o.nokey;
     ctx.fillStyle = o.on ? P('gold', 1) : o.pri && !o.dis ? 'rgba(60,38,8,.95)' : 'rgba(20,16,30,.92)';
     ctx.fillRect(x, y, w, h);
-    ctx.strokeStyle = o.dis ? P('stone', 2) : sel ? P('gold', 4) : o.on ? P('gold', 3) : o.pri ? P('gold', 2) : P('stone', 3);
+    ctx.strokeStyle = o.dis ? (sel ? P('stone', 5) : P('stone', 2)) : sel ? P('gold', 4) : o.on ? P('gold', 3) : o.pri ? P('gold', 2) : P('stone', 3);
     ctx.strokeRect(x + 0.5, y + 0.5, w - 1, h - 1);
     var col = o.dis ? P('stone', 4) : o.on || o.pri ? P('gold', 4) : sel ? P('bone', 2) : P('bone', 1);
     D.text(ctx, label, x + w / 2, y + Math.floor((h - 8) / 2), col, 'center');
@@ -466,13 +466,14 @@
   // the arrows (the d-pad, the keys) go to the nearest button that way on the screen, not the next in the order drawn (10-06, a pad player: "d-pad presses
   // should change selected menu buttons based on direction"; Griz: "yes, and it's good the keyboard matches the d-pad"): of the centres that way -- no more
   // than twice as far off the line as along it -- the nearest, along plus off; a greyed button and one the keys never take are passed over; none, it stays
-  function stepTo(btns, from, way) {
+  function stepTo(btns, from, way, rows) {
     var a = btns[from]; if (!a) return 0;
+    var skip = function (b, i) { return (b.dis && !(rows && rows[i])) || b.nokey; }; // (a greyed row of a list is walked to as the arrows walk the list, 10-27: else a shop the purse can't touch is shut to the keys from below)
     var dx = way === 'left' ? -1 : way === 'right' ? 1 : 0, dy = way === 'up' ? -1 : way === 'down' ? 1 : 0, ax = a.x + a.w / 2, ay = a.y + a.h / 2, best = from, bs = Infinity;
     // (left and right keep to the row where one is on it: a card's v goes to the next card's v, not to the level arrow above it)
-    var row = function (b) { return b.y < a.y + a.h && b.y + b.h > a.y; }, rowOnly = dx && btns.some(function (b, i) { return i !== from && !b.dis && !b.nokey && row(b) && (b.x + b.w / 2 - ax) * dx >= 1; });
+    var row = function (b) { return b.y < a.y + a.h && b.y + b.h > a.y; }, rowOnly = dx && btns.some(function (b, i) { return i !== from && !skip(b, i) && row(b) && (b.x + b.w / 2 - ax) * dx >= 1; });
     btns.forEach(function (b, i) {
-      if (i === from || b.dis || b.nokey || (rowOnly && !row(b))) return;
+      if (i === from || skip(b, i) || (rowOnly && !row(b))) return;
       var vx = b.x + b.w / 2 - ax, vy = b.y + b.h / 2 - ay, along = vx * dx + vy * dy, off = Math.abs(vx * dy - vy * dx);
       if (along < 1 || off > along * 2) return;
       var s = along + off; if (s < bs) { bs = s; best = i; }
@@ -486,7 +487,7 @@
     if (!n) return false;
     if (m.moved && m.inside) this.btns.forEach(function (b, i) { if (hit(b)) self.ksel = i; });
     if (this.ksel >= n) this.ksel = 0;
-    ['up', 'down', 'left', 'right'].forEach(function (way) { if (!I.repeat(way)) return; var to = stepTo(self.btns, self.ksel, way); if (to !== self.ksel) { self.ksel = to; D.sfx('cursor'); } });
+    ['up', 'down', 'left', 'right'].forEach(function (way) { if (!I.repeat(way)) return; if ((way === 'up' || way === 'down') && self.listStep(way)) return; var to = stepTo(self.btns, self.ksel, way, self.rowSet()); if (to !== self.ksel) { self.ksel = to; D.sfx('cursor'); } });
     if (m.click) { var hb = null; this.btns.forEach(function (b) { if (hit(b)) hb = b; }); if (hb) { this.fire(hb); return true; } }
     if (I.pressed('a')) { this.fire(this.btns[this.ksel]); return true; }
     return false;
@@ -537,10 +538,43 @@
   Pocket.prototype.pager = function (ctx, x, y, n, per, from, key, text) {
     if (n <= per) return x;
     var self = this; key = key || 'scroll';
-    this.btn(ctx, '^', x, y, 16, 12, function () { self[key] = Math.max(0, from - per); }, { small: true, dis: from <= 0 });
-    this.btn(ctx, 'v', x + 18, y, 16, 12, function () { self[key] = Math.min(n - per, from + per); }, { small: true, dis: from + per >= n });
+    this.btn(ctx, '^', x, y, 16, 12, function () { self[key] = Math.max(0, from - per); }, { small: true, dis: from <= 0, nokey: true });
+    this.btn(ctx, 'v', x + 18, y, 16, 12, function () { self[key] = Math.min(n - per, from + per); }, { small: true, dis: from + per >= n, nokey: true });
     if (text !== false) D.text(ctx, (from + 1) + '-' + Math.min(n, from + per) + ' of ' + n, x + 40, y + 3, P('stone', 5));
     return x + 40;
+  };
+  // THE ARROWS IN A LIST (10-27, Griz: "if you were using the arrows to scroll through the list it jumped out of scrolling and only worked properly if you
+  // scrolled with the mousewheel. This would be considered catastrophic loss to testers if shipped"): the arrows go to the nearest button that way (stepTo), so
+  // down on a list's last row left it for BACK and the rest of the list was never reached -- DOORS' SITUATIONS PAGE, 33rd of 36, not at all. A list that pages
+  // says which buttons are its rows, after drawing them: those from b0 on, a row every h px from y0 (a row's own small buttons go with it). In a list the
+  // arrows walk it row by row -- a greyed row too, or a greyed last row would let them out (BUY too dear in a shop) -- to the button nearest the one they
+  // leave; up on its top row or down on its bottom one scrolls it a row (step: what a row is worth to the scroll -- two where it counts spells two to a row)
+  // and keeps the cursor there; past either end of the whole list they leave it for the nearest button that way, as before
+  function nearestIn(btns, row, cx) {
+    var best = row[0], bs = Infinity;
+    row.forEach(function (j) { var b = btns[j], s = Math.abs(b.x + b.w / 2 - cx) + (b.dis ? 10000 : 0); if (s < bs) { bs = s; best = j; } }); // (one not greyed first)
+    return best;
+  }
+  Pocket.prototype.listRows = function (b0, y0, h, n, per, from, key, step) {
+    var rows = [], cap = Math.ceil(per / (step || 1)), L, w = this.kwant;
+    for (var i = b0; i < this.btns.length; i++) { var r = Math.floor((this.btns[i].y - y0) / h); if (r >= 0 && r < cap && !this.btns[i].nokey) (rows[r] = rows[r] || []).push(i); }
+    L = { rows: rows.filter(Boolean), n: n, per: per, from: from, key: key || 'scroll', step: step || 1 };
+    (this.lists = this.lists || []).push(L);
+    if (w && w.key === L.key && w.n === n) { if (L.rows[w.row]) this.ksel = nearestIn(this.btns, L.rows[w.row], w.cx); this.kwant = null; } // (the row the arrows scrolled into, picked as it is drawn)
+    return L;
+  };
+  Pocket.prototype.rowSet = function () { var s = {}; (this.lists || []).forEach(function (L) { L.rows.forEach(function (row) { row.forEach(function (j) { s[j] = true; }); }); }); return s; };
+  Pocket.prototype.listStep = function (way) {
+    var k = this.ksel, b = this.btns[k], at = null;
+    (this.lists || []).forEach(function (L) { L.rows.forEach(function (row, r) { if (row.indexOf(k) >= 0) at = { L: L, r: r }; }); });
+    if (!at || !b) return false;
+    var L = at.L, cx = b.x + b.w / 2, to = L.rows[at.r + (way === 'down' ? 1 : -1)];
+    if (to) { this.ksel = nearestIn(this.btns, to, cx); D.sfx('cursor'); return true; }
+    if (way === 'down' && L.from + L.per < L.n) this[L.key] = L.from + L.step;
+    else if (way === 'up' && L.from > 0) this[L.key] = Math.max(0, L.from - L.step);
+    else return false;
+    this.kwant = { key: L.key, n: L.n, row: at.r, cx: cx }; D.sfx('cursor');
+    return true;
   };
   // the hooks js/pocketdm.js fills: the DM's door on the title, its screens, the eggs
   Pocket.prototype.titleClick = function () { return false; };
@@ -1361,6 +1395,7 @@
     this.scroll = from;
     var rowsAt = []; // (each row's button, for the line under the lists: the one under the mouse or the keys -- 10-17)
     D.text(ctx, '{y}FOR SALE{/}', 20, y + 20, P('bone', 1));
+    var b0 = this.btns.length;
     list.slice(from, from + per).forEach(function (id, k) {
       var it = DS.DATA.items[id], yy = y + 32 + k * 15, dear = it.price > st.purse;
       self.btn(ctx, it.name, 20, yy, 150, 13, function () {
@@ -1369,24 +1404,27 @@
       }, { small: true, dis: dear, why: 'the purse is short' }); rowsAt.push([self.btns.length - 1, id, yy, 20]);
       D.text(ctx, it.price + ' sp', 176, yy + 3, dear ? P('stone', 5) : P('gold', 4));
     });
+    this.listRows(b0, y + 32, 15, list.length, per, from); // (the arrows scroll it, 10-27)
     if (list.length > per) { // (^ and v, and the wheel: his "arrows would have shown more?", 10-17)
       D.text(ctx, (from + 1) + '-' + Math.min(list.length, from + per) + ' of ' + list.length, 60, y + 32 + per * 15 + 4, P('stone', 5));
-      this.btn(ctx, '^', 20, y + 32 + per * 15 + 1, 16, 12, function () { self.scroll = Math.max(0, self.scroll - per); }, { small: true, dis: from <= 0 });
-      this.btn(ctx, 'v', 38, y + 32 + per * 15 + 1, 16, 12, function () { self.scroll = Math.min(list.length - per, self.scroll + per); }, { small: true, dis: from + per >= list.length });
+      this.btn(ctx, '^', 20, y + 32 + per * 15 + 1, 16, 12, function () { self.scroll = Math.max(0, self.scroll - per); }, { small: true, dis: from <= 0, nokey: true });
+      this.btn(ctx, 'v', 38, y + 32 + per * 15 + 1, 16, 12, function () { self.scroll = Math.min(list.length - per, self.scroll + per); }, { small: true, dis: from + per >= list.length, nokey: true });
     }
     var px = 262, pk = (st.pack || []).filter(function (s) { return s.n > 0 && DS.DATA.items[s.id]; });
     D.text(ctx, '{y}THE PACK{/}  {g}(a click sells one){/}', px, y + 20, P('bone', 1));
     if (!pk.length) D.text(ctx, 'empty', px, y + 34, P('stone', 5));
     var pFrom = Math.min(this.scroll2 || 0, Math.max(0, pk.length - per)); this.scroll2 = pFrom; // (the pack pages as the stock does -- ^ v and the wheel over it: 10-17, his "the pack contains more items than it can sell - it doesn't scroll like buying items does")
+    var b1 = this.btns.length;
     pk.slice(pFrom, pFrom + per).forEach(function (s, k) {
       var it = DS.DATA.items[s.id], yy = y + 32 + k * 15, half = Math.floor((it.price || 0) / 2);
       self.btn(ctx, it.name + (s.n > 1 ? ' x' + s.n : ''), px, yy, 150, 13, function () { st.purse += half; PK.packAdd(st, s.id, -1); self.keep(); D.sfx('cursor'); self.say(it.name + ' sold: ' + half + ' sp'); }, { small: true, dis: !(it.price > 0) || it.noSell, why: 'nobody buys that' }); rowsAt.push([self.btns.length - 1, s.id, yy, px]);
       D.text(ctx, half + ' sp', px + 156, yy + 3, P('silver', 5));
     });
+    this.listRows(b1, y + 32, 15, pk.length, per, pFrom, 'scroll2');
     if (pk.length > per) {
       D.text(ctx, (pFrom + 1) + '-' + Math.min(pk.length, pFrom + per) + ' of ' + pk.length, px + 40, y + 32 + per * 15 + 4, P('stone', 5));
-      this.btn(ctx, '^', px, y + 32 + per * 15 + 1, 16, 12, function () { self.scroll2 = Math.max(0, pFrom - per); }, { small: true, dis: pFrom <= 0 });
-      this.btn(ctx, 'v', px + 18, y + 32 + per * 15 + 1, 16, 12, function () { self.scroll2 = Math.min(pk.length - per, pFrom + per); }, { small: true, dis: pFrom + per >= pk.length });
+      this.btn(ctx, '^', px, y + 32 + per * 15 + 1, 16, 12, function () { self.scroll2 = Math.max(0, pFrom - per); }, { small: true, dis: pFrom <= 0, nokey: true });
+      this.btn(ctx, 'v', px + 18, y + 32 + per * 15 + 1, 16, 12, function () { self.scroll2 = Math.min(pk.length - per, pFrom + per); }, { small: true, dis: pFrom + per >= pk.length, nokey: true });
     }
     // the row under the mouse or the keys: lit, and what it is under the lists (his "item descriptions on mouseover and highlight of store options")
     var hv = rowsAt.filter(function (q) { return q[0] === self.ksel; })[0];
@@ -1497,7 +1535,7 @@
 
   // ------------------------------------------------------------------ drawing
   Pocket.prototype.draw = function (ctx) {
-    this.btns = [];
+    this.btns = []; this.lists = [];
     if (this.screen === 'hub' && D.campfire) this.drawFire(ctx); // (THE CAMP at the ladder camp's fire, 10-17: his "camp background based on the old combat ladder camp image")
     else drawHall(ctx, this.t, this.screen === 'title' ? 1 : 0.42, this.st.dm);
     var s = this.screen;
@@ -1709,11 +1747,13 @@
         var kind = m.tab === 'alt' ? 'weapon' : m.tab, rack = this.rack(kind), cur = m.tab === 'alt' ? m.alt : m.equip[m.tab];
         list = (m.tab === 'weapon' ? [] : [null]).concat(rack); from = Math.min(this.scroll, Math.max(0, list.length - per));
         this.scroll = from;
+        var b0 = this.btns.length;
         list.slice(from, from + per).forEach(function (id, i) {
           var it = id ? DS.DATA.items[id] : null, yy = y + 18 + i * 15, label = it ? it.name : 'none';
           self.btn(ctx, label, 20, yy, 130, 13, function () { if (m.tab === 'alt') m.alt = id; else m.equip[m.tab] = id; if (m.tab === 'weapon' && id && (DS.DATA.items[id].weapon.props || []).indexOf('two-handed') >= 0) m.equip.shield = null; }, { on: cur === id, small: true });
           if (it) D.text(ctx, (it.desc || '').slice(0, 54), 156, yy + 3, P('bone', 1));
         });
+        this.listRows(b0, y + 18, 15, list.length, per, from); // (the arrows scroll it, 10-27)
       }
       var hs = h && R.style(h), sumLine = h ? 'AC ' + R.ac(h) + '  ·  ' + (R.weaponOf(h) || {}).name + (m.alt ? '  ·  second: ' + (DS.DATA.items[m.alt] || {}).name : '') + (hs ? '  ·  ' + R.STYLES[hs].name.toLowerCase() : '') : '';
       var sx2 = this.pager(ctx, 20, y + 18 + per * 15 - 2, list.length, per, from, 'scroll', false); // (^ v left of the line, the count after it: 10-27)
@@ -1731,6 +1771,7 @@
         this.btn(ctx, 'THE CLASS\'S OWN', 270, y, 120, 13, function () { m.known = info.defC.concat(info.def); }, { small: true });
         var pool = m.spellTab ? info.pool : info.cpool, cap = m.spellTab ? info.n : info.nc, have = m.spellTab ? picked : pickedC;
         var per2 = 22, cols = 2, from2 = Math.min(this.scroll * cols, Math.max(0, pool.length - per2)); this.scroll = Math.floor(from2 / cols);
+        var b0s = this.btns.length;
         pool.slice(from2, from2 + per2).forEach(function (id, i) {
           var sd = D.magic.data(id), col = i % cols, row = Math.floor(i / cols), yy = y + 18 + row * 15, on = m.known.indexOf(id) >= 0;
           self.btn(ctx, (sd.level ? 'L' + sd.level + ' ' : '') + sd.name, 20 + col * 225, yy, 218, 13, function () {
@@ -1739,10 +1780,11 @@
             else m.known.push(id);
           }, { on: on, small: true });
         });
+        this.listRows(b0s, y + 18, 15, Math.ceil(pool.length / cols), per2 / cols, Math.ceil(from2 / cols)); // (by rows of two, as the scroll counts here; an odd count's last page starts mid-row, read as the end)
         if (pool.length > per2) { // (^ v by rows of two, the wheel as before: 10-27)
           var yP = y + 18 + 11 * 15 - 2;
-          this.btn(ctx, '^', 20, yP, 16, 12, function () { self.scroll = Math.max(0, self.scroll - per2 / cols); }, { small: true, dis: from2 <= 0 });
-          this.btn(ctx, 'v', 38, yP, 16, 12, function () { self.scroll += per2 / cols; }, { small: true, dis: from2 + per2 >= pool.length });
+          this.btn(ctx, '^', 20, yP, 16, 12, function () { self.scroll = Math.max(0, self.scroll - per2 / cols); }, { small: true, dis: from2 <= 0, nokey: true });
+          this.btn(ctx, 'v', 38, yP, 16, 12, function () { self.scroll += per2 / cols; }, { small: true, dis: from2 + per2 >= pool.length, nokey: true });
           D.text(ctx, (from2 + 1) + '-' + Math.min(pool.length, from2 + per2) + ' of ' + pool.length, 60, yP + 3, P('stone', 5));
         }
         if (info.always.length) D.text(ctx, 'always ready: ' + info.always.map(function (id) { return D.magic.data(id).name; }).join(', '), 20, y + 18 + 11 * 15 + 10, P('moss', 2));
@@ -1777,11 +1819,13 @@
     var self = this, ids = this.mapIds(), list = [null].concat(ids), per = list.length > 12 ? 11 : 12; // (a row less when ^ v stand under it, 10-27)
     head(ctx, 'THE MAP', 'a dark map is lit only by its lamps and what the party brings; the ? draws one');
     var from = Math.min(this.scroll, Math.max(0, list.length - per)); this.scroll = from;
+    var b0 = this.btns.length;
     list.slice(from, from + per).forEach(function (id, i) {
       var def = id ? D.MAPS[id] : null, yy = 36 + i * 16, label = def ? def.name : '?  a random map';
       self.btn(ctx, label.length > 24 ? label.slice(0, 24) : label, 14, yy, 150, 14, function () { self.mapSel = id; self.keep(); }, { on: self.mapSel === id || (!id && !self.mapSel), small: true });
       if (def && def.dark) D.text(ctx, '{p}DARK{/}', 168, yy + 3, P('violet', 5));
     });
+    this.listRows(b0, 36, 16, list.length, per, from); // (the arrows scroll it, 10-27)
     this.pager(ctx, 14, 36 + per * 16, list.length, per, from);
     var sel = this.mapSel && D.MAPS[this.mapSel] ? this.mapSel : null, def2 = sel ? D.MAPS[sel] : null, px = 210, py = 36, pw = 256, ph = 160;
     ctx.fillStyle = 'rgba(10,8,16,.9)'; ctx.fillRect(px, py, pw, ph); ctx.strokeStyle = P('stone', 3); ctx.strokeRect(px + 0.5, py + 0.5, pw - 1, ph - 1);
@@ -2120,6 +2164,7 @@
       var rows = mi.casts, per = rows.length > 6 ? 5 : 6, from = Math.min(this.scroll, Math.max(0, rows.length - per)), seats = mi.cards.filter(Boolean), cw = Math.floor((pw - 12) / Math.max(1, seats.length)); this.scroll = from;
       var ORD = ['cantrip', '1st', '2nd', '3rd', '4th', '5th', '6th', '7th', '8th', '9th'];
       var mine = function (r) { var cur = m.cast[r.e.id] = m.cast[r.e.id] || {}; if (!Array.isArray(cur.who)) cur.who = r.who.slice(); return cur; };
+      var b0 = this.btns.length;
       rows.slice(from, from + per).forEach(function (r, k) {
         var ry = py + 18 + k * 28;
         var room = pw - 100 - D.textWidth(r.spell.name + '  ' + ORD[r.lv] + '  '); // (the duration, or why not, in what the line has left beside who casts it)
@@ -2137,10 +2182,12 @@
           }, { on: got, small: true, dis: !!w && !got && r.e.bare, why: w ? sc.h.name + ' ' + w : null });
         });
       });
+      this.listRows(b0, py + 18, 28, rows.length, per, from); // (the arrows scroll it, 10-27)
       this.pager(ctx, px + 6, py + ph - 13, rows.length, per, from); // (five a page when ^ v stand under them, 10-27)
     } else if (c) {
       D.text(ctx, '{y}' + c.h.name + '{/}: ' + c.prepared.length + ' of ' + c.pi.n + ' prepared  {g}(cantrips' + ((c.pi.always || []).length ? ' and the always-ready' : '') + ' need none){/}', px + 6, py + 5, P('bone', 1));
       var pool = c.pi.pool, per = 26, from = Math.min(this.scroll, Math.max(0, pool.length - per)); this.scroll = from;
+      var b0p = this.btns.length;
       pool.slice(from, from + per).forEach(function (id, k) {
         var sp = SV.spell(id) || { name: id, level: '?' }, on = c.prepared.indexOf(id) >= 0, col = k % 2, rw = Math.floor(k / 2);
         self.btn(ctx, fitText((on ? '[x] ' : '[ ] ') + sp.name, 120) + '  L' + sp.level, px + 6 + col * ((pw - 12) / 2), py + 18 + rw * 12, (pw - 16) / 2, 11, function () {
@@ -2149,6 +2196,7 @@
           m.prep[c.i] = cur; self.mChanged();
         }, { on: on, small: true });
       });
+      this.listRows(b0p, py + 18, 12, pool.length, per, from, 'scroll', 2); // (two spells a row: a row is two to the scroll, 10-27)
       this.pager(ctx, px + 6, py + ph - 13, pool.length, per, from);
       if ((c.pi.always || []).length) D.text(ctx, fitText('always ready: ' + c.pi.always.map(function (id) { return (SV.spell(id) || { name: id }).name; }).join(', '), pw - 12), px + 6, py + ph - (pool.length > per ? 20 : 10), P('silver', 5));
     } else D.text(ctx, 'nobody here prepares spells: the rest is the rest', px + pw / 2, py + 80, P('stone', 5), 'center');
@@ -2165,7 +2213,9 @@
     head(ctx, 'THE MODULES', 'a DM\'s fights, played as built: the game\'s own, your folder\'s, and any you load from a file');
     if (!list.some(function (m) { return m.key === self.modSel; })) this.modSel = list.length ? list[0].key : null;
     var from = Math.min(this.scroll, Math.max(0, list.length - per)); this.scroll = from;
+    var b0 = this.btns.length;
     list.slice(from, from + per).forEach(function (m, i) { self.btn(ctx, fitText(m.name, 128), 14, 36 + i * 17, 140, 15, function () { self.modSel = m.key; }, { on: self.modSel === m.key, small: true }); });
+    this.listRows(b0, 36, 17, list.length, per, from); // (the arrows scroll it, 10-27)
     this.pager(ctx, 14, 36 + per * 17, list.length, per, from);
     var m = list.filter(function (x) { return x.key === self.modSel; })[0], px = 162, py = 34, pw = D.W - px - 10, ph = 196;
     ctx.fillStyle = 'rgba(10,8,16,.9)'; ctx.fillRect(px, py, pw, ph); ctx.strokeStyle = P('stone', 3); ctx.strokeRect(px + 0.5, py + 0.5, pw - 1, ph - 1);
@@ -2199,12 +2249,14 @@
     var self = this, fs = this.st.fights, per = 11;
     head(ctx, 'THE FIGHTS', fs.length + ' kept in this browser · E on one for its notes · SAVE ALL: every fight and its notes in one file');
     var from = Math.min(this.scroll, Math.max(0, fs.length - per)); this.scroll = from;
+    var b0 = this.btns.length;
     fs.slice(from, from + per).forEach(function (f, i) {
       var yy = 36 + i * 17, d = new Date(f.t), when = (d.getMonth() + 1) + '-' + d.getDate() + ' ' + (d.getHours() < 10 ? '0' : '') + d.getHours() + ':' + (d.getMinutes() < 10 ? '0' : '') + d.getMinutes();
       var rc = f.result === 'won' ? '{n}WON{/}' : f.result === 'lost' ? '{r}LOST{/}' : '{g}' + f.result + '{/}';
       self.btn(ctx, when + '  ' + rc + '  R' + f.rounds + (f.rung ? '  rung ' + f.rung : ''), 14, yy, 150, 15, function () { self.note = from + i; self.go('notes'); }, { small: true });
       D.text(ctx, (f.foes.length > 40 ? f.foes.slice(0, 40) + '..' : f.foes) + '  {g}CR ' + f.cr + ' ' + f.diff + '{/}' + (f.notes ? '  {y}*{/}' : ''), 170, yy + 4, P('bone', 1));
     });
+    this.listRows(b0, 36, 17, fs.length, per, from); // (the arrows scroll it, 10-27)
     this.pager(ctx, 14, 36 + per * 17 - 1, fs.length, per, from);
     this.btn(ctx, 'BACK', 20, 236, 60, 15, function () { self.back(); });
     this.btn(ctx, 'SAVE ALL', 90, 236, 90, 15, function () { self.saveAll(); }, { pri: true, dis: !fs.length }); // (10-17: one file, every fight and its notes)
