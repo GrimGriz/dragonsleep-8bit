@@ -531,6 +531,17 @@
     this.go('title');
   };
   Pocket.prototype.say = function (text, frames) { this.msg = { text: text, t: frames || 180 }; };
+  // ^ and v under a list that runs past its page, as THE MARKET's (10-17): a page a press, the wheel as before, 'a-b of n' beside them; key is the list's
+  // scroll ('scroll', or 'scroll2' for a screen's second list). Every list of both tables has them since 10-27 (Griz: "menu on pocket DM doors is broken same
+  // as other, requires mousewheel and doesn't scroll properly"); text false leaves the count to the caller
+  Pocket.prototype.pager = function (ctx, x, y, n, per, from, key, text) {
+    if (n <= per) return x;
+    var self = this; key = key || 'scroll';
+    this.btn(ctx, '^', x, y, 16, 12, function () { self[key] = Math.max(0, from - per); }, { small: true, dis: from <= 0 });
+    this.btn(ctx, 'v', x + 18, y, 16, 12, function () { self[key] = Math.min(n - per, from + per); }, { small: true, dis: from + per >= n });
+    if (text !== false) D.text(ctx, (from + 1) + '-' + Math.min(n, from + per) + ' of ' + n, x + 40, y + 3, P('stone', 5));
+    return x + 40;
+  };
   // the hooks js/pocketdm.js fills: the DM's door on the title, its screens, the eggs
   Pocket.prototype.titleClick = function () { return false; };
   Pocket.prototype.backMore = function () { return false; };
@@ -1705,8 +1716,9 @@
         });
       }
       var hs = h && R.style(h), sumLine = h ? 'AC ' + R.ac(h) + '  ·  ' + (R.weaponOf(h) || {}).name + (m.alt ? '  ·  second: ' + (DS.DATA.items[m.alt] || {}).name : '') + (hs ? '  ·  ' + R.STYLES[hs].name.toLowerCase() : '') : '';
-      var sw2 = D.text(ctx, sumLine, 20, y + 18 + per * 15 + 1, P('gold', 4));
-      if (list.length > per) D.text(ctx, '  {g}(wheel: ' + (from + 1) + '-' + Math.min(list.length, from + per) + ' of ' + list.length + '){/}', 20 + sw2, y + 18 + per * 15 + 1, P('stone', 5));
+      var sx2 = this.pager(ctx, 20, y + 18 + per * 15 - 2, list.length, per, from, 'scroll', false); // (^ v left of the line, the count after it: 10-27)
+      var sw2 = D.text(ctx, sumLine, sx2, y + 18 + per * 15 + 1, P('gold', 4));
+      if (list.length > per) D.text(ctx, '  {g}(' + (from + 1) + '-' + Math.min(list.length, from + per) + ' of ' + list.length + '){/}', sx2 + sw2, y + 18 + per * 15 + 1, P('stone', 5));
       this.btn(ctx, 'THE KIT', D.W - 90, y + 18 + per * 15 - 2, 70, 13, function () { var k = m.known; self.kitUp(); m.known = k; }, { small: true });
     } else if (step === 5) {
       var info = this.spellInfo();
@@ -1727,7 +1739,12 @@
             else m.known.push(id);
           }, { on: on, small: true });
         });
-        if (pool.length > per2) D.text(ctx, 'wheel to scroll', 20, y + 18 + 11 * 15, P('stone', 5));
+        if (pool.length > per2) { // (^ v by rows of two, the wheel as before: 10-27)
+          var yP = y + 18 + 11 * 15 - 2;
+          this.btn(ctx, '^', 20, yP, 16, 12, function () { self.scroll = Math.max(0, self.scroll - per2 / cols); }, { small: true, dis: from2 <= 0 });
+          this.btn(ctx, 'v', 38, yP, 16, 12, function () { self.scroll += per2 / cols; }, { small: true, dis: from2 + per2 >= pool.length });
+          D.text(ctx, (from2 + 1) + '-' + Math.min(pool.length, from2 + per2) + ' of ' + pool.length, 60, yP + 3, P('stone', 5));
+        }
         if (info.always.length) D.text(ctx, 'always ready: ' + info.always.map(function (id) { return D.magic.data(id).name; }).join(', '), 20, y + 18 + 11 * 15 + 10, P('moss', 2));
       }
     } else if (step === 6) {
@@ -1757,7 +1774,7 @@
   };
   // the maps, the dark ones said so and shown so
   Pocket.prototype.drawMap = function (ctx) {
-    var self = this, ids = this.mapIds(), list = [null].concat(ids), per = 12;
+    var self = this, ids = this.mapIds(), list = [null].concat(ids), per = list.length > 12 ? 11 : 12; // (a row less when ^ v stand under it, 10-27)
     head(ctx, 'THE MAP', 'a dark map is lit only by its lamps and what the party brings; the ? draws one');
     var from = Math.min(this.scroll, Math.max(0, list.length - per)); this.scroll = from;
     list.slice(from, from + per).forEach(function (id, i) {
@@ -1765,7 +1782,7 @@
       self.btn(ctx, label.length > 24 ? label.slice(0, 24) : label, 14, yy, 150, 14, function () { self.mapSel = id; self.keep(); }, { on: self.mapSel === id || (!id && !self.mapSel), small: true });
       if (def && def.dark) D.text(ctx, '{p}DARK{/}', 168, yy + 3, P('violet', 5));
     });
-    if (list.length > per) D.text(ctx, 'wheel: ' + (from + 1) + '-' + Math.min(list.length, from + per) + ' of ' + list.length, 14, 36 + per * 16, P('stone', 5));
+    this.pager(ctx, 14, 36 + per * 16, list.length, per, from);
     var sel = this.mapSel && D.MAPS[this.mapSel] ? this.mapSel : null, def2 = sel ? D.MAPS[sel] : null, px = 210, py = 36, pw = 256, ph = 160;
     ctx.fillStyle = 'rgba(10,8,16,.9)'; ctx.fillRect(px, py, pw, ph); ctx.strokeStyle = P('stone', 3); ctx.strokeRect(px + 0.5, py + 0.5, pw - 1, ph - 1);
     if (def2) {
@@ -2100,7 +2117,7 @@
       // the long spells: a row a spell someone here can cast -- its level, how long it lasts by the SRD, who casts it (a click for the next who has it ready), and
       // the party under it, lit where it is cast: a click on a name casts it on them, or lets it go (each one a casting and a slot; Aid's three one casting)
       D.text(ctx, '{y}The long spells{/}: on as each fight starts, a slot a casting', px + 6, py + 5, P('bone', 1));
-      var rows = mi.casts, per = 6, from = Math.min(this.scroll, Math.max(0, rows.length - per)), seats = mi.cards.filter(Boolean), cw = Math.floor((pw - 12) / Math.max(1, seats.length)); this.scroll = from;
+      var rows = mi.casts, per = rows.length > 6 ? 5 : 6, from = Math.min(this.scroll, Math.max(0, rows.length - per)), seats = mi.cards.filter(Boolean), cw = Math.floor((pw - 12) / Math.max(1, seats.length)); this.scroll = from;
       var ORD = ['cantrip', '1st', '2nd', '3rd', '4th', '5th', '6th', '7th', '8th', '9th'];
       var mine = function (r) { var cur = m.cast[r.e.id] = m.cast[r.e.id] || {}; if (!Array.isArray(cur.who)) cur.who = r.who.slice(); return cur; };
       rows.slice(from, from + per).forEach(function (r, k) {
@@ -2120,7 +2137,7 @@
           }, { on: got, small: true, dis: !!w && !got && r.e.bare, why: w ? sc.h.name + ' ' + w : null });
         });
       });
-      if (rows.length > per) D.text(ctx, 'wheel: ' + (from + 1) + '-' + Math.min(rows.length, from + per) + ' of ' + rows.length, px + 6, py + ph - 10, P('stone', 5));
+      this.pager(ctx, px + 6, py + ph - 13, rows.length, per, from); // (five a page when ^ v stand under them, 10-27)
     } else if (c) {
       D.text(ctx, '{y}' + c.h.name + '{/}: ' + c.prepared.length + ' of ' + c.pi.n + ' prepared  {g}(cantrips' + ((c.pi.always || []).length ? ' and the always-ready' : '') + ' need none){/}', px + 6, py + 5, P('bone', 1));
       var pool = c.pi.pool, per = 26, from = Math.min(this.scroll, Math.max(0, pool.length - per)); this.scroll = from;
@@ -2132,7 +2149,7 @@
           m.prep[c.i] = cur; self.mChanged();
         }, { on: on, small: true });
       });
-      if (pool.length > per) D.text(ctx, 'wheel: ' + (from + 1) + '-' + Math.min(pool.length, from + per) + ' of ' + pool.length, px + 6, py + ph - 10, P('stone', 5));
+      this.pager(ctx, px + 6, py + ph - 13, pool.length, per, from);
       if ((c.pi.always || []).length) D.text(ctx, fitText('always ready: ' + c.pi.always.map(function (id) { return (SV.spell(id) || { name: id }).name; }).join(', '), pw - 12), px + 6, py + ph - (pool.length > per ? 20 : 10), P('silver', 5));
     } else D.text(ctx, 'nobody here prepares spells: the rest is the rest', px + pw / 2, py + 80, P('stone', 5), 'center');
     this.btn(ctx, 'BACK', 20, 236, 60, 15, function () { self.back(); });
@@ -2149,7 +2166,7 @@
     if (!list.some(function (m) { return m.key === self.modSel; })) this.modSel = list.length ? list[0].key : null;
     var from = Math.min(this.scroll, Math.max(0, list.length - per)); this.scroll = from;
     list.slice(from, from + per).forEach(function (m, i) { self.btn(ctx, fitText(m.name, 128), 14, 36 + i * 17, 140, 15, function () { self.modSel = m.key; }, { on: self.modSel === m.key, small: true }); });
-    if (list.length > per) D.text(ctx, 'wheel: ' + (from + 1) + '-' + Math.min(list.length, from + per) + ' of ' + list.length, 14, 36 + per * 17 + 2, P('stone', 5));
+    this.pager(ctx, 14, 36 + per * 17, list.length, per, from);
     var m = list.filter(function (x) { return x.key === self.modSel; })[0], px = 162, py = 34, pw = D.W - px - 10, ph = 196;
     ctx.fillStyle = 'rgba(10,8,16,.9)'; ctx.fillRect(px, py, pw, ph); ctx.strokeStyle = P('stone', 3); ctx.strokeRect(px + 0.5, py + 0.5, pw - 1, ph - 1);
     var levels = this.levels(), off = false;
@@ -2188,7 +2205,7 @@
       self.btn(ctx, when + '  ' + rc + '  R' + f.rounds + (f.rung ? '  rung ' + f.rung : ''), 14, yy, 150, 15, function () { self.note = from + i; self.go('notes'); }, { small: true });
       D.text(ctx, (f.foes.length > 40 ? f.foes.slice(0, 40) + '..' : f.foes) + '  {g}CR ' + f.cr + ' ' + f.diff + '{/}' + (f.notes ? '  {y}*{/}' : ''), 170, yy + 4, P('bone', 1));
     });
-    if (fs.length > per) D.text(ctx, 'wheel: ' + (from + 1) + '-' + Math.min(fs.length, from + per) + ' of ' + fs.length, 14, 36 + per * 17, P('stone', 5));
+    this.pager(ctx, 14, 36 + per * 17 - 1, fs.length, per, from);
     this.btn(ctx, 'BACK', 20, 236, 60, 15, function () { self.back(); });
     this.btn(ctx, 'SAVE ALL', 90, 236, 90, 15, function () { self.saveAll(); }, { pri: true, dis: !fs.length }); // (10-17: one file, every fight and its notes)
     this.btn(ctx, 'FORGET THEM ALL', D.W - 150, 236, 130, 15, function () { self.st.fights = []; self.keep(); self.go('title'); }, { dis: !fs.length });

@@ -157,6 +157,18 @@
     return t > 14 && t % 5 === 0;
   };
   I.clear = function () { I.edge = {}; I.mouse.click = false; I.mouse.rclick = false; I.mouse.rbtn = false; I.mouse.moved = false; I.mouse.wheel = 0; I.mouse.wheelShift = false; };
+  // the wheel by its travel, not its events (10-27, Griz: "menu on pocket DM doors is broken ... requires mousewheel and doesn't scroll properly"): a mouse's
+  // notch (100 px in Chromium, 120 or 3 lines elsewhere) is one step; a touchpad or a high-resolution wheel sends a burst of small deltas -- 20 of them took
+  // DOORS 20 rows -- so those add up and step once per 100 px, the sum let go after a quarter second still
+  I.WHEEL = 100;
+  I.wheelStep = function (dv, t) {
+    if (!dv) return 0;
+    if (Math.abs(dv) >= I.WHEEL / 2) { I.wheelSum = 0; return dv > 0 ? 1 : -1; }
+    if (!(t - (I.wheelAt || 0) < 250) || (I.wheelSum || 0) * dv < 0) I.wheelSum = 0;
+    I.wheelAt = t; I.wheelSum = (I.wheelSum || 0) + dv;
+    if (Math.abs(I.wheelSum) < I.WHEEL) return 0;
+    var n = I.wheelSum > 0 ? 1 : -1; I.wheelSum -= n * I.WHEEL; return n;
+  };
   // (D.typing: a name or a note being typed into a field over the canvas -- the Pocket DM's, deep16/js/pocket.js -- takes every key; the game hears none)
   window.addEventListener('keydown', function (e) {
     if (D.typing) return;
@@ -233,7 +245,7 @@
     });
     c.addEventListener('mouseleave', function () { I.mouse.inside = false; });
     document.addEventListener('mouseout', function (e) { if (!e.relatedTarget) { I.mouse.inWin = false; I.mouse.inside = false; } }); // off the window
-    c.addEventListener('wheel', function (e) { e.preventDefault(); at(e); var dv = e.deltaY || (e.shiftKey ? e.deltaX : 0); I.mouse.wheel += dv > 0 ? 1 : dv < 0 ? -1 : 0; I.mouse.wheelShift = !!e.shiftKey; /* (Shift+wheel: a flier's height -- js/ui.js; Windows sends it sideways, deltaX, 10-08) */ }, { passive: false });
+    c.addEventListener('wheel', function (e) { e.preventDefault(); at(e); var dv = e.deltaY || (e.shiftKey ? e.deltaX : 0); I.mouse.wheel += I.wheelStep(dv * (e.deltaMode === 1 ? 33 : e.deltaMode === 2 ? 400 : 1), e.timeStamp); I.mouse.wheelShift = !!e.shiftKey; /* (Shift+wheel: a flier's height -- js/ui.js; Windows sends it sideways, deltaX, 10-08) */ }, { passive: false });
     c.addEventListener('mousedown', function (e) {
       if (ghost()) return;
       at(e); e.preventDefault(); c.focus(); D.unlockAudio();

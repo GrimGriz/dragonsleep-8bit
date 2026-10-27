@@ -466,7 +466,7 @@
       if (v && v.i != null) self.btn(ctx, 'EDIT', D.W - 50, yy, 36, 13, function () { self.makeVillain(v.i); }, { small: true }); // (the maker on it: its level, its gear, its spells)
     });
     if (!PD.villainRows(st).length) D.text(ctx, '{g}none of your own yet: MAKE A VILLAIN, or mark one of the roster on THE MARKS{/}', D.W / 2, 44 + Math.min(per, rows.length) * 16 + 4, P('stone', 5), 'center');
-    if (rows.length > per) D.text(ctx, 'wheel: ' + (from + 1) + '-' + Math.min(rows.length, from + per) + ' of ' + rows.length, 14, 224, P('stone', 5));
+    this.pager(ctx, 14, 222, rows.length, per, from); // (^ v under every list, js/pocket.js pager: 10-27)
     this.btn(ctx, 'BACK', 20, 236, 60, 15, function () { self.back(); });
     this.btn(ctx, 'MAKE A VILLAIN', 88, 236, 120, 15, function () { self.makeVillain(null); }, { pri: true });
     this.btn(ctx, 'THE MARKS', 214, 236, 90, 15, function () { self.scroll = 0; self.go('marks'); });
@@ -486,7 +486,7 @@
       D.text(ctx, '{g}' + clsOf(f.cls) + (e.kind === 'custom' ? ' ' + st.roster[e.i].lvl + (e.made ? ', made in THE VILLAINS' : ', your own') : '') + '{/}', 180, yy + 3, P('stone', 5));
       self.btn(ctx, PD.markWord(m), D.W - 140, yy, 120, 13, function () { PD.setMark(st, e, PD.MARKS[(at + 1) % PD.MARKS.length]); self.cache = {}; self.keep(); }, { small: true, on: !!m });
     });
-    if (es.length > per) D.text(ctx, 'wheel: ' + (from + 1) + '-' + Math.min(es.length, from + per) + ' of ' + es.length, 20, 36 + per * 16 + 2, P('stone', 5));
+    this.pager(ctx, 20, 36 + per * 16 - 1, es.length, per, from);
     D.text(ctx, 'a seat already holding one marked VILLAIN ONLY keeps it till the arrows move on', D.W / 2, 224, P('stone', 5), 'center');
     this.btn(ctx, 'BACK', 20, 236, 60, 15, function () { self.back(); });
     this.btn(ctx, 'THE VILLAINS', D.W - 120, 236, 100, 15, function () { self.back(); });
@@ -512,7 +512,7 @@
         self.keep();
       }, { small: true, on: struck });
     });
-    if (list.length > per) D.text(ctx, 'wheel: ' + (from + 1) + '-' + Math.min(list.length, from + per) + ' of ' + list.length, 14, 62 + per * 16 + 2, P('stone', 5));
+    this.pager(ctx, 14, 62 + per * 16, list.length, per, from);
     D.text(ctx, 'STRIKE keeps a floor out of every random draw at this table (' + cp.strike.length + ' of ' + PD.STRIKES + ') · BUILD offers the floors you own (' + cp.maps.length + ')', D.W / 2, 224, P('stone', 5), 'center');
     this.btn(ctx, 'BACK', 20, 236, 60, 15, function () { self.back(); });
     var ed = PD.editing(st); if (ed) this.btn(ctx, 'BACK TO BUILD', D.W - 130, 236, 110, 15, function () { self.scroll = 0; self.go('build'); });
@@ -524,7 +524,7 @@
     if (!mods.some(function (m) { return m.id === self.dmSel; })) this.dmSel = mods.length ? mods[0].id : null;
     var from = Math.min(this.scroll, Math.max(0, mods.length - per)); this.scroll = from;
     mods.slice(from, from + per).forEach(function (m, i) { self.btn(ctx, cut(m.name, 128), 14, 36 + i * 17, 140, 15, function () { self.dmSel = m.id; }, { on: self.dmSel === m.id, small: true }); });
-    if (mods.length > per) D.text(ctx, 'wheel: ' + (from + 1) + '-' + Math.min(mods.length, from + per) + ' of ' + mods.length, 14, 36 + per * 17 + 2, P('stone', 5));
+    this.pager(ctx, 14, 36 + per * 17, mods.length, per, from);
     var m = PD.module(st, this.dmSel), px = 162, py = 34, pw = D.W - px - 10, ph = 194;
     panel(ctx, px, py, pw, ph);
     if (m) {
@@ -567,7 +567,7 @@
       if (have[k]) D.text(ctx, '{n}' + have[k] + '{/}', 350, yy + 3, P('moss', 2));
       if (f.bound) D.text(ctx, '{g}water{/}', 380, yy + 3, P('stone', 5));
     });
-    if (list.length > per) D.text(ctx, 'wheel: ' + (from + 1) + '-' + Math.min(list.length, from + per) + ' of ' + list.length, 14, 44 + per * 15 + 2, P('stone', 5));
+    this.pager(ctx, 14, 44 + per * 15 - 1, list.length, per, from);
     var si = SORTS.map(function (s) { return s[0]; }).indexOf(sort);
     this.btn(ctx, 'BACK', 20, 236, 60, 15, function () { self.back(); });
     this.btn(ctx, SORTS[si < 0 ? 0 : si][1], 88, 236, 130, 15, function () { self.shopSort = SORTS[(si + 1) % SORTS.length][0]; self.scroll = 0; }, { small: true });
@@ -607,7 +607,7 @@
       D.text(ctx, PD.fmt(r.paid || PD.price(r.kind)), lx + lw - 4, yy + 3, on ? P('stone', 1) : P('stone', 5), 'right');
     });
     if (!rs.length) D.text(ctx, 'none: buy in the shops, and they wait here', lx + 6, 50, P('stone', 5));
-    if (rs.length > per) D.text(ctx, 'wheel: ' + (from + 1) + '-' + Math.min(rs.length, from + per) + ' of ' + rs.length, lx, 44 + per * 14 + 2, P('stone', 5));
+    this.pager(ctx, lx, 44 + per * 14, rs.length, per, from);
     // the units
     D.text(ctx, '{y}YOUR UNITS{/}  ' + us.length + ' · in the order a table takes them', rx, 34, P('bone', 1));
     var per2 = 7, from2 = Math.min(this.scroll2 || 0, Math.max(0, us.length - per2)); this.scroll2 = from2; // (two lines a unit: its name whole, then its CR, its heads and UNBIND)
@@ -619,7 +619,7 @@
       self.btn(ctx, 'UNBIND', rx + rw - 48, yy + 10, 46, 11, function () { var g = PD.unbind(st, u.id); if (g) { self.keep(); self.say(PD.unitName(g) + ': receipts again', 240); } }, { small: true });
     });
     if (!us.length) D.text(ctx, 'none yet: pick receipts and BIND AS UNIT', rx + 6, 50, P('stone', 5));
-    if (us.length > per2) D.text(ctx, 'wheel: ' + (from2 + 1) + '-' + Math.min(us.length, from2 + per2) + ' of ' + us.length, rx, 44 + per2 * 24 + 2, P('stone', 5));
+    this.pager(ctx, rx, 44 + per2 * 24, us.length, per2, from2, 'scroll2');
     D.text(ctx, 'on a ladder a unit fights whole, at the sum of its CRs, your newest first · E on a receipt adds or drops it', D.W / 2, 224, P('stone', 5), 'center');
     this.btn(ctx, 'BACK', 20, 236, 60, 15, function () { self.back(); });
     this.btn(ctx, ids.length ? 'BIND AS UNIT (' + ids.length + ': CR ' + PK.fmt8(PK.sum8(pickedKinds)) + ')' : 'BIND AS UNIT', 88, 236, 170, 15, function () {
@@ -658,8 +658,8 @@
       self.btn(ctx, '>', 236, yy, 14, 14, function () { cp.mapCR[id] = Math.min(PK.VALUES.length - 1, ci + 1); self.keep(); }, { small: true });
     });
     if (!ids.length) { D.text(ctx, 'no maps of your own yet:', 20, 44, P('stone', 5)); this.btn(ctx, 'THE LOCATIONS', 20, 56, 120, 14, function () { self.scroll = 0; self.go('locations'); }, { pri: true }); }
-    if (ids.length > per) D.text(ctx, 'wheel: ' + (from + 1) + '-' + Math.min(ids.length, from + per) + ' of ' + ids.length, 14, 36 + per * 16 + 2, P('stone', 5));
-    D.text(ctx, '{g}U{/} underground  {g}R{/} urban  {g}O{/} outdoors  {p}D{/} dark', 14, 214, P('stone', 5));
+    this.pager(ctx, 14, 36 + per * 16, ids.length, per, from);
+    D.text(ctx, '{g}U{/} underground  {g}R{/} urban  {g}O{/} outdoors  {p}D{/} dark', 14, 226, P('stone', 5)); // (under ^ v since 10-27; it sat on the count before)
     // the module
     var px = 258, pw = D.W - px - 8;
     D.win8(ctx, px, 32, pw, 192);
@@ -749,7 +749,7 @@
       self.btn(ctx, cut(r[0], 150), 14, yy, 160, 14, function () { if (r[1] === 'notes:') self.go('feedback'); else self.open(PD.doorUrl(r[1])); }, { small: true });
       D.text(ctx, cut(r[2], D.W - 200), 182, yy + 3, P('bone', 1));
     });
-    if (list.length > per) D.text(ctx, 'wheel: ' + (from + 1) + '-' + Math.min(list.length, from + per) + ' of ' + list.length, 14, 36 + per * 16 + 2, P('stone', 5));
+    this.pager(ctx, 14, 36 + per * 16, list.length, per, from);
     this.btn(ctx, 'BACK', 20, 236, 60, 15, function () { self.back(); });
   };
 
