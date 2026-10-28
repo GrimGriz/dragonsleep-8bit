@@ -73,7 +73,9 @@ KEEPERS = {
     # the trousers' top and left a blue sliver at the hem; his E draws it a charcoal the snap took for brown, so there the grey cloth between collar and hem is dyed)
     'korvin': ('korvin/ART-95', 'ART-95', 'hex:korvinSlate', {'recolour': {'hue': 215, 'sat': 0.22}, 'dye': {1: 'brown', 3: (0.2, 0.62)}}),
     'davos': ('davos/ART-98', 'ART-98', 'leech:davos'),             # (10-22: Davos Kren behind the leech-house's counter)
-    'marta': ('marta/ART-99', 'ART-99', 'npc:marta'),               # (10-22, "more NPC in fresh": Marta at her stalls, Madame Ondine Vess for a door to come; Tam Vere HELD, tools/portrait-sheet.py)
+    'marta': ('marta/ART-99', 'ART-99', 'npc:marta', {'avoid': {p: ['fire', '#e8624a'] for p in (2, 3, 4, 5)}}),   # (10-22, "more NPC in fresh": Marta at her stalls, Madame Ondine Vess for a door to come; Tam Vere HELD, tools/portrait-sheet.py)
+    # (10-28, ART-121-099: on her four new pages the snap took her headscarf's ochre for the fire ramp and her cheek scar for the lightest red, a pink blotch at
+    # 50 px; left out there, the scarf is her south's gold and the scar a red dot -- her south page snapped as it always was)
     'ondine': ('ondine/ART-101', 'ART-101', 'the School (no door yet)'),
     'tam': ('tam/ART-100', 'ART-100', 'keeper:tam', {'avoid': ['red', 'fire']}),   # (10-28: Tam Vere in her den, the art desk's re-roll -- a woman, as the realm and the first game
     # have her; her rust apron's reds read as blood stains at 50 px: left out, as Venn Hale's flush was)
@@ -124,7 +126,8 @@ def page(name, path, ov, pg=1):
         im = Image.fromarray(rgba, 'RGBA').convert('RGBa')
         w2, h2 = max(1, round(rgba.shape[1] * k)), max(1, round(rgba.shape[0] * k))
         im = im.resize((w2, h2), Image.BOX).convert('RGBA')
-        px = pix.pixelate(im, 1, do_lift=False, avoid=ov.get('avoid'))  # (the outline adds a pixel all round)
+        av = ov.get('avoid'); av = av.get(pg) if isinstance(av, dict) else av   # (a keeper's `avoid` can be a page's own: {page: ramps})
+        px = pix.pixelate(im, 1, do_lift=False, avoid=av)  # (the outline adds a pixel all round)
         small.append((px, fx * k + 1, px.shape[0]))
     return small
 

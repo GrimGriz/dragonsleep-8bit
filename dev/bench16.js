@@ -4100,7 +4100,9 @@
     D.store.get = function (k) { return memT[k] ? JSON.parse(memT[k]) : null; }; D.store.set = function (k, v) { memT[k] = JSON.stringify(v); return true; };
     try {
       D.seed = +get('seed', 1028);
-      var WHOLE = ['winters', 'aldwin', 'davos', 'lucia', 'ned', 'vilar', 'korvin']; // (Winters `833ca06`; Aldwin, Davos Kren, Lucia, Ned Halloway, Vilar and Korvin this seat)
+      var WHOLE = ['winters', 'aldwin', 'davos', 'lucia', 'ned', 'vilar', 'korvin', // (Winters `833ca06`; Aldwin, Davos Kren, Lucia, Ned Halloway, Vilar and Korvin `6fb9da8`, the loose pages)
+        'marta', 'gull', 'tam', 'ondine', 'percy', 'brennock', 'vera', 'kess', // (the art desk's packages ART-121d and -121e, the same seat)
+        'kael', 'sylvia']; // (a grey streak on the other side in some drawn views: cut, RULED 10-28, his "defining features showing on mirror facings is acceptable")
       var figT = Object.keys(CT.FIG), whole = figT.filter(function (k) { var s = D.SHEETS[CT.FIG[k]]; return s && !s.anims.idle.drawn; });
       okT('drawn all round (no S-only list on the idle): ' + whole.join(', ') + ' -- wanted ' + WHOLE.join(', '), whole.slice().sort().join() === WHOLE.slice().sort().join());
       var shT = function (k) { var s = D.SHEETS[CT.FIG[k]], a = s.anims.idle; return k + ' ' + a.fw + 'x' + a.fh + ' top ' + s.top; };
@@ -4111,7 +4113,7 @@
       var drT = figT.map(function (k) { var u = { x: 0, y: 0, facing: 5 }; CT.dress(u, k); return [k, u]; });
       okT('dressed (C.dress): all facing south, the drawn-all-round free to turn and the rest held', drT.every(function (d) { return d[1].sheet === CT.FIG[d[0]] && d[1].facing === 0 && d[1].holdFacing === (WHOLE.indexOf(d[0]) < 0); }));
       HT.begin(HT.fresh(), 0); var B = topT(), R0 = B.roam, E = D.spr.facingFor(1, 0);
-      [['aldwin', 'chapel:aldwin'], ['davos', 'leech:davos'], ['lucia', 'shop:lucia'], ['vilar', 'shop:vilar'], ['ned', 'warp:percy'], ['percy', 'warp:percy'], ['winters', 'warp:winters']].forEach(function (p) {
+      [['aldwin', 'chapel:aldwin'], ['davos', 'leech:davos'], ['lucia', 'shop:lucia'], ['vilar', 'shop:vilar'], ['ned', 'warp:percy'], ['percy', 'warp:percy'], ['marko', 'shop:marko'], ['sylvia', 'keeper:sylvia'], ['winters', 'warp:winters']].forEach(function (p) {
         driveT(TT.goOut(B), 200); driveT(TT.fire(B, trigT(p[1])), 600);
         var ku = B.units.filter(function (u) { return u.npc === p[0]; })[0], tk = R0.token, k0 = [tk.x, tk.y], w = WHOLE.indexOf(p[0]) >= 0;
         if (!ku || D.roam.def.room !== p[1]) { okT(p[0] + ' in at ' + p[1] + ': ' + (ku ? 'the room ' + D.roam.def.room : 'MISSING'), false); return; }
@@ -4121,6 +4123,17 @@
         tk.x = k0[0]; tk.y = k0[1]; ku.facing = 0;
       });
       driveT(TT.goOut(B), 200);
+      // (on the street: Marta at her stalls, the night crews on the shaft rows -- spoken to from beside them, the counter's screen then put away (Kael
+      // held south till his word, 10-28). Tam and Kess are off the street since 10-28, mode=housefix1028: their sheets above, no figure in town)
+      ['marta', 'gull', 'brennock', 'vera', 'kael'].forEach(function (id) {
+        var ku = B.units.filter(function (u) { return u.npc === id; })[0], tk = R0.token, k0 = [tk.x, tk.y], w = WHOLE.indexOf(id) >= 0, tr = trigT('talk:' + id);
+        if (!ku || !tr) { okT(id + ' on the street: ' + (ku ? 'no talk trigger' : 'MISSING'), false); return; }
+        var f0 = ku.facing; tk.x = ku.x + 1; tk.y = ku.y; driveT(TT.fire(B, tr), 400); var f1 = ku.facing;
+        while (D.top() !== B && D.scenes.length > 1) D.pop();
+        okT(ku.name + ' on the street (' + ku.sheet + '), facing ' + f0 + ' at rest; spoken to from beside them, ' + (w ? 'turns to the speaker' : 'drawn south only, still faces south') + ' (facing ' + f1 + ')',
+          f0 === 0 && ku.sheet === CT.FIG[id] && f1 === (w ? E : 0) && D.top() === B);
+        tk.x = k0[0]; tk.y = k0[1]; ku.facing = 0;
+      });
       var BH = D.roam.make('?roam=hex'); D.scenes.length = 0; D.push(BH); BH = topT();
       var kv = (BH.units || []).filter(function (u) { return u.npc === 'korvinSlate'; })[0], trK = trigT('talk:korvinSlate'), tkH = BH.roam.token, fK0 = kv && kv.facing;
       if (kv && trK) { tkH.x = kv.x + 1; tkH.y = kv.y; driveT(TT.fire(BH, trK), 400); }
@@ -4151,6 +4164,7 @@
     function readQW(sc) { return readW(sc).concat((sc.wait && sc.wait.ask) || []); } // (and the question's own words: a shelves keeper's line is the question since 10-28, no OK before it -- mode=housenotes1028)
     function inW(B, id) { driveW(TW.fire(B, trigW(id)), null, 600); return D.roam.def.room === id; }
     function outW(B) { driveW(TW.goOut(B), null, 200); return !D.roam.def.room; }
+    function facedW(u, R) { var t = R.token; return D.SHEETS[u.sheet].anims.idle.drawn ? u.facing === 0 : u.facing === D.spr.facingFor(t.x - u.x, t.y - u.y); } // (south while drawn south only, else to the speaker: a keeper drawn all round turns -- ART-121, his "Keep turning")
     D.store.get = function (k) { return memW[k] ? JSON.parse(memW[k]) : null; }; D.store.set = function (k, v) { memW[k] = JSON.stringify(v); return true; };
     try {
       D.seed = +get('seed', 1021);
@@ -4372,7 +4386,7 @@
       // her first-game word with Vivian hired and not the lead (her pies since 10-22, mode=house1022: no wings, no asking); Madame Ondine Vess by name in the portraits' show, standing nowhere yet; Tam Vere held
       var kuMt = B.units.filter(function (u) { return u.npc === 'marta'; })[0], gMt = fireW(B, 'talk:marta'), scMt = upW() ? D.top() : null, wMt = scMt ? readW(scMt) : []; if (scMt && scMt.wait && scMt.wait.ask) goW(scMt, 'opt', 'LEAVE'); driveW(gMt, null, 200); // (her word, then her hot meal's offer since 10-28: LEAVE -- mode=housenotes1028)
       okW('Marta Venn at her stalls in her own figure (' + (kuMt && kuMt.sheet) + ', facing ' + (kuMt && kuMt.facing) + '), on her portrait (' + (scMt && scMt.sheet) + '): "' + String(wMt[0]).slice(0, 40) + '...", and "' + String(wMt[wMt.length - 1]).replace(/\{.\}|\{\/\}/g, '') + '"',
-        kuMt && kuMt.sheet === 'marta_p1' && kuMt.facing === 0 && kuMt.holdFacing && scMt && scMt.sheet === 'pt_marta' && wMt.slice(0, 2).join('|') === window.DS.DATA.npcs.marta.talk[0].say.join('|') && !/to come/.test(wMt.join(' ')) && !upW());
+        kuMt && kuMt.sheet === 'marta_p1' && facedW(kuMt, R0) && kuMt.holdFacing === !!D.SHEETS[kuMt.sheet].anims.idle.drawn && scMt && scMt.sheet === 'pt_marta' && wMt.slice(0, 2).join('|') === window.DS.DATA.npcs.marta.talk[0].say.join('|') && !/to come/.test(wMt.join(' ')) && !upW());
       var psO = CW.portraitShow('?portraits&who=marta,ondine,tam');
       okW('the portraits\' show takes Marta, Madame Ondine Vess and Tam Vere (' + psO.ids.join(', ') + '), her name ' + CW.VENDORS.ondine.name + ', her figure cut and standing nowhere',
         psO.ids.join() === 'marta,ondine,tam' && CW.VENDORS.ondine.name === 'Madame Ondine Vess' && !!D.SHEETS[CW.FIG.ondine] && !B.units.some(function (u) { return u.npc === 'ondine'; }));
@@ -4389,7 +4403,7 @@
         var ku = B.units.filter(function (u) { return u.npc === id; })[0], g = fireW(B, 'talk:' + id), sc = upW() ? D.top() : null, w = sc ? readW(sc) : []; if (g) driveW(g, null, 200);
         var N = window.DS.DATA.npcs[id], want = (N.talk.filter(function (t) { return CW.cond(t['if'], CW.state(B)); })[0] || {}).say || [];
         okW(N.name + ' on the shaft rows in their own figure (' + (ku && ku.sheet) + ', facing ' + (ku && ku.facing) + '), on their portrait (' + (sc && sc.sheet) + '): "' + String(w[0]).slice(0, 40) + '...", no counter line',
-          ku && ku.sheet === id + '_p1' && ku.facing === 0 && ku.holdFacing && sc && sc.sheet === 'pt_' + id && w.slice(0, want.length).join('|') === want.join('|') && !/to come/.test(w.join(' ')) && !upW());
+          ku && ku.sheet === id + '_p1' && facedW(ku, R0) && ku.holdFacing === !!D.SHEETS[ku.sheet].anims.idle.drawn && sc && sc.sheet === 'pt_' + id && w.slice(0, want.length).join('|') === want.join('|') && !/to come/.test(w.join(' ')) && !upW());
       });
       var kuKs = B.units.filter(function (u) { return u.npc === 'kess'; })[0], gKs = TW.fire(B, trigW('keeper:kess')); driveW(gKs, upW, 200); var scKs = upW() ? D.top() : null, wKs = scKs ? readW(scKs) : []; driveW(gKs, null, 200);
       okW('Kess at the flop-cellar\'s door, inside since 10-28 later (no figure of hers on the street: ' + !kuKs + '), on her portrait (' + (scKs && scKs.sheet) + '): "' + String(wKs[0]).slice(0, 40) + '...", no counter line, the party still in the street',
@@ -4400,7 +4414,7 @@
         D.roam.def.room === 'keeper:merrick' && kuMr && kuMr.sheet === 'merrick_p1' && kuMr.facing === 0 && kuMr.holdFacing && scMr && scMr.sheet === 'pt_merrick' && wMr.slice(0, 2).join('|') === window.DS.DATA.npcs.merrick.talk[0].say.join('|') && R0.flags['heard:r-lantern'] === 1 && /sendings -- is to come/.test(wMr.join(' ')) && !upW());
       outW(B); inW(B, 'keeper:sylvia'); var gS = fireW(B, 'talk:sylvia'), scS = D.top(), wS = readW(scS); driveW(gS, null, 200);
       var kuSy = B.units.filter(function (u) { return u.npc === 'sylvia'; })[0];
-      okW('Sylvia Swann at her booth in her own figure (' + (kuSy && kuSy.sheet) + ', facing ' + (kuSy && kuSy.facing) + ', her owl on her shoulder: 10-21 night) and on her portrait (' + scS.sheet + '): his own -- "' + wS.join(' ') + '"', kuSy && kuSy.sheet === 'sylvia_p1' && kuSy.facing === 0 && kuSy.holdFacing && scS.sheet === 'pt_sylvia' && /his word/.test(wS.join(' ')));
+      okW('Sylvia Swann at her booth in her own figure (' + (kuSy && kuSy.sheet) + ', facing ' + (kuSy && kuSy.facing) + ', her owl on her shoulder: 10-21 night) and on her portrait (' + scS.sheet + '): his own -- "' + wS.join(' ') + '"', kuSy && kuSy.sheet === 'sylvia_p1' && facedW(kuSy, R0) && kuSy.holdFacing === !!D.SHEETS[kuSy.sheet].anims.idle.drawn && scS.sheet === 'pt_sylvia' && /his word/.test(wS.join(' ')));
       outW(B); var gV = TW.fire(B, trigW('keeper:barber')); driveW(gV, upW, 200); var scV = D.top(), wV = upW() ? readW(scV) : []; driveW(gV, null, 200);
       okW('Venn the barber at his door, on his portrait (' + (scV && scV.sheet) + ')', scV && scV.sheet === 'pt_barber' && /Shave/.test(wV.join(' ')));
       // into the house's save: the floor's flags, purse and pack, the renown on the save

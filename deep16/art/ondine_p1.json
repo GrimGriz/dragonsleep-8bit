@@ -1,25 +1,21 @@
 {
  "image": "art/ondine_p1.png",
- "fw": 26,
+ "fw": 32,
  "fh": 53,
- "ax": 14,
+ "ax": 16,
  "ay": 51,
  "top": 49,
  "anims": {
   "idle": {
    "y": 0,
-   "fw": 26,
+   "fw": 32,
    "fh": 53,
-   "ax": 14,
+   "ax": 16,
    "ay": 51,
    "frames": 14,
-   "fps": 4,
-   "drawn": [
-    0
-   ],
-   "under": "crewman_p1"
+   "fps": 4
   }
  },
- "source": "deep16/_src/ondine/ART-101/ART-101_HEAD-2_PAGE-1.png (the art desk's south idle, 10-21), cut by tools/keeper-town-sheet.py",
+ "source": "deep16/_src/ondine/ART-101/ART-101_HEAD-2_PAGE-1.png (the art desk's south idle, 10-21) and PAGE-2 to PAGE-5 (SE, E, NE, N: ART-121, 10-28), cut by tools/keeper-town-sheet.py",
  "door": "the School (no door yet)"
 }
