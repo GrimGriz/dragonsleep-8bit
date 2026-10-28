@@ -3761,14 +3761,28 @@
     function whoLitGL(xs) { return xs.filter(function (x) { return litGL(x); }).map(function (x) { return x.name; }).join(',') || 'none'; }
     function cardsGL(B) { return (B.cards || []).map(function (c) { return (c.lines || []).join(' '); }).join(' ').replace(/\{.\}|\{\/\}/g, ''); }
     function lightsGL(u) { return LGL.carried(u).filter(function (l) { return l.kind === 'light'; }).map(function (l) { return l.bright + '/' + l.dim; }).join(',') || 'none'; }
-    // into the mouth's floor from THE WORLD, and down its way to the working gallery (the roost) as the floor's own warp takes it: Ottilie's ask, if she asks, read
+    // into the mouth's floor from THE WORLD, and down its way to the working gallery (the roost) as the floor's own warp takes it: Ottilie at her counter, if she speaks -- her
+    // words read, her NEXT and her answers clicked (pick: the answer's label; LEAVE IT WITH HER or PUT IT OUT if none)
     function mouthGL() { while (D.scenes.length > 1) D.pop(); HGL.toTown('mouth', 'east'); return floorGL(); }
-    function downGL(B) {
-      var wp = RGL.def.warps.filter(function (w) { return w.to === 'galleries_g2'; })[0], g = MGL.warp(B, wp), asked = null, k = 0;
-      while (k++ < 600) { var st = g.next(); if (st.done) break; var top = D.top(); if (top !== B && top.wait && top.wait.ask && !asked) { asked = [].concat(top.wait.say || []).join(' ') || 'asked'; break; } }
+    function pressGL(sc, b) { if (!b) return false; var mo = D.input.mouse, k = { x: mo.x, y: mo.y, click: mo.click, inside: mo.inside, moved: mo.moved }; mo.x = b.x + b.w / 2; mo.y = b.y + b.h / 2; mo.inside = true; mo.click = true; mo.moved = true; sc.update(); Object.assign(mo, k); return true; }
+    function downGL(B, pick) {
+      var wp = RGL.def.warps.filter(function (w) { return w.to === 'galleries_g2'; })[0]; if (!wp) return { B: D.top(), asked: null, opts: null, heard: '', down: RGL.def.key === 'galleries_g2' }; // (not at the mouth: already down)
+      var g = MGL.warp(B, wp), asked = null, heard = [], opts = null, k = 0, CC = D.counter.Counter, st;
+      while (k++ < 3000) {
+        var top = D.top();
+        if (top instanceof CC && !top.done && top.wait) {
+          var bs = top.buttons();
+          if (top.wait.ask) { if (!asked) { asked = [].concat(top.wait.ask).join(' '); opts = bs.filter(function (q) { return q.go === 'opt'; }).map(function (q) { return q.label; }); } if (!pressGL(top, bs.filter(function (q) { return q.go === 'opt' && (pick || /^(LEAVE IT WITH HER|PUT IT OUT)$/).test(q.label); })[0])) break; continue; }
+          if (top.wait.say) { heard = heard.concat(top.wait.say); if (!pressGL(top, bs.filter(function (q) { return q.go === 'next'; })[0])) break; continue; }
+        }
+        st = g.next(); if (st.done) break;
+      }
       var nb = topGL(); D.battle = nb; if (nb && nb.co) driveGL(nb.co, null, 2);
-      return { B: nb, asked: asked, down: RGL.def.key === 'galleries_g2' };
+      return { B: nb, asked: asked, opts: opts, heard: heard.join(' '), down: RGL.def.key === 'galleries_g2' };
     }
+    function hasGL(x, k) { return !!(x && x.conds && x.conds[k || 'light']); }
+    // a hero who casts Daylight and Continual Flame (the bench's: Aurdin at 5, both learned and prepared -- the second game's own field casts, js/house.js FD.cast)
+    function casterGL() { var au = sheetGL('aurdin'); au.lvl = 5; au.slotsMax = window.DS.R.slotsFor(au); au.slots = au.slotsMax.slice(); ['daylight', 'continualflame'].forEach(function (id) { if (au.known.indexOf(id) < 0) au.known.push(id); if (Array.isArray(au.prepared) && au.prepared.indexOf(id) < 0) au.prepared.push(id); }); return au; }
     D.store.get = function (k) { return memGL[k] ? JSON.parse(memGL[k]) : null; }; D.store.set = function (k, v) { memGL[k] = JSON.stringify(v); return true; };
     window.DS.autoPicks = true;
     try {
@@ -3800,14 +3814,17 @@
         !!cF.asked && cF.touched && whoLitGL(BM.roam.members) === 'Vivian' && lightsGL(vF) === '20/20' && lV.until != null && Math.abs(lV.until - (t0 + 6)) < 1e-6 && /Vivian/.test(cardsGL(BM)));
       if (BM.menu) BM.menu.m.close(); BM.menu = null;
       HGL.fromFloor(BM); okGL('out of the floor onto THE WORLD: on the save\'s sheet -- ' + whoLitGL(HGL.cur.party), whoLitGL(HGL.cur.party) === 'Vivian');
-      // 5. INTO THE GUANO MINES WITH IT, FROM THE FLOOR'S CAST: the mouth asks nothing of it (Ottilie stops only what is always lit -- the first game's S.roostDoor); under the roost
-      // it is let go at the floor's door, said as a torch put out is said (js/roam.js R.roostLights), and it stays let go -- out of the roost and up at the mouth, no Light
-      function intoGL(how, who) {
-        var BMi = mouthGL(), fi = figGL(BMi, who), litIn = litGL(fi), dn = downGL(BMi), Bg = dn.B, fg = Bg && Bg.roam ? figGL(Bg, who) : null, said = Bg ? cardsGL(Bg) : '';
+      // 5. INTO THE GUANO MINES WITH IT, FROM THE FLOOR'S CAST: Ottilie stops it at the mouth (10-28 night, Griz: "Ottille stops light violations at the entrance, the party has to
+      // cast it inside after to shame fail" -- js/mines.js M.burning, M.roostDoor): TURN BACK, the party stays at the mouth, still lit; PUT IT OUT, it is let go there, off the figure
+      // and the sheet, and the party goes down unlit -- and is unlit back up at the mouth and out
+      function intoGL(how, who, k) {
+        k = k || 'light';
+        var BMi = mouthGL(), fi = figGL(BMi, who), litIn = hasGL(fi, k), tb = downGL(BMi, /^TURN BACK$/), still = hasGL(fi, k) && D.top() === BMi;
+        var dn = tb.down ? tb : downGL(BMi), Bg = dn.B, fg = Bg && Bg.roam ? figGL(Bg, who) : null; // (not asked, TURN BACK took the party down: that leg is the one)
         var Bup = dn.down ? (function () { var wp = RGL.def.warps.filter(function (w) { return w.to === 'galleries_g1'; })[0]; if (!wp) return null; driveGL(MGL.warp(Bg, wp), null, 600); return floorGL(); })() : null;
         HGL.fromFloor(Bup || Bg || BMi); var sh = sheetGL(who);
-        okGL(how + ': lit on the mouth (' + litIn + '); its warp down ' + (dn.asked ? 'stopped -- "' + dn.asked.slice(0, 80) + '"' : 'not stopped') + ', on the roost (' + dn.down + '): ' + who + ' lit ' + litGL(fg) + ', "' + (said.match(/[A-Z][a-z]+ lets the Light go[^.]*\./) || ['no word of it'])[0] + '"; back up at the mouth (' + (Bup && RGL.def.key) + ') and out: still lit ' + litGL(sh),
-          litIn && !dn.asked && dn.down && !litGL(fg) && /lets the Light go/.test(said) && !!Bup && !litGL(sh) && !litGL(Bup && figGL(Bup, who)));
+        okGL(how + ': lit at the mouth (' + litIn + '); at its way down Ottilie: "' + (dn.heard || tb.heard).slice(0, 120) + '" -- "' + (tb.asked || '') + '" ' + (tb.opts || []).join('/') + '; TURN BACK: still at the mouth (' + !tb.down + '), still lit (' + still + '); PUT IT OUT: down on the roost (' + dn.down + ') unlit (' + !hasGL(fg, k) + '), back up and out unlit (' + !hasGL(sh, k) + ')',
+          litIn && !!tb.asked && !tb.down && still && !!dn.asked && /spook the roost/.test(dn.heard) && (dn.opts || []).join() === 'PUT IT OUT,TURN BACK' && dn.down && !hasGL(fg, k) && !!Bup && !hasGL(sh, k) && !hasGL(Bup && figGL(Bup, who), k));
       }
       SW.t = t0 + 5; intoGL('a Light cast on a floor (the mouth\'s, on Vivian)', 'vivian');
       // 6. ... FROM THE WORLD'S CAST: Barley's, cast on THE WORLD by its menu
@@ -3823,10 +3840,43 @@
       okGL('a road fight: Light cast on Barley (' + litB7 + '), then again on Lymen -- Barley\'s ends (' + !litB7b + '; SRD 5.1: "The spell ends if you cast it again"); won: on the sheets after, ' + whoLitGL(HGL.cur.party) + ', its hour (until ' + (l7 && l7.until) + ')',
         litB7 && !litB7b && lit7 && whoLitGL(HGL.cur.party) === 'Lymen' && l7.until != null);
       intoGL('a Light cast in a fight (on Lymen)', 'lymen');
-      // 8. UNDER THE ROOST, LIGHT FROM THE REAL MENU IS REFUSED (629f827's refusal, by his mouse: the menu hands the spell itself, not its id); Dancing Lights is dim and lawful there
-      var BM8 = mouthGL(), dn8 = downGL(BM8), B8 = dn8.B; B8.cards = []; D.ui.openMenu(B8); var c8 = castGL(B8.menu.m, 'Aurdin', 'light', 'Barley'), said8 = cardsGL(B8);
-      okGL('on the roost (' + dn8.down + '), M > MAGIC > Aurdin > Light' + (c8.asked ? ' > Barley' : '') + ': refused ("' + said8 + '"), lit: ' + whoLitGL(B8.roam.members), dn8.down && /spook the roost/.test(said8) && whoLitGL(B8.roam.members) === 'none');
-      if (B8.menu) B8.menu.m.close(); B8.menu = null;
+      // 7b. THE MOUTH'S OTHER LIGHTS: a torch taken up lit on the mouth's floor is stopped as a Light is (PUT IT OUT: put out, spent); a lantern goes by, hood down under the
+      // roost as RULED 09-29; what is always lit as before (a Continual Flame from the menu: LEAVE IT WITH HER, the weapon under her stool, back as the party comes up)
+      var BT = mouthGL(), uT = figGL(BT, 'barley'); BT.inv.push({ id: 'torch', n: 1 }); D.ui.openMenu(BT); var hostT = BT.menu.m.host; hostT.run('item', { id: 'torch', h: hostT.party().filter(function (h) { return h.name === 'Barley'; })[0] }, function () { }); BT.menu = null;
+      var torchIn = !!(uT.torch && uT.torch.lit), dT = downGL(BT), fT = dT.B && dT.B.roam ? figGL(dT.B, 'barley') : null;
+      okGL('a torch lit on the mouth\'s floor (' + torchIn + '): Ottilie, "' + dT.heard.slice(0, 90) + '" (' + (dT.opts || []).join('/') + '); PUT IT OUT, down on the roost (' + dT.down + ') with no torch in hand (' + !(fT && fT.torch) + ')', torchIn && /Put that torch out/.test(dT.heard) && dT.down && !(fT && fT.torch));
+      var BL = mouthGL(), uL = figGL(BL, 'barley'); BL.inv.push({ id: 'lantern', n: 1 }); D.ui.openMenu(BL); var hostL = BL.menu.m.host; hostL.run('item', { id: 'lantern', h: hostL.party().filter(function (h) { return h.name === 'Barley'; })[0] }, function () { }); BL.menu = null;
+      var lanIn = !!(uL.torch && uL.torch.lit), dL = downGL(BL), fL = dL.B && dL.B.roam ? figGL(dL.B, 'barley') : null;
+      var lanPack = (HGL.cur.inv.filter(function (x) { return x.id === 'lantern'; })[0] || { n: 0 }).n + ((dL.B && dL.B.inv || []).filter(function (x) { return x.id === 'lantern'; })[0] || { n: 0 }).n;
+      okGL('a lantern lit on the mouth\'s floor (' + lanIn + '): Ottilie says nothing of it (' + !dL.asked + ') -- RULED 09-29, lawful hood down under the roost -- and the party goes down (' + dL.down + '); in a hand on the roost: ' + JSON.stringify(fL && fL.torch || null) + ', lanterns in the pack after ' + lanPack + ' (a light in hand does not cross floors in the house)', lanIn && !dL.asked && dL.down);
+      HGL.fromFloor(dL.B); while (D.scenes.length > 1) D.pop(); var auC = casterGL(); HGL.openMenu(WS); var cC = castGL(WS.pm, 'Aurdin', 'continualflame', 'Barley'); WS.pm.close(); WS.pm = null;
+      var cfC = sheetGL('barley').conds.continualFlame, BC = mouthGL(), dC = downGL(BC), heldC = ((BC.roam.flags.ottilieHolds || []).concat((dC.B && dC.B.roam && dC.B.roam.flags.ottilieHolds) || [])).join();
+      okGL('Continual Flame from THE WORLD\'s menu on Barley\'s weapon (' + cfC + ', asked "' + cC.asked + '"): at the mouth Ottilie, "' + dC.heard.slice(0, 80) + '"; LEAVE IT WITH HER (' + (dC.opts || []).join('/') + '), she holds ' + heldC + ', down (' + dC.down + ')', typeof cfC === 'string' && /wielding that/.test(dC.heard) && dC.down && heldC.indexOf(cfC) >= 0);
+      // 7c. A CONTINUAL FLAME CAST IN A FIGHT comes back as its weapon (his "did the continual light on a weapon from the 8-bit make it over?"): the grid keeps { by, from, lv } on the
+      // figure, the sheet the weapon's id -- and Ottilie reads the sheet's (js/roam.js R.flameBack)
+      HGL.fromFloor(dC.B || BC); while (D.scenes.length > 1) D.pop(); var WS7c = topGL(); WS7c.fight({ zone: 'north', list: ['goblin'] }, WGL.hexAt(SW.at[0], SW.at[1]), { simple: false });
+      var b7c = topGL(); D.battle = b7c; var k7c = 0; while (!b7c.order.length && k7c++ < 400) b7c.co.next();
+      var au7c = b7c.units.filter(function (u) { return u.side === 'party' && u.name === 'Aurdin'; })[0], vi7c = b7c.units.filter(function (u) { return u.side === 'party' && u.name === 'Vivian'; })[0];
+      D.rules.startTurn(au7c); b7c.active = au7c; au7c.slots[1] = Math.max(1, au7c.slots[1] || 0); driveGL(D.magic.cast(b7c, au7c, 'continualflame', 2, vi7c), null, 400); var cf7u = vi7c.conds.continualFlame;
+      D.pop(); b7c.o.onDone('won'); var cf7 = sheetGL('vivian').conds.continualFlame, wp7 = sheetGL('vivian').equip.weapon, B7c = mouthGL(), lit7c = MGL.alight(D.counter.state(B7c)).map(function (x) { return x.id; }).join(), d7c = downGL(B7c);
+      okGL('a road fight, Continual Flame cast on Vivian there (' + JSON.stringify(cf7u).slice(0, 40) + '), won: on her sheet as her weapon (' + JSON.stringify(cf7) + ', her weapon ' + wp7 + '); at the mouth always lit (' + lit7c + '), Ottilie: "' + d7c.heard.slice(0, 60) + '"', !!cf7u && cf7 === wp7 && lit7c.indexOf(wp7) >= 0 && /wielding that/.test(d7c.heard));
+      // 7d. DAYLIGHT FROM THE MENU AS THE SRD HAS IT (his "5- fix"): no asking -- on what the caster holds; bright 60 ft and dim 60 more; its 3rd-level slot spent; its hour; and
+      // Ottilie stops it at the mouth as a Light
+      HGL.fromFloor(d7c.B || B7c); while (D.scenes.length > 1) D.pop(); var auD = casterGL(), s3 = auD.slots[2]; HGL.openMenu(WS); var cD = castGL(WS.pm, 'Aurdin', 'daylight', 'Barley'); WS.pm.close(); WS.pm = null; var dlD = auD.conds.daylight;
+      var BD = mouthGL(), fD = figGL(BD, 'aurdin'), dlL = LGL.carried(fD).filter(function (l) { return l.kind === 'daylight'; }).map(function (l) { return l.bright + '/' + l.dim; }).join();
+      okGL('THE WORLD, M > MAGIC > Aurdin > Daylight: asks no one (' + (cD.asked || 'no ask') + '), on Aurdin (' + !!dlD + ', until ' + (dlD && dlD.until) + '), a 3rd-level slot spent (' + s3 + ' -> ' + auD.slots[2] + '), not a Light on anyone (' + whoLitGL(HGL.cur.party) + '): "' + cD.said.join(' ') + '"; on the mouth\'s floor it lights ' + (dlL || 'nothing') + ' ft from Aurdin',
+        !cD.asked && !!dlD && dlD.until != null && auD.slots[2] === s3 - 1 && whoLitGL(HGL.cur.party) === 'none' && /Daylight/.test(cD.said.join(' ')) && dlL === '60/60');
+      HGL.fromFloor(BD); intoGL('a Daylight cast on THE WORLD (on Aurdin)', 'aurdin', 'daylight');
+      // 8. CAST INSIDE, UNDER THE ROOST, THE SHAME (his "the party has to cast it inside after to shame fail"): the menu's Light is not refused -- cast, the roof comes down: the
+      // first game's RoostFail, NOT THIS KIND OF NAME, the run over (js/mines.js M.roostFail); and a Daylight the same
+      function shameGL(id, target) {
+        HGL.playing = false; HGL.cur = null; var r8 = HGL.fresh(); r8.at = { town: null }; HGL.begin(r8, 0); if (id === 'daylight') casterGL();
+        var BM8 = mouthGL(), dn8 = downGL(BM8), B8 = dn8.B; B8.cards = []; D.ui.openMenu(B8); var c8 = castGL(B8.menu.m, 'Aurdin', id, target), top8 = D.top();
+        okGL('on the roost (' + dn8.down + ', Ottilie silent ' + !dn8.asked + '), M > MAGIC > Aurdin > ' + id + (c8.asked ? ' > ' + target : '') + ': not refused ("' + cardsGL(B8).slice(0, 60) + '") -- the roof comes down: ' + (top8 && top8.kind) + ', the game left (' + !HGL.playing + ')',
+          dn8.down && !dn8.asked && !/spook the roost/.test(cardsGL(B8)) && !!top8 && top8.kind === 'roostfail' && !HGL.playing);
+      }
+      shameGL('light', 'Barley'); shameGL('daylight', null);
+      HGL.playing = false; HGL.cur = null; var r10 = HGL.fresh(); r10.at = { town: null }; HGL.begin(r10, 0); topGL(); SW = WGL.state();
       // 10. THE HOUR ON A FLOOR'S OWN CLOCK: Silverton's street (js/hours.js H16.pass) and the Glowseep's (js/mines.js M.pass) -- a Light cast there by the menu goes out as the
       // clock passes its hour, off the figure and its sheet, and the floor says so
       function hourGL(where, gate, pass) {
@@ -3837,8 +3887,8 @@
       }
       hourGL('silverton', 'west', function (Bh) { D.hours.pass(Bh, 1.01); });
       hourGL('glowseep', 'east', function (Bh) { driveGL(MGL.pass(Bh, 1.01), null, 400); });
-      // the eyes row's door (js/eyes.js eyes-menu-light-1028c): the four on THE WORLD at the mouth's hex, its door there to GO IN
-      HGL.playing = false; HGL.cur = null; HGL.worldDoor('?world&at=17,7&fresh=28L'); var Wd = topGL(), dd = Wd.doorHere ? Wd.doorHere() : null;
+      // the eyes row's door (js/eyes.js eyes-mouth-light-1028d): the four on THE WORLD at the mouth's hex, its door there to GO IN
+      HGL.playing = false; HGL.cur = null; HGL.worldDoor('?world&at=17,7&fresh=28M'); var Wd = topGL(), dd = Wd.doorHere ? Wd.doorHere() : null;
       okGL('the eyes door deep16/?world&at=17,7: the four (' + HGL.cur.party.map(function (h) { return h.name; }) + ') on THE WORLD at ' + WGL.state().at + ', the door there: ' + (dd && dd.name), HGL.cur.party.length === 4 && dd && dd.id === 'mouth');
       // 9. THE FIRST GAME IS UNTOUCHED (bug fixes only, RULED 10-20): its menu's Light is a line, cast at once, asking no one -- a host without the second game's touch
       var said9 = [], m9 = window.DS.MENU.open({ party: function () { return HGL.cur.party; }, guests: function () { return []; }, pack: function () { return []; }, canSave: function () { return true; }, journal: null, info: function () { return {}; }, walker: function () { return null; }, portrait: function () { return null; },

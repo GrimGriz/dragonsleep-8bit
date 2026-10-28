@@ -95,7 +95,7 @@
     B.units.filter(function (u) { return u.side === 'party' && u.src && !u.summon && !u.familiar && !u.object; }).forEach(function (u) {
       var h = JSON.parse(JSON.stringify(u.src));
       h.hp = Math.max(0, Math.min(h.maxhp, u.hp)); h.ko = h.hp <= 0; h.slots = (u.slots || []).slice(); h.feats = JSON.parse(JSON.stringify(u.feats || {}));
-      h.conds = Object.assign({}, h.conds || {}, last(u.conds)); if (!(u.conds && u.conds.mageArmor)) delete h.conds.mageArmor; if (!(u.conds && u.conds.light)) delete h.conds.light; // (a Light that ended in the fight -- cast again on another -- off the sheet too: 10-28)
+      h.conds = Object.assign({}, h.conds || {}, last(u.conds)); if (!(u.conds && u.conds.mageArmor)) delete h.conds.mageArmor; ['light', 'daylight'].forEach(function (k) { if (!(u.conds && u.conds[k])) delete h.conds[k]; }); if (D.roam && D.roam.flameBack) D.roam.flameBack(h, u); // (a Light that ended in the fight -- cast again on another -- off the sheet too: 10-28; a Continual Flame back as its weapon, 10-28 night)
       var ue = (u.conds && u.conds.exhaustion && u.conds.exhaustion.n) || 0; if (ue > exh(h)) H.exhaust(h, ue - exh(h)); // (a level the fight laid on, kept on the sheet: js/rules.js RU.exhaust)
       byId[h.key || h.id] = h;
     });
@@ -612,7 +612,13 @@
     if (sp.kind === 'light') { // (the Light on the one chosen, carried -- RULED 10-20, his "that seems aligned with SRD"; it lights a floor: js/light.js reads conds.light)
       // (10-28, Griz: "it doesn't seem to choose a target or impact entering the guano mines": SRD 5.1 -- "You touch one object", the one the menu asks for (js/menu.js MagicPage);
       // "Duration: 1 hour", on THE WORLD's clock (H.lightsOut; the long rest still ends it, R.refresh); "The spell ends if you cast it again": the caster's other Light let go)
-      t = t || c; var by = c.key || c.id, now = H.clock(H.cur);
+      var by = c.key || c.id, now = H.clock(H.cur);
+      if (sp === DS.DATA.spells.daylight || sp.name === 'Daylight') { // (SRD 5.1, Daylight: "a point you choose" -- one on "an object you are holding ... the light shines from the object
+        // and moves with it": what the caster holds; "bright light ... dim light for an additional 60 feet", an hour, its 3rd-level slot -- 10-28 night, his "5- fix": it had landed as a Light, 20 ft, and free)
+        spend(); c.conds = c.conds || {}; c.conds.daylight = { by: by }; if (now != null) c.conds.daylight.until = now + H.LIGHT_HOURS; D.sfx('magic');
+        return [c.name + '\'s Daylight on what ' + c.name + ' holds: bright 60 ft and dim 60 more, for an hour.'];
+      }
+      t = t || c;
       env.party.forEach(function (x) { [x, x.src].forEach(function (y) { if (y && y.conds && y.conds.light && y.conds.light.by === by) delete y.conds.light; }); });
       t.conds = t.conds || {}; t.conds.light = { by: by }; if (now != null) t.conds.light.until = now + H.LIGHT_HOURS; D.sfx('magic');
       return [c.name + '\'s Light on ' + (t === c ? c.name + '\'s own gear' : t.name + '\'s gear') + ': bright 20 ft and dim 20 more, for an hour.', say('g.light')];
@@ -679,10 +685,10 @@
   H.LIGHT_HOURS = 1;
   H.lightsOut = function (B) {
     var now = H.playing && H.cur ? H.clock(H.cur) : null, gone = []; if (now == null) return [];
-    function out(x, name) { var l = x && x.conds && x.conds.light; if (!l || l.until == null || now < l.until - 1e-9) return; delete x.conds.light; if (name && gone.indexOf(name) < 0) gone.push(name); }
+    function out(x, name) { ['light', 'daylight'].forEach(function (k) { var l = x && x.conds && x.conds[k]; if (!l || l.until == null || now < l.until - 1e-9) return; delete x.conds[k]; var s = name + '\'s ' + (k === 'light' ? 'Light' : 'Daylight'); if (name && gone.indexOf(s) < 0) gone.push(s); }); } // (and a Daylight's: 10-28 night)
     H.cur.party.forEach(function (h) { out(h, h.name); });
     if (B && B.roam) B.roam.members.forEach(function (u) { out(u.src, u.name); out(u, u.name); });
-    return gone.map(function (n) { return n + '\'s Light goes out: its hour is up.'; });
+    return gone.map(function (n) { return n + ' goes out: its hour is up.'; });
   };
   function worldEnv(scene) {
     var rec = H.cur, W = D.world;

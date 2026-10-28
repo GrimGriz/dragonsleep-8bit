@@ -165,9 +165,9 @@
   M.warp = function* (B, wp) {
     var key = M.KEY8[wp.to];
     if (!key) { B.card(D.roam.wrap(M.held(wp.to)), 320); D.sfx('popup'); yield 20; return; }
-    if (key === 'galleries_g2' && D.roam.def.key === 'galleries') { // (Ottilie at the mouth: nothing always lit goes into the roost -- the first game's S.roostDoor)
-      var st = D.counter.state(B), lit = M.alight(st);
-      if (lit.length) { var ok = yield* M.talk(B, 'ottilie', function (sc) { return M.roostDoor(sc, B, lit); }); if (!ok) { M.stepBack(B); return; } }
+    if (key === 'galleries_g2' && D.roam.def.key === 'galleries') { // (Ottilie at the mouth: nothing always lit goes into the roost -- the first game's S.roostDoor -- and nothing burning, M.burning)
+      var st = D.counter.state(B), lit = M.alight(st), burn = M.burning(B);
+      if (lit.length || burn.length) { var ok = yield* M.talk(B, 'ottilie', function (sc) { return M.roostDoor(sc, B, lit, burn); }); if (!ok) { M.stepBack(B); return; } }
     }
     yield* M.go(B, key, [wp.tx, wp.ty], M.FACE[wp.dir] || null);
   };
@@ -296,15 +296,35 @@
     }
   };
   M.LINES.daceWaits = '{g}(Dace walks with the party when the dark galleries below come onto the grid and the house takes guests. Till then he waits by the beam.){/}'; // (invented.json toplevels-dace-waits)
-  // Ottilie at the mouth, a light that is always lit on the party (S.roostDoor): left with her, or the party turns back. True when it goes in
-  M.roostDoor = function* (sc, B, all) {
-    var st = sc.st, f = st.flags, x = all[0], it = DS.DATA.items[x.id];
-    yield sc.say(L(x.h ? 'g1.ottilieLightWield' : 'g1.ottilieLightCarry', { item: it.name, name: x.h ? x.h.name : (st.party[0] || {}).name }));
-    if ((yield sc.ask(L('g1.ottilieLightAsk'), ['LEAVE IT WITH HER', 'TURN BACK'])) !== 0) return false;
+  // Ottilie at the mouth, a light that is always lit on the party (S.roostDoor): left with her, or the party turns back -- and since 10-28 night every light burning on the party
+  // (M.burning), put out or the party turns back (Griz: "Ottille stops light violations at the entrance, the party has to cast it inside after to shame fail"). True when it goes in
+  M.LINES.ottilieSpell = '{name}. I can see that light on you from my stool. Let it go before you go in -- it would spook the roost.'; // (invented.json ottilie-mouth-lights)
+  M.LINES.ottilieTorch = '{name}. Put that torch out. Nobody carries fire under the roost.';
+  M.LINES.ottiliePutOut = 'Put it out, or turn around.';
+  M.LINES.ottilieDark = 'Dark, then. Go on -- and do not touch the roost.';
+  M.roostDoor = function* (sc, B, all, burn) {
+    var st = sc.st, f = st.flags; burn = burn || [];
+    var names = function (xs) { return xs.map(function (b) { return b.u.name; }).filter(function (n, i, a) { return a.indexOf(n) === i; }).join(', '); };
+    var spells = burn.filter(function (b) { return b.spell; }), torches = burn.filter(function (b) { return b.torch; });
+    if (all.length) { var x = all[0], it = DS.DATA.items[x.id]; yield sc.say(L(x.h ? 'g1.ottilieLightWield' : 'g1.ottilieLightCarry', { item: it.name, name: x.h ? x.h.name : (st.party[0] || {}).name })); }
+    if (spells.length) yield sc.say(M.LINES.ottilieSpell.replace('{name}', names(spells)));
+    if (torches.length) yield sc.say(M.LINES.ottilieTorch.replace('{name}', names(torches)));
+    if ((yield sc.ask(all.length ? L('g1.ottilieLightAsk') : M.LINES.ottiliePutOut, [all.length ? 'LEAVE IT WITH HER' : 'PUT IT OUT', 'TURN BACK'])) !== 0) return false;
     var held = f.ottilieHolds = f.ottilieHolds || [];
     all.forEach(function (y) { if (y.h) { y.h.equip[y.slot] = null; sc.regear = true; } else D.counter.take(st, y.id, 1); held.push(y.id); });
-    D.sfx('confirm'); yield sc.say(L('g1.ottilieLightKept'));
+    burn.forEach(function (b) { var u = b.u; if (b.spell) { if (u.conds) delete u.conds[b.spell]; if (u.src && u.src.conds) delete u.src.conds[b.spell]; } if (b.torch) { delete u.torch; D.light.regrip(u); } }); // (a spell let go; a torch put out, spent -- the floor's own put-out, js/roam.js R.menuAct light-off)
+    D.sfx('confirm'); yield sc.say(all.length ? L('g1.ottilieLightKept') : M.LINES.ottilieDark);
     return true;
+  };
+  // what burns bright on the party at the mouth: a Light or a Daylight on someone, a torch lit in a hand (a lantern is lawful hood down under the roost, RULED 09-29: hooded at
+  // the roost's door, js/roam.js R.roostLights)
+  M.burning = function (B) {
+    var out = [];
+    B.roam.members.forEach(function (u) {
+      ['light', 'daylight'].forEach(function (k) { if ((u.conds && u.conds[k]) || (u.src && u.src.conds && u.src.conds[k])) out.push({ u: u, spell: k }); });
+      if (u.torch && u.torch.lit !== false && D.light.kindOf(u.torch) !== 'lantern') out.push({ u: u, torch: true });
+    });
+    return out;
   };
   // the floor's own squares (the first game's triggers): the pens' shifts, Skarn's gate, the dens' pits, their bad air, the rescue
   M.trigger = function* (B, trig, at) {
