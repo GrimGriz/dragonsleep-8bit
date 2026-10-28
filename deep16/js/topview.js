@@ -14,7 +14,7 @@
   TV.CLIFF = 64;     // a rock's face where open ground lies south of it (the mountain's foot, the Edifice's front), px
   TV.ROOMWALL = 40;  // a room's wall (js/town.js T.room): its back wall's face over the floor; the front wall a stub, so the floor and the door show (10-20, Griz: "1 north up", the rooms too)
   TV.BLOCK = { k: 10, f: 12, w: 8, K: 16, S: 40, y: 6 }; // (a block's px: a crate or a stall, a rail, a well, a shop's counter and its shelves, a cot's frame)
-  TV.SEE = 0.38;     // a standing thing in front of the party on the mines' floors, drawn this faint (iso.draw; TV.seen counts them drawn so -- the bench's)
+  TV.SEE = 0.38; TV.SEETOWN = { silverton: 1 }; // (SEETOWN: the town floors whose houses are seen through too -- Silverton's streets, 10-28)     // a standing thing in front of the party on the mines' floors, drawn this faint (iso.draw; TV.seen counts them drawn so -- the bench's)
   TV.HALL = 2;       // a hallway's entrance on the mines' floors: the rock over its first squares from where it leaves a crossing, drawn faint always (TV.hallways)
   var on = function () { return !!(iso.map && iso.map.top); };
 
@@ -375,10 +375,11 @@
   // something to work with"): the art desk's tiles and props for Silverton, the Guano Mine's top levels and the Glowseep (deep16-art-wanted.md section 21), cut by
   // tools/toptiles-sheet.py, minetiles-sheet.py and seeptiles-sheet.py into three atlases (data/sprites.js: each piece's box by its name, `tiles`). A square takes the
   // art's piece where there is one and the code's drawing above where there is none -- the code's drawing stays whole, the fallback. While the atlases are on their
-  // way, and with &tiles=code on the page's address, the code draws everything as before (the switch to compare). &faces=tall stands the houses' south faces at the
-  // art's own heights (a low house 32 px, a tall one 48), where the town's are 7 to 23 px at its 30-ft squares (js/town.js T.SCALE)
+  // way, and with &tiles=code on the page's address, the code draws everything as before (the switch to compare). The houses' south faces stand at the art's own
+  // heights (a low house 32 px, a tall one 48) -- the default since 10-28 (RULED, Griz: "1 yes to both", tall faces and the see-through on the streets); &faces=low the
+  // town's own, 7 to 23 px at its 30-ft squares (js/town.js T.SCALE), as before
   var QS = typeof location !== 'undefined' ? location.search || '' : '';
-  TV.ART = { on: !/[?&]tiles=code\b/.test(QS), tall: /[?&]faces=tall\b/.test(QS), sheets: ['toptiles_p1', 'minetiles_p1', 'seeptiles_p1', 'hextiles_p1'] }; // (hextiles_p1: the Hex's, ART-115 -- js/hex.js)
+  TV.ART = { on: !/[?&]tiles=code\b/.test(QS), tall: !/[?&]faces=low\b/.test(QS), sheets: ['toptiles_p1', 'minetiles_p1', 'seeptiles_p1', 'hextiles_p1'] }; // (hextiles_p1: the Hex's, ART-115 -- js/hex.js)
   TV.FACEPX = { low: 32, tall: 48 };
   function atlases() { // the three atlases, loaded; null while any is still on its way (or never fetched: the benches)
     var out = [];
@@ -679,8 +680,9 @@
     (objs || []).forEach(function (ob) { var u = ob.unit; list.push({ d: u ? u.y + 0.6 + u.x * 1e-4 + (ob.depth % 1) * 1e-3 : ob.depth != null && ob.depth < 0 ? -1 : 1e6 + (ob.depth || 0), obj: ob }); });
     list.sort(function (a, b) { return a.d - b.d; });
     // SEEN THROUGH (10-22, his eye on the dens: "too often hidden behind walls that should probably transluce"): on the mines' floors a standing thing drawn in front of one of
-    // the party -- the rock's raised top over the gallery north of it, a tent, a stall -- is drawn faint where it covers them, so the party shows through it (TV.SEE)
-    var see = m.def.mine ? (objs || []).filter(function (ob) { var u = ob.unit; return u && u.side === 'party' && !u.dead && !u.riding; }).map(function (ob) {
+    // the party -- the rock's raised top over the gallery north of it, a tent, a stall -- is drawn faint where it covers them, so the party shows through it (TV.SEE); and on
+    // Silverton's streets since 10-28, a house in front of them (RULED, Griz: "1 yes to both" -- his "we transluce if they walk on the street blocked by the houses?")
+    var see = m.def.mine || TV.SEETOWN[m.def.key] ? (objs || []).filter(function (ob) { var u = ob.unit; return u && u.side === 'party' && !u.dead && !u.riding; }).map(function (ob) {
       var u = ob.unit, c = iso.center(u.x, u.y, m.at(u.x, u.y) ? m.at(u.x, u.y).gz : 0), p = iso.toScreen(c.x, c.y);
       return { d: u.y + 0.6, x0: p.x - T * 0.4 * z, x1: p.x + T * 0.4 * z, y0: p.y - T * 1.5 * z, y1: p.y + T * 0.4 * z };
     }) : [];

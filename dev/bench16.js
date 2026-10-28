@@ -3507,6 +3507,18 @@
       var def5 = THn.floor('?ft=5', {}), m5 = isoN.load(def5), e5 = m5.def.edifice, w5 = (e5.x1 - e5.x0 + 1) * TSn, n5 = Math.ceil(w5 / TVn.EDSTRIP), s5 = TVn.edStrip(m5, n5 - 1), s5a = TVn.edStrip(m5, Math.floor(n5 / 2));
       okHn('at 5 ft a square: ' + w5 + ' px wide in ' + n5 + ' strips, each ' + s5a.width + ' x ' + s5a.height + ' (the last ' + s5.width + '): canvases a browser holds', n5 > 20 && s5a.width === TVn.EDSTRIP && s5a.height < 4096 && s5.width === w5 - (n5 - 1) * TVn.EDSTRIP);
       isoN.load(D.roam.def);
+      // TALL FACES BY DEFAULT, AND THE STREETS SEEN THROUGH (RULED 10-28, Griz: "1 yes to both" -- his "this one is better, we transluce if they walk on the street blocked by the
+      // houses?"): with no &faces= on the address the houses stand at the art's heights; and on Silverton's streets a house in front of the party is drawn through round them
+      okHn('no &faces= on the address: the houses\' faces at the art\'s own heights (tall ' + TVn.ART.tall + '; &faces=low the town\'s own)', TVn.ART.tall === true);
+      mN = isoN.map; var rowsT = mN.def.rows, spotT = null, RFT = mN.def.roofs || {};
+      for (var yT = 2; yT < rowsT.length - 2 && !spotT; yT++) for (var xT = 2; xT < rowsT[yT].length - 2 && !spotT; xT++) if (',='.indexOf(rowsT[yT].charAt(xT)) >= 0 && RFT[rowsT[yT + 1].charAt(xT)] && RFT[rowsT[yT + 1].charAt(xT - 1)] && RFT[rowsT[yT + 1].charAt(xT + 1)] && !B.units.some(function (u) { return u !== R0.token && u.x === xT && u.y === yT; })) spotT = [xT, yT];
+      var cvT = document.createElement('canvas'); cvT.width = D.W; cvT.height = D.H; var ctxT0 = D.ctx; D.ctx = cvT.getContext('2d'); D.R = D.R || 1;
+      R0.token.x = spotT[0]; R0.token.y = spotT[1]; R0.token.tween = null; B.cards = []; B.focus(R0.token); for (var kT = 0; kT < 20; kT++) B.update();
+      function shotT(u) { D.draw(); var c = isoN.center(u.x, u.y, mN.at(u.x, u.y).gz), p = isoN.toScreen(c.x, c.y), z = isoN.zoom || 1, x0 = Math.max(0, Math.round(p.x - TSn * 0.4 * z)), y0 = Math.max(0, Math.round(p.y - TSn * 1.5 * z)); return D.ctx.getImageData(x0, y0, Math.max(1, Math.round(TSn * 0.8 * z)), Math.max(1, Math.round(TSn * 1.9 * z))).data; }
+      var seeT0 = TVn.SEE, opqT, thruT, dT = 0; TVn.SEE = 1; opqT = shotT(R0.token); TVn.SEE = seeT0; TVn.seen = 0; thruT = shotT(R0.token);
+      for (var iT = 0; iT < opqT.length; iT += 4) if (Math.abs(opqT[iT] - thruT[iT]) + Math.abs(opqT[iT + 1] - thruT[iT + 1]) + Math.abs(opqT[iT + 2] - thruT[iT + 2]) > 24) dT++;
+      D.ctx = ctxT0;
+      okHn('on Silverton\'s street at ' + spotT + ', a house\'s roof and face in front (south) of the party: drawn through round them (' + (TVn.seen || 0) + ' drawn so, ' + dT + ' px of the party\'s box changed from the house drawn whole)', (TVn.seen || 0) > 0 && dT > 20);
     } catch (eHn) { repHn.errors.push(String(eHn && eHn.stack || eHn).slice(0, 900)); }
     D.store.get = stGHn; D.store.set = stSHn; if (D.house) { D.house.playing = false; D.house.cur = null; }
     var preHn = document.createElement('pre'); preHn.id = 'out'; preHn.textContent = 'BENCH16 ' + JSON.stringify(repHn);
