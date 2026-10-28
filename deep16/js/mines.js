@@ -709,16 +709,27 @@
   // step back onto the floor
   M.sideOf = function (def, sq) { var d = [[sq[0], 'west'], [def.w - 1 - sq[0], 'east'], [sq[1], 'north'], [def.h - 1 - sq[1], 'south']].sort(function (a, b) { return a[0] - b[0]; }); return d[0][1]; };
   M.LINES.edge = 'Return to the world map?';
+  // THE FLOOR'S CLOCK OUT ONTO THE WORLD (10-28, his "check day/march time - if they slept at the camp, make sure it's not handing the old travel used up when it returns to the
+  // world map"): in the house THE WORLD's clock is the floor's own and a sleep there starts the day's march fresh (M.hourNow, js/house.js H.sleepOnFloor); outside it -- a test
+  // door, THE WORLD's bare door -- the floor keeps an hour of its own, so going out it carries that hour onto THE WORLD's clock (forward only), and a night slept there starts
+  // the march fresh (it had handed back THE WORLD's old hour and the day's march used up)
+  M.carryClock = function (R0, hour) { // (hour: the floor's own now, a clocked floor's -- M.hourNow)
+    var W = D.world, S = W && W.state && W.state(); if (!S || !R0 || (D.house && D.house.playing)) return;
+    if (hour != null) { var t = Math.floor(S.t / 24) * 24 + hour; if (t < S.t) t += 24; S.t = t; }
+    if (R0.slept) { S.today = 0; S.todayHex = 0; S.pushing = false; }
+    W.save();
+  };
   M.edgeOut = function* (B, sq) {
     var R = D.roam, def = R.def, W = D.world, H = D.house, t = B.roam.token, sd = M.sideOf(def, sq);
     D.sfx('popup'); t.anim = 'idle'; t.animT = B.t;
     var a = yield { prompt: { who: t, title: def.name.toUpperCase(), lines: R.wrap([M.LINES.edge]), opts: [{ label: 'RETURN', value: 0 }, { label: 'STAY', value: 1 }] } };
     if (a !== 0) { M.stepBack(B); return; }
-    if (W && W.active && W.inDoor && W.scene && D.scenes.indexOf(W.scene) >= 0) { if (R.house() && H && H.playing) H.fromFloor(B); W.leaveTown(sd); return; } // (the floor's party, pack and purse back into the save first)
+    var R0 = B.roam, hr = def.clock ? M.hourNow(R.q, B) : null;
+    if (W && W.active && W.inDoor && W.scene && D.scenes.indexOf(W.scene) >= 0) { if (R.house() && H && H.playing) H.fromFloor(B); M.carryClock(R0, hr); W.leaveTown(sd); return; } // (the floor's party, pack and purse back into the save first)
     var wm = W && W.index && W.index() && W.map('world'), site = wm && (wm.sites || []).filter(function (s) { return s.id === def.door; })[0]; // (W.index: THE WORLD's map read in, as its scene does on entering)
     if (!site || !W.make) { B.card(R.wrap(['{g}No world map on this page.{/}']), 160); M.stepBack(B); return; }
     var ws = W.make('?world&at=' + site.hex[0] + ',' + site.hex[1]), en = ws.enter;
-    ws.enter = function () { en.apply(this, arguments); var s2 = (W.M().sites || []).filter(function (s) { return s.id === def.door; })[0] || site; W.inDoor = { site: s2, gate: sd }; W.leaveTown(sd); }; // (out past that side once THE WORLD is in)
+    ws.enter = function () { en.apply(this, arguments); M.carryClock(R0, hr); var s2 = (W.M().sites || []).filter(function (s) { return s.id === def.door; })[0] || site; W.inDoor = { site: s2, gate: sd }; W.leaveTown(sd); }; // (out past that side once THE WORLD is in, the floor's clock on it)
     M.off(B); D.push(ws);
   };
   // the tally-house's counter: Edric's shop, the antitoxin draught (content/shops.json `tally`: it buys nothing) -- one line in the counter's vendor table

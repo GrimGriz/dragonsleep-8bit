@@ -2395,6 +2395,30 @@
       var air9 = (B9.cards || []).some(function (c) { return /Bad air/.test(c.lines.join(' ')); }), d9 = Math.max(Math.abs(t9.x - 50), Math.abs(t9.y - 17));
       okG('the dens\' chest clicked from 43,16: walked ' + path9.join(' > ') + ' (the bad air bit: ' + air9 + '), opened ' + (R9.flags[k9] ? 'from ' + d9 + ' away (' + t9.x + ',' + t9.y + ')' : 'not at all'),
         !!R9.flags[k9] && d9 <= 1 && air9 && path9.length >= 5);
+      // 10. THE MARCH AFTER A SLEEP (his "check day/march time - if they slept at the camp, make sure it's not handing the old travel used up when it returns to the world map"):
+      // outside the house (a test door) THE WORLD's day half walked -- a sleep at the Glowseep's fire, out by an edge: THE WORLD at the floor's hour, the march fresh; with no
+      // sleep, the floor's hour carried and the march as it was
+      HG.playing = false; HG.cur = null; WG.index();
+      var wk10 = WG.KEY, ls10 = null; try { ls10 = window.localStorage.getItem(wk10); } catch (eL) { }
+      var sv10 = WG.map('world').sites.filter(function (s) { return s.id === 'silverton'; })[0];
+      var out10 = function (sleep) {
+        try { window.localStorage.setItem(wk10, JSON.stringify({ at: sv10.hex.slice(), from: null, t: 6 * 24 + 15, today: 7, todayHex: 4.5, pushing: false, seed: 1 })); } catch (eS) { }
+        var B10 = testG('?roam=glowseep&hour=22&at=35,1'), R10 = B10.roam;
+        if (sleep) fireG(B10, 0);
+        var hr = R10.hour, t10 = R10.token; t10.x = 35; t10.y = 0; t10.tween = null; R10.fw = [0, -1]; D.grid.setup(B10.map, B10.units); runG(B10, RG.landed(B10)); driveG(B10.co, function () { return D.top() !== B10; }, 400, 0);
+        var S = WG.state() || {}; return { top: D.top() && D.top().kind, floorHour: hr, t: S.t, hour: S.t % 24, today: S.today, hex: S.todayHex };
+      };
+      var a10 = out10(true), b10 = out10(false);
+      try { if (ls10 != null) window.localStorage.setItem(wk10, ls10); else window.localStorage.removeItem(wk10); } catch (eR) { }
+      okG('a test door, THE WORLD\'s day half walked (hour 15, 7 hours, 4.5 hexes): slept at the fire (the floor at ' + a10.floorHour + '), out by the north edge -- THE WORLD (' + a10.top + ') at hour ' + a10.hour + ' (t ' + a10.t + '), the march ' + a10.today + ' h / ' + a10.hex + ' hexes',
+        a10.top === 'world' && a10.hour === a10.floorHour && a10.t > 159 && a10.today === 0 && a10.hex === 0);
+      okG('no sleep: out at the floor\'s hour ' + b10.hour + ' (t ' + b10.t + '), the march as it was (' + b10.today + ' h / ' + b10.hex + ' hexes)', b10.top === 'world' && b10.hour === 22 && b10.t === 6 * 24 + 22 && b10.today === 7 && b10.hex === 4.5);
+      HG.begin(HG.fresh(), 0); topG(); while (D.scenes.length > 1) D.pop(); var S10 = WG.state(); S10.t = 6 * 24 + 15; S10.today = 7; S10.todayHex = 4.5; WG.scene.enterDoor(HG.siteOf('glowseep'), 'east'); var BH10 = topG(); fireG(BH10, 0);
+      var tH10 = BH10.roam.token; tH10.x = 35; tH10.y = 0; tH10.tween = null; BH10.roam.fw = [0, -1]; D.grid.setup(BH10.map, BH10.units); runG(BH10, RG.landed(BH10)); driveG(BH10.co, function () { return D.top() !== BH10; }, 400, 0);
+      var SH10 = WG.state();
+      okG('in the house (so before too): out at hour ' + (SH10.t % 24) + ' (t ' + SH10.t + '), the march ' + SH10.today + ' h / ' + SH10.todayHex + ' hexes, the save\'s the same (' + (HG.cur && HG.cur.world && HG.cur.world.todayHex) + ')',
+        D.top() === WG.scene && SH10.t === 6 * 24 + 23 && SH10.today === 0 && SH10.todayHex === 0 && !!HG.cur && HG.cur.world.todayHex === 0);
+      HG.playing = false; HG.cur = null;
     } catch (eG) { repG.errors.push(String(eG && eG.stack || eG).slice(0, 900)); }
     D.store.get = stGG; D.store.set = stSG; D.music = muG; try { if (skG != null) window.localStorage.setItem(SG.KEY, skG); } catch (eK2) { }
     var preG = document.createElement('pre'); preG.id = 'out'; preG.textContent = 'BENCH16 ' + JSON.stringify(repG);

@@ -506,6 +506,7 @@
   H.sleepOnFloor = function* (B, o) {
     o = o || {};
     var R = D.roam, R0 = B.roam, W = D.world, house = !!(R.house() && H.playing), lines = [], sheets, done = false;
+    R0.slept = (R0.slept || 0) + 1; // (a night slept on this floor: outside the house THE WORLD's march starts fresh when the party goes out -- js/mines.js M.carryClock)
     if (house) {
       H.fromFloor(B);
       if (o.hours) { var S = W.state(); S.t += o.hours; S.today = 0; S.todayHex = 0; S.pushing = false; W.save(); lines = H.longRest(null) || []; } // (W.camp's day reset, the clock by the hours)
