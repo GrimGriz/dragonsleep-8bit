@@ -2043,7 +2043,7 @@
       okM('dusk to night on the floor (hour ' + RS2.hour + '): the floor dark (' + dN.dark + ', the battle\'s ' + BS2.dark + '), the night\'s fights (' + dN.zone8 + '), the crew out at the moss with their poles (' + fN.map(function (u) { return u.x + ',' + u.y; }).join(' ') + '), the poles and moss lit (' + BS2.lights.filter(function (l) { return l.seep; }).length + '), said',
         dN.dark && BS2.dark && dN.zone8 === 'glowseep_night' && MM.CREW.every(function (c) { return fN.some(function (u) { return u.npc === c.id && u.x === c.night[0] && u.y === c.night[1]; }); }) && BS2.lights.filter(function (l) { return l.seep; }).length > 8 && (BS2.cards || []).some(function (c) { return c.lines.some(function (l) { return l.indexOf(MM.LINES.seep.night) >= 0; }); }));
       var hurtS = RS2.members[2]; hurtS.hp = 2; besideM(BS2, MM.SEEP_FIRE); var fr = useM(BS2, MM.SEEP_FIRE, [0]); driveM(BS2.co, null, 300);
-      okM('the crews\' fire: SLEEP HERE, no watch ("' + MM.LINES.seep.fire.slice(0, 40) + '..."), the morning (hour ' + RS2.hour + ', dark ' + D.roam.def.dark + '), ' + hurtS.name + ' ' + hurtS.hp + '/' + hurtS.maxhp, !!fr.sc && fr.seen.indexOf('> SLEEP HERE') >= 0 && RS2.hour === 7 && !D.roam.def.dark && hurtS.hp === hurtS.maxhp);
+      okM('the crews\' fire: LONG REST, no watch ("' + MM.LINES.seep.fire.slice(0, 40) + '..."), the morning (hour ' + RS2.hour + ', dark ' + D.roam.def.dark + '), ' + hurtS.name + ' ' + hurtS.hp + '/' + hurtS.maxhp, !!fr.sc && fr.seen.indexOf('> LONG REST') >= 0 && RS2.hour === 7 && !D.roam.def.dark && hurtS.hp === hurtS.maxhp);
       var BSN = testM('?roam=glowseep&hour=22'), cvS = document.createElement('canvas'), ctxS0 = D.ctx, drawErr = null; cvS.width = D.W; cvS.height = D.H; D.ctx = cvS.getContext('2d'); D.R = D.R || 1;
       try { BSN.update(); D.draw(); } catch (eS) { drawErr = String(eS).slice(0, 160); } D.ctx = ctxS0;
       okM('the night\'s floor paints, its poles and moss lit among the party\'s light (' + (drawErr || 'no throw') + ')', !drawErr);
@@ -2230,6 +2230,52 @@
     D.store.get = stGF2; D.store.set = stSF2; D.music = mu0; try { if (sk0 != null) window.localStorage.setItem(D.simple.KEY, sk0); } catch (eK2) { }
     var preF2 = document.createElement('pre'); preF2.id = 'out'; preF2.textContent = 'BENCH16 ' + JSON.stringify(repF2);
     document.body.appendChild(preF2);
+    return;
+  }
+  // THE GLOWSEEP BY NIGHT, FIXED, 10-28 (mode=glowseep1028; js/mines.js, js/counter.js, js/house.js, js/simple.js, js/roam.js -- the Glowseep fix seat, started by the lanes
+  // desk on his "Start the seat"; ..\handoff-2026-10-21-the-warrens-and-galleries-on-the-tiles.md 2i, his five from his ear file of 10-27): the crews' fire one box with the
+  // fire in the portrait's place; sleep a long rest by the clock, round to night; a click on a foe with FIGHT lit is FIGHT at it; any edge asks for the world map; the floor's
+  // fights on fields cut from the floor, the grid's the big one and the simple fight's the small, the roam's zoom as it was after
+  if (get('mode', '') === 'glowseep1028') {
+    var repG = { checks: [], errors: [] }, memG = {}, stGG = D.store.get, stSG = D.store.set, MG = D.mines, RG = D.roam, CG = D.counter, HG = D.house, SG = D.simple, WG = D.world, muG = D.music, skG = null;
+    function okG(what, v) { repG.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function driveG(g, until, cap, pv) { var v, k = 0, st; while (k++ < (cap || 4000)) { if (until && until()) return true; st = g.next(v); v = undefined; if (st.done) return !!(until && until()); if (typeof st.value === 'number' && D.battle) D.battle.t += Math.max(1, st.value); if (st.value && st.value.prompt) { driveG.asked = st.value.prompt; v = pv != null ? pv : st.value.prompt.opts[0].value; } } return !!(until && until()); }
+    function topG() { var s = D.top(); if (s && s.baking) { s.baking = false; s.enter(); } if (s && s.roam) driveG(s.co, null, 2); return s; }
+    function testG(q) { var B = RG.make(q + '&watch'); D.scenes.length = 0; D.push(B); return topG(); }
+    // a scene's coroutine run on the floor from here (the floor's own after it): what a USE or a step would set going
+    function runG(B, gen) { var co0 = B.co; B.co = (function* () { yield* gen; yield* co0; })(); }
+    // through the house's morning as X does on each list; its card's lines
+    function wakeG(B) { var m = D.top(); if (!(m instanceof HG.Morning)) return ''; var ls = []; for (var k = 0; k < 24 && !m.over; k++) { if (m.phase === 'night') m.next(); else if (m.phase === 'dawn') { ls = m.dawnLines(); m.next(); } else if (m.phase === 'picks') { (m.due || []).forEach(window.DS.R.autoPicks); if (m.pm) m.pm.close(); m.update(); } else m.cancel(); } driveG(B.co, null, 40); return ls.filter(function (l) { return l; }).join(' '); }
+    // the crews' fire: its counter as it first asks (the waits it shows before an answer), answered `ans`, the night and the morning after
+    function fireG(B, ans) {
+      runG(B, MG.seepFire(B)); driveG(B.co, function () { return D.top() instanceof CG.Counter; }, 200);
+      var sc = D.top(), out = { sc: sc instanceof CG.Counter ? sc : null, waits: [] }; if (!out.sc) return out;
+      for (var k = 0; k < 6 && !sc.done && !(sc.wait && sc.wait.ask); k++) { out.waits.push({ say: sc.wait && sc.wait.say }); sc.press(sc.buttons()[0]); }
+      if (sc.wait && sc.wait.ask) { out.waits.push({ ask: sc.wait.ask, opts: sc.wait.opts.slice() }); if (ans != null) sc.press(sc.buttons().filter(function (b) { return b.go === 'opt' && b.k === ans; })[0]); }
+      if (ans == null) return out;
+      driveG(B.co, function () { return D.top() instanceof HG.Morning || D.top() === B && !(B.roam && B.roam.pulling); }, 400);
+      out.morning = wakeG(B); driveG(B.co, null, 60); return out;
+    }
+    D.store.get = function (k) { return memG[k] ? JSON.parse(memG[k]) : null; }; D.store.set = function (k, v) { memG[k] = JSON.stringify(v); return true; };
+    window.DS.autoPicks = true; D.music = function () { };
+    try { skG = window.localStorage.getItem(SG.KEY); window.localStorage.removeItem(SG.KEY); } catch (eK) { } // (OPTIONS' RANDOM FIGHTS at its default: simple)
+    try {
+      D.seed = +get('seed', 1028);
+      // 1. THE SLEEP BOX (his "Use a campfire where you're waiting for an NPC portrait and "the Veterans keep Watch" is cleaner version on the sleep text box. Call sleep long
+      // rest. 'ok' box is superlative"): one box, his words over LONG REST and LEAVE, the fire where the portrait was
+      var B1 = testG('?roam=glowseep&hour=22'), f1 = fireG(B1, null), w1 = f1.waits;
+      okG('the crews\' fire asks at once, no box before it to OK (' + w1.map(function (w) { return w.ask ? 'ask "' + [].concat(w.ask).join(' ') + '" [' + w.opts.join(' | ') + ']' : 'say "' + [].concat(w.say).join(' ').slice(0, 40) + '" OK'; }).join(' / ') + ')',
+        !!f1.sc && w1.length === 1 && !!w1[0].ask && [].concat(w1[0].ask).join(' ') === 'The Veterans keep Watch.' && w1[0].opts.join('|') === 'LONG REST|LEAVE');
+      var LY = CG.LAYOUT.portrait, cy1 = LY[1] + LY[3] - 26, cv1 = document.createElement('canvas'); cv1.width = D.W; cv1.height = D.H; var c1 = cv1.getContext('2d'), px1 = null, er1 = null;
+      try { if (f1.sc) { f1.sc.t = 40; f1.sc.draw(c1); px1 = c1.getImageData(Math.round(LY[0] + LY[2] / 2), cy1 - 20, 1, 1).data; } } catch (eD1) { er1 = String(eD1).slice(0, 120); }
+      okG('the fire drawn where a keeper\'s portrait stands (its picture ' + !!(f1.sc && f1.sc.o.pic) + '; the box\'s middle over the counter ' + (px1 ? [px1[0], px1[1], px1[2]].join(',') : er1) + ': fire, not the waiting shape\'s blue)',
+        !!f1.sc && !!f1.sc.o.pic && !!px1 && px1[0] > 150 && px1[0] > px1[2] + 60);
+      if (f1.sc) { f1.sc.press(f1.sc.buttons().filter(function (b) { return b.go === 'opt' && b.k === 1; })[0]); driveG(B1.co, null, 60); }
+      okG('LEAVE: back on the floor, no night slept (hour ' + B1.roam.hour + ')', D.top() === B1 && (B1.roam.hour == null || B1.roam.hour === 22));
+    } catch (eG) { repG.errors.push(String(eG && eG.stack || eG).slice(0, 900)); }
+    D.store.get = stGG; D.store.set = stSG; D.music = muG; try { if (skG != null) window.localStorage.setItem(SG.KEY, skG); } catch (eK2) { }
+    var preG = document.createElement('pre'); preG.id = 'out'; preG.textContent = 'BENCH16 ' + JSON.stringify(repG);
+    document.body.appendChild(preG);
     return;
   }
   // THE HEX, INSIDE, 10-22 (mode=hex1022; js/hex.js -- the Hex interior seat, started by the lanes desk; Griz: "1 - build all 3, where 3 can be just the meeting room and

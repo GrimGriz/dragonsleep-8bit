@@ -348,7 +348,8 @@
     D.win8(ctx, PX, PY, PW, PH, '#0b1430');
     ctx.save(); ctx.beginPath(); ctx.rect(PX + 3, PY + 3, PW - 6, PH - 6); ctx.clip();
     var sh = this.sheet && D.SHEETS[this.sheet], fr = C.frameAt(sh, this.face, this.t);
-    if (sh && C.drawPortrait(ctx, this.sheet, fr.anim, fr.frame, PX + PW / 2, CY + 1)) { if (this.id === 'ned') C.drawNedRat(ctx, PX + PW / 2, CY + 1, this.t); }
+    if (this.o.pic) this.o.pic(ctx, PX + 3, PY + 3, PW - 6, PH - 6, this.t, CY); // (a place's own picture where a keeper's portrait stands: the Glowseep's crews' fire, js/mines.js M.firePic)
+    else if (sh && C.drawPortrait(ctx, this.sheet, fr.anim, fr.frame, PX + PW / 2, CY + 1)) { if (this.id === 'ned') C.drawNedRat(ctx, PX + PW / 2, CY + 1, this.t); }
     else {
       ctx.fillStyle = '#1c2348'; ctx.beginPath(); ctx.arc(PX + PW / 2, CY - 92, 26, 0, Math.PI * 2); ctx.fill(); ctx.fillRect(PX + PW / 2 - 48, CY - 60, 96, 60); // (no sheet yet, or a keeper with none: a shape)
     }

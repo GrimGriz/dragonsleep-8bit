@@ -235,9 +235,9 @@
 
   // ---------------------------------------------------------------- the scenes: the first game's (js/events.js) on the counter screen, its words (content/text.json)
   var L = function (k, o) { return D.counter.L(k, o); };
-  M.talk = function* (B, id, script, name) {
+  M.talk = function* (B, id, script, name, pic) { // (pic: a picture in the portrait's place -- js/counter.js o.pic)
     var C = D.counter, N = (DS.DATA.npcs || {})[id] || {}, done = null;
-    var sc = new C.Counter(B, { id: id, name: name || N.name || id, place: D.roam.def.name, what: D.roam.def.sub, script: function (s) { return (function* () { done = yield* (script || M.SCENES[id])(s, B); })(); } });
+    var sc = new C.Counter(B, { id: id, name: name || N.name || id, place: D.roam.def.name, what: D.roam.def.sub, pic: pic || null, script: function (s) { return (function* () { done = yield* (script || M.SCENES[id])(s, B); })(); } });
     D.push(sc); while (!sc.done) yield 1;
     if (sc.regear && D.roam.regear) D.roam.regear(B);
     return done;
@@ -587,7 +587,7 @@
   })();
   M.LINES.seep = {
     night: 'Night comes down on the Glowseep: the moss lights, and the crews go out with their poles.', day: 'Day on the Glowseep: the moss goes dull, and the crews come in to sleep.',
-    fire: 'The crews\' fire. The veterans keep it; nobody stands a watch here.', sleep: 'You sleep by the crews\' fire. Somebody comes in off the bog before dawn, and nobody wakes you.', morning: 'Morning over the seep. The moss has gone back to green.'
+    fire: 'The Veterans keep Watch.', sleep: 'You sleep by the crews\' fire. Somebody comes in off the bog before dawn, and nobody wakes you.', morning: 'Morning over the seep. The moss has gone back to green.'
   }; // (invented.json toplevels-seep-crew)
   M.CREW_LINES = { // (the seat's drafts: invented.json toplevels-seep-crew -- the laugh is the realm's, Aurdin I: "And don't go into debt," all three laughing)
     seepcrew1: { day: ['"Day\'s for sleeping. The moss doesn\'t show till dark, and the bog\'s worse by day than it looks."'], night: ['"Pole up, not out. You hold it over the moss and it tells you where it\'s thick."'],
@@ -601,9 +601,26 @@
       yield sc.say((au && Ls.aurdin && !nt ? Ls.aurdin : []).concat(nt ? Ls.night : Ls.day));
     };
   });
-  // the crews' fire (his "watch-less camp location"): a long rest with no watch, free -- the house's night (M.sleep), and the light the morning brings
+  // the crews' fire where a keeper's portrait stands (the counter screen's box, js/counter.js o.pic): the bog round it by night, the moss lit on the mud, the fire's glow, and
+  // the art desk's fire (ART-113's `campfire`, its four frames) three times up -- the code's own flames where the atlas is not in (a bench)
+  M.FIREPIC = { k: 3, moss: [[0.12, 0.3], [0.24, 0.62], [0.08, 0.84], [0.8, 0.38], [0.9, 0.7], [0.7, 0.9], [0.36, 0.92], [0.6, 0.66], [0.18, 0.5], [0.86, 0.52]] };
+  M.firePic = function (ctx, x, y, w, h, t, cy) {
+    var mx = x + w / 2, fy = cy - 8, fl = 0.85 + 0.15 * Math.sin(t / 5) * Math.sin(t / 13), P = M.FIREPIC;
+    var g = ctx.createLinearGradient(0, y, 0, cy); g.addColorStop(0, '#03040a'); g.addColorStop(1, '#0e1420'); ctx.fillStyle = g; ctx.fillRect(x, y, w, h);
+    ctx.fillStyle = '#16110b'; ctx.fillRect(x, cy - 52, w, 52); // (the mud by the fire)
+    P.moss.forEach(function (q, i) { var a = 0.35 + 0.25 * Math.sin(t / 40 + i * 1.7); ctx.fillStyle = 'rgba(126,224,138,' + a.toFixed(2) + ')'; ctx.fillRect(Math.round(x + q[0] * w), Math.round(cy - 52 + q[1] * 48), 3, 2); });
+    var rg = ctx.createRadialGradient(mx, fy - 18, 4, mx, fy - 18, 96); rg.addColorStop(0, 'rgba(255,176,88,' + (0.5 * fl).toFixed(3) + ')'); rg.addColorStop(1, 'rgba(255,120,40,0)'); ctx.fillStyle = rg; ctx.fillRect(x, y, w, h);
+    var p = D.topview && D.topview.piece ? D.topview.piece('campfire', Math.floor(t / 8) % 4, 'seep') : null;
+    if (p) { var sm = ctx.imageSmoothingEnabled; ctx.imageSmoothingEnabled = false; ctx.drawImage(p.im, p.x, p.y, p.w, p.h, Math.round(mx - p.ax * P.k), Math.round(fy - p.ay * P.k), p.w * P.k, p.h * P.k); ctx.imageSmoothingEnabled = sm; return true; }
+    ctx.fillStyle = '#5a4a3a'; [-30, -12, 12, 30].forEach(function (dx) { ctx.fillRect(mx + dx - 6, fy - 6, 12, 7); }); // (the ring of stones)
+    [['#c83a12', 26, 50], ['#f08a1c', 18, 38], ['#ffe070', 9, 22]].forEach(function (f, i) { var hh = f[2] * fl + 4 * Math.sin(t / 3 + i); ctx.fillStyle = f[0]; ctx.beginPath(); ctx.moveTo(mx - f[1], fy); ctx.quadraticCurveTo(mx - f[1] * 0.4, fy - hh * 0.6, mx + Math.sin(t / 4 + i) * 3, fy - hh); ctx.quadraticCurveTo(mx + f[1] * 0.4, fy - hh * 0.6, mx + f[1], fy); ctx.closePath(); ctx.fill(); });
+    return true;
+  };
+  // the crews' fire (his "watch-less camp location"): a long rest with no watch, free -- the house's night (M.sleep), and the light the morning brings. One box (10-27, his eye
+  // on it: "Use a campfire where you're waiting for an NPC portrait and "the Veterans keep Watch" is cleaner version on the sleep text box. Call sleep long rest. 'ok' box is
+  // superlative"): the fire in the portrait's place (M.firePic), his words over LONG REST and LEAVE, and no box before them to OK
   M.seepFire = function* (B) {
-    var go = yield* M.talk(B, 'seepcrew1', function (sc) { return (function* () { yield sc.say(M.LINES.seep.fire); return (yield sc.ask('Sleep at the fire?', ['SLEEP HERE', 'LEAVE'])) === 0; })(); }, 'The crews\' fire');
+    var go = yield* M.talk(B, 'seepcrew1', function (sc) { return (function* () { return (yield sc.ask(M.LINES.seep.fire, ['LONG REST', 'LEAVE'])) === 0; })(); }, 'The crews\' fire', M.firePic);
     if (!go) return;
     B.card(D.roam.wrap([M.LINES.seep.sleep]), 200); yield 30;
     var R0 = B.roam; if (!(D.roam.house() && D.house && D.house.playing)) R0.hour = 7; // (the test door's morning; the house's is THE WORLD's camp, M.sleep)
