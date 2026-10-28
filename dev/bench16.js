@@ -2742,7 +2742,7 @@
         var rd = D.town.room(dd.id, dd), m2 = D.iso.load(rd), e = rd.entry[0], k = rd.keeper.at, tk2 = { x: e[0], y: e[1], size: 1, side: 'party' };
         sizesR[rd.rows[0].length + 'x' + rd.rows.length] = (sizesR[rd.rows[0].length + 'x' + rd.rows.length] || 0) + 1;
         GT.setup(m2, [tk2]); var ctr = null; for (var x2 = 1; x2 < m2.w - 1; x2++) if (m2.at(x2, 3).ch === 'K' && m2.at(x2, 4).walk) { ctr = [x2, 4]; break; }
-        var ok = rd.rows[rd.rows.length - 1].charAt(rd.doors[0][0]) === 'd' && m2.at(e[0], e[1]).walk && m2.at(k[0], k[1]).walk && (rd.rows[3].indexOf('K') < 0 || (ctr && D.Battle.route(tk2, ctr)));
+        var ok = rd.rows[rd.doors[0][1]].charAt(rd.doors[0][0]) === 'd' && m2.at(e[0], e[1]).walk // (its door where the room keeps it: the front wall, or the compound's west gate since 10-28 later) && m2.at(k[0], k[1]).walk && (rd.rows[3].indexOf('K') < 0 || (ctr && D.Battle.route(tk2, ctr)));
         if (!ok) badR.push(dd.id);
       });
       D.iso.map = townMapT; GT.setup(townMapT, BT.units);
@@ -3411,12 +3411,14 @@
         phV.w === THs.MAMA[2] && phV.h === THs.MAMA[2] && vB.n >= 16 && vB.n <= 25 && vB.ch === 'n' && dH.ch === 'b' && dH.n === dW * dHt && !!dRoom.cots);
       [THs.SCALE, 10, 5].forEach(function (F) {
         var Lo = THs.lay(null, F), wrong = [], ownLo = Lo.own || [], cutLo = Lo.cut || [], missLo = Lo.doorMiss || [];
-        THs.DOORS.forEach(function (d) { var q = Lo.marks.doors[d.id], wo = q && ownLo[(q[1] - 1) * Lo.w + q[0]], tg = ownerHs[d.id], bx = boxOfHs(d, tg), off = q ? ftHs(bx, THs.X0 + (q[0] + 0.5) * F, THs.Y0 + (q[1] - 0.5) * F) : 1e9; if (!q || off > F * 0.75 || (Lo.own && wo !== tg)) wrong.push(d.id + ' ' + Math.round(off) + ' ft off ' + tg + (Lo.own ? ' (on ' + wo + ')' : '')); }); // (its wall's square on the house, as v6 draws it -- and the lay's own record of whose it is)
-        okHs('at ' + F + ' ft a square: every door in its own building\'s wall (' + (THs.DOORS.length - wrong.length) + ' of ' + THs.DOORS.length + (cutLo.length ? '; a lane cut through ' + cutLo.length + ' squares of the next houses to reach five keepers\' south walls' : '') + ')' + (wrong.length ? ' -- not: ' + wrong.join('; ') : '') + (missLo.length ? ' -- no way: ' + missLo.join(', ') : ''), !wrong.length && !missLo.length);
+        // (the stables' door at the compound's own gate since 10-28 later is no house's wall: mode=housefix1028b)
+        THs.DOORS.forEach(function (d) { if (d.gate) return; var q = Lo.marks.doors[d.id], wo = q && ownLo[(q[1] - 1) * Lo.w + q[0]], tg = ownerHs[d.id], bx = boxOfHs(d, tg), off = q ? ftHs(bx, THs.X0 + (q[0] + 0.5) * F, THs.Y0 + (q[1] - 0.5) * F) : 1e9; if (!q || off > F * 0.75 || (Lo.own && wo !== tg)) wrong.push(d.id + ' ' + Math.round(off) + ' ft off ' + tg + (Lo.own ? ' (on ' + wo + ')' : '')); }); // (its wall's square on the house, as v6 draws it -- and the lay's own record of whose it is)
+        okHs('at ' + F + ' ft a square: every door in its own building\'s wall (' + (THs.DOORS.filter(function (d) { return !d.gate; }).length - wrong.length) + ' of ' + THs.DOORS.filter(function (d) { return !d.gate; }).length + ', the stables\' at the compound\'s gate' + (cutLo.length ? '; a lane cut through ' + cutLo.length + ' squares of the next houses to reach five keepers\' south walls' : '') + ')' + (wrong.length ? ' -- not: ' + wrong.join('; ') : '') + (missLo.length ? ' -- no way: ' + missLo.join(', ') : ''), !wrong.length && !missLo.length);
       });
+      // (the stables' door at the compound's gate since 10-28 later: a gate in a west wall, the compound's wall 'q' east of it and the way in from the west)
       [THs.SCALE, 10, 5].forEach(function (F) {
         var Lt = THs.lay(null, F), bad = [], n = 0, noWay = [];
-        THs.DOORS.forEach(function (d) { var q = Lt.marks.doors[d.id]; if (!q) { bad.push(d.id + ' none'); return; } n++; var nc = Lt.rows[q[1] - 1].charAt(q[0]), sc0 = (Lt.rows[q[1] + 1] || '').charAt(q[0]); if (WALLHs.indexOf(nc) < 0 || Lt.rows[q[1]].charAt(q[0]) !== 'd' || !Lt.reach[q[1] * Lt.w + q[0]]) bad.push(d.id + ' at ' + q + ' under ' + nc); if (!sc0 || '.,='.indexOf(sc0) < 0) noWay.push(d.id + ' (' + sc0 + ')'); });
+        THs.DOORS.forEach(function (d) { var q = Lt.marks.doors[d.id]; if (!q) { bad.push(d.id + ' none'); return; } n++; var nc = d.gate ? Lt.rows[q[1]].charAt(q[0] + 1) : Lt.rows[q[1] - 1].charAt(q[0]), sc0 = d.gate ? Lt.rows[q[1]].charAt(q[0] - 1) : (Lt.rows[q[1] + 1] || '').charAt(q[0]); if ((d.gate ? nc !== 'q' : WALLHs.indexOf(nc) < 0) || Lt.rows[q[1]].charAt(q[0]) !== 'd' || !Lt.reach[q[1] * Lt.w + q[0]]) bad.push(d.id + ' at ' + q + ' under ' + nc); if (!sc0 || '.,='.indexOf(sc0) < 0) noWay.push(d.id + ' (' + sc0 + ')'); });
         okHs('at ' + F + ' ft a square: ' + (n - bad.length) + ' of ' + THs.DOORS.length + ' doors at the foot of a wall, in reach, ' + (n - noWay.length) + ' with the street in front' + (bad.length ? ' -- not: ' + bad.join('; ') : '') + (noWay.length ? ' (a lane in front: ' + noWay.join(', ') + ')' : ''), n === THs.DOORS.length && !bad.length); // (a lane in front is a door between two rows: reached along the lane -- town1020's walk -- and no one stands beside it, js/town.js noStand)
       });
       // Cassia's, the one he named: on its threshold, her wall above; a click on the door where it is drawn finds it, and the arrow up into the wall; in, and out to the threshold
@@ -3438,7 +3440,8 @@
       okHs('the click takes them in (' + inC + '), and out by the same door onto her threshold (' + R0.token.x + ',' + R0.token.y + ')', inC === 'inn:cassia' && !D.roam.def.room && R0.token.x === dC[0] && R0.token.y === dC[1]);
       // every room's door, on the floor: in by it, out by it -- the stores, the services, the keepers' rooms
       var roomsBad = [];
-      THs.ROOMS.forEach(function (id) { var t = trigHs(id), q = D.roam.def.marks.doors[id], b = q && B.map.at(q[0], q[1] - 1); if (!t || !b || WALLHs.indexOf(b.ch) < 0) { roomsBad.push(id + ' no door in a wall'); return; } R0.token.x = q[0]; R0.token.y = q[1]; if (!inHs(B, id)) roomsBad.push(id + ' not in'); driveHs(THs.goOut(B), null, 200); if (D.roam.def.room || R0.token.x !== q[0] || R0.token.y !== q[1]) roomsBad.push(id + ' not out at its door'); });
+      // (the stables' at the compound's gate since 10-28 later: its wall east of the threshold, the compound's 'q' -- mode=housefix1028b)
+      THs.ROOMS.forEach(function (id) { var t = trigHs(id), q = D.roam.def.marks.doors[id], gt = (THs.DOORS.filter(function (d) { return d.id === id; })[0] || {}).gate, b = q && (gt ? B.map.at(q[0] + 1, q[1]) : B.map.at(q[0], q[1] - 1)); if (!t || !b || (gt ? b.ch !== 'q' : WALLHs.indexOf(b.ch) < 0)) { roomsBad.push(id + ' no door in a wall'); return; } R0.token.x = q[0]; R0.token.y = q[1]; if (!inHs(B, id)) roomsBad.push(id + ' not in'); driveHs(THs.goOut(B), null, 200); if (D.roam.def.room || R0.token.x !== q[0] || R0.token.y !== q[1]) roomsBad.push(id + ' not out at its door'); });
       okHs('every room behind a door (' + THs.ROOMS.length + ') entered by its door in a wall and left by it' + (roomsBad.length ? ' -- not: ' + roomsBad.join('; ') : ''), !roomsBad.length);
       // THE FIRST CARD SAYS WHERE THEY STAND (the services seat's Found, the desk's relay: "At a door, the card should say where the party stands"): a NEW GAME staged at a
       // door (the show, as a CONTINUE stands them -- H.begin, H.toTown's at8), beside Marta on the street, and the bare floor at its west gate
@@ -3451,6 +3454,107 @@
     D.store.get = stGHs; D.store.set = stSHs; if (D.house) { D.house.playing = false; D.house.cur = null; }
     var preHs = document.createElement('pre'); preHs.id = 'out'; preHs.textContent = 'BENCH16 ' + JSON.stringify(repHs);
     document.body.appendChild(preHs);
+    return;
+  }
+  // THE HOUSE'S FIXES, ROUND TWO, 10-28 (mode=housefix1028b; the house-notes seat, on the lanes desk's relay of his read of the first round): exhaustion from THE WORLD's march
+  // through Silverton and every sleep, Venn Hale's door at the compound's own gate, the Warrens' journal line from Warrens Pete
+  if (get('mode', '') === 'housefix1028b') {
+    var repP = { checks: [], errors: [] }, memP = {}, stGP = D.store.get, stSP = D.store.set, CP = D.counter, TP = D.town, HP = D.house, RP = D.roam, WP = D.world, apP = window.DS.autoPicks, IP = D.input, roll0P = D.roll;
+    function okP(what, v) { repP.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function driveP(g, until, cap) { var v, k = 0, st; while (k++ < (cap || 20000)) { if (until && until()) return true; st = g.next(v); v = undefined; if (st.done) return !!(until && until()); if (typeof st.value === 'number' && D.battle) D.battle.t += Math.max(1, st.value); if (st.value && st.value.prompt) v = st.value.prompt.opts[0].value; } return !!(until && until()); }
+    function topP() { var s = D.top(); if (s && s.baking) { s.baking = false; s.enter(); } return s; }
+    function upP() { return D.top() instanceof CP.Counter; }
+    function mornP() { return D.top() instanceof HP.Morning ? D.top() : null; }
+    function clickP(sc, b) { if (!b) return false; var mo = IP.mouse, k = { x: mo.x, y: mo.y, click: mo.click, inside: mo.inside, moved: mo.moved }; mo.x = b.x + b.w / 2; mo.y = b.y + b.h / 2; mo.inside = true; mo.click = true; mo.moved = true; sc.update(); Object.assign(mo, k); return true; }
+    function optP(sc, re) { return clickP(sc, sc.buttons().filter(function (q) { return q.go === 'opt' && re.test(q.label); })[0]); }
+    function trigP(id) { return (RP.def.src8.triggers || []).filter(function (t) { return t.id === id; })[0] || null; }
+    function idP(h) { return h.key || h.id; }
+    function exhP(h) { return HP.exh(h); }
+    function floorP() { var B = topP(); D.battle = B; if (B && B.co) driveP(B.co, null, 2); return B; }
+    function auP(B) { return B.roam.members.filter(function (u) { return u.src && idP(u.src) === 'aurdin'; })[0]; }
+    function curP(id) { return HP.cur.party.filter(function (h) { return idP(h) === id; })[0]; }
+    function wearP(B, n) { B.roam.members.forEach(function (u) { if (!u.src) return; u.src.conds = u.src.conds || {}; delete u.src.conds.exhaustion; if (n) HP.exhaust(u.src, n); }); }
+    // a word that leads to a night: the counter up, the choice pressed, the night's MORNING closed, the floor walking again; returns what the night left
+    function sleepP(B, trig, pick) {
+      var g = TP.fire(B, trig), sc = null; driveP(g, upP, 1200); sc = D.top(); var k = 0;
+      while (upP() && k++ < 12) { sc = D.top(); if (sc.wait && sc.wait.ask) { if (!optP(sc, pick)) break; } else if (sc.wait && sc.wait.say) clickP(sc, sc.buttons().filter(function (q) { return q.go === 'next'; })[0]); else break; driveP(g, function () { return !!mornP() || !upP(); }, 1200); }
+      driveP(g, function () { return !!mornP(); }, 4000); var m = mornP(); if (m) m.finish(); driveP(g, null, 4000);
+      while (D.top() !== B && D.scenes.length > 1) D.pop();
+      return !!m;
+    }
+    D.store.get = function (k) { return memP[k] ? JSON.parse(memP[k]) : null; }; D.store.set = function (k, v) { memP[k] = JSON.stringify(v); return true; };
+    window.DS.autoPicks = true;
+    try {
+      D.seed = +get('seed', 1028);
+      // 1. HIS ROUTE (his "what I meant by that note was re the save game where i 'pushed on' to make silverton. I think Aurdin caught a fatigue or became curious whether that fatigue
+      // was carried (and cleared when they slept) in Silverton (or new hot lunch clear)"): THE WORLD's day walked, PUSH ON, the CON save failed -- exhausted; into Silverton with it;
+      // a night at Cassia's -- a level off
+      var rec = HP.fresh(); rec.at = { town: null }; HP.begin(rec, 0); var WS = topP(), SS = WP.state();
+      SS.todayHex = HP.DAYHEX; SS.pushing = true; D.roll = function (s) { return String(s) === '1d20' ? { total: 1, rolls: [1] } : roll0P.apply(this, arguments); };
+      var lnM = HP.marchStep({ h: 1, going: 1 }) || []; D.roll = roll0P;
+      okP('THE WORLD, the day\'s march walked, PUSH ON a hex: "' + (lnM.filter(function (l) { return /Aurdin/.test(l); })[0] || '') + '" -- Aurdin exhausted ' + exhP(curP('aurdin')), exhP(curP('aurdin')) === 1);
+      HP.toTown('silverton', 'west'); var BS = floorP(), uS = auP(BS);
+      okP('into Silverton by the west gate: Aurdin\'s sheet on the floor still exhausted (' + exhP(uS.src) + ')', RP.def.key === 'silverton' && exhP(uS.src) === 1);
+      BS.roam.silver = 200; driveP(TP.fire(BS, trigP('inn:cassia')), null, 2000);
+      var inC = RP.def.room === 'inn:cassia', nightC = sleepP(BS, trigP('talk:cassia'), /^STAY/);
+      okP('a room at Cassia\'s (' + inC + ', the night ' + nightC + '): Aurdin rested a level off -- the floor\'s sheet ' + exhP(uS.src) + ', the save\'s ' + exhP(curP('aurdin')) + ', his figure ' + ((uS.conds.exhaustion || {}).n || 0),
+        inC && nightC && exhP(uS.src) === 0 && exhP(curP('aurdin')) === 0 && !uS.conds.exhaustion);
+      // 2. EVERY SLEEP ANYWHERE A LONG REST, A LEVEL OFF (the SRD's long rest: one level, with food and drink -- his "IIRC Glowsleep sleeps didn't clear road fatigue on first build,
+      // making sure that fix applied to the whole map"): each night below starts with the four exhausted 2 and ends with them at 1, on the floor and in the save
+      var each = function (B) { var bad = []; B.roam.members.forEach(function (u) { if (!u.src) return; var c = curP(idP(u.src)); if (exhP(u.src) !== 1 || !c || exhP(c) !== 1 || ((u.conds.exhaustion || {}).n || 0) !== 1) bad.push(u.name + ' ' + exhP(u.src) + '/' + (c ? exhP(c) : '?') + '/' + ((u.conds.exhaustion || {}).n || 0)); }); return bad; };
+      driveP(TP.goOut(BS), null, 400); wearP(BS, 2); driveP(TP.fire(BS, trigP('chapel:aldwin')), null, 2000);
+      var inA = RP.def.room === 'chapel:aldwin', nightA = sleepP(BS, trigP('talk:aldwin'), /^SLEEP/), badA = each(BS);
+      okP('Aldwin\'s chapel floor (' + inA + ', the night ' + nightA + '): each a level off' + (badA.length ? ' -- NOT: ' + badA.join('; ') : ''), inA && nightA && !badA.length);
+      driveP(TP.goOut(BS), null, 400); wearP(BS, 2); var uM = BS.roam.members.filter(function (u) { return u.src; }), g0M = TP.fire(BS, trigP('talk:marta')); driveP(g0M, upP, 1200);
+      var atM = upP(), ateM = false, kM = 0;
+      while (upP() && kM++ < 12) { var s2 = D.top(); if (s2.wait && s2.wait.ask) { if (ateM || !optP(s2, /^A HOT MEAL/)) break; ateM = true; } else if (s2.wait && s2.wait.say) clickP(s2, s2.buttons().filter(function (q) { return q.go === 'next'; })[0]); else break; driveP(g0M, function () { return !upP(); }, 200); }
+      while (D.top() !== BS && D.scenes.length > 1) D.pop(); driveP(g0M, null, 600);
+      var badM = []; uM.forEach(function (u) { if (exhP(u.src) !== 1) badM.push(u.name + ' ' + exhP(u.src)); });
+      okP('Marta\'s hot meal on the street (her counter ' + atM + '): each who ate a level off (' + uM.map(function (u) { return u.name + ' ' + exhP(u.src); }).join(', ') + ')', atM && !badM.length);
+      // the Warrens' mouth camp: the bunkhouse, and the Pellam barns
+      wearP(BS, 2); HP.fromFloor(BS); while (D.scenes.length > 1) D.pop(); HP.toTown('warrens', 'feed'); var BW = floorP(); BW.roam.silver = 50;
+      var nightW = sleepP(BW, trigP('keeper:bunkhouse'), /^A BUNK/), badW = each(BW);
+      okP('the Warrens\' bunkhouse (the night ' + nightW + '): each a level off' + (badW.length ? ' -- NOT: ' + badW.join('; ') : ''), RP.def.key === 'warrens' && nightW && !badW.length);
+      var tPB = trigP('keeper:pellambarn'); wearP(BW, 2); var nightPB = tPB ? sleepP(BW, tPB, /^A BUNK/) : false, badPB = tPB ? each(BW) : ['no door'];
+      okP('the Pellam barns (the night ' + nightPB + '): each a level off' + (badPB.length ? ' -- NOT: ' + badPB.join('; ') : ''), nightPB && !badPB.length);
+      // the Glowseep's crews' fire: the long rest by the clock
+      wearP(BW, 2); HP.fromFloor(BW); while (D.scenes.length > 1) D.pop(); HP.toTown('glowseep', 'east'); var BG = floorP(), nightG = sleepP(BG, trigP('seepfire'), /^LONG REST/), badG = each(BG);
+      okP('the Glowseep\'s crews\' fire (the night ' + nightG + '): each a level off' + (badG.length ? ' -- NOT: ' + badG.join('; ') : ''), RP.def.key === 'glowseep' && nightG && !badG.length);
+      // THE WORLD's camp (MAKE CAMP, the night's watches' dawn, END: W.camp, the long rest)
+      wearP(BG, 2); HP.fromFloor(BG); while (D.scenes.length > 1) D.pop(); var WS2 = topP(); WP.camp(); var mW = mornP(); if (mW) mW.finish();
+      var badC = HP.cur.party.filter(function (h) { return !h.dead && exhP(h) !== 1; }).map(function (h) { return h.name + ' ' + exhP(h); });
+      okP('THE WORLD\'s camp (its morning ' + !!mW + '): each a level off in the save (' + HP.cur.party.map(function (h) { return h.name + ' ' + exhP(h); }).join(', ') + ')', !!mW && !badC.length);
+      // 3. THE COMPOUND'S GATE (his "this sounds like the compound was moved instead of moving the door to the compound"; the desk: the stables' door moves to the compound's own
+      // gate, where the town map draws it): at every scale the stables' door on the plaza side of the compound's west wall; in by it into the compound, out by it again
+      var CMP = TP.COMPOUND, badG2 = [];
+      [TP.SCALE, 10, 5].forEach(function (F) {
+        var L = TP.lay(null, F), q = L.marks.doors['keeper:venhale'], gx = Math.floor((CMP.x - TP.X0) / F), y0 = Math.floor((CMP.y - TP.Y0) / F), y1 = Math.floor((CMP.y + CMP.h - TP.Y0) / F);
+        if (!q || L.rows[q[1]].charAt(q[0]) !== 'd' || L.rows[q[1]].charAt(q[0] + 1) !== 'q' || q[0] + 1 !== gx || q[1] <= y0 || q[1] >= y1) badG2.push(F + ' ft: ' + q + (q ? ' ' + L.rows[q[1]].slice(q[0] - 1, q[0] + 3) : ''));
+      });
+      okP('at 30, 10 and 5 ft a square, Venn Hale\'s door at the compound\'s gate, on the plaza side of its west wall' + (badG2.length ? ' -- NOT: ' + badG2.join('; ') : ''), !badG2.length);
+      HP.playing = false; HP.cur = null; var BC = (function () { HP.begin(HP.fresh(), 0); return floorP(); })(), dC = RP.def, gC = dC.marks.doors['keeper:venhale'], nC = dC.rows[gC[1] - 1].charAt(gC[0]);
+      // (walked to and clicked: the party three squares out on the plaza side, a click on the threshold -- R.useAt's door, R.walkInto)
+      var tC = BC.roam.token, fromC = null; for (var dxC = 3; dxC <= 6 && !fromC; dxC++) if (D.grid.canStand(tC, gC[0] - dxC, gC[1])) fromC = [gC[0] - dxC, gC[1]];
+      if (fromC) { tC.x = fromC[0]; tC.y = fromC[1]; tC.tween = null; BC.roam.path = null; D.grid.setup(BC.map, BC.units); BC.focus(tC); for (var kC = 0; kC < 30; kC++) BC.update(); while (D.top() !== BC && D.scenes.length > 1) D.pop(); }
+      var cC = D.iso.center(gC[0], gC[1], D.grid.map.gz(gC[0], gC[1])), sC = D.iso.toScreen(cC.x, cC.y); BC.roam.clicks.push({ x: Math.round(sC.x), y: Math.round(sC.y) });
+      driveP(BC.co, function () { return RP.def.room === 'keeper:venhale'; }, 6000); var dR = RP.def, inR = [tC.x, tC.y], fwR = BC.roam.fw.slice();
+      okP('on the town floor the door\'s threshold ' + gC + ' (above it "' + nC + '", no door drawn there); from ' + fromC + ' a click on it walks there and in: ' + dR.name + ', the gate in the yard\'s west wall (' + dR.doors[0] + ' "' + dR.rows[dR.doors[0][1]].charAt(dR.doors[0][0]) + '"), the party just inside at ' + inR + ' facing ' + fwR,
+        !!fromC && dR.room === 'keeper:venhale' && dR.doors[0][0] === 0 && dR.rows[dR.doors[0][1]].charAt(0) === 'd' && inR.join() === [1, dR.doors[0][1]].join() && fwR.join() === '1,0' && !TP.ROOFS[nC]);
+      driveP(TP.goOut(BC), null, 400);
+      okP('out by the gate: on its threshold again (' + [BC.roam.token.x, BC.roam.token.y] + '), facing the plaza (' + BC.roam.fw + ')', RP.def.key === 'silverton' && BC.roam.token.x === gC[0] && BC.roam.token.y === gC[1] && BC.roam.fw.join() === '-1,0');
+      // 4. THE WARRENS LINE FROM WARRENS PETE (his "Talking to a 'nearby start' NPC to add the things to the journal, not just in there without trigger. i.e. warrens pete"): not in
+      // a NEW GAME's JOURNAL; a word with Warrens Pete on the street puts it there, and with the one in the Hex the same
+      var jP = function (B) { return CP.journal(B).quests.map(function (q) { return q.id; }); };
+      var j0 = jP(BC), trPe = trigP('talk:pete'); driveP(TP.fire(BC, trPe), null, 400); while (D.top() !== BC && D.scenes.length > 1) D.pop(); var j1 = jP(BC), wq = CP.journal(BC).quests.filter(function (q) { return q.id === 'warrens'; })[0];
+      okP('a NEW GAME\'s JOURNAL: ' + j0.join(', ') + ' -- no Warrens; a word with Warrens Pete on the street (' + !!trPe + ', heardWarrens ' + !!BC.roam.flags.heardWarrens + '): ' + j1.join(', ') + ', NEXT "' + (wq && wq.where || '').slice(0, 60) + '..."',
+        j0.indexOf('warrens') < 0 && !!trPe && j1.indexOf('warrens') >= 0 && /feed track/.test(wq.where));
+      HP.playing = false; HP.cur = null; HP.begin(HP.fresh(), 0); var BX = floorP(); driveP(TP.fire(BX, trigP('hex:front')), null, 2000);
+      var jx0 = jP(BX), trX = trigP('talk:warrenspete'); if (trX) driveP(TP.fire(BX, trX), null, 400); while (D.top() !== BX && D.scenes.length > 1) D.pop(); var jx1 = jP(BX);
+      okP('and Warrens Pete in the Hex (' + !!RP.def.hexIn + '): ' + jx0.join(', ') + ' before, ' + jx1.join(', ') + ' after', !!RP.def.hexIn && jx0.indexOf('warrens') < 0 && !!trX && jx1.indexOf('warrens') >= 0);
+    } catch (eP) { repP.errors.push(String(eP && eP.stack || eP).slice(0, 900)); }
+    D.roll = roll0P; D.store.get = stGP; D.store.set = stSP; window.DS.autoPicks = apP; if (D.house) { D.house.playing = false; D.house.cur = null; }
+    var preP = document.createElement('pre'); preP.id = 'out'; preP.textContent = 'BENCH16 ' + JSON.stringify(repP);
+    document.body.appendChild(preP);
     return;
   }
   // THE HOUSE'S FIXES FROM HIS 10-28 PLAY (mode=housefix1028; the house-notes seat, on the lanes desk's order from his playthrough notes of 10-28 and his answers to their
@@ -3546,11 +3650,12 @@
       okQ('a shift worked: the sign says "' + nmW2.who + '"', /free/.test(nmW2.who) && /crew sleep free/.test(nmW2.who));
       // 8. THE WAY TO THE WARRENS (his "having a difficult time figuring out how to get to the warrens"): the JOURNAL's The Crawler Warrens from the start, its NEXT the feed track;
       // the town map (L) marks the track where it leaves the town and names it
-      var BJ = houseQ(HQ.fresh()), jJ = CQ.journal(BJ), wJ = jJ.quests.filter(function (q) { return q.id === 'warrens'; })[0], dJ = RQ.def;
+      // (the line once Warrens Pete has talked of the Warrens since 10-28 later, his "not just in there without trigger": mode=housefix1028b)
+      var BJ = houseQ(HQ.fresh()); BJ.roam.flags.heardWarrens = 1; var jJ = CQ.journal(BJ), wJ = jJ.quests.filter(function (q) { return q.id === 'warrens'; })[0], dJ = RQ.def;
       var feedJ = (dJ.doors || []).filter(function (q) { return /feed track/.test((dJ.wayName || {})[q[0] + ',' + q[1]] || ''); }), saidJ = [], tx0Q = D.text;
       var cvJ = document.createElement('canvas'); cvJ.width = D.W; cvJ.height = D.H; D.text = function (ctx, s) { saidJ.push(String(s)); return tx0Q.apply(this, arguments); };
       try { RQ.paintMap(cvJ.getContext('2d'), BJ, 4, 4, 1); } catch (eJ) { saidJ.push('THREW ' + eJ); } D.text = tx0Q;
-      okQ('the JOURNAL in a NEW GAME: ' + jJ.quests.map(function (q) { return q.id; }).join(', ') + '; The Crawler Warrens, NEXT "' + (wJ && wJ.where) + '"', !!wJ && !wJ.done && /feed track/.test(wJ.where) && /east edge/.test(wJ.where));
+      okQ('the JOURNAL, Warrens Pete heard: ' + jJ.quests.map(function (q) { return q.id; }).join(', ') + '; The Crawler Warrens, NEXT "' + (wJ && wJ.where) + '"', !!wJ && !wJ.done && /feed track/.test(wJ.where) && /east edge/.test(wJ.where));
       okQ('the town map (L): the feed track\'s ' + feedJ.length + ' squares on the east edge (x ' + feedJ.map(function (q) { return q[0]; }).filter(function (x, i, a) { return a.indexOf(x) === i; }).join('/') + ' of ' + dJ.w + ') marked, "' + (saidJ.filter(function (s) { return /WARRENS/.test(s); })[0] || '') + '" beside them; the walk off it the Warrens\' (M.FEED ' + MQ.FEED + ')',
         feedJ.length > 0 && feedJ.every(function (q) { return q[0] === dJ.w - 1; }) && feedJ.some(function (q) { return q[0] === MQ.FEED[0] && q[1] === MQ.FEED[1]; }) && saidJ.some(function (s) { return /THE WARRENS/.test(s); }));
       BJ.roam.flags.tallyMet = 1; var wJ2 = CQ.journal(BJ).quests.filter(function (q) { return q.id === 'warrens'; })[0];
@@ -4229,9 +4334,9 @@
       driveW(g1, null, 200);
       okW('a job in hand ends the talk: the screen gone, the floor again', !upW() && sc.done && D.top() === B);      var jn = CW.journal(B), qE = jn.quests.filter(function (q) { return q.id === 'errands'; })[0] || jn.quests[0];
       // (Company first since 10-28, the first game's order -- done here, the four walking: js/company.js)
-      okW('the house\'s JOURNAL: ' + qE.name + ', open, pinned, NEXT: ' + qE.where + ' (Company before it, done: ' + jn.quests.map(function (q) { return q.id + (q.done ? ' done' : ''); }).join(', ') + ')', jn.quests.map(function (q) { return q.id; }).join() === 'company,errands,warrens' && jn.quests[0].done && qE.id === 'errands' && !qE.done && jn.pin === 'errands' && /Androit/.test(qE.where));
+      okW('the house\'s JOURNAL: ' + qE.name + ', open, pinned, NEXT: ' + qE.where + ' (Company before it, done: ' + jn.quests.map(function (q) { return q.id + (q.done ? ' done' : ''); }).join(', ') + ')', jn.quests.map(function (q) { return q.id; }).join() === 'company,errands' && jn.quests[0].done && qE.id === 'errands' && !qE.done && jn.pin === 'errands' && /Androit/.test(qE.where));
       D.ui.openMenu(B); var hostW = B.menu && B.menu.m && B.menu.m.host, infW = hostW && hostW.info();
-      okW('the floor\'s M menu has the JOURNAL and the purse (' + (infW && infW.silver) + ' sp, renown ' + (infW && infW.renown) + ', pinned ' + (infW && infW.pin) + ')', !!hostW && typeof hostW.journal === 'function' && hostW.journal().quests.length === 3 && infW.silver === R0.silver && infW.pin === qE.name);
+      okW('the floor\'s M menu has the JOURNAL and the purse (' + (infW && infW.silver) + ' sp, renown ' + (infW && infW.renown) + ', pinned ' + (infW && infW.pin) + ')', !!hostW && typeof hostW.journal === 'function' && hostW.journal().quests.length === 2 && infW.silver === R0.silver && infW.pin === qE.name);
       B.menu = null;
       var pin1 = CW.pinned(st);
       okW('the pinned marker\'s door: ' + (pin1 && pin1.door) + ' (in his room it points at the way out)', pin1 && pin1.door === 'keeper:androit');

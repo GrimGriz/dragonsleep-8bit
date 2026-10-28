@@ -918,9 +918,11 @@
     doneText: 'Ned has his tongue, and Aurdin the page: Sheet: Find Familiar, to copy into his book from the pack.',
     steps: [{ 'if': '!has:snaketongue', where: 'A fresh snake\'s tongue, off one of the Glowseep\'s snakes: the bog, out on THE WORLD.' },
       { 'if': 'has:snaketongue', door: 'percy', npc: 'ned', where: 'Ned Halloway, behind the counter at Percy\'s Particulars: the tongue for the page.' }] },
-    // the way to the Warrens (10-28 later, Griz: "having a difficult time figuring out how to get to the warrens"): from the start, till the camp's tally-house has the party's
-    // names -- the feed track off Silverton's east edge (js/mines.js M.FEED; the town map marks it, js/roam.js R.paintMap). invented.json warrens-journal-way
-    { id: 'warrens', name: 'The Crawler Warrens', show: '', done: 'flag:tallyMet',
+    // the way to the Warrens (10-28 later, Griz: "having a difficult time figuring out how to get to the warrens"): once Warrens Pete has talked of them -- in the Hex or on the
+    // street, his first-game talk's heardWarrens (his "Talking to a 'nearby start' NPC to add the things to the journal, not just in there without trigger. i.e. warrens pete"),
+    // or the rumor's heardPete, or the camp reached -- till the camp's tally-house has the party's names: the feed track off Silverton's east edge (js/mines.js M.FEED; the town map
+    // marks it, js/roam.js R.paintMap). invented.json warrens-journal-way
+    { id: 'warrens', name: 'The Crawler Warrens', show: 'flag:heardWarrens|flag:heardPete|flag:tallyMet', done: 'flag:tallyMet',
       text: 'Across the river, the Crawler Warrens: the mouth camp, where the cradles take hands on by the shift and the bunkhouse gives a bed for the night.',
       doneText: 'The mouth camp: Edric Pellam has your names in his book. The feed track runs between it and Silverton.',
       steps: [{ where: 'The feed track: walk off Silverton\'s east edge where it leaves the town, over the bridge to the mouth camp. The town map (L) marks it.' }] }];

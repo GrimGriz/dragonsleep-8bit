@@ -8,7 +8,7 @@
      the ground '.'; the mountain '#' above the cliff's foot (v6 y 352); the river 'D'; the Gate Plaza, Fountain Street and Gate Avenue dressed stone '='
      (the dwarves' ordered city); the other streets, the Arena Plaza and the roads packed dirt ','; the houses, the Shaft Rows' shacks, the Hexagon and the
      Edifice built stone 'b'; the fountains' water '~' in a stone rim '='; the stockade a rail 'f', open at its three gates between two posts 'b'; a
-     headframe's mouth a well 'w' on its spoil 'r'; the stalls 'k'; the tower 'b'; Bloodsnout's compound 'b', walled, its gate shut (walked since 10-28 as the stables' room behind door 19: T.room's yard).
+     headframe's mouth a well 'w' on its spoil 'r'; the stalls 'k'; the tower 'b'; Bloodsnout's compound 'b', walled, its gate the fighters' stables' door since 10-28 (in by it, T.room's yard).
    And the marks a later caller reads (T.lay's `marks`, each a square): the three gates, the vault door, every pin of v6's key by its number, and the
    shops' doors by the 8-bit's names -- marked, not built (the buy/sell screens are a later seat's: ART-78 to ART-82 wait in deep16/_src/Fresh). */
 'use strict';
@@ -135,8 +135,8 @@
     // the tower: its foot, a round of built stone (v6 draws it standing, 22 ft across)
     ellipse(V.tower[0], V.tower[1] - 8, Math.max(14, F * 0.55), Math.max(14, F * 0.55), 'B');
     // (v6's stockade is not laid: 10-21, Griz, of the rail that fenced the floor's edges: "I think they're the stockade fences" -- "seem superfluous". The gates stay as marks)
-    // Bloodsnout's compound: a stone wall round a yard, the barracks along the back (east), the gate on the plaza side shut -- drawn here, and walked as the fighters' stables' room
-    // behind Venn Hale's door since 10-28 later (RULED, Griz: "compound as room" -- T.room's yard)
+    // Bloodsnout's compound: a stone wall round a yard, the barracks along the back (east), the gate on the plaza side -- drawn here; since 10-28 later its gate is the fighters'
+    // stables' door, walked into as their room (RULED, Griz: "compound as room" -- the door moved to the compound: the doors below, T.room's yard)
     var C = T.COMPOUND, cg0 = gxOf(C.x), cg1 = gxOf(C.x + C.w), ch0 = gyOf(C.y), ch1 = gyOf(C.y + C.h), bk = Math.max(1, Math.round(25 / F));
     for (var yy = ch0; yy <= ch1; yy++) for (var xx = cg0; xx <= cg1; xx++) set(xx, yy, xx > cg1 - bk ? 'b' : (yy === ch0 || yy === ch1 || xx === cg0) ? 'q' : '.'); // (q: its wall, 10 ft; b: the barracks, 25 ft deep along the back)
     if (F <= 10) for (yy = gyOf(C.y + 20); yy <= gyOf(C.y + 40); yy++) for (xx = gxOf(C.x + 20); xx <= gxOf(C.x + 50); xx++) set(xx, yy, 'b'); // (the master's house in the yard's north-west corner: too small to show at a town's scale)
@@ -201,11 +201,17 @@
       for (var j1 = best; j1 >= 0 && cost[j1] > 0; j1 = prev[j1]) if (pass(j1) === 1) { set(j1 % w, (j1 - j1 % w) / w, ','); sl[j1] = 0; cut.push([j1 % w, (j1 - j1 % w) / w]); }
       walkReach(); reserve(); return true;
     };
-    T.DOORS.filter(function (d) { return whose[d.id]; }).map(function (d, k) { return { d: d, k: k, n: feet(whose[d.id]).length }; }).sort(function (a, b) { return a.n - b.n || a.k - b.k; }).forEach(function (e) {
+    T.DOORS.filter(function (d) { return whose[d.id] && !d.gate; }).map(function (d, k) { return { d: d, k: k, n: feet(whose[d.id]).length }; }).sort(function (a, b) { return a.n - b.n || a.k - b.k; }).forEach(function (e) {
       var d = e.d, p = pinOf(d), tg = whose[d.id], foot = function () { return nearest(feet(tg, true), p) || nearest(feet(tg), p) || nearest(feet(tg, false, true), p); }; // (the last: beside another door in the one wall -- the factor houses' two)
       var q = foot() || (cutWay(tg, p) && foot());
       if (!q) { q = nearestOpen(p[0], p[1], 150, taken); doorMiss.push(d.id); }
       if (q) place(d, q);
+    });
+    // the fighters' stables' door at Bloodsnout's compound's own gate (10-28 later, Griz: "'Bloodsnout's compound is the room behind Venn Hale's door.' this sounds like the compound
+    // was moved instead of moving the door to the compound", and the desk on his "compound as room": the door moves to the compound's gate, where the town map draws the compound,
+    // ruled 10-20): its threshold on the plaza side of the gate in the west wall, at the wall's middle -- the door at pin 19 gone. In through it, the compound (T.room's yard)
+    T.DOORS.filter(function (d) { return d.gate === 'compound'; }).forEach(function (d) {
+      var gq = [cg0 - 1, gyOf(C.y + C.h / 2)]; if (!ground(gq[0], gq[1])) gq = marks.compound; if (gq) { place(d, gq); marks.compoundGate = [cg0, gq[1]]; } else doorMiss.push(d.id);
     });
     var inOrder = {}; T.DOORS.forEach(function (d) { if (marks.doors[d.id]) inOrder[d.id] = marks.doors[d.id]; }); marks.doors = inOrder; // (in T.DOORS' order, as before)
     var v6pins = {}; V.PINS.forEach(function (p) { v6pins[p[2]] = [p[0], p[1]]; });
@@ -249,7 +255,7 @@
     { id: 'keeper:casper', pin: '4', art: 'ART-79' }, { id: 'keeper:androit', pin: '5', art: 'ART-80' }, { id: 'keeper:hessle', pin: '6', art: 'ART-81' },
     { id: 'keeper:falstaff', pin: '7' }, { id: 'keeper:aldric', pin: '7', art: 'ART-82', name: 'Aldric Vest', what: 'the Newland wool-and-grain factor' }, // (7b: the factor houses' second door -- not in the 8-bit)
     { id: 'shop:kessler', pin: '8' }, { id: 'shop:calla', pin: '9' }, { id: 'keeper:barber', pin: '10' }, { id: 'inn:cassia', pin: '11' }, { id: 'keeper:mela', pin: '12' },
-    { id: 'keeper:marin', pin: '13' }, { id: 'keeper:brennan', pin: '14' }, { id: 'shop:marko', pin: '15' }, { id: 'shop:kasten', pin: '16' }, { id: 'keeper:venhale', pin: '19' },
+    { id: 'keeper:marin', pin: '13' }, { id: 'keeper:brennan', pin: '14' }, { id: 'shop:marko', pin: '15' }, { id: 'shop:kasten', pin: '16' }, { id: 'keeper:venhale', pin: '19', gate: 'compound' }, // (gate: at Bloodsnout's compound's own gate since 10-28 later, T.lay)
     { id: 'shop:vilar', pin: '20' }, { id: 'leech:davos', pin: '21' }, { id: 'keeper:kess', pin: '29' }, { id: 'chapel:aldwin', pin: '30' }, { id: 'keeper:mical', pin: '32' },
     { id: 'shop:lisbet', pin: '33' }, { id: 'keeper:merrick', pin: '34' }, { id: 'warp:winters', pin: '35', art: 'ART-78' }, { id: 'warp:percy', pin: '38' },
     { id: 'keeper:tam', pin: '40' }, { id: 'shop:lucia', pin: '42', at: [T_MAMA[0], T_MAMA[1]] },
@@ -477,10 +483,11 @@
     'keeper:brennan': { size: 'l', floor: '.', goods: 'silver', counter: 'none', dress: ['forge', 'crates'] }, // the smithy's forge
     'shop:marko': { size: 'm', floor: 'o', goods: 'leather', dress: ['crates', 'sacks'] },                  // the provisioner: the road's stores
     'shop:kasten': { size: 's', floor: 'o', goods: 'gold' },                                                // the chandler: tallow and wicks
-    // the fighters' stables (10-28 later, his "Wouldn't the fighters stables be the compound we added (venn hale)", RULED "compound as room"): Bloodsnout's compound behind her door
-    // at true scale -- its stone wall, the barracks along the back with their cots, the master's house in the corner, the training rails in the yard, her table across the yard's head
+    // the fighters' stables (10-28 later, his "Wouldn't the fighters stables be the compound we added (venn hale)", RULED "compound as room"): Bloodsnout's compound at true scale, in
+    // by its own gate on the plaza (`doorSide` west, as on the street) -- its stone wall, the barracks along the back with their cots, the master's house in the corner, the training
+    // rails in the yard, her table across the yard's head
     // (the realm's the-hex.md: "barracks and training yards, part gymnasium, part debtors' prison"; invented.json stables-compound-room)
-    'keeper:venhale': { size: 'yard', floor: '.', goods: 'leather', counter: 'short', c0: 9, bare: true, dress: ['compound'], name: 'The Fighters\' Stables', sub: 'Bloodsnout\'s compound: the yard and the barracks' },
+    'keeper:venhale': { size: 'yard', floor: '.', goods: 'leather', counter: 'short', c0: 9, bare: true, doorSide: 'w', dress: ['compound'], name: 'The Fighters\' Stables', sub: 'Bloodsnout\'s compound: the yard and the barracks' },
     'shop:vilar': { size: 'm', floor: '.', goods: 'silver', side: true, dress: ['crates'] },               // the show-armorer's racks
     'leech:davos': { size: 'm', floor: 'o', goods: 'red', counter: 'short', dress: ['cots'] },              // the leech-house's beds
     'keeper:kess': { size: 'm', floor: '.', goods: 'stone', counter: 'none', dress: ['cots'] },            // the flop-cellar's doss beds
@@ -499,7 +506,8 @@
     var t = T.TRADE[id] || { size: 'm', floor: 'o', goods: 'leather' }, S = T.ROOMSIZE[t.size] || [12, 10], w = S[0], h = S[1], g = [];
     for (var y = 0; y < h; y++) { g.push([]); for (var x = 0; x < w; x++) g[y].push(x === 0 || y === 0 || x === w - 1 || y === h - 1 ? 'b' : t.floor); }
     var set = function (x, y, c) { if (x > 0 && y > 0 && x < w - 1 && y < h - 1) g[y][x] = c; }, dx = t.door != null ? t.door : Math.floor(w / 2);
-    g[h - 1][dx] = 'd';
+    var west = t.doorSide === 'w', dy = Math.floor(h / 2); // (west: the door in the west wall's middle, as the compound's gate on the street -- the rest in the front wall)
+    if (west) { g[dy][0] = 'd'; dx = -9; } else g[h - 1][dx] = 'd';
     if (!t.bare) for (x = 1; x < w - 1; x++) set(x, 1, 'S');                                 // the shelves along the back wall (none in a yard: `bare`)
     if (t.side) for (y = 2; y < h - 3; y++) set(1, y, 'S');                                   // and down the side
     var cr = t.counter || 'across', c0 = t.c0 != null ? t.c0 : t.side ? 3 : 2, c1 = cr === 'short' ? Math.min(w - 3, c0 + 3) : w - 3, keep = [Math.floor((c0 + c1) / 2), 2];
@@ -540,7 +548,7 @@
     return Object.assign({
       name: t.name || shopNm || nm, sub: t.sub || 'a room on the Silverton floor', key: 'room', room: id, town: true, wet: false, dark: false, step: 10, goods: t.goods,
       view: 'top', // (north up, as the street outside: 10-20, Griz, asked whether the rooms stay on the diamonds, "1 north up" -- js/topview.js)
-      rows: g.map(function (r) { return r.join(''); }), entry: [[dx, h - 2]], face: [0, -1], doors: [[dx, h - 1]], stairUp: [], foes: [], marks: {}, people: [],
+      rows: g.map(function (r) { return r.join(''); }), entry: west ? [[1, dy]] : [[dx, h - 2]], face: west ? [1, 0] : [0, -1], doors: west ? [[0, dy]] : [[dx, h - 1]], stairUp: [], foes: [], marks: {}, people: [],
       keeper: { id: arg, name: nm, at: keep, own: !!t.own, art: door && door.art || null },
       across: g[3][keep[0]] === 'K' && '.,=o'.indexOf(g[4][keep[0]]) >= 0 ? [keep[0], 4] : null, // (the customer's spot, across the counter from the keeper: where a word is had -- T.fire)
       src8: { id: 'room:' + id, rows: [], legend: {}, triggers: trig, warps: [], chests: [], zones: [], save: false }, from8: id2, to8: id2, sig: '', zone8: null
@@ -549,7 +557,7 @@
   // in at a door: the floor set aside (its map kept as it stands, its people with it) and the room laid; the token just inside the door, facing in, the keeper behind the counter
   T.goIn = function* (B, trig) {
     var R = D.roam, R0 = B.roam, t = R0.token, def = T.room(trig.id, trig.door), N = ((window.DS.DATA || {}).npcs || {})[def.keeper.id];
-    B.townAway = { map: B.map, def: R.def, at: [t.x, t.y], fw: R0.fw.slice(), folk: B.units.filter(function (u) { return u.npc; }) };
+    B.townAway = { map: B.map, def: R.def, at: [t.x, t.y], fw: trig.door && trig.door.gate ? [1, 0] : R0.fw.slice(), folk: B.units.filter(function (u) { return u.npc; }) }; // (the compound's gate faces west: in facing east, out facing the plaza)
     B.units = B.units.filter(function (u) { return !u.npc; });
     R.def = def; D.MAPS.room = def; B.map = D.iso.load(def);
     t.x = def.entry[0][0]; t.y = def.entry[0][1]; t.tween = null; R0.fw = def.face.slice(); t.facing = D.spr.facingFor(R0.fw[0], R0.fw[1]); t.anim = 'idle'; t.animT = B.t; R0.path = null;

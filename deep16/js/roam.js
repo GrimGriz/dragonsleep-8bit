@@ -1324,6 +1324,9 @@
     u.feats = JSON.parse(JSON.stringify(sh.feats || n.feats || {}));
     var last = R.lasting(sh.conds || {}); u.conds = u.conds || {};
     Object.keys(R.lasting(u.conds)).forEach(function (k) { if (!(k in last)) delete u.conds[k]; }); Object.assign(u.conds, last);
+    // (the figure's exhaustion as the rested sheet has it -- a level off at the long rest, H.restSheets -- not a copy from before the night: R.exhaustBack and Marta's meal lay it
+    // on the figure too; 10-28 later, his "making sure that fix applied to the whole map")
+    if (sh.conds && sh.conds.exhaustion) u.conds.exhaustion = JSON.parse(JSON.stringify(sh.conds.exhaustion)); else delete u.conds.exhaustion;
     h.conds = Object.assign({}, h.conds || {}, last);
     R.SHEETF.forEach(function (k) { if (n[k] !== undefined) u[k] = n[k]; });
   };
