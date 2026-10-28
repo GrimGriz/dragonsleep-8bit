@@ -2042,8 +2042,8 @@
       RS2.hour = 19; driveM(MM.pass(BS2, 1), null, 60); var dN = D.roam.def, fN = BS2.units.filter(function (u) { return u.npc; });
       okM('dusk to night on the floor (hour ' + RS2.hour + '): the floor dark (' + dN.dark + ', the battle\'s ' + BS2.dark + '), the night\'s fights (' + dN.zone8 + '), the crew out at the moss with their poles (' + fN.map(function (u) { return u.x + ',' + u.y; }).join(' ') + '), the poles and moss lit (' + BS2.lights.filter(function (l) { return l.seep; }).length + '), said',
         dN.dark && BS2.dark && dN.zone8 === 'glowseep_night' && MM.CREW.every(function (c) { return fN.some(function (u) { return u.npc === c.id && u.x === c.night[0] && u.y === c.night[1]; }); }) && BS2.lights.filter(function (l) { return l.seep; }).length > 8 && (BS2.cards || []).some(function (c) { return c.lines.some(function (l) { return l.indexOf(MM.LINES.seep.night) >= 0; }); }));
-      var hurtS = RS2.members[2]; hurtS.hp = 2; besideM(BS2, MM.SEEP_FIRE); var fr = useM(BS2, MM.SEEP_FIRE, [0]); driveM(BS2.co, null, 300);
-      okM('the crews\' fire: LONG REST, no watch ("' + MM.LINES.seep.fire.slice(0, 40) + '..."), the morning (hour ' + RS2.hour + ', dark ' + D.roam.def.dark + '), ' + hurtS.name + ' ' + hurtS.hp + '/' + hurtS.maxhp, !!fr.sc && fr.seen.indexOf('> LONG REST') >= 0 && RS2.hour === 7 && !D.roam.def.dark && hurtS.hp === hurtS.maxhp);
+      var hurtS = RS2.members[2]; hurtS.hp = 2; besideM(BS2, MM.SEEP_FIRE); var hBS = RS2.hour, fr = useM(BS2, MM.SEEP_FIRE, [0]); driveM(BS2.co, null, 300);
+      okM('the crews\' fire: LONG REST, no watch ("' + MM.LINES.seep.fire.slice(0, 40) + '..."), the clock ' + MM.SEEP.restHours + ' hours on (hour ' + hBS + ' to ' + RS2.hour + ', dark ' + D.roam.def.dark + '), ' + hurtS.name + ' ' + hurtS.hp + '/' + hurtS.maxhp, !!fr.sc && fr.seen.indexOf('> LONG REST') >= 0 && RS2.hour === (hBS + MM.SEEP.restHours) % 24 && D.roam.def.dark === MM.night(RS2.hour) && hurtS.hp === hurtS.maxhp);
       var BSN = testM('?roam=glowseep&hour=22'), cvS = document.createElement('canvas'), ctxS0 = D.ctx, drawErr = null; cvS.width = D.W; cvS.height = D.H; D.ctx = cvS.getContext('2d'); D.R = D.R || 1;
       try { BSN.update(); D.draw(); } catch (eS) { drawErr = String(eS).slice(0, 160); } D.ctx = ctxS0;
       okM('the night\'s floor paints, its poles and moss lit among the party\'s light (' + (drawErr || 'no throw') + ')', !drawErr);
@@ -2076,7 +2076,7 @@
       var siteS = HM.siteOf('glowseep'); while (D.scenes.length > 1) D.pop(); WM.state().t = 22; WM.scene.enterDoor(siteS, 'east'); var BHS2 = topM();
       okM('THE WORLD\'s site "' + (siteS && siteS.name) + '": its door opens the Glowseep in the house, by THE WORLD\'s hour (' + WM.hour() + ': dark ' + D.roam.def.dark + '), SAVE there ' + D.roam.canSave(BHS2), !!siteS && D.roam.def.key === 'glowseep' && D.roam.house() && D.roam.def.dark && D.roam.canSave(BHS2));
       var tS0 = WM.state().t; besideM(BHS2, MM.SEEP_FIRE); useM(BHS2, MM.SEEP_FIRE, [0]); driveM(BHS2.co, null, 300);
-      okM('the crews\' fire in the house: THE WORLD\'s clock from hour ' + tS0 + ' to ' + WM.state().t + ' (the morning), no watch, the floor lit again (dark ' + D.roam.def.dark + ')', WM.state().t > tS0 && WM.hour() === WM.MORNING && !D.roam.def.dark && D.top() === BHS2);
+      okM('the crews\' fire in the house: THE WORLD\'s clock from hour ' + tS0 + ' to ' + WM.state().t + ' (a long rest, ' + MM.SEEP.restHours + ' hours), no watch, the floor lit again (dark ' + D.roam.def.dark + ')', WM.state().t === tS0 + MM.SEEP.restHours && !D.roam.def.dark && D.top() === BHS2);
       HM.playing = false; HM.cur = null;
       // the first game's floors untouched, and its own Silverton and the Wet still theirs
       okM('the first game\'s nine floors (warrens_a-d, galleries_g1-g4, gulch) byte for byte as they were', print8() === before8);
@@ -2253,7 +2253,7 @@
       for (var k = 0; k < 6 && !sc.done && !(sc.wait && sc.wait.ask); k++) { out.waits.push({ say: sc.wait && sc.wait.say }); sc.press(sc.buttons()[0]); }
       if (sc.wait && sc.wait.ask) { out.waits.push({ ask: sc.wait.ask, opts: sc.wait.opts.slice() }); if (ans != null) sc.press(sc.buttons().filter(function (b) { return b.go === 'opt' && b.k === ans; })[0]); }
       if (ans == null) return out;
-      driveG(B.co, function () { return D.top() instanceof HG.Morning || D.top() === B && !(B.roam && B.roam.pulling); }, 400);
+      driveG(B.co, function () { return D.top() instanceof HG.Morning; }, 400);
       out.morning = wakeG(B); driveG(B.co, null, 60); return out;
     }
     D.store.get = function (k) { return memG[k] ? JSON.parse(memG[k]) : null; }; D.store.set = function (k, v) { memG[k] = JSON.stringify(v); return true; };
@@ -2272,6 +2272,17 @@
         !!f1.sc && !!f1.sc.o.pic && !!px1 && px1[0] > 150 && px1[0] > px1[2] + 60);
       if (f1.sc) { f1.sc.press(f1.sc.buttons().filter(function (b) { return b.go === 'opt' && b.k === 1; })[0]); driveG(B1.co, null, 60); }
       okG('LEAVE: back on the floor, no night slept (hour ' + B1.roam.hour + ')', D.top() === B1 && (B1.roam.hour == null || B1.roam.hour === 22));
+      // 3. SLEEP A LONG REST (his "sleeping doesnt' seem to be a long rest, I can't repeatedly sleep to get back to night time"): each sleep the SRD's eight hours on the clock
+      // and the rest again -- from 22, three sleeps round to the night
+      var B3 = testG('?roam=glowseep&hour=22'), R3 = B3.roam, h3 = [22], hp3 = [], wk3 = [], dk3 = [];
+      for (var i3 = 0; i3 < 3; i3++) { var u3 = R3.members[i3 % R3.members.length]; u3.hp = 1; var f3 = fireG(B3, 0); h3.push(R3.hour); hp3.push(u3.hp === u3.maxhp); wk3.push(String(f3.morning || '').split(' ')[0].replace(/\{.\}|\{\/\}/g, '')); dk3.push(!!RG.def.dark); }
+      okG('the test door: three long rests at the fire, the clock ' + MG.SEEP.restHours + ' hours on each (' + h3.join(' > ') + '), each one whole (' + hp3.join(',') + '), woken to ' + wk3.join(', ') + ', dark ' + dk3.join(','),
+        h3.join(',') === '22,6,14,22' && hp3.every(Boolean) && wk3.join(',') === 'MORNING,AFTERNOON,NIGHT' && dk3.join(',') === 'false,false,true' && RG.def.zone8 === 'glowseep_night' && D.top() === B3);
+      HG.begin(HG.fresh(), 0); topG(); var siteH = HG.siteOf('glowseep'); while (D.scenes.length > 1) D.pop(); WG.state().t = 22; WG.scene.enterDoor(siteH, 'east'); var BH3 = topG(), tH = [WG.state().t], okH = [];
+      for (var j3 = 0; j3 < 3; j3++) { var vH = BH3.roam.members[0]; vH.hp = 1; fireG(BH3, 0); var sH = HG.cur.party.filter(function (h) { return (h.key || h.id) === (vH.src.key || vH.src.id); })[0]; tH.push(WG.state().t); okH.push(vH.hp === vH.maxhp && !!sH && sH.hp === sH.maxhp); }
+      okG('in the house: THE WORLD\'s clock by the long rests (' + tH.join(' > ') + ', hour ' + WG.hour() + '), each one whole on the floor and in the save (' + okH.join(',') + '), the night again (dark ' + RG.def.dark + ')',
+        D.roam.house() && tH.join(',') === [22, 30, 38, 46].join(',') && WG.hour() === 22 && okH.every(Boolean) && RG.def.dark && D.top() === BH3);
+      HG.playing = false; HG.cur = null;
     } catch (eG) { repG.errors.push(String(eG && eG.stack || eG).slice(0, 900)); }
     D.store.get = stGG; D.store.set = stSG; D.music = muG; try { if (skG != null) window.localStorage.setItem(SG.KEY, skG); } catch (eK2) { }
     var preG = document.createElement('pre'); preG.id = 'out'; preG.textContent = 'BENCH16 ' + JSON.stringify(repG);

@@ -438,7 +438,7 @@
   Morning.prototype.box = function (n) { var vis = Math.min(12, Math.max(2, n)), w = 340; return { x: (D.W - w) / 2, y: 18, w: w, h: 30 + vis * 12, vis: vis }; };
   Morning.prototype.dawnLines = function () {
     var W = D.world, when = W && W.house && W.house() && W.state ? 'day ' + (Math.floor(W.state().t / 24) + 1) + ', ' + W.timeOfDay() : '';
-    var out = ['{y}MORNING{/}' + (when ? ' -- ' + when + '.' : '')].concat(this.o.line ? [this.o.line] : [], [say('g.rested')], this.o.lines || []), w = 320, ls = [];
+    var out = ['{y}' + (this.o.title || 'MORNING') + '{/}' + (when ? ' -- ' + when + '.' : '')].concat(this.o.line ? [this.o.line] : [], [say('g.rested')], this.o.lines || []), w = 320, ls = [];
     out.forEach(function (l, k) { if (k) ls.push(''); ls = ls.concat(D.wrap(l, w - 20)); });
     return ls;
   };
@@ -501,20 +501,22 @@
   };
   // a night slept on a floor (Cassia's rooms, Aldwin's floor -- js/counter.js): in the house, the floor's party into the save, THE WORLD's clock to the morning and the long
   // rest on the save (H.longRest with no scene: the picks are this morning's, over the floor), the morning, then the rested sheets back on the figures; on a test door, the
-  // floor's four rested in place. A SAVE in the morning stands them at the door they came in by (H.atOf)
+  // floor's four rested in place. A SAVE in the morning stands them at the door they came in by (H.atOf). o.hours: the clock that many hours on instead of to the morning, a
+  // long rest by the clock (the Glowseep's fire, js/mines.js M.seepFire -- 10-27, his "I can't repeatedly sleep to get back to night time"); o.title: the morning card's word
   H.sleepOnFloor = function* (B, o) {
     o = o || {};
     var R = D.roam, R0 = B.roam, W = D.world, house = !!(R.house() && H.playing), lines = [], sheets, done = false;
     if (house) {
       H.fromFloor(B);
-      var sc0 = W.scene; W.scene = null; try { lines = W.camp() || []; } finally { W.scene = sc0; }
+      if (o.hours) { var S = W.state(); S.t += o.hours; S.today = 0; S.todayHex = 0; S.pushing = false; W.save(); lines = H.longRest(null) || []; } // (W.camp's day reset, the clock by the hours)
+      else { var sc0 = W.scene; W.scene = null; try { lines = W.camp() || []; } finally { W.scene = sc0; } }
       sheets = H.cur.party.filter(function (h) { return !h.dead; });
     } else {
       sheets = R0.members.filter(function (u) { return u.src; }).map(function (u) { var sh = JSON.parse(JSON.stringify(u.src)); sh.hp = Math.max(0, u.hp); sh.slots = (u.slots || sh.slots || []).slice(); return sh; });
       lines = H.restSheets(sheets);
     }
     var byKey = {}; sheets.forEach(function (h) { byKey[h.key || h.id] = h; });
-    H.morning({ party: sheets, lines: lines, line: o.line || null, music: o.music, save: house && R.def.save !== false, floor: B, // (the save asked where the floor keeps one: js/roam.js R.canSave's rule)
+    H.morning({ party: sheets, lines: lines, line: o.line || null, title: o.title || null, music: o.music, save: house && R.def.save !== false, floor: B, // (the save asked where the floor keeps one: js/roam.js R.canSave's rule)
       after: function () { R0.members.forEach(function (u) { var sh = u.src && byKey[u.src.key || u.src.id]; if (sh) { u.src.conds = JSON.parse(JSON.stringify(sh.conds || {})); R.resheet(B, u, sh); } }); R.regear(B); },
       saveAt: function () { H.cur.at = H.atOf(B); },
       done: function () { done = true; } });

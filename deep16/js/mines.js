@@ -548,7 +548,8 @@
     fightHours: 1,       // (each fight: an hour)
     nightRate: 0.5,      // (by night the fights come twice as often: the table's rate halved)
     nightWeigh: 2,       // (by night the stirges and the wisp weigh twice)
-    dayHour: 12          // (the test door's hour, with no THE WORLD under it; &hour= sets it)
+    dayHour: 12,         // (the test door's hour, with no THE WORLD under it; &hour= sets it)
+    restHours: 8         // (a long rest at the crews' fire: the SRD's eight hours on the clock, not on to the morning -- 10-27, his "I can't repeatedly sleep to get back to night time")
   };
   // the seat's draft of the ground (his paint later): 40 x 28, north up, the mile down the east side (in and out by it north, south and east), the camp by it
   M.SEEP_ROWS = [
@@ -587,8 +588,11 @@
   })();
   M.LINES.seep = {
     night: 'Night comes down on the Glowseep: the moss lights, and the crews go out with their poles.', day: 'Day on the Glowseep: the moss goes dull, and the crews come in to sleep.',
-    fire: 'The Veterans keep Watch.', sleep: 'You sleep by the crews\' fire. Somebody comes in off the bog before dawn, and nobody wakes you.', morning: 'Morning over the seep. The moss has gone back to green.'
+    fire: 'The Veterans keep Watch.', sleep: 'You sleep by the crews\' fire. Somebody comes in off the bog, and nobody wakes you.', morning: 'Morning over the seep. The moss has gone back to green.',
+    noon: 'Day over the seep: the moss gone dull, and the crews in and asleep round the fire.', dark: 'Night over the seep: the moss lit, and the crews gone out with their poles.'
   }; // (invented.json toplevels-seep-crew)
+  // what the party wakes to after a long rest by the clock (M.SEEP.restHours): the card's word and the seep's line by the hour (the morning's, js/house.js H.Morning's title)
+  M.wakeAt = function (h) { return M.night(h) ? { title: 'NIGHT', line: M.LINES.seep.dark } : h < 11 ? { title: 'MORNING', line: M.LINES.seep.morning } : { title: h < 17 ? 'AFTERNOON' : 'DUSK', line: M.LINES.seep.noon }; };
   M.CREW_LINES = { // (the seat's drafts: invented.json toplevels-seep-crew -- the laugh is the realm's, Aurdin I: "And don't go into debt," all three laughing)
     seepcrew1: { day: ['"Day\'s for sleeping. The moss doesn\'t show till dark, and the bog\'s worse by day than it looks."'], night: ['"Pole up, not out. You hold it over the moss and it tells you where it\'s thick."'],
       aurdin: ['"The evoker! You walked up the mile with us, the morning after the dark. Still got all your fingers?"'] },
@@ -623,9 +627,11 @@
     var go = yield* M.talk(B, 'seepcrew1', function (sc) { return (function* () { return (yield sc.ask(M.LINES.seep.fire, ['LONG REST', 'LEAVE'])) === 0; })(); }, 'The crews\' fire', M.firePic);
     if (!go) return;
     B.card(D.roam.wrap([M.LINES.seep.sleep]), 200); yield 30;
-    var R0 = B.roam; if (!(D.roam.house() && D.house && D.house.playing)) R0.hour = 7; // (the test door's morning; the house's is THE WORLD's camp, M.sleep)
-    M.LINES.bunk.morningWas = M.LINES.bunk.morning; M.LINES.bunk.morning = M.LINES.seep.morning;
-    try { yield* M.sleep(B); } finally { M.LINES.bunk.morning = M.LINES.bunk.morningWas; }
+    // a long rest by the clock (10-27, his "sleeping doesnt' seem to be a long rest, I can't repeatedly sleep to get back to night time"): the SRD's eight hours on THE WORLD's
+    // clock (the test door's own), not on to the morning -- each sleep the long rest again, and three round to the hour it began, the night's fights with it
+    var R0 = B.roam, house = !!(D.roam.house() && D.house && D.house.playing), h1 = (M.hourNow(D.roam.q, B) + M.SEEP.restHours) % 24, wk = M.wakeAt(h1);
+    if (!house) R0.hour = h1;
+    yield* D.house.sleepOnFloor(B, { line: wk.line, title: wk.title, music: 'inn', hours: M.SEEP.restHours });
     yield* M.light(B);
   };
   // THE WORLD's clock on the floor: an hour each M.SEEP.squaresPerHour squares walked and each fight; the floor laid again when day turns to night or back
