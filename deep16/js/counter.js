@@ -154,21 +154,38 @@
   };
   C.renownOf = function () { var H = D.house; return H && H.playing && H.cur ? H.cur.renown || 0 : C.testRenown || 0; };
   // a talk entry's doing (js/events.js EV.dialog): its flags set, a rumour heard, an item taken or given, silver, renown. Returns the lines it adds
+  // a flag set by a word: `work:<where>` is an option of Finding Work (js/hours.js), kept in the order heard (10-28, Griz: "Finding work as a quest fills up with options as you
+  // talk to various NPC"); a rumour that points at work opens its mission (C.RUMOR_OPENS: "pinnable rumor missions")
+  C.flagOn = function (st, k) {
+    var f = st.flags; if (!k) return; f[k] = 1;
+    var w = /^work:(\w+)$/.exec(k); if (w) { f.heardWork = 1; var o = (f.workOrder || '').split(',').filter(Boolean); if (o.indexOf(w[1]) < 0) o.push(w[1]); f.workOrder = o.join(','); }
+  };
+  C.RUMOR_OPENS = {};
+  C.heard = function (st, rid) { st.flags['heard:' + rid] = 1; [].concat(C.RUMOR_OPENS[rid] || []).forEach(function (k) { C.flagOn(st, k); }); };
   C.effects = function (st, br) {
     var out = [];
-    [].concat(br.set || []).forEach(function (f) { st.flags[f] = 1; });
-    [].concat(br.rumor || []).forEach(function (rid) { st.flags['heard:' + rid] = 1; });
+    [].concat(br.set || []).forEach(function (f) { C.flagOn(st, f); });
+    [].concat(br.rumor || []).forEach(function (rid) { C.heard(st, rid); });
     if (br.take) take(st, br.take, 1);
     if (br.give) { give(st, br.give, 1); D.sfx('chest'); out.push(L('g.got', { item: DS.DATA.items[br.give].name })); }
     if (br.silver) { st.silver(br.silver); D.sfx('coin'); out.push(L('g.foundSilver', { n: br.silver })); }
     if (br.renown) out = out.concat(C.renown(st, br.renown, br.renownWhy));
     return out;
   };
-  // a person's word: their first talk whose condition holds, done (js/town.js T.say's choice, with its doing -- the errands' seals and signatures)
+  // a person's word: their first talk whose condition holds, done (js/town.js T.say's choice, with its doing -- the errands' seals and signatures). The second game's own
+  // branches first (C.TALK16, js/hours.js: content/npcs.json is the first game's, and it takes bug fixes only), then the first game's; a branch with `once` is passed over
+  // once said. A person with rumours and no branch for now says the next of theirs not yet said (the first game's EV.dialog), heard into the JOURNAL's THE TALK
+  C.TALK16 = {};
   C.words = function (B, id) {
-    var st = C.state(B), N = ((DS.DATA || {}).npcs || {})[id] || {};
-    var t = st && (N.talk || []).filter(function (e) { return C.cond(e['if'], st); })[0];
-    if (t && t.say) return t.say.slice().concat(C.effects(st, t));
+    var st = C.state(B), N = ((DS.DATA || {}).npcs || {})[id] || {}, own = C.TALK16[id] || [];
+    var pick = function (list, tag) { for (var i = 0; i < list.length; i++) { var e = list[i]; if (e.once && st.flags['said:' + tag + i]) continue; if (C.cond(e['if'], st)) return { e: e, k: tag + i }; } return null; };
+    var hit = st && (pick(own, id + ':16:') || pick(N.talk || [], id + ':'));
+    if (hit && hit.e.say) { if (hit.e.once) st.flags['said:' + hit.k] = 1; return hit.e.say.slice().concat(C.effects(st, hit.e)); }
+    var rs = st && !(N.talk || []).length ? (N.rumors || []).filter(function (r) { return !C.rumorHeld || !C.rumorHeld(r, st); }) : [];
+    if (rs.length) {
+      var ki = 'rumorIdx:' + id, i0 = st.flags[ki] || 0, rid = rs[i0 % rs.length], all = DS.DATA.rumors || [], r = Array.isArray(all) ? all.filter(function (z) { return z.id === rid; })[0] : all[rid];
+      if (r) { st.flags[ki] = i0 + 1; C.heard(st, rid); return [r.t || String(r)]; }
+    }
     return D.town.say(B, id);
   };
 
@@ -559,6 +576,7 @@
       f.wErrA = 1; give(st, 'estatepapers', 1); D.sfx('chest');
       yield sc.say(L('g.got', { item: items.estatepapers.name }));
       if (!f.pin) f.pin = 'errands'; // (the first errand teaches the journal: the first game's playtest 09-25)
+      f['q:errands'] = 1; // (his own word on the JOURNAL below: no card of its opening besides -- js/hours.js H16.missionDue)
       yield sc.say(D.keys(C.LINES.journalGrid));
       return 'leave';
     }
@@ -638,7 +656,7 @@
     if (count(st, 'cloakertail') > 0) { take(st, 'cloakertail', 1); f.cloakerDone = 1; paid = true; yield sc.say(L('hessle.cloakerDrawer'), 'work'); st.silver(400); D.sfx('coin'); yield sc.say(L('g.foundSilver', { n: 400 }), 'welcoming'); yield* major('renown.cloaker'); }
     if (count(st, 'anchorpin') > 0) { take(st, 'anchorpin', 1); f.snootWord = 1; paid = true; yield sc.say(L('hessle.snootWord'), 'work'); st.silver(500); D.sfx('coin'); yield sc.say(L('g.foundSilver', { n: 500 }), 'welcoming'); }
     if (count(st, 'wagonorder') > 0) { take(st, 'wagonorder', 1); f.orderWord = 1; paid = true; yield sc.say(L('hessle.orderWord'), 'skeptical'); st.silver(500); D.sfx('coin'); yield sc.say(L('g.foundSilver', { n: 500 }), 'welcoming'); }
-    var open = C.bounties(f);
+    var open = C.bounties(f); f.boardRead = 1; // (the board read: work found, and each paper whose ground is built a mission -- js/hours.js, his "Board adds each entry as pinnable area pointer mission")
     if (open.length) yield sc.say([L('hessle.boardRead')].concat(open), 'attentive');
     else if (!paid) yield sc.say(L('hessle.boardClear'), 'attentive');
     if (f.fiveDone && !f.fiveNotice) { f.fiveNotice = 1; yield sc.say(L(f.stockDead ? 'hessle.fiveDead' : 'hessle.fiveAlive'), 'concerned'); }
@@ -892,7 +910,7 @@
       if (a === 'insight') { // (6, 7: he owns it, and offers the tongue -- with no one to take it he says so, and offers it all the same)
         if ((yield sc.ask(NL.owned.concat(C.canHarvest(st) ? [] : NL.noHands, NL.quest), [AS.deal, AS.notNow], 'welcoming')) !== 0) { said = NL.notNow; continue; } // (9: turned down, the choice stays)
         f.nedQuest = 1; var live = C.quests(st).filter(function (q) { return q.id === f.pin && !q.done; })[0];
-        if (!live) f.pin = 'nedpage';
+        if (!live) f.pin = 'nedpage'; f['q:nedpage'] = 1; // (his word says the JOURNAL: no card besides -- js/hours.js)
         said = NL.taken.concat(f.pin === 'nedpage' ? [NL.journal] : []); continue;
       }
       if (a === 'tongue') { // (9: the tongue handed in: the page torn out and given)
@@ -926,10 +944,13 @@
       text: 'Across the river, the Crawler Warrens: the mouth camp, where the cradles take hands on by the shift and the bunkhouse gives a bed for the night.',
       doneText: 'The mouth camp: Edric Pellam has your names in his book. The feed track runs between it and Silverton.',
       steps: [{ where: 'The feed track: walk off Silverton\'s east edge where it leaves the town, over the bridge to the mouth camp. The town map (L) marks it.' }] }];
+  // (a second game's record of a first-game id stands over it, field by field -- its show, its words, its steps: js/hours.js; `text` and `steps` may be read off the state; the
+  // list in C.QUESTS's order)
   C.quests = function (st) {
-    return (DS.DATA.quests || []).concat(C.OWN_QUESTS).filter(function (q) { return C.QUESTS.indexOf(q.id) >= 0 && C.cond(q.show, st); }).map(function (q) {
-      var done = C.cond(q.done, st), step = !done && (q.steps || []).filter(function (s) { return C.cond(s['if'], st); })[0];
-      return { id: q.id, name: q.name, text: q.text, doneText: q.doneText, done: done, where: step && step.where, step: step || null };
+    var by = {}; (DS.DATA.quests || []).forEach(function (q) { by[q.id] = q; }); C.OWN_QUESTS.forEach(function (q) { by[q.id] = by[q.id] ? Object.assign({}, by[q.id], q) : q; });
+    return C.QUESTS.map(function (id) { return by[id]; }).filter(function (q) { return q && C.cond(q.show, st); }).map(function (q) {
+      var done = C.cond(q.done, st), steps = typeof q.steps === 'function' ? q.steps(st) : q.steps || [], step = !done && steps.filter(function (s) { return C.cond(s['if'], st); })[0];
+      return { id: q.id, name: q.name, text: typeof q.text === 'function' ? q.text(st) : q.text, doneText: q.doneText, done: done, where: step && step.where, step: step || null };
     });
   };
   C.journal = function (B) {

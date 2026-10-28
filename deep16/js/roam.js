@@ -358,6 +358,7 @@
         if (hitG) { yield* R.engage(B, hitG, false, hitG.mode === 'pursue' ? 'caught' : hitG.why); continue; }
       }
       if (R.warnDue(B)) { yield* R.lanternMan(B); continue; } // (the herd thinned: the lantern man comes down -- R.WARN_AT)
+      if (D.hours && D.hours.due(B)) { yield* D.hours.beat(B); continue; } // (Silverton's hours and words: a mission's card, a scene -- js/hours.js)
       var k = R0.keys.shift();
       var trk = R.tracking(R0);
       if (k === 'order') { if (trk.length) { D.sfx('miss'); B.card(['{g}Not with them coming.{/}'], 120); } else yield* R.order(B); continue; }

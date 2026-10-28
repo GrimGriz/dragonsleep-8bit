@@ -2495,8 +2495,10 @@
       var fO = folkO(BO), auU = fO.filter(function (u) { return u.npc === 'aurdinChapel'; })[0];
       okO('the town: Vivian not standing on vice row, she leads (' + !fO.some(function (u) { return u.npc === 'vivian'; }) + '); Aurdin outside Aldwin\'s chapel in his own figure (' + (auU && auU.sheet + ' at ' + auU.x + ',' + auU.y) + ', the chapel\'s door ' + dO.marks.doors['chapel:aldwin'] + ')',
         !fO.some(function (u) { return u.npc === 'vivian'; }) && !trigO('vivian') && !!auU && auU.sheet === D.save.look('aurdin', null, null).sheet && trigO('aurdinChapel') && Math.hypot(auU.x - dO.marks.doors['chapel:aldwin'][0], auU.y - dO.marks.doors['chapel:aldwin'][1]) < 8);
+      // (since 10-28 the Company opens at the Hex's door, Papa and Lymen's talk -- his "6 - yes": mode=hours1028 plays it; here its flag, as the talk leaves it)
+      var j0O = CCO.journal(BO).quests.length; RO.flags.papaLymen = 1;
       var jO = CCO.journal(BO), cqO = jO.quests.filter(function (q) { return q.id === 'company'; })[0];
-      okO('the JOURNAL: Company first (' + jO.quests.map(function (q) { return q.id; }).join(', ') + '), the first game\'s words, not done, NEXT "' + (cqO && cqO.where) + '"', !!cqO && jO.quests[0].id === 'company' && !cqO.done && cqO.text === window.DS.DATA.quests[0].text && cqO.where === window.DS.DATA.quests[0].steps[0].where);
+      okO('the JOURNAL: nothing in it at the start (' + j0O + '); after Papa and Lymen at the door, Company first (' + jO.quests.map(function (q) { return q.id; }).join(', ') + '), the first game\'s words, not done, NEXT "' + (cqO && cqO.where) + '"', j0O === 0 && !!cqO && jO.quests[0].id === 'company' && !cqO.done && cqO.text === window.DS.DATA.quests[0].text && cqO.where === window.DS.DATA.quests[0].steps[0].where);
       // Aurdin: PAY 20 SP -- with 10, not enough; with 30, he joins
       besideO(BO, [auU.x, auU.y]); var a1 = useO(BO, [auU.x, auU.y], [0]);
       okO('Aurdin with 10 silver: his first-game word, "' + LO('hire.aurdinAsk').slice(0, 30) + '..." PAY 20 SP: "' + LO('g.poor') + '" (' + a1.seen.slice(0, 120) + '); on his face (' + (a1.sc && a1.sc.o.name + ', ' + a1.sc.o.place) + '), not hired',
@@ -3523,6 +3525,134 @@
     document.body.appendChild(preHs);
     return;
   }
+  // SILVERTON'S HOURS AND WORDS, 10-28 (mode=hours1028; the story window, its lane they live\handoff-2026-10-28-silvertons-hours-and-words.md, RULED whole with him 10-28 --
+  // deep16/js/hours.js): the JOURNAL opened by words, each check one of his rulings
+  if (get('mode', '') === 'hours1028') {
+    var repHw = { checks: [], errors: [] }, memHw = {}, stGHw = D.store.get, stSHw = D.store.set, CHw = D.counter, THw = D.town, HHw = D.house, RHw = D.roam, WHw = D.world, HWw = D.hours, apHw = window.DS.autoPicks, IHw = D.input;
+    function okHw(what, v) { repHw.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function driveHw(g, until, cap) { var v, k = 0, st; while (k++ < (cap || 20000)) { if (until && until()) return true; st = g.next(v); v = undefined; if (st.done) return !!(until && until()); if (typeof st.value === 'number' && D.battle) D.battle.t += Math.max(1, st.value); if (st.value && st.value.prompt) v = st.value.prompt.opts[0].value; } return !!(until && until()); }
+    function topHw() { var s = D.top(); if (s && s.baking) { s.baking = false; s.enter(); } return s; }
+    function floorHw() { var B = topHw(); D.battle = B; if (B && B.co) driveHw(B.co, null, 2); return B; }
+    function newHw(lead, flags) { HHw.playing = false; HHw.cur = null; var rec = HHw.fresh(lead); Object.assign(rec.flags, flags || {}); HHw.begin(rec, 0); var B = floorHw(); cardsHw(B); return B; }
+    function trigHw(id) { return (RHw.def.src8.triggers || []).filter(function (t) { return t.id === id; })[0] || null; }
+    function offHw(B) { while (D.top() !== B && D.scenes.length > 1) D.pop(); }
+    function cardsHw(B) { if (B.saidHw) return; B.saidHw = []; var c0 = B.card; B.card = function (ls) { B.saidHw.push(window.DS.stripCodes([].concat(ls).join(' '))); return c0.apply(this, arguments); }; }
+    function lastHw(B) { return B.saidHw[B.saidHw.length - 1] || ''; }
+    function clickHw(sc, b) { if (!b) return false; var mo = IHw.mouse, k = { x: mo.x, y: mo.y, click: mo.click, inside: mo.inside, moved: mo.moved }; mo.x = b.x + b.w / 2; mo.y = b.y + b.h / 2; mo.inside = true; mo.click = true; mo.moved = true; sc.update(); Object.assign(mo, k); return true; }
+    // a word with someone on the floor: a card's, or the counter's screen read through (each question answered by the first option matching `pick`, else LEAVE)
+    function talkHw(B, id, pick) {
+      var tr = trigHw('talk:' + id); if (!tr) return null; var g = THw.fire(B, tr), out = [], k = 0;
+      driveHw(g, function () { return D.top() instanceof CHw.Counter; }, 800);
+      while (D.top() instanceof CHw.Counter && k++ < 30) { var sc = D.top(), w = sc.wait || {}; if (w.say) { out = out.concat(w.say); clickHw(sc, sc.buttons().filter(function (q) { return q.go === 'next'; })[0]); } else if (w.ask) { out = out.concat(w.ask); var bs = sc.buttons().filter(function (q) { return q.go === 'opt'; }), b = (pick && bs.filter(function (q) { return pick.test(q.label); })[0]) || bs.filter(function (q) { return /LEAVE|NOT NOW/.test(q.label); })[0] || bs[bs.length - 1]; clickHw(sc, b); } else break; driveHw(g, null, 30); }
+      driveHw(g, null, 800); offHw(B); return out.length ? out : [lastHw(B)];
+    }
+    function jHw(B) { return CHw.journal(B).quests.map(function (q) { return q.id; }); }
+    function qHw(B, id) { return CHw.journal(B).quests.filter(function (q) { return q.id === id; })[0] || null; }
+    function beatHw(B) { if (!HWw.due(B)) return null; var n = B.saidHw.length; driveHw(HWw.beat(B), null, 600); return B.saidHw.length > n ? lastHw(B) : ''; }
+    function talkHeardHw(B) { return CHw.journal(B).rumors.length; }
+    D.store.get = function (k) { return memHw[k] ? JSON.parse(memHw[k]) : null; }; D.store.set = function (k, v) { memHw[k] = JSON.stringify(v); return true; };
+    window.DS.autoPicks = true;
+    try {
+      D.seed = +get('seed', 1028);
+      // 1. THE JOURNAL BY WORDS (RULED, his "5 - yes", and "Talking to a 'nearby start' NPC to add the things to the journal, not just in there without trigger"): a NEW GAME's
+      // JOURNAL holds none of the town's work; the first look at it is no card
+      var B1 = newHw('barley'), j0 = jHw(B1), seed0 = beatHw(B1);
+      okHw('a NEW GAME (Barley alone): the JOURNAL ' + (j0.join(', ') || 'empty') + ' -- nothing in it, not the Company either; the first look no card (' + JSON.stringify(seed0) + ')',
+        !j0.length && !seed0);
+      // 2. THE MISSING FIVE (his "talking to pete makes 'the missing 5' a journal that points to the booking guy on the surface at the cradles as first waypoint"): Warrens Pete's
+      // word opens it, its first step Edric Pellam at the tally-house with the way there, and its card pins it (nothing pinned before)
+      var pe = talkHw(B1, 'pete'), m5 = qHw(B1, 'warrens'), c5 = beatHw(B1);
+      okHw('a word with Warrens Pete ("' + String(pe[0]).slice(0, 40) + '..."): ' + (m5 ? m5.name : 'nothing') + ', NEXT "' + String(m5 && m5.where).slice(0, 70) + '..."; its card "' + String(c5).slice(0, 90) + '"; pinned ' + CHw.journal(B1).pin,
+        !!m5 && m5.name === 'The Missing Five' && /Edric Pellam at the tally-house/.test(m5.where) && /feed track/.test(m5.where) && /In your JOURNAL: The Missing Five/.test(c5) && /Pinned/.test(c5) && CHw.journal(B1).pin === 'warrens');
+      // 3. A RUMOUR THAT POINTS AT WORK OPENS ITS MISSION, and the rumours go round into THE TALK (his "the way 'the talk' section currently works is good"): the Hand twice
+      var t0 = talkHeardHw(B1), h1 = talkHw(B1, 'towns3'), h2 = talkHw(B1, 'towns3'), cr = qHw(B1, 'cradles'), cc = beatHw(B1);
+      okHw('the Hand twice: "' + String(h1[0]).slice(0, 36) + '...", then "' + String(h2[0]).slice(0, 36) + '..." -- THE TALK ' + t0 + ' -> ' + talkHeardHw(B1) + '; The Cradles open (' + !!cr + '), its card "' + String(cc).slice(0, 60) + '", the pin still The Missing Five (' + CHw.journal(B1).pin + ')',
+        h1[0] !== h2[0] && talkHeardHw(B1) >= t0 + 2 && !!cr && /In your JOURNAL: The Cradles/.test(cc) && !/Pinned/.test(cc) && CHw.journal(B1).pin === 'warrens');
+      // 4. THE SNOOT'S NEWS NOT BEFORE THE MORNING AFTER THE MOOT (the realm's campaign-start.md: the Pit's word, Day 1): the warehouse clerk round his four at Day 0, then a day on
+      var said6 = []; for (var i6 = 0; i6 < 4; i6++) said6.push(talkHw(B1, 'towns6')[0]);
+      var snoot0 = said6.some(function (s) { return /gone Snoot/.test(s); });
+      WHw.state().t += 24; var said6b = []; for (var i7 = 0; i7 < 4; i7++) said6b.push(talkHw(B1, 'towns6')[0]);
+      okHw('the warehouse clerk at Day 0, four words: no Snoot news (' + !snoot0 + '); a day on (Day ' + HWw.day() + '): "' + (said6b.filter(function (s) { return /gone Snoot/.test(s); })[0] || 'none').slice(0, 50) + '"',
+        !snoot0 && said6b.some(function (s) { return /gone Snoot/.test(s); }));
+      // 5. Gull's word, the guano mine's wages: The Cull
+      talkHw(B1, 'gull'); var cu = qHw(B1, 'cull'), ccu = beatHw(B1);
+      okHw('Gull: The Cull open (' + !!cu + '), NEXT "' + String(cu && cu.where).slice(0, 60) + '...", its card', !!cu && /Sabeth Pollard/.test(cu.where) && /In your JOURNAL: The Cull/.test(ccu));
+      // 6. FINDING WORK, an OR that fills (his "sounds like an AND when we should make it an OR ... getting a quest from where it points (winters, the board) completes the finding
+      // work quest"): the factor's man's word of Winters opens it with that one option; Hessle's board read adds nothing to it but is work taken -- it closes, and the cloaker's
+      // paper is a mission of its own (his "Board adds each entry as pinnable area pointer mission in journal")
+      var w7 = talkHw(B1, 'towns7'), fw = qHw(B1, 'work'), cfw = beatHw(B1);
+      okHw('the factor\'s man ("' + String(w7[0]).slice(0, 40) + '..."): Finding Work open, "' + String(fw && fw.text).slice(0, 110) + '", NEXT "' + String(fw && fw.where).slice(0, 50) + '..."',
+        !!fw && !fw.done && /Winters' papers/.test(fw.text) && !/Hessle/.test(fw.text) && /Ambrose Winters/.test(fw.where) && /In your JOURNAL: Finding Work/.test(cfw));
+      var CB = RHw.def; driveHw(THw.fire(B1, trigHw('keeper:hessle')), null, 2000); var inH = RHw.def.room === 'keeper:hessle', hs = inH ? talkHw(B1, 'hessle') : [];
+      var tl = qHw(B1, 'tail'), fw2 = qHw(B1, 'work'); driveHw(THw.goOut(B1), null, 400); var ctl = beatHw(B1);
+      okHw('Hessle\'s board read (in ' + inH + '): The Forty-Gold Tail a mission (' + !!tl + ', NEXT "' + String(tl && tl.where).slice(0, 50) + '..."), Finding Work done (' + !!(fw2 && fw2.done) + '); the card "' + String(ctl).slice(0, 70) + '"',
+        inH && !!tl && !tl.done && /deep gallery/.test(tl.where) && !!fw2 && fw2.done && /The Forty-Gold Tail/.test(ctl));
+      // 7. A SAVE FROM BEFORE: what its JOURNAL shows at the first look is taken as seen -- no card for any of it
+      var B2 = newHw('vivian', { heardPete: 1, heardHex: 1, heardGalleries: 1, wintersMet: 1, wErrA: 1 }), j2 = jHw(B2), c2 = beatHw(B2), c2b = beatHw(B2);
+      okHw('a save from before (heardPete, heardHex, heardGalleries, Winters\' first errand): its JOURNAL ' + j2.join(', ') + ', and no card at its first look or after (' + JSON.stringify(c2) + ', ' + JSON.stringify(c2b) + ')',
+        ['warrens', 'hex', 'cull', 'errands'].every(function (id) { return j2.indexOf(id) >= 0; }) && !c2 && !c2b);
+      // 8. PAPA AND LYMEN OPEN THE COMPANY (his "6 - yes"): Barley's party comes up to the Hex's door -- the talk on the map (a line a prompt, Lymen beside Papa in his own figure),
+      // then the Company pinned and Finding Work with Papa's four kinds of work
+      var near = function (B, who) { var p = B.units.filter(function (u) { return u.npc === who; })[0], t = B.roam.token, G = D.grid; if (!p) return false; for (var r = 2; r <= 3; r++) for (var dy = -r; dy <= r; dy++) for (var dx = -r; dx <= r; dx++) { var x = p.x + dx, y = p.y + dy; if (Math.max(Math.abs(dx), Math.abs(dy)) === r && G.canStand(t, x, y)) { t.x = x; t.y = y; B.roam.path = null; return true; } } return false; };
+      var scene = function (B) { var g = HWw.beat(B), v, k = 0, st, out = [], ly = false; while (k++ < 4000) { st = g.next(v); v = undefined; if (st.done) break; if (st.value && st.value.prompt) { out.push(st.value.prompt.title + ': ' + window.DS.stripCodes(st.value.prompt.lines.join(' '))); v = 0; ly = ly || B.units.some(function (u) { return u.npc === 'lymenDoor'; }); } else if (typeof st.value === 'number') B.t += st.value; } return { lines: out, lymen: ly }; };
+      var B8 = newHw('barley'); beatHw(B8); var nr8 = near(B8, 'papa'), due8 = HWw.due(B8), sc8 = due8 ? scene(B8) : { lines: [] }, j8 = jHw(B8), c8 = beatHw(B8), fw8 = qHw(B8, 'work');
+      okHw('Barley\'s party at the Hex\'s door (' + nr8 + ', due ' + due8 + '): ' + sc8.lines.length + ' lines, Lymen beside Papa ' + sc8.lymen + ' and gone in after (' + !B8.units.some(function (u) { return u.npc === 'lymenDoor'; }) + ') -- "' + (sc8.lines[1] || '').slice(0, 60) + '..."; the JOURNAL ' + j8.join(', ') + ', pinned ' + CHw.journal(B8).pin + '; the card "' + String(c8).slice(0, 80) + '"',
+        due8 && sc8.lymen && !B8.units.some(function (u) { return u.npc === 'lymenDoor'; }) && /^LYMEN: Gnolls on the road/.test(sc8.lines[1]) && sc8.lines.some(function (l) { return /Barley/.test(l); }) === false && sc8.lines.some(function (l) { return /Marta's girl/.test(l) && /farm boy/.test(l); })
+          && j8.join(',') === 'company,work' && CHw.journal(B8).pin === 'company' && /In your JOURNAL: Company/.test(c8) && /And: Finding Work/.test(c8) && /Winters' papers.*Hessle's board.*cradles.*Korvin's slate/.test(fw8 && fw8.text));
+      okHw('and the Company\'s NEXT one of the three (' + String(qHw(B8, 'company').where).slice(0, 50) + '...); the scene once (due again ' + HWw.due(B8) + ')', !!qHw(B8, 'company').where && !HWw.due(B8));
+      // 9. Lymen leading: Lymen himself at the door -- no second Lymen; Papa's "Then go and find some." and the three named
+      var B9 = newHw('lymen'); beatHw(B9); near(B9, 'papa'); var sc9 = HWw.due(B9) ? scene(B9) : { lines: [] };
+      okHw('Lymen leading: ' + sc9.lines.length + ' lines, no Lymen beside Papa (' + !sc9.lymen + '), "' + (sc9.lines.filter(function (l) { return /go and find some/.test(l); })[0] || '').slice(0, 120) + '"',
+        sc9.lines.length >= 5 && !sc9.lymen && sc9.lines.some(function (l) { return /Then go and find some/.test(l) && /Barley/.test(l) && /Marta's girl/.test(l) && /farm boy/.test(l); }) && !!B9.roam.flags.papaLymen);
+      // 10. THE PEOPLE BESIDE EACH LEAD'S START: Aldwin (Aurdin's), Marta (Vivian's), Kess (Barley's) -- each opens Finding Work with their own place first
+      var B10 = newHw('aurdin'); beatHw(B10); driveHw(THw.fire(B10, trigHw('chapel:aldwin')), null, 2000); var al = RHw.def.room === 'chapel:aldwin' ? talkHw(B10, 'aldwin') : []; driveHw(THw.goOut(B10), null, 400);
+      var fw10 = qHw(B10, 'work'), c10 = beatHw(B10);
+      okHw('Aurdin\'s start, Aldwin in the chapel ("' + String(al[1] || '').slice(0, 50) + '..."): Finding Work, NEXT "' + String(fw10 && fw10.where).slice(0, 40) + '..."', !!fw10 && /Ambrose Winters/.test(fw10.where) && /Finding Work/.test(c10));
+      var B11 = newHw('vivian'); beatHw(B11); var ma = talkHw(B11, 'marta'), fw11 = qHw(B11, 'work'), tl11 = qHw(B11, 'tail'), c11 = beatHw(B11);
+      okHw('Vivian\'s start, her mother at the stall ("' + String(ma[1] || '').slice(0, 50) + '..."): Finding Work, NEXT "' + String(fw11 && fw11.where).slice(0, 30) + '...", and the cloaker\'s Tail (' + !!tl11 + ')', /You're up\. Eat\./.test(ma[0]) && !!fw11 && /Hessle's board/.test(fw11.where) && !!tl11 && /Finding Work/.test(c11));
+      var B12 = newHw('barley'); beatHw(B12); var trK = trigHw('keeper:kess'), ks = []; if (trK) { var gK = THw.fire(B12, trK); driveHw(gK, function () { return D.top() instanceof CHw.Counter; }, 800); var scK = D.top(); while (scK instanceof CHw.Counter && scK.wait && scK.wait.say && !scK.done) { ks = ks.concat(scK.wait.say); clickHw(scK, scK.buttons().filter(function (q) { return q.go === 'next'; })[0]); } driveHw(gK, null, 400); offHw(B12); }
+      var fw12 = qHw(B12, 'work'), cr12 = qHw(B12, 'cradles'), c12 = beatHw(B12);
+      okHw('Barley\'s start, Kess at her door ("' + String(ks[1] || '').slice(0, 50) + '..."): Finding Work, NEXT "' + String(fw12 && fw12.where).slice(0, 30) + '...", and The Cradles (' + !!cr12 + ')', !!fw12 && /The Warrens/.test(fw12.where) && !!cr12 && /Finding Work/.test(c12));
+      // 11. a save with its four: the Company still in its JOURNAL (done), no scene at the door
+      HHw.playing = false; HHw.cur = null; var r13 = HHw.fresh(); HHw.begin(r13, 0); var B13 = floorHw(); cardsHw(B13); beatHw(B13); near(B13, 'papa'); var d13 = HWw.due(B13), q13 = qHw(B13, 'company');
+      okHw('a save with its four: the Company in the JOURNAL (' + !!q13 + ', done ' + !!(q13 && q13.done) + '), no scene at the door (' + !d13 + ')', !!q13 && q13.done && !d13);
+      // a keeper in their room: in by the door, the counter read through with the answers given in turn (then LEAVE), out again; returns every line said and every question
+      var roomHw = function (B, door, id, picks) {
+        driveHw(THw.fire(B, trigHw(door)), null, 2000); if (RHw.def.room !== door) return null;
+        var tr = trigHw('talk:' + id), g = THw.fire(B, tr), out = [], k = 0, ps = (picks || []).slice(); driveHw(g, function () { return D.top() instanceof CHw.Counter; }, 800);
+        var w0 = null; // (a say that pages is the same wait page after page: recorded once)
+        while (D.top() instanceof CHw.Counter && k++ < 40) { var sc = D.top(), w = sc.wait || {}, nw = w !== w0; w0 = w; if (w.say) { if (nw) out.push(window.DS.stripCodes(w.say.join(' '))); clickHw(sc, sc.buttons().filter(function (q) { return q.go === 'next'; })[0]); } else if (w.ask) { out.push('? ' + window.DS.stripCodes(w.ask.join(' ')) + ' [' + w.opts.map(function (o) { return o.label || o; }).join('|') + ']'); var bs = sc.buttons().filter(function (q) { return q.go === 'opt'; }), re = ps.shift(), b = (re && bs.filter(function (q) { return re.test(q.label); })[0]) || bs.filter(function (q) { return /LEAVE/.test(q.label); })[0]; clickHw(sc, b); } else if (w.shelves) { sc.close(); } else break; driveHw(g, null, 30); }
+        driveHw(g, null, 800); offHw(B); driveHw(THw.goOut(B), null, 400); return out;
+      };
+      // 12. LUCIA (his "8 - yes"; "Lucia wouldn't say "mama mixes" she'd say "I mix""): Barley's first visit his own opener and CONSULT; CONSULT on a hurt party names each fix;
+      // a later visit "I mix"; the first morning after the moot, the Pit's word in her own mouth, once
+      var BL = newHw('barley'); beatHw(BL); BL.roam.silver = 50; var lu1 = roomHw(BL, 'shop:lucia', 'lucia', [/CONSULT/]);
+      okHw('Lucia, Barley\'s first visit: "' + String(lu1 && lu1[0]).slice(0, 70) + '..."; CONSULT on a whole party: "' + String(lu1 && lu1[1]).slice(0, 50) + '"',
+        !!lu1 && /get up against Cutter/.test(lu1[0]) && /\[THE SHELVES\|CONSULT\|LEAVE\]/.test(lu1[0]) && /Nothing I can fix/.test(lu1[1]) && !/Mama mixes/.test(lu1.join(' ')));
+      var hb = BL.roam.members.filter(function (u) { return u.src; })[0]; hb.hp = Math.max(1, Math.floor(hb.maxhp / 3)); HHw.exhaust(hb.src, 1); hb.conds = hb.conds || {}; hb.conds.poisoned = { n: 1 };
+      var lu2 = roomHw(BL, 'shop:lucia', 'lucia', [/CONSULT/]);
+      okHw('and with Barley bled, worn and poisoned: her opener "' + String(lu2 && lu2[0]).slice(0, 50) + '...", CONSULT "' + String(lu2 && lu2[1]).slice(0, 150) + '"',
+        !!lu2 && /grey with it/.test(lu2[0]) && /Poison in Barley/.test(lu2[1]) && /Barley is worn/.test(lu2[1]) && /Barley has lost a lot of blood/.test(lu2[1]));
+      hb.hp = hb.maxhp; HHw.exhaust(hb.src, -1); delete hb.conds.poisoned; var lu3 = roomHw(BL, 'shop:lucia', 'lucia', []);
+      WHw.state().t += 24; var lu4 = roomHw(BL, 'shop:lucia', 'lucia', []), lu5 = roomHw(BL, 'shop:lucia', 'lucia', []);
+      okHw('a later visit: "' + String(lu3 && lu3[0]).slice(0, 40) + '..."; the first morning after the moot: "' + String(lu4 && lu4[0]).slice(0, 80) + '...", once (then "' + String(lu5 && lu5[0]).slice(0, 20) + '..."), the news in THE TALK',
+        !!lu3 && /^\? I mix\. Higertha sells at the hatch/.test(lu3[0]) && !!lu4 && /never the gnolls they were after/.test(lu4.join(' ')) && !!lu5 && /^\? I mix/.test(lu5[0]) && !!BL.roam.flags['heard:r-snoot']);
+      // 13. SWANN, 5 SP (his "9 - yes, in the case of no pinned messages a consult will pin one first"): no silver, no reading; nothing open, she opens Finding Work and pins it;
+      // the reading her line and the plain step; Day 0 no word of the old thing, the first morning on once
+      var BS = newHw('vivian'); beatHw(BS); BS.roam.silver = 2; var sw0 = roomHw(BS, 'keeper:sylvia', 'sylvia', [/READ/]);
+      okHw('Swann with 2 silver: "' + String(sw0 && sw0[0]).slice(0, 40) + '...", READ refused ("' + String(sw0 && sw0[2]).slice(0, 40) + '"), the silver kept (' + BS.roam.silver + ')', !!sw0 && /draped table/.test(sw0[0]) && /on credit/.test(sw0[2]) && BS.roam.silver === 2);
+      BS.roam.silver = 20; var sw1 = roomHw(BS, 'keeper:sylvia', 'sylvia', [/READ/]), pin1 = CHw.journal(BS).pin;
+      okHw('with 20 and nothing in the JOURNAL: her reading "' + String(sw1 && sw1[1]).slice(0, 120) + '" -- pinned ' + pin1 + ', 5 paid (' + BS.roam.silver + '), no old thing at Day 0',
+        !!sw1 && /Coin's on Fountain Street/.test(sw1[1]) && /Next: Ambrose Winters/.test(sw1[1]) && pin1 === 'work' && BS.roam.silver === 15 && !/old thing/.test(sw1.join(' ')));
+      talkHw(BS, 'pete'); delete BS.roam.flags.pin; WHw.state().t += 24; var sw2 = roomHw(BS, 'keeper:sylvia', 'sylvia', [/READ/, /READ/]), pin2 = CHw.journal(BS).pin;
+      okHw('nothing pinned, the first morning on: she pins the first open (' + pin2 + ') and reads it -- "' + String(sw2 && sw2[1]).slice(0, 60) + '..."; the old thing once (' + ((sw2 || []).filter(function (s) { return /old thing/.test(s); }).length) + ' of two readings: ' + JSON.stringify(sw2).slice(0, 600) + ')',
+        !!sw2 && pin2 === 'work' && /old thing walks/.test(sw2[1]) && sw2.filter(function (s) { return /old thing/.test(s); }).length === 1 && BS.roam.silver === 5);
+    } catch (eHw) { repHw.errors.push(String(eHw && eHw.stack || eHw).slice(0, 900)); }
+    D.store.get = stGHw; D.store.set = stSHw; window.DS.autoPicks = apHw; if (D.house) { D.house.playing = false; D.house.cur = null; }
+    var preHw = document.createElement('pre'); preHw.id = 'out'; preHw.textContent = 'BENCH16 ' + JSON.stringify(repHw);
+    document.body.appendChild(preHw);
+    return;
+  }
   // THE HOUSE'S FIXES, ROUND TWO, 10-28 (mode=housefix1028b; the house-notes seat, on the lanes desk's relay of his read of the first round): exhaustion from THE WORLD's march
   // through Silverton and every sleep, Venn Hale's door at the compound's own gate, the Warrens' journal line from Warrens Pete
   if (get('mode', '') === 'housefix1028b') {
@@ -3729,7 +3859,7 @@
       okQ('the town map (L): the feed track\'s ' + feedJ.length + ' squares on the east edge (x ' + feedJ.map(function (q) { return q[0]; }).filter(function (x, i, a) { return a.indexOf(x) === i; }).join('/') + ' of ' + dJ.w + ') marked, "' + (saidJ.filter(function (s) { return /WARRENS/.test(s); })[0] || '') + '" beside them; the walk off it the Warrens\' (M.FEED ' + MQ.FEED + ')',
         feedJ.length > 0 && feedJ.every(function (q) { return q[0] === dJ.w - 1; }) && feedJ.some(function (q) { return q[0] === MQ.FEED[0] && q[1] === MQ.FEED[1]; }) && saidJ.some(function (s) { return /THE WARRENS/.test(s); }));
       BJ.roam.flags.tallyMet = 1; var wJ2 = CQ.journal(BJ).quests.filter(function (q) { return q.id === 'warrens'; })[0];
-      okQ('met at the tally-house: done, "' + (wJ2 && wJ2.doneText) + '"', !!wJ2 && wJ2.done);
+      okQ('met at the tally-house: on to Skarn (since 10-28 the line is The Missing Five, his "talking to pete makes \'the missing 5\' a journal that points to the booking guy ... as first waypoint": mode=hours1028), NEXT "' + (wJ2 && wJ2.where) + '"', !!wJ2 && !wJ2.done && /Skarn/.test(wJ2.where));
       // 9. A BOUT LOST: OUT AT DAVOS KREN'S DOOR, STITCHED (his "kick the party to krenn if a fighter falls (out of the hex and at his shop door - but already serviced)"): the one
       // who fell at half, the party on his threshold on the street facing his door (the card's loss runs it: mode=hex1022's Talmok, stitched to half)
       var BL = houseQ(HQ.fresh()), RL = BL.roam, trL = (RQ.def.src8.triggers || []).filter(function (t) { return t.id === 'hex:front'; })[0]; driveQ(TQ.fire(BL, trL), null, 2000);
@@ -3816,12 +3946,12 @@
       // THE SUPERFLUOUS OK (his "Have we already addressed superfluous 'ok' (when a keeper's text is a single line, no point in having to click 'ok' for shelves and leave."): a
       // shelves keeper whose words fit the box asks THE SHELVES / LEAVE with them at once -- no OK first, and their line said once, not twice
       var B = beatHn('kasten'), oneOk = [], oneBad = [];
-      ['kessler', 'calla', 'kasten', 'lucia', 'vilar', 'marko', 'lisbet', 'tally', 'percy'].forEach(function (id) {
+      ['kessler', 'calla', 'kasten', 'vilar', 'marko', 'lisbet', 'tally', 'percy'].forEach(function (id) { // (Lucia since 10-28 her own script, her openers and CONSULT with the shelves -- his "8 - yes": mode=hours1028)
         var t = talkHn(B, id), sc = t.sc, w = sc && sc.wait || {};
         if (upHn() && w.ask && !w.say && optsHn(sc) === 'THE SHELVES,LEAVE' && w.ask.join(' ').length > 20) oneOk.push(id); else oneBad.push(id + (w.say ? ' (an OK first: "' + w.say.join(' ').slice(0, 40) + '")' : ' (' + JSON.stringify(w).slice(0, 60) + ')'));
         offHn(B);
       });
-      okHn('a shelves keeper\'s words in one box: THE SHELVES / LEAVE asked with them, no OK first -- ' + oneOk.join(', ') + (oneBad.length ? '; not: ' + oneBad.join('; ') : ''), !oneBad.length && oneOk.length === 9);
+      okHn('a shelves keeper\'s words in one box: THE SHELVES / LEAVE asked with them, no OK first -- ' + oneOk.join(', ') + (oneBad.length ? '; not: ' + oneBad.join('; ') : ''), !oneBad.length && oneOk.length === 8);
       var tK = talkHn(B, 'kasten'), scK = tK.sc; goHn(scK, 'opt', 'THE SHELVES'); var shelvesK = !!scK.shop && scK.shopId === 'kasten'; goHn(scK, 'back'); var backK = optsHn(scK); goHn(scK, 'opt', 'LEAVE'); driveHn(tK.g, null, 200);
       okHn('Kasten: THE SHELVES opens his shelf (' + shelvesK + '), BACK asks again (' + backK + '), LEAVE the floor', shelvesK && backK === 'THE SHELVES,LEAVE' && D.top() === B);
       (B.inv = B.inv || []).push({ id: 'batwings', n: 2 }); var tP = talkHn(B, 'percy'), scP = tP.sc, wP = readHn(scP), aP = scP.wait && scP.wait.ask ? scP.wait.ask.join(' ') : '';
