@@ -7187,7 +7187,7 @@
 }
 },
 "lamia_p1": {
-"image": "art/lamia_p1.png?v=cc1fb05c27",
+"image": "art/lamia_p1.png?v=b32646f4a1",
 "fw": 136,
 "fh": 104,
 "ax": 68,
@@ -7435,8 +7435,8 @@
 "fh": 104,
 "ax": 68,
 "ay": 97,
-"frames": 1,
-"fps": 4
+"frames": 6,
+"fps": 5
 },
 "prone": {
 "y": 7488,
@@ -7455,6 +7455,26 @@
 "ay": 97,
 "frames": 6,
 "fps": 8
+},
+"stillwalk": {
+"y": 9152,
+"fw": 136,
+"fh": 104,
+"ax": 68,
+"ay": 97,
+"frames": 8,
+"fps": 10,
+"held": "the human form, not played yet (his \"hold for now I'll collab with story oriented session\")"
+},
+"stillcast": {
+"y": 9984,
+"fw": 136,
+"fh": 104,
+"ax": 68,
+"ay": 97,
+"frames": 6,
+"fps": 8,
+"held": "the human form, not played yet (his \"hold for now I'll collab with story oriented session\")"
 }
 },
 "source": "drawn by the art desk (ART-20 FINAL, all five views, 10-22), cut by tools/lamia-sheet.py through tools/artdesk.py (10-27)"

@@ -97,7 +97,7 @@
   // (nor a cutscene's row: GreyFang's `headless` plays only in his end, js/trophy.js -- 10-14)
   // (nor a row that is another's drawing under a second name, its sheet's `same`: the Harbinger's `kneel` is his `cast`, the row the engine plays for his Kneel -- 10-15)
   // (nor a row the grid never plays: the matriarch's `cackle`, the Snoot mode's own -- 10-15)
-  SH.wanted = function (sheet, kind) { var fb = SH.fallback(sheet, kind), an = (D.SHEETS[sheet] || {}).anims || {}; return SH.rowsOf(sheet).filter(function (r) { return !(fb && r === 'attack') && r !== 'climb' && r !== 'headless' && r !== 'cackle' && !(an[r] && an[r].same); }); };
+  SH.wanted = function (sheet, kind) { var fb = SH.fallback(sheet, kind), an = (D.SHEETS[sheet] || {}).anims || {}; return SH.rowsOf(sheet).filter(function (r) { return !(fb && r === 'attack') && r !== 'climb' && r !== 'headless' && r !== 'cackle' && !(an[r] && (an[r].same || an[r].held)); }); }; // (held: a row cut and not played yet -- the lamia's human walk and cast, 10-28)
   // has it shown every row it has (but its death)?
   function shown(u) { return SH.wanted(u.sheet, u.kind).every(function (r) { return r === 'hurt' || (u.showSeen || {})[r]; }); }
 
