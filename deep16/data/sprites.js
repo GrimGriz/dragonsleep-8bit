@@ -4101,6 +4101,93 @@
 }
 }
 },
+"folkchild_p1": {
+"image": "art/folkchild_p1.png?v=e4d0c2bc95",
+"fw": 72,
+"fh": 64,
+"ax": 36,
+"ay": 60,
+"top": 35,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 72,
+"fh": 64,
+"ax": 36,
+"ay": 60,
+"frames": 4,
+"fps": 5
+},
+"walk": {
+"y": 512,
+"fw": 72,
+"fh": 64,
+"ax": 36,
+"ay": 60,
+"frames": 8,
+"fps": 12
+}
+},
+"source": "drawn by the art desk (ART-09 FINAL SE and NE, 10-10; ART-52 REVIEW S, E and N, 10-18), cut by tools/townsfolk-sheet.py through tools/artdesk.py (10-27)"
+},
+"folkman_p1": {
+"image": "art/folkman_p1.png?v=cfc54f95c0",
+"fw": 72,
+"fh": 64,
+"ax": 36,
+"ay": 60,
+"top": 50,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 72,
+"fh": 64,
+"ax": 36,
+"ay": 60,
+"frames": 4,
+"fps": 5
+},
+"walk": {
+"y": 512,
+"fw": 72,
+"fh": 64,
+"ax": 36,
+"ay": 60,
+"frames": 8,
+"fps": 12
+}
+},
+"source": "drawn by the art desk (ART-09 FINAL SE and NE, 10-10; ART-52 REVIEW S, E and N, 10-18), cut by tools/townsfolk-sheet.py through tools/artdesk.py (10-27)"
+},
+"folkwoman_p1": {
+"image": "art/folkwoman_p1.png?v=053e9f85a6",
+"fw": 72,
+"fh": 64,
+"ax": 36,
+"ay": 60,
+"top": 47,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 72,
+"fh": 64,
+"ax": 36,
+"ay": 60,
+"frames": 4,
+"fps": 5
+},
+"walk": {
+"y": 512,
+"fw": 72,
+"fh": 64,
+"ax": 36,
+"ay": 60,
+"frames": 8,
+"fps": 12
+}
+},
+"source": "drawn by the art desk (ART-09 FINAL SE and NE, 10-10; ART-52 REVIEW S, E and N, 10-18), cut by tools/townsfolk-sheet.py through tools/artdesk.py (10-27)"
+},
 "gargoyle_p1": {
 "image": "art/gargoyle_p1.png?v=c6f71dd3c4",
 "fw": 96,

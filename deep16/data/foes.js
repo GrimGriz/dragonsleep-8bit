@@ -1052,3 +1052,19 @@ window.D16.FOES.gnollmatriarchlama = {
   multi: 1, build: 'matriarchlama',
   src: 'ours (invented.json #gray-keeping-matriarchs): a matriarch with the Gray Keeping\'s band, a cleric 6 of the Keeping (js/classes.js NPC.NAMED matriarchlama) -- OD&D Book I\'s Lama, "Hero"; this block is her sheet as the class builds it (cleric 6 at the average: 39 HP, AC 14)'
 };
+// the townsfolk (10-27, the monster cutter seat on Griz's "spin up a cutter for the leftovers in fresh, everything in the outbox has been sent"; his
+// 10-14: "the villagers are for the edifice fight I think"): the SRD 5.1 Commoner on the art desk's three looks of the street's people, ART-09 and
+// ART-52 (tools/townsfolk-sheet.py: a man, a woman, a child, idle and run in all eight facings). The Skylights' street runs on them (js/battle.js
+// townsfolk, one look after another); the Pocket DM may draw any of the three.
+window.D16.FOES.commoner = {
+  name: 'Commoner', type: 'humanoid', sheet: 'folkman_p1', cr: '0', ac: 10, hp: 4, speed: 30, size: 1, reach: 5,
+  abil: { str: 10, dex: 10, con: 10, int: 10, wis: 10, cha: 10 }, init: 0, perception: 10,
+  saves: { str: 0, dex: 0, con: 0, int: 0, wis: 0, cha: 0 },
+  attacks: { club: { name: 'Club', atk: 2, dice: '1d4', mod: 0, type: 'bludgeoning', reach: 5 } },
+  multi: 1,
+  src: 'SRD 5.1 Commoner (CR 0, Medium humanoid; AC 10, 4 HP, speed 30): its Club +2, 1d4 bludgeoning. Drawn unarmed and running (the art desk\'s townsfolk, idle and run only): a club swung plays its idle'
+};
+window.D16.FOES.commonerwoman = Object.assign({}, window.D16.FOES.commoner, { sheet: 'folkwoman_p1',
+  src: window.D16.FOES.commoner.src + '; the woman\'s look (folkwoman_p1, 10-27): the same block' });
+window.D16.FOES.commonerchild = Object.assign({}, window.D16.FOES.commoner, { name: 'Child', size: 1,
+  sheet: 'folkchild_p1', src: window.D16.FOES.commoner.src + '; the child\'s look (folkchild_p1, 10-27): the same block, the size of a Small one\'s figure on a Medium square' });

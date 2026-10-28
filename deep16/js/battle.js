@@ -206,6 +206,7 @@
         if (id === 'findfamiliar') Object.keys(D.FOES).forEach(function (k) { if (/^fam_/.test(k)) kind(k); });
       });
     });
+    if (((this.fight && this.fight.arrive && this.fight.arrive.waves) || []).some(function (wv) { return wv.flee; })) Battle.FOLK.forEach(kind); // (the street's people a wave sends running: Battle.townsfolk, 10-27)
     kinds.forEach(function (k) { add(soon, D.FOES[k] && D.FOES[k].sheet); });
     return { now: now, soon: soon.filter(function (n) { return now.indexOf(n) < 0; }) };
   };
@@ -761,9 +762,12 @@
     if (came.length) this.card(['{y}INITIATIVE{/}  ' + came.map(function (u) { return shortName(u) + ' ' + u.initRoll; }).join(' · ')], 300);
   };
   // the street's people (a wave's `flee`, 10-05): townsfolk made for the look of it -- ours, no one's target, never in the order -- each at a door or an alley's mouth, running for a
-  // square down the south road; walked with the wave by walkIn and taken off the field after. They wear the plain men's sheets for now (deep16-art-wanted.md)
+  // square down the south road; walked with the wave by walkIn and taken off the field after. They wear the art desk's townsfolk since 10-27 -- the man, the woman and
+  // the child in turn (data/foes.js commoner: ART-09 and ART-52, tools/townsfolk-sheet.py); the plain men's sheets before, kept as the fallback
+  Battle.FOLK = ['commoner', 'commonerwoman', 'commonerchild'];
   Battle.prototype.townsfolk = function (fl) {
-    var self = this, kinds = ['crewman', 'thug', 'bandit', 'brawler'].filter(function (k) { return !!D.FOES[k]; }), out = [];
+    var self = this, kinds = Battle.FOLK.filter(function (k) { return !!D.FOES[k]; }), out = [];
+    if (!kinds.length) kinds = ['crewman', 'thug', 'bandit', 'brawler'].filter(function (k) { return !!D.FOES[k]; });
     (fl.from || []).forEach(function (fr, i) {
       var u = self.makeFoe({ id: 'folk' + i, kind: kinds[i % kinds.length], at: fr, side: 'party', ally: true });
       u.name = 'Townsfolk'; u.look = true; u.attacks = {}; u.multi = 1; u.hp = u.maxhp = 4; u.lvl = 1;
