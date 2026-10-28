@@ -1311,6 +1311,7 @@
     var ey = B.dark && B.eyes; // (the one under the mouse, or the hero whose turn it is on a map with no light: js/light.js L.pass)
     if (ey) { var vm = D.light.viewMap(B, ey); D.text(ctx, 'EYES: ' + ey.name + ' · ' + [vm.blind ? 'blinded' : vm.dv ? 'darkvision ' + vm.dv : 'no darkvision', vm.bs ? (ey.truesight ? 'truesight ' : 'blindsight ') + vm.bs : ''].filter(Boolean).join(', '), 5, BAR_Y - 22, R('glow', 2)); } // (whose eyes the dark is drawn by: a line above the tooltip's bottom one)
     tooltip(ctx, B, hero);
+    if (B.screenOver) B.screenOver(ctx); // (a host's own over the screen: a store's name on its sign while walking a town -- js/roam.js R.screenOver)
     // the square under the cursor, by the grid's own numbering, top right (Griz, 10-01: "Me getting better at pointing to the tile by
     // your numbering or some standardized tile referencing"): x counts from the far upper-left wall, y from the far upper-right, so
     // (0, 0) is the map's top corner; x grows down to the right, y down to the left -- he can say "4,1" and mean the seat's 4,1

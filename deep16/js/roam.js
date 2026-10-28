@@ -276,6 +276,7 @@
     B.menuClosed = function () { R.regear(B); };
     B.menuSave = function () { return R.canSave(B); }; // (SAVE on the M menu out of a fight, inside the 8-bit: R.save)
     B.floorMarks = function (c) { R.floorMarks(c, B); }; B.marksOver = function (c) { R.marksOver(c, B); }; // (ORDER's box on the floor, under the figures: ui.js drawBattle's hook)
+    B.screenOver = function (c) { R.screenOver(c, B); }; // (over the screen, after the world: a store's name on its sign -- R.screenOver)
     if (!R.emb && !/[?&]save\b/.test(R.q) && !(B.inv || []).some(function (s) { return s.id === 'lantern' && s.n > 0; })) (B.inv = B.inv || []).push({ id: 'lantern', n: 1 });
     // walked in from a save, the pack is the party's own: no loan (every grid fight not opened from inside the 8-bit lends a crossbow, bolts, arrows and a rope -- js/save.js
     // SV.armoury; the 8-bit's party carries only what it brought, Griz 09-27). The test's four keep the ladder's kit
@@ -1870,6 +1871,11 @@
     var p = R0.hpath, ok = !!p && p.length * 5 <= R.clickFt(), col = !p ? 'rgba(240,90,80,0.9)' : !ok ? 'rgba(160,160,170,0.85)' : R0.huse ? 'rgba(232,208,112,0.95)' : 'rgba(150,235,150,0.95)';
     if (ok) p.forEach(function (q) { iso.rhombus(c, q[0], q[1], G.map.gz(q[0], q[1]), 11); c.fillStyle = R0.huse ? 'rgba(232,208,112,0.45)' : 'rgba(150,235,150,0.45)'; c.fill(); });
     iso.rhombus(c, hv.x, hv.y, G.map.gz(hv.x, hv.y), 2); c.strokeStyle = col; c.lineWidth = 1.5; c.stroke(); c.lineWidth = 1;
+  };
+  // over the screen while walking a town (10-28, Griz: "store names popup on sign mouseover"): the store's name in a box over its sign under the mouse (js/topview.js TV.signTip)
+  R.screenOver = function (c, B) {
+    var R0 = B.roam, m = D.iso.map; if (!R0 || R0.mode !== 'walk' || B.req || B.menu || !R0.hoverXY || !m || !m.top || !D.topview || !D.topview.signTip) return null;
+    return D.topview.signTip(c, m, R0.hoverXY[0], R0.hoverXY[1]);
   };
   R.marksOver = function (c, B) {
     var R0 = B.roam; if (!R0) return;

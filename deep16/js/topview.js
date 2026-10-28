@@ -225,6 +225,27 @@
     }
   };
   TV.SIGNX = 3;
+  // the store's name on its sign (10-28, Griz: "store names popup on sign mouseover"): a sign hangs at the eave of the square over its door (js/town.js signs, signDoor);
+  // the mouse on the sign, or on the face and the door under it, names the store in a box over the screen (TV.signTip, from js/roam.js R.screenOver)
+  TV.faceOf = function (m, s) { return TV.artOn() && TV.ROOFART[s.ch] && TV.ART.tall ? (/[buB]/.test(s.ch) ? TV.FACEPX.tall : TV.FACEPX.low) : iso.roofPx(m, s.ch); }; // (a roof's south face, px: as artRoof and standCode stand it)
+  TV.signAt = function (m, sx, sy) {
+    if (!m || !m.top || !m.def.signs) return null;
+    var T = TV.TS, out = null;
+    Object.keys(m.def.signs).forEach(function (k) {
+      var a = k.split(','), x = +a[0], y = +a[1], s = m.at(x, y); if (!s) return;
+      var bot = (y + 1) * T - (s.gz || 0), p0 = iso.toScreen(x * T + T * 0.1, bot - TV.faceOf(m, s) - 28), p1 = iso.toScreen(x * T + T * 0.9, bot); // (the board at the eave, the face and the door under it)
+      if (sx >= p0.x && sx < p1.x && sy >= p0.y && sy < p1.y) out = { key: k, door: (m.def.signDoor || {})[k] || null, x: (p0.x + p1.x) / 2, y: p0.y };
+    });
+    return out;
+  };
+  TV.signTip = function (ctx, m, sx, sy) {
+    var hit = TV.signAt(m, sx, sy), nm = hit && hit.door && D.town && D.town.signName ? D.town.signName(hit.door) : null; if (!nm) return null;
+    var lines = [nm.name].concat(nm.who ? [nm.who] : []), w = Math.max.apply(null, lines.map(function (l) { return D.textWidth(l); })) + 10, h = lines.length * 10 + 5;
+    var x = Math.max(2, Math.min(D.W - w - 2, Math.round(hit.x - w / 2))), y = Math.max(2, Math.round(hit.y - h - 2));
+    ctx.fillStyle = 'rgba(10,12,34,0.9)'; ctx.fillRect(x, y, w, h); ctx.strokeStyle = 'rgba(232,208,112,0.85)'; ctx.lineWidth = 1; ctx.strokeRect(x + 0.5, y + 0.5, w - 1, h - 1);
+    D.text(ctx, lines[0], x + 5, y + 3, '#e8d070'); if (lines[1]) D.text(ctx, lines[1], x + 5, y + 13, '#b4b4c8');
+    return { door: hit.door, lines: lines };
+  };
 
   // ------------------------------------------------------------------ the Hex, drawn whole (10-21, Griz: "Can we get some diagonal looking tiles to try and make the hex look
   // better?" -- "The hex has an arena with a sand floor inside it. It is in silverton"): Silverton's Hexagon is one picture, not its squares' stair-steps -- pointy-top, a vertex

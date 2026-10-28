@@ -346,6 +346,7 @@
       name: 'Silverton', sub: 'the town, true scale from the city map v6', key: 'silverton', town: true, wet: false, dark: false, ground: 'earth', step: 10,
       view: /[?&]view=iso\b/.test(q) ? null : 'top', // (north up the screen -- 10-20, Griz: "the iso is too much for the town"; &view=iso the grid's diamonds: js/topview.js)
       heights: L.heights.slice(oy, oy + h).map(function (r) { return r.slice(ox, ox + w); }),
+      signDoor: (function () { var o = {}, ic = {}; ((npc8 && npc8.triggers) || []).forEach(function (t) { if (t.icon) ic[t.id] = 1; }); Object.keys(M.doors).forEach(function (id) { var q = M.doors[id]; if (!q || !ic[id]) return; var x = q[0] - ox, y = q[1] - 1 - oy; if (x >= 0 && y >= 0 && x < w && y < h) o[x + ',' + y] = id; }); return o; })(), // (whose door each sign hangs over: its store named on a mouseover, T.signName)
       signs: (function () { var o = {}, ic = {}; ((npc8 && npc8.triggers) || []).forEach(function (t) { if (t.icon) ic[t.id] = t.icon; }); Object.keys(M.doors).forEach(function (id) { var q = M.doors[id]; if (!q || !ic[id]) return; var x = q[0] - ox, y = q[1] - 1 - oy; if (x >= 0 && y >= 0 && x < w && y < h) o[x + ',' + y] = ic[id]; }); return o; })(), // (the 8-bit's sign over each door that had one, on the wall above the threshold: js/topview.js)
       hexagon: (function () { var hx6 = D.TOWN_V6.hexagon; return { x: (hx6[0] - T.X0) / L.F - ox, y: (hx6[1] - T.Y0) / L.F - oy, r: hx6[2] / L.F }; })(), // (the Hex drawn whole: js/topview.js hexCanvas)
       faceDoors: (function () { var o = {}; Object.keys(L.faceDoors || {}).forEach(function (k) { var a = k.split(','), x = +a[0] - ox, y = +a[1] - oy; if (x >= 0 && y >= 0 && x < w && y < h) o[x + ',' + y] = 1; }); return o; })(), // (every building's south door, drawn: js/topview.js)
@@ -382,6 +383,13 @@
   // where the party stands, for the floor's first card (10-22, the house seat, on the services seat's Found: "A CONTINUE (or the show) that stands the party at a door still
   // opens the floor on its 'in at the west gate' card"): on the gate it came in by, in at it; on a door's threshold, at that door; on the Hex's, at the Hex's doors; anywhere
   // else, the district v6 names there
+  // the stores' names on their signs (10-28, Griz: "store names popup on sign mouseover"): the first game's shop's name where it has one (content/shops.json), the
+  // realm's where it has none (silverton-people.md: 6 the Weigh-House, 21 the leech-house, 30 the mission chapel); the keeper under it where the name is not theirs
+  T.SIGNNAME = { 'keeper:hessle': 'The Weigh-House', 'leech:davos': 'The Leech-House', 'chapel:aldwin': 'The Mission Chapel' };
+  T.signName = function (id) {
+    var arg = id.split(':')[1], sh = (((window.DS || {}).DATA || {}).shops || {})[arg], who = T.doorName(id), nm = T.SIGNNAME[id] || (sh && sh.name) || who;
+    return { name: nm, who: nm.indexOf(who) >= 0 ? null : who };
+  };
   T.doorName = function (id) { var d = T.DOORS.filter(function (z) { return z.id === id; })[0] || {}, arg = id.split(':')[1], N = (((window.DS || {}).DATA || {}).npcs || {})[arg]; return d.name || T.KEEPER[id] || (N && N.name) || arg; };
   T.whereAt = function (def, x, y) {
     var M = def.marks || {}, on = function (q) { return !!q && q[0] === x && q[1] === y; }, e = def.entry && def.entry[0];

@@ -3472,6 +3472,25 @@
       okHn('Lymen exhausted 4 (hit point maximum ' + mx0 + ' halved to ' + mx4 + '): the meal takes him to ' + exOf('lymen') + ', his maximum back to ' + lyU.src.maxhp + ' (the figure ' + lyU.maxhp + ')', exOf('lymen') === 3 && lyU.src.maxhp === mx0 && lyU.maxhp === mx0 && mx4 < mx0);
       HHn.fromFloor(B); var svL = HHn.cur.party.filter(function (h) { return (h.key || h.id) === 'lymen'; })[0], svA = HHn.cur.party.filter(function (h) { return (h.key || h.id) === 'aurdin'; })[0];
       okHn('into the house\'s save: Lymen exhausted ' + HHn.exh(svL) + ' at ' + svL.maxhp + ' max, Aurdin ' + HHn.exh(svA), HHn.exh(svL) === 3 && svL.maxhp === mx0 && HHn.exh(svA) === 0);
+      // THE STORES' NAMES ON THEIR SIGNS (his "store names popup on sign mouseover"): the mouse on each of the thirteen signs -- and on the door under it -- names the store in a
+      // box over the screen; on the bare street, nothing
+      D.scenes.length = 0; if (D.house) { D.house.playing = false; D.house.cur = null; } D.push(D.roam.make('?roam=silverton')); B = topHn(); R0 = B.roam;
+      var TVn = D.topview, isoN = D.iso, mN = isoN.map, TSn = TVn.TS, WANTn = { 'warp:winters': 'Acquisitions & Estates|Ambrose Winters', 'keeper:hessle': 'The Weigh-House|Hessle', 'shop:kessler': 'The Pawnbroker|Kessler', 'shop:calla': 'Apothecary|Calla Voss',
+        'inn:cassia': 'Coaching Inn|Cassia', 'shop:lisbet': 'Charms & Chalk|Lisbet Crane', 'shop:marko': 'Provisioner|Marko Thorne', 'shop:kasten': 'Chandler|Kasten Wheal', 'shop:vilar': 'Show-Armorer|Vilar',
+        'leech:davos': 'The Leech-House|Davos Kren', 'warp:percy': 'Percy\'s Particulars', 'chapel:aldwin': 'The Mission Chapel|Aldwin', 'shop:lucia': 'Mama\'s Pharmakaiea' };
+      var signOk = [], signBad = [], sdN = (mN.def && mN.def.signDoor) || {}, txN = [], text0 = D.text; D.text = function (c, s) { txN.push(String(s)); return text0.apply(this, arguments); };
+      var cvN = document.createElement('canvas'); cvN.width = D.W; cvN.height = D.H; var cxN = cvN.getContext('2d');
+      Object.keys(sdN).forEach(function (k) {
+        var a = k.split(','), x = +a[0], y = +a[1], s = mN.at(x, y), id = sdN[k], bot = (y + 1) * TSn - (s.gz || 0), hF = TVn.faceOf(mN, s);
+        var pSign = isoN.toScreen(x * TSn + TSn / 2, bot - hF - 12), pDoor = isoN.toScreen(x * TSn + TSn / 2, bot - 4);
+        txN = []; R0.mode = 'walk'; R0.hoverXY = [pSign.x, pSign.y]; var tip = D.roam.screenOver(cxN, B), onSign = txN.join('|');
+        txN = []; R0.hoverXY = [pDoor.x, pDoor.y]; var tipD = D.roam.screenOver(cxN, B), onDoor = txN.join('|');
+        if (tip && tip.door === id && onSign === WANTn[id] && tipD && tipD.door === id) signOk.push(onSign.split('|')[0]); else signBad.push(id + ': "' + onSign + '" / door "' + onDoor + '"');
+      });
+      var pBare = isoN.toScreen(R0.token.x * TSn + TSn / 2, R0.token.y * TSn + TSn / 2); txN = []; R0.hoverXY = [pBare.x, pBare.y]; var tipBare = D.roam.screenOver(cxN, B);
+      D.text = text0;
+      okHn('the mouse on a store\'s sign, or its door under it, names it over the screen: ' + signOk.length + ' of 13 (' + signOk.join(', ') + ')' + (signBad.length ? ' -- not: ' + signBad.join('; ') : '') + '; on the street at the token, nothing (' + JSON.stringify(tipBare) + ')',
+        Object.keys(sdN).length === 13 && signOk.length === 13 && !tipBare);
     } catch (eHn) { repHn.errors.push(String(eHn && eHn.stack || eHn).slice(0, 900)); }
     D.store.get = stGHn; D.store.set = stSHn; if (D.house) { D.house.playing = false; D.house.cur = null; }
     var preHn = document.createElement('pre'); preHn.id = 'out'; preHn.textContent = 'BENCH16 ' + JSON.stringify(repHn);
