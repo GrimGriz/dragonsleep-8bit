@@ -501,6 +501,11 @@
     var hr = rects.filter(function (r) { return r.kind === 'row' && hit(r); })[0], hb = rects.filter(function (r) { return r.kind === 'back' && hit(r); })[0];
     if (hr && mo.moved && hr.i !== m.sel) { m.sel = hr.i; D.sfx('cursor'); }
     for (var k = 1; k <= 9; k++) if (I.pressed('n' + k) && rows[k - 1]) { m.sel = k - 1; return choose(B, u, rows[k - 1]); }
+    // a foe clicked while FIGHT is the lit choice: FIGHT at that one, the command and its pick in the one click (10-27, his eye on the Glowseep: "clicking on an enemy when
+    // 'fight' is highlighted should function like clicking 'fight' in the menu (simple combat)") -- the arrow over the one under the mouse first (S.draw)
+    var lit = m.mode === 'cmd' ? rows[m.sel] : null, fo = lit && lit.label === 'FIGHT' && lit.ok && !hr && !hb && mo.inside ? S.unitAt(B, mo.x, mo.y, S.foes(B, u)) : null;
+    m.hoverFoe = fo;
+    if (mo.click && fo) { B.simple.last[u.id] = m.sel; m.lastPick = fo; D.sfx('confirm'); return S.send(B, u, S.fightCmd(B, u, fo)); }
     if (mo.click) { if (hb) return S.back(B, u); if (hr) { m.sel = hr.i; return choose(B, u, rows[hr.i]); } }
     if (I.pressed('a')) return choose(B, u, rows[m.sel]);
     if ((I.pressed('b') || mo.rclick) && m.mode === 'list') return S.back(B, u);
@@ -600,6 +605,7 @@
     S.drawParty(ctx, B, L, rects);
     S.drawFoes(ctx, B, L);
     if (u && m.mode === 'cmd') S.drawRows(ctx, B, S.rootOf(B, u), m.sel, L.x + 6, L.cmds.y + 5, L.w - 12, 12, rects);
+    if (u && m.mode === 'cmd' && m.hoverFoe && blink) { var hf = S.screenOf(B, m.hoverFoe), ht = (D.spr.unitTop ? D.spr.unitTop(m.hoverFoe) : 20) * D.iso.zoom; D.text(ctx, '▼', hf.x, hf.y - ht - 12, W8.gold, 'center'); } // (FIGHT lit: the foe a click strikes)
     // a list (MAGIC, ITEM, SKILL): a window out of the column, over the picture, its foot on the screen's
     if (u && m.mode === 'list') S.drawList(ctx, B, m.list.title, m.list.items, m, rects);
     // a target: no list (his "the fight 'at whom' type selection seems superfluous with the arrow indicator and direct character clicking") -- the arrow over the one

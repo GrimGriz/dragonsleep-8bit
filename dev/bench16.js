@@ -2241,7 +2241,7 @@
     function okG(what, v) { repG.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
     function driveG(g, until, cap, pv) { var v, k = 0, st; while (k++ < (cap || 4000)) { if (until && until()) return true; st = g.next(v); v = undefined; if (st.done) return !!(until && until()); if (typeof st.value === 'number' && D.battle) D.battle.t += Math.max(1, st.value); if (st.value && st.value.prompt) { driveG.asked = st.value.prompt; v = pv != null ? pv : st.value.prompt.opts[0].value; } } return !!(until && until()); }
     function topG() { var s = D.top(); if (s && s.baking) { s.baking = false; s.enter(); } if (s && s.roam) driveG(s.co, null, 2); return s; }
-    function testG(q) { var B = RG.make(q + '&watch'); D.scenes.length = 0; D.push(B); return topG(); }
+    function testG(q, hands) { var B = RG.make(q + (hands ? '' : '&watch')); D.scenes.length = 0; D.push(B); return topG(); } // (hands: the four ours to play, not the class AI's)
     // a scene's coroutine run on the floor from here (the floor's own after it): what a USE or a step would set going
     function runG(B, gen) { var co0 = B.co; B.co = (function* () { yield* gen; yield* co0; })(); }
     // through the house's morning as X does on each list; its card's lines
@@ -2256,6 +2256,17 @@
       driveG(B.co, function () { return D.top() instanceof HG.Morning; }, 400);
       out.morning = wakeG(B); driveG(B.co, null, 60); return out;
     }
+    // a floor's fight called up where the party stands (`set`: its foes), the encounter's card answered `pick` (0 FIGHT, 1 the other way): the field pushed, not fought
+    function fieldG(B, pick, set) {
+      var g = RG.encounter(B, set ? 'set' : 'steps', set), st, v, k = 0, asked = null;
+      while (k++ < 400 && D.top() === B) { st = g.next(v); v = undefined; if (st.done) break; if (typeof st.value === 'number' && D.battle) D.battle.t += Math.max(1, st.value); if (st.value && st.value.prompt) { asked = st.value.prompt; v = asked.opts[pick || 0].value; } }
+      var b = D.top(); if (b === B) return { b: null, g: g, asked: asked };
+      if (b.baking) { b.baking = false; b.enter(); }
+      return { b: b, g: g, asked: asked, zoom: D.iso.zoom };
+    }
+    function endG(B, f, res) { if (D.top() === f.b) D.pop(); f.b.o.onDone(res || 'escaped'); driveG(f.g, null, 4000); B.roam.encIn = 1e9; }
+    // the field's fight run to the first turn that asks a hero of ours
+    function turnG(b) { var v, r, y, k = 0; while (b.co && k++ < 20000) { r = b.co.next(v); v = undefined; if (r.done) return null; y = r.value; if (typeof y === 'number' || !y || y.fx || y.entry || y.scene) continue; if (y.prompt) { v = y.prompt.opts[0].value; continue; } if (y.turn) { if (y.turn.side === 'party') return y.turn; v = { do: 'end' }; } } return null; }
     D.store.get = function (k) { return memG[k] ? JSON.parse(memG[k]) : null; }; D.store.set = function (k, v) { memG[k] = JSON.stringify(v); return true; };
     window.DS.autoPicks = true; D.music = function () { };
     try { skG = window.localStorage.getItem(SG.KEY); window.localStorage.removeItem(SG.KEY); } catch (eK) { } // (OPTIONS' RANDOM FIGHTS at its default: simple)
@@ -2283,6 +2294,21 @@
       okG('in the house: THE WORLD\'s clock by the long rests (' + tH.join(' > ') + ', hour ' + WG.hour() + '), each one whole on the floor and in the save (' + okH.join(',') + '), the night again (dark ' + RG.def.dark + ')',
         D.roam.house() && tH.join(',') === [22, 30, 38, 46].join(',') && WG.hour() === 22 && okH.every(Boolean) && RG.def.dark && D.top() === BH3);
       HG.playing = false; HG.cur = null;
+      // 5. A CLICK ON A FOE (his "clicking on an enemy when 'fight' is highlighted should function like clicking 'fight' in the menu (simple combat)"): with FIGHT lit, a
+      // click on a foe in the picture is FIGHT at that foe; with another command lit it is not
+      var B5 = testG('?roam=glowseep&hour=22', true); B5.roam.token.x = 20; B5.roam.token.y = 14; D.grid.setup(B5.map, B5.units);
+      var f5 = fieldG(B5, 0, { list: ['goblin', 'goblin'] }), b5 = f5.b, u5 = b5 && turnG(b5), got5 = [], ans5 = b5 && b5.answer, I5 = D.input.mouse, m0 = Object.assign({}, I5);
+      if (u5) {
+        b5.answer = function (c) { got5.push(c); };
+        if (!b5.simple) SG.setup(b5); SG.place(b5); SG.camera(b5);
+        var foe5 = SG.foes(b5, u5)[1] || SG.foes(b5, u5)[0], p5 = SG.screenOf(b5, foe5), top5 = (D.spr.unitTop ? D.spr.unitTop(foe5) : 20) * D.iso.zoom, rows5 = SG.rows(b5, u5);
+        var click5 = function (sel) { var m = SG.menu(b5, u5); m.wait = false; m.mode = 'cmd'; m.sel = sel; Object.assign(I5, { inside: true, x: Math.round(p5.x), y: Math.round(p5.y - top5 / 2), click: true, moved: true, wheel: 0, rclick: false }); SG.turnInput(b5, u5); Object.assign(I5, { click: false, moved: false }); };
+        click5(rows5.map(function (r) { return r.label; }).indexOf('MAGIC')); var magic5 = got5.length;
+        click5(0); var c5 = got5[got5.length - 1];
+        okG('the simple fight on the Glowseep: FIGHT lit (' + rows5[0].label + '), a click on the second goblin is FIGHT at it (' + (c5 ? c5.do + ' at ' + (c5.target === foe5 ? 'that goblin' : c5.target && c5.target.id) : 'nothing') + '); MAGIC lit, the same click sends nothing (' + magic5 + ')',
+          rows5[0].label === 'FIGHT' && magic5 === 0 && !!c5 && c5.do === 'attack' && c5.target === foe5);
+      } else okG('the simple fight on the Glowseep reached a turn of ours (' + (b5 ? 'none' : 'no field') + ')', false);
+      Object.assign(I5, m0); if (b5) { b5.answer = ans5; endG(B5, f5); }
     } catch (eG) { repG.errors.push(String(eG && eG.stack || eG).slice(0, 900)); }
     D.store.get = stGG; D.store.set = stSG; D.music = muG; try { if (skG != null) window.localStorage.setItem(SG.KEY, skG); } catch (eK2) { }
     var preG = document.createElement('pre'); preG.id = 'out'; preG.textContent = 'BENCH16 ' + JSON.stringify(repG);
