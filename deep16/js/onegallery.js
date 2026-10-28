@@ -174,6 +174,33 @@
     f.v = order[(order.indexOf(f.v || '') + 1) % order.length]; f.at = new Date().toISOString();
     fbPut(FB); o.fb = FB; D.sfx('confirm');
   }
+  // SAVE: his ear file from the gallery (10-28, Griz: "I just 'marked' everything in rows - doesn't seem to give me a save a file for you option", then "the S
+  // doesn't have to be S but we need a save button"): the box at the right of the YOUR EYE line, or S. The same file situations.html's Save writes (its savefb:
+  // every noted row still on this device, the save before it, what is new since), so the fold takes it as one; its rows as situations.html builds them --
+  // js/eyes.js's, and js/situations.js's where the page has them (the grid's has not: a story situation's note waits for situations.html's own Save)
+  OG.earFile = function (now) {
+    var FB = fbGet(), E = (window.DS && window.DS.EYES) || {}, S = (window.DS && window.DS.SITUATIONS) || {}, prev = null, rows = [];
+    try { prev = localStorage.getItem('dsl-situations-lastsave'); } catch (e) { prev = null; }
+    var noted = function (id) { var f = FB[id]; return !!(f && (f.v || String(f.note || '').trim())); };
+    Object.keys(E).forEach(function (id) { if (noted(id)) rows.push({ id: id, s: E[id], pri: E[id].pri || 3, eyes: true }); });
+    Object.keys(S).forEach(function (id) { if (noted(id)) rows.push({ id: id, s: S[id], pri: S[id].pri || 4, eyes: false }); });
+    return { _readme: { what: 'Playtest feedback from situations.html: one verdict and note a row -- an eyes row (js/eyes.js: built, not yet seen) or a story situation (?at=<id>, js/situations.js).', fold_back: 'Fold every eyes row noted here that is still live in js/eyes.js (a folded row is already cut, so nothing folds twice; previous_save and new_since_last_save only hint at what is new -- RULED 10-15); a story situation note folds when its `at` is after the save of the last ear file folded. An eyes row noted at all is SEEN: a `seen` line in PATCHLOG.md with the note verbatim, and the row cut from js/eyes.js whatever the verdict (a fix that wants another look writes a fresh row). Broken and unclear become the fix list (in the lane its pt names); too hard / too easy are tuning; notes are the tester\'s words, verbatim.', saved_from: 'the one gallery (deep16/?gallery), its SAVE' },
+      saved_at: now, previous_save: prev, items: rows.map(function (r) { var f = FB[r.id]; return { id: r.id, eyes: r.eyes, pri: r.pri, title: r.s.title, pt: r.s.pt, url: r.s.url || ('?at=' + r.id), verdict: f.v || '', note: f.note || '', at: f.at || '', new_since_last_save: !prev || (f.at || '') > prev }; }) };
+  };
+  OG.earName = function (now) { var d = new Date(now), p = function (n) { return (n < 10 ? '0' : '') + n; }; return 'situations-ear-file-' + now.slice(0, 10) + '-' + p(d.getUTCHours()) + p(d.getUTCMinutes()) + 'Z.json'; }; // (situations.html's stampT)
+  function saveEar(B) {
+    var o = B.one, now = new Date().toISOString(), out = OG.earFile(now);
+    if (!out.items.length) { D.sfx('error'); o.saved = { t: B.t, text: '{r}nothing marked yet{/}: V marks' }; return; }
+    try {
+      var a = document.createElement('a'), url = URL.createObjectURL(new Blob([JSON.stringify(out, null, 1)], { type: 'application/json' }));
+      a.href = url; a.download = OG.earName(now); document.body.appendChild(a); a.click(); a.remove(); setTimeout(function () { URL.revokeObjectURL(url); }, 4000);
+      localStorage.setItem('dsl-situations-lastsave', now);
+    } catch (e) { D.sfx('error'); o.saved = { t: B.t, text: '{r}not saved{/}: situations.html' }; return; }
+    var nu = out.items.filter(function (i) { return i.new_since_last_save; }).length;
+    D.sfx('confirm'); o.saved = { t: B.t, text: '{y}SAVED{/} ' + out.items.length + ', ' + nu + ' new' }; // (the file lands where the browser puts downloads: play-records/ is his to move it to)
+  }
+  OG.save = saveEar; // (dev/bench16.js mode=keys1028)
+  var SAVEW = 30; // (the SAVE box at the right of the YOUR EYE line)
 
   // ------------------------------------------------------------------ the list (L): the shelf's entries, or on CREATURES the bestiary
   function names(B) {
@@ -230,7 +257,7 @@
   function handle(B) {
     var o = B.one, m = I.mouse, over = !!(m.inside && m.x < COL), sh = o.shelf;
     if (over && m.click) {
-      if (m.y < STRIP) { m.click = false; if (m.y >= 2 + 2 * LH) nextEyes(B); else shelf(B, (m.y < 2 + LH ? 0 : 2) + (m.x < COL / 2 ? 0 : 1)); return; }
+      if (m.y < STRIP) { m.click = false; if (m.y >= 2 + 2 * LH) { if (m.x >= COL - SAVEW - 4) saveEar(B); else nextEyes(B); } else shelf(B, (m.y < 2 + LH ? 0 : 2) + (m.x < COL / 2 ? 0 : 1)); return; }
       if (o.list && m.y < D.H - FOOT) { m.click = false; pick(B, Math.floor((m.y - STRIP - 2) / LH) + o.listP.scroll); return; }
       var lad = ladderAt(B, m.y); if (lad) { m.click = false; jumpLevel(B, lad); return; }
       // (a click on the little triangles, the top or the foot of the text, scrolls it a page; anywhere else on the column, nothing)
@@ -246,10 +273,11 @@
     if (o.paused) { if (I.repeat('bracketr')) frameStep(B, 1); else if (I.repeat('bracketl')) frameStep(B, -1); return; }
     if (I.pressed('verdict')) { verdict(B, !!I.held.shift); return; }
     if (I.pressed('eyesnext')) { nextEyes(B); return; }
+    if (I.pressed('save')) { saveEar(B); return; } // (S: SAVE -- WASD's down too, so the level below waits while it is held)
     if (I.pressed('dice') && (sh === 'creatures' || sh === 'spells')) { var SD = st(B); SD.real = !SD.real; D.sfx('confirm'); restart(B); return; }
     var shift = !!I.held.shift, d = I.repeat('right') ? 1 : I.repeat('left') ? -1 : 0;
     if (d) { if (o.list) o.list = false; step(B, shift ? d * 10 : d); return; }
-    var lv = I.repeat('up') ? 1 : I.repeat('down') ? -1 : 0;
+    var lv = I.repeat('up') ? 1 : I.repeat('down') && !I.held.save ? -1 : 0;
     if (lv) { level(B, lv); return; }
     var tn = I.repeat('turnr') || I.pressed('bumpr') ? 1 : I.repeat('turnl') || I.pressed('bumpl') ? -1 : 0;
     if (tn) { turn(B, tn); return; }
@@ -295,8 +323,13 @@
     ctx.fillStyle = 'rgba(10,8,16,.9)'; ctx.fillRect(0, 0, COL, H);
     ctx.strokeStyle = rim; ctx.strokeRect(0.5, 0.5, COL - 1, H - 1);
     OG.SHELVES.forEach(function (s, k) { D.text(ctx, (s.id === o.shelf ? '{y}' : '{g}') + (k + 1) + ' ' + s.name + '{/}', 5 + (k % 2) * (COL / 2), 2 + Math.floor(k / 2) * LH, bone); });
-    var wt = waiting(B).length, all = OG.galleryRows().length;
-    D.text(ctx, all ? (wt ? '{o}YOUR EYE{/}: ' + wt + ' waiting  {y}N{/} next' : '{g}YOUR EYE: all ' + all + ' marked  N{/}') : '{g}YOUR EYE: nothing waiting{/}', 5, 2 + 2 * LH, bone);
+    var wt = waiting(B).length, all = OG.galleryRows().length, sv = o.saved && B.t - o.saved.t < 240 ? o.saved : null, ey = 2 + 2 * LH;
+    var room = COL - SAVEW - 12, says = sv ? [sv.text] : all ? (wt ? ['{o}YOUR EYE{/}: ' + wt + ' left  {y}N{/} next', '{o}YOUR EYE{/}: ' + wt + '  {y}N{/} next', '{o}EYE{/}: ' + wt + ' left  {y}N{/}'] : ['{g}YOUR EYE: all ' + all + ' marked{/}', '{g}all ' + all + ' marked{/}']) : ['{g}YOUR EYE: none waiting{/}', '{g}none waiting{/}'];
+    D.text(ctx, says.filter(function (t) { return D.textWidth(t) <= room; })[0] || says[says.length - 1], 5, ey, bone); // (the longest that clears the SAVE box)
+    // SAVE (his ear file, as situations.html's Save): a box at the line's right, lit once anything is marked -- S the same
+    var sx = COL - SAVEW - 4, lit = all > wt; ctx.fillStyle = lit ? 'rgba(60,38,8,.95)' : 'rgba(20,16,30,.92)'; ctx.fillRect(sx, ey - 2, SAVEW, LH + 1);
+    ctx.strokeStyle = lit ? D.PAL.ramps.gold[3] : rim; ctx.strokeRect(sx + 0.5, ey - 1.5, SAVEW - 1, LH);
+    D.text(ctx, (lit ? '{y}' : '{g}') + 'SAVE{/}', sx + SAVEW / 2, ey, bone, 'center');
     ctx.beginPath(); ctx.moveTo(1, STRIP - 0.5); ctx.lineTo(COL - 1, STRIP - 0.5); ctx.stroke();
     ctx.save(); ctx.beginPath(); ctx.rect(0, top, COL, inner); ctx.clip();
     for (var k = 0; k < rows && P.scroll + k < n; k++) if (lines[P.scroll + k]) D.text(ctx, lines[P.scroll + k], 5, top + 2 + k * LH, bone);

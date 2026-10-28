@@ -7860,6 +7860,53 @@
     document.body.appendChild(prePq);
     return;
   }
+  // SAVE IN THE GALLERY AND M ON THE POCKET DM'S FRONT PAGE (mode=keys1028; 10-28, Griz: "I just 'marked' everything in rows - doesn't seem to give me a save a
+  // file for you option", "the S doesn't have to be S but we need a save button", "allow pressing 'm' on the pocket DM front page get you to the option menu to
+  // turn off the music"): S presses SAVE beside WASD's down (js/core.js KEYALSO); the gallery's ear file is situations.html's to the field (js/onegallery.js
+  // OG.earFile, OG.earName) and its SAVE downloads it and moves the last save; M on the Pocket DM's title opens OPTIONS (js/menu.js MN.openOptions) and X shuts it
+  if (get('mode', '') === 'keys1028') {
+    var repY = { checks: [], errors: [] }, okY = function (c, s) { repY.checks.push((c ? 'ok   ' : 'FAIL ') + s); };
+    var lsY = {}, keepY = ['dsl-situations-feedback:v1', 'dsl-situations-lastsave'], eyes0Y = window.DS && window.DS.EYES, sit0Y = window.DS && window.DS.SITUATIONS, clk0Y = HTMLAnchorElement.prototype.click, dlY = [];
+    keepY.forEach(function (k) { try { lsY[k] = localStorage.getItem(k); } catch (e) { lsY[k] = null; } });
+    var memY = {}, stGY = D.store.get, stSY = D.store.set;
+    D.store.get = function (k) { return memY[k] ? JSON.parse(memY[k]) : null; }; D.store.set = function (k, v) { memY[k] = JSON.stringify(v); return true; };
+    try {
+      var IY = D.input;
+      // S: both buttons, and both let go
+      window.dispatchEvent(new KeyboardEvent('keydown', { code: 'KeyS', key: 's' })); var bothDown = !!(IY.held.down && IY.held.save && IY.edge.save);
+      window.dispatchEvent(new KeyboardEvent('keyup', { code: 'KeyS', key: 's' })); var bothUp = !IY.held.down && !IY.held.save; IY.clear();
+      okY(bothDown && bothUp, 'S presses SAVE beside WASD\'s down, and lets both go');
+      // the ear file: a stand-in eyes list and his marks on this device
+      window.DS = window.DS || {}; window.DS.EYES = { 'eyes-a-1028': { pri: 1, title: 'A', pt: 'lane a', url: 'deep16/?gallery&shelf=creatures&rows=aboleth' }, 'eyes-b-1028': { pri: 2, title: 'B', pt: 'lane b', url: 'deep16/?gallery&shelf=creatures&rows=ettin' }, 'eyes-c-1028': { pri: 1, title: 'C', pt: 'lane c', url: 'deep16/?rows=naga' } };
+      window.DS.SITUATIONS = { wet: { pri: 4, title: 'The Wet', pt: 'the wet' } };
+      localStorage.setItem('dsl-situations-feedback:v1', JSON.stringify({ 'eyes-a-1028': { v: 'works', at: '2026-10-28T01:00:00.000Z' }, 'eyes-b-1028': { v: 'broken', note: 'the fall', at: '2026-10-27T01:00:00.000Z' }, 'eyes-gone-0101': { v: 'works', at: '2026-01-01T00:00:00.000Z' }, wet: { v: '', note: '  ' } }));
+      localStorage.setItem('dsl-situations-lastsave', '2026-10-27T12:00:00.000Z');
+      var OGy = D.oneGallery, fy = OGy.earFile('2026-10-28T02:03:00.000Z'), keysY = 'id,eyes,pri,title,pt,url,verdict,note,at,new_since_last_save';
+      var itA = fy.items.filter(function (i) { return i.id === 'eyes-a-1028'; })[0], itB = fy.items.filter(function (i) { return i.id === 'eyes-b-1028'; })[0];
+      okY(fy.items.length === 2 && itA && itB && Object.keys(itA).join() === keysY && fy.previous_save === '2026-10-27T12:00:00.000Z' && fy.saved_at === '2026-10-28T02:03:00.000Z' && itA.new_since_last_save === true && itB.new_since_last_save === false && itB.note === 'the fall' && itB.verdict === 'broken' && itA.url === 'deep16/?gallery&shelf=creatures&rows=aboleth' && /fold/i.test(fy._readme.fold_back),
+        'the gallery\'s ear file is situations.html\'s: the noted rows still in the lists (' + fy.items.map(function (i) { return i.id; }).join(', ') + '; a cut row and an empty note left out), its fields ' + (itA ? Object.keys(itA).join(',') : '-') + ', the save before it, what is new since');
+      okY(OGy.earName('2026-10-28T02:03:00.000Z') === 'situations-ear-file-2026-10-28-0203Z.json', 'its name is situations.html\'s: ' + OGy.earName('2026-10-28T02:03:00.000Z'));
+      // SAVE: the download, the last save moved, the line says so; with nothing marked, it says that instead
+      HTMLAnchorElement.prototype.click = function () { dlY.push(this.download); };
+      var By = { one: {}, t: 50 }; OGy.save(By);
+      okY(dlY.length === 1 && /^situations-ear-file-\d{4}-\d\d-\d\d-\d{4}Z\.json$/.test(dlY[0]) && localStorage.getItem('dsl-situations-lastsave') > '2026-10-28' && /SAVED/.test(By.one.saved && By.one.saved.text), 'SAVE downloads ' + dlY[0] + ', moves the last save, and says ' + JSON.stringify(By.one.saved && By.one.saved.text));
+      localStorage.setItem('dsl-situations-feedback:v1', '{}'); var By2 = { one: {}, t: 60 }; OGy.save(By2);
+      okY(dlY.length === 1 && /nothing marked/.test(By2.one.saved && By2.one.saved.text), 'with nothing marked SAVE downloads nothing and says ' + JSON.stringify(By2.one.saved && By2.one.saved.text));
+      // M on the Pocket DM's title: OPTIONS over it, X shuts it, the title still there
+      var Py = new D.Pocket(); Py.enter(); Py.go('title');
+      IY.press('menu'); Py.update(); IY.release('menu'); IY.clear(); var opened = !!(Py.pm && !Py.pm.closed && Py.pm.pages && Py.pm.pages.length === 1);
+      IY.press('b'); Py.update(); IY.release('b'); IY.clear(); for (var q = 0; q < 3 && Py.pm; q++) { Py.update(); IY.clear(); }
+      okY(opened && !Py.pm && Py.screen === 'title', 'M on the Pocket DM\'s front page opens OPTIONS (' + opened + '), X shuts it (' + !Py.pm + ') and the front page stays (' + Py.screen + ')');
+      var Pz = new D.Pocket(); Pz.enter(); Pz.go('fights'); IY.press('menu'); Pz.update(); IY.release('menu'); IY.clear();
+      okY(!Pz.pm, 'M elsewhere on the table opens no OPTIONS (THE FIGHTS)');
+    } catch (eY) { repY.errors.push(String(eY && eY.stack || eY).slice(0, 800)); }
+    HTMLAnchorElement.prototype.click = clk0Y; D.store.get = stGY; D.store.set = stSY;
+    if (window.DS) { window.DS.EYES = eyes0Y; window.DS.SITUATIONS = sit0Y; }
+    keepY.forEach(function (k) { try { if (lsY[k] == null) localStorage.removeItem(k); else localStorage.setItem(k, lsY[k]); } catch (e) { } });
+    var preY = document.createElement('pre'); preY.id = 'out'; preY.textContent = 'BENCH16 ' + JSON.stringify(repY);
+    document.body.appendChild(preY);
+    return;
+  }
   // THE ARROWS IN A LIST (mode=pocketkeys1027; 10-27, Griz: "if you were using the arrows to scroll through the list it jumped out of scrolling and only worked
   // properly if you scrolled with the mousewheel. This would be considered catastrophic loss to testers if shipped"): each long list of both tables walked by the
   // down arrow from its first row -- every row reached, the list scrolled to its end, then out -- and back by the up arrow to its top (js/pocket.js listRows,

@@ -146,6 +146,8 @@
     Digit1: 'n1', Digit2: 'n2', Digit3: 'n3', Digit4: 'n4', Digit5: 'n5', Digit6: 'n6', Digit7: 'n7', Digit8: 'n8', Digit9: 'n9',
     Numpad1: 'n1', Numpad2: 'n2', Numpad3: 'n3', Numpad4: 'n4', Numpad5: 'n5', Numpad6: 'n6', Numpad7: 'n7', Numpad8: 'n8', Numpad9: 'n9'
   };
+  // a key that is a second button too, pressed with its first (10-28: S is WASD's down and the one gallery's SAVE -- js/onegallery.js, his "we need a save button")
+  var KEYALSO = { KeyS: 'save' };
   var I = D.input = { held: {}, edge: {}, since: {}, mouse: { x: -1, y: -1, moved: false, click: false, rclick: false, inside: false, inWin: false, wheel: 0 } };
   I.press = function (b) { if (!I.held[b]) { I.edge[b] = true; I.since[b] = D.frame; } I.held[b] = true; };
   I.release = function (b) { I.held[b] = false; };
@@ -175,10 +177,10 @@
     var b = KEYMAP[e.code];
     if (!b) return;
     e.preventDefault();
-    if (!e.repeat) I.press(b);
+    if (!e.repeat) { I.press(b); if (KEYALSO[e.code]) I.press(KEYALSO[e.code]); }
     D.unlockAudio();
   });
-  window.addEventListener('keyup', function (e) { if (D.typing) return; var b = KEYMAP[e.code]; if (b) { e.preventDefault(); I.release(b); } });
+  window.addEventListener('keyup', function (e) { if (D.typing) return; var b = KEYMAP[e.code]; if (b) { e.preventDefault(); I.release(b); if (KEYALSO[e.code]) I.release(KEYALSO[e.code]); } });
   window.addEventListener('blur', function () { I.held = {}; I.mouse.inWin = false; I.mouse.inside = false; I.mouse.down = false; });
 
   // the game pad (../js/pad.js, the 8-bit game's, loaded after this). RULED 09-28 (Griz): the right stick up/down zooms (up in,
