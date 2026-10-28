@@ -3905,7 +3905,7 @@
       // the keepers' own figures (10-21, Griz: "Got south idles for several existing shopkeeps in Fresh"): S only over the stand-in, the heroes' height
       var figW = Object.keys(CW.FIG).map(function (k) { return [k, D.SHEETS[CW.FIG[k]]]; }), heroTop = D.SHEETS.barley_p2.top;
       okW('every keeper\'s figure cut (tools/keeper-town-sheet.py): ' + figW.map(function (f) { return f[0] + (f[1] ? ' ' + f[1].top : ' NONE'); }).join(', ') + ' above the foot (Barley ' + heroTop + ', Aurdin ' + D.SHEETS.aurdin_p2.top + '); the idle drawn S only, the stand-in under it',
-        figW.every(function (f) { var s = f[1], a = s && s.anims.idle; return a && a.drawn.join() === '0' && a.under === 'crewman_p1' && !!D.SHEETS[a.under] && s.top >= 45 && s.top <= 54; }));
+        figW.every(function (f) { var s = f[1], a = s && s.anims.idle; return a && (a.drawn ? a.drawn.join() === '0' && a.under === 'crewman_p1' && !!D.SHEETS[a.under] : true) && s.top >= 45 && s.top <= 54; })); // (or drawn whole: the art desk's ART-121 gives a keeper all eight facings -- Winters first, 10-28 `833ca06`)
       // (a door at a lane's dead end -- two open squares round it at most: 10-22, the doors on their own houses -- has its keeper where the lane opens, a few squares off)
       var laneEndW = function (dq) { var n = 0; for (var oy = -1; oy <= 1; oy++) for (var ox = -1; ox <= 1; ox++) if ((ox || oy) && '.,='.indexOf((D.roam.def.rows[dq[1] + oy] || '').charAt(dq[0] + ox) || '#') >= 0) n++; return n <= 2; };
       var atDoorW = CW.AT_DOOR.map(function (k) { var u = B.units.filter(function (x) { return x.npc === k.id; })[0], dq = D.roam.def.marks.doors[k.door], d0 = u && dq ? Math.max(Math.abs(u.x - dq[0]), Math.abs(u.y - dq[1])) : 99; return { k: k, u: u, d: d0, ok: d0 === 1 || (d0 <= 4 && !!dq && laneEndW(dq)) }; });
@@ -3923,10 +3923,10 @@
         scMa && scMa.sheet === 'pt_marin' && /Common clothes/.test(wMa.join(' ')) && /is to come/.test(wMa.join(' ')) && !upW() && mW.facing === 0 && wouldM !== 0);
       var inWin = inW(B, 'warp:winters'); okW('in at Winters\' door (warp:winters): his room, ' + D.roam.def.name, inWin && D.roam.def.keeper.id === 'winters');
       var kuW = B.units.filter(function (u) { return u.npc === 'winters'; })[0];
-      okW('behind his counter in his own figure (' + (kuW && kuW.sheet) + '), facing south', kuW && kuW.sheet === 'winters_p1' && kuW.facing === 0 && kuW.holdFacing);
+      okW('behind his counter in his own figure (' + (kuW && kuW.sheet) + '), facing south at rest (facing ' + (kuW && kuW.facing) + ', holdFacing ' + (kuW && kuW.holdFacing) + ') and free to turn -- drawn in all eight facings since 10-28 (ART-121, `833ca06`; RULED, his "Keep turning")', kuW && kuW.sheet === 'winters_p1' && kuW.facing === 0 && !kuW.holdFacing);
       var tk0 = [R0.token.x, R0.token.y]; R0.token.x = kuW.x + 1; R0.token.y = kuW.y; var wouldW = D.spr.facingFor(R0.token.x - kuW.x, R0.token.y - kuW.y); // (behind the counter beside him: the desk's "Other side of the counter.")
       driveW(TW.fire(B, trigW('talk:winters')), null, 400);
-      okW('spoken to from behind the counter beside him (he would have turned to facing ' + wouldW + '), he still faces south (facing ' + kuW.facing + ')', kuW.facing === 0 && wouldW !== 0);
+      okW('spoken to from behind the counter beside him, he turns to the speaker (facing ' + kuW.facing + ', the speaker at facing ' + wouldW + ') -- a keeper drawn in all facings turns (RULED 10-28, his "Keep turning")', kuW.facing === wouldW && wouldW !== 0);
       R0.token.x = tk0[0]; R0.token.y = tk0[1];
       var g1 = fireW(B, 'talk:winters'), sc = D.top();
       okW('E at his counter: the counter\'s screen, his portrait (' + sc.sheet + '), opaque over the floor', upW() && sc.sheet === 'pt_winters' && sc.opaque && sc.o.place === window.DS.DATA.shops.winters.name);
