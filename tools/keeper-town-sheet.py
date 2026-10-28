@@ -66,6 +66,8 @@ KEEPERS = {
     'davos': ('davos/ART-98', 'ART-98', 'leech:davos'),             # (10-22: Davos Kren behind the leech-house's counter)
     'marta': ('marta/ART-99', 'ART-99', 'npc:marta'),               # (10-22, "more NPC in fresh": Marta at her stalls, Madame Ondine Vess for a door to come; Tam Vere HELD, tools/portrait-sheet.py)
     'ondine': ('ondine/ART-101', 'ART-101', 'the School (no door yet)'),
+    'tam': ('tam/ART-100', 'ART-100', 'keeper:tam', {'avoid': ['red', 'fire']}),   # (10-28: Tam Vere in her den, the art desk's re-roll -- a woman, as the realm and the first game
+    # have her; her rust apron's reds read as blood stains at 50 px: left out, as Venn Hale's flush was)
     'aldwin': ('aldwin/ART-114', 'ART-114', 'chapel:aldwin'),       # (10-28, the second cutter seat: Aldwin of the mission chapel, not Androit the notary -- tools/portrait-sheet.py)
 }
 

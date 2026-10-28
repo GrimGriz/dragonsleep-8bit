@@ -50,8 +50,11 @@
     brennan: { sheet: 'pt_brennan' }, venhale: { sheet: 'pt_venhale', wait: '' }, korvin: { sheet: 'pt_korvin', name: 'Korvin', words: 'hex.korvin' }, // (`words`: his first-game line, content/text.json, for the portraits' show -- his own talk is the slate's)
     // two more (10-22, the desk's relay of Griz's "more NPC in fresh"): Marta Venn at her cook-stalls on the street, her first-game talk and her bat-wing pies (the first
     // game's S.marta: C.marta, 10-22); Madame Ondine Vess of the School, whose door neither game has yet -- her portrait for the show till it comes. (Tam Vere's, ART-100,
-    // is held: drawn a man, and Tam is a woman -- tools/portrait-sheet.py)
-    marta: { sheet: 'pt_marta', script: 'marta' }, ondine: { sheet: 'pt_ondine', name: 'Madame Ondine Vess', wait: '' }
+    // was held 10-22: drawn a man, and Tam is a woman; the re-roll came 10-28, below)
+    marta: { sheet: 'pt_marta', script: 'marta' }, ondine: { sheet: 'pt_ondine', name: 'Madame Ondine Vess', wait: '' },
+    // Tam Vere of the dream-smoke den (10-28, the second cutter seat: the art desk's re-roll of ART-100, a woman): her first-game word on her face; her couch and her
+    // pipe come after the lake in the first game (js/deep.js S.tam), which the second game has not built -- so no counter line
+    tam: { sheet: 'pt_tam', wait: '' }
   };
   C.BESIDE = { percy: ['ned'] }; // (who stands behind a counter beside its keeper: js/town.js T.goIn)
   C.PETS = { ned: 'rat' }; // (a keeper's familiar on the counter in front of them: Ned's rat -- js/rules.js R.FAMILIARS, js/town.js T.goIn)
@@ -65,9 +68,9 @@
     brennan: 'brennan_p1', venhale: 'venhale_p1', korvin: 'korvin_p1', // (10-22: Brennan and Venn Hale beside their doors; Korvin's for the Hex seat, his waistcoat slate as on his portrait)
     davos: 'davos_p1', // (10-22: Davos Kren behind the leech-house's counter)
     marta: 'marta_p1', ondine: 'ondine_p1', // (10-22: Marta Venn at her stalls on the street -- js/town.js T.PLACE; Madame Ondine Vess's for a door to come)
-    aldwin: 'aldwin_p1' }; // (10-28: Aldwin behind the mission chapel's counter)
+    aldwin: 'aldwin_p1', tam: 'tam_p1' }; // (10-28: Aldwin behind the mission chapel's counter; Tam Vere beside her den's door)
   C.AT_DOOR = [{ id: 'marin', door: 'keeper:marin' }, { id: 'barber', door: 'keeper:barber' }, { id: 'mela', door: 'keeper:mela' }, { id: 'mical', door: 'keeper:mical' },
-    { id: 'brennan', door: 'keeper:brennan' }, { id: 'venhale', door: 'keeper:venhale' }];
+    { id: 'brennan', door: 'keeper:brennan' }, { id: 'venhale', door: 'keeper:venhale' }, { id: 'tam', door: 'keeper:tam' }]; // (Tam Vere 10-28: her den's door has no room behind it)
   C.dress = function (u, id) {
     var f = C.FIG[id]; if (!u || !f || !D.SHEETS || !D.SHEETS[f]) return false;
     u.sheet = f; u.holdFacing = true; u.facing = 0; // (0: south, on the town's north-up floor and on the diamonds alike)

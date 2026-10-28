@@ -13328,6 +13328,102 @@ false
 "door": "keeper:sylvia",
 "source": "deep16/_src/sylvia/ART-SYLVIA (the art desk's ART-SPECIAL-SYLVIA, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
 },
+"pt_tam": {
+"image": "art/pt_tam.png?v=79c5de03fc",
+"fw": 172,
+"fh": 156,
+"ax": 94,
+"ay": 154,
+"top": 154,
+"portrait": true,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 172,
+"fh": 156,
+"ax": 94,
+"ay": 154,
+"frames": 6,
+"fps": 3,
+"ledge": [
+false,
+false,
+false,
+false,
+false,
+false
+]
+},
+"attentive": {
+"y": 156,
+"fw": 172,
+"fh": 156,
+"ax": 94,
+"ay": 154,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"welcoming": {
+"y": 312,
+"fw": 172,
+"fh": 156,
+"ax": 94,
+"ay": 154,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"skeptical": {
+"y": 468,
+"fw": 172,
+"fh": 156,
+"ax": 94,
+"ay": 154,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"concerned": {
+"y": 624,
+"fw": 172,
+"fh": 156,
+"ax": 94,
+"ay": 154,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"work": {
+"y": 780,
+"fw": 172,
+"fh": 156,
+"ax": 94,
+"ay": 154,
+"frames": 6,
+"fps": 4,
+"ledge": [
+true,
+true,
+true,
+true,
+true,
+true
+]
+}
+},
+"art": "ART-100",
+"door": "keeper:tam",
+"source": "deep16/_src/tam/ART-100 (the art desk's ART-100, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
+},
 "pt_venhale": {
 "image": "art/pt_venhale.png?v=e40547870a",
 "fw": 191,
@@ -14925,6 +15021,31 @@ true
 "fps": 2
 }
 }
+},
+"tam_p1": {
+"image": "art/tam_p1.png?v=9459918976",
+"fw": 29,
+"fh": 53,
+"ax": 15,
+"ay": 51,
+"top": 49,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 29,
+"fh": 53,
+"ax": 15,
+"ay": 51,
+"frames": 14,
+"fps": 4,
+"drawn": [
+0
+],
+"under": "crewman_p1"
+}
+},
+"source": "deep16/_src/tam/ART-100/ART-100_HEAD-2_PAGE-1.png (the art desk's south idle, 10-21), cut by tools/keeper-town-sheet.py",
+"door": "keeper:tam"
 },
 "toptiles_p1": {
 "image": "art/toptiles_p1.png?v=50c99d61ce",

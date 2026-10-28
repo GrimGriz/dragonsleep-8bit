@@ -90,6 +90,10 @@ PEOPLE = {
     # Aldwin of the mission chapel, pin 30 -- not Aldwyn Androit the notary (ART-80): the art desk's ART-114 (10-28, the second cutter seat, on Griz's 10-22
     # "we need for Aldwin of the free rest"); his chapel's free floor is the services seat's scene (C.SCRIPTS chapel)
     'aldwin': ('aldwin/ART-114', 'ART-114', 'chapel:aldwin', {'bevel': (2, 3, 4, 5)}),   # (his stills' counter tops are bevelled)
+    # Tam Vere of the dream-smoke den, pin 40, a woman (10-28, the second cutter seat): the art desk's re-roll of ART-100 (its revision female-2026-10-27); the man it
+    # drew first is in _src/tam/superseded/, never cut
+    'tam': ('tam/ART-100', 'ART-100', 'keeper:tam', {'bevel': (6,), 'avoid': ['red', 'fire']}),   # (her work's counter top bevelled, as Aldwin's stills; her rust apron
+    # snapped in part to the reds, a stain: left out, it keeps to leather and skin)
 }
 
 
