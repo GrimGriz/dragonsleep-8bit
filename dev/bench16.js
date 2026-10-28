@@ -4540,10 +4540,11 @@
         wH.some(function (l) { return /pays in kind/.test(l); }) && bU.src.equip.weapon === bRw && JSON.stringify(bU.weapon) !== bWU0 && CV.count(cs, bW0) === 1);
       R0.flags.fiveDone = 1; gH = fireV(B, 'talk:hessle'); scH = D.top(); wH = readV(scH); driveV(gH, null, 200); var fiveW = wH.join(' ');
       gH = fireV(B, 'talk:hessle'); scH = D.top(); wH = readV(scH); driveV(gH, null, 200);
-      okV('the board clear ("The old bounty papers are down"), the council\'s word on the five once ("' + fiveW.slice(-80) + '"), not again', /bounty papers are down/.test(fiveW) && /Worth more to Venn alive/.test(fiveW) && !/Venn alive/.test(wH.join(' ')) && /bounty papers are down/.test(wH.join(' ')));
+      // (the council's word on the five only if the herd's council sat -- since 10-28, his "18 - yes, lantern warning same trigger as council meeting": mode=hours1028 -- here no herd thinned, so Hessle's plain word)
+      okV('the board clear ("The old bounty papers are down"), his word on the five once ("' + fiveW.slice(-80) + '"), not again', /bounty papers are down/.test(fiveW) && /Five names off the book's dead side/.test(fiveW) && !/Five names off/.test(wH.join(' ')) && /bounty papers are down/.test(wH.join(' ')));
       // MERRICK: the first game has no sendings -- his word, and his window still to come
       outV(B); inV(B, 'keeper:merrick'); var gM = fireV(B, 'talk:merrick'), scM = D.top(), wM = upV() ? readV(scM) : []; driveV(gM, null, 200);
-      okV('Merrick: his first-game word ("' + wM[0] + '") and "' + wM[wM.length - 1] + '"', /Dusk sendings/.test(wM.join(' ')) && /sendings -- is to come/.test(wM.join(' ')));
+      okV('Merrick: his word, said plainly since 10-28 (his "Dialogue review for vaguery reduction for new and younger players": mode=hours1028) ("' + wM[0] + '") and "' + wM[wM.length - 1] + '"', /A dusk sending is cheaper/.test(wM.join(' ')) && /sendings -- is to come/.test(wM.join(' ')));
       // THE CAMP'S MORNING (his 10-22 note): a quiet night on THE WORLD wakes to the same morning
       D.scenes.length = 0; shV = CV.servicesShow('?services&beat=camp'); D.push(shV); shV.update(); var wC = topV(), SC = WV.state(), cA = HV.cur.party.filter(function (h) { return h.id === 'aurdin'; })[0], cLv = cA.lvl;
       okV('the camp\'s beat: THE WORLD (' + (wC && wC.kind) + '), the four hurt, a quiet night', wC && wC.kind === 'world' && HV.cur.party.every(function (h) { return h.hp < h.maxhp; }) && SC.count > 1e6);
@@ -4845,7 +4846,7 @@
       var askLu = scLu && scLu.wait && scLu.wait.ask ? scLu.wait.opts.join() : ''; if (upW()) goW(scLu, 'opt', 'THE SHELVES'); var luRows = upW() && scLu.shop ? scLu.rows().map(function (r) { return r.id; }) : [];
       if (upW()) { goW(scLu, 'back'); goW(scLu, 'opt', 'LEAVE'); } driveW(gLu, null, 200);
       okW('Lucia in her booth beside the Hex in her own figure (' + (kuLu && kuLu.sheet) + '), on her portrait (' + scLu.sheet + ', named ' + scLu.o.name + '): "' + String(wLu[0]).slice(0, 40) + '...", ' + askLu + ', her first-game shelf ' + luRows.length + ' of ' + window.DS.DATA.shops.lucia.items.length,
-        kuLu && kuLu.sheet === 'lucia_p1' && kuLu.facing === 0 && scLu.sheet === 'pt_lucia' && scLu.o.name === 'Lucia' && wLu[0] === D.counter.GREET.lucia && askLu === 'THE SHELVES,LEAVE' && luRows.join() === window.DS.DATA.shops.lucia.items.join() && !upW());
+        kuLu && kuLu.sheet === 'lucia_p1' && kuLu.facing === 0 && scLu.sheet === 'pt_lucia' && scLu.o.name === 'Lucia' && /Cutter|I mix|grey with it|Pit's word|calling herbs|Urtusk's rules|took your oath/.test(String(wLu[0])) && askLu === 'THE SHELVES,CONSULT,LEAVE' /* (her openers and CONSULT since 10-28, his "8 - yes": mode=hours1028) */ && luRows.join() === window.DS.DATA.shops.lucia.items.join() && !upW());
       // the last six of art-wanted section 20 (10-21 evening, Griz to the lanes desk: "we have shopkeep NPCs in Fresh"): each behind their counter in their own figure, on
       // their portrait; Vilar, Marko Thorne, Lisbet Crane and Percy on their first-game shops (their stock on the shelves), Cassia's inn speaking (its rooms to come), Ned
       // Halloway beside Percy behind the one counter (the screen shows Percy's face), no word at the counter of his own
@@ -4887,9 +4888,12 @@
         scBr2 && scBr2.sheet === 'pt_brennan' && wBr2.slice(0, 2).join('|') === window.DS.DATA.npcs.brennan.talk[2].say.join('|') && /buying and selling -- is to come/.test(wBr2.join(' ')) && !upW());
       // (her door her word on her portrait, no room behind it: from 10-22 she stood beside it, inside since 10-28 later -- his "Off the street unless it makes NPC sense"; for a round
       // on 10-28 the compound was her room, restored on his "restore 19 to before my confusion": mode=housefix1028b)
-      var gVh = TW.fire(B, trigW('keeper:venhale')); driveW(gVh, upW, 200); var scVh = upW() ? D.top() : null, wVh = scVh ? readW(scVh) : [], roomVh = D.roam.def.room || null; driveW(gVh, null, 200);
+      // (what a person says in the second game, read before the word is had: its own branch first, C.TALK16, then the first game's -- since 10-28 the words pass and the
+      // start people, his "Dialogue review for vaguery reduction for new and younger players" and "talking to nearby NPCs opens 'finding work' quest": mode=hours1028)
+      var sayW = function (id) { var st = CW.state(B), pick = function (l) { return (l || []).filter(function (t) { return CW.cond(t['if'], st); })[0]; }, t = pick(CW.TALK16[id]) || pick((window.DS.DATA.npcs[id] || {}).talk); return (t && t.say) || []; };
+      var wantVh = sayW('venhale'), gVh = TW.fire(B, trigW('keeper:venhale')); driveW(gVh, upW, 200); var scVh = upW() ? D.top() : null, wVh = scVh ? readW(scVh) : [], roomVh = D.roam.def.room || null; driveW(gVh, null, 200);
       okW('Venn Hale at the fighters\' stables\' door, no room behind it (' + roomVh + '): on her portrait (' + (scVh && scVh.sheet) + ', named ' + (scVh && scVh.o.name) + '), "' + String(wVh[0]).slice(0, 40) + '...", the Hex card\'s rumour heard, no counter line',
-        !roomVh && scVh && scVh.sheet === 'pt_venhale' && scVh.o.name === 'Venn Hale' && wVh.join('|') === window.DS.DATA.npcs.venhale.talk[0].say.join('|') && R0.flags['heard:r-hexcard'] === 1 && !/is to come/.test(wVh.join(' ')) && !upW());
+        !roomVh && scVh && scVh.sheet === 'pt_venhale' && scVh.o.name === 'Venn Hale' && wVh.join('|') === wantVh.join('|') && R0.flags['heard:r-hexcard'] === 1 && !/is to come/.test(wVh.join(' ')) && !upW());
       // Marta Venn and Madame Ondine Vess (10-22, the desk's relay of Griz's "more NPC in fresh"): Marta at her stalls on the street in her own figure, on her portrait,
       // her first-game word with Vivian hired and not the lead (her pies since 10-22, mode=house1022: no wings, no asking); Madame Ondine Vess by name in the portraits' show, standing nowhere yet; Tam Vere held
       var kuMt = B.units.filter(function (u) { return u.npc === 'marta'; })[0], gMt = fireW(B, 'talk:marta'), scMt = upW() ? D.top() : null, wMt = scMt ? readW(scMt) : []; if (scMt && scMt.wait && scMt.wait.ask) goW(scMt, 'opt', 'LEAVE'); driveW(gMt, null, 200); // (her word, then her hot meal's offer since 10-28: LEAVE -- mode=housenotes1028)
@@ -4908,21 +4912,22 @@
       // the night crews' five (10-28, the second cutter seat: the art desk's ART-104 to ART-108): Gull, Kael, Brennock and Vera on the shaft rows' street in their own
       // figures, each on their portrait with their first-game word and no counter line; Kess beside the flop-cellar's door, the same
       ['gull', 'kael', 'brennock', 'vera'].forEach(function (id) {
+        var N = window.DS.DATA.npcs[id], want = sayW(id); // (before the word: a branch may be said once)
         var ku = B.units.filter(function (u) { return u.npc === id; })[0], g = fireW(B, 'talk:' + id), sc = upW() ? D.top() : null, w = sc ? readW(sc) : []; if (g) driveW(g, null, 200);
-        var N = window.DS.DATA.npcs[id], want = (N.talk.filter(function (t) { return CW.cond(t['if'], CW.state(B)); })[0] || {}).say || [];
         okW(N.name + ' on the shaft rows in their own figure (' + (ku && ku.sheet) + ', facing ' + (ku && ku.facing) + '), on their portrait (' + (sc && sc.sheet) + '): "' + String(w[0]).slice(0, 40) + '...", no counter line',
           ku && ku.sheet === id + '_p1' && facedW(ku, R0) && ku.holdFacing === !!D.SHEETS[ku.sheet].anims.idle.drawn && sc && sc.sheet === 'pt_' + id && w.slice(0, want.length).join('|') === want.join('|') && !/to come/.test(w.join(' ')) && !upW());
       });
-      var kuKs = B.units.filter(function (u) { return u.npc === 'kess'; })[0], gKs = TW.fire(B, trigW('keeper:kess')); driveW(gKs, upW, 200); var scKs = upW() ? D.top() : null, wKs = scKs ? readW(scKs) : []; driveW(gKs, null, 200);
+      var wantKs = sayW('kess'), kuKs = B.units.filter(function (u) { return u.npc === 'kess'; })[0], gKs = TW.fire(B, trigW('keeper:kess')); driveW(gKs, upW, 200); var scKs = upW() ? D.top() : null, wKs = scKs ? readW(scKs) : []; driveW(gKs, null, 200);
       okW('Kess at the flop-cellar\'s door, inside since 10-28 later (no figure of hers on the street: ' + !kuKs + '), on her portrait (' + (scKs && scKs.sheet) + '): "' + String(wKs[0]).slice(0, 40) + '...", no counter line, the party still in the street',
-        !kuKs && scKs && scKs.sheet === 'pt_kess' && wKs.join('|') === window.DS.DATA.npcs.kess.talk[0].say.join('|') && !/to come/.test(wKs.join(' ')) && !D.roam.def.room && !upW());
+        !kuKs && scKs && scKs.sheet === 'pt_kess' && wKs.join('|') === wantKs.join('|') && !/to come/.test(wKs.join(' ')) && !D.roam.def.room && !upW());
       // Merrick (10-21 night, the same word: ART-93): behind the message-lantern house's grille, on his portrait, his first-game word and its rumour heard
-      inW(B, 'keeper:merrick'); var kuMr = B.units.filter(function (u) { return u.npc === 'merrick'; })[0], gMr = fireW(B, 'talk:merrick'), scMr = D.top(), wMr = upW() ? readW(scMr) : []; driveW(gMr, null, 200);
+      inW(B, 'keeper:merrick'); var wantMr = sayW('merrick'), kuMr = B.units.filter(function (u) { return u.npc === 'merrick'; })[0], gMr = fireW(B, 'talk:merrick'), scMr = D.top(), wMr = upW() ? readW(scMr) : []; driveW(gMr, null, 200);
       okW('Merrick behind the message-lantern house\'s grille (door ' + (D.roam.def.room === 'keeper:merrick' ? 'in' : 'NOT in') + ') in his own figure (' + (kuMr && kuMr.sheet) + ', his south idle 10-21 night), on his portrait (' + (scMr && scMr.sheet) + '): "' + String(wMr[0]).slice(0, 40) + '...", the lantern rumour heard, and "' + String(wMr[wMr.length - 1]).replace(/\{.\}|\{\/\}/g, '') + '"',
-        D.roam.def.room === 'keeper:merrick' && kuMr && kuMr.sheet === 'merrick_p1' && facedW(kuMr, R0) && kuMr.holdFacing === !!D.SHEETS[kuMr.sheet].anims.idle.drawn && scMr && scMr.sheet === 'pt_merrick' && wMr.slice(0, 2).join('|') === window.DS.DATA.npcs.merrick.talk[0].say.join('|') && R0.flags['heard:r-lantern'] === 1 && /sendings -- is to come/.test(wMr.join(' ')) && !upW());
-      outW(B); inW(B, 'keeper:sylvia'); var gS = fireW(B, 'talk:sylvia'), scS = D.top(), wS = readW(scS); driveW(gS, null, 200);
+        D.roam.def.room === 'keeper:merrick' && kuMr && kuMr.sheet === 'merrick_p1' && facedW(kuMr, R0) && kuMr.holdFacing === !!D.SHEETS[kuMr.sheet].anims.idle.drawn && scMr && scMr.sheet === 'pt_merrick' && wMr.slice(0, 2).join('|') === wantMr.join('|') && R0.flags['heard:r-lantern'] === 1 && /sendings -- is to come/.test(wMr.join(' ')) && !upW());
+      // (her reading since 10-28, his "9 - yes, in the case of no pinned messages a consult will pin one first": her first word, then READ (5 SP) / LEAVE -- left here; mode=hours1028 reads)
+      outW(B); inW(B, 'keeper:sylvia'); var gS = fireW(B, 'talk:sylvia'), scS = D.top(), wS = readW(scS), askS = scS && scS.wait && scS.wait.ask ? scS.wait.opts.join() : ''; if (upW()) goW(scS, 'opt', 'LEAVE'); driveW(gS, null, 200);
       var kuSy = B.units.filter(function (u) { return u.npc === 'sylvia'; })[0];
-      okW('Sylvia Swann at her booth in her own figure (' + (kuSy && kuSy.sheet) + ', facing ' + (kuSy && kuSy.facing) + ', her owl on her shoulder: 10-21 night) and on her portrait (' + scS.sheet + '): his own -- "' + wS.join(' ') + '"', kuSy && kuSy.sheet === 'sylvia_p1' && facedW(kuSy, R0) && kuSy.holdFacing === !!D.SHEETS[kuSy.sheet].anims.idle.drawn && scS.sheet === 'pt_sylvia' && /his word/.test(wS.join(' ')));
+      okW('Sylvia Swann at her booth in her own figure (' + (kuSy && kuSy.sheet) + ', facing ' + (kuSy && kuSy.facing) + ', her owl on her shoulder: 10-21 night) and on her portrait (' + scS.sheet + '): "' + wS.join(' ').slice(0, 60) + '...", ' + askS, kuSy && kuSy.sheet === 'sylvia_p1' && facedW(kuSy, R0) && kuSy.holdFacing === !!D.SHEETS[kuSy.sheet].anims.idle.drawn && scS.sheet === 'pt_sylvia' && /draped table/.test(wS.join(' ')) && askS === 'READ (5 SP),LEAVE' && !upW());
       outW(B); var gV = TW.fire(B, trigW('keeper:barber')); driveW(gV, upW, 200); var scV = D.top(), wV = upW() ? readW(scV) : []; driveW(gV, null, 200);
       okW('Venn the barber at his door, on his portrait (' + (scV && scV.sheet) + ')', scV && scV.sheet === 'pt_barber' && /Shave/.test(wV.join(' ')));
       // into the house's save: the floor's flags, purse and pack, the renown on the save
