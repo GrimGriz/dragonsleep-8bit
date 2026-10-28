@@ -64,17 +64,31 @@ def main():
     sel = (hx >= X0) & (hx <= X1) & (hy >= Y0) & (hy <= Y1)
     hq, hr = axial(hx[sel], hy[sel], NEAR_MI); hk = (hq - qmin) * RN + (hr - rmin); ok = (hk >= 0) & (hk < NH) & ((hr - rmin) >= 0) & ((hr - rmin) < RN)
     hsum = np.bincount(hk[ok], weights=H[sel][ok], minlength=NH); hcnt = np.bincount(hk[ok], minlength=NH)
+    # (10-28, the maps window: a hex stands at the height of its own ground -- the mean of its eighths whose ground is the hex's first; the town hex east of
+    # Silverton's had stood at 2,688 ft, half of it the Edifice's mountain front above the town at 300-500. All its eighths where none is its ground)
+    G1 = np.argmax(cnt, axis=1); hs = hd['hs']
+    tg = (T[np.minimum((hj[sel] * hs + hs // 2), h - 1), np.minimum((hi_[sel] * hs + hs // 2), w - 1)] & 127)[ok]
+    own = tg == G1[hk[ok]]
+    osum = np.bincount(hk[ok][own], weights=H[sel][ok][own], minlength=NH); ocnt = np.bincount(hk[ok][own], minlength=NH)
     hexes = {}
     for k in np.nonzero(tot)[0]:
         q, r = int(k // RN + qmin), int(k % RN + rmin)
         c = cnt[k]; order = np.argsort(-c, kind='stable'); g1 = int(order[0]); g2 = int(order[1]); n = float(tot[k])
-        hgt = float(hsum[k] / hcnt[k]) if hcnt[k] else 0.0
+        hgt = float(osum[k] / ocnt[k]) if ocnt[k] else float(hsum[k] / hcnt[k]) if hcnt[k] else 0.0
         sh2 = round(float(c[g2]) / n, 2)
         hexes[(q, r)] = [q, r, keys[g1], round(hgt), 1 if wet[k] > n / 2 else 0, keys[g2] if sh2 >= 0.05 else None, sh2 if sh2 >= 0.05 else 0, 0, 0]
     # the places at their hexes; the roads and rivers as chains of neighbouring hexes, the roads' hexes marked
     sites = []
     for S in B['sites']:
         S2 = dict(S); a = axial(S['x'], S['y'], NEAR_MI); S2['hex'] = [int(a[0]), int(a[1])]; sites.append(S2)
+        # a city's hex reads as the town (10-28, the maps window, on his "you're good to move and reshape things to add realism that fits the wiki"): Silverton's
+        # hex had come out gray mountain at 1,422 ft, most of its cells the Edifice's mountain front; it takes the town's ground, its own ground second, and the
+        # height at the city's own spot
+        e = hexes.get(tuple(S2['hex']))
+        if S.get('kind') == 'city' and e:
+            if e[2] != 'town': e[5], e[6] = e[2], 0.5; e[2] = 'town'; e[4] = 0
+            hi0, hj0 = int((S['x'] - hd['x0']) / (hd['mi'] * hd['hs'])), int((S['y'] - hd['y0']) / (hd['mi'] * hd['hs']))
+            if 0 <= hj0 < hh and 0 <= hi0 < hw: e[3] = round(float(H[hj0, hi0]))
     def chain(pts):
         out = []
         for a, b in zip(pts, pts[1:]):

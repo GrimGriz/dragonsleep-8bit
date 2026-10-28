@@ -2750,7 +2750,7 @@
       var wayT = defT.doors.filter(function (q) { return /fork/.test(defT.wayName[q[0] + ',' + q[1]]); })[0], nO = wayT ? walkT(BT, RT, [wayT[0] + 1, wayT[1]], 80000) : null; BT.cards = []; if (wayT) walkT(BT, RT, wayT, 4000); // (up beside the road's end, then onto it: every far square west leads out now, and a walk along the edge would leave first)
       okT('THE road west off the floor (' + wayT + ', ' + nO + ' steps): the world map\'s, later, and the town keeps the party', !!wayT && cardT(/THE road west/) && cardT(/world map/) && BT.units.indexOf(tkT) >= 0);
       // the far squares west, south and east lead out (10-21, Griz: "leaving the far tile on west, south or E should kick you out of town"); the town keeps its one zoom
-      var sidesT = {}; defT.doors.forEach(function (q) { var nmE = /^out of town to the (west|south|east)$/.exec(defT.wayName[q[0] + ',' + q[1]] || ''); if (nmE) sidesT[nmE[1]] = (sidesT[nmE[1]] || 0) + 1; });
+      var sidesT = {}; defT.doors.forEach(function (q) { if ('.=dr'.indexOf(defT.rows[q[1]].charAt(q[0])) < 0) return; var nmT = defT.wayName[q[0] + ',' + q[1]] || '', nmE = /^out of town to the (west|south|east)$/.exec(nmT) || (q[0] === defT.w - 1 && /feed track|road out/.test(nmT) ? [0, 'east'] : null); if (nmE) sidesT[nmE[1]] = (sidesT[nmE[1]] || 0) + 1; }); // (the east edge since 10-28: the feed track's north of the split, the road out's south -- js/town.js THE EAST SIDE)
       var openEdgeT = 0; defT.rows.forEach(function (rw, yE) { for (var xE = 0; xE < rw.length; xE++) if ((xE === 0 || xE === rw.length - 1 || yE === defT.rows.length - 1) && '.=dr'.indexOf(rw.charAt(xE)) >= 0) openEdgeT++; });
       var z0T = D.iso.zoom; D.ui.setZoom(1); D.ui.setZoom(-1); D.ui.setZoom(-1);
       okT('the far squares lead out of town (west ' + sidesT.west + ', south ' + sidesT.south + ', east ' + sidesT.east + ' of ' + openEdgeT + ' open), and the zoom holds in town (' + z0T + ' -> ' + D.iso.zoom + ')', sidesT.west > 0 && sidesT.south > 0 && sidesT.east > 0 && sidesT.west + sidesT.south + sidesT.east === openEdgeT && D.iso.zoom === z0T);
@@ -3067,6 +3067,68 @@
     document.body.appendChild(preN);
     return;
   }
+  // SILVERTON FIT TO THE REALM, ITS ZOOMS, ZOOM ON APPROACH, THE EAST SIDE, 10-28 (mode=maps1028; the maps window -- his "1 - ... you're good to move and reshape things
+  // to add realism that fits the wiki (2-4) / 5 - do 40 and 56 variant ... / 6 yes / 8 yes, down to the pit is back out through the west / 9 yes", and on the east
+  // edge "warrens mouth, not the guano mine, sorry"): the area read here as near1022 reads it (the benches' page has none)
+  if (get('mode', '') === 'maps1028') {
+    var repP = { checks: [], errors: [] }, memP = {}, stGP = D.store.get, stSP = D.store.set, HP = D.house, WP = D.world, apP = null;
+    function okP(what, v) { repP.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function runP(sc, cap, each) { var k = 0; while (sc.walk && k++ < (cap || 6000)) { if (sc.cards.length) { var c = sc.cards[0]; sc.cards.shift(); if (c.keys) c.keys[0][1](); else if (c.then) c.then(); continue; } sc.update(); if (each) each(); } return k; }
+    D.store.get = function (k) { return memP[k] ? JSON.parse(memP[k]) : null; }; D.store.set = function (k, v) { memP[k] = JSON.stringify(v); return true; };
+    window.DS.autoPicks = true; var onStepP = WP.onStep; WP.onStep = null;
+    try { apP = window.localStorage.getItem('deep16.world.approach'); window.localStorage.removeItem('deep16.world.approach'); } catch (eA) { }
+    try {
+      D.seed = +get('seed', 1028);
+      var xp = new XMLHttpRequest(); xp.open('GET', '../deep16/data/world-near.js', false); xp.send(); (0, eval)(xp.responseText);
+      WP.index(); WP.use('near'); var MP = WP.map('near'), siteP = function (id) { return MP.sites.filter(function (s) { return s.id === id; })[0]; }, svP = siteP('silverton'), wrP = siteP('warrens');
+      var hS = svP && MP.hex[WP.K(svP.hex[0], svP.hex[1])];
+      okP('the area: Silverton\'s hex the town (' + (hS && hS.t) + ', ' + (hS && hS.h) + ' ft; was gray at 1,422, the mountain\'s front), the river flat beside it', !!hS && hS.t === 'town' && hS.h > 400 && hS.h < 1100);
+      var rW = wrP && WP.route(svP.hex, wrP.hex), dW = wrP ? Math.max(Math.abs(wrP.hex[0] - svP.hex[0]), Math.abs(wrP.hex[1] - svP.hex[1]), Math.abs(wrP.hex[0] + wrP.hex[1] - svP.hex[0] - svP.hex[1])) : 0;
+      okP('the Warrens a door on the area (' + (wrP ? wrP.name + ' at ' + wrP.hex + ', ' + dW + ' hexes from Silverton\'s' : 'no place') + '), the feed track there: ' + (rW ? rW.hexes.length + ' hexes, ' + rW.hours.toFixed(1) + ' h' : 'no way'),
+        !!wrP && !!WP.DOORS.warrens && dW >= 3 && dW <= 5 && !!rW && rW.hexes.length <= 6 && MP.paths.some(function (P) { return P.id === 'feedtrack' && P.hexes.length >= 3; }));
+      okP('the area\'s zooms ' + WP.NEARZOOMS.join(', ') + ' px a mile; the rings at 20, 28, 40, 56: ' + [20, 28, 40, 56].map(function (z) { return WP.FINE.ringsAt(z); }).join(', '),
+        WP.NEARZOOMS.indexOf(40) >= 0 && WP.NEARZOOMS.indexOf(56) === WP.NEARZOOMS.length - 1 && WP.FINE.ringsAt(28) === 2 && WP.FINE.ringsAt(40) === 1 && WP.FINE.ringsAt(56) === 0);
+      // ZOOM ON APPROACH: from the Galleries junction up the mile to beside Silverton, and back
+      var dayP = HP.DAYHEX; HP.DAYHEX = 999;
+      HP.worldDoor('?world&fresh&noenc'); var wP = D.top(), SP = WP.state(), ZP = wP.zooms(), base = wP.zi, jc = siteP('jct').hex;
+      var beside = [[1, 0], [-1, 0], [0, -1], [1, -1], [-1, 1], [0, 1]].map(function (d) { return [svP.hex[0] + d[0], svP.hex[1] + d[1]]; }).filter(function (n) { return WP.stepHours(n, svP.hex, MP); }).sort(function (a, b) { return Math.hypot(WP.hc(a[0], a[1])[0] - WP.hc(jc[0], jc[1])[0], WP.hc(a[0], a[1])[1] - WP.hc(jc[0], jc[1])[1]) - Math.hypot(WP.hc(b[0], b[1])[0] - WP.hc(jc[0], jc[1])[0], WP.hc(b[0], b[1])[1] - WP.hc(jc[0], jc[1])[1]); })[0];
+      SP.at = jc.slice(); var rIn = WP.route(jc, beside), zs = [], top = base; wP.walk = { path: rIn.hexes.slice(), f: 0 }; wP.wasWalk = false;
+      runP(wP, 8000, function () { if (zs[zs.length - 1] !== ZP[wP.zi]) zs.push(ZP[wP.zi]); top = Math.max(top, wP.zi); });
+      okP('ZOOM ON APPROACH: from the Galleries junction to beside Silverton (' + rIn.hexes.length + ' hexes) the camera stepped ' + zs.join(' > ') + ' px a mile', ZP[top] === 56 && zs[0] === ZP[base] && zs.every(function (z, i) { return !i || z > zs[i - 1]; }));
+      var rOut = WP.route(SP.at, jc), zo = []; wP.walk = { path: rOut.hexes.slice(), f: 0 }; wP.wasWalk = false;
+      runP(wP, 8000, function () { if (zo[zo.length - 1] !== ZP[wP.zi]) zo.push(ZP[wP.zi]); });
+      okP('walking away to the junction it stepped back out: ' + zo.join(' > ') + ' (the hand\'s ' + ZP[base] + ')', wP.zi === base && zo.every(function (z, i) { return !i || z < zo[i - 1]; }));
+      wP.walk = { path: rIn.hexes.slice(), f: 0 }; wP.wasWalk = false; var handAt = 0;
+      runP(wP, 8000, function () { if (++handAt === 3) { wP.zi = base - 1; wP.zBasePx = ZP[wP.zi]; wP.zHand = true; } });
+      okP('a hand on the zoom mid-walk holds it there to the walk\'s end (' + ZP[wP.zi] + ')', wP.zi === base - 1);
+      wP.zi = base; wP.zBasePx = ZP[base]; rOut = WP.route(SP.at, jc); wP.walk = { path: rOut.hexes.slice(), f: 0 }; wP.wasWalk = false; runP(wP, 8000);
+      WP.setApproach(false); wP.walk = { path: rIn.hexes.slice(), f: 0 }; wP.wasWalk = false; var topOff = base; runP(wP, 8000, function () { topOff = Math.max(topOff, wP.zi); });
+      var rowP = window.DS.MENU.gridRows().filter(function (r) { return r.key === 'approachzoom'; })[0];
+      okP('OPTIONS\' ZOOM ON APPROACH ' + (rowP ? rowP.get() : 'no row') + ': the same walk kept ' + ZP[topOff] + ' px a mile', topOff === base && !!rowP && rowP.get() === 'OFF');
+      if (rowP) rowP.step(); okP('and its row turns it back ON (' + (rowP && rowP.get()) + ')', !!rowP && rowP.get() === 'ON' && WP.approachOn());
+      // the Warrens' door on the area (his "9 yes"): Silverton's hex down the feed track to the camp's, GO IN, the camp's floor by the feed track's gate
+      SP.at = svP.hex.slice(); var rWk = WP.route(svP.hex, wrP.hex), cardW = null; wP.walk = { path: rWk.hexes.slice(), f: 0 }; wP.wasWalk = false;
+      runP(wP, 8000); var cW = wP.cards.shift(); cardW = cW && cW.lines[0]; if (cW && cW.keys) cW.keys[0][1](); var BW = D.top(); if (BW && BW.baking) { BW.baking = false; BW.enter(); } // (the door is offered where the walk ends)
+      okP('walked down the feed track to the camp\'s hex: "' + cardW + '", GO IN: ' + (D.roam.def && D.roam.def.key), /Crawler Warrens/.test(cardW || '') && D.roam.def && D.roam.def.key === 'warrens');
+      HP.DAYHEX = dayP;
+      // THE EAST SIDE on the town floor, and the road out onto the area's south-east hex
+      HP.toTown('silverton', 'east'); var BT = D.top(); if (BT.baking) { BT.baking = false; BT.enter(); }
+      var dT = D.roam.def, TT = D.town, spY = Math.floor((TT.EAST.split[1] - TT.Y0) / dT.ft), eW = dT.doors.filter(function (q) { return q[0] === dT.w - 1; });
+      var feedE = eW.filter(function (q) { return /feed track/.test(dT.wayName[q[0] + ',' + q[1]] || ''); }), outE = eW.filter(function (q) { return /road out/.test(dT.wayName[q[0] + ',' + q[1]] || ''); });
+      okP('the east edge: ' + feedE.length + ' ways the feed track\'s (rows ' + Math.min.apply(null, feedE.map(function (q) { return q[1]; })) + '-' + Math.max.apply(null, feedE.map(function (q) { return q[1]; })) + ', north of the split at ' + spY + '), ' + outE.length + ' the road out\'s; none else',
+        feedE.length > 5 && outE.length > 3 && feedE.length + outE.length === eW.length && feedE.every(function (q) { return q[1] < spY; }) && outE.every(function (q) { return q[1] >= spY; }));
+      var ftAt = function (p) { return [Math.floor((p[0] - TT.X0) / dT.ft), Math.floor((p[1] - TT.Y0) / dT.ft)]; }, onRd = function (pts) { return pts.every(function (p) { var s = ftAt(p), r = dT.rows[Math.min(dT.h - 1, s[1])]; return !!r && ',=.'.indexOf(r.charAt(Math.min(dT.w - 1, s[0]))) >= 0; }); };
+      okP('the split drawn: the thin track north along the stockade and the road out south-south-east on open ground', onRd(TT.EAST.track) && onRd(TT.EAST.out));
+      WP.leaveTown('east'); var SE = WP.state(), seHex = [svP.hex[0], svP.hex[1] + 1];
+      okP('out by the road out: on the area\'s hex south-east of Silverton\'s (' + SE.at + ', ' + seHex + ')', WP.M().near && SE.at.join() === seHex.join());
+    } catch (eP) { repP.errors.push(String(eP && eP.stack || eP).slice(0, 900)); }
+    WP.onStep = onStepP; D.store.get = stGP; D.store.set = stSP; window.DS.autoPicks = false; if (D.house) { D.house.playing = false; D.house.cur = null; }
+    try { if (apP == null) window.localStorage.removeItem('deep16.world.approach'); else window.localStorage.setItem('deep16.world.approach', apP); } catch (eA2) { }
+    delete D.WORLD_NEAR; if (WP.use) WP.use('world');
+    var preP = document.createElement('pre'); preP.id = 'out'; preP.textContent = 'BENCH16 ' + JSON.stringify(repP);
+    document.body.appendChild(preP);
+    return;
+  }
   // THE WORLD to his notes of 10-22 (mode=world1022; js/world.js, js/worldfine.js, js/overworld.js, js/house.js H.worldDoor and H.marchCost -- Griz, after walking
   // deep16/?world&fine: "The 330 ft land, raised is best" / "Right now moving seems to be auto-camping" / "M - menu isn't available" / "going up to the doors strands
   // you there, remove the option for now"): the land by default, F to the tops and the choice kept; deep16/?world a NEW GAME's four on THE WORLD, M walking or not;
@@ -3126,6 +3188,7 @@
       okX('the bare door past the day\'s 8 hours asks (' + (cX ? cX.lines[0] + ': ' + cX.keys.map(function (k) { return k[2]; }).join(', ') : 'no card') + '), no camp on its own', !!cX && SB.t === tB && !wn.walk && cX.keys[0][2] === 'WALK ON' && cX.keys[1][2] === 'MAKE CAMP');
       if (cX) { wn.cards.shift(); cX.keys[0][1](); } for (var fB = 0; fB < 80 && wn.walk; fB++) wn.update();
       okX('WALK ON: the hex walked past the 8 hours (' + SB.today.toFixed(1) + ' walked, at ' + SB.at + ')', SB.pushing && SB.today > 8 && SB.at.join() === nB.join());
+      wn.cards = []; // (10-28: the hex east of Silverton holds the Warrens' door now -- tools/hexmap.js seedSilverton -- and the walk's end offers it)
       keyX(wn, 'menu'); okX('M on the bare door says where the menu is (' + (wn.msg && wn.msg.s) + ')', !!wn.msg && /menu/.test(wn.msg.s) && !wn.pm);
       // 7. The DOORS: no road up offered; a party left there brought down
       var jX = MX.sites.filter(function (s) { return s.id === 'jct'; })[0], dX = MX.sites.filter(function (s) { return s.id === 'smvbknjci'; })[0];

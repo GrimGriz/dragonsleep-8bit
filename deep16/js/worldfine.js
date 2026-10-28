@@ -97,10 +97,13 @@
   }
 
   // ---------------------------------------------------------------- the hero's hexes: the hex the party stands on and its two rings, today's columns
+  // the rings shrink as the camera comes in (10-28, the maps window; his "5 - do 40 and 56 variant", on the seat's lean): two rings to 28 px a mile, one at 40,
+  // the party's own hex alone at 56 -- so his 330 ft paint shows up to the party at the area's closest zooms
+  F.ringsAt = function (z) { return z > 40 ? 0 : z > 28 ? 1 : F.RINGS; };
   var NEAR = {}, NEARAT = '', NEARC = [0, 0];
-  function nearOf(at) {
-    var k = W.M().key + ':' + at[0] + ',' + at[1]; if (k === NEARAT) return NEAR; // (keyed by the map too: THE WORLD's or the Silverton area's)
-    NEAR = {}; NEARAT = k; NEARC = W.hc(at[0], at[1]); var M = W.M(), R = F.RINGS;
+  function nearOf(at, R) {
+    var k = W.M().key + ':' + at[0] + ',' + at[1] + ':' + R; if (k === NEARAT) return NEAR; // (keyed by the map too: THE WORLD's or the Silverton area's; and the rings)
+    NEAR = {}; NEARAT = k; NEARC = W.hc(at[0], at[1]); var M = W.M();
     for (var dr = -R; dr <= R; dr++) for (var dq = -R; dq <= R; dq++) { if (Math.abs(dq + dr) > R) continue; var e = M.hex[(at[0] + dq) + ',' + (at[1] + dr)]; if (e) NEAR[e.q + ',' + e.r] = e; }
     return NEAR;
   }
@@ -128,7 +131,7 @@
   function render(cam, at, c0, c1) { // (c0, c1: only these columns drawn again -- the party's rings moved, nothing else)
     var Wd = cam.W, Hd = cam.H, part = c0 != null;
     if (!CV || CV.width !== Wd || CV.height !== Hd) { CV = document.createElement('canvas'); CV.width = Wd; CV.height = Hd; IMG = CV.getContext('2d').createImageData(Wd, Hd); BUF = new Uint32Array(IMG.data.buffer); DEPTH = new Float32Array(Wd * Hd); }
-    var M = W.M(), near = nearOf(at), lp = lookPx(), zy = cam.z * W.TILT, rise = cam.z * cam.E / 5280, BG = pack(0x1b, 0x24, 0x33);
+    var M = W.M(), near = nearOf(at, F.ringsAt(cam.z)), lp = lookPx(), zy = cam.z * W.TILT, rise = cam.z * cam.E / 5280, BG = pack(0x1b, 0x24, 0x33);
     var f16 = 1 / zy < G.L[0].ds * 0.8, lv = f16 ? G.L[0] : level(cam), ds = f16 ? G.hd.mi : lv.ds, gw = f16 ? G.hd.w : lv.w, gh = f16 ? G.hd.h : lv.h; // (f16: THE CLOSER ZOOM, the 330 ft grounds themselves)
     if (!part) { BUF.fill(BG); DEPTH.fill(NaN); c0 = 0; c1 = Wd; } else { c0 = Math.max(0, c0); c1 = Math.min(Wd, c1); for (var py0c = 0; py0c < Hd; py0c++) { var o0 = py0c * Wd; for (var cx0 = c0; cx0 < c1; cx0++) { BUF[o0 + cx0] = BG; DEPTH[o0 + cx0] = NaN; } } }
     var ySouth = cam.cy + (Hd / 2 + Math.max(G.hmax, 0) * rise) / zy + ds, yNorth = cam.cy - (Hd / 2 - Math.min(G.hmin, 0) * rise) / zy - ds;
@@ -180,14 +183,14 @@
     var M = W.M(), m = F.MARGIN, key = [W.M().key, cam.z, cam.W, cam.H, cam.E, !!lookPx(), F.LIT].join('|'), atk = at[0] + ',' + at[1], ox = RC ? (RC.cx - cam.cx) * cam.z : 0, oy = RC ? (RC.cy - cam.cy) * cam.z * W.TILT : 0;
     if (key !== F.key || !RC || Math.abs(ox) > m - 1 || Math.abs(oy) > m - 1) { var t0 = performance.now(); RC = { cx: cam.cx, cy: cam.cy, z: cam.z, W: cam.W + 2 * m, H: cam.H + 2 * m, E: cam.E }; render(RC, at); F.key = key; F.atk = atk; F.ms = performance.now() - t0; F.renders = (F.renders || 0) + 1; ox = oy = 0; }
     else if (atk !== F.atk) { // (the party a hex on: only the columns its rings stood in and stand in now -- each screen column is drawn whole, so the rest stand as they were)
-      var t1 = performance.now(), c0x = NEARC[0], half = (F.RINGS + 1) * M.w, cn = W.hc(at[0], at[1])[0], lo = Math.min(c0x, cn) - half, hi2 = Math.max(c0x, cn) + half;
+      var t1 = performance.now(), c0x = NEARC[0], half = (F.ringsAt(cam.z) + 1) * M.w, cn = W.hc(at[0], at[1])[0], lo = Math.min(c0x, cn) - half, hi2 = Math.max(c0x, cn) + half;
       render(RC, at, Math.floor((lo - RC.cx) * RC.z + RC.W / 2) - 1, Math.ceil((hi2 - RC.cx) * RC.z + RC.W / 2) + 1); F.atk = atk; F.ms = performance.now() - t1; F.parts = (F.parts || 0) + 1;
     }
     OX = Math.round(ox) - m; OY = Math.round(oy) - m;
     LASTCAM = cam; g.drawImage(CV, OX, OY);
     trees(g, cam, W.Mworld ? W.Mworld().w : M.w); // (the land's trees at THE WORLD's scale on either map)
     // the hero's hexes as today: their outlines when the zoom is close, their decorations, north to south; and the way and the pointer's hex on any hex
-    var near = nearOf(at), ks = Object.keys(near).sort(function (a, b) { return near[a].r - near[b].r || near[a].q - near[b].q; }), w = M.w, outline = w * cam.z >= 22;
+    var near = nearOf(at, F.ringsAt(cam.z)), ks = Object.keys(near).sort(function (a, b) { return near[a].r - near[b].r || near[a].q - near[b].q; }), w = M.w, outline = w * cam.z >= 22;
     var polyAt = function (e, drape) {
       var c = W.hc(e.q, e.r), P = [];
       for (var i = 0; i < 6; i++) {

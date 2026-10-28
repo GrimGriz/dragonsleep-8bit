@@ -163,6 +163,35 @@
     if (!(S.seeded && S.seeded.going1020)) WENT = seedGoing();
     if (!(S.seeded && S.seeded.gulch1020)) GULCHED = seedGulch();
     if (!(S.seeded && S.seeded.fork1022)) FORKED = seedFork();
+    if (!(S.seeded && S.seeded.silverton1028)) SILVERED = seedSilverton();
+  }
+  // SILVERTON AND THE WARRENS FIT TO THE REALM (10-28, the maps window; his words: "I'd like a window to use the map-making to adjust the elevations around
+  // silverton and the warrens to fit the wiki re altitudes", then on the seat's read of his paint, "1 - show me what's there now, they're probably just me being
+  // sloppy, and I think you're good to move and reshape things to add realism that fits the wiki (2-4)" and "9 yes"): once, on load. The realm
+  // (TarlynsPit/wiki/silverton.md 21-22, the-warrens.md 16 and 28, city v6, environs v3): the town falls away south from the Edifice to the Hex in the valley,
+  // the road rising near the mountain and slopes down in front of the Edifice; the river east, falls and ponds; the Warrens' six mouths in the chain's face on
+  // the north bank 4 mi east, the camp and the bridge at the water, the feed track on the south bank. His two sinks beside the town (-900 and -500, 4 mi wide)
+  // had taken it to -530 ft: they go 3 mi west, so his trough along the range's foot stays and the road climbs out of it to a shoulder and down into town. The
+  // Warrens' bank, the fill's gray mountain at 1,300-1,430 ft a step above his town paint, is brought to a bench (a level, 430 to 390 ft west to east) and its
+  // unpainted mile hexes painted foothills; the camp is a place (environs v3's), the feed track a track from the town to it over the bridge
+  var SILVERED = false;
+  function seedSilverton() {
+    S.seeded = S.seeded || {}; S.seeded.silverton1028 = true;
+    var n = 0, was = { kmvhnmit9: [116.42059550242948, 28.660712080832063], kmvhnmkp4: [116.58860928427885, 28.85794565082916] };
+    (S.peaks || []).forEach(function (p) {
+      var w = was[p.id]; if (!w || Math.hypot(p.x - w[0], p.y - w[1]) > 0.05) return; // (only where his EXPORT of 10-21 had them: a sink he has moved since stays his)
+      p.x -= 3; p.note = (p.note ? p.note + '; ' : '') + 'moved 3 mi west 10-28 from beside Silverton (it had taken the town to -530 ft; his “good to move and reshape things”)'; n++;
+    });
+    var BENCH = [[120.6, 28.3], [121.6, 28.33], [122.6, 28.42], [123.6, 28.55], [124.3, 28.62]];
+    if (!S.peaks.some(function (p) { return p.id === 'v-warrens'; })) { S.peaks.push({ id: 'v-warrens', name: 'the Warrens’ bench', pts: BENCH, h: 0, level: [340, 300], r: 0.6, note: 'the mouths’ camp on the north bank over the river (the-warrens.md 28; environs v3), 10-28' }); n++; }
+    var w2 = LV[2].w, hh2 = w2 * SQ3 / 2, bd = function (c) { var d = 1e9; for (var i = 0; i + 1 < BENCH.length; i++) d = Math.min(d, segD(c, BENCH[i], BENCH[i + 1])[0]); return d; };
+    for (var r = Math.floor(27.2 / hh2); r <= Math.ceil(29.4 / hh2); r++) for (var q = Math.floor(119.8 / w2 - r / 2); q <= Math.ceil(125 / w2 - r / 2); q++) {
+      var k = K(q, r), c = hc(2, q, r), p1 = up(2, q, r); if (S.paint[2][k] || S.paint[1][K(p1[0], p1[1])]) continue; // (his paint, at the mile or the 5 miles: kept)
+      if (bd(c) <= 0.75) { rawSet(2, k, 'foothills'); n++; }
+    }
+    if (!SB.warrens) { S.sites.push({ id: 'warrens', name: 'the Crawler Warrens (the mouth camp)', kind: 'cave', x: 122.34, y: 28.43, note: 'placed 10-28 at environs v3’s mouth camp: six mouths in the chain’s face on the north bank, the bridge below (the-warrens.md 28); its door the Warrens’ top floor (deep16/js/mines.js); his “9 yes”' }); n++; }
+    if (!pathBy('feedtrack') && SB.silverton) { S.paths.push({ id: 'feedtrack', name: 'the feed track (Silverton to the Warrens)', kind: 'track', pts: ['silverton', [118.4, 27.95], [119.4, 28.18], [120.6, 28.5], [121.7, 28.8], [122.45, 28.98], [122.48, 28.66]] }); n++; } // (over the bridge to the camp's foot: the camp a quarter mile up the bench)
+    reindex(); return n > 0;
   }
   // THE FORK DRAGGED SOUTH (10-22, the world map seat; RULED, Griz: "3 - about 8-9 hours from the half-way inn is ideal, the fork can be on either side, but there
   // should be a thin row of plains between the gnoll hills and the bog that the road runs along, and the bog would all be north of it - it can be adjacent to the
@@ -541,14 +570,23 @@
       var river = P.kind === 'river', smp = [];
       for (var i = 0; i + 1 < pts.length; i++) {
         var A = pts[i], B = pts[i + 1], L = Math.hypot(B[0] - A[0], B[1] - A[1]), n = Math.max(1, Math.ceil(L / 0.2));
-        for (var j = 0; j < n; j++) { var t = j / n, x = A[0] + (B[0] - A[0]) * t, y = A[1] + (B[1] - A[1]) * t; smp.push([x, y, hRaw(x, y)]); }
+        for (var j = 0; j < n; j++) { var t = j / n, x = A[0] + (B[0] - A[0]) * t, y = A[1] + (B[1] - A[1]) * t; smp.push([x, y, cityOn(x, y, hRaw(x, y))]); }
       }
-      var e = pts[pts.length - 1]; smp.push([e[0], e[1], hRaw(e[0], e[1])]);
-      var W = river ? 4 : 10;
-      smp.forEach(function (s, i) {
+      var e = pts[pts.length - 1]; smp.push([e[0], e[1], cityOn(e[0], e[1], hRaw(e[0], e[1]))]); // (graded on the ground a town sits on, 10-28: the raw mountain front behind Silverton had lifted the roads out of it)
+      var W = river ? 4 : 10, bed = smp.map(function (s, i) {
         var a = 0, n = 0, lo = 1e9; for (var k = Math.max(0, i - W); k <= Math.min(smp.length - 1, i + W); k++) { a += smp[k][2]; n++; if (smp[k][2] < lo) lo = smp[k][2]; }
+        return river ? lo - 60 : a / n;
+      });
+      // a river only runs downhill (10-28, the maps window, on his "you're good to move and reshape things to add realism that fits the wiki"; the realm's river
+      // "runs east to the sea, falls and ponds", TarlynsPit/wiki/silverton.md): from its higher end to its lower, its bed never climbs -- level where the land
+      // would lift it (a pond), dropping where the land falls away (a fall) -- and never under the sea
+      if (river && bed.length > 1) {
+        var dn = bed[0] >= bed[bed.length - 1], i0 = dn ? 0 : bed.length - 1, st = dn ? 1 : -1, m = Math.max(0, bed[i0]);
+        for (var ri = i0; ri >= 0 && ri < bed.length; ri += st) { m = Math.max(0, Math.min(m, bed[ri])); bed[ri] = m; }
+      }
+      smp.forEach(function (s, i) {
         var gk = Math.floor(s[0] / g.cell) + ',' + Math.floor(s[1] / g.cell), list = g.grid.get(gk); if (!list) g.grid.set(gk, list = []);
-        list.push([s[0], s[1], river ? lo - 60 : a / n, river]);
+        list.push([s[0], s[1], bed[i], river]);
       });
     });
     BEDS = g;
@@ -561,23 +599,27 @@
       for (var k = 0; k < L.length; k++) { var e = L[k], d = Math.hypot(e[0] - x, e[1] - y); if (d < bd) { bd = d; best = e; } }
     }
     if (!best) return h;
-    var w = 1 - bd / (best[3] ? 0.3 : 0.45); if (w <= 0) return h; w = w * w * 0.9;
-    return best[3] ? Math.min(h, h + (best[2] - h) * w) : h + (best[2] - h) * w;
+    var w = 1 - bd / (best[3] ? 0.3 : 0.45); if (w <= 0) return h;
+    if (best[3]) { w = Math.min(1, w * 1.25); return Math.min(h, h + (best[2] - h) * w * w); } // (a river's own line is its bed, 10-28: it had kept a tenth of the land beside it)
+    w = w * w * 0.9; return h + (best[2] - h) * w;
   }
   var PLIFT = 0;
-  function hAt(x, y, tk) {
-    if (tk === undefined) tk = terrAtMi(x, y);
-    var h = hRaw(x, y, tk); if (isWet(tk)) return h;
-    h = bedAt(x, y, h);
-    // a city sits on its own ground (his "1 yes", 10-20): the land within a mile brought to the town ground's height, with the lifts it is under
-    // (a city only: a place of kind town is any new place's kind, and the Doors' hub stands up the mountain)
-    var TT = TB.town, ta = (TT ? +TT.alt : 300) + PLIFT;
+  // a city sits on its own ground (his "1 yes", 10-20): the land within a mile brought to the town ground's height, with the lifts it is under
+  // (a city only: a place of kind town is any new place's kind, and the Doors' hub stands up the mountain). PLIFT is the lifts at the point hRaw read last
+  function cityOn(x, y, h) {
+    var TT = TB.town, ta = Math.max(10, (TT ? +TT.alt : 300) + PLIFT); // (never under the sea: 10-28, a sink beside Silverton had taken it to -530 ft)
     for (var si = 0; si < S.sites.length; si++) {
       var st = S.sites[si]; if (st.kind !== 'city') continue;
       var R0 = 1.1, dd = Math.hypot(x - st.x, y - st.y); if (dd >= R0) continue;
       var w = dd < R0 * 0.45 ? 1 : 1 - Math.pow((dd - R0 * 0.45) / (R0 * 0.55), 2); h += (ta - h) * w * w * 0.95;
     }
     return h;
+  }
+  function hAt(x, y, tk) {
+    if (tk === undefined) tk = terrAtMi(x, y);
+    var h = hRaw(x, y, tk); if (isWet(tk)) return h;
+    var pl = PLIFT; h = bedAt(x, y, h); PLIFT = pl;
+    return cityOn(x, y, h);
   }
   // the caches: a hex's height and its shown ground, cleared when the paint, the roads, the lifts or the seed change
   var HC = new Map(), DT = new Map(), HSIG = '';
@@ -1657,6 +1699,6 @@
   resize(); panels();
   $('origin').textContent = 'this browser keeps its copy for ' + location.host + ' (another port is another copy)';
   if (GREW) { saveNow(); msg('Your version 1 map has grown ×' + GROW + ' to the four-wagon-day road (Silverton to the Pit 68 mi). Version 1 is still kept in this browser, untouched. EXPORT is the save.'); }
-  else if (SHAPED || SEEDED || LAKED || WENT || GULCHED || FORKED) { saveNow(); msg((FORKED ? 'The fork is dragged 5.6 mi down the Pit road (your “drag the fork south a bit”): the west road leaves it along a thin row of plains, the bog north of it, the gnoll hills south, the Glowseep beside it. ' : '') + (LAKED ? 'Halfway Lake is painted back at the inn, from corridor v3’s outline. ' : '') + (WENT ? 'The Coldridge Route goes at its own going now: three wagon-days. ' : '') + (GULCHED ? 'Web Gulch is a place on the Pit road, its mile hexes painted gulch. ' : '') + (SHAPED ?'The Coldridge Route is a difficult road now, its climb to the Doors in switchbacks: three wagon-days (its panel puts back your drawing). ' : '') + (SEEDED ? 'The Doors’ schools are placed (the five in their valley, the rest solo), and the mountain-foot water runs from the bogs to the Glowseep (L shows the lifts). ' : '') + 'EXPORT is the save.'); }
+  else if (SHAPED || SEEDED || LAKED || WENT || GULCHED || FORKED || SILVERED) { saveNow(); msg((SILVERED ? 'Silverton is fit to the realm: your two sinks beside it are moved 3 mi west (the town had sat at -530 ft), the Warrens’ bank is a bench over the river, the camp is a place, and the feed track runs to it (L shows the lifts). ' : '') + (FORKED ? 'The fork is dragged 5.6 mi down the Pit road (your “drag the fork south a bit”): the west road leaves it along a thin row of plains, the bog north of it, the gnoll hills south, the Glowseep beside it. ' : '') + (LAKED ? 'Halfway Lake is painted back at the inn, from corridor v3’s outline. ' : '') + (WENT ? 'The Coldridge Route goes at its own going now: three wagon-days. ' : '') + (GULCHED ? 'Web Gulch is a place on the Pit road, its mile hexes painted gulch. ' : '') + (SHAPED ?'The Coldridge Route is a difficult road now, its climb to the Doors in switchbacks: three wagon-days (its panel puts back your drawing). ' : '') + (SEEDED ? 'The Doors’ schools are placed (the five in their valley, the rest solo), and the mountain-foot water runs from the bogs to the Glowseep (L shows the lifts). ' : '') + 'EXPORT is the save.'); }
   else msg('Kept in this browser as you go; EXPORT is the save.');
 })();

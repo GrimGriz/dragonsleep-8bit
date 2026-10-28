@@ -18,7 +18,7 @@
   W.FIGHT_HOURS = 0.25; // (a road fight and its breath on the clock: fifteen minutes since 10-28 later, his "fights should burn 15 minutes instead of an hour of worldtime" -- an hour before)
   W.ZOOMS = [3.2, 4.4, 6, 8.5, 12]; // (px a mile: a 5-mile hex 16 to 60 px across)
   // the places with a door (his "when they reach the location it goes to the roam map"): only what is built; the rest say so
-  W.DOORS = { silverton: { roam: 'silverton', gates: { west: [-1, 0], south: [0, 1], east: [1, 0] } },
+  W.DOORS = { silverton: { roam: 'silverton', gates: { west: [-1, 0], south: [0, 1], east: [0.5, 0.866] } }, // (the east gate's way south-south-east since 10-28, his "aim more sse as the road out": out by it onto the hex south-east; js/town.js THE EAST SIDE)
     mouth: { roam: 'galleries', gates: { east: [1, 0], south: [0, 1], west: [-1, 0] } }, // (the Guano Galleries' mouth, its top floor on the town's tiles: js/mines.js, 10-21 night)
     warrens: { roam: 'warrens', gates: { feed: [1, 0] } }, // (the Crawler Warrens' mouth camp: no site of its own -- Silverton's feed track opens it, js/mines.js; here so the house's save loads there)
     glowseep: { roam: 'glowseep', gates: { east: [1, 0], north: [0, -1], south: [0, 1], west: [-1, 0] } } }; // (the Glowseep: the light-crews' ground by the mile, its camp and its fights -- js/mines.js, 10-21 night; west since 10-28, his "Any edge walk")
@@ -219,14 +219,14 @@
     W.load(this.q); W.scene = this; W.active = true; this.dev = /[?&]dev\b/.test(this.q);
     this.view = 'hex'; if (/[?&]tiles\b/.test(this.q) && W.OV) W.OV.open(this); // (the top-down view, js/overworld.js: V switches)
     this.fineDoor = !!W.FINE; if (this.fineDoor) W.FINE.start(this.q); // (THE LAND, RAISED by default since 10-22: js/worldfine.js F.start, F switches to the hex tops)
-    var c = hc(S.at[0], S.at[1]); this.cam = { cx: c[0], cy: c[1] }; this.zi = M.near ? W.NEARZ : 2; // (the area's hexes as big on the screen as THE WORLD's at its opening zoom)
+    var c = hc(S.at[0], S.at[1]); this.cam = { cx: c[0], cy: c[1] }; this.zi = M.near ? W.NEARZ : 2; this.zBasePx = this.zooms()[this.zi]; // (the area's hexes as big on the screen as THE WORLD's at its opening zoom; zBasePx: the zoom ZOOM ON APPROACH comes back to)
     try { D.music('corridor'); } catch (e) { }
     this.say(W.unstuck ? 'The party found its way down out of the ' + W.unstuck + ', ' + W.timeOfDay() + '.' : 'The road, ' + W.timeOfDay() + '. Click a hex to travel there.');
   };
   World.prototype.exit = function () { W.active = false; };
   World.prototype.say = function (s) { this.msg = { s: s, t: 0 }; };
   World.prototype.card = function (lines, then, keys) { this.cards.push({ lines: lines, then: then || null, keys: keys || null }); };
-  W.NEARZOOMS = [6, 8.5, 12, 17, 20, 28]; W.NEARZ = 4; // (the area's px a mile: its 1.5-mile hexes 9 to 42 px across, 30 at the opening -- as THE WORLD's 5-mile hexes at its own)
+  W.NEARZOOMS = [6, 8.5, 12, 17, 20, 28, 40, 56]; W.NEARZ = 4; // (the area's px a mile: its 1.5-mile hexes 9 to 84 px across, 30 at the opening -- as THE WORLD's 5-mile hexes at its own; 40 and 56 since 10-28, his "5 - do 40 and 56 variant": Silverton, the Warrens and the Galleries junction on one screen, the land up to the party, js/worldfine.js F.ringsAt)
   World.prototype.zooms = function () { return M.near ? W.NEARZOOMS : this.fineDoor && W.FINE.on ? W.FINE.ZOOMS : W.ZOOMS; }; // (THE FINE LAND's one zoom closer, js/worldfine.js; else THE WORLD's five; the area's its own)
   // the party onto another map (the area's edge crossed, a town left, the top-down view shut): the land kept at the scale it was, the way planned again
   World.prototype.onMap = function () {
@@ -261,15 +261,17 @@
     if (this.view === 'tiles') { W.OV.update(this); return; }
     if (this.fineDoor && I.pressed('dice')) { W.FINE.flip(); this.fineT = this.t; this.zi = Math.min(this.zi, this.zooms().length - 1); D.sfx('confirm'); return; } // (F: THE LAND, RAISED or the hex tops, the choice kept)
     // the camera: the wheel and -/= zoom, the middle button pans, C comes back to the party
-    var ZS = this.zooms();
+    var ZS = this.zooms(), zi0 = this.zi;
     if (m.wheel) this.zi = Math.max(0, Math.min(ZS.length - 1, this.zi - m.wheel));
     if (I.pressed('zoomin')) this.zi = Math.min(ZS.length - 1, this.zi + 1);
     if (I.pressed('zoomout')) this.zi = Math.max(0, this.zi - 1);
+    if (this.zi !== zi0) { this.zBasePx = ZS[this.zi]; if (this.walk) this.zHand = true; } // (a hand on the zoom: the zoom ZOOM ON APPROACH comes back to, and mid-walk the approach waits till the next walk)
     var z = this.zpx = ZS[this.zi]; // (zpx: the scale kept across a map's change, onMap)
     if (m.panX || m.panY) { this.cam.cx -= (m.panX || 0) / z; this.cam.cy -= (m.panY || 0) / (z * TILT); m.panX = m.panY = 0; }
     // the mouse at the screen's edge scrolls the map (his "i'm getting no 'mouse on the edge scroll map'"), as the grid's fights do; not for a finger
     if (m.inside && m.inWin !== false && !D.touch) { var EG = 8, sp = 5 / z; if (m.x < EG) this.cam.cx -= sp; else if (m.x > D.W - EG) this.cam.cx += sp; if (m.y < EG) this.cam.cy -= sp / TILT; else if (m.y > D.H - EG) this.cam.cy += sp / TILT; }
     if (I.pressed('center')) { var c0 = hc(S.at[0], S.at[1]); this.cam.cx = c0[0]; this.cam.cy = c0[1]; }
+    if (this.walk && !this.wasWalk) this.zHand = false; this.wasWalk = !!this.walk; // (a new walk: ZOOM ON APPROACH takes the camera again)
     if (this.walk) { this.stepWalk(); return; }
     // the arrows walk the party a hex (his "arrow keys should move the party not the mouse selector"): left and right west and east; up and down north-west
     // and north-east by turns (a hex row is half a hex over), or as the side arrow held with it says
@@ -300,7 +302,8 @@
     if (w.f === 0 && W.house() && D.house.marchAsk(this, st, w, resume)) return; // (the house: the day's march by the hex, the forced march past it -- js/house.js THE MARCH)
     if (w.f === 0 && !W.house() && this.dayAsk(st, w.path.slice(), resume)) { this.walk = null; return; } // (the bare door: the day's walk asks, as the house's march does)
     w.f++;
-    var a = hc(S.at[0], S.at[1]), b = hc(next[0], next[1]), u = w.f / STEPF; this.cam.cx += ((a[0] + (b[0] - a[0]) * u) - this.cam.cx) * 0.2; this.cam.cy += ((a[1] + (b[1] - a[1]) * u) - this.cam.cy) * 0.2;
+    var a = hc(S.at[0], S.at[1]), b = hc(next[0], next[1]), u = w.f / STEPF, tx = a[0] + (b[0] - a[0]) * u, ty = a[1] + (b[1] - a[1]) * u;
+    this.approach(tx, ty); var ln = this.lean || [0, 0]; this.cam.cx += (tx + ln[0] - this.cam.cx) * 0.2; this.cam.cy += (ty + ln[1] - this.cam.cy) * 0.2;
     if (w.f < STEPF) return;
     var hrs = W.house() ? D.house.marchHours(st) : st.h; // (the house: an exhausted party's half speed takes twice the hours)
     w.f = 0; S.from = S.at; S.at = next; S.pos = hc(next[0], next[1]); S.t += hrs; S.today += hrs; w.path.shift();
@@ -310,6 +313,31 @@
       if (ml.length) { W.save(); D.sfx('popup'); this.card(D.house.marchCard(ml), null, [['a', function () { self.arrive(st); }, 'OK']]); return; }
     }
     this.arrive(st);
+  };
+  // ZOOM ON APPROACH (10-28, the maps window; his "(and the notion of players approaching locations increasing worldmap zoom", then "6 yes" to the seat's
+  // sketch -- every door, a hand on the zoom wins till the next walk, an OPTIONS row on by default): each place with a door has a reach and a zoom of its own;
+  // walking toward one inside its reach the camera steps in a zoom at a time toward the place's, leaning a third of the way to it as it nears, and walking away
+  // it steps back out to the zoom the hand last chose. A step, not a glide: the land is drawn again at each new zoom (18 to 66 ms in the pane)
+  W.APPROACH = { silverton: { mi: 9, z: 56 }, mouth: { mi: 4, z: 40 }, glowseep: { mi: 4, z: 40 }, warrens: { mi: 4, z: 40 } };
+  W.APKEY = 'deep16.world.approach';
+  W.approachOn = function () { var v = null; try { v = window.localStorage.getItem(W.APKEY); } catch (e) { } return v !== 'off'; }; // (a per-device convenience, as RANDOM FIGHTS)
+  W.setApproach = function (on) { try { window.localStorage.setItem(W.APKEY, on ? 'on' : 'off'); } catch (e) { } };
+  function nearestZ(ZS, px) { var bi = 0; for (var i = 1; i < ZS.length; i++) if (Math.abs(Math.log(ZS[i] / px)) < Math.abs(Math.log(ZS[bi] / px))) bi = i; return bi; }
+  World.prototype.approach = function (tx, ty) { // (tx, ty: the token, between its hexes)
+    if (!W.approachOn() || this.zHand) { this.lean = null; return; }
+    var ZS = this.zooms(), best = null;
+    for (var i = 0; i < M.sites.length; i++) {
+      var s = M.sites[i], ap = W.APPROACH[s.id]; if (!ap || !W.DOORS[s.id]) continue;
+      var d = Math.hypot(s.x - tx, s.y - ty); if (d < ap.mi && (!best || d / ap.mi < best.d / best.ap.mi)) best = { s: s, ap: ap, d: d };
+    }
+    var dPrev = this.apD, same = best && this.apS === best.s.id; this.apD = best ? best.d : null; this.apS = best ? best.s.id : null;
+    var bi = nearestZ(ZS, this.zBasePx || ZS[this.zi]), want = this.zi;
+    if (best && same && dPrev != null && best.d < dPrev - 1e-4) { // (nearing it: in, never out)
+      var zt = Math.min(best.ap.z, ZS[ZS.length - 1]), zb = ZS[bi], k = 1 - best.d / best.ap.mi, zw = zt > zb ? zb * Math.pow(zt / zb, Math.min(1, k * 1.25)) : zb;
+      for (var j = 0; j < ZS.length; j++) if (ZS[j] <= zw * 1.001) want = Math.max(want, j);
+      this.lean = [(best.s.x - tx) * k / 3, (best.s.y - ty) * k / 3];
+    } else if (!best || (same && dPrev != null && best.d > dPrev + 1e-4)) { want = Math.min(this.zi, bi); this.lean = null; } // (walking away, or out of every reach: out, never in)
+    if (want !== this.zi && this.t - (this.zT == null ? -99 : this.zT) >= 20) { this.zi += want > this.zi ? 1 : -1; this.zT = this.t; this.zpx = ZS[this.zi]; }
   };
   // the step's end: kept, the road's chance of a fight, a door, the places here, and the walk's end
   World.prototype.arrive = function (st) {
@@ -753,4 +781,7 @@
   W.World = World;
   W.M = function () { return M; }; W.Mworld = function () { return MS.world || M; }; W.hexOf = function (x, y) { return at(x, y); }; W.hc = function (q, r) { return hc(q, r); }; W.K = K; W.SKY = SKY; W.icon = icon; W.RANK = RANK; W.BIG = BIG; // (for the top-down view, js/overworld.js)
   W.proj = proj; W.tone = tone; W.HCO = HCO; W.TILT = TILT; W.lookImg = function () { return LOOK; }; // (for THE FINE LAND, js/worldfine.js)
+  // OPTIONS' ZOOM ON APPROACH (above), on by default: a row on the one OPTIONS page beside RANDOM FIGHTS (js/simple.js), the second game's only
+  var MN = window.DS && window.DS.MENU;
+  if (MN && MN.gridRows) { var rows0 = MN.gridRows; MN.gridRows = function () { var r = rows0.apply(this, arguments); r.push({ label: 'ZOOM ON APPROACH', key: 'approachzoom', get: function () { return W.approachOn() ? 'ON' : 'OFF'; }, step: function () { W.setApproach(!W.approachOn()); } }); return r; }; }
 })();

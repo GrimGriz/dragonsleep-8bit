@@ -84,6 +84,7 @@
     V.plaza.forEach(function (p, k) { fill(p[0], p[1], p[0] + p[2], p[1] + p[3], function () { return true; }, k === 0 ? '=' : ','); }); // (v6's first plaza is the Gate Plaza, its second the Arena Plaza)
     V.street.forEach(function (s) { var dressed = s[1] >= 72; line(s[0], s[1], dressed ? '=' : ',', dressed ? null : '.,'); }); // (Fountain Street, 72, and Gate Avenue, 86: dressed stone; the rest packed dirt)
     V.road.forEach(function (r) { line(r[0], r[1] >= 9 ? 15 : 10, ',', '.'); }); // (THE road three squares wide, the tracks two)
+    line(T.EAST.track, 5, ',', '.'); line(T.EAST.out, 10, ',', '.'); // (the east road's split outside the gate, the second game's over v6: T.EAST)
     // the Shaft Rows' shacks, the houses, the Hexagon, the Edifice
     // (each house one of three heights and roofs, each shack one of two, by its place in v6's order: houses that touch read as two -- the step between their roofs)
     var BOX = V.shack.map(function (s, k) { return { tag: 's' + k, ch: 'hj'.charAt((k * 5 + (k >> 1)) % 2), b: [s[0], s[1], -s[2] / 2, -s[3] / 2, s[2], s[3], s[4]] }; })
@@ -348,6 +349,8 @@
     Object.keys(M).forEach(function (k) { var v = M[k]; marks[k] = v && !Array.isArray(v) ? Object.keys(v).reduce(function (a, k2) { a[k2] = to(v[k2]); return a; }, {}) : mk(v); });
     var id = function (x, y) { return [x, y]; }, V = D.TOWN_V6, ft = function (p) { return [T.X0 + (p[0] + ox + 0.5) * L.F, T.Y0 + (p[1] + oy + 0.5) * L.F]; };
     var wayName = {}; ways.forEach(function (p) { if (offEdge[p[0] + ',' + p[1]]) { wayName[p[0] + ',' + p[1]] = 'out of town to the ' + offEdge[p[0] + ',' + p[1]]; return; } var f = ft(p), best = 0, bd = 1e9; V.road.forEach(function (r, k) { for (var i = 0; i + 1 < r[0].length; i++) { var a = r[0][i], b = r[0][i + 1], vx = b[0] - a[0], vy = b[1] - a[1], L2 = vx * vx + vy * vy, t = L2 ? Math.max(0, Math.min(1, ((f[0] - a[0]) * vx + (f[1] - a[1]) * vy) / L2)) : 0, d = Math.hypot(f[0] - a[0] - t * vx, f[1] - a[1] - t * vy); if (d < bd) { bd = d; best = k; } } }); wayName[p[0] + ',' + p[1]] = T.ROADS[best] || 'the road'; });
+    var splitY = Math.floor((T.EAST.split[1] - T.Y0) / L.F) - oy; // (THE EAST SIDE, above: north of the split the Warrens', the rest the road out)
+    if (ox + w === L.w) ways.forEach(function (p) { if (p[0] === w - 1) wayName[p[0] + ',' + p[1]] = p[1] < splitY ? T.ROADS[4] : T.ROADS[2]; });
     var districts = (V.label || []).filter(function (l) { return /district/.test(l[3]) && !/S I L V E R T O N/.test(l[2]); });
     var def = D.MAPS.silverton = {
       name: 'Silverton', sub: 'the town, true scale from the city map v6', key: 'silverton', town: true, wet: false, dark: false, ground: 'earth', step: 10,
@@ -373,7 +376,14 @@
   T.ROOFS = { b: { h: 20, roof: 'red' }, n: { h: 16, roof: 'blue' }, u: { h: 24, roof: 'red' }, h: { h: 12, roof: 'stone' }, j: { h: 10, roof: 'stone' }, B: { h: 35, roof: 'stone' }, q: { h: 10, roof: 'silver', wall: 'silver' } };
   T.HOUSES = 'bnu'; T.SHACKS = 'hj';
   T.roofsAt = function (F) { if (F === T.FT) return T.ROOFS; var o = {}; Object.keys(T.ROOFS).forEach(function (k) { o[k] = Object.assign({}, T.ROOFS[k], { h: T.ROOFS[k].h * T.FT / F }); }); return o; }; // (the heights shrink with the squares: the town as if the party stood F / 5 times taller)
-  T.ROADS = ['the south gate track', 'THE road west: a mile to the fork', 'the road east: the farms and the coast', 'the old mine track', 'the feed track: the bridge and the Warrens mouths']; // (v6's roads in its own order)
+  T.ROADS = ['the south gate track', 'THE road west: a mile to the fork', 'the road out south-east: the farms and the coast', 'the old mine track', 'the feed track: the bridge and the Warrens mouths']; // (v6's roads in its own order)
+  // THE EAST SIDE (10-28, the maps window; his "i think the entire east side of town should lead to the warrens map", then "from the 8-bit I remember a worldmap road
+  // to the galleries, and thinking in hex-map sizes and story canon it's pretty much silverton's hex itself in proximity. Given the world being made of hexes, the
+  // 'east' road could split a thinner track that runs to the galleries map and aim more sse as the road out", "warrens mouth, not the guano mine, sorry" and "8 yes,
+  // down to the pit is back out through the west"): outside the east gate the road east splits -- a thin track north along the stockade to the feed track's corner,
+  // the road out bending south-south-east -- and every way off the floor's east edge north of the split is the feed track's (the Warrens' mouth camp, js/mines.js),
+  // the rest the road out (THE WORLD's, by the east gate's way: js/world.js W.DOORS.silverton). In feet, v6's own
+  T.EAST = { split: [2330, 1110], track: [[2330, 1110], [2410, 1000], [2445, 840], [2470, 660]], out: [[2330, 1110], [2395, 1250], [2470, 1420]] };
   // a click on a door where it is drawn, in the wall of the building north of its threshold (10-21, Griz: "swap the stand on this tile to go in the shop to clicking on the
   // door"): the door's trigger and its threshold square, or null. (A click on the threshold itself finds the door by js/roam.js R.useAt, as a click on any USE square)
   T.doorClick = function (B, sx, sy) {
