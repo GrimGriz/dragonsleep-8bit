@@ -1516,7 +1516,7 @@
 }
 },
 "basilisk_p1": {
-"image": "art/basilisk_p1.png?v=26e5703720",
+"image": "art/basilisk_p1.png?v=ca477983b7",
 "fw": 112,
 "fh": 54,
 "ax": 56,
@@ -16545,7 +16545,7 @@ true
 "door": "warp:winters"
 },
 "winterwolf_p1": {
-"image": "art/winterwolf_p1.png?v=a352bc67a7",
+"image": "art/winterwolf_p1.png?v=79f2b9c104",
 "fw": 228,
 "fh": 142,
 "ax": 114,

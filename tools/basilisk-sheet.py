@@ -118,6 +118,18 @@ VIEWS = {v: tuple('H%dP%d' % (h, p) for p in range(p0, p0 + 7)) for v, h, p0 in 
 JOINS = {r + '_b': r for r in ('idle', 'walk', 'gaze', 'attack', 'flinch', 'hurt', 'prone')}
 ROWS = ['idle', 'walk', 'attack', 'hurt', 'flinch', 'gaze', 'prone']
 FPS = {'idle': 6, 'walk': 10, 'attack': 10, 'hurt': 8, 'flinch': 10, 'gaze': 8, 'prone': 6}
+# E and W smaller (10-28, Griz, his ear file: "basilisks east and west made him look way larger than all the other facings"): side-on the long
+# lizard stood as tall as from every other side (37 px against 37 to 41) but ran 98 px nose to tail, its idle 2.2 times the SE's area (2223 px
+# against 1023). Every E page together by sqrt(1023 / 2223): the side view covers what the diagonal it turns into covers; the other facings
+# byte for byte as they were
+E_SCALE = 0.68
+_scales0, _SHRINK = AD.scales, [False]
+def _scales(cuts, views, *a, **k):
+    K = _scales0(cuts, views, *a, **k)
+    for L in (views.get('E', ()) if _SHRINK[0] else ()):
+        K[L] /= E_SCALE
+    return K
+AD.scales = _scales
 
 
 def fit(img, k):
@@ -148,6 +160,7 @@ def build():
     kw = dict(fix=FIX, cuts=CUTS, stand_of=STAND_OF, joins=JOINS)
     first = AD.views(ROOT, 'basilisk', 'ART-17', PAGES, VIEWS, STAND, fit, torso_x, cell, **kw)
     ref = {'side': first['E']['idle'][0], 'S': first['S']['idle'][0], 'N': first['N']['idle'][0]}
+    _SHRINK[0] = True                    # (E smaller in the second pass only: its first-pass idle stays the tone the diagonals were cut to)
     d = AD.views(ROOT, 'basilisk', 'ART-17', PAGES, VIEWS, STAND, fit, torso_x, cell, tone_ref=ref, **kw)
     d = {v: dict(rows, prone=rows['prone'][::-1]) for v, rows in d.items()}
     frames = {}

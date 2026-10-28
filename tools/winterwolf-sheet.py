@@ -120,6 +120,50 @@ CUTS = {'H2P2': {'breath': [(1327, 64, 1327, 94), (1326, 92, 1368, 92)]}}
 JOINS = {'breath2': 'breath'}
 ROWS = ['idle', 'walk', 'attack', 'hurt', 'flinch', 'breath', 'prone']
 FPS = {'idle': 6, 'walk': 10, 'attack': 10, 'hurt': 8, 'flinch': 10, 'breath': 8, 'prone': 6}
+# no frost puff on the idle (10-28, Griz, his ear file: "I remember the winter wolf's cold breath looked like a static speech bubble on idle"):
+# the art desk drew a puff of breath at the muzzle on the idles (SE and NE every frame, E and N some), loose on the page; at game speed it
+# hung there like a speech bubble. An idle frame keeps its body alone -- its biggest piece, and any piece a quarter of that -- the breath row's
+# own frost untouched
+from scipy import ndimage as _nd
+def _body_only(im):
+    a = np.asarray(im).copy()
+    lab, n = _nd.label(a[..., 3] > 0, structure=np.ones((3, 3)))
+    if n < 2:
+        return im, 0
+    sz = _nd.sum(a[..., 3] > 0, lab, range(1, n + 1))
+    keep = 1 + np.where(sz >= 0.25 * sz.max())[0]
+    gone = ~np.isin(lab, keep) & (lab > 0)
+    a[gone, 3] = 0
+    return Image.fromarray(a, 'RGBA'), int(gone.sum())
+_cut0, _tones0, _PUFF, _RAW = AD.cut, AD.tones, [False], [None]
+_scales0 = AD.scales
+def _tones(cuts, *a, **k):                     # (the tones and the scales measured on the cut as it was, puffs and all: every other row byte for byte)
+    return _tones0(_RAW[0] or cuts, *a, **k)
+def _scales(cuts, *a, **k):
+    return _scales0(_RAW[0] or cuts, *a, **k)
+AD.tones, AD.scales = _tones, _scales
+# SE's puffs touch the nose on the page (five of six), N's Idle 5 joins its ear: boxed by hand, page px, the blue-grey frost by the head
+PUFF_AWAY = {'H1P1': {'idle': [(344, 303, 374, 334), (582, 301, 611, 331), (812, 303, 840, 332), (1036, 313, 1066, 343), (1268, 310, 1299, 340), (1513, 303, 1546, 333)]},
+             'H5P1': {'idle': [(1644, 155, 1715, 228)]}}       # (and N's Idle 5: its puff beside the ear, joined to it at the cut)
+def _cut(*a, **k):
+    out = _cut0(*a, **k)
+    if not _PUFF[0]:
+        return out
+    _RAW[0] = {L: dict(rows) for L, rows in out.items()}
+    pages = dict(a[3])
+    for L, aw in PUFF_AWAY.items():
+        if L in pages:
+            pages[L] = dict(pages[L], away=dict(pages[L].get('away', {}), **aw))
+    out = _cut0(*(a[:3] + (pages,) + a[4:]), **k)
+    for L, rows in out.items():
+        for r in rows:
+            if r.split('_')[0] == 'idle':
+                fr = [(_body_only(im) if im is not None else (None, 0), box, x) for im, box, x in rows[r]]
+                if any(g for (_, g), _, _ in fr):
+                    print('  %s %s: puffs off %s page px' % (L, r, [g for (_, g), _, _ in fr]))
+                rows[r] = [(im, box, x) for (im, _), box, x in fr]
+    return out
+AD.cut = _cut
 
 
 def fit(img, k):
@@ -177,6 +221,7 @@ def build():
     kw = dict(fix=FIX, cuts=CUTS, targets=tg, joins=JOINS, feet=FEET)
     first = AD.views(ROOT, 'winterwolf', 'ART-54', PAGES, VIEWS, STAND, fit, torso_x, cell, **kw)
     ref = {'side': first['E']['idle'][0], 'S': first['S']['idle'][0], 'N': first['N']['idle'][0]}
+    _PUFF[0] = True                      # (the idles' puffs off in the second pass only: the first pass's idles stay the tone refs they were)
     d = AD.views(ROOT, 'winterwolf', 'ART-54', PAGES, VIEWS, STAND, fit, torso_x, cell, tone_ref=ref, **kw)
     d = {v: dict(rows, prone=rows['prone'][::-1]) for v, rows in d.items()}
     frames = {}
