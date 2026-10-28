@@ -280,11 +280,11 @@
     return out;
   };
   // the sitting on the counter's screen: the card, then a line a page on the speaker's portrait; the flag on the save and the floor (the floor hands its own back later)
-  H16.sitting = function (B, ids, flagsets) {
+  H16.sitting = function (B, ids, flagsets, seen) { // (seen: its card already shown, at the table on the map -- H16.tableShot)
     var sc = new C.Counter(B || null, { id: 'council', name: 'The council', place: H16.COUNCIL.place, what: H16.COUNCIL.what, script: function (s) { return (function* () {
       for (var i = 0; i < ids.length; i++) {
         var cs = H16.COUNCIL[ids[i]]; flagsets.forEach(function (f) { if (f) f[cs.flag] = 1; });
-        s.sheet = null; s.o.name = 'The council'; yield s.say([cs.card], 'attentive');
+        if (!(seen && i === 0)) { s.sheet = null; s.o.name = 'The council'; yield s.say([cs.card], 'attentive'); }
         for (var k = 0; k < cs.lines.length; k++) { var who = cs.lines[k][0]; s.sheet = C.PT[who] || null; s.o.name = H16.WHO[who] || who; yield s.say(['"' + cs.lines[k][1] + '"'], 'attentive'); }
         if (cs.end) { s.sheet = null; s.o.name = 'The council'; yield s.say(['{g}' + cs.end + '{/}']); }
       }
@@ -307,8 +307,54 @@
   H16.lookPlay = function* (B) {
     var R0 = B.roam, f = R0.flags;
     if (D.roam.def.hexIn !== 3) { f.councilCalled = 1; D.sfx('popup'); B.card(D.roam.wrap([H16.COUNCIL.call]), 360); yield 20; return; }
-    var sc = H16.sitting(B, ['looks'], [f, D.house && D.house.cur && D.house.cur.flags]); while (!sc.done) yield 1;
+    yield* H16.tableShot(B, H16.COUNCIL.looks.card); // (the council at the long table first, on the map's camera: his "a scene at start or between that shows them on the 3rd floor")
+    var sc = H16.sitting(B, ['looks'], [f, D.house && D.house.cur && D.house.cur.flags], true); while (!sc.done) yield 1;
+    H16.rise(B);
   };
+
+  // ---------------------------------------------------------------- THE COUNCIL AT THE LONG TABLE (RULED 10-28, his "yes but a scene at start or between that shows them on the 3rd
+  // floor", on the window's four calls -- the sittings as portraits stand, and the council is seen at the table). When the council sits -- a council's night (C1's, C3's: the
+  // scales lit, from dusk) or the party called up at renown 2 (C2) -- the Hex's third floor seats them at the long table under the Big Window, in their own figures where they
+  // have them; the party that climbs up sees them there on the map's camera, the camera along the table and a card: C2 opens with it before its portraits, a council's night
+  // shows it once (Warda: stand at the back), and the night's sitting plays at the party's rest as ruled. The seats: the chairs' own places (js/hex.js HX.THIRD: the table at
+  // 0,-49 ft, its chairs at x -7.5..7.5, z -52 and -46); who sits where the window's draft (invented.json council-at-the-table)
+  H16.TABLE = { mid: [0, -49], seats: [['papa', 0, -52], ['androit', -3.75, -52], ['hessle', 3.75, -52], ['casper', -7.5, -52], ['harrow', 7.5, -52], ['merrick', -3.75, -46], ['thrane', 3.75, -46]],
+    night: 'The scales are lit. The council sits at the long table under the Big Window, the lamps low. Warda at the lounge door: "Stand at the back. Say nothing."',
+    rise: '{g}The council breaks up. Papa goes back down to his door.{/}', word: 'doesn\'t look up from the table. The council is sitting.' };
+  // who sits tonight: 'looks' (C2 due), or the night's sittings due (the window's councilsDue) from dusk -- Merrick when word from outside matters (C1, C2), the east side's man for the herd
+  H16.atTable = function (flags) {
+    var ph = H16.phaseOf(H16.hourNow(D.roam && D.roam.q, null)), due = H16.councilsDue(flags), night = due.length && (ph === 'dusk' || ph === 'night');
+    var why = night ? 'night' : !flags.councilSeen && C.renownOf() >= 2 ? 'looks' : null; if (!why) return null;
+    var who = ['papa', 'androit', 'hessle', 'casper', 'harrow']; if (why === 'looks' || due.indexOf('notice') >= 0) who.push('merrick'); if (why === 'night' && (due.indexOf('herd') >= 0 || due.indexOf('stock') >= 0)) who.push('thrane');
+    return { why: why, who: who };
+  };
+  var hexDef0 = D.hex.def;
+  D.hex.def = function (lv, R0) {
+    var def = hexDef0.apply(this, arguments), at = lv === 3 && R0 && R0.flags ? H16.atTable(R0.flags) : null; if (!at) return def;
+    var HX = D.hex, used = {}; def.people.forEach(function (p) { used[p.at[0] + ',' + p.at[1]] = 1; });
+    H16.TABLE.seats.forEach(function (s) {
+      if (at.who.indexOf(s[0]) < 0) return; var q = HX.near(def.rows, HX.sqAt(s[1], s[2]), used); if (!q) return; used[q[0] + ',' + q[1]] = 1;
+      def.people.push({ id: 'council' + s[0], at: q, face: s[2] < H16.TABLE.mid[1] ? [0, 1] : [0, -1], kind: s[0] === 'papa' ? 'thug' : 'crewman', fig: C.FIG[s[0]] ? s[0] : null, name: H16.WHO[s[0]], look: null, hire: null });
+      def.src8.triggers.push({ id: 'talk:council' + s[0], on: 'use', rect: [q[0], q[1], 1, 1], town: 'talk', npc: 'council' + s[0] });
+      C.TALK16['council' + s[0]] = [{ say: [H16.WHO[s[0]] + ' ' + H16.TABLE.word] }];
+    });
+    def.councilAt = at.why; return def;
+  };
+  // the shot: the camera along the table, then the card, anchored on Papa (his figure, or the plain shape's stand-in)
+  H16.tableShot = function* (B, card) {
+    var HX = D.hex, m = HX.sqAt(H16.TABLE.mid[0], H16.TABLE.mid[1]), papa = B.units.filter(function (u) { return u.npc === 'councilpapa'; })[0];
+    B.focus({ x: m[0], y: m[1], size: 1 }); D.sfx('popup'); yield 30;
+    yield { prompt: { who: papa || B.roam.token, title: 'THE HEX, THE THIRD FLOOR', lines: D.roam.wrap([card]), opts: [{ label: 'NEXT', value: 0 }] } };
+  };
+  // the council risen: off the floor, their squares and words gone with them
+  H16.rise = function (B) {
+    var R = D.roam, had = B.units.some(function (u) { return /^council/.test(u.npc || ''); }); if (!had) return;
+    B.units = B.units.filter(function (u) { return !/^council/.test(u.npc || ''); }); R.def.src8.triggers = R.def.src8.triggers.filter(function (t) { return !/^council/.test(t.npc || ''); });
+    R.def.councilAt = null; D.grid.setup(B.map, B.units); B.focus(B.roam.token); B.card(R.wrap([H16.TABLE.rise]), 240);
+  };
+  // a council's night on the third floor: the shot once a night, the party at the back
+  H16.nightDue = function (B) { var R = D.roam, def = R.def, R0 = B && B.roam; return !!(def && def.hexIn === 3 && def.councilAt === 'night' && R0 && R0.mode === 'walk' && !R0.path && R0.tableDay !== H16.day()); };
+  H16.nightPlay = function* (B) { B.roam.tableDay = H16.day(); yield* H16.tableShot(B, H16.TABLE.night); };
 
   // ---------------------------------------------------------------- SILVERTON'S HOURS (the lane's 3; RULED 10-28: his "1 - I'm onboard", the town's clock and WAIT; "2 - basically
   // the stuff the players actually use almost always open, with the shops the players are unlikely to use (or haven't been built yet ...) where those shop keeps roam around town
@@ -495,7 +541,9 @@
     { hours: 1, id: 'night', door: 'inn:cassia', t: 21, label: 'SILVERTON BY NIGHT: the lit places', note: 'One step: night. The dark wash, the pools at the Hex\'s doors, vice row, the lantern house, Cassia\'s, the chapel, Davos\'s, the west gate, round the party.' },
     { hours: 1, id: 'council1', door: 'inn:cassia', t: 55, sit: ['notice'], label: 'THE COUNCIL, C1: the Pit\'s word (at the rest)', note: 'The sitting as it plays over a morning: the card, then each line on its speaker\'s portrait.' },
     { hours: 1, id: 'council2', door: 'inn:cassia', sit: ['looks'], renown: 2, label: 'THE COUNCIL, C2: a name made (renown 2)', note: 'The who\'s-who, a line each (live it comes when the party climbs to the Hex\'s third floor at renown 2).' },
-    { hours: 1, id: 'council3', door: 'inn:cassia', sit: ['herd'], flags: { herdWarned: 1 }, label: 'THE COUNCIL, C3: the herd thinned', note: 'The east side\'s man, Casper, Hessle, Papa ("A warning\'s gone down. Once. Next.").' }
+    { hours: 1, id: 'table', near: 'papa', hex3: true, renown: 2, flags: { papaLymen: 1, councilCalled: 1 }, label: 'THE COUNCIL AT THE LONG TABLE: C2, the party called up', note: 'In at the Hex and up to the third floor: the council in their seats at the long table under the Big Window, the camera along it and the card; then the who\'s-who on their portraits, and they break up.' },
+    { hours: 1, id: 'tablenight', near: 'papa', hex3: true, t: 42, flags: { papaLymen: 1 }, label: 'THE COUNCIL AT THE LONG TABLE: the night the Pit\'s word comes', note: 'Day 1 at dusk, up to the third floor: the scales are lit, the council at the table, Merrick among them; Warda: stand at the back. Their sitting plays at the party\'s next rest.' },
+    { hours: 1, id: 'council3', door: 'inn:cassia', sit: ['herd'], flags: {herdWarned: 1 }, label: 'THE COUNCIL, C3: the herd thinned', note: 'The east side\'s man, Casper, Hessle, Papa ("A warning\'s gone down. Once. Next.").' }
   ];
   var play0 = C.servicePlay;
   C.servicePlay = function (bt) {
@@ -506,11 +554,18 @@
     Hs.begin(rec, 0);
     var S = D.world && D.world.state ? D.world.state() : null; if (bt.t != null && S) S.t = bt.t;
     if (bt.sit) H16.sitting(null, bt.sit, [rec.flags]);
+    if (bt.hex3) H16.toHex3 = true;
   };
   H16.show = function (q) { return new C.ServicesShow(q, H16.SHOW_BEATS, '{y}SILVERTON\'S HOURS AND WORDS, 10-28{/} -- a NEW GAME staged; the rest is yours (a show)'); };
 
   // ---------------------------------------------------------------- the floor's beats, one hook (js/roam.js R.script): each `due` asked in turn, the first that is plays
-  H16.BEATS = [{ due: H16.turnDue, play: H16.turnPlay }, { due: H16.waitDue, play: H16.waitPlay }, { due: H16.papaDue, play: H16.papaScene }, { due: H16.lookDue, play: H16.lookPlay }, { due: H16.missionDue, play: H16.missionCard }];
+  // (a show's beat that starts on the Hex's third floor: in at the front doors and up the spirals, as the party walks it -- js/hex.js HX.goIn, HX.lay)
+  H16.toHex3Due = function (B) { var def = D.roam && D.roam.def; return !!(H16.toHex3 && def && def.town && !def.room && !def.hexIn && B && B.roam && B.roam.mode === 'walk'); };
+  H16.toHex3Play = function* (B) {
+    H16.toHex3 = false; var HX = D.hex; yield* HX.goIn(B, 'front');
+    var sp = HX.spiralSq()[0], rows = HX.rows(3), at = HX.near(rows, [sp[0], sp[1] + 1]) || HX.near(rows, sp); HX.lay(B, 3, at, [0, 1]); B.card(D.roam.wrap(D.roam.def.hello), 300); yield 10;
+  };
+  H16.BEATS = [{ due: H16.turnDue, play: H16.turnPlay }, { due: H16.waitDue, play: H16.waitPlay }, { due: H16.toHex3Due, play: H16.toHex3Play }, { due: H16.papaDue, play: H16.papaScene }, { due: H16.nightDue, play: H16.nightPlay }, { due: H16.lookDue, play: H16.lookPlay }, { due: H16.missionDue, play: H16.missionCard }];
   H16.due = function (B) { H16.light(B); for (var i = 0; i < H16.BEATS.length; i++) if (H16.BEATS[i].due(B)) { H16.next = H16.BEATS[i]; return true; } return false; };
   H16.beat = function* (B) { var b = H16.next; H16.next = null; if (b) yield* b.play(B); };
 })();
