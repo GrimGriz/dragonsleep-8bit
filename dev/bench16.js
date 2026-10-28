@@ -2179,8 +2179,8 @@
       D.ctx = ctxW0;
       var cvM = document.createElement('canvas'); cvM.width = d2.w * 3; cvM.height = d2.h * 3; var cM = cvM.getContext('2d'); RF.paintMap(cM, B2, 0, 0, 3); var pxM = cM.getImageData(35 * 3 + 1, 17 * 3 + 1, 1, 1).data;
       okF2('on the floor map (L) the ways green (the passage\'s square ' + [pxM[0], pxM[1], pxM[2]].join(',') + ')', pxM[1] > 200 && pxM[0] < 120 && pxM[2] < 140);
-      var BSw = testF2('?roam=glowseep'), wsS = ((RF.def.hello || []).filter(function (l) { return /^Ways/.test(l); })[0] || '').replace(/^Ways: |\.$/g, '').split('; ');
-      okF2('the Glowseep\'s hello names each way once (' + wsS.join('; ') + ')', wsS.length > 1 && wsS.every(function (s, i) { return wsS.indexOf(s) === i; }));
+      var BSw = testF2('?roam=glowseep'), wsS = (RF.def.hello || []).filter(function (l) { return /^Ways|edge/.test(l); });
+      okF2('the Glowseep\'s hello: any edge a way out, the road not named (' + wsS.join(' / ') + '; since 10-28, his "don\'t label the road")', wsS.length === 1 && /^Any edge of it: back to the world map/.test(wsS[0]) && !(RF.def.wayMarks || []).length);
       var BG = testF2('?roam=galleries&gate=east'), mkG = RF.def.wayMarks || [];
       okF2('the Galleries\' mouth, in by the east gate: the way into the mine named (' + mkG.map(function (k) { return k.name + ' ' + (k.side || k.at.join(',')); }).join('; ') + ')', mkG.some(function (k) { return k.name === 'the working gallery' && k.at[0] === 17 && k.at[1] === 3; }) && mkG.filter(function (k) { return k.name === 'the road'; }).length >= 2);
       // 5. THE ROOST ON THE FIELDS (the lanes desk's follow-up, the lane's 2c open 2; the grid's roost RULED 09-28, the one law canon): a roosted floor's field roosted --
@@ -2309,6 +2309,28 @@
           rows5[0].label === 'FIGHT' && magic5 === 0 && !!c5 && c5.do === 'attack' && c5.target === foe5);
       } else okG('the simple fight on the Glowseep reached a turn of ours (' + (b5 ? 'none' : 'no field') + ')', false);
       Object.assign(I5, m0); if (b5) { b5.answer = ans5; endG(B5, f5); }
+      // 4. THE EDGES (his "Edge to the west should kick you out back to the world map - don't label the road. Any edge walk "return to world map?""): every square of the rim
+      // a way, none labelled; a step onto one asks; STAY a step back, RETURN out onto THE WORLD past that side -- on the test door and in the house
+      var B4 = testG('?roam=glowseep&hour=12'), d4 = RG.def, m4 = B4.map, sides4 = {}, isDoor4 = {};
+      (d4.doors || []).forEach(function (q) { isDoor4[q[0] + ',' + q[1]] = 1; });
+      for (var y4 = 0; y4 < d4.h; y4++) for (var x4 = 0; x4 < d4.w; x4++) { var sd4 = [[x4, 'west'], [d4.w - 1 - x4, 'east'], [y4, 'north'], [d4.h - 1 - y4, 'south']].sort(function (a, b) { return a[0] - b[0]; })[0][1]; if (x4 && y4 && x4 < d4.w - 1 && y4 < d4.h - 1) continue; var s4 = m4.at(x4, y4); if (!s4 || !s4.walk) continue; sides4[sd4] = sides4[sd4] || [0, 0]; sides4[sd4][0]++; if (isDoor4[x4 + ',' + y4]) sides4[sd4][1]++; }
+      okG('every open square of the Glowseep\'s rim a way off it (' + Object.keys(sides4).map(function (k) { return k + ' ' + sides4[k][1] + '/' + sides4[k][0]; }).join(', ') + '), none labelled (' + (d4.wayMarks || []).length + ' marks), its west gate on THE WORLD\'s door ' + JSON.stringify(WG.DOORS.glowseep.gates.west),
+        ['north', 'south', 'east', 'west'].every(function (k) { return sides4[k] && sides4[k][0] > 0 && sides4[k][1] === sides4[k][0]; }) && !(d4.wayMarks || []).length && !!WG.DOORS.glowseep.gates.west);
+      var t4 = B4.roam.token, wy4 = [13, 12, 14, 11, 15, 16, 10].filter(function (y) { var a = m4.at(0, y), b = m4.at(1, y); return a && a.walk && b && b.walk; })[0];
+      t4.x = 0; t4.y = wy4; t4.tween = null; B4.roam.fw = [-1, 0]; D.grid.setup(B4.map, B4.units); driveG.asked = null; runG(B4, RG.landed(B4)); driveG(B4.co, null, 60, 1);
+      var ask4 = driveG.asked;
+      okG('a step onto the west edge (0,' + wy4 + ') asks: ' + (ask4 ? ask4.title + ' "' + ask4.lines.join(' ') + '" [' + ask4.opts.map(function (o) { return o.label; }).join(' | ') + ']' : 'nothing') + '; STAY a step back onto the floor (' + t4.x + ',' + t4.y + ')',
+        !!ask4 && /Return to the world map\?/.test(ask4.lines.join(' ')) && ask4.opts[0].label === 'RETURN' && ask4.opts[1].label === 'STAY' && t4.x === 1 && t4.y === wy4 && D.top() === B4);
+      t4.x = 0; t4.tween = null; D.grid.setup(B4.map, B4.units); runG(B4, RG.landed(B4)); driveG(B4.co, function () { return D.top() !== B4; }, 200, 0);
+      var w4 = D.top(), st4 = WG.state(), site4 = (WG.M().sites || []).filter(function (s) { return s.id === 'glowseep'; })[0];
+      okG('RETURN on the test door: THE WORLD (' + (w4 && w4.kind) + '; the scenes ' + D.scenes.map(function (s) { return s.kind || '?'; }).join(' > ') + ', THE WORLD\'s own ' + (WG.scene === w4) + '), the party a step west of the Glowseep (' + (st4 && st4.pos ? st4.pos.map(function (v) { return v.toFixed(2); }).join(',') : 'no pos') + ' against ' + (site4 ? site4.x.toFixed(2) + ',' + site4.y.toFixed(2) : 'no site') + ')',
+        !!w4 && w4.kind === 'world' && !!site4 && !!st4.pos && st4.pos[0] < site4.x - 0.3 && Math.abs(st4.pos[1] - site4.y) < 0.3);
+      HG.begin(HG.fresh(), 0); topG(); var siteH4 = HG.siteOf('glowseep'); while (D.scenes.length > 1) D.pop(); WG.scene.enterDoor(siteH4, 'west'); var BH4 = topG(), in4 = [BH4.roam.token.x, BH4.roam.token.y];
+      var tH4 = BH4.roam.token; tH4.x = 35; tH4.y = 0; tH4.tween = null; BH4.roam.fw = [0, -1]; D.grid.setup(BH4.map, BH4.units); runG(BH4, RG.landed(BH4)); driveG(BH4.co, function () { return D.top() !== BH4; }, 200, 0);
+      var stH4 = WG.state();
+      okG('in the house: in by the west gate (' + in4 + '); the road off the north edge asks too, and RETURN is THE WORLD (' + (D.top() && D.top().kind) + '), the party north of the site (' + (stH4.pos ? stH4.pos.map(function (v) { return v.toFixed(2); }).join(',') : 'no pos') + '), the save out of town (' + JSON.stringify(HG.cur && HG.cur.at) + ')',
+        in4.join(',') === '1,14' && D.top() === WG.scene && !!stH4.pos && stH4.pos[1] < siteH4.y - 0.3 && !!HG.cur && !HG.cur.at.town);
+      HG.playing = false; HG.cur = null;
     } catch (eG) { repG.errors.push(String(eG && eG.stack || eG).slice(0, 900)); }
     D.store.get = stGG; D.store.set = stSG; D.music = muG; try { if (skG != null) window.localStorage.setItem(SG.KEY, skG); } catch (eK2) { }
     var preG = document.createElement('pre'); preG.id = 'out'; preG.textContent = 'BENCH16 ' + JSON.stringify(repG);

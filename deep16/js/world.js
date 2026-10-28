@@ -20,7 +20,7 @@
   W.DOORS = { silverton: { roam: 'silverton', gates: { west: [-1, 0], south: [0, 1], east: [1, 0] } },
     mouth: { roam: 'galleries', gates: { east: [1, 0], south: [0, 1], west: [-1, 0] } }, // (the Guano Galleries' mouth, its top floor on the town's tiles: js/mines.js, 10-21 night)
     warrens: { roam: 'warrens', gates: { feed: [1, 0] } }, // (the Crawler Warrens' mouth camp: no site of its own -- Silverton's feed track opens it, js/mines.js; here so the house's save loads there)
-    glowseep: { roam: 'glowseep', gates: { east: [1, 0], north: [0, -1], south: [0, 1] } } }; // (the Glowseep: the light-crews' ground by the mile, its camp and its fights -- js/mines.js, 10-21 night)
+    glowseep: { roam: 'glowseep', gates: { east: [1, 0], north: [0, -1], south: [0, 1], west: [-1, 0] } } }; // (the Glowseep: the light-crews' ground by the mile, its camp and its fights -- js/mines.js, 10-21 night; west since 10-28, his "Any edge walk")
   W.KEY = 'deep16.world'; W.ROUTES_ON = false; // (the roads up into the mountains, held: W.index)
 
   // ---------------------------------------------------------------- the baked world, indexed (the hex map's axial pointy-top hexes; a step is a neighbour)

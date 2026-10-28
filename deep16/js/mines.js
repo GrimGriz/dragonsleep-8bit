@@ -33,8 +33,8 @@
     galleries_g3: { src: 'galleries_g3', place: 'The Guano Galleries', sub: 'the dens', save: false },
     // the Glowseep (10-21 night, Griz to the desk: "Go on the Glowseep - run with its leans for all, including the time-slowing but that might be adjusted. Thematically
     // correct"): no first game's map -- the seat's own (M.SEEP), for his paint later; THE WORLD's site 'glowseep', in from the mile
-    glowseep: { src: 'glowseep', own: true, door: 'glowseep', place: 'The Glowseep', sub: 'the light-crews\' ground by the mile', save: true, out: 'world', clock: true,
-      gates: { east: [38, 14, [-1, 0]], north: [35, 1, [0, 1]], south: [35, 26, [0, -1]] } }
+    glowseep: { src: 'glowseep', own: true, door: 'glowseep', place: 'The Glowseep', sub: 'the light-crews\' ground by the mile', save: true, out: 'world', clock: true, edges: true,
+      gates: { east: [38, 14, [-1, 0]], north: [35, 1, [0, 1]], south: [35, 26, [0, -1]], west: [1, 14, [1, 0]] } } // (edges: every square of its rim a way off, unmarked, asking -- M.edgeOut)
   };
   // (the top levels, RULED 10-21 night, Griz to the desk: "rather than the cloaker fight, that hole floor. above it are top levels" -- the Galleries' to the dens, the deep
   // gallery the hole floor below; the Warrens' to the abandoned workings, the Wet below them already the grid's own)
@@ -117,7 +117,7 @@
     // the ways off: the far squares on each side the first game leaves by (its `exits`), and every warp
     var ways = [], wayName = {}, warps = [], ex = m8.exits || {}, side = function (x2, y2) { return x2 === 0 ? 'west' : x2 === w - 1 ? 'east' : y2 === h - 1 ? 'south' : y2 === 0 ? 'north' : null; };
     var walkable = function (c) { return OPENCH.indexOf(c) >= 0 && c !== 'D' && c !== '~'; };
-    for (y = 0; y < h; y++) for (x = 0; x < w; x++) { var sd = side(x, y); if (sd && ex[sd] && walkable(g[y][x])) { ways.push([x, y]); wayName[x + ',' + y] = F.out === 'silverton' ? 'the feed track: back over the bridge to Silverton' : 'out to the ' + sd + ', onto the road'; } }
+    for (y = 0; y < h; y++) for (x = 0; x < w; x++) { var sd = side(x, y); if (sd && (ex[sd] || F.edges) && (F.edges ? OPENCH.indexOf(g[y][x]) >= 0 && g[y][x] !== 'D' : walkable(g[y][x]))) { ways.push([x, y]); wayName[x + ',' + y] = F.edges ? 'the ' + sd + ' edge' : F.out === 'silverton' ? 'the feed track: back over the bridge to Silverton' : 'out to the ' + sd + ', onto the road'; } } // (the rim of an `edges` floor: every square the party can stand on, its shallow pools too)
     (m8.warps || []).forEach(function (wp) {
       warps.push({ at: [wp.x, wp.y], to: wp.to, tx: wp.tx, ty: wp.ty, dir: wp.dir, cond: wp.cond || null });
       if (!ways.some(function (q2) { return q2[0] === wp.x && q2[1] === wp.y; })) ways.push([wp.x, wp.y]);
@@ -134,6 +134,7 @@
       var mid = run[run.length >> 1], sd2 = side(mid[0], mid[1]);
       wayMarks.push({ at: mid.slice(), name: isWay[k0], side: sd2, n: run.length });
     });
+    if (F.edges) wayMarks = wayMarks.filter(function (k) { return !k.side; }); // (the rim's ways not labelled: 10-27, his "don't label the road")
     // where the party stands
     var gq = (/[?&]gate=([a-z]+)/.exec(q) || [])[1], aq = /[?&]at=(\d+),(\d+)/.exec(q), fq = /[?&]face=(-?\d),(-?\d)/.exec(q), at = null, face = [0, -1];
     if (aq) at = [+aq[1], +aq[2]];
@@ -147,13 +148,13 @@
       clock: !!F.clock, hour: hour, ownLights: m8.lights || null, // (the Glowseep: THE WORLD's clock moves as the party walks and fights there -- M.SEEP; its poles and moss lit by night)
       view: 'top', ft: 30, roofs: T.roofsAt(30), slope: slope.map(function (r) { return r.join(''); }), look: lk.map(function (r) { return r.join(''); }), signs: {}, faceDoors: {},
       rows: rows, w: w, h: h, entry: [at], face: face, gate: gq || null, stairUp: [], doors: ways, marks: marks, people: people, foes: [], warps: warps, out: F.out || null, save: !!F.save,
-      deepWater: 'D', music: m8.music || 'field', wayName: wayName, wayMarks: wayMarks, roost: !!m8.roost, // (roost: the first game's roosted ceiling -- the working gallery, the dens: M.fieldDef)
+      deepWater: 'D', music: m8.music || 'field', wayName: wayName, wayMarks: wayMarks, roost: !!m8.roost, edges: !!F.edges, // (roost: the first game's roosted ceiling -- the working gallery, the dens: M.fieldDef)
       names8: { rows: r8.slice(), legend: leg }, // (the first game's name of each square -- bones, webbing, a fence or a lamp, a tent or a stump: the art's piece for it, js/topview.js TV.ART)
       src8: { id: F.src, rows: [], legend: {}, triggers: trig, warps: [], chests: (m8.chests || []).slice(), zones: (m8.zones || []).slice(), save: !!F.save }, from8: id, to8: id, sig: '', // (zones: the first game's random fights where it has them -- the dens, the workings: each on a field of its own, M.fieldFight, its tables content/encounters.json)
       zone8: (m8.zones && m8.zones[0] && m8.zones[0].zone) || null,
       hud: F.place.replace(/^The /, 'the ') + ': ' + F.sub,
       hello: ['{y}' + F.place.toUpperCase() + '{/} -- ' + F.sub + ': ' + (F.own ? 'the second game\'s own floor' : 'the first game\'s floor') + ', north up as Silverton is (' + w + ' x ' + h + ' squares)' + (F.clock ? ', ' + W8tod(hour) : '') + '.',
-        'Ways: ' + wayMarks.map(function (k) { return (k.side || 'at ' + k.at.join(',')) + ', ' + k.name; }).filter(function (s, i, a) { return a.indexOf(s) === i; }).join('; ') + '.', '{g}Click to walk, or the arrows. E: a word, a door. O: the formation. L: the floor map.{/}'], // (the ways each once: the Glowseep's road and grass edges are runs of their own)
+        F.edges ? 'Any edge of it: back to the world map.' : 'Ways: ' + wayMarks.map(function (k) { return (k.side || 'at ' + k.at.join(',')) + ', ' + k.name; }).filter(function (s, i, a) { return a.indexOf(s) === i; }).join('; ') + '.', '{g}Click to walk, or the arrows. E: a word, a door. O: the formation. L: the floor map.{/}'], // (the ways each once: the Glowseep's road and grass edges are runs of their own)
       where: function () { return F.sub; }
     };
     return def;
@@ -678,9 +679,28 @@
     if (def.mine) {
       var wp = (def.warps || []).filter(function (z) { return z.at[0] === sq[0] && z.at[1] === sq[1]; })[0];
       if (wp) { yield* M.warp(B, wp); return; }
+      if (def.edges) { yield* M.edgeOut(B, sq); return; }
       if (def.out === 'silverton') { yield* M.cross(B, 'silverton', 'east', [M.FEED[0] - 1, M.FEED[1]], M.LINES.toTown); return; }
     } else if (def.key === 'silverton' && !def.room && /feed track/.test((def.wayName || {})[k] || '')) { yield* M.cross(B, 'warrens', 'feed', null, M.LINES.toCamp); return; }
     yield* way0(B, sq);
+  };
+  // ANY EDGE (10-27, his eye on the Glowseep: "Edge to the west should kick you out back to the world map - don't label the road. Any edge walk "return to world map?""): a
+  // floor with `edges` has every square of its rim a way off it, unmarked (M.floor), and a step onto one asks. RETURN: out onto THE WORLD (or the Silverton area's map) a step past
+  // that side of the site, as a town's road hands the party out (js/world.js W.leaveTown) -- on the test door, with no THE WORLD under it, THE WORLD opened at the site; STAY: a
+  // step back onto the floor
+  M.sideOf = function (def, sq) { var d = [[sq[0], 'west'], [def.w - 1 - sq[0], 'east'], [sq[1], 'north'], [def.h - 1 - sq[1], 'south']].sort(function (a, b) { return a[0] - b[0]; }); return d[0][1]; };
+  M.LINES.edge = 'Return to the world map?';
+  M.edgeOut = function* (B, sq) {
+    var R = D.roam, def = R.def, W = D.world, H = D.house, t = B.roam.token, sd = M.sideOf(def, sq);
+    D.sfx('popup'); t.anim = 'idle'; t.animT = B.t;
+    var a = yield { prompt: { who: t, title: def.name.toUpperCase(), lines: R.wrap([M.LINES.edge]), opts: [{ label: 'RETURN', value: 0 }, { label: 'STAY', value: 1 }] } };
+    if (a !== 0) { M.stepBack(B); return; }
+    if (W && W.active && W.inDoor && W.scene && D.scenes.indexOf(W.scene) >= 0) { if (R.house() && H && H.playing) H.fromFloor(B); W.leaveTown(sd); return; } // (the floor's party, pack and purse back into the save first)
+    var wm = W && W.index && W.index() && W.map('world'), site = wm && (wm.sites || []).filter(function (s) { return s.id === def.door; })[0]; // (W.index: THE WORLD's map read in, as its scene does on entering)
+    if (!site || !W.make) { B.card(R.wrap(['{g}No world map on this page.{/}']), 160); M.stepBack(B); return; }
+    var ws = W.make('?world&at=' + site.hex[0] + ',' + site.hex[1]), en = ws.enter;
+    ws.enter = function () { en.apply(this, arguments); var s2 = (W.M().sites || []).filter(function (s) { return s.id === def.door; })[0] || site; W.inDoor = { site: s2, gate: sd }; W.leaveTown(sd); }; // (out past that side once THE WORLD is in)
+    M.off(B); D.push(ws);
   };
   // the ways marked on the floor (M.floor's wayMarks): within M.WAYNEAR squares of the token, a pale pin on the way's middle square and its name over it
   M.WAYNEAR = 20;
@@ -705,7 +725,7 @@
   D.roam.paintOver = function (ctx, B) { over0.apply(this, arguments); if (!D.roam.showMap) M.paintWays(ctx, B); };
   // and on the floor map (L): the ways green, as the Wet's map greens its ways out
   var map0 = D.roam.paintMap;
-  D.roam.paintMap = function (ctx, B, x0, y0, s) { map0.apply(this, arguments); var def = D.roam.def; if (!def || !def.mine) return; ctx.save(); ctx.fillStyle = '#60e070'; (def.doors || []).forEach(function (q) { ctx.fillRect(x0 + q[0] * s, y0 + q[1] * s, s, s); }); ctx.restore(); };
+  D.roam.paintMap = function (ctx, B, x0, y0, s) { map0.apply(this, arguments); var def = D.roam.def; if (!def || !def.mine || def.edges) return; ctx.save(); ctx.fillStyle = '#60e070'; (def.doors || []).forEach(function (q) { ctx.fillRect(x0 + q[0] * s, y0 + q[1] * s, s, s); }); ctx.restore(); }; // (def.edges: a floor whose whole rim is a way -- nothing to green)
   // the tally-house's counter: Edric's shop, the antitoxin draught (content/shops.json `tally`: it buys nothing) -- one line in the counter's vendor table
   if (D.counter && D.counter.VENDORS) D.counter.VENDORS.tally = D.counter.VENDORS.tally || { shop: 'tally', name: 'Edric Pellam' };
 })();
