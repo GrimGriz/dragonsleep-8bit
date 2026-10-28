@@ -10,8 +10,8 @@
    S.skarn, S.edric, S.pen, S.skarnGate, S.sabeth, S.ottilie, S.roostDoor, S.dace, S.wynn, js/deep.js S.hobHeir: M.SCENES; content/text.json), its flags the
    first game's names. The ground's looks (guano, the cave's floor, the cart rails, the fungus beds, a mouth's dark) ride a `look` layer beside the rows.
 
-   The ways: a warp between a place's two floors walks the party down or up (M.go); a warp to a dark floor -- the abandoned workings, the Wet, the dens, the deep
-   gallery -- says so and keeps the party (those wait for the grid's roam: the house lane holds the Wet). The Galleries' mouth opens off THE WORLD's site (js/world.js
+   The ways: a warp between a place's two floors walks the party down or up (M.go); a warp to a floor the grid has not got says so and keeps the party (M.held). The
+   deep gallery below the dens, the cloaker's, is a floor since 10-28 with Corwen Dace's escort (THE DEEP GALLERY, below). The Galleries' mouth opens off THE WORLD's site (js/world.js
    W.DOORS mouth) and its far squares lead back out to it; the Warrens have no site on THE WORLD (the realm's mouth camp is ~4 mi out of Silverton, over the bridge
    on the feed track -- TarlynsPit/wiki/the-warrens.md, CANON 09-09; the first game's quest: "out the east gate and over the bridge"), so Silverton's feed track off
    its floor's east edge opens the camp, and the camp's far squares take the party back up the feed track to Silverton. */
@@ -31,6 +31,9 @@
       gates: { east: [34, 21, [-1, 0]], south: [17, 22, [0, -1]], west: [1, 21, [1, 0]] } }, // (THE WORLD's site: the road in from the junction east, a step inside each edge)
     galleries_g2: { src: 'galleries_g2', place: 'The Guano Galleries', sub: 'the working gallery', save: false },
     galleries_g3: { src: 'galleries_g3', place: 'The Guano Galleries', sub: 'the dens', save: false },
+    // the hole floor (10-28, the deep gallery seat, started by the lanes desk on Griz's "have we connected the 3rd level fight and the Dace plotline to the guano mine on
+    // main yet?"; his five, "all 5 leans, but put the guests in the party token (not follow behind)"): bare rock under the dens, no roost -- a light is lawful -- and the cloaker
+    galleries_g4: { src: 'galleries_g4', place: 'The Guano Galleries', sub: 'the deep gallery', save: false },
     // the Glowseep (10-21 night, Griz to the desk: "Go on the Glowseep - run with its leans for all, including the time-slowing but that might be adjusted. Thematically
     // correct"): no first game's map -- the seat's own (M.SEEP), for his paint later; THE WORLD's site 'glowseep', in from the mile
     glowseep: { src: 'glowseep', own: true, door: 'glowseep', place: 'The Glowseep', sub: 'the light-crews\' ground by the mile', save: true, out: 'world', clock: true, edges: true,
@@ -38,7 +41,7 @@
   };
   // (the top levels, RULED 10-21 night, Griz to the desk: "rather than the cloaker fight, that hole floor. above it are top levels" -- the Galleries' to the dens, the deep
   // gallery the hole floor below; the Warrens' to the abandoned workings, the Wet below them already the grid's own)
-  M.KEY8 = { warrens_a: 'warrens', warrens_b: 'warrens_b', warrens_c: 'warrens_c', warrens_d: 'wet', galleries_g1: 'galleries', galleries_g2: 'galleries_g2', galleries_g3: 'galleries_g3' };
+  M.KEY8 = { warrens_a: 'warrens', warrens_b: 'warrens_b', warrens_c: 'warrens_c', warrens_d: 'wet', galleries_g1: 'galleries', galleries_g2: 'galleries_g2', galleries_g3: 'galleries_g3', galleries_g4: 'galleries_g4' };
   // the floors below that are the grid's own roam, not these tiles: the Wet (js/roam.js R.wholeWet, the whole of warrens_d turned as the Settling's grid is), the house's floor
   // since 10-22 (the lanes desk, Griz: "yeah, work the wet - we have second game saves matching the first now, everything should be there it needs for handoff") -- in by the
   // stalls' stair and the workings', out by them again (js/roam.js R.landed); no SAVE there, as the first game has none
@@ -65,6 +68,7 @@
   // &gate=<one of the floor's gates> or &at=x,y (&face=dx,dy): where the party stands
   M.floor = function (key, q, flags, hour) {
     q = q || ''; flags = flags || {};
+    if (flags === D.roam.flags0 && /[?&]guest=[a-z,]*\bdace\b/.test(q) && !flags.daceDone) flags.daceWith = 1; // (the test door's Dace in the token: not stood by the beam too, as the door first lays it -- M.guestIn)
     var F = M.FLOORS[key]; if (hour == null) hour = M.hourNow(q);
     var m8 = F.own ? (F.map || M.seepMap)(hour, flags) : DS.DATA.maps[F.src], leg = m8.legend, r8 = m8.rows, w = r8[0].length, h = r8.length;
     var nm = function (x, y) { return x < 0 || y < 0 || x >= w || y >= h ? 'void' : leg[r8[y].charAt(x)] || 'void'; };
@@ -107,12 +111,18 @@
         return;
       }
       if (t.script === 'roostDoor') return; // (Ottilie at the mouth: the warp asks it -- M.warp)
-      trig.push(Object.assign({}, t, { rect: r, town: 'mine', walkOn: t.script === 'badAir' })); // (walkOn: the bad air coughs and the walk goes on through it -- js/roam.js R.landed; 10-28, his "lets you collect from 6 away")
+      // (a `has:` the floor's trigger can't read -- js/roam.js R.cond reads flags: the deep gallery's cloaker, "!has:cloakertail"; the tail comes only from the kill here, which sets
+      // cloakerKilled, so the flag says it)
+      var cond = t.cond ? t.cond.replace(/\s*&\s*!has:[A-Za-z0-9_]+/g, '') : t.cond;
+      trig.push(Object.assign({}, t, { rect: r, cond: cond, town: 'mine', walkOn: t.script === 'badAir' })); // (walkOn: the bad air coughs and the walk goes on through it -- js/roam.js R.landed; 10-28, his "lets you collect from 6 away")
     });
+    // ONE DACE (RULED 10-28, Griz: "all 5 leans"): the first game's second Dace at the dens' shaft head, who only talked (his 10-19 "There's a Dace at the entrance to the deep pit
+    // not interested in coming with you"), is not stood -- his words are Dace's own as the party passes the mark with him (M.daceShaft)
+    if (key === 'galleries_g3') trig.push({ id: 'daceShaft', rect: M.SHAFT.slice(), on: 'step', script: 'daceShaft', cond: 'flag:daceWith & !flag:daceShaft', town: 'mine', walkOn: true });
     // the people where the first game stands them, by its conditions on the floor's flags
     var people = [];
     (m8.npcs || []).forEach(function (n) {
-      if (n.prop || !T.cond(n.cond, flags)) return;
+      if (n.prop || !T.cond(n.cond, flags) || M.NOT_STOOD[n.id]) return;
       people.push({ id: n.id, at: [n.x, n.y], kind: T.KIND[n.look] || 'bandit', face: T.FACE[n.dir] || [0, 1], look: n.look, hire: null });
       trig.push({ id: 'talk:' + n.id, on: 'use', rect: [n.x, n.y, 1, 1], town: 'talk', npc: n.id });
     });
@@ -206,6 +216,8 @@
   // the test door's next floor (no house): a fresh four, the floor's flags carried over whole (js/roam.js R.flags0) and the floor laid again by them, its pack and purse with it
   M.testMake = function (B, key, q) {
     var R = D.roam, fl = JSON.parse(JSON.stringify(B.roam.flags || {})), inv = JSON.parse(JSON.stringify(B.inv || [])), sp = B.roam.silver || 0, watch = /[?&]watch\b/.test(R.q || '') ? '&watch' : '';
+    // (its guests with them, as they walk -- hurt, and a Light still on one: the next floor's setup takes them into the token, M.carry; the house's ride in its save)
+    M.carry = B.roam.members.filter(function (u) { return u.src && u.src.guest; }).map(function (u) { var h = JSON.parse(JSON.stringify(u.src)); h.hp = Math.max(0, Math.min(h.maxhp, u.hp)); h.ko = h.hp <= 0; h.conds = Object.assign({}, h.conds || {}, R.lasting(u.conds)); if (!(u.conds && u.conds.light)) delete h.conds.light; return h; });
     M.off(B);
     var nb = R.make(q + watch), en = nb.enter; R.flags0 = fl;
     if (M.FLOORS[key]) R.def = M.floor(key, q + watch, fl);
@@ -245,8 +257,10 @@
     var sc = new C.Counter(B, { id: id, name: name || N.name || id, place: D.roam.def.name, what: D.roam.def.sub, pic: pic || null, script: function (s) { return (function* () { done = yield* (script || M.SCENES[id])(s, B); })(); } });
     D.push(sc); while (!sc.done) yield 1;
     if (sc.regear && D.roam.regear) D.roam.regear(B);
+    var later = (B.roam && B.roam.later) || []; if (B.roam) B.roam.later = []; later.forEach(function (fn) { fn(); }); // (what a scene changed on the floor -- a guest in or out, the people stood again -- once its screen is shut: M.later)
     return done;
   };
+  M.later = function (B, fn) { if (B.roam) (B.roam.later = B.roam.later || []).push(fn); };
   // a talk entry of theirs (the first game's EV.dialog: the first whose condition holds, with its doing), as lines
   M.words = function (B, id) { return D.counter.words(B, id); };
   var kills = function (B, k) { return ((B.roam && B.roam.kills) || {})[k] || 0; };
@@ -294,20 +308,33 @@
     },
     // Ottilie Skerrow, the house's final word (S.ottilie)
     ottilie: function* (sc) { var f = sc.st.flags; yield sc.say(L(f.roostBroken ? 'g1.ottilieCold' : f.rescued ? 'g1.ottilieRespect' : 'g1.ottilie')); },
-    // Old Wynn Pollard (S.wynn): sending Dace home is the escort's -- his own words till then
-    wynn: function* (sc, B) { yield sc.say(M.words(B, 'wynn')); },
-    // Corwen Dace (S.dace): always talking someone into the deep gallery. The escort walks below, with the dark galleries and the house's guests: till then he waits
+    // Old Wynn Pollard (S.wynn): the way to send Dace home before the deep gallery (RULED 10-01c, Griz: "Let the party talk to the Grandad to back out of the escort, telling the
+    // kid maybe they'll take him down later") -- his own words otherwise
+    wynn: function* (sc, B) {
+      var f = sc.st.flags;
+      if (M.hasGuest(B, 'dace') && !f.daceDone) {
+        var a = yield sc.ask(L('wynn.ask'), ['SEND HIM HOME', 'HE COMES']);
+        if (a === 0) { M.later(B, function () { M.daceHome(B, true); }); yield sc.say(L('wynn.home')); } else yield sc.say(L('wynn.keep'));
+        return;
+      }
+      yield sc.say(M.words(B, 'wynn'));
+    },
+    // Corwen Dace (S.dace), who always tries to talk people into taking him into the deep gallery (CANON 09-22): taken, he walks with the party as its guest, inside the party
+    // token with the heroes (RULED 10-28, Griz: "put the guests in the party token (not follow behind)"), till the cloaker is dead -- and if he falls it is over (RULED 10-01c,
+    // Griz: "game over if the kid falls, cloaker focuses on kid if they bring him to that fight"). Taken after the kill, the walk down is his thanks: the cloak or the page
     dace: function* (sc, B) {
       var st = sc.st, f = st.flags; f.daceLight = 1;
-      if (f.daceDone) { yield sc.say(M.words(B, 'dace')); return; }
-      var after = !!(f.cloakerKilled || f.cloakerDone || D.counter.count(st, 'cloakertail'));
+      if (f.daceDone || M.hasGuest(B, 'dace')) { yield sc.say(M.words(B, 'dace')); return; }
+      var after = M.cloakerDead(B);
       if (!after) yield sc.say(M.words(B, 'dace'));
       var a = yield sc.ask(L(after ? 'dace.askAfter' : 'dace.ask'), ['TAKE HIM', 'NOT TODAY']);
       if (a !== 0) { yield sc.say(L('dace.notToday')); return; }
-      yield sc.say([].concat(L('dace.join'), [M.LINES.daceWaits]));
+      f.daceWith = 1; if (after) f.daceAfter = 1;
+      M.later(B, function () { M.guestIn(B, 'dace'); D.mines.relay(B, null, true); }); // (into the token, and his figure off the floor by the beam: after the screen closes)
+      yield sc.say([M.LINES.daceJoin, [].concat(L('dace.join'))[1]]); // (the first game's second line; its first lights his staff at the mouth -- under the roost that is the roof down, M.daceLight)
     }
   };
-  M.LINES.daceWaits = '{g}(Dace walks with the party when the dark galleries below come onto the grid and the house takes guests. Till then he waits by the beam.){/}'; // (invented.json toplevels-dace-waits)
+  M.LINES.daceJoin = 'Corwen Dace takes up his staff and his year-old book. "No light on it till we\'re past the roost. I know the law better than you do."'; // (invented.json deepgallery-dace-words)
   // Ottilie at the mouth, a light that is always lit on the party (S.roostDoor): left with her, or the party turns back -- and since 10-28 night every light burning on the party
   // (M.burning), put out or the party turns back (Griz: "Ottille stops light violations at the entrance, the party has to cast it inside after to shame fail"). True when it goes in
   M.LINES.ottilieSpell = '{name}. I can see that light on you from my stool. Let it go before you go in -- it would spook the roost.'; // (invented.json ottilie-mouth-lights)
@@ -349,7 +376,10 @@
   M.trigger = function* (B, trig, at) {
     if (trig.script === 'pen') { yield* M.penShift(B, trig.arg); return; }
     if (trig.script === 'skarnGate') { yield* M.skarnGate(B); return; }
-    if (trig.script === 'pit') { B.card(D.roam.wrap(['{y}A pit{/}: it drops to the deep gallery, the hole floor.'].concat(M.held('galleries_g4').slice(1))), 320); D.sfx('popup'); M.stepBack(B); yield 20; return; } // (the first game's S.pit drops the party there, 1d6 each: the hole floor is not the top levels' -- his ruling)
+    if (trig.script === 'pit') { yield* M.pit(B); return; }
+    if (trig.script === 'cloaker') { yield* M.cloaker(B, trig, at); return; }
+    if (trig.script === 'daceDeep') { yield* M.daceDeep(B); return; }
+    if (trig.script === 'daceShaft') { yield* M.daceShaft(B); return; }
     if (trig.script === 'badAir') { yield* M.badAir(B); return; }
     if (trig.script === 'rescue') { yield* M.rescue(B, trig, at); return; }
     if (trig.script === 'seepFire') { yield* M.seepFire(B); return; }
@@ -427,6 +457,143 @@
     if (!f.rescued) return;
     f.cullDone = 1;
     B.card(R.wrap([].concat(L('g3.rescue2'), D.counter.renown(D.counter.state(B), 1, 'renown.rescue'))), 360); yield 30;
+  };
+
+  // ---------------------------------------------------------------- THE DEEP GALLERY, THE CLOAKER AND CORWEN DACE (10-28, the deep gallery seat, started by the lanes desk on
+  // Griz's "have we connected the 3rd level fight and the Dace plotline to the guano mine on main yet?"; his answer to the seat's five, "all 5 leans, but put the guests in the
+  // party token (not follow behind)"). The hole floor below the dens is the first game's galleries_g4 (M.FLOORS): bare rock, dark, no roost -- a torch and a Light are lawful.
+  // In by the working gallery's slide, the dens' last ladder, or a pit; out by its two ladders. The first game's js/events.js S.cloaker, S.dace, S.wynn, S.daceDeep and
+  // EV.warp's stop at the mouth, in its own words (content/text.json g4.*, dace.*, wynn.*), with his 10-19 three not repeated (one Dace; his thanks after the kill fires; he
+  // never leaves the mountain)
+  M.SHAFT = [45, 10, 5, 2]; // (the dens' shaft head, on the way to the last ladder (51, 9): the mark, the last lamp -- where the first game's second Dace stood, 46,10)
+  M.NOT_STOOD = { dacedown: 1 };
+  M.PIT_AT = [18, 12]; // (where a pit sets the party down: the first game's S.pit)
+  M.cloakerDead = function (B) { var f = B.roam.flags; return !!(f.cloakerKilled || f.cloakerDone || D.counter.count(D.counter.state(B), 'cloakertail')); };
+  M.LINES.daceLight = '{y}Corwen Dace{/} lifts his staff, and the light comes up on its head. "No roost down here. It\'s lawful."'; // (the first game's dace.join, lit below the roost: invented.json deepgallery-dace-words)
+  M.LINES.daceShaft = 'Dace touches the mark as he passes it, the way the hands touch it going home.';
+  M.LINES.daceFail = 'Corwen Dace walked into the dark with you, and did not walk out. The house will not forgive it, and neither will you.';
+
+  // THE HOUSE TAKES GUESTS (RULED 10-28, Griz: "put the guests in the party token (not follow behind)"): a guest is one of the party token's members as the heroes are -- folded
+  // into it on the floor, out with them in a fight, in the M menu under the four (STATUS, no EQUIP: js/menu.js), its sheet in the save's `guests` (js/house.js H.fromFloor) --
+  // made as the first game makes one (js/save.js SV.guest: content/heroes.json, `vital` the one whose fall ends it) and run in a fight by the class tactics
+  M.guestUnit = function (B, id) { return ((B.roam && B.roam.members) || []).filter(function (u) { return u.src && u.src.guest && (u.src.key || u.src.id) === id; })[0] || null; };
+  M.hasGuest = function (B, id) { return !!M.guestUnit(B, id); };
+  M.guestIn = function (B, id, sheet) {
+    var R = D.roam, R0 = B.roam, SV = D.save; if (!R0 || M.hasGuest(B, id)) return null;
+    var h = sheet || SV.guest(id); if (!sheet && id === 'dace') h.conds = Object.assign(h.conds || {}, { mageArmor: 1 }); // (his armour already on: CANON AC 15 with mage armor -- the first game's S.dace)
+    var u = SV.unitOf(h, true, B.fight), t = R0.token; u.classAI = true; u.ownFlask = 1; if (D.npc) D.npc.overlay(u, h); if (h.vital) u.vital = true; // (as js/save.js SV.units makes a save's guests)
+    u.x = t.x; u.y = t.y; u.facing = t.facing; u.anim = 'idle'; u.animT = B.t; u.flash = 0; u.reaction = 1; u.conds = u.conds || {}; u.wings = false; u.flies = false; u.fz = 0;
+    B.units.push(u); R0.members.push(u); R0.rest.push(u);
+    R0.form[u.id] = R.FORM0[R0.members.length - 2] || [-(R0.members.length - 1), 0];
+    R.into(B, [u]); if (R.regear) R.regear(B);
+    if (D.spr.prefetch && u.sheet) D.spr.prefetch([u.sheet]);
+    return u;
+  };
+  M.guestOut = function (B, id) {
+    var R0 = B.roam, u = M.guestUnit(B, id); if (!u) return;
+    R0.members = R0.members.filter(function (w) { return w !== u; }); R0.rest = R0.rest.filter(function (w) { return w !== u; }); delete R0.form[u.id];
+    var j = B.units.indexOf(u); if (j >= 0) B.units.splice(j, 1);
+    D.grid.setup(B.map, B.units); B.cache = null;
+  };
+  // the test door's guests (&guest=dace on a floor's door) and its guests carried floor to floor (M.testMake: the house's are in its save); the deep gallery lit by Dace's staff
+  var setup0 = D.roam.setup;
+  D.roam.setup = function (B) {
+    setup0.apply(this, arguments);
+    var R = D.roam, def = R.def, R0 = B.roam; if (!def || !def.mine || !R0) return;
+    var cg = M.carry; M.carry = null; (cg || []).forEach(function (h) { M.guestIn(B, h.key || h.id, h); });
+    if (cg && cg.length && def.roost) R0.roostLines = (R0.roostLines || [R.ROOST_LINE]).concat(R.roostLights(B).slice(1)); // (the roost's law on them too: a Light on Dace let go under it -- the house's guests are in the setup's own)
+    var gq = !R.emb && /[?&]guest=([a-z,]+)/.exec(R.q || ''); if (gq) gq[1].split(',').forEach(function (id) { var d = (DS.DATA.heroes || {})[id]; if (d && d.guest && !M.hasGuest(B, id)) M.guestIn(B, id); });
+    if (M.hasGuest(B, 'dace')) { R0.flags.daceWith = 1; if (M.cloakerDead(B) && !R0.flags.daceDone && gq) R0.flags.daceAfter = 1; }
+    if (def.key === 'galleries_g4') { var ln = M.daceLight(B); if (ln.length) R0.roostLines = (R0.roostLines || []).concat(ln); } // (said with the floor's hello: js/roam.js R.script)
+  };
+  // DACE'S LIGHT (RULED 10-28, his "all 5 leans"): dark through the roost -- Ottilie stops a light at the mouth, and one lit under the roost brings the roof down -- and lit as he
+  // steps into the deep gallery, where "a light is lawful" (dace.ask): the Light cantrip on his staff (SRD: bright 20 ft, dim 20 more, an hour on THE WORLD's clock in the house).
+  // Back up under the roost it is let go there as any Light is (js/roam.js R.roostLights)
+  M.daceLight = function (B) {
+    var u = M.guestUnit(B, 'dace'); if (!u || u.hp <= 0 || (u.conds && u.conds.light)) return [];
+    var H = D.house, now = H && H.playing && H.cur && H.clock ? H.clock(H.cur) : null, rec = { by: u.id };
+    if (now != null && H.LIGHT_HOURS) rec.until = now + H.LIGHT_HOURS;
+    u.conds.light = rec; if (u.src) { u.src.conds = u.src.conds || {}; u.src.conds.light = JSON.parse(JSON.stringify(rec)); }
+    B.lightMap = null; D.sfx('magic');
+    return [M.LINES.daceLight];
+  };
+  // home: off the party token, the flags the first game clears (its daceHome), and his own figure by the beam again where the floor is the mouth's
+  M.daceHome = function (B) {
+    var f = B.roam.flags; M.guestOut(B, 'dace'); delete f.daceWith; delete f.daceAfter;
+    if (D.roam.def && D.roam.def.key === 'galleries') M.relay(B, null, true);
+  };
+  // the shaft head with Dace (ONE DACE: the first game's dacedown, his words as Dace's own -- content/npcs.json dacedown)
+  M.daceShaft = function* (B) {
+    B.roam.flags.daceShaft = 1;
+    B.card(D.roam.wrap(['{y}Corwen Dace{/}'].concat(M.words(B, 'dacedown'), [M.LINES.daceShaft])), 420); D.sfx('popup'); yield 20;
+  };
+  // the dens' pits (S.pit): the floor goes, 1d6 each and never below 1 (a guest too), and the party lands in the deep gallery
+  M.pit = function* (B) {
+    D.sfx('miss');
+    B.roam.members.forEach(function (u) { if (u.hp > 0) u.hp = Math.max(1, u.hp - D.roll('1d6').total); });
+    yield* M.go(B, 'galleries_g4', M.PIT_AT, M.FACE.down, [].concat(L('g3.pit')));
+  };
+  // a guest the party swore to bring back, down in a fight just ended (js/battle.js's `vital`: the fight ends 'lost' on it)
+  M.vitalDown = function (b) { return !!(b && (b.units || []).some(function (u) { return u.vital && u.side === 'party' && (u.dead || u.hp <= 0); })); };
+  // THE CLOAKER (the first game's S.cloaker; RULED 10-28, Griz: "all 5 leans" -- the story's own cloaker, its grip and its egg, as ruled 10-06: "Story Cloaker is riding as is for
+  // the time being, it's an easter egg one"; on the grid whatever OPTIONS' RANDOM FIGHTS says; on a field cut from the deep gallery round the party, as the floors' fights are
+  // since his "the grid in the fights should pull from the roam itself"; a getaway up the ladder to the dens, the first game's "The way out is UP"). The grid's story fight's
+  // sheet (data/fights.js cloaker: its words, the boss tune, the Magic Missile at the darkness) on the floor's own ground; the cloaker hunts the one the party swore to bring
+  // back (js/ai.js, RULED 10-01c). Won: the tail, and with Dace there the page of its doubles (dace.sheet) and he climbs home
+  M.cloaker = function* (B, trig, at) {
+    var R = D.roam, R0 = B.roam, f = R0.flags, t = R0.token; if (M.cloakerDead(B)) return;
+    R0.path = null; t.anim = 'idle'; t.animT = B.t; D.sfx('encounter');
+    B.card(R.wrap([].concat(L('g4.cloaker'))), 480); yield 90;
+    var sf = D.fight ? D.fight('cloaker') : {}, F = M.fieldDef(R.def, ['cloaker'], false, { line: sf.intro }, [t.x, t.y]);
+    Object.assign(F, { story: true, gimmick: sf.gimmick || 'darkness', music: sf.music || 'boss', name: sf.name || 'The Cloaker', sub: sf.sub || 'the deep gallery', won: sf.won || F.won,
+      intro: sf.intro || F.intro, oneLeavesAll: true }); // (oneLeavesAll: a getaway takes the party, as the floors' fights do -- js/battle.js takesParty)
+    R.party0.backTo = R.def.sub;
+    var fb = null, rec = R.house() ? { fight: 'cloaker', name: R.def.name + ': ' + R.def.sub, level: ((R0.members[0] || {}).src || {}).lvl, simple: false } : null;
+    var watch = /[?&]watch\b/.test(R.q || '');
+    var enter = function (b) { fb = b; if (watch) b.units.forEach(function (u) { if (u.side === 'party') { u.guest = true; u.classAI = true; } }); };
+    yield* R.pullIn(B, 'field', { id: 'field', field: { F: F, simple: false, zone: null, flag: 'cloakerKilled', trig: null, back: M.fieldBack, enter: enter, record: rec,
+      ends: function (d) { return d === 'lost' && M.vitalDown(fb); } } }, [t.x, t.y]);
+    delete R.party0.backTo;
+    if (R0.pulled === 'lost' && M.vitalDown(fb)) { yield* M.daceFail(B); return; }
+    if (R0.pulled === 'escaped') { B.card(R.wrap([].concat(L('g4.ranUp'))), 360); yield 60; yield* M.go(B, 'galleries_g3', [50, 9], M.FACE.left); return; }
+    if (R0.pulled !== 'won') return;
+    f.cloakerKilled = 1; R.give(B, 'cloakertail', 1, 'the cloaker'); D.sfx('chest');
+    B.card(R.wrap([].concat(L('g4.tail'))), 300); yield 40;
+    if (M.hasGuest(B, 'dace') && !f.daceDone) {
+      f.daceSheet = 1; f.daceDone = 1;
+      yield* M.talk(B, 'dace', function (sc) { return (function* () {
+        yield sc.say(L('dace.sheet'));
+        D.counter.give(sc.st, 'sheet_mirrorimage', 1); D.sfx('chest'); yield sc.say(L('g.got', { item: DS.DATA.items.sheet_mirrorimage.name }));
+        yield sc.say(L('dace.home'));
+      })(); });
+      M.daceHome(B);
+    }
+  };
+  // the deep gallery walked with Dace after the kill (S.daceDeep: "i'm dace and I'm with you and we're down here", his 10-19 note): his thanks, the party's pick -- the Cloak
+  // of Displacement off his back, or the page of the thing's doubles (RULED 10-01c, Griz: "let them choose between it and spell as reward if they escort him after")
+  M.daceDeep = function* (B) {
+    var f = B.roam.flags; if (!M.hasGuest(B, 'dace') || f.daceDone) return;
+    f.daceDone = 1; B.roam.path = null;
+    yield* M.talk(B, 'dace', function (sc) { return (function* () {
+      yield sc.say(L('dace.deep'));
+      var a = yield sc.ask(L('dace.choose'), ['THE CLOAK', 'THE PAGE']), id = a === 0 ? 'cloakdisplacement' : 'sheet_mirrorimage';
+      D.counter.give(sc.st, id, 1); D.sfx('chest'); yield sc.say(L('g.got', { item: DS.DATA.items[id].name }));
+      yield sc.say(L('dace.home'));
+    })(); });
+    M.daceHome(B);
+  };
+  // out of the mine with him (the first game's EV.warp, 10-20; his 10-19 "Dace left the mountain with the party"): at the mouth he stops and goes back up to the house
+  M.daceMouth = function* (B) {
+    if (!M.hasGuest(B, 'dace')) return;
+    M.daceHome(B);
+    yield* M.talk(B, 'dace', function (sc) { return (function* () { yield sc.say(L('dace.mouth')); })(); });
+  };
+  // HIS FALL (RULED 10-01c, Griz: "game over if the kid falls"; 10-28, his "all 5 leans": in any fight he stands in, the dens' random fights too, simple or grid): the run ends
+  // on a card of its own as the roost's does (M.RoostFail's beat): the house's words (M.LINES.daceFail), then CONTINUE FROM A SAVE or TITLE, nothing saved. The door: deep16/?dacefail
+  M.daceFail = function* (B) {
+    var H = D.house; D.sfx('error'); try { D.music('gameover'); } catch (e) { }
+    if (H) { H.playing = false; H.cur = null; }
+    D.scenes.length = 0; D.push(new DaceFail()); yield 1;
   };
 
   // ---------------------------------------------------------------- THE FLOORS' FIGHTS ON A FIELD OF THEIR OWN (10-22, his eye on the floors: the Glowseep by night, "combat turns
@@ -522,8 +689,9 @@
     var keep = Math.max(40, this.bats.length - this.t * 2); // (the swarm thins out as the words come up, as the first game's)
     ctx.fillStyle = '#2c2434'; this.bats.slice(0, keep).forEach(function (b) { var up = Math.sin(b[4]) > 0 ? 2 : 0; ctx.fillRect(b[0] - 3, b[1] - up, 3, 1); ctx.fillRect(b[0] + 1, b[1] - up, 3, 1); ctx.fillRect(b[0] - 1, b[1], 2, 2); });
     ctx.save(); ctx.globalAlpha = Math.min(1, Math.max(0, (this.t - 30) / 60));
-    ctx.save(); ctx.translate(D.W / 2, 34); ctx.scale(2, 2); D.text(ctx, 'NOT THIS KIND', 0, 0, '#e8e0f0', 'center'); D.text(ctx, 'OF NAME', 0, 11, '#e8e0f0', 'center'); ctx.restore();
-    D.wrap([].concat(L('fail.roost')).join(' '), D.W - 140).forEach(function (l, k) { D.text(ctx, l, D.W / 2, 100 + k * 11, '#c8d0e8', 'center'); });
+    var head = this.head || ['NOT THIS KIND', 'OF NAME'];
+    ctx.save(); ctx.translate(D.W / 2, 34); ctx.scale(2, 2); D.text(ctx, head[0], 0, 0, '#e8e0f0', 'center'); D.text(ctx, head[1], 0, 11, '#e8e0f0', 'center'); ctx.restore();
+    D.wrap([].concat(this.words || L('fail.roost')).join(' '), D.W - 140).forEach(function (l, k) { D.text(ctx, l, D.W / 2, 100 + k * 11, '#c8d0e8', 'center'); });
     ctx.restore();
     if (this.t < 150) return;
     var self = this; RoostFail.ROWS.forEach(function (r, k) {
@@ -533,6 +701,10 @@
     });
   };
   M.RoostFail = RoostFail;
+  // Dace's fall (M.daceFail): the roost's beat with no swarm -- the house's words, then the same two rows
+  function DaceFail() { RoostFail.call(this); this.kind = 'dacefail'; this.bats = []; this.head = ['THE HOUSE WILL', 'NOT FORGIVE IT']; this.words = M.LINES.daceFail; }
+  DaceFail.prototype = Object.create(RoostFail.prototype); DaceFail.prototype.constructor = DaceFail;
+  M.DaceFail = DaceFail;
   // the roost broken and the fight WON with fire (the first game's other path, js/battle.js: usedFire under the roost on a win -- roostBroken): the grid greys fire and
   // thunder and fire's items there, and no way to it is known; kept for one that turns up (a party's fire damage dealt under the roost, the field's enter: M.fieldFight).
   // The floor's answer: the flag -- Sabeth's fired line and Ottilie's cold one after it (M.SCENES) -- and the first game's words, once
@@ -565,9 +737,10 @@
     };
     // its play record in the house, as the road's fights keep theirs (js/record.js; the house lane's 10-19 note 6, "the floor's fights keep no play record")
     var rec = R.house() ? { fight: 'minefield', name: R.def.name + ': ' + R.def.sub, level: ((R0.members[0] || {}).src || {}).lvl, simple: simple } : null;
-    yield* R.pullIn(B, 'field', { id: 'field', field: { F: F, simple: simple, zone: zone, flag: set && set.flag, trig: set && set.trig, back: M.fieldBack, enter: enter, record: rec, ends: function (d) { return d === 'roost'; } } }, [t.x, t.y]);
+    yield* R.pullIn(B, 'field', { id: 'field', field: { F: F, simple: simple, zone: zone, flag: set && set.flag, trig: set && set.trig, back: M.fieldBack, enter: enter, record: rec, ends: function (d) { return d === 'roost' || (d === 'lost' && M.vitalDown(fb)); } } }, [t.x, t.y]);
     delete R.party0.backTo;
     if (R0.pulled === 'roost') { yield* M.roostFail(B); return; }
+    if (R0.pulled === 'lost' && M.vitalDown(fb)) { yield* M.daceFail(B); return; } // (the guest the party swore to bring back fell in it: M.daceFail)
     if (R0.pulled === 'won' && fb && fb.firedRoost) yield* M.roostBroke(B);
   };
   var enc0 = D.roam.encounter;
@@ -755,6 +928,7 @@
     if (def.mine) {
       var wp = (def.warps || []).filter(function (z) { return z.at[0] === sq[0] && z.at[1] === sq[1]; })[0];
       if (wp) { yield* M.warp(B, wp); return; }
+      if (def.key === 'galleries') yield* M.daceMouth(B); // (out of the mine onto THE WORLD: Dace stops at the mouth -- he never leaves the mountain with the party)
       if (def.edges) { yield* M.edgeOut(B, sq); return; }
       if (def.out === 'silverton') { yield* M.cross(B, 'silverton', 'east', [M.FEED[0] - 1, M.FEED[1]], M.LINES.toTown); return; }
     } else if (def.key === 'silverton' && !def.room && /feed track/.test((def.wayName || {})[k] || '')) { yield* M.cross(B, 'warrens', 'feed', null, M.LINES.toCamp); return; }

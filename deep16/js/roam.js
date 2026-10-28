@@ -892,6 +892,8 @@
     if (fam0 && o.data.flags.familiar) { if (fam0.gone) delete o.data.flags.familiar; else o.data.flags.familiar = Object.assign({}, o.data.flags.familiar, { hp: fam0.hp }); }
     // each sheet as it walks: the level and the XP the floor's fights paid (R.pay), not the fixture's fresh copy
     o.data.party = (o.data.party || []).map(function (h) { var w = R0.members.filter(function (u) { return u.id === h.id && u.src; })[0]; return w ? JSON.parse(JSON.stringify(w.src)) : h; });
+    // (and the guests walking in the token as the floor has them -- one taken up on this floor after it was laid too: Corwen Dace, js/mines.js M.guestIn; 10-28, the house takes guests)
+    o.data.guests = R0.members.filter(function (u) { return u.src && u.src.guest; }).map(function (u) { return JSON.parse(JSON.stringify(u.src)); });
     o.data.inv = JSON.parse(JSON.stringify(B.inv || []));
     o.data.kills = JSON.parse(JSON.stringify(R0.kills || {})); o.data.silver = R0.silver; // (the tally and the purse go in as the 8-bit's seam sends them)
     if (which === 'keeper') o.start = start || (trig.id === 'mark' ? 'rune' : 'ledge');
@@ -1292,9 +1294,10 @@
   R.pay = function (B, pool, line) {
     var R0 = B.roam, xp = pool != null ? pool : R0.xpBank; if (pool == null) R0.xpBank = 0;
     if (!(xp > 0)) return [];
-    var up = R.standing(R0), heroes = up.filter(function (u) { return u.src; });
-    var guests = B.units.filter(function (u) { return u.side === 'party' && u.guest && !u.familiar && !u.summon && !u.object && u.hp > 0 && R0.members.indexOf(u) < 0; }).length;
-    if (R.house()) { var bk = D.house.bank(xp, heroes.map(function (u) { return u.src; })); R0.xpPaid = (R0.xpPaid || 0) + bk.each; return bk.line ? [line ? line.replace('{n}', bk.each) : bk.line] : []; } // (the house: banked, the level at the long rest)
+    var up = R.standing(R0), heroes = up.filter(function (u) { return u.src && !u.src.guest; });
+    var guests = B.units.filter(function (u) { return u.side === 'party' && u.guest && !u.familiar && !u.summon && !u.object && u.hp > 0 && R0.members.indexOf(u) < 0; }).length
+      + up.filter(function (u) { return u.src && u.src.guest; }).length; // (a guest in the token takes a share and keeps none, the 8-bit's rule: Corwen Dace, 10-28)
+    if (R.house()) { var bk = D.house.bank(xp, heroes.map(function (u) { return u.src; }), guests); R0.xpPaid = (R0.xpPaid || 0) + bk.each; return bk.line ? [line ? line.replace('{n}', bk.each) : bk.line] : []; } // (the house: banked, the level at the long rest)
     var before = heroes.map(function (u) { return { u: u, lvl: u.src.lvl, feats: JSON.parse(JSON.stringify(u.src.feats || {})) }; });
     var sx = window.DS.R.shareXP(xp, heroes.map(function (u) { return u.src; }), guests);
     before.forEach(function (b) { if (b.u.src.lvl !== b.lvl) { R.relevel(B, b.u, b.feats); R0.picksDue = (R0.picksDue || []).concat([b.u]); } });
@@ -1995,6 +1998,7 @@
         if (sq) {
           var who = R0.rest.filter(function (u) { return u.x === sq.x && u.y === sq.y; })[0];
           if (who) { sel = who; R0.sel = who; D.sfx('confirm'); }
+          else if (sel && sq.x === t.x && sq.y === t.y && sel.src && sel.src.guest) { D.sfx('miss'); B.card(['{g}' + sel.name + ' walks with the party; one of the four leads.{/}'], 160); } // (a guest in the token never leads it: Corwen Dace, 10-28)
           else if (sel && sq.x === t.x && sq.y === t.y) {
             // the front man changed: the one picked takes the leader's square and becomes the token, the old leader steps to its place (the 8-bit's ORDER: the first leads)
             var ox = sel.x, oy = sel.y;

@@ -39,6 +39,12 @@
       text: 'Forty gold on Hessle\'s board for the cloaker in the guano mine\'s deep gallery. Nobody has ever collected. Bright light is its weakness.',
       steps: [{ 'if': 'has:cloakertail', door: 'hessle', where: 'Take the tail to Hessle at the Weigh-House, on Fountain Street.' },
         { where: 'The deep gallery, below the guano mine\'s dens: past the mark, down the last ladder. Bring light.' }] },
+    // CORWEN DACE (10-28, the deep gallery seat: his escort, js/mines.js THE DEEP GALLERY) -- open while he walks with the party, done when he is home with his thanks given
+    { id: 'dace', name: 'Corwen Dace', show: 'flag:daceWith|flag:daceDone', done: 'flag:daceDone',
+      text: 'Corwen Dace walks with you in the guano mine: he has wanted the deep gallery all his life. Bring him back up. If he falls, it is over.',
+      doneText: 'Dace climbed back up to the house to tell it everything.',
+      steps: [{ 'if': '!flag:cloakerKilled', where: 'The deep gallery, below the dens: past the mark, down the last ladder. His staff lights below the roost. Old Wynn, at the mouth, sends him home if you ask.' },
+        { where: 'Walk the deep gallery with him: he wants to see where it lived.' }] }, // (invented.json deepgallery-dace-words)
     { id: 'hex', show: 'flag:heardHex', done: 'flag:talmokBeaten',
       text: 'The Hex, in the plaza at the heart of town: five silver to fight on the card, and the winner keeps ten. Korvin keeps the slate. Talmok is the champion.',
       steps: [{ map: 'hex', npc: 'korvinSlate', where: 'Korvin at the slate, on the Hex\'s ground floor.' }] }
@@ -59,7 +65,7 @@
     doneText: 'Work found. Its own line is in the JOURNAL.',
     steps: function (st) { return H16.workHeard(st).map(function (w) { return w.step; }); } });
   H16.MISSIONS.forEach(function (q) { C.OWN_QUESTS = C.OWN_QUESTS.filter(function (o) { return o.id !== q.id; }).concat([q]); });
-  C.QUESTS = ['company', 'work', 'warrens', 'cradles', 'cull', 'tail', 'hex', 'errands', 'nedpage'];
+  C.QUESTS = ['company', 'work', 'warrens', 'cradles', 'cull', 'tail', 'dace', 'hex', 'errands', 'nedpage'];
 
   // the rumours that point at work open their mission (the lane's 4.2; the rest stay lines in THE TALK); the Snoot's news is not in town till the morning after the moot
   // (the realm's campaign-start.md: the Pit's word, Day 1, Lucia first) -- before it, the gnolls ranging north is the whole of it

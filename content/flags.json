@@ -53,6 +53,7 @@
     "daceDone": "set: js/events.js; read: js/events.js, maps/galleries_g4.json",
     "daceLight": "set: js/events.js",
     "daceSheet": "set: js/events.js",
+    "daceShaft": "set and read: deep16/js/mines.js (Dace's words at the dens' shaft head said once, the second game's one Dace -- 10-28)",
     "daceWith": "set: js/events.js; read: js/events.js, maps/galleries_g1.json, maps/galleries_g3.json",
     "dagnyIdx": "set at run time: how far through Dagny's lines (js/deep.js S.dagny)",
     "deepholmSeen": "set: js/deep.js, js/situations.js; read: js/deep.js",

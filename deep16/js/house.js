@@ -54,6 +54,7 @@
     if (rec.steps == null) rec.steps = 0;
     if (!rec.lead) rec.lead = ids[0] || H.HEROES[0];
     if (!Array.isArray(rec.hired)) rec.hired = ids.slice();
+    if (!Array.isArray(rec.guests)) rec.guests = [];
     return rec;
   };
   // a game begun or loaded: THE WORLD under it (its clock and hex the save's), and the town on top if that is where they stood
@@ -87,6 +88,7 @@
     // (a lantern or the Ledger-Lamp in a hand is the pack's still -- it was lost at every change of floor, 10-28 night, the grid seat's find; a torch burning is spent, as before.
     // The mines' next floor takes it up again in the same hand: js/mines.js M.go)
     m.inv1 = m.inv1 || {}; m.party.forEach(function (p) { if (p.torch && p.torch !== 'torch') m.inv1[p.torch] = (m.inv1[p.torch] || 0) + 1; });
+    H.cur.guests = m.party.filter(function (p) { return p.guest; }).map(function (p) { return p.sheet; }); // (THE HOUSE TAKES GUESTS, 10-28: the ones walking in the token as the floor has them -- taken up or sent home on it: js/mines.js M.guestIn)
     H.cur.inv = Object.keys(m.inv1 || {}).filter(function (id) { return m.inv1[id] > 0; }).map(function (id) { return { id: id, n: m.inv1[id] }; });
     H.cur.flags = m.flags || H.cur.flags; H.cur.kills = m.kills || H.cur.kills; if (m.silver != null) H.cur.silver = m.silver;
     var R0 = B.roam, nS = (R0.steps || 0) - (R0.banked || 0); if (nS > 0) { H.cur.steps = (H.cur.steps || 0) + nS; R0.banked = R0.steps; } // (the floor's squares walked since it last handed back: a SAVE in town and the way out both bank, never twice)
@@ -103,14 +105,15 @@
       byId[h.key || h.id] = h;
     });
     H.cur.party = H.cur.party.map(function (h) { return byId[h.key || h.id] || h; });
+    H.cur.guests = (H.cur.guests || []).map(function (h) { return byId[h.key || h.id] || h; }); // (a guest as the fight left them)
     var inv = JSON.parse(JSON.stringify(B.inv || [])).map(function (s) { return Array.isArray(s) ? { id: s[0], n: s[1] } : s; });
     (B.lights || []).forEach(function (l) { if (l.kind === 'lantern' && l.item && byId[l.by]) add(inv, l.item, 1); }); // (a lantern in a hand: the pack's still)
     H.cur.inv = inv.filter(function (s) { return s.n > 0; });
   };
   // the XP of the fallen, banked by those standing -- no level till the long rest (RULED 10-21, lean 3: "the rest sound good"); at the cap nothing banks (js/rules.js
   // R.gainXP's rule). Returns { each, line }
-  H.bank = function (xp, standing) {
-    var R = DS.R, cap = R.XP_LEVEL[R.cap()], each = standing.length ? Math.floor(xp / standing.length) : 0;
+  H.bank = function (xp, standing, guests) { // (guests: those walking with the party who take a share and keep none, the first game's rule -- js/roam.js R.pay)
+    var R = DS.R, cap = R.XP_LEVEL[R.cap()], each = standing.length ? Math.floor(xp / (standing.length + (guests || 0))) : 0;
     standing.forEach(function (h) { h.xp = Math.min(cap, (h.xp || 0) + each); });
     return { each: each, line: each ? 'Each one standing gains ' + each + ' XP' + (standing.some(function (h) { return R.XP_LEVEL[h.lvl + 1] != null && h.xp >= R.XP_LEVEL[h.lvl + 1] && h.lvl < R.cap(); }) ? ' -- a level at the next long rest.' : '.') : '' };
   };
@@ -724,7 +727,7 @@
     scene.pm = DS.MENU.open({
       party: function () { return rec.party; },
       walker: function (h) { return figure(h, 20, 32); }, portrait: function (h) { return figure(h, 32, 48); },
-      guests: function () { return []; },
+      guests: function () { return rec.guests || []; }, // (THE HOUSE TAKES GUESTS, 10-28: under the four, STATUS and no EQUIP -- js/menu.js)
       pack: function () { return rec.inv.filter(function (s) { return s.n > 0 && DS.DATA.items[s.id]; }); },
       give: function (id, n) { add(rec.inv, id, n || 1); },
       take: function (id, n) { add(rec.inv, id, -(n || 1)); },

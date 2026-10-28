@@ -45,6 +45,7 @@
   else if (/[?&]pocket\b/.test(q)) D.push(new D.Pocket()); // the Pocket DM (alpha): a party, a map, a CR, a fight -- and the four-rung ladder (js/pocket.js, 10-02)
   else if (/[?&]climb\b/.test(q)) D.push(new D.Climb()); // the climb: one party, 1 to 9 (js/climb.js)
   else if (/[?&]roostfail\b/.test(q) && D.mines) D.push(new D.mines.RoostFail()); // the roost come down in a mine's fight: NOT THIS KIND OF NAME, the run's end, shown (js/mines.js, 10-22)
+  else if (/[?&]dacefail\b/.test(q) && D.mines) D.push(new D.mines.DaceFail()); // Corwen Dace fallen in a fight he walked into with the party: the run's end, shown (js/mines.js, 10-28)
   else if (/[?&]rulesshow\b/.test(q) && D.rulesshow) D.push(D.rulesshow.make(q)); // the grid's rules, shown: the antitoxin, the pudding's acid, Heat Metal's end, the dice pinned, ENTER again (js/rulesshow.js, 10-21 night)
   else if (/[?&]barleyshow\b/.test(q) && D.barleyshow) D.push(D.barleyshow.make(q)); // Barley's new sheet, shown: its rows played where the engine plays them, slow, ENTER again (js/barleyshow.js, 10-20)
   else if (/[?&]skyshow\b/.test(q) && D.skyshow) D.push(D.skyshow.make(q)); // the Skylights, shown: today's beats of the Edifice fight, one after another (js/skyshow.js, 10-05 night)
