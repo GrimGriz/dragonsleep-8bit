@@ -19,6 +19,8 @@ Cut, scaled and placed by tools/artdesk.py. Its size (the seat's call): 52 px fr
 turnaround stands even (front 406, sides 416, back 412 px, one page). A later page by its first frame against its view's Idle 1, a Wake page
 by its Wake 6 (standing), the Statue page by its Statue 1 at the height of the Wake page's Wake 1 (the same crouch), a Prone page by its Prone 1
 at its own view's Fall 6. Two passes: the second tones every page per channel to its own view's first-pass idle, the others to the E's.
+ART-117 (10-28, the art desk's repairs of seven pages, PARTIAL): six rows taken (ADOPT below), built in a second pass and laid over the first,
+every other row the first pass's byte for byte; SE Walk passed over.
 """
 import os, sys, json
 import importlib.util
@@ -33,7 +35,7 @@ def _load(name):
 pix, AD = _load('pixelate'), _load('artdesk')
 
 NAME = 'gargoyle_p1'
-FW, FH, AX, AY = 96, 72, 48, 67             # (the wings and claws 47 px each side, a raised wing 65 up; its Fly within, 10-28)
+FW, FH, AX, AY = 96, 76, 48, 67             # (the wings and claws 47 px each side, a raised wing 65 up; its Fly within, 10-28; 76 tall since ART-117's E Fly, whose downstroke drops 7 below the anchor, the anchor where it was)
 STAND = {'side': 52, 'S': 52, 'N': 52}
 
 def R(*rows):
@@ -145,6 +147,38 @@ for _L, (_f, _w, _t, ((_b1, _s1, _x1), (_b2, _s2, _x2))) in FLYP.items():
 HEADERS = {'H4P7': (0, 0, 4000, 120), 'H4P8': (0, 0, 4000, 240), 'H4P10': (0, 0, 4000, 250), 'H5P3': (0, 0, 4000, 80)}
 for _L, _b in HEADERS.items():
     PAGES[_L]['text'] = PAGES[_L]['text'] + [_b]
+# ART-117 (10-28, the fourth cutter seat, on Griz's "fresh in fresh for the cutter"): the art desk's repairs of seven ART-18 pages, in
+# _src/gargoyle/ART-117/, each keyed by the page it would replace (its MANIFEST.json's replaces_parent_filename). PARTIAL by its own word (SE and
+# NE Walk "visibly unresolved", E Walk's phase OPEN): a row is taken only where it mends what the grid shows (ADOPT). Each page two bands, the
+# numbers printed close under the feet: every digit boxed on its own (`own_strip`), the title boxed
+def _n117(file, W, title, *bands):
+    """a page of ART-117: bands (row, (top, bottom) of the band, (top, bottom) of its digits, [(x0, x1) a digit])"""
+    text, rows, xs = list(title), [], {}
+    for r, (b0, b1), (d0, d1), ds in bands:
+        text += [(x0 - 5, d0 - 5, x1 + 5, d1 + 5) for x0, x1 in ds]
+        rows.append((r, (0, b0, W, b1), (d0, b1), len(ds))); xs[r] = [(x0 + x1) // 2 for x0, x1 in ds]
+    return dict(dir='ART-117', file=file, W=W, text=text, rows=rows, xs=xs, own_strip=[b[0] for b in bands])
+NEW117 = {
+  'H1P5': _n117('ART-117_HEAD-1_PAGE-1.png', 1536, [(630, 20, 905, 82)], ('walk', (0, 512), (480, 508), [(153, 168), (557, 575), (942, 959), (1317, 1338)]),
+                ('walk_b', (513, 1024), (916, 945), [(153, 171), (555, 573), (942, 960), (1319, 1337)])),
+  'H2P4': _n117('ART-117_HEAD-2_PAGE-1.png', 1774, [(10, 8, 240, 58)], ('walk', (0, 433), (400, 429), [(271, 284), (674, 692), (1081, 1098), (1504, 1522)]),
+                ('walk_b', (434, 887), (827, 853), [(269, 285), (674, 692), (1081, 1098), (1514, 1531)])),
+  'H2P6': _n117('ART-117_HEAD-2_PAGE-2.png', 1774, [(790, 818, 975, 862)], ('attack', (0, 408), (377, 404), [(358, 373), (871, 890), (1388, 1407)]),
+                ('attack_b', (409, 887), (772, 799), [(350, 370), (871, 890), (1388, 1407)])),
+  'H2P5': _n117('ART-117_HEAD-2_PAGE-3.png', 1774, [], ('fly', (0, 431), (404, 427), [(219, 234), (629, 646), (1091, 1107), (1540, 1557)]),
+                ('fly_b', (432, 887), (819, 843), [(211, 227), (626, 642), (1086, 1102), (1540, 1556)])),
+  'H4P2': _n117('ART-117_HEAD-4_PAGE-1.png', 1536, [(645, 925, 895, 985)], ('reveal', (0, 445), (410, 441), [(258, 275), (743, 764), (1258, 1280)]),
+                ('reveal_b', (446, 1024), (879, 912), [(258, 281), (743, 765), (1257, 1280)])),
+  'H4P4': _n117('ART-117_HEAD-4_PAGE-2.png', 1536, [(667, 933, 873, 988)], ('walk', (0, 489), (456, 485), [(221, 236), (581, 601), (949, 969), (1318, 1340)]),
+                ('walk_b', (490, 1024), (893, 923), [(204, 224), (575, 595), (957, 977), (1324, 1344)])),
+  'H4P5': _n117('ART-117_HEAD-4_PAGE-3.png', 1536, [(600, 935, 900, 1020)], ('fly', (0, 470), (437, 466), [(195, 208), (570, 590), (979, 999), (1325, 1346)]),
+                ('fly_b', (471, 1024), (893, 923), [(184, 204), (570, 590), (974, 995), (1333, 1354)])),
+}
+# (view, row) -> the ART-18 page whose ART-117 page plays there now; SW, W and NW follow as their mirrors. Taken: NE Bite (it lunges at NE,
+# no profile drift), NE Fly (the rear diagonal held), E Wake (it ends in the E profile, not facing out with its wings spread), E Fly (the
+# downstroke reads), E Walk (one profile, no stray printed rule under frame 3, steadier steps) and NE Walk (its half-strides differ more, 1 to 5
+# ... 4 to 8, by the feet's pixels: 189 149 257 232 against 126 107 202 92). Passed over: SE Walk (its half-strides differ less than ART-18's)
+ADOPT = {('NE', 'walk'): 'H2P4', ('NE', 'attack'): 'H2P6', ('NE', 'fly'): 'H2P5', ('E', 'reveal'): 'H4P2', ('E', 'walk'): 'H4P4', ('E', 'fly'): 'H4P5'}
 FIX = {}
 CUTS = {'H3P5': {'fly': [((752, 186), (752, 230)), ((1143, 172), (1143, 229))], 'fly_b': [((772, 625), (772, 659))]}}     # (S's Fly 2, 3 and 4 one blob, wing to wing: cut where they meet, 10-28)
 # each view's pages, its Idle's first; Fly last (H1 P6, the others' P5: cut since 10-28)
@@ -161,9 +195,9 @@ ROWS = ['idle', 'walk', 'attack', 'hurt', 'flinch', 'reveal', 'claw', 'still', '
 FPS = {'idle': 6, 'walk': 10, 'attack': 10, 'hurt': 8, 'flinch': 10, 'reveal': 8, 'claw': 10, 'still': 4, 'prone': 6, 'fly': 10}
 
 
-def targets():
+def targets(pages=PAGES):
     """the Statue page by its Statue 1 at the Wake page's Wake 1 (game size); the Prone page by its Prone 1 at its own view's Fall 6"""
-    cuts = AD.cut(ROOT, 'gargoyle', 'ART-18', PAGES, fix=FIX, cuts=CUTS)
+    cuts = AD.cut(ROOT, 'gargoyle', 'ART-18', pages, fix=FIX, cuts=CUTS)
     K = AD.scales(cuts, VIEWS, STAND, fit, stand_of=STAND_OF, idle_joined=True)
     def first(L, r):
         return (cuts[L].get(r) or cuts[L][r + '_b'])[0][0] if r in cuts[L] or r + '_b' in cuts[L] else None
@@ -216,14 +250,26 @@ def mirror(seq):
     return [np.roll(fr[:, ::-1], 1, axis=1).copy() for fr in seq]
 
 
-def build():
-    tg = targets()
+def views(pages):
+    tg = targets(pages)
     cell = (FW, FH, AX, AY)
     kw = dict(fix=FIX, cuts=CUTS, stand_of=STAND_OF, joins=JOINS, targets=tg, idle_joined=True)   # (every Idle frame to its median: N's first line raises its wings in two of three)
-    first = AD.views(ROOT, 'gargoyle', 'ART-18', PAGES, VIEWS, STAND, fit, torso_x, cell, **kw)
+    first = AD.views(ROOT, 'gargoyle', 'ART-18', pages, VIEWS, STAND, fit, torso_x, cell, **kw)
     ref = {'side': first['E']['idle'][0], 'S': first['S']['idle'][0], 'N': first['N']['idle'][0]}
-    d = AD.views(ROOT, 'gargoyle', 'ART-18', PAGES, VIEWS, STAND, fit, torso_x, cell, tone_ref=ref, **kw)
-    d = {v: dict(rows, prone=rows['prone'][::-1]) for v, rows in d.items()}
+    d = AD.views(ROOT, 'gargoyle', 'ART-18', pages, VIEWS, STAND, fit, torso_x, cell, tone_ref=ref, **kw)
+    return {v: dict(rows, prone=rows['prone'][::-1]) for v, rows in d.items()}
+
+
+def build(adopt=None):
+    """built on ART-18 alone, then again with ADOPT's ART-117 pages in place of theirs, and only ADOPT's rows taken from the second: a new
+    page moves its view's shared measures (the Statue sized by its Wake 1, a Fly page by the median of its view's other pages), so every row
+    not adopted is the first build's, byte for byte"""
+    adopt = ADOPT if adopt is None else adopt
+    d = views(PAGES)
+    if adopt:
+        d2 = views(dict(PAGES, **{L: NEW117[L] for L in set(adopt.values())}))
+        for (v, an) in adopt:
+            d[v][an] = d2[v][an]
     frames = {}
     for an in ROWS:
         frames[an] = [d['S'][an], mirror(d['SE'][an]), mirror(d['E'][an]), mirror(d['NE'][an]), d['N'][an], d['NE'][an], d['E'][an], d['SE'][an]]
@@ -239,6 +285,6 @@ if __name__ == '__main__':
     meta = json.load(open(mp))
     for an, fps in FPS.items():
         meta['anims'][an]['fps'] = fps
-    meta['source'] = 'drawn by the art desk (ART-18 FINAL, all five views, 10-21), cut by tools/gargoyle-sheet.py through tools/artdesk.py (10-22)'
+    meta['source'] = 'drawn by the art desk (ART-18 FINAL, all five views, 10-21; its ART-117 repairs for %s, 10-28), cut by tools/gargoyle-sheet.py through tools/artdesk.py (10-22)' % ', '.join('%s %s' % va for va in sorted(ADOPT))
     json.dump(meta, open(mp, 'w'), indent=1)
     print('  %s: %s' % (NAME, ', '.join('%s %d' % (an, len(frames[an][0])) for an in ROWS)))

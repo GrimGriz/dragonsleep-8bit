@@ -4259,9 +4259,9 @@
 "source": "drawn by the art desk (ART-09 FINAL SE and NE, 10-10; ART-52 REVIEW S, E and N, 10-18; ART-52 RUN REVIEW S and N walks, 10-27), cut by tools/townsfolk-sheet.py through tools/artdesk.py (10-27)"
 },
 "gargoyle_p1": {
-"image": "art/gargoyle_p1.png?v=439307fcde",
+"image": "art/gargoyle_p1.png?v=42b5a4b095",
 "fw": 96,
-"fh": 72,
+"fh": 76,
 "ax": 48,
 "ay": 67,
 "top": 52,
@@ -4269,95 +4269,95 @@
 "idle": {
 "y": 0,
 "fw": 96,
-"fh": 72,
+"fh": 76,
 "ax": 48,
 "ay": 67,
 "frames": 6,
 "fps": 6
 },
 "walk": {
-"y": 576,
+"y": 608,
 "fw": 96,
-"fh": 72,
+"fh": 76,
 "ax": 48,
 "ay": 67,
 "frames": 8,
 "fps": 10
 },
 "attack": {
-"y": 1152,
+"y": 1216,
 "fw": 96,
-"fh": 72,
+"fh": 76,
 "ax": 48,
 "ay": 67,
 "frames": 6,
 "fps": 10
 },
 "hurt": {
-"y": 1728,
+"y": 1824,
 "fw": 96,
-"fh": 72,
+"fh": 76,
 "ax": 48,
 "ay": 67,
 "frames": 6,
 "fps": 8
 },
 "fly": {
-"y": 2304,
+"y": 2432,
 "fw": 96,
-"fh": 72,
+"fh": 76,
 "ax": 48,
 "ay": 67,
 "frames": 8,
 "fps": 10
 },
 "reveal": {
-"y": 2880,
+"y": 3040,
 "fw": 96,
-"fh": 72,
+"fh": 76,
 "ax": 48,
 "ay": 67,
 "frames": 6,
 "fps": 8
 },
 "flinch": {
-"y": 3456,
+"y": 3648,
 "fw": 96,
-"fh": 72,
+"fh": 76,
 "ax": 48,
 "ay": 67,
 "frames": 4,
 "fps": 10
 },
 "claw": {
-"y": 4032,
+"y": 4256,
 "fw": 96,
-"fh": 72,
+"fh": 76,
 "ax": 48,
 "ay": 67,
 "frames": 6,
 "fps": 10
 },
 "still": {
-"y": 4608,
+"y": 4864,
 "fw": 96,
-"fh": 72,
+"fh": 76,
 "ax": 48,
 "ay": 67,
 "frames": 4,
 "fps": 4
 },
 "prone": {
-"y": 5184,
+"y": 5472,
 "fw": 96,
-"fh": 72,
+"fh": 76,
 "ax": 48,
 "ay": 67,
 "frames": 2,
 "fps": 6
 }
 },
-"source": "drawn by the art desk (ART-18 FINAL, all five views, 10-21), cut by tools/gargoyle-sheet.py through tools/artdesk.py (10-22)"
+"source": "drawn by the art desk (ART-18 FINAL, all five views, 10-21; its ART-117 repairs for E fly, E reveal, E walk, NE attack, NE fly, NE walk, 10-28), cut by tools/gargoyle-sheet.py through tools/artdesk.py (10-22)"
 },
 "giantbat_p1": {
 "image": "art/giantbat_p1.png?v=5fa2b4c149",
