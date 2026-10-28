@@ -30,7 +30,7 @@
     { id: 'cradles', name: 'The Cradles', show: 'flag:heardCradles|flag:tallyMet', done: 'flag:shifts',
       text: 'The Warrens\' cradles take hands by the shift: you milk a crawler for its venom, a silver for each clean thimble. Edric Pellam writes you into his book first.',
       steps: [{ 'if': '!flag:tallyMet', npc: 'edric', where: 'Edric Pellam at the tally-house, the Warrens\' mouth camp: ' + EAST },
-        { where: 'Pen Two, Four or Five: the gated mouths along the mountain wall at the mouth camp. WORK A SHIFT.' }] },
+        { trig: 'pen2', where: 'Pen Two, Four or Five: the gated mouths along the mountain wall at the mouth camp. WORK A SHIFT.' }] }, // (pen2: its square the marker's -- the first game's step)
     { id: 'cull', name: 'The Cull', show: 'flag:heardGalleries|flag:cullHired', done: 'flag:rescued',
       text: 'The guano mine, in the mountain west of town, hires cull hands: three silver a giant bat\'s head, a gold piece a darkmantle. Its one law: no fire and no noise under a roost.',
       steps: [{ 'if': '!flag:cullHired', npc: 'sabeth', where: 'Sabeth Pollard at the weigh-shed, the guano mine\'s mouth: out of Silverton by the west gate, then west on THE WORLD.' },
@@ -79,10 +79,39 @@
   // plain words, and the first pinned when nothing is. A save from before has its JOURNAL as it stood: what it shows at the first look is taken as seen, no cards
   H16.fresh = function (st) { return C.quests(st).filter(function (q) { return !st.flags['q:' + q.id]; }); };
   H16.missionDue = function (B) {
-    var R = D.roam, R0 = B && B.roam; if (!R0 || !R.house || !R.house() || R0.mode !== 'walk' || R0.path || (R.tracking && R.tracking(R0).length)) return false;
+    // (at once, the party walking or not: 10-28 2258Z, his "got the journal popup for the cradle when I returned to silverton" -- it had waited for the party to stand still, and
+    // he walked off the mouth camp straight after Edric's word, so it came on the next floor)
+    var R = D.roam, R0 = B && B.roam; if (!R0 || !R.house || !R.house() || R0.mode !== 'walk' || (R.tracking && R.tracking(R0).length)) return false;
     var st = C.state(B); if (!st) return false;
     if (!st.flags.qSeen) { st.flags.qSeen = 1; H16.fresh(st).forEach(function (q) { st.flags['q:' + q.id] = 1; }); return false; }
     return H16.fresh(st).length > 0;
+  };
+  H16.DING = 'quest';
+  // the pinned step's gold marker where the town's door marker has none (10-28 2258Z, his "cradle mission pinned not pointing to the guy who unlocks working cradles"): the one it
+  // wants standing on this floor (Edric at the mouth camp), its own square on this floor (a pen's), or the way there -- off Silverton's street to the Warrens by the feed track, off
+  // the mouth camp back to town by it. Drawn as js/company.js draws the Company's
+  H16.pinSq = function (B, s) {
+    var def = D.roam.def, u = s.npc && B.units.filter(function (x) { return x.npc === s.npc; })[0]; if (u) return [u.x, u.y];
+    var tr = s.trig && (def.src8 && def.src8.triggers || []).filter(function (t) { return t.id === s.trig; })[0]; if (tr) return [tr.rect[0], tr.rect[1]];
+    var toW = /^warrens/.test(s.map || '') || s.npc === 'edric' || s.npc === 'skarn' || !!s.trig && /^pen/.test(s.trig);
+    if (def.key === 'silverton' && !def.room && toW && D.mines && D.mines.FEED && !def.cut) return D.mines.FEED.slice();
+    if (def.key === 'warrens' && !toW && (s.door || s.npc)) { var g = D.mines && D.mines.FLOORS && D.mines.FLOORS.warrens.gates.feed; if (g) return def.from8 ? def.from8(g[0], g[1]) : [g[0], g[1]]; }
+    return null;
+  };
+  var pinPaint0 = C.paintPin;
+  C.paintPin = function (ctx, B) {
+    pinPaint0.apply(this, arguments);
+    var R = D.roam, R0 = B && B.roam, def = R && R.def; if (!R0 || !def || !def.town || B.menu || R0.mode !== 'walk') return;
+    var st = C.state(B), q = st && st.flags.pin && C.quests(st).filter(function (x) { return x.id === st.flags.pin && !x.done; })[0], s = q && q.step; if (!s) return;
+    if (def.key === 'silverton' && !def.room && C.pinned(st)) return; // (the town's door marker has it)
+    if (def.room || def.hexIn) return; // (in a room or the Hex: the counter's and the Company's own markers)
+    if (q.id === 'company' && D.company && D.company.HIRES && D.company.HIRES[s.npc]) return;
+    var sq = H16.pinSq(B, s); H16.marked = sq ? sq.slice() : null; if (!sq) return;
+    var iso = D.iso, c = iso.center(sq[0], sq[1], (B.map && B.map.gz ? B.map.gz(sq[0], sq[1]) : 0) + 30), p = iso.toScreen(c.x, c.y);
+    var m = 14, x = Math.max(m, Math.min(D.W - m, p.x)), y = Math.max(m + 14, Math.min(D.H - 40, p.y)), off = x !== p.x || y !== p.y, bob = Math.sin(B.t / 10) * 2;
+    ctx.save(); ctx.translate(Math.round(x), Math.round(y + (off ? 0 : bob))); if (off) ctx.rotate(Math.atan2(p.y - y, p.x - x) - Math.PI / 2);
+    ctx.fillStyle = '#1a1206'; ctx.beginPath(); ctx.moveTo(-7, -9); ctx.lineTo(7, -9); ctx.lineTo(0, 3); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = D.WIN8.gold; ctx.beginPath(); ctx.moveTo(-5, -8); ctx.lineTo(5, -8); ctx.lineTo(0, 1); ctx.closePath(); ctx.fill(); ctx.restore();
   };
   H16.LINES = { opened: '{y}In your JOURNAL:{/} {name}.', pinned: '{g}Pinned: the gold arrow marks the next step. M, then JOURNAL, to read it again.{/}', more: '{g}And: {names}.{/}' };
   H16.missionCard = function* (B) {
@@ -93,7 +122,7 @@
     lines.push(H16.LINES.opened.replace('{name}', open[0].name), open[0].text);
     if (open.length > 1) lines.push(H16.LINES.more.replace('{names}', open.slice(1).map(function (q) { return q.name; }).join(', ')));
     if (pinned) lines.push(D.keys ? D.keys(H16.LINES.pinned) : H16.LINES.pinned);
-    D.sfx('confirm'); B.card(R.wrap(lines), 480); yield 30;
+    D.sfx(H16.DING); B.card(R.wrap(lines), 480); yield 1; // (its ding, his "add some kind of *ding* or pop-up when a quest is added to journal": js/audio.js SFX.quest)
   };
 
   // ---------------------------------------------------------------- PAPA AND LYMEN AT THE HEX'S DOOR (the lane's 4.3; RULED 10-28, his "6 - yes" on his own note: "Have
@@ -512,6 +541,14 @@
     yield* chapel0.apply(this, arguments);
   };
   C.VENDORS.aldwin.script = 'chapel';
+  // a bed in town -- Cassia's rooms, Aldwin's floor -- is the SRD's long rest, eight hours from lying down, not on to the next morning (10-28 2258Z, his "in town sleeps seem to past
+  // days rather than long rest": a bed at seven had slept a whole day round; the Glowseep's fire the same since 10-27, js/mines.js M.SEEP.restHours)
+  H16.BED_HOURS = 8;
+  C.sleep = function* (B) {
+    if (!B || !B.roam || !D.house || !D.house.sleepOnFloor) return;
+    var h1 = (H16.hourNow(D.roam && D.roam.q, B) + H16.BED_HOURS) % 24, wk = D.mines && D.mines.wakeAt ? D.mines.wakeAt(h1) : null; // (the waking card by the hour, as the Glowseep's fire: MORNING, AFTERNOON, DUSK, NIGHT)
+    yield* D.house.sleepOnFloor(B, { music: 'inn', hours: H16.BED_HOURS, title: wk ? wk.title : null });
+  };
   // a Hex bout a quarter of an hour on the clock (his 10-28 "fights should burn 15 minutes instead of an hour of worldtime": js/world.js W.FIGHT_HOURS)
   if (D.hex && D.hex.bout) { var bout0 = D.hex.bout; D.hex.bout = function* (B) { var r = yield* bout0.apply(this, arguments); H16.pass(B, (D.world && D.world.FIGHT_HOURS) || 0.25); return r; }; }
   // the town's lights laid with its people (the floor's first laying, and a relay's)

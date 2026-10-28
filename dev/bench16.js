@@ -3981,7 +3981,31 @@
       var BW = newHw('barley'); beatHw(BW); var hob = talkHw(BW, 'oldhob'), crW = qHw(BW, 'cradles'), lyW = window.DS.R ? CHw.L('hire.lymenWait') : '';
       okHw('the words pass: Old Hob "' + String(hob[0]).slice(0, 80) + '..." (The Cradles open: ' + !!crW + '); Lymen\'s wait "' + String(lyW).slice(0, 90) + '"',
         /that's what dosed means/.test(hob.join(' ')) && !!crW && /Finding Work, in the JOURNAL/.test(lyW) && !/Secondhand at a fifth/.test(JSON.stringify(CHw.TALK16.vera)));
-    } catch (eHw) { repHw.errors.push(String(eHw && eHw.stack || eHw).slice(0, 900)); }
+      // 20. HIS PLAY, 10-28 2258Z (his NOTES): "add some kind of *ding* or pop-up when a quest is added to journal"; "got the journal popup for the cradle when I returned to
+      // silverton"; "cradle mission pinned not pointing to the guy who unlocks working cradles" -- his route: Kess in town, over the feed track, Edric at the mouth camp
+      var sfx0 = D.sfx, sounds = []; D.sfx = function (n) { sounds.push(n); return sfx0.apply(this, arguments); };
+      var BK = newHw('barley'); beatHw(BK); var trKs2 = trigHw('keeper:kess'), gK2 = THw.fire(BK, trKs2); driveHw(gK2, function () { return D.top() instanceof CHw.Counter; }, 800);
+      var scK2 = D.top(); while (scK2 instanceof CHw.Counter && scK2.wait && scK2.wait.say && !scK2.done) clickHw(scK2, scK2.buttons().filter(function (q) { return q.go === 'next'; })[0]); driveHw(gK2, null, 400); offHw(BK);
+      sounds.length = 0; var cK = beatHw(BK), dingK = sounds.slice();
+      okHw('Kess in town: the card at once ("' + String(cK).slice(0, 70) + '..."), with its ding (' + dingK.join(',') + ')', /In your JOURNAL: Finding Work/.test(cK) && /The Cradles/.test(cK) && dingK.indexOf(HWw.DING) >= 0);
+      var markHw = function (B) { HWw.marked = null; CHw.paintPin(document.createElement('canvas').getContext('2d'), B); return HWw.marked; };
+      CHw.journal(BK).setPin('cradles'); var mkT = markHw(BK);
+      okHw('the Cradles pinned on Silverton\'s street, Edric not yet met: the marker on the feed track (' + mkT + ', the track ' + D.mines.FEED + ')', !!mkT && mkT[0] === D.mines.FEED[0] && mkT[1] === D.mines.FEED[1]);
+      HHw.fromFloor(BK); while (D.scenes.length > 1) D.pop(); HHw.toTown('warrens', 'feed'); var BWr = floorHw(); cardsHw(BWr);
+      var c0W = beatHw(BWr), edU = BWr.units.filter(function (u) { return u.npc === 'edric'; })[0], mkE = markHw(BWr), trEd = trigHw('talk:edric'), edW = trEd ? talkHw(BWr, 'edric') : [];
+      BWr.roam.path = [[BWr.roam.token.x + 1, BWr.roam.token.y]]; var dWalk = HWw.due(BWr); sounds.length = 0; var cEd = dWalk ? (function () { var n = BWr.saidHw.length; driveHw(HWw.beat(BWr), null, 600); return BWr.saidHw.length > n ? lastHw(BWr) : ''; })() : ''; BWr.roam.path = null;
+      var mkP = markHw(BWr), pen2 = (RHw.def.src8.triggers || []).filter(function (t) { return t.id === 'pen2'; })[0];
+      okHw('at the mouth camp: the marker over Edric, the one who books the cradles (' + mkE + ', Edric at ' + (edU && [edU.x, edU.y]) + ')', !!mkE && !!edU && mkE[0] === edU.x && mkE[1] === edU.y);
+      okHw('his word (tallyMet ' + !!BWr.roam.flags.tallyMet + '), and the party already walking off: the card at once, there ("' + String(cEd).slice(0, 50) + '...", its ding ' + sounds.join(',') + '); the marker on to Pen Two (' + mkP + ', the pen ' + (pen2 && pen2.rect.slice(0, 2)) + ')',
+        !!BWr.roam.flags.tallyMet && dWalk && /In your JOURNAL: The Missing Five/.test(cEd) && sounds.indexOf(HWw.DING) >= 0 && !!pen2 && !!mkP && mkP[0] === pen2.rect[0] && mkP[1] === pen2.rect[1]);
+      D.sfx = sfx0;
+      // 21. A BED IN TOWN IS A LONG REST, NOT A DAY (his "in town sleeps seem to past days rather than long rest"): Aldwin's floor at seven in the morning -- eight hours on, the
+      // afternoon of the same day, not the next morning
+      var BB = newHw('aurdin'); beatHw(BB); var t0B = WHw.state().t; driveHw(THw.fire(BB, trigHw('chapel:aldwin')), null, 2000); var gB = THw.fire(BB, trigHw('talk:aldwin')); driveHw(gB, function () { return D.top() instanceof CHw.Counter; }, 800);
+      var kB = 0; while (D.top() instanceof CHw.Counter && kB++ < 12) { var sB = D.top(); if (sB.wait && sB.wait.ask) { clickHw(sB, sB.buttons().filter(function (q) { return /SLEEP/.test(q.label); })[0]); } else if (sB.wait && sB.wait.say) clickHw(sB, sB.buttons().filter(function (q) { return q.go === 'next'; })[0]); else break; driveHw(gB, function () { return D.top() instanceof HHw.Morning || !(D.top() instanceof CHw.Counter); }, 400); }
+      driveHw(gB, function () { return D.top() instanceof HHw.Morning; }, 4000); var mB = D.top() instanceof HHw.Morning ? D.top() : null; if (mB) mB.finish(); driveHw(gB, null, 4000); offHw(BB); var t1B = WHw.state().t;
+      okHw('a bed at Aldwin\'s at ' + t0B + ':00 (the morning ' + !!mB + '): THE WORLD\'s clock ' + t0B + ' -> ' + t1B + ' (' + HWw.band(t1B) + ', Day ' + HWw.day() + ')', !!mB && t1B === t0B + HWw.BED_HOURS && HWw.day() === 0);
+    } catch (eHw) { D.sfx = window.D16.sfx0Hw || D.sfx; repHw.errors.push(String(eHw && eHw.stack || eHw).slice(0, 900)); }
     D.store.get = stGHw; D.store.set = stSHw; window.DS.autoPicks = apHw; if (D.house) { D.house.playing = false; D.house.cur = null; }
     var preHw = document.createElement('pre'); preHw.id = 'out'; preHw.textContent = 'BENCH16 ' + JSON.stringify(repHw);
     document.body.appendChild(preHw);
@@ -4931,10 +4955,11 @@
       okV('STAY with 10 sp: "' + poorI.join(' ') + '", no night', /Not enough silver/.test(poorI.join(' ')) && R0.silver === 10 && !mornV() && D.top() === B);
       R0.silver = 40; var t0I = WV.state().t, aU = unitV(B, 'aurdin'), lv0 = aU.lvl, sl0 = (aU.slots || []).slice();
       gI = fireV(B, 'talk:cassia'); scI = D.top(); goV(scI, 'opt', 'STAY'); driveV(gI, function () { return !!mornV(); }, 600); var mI = mornV();
-      okV('STAY: 16 sp paid (' + R0.silver + ' left), the screen down, the night over the floor (' + (mI && mI.phase) + '), THE WORLD\'s clock on to the morning (hour ' + t0I + ' to ' + WV.state().t + ', ' + WV.hour() + ':00)',
-        R0.silver === 24 && !!mI && mI.phase === 'night' && WV.state().t > t0I && WV.hour() === WV.MORNING && !upV());
-      clickV(mI, { x: 10, y: 10, w: 2, h: 2 }); var dawnI = mI.phase === 'dawn' ? mI.dawnLines().join(' / ') : '';
-      okV('a click: MORNING, and what the night did -- "' + dawnI.slice(0, 160) + '"', mI.phase === 'dawn' && /MORNING/.test(dawnI) && /wakes rested/.test(dawnI) && /Aurdin/.test(dawnI) && /day 2/.test(dawnI));
+      // (a bed in town the SRD's long rest, eight hours, since 10-28 -- his "in town sleeps seem to past days rather than long rest": mode=hours1028 -- not on to the next morning)
+      okV('STAY: 16 sp paid (' + R0.silver + ' left), the screen down, the night over the floor (' + (mI && mI.phase) + '), THE WORLD\'s clock eight hours on (hour ' + t0I + ' to ' + WV.state().t + ', ' + WV.hour() + ':00)',
+        R0.silver === 24 && !!mI && mI.phase === 'night' && WV.state().t === t0I + 8 && !upV());
+      clickV(mI, { x: 10, y: 10, w: 2, h: 2 }); var dawnI = mI.phase === 'dawn' ? mI.dawnLines().join(' / ') : '', wkI = D.mines.wakeAt(WV.hour()).title;
+      okV('a click: the waking (' + wkI + '), and what the night did -- "' + dawnI.slice(0, 160) + '"', mI.phase === 'dawn' && dawnI.indexOf(wkI) >= 0 && /wakes rested/.test(dawnI) && /Aurdin/.test(dawnI) && dawnI.indexOf('day ' + (Math.floor(WV.state().t / 24) + 1)) >= 0);
       goV(mI, 'ok');
       okV('OK: THE NIGHT\'S BONDS (' + rowsV(mI).join('; ') + ')', mI.phase === 'bonds' && rowsV(mI).some(function (r) { return /VIVIAN: Ring of Prot\. NEW/.test(r); }) && !RV.picksDue(HV.cur.party.filter(function (h) { return h.id === 'aurdin'; })[0]));
       pickV(mI, /^VIVIAN: Ring/); var letGo = rowsV(mI).filter(function (r) { return /VIVIAN/.test(r); })[0]; pickV(mI, /^VIVIAN: Ring/); var bondAgain = rowsV(mI).filter(function (r) { return /VIVIAN/.test(r); })[0];
@@ -4994,6 +5019,7 @@
       okV('with 20: PAY, 10 sp left, "' + doneL.join(' ') + '", Vivian up at ' + dV.hp + '/' + dV.maxhp + ', Lymen at ' + dL.hp + '/' + dL.maxhp, R0.silver === 10 && /Stitched and standing/.test(doneL.join(' ')) && dV.hp === Math.floor(dV.maxhp / 2) && dL.hp === Math.floor(dL.maxhp / 2) && !dV.ko && !dL.ko && dV.src.hp === dV.hp);
       // HESSLE (the first game's S.hessle): the board, the bounties paid at the scales
       outV(B); okV('in at the Weigh-House', inV(B, 'keeper:hessle') && D.roam.def.keeper.id === 'hessle');
+      R0.flags.councilNotice = 1; // (the Snoot's paper goes up the morning after the council funds it, C1 -- his "Consider C1 a cutscene that plays for the player at the parties nearest (chronological) rest cycle": mode=hours1028; here the board after it)
       var gH = fireV(B, 'talk:hessle'), scH = D.top(), wH = readV(scH); driveV(gH, null, 200);
       okV('Hessle on his portrait (' + scH.sheet + '), nothing brought: his word and the board -- ' + wH.length + ' lines, "' + wH.join(' / ').slice(0, 140) + '..."; the bounties heard', scH.sheet === 'pt_hessle' && /That's the board/.test(wH.join(' ')) && /Standing bounties/.test(wH.join(' ')) && /ettercap/.test(wH.join(' ')) && /cloaker/.test(wH.join(' ')) && /Snoot/.test(wH.join(' ')) && R0.flags.heardEttercap === 1 && R0.flags['heard:r-cloaker'] === 1);
       ['ettercapfangs', 'cloakertail', 'anchorpin', 'wagonorder'].forEach(function (id) { CV.give(CV.state(B), id, 1); });
