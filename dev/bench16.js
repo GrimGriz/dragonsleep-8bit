@@ -3211,7 +3211,7 @@
       // KASTEN WHEAL's shelves: his first-game shop (content/shops.json kasten, the Chandler), as Vilar, Marko, Lisbet and Percy sell since b4e9cdc
       B = beatHs('kasten'); R0 = B.roam;
       var inK = inHs(B, 'shop:kasten'); okHs('Kasten\'s beat: in at the chandler\'s door (' + D.roam.def.name + '), ' + R0.silver + ' sp', inK && D.roam.def.keeper.id === 'kasten' && R0.silver === 60);
-      var gK = fireHs(B, 'talk:kasten'), scK = D.top(), wK = upHs() ? readHs(scK) : [];
+      var gK = fireHs(B, 'talk:kasten'), scK = D.top(), wK = upHs() ? readHs(scK).concat((scK.wait && scK.wait.ask) || []) : []; // (his words the question itself since 10-28: no OK before THE SHELVES -- mode=housenotes1028)
       okHs('E at his counter: his portrait (' + (scK && scK.sheet) + '), "' + wK.join(' ') + '", then ' + askHs(scK), upHs() && scK.sheet === 'pt_kasten' && /Candles, soap, lamp-oil/.test(wK.join(' ')) && !/to come/.test(wK.join(' ')) && !!scK.wait.ask && scK.wait.opts.join() === 'THE SHELVES,LEAVE');
       goHs(scK, 'opt', 'THE SHELVES'); var rowsK = scK.shop ? scK.rows().map(function (r) { return r.label + ' ' + r.right; }) : [];
       okHs('THE SHELVES: the Chandler\'s (' + scK.o.place + '), BUY -- ' + rowsK.join('; '), scK.shopId === 'kasten' && scK.tab === 'buy' && rowsK.join() === 'Oil Flask 1 sp,Torch 1 sp,Hooded Lantern 50 sp,Candle 1 sp');
@@ -3283,6 +3283,44 @@
     D.store.get = stGHs; D.store.set = stSHs; if (D.house) { D.house.playing = false; D.house.cur = null; }
     var preHs = document.createElement('pre'); preHs.id = 'out'; preHs.textContent = 'BENCH16 ' + JSON.stringify(repHs);
     document.body.appendChild(preHs);
+    return;
+  }
+  // HIS NOTES ON SILVERTON AND THE HEX, 10-28 (mode=housenotes1028; the house seat, started by the lanes desk on Griz's "Start the seat"; the house lane's 10-28 section,
+  // items 2, 3 and 5, his words there). Every choice pressed by a click on its drawn box, as house1022 does
+  if (get('mode', '') === 'housenotes1028') {
+    var repHn = { checks: [], errors: [] }, memHn = {}, stGHn = D.store.get, stSHn = D.store.set, CHn = D.counter, THn = D.town;
+    function okHn(what, v) { repHn.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function driveHn(g, until, cap) { var v, k = 0, st; while (k++ < (cap || 4000)) { if (until && until()) return true; st = g.next(v); v = undefined; if (st.done) return !!(until && until()); } return !!(until && until()); }
+    function topHn() { var s = D.top(); if (s && s.baking) { s.baking = false; s.enter(); } return s; }
+    function upHn() { return D.top() instanceof CHn.Counter; }
+    function clickHn(sc, b) { if (!b) return false; var mo = D.input.mouse, k = { x: mo.x, y: mo.y, click: mo.click, inside: mo.inside, moved: mo.moved }; mo.x = b.x + b.w / 2; mo.y = b.y + b.h / 2; mo.inside = true; mo.click = true; mo.moved = true; sc.update(); Object.assign(mo, k); return true; }
+    function goHn(sc, go, label) { return clickHn(sc, sc.buttons().filter(function (q) { return q.go === go && (label == null || q.label === label); })[0]); }
+    function readHn(sc) { var out = [], k = 0; while (!sc.done && sc.wait && sc.wait.say && k++ < 40) { out = out.concat(sc.wait.say); goHn(sc, 'next'); } return out; }
+    function optsHn(sc) { return sc && sc.wait && sc.wait.ask ? sc.wait.opts.map(function (o) { return o.label || o; }).join() : ''; }
+    function beatHn(id) { var sh = CHn.houseShow('?houseshow&beat=' + id); D.scenes.length = 0; D.push(sh); sh.update(); return topHn(); }
+    function talkHn(B, id) { var g = CHn.talk(B, id); driveHn(g, upHn, 600); return { g: g, sc: D.top() }; }
+    function offHn(B) { while (D.top() !== B && D.scenes.length) D.pop(); }
+    D.store.get = function (k) { return memHn[k] ? JSON.parse(memHn[k]) : null; }; D.store.set = function (k, v) { memHn[k] = JSON.stringify(v); return true; };
+    try {
+      D.seed = +get('seed', 1028);
+      // THE SUPERFLUOUS OK (his "Have we already addressed superfluous 'ok' (when a keeper's text is a single line, no point in having to click 'ok' for shelves and leave."): a
+      // shelves keeper whose words fit the box asks THE SHELVES / LEAVE with them at once -- no OK first, and their line said once, not twice
+      var B = beatHn('kasten'), oneOk = [], oneBad = [];
+      ['kessler', 'calla', 'kasten', 'lucia', 'vilar', 'marko', 'lisbet', 'tally', 'percy'].forEach(function (id) {
+        var t = talkHn(B, id), sc = t.sc, w = sc && sc.wait || {};
+        if (upHn() && w.ask && !w.say && optsHn(sc) === 'THE SHELVES,LEAVE' && w.ask.join(' ').length > 20) oneOk.push(id); else oneBad.push(id + (w.say ? ' (an OK first: "' + w.say.join(' ').slice(0, 40) + '")' : ' (' + JSON.stringify(w).slice(0, 60) + ')'));
+        offHn(B);
+      });
+      okHn('a shelves keeper\'s words in one box: THE SHELVES / LEAVE asked with them, no OK first -- ' + oneOk.join(', ') + (oneBad.length ? '; not: ' + oneBad.join('; ') : ''), !oneBad.length && oneOk.length === 9);
+      var tK = talkHn(B, 'kasten'), scK = tK.sc; goHn(scK, 'opt', 'THE SHELVES'); var shelvesK = !!scK.shop && scK.shopId === 'kasten'; goHn(scK, 'back'); var backK = optsHn(scK); goHn(scK, 'opt', 'LEAVE'); driveHn(tK.g, null, 200);
+      okHn('Kasten: THE SHELVES opens his shelf (' + shelvesK + '), BACK asks again (' + backK + '), LEAVE the floor', shelvesK && backK === 'THE SHELVES,LEAVE' && D.top() === B);
+      (B.inv = B.inv || []).push({ id: 'batwings', n: 2 }); var tP = talkHn(B, 'percy'), scP = tP.sc, wP = readHn(scP), aP = scP.wait && scP.wait.ask ? scP.wait.ask.join(' ') : '';
+      okHn('Percy with two wings: his word and the wings sent on (' + (wP.length ? 'paged first, the words more than a box' : 'in one box') + ') -- "' + (wP.concat([aP]).join(' / ')).slice(0, 90) + '..." -- then ' + optsHn(scP), /Wings\? Not in my jars/.test(wP.concat([aP]).join(' ')) && optsHn(scP) === 'THE SHELVES,LEAVE');
+      offHn(B); B.inv = B.inv.filter(function (s) { return s.id !== 'batwings'; });
+    } catch (eHn) { repHn.errors.push(String(eHn && eHn.stack || eHn).slice(0, 900)); }
+    D.store.get = stGHn; D.store.set = stSHn; if (D.house) { D.house.playing = false; D.house.cur = null; }
+    var preHn = document.createElement('pre'); preHn.id = 'out'; preHn.textContent = 'BENCH16 ' + JSON.stringify(repHn);
+    document.body.appendChild(preHn);
     return;
   }
   // THE WET ON THE HOUSE, 10-22 (mode=wet1022; ..\handoff-2026-10-21-the-second-games-house.md, the lanes desk's 10-22 section -- Griz: "yeah, work the wet - we have second
@@ -3607,6 +3645,7 @@
     function goW(sc, go, label) { var b = sc.buttons().filter(function (q) { return q.go === go && (label == null || q.label === label); })[0]; return clickW(sc, b); }
     function clickW(sc, b) { if (!b) return false; var mo = D.input.mouse, k = { x: mo.x, y: mo.y, click: mo.click, inside: mo.inside, moved: mo.moved }; mo.x = b.x + b.w / 2; mo.y = b.y + b.h / 2; mo.inside = true; mo.click = true; mo.moved = true; sc.update(); Object.assign(mo, k); return true; } // (every choice pressed by a click on its drawn box: the mouse alone -- a button whose box will not take a click fails here)
     function readW(sc) { var out = [], k = 0; while (!sc.done && sc.wait && sc.wait.say && k++ < 40) { out = out.concat(sc.wait.say); goW(sc, 'next'); } return out; } // (every page read, till a question or the end)
+    function readQW(sc) { return readW(sc).concat((sc.wait && sc.wait.ask) || []); } // (and the question's own words: a shelves keeper's line is the question since 10-28, no OK before it -- mode=housenotes1028)
     function inW(B, id) { driveW(TW.fire(B, trigW(id)), null, 600); return D.roam.def.room === id; }
     function outW(B) { driveW(TW.goOut(B), null, 200); return !D.roam.def.room; }
     D.store.get = function (k) { return memW[k] ? JSON.parse(memW[k]) : null; }; D.store.set = function (k, v) { memW[k] = JSON.stringify(v); return true; };
@@ -3750,7 +3789,7 @@
       // Voss's counters with their first-game shops") -- one line each in the one vendor table (his "art for all the vendors like this should come in at some point")
       outW(B); inW(B, 'shop:kessler'); var kuK = B.units.filter(function (u) { return u.npc === 'kessler'; })[0];
       okW('Kessler behind his counter in his own figure (' + (kuK && kuK.sheet) + ')', kuK && kuK.sheet === 'kessler_p1' && kuK.facing === 0);
-      var gK = fireW(B, 'talk:kessler'), scK = D.top(), wK = readW(scK);
+      var gK = fireW(B, 'talk:kessler'), scK = D.top(), wK = readQW(scK);
       okW('Kessler at his counter on his portrait (' + scK.sheet + '): his first-game greeting ("' + String(wK[0]).slice(0, 40) + '...") and THE SHELVES / LEAVE', scK.sheet === 'pt_kessler' && wK[0] === window.DS.DATA.shops.kessler.greeting && scK.wait && scK.wait.ask && scK.wait.opts.join() === 'THE SHELVES,LEAVE' && scK.o.place === window.DS.DATA.shops.kessler.name);
       goW(scK, 'opt', 'THE SHELVES');
       var kRows = scK.shop ? scK.rows().map(function (r) { return r.id; }) : [], kPot = scK.shop ? scK.price('potion') : 0, kpv = CW.count(st, 'potion'), ks0 = R0.silver;
@@ -3761,7 +3800,7 @@
       okW('he buys by the first game\'s rule -- what any shop takes, not a quest\'s (' + kSell.join(', ') + '); a Simples sold for ' + (R0.silver - ks1) + ' sp', kSell.indexOf('simples') >= 0 && kSell.indexOf('greyfangbow') < 0 && R0.silver - ks1 === 1 && CW.count(st, 'simples') === ksm - 1);
       CW.take(st, 'greyfangbow', 1); goW(scK, 'back'); goW(scK, 'opt', 'LEAVE'); driveW(gK, null, 200);
       okW('LEAVE: the floor again', !upW() && D.top() === B);
-      outW(B); inW(B, 'shop:calla'); var gCa = fireW(B, 'talk:calla'), scCa = D.top(), wCa = readW(scCa); goW(scCa, 'opt', 'THE SHELVES');
+      outW(B); inW(B, 'shop:calla'); var gCa = fireW(B, 'talk:calla'), scCa = D.top(), wCa = readQW(scCa); goW(scCa, 'opt', 'THE SHELVES');
       var cRows = scCa.shop ? scCa.rows().map(function (r) { return r.id; }) : [], ck = CW.count(st, 'kit'), cs0 = R0.silver;
       var cKB = scCa.buttons().filter(function (q) { return q.row && scCa.rows()[q.k].id === 'kit'; })[0]; clickW(scCa, cKB); if (scCa.sub) goW(scCa, 'qok');
       okW('Calla Voss at her counter on her portrait (' + scCa.sheet + '): her greeting, her stock (' + cRows.join(', ') + '), a Healer\'s Kit bought (' + (cs0 - R0.silver) + ' sp)', scCa.sheet === 'pt_calla' && wCa[0] === window.DS.DATA.shops.calla.greeting && cRows.join() === window.DS.DATA.shops.calla.items.join() && cs0 - R0.silver === window.DS.DATA.items.kit.price && CW.count(st, 'kit') === ck + 1);
@@ -3769,13 +3808,13 @@
       okW('a counter with no shop still speaks only: Hessle, Aldric Vest, Casper, Androit and Venn have no `shop:` line', ['hessle', 'aldric', 'casper', 'androit', 'barber'].every(function (k) { return !CW.VENDORS[k].shop; }) && !upW());
       // Kasten Wheal and Lucia (10-21, Griz: "Lucia and 88 should be in there now"): their own figures behind their counters, their portraits; Kasten on his first-game shop since
       // 10-22 (the house seat, his 10-21 close: "shops and the rest of NPC portraits next session"; mode=house1022 buys and sells there)
-      outW(B); inW(B, 'shop:kasten'); var kuKa = B.units.filter(function (u) { return u.npc === 'kasten'; })[0], gKa = fireW(B, 'talk:kasten'), scKa = D.top(), wKa = upW() ? readW(scKa) : [];
+      outW(B); inW(B, 'shop:kasten'); var kuKa = B.units.filter(function (u) { return u.npc === 'kasten'; })[0], gKa = fireW(B, 'talk:kasten'), scKa = D.top(), wKa = upW() ? readQW(scKa) : [];
       var askKa = scKa && scKa.wait && scKa.wait.ask ? scKa.wait.opts.join() : ''; if (upW()) goW(scKa, 'opt', 'THE SHELVES'); var kaRows = upW() && scKa.shop ? scKa.rows().map(function (r) { return r.id; }) : [];
       if (upW()) { goW(scKa, 'back'); goW(scKa, 'opt', 'LEAVE'); } driveW(gKa, null, 200);
       okW('Kasten Wheal behind his counter in his own figure (' + (kuKa && kuKa.sheet) + '), on his portrait (' + scKa.sheet + '): his first-game greeting, ' + askKa + ', his first-game shelf ' + kaRows.length + ' of ' + window.DS.DATA.shops.kasten.items.length,
         kuKa && kuKa.sheet === 'kasten_p1' && kuKa.facing === 0 && scKa.sheet === 'pt_kasten' && wKa[0] === window.DS.DATA.shops.kasten.greeting && !/to come/.test(wKa.join(' ')) && askKa === 'THE SHELVES,LEAVE' && kaRows.join() === window.DS.DATA.shops.kasten.items.join() && !upW());
       // (Lucia on her first-game shelf since 10-22, Griz: "yes", on "Lucia also sells in 8 bit, dome whorls and calling herbs maybe?")
-      outW(B); inW(B, 'shop:lucia'); var kuLu = B.units.filter(function (u) { return u.npc === 'lucia'; })[0], gLu = fireW(B, 'talk:lucia'), scLu = D.top(), wLu = upW() ? readW(scLu) : [];
+      outW(B); inW(B, 'shop:lucia'); var kuLu = B.units.filter(function (u) { return u.npc === 'lucia'; })[0], gLu = fireW(B, 'talk:lucia'), scLu = D.top(), wLu = upW() ? readQW(scLu) : [];
       var askLu = scLu && scLu.wait && scLu.wait.ask ? scLu.wait.opts.join() : ''; if (upW()) goW(scLu, 'opt', 'THE SHELVES'); var luRows = upW() && scLu.shop ? scLu.rows().map(function (r) { return r.id; }) : [];
       if (upW()) { goW(scLu, 'back'); goW(scLu, 'opt', 'LEAVE'); } driveW(gLu, null, 200);
       okW('Lucia in her booth beside the Hex in her own figure (' + (kuLu && kuLu.sheet) + '), on her portrait (' + scLu.sheet + ', named ' + scLu.o.name + '): "' + String(wLu[0]).slice(0, 40) + '...", ' + askLu + ', her first-game shelf ' + luRows.length + ' of ' + window.DS.DATA.shops.lucia.items.length,
@@ -3784,7 +3823,7 @@
       // their portrait; Vilar, Marko Thorne, Lisbet Crane and Percy on their first-game shops (their stock on the shelves), Cassia's inn speaking (its rooms to come), Ned
       // Halloway beside Percy behind the one counter (the screen shows Percy's face), no word at the counter of his own
       ['vilar', 'marko', 'lisbet'].forEach(function (id) {
-        var sh = window.DS.DATA.shops[id]; outW(B); var inX = inW(B, 'shop:' + id), ku = B.units.filter(function (u) { return u.npc === id; })[0], g = fireW(B, 'talk:' + id), sc = D.top(), w = upW() ? readW(sc) : [];
+        var sh = window.DS.DATA.shops[id]; outW(B); var inX = inW(B, 'shop:' + id), ku = B.units.filter(function (u) { return u.npc === id; })[0], g = fireW(B, 'talk:' + id), sc = D.top(), w = upW() ? readQW(sc) : [];
         var ask = sc && sc.wait && sc.wait.ask ? sc.wait.opts.join() : ''; if (upW()) goW(sc, 'opt', 'THE SHELVES'); var rows = upW() && sc.shop ? sc.rows().map(function (r) { return r.id; }) : [];
         if (upW()) { goW(sc, 'back'); goW(sc, 'opt', 'LEAVE'); } driveW(g, null, 200);
         okW(sh.keeper + ' behind the counter in their own figure (' + (ku && ku.sheet) + ', facing ' + (ku && ku.facing) + '), on their portrait (' + (sc && sc.sheet) + '): the greeting, ' + ask + ', the shelves ' + rows.length + ' of ' + sh.items.length,
@@ -3795,7 +3834,7 @@
       outW(B); var inP = inW(B, 'warp:percy'), kuP = B.units.filter(function (u) { return u.npc === 'percy'; })[0], kuN = B.units.filter(function (u) { return u.npc === 'ned'; })[0];
       okW('Percy behind his counter in his own figure (' + (kuP && kuP.sheet) + '), Ned Halloway beside him in his (' + (kuN && kuN.sheet) + ' at ' + (kuN && kuN.x + ',' + kuN.y) + ', Percy at ' + (kuP && kuP.x + ',' + kuP.y) + '), both facing south; Ned\'s word his own scene (mode=ned1021), no shop of his',
         inP && kuP && kuP.sheet === 'percy_p1' && kuN && kuN.sheet === 'ned_p1' && kuN.y === kuP.y && Math.abs(kuN.x - kuP.x) === 1 && kuN.facing === 0 && kuN.holdFacing && D.roam.def.rows[kuN.y].charAt(kuN.x) !== 'K' && !!trigW('talk:ned') && CW.VENDORS.ned.script === 'ned' && !CW.VENDORS.ned.shop && !!D.SHEETS[CW.VENDORS.ned.sheet]);
-      var gP = fireW(B, 'talk:percy'), scP = D.top(), wP = upW() ? readW(scP) : [], shP = window.DS.DATA.shops.percy, pSay = window.DS.DATA.npcs.percy.talk[0].say;
+      var gP = fireW(B, 'talk:percy'), scP = D.top(), wP = upW() ? readQW(scP) : [], shP = window.DS.DATA.shops.percy, pSay = window.DS.DATA.npcs.percy.talk[0].say;
       okW('Percy at the counter on his portrait (' + (scP && scP.sheet) + ', the place ' + (scP && scP.o.place) + '): his first-game word with the party hired ("' + String(wP[0]).slice(0, 40) + '...", Ned nodding at Aurdin), then THE SHELVES / LEAVE',
         scP && scP.sheet === 'pt_percy' && scP.o.place === shP.name && wP.join('|') === pSay.join('|') && scP.wait && scP.wait.ask && scP.wait.opts.join() === 'THE SHELVES,LEAVE');
       goW(scP, 'opt', 'THE SHELVES'); var pRows = scP.shop ? scP.rows().map(function (r) { return r.id; }) : [];

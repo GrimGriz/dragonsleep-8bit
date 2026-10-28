@@ -480,13 +480,16 @@
     yield sc.say((wait ? [] : said).concat(wait ? ['{g}Their scene is the 8-bit\'s; on the grid it is to come.{/}'] : tail ? ['{g}' + tail + '{/}'] : []), wait ? 'attentive' : 'welcoming');
   };
 
-  // a vendor with a shop and no scene of its own (one line in C.VENDORS opens it): their word, then THE SHELVES / LEAVE -- the first game's shop on this screen
+  // a vendor with a shop and no scene of its own (one line in C.VENDORS opens it): their word, then THE SHELVES / LEAVE -- the first game's shop on this screen.
+  // Words that fit the box are the question itself, no OK before it (10-28, Griz: "Have we already addressed superfluous 'ok' (when a keeper's text is a single line, no
+  // point in having to click 'ok' for shelves and leave."); more than a box, the pages first as before, the last line the question
+  C.oneBox = function (lines) { return Counter.prototype.paginate([].concat(lines)).length <= 1; };
   C.shopkeeper = function* (sc, B, id) {
-    var said = C.words(B, id), shop = (DS.DATA.shops || {})[C.VENDORS[id].shop];
+    var said = C.words(B, id), shop = (DS.DATA.shops || {})[C.VENDORS[id].shop], wings = C.VENDORS[id].shop === 'percy' && count(sc.st, 'batwings') > 0; // (the wings he won't have, sent on to Marta: the first game's S.percyShop)
     if (/^\{g\}\(Their scene/.test(said[0] || '')) said = [C.greeting(C.VENDORS[id].shop) || 'Welcome.'];
-    yield sc.say(said, 'welcoming');
-    if (C.VENDORS[id].shop === 'percy' && count(sc.st, 'batwings') > 0) yield sc.say(L('percy.wings'), 'skeptical'); // (the wings he won't have, sent on to Marta: the first game's S.percyShop)
-    while ((yield sc.ask(said[said.length - 1], ['THE SHELVES', 'LEAVE'])) === 0) yield sc.shelves(C.VENDORS[id].shop);
+    var q = said.concat(wings ? L('percy.wings') : []), one = C.oneBox(q), face = wings && one ? 'skeptical' : 'welcoming';
+    if (!one) { yield sc.say(said, 'welcoming'); if (wings) yield sc.say(L('percy.wings'), 'skeptical'); q = said[said.length - 1]; }
+    while ((yield sc.ask(q, ['THE SHELVES', 'LEAVE'], face)) === 0) { yield sc.shelves(C.VENDORS[id].shop); face = 'welcoming'; }
   };
 
   // ---------------------------------------------------------------- Ambrose Winters (the first game's js/events.js S.winters and S.wintersWork, on the grid). His words
