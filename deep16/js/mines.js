@@ -97,12 +97,14 @@
       comp.forEach(function (p) { var k = ew ? p[1] - y0 : p[0] - x0, mid = ((ew ? y1 - y0 : x1 - x0)) / 2, s = k < mid ? 1 : k > mid ? 2 : 3; slope[p[1]][p[0]] = String(ew ? s : s + 3); });
     }
     // the triggers: a keeper's or a shop's door a USE at its threshold; the floor's own (the pens, Skarn's gate) its scenes (M.trigger); the mouth's light rule the warp's
-    var trig = [], marks = { doors: {}, gates: {} }, N = DS.DATA.npcs || {}, SH = DS.DATA.shops || {};
+    var trig = [], marks = { doors: {}, gates: {} }, N = DS.DATA.npcs || {}, SH = DS.DATA.shops || {}, signs = {}, signDoor = {};
     (m8.triggers || []).forEach(function (t) {
       var r = t.rect ? t.rect.slice() : [t.x, t.y, 1, 1], th = doors8[r[0] + ',' + r[1]];
       if (/^(keeper|shop|inn):/.test(t.id) && th) {
-        var arg = t.id.split(':')[1], who = (SH[arg] && SH[arg].name) || (N[arg] && N[arg].name) || arg;
-        trig.push({ id: t.id, on: 'use', rect: [th[0], th[1], 1, 1], town: 'door', door: { id: t.id, name: who } }); marks.doors[t.id] = th.slice(); return;
+        var arg = t.id.split(':')[1], inn = M.INNS[t.id], who = (inn && inn.name) || (SH[arg] && SH[arg].name) || (N[arg] && N[arg].name) || arg;
+        trig.push({ id: t.id, on: 'use', rect: [th[0], th[1], 1, 1], town: 'door', door: { id: t.id, name: who } }); marks.doors[t.id] = th.slice();
+        if (inn) { signs[th[0] + ',' + (th[1] - 1)] = 'bed'; signDoor[th[0] + ',' + (th[1] - 1)] = t.id; } // (a bed's sign over a bunkhouse's door, the first game's inn glyph: M.INNS)
+        return;
       }
       if (t.script === 'roostDoor') return; // (Ottilie at the mouth: the warp asks it -- M.warp)
       trig.push(Object.assign({}, t, { rect: r, town: 'mine', walkOn: t.script === 'badAir' })); // (walkOn: the bad air coughs and the walk goes on through it -- js/roam.js R.landed; 10-28, his "lets you collect from 6 away")
@@ -136,7 +138,7 @@
     var def = D.MAPS[key] = {
       name: F.place, sub: F.sub, key: key, door: F.door || null, mine: true, town: true, wet: false, dark: !!m8.dark, ground: 'earth', step: 10, // (dark: the dens and the workings, the party's own light -- js/light.js; the Glowseep by night)
       clock: !!F.clock, hour: hour, ownLights: m8.lights || null, // (the Glowseep: THE WORLD's clock moves as the party walks and fights there -- M.SEEP; its poles and moss lit by night)
-      view: 'top', ft: 30, roofs: T.roofsAt(30), slope: slope.map(function (r) { return r.join(''); }), look: lk.map(function (r) { return r.join(''); }), signs: {}, faceDoors: {},
+      view: 'top', ft: 30, roofs: T.roofsAt(30), slope: slope.map(function (r) { return r.join(''); }), look: lk.map(function (r) { return r.join(''); }), signs: signs, signDoor: signDoor, faceDoors: {},
       rows: rows, w: w, h: h, entry: [at], face: face, gate: gq || null, stairUp: [], doors: ways, marks: marks, people: people, foes: [], warps: warps, out: F.out || null, save: !!F.save,
       deepWater: 'D', music: m8.music || 'field', wayName: wayName, roost: !!m8.roost, edges: !!F.edges, // (roost: the first game's roosted ceiling -- the working gallery, the dens: M.fieldDef)
       names8: { rows: r8.slice(), legend: leg }, // (the first game's name of each square -- bones, webbing, a fence or a lamp, a tent or a stump: the art's piece for it, js/topview.js TV.ART)
@@ -144,7 +146,7 @@
       zone8: (m8.zones && m8.zones[0] && m8.zones[0].zone) || null,
       hud: F.place.replace(/^The /, 'the ') + ': ' + F.sub,
       hello: ['{y}' + F.place.toUpperCase() + '{/} -- ' + F.sub + ': ' + (F.own ? 'the second game\'s own floor' : 'the first game\'s floor') + ', north up as Silverton is (' + w + ' x ' + h + ' squares)' + (F.clock ? ', ' + W8tod(hour) : '') + '.',
-        ].concat(F.edges ? ['Any edge of it: back to the world map.'] : [], ['{g}Click to walk, or the arrows. E: a word, a door. O: the formation. L: the floor map.{/}']), // (no "Ways:" line since 10-28: the tiles show them)
+        ].concat(F.edges ? ['Any edge of it: back to the world map.'] : [], M.bunkLine(marks.doors, flags), ['{g}Click to walk, or the arrows. E: a word, a door. O: the formation. L: the floor map.{/}']), // (no "Ways:" line since 10-28: the tiles show them)
       where: function () { return F.sub; }
     };
     return def;
@@ -541,6 +543,17 @@
     'keeper:bunkhouse': { id: 'bunkhouse', price: function (f) { return f.shifts ? 0 : 1; }, why: function (f) { return f.shifts ? 'crew sleep free' : 'a silver for a stranger'; } },
     'keeper:pellambarn': { id: 'pellambarn', price: function () { return 1; }, why: function () { return 'rent paid in thimbles: a silver'; } }
   };
+  // a flop findable (10-28 later, Griz: "I didn't finish a shift but the available doors didn't look or talk about flophouse so I went back outside and camped"): the door named for
+  // what it is, a bed's sign over it whose mouseover says the price (T.signName), and the floor's first card saying where to sleep (M.bunkLine)
+  M.INNS['keeper:bunkhouse'].name = 'The Bunkhouse: a flop for the night'; M.INNS['keeper:pellambarn'].name = 'The Pellam Barns: bunks for the day-crews';
+  M.priceLine = function (inn, f) { var p = inn.price(f || {}); return 'A bunk for the night, ' + (p ? p + ' sp (' : 'free (') + inn.why(f || {}) + '). No watch: the staff keep the door.'; };
+  M.bunkLine = function (doors, f) { var ids = Object.keys(M.INNS).filter(function (k) { return doors[k]; }); return ids.map(function (k) { return '{y}' + M.INNS[k].name.split(':')[0] + '{/} (the bed sign): ' + M.priceLine(M.INNS[k], f).replace(/^A bunk/, 'a bunk'); }); };
+  var signName0 = T.signName;
+  T.signName = function (id) {
+    var inn = M.INNS[id]; if (!inn) return signName0.apply(this, arguments);
+    var B = D.battle, f = (B && B.roam && B.roam.flags) || {};
+    return { name: inn.name, who: M.priceLine(inn, f).split('. ')[0] };
+  };
   M.LINES.bunk = { ask: 'A bunk for the night? ', sleep: 'The bunks fill with the shift coming off; somebody snores through the lot. Nobody stands a watch -- the staff keep the door.', morning: 'Morning, and the camp\'s bell.', poor: 'Not without the silver.' }; // (invented.json toplevels-bunkhouses)
   M.inn = function* (sc, B, inn) {
     var st = sc.st, f = st.flags, p = inn.price(f);
@@ -565,7 +578,7 @@
   // walks and fights there. Its tuning, one place:
   M.SEEP = {
     squaresPerHour: 150, // (walked on the floor: an hour of THE WORLD's clock)
-    fightHours: 1,       // (each fight: an hour)
+    fightHours: 0.25,    // (each fight: fifteen minutes since 10-28 later, his "fights should burn 15 minutes instead of an hour of worldtime" -- js/world.js W.FIGHT_HOURS)
     nightRate: 0.5,      // (by night the fights come twice as often: the table's rate halved)
     nightWeigh: 2,       // (by night the stirges and the wisp weigh twice)
     dayHour: 12,         // (the test door's hour, with no THE WORLD under it; &hour= sets it)
@@ -688,7 +701,7 @@
   T.fire = function* (B, trig, at) {
     var def = D.roam.def;
     if (def && def.mine && trig.town === 'mine') { yield* M.trigger(B, trig, at); return; }
-    if (def && def.mine && trig.town === 'door' && M.INNS[trig.id]) { var inn = M.INNS[trig.id]; if (yield* M.talk(B, inn.id, function (sc) { return M.inn(sc, B, inn); })) yield* M.sleep(B); return; }
+    if (def && def.mine && trig.town === 'door' && M.INNS[trig.id]) { var inn = M.INNS[trig.id]; if (yield* M.talk(B, inn.id, function (sc) { return M.inn(sc, B, inn); }, inn.name)) yield* M.sleep(B); return; }
     if (def && def.mine && trig.town === 'talk' && M.SCENES[trig.npc]) { yield* M.talk(B, trig.npc); return; }
     yield* fire0(B, trig, at);
   };

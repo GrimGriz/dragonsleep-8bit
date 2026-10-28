@@ -45,6 +45,9 @@
     u.wings = R.ringWings ? !!R.ringWings(u) : false; u.flies = false; u.fz = 0;
     B.units.push(u); R0.members.push(u); R0.rest = R0.members.slice(1);
     var stored = D.store.get(R.KEY) || {}, k = R0.members.length - 2; R0.form[u.id] = stored[u.id] || R.FORM0[k] || [-(k + 1), 0];
+    // walking, the party is the token: the one hired walks inside it with the rest (10-28, his "Barley remains standing in the hex after joining the party" -- he was left on the
+    // bench's square, the floor's figure for him gone and his own in its place; R.into, as the floor folds the rest at its start)
+    if (R0.mode !== 'fight' && R.into) R.into(B, [u]);
     D.grid.setup(B.map, B.units); B.cache = null; if (R.regear) R.regear(B);
     if (H.playing && H.cur) { if (!H.cur.party.some(function (x) { return idOf(x) === id; })) H.cur.party.push(h); if (H.cur.hired.indexOf(id) < 0) H.cur.hired.push(id); }
     var es = R.emb && R.emb.save;
@@ -142,6 +145,7 @@
     } else lines.push(L('hire.barleyLost'));
     CO.boutRes = res;
     yield* CO.talk(B, out.npc, h, function (sc) { return (function* () { for (var i = 0; i < lines.length; i++) yield sc.say(lines[i]); })(); });
+    if (res === 'lost' && HX && HX.toDavos) yield* HX.toDavos(B, u); // (down on the sand: out at Davos Kren's door, stitched -- js/hex.js HX.toDavos, his 10-28 "kick the party to krenn")
   };
 
   // ---------------------------------------------------------------- on the floor: a word with one of the four (the town's and the Hex's), and the four standing in their
@@ -270,7 +274,30 @@
   }
   Opening.prototype.box = function () { var w = 340, x = (D.W - w) / 2; return { x: x, y: 56, w: w, h: 150 }; }; // (narrow enough that the lead stands whole in the margin on its own page)
   Opening.prototype.btn = function () { var b = this.box(); return { x: b.x + b.w - 78, y: b.y + b.h - 22, w: 70, h: 15 }; };
-  Opening.prototype.go = function () { D.sfx('confirm'); H.begin(H.fresh(this.lead), 0); };
+  Opening.prototype.go = function () { D.sfx('confirm'); H.begin(CO.startAt(H.fresh(this.lead)), 0); };
+  // where the lead starts: where their page puts them, not the west gate (10-28, Griz: "Aurdin should start near where the story says he slept. Vivian should start near her
+  // mom's stall. Lymen in front of Urtusk and Barley near kess."): Aurdin where he stands outside Aldwin's chapel ("Aldwin's chapel floor was free"), Vivian before Marta's
+  // stall, Lymen before Papa Urtusk at the Hex's front, Barley at the door of Kess's flop-cellars on the Shaft Rows -- each facing them (CO.stage's way: rec.at.sq)
+  CO.START = { aurdin: { on: 'aurdinChapel' }, vivian: { stall: 'marta' }, lymen: { near: 'papa' }, barley: { door: 'keeper:kess' } };
+  CO.startAt = function (rec) {
+    var R = D.roam, s = CO.START[rec.lead]; if (!s || !T.floor) return rec;
+    var fl = T.floor('', rec.flags || {}), M = fl.marks || {}, open = function (q) { var r = q && fl.rows[q[1]]; return !!r && '.,='.indexOf(r.charAt(q[0])) >= 0; }, at = null, to = null;
+    var taken = {}; fl.people.forEach(function (p) { taken[p.at[0] + ',' + p.at[1]] = 1; });
+    var who = function (id) { return fl.people.filter(function (p) { return p.id === id; })[0] || null; };
+    if (s.on) { var p0 = who(s.on); if (p0) { at = p0.at.slice(); to = [at[0] + p0.face[0], at[1] + p0.face[1]]; } } // (their own figure's square: no one stands there while they lead)
+    else if (s.stall) { var st = M.stall && M.stall[s.stall]; if (st && open([st[0], st[1] + 1])) { at = [st[0], st[1] + 1]; to = st; } }
+    else if (s.near) {
+      var pn = who(s.near), o0 = pn && [[0, 1], [-1, 0], [1, 0], [0, -1], [1, 1], [-1, 1]].filter(function (o) { var q = [pn.at[0] + o[0], pn.at[1] + o[1]]; return open(q) && !taken[q[0] + ',' + q[1]]; })[0];
+      if (o0) { at = [pn.at[0] + o0[0], pn.at[1] + o0[1]]; to = pn.at; }
+    } else if (s.door) {
+      var dq = (M.doors || {})[s.door], o1 = dq && [[0, 1], [-1, 0], [1, 0], [0, -1]].filter(function (o) { var q = [dq[0] + o[0], dq[1] + o[1]]; return open(q) && !taken[q[0] + ',' + q[1]]; })[0];
+      if (o1) { at = [dq[0] + o1[0], dq[1] + o1[1]]; to = dq; }
+    }
+    if (!at) return rec;
+    var dx = to ? Math.sign(to[0] - at[0]) : 0, dy = to ? Math.sign(to[1] - at[1]) : 0; // (a square's way: north or south first, as the 8-bit's four facings hold it -- R.DIR8)
+    rec.at = { town: 'silverton', gate: 'west', sq: at, dir: dy ? R.DIR8['0,' + dy] : dx ? R.DIR8[dx + ',0'] : null };
+    return rec;
+  };
   Opening.prototype.update = function () {
     this.t++; var m = I.mouse, q = this.btn();
     var hit = m.inside && m.x >= q.x && m.x < q.x + q.w && m.y >= q.y && m.y < q.y + q.h;

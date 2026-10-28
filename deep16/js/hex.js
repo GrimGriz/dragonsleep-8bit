@@ -176,7 +176,7 @@
       if (p.hire && party.indexOf(p.hire) >= 0) return;
       var q = p.inside ? p.at.slice() : HX.near(rows, p.at, used); if (!q) return; used[q[0] + ',' + q[1]] = 1; // (inside: on their own square behind a wall, as placed)
       var shN = p.named && D.npc && D.npc.NAMED && D.npc.NAMED[p.named] ? D.npc.lookOf(D.npc.NAMED[p.named]) : null; // (a named one of the Pocket DM's: the figure it gives them)
-      people.push({ id: p.id, at: q, face: p.face, kind: p.kind || T.KIND[n.look] || 'bandit', sheet: shN || p.sheet || null, fig: p.fig || null, look: n.look, name: p.name || null });
+      people.push({ id: p.id, at: q, face: p.face, kind: p.kind || T.KIND[n.look] || 'bandit', sheet: shN || p.sheet || null, fig: p.fig || null, look: n.look, name: p.name || null, hire: p.hire || null }); // (hire: dressed as the town dresses them, HX.lay)
       trig.push({ id: 'talk:' + p.id, on: 'use', rect: [q[0], q[1], 1, 1], town: 'talk', npc: p.id });
       if (p.hatch) trig.push({ id: 'talk:' + p.id, on: 'use', rect: [p.hatch[0], p.hatch[1], 1, 1], town: 'talk', npc: p.id, hatch: true }); // (the hatch in the wall: E at it from the concourse)
     });
@@ -512,6 +512,9 @@
       var u = B.makeFoe({ id: 'hexfolk' + i, kind: kind, at: p.at.slice(), side: 'party', ally: true });
       u.name = N.name || p.name || p.id; u.look = true; u.npc = p.id; u.attacks = {}; u.multi = 1; u.hp = u.maxhp = 4; u.lvl = 1;
       if (p.sheet && D.SHEETS && D.SHEETS[p.sheet]) u.sheet = p.sheet;
+      // one of the four for hire in their own figure, as the town dresses them (10-28, his "Barley and Lymen using drawn characters instead of sprites in the hex": js/save.js
+      // SV.look -- js/company.js T.people), the register's stand-in only where the look has no sheet
+      var lkH = p.hire && D.save && D.save.look ? D.save.look(p.hire, null, null) : null; if (lkH && lkH.sheet && D.SHEETS && D.SHEETS[lkH.sheet]) u.sheet = lkH.sheet;
       u.facing = D.spr.facingFor(p.face[0], p.face[1]); u.anim = 'idle'; u.animT = 0;
       if (D.counter) D.counter.dress(u, p.fig || p.id); // (one with a figure of their own wears it: Korvin's, js/counter.js C.FIG)
       B.units.push(u); if (u.sheet && kinds.indexOf(u.sheet) < 0) kinds.push(u.sheet);
@@ -618,6 +621,19 @@
     if (!pickR) return;
     var res = yield* HX.bout(B, pickR);
     yield* talk(function* (sc) { var lines = HX.settle(B, pickR, res); for (var i = 0; i < lines.length; i++) yield sc.say(lines[i], i ? null : res === 'won' ? 'welcoming' : 'concerned'); });
+    if (res === 'lost') yield* HX.toDavos(B, pickR.u);
+  };
+  // a bout lost (10-28 later, Griz: "kick the party to krenn if a fighter falls (out of the hex and at his shop door - but already serviced)"): the one who fell stitched to half,
+  // as Davos stitches a fallen hero for his five (js/counter.js C.leech) -- here on the house, the sand's blood the mother's (hex.stitched) -- and the party out of the Hex on the
+  // threshold of his leech-house, facing its door (Barley's bout at his hire the same: js/company.js CO.bout)
+  HX.LINES.davos = '{y}Davos Kren\'s door{/}: out of the Hex with {name}, stitched and standing ({hp}/{max}).';
+  HX.toDavos = function* (B, u) {
+    if (u) { u.ko = false; u.dead = false; u.hp = Math.max(u.hp, Math.max(1, Math.floor(u.maxhp / 2))); if (u.src) { u.src.ko = false; u.src.hp = u.hp; } }
+    var o = B.townAway, dq = o && o.def && o.def.marks && o.def.marks.doors && o.def.marks.doors['leech:davos']; if (!o || !dq) return; // (the test door, no town under the Hex: stitched where they stand)
+    o.at = dq.slice(); o.fw = [0, 1]; // (T.goOut faces the party back the way it came in, the reverse of o.fw: north, at his door)
+    D.music(o.def.music || 'town');
+    yield* goOutT(B);
+    B.card(D.roam.wrap([HX.LINES.davos.replace('{name}', u ? u.name : 'the one who fell').replace('{hp}', u ? u.hp : '').replace('{max}', u ? u.maxhp : '')]), 300);
   };
 
   // ---------------------------------------------------------------- the bout: one hero on the Hex's own sand, the rest at the rail (js/roam.js R.pullIn0's shape: the floor's sheets in, back out)
@@ -656,6 +672,7 @@
     var bu = (b.units || []).filter(function (u) { return u.side === 'party' && u.id === u0.id; })[0];
     if (bu) {
       u0.hp = Math.max(1, Math.min(u0.maxhp, bu.hp)); u0.ko = false; u0.conds = R.lasting(bu.conds); u0.slots = (bu.slots || []).slice(); u0.feats = JSON.parse(JSON.stringify(bu.feats || {}));
+      if (R.exhaustBack) { R.exhaustBack(u0, bu); if (!(u0.src && u0.src.dead)) { u0.hp = Math.max(1, u0.hp); u0.ko = false; } } // (a level of exhaustion the bout laid on, onto the sheet: js/roam.js R.exhaustBack -- up at 1 still)
       if (u0.src && bu.src && bu.src.equip) ['weapon', 'shield', 'armor'].forEach(function (k) { if (k in bu.src.equip) u0.src.equip[k] = bu.src.equip[k]; });
       if (u0.src && u0.src.equip) (bu.rustGone || []).forEach(function (id) { ['weapon', 'offhand', 'shield', 'armor'].forEach(function (k) { if (u0.src.equip[k] === id) u0.src.equip[k] = null; }); }); // (a thing the rust monster rusted through in the bout stays gone: js/monsterrules.js, RULED 10-28)
     }

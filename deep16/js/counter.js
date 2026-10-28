@@ -61,12 +61,19 @@
     gull: { sheet: 'pt_gull', wait: '' }, kael: { sheet: 'pt_kael', wait: '' }, brennock: { sheet: 'pt_brennock', wait: '' }, vera: { sheet: 'pt_vera', wait: '' }, kess: { sheet: 'pt_kess', wait: '' },
     // the Hex's two hatches onto the concourse (10-28, Griz: "we need Higertha in the window on mama's side and consider a concessions vendor" -- js/hex.js HX.PEOPLE): Higertha
     // at Mama's, her shelves (Higertha is the register's reserved: no words of hers, the scene's line only); the cold-food concession's hired youth, its own shelf (C.SHOP16)
-    higertha: { name: 'Higertha', shop: 'lucia', script: 'hatch' }, concession: { name: 'The concession\'s hand', shop: 'concession', script: 'hatch' }
+    // (her own shelf since 10-28 later, C.SHOP16.higertha: his "Lucia is mama and is saying Higertha's line" -- the first game's "Mama mixes, I sell" is the hatch's, not Mama's)
+    higertha: { name: 'Higertha', shop: 'higertha', script: 'hatch' }, concession: { name: 'The concession\'s hand', shop: 'concession', script: 'hatch' }
   };
   // a shop of the second game's own (not the first game's content/shops.json): the cold-food concession's -- the house's not-hot side, no oven (the realm's the-hex.md, CANON
   // 09-13), so the pies cold, a silver apiece; it buys nothing (invented.json hex-concession). Into DS.DATA.shops where the counter's shelves read them
-  C.SHOP16 = { concession: { name: 'The Cold-Food Concession', items: ['batpie'], prices: { batpie: 1 }, buys: false, greeting: 'Cold pies, by the piece.', thanks: ['Cold, mind.', 'There you go.'] } };
-  C.shop16 = function () { var S = (window.DS && DS.DATA && DS.DATA.shops) || null; if (S) Object.keys(C.SHOP16).forEach(function (k) { if (!S[k]) S[k] = C.SHOP16[k]; }); }; // (at a talk: C.talk)
+  // and Higertha's hatch (10-28 later, Griz: "Lucia is mama and is saying Higertha's line"): Mama's own jars at Mama's prices (`from`: the first game's lucia shelf), with the
+  // first game's greeting and thanks there -- "Mama mixes, I sell", the apprentice's words, his "Higertha's line" -- where Lucia, who is Mama, no longer says them (C.GREET)
+  C.SHOP16 = { concession: { name: 'The Cold-Food Concession', items: ['batpie'], prices: { batpie: 1 }, buys: false, greeting: 'Cold pies, by the piece.', thanks: ['Cold, mind.', 'There you go.'] },
+    higertha: { name: 'Mama\'s Pharmakaiea, the hatch', from: 'lucia' } };
+  C.shop16 = function () {
+    var S = (window.DS && DS.DATA && DS.DATA.shops) || null; if (!S) return;
+    Object.keys(C.SHOP16).forEach(function (k) { if (S[k]) return; var o = C.SHOP16[k], f = o.from && S[o.from]; S[k] = f ? Object.assign({}, f, o) : o; });
+  }; // (at a talk: C.talk)
   // at a hatch: the scene's one line (C.HATCH), then THE SHELVES / LEAVE at once -- the line the question, no OK before it (C.SCRIPTS.hatch)
   C.HATCH = { higertha: 'Higertha works Mama\'s hatch onto the concourse, the jars on the shelf behind her.', concession: 'A town youth on the concession\'s hatch: cold pies, a silver apiece.' };
   C.BESIDE = { percy: ['ned'] }; // (who stands behind a counter beside its keeper: js/town.js T.goIn)
@@ -84,8 +91,12 @@
     marta: 'marta_p1', ondine: 'ondine_p1', // (10-22: Marta Venn at her stalls on the street -- js/town.js T.PLACE; Madame Ondine Vess's for a door to come)
     aldwin: 'aldwin_p1', tam: 'tam_p1', // (10-28: Aldwin behind the mission chapel's counter; Tam Vere beside her den's door)
     gull: 'gull_p1', kael: 'kael_p1', brennock: 'brennock_p1', vera: 'vera_p1', kess: 'kess_p1' }; // (10-28: the night crews' five, four on the shaft rows' street, Kess at her door)
-  C.AT_DOOR = [{ id: 'marin', door: 'keeper:marin' }, { id: 'barber', door: 'keeper:barber' }, { id: 'mela', door: 'keeper:mela' }, { id: 'mical', door: 'keeper:mical' },
-    { id: 'brennan', door: 'keeper:brennan' }, { id: 'venhale', door: 'keeper:venhale' }, { id: 'tam', door: 'keeper:tam' }, { id: 'kess', door: 'keeper:kess' }]; // (Tam Vere and Kess 10-28: their doors have no room behind them)
+  // who stands on the street beside a door with no room behind it (js/town.js T.floor). Nobody since 10-28 later (RULED, Griz: "Off the street unless it makes NPC sense, the
+  // counterless portraits versions when people lean in the door is good"; his "Smoke lady doesn't need to be outside just because we have a facing portrait popup on door"):
+  // Marin Voss, Venn the barber, Mela Sorris, Mical, Brennan, Venn Hale, Tam Vere and Kess each keep a house of their own -- the dyer's, the barber-surgeon's chair, the Stew,
+  // the warehouse, the smithy, the stables, the den, the flop-cellars -- so each is inside it, and a click on their door or E at it is their word on their portrait as it was
+  // (T.fire: C.takes). A keeper whose trade is the street itself goes back in this list, `{ id, door }`
+  C.AT_DOOR = [];
   C.dress = function (u, id) {
     var f = C.FIG[id]; if (!u || !f || !D.SHEETS || !D.SHEETS[f]) return false;
     var an = D.SHEETS[f].anims && D.SHEETS[f].anims.idle;
@@ -251,8 +262,12 @@
   };
   // a first-game shop's greeting said the second game's way, by the shop's id (the first game's content/shops.json left as it is): Marko hires out no guards
   // here (10-22, Griz: "change line for now", on his "Gonna have to let the players hire fighters if we keep Marko's dialogue...")
-  C.GREET = { marko: 'Rope, tents, torches, lanterns. Arrows and bolts by the bundle.' };
+  // Lucia is Mama (10-28 later, Griz: "Lucia is mama and is saying Higertha's line"): the first game's "Mama mixes, I sell" and "Mama says take it with food" are Higertha's
+  // at the hatch (C.SHOP16.higertha), and Mama's counter has the first game's own card for her (content/text.json lucia.card) till her openers (held, his 10-28 note)
+  C.GREET = { marko: 'Rope, tents, torches, lanterns. Arrows and bolts by the bundle.', lucia: 'Lucia is behind the counter, sleeves rolled, a mortar going.' };
+  C.THANKS = { lucia: ['Two swallows, not one.', 'For the sand or the road, it works the same.'] };
   C.greeting = function (shopId) { var sh = (DS.DATA.shops || {})[shopId]; return C.GREET[shopId] || (sh && sh.greeting); };
+  C.thanks = function (shopId, shop) { return C.THANKS[shopId] || (shop && shop.thanks) || ['A fair trade.', 'Yours.', 'Mind how you carry it.']; };
   // the shelves: the first game's js/scenes.js Shop -- its prices, what it buys and at what (the half, or the shop's own rate), the thanks
   Counter.prototype.openShelves = function (id) {
     this.shop = (DS.DATA.shops || {})[id] || { items: [] }; this.shopId = id; this.tab = this.shop.items && this.shop.items.length ? 'buy' : 'sell'; this.scroll = 0; this.cur = 0;
@@ -278,7 +293,7 @@
     var st = this.st, it = DS.DATA.items[id], p = this.price(id);
     if (p * n > st.silver()) { D.sfx('error'); this.msg = L('g.poor'); this.setFace('concerned'); return; }
     st.silver(-p * n); give(st, id, n); D.sfx('coin');
-    this.msg = pick(this.shop.thanks || ['A fair trade.', 'Yours.', 'Mind how you carry it.']); this.setFace('welcoming');
+    this.msg = pick(C.thanks(this.shopId, this.shop)); this.setFace('welcoming');
     if (gear(it)) { var fits = st.party.filter(function (h) { return !h.dead && DS.R.canEquip(h, it); }); if (fits.length) this.sub = { kind: 'equip', id: id, fits: fits }; }
   };
   Counter.prototype.sell = function (id, k) {
@@ -769,7 +784,7 @@
     { id: 'davos', door: 'leech:davos', label: 'THE DOORS ON THEIR OWN HOUSES: Davos Kren\'s leech-house', note: 'Out in the Arena Plaza, where v6 has no house for him: the arena\'s own surgery, a small house round its cots, the door under the leech sign. The first card: "at Davos Kren\'s door".' },
     { id: 'vilar', door: 'shop:vilar', label: 'THE DOORS ON THEIR OWN HOUSES: Vilar\'s forge-booth, by Mama\'s', note: 'The show-armorer\'s pin is in the open plaza too: a forge-booth on Mama\'s pattern beside hers by the Hex, the sword sign over his door.' },
     { id: 'lisbet', door: 'shop:lisbet', label: 'THE DOORS ON THEIR OWN HOUSES: Lisbet\'s and Calla\'s, one house', note: 'Both pins name the one house: their doors side by side in its wall (Lisbet\'s had been four squares west, on the next house).' },
-    { id: 'marin', door: 'keeper:marin', label: 'THE DOORS ON THEIR OWN HOUSES: Marin Voss, at the back', note: 'At the town\'s scale her house stands back to back with the next row: a lane cut through two squares of the house behind to her south wall. She stands at her front.' }
+    { id: 'marin', door: 'keeper:marin', label: 'THE DOORS ON THEIR OWN HOUSES: Marin Voss, at the back', note: 'At the town\'s scale her house stands back to back with the next row: a lane cut through two squares of the house behind to her south wall. She is inside since 10-28 later: a click on her door is her word on her portrait.' }
   ];
   C.houseShow = function (q) { return new ServicesShow(q, C.HOUSE_BEATS, '{y}THE HOUSE, 10-22{/} -- a NEW GAME staged; the rest is yours (a show)'); };
 
@@ -896,13 +911,19 @@
 
   // ---------------------------------------------------------------- the house's JOURNAL (the one menu's JournalPage, js/menu.js): the quests the grid plays, by the
   // first game's own records (content/quests.json: show, done, steps' `if` and `where`), on what the party holds now. The rest of the first game's quests are its own
-  C.QUESTS = ['errands', 'nedpage'];
+  C.QUESTS = ['errands', 'warrens', 'nedpage'];
   // the second game's own quests, in the first game's record shape (content/quests.json stays the first game's): Ned's page (C.ned)
   C.OWN_QUESTS = [{ id: 'nedpage', name: 'Ned\'s Page', show: 'flag:nedQuest', done: 'flag:nedDone',
     text: 'Ned Halloway, behind Percy\'s counter, will trade the page with Find Familiar on it for a snake\'s tongue from the Glowseep -- a fresh one, off the snake. Someone with Survival or Nature has to take it.',
     doneText: 'Ned has his tongue, and Aurdin the page: Sheet: Find Familiar, to copy into his book from the pack.',
     steps: [{ 'if': '!has:snaketongue', where: 'A fresh snake\'s tongue, off one of the Glowseep\'s snakes: the bog, out on THE WORLD.' },
-      { 'if': 'has:snaketongue', door: 'percy', npc: 'ned', where: 'Ned Halloway, behind the counter at Percy\'s Particulars: the tongue for the page.' }] }];
+      { 'if': 'has:snaketongue', door: 'percy', npc: 'ned', where: 'Ned Halloway, behind the counter at Percy\'s Particulars: the tongue for the page.' }] },
+    // the way to the Warrens (10-28 later, Griz: "having a difficult time figuring out how to get to the warrens"): from the start, till the camp's tally-house has the party's
+    // names -- the feed track off Silverton's east edge (js/mines.js M.FEED; the town map marks it, js/roam.js R.paintMap). invented.json warrens-journal-way
+    { id: 'warrens', name: 'The Crawler Warrens', show: '', done: 'flag:tallyMet',
+      text: 'Across the river, the Crawler Warrens: the mouth camp, where the cradles take hands on by the shift and the bunkhouse gives a bed for the night.',
+      doneText: 'The mouth camp: Edric Pellam has your names in his book. The feed track runs between it and Silverton.',
+      steps: [{ where: 'The feed track: walk off Silverton\'s east edge where it leaves the town, over the bridge to the mouth camp. The town map (L) marks it.' }] }];
   C.quests = function (st) {
     return (DS.DATA.quests || []).concat(C.OWN_QUESTS).filter(function (q) { return C.QUESTS.indexOf(q.id) >= 0 && C.cond(q.show, st); }).map(function (q) {
       var done = C.cond(q.done, st), step = !done && (q.steps || []).filter(function (s) { return C.cond(s['if'], st); })[0];

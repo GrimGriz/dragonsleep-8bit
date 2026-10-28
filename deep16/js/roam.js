@@ -381,6 +381,13 @@
         }
         var dc = !mk && R.def.town && D.town && D.town.doorClick ? D.town.doorClick(B, ck.x, ck.y) : null; // (a click on a door drawn in its wall: in by it, from beside its threshold -- js/town.js)
         if (dc) { yield* R.walkInto(B, dc.trig, dc.sq); continue; }
+        // someone clicked by their figure where the square under the pointer holds nothing (10-28, his "Higertha isn't clickable interface (had to keyboard)": she stands
+        // behind Mama's hatch on a wall square, and iso.pick picks only open ones): walked beside them -- beside their hatch, if they keep one -- and the word had (R.folkAt)
+        var fk = !sq || !R.useAt(B, sq.x, sq.y) ? R.folkAt(B, ck.x, ck.y) : null;
+        if (fk) {
+          if (fk.trig.town === 'talk' && R.def.room && R.def.across) { yield* R.fire(B, fk.trig, fk.sq); continue; } // (a keeper behind a counter: T.fire walks across from them)
+          var pf = R.besidePath(B, fk.sq); if (pf && pf.length * 5 <= R.clickFt()) { if (yield* R.walkBeside(B, fk.sq)) yield* R.fire(B, fk.trig, fk.sq); } else R.tooFar(B); continue;
+        }
         if (sq) {
           var use = R.useAt(B, sq.x, sq.y);
           if (!use && R.def.room && R.def.across && sq.x === R.def.across[0] && sq.y === R.def.across[1]) use = R.useAt(B, sq.x, sq.y - 1); // (the spot across the counter clicked: the word with the keeper)
@@ -477,6 +484,17 @@
     return (R.def.src8.triggers || []).filter(function (t) { var r = t.rect; return t.on === on && x8 >= r[0] && y8 >= r[1] && x8 < r[0] + r[2] && y8 < r[1] + r[3] && R.cond(t.cond, R0.flags) && !(t.once && R0.flags['trig:' + t.id]) && !R0.spent[t.id]; })[0] || null;
   };
   R.useAt = function (B, x, y) { var p = R.def.to8(x, y), c = R.chestAt(p[0], p[1]); return c ? { id: 'chest', on: 'use', chest: c } : R.triggerAt(B, p[0], p[1], 'use'); };
+  // the person whose figure is under the pointer, by its box on the screen as a fight picks one (js/ui.js UI.pickUnit): their word's trigger and the square it is had at --
+  // their hatch, if they keep one (js/hex.js HX.def), else where they stand
+  R.folkAt = function (B, mx, my) {
+    if (!D.ui || !D.ui.pickUnit) return null;
+    var u = D.ui.pickUnit(B, mx, my, function (w) { return typeof w.npc === 'string'; });
+    if (!u || typeof u.npc !== 'string') return null;
+    var hatch = (R.def.src8.triggers || []).filter(function (t) { return t.on === 'use' && t.hatch && t.npc === u.npc && R.cond(t.cond, B.roam.flags); })[0];
+    if (hatch) { var hq = R.def.from8(hatch.rect[0], hatch.rect[1]); return { trig: hatch, sq: hq, u: u }; }
+    var tr = R.useAt(B, u.x, u.y);
+    return tr && tr.town === 'talk' ? { trig: tr, sq: [u.x, u.y], u: u } : null;
+  };
   // the 8-bit map's chests on the floor (the Wet's one: a greater potion at (38, 21)): a box on its square, opened by E or a click as the 8-bit's EV.chest -- its flag
   // ('chest:<map>:x,y') set, so the 8-bit has it opened too when the party is back (the seam, 10-14)
   R.chestAt = function (x8, y8) { return (R.def.src8.chests || []).filter(function (c) { return c.x === x8 && c.y === y8; })[0] || null; };
@@ -942,11 +960,15 @@
       var w = R0.members.filter(function (m) { return m.id === u.id; })[0]; if (!w) return;
       if (u.drained) { w.maxhp = Math.max(1, w.maxhp - u.drained); if (w.src) w.src.maxhp = Math.max(1, w.src.maxhp - u.drained); w.drained = (w.drained || 0) + u.drained; }
       w.hp = Math.max(0, Math.min(w.maxhp, u.hp)); w.ko = w.hp <= 0; w.conds = R.lasting(u.conds); w.slots = (u.slots || []).slice(); w.feats = JSON.parse(JSON.stringify(u.feats || {}));
+      R.exhaustBack(w, u); // (a level of exhaustion the fight laid on, onto the sheet: R.exhaustBack)
       if (w.src && u.src && u.src.equip) ['weapon', 'shield', 'armor'].forEach(function (k) { if (k in u.src.equip) w.src.equip[k] = u.src.equip[k]; });
       if (u.torch && u.torch.lit !== false && u.hp > 0) w.torch = JSON.parse(JSON.stringify(u.torch)); else delete w.torch;
     });
     var famB = (b.units || []).filter(function (u) { return u.familiar && u.side === 'party'; })[0];
     if (R0.fam && famB) R0.fam.hp = Math.max(0, famB.dead ? 0 : famB.hp); // (the familiar as that fight left it: hurt, or fallen and off the floor -- R.famPlace)
+    // a Light cast in a fight under a roost, carried back onto its floor by R.LASTING, let go as it is at the floor's door (10-28 later, his "check 'light' being cast in battle or
+    // from the menu carrying over to whether they can go in the guano mines": R.roostLights)
+    var roostL = R.def && R.def.roost ? R.roostLights(B).slice(1) : []; // (said on the card back on the floor, below)
     Object.assign(R0.flags, b.flags8 || {}); // (what it set: otyughFed, bucketBy, heard:r-stream, landlordSpoke, the dead -- the rim's trigger reads otyughFed and otyughDead)
     R.packBack(B, b); // (the pack: what that fight used or found -- the bucket taken up or gone into the water, a potion drunk, a weapon stowed -- not its loan)
     R.regear(B); // (each figure's weapon and AC read again off the sheet EQUIP changed)
@@ -976,7 +998,7 @@
       }
     }
     B.focus(R0.token);
-    if (done === 'fed') B.card(['{y}The landlord settles under the water.{/}', '{g}The party gathers into ' + R0.token.name + '.{/}'], 260); else if (fd) B.card(R.wrap(fd.back ? fd.back(done) : ['{y}Back on the floor{/} (' + done + ').']), 260); else if (which !== 'wet') B.card(['{y}Back on the Wet{/} (' + done + ').'], 260);
+    if (done === 'fed') B.card(['{y}The landlord settles under the water.{/}', '{g}The party gathers into ' + R0.token.name + '.{/}'], 260); else if (fd) B.card(R.wrap((fd.back ? fd.back(done) : ['{y}Back on the floor{/} (' + done + ').']).concat(roostL)), 260); else if (which !== 'wet') B.card(['{y}Back on the Wet{/} (' + done + ').'], 260);
     if (done === 'fed' || fd) { FX.ring(R0.token, 'glow', 22); D.sfx('popup'); }
     if (!R.standing(R0).length) { R0.mode = 'over'; if (R.emb) { yield* R.leaveFloor(B, 'lose', null); return; } B.card(['{r}The party has fallen.{/}  R to walk ' + (fd ? 'the floor' : 'the Wet') + ' again.'], 100000); return; }
     // the gather pays (R.pay): what fell in there, and the landlord fed from the bucket -- a quarter again its XP, once (js/rules.js R.fedPool, the 8-bit's EV.fedXp)
@@ -996,6 +1018,16 @@
     return !!(R.triggerAt(B, p[0], p[1], 'step') || R.wadeAsk(B, [x, y]) || (R.def.doors || []).some(function (d) { return d[0] === x && d[1] === y; }));
   };
   // what a condition-set keeps past a fight (the 8-bit's finish clears the rest; js/embed.js carries these): Mage Armor till the long rest, the day's Darkvision, a Continual Flame
+  // the exhaustion a fight laid on, onto the floor's sheet (10-28 later, his "check fatigue handoffs": a fight pulled in from a floor came back with R.LASTING's conds only, so a
+  // level it laid on -- js/rules.js RU.exhaust -- was gone again on the floor and in the save, as THE WORLD's fights keep theirs: js/house.js H.takeBack). The sheet's own way,
+  // the fourth level's cut to the HP maximum with it (js/house.js H.exhaust); the floor's figure wears what the sheet does
+  R.exhaustBack = function (w, u) {
+    var n = (u.conds && u.conds.exhaustion && u.conds.exhaustion.n) || 0, h = w.src, H = D.house; if (!h) return 0;
+    var had = (h.conds && h.conds.exhaustion && h.conds.exhaustion.n) || 0; if (n <= had) { if (had) w.conds.exhaustion = JSON.parse(JSON.stringify(h.conds.exhaustion)); return 0; }
+    if (H && H.exhaust) H.exhaust(h, n - had); else { h.conds = h.conds || {}; h.conds.exhaustion = { n: Math.min(6, n) }; }
+    w.conds.exhaustion = JSON.parse(JSON.stringify(h.conds.exhaustion)); w.maxhp = Math.min(w.maxhp, h.maxhp); w.hp = Math.min(w.hp, w.maxhp); if (h.dead) { w.hp = 0; w.ko = true; }
+    h.hp = w.hp; return n - had;
+  };
   R.LASTING = ['mageArmor', 'darkvision', 'continualFlame', 'aid', 'light']; // (light: the cantrip carried off a fight till the long rest -- RULED 10-20, his "that seems aligned with SRD"; the house lane's 10-19 note 5)
   R.lasting = function (c) { var o = {}; R.LASTING.forEach(function (k) { if (c && c[k]) o[k] = JSON.parse(JSON.stringify(c[k])); }); return o; };
   R.counts = function (inv) { var c = {}; (inv || []).forEach(function (s) { var id = Array.isArray(s) ? s[0] : s.id, n = Array.isArray(s) ? s[1] : s.n; c[id] = (c[id] || 0) + (n || 0); }); return c; };
@@ -1771,9 +1803,11 @@
         B.card(['{y}' + who.name + '{/} takes up the ' + it.name + (roostM ? ', lit hood down: the roost overhead.' : ', lit.')], 200); return true;
       }
       if (eff === 'heal') {
-        if (!u || u.hp <= 0) { B.card(['{g}' + (u ? u.name + ' is down: a kit first.' : 'Whom?') + '{/}'], 160); return true; }
-        var hn = D.roll(it.use.dice).total, was = u.hp; u.hp = Math.min(u.maxhp, u.hp + hn); take(); D.sfx('heal');
-        B.card(['{y}' + u.name + '{/} drinks the ' + it.name + ': +' + (u.hp - was) + ' HP (' + u.hp + '/' + u.maxhp + ').'], 220); return true;
+        // a potion poured into one who is down heals them and they come round, as healing wakes the downed everywhere else (10-28 later, his "it seems we've inherited the
+        // non-SRD 'must have a healer's kit to rez' in the glowseep?" -- the game is SRD-clean, RULED 10-17: the SRD's healing at 0 HP; js/house.js FD.heal)
+        if (!u || u.dead) { B.card(['{g}' + (u ? u.name + ' is past a potion.' : 'Whom?') + '{/}'], 160); return true; }
+        var hn = D.roll(it.use.dice).total, was = Math.max(0, u.hp), woke = u.hp <= 0 || !!u.ko; u.hp = Math.min(u.maxhp, was + hn); if (u.hp > 0) u.ko = false; take(); D.sfx('heal');
+        B.card(['{y}' + u.name + '{/} ' + (woke ? 'has the ' + it.name + ' poured in and comes round' : 'drinks the ' + it.name) + ': +' + (u.hp - was) + ' HP (' + u.hp + '/' + u.maxhp + ').'], 220); return true;
       }
       if (eff === 'revive') {
         if (!u || u.hp > 0) { B.card(['{g}' + (u ? u.name + ' is not down.' : 'Whom?') + '{/}'], 160); return true; }
@@ -1787,6 +1821,9 @@
       if (id) { var s2 = (B.inv || []).filter(function (x) { return x.id === id; })[0]; if (s2) s2.n++; else (B.inv = B.inv || []).push({ id: id, n: 1 }); }
       B.card(['{y}' + u.name + '{/} ' + (id ? 'puts the lantern away.' : 'puts the torch out (spent).')], 200); return true;
     }
+    // no Light cast under a roost (10-28 later, his "check 'light' being cast in battle or from the menu carrying over to whether they can go in the guano mines"): as no torch is
+    // lit there (above), and a Light carried in is let go at the floor's door (R.roostLights); Dancing Lights is dim, lawful under a roost (RULED 09-28)
+    if (kind === 'cast' && R.def && R.def.roost && a.sp && ((window.DS.DATA.spells || {})[a.sp] || {}).kind === 'light' && !((window.DS.DATA.spells || {})[a.sp] || {}).dim) { D.sfx('error'); B.card(['{g}The roost overhead: no bright light. The Light would spook the roost.{/}'], 200); return true; }
     if ((kind === 'cast' || kind === 'skill') && R.house()) { var lnC = D.house.fieldOnFloor(B, kind, a, unitOf); if (lnC) { B.card(R.wrap(lnC), 260); return true; } } // (the house: the field's own rules -- js/house.js H.field)
     if (kind === 'cast' || kind === 'skill') return R.actOut(B, { kind: kind, h: a.h, sp: a.sp, s: a.s, t: a.t }, unitOf); // (the 8-bit's own, by a hand-back: R.actOut)
     return false;
@@ -1977,6 +2014,14 @@
       if (!m.townMap || m.townMap.s !== s) { var cv = document.createElement('canvas'); cv.width = m.w * s; cv.height = m.h * s; var cc = cv.getContext('2d'); for (var ty = 0; ty < m.h; ty++) for (var tx = 0; tx < m.w; tx++) { var tq = m.at(tx, ty); cc.fillStyle = R.TOWNCOL[tq.ch] || (tq.open ? '#8a7656' : '#2a2420'); cc.fillRect(tx * s, ty * s, s, s); } m.townMap = { canvas: cv, s: s }; }
       ctx.drawImage(m.townMap.canvas, x0, y0);
       B.units.forEach(function (u) { if (u.npc) { ctx.fillStyle = '#e8d070'; ctx.fillRect(x0 + u.x * s, y0 + u.y * s, s, s); } });
+      // the feed track where it leaves the town, named (10-28 later, his "having a difficult time figuring out how to get to the warrens"): a gold mark on its squares at the edge
+      // and THE WARRENS beside them (js/mines.js T.wayOut takes the party over the bridge from there; the JOURNAL's The Crawler Warrens says so)
+      var feed = (R.def.doors || []).filter(function (q) { return /feed track/.test((R.def.wayName || {})[q[0] + ',' + q[1]] || ''); });
+      if (feed.length) {
+        ctx.fillStyle = '#f8d878'; feed.forEach(function (q) { ctx.fillRect(x0 + q[0] * s - s, y0 + q[1] * s - s, s * 3, s * 3); });
+        var fy = feed.reduce(function (a, q) { return a + q[1]; }, 0) / feed.length, fx = Math.min.apply(null, feed.map(function (q) { return q[0]; }));
+        D.text(ctx, 'THE WARRENS >', x0 + fx * s - 4, y0 + fy * s - 4, '#f8d878', 'right');
+      }
       var tk = R0.token; ctx.fillStyle = '#ffffff'; ctx.fillRect(x0 + tk.x * s - s, y0 + tk.y * s - s, s * 3, s * 3);
       ctx.restore(); return;
     }

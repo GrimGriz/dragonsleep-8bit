@@ -15,6 +15,7 @@
   var W = D.world = {};
   var SQ3 = Math.sqrt(3), TILT = 0.62, STEPF = 28; // (frames a hex takes to walk: 14 till 10-21 night, when Silverton to the Guano Mine "feels short" -- RULED his "The screen": the miles and the SRD's pace kept, the token slower, the sky turning as the hours pass)
   W.PACE = 3; W.DAYHOURS = 8; W.MORNING = 7; // (the SRD: 3 mi an hour, 8 hours a day; the day starts at seven)
+  W.FIGHT_HOURS = 0.25; // (a road fight and its breath on the clock: fifteen minutes since 10-28 later, his "fights should burn 15 minutes instead of an hour of worldtime" -- an hour before)
   W.ZOOMS = [3.2, 4.4, 6, 8.5, 12]; // (px a mile: a 5-mile hex 16 to 60 px across)
   // the places with a door (his "when they reach the location it goes to the roam map"): only what is built; the rest say so
   W.DOORS = { silverton: { roam: 'silverton', gates: { west: [-1, 0], south: [0, 1], east: [1, 0] } },
@@ -741,8 +742,8 @@
   };
   World.prototype.afterFight = function (res, p, b) {
     try { D.music('corridor'); } catch (e) { }
-    if (W.house() && b) { var ln = D.house.afterFight(b, res); if (ln === null) return; S.t += 1; W.save(); this.say((res === 'won' ? 'The road is clear. ' : 'The party got clear of them. ') + ln.join(' ')); return; } // (a loss: the title, js/house.js H.lost)
-    S.t += 1; W.save(); // (a fight and its breath: an hour)
+    if (W.house() && b) { var ln = D.house.afterFight(b, res); if (ln === null) return; S.t += W.FIGHT_HOURS; W.save(); this.say((res === 'won' ? 'The road is clear. ' : 'The party got clear of them. ') + ln.join(' ')); return; } // (a loss: the title, js/house.js H.lost)
+    S.t += W.FIGHT_HOURS; W.save(); // (a fight and its breath: W.FIGHT_HOURS)
     if (res === 'won') this.say('The road is clear. On, ' + W.timeOfDay() + '.');
     else if (res === 'escaped' || res == null) this.say('The party got clear of them.');
     else { W.passDays(1, 'Beaten, the party drags itself back to the road. A day is lost.'); }

@@ -8,7 +8,7 @@
      the ground '.'; the mountain '#' above the cliff's foot (v6 y 352); the river 'D'; the Gate Plaza, Fountain Street and Gate Avenue dressed stone '='
      (the dwarves' ordered city); the other streets, the Arena Plaza and the roads packed dirt ','; the houses, the Shaft Rows' shacks, the Hexagon and the
      Edifice built stone 'b'; the fountains' water '~' in a stone rim '='; the stockade a rail 'f', open at its three gates between two posts 'b'; a
-     headframe's mouth a well 'w' on its spoil 'r'; the stalls 'k'; the tower 'b'; Bloodsnout's compound 'b', walled, no way in.
+     headframe's mouth a well 'w' on its spoil 'r'; the stalls 'k'; the tower 'b'; Bloodsnout's compound 'b', walled, its gate shut (walked since 10-28 as the stables' room behind door 19: T.room's yard).
    And the marks a later caller reads (T.lay's `marks`, each a square): the three gates, the vault door, every pin of v6's key by its number, and the
    shops' doors by the 8-bit's names -- marked, not built (the buy/sell screens are a later seat's: ART-78 to ART-82 wait in deep16/_src/Fresh). */
 'use strict';
@@ -34,7 +34,7 @@
   // arena's own surgery (the-hex.md's fighter trade), a small house round the room of cots the game builds behind its door (T.TRADE), the pin a square inside its south
   // wall. Any other pin with no house gets Mama's booth. invented.json vilar-forge-booth, davos-leech-house
   T.PINHOUSE = { 'shop:vilar': { booth: true, ch: 'n' }, 'leech:davos': { room: true, ch: 'b' } };
-  T.ROOMSIZE = { s: [10, 8], m: [12, 10], l: [16, 12] }; // (a room's size by its trade, in squares at T.FT: T.room)
+  T.ROOMSIZE = { s: [10, 8], m: [12, 10], l: [16, 12], yard: [Math.round(T.COMPOUND.w / T.FT), Math.round(T.COMPOUND.h / T.FT)] }; // (yard: Bloodsnout's compound at true scale, the stables' room -- T.TRADE keeper:venhale) // (a room's size by its trade, in squares at T.FT: T.room)
   T.pinHouse = function (id) {
     var o = T.PINHOUSE[id] || { booth: true, ch: 'n' }, t = o.room && T.TRADE[id], S = t && T.ROOMSIZE[t.size];
     if (!S) return { w: T.BOOTH, h: T.BOOTH, dy: 0, ch: o.ch }; // (a booth, centred on its pin as Mama's is)
@@ -135,7 +135,8 @@
     // the tower: its foot, a round of built stone (v6 draws it standing, 22 ft across)
     ellipse(V.tower[0], V.tower[1] - 8, Math.max(14, F * 0.55), Math.max(14, F * 0.55), 'B');
     // (v6's stockade is not laid: 10-21, Griz, of the rail that fenced the floor's edges: "I think they're the stockade fences" -- "seem superfluous". The gates stay as marks)
-    // Bloodsnout's compound: a stone wall round a yard, the barracks along the back (east), the gate on the plaza side shut -- drawn, never entered
+    // Bloodsnout's compound: a stone wall round a yard, the barracks along the back (east), the gate on the plaza side shut -- drawn here, and walked as the fighters' stables' room
+    // behind Venn Hale's door since 10-28 later (RULED, Griz: "compound as room" -- T.room's yard)
     var C = T.COMPOUND, cg0 = gxOf(C.x), cg1 = gxOf(C.x + C.w), ch0 = gyOf(C.y), ch1 = gyOf(C.y + C.h), bk = Math.max(1, Math.round(25 / F));
     for (var yy = ch0; yy <= ch1; yy++) for (var xx = cg0; xx <= cg1; xx++) set(xx, yy, xx > cg1 - bk ? 'b' : (yy === ch0 || yy === ch1 || xx === cg0) ? 'q' : '.'); // (q: its wall, 10 ft; b: the barracks, 25 ft deep along the back)
     if (F <= 10) for (yy = gyOf(C.y + 20); yy <= gyOf(C.y + 40); yy++) for (xx = gxOf(C.x + 20); xx <= gxOf(C.x + 50); xx++) set(xx, yy, 'b'); // (the master's house in the yard's north-west corner: too small to show at a town's scale)
@@ -257,7 +258,7 @@
   // the doors with rooms behind them (10-20, Griz: "just vendors and interactions (sylvia will get one)"): the 8-bit's shops, the five of the new buy/sell screens, the inn, the
   // leech, the chapel, the lantern house's window, and Sylvia. The rest are doors whose keeper speaks at the door (T.fire)
   T.ROOMS = ['shop:kessler', 'shop:calla', 'shop:marko', 'shop:kasten', 'shop:vilar', 'shop:lisbet', 'shop:lucia', 'warp:winters', 'warp:percy', 'keeper:casper', 'keeper:androit',
-    'keeper:hessle', 'keeper:aldric', 'inn:cassia', 'leech:davos', 'chapel:aldwin', 'keeper:merrick', 'keeper:sylvia'];
+    'keeper:hessle', 'keeper:aldric', 'inn:cassia', 'leech:davos', 'chapel:aldwin', 'keeper:merrick', 'keeper:sylvia', 'keeper:venhale']; // (Venn Hale's since 10-28 later: the compound, T.TRADE)
   T.hasRoom = function (id) { return T.ROOMS.indexOf(id) >= 0; };
   // the people: the 8-bit's Silverton NPCs (their list and conditions read from its own data, DS.DATA.maps.silverton.npcs), each where v6 and the wiki put them -- by
   // their slot's pin, a few feet off it (d: feet east, south), or a mark (at). Standing, facing as the 8-bit has them; their stand-in figures the plain sheets the
@@ -476,7 +477,10 @@
     'keeper:brennan': { size: 'l', floor: '.', goods: 'silver', counter: 'none', dress: ['forge', 'crates'] }, // the smithy's forge
     'shop:marko': { size: 'm', floor: 'o', goods: 'leather', dress: ['crates', 'sacks'] },                  // the provisioner: the road's stores
     'shop:kasten': { size: 's', floor: 'o', goods: 'gold' },                                                // the chandler: tallow and wicks
-    'keeper:venhale': { size: 'l', floor: '.', goods: 'leather', counter: 'short', dress: ['stalls'] },     // the fighters' stables
+    // the fighters' stables (10-28 later, his "Wouldn't the fighters stables be the compound we added (venn hale)", RULED "compound as room"): Bloodsnout's compound behind her door
+    // at true scale -- its stone wall, the barracks along the back with their cots, the master's house in the corner, the training rails in the yard, her table across the yard's head
+    // (the realm's the-hex.md: "barracks and training yards, part gymnasium, part debtors' prison"; invented.json stables-compound-room)
+    'keeper:venhale': { size: 'yard', floor: '.', goods: 'leather', counter: 'short', c0: 9, bare: true, dress: ['compound'], name: 'The Fighters\' Stables', sub: 'Bloodsnout\'s compound: the yard and the barracks' },
     'shop:vilar': { size: 'm', floor: '.', goods: 'silver', side: true, dress: ['crates'] },               // the show-armorer's racks
     'leech:davos': { size: 'm', floor: 'o', goods: 'red', counter: 'short', dress: ['cots'] },              // the leech-house's beds
     'keeper:kess': { size: 'm', floor: '.', goods: 'stone', counter: 'none', dress: ['cots'] },            // the flop-cellar's doss beds
@@ -496,9 +500,9 @@
     for (var y = 0; y < h; y++) { g.push([]); for (var x = 0; x < w; x++) g[y].push(x === 0 || y === 0 || x === w - 1 || y === h - 1 ? 'b' : t.floor); }
     var set = function (x, y, c) { if (x > 0 && y > 0 && x < w - 1 && y < h - 1) g[y][x] = c; }, dx = t.door != null ? t.door : Math.floor(w / 2);
     g[h - 1][dx] = 'd';
-    for (x = 1; x < w - 1; x++) set(x, 1, 'S');                                              // the shelves along the back wall
+    if (!t.bare) for (x = 1; x < w - 1; x++) set(x, 1, 'S');                                 // the shelves along the back wall (none in a yard: `bare`)
     if (t.side) for (y = 2; y < h - 3; y++) set(1, y, 'S');                                   // and down the side
-    var cr = t.counter || 'across', c0 = t.side ? 3 : 2, c1 = cr === 'short' ? Math.min(w - 3, c0 + 3) : w - 3, keep = [Math.floor((c0 + c1) / 2), 2];
+    var cr = t.counter || 'across', c0 = t.c0 != null ? t.c0 : t.side ? 3 : 2, c1 = cr === 'short' ? Math.min(w - 3, c0 + 3) : w - 3, keep = [Math.floor((c0 + c1) / 2), 2];
     if (cr !== 'none') for (x = c0; x <= c1; x++) set(x, 3, 'K');                             // the counter across, the keeper's way round its far end
     if (cr === 'grille') set(c1, 3, 'f');                                                     // (a grille: the rail at its end -- the moneychanger's, the pawnbroker's, the lantern window)
     if (cr === 'bar') for (y = 4; y < h - 4; y++) set(c1, y, 'K');                            // (a bar: down the side too)
@@ -518,6 +522,14 @@
       if (d === 'forge') { put(3, 5, '.'); extra.fire = [3, 6]; [[2, 5], [4, 5]].forEach(function (q) { put(q[0], q[1], 'k'); }); }
       if (d === 'stalls') for (y = 5; y < h - 2; y++) if (y % 3 !== 1) { put(2, y, 'f'); put(w - 3, y, 'f'); }
       if (d === 'pews') for (y = 6; y < h - 2; y += 2) for (x = 2; x < w - 2; x++) put(x, y, 'K');
+      if (d === 'compound') { // (the barracks along the back -- a wall with two ways in, its cots -- the master's house in the north-west corner, the rails and the weights in the yard)
+        var bx = w - 7; for (y = 1; y < h - 1; y++) if (y !== 5 && y !== h - 6) set(bx, y, 'b');
+        for (y = 2; y < h - 2; y += 2) [bx + 2, bx + 4].forEach(function (x2) { set(x2, y, 'y'); });
+        for (y = 1; y <= 4; y++) for (x = 1; x <= 6; x++) set(x, y, 'b');
+        [[3, 8], [4, 8], [5, 8], [3, 11], [4, 11], [5, 11]].forEach(function (q) { set(q[0], q[1], 'f'); });
+        [[2, h - 3], [3, h - 3]].forEach(function (q) { set(q[0], q[1], 'k'); });
+        extra.cots = { sheet: 'gsbed_p1' };
+      }
     });
     var arg = id.split(':')[1], N = ((window.DS && window.DS.DATA) || {}).npcs || {}, Sh = ((window.DS && window.DS.DATA) || {}).shops || {};
     var nm = (door && door.name) || T.KEEPER[id] || (N[arg] && N[arg].name) || arg, shopNm = (Sh[arg] && Sh[arg].name) || null;
@@ -526,7 +538,7 @@
     trig.push({ id: 'talk:' + arg, on: 'use', rect: [k0[0], k0[1], 1, 1], town: 'talk', npc: arg });
     var id2 = function (x2, y2) { return [x2, y2]; };
     return Object.assign({
-      name: shopNm || nm, sub: 'a room on the Silverton floor', key: 'room', room: id, town: true, wet: false, dark: false, step: 10, goods: t.goods,
+      name: t.name || shopNm || nm, sub: t.sub || 'a room on the Silverton floor', key: 'room', room: id, town: true, wet: false, dark: false, step: 10, goods: t.goods,
       view: 'top', // (north up, as the street outside: 10-20, Griz, asked whether the rooms stay on the diamonds, "1 north up" -- js/topview.js)
       rows: g.map(function (r) { return r.join(''); }), entry: [[dx, h - 2]], face: [0, -1], doors: [[dx, h - 1]], stairUp: [], foes: [], marks: {}, people: [],
       keeper: { id: arg, name: nm, at: keep, own: !!t.own, art: door && door.art || null },

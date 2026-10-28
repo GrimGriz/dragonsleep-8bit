@@ -2490,8 +2490,8 @@
       try { op.draw(cxO); } catch (eD3) { drewO = String(eD3); }
       okO('X on the question: back to the four (' + backO + '); BEGIN: the opening, the first game\'s three pages (' + pgO.map(function (p) { return '"' + p.slice(0, 30) + '..."'; }).join(' ') + '), drawn (' + drewO + ')', backO && !!op && op.kind === 'opening' && op.lead === 'vivian' && pgO.join('|') === wantO.join('|') && drewO === true);
       keyO('a'); keyO('a'); keyO('a'); var BO = topO(), RO = BO && BO.roam, dO = D.roam.def;
-      okO('E through the pages: the game, Vivian alone (' + idsO(HO.cur.party) + ', lead ' + HO.cur.lead + ', hired ' + HO.cur.hired + ', ' + HO.cur.silver + ' sp) in at Silverton\'s west gate (' + (dO && dO.key) + ' ' + (RO && [RO.token.x, RO.token.y]) + '), the floor\'s party one (' + (RO && RO.members.map(function (u) { return u.id; })) + ')',
-        HO.playing && idsO(HO.cur.party) === 'vivian' && HO.cur.lead === 'vivian' && HO.cur.hired.join() === 'vivian' && !!RO && dO.key === 'silverton' && RO.token.x === dO.marks.gates.west[0] && RO.token.y === dO.marks.gates.west[1] && RO.members.length === 1 && RO.token.id === 'vivian');
+      okO('E through the pages: the game, Vivian alone (' + idsO(HO.cur.party) + ', lead ' + HO.cur.lead + ', hired ' + HO.cur.hired + ', ' + HO.cur.silver + ' sp) in Silverton before her mother\'s stall since 10-28 later, not the west gate (' + (dO && dO.key) + ' ' + (RO && [RO.token.x, RO.token.y]) + ', the stall ' + (dO && dO.marks.stall.marta) + '; mode=housefix1028), the floor\'s party one (' + (RO && RO.members.map(function (u) { return u.id; })) + ')',
+        HO.playing && idsO(HO.cur.party) === 'vivian' && HO.cur.lead === 'vivian' && HO.cur.hired.join() === 'vivian' && !!RO && dO.key === 'silverton' && RO.token.x === dO.marks.stall.marta[0] && RO.token.y === dO.marks.stall.marta[1] + 1 && RO.members.length === 1 && RO.token.id === 'vivian');
       var fO = folkO(BO), auU = fO.filter(function (u) { return u.npc === 'aurdinChapel'; })[0];
       okO('the town: Vivian not standing on vice row, she leads (' + !fO.some(function (u) { return u.npc === 'vivian'; }) + '); Aurdin outside Aldwin\'s chapel in his own figure (' + (auU && auU.sheet + ' at ' + auU.x + ',' + auU.y) + ', the chapel\'s door ' + dO.marks.doors['chapel:aldwin'] + ')',
         !fO.some(function (u) { return u.npc === 'vivian'; }) && !trigO('vivian') && !!auU && auU.sheet === D.save.look('aurdin', null, null).sheet && trigO('aurdinChapel') && Math.hypot(auU.x - dO.marks.doors['chapel:aldwin'][0], auU.y - dO.marks.doors['chapel:aldwin'][1]) < 8);
@@ -2502,8 +2502,8 @@
       okO('Aurdin with 10 silver: his first-game word, "' + LO('hire.aurdinAsk').slice(0, 30) + '..." PAY 20 SP: "' + LO('g.poor') + '" (' + a1.seen.slice(0, 120) + '); on his face (' + (a1.sc && a1.sc.o.name + ', ' + a1.sc.o.place) + '), not hired',
         !!a1.sc && a1.sc.o.name === 'Aurdin' && a1.seen.indexOf(LO('hire.aurdinAsk')) >= 0 && a1.seen.indexOf(LO('g.poor')) >= 0 && a1.seen.indexOf(window.DS.DATA.npcs.aurdinChapel.talk[0].say[0]) >= 0 && RO.members.length === 1 && RO.silver === 10);
       RO.silver = 30; var a2 = useO(BO, [auU.x, auU.y], [0]), auM = RO.members.filter(function (u) { return u.id === 'aurdin'; })[0];
-      okO('with 30: PAY 20 SP -- "' + [].concat(LO('hire.aurdinYes'))[0] + '", "' + LO('g.joins', { name: 'Aurdin', lvl: 2 }) + '"; the party ' + RO.members.map(function (u) { return u.id; }) + ', the save\'s ' + idsO(HO.cur.party) + ' (hired ' + HO.cur.hired + '), the purse ' + RO.silver + '; he stands where he stood (' + (auM && auM.x + ',' + auM.y) + '), no one standing for him',
-        a2.seen.indexOf([].concat(LO('hire.aurdinYes'))[0]) >= 0 && a2.seen.indexOf(LO('g.joins', { name: 'Aurdin', lvl: 2 })) >= 0 && RO.members.length === 2 && !!auM && auM.x === auU.x && auM.y === auU.y && idsO(HO.cur.party) === 'vivian,aurdin' && HO.cur.hired.join() === 'vivian,aurdin' && RO.silver === 10 && !folkO(BO).some(function (u) { return u.npc === 'aurdinChapel'; }) && !trigO('aurdinChapel') && D.roam.emb.save.party.some(function (h) { return h.id === 'aurdin'; }));
+      okO('with 30: PAY 20 SP -- "' + [].concat(LO('hire.aurdinYes'))[0] + '", "' + LO('g.joins', { name: 'Aurdin', lvl: 2 }) + '"; the party ' + RO.members.map(function (u) { return u.id; }) + ', the save\'s ' + idsO(HO.cur.party) + ' (hired ' + HO.cur.hired + '), the purse ' + RO.silver + '; he joins where he stood (' + (auM && auM.x + ',' + auM.y) + ') and walks inside the token since 10-28 later, not left standing (' + (BO.units.indexOf(auM) < 0) + '; mode=housefix1028), no one standing for him',
+        a2.seen.indexOf([].concat(LO('hire.aurdinYes'))[0]) >= 0 && a2.seen.indexOf(LO('g.joins', { name: 'Aurdin', lvl: 2 })) >= 0 && RO.members.length === 2 && !!auM && auM.x === auU.x && auM.y === auU.y && BO.units.indexOf(auM) < 0 && idsO(HO.cur.party) === 'vivian,aurdin' && HO.cur.hired.join() === 'vivian,aurdin' && RO.silver === 10 && !folkO(BO).some(function (u) { return u.npc === 'aurdinChapel'; }) && !trigO('aurdinChapel') && D.roam.emb.save.party.some(function (h) { return h.id === 'aurdin'; }));
       // the marker: Company pinned, Barley next -- the Hex's front doors from the town
       RO.flags.pin = 'company'; COO.marked = null; CCO.paintPin(cxO, BO); var hfO = dO.marks.hexFront[0];
       okO('Company pinned: the marker from the town on the Hex\'s front doors (' + COO.marked + ' = ' + hfO + '), the step Barley\'s', !!COO.marked && COO.marked[0] === hfO[0] && COO.marked[1] === hfO[1]);
@@ -2653,12 +2653,14 @@
       okX('in again by the back: just inside the north doors facing south (' + B1c.roam.token.x + ',' + B1c.roam.token.y + ')', D.roam.def.hexIn === 1 && B1c.roam.token.x === 11 && B1c.roam.token.y === 2 && B1c.roam.fw[1] === 1);
       walkX.def0 = D.roam.def; walkX(B1c, [22, 13]); walkX(B1c, [23, 13]); var BTe = topX(), dTe = D.roam.def;
       okX('out the east door: the town east of the Hex (' + BTe.roam.token.x + ',' + BTe.roam.token.y + ' = ' + dTe.marks.hexEast + ')', dTe.key === 'silverton' && BTe.roam.token.x === dTe.marks.hexEast[0] && BTe.roam.token.y === dTe.marks.hexEast[1] && BTe.roam.fw[0] === 1);
-      // a bout lost: Talmok, the card opened to him, the party's purse empty (the crowd fronts the five), the hero standing at 1 and ending every turn -- down, up at 1
+      // a bout lost: Talmok, the card opened to him, the party's purse empty (the crowd fronts the five), the hero standing at 1 and ending every turn -- down, and stitched to half
+      // since 10-28 later (his "kick the party to krenn if a fighter falls (out of the hex and at his shop door - but already serviced)": on this test door, no town under the Hex,
+      // stitched where they stand -- the way out to Davos Kren's door is mode=housefix1028)
       var BL = testX('?roam=hex&flags=hex:brawl,hex:freeman,hex:card'), RL = BL.roam, hL = RL.members[0]; RL.silver = 0; hL.hp = 1;
       var kL = sqX('korvinSlate'); besideX(BL, kL); var slL = useX(BL, kL, [3, 0, 0]);
       var btL = boutX(BL, function () { return { do: 'end' }; });
-      okX('Talmok on the slate (' + slL.seen.split(' / ').filter(function (l) { return /^> /.test(l); }).join(' ') + '), no five in the purse: "' + LX('hex.fronted').slice(0, 30) + '..."; lost (' + (btL && btL.res) + '): "' + (btL ? btL.word : '').slice(0, 90) + '"; ' + hL.name + ' up at ' + hL.hp + ', no flag, the purse ' + RL.silver,
-        /TALMOK, THE CHAMPION/.test(slL.seen) && slL.seen.indexOf(LX('hex.fronted')) >= 0 && !!btL && btL.res === 'lost' && /DOWN ON THE SAND/.test(btL.card) && btL.word.indexOf(LX('hex.lostFronted', { name: hL.name })) >= 0 && btL.word.indexOf(LX('hex.stitched', { name: hL.name })) >= 0 && hL.hp === 1 && !RL.flags['hex:talmok'] && RL.silver === 0);
+      okX('Talmok on the slate (' + slL.seen.split(' / ').filter(function (l) { return /^> /.test(l); }).join(' ') + '), no five in the purse: "' + LX('hex.fronted').slice(0, 30) + '..."; lost (' + (btL && btL.res) + '): "' + (btL ? btL.word : '').slice(0, 90) + '"; ' + hL.name + ' stitched to ' + hL.hp + '/' + hL.maxhp + ', no flag, the purse ' + RL.silver,
+        /TALMOK, THE CHAMPION/.test(slL.seen) && slL.seen.indexOf(LX('hex.fronted')) >= 0 && !!btL && btL.res === 'lost' && /DOWN ON THE SAND/.test(btL.card) && btL.word.indexOf(LX('hex.lostFronted', { name: hL.name })) >= 0 && btL.word.indexOf(LX('hex.stitched', { name: hL.name })) >= 0 && hL.hp === Math.max(1, Math.floor(hL.maxhp / 2)) && !RL.flags['hex:talmok'] && RL.silver === 0);
       // ON THE GRID: the brawl again, the grid's own fight on the same sand
       var BG = testX('?roam=hex&watch'), kG = sqX('korvinSlate'); besideX(BG, kG); useX(BG, kG, [0, 0, 1]); var btG = boutX(BG);
       okX('ON THE GRID: the full grid on the Hex\'s sand (' + (btG && (btG.b.simple ? 'simple!' : 'the grid')) + ', ' + (btG && btG.res) + ')', !!btG && !btG.b.simple && !btG.b.o.simple && btG.b.map.def === D.MAPS['hex-sand'] && !!btG.res);
@@ -3451,6 +3453,175 @@
     document.body.appendChild(preHs);
     return;
   }
+  // THE HOUSE'S FIXES FROM HIS 10-28 PLAY (mode=housefix1028; the house-notes seat, on the lanes desk's order from his playthrough notes of 10-28 and his answers to their
+  // probes -- the second game's house, the clock, the maps and the grid's rules lanes): each fix by his note
+  if (get('mode', '') === 'housefix1028') {
+    var repQ = { checks: [], errors: [] }, memQ = {}, stGQ = D.store.get, stSQ = D.store.set, CQ = D.counter, TQ = D.town, HQ = D.house, XQ = D.hex, RQ = D.roam, COQ = D.company, MQ = D.mines, SQ = D.simple, WQ = D.world, apQ = window.DS.autoPicks, IQ = D.input, sk0Q = null;
+    function okQ(what, v) { repQ.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function driveQ(g, until, cap) { var v, k = 0, st; while (k++ < (cap || 20000)) { if (until && until()) return true; st = g.next(v); v = undefined; if (st.done) return !!(until && until()); if (typeof st.value === 'number' && D.battle) D.battle.t += Math.max(1, st.value); if (st.value && st.value.prompt) v = st.value.prompt.opts[0].value; } return !!(until && until()); }
+    function topQ() { var s = D.top(); if (s && s.baking) { s.baking = false; s.enter(); } return s; }
+    function upQ() { return D.top() instanceof CQ.Counter; }
+    function clickQ(sc, b) { if (!b) return false; var mo = IQ.mouse, k = { x: mo.x, y: mo.y, click: mo.click, inside: mo.inside, moved: mo.moved }; mo.x = b.x + b.w / 2; mo.y = b.y + b.h / 2; mo.inside = true; mo.click = true; mo.moved = true; sc.update(); Object.assign(mo, k); return true; }
+    function goQ(sc, go, label) { return clickQ(sc, sc.buttons().filter(function (q) { return q.go === go && (label == null || q.label === label); })[0]); }
+    function readQ(sc) { var out = [], k = 0; while (!sc.done && sc.wait && sc.wait.say && k++ < 40) { out = out.concat(sc.wait.say); goQ(sc, 'next'); } return out.concat((sc.wait && sc.wait.ask) || []); }
+    function offQ(B) { while (D.top() !== B && D.scenes.length) D.pop(); }
+    function floorQ(q) { var B = RQ.make(q); D.scenes.length = 0; D.push(B); topQ(); D.battle = B; driveQ(B.co, null, 2); return B; }
+    function houseQ(rec) { HQ.begin(rec, 0); var B = topQ(); D.battle = B; driveQ(B.co, null, 2); return B; }
+    function folkQ(B, id) { return B.units.filter(function (u) { return u.npc === id; })[0] || null; }
+    function screenQ(u, up) { var c = D.iso.center(u.x, u.y, D.grid.map.gz(u.x, u.y)), s = D.iso.toScreen(c.x, c.y); return [Math.round(s.x), Math.round(s.y - (up || 0) * (D.iso.zoom || 1))]; }
+    D.store.get = function (k) { return memQ[k] ? JSON.parse(memQ[k]) : null; }; D.store.set = function (k, v) { memQ[k] = JSON.stringify(v); return true; };
+    try { sk0Q = window.localStorage.getItem(SQ.KEY); window.localStorage.removeItem(SQ.KEY); } catch (eK) { }
+    window.DS.autoPicks = true;
+    try {
+      D.seed = +get('seed', 1028);
+      // 1. A CLICK ON HIGERTHA AND THE CONCESSION'S HAND (his "Higertha isn't clickable interface (had to keyboard)"; mouse-only, the standing aim): the square under her
+      // figure holds nothing (a wall, or her room), so the click finds her by her figure's box -- the party walks beside her hatch and the word is had
+      var BH = floorQ('?roam=hex'), RH = BH.roam, hg = folkQ(BH, 'higertha'), cn = folkQ(BH, 'concession');
+      var clickAtQ = function (B, who, from) {
+        var R0 = B.roam, t = R0.token; t.x = from[0]; t.y = from[1]; t.tween = null; R0.path = null; D.grid.setup(B.map, B.units); B.focus(t);
+        for (var kU = 0; kU < 30; kU++) B.update(); offQ(B);
+        var p = screenQ(who, 18), sq = D.iso.pick(p[0], p[1], 0), fk = RQ.folkAt ? RQ.folkAt(B, p[0], p[1]) : null, was = [t.x, t.y];
+        R0.clicks.push({ x: p[0], y: p[1] }); var up = driveQ(B.co, upQ, 4000), sc = D.top(), id = up ? sc.o.id : null;
+        if (up) { goQ(sc, 'opt', 'LEAVE'); sc.done = true; } driveQ(B.co, function () { return D.top() === B && R0.mode === 'walk'; }, 400); offQ(B); // (the word ended, the floor walking again)
+        return { sq: fk && fk.sq, path: fk ? JSON.stringify(RQ.besidePath(B, fk.sq)) : '', under: sq ? RQ.useAt(B, sq.x, sq.y) : null, fk: fk && fk.u === who ? fk.trig.id : null, up: up, id: id, at: [t.x, t.y], was: was, beside: fk ? Math.max(Math.abs(t.x - fk.sq[0]), Math.abs(t.y - fk.sq[1])) : 99 };
+      };
+      var cH = clickAtQ(BH, hg, XQ.near(RQ.def.rows, [17, 13])), cC = clickAtQ(BH, cn, XQ.near(RQ.def.rows, [9, 12]));
+      okQ('a click on Higertha\'s figure (the square under it ' + (cH.under ? 'holds ' + cH.under.id : 'holds nothing') + '): her word found by the figure (' + cH.fk + '), the party walked ' + cH.was + ' -> ' + cH.at + ' beside her hatch (' + cH.beside + '), her counter up (' + cH.id + ')',
+        !cH.under && cH.fk === 'talk:higertha' && cH.up && cH.id === 'higertha' && cH.beside <= 1 && cH.at.join() !== cH.was.join());
+      okQ('and on the concession\'s hand (' + (cC.under ? 'holds ' + cC.under.id : 'holds nothing') + '): his word by the figure (' + cC.fk + '), the party walked ' + cC.was + ' -> ' + cC.at + ' beside his hatch (' + cC.beside + ', ' + cC.sq + ' -- ' + cC.path + '), his counter up (' + cC.id + ')', !cC.under && cC.fk === 'talk:concession' && cC.up && cC.id === 'concession' && cC.beside <= 1);
+      // 2. HIGERTHA'S OWN COUNTER (his "Lucia is mama and is saying Higertha's line"): Mama's jars at Mama's prices on a shelf of her own, the first game's "Mama mixes, I sell"
+      // hers; Lucia, who is Mama, says the first game's card for her; the first game's shop itself untouched
+      var gHg = CQ.talk(BH, 'higertha'); driveQ(gHg, upQ, 600); var scHg = D.top(), aHg = scHg.wait && scHg.wait.ask ? scHg.wait.ask.join(' ') : ''; goQ(scHg, 'opt', 'THE SHELVES');
+      var shHg = scHg.shopId, lu8 = window.DS.DATA.shops.lucia, msgHg = scHg.msg, rowsHg = scHg.shop ? scHg.rows().map(function (r) { return r.id; }) : [];
+      goQ(scHg, 'back'); goQ(scHg, 'opt', 'LEAVE'); driveQ(gHg, null, 200); offQ(BH);
+      okQ('Higertha\'s hatch: "' + aHg + '"; THE SHELVES her own (' + shHg + ', ' + (scHg.o && scHg.o.place) + '), Mama\'s jars (' + rowsHg.join(', ') + '), her greeting "' + msgHg + '"',
+        /Higertha works Mama's hatch/.test(aHg) && shHg === 'higertha' && rowsHg.join() === lu8.items.join() && msgHg === lu8.greeting && /^Mama mixes, I sell/.test(lu8.greeting));
+      var thQ = function (id, sh) { return CQ.thanks ? CQ.thanks(id, sh) : (sh && sh.thanks) || []; }, thL = thQ('lucia', lu8), thH = thQ('higertha', window.DS.DATA.shops.higertha);
+      okQ('Lucia, Mama: her shelves greet with the first game\'s card for her ("' + CQ.greeting('lucia') + '"), her thanks none of "Mama says" (' + thL.join(' / ') + '); the apprentice\'s at the hatch (' + thH.join(' / ') + ')',
+        CQ.greeting('lucia') === CQ.GREET.lucia && !/Mama mixes/.test(CQ.greeting('lucia')) && !thL.some(function (l) { return /Mama says/.test(l); }) && thH.some(function (l) { return /Mama says/.test(l); }));
+      // 3. A HIRE WALKS INSIDE THE TOKEN (his "Barley remains standing in the hex after joining the party"): Barley at the Hex, then Vivian in town -- each folded in, nobody left
+      // standing on the square, the party one figure walking
+      var BB = houseQ(COQ.stage(COQ.BEATS.filter(function (b) { return b.id === 'barley'; })[0])); var RB = BB.roam;
+      var trHx = (RQ.def.src8.triggers || []).filter(function (t) { return t.id === 'hex:front'; })[0]; if (trHx) driveQ(TQ.fire(BB, trHx), null, 2000);
+      var inHx = !!RQ.def.hexIn, bb0 = folkQ(BB, 'barleyBench'), ly0 = folkQ(BB, 'lymenHex'), dress0 = { b: bb0 && bb0.sheet, l: ly0 && ly0.sheet }, uB = COQ.join(BB, COQ.sheetFor('barley', 2), 'barleyBench');
+      var tkB = RB.token, stepB = [[0, 1], [0, -1], [1, 0], [-1, 0]].map(function (o) { return [tkB.x + o[0], tkB.y + o[1]]; }).filter(function (q) { return D.grid.canStand(tkB, q[0], q[1]); })[0]; RB.path = stepB ? [stepB] : null; driveQ(BB.co, null, 60);
+      okQ('in the Hex (' + inHx + '), Barley hired off the bench (' + (bb0 && bb0.x + ',' + bb0.y) + '): in the party (' + RB.members.map(function (u) { return u.id; }) + '), inside the token (' + (BB.units.indexOf(uB) < 0) + '), nobody on the bench\'s square (' + !BB.units.some(function (u) { return bb0 && u !== tkB && u.x === bb0.x && u.y === bb0.y && !u.dead; }) + ')',
+        inHx && !!bb0 && RB.members.indexOf(uB) >= 0 && BB.units.indexOf(uB) < 0 && !folkQ(BB, 'barleyBench') && !BB.units.some(function (u) { return u !== tkB && u.x === bb0.x && u.y === bb0.y && !u.dead; }));
+      var BV = houseQ(COQ.stage(COQ.BEATS.filter(function (b) { return b.id === 'vivian'; })[0])), RV = BV.roam, uV = COQ.join(BV, COQ.sheetFor('vivian', 2), 'vivian'), uA = COQ.join(BV, COQ.sheetFor('aurdin', 2), 'aurdinChapel');
+      okQ('in town, Vivian and Aurdin hired: both inside the token (' + (BV.units.indexOf(uV) < 0) + ', ' + (BV.units.indexOf(uA) < 0) + '), the party ' + RV.members.map(function (u) { return u.id; }), BV.units.indexOf(uV) < 0 && BV.units.indexOf(uA) < 0 && RV.members.length === 3);
+      // 4. THE HEX'S HIRES DRESSED (his "Barley and Lymen using drawn characters instead of sprites in the hex"): in their own figures, as the town dresses them
+      // (the Hex as the house laid it above, Aurdin leading: the two not yet hired, standing)
+      var lkB = D.save.look('barley', null, null).sheet, lkL = D.save.look('lymen', null, null).sheet;
+      okQ('in the Hex, Barley on the bench in ' + dress0.b + ' and Lymen in ' + dress0.l + ' (their looks ' + lkB + ', ' + lkL + '), not barley_p1 / lymen_p1', dress0.b === lkB && dress0.l === lkL && lkB !== 'barley_p1' && lkL !== 'lymen_p1');
+      // 5. THE LEAD STARTS WHERE THE STORY PUTS THEM (his "Aurdin should start near where the story says he slept. Vivian should start near her mom's stall. Lymen in front of
+      // Urtusk and Barley near kess."): NEW GAME's opening, BEGIN, and the lead on the floor there, facing them
+      var flQ = TQ.floor('', {}), whoQ = function (id) { return flQ.people.filter(function (p) { return p.id === id; })[0] || null; }, nearQ = function (a, b) { return !!a && !!b && Math.max(Math.abs(a[0] - b[0]), Math.abs(a[1] - b[1])) <= 1; };
+      var startQ = {}; ['aurdin', 'vivian', 'lymen', 'barley'].forEach(function (id) {
+        var op = new COQ.Opening(id); D.scenes.length = 0; D.push(op); op.go(); var Bs = topQ(); driveQ(Bs.co, null, 2); var t = Bs.roam.token;
+        startQ[id] = { at: [t.x, t.y], fw: Bs.roam.fw.slice(), key: RQ.def.key, rec: HQ.cur.at && HQ.cur.at.sq };
+      });
+      var auP = whoQ('aurdinChapel'), stM = flQ.marks.stall.marta, paP = whoQ('papa'), kD = flQ.marks.doors['keeper:kess'];
+      okQ('Aurdin begins where he stands outside Aldwin\'s chapel (' + startQ.aurdin.at + ' = ' + (auP && auP.at) + ', the chapel\'s floor his page\'s "Aldwin\'s chapel floor was free")', !!auP && startQ.aurdin.at.join() === auP.at.join() && startQ.aurdin.key === 'silverton');
+      okQ('Vivian before her mother\'s stall (' + startQ.vivian.at + ', the stall ' + stM + '), facing it (' + startQ.vivian.fw + ')', startQ.vivian.at.join() === [stM[0], stM[1] + 1].join() && startQ.vivian.fw.join() === '0,-1');
+      okQ('Lymen before Papa Urtusk at the Hex\'s front (' + startQ.lymen.at + ', Papa ' + (paP && paP.at) + '), facing him (' + startQ.lymen.fw + ')', !!paP && nearQ(startQ.lymen.at, paP.at) && startQ.lymen.fw.join() === [Math.sign(paP.at[0] - startQ.lymen.at[0]) && !Math.sign(paP.at[1] - startQ.lymen.at[1]) ? Math.sign(paP.at[0] - startQ.lymen.at[0]) : 0, Math.sign(paP.at[1] - startQ.lymen.at[1])].join());
+      okQ('Barley at the door of Kess\'s flop-cellars on the Shaft Rows (' + startQ.barley.at + ', her door ' + kD + '), facing it (' + startQ.barley.fw + ')', !!kD && nearQ(startQ.barley.at, kD) && startQ.barley.at.join() !== kD.join());
+      // 6. KEEPERS OFF THE STREET (RULED, his "Off the street unless it makes NPC sense, the counterless portraits versions when people lean in the door is good"): the eight with
+      // no room inside -- none stands on the street -- and their door their word on their portrait; Venn Hale's door her room, the compound (15, below)
+      var BK = houseQ(HQ.fresh()), eight = ['marin', 'barber', 'mela', 'mical', 'brennan', 'tam', 'kess', 'venhale'], outK = eight.filter(function (id) { return !!folkQ(BK, id); }), atDoorK = [];
+      eight.filter(function (id) { return id !== 'venhale'; }).forEach(function (id) {
+        var tr = (RQ.def.src8.triggers || []).filter(function (t) { return t.id === 'keeper:' + id; })[0]; if (!tr) { atDoorK.push(id + ' NO DOOR'); return; }
+        var g = TQ.fire(BK, tr), up = driveQ(g, upQ, 600), sc = D.top(), sh = up ? sc.sheet : null; offQ(BK); driveQ(g, null, 200);
+        if (sh !== 'pt_' + id) atDoorK.push(id + ' ' + sh);
+      });
+      okQ('none of the eight on the street (' + (outK.length ? 'out: ' + outK.join(', ') : 'none out') + '); seven doors their word on their portrait' + (atDoorK.length ? ' -- NOT: ' + atDoorK.join('; ') : ''), !outK.length && !atDoorK.length && !CQ.AT_DOOR.length);
+      // 7. THE FLOP-HOUSE FINDABLE (his "I didn't finish a shift but the available doors didn't look or talk about flophouse so I went back outside and camped"): the bunkhouse's
+      // door under a bed's sign whose mouseover names it and its price, the mouth camp's first card saying where to sleep, its counter named for what it is
+      HQ.playing = false; HQ.cur = null;
+      var BW = floorQ('?roam=warrens'), dW = RQ.def, thW = dW.marks.doors['keeper:bunkhouse'], kW = thW ? thW[0] + ',' + (thW[1] - 1) : '', nmW = TQ.signName('keeper:bunkhouse'), helloW = (dW.hello || []).join(' ');
+      okQ('the mouth camp: a bed\'s sign over the bunkhouse\'s door (' + kW + ': ' + dW.signs[kW] + ', ' + dW.signDoor[kW] + '); its mouseover "' + nmW.name + '" / "' + nmW.who + '"; the first card: "' + ((dW.hello || []).filter(function (l) { return /Bunkhouse/.test(l); })[0] || '').replace(/\{.\}|\{\/\}/g, '') + '"',
+        dW.signs[kW] === 'bed' && dW.signDoor[kW] === 'keeper:bunkhouse' && /flop for the night/.test(nmW.name) && /1 sp/.test(nmW.who) && /Bunkhouse.*1 sp/.test(helloW));
+      var trW = (dW.src8.triggers || []).filter(function (t) { return t.id === 'keeper:bunkhouse'; })[0], gW = TQ.fire(BW, trW), upW0 = driveQ(gW, upQ, 600), scW = D.top(), askW = upW0 ? readQ(scW).join(' ') : '';
+      okQ('its door: the counter named "' + (scW.o && scW.o.name) + '", "' + askW.slice(0, 120) + '"', upW0 && /flop for the night/.test(scW.o.name) && /A bunk for the night\? \(1 sp/.test(askW)); offQ(BW);
+      BW.roam.flags.shifts = 1; var nmW2 = TQ.signName('keeper:bunkhouse');
+      okQ('a shift worked: the sign says "' + nmW2.who + '"', /free/.test(nmW2.who) && /crew sleep free/.test(nmW2.who));
+      // 8. THE WAY TO THE WARRENS (his "having a difficult time figuring out how to get to the warrens"): the JOURNAL's The Crawler Warrens from the start, its NEXT the feed track;
+      // the town map (L) marks the track where it leaves the town and names it
+      var BJ = houseQ(HQ.fresh()), jJ = CQ.journal(BJ), wJ = jJ.quests.filter(function (q) { return q.id === 'warrens'; })[0], dJ = RQ.def;
+      var feedJ = (dJ.doors || []).filter(function (q) { return /feed track/.test((dJ.wayName || {})[q[0] + ',' + q[1]] || ''); }), saidJ = [], tx0Q = D.text;
+      var cvJ = document.createElement('canvas'); cvJ.width = D.W; cvJ.height = D.H; D.text = function (ctx, s) { saidJ.push(String(s)); return tx0Q.apply(this, arguments); };
+      try { RQ.paintMap(cvJ.getContext('2d'), BJ, 4, 4, 1); } catch (eJ) { saidJ.push('THREW ' + eJ); } D.text = tx0Q;
+      okQ('the JOURNAL in a NEW GAME: ' + jJ.quests.map(function (q) { return q.id; }).join(', ') + '; The Crawler Warrens, NEXT "' + (wJ && wJ.where) + '"', !!wJ && !wJ.done && /feed track/.test(wJ.where) && /east edge/.test(wJ.where));
+      okQ('the town map (L): the feed track\'s ' + feedJ.length + ' squares on the east edge (x ' + feedJ.map(function (q) { return q[0]; }).filter(function (x, i, a) { return a.indexOf(x) === i; }).join('/') + ' of ' + dJ.w + ') marked, "' + (saidJ.filter(function (s) { return /WARRENS/.test(s); })[0] || '') + '" beside them; the walk off it the Warrens\' (M.FEED ' + MQ.FEED + ')',
+        feedJ.length > 0 && feedJ.every(function (q) { return q[0] === dJ.w - 1; }) && feedJ.some(function (q) { return q[0] === MQ.FEED[0] && q[1] === MQ.FEED[1]; }) && saidJ.some(function (s) { return /THE WARRENS/.test(s); }));
+      BJ.roam.flags.tallyMet = 1; var wJ2 = CQ.journal(BJ).quests.filter(function (q) { return q.id === 'warrens'; })[0];
+      okQ('met at the tally-house: done, "' + (wJ2 && wJ2.doneText) + '"', !!wJ2 && wJ2.done);
+      // 9. A BOUT LOST: OUT AT DAVOS KREN'S DOOR, STITCHED (his "kick the party to krenn if a fighter falls (out of the hex and at his shop door - but already serviced)"): the one
+      // who fell at half, the party on his threshold on the street facing his door (the card's loss runs it: mode=hex1022's Talmok, stitched to half)
+      var BL = houseQ(HQ.fresh()), RL = BL.roam, trL = (RQ.def.src8.triggers || []).filter(function (t) { return t.id === 'hex:front'; })[0]; driveQ(TQ.fire(BL, trL), null, 2000);
+      var inL = !!RQ.def.hexIn, uL = RL.members[0]; uL.hp = 1; var gL = XQ.toDavos ? XQ.toDavos(BL, uL) : null; if (gL) driveQ(gL, null, 400);
+      var dvL = RQ.def.marks && RQ.def.marks.doors && RQ.def.marks.doors['leech:davos'];
+      okQ('in the Hex (' + inL + '), a bout lost: out on the street (' + RQ.def.key + ') at Davos Kren\'s door (' + [RL.token.x, RL.token.y] + ' = ' + dvL + '), facing it (' + RL.fw + '); ' + uL.name + ' stitched to ' + uL.hp + '/' + uL.maxhp + ' (the sheet ' + (uL.src && uL.src.hp) + '), the card "' + ((BL.cards || []).map(function (c) { return (c.lines || []).join(' '); }).join(' ') || '').replace(/\{.\}|\{\/\}/g, '').slice(0, 90) + '"',
+        inL && RQ.def.key === 'silverton' && !!dvL && RL.token.x === dvL[0] && RL.token.y === dvL[1] && RL.fw.join() === '0,-1' && uL.hp === Math.max(1, Math.floor(uL.maxhp / 2)) && uL.src.hp === uL.hp && (BL.cards || []).some(function (c) { return /Davos Kren's door/.test((c.lines || []).join(' ')); }));
+      // 10. NO LIGHT UNDER THE ROOST (his "check 'light' being cast in battle or from the menu carrying over to whether they can go in the guano mines"): cast from the menu on
+      // a roost floor, refused; cast in a fight there, let go back on the floor; Dancing Lights, dim, not refused
+      HQ.playing = false; HQ.cur = null;
+      var BR = floorQ('?roam=galleries_g3&flags=cullHired&at=6,10&watch&light=none'), RR0 = BR.roam, aR = RR0.members.filter(function (u) { return u.id === 'aurdin'; })[0], unitOfR = function (id) { return RR0.members.filter(function (u) { return u.id === id || (u.src && (u.src.key || u.src.id) === id); })[0] || null; };
+      BR.cards = []; var refR = BR.menuAct('cast', { h: 'aurdin', sp: 'light', t: 'aurdin' }, unitOfR), cardR = (BR.cards || []).map(function (c) { return (c.lines || []).join(' '); }).join(' ');
+      var dimR = (window.DS.DATA.spells.dancinglights || {}).dim === true;
+      okQ('under the dens\' roost, Light from the menu: refused (' + refR + ', "' + cardR.replace(/\{.\}|\{\/\}/g, '') + '"), no Light on Aurdin (' + !(aR.conds && aR.conds.light) + '); Dancing Lights is dim, lawful there (' + dimR + ')', refR === true && /spook the roost/.test(cardR) && !(aR.conds && aR.conds.light) && dimR);
+      var exhR0 = (aR.src.conds && aR.src.conds.exhaustion && aR.src.conds.exhaustion.n) || 0;
+      var fR = (function () { var g = RQ.encounter(BR, 'steps'), st, v, k = 0; while (k++ < 400 && D.top() === BR) { st = g.next(v); v = undefined; if (st.done) break; if (typeof st.value === 'number' && D.battle) D.battle.t += 1; if (st.value && st.value.prompt) v = st.value.prompt.opts[0].value; } var b = D.top(); if (b === BR) return null; if (b.baking) { b.baking = false; b.enter(); }
+        var au = b.units.filter(function (u) { return u.id === 'aurdin'; })[0]; au.conds.light = { by: 'aurdin' }; D.rules.exhaust(b, au, 2, 'test'); var lvl = au.conds.exhaustion && au.conds.exhaustion.n;
+        D.pop(); b.o.onDone('escaped'); BR.cards = []; driveQ(g, null, 4000); RR0.encIn = 1e9; return { lvl: lvl, cards: (BR.cards || []).map(function (c) { return (c.lines || []).join(' '); }).join(' ') }; })();
+      okQ('a fight in the dens, a Light cast there: back on the floor it is let go (' + !!(fR && !(aR.conds && aR.conds.light)) + ', "' + (fR ? fR.cards.replace(/\{.\}|\{\/\}/g, '').slice(0, 110) : 'no fight') + '")', !!fR && !(aR.conds && aR.conds.light) && /lets the Light go/.test(fR.cards));
+      // 12. EXHAUSTION CARRIES BACK FROM A FLOOR'S FIGHT (his "check fatigue handoffs"): the levels it laid on in the sheet and on the floor's figure, and in what the floor hands back
+      var hmR = RQ.handMsg(BR, 'house', null, null), hR = hmR.party.filter(function (p) { return p.id === 'aurdin'; })[0];
+      okQ('the same fight laid exhaustion ' + (fR && fR.lvl) + ' on Aurdin: on his sheet after (' + ((aR.src.conds.exhaustion || {}).n) + ', from ' + exhR0 + '), on the floor\'s figure (' + ((aR.conds.exhaustion || {}).n) + '), and in the hand-back (' + (hR && hR.sheet.conds.exhaustion && hR.sheet.conds.exhaustion.n) + ')',
+        !!fR && fR.lvl === exhR0 + 2 && aR.src.conds.exhaustion.n === exhR0 + 2 && aR.conds.exhaustion.n === exhR0 + 2 && !!hR && hR.sheet.conds.exhaustion.n === exhR0 + 2);
+      // 11. A FIGHT IS FIFTEEN MINUTES (his "fights should burn 15 minutes instead of an hour of worldtime"): THE WORLD's road fight and the Glowseep's
+      var wsQ = WQ.make('?world&fresh&noenc'); D.scenes.length = 0; D.push(wsQ); wsQ.enter(); var t0W = WQ.state().t; wsQ.afterFight('won', { zone: 'north', list: ['bandit'] }); var t1W = WQ.state().t;
+      okQ('a road fight on THE WORLD: the clock ' + t0W + ' -> ' + t1W + ' (W.FIGHT_HOURS ' + WQ.FIGHT_HOURS + '); the Glowseep\'s fight ' + MQ.SEEP.fightHours + ' of an hour', t1W - t0W === 0.25 && WQ.FIGHT_HOURS === 0.25 && MQ.SEEP.fightHours === 0.25);
+      // 13. THE SIMPLE FIGHT: the mouse's own right button on the root column ends the turn (his "Right-click as 'end turn' in simple fight mode") -- the pad's rclick alone
+      // does not; an attached stirge a target (his "can't seem to target an attached stirge in simple fight with mouse"), and alone it no longer ends every turn by itself
+      var eSQ = WQ.M().hex[WQ.K(WQ.state().at[0], WQ.state().at[1])]; wsQ.fight({ zone: 'north', list: ['stirge', 'bandit'], mirror: false }, eSQ, { simple: true }); var BS = topQ(); D.battle = BS;
+      if (!BS.simple) SQ.setup(BS); SQ.place(BS);
+      var pS = BS.units.filter(function (u) { return u.side === 'party' && !u.familiar; }), stS = BS.units.filter(function (u) { return u.kind === 'stirge'; })[0], bdS = BS.units.filter(function (u) { return u.kind === 'bandit'; })[0], hS = pS[0];
+      hS.conds.attached = { by: stS.id, dc: 13 }; BS.mount(stS, hS); bdS.hp = 0; bdS.dead = true; D.rules.startTurn(hS);
+      var foesS = SQ.foes(BS, hS), autoS = SQ.autoNext(BS, hS), drewS = [], tx1Q = D.text;
+      D.text = function (ctx, s) { drewS.push(String(s)); return tx1Q.apply(this, arguments); }; try { SQ.drawFoes(document.createElement('canvas').getContext('2d'), BS, { x: 0, w: 160, foes: { y: 0, h: 60 } }); } catch (eS) { drewS.push('THREW ' + eS); } D.text = tx1Q;
+      okQ('a stirge attached to ' + hS.name + ' (riding ' + !!stS.riding + ', attached ' + !!stS.attached + '): a target (' + foesS.map(function (w) { return w.kind; }).join(',') + '), named in the foes\' window (' + drewS.filter(function (s) { return /tirge/.test(s); }).join(',') + '), and the turn not ended by itself (' + JSON.stringify(autoS) + ')',
+        foesS.indexOf(stS) >= 0 && autoS === null && drewS.some(function (s) { return /tirge/.test(s); }));
+      var ansS = [], an0S = BS.answer, mo = IQ.mouse, mo0 = { x: mo.x, y: mo.y, click: mo.click, rclick: mo.rclick, rbtn: mo.rbtn, inside: mo.inside, moved: mo.moved };
+      BS.answer = function (c) { ansS.push(c); };
+      var mS = SQ.menu(BS, hS); mS.wait = false; mS.mode = 'cmd'; mo.inside = true; mo.x = 2; mo.y = 2; mo.moved = false; mo.click = false;
+      mo.rclick = true; mo.rbtn = false; SQ.turnInput(BS, hS); var padS = ansS.length; mS.wait = false; mS.mode = 'cmd';
+      mo.rclick = true; mo.rbtn = true; SQ.turnInput(BS, hS); Object.assign(mo, mo0); BS.answer = an0S;
+      okQ('the root column: the pad\'s right press alone (rclick) ends nothing (' + padS + ' answers); the mouse\'s own right button (rbtn) ends the turn (' + JSON.stringify(ansS[0] || null) + ')', padS === 0 && ansS.length === 1 && ansS[0].do === 'end');
+      // 14. A HEALING POTION ON ONE WHO IS DOWN (his "it seems we've inherited the non-SRD 'must have a healer's kit to rez' in the glowseep?"; SRD-clean, RULED 10-17): in the
+      // simple fight a target, and on the Glowseep's floor from the menu it heals and they come round
+      var dnS = pS[1]; dnS.hp = 0; dnS.ko = true; var mS2 = SQ.menu(BS, hS); mS2.wait = false; mS2.mode = 'cmd'; mS2.stack = [];
+      SQ.aimItem(BS, hS, { id: 'potion', name: 'Potion of Healing', use: window.DS.DATA.items.potion.use, cost: 'A', n: 1 }); var candS = (mS2.pick && mS2.pick.cands) || [];
+      okQ('the simple fight\'s potion: ' + dnS.name + ', down, among whom it takes (' + candS.map(function (w) { return w.name + ' ' + w.hp; }).join(', ') + ')', candS.indexOf(dnS) >= 0);
+      D.scenes.length = 0;
+      var BG = floorQ('?roam=glowseep&watch'), RG = BG.roam, vG = RG.members[1], unitOfG = function (id) { return RG.members.filter(function (u) { return u.id === id; })[0] || null; }; (BG.inv = BG.inv || []).push({ id: 'potion', n: 1 }); var potG = function () { return BG.inv.filter(function (s) { return s.id === 'potion'; }).reduce(function (a, s) { return a + s.n; }, 0); }, n0G = potG();
+      vG.hp = 0; vG.ko = true; BG.cards = []; var okG = BG.menuAct('item', { id: 'potion', h: vG.id }, unitOfG), cardG = (BG.cards || []).map(function (c) { return (c.lines || []).join(' '); }).join(' '), leftG = potG();
+      okQ('on the Glowseep\'s floor, a potion to ' + vG.name + ', down: up at ' + vG.hp + '/' + vG.maxhp + ', come round (' + !vG.ko + '), "' + cardG.replace(/\{.\}|\{\/\}/g, '') + '", one potion gone (' + n0G + ' -> ' + leftG + ')', okG && vG.hp > 0 && !vG.ko && /comes round/.test(cardG) && !/a kit first/.test(cardG) && leftG === n0G - 1);
+      // 15. THE COMPOUND, THE STABLES' ROOM (RULED, his "compound as room"): Venn Hale's door the way into Bloodsnout's compound at true scale -- the yard, the barracks along
+      // its back with their cots, the master's house, the training rails -- and her word at her table across the yard's head
+      var BC = houseQ(HQ.fresh()), RC = BC.roam, trC = (RQ.def.src8.triggers || []).filter(function (t) { return t.id === 'keeper:venhale'; })[0];
+      if (trC) driveQ(TQ.fire(BC, trC), null, 2000); var dC = RQ.def, rowsC = dC.rows || [], cotsC = rowsC.join('').split('y').length - 1, cmpC = TQ.COMPOUND;
+      okQ('in at Venn Hale\'s door: ' + dC.name + ' (' + dC.sub + '), ' + (rowsC[0] || '').length + ' x ' + rowsC.length + ' squares (the compound ' + cmpC.w + ' x ' + cmpC.h + ' ft), ' + cotsC + ' cots in the barracks, her at ' + (dC.keeper && dC.keeper.at) + ' across from ' + dC.across,
+        dC.room === 'keeper:venhale' && /Stables/.test(dC.name) && (rowsC[0] || '').length === Math.round(cmpC.w / 5) && rowsC.length === Math.round(cmpC.h / 5) && cotsC >= 10 && !!dC.across && !!folkQ(BC, 'venhale'));
+      var trVC = (dC.src8.triggers || []).filter(function (t) { return t.id === 'talk:venhale'; })[0], gVC = TQ.fire(BC, trVC), upVC = driveQ(gVC, upQ, 2000), scVC = D.top(), wVC = upVC ? readQ(scVC) : [];
+      okQ('her word there, on her portrait (' + (scVC && scVC.sheet) + ', ' + (scVC && scVC.o && scVC.o.place) + '): "' + String(wVC[0]).slice(0, 50) + '"', upVC && scVC.sheet === 'pt_venhale' && /fighters' stables/.test(wVC.join(' ')));
+      offQ(BC); driveQ(gVC, null, 200);
+    } catch (eQ) { repQ.errors.push(String(eQ && eQ.stack || eQ).slice(0, 900)); }
+    D.store.get = stGQ; D.store.set = stSQ; window.DS.autoPicks = apQ; if (D.house) { D.house.playing = false; D.house.cur = null; }
+    try { if (sk0Q != null) window.localStorage.setItem(SQ.KEY, sk0Q); } catch (eK2) { }
+    var preQ = document.createElement('pre'); preQ.id = 'out'; preQ.textContent = 'BENCH16 ' + JSON.stringify(repQ);
+    document.body.appendChild(preQ);
+    return;
+  }
   // HIS NOTES ON SILVERTON AND THE HEX, 10-28 (mode=housenotes1028; the house seat, started by the lanes desk on Griz's "Start the seat"; the house lane's 10-28 section,
   // items 2, 3 and 5, his words there). Every choice pressed by a click on its drawn box, as house1022 does
   if (get('mode', '') === 'housenotes1028') {
@@ -3580,7 +3751,7 @@
       okHn('a word at each hatch from the concourse: E facing it (Higertha ' + hH.e + ', the concession ' + hC.e + '), a click on it (' + hH.click + ', ' + hC.click + '), and a click on them walks to beside the hatch (' + hH.walk + ', ' + hC.walk + ')', hH.e && hC.e && hH.click && hC.click && hH.walk && hC.walk);
       R0 = RH; RH.silver = 10; BH.inv = (BH.inv || []).filter(function (s) { return s.id !== 'batpie'; });
       var tH = talkHn(BH, 'higertha'), sH = tH.sc, qH = sH.wait && sH.wait.ask ? sH.wait.ask.join(' ') : ''; goHn(sH, 'opt', 'THE SHELVES'); var shH = sH.shopId, plH = sH.o.place; goHn(sH, 'back'); goHn(sH, 'opt', 'LEAVE'); driveHn(tH.g, null, 200);
-      okHn('Higertha\'s hatch: "' + qH + '" with ' + 'THE SHELVES / LEAVE at once, no OK; the shelves Mama\'s (' + shH + ', ' + plH + '); no portrait, no words of hers', /Higertha works Mama's hatch/.test(qH) && shH === 'lucia' && plH === 'Mama\'s Pharmakaiea' && !sH.sheet && D.top() === BH);
+      okHn('Higertha\'s hatch: "' + qH + '" with ' + 'THE SHELVES / LEAVE at once, no OK; the shelves Mama\'s (' + shH + ', ' + plH + '); no portrait, no words of hers', /Higertha works Mama's hatch/.test(qH) && shH === 'higertha' && plH === 'Mama\'s Pharmakaiea, the hatch' && !sH.sheet && D.top() === BH); // (her own shelf since 10-28 later: mode=housefix1028)
       var tC = talkHn(BH, 'concession'), sC = tC.sc, qC = sC.wait && sC.wait.ask ? sC.wait.ask.join(' ') : ''; goHn(sC, 'opt', 'THE SHELVES'); var rowsC = sC.shop ? sC.rows().map(function (r) { return r.label + ' ' + r.right; }) : [], sellOff = (sC.buttons().filter(function (b) { return b.go === 'tab' && b.tab === 'sell'; })[0] || {}).off;
       clickHn(sC, sC.buttons().filter(function (b) { return b.go === 'row' && b.label === 'Bat-Wing Pie'; })[0]); if (sC.sub && sC.sub.kind === 'qty') goHn(sC, 'qok'); var pieN = (BH.inv.filter(function (s) { return s.id === 'batpie'; })[0] || { n: 0 }).n;
       goHn(sC, 'back'); goHn(sC, 'opt', 'LEAVE'); driveHn(tC.g, null, 200);
@@ -3998,18 +4169,20 @@
       // (a door at a lane's dead end -- two open squares round it at most: 10-22, the doors on their own houses -- has its keeper where the lane opens, a few squares off)
       var laneEndW = function (dq) { var n = 0; for (var oy = -1; oy <= 1; oy++) for (var ox = -1; ox <= 1; ox++) if ((ox || oy) && '.,='.indexOf((D.roam.def.rows[dq[1] + oy] || '').charAt(dq[0] + ox) || '#') >= 0) n++; return n <= 2; };
       var atDoorW = CW.AT_DOOR.map(function (k) { var u = B.units.filter(function (x) { return x.npc === k.id; })[0], dq = D.roam.def.marks.doors[k.door], d0 = u && dq ? Math.max(Math.abs(u.x - dq[0]), Math.abs(u.y - dq[1])) : 99; return { k: k, u: u, d: d0, ok: d0 === 1 || (d0 <= 4 && !!dq && laneEndW(dq)) }; });
-      okW('at their doors on the street, in their own figures facing south: ' + atDoorW.map(function (a) { return a.k.id + (a.u ? ' ' + a.u.sheet + ' at ' + a.u.x + ',' + a.u.y + ' (' + a.d + ' from the door)' : ' MISSING'); }).join('; '),
-        atDoorW.every(function (a) { return a.u && a.u.sheet === CW.FIG[a.k.id] && a.ok && a.u.facing === 0 && a.u.holdFacing && !!trigW('talk:' + a.k.id); }) &&
-        ['marin', 'barber', 'mela', 'mical', 'brennan', 'venhale', 'tam', 'kess'].every(function (id) { return atDoorW.some(function (a) { return a.k.id === id && a.u; }); })); // (Mela and Mical since 10-21 night, "got 3 more south idles in Fresh too"; Brennan and Venn Hale 10-22, "more NPC art is in"; Tam Vere 10-28, the art desk's re-roll; Kess 10-28, ART-108)
+      // (the eight stood at their doors on the street from 10-21 to 10-28 -- Mela and Mical since 10-21 night, Brennan and Venn Hale 10-22, Tam Vere and Kess 10-28; inside since 10-28 later,
+      // RULED, Griz: "Off the street unless it makes NPC sense, the counterless portraits versions when people lean in the door is good" -- mode=housefix1028)
+      var inW8 = ['marin', 'barber', 'mela', 'mical', 'brennan', 'venhale', 'tam', 'kess'], outW8 = inW8.filter(function (id) { return B.units.some(function (x) { return x.npc === id; }) || !!trigW('talk:' + id); });
+      okW('the eight keepers with no room off the street, each door their word on their portrait (' + (outW8.length ? 'still out: ' + outW8.join(', ') : 'none out') + '; ' + inW8.filter(function (id) { return CW.takes(id); }).length + ' of 8 by the counter\'s screen)',
+        !atDoorW.length && !outW8.length && inW8.every(function (id) { return CW.takes(id) && !!D.roam.def.marks.doors['keeper:' + id]; }));
       // Korvin's waistcoat dyed off Percy's brown at the cut (RULED 10-22, Griz: "Go for recolor without reroll"): his portrait and his town figure carry the dye the
       // cutters put on them (the colour itself is the eyes row's), Percy's none; and the portraits' show takes the three, Korvin by name with his first-game line
       var rcW = function (n) { var r = D.SHEETS[n] && D.SHEETS[n].recolour; return r ? r.hue + '/' + r.sat : 'none'; }, psK = CW.portraitShow('?portraits&who=brennan,korvin,venhale'), kwW = CW.wordsOf('korvin');
       okW('Korvin dyed at the cut (pt_korvin ' + rcW('pt_korvin') + ', korvin_p1 ' + rcW('korvin_p1') + ', pt_percy ' + rcW('pt_percy') + '); the portraits\' show takes ' + psK.ids.join(', ') + ', Korvin\'s word "' + String(kwW[0]).slice(0, 34) + '..."',
         rcW('pt_korvin') === '215/0.22' && rcW('korvin_p1') === '215/0.22' && rcW('pt_percy') === 'none' && rcW('percy_p1') === 'none' && psK.ids.join() === 'brennan,korvin,venhale' && /Book made openly on fights/.test(kwW[0]) && CW.VENDORS.korvin.name === 'Korvin');
-      var mW = atDoorW[0].u, tkM = [R0.token.x, R0.token.y]; R0.token.x = mW.x + 1; R0.token.y = mW.y + 1; var wouldM = D.spr.facingFor(R0.token.x - mW.x, R0.token.y - mW.y);
-      var gMa = TW.fire(B, trigW('talk:marin')); driveW(gMa, upW, 200); var scMa = D.top(), wMa = upW() ? readW(scMa) : []; driveW(gMa, null, 200); R0.token.x = tkM[0]; R0.token.y = tkM[1];
-      okW('Marin Voss spoken to from a diagonal at her door: her counter screen on her portrait (' + (scMa && scMa.sheet) + '), her first-game word ("' + String(wMa[0]).slice(0, 40) + '..."), and she still faces south (she would have turned to facing ' + wouldM + ')',
-        scMa && scMa.sheet === 'pt_marin' && /Common clothes/.test(wMa.join(' ')) && /is to come/.test(wMa.join(' ')) && !upW() && mW.facing === 0 && wouldM !== 0);
+      // (Marin Voss spoken to at her door: from 10-21 she stood beside it and was spoken to there, facing south; inside since 10-28 later, her word at the door on her portrait)
+      var drMa = trigW('keeper:marin'), gMa = drMa ? TW.fire(B, drMa) : null; if (gMa) driveW(gMa, upW, 200); var scMa = D.top(), wMa = upW() ? readW(scMa) : []; if (gMa) driveW(gMa, null, 200);
+      okW('Marin Voss at her door, inside since 10-28 later: her counter screen on her portrait (' + (scMa && scMa.sheet) + '), her first-game word ("' + String(wMa[0]).slice(0, 40) + '..."), no figure of hers on the street (' + !B.units.some(function (u) { return u.npc === 'marin'; }) + ')',
+        !!drMa && scMa && scMa.sheet === 'pt_marin' && /Common clothes/.test(wMa.join(' ')) && /is to come/.test(wMa.join(' ')) && !upW() && !B.units.some(function (u) { return u.npc === 'marin'; }));
       var inWin = inW(B, 'warp:winters'); okW('in at Winters\' door (warp:winters): his room, ' + D.roam.def.name, inWin && D.roam.def.keeper.id === 'winters');
       var kuW = B.units.filter(function (u) { return u.npc === 'winters'; })[0];
       okW('behind his counter in his own figure (' + (kuW && kuW.sheet) + '), facing south at rest (facing ' + (kuW && kuW.facing) + ', holdFacing ' + (kuW && kuW.holdFacing) + ') and free to turn -- drawn in all eight facings since 10-28 (ART-121, `833ca06`; RULED, his "Keep turning")', kuW && kuW.sheet === 'winters_p1' && kuW.facing === 0 && !kuW.holdFacing);
@@ -4037,9 +4210,9 @@
       driveW(g1, null, 200);
       okW('a job in hand ends the talk: the screen gone, the floor again', !upW() && sc.done && D.top() === B);      var jn = CW.journal(B), qE = jn.quests.filter(function (q) { return q.id === 'errands'; })[0] || jn.quests[0];
       // (Company first since 10-28, the first game's order -- done here, the four walking: js/company.js)
-      okW('the house\'s JOURNAL: ' + qE.name + ', open, pinned, NEXT: ' + qE.where + ' (Company before it, done: ' + jn.quests.map(function (q) { return q.id + (q.done ? ' done' : ''); }).join(', ') + ')', jn.quests.map(function (q) { return q.id; }).join() === 'company,errands' && jn.quests[0].done && qE.id === 'errands' && !qE.done && jn.pin === 'errands' && /Androit/.test(qE.where));
+      okW('the house\'s JOURNAL: ' + qE.name + ', open, pinned, NEXT: ' + qE.where + ' (Company before it, done: ' + jn.quests.map(function (q) { return q.id + (q.done ? ' done' : ''); }).join(', ') + ')', jn.quests.map(function (q) { return q.id; }).join() === 'company,errands,warrens' && jn.quests[0].done && qE.id === 'errands' && !qE.done && jn.pin === 'errands' && /Androit/.test(qE.where));
       D.ui.openMenu(B); var hostW = B.menu && B.menu.m && B.menu.m.host, infW = hostW && hostW.info();
-      okW('the floor\'s M menu has the JOURNAL and the purse (' + (infW && infW.silver) + ' sp, renown ' + (infW && infW.renown) + ', pinned ' + (infW && infW.pin) + ')', !!hostW && typeof hostW.journal === 'function' && hostW.journal().quests.length === 2 && infW.silver === R0.silver && infW.pin === qE.name);
+      okW('the floor\'s M menu has the JOURNAL and the purse (' + (infW && infW.silver) + ' sp, renown ' + (infW && infW.renown) + ', pinned ' + (infW && infW.pin) + ')', !!hostW && typeof hostW.journal === 'function' && hostW.journal().quests.length === 3 && infW.silver === R0.silver && infW.pin === qE.name);
       B.menu = null;
       var pin1 = CW.pinned(st);
       okW('the pinned marker\'s door: ' + (pin1 && pin1.door) + ' (in his room it points at the way out)', pin1 && pin1.door === 'keeper:androit');
@@ -4149,7 +4322,7 @@
       var askLu = scLu && scLu.wait && scLu.wait.ask ? scLu.wait.opts.join() : ''; if (upW()) goW(scLu, 'opt', 'THE SHELVES'); var luRows = upW() && scLu.shop ? scLu.rows().map(function (r) { return r.id; }) : [];
       if (upW()) { goW(scLu, 'back'); goW(scLu, 'opt', 'LEAVE'); } driveW(gLu, null, 200);
       okW('Lucia in her booth beside the Hex in her own figure (' + (kuLu && kuLu.sheet) + '), on her portrait (' + scLu.sheet + ', named ' + scLu.o.name + '): "' + String(wLu[0]).slice(0, 40) + '...", ' + askLu + ', her first-game shelf ' + luRows.length + ' of ' + window.DS.DATA.shops.lucia.items.length,
-        kuLu && kuLu.sheet === 'lucia_p1' && kuLu.facing === 0 && scLu.sheet === 'pt_lucia' && scLu.o.name === 'Lucia' && wLu[0] === window.DS.DATA.shops.lucia.greeting && askLu === 'THE SHELVES,LEAVE' && luRows.join() === window.DS.DATA.shops.lucia.items.join() && !upW());
+        kuLu && kuLu.sheet === 'lucia_p1' && kuLu.facing === 0 && scLu.sheet === 'pt_lucia' && scLu.o.name === 'Lucia' && wLu[0] === D.counter.GREET.lucia && askLu === 'THE SHELVES,LEAVE' && luRows.join() === window.DS.DATA.shops.lucia.items.join() && !upW());
       // the last six of art-wanted section 20 (10-21 evening, Griz to the lanes desk: "we have shopkeep NPCs in Fresh"): each behind their counter in their own figure, on
       // their portrait; Vilar, Marko Thorne, Lisbet Crane and Percy on their first-game shops (their stock on the shelves), Cassia's inn speaking (its rooms to come), Ned
       // Halloway beside Percy behind the one counter (the screen shows Percy's face), no word at the counter of his own
@@ -4189,9 +4362,10 @@
       var gBr2 = TW.fire(B, trigW('keeper:brennan')); driveW(gBr2, upW, 200); var scBr2 = upW() ? D.top() : null, wBr2 = scBr2 ? readW(scBr2) : []; driveW(gBr2, null, 200);
       okW('Brennan again, the purse paid: his own first-game word ("' + String(wBr2[0]).slice(0, 40) + '..."), on his portrait, and "' + String(wBr2[wBr2.length - 1]).replace(/\{.\}|\{\/\}/g, '') + '"',
         scBr2 && scBr2.sheet === 'pt_brennan' && wBr2.slice(0, 2).join('|') === window.DS.DATA.npcs.brennan.talk[2].say.join('|') && /buying and selling -- is to come/.test(wBr2.join(' ')) && !upW());
-      var gVh = fireW(B, 'talk:venhale'), scVh = upW() ? D.top() : null, wVh = scVh ? readW(scVh) : []; driveW(gVh, null, 200);
-      okW('Venn Hale at the fighters\' stables, spoken to at her figure: on her portrait (' + (scVh && scVh.sheet) + ', named ' + (scVh && scVh.o.name) + '), "' + String(wVh[0]).slice(0, 40) + '...", the Hex card\'s rumour heard, no counter line',
-        scVh && scVh.sheet === 'pt_venhale' && scVh.o.name === 'Venn Hale' && wVh.join('|') === window.DS.DATA.npcs.venhale.talk[0].say.join('|') && R0.flags['heard:r-hexcard'] === 1 && !/is to come/.test(wVh.join(' ')) && !upW());
+      // (in at her door since 10-28 later: the compound is the stables' room, RULED "compound as room" -- mode=housefix1028)
+      var inVh = inW(B, 'keeper:venhale'), dVh = D.roam.def, gVh = fireW(B, 'talk:venhale'), scVh = upW() ? D.top() : null, wVh = scVh ? readW(scVh) : []; if (gVh) driveW(gVh, null, 200); outW(B);
+      okW('Venn Hale at the fighters\' stables, in her room, the compound (' + (dVh && dVh.name + ', ' + dVh.rows[0].length + ' x ' + dVh.rows.length) + '): on her portrait (' + (scVh && scVh.sheet) + ', named ' + (scVh && scVh.o.name) + '), "' + String(wVh[0]).slice(0, 40) + '...", the Hex card\'s rumour heard, no counter line',
+        inVh && dVh.room === 'keeper:venhale' && scVh && scVh.sheet === 'pt_venhale' && scVh.o.name === 'Venn Hale' && wVh.join('|') === window.DS.DATA.npcs.venhale.talk[0].say.join('|') && R0.flags['heard:r-hexcard'] === 1 && !/is to come/.test(wVh.join(' ')) && !upW());
       // Marta Venn and Madame Ondine Vess (10-22, the desk's relay of Griz's "more NPC in fresh"): Marta at her stalls on the street in her own figure, on her portrait,
       // her first-game word with Vivian hired and not the lead (her pies since 10-22, mode=house1022: no wings, no asking); Madame Ondine Vess by name in the portraits' show, standing nowhere yet; Tam Vere held
       var kuMt = B.units.filter(function (u) { return u.npc === 'marta'; })[0], gMt = fireW(B, 'talk:marta'), scMt = upW() ? D.top() : null, wMt = scMt ? readW(scMt) : []; if (scMt && scMt.wait && scMt.wait.ask) goW(scMt, 'opt', 'LEAVE'); driveW(gMt, null, 200); // (her word, then her hot meal's offer since 10-28: LEAVE -- mode=housenotes1028)

@@ -315,7 +315,10 @@
   S.acts = function (u) { var T = T_(u); return T.action > 0 || T.attacksLeft > 0 || T.hasteAction > 0; };
   S.cmd = function (B, u, id) { return B.commands(u).filter(function (c) { return c.id === id; })[0] || null; };
   function live(w) { return G.standing(w) && !w.object && !w.left && !w.ethereal; }
-  S.foes = function (B, u) { return B.units.filter(function (w) { return G.hostile(u, w) && live(w) && !w.riding; }).sort(function (a, b) { var ha = S.homeOf(B, a), hb = S.homeOf(B, b); return (ha[0] + ha[1]) - (hb[0] + hb[1]) || (hb[0] - hb[1]) - (ha[0] - ha[1]); }); }; // (top of the screen first)
+  // (a rider is no target of its own -- it goes with the one it rides -- but one attached to its prey is: an attached stirge, battle.js mount -- 10-28 later, his "can't seem to
+  // target an attached stirge in simple fight with mouse"; a lone one had emptied the list, and autoNext ended every hero's turn)
+  function aimable(w) { return !w.riding || !!w.attached; }
+  S.foes = function (B, u) { return B.units.filter(function (w) { return G.hostile(u, w) && live(w) && aimable(w); }).sort(function (a, b) { var ha = S.homeOf(B, a), hb = S.homeOf(B, b); return (ha[0] + ha[1]) - (hb[0] + hb[1]) || (hb[0] - hb[1]) - (ha[0] - ha[1]); }); }; // (top of the screen first)
   S.friends = function (B, u, down) { return B.units.filter(function (w) { return w.side === u.side && G.present(w) && !w.object && !w.left && !w.familiar && (down || w.hp > 0); }); };
   function nearestFoe(B, u, t) { var fs = S.foes(B, u); if (t) fs.sort(function (a, b) { return G.dist(t, a) - G.dist(t, b); }); return fs[0] || null; }
   // the action spent, is a bonus action (or ACTION SURGE) still worth the menu? (his "yes to the simple fight leans": Cunning Action and Healing Word after the
@@ -425,7 +428,9 @@
   S.aimItem = function (B, u, e) {
     var fx = e.use && e.use.effect;
     if (fx === 'bucket' || fx === 'light' || fx === 'fortify') return S.send(B, u, S.itemCmd(B, u, e, u));
-    var list = fx === 'damage' || fx === 'mirror' ? S.foes(B, u) : fx === 'revive' ? S.friends(B, u, true).filter(function (w) { return w.hp <= 0; }) : S.friends(B, u);
+    // (a healing potion to one who is down too: it heals them and they come round, as on the grid -- battle.js itemOk; 10-28 later, his "it seems we've inherited the non-SRD
+    // 'must have a healer's kit to rez' in the glowseep?")
+    var list = fx === 'damage' || fx === 'mirror' ? S.foes(B, u) : fx === 'revive' ? S.friends(B, u, true).filter(function (w) { return w.hp <= 0; }) : fx === 'heal' ? S.friends(B, u, true) : S.friends(B, u);
     S.pickFrom(B, u, e.name.toUpperCase(), list, function (t) { return S.itemCmd(B, u, e, t); });
   };
   // ---- SKILL: the grid's commands with no walk in them (battle.js commands) -- a feature aimed at one creature picks it
@@ -513,6 +518,9 @@
     if (mo.click) { if (hb) return S.back(B, u); if (hr) { m.sel = hr.i; return choose(B, u, rows[hr.i]); } }
     if (I.pressed('a')) return choose(B, u, rows[m.sel]);
     if ((I.pressed('b') || mo.rclick) && m.mode === 'list') return S.back(B, u);
+    // the mouse's own right button on the root column ends the turn (10-28 later, his "Right-click as 'end turn' in simple fight mode": rbtn, not rclick, which the pad's INFO sets
+    // too -- js/core.js); in a list it backs out, as above
+    if (mo.rbtn && m.mode === 'cmd') { B.simple.last[u.id] = m.sel; D.sfx('confirm'); return S.send(B, u, { do: 'end' }); }
   };
   var in0 = UI.input;
   UI.input = function (B, req) {
@@ -673,7 +681,7 @@
   // the foes' window between: their names, the first game's way (a name and how many)
   S.drawFoes = function (ctx, B, L) {
     var groups = {}, order = [], n = Math.max(0, Math.floor((L.foes.h - 8) / 11));
-    B.units.forEach(function (w) { if (w.side !== 'foe' || !live(w) || w.riding) return; var nm = B.shortName ? B.shortName(w) : w.name; if (!groups[nm]) { groups[nm] = 0; order.push(nm); } groups[nm]++; });
+    B.units.forEach(function (w) { if (w.side !== 'foe' || !live(w) || !aimable(w)) return; var nm = B.shortName ? B.shortName(w) : w.name; if (!groups[nm]) { groups[nm] = 0; order.push(nm); } groups[nm]++; });
     order.slice(0, n).forEach(function (nm, i) { var y = L.foes.y + 5 + i * 11; D.text(ctx, fit(nm, L.w - 34), L.x + 7, y, '#f0b8a8'); if (groups[nm] > 1) D.text(ctx, 'x' + groups[nm], L.x + L.w - 7, y, '#c8d0e8', 'right'); });
   };
   var TAGS = { prone: 'PRONE', grappled: 'HELD', restrained: 'HELD', poisoned: 'POISON', frightened: 'FEAR', charmed: 'CHARM', paralyzed: 'PARA', stunned: 'STUN', blinded: 'BLIND', invisible: 'INVIS', hidden: 'HID', blessed: 'BLESS', asleep: 'SLEEP', exhaustion: 'EXH', dodge: 'DODGE', raging: 'RAGE', hasted: 'HASTE', slowed: 'SLOW' };
