@@ -1,0 +1,96 @@
+{
+ "image": "art/pt_kael.png",
+ "fw": 206,
+ "fh": 158,
+ "ax": 110,
+ "ay": 155,
+ "top": 155,
+ "portrait": true,
+ "anims": {
+  "idle": {
+   "y": 0,
+   "fw": 206,
+   "fh": 158,
+   "ax": 110,
+   "ay": 155,
+   "frames": 6,
+   "fps": 3,
+   "ledge": [
+    false,
+    false,
+    false,
+    false,
+    false,
+    false
+   ]
+  },
+  "attentive": {
+   "y": 158,
+   "fw": 206,
+   "fh": 158,
+   "ax": 110,
+   "ay": 155,
+   "frames": 1,
+   "fps": 1,
+   "ledge": [
+    false
+   ]
+  },
+  "welcoming": {
+   "y": 316,
+   "fw": 206,
+   "fh": 158,
+   "ax": 110,
+   "ay": 155,
+   "frames": 1,
+   "fps": 1,
+   "ledge": [
+    false
+   ]
+  },
+  "skeptical": {
+   "y": 474,
+   "fw": 206,
+   "fh": 158,
+   "ax": 110,
+   "ay": 155,
+   "frames": 1,
+   "fps": 1,
+   "ledge": [
+    false
+   ]
+  },
+  "concerned": {
+   "y": 632,
+   "fw": 206,
+   "fh": 158,
+   "ax": 110,
+   "ay": 155,
+   "frames": 1,
+   "fps": 1,
+   "ledge": [
+    false
+   ]
+  },
+  "work": {
+   "y": 790,
+   "fw": 206,
+   "fh": 158,
+   "ax": 110,
+   "ay": 155,
+   "frames": 6,
+   "fps": 4,
+   "ledge": [
+    true,
+    true,
+    true,
+    true,
+    true,
+    true
+   ]
+  }
+ },
+ "art": "ART-105",
+ "door": "talk:kael",
+ "source": "deep16/_src/kael/ART-105 (the art desk's ART-105, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
+}

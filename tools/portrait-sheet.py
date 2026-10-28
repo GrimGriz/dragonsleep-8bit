@@ -94,6 +94,14 @@ PEOPLE = {
     # drew first is in _src/tam/superseded/, never cut
     'tam': ('tam/ART-100', 'ART-100', 'keeper:tam', {'bevel': (6,), 'avoid': ['red', 'fire']}),   # (her work's counter top bevelled, as Aldwin's stills; her rust apron
     # snapped in part to the reds, a stain: left out, it keeps to leather and skin)
+    # the night crews' five on the shaft rows (10-28, the second cutter seat: the art desk's ART-104 to ART-108, "new identities" from their original briefs on
+    # Griz's word): Gull of the day-labor corner, Kael of the timber yard, Brennock the renderer-knacker (not Brennan), Vera the rag-and-bone, Kess of the flop-cellars
+    # (not Kessler)
+    'gull': ('gull/ART-104', 'ART-104', 'talk:gull', {'gap': {6: 3}, 'pxjoin': (6,), 'bevel': (6,)}),   # (his work: the hand pointing off-panel in 6 reaches into 5's box, as Ondine's)
+    'kael': ('kael/ART-105', 'ART-105', 'talk:kael', {'bevel': (6,)}),
+    'brennock': ('brennock/ART-106', 'ART-106', 'talk:brennock', {'bevel': (6,)}),
+    'vera': ('vera/ART-107', 'ART-107', 'talk:vera', {'bevel': (6,)}),
+    'kess': ('kess/ART-108', 'ART-108', 'keeper:kess', {'bevel': (6,)}),
 }
 
 

@@ -1,0 +1,96 @@
+{
+ "image": "art/pt_brennock.png",
+ "fw": 179,
+ "fh": 157,
+ "ax": 100,
+ "ay": 154,
+ "top": 154,
+ "portrait": true,
+ "anims": {
+  "idle": {
+   "y": 0,
+   "fw": 179,
+   "fh": 157,
+   "ax": 100,
+   "ay": 154,
+   "frames": 6,
+   "fps": 3,
+   "ledge": [
+    false,
+    false,
+    false,
+    false,
+    false,
+    false
+   ]
+  },
+  "attentive": {
+   "y": 157,
+   "fw": 179,
+   "fh": 157,
+   "ax": 100,
+   "ay": 154,
+   "frames": 1,
+   "fps": 1,
+   "ledge": [
+    false
+   ]
+  },
+  "welcoming": {
+   "y": 314,
+   "fw": 179,
+   "fh": 157,
+   "ax": 100,
+   "ay": 154,
+   "frames": 1,
+   "fps": 1,
+   "ledge": [
+    false
+   ]
+  },
+  "skeptical": {
+   "y": 471,
+   "fw": 179,
+   "fh": 157,
+   "ax": 100,
+   "ay": 154,
+   "frames": 1,
+   "fps": 1,
+   "ledge": [
+    false
+   ]
+  },
+  "concerned": {
+   "y": 628,
+   "fw": 179,
+   "fh": 157,
+   "ax": 100,
+   "ay": 154,
+   "frames": 1,
+   "fps": 1,
+   "ledge": [
+    false
+   ]
+  },
+  "work": {
+   "y": 785,
+   "fw": 179,
+   "fh": 157,
+   "ax": 100,
+   "ay": 154,
+   "frames": 6,
+   "fps": 4,
+   "ledge": [
+    true,
+    true,
+    true,
+    true,
+    true,
+    true
+   ]
+  }
+ },
+ "art": "ART-106",
+ "door": "talk:brennock",
+ "source": "deep16/_src/brennock/ART-106 (the art desk's ART-106, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
+}

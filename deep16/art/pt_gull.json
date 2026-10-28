@@ -1,0 +1,96 @@
+{
+ "image": "art/pt_gull.png",
+ "fw": 221,
+ "fh": 156,
+ "ax": 124,
+ "ay": 153,
+ "top": 153,
+ "portrait": true,
+ "anims": {
+  "idle": {
+   "y": 0,
+   "fw": 221,
+   "fh": 156,
+   "ax": 124,
+   "ay": 153,
+   "frames": 6,
+   "fps": 3,
+   "ledge": [
+    true,
+    true,
+    true,
+    true,
+    true,
+    true
+   ]
+  },
+  "attentive": {
+   "y": 156,
+   "fw": 221,
+   "fh": 156,
+   "ax": 124,
+   "ay": 153,
+   "frames": 1,
+   "fps": 1,
+   "ledge": [
+    true
+   ]
+  },
+  "welcoming": {
+   "y": 312,
+   "fw": 221,
+   "fh": 156,
+   "ax": 124,
+   "ay": 153,
+   "frames": 1,
+   "fps": 1,
+   "ledge": [
+    true
+   ]
+  },
+  "skeptical": {
+   "y": 468,
+   "fw": 221,
+   "fh": 156,
+   "ax": 124,
+   "ay": 153,
+   "frames": 1,
+   "fps": 1,
+   "ledge": [
+    true
+   ]
+  },
+  "concerned": {
+   "y": 624,
+   "fw": 221,
+   "fh": 156,
+   "ax": 124,
+   "ay": 153,
+   "frames": 1,
+   "fps": 1,
+   "ledge": [
+    true
+   ]
+  },
+  "work": {
+   "y": 780,
+   "fw": 221,
+   "fh": 156,
+   "ax": 124,
+   "ay": 153,
+   "frames": 6,
+   "fps": 4,
+   "ledge": [
+    true,
+    true,
+    true,
+    true,
+    true,
+    true
+   ]
+  }
+ },
+ "art": "ART-104",
+ "door": "talk:gull",
+ "source": "deep16/_src/gull/ART-104 (the art desk's ART-104, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
+}

@@ -1937,6 +1937,31 @@
 "source": "deep16/_src/brennan/ART-87/ART-87_HEAD-2_PAGE-1.png (the art desk's south idle, 10-21), cut by tools/keeper-town-sheet.py",
 "door": "keeper:brennan"
 },
+"brennock_p1": {
+"image": "art/brennock_p1.png?v=4b25d5b342",
+"fw": 28,
+"fh": 53,
+"ax": 15,
+"ay": 51,
+"top": 49,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 28,
+"fh": 53,
+"ax": 15,
+"ay": 51,
+"frames": 14,
+"fps": 4,
+"drawn": [
+0
+],
+"under": "crewman_p1"
+}
+},
+"source": "deep16/_src/brennock/ART-106/ART-106_HEAD-2_PAGE-1.png (the art desk's south idle, 10-21), cut by tools/keeper-town-sheet.py",
+"door": "talk:brennock"
+},
 "broodmother_p1": {
 "image": "art/broodmother_p1.png?v=7916acc02b",
 "fw": 176,
@@ -5785,6 +5810,31 @@
 }
 }
 },
+"gull_p1": {
+"image": "art/gull_p1.png?v=73f8ce7468",
+"fw": 32,
+"fh": 53,
+"ax": 17,
+"ay": 51,
+"top": 49,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 32,
+"fh": 53,
+"ax": 17,
+"ay": 51,
+"frames": 14,
+"fps": 4,
+"drawn": [
+0
+],
+"under": "crewman_p1"
+}
+},
+"source": "deep16/_src/gull/ART-104/ART-104_HEAD-2_PAGE-1.png (the art desk's south idle, 10-21), cut by tools/keeper-town-sheet.py",
+"door": "talk:gull"
+},
 "halldor_p0": {
 "image": "art/halldor_p0.png?v=fc08c8e4b3",
 "fw": 64,
@@ -6537,6 +6587,31 @@
 }
 }
 },
+"kael_p1": {
+"image": "art/kael_p1.png?v=adf2574a2a",
+"fw": 36,
+"fh": 53,
+"ax": 19,
+"ay": 51,
+"top": 49,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 36,
+"fh": 53,
+"ax": 19,
+"ay": 51,
+"frames": 14,
+"fps": 4,
+"drawn": [
+0
+],
+"under": "crewman_p1"
+}
+},
+"source": "deep16/_src/kael/ART-105/ART-105_HEAD-2_PAGE-1.png (the art desk's south idle, 10-21), cut by tools/keeper-town-sheet.py",
+"door": "talk:kael"
+},
 "kasten_p1": {
 "image": "art/kasten_p1.png?v=2865da9fae",
 "fw": 37,
@@ -6852,6 +6927,31 @@
 "fps": 8
 }
 }
+},
+"kess_p1": {
+"image": "art/kess_p1.png?v=917e72ba9e",
+"fw": 30,
+"fh": 53,
+"ax": 16,
+"ay": 51,
+"top": 49,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 30,
+"fh": 53,
+"ax": 16,
+"ay": 51,
+"frames": 14,
+"fps": 4,
+"drawn": [
+0
+],
+"under": "crewman_p1"
+}
+},
+"source": "deep16/_src/kess/ART-108/ART-108_HEAD-2_PAGE-1.png (the art desk's south idle, 10-21), cut by tools/keeper-town-sheet.py",
+"door": "keeper:kess"
 },
 "kessler_p1": {
 "image": "art/kessler_p1.png?v=7a88703a66",
@@ -11390,6 +11490,102 @@ false
 "door": "keeper:brennan",
 "source": "deep16/_src/brennan/ART-87 (the art desk's ART-87, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
 },
+"pt_brennock": {
+"image": "art/pt_brennock.png?v=ec2aead642",
+"fw": 179,
+"fh": 157,
+"ax": 100,
+"ay": 154,
+"top": 154,
+"portrait": true,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 179,
+"fh": 157,
+"ax": 100,
+"ay": 154,
+"frames": 6,
+"fps": 3,
+"ledge": [
+false,
+false,
+false,
+false,
+false,
+false
+]
+},
+"attentive": {
+"y": 157,
+"fw": 179,
+"fh": 157,
+"ax": 100,
+"ay": 154,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"welcoming": {
+"y": 314,
+"fw": 179,
+"fh": 157,
+"ax": 100,
+"ay": 154,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"skeptical": {
+"y": 471,
+"fw": 179,
+"fh": 157,
+"ax": 100,
+"ay": 154,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"concerned": {
+"y": 628,
+"fw": 179,
+"fh": 157,
+"ax": 100,
+"ay": 154,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"work": {
+"y": 785,
+"fw": 179,
+"fh": 157,
+"ax": 100,
+"ay": 154,
+"frames": 6,
+"fps": 4,
+"ledge": [
+true,
+true,
+true,
+true,
+true,
+true
+]
+}
+},
+"art": "ART-106",
+"door": "talk:brennock",
+"source": "deep16/_src/brennock/ART-106 (the art desk's ART-106, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
+},
 "pt_calla": {
 "image": "art/pt_calla.png?v=2eb8d3be61",
 "fw": 168,
@@ -11774,6 +11970,102 @@ true
 "door": "leech:davos",
 "source": "deep16/_src/davos/ART-98 (the art desk's ART-98, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
 },
+"pt_gull": {
+"image": "art/pt_gull.png?v=7071820dad",
+"fw": 221,
+"fh": 156,
+"ax": 124,
+"ay": 153,
+"top": 153,
+"portrait": true,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 221,
+"fh": 156,
+"ax": 124,
+"ay": 153,
+"frames": 6,
+"fps": 3,
+"ledge": [
+true,
+true,
+true,
+true,
+true,
+true
+]
+},
+"attentive": {
+"y": 156,
+"fw": 221,
+"fh": 156,
+"ax": 124,
+"ay": 153,
+"frames": 1,
+"fps": 1,
+"ledge": [
+true
+]
+},
+"welcoming": {
+"y": 312,
+"fw": 221,
+"fh": 156,
+"ax": 124,
+"ay": 153,
+"frames": 1,
+"fps": 1,
+"ledge": [
+true
+]
+},
+"skeptical": {
+"y": 468,
+"fw": 221,
+"fh": 156,
+"ax": 124,
+"ay": 153,
+"frames": 1,
+"fps": 1,
+"ledge": [
+true
+]
+},
+"concerned": {
+"y": 624,
+"fw": 221,
+"fh": 156,
+"ax": 124,
+"ay": 153,
+"frames": 1,
+"fps": 1,
+"ledge": [
+true
+]
+},
+"work": {
+"y": 780,
+"fw": 221,
+"fh": 156,
+"ax": 124,
+"ay": 153,
+"frames": 6,
+"fps": 4,
+"ledge": [
+true,
+true,
+true,
+true,
+true,
+true
+]
+}
+},
+"art": "ART-104",
+"door": "talk:gull",
+"source": "deep16/_src/gull/ART-104 (the art desk's ART-104, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
+},
 "pt_hessle": {
 "image": "art/pt_hessle.png?v=540878fd2e",
 "fw": 182,
@@ -11870,6 +12162,102 @@ true
 "door": "keeper:hessle",
 "source": "deep16/_src/hessle/ART-81 (the art desk's ART-81, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
 },
+"pt_kael": {
+"image": "art/pt_kael.png?v=206f6a3ee8",
+"fw": 206,
+"fh": 158,
+"ax": 110,
+"ay": 155,
+"top": 155,
+"portrait": true,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 206,
+"fh": 158,
+"ax": 110,
+"ay": 155,
+"frames": 6,
+"fps": 3,
+"ledge": [
+false,
+false,
+false,
+false,
+false,
+false
+]
+},
+"attentive": {
+"y": 158,
+"fw": 206,
+"fh": 158,
+"ax": 110,
+"ay": 155,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"welcoming": {
+"y": 316,
+"fw": 206,
+"fh": 158,
+"ax": 110,
+"ay": 155,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"skeptical": {
+"y": 474,
+"fw": 206,
+"fh": 158,
+"ax": 110,
+"ay": 155,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"concerned": {
+"y": 632,
+"fw": 206,
+"fh": 158,
+"ax": 110,
+"ay": 155,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"work": {
+"y": 790,
+"fw": 206,
+"fh": 158,
+"ax": 110,
+"ay": 155,
+"frames": 6,
+"fps": 4,
+"ledge": [
+true,
+true,
+true,
+true,
+true,
+true
+]
+}
+},
+"art": "ART-105",
+"door": "talk:kael",
+"source": "deep16/_src/kael/ART-105 (the art desk's ART-105, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
+},
 "pt_kasten": {
 "image": "art/pt_kasten.png?v=73666686f0",
 "fw": 202,
@@ -11965,6 +12353,102 @@ true
 "art": "ART-88",
 "door": "shop:kasten",
 "source": "deep16/_src/kasten/ART-88 (the art desk's ART-88, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
+},
+"pt_kess": {
+"image": "art/pt_kess.png?v=ea60a1473d",
+"fw": 194,
+"fh": 156,
+"ax": 102,
+"ay": 154,
+"top": 154,
+"portrait": true,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 194,
+"fh": 156,
+"ax": 102,
+"ay": 154,
+"frames": 6,
+"fps": 3,
+"ledge": [
+false,
+false,
+false,
+false,
+false,
+false
+]
+},
+"attentive": {
+"y": 156,
+"fw": 194,
+"fh": 156,
+"ax": 102,
+"ay": 154,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"welcoming": {
+"y": 312,
+"fw": 194,
+"fh": 156,
+"ax": 102,
+"ay": 154,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"skeptical": {
+"y": 468,
+"fw": 194,
+"fh": 156,
+"ax": 102,
+"ay": 154,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"concerned": {
+"y": 624,
+"fw": 194,
+"fh": 156,
+"ax": 102,
+"ay": 154,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"work": {
+"y": 780,
+"fw": 194,
+"fh": 156,
+"ax": 102,
+"ay": 154,
+"frames": 6,
+"fps": 4,
+"ledge": [
+true,
+true,
+true,
+true,
+true,
+true
+]
+}
+},
+"art": "ART-108",
+"door": "keeper:kess",
+"source": "deep16/_src/kess/ART-108 (the art desk's ART-108, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
 },
 "pt_kessler": {
 "image": "art/pt_kessler.png?v=eddc0da59c",
@@ -13519,6 +14003,102 @@ false
 "art": "ART-96",
 "door": "keeper:venhale",
 "source": "deep16/_src/venhale/ART-96 (the art desk's ART-96, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
+},
+"pt_vera": {
+"image": "art/pt_vera.png?v=87a98acaa3",
+"fw": 187,
+"fh": 156,
+"ax": 105,
+"ay": 154,
+"top": 154,
+"portrait": true,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 187,
+"fh": 156,
+"ax": 105,
+"ay": 154,
+"frames": 6,
+"fps": 3,
+"ledge": [
+false,
+false,
+false,
+false,
+false,
+false
+]
+},
+"attentive": {
+"y": 156,
+"fw": 187,
+"fh": 156,
+"ax": 105,
+"ay": 154,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"welcoming": {
+"y": 312,
+"fw": 187,
+"fh": 156,
+"ax": 105,
+"ay": 154,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"skeptical": {
+"y": 468,
+"fw": 187,
+"fh": 156,
+"ax": 105,
+"ay": 154,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"concerned": {
+"y": 624,
+"fw": 187,
+"fh": 156,
+"ax": 105,
+"ay": 154,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"work": {
+"y": 780,
+"fw": 187,
+"fh": 156,
+"ax": 105,
+"ay": 154,
+"frames": 6,
+"fps": 4,
+"ledge": [
+true,
+true,
+true,
+true,
+true,
+true
+]
+}
+},
+"art": "ART-107",
+"door": "talk:vera",
+"source": "deep16/_src/vera/ART-107 (the art desk's ART-107, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
 },
 "pt_vilar": {
 "image": "art/pt_vilar.png?v=8b9816712c",
@@ -15488,6 +16068,31 @@ true
 },
 "source": "deep16/_src/venhale/ART-96/ART-96_HEAD-2_PAGE-1.png (the art desk's south idle, 10-21), cut by tools/keeper-town-sheet.py",
 "door": "keeper:venhale"
+},
+"vera_p1": {
+"image": "art/vera_p1.png?v=54471be056",
+"fw": 30,
+"fh": 53,
+"ax": 15,
+"ay": 51,
+"top": 49,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 30,
+"fh": 53,
+"ax": 15,
+"ay": 51,
+"frames": 14,
+"fps": 4,
+"drawn": [
+0
+],
+"under": "crewman_p1"
+}
+},
+"source": "deep16/_src/vera/ART-107/ART-107_HEAD-2_PAGE-1.png (the art desk's south idle, 10-21), cut by tools/keeper-town-sheet.py",
+"door": "talk:vera"
 },
 "veteran_p1": {
 "image": "art/veteran_p1.png?v=cbc79ac198",

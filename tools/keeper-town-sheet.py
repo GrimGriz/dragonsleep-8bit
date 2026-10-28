@@ -68,7 +68,13 @@ KEEPERS = {
     'ondine': ('ondine/ART-101', 'ART-101', 'the School (no door yet)'),
     'tam': ('tam/ART-100', 'ART-100', 'keeper:tam', {'avoid': ['red', 'fire']}),   # (10-28: Tam Vere in her den, the art desk's re-roll -- a woman, as the realm and the first game
     # have her; her rust apron's reds read as blood stains at 50 px: left out, as Venn Hale's flush was)
-    'aldwin': ('aldwin/ART-114', 'ART-114', 'chapel:aldwin'),       # (10-28, the second cutter seat: Aldwin of the mission chapel, not Androit the notary -- tools/portrait-sheet.py)
+    'aldwin': ('aldwin/ART-114', 'ART-114', 'chapel:aldwin'),
+    # (10-28: the night crews' five -- Gull, Kael, Brennock, Vera on the shaft rows' street, Kess beside the flop-cellar's door: tools/portrait-sheet.py)
+    'gull': ('gull/ART-104', 'ART-104', 'talk:gull'),
+    'kael': ('kael/ART-105', 'ART-105', 'talk:kael'),
+    'brennock': ('brennock/ART-106', 'ART-106', 'talk:brennock'),
+    'vera': ('vera/ART-107', 'ART-107', 'talk:vera'),
+    'kess': ('kess/ART-108', 'ART-108', 'keeper:kess'),       # (10-28, the second cutter seat: Aldwin of the mission chapel, not Androit the notary -- tools/portrait-sheet.py)
 }
 
 
