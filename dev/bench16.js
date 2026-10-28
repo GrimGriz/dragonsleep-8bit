@@ -4256,6 +4256,53 @@
     document.body.appendChild(preGL);
     return;
   }
+  // HIS NOTES OF 10-28 22:58Z (mode=housefix1028c; the house-notes seat, on the lanes desk's relay of his NOTES file): the camera kept in the floor's bounds on the frame a step
+  // moves it, and crawlers penned behind the mouth camp's cradles
+  if (get('mode', '') === 'housefix1028c') {
+    var repE = { checks: [], errors: [] }, memE = {}, stGE = D.store.get, stSE = D.store.set, RE = D.roam, TE = D.town, ME = D.mines;
+    function okE(what, v) { repE.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function floorE(q) { var B = RE.make(q); D.scenes.length = 0; D.push(B); var s = D.top(); if (s && s.baking) { s.baking = false; s.enter(); } D.battle = B; return B; }
+    // where UI.camera's clamp would hold the camera (its own sums, so the old code is judged by the same bounds)
+    function boundsE() { var iso = D.iso, bk = iso.map.bake, z = iso.zoom, vw = D.W / z, vh = D.H / z, bw = bk.canvas.width, bh = bk.canvas.height, x0 = bk.x + vw / 2 - 60, x1 = bk.x + bw - vw / 2 + 60, y0 = bk.y + vh / 2 - 20, y1 = bk.y + bh - vh / 2 + 60;
+      return { x: x0 > x1 ? [bk.x + bw / 2, bk.x + bw / 2] : [x0, x1], y: y0 > y1 ? [bk.y + bh / 2 + 20, bk.y + bh / 2 + 20] : [y0, y1] }; }
+    function outE() { var b = boundsE(), c = D.iso.cam, e = 0.5; return c.x < b.x[0] - e || c.x > b.x[1] + e || c.y < b.y[0] - e || c.y > b.y[1] + e; }
+    D.store.get = function (k) { return memE[k] ? JSON.parse(memE[k]) : null; }; D.store.set = function (k, v) { memE[k] = JSON.stringify(v); return true; };
+    try {
+      D.seed = +get('seed', 1028);
+      // 1. THE EDGES (his "There's something very odd graphically when walking along the tile next to the edges (character appears in middle of screen for 1 frame?)", stamped
+      // Silverton 33,13): the token walked along the line beside each edge of the town's floor and along his row from 33,13, a frame at a time as the game runs them (update, then
+      // draw) -- every frame's camera where the clamp keeps it, none centred on the token for a frame
+      var BT = floorE('?roam=silverton&at=33,13'), RT = BT.roam, tT = RT.token, mT = D.grid.map, runs = [];
+      for (var kU = 0; kU < 40; kU++) BT.update(); BT.cards = [];
+      var lineT = function (name, pts) { var ok = pts.filter(function (q) { return D.grid.canStand(tT, q[0], q[1]); }), best = [], cur = []; ok.forEach(function (q, i) { if (cur.length && Math.abs(q[0] - cur[cur.length - 1][0]) + Math.abs(q[1] - cur[cur.length - 1][1]) !== 1) { if (cur.length > best.length) best = cur; cur = []; } cur.push(q); }); if (cur.length > best.length) best = cur; return best.length >= 6 ? { name: name, path: best.slice(0, 12) } : null; };
+      var W = mT.w, H = mT.h, row = function (y) { var o = []; for (var x = 0; x < W; x++) o.push([x, y]); return o; }, col = function (x) { var o = []; for (var y = 0; y < H; y++) o.push([x, y]); return o; };
+      var near = function (pts, dir) { for (var k = 1; k < 6; k++) { var l = lineT(dir + ' edge (' + k + ' in)', pts(k)); if (l) return l; } return null; };
+      runs = [lineT('his row 13 from 33,13', row(13).filter(function (q) { return q[0] >= 33; })), near(function (k) { return row(k); }, 'north'), near(function (k) { return row(H - 1 - k); }, 'south'), near(function (k) { return col(k); }, 'west'), near(function (k) { return col(W - 1 - k); }, 'east')].filter(Boolean);
+      var bad = [], frames = 0;
+      runs.forEach(function (r) {
+        tT.x = r.path[0][0]; tT.y = r.path[0][1]; tT.tween = null; RT.path = null; D.grid.setup(BT.map, BT.units); BT.focus(tT); for (var k0 = 0; k0 < 4; k0++) BT.update(); BT.cards = [];
+        RT.path = r.path.slice(1).map(function (q) { return q.slice(); }); var n = 0, out = 0, guard = 0;
+        while ((RT.path && RT.path.length || tT.tween) && guard++ < 600) { BT.update(); n++; if (outE()) out++; if (D.top() !== BT) { while (D.top() !== BT && D.scenes.length > 1) D.pop(); RT.path = null; } }
+        frames += n; if (out) bad.push(r.name + ': ' + out + ' of ' + n + ' frames off the clamp');
+      });
+      okE('the token walked beside the town\'s edges (' + runs.map(function (r) { return r.name; }).join('; ') + '), ' + frames + ' frames: every frame\'s camera inside the floor\'s clamp' + (bad.length ? ' -- NOT: ' + bad.join('; ') : ''), runs.length >= 3 && frames > 40 && !bad.length);
+      // 2. THE CRADLES' CRAWLERS (his "find a way to put what looks like crawlers behind the cradles on this map", stamped the mouth camp 12,11): a crawler in the mouth behind
+      // each pen's gate, the crawler's own figure, idle, set dressing -- no word, no fight, on the party's side of the floor's reckoning
+      var BW = floorE('?roam=warrens'), dW = RE.def, pens = (dW.src8.triggers || []).filter(function (t) { return t.script === 'pen'; });
+      var cr = BW.units.filter(function (u) { return u.npc === 'pencrawler'; }), sheetW = (D.FOES.crawler || {}).sheet;
+      var atW = cr.map(function (u) { return u.x + ',' + u.y; }).sort().join(' '), want = pens.map(function (t) { return t.rect[0] + ',' + (t.rect[1] - 1); }).sort().join(' ');
+      okE('the mouth camp: ' + cr.length + ' crawlers penned (' + atW + '), one behind each cradle\'s gate (' + want + '), in the crawler\'s own figure (' + cr.map(function (u) { return u.sheet; }).join(',') + '), idle, a size down (' + cr.map(function (u) { return u.drawScale; }).join(',') + ')',
+        cr.length === pens.length && pens.length === 3 && atW === want && cr.every(function (u) { return u.sheet === sheetW && u.anim === 'idle' && u.size === 1 && u.drawScale < 1 && dW.rows[u.y].charAt(u.x) === '.'; }));
+      okE('set dressing: no word at them (' + cr.map(function (u) { var t = RE.useAt(BW, u.x, u.y); return t ? t.id : 'none'; }).join(',') + '), not foes, no fight coming (' + BW.roam.groups.length + ' groups), the pens\' gates their word as before (' + pens.map(function (t) { var g = RE.useAt(BW, t.rect[0], t.rect[1]); return g && g.id; }).join(',') + ')',
+        cr.every(function (u) { return !RE.useAt(BW, u.x, u.y) && u.side === 'party' && !u.attacks.feelers; }) && !BW.roam.groups.length && pens.every(function (t) { var g = RE.useAt(BW, t.rect[0], t.rect[1]); return g && g.script === 'pen'; }));
+      BW.units = BW.units.filter(function (u) { return !u.npc; }); TE.people(BW); var cr2 = BW.units.filter(function (u) { return u.npc === 'pencrawler'; }).length;
+      okE('the floor\'s people stood again (as at a change of hour): ' + cr2 + ' crawlers, not twice over', cr2 === 3);
+    } catch (eE) { repE.errors.push(String(eE && eE.stack || eE).slice(0, 900)); }
+    D.store.get = stGE; D.store.set = stSE;
+    var preE = document.createElement('pre'); preE.id = 'out'; preE.textContent = 'BENCH16 ' + JSON.stringify(repE);
+    document.body.appendChild(preE);
+    return;
+  }
   // THE HOUSE'S FIXES, ROUND TWO, 10-28 (mode=housefix1028b; the house-notes seat, on the lanes desk's relay of his read of the first round): exhaustion from THE WORLD's march
   // through Silverton and every sleep, Venn Hale's door at the compound's own gate, the Warrens' journal line from Warrens Pete
   if (get('mode', '') === 'housefix1028b') {

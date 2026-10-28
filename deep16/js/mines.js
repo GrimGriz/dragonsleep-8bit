@@ -910,7 +910,22 @@
     people0.apply(this, arguments);
     var def = D.roam && D.roam.def; if (!def || !def.mine) return;
     B.units.forEach(function (u) { if (u.npc && M.NAMES[u.npc]) u.name = M.NAMES[u.npc]; });
+    if (def.key === 'warrens') M.penCrawlers(B, def);
     B.lights = (B.lights || []).filter(function (l) { return !l.seep; }).concat(def.ownLights || []); // (ownLights: not a map def's `lights`, which battle.js reads as [x, y, r, colour])
+  };
+
+  // the cradles' crawlers (10-28 later, his "find a way to put what looks like crawlers behind the cradles on this map"): one in the mouth behind each pen's gate on the mountain face
+  // (the first game's pen triggers, `script: 'pen'`), the crawler's own figure idle a size down to fit the mouth, facing the gate -- set dressing: no word, no fight, never moved
+  M.PENCRAWL = { scale: 0.8, name: 'A crawler, penned' };
+  M.penCrawlers = function (B, def) {
+    B.units = B.units.filter(function (u) { return u.npc !== 'pencrawler'; });
+    (def.src8.triggers || []).filter(function (t) { return t.script === 'pen'; }).forEach(function (t, i) {
+      var q = [t.rect[0], t.rect[1] - 1], r = def.rows[q[1]]; if (!r || r.charAt(q[0]) !== '.') return;
+      var u = B.makeFoe({ id: 'pencrawler' + i, kind: 'crawler', at: q, side: 'party', ally: true });
+      u.name = M.PENCRAWL.name; u.look = true; u.npc = 'pencrawler'; u.attacks = {}; u.multi = 0; u.hp = u.maxhp = 4; u.lvl = 1; u.size = 1; u.drawScale = M.PENCRAWL.scale;
+      u.facing = D.spr.facingFor(0, 1); u.anim = 'idle'; u.animT = i * 17; // (their idles out of step)
+      B.units.push(u); if (D.spr.prefetch && u.sheet) D.spr.prefetch([u.sheet]);
+    });
   };
 
   // ---------------------------------------------------------------- the town's hooks (js/town.js): a word and a square on these floors, and their ways off

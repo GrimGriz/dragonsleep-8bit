@@ -3710,7 +3710,7 @@
     if (wp && wp.ranged) return G.range(u, w) <= wp.range[1] && G.los(u, w).clear;
     return G.dist(u, w) <= G.reachOf(u);
   };
-  Battle.prototype.focus = function (u) { var c = FX.at(u); D.iso.lookAt(c.gx, c.gy, c.gz); };
+  Battle.prototype.focus = function (u) { var c = FX.at(u); D.iso.lookAt(c.gx, c.gy, c.gz); if (D.ui && D.ui.clampCam) D.ui.clampCam(); }; // (kept in the floor's bounds at once, not a frame later: js/ui.js UI.clampCam)
   Battle.prototype.keepInView = function (u) {
     var c = FX.at(u), w = D.iso.center(c.gx, c.gy, c.gz), s = D.iso.toScreen(w.x, w.y);
     if (s.x < 110 || s.x > D.W - 110 || s.y < 70 || s.y > D.H - 90) this.focus(u);

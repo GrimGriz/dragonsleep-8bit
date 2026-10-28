@@ -360,9 +360,14 @@
     if (typeof document !== 'undefined' && document.body) document.body.classList.toggle('fly', !!flU); // (the phone's ▲ ▼ beside the move card, deep16/index.html)
     if (free && (m.wheel || I.pressed('zoomout') || I.pressed('zoomin'))) UI.setZoom(m.wheel ? m.wheel : I.pressed('zoomout') ? 1 : -1, m.wheel && m.inside ? m.x : null, m.wheel && m.inside ? m.y : null);
     if (I.pressed('center')) { var a = B.active || (B.req && B.req.turn); if (a) B.focus(a); }
-    // keep the cave in view; zoomed out past its size, centre it
-    z = iso.zoom;
-    var vw = D.W / z, vh = D.H / z, bw = bk.canvas.width, bh = bk.canvas.height;
+    UI.clampCam();
+  };
+  // keep the cave in view; zoomed out past its size, centre it. Each frame (UI.camera) and wherever the camera is set on the way (B.focus -- 10-28 later, his "There's something
+  // very odd graphically when walking along the tile next to the edges (character appears in middle of screen for 1 frame?)": a step's keepInView centred it after this frame's
+  // clamp, and that frame was drawn centred before the next one put it back)
+  UI.clampCam = function () {
+    var iso = D.iso, cam = iso.cam, bk = iso.map && iso.map.bake; if (!bk || !bk.canvas) return;
+    var z = iso.zoom, vw = D.W / z, vh = D.H / z, bw = bk.canvas.width, bh = bk.canvas.height;
     var x0 = bk.x + vw / 2 - 60, x1 = bk.x + bw - vw / 2 + 60, y0 = bk.y + vh / 2 - 20, y1 = bk.y + bh - vh / 2 + 60;
     cam.x = x0 > x1 ? bk.x + bw / 2 : D.clamp(cam.x, x0, x1);
     cam.y = y0 > y1 ? bk.y + bh / 2 + 20 : D.clamp(cam.y, y0, y1);
