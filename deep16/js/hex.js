@@ -17,8 +17,9 @@
    content/text.json hex.*): Korvin at the slate with the card's five bouts, each opening the next, five silver in and ten out, the crowd fronting a stranger's five;
    one hero takes the sand alone and gets up at 1 if they go down; the champion and the card's hired blade each a point of renown the first time. A bout is the
    simple screen by default (his "sand is 'hex' fights, silverton internal"; js/simple.js), ON THE GRID the other way, on the Hex's own sand with the tiers and a crowd
-   round it (HX.field) and the rest of the party watching from the rail. The third floor is built and shut: the spirals up are Warda's (the first game's own line),
-   and the test door deep16/?roam=hex&floor=3 shows it. */
+   round it (HX.field) and the rest of the party watching from the rail. The third floor was built and shut (the spirals up
+   Warda's, the first game's own line); since 10-28 the spiral goes up to it -- the lounge, Urtusk's office, the Armory -- with Warda there and its rooms still hers
+   (Griz: "there's no reason the player can't go up to the town meeting and urtusk office 3rd floor"). The test door deep16/?roam=hex&floor=3 shows it. */
 'use strict';
 (function () {
   var D = window.D16, DS = window.DS, T = D.town, TV = D.topview, iso = D.iso;
@@ -141,16 +142,24 @@
     1: [{ id: 'korvinSlate', at: [12, 21], face: [0, 1], fig: 'korvin' }, { id: 'talmok', at: [12, 7], face: [0, 1], kind: 'talmok' },
       { id: 'barleyBench', at: [15, 20], face: [0, 1], sheet: 'barley_p1', hire: 'barley' }, { id: 'lymenHex', at: [17, 14], face: [-1, 0], sheet: 'lymen_p1', hire: 'lymen' },
       { id: 'bartenderS', at: [6, 22], face: [1, -1] }, { id: 'bartenderE', at: [21, 8], face: [0, 1] }, { id: 'warrenspete', at: [5, 18], face: [1, 0] },
-      { id: 'hexpatron1', at: [5, 12], face: [1, 0] }, { id: 'hexpatron2', at: [17, 9], face: [-1, 1] }, { id: 'warda', at: [11, 5], face: [0, 1] }],
+      { id: 'hexpatron1', at: [5, 12], face: [1, 0] }, { id: 'hexpatron2', at: [17, 9], face: [-1, 1] },
+      // (10-28, Griz: "we need Higertha in the window on mama's side and consider a concessions vendor"): Higertha at Mama's hatch onto the concourse (the realm's the-hex.md:
+      // "Higertha works the arena-side window -- a serving hatch in the front wall onto the concourse"), and a hired town youth at the cold-food concession's (its counter-hand
+      // unnamed, the faces change: CANON 09-16b) -- each `inside` their walled room, seen through the hatch, a word had at the hatch (`hatch`) or by a click on them
+      { id: 'higertha', name: 'Higertha', at: [18, 8], hatch: [18, 9], face: [-1, 1], inside: true, sheet: 'npcdruid_p0' },
+      { id: 'concession', name: 'the concession\'s hand', at: [6, 7], hatch: [6, 8], face: [1, 1], inside: true, kind: 'crewman' }],
     2: [{ id: 'gambler1', at: [5, 7], face: [-1, 0] }, { id: 'gambler2', at: [19, 13], face: [1, 0] }],
-    3: []
+    // the third floor open to the party (10-28, Griz: "there's no reason the player can't go up to the town meeting and urtusk office 3rd floor"; "consider if we should have
+    // NPC on the 3rd floor where the council meet when it's not a council meeting though"): Warda, who keeps it and the ring of keys, in the lounge on an ordinary day
+    3: [{ id: 'warda', at: [12, 5], face: [0, 1] }]
   };
   HX.CHAIR = [19, 6]; // (Vair's empty chair, by the NE felt table: the first game's `vairseat`, a chair with no one in it -- js/events.js S.vairseat)
   HX.SLATE = [13, 21]; // (Korvin's odds-board beside him)
 
   // ---------------------------------------------------------------- the floor's def (js/roam.js reads it as a room's: T.room's shape, with `hexIn` its floor)
   HX.SUB = { 1: 'the sand and the bars', 2: 'the gambling floor', 3: 'the meeting room and the offices' };
-  HX.HELLO = { 1: 'E: a word. Korvin at the slate: the card. E at a spiral: up. The doors: back to the street.', 2: 'E: a word. E at a spiral: down, or on up.', 3: 'Shut to the party: Warda\'s. E at a spiral: down.' };
+  HX.HELLO = { 1: 'E: a word. Korvin at the slate: the card. E at a spiral: up. The doors: back to the street.', 2: 'E: a word. E at a spiral: down, or on up.', 3: 'The council\'s lounge under the Big Window, Urtusk\'s office east, the Armory west; the rooms round the balcony are Warda\'s. E at a spiral: down.' };
+  HX.LINES = { warda3: 'Warda keeps the third floor and the ring of keys. The rooms round the balcony are not for you.' }; // (the first game's hex.warda, the stairs open now: invented.json hex-third-floor-open)
   HX.def = function (lv, R0) {
     var rows = HX.rows(lv), trig = [], ways = [], f = (R0 && R0.flags) || {}, holds = function () { return false; };
     var open = function (q) { return q && rows[q[1]] && 'o'.indexOf(rows[q[1]].charAt(q[0])) >= 0; };
@@ -163,9 +172,10 @@
     (HX.PEOPLE[lv] || []).forEach(function (p) {
       var n = n8[p.id] || {}; if (n.cond && !T.cond(n.cond, f, holds)) return;
       if (p.hire && party.indexOf(p.hire) >= 0) return;
-      var q = HX.near(rows, p.at, used); if (!q) return; used[q[0] + ',' + q[1]] = 1;
-      people.push({ id: p.id, at: q, face: p.face, kind: p.kind || T.KIND[n.look] || 'bandit', sheet: p.sheet || null, fig: p.fig || null, look: n.look });
+      var q = p.inside ? p.at.slice() : HX.near(rows, p.at, used); if (!q) return; used[q[0] + ',' + q[1]] = 1; // (inside: on their own square behind a wall, as placed)
+      people.push({ id: p.id, at: q, face: p.face, kind: p.kind || T.KIND[n.look] || 'bandit', sheet: p.sheet || null, fig: p.fig || null, look: n.look, name: p.name || null });
       trig.push({ id: 'talk:' + p.id, on: 'use', rect: [q[0], q[1], 1, 1], town: 'talk', npc: p.id });
+      if (p.hatch) trig.push({ id: 'talk:' + p.id, on: 'use', rect: [p.hatch[0], p.hatch[1], 1, 1], town: 'talk', npc: p.id, hatch: true }); // (the hatch in the wall: E at it from the concourse)
     });
     if (lv === 1) {
       trig.push({ id: 'talk:korvinSlate', on: 'use', rect: [HX.SLATE[0], HX.SLATE[1], 1, 1], town: 'talk', npc: 'korvinSlate' }); // (the slate itself: Korvin's)
@@ -405,7 +415,9 @@
       HX.STATIONS.forEach(function (st) { out.push(block(seg(st.a, st.b, 1.1), 30, wood(0.36), woodFace(0.34))); if (st.box) out.push(artPiece('hx_box', rect([st.b[0] - 1.6, st.b[1] - 1], 2.2, 1.6, 0)) || block(rect([st.b[0] - 1.6, st.b[1] - 1], 2.2, 1.6, 0), 10, function (x, z, X, Y) { return (X + Y) % 6 === 0 ? Sv[4] : pick(S, 0.25, X, Y); }, function (j, h, X, Y) { return pick(S, 0.18, X, Y); })); });
       // Mama's premises and the concession: their walls (the sealed door, the hatches shut), the concession's divider
       var wallTop = function (x, z, X, Y) { return pick(L, 0.16 + NZ.vnoise(X * 0.2, Y * 0.2, 949) * 0.08, X, Y); };
-      var plaster = function (hatch) { return function (j, h, X, Y, x) { var up = 1 - j / h; if (hatch && hatch(x) && up > 0.32 && up < 0.62) { var edge = up > 0.6 || up < 0.34; return edge ? L[0] : (X % 5) === 0 ? L[1] : pick(L, 0.5, X, Y); } return logFace(j, h, X, Y); }; }; // (a hatch: two shutters closed in the logs)
+      // (a hatch: open since 10-28 -- Higertha in Mama's, the concession's hand in its own -- the one behind it seen through the gap over a board sill, its shutters folded back
+      // either side; his "we need Higertha in the window on mama's side and consider a concessions vendor")
+      var plaster = function (hatch) { return function (j, h, X, Y, x) { var up = 1 - j / h; if (hatch && hatch(x) && up > 0.3 && up < 0.66) { var sill = up < 0.36, frame = up > 0.62 || !hatch(x - 0.9) || !hatch(x + 0.9); return sill ? pick(L, 0.62, X, Y) : frame ? L[0] : null; } return logFace(j, h, X, Y); }; };
       [[HX.MAMA, function (x) { return x > 29.5 && x < 34.7; }], [HX.CONC, function (x) { return x < -22.8 && x > -28.0; }]].forEach(function (pr) {
         var P = pr[0]; [0, 1, 2].forEach(function (i) { out.push(block(seg(P[i], P[i + 1], 0.8), HX.INWALL, wallTop, plaster(i === 1 ? pr[1] : null))); });
       });
@@ -495,7 +507,7 @@
     def.people.forEach(function (p, i) {
       var N = ((DS.DATA || {}).npcs || {})[p.id] || {}, kind = D.FOES[p.kind] ? p.kind : 'bandit';
       var u = B.makeFoe({ id: 'hexfolk' + i, kind: kind, at: p.at.slice(), side: 'party', ally: true });
-      u.name = N.name || p.id; u.look = true; u.npc = p.id; u.attacks = {}; u.multi = 1; u.hp = u.maxhp = 4; u.lvl = 1;
+      u.name = N.name || p.name || p.id; u.look = true; u.npc = p.id; u.attacks = {}; u.multi = 1; u.hp = u.maxhp = 4; u.lvl = 1;
       if (p.sheet && D.SHEETS && D.SHEETS[p.sheet]) u.sheet = p.sheet;
       u.facing = D.spr.facingFor(p.face[0], p.face[1]); u.anim = 'idle'; u.animT = 0;
       if (D.counter) D.counter.dress(u, p.fig || p.id); // (one with a figure of their own wears it: Korvin's, js/counter.js C.FIG)
@@ -505,16 +517,14 @@
     R.famPlace(B, true); B.cache = null; B.exits = []; D.grid.setup(B.map, B.units); B.focus(t);
     return def;
   };
-  // a spiral: up from the ground, down from the third; from the second, DOWN or UP -- and up is shut (the third floor is Warda's: his "currently turned off for player
-  // access"; the first game's own line, js/events.js S.warda)
+  // a spiral: up from the ground, down from the third; from the second, DOWN or UP (up was shut till 10-28 -- his 10-22 "currently turned off for player access" -- and
+  // opened on his 10-28 word below: the lounge, the office and the Armory walked; the rooms round the balcony stay Warda's)
   HX.stair = function* (B, q) {
     var R = D.roam, R0 = B.roam, lv = R.def.hexIn, to = lv === 1 ? 2 : lv - 1, k = HX.spiralSq().map(function (s) { return s[0] + ',' + s[1]; }).indexOf(q[0] + ',' + q[1]);
-    if (lv === 2) {
+    if (lv === 2) { // (UP open since 10-28, Griz: "there's no reason the player can't go up to the town meeting and urtusk office 3rd floor"; no outside stairs -- "we don't need
+      // to add the outside stairs unless we use the hex in a combat map, since we're not really adding those services to the game")
       var a = yield { prompt: { who: R0.token, title: 'THE SPIRAL', lines: R.wrap(['The spiral winds down to the sand and on up to the third floor.']), opts: [{ label: 'DOWN', value: 0 }, { label: 'UP', value: 1 }, { label: 'STAY', value: 2 }] } };
-      if (a !== 0) {
-        if (a === 1) { B.card(R.wrap(['{y}The spiral{/} winds on up to the third floor.', D.counter.L('hex.warda')]), 360); D.sfx('popup'); }
-        yield 20; return;
-      }
+      if (a === 1) to = 3; else if (a !== 0) { yield 20; return; }
     }
     B.card(['{y}The Hex{/} -- ' + HX.SUB[to] + '.'], 60); D.sfx('stairs'); yield 20;
     var sp = HX.spiralSq()[Math.max(0, k)], rows = HX.rows(to), at = HX.near(rows, [sp[0], sp[1] + 1]) || HX.near(rows, sp);
@@ -570,7 +580,7 @@
 
   // ---------------------------------------------------------------- the first game's scripted people (js/events.js): Warda, Vair's chair, Korvin's slate
   HX.SCENES = {
-    warda: function* (B, trig) { var R = D.roam, u = B.units.filter(function (x) { return x.npc === 'warda'; })[0], t = B.roam.token; if (u) u.facing = D.spr.facingFor(t.x - u.x, t.y - u.y); B.card(R.wrap(['{y}Warda{/}', D.counter.L('hex.warda')]), 360); D.sfx('popup'); yield 20; },
+    warda: function* (B, trig) { var R = D.roam, u = B.units.filter(function (x) { return x.npc === 'warda'; })[0], t = B.roam.token; if (u) u.facing = D.spr.facingFor(t.x - u.x, t.y - u.y); B.card(R.wrap(['{y}Warda{/}', R.def.hexIn === 3 ? HX.LINES.warda3 : D.counter.L('hex.warda')]), 360); D.sfx('popup'); yield 20; }, // (on the third floor, the stairs open: her line of its rooms)
     vairseat: function* (B) { B.card(D.roam.wrap(['{y}An empty chair{/}', D.counter.L('hex.vairseat')]), 360); D.sfx('popup'); yield 20; },
     korvinSlate: function* (B) { yield* HX.card(B); }
   };
@@ -632,9 +642,11 @@
       this.takesParty = function () { return false; }; // (no running from the sand: the first game's bouts, canRun false -- the simple fight's RUN greyed, js/simple.js)
     };
     HX.last = { b: b };
+    var zoom0 = D.iso.zoom; // (the floor's zoom, put back after, as the floor's fights do: js/roam.js R.pullIn0)
     D.push(b);
     while (!done) yield 1; // (the floor waits under it)
-    D.battle = B; D.grid.setup(B.map, B.units); D.iso.map = B.map;
+    D.battle = B; D.grid.setup(B.map, B.units); D.iso.map = B.map; D.iso.zoom = zoom0;
+    B.focus(R0.token); // (the camera back on the party -- 10-28, Griz: "when the fight ends the focus is up by the stairs for some reason": it stayed where the sand's camera left it)
     B.logEntries = (B.logEntries || []).concat((b.logEntries || []).map(function (e) { return { id: null, text: String(e.text || e).replace(/^(R\d+ )/, '$1[the Hex] ') }; }));
     B.log = B.logEntries.map(function (e) { return e.text; });
     // the hero as the bout left them; down, up at 1 on the house (the first game: "if (fighter.ko || fighter.hp <= 0) { fighter.ko = false; fighter.hp = 1; }")

@@ -58,8 +58,17 @@
     // the night crews' five on the shaft rows (10-28, the second cutter seat: the art desk's ART-104 to ART-108, new identities from their original briefs): Gull of
     // the day-labor corner, Kael of the timber yard, Brennock the renderer-knacker (not Brennan), Vera the rag-and-bone (not Venn Hale), on the street where they stood;
     // Kess of the flop-cellars (not Kessler) beside her door. None has a first-game shop: their first-game word on their faces, as their cards said it, no counter line
-    gull: { sheet: 'pt_gull', wait: '' }, kael: { sheet: 'pt_kael', wait: '' }, brennock: { sheet: 'pt_brennock', wait: '' }, vera: { sheet: 'pt_vera', wait: '' }, kess: { sheet: 'pt_kess', wait: '' }
+    gull: { sheet: 'pt_gull', wait: '' }, kael: { sheet: 'pt_kael', wait: '' }, brennock: { sheet: 'pt_brennock', wait: '' }, vera: { sheet: 'pt_vera', wait: '' }, kess: { sheet: 'pt_kess', wait: '' },
+    // the Hex's two hatches onto the concourse (10-28, Griz: "we need Higertha in the window on mama's side and consider a concessions vendor" -- js/hex.js HX.PEOPLE): Higertha
+    // at Mama's, her shelves (Higertha is the register's reserved: no words of hers, the scene's line only); the cold-food concession's hired youth, its own shelf (C.SHOP16)
+    higertha: { name: 'Higertha', shop: 'lucia', script: 'hatch' }, concession: { name: 'The concession\'s hand', shop: 'concession', script: 'hatch' }
   };
+  // a shop of the second game's own (not the first game's content/shops.json): the cold-food concession's -- the house's not-hot side, no oven (the realm's the-hex.md, CANON
+  // 09-13), so the pies cold, a silver apiece; it buys nothing (invented.json hex-concession). Into DS.DATA.shops where the counter's shelves read them
+  C.SHOP16 = { concession: { name: 'The Cold-Food Concession', items: ['batpie'], prices: { batpie: 1 }, buys: false, greeting: 'Cold pies, by the piece.', thanks: ['Cold, mind.', 'There you go.'] } };
+  C.shop16 = function () { var S = (window.DS && DS.DATA && DS.DATA.shops) || null; if (S) Object.keys(C.SHOP16).forEach(function (k) { if (!S[k]) S[k] = C.SHOP16[k]; }); }; // (at a talk: C.talk)
+  // at a hatch: the scene's one line (C.HATCH), then THE SHELVES / LEAVE at once -- the line the question, no OK before it (C.SCRIPTS.hatch)
+  C.HATCH = { higertha: 'Higertha works Mama\'s hatch onto the concourse, the jars on the shelf behind her.', concession: 'A town youth on the concession\'s hatch: cold pies, a silver apiece.' };
   C.BESIDE = { percy: ['ned'] }; // (who stands behind a counter beside its keeper: js/town.js T.goIn)
   C.PETS = { ned: 'rat' }; // (a keeper's familiar on the counter in front of them: Ned's rat -- js/rules.js R.FAMILIARS, js/town.js T.goIn)
   // the keepers' own figures on the town floor (10-21, Griz: "Got south idles for several existing shopkeeps in Fresh"): the art desk's south idles, cut by
@@ -458,6 +467,7 @@
 
   // ---------------------------------------------------------------- at a counter or a door: the screen up, the floor waiting under it (js/town.js T.fire)
   C.talk = function* (B, id, door) {
+    C.shop16();
     var N = ((DS.DATA || {}).npcs || {})[id] || {}, T = D.town, kp = B.roam && D.roam.def && D.roam.def.keeper && D.roam.def.keeper.id === id ? D.roam.def : null;
     var v = C.VENDORS[id] || {}, shop = (DS.DATA.shops || {})[v.shop];
     var nm = v.name || (door && door.name) || T.KEEPER['shop:' + id] || T.KEEPER['warp:' + id] || T.KEEPER['keeper:' + id] || T.KEEPER['inn:' + id] || N.name || id; // (inn: Cassia's)
@@ -568,6 +578,7 @@
   // a night slept on the floor once the screen is down (the first game's EV.rest('inn'): the inn's tune through the night, at the inn and on the chapel's floor)
   C.sleep = function* (B) { if (B && B.roam && D.house && D.house.sleepOnFloor) yield* D.house.sleepOnFloor(B, { music: 'inn' }); };
   // the inn (S.inn): STAY or LEAVE at her price -- the good bed for one, the long room for a company (content/shops.json cassia: price, partyPrice; RULED 09-24), then the night
+  C.SCRIPTS.hatch = function* (sc, B, id) { while ((yield sc.ask([C.HATCH[id]], ['THE SHELVES', 'LEAVE'], 'welcoming')) === 0) yield sc.shelves(C.VENDORS[id].shop); }; // (the Hex's hatches, 10-28: C.HATCH)
   C.SCRIPTS.inn = C.inn = function* (sc, B, id) {
     var st = sc.st, inn = (DS.DATA.shops || {})[id] || {}, n = st.party.filter(function (h) { return !h.dead; }).length, cost = n > 1 && inn.partyPrice ? inn.partyPrice : inn.price * n;
     if ((yield sc.ask(inn.greeting + ' ' + L('g.innAsk', { n: cost }), ['STAY', 'LEAVE'], 'welcoming')) !== 0) return;

@@ -2599,9 +2599,9 @@
       var cnt = {}; d1.rows.forEach(function (r) { for (var i = 0; i < r.length; i++) cnt[r[i]] = (cnt[r[i]] || 0) + 1; });
       okX('its squares: the sand shut at the middle (' + chX(12, 13) + chX(11, 13) + '), the tiers and the concourse boards (' + chX(12, 7) + chX(5, 12) + chX(2, 13) + '), the bars shut (' + chX(16, 21) + '), the doors and the spirals ways (' + chX(11, 25) + chX(11, 1) + chX(23, 13) + chX(0, 13) + '), the spirals a USE (' + chX(10, 6) + chX(13, 6) + ' ' + d1.src8.triggers.filter(function (t) { return t.stair; }).length + '): ' + JSON.stringify(cnt),
         chX(12, 13) === '#' && chX(11, 13) === '#' && chX(12, 7) === 'o' && chX(5, 12) === 'o' && chX(2, 13) === 'o' && chX(11, 25) === 'd' && chX(11, 1) === 'd' && chX(23, 13) === 'd' && chX(0, 13) === 'd' && chX(10, 6) === '#' && chX(13, 6) === '#' && d1.src8.triggers.filter(function (t) { return t.stair; }).length === 2 && cnt.o > 200 && d1.doors.length === 6);
-      var f1 = folkX(B1), want1 = ['korvinSlate', 'talmok', 'bartenderS', 'bartenderE', 'warrenspete', 'hexpatron1', 'hexpatron2', 'warda'];
+      var f1 = folkX(B1), want1 = ['korvinSlate', 'talmok', 'bartenderS', 'bartenderE', 'warrenspete', 'hexpatron1', 'hexpatron2']; // (Warda keeps the third floor since 10-28; Higertha and the concession's hand behind their hatches: mode=housenotes1028)
       okX('Korvin in his own figure (' + ((f1.filter(function (u) { return u.npc === 'korvinSlate'; })[0] || {}).sheet) + '); the first game\'s people by their ids (' + f1.map(function (u) { return u.npc + ' ' + u.x + ',' + u.y; }).join(', ') + '); Barley and Lymen not standing, they walk with the party; Talmok in his own figure (' + (f1.filter(function (u) { return u.npc === 'talmok'; })[0] || {}).sheet + ')',
-        want1.every(function (id) { return f1.some(function (u) { return u.npc === id; }); }) && !f1.some(function (u) { return u.npc === 'barleyBench' || u.npc === 'lymenHex'; }) && (f1.filter(function (u) { return u.npc === 'talmok'; })[0] || {}).sheet === 'talmok_p1' && (f1.filter(function (u) { return u.npc === 'korvinSlate'; })[0] || {}).sheet === 'korvin_p1' && f1.every(function (u) { return chX(u.x, u.y) === 'o'; }));
+        want1.every(function (id) { return f1.some(function (u) { return u.npc === id; }); }) && !f1.some(function (u) { return u.npc === 'barleyBench' || u.npc === 'lymenHex'; }) && (f1.filter(function (u) { return u.npc === 'talmok'; })[0] || {}).sheet === 'talmok_p1' && (f1.filter(function (u) { return u.npc === 'korvinSlate'; })[0] || {}).sheet === 'korvin_p1' && f1.every(function (u) { return chX(u.x, u.y) === 'o' || u.npc === 'higertha' || u.npc === 'concession'; }));
       var pcs = B1.map.props.filter(function (p) { return p.hexPiece; }), back = pcs.filter(function (p) { return p.depth === -1000; }).length, front = pcs.filter(function (p) { return p.depth === 1e5; }).length, t0P = performance.now(); HXX.pics = {}; var pic1 = HXX.picture(1), korvU = f1.filter(function (u) { return u.npc === 'korvinSlate'; })[0], msP = Math.round(performance.now() - t0P);
       var px1 = function (x, z) { var d = pic1.getContext('2d').getImageData(Math.floor((x / 5 + 12) * 48), Math.floor((z / 5 + 13.5) * 48), 1, 1).data; return [d[0], d[1], d[2], d[3]]; }, sand = px1(0, 0), board = px1(-45, 10), out1 = px1(-58, -50);
       okX('drawn on its true lines: ' + pcs.length + ' strips of standing pieces (the back walls ' + back + ', the front stub ' + front + '), the floor\'s picture ' + pic1.width + ' x ' + pic1.height + ' in ' + msP + ' ms -- the sand gold (' + sand + '), the concourse boards (' + board + '), outside the shell clear (' + out1[3] + ')',
@@ -2609,8 +2609,8 @@
       // the people's words: the first game's
       var pete = sqX('warrenspete'); besideX(B1, pete); var wP = useX(B1, pete);
       okX('Warrens Pete\'s words ("' + wP.seen.slice(0, 60) + '")', /Past the wet the shaft/.test(wP.seen));
-      var wa = sqX('warda'); besideX(B1, wa); var wW = useX(B1, wa);
-      okX('Warda: the first game\'s line ("' + wW.seen.slice(0, 70) + '")', wW.seen.indexOf(LX('hex.warda')) >= 0);
+      var wa = sqX('warda');
+      okX('Warda not on the ground floor: she keeps the third, open since 10-28 (mode=housenotes1028)', !wa);
       var ta = sqX('talmok'); besideX(B1, ta); var wT = useX(B1, ta);
       okX('Talmok\'s words ("' + wT.seen.slice(0, 60) + '")', /The champion, plains barbarian/.test(wT.seen));
       var be = sqX('bartenderE'); var bsq = besideX(B1, be); var wB = bsq ? useX(B1, be) : { seen: '(no way to him)' };
@@ -2641,8 +2641,9 @@
       var wR = railSq ? useX(B2, railSq) : { seen: '' };
       okX('the rail: the first game\'s sign ("' + wR.seen.slice(0, 50) + '")', /The rail\. Below, the sand/.test(wR.seen));
       besideX(B2, [13, 6]); var upX = useX(B2, [13, 6], null, 1);
-      okX('the east spiral on the second floor asks DOWN / UP / STAY (' + ((driveX.asked || {}).opts || []).map(function (o) { return o.label; }).join(' / ') + '); UP: the way is Warda\'s ("' + upX.seen.slice(0, 90) + '"), the party still on the second floor (' + D.roam.def.key + ')',
-        D.roam.def.hexIn === 2 && upX.seen.indexOf(LX('hex.warda')) >= 0 && ((driveX.asked || {}).opts || []).length === 3);
+      okX('the east spiral on the second floor asks DOWN / UP / STAY (' + ((driveX.asked || {}).opts || []).map(function (o) { return o.label; }).join(' / ') + '); UP: the third floor, open since 10-28 (' + D.roam.def.key + ')',
+        D.roam.def.hexIn === 3 && ((driveX.asked || {}).opts || []).length === 3);
+      useX(B2, [13, 6]); // (the third floor's spiral: down to the second again)
       useX(B2, [13, 6], null, 0); var B1b = topX();
       okX('DOWN: the ground floor again, beside the spiral (' + D.roam.def.key + ', ' + B1b.roam.token.x + ',' + B1b.roam.token.y + ')', D.roam.def.hexIn === 1 && Math.abs(B1b.roam.token.x - 13) <= 1 && Math.abs(B1b.roam.token.y - 6) <= 1);
       // out the back doors and in again, out the east door, out the front
@@ -3519,6 +3520,41 @@
       for (var iT = 0; iT < opqT.length; iT += 4) if (Math.abs(opqT[iT] - thruT[iT]) + Math.abs(opqT[iT + 1] - thruT[iT + 1]) + Math.abs(opqT[iT + 2] - thruT[iT + 2]) > 24) dT++;
       D.ctx = ctxT0;
       okHn('on Silverton\'s street at ' + spotT + ', a house\'s roof and face in front (south) of the party: drawn through round them (' + (TVn.seen || 0) + ' drawn so, ' + dT + ' px of the party\'s box changed from the house drawn whole)', (TVn.seen || 0) > 0 && dT > 20);
+      // THE HEX (his "we need Higertha in the window on mama's side and consider a concessions vendor. The third floor problem is the outside stairs 3rd floor and there's no
+      // reason the player can't go up to the town meeting and urtusk office 3rd floor", then "we don't need to add the outside stairs ... consider if we should have NPC on the
+      // 3rd floor where the council meet when it's not a council meeting though"; and "when the fight ends the focus is up by the stairs for some reason")
+      var HXn = D.hex, hexHn = function (q) { var Bq = D.roam.make(q); D.scenes.length = 0; D.push(Bq); return topHn(); }, folkHn = function (Bq, id) { return Bq.units.filter(function (u) { return u.npc === id; })[0]; };
+      var stepHn = function (Bq, until) { var v, k = 0; while (k++ < 4000) { if (until && until()) return true; var st = Bq.co.next(v); v = undefined; if (st.done) break; if (st.value && st.value.prompt) v = stepHn.pv != null ? stepHn.pv : st.value.prompt.opts[0].value; } return !!(until && until()); };
+      var BH = hexHn('?roam=hex'), RH = BH.roam, rowsH1 = D.roam.def.rows, hg = folkHn(BH, 'higertha'), cn = folkHn(BH, 'concession');
+      okHn('the ground floor: Higertha behind Mama\'s hatch (' + (hg && hg.x + ',' + hg.y + ' on "' + rowsH1[hg.y].charAt(hg.x) + '", in ' + hg.sheet) + '), the concession\'s hand behind its own (' + (cn && cn.x + ',' + cn.y + ' on "' + rowsH1[cn.y].charAt(cn.x) + '"') + '), each in a walled room; Warda not downstairs (' + !folkHn(BH, 'warda') + ')',
+        !!hg && hg.x === 18 && hg.y === 8 && rowsH1[8].charAt(18) === '#' && hg.sheet === 'npcdruid_p0' && hg.name === 'Higertha' && !!cn && cn.x === 6 && cn.y === 7 && rowsH1[7].charAt(6) === '#' && !folkHn(BH, 'warda'));
+      var hatchHn = function (id, from, at) { RH.token.x = from[0]; RH.token.y = from[1]; RH.fw = [Math.sign(at[0] - from[0]), Math.sign(at[1] - from[1])]; var un = D.roam.useNear(BH), click = D.roam.useAt(BH, at[0], at[1]), who = folkHn(BH, id), path = who && D.roam.besidePath(BH, [who.x, who.y]); return { e: un && un.trig.npc === id && un.trig.hatch, click: !!click && click.npc === id, walk: !!path }; };
+      var hH = hatchHn('higertha', [17, 9], [18, 9]), hC = hatchHn('concession', [7, 8], [6, 8]);
+      okHn('a word at each hatch from the concourse: E facing it (Higertha ' + hH.e + ', the concession ' + hC.e + '), a click on it (' + hH.click + ', ' + hC.click + '), and a click on them walks to beside the hatch (' + hH.walk + ', ' + hC.walk + ')', hH.e && hC.e && hH.click && hC.click && hH.walk && hC.walk);
+      R0 = RH; RH.silver = 10; BH.inv = (BH.inv || []).filter(function (s) { return s.id !== 'batpie'; });
+      var tH = talkHn(BH, 'higertha'), sH = tH.sc, qH = sH.wait && sH.wait.ask ? sH.wait.ask.join(' ') : ''; goHn(sH, 'opt', 'THE SHELVES'); var shH = sH.shopId, plH = sH.o.place; goHn(sH, 'back'); goHn(sH, 'opt', 'LEAVE'); driveHn(tH.g, null, 200);
+      okHn('Higertha\'s hatch: "' + qH + '" with ' + 'THE SHELVES / LEAVE at once, no OK; the shelves Mama\'s (' + shH + ', ' + plH + '); no portrait, no words of hers', /Higertha works Mama's hatch/.test(qH) && shH === 'lucia' && plH === 'Mama\'s Pharmakaiea' && !sH.sheet && D.top() === BH);
+      var tC = talkHn(BH, 'concession'), sC = tC.sc, qC = sC.wait && sC.wait.ask ? sC.wait.ask.join(' ') : ''; goHn(sC, 'opt', 'THE SHELVES'); var rowsC = sC.shop ? sC.rows().map(function (r) { return r.label + ' ' + r.right; }) : [], sellOff = (sC.buttons().filter(function (b) { return b.go === 'tab' && b.tab === 'sell'; })[0] || {}).off;
+      clickHn(sC, sC.buttons().filter(function (b) { return b.go === 'row' && b.label === 'Bat-Wing Pie'; })[0]); if (sC.sub && sC.sub.kind === 'qty') goHn(sC, 'qok'); var pieN = (BH.inv.filter(function (s) { return s.id === 'batpie'; })[0] || { n: 0 }).n;
+      goHn(sC, 'back'); goHn(sC, 'opt', 'LEAVE'); driveHn(tC.g, null, 200);
+      okHn('the concession\'s hatch: "' + qC + '"; its shelf (' + sC.o.place + ') ' + rowsC.join('; ') + ', SELL shut (' + sellOff + '); a pie bought, ' + RH.silver + ' sp left, ' + pieN + ' in the pack', /A town youth on the concession's hatch/.test(qC) && rowsC.join() === 'Bat-Wing Pie 1 sp' && sellOff === true && RH.silver === 9 && pieN === 1 && D.top() === BH);
+      // the third floor: the spiral up from the second, the lounge, the office and the Armory walked to, Warda in the lounge with her line of the rooms
+      var B2h = hexHn('?roam=hex&floor=2'); B2h.cards = []; var sp2 = HXn.spiralSq()[1], R2h = B2h.roam; R2h.token.x = sp2[0]; R2h.token.y = sp2[1] + 1; R2h.fw = [0, -1];
+      stepHn.pv = 1; var stH = HXn.stair(B2h, sp2), stV, kS = 0; while (kS++ < 200) { var rS = stH.next(stV); stV = undefined; if (rS.done) break; if (rS.value && rS.value.prompt) stV = 1; } stepHn.pv = null;
+      var d3h = D.roam.def, t3 = R2h.token, reach3 = {}, q3 = [[t3.x, t3.y]]; reach3[t3.x + ',' + t3.y] = 1;
+      for (var i3 = 0; i3 < q3.length; i3++) [[1, 0], [-1, 0], [0, 1], [0, -1]].forEach(function (o) { var x = q3[i3][0] + o[0], y = q3[i3][1] + o[1]; if (!reach3[x + ',' + y] && (d3h.rows[y] || '').charAt(x) === 'o') { reach3[x + ',' + y] = 1; q3.push([x, y]); } });
+      var inR = function (fn) { return Object.keys(reach3).filter(function (k) { var a = k.split(','), m3 = HXn.mid(+a[0], +a[1]); return fn(m3[0], m3[1]); }).length; }, wd = folkHn(B2h, 'warda');
+      okHn('the second floor\'s spiral, UP: the third floor (' + d3h.key + ', "' + (d3h.hello || []).join(' ').slice(0, 70) + '..."), walked from ' + t3.x + ',' + t3.y + ' to the lounge (' + inR(HXn.inLounge) + ' squares), Urtusk\'s office (' + inR(HXn.inOffice) + ') and the Armory (' + inR(HXn.inArmory) + '); Warda in the lounge (' + (wd && wd.x + ',' + wd.y) + ')',
+        d3h.hexIn === 3 && inR(HXn.inLounge) > 10 && inR(HXn.inOffice) > 5 && inR(HXn.inArmory) > 5 && !!wd && HXn.inLounge.apply(null, HXn.mid(wd.x, wd.y)));
+      var cardsW = []; B2h.cards = []; var trW = (d3h.src8.triggers || []).filter(function (t) { return t.id === 'talk:warda'; })[0], gW = trW ? THn.fire(B2h, trW) : null; for (var kW = 0; gW && kW < 40; kW++) { if (gW.next().done) break; } cardsW = (B2h.cards || []).map(function (c) { return (c.lines || []).join(' '); }).join(' / ');
+      okHn('Warda on the third floor: "' + cardsW.replace(/\{.\}|\{\/\}/g, '').slice(0, 110) + '"', /The rooms round the balcony are not for you/.test(cardsW) && !/The stairs up are not for you/.test(cardsW));
+      // the camera after a bout: on the party again, at the floor's zoom
+      BH = hexHn('?roam=hex'); RH = BH.roam; RH.token.x = 17; RH.token.y = 18; BH.focus(RH.token); var z0 = D.iso.zoom = 1, heroH = RH.members[0];
+      var gB = HXn.bout(BH, { u: heroH, c: HXn.CARD[0], simple: true }); gB.next(); var bB = D.top(), vB, gd = 0; if (bB.baking) { bB.baking = false; bB.enter(); }
+      while (bB.co && gd++ < 200000) { var rB = bB.co.next(vB); vB = undefined; if (rB.done) break; var yB = rB.value; if (typeof yB === 'number' || !yB || yB.fx || yB.entry || yB.scene) continue; if (yB.prompt) { vB = yB.prompt.opts[yB.prompt.opts.length - 1].value; continue; } if (yB.turn) { var uB = yB.turn, aB = D.simple.autoNext(bB, uB), fB = bB.units.filter(function (z) { return z.side === 'foe' && z.hp > 0 && !z.dead; })[0]; var mB = D.simple.menu(bB, uB); if (!aB) aB = D.simple.acts(uB) && fB ? D.simple.fightCmd(bB, uB, fB) : { do: 'end' }; mB.after = null; mB.root = null; vB = aB; } }
+      var camIn = [D.iso.cam.x, D.iso.cam.y]; D.iso.zoom = 0.75; if (D.top() === bB) D.pop(); bB.o.onDone(bB.result || 'won'); for (var kB = 0; kB < 50; kB++) { if (gB.next().done) break; }
+      var cH = D.iso.center(RH.token.x, RH.token.y, (D.iso.map.at(RH.token.x, RH.token.y) || {}).gz || 0);
+      okHn('after a bout (' + (bB.result || '?') + '): the camera on the party at ' + RH.token.x + ',' + RH.token.y + ' (' + D.iso.cam.x + ',' + D.iso.cam.y + '; the sand\'s had it at ' + camIn + '), at the floor\'s zoom (' + D.iso.zoom + ')', Math.abs(D.iso.cam.x - Math.round(cH.x)) <= 1 && Math.abs(D.iso.cam.y - Math.round(cH.y - 20)) <= 1 && D.iso.zoom === z0 && D.iso.map === BH.map);
     } catch (eHn) { repHn.errors.push(String(eHn && eHn.stack || eHn).slice(0, 900)); }
     D.store.get = stGHn; D.store.set = stSHn; if (D.house) { D.house.playing = false; D.house.cur = null; }
     var preHn = document.createElement('pre'); preHn.id = 'out'; preHn.textContent = 'BENCH16 ' + JSON.stringify(repHn);
