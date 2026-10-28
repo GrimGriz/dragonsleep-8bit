@@ -1,0 +1,106 @@
+{
+ "_readme": {
+  "what": "Playtest feedback from situations.html: one verdict and note a row -- an eyes row (js/eyes.js: built, not yet seen) or a story situation (?at=<id>, js/situations.js).",
+  "fold_back": "Fold every eyes row noted here that is still live in js/eyes.js (a folded row is already cut, so nothing folds twice; previous_save and new_since_last_save only hint at what is new -- RULED 10-15); a story situation note folds when its `at` is after the save of the last ear file folded. An eyes row noted at all is SEEN: a `seen` line in PATCHLOG.md with the note verbatim, and the row cut from js/eyes.js whatever the verdict (a fix that wants another look writes a fresh row). Broken and unclear become the fix list (in the lane its pt names); too hard / too easy are tuning; notes are the tester's words, verbatim."
+ },
+ "saved_at": "2026-10-28T00:45:14.162Z",
+ "previous_save": "2026-10-28T00:33:08.029Z",
+ "items": [
+  {
+   "id": "eyes-mines-tiles-1022",
+   "eyes": true,
+   "pri": 1,
+   "title": "The Guano Mine’s top levels on the art desk’s tiles: ART-112’s cave grounds, rock, faces, rails and camps (10-22)",
+   "pt": "the warrens and galleries on the tiles 10-22 (tools/minetiles-sheet.py; deep16/js/topview.js THE ART; deep16/js/mines.js names8) · eyes",
+   "url": "deep16/?roam=galleries_g2&fresh=1022t",
+   "verdict": "works",
+   "note": "looks good, but is Aurdin allowed to carry a torch?",
+   "at": "2026-10-28T00:45:10.736Z",
+   "new_since_last_save": true
+  },
+  {
+   "id": "eyes-glowseep-tiles-1022",
+   "eyes": true,
+   "pri": 1,
+   "title": "The Glowseep on the art desk’s tiles by night: ART-113’s bog, its moss glowing, the camp and its fire (10-22)",
+   "pt": "the warrens and galleries on the tiles 10-22 (tools/seeptiles-sheet.py; deep16/js/topview.js THE ART) · eyes",
+   "url": "deep16/?roam=glowseep&hour=22&fresh=1022t",
+   "verdict": "broken",
+   "note": "Use a campfire where you're waiting for an NPC portrait and \"the Veterans keep Watch\" is cleaner version on the sleep text box. Call sleep long rest. 'ok' box is superlative. \n\nGoing to the Grid Fight changes the zoom on the roam. The simple fight's grid seems like the appropriate 'grid' sized fight and vice versa (simple with 6-8 width or whatever)\nthe grid in the fights should pull from the roam itself\n\nsleeping doesnt' seem to be a long rest, I can't repeatedly sleep to get back to night time\n\nEdge to the west should kick you out back to the world map - don't label the road. Any edge walk \"return to world map?\"\n\nclicking on an enemy when 'fight' is highlighted should function like clicking 'fight' in the menu (simple combat)\n\n",
+   "at": "2026-10-27T23:25:13.224Z",
+   "new_since_last_save": false
+  },
+  {
+   "id": "wet",
+   "eyes": false,
+   "pri": 4,
+   "title": "The Wet: the bucket and the landlord",
+   "pt": "§5 the wet · the landlord's pictures (new 10-01)",
+   "url": "?at=wet",
+   "verdict": "works",
+   "note": "This works. I think we made it such that no one can to this spot in the 8-bit without already being pulled on to the grid (check to make sure). We should put a light nearby the bucket and double check the sprite we're using to make it more a visible draw on the grid. The tiles around the Landlords pool should be switched to solid stone. ",
+   "at": "2026-10-04T05:23:43.178Z",
+   "new_since_last_save": false
+  },
+  {
+   "id": "wet3",
+   "eyes": false,
+   "pri": 4,
+   "title": "The gates down to the wet, at level 3",
+   "pt": "§5 the wet · §3 battle feel (new 10-03)",
+   "url": "?at=wet3",
+   "verdict": "unclear",
+   "note": "No encounters between town and warrens. Running back and forth on the road and got 2 giant rats. \nNo encounters in the mine until down in the wet itself. There either are not exit squares in the fight with the landlord, or party members are not allowed to use the flee under action (not on wheel). ",
+   "at": "2026-10-04T05:24:47.498Z",
+   "new_since_last_save": false
+  },
+  {
+   "id": "gulch",
+   "eyes": false,
+   "pri": 4,
+   "title": "Web Gulch: the strung end",
+   "pt": "§7 the braiding ettercap · §11 the snared traveler",
+   "url": "?at=gulch",
+   "verdict": "works",
+   "note": "",
+   "at": "2026-10-04T05:30:38.432Z",
+   "new_since_last_save": false
+  },
+  {
+   "id": "cloaker",
+   "eyes": false,
+   "pri": 4,
+   "title": "The guano slide and the cloaker",
+   "pt": "§6 the cloaker · §11 guano slide",
+   "url": "?at=cloaker",
+   "verdict": "works",
+   "note": "",
+   "at": "2026-10-04T05:30:46.273Z",
+   "new_since_last_save": false
+  },
+  {
+   "id": "roost",
+   "eyes": false,
+   "pri": 4,
+   "title": "Under the roost",
+   "pt": "§6 the one law · §11/§12 NOT THIS KIND OF NAME",
+   "url": "?at=roost",
+   "verdict": "works",
+   "note": "",
+   "at": "2026-10-04T05:34:59.719Z",
+   "new_since_last_save": false
+  },
+  {
+   "id": "cradle",
+   "eyes": false,
+   "pri": 4,
+   "title": "A shift at the cradle",
+   "pt": "§13 the cradle, rebuilt",
+   "url": "?at=cradle",
+   "verdict": "works",
+   "note": "",
+   "at": "2026-10-04T05:35:12.626Z",
+   "new_since_last_save": false
+  }
+ ]
+}
