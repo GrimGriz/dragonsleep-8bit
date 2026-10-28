@@ -562,7 +562,9 @@
     if (my < OFF || mx >= PX0) return null;
     var z = D.iso.zoom, best = null, bd = 1e9;
     (cands || B.units).forEach(function (u) {
-      var p = S.screenOf(B, u), top = (u.hp > 0 && D.spr.unitTop ? D.spr.unitTop(u) : 16) * z, hw = 12 * (u.size || 1) * z;
+      // (a rider -- an attached stirge -- is drawn on the one it rides, not on a square of its own: picked anywhere on that figure, 10-28 later, his "can't seem to target an
+      // attached stirge in simple fight with mouse"; its own box sat at the host's feet at a stirge's height)
+      var hb = u.riding && u.master ? u.master : u, p = S.screenOf(B, hb), top = (hb.hp > 0 && D.spr.unitTop ? D.spr.unitTop(hb) : 16) * z, hw = 12 * (hb.size || 1) * z;
       if (mx < p.x - hw || mx > p.x + hw || my < p.y - top || my > p.y + 6 * z) return;
       var d = Math.abs(mx - p.x) + Math.abs(my - (p.y - top / 2)) * 0.5; if (d < bd) { bd = d; best = u; }
     });

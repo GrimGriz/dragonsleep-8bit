@@ -3589,8 +3589,10 @@
       hS.conds.attached = { by: stS.id, dc: 13 }; BS.mount(stS, hS); bdS.hp = 0; bdS.dead = true; D.rules.startTurn(hS);
       var foesS = SQ.foes(BS, hS), autoS = SQ.autoNext(BS, hS), drewS = [], tx1Q = D.text;
       D.text = function (ctx, s) { drewS.push(String(s)); return tx1Q.apply(this, arguments); }; try { SQ.drawFoes(document.createElement('canvas').getContext('2d'), BS, { x: 0, w: 160, foes: { y: 0, h: 60 } }); } catch (eS) { drewS.push('THREW ' + eS); } D.text = tx1Q;
-      okQ('a stirge attached to ' + hS.name + ' (riding ' + !!stS.riding + ', attached ' + !!stS.attached + '): a target (' + foesS.map(function (w) { return w.kind; }).join(',') + '), named in the foes\' window (' + drewS.filter(function (s) { return /tirge/.test(s); }).join(',') + '), and the turn not ended by itself (' + JSON.stringify(autoS) + ')',
-        foesS.indexOf(stS) >= 0 && autoS === null && drewS.some(function (s) { return /tirge/.test(s); }));
+      var cvS = document.createElement('canvas'); cvS.width = D.W; cvS.height = D.H; var ctxS0 = D.ctx; D.ctx = cvS.getContext('2d'); D.R = D.R || 1; try { D.draw(); } catch (eDS) { } D.ctx = ctxS0; // (the simple fight's camera is set as it draws)
+      var pHS = SQ.screenOf(BS, hS), zS = D.iso.zoom || 1, chestS = SQ.unitAt(BS, Math.round(pHS.x), Math.round(pHS.y - 30 * zS), foesS);
+      okQ('a stirge attached to ' + hS.name + ' (riding ' + !!stS.riding + ', attached ' + !!stS.attached + '): a target (' + foesS.map(function (w) { return w.kind; }).join(',') + '), named in the foes\' window (' + drewS.filter(function (s) { return /tirge/.test(s); }).join(',') + '), the mouse up on ' + hS.name + '\'s figure finds it (' + (chestS && chestS.kind) + ' at ' + Math.round(pHS.x) + ',' + Math.round(pHS.y - 30 * zS) + '; the host alone ' + ((SQ.unitAt(BS, Math.round(pHS.x), Math.round(pHS.y - 30 * zS), [hS]) || {}).name) + ', top ' + (D.spr.unitTop(hS) * zS) + ', zoom ' + zS + ', W ' + D.W + '), and the turn not ended by itself (' + JSON.stringify(autoS) + ')',
+        foesS.indexOf(stS) >= 0 && autoS === null && drewS.some(function (s) { return /tirge/.test(s); }) && chestS === stS);
       var ansS = [], an0S = BS.answer, mo = IQ.mouse, mo0 = { x: mo.x, y: mo.y, click: mo.click, rclick: mo.rclick, rbtn: mo.rbtn, inside: mo.inside, moved: mo.moved };
       BS.answer = function (c) { ansS.push(c); };
       var mS = SQ.menu(BS, hS); mS.wait = false; mS.mode = 'cmd'; mo.inside = true; mo.x = 2; mo.y = 2; mo.moved = false; mo.click = false;
