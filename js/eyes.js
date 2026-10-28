@@ -17,6 +17,9 @@
   var DS = window.DS = window.DS || {};
   var G1 = 'Eyes: first', G2 = 'Eyes: built this week', G3 = 'Eyes: built before, never seen';
   DS.EYES = {
+    'eyes-offhand-words-1028': { pri: 1, group: G2, title: 'EQUIP’s OFFHAND: a swing or “held, no swing”, and why in the box below (10-28)', pt: 'the menus (js/menu.js offhandCands, CandPage.draw, List.draw) · eyes',
+      url: 'deep16/?pocket&fresh=28',
+      look: 'Your “whatever we’re doing with offhand equip explain text is overlapping”. On a card with a rapier (Talmok), GEAR -> EQUIP -> OFFHAND: the Combat Knife and the Rapier say “held, no swing” at the right, clear of their names; move onto one and the box under the list says “No off-hand swing: the rapier is not light.” A dagger beside a dagger would say “off-hand swing”. Any menu row whose right text is too long is cut with a dot beside its name now, never drawn over it (both games).' },
     'eyes-gallerysave-1028': { pri: 1, group: G2, title: 'SAVE in the gallery, and M on the Pocket DM’s front page for OPTIONS (10-28)', pt: 'the one gallery (deep16/js/onegallery.js OG.earFile, saveEar; deep16/js/core.js KEYALSO) · the Pocket DM (deep16/js/pocket.js update) · eyes',
       url: 'deep16/?pocket&fresh=28',
       look: 'Your “we need a save button” and “allow pressing ’m’ on the pocket DM front page get you to the option menu to turn off the music”. Here on the front page press M: OPTIONS opens over it, MUSIC at the top -- E turns it off; X shuts it. Then the gallery (DOORS -> THE ONE GALLERY, or deep16/?gallery&shelf=creatures): the YOUR EYE line at the top of the column has a SAVE box at its right, lit once you have marked anything with V; click it (or press S) and the same ear file situations.html’s Save writes lands in your downloads, the line saying SAVED and how many are new. Put it in play-records/ as ever.' },
