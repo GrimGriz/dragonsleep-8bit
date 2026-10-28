@@ -7994,6 +7994,18 @@
       okY(dlY.length === 1 && /^situations-ear-file-\d{4}-\d\d-\d\d-\d{4}Z\.json$/.test(dlY[0]) && localStorage.getItem('dsl-situations-lastsave') > '2026-10-28' && /SAVED/.test(By.one.saved && By.one.saved.text), 'SAVE downloads ' + dlY[0] + ', moves the last save, and says ' + JSON.stringify(By.one.saved && By.one.saved.text));
       localStorage.setItem('dsl-situations-feedback:v1', '{}'); var By2 = { one: {}, t: 60 }; OGy.save(By2);
       okY(dlY.length === 1 && /nothing marked/.test(By2.one.saved && By2.one.saved.text), 'with nothing marked SAVE downloads nothing and says ' + JSON.stringify(By2.one.saved && By2.one.saved.text));
+      // THE NOTE WITH A VERDICT (his "i didn't see an option to type a note when marking it broken", 10-28): a line over the column, Enter keeps his words in the
+      // same store, Esc leaves the note as it was, the keys the game's again after; T is the note's key
+      localStorage.setItem('dsl-situations-feedback:v1', JSON.stringify({ 'eyes-b-1028': { v: 'broken', at: '2026-10-28T01:00:00.000Z' } }));
+      var Bn = { one: {}, t: 70 }; OGy.noteField(Bn, 'eyes-b-1028'); var opn = !!(OGy.note && D.typing && document.body.contains(OGy.note.el));
+      OGy.note.el.value = 'the breath stays up on its idle'; OGy.note.el.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+      var kept = (JSON.parse(localStorage.getItem('dsl-situations-feedback:v1'))['eyes-b-1028'] || {}).note, shut = !OGy.note && !D.typing;
+      OGy.noteField(Bn, 'eyes-b-1028'); OGy.note.el.value = 'something else'; OGy.note.el.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+      var left = (JSON.parse(localStorage.getItem('dsl-situations-feedback:v1'))['eyes-b-1028'] || {}).note;
+      window.dispatchEvent(new KeyboardEvent('keydown', { code: 'KeyT', key: 't' })); var tKey = !!IY.edge.note; window.dispatchEvent(new KeyboardEvent('keyup', { code: 'KeyT', key: 't' })); IY.clear();
+      IY.held.verdict = true; OGy.noteField(Bn, 'eyes-b-1028'); OGy.closeNote(); var vFree = !IY.held.verdict;
+      okY(opn && kept === 'the breath stays up on its idle' && shut && left === 'the breath stays up on its idle' && !OGy.note && tKey && vFree && OGy.earFile('2026-10-28T03:00:00.000Z').items[0].note === kept,
+        'a note with a verdict: the line opens over the column (' + opn + '), Enter keeps "' + kept + '" and gives the keys back (' + shut + '), Esc leaves it (' + JSON.stringify(left) + '), T is its key (' + tKey + '), a held V let go (' + vFree + '), and SAVE carries it');
       // EQUIP's OFFHAND (his "whatever we're doing with offhand equip explain text is overlapping", 10-28): a weapon's column says it short -- a swing, or held --
       // the box under the list says why (cur.note); and any list cuts its right column to the room beside its label (js/menu.js List.draw)
       var MNy = window.DS.MENU, hO = D.pocket.sheetOf(D.pocket.bareSpec(D.npc.spec('rogue:3')));

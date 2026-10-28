@@ -156,7 +156,9 @@
       var f = FB[id] || {}, v = VERDICTS.filter(function (x) { return x[0] === f.v; })[0];
       D.wrap('{o}YOUR EYE' + (rs.length > 1 ? ' ' + (k + 1) + '/' + rs.length : '') + ':{/} ' + E[id].title, COL - 12).forEach(function (l) { out.push(l); });
       D.wrap(String(E[id].look || ''), COL - 12).forEach(function (l) { out.push('{g}' + l + '{/}'); });
-      out.push((k === k0 ? '{y}V{/}: ' : '   ') + (v ? '{y}' + v[1] + '{/}' : 'no verdict yet') + (k === k0 && rs.length > 1 ? '  {g}SHIFT+V next{/}' : ''), '');
+      out.push((k === k0 ? '{y}V{/}: ' : '   ') + (v ? '{y}' + v[1] + '{/}' : 'no verdict yet') + (k === k0 ? '  {y}T{/} note' : '') + (k === k0 && rs.length > 1 ? '  {g}SHIFT+V next{/}' : ''));
+      if (f.note) D.wrap('note: ' + f.note, COL - 12).forEach(function (l) { out.push('{g}' + l + '{/}'); }); // (his words with it, 10-28)
+      out.push('');
     });
     return out;
   }
@@ -173,7 +175,29 @@
     var id = rs[(o.eyeK || 0) % rs.length], FB = fbGet(), f = FB[id] = FB[id] || {}, order = VERDICTS.map(function (x) { return x[0]; }).concat(['']);
     f.v = order[(order.indexOf(f.v || '') + 1) % order.length]; f.at = new Date().toISOString();
     fbPut(FB); o.fb = FB; D.sfx('confirm');
+    if (f.v === 'broken' || f.v === 'unclear') noteField(B, id); // (what broke, in his words, then and there)
   }
+  // A NOTE WITH THE VERDICT (10-28, Griz: "i didn't see an option to type a note when marking it broken"): V onto broken or unclear opens a line over the column for
+  // his words, T on any verdict; Enter or a click away keeps them, Esc leaves the note as it was. The same store as situations.html's note, so SAVE carries it
+  function noteField(B, id) {
+    closeNote();
+    var f0 = fbGet()[id] || {}, el = document.createElement('input');
+    el.type = 'text'; el.value = f0.note || ''; el.placeholder = 'what you saw -- Enter keeps it, Esc leaves it'; el.maxLength = 800;
+    el.style.cssText = 'position:fixed;z-index:30;box-sizing:border-box;font:13px system-ui,sans-serif;padding:2px 5px;border:1px solid #c8a040;border-radius:3px;background:#14101e;color:#f0e8d8;outline:none;';
+    var place = function () { var cv = D.canvas; if (!cv) return; var r = cv.getBoundingClientRect(), s = r.width / D.W; el.style.left = Math.round(r.left + 3 * s) + 'px'; el.style.top = Math.round(r.top + (STRIP + 1) * s) + 'px'; el.style.width = Math.round((COL - 6) * s) + 'px'; el.style.height = Math.max(20, Math.round(13 * s)) + 'px'; };
+    var done = function (keep) {
+      if (!OG.note || OG.note.el !== el) return;
+      if (keep) { var F2 = fbGet(), g = F2[id] = F2[id] || {}; g.note = String(el.value || '').trim(); g.at = new Date().toISOString(); fbPut(F2); B.one.fb = F2; D.sfx('confirm'); }
+      closeNote();
+    };
+    el.addEventListener('keydown', function (e) { e.stopPropagation(); if (e.key === 'Enter') { e.preventDefault(); done(true); } else if (e.key === 'Escape') { e.preventDefault(); done(false); } });
+    el.addEventListener('blur', function () { done(true); });
+    place(); document.body.appendChild(el); D.typing = true; D.input.held = {}; // (the V that opened it lifts while the field has the keys: let it go, or the next V is never a press)
+    OG.note = { el: el, place: place, id: id, done: done };
+    setTimeout(function () { try { el.focus(); } catch (e) { /* (no focus here: Enter still keeps it) */ } }, 0);
+  }
+  function closeNote() { var n = OG.note; if (!n) return; OG.note = null; D.typing = false; D.input.held = {}; try { n.el.remove(); } catch (e) { /* (gone) */ } }
+  OG.noteField = noteField; OG.closeNote = closeNote; // (dev/bench16.js mode=keys1028)
   // SAVE: his ear file from the gallery (10-28, Griz: "I just 'marked' everything in rows - doesn't seem to give me a save a file for you option", then "the S
   // doesn't have to be S but we need a save button"): the box at the right of the YOUR EYE line, or S. The same file situations.html's Save writes (its savefb:
   // every noted row still on this device, the save before it, what is new since), so the fold takes it as one; its rows as situations.html builds them --
@@ -273,7 +297,8 @@
     if (o.paused) { if (I.repeat('bracketr')) frameStep(B, 1); else if (I.repeat('bracketl')) frameStep(B, -1); return; }
     if (I.pressed('verdict')) { verdict(B, !!I.held.shift); return; }
     if (I.pressed('eyesnext')) { nextEyes(B); return; }
-    if (I.pressed('save')) { saveEar(B); return; } // (S: SAVE -- WASD's down too, so the level below waits while it is held)
+    if (I.pressed('save')) { saveEar(B); return; }
+    if (I.pressed('note')) { var rsN = OG.eyesFor(B); if (!rsN.length) { D.sfx('error'); return; } noteField(B, rsN[(o.eyeK || 0) % rsN.length]); return; } // (T: a note on any verdict, 10-28) // (S: SAVE -- WASD's down too, so the level below waits while it is held)
     if (I.pressed('dice') && (sh === 'creatures' || sh === 'spells')) { var SD = st(B); SD.real = !SD.real; D.sfx('confirm'); restart(B); return; }
     var shift = !!I.held.shift, d = I.repeat('right') ? 1 : I.repeat('left') ? -1 : 0;
     if (d) { if (o.list) o.list = false; step(B, shift ? d * 10 : d); return; }
@@ -323,6 +348,7 @@
     ctx.fillStyle = 'rgba(10,8,16,.9)'; ctx.fillRect(0, 0, COL, H);
     ctx.strokeStyle = rim; ctx.strokeRect(0.5, 0.5, COL - 1, H - 1);
     OG.SHELVES.forEach(function (s, k) { D.text(ctx, (s.id === o.shelf ? '{y}' : '{g}') + (k + 1) + ' ' + s.name + '{/}', 5 + (k % 2) * (COL / 2), 2 + Math.floor(k / 2) * LH, bone); });
+    if (OG.note) OG.note.place(); // (the note's line kept over the column as the window moves)
     var wt = waiting(B).length, all = OG.galleryRows().length, sv = o.saved && B.t - o.saved.t < 240 ? o.saved : null, ey = 2 + 2 * LH;
     var room = COL - SAVEW - 12, says = sv ? [sv.text] : all ? (wt ? ['{o}YOUR EYE{/}: ' + wt + ' left  {y}N{/} next', '{o}YOUR EYE{/}: ' + wt + '  {y}N{/} next', '{o}EYE{/}: ' + wt + ' left  {y}N{/}'] : ['{g}YOUR EYE: all ' + all + ' marked{/}', '{g}all ' + all + ' marked{/}']) : ['{g}YOUR EYE: none waiting{/}', '{g}none waiting{/}'];
     D.text(ctx, says.filter(function (t) { return D.textWidth(t) <= room; })[0] || says[says.length - 1], 5, ey, bone); // (the longest that clears the SAVE box)
@@ -352,7 +378,7 @@
     if (id === 'creatures') { var rk = /[?&]rows=([a-z0-9,]+)/.exec(q); if (rk) OG.lastRows = rk[1]; }
     // the page's line under the screen says the gallery's keys, not a fight's (10-08, Griz: "Note the menu below the visible gallery")
     var hint = document.getElementById('hint');
-    if (hint) hint.innerHTML = 'THE GALLERY &middot; LEFT/RIGHT the entry (SHIFT ten) &middot; UP/DOWN the slot or level, or click a BY line &middot; , . turn &middot; E again &middot; SPACE pause, [ ] a frame &middot; L list &middot; N your eye &middot; V verdict &middot; F dice &middot; 1-4 or click a shelf &middot; WHEEL zoom &middot; X back';
+    if (hint) hint.innerHTML = 'THE GALLERY &middot; LEFT/RIGHT the entry (SHIFT ten) &middot; UP/DOWN the slot or level, or click a BY line &middot; , . turn &middot; E again &middot; SPACE pause, [ ] a frame &middot; L list &middot; N your eye &middot; V verdict &middot; T note &middot; S or SAVE your ear file &middot; F dice &middot; 1-4 or click a shelf &middot; WHEEL zoom &middot; X back';
     var paint0 = B.paint, update0 = B.update;
     B.paint = function (ctx) {
       if (o.shelf === 'mascots') { paint0.apply(this, arguments); column(ctx, this, this.mpgallery.panel); return; } // (its own cards drawn right of the column already)
