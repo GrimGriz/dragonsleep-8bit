@@ -225,3 +225,6 @@ if __name__ == '__main__':
     meta['source'] = 'drawn by the art desk (ART-20 FINAL, all five views, 10-22), cut by tools/lamia-sheet.py through tools/artdesk.py (10-27)'
     json.dump(meta, open(mp, 'w'), indent=1)
     print('  %s: %s' % (NAME, ', '.join('%s %d' % (an, len(frames[an][0])) for an in ROWS)))
+    # the cast row's light taken out and drawn by the code at her hand (10-28, Griz: "magic spark on spell cast appears behind her, have code draw it when she casts"): tools/castspark.py
+    spec = importlib.util.spec_from_file_location('castspark', os.path.join(ROOT, 'tools', 'castspark.py')); cs = importlib.util.module_from_spec(spec); spec.loader.exec_module(cs)
+    cs.unspark(NAME)

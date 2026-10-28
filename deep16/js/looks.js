@@ -71,7 +71,8 @@
   M.cast = function* (B, u, id, slot, t) {
     var L = LK.of(id), prev = FX.ctx;
     FX.ctx = { id: id, el: L.el, dmgEl: L.dmgEl, travel: L.travel, caster: u, shape: L.shape, sky: L.sky };
-    if (L.shape !== 'around') FX.flare(u, L.el); // (not Searing Scourge's: his hands are at his sides, and nothing is drawn over him -- Griz, 10-14: "don't overlay the wizard"; FX.scourge)
+    if (LK.hasSpark(u)) u.sparkEl = L.el; // (a sheet with its cast light drawn by the code: LK.spark draws it at the hand, in this spell's colours)
+    else if (L.shape !== 'around') FX.flare(u, L.el); // (not Searing Scourge's: his hands are at his sides, and nothing is drawn over him -- Griz, 10-14: "don't overlay the wizard"; FX.scourge)
     if (L.reach && t) (t.units ? t.units : [t]).forEach(function (w) { if (w && w !== u && w.sheet) FX.reach(u, w, L.el); });
     // Beacon of Hope, 09-29 (Griz: "for beacon of hope can we get a sunbeam coming down on the caster"). The spell is a self cast, so
     // nothing reaches anyone by itself: a sunbeam comes down on the caster, and the gold drifts out to each ally in 30 ft who will
@@ -965,6 +966,23 @@
     u.rippleTones = { at: B.t, tones: tones };
     return tones;
   }
+  // a cast row's light drawn by the code (10-28, the second cutter seat -- Griz, of the lamia: "magic spark on spell cast appears behind her, have code draw it when
+  // she casts"): a sheet whose cast row carries `spark` (tools/castspark.py took the art desk's light out of its frames and kept where it sat at the hand,
+  // [dx, dy, k] a frame a facing against the anchor) has it drawn here, over the figure just drawn, in the spell's colours (u.sparkEl, set as it casts) or the
+  // sheet's own (`sparkEl`): a glow, a star and motes drawn in to the hand, k its brightness -- the gather, the release, the fade
+  LK.hasSpark = function (u) { var sh = u && D.SHEETS && D.SHEETS[u.sheet], a = sh && sh.anims && sh.anims.cast; return !!(a && a.spark); };
+  LK.spark = function (ctx, B, u, anim, t, x, y, o) {
+    if (anim !== 'cast' || (o && o.lie)) return;
+    var sh = D.SHEETS && D.SHEETS[u.sheet], a = sh && sh.anims && sh.anims.cast; if (!a || !a.spark) return;
+    var per = 60 / (a.fps || 8), fr = Math.min(a.frames - 1, Math.max(0, Math.floor(t / per))), q = (a.spark[(u.facing || 0) % 8] || [])[fr]; if (!q) return;
+    var E = FX.el(u.sparkEl || a.sparkEl || 'arcane'), k = q[2], hx = x + q[0], hy = y + q[1], in1 = (t % per) / per, al = o && o.alpha != null ? o.alpha : 1;
+    ctx.save(); ctx.globalAlpha = al;
+    glow(ctx, hx, hy, E.c[2], 4 + 7 * k, 0.28 * k); glow(ctx, hx, hy, E.c[1], 2 + 4 * k, 0.45 * k);
+    if (k >= 0.5) FX.star(ctx, hx, hy, E, Math.round(3 + 5 * k));
+    for (var i = 0; i < 6; i++) { var an = i * 1.047 + t / 9, r = (5 + 9 * k) * (1 - ((in1 + i / 6) % 1)); px(ctx, hx + Math.cos(an) * r, hy + Math.sin(an) * r * 0.7, E.c[1 + (i % 2)], k > 0.5 && i % 3 === 0 ? 2 : 1); }
+    px(ctx, hx, hy, E.c[0], k >= 0.5 ? 3 : 2);
+    ctx.restore();
+  };
   // drawn over the figure (js/ui.js, just after it, with the same arguments the figure was drawn with)
   LK.ripple = function (ctx, B, u, anim, t, x, y, o) {
     if (!window.RIPPLE || (o && o.alpha != null && o.alpha < 0.9) || (o && o.lie)) return;

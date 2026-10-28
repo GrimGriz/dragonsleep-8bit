@@ -5161,6 +5161,44 @@
     document.body.appendChild(preF);
     return;
   }
+  // the lamia's cast light drawn by the code (mode=spark1028; 10-28, the second cutter seat -- Griz, his ear file 10-28: "magic spark on spell cast appears behind her,
+  // have code draw it when she casts"): tools/castspark.py took the art desk's violet light out of her cast row (the cut had given frame 4's flung swirl to frame 5,
+  // behind her back) and kept where it sat at her hand; js/looks.js LK.spark draws it over her as the row plays. Her sheet carries the spark on the art's beats in
+  // every facing, the release on the side she faces; LK.spark paints at her hand on the release and nothing on another row; her real cast draws no flare (her own
+  // spark in the spell's colours), and the wizard's still draws its flare
+  if (get('mode', '') === 'spark1028') {
+    var repK = { checks: [], errors: [] };
+    function okK(what, v) { repK.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function runK(g) { var v, k = 0, st; while (g && k++ < 4000) { st = g.next(v); v = undefined; if (st.done) return st.value; if (st.value && st.value.prompt) v = st.value.prompt.opts[0].value; } }
+    try {
+      var cK = (D.SHEETS.lamia_p1 || {}).anims ? D.SHEETS.lamia_p1.anims.cast : null, spK = cK && cK.spark, FW8 = ['S', 'SW', 'W', 'NW', 'N', 'NE', 'E', 'SE'], SIDE = [0, -1, -1, -1, 0, 1, 1, 1];
+      okK('her cast row carries its spark: ' + (spK ? spK.length + ' facings of ' + (spK[0] || []).length + ' frames, its colours ' + cK.sparkEl : 'none'), !!spK && spK.length === 8 && spK.every(function (r) { return r.length === cK.frames; }));
+      okK('on the art\'s beats in every facing: none on frames 1, 2 and 6; the gather (3), the release (4, the brightest), the fade (5) -- ' + (spK ? spK.map(function (r, f) { return FW8[f] + ' ' + r.map(function (q) { return q ? q[2] : '-'; }).join('/'); }).join('; ') : ''),
+        !!spK && spK.every(function (r) { return !r[0] && !r[1] && !r[5] && r[2] && r[3] && r[4] && r[3][2] === 1 && r[2][2] < 1 && r[4][2] < r[2][2]; }));
+      okK('the release on the side she faces (E, SE, NE right of her; W, SW, NW left): ' + (spK ? spK.map(function (r, f) { return FW8[f] + ' ' + (r[3] ? r[3][0] : '?'); }).join(', ') : ''),
+        !!spK && spK.every(function (r, f) { return !SIDE[f] || (r[3] && r[3][0] * SIDE[f] > 0); }));
+      var Bk = D.npcFight('?npc=lamia&vs=wizard&lvl=5', {}); D.battle = Bk; Bk.enter(); while (!Bk.order.length) Bk.co.next(); Bk.dark = false;
+      var lamK = Bk.units.filter(function (u) { return u.side === 'foe'; })[0], wzK = Bk.units.filter(function (u) { return u.cls === 'wizard'; })[0];
+      var cvK = document.createElement('canvas'); cvK.width = 240; cvK.height = 240; var xK = cvK.getContext('2d');
+      var paintK = function (anim, face, fr) { xK.clearRect(0, 0, 240, 240); lamK.facing = face; D.looks.spark(xK, Bk, lamK, anim, Math.floor(fr * 60 / (cK.fps || 8)) + 1, 120, 200, {}); var d = xK.getImageData(0, 0, 240, 240).data, n = 0, near = 0, q = spK[face][fr];
+        for (var y = 0; y < 240; y++) for (var x = 0; x < 240; x++) if (d[(y * 240 + x) * 4 + 3]) { n++; if (q && Math.abs(x - 120 - q[0]) <= 16 && Math.abs(y - 200 - q[1]) <= 16) near++; } return { n: n, near: near }; };
+      var pE = paintK('cast', 6, 3), pS = paintK('cast', 0, 3), pI = paintK('idle', 6, 3), p1 = paintK('cast', 6, 0);
+      okK('LK.spark paints at her hand on the release, facing E ' + pE.near + ' of ' + pE.n + ' px within 16 of it, facing S ' + pS.near + ' of ' + pS.n + '; on her idle ' + pI.n + ', on the cast\'s first frame ' + p1.n,
+        pE.n > 20 && pE.near === pE.n && pS.n > 20 && pS.near === pS.n && pI.n === 0 && p1.n === 0);
+      D.fx.clear(); lamK.sparkEl = null;
+      lamK.slots = [4, 3, 0, 0, 0, 0, 0, 0, 0]; D.rules.startTurn(lamK); Bk.active = lamK; var poseK = null, sfxK = D.sfx; D.sfx = function () { if (poseK == null) poseK = lamK.anim; return sfxK.apply(this, arguments); }; try { runK(D.magic.cast(Bk, lamK, 'mirrorimage', 2, lamK)); } finally { D.sfx = sfxK; } Bk.active = null;
+      var flL = D.fx.list.filter(function (f) { return f.kind === 'flare'; }).length;
+      okK('her Mirror Image: her pose the cast row (' + poseK + '), no flare drawn for her (' + flL + '), her spark in the spell\'s colours (' + lamK.sparkEl + ')', poseK === 'cast' && flL === 0 && !!lamK.sparkEl);
+      D.fx.clear(); wzK.slots = [4, 3, 0, 0, 0, 0, 0, 0, 0]; D.rules.startTurn(wzK); Bk.active = wzK; runK(D.magic.cast(Bk, wzK, 'magicmissile', 1, { units: [lamK, lamK, lamK] })); Bk.active = null;
+      var flW = D.fx.list.filter(function (f) { return f.kind === 'flare'; }).length;
+      okK('the wizard\'s Magic Missile still draws its flare at his hands (' + flW + ')', flW >= 1 && !D.looks.hasSpark(wzK));
+    } catch (eK) { repK.errors.push(String(eK && eK.stack || eK).slice(0, 900)); }
+    if (errs.length) repK.errors = repK.errors.concat(errs);
+    var fK = repK.checks.filter(function (c) { return /^FAIL/.test(c); }).length;
+    repK.ok = !fK && !repK.errors.length; repK.summary = (repK.checks.length - fK) + '/' + repK.checks.length + ' checks';
+    var preK = document.createElement('pre'); preK.id = 'out'; preK.textContent = 'BENCH16 ' + JSON.stringify(repK); document.body.appendChild(preK);
+    return;
+  }
   // the lamia's Intoxicating Touch (mode=touch1027; the monster cutter seat, 10-27): a melee spell attack that curses -- disadvantage on WIS saves (traits.js RU.saveDis)
   // and on every ability check (rules.js RU.checkEdges) -- and its routine's "dagger or Intoxicating Touch" (ai.js, data/foes.js `or`): the touch at one not cursed yet,
   // else the dagger. Each check failed on the code before it (no curse: the touch did nothing)

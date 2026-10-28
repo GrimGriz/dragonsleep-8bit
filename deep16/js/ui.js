@@ -1621,6 +1621,7 @@
         if (u.rider && !down) D.spr.drawRider(ctx, u, anim, t, p.x, p.y, o);
         if (u.knit && !down && D.looks && D.looks.knit) D.looks.knit(ctx, B, u, p); // (a troll's wounds closing as it lies knitting: js/looks.js)
         // ((!down || u.cine): one a cutscene holds ripples where it lies too -- the Harbinger's body, GreyFang's end, 10-08: "start the mirror effect while he's still down please")
+        if (!down && !u.ethereal && D.looks && D.looks.spark) D.looks.spark(ctx, B, u, an0, t, p.x, p.y - lift, body); // (a cast row's light drawn by the code, over her: js/looks.js LK.spark, 10-28)
         if ((!down || u.cine) && !wet && !u.ethereal && D.looks && D.looks.ripple) D.looks.ripple(ctx, B, u, an0, t, p.x, p.y - lift, body); // (the mirror ripple, over the figure just drawn: js/looks.js, 10-08)
         if (sk !== 1) ctx.restore();
         if (D.looks && (!down || oilDown) && !u.ethereal) D.looks.over(ctx, B, u, p); // (the marks of its conditions: js/looks.js; down, the oil's alone)
