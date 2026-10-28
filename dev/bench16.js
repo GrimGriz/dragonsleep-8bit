@@ -5136,10 +5136,10 @@
     var repF = { checks: [], errors: [] };
     function okF(what, v) { repF.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
     try {
-      var Bf = D.npcFight('?npc=manticore,gargoyle,cloaker&vs=fighter&lvl=5', {}); D.battle = Bf; Bf.enter(); while (!Bf.order.length) Bf.co.next();
+      var Bf = D.npcFight('?npc=manticore,gargoyle,harpy,cloaker&vs=fighter&lvl=5', {}); D.battle = Bf; Bf.enter(); while (!Bf.order.length) Bf.co.next();
       var Gf = D.grid, UIf = D.ui;
       okF('UI.aloftRow is there', typeof UIf.aloftRow === 'function');
-      ['manticore', 'gargoyle'].forEach(function (k) {
+      ['manticore', 'gargoyle', 'harpy'].forEach(function (k) { // (the harpy's since 10-28: its pages had its flight all along)
         var u = Bf.units.filter(function (w) { return w.kind === k; })[0], A = D.spr.anim(u.sheet, 'fly');
         var counts = [], sh = D.SHEETS[u.sheet];
         okF(k + ': its sheet has a fly row (' + (A ? A.frames + ' frames' : 'none') + ')', !!A && A.frames >= 4);
