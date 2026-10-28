@@ -847,3 +847,69 @@ HEAD 3 -- BASIN WATER TILES, seen from directly above, one tile each (48 x 48 at
 Every sheet: 16-bit pixel art, top-down tiles, SNES-era, crisp; the same palette and light as the attached tiles. Flat dark navy background between pieces (a deep blue, not grey and not black), each piece apart with clear space and a label under it. No characters, no scenery beyond what each HEAD names.
 ```
 Cut as: `tools/toptiles-sheet.py` (ART-111's machinery) into the town's atlas -- HEADs 1 and 2 laid whole over each fountain at the town's scale nearest its size (js/topview.js), HEAD 3 the fill and its edges where a scale wants a basin of its own size (the code's rim stays the fallback).
+
+## 29. The lamia at the Halfway Inn: Nerisse's talking faces and the Blue's, Wystan Fallow's portrait and fight figure, the woman's wound (added 10-28, the Cowork seat)
+
+His words, in chat 10-28: *"Druid 9, approve the rest of the proposed. What does code need for the fight, what does the art department need for sprites?"* -- the lane is `..\handoff-2026-10-28-the-lamia-at-the-halfway-inn.md` (§7 names these; §5 the two voices). The realm: the lamia is NERISSE, the Blue's Tongue -- the awake Blue dragon's envoy and his own druid, lawful evil -- met at the Halfway Inn after the Snoot in her human shape, talking before she fights; WYSTAN FALLOW is the Druid Council's watcher on the Blue, an old plains rider, and her lover, a day behind her on the road. The talk runs on the house's portrait faces (`js/counter.js`), so her two voices in talk are two faces: her own, and the Blue's speaking through her. Three blocks: (1) her talking portrait, with the Blue's face added to the keepers' six; (2) Wystan, a talking portrait and a fight figure in all five views; (3) one row more for her human form (§24's figure): the wound that drops the disguise. Nothing here blocks the fight: §24's stand-in and the lamia's own sheet play it today.
+
+### Nerisse, the Blue's Tongue -- the talking portrait, and the Blue's face
+ATTACH `deep16/_src/lamia/ART-20/ART-20_HEAD-1_PAGE-1.png` (her portrait and turnaround: the face, the hair, the gold circlet with the teal stone) and `deep16/_src/winters/ART-78/ART-78_HEAD-1_PAGE-1.png` and `ART-78_HEAD-1_PAGE-6.png` (the portrait pages' shape, for the format only, not the face).
+```text
+Attached: a foe from the same game, the lamia, whose portrait page shows her face; and two portrait pages from the same game, for the format only. Draw the lamia's face, in her human form, in that format.
+
+NERISSE -- a desert woman at an inn's hearth table, waist-up: long wavy black hair past her shoulders, dark-lined eyes, a fine gold circlet with one teal stone on her brow, small gold earrings, a loose hooded robe of sand-coloured cloth pushed back off her head, a broad brown sash. Calm, watchful, a little too graceful; nothing about her shows what she is.
+
+HEAD 1 -- IDLE (6, two bands of three): a breathing and blink loop at the table, hands resting on it, a cup by one hand; loops cleanly.
+HEAD 2 -- ATTENTIVE (1): neutral listening.
+HEAD 3 -- WELCOMING (1): restrained warmth, a courtier's.
+HEAD 4 -- SKEPTICAL (1): weighing the face in front of her.
+HEAD 5 -- CONCERNED (1): a guarded refusal.
+HEAD 6 -- THE BLUE (1): the same face, the same pose as ATTENTIVE -- but the eyes have gone blue-white from lid to lid, no pupil, the teal stone on her brow is lit from inside, and a pale lightning-coloured light shows faintly under the skin at the temples and the throat. Her expression does not change. Something else is looking out.
+HEAD 7 -- THE BLUE SPEAKING (6, two bands of three): THE BLUE's face as HEAD 6, the light under the skin pulsing slowly brighter and dimmer across the six frames, the stone flickering once; the mouth moves as if speaking; loops cleanly.
+
+HEADs 1-7 (the talking portrait): 16-bit pixel-art cut-scene portrait animation, comparable to the art desk's ART-78 (Ambrose Winters) and Sylvia Swann. Waist-up behind a plain dark wooden table edge, a stable eye-level three-quarter front camera, looking screen left at someone just beside the camera; the head and body the same size on every page as on the Idle page. Crisp pixel clusters and restrained shading. Flat dark navy background (a deep blue, not grey and not black). Each image 1440 x 810, ONE action an image, six-frame actions in two bands of three with clear gutters; the table edge under the hands on every frame, its top edge at the same height. A title and frame numbers as on ART-78's pages, kept well clear of the drawings. No scenery, no UI or border.
+```
+Where: the Halfway Inn's common room (the lane's Beat 1-4). Cut as: `tools/portrait-sheet.py` (a `PEOPLE` line) into `pt_nerisse`, HEADs 1-5 the keepers' faces, HEAD 6 a face `blue`, HEAD 7 an action `bluespeak`; js/counter.js reads the face by the line's `voice` (the lane's §6a.6).
+
+### Wystan Fallow -- the Sand Walk archdruid: a talking portrait and a fight figure in all five views
+ATTACH `deep16/_src/winters/ART-78/ART-78_HEAD-1_PAGE-1.png` and `ART-78_HEAD-1_PAGE-6.png` (the portrait pages' shape, for the format only, not the face), `deep16/_src/art-desk/sent/REF-2026-10-21-town-figure-size.png` (the figure's size), and one of Aurdin's cut sheets (`deep16/art/aurdin_p2.png`, the game's own caster figure: his Cast row is the gesture to match, and his frame is the size).
+```text
+Attached: two portrait pages from the same game, for the format only; a reference for a figure's size; and a sheet of a caster from the same game, for the frame size and the shape of a Cast row.
+
+WYSTAN FALLOW -- a druid of the plains, about sixty, human: weathered, long-faced, grey hair tied back with a horsehair cord, a short grey beard, pale sun-creased eyes that look a long way off; a rider's travel clothes -- a worn oiled coat the colour of dry grass over a wool shirt, a wide leather belt, riding boots -- and a tall ashwood staff with a knot of dried grasses and a single blue glass bead bound at its head. Dusty from the road, rained on. Tired, kind, not soft.
+
+HEAD 1 -- IDLE (6, two bands of three): a breathing and blink loop at the table, both hands folded over the head of his staff; loops cleanly.
+HEAD 2 -- ATTENTIVE (1): neutral listening.
+HEAD 3 -- WELCOMING (1): restrained warmth.
+HEAD 4 -- SKEPTICAL (1): weighing the face in front of him.
+HEAD 5 -- CONCERNED (1): a guarded refusal -- or a plea held back.
+HEAD 6 -- WORK (6, two bands of three): he leans the staff against the table, spreads his hands toward the hearth to warm them, rubs them once, and takes the staff back; the last frame the hands back at rest.
+
+HEAD 7 -- THE FIGURE from the bottom-right: isometric three-quarter view from above, every frame facing toward the bottom-right corner of the image. Rows: Idle (6: standing at ease, weight on the staff, a slow breath, the coat's hem stirring; frame 6 matches frame 1); Walk (8: a stiff, steady walk toward the bottom-right, the staff planted every other step; animate in place, not travelling across the sheet); Cast (6: he raises the staff a hand's width and opens his free hand palm-up toward the bottom-right, holds, lowers it; draw NO light, glow, sparkle or magic of any kind -- the game draws the spell itself); Flinch (4: struck, he staggers back a half step, catches himself on the staff, straightens); Fall (4: he goes down to one knee, then to the ground on his side, the staff falling beside him); Prone (1: lying on his side on the ground, the staff beside him).
+HEAD 8 -- THE FIGURE from the top-right, seen from behind: isometric three-quarter view from above, every frame facing toward the top-right corner of the image, rows only. The same rows and counts as HEAD 7, each drawn from behind facing the top-right.
+HEAD 9 -- THE FIGURE straight from the front, facing the viewer: rows only, the same rows and counts as HEAD 7.
+HEAD 10 -- THE FIGURE from the right side in profile, facing right: rows only, the same rows and counts as HEAD 7.
+HEAD 11 -- THE FIGURE straight from behind, facing away from the viewer: rows only, the same rows and counts as HEAD 7.
+
+HEADs 1-6 (the talking portrait): 16-bit pixel-art cut-scene portrait animation, comparable to the art desk's ART-78 (Ambrose Winters) and Sylvia Swann. Waist-up behind a plain dark wooden table edge, a stable eye-level three-quarter front camera, looking screen left at someone just beside the camera; the head and body the same size on every page as on the Idle page. Crisp pixel clusters and restrained shading. Flat dark navy background (a deep blue, not grey and not black). Each image 1440 x 810, ONE action an image, six-frame actions in two bands of three with clear gutters; the table edge under the hands on every frame, its top edge at the same height. A title and frame numbers as on ART-78's pages, kept well clear of the drawings. No scenery, no UI or border.
+
+HEADs 7-11 (the fight figure): 16-bit pixel art animation sheet, SNES-era action RPG style, crisp dark outline, readable at small size. Isometric three-quarter view from above, the camera looking down at about thirty degrees, as in a tactics game -- the grid's own figures. The whole figure head to foot, the same size and proportions as the attached caster (a grown man stands about 50 pixels from sole to crown at game size; draw it large, the cutter brings it down). Flat dark navy background (a deep blue, not grey and not black). ONE sheet filling the whole image: no portrait, no other panels, no title. Labelled rows of frames, each row's name at its left, numbered 1 to N under each frame -- every number used once, none skipped, one drawing for each number. Every frame faces the way its HEAD says; a walk is animated in place, not travelling across the sheet. Every frame stands apart with clear space around it: nothing overlaps a neighbour or a label. The same scale in every row and on every sheet, feet on one baseline. No scenery except what a row names.
+```
+Where: the inn's common room (the lane's Beat 3) and the shore (§6, a guest the AI never targets after her first touch). Cut as: `tools/portrait-sheet.py` into `pt_wystan`; a `tools/wystan-sheet.py` over `tools/sheetrows.py` into `wystan_p1` in all five views (HEAD 7 SE, 8 NE, 9 S, 10 E, 11 N; SW, W, NW their mirrors); his Cast's light drawn by the code (`tools/castspark.py`, as the lamia's). The minimum for the beats is HEADs 1-6 and the Idle of HEAD 9; the fight wants all of it.
+
+### The woman's wound -- one row more for §24's figure
+ATTACH as §24 (her portrait page and the five Disguise pages; frame 6 of each is the woman).
+```text
+Attached: the same woman as before -- the lamia in her human form, frame 6 of each Disguise sheet. Draw one more row of her, in the same pixel style, the same size.
+
+THE LAMIA IN HER HUMAN FORM, STRUCK -- five sheets, one row each. Flinch (4): she takes a blow, staggers back a half step, one hand to the wound at her side, the hood falling back; on frame 4 she straightens and looks up, and for the first time her eyes are not a woman's -- the pupils gone to slits, a cat's. Nothing else of what she is shows yet.
+
+HEAD 1 -- from the bottom-right, every frame facing toward the bottom-right corner of the image: Flinch (4).
+HEAD 2 -- from the top-right, seen from behind, every frame facing toward the top-right corner: Flinch (4).
+HEAD 3 -- straight from the front, facing the viewer: Flinch (4).
+HEAD 4 -- from the right side in profile, facing right: Flinch (4).
+HEAD 5 -- straight from behind, facing away from the viewer: Flinch (4).
+
+Draw each HEAD above as its own separate image, in the order given: one sheet an image. Every sheet: 16-bit pixel art animation sheet, SNES-era action RPG style, crisp dark outline, readable at small size. Isometric three-quarter view from above, the camera looking down at about thirty degrees. Flat dark navy background (a deep blue, not grey and not black). ONE sheet filling the whole image: no portrait, no other panels, no title; rows only, drawn exactly as the attached frame 6 shows her, the same look, colours and size. One labelled row, its name at its left, numbered 1 to 4 under each frame. Every frame stands apart with clear space around it. Feet on one baseline. No scenery.
+```
+Cut as: a row `stillflinch` onto `lamia_p1` (tools/lamia-sheet.py), scaled by the Disguise row's frame 6 of the same view as §24's rows are; it plays on the wound that ends the disguise, before `reveal`.
