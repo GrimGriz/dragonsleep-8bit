@@ -59,6 +59,15 @@
    "ay": 50,
    "frames": 2,
    "fps": 6
+  },
+  "antennae": {
+   "y": 2688,
+   "fw": 108,
+   "fh": 56,
+   "ax": 54,
+   "ay": 50,
+   "frames": 6,
+   "fps": 10
   }
  },
  "source": "drawn by the art desk (ART-16 SE and NE, 10-10, SE page 1 the revised \"Rustmonster front-facing animation sheet\"; ART-57 S, E and N, 10-20), cut by tools/rustmonster-sheet.py through tools/artdesk.py (10-22)"

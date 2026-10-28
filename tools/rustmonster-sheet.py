@@ -76,22 +76,29 @@ SPEC = {
            R(('flinch', (0, 0, 1983, 602), (567, 599), 4, [383, 810, 1286, 1746]))),
   'H5P7': (dict(file='ART-57_HEAD-5_PAGE-7.png', W=2172, text=[(20, 350, 110, 395)]), R(('hurt', (0, 0, 2172, 551), (523, 548), 6, [253, 572, 901, 1236, 1595, 1983]))),
   'H5P8': (dict(file='ART-57_HEAD-5_PAGE-8.png', W=1774, text=[(38, 404, 256, 464)]), R(('prone', (0, 0, 1774, 730), (688, 727), 2, [616, 1190]))),
+  # the Antennae pages, one band of six (10-28, his "Yes, cut them": js/monsterrules.js plays its own `antennae` row)
+  'H3P3': (dict(file='ART-57_HEAD-3_PAGE-3.png', W=2172, text=[(15, 500, 212, 548)]), R(('antennae', (0, 0, 2172, 596), (564, 596), 6, [355, 673, 992, 1310, 1641, 1970]))),
+  'H4P3': (dict(file='ART-57_HEAD-4_PAGE-3.png', W=2172, text=[(15, 350, 180, 392)]), R(('antennae', (0, 0, 2172, 477), (449, 477), 6, [325, 653, 981, 1306, 1644, 1972]))),
+  'H5P3': (dict(file='ART-57_HEAD-5_PAGE-3.png', W=2172, text=[(22, 369, 231, 410)]), R(('antennae', (0, 0, 2172, 554), (523, 554), 6, [386, 708, 1027, 1352, 1679, 1996]))),
 }
 PAGES = {L: dict(p, rows=rows, xs=xs) for L, (p, (rows, xs)) in SPEC.items()}
-# drawn and not cut (no rule plays them): Antennae (ART-16 each P1's third row; ART-57 each P3) and Gobble (ART-16 each P2's second; each P5)
+# drawn and not cut (no rule plays them): Gobble (ART-16 each P2's second; each P5); the Antennae (ART-16 each P1's third row; ART-57 each P3) cut since 10-28
 UNCUT = {'H1P1 antennae': ((0, 667, 1774, 854), (832, 851), [275, 547, 819, 1095, 1368, 1619]), 'H2P1 antennae': ((0, 540, 1774, 822), (800, 819), [238, 508, 775, 1045, 1333, 1588]),
          'H1P2 gobble': ((0, 180, 1774, 352), (331, 349), None), 'H2P2 gobble': ((0, 199, 1774, 376), (355, 373), [223, 489, 753, 1023, 1282, 1568]),
-         'ART-57 P3 antennae, P5 gobble': 'one band a page, as the others'}
+         'ART-57 P5 gobble': 'one band a page, as the others'}
+for _L in ('H1P1', 'H2P1'):                     # (ART-16's Antennae rows, kept in UNCUT since 10-22: cut 10-28)
+    _b, _s, _x = UNCUT[_L + ' antennae']
+    PAGES[_L] = dict(PAGES[_L], rows=PAGES[_L]['rows'] + [('antennae', _b, _s, 6)], xs=dict(PAGES[_L]['xs'], antennae=_x))
 # the reaction marks the art desk left to the cutter ("removable intentionally or grouped as effects"): out, as the manticore's -- SE's yellow
 # ticks on Flinch 2 and Prone 1, E's and N's pale marks round Flinch 1-3 -- boxed as lettering in each page's `text` above
 FIX, CUTS = {}, {}
 VIEWS = {'SE': ('H1P1', 'H1P2'), 'NE': ('H2P1', 'H2P2'),
-         'S': tuple('H3P%d' % i for i in (1, 2, 4, 6, 7, 8)), 'E': tuple('H4P%d' % i for i in (1, 2, 4, 6, 7, 8)), 'N': tuple('H5P%d' % i for i in (1, 2, 4, 6, 7, 8))}
+         'S': tuple('H3P%d' % i for i in (1, 2, 4, 6, 7, 8, 3)), 'E': tuple('H4P%d' % i for i in (1, 2, 4, 6, 7, 8, 3)), 'N': tuple('H5P%d' % i for i in (1, 2, 4, 6, 7, 8, 3))}
 # each ART-57 Prone page by its Prone 2, upright (the art desk: "Prone1 is belly-up and Prone2 upright"): by Prone 1 against a Fall 6 -- ART-16's
 # ratio, 1.42, its legs in the air -- S's stood a quarter over its idle
 STAND_OF = {'H3P8': ('prone', 1), 'H4P8': ('prone', 1), 'H5P8': ('prone', 1)}
-ROWS = ['idle', 'walk', 'attack', 'hurt', 'flinch', 'prone']
-FPS = {'idle': 6, 'walk': 10, 'attack': 10, 'hurt': 8, 'flinch': 10, 'prone': 6}
+ROWS = ['idle', 'walk', 'attack', 'hurt', 'flinch', 'prone', 'antennae']
+FPS = {'idle': 6, 'walk': 10, 'attack': 10, 'hurt': 8, 'flinch': 10, 'prone': 6, 'antennae': 10}
 
 
 def fit(img, k):

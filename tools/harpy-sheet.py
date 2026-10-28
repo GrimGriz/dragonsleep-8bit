@@ -13,8 +13,9 @@ Sources (the art desk's, in the main checkout's deep16/_src/harpy/ -- a worktree
   _src/art-desk/received-2026-10-27-ART-56-harpy-LOOSE/MAP.md).
 What each became: idle, walk, attack <- Club (its club plays `attack`), claw <- Claws (the attack names its `row: 'claw'`), flinch, hurt <-
 Fall (played once), prone <- Prone played backwards, fly <- Fly (10-28, his "1 yes": a sheet's fly row plays while its unit is aloft,
-js/ui.js -- ART-14's SE and NE Fly rows, ART-56's S, E and N Fly pages at their view's median scale). Song is NOT cut: the Luring Song (a
-charm that walks a hero to her) is not on the grid. Facings: the five views as drawn, SW, W and
+js/ui.js -- ART-14's SE and NE Fly rows, ART-56's S, E and N Fly pages at their view's median scale). song <- Song (10-28, his "Yes, cut them":
+js/monsterrules.js plays its own song row for the Luring Song -- ART-14's SE and NE Song rows, ART-56's S, E and N Song pages, the notes
+with their frames). Facings: the five views as drawn, SW, W and
 NW the mirrors of SE, E and NE.
 The boxes by the seat's probe (bodies clustered into each page's rows, each frame's x its body's middle; the SE claw row by its printed
 numbers -- its frames 3 and 4 touch; NE's Club row by hand to end at its numbers, the Song row's notes below them read as numbers; by hand too, SE's Idle band starts under the
@@ -47,7 +48,7 @@ def R(*rows):
 SPEC = {
   'H1P1': (dict(file='ART-14_HEAD-1_PAGE-1.png', W=1536, text=[(15, 845, 65, 882), (17, 588, 39, 615), (19, 361, 55, 389), (34, 593, 55, 615), (51, 361, 67, 389), (51, 587, 66, 615), (61, 367, 82, 389), (61, 587, 82, 615)]),
            R(('ref', (0, 0, 1536, 255), (228, 255), 5, [163, 527, 800, 1076, 1360]), ('idle', (0, 277, 1536, 478), (456, 478), 6, [213, 448, 677, 895, 1114, 1341]), ('walk', (0, 479, 1536, 718), (696, 718), 8, [184, 361, 542, 724, 912, 1091, 1260, 1440]), ('fly', (0, 719, 1536, 997), (976, 997), 8, [129, 317, 507, 722, 903, 1077, 1257, 1441]))),
-  'H1P2': (dict(file='ART-14_HEAD-1_PAGE-2.png', W=1536, text=[(13, 464, 34, 491), (13, 784, 34, 811), (14, 149, 46, 177), (29, 463, 46, 491), (29, 789, 50, 811), (40, 154, 61, 177), (40, 469, 61, 491), (45, 789, 66, 811), (56, 154, 80, 177), (56, 463, 77, 491), (75, 154, 96, 177)]),
+  'H1P2': (dict(file='ART-14_HEAD-1_PAGE-2.png', W=1536, text=[(10, 780, 85, 818), (13, 464, 34, 491), (13, 784, 34, 811), (14, 149, 46, 177), (29, 463, 46, 491), (29, 789, 50, 811), (40, 154, 61, 177), (40, 469, 61, 491), (45, 789, 66, 811), (56, 154, 80, 177), (56, 463, 77, 491), (75, 154, 96, 177)]),
            R(('clawold', (0, 0, 1536, 303), (280, 303), 6, [187, 416, 653, 890, 1136, 1387]), ('attack', (0, 304, 1536, 620), (597, 620), 6, [183, 413, 647, 876, 1125, 1377]), ('song', (0, 621, 1536, 945), (921, 945), 6, [175, 411, 644, 880, 1130, 1379]))),
   'H1P3': (dict(file='ART-14_HEAD-1_PAGE-3.png', W=1536, text=[(21, 489, 42, 518), (22, 163, 43, 192), (22, 821, 43, 850), (36, 494, 57, 518), (38, 163, 57, 192), (39, 826, 60, 850), (52, 168, 70, 192), (52, 489, 70, 518), (54, 161, 67, 174), (55, 826, 76, 850), (65, 168, 86, 192), (65, 489, 83, 518), (81, 163, 120, 192), (72, 822, 110, 850)]),
            R(('flinch', (0, 0, 1536, 331), (307, 331), 4, [288, 598, 861, 1141]), ('hurt', (0, 332, 1536, 654), (629, 654), 6, [193, 417, 640, 874, 1117, 1379]), ('prone', (0, 655, 1536, 967), (942, 967), 2, [281, 652]))),
@@ -110,10 +111,17 @@ SPEC = {
            R(('fly', (0, 0, 2172, 353), (327, 353), 4, [291, 772, 1316, 1854]), ('fly_b', (0, 354, 2172, 700), (674, 700), 4, [277, 803, 1355, 1877]))),
   'H5P3': (dict(file='ART-56_HEAD-5_PAGE-3.png', W=1536, text=[(15, 252, 85, 296), (0, 680, 110, 760)]),     # (a Fly label on each line)
            R(('fly', (0, 0, 1536, 471), (444, 471), 4, [225, 582, 973, 1344]), ('fly_b', (0, 472, 1536, 922), (897, 922), 4, [237, 583, 957, 1337]))),
+  # the S, E and N Song pages (10-28): two lines of three, the notes over each figure with it (N's first line ends at its numbers: the second line's notes below them)
+  'H3P6': (dict(file='ART-56_HEAD-3_PAGE-6.png', W=2161, text=[(36, 318, 134, 364)]),
+           R(('song', (0, 0, 2161, 352), (320, 352), 3, [636, 1074, 1516]), ('song_b', (0, 353, 2161, 693), (662, 693), 3, [634, 1075, 1513]))),
+  'H4P6': (dict(file='ART-56_HEAD-4_PAGE-6.png', W=1536, text=[(28, 328, 132, 373)]),
+           R(('song', (0, 0, 1536, 448), (417, 448), 3, [326, 775, 1246]), ('song_b', (0, 449, 1536, 935), (904, 935), 3, [282, 775, 1261]))),
+  'H5P6': (dict(file='ART-56_HEAD-5_PAGE-6.png', W=1536, text=[(15, 220, 112, 275), (15, 718, 112, 775)]),
+           R(('song', (0, 0, 1536, 462), (430, 462), 3, [278, 733, 1162]), ('song_b', (0, 463, 1536, 925), (896, 925), 3, [285, 751, 1203]))),
 }
 # the rows drawn and not cut: the identity drawings over SE's Idle, Fly, Song, and ART-14's first Claws rows (superseded by the two
 # correction sheets) -- their boxes kept, so a later rule that plays Fly or Song has them
-UNCUT = {('H1P1', 'ref'), ('H1P2', 'clawold'), ('H1P2', 'song'), ('H2P2', 'clawold'), ('H2P2', 'song')}
+UNCUT = {('H1P1', 'ref'), ('H1P2', 'clawold'), ('H2P2', 'clawold'), }
 PAGES = {}
 for _L, (_p, (_rows, _xs)) in SPEC.items():
     _rows = [r for r in _rows if (_L, r[0]) not in UNCUT]
@@ -122,12 +130,12 @@ FIX = {}
 CUTS = {'H1C': {'claw': [((810, 282), (810, 312))]}}     # (SE Claws 3's reach meets Claws 4 in a bridge 22 px tall at x 810: cut there)
 # each view's pages, its Idle's first
 VIEWS = {'SE': ('H1P1', 'H1C', 'H1P2', 'H1P3'), 'NE': ('H2P1', 'H2C', 'H2P2', 'H2P3')}
-VIEWS.update({v: tuple('H%dP%d' % (h, p) for p in (1, 2, 4, 5, 7, 8, 9, 3)) for v, h in (('S', 3), ('E', 4), ('N', 5))})
+VIEWS.update({v: tuple('H%dP%d' % (h, p) for p in (1, 2, 4, 5, 7, 8, 9, 3, 6)) for v, h in (('S', 3), ('E', 4), ('N', 5))})
 FALL = {v: ('H%dP8' % h, 'H%dP9' % h) for v, h in (('S', 3), ('E', 4), ('N', 5))}     # (Fall page, Prone page); SE's and NE's share a page
-JOINS = {r + '_b': r for r in ('idle', 'walk', 'attack', 'claw', 'flinch', 'hurt', 'prone', 'fly')}
+JOINS = {r + '_b': r for r in ('idle', 'walk', 'attack', 'claw', 'flinch', 'hurt', 'prone', 'fly', 'song')}
 JOINS.update({'fly_c': 'fly', 'fly_d': 'fly'})   # (S's Fly in four lines of two)
-ROWS = ['idle', 'walk', 'attack', 'hurt', 'flinch', 'claw', 'prone', 'fly']
-FPS = {'idle': 6, 'walk': 10, 'attack': 10, 'hurt': 8, 'flinch': 10, 'claw': 10, 'prone': 6, 'fly': 10}
+ROWS = ['idle', 'walk', 'attack', 'hurt', 'flinch', 'claw', 'prone', 'fly', 'song']
+FPS = {'idle': 6, 'walk': 10, 'attack': 10, 'hurt': 8, 'flinch': 10, 'claw': 10, 'prone': 6, 'fly': 10, 'song': 8}
 
 
 def targets():
@@ -149,7 +157,7 @@ _scales0 = AD.scales
 def _scales(cuts, views, *a, **k):
     K = _scales0(cuts, views, *a, **k)
     for v, ls in views.items():
-        rest = sorted(K[L] for L in ls if L not in FLY_PAGES)
+        rest = sorted(K[L] for L in ls if L not in FLY_PAGES and L not in ('H3P6', 'H4P6', 'H5P6'))   # (the Song pages, cut after the Fly, 10-28: kept out, so the Fly's scale stays as it landed)
         for L in ls:
             if L in FLY_PAGES:
                 K[L] = float(np.median(rest))

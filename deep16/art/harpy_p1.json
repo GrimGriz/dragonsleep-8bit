@@ -77,6 +77,15 @@
    "ay": 76,
    "frames": 2,
    "fps": 6
+  },
+  "song": {
+   "y": 5376,
+   "fw": 104,
+   "fh": 84,
+   "ax": 52,
+   "ay": 76,
+   "frames": 6,
+   "fps": 8
   }
  },
  "source": "drawn by the art desk (ART-14 SE and NE with its two Claws corrections, 10-10; ART-56 S, E and N, 10-20), cut by tools/harpy-sheet.py through tools/artdesk.py (10-28)"
