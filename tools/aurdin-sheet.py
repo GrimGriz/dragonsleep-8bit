@@ -487,6 +487,7 @@ def build(look, check=False):
             meta['anims'][row]['release'] = RELEASE[row]
     meta['source'] = 'drawn by the art desk (%s, %s and its supplements: every row in all five views), cut and snapped by tools/aurdin-sheet.py' % (
         LOOKS[look]['art'], LOOKS[look]['name'])
+    meta['name'] = 'Aurdin in ' + LOOKS[look]['name']                  # (the row gallery's card names a sheet by it: ?rows=aurdin_p4,aurdin_p3&beside, 10-28)
     json.dump(meta, open(meta_p, 'w'), indent=1)
     return name
 

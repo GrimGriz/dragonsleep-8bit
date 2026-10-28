@@ -603,7 +603,8 @@
 "release": 3
 }
 },
-"source": "drawn by the art desk (ART-72, the Ochre Mantle and its supplements: every row in all five views), cut and snapped by tools/aurdin-sheet.py"
+"source": "drawn by the art desk (ART-72, the Ochre Mantle and its supplements: every row in all five views), cut and snapped by tools/aurdin-sheet.py",
+"name": "Aurdin in the Ochre Mantle"
 },
 "aurdin_p3": {
 "image": "art/aurdin_p3.png?v=79042949c8",
@@ -809,7 +810,57 @@
 "release": 3
 }
 },
-"source": "drawn by the art desk (ART-73, the Red Mantle and its supplements: every row in all five views), cut and snapped by tools/aurdin-sheet.py"
+"source": "drawn by the art desk (ART-73, the Red Mantle and its supplements: every row in all five views), cut and snapped by tools/aurdin-sheet.py",
+"name": "Aurdin in the Red Mantle"
+},
+"aurdin_p4": {
+"image": "art/aurdin_p4.png?v=9f50094b6f",
+"fw": 64,
+"fh": 112,
+"ax": 32,
+"ay": 96,
+"top": 49,
+"source": "Aurdin in the star mantle: the Red Mantle (aurdin_p3, ART-73) with its mantle repainted by code, four rows (tools/starmantle-sheet.py)",
+"name": "Aurdin in the star mantle",
+"anims": {
+"idle": {
+"y": 0,
+"fw": 64,
+"fh": 112,
+"ax": 32,
+"ay": 96,
+"frames": 6,
+"fps": 6
+},
+"walk": {
+"y": 896,
+"fw": 64,
+"fh": 112,
+"ax": 32,
+"ay": 96,
+"frames": 8,
+"fps": 10
+},
+"cast": {
+"y": 1792,
+"fw": 64,
+"fh": 112,
+"ax": 32,
+"ay": 96,
+"frames": 6,
+"fps": 10
+},
+"attack": {
+"y": 2688,
+"fw": 64,
+"fh": 112,
+"ax": 32,
+"ay": 96,
+"frames": 6,
+"fps": 10,
+"release": 2
+}
+}
 },
 "axebeak_p1": {
 "image": "art/axebeak_p1.png?v=c6f20857b8",

@@ -423,14 +423,20 @@
   // points, prone on its side and then up, Still before it has acted, Burrow under the floor, Clamp over a head and Latched at a shoulder (a fighter
   // stands by to be the head), the rest played as the engine plays them. &lvl= the fighter's, &ripple=body|mane as on ?show= (js/looks.js LK.ripple).
   // The fight that shows them in play is ?show= (above; dev/bench16.js mode=show calls SH.fight)
+  // A name in rows= that is a sheet and no creature (`?rows=aurdin_p4`) is worn by a stand-in (SH.STANDIN: a plain man's block, his club the blow its
+  // attack row is staged as); &beside stands every figure asked side by side, each row played on all of them at once and turned together -- a look set
+  // beside the one it was made from (10-28, the code-drawn mantle: `?rows=aurdin_p4,aurdin_p3&beside`, Aurdin's star mantle by his Red Mantle)
+  SH.STANDIN = 'commoner';
   SH.rows = function (q) {
     var get = function (k) { var m = new RegExp('[?&]' + k + '=([^&]*)').exec(q); return m ? decodeURIComponent(m[1]) : null; };
-    var L = Math.max(1, Math.min(9, +get('lvl') || 3)), kinds = (get('rows') || 'grick').split(',').filter(function (k) { return D.FOES[k]; });
-    if (!kinds.length) kinds = ['grick'];
+    var L = Math.max(1, Math.min(9, +get('lvl') || 3));
+    var asked = (get('rows') || 'grick').split(',').map(function (k) { return D.FOES[k] ? { kind: k } : D.SHEETS && D.SHEETS[k] && D.FOES[SH.STANDIN] ? { kind: SH.STANDIN, sheet: k } : null; }).filter(Boolean);
+    if (!asked.length) asked = [{ kind: 'grick' }];
+    var kinds = asked.map(function (a) { return a.kind; });
     var B = new D.Battle({ npc: { foes: kinds.slice(), party: ['fighter:' + L + ':human'] },
       fightDef: D.classFight(L, { what: 'the row gallery', intro: 'Every row of its sheet, one at a time. Left/right the row, up/down turn it, E again.' }) });
     B.showRipple = get('ripple');
-    var S = B.rowGallery = { list: [], i: 0, face: 7, bare: false, real: false };
+    var S = B.rowGallery = { list: [], i: 0, face: 7, bare: false, real: false, beside: /[?&]beside\b/.test(q) && asked.length > 1 };
     S.restart = function () { return loop(); }; // (the one gallery starts the loop over at S.i: js/onegallery.js)
     var enter0 = B.enter;
     B.enter = function () {
@@ -445,11 +451,12 @@
       S.foes.forEach(function (u) { u.show = true; u.bound = null; u.maxhp = u.hp; }); // (show: the ripple's mark, js/looks.js; bound to water, on a dry floor: let loose)
       // &sheet=<name>: the creature wears that sheet -- a new sheet seen on the floor before anything is built to wear it (10-08, GreyFang's isometric
       // views: Griz, "The sheets still need cutting and playback checks against the map"; `?rows=gnoll&sheet=greyfang_p1`)
-      var look = get('sheet');
-      if (look && D.SHEETS && D.SHEETS[look]) S.foes.forEach(function (u) { u.sheet = look; u.name = look.replace(/_p\d+$/, '').replace(/^./, function (c) { return c.toUpperCase(); }); });
+      var look = get('sheet'), named = function (sh) { return D.SHEETS[sh].name || sh.replace(/_p\d+$/, '').replace(/^./, function (c) { return c.toUpperCase(); }); };
+      if (look && D.SHEETS && D.SHEETS[look]) S.foes.forEach(function (u) { u.sheet = look; u.name = named(look); });
+      S.foes.forEach(function (u, k) { var a = asked[k]; if (a && a.sheet) { u.sheet = a.sheet; u.name = named(a.sheet); u.rowKind = a.sheet; } }); // (a sheet asked by name: the stand-in wears it)
       // (its `attack` row left out where every blow has a row of its own: there it is only the fallback, a copy -- the show's tally says the same)
       var copyOnly = function (u) { var ks = Object.keys(u.attacks || {}); return ks.length && ks.every(function (k) { var a = u.attacks[k]; return a.spell || D.spr.anim(u.sheet, String(a.name || k).toLowerCase().replace(/[^a-z]/g, '')); }); };
-      S.foes.forEach(function (u) { SH.rowsOf(u.sheet).forEach(function (r) { if (!(r === 'attack' && copyOnly(u))) S.list.push({ u: u, row: r }); }); });
+      (S.beside ? S.foes.slice(0, 1) : S.foes).forEach(function (u) { SH.rowsOf(u.sheet).forEach(function (r) { if (!(r === 'attack' && copyOnly(u))) S.list.push({ u: u, row: r }); }); }); // (beside: the first one's rows, played on all)
       S.zoom0 = D.iso.zoom || 1; // (close in, by its size: a row is judged at the size of a figure, not of the floor -- the wheel takes it in or out)
       S.list.sort(function (a, b) { return S.foes.indexOf(a.u) - S.foes.indexOf(b.u) || (a.row === 'idle' ? -1 : b.row === 'idle' ? 1 : 0); });
       B.req = null; B.co = loop();
@@ -516,7 +523,19 @@
         yield 40; } };
       return null;
     }
+    function* together(it) { // &beside: every figure on the floor in a row across the screen, the same row, the same facing, played at once and bare
+      var r = it.row, n = S.foes.length;
+      B.units = [S.mate].concat(S.foes);
+      S.foes.forEach(function (w, k) { off(w); w.x = S.home[0] + k; w.y = S.home[1] - k; }); // (a square east and one north: the next one along the screen)
+      D.grid.setup(D.grid.map, B.units);
+      if (S.lastKind !== 'beside') { S.lastKind = 'beside'; D.iso.zoom = Math.max(S.zoom0, 2.4); }
+      D.iso.lookAt(S.home[0] + (n - 1) / 2, S.home[1] - (n - 1) / 2, D.grid.map.gz(S.home[0], S.home[1]));
+      card(it, 'Side by side, left to right: ' + S.foes.map(function (w) { return w.name; }).join(', ') + '.');
+      yield 12;
+      S.foes.forEach(function (w) { if (D.spr.anim(w.sheet, r)) { w.anim = r; w.animT = B.t; } });
+    }
     function* play(it) {
+      if (S.beside) { yield* together(it); return; }
       var u = it.u; S.upAt = null;
       B.units = [S.mate, u]; S.foes.forEach(function (w) { if (w !== u) off(w); }); off(u);
       var mt = S.mate; mt.x = S.home[0] - 2; mt.y = S.home[1] + 1; mt.facing = 6; mt.hp = mt.maxhp; mt.conds = {}; mt.dead = false; mt.ko = false; mt.anim = 'idle'; mt.animT = B.t; // (the fighter back where it stood, whole)

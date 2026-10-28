@@ -1,0 +1,49 @@
+{
+ "image": "art/aurdin_p4.png",
+ "fw": 64,
+ "fh": 112,
+ "ax": 32,
+ "ay": 96,
+ "top": 49,
+ "source": "Aurdin in the star mantle: the Red Mantle (aurdin_p3, ART-73) with its mantle repainted by code, four rows (tools/starmantle-sheet.py)",
+ "name": "Aurdin in the star mantle",
+ "anims": {
+  "idle": {
+   "y": 0,
+   "fw": 64,
+   "fh": 112,
+   "ax": 32,
+   "ay": 96,
+   "frames": 6,
+   "fps": 6
+  },
+  "walk": {
+   "y": 896,
+   "fw": 64,
+   "fh": 112,
+   "ax": 32,
+   "ay": 96,
+   "frames": 8,
+   "fps": 10
+  },
+  "cast": {
+   "y": 1792,
+   "fw": 64,
+   "fh": 112,
+   "ax": 32,
+   "ay": 96,
+   "frames": 6,
+   "fps": 10
+  },
+  "attack": {
+   "y": 2688,
+   "fw": 64,
+   "fh": 112,
+   "ax": 32,
+   "ay": 96,
+   "frames": 6,
+   "fps": 10,
+   "release": 2
+  }
+ }
+}
