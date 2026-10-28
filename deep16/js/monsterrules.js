@@ -58,8 +58,9 @@
   var wo0 = D.save.weaponOf;
   D.save.weaponOf = function (h) { var w = wo0.apply(this, arguments), n = rustOf(h, w.id); if (n && !w.magic) { w.mod = (w.mod || 0) - n; w.rusted = n; } return w; };
 
-  // what of a creature's the antennae could touch -- nonmagical ferrous metal worn or held: its armour, its shield, the weapon in its hand -- in the
-  // order the AI reaches for them (the armour first: the loss that lasts)
+  // what of a creature's the antennae could touch -- nonmagical ferrous metal worn or held: the weapon in its hand, its armour, its shield -- in the
+  // order the AI reaches for them (RULED 10-28, Griz, to the desk's "Should the rust monster go for the weapon swinging at it first?": "Weapon first")
+  var REACH_ORDER = { weapon: 0, armor: 1, shield: 2 };
   function ferrous(w, any) {
     var out = [], h = w.src && w.src.equip ? w.src : null, Rr = R();
     if (h) {
@@ -75,7 +76,7 @@
       var k = Object.keys(w.attacks || {}).filter(function (k) { var x = w.attacks[k]; return (any || !x.magic) && !x.ranged && metalName(x); })[0];
       if (k) out.push({ slot: 'weapon', key: k, foe: true });
     }
-    return out;
+    return out.sort(function (a, b) { return (REACH_ORDER[a.slot] != null ? REACH_ORDER[a.slot] : 9) - (REACH_ORDER[b.slot] != null ? REACH_ORDER[b.slot] : 9); });
   }
   MR.ferrous = ferrous;
   MR.carriesFerrous = function (w) { return ferrous(w, true).length > 0; };
@@ -117,6 +118,7 @@
   var owh = M.onWeaponHit;
   M.onWeaponHit = function* (B, att, tgt, atk, crit) {
     if (owh) yield* owh.apply(this, arguments);
+    if (tgt.antennae && att && atk && !atk.spell) tgt.lastHitBy = att.id; // (the weapon swinging at it: its antennae go there first -- rustTurn)
     if (!tgt.rustMetal || !atk || atk.magic || atk.spell || att.dead) return;
     if (atk.ammo || (atk.ranged && /bow/i.test(atk.id || atk.name || ''))) { B.card(['{g}The ' + (/cross/i.test(atk.id || atk.name || '') ? 'bolt' : 'arrow') + ' rusts to nothing in the wound.{/}'], 160); return; }
     if (!metalName(atk) || atk.name === 'Unarmed Strike') return;
@@ -173,14 +175,20 @@
     yield 16;
     return true;
   };
-  // its turn: the antennae on metal in reach; else to metal its move reaches, then the antennae; else (no metal near) the bite, the brute's way
+  // its turn ("Weapon first", RULED 10-28): the antennae at the metal weapon of the one that last hit it, when that one is in reach; else at the nearest
+  // metal in reach -- on that one its weapon, then its armour, then its shield (ferrous's order); else to metal its move reaches, the one that last hit it
+  // first, then the nearest, and the antennae there; else (no metal near) the bite, the brute's way
   function* rustTurn(B, u) {
     if (!RU.canAct(u) || !u.turn || !u.turn.action) return false;
-    var pickOf = function (ws) { var best = null, bs = -1; ws.forEach(function (w) { var o = ferrous(w)[0], s = o ? (o.slot === 'armor' ? 3 : o.slot === 'shield' ? 2 : 1) * 100 - G.dist(u, w) : -1; if (s > bs) { bs = s; best = w; } }); return best; };
+    var last = u.lastHitBy ? byId(B, u.lastHitBy) : null;
+    if (last && !ferrous(last).some(function (o) { return o.slot === 'weapon'; })) last = null; // (its weapon is the point: one that hit it bare-handed is no one first)
+    var pickOf = function (ws) { return last && ws.indexOf(last) >= 0 ? last : ws.slice().sort(function (a, b) { return G.dist(u, a) - G.dist(u, b); })[0] || null; };
     var t = pickOf(MR.antennaeTargets(B, u));
     if (!t && u.turn.move > 0 && !u.conds.restrained && !u.conds.grappled) {
-      var rm = G.reach(u, u.turn.move), cands = B.units.filter(function (w) { return w !== u && G.hostile(u, w) && G.standing(w) && !w.object && M.sees(B, u, w) && ferrous(w).length; }), go = null, gt = null;
-      cands.forEach(function (w) { var e = AI.approach(u, w, rm, (u.antennae && u.antennae.reach) || 5); if (e && G.dist(u, w, e.x, e.y) <= 5 && (!go || e.cost < go.cost || (gt && pickOf([w, gt]) === w && e.cost === go.cost))) { go = e; gt = w; } });
+      var rm = G.reach(u, u.turn.move), go = null, rch = (u.antennae && u.antennae.reach) || 5;
+      var cands = B.units.filter(function (w) { return w !== u && G.hostile(u, w) && G.standing(w) && !w.object && M.sees(B, u, w) && ferrous(w).length; })
+        .sort(function (a, b) { return (b === last) - (a === last) || G.dist(u, a) - G.dist(u, b); });
+      for (var ci = 0; ci < cands.length && !go; ci++) { var e = AI.approach(u, cands[ci], rm, rch); if (e && G.dist(u, cands[ci], e.x, e.y) <= rch) go = e; }
       if (go) { yield* AI.walkTo(B, u, go); if (!up(u) || !RU.canAct(u)) return true; t = pickOf(MR.antennaeTargets(B, u)); }
     }
     if (!t) return false;
@@ -292,8 +300,9 @@
     yield 24; u.anim = 'idle';
   };
   function stopSong(B, u, why) { if (!u.singing) return; u.singing = null; MR.luredBy(B, u).forEach(function (w) { freeLured(B, w, why || 'the song ends'); }); }
-  // its turn: the song, if it would hold more of its foes than of its own (the odds of the save summed), with its action; once singing, the bonus action
-  // keeps it while anyone is held by it -- and it stops when no one is
+  // its turn: the song, with its action, whenever a foe of hers could be held by it -- her own side's humanoids not weighed (RULED 10-28, Griz: "I don't
+  // see why she'd care, who are we grouping with harpies?"; they still hear it and save, by the block); once singing, the bonus action keeps it while
+  // anyone is held by it -- and it stops when no one is
   function* songTurn(B, u) {
     if (!RU.canAct(u) || !u.turn) return false;
     if (u.singing) {
@@ -302,9 +311,7 @@
       return false;
     }
     if (!u.turn.action) return false;
-    var dc = u.luringSong.dc || 11, TX = D.tactics, gain = 0;
-    B.units.forEach(function (w) { if (!MR.songTakes(u, w)) return; var pf = TX && TX.pFail ? TX.pFail(w, 'wis', dc) : 0.5; gain += G.hostile(u, w) ? pf : -pf; });
-    if (gain < 0.6) return false;
+    if (!B.units.some(function (w) { return G.hostile(u, w) && MR.songTakes(u, w); })) return false;
     yield* MR.sing(B, u);
     return false; // (its move is still its own: the flight or the walk after, js/flight-ai.js -- the action is spent)
   }

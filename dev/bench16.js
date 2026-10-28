@@ -5388,6 +5388,20 @@
       var plain = D.npc.build('fighter:3', 3, 'party'), rusted = D.npc.build({ word: 'fighter:3', rust: (function () { var r = {}; r[plain.src.equip.armor] = 2; r[plain.src.equip.weapon] = 5; return r; })() }, 3, 'party');
       okM('R11 nothing past the fight: a Pocket DM word handed a rust record builds AC ' + (rusted && rusted.baseAC) + ' with the ' + (rusted && rusted.weapon.name) + ' (want ' + plain.baseAC + ', the ' + plain.weapon.name + ': whole)', !!rusted && rusted.baseAC === plain.baseAC && rusted.weapon.id === plain.weapon.id);
 
+      // R12 "Weapon first" (RULED 10-28): its antennae at the weapon of the one that last hit it, in reach, before the nearer one's armour; with no one
+      // having hit it, at the nearest one's weapon first, then the armour
+      var B5 = mkM('?npc=rustmonster&vs=fighter,cleric&lvl=3'), rm5 = sideM(B5, 'foe')[0], p5 = sideM(B5, 'party'), ft5 = p5.filter(function (u) { return u.cls === 'fighter'; })[0], cl5 = p5.filter(function (u) { return u.cls === 'cleric'; })[0];
+      var s5 = stripM(8); if (!s5) throw new Error('no flat strip for R12');
+      onlyM(B5, [rm5, ft5, cl5]); [rm5, ft5, cl5].forEach(function (w) { w.maxhp = w.hp = 300; w.conds = {}; });
+      at(rm5, s5[0] + 2, s5[1]); at(ft5, s5[0] + 3, s5[1]); at(cl5, s5[0] + 1, s5[1]); B5.cache = null;
+      var cw5 = cl5.weapon.name.toLowerCase(), fw5 = ft5.weapon.name.toLowerCase();
+      RM.startTurn(cl5); B5.active = cl5; pinM(15, function () { runM(B5.attack(cl5, rm5, cl5.weapon)); }); B5.active = null;
+      var n12 = (B5.log || []).length; pinM(1, function () { aiM(B5, rm5); }); var l12 = logM(B5, n12);
+      rm5.lastHitBy = null; at(cl5, s5[0] + 6, s5[1]); at(rm5, s5[0] + 2, s5[1]); B5.cache = null;
+      var n12b = (B5.log || []).length; pinM(1, function () { aiM(B5, rm5); }); var l12b = logM(B5, n12b);
+      var to12 = (/antennae for ([^:]+):/.exec(l12) || [])[1] || 'nothing', to12b = (/antennae for ([^:]+):/.exec(l12b) || [])[1] || 'nothing';
+      okM('R12 "Weapon first": the cleric hits it with the ' + cw5 + ', the fighter in mail beside it too -- its antennae go for ' + to12 + '; no one having hit it, the fighter alone in reach -- for ' + to12b + ' (want the cleric\'s ' + cw5 + ', the fighter\'s ' + fw5 + ')',
+        new RegExp('Cleric \\d+\'s ' + cw5, 'i').test(to12) && new RegExp('Fighter \\d+\'s ' + fw5, 'i').test(to12b));
       // ---- the aboleth (srd/monsters/a.md)
       var B2 = mkM('?npc=aboleth&vs=fighter,cleric&lvl=7'), ab = sideM(B2, 'foe')[0], p2 = sideM(B2, 'party'), f2 = p2.filter(function (u) { return u.cls === 'fighter'; })[0], c2 = p2.filter(function (u) { return u.cls === 'cleric'; })[0];
       var s2 = stripM(8); if (!s2) throw new Error('no flat strip on the aboleth\'s map');
@@ -5418,6 +5432,19 @@
       okM('A7 its AI: its turn ' + (/ENSLAVE/.test(l7) ? 'enslaves' : 'does not enslave') + ' (one held ' + held7 + '); its next ' + (/ENSLAVE/.test(l7b) ? 'enslaves again' : 'does not') + ', ' + ab.enslaveLeft + ' left (want enslaves, true, does not, 2)',
         /ENSLAVE/.test(l7) && held7 && !/ENSLAVE/.test(l7b) && ab.enslaveLeft === 2);
 
+      // A8 the enslaved betrays competently (RULED 10-28, Griz: "very yes, bench a routine for competent party betrayal behavior"): enslaved, the fighter's turn
+      // is its class's own tactics turned on its friends -- its blows at the cleric beside it, none at the aboleth; the cleric enslaved heals no one of the party
+      [f2, c2].forEach(function (w) { if (MRr.freeEnslaved) MRr.freeEnslaved(B2, w); w.conds = {}; w.hp = 300; }); ab.dead = false; ab.hp = 300; ab.enslaveLeft = 3;
+      at(ab, s2[0], s2[1]); at(f2, s2[0] + 5, s2[1]); at(c2, s2[0] + 6, s2[1]); B2.cache = null;
+      pinM(1, function () { runM(MRr.enslave ? MRr.enslave(B2, ab, f2) : null); });
+      var c2hp = c2.hp, ab8 = ab.hp, n8 = (B2.log || []).length; pinM(15, function () { aiM(B2, f2); }); var l8 = logM(B2, n8);
+      okM('A8 the enslaved fighter\'s turn: the cleric ' + c2hp + ' -> ' + c2.hp + ', the aboleth ' + ab8 + ' -> ' + ab.hp + '; ' + (/Fighter \d+ > Cleric/.test(l8) ? 'its blows at the cleric' : 'no blow at the cleric (' + l8.slice(0, 120) + ')') + ' (want the cleric hurt, the aboleth not, its blows at the cleric)',
+        f2.side === 'foe' && c2.hp < c2hp && ab.hp >= ab8 && /Fighter \d+ > Cleric/.test(l8));
+      if (MRr.freeEnslaved) MRr.freeEnslaved(B2, f2); f2.hp = 150; f2.conds = {}; c2.conds = {};
+      pinM(1, function () { runM(MRr.enslave ? MRr.enslave(B2, ab, c2) : null); });
+      var f2hp8 = f2.hp, n8b = (B2.log || []).length; pinM(15, function () { aiM(B2, c2); }); var l8b = logM(B2, n8b);
+      okM('A8b the enslaved cleric\'s turn: the fighter (hurt, 150 of 300) ' + f2hp8 + ' -> ' + f2.hp + '; it ' + (/Cleric \d+[^|]*(> Fighter|on (the )?Fighter)/.test(l8b) ? 'turns on the fighter' : 'does something else (' + l8b.slice(0, 120) + ')') + ' (want no healing of the fighter)',
+        c2.side === 'foe' && f2.hp <= f2hp8);
       // ---- the harpy (srd/monsters/h.md)
       var B3 = mkM('?npc=harpy,harpy&vs=fighter,wizard,cleric&lvl=3'), hs = sideM(B3, 'foe'), hp1 = hs[0], hp2 = hs[1], p3 = sideM(B3, 'party'), f3 = p3.filter(function (u) { return u.cls === 'fighter'; })[0], w3 = p3.filter(function (u) { return u.cls === 'wizard'; })[0], c3 = p3.filter(function (u) { return u.cls === 'cleric'; })[0];
       var s3 = stripM(10); if (!s3) throw new Error('no flat 10 x 3 strip on the harpy\'s map');
@@ -5446,6 +5473,15 @@
       var n9h = (B3.log || []).length; pinM(1, function () { aiM(B3, hp1); }); var l9h = logM(B3, n9h);
       okM('H9 her AI: the song on her turn ' + (/Luring Song/.test(l9h) ? 'sung' : 'not sung') + '; the cleric, proof against her, charmed ' + !!c3.conds.charmed + ' (want sung, false)', /Luring Song/.test(l9h) && !c3.conds.charmed);
 
+      // H10 she sings whenever a foe can hear (RULED 10-28, "I don't see why she'd care, who are we grouping with harpies?"): a harpy with two bandits of
+      // her own, a lone cleric (WIS +5) against her -- the odds of 012b741's weighing said no song; now she sings, and the bandits hear it too
+      var B6 = mkM('?npc=harpy,bandit,bandit&vs=cleric&lvl=3'), f6 = sideM(B6, 'foe'), hp6 = f6.filter(function (u) { return u.kind === 'harpy'; })[0], bd6 = f6.filter(function (u) { return u.kind === 'bandit'; }), c6 = sideM(B6, 'party').filter(function (u) { return u.cls === 'cleric'; })[0];
+      var s6 = stripM(8); if (!s6) throw new Error('no flat strip for H10');
+      onlyM(B6, [hp6, c6].concat(bd6)); [hp6, c6].concat(bd6).forEach(function (w) { w.maxhp = w.hp = 300; w.conds = {}; w.flies = false; });
+      at(hp6, s6[0], s6[1]); at(bd6[0], s6[0], s6[1] - 1); at(bd6[1], s6[0], s6[1] + 1); at(c6, s6[0] + 7, s6[1]); B6.cache = null;
+      var n10 = (B6.log || []).length; pinM(1, function () { aiM(B6, hp6); }); var l10 = logM(B6, n10);
+      okM('H10 a harpy with two bandits of her own and a lone cleric against her: the song ' + (/Luring Song/.test(l10) ? 'sung' : 'not sung') + '; the cleric charmed ' + !!c6.conds.charmed + ', the bandits ' + bd6.map(function (w) { return !!w.conds.charmed; }).join(' and ') + ' (want sung, true, true and true: her own side hears it too)',
+        /Luring Song/.test(l10) && !!c6.conds.charmed && bd6.every(function (w) { return !!w.conds.charmed; }));
       // ---- the ankheg (srd/monsters/a.md)
       var B4 = mkM('?npc=ankheg&vs=fighter,wizard&lvl=3'), an = sideM(B4, 'foe')[0], p4 = sideM(B4, 'party'), f4 = p4.filter(function (u) { return u.cls === 'fighter'; })[0], w4 = p4.filter(function (u) { return u.cls === 'wizard'; })[0];
       var s4 = stripM(6); if (!s4) throw new Error('no flat strip on the ankheg\'s map');
