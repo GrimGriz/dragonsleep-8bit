@@ -11576,6 +11576,64 @@
     document.body.appendChild(preD);
     return;
   }
+  // THE HEX ON THE ART DESK'S TILES (mode=hexart1028; 10-28, the second cutter seat, on the lanes desk's order from Griz's "spin up a second cutter, more landing in
+  // fresh"; the art desk's ART-115, tools/hextiles-sheet.py -> hextiles_p1, js/hex.js THE ART): the four atlases fetched for real, as lazy1003 fetches, from deep16/art/.
+  // Before they land every piece is the code's; once they have, each floor's things that stand are the art's where it drew them -- by name and count, each standing on its
+  // footprint's south edge and centred across it -- and the code's blocks for the rest; each floor's picture takes its fills from the art (a pixel of the concourse, the
+  // two tiers, the lip, the rugs and the council's boards is one of its piece's own colours); a map's repaint dresses the floor again; the switch off (&tiles=code), the code's
+  if (get('mode', '') === 'hexart1028') {
+    var repH = { checks: [], errors: [] }, SH = D.spr, HXH = D.hex, TVH = D.topview;
+    var okH = function (c, s) { repH.checks.push((c ? 'ok   ' : 'FAIL ') + s); };
+    var endH = function () { if (errs.length) repH.errors = repH.errors.concat(errs); var fH = repH.checks.filter(function (c) { return /^FAIL/.test(c); }).length; repH.ok = !fH && !repH.errors.length; repH.summary = (repH.checks.length - fH) + '/' + repH.checks.length + ' checks'; var pz = document.createElement('pre'); pz.id = 'out'; pz.textContent = 'BENCH16 ' + JSON.stringify(repH); document.body.appendChild(pz); };
+    var failH = function (e) { repH.errors.push(String(e && e.stack || e).slice(0, 900)); endH(); };
+    var artsH = function (ps) { var got = {}; ps.forEach(function (p) { if (p.art) got[p.art] = (got[p.art] || 0) + 1; }); return got; };
+    var pxH = function (fx) { return (fx / HXH.SQ + HXH.CX) * TVH.TS; }, pyH = function (fz) { return (fz / HXH.SQ + HXH.CY) * TVH.TS; };
+    var colsH = function (name, step) { var set = {}; (TVH.piecePx(name, 'hex') || []).forEach(function (d) { for (var i = 0; i < d.length; i += 4) { if (!d[i + 3]) continue; var c = [d[i], d[i + 1], d[i + 2]]; if (step) c = TVH.palStep(c, step); set[c.join(',')] = 1; } }); return set; };
+    var atH = function (lv, fx, fz) { var cv = HXH.picture(lv), d = cv.getContext('2d').getImageData(Math.floor(pxH(fx)), Math.floor(pyH(fz)), 1, 1).data; return [d[0], d[1], d[2]].join(','); };
+    try {
+      SH.offline = false;
+      Object.keys(D.SHEETS).forEach(function (k) { D.SHEETS[k].image = '../deep16/' + D.SHEETS[k].image; });
+      okH(!TVH.artOn() && TVH.ART.sheets.indexOf('hextiles_p1') >= 0, 'before the atlases land the art is off (hextiles_p1 one of the four: ' + TVH.ART.sheets.join(', ') + ')');
+      var codeH = [1, 2, 3].map(function (lv) { return HXH.pieces(lv); });
+      okH(codeH.every(function (ps) { return !Object.keys(artsH(ps)).length; }), 'every floor\'s pieces the code\'s while it is off (' + codeH.map(function (ps) { return ps.length; }).join(', ') + ')');
+      SH.ensure(TVH.ART.sheets).then(function () {
+        try {
+          okH(TVH.artOn(), 'the four atlases landed: the art is on');
+          var WANT = { 1: { hx_post: 6, hx_spiral: 2, hx_trestle: 2, hx_box: 1, hx_slate: 1 }, 2: { hx_spiral: 2, hx_felt: 6, hx_stool: 24, hx_chair_fine: 1 },
+            3: { hx_spiral: 2, hx_table_council: 1, hx_chair_council: 10, hx_desk: 1, hx_strongbox: 1, hx_chest: 1 } };
+          var artP = {};
+          [1, 2, 3].forEach(function (lv) {
+            var ps = HXH.pieces(lv), got = artsH(ps), w = WANT[lv]; artP[lv] = ps;
+            var same = Object.keys(w).every(function (k) { return got[k] === w[k]; }) && Object.keys(got).every(function (k) { return got[k] === w[k]; });
+            okH(same, 'floor ' + lv + ': the art stands ' + JSON.stringify(got) + ', the code ' + ps.filter(function (p) { return !p.art; }).length + ' pieces beside it');
+            okH(ps.filter(function (p) { return p.art; }).every(function (p) { var st = p.strips; return st.length && st[0].s0 === p.x0 && st[st.length - 1].s1 === p.x0 + p.cv.width && st.every(function (s) { return s.depth === st[0].depth && s.depth > 0; }); }), 'floor ' + lv + ': each art piece cut in strips across its whole width, one depth (its south edge)');
+          });
+          // the felt tables and the spirals on their own discs: centred across, standing on the disc's south edge
+          var felts = artP[2].filter(function (p) { return p.art === 'hx_felt'; }), sps = artP[1].filter(function (p) { return p.art === 'hx_spiral'; });
+          okH(felts.length === 6 && HXH.FELT.every(function (c) { return felts.some(function (p) { return Math.abs(p.x0 + p.cv.width / 2 - pxH(c[0])) <= 1 && Math.abs(p.y0 + p.cv.height - pyH(c[1] + 2.6)) <= 1.5; }); }), 'the six felt tables each centred on its own table\'s place, standing on its south edge');
+          okH(sps.length === 2 && HXH.SPIRALS.every(function (c) { return sps.some(function (p) { return Math.abs(p.x0 + p.cv.width / 2 - pxH(c[0])) <= 1 && Math.abs(p.y0 + p.cv.height - pyH(c[1] + 3)) <= 1.5; }); }), 'the two spirals each on its own disc');
+          // the fills: a pixel of each from its piece's own colours
+          var FILL = [[1, 0, 50, 'hx_plank', 0, 'the concourse'], [1, 0, 31 / 0.866, 'hx_tier_hi', 0, 'the upper tier'], [1, 0, 26 / 0.866, 'hx_tier_lo', 0, 'the lower tier'],
+            [1, 0, 23.2 / 0.866, 'hx_lip', 0, 'the board lip'], [2, 44, 0, 'hx_rug_red', 0, 'the gambling floor\'s rug'], [2, 0, 44 / 0.866, 'hx_rug_blue', 0, 'the owners\' lounge\'s rug'],
+            [2, 52, 0, 'hx_plank', 0, 'the gambling floor\'s boards by the wall'], [3, 0, -38, 'hx_council', 0, 'the meeting lounge\'s boards'], [3, 0, -49, 'hx_rug_red', 0, 'the long rug under the council\'s table'],
+            [3, 40, -36, 'hx_council', -1, 'Urtusk\'s office, a step darker']];
+          FILL.forEach(function (f) { var c = atH(f[0], f[1], f[2]); okH(!!colsH(f[3], f[4])[c], 'floor ' + f[0] + ', ' + f[5] + ' at ' + f[1] + ',' + Math.round(f[2] * 10) / 10 + ' ft: ' + c + ' is ' + f[3] + '\'s' + (f[4] ? ' a step down its ramp' : '')); });
+          okH(!!TVH.piece('hx_doors_south', 0, 'town'), 'the south tip\'s doors in the atlas for the town\'s Hex (js/topview.js hexCanvas)');
+          // the repaint dresses the floor again (the atlases landing while the floor is up: js/topview.js TV.repaint, the def's onArt)
+          var mm = { def: HXH.def(2), top: { pages: [] }, props: [] };
+          TVH.repaint(mm);
+          okH(mm.hexPieces && artsH(mm.hexPieces).hx_felt === 6 && mm.props.length > 0, 'a repaint of the gambling floor dresses it again: ' + JSON.stringify(mm.hexPieces ? artsH(mm.hexPieces) : null));
+          // the switch (&tiles=code): the code's again
+          TVH.ART.on = false;
+          var offP = [1, 2, 3].map(function (lv) { return HXH.pieces(lv); });
+          okH(!TVH.artOn() && offP.every(function (ps, i) { return !Object.keys(artsH(ps)).length && ps.length === codeH[i].length; }), 'with the switch off every piece the code\'s again (' + offP.map(function (ps) { return ps.length; }).join(', ') + ')');
+          TVH.ART.on = true;
+        } catch (eH) { repH.errors.push(String(eH && eH.stack || eH).slice(0, 900)); }
+        endH();
+      }, failH);
+    } catch (e0H) { failH(e0H); }
+    return;
+  }
   // the lazy sheets (mode=lazy1003; 10-03, Griz: "4 yes"): no sheet fetched before a scene asks; a fight asks for its own and neither
   // moves nor draws a figure till they are here; nothing it does not use is fetched; the dragonborn's sheet only for a fight that has
   // one; a sheet drawn that nobody asked for is fetched then and drawn when it lands; a failed one holds no frame; the camp asks for its

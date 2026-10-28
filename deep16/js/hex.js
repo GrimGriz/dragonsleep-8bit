@@ -189,6 +189,7 @@
       src8: { id: 'hex' + lv, rows: [], legend: {}, triggers: trig, warps: [], chests: [], zones: [], save: false }, from8: id, to8: id, sig: '', zone8: null,
       music: 'hex', hud: 'the Hex: ' + HX.SUB[lv], hello: ['{y}THE HEX{/} -- ' + HX.SUB[lv] + '.', '{g}' + HX.HELLO[lv] + '{/}'], // (the floor's own words when it is the first: js/roam.js R.script)
       underlay: function (cx, x0, y0) { cx.drawImage(HX.picture(lv), -x0, -y0); }, // (the floor's own picture under the pages: js/topview.js paintPage)
+      onArt: function (m) { HX.dress(m, lv); }, // (the atlases landed, or the switch turned: the things that stand made again -- js/topview.js TV.repaint)
       where: function () { return HX.SUB[lv]; }
     };
     return def;
@@ -208,6 +209,15 @@
   function mixc(a, b, t) { return [a[0] + (b[0] - a[0]) * t | 0, a[1] + (b[1] - a[1]) * t | 0, a[2] + (b[2] - a[2]) * t | 0]; }
   // a riser shows where a tier steps down toward the camera: on the north faces (NNW, NNE), the step's face looking south
   function risers(x, z) { var k = face(x, z); return k === 4 || k === 5; }
+  // THE ART (10-28, the second cutter seat, on the lanes desk's order from Griz's "spin up a second cutter, more landing in fresh"): the art desk's ART-115 floors
+  // (deep16-art-wanted.md section 23, HEAD 1), cut by tools/hextiles-sheet.py into hextiles_p1 and sampled as the sand is, 48 px a variant (each row of them slid along by chance and each variant picked by chance, so the boards' ends and knots fall in no grid) -- the tiers' timber
+  // and the lip's boards along their own face (their planks follow it, as the code's do), the concourse's boards, the rugs' lattice and the council's boards on
+  // the grid's lines. What the art has no fill for (the risers, the steps' lips, the rugs' gold borders, the opening's rim) the code draws as before
+  HX.TXN = { plank: 'hx_plank', hi: 'hx_tier_hi', lo: 'hx_tier_lo', lip: 'hx_lip', council: 'hx_council', red: 'hx_rug_red', blue: 'hx_rug_blue' };
+  HX.texOf = function () { var o = {}, any = false; Object.keys(HX.TXN).forEach(function (k) { var P = TV.piecePx(HX.TXN[k], 'hex'); if (P) { o[k] = P; any = true; } }); return any ? o : null; };
+  var PXFT = TSZ / HX.SQ;
+  function tex(k, u, v) { var P = HX.TX && HX.TX[k]; if (!P) return null; v = Math.floor(v); var w = 48, h = P[0].length / 4 / w, cv = Math.floor(v / h); u = Math.floor(u + NZ.h2(cv, 7, 961) * w); var cu = Math.floor(u / w), p = P[Math.floor(NZ.h2(cu, cv, 962) * P.length) % P.length], o = ((((v % h) + h) % h) * w + (((u % w) + w) % w)) * 4; return [p[o], p[o + 1], p[o + 2]]; }
+  function texFace(k, x, z) { var f = face(x, z); return tex(k, along(x, z, f) * PXFT, hd(x, z) * PXFT); } // (along the face, and across it)
   // the ground floor: the sand raked in rings, the board lip, the two tiers, the concourse's boards running east-west, the premises' floors, the doorways
   HX.ground = function (x, z, X, Y) {
     var h = hd(x, z), n = NZ.vnoise(X * 0.05, Y * 0.05, 901), fine = NZ.h2(X, Y, 902), L = RP('leather'), Gd = RP('gold'), S = RP('stone'), k = face(x, z), s = along(x, z, k);
@@ -220,18 +230,21 @@
     if (h < AP.sand) { // the board lip: planks across the ring
       if (!risers(x, z) && h < AP.lip + 0.22) return L[0];
       if (risers(x, z) && h > AP.sand - 0.7) return pick(L, 0.62 + n * 0.08 - (fr(s * 1.2) < 0.1 ? 0.18 : 0), X, Y);
+      var tl = texFace('lip', x, z); if (tl) return tl;
       return pick(L, 0.5 + n * 0.1 - (fr(s * 0.7) < 0.1 ? 0.22 : 0), X, Y);
     }
     if (h < AP.tier1) { // the two tiers, stepping down to the lip
       var lo = h < AP.tier2, top = lo ? AP.tier2 : AP.tier1, w = h - (lo ? AP.sand : AP.tier2);
       if (risers(x, z) && h > top - 0.75) return pick(L, (lo ? 0.5 : 0.6) + n * 0.08 - (fr(s * 1.2) < 0.1 ? 0.16 : 0), X, Y); // (the step's face, lit, its planks upright)
       if (!risers(x, z) && w < 0.25) return S[0]; // (the step's lip in shadow, on the faces turned away)
+      var tt = texFace(lo ? 'lo' : 'hi', x, z); if (tt) return tt;
       var seam = fr(w * 0.95) < 0.11 || fr((s + Math.floor(w * 0.95) * 2.3) / 7) < 0.017;
       return pick(L, (lo ? 0.3 : 0.42) + n * 0.12 - (seam ? 0.16 : 0), X, Y);
     }
-    if (inPoly(HX.MAMA, x, z) || inPoly(HX.CONC, x, z)) return pick(L, 0.24 + n * 0.08 - ((Y % 10) < 1 ? 0.1 : 0), X, Y); // (the premises' floors, walled off)
+    if (inPoly(HX.MAMA, x, z) || inPoly(HX.CONC, x, z)) return tex('lo', X, Y) || pick(L, 0.24 + n * 0.08 - ((Y % 10) < 1 ? 0.1 : 0), X, Y); // (the premises' floors, walled off)
     // the concourse: the off-night flooring's boards along the grid's x, their ends staggered; darker by the walls
     var row = Math.floor(Y / 9.6), sm = (Y % 9.6) < 1 || ((X + NZ.h2(row, 0, 904) * 200) % 96) < 1, ao = AP.inn - h < 1.4 ? 0.12 * (1 - (AP.inn - h) / 1.4) : 0;
+    var tc = tex('plank', X, Y); if (tc) return ao > 0.05 ? TV.palStep(tc, -1) : tc; // (darker by the walls, a step down its ramp)
     return pick(L, 0.46 + (NZ.h2(row, Math.floor((X + NZ.h2(row, 0, 904) * 200) / 96), 905) - 0.5) * 0.2 + n * 0.12 - (sm ? 0.2 : 0) - ao, X, Y);
   };
   // the second floor: the rug round the ring (red; the owners' lounge on the south block blue), boards by the walls and over the bow, the opening down to the sand
@@ -247,10 +260,12 @@
       var w = h - (AP.rail + 1.6), wid = AP.inn - 2.6 - AP.rail - 1.6, Rr = RP(lounge ? 'blue' : 'red'), Gd = RP('gold');
       if (w < 0.35 || wid - w < 0.35) return Gd[1];
       if (w < 0.7 || wid - w < 0.7) return pick(Rr, 0.2, X, Y);
+      var tr = tex(lounge ? 'blue' : 'red', X, Y); if (tr) return tr;
       var lat = fr((s + w) / 3.2) < 0.07 || fr((s - w) / 3.2) < 0.07;
       return lat ? pick(Gd, 0.25, X, Y) : pick(Rr, 0.38 + n * 0.12, X, Y);
     }
     var row = Math.floor(Y / 9.6), sm = (Y % 9.6) < 1 || ((X + NZ.h2(row, 0, 914) * 200) % 96) < 1, ao = AP.inn - h < 1.4 ? 0.12 * (1 - (AP.inn - h) / 1.4) : 0;
+    var tb = tex('plank', X, Y); if (tb) return ao > 0.05 ? TV.palStep(tb, -1) : tb;
     return pick(L, 0.4 + n * 0.12 - (sm ? 0.2 : 0) - ao, X, Y);
   };
   // the third floor: the lounge's boards and its long rug, the office and the Armory, the shut balcony and rooms (not built), the opening three floors down
@@ -258,19 +273,20 @@
     var h = hd(x, z), n = NZ.vnoise(X * 0.05, Y * 0.05, 921), L = RP('leather'), S = RP('stone'), Rd = RP('red');
     var lo = inLounge(x, z), of = inOffice(x, z) || inArmory(x, z);
     if (lo || of) {
-      if (lo && Math.abs(x) < 12 && z > -54 && z < -44) { var e = Math.min(12 - Math.abs(x), z + 54, -44 - z); return e < 0.4 ? RP('gold')[1] : pick(Rd, 0.3 + n * 0.1, X, Y); } // (the long rug under the council's table)
+      if (lo && Math.abs(x) < 12 && z > -54 && z < -44) { var e = Math.min(12 - Math.abs(x), z + 54, -44 - z); return e < 0.4 ? RP('gold')[1] : tex('red', X, Y) || pick(Rd, 0.3 + n * 0.1, X, Y); } // (the long rug under the council's table)
+      var tq = tex('council', X, Y); if (tq) return of ? TV.palStep(tq, -1) : tq; // (the office and the Armory a step darker)
       var row = Math.floor(Y / 9.6), sm = (Y % 9.6) < 1 || ((X + NZ.h2(row, 0, 924) * 200) % 96) < 1;
       return pick(L, (of ? 0.34 : 0.4) + n * 0.12 - (sm ? 0.2 : 0), X, Y);
     }
     if (h < AP.rail) { var rim = AP.rail - h; if (rim < 0.9) return S[0]; return mixc(shade(HX.ground(x, z, X, Y), 0.34), S[0], 0.25); }
-    if (h < AP.bal) return shade(pick(L, 0.36 + n * 0.1 - ((Y % 9.6) < 1 ? 0.2 : 0), X, Y), 0.55); // (the inside balcony: shut)
+    if (h < AP.bal) return shade(tex('plank', X, Y) || pick(L, 0.36 + n * 0.1 - ((Y % 9.6) < 1 ? 0.2 : 0), X, Y), 0.55); // (the inside balcony: shut)
     return pick(S, 0.1 + n * 0.06, X, Y); // (the rooms: shut, not built)
   };
   HX.pics = {};
   HX.picture = function (lv) {
     var art = !!(TV.artOn && TV.artOn()), key = lv + (art ? 'a' : 'c'); // (painted again when the atlases land: js/topview.js repaints the pages)
     if (HX.pics[key]) return HX.pics[key];
-    RAMP = {}; HX.sandPx = art && TV.piecePx ? TV.piecePx('hex_sand') : null;
+    RAMP = {}; HX.sandPx = art && TV.piecePx ? TV.piecePx('hex_sand') : null; HX.TX = art && TV.piecePx ? HX.texOf() : null;
     var W = HX.W * TSZ, H = HX.H * TSZ, cv = document.createElement('canvas'); cv.width = W; cv.height = H;
     var cx = cv.getContext('2d'), img = cx.createImageData(W, H), px = img.data, fn = lv === 1 ? HX.ground : lv === 2 ? HX.gambling : HX.third, S = RP('stone');
     var doors = lv === 1 ? [].concat(HX.DOORS.back, HX.DOORS.front, HX.DOORS.east, HX.DOORS.west) : [];
@@ -317,6 +333,22 @@
     return { cv: cv, x0: x0, y0: yTop, strips: strips, tag: o.tag || null };
   }
   HX.block = block;
+  // a thing that stands, the art desk's (ART-115 HEAD 3 and 4, hextiles_p1) where it has come: its drawing stood on its footprint's south edge, centred across it, and
+  // cut in strips a square wide as a block is; null while the atlas is on its way or with &tiles=code (the block drawn instead -- the code kept as the fallback).
+  // The footprint stays the code's, so the squares it closes are as they were
+  function artPiece(name, foot, o) {
+    if (!HX.artOn) return null;
+    var p = TV.piece(name, 0, 'hex'); if (!p) return null;
+    o = o || {};
+    var xs = foot.map(function (q) { return PX(q[0]); }), ys = foot.map(function (q) { return PY(q[1]); });
+    var cxp = (Math.min.apply(null, xs) + Math.max.apply(null, xs)) / 2, yS = Math.max.apply(null, ys);
+    var x0 = Math.round(cxp - p.ax), y0 = Math.round(yS - p.ay), cv = document.createElement('canvas'); cv.width = p.w; cv.height = p.h;
+    var cx = cv.getContext('2d'); cx.imageSmoothingEnabled = false; cx.drawImage(p.im, p.x, p.y, p.w, p.h, 0, 0, p.w, p.h);
+    var strips = [];
+    for (var col = Math.floor(x0 / TSZ); col * TSZ < x0 + p.w; col++) strips.push({ s0: Math.max(x0, col * TSZ), s1: Math.min(x0 + p.w, (col + 1) * TSZ), depth: o.depth != null ? o.depth : yS / TSZ });
+    return { cv: cv, x0: x0, y0: y0, strips: strips, tag: o.tag || null, art: name };
+  }
+  HX.artPiece = artPiece;
   // the colours of the things that stand
   function wood(t) { return function (x, z, X, Y) { return pick(RP('leather'), t + NZ.vnoise(X * 0.2, Y * 0.2, 941) * 0.1 - ((X + Y) % 11 === 0 ? 0.08 : 0), X, Y); }; }
   function woodFace(t) { return function (j, h, X, Y) { return pick(RP('leather'), t - (X % 8 === 0 ? 0.12 : 0) - (j > h - 2 ? 0.14 : 0) + (j < 1 ? 0.12 : 0), X, Y); }; }
@@ -324,7 +356,7 @@
   function logTop(x, z, X, Y) { var L = RP('leather'); return pick(L, 0.12 + NZ.vnoise(X * 0.3, Y * 0.3, 943) * 0.1, X, Y); }
   function stoneTop(x, z, X, Y) { var S = RP('stone'); return pick(S, 0.45 + NZ.vnoise(X * 0.2, Y * 0.2, 944) * 0.15, X, Y); }
   HX.pieces = function (lv) {
-    RAMP = {};
+    RAMP = {}; HX.artOn = !!(TV.artOn && TV.artOn());
     var out = [], S = RP('stone'), L = RP('leather'), Gd = RP('gold'), Sv = RP('silver'), Rd = RP('red'), Mo = RP('moss'), Bl = RP('blue');
     // the shell: each face a band from the inner line to the outer; the back faces (NNW, NNE, E, W) a full wall, their logs' south face seen; the front (SSE, SSW) a stub
     var V = [0, 1, 2, 3, 4, 5].map(function (i) { var a = Math.PI / 180 * (60 * i - 90); return [Math.cos(a), Math.sin(a)]; }); // (the vertices: N, NE, SE, S, SW, NW)
@@ -354,9 +386,10 @@
       [-1, 1].forEach(function (sd) { out.push(block([[sd * G.CARVE - 0.6, ZC], [sd * G.CARVE + 0.6, ZC], [sd * G.CARVE + 0.6, ZC + G.WALL], [sd * G.CARVE - 0.6, ZC + G.WALL]], HX.STUB + 6, stoneTop, function (j, h, X, Y) { return Sv[2]; }, { depth: 1e5 })); }); // (the south doorway's jambs)
     }
     // the interior logs (through every floor), a post 3 ft round, a wall's height
-    HX.LOGS.forEach(function (c) { out.push(block(disc(c, 1.5, 12), lv === 1 ? HX.WALLH + 8 : HX.WALLH, function (x, z, X, Y) { var r = Math.hypot(x - c[0], z - c[1]); return pick(L, 0.2 + (Math.round(r * 6) % 2 ? 0.08 : 0), X, Y); }, function (j, h, X, Y, x) { var sd = (x - c[0]) / 1.5; return pick(L, 0.42 - sd * 0.18 - (j > h - 3 ? 0.12 : 0) + ((X % 3) === 0 ? -0.06 : 0), X, Y); })); });
+    HX.LOGS.forEach(function (c) { out.push((lv === 1 && artPiece('hx_post', disc(c, 1.5, 12))) || block(disc(c, 1.5, 12), lv === 1 ? HX.WALLH + 8 : HX.WALLH, function (x, z, X, Y) { var r = Math.hypot(x - c[0], z - c[1]); return pick(L, 0.2 + (Math.round(r * 6) % 2 ? 0.08 : 0), X, Y); }, function (j, h, X, Y, x) { var sd = (x - c[0]) / 1.5; return pick(L, 0.42 - sd * 0.18 - (j > h - 3 ? 0.12 : 0) + ((X % 3) === 0 ? -0.06 : 0), X, Y); })); });
     // the spirals: the steps winding round the newel, and the newel itself
     HX.SPIRALS.forEach(function (c) {
+      var sp = artPiece('hx_spiral', disc(c, 3, 16)); if (sp) { out.push(sp); return; } // (the art's steps and newel in one)
       out.push(block(disc(c, 3, 16), 8, function (x, z, X, Y) { var dx = x - c[0], dz = z - c[1], r = Math.hypot(dx, dz), a = (Math.atan2(dz, dx) / (Math.PI * 2) + 1) % 1, step = Math.floor(a * 12); if (r > 2.7) return L[1]; if (r < 0.6) return L[0]; return pick(L, 0.25 + step / 12 * 0.5 - ((a * 12) % 1 < 0.1 ? 0.15 : 0), X, Y); }, woodFace(0.3)));
       out.push(block(disc(c, 0.55, 8), 30, function (x, z, X, Y) { return Gd[2]; }, function (j, h, X, Y) { return pick(L, 0.3 - (j > h - 2 ? 0.1 : 0), X, Y); }));
     });
@@ -367,9 +400,9 @@
         if (b.shelf) out.push(block(rect(b.shelf.c, b.shelf.len, b.shelf.d, b.a), b.boxes ? 22 : 14, b.boxes ? function (x, z, X, Y) { var u = (x - b.shelf.c[0]) * Math.cos(b.a) + (z - b.shelf.c[1]) * Math.sin(b.a), k = Math.floor((u / b.shelf.len + 0.5) * 9), fr = ((u / b.shelf.len + 0.5) * 9) % 1; return fr < 0.08 || fr > 0.92 ? S[0] : (NZ.h2(k, 1, 947) > 0.86 && (X + Y) % 5 === 0) ? Sv[4] : pick(S, 0.3 + (fr > 0.4 && fr < 0.6 ? 0.12 : 0), X, Y); } : wood(0.3), function (j, h, X, Y) { return pick(L, 0.2 - (j % 6 === 0 ? 0.08 : 0), X, Y); }));
       });
       // the tables in the north notches: boards on trestles
-      HX.BOARDS.forEach(function (c) { out.push(block(rect(c, 5, 3, 0), 10, function (x, z, X, Y) { return pick(L, 0.5 + ((Y % 8) === 0 ? -0.15 : 0) + NZ.vnoise(X * 0.2, Y * 0.2, 948) * 0.1, X, Y); }, woodFace(0.3))); });
+      HX.BOARDS.forEach(function (c) { out.push(artPiece('hx_trestle', rect(c, 5, 3, 0)) || block(rect(c, 5, 3, 0), 10, function (x, z, X, Y) { return pick(L, 0.5 + ((Y % 8) === 0 ? -0.15 : 0) + NZ.vnoise(X * 0.2, Y * 0.2, 948) * 0.1, X, Y); }, woodFace(0.3))); });
       // the guard stations at the north door, the contraband box on the east one
-      HX.STATIONS.forEach(function (st) { out.push(block(seg(st.a, st.b, 1.1), 30, wood(0.36), woodFace(0.34))); if (st.box) out.push(block(rect([st.b[0] - 1.6, st.b[1] - 1], 2.2, 1.6, 0), 10, function (x, z, X, Y) { return (X + Y) % 6 === 0 ? Sv[4] : pick(S, 0.25, X, Y); }, function (j, h, X, Y) { return pick(S, 0.18, X, Y); })); });
+      HX.STATIONS.forEach(function (st) { out.push(block(seg(st.a, st.b, 1.1), 30, wood(0.36), woodFace(0.34))); if (st.box) out.push(artPiece('hx_box', rect([st.b[0] - 1.6, st.b[1] - 1], 2.2, 1.6, 0)) || block(rect([st.b[0] - 1.6, st.b[1] - 1], 2.2, 1.6, 0), 10, function (x, z, X, Y) { return (X + Y) % 6 === 0 ? Sv[4] : pick(S, 0.25, X, Y); }, function (j, h, X, Y) { return pick(S, 0.18, X, Y); })); });
       // Mama's premises and the concession: their walls (the sealed door, the hatches shut), the concession's divider
       var wallTop = function (x, z, X, Y) { return pick(L, 0.16 + NZ.vnoise(X * 0.2, Y * 0.2, 949) * 0.08, X, Y); };
       var plaster = function (hatch) { return function (j, h, X, Y, x) { var up = 1 - j / h; if (hatch && hatch(x) && up > 0.32 && up < 0.62) { var edge = up > 0.6 || up < 0.34; return edge ? L[0] : (X % 5) === 0 ? L[1] : pick(L, 0.5, X, Y); } return logFace(j, h, X, Y); }; }; // (a hatch: two shutters closed in the logs)
@@ -378,7 +411,7 @@
       });
       out.push(block(seg([-45.0, -38.0], [-35.0, -20.7], 0.6), HX.INWALL, wallTop, plaster(null)));
       // Korvin's slate: a board on legs, its face chalked with the card
-      out.push(block(rect([7, 40], 4, 0.6, 0), 30, wood(0.3), function (j, h, X, Y, x) { var up = 1 - j / h; if (up < 0.18) return (X % 6) < 2 ? L[1] : null; if (up > 0.95) return L[2]; var sl = pick(S, 0.08, X, Y), chalk = (Math.round(up * 30) % 5 === 0 && NZ.h2(X >> 1, Math.round(up * 30), 951) > 0.35) || ((X % 9) === 0 && up > 0.3 && up < 0.8 && NZ.h2(X, 7, 952) > 0.5); return chalk ? RP('bone')[2] : sl; }));
+      out.push(artPiece('hx_slate', rect([7, 40], 4, 0.6, 0)) || block(rect([7, 40], 4, 0.6, 0), 30, wood(0.3), function (j, h, X, Y, x) { var up = 1 - j / h; if (up < 0.18) return (X % 6) < 2 ? L[1] : null; if (up > 0.95) return L[2]; var sl = pick(S, 0.08, X, Y), chalk = (Math.round(up * 30) % 5 === 0 && NZ.h2(X >> 1, Math.round(up * 30), 951) > 0.35) || ((X % 9) === 0 && up > 0.3 && up < 0.8 && NZ.h2(X, 7, 952) > 0.5); return chalk ? RP('bone')[2] : sl; }));
     }
     if (lv === 2) {
       // the rail round the opening: the straight runs and the bow, a timber rail on its balusters
@@ -390,12 +423,12 @@
       runs.forEach(function (r) { out.push(block(seg(r[0], r[1], 0.6), 14, function (x, z, X, Y) { return pick(L, 0.55, X, Y); }, function (j, h, X, Y) { return j < 2 ? L[3] : (X % 5) < 2 ? pick(L, 0.35, X, Y) : null; })); });
       // the six felt tables, their stools; the owners' benches; Vair's empty chair
       HX.FELT.forEach(function (c) {
-        out.push(block(disc(c, 2.6, 16), 12, function (x, z, X, Y) { var r = Math.hypot(x - c[0], z - c[1]); return r > 2.2 ? pick(L, 0.4, X, Y) : pick(Mo, 0.25 + NZ.vnoise(X * 0.2, Y * 0.2, 953) * 0.1, X, Y); }, woodFace(0.3)));
-        [0, 1, 2, 3].forEach(function (i) { var a = i / 4 * Math.PI * 2 + 0.4; out.push(block(disc([c[0] + Math.cos(a) * 3.6, c[1] + Math.sin(a) * 3.6], 0.7, 8), 8, wood(0.45), woodFace(0.3))); });
+        out.push(artPiece('hx_felt', disc(c, 2.6, 16)) || block(disc(c, 2.6, 16), 12, function (x, z, X, Y) { var r = Math.hypot(x - c[0], z - c[1]); return r > 2.2 ? pick(L, 0.4, X, Y) : pick(Mo, 0.25 + NZ.vnoise(X * 0.2, Y * 0.2, 953) * 0.1, X, Y); }, woodFace(0.3)));
+        [0, 1, 2, 3].forEach(function (i) { var a = i / 4 * Math.PI * 2 + 0.4; var st0 = disc([c[0] + Math.cos(a) * 3.6, c[1] + Math.sin(a) * 3.6], 0.7, 8); out.push(artPiece('hx_stool', st0) || block(st0, 8, wood(0.45), woodFace(0.3))); });
       });
       HX.BENCHES.forEach(function (P) { out.push(block(P, 10, function (x, z, X, Y) { return pick(RP('violet'), 0.35 + NZ.vnoise(X * 0.2, Y * 0.2, 954) * 0.1, X, Y); }, woodFace(0.25))); });
       var ch = HX.mid(HX.CHAIR[0], HX.CHAIR[1]);
-      out.push(block(rect([ch[0], ch[1]], 2, 2, 0), 12, function (x, z, X, Y, v) { return v < 0.3 ? pick(L, 0.2, X, Y) : pick(Rd, 0.35, X, Y); }, woodFace(0.3)));
+      out.push(artPiece('hx_chair_fine', rect([ch[0], ch[1]], 2, 2, 0)) || block(rect([ch[0], ch[1]], 2, 2, 0), 12, function (x, z, X, Y, v) { return v < 0.3 ? pick(L, 0.2, X, Y) : pick(Rd, 0.35, X, Y); }, woodFace(0.3)));
     }
     if (lv === 3) {
       // the midwalls (a 6 ft door each), the secret walls behind the office and the Armory, the lounge's bow over the sand, the shut ring's room fronts
@@ -415,12 +448,12 @@
       [[1, 2], [2, 3], [3, 4], [4, 5]].forEach(function (e) { out.push(block(seg(bv[e[0]], bv[e[1]], 0.8), 30, inTop, inFace)); });
       // the furniture (the seat's draft): the council's long table and its chairs, Urtusk's desk and strongbox, the Armory's racks and chest
       var TH = HX.THIRD;
-      out.push(block(TH.table, 12, function (x, z, X, Y) { return pick(L, 0.32 + ((X % 14) === 0 ? -0.1 : 0) + NZ.vnoise(X * 0.2, Y * 0.2, 956) * 0.1, X, Y); }, woodFace(0.22)));
-      for (var cxh = -7.5; cxh <= 7.5; cxh += 3.75) [-52, -46].forEach(function (cz) { out.push(block(rect([cxh, cz], 1.6, 1.6, 0), 12, function (x, z, X, Y, v) { return v < 0.35 ? pick(L, 0.2, X, Y) : pick(Rd, 0.32, X, Y); }, woodFace(0.25))); });
-      out.push(block(TH.desk, 12, wood(0.34), woodFace(0.24)));
-      out.push(block(TH.strongbox, 12, function (x, z, X, Y) { return (X + Y) % 7 === 0 ? Sv[4] : pick(S, 0.22, X, Y); }, function (j, h, X, Y) { return (X % 6) === 0 ? Sv[3] : pick(S, 0.15, X, Y); }));
+      out.push(artPiece('hx_table_council', TH.table) || block(TH.table, 12, function (x, z, X, Y) { return pick(L, 0.32 + ((X % 14) === 0 ? -0.1 : 0) + NZ.vnoise(X * 0.2, Y * 0.2, 956) * 0.1, X, Y); }, woodFace(0.22)));
+      for (var cxh = -7.5; cxh <= 7.5; cxh += 3.75) [-52, -46].forEach(function (cz) { out.push(artPiece('hx_chair_council', rect([cxh, cz], 1.6, 1.6, 0)) || block(rect([cxh, cz], 1.6, 1.6, 0), 12, function (x, z, X, Y, v) { return v < 0.35 ? pick(L, 0.2, X, Y) : pick(Rd, 0.32, X, Y); }, woodFace(0.25))); });
+      out.push(artPiece('hx_desk', TH.desk) || block(TH.desk, 12, wood(0.34), woodFace(0.24)));
+      out.push(artPiece('hx_strongbox', TH.strongbox) || block(TH.strongbox, 12, function (x, z, X, Y) { return (X + Y) % 7 === 0 ? Sv[4] : pick(S, 0.22, X, Y); }, function (j, h, X, Y) { return (X % 6) === 0 ? Sv[3] : pick(S, 0.15, X, Y); }));
       TH.racks.forEach(function (P) { out.push(block(P, 30, wood(0.3), function (j, h, X, Y) { var up = 1 - j / h; return (X % 7) < 2 && up > 0.25 ? (up > 0.85 ? Sv[4] : pick(L, 0.45, X, Y)) : (up < 0.2 ? pick(L, 0.25, X, Y) : null); })); });
-      out.push(block(TH.chest, 12, function (x, z, X, Y) { return (Y % 7) === 0 ? Sv[3] : pick(L, 0.28, X, Y); }, function (j, h, X, Y) { return (X % 8) === 0 ? Sv[3] : pick(L, 0.22, X, Y); }));
+      out.push(artPiece('hx_chest', TH.chest) || block(TH.chest, 12, function (x, z, X, Y) { return (Y % 7) === 0 ? Sv[3] : pick(L, 0.28, X, Y); }, function (j, h, X, Y) { return (X % 8) === 0 ? Sv[3] : pick(L, 0.22, X, Y); }));
     }
     return out;
   };

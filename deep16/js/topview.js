@@ -238,6 +238,7 @@
     var cv = document.createElement('canvas'); cv.width = W; cv.height = H;
     var cx = cv.getContext('2d'), img = cx.createImageData(W, H), px = img.data;
     var sandPx = TV.artOn() ? TV.piecePx('hex_sand') : null, ringPx = TV.artOn() ? TV.piecePx('roof_stone_C') : null; // (the art desk's raked sand and pale stone roof, where they have come: THE ART)
+    var dp0 = TV.artOn() ? TV.piece('hx_doors_south', 0) : null, doorPx = dp0 ? TV.piecePx('hx_doors_south')[0] : null; // (the south tip's double doors, the art desk's ART-115 HEAD 5: js/hex.js)
     var stone = R('stone'), leather = R('leather'), gold = R('gold'), silver = R('silver'), N6 = [0, 60, 120, 180, 240, 300].map(function (d) { var a = d * Math.PI / 180; return [Math.cos(a), Math.sin(a)]; });
     var hexD = function (x, y) { var best = -1e9, k = 0; for (var i = 0; i < 6; i++) { var d = x * N6[i][0] + y * N6[i][1]; if (d > best) { best = d; k = i; } } return { d: best, k: k }; }; // (the apothem's measure, and the face it is nearest)
     var lit = [0.0, -0.06, -0.1, 0.0, 0.12, 0.08]; // (the faces by the light from the north-west: E, SSE, SSW, W, NNW, NNE)
@@ -269,6 +270,7 @@
           if (dy > yb && jc <= wall) {
             var upc = 1 - jc / wall, leaf = Math.abs(dx) < cw - 2 && upc < 0.8 && jc > 0, frame = leaf && (Math.abs(dx) >= cw - 4 || Math.abs(dx) < 1 || upc > 0.74);
             c = frame ? silver[3] : leaf ? NZ.rampPick(leather, 0.24 + ((x % 4) === 0 ? -0.1 : 0) + (Math.abs(upc - 0.4) < 0.04 ? 0.25 : 0), x, y) : NZ.rampPick(leather, 0.2 + n * 0.08 - ((jc | 0) % 6 === 0 ? 0.1 : 0), x, y); // (two leaves, the great log between; the recess in shadow)
+            if (doorPx) { var du = Math.floor((dx + cw) / (2 * cw) * dp0.w), dv = Math.floor(jc / wall * dp0.h); if (du >= 0 && du < dp0.w && dv >= 0 && dv < dp0.h) { var dq = (dv * dp0.w + du) * 4; if (doorPx[dq + 3] > 0) c = [doorPx[dq], doorPx[dq + 1], doorPx[dq + 2]]; } } // (the art's doors and their stone frame, filling the carved tip's flat wall)
           }
         } else if (j > 0 && j <= wall) c = NZ.rampPick(leather, (dx > 0 ? 0.45 : 0.36) + n * 0.12 - ((j | 0) % 6 === 0 ? 0.16 : 0) - (j > wall - 2 ? 0.15 : 0), x, y); // (the logs follow the slant: the diagonal his eye asked for)
       }
@@ -285,7 +287,7 @@
   // way, and with &tiles=code on the page's address, the code draws everything as before (the switch to compare). &faces=tall stands the houses' south faces at the
   // art's own heights (a low house 32 px, a tall one 48), where the town's are 7 to 23 px at its 30-ft squares (js/town.js T.SCALE)
   var QS = typeof location !== 'undefined' ? location.search || '' : '';
-  TV.ART = { on: !/[?&]tiles=code\b/.test(QS), tall: /[?&]faces=tall\b/.test(QS), sheets: ['toptiles_p1', 'minetiles_p1', 'seeptiles_p1'] };
+  TV.ART = { on: !/[?&]tiles=code\b/.test(QS), tall: /[?&]faces=tall\b/.test(QS), sheets: ['toptiles_p1', 'minetiles_p1', 'seeptiles_p1', 'hextiles_p1'] }; // (hextiles_p1: the Hex's, ART-115 -- js/hex.js)
   TV.FACEPX = { low: 32, tall: 48 };
   function atlases() { // the three atlases, loaded; null while any is still on its way (or never fetched: the benches)
     var out = [];
@@ -294,7 +296,7 @@
   }
   TV.artOn = function () { return TV.ART.on && !!atlases(); };
   TV.artLoad = function () { if (!TV.ART.on || !D.spr || !D.spr.load) return; TV.ART.sheets.forEach(function (n) { var sh = D.SHEETS && D.SHEETS[n]; if (sh) D.spr.load(sh.image); }); };
-  TV.repaint = function (m) { var t = m.top; t.pages.forEach(function (p) { p.cv = null; }); t.baked = 0; t.tiles = {}; t.stand = {}; t.hex = null; t.kinds = null; };
+  TV.repaint = function (m) { var t = m.top; t.pages.forEach(function (p) { p.cv = null; }); t.baked = 0; t.tiles = {}; t.stand = {}; t.hex = null; t.kinds = null; if (m.def.onArt) m.def.onArt(m); }; // (onArt: a floor's own things made again -- the Hex's, js/hex.js)
   // the place's own atlas first (Silverton's cliff and the mines' share a name)
   TV.place = function (m) { var d = m.def; return d.room ? 'room' : d.key === 'glowseep' ? 'seep' : d.mine ? 'mine' : 'town'; };
   var FIRST = { town: 'toptiles_p1', room: 'toptiles_p1', mine: 'minetiles_p1', seep: 'seeptiles_p1' }, PC = {};
