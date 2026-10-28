@@ -521,5 +521,8 @@
     'eyes-monster-moves-1028': { pri: 2, group: G2, title: 'The rust monster, the harpy and the aboleth on their own move rows: Antennae, Luring Song, Enslave (10-28)', pt: 'the bestiary §37 (tools/rustmonster-sheet.py, tools/harpy-sheet.py, tools/aboleth-sheet.py; js/monsterrules.js rowOr) · eyes',
       url: 'deep16/?gallery&shelf=creatures&rows=rustmonster,harpy,aboleth&fresh=1',
       look: 'Your Yes, cut them: each move the monster rules play now has its own drawn row. Turn each creature on its new row in the full stop: the rust monster ANTENNAE (its flakes fly at 3 and 4), the harpy SONG (the notes with her), the aboleth ENSLAVE (its eyes lit; the drawn rings left out, the game rings it in violet as it casts). In a fight, the rules seat watch fights show them in play (rust monster seed 13, harpy seed 1, aboleth seed 3).' },
+    'eyes-winters-eight-1028': { pri: 2, group: G2, title: 'Ambrose Winters in all eight facings on the town floor, the first of the keepers drawn all round (10-28)', pt: 'the bestiary §37 (tools/keeper-town-sheet.py; deep16/art/winters_p1; js/counter.js C.dress) · eyes',
+      url: 'deep16/?gallery&shelf=creatures&rows=winters_p1&fresh=1',
+      look: 'Your we are going to need SE, E, NE and N for all the vendor portraits: the art desk drew Winters first (ART-121-078), and he stands in all eight now -- SE, E, NE and N drawn, SW, W and NW their mirrors (his white temple swaps sides there), every view 50 px as his south. Turn him round on IDLE (, and . or up/down): the breath and the blink in every facing, the same coat and doublet. In town he turns to whoever speaks to him (walk behind his counter and speak); every keeper not yet drawn all round still faces south.' },
   };
 })();
