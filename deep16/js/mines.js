@@ -180,13 +180,25 @@
     var back = M.giveBack(B, key), nb;
     // (into the Wet: the first game's way it faces, by name -- the Wet's grid is turned, and js/roam.js R.setup reads the 8-bit's compass off it)
     var dir8 = M.ROAMS[key] && face ? Object.keys(M.FACE).filter(function (k) { return M.FACE[k][0] === face[0] && M.FACE[k][1] === face[1]; })[0] || null : null;
+    // (a lantern or the Ledger-Lamp in a hand goes down in that hand, its hood as it was -- 10-28 night, his "if they have a hooded lantern and the hood not down, ottilie will
+    // interact and the hood will end up lowered, then he'll let them by": the hand-back counts it into the pack, js/roam.js R.handMsg, and the next floor takes it up again)
+    var hands = R.house() && H && H.playing ? B.roam.members.filter(function (u) { return u.src && u.torch && u.torch.lit !== false && D.light.kindOf(u.torch) === 'lantern' && u.hp > 0; }).map(function (u) { return { id: u.src.key || u.src.id, torch: JSON.parse(JSON.stringify(u.torch)) }; }) : [];
     if (R.house() && H && H.playing) {
       H.fromFloor(B); M.off(B);
       if (F.save) H.cur.at = { town: F.door, gate: null, sq: null, dir: null };
       nb = R.make(q, { save: H.living(H.cur), opts: dir8 ? { at8: at.slice(), dir: dir8 } : { at8: at.slice() }, house: true });
     } else nb = M.testMake(B, key, q);
     var say = (lines || []).concat(back), en = nb.enter;
-    if (say.length) nb.enter = function () { en.apply(this, arguments); this.card(R.wrap(say), 300); }; // (said as the floor comes up -- it may bake first: core.js D.push)
+    nb.enter = function () {
+      en.apply(this, arguments);
+      var self = this, roostL = [];
+      hands.forEach(function (c) {
+        var u = self.roam.members.filter(function (m) { return m.src && (m.src.key || m.src.id) === c.id; })[0], id = c.torch.item || 'lantern', s = (self.inv || []).filter(function (x) { return x.id === id && x.n > 0; })[0];
+        if (!u || u.torch || !s) return; s.n--; u.torch = c.torch; D.light.regrip(u);
+      });
+      if (hands.length && R.def.roost) roostL = R.roostLights(this).slice(1); // (under the roost, a hood still up goes down: R.roostLights)
+      if (say.length || roostL.length) this.card(R.wrap(say.concat(roostL)), 300); // (said as the floor comes up -- it may bake first: core.js D.push)
+    };
     D.push(nb);
     return nb;
   };
@@ -302,16 +314,22 @@
   M.LINES.ottilieTorch = '{name}. Put that torch out. Nobody carries fire under the roost.';
   M.LINES.ottiliePutOut = 'Put it out, or turn around.';
   M.LINES.ottilieDark = 'Dark, then. Go on -- and do not touch the roost.';
+  M.LINES.ottilieHood = '{name}. That lantern -- hood it down. Low and dim, or the roost wakes.'; // (10-28 night: his "ottilie will interact and the hood will end up lowered, then he'll let them by")
+  M.LINES.ottilieHooded = 'Low like that. Go on.';
   M.roostDoor = function* (sc, B, all, burn) {
     var st = sc.st, f = st.flags; burn = burn || [];
     var names = function (xs) { return xs.map(function (b) { return b.u.name; }).filter(function (n, i, a) { return a.indexOf(n) === i; }).join(', '); };
-    var spells = burn.filter(function (b) { return b.spell; }), torches = burn.filter(function (b) { return b.torch; });
+    var spells = burn.filter(function (b) { return b.spell; }), torches = burn.filter(function (b) { return b.torch; }), hoods = burn.filter(function (b) { return b.hood; });
+    var lower = function () { hoods.forEach(function (b) { if (b.u.torch) b.u.torch.hood = true; }); };
+    if (!all.length && !spells.length && !torches.length) { yield sc.say(M.LINES.ottilieHood.replace('{name}', names(hoods))); lower(); D.sfx('confirm'); yield sc.say(M.LINES.ottilieHooded); return true; } // (a hood up, nothing else: the hood comes down, and by)
+    if (hoods.length) yield sc.say(M.LINES.ottilieHood.replace('{name}', names(hoods)));
     if (all.length) { var x = all[0], it = DS.DATA.items[x.id]; yield sc.say(L(x.h ? 'g1.ottilieLightWield' : 'g1.ottilieLightCarry', { item: it.name, name: x.h ? x.h.name : (st.party[0] || {}).name })); }
     if (spells.length) yield sc.say(M.LINES.ottilieSpell.replace('{name}', names(spells)));
     if (torches.length) yield sc.say(M.LINES.ottilieTorch.replace('{name}', names(torches)));
     if ((yield sc.ask(all.length ? L('g1.ottilieLightAsk') : M.LINES.ottiliePutOut, [all.length ? 'LEAVE IT WITH HER' : 'PUT IT OUT', 'TURN BACK'])) !== 0) return false;
     var held = f.ottilieHolds = f.ottilieHolds || [];
     all.forEach(function (y) { if (y.h) { y.h.equip[y.slot] = null; sc.regear = true; } else D.counter.take(st, y.id, 1); held.push(y.id); });
+    lower();
     burn.forEach(function (b) { var u = b.u; if (b.spell) { if (u.conds) delete u.conds[b.spell]; if (u.src && u.src.conds) delete u.src.conds[b.spell]; } if (b.torch) { delete u.torch; D.light.regrip(u); } }); // (a spell let go; a torch put out, spent -- the floor's own put-out, js/roam.js R.menuAct light-off)
     D.sfx('confirm'); yield sc.say(all.length ? L('g1.ottilieLightKept') : M.LINES.ottilieDark);
     return true;
@@ -323,6 +341,7 @@
     B.roam.members.forEach(function (u) {
       ['light', 'daylight'].forEach(function (k) { if ((u.conds && u.conds[k]) || (u.src && u.src.conds && u.src.conds[k])) out.push({ u: u, spell: k }); });
       if (u.torch && u.torch.lit !== false && D.light.kindOf(u.torch) !== 'lantern') out.push({ u: u, torch: true });
+      else if (u.torch && u.torch.lit !== false && !u.torch.hood) out.push({ u: u, hood: true }); // (a lantern or the Ledger-Lamp with its hood up: Ottilie has it lowered, 10-28 night)
     });
     return out;
   };

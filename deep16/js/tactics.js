@@ -863,7 +863,7 @@
   // and only the LIT throw burns -- a torch in one hand and the other free; the plain flask only coats, which stops no knitting by itself. So the AI throws it lit or not at all,
   // each by the chance the throw hits, RU.edges as the torch's)
   function burnFlask(B, u) {
-    var T = u.turn; if (u.side !== 'party' || !T || !T.action || T.attacksLeft || !D.oil || !D.oil.lit(u)) return null;
+    var T = u.turn; if (u.side !== 'party' || !T || !T.action || T.attacksLeft || !D.oil || !D.oil.lit(u) || (B.fight && B.fight.roost)) return null; // (never under a roost: it catches there, the roost's fail -- js/oil.js, 10-28 night)
     var fl = B.itemList(u).filter(function (x) { return x.id === 'oil' && x.n > 0 && x.ok; })[0]; if (!fl) return null;
     var spec = D.oil.atk(u, true), dmg = D.oil.BURN, best = null;
     AI.heroes(B, u).forEach(function (w) {

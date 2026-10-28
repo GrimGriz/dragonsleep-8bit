@@ -1018,7 +1018,7 @@
     if (o !== 'fled' && o !== 'yielded') D.music(o === 'won' ? 'victory' : 'gameover'); // (one got away: the boss tune runs on into the chase)
     // the roost coming down as a picture on the grid (torchdark 09-28; the 8-bit's swarm() the model): the ceiling lets go over the
     // iso map, the shake every ten frames, then the hand-off to the 8-bit game's RoostFail as before
-    if (o === 'roost') { D.sfx('encounter'); this.card(['{r}' + (this.roostBroken === 'daylight' ? 'Daylight' : 'Bright light') + ' under a roosted ceiling. The whole roof shifts at once: millions of wings.{/}'], 1e9); FX.swarm(); this.shakeT = 170; for (var sk = 0; sk < 17; sk++) { D.sfx('miss'); yield 10; } yield 30; }
+    if (o === 'roost') { D.sfx('encounter'); this.card(['{r}' + (this.roostBroken === 'daylight' ? 'Daylight' : this.roostBroken === 'fire' ? 'Fire' : 'Bright light') + ' under a roosted ceiling. The whole roof shifts at once: millions of wings.{/}'], 1e9); FX.swarm(); this.shakeT = 170; for (var sk = 0; sk < 17; sk++) { D.sfx('miss'); yield 10; } yield 30; }
     yield 30;
     var F = this.fight, gone = this.units.some(function (u) { return u.fled; }) && this.alive('party').length;
     var head = o === 'roost' ? '{r}THE ROOST COMES DOWN.{/}' : o === 'yielded' ? '{y}' + ((this.o.embed && this.o.embed.yieldText) || F.yielded || 'HE LOWERS HIS HANDS.') + '{/}' : o === 'won' ? '{y}' + (F.won || 'THE GALLERY IS STILL.') + '{/}' : o === 'escaped' ? '{y}OUT THE WAY THEY CAME IN.{/}' : '{r}' + (gone ? (F.escaped || 'THEY GOT AWAY.') : (F.lost || 'THE DARK KEEPS THEM.')) + '{/}';
@@ -3368,7 +3368,7 @@
       // the Rope & Grapple (the 8-bit game's rope; 10-04, Griz: "as an item on the item wheel"): set on a face, an action -- exec 'rope', the tool picks the face's top (ui.js)
       if (s.id === 'rope' && s.n > 0) { var cl0 = !!(G.map.def.climb && (u.size || 1) === 1); return { id: 'rope', name: (it && it.name) || 'Rope & Grapple', n: s.n, use: { effect: 'rope' }, ok: cl0 && T.action > 0 && !T.attacksLeft && !u.guest, why: !cl0 ? 'no face here to climb' : T.action > 0 ? '' : 'the action is spent' }; }
       if (!it || !it.use || !(it.use.battle || it.use.grid) || !ITEM_OK[it.use.effect] || s.n <= 0) return null; // (use.grid: the grid's alone, never the 8-bit battle's list -- the steel mirror, 10-15)
-      if (roost && (it.use.effect === 'damage' || (it.use.effect === 'light' && !D.light.isLantern(s.id)))) return { id: s.id, name: it.name, n: s.n, use: it.use, ok: false, why: 'the roost overhead: no fire' };
+      if (roost && it.use.effect === 'light' && !D.light.isLantern(s.id)) return { id: s.id, name: it.name, n: s.n, use: it.use, ok: false, why: 'the roost overhead: no fire' }; // (the torch, greyed as the first game greys it; the oil thrown there catches -- js/oil.js, 10-28 night, his "2 - as the first game")
       if (it.use.effect === 'light') { // a torch (torchdark 09-28), or a lantern (09-29; under a roost it is lit hood down): a free hand, and the action (or the Thief's bonus)
         var cl = D.light.canLight(self, u, s.id), can = (torchFast(u) && T.bonus > 0) || (T.action > 0 && !T.attacksLeft);
         // (no hand only for the weapon, and the turn's free hand on an object unspent: lit with PUT AWAY WEAPON? asked first -- exec 'item' c.putAway; the menus lane §2.4, 10-15)

@@ -139,6 +139,13 @@
     var self = this, s = (this.inv || []).filter(function (x) { return x.id === 'oil'; })[0], lit = OIL.lit(u);
     if (u.subclass === 'Thief' && u.turn.bonus > 0) u.turn.bonus = 0; else u.turn.action = 0; // (Fast Hands, as useItem)
     if (u.ownFlask != null) u.ownFlask = Math.max(0, u.ownFlask - 1); else if (s) s.n--; // (a story guest throws its own: battle.js itemList)
+    // under a roost the flask catches, as the first game's does (js/battle.js: "throws the Oil Flask. It catches, under the roost.") -- the roost's one law broken, the fight
+    // over 'roost' and its RoostFail after (10-28 night, Griz: "2 - as the first game"; the AI never throws it there: js/tactics.js)
+    if (this.fight && this.fight.roost) {
+      var at0 = w || (c && c.x != null ? { x: c.x, y: c.y, size: 1 } : null); u.anim = 'attack'; u.animT = this.t; D.sfx('fire'); if (at0) { u.facing = this.faceTo(u, at0); FX.projectile(u, at0, 'fire'); yield { fx: 1 }; }
+      this.card(['{y}' + u.name + '{/} throws the ' + ((window.DS.DATA.items.oil || {}).name || 'Oil Flask') + '. {r}It catches, under the roost.{/}'], 200);
+      if (!this.roostBroken) this.roostBroken = 'fire'; u.anim = 'idle'; yield 30; return;
+    }
     if (!w && c && c.x != null) { // at the ground
       var ft = Math.max(Math.abs(c.x - u.x), Math.abs(c.y - u.y)) * 5;
       u.facing = D.spr.facingFor(c.x - u.x, c.y - u.y); u.anim = 'attack'; u.animT = this.t;

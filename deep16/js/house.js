@@ -84,6 +84,9 @@
     m.party.forEach(function (p) { byId[p.id] = p.sheet; });
     H.cur.party = H.cur.party.map(function (h) { return byId[h.key || h.id] || h; });
     if (m.order && m.order.length) H.cur.party.sort(function (a, b) { return m.order.indexOf(a.key || a.id) - m.order.indexOf(b.key || b.id); });
+    // (a lantern or the Ledger-Lamp in a hand is the pack's still -- it was lost at every change of floor, 10-28 night, the grid seat's find; a torch burning is spent, as before.
+    // The mines' next floor takes it up again in the same hand: js/mines.js M.go)
+    m.inv1 = m.inv1 || {}; m.party.forEach(function (p) { if (p.torch && p.torch !== 'torch') m.inv1[p.torch] = (m.inv1[p.torch] || 0) + 1; });
     H.cur.inv = Object.keys(m.inv1 || {}).filter(function (id) { return m.inv1[id] > 0; }).map(function (id) { return { id: id, n: m.inv1[id] }; });
     H.cur.flags = m.flags || H.cur.flags; H.cur.kills = m.kills || H.cur.kills; if (m.silver != null) H.cur.silver = m.silver;
     var R0 = B.roam, nS = (R0.steps || 0) - (R0.banked || 0); if (nS > 0) { H.cur.steps = (H.cur.steps || 0) + nS; R0.banked = R0.steps; } // (the floor's squares walked since it last handed back: a SAVE in town and the way out both bank, never twice)

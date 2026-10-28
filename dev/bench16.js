@@ -3760,6 +3760,22 @@
         var Bx = mkRL('rescue', w[1]), ax = allRL(Bx), t = ax.u; runRL(D.magic.cast(Bx, t, 'light', 0, t), 600); var over = Bx.over();
         okRL(w[0] + ' under the roost: Light cast -- the roost broken (' + Bx.roostBroken + '), the fight over as ' + over, Bx.roostBroken === 'light' && over === 'roost');
       });
+      // 3b. OIL UNDER THE ROOST, AS THE FIRST GAME (10-28 night, his "2 - as the first game"; js/battle.js: "throws the Oil Flask. It catches, under the roost."): not greyed -- the
+      // torch is -- in the grid's ITEM and the simple fight's; thrown, it catches, the roost broken ('fire'), the fight over as 'roost'; in a fight with no roost, the SRD's flask
+      [['the grid', false], ['the simple fight', true]].forEach(function (w) {
+        var Bx = mkRL('rescue', w[1]), ax = allRL(Bx), t = ax.u, foe = Bx.units.filter(function (x) { return x.side === 'foe' && x.hp > 0; })[0];
+        Bx.inv = Bx.inv || []; Bx.inv.push({ id: 'oil', n: 2 }, { id: 'torch', n: 1 }); D.rules.startTurn(t);
+        var nameOf = function (id) { return String((window.DS.DATA.items[id] || {}).name || id).toUpperCase(); }; // (the simple fight's rows carry the name, not the id: js/simple.js S.items)
+        var rows = w[1] ? D.simple.items(Bx, t).map(function (r) { return { id: ['oil', 'torch'].filter(function (id) { return r.label.indexOf(nameOf(id)) === 0; })[0] || null, ok: r.ok, why: r.why }; }) : Bx.itemList(t), oilR = rows.filter(function (r) { return r.id === 'oil'; })[0], torR = rows.filter(function (r) { return r.id === 'torch'; })[0];
+        Bx.cards = []; runRL(Bx.useItem(t, 'oil', foe), 600); var said = (Bx.cards || []).map(function (c) { return (c.lines || []).join(' '); }).join(' ').replace(/\{.\}|\{\/\}/g, '');
+        okRL(w[0] + ' under the roost: the Oil Flask ' + (oilR ? (oilR.ok ? 'castable' : 'greyed: ' + oilR.why) : 'not listed') + ', the torch ' + (torR ? (torR.ok ? 'not greyed' : 'greyed: ' + torR.why) : 'not listed') + '; thrown: "' + said.slice(0, 70) + '" -- the roost broken (' + Bx.roostBroken + '), over as ' + Bx.over(),
+          !!oilR && oilR.ok && !!torR && !torR.ok && /It catches, under the roost/.test(said) && Bx.roostBroken === 'fire' && Bx.over() === 'roost');
+      });
+      var BO = mkRL('rats', false), aO = allRL(BO), tO = aO.u, fO = BO.units.filter(function (x) { return x.side === 'foe' && x.hp > 0; })[0]; BO.inv = BO.inv || []; BO.inv.push({ id: 'oil', n: 1 }); D.rules.startTurn(tO); runRL(BO.useItem(tO, 'oil', fO), 600);
+      okRL('no roost (rats): the flask by the SRD -- the roost unbroken (' + !BO.roostBroken + '), over ' + BO.over(), !BO.roostBroken && BO.over() !== 'roost');
+      // the eyes row's door (js/eyes.js eyes-roost-oil-1028e: deep16/?fight=rescue&lvl=5, js/main.js's fight door): the rescue under its roost, an Oil Flask in the pack
+      var BE = new D.Battle({ ladder: true, fight: 'rescue', level: 5 }); D.battle = BE; BE.enter(); var oilE = (BE.inv || []).filter(function (x) { return x.id === 'oil'; }).reduce(function (n, x) { return n + x.n; }, 0);
+      okRL('the eyes door deep16/?fight=rescue&lvl=5: under the roost (' + !!(BE.fight && BE.fight.roost) + '), Oil Flasks in the pack ' + oilE, !!(BE.fight && BE.fight.roost) && oilE >= 1);
       // 4. THE AI UNDER THE ROOST CASTS NOTHING ON THE LIST: a wizard and a sorcerer of 9, fire on their books, played by the class AI through the rescue (three seeds)
       var castRL0 = D.magic.cast, castRL = [], lawCast = [], endRL = []; // (not `cast0`: the head's own wrapper keeps that name, and a var is the whole function's)
       D.magic.cast = function (Bx, u, id) { castRL.push(id); if (LAW.indexOf(id) >= 0) lawCast.push(u.name + ' ' + id); return castRL0.apply(this, arguments); };
@@ -3894,10 +3910,20 @@
       var torchIn = !!(uT.torch && uT.torch.lit), dT = downGL(BT), fT = dT.B && dT.B.roam ? figGL(dT.B, 'barley') : null;
       okGL('a torch lit on the mouth\'s floor (' + torchIn + '): Ottilie, "' + dT.heard.slice(0, 90) + '" (' + (dT.opts || []).join('/') + '); PUT IT OUT, down on the roost (' + dT.down + ') with no torch in hand (' + !(fT && fT.torch) + ')', torchIn && /Put that torch out/.test(dT.heard) && dT.down && !(fT && fT.torch));
       var BL = mouthGL(), uL = figGL(BL, 'barley'); BL.inv.push({ id: 'lantern', n: 1 }); D.ui.openMenu(BL); var hostL = BL.menu.m.host; hostL.run('item', { id: 'lantern', h: hostL.party().filter(function (h) { return h.name === 'Barley'; })[0] }, function () { }); BL.menu = null;
-      var lanIn = !!(uL.torch && uL.torch.lit), dL = downGL(BL), fL = dL.B && dL.B.roam ? figGL(dL.B, 'barley') : null;
-      var lanPack = (HGL.cur.inv.filter(function (x) { return x.id === 'lantern'; })[0] || { n: 0 }).n + ((dL.B && dL.B.inv || []).filter(function (x) { return x.id === 'lantern'; })[0] || { n: 0 }).n;
-      okGL('a lantern lit on the mouth\'s floor (' + lanIn + '): Ottilie says nothing of it (' + !dL.asked + ') -- RULED 09-29, lawful hood down under the roost -- and the party goes down (' + dL.down + '); in a hand on the roost: ' + JSON.stringify(fL && fL.torch || null) + ', lanterns in the pack after ' + lanPack + ' (a light in hand does not cross floors in the house)', lanIn && !dL.asked && dL.down);
-      HGL.fromFloor(dL.B); while (D.scenes.length > 1) D.pop(); var auC = casterGL(); HGL.openMenu(WS); var cC = castGL(WS.pm, 'Aurdin', 'continualflame', 'Barley'); WS.pm.close(); WS.pm = null;
+      // (10-28 night, his "if they have a hooded lantern and the hood not down, ottilie will interact and the hood will end up lowered, then he'll let them by": no question asked,
+      // the hood lowered, and the lantern goes down in the same hand, hood down -- the house carries it now, js/mines.js M.go; it had been lost at every change of floor)
+      var packL = function (B) { return ((B && B.inv) || []).filter(function (x) { return x.id === 'lantern'; }).reduce(function (n, x) { return n + x.n; }, 0); };
+      var lanIn = !!(uL.torch && uL.torch.lit && !uL.torch.hood), dL = downGL(BL), fL = dL.B && dL.B.roam ? figGL(dL.B, 'barley') : null;
+      okGL('a lantern lit hood up on the mouth\'s floor (' + lanIn + '): Ottilie, "' + dL.heard.slice(0, 110) + '", no question (' + !dL.asked + '); the party goes down (' + dL.down + ') with it in Barley\'s hand, hood down: ' + JSON.stringify(fL && fL.torch || null) + ', the pack ' + packL(dL.B) + ' (one lantern, in hand)',
+        lanIn && /hood it down/.test(dL.heard) && /Go on/.test(dL.heard) && !dL.asked && dL.down && !!(fL && fL.torch && fL.torch.hood) && packL(dL.B) === 0);
+      // a hood already down goes by with no word (RULED 09-29); and back up and out, the lantern is the pack's, not lost
+      HGL.fromFloor(dL.B); var BL2 = mouthGL(), uL2 = figGL(BL2, 'barley'), packMouth = packL(BL2); if (packMouth > 0) { D.ui.openMenu(BL2); var hostL2 = BL2.menu.m.host; hostL2.run('item', { id: 'lantern', h: hostL2.party().filter(function (h) { return h.name === 'Barley'; })[0] }, function () { }); BL2.menu = null; }
+      if (uL2.torch) uL2.torch.hood = true; var dL2 = downGL(BL2), fL2 = dL2.B && dL2.B.roam ? figGL(dL2.B, 'barley') : null;
+      var BupL = dL2.down ? (function () { var wp = RGL.def.warps.filter(function (w) { return w.to === 'galleries_g1'; })[0]; if (!wp) return null; driveGL(MGL.warp(dL2.B, wp), null, 600); return floorGL(); })() : null;
+      if (BupL) HGL.fromFloor(BupL); var packOut = (HGL.cur.inv.filter(function (x) { return x.id === 'lantern'; })[0] || { n: 0 }).n;
+      okGL('back on the mouth, the lantern in the pack (' + packMouth + '); taken up hood down: Ottilie silent (' + !dL2.heard + '), down (' + dL2.down + ') hood down in hand (' + !!(fL2 && fL2.torch && fL2.torch.hood) + '); up and out onto THE WORLD: in the pack (' + packOut + ')',
+        packMouth === 1 && !!uL2.torch && !dL2.heard && dL2.down && !!(fL2 && fL2.torch && fL2.torch.hood) && !!BupL && packOut === 1);
+      HGL.fromFloor(BupL || dL2.B); while (D.scenes.length > 1) D.pop(); var auC = casterGL(); HGL.openMenu(WS); var cC = castGL(WS.pm, 'Aurdin', 'continualflame', 'Barley'); WS.pm.close(); WS.pm = null;
       var cfC = sheetGL('barley').conds.continualFlame, BC = mouthGL(), dC = downGL(BC), heldC = ((BC.roam.flags.ottilieHolds || []).concat((dC.B && dC.B.roam && dC.B.roam.flags.ottilieHolds) || [])).join();
       okGL('Continual Flame from THE WORLD\'s menu on Barley\'s weapon (' + cfC + ', asked "' + cC.asked + '"): at the mouth Ottilie, "' + dC.heard.slice(0, 80) + '"; LEAVE IT WITH HER (' + (dC.opts || []).join('/') + '), she holds ' + heldC + ', down (' + dC.down + ')', typeof cfC === 'string' && /wielding that/.test(dC.heard) && dC.down && heldC.indexOf(cfC) >= 0);
       // 7c. A CONTINUAL FLAME CAST IN A FIGHT comes back as its weapon (his "did the continual light on a weapon from the 8-bit make it over?"): the grid keeps { by, from, lv } on the
@@ -3935,8 +3961,8 @@
       }
       hourGL('silverton', 'west', function (Bh) { D.hours.pass(Bh, 1.01); });
       hourGL('glowseep', 'east', function (Bh) { driveGL(MGL.pass(Bh, 1.01), null, 400); });
-      // the eyes row's door (js/eyes.js eyes-mouth-light-1028d): the four on THE WORLD at the mouth's hex, its door there to GO IN
-      HGL.playing = false; HGL.cur = null; HGL.worldDoor('?world&at=17,7&fresh=28M'); var Wd = topGL(), dd = Wd.doorHere ? Wd.doorHere() : null;
+      // the eyes row's door (js/eyes.js eyes-mouth-light-1028e): the four on THE WORLD at the mouth's hex, its door there to GO IN
+      HGL.playing = false; HGL.cur = null; HGL.worldDoor('?world&at=17,7&fresh=28N'); var Wd = topGL(), dd = Wd.doorHere ? Wd.doorHere() : null;
       okGL('the eyes door deep16/?world&at=17,7: the four (' + HGL.cur.party.map(function (h) { return h.name; }) + ') on THE WORLD at ' + WGL.state().at + ', the door there: ' + (dd && dd.name), HGL.cur.party.length === 4 && dd && dd.id === 'mouth');
       // 9. THE FIRST GAME IS UNTOUCHED (bug fixes only, RULED 10-20): its menu's Light is a line, cast at once, asking no one -- a host without the second game's touch
       var said9 = [], m9 = window.DS.MENU.open({ party: function () { return HGL.cur.party; }, guests: function () { return []; }, pack: function () { return []; }, canSave: function () { return true; }, journal: null, info: function () { return {}; }, walker: function () { return null; }, portrait: function () { return null; },
