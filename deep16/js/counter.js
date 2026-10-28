@@ -808,6 +808,7 @@
     { id: 'marin', door: 'keeper:marin', label: 'THE DOORS ON THEIR OWN HOUSES: Marin Voss, at the back', note: 'At the town\'s scale her house stands back to back with the next row: a lane cut through two squares of the house behind to her south wall. She is inside since 10-28 later: a click on her door is her word on her portrait.' }
   ];
   C.houseShow = function (q) { return new ServicesShow(q, C.HOUSE_BEATS, '{y}THE HOUSE, 10-22{/} -- a NEW GAME staged; the rest is yours (a show)'); };
+  C.ServicesShow = ServicesShow; // (another lane's show of staged NEW GAMEs: js/hours.js H16.show, 10-28)
 
   // ---------------------------------------------------------------- NED HALLOWAY and Find Familiar (10-21 night, the keepers cutter seat, on the house lane's "Ned and
   // Find Familiar", THE SCENE, RULED). His design: "pick a school that isn't evocation and Ned tell story about how if you didn't have a familiar, they wouldn't accept

@@ -479,6 +479,34 @@
   H16.TEXT = { 'hire.lymenWait': 'He\'s watching who stands up in this town. Make a name first. (Renown 1: work for it -- Finding Work, in the JOURNAL.)' };
   if (DS.DATA && DS.DATA.text) Object.keys(H16.TEXT).forEach(function (k) { var r = DS.DATA.text[k]; DS.DATA.text[k] = r && typeof r === 'object' ? Object.assign({}, r, { t: H16.TEXT[k] }) : { t: H16.TEXT[k] }; });
 
+  // ---------------------------------------------------------------- THE SHOW (deep16/?hoursshow -- the eyes rows' door, the house's rule: a show first for what is to be seen): a NEW
+  // GAME staged for each beat on the counter's show (js/counter.js ServicesShow, C.serviceStage), with this lane's own on top -- the lead alone, flags, renown, THE WORLD's hour
+  // (the street turns to it on its first step), and a council's sitting played over it
+  H16.SHOW_BEATS = [
+    { hours: 1, id: 'papa', near: 'papa', lead: 'barley', label: 'PAPA AND LYMEN AT THE HEX\'S DOOR: Barley alone', note: 'Lymen in the door with Papa, the talk a line a prompt (NEXT); then the cards: the Company in the JOURNAL, pinned, and Finding Work with its four places.' },
+    { hours: 1, id: 'papaly', near: 'papa', lead: 'lymen', label: 'PAPA AND LYMEN: Lymen leading', note: 'Lymen himself in front of Papa: "Then go and find some." -- Barley, Marta\'s girl, the farm boy named; the Company opens.' },
+    { hours: 1, id: 'journal', near: 'pete', lead: 'barley', label: 'THE JOURNAL BY WORDS: Warrens Pete, then the town\'s talk', note: 'A click on Pete: THE MISSING FIVE, its card, pinned -- Edric first. Then the Hand (the Cradles), Gull (the Cull), the factor\'s man (Finding Work). M > JOURNAL; THE TALK.' },
+    { hours: 1, id: 'lucia', door: 'shop:lucia', lead: 'aurdin', label: 'LUCIA AT MAMA\'S: Aurdin\'s first visit, CONSULT', note: 'In at the door, E at the counter: her word to Aurdin (the calling herbs), THE SHELVES / CONSULT / LEAVE; CONSULT on a whole party.' },
+    { hours: 1, id: 'swann', door: 'keeper:sylvia', lead: 'vivian', silver: 20, t: 31, label: 'SWANN, 5 SP: the first morning after the moot', note: 'In at her booth: READ (5 SP). Nothing in the JOURNAL: she opens Finding Work and pins it, her line, the plain next step -- and once, "An old thing walks."' },
+    { hours: 1, id: 'bread', door: 'chapel:aldwin', label: 'THE BREAD LINE: seven in the morning, Aldwin\'s', note: 'Four in line at the chapel door. In, E at Aldwin: a loaf a hero (Mission Bread). M > WAIT on the street: the bells, bell to bell.' },
+    { hours: 1, id: 'dusk', door: 'inn:cassia', t: 17.5, label: 'SILVERTON AT DUSK: the town comes out', note: 'One step: the bells go for dusk. Marin, the barber, Mela, Venn Hale, Aldric, Merrick and Tam out at their evening spots; their doors "Closed."' },
+    { hours: 1, id: 'night', door: 'inn:cassia', t: 21, label: 'SILVERTON BY NIGHT: the lit places', note: 'One step: night. The dark wash, the pools at the Hex\'s doors, vice row, the lantern house, Cassia\'s, the chapel, Davos\'s, the west gate, round the party.' },
+    { hours: 1, id: 'council1', door: 'inn:cassia', t: 55, sit: ['notice'], label: 'THE COUNCIL, C1: the Pit\'s word (at the rest)', note: 'The sitting as it plays over a morning: the card, then each line on its speaker\'s portrait.' },
+    { hours: 1, id: 'council2', door: 'inn:cassia', sit: ['looks'], renown: 2, label: 'THE COUNCIL, C2: a name made (renown 2)', note: 'The who\'s-who, a line each (live it comes when the party climbs to the Hex\'s third floor at renown 2).' },
+    { hours: 1, id: 'council3', door: 'inn:cassia', sit: ['herd'], flags: { herdWarned: 1 }, label: 'THE COUNCIL, C3: the herd thinned', note: 'The east side\'s man, Casper, Hessle, Papa ("A warning\'s gone down. Once. Next.").' }
+  ];
+  var play0 = C.servicePlay;
+  C.servicePlay = function (bt) {
+    if (!bt || !bt.hours) return play0.apply(this, arguments);
+    var Hs = D.house, rec = C.serviceStage(bt);
+    if (bt.lead) { var one = Hs.fresh(bt.lead); rec.party = one.party; rec.lead = one.lead; rec.hired = one.hired; }
+    Object.assign(rec.flags, bt.flags || {}); if (bt.renown) rec.renown = bt.renown;
+    Hs.begin(rec, 0);
+    var S = D.world && D.world.state ? D.world.state() : null; if (bt.t != null && S) S.t = bt.t;
+    if (bt.sit) H16.sitting(null, bt.sit, [rec.flags]);
+  };
+  H16.show = function (q) { return new C.ServicesShow(q, H16.SHOW_BEATS, '{y}SILVERTON\'S HOURS AND WORDS, 10-28{/} -- a NEW GAME staged; the rest is yours (a show)'); };
+
   // ---------------------------------------------------------------- the floor's beats, one hook (js/roam.js R.script): each `due` asked in turn, the first that is plays
   H16.BEATS = [{ due: H16.turnDue, play: H16.turnPlay }, { due: H16.waitDue, play: H16.waitPlay }, { due: H16.papaDue, play: H16.papaScene }, { due: H16.lookDue, play: H16.lookPlay }, { due: H16.missionDue, play: H16.missionCard }];
   H16.due = function (B) { H16.light(B); for (var i = 0; i < H16.BEATS.length; i++) if (H16.BEATS[i].due(B)) { H16.next = H16.BEATS[i]; return true; } return false; };
