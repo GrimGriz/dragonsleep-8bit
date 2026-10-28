@@ -9,7 +9,8 @@ page 1 an identity sheet, not cut), HEAD 2 NE, HEAD 3 S, HEAD 4 E, HEAD 5 N; Idl
 Prone 2.
 What each became: idle, walk <- Swim (bound to the water, it moves by swimming), tentacles <- Tentacles (its Multiattack's three; the grick's
 row name, played once), tail <- Tail (its legendary Tail Swipe), flinch, hurt <- Fall (played once), prone <- Prone played backwards.
-Enslave is NOT cut: no charm with commands for a foe yet. Facings: the five views as drawn, SW, W and NW the mirrors of SE, E and NE.
+enslave <- Enslave (10-28, his "Yes, cut them": js/monsterrules.js plays its own enslave row) -- the body and its lit eyes, the drawn
+psychic rings left out (they overlap the next frames and run past the cell; the engine rings it in violet as it enslaves, FX.ring). Facings: the five views as drawn, SW, W and NW the mirrors of SE, E and NE.
 The boxes by the seat's draft (each page's bodies clustered into the manifest's printed bands, each frame's x its body's middle, each strip
 from 30 px over the highest foot), on a mask by channel (CHAN: its dark teal is not grey -- by the grey test its bodies fell to pieces); each band's top-left corner
 (260 px in, down to its highest body) boxed as label -- its grey labels.
@@ -111,20 +112,51 @@ SPEC = {
            R(('prone', (0, 0, 1536, 528), (450, 528), 1, [749]), ('prone_b', (0, 529, 1536, 1021), (963, 1021), 1, [765]))),
 }
 PAGES = {L: dict(p, rows=rows, xs=xs) for L, (p, (rows, xs)) in SPEC.items()}
+# the Enslave pages (10-28): two lines of three, the bands to each line's numbers; each frame's psychic rings out (_ENSLAVE below)
+ENSLAVEP = {'H1P6': ('ART-19_HEAD-1_PAGE-6.png', [(0, 0, 1536, 468), (439, 468), [235, 765, 1293]], [(0, 469, 1536, 971), (930, 971), [258, 770, 1262]], []),
+            'H2P5': ('ART-19_HEAD-2_PAGE-5.png', [(0, 0, 1536, 445), (415, 445), [309, 763, 1276]], [(0, 446, 1536, 957), (925, 957), [338, 804, 1247]], [(15, 170, 165, 205), (15, 645, 165, 682)]),
+            'H3P5': ('ART-19_HEAD-3_PAGE-5.png', [(0, 0, 1536, 464), (433, 464), [341, 784, 1261]], [(0, 465, 1536, 990), (959, 990), [348, 809, 1289]], [(15, 158, 125, 202), (15, 578, 125, 622)]),
+            'H4P5': ('ART-19_HEAD-4_PAGE-5.png', [(0, 0, 1536, 463), (430, 463), [267, 802, 1305]], [(0, 464, 1536, 918), (885, 918), [327, 816, 1275]], [(15, 395, 160, 430), (15, 855, 160, 890)]),
+            'H5P5': ('ART-19_HEAD-5_PAGE-5.png', [(0, 0, 1536, 459), (431, 459), [328, 788, 1226]], [(0, 460, 1536, 962), (933, 962), [341, 772, 1233]], [(35, 45, 180, 80), (35, 510, 180, 548)])}
+for _L, (_f, _a, _b, _t) in ENSLAVEP.items():
+    PAGES[_L] = dict(file=_f, W=1536, text=_t, rows=[('enslave', _a[0], _a[1], 3), ('enslave_b', _b[0], _b[1], 3)], xs={'enslave': _a[2], 'enslave_b': _b[2]})
 # three labels the corner boxes miss (NE Idle's beside its first body's raised tip, S Fall's second line low in the first's strip, N Tentacles'
 # band set high by a raised tentacle): boxed by hand
 for _L, _b in {'H2P1': (40, 50, 112, 82), 'H3P7': (25, 520, 112, 578), 'H5P3': (30, 36, 194, 70)}.items():
     PAGES[_L]['text'] = PAGES[_L]['text'] + [_b]
 FIX, CUTS = {}, {}
+# an Enslave frame's psychic rings out: violet and lavender light (blue over green, red over green) and the rings' dark edges, outside the
+# body's own filled silhouette (across it they stay, glow on it); then the body alone -- its biggest piece and any piece a quarter of it
+from scipy import ndimage as _nd
+def _no_rings(im):
+    a = np.asarray(im).astype(np.int32).copy()
+    al = a[..., 3] > 0
+    ring = (((a[..., 2] - a[..., 1]) > 45) & ((a[..., 0] - a[..., 1]) > 5)) | (((a[..., 2] - a[..., 1]) > 20) & ((a[..., 0] - a[..., 1]) > -5) & (a[..., :3].mean(-1) < 110))
+    body = _nd.binary_fill_holes(_nd.binary_closing(al & ~ring, structure=np.ones((3, 3)), iterations=6))   # (the body's own silhouette: ring light across it stays, as glow on it)
+    a[al & ring & ~body, 3] = 0
+    lab, n = _nd.label(a[..., 3] > 0, structure=np.ones((3, 3)))
+    if n > 1:
+        sz = _nd.sum(a[..., 3] > 0, lab, range(1, n + 1))
+        a[~np.isin(lab, 1 + np.where(sz >= 0.25 * sz.max())[0]), 3] = 0
+    return Image.fromarray(a.astype(np.uint8), 'RGBA')
+_cut0 = AD.cut
+def _cut(*a, **k):
+    out = _cut0(*a, **k)
+    for L, rows in out.items():
+        for r in rows:
+            if r.startswith('enslave'):
+                rows[r] = [(None if im is None else _no_rings(im), box, x) for im, box, x in rows[r]]
+    return out
+AD.cut = _cut
 CHAN = 28                                      # (its dark teal falls out of the grey test: each channel against the navy, the ettercap's way)
-# each view's pages, its Idle's first; Enslave's left out (H1 P6, the others' P5)
-VIEWS = {'SE': ('H1P2', 'H1P3', 'H1P4', 'H1P5', 'H1P7', 'H1P8', 'H1P9')}
-VIEWS.update({v: tuple('H%dP%d' % (h, p) for p in (1, 2, 3, 4, 6, 7, 8)) for v, h in (('NE', 2), ('S', 3), ('E', 4), ('N', 5))})
+# each view's pages, its Idle's first; Enslave last (H1 P6, the others' P5: cut since 10-28)
+VIEWS = {'SE': ('H1P2', 'H1P3', 'H1P4', 'H1P5', 'H1P7', 'H1P8', 'H1P9', 'H1P6')}
+VIEWS.update({v: tuple('H%dP%d' % (h, p) for p in (1, 2, 3, 4, 6, 7, 8, 5)) for v, h in (('NE', 2), ('S', 3), ('E', 4), ('N', 5))})
 FALL = {'SE': ('H1P8', 'H1P9'), 'NE': ('H2P7', 'H2P8'), 'S': ('H3P7', 'H3P8'), 'E': ('H4P7', 'H4P8'), 'N': ('H5P7', 'H5P8')}   # (Fall page, Prone page)
 STAND_OF = {}
-JOINS = {r + '_b': r for r in ('idle', 'walk', 'tentacles', 'tail', 'flinch', 'hurt', 'prone')}
-ROWS = ['idle', 'walk', 'hurt', 'flinch', 'tentacles', 'prone', 'tail']
-FPS = {'idle': 6, 'walk': 8, 'hurt': 8, 'flinch': 10, 'tentacles': 10, 'prone': 6, 'tail': 10}
+JOINS = {r + '_b': r for r in ('idle', 'walk', 'tentacles', 'tail', 'flinch', 'hurt', 'prone', 'enslave')}
+ROWS = ['idle', 'walk', 'hurt', 'flinch', 'tentacles', 'prone', 'tail', 'enslave']
+FPS = {'idle': 6, 'walk': 8, 'hurt': 8, 'flinch': 10, 'tentacles': 10, 'prone': 6, 'tail': 10, 'enslave': 8}
 
 
 def targets():

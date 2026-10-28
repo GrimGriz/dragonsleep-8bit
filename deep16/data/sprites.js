@@ -2,7 +2,7 @@
 'use strict';
 (window.D16 = window.D16 || {}).SHEETS = {
 "aboleth_p1": {
-"image": "art/aboleth_p1.png?v=d7bac4f03f",
+"image": "art/aboleth_p1.png?v=adc978077d",
 "fw": 152,
 "fh": 84,
 "ax": 76,
@@ -71,6 +71,15 @@
 "ay": 76,
 "frames": 6,
 "fps": 10
+},
+"enslave": {
+"y": 4704,
+"fw": 152,
+"fh": 84,
+"ax": 76,
+"ay": 76,
+"frames": 6,
+"fps": 8
 }
 },
 "source": "drawn by the art desk (ART-19, all five views, 10-21), cut by tools/aboleth-sheet.py through tools/artdesk.py (10-22)"
