@@ -223,6 +223,21 @@
   };
 
   // ------------------------------------------------------------------ token mode
+  // THE ROOST ON THE FLOOR (10-28, his question on the Guano Mine's tiles, "looks good, but is Aurdin allowed to carry a torch?" -- his meaning, to the lanes desk: "that's about
+  // the roost and no light or you spook the bats and the town hates you forever"): under a roosted ceiling (a floor's `roost`: the working gallery, the dens -- js/mines.js) the
+  // floor keeps its fights' law, no fire and no bright light, the first game's way on its own map -- a torch goes out as the party comes under it (and none is lit there, nor
+  // taken up: R.menuAct), a lantern or the Ledger-Lamp stays lit hood down, dim 5 ft (RULED 09-29); and the Light cantrip on a hero let go. Said with the floor's hello
+  R.ROOST_LINE = '{y}Overhead, the roost{/}: no fire, no bright light -- no torch here, a lantern only hood down.';
+  R.roostLights = function (B) {
+    var out = [R.ROOST_LINE];
+    B.roam.members.forEach(function (u) {
+      var t = u.torch;
+      if (t && t.lit !== false && L.kindOf(t) === 'lantern') { if (!t.hood) { t.hood = true; out.push(u.name + ' keeps the ' + L.word(t) + ' low, hood down.'); } }
+      else if (t && t.lit !== false) { delete u.torch; L.regrip(u); out.push(u.name + ' puts the torch out: the light would spook the roost.'); }
+      if (u.conds && u.conds.light) { delete u.conds.light; out.push(u.name + ' lets the Light go: bright light, under the roost.'); }
+    });
+    return out;
+  };
   R.FORM0 = [[0, 1], [-1, 0], [-1, 1], [-2, 0], [-2, 1], [-3, 0], [-3, 1], [-4, 0]]; // (two abreast behind the lead: [ahead, right] in squares)
   R.KEY = 'deep16.roam.form';
   R.setup = function (B) {
@@ -244,11 +259,12 @@
     else R0.flags = JSON.parse(JSON.stringify(R.flags0 || {})); // (the test's from its address: &flags=, &drained -- R.make)
     if (/[?&]watch\b/.test(R.q)) members.forEach(function (u) { u.guest = true; u.classAI = true; }); // (&watch: the class tactics run the four, as the bench does)
     // the light: the party's carried torch (&light=none | torch | lantern), in the first free hand in the marching order (js/light.js handsFree, then handForLight)
-    var lw = (/[?&]light=([a-z]+)/.exec(R.q) || [])[1] || (R.def.dark === false ? 'none' : 'torch'); // (the town by day: no torch lit)
+    var lw = (/[?&]light=([a-z]+)/.exec(R.q) || [])[1] || (R.def.dark === false || R.def.roost ? 'none' : 'torch'); // (the town by day: no torch lit; nor under a roost -- R.roostLights)
     if (lw !== 'none' && !R.emb && !members.some(function (u) { return u.torch && u.torch.lit; })) { // (inside the 8-bit, the light is the party's own: the battle's enter took up its torch)
       var bearer = members.filter(function (u) { return L.handsFree(u) > 0; })[0] || members.filter(function (u) { return L.handForLight(u); })[0] || lead; // (a free hand first: a two-hander drops it to swing)
       bearer.torch = lw === 'lantern' ? L.make('lantern', false) : { lit: true, kind: 'torch' }; L.regrip(bearer);
     }
+    R0.roostLines = R.def.roost ? R.roostLights(B) : null; // (said with the floor's hello: R.script)
     R0.encIn = R.ENC || R.resetEnc(R0);
     // the whole party on the M menu out of a fight (ui.js gridHost's hooks): any of the four EQUIPs, takes up a light, drinks a potion; ORDER is the formation on the floor
     // (Griz, 10-13: "Gonna have to see the whole party menu on menu even when it's in party token mode, and even if barley is front man should be able to have Aurdin
@@ -327,7 +343,7 @@
   R.script = function* (B) {
     var R0 = B.roam;
     if (R.def.music) D.music(R.def.music); // (a floor's own tune at the door -- the town's, the 8-bit's Silverton's: the party-token map lane's 10-20 note 1, "no music in roam")
-    if (R.def.town && R.def.hello) B.card(R.wrap(R.def.hello), 420); // (a floor of its own words: the mines' top floors, js/mines.js)
+    if (R.def.town && R.def.hello) B.card(R.wrap(R.def.hello.concat(R0.roostLines || [])), 420); // (a floor of its own words: the mines' top floors, js/mines.js -- and under a roost its law, R.roostLights)
     // (Silverton's card says where they stand: in at the gate, or at the door a CONTINUE or a show stands them at -- js/town.js T.whereAt)
     else if (R.def.town) B.card(R.wrap(['{y}SILVERTON{/}, ' + (D.town.whereAt ? D.town.whereAt(R.def, R0.token.x, R0.token.y) : 'in at the ' + R.def.gate + ' gate') + ': ' + (R.def.ft === 5 ? 'the town at true scale' : 'the town drawn as if the party stood ' + R.def.ft + ' ft tall') + ' (' + G.map.w + ' x ' + G.map.h + ' squares), one token, the party inside it.', '{g}Click to walk, or the arrows. E: a word with someone beside you. O: the formation. L: the town map.{/}']), 420);
     else B.card(['{y}THE WET{/}, the whole floor (' + G.map.w + ' x ' + G.map.h + ' squares): one token, the party inside it.', '{g}Click to walk, or the arrows. O: the formation.' + (R.emb ? '' : ' F: a fight now.') + '{/}'], 420);
@@ -1734,8 +1750,10 @@
       if (eff === 'grapple') { if (R.floatInReach(B)) { R0.keys.push('haul'); B.menu = null; if (B.menuClosed) B.menuClosed(); B.card(['{y}' + R0.token.name + '{/} shakes out the Rope & Grapple.'], 160); } else B.card(['{g}Nothing in reach to hook with it here.{/}'], 180); return true; }
       if (eff === 'light') {
         if (who.torch) { B.card(['{g}' + who.name + ' has a light in hand already.{/}'], 160); return true; }
-        who.torch = a.id === 'torch' ? { lit: true, kind: 'torch' } : L.make(a.id, false); L.regrip(who); take(); D.sfx('confirm');
-        B.card(['{y}' + who.name + '{/} takes up the ' + it.name + ', lit.'], 200); return true;
+        var roostM = !!(R.def && R.def.roost), lamp = a.id !== 'torch' && L.isLantern(a.id); // (under a roost: no torch, a lantern hood down -- R.roostLights)
+        if (roostM && !lamp) { D.sfx('error'); B.card(['{g}The roost overhead: no fire. The light would spook the roost.{/}'], 200); return true; }
+        who.torch = a.id === 'torch' ? { lit: true, kind: 'torch' } : L.make(a.id, roostM); L.regrip(who); take(); D.sfx('confirm');
+        B.card(['{y}' + who.name + '{/} takes up the ' + it.name + (roostM ? ', lit hood down: the roost overhead.' : ', lit.')], 200); return true;
       }
       if (eff === 'heal') {
         if (!u || u.hp <= 0) { B.card(['{g}' + (u ? u.name + ' is down: a kit first.' : 'Whom?') + '{/}'], 160); return true; }

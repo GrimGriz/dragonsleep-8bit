@@ -2357,6 +2357,25 @@
       if (f2d.b) endG(B2d, f2d);
       okG('the dens\' grid field cut from the dens (' + (f2d.b ? f2d.b.map.w + ' x ' + f2d.b.map.h : 'none') + '; ' + cd.s + '; ' + rk2 + ' of ' + nn2 + ' squares rock), dark ' + (f2d.b && f2d.b.fight.dark) + ', its ceiling ' + (f2d.b && f2d.b.map.def.sky) + ' ft',
         !!f2d.b && f2d.b.map.w === 16 && f2d.b.map.h === 16 && cd.ok && rk2 > 0 && f2d.b.fight.dark === true && f2d.b.map.def.sky === 20);
+      // 6. THE ROOST ON THE FLOOR (his "looks good, but is Aurdin allowed to carry a torch?" -- "that's about the roost and no light or you spook the bats and the town hates you
+      // forever"): under the roost no torch lit, carried in or taken up; a lantern hood down; the Light let go; a dark floor with no roost keeps its torch
+      var lit6 = function (B) { return B.roam.members.filter(function (u) { return u.torch && u.torch.lit !== false; }).map(function (u) { return u.name + ':' + (u.torch.kind || 'torch') + (u.torch.hood ? ' hood down' : ''); }); };
+      var hello6 = function (B) { return (B.cards || []).map(function (c) { return c.lines.join(' '); }).join(' / '); };
+      var B6a = testG('?roam=galleries_g3&flags=cullHired&at=6,10'), l6a = lit6(B6a);
+      okG('the dens (dark, roosted) by default: no torch lit (' + (l6a.join(', ') || 'none') + '), the roost\'s law in the hello (' + /Overhead, the roost.{0,4}: no fire, no bright light/.test(hello6(B6a)) + ')', !l6a.length && /Overhead, the roost.{0,4}: no fire, no bright light/.test(hello6(B6a)));
+      var B6b = testG('?roam=galleries_g3&flags=cullHired&at=6,10&light=torch'), l6b = lit6(B6b), h6b = hello6(B6b);
+      okG('a torch carried in under the roost goes out (' + (l6b.join(', ') || 'none lit') + '): "' + ((h6b.match(/\w+ puts the torch out[^/]*/) || [''])[0]) + '"', !l6b.length && /puts the torch out: the light would spook the roost/.test(h6b));
+      var B6c = testG('?roam=galleries_g2&light=lantern'), l6c = lit6(B6c), lu6 = B6c.roam.members.filter(function (u) { return u.torch; })[0], r6c = lu6 ? D.light.radii(lu6.torch) : null;
+      okG('the working gallery, a lantern carried in: lit hood down (' + l6c.join(', ') + '; bright ' + (r6c && r6c.bright) + ', dim ' + (r6c && r6c.dim) + ')', l6c.length === 1 && /hood down/.test(l6c[0]) && r6c && r6c.bright === 0 && r6c.dim === 5);
+      var B6d = testG('?roam=galleries_g3&flags=cullHired&at=6,10'), u6d = B6d.roam.members[1], uo6 = function (h) { return B6d.roam.members.filter(function (u) { return u.src === h; })[0]; };
+      B6d.inv = (B6d.inv || []).concat([{ id: 'torch', n: 1 }, { id: 'lantern', n: 1 }]); B6d.cards = [];
+      RG.menuAct(B6d, 'item', { id: 'torch', h: u6d.src }, uo6); var t6d = !!u6d.torch, c6d = hello6(B6d);
+      RG.menuAct(B6d, 'item', { id: 'lantern', h: u6d.src }, uo6); var lt6d = u6d.torch;
+      okG('the M menu under the roost: a torch refused (' + (t6d ? 'LIT' : 'none') + ', "' + c6d.replace(/\{.\}|\{\/\}/g, '').slice(0, 60) + '"), a lantern taken up hood down (' + JSON.stringify(lt6d) + ')', !t6d && /no fire/.test(c6d) && !!lt6d && lt6d.kind === 'lantern' && lt6d.hood === true);
+      var u6e = B6d.roam.members[2]; u6e.conds = u6e.conds || {}; u6e.conds.light = { by: 'aurdin' }; var ls6e = RG.roostLights ? RG.roostLights(B6d) : null;
+      okG('the Light cantrip on a hero under the roost let go (' + (ls6e ? ls6e.slice(1).join(' / ') : 'no roost rule') + ')', !!ls6e && !u6e.conds.light && ls6e.some(function (l) { return /lets the Light go/.test(l); }));
+      var B6f = testG('?roam=warrens_c'), l6f = lit6(B6f);
+      okG('a dark floor with no roost (the workings) keeps its torch (' + (l6f.join(', ') || 'none') + ')', l6f.length === 1 && !/roost/.test(hello6(B6f)));
     } catch (eG) { repG.errors.push(String(eG && eG.stack || eG).slice(0, 900)); }
     D.store.get = stGG; D.store.set = stSG; D.music = muG; try { if (skG != null) window.localStorage.setItem(SG.KEY, skG); } catch (eK2) { }
     var preG = document.createElement('pre'); preG.id = 'out'; preG.textContent = 'BENCH16 ' + JSON.stringify(repG);
