@@ -7951,6 +7951,21 @@
       okY(dlY.length === 1 && /^situations-ear-file-\d{4}-\d\d-\d\d-\d{4}Z\.json$/.test(dlY[0]) && localStorage.getItem('dsl-situations-lastsave') > '2026-10-28' && /SAVED/.test(By.one.saved && By.one.saved.text), 'SAVE downloads ' + dlY[0] + ', moves the last save, and says ' + JSON.stringify(By.one.saved && By.one.saved.text));
       localStorage.setItem('dsl-situations-feedback:v1', '{}'); var By2 = { one: {}, t: 60 }; OGy.save(By2);
       okY(dlY.length === 1 && /nothing marked/.test(By2.one.saved && By2.one.saved.text), 'with nothing marked SAVE downloads nothing and says ' + JSON.stringify(By2.one.saved && By2.one.saved.text));
+      // EQUIP's OFFHAND (his "whatever we're doing with offhand equip explain text is overlapping", 10-28): a weapon's column says it short -- a swing, or held --
+      // the box under the list says why (cur.note); and any list cuts its right column to the room beside its label (js/menu.js List.draw)
+      var MNy = window.DS.MENU, hO = D.pocket.sheetOf(D.pocket.bareSpec(D.npc.spec('rogue:3')));
+      hO.equip.weapon = 'rapier'; hO.equip.offhand = null; hO.equip.shield = null; hO.equip.torch = null;
+      var cO = MNy.offhandCands(hO, { pack: function () { return [{ id: 'dagger', n: 1 }, { id: 'rapier', n: 1 }]; }, fight: null });
+      var rD = cO.filter(function (c) { return c.value === 'dagger'; })[0], rR = cO.filter(function (c) { return c.value === 'rapier'; })[0];
+      var hL2 = D.pocket.sheetOf(D.pocket.bareSpec(D.npc.spec('rogue:3'))); hL2.equip.weapon = 'dagger'; hL2.equip.offhand = null; hL2.equip.shield = null; hL2.equip.torch = null;
+      var rL = MNy.offhandCands(hL2, { pack: function () { return [{ id: 'dagger', n: 1 }]; }, fight: null }).filter(function (c) { return c.value === 'dagger'; })[0];
+      okY(!!rD && rD.right === 'held, no swing' && /^No off-hand swing: the rapier is not light\.$/.test(rD.note) && !!rR && rR.right === 'held, no swing' && !!rL && rL.right === 'off-hand swing' && /bonus-action swing/.test(rL.note),
+        'OFFHAND, a rapier in hand: a dagger and a rapier say "' + (rD && rD.right) + '", the box "' + (rD && rD.note) + '"; a dagger beside a dagger says "' + (rL && rL.right) + '"');
+      var drawnR = [], tr0 = window.DS.textRight; window.DS.textRight = function (c, s, xr, y, col) { drawnR.push(s); return tr0.apply(this, arguments); };
+      var cvO = document.createElement('canvas'); cvO.width = 256; cvO.height = 240; var LO = new MNy.List({ visible: 4, items: [{ label: 'Combat Knife', right: 'no off-hand swing: the rapier is not light' }, { label: 'Shield', right: 'AC 16' }] });
+      try { LO.draw(cvO.getContext('2d'), 38, 77, 180, true, 0); } finally { window.DS.textRight = tr0; }
+      var roomO = 180 - 8 - window.DS.textWidth('Combat Knife') - 8;
+      okY(drawnR.length === 2 && window.DS.textWidth(drawnR[0]) <= roomO && /\.$/.test(drawnR[0]) && drawnR[1] === 'AC 16', 'a list\'s right column cut to the room beside its label: "' + drawnR[0] + '" (' + window.DS.textWidth(drawnR[0] || '') + ' of ' + roomO + ' px), a short one whole: "' + drawnR[1] + '"');
       // M on the Pocket DM's title: OPTIONS over it, X shuts it, the title still there
       var Py = new D.Pocket(); Py.enter(); Py.go('title');
       IY.press('menu'); Py.update(); IY.release('menu'); IY.clear(); var opened = !!(Py.pm && !Py.pm.closed && Py.pm.pages && Py.pm.pages.length === 1);

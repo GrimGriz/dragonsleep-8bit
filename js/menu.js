@@ -87,6 +87,7 @@
     if (k.pressed('b')) { sfx('cancel'); return 'back'; }
     return null;
   };
+  MN.List = List; // (dev/bench16.js mode=keys1028: the right column cut beside its label)
   // rows from (x, y), the right column ending at x + w; `t` blinks the cursor of a list that is not the one moving
   // (each row drawn is a place the mouse may point: the grid's players click -- HITS, gathered as the menu draws, read by Menu.update)
   var HITS = [], OWNER = null;
@@ -99,7 +100,7 @@
       if (it.mark) ctx.drawImage(glyph(it.mark), x + 8, yy + 1);
       if (it.pre) text(ctx, it.pre, lx - 7, yy, it.preColor || C.gold);
       text(ctx, it.label, lx, yy, col);
-      if (it.right != null) right(ctx, it.right, x + w, yy, it.disabled ? C.dim : (it.rightColor || C.pale));
+      if (it.right != null) right(ctx, fit(it.right, Math.max(6, x + w - lx - DS.textWidth(String(it.label)) - 8)), x + w, yy, it.disabled ? C.dim : (it.rightColor || C.pale)); // (cut to the room beside its label, never over it -- 10-28, his OFFHAND's "explain text is overlapping")
       if (it.sub) text(ctx, it.sub, lx + 4, yy + 10, it.subColor || C.grey);
       if (k === this.i && (active || ((t >> 4) & 1) === 0)) text(ctx, '▶', x, yy, C.white);
     }
@@ -831,7 +832,10 @@
       var it = item(s.id); if (!it || s.n <= 0 || !R0.canEquip(h, it)) return;
       var why = two ? 'both hands on the ' + String(wn).toLowerCase() : '';
       if (it.kind === 'shield') rows.push({ label: fit(it.name, 120), right: two ? 'both hands' : compare(h, 'shield', s.id) + (fight ? ' (action)' : ''), value: s.id, kind: 'shield', disabled: two, why: why });
-      else if (R0.offhandWeapon(it)) rows.push({ label: fit(it.name, 120), right: two ? 'both hands' : offWord(Object.assign({}, h, { equip: Object.assign({}, h.equip, { offhand: s.id, shield: null, torch: null }) }), s.id), value: s.id, kind: 'weapon', disabled: two, why: why });
+      else if (R0.offhandWeapon(it)) { // (the column says it short -- a swing, or held; the box under the list says why: 10-28, Griz: "whatever we're doing with offhand equip explain text is overlapping")
+        var hw = Object.assign({}, h, { equip: Object.assign({}, h.equip, { offhand: s.id, shield: null, torch: null }) }), tw = R0.twoWeapon ? R0.twoWeapon(hw) : null;
+        rows.push({ label: fit(it.name, 120), right: two ? 'both hands' : !tw ? offWord(hw, s.id) : tw.ok ? 'off-hand swing' + (tw.by === 'symmetric' ? ' (pair)' : '') : 'held, no swing', note: two || !tw ? '' : tw.ok ? 'Two-weapon fighting: a bonus-action swing with it.' : 'No off-hand swing: ' + tw.why + '.', value: s.id, kind: 'weapon', disabled: two, why: why });
+      }
     });
     if (!fight) packLights(host).forEach(function (s) { var it = item(s.id), had = oh && oh.kind === 'light'; rows.push({ label: fit(it.name, 120), right: had ? 'one lit already' : 'lit, in hand', value: s.id, kind: 'light', disabled: had, why: had ? 'a light in that hand already' : '' }); });
     return rows;
@@ -862,7 +866,7 @@
     if (!this.list.items.length) wrap(emptyWhy(this.m, this.h), 172).slice(0, 2).forEach(function (l, i) { text(ctx, l, 44, 77 + i * 10, C.grey); });
     this.list.draw(ctx, 38, 77, 180, active, this.m.t);
     var cur = this.list.cur(), it = cur && item(cur.value);
-    if (it) descBox(ctx, it.desc || '', it.attune ? 'Bonds at a rest (three at most).' : '');
+    if (it) descBox(ctx, it.desc || '', cur.note || (it.attune ? 'Bonds at a rest (three at most).' : '')); // (cur.note: the OFFHAND's why, 10-28)
     else if (cur && this.fo) descBox(ctx, cur.value.label.replace(/^\(|\)$/g, '') + ': ' + (cur.value.note || ''), cur.value.ok ? '' : 'Not now: ' + (cur.value.why || 'not now') + '.'); // (the grid's choice: what it does and what it costs, or why not)
   };
 
