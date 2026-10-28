@@ -1451,6 +1451,10 @@
       // a hit that only seizes (the roper's tendril, which does no harm) is not thrown at one it holds already, nor with every
       // tendril taken (SRD 5.1: "the roper can't use the same tendril on another target"; grapple.max, its six)
       if (atk.holdOnly && ((u.holding || []).indexOf(t) >= 0 || (u.holding || []).length + (u.tendrilsLost || 0) >= (atk.grapple.max || 1))) continue; // (tendrilsLost: the ones cut or broken this round, battle.js tendrilGone -- 10-02)
+      // a blow it may make in another's place (the lamia's "one with its dagger or Intoxicating Touch", SRD 5.1 -- data/foes.js `or`, 10-27): the touch at the weakest
+      // in its reach its curse is not on yet, else the dagger
+      var orA = atk.or && u.attacks[atk.or], orT = orA && orA.intoxicate ? pool.filter(function (w) { return !w.conds.intoxicated && !w.object && G.dist(u, w) <= G.reachOf(u, orA.reach); }).sort(function (a, b) { return a.hp - b.hp; })[0] : null;
+      if (orT) { atk = orA; t = orT; }
       yield* B.attack(u, t, atk, { onHit: (function (key) { return function (w) { landed[key] = w; }; })(routine[k]) });
       if (u.dead || u.hp <= 0) return;
     }

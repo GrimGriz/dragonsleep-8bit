@@ -6865,6 +6865,116 @@
 "sat": 0.22
 }
 },
+"lamia_p1": {
+"image": "art/lamia_p1.png?v=be1da9141a",
+"fw": 136,
+"fh": 104,
+"ax": 68,
+"ay": 97,
+"top": 72,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 136,
+"fh": 104,
+"ax": 68,
+"ay": 97,
+"frames": 6,
+"fps": 6
+},
+"walk": {
+"y": 832,
+"fw": 136,
+"fh": 104,
+"ax": 68,
+"ay": 97,
+"frames": 8,
+"fps": 10
+},
+"attack": {
+"y": 1664,
+"fw": 136,
+"fh": 104,
+"ax": 68,
+"ay": 97,
+"frames": 6,
+"fps": 10
+},
+"hurt": {
+"y": 2496,
+"fw": 136,
+"fh": 104,
+"ax": 68,
+"ay": 97,
+"frames": 6,
+"fps": 8
+},
+"cast": {
+"y": 3328,
+"fw": 136,
+"fh": 104,
+"ax": 68,
+"ay": 97,
+"frames": 6,
+"fps": 8
+},
+"reveal": {
+"y": 4160,
+"fw": 136,
+"fh": 104,
+"ax": 68,
+"ay": 97,
+"frames": 6,
+"fps": 8
+},
+"flinch": {
+"y": 4992,
+"fw": 136,
+"fh": 104,
+"ax": 68,
+"ay": 97,
+"frames": 4,
+"fps": 10
+},
+"claw": {
+"y": 5824,
+"fw": 136,
+"fh": 104,
+"ax": 68,
+"ay": 97,
+"frames": 6,
+"fps": 10
+},
+"still": {
+"y": 6656,
+"fw": 136,
+"fh": 104,
+"ax": 68,
+"ay": 97,
+"frames": 1,
+"fps": 4
+},
+"prone": {
+"y": 7488,
+"fw": 136,
+"fh": 104,
+"ax": 68,
+"ay": 97,
+"frames": 2,
+"fps": 6
+},
+"touch": {
+"y": 8320,
+"fw": 136,
+"fh": 104,
+"ax": 68,
+"ay": 97,
+"frames": 6,
+"fps": 8
+}
+},
+"source": "drawn by the art desk (ART-20 FINAL, all five views, 10-22), cut by tools/lamia-sheet.py through tools/artdesk.py (10-27)"
+},
 "lamptower_p1": {
 "_note": "the lamp tower at a waystation on the dwarven road (tools/roadprops-sheet.py, the art desk's ART-58): a plinth of dwarf-cut stone on one diamond, a banded shaft, a capital and an iron lamp cage, 12 ft to the ring on its roof. lit, four frames of the flame (the stone the same in all four); dark, the lamp gone out. (ax, ay) is the middle of the square it stands on. Its light is the map's own `lights` entry (js/circles.js draws it where a map's `tower` stands).",
 "image": "art/lamptower_p1.png?v=40e11e8c2e",

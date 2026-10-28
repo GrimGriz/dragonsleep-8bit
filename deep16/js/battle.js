@@ -2366,7 +2366,7 @@
       if (D.features && D.features.answerBack) yield* D.features.answerBack(this, att, tgt, atk, melee); // (the Path of the Sand, 6)
       return;
     }
-    if (atk.noDamage) { if (o.onHit) o.onHit(tgt, crit); yield o.oa ? 18 : 26; att.anim = 'idle'; return; } // (a throw that only lands: the oil flask unlit coats, js/oil.js -- 10-05)
+    if (atk.noDamage) { if (o.onHit) o.onHit(tgt, crit); if (atk.intoxicate) yield* this.intoxicate(att, tgt); yield o.oa ? 18 : 26; att.anim = 'idle'; return; } // (a throw that only lands: the oil flask unlit coats, js/oil.js -- 10-05)
     // Rock Catching (the stone giant, SRD 5.1: "If a rock or similar object is hurled at the giant, the giant can, with a successful DC 10 Dexterity saving throw, catch the missile and take
     // no bludgeoning damage from it" -- a trait, not a reaction: every rock, as often as they come; data/foes.js `rockCatch`, the DC): a hurled rock (a giant's Rock, `hurled`) that hits one
     // who has it is caught on the save -- no damage, and nothing the blow carries (a caught rock knocks no one down: the seat's reading, 10-08); she turns to the thrower and her CATCH row
@@ -2610,6 +2610,16 @@
     this.blowEnd(tgt, bl);
     att.anim = 'idle';
     if (!o.ready && !o.oa && this.units.some(function (w) { return w.ready && w.reaction > 0; })) yield* this.readyHook(att); // (a blow from hiding, or from the invisible, gives its maker away: the readied strikes, 10-02)
+  };
+  // the lamia's Intoxicating Touch (SRD 5.1: "The target is magically cursed for 1 hour. Until the curse ends, the target has disadvantage on Wisdom saving throws and
+  // all ability checks" -- 10-27): an hour is the fight; rules.js RU.save (traits.js RU.saveDis) and RU.checkEdges read `intoxicated`, Greater Restoration lifts it (grimoire.js)
+  Battle.prototype.intoxicate = function* (att, tgt) {
+    if (tgt.dead || tgt.hp <= 0 || tgt.object) return;
+    var again = !!tgt.conds.intoxicated;
+    tgt.conds.intoxicated = { by: att.id };
+    D.sfx('poison'); FX.sparkle(tgt, 'violet', 16);
+    this.card(['{r}' + nameOf(tgt) + '{/} is ' + (again ? 'still ' : '') + '{p}INTOXICATED{/}: cursed  {g}(disadvantage on WIS saves and every ability check, the fight through){/}']);
+    yield 24;
   };
   // a blow at the roper's tendril (SRD 5.1 Grasping Tendrils: "Each tendril can be attacked (AC 20; 10 hit points; immunity to poison and psychic damage). Destroying a tendril
   // deals no damage to the roper"; 10-02, handoff-2026-10-01-the-tendrils-and-ready): from wherever the held one could be struck from -- beside it with a blade, a shot at its

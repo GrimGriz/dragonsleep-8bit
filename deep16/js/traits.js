@@ -39,7 +39,7 @@
   // and saves (rules.js save reads restrained.weak; magic.js breakFree too)
   var saveAdv0 = RU.saveAdv;
   RU.saveAdv = function (u, ab) { return !!(saveAdv0 && saveAdv0(u, ab)); }; // (the ettin's Two Heads is no blanket on WIS and CON saves, SRD 5.1: "advantage on saving throws against being blinded, charmed, deafened, frightened, stunned, and knocked unconscious" -- rules.js RU.save reads it off `against`; Duergar Resilience likewise; 10-02 runner)
-  RU.saveDis = function (u, ab) { return ab === 'str' && !!(u.conds.restrained && u.conds.restrained.weak); };
+  RU.saveDis = function (u, ab) { return (ab === 'str' && !!(u.conds.restrained && u.conds.restrained.weak)) || (ab === 'wis' && !!u.conds.intoxicated); }; // (intoxicated: the lamia's touch, WIS saves -- js/battle.js intoxicate, 10-27)
 
   // ------------------------------------------------------------------ the weapon's hit: corrosion both ways, the boar's charge
   // (eaten through at the third bite of a fight -- his number, 10-13; the SRD's own is armour at AC 10 and a weapon at -5, on a wear the game does not keep)

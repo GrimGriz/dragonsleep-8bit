@@ -104,8 +104,8 @@
   // itself is left as it is -- dev/bench16.js reads its source for a rule)
   var turn0 = function (B, u) { return D.ai.turn(B, u); };
   // the watchers within `reach` of it, nearest first -- with none, it comes up into reach first, by the shortest way (one that keeps its distance: a caster)
-  function* inReach(B, u, reach) {
-    var watch = B.units.filter(function (w) { return w.side === 'party' && D.grid.standing(w) && !w.familiar; });
+  function* inReach(B, u, reach, pick) { // (pick: only the watchers it passes -- the lamia's touch, at one not cursed yet, 10-27)
+    var watch = B.units.filter(function (w) { return w.side === 'party' && D.grid.standing(w) && !w.familiar && (!pick || pick(w)); });
     var near = function () { return watch.filter(function (w) { return D.grid.dist(u, w) <= reach; }).sort(function (a, b) { return D.grid.dist(u, a) - D.grid.dist(u, b); }); };
     if (!near().length && u.speed > 0 && !u.conds.restrained) {
       var rm = D.grid.reach(u, u.speed), best = null, blen = Infinity;
@@ -263,6 +263,16 @@
       if (mw) {
         B.card(['{c}THE SHOW{/}: the ' + u.name + ' has not shown its ' + String(ma.name || mk).toLowerCase() + ' yet. One at ' + mw.name + ', to see it.'], 200);
         yield* B.attack(u, mw, ma); u.anim = 'idle'; u.animT = B.t;
+      }
+    }
+    // the lamia's Intoxicating Touch (10-27): its routine lays it only on one its curse is not on yet, and the watchers stand off, so a show saw it once --
+    // by the end of its second turn, a touch shown fewer than twice: one more at a watcher not cursed, through the engine's own attack
+    var tk = Object.keys(u.attacks || {}).filter(function (k) { var a = u.attacks[k]; return a.intoxicate && ((u.showSeen || {})[rowOf(a, k)] || 0) < 2; })[0];
+    if (tk && u.showTurns >= 2 && RU.canAct(u) && !u.conds.prone && u.hp > 0 && !u.riding) {
+      var ta = u.attacks[tk], tw = (yield* inReach(B, u, ta.reach || u.reach || 5, function (w) { return !w.conds.intoxicated; }))[0];
+      if (tw) {
+        B.card(['{c}THE SHOW{/}: the ' + u.name + ' has not shown its ' + String(ta.name).toLowerCase() + ' twice yet. One at ' + tw.name + ', to see it.'], 200);
+        yield* B.attack(u, tw, ta); u.anim = 'idle'; u.animT = B.t;
       }
     }
     // the rows its kit's features play (GreyFang's, 10-14: the Grey Road's Covering Volley `volley` and Sweep the Ring `whirlwind`, its 11th, and Give

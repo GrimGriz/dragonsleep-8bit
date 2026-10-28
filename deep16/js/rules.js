@@ -304,6 +304,7 @@
     if (c.enhanced && (c.enhanced.abil || 'con') === abil) adv.push('enhance ability');
     if (c.disAt && c.disAt.id === '*') dis.push(c.disAt.why || 'burning metal');
     if (RU.exhaustion(u) >= 1) dis.push('exhaustion'); // (SRD 5.1, exhaustion's first level: RU.exhaust)
+    if (c.intoxicated) dis.push('intoxicated'); // (the lamia's Intoxicating Touch, SRD 5.1: "disadvantage on ... all ability checks" -- js/battle.js intoxicate, 10-27)
     if (c.helpedCheck) adv.push('help'); // (a friend's Help, SRD 5.1: "advantage on the next ability check it makes ... before the start of your next turn" -- 10-01c; spent by RU.spendHelp)
     return { adv: adv, dis: dis };
   };

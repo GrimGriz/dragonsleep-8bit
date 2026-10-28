@@ -618,6 +618,24 @@
     legendary: { n: 3, acts: [{ name: 'Detect', cost: 1, detect: true }, { name: 'Tail Swipe', cost: 1, atk: 'tail' }, { name: 'Psychic Drain', cost: 2, drain: { dice: '3d6', type: 'psychic' } }] }, // (SRD 5.1 legendary actions -- Psychic Drain on one it has charmed: with no Enslave, none)
     src: 'SRD 5.1 Aboleth (CR 10, Large; AC 17, 135 HP, speed 10, swim 40; darkvision 120): Multiattack, three Tentacles +9 reach 10, 2d6+5 bludgeoning; Tail +9 reach 10, 3d6+5; legendary actions (three): Detect, Tail Swipe, Psychic Drain (2, on one it has charmed). Bound to the water (swim 40; on land 10 ft, not on the grid). Not on the grid, plain stand-ins: the tentacle disease (DC 14 CON) -- none; Enslave (3/day, DC 14 WIS charm) -- none, so its Psychic Drain finds no one; Mucous Cloud (underwater) and Probing Telepathy -- none. Its Enslave row is drawn and not cut'
   },
+  // the lamia (10-27, the monster cutter seat on Griz's "spin up a cutter for the leftovers in fresh, everything in the outbox has been sent";
+  // asked 10-08 among "a creature a biome", the Blue's desert: deep16-srd-not-yet.md): the SRD 5.1 Lamia from the mechanics the grid has; its
+  // sheet tools/lamia-sheet.py (ART-20). Its claws play `claw`, its dagger `attack`, its Intoxicating Touch `touch`, its two spells `cast`;
+  // it stands disguised as a robed woman till its first turn or a wound (its `still` row, the gargoyle's way) and drops the disguise (`reveal`).
+  lamia: {
+    name: 'Lamia', type: 'monstrosity', sheet: 'lamia_p1', cr: '4', ac: 13, hp: 97, speed: 30, size: 2, reach: 5, darkvision: 60,
+    abil: { str: 16, dex: 13, con: 15, int: 14, wis: 15, cha: 16 }, init: 1, perception: 12, stealth: 3,
+    saves: { str: 3, dex: 1, con: 2, int: 2, wis: 2, cha: 3 },
+    attacks: {
+      claws: { name: 'Claws', atk: 5, dice: '2d10', mod: 3, type: 'slashing', reach: 5, row: 'claw' },
+      dagger: { name: 'Dagger', atk: 5, dice: '1d4', mod: 3, type: 'piercing', reach: 5, or: 'touch' }, // (or: "one with its dagger or Intoxicating Touch" -- the touch at one not cursed yet, js/ai.js)
+      touch: { name: 'Intoxicating Touch', atk: 5, spell: true, touch: true, noDamage: true, intoxicate: true, reach: 5, row: 'touch' } // (a melee spell attack -- `touch`, battle.js: a reach, not a cast pose -- cursed, disadvantage on WIS saves and every ability check -- js/battle.js, js/traits.js, js/rules.js)
+    },
+    multi: ['claws', 'dagger'],
+    // (Innate Spellcasting, CHA, DC 13: Charm Person and Mirror Image 3/day each -- three 1st-level and three 2nd-level slots, the class AI's)
+    caster: { lvl: 4, ab: 'cha', dc: 13, atk: 5, slots: [3, 3], known: ['charmperson', 'mirrorimage'] },
+    src: 'SRD 5.1 Lamia (CR 4, Large; AC 13, 97 HP, speed 30; darkvision 60; Deception +7, Insight +4, Stealth +3): Multiattack, its Claws +5 2d10+3 slashing and its Dagger +5 1d4+3 piercing or Intoxicating Touch (+5 melee spell attack: cursed an hour -- the fight -- disadvantage on WIS saves and every ability check; Greater Restoration lifts it); Innate Spellcasting (CHA, DC 13): Charm Person and Mirror Image 3/day each, as slots the class AI spends (it may spend a 2nd-level one on a Charm Person). Disguise Self at will as its False Appearance: it stands as a robed woman till its first turn or a wound. Not on the grid, plain stand-ins: Major Image, Scrying, Suggestion and Geas -- none; Disguise Self\'s any humanoid form -- the one robed woman; seeing through it (Investigation) -- none'
+  },
   cloaker: {
     name: 'Cloaker', type: 'aberration', sheet: 'cloaker_p2', cr: '8', ac: 14, hp: 78, speed: 40, fly: 40, size: 2, reach: 5, darkvision: 60,
     abil: { str: 17, dex: 15, con: 12, int: 13, wis: 12, cha: 14 }, init: 2, perception: 11,

@@ -711,7 +711,7 @@
     if (u.hp <= 0) { if (c.oiled && !u.dead) oilMarks(ctx, B, u, p, top); return; } // (down at 0: ui.js asks only for the oil -- 10-06, a troll oiled where it lies)
     // blessed: gold motes wheeling over the head; baned, cursed: dark ones
     if (c.blessed || c.guided || c.inspired || c.helped) orbit(ctx, hx, hy, FX.EL.holy, 2, t, 7);
-    if (c.baned || c.cursed || c.contagion) orbit(ctx, hx, hy, FX.EL.shadow, 2, t + 40, 7);
+    if (c.baned || c.cursed || c.intoxicated || c.contagion) orbit(ctx, hx, hy, FX.EL.shadow, 2, t + 40, 7);
     // Beacon of Hope, 09-29 (Griz: "a status effect animation for 'maximized healing with wis bonus' or what-have-you until the spell
     // gets dropped"). A small sun over the head of each one who has hope on them: a gold disc with a bright spot, eight short rays that
     // turn slowly, and about once a second the whole sun flares, the disc swelling and the rays lengthening. It is drawn from the
@@ -809,7 +809,7 @@
     // ellipsis), caught off guard (the first round: a bang); then the gifts: heroism (a crown), foresight (an open eye, blinking now
     // and then), a ward against one kind of harm (Protection from Energy: a shield in its colour), Freedom of Movement (a ring with a
     // gap that turns), Mind Blank (a sealed ring), a storm called (Call Lightning: a cloud that flashes)
-    var by = c.beacon ? (c.blessed || c.guided || c.inspired || c.helped ? hy - 10 : hy - 5) - 9 : c.marked || c.branded ? hy - 12 : c.blessed || c.guided || c.inspired || c.helped || c.baned || c.cursed || c.contagion ? hy - 8 : hy - 4;
+    var by = c.beacon ? (c.blessed || c.guided || c.inspired || c.helped ? hy - 10 : hy - 5) - 9 : c.marked || c.branded ? hy - 12 : c.blessed || c.guided || c.inspired || c.helped || c.baned || c.cursed || c.intoxicated || c.contagion ? hy - 8 : hy - 4;
     var L = [], VI = P('violet', 3), GO = P('gold', 3);
     if (c.blinded) L.push(function (x) { badge(ctx, x, by, VI); icon(ctx, x, by, ICON_SHUT, { '#': P('silver', 5) }); });
     if (c.noHeal) L.push(function (x) { badge(ctx, x, by, P('glow', 0)); icon(ctx, x, by, ICON_NOHEAL, { '#': P('glow', 2), x: P('red', 3) }); });

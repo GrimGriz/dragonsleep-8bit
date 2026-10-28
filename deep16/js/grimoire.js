@@ -1779,7 +1779,7 @@
     var c = t.conds;
     if (c.stoning) return 'stone';
     if (c.charmed || c.hypnotized) return 'charm';
-    if (c.cursed || (c.disAt && c.disAt.why === 'cursed')) return 'curse';
+    if (c.cursed || c.intoxicated || (c.disAt && c.disAt.why === 'cursed')) return 'curse'; // (intoxicated: the lamia's touch, a magical curse -- 10-27)
     if (c.feeble || c.enfeebled) return 'drain';
     if (t.hpCut > 0 || t.drained > 0) return 'hpmax';
     return '';
@@ -1802,7 +1802,7 @@
       return 'the charm';
     }
     if (k === 'curse') {
-      sc = byId((c.cursed && c.cursed.by) || (c.disAt && c.disAt.id)); delete c.cursed; if (c.disAt && c.disAt.why === 'cursed') delete c.disAt;
+      sc = byId((c.cursed && c.cursed.by) || (c.disAt && c.disAt.id)); delete c.cursed; delete c.intoxicated; if (c.disAt && c.disAt.why === 'cursed') delete c.disAt;
       if (sc && sc.conc && sc.conc.id === 'bestowcurse') M.endConc(B, sc, 'it was lifted');
       return 'the curse';
     }
@@ -2382,7 +2382,7 @@
   var BEFORE = { mageArmor: 1, longstrider: 1, pfeg: 1, sanctuary: 1, darkvision: 2, seeInvisible: 2, magicWeapon: 2, barkskin: 2, stoneskin: 4 };
   var BEFORE_NAME = { mageArmor: 'Mage Armor', longstrider: 'Longstrider', pfeg: 'Protection from Evil and Good', sanctuary: 'Sanctuary', darkvision: 'Darkvision', seeInvisible: 'See Invisibility', magicWeapon: 'Magic Weapon', barkskin: 'Barkskin', stoneskin: 'Stoneskin' };
   var DISABLES = { paralyzed: 1, stunned: 1, asleep: 1, hypnotized: 1, incapacitated: 1, dancing: 1, laughing: 1, charmed: 1, confused: 1, stoning: 1, restrained: 1 }; // (the AI's weights)
-  var HARMS = { frightened: 1, feared: 1, slowed: 1, baned: 1, blinded: 1, cursed: 1, disAt: 1, marked: 1, heated: 1, killer: 1, contagion: 1, poisoned: 1, faerie: 1, enfeebled: 1, feeble: 1, sickened: 1, mocked: 1, noHeal: 1, noReact: 1, guided: 1, branded: 1, deafened: 1, commanded: 1, frosted: 1, regenerating: 0 };
+  var HARMS = { frightened: 1, feared: 1, slowed: 1, baned: 1, blinded: 1, cursed: 1, intoxicated: 1, disAt: 1, marked: 1, heated: 1, killer: 1, contagion: 1, poisoned: 1, faerie: 1, enfeebled: 1, feeble: 1, sickened: 1, mocked: 1, noHeal: 1, noReact: 1, guided: 1, branded: 1, deafened: 1, commanded: 1, frosted: 1, regenerating: 0 };
   var OUTSIDE = M.OUTSIDE = { x: -999, y: -999, gin: [] }; // (where a spell with no record of its casting was cast from: outside every globe)
   // (a record laid by a cast still under way -- not among what was there when it began, B.castBefore -- is that cast's, though the wrapper stamps it only at
   // the cast's end: the frames between see it so -- 10-01c, filming it, Bob's Mage Armor recast inside his globe went idle the frame it was laid)

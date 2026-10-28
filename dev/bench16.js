@@ -4951,6 +4951,48 @@
     document.body.appendChild(pre21);
     return;
   }
+  // the lamia's Intoxicating Touch (mode=touch1027; the monster cutter seat, 10-27): a melee spell attack that curses -- disadvantage on WIS saves (traits.js RU.saveDis)
+  // and on every ability check (rules.js RU.checkEdges) -- and its routine's "dagger or Intoxicating Touch" (ai.js, data/foes.js `or`): the touch at one not cursed yet,
+  // else the dagger. Each check failed on the code before it (no curse: the touch did nothing)
+  if (get('mode', '') === 'touch1027') {
+    var repT = { checks: [], errors: [] }, d0T = D.d, RT = D.rules;
+    function okT(what, v) { repT.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function runT(g) { var v, k = 0, st; while (g && k++ < 4000) { st = g.next(v); v = undefined; if (st.done) return st.value; if (st.value && st.value.prompt) v = st.value.prompt.opts[0].value; } }
+    function mkT(q) { var Bx = D.npcFight(q, {}); D.battle = Bx; Bx.enter(); while (!Bx.order.length) Bx.co.next(); Bx.dark = false; return Bx; }
+    function pinT(d20, f) { D.d = function (n) { return n === 20 ? d20 : d0T(n); }; try { return f(); } finally { D.d = d0T; } }
+    try {
+      var B1 = mkT('?npc=lamia&vs=fighter,wizard&lvl=3'), lam = B1.units.filter(function (u) { return u.side === 'foe'; })[0];
+      var ft = B1.units.filter(function (u) { return u.cls === 'fighter'; })[0], wz = B1.units.filter(function (u) { return u.cls === 'wizard'; })[0];
+      okT('the sheet: ' + lam.name + ' on ' + lam.sheet + ', its routine ' + JSON.stringify(lam.multi) + ', the touch ' + !!(lam.attacks.touch && lam.attacks.touch.intoxicate) + ', the dagger or ' + (lam.attacks.dagger && lam.attacks.dagger.or) + ', casts ' + (lam.known || []).join(' '),
+        lam.sheet === 'lamia_p1' && lam.attacks.touch && lam.attacks.touch.intoxicate && lam.attacks.dagger.or === 'touch' && (lam.known || []).indexOf('mirrorimage') >= 0);
+      lam.x = 4; lam.y = 3; ft.x = 3; ft.y = 3; wz.x = 14; wz.y = 12; B1.cache = null; [lam, ft, wz].forEach(function (u) { u.maxhp = u.hp = 300; });
+      var cardsT = [], cardT0 = B1.card;
+      B1.card = function (lines) { cardsT.push([].concat(lines).join(' ').replace(/\{\/?[a-z]*\}/g, '')); return cardT0.apply(this, arguments); };
+      RT.startTurn(lam); B1.active = lam; pinT(19, function () { runT(B1.attack(lam, ft, lam.attacks.touch)); }); B1.active = null;
+      var c1 = cardsT.join(' | ');
+      okT('1 its touch lands on the fighter: intoxicated ' + JSON.stringify(ft.conds.intoxicated || null) + ', the card ' + (/INTOXICATED/.test(c1) ? 'says so' : 'says nothing') + ', his hit points ' + ft.hp + ' (want 300: no damage)',
+        !!ft.conds.intoxicated && ft.conds.intoxicated.by === lam.id && /INTOXICATED/.test(c1) && ft.hp === 300);
+      var sv = RT.save(ft, 'wis', 30), sv2 = RT.save(wz, 'wis', 30);
+      okT('2 his WIS save rolls ' + sv.rolls.length + ' dice and keeps the low (' + sv.rolls.join(',') + ' -> ' + sv.d20 + '); the wizard, not cursed, ' + sv2.rolls.length,
+        sv.rolls.length === 2 && sv.d20 === Math.min.apply(null, sv.rolls) && sv2.rolls.length === 1);
+      var ce = RT.checkEdges(ft, 'str'), cs = RT.save(ft, 'str', 30);
+      okT('3 his checks: disadvantage ' + JSON.stringify(ce.dis) + '; a STR save is untouched (' + cs.rolls.length + ' die)', ce.dis.indexOf('intoxicated') >= 0 && cs.rolls.length === 1);
+      cardsT.length = 0; RT.startTurn(lam); B1.active = lam; pinT(19, function () { runT(D.ai.brute(B1, lam)); }); B1.active = null;
+      var c2 = cardsT.join(' | ');
+      okT('4 its routine at the cursed fighter: the claws and the dagger, no touch (' + (/Claws/.test(c2) ? 'claws' : 'no claws') + ', ' + (/Dagger/.test(c2) ? 'dagger' : 'no dagger') + ', ' + (/Intoxicating Touch/.test(c2) ? 'a touch' : 'no touch') + ')',
+        /Claws/.test(c2) && /Dagger/.test(c2) && !/Intoxicating Touch/.test(c2));
+      ft.x = 14; ft.y = 12; wz.x = 6; wz.y = 3; B1.cache = null; cardsT.length = 0;
+      RT.startTurn(lam); B1.active = lam; pinT(19, function () { runT(D.ai.brute(B1, lam)); }); B1.active = null;
+      var c3 = cardsT.join(' | ');
+      okT('5 at the wizard, not cursed: the claws and the touch in the dagger\'s place (' + (/Claws/.test(c3) ? 'claws' : 'no claws') + ', ' + (/Intoxicating Touch/.test(c3) ? 'a touch' : 'no touch') + ', ' + (/Dagger/.test(c3) ? 'a dagger' : 'no dagger') + '), intoxicated ' + !!wz.conds.intoxicated,
+        /Claws/.test(c3) && /Intoxicating Touch/.test(c3) && !/Dagger/.test(c3) && !!wz.conds.intoxicated);
+      B1.card = cardT0;
+    } catch (eT) { repT.errors.push(String(eT && eT.stack || eT).slice(0, 900)); D.d = d0T; }
+    if (errs.length) repT.errors = repT.errors.concat(errs);
+    var preT = document.createElement('pre'); preT.id = 'out'; preT.textContent = 'BENCH16 ' + JSON.stringify(repT);
+    document.body.appendChild(preT);
+    return;
+  }
   // the rust monster's Rust Metal (mode=rust1022; the monster cutter seat's third run, 10-22): `corrosive: 'rust'` goes the gray ooze's metal way --
   // a nonmagical metal weapon that hits it eaten, -1 a hit, and its bite eating metal armour (a stand-in for its Antennae) -- in rust's words
   if (get('mode', '') === 'rust1022') {
