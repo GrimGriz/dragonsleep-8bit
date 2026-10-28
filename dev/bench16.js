@@ -4119,9 +4119,6 @@
       // a roost floor, refused; cast in a fight there, let go back on the floor; Dancing Lights, dim, not refused
       HQ.playing = false; HQ.cur = null;
       var BR = floorQ('?roam=galleries_g3&flags=cullHired&at=6,10&watch&light=none'), RR0 = BR.roam, aR = RR0.members.filter(function (u) { return u.id === 'aurdin'; })[0], unitOfR = function (id) { return RR0.members.filter(function (u) { return u.id === id || (u.src && (u.src.key || u.src.id) === id); })[0] || null; };
-      BR.cards = []; var refR = BR.menuAct('cast', { h: 'aurdin', sp: 'light', t: 'aurdin' }, unitOfR), cardR = (BR.cards || []).map(function (c) { return (c.lines || []).join(' '); }).join(' ');
-      var dimR = (window.DS.DATA.spells.dancinglights || {}).dim === true;
-      okQ('under the dens\' roost, Light from the menu: refused (' + refR + ', "' + cardR.replace(/\{.\}|\{\/\}/g, '') + '"), no Light on Aurdin (' + !(aR.conds && aR.conds.light) + '); Dancing Lights is dim, lawful there (' + dimR + ')', refR === true && /spook the roost/.test(cardR) && !(aR.conds && aR.conds.light) && dimR);
       var exhR0 = (aR.src.conds && aR.src.conds.exhaustion && aR.src.conds.exhaustion.n) || 0;
       var fR = (function () { var g = RQ.encounter(BR, 'steps'), st, v, k = 0; while (k++ < 400 && D.top() === BR) { st = g.next(v); v = undefined; if (st.done) break; if (typeof st.value === 'number' && D.battle) D.battle.t += 1; if (st.value && st.value.prompt) v = st.value.prompt.opts[0].value; } var b = D.top(); if (b === BR) return null; if (b.baking) { b.baking = false; b.enter(); }
         var au = b.units.filter(function (u) { return u.id === 'aurdin'; })[0]; au.conds.light = { by: 'aurdin' }; D.rules.exhaust(b, au, 2, 'test'); var lvl = au.conds.exhaustion && au.conds.exhaustion.n;
@@ -4131,6 +4128,11 @@
       var hmR = RQ.handMsg(BR, 'house', null, null), hR = hmR.party.filter(function (p) { return p.id === 'aurdin'; })[0];
       okQ('the same fight laid exhaustion ' + (fR && fR.lvl) + ' on Aurdin: on his sheet after (' + ((aR.src.conds.exhaustion || {}).n) + ', from ' + exhR0 + '), on the floor\'s figure (' + ((aR.conds.exhaustion || {}).n) + '), and in the hand-back (' + (hR && hR.sheet.conds.exhaustion && hR.sheet.conds.exhaustion.n) + ')',
         !!fR && fR.lvl === exhR0 + 2 && aR.src.conds.exhaustion.n === exhR0 + 2 && aR.conds.exhaustion.n === exhR0 + 2 && !!hR && hR.sheet.conds.exhaustion.n === exhR0 + 2);
+      // (10, since 10-28 night, his "Ottille stops light violations at the entrance, the party has to cast it inside after to shame fail": Light from the menu under the roost is
+      // not refused -- the roof comes down, the first game's RoostFail; the grid seat's mode=gridlight1028 drives it by the menu's clicks. Last here: it ends the floor)
+      var BR2 = floorQ('?roam=galleries_g3&flags=cullHired&at=6,10&watch&light=none'), RR2 = BR2.roam, unitOfR2 = function (id) { return RR2.members.filter(function (u) { return u.id === id || (u.src && (u.src.key || u.src.id) === id); })[0] || null; };
+      var refR = BR2.menuAct('cast', { h: 'aurdin', sp: 'light', t: 'aurdin' }, unitOfR2), topR = D.top(), dimR = (window.DS.DATA.spells.dancinglights || {}).dim === true;
+      okQ('under the dens\' roost, Light from the menu: not refused -- the roof comes down (' + refR + ', ' + (topR && topR.kind) + '); Dancing Lights is dim, lawful there (' + dimR + ')', refR === true && !!topR && topR.kind === 'roostfail' && dimR);
       // 11. A FIGHT IS FIFTEEN MINUTES (his "fights should burn 15 minutes instead of an hour of worldtime"): THE WORLD's road fight and the Glowseep's
       var wsQ = WQ.make('?world&fresh&noenc'); D.scenes.length = 0; D.push(wsQ); wsQ.enter(); var t0W = WQ.state().t; wsQ.afterFight('won', { zone: 'north', list: ['bandit'] }); var t1W = WQ.state().t;
       okQ('a road fight on THE WORLD: the clock ' + t0W + ' -> ' + t1W + ' (W.FIGHT_HOURS ' + WQ.FIGHT_HOURS + '); the Glowseep\'s fight ' + MQ.SEEP.fightHours + ' of an hour', t1W - t0W === 0.25 && WQ.FIGHT_HOURS === 0.25 && MQ.SEEP.fightHours === 0.25);
