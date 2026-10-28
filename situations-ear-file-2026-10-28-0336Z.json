@@ -1,0 +1,130 @@
+{
+ "_readme": {
+  "what": "Playtest feedback from situations.html: one verdict and note a row -- an eyes row (js/eyes.js: built, not yet seen) or a story situation (?at=<id>, js/situations.js).",
+  "fold_back": "Fold every eyes row noted here that is still live in js/eyes.js (a folded row is already cut, so nothing folds twice; previous_save and new_since_last_save only hint at what is new -- RULED 10-15); a story situation note folds when its `at` is after the save of the last ear file folded. An eyes row noted at all is SEEN: a `seen` line in PATCHLOG.md with the note verbatim, and the row cut from js/eyes.js whatever the verdict (a fix that wants another look writes a fresh row). Broken and unclear become the fix list (in the lane its pt names); too hard / too easy are tuning; notes are the tester's words, verbatim."
+ },
+ "saved_at": "2026-10-28T03:36:22.269Z",
+ "previous_save": "2026-10-28T02:58:36.076Z",
+ "items": [
+  {
+   "id": "eyes-hex-inside-1022",
+   "eyes": true,
+   "pri": 1,
+   "title": "The Hex, inside: the ground floor walked, north up, the first game’s people at their places (10-22)",
+   "pt": "the second game’s house 10-22, the Hex interior (deep16/js/hex.js; the town’s doors deep16/js/town.js T.floor) · eyes",
+   "url": "deep16/?roam=hex&fresh=1022h",
+   "verdict": "works",
+   "note": "we need Higertha in the window on mama's side and consider a concessions vendor. The third floor problem is the outside stairs 3rd floor and there's no reason the player can't go up to the town meeting and urtusk office 3rd floor\n\nart request for a generic NPC face portrait with 'drinker, gambler, and any other variants we need (guano scraper, etc.) where we do variants instead of 'skeptical' and similar we have for the good NPCs, as well a a request for the portrait page and embodied sprites for other named NPCs encountered (we should probably get SE-E-NE-N facings for all the NPCs we already have south facings for\n\nBarley and Lyman should be restored during the restoration of the company mission from the first game",
+   "at": "2026-10-28T03:24:26.764Z",
+   "new_since_last_save": true
+  },
+  {
+   "id": "eyes-korvin-slate-1022",
+   "eyes": true,
+   "pri": 1,
+   "title": "Korvin’s portrait: his waistcoat dyed slate grey, off Percy’s brown (10-22)",
+   "pt": "the second game’s house 10-22 (tools/portrait-sheet.py PEOPLE recolour, cloth_mask; tools/keeper-town-sheet.py; deep16/js/counter.js C.VENDORS korvin) · eyes",
+   "url": "deep16/?portraits&who=korvin,percy,merrick&fresh=22k",
+   "verdict": "works",
+   "note": "",
+   "at": "2026-10-28T03:25:12.285Z",
+   "new_since_last_save": true
+  },
+  {
+   "id": "eyes-faces-tall-1022",
+   "eyes": true,
+   "pri": 1,
+   "title": "A question to see: Silverton’s houses with their faces at the art’s own heights (10-22)",
+   "pt": "the second game’s house 10-22 (deep16/js/topview.js TV.ART.tall, TV.FACEPX) · eyes",
+   "url": "deep16/?roam=silverton&faces=tall&fresh=1022t",
+   "verdict": "works",
+   "note": "this one is better, we transluce if they walk on the street blocked by the houses?",
+   "at": "2026-10-28T03:28:15.236Z",
+   "new_since_last_save": true
+  },
+  {
+   "id": "eyes-silverton-tiles-1022",
+   "eyes": true,
+   "pri": 1,
+   "title": "Silverton on the art desk’s tiles: ART-111’s grounds, roofs, faces, doors, signs, cliff and props in place of the code’s drawing (10-22)",
+   "pt": "the second game’s house 10-22 (tools/toptiles-sheet.py; deep16/js/topview.js THE ART) · eyes",
+   "url": "deep16/?roam=silverton&fresh=1022t",
+   "verdict": "works",
+   "note": "edifice looks like a mountain flattened at 10 ft tall and we'll probably need custom fountain tiles, this looks like spilled waterfall water\n\nstore names popup on sign mouseover\n\nHave we already addressed superfluous  'ok' (when a keeper's text is a single line, no point in having to click 'ok' for shelves and leave.",
+   "at": "2026-10-28T03:35:01.250Z",
+   "new_since_last_save": true
+  },
+  {
+   "id": "eyes-mines-seethrough-1022",
+   "eyes": true,
+   "pri": 1,
+   "title": "The dens’ top view: the rock in front of the party drawn through round them (10-22)",
+   "pt": "the warrens and galleries on the tiles 10-22, 2e 3 (deep16/js/topview.js iso.draw, TV.SEE) · eyes",
+   "url": "deep16/?roam=galleries_g3&flags=cullHired&at=6,10&fresh=1022s",
+   "verdict": "works",
+   "note": "clicking on the chest in the poison gas area lets you collect from 6 away",
+   "at": "2026-10-28T02:32:52.078Z",
+   "new_since_last_save": false
+  },
+  {
+   "id": "eyes-mines-fields-1022",
+   "eyes": true,
+   "pri": 1,
+   "title": "The Glowseep’s and the dens’ random fights on a field of their own, the road’s way: the crew never in them (10-22)",
+   "pt": "the warrens and galleries on the tiles 10-22, 2e 2-3 (deep16/js/mines.js M.fieldFight; deep16/js/roam.js R.pullIn0’s field) · eyes",
+   "url": "deep16/?roam=glowseep&hour=22&at=24,14&enc=3&seed=1022&fresh=1022f",
+   "verdict": "works",
+   "note": "i think the roost law went in before this was seen, everything is working nice - check day/march time - if they slept at the camp, make sure it's not handing the old travel used up when it returns to the world map\nIf i'm supposed to test two situations, I'll need two links",
+   "at": "2026-10-28T02:43:41.176Z",
+   "new_since_last_save": false
+  },
+  {
+   "id": "eyes-wet-tune-1022",
+   "eyes": true,
+   "pri": 1,
+   "title": "The Wet’s own tune again after the landlord gets the bucket; a door to a floor the page has not got says so (10-22)",
+   "pt": "the warrens and galleries on the tiles 10-22, 2e 1 (deep16/js/roam.js R.tune, R.pullIn0, R.make) · eyes",
+   "url": "deep16/?roam=wet&fresh=1022w",
+   "verdict": "works",
+   "note": "",
+   "at": "2026-10-28T02:44:47.237Z",
+   "new_since_last_save": false
+  },
+  {
+   "id": "eyes-doors-walls-1022",
+   "eyes": true,
+   "pri": 1,
+   "title": "Every door in Silverton in a building’s wall now: no more stepping onto a square of street to go in (10-22)",
+   "pt": "the second game’s house 10-22, the fix list item 5 (deep16/js/town.js T.lay’s doors, T.floor’s people) · eyes",
+   "url": "deep16/?houseshow&beat=cassia&fresh=22d",
+   "verdict": "works",
+   "note": "Getting to the point we need to add the select character part to 'new game' and restore the 8 bit missions to form the party. Viv's mom should sell some food item regularly that functions as if it were used when it were bought - like 'hot meal' that clears a level of exhaustion or something and she needs a vender stall rather than a crate",
+   "at": "2026-10-28T02:53:52.651Z",
+   "new_since_last_save": false
+  },
+  {
+   "id": "eyes-cradle-grid-1022",
+   "eyes": true,
+   "pri": 1,
+   "title": "THE CRADLE on the grid: the crawler game rebuilt for DEEP16 -- your eye on it is the ruling on its look (10-22)",
+   "pt": "the second game’s house 10-22, the Wet seat (deep16/js/cradle.js; js/mines.js M.penShift; js/roam.js R.deepTalk; the lanes desk’s ruling on the look) · eyes",
+   "url": "deep16/?cradle&fresh=22c",
+   "verdict": "works",
+   "note": "transluce the hallway entrance tiles by default to make it easier to tell the hallways in the part of the galleries with the gate",
+   "at": "2026-10-28T02:57:24.531Z",
+   "new_since_last_save": false
+  },
+  {
+   "id": "eyes-hex-bout-1022",
+   "eyes": true,
+   "pri": 1,
+   "title": "The Hex’s sand: Korvin’s slate, a bout alone on the simple screen, the crowd round it, his word after (10-22)",
+   "pt": "the second game’s house 10-22, the Hex interior (deep16/js/hex.js HX.card, HX.bout, HX.field; deep16/js/simple.js; deep16/js/iso.js a sand ground) · eyes",
+   "url": "deep16/?roam=hex&fresh=1022b",
+   "verdict": "works",
+   "note": "it's great but when the fight ends the focus is up by the stairs for some reason",
+   "at": "2026-10-28T02:58:30.882Z",
+   "new_since_last_save": false
+  }
+ ]
+}
