@@ -408,25 +408,54 @@
     bog: [[['~', 0.4], ['g', 0.62]], [['~', 0.25], ['g', 0.45]]]
   };
   M.groundOf = function (def) { return def.key === 'glowseep' ? 'bog' : 'cave'; };
-  M.fieldDef = function (def, list, simple, set) {
-    var o = simple ? D.simple.fieldOpts() : null, kind = M.groundOf(def), P = M.FIELD[kind], w = (o && o.w) || 16, h = (o && o.h) || 7, rows = [];
-    var inLane = (o && o.lane) || function (x, y) { return x >= 3 && x <= 10 && y >= 1 && y <= 5; };
-    for (var y = 0; y < h; y++) {
-      var row = '';
-      for (var x = 0; x < w; x++) {
-        var r0 = D.rand(), ch = '.', edge = y === 0 || y === h - 1 || x === 0 || x === w - 1; // (a cave's field walled all round: no road runs through it)
-        if (edge || !inLane(x, y)) { var E = P[edge ? 0 : 1]; for (var i = 0; i < E.length; i++) if (r0 < E[i][1]) { ch = E[i][0]; break; } }
-        else if (kind === 'bog' && r0 < 0.12) ch = '~';
-        row += ch;
+  // THE FIELD CUT FROM THE FLOOR (10-27, his eye on the Glowseep by night: "the grid in the fights should pull from the roam itself", and the sizes, "The simple fight's grid seems
+  // like the appropriate 'grid' sized fight and vice versa (simple with 6-8 width or whatever)" -- overruling the fix seat's call of 10-22, "drawn by kind, not cut from the floor"):
+  // the grid's fight on a field 16 by 16, the road's lineup as the grid stands it in its middle rows (M.GRID); the simple fight's on its small one (js/simple.js S.fieldOpts(true));
+  // either way its squares the floor's own round where the party stands, the party's square on the lineup's middle -- the window laid along the floor or across it and nudged
+  // up to M.NUDGE squares, for the most of the lineup's squares open (M.cut) -- a building or a wall rock, and past the floor's edge its rim (M.FIELD's kinds: a cave's rock, the
+  // bog's grass); made open ground only where the lineup stands and steps (the simple fight's square before each one, the grid's ground between the two sides); the floor's own
+  // lights in it (the Glowseep's poles, moss and fire)
+  M.GRID = { w: 16, h: 16, dx: 1, dy: 4, entry: [[8, 3], [8, 2], [8, 4], [9, 3], [9, 1], [9, 5], [8, 1], [8, 5]] }; // (the road's grid lineup, js/world.js W.seat, moved into the middle)
+  M.NUDGE = 4;
+  M.cutChar = function (c) { return c === 'd' || c === 'o' || c === '=' ? '.' : '.,gr~DkfwyTP'.indexOf(c) >= 0 ? c : '#'; }; // (a door's threshold or a bridge's boards ground; a building, a roof or a wall rock)
+  M.cut = function (def, w, h, at, anchor, need, kind) {
+    var ch = function (x, y) { return x >= 0 && y >= 0 && x < def.w && y < def.h ? M.cutChar(def.rows[y].charAt(x)) : null; }, open = function (c) { return c != null && '.,gr~'.indexOf(c) >= 0; };
+    var best = null;
+    [0, 1].forEach(function (turned) { // (the field's (fx, fy) the floor's (x0 + fx, y0 + fy), or turned across it (x0 + fy, y0 + fx))
+      var bx = at[0] - anchor[turned], by = at[1] - anchor[1 - turned];
+      for (var dy = -M.NUDGE; dy <= M.NUDGE; dy++) for (var dx = -M.NUDGE; dx <= M.NUDGE; dx++) {
+        var x0 = bx + dx, y0 = by + dy, n = 0;
+        need.forEach(function (q) { if (open(ch(x0 + q[turned], y0 + q[1 - turned]))) n++; });
+        var s = n - 0.05 * (Math.abs(dx) + Math.abs(dy)) - 0.01 * turned;
+        if (!best || s > best.s) best = { s: s, x0: x0, y0: y0, turned: turned };
       }
-      rows.push(row);
+    });
+    var rows = [], rim = kind === 'cave' ? '#' : 'g', isNeed = {}, carved = 0;
+    need.forEach(function (q) { isNeed[q[0] + ',' + q[1]] = 1; });
+    for (var fy = 0; fy < h; fy++) {
+      var r = '';
+      for (var fx = 0; fx < w; fx++) { var q2 = [fx, fy], c = ch(best.x0 + q2[best.turned], best.y0 + q2[1 - best.turned]); if (c == null) c = rim; if (isNeed[fx + ',' + fy] && !open(c)) { c = c === 'D' ? '~' : '.'; carved++; } r += c; }
+      rows.push(r);
     }
-    D.MAPS['mine-field'] = { name: def.name, sub: def.sub, step: 10, ground: 'earth', rows: rows, sky: kind === 'cave' ? 20 : null, // (a cave's ceiling 20 ft up, the Wet's: a darkmantle hangs from it)
-      entry: (o && o.entry) || [[8, 3], [8, 2], [8, 4], [9, 3], [9, 1], [9, 5], [8, 1], [8, 5]], foes: [], wave: null };
-    var moss = kind === 'bog' && def.dark ? [[1, 1, 10, 'glow', 1], [w - 2, h - 2, 10, 'glow', 1], [w - 2, 1, 10, 'glow', 1], [1, h - 2, 10, 'glow', 1]] : null; // (the Glowseep by night: its moss, dim)
-    return { id: 'minefield', map: 'mine-field', level: (D.roam.party0 && D.roam.party0.level) || 5, name: def.name, sub: def.sub, dark: !!def.dark, lights: moss,
+    return { rows: rows, x0: best.x0, y0: best.y0, turned: best.turned, carved: carved, need: need.length,
+      to: function (x, y) { var d = [x - best.x0, y - best.y0]; return [d[best.turned], d[1 - best.turned]]; } }; // (a floor square's place on the field)
+  };
+  M.fieldDef = function (def, list, simple, set, at) {
+    var o = simple ? D.simple.fieldOpts(true) : null, kind = M.groundOf(def), Gd = M.GRID, w = o ? o.w : Gd.w, h = o ? o.h : Gd.h;
+    var entry = o ? o.entry : Gd.entry.map(function (q) { return [q[0] + Gd.dx, q[1] + Gd.dy]; });
+    var foes = simple ? D.simple.seat(list) : D.world.seat(list).map(function (f) { return Object.assign({}, f, { at: [f.at[0] + Gd.dx, f.at[1] + Gd.dy] }); });
+    var foot = function (f) { var s = Math.max(1, Math.min(3, (D.FOES[f.kind] && D.FOES[f.kind].size) || 1)), out = []; for (var j = 0; j < s; j++) for (var i = 0; i < s; i++) out.push([f.at[0] + i, f.at[1] + j]); return out; };
+    var stand = entry.concat([].concat.apply([], foes.map(foot))), need = [];
+    if (simple) stand.forEach(function (q) { need.push(q, [q[0] + (q[0] > D.simple.C[0] ? -1 : 1), q[1]]); }); // (each one's square and the one before it toward the other side: a blow is struck from beside)
+    else { var xs = stand.map(function (q) { return q[0]; }), ys = stand.map(function (q) { return q[1]; }); for (var y = Math.min.apply(null, ys); y <= Math.max.apply(null, ys); y++) for (var x = Math.min.apply(null, xs); x <= Math.max.apply(null, xs); x++) need.push([x, y]); } // (the ground between the two sides, walked)
+    need = need.filter(function (q) { return q[0] >= 0 && q[1] >= 0 && q[0] < w && q[1] < h; });
+    var anchor = simple ? [D.simple.PARTY[0][0], D.simple.C[1]] : entry[0], cut = M.cut(def, w, h, at || anchor, anchor, need, kind);
+    D.MAPS['mine-field'] = { name: def.name, sub: def.sub, step: 10, ground: 'earth', rows: cut.rows, sky: kind === 'cave' ? 20 : null, // (a cave's ceiling 20 ft up, the Wet's: a darkmantle hangs from it)
+      entry: entry, foes: [], wave: null, cut: cut };
+    var lights = (def.ownLights || []).map(function (l) { if (!l || typeof l.x !== 'number') return null; var p = cut.to(l.x, l.y); return p[0] >= 0 && p[1] >= 0 && p[0] < w && p[1] < h ? [p[0], p[1], l.dim || l.bright || 5, l.color, l.bright ? 0 : 1] : null; }).filter(Boolean); // (js/battle.js's map light: [x, y, ft, colour, dim only])
+    return { id: 'minefield', map: 'mine-field', level: (D.roam.party0 && D.roam.party0.level) || 5, name: def.name, sub: def.sub, dark: !!def.dark, lights: lights.length ? lights : null,
       intro: (set && set.line) || 'They come at the party out of the dark.', won: 'THE WAY IS CLEAR.', lost: 'THE DARK TAKES THEM.', noCards: true, // (no entry card: the encounter's card asked, and the four are the floor's -- its "walk in as the fixture" is not theirs, seen in the pane 10-22)
-      foes: simple ? D.simple.seat(list) : D.world.seat(list), wave: null, fliers: !simple, // (fliers: the SRD's fly on the grid, not in the simple fight's lineup -- js/world.js's)
+      foes: foes, wave: null, fliers: !simple, // (fliers: the SRD's fly on the grid, not in the simple fight's lineup -- js/world.js's)
       // THE ROOST (10-22, the lanes desk: the lane's 2c open 2 -- the grid's `roost` RULED 09-28, the one law canon): under a roosted floor its field is roosted too -- fire and
       // thunder greyed, a lantern hooded, and bright light (Light, Daylight, Sacred Weapon) brings the roof down, the fight's 'roost' (js/battle.js over); said as it opens,
       // the first game's own line (js/battle.js's 'Overhead, the roost'); the run's end after it, M.roostFail
@@ -496,7 +525,7 @@
     var a = yield { prompt: { who: t, title: 'ENCOUNTER', lines: R.wrap([(set && set.line) || ('{r}' + who.charAt(0).toUpperCase() + who.slice(1) + '{/}, out of the dark.')]),
       opts: [{ label: 'FIGHT', value: 0 }].concat(D.simple ? [{ label: simple ? 'ON THE GRID' : 'SIMPLE', value: 1 }] : []) } };
     if (a === 1) simple = !simple; // (the other way, for this fight alone -- the road's card, RULED 10-21, Griz: "yes")
-    var F = M.fieldDef(R.def, list, simple, set);
+    var F = M.fieldDef(R.def, list, simple, set, [t.x, t.y]);
     R.party0.backTo = R.def.sub; // (the fight's last card: E back to the dens -- js/battle.js o.backTo)
     var watch = /[?&]watch\b/.test(R.q || ''); // (the test door's &watch: the four run by the class AI in there too, as on the floor)
     var fb = null, enter = function (b) {

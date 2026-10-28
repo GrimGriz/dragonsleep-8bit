@@ -78,7 +78,11 @@
   S.use('across');
   S.lane = function (x, y) { return x > 0 && y > 0 && x < S.W - 1 && y < S.H - 1 && S.L.lane(x - S.C[0], y - S.C[1]); };
   S.road = function (x, y) { return S.L.road(x - S.C[0], y - S.C[1]); };
-  S.fieldOpts = function () { S.use(S.view()); return { w: S.W, h: S.H, lane: S.lane, road: S.road, entry: S.PARTY }; };
+  // the field's size: 16 by 16 round [8, 7]; SMALL, a floor's own fight (10-27, his eye on the Glowseep: "The simple fight's grid seems like the appropriate 'grid' sized fight and
+  // vice versa (simple with 6-8 width or whatever)" -- js/mines.js M.fieldDef): ISO's lineup on a strip 16 by 9 round [8, 4], its four rows every other square and a rim; ACROSS's
+  // lines run on the diagonal and keep the 16 by 16. The road's fights and the Hex's sand ask the full one (no `small`)
+  S.SMALL = { iso: { w: 16, h: 9, C: [8, 4] } };
+  S.fieldOpts = function (small) { var v = S.view(), sz = (small && S.SMALL[v]) || { w: 16, h: 16, C: [8, 7] }; S.W = sz.w; S.H = sz.h; S.C = sz.C.slice(); S.use(v); return { w: S.W, h: S.H, lane: S.lane, road: S.road, entry: S.PARTY }; };
   S.seat = function (list) {
     var L = S.L, taken = {}, out = [], smalls = [];
     S.PARTY.concat([S.CAMP]).forEach(function (q) { taken[q[0] + ',' + q[1]] = 1; });

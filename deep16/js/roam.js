@@ -829,7 +829,7 @@
     // (and the light in each hand, and what lasts past a fight -- Mage Armor, the day's Darkvision, a Continual Flame: 10-14, his "check landlord handoff as well")
     R0.members.forEach(function (u) { hp[u.id] = { hp: u.hp, ko: !!u.ko, slots: (u.slots || []).slice(), feats: JSON.parse(JSON.stringify(u.feats || {})), torch: u.torch ? JSON.parse(JSON.stringify(u.torch)) : null, conds: R.lasting(u.conds) }; });
     // (which 'field': a floor's random fight on a field of its own, the road's way -- js/mines.js M.fieldFight, 10-22: trig.field its fight def, simple or on the grid by OPTIONS)
-    var fd = which === 'field' ? trig.field : null;
+    var fd = which === 'field' ? trig.field : null, zoom0 = fd ? D.iso.zoom : null; // (zoom0: the floor's zoom, put back after -- 10-27, his "Going to the Grid Fight changes the zoom on the roam": a town floor's zoom is held, js/ui.js UI.setZoom)
     var o = Object.assign({}, R.party0, { fightDef: fd ? fd.F : null, fight: fd ? undefined : which === 'keeper' ? 'keeper' : 'wet', simple: !!(fd && fd.simple), onDone: function (res) { done = res || 'out'; } });
     if (fd && fd.record) o.record = fd.record; // (a field's play record in the house: js/record.js, finished below as the fight comes back)
     delete o.embed; // (the floor's 8-bit options are the floor's: a pulled-in fight is the grid's own, its party and pack handed in and back below)
@@ -898,7 +898,7 @@
     R0.pulled = done; // (how it ended, for the floor's own answer after: js/mines.js, the roost)
     if (fd && fd.ends && fd.ends(done)) return; // (an ending that ends the run -- the roost come down, js/mines.js M.roostFail: nothing of it comes back to the floor)
     // back on the floor: the four's hit points as the fight left them; the trigger spent if the fight was won
-    D.battle = B; G.setup(B.map, B.units); D.iso.map = B.map;
+    D.battle = B; G.setup(B.map, B.units); D.iso.map = B.map; if (zoom0 != null) D.iso.zoom = zoom0;
     if (done !== 'won' && done !== 'lost') R.tune(); // (the floor's own tune again: the landlord fed, a getaway -- the boss tune ran on past the bucket, his 10-22; a win's after its fanfare, below)
     // what was said in there, in the floor's log after it (the pulled-in fight's own log goes with it: his pane history had nothing of a Settling, 10-14)
     var tag = which === 'keeper' ? '[the Keeper] ' : '[the Settling] ';

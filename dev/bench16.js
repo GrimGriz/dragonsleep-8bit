@@ -2152,11 +2152,11 @@
         D.top() === BS && RS.mode === 'walk' && RS.token.x === at0[0] && RS.token.y === at0[1] && fS.res === 'won' && Object.keys(RS.kills).some(function (k) { return /^glowseep_night:/.test(k); }) && RS.fights === 1 && mus2[mus2.length - 1] === RF.def.music);
       okF2('the field opens on the fight, no entry card (its "walk in as the fixture" is not the floor\'s four: seen in the pane 10-22) -- noCards ' + (fS.b && fS.b.fight.noCards), !!fS.b && fS.b.fight.noCards === true);
       var fG = fieldF2(BS, 1, false);
-      okF2('the card\'s other button: this one on the grid (' + (fG.b ? (fG.simple ? 'simple!' : 'the grid') + ', ' + fG.b.map.w + ' x ' + fG.b.map.h + ', ' + fG.units.filter(function (u) { return u.side === 'foe'; }).length + ' foes' : 'none') + '); got away, the party on the floor again', !!fG.b && !fG.simple && fG.b.map.w === 16 && fG.b.map.h === 7 && D.top() === BS && BS.roam.mode === 'walk');
+      okF2('the card\'s other button: this one on the grid (' + (fG.b ? (fG.simple ? 'simple!' : 'the grid') + ', ' + fG.b.map.w + ' x ' + fG.b.map.h + ', ' + fG.units.filter(function (u) { return u.side === 'foe'; }).length + ' foes' : 'none') + '); got away, the party on the floor again', !!fG.b && !fG.simple && fG.b.map.w === 16 && fG.b.map.h === 16 && D.top() === BS && BS.roam.mode === 'walk'); // (16 by 16 since 10-28, his "The simple fight's grid seems like the appropriate 'grid' sized fight": mode=glowseep1028)
       var B3 = testF2('?roam=galleries_g3&flags=cullHired'), R3 = B3.roam; R3.token.x = 6; R3.token.y = 10; D.grid.setup(B3.map, B3.units); B3.focus(R3.token);
       var f3 = fieldF2(B3, 0, false), rows3 = f3.b ? f3.map.rows : [], edge3 = 0, n3 = 0;
       rows3.forEach(function (r, y) { for (var x = 0; x < r.length; x++) if (y === 0 || x === 0 || y === rows3.length - 1 || x === r.length - 1) { n3++; if (r[x] === '#' || r[x] === 'r') edge3++; } });
-      okF2('a fight in the dens on a cave\'s field (' + edge3 + ' of its ' + n3 + ' edge squares rock or rubble), dark (' + (f3.b && f3.b.fight.dark) + '), its ceiling ' + (f3.map && f3.map.sky) + ' ft, back where the party stood (' + R3.token.x + ',' + R3.token.y + ')', !!f3.b && edge3 > n3 * 0.6 && f3.b.fight.dark === true && f3.map.sky === 20 && R3.token.x === 6 && R3.token.y === 10 && D.top() === B3);
+      okF2('a fight in the dens on a field cut from the dens (' + edge3 + ' of its ' + n3 + ' edge squares rock or rubble; its cut ' + !!(f3.map && f3.map.cut) + ' -- since 10-28, his "the grid in the fights should pull from the roam itself": mode=glowseep1028), dark (' + (f3.b && f3.b.fight.dark) + '), its ceiling ' + (f3.map && f3.map.sky) + ' ft, back where the party stood (' + R3.token.x + ',' + R3.token.y + ')', !!f3.b && !!f3.map.cut && edge3 > 0 && f3.b.fight.dark === true && f3.map.sky === 20 && R3.token.x === 6 && R3.token.y === 10 && D.top() === B3);
       // 3. THE DENS' TOP VIEW (his "too often hidden behind walls that should probably transluce"): the rock in front of the party drawn through round them
       var B3s = testF2('?roam=galleries_g3&flags=cullHired&at=6,10'), R3s = B3s.roam;
       var cvF = document.createElement('canvas'); cvF.width = D.W; cvF.height = D.H; var ctxF0 = D.ctx; D.ctx = cvF.getContext('2d'); D.R = D.R || 1;
@@ -2262,7 +2262,7 @@
       while (k++ < 400 && D.top() === B) { st = g.next(v); v = undefined; if (st.done) break; if (typeof st.value === 'number' && D.battle) D.battle.t += Math.max(1, st.value); if (st.value && st.value.prompt) { asked = st.value.prompt; v = asked.opts[pick || 0].value; } }
       var b = D.top(); if (b === B) return { b: null, g: g, asked: asked };
       if (b.baking) { b.baking = false; b.enter(); }
-      return { b: b, g: g, asked: asked, zoom: D.iso.zoom };
+      return { b: b, g: g, asked: asked, zoom: D.iso.zoom, units: b.units.slice() };
     }
     function endG(B, f, res) { if (D.top() === f.b) D.pop(); f.b.o.onDone(res || 'escaped'); driveG(f.g, null, 4000); B.roam.encIn = 1e9; }
     // the field's fight run to the first turn that asks a hero of ours
@@ -2331,6 +2331,32 @@
       okG('in the house: in by the west gate (' + in4 + '); the road off the north edge asks too, and RETURN is THE WORLD (' + (D.top() && D.top().kind) + '), the party north of the site (' + (stH4.pos ? stH4.pos.map(function (v) { return v.toFixed(2); }).join(',') : 'no pos') + '), the save out of town (' + JSON.stringify(HG.cur && HG.cur.at) + ')',
         in4.join(',') === '1,14' && D.top() === WG.scene && !!stH4.pos && stH4.pos[1] < siteH4.y - 0.3 && !!HG.cur && !HG.cur.at.town);
       HG.playing = false; HG.cur = null;
+      // 2. THE FIELDS (his "Going to the Grid Fight changes the zoom on the roam. The simple fight's grid seems like the appropriate 'grid' sized fight and vice versa (simple
+      // with 6-8 width or whatever)" and "the grid in the fights should pull from the roam itself"): the floor's zoom back after; the grid's field 16 by 16, the simple fight's
+      // the small strip; each cut from the floor round the party, its lineup on open ground
+      function cutG(f, B, R0) { // (how much of the field is the floor's own, the carved squares aside; the party's square on it; the lineup on open ground)
+        var c = f.b && f.b.map.def.cut, m = f.b && f.b.map, d = RG.def, n = 0, same = 0; if (!c) return { ok: false, s: 'no cut' };
+        for (var y = 0; y < m.h; y++) for (var x = 0; x < m.w; x++) { var q = [x, y], fx = c.x0 + q[c.turned], fy = c.y0 + q[1 - c.turned]; if (fx < 0 || fy < 0 || fx >= d.w || fy >= d.h) continue; n++; if (m.def.rows[y].charAt(x) === MG.cutChar(d.rows[fy].charAt(fx))) same++; }
+        var tk = c.to(R0.token.x, R0.token.y), lineup = f.units.filter(function (u) { return u.side === 'party' || u.side === 'foe'; }).every(function (u) { var s = m.at(u.x, u.y); return s && s.walk; });
+        return { ok: n > 0 && same >= n - c.carved && lineup, s: same + '/' + n + ' squares the floor\'s (' + c.carved + ' carved), ' + (c.turned ? 'across' : 'along') + ' it at ' + c.x0 + ',' + c.y0 + ', the token\'s square the field\'s ' + tk + ', the lineup on open ground ' + lineup, tk: tk };
+      }
+      var B2 = testG('?roam=glowseep&hour=22&at=20,14'), R2 = B2.roam; D.iso.zoom = 0.5;
+      var f2g = fieldG(B2, 1, { list: ['goblin', 'goblin', 'goblin'] }), cg = cutG(f2g, B2, R2), lead2 = f2g.b && f2g.units.filter(function (u) { return u.side === 'party'; })[0];
+      if (f2g.b) D.iso.zoom = 1; // (the wheel in the fight)
+      if (f2g.b) endG(B2, f2g);
+      okG('the grid\'s field from the Glowseep by night: ' + (f2g.b ? f2g.b.map.w + ' x ' + f2g.b.map.h + (f2g.b.o.simple ? ' SIMPLE' : ' on the grid') : 'none') + '; ' + cg.s + ' (the lead on ' + (lead2 && [lead2.x, lead2.y]) + '), the floor\'s lights in it ' + ((f2g.b && f2g.b.fight.lights) || []).length,
+        !!f2g.b && !f2g.b.o.simple && f2g.b.map.w === 16 && f2g.b.map.h === 16 && cg.ok && !!lead2 && cg.tk.join() === [lead2.x, lead2.y].join() && ((f2g.b.fight.lights || []).length > 0));
+      okG('the wheel in that fight (zoom 1): back on the floor at its own zoom (' + D.iso.zoom + ')', D.top() === B2 && D.iso.zoom === 0.5);
+      var f2s = fieldG(B2, 0, { list: ['goblin', 'goblin', 'goblin', 'goblin'] }), cs = cutG(f2s, B2, R2), C2s = SG.C.slice();
+      if (f2s.b) endG(B2, f2s);
+      var road2 = SG.fieldOpts();
+      okG('the simple fight\'s field from it (the iso view, ' + SG.view() + '): ' + (f2s.b ? f2s.b.map.w + ' x ' + f2s.b.map.h + (f2s.b.o.simple ? ' simple' : ' THE GRID') : 'none') + ', round ' + C2s + '; ' + cs.s + '; and the road\'s simple field as it was (' + road2.w + ' x ' + road2.h + ', round ' + SG.C + ')',
+        !!f2s.b && f2s.b.o.simple && f2s.b.map.w === 16 && f2s.b.map.h === 9 && C2s.join() === '8,4' && cs.ok && road2.w === 16 && road2.h === 16 && SG.C.join() === '8,7' && D.top() === B2);
+      var B2d = testG('?roam=galleries_g3&flags=cullHired&at=6,10'), f2d = fieldG(B2d, 1, { list: ['giantbat', 'giantbat'] }), cd = cutG(f2d, B2d, B2d.roam), rk2 = 0, nn2 = 0;
+      if (f2d.b) f2d.b.map.def.rows.forEach(function (r) { for (var i = 0; i < r.length; i++) { nn2++; if (r[i] === '#') rk2++; } });
+      if (f2d.b) endG(B2d, f2d);
+      okG('the dens\' grid field cut from the dens (' + (f2d.b ? f2d.b.map.w + ' x ' + f2d.b.map.h : 'none') + '; ' + cd.s + '; ' + rk2 + ' of ' + nn2 + ' squares rock), dark ' + (f2d.b && f2d.b.fight.dark) + ', its ceiling ' + (f2d.b && f2d.b.map.def.sky) + ' ft',
+        !!f2d.b && f2d.b.map.w === 16 && f2d.b.map.h === 16 && cd.ok && rk2 > 0 && f2d.b.fight.dark === true && f2d.b.map.def.sky === 20);
     } catch (eG) { repG.errors.push(String(eG && eG.stack || eG).slice(0, 900)); }
     D.store.get = stGG; D.store.set = stSG; D.music = muG; try { if (skG != null) window.localStorage.setItem(SG.KEY, skG); } catch (eK2) { }
     var preG = document.createElement('pre'); preG.id = 'out'; preG.textContent = 'BENCH16 ' + JSON.stringify(repG);
