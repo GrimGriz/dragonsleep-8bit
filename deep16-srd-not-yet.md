@@ -77,6 +77,8 @@ Each: **recall** (what the seat wrote before looking) · **SRD** (what `srd/` sa
 
 ### 5. The harpy (gulch: Web Gulch)
 
+**ON THE GRID 10-28** (`8b2eeb4`, a monster cutter seat): the foe `harpy` by the SRD on its own sheet `harpy_p1` (the art desk's ART-14 and ART-56), `?show=harpy`, the creatures shelf: claws and club, a flier. Not yet, a plain stand-in (its `src`): the Luring Song (a charm that walks a hero to her, incapacitated; its row drawn and not cut). It is in no fight yet (Web Gulch waits).
+
 - **Recall.** CR 1 Medium; AC 11; 38 HP; 20 ft, fly 40; claws 2d4+1 and club 1d4+1; Luring Song, WIS 11, 300 ft, the charmed walk toward it, re-saves before harm and when hurt, 24 h immunity. A hideous woman's upper body on a vulture's; **unsure whether the arms are the wings.** Cliffs and ruins; lures travellers over edges; hoards shiny things.
 - **SRD.** Every number and the whole song as recalled. (A runner reported our SRD copy drops the walk-toward rules; it doesn't -- `srd/monsters/h.md` has them whole. Probed.) No description.
 - **Web.** The MM: the body, legs and wings of a vulture and **the torso, arms and head of a human woman** -- arms and wings both ([D&D Beyond](https://www.dndbeyond.com/monsters/16919-harpy)). 2e: a youthful but hideous face, frayed hair, rotten teeth; 3.5 a reptilian crone; 4e near-elfin; a5e wings for arms ([1d6chan](https://1d6chan.miraheze.org/wiki/Harpy)). Cowards that ambush the lone; lure victims off cliffs and into bogs, quicksand and pits; squabble over trinkets ([The Monsters Know](https://www.themonstersknow.com/harpy-tactics/)).
