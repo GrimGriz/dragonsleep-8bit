@@ -512,5 +512,8 @@
     'eyes-harpy-fly-1028': { pri: 2, group: G2, title: 'The harpy flies on its own fly row in the air (10-28)', pt: 'the bestiary §37 (tools/harpy-sheet.py; deep16/art/harpy_p1; deep16/js/ui.js UI.aloftRow) · eyes',
       url: 'deep16/?show=harpy&fresh=1',
       look: 'Your question, does harpy need fly animation request: no, the art desk pages already drew its flight (ART-14 SE and NE, ART-56 S, E and N), and it is cut. In the show it takes to the air on its fly row and lands for a step to show its hop. S is drawn with the wings flat out, the others raised: say if the turn from S reads right.' },
+    'eyes-monster-moves-1028': { pri: 2, group: G2, title: 'The rust monster, the harpy and the aboleth on their own move rows: Antennae, Luring Song, Enslave (10-28)', pt: 'the bestiary §37 (tools/rustmonster-sheet.py, tools/harpy-sheet.py, tools/aboleth-sheet.py; js/monsterrules.js rowOr) · eyes',
+      url: 'deep16/?gallery&shelf=creatures&rows=rustmonster,harpy,aboleth&fresh=1',
+      look: 'Your Yes, cut them: each move the monster rules play now has its own drawn row. Turn each creature on its new row in the full stop: the rust monster ANTENNAE (its flakes fly at 3 and 4), the harpy SONG (the notes with her), the aboleth ENSLAVE (its eyes lit; the drawn rings left out, the game rings it in violet as it casts). In a fight, the rules seat watch fights show them in play (rust monster seed 13, harpy seed 1, aboleth seed 3).' },
   };
 })();
