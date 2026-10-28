@@ -4380,8 +4380,9 @@
       // in her own figure (a door with no room behind it, as Mela's), on her portrait, her first-game word -- her couch and her pipe wait on the lake (js/deep.js S.tam's
       // lakeDone), so no counter line
       var kuTm = B.units.filter(function (u) { return u.npc === 'tam'; })[0], gTm = TW.fire(B, trigW('keeper:tam')); driveW(gTm, upW, 200); var scTm = upW() ? D.top() : null, wTm = scTm ? readW(scTm) : []; driveW(gTm, null, 200);
-      okW('Tam Vere beside the dream-smoke den\'s door in her own figure (' + (kuTm && kuTm.sheet) + ', facing ' + (kuTm && kuTm.facing) + '), on her portrait (' + (scTm && scTm.sheet) + '): "' + String(wTm[0]).slice(0, 40) + '...", no counter line, the party still in the street',
-        kuTm && kuTm.sheet === 'tam_p1' && kuTm.facing === 0 && kuTm.holdFacing && scTm && scTm.sheet === 'pt_tam' && wTm.join('|') === window.DS.DATA.npcs.tam.talk[0].say.join('|') && !/to come/.test(wTm.join(' ')) && !D.roam.def.room && !upW());
+      // (inside her den since 10-28 later, RULED, his "Off the street unless it makes NPC sense, the counterless portraits versions when people lean in the door is good" -- mode=housefix1028)
+      okW('Tam Vere at the dream-smoke den\'s door, inside since 10-28 later (no figure of hers on the street: ' + !kuTm + '), on her portrait (' + (scTm && scTm.sheet) + '): "' + String(wTm[0]).slice(0, 40) + '...", no counter line, the party still in the street',
+        !kuTm && scTm && scTm.sheet === 'pt_tam' && wTm.join('|') === window.DS.DATA.npcs.tam.talk[0].say.join('|') && !/to come/.test(wTm.join(' ')) && !D.roam.def.room && !upW());
       // the night crews' five (10-28, the second cutter seat: the art desk's ART-104 to ART-108): Gull, Kael, Brennock and Vera on the shaft rows' street in their own
       // figures, each on their portrait with their first-game word and no counter line; Kess beside the flop-cellar's door, the same
       ['gull', 'kael', 'brennock', 'vera'].forEach(function (id) {
@@ -4391,8 +4392,8 @@
           ku && ku.sheet === id + '_p1' && ku.facing === 0 && ku.holdFacing && sc && sc.sheet === 'pt_' + id && w.slice(0, want.length).join('|') === want.join('|') && !/to come/.test(w.join(' ')) && !upW());
       });
       var kuKs = B.units.filter(function (u) { return u.npc === 'kess'; })[0], gKs = TW.fire(B, trigW('keeper:kess')); driveW(gKs, upW, 200); var scKs = upW() ? D.top() : null, wKs = scKs ? readW(scKs) : []; driveW(gKs, null, 200);
-      okW('Kess beside the flop-cellar\'s door in her own figure (' + (kuKs && kuKs.sheet) + '), on her portrait (' + (scKs && scKs.sheet) + '): "' + String(wKs[0]).slice(0, 40) + '...", no counter line, the party still in the street',
-        kuKs && kuKs.sheet === 'kess_p1' && kuKs.facing === 0 && kuKs.holdFacing && scKs && scKs.sheet === 'pt_kess' && wKs.join('|') === window.DS.DATA.npcs.kess.talk[0].say.join('|') && !/to come/.test(wKs.join(' ')) && !D.roam.def.room && !upW());
+      okW('Kess at the flop-cellar\'s door, inside since 10-28 later (no figure of hers on the street: ' + !kuKs + '), on her portrait (' + (scKs && scKs.sheet) + '): "' + String(wKs[0]).slice(0, 40) + '...", no counter line, the party still in the street',
+        !kuKs && scKs && scKs.sheet === 'pt_kess' && wKs.join('|') === window.DS.DATA.npcs.kess.talk[0].say.join('|') && !/to come/.test(wKs.join(' ')) && !D.roam.def.room && !upW());
       // Merrick (10-21 night, the same word: ART-93): behind the message-lantern house's grille, on his portrait, his first-game word and its rumour heard
       inW(B, 'keeper:merrick'); var kuMr = B.units.filter(function (u) { return u.npc === 'merrick'; })[0], gMr = fireW(B, 'talk:merrick'), scMr = D.top(), wMr = upW() ? readW(scMr) : []; driveW(gMr, null, 200);
       okW('Merrick behind the message-lantern house\'s grille (door ' + (D.roam.def.room === 'keeper:merrick' ? 'in' : 'NOT in') + ') in his own figure (' + (kuMr && kuMr.sheet) + ', his south idle 10-21 night), on his portrait (' + (scMr && scMr.sheet) + '): "' + String(wMr[0]).slice(0, 40) + '...", the lantern rumour heard, and "' + String(wMr[wMr.length - 1]).replace(/\{.\}|\{\/\}/g, '') + '"',
