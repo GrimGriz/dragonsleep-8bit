@@ -536,5 +536,8 @@
     'eyes-lamia-spark-1028': { pri: 2, group: G2, title: 'The lamia casts: her spell’s light drawn by the code at her hand, in front of her (10-28)', pt: 'the bestiary 10-28 (tools/castspark.py; deep16/art/lamia_p1 cast `spark`; deep16/js/looks.js LK.spark; js/ui.js) · eyes',
       url: 'deep16/?gallery&shelf=creatures&rows=lamia&fresh=1028s',
       look: 'Your “magic spark on spell cast appears behind her, have code draw it when she casts”. It was her own sheet: the cut had given the art’s flung swirl (frame 4) to frame 5, where it stood behind her back. Her cast row’s light is taken out now, and the code draws it where it sat at her hand: gathering as she raises it, brightest as she reaches out, fading after -- over her, never behind. RIGHT to her CAST row (the fifth), E again to replay, SPACE to pause and [ ] a frame at a time, , . to turn her: every facing the light at the hand. In a fight, deep16/?show=lamia, it comes in her spell’s own colours as she casts Mirror Image, and no second flare is drawn for her (every other caster keeps its flare at the hands).' },
+    'eyes-harpy-fly-1028': { pri: 2, group: G2, title: 'The harpy flies on its own fly row in the air (10-28)', pt: 'the bestiary §37 (tools/harpy-sheet.py; deep16/art/harpy_p1; deep16/js/ui.js UI.aloftRow) · eyes',
+      url: 'deep16/?show=harpy&fresh=1',
+      look: 'Your question, does harpy need fly animation request: no, the art desk pages already drew its flight (ART-14 SE and NE, ART-56 S, E and N), and it is cut. In the show it takes to the air on its fly row and lands for a step to show its hop. S is drawn with the wings flat out, the others raised: say if the turn from S reads right.' },
   };
 })();
