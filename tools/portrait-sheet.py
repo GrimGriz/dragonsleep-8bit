@@ -87,6 +87,9 @@ PEOPLE = {
     'marta': ('marta/ART-99', 'ART-99', 'npc:marta', {'gap': {6: 3}, 'match': {6: 1}}),   # (her work's bottom band stands 11 px apart; that page is drawn
     # warmer than her idle, its skin snapping to the reds: its colours matched to the idle's)
     'ondine': ('ondine/ART-101', 'ART-101', 'the School (no door yet)', {'gap': {6: 3}, 'pxjoin': (6,)}),   # (her work: the hand gesturing off-panel reaches into the frame before's box)
+    # Aldwin of the mission chapel, pin 30 -- not Aldwyn Androit the notary (ART-80): the art desk's ART-114 (10-28, the second cutter seat, on Griz's 10-22
+    # "we need for Aldwin of the free rest"); his chapel's free floor is the services seat's scene (C.SCRIPTS chapel)
+    'aldwin': ('aldwin/ART-114', 'ART-114', 'chapel:aldwin', {'bevel': (2, 3, 4, 5)}),   # (his stills' counter tops are bevelled)
 }
 
 
@@ -296,6 +299,24 @@ def cut_person(name):
             ends.append((xs.min(), xs.max()))
         l, r = np.median([e[0] for e in ends]), np.median([e[1] for e in ends])
         return len(ends) >= 4 and all(abs(e[0] - l) <= 3 and abs(e[1] - r) <= 3 for e in ends)
+    # a counter whose top is bevelled (Aldwin's four stills, 10-28: the board's top face narrows for ten source rows before the figure's sleeves, so the run
+    # of rows as wide as its front starts below it, and two rows of it stood under his hands at game size): the line climbs the bevel to the step where the
+    # piece narrows to the figure -- `bevel`: the pages it climbs on
+    def bevel_top(piece, box, foot, reach=24, step=16):
+        x0, y0, x1, y1 = box
+        def ends(y):
+            xs = np.where(piece[y, x0:x1])[0]
+            return (xs.min(), xs.max()) if len(xs) else None
+        for y in range(foot - 1, max(y0 + 1, foot - reach), -1):
+            e, u = ends(y), ends(y - 1)
+            if e is None or u is None:
+                return foot
+            if (u[0] - e[0]) + (e[1] - u[1]) > step:
+                return y
+        return foot
+    for pg, a, found, acts in pages:
+        if pg in ov.get('bevel', ()):
+            found[:] = [(p, b, bevel_top(p, b, f) if f < b[3] else f) for p, b, f in found]
     for pg, a, found, acts in pages:
         deps = [b[3] - f for p, b, f in found if f < b[3]]
         if not deps:

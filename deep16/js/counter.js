@@ -36,8 +36,9 @@
     vilar: { sheet: 'pt_vilar', shop: 'vilar' }, marko: { sheet: 'pt_marko', shop: 'marko' }, lisbet: { sheet: 'pt_lisbet', shop: 'lisbet' }, percy: { sheet: 'pt_percy', shop: 'percy' },
     cassia: { sheet: 'pt_cassia', script: 'inn' }, // (the coaching inn: her rooms, the first game's S.inn -- C.inn, 10-22)
     // the chapel and the leech-house (10-22, the services seat): no portrait yet, so the counter screen's plain shape where the face will go, as the keepers had before their art;
-    // Davos Kren's came the same night (the art desk's ART-98; the desk's relay of Griz's "4 should be in fresh"): his scene as it was, on his face
-    aldwin: { script: 'chapel' }, davos: { sheet: 'pt_davos', name: 'Davos Kren', script: 'leech' },
+    // Davos Kren's came the same night (the art desk's ART-98; the desk's relay of Griz's "4 should be in fresh"): his scene as it was, on his face; Aldwin's on 10-28
+    // (the art desk's ART-114, on Griz's 10-22 "we need for Aldwin of the free rest" -- the mission almoner, pin 30, not Aldwyn Androit the notary)
+    aldwin: { sheet: 'pt_aldwin', script: 'chapel' }, davos: { sheet: 'pt_davos', name: 'Davos Kren', script: 'leech' },
     ned: { sheet: 'pt_ned', script: 'ned' }, // (Percy's partner, behind the same counter -- C.BESIDE; Percy's counter is Percy's face, Ned's own word his scene: C.ned)
     // two of the non-shop folk at their doors (10-21 night, Griz to the lanes desk: "non shop folk also have art in Fresh"): Mela Sorris of the Stew, and Mical of the
     // riverside warehouse, whose door signs Winters' crate off her books (her first-game talk, its `set` done by C.words); Mical sells nothing, so no line for a counter to come
@@ -63,7 +64,8 @@
     mela: 'mela_p1', mical: 'mical_p1', merrick: 'merrick_p1', // (10-21 night, Griz: "got 3 more south idles in Fresh too": Mela and Mical beside their doors, Merrick behind his grille)
     brennan: 'brennan_p1', venhale: 'venhale_p1', korvin: 'korvin_p1', // (10-22: Brennan and Venn Hale beside their doors; Korvin's for the Hex seat, his waistcoat slate as on his portrait)
     davos: 'davos_p1', // (10-22: Davos Kren behind the leech-house's counter)
-    marta: 'marta_p1', ondine: 'ondine_p1' }; // (10-22: Marta Venn at her stalls on the street -- js/town.js T.PLACE; Madame Ondine Vess's for a door to come)
+    marta: 'marta_p1', ondine: 'ondine_p1', // (10-22: Marta Venn at her stalls on the street -- js/town.js T.PLACE; Madame Ondine Vess's for a door to come)
+    aldwin: 'aldwin_p1' }; // (10-28: Aldwin behind the mission chapel's counter)
   C.AT_DOOR = [{ id: 'marin', door: 'keeper:marin' }, { id: 'barber', door: 'keeper:barber' }, { id: 'mela', door: 'keeper:mela' }, { id: 'mical', door: 'keeper:mical' },
     { id: 'brennan', door: 'keeper:brennan' }, { id: 'venhale', door: 'keeper:venhale' }];
   C.dress = function (u, id) {
@@ -561,10 +563,11 @@
     st.silver(-cost); D.sfx('coin');
     sc.next = C.sleep;
   };
-  // the mission chapel (S.chapel): Aldwin's word (his first talk whose condition holds, the first game's EV.dialog), then SLEEP or LEAVE -- the floor is free
+  // the mission chapel (S.chapel): Aldwin's word (his first talk whose condition holds, the first game's EV.dialog), then SLEEP or LEAVE -- the floor is free. On his
+  // face (10-28): his "Bread at six" as he breaks a loaf and holds out half (his work), the floor offered welcoming (the art desk's brief for that still)
   C.SCRIPTS.chapel = C.chapel = function* (sc, B) {
-    yield sc.say(C.words(B, 'aldwin'));
-    if ((yield sc.ask(L('chapel.ask'), ['SLEEP', 'LEAVE'])) !== 0) return;
+    yield sc.say(C.words(B, 'aldwin'), 'work');
+    if ((yield sc.ask(L('chapel.ask'), ['SLEEP', 'LEAVE'], 'welcoming')) !== 0) return;
     sc.next = C.sleep;
   };
   // the leech-house (S.leech): five silver a body for the fallen, stood up at half their hit points. On a floor the fallen are its figures, whose hit points are the floor's

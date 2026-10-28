@@ -3329,9 +3329,9 @@
       // ALDWIN'S FLOOR (the first game's S.chapel): his word, SLEEP / LEAVE, free
       vU = unitV(B, 'vivian'); vU.hp = Math.max(1, vU.hp - 6); var silC = R0.silver;
       okV('in at the chapel\'s door', inV(B, 'chapel:aldwin') && D.roam.def.keeper.id === 'aldwin');
-      var gA = fireV(B, 'talk:aldwin'), scA = D.top(), wA = upV() ? readV(scA) : [];
-      okV('E at Aldwin\'s counter: the counter\'s screen, no portrait yet (the plain shape, ' + (scA && scA.sheet) + '), "' + wA.join(' / ').slice(0, 150) + '", then ' + askV(scA),
-        upV() && !scA.sheet && scA.o.name === 'Aldwin' && /Bread at six/.test(wA.join(' ')) && /looks at Aurdin/.test(wA.join(' ')) && /The floor's free/.test(askV(scA)) && scA.wait.opts.join() === 'SLEEP,LEAVE');
+      var kuA = B.units.filter(function (u) { return u.npc === 'aldwin'; })[0], gA = fireV(B, 'talk:aldwin'), scA = D.top(), fA = upV() && scA.face && scA.face.anim, wA = upV() ? readV(scA) : [];
+      okV('E at Aldwin\'s counter: his portrait (' + (scA && scA.sheet) + ', the art desk\'s ART-114, 10-28) breaking the loaf on his word (' + fA + '), his figure behind the counter (' + (kuA && kuA.sheet) + ', facing ' + (kuA && kuA.facing) + '), "' + wA.join(' / ').slice(0, 150) + '", then ' + askV(scA) + ' (' + (scA && scA.face && scA.face.anim) + ')',
+        upV() && scA.sheet === 'pt_aldwin' && fA === 'work' && !!kuA && kuA.sheet === 'aldwin_p1' && kuA.facing === 0 && scA.o.name === 'Aldwin' && /Bread at six/.test(wA.join(' ')) && /looks at Aurdin/.test(wA.join(' ')) && /The floor's free/.test(askV(scA)) && scA.wait.opts.join() === 'SLEEP,LEAVE' && scA.face.anim === 'welcoming');
       goV(scA, 'opt', 'SLEEP'); driveV(gA, function () { return !!mornV(); }, 600); var mA = mornV();
       okV('SLEEP: free (' + R0.silver + ' sp), the night', !!mA && R0.silver === silC);
       clickV(mA, { x: 10, y: 10, w: 2, h: 2 }); goV(mA, 'ok');

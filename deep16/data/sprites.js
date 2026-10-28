@@ -100,6 +100,31 @@
 "source": "deep16/_src/aldric/ART-82/ART-82_HEAD-2_PAGE-1.png (the art desk's south idle, 10-21), cut by tools/keeper-town-sheet.py",
 "door": "keeper:aldric"
 },
+"aldwin_p1": {
+"image": "art/aldwin_p1.png?v=909a9d705b",
+"fw": 27,
+"fh": 53,
+"ax": 14,
+"ay": 51,
+"top": 49,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 27,
+"fh": 53,
+"ax": 14,
+"ay": 51,
+"frames": 14,
+"fps": 4,
+"drawn": [
+0
+],
+"under": "crewman_p1"
+}
+},
+"source": "deep16/_src/aldwin/ART-114/ART-114_HEAD-2_PAGE-1.png (the art desk's south idle, 10-21), cut by tools/keeper-town-sheet.py",
+"door": "chapel:aldwin"
+},
 "amara_p1": {
 "image": "art/amara_p1.png?v=fe146ab9b6",
 "fw": 96,
@@ -10823,6 +10848,102 @@ true
 "art": "ART-82",
 "door": "keeper:aldric",
 "source": "deep16/_src/aldric/ART-82 (the art desk's ART-82, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
+},
+"pt_aldwin": {
+"image": "art/pt_aldwin.png?v=03ab22e939",
+"fw": 200,
+"fh": 158,
+"ax": 114,
+"ay": 155,
+"top": 155,
+"portrait": true,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 200,
+"fh": 158,
+"ax": 114,
+"ay": 155,
+"frames": 6,
+"fps": 3,
+"ledge": [
+true,
+true,
+true,
+true,
+true,
+true
+]
+},
+"attentive": {
+"y": 158,
+"fw": 200,
+"fh": 158,
+"ax": 114,
+"ay": 155,
+"frames": 1,
+"fps": 1,
+"ledge": [
+true
+]
+},
+"welcoming": {
+"y": 316,
+"fw": 200,
+"fh": 158,
+"ax": 114,
+"ay": 155,
+"frames": 1,
+"fps": 1,
+"ledge": [
+true
+]
+},
+"skeptical": {
+"y": 474,
+"fw": 200,
+"fh": 158,
+"ax": 114,
+"ay": 155,
+"frames": 1,
+"fps": 1,
+"ledge": [
+true
+]
+},
+"concerned": {
+"y": 632,
+"fw": 200,
+"fh": 158,
+"ax": 114,
+"ay": 155,
+"frames": 1,
+"fps": 1,
+"ledge": [
+true
+]
+},
+"work": {
+"y": 790,
+"fw": 200,
+"fh": 158,
+"ax": 114,
+"ay": 155,
+"frames": 6,
+"fps": 4,
+"ledge": [
+true,
+true,
+true,
+true,
+true,
+true
+]
+}
+},
+"art": "ART-114",
+"door": "chapel:aldwin",
+"source": "deep16/_src/aldwin/ART-114 (the art desk's ART-114, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
 },
 "pt_androit": {
 "image": "art/pt_androit.png?v=afd6fdf634",
