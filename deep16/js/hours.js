@@ -414,6 +414,7 @@
   H16.pass = function (B, hrs) {
     var W = D.world, S = W && W.state && D.house && D.house.playing ? W.state() : null;
     if (S && S.t != null) { S.t += hrs; if (W.save) W.save(); } else if (B && B.roam) { var R0 = B.roam; R0.hour = (((R0.hour != null ? R0.hour : (D.roam.def.hour || 12)) + hrs) % 24 + 24) % 24; }
+    var lo = S && D.house.lightsOut ? D.house.lightsOut(B) : []; if (lo.length && B && B.card) B.card(D.roam.wrap(['{g}' + lo.join(' ') + '{/}']), 220); // (a Light's hour up on the street: js/house.js H.lightsOut, 10-28)
   };
   var arrive0 = D.roam.arrive;
   D.roam.arrive = function* (B) {

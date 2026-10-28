@@ -307,12 +307,14 @@
     if (w.f < STEPF) return;
     var hrs = W.house() ? D.house.marchHours(st) : st.h; // (the house: an exhausted party's half speed takes twice the hours)
     w.f = 0; S.from = S.at; S.at = next; S.pos = hc(next[0], next[1]); S.t += hrs; S.today += hrs; w.path.shift();
+    var lo = W.house() && D.house.lightsOut ? D.house.lightsOut(null) : []; // (a Light's hour up on the walk: js/house.js H.lightsOut, 10-28)
     if (st.exit) { var fw = atw(hc(S.from[0], S.from[1])[0], hc(S.from[0], S.from[1])[1], MS.world.w); W.use('world'); S.map = null; S.at = st.exit.slice(); S.from = fw; S.pos = hc(S.at[0], S.at[1]); } // (off the area's edge: THE WORLD's hex, from the 5-mile hex the area's covered)
     if (W.house()) { // (the forced march's saves, each hex past the day's: a failure stops the walk on a card till OK -- his 10-21 "probably need a quick popup every time someone moves a hex and loses the save"; the bottom line was written over by the next hex)
       var ml = D.house.marchStep(st), self = this; if (ml === null) { this.walk = null; return; }
-      if (ml.length) { W.save(); D.sfx('popup'); this.card(D.house.marchCard(ml), null, [['a', function () { self.arrive(st); }, 'OK']]); return; }
+      if (ml.length) { W.save(); D.sfx('popup'); this.card(D.house.marchCard(ml.concat(lo)), null, [['a', function () { self.arrive(st); }, 'OK']]); return; }
     }
-    this.arrive(st);
+    var m0 = this.msg; this.arrive(st);
+    if (lo.length) this.say((this.msg && this.msg !== m0 ? this.msg.s + ' ' : '') + lo.join(' ')); // (after the arrival's own word, not over it)
   };
   // ZOOM ON APPROACH (10-28, the maps window; his "(and the notion of players approaching locations increasing worldmap zoom", then "6 yes" to the seat's
   // sketch -- every door, a hand on the zoom wins till the next walk, an OPTIONS row on by default): each place with a door has a reach and a zoom of its own;
@@ -371,7 +373,7 @@
   World.prototype.campCard = function () {
     var me = this;
     this.card(['{y}CAMP{/}, ' + W.timeOfDay() + '.', '', D.keys('{g}E{/}: the night (three watches, a long rest)    {g}R{/}: an hour (a short rest)    {g}X{/}: walk on')], null,
-      [['a', function () { D.house.night(me); }, 'THE NIGHT'], ['rec', function () { S.t += 1; W.save(); me.say(D.house.shortRest(D.house.cur.party).join(' ')); }, 'AN HOUR'], ['b', function () { }, 'WALK ON']]);
+      [['a', function () { D.house.night(me); }, 'THE NIGHT'], ['rec', function () { S.t += 1; W.save(); me.say(D.house.shortRest(D.house.cur.party).concat(D.house.lightsOut(null)).join(' ')); }, 'AN HOUR'], ['b', function () { }, 'WALK ON']]);
   };
   // the bare door's day (10-22, his "Right now moving seems to be auto-camping"): past the day's 8 hours a walk never camps on its own -- it asks, as the house's
   // march does (js/house.js H.marchAsk): WALK ON (no more asking till a camp), MAKE CAMP, STAY. resume(path): the walk taken up again -- the top-down view's own
@@ -770,7 +772,7 @@
   };
   World.prototype.afterFight = function (res, p, b) {
     try { D.music('corridor'); } catch (e) { }
-    if (W.house() && b) { var ln = D.house.afterFight(b, res); if (ln === null) return; S.t += W.FIGHT_HOURS; W.save(); this.say((res === 'won' ? 'The road is clear. ' : 'The party got clear of them. ') + ln.join(' ')); return; } // (a loss: the title, js/house.js H.lost)
+    if (W.house() && b) { var ln = D.house.afterFight(b, res); if (ln === null) return; S.t += W.FIGHT_HOURS; W.save(); ln = ln.concat(D.house.lightsOut(null)); this.say((res === 'won' ? 'The road is clear. ' : 'The party got clear of them. ') + ln.join(' ')); return; } // (a loss: the title, js/house.js H.lost)
     S.t += W.FIGHT_HOURS; W.save(); // (a fight and its breath: W.FIGHT_HOURS)
     if (res === 'won') this.say('The road is clear. On, ' + W.timeOfDay() + '.');
     else if (res === 'escaped' || res == null) this.say('The party got clear of them.');

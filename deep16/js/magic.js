@@ -605,7 +605,8 @@
         M.concentrate(B, u, id, sp.name, function () { delete u.conds.divineFavor; });
         B.card([head + ': his weapon hits take {y}+1d4 radiant{/} (concentration).']);
       } else if (id === 'light') {
-        // SRD 5.1: on an object (his staff, her blade): bright 20 ft, dim 20 more, an hour -- it goes where they go
+        // SRD 5.1: on an object (his staff, her blade): bright 20 ft, dim 20 more, an hour -- it goes where they go; "The spell ends if you cast it again": the caster's other one let go (10-28)
+        B.units.forEach(function (x) { if (x !== w2 && x.conds && x.conds.light && x.conds.light.by === u.id) delete x.conds.light; });
         w2.conds.light = { by: u.id, from: B.castFrom || null, lv: 0 }; // (from and lv: where it was cast from, for a Globe of Invulnerability -- light.js L.map)
         yield* M.brighten(B, u, 'light', head + ' on ' + (w2 === u ? u.name + "'s own gear" : w2.name) + ': a steady light, {y}bright 20 ft{/} and dim 20 more.', { x: w2.x, y: w2.y, bright: 20 });
       } else if (id === 'continualflame') {

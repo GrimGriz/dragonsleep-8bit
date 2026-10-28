@@ -95,7 +95,7 @@
     B.units.filter(function (u) { return u.side === 'party' && u.src && !u.summon && !u.familiar && !u.object; }).forEach(function (u) {
       var h = JSON.parse(JSON.stringify(u.src));
       h.hp = Math.max(0, Math.min(h.maxhp, u.hp)); h.ko = h.hp <= 0; h.slots = (u.slots || []).slice(); h.feats = JSON.parse(JSON.stringify(u.feats || {}));
-      h.conds = Object.assign({}, h.conds || {}, last(u.conds)); if (!(u.conds && u.conds.mageArmor)) delete h.conds.mageArmor;
+      h.conds = Object.assign({}, h.conds || {}, last(u.conds)); if (!(u.conds && u.conds.mageArmor)) delete h.conds.mageArmor; if (!(u.conds && u.conds.light)) delete h.conds.light; // (a Light that ended in the fight -- cast again on another -- off the sheet too: 10-28)
       var ue = (u.conds && u.conds.exhaustion && u.conds.exhaustion.n) || 0; if (ue > exh(h)) H.exhaust(h, ue - exh(h)); // (a level the fight laid on, kept on the sheet: js/rules.js RU.exhaust)
       byId[h.key || h.id] = h;
     });
@@ -609,9 +609,13 @@
       D.sfx('buff');
       return [say('g.aid', { who: up3.map(function (x) { return x.name; }).join(', '), n: aN })].concat(woke.map(function (x) { return say('g.comesRound', { name: x.name }); }));
     }
-    if (sp.kind === 'light') { // (the Light on the one chosen, carried till the long rest -- RULED 10-20, his "that seems aligned with SRD"; it lights a floor: js/light.js reads conds.light)
-      t = t || c; t.conds = t.conds || {}; t.conds.light = { by: c.key || c.id }; D.sfx('magic');
-      return [say('g.light')];
+    if (sp.kind === 'light') { // (the Light on the one chosen, carried -- RULED 10-20, his "that seems aligned with SRD"; it lights a floor: js/light.js reads conds.light)
+      // (10-28, Griz: "it doesn't seem to choose a target or impact entering the guano mines": SRD 5.1 -- "You touch one object", the one the menu asks for (js/menu.js MagicPage);
+      // "Duration: 1 hour", on THE WORLD's clock (H.lightsOut; the long rest still ends it, R.refresh); "The spell ends if you cast it again": the caster's other Light let go)
+      t = t || c; var by = c.key || c.id, now = H.clock(H.cur);
+      env.party.forEach(function (x) { [x, x.src].forEach(function (y) { if (y && y.conds && y.conds.light && y.conds.light.by === by) delete y.conds.light; }); });
+      t.conds = t.conds || {}; t.conds.light = { by: by }; if (now != null) t.conds.light.until = now + H.LIGHT_HOURS; D.sfx('magic');
+      return [c.name + '\'s Light on ' + (t === c ? c.name + '\'s own gear' : t.name + '\'s gear') + ': bright 20 ft and dim 20 more, for an hour.', say('g.light')];
     }
     if (sp.kind === 'detect') { D.sfx('magic'); return [say('g.detectNo')]; }
     return [say('g.nothingHappens')];
@@ -669,6 +673,17 @@
     D.sfx('heal');
     return ['A short rest: an hour.' + (lines.length ? ' ' + lines.join('; ') + '.' : ' No one needs a die.')];
   };
+  // the Light's hour (SRD 5.1: "Duration: 1 hour" -- 10-28, the grid seat on his "check how we're doing the out-of-combat casting of light": the long rest stood in for the
+  // hour while the game had no clock, RULED 10-20): a Light carries `until` on THE WORLD's clock (FD.cast; one cast in a fight as it comes back, js/roam.js R.lasting), and as
+  // the clock passes it, it goes out -- on the save's sheets, and on a floor's figures (B) and their sheets. The lines to say
+  H.LIGHT_HOURS = 1;
+  H.lightsOut = function (B) {
+    var now = H.playing && H.cur ? H.clock(H.cur) : null, gone = []; if (now == null) return [];
+    function out(x, name) { var l = x && x.conds && x.conds.light; if (!l || l.until == null || now < l.until - 1e-9) return; delete x.conds.light; if (name && gone.indexOf(name) < 0) gone.push(name); }
+    H.cur.party.forEach(function (h) { out(h, h.name); });
+    if (B && B.roam) B.roam.members.forEach(function (u) { out(u.src, u.name); out(u, u.name); });
+    return gone.map(function (n) { return n + '\'s Light goes out: its hour is up.'; });
+  };
   function worldEnv(scene) {
     var rec = H.cur, W = D.world;
     return { where: 'world', party: rec.party, tent: true, has: function (id) { return rec.inv.some(function (s) { return s.id === id && s.n > 0; }); }, take: function (id) { add(rec.inv, id, -1); },
@@ -707,6 +722,7 @@
       info: function () { var jn = D.counter && D.counter.journal(null), pq = jn && jn.quests.filter(function (q) { return q.id === jn.pin && !q.done; })[0]; return { silver: rec.silver, renown: rec.renown || 0, place: H.where(rec), time: D.world.timeOfDay(), pin: pq ? pq.name : null }; },
       journal: D.counter ? function () { return D.counter.journal(null); } : null, // (the house's JOURNAL: Winters' Errands -- js/counter.js, 10-21)
       canSave: function () { return true; },
+      touch: true, // (the Light on the one it touches, asked: js/menu.js MagicPage, FD.cast)
       notes: function () { scene.pm = null; H.notes(); },
       run: function (kind, a, done) {
         var env = worldEnv(scene), lines = null;

@@ -496,6 +496,12 @@
           then: function (x) { m.act('cast', { h: h, sp: sp, t: x }, function () { self.refresh(); }); } });
         return;
       }
+      // the Light on whose gear (SRD 5.1: "You touch one object"): the cursor to the panel, a card clicked -- on a host whose field lays it on someone (the second game's: THE
+      // WORLD's and a floor's, 10-28, Griz: "it doesn't seem to choose a target"); the first game's Light is a line, cast at once
+      if (sp.kind === 'light' && !sp.dim && m.host.touch) {
+        m.root.choose({ title: 'WHO CARRIES IT?', sub: sp.name, guests: true, ok: function () { return true; }, then: function (x) { m.act('cast', { h: h, sp: sp, t: x }, function () { self.refresh(); }); } });
+        return;
+      }
       m.act('cast', { h: h, sp: sp }, function () { self.refresh(); });
     }
   };

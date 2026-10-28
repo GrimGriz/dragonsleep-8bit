@@ -677,6 +677,7 @@
   M.pass = function* (B, hrs) {
     var W = D.world, S = W && W.state && W.state(), R0 = B.roam;
     if (D.roam.house() && S && S.t != null) { S.t += hrs; W.save(); } else R0.hour = ((R0.hour != null ? R0.hour : D.roam.def.hour) + hrs) % 24;
+    var lo = D.roam.house() && D.house.lightsOut ? D.house.lightsOut(B) : []; if (lo.length) B.card(D.roam.wrap(['{g}' + lo.join(' ') + '{/}']), 220); // (a Light's hour up on the floor: js/house.js H.lightsOut, 10-28)
     yield* M.light(B);
   };
   // day or night as the hour now has it: if it changed, the floor laid again (its dark, its lights, its fights, the crew where the hour puts them) and said

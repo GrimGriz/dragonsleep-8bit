@@ -234,7 +234,7 @@
       var t = u.torch;
       if (t && t.lit !== false && L.kindOf(t) === 'lantern') { if (!t.hood) { t.hood = true; out.push(u.name + ' keeps the ' + L.word(t) + ' low, hood down.'); } }
       else if (t && t.lit !== false) { delete u.torch; L.regrip(u); out.push(u.name + ' puts the torch out: the light would spook the roost.'); }
-      if (u.conds && u.conds.light) { delete u.conds.light; out.push(u.name + ' lets the Light go: bright light, under the roost.'); }
+      if ((u.conds && u.conds.light) || (u.src && u.src.conds && u.src.conds.light)) { if (u.conds) delete u.conds.light; if (u.src && u.src.conds) delete u.src.conds.light; out.push(u.name + ' lets the Light go: bright light, under the roost.'); } // (and off the sheet: let go, it stays let go -- the floor's hand-back read it back off the sheet, 10-28, mode=gridlight1028)
     });
     return out;
   };
@@ -960,7 +960,7 @@
     (b.units || []).forEach(function (u) {
       var w = R0.members.filter(function (m) { return m.id === u.id; })[0]; if (!w) return;
       if (u.drained) { w.maxhp = Math.max(1, w.maxhp - u.drained); if (w.src) w.src.maxhp = Math.max(1, w.src.maxhp - u.drained); w.drained = (w.drained || 0) + u.drained; }
-      w.hp = Math.max(0, Math.min(w.maxhp, u.hp)); w.ko = w.hp <= 0; w.conds = R.lasting(u.conds); w.slots = (u.slots || []).slice(); w.feats = JSON.parse(JSON.stringify(u.feats || {}));
+      w.hp = Math.max(0, Math.min(w.maxhp, u.hp)); w.ko = w.hp <= 0; w.conds = R.lasting(u.conds); if (!w.conds.light && w.src && w.src.conds) delete w.src.conds.light; // (a Light that ended in there ends on the floor's sheet too: 10-28) w.slots = (u.slots || []).slice(); w.feats = JSON.parse(JSON.stringify(u.feats || {}));
       R.exhaustBack(w, u); // (a level of exhaustion the fight laid on, onto the sheet: R.exhaustBack)
       if (w.src && u.src && u.src.equip) ['weapon', 'shield', 'armor'].forEach(function (k) { if (k in u.src.equip) w.src.equip[k] = u.src.equip[k]; });
       if (u.torch && u.torch.lit !== false && u.hp > 0) w.torch = JSON.parse(JSON.stringify(u.torch)); else delete w.torch;
@@ -1030,7 +1030,12 @@
     h.hp = w.hp; return n - had;
   };
   R.LASTING = ['mageArmor', 'darkvision', 'continualFlame', 'aid', 'light']; // (light: the cantrip carried off a fight till the long rest -- RULED 10-20, his "that seems aligned with SRD"; the house lane's 10-19 note 5)
-  R.lasting = function (c) { var o = {}; R.LASTING.forEach(function (k) { if (c && c[k]) o[k] = JSON.parse(JSON.stringify(c[k])); }); return o; };
+  R.lasting = function (c) {
+    var o = {}; R.LASTING.forEach(function (k) { if (c && c[k]) o[k] = JSON.parse(JSON.stringify(c[k])); });
+    // (a Light cast in a fight, carried off it in the house: its hour from now on THE WORLD's clock -- js/house.js H.lightsOut; SRD 5.1 "Duration: 1 hour", 10-28)
+    var H = D.house, now = o.light && o.light.until == null && H && H.playing && H.cur ? H.clock(H.cur) : null; if (now != null) o.light.until = now + H.LIGHT_HOURS;
+    return o;
+  };
   R.counts = function (inv) { var c = {}; (inv || []).forEach(function (s) { var id = Array.isArray(s) ? s[0] : s.id, n = Array.isArray(s) ? s[1] : s.n; c[id] = (c[id] || 0) + (n || 0); }); return c; };
   // a pulled-in fight's pack handed back as the change it made (js/embed.js's inv0 and inv1): what it used gone, what it found or stowed added, never below none -- so the
   // loan every grid fight not opened from inside the 8-bit lends (js/save.js SV.armoury: a crossbow, bolts, arrows, a rope) never comes back as the floor's. A lantern set down
@@ -1080,7 +1085,7 @@
     var party = R0.members.filter(function (u) { return u.src; }).map(function (u) {
       var h = JSON.parse(JSON.stringify(u.src));
       h.hp = Math.max(0, Math.min(h.maxhp, u.hp)); h.ko = h.hp <= 0; h.slots = (u.slots || []).slice(); h.feats = JSON.parse(JSON.stringify(u.feats || {}));
-      h.conds = Object.assign({}, h.conds || {}, R.lasting(u.conds)); if (!(u.conds && u.conds.mageArmor)) delete h.conds.mageArmor;
+      h.conds = Object.assign({}, h.conds || {}, R.lasting(u.conds)); if (!(u.conds && u.conds.mageArmor)) delete h.conds.mageArmor; if (!(u.conds && u.conds.light)) delete h.conds.light; // (a Light the figure no longer carries -- let go under a roost, its hour up, cast again on another -- is off the sheet too: 10-28)
       return { id: h.key || h.id, guest: !!h.guest, sheet: h, torch: u.torch && u.torch.lit !== false && u.hp > 0 ? (L.kindOf(u.torch) === 'lantern' ? (u.torch.item || 'lantern') : 'torch') : false };
     });
     return { type: type, result: result, exit8: at ? R.def.to8(at[0], at[1]) : null, party: party, inv0: R0.inv0 || {}, inv1: inv1, flags: JSON.parse(JSON.stringify(R0.flags)),
@@ -1827,7 +1832,9 @@
     }
     // no Light cast under a roost (10-28 later, his "check 'light' being cast in battle or from the menu carrying over to whether they can go in the guano mines"): as no torch is
     // lit there (above), and a Light carried in is let go at the floor's door (R.roostLights); Dancing Lights is dim, lawful under a roost (RULED 09-28)
-    if (kind === 'cast' && R.def && R.def.roost && a.sp && ((window.DS.DATA.spells || {})[a.sp] || {}).kind === 'light' && !((window.DS.DATA.spells || {})[a.sp] || {}).dim) { D.sfx('error'); B.card(['{g}The roost overhead: no bright light. The Light would spook the roost.{/}'], 200); return true; }
+    // (the menu hands the spell itself, a bench its id: 10-28, mode=gridlight1028 -- by the mouse the Light was cast under the roost)
+    var spA = a && a.sp ? (typeof a.sp === 'string' ? (window.DS.DATA.spells || {})[a.sp] : a.sp) : null;
+    if (kind === 'cast' && R.def && R.def.roost && spA && spA.kind === 'light' && !spA.dim) { D.sfx('error'); B.card(['{g}The roost overhead: no bright light. The Light would spook the roost.{/}'], 200); return true; }
     if ((kind === 'cast' || kind === 'skill') && R.house()) { var lnC = D.house.fieldOnFloor(B, kind, a, unitOf); if (lnC) { B.card(R.wrap(lnC), 260); return true; } } // (the house: the field's own rules -- js/house.js H.field)
     if (kind === 'cast' || kind === 'skill') return R.actOut(B, { kind: kind, h: a.h, sp: a.sp, s: a.s, t: a.t }, unitOf); // (the 8-bit's own, by a hand-back: R.actOut)
     return false;
