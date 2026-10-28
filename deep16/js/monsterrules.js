@@ -2,12 +2,12 @@
    of the SRD 5.1 foes the cutters put on the grid with stand-ins (handoff-2026-10-05-the-bestiary-after-the-bugs.md §36, its leans (2) to (5),
    and his answers of 10-28 -- on the rust monster "is that what the SRD has?", on the aboleth "until that exists?", on the harpy "so we need grid
    stuff for these monsters is the point?"). Each by its block in srd/monsters/:
-     the rust monster (r.md) -- Antennae, its own action; Rust Metal, a trait; Iron Scent. Its rust is permanent, kept on the hero's sheet;
+     the rust monster (r.md) -- Antennae, its own action; Rust Metal, a trait; Iron Scent. Its rust is the fight's, what it rusts through gone -- the ooze's way (RULED 10-28);
      the aboleth (a.md) -- Enslave (3/day), Dominate Person's machinery (js/grimoire.js, 10-06) without the concentration, so its Psychic Drain
        (js/traits.js TR.legendary) finds the one it has charmed;
      the harpy (h.md) -- the Luring Song: charmed, incapacitated, walking to her by the most direct route, the saves the block names;
      the ankheg (a.md) -- its bite holds a Large or smaller one, and bites only that one, with advantage; its AC 11 while prone.
-   Benched by dev/bench16.js mode=monsters1028 (in both lists of dev/check.py). Loaded after js/pocketdm.js: it wraps the Battle and the Pocket DM. */
+   Benched by dev/bench16.js mode=monsters1028 (in both lists of dev/check.py). Loaded after js/pocketdm.js: it wraps the Battle. */
 'use strict';
 (function () {
   var D = window.D16, G = D.grid, RU = D.rules, FX = D.fx, M = D.magic, AI = D.ai, BP = D.Battle.prototype;
@@ -16,17 +16,26 @@
   function nm(u, cap) { return D.Battle.nm(u, cap); }
   function byId(B, id) { return B.units.filter(function (w) { return w.id === id; })[0] || null; }
   function rowOr(u, row, alt) { return u.sheet && D.spr.anim(u.sheet, row) ? row : alt; }
-  function clone(o) { return JSON.parse(JSON.stringify(o)); }
   function up(w) { return !!w && !w.dead && w.hp > 0; }
   D.traits.FIELDS.push('rustMetal', 'ironScent', 'antennae', 'enslave', 'luringSong', 'proneAC'); // (copied sheet to unit: battle.js makeFoe)
 
   // ================================================================== THE RUST MONSTER (SRD 5.1, srd/monsters/r.md)
-  // Its rust is "permanent and cumulative": a hero's is kept on the sheet, h.rust = { <item id>: the penalty so far } -- the house keeps the whole
-  // sheet after a fight (js/house.js H.takeBack), the Pocket DM keeps it on the seat (below), the Hex's bout hands it back (js/hex.js). A weapon
-  // deals that much less damage (D.save.weaponOf, R.offhandDamage), armour and a shield give that much less AC (R.ac) -- in every fight after.
-  // A foe's (no kit past the fight) is on the unit. Gone at the SRD's numbers: a weapon at -5, armour at AC 10, a shield at +0. Magic never rusts.
+  // Its rust is the fight's (RULED 10-28, Griz, on the seat's lean that the SRD's "permanent" be kept on the sheet: "yeah, we're leaving out wear, but
+  // should probably also let rust destroy stuff during the fight the way we did the ooze?"): the -1s hold for the rest of the fight -- kept on the
+  // battle, B.rusts, by the sheet they are on and the item, so every reading in the fight takes them off (D.save.weaponOf, R.offhandDamage, R.ac: a
+  // weapon swapped away and taken up again is as rusted as it was) and the next fight never sees them; a thing rusted through at the SRD's numbers --
+  // a weapon at -5, armour at AC 10, a shield at +0 -- is gone off the sheet, as the gray ooze's eaten-through is (js/traits.js: `src.equip` emptied).
+  // A foe's is on the unit. Magic never rusts.
   MR.WEAPON_GONE = 5;
-  function rustOf(h, id) { return (h && h.rust && id && h.rust[id]) || 0; }
+  function rustMap(h, make) {
+    var B = D.battle; if (!B || !h) return null;
+    var e = (B.rusts || []).filter(function (x) { return x.h === h; })[0];
+    if (!e && make) { e = { h: h, r: {} }; B.rusts = (B.rusts || []).concat([e]); }
+    return e ? e.r : null;
+  }
+  function rustOf(h, id) { var r = rustMap(h); return (r && id && r[id]) || 0; }
+  function addRust(h, id) { var r = rustMap(h, true); r[id] = (r[id] || 0) + 1; return r[id]; }
+  function dropRust(h, id) { var r = rustMap(h); if (r) delete r[id]; }
   MR.rustOf = rustOf;
   // how much rust an item takes before it is destroyed: a weapon 5; armour down to AC 10 (chain mail's 16, six); a shield down to +0 (two)
   MR.rustLimit = function (it) { if (!it) return Infinity; if (it.kind === 'weapon' || it.weapon) return MR.WEAPON_GONE; if (it.armor) return Math.max(1, it.armor.base - 10); if (it.shield) return it.shield.ac; return Infinity; };
@@ -41,7 +50,7 @@
   var ac0 = R().ac;
   R().ac = function (h) {
     var ac = ac0.apply(this, arguments), e = (h && h.equip) || {};
-    if (!h || !h.rust) return ac;
+    if (!h || !rustMap(h)) return ac;
     return ac - Math.min(rustOf(h, e.armor), limOf(e.armor)) - Math.min(rustOf(h, e.shield), limOf(e.shield));
   };
   var od0 = R().offhandDamage;
@@ -71,19 +80,19 @@
   MR.ferrous = ferrous;
   MR.carriesFerrous = function (w) { return ferrous(w, true).length > 0; };
 
-  // a weapon rusts (Rust Metal, and the Antennae on a held one): -1 to its damage for good; at -5 it is destroyed
+  // a weapon rusts (Rust Metal, and the Antennae on a held one): -1 to its damage for the fight; at -5 it is destroyed
   function* rustWeapon(B, w, atk, how) {
     var h = w.src && w.src.equip ? w.src : null, off = !!(atk && atk.offhandSwing), id = h && (off ? h.equip.offhand : atk && atk.id);
     if (h && id && (off || h.equip.weapon === id)) {
-      h.rust = h.rust || {}; var n = h.rust[id] = (h.rust[id] || 0) + 1, wn = (R().item(id) || {}).name || 'weapon';
+      var n = addRust(h, id), wn = (R().item(id) || {}).name || 'weapon';
       if (n >= MR.WEAPON_GONE) {
-        delete h.rust[id]; (w.rustGone = w.rustGone || []).push(id); // (for the Pocket DM's seat: PP.done below)
+        dropRust(h, id);
         if (off) { h.equip.offhand = null; w.offhand = null; } else { h.equip.weapon = null; w.weapon = D.save.weaponOf(h); }
-        B.card(['{o}' + nm(w, true) + '\'s ' + wn.toLowerCase() + ' rusts through and crumbles.{/}  {g}(gone for good' + (off ? '' : ': ' + w.weapon.name.toLowerCase() + ' now') + '){/}'], 300);
+        B.card(['{o}' + nm(w, true) + '\'s ' + wn.toLowerCase() + ' rusts through and crumbles.{/}  {g}(gone' + (off ? '' : ': ' + w.weapon.name.toLowerCase() + ' now') + '){/}'], 300);
       } else {
         if (off) { if (w.offhand) w.offhand = Object.assign({}, w.offhand, { mod: (w.offhand.mod || 0) - 1, rusted: n }); }
         else w.weapon = Object.assign({}, w.weapon, { mod: (w.weapon.mod || 0) - 1, rusted: n });
-        B.card(['{o}' + nm(w, true) + '\'s ' + wn.toLowerCase() + ' ' + (how || 'rusts at the touch') + ': -' + n + ' to its damage.{/}  {g}(for good; it crumbles at -' + MR.WEAPON_GONE + '){/}'], 260);
+        B.card(['{o}' + nm(w, true) + '\'s ' + wn.toLowerCase() + ' ' + (how || 'rusts at the touch') + ': -' + n + ' to its damage.{/}  {g}(for the fight; it crumbles at -' + MR.WEAPON_GONE + '){/}'], 260);
       }
       return true;
     }
@@ -114,19 +123,19 @@
     yield* rustWeapon(B, att, atk);
   };
 
-  // armour or a shield touched: -1 to the AC it offers, for good; armour at AC 10 and a shield at +0 destroyed
+  // armour or a shield touched: -1 to the AC it offers, for the fight; armour at AC 10 and a shield at +0 destroyed
   function corrode(B, w, o) {
     var h = w.src && w.src.equip ? w.src : null;
     if (o.slot === 'weapon') return null; // (rustWeapon)
     if (h && o.id) {
-      h.rust = h.rust || {}; var n = h.rust[o.id] = (h.rust[o.id] || 0) + 1, lim = MR.rustLimit(o.it), name = (o.it.name || o.slot).toLowerCase();
+      var n = addRust(h, o.id), lim = MR.rustLimit(o.it), name = (o.it.name || o.slot).toLowerCase();
       if (n >= lim) {
-        delete h.rust[o.id]; h.equip[o.slot] = null; (w.rustGone = w.rustGone || []).push(o.id);
+        dropRust(h, o.id); h.equip[o.slot] = null;
         w.baseAC = R().ac(h); if (o.slot === 'armor') { w.armored = R().armored(h); if (w.conds.mageArmor) w.baseAC = Math.max(w.baseAC, 13 + D.mod(w.abil.dex)); }
-        B.card(['{o}' + nm(w, true) + '\'s ' + name + ' rusts away and falls from ' + (w.side === 'foe' ? 'it' : 'them') + ' in flakes: AC ' + RU.ac(w) + '.{/}  {g}(gone for good){/}'], 300);
+        B.card(['{o}' + nm(w, true) + '\'s ' + name + ' rusts away and falls from ' + (w.side === 'foe' ? 'it' : 'them') + ' in flakes: AC ' + RU.ac(w) + '.{/}  {g}(gone){/}'], 300);
       } else {
         w.baseAC -= 1;
-        B.card(['{o}' + nm(w, true) + '\'s ' + name + ' rusts where the antennae touch it: AC ' + RU.ac(w) + '.{/}  {g}(-' + n + ' for good; ' + (o.slot === 'armor' ? 'destroyed at AC 10' : 'destroyed at +0') + '){/}'], 260);
+        B.card(['{o}' + nm(w, true) + '\'s ' + name + ' rusts where the antennae touch it: AC ' + RU.ac(w) + '.{/}  {g}(-' + n + ' for the fight; ' + (o.slot === 'armor' ? 'destroyed at AC 10' : 'destroyed at +0') + '){/}'], 260);
       }
       return true;
     }
@@ -405,41 +414,4 @@
     var c = lured(u);
     if (c && n > 0 && up(u) && !(B.active && B.active.id === c.by)) songSave(B, u, 'hurt');
   };
-
-  // ================================================================== the rust past the fight: the Pocket DM's seats
-  // (the house keeps the hero's whole sheet, js/house.js H.takeBack; the Pocket DM builds each seat from its word every fight, so the seat keeps
-  // `rust` beside its word: handed to the build as the word's spec, js/classes.js NPC.carry -- a thing rusted through stays gone from that seat)
-  var carry0 = D.npc.carry;
-  D.npc.carry = function (h, spec) {
-    var r = carry0.apply(this, arguments);
-    if (spec && spec.rust && h && h.equip) {
-      h.rust = clone(spec.rust);
-      ['weapon', 'offhand', 'armor', 'shield'].forEach(function (k) { var id = h.equip[k]; if (id && rustOf(h, id) >= limOf(id)) h.equip[k] = null; });
-    }
-    return r;
-  };
-  if (D.Pocket) {
-    var PP = D.Pocket.prototype, done0 = PP.done, fw0 = PP.fightWords;
-    PP.done = function (res, B, info) {
-      var st = this.st;
-      ((B && B.units) || []).forEach(function (u) {
-        var m = /^p(\d+)-/.exec(u.id || ''), slot = m && st.party && st.party[+m[1]];
-        if (!slot || u.summon || u.familiar || !u.src || !u.src.equip) return;
-        // (the sheet's rust -- what the seat walked in with, a thing gone before kept at its limit -- and a thing destroyed in this fight, off the
-        // sheet now, kept on the seat at its limit so the word's build leaves it off: rustWeapon, corrode note it on the unit)
-        var r = Object.assign({}, u.src.rust || {});
-        (u.rustGone || []).forEach(function (id) { r[id] = limOf(id); });
-        if (Object.keys(r).length) slot.rust = r; else delete slot.rust;
-      });
-      return done0.apply(this, arguments);
-    };
-    PP.fightWords = function () {
-      var st = this.st, out = fw0.apply(this, arguments);
-      return out.map(function (w, i) {
-        var r = st.party && st.party[i] && st.party[i].rust; if (!r || !Object.keys(r).length) return w;
-        var o = typeof w === 'string' ? { word: w, id: 'p' + i + '-' + String(w).split('+')[0].split(':')[0].split('.')[0].replace(/^~/, '') } : w;
-        o.rust = clone(r); return o;
-      });
-    };
-  }
 })();

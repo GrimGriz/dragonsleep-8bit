@@ -5319,7 +5319,9 @@
     document.body.appendChild(preT);
     return;
   }
-  // the monsters' grid rules (mode=monsters1028; the grid's rules seat, 10-28, started by the lanes desk on Griz's "Start the seat": js/monsterrules.js) --
+  // the monsters' grid rules (mode=monsters1028; the grid's rules seat, 10-28, started by the lanes desk on Griz's "Start the seat": js/monsterrules.js;
+  // the rust the fight's since 10-28 later -- RULED, Griz: "yeah, we're leaving out wear, but should probably also let rust destroy stuff during the fight the
+  // way we did the ooze?": R2, R3, R6 and R11 RED on 012b741's permanent rust, R4 and R5 guards both ways) --
   // the rust monster's Antennae, Rust Metal and Iron Scent (its bite's armour rust, mode=rust1022's stand-in, retired), the aboleth's Enslave and its
   // Psychic Drain, the harpy's Luring Song, the ankheg's held bite and its AC prone. Each by its SRD 5.1 block; each failed on the code before it
   if (get('mode', '') === 'monsters1028') {
@@ -5343,26 +5345,29 @@
       okM('R1 the sheet: rustMetal ' + rm.rustMetal + ', antennae DC ' + (rm.antennae && rm.antennae.dc) + ' within ' + (rm.antennae && rm.antennae.reach) + ' ft, Iron Scent ' + rm.ironScent + ' ft, corrosive ' + rm.corrosive + ' (want true, 11, 5, 30, undefined: the ooze stand-in retired)',
         rm.rustMetal === true && rm.antennae && rm.antennae.dc === 11 && rm.antennae.reach === 5 && rm.ironScent === 30 && !rm.corrosive);
       var wid = ft.src.equip.weapon, aid = ft.src.equip.armor, mod0 = ft.weapon.mod || 0, ac0 = ft.baseAC, sheetAC0 = RRr.ac(ft.src), n1 = (B1.log || []).length;
-      // R2 Rust Metal: the fighter's blade hits it -- -1 to its damage after, kept on the sheet
+      // R2 Rust Metal: the fighter's blade hits it -- -1 to its damage after, for the fight (nothing on the sheet)
+      function rustN(h, id) { return MRr.rustOf ? MRr.rustOf(h, id) : 0; }
+      function nextFight(f) { var B0 = D.battle; D.battle = { units: [], log: [] }; try { return f(); } finally { D.battle = B0; } } // (another fight: a battle that is not this one)
       RM.startTurn(ft); B1.active = ft; pinM(15, function () { runM(B1.attack(ft, rm, ft.weapon)); }); B1.active = null;
       var l2 = logM(B1, n1);
-      okM('R2 Rust Metal: the fighter\'s ' + wid + ' hits it: damage ' + mod0 + ' -> ' + (ft.weapon.mod || 0) + ', the sheet\'s rust ' + JSON.stringify(ft.src.rust || null) + '; the card ' + (/for good/.test(l2) ? 'says for good' : 'says ' + l2.slice(-120)) + ' (want ' + (mod0 - 1) + ', {' + wid + ':1}, for good)',
-        (ft.weapon.mod || 0) === mod0 - 1 && ft.src.rust && ft.src.rust[wid] === 1 && /for good/.test(l2));
-      var w2 = D.save.weaponOf(ft.src);
-      okM('R3 permanent: the same sheet\'s ' + wid + ' as the next fight reads it (D.save.weaponOf): damage ' + w2.mod + ' (want ' + (mod0 - 1) + ')', w2.mod === mod0 - 1);
+      okM('R2 Rust Metal: the fighter\'s ' + wid + ' hits it: damage ' + mod0 + ' -> ' + (ft.weapon.mod || 0) + ', the sheet\'s own rust ' + JSON.stringify(ft.src.rust || null) + '; the card ' + (/for the fight/.test(l2) ? 'says for the fight' : 'says ' + l2.slice(-120)) + ' (want ' + (mod0 - 1) + ', null, for the fight)',
+        (ft.weapon.mod || 0) === mod0 - 1 && !ft.src.rust && /for the fight/.test(l2));
+      var w2 = D.save.weaponOf(ft.src).mod, w3 = nextFight(function () { return D.save.weaponOf(ft.src).mod; });
+      okM('R3 the fight\'s: the sheet\'s ' + wid + ' read again in this fight (a swap and back) deals ' + w2 + ', read in the next fight ' + w3 + ' (want ' + (mod0 - 1) + ', ' + mod0 + ')', w2 === mod0 - 1 && w3 === mod0);
       for (var k3 = 0; k3 < 3; k3++) { RM.startTurn(ft); B1.active = ft; pinM(15, function () { runM(B1.attack(ft, rm, ft.weapon)); }); B1.active = null; }
-      var at4 = ft.src.equip.weapon === wid && ft.src.rust && ft.src.rust[wid] === 4;
+      var at4 = ft.src.equip.weapon === wid && rustN(ft.src, wid) === 4;
       RM.startTurn(ft); B1.active = ft; pinM(15, function () { runM(B1.attack(ft, rm, ft.weapon)); }); B1.active = null;
-      okM('R4 four hits in, the ' + wid + ' still in hand at -4 (' + at4 + '); the fifth destroys it: the sheet\'s weapon ' + ft.src.equip.weapon + ', in hand ' + ft.weapon.name + ', its rust ' + (ft.src.rust ? ft.src.rust[wid] : null) + ' (want true, null, not the ' + wid + ', gone -- the SRD\'s -5, not the ooze\'s third)', at4 && ft.src.equip.weapon == null && ft.weapon.id !== wid && !(ft.src.rust && ft.src.rust[wid]));
+      okM('R4 four hits in, the ' + wid + ' still in hand at -4 (' + at4 + '); the fifth destroys it: the sheet\'s weapon ' + ft.src.equip.weapon + ', in hand ' + ft.weapon.name + ', its rust ' + rustN(ft.src, wid) + ' (want true, null, not the ' + wid + ', 0 -- the SRD\'s -5, not the ooze\'s third; gone off the sheet, as the ooze\'s eaten-through)', at4 && ft.src.equip.weapon == null && ft.weapon.id !== wid && !rustN(ft.src, wid));
       // R5 the bite rusts nothing now
       RM.startTurn(rm); B1.active = rm; pinM(19, function () { runM(B1.attack(rm, ft, rm.attacks.bite)); }); B1.active = null;
-      okM('R5 its bite on the fighter in ' + aid + ': AC ' + ac0 + ' -> ' + ft.baseAC + ', the armour\'s rust ' + (ft.src.rust ? ft.src.rust[aid] || 0 : 0) + ' (want ' + ac0 + ', 0: the stand-in retired)', ft.baseAC === ac0 && !(ft.src.rust && ft.src.rust[aid]));
-      // R6, R7 the Antennae: a failed DEX save rusts the armour for good; a made one, nothing
+      okM('R5 its bite on the fighter in ' + aid + ': AC ' + ac0 + ' -> ' + ft.baseAC + ', the armour\'s rust ' + rustN(ft.src, aid) + ' (want ' + ac0 + ', 0: the stand-in retired)', ft.baseAC === ac0 && !rustN(ft.src, aid));
+      // R6, R7 the Antennae: a failed DEX save rusts the armour for the fight; a made one, nothing
       var n6 = (B1.log || []).length; RM.startTurn(rm); B1.active = rm; pinM(1, function () { runM(MRr.antennae ? MRr.antennae(B1, rm, ft) : null); }); B1.active = null;
-      okM('R6 Antennae, DEX failed: the fighter\'s ' + aid + ' AC ' + ac0 + ' -> ' + ft.baseAC + ', the sheet\'s AC ' + sheetAC0 + ' -> ' + RRr.ac(ft.src) + ', rust ' + (ft.src.rust ? ft.src.rust[aid] : 0) + '; the card ' + (/DEX/.test(logM(B1, n6)) ? 'names the save' : 'no save') + ' (want ' + (ac0 - 1) + ', ' + (sheetAC0 - 1) + ', 1, names it)',
-        ft.baseAC === ac0 - 1 && RRr.ac(ft.src) === sheetAC0 - 1 && ft.src.rust && ft.src.rust[aid] === 1 && /DEX/.test(logM(B1, n6)));
+      var acNext = nextFight(function () { return RRr.ac(ft.src); });
+      okM('R6 Antennae, DEX failed: the fighter\'s ' + aid + ' AC ' + ac0 + ' -> ' + ft.baseAC + ', the sheet\'s AC read in this fight ' + sheetAC0 + ' -> ' + RRr.ac(ft.src) + ' and in the next ' + acNext + ', rust ' + rustN(ft.src, aid) + ', on the sheet ' + JSON.stringify(ft.src.rust || null) + '; the card ' + (/DEX/.test(logM(B1, n6)) ? 'names the save' : 'no save') + (/for the fight/.test(logM(B1, n6)) ? ', for the fight' : '') + ' (want ' + (ac0 - 1) + ', ' + (sheetAC0 - 1) + ', ' + sheetAC0 + ', 1, null, names it, for the fight)',
+        ft.baseAC === ac0 - 1 && RRr.ac(ft.src) === sheetAC0 - 1 && acNext === sheetAC0 && rustN(ft.src, aid) === 1 && !ft.src.rust && /DEX/.test(logM(B1, n6)) && /for the fight/.test(logM(B1, n6)));
       RM.startTurn(rm); B1.active = rm; pinM(20, function () { runM(MRr.antennae ? MRr.antennae(B1, rm, ft) : null); }); B1.active = null;
-      okM('R7 Antennae, DEX made: AC ' + ft.baseAC + ', rust ' + (ft.src.rust ? ft.src.rust[aid] : 0) + ' (want ' + (ac0 - 1) + ', 1)', ft.baseAC === ac0 - 1 && ft.src.rust && ft.src.rust[aid] === 1);
+      okM('R7 Antennae, DEX made: AC ' + ft.baseAC + ', rust ' + rustN(ft.src, aid) + ' (want ' + (ac0 - 1) + ', 1)', ft.baseAC === ac0 - 1 && rustN(ft.src, aid) === 1);
       // R8 a shield: +2, gone at the second touch
       var sid = cl.src.equip.shield, cac0 = cl.baseAC, osh = sid && { slot: 'shield', id: sid, it: RRr.item(sid) };
       at(rm, s1[0] + 5, s1[1] - 1); B1.cache = null;
@@ -5379,9 +5384,9 @@
       ft.hp = 300; ft.dead = false; at(rm, s1[0], s1[1]); at(ft, s1[0] + 5, s1[1] - 1); at(wz, s1[0] + 5, s1[1] + 1); at(cl, 0, 0); cl.hp = 0; cl.dead = true; ft.conds.hidden = { dc: 25 }; wz.conds.hidden = { dc: 25 }; B1.cache = null;
       var known = D.ai.heroes(B1, rm).map(function (w) { return w.cls; });
       okM('R10 Iron Scent: both hidden 25 ft off, its AI knows of ' + JSON.stringify(known) + ' (want the fighter in metal, not the wizard)', known.indexOf('fighter') >= 0 && known.indexOf('wizard') < 0);
-      // R11 the rust past the fight: a Pocket DM seat's word carries it into the build (js/classes.js NPC.carry)
+      // R11 nothing past the fight: a word handed the old seat's rust record (012b741's Pocket DM `slot.rust`) builds whole -- no seat keeps rust now
       var plain = D.npc.build('fighter:3', 3, 'party'), rusted = D.npc.build({ word: 'fighter:3', rust: (function () { var r = {}; r[plain.src.equip.armor] = 2; r[plain.src.equip.weapon] = 5; return r; })() }, 3, 'party');
-      okM('R11 a Pocket DM seat\'s rust in the next build: AC ' + plain.baseAC + ' -> ' + (rusted && rusted.baseAC) + ', weapon ' + plain.weapon.name + ' -> ' + (rusted && rusted.weapon.name) + ' (want ' + (plain.baseAC - 2) + ', the weapon rusted through gone)', !!rusted && rusted.baseAC === plain.baseAC - 2 && rusted.weapon.id !== plain.weapon.id);
+      okM('R11 nothing past the fight: a Pocket DM word handed a rust record builds AC ' + (rusted && rusted.baseAC) + ' with the ' + (rusted && rusted.weapon.name) + ' (want ' + plain.baseAC + ', the ' + plain.weapon.name + ': whole)', !!rusted && rusted.baseAC === plain.baseAC && rusted.weapon.id === plain.weapon.id);
 
       // ---- the aboleth (srd/monsters/a.md)
       var B2 = mkM('?npc=aboleth&vs=fighter,cleric&lvl=7'), ab = sideM(B2, 'foe')[0], p2 = sideM(B2, 'party'), f2 = p2.filter(function (u) { return u.cls === 'fighter'; })[0], c2 = p2.filter(function (u) { return u.cls === 'cleric'; })[0];

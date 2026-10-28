@@ -642,7 +642,6 @@
     if (bu) {
       u0.hp = Math.max(1, Math.min(u0.maxhp, bu.hp)); u0.ko = false; u0.conds = R.lasting(bu.conds); u0.slots = (bu.slots || []).slice(); u0.feats = JSON.parse(JSON.stringify(bu.feats || {}));
       if (u0.src && bu.src && bu.src.equip) ['weapon', 'shield', 'armor'].forEach(function (k) { if (k in bu.src.equip) u0.src.equip[k] = bu.src.equip[k]; });
-      if (u0.src && bu.src && bu.src.rust) u0.src.rust = JSON.parse(JSON.stringify(bu.src.rust)); // (the rust monster's rust, kept on the sheet for good: js/monsterrules.js, 10-28)
     }
     R.packBack(B, b); R.regear(B);
     D.music('hex');
