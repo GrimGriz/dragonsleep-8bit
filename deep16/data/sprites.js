@@ -5831,6 +5831,80 @@
 }
 }
 },
+"harpy_p1": {
+"image": "art/harpy_p1.png?v=0476c6fb0f",
+"fw": 104,
+"fh": 72,
+"ax": 52,
+"ay": 66,
+"top": 51,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 104,
+"fh": 72,
+"ax": 52,
+"ay": 66,
+"frames": 6,
+"fps": 6
+},
+"walk": {
+"y": 576,
+"fw": 104,
+"fh": 72,
+"ax": 52,
+"ay": 66,
+"frames": 8,
+"fps": 10
+},
+"attack": {
+"y": 1152,
+"fw": 104,
+"fh": 72,
+"ax": 52,
+"ay": 66,
+"frames": 6,
+"fps": 10
+},
+"hurt": {
+"y": 1728,
+"fw": 104,
+"fh": 72,
+"ax": 52,
+"ay": 66,
+"frames": 6,
+"fps": 8
+},
+"flinch": {
+"y": 2304,
+"fw": 104,
+"fh": 72,
+"ax": 52,
+"ay": 66,
+"frames": 4,
+"fps": 10
+},
+"claw": {
+"y": 2880,
+"fw": 104,
+"fh": 72,
+"ax": 52,
+"ay": 66,
+"frames": 6,
+"fps": 10
+},
+"prone": {
+"y": 3456,
+"fw": 104,
+"fh": 72,
+"ax": 52,
+"ay": 66,
+"frames": 2,
+"fps": 6
+}
+},
+"source": "drawn by the art desk (ART-14 SE and NE with its two Claws corrections, 10-10; ART-56 S, E and N, 10-20), cut by tools/harpy-sheet.py through tools/artdesk.py (10-28)"
+},
 "hask_p1": {
 "image": "art/hask_p1.png?v=2cf6539d7c",
 "fw": 96,

@@ -636,6 +636,20 @@
     caster: { lvl: 4, ab: 'cha', dc: 13, atk: 5, slots: [3, 3], known: ['charmperson', 'mirrorimage'] },
     src: 'SRD 5.1 Lamia (CR 4, Large; AC 13, 97 HP, speed 30; darkvision 60; Deception +7, Insight +4, Stealth +3): Multiattack, its Claws +5 2d10+3 slashing and its Dagger +5 1d4+3 piercing or Intoxicating Touch (+5 melee spell attack: cursed an hour -- the fight -- disadvantage on WIS saves and every ability check; Greater Restoration lifts it); Innate Spellcasting (CHA, DC 13): Charm Person and Mirror Image 3/day each, as slots the class AI spends (it may spend a 2nd-level one on a Charm Person). Disguise Self at will as its False Appearance: it stands as a robed woman till its first turn or a wound. Not on the grid, plain stand-ins: Major Image, Scrying, Suggestion and Geas -- none; Disguise Self\'s any humanoid form -- the one robed woman; seeing through it (Investigation) -- none'
   },
+  // the harpy (10-28, the monster cutter seat on Griz's "filled fresh with harpies - probably a 'make the best of what it gave you' situation";
+  // asked 10-08 among "a creature a biome", Web Gulch: deep16-srd-not-yet.md): the SRD 5.1 Harpy from the mechanics the grid has; its sheet
+  // tools/harpy-sheet.py (the art desk's ART-14 SE and NE, ART-56 S, E and N). Its club plays `attack`, its claws `claw`.
+  harpy: {
+    name: 'Harpy', type: 'monstrosity', sheet: 'harpy_p1', cr: '1', ac: 11, hp: 38, speed: 20, fly: 40, size: 1, reach: 5,
+    abil: { str: 12, dex: 13, con: 12, int: 7, wis: 10, cha: 13 }, init: 1, perception: 10,
+    saves: { str: 1, dex: 1, con: 1, int: -2, wis: 0, cha: 1 },
+    attacks: {
+      claws: { name: 'Claws', atk: 3, dice: '2d4', mod: 1, type: 'slashing', reach: 5, row: 'claw' },
+      club: { name: 'Club', atk: 3, dice: '1d4', mod: 1, type: 'bludgeoning', reach: 5 }
+    },
+    multi: ['claws', 'club'],
+    src: 'SRD 5.1 Harpy (CR 1, Medium; AC 11, 38 HP, speed 20, fly 40 -- wings in every fight, js/flight-ai.js): Multiattack, its Claws +3 2d4+1 slashing and its Club +3 1d4+1 bludgeoning. Not on the grid, a plain stand-in: the Luring Song (every humanoid and giant within 300 ft, DC 11 WIS or charmed while it sings -- incapacitated, and walking to it) -- none; its Song and Fly rows are drawn and not cut'
+  },
   cloaker: {
     name: 'Cloaker', type: 'aberration', sheet: 'cloaker_p2', cr: '8', ac: 14, hp: 78, speed: 40, fly: 40, size: 2, reach: 5, darkvision: 60,
     abil: { str: 17, dex: 15, con: 12, int: 13, wis: 12, cha: 14 }, init: 2, perception: 11,
