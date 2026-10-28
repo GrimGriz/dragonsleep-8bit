@@ -2375,6 +2375,18 @@
       var cvM7 = document.createElement('canvas'); cvM7.width = d7.w * 3; cvM7.height = d7.h * 3; var cM7 = cvM7.getContext('2d'); RG.paintMap(cM7, B7, 0, 0, 3); var px7 = cM7.getImageData(35 * 3 + 1, 17 * 3 + 1, 1, 1).data;
       okG('the ways\' marks off the floors: no "Ways:" in a hello (' + (hl7.join(', ') || 'none') + '), no way named on the working gallery at 26,16 (' + (named7.join(', ') || 'none') + '), the east passage on L not green (' + [px7[0], px7[1], px7[2]].join(',') + '); the passage a way still (' + (d7.doors || []).some(function (q) { return q[0] === 35 && q[1] === 17; }) + ')',
         !hl7.length && !named7.length && !(px7[1] > 200 && px7[0] < 120 && px7[2] < 140) && (d7.doors || []).some(function (q) { return q[0] === 35 && q[1] === 17; }));
+      // 8. A DOOR WALKED TO, THEN IN (his find on Silverton's doors: "There's a thing where if you click on a door you enter it before the character walks there"): a click on
+      // Cassia's door, drawn in her wall and on its threshold -- the party walks onto the threshold, then goes in
+      var door8 = function (onWall) {
+        var B8 = testG('?roam=silverton', true), R8 = B8.roam, m8 = D.iso.map, TS = D.topview.TS, z = D.iso.inWorld ? 1 : D.iso.zoom, hw = D.iso.inWorld ? D.W / D.iso.zoom / 2 : D.W / 2, hh = D.iso.inWorld ? D.H / D.iso.zoom / 2 : D.H / 2;
+        var sq = [16, 13], bz = (m8.at(16, 12) || {}).gz || 0, wx = (sq[0] + 0.5) * TS, wy = onWall ? sq[1] * TS - bz - 3 : (sq[1] + 0.5) * TS, steps = [], st0 = RG.step;
+        RG.step = function* (B, u, to) { if (B.roam && u === B.roam.token) steps.push(to.join(',')); yield* st0.apply(this, arguments); };
+        try { R8.clicks.push({ x: (wx - D.iso.cam.x) * z + hw - 0.5, y: (wy - D.iso.cam.y) * z + hh - 0.5 }); driveG(B8.co, function () { return !!RG.def.room; }, 20000); } finally { RG.step = st0; }
+        return { room: RG.def.room || null, last: steps[steps.length - 1], n: steps.length, wall: onWall ? !!D.town.doorClick : null };
+      };
+      var dW = door8(true), dT = door8(false);
+      okG('Cassia\'s door clicked, in her wall: ' + dW.n + ' steps, the last onto ' + dW.last + ', then in (' + dW.room + '); on its threshold: the last step onto ' + dT.last + ', in (' + dT.room + ')',
+        dW.room === 'inn:cassia' && dW.last === '16,13' && dT.room === 'inn:cassia' && dT.last === '16,13');
     } catch (eG) { repG.errors.push(String(eG && eG.stack || eG).slice(0, 900)); }
     D.store.get = stGG; D.store.set = stSG; D.music = muG; try { if (skG != null) window.localStorage.setItem(SG.KEY, skG); } catch (eK2) { }
     var preG = document.createElement('pre'); preG.id = 'out'; preG.textContent = 'BENCH16 ' + JSON.stringify(repG);

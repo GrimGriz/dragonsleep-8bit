@@ -379,11 +379,12 @@
           continue;
         }
         var dc = !mk && R.def.town && D.town && D.town.doorClick ? D.town.doorClick(B, ck.x, ck.y) : null; // (a click on a door drawn in its wall: in by it, from beside its threshold -- js/town.js)
-        if (dc) { var pd = R.besidePath(B, dc.sq); if (pd && pd.length * 5 <= R.clickFt()) { yield* R.walkBeside(B, dc.sq); yield* R.fire(B, dc.trig, dc.sq); } else R.tooFar(B); continue; }
+        if (dc) { yield* R.walkInto(B, dc.trig, dc.sq); continue; }
         if (sq) {
           var use = R.useAt(B, sq.x, sq.y);
           if (!use && R.def.room && R.def.across && sq.x === R.def.across[0] && sq.y === R.def.across[1]) use = R.useAt(B, sq.x, sq.y - 1); // (the spot across the counter clicked: the word with the keeper)
           if (use && use.town === 'talk' && R.def.room && R.def.across) { yield* R.fire(B, use, [sq.x, sq.y]); continue; } // (the keeper or the counter clicked: the word across the counter -- js/town.js T.fire walks there)
+          if (use && use.town === 'door') { yield* R.walkInto(B, use, [sq.x, sq.y]); continue; } // (a door's threshold clicked: onto it, then in)
           if (use) { var pu = R.besidePath(B, [sq.x, sq.y]); if (pu && pu.length * 5 <= R.clickFt()) { yield* R.walkBeside(B, [sq.x, sq.y]); yield* R.fire(B, use, [sq.x, sq.y]); } else R.tooFar(B); continue; }
           var pth = R.walkRoute(t, [sq.x, sq.y]);
           if (!pth) { D.sfx('miss'); B.card(['{g}No way there from here.{/}'], 120); }
@@ -517,6 +518,16 @@
     var p = R.walkRoute(t, at); if (!p) return false;
     while (p.length) { yield* R.step(B, t, p.shift()); var ev = yield* R.arrive(B); if (ev) return false; }
     t.anim = 'idle'; t.animT = B.t; return t.x === at[0] && t.y === at[1];
+  };
+  // a door clicked -- drawn in its wall (js/town.js T.doorClick) or its threshold (R.useAt) -- walked to, and in from its threshold with the last step finished (10-28, his find
+  // on Silverton's doors: "There's a thing where if you click on a door you enter it before the character walks there" -- it had gone in from the square beside the threshold);
+  // a threshold someone stands on, or no way onto it, from beside it as before
+  R.walkInto = function* (B, trig, sq) {
+    var t = B.roam.token, p = t.x === sq[0] && t.y === sq[1] ? [] : R.walkRoute(t, sq);
+    if (!p) { var pb = R.besidePath(B, sq); if (pb && pb.length * 5 <= R.clickFt()) { yield* R.walkBeside(B, sq); yield* R.fire(B, trig, sq); } else R.tooFar(B); return; }
+    if (p.length * 5 > R.clickFt()) { R.tooFar(B); return; }
+    if (!(yield* R.walkTo(B, sq))) return;
+    yield* R.fire(B, trig, sq);
   };
   R.walkBeside = function* (B, at) {
     var t = B.roam.token, best = R.besidePath(B, at);
