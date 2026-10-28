@@ -370,3 +370,955 @@ HEAD 5 -- THE WOMAN straight from behind, facing away from the viewer: rows only
 Draw each HEAD above as its own separate image, in the order given: one sheet an image, never two sheets in one image. Every sheet: 16-bit pixel art animation sheet, SNES-era action RPG style, crisp dark outline, readable at small size. Isometric three-quarter view from above, the camera looking down at about thirty degrees, as in a tactics game. Flat dark navy background (a deep blue, not grey and not black). ONE sheet filling the whole image: no other panels, no title. Only the first sheet has a portrait and a turnaround -- top left one large portrait, beside it four stills labelled Front, Right, Back, Left; every later sheet is rows only and draws her exactly as the first sheet's turnaround shows her, the same look, colours and size. Labelled rows of frames, each row's name at its left, numbered 1 to N under each frame -- every number used once, none skipped, one drawing for each number. Every frame faces the way its HEAD says; a walk is animated in place, not travelling across the sheet. Every frame stands apart with clear space around it: nothing overlaps a neighbour or a label. The same scale in every row and on every sheet, feet on one baseline. No scenery except what a row names.
 ```
 Cut as: rows onto `lamia_p1` (tools/lamia-sheet.py) -- Idle -> `still` (the woman she stands as, a breath now where it is one frame), Walk -> `stillwalk`, Cast -> `stillcast` (her spark drawn by the code, tools/castspark.py); HEAD 1 SE, HEAD 2 NE, HEAD 3 S, HEAD 4 E, HEAD 5 N, the cutter mirroring SE for SW, E for W, NE for NW. Each view scaled by the Disguise row's frame 6 of the same view (the woman already on the grid), so she is the same size she reveals from. **Walk and Cast play only on his word:** today she drops the disguise on her first turn (the first cutter's lean 1); kept while she walks and casts and dropped at her first blow or a wound, they would play.
+
+## 25. The town's and the mines' unnamed: a portrait face for each kind of person (added 10-28, the second cutter seat)
+
+His words, his ear files of 10-28 (relayed by the lanes desk): *"art request for a generic NPC face portrait with 'drinker, gambler, and any other variants we need (guano scraper, etc.) where we do variants instead of 'skeptical' and similar we have for the good NPCs, as well a a request for the portrait page and embodied sprites for other named NPCs encountered (we should probably get SE-E-NE-N facings for all the NPCs we already have south facings for"*. Each kind of unnamed person the crowds hold gets one face, as the named have their moods: a drinker, a gambler, a guano scraper and the rest -- read off the people the second game stands on its floors (Silverton's street, the Hex, the Crawler Warrens, the Guano Galleries, the Glowseep: content/maps/*.json `npcs`, deep16/js/hex.js HX.PEOPLE, deep16/js/mines.js M.CREW). Today they speak on a plain card; with a face, on the counter screen as the named do (deep16/js/counter.js). One drawing each, the talking portrait's format: no moods and no work for them.
+
+### The unnamed, one face a kind
+```text
+THE UNNAMED OF SILVERTON AND ITS MINES -- talking-portrait faces for a game's ordinary people, one drawing an image, each a different person of a frontier mining town (worn work clothes, sun and dust; nobody heroic, nobody grotesque).
+
+HEAD 1 -- THE DRINKER (a man) (one drawing): a hard-drinking shaft hand in a stained work shirt, sallow and stubbled, a clay mug of ale held on the ledge, eyes a little too bright.
+
+HEAD 2 -- THE DRINKER (a woman) (one drawing): a tired woman of the shaft rows in a patched shawl and work dress, hair pinned back carelessly, a cup cradled in both hands on the ledge.
+
+HEAD 3 -- THE GAMBLER (one drawing): a sharp, well-fed man in a good coat gone shiny at the cuffs, rings on two fingers, a fan of cards and a short stack of coins on the ledge, a measuring look.
+
+HEAD 4 -- THE BARTENDER (one drawing): a broad, unhurried barkeep with rolled sleeves and a leather apron, a rag over one shoulder, wiping a mug.
+
+HEAD 5 -- THE TOWNSMAN (one drawing): an ordinary Silverton man in a plain coat and cap, a shopkeeper's neatness worn thin.
+
+HEAD 6 -- THE TOWNSWOMAN (one drawing): an ordinary Silverton woman in a plain dress and shawl, a market basket on her arm.
+
+HEAD 7 -- THE HAND (one drawing): a day laborer of the hiring corner, rawboned, a sweat-stained shirt and a coil of rope over one shoulder.
+
+HEAD 8 -- THE SHAFT HAND (one drawing): a miner off shift: a dusty leather jerkin, a candle-stub helmet pushed back, grime in the creases of the face and knuckles.
+
+HEAD 9 -- THE GUANO SCRAPER (one drawing): a scraper of the Guano Galleries: a cloth tied over nose and mouth pulled down to speak, a hooded lamp, a long-handled scraper, everything powdered pale grey-brown with guano dust.
+
+HEAD 10 -- THE CREW BOSS (one drawing): a weathered crew boss with a tally stick and a hooded lamp, a whistle on a cord, the look of someone counting heads.
+
+HEAD 11 -- THE DRIVE SPEAR (one drawing): a bat-drive hand of the Galleries: a short spear held upright, a leather cap and shoulder guard, watching the dark above.
+
+HEAD 12 -- THE CRAWLER HAND (one drawing): a hand of the Crawler Warrens' pens: leather gloves to the elbow, a milking thimble on a thong at the throat, wary and patient.
+
+HEAD 13 -- THE GUARD (one drawing): a hired guard in a padded jack and an iron cap, a spear haft at the shoulder, bored and watchful.
+
+HEAD 14 -- THE CLERK (one drawing): a warehouse clerk in sleeve-guards and a plain waistcoat, a pen behind the ear, a wax tablet on the ledge.
+
+HEAD 15 -- THE FACTOR'S MAN (one drawing): a factor's agent in a dark, well-cut coat and a high collar, gloved, a sealed letter on the ledge, polite and unreadable.
+
+HEAD 16 -- THE LIGHT-CREW HAND (one drawing): a veteran of the Glowseep's light crews: a long pole over the shoulder, a damp oilcloth cape, a faint green glow of moss on the gloves.
+
+HEAD 17 -- THE BOY (one drawing): a boy of about ten from the shaft rows, quick and thin, a cap too big for him.
+
+HEAD 18 -- THE GIRL (one drawing): a girl of about ten from the shaft rows, braided hair, a patched apron, curious.
+
+Every HEAD: 16-bit pixel-art cut-scene portrait animation, comparable to the art desk's ART-78 (Ambrose Winters) and Sylvia Swann. Waist-up behind a plain dark wooden counter ledge, a stable eye-level three-quarter front camera, looking screen left at someone just beside the camera; the head and body the same size on every page as on the Idle page. Crisp pixel clusters and restrained shading. Flat dark navy background (a deep blue, not grey and not black). Each image 1440 x 810, ONE action an image, six-frame actions in two bands of three with clear gutters; the counter ledge under the hands on every frame, its top edge at the same height. A title and frame numbers as on ART-78's pages, kept well clear of the drawings. No scenery, no UI or border. Each HEAD is one person, one still drawing, looking screen left as if just spoken to.
+```
+Where each stands in the game: The drinker (a man) -- the Hex's patrons (`hexpatron1`), its tables; The drinker (a woman) -- the Hex's patrons (`hexpatron2`); The gambler -- the Hex's gambling floor (`gambler1`, `gambler2`); The bartender -- the Hex's two bars (`bartenderS`, `bartenderE`); The townsman -- Silverton's street (`towns1`); The townswoman -- Silverton's street (`towns2`); The hand -- Silverton's street (`towns3`), the Galleries' rope-war ground (`ropewar`); The shaft hand -- Silverton's street (`towns5`), the Warrens' crews (`crew1`, `crew2`); The guano scraper -- the Galleries' working floor (`scraper1`, `scraper2`); The crew boss -- the Galleries' scrape boss (`scrapeboss`); The drive spear -- the Galleries' drive ground (`drivecrew`); The crawler hand -- the Warrens' camp and pens; The guard -- Silverton's west gate (`guard1`), Dunmore's line at the Warrens (`dunmoreLine`); The clerk -- Silverton's street (`towns6`); The factor's man -- Silverton's street (`towns7`); The light-crew hand -- the Glowseep's three (`seepcrew1` to `seepcrew3`); The boy -- Silverton's street (`towns4`); The girl -- Silverton's street (`towns8`).
+Cut as: one sheet `pt_folk` by `tools/portrait-sheet.py` (a layout of one page a row, each row one frame), a row a kind; js/counter.js gives each unnamed id its kind's row (the game's ids above). No town figures asked: the unnamed stand on the townsfolk's sheets (`folkman_p1`, `folkwoman_p1`, `folkchild_p1`) and the stand-ins.
+
+## 26. The named still without a face or a body: a talking portrait and a town figure in all five views (added 10-28, the second cutter seat)
+
+His words, his ear files of 10-28 (relayed by the lanes desk): *"art request for a generic NPC face portrait with 'drinker, gambler, and any other variants we need (guano scraper, etc.) where we do variants instead of 'skeptical' and similar we have for the good NPCs, as well a a request for the portrait page and embodied sprites for other named NPCs encountered (we should probably get SE-E-NE-N facings for all the NPCs we already have south facings for"*. The named people the second game stands on its floors with no portrait page and no figure of their own (checked 10-28 against `deep16/art/pt_*` and the `_p1` sheets): Silverton's Falstaff (the only door keeper still without), the street's named, the Hex's Warda, the Warrens' and the Galleries' people. Each block the keepers' shape (art-wanted §20), with the town figure in all five views (RULED 10-14: S, SE, E, NE, N; the cutter mirrors the rest). Talmok, the Hex's champion, has a figure (`talmok_p1`) and wants a portrait only: his block is the last. Words marked [seat] are the seat's, where the register gives no look.
+
+### Falstaff
+ATTACH `deep16/_src/winters/ART-78/ART-78_HEAD-1_PAGE-1.png` and `ART-78_HEAD-1_PAGE-6.png` (the portrait pages' shape, for the format only, not the face) and `deep16/_src/art-desk/sent/REF-2026-10-21-town-figure-size.png` (the town figure's size).
+```text
+FALSTAFF -- the factor's clerk of the factor house on Fountain Street (pin 7a): his voice burned by a wizard in the ash-years, it comes out a rasp; a careful, watchful man of middle years in a clerk's dark coat, a scarf or high collar over a scarred throat [seat].
+
+HEAD 1 -- IDLE (6, two bands of three): a breathing and blink loop at the counter, hands resting on it; loops cleanly.
+HEAD 2 -- ATTENTIVE (1): neutral listening.
+HEAD 3 -- WELCOMING (1): restrained warmth.
+HEAD 4 -- SKEPTICAL (1): weighing the face in front of them.
+HEAD 5 -- CONCERNED (1): a guarded refusal.
+HEAD 6 -- WORK (6, two bands of three): dips a pen and writes one line in a ledger, blots it, looks up; the last frame the hands back at rest.
+
+HEAD 7 -- THE TOWN FIGURE from the front, facing the viewer (south): Idle (4: standing at ease, a slow breath; the same pose on every frame but the breath).
+HEAD 8 -- THE TOWN FIGURE from the bottom-right, every frame facing toward the bottom-right corner of the image: Idle (4: standing at ease, a slow breath; the same pose on every frame but the breath).
+HEAD 9 -- THE TOWN FIGURE from the right side in profile, facing right: Idle (4: standing at ease, a slow breath; the same pose on every frame but the breath).
+HEAD 10 -- THE TOWN FIGURE from the top-right, seen from behind, every frame facing toward the top-right corner of the image: Idle (4: standing at ease, a slow breath; the same pose on every frame but the breath).
+HEAD 11 -- THE TOWN FIGURE straight from behind, facing away from the viewer: Idle (4: standing at ease, a slow breath; the same pose on every frame but the breath).
+
+HEADs 1-6 (the talking portrait): 16-bit pixel-art cut-scene portrait animation, comparable to the art desk's ART-78 (Ambrose Winters) and Sylvia Swann. Waist-up behind a plain dark wooden counter ledge, a stable eye-level three-quarter front camera, looking screen left at someone just beside the camera; the head and body the same size on every page as on the Idle page. Crisp pixel clusters and restrained shading. Flat dark navy background (a deep blue, not grey and not black). Each image 1440 x 810, ONE action an image, six-frame actions in two bands of three with clear gutters; the counter ledge under the hands on every frame, its top edge at the same height. A title and frame numbers as on ART-78's pages, kept well clear of the drawings. No scenery, no UI or border.
+
+HEADs 7-11 (the town figure): 16-bit pixel art animation sheet, SNES-era action RPG style, crisp dark outline, readable at small size. Isometric three-quarter view from above, the camera looking down at about thirty degrees, as in a tactics game -- the grid's own figures. The whole figure head to foot, the same size and proportions as the attached figures (a grown man stands about 50 pixels from sole to crown at game size; draw it large, the cutter brings it down). Flat dark navy background (a deep blue, not grey and not black). ONE sheet filling the whole image: no portrait, no other panels, no title. One labelled row of frames, its name at its left, numbered 1 to N under each frame -- every number used once, none skipped. Every frame stands apart with clear space around it. Feet on one baseline. No scenery, no counter.
+```
+Where: his door, pin 7a (`keeper:falstaff`). Cut as: `tools/portrait-sheet.py` (a `PEOPLE` line) into `pt_falstaff`; `tools/keeper-town-sheet.py` into `falstaff_p1` in all five views (HEAD 7 S, 8 SE, 9 E, 10 NE, 11 N; SW, W, NW their mirrors); js/counter.js C.VENDORS and C.FIG.
+
+### Papa Urtusk
+ATTACH `deep16/_src/winters/ART-78/ART-78_HEAD-1_PAGE-1.png` and `ART-78_HEAD-1_PAGE-6.png` (the portrait pages' shape, for the format only, not the face) and `deep16/_src/art-desk/sent/REF-2026-10-21-town-figure-size.png` (the town figure's size).
+```text
+PAPA URTUSK -- a full orc in his eighties, the Hex's patriarch: huge and slow, grey-green skin, white hair and a white beard, heavy tusks, once the warlord's muscle and the town's shield; a plain old coat over a broad chest [seat].
+
+HEAD 1 -- IDLE (6, two bands of three): a breathing and blink loop at the counter, hands resting on it; loops cleanly.
+HEAD 2 -- ATTENTIVE (1): neutral listening.
+HEAD 3 -- WELCOMING (1): restrained warmth.
+HEAD 4 -- SKEPTICAL (1): weighing the face in front of them.
+HEAD 5 -- CONCERNED (1): a guarded refusal.
+HEAD 6 -- WORK (6, two bands of three): sets a heavy mug down on the ledge and folds his great hands over it; the last frame the hands back at rest.
+
+HEAD 7 -- THE TOWN FIGURE from the front, facing the viewer (south): Idle (4: standing at ease, a slow breath; the same pose on every frame but the breath).
+HEAD 8 -- THE TOWN FIGURE from the bottom-right, every frame facing toward the bottom-right corner of the image: Idle (4: standing at ease, a slow breath; the same pose on every frame but the breath).
+HEAD 9 -- THE TOWN FIGURE from the right side in profile, facing right: Idle (4: standing at ease, a slow breath; the same pose on every frame but the breath).
+HEAD 10 -- THE TOWN FIGURE from the top-right, seen from behind, every frame facing toward the top-right corner of the image: Idle (4: standing at ease, a slow breath; the same pose on every frame but the breath).
+HEAD 11 -- THE TOWN FIGURE straight from behind, facing away from the viewer: Idle (4: standing at ease, a slow breath; the same pose on every frame but the breath).
+
+HEADs 1-6 (the talking portrait): 16-bit pixel-art cut-scene portrait animation, comparable to the art desk's ART-78 (Ambrose Winters) and Sylvia Swann. Waist-up behind a plain dark wooden counter ledge, a stable eye-level three-quarter front camera, looking screen left at someone just beside the camera; the head and body the same size on every page as on the Idle page. Crisp pixel clusters and restrained shading. Flat dark navy background (a deep blue, not grey and not black). Each image 1440 x 810, ONE action an image, six-frame actions in two bands of three with clear gutters; the counter ledge under the hands on every frame, its top edge at the same height. A title and frame numbers as on ART-78's pages, kept well clear of the drawings. No scenery, no UI or border.
+
+HEADs 7-11 (the town figure): 16-bit pixel art animation sheet, SNES-era action RPG style, crisp dark outline, readable at small size. Isometric three-quarter view from above, the camera looking down at about thirty degrees, as in a tactics game -- the grid's own figures. The whole figure head to foot, the same size and proportions as the attached figures (a grown man stands about 50 pixels from sole to crown at game size; draw it large, the cutter brings it down). Flat dark navy background (a deep blue, not grey and not black). ONE sheet filling the whole image: no portrait, no other panels, no title. One labelled row of frames, its name at its left, numbered 1 to N under each frame -- every number used once, none skipped. Every frame stands apart with clear space around it. Feet on one baseline. No scenery, no counter.
+```
+Where: Silverton's street before the Hex (`papa`). Cut as: `tools/portrait-sheet.py` (a `PEOPLE` line) into `pt_papa`; `tools/keeper-town-sheet.py` into `papa_p1` in all five views (HEAD 7 S, 8 SE, 9 E, 10 NE, 11 N; SW, W, NW their mirrors); js/counter.js C.VENDORS and C.FIG.
+
+### Idony Fell
+ATTACH `deep16/_src/winters/ART-78/ART-78_HEAD-1_PAGE-1.png` and `ART-78_HEAD-1_PAGE-6.png` (the portrait pages' shape, for the format only, not the face) and `deep16/_src/art-desk/sent/REF-2026-10-21-town-figure-size.png` (the town figure's size).
+```text
+IDONY FELL -- the notary's senior clerk, a woman: plain, grey-eyed, dressed like a clerk and mistaken for one on purpose; reads every ledger and forgets nothing.
+
+HEAD 1 -- IDLE (6, two bands of three): a breathing and blink loop at the counter, hands resting on it; loops cleanly.
+HEAD 2 -- ATTENTIVE (1): neutral listening.
+HEAD 3 -- WELCOMING (1): restrained warmth.
+HEAD 4 -- SKEPTICAL (1): weighing the face in front of them.
+HEAD 5 -- CONCERNED (1): a guarded refusal.
+HEAD 6 -- WORK (6, two bands of three): turns a ledger page and runs one finger down the column, without looking down for long; the last frame the hands back at rest.
+
+HEAD 7 -- THE TOWN FIGURE from the front, facing the viewer (south): Idle (4: standing at ease, a slow breath; the same pose on every frame but the breath).
+HEAD 8 -- THE TOWN FIGURE from the bottom-right, every frame facing toward the bottom-right corner of the image: Idle (4: standing at ease, a slow breath; the same pose on every frame but the breath).
+HEAD 9 -- THE TOWN FIGURE from the right side in profile, facing right: Idle (4: standing at ease, a slow breath; the same pose on every frame but the breath).
+HEAD 10 -- THE TOWN FIGURE from the top-right, seen from behind, every frame facing toward the top-right corner of the image: Idle (4: standing at ease, a slow breath; the same pose on every frame but the breath).
+HEAD 11 -- THE TOWN FIGURE straight from behind, facing away from the viewer: Idle (4: standing at ease, a slow breath; the same pose on every frame but the breath).
+
+HEADs 1-6 (the talking portrait): 16-bit pixel-art cut-scene portrait animation, comparable to the art desk's ART-78 (Ambrose Winters) and Sylvia Swann. Waist-up behind a plain dark wooden counter ledge, a stable eye-level three-quarter front camera, looking screen left at someone just beside the camera; the head and body the same size on every page as on the Idle page. Crisp pixel clusters and restrained shading. Flat dark navy background (a deep blue, not grey and not black). Each image 1440 x 810, ONE action an image, six-frame actions in two bands of three with clear gutters; the counter ledge under the hands on every frame, its top edge at the same height. A title and frame numbers as on ART-78's pages, kept well clear of the drawings. No scenery, no UI or border.
+
+HEADs 7-11 (the town figure): 16-bit pixel art animation sheet, SNES-era action RPG style, crisp dark outline, readable at small size. Isometric three-quarter view from above, the camera looking down at about thirty degrees, as in a tactics game -- the grid's own figures. The whole figure head to foot, the same size and proportions as the attached figures (a grown man stands about 50 pixels from sole to crown at game size; draw it large, the cutter brings it down). Flat dark navy background (a deep blue, not grey and not black). ONE sheet filling the whole image: no portrait, no other panels, no title. One labelled row of frames, its name at its left, numbered 1 to N under each frame -- every number used once, none skipped. Every frame stands apart with clear space around it. Feet on one baseline. No scenery, no counter.
+```
+Where: Silverton's street by the notary's (`idony`). Cut as: `tools/portrait-sheet.py` (a `PEOPLE` line) into `pt_idony`; `tools/keeper-town-sheet.py` into `idony_p1` in all five views (HEAD 7 S, 8 SE, 9 E, 10 NE, 11 N; SW, W, NW their mirrors); js/counter.js C.VENDORS and C.FIG.
+
+### Signy the rope-maker
+ATTACH `deep16/_src/winters/ART-78/ART-78_HEAD-1_PAGE-1.png` and `ART-78_HEAD-1_PAGE-6.png` (the portrait pages' shape, for the format only, not the face) and `deep16/_src/art-desk/sent/REF-2026-10-21-town-figure-size.png` (the town figure's size).
+```text
+SIGNY THE ROPE-MAKER -- a dwarf woman grown old-looking among humans: she looks sixty and has not aged in anyone's memory; strong hands, a braid gone grey, a rope-maker's leather apron.
+
+HEAD 1 -- IDLE (6, two bands of three): a breathing and blink loop at the counter, hands resting on it; loops cleanly.
+HEAD 2 -- ATTENTIVE (1): neutral listening.
+HEAD 3 -- WELCOMING (1): restrained warmth.
+HEAD 4 -- SKEPTICAL (1): weighing the face in front of them.
+HEAD 5 -- CONCERNED (1): a guarded refusal.
+HEAD 6 -- WORK (6, two bands of three): twists two strands of cord together into rope and pulls them tight; the last frame the hands back at rest.
+
+HEAD 7 -- THE TOWN FIGURE from the front, facing the viewer (south): Idle (4: standing at ease, a slow breath; the same pose on every frame but the breath).
+HEAD 8 -- THE TOWN FIGURE from the bottom-right, every frame facing toward the bottom-right corner of the image: Idle (4: standing at ease, a slow breath; the same pose on every frame but the breath).
+HEAD 9 -- THE TOWN FIGURE from the right side in profile, facing right: Idle (4: standing at ease, a slow breath; the same pose on every frame but the breath).
+HEAD 10 -- THE TOWN FIGURE from the top-right, seen from behind, every frame facing toward the top-right corner of the image: Idle (4: standing at ease, a slow breath; the same pose on every frame but the breath).
+HEAD 11 -- THE TOWN FIGURE straight from behind, facing away from the viewer: Idle (4: standing at ease, a slow breath; the same pose on every frame but the breath).
+
+HEADs 1-6 (the talking portrait): 16-bit pixel-art cut-scene portrait animation, comparable to the art desk's ART-78 (Ambrose Winters) and Sylvia Swann. Waist-up behind a plain dark wooden counter ledge, a stable eye-level three-quarter front camera, looking screen left at someone just beside the camera; the head and body the same size on every page as on the Idle page. Crisp pixel clusters and restrained shading. Flat dark navy background (a deep blue, not grey and not black). Each image 1440 x 810, ONE action an image, six-frame actions in two bands of three with clear gutters; the counter ledge under the hands on every frame, its top edge at the same height. A title and frame numbers as on ART-78's pages, kept well clear of the drawings. No scenery, no UI or border.
+
+HEADs 7-11 (the town figure): 16-bit pixel art animation sheet, SNES-era action RPG style, crisp dark outline, readable at small size. Isometric three-quarter view from above, the camera looking down at about thirty degrees, as in a tactics game -- the grid's own figures. The whole figure head to foot, the same size and proportions as the attached figures (a grown man stands about 50 pixels from sole to crown at game size; draw it large, the cutter brings it down). Flat dark navy background (a deep blue, not grey and not black). ONE sheet filling the whole image: no portrait, no other panels, no title. One labelled row of frames, its name at its left, numbered 1 to N under each frame -- every number used once, none skipped. Every frame stands apart with clear space around it. Feet on one baseline. No scenery, no counter.
+```
+Where: the shaft rows (`signy`). Cut as: `tools/portrait-sheet.py` (a `PEOPLE` line) into `pt_signy`; `tools/keeper-town-sheet.py` into `signy_p1` in all five views (HEAD 7 S, 8 SE, 9 E, 10 NE, 11 N; SW, W, NW their mirrors); js/counter.js C.VENDORS and C.FIG.
+
+### Elsbeth the candle girl
+ATTACH `deep16/_src/winters/ART-78/ART-78_HEAD-1_PAGE-1.png` and `ART-78_HEAD-1_PAGE-6.png` (the portrait pages' shape, for the format only, not the face) and `deep16/_src/art-desk/sent/REF-2026-10-21-town-figure-size.png` (the town figure's size).
+```text
+ELSBETH THE CANDLE GIRL -- a girl of about sixteen on vice row with a tray of candles hung from her neck and a lamp on a pole; guarded, nearly smiling.
+
+HEAD 1 -- IDLE (6, two bands of three): a breathing and blink loop at the counter, hands resting on it; loops cleanly.
+HEAD 2 -- ATTENTIVE (1): neutral listening.
+HEAD 3 -- WELCOMING (1): restrained warmth.
+HEAD 4 -- SKEPTICAL (1): weighing the face in front of them.
+HEAD 5 -- CONCERNED (1): a guarded refusal.
+HEAD 6 -- WORK (6, two bands of three): lifts a candle from the tray and lights it from the lamp, offers it; the last frame the hands back at rest.
+
+HEAD 7 -- THE TOWN FIGURE from the front, facing the viewer (south): Idle (4: standing at ease, a slow breath; the same pose on every frame but the breath).
+HEAD 8 -- THE TOWN FIGURE from the bottom-right, every frame facing toward the bottom-right corner of the image: Idle (4: standing at ease, a slow breath; the same pose on every frame but the breath).
+HEAD 9 -- THE TOWN FIGURE from the right side in profile, facing right: Idle (4: standing at ease, a slow breath; the same pose on every frame but the breath).
+HEAD 10 -- THE TOWN FIGURE from the top-right, seen from behind, every frame facing toward the top-right corner of the image: Idle (4: standing at ease, a slow breath; the same pose on every frame but the breath).
+HEAD 11 -- THE TOWN FIGURE straight from behind, facing away from the viewer: Idle (4: standing at ease, a slow breath; the same pose on every frame but the breath).
+
+HEADs 1-6 (the talking portrait): 16-bit pixel-art cut-scene portrait animation, comparable to the art desk's ART-78 (Ambrose Winters) and Sylvia Swann. Waist-up behind a plain dark wooden counter ledge, a stable eye-level three-quarter front camera, looking screen left at someone just beside the camera; the head and body the same size on every page as on the Idle page. Crisp pixel clusters and restrained shading. Flat dark navy background (a deep blue, not grey and not black). Each image 1440 x 810, ONE action an image, six-frame actions in two bands of three with clear gutters; the counter ledge under the hands on every frame, its top edge at the same height. A title and frame numbers as on ART-78's pages, kept well clear of the drawings. No scenery, no UI or border.
+
+HEADs 7-11 (the town figure): 16-bit pixel art animation sheet, SNES-era action RPG style, crisp dark outline, readable at small size. Isometric three-quarter view from above, the camera looking down at about thirty degrees, as in a tactics game -- the grid's own figures. The whole figure head to foot, the same size and proportions as the attached figures (a grown man stands about 50 pixels from sole to crown at game size; draw it large, the cutter brings it down). Flat dark navy background (a deep blue, not grey and not black). ONE sheet filling the whole image: no portrait, no other panels, no title. One labelled row of frames, its name at its left, numbered 1 to N under each frame -- every number used once, none skipped. Every frame stands apart with clear space around it. Feet on one baseline. No scenery, no counter.
+```
+Where: vice row (`elsbethCandles`). Cut as: `tools/portrait-sheet.py` (a `PEOPLE` line) into `pt_elsbethCandles`; `tools/keeper-town-sheet.py` into `elsbethCandles_p1` in all five views (HEAD 7 S, 8 SE, 9 E, 10 NE, 11 N; SW, W, NW their mirrors); js/counter.js C.VENDORS and C.FIG.
+
+### Old Hob Rennick
+ATTACH `deep16/_src/winters/ART-78/ART-78_HEAD-1_PAGE-1.png` and `ART-78_HEAD-1_PAGE-6.png` (the portrait pages' shape, for the format only, not the face) and `deep16/_src/art-desk/sent/REF-2026-10-21-town-figure-size.png` (the town figure's size).
+```text
+OLD HOB RENNICK -- the Crawler Warrens' old hand, in his sixties: a dosed veteran, past the lamp-line more times than the book says; thin, sly, a battered hat and a crew coat.
+
+HEAD 1 -- IDLE (6, two bands of three): a breathing and blink loop at the counter, hands resting on it; loops cleanly.
+HEAD 2 -- ATTENTIVE (1): neutral listening.
+HEAD 3 -- WELCOMING (1): restrained warmth.
+HEAD 4 -- SKEPTICAL (1): weighing the face in front of them.
+HEAD 5 -- CONCERNED (1): a guarded refusal.
+HEAD 6 -- WORK (6, two bands of three): tips a small thimble into his palm, looks at it, closes his hand; the last frame the hands back at rest.
+
+HEAD 7 -- THE TOWN FIGURE from the front, facing the viewer (south): Idle (4: standing at ease, a slow breath; the same pose on every frame but the breath).
+HEAD 8 -- THE TOWN FIGURE from the bottom-right, every frame facing toward the bottom-right corner of the image: Idle (4: standing at ease, a slow breath; the same pose on every frame but the breath).
+HEAD 9 -- THE TOWN FIGURE from the right side in profile, facing right: Idle (4: standing at ease, a slow breath; the same pose on every frame but the breath).
+HEAD 10 -- THE TOWN FIGURE from the top-right, seen from behind, every frame facing toward the top-right corner of the image: Idle (4: standing at ease, a slow breath; the same pose on every frame but the breath).
+HEAD 11 -- THE TOWN FIGURE straight from behind, facing away from the viewer: Idle (4: standing at ease, a slow breath; the same pose on every frame but the breath).
+
+HEADs 1-6 (the talking portrait): 16-bit pixel-art cut-scene portrait animation, comparable to the art desk's ART-78 (Ambrose Winters) and Sylvia Swann. Waist-up behind a plain dark wooden counter ledge, a stable eye-level three-quarter front camera, looking screen left at someone just beside the camera; the head and body the same size on every page as on the Idle page. Crisp pixel clusters and restrained shading. Flat dark navy background (a deep blue, not grey and not black). Each image 1440 x 810, ONE action an image, six-frame actions in two bands of three with clear gutters; the counter ledge under the hands on every frame, its top edge at the same height. A title and frame numbers as on ART-78's pages, kept well clear of the drawings. No scenery, no UI or border.
+
+HEADs 7-11 (the town figure): 16-bit pixel art animation sheet, SNES-era action RPG style, crisp dark outline, readable at small size. Isometric three-quarter view from above, the camera looking down at about thirty degrees, as in a tactics game -- the grid's own figures. The whole figure head to foot, the same size and proportions as the attached figures (a grown man stands about 50 pixels from sole to crown at game size; draw it large, the cutter brings it down). Flat dark navy background (a deep blue, not grey and not black). ONE sheet filling the whole image: no portrait, no other panels, no title. One labelled row of frames, its name at its left, numbered 1 to N under each frame -- every number used once, none skipped. Every frame stands apart with clear space around it. Feet on one baseline. No scenery, no counter.
+```
+Where: Silverton and the Warrens (`oldhob`, `hobCamp`, `hobB`, `hobC`). Cut as: `tools/portrait-sheet.py` (a `PEOPLE` line) into `pt_oldhob`; `tools/keeper-town-sheet.py` into `oldhob_p1` in all five views (HEAD 7 S, 8 SE, 9 E, 10 NE, 11 N; SW, W, NW their mirrors); js/counter.js C.VENDORS and C.FIG.
+
+### Warrens Pete
+ATTACH `deep16/_src/winters/ART-78/ART-78_HEAD-1_PAGE-1.png` and `ART-78_HEAD-1_PAGE-6.png` (the portrait pages' shape, for the format only, not the face) and `deep16/_src/art-desk/sent/REF-2026-10-21-town-figure-size.png` (the town figure's size).
+```text
+WARRENS PETE -- a shaft hand who went down past the wet with five and came up alone; tells it bigger every night and says "six" too fast; red-eyed, unshaven, a drinker.
+
+HEAD 1 -- IDLE (6, two bands of three): a breathing and blink loop at the counter, hands resting on it; loops cleanly.
+HEAD 2 -- ATTENTIVE (1): neutral listening.
+HEAD 3 -- WELCOMING (1): restrained warmth.
+HEAD 4 -- SKEPTICAL (1): weighing the face in front of them.
+HEAD 5 -- CONCERNED (1): a guarded refusal.
+HEAD 6 -- WORK (6, two bands of three): lifts his mug, drinks, sets it down hard; the last frame the hands back at rest.
+
+HEAD 7 -- THE TOWN FIGURE from the front, facing the viewer (south): Idle (4: standing at ease, a slow breath; the same pose on every frame but the breath).
+HEAD 8 -- THE TOWN FIGURE from the bottom-right, every frame facing toward the bottom-right corner of the image: Idle (4: standing at ease, a slow breath; the same pose on every frame but the breath).
+HEAD 9 -- THE TOWN FIGURE from the right side in profile, facing right: Idle (4: standing at ease, a slow breath; the same pose on every frame but the breath).
+HEAD 10 -- THE TOWN FIGURE from the top-right, seen from behind, every frame facing toward the top-right corner of the image: Idle (4: standing at ease, a slow breath; the same pose on every frame but the breath).
+HEAD 11 -- THE TOWN FIGURE straight from behind, facing away from the viewer: Idle (4: standing at ease, a slow breath; the same pose on every frame but the breath).
+
+HEADs 1-6 (the talking portrait): 16-bit pixel-art cut-scene portrait animation, comparable to the art desk's ART-78 (Ambrose Winters) and Sylvia Swann. Waist-up behind a plain dark wooden counter ledge, a stable eye-level three-quarter front camera, looking screen left at someone just beside the camera; the head and body the same size on every page as on the Idle page. Crisp pixel clusters and restrained shading. Flat dark navy background (a deep blue, not grey and not black). Each image 1440 x 810, ONE action an image, six-frame actions in two bands of three with clear gutters; the counter ledge under the hands on every frame, its top edge at the same height. A title and frame numbers as on ART-78's pages, kept well clear of the drawings. No scenery, no UI or border.
+
+HEADs 7-11 (the town figure): 16-bit pixel art animation sheet, SNES-era action RPG style, crisp dark outline, readable at small size. Isometric three-quarter view from above, the camera looking down at about thirty degrees, as in a tactics game -- the grid's own figures. The whole figure head to foot, the same size and proportions as the attached figures (a grown man stands about 50 pixels from sole to crown at game size; draw it large, the cutter brings it down). Flat dark navy background (a deep blue, not grey and not black). ONE sheet filling the whole image: no portrait, no other panels, no title. One labelled row of frames, its name at its left, numbered 1 to N under each frame -- every number used once, none skipped. Every frame stands apart with clear space around it. Feet on one baseline. No scenery, no counter.
+```
+Where: Silverton and the Hex (`pete`, `warrenspete`). Cut as: `tools/portrait-sheet.py` (a `PEOPLE` line) into `pt_pete`; `tools/keeper-town-sheet.py` into `pete_p1` in all five views (HEAD 7 S, 8 SE, 9 E, 10 NE, 11 N; SW, W, NW their mirrors); js/counter.js C.VENDORS and C.FIG.
+
+### Warda
+ATTACH `deep16/_src/winters/ART-78/ART-78_HEAD-1_PAGE-1.png` and `ART-78_HEAD-1_PAGE-6.png` (the portrait pages' shape, for the format only, not the face) and `deep16/_src/art-desk/sent/REF-2026-10-21-town-figure-size.png` (the town figure's size).
+```text
+WARDA -- a woman of fifty of the Hex's family, a rogue; keeps the third floor and the ring of keys; quick eyes, a dark plain dress, a heavy key ring at her belt.
+
+HEAD 1 -- IDLE (6, two bands of three): a breathing and blink loop at the counter, hands resting on it; loops cleanly.
+HEAD 2 -- ATTENTIVE (1): neutral listening.
+HEAD 3 -- WELCOMING (1): restrained warmth.
+HEAD 4 -- SKEPTICAL (1): weighing the face in front of them.
+HEAD 5 -- CONCERNED (1): a guarded refusal.
+HEAD 6 -- WORK (6, two bands of three): lifts the ring of keys, sorts them, picks one out; the last frame the hands back at rest.
+
+HEAD 7 -- THE TOWN FIGURE from the front, facing the viewer (south): Idle (4: standing at ease, a slow breath; the same pose on every frame but the breath).
+HEAD 8 -- THE TOWN FIGURE from the bottom-right, every frame facing toward the bottom-right corner of the image: Idle (4: standing at ease, a slow breath; the same pose on every frame but the breath).
+HEAD 9 -- THE TOWN FIGURE from the right side in profile, facing right: Idle (4: standing at ease, a slow breath; the same pose on every frame but the breath).
+HEAD 10 -- THE TOWN FIGURE from the top-right, seen from behind, every frame facing toward the top-right corner of the image: Idle (4: standing at ease, a slow breath; the same pose on every frame but the breath).
+HEAD 11 -- THE TOWN FIGURE straight from behind, facing away from the viewer: Idle (4: standing at ease, a slow breath; the same pose on every frame but the breath).
+
+HEADs 1-6 (the talking portrait): 16-bit pixel-art cut-scene portrait animation, comparable to the art desk's ART-78 (Ambrose Winters) and Sylvia Swann. Waist-up behind a plain dark wooden counter ledge, a stable eye-level three-quarter front camera, looking screen left at someone just beside the camera; the head and body the same size on every page as on the Idle page. Crisp pixel clusters and restrained shading. Flat dark navy background (a deep blue, not grey and not black). Each image 1440 x 810, ONE action an image, six-frame actions in two bands of three with clear gutters; the counter ledge under the hands on every frame, its top edge at the same height. A title and frame numbers as on ART-78's pages, kept well clear of the drawings. No scenery, no UI or border.
+
+HEADs 7-11 (the town figure): 16-bit pixel art animation sheet, SNES-era action RPG style, crisp dark outline, readable at small size. Isometric three-quarter view from above, the camera looking down at about thirty degrees, as in a tactics game -- the grid's own figures. The whole figure head to foot, the same size and proportions as the attached figures (a grown man stands about 50 pixels from sole to crown at game size; draw it large, the cutter brings it down). Flat dark navy background (a deep blue, not grey and not black). ONE sheet filling the whole image: no portrait, no other panels, no title. One labelled row of frames, its name at its left, numbered 1 to N under each frame -- every number used once, none skipped. Every frame stands apart with clear space around it. Feet on one baseline. No scenery, no counter.
+```
+Where: the Hex, at the spiral stair (`warda`). Cut as: `tools/portrait-sheet.py` (a `PEOPLE` line) into `pt_warda`; `tools/keeper-town-sheet.py` into `warda_p1` in all five views (HEAD 7 S, 8 SE, 9 E, 10 NE, 11 N; SW, W, NW their mirrors); js/counter.js C.VENDORS and C.FIG.
+
+### Skarn the Warrener
+ATTACH `deep16/_src/winters/ART-78/ART-78_HEAD-1_PAGE-1.png` and `ART-78_HEAD-1_PAGE-6.png` (the portrait pages' shape, for the format only, not the face) and `deep16/_src/art-desk/sent/REF-2026-10-21-town-figure-size.png` (the town figure's size).
+```text
+SKARN THE WARRENER -- the Crawler Warrens' overseer for its owner: a hard man in a long coat, a lantern-token on a chain, a ledger slate under his arm [seat: his age and look].
+
+HEAD 1 -- IDLE (6, two bands of three): a breathing and blink loop at the counter, hands resting on it; loops cleanly.
+HEAD 2 -- ATTENTIVE (1): neutral listening.
+HEAD 3 -- WELCOMING (1): restrained warmth.
+HEAD 4 -- SKEPTICAL (1): weighing the face in front of them.
+HEAD 5 -- CONCERNED (1): a guarded refusal.
+HEAD 6 -- WORK (6, two bands of three): checks a mark on a slate and taps it with a stub of chalk; the last frame the hands back at rest.
+
+HEAD 7 -- THE TOWN FIGURE from the front, facing the viewer (south): Idle (4: standing at ease, a slow breath; the same pose on every frame but the breath).
+HEAD 8 -- THE TOWN FIGURE from the bottom-right, every frame facing toward the bottom-right corner of the image: Idle (4: standing at ease, a slow breath; the same pose on every frame but the breath).
+HEAD 9 -- THE TOWN FIGURE from the right side in profile, facing right: Idle (4: standing at ease, a slow breath; the same pose on every frame but the breath).
+HEAD 10 -- THE TOWN FIGURE from the top-right, seen from behind, every frame facing toward the top-right corner of the image: Idle (4: standing at ease, a slow breath; the same pose on every frame but the breath).
+HEAD 11 -- THE TOWN FIGURE straight from behind, facing away from the viewer: Idle (4: standing at ease, a slow breath; the same pose on every frame but the breath).
+
+HEADs 1-6 (the talking portrait): 16-bit pixel-art cut-scene portrait animation, comparable to the art desk's ART-78 (Ambrose Winters) and Sylvia Swann. Waist-up behind a plain dark wooden counter ledge, a stable eye-level three-quarter front camera, looking screen left at someone just beside the camera; the head and body the same size on every page as on the Idle page. Crisp pixel clusters and restrained shading. Flat dark navy background (a deep blue, not grey and not black). Each image 1440 x 810, ONE action an image, six-frame actions in two bands of three with clear gutters; the counter ledge under the hands on every frame, its top edge at the same height. A title and frame numbers as on ART-78's pages, kept well clear of the drawings. No scenery, no UI or border.
+
+HEADs 7-11 (the town figure): 16-bit pixel art animation sheet, SNES-era action RPG style, crisp dark outline, readable at small size. Isometric three-quarter view from above, the camera looking down at about thirty degrees, as in a tactics game -- the grid's own figures. The whole figure head to foot, the same size and proportions as the attached figures (a grown man stands about 50 pixels from sole to crown at game size; draw it large, the cutter brings it down). Flat dark navy background (a deep blue, not grey and not black). ONE sheet filling the whole image: no portrait, no other panels, no title. One labelled row of frames, its name at its left, numbered 1 to N under each frame -- every number used once, none skipped. Every frame stands apart with clear space around it. Feet on one baseline. No scenery, no counter.
+```
+Where: the Warrens' camp (`skarn`). Cut as: `tools/portrait-sheet.py` (a `PEOPLE` line) into `pt_skarn`; `tools/keeper-town-sheet.py` into `skarn_p1` in all five views (HEAD 7 S, 8 SE, 9 E, 10 NE, 11 N; SW, W, NW their mirrors); js/counter.js C.VENDORS and C.FIG.
+
+### Jory Slade
+ATTACH `deep16/_src/winters/ART-78/ART-78_HEAD-1_PAGE-1.png` and `ART-78_HEAD-1_PAGE-6.png` (the portrait pages' shape, for the format only, not the face) and `deep16/_src/art-desk/sent/REF-2026-10-21-town-figure-size.png` (the town figure's size).
+```text
+JORY SLADE -- the Warrens' crew boss, in his thirties: an ex-collar who milked his way out on the deep rate and bosses the crew he came up from; neither cruel nor kind, quota-squeezed; the old collar's scar on his neck [seat].
+
+HEAD 1 -- IDLE (6, two bands of three): a breathing and blink loop at the counter, hands resting on it; loops cleanly.
+HEAD 2 -- ATTENTIVE (1): neutral listening.
+HEAD 3 -- WELCOMING (1): restrained warmth.
+HEAD 4 -- SKEPTICAL (1): weighing the face in front of them.
+HEAD 5 -- CONCERNED (1): a guarded refusal.
+HEAD 6 -- WORK (6, two bands of three): marks a tally on a slate and counts it twice; the last frame the hands back at rest.
+
+HEAD 7 -- THE TOWN FIGURE from the front, facing the viewer (south): Idle (4: standing at ease, a slow breath; the same pose on every frame but the breath).
+HEAD 8 -- THE TOWN FIGURE from the bottom-right, every frame facing toward the bottom-right corner of the image: Idle (4: standing at ease, a slow breath; the same pose on every frame but the breath).
+HEAD 9 -- THE TOWN FIGURE from the right side in profile, facing right: Idle (4: standing at ease, a slow breath; the same pose on every frame but the breath).
+HEAD 10 -- THE TOWN FIGURE from the top-right, seen from behind, every frame facing toward the top-right corner of the image: Idle (4: standing at ease, a slow breath; the same pose on every frame but the breath).
+HEAD 11 -- THE TOWN FIGURE straight from behind, facing away from the viewer: Idle (4: standing at ease, a slow breath; the same pose on every frame but the breath).
+
+HEADs 1-6 (the talking portrait): 16-bit pixel-art cut-scene portrait animation, comparable to the art desk's ART-78 (Ambrose Winters) and Sylvia Swann. Waist-up behind a plain dark wooden counter ledge, a stable eye-level three-quarter front camera, looking screen left at someone just beside the camera; the head and body the same size on every page as on the Idle page. Crisp pixel clusters and restrained shading. Flat dark navy background (a deep blue, not grey and not black). Each image 1440 x 810, ONE action an image, six-frame actions in two bands of three with clear gutters; the counter ledge under the hands on every frame, its top edge at the same height. A title and frame numbers as on ART-78's pages, kept well clear of the drawings. No scenery, no UI or border.
+
+HEADs 7-11 (the town figure): 16-bit pixel art animation sheet, SNES-era action RPG style, crisp dark outline, readable at small size. Isometric three-quarter view from above, the camera looking down at about thirty degrees, as in a tactics game -- the grid's own figures. The whole figure head to foot, the same size and proportions as the attached figures (a grown man stands about 50 pixels from sole to crown at game size; draw it large, the cutter brings it down). Flat dark navy background (a deep blue, not grey and not black). ONE sheet filling the whole image: no portrait, no other panels, no title. One labelled row of frames, its name at its left, numbered 1 to N under each frame -- every number used once, none skipped. Every frame stands apart with clear space around it. Feet on one baseline. No scenery, no counter.
+```
+Where: the Warrens' camp and pens (`jory`, `jorypens`). Cut as: `tools/portrait-sheet.py` (a `PEOPLE` line) into `pt_jory`; `tools/keeper-town-sheet.py` into `jory_p1` in all five views (HEAD 7 S, 8 SE, 9 E, 10 NE, 11 N; SW, W, NW their mirrors); js/counter.js C.VENDORS and C.FIG.
+
+### Edric Pellam
+ATTACH `deep16/_src/winters/ART-78/ART-78_HEAD-1_PAGE-1.png` and `ART-78_HEAD-1_PAGE-6.png` (the portrait pages' shape, for the format only, not the face) and `deep16/_src/art-desk/sent/REF-2026-10-21-town-figure-size.png` (the town figure's size).
+```text
+EDRIC PELLAM -- the Warrens' tally-man, in his fifties: a Pellam who can still write, so he keeps the owner's book; a clerk's hand, ink on his fingers, a frayed good coat.
+
+HEAD 1 -- IDLE (6, two bands of three): a breathing and blink loop at the counter, hands resting on it; loops cleanly.
+HEAD 2 -- ATTENTIVE (1): neutral listening.
+HEAD 3 -- WELCOMING (1): restrained warmth.
+HEAD 4 -- SKEPTICAL (1): weighing the face in front of them.
+HEAD 5 -- CONCERNED (1): a guarded refusal.
+HEAD 6 -- WORK (6, two bands of three): writes in the tally book and blots it; the last frame the hands back at rest.
+
+HEAD 7 -- THE TOWN FIGURE from the front, facing the viewer (south): Idle (4: standing at ease, a slow breath; the same pose on every frame but the breath).
+HEAD 8 -- THE TOWN FIGURE from the bottom-right, every frame facing toward the bottom-right corner of the image: Idle (4: standing at ease, a slow breath; the same pose on every frame but the breath).
+HEAD 9 -- THE TOWN FIGURE from the right side in profile, facing right: Idle (4: standing at ease, a slow breath; the same pose on every frame but the breath).
+HEAD 10 -- THE TOWN FIGURE from the top-right, seen from behind, every frame facing toward the top-right corner of the image: Idle (4: standing at ease, a slow breath; the same pose on every frame but the breath).
+HEAD 11 -- THE TOWN FIGURE straight from behind, facing away from the viewer: Idle (4: standing at ease, a slow breath; the same pose on every frame but the breath).
+
+HEADs 1-6 (the talking portrait): 16-bit pixel-art cut-scene portrait animation, comparable to the art desk's ART-78 (Ambrose Winters) and Sylvia Swann. Waist-up behind a plain dark wooden counter ledge, a stable eye-level three-quarter front camera, looking screen left at someone just beside the camera; the head and body the same size on every page as on the Idle page. Crisp pixel clusters and restrained shading. Flat dark navy background (a deep blue, not grey and not black). Each image 1440 x 810, ONE action an image, six-frame actions in two bands of three with clear gutters; the counter ledge under the hands on every frame, its top edge at the same height. A title and frame numbers as on ART-78's pages, kept well clear of the drawings. No scenery, no UI or border.
+
+HEADs 7-11 (the town figure): 16-bit pixel art animation sheet, SNES-era action RPG style, crisp dark outline, readable at small size. Isometric three-quarter view from above, the camera looking down at about thirty degrees, as in a tactics game -- the grid's own figures. The whole figure head to foot, the same size and proportions as the attached figures (a grown man stands about 50 pixels from sole to crown at game size; draw it large, the cutter brings it down). Flat dark navy background (a deep blue, not grey and not black). ONE sheet filling the whole image: no portrait, no other panels, no title. One labelled row of frames, its name at its left, numbered 1 to N under each frame -- every number used once, none skipped. Every frame stands apart with clear space around it. Feet on one baseline. No scenery, no counter.
+```
+Where: the Warrens' camp (`edric`). Cut as: `tools/portrait-sheet.py` (a `PEOPLE` line) into `pt_edric`; `tools/keeper-town-sheet.py` into `edric_p1` in all five views (HEAD 7 S, 8 SE, 9 E, 10 NE, 11 N; SW, W, NW their mirrors); js/counter.js C.VENDORS and C.FIG.
+
+### Linnet Pellam
+ATTACH `deep16/_src/winters/ART-78/ART-78_HEAD-1_PAGE-1.png` and `ART-78_HEAD-1_PAGE-6.png` (the portrait pages' shape, for the format only, not the face) and `deep16/_src/art-desk/sent/REF-2026-10-21-town-figure-size.png` (the town figure's size).
+```text
+LINNET PELLAM -- seventeen, Edric's niece, her first morning in the Warrens: thin, nervous, determined, her hair tied up under a kerchief.
+
+HEAD 1 -- IDLE (6, two bands of three): a breathing and blink loop at the counter, hands resting on it; loops cleanly.
+HEAD 2 -- ATTENTIVE (1): neutral listening.
+HEAD 3 -- WELCOMING (1): restrained warmth.
+HEAD 4 -- SKEPTICAL (1): weighing the face in front of them.
+HEAD 5 -- CONCERNED (1): a guarded refusal.
+HEAD 6 -- WORK (6, two bands of three): counts three thimbles in her open palm; the last frame the hands back at rest.
+
+HEAD 7 -- THE TOWN FIGURE from the front, facing the viewer (south): Idle (4: standing at ease, a slow breath; the same pose on every frame but the breath).
+HEAD 8 -- THE TOWN FIGURE from the bottom-right, every frame facing toward the bottom-right corner of the image: Idle (4: standing at ease, a slow breath; the same pose on every frame but the breath).
+HEAD 9 -- THE TOWN FIGURE from the right side in profile, facing right: Idle (4: standing at ease, a slow breath; the same pose on every frame but the breath).
+HEAD 10 -- THE TOWN FIGURE from the top-right, seen from behind, every frame facing toward the top-right corner of the image: Idle (4: standing at ease, a slow breath; the same pose on every frame but the breath).
+HEAD 11 -- THE TOWN FIGURE straight from behind, facing away from the viewer: Idle (4: standing at ease, a slow breath; the same pose on every frame but the breath).
+
+HEADs 1-6 (the talking portrait): 16-bit pixel-art cut-scene portrait animation, comparable to the art desk's ART-78 (Ambrose Winters) and Sylvia Swann. Waist-up behind a plain dark wooden counter ledge, a stable eye-level three-quarter front camera, looking screen left at someone just beside the camera; the head and body the same size on every page as on the Idle page. Crisp pixel clusters and restrained shading. Flat dark navy background (a deep blue, not grey and not black). Each image 1440 x 810, ONE action an image, six-frame actions in two bands of three with clear gutters; the counter ledge under the hands on every frame, its top edge at the same height. A title and frame numbers as on ART-78's pages, kept well clear of the drawings. No scenery, no UI or border.
+
+HEADs 7-11 (the town figure): 16-bit pixel art animation sheet, SNES-era action RPG style, crisp dark outline, readable at small size. Isometric three-quarter view from above, the camera looking down at about thirty degrees, as in a tactics game -- the grid's own figures. The whole figure head to foot, the same size and proportions as the attached figures (a grown man stands about 50 pixels from sole to crown at game size; draw it large, the cutter brings it down). Flat dark navy background (a deep blue, not grey and not black). ONE sheet filling the whole image: no portrait, no other panels, no title. One labelled row of frames, its name at its left, numbered 1 to N under each frame -- every number used once, none skipped. Every frame stands apart with clear space around it. Feet on one baseline. No scenery, no counter.
+```
+Where: the Warrens' camp (`linnet`). Cut as: `tools/portrait-sheet.py` (a `PEOPLE` line) into `pt_linnet`; `tools/keeper-town-sheet.py` into `linnet_p1` in all five views (HEAD 7 S, 8 SE, 9 E, 10 NE, 11 N; SW, W, NW their mirrors); js/counter.js C.VENDORS and C.FIG.
+
+### Corwen Dace
+ATTACH `deep16/_src/winters/ART-78/ART-78_HEAD-1_PAGE-1.png` and `ART-78_HEAD-1_PAGE-6.png` (the portrait pages' shape, for the format only, not the face) and `deep16/_src/art-desk/sent/REF-2026-10-21-town-figure-size.png` (the town figure's size).
+```text
+CORWEN DACE -- forty-four, the Guano Galleries' modernizer, the house's ambitious grandson; a budding wizard who is always talking; an eager, clever face, a satchel of notes [seat].
+
+HEAD 1 -- IDLE (6, two bands of three): a breathing and blink loop at the counter, hands resting on it; loops cleanly.
+HEAD 2 -- ATTENTIVE (1): neutral listening.
+HEAD 3 -- WELCOMING (1): restrained warmth.
+HEAD 4 -- SKEPTICAL (1): weighing the face in front of them.
+HEAD 5 -- CONCERNED (1): a guarded refusal.
+HEAD 6 -- WORK (6, two bands of three): opens a small notebook and sketches something quickly, talking all the while; the last frame the hands back at rest.
+
+HEAD 7 -- THE TOWN FIGURE from the front, facing the viewer (south): Idle (4: standing at ease, a slow breath; the same pose on every frame but the breath).
+HEAD 8 -- THE TOWN FIGURE from the bottom-right, every frame facing toward the bottom-right corner of the image: Idle (4: standing at ease, a slow breath; the same pose on every frame but the breath).
+HEAD 9 -- THE TOWN FIGURE from the right side in profile, facing right: Idle (4: standing at ease, a slow breath; the same pose on every frame but the breath).
+HEAD 10 -- THE TOWN FIGURE from the top-right, seen from behind, every frame facing toward the top-right corner of the image: Idle (4: standing at ease, a slow breath; the same pose on every frame but the breath).
+HEAD 11 -- THE TOWN FIGURE straight from behind, facing away from the viewer: Idle (4: standing at ease, a slow breath; the same pose on every frame but the breath).
+
+HEADs 1-6 (the talking portrait): 16-bit pixel-art cut-scene portrait animation, comparable to the art desk's ART-78 (Ambrose Winters) and Sylvia Swann. Waist-up behind a plain dark wooden counter ledge, a stable eye-level three-quarter front camera, looking screen left at someone just beside the camera; the head and body the same size on every page as on the Idle page. Crisp pixel clusters and restrained shading. Flat dark navy background (a deep blue, not grey and not black). Each image 1440 x 810, ONE action an image, six-frame actions in two bands of three with clear gutters; the counter ledge under the hands on every frame, its top edge at the same height. A title and frame numbers as on ART-78's pages, kept well clear of the drawings. No scenery, no UI or border.
+
+HEADs 7-11 (the town figure): 16-bit pixel art animation sheet, SNES-era action RPG style, crisp dark outline, readable at small size. Isometric three-quarter view from above, the camera looking down at about thirty degrees, as in a tactics game -- the grid's own figures. The whole figure head to foot, the same size and proportions as the attached figures (a grown man stands about 50 pixels from sole to crown at game size; draw it large, the cutter brings it down). Flat dark navy background (a deep blue, not grey and not black). ONE sheet filling the whole image: no portrait, no other panels, no title. One labelled row of frames, its name at its left, numbered 1 to N under each frame -- every number used once, none skipped. Every frame stands apart with clear space around it. Feet on one baseline. No scenery, no counter.
+```
+Where: the Galleries (`dace`, `dacedown`). Cut as: `tools/portrait-sheet.py` (a `PEOPLE` line) into `pt_dace`; `tools/keeper-town-sheet.py` into `dace_p1` in all five views (HEAD 7 S, 8 SE, 9 E, 10 NE, 11 N; SW, W, NW their mirrors); js/counter.js C.VENDORS and C.FIG.
+
+### Ottilie Skerrow
+ATTACH `deep16/_src/winters/ART-78/ART-78_HEAD-1_PAGE-1.png` and `ART-78_HEAD-1_PAGE-6.png` (the portrait pages' shape, for the format only, not the face) and `deep16/_src/art-desk/sent/REF-2026-10-21-town-figure-size.png` (the town figure's size).
+```text
+OTTILIE SKERROW -- fifty-eight, the Galleries' final word, the roost law's keeper: was ten the winter the gatherers stayed; stern, upright, iron-grey hair.
+
+HEAD 1 -- IDLE (6, two bands of three): a breathing and blink loop at the counter, hands resting on it; loops cleanly.
+HEAD 2 -- ATTENTIVE (1): neutral listening.
+HEAD 3 -- WELCOMING (1): restrained warmth.
+HEAD 4 -- SKEPTICAL (1): weighing the face in front of them.
+HEAD 5 -- CONCERNED (1): a guarded refusal.
+HEAD 6 -- WORK (6, two bands of three): lays one hand flat on the ledge, a ruling; the last frame the hands back at rest.
+
+HEAD 7 -- THE TOWN FIGURE from the front, facing the viewer (south): Idle (4: standing at ease, a slow breath; the same pose on every frame but the breath).
+HEAD 8 -- THE TOWN FIGURE from the bottom-right, every frame facing toward the bottom-right corner of the image: Idle (4: standing at ease, a slow breath; the same pose on every frame but the breath).
+HEAD 9 -- THE TOWN FIGURE from the right side in profile, facing right: Idle (4: standing at ease, a slow breath; the same pose on every frame but the breath).
+HEAD 10 -- THE TOWN FIGURE from the top-right, seen from behind, every frame facing toward the top-right corner of the image: Idle (4: standing at ease, a slow breath; the same pose on every frame but the breath).
+HEAD 11 -- THE TOWN FIGURE straight from behind, facing away from the viewer: Idle (4: standing at ease, a slow breath; the same pose on every frame but the breath).
+
+HEADs 1-6 (the talking portrait): 16-bit pixel-art cut-scene portrait animation, comparable to the art desk's ART-78 (Ambrose Winters) and Sylvia Swann. Waist-up behind a plain dark wooden counter ledge, a stable eye-level three-quarter front camera, looking screen left at someone just beside the camera; the head and body the same size on every page as on the Idle page. Crisp pixel clusters and restrained shading. Flat dark navy background (a deep blue, not grey and not black). Each image 1440 x 810, ONE action an image, six-frame actions in two bands of three with clear gutters; the counter ledge under the hands on every frame, its top edge at the same height. A title and frame numbers as on ART-78's pages, kept well clear of the drawings. No scenery, no UI or border.
+
+HEADs 7-11 (the town figure): 16-bit pixel art animation sheet, SNES-era action RPG style, crisp dark outline, readable at small size. Isometric three-quarter view from above, the camera looking down at about thirty degrees, as in a tactics game -- the grid's own figures. The whole figure head to foot, the same size and proportions as the attached figures (a grown man stands about 50 pixels from sole to crown at game size; draw it large, the cutter brings it down). Flat dark navy background (a deep blue, not grey and not black). ONE sheet filling the whole image: no portrait, no other panels, no title. One labelled row of frames, its name at its left, numbered 1 to N under each frame -- every number used once, none skipped. Every frame stands apart with clear space around it. Feet on one baseline. No scenery, no counter.
+```
+Where: the Galleries' mouth (`ottilie`). Cut as: `tools/portrait-sheet.py` (a `PEOPLE` line) into `pt_ottilie`; `tools/keeper-town-sheet.py` into `ottilie_p1` in all five views (HEAD 7 S, 8 SE, 9 E, 10 NE, 11 N; SW, W, NW their mirrors); js/counter.js C.VENDORS and C.FIG.
+
+### Sabeth Pollard
+ATTACH `deep16/_src/winters/ART-78/ART-78_HEAD-1_PAGE-1.png` and `ART-78_HEAD-1_PAGE-6.png` (the portrait pages' shape, for the format only, not the face) and `deep16/_src/art-desk/sent/REF-2026-10-21-town-figure-size.png` (the town figure's size).
+```text
+SABETH POLLARD -- forty, the Galleries' employer: runs the weigh-beam and the hiring; brisk, sure, sleeves rolled.
+
+HEAD 1 -- IDLE (6, two bands of three): a breathing and blink loop at the counter, hands resting on it; loops cleanly.
+HEAD 2 -- ATTENTIVE (1): neutral listening.
+HEAD 3 -- WELCOMING (1): restrained warmth.
+HEAD 4 -- SKEPTICAL (1): weighing the face in front of them.
+HEAD 5 -- CONCERNED (1): a guarded refusal.
+HEAD 6 -- WORK (6, two bands of three): sets a weight on a small beam scale and reads it; the last frame the hands back at rest.
+
+HEAD 7 -- THE TOWN FIGURE from the front, facing the viewer (south): Idle (4: standing at ease, a slow breath; the same pose on every frame but the breath).
+HEAD 8 -- THE TOWN FIGURE from the bottom-right, every frame facing toward the bottom-right corner of the image: Idle (4: standing at ease, a slow breath; the same pose on every frame but the breath).
+HEAD 9 -- THE TOWN FIGURE from the right side in profile, facing right: Idle (4: standing at ease, a slow breath; the same pose on every frame but the breath).
+HEAD 10 -- THE TOWN FIGURE from the top-right, seen from behind, every frame facing toward the top-right corner of the image: Idle (4: standing at ease, a slow breath; the same pose on every frame but the breath).
+HEAD 11 -- THE TOWN FIGURE straight from behind, facing away from the viewer: Idle (4: standing at ease, a slow breath; the same pose on every frame but the breath).
+
+HEADs 1-6 (the talking portrait): 16-bit pixel-art cut-scene portrait animation, comparable to the art desk's ART-78 (Ambrose Winters) and Sylvia Swann. Waist-up behind a plain dark wooden counter ledge, a stable eye-level three-quarter front camera, looking screen left at someone just beside the camera; the head and body the same size on every page as on the Idle page. Crisp pixel clusters and restrained shading. Flat dark navy background (a deep blue, not grey and not black). Each image 1440 x 810, ONE action an image, six-frame actions in two bands of three with clear gutters; the counter ledge under the hands on every frame, its top edge at the same height. A title and frame numbers as on ART-78's pages, kept well clear of the drawings. No scenery, no UI or border.
+
+HEADs 7-11 (the town figure): 16-bit pixel art animation sheet, SNES-era action RPG style, crisp dark outline, readable at small size. Isometric three-quarter view from above, the camera looking down at about thirty degrees, as in a tactics game -- the grid's own figures. The whole figure head to foot, the same size and proportions as the attached figures (a grown man stands about 50 pixels from sole to crown at game size; draw it large, the cutter brings it down). Flat dark navy background (a deep blue, not grey and not black). ONE sheet filling the whole image: no portrait, no other panels, no title. One labelled row of frames, its name at its left, numbered 1 to N under each frame -- every number used once, none skipped. Every frame stands apart with clear space around it. Feet on one baseline. No scenery, no counter.
+```
+Where: the Galleries' mouth (`sabeth`). Cut as: `tools/portrait-sheet.py` (a `PEOPLE` line) into `pt_sabeth`; `tools/keeper-town-sheet.py` into `sabeth_p1` in all five views (HEAD 7 S, 8 SE, 9 E, 10 NE, 11 N; SW, W, NW their mirrors); js/counter.js C.VENDORS and C.FIG.
+
+### Old Wynn Pollard
+ATTACH `deep16/_src/winters/ART-78/ART-78_HEAD-1_PAGE-1.png` and `ART-78_HEAD-1_PAGE-6.png` (the portrait pages' shape, for the format only, not the face) and `deep16/_src/art-desk/sent/REF-2026-10-21-town-figure-size.png` (the town figure's size).
+```text
+OLD WYNN POLLARD -- seventy-one, the last of the original gatherers, who calls the drives with a rattle; leathery, half-deaf, cheerful.
+
+HEAD 1 -- IDLE (6, two bands of three): a breathing and blink loop at the counter, hands resting on it; loops cleanly.
+HEAD 2 -- ATTENTIVE (1): neutral listening.
+HEAD 3 -- WELCOMING (1): restrained warmth.
+HEAD 4 -- SKEPTICAL (1): weighing the face in front of them.
+HEAD 5 -- CONCERNED (1): a guarded refusal.
+HEAD 6 -- WORK (6, two bands of three): shakes a wooden rattle once, then listens; the last frame the hands back at rest.
+
+HEAD 7 -- THE TOWN FIGURE from the front, facing the viewer (south): Idle (4: standing at ease, a slow breath; the same pose on every frame but the breath).
+HEAD 8 -- THE TOWN FIGURE from the bottom-right, every frame facing toward the bottom-right corner of the image: Idle (4: standing at ease, a slow breath; the same pose on every frame but the breath).
+HEAD 9 -- THE TOWN FIGURE from the right side in profile, facing right: Idle (4: standing at ease, a slow breath; the same pose on every frame but the breath).
+HEAD 10 -- THE TOWN FIGURE from the top-right, seen from behind, every frame facing toward the top-right corner of the image: Idle (4: standing at ease, a slow breath; the same pose on every frame but the breath).
+HEAD 11 -- THE TOWN FIGURE straight from behind, facing away from the viewer: Idle (4: standing at ease, a slow breath; the same pose on every frame but the breath).
+
+HEADs 1-6 (the talking portrait): 16-bit pixel-art cut-scene portrait animation, comparable to the art desk's ART-78 (Ambrose Winters) and Sylvia Swann. Waist-up behind a plain dark wooden counter ledge, a stable eye-level three-quarter front camera, looking screen left at someone just beside the camera; the head and body the same size on every page as on the Idle page. Crisp pixel clusters and restrained shading. Flat dark navy background (a deep blue, not grey and not black). Each image 1440 x 810, ONE action an image, six-frame actions in two bands of three with clear gutters; the counter ledge under the hands on every frame, its top edge at the same height. A title and frame numbers as on ART-78's pages, kept well clear of the drawings. No scenery, no UI or border.
+
+HEADs 7-11 (the town figure): 16-bit pixel art animation sheet, SNES-era action RPG style, crisp dark outline, readable at small size. Isometric three-quarter view from above, the camera looking down at about thirty degrees, as in a tactics game -- the grid's own figures. The whole figure head to foot, the same size and proportions as the attached figures (a grown man stands about 50 pixels from sole to crown at game size; draw it large, the cutter brings it down). Flat dark navy background (a deep blue, not grey and not black). ONE sheet filling the whole image: no portrait, no other panels, no title. One labelled row of frames, its name at its left, numbered 1 to N under each frame -- every number used once, none skipped. Every frame stands apart with clear space around it. Feet on one baseline. No scenery, no counter.
+```
+Where: the Galleries' mouth (`wynn`). Cut as: `tools/portrait-sheet.py` (a `PEOPLE` line) into `pt_wynn`; `tools/keeper-town-sheet.py` into `wynn_p1` in all five views (HEAD 7 S, 8 SE, 9 E, 10 NE, 11 N; SW, W, NW their mirrors); js/counter.js C.VENDORS and C.FIG.
+
+### Talmok (a portrait only)
+ATTACH `deep16/_src/winters/ART-78/ART-78_HEAD-1_PAGE-1.png` and `ART-78_HEAD-1_PAGE-6.png` (the format only) and his own figure as the grid draws it (`deep16/art/talmok_p1.png`, for the face and look).
+```text
+TALMOK -- the Hex's champion, a plains barbarian who talks to horses, sitting easy on the edge of the sand: as the attached figure shows him.
+
+HEAD 1 -- IDLE (6, two bands of three): a breathing and blink loop at the counter, hands resting on it; loops cleanly.
+HEAD 2 -- ATTENTIVE (1): neutral listening.
+HEAD 3 -- WELCOMING (1): restrained warmth.
+HEAD 4 -- SKEPTICAL (1): looking the speaker over the way he looks over a horse.
+HEAD 5 -- CONCERNED (1): a guarded refusal.
+HEAD 6 -- WORK (6, two bands of three): wraps a strip of cloth round his fist and knuckles, tests it, rests; the last frame the hands back at rest.
+
+HEADs 1-6: 16-bit pixel-art cut-scene portrait animation, comparable to the art desk's ART-78 (Ambrose Winters) and Sylvia Swann. Waist-up behind a plain dark wooden counter ledge, a stable eye-level three-quarter front camera, looking screen left at someone just beside the camera; the head and body the same size on every page as on the Idle page. Crisp pixel clusters and restrained shading. Flat dark navy background (a deep blue, not grey and not black). Each image 1440 x 810, ONE action an image, six-frame actions in two bands of three with clear gutters; the counter ledge under the hands on every frame, its top edge at the same height. A title and frame numbers as on ART-78's pages, kept well clear of the drawings. No scenery, no UI or border.
+```
+Cut as: `pt_talmok` (`tools/portrait-sheet.py`); the Hex, by the sand (`talmok`).
+
+## 27. The four other facings for every NPC who stands facing south only (added 10-28, the second cutter seat)
+
+His words, his ear files of 10-28 (relayed by the lanes desk): *"art request for a generic NPC face portrait with 'drinker, gambler, and any other variants we need (guano scraper, etc.) where we do variants instead of 'skeptical' and similar we have for the good NPCs, as well a a request for the portrait page and embodied sprites for other named NPCs encountered (we should probably get SE-E-NE-N facings for all the NPCs we already have south facings for"*. Thirty-four people have a town figure drawn facing south only (`tools/keeper-town-sheet.py` KEEPERS: each sheet's idle `drawn: [0]`; every other facing falls back on the stand-in, so js/counter.js holds them facing south). By the ruled eight facings (10-14: five drawn views, the cutter mirroring SE for SW, E for W, NE for NW), each wants SE, E, NE and N -- an Idle of 4 in each, the same drawing as the south one turned. One block a person: attach their own south page; the block is the same for each but for the name and the page.
+
+### Ambrose Winters
+ATTACH `deep16/_src/winters/ART-78/ART-78_HEAD-2_PAGE-1.png` (Ambrose Winters's south idle, the four frames the game plays).
+```text
+Attached: AMBROSE WINTERS, a townsperson of a tactics game, drawn standing facing the viewer, four frames of an idle. Draw the same person -- the same face, clothes, colours, size and proportions -- turned to four other views, the same idle in each.
+
+HEAD 1 -- AMBROSE WINTERS from the bottom-right, every frame facing toward the bottom-right corner of the image: Idle (4: standing at ease as on the attached page, a slow breath; the same pose on every frame but the breath).
+HEAD 2 -- AMBROSE WINTERS from the right side in profile, facing right: Idle (4: standing at ease as on the attached page, a slow breath; the same pose on every frame but the breath).
+HEAD 3 -- AMBROSE WINTERS from the top-right, seen from behind, every frame facing toward the top-right corner of the image: Idle (4: standing at ease as on the attached page, a slow breath; the same pose on every frame but the breath).
+HEAD 4 -- AMBROSE WINTERS straight from behind, facing away from the viewer: Idle (4: standing at ease as on the attached page, a slow breath; the same pose on every frame but the breath).
+
+Every HEAD: 16-bit pixel art animation sheet, SNES-era action RPG style, crisp dark outline, readable at small size. Isometric three-quarter view from above, the camera looking down at about thirty degrees, as in a tactics game -- the grid's own figures. The whole figure head to foot, the same size and proportions as the attached figures (a grown man stands about 50 pixels from sole to crown at game size; draw it large, the cutter brings it down). Flat dark navy background (a deep blue, not grey and not black). ONE sheet filling the whole image: no portrait, no other panels, no title. One labelled row of frames, its name at its left, numbered 1 to N under each frame -- every number used once, none skipped. Every frame stands apart with clear space around it. Feet on one baseline. No scenery, no counter.
+```
+Cut as: `winters_p1`, the idle row's `drawn` from [0] to all five (HEAD 1 SE, 2 E, 3 NE, 4 N; `tools/keeper-town-sheet.py`).
+
+### Casper Venn
+ATTACH `deep16/_src/casper/ART-79/ART-79_HEAD-2_PAGE-1.png` (Casper Venn's south idle, the four frames the game plays).
+```text
+Attached: CASPER VENN, a townsperson of a tactics game, drawn standing facing the viewer, four frames of an idle. Draw the same person -- the same face, clothes, colours, size and proportions -- turned to four other views, the same idle in each.
+
+HEAD 1 -- CASPER VENN from the bottom-right, every frame facing toward the bottom-right corner of the image: Idle (4: standing at ease as on the attached page, a slow breath; the same pose on every frame but the breath).
+HEAD 2 -- CASPER VENN from the right side in profile, facing right: Idle (4: standing at ease as on the attached page, a slow breath; the same pose on every frame but the breath).
+HEAD 3 -- CASPER VENN from the top-right, seen from behind, every frame facing toward the top-right corner of the image: Idle (4: standing at ease as on the attached page, a slow breath; the same pose on every frame but the breath).
+HEAD 4 -- CASPER VENN straight from behind, facing away from the viewer: Idle (4: standing at ease as on the attached page, a slow breath; the same pose on every frame but the breath).
+
+Every HEAD: 16-bit pixel art animation sheet, SNES-era action RPG style, crisp dark outline, readable at small size. Isometric three-quarter view from above, the camera looking down at about thirty degrees, as in a tactics game -- the grid's own figures. The whole figure head to foot, the same size and proportions as the attached figures (a grown man stands about 50 pixels from sole to crown at game size; draw it large, the cutter brings it down). Flat dark navy background (a deep blue, not grey and not black). ONE sheet filling the whole image: no portrait, no other panels, no title. One labelled row of frames, its name at its left, numbered 1 to N under each frame -- every number used once, none skipped. Every frame stands apart with clear space around it. Feet on one baseline. No scenery, no counter.
+```
+Cut as: `casper_p1`, the idle row's `drawn` from [0] to all five (HEAD 1 SE, 2 E, 3 NE, 4 N; `tools/keeper-town-sheet.py`).
+
+### Aldwyn Androit
+ATTACH `deep16/_src/androit/ART-80/ART-80_HEAD-2_PAGE-1.png` (Aldwyn Androit's south idle, the four frames the game plays).
+```text
+Attached: ALDWYN ANDROIT, a townsperson of a tactics game, drawn standing facing the viewer, four frames of an idle. Draw the same person -- the same face, clothes, colours, size and proportions -- turned to four other views, the same idle in each.
+
+HEAD 1 -- ALDWYN ANDROIT from the bottom-right, every frame facing toward the bottom-right corner of the image: Idle (4: standing at ease as on the attached page, a slow breath; the same pose on every frame but the breath).
+HEAD 2 -- ALDWYN ANDROIT from the right side in profile, facing right: Idle (4: standing at ease as on the attached page, a slow breath; the same pose on every frame but the breath).
+HEAD 3 -- ALDWYN ANDROIT from the top-right, seen from behind, every frame facing toward the top-right corner of the image: Idle (4: standing at ease as on the attached page, a slow breath; the same pose on every frame but the breath).
+HEAD 4 -- ALDWYN ANDROIT straight from behind, facing away from the viewer: Idle (4: standing at ease as on the attached page, a slow breath; the same pose on every frame but the breath).
+
+Every HEAD: 16-bit pixel art animation sheet, SNES-era action RPG style, crisp dark outline, readable at small size. Isometric three-quarter view from above, the camera looking down at about thirty degrees, as in a tactics game -- the grid's own figures. The whole figure head to foot, the same size and proportions as the attached figures (a grown man stands about 50 pixels from sole to crown at game size; draw it large, the cutter brings it down). Flat dark navy background (a deep blue, not grey and not black). ONE sheet filling the whole image: no portrait, no other panels, no title. One labelled row of frames, its name at its left, numbered 1 to N under each frame -- every number used once, none skipped. Every frame stands apart with clear space around it. Feet on one baseline. No scenery, no counter.
+```
+Cut as: `androit_p1`, the idle row's `drawn` from [0] to all five (HEAD 1 SE, 2 E, 3 NE, 4 N; `tools/keeper-town-sheet.py`).
+
+### Hessle
+ATTACH `deep16/_src/hessle/ART-81/ART-81_HEAD-2_PAGE-1.png` (Hessle's south idle, the four frames the game plays).
+```text
+Attached: HESSLE, a townsperson of a tactics game, drawn standing facing the viewer, four frames of an idle. Draw the same person -- the same face, clothes, colours, size and proportions -- turned to four other views, the same idle in each.
+
+HEAD 1 -- HESSLE from the bottom-right, every frame facing toward the bottom-right corner of the image: Idle (4: standing at ease as on the attached page, a slow breath; the same pose on every frame but the breath).
+HEAD 2 -- HESSLE from the right side in profile, facing right: Idle (4: standing at ease as on the attached page, a slow breath; the same pose on every frame but the breath).
+HEAD 3 -- HESSLE from the top-right, seen from behind, every frame facing toward the top-right corner of the image: Idle (4: standing at ease as on the attached page, a slow breath; the same pose on every frame but the breath).
+HEAD 4 -- HESSLE straight from behind, facing away from the viewer: Idle (4: standing at ease as on the attached page, a slow breath; the same pose on every frame but the breath).
+
+Every HEAD: 16-bit pixel art animation sheet, SNES-era action RPG style, crisp dark outline, readable at small size. Isometric three-quarter view from above, the camera looking down at about thirty degrees, as in a tactics game -- the grid's own figures. The whole figure head to foot, the same size and proportions as the attached figures (a grown man stands about 50 pixels from sole to crown at game size; draw it large, the cutter brings it down). Flat dark navy background (a deep blue, not grey and not black). ONE sheet filling the whole image: no portrait, no other panels, no title. One labelled row of frames, its name at its left, numbered 1 to N under each frame -- every number used once, none skipped. Every frame stands apart with clear space around it. Feet on one baseline. No scenery, no counter.
+```
+Cut as: `hessle_p1`, the idle row's `drawn` from [0] to all five (HEAD 1 SE, 2 E, 3 NE, 4 N; `tools/keeper-town-sheet.py`).
+
+### Aldric Vest
+ATTACH `deep16/_src/aldric/ART-82/ART-82_HEAD-2_PAGE-1.png` (Aldric Vest's south idle, the four frames the game plays).
+```text
+Attached: ALDRIC VEST, a townsperson of a tactics game, drawn standing facing the viewer, four frames of an idle. Draw the same person -- the same face, clothes, colours, size and proportions -- turned to four other views, the same idle in each.
+
+HEAD 1 -- ALDRIC VEST from the bottom-right, every frame facing toward the bottom-right corner of the image: Idle (4: standing at ease as on the attached page, a slow breath; the same pose on every frame but the breath).
+HEAD 2 -- ALDRIC VEST from the right side in profile, facing right: Idle (4: standing at ease as on the attached page, a slow breath; the same pose on every frame but the breath).
+HEAD 3 -- ALDRIC VEST from the top-right, seen from behind, every frame facing toward the top-right corner of the image: Idle (4: standing at ease as on the attached page, a slow breath; the same pose on every frame but the breath).
+HEAD 4 -- ALDRIC VEST straight from behind, facing away from the viewer: Idle (4: standing at ease as on the attached page, a slow breath; the same pose on every frame but the breath).
+
+Every HEAD: 16-bit pixel art animation sheet, SNES-era action RPG style, crisp dark outline, readable at small size. Isometric three-quarter view from above, the camera looking down at about thirty degrees, as in a tactics game -- the grid's own figures. The whole figure head to foot, the same size and proportions as the attached figures (a grown man stands about 50 pixels from sole to crown at game size; draw it large, the cutter brings it down). Flat dark navy background (a deep blue, not grey and not black). ONE sheet filling the whole image: no portrait, no other panels, no title. One labelled row of frames, its name at its left, numbered 1 to N under each frame -- every number used once, none skipped. Every frame stands apart with clear space around it. Feet on one baseline. No scenery, no counter.
+```
+Cut as: `aldric_p1`, the idle row's `drawn` from [0] to all five (HEAD 1 SE, 2 E, 3 NE, 4 N; `tools/keeper-town-sheet.py`).
+
+### Kessler
+ATTACH `deep16/_src/kessler/ART-83/ART-83_HEAD-2_PAGE-1.png` (Kessler's south idle, the four frames the game plays).
+```text
+Attached: KESSLER, a townsperson of a tactics game, drawn standing facing the viewer, four frames of an idle. Draw the same person -- the same face, clothes, colours, size and proportions -- turned to four other views, the same idle in each.
+
+HEAD 1 -- KESSLER from the bottom-right, every frame facing toward the bottom-right corner of the image: Idle (4: standing at ease as on the attached page, a slow breath; the same pose on every frame but the breath).
+HEAD 2 -- KESSLER from the right side in profile, facing right: Idle (4: standing at ease as on the attached page, a slow breath; the same pose on every frame but the breath).
+HEAD 3 -- KESSLER from the top-right, seen from behind, every frame facing toward the top-right corner of the image: Idle (4: standing at ease as on the attached page, a slow breath; the same pose on every frame but the breath).
+HEAD 4 -- KESSLER straight from behind, facing away from the viewer: Idle (4: standing at ease as on the attached page, a slow breath; the same pose on every frame but the breath).
+
+Every HEAD: 16-bit pixel art animation sheet, SNES-era action RPG style, crisp dark outline, readable at small size. Isometric three-quarter view from above, the camera looking down at about thirty degrees, as in a tactics game -- the grid's own figures. The whole figure head to foot, the same size and proportions as the attached figures (a grown man stands about 50 pixels from sole to crown at game size; draw it large, the cutter brings it down). Flat dark navy background (a deep blue, not grey and not black). ONE sheet filling the whole image: no portrait, no other panels, no title. One labelled row of frames, its name at its left, numbered 1 to N under each frame -- every number used once, none skipped. Every frame stands apart with clear space around it. Feet on one baseline. No scenery, no counter.
+```
+Cut as: `kessler_p1`, the idle row's `drawn` from [0] to all five (HEAD 1 SE, 2 E, 3 NE, 4 N; `tools/keeper-town-sheet.py`).
+
+### Calla Voss
+ATTACH `deep16/_src/calla/ART-84/ART-84_HEAD-2_PAGE-1.png` (Calla Voss's south idle, the four frames the game plays).
+```text
+Attached: CALLA VOSS, a townsperson of a tactics game, drawn standing facing the viewer, four frames of an idle. Draw the same person -- the same face, clothes, colours, size and proportions -- turned to four other views, the same idle in each.
+
+HEAD 1 -- CALLA VOSS from the bottom-right, every frame facing toward the bottom-right corner of the image: Idle (4: standing at ease as on the attached page, a slow breath; the same pose on every frame but the breath).
+HEAD 2 -- CALLA VOSS from the right side in profile, facing right: Idle (4: standing at ease as on the attached page, a slow breath; the same pose on every frame but the breath).
+HEAD 3 -- CALLA VOSS from the top-right, seen from behind, every frame facing toward the top-right corner of the image: Idle (4: standing at ease as on the attached page, a slow breath; the same pose on every frame but the breath).
+HEAD 4 -- CALLA VOSS straight from behind, facing away from the viewer: Idle (4: standing at ease as on the attached page, a slow breath; the same pose on every frame but the breath).
+
+Every HEAD: 16-bit pixel art animation sheet, SNES-era action RPG style, crisp dark outline, readable at small size. Isometric three-quarter view from above, the camera looking down at about thirty degrees, as in a tactics game -- the grid's own figures. The whole figure head to foot, the same size and proportions as the attached figures (a grown man stands about 50 pixels from sole to crown at game size; draw it large, the cutter brings it down). Flat dark navy background (a deep blue, not grey and not black). ONE sheet filling the whole image: no portrait, no other panels, no title. One labelled row of frames, its name at its left, numbered 1 to N under each frame -- every number used once, none skipped. Every frame stands apart with clear space around it. Feet on one baseline. No scenery, no counter.
+```
+Cut as: `calla_p1`, the idle row's `drawn` from [0] to all five (HEAD 1 SE, 2 E, 3 NE, 4 N; `tools/keeper-town-sheet.py`).
+
+### Venn the barber
+ATTACH `deep16/_src/barber/ART-85/ART-85_HEAD-2_PAGE-1.png` (Venn the barber's south idle, the four frames the game plays).
+```text
+Attached: VENN THE BARBER, a townsperson of a tactics game, drawn standing facing the viewer, four frames of an idle. Draw the same person -- the same face, clothes, colours, size and proportions -- turned to four other views, the same idle in each.
+
+HEAD 1 -- VENN THE BARBER from the bottom-right, every frame facing toward the bottom-right corner of the image: Idle (4: standing at ease as on the attached page, a slow breath; the same pose on every frame but the breath).
+HEAD 2 -- VENN THE BARBER from the right side in profile, facing right: Idle (4: standing at ease as on the attached page, a slow breath; the same pose on every frame but the breath).
+HEAD 3 -- VENN THE BARBER from the top-right, seen from behind, every frame facing toward the top-right corner of the image: Idle (4: standing at ease as on the attached page, a slow breath; the same pose on every frame but the breath).
+HEAD 4 -- VENN THE BARBER straight from behind, facing away from the viewer: Idle (4: standing at ease as on the attached page, a slow breath; the same pose on every frame but the breath).
+
+Every HEAD: 16-bit pixel art animation sheet, SNES-era action RPG style, crisp dark outline, readable at small size. Isometric three-quarter view from above, the camera looking down at about thirty degrees, as in a tactics game -- the grid's own figures. The whole figure head to foot, the same size and proportions as the attached figures (a grown man stands about 50 pixels from sole to crown at game size; draw it large, the cutter brings it down). Flat dark navy background (a deep blue, not grey and not black). ONE sheet filling the whole image: no portrait, no other panels, no title. One labelled row of frames, its name at its left, numbered 1 to N under each frame -- every number used once, none skipped. Every frame stands apart with clear space around it. Feet on one baseline. No scenery, no counter.
+```
+Cut as: `barber_p1`, the idle row's `drawn` from [0] to all five (HEAD 1 SE, 2 E, 3 NE, 4 N; `tools/keeper-town-sheet.py`).
+
+### Marin Voss
+ATTACH `deep16/_src/marin/ART-86/ART-86_HEAD-2_PAGE-1.png` (Marin Voss's south idle, the four frames the game plays).
+```text
+Attached: MARIN VOSS, a townsperson of a tactics game, drawn standing facing the viewer, four frames of an idle. Draw the same person -- the same face, clothes, colours, size and proportions -- turned to four other views, the same idle in each.
+
+HEAD 1 -- MARIN VOSS from the bottom-right, every frame facing toward the bottom-right corner of the image: Idle (4: standing at ease as on the attached page, a slow breath; the same pose on every frame but the breath).
+HEAD 2 -- MARIN VOSS from the right side in profile, facing right: Idle (4: standing at ease as on the attached page, a slow breath; the same pose on every frame but the breath).
+HEAD 3 -- MARIN VOSS from the top-right, seen from behind, every frame facing toward the top-right corner of the image: Idle (4: standing at ease as on the attached page, a slow breath; the same pose on every frame but the breath).
+HEAD 4 -- MARIN VOSS straight from behind, facing away from the viewer: Idle (4: standing at ease as on the attached page, a slow breath; the same pose on every frame but the breath).
+
+Every HEAD: 16-bit pixel art animation sheet, SNES-era action RPG style, crisp dark outline, readable at small size. Isometric three-quarter view from above, the camera looking down at about thirty degrees, as in a tactics game -- the grid's own figures. The whole figure head to foot, the same size and proportions as the attached figures (a grown man stands about 50 pixels from sole to crown at game size; draw it large, the cutter brings it down). Flat dark navy background (a deep blue, not grey and not black). ONE sheet filling the whole image: no portrait, no other panels, no title. One labelled row of frames, its name at its left, numbered 1 to N under each frame -- every number used once, none skipped. Every frame stands apart with clear space around it. Feet on one baseline. No scenery, no counter.
+```
+Cut as: `marin_p1`, the idle row's `drawn` from [0] to all five (HEAD 1 SE, 2 E, 3 NE, 4 N; `tools/keeper-town-sheet.py`).
+
+### Kasten Wheal
+ATTACH `deep16/_src/kasten/ART-88/ART-88_HEAD-2_PAGE-1.png` (Kasten Wheal's south idle, the four frames the game plays).
+```text
+Attached: KASTEN WHEAL, a townsperson of a tactics game, drawn standing facing the viewer, four frames of an idle. Draw the same person -- the same face, clothes, colours, size and proportions -- turned to four other views, the same idle in each.
+
+HEAD 1 -- KASTEN WHEAL from the bottom-right, every frame facing toward the bottom-right corner of the image: Idle (4: standing at ease as on the attached page, a slow breath; the same pose on every frame but the breath).
+HEAD 2 -- KASTEN WHEAL from the right side in profile, facing right: Idle (4: standing at ease as on the attached page, a slow breath; the same pose on every frame but the breath).
+HEAD 3 -- KASTEN WHEAL from the top-right, seen from behind, every frame facing toward the top-right corner of the image: Idle (4: standing at ease as on the attached page, a slow breath; the same pose on every frame but the breath).
+HEAD 4 -- KASTEN WHEAL straight from behind, facing away from the viewer: Idle (4: standing at ease as on the attached page, a slow breath; the same pose on every frame but the breath).
+
+Every HEAD: 16-bit pixel art animation sheet, SNES-era action RPG style, crisp dark outline, readable at small size. Isometric three-quarter view from above, the camera looking down at about thirty degrees, as in a tactics game -- the grid's own figures. The whole figure head to foot, the same size and proportions as the attached figures (a grown man stands about 50 pixels from sole to crown at game size; draw it large, the cutter brings it down). Flat dark navy background (a deep blue, not grey and not black). ONE sheet filling the whole image: no portrait, no other panels, no title. One labelled row of frames, its name at its left, numbered 1 to N under each frame -- every number used once, none skipped. Every frame stands apart with clear space around it. Feet on one baseline. No scenery, no counter.
+```
+Cut as: `kasten_p1`, the idle row's `drawn` from [0] to all five (HEAD 1 SE, 2 E, 3 NE, 4 N; `tools/keeper-town-sheet.py`).
+
+### Lucia (Mama)
+ATTACH `deep16/_src/lucia/ART-110/ART-110_HEAD-2_PAGE-1.png` (Lucia (Mama)'s south idle, the four frames the game plays).
+```text
+Attached: LUCIA (MAMA), a townsperson of a tactics game, drawn standing facing the viewer, four frames of an idle. Draw the same person -- the same face, clothes, colours, size and proportions -- turned to four other views, the same idle in each.
+
+HEAD 1 -- LUCIA (MAMA) from the bottom-right, every frame facing toward the bottom-right corner of the image: Idle (4: standing at ease as on the attached page, a slow breath; the same pose on every frame but the breath).
+HEAD 2 -- LUCIA (MAMA) from the right side in profile, facing right: Idle (4: standing at ease as on the attached page, a slow breath; the same pose on every frame but the breath).
+HEAD 3 -- LUCIA (MAMA) from the top-right, seen from behind, every frame facing toward the top-right corner of the image: Idle (4: standing at ease as on the attached page, a slow breath; the same pose on every frame but the breath).
+HEAD 4 -- LUCIA (MAMA) straight from behind, facing away from the viewer: Idle (4: standing at ease as on the attached page, a slow breath; the same pose on every frame but the breath).
+
+Every HEAD: 16-bit pixel art animation sheet, SNES-era action RPG style, crisp dark outline, readable at small size. Isometric three-quarter view from above, the camera looking down at about thirty degrees, as in a tactics game -- the grid's own figures. The whole figure head to foot, the same size and proportions as the attached figures (a grown man stands about 50 pixels from sole to crown at game size; draw it large, the cutter brings it down). Flat dark navy background (a deep blue, not grey and not black). ONE sheet filling the whole image: no portrait, no other panels, no title. One labelled row of frames, its name at its left, numbered 1 to N under each frame -- every number used once, none skipped. Every frame stands apart with clear space around it. Feet on one baseline. No scenery, no counter.
+```
+Cut as: `lucia_p1`, the idle row's `drawn` from [0] to all five (HEAD 1 SE, 2 E, 3 NE, 4 N; `tools/keeper-town-sheet.py`).
+
+### Cassia
+ATTACH `deep16/_src/cassia/ART-89/ART-89_HEAD-2_PAGE-1.png` (Cassia's south idle, the four frames the game plays).
+```text
+Attached: CASSIA, a townsperson of a tactics game, drawn standing facing the viewer, four frames of an idle. Draw the same person -- the same face, clothes, colours, size and proportions -- turned to four other views, the same idle in each.
+
+HEAD 1 -- CASSIA from the bottom-right, every frame facing toward the bottom-right corner of the image: Idle (4: standing at ease as on the attached page, a slow breath; the same pose on every frame but the breath).
+HEAD 2 -- CASSIA from the right side in profile, facing right: Idle (4: standing at ease as on the attached page, a slow breath; the same pose on every frame but the breath).
+HEAD 3 -- CASSIA from the top-right, seen from behind, every frame facing toward the top-right corner of the image: Idle (4: standing at ease as on the attached page, a slow breath; the same pose on every frame but the breath).
+HEAD 4 -- CASSIA straight from behind, facing away from the viewer: Idle (4: standing at ease as on the attached page, a slow breath; the same pose on every frame but the breath).
+
+Every HEAD: 16-bit pixel art animation sheet, SNES-era action RPG style, crisp dark outline, readable at small size. Isometric three-quarter view from above, the camera looking down at about thirty degrees, as in a tactics game -- the grid's own figures. The whole figure head to foot, the same size and proportions as the attached figures (a grown man stands about 50 pixels from sole to crown at game size; draw it large, the cutter brings it down). Flat dark navy background (a deep blue, not grey and not black). ONE sheet filling the whole image: no portrait, no other panels, no title. One labelled row of frames, its name at its left, numbered 1 to N under each frame -- every number used once, none skipped. Every frame stands apart with clear space around it. Feet on one baseline. No scenery, no counter.
+```
+Cut as: `cassia_p1`, the idle row's `drawn` from [0] to all five (HEAD 1 SE, 2 E, 3 NE, 4 N; `tools/keeper-town-sheet.py`).
+
+### Lisbet Crane
+ATTACH `deep16/_src/lisbet/ART-92/ART-92_HEAD-2_PAGE-1.png` (Lisbet Crane's south idle, the four frames the game plays).
+```text
+Attached: LISBET CRANE, a townsperson of a tactics game, drawn standing facing the viewer, four frames of an idle. Draw the same person -- the same face, clothes, colours, size and proportions -- turned to four other views, the same idle in each.
+
+HEAD 1 -- LISBET CRANE from the bottom-right, every frame facing toward the bottom-right corner of the image: Idle (4: standing at ease as on the attached page, a slow breath; the same pose on every frame but the breath).
+HEAD 2 -- LISBET CRANE from the right side in profile, facing right: Idle (4: standing at ease as on the attached page, a slow breath; the same pose on every frame but the breath).
+HEAD 3 -- LISBET CRANE from the top-right, seen from behind, every frame facing toward the top-right corner of the image: Idle (4: standing at ease as on the attached page, a slow breath; the same pose on every frame but the breath).
+HEAD 4 -- LISBET CRANE straight from behind, facing away from the viewer: Idle (4: standing at ease as on the attached page, a slow breath; the same pose on every frame but the breath).
+
+Every HEAD: 16-bit pixel art animation sheet, SNES-era action RPG style, crisp dark outline, readable at small size. Isometric three-quarter view from above, the camera looking down at about thirty degrees, as in a tactics game -- the grid's own figures. The whole figure head to foot, the same size and proportions as the attached figures (a grown man stands about 50 pixels from sole to crown at game size; draw it large, the cutter brings it down). Flat dark navy background (a deep blue, not grey and not black). ONE sheet filling the whole image: no portrait, no other panels, no title. One labelled row of frames, its name at its left, numbered 1 to N under each frame -- every number used once, none skipped. Every frame stands apart with clear space around it. Feet on one baseline. No scenery, no counter.
+```
+Cut as: `lisbet_p1`, the idle row's `drawn` from [0] to all five (HEAD 1 SE, 2 E, 3 NE, 4 N; `tools/keeper-town-sheet.py`).
+
+### Marko Thorne
+ATTACH `deep16/_src/marko/ART-94/ART-94_HEAD-2_PAGE-1.png` (Marko Thorne's south idle, the four frames the game plays).
+```text
+Attached: MARKO THORNE, a townsperson of a tactics game, drawn standing facing the viewer, four frames of an idle. Draw the same person -- the same face, clothes, colours, size and proportions -- turned to four other views, the same idle in each.
+
+HEAD 1 -- MARKO THORNE from the bottom-right, every frame facing toward the bottom-right corner of the image: Idle (4: standing at ease as on the attached page, a slow breath; the same pose on every frame but the breath).
+HEAD 2 -- MARKO THORNE from the right side in profile, facing right: Idle (4: standing at ease as on the attached page, a slow breath; the same pose on every frame but the breath).
+HEAD 3 -- MARKO THORNE from the top-right, seen from behind, every frame facing toward the top-right corner of the image: Idle (4: standing at ease as on the attached page, a slow breath; the same pose on every frame but the breath).
+HEAD 4 -- MARKO THORNE straight from behind, facing away from the viewer: Idle (4: standing at ease as on the attached page, a slow breath; the same pose on every frame but the breath).
+
+Every HEAD: 16-bit pixel art animation sheet, SNES-era action RPG style, crisp dark outline, readable at small size. Isometric three-quarter view from above, the camera looking down at about thirty degrees, as in a tactics game -- the grid's own figures. The whole figure head to foot, the same size and proportions as the attached figures (a grown man stands about 50 pixels from sole to crown at game size; draw it large, the cutter brings it down). Flat dark navy background (a deep blue, not grey and not black). ONE sheet filling the whole image: no portrait, no other panels, no title. One labelled row of frames, its name at its left, numbered 1 to N under each frame -- every number used once, none skipped. Every frame stands apart with clear space around it. Feet on one baseline. No scenery, no counter.
+```
+Cut as: `marko_p1`, the idle row's `drawn` from [0] to all five (HEAD 1 SE, 2 E, 3 NE, 4 N; `tools/keeper-town-sheet.py`).
+
+### Vilar
+ATTACH `deep16/_src/vilar/ART-97/ART-97_HEAD-2_PAGE-1.png` (Vilar's south idle, the four frames the game plays).
+```text
+Attached: VILAR, a townsperson of a tactics game, drawn standing facing the viewer, four frames of an idle. Draw the same person -- the same face, clothes, colours, size and proportions -- turned to four other views, the same idle in each.
+
+HEAD 1 -- VILAR from the bottom-right, every frame facing toward the bottom-right corner of the image: Idle (4: standing at ease as on the attached page, a slow breath; the same pose on every frame but the breath).
+HEAD 2 -- VILAR from the right side in profile, facing right: Idle (4: standing at ease as on the attached page, a slow breath; the same pose on every frame but the breath).
+HEAD 3 -- VILAR from the top-right, seen from behind, every frame facing toward the top-right corner of the image: Idle (4: standing at ease as on the attached page, a slow breath; the same pose on every frame but the breath).
+HEAD 4 -- VILAR straight from behind, facing away from the viewer: Idle (4: standing at ease as on the attached page, a slow breath; the same pose on every frame but the breath).
+
+Every HEAD: 16-bit pixel art animation sheet, SNES-era action RPG style, crisp dark outline, readable at small size. Isometric three-quarter view from above, the camera looking down at about thirty degrees, as in a tactics game -- the grid's own figures. The whole figure head to foot, the same size and proportions as the attached figures (a grown man stands about 50 pixels from sole to crown at game size; draw it large, the cutter brings it down). Flat dark navy background (a deep blue, not grey and not black). ONE sheet filling the whole image: no portrait, no other panels, no title. One labelled row of frames, its name at its left, numbered 1 to N under each frame -- every number used once, none skipped. Every frame stands apart with clear space around it. Feet on one baseline. No scenery, no counter.
+```
+Cut as: `vilar_p1`, the idle row's `drawn` from [0] to all five (HEAD 1 SE, 2 E, 3 NE, 4 N; `tools/keeper-town-sheet.py`).
+
+### Percy
+ATTACH `deep16/_src/percy/ART-102/ART-102_HEAD-2_PAGE-1.png` (Percy's south idle, the four frames the game plays).
+```text
+Attached: PERCY, a townsperson of a tactics game, drawn standing facing the viewer, four frames of an idle. Draw the same person -- the same face, clothes, colours, size and proportions -- turned to four other views, the same idle in each.
+
+HEAD 1 -- PERCY from the bottom-right, every frame facing toward the bottom-right corner of the image: Idle (4: standing at ease as on the attached page, a slow breath; the same pose on every frame but the breath).
+HEAD 2 -- PERCY from the right side in profile, facing right: Idle (4: standing at ease as on the attached page, a slow breath; the same pose on every frame but the breath).
+HEAD 3 -- PERCY from the top-right, seen from behind, every frame facing toward the top-right corner of the image: Idle (4: standing at ease as on the attached page, a slow breath; the same pose on every frame but the breath).
+HEAD 4 -- PERCY straight from behind, facing away from the viewer: Idle (4: standing at ease as on the attached page, a slow breath; the same pose on every frame but the breath).
+
+Every HEAD: 16-bit pixel art animation sheet, SNES-era action RPG style, crisp dark outline, readable at small size. Isometric three-quarter view from above, the camera looking down at about thirty degrees, as in a tactics game -- the grid's own figures. The whole figure head to foot, the same size and proportions as the attached figures (a grown man stands about 50 pixels from sole to crown at game size; draw it large, the cutter brings it down). Flat dark navy background (a deep blue, not grey and not black). ONE sheet filling the whole image: no portrait, no other panels, no title. One labelled row of frames, its name at its left, numbered 1 to N under each frame -- every number used once, none skipped. Every frame stands apart with clear space around it. Feet on one baseline. No scenery, no counter.
+```
+Cut as: `percy_p1`, the idle row's `drawn` from [0] to all five (HEAD 1 SE, 2 E, 3 NE, 4 N; `tools/keeper-town-sheet.py`).
+
+### Ned Halloway
+ATTACH `deep16/_src/ned/ART-103/ART-103_HEAD-2_PAGE-1.png` (Ned Halloway's south idle, the four frames the game plays) (his rat, if it rides him, in every view).
+```text
+Attached: NED HALLOWAY, a townsperson of a tactics game, drawn standing facing the viewer, four frames of an idle. Draw the same person -- the same face, clothes, colours, size and proportions -- turned to four other views, the same idle in each.
+
+HEAD 1 -- NED HALLOWAY from the bottom-right, every frame facing toward the bottom-right corner of the image: Idle (4: standing at ease as on the attached page, a slow breath; the same pose on every frame but the breath).
+HEAD 2 -- NED HALLOWAY from the right side in profile, facing right: Idle (4: standing at ease as on the attached page, a slow breath; the same pose on every frame but the breath).
+HEAD 3 -- NED HALLOWAY from the top-right, seen from behind, every frame facing toward the top-right corner of the image: Idle (4: standing at ease as on the attached page, a slow breath; the same pose on every frame but the breath).
+HEAD 4 -- NED HALLOWAY straight from behind, facing away from the viewer: Idle (4: standing at ease as on the attached page, a slow breath; the same pose on every frame but the breath).
+
+Every HEAD: 16-bit pixel art animation sheet, SNES-era action RPG style, crisp dark outline, readable at small size. Isometric three-quarter view from above, the camera looking down at about thirty degrees, as in a tactics game -- the grid's own figures. The whole figure head to foot, the same size and proportions as the attached figures (a grown man stands about 50 pixels from sole to crown at game size; draw it large, the cutter brings it down). Flat dark navy background (a deep blue, not grey and not black). ONE sheet filling the whole image: no portrait, no other panels, no title. One labelled row of frames, its name at its left, numbered 1 to N under each frame -- every number used once, none skipped. Every frame stands apart with clear space around it. Feet on one baseline. No scenery, no counter.
+```
+Cut as: `ned_p1`, the idle row's `drawn` from [0] to all five (HEAD 1 SE, 2 E, 3 NE, 4 N; `tools/keeper-town-sheet.py`).
+
+### Sylvia Swann
+ATTACH `deep16/_src/sylvia/ART-SYLVIA/ART-SPECIAL-SYLVIA_HEAD-2_PAGE-1.png` (Sylvia Swann's south idle, the four frames the game plays) (her owl on her shoulder in every view).
+```text
+Attached: SYLVIA SWANN, a townsperson of a tactics game, drawn standing facing the viewer, four frames of an idle. Draw the same person -- the same face, clothes, colours, size and proportions -- turned to four other views, the same idle in each.
+
+HEAD 1 -- SYLVIA SWANN from the bottom-right, every frame facing toward the bottom-right corner of the image: Idle (4: standing at ease as on the attached page, a slow breath; the same pose on every frame but the breath).
+HEAD 2 -- SYLVIA SWANN from the right side in profile, facing right: Idle (4: standing at ease as on the attached page, a slow breath; the same pose on every frame but the breath).
+HEAD 3 -- SYLVIA SWANN from the top-right, seen from behind, every frame facing toward the top-right corner of the image: Idle (4: standing at ease as on the attached page, a slow breath; the same pose on every frame but the breath).
+HEAD 4 -- SYLVIA SWANN straight from behind, facing away from the viewer: Idle (4: standing at ease as on the attached page, a slow breath; the same pose on every frame but the breath).
+
+Every HEAD: 16-bit pixel art animation sheet, SNES-era action RPG style, crisp dark outline, readable at small size. Isometric three-quarter view from above, the camera looking down at about thirty degrees, as in a tactics game -- the grid's own figures. The whole figure head to foot, the same size and proportions as the attached figures (a grown man stands about 50 pixels from sole to crown at game size; draw it large, the cutter brings it down). Flat dark navy background (a deep blue, not grey and not black). ONE sheet filling the whole image: no portrait, no other panels, no title. One labelled row of frames, its name at its left, numbered 1 to N under each frame -- every number used once, none skipped. Every frame stands apart with clear space around it. Feet on one baseline. No scenery, no counter.
+```
+Cut as: `sylvia_p1`, the idle row's `drawn` from [0] to all five (HEAD 1 SE, 2 E, 3 NE, 4 N; `tools/keeper-town-sheet.py`).
+
+### Mela Sorris
+ATTACH `deep16/_src/mela/ART-90/ART-90_HEAD-2_PAGE-1.png` (Mela Sorris's south idle, the four frames the game plays).
+```text
+Attached: MELA SORRIS, a townsperson of a tactics game, drawn standing facing the viewer, four frames of an idle. Draw the same person -- the same face, clothes, colours, size and proportions -- turned to four other views, the same idle in each.
+
+HEAD 1 -- MELA SORRIS from the bottom-right, every frame facing toward the bottom-right corner of the image: Idle (4: standing at ease as on the attached page, a slow breath; the same pose on every frame but the breath).
+HEAD 2 -- MELA SORRIS from the right side in profile, facing right: Idle (4: standing at ease as on the attached page, a slow breath; the same pose on every frame but the breath).
+HEAD 3 -- MELA SORRIS from the top-right, seen from behind, every frame facing toward the top-right corner of the image: Idle (4: standing at ease as on the attached page, a slow breath; the same pose on every frame but the breath).
+HEAD 4 -- MELA SORRIS straight from behind, facing away from the viewer: Idle (4: standing at ease as on the attached page, a slow breath; the same pose on every frame but the breath).
+
+Every HEAD: 16-bit pixel art animation sheet, SNES-era action RPG style, crisp dark outline, readable at small size. Isometric three-quarter view from above, the camera looking down at about thirty degrees, as in a tactics game -- the grid's own figures. The whole figure head to foot, the same size and proportions as the attached figures (a grown man stands about 50 pixels from sole to crown at game size; draw it large, the cutter brings it down). Flat dark navy background (a deep blue, not grey and not black). ONE sheet filling the whole image: no portrait, no other panels, no title. One labelled row of frames, its name at its left, numbered 1 to N under each frame -- every number used once, none skipped. Every frame stands apart with clear space around it. Feet on one baseline. No scenery, no counter.
+```
+Cut as: `mela_p1`, the idle row's `drawn` from [0] to all five (HEAD 1 SE, 2 E, 3 NE, 4 N; `tools/keeper-town-sheet.py`).
+
+### Mical
+ATTACH `deep16/_src/mical/ART-91/ART-91_HEAD-2_PAGE-1.png` (Mical's south idle, the four frames the game plays).
+```text
+Attached: MICAL, a townsperson of a tactics game, drawn standing facing the viewer, four frames of an idle. Draw the same person -- the same face, clothes, colours, size and proportions -- turned to four other views, the same idle in each.
+
+HEAD 1 -- MICAL from the bottom-right, every frame facing toward the bottom-right corner of the image: Idle (4: standing at ease as on the attached page, a slow breath; the same pose on every frame but the breath).
+HEAD 2 -- MICAL from the right side in profile, facing right: Idle (4: standing at ease as on the attached page, a slow breath; the same pose on every frame but the breath).
+HEAD 3 -- MICAL from the top-right, seen from behind, every frame facing toward the top-right corner of the image: Idle (4: standing at ease as on the attached page, a slow breath; the same pose on every frame but the breath).
+HEAD 4 -- MICAL straight from behind, facing away from the viewer: Idle (4: standing at ease as on the attached page, a slow breath; the same pose on every frame but the breath).
+
+Every HEAD: 16-bit pixel art animation sheet, SNES-era action RPG style, crisp dark outline, readable at small size. Isometric three-quarter view from above, the camera looking down at about thirty degrees, as in a tactics game -- the grid's own figures. The whole figure head to foot, the same size and proportions as the attached figures (a grown man stands about 50 pixels from sole to crown at game size; draw it large, the cutter brings it down). Flat dark navy background (a deep blue, not grey and not black). ONE sheet filling the whole image: no portrait, no other panels, no title. One labelled row of frames, its name at its left, numbered 1 to N under each frame -- every number used once, none skipped. Every frame stands apart with clear space around it. Feet on one baseline. No scenery, no counter.
+```
+Cut as: `mical_p1`, the idle row's `drawn` from [0] to all five (HEAD 1 SE, 2 E, 3 NE, 4 N; `tools/keeper-town-sheet.py`).
+
+### Merrick
+ATTACH `deep16/_src/merrick/ART-93/ART-93_HEAD-2_PAGE-1.png` (Merrick's south idle, the four frames the game plays).
+```text
+Attached: MERRICK, a townsperson of a tactics game, drawn standing facing the viewer, four frames of an idle. Draw the same person -- the same face, clothes, colours, size and proportions -- turned to four other views, the same idle in each.
+
+HEAD 1 -- MERRICK from the bottom-right, every frame facing toward the bottom-right corner of the image: Idle (4: standing at ease as on the attached page, a slow breath; the same pose on every frame but the breath).
+HEAD 2 -- MERRICK from the right side in profile, facing right: Idle (4: standing at ease as on the attached page, a slow breath; the same pose on every frame but the breath).
+HEAD 3 -- MERRICK from the top-right, seen from behind, every frame facing toward the top-right corner of the image: Idle (4: standing at ease as on the attached page, a slow breath; the same pose on every frame but the breath).
+HEAD 4 -- MERRICK straight from behind, facing away from the viewer: Idle (4: standing at ease as on the attached page, a slow breath; the same pose on every frame but the breath).
+
+Every HEAD: 16-bit pixel art animation sheet, SNES-era action RPG style, crisp dark outline, readable at small size. Isometric three-quarter view from above, the camera looking down at about thirty degrees, as in a tactics game -- the grid's own figures. The whole figure head to foot, the same size and proportions as the attached figures (a grown man stands about 50 pixels from sole to crown at game size; draw it large, the cutter brings it down). Flat dark navy background (a deep blue, not grey and not black). ONE sheet filling the whole image: no portrait, no other panels, no title. One labelled row of frames, its name at its left, numbered 1 to N under each frame -- every number used once, none skipped. Every frame stands apart with clear space around it. Feet on one baseline. No scenery, no counter.
+```
+Cut as: `merrick_p1`, the idle row's `drawn` from [0] to all five (HEAD 1 SE, 2 E, 3 NE, 4 N; `tools/keeper-town-sheet.py`).
+
+### Brennan
+ATTACH `deep16/_src/brennan/ART-87/ART-87_HEAD-2_PAGE-1.png` (Brennan's south idle, the four frames the game plays).
+```text
+Attached: BRENNAN, a townsperson of a tactics game, drawn standing facing the viewer, four frames of an idle. Draw the same person -- the same face, clothes, colours, size and proportions -- turned to four other views, the same idle in each.
+
+HEAD 1 -- BRENNAN from the bottom-right, every frame facing toward the bottom-right corner of the image: Idle (4: standing at ease as on the attached page, a slow breath; the same pose on every frame but the breath).
+HEAD 2 -- BRENNAN from the right side in profile, facing right: Idle (4: standing at ease as on the attached page, a slow breath; the same pose on every frame but the breath).
+HEAD 3 -- BRENNAN from the top-right, seen from behind, every frame facing toward the top-right corner of the image: Idle (4: standing at ease as on the attached page, a slow breath; the same pose on every frame but the breath).
+HEAD 4 -- BRENNAN straight from behind, facing away from the viewer: Idle (4: standing at ease as on the attached page, a slow breath; the same pose on every frame but the breath).
+
+Every HEAD: 16-bit pixel art animation sheet, SNES-era action RPG style, crisp dark outline, readable at small size. Isometric three-quarter view from above, the camera looking down at about thirty degrees, as in a tactics game -- the grid's own figures. The whole figure head to foot, the same size and proportions as the attached figures (a grown man stands about 50 pixels from sole to crown at game size; draw it large, the cutter brings it down). Flat dark navy background (a deep blue, not grey and not black). ONE sheet filling the whole image: no portrait, no other panels, no title. One labelled row of frames, its name at its left, numbered 1 to N under each frame -- every number used once, none skipped. Every frame stands apart with clear space around it. Feet on one baseline. No scenery, no counter.
+```
+Cut as: `brennan_p1`, the idle row's `drawn` from [0] to all five (HEAD 1 SE, 2 E, 3 NE, 4 N; `tools/keeper-town-sheet.py`).
+
+### Venn Hale
+ATTACH `deep16/_src/venhale/ART-96/ART-96_HEAD-2_PAGE-1.png` (Venn Hale's south idle, the four frames the game plays).
+```text
+Attached: VENN HALE, a townsperson of a tactics game, drawn standing facing the viewer, four frames of an idle. Draw the same person -- the same face, clothes, colours, size and proportions -- turned to four other views, the same idle in each.
+
+HEAD 1 -- VENN HALE from the bottom-right, every frame facing toward the bottom-right corner of the image: Idle (4: standing at ease as on the attached page, a slow breath; the same pose on every frame but the breath).
+HEAD 2 -- VENN HALE from the right side in profile, facing right: Idle (4: standing at ease as on the attached page, a slow breath; the same pose on every frame but the breath).
+HEAD 3 -- VENN HALE from the top-right, seen from behind, every frame facing toward the top-right corner of the image: Idle (4: standing at ease as on the attached page, a slow breath; the same pose on every frame but the breath).
+HEAD 4 -- VENN HALE straight from behind, facing away from the viewer: Idle (4: standing at ease as on the attached page, a slow breath; the same pose on every frame but the breath).
+
+Every HEAD: 16-bit pixel art animation sheet, SNES-era action RPG style, crisp dark outline, readable at small size. Isometric three-quarter view from above, the camera looking down at about thirty degrees, as in a tactics game -- the grid's own figures. The whole figure head to foot, the same size and proportions as the attached figures (a grown man stands about 50 pixels from sole to crown at game size; draw it large, the cutter brings it down). Flat dark navy background (a deep blue, not grey and not black). ONE sheet filling the whole image: no portrait, no other panels, no title. One labelled row of frames, its name at its left, numbered 1 to N under each frame -- every number used once, none skipped. Every frame stands apart with clear space around it. Feet on one baseline. No scenery, no counter.
+```
+Cut as: `venhale_p1`, the idle row's `drawn` from [0] to all five (HEAD 1 SE, 2 E, 3 NE, 4 N; `tools/keeper-town-sheet.py`).
+
+### Korvin
+ATTACH `deep16/_src/korvin/ART-95/ART-95_HEAD-2_PAGE-1.png` (Korvin's south idle, the four frames the game plays) (his waistcoat is drawn brown on the attached page; the cutter dyes it slate as on his south figure -- keep the attached page's colours).
+```text
+Attached: KORVIN, a townsperson of a tactics game, drawn standing facing the viewer, four frames of an idle. Draw the same person -- the same face, clothes, colours, size and proportions -- turned to four other views, the same idle in each.
+
+HEAD 1 -- KORVIN from the bottom-right, every frame facing toward the bottom-right corner of the image: Idle (4: standing at ease as on the attached page, a slow breath; the same pose on every frame but the breath).
+HEAD 2 -- KORVIN from the right side in profile, facing right: Idle (4: standing at ease as on the attached page, a slow breath; the same pose on every frame but the breath).
+HEAD 3 -- KORVIN from the top-right, seen from behind, every frame facing toward the top-right corner of the image: Idle (4: standing at ease as on the attached page, a slow breath; the same pose on every frame but the breath).
+HEAD 4 -- KORVIN straight from behind, facing away from the viewer: Idle (4: standing at ease as on the attached page, a slow breath; the same pose on every frame but the breath).
+
+Every HEAD: 16-bit pixel art animation sheet, SNES-era action RPG style, crisp dark outline, readable at small size. Isometric three-quarter view from above, the camera looking down at about thirty degrees, as in a tactics game -- the grid's own figures. The whole figure head to foot, the same size and proportions as the attached figures (a grown man stands about 50 pixels from sole to crown at game size; draw it large, the cutter brings it down). Flat dark navy background (a deep blue, not grey and not black). ONE sheet filling the whole image: no portrait, no other panels, no title. One labelled row of frames, its name at its left, numbered 1 to N under each frame -- every number used once, none skipped. Every frame stands apart with clear space around it. Feet on one baseline. No scenery, no counter.
+```
+Cut as: `korvin_p1`, the idle row's `drawn` from [0] to all five (HEAD 1 SE, 2 E, 3 NE, 4 N; `tools/keeper-town-sheet.py`).
+
+### Davos Kren
+ATTACH `deep16/_src/davos/ART-98/ART-98_HEAD-2_PAGE-1.png` (Davos Kren's south idle, the four frames the game plays).
+```text
+Attached: DAVOS KREN, a townsperson of a tactics game, drawn standing facing the viewer, four frames of an idle. Draw the same person -- the same face, clothes, colours, size and proportions -- turned to four other views, the same idle in each.
+
+HEAD 1 -- DAVOS KREN from the bottom-right, every frame facing toward the bottom-right corner of the image: Idle (4: standing at ease as on the attached page, a slow breath; the same pose on every frame but the breath).
+HEAD 2 -- DAVOS KREN from the right side in profile, facing right: Idle (4: standing at ease as on the attached page, a slow breath; the same pose on every frame but the breath).
+HEAD 3 -- DAVOS KREN from the top-right, seen from behind, every frame facing toward the top-right corner of the image: Idle (4: standing at ease as on the attached page, a slow breath; the same pose on every frame but the breath).
+HEAD 4 -- DAVOS KREN straight from behind, facing away from the viewer: Idle (4: standing at ease as on the attached page, a slow breath; the same pose on every frame but the breath).
+
+Every HEAD: 16-bit pixel art animation sheet, SNES-era action RPG style, crisp dark outline, readable at small size. Isometric three-quarter view from above, the camera looking down at about thirty degrees, as in a tactics game -- the grid's own figures. The whole figure head to foot, the same size and proportions as the attached figures (a grown man stands about 50 pixels from sole to crown at game size; draw it large, the cutter brings it down). Flat dark navy background (a deep blue, not grey and not black). ONE sheet filling the whole image: no portrait, no other panels, no title. One labelled row of frames, its name at its left, numbered 1 to N under each frame -- every number used once, none skipped. Every frame stands apart with clear space around it. Feet on one baseline. No scenery, no counter.
+```
+Cut as: `davos_p1`, the idle row's `drawn` from [0] to all five (HEAD 1 SE, 2 E, 3 NE, 4 N; `tools/keeper-town-sheet.py`).
+
+### Marta Venn
+ATTACH `deep16/_src/marta/ART-99/ART-99_HEAD-2_PAGE-1.png` (Marta Venn's south idle, the four frames the game plays).
+```text
+Attached: MARTA VENN, a townsperson of a tactics game, drawn standing facing the viewer, four frames of an idle. Draw the same person -- the same face, clothes, colours, size and proportions -- turned to four other views, the same idle in each.
+
+HEAD 1 -- MARTA VENN from the bottom-right, every frame facing toward the bottom-right corner of the image: Idle (4: standing at ease as on the attached page, a slow breath; the same pose on every frame but the breath).
+HEAD 2 -- MARTA VENN from the right side in profile, facing right: Idle (4: standing at ease as on the attached page, a slow breath; the same pose on every frame but the breath).
+HEAD 3 -- MARTA VENN from the top-right, seen from behind, every frame facing toward the top-right corner of the image: Idle (4: standing at ease as on the attached page, a slow breath; the same pose on every frame but the breath).
+HEAD 4 -- MARTA VENN straight from behind, facing away from the viewer: Idle (4: standing at ease as on the attached page, a slow breath; the same pose on every frame but the breath).
+
+Every HEAD: 16-bit pixel art animation sheet, SNES-era action RPG style, crisp dark outline, readable at small size. Isometric three-quarter view from above, the camera looking down at about thirty degrees, as in a tactics game -- the grid's own figures. The whole figure head to foot, the same size and proportions as the attached figures (a grown man stands about 50 pixels from sole to crown at game size; draw it large, the cutter brings it down). Flat dark navy background (a deep blue, not grey and not black). ONE sheet filling the whole image: no portrait, no other panels, no title. One labelled row of frames, its name at its left, numbered 1 to N under each frame -- every number used once, none skipped. Every frame stands apart with clear space around it. Feet on one baseline. No scenery, no counter.
+```
+Cut as: `marta_p1`, the idle row's `drawn` from [0] to all five (HEAD 1 SE, 2 E, 3 NE, 4 N; `tools/keeper-town-sheet.py`).
+
+### Madame Ondine Vess
+ATTACH `deep16/_src/ondine/ART-101/ART-101_HEAD-2_PAGE-1.png` (Madame Ondine Vess's south idle, the four frames the game plays).
+```text
+Attached: MADAME ONDINE VESS, a townsperson of a tactics game, drawn standing facing the viewer, four frames of an idle. Draw the same person -- the same face, clothes, colours, size and proportions -- turned to four other views, the same idle in each.
+
+HEAD 1 -- MADAME ONDINE VESS from the bottom-right, every frame facing toward the bottom-right corner of the image: Idle (4: standing at ease as on the attached page, a slow breath; the same pose on every frame but the breath).
+HEAD 2 -- MADAME ONDINE VESS from the right side in profile, facing right: Idle (4: standing at ease as on the attached page, a slow breath; the same pose on every frame but the breath).
+HEAD 3 -- MADAME ONDINE VESS from the top-right, seen from behind, every frame facing toward the top-right corner of the image: Idle (4: standing at ease as on the attached page, a slow breath; the same pose on every frame but the breath).
+HEAD 4 -- MADAME ONDINE VESS straight from behind, facing away from the viewer: Idle (4: standing at ease as on the attached page, a slow breath; the same pose on every frame but the breath).
+
+Every HEAD: 16-bit pixel art animation sheet, SNES-era action RPG style, crisp dark outline, readable at small size. Isometric three-quarter view from above, the camera looking down at about thirty degrees, as in a tactics game -- the grid's own figures. The whole figure head to foot, the same size and proportions as the attached figures (a grown man stands about 50 pixels from sole to crown at game size; draw it large, the cutter brings it down). Flat dark navy background (a deep blue, not grey and not black). ONE sheet filling the whole image: no portrait, no other panels, no title. One labelled row of frames, its name at its left, numbered 1 to N under each frame -- every number used once, none skipped. Every frame stands apart with clear space around it. Feet on one baseline. No scenery, no counter.
+```
+Cut as: `ondine_p1`, the idle row's `drawn` from [0] to all five (HEAD 1 SE, 2 E, 3 NE, 4 N; `tools/keeper-town-sheet.py`).
+
+### Tam Vere
+ATTACH `deep16/_src/tam/ART-100/ART-100_HEAD-2_PAGE-1.png` (Tam Vere's south idle, the four frames the game plays).
+```text
+Attached: TAM VERE, a townsperson of a tactics game, drawn standing facing the viewer, four frames of an idle. Draw the same person -- the same face, clothes, colours, size and proportions -- turned to four other views, the same idle in each.
+
+HEAD 1 -- TAM VERE from the bottom-right, every frame facing toward the bottom-right corner of the image: Idle (4: standing at ease as on the attached page, a slow breath; the same pose on every frame but the breath).
+HEAD 2 -- TAM VERE from the right side in profile, facing right: Idle (4: standing at ease as on the attached page, a slow breath; the same pose on every frame but the breath).
+HEAD 3 -- TAM VERE from the top-right, seen from behind, every frame facing toward the top-right corner of the image: Idle (4: standing at ease as on the attached page, a slow breath; the same pose on every frame but the breath).
+HEAD 4 -- TAM VERE straight from behind, facing away from the viewer: Idle (4: standing at ease as on the attached page, a slow breath; the same pose on every frame but the breath).
+
+Every HEAD: 16-bit pixel art animation sheet, SNES-era action RPG style, crisp dark outline, readable at small size. Isometric three-quarter view from above, the camera looking down at about thirty degrees, as in a tactics game -- the grid's own figures. The whole figure head to foot, the same size and proportions as the attached figures (a grown man stands about 50 pixels from sole to crown at game size; draw it large, the cutter brings it down). Flat dark navy background (a deep blue, not grey and not black). ONE sheet filling the whole image: no portrait, no other panels, no title. One labelled row of frames, its name at its left, numbered 1 to N under each frame -- every number used once, none skipped. Every frame stands apart with clear space around it. Feet on one baseline. No scenery, no counter.
+```
+Cut as: `tam_p1`, the idle row's `drawn` from [0] to all five (HEAD 1 SE, 2 E, 3 NE, 4 N; `tools/keeper-town-sheet.py`).
+
+### Aldwin
+ATTACH `deep16/_src/aldwin/ART-114/ART-114_HEAD-2_PAGE-1.png` (Aldwin's south idle, the four frames the game plays).
+```text
+Attached: ALDWIN, a townsperson of a tactics game, drawn standing facing the viewer, four frames of an idle. Draw the same person -- the same face, clothes, colours, size and proportions -- turned to four other views, the same idle in each.
+
+HEAD 1 -- ALDWIN from the bottom-right, every frame facing toward the bottom-right corner of the image: Idle (4: standing at ease as on the attached page, a slow breath; the same pose on every frame but the breath).
+HEAD 2 -- ALDWIN from the right side in profile, facing right: Idle (4: standing at ease as on the attached page, a slow breath; the same pose on every frame but the breath).
+HEAD 3 -- ALDWIN from the top-right, seen from behind, every frame facing toward the top-right corner of the image: Idle (4: standing at ease as on the attached page, a slow breath; the same pose on every frame but the breath).
+HEAD 4 -- ALDWIN straight from behind, facing away from the viewer: Idle (4: standing at ease as on the attached page, a slow breath; the same pose on every frame but the breath).
+
+Every HEAD: 16-bit pixel art animation sheet, SNES-era action RPG style, crisp dark outline, readable at small size. Isometric three-quarter view from above, the camera looking down at about thirty degrees, as in a tactics game -- the grid's own figures. The whole figure head to foot, the same size and proportions as the attached figures (a grown man stands about 50 pixels from sole to crown at game size; draw it large, the cutter brings it down). Flat dark navy background (a deep blue, not grey and not black). ONE sheet filling the whole image: no portrait, no other panels, no title. One labelled row of frames, its name at its left, numbered 1 to N under each frame -- every number used once, none skipped. Every frame stands apart with clear space around it. Feet on one baseline. No scenery, no counter.
+```
+Cut as: `aldwin_p1`, the idle row's `drawn` from [0] to all five (HEAD 1 SE, 2 E, 3 NE, 4 N; `tools/keeper-town-sheet.py`).
+
+### Gull
+ATTACH `deep16/_src/gull/ART-104/ART-104_HEAD-2_PAGE-1.png` (Gull's south idle, the four frames the game plays).
+```text
+Attached: GULL, a townsperson of a tactics game, drawn standing facing the viewer, four frames of an idle. Draw the same person -- the same face, clothes, colours, size and proportions -- turned to four other views, the same idle in each.
+
+HEAD 1 -- GULL from the bottom-right, every frame facing toward the bottom-right corner of the image: Idle (4: standing at ease as on the attached page, a slow breath; the same pose on every frame but the breath).
+HEAD 2 -- GULL from the right side in profile, facing right: Idle (4: standing at ease as on the attached page, a slow breath; the same pose on every frame but the breath).
+HEAD 3 -- GULL from the top-right, seen from behind, every frame facing toward the top-right corner of the image: Idle (4: standing at ease as on the attached page, a slow breath; the same pose on every frame but the breath).
+HEAD 4 -- GULL straight from behind, facing away from the viewer: Idle (4: standing at ease as on the attached page, a slow breath; the same pose on every frame but the breath).
+
+Every HEAD: 16-bit pixel art animation sheet, SNES-era action RPG style, crisp dark outline, readable at small size. Isometric three-quarter view from above, the camera looking down at about thirty degrees, as in a tactics game -- the grid's own figures. The whole figure head to foot, the same size and proportions as the attached figures (a grown man stands about 50 pixels from sole to crown at game size; draw it large, the cutter brings it down). Flat dark navy background (a deep blue, not grey and not black). ONE sheet filling the whole image: no portrait, no other panels, no title. One labelled row of frames, its name at its left, numbered 1 to N under each frame -- every number used once, none skipped. Every frame stands apart with clear space around it. Feet on one baseline. No scenery, no counter.
+```
+Cut as: `gull_p1`, the idle row's `drawn` from [0] to all five (HEAD 1 SE, 2 E, 3 NE, 4 N; `tools/keeper-town-sheet.py`).
+
+### Kael
+ATTACH `deep16/_src/kael/ART-105/ART-105_HEAD-2_PAGE-1.png` (Kael's south idle, the four frames the game plays).
+```text
+Attached: KAEL, a townsperson of a tactics game, drawn standing facing the viewer, four frames of an idle. Draw the same person -- the same face, clothes, colours, size and proportions -- turned to four other views, the same idle in each.
+
+HEAD 1 -- KAEL from the bottom-right, every frame facing toward the bottom-right corner of the image: Idle (4: standing at ease as on the attached page, a slow breath; the same pose on every frame but the breath).
+HEAD 2 -- KAEL from the right side in profile, facing right: Idle (4: standing at ease as on the attached page, a slow breath; the same pose on every frame but the breath).
+HEAD 3 -- KAEL from the top-right, seen from behind, every frame facing toward the top-right corner of the image: Idle (4: standing at ease as on the attached page, a slow breath; the same pose on every frame but the breath).
+HEAD 4 -- KAEL straight from behind, facing away from the viewer: Idle (4: standing at ease as on the attached page, a slow breath; the same pose on every frame but the breath).
+
+Every HEAD: 16-bit pixel art animation sheet, SNES-era action RPG style, crisp dark outline, readable at small size. Isometric three-quarter view from above, the camera looking down at about thirty degrees, as in a tactics game -- the grid's own figures. The whole figure head to foot, the same size and proportions as the attached figures (a grown man stands about 50 pixels from sole to crown at game size; draw it large, the cutter brings it down). Flat dark navy background (a deep blue, not grey and not black). ONE sheet filling the whole image: no portrait, no other panels, no title. One labelled row of frames, its name at its left, numbered 1 to N under each frame -- every number used once, none skipped. Every frame stands apart with clear space around it. Feet on one baseline. No scenery, no counter.
+```
+Cut as: `kael_p1`, the idle row's `drawn` from [0] to all five (HEAD 1 SE, 2 E, 3 NE, 4 N; `tools/keeper-town-sheet.py`).
+
+### Brennock
+ATTACH `deep16/_src/brennock/ART-106/ART-106_HEAD-2_PAGE-1.png` (Brennock's south idle, the four frames the game plays).
+```text
+Attached: BRENNOCK, a townsperson of a tactics game, drawn standing facing the viewer, four frames of an idle. Draw the same person -- the same face, clothes, colours, size and proportions -- turned to four other views, the same idle in each.
+
+HEAD 1 -- BRENNOCK from the bottom-right, every frame facing toward the bottom-right corner of the image: Idle (4: standing at ease as on the attached page, a slow breath; the same pose on every frame but the breath).
+HEAD 2 -- BRENNOCK from the right side in profile, facing right: Idle (4: standing at ease as on the attached page, a slow breath; the same pose on every frame but the breath).
+HEAD 3 -- BRENNOCK from the top-right, seen from behind, every frame facing toward the top-right corner of the image: Idle (4: standing at ease as on the attached page, a slow breath; the same pose on every frame but the breath).
+HEAD 4 -- BRENNOCK straight from behind, facing away from the viewer: Idle (4: standing at ease as on the attached page, a slow breath; the same pose on every frame but the breath).
+
+Every HEAD: 16-bit pixel art animation sheet, SNES-era action RPG style, crisp dark outline, readable at small size. Isometric three-quarter view from above, the camera looking down at about thirty degrees, as in a tactics game -- the grid's own figures. The whole figure head to foot, the same size and proportions as the attached figures (a grown man stands about 50 pixels from sole to crown at game size; draw it large, the cutter brings it down). Flat dark navy background (a deep blue, not grey and not black). ONE sheet filling the whole image: no portrait, no other panels, no title. One labelled row of frames, its name at its left, numbered 1 to N under each frame -- every number used once, none skipped. Every frame stands apart with clear space around it. Feet on one baseline. No scenery, no counter.
+```
+Cut as: `brennock_p1`, the idle row's `drawn` from [0] to all five (HEAD 1 SE, 2 E, 3 NE, 4 N; `tools/keeper-town-sheet.py`).
+
+### Vera
+ATTACH `deep16/_src/vera/ART-107/ART-107_HEAD-2_PAGE-1.png` (Vera's south idle, the four frames the game plays).
+```text
+Attached: VERA, a townsperson of a tactics game, drawn standing facing the viewer, four frames of an idle. Draw the same person -- the same face, clothes, colours, size and proportions -- turned to four other views, the same idle in each.
+
+HEAD 1 -- VERA from the bottom-right, every frame facing toward the bottom-right corner of the image: Idle (4: standing at ease as on the attached page, a slow breath; the same pose on every frame but the breath).
+HEAD 2 -- VERA from the right side in profile, facing right: Idle (4: standing at ease as on the attached page, a slow breath; the same pose on every frame but the breath).
+HEAD 3 -- VERA from the top-right, seen from behind, every frame facing toward the top-right corner of the image: Idle (4: standing at ease as on the attached page, a slow breath; the same pose on every frame but the breath).
+HEAD 4 -- VERA straight from behind, facing away from the viewer: Idle (4: standing at ease as on the attached page, a slow breath; the same pose on every frame but the breath).
+
+Every HEAD: 16-bit pixel art animation sheet, SNES-era action RPG style, crisp dark outline, readable at small size. Isometric three-quarter view from above, the camera looking down at about thirty degrees, as in a tactics game -- the grid's own figures. The whole figure head to foot, the same size and proportions as the attached figures (a grown man stands about 50 pixels from sole to crown at game size; draw it large, the cutter brings it down). Flat dark navy background (a deep blue, not grey and not black). ONE sheet filling the whole image: no portrait, no other panels, no title. One labelled row of frames, its name at its left, numbered 1 to N under each frame -- every number used once, none skipped. Every frame stands apart with clear space around it. Feet on one baseline. No scenery, no counter.
+```
+Cut as: `vera_p1`, the idle row's `drawn` from [0] to all five (HEAD 1 SE, 2 E, 3 NE, 4 N; `tools/keeper-town-sheet.py`).
+
+### Kess
+ATTACH `deep16/_src/kess/ART-108/ART-108_HEAD-2_PAGE-1.png` (Kess's south idle, the four frames the game plays).
+```text
+Attached: KESS, a townsperson of a tactics game, drawn standing facing the viewer, four frames of an idle. Draw the same person -- the same face, clothes, colours, size and proportions -- turned to four other views, the same idle in each.
+
+HEAD 1 -- KESS from the bottom-right, every frame facing toward the bottom-right corner of the image: Idle (4: standing at ease as on the attached page, a slow breath; the same pose on every frame but the breath).
+HEAD 2 -- KESS from the right side in profile, facing right: Idle (4: standing at ease as on the attached page, a slow breath; the same pose on every frame but the breath).
+HEAD 3 -- KESS from the top-right, seen from behind, every frame facing toward the top-right corner of the image: Idle (4: standing at ease as on the attached page, a slow breath; the same pose on every frame but the breath).
+HEAD 4 -- KESS straight from behind, facing away from the viewer: Idle (4: standing at ease as on the attached page, a slow breath; the same pose on every frame but the breath).
+
+Every HEAD: 16-bit pixel art animation sheet, SNES-era action RPG style, crisp dark outline, readable at small size. Isometric three-quarter view from above, the camera looking down at about thirty degrees, as in a tactics game -- the grid's own figures. The whole figure head to foot, the same size and proportions as the attached figures (a grown man stands about 50 pixels from sole to crown at game size; draw it large, the cutter brings it down). Flat dark navy background (a deep blue, not grey and not black). ONE sheet filling the whole image: no portrait, no other panels, no title. One labelled row of frames, its name at its left, numbered 1 to N under each frame -- every number used once, none skipped. Every frame stands apart with clear space around it. Feet on one baseline. No scenery, no counter.
+```
+Cut as: `kess_p1`, the idle row's `drawn` from [0] to all five (HEAD 1 SE, 2 E, 3 NE, 4 N; `tools/keeper-town-sheet.py`).
+
+## 28. Silverton's fountains: a basin, not spilled falls (added 10-28, the second cutter seat)
+
+His words, his ear files of 10-28 (relayed by the lanes desk), of Silverton's tiles: *"we'll probably need custom fountain tiles, this looks like spilled waterfall water"*. The town has **eight** fountains at the Edifice's foot, two rows of four flanking its middle on Fountain Street (`deep16/data/silverton-v6.js` FOUNT; js/town.js: a pool in a dressed-stone rim, the basin 30 ft across the rim and 22 the water). On the top view (js/topview.js THE ART) the water is ART-111's `fountain_water` tile, a bright rippled caustic tiled flat inside the rim -- it reads as spill, not a basin. ART-111 also drew a whole fountain (`street_fountain`, 2x2, cut and never laid), in the props' slanted view. This asks fountains drawn as basins, straight down as the town's tiles are, in two sizes for the town's scales (at 30 ft a square the basin is about 2 squares across; at 10 ft about 6), with the water still and deep. (The Edifice's own four fountains in the Skylights' fight map are the battle field's, drawn by code on its diamonds; not these.)
+
+### The fountains of Fountain Street
+ATTACH `deep16/_src/toptiles/ART-111/ART-111_HEAD-1_PAGE-1.png` (the town's ground tiles: their size, palette and light) and `deep16/_src/toptiles/ART-111/ART-111_HEAD-5_PAGE-1.png` (its fountain, the look of the stone; not its slanted view).
+```text
+Attached: the top-down tiles of a town in the same game. Draw new pieces for the same town in the same style: the fountains at the foot of a great dwarven waterfall facade -- old dwarven work in pale dressed stone, round basins fed from the falls above.
+
+HEAD 1 -- THE FOUNTAIN, SMALL, seen from directly above (north up, the light from the upper left), 2 x 2 tiles (96 x 96 pixels at game size): a round basin with a thick dressed-stone rim, a low carved pedestal in the middle with a small spout, the water inside still and deep blue-green with a few soft rings round the spout; the rim's south edge shows a little of its outer face. Two frames: the rings moved on.
+
+HEAD 2 -- THE FOUNTAIN, LARGE, the same fountain seen from directly above, 6 x 6 tiles (288 x 288 pixels at game size): the same basin, rim, pedestal and spout, bigger; the water calm, its rings round the spout, the light on it soft -- no bright glare, no foam, no white caustic web. Two frames.
+
+HEAD 3 -- BASIN WATER TILES, seen from directly above, one tile each (48 x 48 at game size): calm deep fountain water in four seamless variants, the same blue-green as HEADs 1 and 2, darker at the edge than the middle; and the water's edge against the stone rim -- straight edges (north, south, east, west), outer corners and inner corners -- so a basin of any size can be built.
+
+Every sheet: 16-bit pixel art, top-down tiles, SNES-era, crisp; the same palette and light as the attached tiles. Flat dark navy background between pieces (a deep blue, not grey and not black), each piece apart with clear space and a label under it. No characters, no scenery beyond what each HEAD names.
+```
+Cut as: `tools/toptiles-sheet.py` (ART-111's machinery) into the town's atlas -- HEADs 1 and 2 laid whole over each fountain at the town's scale nearest its size (js/topview.js), HEAD 3 the fill and its edges where a scale wants a basin of its own size (the code's rim stays the fallback).
