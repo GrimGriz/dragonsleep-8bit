@@ -646,11 +646,14 @@
   // the Weigh-House (S.hessle): his word and the board heard; what is brought paid at the scales -- the ettercap's fangs (500 sp), the cloaker's tail (the drawer's 400), true
   // word on the Snoot (the anchor-pin, 500), Amara's order (500, "not for any board") -- renown and a weapon in kind for the two beasts (EV.renown's MAJOR); then what still
   // stands on the board, and the council's word on the five, once
-  C.bounties = function (f) { var out = []; if (!f.ettercapDone) out.push(L('hessle.boardEttercap')); if (!f.cloakerDone) out.push(L('hessle.boardCloaker')); if (!f.snootWord) out.push(L('hessle.boardSnoot')); return out; };
+  // (the Snoot's paper goes up the morning after the council funds it -- the second game's council, js/hours.js C1; before it the board holds the old papers only, and
+  // Hessle's word is the board's without the notice)
+  C.noticeUp = function (f) { return !D.hours || !!f.councilNotice; };
+  C.bounties = function (f) { var out = []; if (!f.ettercapDone) out.push(L('hessle.boardEttercap')); if (!f.cloakerDone) out.push(L('hessle.boardCloaker')); if (!f.snootWord && C.noticeUp(f)) out.push(L('hessle.boardSnoot')); return out; };
   C.SCRIPTS.hessle = C.hessle = function* (sc) {
     var st = sc.st, f = st.flags, paid = false;
     var major = function* (why) { yield sc.say(C.renown(st, 1, why), 'welcoming'); var qw = C.questWeapons(st); if (qw.length) { sc.regear = true; yield sc.say(qw, 'welcoming'); } };
-    yield sc.say(L('hessle.greet'), 'attentive');
+    yield sc.say(C.noticeUp(f) ? L('hessle.greet') : D.hours.HESSLE.before, 'attentive');
     f.heardEttercap = 1; f.heardCloaker = 1; f['heard:r-ettercap'] = 1; f['heard:r-cloaker'] = 1;
     if (count(st, 'ettercapfangs') > 0) { take(st, 'ettercapfangs', 1); st.silver(500); f.ettercapDone = 1; D.sfx('coin'); paid = true; yield sc.say(L('hessle.ettercapPaid'), 'work'); yield* major('renown.ettercap'); }
     if (count(st, 'cloakertail') > 0) { take(st, 'cloakertail', 1); f.cloakerDone = 1; paid = true; yield sc.say(L('hessle.cloakerDrawer'), 'work'); st.silver(400); D.sfx('coin'); yield sc.say(L('g.foundSilver', { n: 400 }), 'welcoming'); yield* major('renown.cloaker'); }
@@ -659,7 +662,7 @@
     var open = C.bounties(f); f.boardRead = 1; // (the board read: work found, and each paper whose ground is built a mission -- js/hours.js, his "Board adds each entry as pinnable area pointer mission")
     if (open.length) yield sc.say([L('hessle.boardRead')].concat(open), 'attentive');
     else if (!paid) yield sc.say(L('hessle.boardClear'), 'attentive');
-    if (f.fiveDone && !f.fiveNotice) { f.fiveNotice = 1; yield sc.say(L(f.stockDead ? 'hessle.fiveDead' : 'hessle.fiveAlive'), 'concerned'); }
+    if (f.fiveDone && !f.fiveNotice) { f.fiveNotice = 1; yield sc.say(f.stockDead ? L('hessle.fiveDead') : !D.hours || f.councilHerd ? L('hessle.fiveAlive') : D.hours.HESSLE.five, 'concerned'); } // (the council's word on the herd only if it sat: js/hours.js C3)
   };
   // major quests pay in kind (the first game's EV.questWeapons): a magic weapon for the lead (the save's, js/house.js H.fresh), and one for another of the four -- the
   // first two majors the +1 (content/heroes.json rewardWeapons), the rest the +2; what was in hand to the pack, a shield off for a two-hander. Returns the lines

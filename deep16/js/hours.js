@@ -241,8 +241,76 @@
     }
   };
 
+  // ---------------------------------------------------------------- THE COUNCIL ON THE HEX'S THIRD FLOOR (the lane's 4.8; RULED 10-28: his "Consider C1 a cutscene that plays for
+  // the player at the parties nearest (chronological) rest cycle", "C3 is that any crawler kill trigger or the thinning the herd too much amount", "18 - yes, lantern warning same
+  // trigger as council meeting", "17 - yeah, that's good"). The register: Androit, Hessle, Casper Venn, Papa Urtusk, Ottak Harrow, and Merrick when word from outside matters; the
+  // lounge under the Big Window; "the scales are lit", the Weigh-House lamp the signal (TarlynsPit/wiki/silverton.md, the-hex.md). One screen for every sitting: the counter's,
+  // its portrait the one speaking, a line a page (a council member with no portrait yet -- Papa, Harrow, Thrane's man -- the plain shape). C1 and C3 play at the party's next long
+  // rest after the council sits, over the morning, the party not in the room; C2 is the party called up, at renown 2, played when they reach the third floor. Every line the
+  // window's draft (the no-stubs law, RULED 09-24), invented.json council-notice-night, council-herd, council-looks
+  H16.WHO = { hessle: 'Hessle', androit: 'Aldwyn Androit', casper: 'Casper Venn', merrick: 'Merrick', papa: 'Papa Urtusk', harrow: 'Ottak Harrow', thrane: 'The east side\'s man', warda: 'Warda' };
+  H16.COUNCIL = {
+    // C1: the night the Pit's word is in (Day 1; the realm's campaign-start.md, CANON 08-25: the notice funded, Papa struck the Lupine-head line, Merrick warned unexplained)
+    notice: { flag: 'councilNotice', card: 'That night, in Silverton, the Weigh-House lamp burns past the fourth bell. On the Hex\'s third floor, the scales are lit.', lines: [
+      ['hessle', 'The Pit\'s word. The gnoll king\'s dead at the moot, by Dominion hands, and their wagons gone south.'], ['merrick', 'There\'s more coming up that road. Don\'t ask me how I know.'],
+      ['androit', 'Then we post it. Fifty gold for true word of the gnolls, sworn before me. Ten a fortnight to anyone who keeps a watch on the road.'], ['harrow', 'My farms are the first thing a gnoll sees. Post it twice.'],
+      ['hessle', 'And a hundred for a Lupine\'s head --'], ['papa', 'Strike it. We pay for word.'], ['hessle', 'Struck.']], end: 'In the morning it is on Hessle\'s board.' },
+    // C3: the herd thinned (the lantern man's trigger, R.WARN_AT: `herdWarned`), and again if the whole stock dies (`stockDead`)
+    herd: { flag: 'councilHerd', card: 'That night the scales are lit again. The east side\'s house has sent a man up the Hex\'s spiral.', lines: [
+      ['thrane', 'Three of the House\'s stock dead on the stone. Somebody is culling a herd that isn\'t theirs.'], ['casper', 'Somebody went down the wet where nobody else would. Ask what they went for.'],
+      ['hessle', 'The board pays for what\'s brought up. It doesn\'t fine anyone for what they killed getting there.'], ['papa', 'A warning\'s gone down. Once. Next.']] },
+    stock: { flag: 'councilStock', card: 'The scales are lit. The east side\'s man doesn\'t sit down.', lines: [
+      ['thrane', 'The stock\'s dead. All of it. The House is hiring the Captain\'s line to hold the mouth camp and the bridge.'], ['androit', 'Then it\'s sworn: the House\'s business, the House\'s guards.'],
+      ['papa', 'Then they\'ll hold a bridge over an empty pen. Next.']] },
+    // C2: a name made (renown 2), the party called up and looked over -- a who's-who, a line each
+    looks: { flag: 'councilSeen', card: 'The council sits at the long table under the Big Window. Warda shows the party in, and nobody tells them to sit.', lines: [
+      ['androit', 'Aldwyn Androit. My seal makes paper true. If it isn\'t sealed, it isn\'t so.'], ['hessle', 'Hessle. The Weigh-House: I weigh what you bring in, and I pay what the board says.'],
+      ['casper', 'Casper Venn. I change any coin you\'ve got into any coin you need.'], ['harrow', 'Harrow. I farm south of the river. When the road goes bad, I hear it first.'],
+      ['merrick', 'Merrick. The lantern house. Messages go out through my window.'], ['papa', 'They\'ve seen you. That\'s all this was. Go on.']] },
+    call: 'A Hex boy runs up: "Papa wants you on the third floor. The spiral, all the way up."', place: 'The Hex, the third floor', what: 'the council'
+  };
+  H16.HESSLE = { before: 'The board. Read it. The scales pay what\'s posted, sworn before notary.', five: 'Five names off the book\'s dead side. The town noticed.' }; // (his word at the Weigh-House before the notice; after the five with no herd thinned)
+  H16.NOTICE_AT = 24 + 17; // (the council's night: Day 1, from dusk -- THE WORLD's S.t in hours)
+  H16.councilsDue = function (flags) {
+    var W = D.world, S = W && W.state ? W.state() : null, t = S && S.t != null ? S.t : 0, out = [];
+    if (!flags.councilNotice && t >= H16.NOTICE_AT) out.push('notice');
+    if (flags.herdWarned && !flags.councilHerd) out.push('herd');
+    if (flags.stockDead && !flags.councilStock) out.push('stock');
+    return out;
+  };
+  // the sitting on the counter's screen: the card, then a line a page on the speaker's portrait; the flag on the save and the floor (the floor hands its own back later)
+  H16.sitting = function (B, ids, flagsets) {
+    var sc = new C.Counter(B || null, { id: 'council', name: 'The council', place: H16.COUNCIL.place, what: H16.COUNCIL.what, script: function (s) { return (function* () {
+      for (var i = 0; i < ids.length; i++) {
+        var cs = H16.COUNCIL[ids[i]]; flagsets.forEach(function (f) { if (f) f[cs.flag] = 1; });
+        s.sheet = null; s.o.name = 'The council'; yield s.say([cs.card], 'attentive');
+        for (var k = 0; k < cs.lines.length; k++) { var who = cs.lines[k][0]; s.sheet = C.PT[who] || null; s.o.name = H16.WHO[who] || who; yield s.say(['"' + cs.lines[k][1] + '"'], 'attentive'); }
+        if (cs.end) { s.sheet = null; s.o.name = 'The council'; yield s.say(['{g}' + cs.end + '{/}']); }
+      }
+    })(); } });
+    D.push(sc); return sc;
+  };
+  // C1 and C3 at the morning: the sitting over the morning screen, played first (a bench, no one watching, takes the flags without the screen -- as the morning's picks, js/house.js Morning)
+  var morning0 = D.house.morning;
+  D.house.morning = function (o) {
+    var m = morning0.apply(this, arguments), Hs = D.house, ff = [Hs.cur && Hs.cur.flags, o && o.floor && o.floor.roam && o.floor.roam.flags], ids = ff[0] ? H16.councilsDue(Object.assign({}, ff[1] || {}, ff[0])) : [];
+    if (ids.length) { if (DS.autoPicks || !D.ctx) ids.forEach(function (id) { ff.forEach(function (f) { if (f) f[H16.COUNCIL[id].flag] = 1; }); }); else H16.sitting(o && o.floor, ids, ff); }
+    return m;
+  };
+  // C2: renown 2 -- in the Hex, a Hex boy's call once; on the third floor, the sitting
+  H16.lookDue = function (B) {
+    var R = D.roam, R0 = B && B.roam, def = R.def; if (!R0 || !def || !def.hexIn || !R.house() || R0.mode !== 'walk' || R0.path) return false;
+    var f = R0.flags; if (f.councilSeen || C.renownOf() < 2) return false;
+    return def.hexIn === 3 || (def.hexIn === 1 && !f.councilCalled);
+  };
+  H16.lookPlay = function* (B) {
+    var R0 = B.roam, f = R0.flags;
+    if (D.roam.def.hexIn !== 3) { f.councilCalled = 1; D.sfx('popup'); B.card(D.roam.wrap([H16.COUNCIL.call]), 360); yield 20; return; }
+    var sc = H16.sitting(B, ['looks'], [f, D.house && D.house.cur && D.house.cur.flags]); while (!sc.done) yield 1;
+  };
+
   // ---------------------------------------------------------------- the floor's beats, one hook (js/roam.js R.script): each `due` asked in turn, the first that is plays
-  H16.BEATS = [{ due: H16.papaDue, play: H16.papaScene }, { due: H16.missionDue, play: H16.missionCard }];
+  H16.BEATS = [{ due: H16.papaDue, play: H16.papaScene }, { due: H16.lookDue, play: H16.lookPlay }, { due: H16.missionDue, play: H16.missionCard }];
   H16.due = function (B) { for (var i = 0; i < H16.BEATS.length; i++) if (H16.BEATS[i].due(B)) { H16.next = H16.BEATS[i]; return true; } return false; };
   H16.beat = function* (B) { var b = H16.next; H16.next = null; if (b) yield* b.play(B); };
 })();
