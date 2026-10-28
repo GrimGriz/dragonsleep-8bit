@@ -585,7 +585,7 @@
   HX.SCENES = {
     warda: function* (B, trig) { var R = D.roam, u = B.units.filter(function (x) { return x.npc === 'warda'; })[0], t = B.roam.token; if (u) u.facing = D.spr.facingFor(t.x - u.x, t.y - u.y); B.card(R.wrap(['{y}Warda{/}', R.def.hexIn === 3 ? HX.LINES.warda3 : D.counter.L('hex.warda')]), 360); D.sfx('popup'); yield 20; }, // (on the third floor, the stairs open: her line of its rooms)
     vairseat: function* (B) { B.card(D.roam.wrap(['{y}An empty chair{/}', D.counter.L('hex.vairseat')]), 360); D.sfx('popup'); yield 20; },
-    korvinSlate: function* (B) { yield* HX.card(B); }
+    korvinSlate: function* (B) { var u = B.units.filter(function (x) { return x.npc === 'korvinSlate'; })[0], t = B.roam.token; if (u && !u.holdFacing) u.facing = D.spr.facingFor(t.x - u.x, t.y - u.y); yield* HX.card(B); } // (drawn all round since 10-28, ART-121: he turns to the one at his slate)
   };
   // THE CARD (js/events.js CARD: the first game's five, each opening the next; stake in, the win out)
   HX.CARD = [

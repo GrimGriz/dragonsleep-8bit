@@ -3914,6 +3914,51 @@
     document.body.appendChild(preV);
     return;
   }
+  // THE KEEPERS DRAWN ALL ROUND, 10-28 (mode=turn1028; tools/keeper-town-sheet.py, js/counter.js C.dress, js/town.js T.fire -- the cutter seat after Winters, the art
+  // desk's ART-121, on Griz's "you could have at least started up a cutter after 3:40 a.m. my dude"): the keepers whose SE, E, NE and N the art desk drew are cut in all
+  // eight facings (no `drawn`, no stand-in under them, the heroes' height), every other keeper still south only over the stand-in; dressed, the first are free to turn and
+  // the rest held; in their rooms each drawn all round turns to the one beside them behind the counter, and Percy, south only, beside Ned, does not; Korvin in the Hex
+  if (get('mode', '') === 'turn1028') {
+    var repT = { checks: [], errors: [] }, memT = {}, stGT = D.store.get, stST = D.store.set, HT = D.house, CT = D.counter, TT = D.town;
+    function okT(what, v) { repT.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function driveT(g, cap) { var v, k = 0, st; while (g && k++ < (cap || 600)) { st = g.next(v); v = undefined; if (st.done) return; } }
+    function topT() { var s = D.top(); if (s && s.baking) { s.baking = false; s.enter(); } return s; }
+    function trigT(id) { return (D.roam.def.src8 && D.roam.def.src8.triggers || D.roam.def.triggers || []).filter(function (t) { return t.id === id; })[0]; }
+    D.store.get = function (k) { return memT[k] ? JSON.parse(memT[k]) : null; }; D.store.set = function (k, v) { memT[k] = JSON.stringify(v); return true; };
+    try {
+      D.seed = +get('seed', 1028);
+      var WHOLE = ['winters', 'aldwin', 'davos', 'lucia', 'ned', 'vilar', 'korvin']; // (Winters `833ca06`; Aldwin, Davos Kren, Lucia, Ned Halloway, Vilar and Korvin this seat)
+      var figT = Object.keys(CT.FIG), whole = figT.filter(function (k) { var s = D.SHEETS[CT.FIG[k]]; return s && !s.anims.idle.drawn; });
+      okT('drawn all round (no S-only list on the idle): ' + whole.join(', ') + ' -- wanted ' + WHOLE.join(', '), whole.slice().sort().join() === WHOLE.slice().sort().join());
+      var shT = function (k) { var s = D.SHEETS[CT.FIG[k]], a = s.anims.idle; return k + ' ' + a.fw + 'x' + a.fh + ' top ' + s.top; };
+      okT('each cut from the four pages beside the south, the idle\'s fourteen frames, no stand-in under it, as tall as the heroes (45 to 54 above the foot; Barley ' + D.SHEETS.barley_p2.top + '): ' + WHOLE.map(shT).join(', '),
+        WHOLE.every(function (k) { var s = D.SHEETS[CT.FIG[k]], a = s && s.anims.idle; return a && !a.under && a.frames === 14 && /PAGE-2 to PAGE-5 \(SE, E, NE, N: ART-121/.test(s.source) && s.top >= 45 && s.top <= 54; }));
+      var held = figT.filter(function (k) { return WHOLE.indexOf(k) < 0; });
+      okT('the other ' + held.length + ' still south only over the stand-in (' + held.join(', ') + ')', held.every(function (k) { var s = D.SHEETS[CT.FIG[k]], a = s && s.anims.idle; return a && a.drawn.join() === '0' && a.under === 'crewman_p1'; }));
+      var drT = figT.map(function (k) { var u = { x: 0, y: 0, facing: 5 }; CT.dress(u, k); return [k, u]; });
+      okT('dressed (C.dress): all facing south, the drawn-all-round free to turn and the rest held', drT.every(function (d) { return d[1].sheet === CT.FIG[d[0]] && d[1].facing === 0 && d[1].holdFacing === (WHOLE.indexOf(d[0]) < 0); }));
+      HT.begin(HT.fresh(), 0); var B = topT(), R0 = B.roam, E = D.spr.facingFor(1, 0);
+      [['aldwin', 'chapel:aldwin'], ['davos', 'leech:davos'], ['lucia', 'shop:lucia'], ['vilar', 'shop:vilar'], ['ned', 'warp:percy'], ['percy', 'warp:percy'], ['winters', 'warp:winters']].forEach(function (p) {
+        driveT(TT.goOut(B), 200); driveT(TT.fire(B, trigT(p[1])), 600);
+        var ku = B.units.filter(function (u) { return u.npc === p[0]; })[0], tk = R0.token, k0 = [tk.x, tk.y], w = WHOLE.indexOf(p[0]) >= 0;
+        if (!ku || D.roam.def.room !== p[1]) { okT(p[0] + ' in at ' + p[1] + ': ' + (ku ? 'the room ' + D.roam.def.room : 'MISSING'), false); return; }
+        var f0 = ku.facing; tk.x = ku.x + 1; tk.y = ku.y; driveT(TT.fire(B, trigT('talk:' + p[0])), 400);
+        okT(ku.name + ' in ' + p[1] + ' (' + ku.sheet + '), facing ' + f0 + ' at rest; spoken to from beside them behind the counter, ' + (w ? 'turns to the speaker' : 'drawn south only, still faces south') + ' (facing ' + ku.facing + ', the speaker at ' + E + ')',
+          f0 === 0 && ku.sheet === CT.FIG[p[0]] && ku.facing === (w ? E : 0) && E !== 0);
+        tk.x = k0[0]; tk.y = k0[1]; ku.facing = 0;
+      });
+      driveT(TT.goOut(B), 200);
+      var BH = D.roam.make('?roam=hex'); D.scenes.length = 0; D.push(BH); BH = topT();
+      var kv = (BH.units || []).filter(function (u) { return u.npc === 'korvinSlate'; })[0], trK = trigT('talk:korvinSlate'), tkH = BH.roam.token, fK0 = kv && kv.facing;
+      if (kv && trK) { tkH.x = kv.x + 1; tkH.y = kv.y; driveT(TT.fire(BH, trK), 400); }
+      okT('Korvin at the Hex\'s slate in his own figure (' + (kv && kv.sheet) + ', facing ' + fK0 + ', held ' + (kv && kv.holdFacing) + '); spoken to from beside him, he turns (facing ' + (kv && kv.facing) + ')',
+        !!kv && kv.sheet === 'korvin_p1' && fK0 === 0 && !kv.holdFacing && !!trK && kv.facing === E);
+    } catch (eT) { repT.errors.push(String(eT && eT.stack || eT).slice(0, 900)); }
+    D.store.get = stGT; D.store.set = stST; if (D.house) { D.house.playing = false; D.house.cur = null; }
+    var preT = document.createElement('pre'); preT.id = 'out'; preT.textContent = 'BENCH16 ' + JSON.stringify(repT);
+    document.body.appendChild(preT);
+    return;
+  }
   // AMBROSE WINTERS at his counter, 10-21 (mode=winters1021; deep16/js/counter.js -- Griz, to the lanes desk: "There's a handful of vendor art in Fresh, start a seat to
   // get Winters set up for giving the starter mission and doing sales"): the house's NEW GAME walked to his room, Winters' Errands door to door by the first game's
   // words and flags (Androit and Casper Venn in their rooms on their portraits, Mical and Brennan at their doors), the pay, the renown and its banked XP, the JOURNAL
@@ -4113,13 +4158,13 @@
         var ask = sc && sc.wait && sc.wait.ask ? sc.wait.opts.join() : ''; if (upW()) goW(sc, 'opt', 'THE SHELVES'); var rows = upW() && sc.shop ? sc.rows().map(function (r) { return r.id; }) : [];
         if (upW()) { goW(sc, 'back'); goW(sc, 'opt', 'LEAVE'); } driveW(g, null, 200);
         okW(sh.keeper + ' behind the counter in their own figure (' + (ku && ku.sheet) + ', facing ' + (ku && ku.facing) + '), on their portrait (' + (sc && sc.sheet) + '): the greeting, ' + ask + ', the shelves ' + rows.length + ' of ' + sh.items.length,
-          inX && ku && ku.sheet === id + '_p1' && ku.facing === 0 && ku.holdFacing && sc.sheet === 'pt_' + id && w[0] === CW.greeting(id) && ask === 'THE SHELVES,LEAVE' && rows.join() === sh.items.join() && sc.o.place === sh.name && !upW());
+          inX && ku && ku.sheet === id + '_p1' && ku.facing === 0 && ku.holdFacing === !!D.SHEETS[ku.sheet].anims.idle.drawn && sc.sheet === 'pt_' + id && w[0] === CW.greeting(id) && ask === 'THE SHELVES,LEAVE' && rows.join() === sh.items.join() && sc.o.place === sh.name && !upW());
       });
       // Marko's greeting the second game's way (10-22, Griz: "change line for now"): no guards for hire on the grid; the first game's shops.json keeps its own
       okW('Marko hires out no guards on the grid ("' + CW.greeting('marko') + '"); the first game\'s line kept', !/Guards/.test(CW.greeting('marko')) && /Guards/.test(window.DS.DATA.shops.marko.greeting));
       outW(B); var inP = inW(B, 'warp:percy'), kuP = B.units.filter(function (u) { return u.npc === 'percy'; })[0], kuN = B.units.filter(function (u) { return u.npc === 'ned'; })[0];
       okW('Percy behind his counter in his own figure (' + (kuP && kuP.sheet) + '), Ned Halloway beside him in his (' + (kuN && kuN.sheet) + ' at ' + (kuN && kuN.x + ',' + kuN.y) + ', Percy at ' + (kuP && kuP.x + ',' + kuP.y) + '), both facing south; Ned\'s word his own scene (mode=ned1021), no shop of his',
-        inP && kuP && kuP.sheet === 'percy_p1' && kuN && kuN.sheet === 'ned_p1' && kuN.y === kuP.y && Math.abs(kuN.x - kuP.x) === 1 && kuN.facing === 0 && kuN.holdFacing && D.roam.def.rows[kuN.y].charAt(kuN.x) !== 'K' && !!trigW('talk:ned') && CW.VENDORS.ned.script === 'ned' && !CW.VENDORS.ned.shop && !!D.SHEETS[CW.VENDORS.ned.sheet]);
+        inP && kuP && kuP.sheet === 'percy_p1' && kuN && kuN.sheet === 'ned_p1' && kuN.y === kuP.y && Math.abs(kuN.x - kuP.x) === 1 && kuN.facing === 0 && kuN.holdFacing === !!D.SHEETS[kuN.sheet].anims.idle.drawn && D.roam.def.rows[kuN.y].charAt(kuN.x) !== 'K' && !!trigW('talk:ned') && CW.VENDORS.ned.script === 'ned' && !CW.VENDORS.ned.shop && !!D.SHEETS[CW.VENDORS.ned.sheet]);
       var gP = fireW(B, 'talk:percy'), scP = D.top(), wP = upW() ? readQW(scP) : [], shP = window.DS.DATA.shops.percy, pSay = window.DS.DATA.npcs.percy.talk[0].say;
       okW('Percy at the counter on his portrait (' + (scP && scP.sheet) + ', the place ' + (scP && scP.o.place) + '): his first-game word with the party hired ("' + String(wP[0]).slice(0, 40) + '...", Ned nodding at Aurdin), then THE SHELVES / LEAVE',
         scP && scP.sheet === 'pt_percy' && scP.o.place === shP.name && wP.join('|') === pSay.join('|') && scP.wait && scP.wait.ask && scP.wait.opts.join() === 'THE SHELVES,LEAVE');

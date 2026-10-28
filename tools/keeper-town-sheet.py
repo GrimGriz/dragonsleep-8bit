@@ -69,7 +69,9 @@ KEEPERS = {
     # his waistcoat dyed slate grey as on his portrait -- tools/portrait-sheet.py PEOPLE `recolour`, his "Go for recolor without reroll")
     'brennan': ('brennan/ART-87', 'ART-87', 'keeper:brennan'),
     'venhale': ('venhale/ART-96', 'ART-96', 'keeper:venhale', {'avoid': ['red', 'fire']}),   # (her nose and forearms' flush snapped to the reds, a dot of paint at this size: left out, they go to skin)
-    'korvin': ('korvin/ART-95', 'ART-95', 'hex:korvinSlate', {'recolour': {'hue': 215, 'sat': 0.22}}),
+    # (10-28, ART-121-095: the art desk drew his four new views in the slate already, so the brown cloth's dye is his south page's alone -- on the others it found only
+    # the trousers' top and left a blue sliver at the hem; his E draws it a charcoal the snap took for brown, so there the grey cloth between collar and hem is dyed)
+    'korvin': ('korvin/ART-95', 'ART-95', 'hex:korvinSlate', {'recolour': {'hue': 215, 'sat': 0.22}, 'dye': {1: 'brown', 3: (0.2, 0.62)}}),
     'davos': ('davos/ART-98', 'ART-98', 'leech:davos'),             # (10-22: Davos Kren behind the leech-house's counter)
     'marta': ('marta/ART-99', 'ART-99', 'npc:marta'),               # (10-22, "more NPC in fresh": Marta at her stalls, Madame Ondine Vess for a door to come; Tam Vere HELD, tools/portrait-sheet.py)
     'ondine': ('ondine/ART-101', 'ART-101', 'the School (no door yet)'),
@@ -85,8 +87,18 @@ KEEPERS = {
 }
 
 
-def page(name, path, ov):
-    """one page's four drawings, each scaled by the page's median to TALL and snapped: [(pixels, the feet's middle x, height)]"""
+def grey_cloth(rgb, fig, band):
+    """a grey cloth worn over a pale shirt (Korvin's charcoal waistcoat on his E page): the figure's greys, neither near-black ink nor the pale shirt, between
+    `band`'s fractions of its height -- the collar and the hem"""
+    h, s, v = PS.hsv(rgb)
+    m = fig & (s < 0.3) & (v > 0.1) & (v < 0.5)
+    H = m.shape[0]; m[:int(H * band[0])] = False; m[int(H * band[1]):] = False
+    return m
+
+
+def page(name, path, ov, pg=1):
+    """one page's four drawings, each scaled by the page's median to TALL and snapped: [(pixels, the feet's middle x, height)]; `pg` the page (1 the south),
+    for a keeper whose dye is a page's own (`dye`: {page: 'brown' for the brown cloth's mask, or (top, hem) for the grey cloth's}; without it every page dyed)"""
     a = np.asarray(Image.open(path).convert('RGB')).astype(np.int32)
     found = PS.drawings(a, [4])
     if len(found) != 4:
@@ -100,7 +112,10 @@ def page(name, path, ov):
         x0, x1 = xs.min(), xs.max() + 1
         rgba = np.zeros((foot - top, x1 - x0, 4), np.uint8)
         rgba[..., :3] = a[top:foot, x0:x1]; rgba[..., 3] = piece[top:foot, x0:x1] * 255
-        if ov.get('recolour'):
+        dye = ov.get('dye', {}).get(pg, 'brown' if 'dye' not in ov else None)
+        if ov.get('recolour') and isinstance(dye, tuple):
+            rgba[..., :3] = PS.recolour(rgba[..., :3], grey_cloth(rgba[..., :3], piece[top:foot, x0:x1], dye), **ov['recolour'])
+        elif ov.get('recolour') and dye:
             rgba[..., :3] = PS.recolour(rgba[..., :3], PS.hem_cut(rgba[..., :3], PS.cloth_mask(rgba[..., :3], piece[top:foot, x0:x1])), **ov['recolour'])  # (the trousers below the hem keep their brown)
         raw.append((rgba, fx - x0, foot - top))
     k = TALL / float(np.median([r[2] for r in raw]))
@@ -121,8 +136,8 @@ def cut(name):
     more = {f: os.path.join(SRC, folder, '%s_HEAD-2_PAGE-%d.png' % (art, p)) for p, f in VIEWS.items()}
     have = [f for f, q in more.items() if os.path.exists(q)]
     if len(have) == len(VIEWS):                                       # (ART-121 in hand: all eight)
-        for f in have:
-            faces[f] = page(name, more[f], ov)
+        for p, f in VIEWS.items():
+            faces[f] = page(name, more[f], ov, p)
         for f, g in MIRROR.items():
             faces[f] = [(px[:, ::-1].copy(), px.shape[1] - fx, h) for px, fx, h in faces[g]]
     elif have:
