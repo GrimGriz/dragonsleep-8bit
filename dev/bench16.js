@@ -2437,6 +2437,120 @@
   // the town floor's four Hex doors in and out; the three floors from the walkable's register, north up on the town's tiles; the first game's people by their ids and
   // words; the spirals up and down, the way up from the second floor shut at Warda's word; Korvin's slate, a bout won on the simple screen and one lost, his word after,
   // the purse, the flags and the hero's hit points; the sand's field and its crowd; the first game's two Hex floors untouched
+  // THE COMPANY (10-28, the opening seat; Griz: "we need to add the select character part to 'new game' and restore the 8 bit missions to form the party", "Barley and
+  // Lyman should be restored during the restoration of the company mission from the first game"): a NEW GAME walked -- the lead pick, the opening, the lead alone at the
+  // west gate, each of the other three hired where the first game puts them by its own scene and terms, the JOURNAL's Company and its marker, the close at four; a save
+  // from before keeps its four; Vivian's candle; the show's beats staged (deep16/js/company.js)
+  if (get('mode', '') === 'opening1028') {
+    var repO = { checks: [], errors: [] }, memO = {}, stGO = D.store.get, stSO = D.store.set, HO = D.house, COO = D.company, CCO = D.counter, LO = CCO.L, SSO = D.simple, IO = D.input;
+    function okO(what, v) { repO.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function driveO(g, until, cap, pv) { var v, k = 0, st; while (k++ < (cap || 4000)) { if (until && until()) return true; st = g.next(v); v = undefined; if (st.done) return !!(until && until()); if (typeof st.value === 'number' && D.battle) D.battle.t += Math.max(1, st.value); if (st.value && st.value.prompt) { v = pv != null ? pv : st.value.prompt.opts[0].value; } } return !!(until && until()); }
+    function topO() { var s = D.top(); if (s && s.baking) { s.baking = false; s.enter(); } if (s && s.roam) driveO(s.co, null, 2); return s; }
+    function answerO(B, sc, ans) { var seen = []; ans = (ans || []).slice(); for (var k = 0; k < 40 && !sc.done; k++) { var w = sc.wait || {}, bs = sc.buttons(); seen = seen.concat(w.say || w.ask || []); if (w.ask) { var a = ans.length ? ans.shift() : w.opts.length - 1; seen.push('[' + w.opts.join(' | ') + ']'); seen.push('> ' + w.opts[a]); sc.press(bs.filter(function (b) { return b.go === 'opt' && b.k === a; })[0]); } else sc.press(bs[0]); } driveO(B.co, function () { return D.top() !== sc; }, 60); return seen.join(' / '); }
+    function walkO(B, to) { var R0 = B.roam, p = D.roam.walkRoute(R0.token, to); if (!p) return null; B.cards = []; R0.encIn = 1e9; R0.path = p.slice(); var d0 = D.roam.def; driveO(B.co, function () { return D.top() !== B || (R0.token.x === to[0] && R0.token.y === to[1] && !(R0.path && R0.path.length)); }, 20000); if (D.top() === B) driveO(B.co, function () { return D.top() !== B || D.roam.def !== d0; }, 80); return p.length; }
+    function useO(B, at, ans) { var R0 = B.roam, t = R0.token, seen = []; R0.fw = [Math.sign(at[0] - t.x), Math.sign(at[1] - t.y)]; B.cards = []; R0.keys.push('use'); driveO(B.co, function () { return D.top() instanceof CCO.Counter || (B.cards || []).length > 0 || D.top() !== B; }, 400); var sc = D.top(); if (sc instanceof CCO.Counter) return { sc: sc, seen: answerO(B, sc, ans) }; (B.cards || []).forEach(function (c) { seen.push(c.lines.join(' ')); }); driveO(B.co, null, 30); return { sc: null, seen: seen.join(' / ') }; }
+    function besideO(B, at) { var t = B.roam.token, best = null; [[0, 1], [-1, 0], [1, 0], [0, -1], [-1, 1], [1, 1], [-1, -1], [1, -1]].forEach(function (o) { var q = [at[0] + o[0], at[1] + o[1]]; if (!best && D.grid.canStand(t, q[0], q[1]) && D.roam.walkRoute(t, q)) best = q; }); if (best) walkO(B, best); return best; }
+    function folkO(B) { return B.units.filter(function (u) { return u.npc; }); }
+    function sqO(B, id) { var u = folkO(B).filter(function (z) { return z.npc === id; })[0]; return u ? [u.x, u.y] : null; }
+    function trigO(id) { return D.roam.def.src8.triggers.some(function (t) { return t.npc === id; }); }
+    function idsO(list) { return list.map(function (h) { return h.key || h.id; }).join(','); }
+    function keyO(b) { IO.press(b); D.top().update(); IO.release(b); IO.clear(); }
+    function boutO(BF) {
+      driveO(BF.co, function () { var s0 = D.top(); return !!s0 && s0 !== BF && !!s0.fight; }, 400);
+      var b = D.top(); if (!b || b === BF || !b.fight) return null; if (b.baking) { b.baking = false; b.enter(); }
+      var v, guard = 0, seen = { hero: b.units.filter(function (u) { return u.side === 'party'; }).map(function (u) { return u.id; }), foe: b.units.filter(function (u) { return u.side === 'foe'; }).map(function (u) { return u.kind; }), mates: (D.hex.crowd(b) || []).filter(function (p) { return p.mate; }).length, intro: b.fight.intro };
+      while (b.co && guard++ < 200000) {
+        var r = b.co.next(v); v = undefined; if (r.done) break; var y = r.value;
+        if (typeof y === 'number' || !y || y.fx || y.entry || y.scene) continue;
+        if (y.prompt) { v = y.prompt.opts[y.prompt.opts.length - 1].value; continue; }
+        if (y.turn) { var u = y.turn, a = b.simple ? SSO.autoNext(b, u) : null, f = b.units.filter(function (z) { return z.side === 'foe' && z.hp > 0 && !z.dead; })[0]; if (b.simple) { var mS = SSO.menu(b, u); if (!a) a = SSO.acts(u) && f ? SSO.fightCmd(b, u, f) : { do: 'end' }; mS.after = null; mS.root = null; } v = a || { do: 'end' }; continue; }
+      }
+      var res = b.result; if (D.top() === b) D.pop(); b.o.onDone(res);
+      driveO(BF.co, function () { return D.top() instanceof CCO.Counter; }, 4000);
+      var sc = D.top(), word = sc instanceof CCO.Counter ? answerO(BF, sc, []) : '';
+      driveO(BF.co, null, 40);
+      return { res: res, word: word, seen: seen, b: b };
+    }
+    D.store.get = function (k) { return memO[k] ? JSON.parse(memO[k]) : null; }; D.store.set = function (k, v) { memO[k] = JSON.stringify(v); return true; };
+    window.DS.autoPicks = true;
+    var rfO = null; try { rfO = window.localStorage.getItem(SSO.KEY); window.localStorage.removeItem(SSO.KEY); } catch (eR) { } // (OPTIONS' RANDOM FIGHTS at its default: SIMPLE)
+    try {
+      D.seed = +get('seed', 1028);
+      okO('the Company is built (deep16/js/company.js loaded: ' + !!COO + ')', !!COO && !!COO.pick);
+      var cvO = document.createElement('canvas'); cvO.width = D.W; cvO.height = D.H; var cxO = cvO.getContext('2d');
+      // NEW GAME on the title: CHOOSE WHO YOU ARE
+      var tO = new HO.Title(); D.scenes.length = 0; D.push(tO); tO.enter(); tO.go('new'); var pk = D.top();
+      okO('NEW GAME: CHOOSE WHO YOU ARE (' + (pk && pk.kind) + '), the four in the first game\'s order (' + (pk && pk.heroes ? idsO(pk.heroes) : '') + ') in their own figures (' + (pk && pk.sheets || []).join(', ') + '), the cursor on the first',
+        !!pk && pk.kind === 'leadpick' && idsO(pk.heroes) === 'barley,aurdin,vivian,lymen' && pk.i === 0 && pk.sheets.join() === ['barley', 'aurdin', 'vivian', 'lymen'].map(function (id) { return D.save.look(id, null, null).sheet; }).join());
+      var drewO = true; try { pk.draw(cxO); } catch (eD) { drewO = String(eD); }
+      keyO('right'); keyO('right'); keyO('a'); var askO = pk.ask ? pk.prompt() : ''; try { pk.draw(cxO); } catch (eD2) { drewO = String(eD2); }
+      okO('two to the right and E: Vivian, and the first game\'s words -- "' + askO + '" BEGIN / BACK; the screen drawn (' + drewO + ')', pk.i === 2 && !!pk.ask && askO === 'Begin as Vivian? The other three can be found in play, and hired.' && drewO === true);
+      keyO('b'); var backO = !pk.ask && D.top() === pk; keyO('a');
+      keyO('a'); var op = D.top(), pgO = op && op.pages ? op.pages.map(function (p) { return p.join(' '); }) : [], wantO = ['intro.world', 'intro.vivian', 'intro.motive'].map(function (k) { return [].concat(LO(k)).join(' '); });
+      try { op.draw(cxO); } catch (eD3) { drewO = String(eD3); }
+      okO('X on the question: back to the four (' + backO + '); BEGIN: the opening, the first game\'s three pages (' + pgO.map(function (p) { return '"' + p.slice(0, 30) + '..."'; }).join(' ') + '), drawn (' + drewO + ')', backO && !!op && op.kind === 'opening' && op.lead === 'vivian' && pgO.join('|') === wantO.join('|') && drewO === true);
+      keyO('a'); keyO('a'); keyO('a'); var BO = topO(), RO = BO && BO.roam, dO = D.roam.def;
+      okO('E through the pages: the game, Vivian alone (' + idsO(HO.cur.party) + ', lead ' + HO.cur.lead + ', hired ' + HO.cur.hired + ', ' + HO.cur.silver + ' sp) in at Silverton\'s west gate (' + (dO && dO.key) + ' ' + (RO && [RO.token.x, RO.token.y]) + '), the floor\'s party one (' + (RO && RO.members.map(function (u) { return u.id; })) + ')',
+        HO.playing && idsO(HO.cur.party) === 'vivian' && HO.cur.lead === 'vivian' && HO.cur.hired.join() === 'vivian' && !!RO && dO.key === 'silverton' && RO.token.x === dO.marks.gates.west[0] && RO.token.y === dO.marks.gates.west[1] && RO.members.length === 1 && RO.token.id === 'vivian');
+      var fO = folkO(BO), auU = fO.filter(function (u) { return u.npc === 'aurdinChapel'; })[0];
+      okO('the town: Vivian not standing on vice row, she leads (' + !fO.some(function (u) { return u.npc === 'vivian'; }) + '); Aurdin outside Aldwin\'s chapel in his own figure (' + (auU && auU.sheet + ' at ' + auU.x + ',' + auU.y) + ', the chapel\'s door ' + dO.marks.doors['chapel:aldwin'] + ')',
+        !fO.some(function (u) { return u.npc === 'vivian'; }) && !trigO('vivian') && !!auU && auU.sheet === D.save.look('aurdin', null, null).sheet && trigO('aurdinChapel') && Math.hypot(auU.x - dO.marks.doors['chapel:aldwin'][0], auU.y - dO.marks.doors['chapel:aldwin'][1]) < 8);
+      var jO = CCO.journal(BO), cqO = jO.quests.filter(function (q) { return q.id === 'company'; })[0];
+      okO('the JOURNAL: Company first (' + jO.quests.map(function (q) { return q.id; }).join(', ') + '), the first game\'s words, not done, NEXT "' + (cqO && cqO.where) + '"', !!cqO && jO.quests[0].id === 'company' && !cqO.done && cqO.text === window.DS.DATA.quests[0].text && cqO.where === window.DS.DATA.quests[0].steps[0].where);
+      // Aurdin: PAY 20 SP -- with 10, not enough; with 30, he joins
+      besideO(BO, [auU.x, auU.y]); var a1 = useO(BO, [auU.x, auU.y], [0]);
+      okO('Aurdin with 10 silver: his first-game word, "' + LO('hire.aurdinAsk').slice(0, 30) + '..." PAY 20 SP: "' + LO('g.poor') + '" (' + a1.seen.slice(0, 120) + '); on his face (' + (a1.sc && a1.sc.o.name + ', ' + a1.sc.o.place) + '), not hired',
+        !!a1.sc && a1.sc.o.name === 'Aurdin' && a1.seen.indexOf(LO('hire.aurdinAsk')) >= 0 && a1.seen.indexOf(LO('g.poor')) >= 0 && a1.seen.indexOf(window.DS.DATA.npcs.aurdinChapel.talk[0].say[0]) >= 0 && RO.members.length === 1 && RO.silver === 10);
+      RO.silver = 30; var a2 = useO(BO, [auU.x, auU.y], [0]), auM = RO.members.filter(function (u) { return u.id === 'aurdin'; })[0];
+      okO('with 30: PAY 20 SP -- "' + [].concat(LO('hire.aurdinYes'))[0] + '", "' + LO('g.joins', { name: 'Aurdin', lvl: 2 }) + '"; the party ' + RO.members.map(function (u) { return u.id; }) + ', the save\'s ' + idsO(HO.cur.party) + ' (hired ' + HO.cur.hired + '), the purse ' + RO.silver + '; he stands where he stood (' + (auM && auM.x + ',' + auM.y) + '), no one standing for him',
+        a2.seen.indexOf([].concat(LO('hire.aurdinYes'))[0]) >= 0 && a2.seen.indexOf(LO('g.joins', { name: 'Aurdin', lvl: 2 })) >= 0 && RO.members.length === 2 && !!auM && auM.x === auU.x && auM.y === auU.y && idsO(HO.cur.party) === 'vivian,aurdin' && HO.cur.hired.join() === 'vivian,aurdin' && RO.silver === 10 && !folkO(BO).some(function (u) { return u.npc === 'aurdinChapel'; }) && !trigO('aurdinChapel') && D.roam.emb.save.party.some(function (h) { return h.id === 'aurdin'; }));
+      // the marker: Company pinned, Barley next -- the Hex's front doors from the town
+      RO.flags.pin = 'company'; COO.marked = null; CCO.paintPin(cxO, BO); var hfO = dO.marks.hexFront[0];
+      okO('Company pinned: the marker from the town on the Hex\'s front doors (' + COO.marked + ' = ' + hfO + '), the step Barley\'s', !!COO.marked && COO.marked[0] === hfO[0] && COO.marked[1] === hfO[1]);
+      // into the Hex: Barley on the bench by the slate, Lymen
+      besideO(BO, hfO); useO(BO, hfO); var B1 = topO(), d1 = D.roam.def, f1 = folkO(B1), baU = f1.filter(function (u) { return u.npc === 'barleyBench'; })[0], lyU = f1.filter(function (u) { return u.npc === 'lymenHex'; })[0];
+      COO.marked = null; CCO.paintPin(cxO, B1);
+      okO('in the Hex (' + d1.key + '): Barley by Korvin\'s slate (' + (baU && baU.x + ',' + baU.y + ' ' + baU.sheet) + '), Lymen (' + (lyU && lyU.x + ',' + lyU.y) + '); the marker over Barley (' + COO.marked + ')', d1.hexIn === 1 && !!baU && !!lyU && !!COO.marked && COO.marked[0] === baU.x && COO.marked[1] === baU.y);
+      // Lymen, no name yet
+      besideO(B1, [lyU.x, lyU.y]); var l1 = useO(B1, [lyU.x, lyU.y], []);
+      okO('Lymen, renown ' + CCO.renownOf(CCO.state(B1)) + ': his word, then "' + LO('hire.lymenWait').slice(0, 40) + '..." -- not hired (' + l1.seen.slice(0, 100) + ')', l1.seen.indexOf(LO('hire.lymenWait')) >= 0 && l1.seen.indexOf(window.DS.DATA.npcs.lymenHex.talk[0].say[0]) >= 0 && B1.roam.members.length === 2);
+      // Barley: FRONT 5 SP, he joins, and his bout at once on the sand
+      besideO(B1, [baU.x, baU.y]); var s0O = B1.roam.silver, b1 = useO(B1, [baU.x, baU.y], [0, 0]), bt = boutO(B1), baM = B1.roam.members.filter(function (u) { return u.id === 'barley'; })[0];
+      var wonO = bt && bt.res === 'won';
+      okO('Barley: FRONT 5 SP -- "' + [].concat(LO('hire.barleyYes'))[0] + '", joins, "' + LO('hire.barleyBout').slice(0, 40) + '..." FIGHT: the bout on the sand (' + (bt && (bt.b.simple ? 'simple' : 'grid') + ', ' + bt.seen.hero + ' against ' + bt.seen.foe + ', the rail ' + bt.seen.mates + ', its card "' + String(bt.seen.intro).slice(0, 30) + '"') + ')',
+        b1.seen.indexOf(LO('hire.barleyAsk')) >= 0 && b1.seen.indexOf([].concat(LO('hire.barleyYes'))[0]) >= 0 && b1.seen.indexOf(LO('g.joins', { name: 'Barley', lvl: 2 })) >= 0 && b1.seen.indexOf(LO('hire.barleyBout')) >= 0 && !!bt && bt.seen.hero.join() === 'barley' && bt.seen.foe.join() === 'cardbruiser' && bt.seen.mates === 2 && bt.seen.intro === LO('hire.barleyBout') && !bt.b.takesParty());
+      okO('the bout ' + (bt && bt.res) + ': his word after -- "' + (bt ? bt.word : '').slice(0, 80) + '"; Barley ' + (baM && baM.hp + '/' + baM.maxhp) + ' with the party (' + B1.roam.members.map(function (u) { return u.id; }) + '), the purse ' + s0O + ' > ' + B1.roam.silver,
+        !!bt && !!baM && baM.hp >= 1 && B1.roam.members.length === 3 && (wonO ? bt.word.indexOf([].concat(LO('hire.barleyWon'))[0]) >= 0 && B1.roam.silver === s0O : bt.word.indexOf([].concat(LO('hire.barleyLost'))[0]) >= 0 && B1.roam.silver === s0O - 5) && !trigO('barleyBench') && D.top() === B1 && D.roam.def.hexIn === 1);
+      // Lymen, a name made: STAND WITH US -- four, Company done
+      HO.cur.renown = 1; besideO(B1, [lyU.x, lyU.y]); var l2 = useO(B1, [lyU.x, lyU.y], [0]); var jO2 = CCO.journal(B1), cq2 = jO2.quests.filter(function (q) { return q.id === 'company'; })[0];
+      okO('Lymen, renown 1: "' + LO('hire.lymenAsk').slice(0, 30) + '..." STAND WITH US -- "' + LO('hire.lymenYes') + '"; the party ' + B1.roam.members.map(function (u) { return u.id; }) + ', the save\'s ' + idsO(HO.cur.party) + ', still led by ' + HO.cur.lead + ' (the token ' + B1.roam.token.id + '); Company ' + (cq2 && (cq2.done ? 'DONE: "' + cq2.doneText + '"' : 'open')),
+        l2.seen.indexOf(LO('hire.lymenYes')) >= 0 && B1.roam.members.length === 4 && HO.cur.party.length === 4 && HO.cur.hired.length === 4 && HO.cur.lead === 'vivian' && B1.roam.token.id === 'vivian' && !!cq2 && cq2.done && cq2.doneText === window.DS.DATA.quests[0].doneText && !trigO('lymenHex'));
+      HO.fromFloor(B1); var svO = HO.saveTo(2), rdO = HO.read(2);
+      okO('SAVE: slot 2 holds the four as hired (' + (rdO && idsO(rdO.party)) + ', hired ' + (rdO && rdO.hired) + ', lead ' + (rdO && rdO.lead) + ')', svO && !!rdO && rdO.party.length === 4 && rdO.hired.length === 4 && rdO.lead === 'vivian' && rdO.party[0].id === 'vivian');
+      // a save from before: its four kept, no one standing for them
+      var oldO = HO.fresh(); delete oldO.lead; delete oldO.hired; oldO = JSON.parse(JSON.stringify(oldO)); HO.begin(oldO, 3); var BOld = topO(), fOld = folkO(BOld);
+      okO('a save from before (no lead, no hired): its four kept (' + BOld.roam.members.map(function (u) { return u.id; }) + ', hired ' + HO.cur.hired + '), none of them standing in town, Company done', BOld.roam.members.length === 4 && HO.cur.hired.length === 4 && !fOld.some(function (u) { return COO.HIRES[u.npc]; }) && CCO.journal(BOld).quests[0].done);
+      // Vivian on vice row, Barley leading: the candle alone, then COME ALONG?
+      HO.begin(HO.fresh('barley'), 0); var BV = topO(), viU = folkO(BV).filter(function (u) { return u.npc === 'vivian'; })[0];
+      okO('Barley leads: Vivian on vice row in her own figure (' + (viU && viU.sheet + ' at ' + viU.x + ',' + viU.y) + '); Aurdin at the chapel, Barley not on the Hex\'s bench later', !!viU && viU.sheet === D.save.look('vivian', null, null).sheet && trigO('vivian') && folkO(BV).some(function (u) { return u.npc === 'aurdinChapel'; }));
+      besideO(BV, [viU.x, viU.y]); var v1 = useO(BV, [viU.x, viU.y], [0, 1]), cdO = (BV.inv || []).filter(function (s) { return s.id === 'candle'; })[0];
+      okO('Vivian: her word for Barley (' + window.DS.DATA.npcs.vivian.talk[1].say[1].slice(0, 30) + '...), BUY A CANDLE (1 SP), JUST THE CANDLE -- "' + LO('hire.vivianNo') + '": a candle in the pack (' + (cdO && cdO.n) + '), the purse ' + BV.roam.silver + ', not hired',
+        v1.seen.indexOf(window.DS.DATA.npcs.vivian.talk[1].say[1]) >= 0 && v1.seen.indexOf(LO('hire.vivianNo')) >= 0 && !!cdO && cdO.n >= 1 && BV.roam.silver === 9 && BV.roam.members.length === 1);
+      var v2 = useO(BV, [viU.x, viU.y], [0, 0]);
+      okO('again: a second candle and COME ALONG? -- "' + [].concat(LO('hire.vivianYes'))[0] + '"; the party ' + BV.roam.members.map(function (u) { return u.id; }) + ', the purse ' + BV.roam.silver, v2.seen.indexOf([].concat(LO('hire.vivianYes'))[0]) >= 0 && BV.roam.members.length === 2 && BV.roam.silver === 8 && HO.cur.hired.join() === 'barley,vivian');
+      // the show's beats: each staged where it says
+      var stO = COO.BEATS.filter(function (bt0) { return bt0.id !== 'new'; }).map(function (bt0) { var r = COO.stage(bt0); return bt0.id + ':' + r.party.map(function (h) { return h.id; }).join('+') + '@' + (r.at.sq || 'none'); });
+      var shO = COO.show('?company'); D.scenes.length = 0; D.push(shO); var shDrew = true; try { shO.draw(cxO); } catch (eS) { shDrew = String(eS); }
+      okO('the show (deep16/?company): ' + COO.BEATS.length + ' beats drawn (' + shDrew + '), each staged on its square (' + stO.join(' ') + ')', shDrew === true && stO.length === COO.BEATS.length - 1 && stO.every(function (s) { return !/@none$/.test(s); }));
+      keyO('a'); var shN = D.top();
+      okO('its first beat, NEW GAME: the pick (' + (shN && shN.kind) + '); X back to the title (', !!shN && shN.kind === 'leadpick');
+      keyO('b'); okO('X on the pick: the title (' + (D.top() && D.top().kind) + ')', !!D.top() && D.top().kind === 'housetitle');
+    } catch (eO) { repO.errors.push(String(eO && eO.stack || eO).slice(0, 900)); }
+    D.store.get = stGO; D.store.set = stSO; try { if (rfO != null) window.localStorage.setItem(SSO.KEY, rfO); } catch (eR2) { }
+    var preO = document.createElement('pre'); preO.id = 'out'; preO.textContent = 'BENCH16 ' + JSON.stringify(repO);
+    document.body.appendChild(preO);
+    return;
+  }
   if (get('mode', '') === 'hex1022') {
     var repX = { checks: [], errors: [] }, memX = {}, stGX = D.store.get, stSX = D.store.set, HXX = D.hex, CXX = D.counter, SSX = D.simple, LX = CXX.L;
     function okX(what, v) { repX.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
@@ -3712,10 +3826,11 @@
       goW(sc, 'opt', 'TAKE IT'); var wA = readW(sc);
       okW('TAKE IT: the inventory to carry, the Estate Papers in the pack, the JOURNAL pinned', R0.flags.wErrA === 1 && CW.count(st, 'estatepapers') === 1 && R0.flags.pin === 'errands' && wA.join(' ').indexOf('JOURNAL') >= 0);
       driveW(g1, null, 200);
-      okW('a job in hand ends the talk: the screen gone, the floor again', !upW() && sc.done && D.top() === B);      var jn = CW.journal(B), qE = jn.quests[0];
-      okW('the house\'s JOURNAL: ' + qE.name + ', open, pinned, NEXT: ' + qE.where, jn.quests.length === 1 && qE.id === 'errands' && !qE.done && jn.pin === 'errands' && /Androit/.test(qE.where));
+      okW('a job in hand ends the talk: the screen gone, the floor again', !upW() && sc.done && D.top() === B);      var jn = CW.journal(B), qE = jn.quests.filter(function (q) { return q.id === 'errands'; })[0] || jn.quests[0];
+      // (Company first since 10-28, the first game's order -- done here, the four walking: js/company.js)
+      okW('the house\'s JOURNAL: ' + qE.name + ', open, pinned, NEXT: ' + qE.where + ' (Company before it, done: ' + jn.quests.map(function (q) { return q.id + (q.done ? ' done' : ''); }).join(', ') + ')', jn.quests.map(function (q) { return q.id; }).join() === 'company,errands' && jn.quests[0].done && qE.id === 'errands' && !qE.done && jn.pin === 'errands' && /Androit/.test(qE.where));
       D.ui.openMenu(B); var hostW = B.menu && B.menu.m && B.menu.m.host, infW = hostW && hostW.info();
-      okW('the floor\'s M menu has the JOURNAL and the purse (' + (infW && infW.silver) + ' sp, renown ' + (infW && infW.renown) + ', pinned ' + (infW && infW.pin) + ')', !!hostW && typeof hostW.journal === 'function' && hostW.journal().quests.length === 1 && infW.silver === R0.silver && infW.pin === qE.name);
+      okW('the floor\'s M menu has the JOURNAL and the purse (' + (infW && infW.silver) + ' sp, renown ' + (infW && infW.renown) + ', pinned ' + (infW && infW.pin) + ')', !!hostW && typeof hostW.journal === 'function' && hostW.journal().quests.length === 2 && infW.silver === R0.silver && infW.pin === qE.name);
       B.menu = null;
       var pin1 = CW.pinned(st);
       okW('the pinned marker\'s door: ' + (pin1 && pin1.door) + ' (in his room it points at the way out)', pin1 && pin1.door === 'keeper:androit');
@@ -3748,7 +3863,7 @@
       inW(B, 'warp:winters'); var g3 = fireW(B, 'talk:winters'), sc3 = D.top(), done3 = readW(sc3);
       var gainW = st.party.map(function (h, i) { return (h.xp || 0) - xp0[i]; });
       okW('the estate settled: +' + (R0.silver - sv1) + ' sp, a potion, renown ' + HW.cur.renown + ' (' + String(done3.filter(function (l) { return /Renown/.test(l); })[0]).slice(0, 60) + ') and ' + gainW.join('/') + ' XP banked', R0.flags.wErrBDone === 1 && R0.silver - sv1 === 20 && CW.count(st, 'potion') === pot0 + 1 && HW.cur.renown === 1 && gainW.every(function (x) { return x === 250; }));
-      var jn2 = CW.journal(B);
+      var jn2 = CW.journal(B); jn2.quests = jn2.quests.filter(function (q) { return q.id === 'errands'; }); // (the errands' own line: Company stands before it since 10-28, js/company.js)
       okW('the JOURNAL: Winters\' Errands done -- "' + jn2.quests[0].doneText + '"; renown ' + jn2.renown + ', "' + jn2.title + '"; no marker', jn2.quests[0].done && jn2.renown === 1 && !CW.pinned(st));
       // his shelves: the first game's rules
       if (sc3.wait && sc3.wait.ask) goW(sc3, 'opt', 'THE SHELVES');
@@ -3905,7 +4020,7 @@
       // into the house's save: the floor's flags, purse and pack, the renown on the save
       HW.fromFloor(B);
       okW('the save takes it all (H.fromFloor): wErrBDone, ' + HW.cur.silver + ' sp, potions ' + (HW.cur.inv.filter(function (s) { return s.id === 'potion'; })[0] || {}).n + ', renown ' + HW.cur.renown, HW.cur.flags.wErrBDone === 1 && HW.cur.silver === R0.silver && HW.cur.inv.some(function (s) { return s.id === 'potion' && s.n === CW.count(st, 'potion'); }) && HW.cur.renown === 1);
-      var jw = CW.journal(null);
+      var jw = CW.journal(null); jw.quests = jw.quests.filter(function (q) { return q.id === 'errands'; }); // (the errands' own: Company before it since 10-28)
       okW('THE WORLD\'s JOURNAL reads the save: the errand done, renown ' + jw.renown, jw.quests[0].done && jw.renown === 1);
     } catch (eW) { repW.errors.push(String(eW && eW.stack || eW).slice(0, 900)); }
     D.store.get = stGW; D.store.set = stSW; if (D.house) { D.house.playing = false; D.house.cur = null; }

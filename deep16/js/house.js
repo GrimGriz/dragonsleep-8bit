@@ -2,7 +2,7 @@
    eight leans: "2 sounds problematic - the rest sound good"; "we may have to make silverton before we finish the world map, but if we're calling from the pocket
    DM it'd overwrite the game ones". So: one save of its own in three slots (deep16.game.1..3), and nothing of the Pocket DM's read or written -- the four's sheets
    as the first game keeps them (the shape the grid takes a party in: a Battle's o.data, js/save.js SV.units), their pack, purse, flags and kill tally, THE
-   WORLD's clock and hex, and where they stand. The title at deep16/ with no query: NEW GAME (the four as the first game starts them, at Silverton's west gate),
+   WORLD's clock and hex, and where they stand. The title at deep16/ with no query: NEW GAME (the first game's lead pick, the lead alone at Silverton's west gate and the rest hired in town: js/company.js),
    CONTINUE, OPTIONS, the Pocket DM, the first game. A road fight takes the party and gives it back, wounds and all (H.afterFight); XP banks, and a level comes at
    the long rest (H.longRest: camp on THE WORLD, js/world.js W.camp). SAVE on THE WORLD (M: the party's menu) and in a town (the floor's M menu), never on a
    dungeon floor. Held till their floor is the second game's: the cradles, the drained stair's scenes. */
@@ -16,13 +16,14 @@
   function add(inv, id, n) { var s = inv.filter(function (x) { return x.id === id; })[0]; if (s) s.n += n; else if (n > 0) inv.push({ id: id, n: n }); for (var i = inv.length - 1; i >= 0; i--) if (inv[i].n <= 0) inv.splice(i, 1); }
   H.add = add;
 
-  // NEW GAME: the four as the first game starts them (content/heroes.json: each at its own level and kit), the first game's purse and pack (content/config.json)
-  // -- the first game starts one lead and hires the rest in Silverton; here the four walk in together (the story's own start is the second game's story pass).
+  // NEW GAME: the heroes as the first game starts them (content/heroes.json: each at its own level and kit), the first game's purse and pack (content/config.json).
   // The save keeps what the first game's does (js/scenes.js's save: RULED 10-21, Griz: "not sure why the second game isn't tracking everything the first one was"):
-  // its renown, its lead (the one who leads, the first of the four) and who is hired (all four at NEW GAME); THE WORLD's clock and hex stand for its time and map
-  H.fresh = function () {
-    var R = DS.R, C = DS.DATA.config || {};
-    return { v: H.V, lead: H.HEROES[0], hired: H.HEROES.slice(), party: H.HEROES.map(function (id) { return H.start(R.makeHero(id)); }), guests: [], inv: (C.startItems || []).map(function (s) { return { id: s[0], n: s[1] }; }),
+  // its renown, its lead (the one who leads) and who is hired; THE WORLD's clock and hex stand for its time and map. H.fresh(lead): the first game's start, the
+  // lead alone and the other three to be found in Silverton and hired (js/company.js, 10-28, Griz: "we need to add the select character part to 'new game' and
+  // restore the 8 bit missions to form the party") -- the title's NEW GAME; H.fresh() with no lead: the four together, as every show's and door's NEW GAME stages them
+  H.fresh = function (lead) {
+    var R = DS.R, C = DS.DATA.config || {}, ids = lead && H.HEROES.indexOf(lead) >= 0 ? [lead] : H.HEROES.slice();
+    return { v: H.V, lead: ids[0], hired: ids.slice(), party: ids.map(function (id) { return H.start(R.makeHero(id)); }), guests: [], inv: (C.startItems || []).map(function (s) { return { id: s[0], n: s[1] }; }),
       silver: C.startSilver || 10, renown: 0, steps: 0, flags: {}, kills: {}, world: null, at: { town: 'silverton', gate: 'west', sq: null, dir: null }, made: Date.now(), saved: 0 };
   };
   // a hero as the second game starts them: the first game's (content/heroes.json, untouched -- the first game keeps it) less what the second game makes a page found in
@@ -748,7 +749,7 @@
   Title.prototype.enter = function () { try { D.music('title'); } catch (e) { } H.playing = false; this.any = [1, 2, 3].some(function (n) { return !!H.read(n); }); if (!this.any && this.i === 1) this.i = 0; };
   Title.prototype.go = function (v) {
     var self = this;
-    if (v === 'new') { D.sfx('confirm'); H.begin(H.fresh(), 0); }
+    if (v === 'new') { D.sfx('confirm'); if (D.company) { D.scenes.length = 0; D.push(D.company.pick()); } else H.begin(H.fresh(), 0); } // (CHOOSE WHO YOU ARE, the first game's lead pick: js/company.js)
     else if (v === 'load') { if (!this.any) { D.sfx('error'); return; } D.sfx('confirm'); D.push(new Slots('load')); }
     else if (v === 'options') { if (!DS.MENU || !DS.MENU.openOptions) return; D.sfx('confirm'); this.pm = DS.MENU.openOptions({ close: function () { self.pm = null; } }); }
     else if (v === 'pocket') location.href = '?pocket';

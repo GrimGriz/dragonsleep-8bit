@@ -56,6 +56,7 @@
   else if (/[?&]services\b/.test(q) && D.counter) D.push(D.counter.servicesShow(q)); // Silverton's services: a NEW GAME staged at the inn's, the chapel's, the leech-house's or the Weigh-House's door, or at camp (js/counter.js, 10-22)
   else if (/[?&]cradle\b/.test(q) && D.cradle) D.push(D.cradle.show(q)); // THE CRADLE, 10-22: the crawler game on the grid, its beats opening the shift with the dice pinned (js/cradle.js)
   else if (/[?&]wetshow\b/.test(q) && D.roam && D.roam.wetShow) D.push(D.roam.wetShow(q)); // the Wet on the house, 10-22: a NEW GAME staged by its stair, a cradle, the drained stair (js/roam.js R.WET_BEATS)
+  else if (/[?&]company\b/.test(q) && D.company) D.push(D.company.show(q)); // the Company, 10-28: the first game's opening -- NEW GAME's lead pick, and a NEW GAME staged at each hire (js/company.js)
   else if (/[?&]houseshow\b/.test(q) && D.counter) D.push(D.counter.houseShow(q)); // the house seat's 10-22: Marta's bat-wing pies, Kasten's shelves, the doors in the walls -- a NEW GAME staged beside her, or at a door (js/counter.js)
   else if (/[?&]roam=/.test(q) && D.roam) D.push(D.roam.make(q)); // the party-token map's feasibility test: the whole Wet walked as one token, its fights made where they fall (js/roam.js, 10-13)
   else if (/[?&]gallery\b/.test(q) && D.oneGallery) D.push(D.oneGallery.door(q)); // THE ONE GALLERY: the spell, feature, Mascot and row galleries as shelves of one tool, one key map (js/onegallery.js, 10-08)
