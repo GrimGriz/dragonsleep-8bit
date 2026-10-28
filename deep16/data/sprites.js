@@ -1008,8 +1008,8 @@
 }
 },
 "barber_p1": {
-"image": "art/barber_p1.png?v=c24c45f4c3",
-"fw": 31,
+"image": "art/barber_p1.png?v=04cb18d656",
+"fw": 33,
 "fh": 53,
 "ax": 16,
 "ay": 51,
@@ -1017,19 +1017,15 @@
 "anims": {
 "idle": {
 "y": 0,
-"fw": 31,
+"fw": 33,
 "fh": 53,
 "ax": 16,
 "ay": 51,
 "frames": 14,
-"fps": 4,
-"drawn": [
-0
-],
-"under": "crewman_p1"
+"fps": 4
 }
 },
-"source": "deep16/_src/barber/ART-85/ART-85_HEAD-2_PAGE-1.png (the art desk's south idle, 10-21), cut by tools/keeper-town-sheet.py",
+"source": "deep16/_src/barber/ART-85/ART-85_HEAD-2_PAGE-1.png (the art desk's south idle, 10-21) and PAGE-2 to PAGE-5 (SE, E, NE, N: ART-121, 10-28), cut by tools/keeper-town-sheet.py",
 "door": "keeper:barber"
 },
 "barley_p0": {
@@ -1961,28 +1957,24 @@
 }
 },
 "brennan_p1": {
-"image": "art/brennan_p1.png?v=7b0161f9bc",
-"fw": 33,
+"image": "art/brennan_p1.png?v=48002edbea",
+"fw": 38,
 "fh": 53,
-"ax": 17,
+"ax": 19,
 "ay": 51,
 "top": 49,
 "anims": {
 "idle": {
 "y": 0,
-"fw": 33,
+"fw": 38,
 "fh": 53,
-"ax": 17,
+"ax": 19,
 "ay": 51,
 "frames": 14,
-"fps": 4,
-"drawn": [
-0
-],
-"under": "crewman_p1"
+"fps": 4
 }
 },
-"source": "deep16/_src/brennan/ART-87/ART-87_HEAD-2_PAGE-1.png (the art desk's south idle, 10-21), cut by tools/keeper-town-sheet.py",
+"source": "deep16/_src/brennan/ART-87/ART-87_HEAD-2_PAGE-1.png (the art desk's south idle, 10-21) and PAGE-2 to PAGE-5 (SE, E, NE, N: ART-121, 10-28), cut by tools/keeper-town-sheet.py",
 "door": "keeper:brennan"
 },
 "brennock_p1": {
@@ -2455,28 +2447,24 @@
 "door": "keeper:casper"
 },
 "cassia_p1": {
-"image": "art/cassia_p1.png?v=2b092547a6",
-"fw": 29,
+"image": "art/cassia_p1.png?v=13717773de",
+"fw": 32,
 "fh": 53,
-"ax": 15,
+"ax": 16,
 "ay": 51,
 "top": 49,
 "anims": {
 "idle": {
 "y": 0,
-"fw": 29,
+"fw": 32,
 "fh": 53,
-"ax": 15,
+"ax": 16,
 "ay": 51,
 "frames": 14,
-"fps": 4,
-"drawn": [
-0
-],
-"under": "crewman_p1"
+"fps": 4
 }
 },
-"source": "deep16/_src/cassia/ART-89/ART-89_HEAD-2_PAGE-1.png (the art desk's south idle, 10-21), cut by tools/keeper-town-sheet.py",
+"source": "deep16/_src/cassia/ART-89/ART-89_HEAD-2_PAGE-1.png (the art desk's south idle, 10-21) and PAGE-2 to PAGE-5 (SE, E, NE, N: ART-121, 10-28), cut by tools/keeper-town-sheet.py",
 "door": "inn:cassia"
 },
 "centipede_p1": {
@@ -6660,28 +6648,24 @@
 "door": "talk:kael"
 },
 "kasten_p1": {
-"image": "art/kasten_p1.png?v=2865da9fae",
-"fw": 37,
+"image": "art/kasten_p1.png?v=2b40b5e6a4",
+"fw": 40,
 "fh": 54,
-"ax": 19,
+"ax": 20,
 "ay": 52,
 "top": 50,
 "anims": {
 "idle": {
 "y": 0,
-"fw": 37,
+"fw": 40,
 "fh": 54,
-"ax": 19,
+"ax": 20,
 "ay": 52,
 "frames": 14,
-"fps": 4,
-"drawn": [
-0
-],
-"under": "crewman_p1"
+"fps": 4
 }
 },
-"source": "deep16/_src/kasten/ART-88/ART-88_HEAD-2_PAGE-1.png (the art desk's south idle, 10-21), cut by tools/keeper-town-sheet.py",
+"source": "deep16/_src/kasten/ART-88/ART-88_HEAD-2_PAGE-1.png (the art desk's south idle, 10-21) and PAGE-2 to PAGE-5 (SE, E, NE, N: ART-121, 10-28), cut by tools/keeper-town-sheet.py",
 "door": "shop:kasten"
 },
 "keeper_p1": {
@@ -7677,28 +7661,24 @@
 "source": "drawn by the art desk (ART-12 SE and NE, 10-10; ART-55 S, E and N, 10-20 -- E Walk its OPEN page), cut by tools/manticore-sheet.py through tools/artdesk.py (10-22)"
 },
 "marin_p1": {
-"image": "art/marin_p1.png?v=41f3414c2f",
-"fw": 25,
+"image": "art/marin_p1.png?v=516febd5b8",
+"fw": 29,
 "fh": 53,
-"ax": 13,
+"ax": 14,
 "ay": 51,
 "top": 49,
 "anims": {
 "idle": {
 "y": 0,
-"fw": 25,
+"fw": 29,
 "fh": 53,
-"ax": 13,
+"ax": 14,
 "ay": 51,
 "frames": 14,
-"fps": 4,
-"drawn": [
-0
-],
-"under": "crewman_p1"
+"fps": 4
 }
 },
-"source": "deep16/_src/marin/ART-86/ART-86_HEAD-2_PAGE-1.png (the art desk's south idle, 10-21), cut by tools/keeper-town-sheet.py",
+"source": "deep16/_src/marin/ART-86/ART-86_HEAD-2_PAGE-1.png (the art desk's south idle, 10-21) and PAGE-2 to PAGE-5 (SE, E, NE, N: ART-121, 10-28), cut by tools/keeper-town-sheet.py",
 "door": "keeper:marin"
 },
 "marko_p1": {
@@ -7744,7 +7724,7 @@
 "door": "npc:marta"
 },
 "mela_p1": {
-"image": "art/mela_p1.png?v=dd8a1d3900",
+"image": "art/mela_p1.png?v=e55de31abb",
 "fw": 30,
 "fh": 53,
 "ax": 15,
@@ -7758,14 +7738,10 @@
 "ax": 15,
 "ay": 51,
 "frames": 14,
-"fps": 4,
-"drawn": [
-0
-],
-"under": "crewman_p1"
+"fps": 4
 }
 },
-"source": "deep16/_src/mela/ART-90/ART-90_HEAD-2_PAGE-1.png (the art desk's south idle, 10-21), cut by tools/keeper-town-sheet.py",
+"source": "deep16/_src/mela/ART-90/ART-90_HEAD-2_PAGE-1.png (the art desk's south idle, 10-21) and PAGE-2 to PAGE-5 (SE, E, NE, N: ART-121, 10-28), cut by tools/keeper-town-sheet.py",
 "door": "keeper:mela"
 },
 "merrick_p1": {

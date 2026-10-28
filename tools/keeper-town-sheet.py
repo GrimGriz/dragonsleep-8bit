@@ -51,7 +51,9 @@ KEEPERS = {
     'calla': ('calla/ART-84', 'ART-84', 'shop:calla'),
     'barber': ('barber/ART-85', 'ART-85', 'keeper:barber'),
     'marin': ('marin/ART-86', 'ART-86', 'keeper:marin'),
-    'kasten': ('kasten/ART-88', 'ART-88', 'shop:kasten'),             # (10-21, Griz: "Lucia and 88 should be in there now")
+    'kasten': ('kasten/ART-88', 'ART-88', 'shop:kasten', {'avoid': {2: ['red', 'fire'], 3: ['red', 'fire'], 4: ['red', 'fire', 'silver', 'violet'], 5: ['red', 'fire', 'silver', 'violet']}}),   # (10-21, Griz: "Lucia and 88 should be in there now")
+    # (10-28, ART-121-088, the fourth cutter seat: his ruddy cheeks snapped to red blotches in SE and E, and his back's charcoal tunic (NE, N: a cool grey, where the
+    # south's snaps warm) to the silver ramp's blues, a navy back on a black-sleeved man; left out there, the cheeks go to skin and the tunic to the south's dark stone)
     'lucia': ('lucia/ART-110', 'ART-110', 'shop:lucia'),
     'cassia': ('cassia/ART-89', 'ART-89', 'inn:cassia'),             # (the last six of art-wanted section 20, 10-21 evening: "we have shopkeep NPCs in Fresh")
     'lisbet': ('lisbet/ART-92', 'ART-92', 'shop:lisbet'),
@@ -62,12 +64,16 @@ KEEPERS = {
     # (10-21 night, Griz: "I got sylvia's - let's put it together as best we can and push it to live": her owl on her shoulder, below her crown. Her warm skin
     # snapped to the fire ramp and the lightest red, an orange face: left out of her snap, the face goes lighter; her magenta shawl stays the palette's red, as on her portrait)
     'sylvia': ('sylvia/ART-SYLVIA', 'ART-SPECIAL-SYLVIA', 'keeper:sylvia', {'avoid': ['fire', '#e8624a']}),
-    'mela': ('mela/ART-90', 'ART-90', 'keeper:mela'),                # (10-21 night, Griz: "got 3 more south idles in Fresh too": beside their doors, and Merrick in his room)
+    'mela': ('mela/ART-90', 'ART-90', 'keeper:mela', {'avoid': {p: ['red', 'fire'] for p in (2, 3, 4, 5)}, 'sat': {2: (0.5, 1.0, 0.74)}}),   # (10-21 night, Griz: "got 3 more south idles in Fresh too": beside their doors, and Merrick in his room)
+    # (10-28, ART-121-090, the fourth cutter seat: her SE draws the skirt warmer than her south (saturation 0.53 against 0.39), and the snap took it for skin, a salmon skirt
+    # with red shoes; its lower half toned to the south's saturation there (`sat`), and on all four new pages the reds left out -- a dark red in the skirt's folds, a pink cheek)
     'mical': ('mical/ART-91', 'ART-91', 'keeper:mical'),
     'merrick': ('merrick/ART-93', 'ART-93', 'keeper:merrick'),
     # (10-22, the NPC cutter seat, Griz: "more NPC art is in" and "one cutter for all 3": Brennan and Venn Hale beside their doors; Korvin for the Hex seat to place,
     # his waistcoat dyed slate grey as on his portrait -- tools/portrait-sheet.py PEOPLE `recolour`, his "Go for recolor without reroll")
-    'brennan': ('brennan/ART-87', 'ART-87', 'keeper:brennan'),
+    'brennan': ('brennan/ART-87', 'ART-87', 'keeper:brennan', {'avoid': {p: ['red', 'fire'] for p in (2, 3, 4, 5)}}),
+    # (10-28, ART-121-087, the fourth cutter seat: on his four new pages the snap took his arm scars' pink and the apron's rust stains for the reds -- the lightest red
+    # a blotch down the far arm in SE, blood-dark spots on the apron; his south has none of the red ramp: left out there, they go to his skin and leather)
     'venhale': ('venhale/ART-96', 'ART-96', 'keeper:venhale', {'avoid': ['red', 'fire']}),   # (her nose and forearms' flush snapped to the reds, a dot of paint at this size: left out, they go to skin)
     # (10-28, ART-121-095: the art desk drew his four new views in the slate already, so the brown cloth's dye is his south page's alone -- on the others it found only
     # the trousers' top and left a blue sliver at the hem; his E draws it a charcoal the snap took for brown, so there the grey cloth between collar and hem is dyed)
@@ -98,6 +104,15 @@ def grey_cloth(rgb, fig, band):
     return m
 
 
+def sat_band(rgb, fig, band, k):
+    """a page's cloth drawn more saturated than the south (Mela's SE skirt): the figure between `band`'s fractions of its height, its saturation times `k` --
+    each channel drawn toward the brightest, so the hue and the value stay"""
+    m = fig.copy(); H = m.shape[0]; m[:int(H * band[0])] = False; m[int(H * band[1]):] = False
+    out = rgb.astype(float); mx = out.max(-1, keepdims=True)
+    out = np.where(m[..., None], mx - (mx - out) * k, out)
+    return np.clip(np.round(out), 0, 255).astype(rgb.dtype)
+
+
 def page(name, path, ov, pg=1):
     """one page's four drawings, each scaled by the page's median to TALL and snapped: [(pixels, the feet's middle x, height)]; `pg` the page (1 the south),
     for a keeper whose dye is a page's own (`dye`: {page: 'brown' for the brown cloth's mask, or (top, hem) for the grey cloth's}; without it every page dyed)"""
@@ -119,6 +134,8 @@ def page(name, path, ov, pg=1):
             rgba[..., :3] = PS.recolour(rgba[..., :3], grey_cloth(rgba[..., :3], piece[top:foot, x0:x1], dye), **ov['recolour'])
         elif ov.get('recolour') and dye:
             rgba[..., :3] = PS.recolour(rgba[..., :3], PS.hem_cut(rgba[..., :3], PS.cloth_mask(rgba[..., :3], piece[top:foot, x0:x1])), **ov['recolour'])  # (the trousers below the hem keep their brown)
+        if ov.get('sat', {}).get(pg):                                 # (a page's own: {page: (top, bottom, k)} -- Mela's SE skirt)
+            t0, t1, k0 = ov['sat'][pg]; rgba[..., :3] = sat_band(rgba[..., :3], piece[top:foot, x0:x1], (t0, t1), k0)
         raw.append((rgba, fx - x0, foot - top))
     k = TALL / float(np.median([r[2] for r in raw]))
     small = []

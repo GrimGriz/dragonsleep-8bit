@@ -4464,7 +4464,8 @@
       var WHOLE = ['winters', 'aldwin', 'davos', 'lucia', 'ned', 'vilar', 'korvin', // (Winters `833ca06`; Aldwin, Davos Kren, Lucia, Ned Halloway, Vilar and Korvin `6fb9da8`, the loose pages)
         'marta', 'gull', 'tam', 'ondine', 'percy', 'brennock', 'vera', 'kess', // (the art desk's packages ART-121d and -121e, the same seat)
         'kael', 'sylvia', // (a grey streak on the other side in some drawn views: cut, RULED 10-28, his "defining features showing on mirror facings is acceptable")
-        'casper', 'androit', 'hessle', 'aldric', 'kessler', 'calla', 'mical', 'lisbet', 'merrick', 'marko', 'venhale']; // (ART-121a and -121c, the same seat; 121b's six to come)
+        'casper', 'androit', 'hessle', 'aldric', 'kessler', 'calla', 'mical', 'lisbet', 'merrick', 'marko', 'venhale', // (ART-121a and -121c, the same seat)
+        'barber', 'marin', 'brennan', 'kasten', 'cassia', 'mela']; // (ART-121b, the fourth cutter seat: the last six -- all thirty-four drawn round)
       var figT = Object.keys(CT.FIG), whole = figT.filter(function (k) { var s = D.SHEETS[CT.FIG[k]]; return s && !s.anims.idle.drawn; });
       okT('drawn all round (no S-only list on the idle): ' + whole.join(', ') + ' -- wanted ' + WHOLE.join(', '), whole.slice().sort().join() === WHOLE.slice().sort().join());
       var shT = function (k) { var s = D.SHEETS[CT.FIG[k]], a = s.anims.idle; return k + ' ' + a.fw + 'x' + a.fh + ' top ' + s.top; };
@@ -4474,10 +4475,13 @@
       okT('the other ' + held.length + ' still south only over the stand-in (' + held.join(', ') + ')', held.every(function (k) { var s = D.SHEETS[CT.FIG[k]], a = s && s.anims.idle; return a && a.drawn.join() === '0' && a.under === 'crewman_p1'; }));
       var drT = figT.map(function (k) { var u = { x: 0, y: 0, facing: 5 }; CT.dress(u, k); return [k, u]; });
       okT('dressed (C.dress): all facing south, the drawn-all-round free to turn and the rest held', drT.every(function (d) { return d[1].sheet === CT.FIG[d[0]] && d[1].facing === 0 && d[1].holdFacing === (WHOLE.indexOf(d[0]) < 0); }));
+      // (none held since ART-121b: the hold kept honest on a sheet drawn south only for the check -- Kasten's idle given `drawn: [0]`, then put back)
+      var anK = D.SHEETS[CT.FIG.kasten].anims.idle, drK = anK.drawn, uK = { x: 0, y: 0, facing: 5 }; anK.drawn = [0]; CT.dress(uK, 'kasten'); if (drK === undefined) delete anK.drawn; else anK.drawn = drK;
+      okT('a sheet drawn south only is still held by C.dress (Kasten\'s for the check: held ' + uK.holdFacing + ', facing ' + uK.facing + '), and put back (' + !anK.drawn + ')', uK.holdFacing === true && uK.facing === 0 && !anK.drawn);
       HT.begin(HT.fresh(), 0); var B = topT(), R0 = B.roam, E = D.spr.facingFor(1, 0);
       [['aldwin', 'chapel:aldwin'], ['davos', 'leech:davos'], ['lucia', 'shop:lucia'], ['vilar', 'shop:vilar'], ['ned', 'warp:percy'], ['percy', 'warp:percy'], ['marko', 'shop:marko'], ['sylvia', 'keeper:sylvia'], ['winters', 'warp:winters'],
         ['casper', 'keeper:casper'], ['androit', 'keeper:androit'], ['hessle', 'keeper:hessle'], ['aldric', 'keeper:aldric'], ['kessler', 'shop:kessler'], ['calla', 'shop:calla'],
-        ['lisbet', 'shop:lisbet'], ['merrick', 'keeper:merrick'], ['kasten', 'shop:kasten']] /* (Venn Hale out of this list again since 10-28 later: no room behind her door, his "restore 19 to before my confusion" -- mode=housefix1028b; her sheet above, no figure in town) */.forEach(function (p) {
+        ['lisbet', 'shop:lisbet'], ['merrick', 'keeper:merrick'], ['kasten', 'shop:kasten'], ['cassia', 'inn:cassia']] /* (Kasten held here till ART-121b, the fourth cutter seat: he turns now, and Cassia behind her bar) */ /* (Venn Hale out of this list again since 10-28 later: no room behind her door, his "restore 19 to before my confusion" -- mode=housefix1028b; her sheet above, no figure in town) */.forEach(function (p) {
         driveT(TT.goOut(B), 200); driveT(TT.fire(B, trigT(p[1])), 600);
         var ku = B.units.filter(function (u) { return u.npc === p[0]; })[0], tk = R0.token, k0 = [tk.x, tk.y], w = WHOLE.indexOf(p[0]) >= 0;
         if (!ku || D.roam.def.room !== p[1]) { okT(p[0] + ' in at ' + p[1] + ': ' + (ku ? 'the room ' + D.roam.def.room : 'MISSING'), false); return; }
@@ -4496,6 +4500,18 @@
         while (D.top() !== B && D.scenes.length > 1) D.pop();
         okT(ku.name + ' on the street (' + ku.sheet + '), facing ' + f0 + ' at rest; spoken to from beside them, ' + (w ? 'turns to the speaker' : 'drawn south only, still faces south') + ' (facing ' + f1 + ')',
           f0 === 0 && ku.sheet === CT.FIG[id] && f1 === (w ? E : 0) && D.top() === B);
+        tk.x = k0[0]; tk.y = k0[1]; ku.facing = 0;
+      });
+      // (at dusk: Venn the barber, Marin Voss and Mela Sorris out at their evening spots -- js/hours.js H16.EVENING, the story window's 10-28 hours -- spoken to from
+      // beside them, each turns (ART-121b, the fourth cutter seat). Brennan has no figure in town, his door his word on his portrait: his sheet above)
+      var kD = 0; while (D.roam.def.phase !== 'dusk' && kD++ < 6) { D.hours.wait(B); driveT(D.hours.waitPlay(B), 200); }
+      ['barber', 'marin', 'mela'].forEach(function (id) {
+        var ku = B.units.filter(function (u) { return u.npc === id; })[0], tk = R0.token, k0 = [tk.x, tk.y], tr = trigT('talk:' + id), ph = D.roam.def.phase;
+        if (ph !== 'dusk' || !ku || !tr) { okT(id + ' at dusk on the street: ' + (ph !== 'dusk' ? 'the street at ' + ph : ku ? 'no talk trigger' : 'MISSING'), false); return; }
+        var f0 = ku.facing; tk.x = ku.x + 1; tk.y = ku.y; driveT(TT.fire(B, tr), 400); var f1 = ku.facing;
+        while (D.top() !== B && D.scenes.length > 1) D.pop();
+        okT(ku.name + ' at dusk on the street (' + ku.sheet + '), facing ' + f0 + ' at rest; spoken to from beside them, turns to the speaker (facing ' + f1 + ')',
+          f0 === 0 && ku.sheet === CT.FIG[id] && !ku.holdFacing && f1 === E && D.top() === B);
         tk.x = k0[0]; tk.y = k0[1]; ku.facing = 0;
       });
       var BH = D.roam.make('?roam=hex'); D.scenes.length = 0; D.push(BH); BH = topT();
