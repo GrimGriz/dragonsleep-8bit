@@ -501,6 +501,7 @@
     if (this.pm) { this.pm.update(D.ui.menuKeys()); return; } // (a card's level picks: the one pick page holds the table till CONFIRM, 10-14)
     if (this.levelQueue && this.levelQueue.length) { var lq = this.levelQueue.shift(); this.askLevel(lq[0], lq[1]); return; } // (XP's level-ups with EDIT on: a card's page at a time, 10-17)
     if (this.screen === 'hub' && I.pressed('menu') && !D.typing && this.ready()) { this.openMenu(); return; } // (THE CAMP's M: the regular menu, 10-17)
+    if (this.screen === 'title' && I.pressed('menu') && !D.typing && DS.MENU && DS.MENU.openOptions) { var selfT = this; D.sfx('confirm'); this.pm = DS.MENU.openOptions({ close: function () { selfT.pm = null; } }); return; } // (the front page's M: OPTIONS, the music off with E on MUSIC -- 10-28, Griz: "allow pressing 'm' on the pocket DM front page get you to the option menu to turn off the music"; the second game's title's own OPTIONS page, js/menu.js MN.openOptions)
     var s = this.screen;
     if (I.pressed('b') && !D.typing) { this.back(); return; }
     if (s === 'title' && this.titleClick()) return; // (the throne and the two lamps: js/pocketdm.js)
@@ -1580,7 +1581,7 @@
     // (MODULES -- A DM'S LADDER till 10-17 -- is THE CAMP's LOAD MODULE since 10-17, his "Remove 'Play DM Ladder' from the Front page")
     this.drawTitleDM(ctx);
     D.text(ctx, 'Solskaft: the oath-stone of the Silversands, under the Sunshaft. At noon the light lands here.', D.W / 2, 243, P('stone', 5), 'center');
-    D.hint(ctx, 'up/down choose · E go · X the 8-bit game · the Discord: ' + PK.DISCORD.replace('https://', ''), D.W / 2, 256, P('stone', 4), 'center');
+    D.hint(ctx, 'up/down choose · E go · M options · X the 8-bit game · the Discord: ' + PK.DISCORD.replace('https://', ''), D.W / 2, 256, P('stone', 4), 'center');
   };
   // (USEFULS, the release's eight doors, is DOORS since 10-17: js/pocketdm.js PD.PUBLIC, the same rows in DOORS' list)
   // the party: the slots across, arrows above and below (his words), the level beneath
