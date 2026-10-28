@@ -600,7 +600,7 @@
       var n8 = name8(m, s.x, s.y);
       if (n8 === 'fence') return fence();
       if (n8 === 'gate') return { nm: 'stockade_gate', flat: true };
-      var by = { crate: 'crate', crateCave: 'crate', minecart: 'mine_cart', tent: 'tent_open', stump: 'offering_stump', tree: 'pine_tree', well: 'well', headframe: 'mine_headframe', cradle: 'milking_cradle', firepit: 'campfire', lamp: P === 'seep' ? 'light_pole_lit' : 'lantern_post_lit', lantern: 'lantern_post_lit' }[n8];
+      var by = { crate: 'crate', crateCave: 'crate', minecart: 'mine_cart', tent: 'tent_open', stump: 'offering_stump', tree: 'pine_tree', well: 'well', headframe: 'mine_headframe', cradle: 'milking_cradle', firepit: 'campfire', cocoon: 'sacks', lamp: P === 'seep' ? 'light_pole_lit' : 'lantern_post_lit', lantern: 'lantern_post_lit' }[n8];
       return by ? { nm: by } : null;
     }
     if (P === 'town') {

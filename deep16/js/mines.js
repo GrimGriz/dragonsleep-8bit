@@ -66,7 +66,7 @@
   M.floor = function (key, q, flags, hour) {
     q = q || ''; flags = flags || {};
     var F = M.FLOORS[key]; if (hour == null) hour = M.hourNow(q);
-    var m8 = F.own ? M.seepMap(hour) : DS.DATA.maps[F.src], leg = m8.legend, r8 = m8.rows, w = r8[0].length, h = r8.length;
+    var m8 = F.own ? (F.map || M.seepMap)(hour, flags) : DS.DATA.maps[F.src], leg = m8.legend, r8 = m8.rows, w = r8[0].length, h = r8.length;
     var nm = function (x, y) { return x < 0 || y < 0 || x >= w || y >= h ? 'void' : leg[r8[y].charAt(x)] || 'void'; };
     var g = [], lk = [], y, x;
     for (y = 0; y < h; y++) { g.push([]); lk.push([]); for (x = 0; x < w; x++) { var n = nm(x, y), L = M.LAY[n] || (M.ROOF[n] || M.WALL[n] ? ['B'] : n === 'lantern' ? ['l'] : ['#']); g[y].push(L[0]); lk[y].push(L[1] || ' '); } }
@@ -461,7 +461,7 @@
         if (!best || s > best.s) best = { s: s, x0: x0, y0: y0, turned: turned };
       }
     });
-    var rows = [], rim = kind === 'cave' ? '#' : 'g', isNeed = {}, carved = 0;
+    var rows = [], rim = kind === 'cave' || kind === 'gulch' ? '#' : 'g', isNeed = {}, carved = 0; // (gulch: Web Gulch's banks, js/gulch.js)
     need.forEach(function (q) { isNeed[q[0] + ',' + q[1]] = 1; });
     for (var fy = 0; fy < h; fy++) {
       var r = '';
@@ -707,8 +707,9 @@
     yield* M.light(B);
   };
   // THE WORLD's clock on the floor: an hour each M.SEEP.squaresPerHour squares walked and each fight; the floor laid again when day turns to night or back
+  // (a floor's own `rate` where it has one: Web Gulch's 300 squares an hour, js/gulch.js)
   M.tick = function* (B) {
-    var R0 = B.roam, C = M.SEEP, hrs = 0;
+    var R0 = B.roam, C = (M.FLOORS[D.roam.def.key] || {}).rate || M.SEEP, hrs = 0;
     R0.clockSq = (R0.clockSq || 0) + 1; if (R0.clockSq >= C.squaresPerHour) { R0.clockSq = 0; hrs++; }
     if ((R0.fights || 0) > (R0.clockFights || 0)) { hrs += ((R0.fights || 0) - (R0.clockFights || 0)) * C.fightHours; R0.clockFights = R0.fights; }
     if (hrs) yield* M.pass(B, hrs);
@@ -720,10 +721,13 @@
     yield* M.light(B);
   };
   // day or night as the hour now has it: if it changed, the floor laid again (its dark, its lights, its fights, the crew where the hour puts them) and said
+  // (a floor's own phases and their words where it has them: Web Gulch's noon besides its night, js/gulch.js)
+  M.seepPhase = function (h) { return M.night(h) ? 'night' : 'day'; };
+  M.seepLine = function (h) { return M.night(h) ? M.LINES.seep.night : M.LINES.seep.day; };
   M.light = function* (B) {
-    var def = D.roam.def, h = M.hourNow(D.roam.q, B); if (!def.clock || M.night(h) === M.night(def.hour)) { def.hour = h; return; }
+    var def = D.roam.def, h = M.hourNow(D.roam.q, B), F = M.FLOORS[def.key] || {}, ph = F.phase || M.seepPhase; if (!def.clock || ph(h) === ph(def.hour)) { def.hour = h; return; }
     M.relay(B, h, true);
-    D.sfx('popup'); B.card(D.roam.wrap([M.night(h) ? M.LINES.seep.night : M.LINES.seep.day]), 300); yield 20;
+    D.sfx('popup'); B.card(D.roam.wrap([(F.phaseLine || M.seepLine)(h)]), 300); yield 20;
   };
   var arrive0 = D.roam.arrive;
   D.roam.arrive = function* (B) { var ev = yield* arrive0(B); if (!ev && D.roam.def && D.roam.def.clock && B.roam && D.battle === B) yield* M.tick(B); return ev; };

@@ -2221,6 +2221,125 @@
     document.body.appendChild(preF2);
     return;
   }
+  // WEB GULCH ON THE GRID, 10-28 (mode=gulch1028; js/gulch.js, js/mines.js -- the gulch seat, started by the lanes desk; Griz: "I think we're ready to build the gulch roam.
+  // The 8bit one wasn't bad, but we want this one to slow down time progression greatly (compared to road) and run basically N-S ish like it looks like on the map", then on
+  // the seat's five leans "Gulch's leans look good"): the floor laid N-S along his paint's road; its clock at 300 squares an hour; noon and night; the first game's beats
+  // (the camp, the snared lad, the braiding ettercap, the chests, the spider table on fields cut from the floor, its webs in them); in off the area's road, out by the mouths
+  if (get('mode', '') === 'gulch1028') {
+    var repU = { checks: [], errors: [] }, memU = {}, stGU = D.store.get, stSU = D.store.set, MU = D.mines, RU = D.roam, HU = D.house, WU = D.world, GU = D.gulch, muU = D.music, skU = null, onStepU = WU.onStep;
+    function okU(what, v) { repU.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function driveU(g, until, cap, pv) { var v, k = 0, st; while (k++ < (cap || 4000)) { if (until && until()) return true; st = g.next(v); v = undefined; if (st.done) return !!(until && until()); if (typeof st.value === 'number' && D.battle) D.battle.t += Math.max(1, st.value); if (st.value && st.value.prompt) { driveU.asked = st.value.prompt; v = pv != null ? pv : st.value.prompt.opts[0].value; } } return !!(until && until()); }
+    function topU() { var s = D.top(); if (s && s.baking) { s.baking = false; s.enter(); } if (s && s.roam) driveU(s.co, null, 2); return s; }
+    function testU(q) { var B = RU.make(q + '&watch'); D.scenes.length = 0; D.push(B); return topU(); }
+    function runU(B, gen) { var co0 = B.co; B.co = (function* () { yield* gen; yield* co0; })(); }
+    function at(B, x, y, fw) { var t = B.roam.token; t.x = x; t.y = y; t.tween = null; B.roam.fw = fw || [0, -1]; B.roam.path = null; D.grid.setup(B.map, B.units); }
+    function folk(B, id) { return B.units.filter(function (u) { return u.npc === id; })[0] || null; }
+    function cards(B) { return (B.cards || []).map(function (c) { return c.lines.join(' '); }).join(' / '); }
+    // a beat's fight: its card answered `pick` (0 FIGHT, 1 away), the grid's fight pushed; ended `res`, and the floor's answer after
+    function beatU(B, gen, pick, res) {
+      driveU.asked = null; var asked = null, g = gen, st, v, k = 0;
+      while (k++ < 400 && D.top() === B) { st = g.next(v); v = undefined; if (st.done) return { b: null, asked: asked }; if (typeof st.value === 'number' && D.battle) D.battle.t += Math.max(1, st.value); if (st.value && st.value.prompt) { asked = st.value.prompt; v = asked.opts[pick].value; } }
+      var b = D.top(); if (b === B) return { b: null, asked: asked };
+      if (b.baking) { b.baking = false; b.enter(); }
+      var out = { b: b, asked: asked, fight: b.fight, map: b.map, foes: b.units.filter(function (u) { return u.side === 'foe'; }).map(function (u) { return u.kind; }).sort() };
+      if (D.top() === b) D.pop(); b.o.onDone(res || 'won'); driveU(g, null, 4000); B.roam.encIn = 1e9;
+      return out;
+    }
+    D.store.get = function (k) { return memU[k] ? JSON.parse(memU[k]) : null; }; D.store.set = function (k, v) { memU[k] = JSON.stringify(v); return true; };
+    window.DS.autoPicks = true; D.music = function () { };
+    try { skU = window.localStorage.getItem(D.simple.KEY); window.localStorage.removeItem(D.simple.KEY); } catch (eK) { }
+    try {
+      D.seed = +get('seed', 1028);
+      var xu = new XMLHttpRequest(); xu.open('GET', '../deep16/data/world-near.js', false); xu.send(); (0, eval)(xu.responseText); // (the Silverton area: the benches' page leaves it out)
+      WU.index(); var MN = WU.map('near'), MW = WU.map('world'), spN = GU.span(MN), siteN = GU.site(MN);
+      // 1. HIS LINE ON THE MAP: the Pit road's hexes through the cut on the area, its run north-south and bending east going south, as his paint draws it
+      var cN = spN && GU.hc(MN, spN.hexes[spN.hexes.length - 1][0], spN.hexes[spN.hexes.length - 1][1]), cS = spN && GU.hc(MN, spN.hexes[0][0], spN.hexes[0][1]);
+      var prU = (MN.paths || []).filter(function (P) { return P.id === 'pitroad'; })[0], rxU = function (y) { var p = prU.pts; for (var j = 0; j + 1 < p.length; j++) { var a = p[j], b = p[j + 1], lo = Math.min(a[1], b[1]), hi = Math.max(a[1], b[1]); if (y >= lo && y <= hi) return a[0] + (b[0] - a[0]) * (y - a[1]) / (b[1] - a[1]); } return null; }, bendU = spN ? rxU(cS[1]) - rxU(cN[1]) : 0; // (his road's own line: its bend east going south)
+      okU('the Pit road through Web Gulch on the area: ' + (spN ? spN.hexes.length + ' hexes (' + spN.hexes.map(function (h) { return h.join(','); }).join(' > ') + ', the Pit\'s end first), its north end (' + cN.map(function (v) { return v.toFixed(1); }) + ') to its south (' + cS.map(function (v) { return v.toFixed(1); }) + ') mi, his road ' + bendU.toFixed(2) + ' mi east over them, beyond it ' + spN.north + ' and ' + spN.south : 'none'),
+        !!spN && spN.hexes.length >= 4 && cS[1] - cN[1] > 3 * Math.abs(cS[0] - cN[0]) && bendU > 0 && !spN.set[spN.north.join()] && !spN.set[spN.south.join()]);
+      var B1 = testU('?roam=webgulch&hour=9'), d1 = RU.def, rimO = { north: [], south: [], west: [], east: [] }, roadN = [], roadS = [];
+      for (var y1 = 0; y1 < d1.h; y1++) for (var x1 = 0; x1 < d1.w; x1++) { if (x1 && y1 && x1 < d1.w - 1 && y1 < d1.h - 1) continue; var c1 = d1.rows[y1].charAt(x1); if ('#'.indexOf(c1) >= 0) continue; rimO[y1 === 0 ? 'north' : y1 === d1.h - 1 ? 'south' : x1 === 0 ? 'west' : 'east'].push(x1 + ',' + y1); }
+      for (var x2 = 0; x2 < d1.w; x2++) { if (d1.rows[0].charAt(x2) === ',') roadN.push(x2); if (d1.rows[d1.h - 1].charAt(x2) === ',') roadS.push(x2); }
+      okU('the floor north up, ' + d1.w + ' x ' + d1.h + ' (the run N-S, the 8-bit\'s ran E-W at 40 x 30); the road in at the north rim (x ' + roadN + ') and out at the south (x ' + roadS + '), bending east going south as his road does; the rim rock but the mouths and the descents (' + Object.keys(rimO).map(function (k) { return k + ' ' + rimO[k].length; }).join(', ') + ')',
+        d1.w === 40 && d1.h === 112 && roadN.length === 2 && roadS.length === 2 && roadS[0] > roadN[0] && rimO.north.length <= 6 && rimO.south.length <= 6 && rimO.west.length === 2 && rimO.east.length === 2);
+      // 2. THE RATE (his lean 2): 300 squares an hour here, the Glowseep's 150 as it was; a fight fifteen minutes; the straight crossing's squares and hours
+      var h2 = B1.roam.hour; B1.roam.hour = 9; for (var k2 = 0; k2 < 299; k2++) driveU(MU.tick(B1), null, 20); var h299 = B1.roam.hour; driveU(MU.tick(B1), null, 20); var h300 = B1.roam.hour;
+      B1.roam.fights = (B1.roam.fights || 0) + 1; driveU(MU.tick(B1), null, 20); var hF = B1.roam.hour;
+      var Bs = testU('?roam=glowseep&hour=9'); for (var k3 = 0; k3 < 150; k3++) driveU(MU.tick(Bs), null, 20); var hS = Bs.roam.hour;
+      var B2 = testU('?roam=webgulch&hour=9'), fl2 = RU.flood(B2.roam.token, [17, 1], 400), dX = fl2 && fl2['22,111'];
+      okU('the clock: 299 squares walked, still ' + h299 + '; the 300th, ' + h300 + ' (an hour); a fight, ' + hF + ' (fifteen minutes); the Glowseep\'s 150 squares an hour as it was (' + hS + '); straight down the road from the north mouth to the south ' + dX + ' squares, ' + (dX / GU.RATE.squaresPerHour * 60).toFixed(0) + ' minutes (the march through its ' + (spN ? spN.hexes.length : '?') + ' hexes ' + (spN ? spN.hexes.length * 0.5 : '?') + ' h)',
+        h299 === 9 && h300 === 10 && hF === 10.25 && hS === 10 && GU.RATE.squaresPerHour === 300 && dX > 100 && dX < 125);
+      // 3. THE NOON AND THE NIGHT (his lean 4): the cutters out at the webs 11 to 14, the fights half as often then and twice by night, the dark by night; the turn said
+      var E = window.DS.DATA.encounters, ph = {};
+      [[9, 'day'], [12, 'noon'], [22, 'night']].forEach(function (p) { var B = testU('?roam=webgulch&hour=' + p[0]), cu = folk(B, 'silkcutter'), dr = folk(B, 'drummer'); ph[p[1]] = { zone: RU.def.zone8, dark: !!RU.def.dark, cut: cu ? cu.x + ',' + cu.y : null, boy: dr ? dr.x + ',' + dr.y + ' ' + dr.kind : null }; });
+      okU('by the hour: ' + Object.keys(ph).map(function (k) { var p = ph[k]; return k + ' ' + p.zone + (p.dark ? ' dark' : '') + ', the cutter ' + p.cut + ', the boy ' + p.boy; }).join('; ') + '; the table\'s count ' + E.gulch.rate + ', at noon ' + E.gulch_noon.rate + ', by night ' + E.gulch_night.rate,
+        ph.day.zone === 'gulch' && ph.noon.zone === 'gulch_noon' && ph.night.zone === 'gulch_night' && ph.night.dark && !ph.day.dark && !ph.noon.dark && ph.noon.cut === '13,27' && ph.day.cut === '11,9' && ph.night.cut === '11,11' && /commonerchild/.test(ph.day.boy) &&
+        E.gulch_noon.rate[0] === E.gulch.rate[0] * 2 && E.gulch_night.rate[1] === Math.round(E.gulch.rate[1] / 2));
+      var B3 = testU('?roam=webgulch&hour=10'); B3.roam.hour = 10.9; B3.roam.clockSq = 299; B3.cards = []; driveU(MU.tick(B3), null, 40); var cu3 = folk(B3, 'silkcutter');
+      okU('the noon comes on the floor: the hour ' + B3.roam.hour.toFixed(2) + ', the card "' + cards(B3) + '", the cutter now at ' + (cu3 ? cu3.x + ',' + cu3.y : 'none') + ', the fights ' + RU.def.zone8,
+        RU.def.zone8 === 'gulch_noon' && /the silk-cutters go out to the webs/.test(cards(B3)) && !!cu3 && cu3.x === 13 && cu3.y === 27);
+      // 4. THE FIRST GAME'S BEATS (his lean 3): the camp and the boy; the chests; the snared lad's fight and the coins; the ettercap's fight and its fangs; the silk-cutter's word
+      var B4 = testU('?roam=webgulch&hour=9'), ch4 = (RU.def.src8.chests || []).map(function (c) { return c.item + ' x' + c.n + ' at ' + c.x + ',' + c.y; }), et4 = folk(B4, 'ettercap8'), w4 = D.town.say ? [].concat(D.town.say(B4, 'silkcutter') || []).join(' ') : '';
+      okU('the camp\'s two at the north mouth, the ettercap braiding at the strung end (' + (et4 ? et4.kind + ' at ' + et4.x + ',' + et4.y : 'none') + '), the chests (' + ch4.join('; ') + '), the silk-cutter\'s word ("' + w4.slice(0, 60) + '")',
+        !!folk(B4, 'silkcutter') && !!folk(B4, 'drummer') && !!et4 && et4.kind === 'ettercap' && ch4.length === 2 && /potion x1/.test(ch4[0]) && /kit x2/.test(ch4[1]) && /We cut at noon/.test(w4));
+      at(B4, 23, 55, [0, -1]); var s0 = B4.roam.silver || 0, use4 = RU.useAt(B4, 23, 54), f4 = beatU(B4, GU.snared(B4), 0, 'won');
+      okU('the snared lad: E on the cocoon (' + (use4 && use4.script) + ') says "' + (f4.asked ? f4.asked.lines.join(' ').slice(0, 50) : '') + '" [' + (f4.asked ? f4.asked.opts.map(function (o) { return o.label; }).join(' | ') : '') + ']; FIGHT is the grid\'s ' + (f4.fight && f4.fight.id) + ' on ' + (f4.map && f4.map.def === D.MAPS.gulch ? 'the strung end\'s map' : 'another map') + ' (' + f4.foes + '); won, ' + ((B4.roam.silver || 0) - s0) + ' silver, the cocoon ' + RU.def.rows[54].charAt(23) + ', its trigger ' + (RU.useAt(B4, 23, 54) ? 'still there' : 'gone'),
+        !!use4 && use4.script === 'gulchSnared' && !!f4.asked && /wrapped tight in silk/.test(f4.asked.lines.join(' ')) && !!f4.fight && f4.fight.id === 'snared' && f4.foes.join() === 'giantspider,wolfspider,wolfspider' && (B4.roam.silver || 0) - s0 === 12 && RU.def.rows[54].charAt(23) !== 'k' && !RU.useAt(B4, 23, 54) && !!B4.roam.flags['trig:snared']);
+      at(B4, 13, 87, [-1, 0]); var tr4 = RU.triggerAt(B4, 12, 87, 'step'), aw = beatU(B4, GU.ettercap(B4, true), 1);
+      okU('the strung end: a step in at 12,87 (' + (tr4 && tr4.script) + '); BACK AWAY a step back (' + B4.roam.token.x + ',' + B4.roam.token.y + '), no fight', !!tr4 && tr4.script === 'gulchEttercap' && !aw.b && D.top() === B4);
+      at(B4, 12, 87, [-1, 0]); var f5 = beatU(B4, GU.ettercap(B4, true), 0, 'won'), fangs = D.counter.count(D.counter.state(B4), 'ettercapfangs');
+      okU('the braiding ettercap: "' + (f5.asked ? f5.asked.lines.join(' ').slice(0, 60) : '') + '"; FIGHT is the grid\'s ' + (f5.fight && f5.fight.id) + ' (' + f5.foes + ', its webs ' + (f5.b && f5.b.webs[0] ? f5.b.webs[0].sq.length + ' at DC ' + f5.b.webs[0].dc : 'none') + '); won, the fangs in the pack (' + fangs + '), its figure ' + (folk(B4, 'ettercap8') ? 'still braiding' : 'gone') + ', its trigger ' + (RU.triggerAt(B4, 12, 87, 'step') ? 'still there' : 'gone') + '; the card "' + cards(B4).slice(-80) + '"',
+        !!f5.fight && f5.fight.id === 'ettercap' && f5.foes.join() === 'ettercap,giantspider,wolfspider,wolfspider' && !!f5.b && f5.b.webs[0].dc === 11 && fangs === 1 && !folk(B4, 'ettercap8') && !RU.triggerAt(B4, 12, 87, 'step') && /Ettercap Fangs/.test(cards(B4)));
+      // 5. A FIELD CUT FROM THE GULCH: its rim the banks' rock, open to the sky, the floor's webs in it at a giant spider's DC
+      function fieldU(x, y) { // (a spider fight called up where the party stands: its field, the squares past the floor's edge and how many rock, the webs carried in)
+        var B = testU('?roam=webgulch&hour=12'); at(B, x, y); var g = RU.encounter(B, 'set', { list: ['wolfspider', 'wolfspider'] }), st, v, k = 0;
+        while (k++ < 400 && D.top() === B) { st = g.next(v); v = undefined; if (st.done) break; if (st.value && st.value.prompt) v = st.value.prompt.opts[st.value.prompt.opts.length - 1].value; }
+        var b = D.top(); if (b && b.baking) { b.baking = false; b.enter(); }
+        var md = b && b !== B && b.map && b.map.def, o = { md: md, rim: 0, n: 0, wb: b && b.webs && b.webs[0], grid: b && !b.simple };
+        if (md) for (var yy = 0; yy < md.rows.length; yy++) for (var xx = 0; xx < md.rows[0].length; xx++) { var c = md.cut, fx = c.x0 + [xx, yy][c.turned], fy = c.y0 + [xx, yy][1 - c.turned]; if (fx < 0 || fy < 0 || fx >= RU.def.w || fy >= RU.def.h) { o.n++; if (md.rows[yy].charAt(xx) === '#') o.rim++; } }
+        if (b && b !== B) { if (D.top() === b) D.pop(); b.o.onDone('escaped'); driveU(g, null, 4000); }
+        return o;
+      }
+      var fW = fieldU(12, 24), fM = fieldU(17, 2);
+      okU('a spider fight at noon on a field cut from the gulch (' + (fW.md ? fW.md.rows[0].length + ' x ' + fW.md.rows.length + ', ' + (fW.grid ? 'the grid' : 'simple') : 'none') + '): in the harvest, the webs of the floor in it ' + (fW.wb ? fW.wb.sq.length + ' at DC ' + fW.wb.dc : 'none') + ', the sky ' + (fW.md && fW.md.sky) + '; in the north mouth, past the edge of the floor ' + fM.rim + '/' + fM.n + ' rock (the banks)',
+        !!fW.md && !!fW.md.cut && fW.md.sky == null && !!fW.wb && fW.wb.sq.length > 0 && fW.wb.dc === 12 && !!fM.md && fM.n > 0 && fM.rim === fM.n);
+      // 6. IN AND OUT (his lean 1), in the house: down the Pit road from the fork's end into the cut; the floor's clock is THE WORLD's; out by the south mouth onto the road beyond
+      WU.onStep = onStepU;
+      HU.worldDoor('?world&fresh&noenc'); var wH = D.top(), SH = WU.state(), into = spN.hexes[spN.hexes.length - 1];
+      WU.use('near'); SH.map = 'near'; SH.at = spN.north.slice(); SH.from = null; SH.t = 9; SH.today = 0; WU.save();
+      wH.walk = { path: [into.slice()], f: 0 }; var kH = 0; while (wH.walk && D.top() === wH && kH++ < 400) { if (wH.cards && wH.cards.length) { var cH = wH.cards[0]; wH.cards.shift(); if (cH.keys) cH.keys[0][1](); continue; } wH.update(); }
+      var BH = topU(), tH = BH && BH.roam && BH.roam.token;
+      okU('in the house, down the Pit road from ' + spN.north + ' into ' + into + ': the floor ' + (RU.def && RU.def.key) + ' by the ' + (RU.def && RU.def.gate) + ' gate, the party at ' + (tH ? tH.x + ',' + tH.y : '-') + ', the save at ' + JSON.stringify(HU.cur && HU.cur.at),
+        !!BH && BH !== wH && RU.def.key === 'webgulch' && RU.def.gate === 'north' && tH.x === 17 && tH.y === 1 && HU.cur.at.town === 'webgulch');
+      var t0H = SH.t; for (var kq = 0; kq < 300; kq++) driveU(MU.tick(BH), null, 20); var t1H = WU.state().t;
+      at(BH, 22, 111, [0, 1]); runU(BH, RU.landed(BH)); driveU(BH.co, function () { return D.top() !== BH; }, 400);
+      var SH2 = WU.state(), onSet = spN.set[SH2.at.join()];
+      okU('the floor\'s 300 squares on THE WORLD\'s clock (' + t0H + ' > ' + t1H + '); out by the south mouth: ' + (D.top() === WU.scene ? 'THE WORLD' : D.top() && D.top().kind) + ', the party on ' + SH2.at + ' (' + (SH2.map || 'world') + '; beyond the cut ' + spN.south + ', in it ' + !!onSet + '), the save ' + JSON.stringify(HU.cur && HU.cur.at) + ', "' + (wH.msg ? wH.msg.s : '') + '"',
+        t1H === t0H + 1 && D.top() === WU.scene && SH2.at.join() === spN.south.join() && !onSet && !HU.cur.at.town && /south mouth/.test(wH.msg ? wH.msg.s : ''));
+      // up the road from the inn's end, then out a bank: it asks, and RETURN is the bank top beside the cut
+      SH2.from = null; wH.walk = { path: [spN.hexes[0].slice()], f: 0 }; kH = 0; while (wH.walk && D.top() === wH && kH++ < 400) { if (wH.cards && wH.cards.length) { var cH2 = wH.cards[0]; wH.cards.shift(); if (cH2.keys) cH2.keys[0][1](); continue; } wH.update(); }
+      var BH2 = topU(), gH2 = RU.def && RU.def.gate; at(BH2, 0, 10, [-1, 0]); driveU.asked = null; runU(BH2, RU.landed(BH2)); driveU(BH2.co, function () { return D.top() !== BH2; }, 400);
+      var SH3 = WU.state(), cH3 = GU.hc(MN, SH3.at[0], SH3.at[1]), cMid = GU.hc(MN, spN.hexes[Math.floor(spN.hexes.length / 2)][0], spN.hexes[Math.floor(spN.hexes.length / 2)][1]);
+      okU('up the road from the inn\'s end: in by the ' + gH2 + ' gate; the west descent asks (' + (driveU.asked ? '"' + driveU.asked.lines.join(' ') + '" [' + driveU.asked.opts.map(function (o) { return o.label; }).join(' | ') + ']' : 'nothing') + '); RETURN, the party on ' + SH3.at + ' (' + cH3.map(function (v) { return v.toFixed(1); }) + ' mi, the cut\'s middle ' + cMid.map(function (v) { return v.toFixed(1); }) + '), off the road\'s hexes ' + !spN.set[SH3.at.join()],
+        gH2 === 'south' && !!driveU.asked && /Return to the world map\?/.test(driveU.asked.lines.join(' ')) && D.top() === WU.scene && cH3[0] < cMid[0] - 1 && !spN.set[SH3.at.join()]);
+      HU.playing = false; HU.cur = null;
+      // THE WORLD alone (&far): the cut is no forced way; its site's door is offered where a walk ends there
+      HU.worldDoor('?world&fresh&noenc&far'); var wF = D.top(), SF = WU.state(), spW = GU.span(MW), sW = GU.site(MW);
+      SF.at = spW ? spW.north.slice() : sW.hex.slice(); SF.from = null; wF.walk = { path: [sW.hex.slice()], f: 0 }; var kF = 0; while (wF.walk && D.top() === wF && kF++ < 400) wF.update();
+      var dF = wF.doorHere && wF.doorHere();
+      okU('THE WORLD alone (&far): a step onto Web Gulch\'s hex ' + sW.hex + ' keeps THE WORLD (' + (D.top() === wF) + '), its door there ' + (dF && dF.id) + ' (' + ((wF.cards || [])[0] ? wF.cards[0].lines[0] : 'no card') + ')',
+        D.top() === wF && !!dF && dF.id === 'webgulch' && !!WU.DOORS.webgulch);
+      HU.playing = false; HU.cur = null;
+      // the test door's north mouth: THE WORLD opened, the party on the road north of the cut
+      var B7 = testU('?roam=webgulch&hour=9'); at(B7, 17, 0, [0, -1]); runU(B7, RU.landed(B7)); driveU(B7.co, function () { return D.top() !== B7; }, 400); var w7 = topU(), S7 = WU.state();
+      okU('the test door out by the north mouth: ' + (w7 && w7.kind) + ', the party on ' + S7.at + ' (' + (WU.M().key) + '; the road north of the cut ' + spN.north + ')', !!w7 && w7.kind === 'world' && WU.M().key === 'near' && S7.at.join() === spN.north.join());
+    } catch (eU) { repU.errors.push(String(eU && eU.stack || eU).slice(0, 900)); }
+    WU.onStep = onStepU; HU.playing = false; HU.cur = null;
+    D.store.get = stGU; D.store.set = stSU; D.music = muU; try { if (skU != null) window.localStorage.setItem(D.simple.KEY, skU); } catch (eK2) { }
+    var preU = document.createElement('pre'); preU.id = 'out'; preU.textContent = 'BENCH16 ' + JSON.stringify(repU);
+    document.body.appendChild(preU);
+    return;
+  }
   // THE GLOWSEEP BY NIGHT, FIXED, 10-28 (mode=glowseep1028; js/mines.js, js/counter.js, js/house.js, js/simple.js, js/roam.js -- the Glowseep fix seat, started by the lanes
   // desk on his "Start the seat"; ..\handoff-2026-10-21-the-warrens-and-galleries-on-the-tiles.md 2i, his five from his ear file of 10-27): the crews' fire one box with the
   // fire in the portrait's place; sleep a long rest by the clock, round to night; a click on a foe with FIGHT lit is FIGHT at it; any edge asks for the world map; the floor's
