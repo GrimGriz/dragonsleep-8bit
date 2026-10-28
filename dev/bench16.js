@@ -3776,6 +3776,24 @@
       // the eyes row's door (js/eyes.js eyes-roost-oil-1028e: deep16/?fight=rescue&lvl=5, js/main.js's fight door): the rescue under its roost, an Oil Flask in the pack
       var BE = new D.Battle({ ladder: true, fight: 'rescue', level: 5 }); D.battle = BE; BE.enter(); var oilE = (BE.inv || []).filter(function (x) { return x.id === 'oil'; }).reduce(function (n, x) { return n + x.n; }, 0);
       okRL('the eyes door deep16/?fight=rescue&lvl=5: under the roost (' + !!(BE.fight && BE.fight.roost) + '), Oil Flasks in the pack ' + oilE, !!(BE.fight && BE.fight.roost) && oilE >= 1);
+      // 3c. HELLISH REBUKE UNDER THE ROOST (10-28 night, his "Go ahead and roost law it for edge cases"; the first game's js/battle.js rebuke, RULED 10-03): one of the player's own
+      // hand, hurt, is asked with ROOST on it -- taken, it is spent, no fire lands, the roof comes down; LET IT GO, the law whole; a guest or a foe is never asked and never casts it
+      // there; with no roost it is the plain REBUKE
+      function rebukeRL(fid, setup, pick) {
+        var Bx = mkRL(fid, false), ax = allRL(Bx), t = ax.u, foe = Bx.units.filter(function (x) { return x.side === 'foe' && x.hp > 0; })[0], asked = null;
+        t.known = ['hellishrebuke']; t.reaction = 1; t.darkvision = 120; t.slots = [3, 0, 0, 0, 0, 0, 0, 0, 0]; foe.x = t.x + 1; foe.y = t.y; D.grid.setup(Bx.map, Bx.units); if (setup) setup(t, foe, Bx);
+        var who = setup && setup.who ? setup.who(t, foe) : t, att = who === t ? foe : t; Bx.cards = []; var hp0 = att.hp, g = D.magic.rebuke(Bx, who, att), v, k = 0, st;
+        while (k++ < 600) { st = g.next(v); v = undefined; if (st.done) break; if (typeof st.value === 'number') Bx.t += Math.max(1, st.value); if (st.value && st.value.prompt) { asked = st.value.prompt.opts.map(function (o) { return o.label; }).join('/') + ' "' + (st.value.prompt.lines || []).join(' ').replace(/\{.\}|\{\/\}/g, '') + '"'; v = st.value.prompt.opts[pick || 0].value; } }
+        return { asked: asked, broken: Bx.roostBroken || null, over: Bx.over(), slots: who.slots[0], reaction: who.reaction, said: (Bx.cards || []).map(function (c) { return (c.lines || []).join(' '); }).join(' ').replace(/\{.\}|\{\/\}/g, ''), hurt: hp0 - att.hp };
+      }
+      var rbY = rebukeRL('rescue'), rbN = rebukeRL('rescue', null, 1);
+      okRL('under the roost, one of the player\'s own hurt: Hellish Rebuke asked -- ' + rbY.asked + '; REBUKE taken: "' + rbY.said.slice(0, 70) + '", the slot and the reaction spent (' + rbY.slots + ', ' + rbY.reaction + '), no fire landed (' + rbY.hurt + '), the roost broken (' + rbY.broken + '), over as ' + rbY.over + '; LET IT GO: the law whole (' + !rbN.broken + ')',
+        !!rbY.asked && /REBUKE -- ROOST/.test(rbY.asked) && /roof down/.test(rbY.asked) && rbY.slots === 2 && !rbY.reaction && rbY.hurt === 0 && rbY.broken === 'fire' && rbY.over === 'roost' && /catches, under the roost/.test(rbY.said) && !rbN.broken && rbN.over !== 'roost');
+      var rbG = rebukeRL('rescue', function (t) { t.guest = true; }), fz = function (t, foe) { foe.known = ['hellishrebuke']; foe.reaction = 1; foe.darkvision = 120; foe.slots = [3, 0, 0, 0, 0, 0, 0, 0, 0]; foe.spellDC = 13; };
+      fz.who = function (t, foe) { return foe; }; var rbF = rebukeRL('rescue', fz);
+      okRL('under the roost, a guest of the party: not asked (' + !rbG.asked + '), not cast (slot ' + rbG.slots + ', the roost ' + (rbG.broken || 'whole') + '); a foe that knows it: not cast (slot ' + rbF.slots + ', the roost ' + (rbF.broken || 'whole') + ')', !rbG.asked && rbG.slots === 3 && !rbG.broken && !rbF.asked && rbF.slots === 3 && !rbF.broken);
+      var rbR = rebukeRL('rats');
+      okRL('no roost (rats): asked plain -- ' + rbR.asked + '; taken, the hellfire lands (' + rbR.hurt + ' or dodged by half), the roost unbroken (' + !rbR.broken + ')', !!rbR.asked && /^REBUKE\//.test(rbR.asked) && !/ROOST/.test(rbR.asked) && !rbR.broken && rbR.slots === 2);
       // 4. THE AI UNDER THE ROOST CASTS NOTHING ON THE LIST: a wizard and a sorcerer of 9, fire on their books, played by the class AI through the rescue (three seeds)
       var castRL0 = D.magic.cast, castRL = [], lawCast = [], endRL = []; // (not `cast0`: the head's own wrapper keeps that name, and a var is the whole function's)
       D.magic.cast = function (Bx, u, id) { castRL.push(id); if (LAW.indexOf(id) >= 0) lawCast.push(u.name + ' ' + id); return castRL0.apply(this, arguments); };

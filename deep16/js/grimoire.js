@@ -173,10 +173,16 @@
   M.rebuke = function* (B, u, att) {
     if (!u.known || u.known.indexOf('hellishrebuke') < 0 || !u.reaction || !RU.canAct(u) || !G.hostile(u, att) || G.range(u, att) > 60 || !M.sees(B, u, att)) return;
     var lv = M.slotLevels(u, 1)[0]; if (!lv) return;
-    if (B.fight && B.fight.roost) return;
-    var yes = (u.side !== 'party' || u.guest) ? true : yield { prompt: { who: u, title: u.name + ': HELLISH REBUKE?', lines: [Nm(B, att) + ' hurt you. Wreathe it in fire: DEX DC ' + u.spellDC + ', ' + (1 + lv) + 'd10 fire (half). (a level-' + lv + ' slot, the reaction)'], opts: [{ label: 'REBUKE', value: true }, { label: 'LET IT GO', value: false }] } };
+    // under a roost (10-28 night, Griz: "Go ahead and roost law it for edge cases" -- the first game's js/battle.js rebuke, RULED 10-03, his "offered; it is fire, and the roost's
+    // law is the player's choice with the consequence"): offered to the player's own hand with ROOST on it, and taken it is spent, no fire lands and the roof comes down; one the
+    // AI answers for -- a guest, a foe, the class AI's -- never breaks the one law (the first game's: a guest never does), as it casts none of the other seventeen there (M.list)
+    var roost = !!(B.fight && B.fight.roost), auto = u.side !== 'party' || u.guest;
+    if (roost && (auto || u.classAI)) return;
+    var yes = auto ? true : yield { prompt: { who: u, title: u.name + ': HELLISH REBUKE?', lines: [Nm(B, att) + ' hurt you. Wreathe it in fire: DEX DC ' + u.spellDC + ', ' + (1 + lv) + 'd10 fire (half). (a level-' + lv + ' slot, the reaction)'].concat(roost ? ['{r}The roost overhead: fire here brings the roof down.{/}'] : []), opts: [{ label: roost ? 'REBUKE -- ROOST' : 'REBUKE', value: true }, { label: 'LET IT GO', value: false }] } };
     if (!yes) return;
-    u.reaction = 0; u.slots[lv - 1]--; D.sfx('fire'); FX.sparkle(att, 'fire', 18);
+    u.reaction = 0; u.slots[lv - 1]--; D.sfx('fire');
+    if (roost) { B.card(['{y}' + u.name + '{/}: HELLISH REBUKE -- {r}the hellfire catches, under the roost.{/}'], 200); if (!B.roostBroken) B.roostBroken = 'fire'; return; } // (the one law, broken by the player's choice: the fight over 'roost', its RoostFail after)
+    FX.sparkle(att, 'fire', 18);
     var cl0 = B.castLevel; B.castLevel = 1; // (a 1st-level spell, whatever cast it came in the middle of: the globe counts that)
     try { yield* saveAll(B, u, [att], 'dex', u.spellDC, (1 + lv) + 'd10', 'fire', true, '{y}' + u.name + '{/}: HELLISH REBUKE (L' + lv + ') -- hellfire about ' + nm(B, att)); } finally { B.castLevel = cl0; }
   };
