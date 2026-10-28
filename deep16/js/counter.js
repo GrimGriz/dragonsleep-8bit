@@ -653,7 +653,37 @@
         return;
       }
     }
-    yield sc.say(C.words(B, 'marta'), 'welcoming');
+    yield* C.meal(sc, B);
+  };
+  // MARTA'S HOT MEAL (10-28, Griz: "Viv's mom should sell some food item regularly that functions as if it were used when it were bought - like 'hot meal' that clears a
+  // level of exhaustion or something"): every day, off her fire, eaten where it is bought -- a silver a head for those standing (the SRD's modest meals, 3 sp a day, a
+  // meal of the three), Vivian's free at her mother's stall. Each one who eats with a level of exhaustion sheds one (H.exhaust, the SRD's six: the fourth's halved hit
+  // points given back below it); with nobody worn it is supper and no more, and her word says so before a coin goes down. invented.json marta-hot-meal (the lines: the seat's)
+  C.MEAL = { price: 1, offer: 'A hot meal off the fire, eaten here: {cost}.', worn: 'Somebody\'s dragging. Hot food takes the edge off.', fed: 'Nobody here\'s dragging. It\'s supper, no more.',
+    served: 'Bowls of her stew, bread to wipe them, eaten standing at the stall.', less: '{name} is less worn (exhausted {n}).', clear: '{name} eats the weariness off: not exhausted now.', none: 'Warm and fed.' };
+  C.mealEaters = function (B) { var R0 = B && B.roam; return R0 ? R0.members.filter(function (u) { return u.src && !u.dead && u.hp > 0 && !u.src.dead; }) : []; };
+  C.mealCost = function (B) { return C.mealEaters(B).filter(function (u) { return (u.src.key || u.src.id) !== 'vivian'; }).length * C.MEAL.price; };
+  // one who eats: a level of exhaustion off the sheet, and the figure on the floor as the sheet now stands. The levels shed
+  C.mealOne = function (u) {
+    var H = D.house, h = u.src || u, n = H && H.exh ? H.exh(h) : 0; if (!n) return 0;
+    H.exhaust(h, -1);
+    if (u.src) { u.conds = u.conds || {}; if (h.conds && h.conds.exhaustion) u.conds.exhaustion = JSON.parse(JSON.stringify(h.conds.exhaustion)); else delete u.conds.exhaustion; if (u.maxhp != null) { u.maxhp = h.maxhp; if (u.hp > u.maxhp) u.hp = u.maxhp; } }
+    return 1;
+  };
+  C.meal = function* (sc, B) {
+    var st = sc.st, M = C.MEAL, F = function (s, o) { Object.keys(o || {}).forEach(function (k) { s = s.split('{' + k + '}').join(o[k]); }); return s; };
+    var eat = C.mealEaters(B), cost = C.mealCost(B), worn = eat.some(function (u) { return D.house.exh(u.src) > 0; }), viv = eat.some(function (u) { return (u.src.key || u.src.id) === 'vivian'; });
+    var said = C.words(B, 'marta'), q = [F(M.offer, { cost: cost ? cost + ' silver' + (viv ? ', Viv\'s on me' : '') : 'Viv\'s on me' }), worn ? M.worn : M.fed];
+    if (!eat.length) { yield sc.say(said, 'welcoming'); return; }
+    if (C.oneBox(said.concat(q))) q = said.concat(q); else yield sc.say(said, 'welcoming'); // (her word and the offer in one box when they fit: no OK before the choice)
+    if ((yield sc.ask(q, ['A HOT MEAL (' + cost + ' sp)', 'LEAVE'], 'welcoming')) !== 0) return;
+    if (cost > st.silver()) { D.sfx('error'); yield sc.say(L('g.poor'), 'concerned'); return; }
+    if (cost) { st.silver(-cost); D.sfx('coin'); }
+    var lines = [M.served];
+    eat.forEach(function (u) { if (C.mealOne(u)) { var n = D.house.exh(u.src); lines.push(F(n ? M.less : M.clear, { name: u.name, n: n })); } });
+    if (lines.length === 1) lines.push(M.none);
+    D.sfx('chest');
+    yield sc.say(lines, 'work');
   };
   // the services, shown (deep16/?services -- the eyes row's door, 10-22): a NEW GAME staged by the beat -- the four hurt, a level banked, a ring that wants a bond, the
   // fallen, the bounties' proofs -- and stood at the door (the camp's on THE WORLD), the rest in the player's hands: a click on the door (or E), E at the counter.
@@ -673,13 +703,15 @@
     if (bt.level) { var a = hero('aurdin'); a.xp = R.XP_LEVEL[a.lvl + 1]; }
     if (bt.ring) hero('vivian').equip.ring = 'ringofprotection'; // (worn and not yet bonded: the night bonds it -- NEW on THE NIGHT'S BONDS)
     (bt.down || []).forEach(function (id) { var h = hero(id); h.hp = 0; h.ko = true; });
+    Object.keys(bt.exh || {}).forEach(function (id) { H.exhaust(hero(id), bt.exh[id]); }); // (worn: levels of exhaustion on the sheet -- Marta's hot meal, 10-28)
     (bt.inv || []).forEach(function (s) { H.add(rec.inv, s[0], s[1]); });
     if (bt.silver != null) rec.silver = bt.silver;
     if (bt.world) rec.at = { town: null };
     else if (bt.near) { // (beside a person on the street, facing them: Marta at her stalls -- the house seat's show, 10-22)
       var fl = D.town.floor('', rec.flags || {}), pp = fl.people.filter(function (p) { return p.id === bt.near; })[0], taken = {}; fl.people.forEach(function (p) { taken[p.at[0] + ',' + p.at[1]] = 1; });
       var o0 = [[0, 1], [-1, 0], [1, 0], [0, -1]].filter(function (o) { var x = pp.at[0] + o[0], y = pp.at[1] + o[1], r = fl.rows[y]; return r && '.,='.indexOf(r.charAt(x)) >= 0 && !taken[x + ',' + y]; })[0];
-      rec.at = { town: 'silverton', gate: 'west', sq: [pp.at[0] + o0[0], pp.at[1] + o0[1]], dir: D.roam.DIR8[(-o0[0]) + ',' + (-o0[1])] };
+      var stl = fl.marks.stall && fl.marks.stall[bt.near]; // (one with a stall of their own -- Marta's, 10-28: in front of the stall, facing it and her across it)
+      rec.at = stl ? { town: 'silverton', gate: 'west', sq: [stl[0], stl[1] + 1], dir: D.roam.DIR8['0,-1'] } : { town: 'silverton', gate: 'west', sq: [pp.at[0] + o0[0], pp.at[1] + o0[1]], dir: D.roam.DIR8[(-o0[0]) + ',' + (-o0[1])] };
     } else { var F = D.town.SCALE, Lt = (D.town.laidF = D.town.laidF || {})[F] || (D.town.laidF[F] = D.town.lay(null, F)), dq = Lt.marks.doors[bt.door]; rec.at = { town: 'silverton', gate: 'west', sq: dq.slice(), dir: D.roam.DIR8['0,-1'] }; } // (on the door's threshold, facing it)
     return rec;
   };
@@ -716,6 +748,7 @@
   // and on two thresholds of doors moved into a wall (js/town.js T.lay)
   C.HOUSE_BEATS = [
     { id: 'marta', near: 'marta', label: 'MARTA VENN\'S PIES: six bat wings, Vivian along', note: 'A click on Marta (or E beside her): COOK THEM, free for Viv\'s friends -- six pies into the pack, eaten in a fight. NOT NOW: her word, as before.', inv: [['batwings', 6]] },
+    { id: 'meal', near: 'marta', label: 'MARTA\'S HOT MEAL: Aurdin and Barley worn', note: 'In front of her stall: a click on it (or E): her word, then A HOT MEAL -- a silver a head, Vivian free. Aurdin exhausted 2 and Barley 1 each shed a level as they eat.', exh: { aurdin: 2, barley: 1 }, silver: 20 },
     { id: 'percy', door: 'warp:percy', label: 'PERCY: the wings he won\'t have', note: 'Two bat wings in the pack. In at the door, E at the counter: his word, then "Wings? Not in my jars. Take them to Marta Venn..."', inv: [['batwings', 2]] },
     { id: 'kasten', door: 'shop:kasten', label: 'KASTEN WHEAL, THE CHANDLER: his shelves', note: 'In at his door, E at the counter: his greeting, THE SHELVES -- oil, torches, the hooded lantern, candles -- and he buys, at half.', silver: 60 },
     { id: 'cassia', door: 'inn:cassia', label: 'THE DOORS IN THE WALLS: Cassia\'s inn', note: 'On her threshold, her door in the inn\'s south wall -- the first card says "SILVERTON, at Cassia\'s door". A click on the door, E, or the arrow up into it: in.' },

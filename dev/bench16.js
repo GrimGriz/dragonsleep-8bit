@@ -3300,15 +3300,15 @@
       var shHs = CHs.houseShow('?houseshow'); okHs('the show deep16/?houseshow: ' + CHs.HOUSE_BEATS.length + ' beats (' + CHs.HOUSE_BEATS.map(function (b) { return b.id; }).join(', ') + '), each a box to click', shHs.buttons().length === CHs.HOUSE_BEATS.length && typeof shHs.draw === 'function');
       var B = beatHs('marta'), R0 = B.roam, tk = R0.token, mU = B.units.filter(function (u) { return u.npc === 'marta'; })[0];
       okHs('the beat: the house\'s floor, the party beside Marta at her stalls (' + tk.x + ',' + tk.y + ' by ' + (mU && mU.x) + ',' + (mU && mU.y) + ', in her own figure ' + (mU && mU.sheet) + '), six bat wings in the pack, ' + R0.silver + ' sp',
-        HHs.playing && D.roam.house() && !!mU && Math.abs(mU.x - tk.x) + Math.abs(mU.y - tk.y) === 1 && mU.sheet === 'marta_p1' && packHs(B, 'batwings') === 6 && packHs(B, 'batpie') === 0);
+        HHs.playing && D.roam.house() && !!mU && (Math.abs(mU.x - tk.x) + Math.abs(mU.y - tk.y) === 1 || (tk.x === mU.x && tk.y === mU.y + 2)) && mU.sheet === 'marta_p1' && packHs(B, 'batwings') === 6 && packHs(B, 'batpie') === 0); // (or across her stall, since 10-28: mode=housenotes1028)
       var sil0 = R0.silver, gM = fireHs(B, 'talk:marta'), scM = D.top();
       okHs('a word with her: her portrait (' + (scM && scM.sheet) + '), the wings asked for, free with Vivian along -- ' + askHs(scM), upHs() && scM.sheet === 'pt_marta' && /For Viv's friends, no charge\. 6 wing\(s\)/.test(askHs(scM)) && scM.wait.opts.join() === 'COOK THEM,NOT NOW');
-      goHs(scM, 'opt', 'NOT NOW'); var wNo = readHs(scM); driveHs(gM, null, 200);
+      goHs(scM, 'opt', 'NOT NOW'); var wNo = readHs(scM); if (scM.wait && scM.wait.ask) goHs(scM, 'opt', 'LEAVE'); driveHs(gM, null, 200); // (her word leads to her hot meal's offer since 10-28: LEAVE -- mode=housenotes1028)
       okHs('NOT NOW: her word as before -- "' + wNo.join(' / ').slice(0, 120) + '" -- the wings kept, no pie', /Pie two coppers/.test(wNo.join(' ')) && !/to come/.test(wNo.join(' ')) && packHs(B, 'batwings') === 6 && packHs(B, 'batpie') === 0 && D.top() === B);
       gM = fireHs(B, 'talk:marta'); scM = D.top(); goHs(scM, 'opt', 'COOK THEM'); var faceM = scM.face && scM.face.anim, wCook = readHs(scM); driveHs(gM, null, 200);
       okHs('COOK THEM: "' + wCook.join(' ') + '" over her stew (' + faceM + '), the six wings six pies in the pack, nothing paid (' + R0.silver + ' sp)', /6 bat-wing pie\(s\), hot/.test(wCook.join(' ')) && faceM === 'work' && packHs(B, 'batwings') === 0 && packHs(B, 'batpie') === 6 && R0.silver === sil0 && D.top() === B);
-      gM = fireHs(B, 'talk:marta'); scM = D.top(); var askNone = !!(scM.wait && scM.wait.ask), wNone = readHs(scM); driveHs(gM, null, 200);
-      okHs('no wings: no asking, her word ("' + wNone.join(' / ').slice(0, 60) + '")', !askNone && /Pie two coppers/.test(wNone.join(' ')));
+      gM = fireHs(B, 'talk:marta'); scM = D.top(); var askNone = !!(scM.wait && scM.wait.ask), wNone = readHs(scM), mealNone = askHs(scM); if (scM.wait && scM.wait.ask) goHs(scM, 'opt', 'LEAVE'); driveHs(gM, null, 200);
+      okHs('no wings: no wings asked, her word ("' + wNone.join(' / ').slice(0, 60) + '"), then her hot meal\'s offer (10-28), LEAVE', !askNone && /Pie two coppers/.test(wNone.join(' ')) && /A hot meal/.test(mealNone) && D.top() === B);
       // without Vivian (the first game's rule: a silver a wing): she taken out of the floor's party for the check, and put back
       var vI = R0.members.findIndex(function (u) { return u.id === 'vivian'; }), vU = R0.members.splice(vI, 1)[0];
       (B.inv = B.inv || []).push({ id: 'batwings', n: 3 }); R0.silver = 2;
@@ -3438,6 +3438,40 @@
       (B.inv = B.inv || []).push({ id: 'batwings', n: 2 }); var tP = talkHn(B, 'percy'), scP = tP.sc, wP = readHn(scP), aP = scP.wait && scP.wait.ask ? scP.wait.ask.join(' ') : '';
       okHn('Percy with two wings: his word and the wings sent on (' + (wP.length ? 'paged first, the words more than a box' : 'in one box') + ') -- "' + (wP.concat([aP]).join(' / ')).slice(0, 90) + '..." -- then ' + optsHn(scP), /Wings\? Not in my jars/.test(wP.concat([aP]).join(' ')) && optsHn(scP) === 'THE SHELVES,LEAVE');
       offHn(B); B.inv = B.inv.filter(function (s) { return s.id !== 'batwings'; });
+      // MARTA'S STALL (his "she needs a vender stall rather than a crate"): at the town's scale and the finer two, two stall squares in a run south of where she stands
+      // (the art's market_stall: a run of two 'k' from its west end), no crate left beside her, her square open behind it
+      var stallBad = [];
+      [THn.SCALE, 10, 5].forEach(function (F) {
+        var Ls = THn.lay(null, F), q = Ls.marks.stall && Ls.marks.stall.marta, r = q && Ls.rows[q[1]], rN = q && Ls.rows[q[1] - 1], crates = 0;
+        if (!q) { stallBad.push(F + ' ft: none'); return; }
+        for (var oy = -2; oy <= 1; oy++) for (var ox = -1; ox <= 2; ox++) { var c = (Ls.rows[q[1] + oy] || '').charAt(q[0] + ox); if (c === 'k' && !(oy === 0 && (ox === 0 || ox === 1))) crates++; }
+        if (r.charAt(q[0]) !== 'k' || r.charAt(q[0] + 1) !== 'k' || r.charAt(q[0] - 1) === 'k' || r.charAt(q[0] + 2) === 'k' || '.,='.indexOf(rN.charAt(q[0])) < 0 || crates) stallBad.push(F + ' ft at ' + q + ': ' + r.slice(q[0] - 1, q[0] + 3) + ' under ' + rN.slice(q[0] - 1, q[0] + 3) + ', ' + crates + ' crates by her');
+      });
+      okHn('Marta\'s stall at 30, 10 and 5 ft a square: two stall squares in a run (the market stall) south of her square, no crate beside her' + (stallBad.length ? ' -- not: ' + stallBad.join('; ') : ''), !stallBad.length);
+      B = beatHn('marta'); var R0 = B.roam, tk = R0.token, mU = B.units.filter(function (u) { return u.npc === 'marta'; })[0], sq0 = D.roam.def.marks.stall.marta;
+      var useS = D.roam.useAt(B, sq0[0], sq0[1]), useS2 = D.roam.useAt(B, sq0[0] + 1, sq0[1]), near0 = D.roam.useNear(B);
+      okHn('on the floor: Marta behind her stall (' + (mU && mU.x + ',' + mU.y) + ', the stall ' + sq0 + ' and ' + (sq0[0] + 1) + ',' + sq0[1] + ' facing her way), the beat in front of it (' + tk.x + ',' + tk.y + '); a click on either stall square is a word with her (' + (useS && useS.id) + ', ' + (useS2 && useS2.id) + '), and E from the front (' + (near0 && near0.trig.id) + ')',
+        !!mU && mU.x === sq0[0] && mU.y === sq0[1] - 1 && tk.x === sq0[0] && tk.y === sq0[1] + 1 && useS && useS.id === 'talk:marta' && useS2 && useS2.id === 'talk:marta' && near0 && near0.trig.id === 'talk:marta');
+      // MARTA'S HOT MEAL (his "Viv's mom should sell some food item regularly that functions as if it were used when it were bought - like 'hot meal' that clears a level of
+      // exhaustion or something"): a silver a head for those standing, Vivian free; each worn one sheds a level of exhaustion as it is bought
+      B = beatHn('meal'); R0 = B.roam; var HHn = D.house, hOf = function (id) { return R0.members.filter(function (u) { return u.src && (u.src.key || u.src.id) === id; })[0]; }, exOf = function (id) { return HHn.exh(hOf(id).src); };
+      var fireM = function () { var tr = (D.roam.def.src8.triggers || []).filter(function (t) { return t.id === 'talk:marta' && t.stall; })[0], g = THn.fire(B, tr); driveHn(g, upHn, 600); return { g: g, sc: D.top() }; };
+      okHn('the meal\'s beat: in front of her stall, Aurdin exhausted ' + exOf('aurdin') + ', Barley ' + exOf('barley') + ', ' + R0.silver + ' sp', exOf('aurdin') === 2 && exOf('barley') === 1 && R0.silver === 20 && R0.token.y === D.roam.def.marks.stall.marta[1] + 1);
+      var m1 = fireM(), sc1 = m1.sc, w1 = readHn(sc1), q1 = sc1.wait && sc1.wait.ask ? sc1.wait.ask.join(' ') : '';
+      okHn('a word with her at the stall: her own word ("' + w1.join(' / ').slice(0, 50) + '..."), then "' + q1 + '" -- ' + optsHn(sc1), upHn() && /Pie two coppers/.test(w1.concat([q1]).join(' ')) && /A hot meal off the fire, eaten here: 3 silver, Viv's on me/.test(q1) && /dragging\. Hot food/.test(q1) && optsHn(sc1) === 'A HOT MEAL (3 sp),LEAVE');
+      goHn(sc1, 'opt', 'A HOT MEAL (3 sp)'); var e1 = readHn(sc1); driveHn(m1.g, null, 200);
+      okHn('A HOT MEAL: 3 sp paid (' + R0.silver + ' left), Vivian\'s free; "' + e1.join(' / ') + '"; Aurdin now ' + exOf('aurdin') + ', Barley ' + exOf('barley') + ' (the figure ' + JSON.stringify(hOf('barley').conds.exhaustion || null) + ')',
+        R0.silver === 17 && exOf('aurdin') === 1 && exOf('barley') === 0 && !hOf('barley').conds.exhaustion && /Aurdin is less worn \(exhausted 1\)/.test(e1.join(' ')) && /Barley eats the weariness off/.test(e1.join(' ')) && D.top() === B);
+      var m2 = fireM(); readHn(m2.sc); goHn(m2.sc, 'opt', 'A HOT MEAL (3 sp)'); readHn(m2.sc); driveHn(m2.g, null, 200);
+      var m3 = fireM(), w3 = readHn(m3.sc), q3 = m3.sc.wait && m3.sc.wait.ask ? m3.sc.wait.ask.join(' ') : ''; goHn(m3.sc, 'opt', 'A HOT MEAL (3 sp)'); var e3 = readHn(m3.sc); driveHn(m3.g, null, 200);
+      okHn('again: Aurdin eats his off (' + exOf('aurdin') + '); then nobody worn -- "' + q3.slice(-46) + '" -- and the meal is supper ("' + e3.join(' / ') + '"), ' + R0.silver + ' sp left', exOf('aurdin') === 0 && /It's supper, no more/.test(q3) && /Warm and fed/.test(e3.join(' ')) && R0.silver === 11);
+      R0.silver = 2; HHn.exhaust(hOf('lymen').src, 1); var m4 = fireM(); readHn(m4.sc); goHn(m4.sc, 'opt', 'A HOT MEAL (3 sp)'); var e4 = readHn(m4.sc); driveHn(m4.g, null, 200);
+      okHn('2 sp: "' + e4.join(' ') + '", nothing eaten (Lymen still exhausted ' + exOf('lymen') + ')', /Not enough silver/.test(e4.join(' ')) && R0.silver === 2 && exOf('lymen') === 1);
+      R0.silver = 10; var lyU = hOf('lymen'), mx0 = lyU.src.maxhp; HHn.exhaust(lyU.src, 3); lyU.maxhp = lyU.src.maxhp; var mx4 = lyU.src.maxhp;
+      var m5 = fireM(); readHn(m5.sc); goHn(m5.sc, 'opt', 'A HOT MEAL (3 sp)'); readHn(m5.sc); driveHn(m5.g, null, 200);
+      okHn('Lymen exhausted 4 (hit point maximum ' + mx0 + ' halved to ' + mx4 + '): the meal takes him to ' + exOf('lymen') + ', his maximum back to ' + lyU.src.maxhp + ' (the figure ' + lyU.maxhp + ')', exOf('lymen') === 3 && lyU.src.maxhp === mx0 && lyU.maxhp === mx0 && mx4 < mx0);
+      HHn.fromFloor(B); var svL = HHn.cur.party.filter(function (h) { return (h.key || h.id) === 'lymen'; })[0], svA = HHn.cur.party.filter(function (h) { return (h.key || h.id) === 'aurdin'; })[0];
+      okHn('into the house\'s save: Lymen exhausted ' + HHn.exh(svL) + ' at ' + svL.maxhp + ' max, Aurdin ' + HHn.exh(svA), HHn.exh(svL) === 3 && svL.maxhp === mx0 && HHn.exh(svA) === 0);
     } catch (eHn) { repHn.errors.push(String(eHn && eHn.stack || eHn).slice(0, 900)); }
     D.store.get = stGHn; D.store.set = stSHn; if (D.house) { D.house.playing = false; D.house.cur = null; }
     var preHn = document.createElement('pre'); preHn.id = 'out'; preHn.textContent = 'BENCH16 ' + JSON.stringify(repHn);
@@ -3985,7 +4019,7 @@
         scVh && scVh.sheet === 'pt_venhale' && scVh.o.name === 'Venn Hale' && wVh.join('|') === window.DS.DATA.npcs.venhale.talk[0].say.join('|') && R0.flags['heard:r-hexcard'] === 1 && !/is to come/.test(wVh.join(' ')) && !upW());
       // Marta Venn and Madame Ondine Vess (10-22, the desk's relay of Griz's "more NPC in fresh"): Marta at her stalls on the street in her own figure, on her portrait,
       // her first-game word with Vivian hired and not the lead (her pies since 10-22, mode=house1022: no wings, no asking); Madame Ondine Vess by name in the portraits' show, standing nowhere yet; Tam Vere held
-      var kuMt = B.units.filter(function (u) { return u.npc === 'marta'; })[0], gMt = fireW(B, 'talk:marta'), scMt = upW() ? D.top() : null, wMt = scMt ? readW(scMt) : []; driveW(gMt, null, 200);
+      var kuMt = B.units.filter(function (u) { return u.npc === 'marta'; })[0], gMt = fireW(B, 'talk:marta'), scMt = upW() ? D.top() : null, wMt = scMt ? readW(scMt) : []; if (scMt && scMt.wait && scMt.wait.ask) goW(scMt, 'opt', 'LEAVE'); driveW(gMt, null, 200); // (her word, then her hot meal's offer since 10-28: LEAVE -- mode=housenotes1028)
       okW('Marta Venn at her stalls in her own figure (' + (kuMt && kuMt.sheet) + ', facing ' + (kuMt && kuMt.facing) + '), on her portrait (' + (scMt && scMt.sheet) + '): "' + String(wMt[0]).slice(0, 40) + '...", and "' + String(wMt[wMt.length - 1]).replace(/\{.\}|\{\/\}/g, '') + '"',
         kuMt && kuMt.sheet === 'marta_p1' && kuMt.facing === 0 && kuMt.holdFacing && scMt && scMt.sheet === 'pt_marta' && wMt.slice(0, 2).join('|') === window.DS.DATA.npcs.marta.talk[0].say.join('|') && !/to come/.test(wMt.join(' ')) && !upW());
       var psO = CW.portraitShow('?portraits&who=marta,ondine,tam');

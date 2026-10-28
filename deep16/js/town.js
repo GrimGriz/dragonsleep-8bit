@@ -121,6 +121,17 @@
     V.headframe.forEach(function (f) { var s = f[2]; ellipse(f[0] + 26 * s, f[1] + 16 * s, 44 * s, 24 * s, 'r', OPEN); ellipse(f[0], f[1] + 16 * s, Math.max(7, 15 * s, F * 0.55), Math.max(5, 8 * s, F * 0.55), 'w', OPEN); });
     // the stalls in the open ground (v6 turns each about its corner)
     V.stall.forEach(function (s) { rect(s[0], s[1], 0, 0, s[2], s[3], s[4], 'k', '.,='); });
+    // MARTA VENN'S COOK-STALL (10-28, Griz: "she needs a vender stall rather than a crate"): a stall of her own, two squares wide -- two 'k' in a run, the town's market
+    // stall (js/topview.js propOf's market_stall) -- on the ground south of where she stands (T.PLACE marta), she behind it facing the plaza, the crates that stood
+    // round her cleared off and her own square open; E at the stall, or a click on it, is a word with her (T.floor). invented.json marta-cook-stall
+    var stall = {}; Object.keys(T.STALL).forEach(function (id) {
+      var pl = T.PLACE[id], p = pl && V.PINS.filter(function (q) { return q[2] === pl.pin; })[0]; if (!p) return;
+      var sx = gxOf(p[0] + ((pl.d || [])[0] || 0)), sy = gyOf(p[1] + ((pl.d || [])[1] || 0)), n = T.STALL[id];
+      for (var oy0 = -1; oy0 <= 2; oy0++) for (var ox0 = -1; ox0 <= n; ox0++) if (at(sx + ox0, sy + oy0) === 'k') set(sx + ox0, sy + oy0, ','); // (the plaza's crates round her, cleared)
+      if ('.,='.indexOf(at(sx, sy) || '#') < 0) return;
+      for (var k0 = 0; k0 < n; k0++) set(sx + k0, sy + 1, 'k', '.,=');
+      stall[id] = [sx, sy + 1];
+    });
     // the tower: its foot, a round of built stone (v6 draws it standing, 22 ft across)
     ellipse(V.tower[0], V.tower[1] - 8, Math.max(14, F * 0.55), Math.max(14, F * 0.55), 'B');
     // (v6's stockade is not laid: 10-21, Griz, of the rail that fenced the floor's edges: "I think they're the stockade fences" -- "seem superfluous". The gates stay as marks)
@@ -130,7 +141,7 @@
     if (F <= 10) for (yy = gyOf(C.y + 20); yy <= gyOf(C.y + 40); yy++) for (xx = gxOf(C.x + 20); xx <= gxOf(C.x + 50); xx++) set(xx, yy, 'b'); // (the master's house in the yard's north-west corner: too small to show at a town's scale)
 
     // ---------------------------------------------------------------- the marks
-    var marks = { gates: {}, pins: {}, doors: {} };
+    var marks = { gates: {}, pins: {}, doors: {}, stall: stall }; // (stall: a keeper's stall on the street by their id, its west square -- Marta's)
     var nearestOpen = function (x, y, maxFt, skip) { // the open square nearest a point in feet, within maxFt (a pin sits on its building; its door is the street square nearest it), not one in `skip`
       var g0 = gxOf(x), g1 = gyOf(y), best = null, bd = 1e9, maxR = Math.max(2, Math.ceil((maxFt || 150) / F));
       for (var dy = -maxR; dy <= maxR; dy++) for (var dx = -maxR; dx <= maxR; dx++) { var t = at(g0 + dx, g1 + dy); if (t == null || OPEN.indexOf(t) < 0 || t === '~' || t === 'r' || (skip && skip[(g0 + dx) + ',' + (g1 + dy)])) continue; var d = Math.hypot(cx(g0 + dx) - x, cy(g1 + dy) - y); if (d < bd) { bd = d; best = [g0 + dx, g1 + dy]; } }
@@ -258,6 +269,7 @@
     towns1: { pin: '11', d: [0, -50] }, towns2: { pin: '12', d: [-20, -60] }, towns3: { pin: '14', d: [0, -40] }, towns4: { pin: '32', d: [-40, 0] },
     towns5: { pin: '28', d: [30, 30] }, towns6: { pin: '24', d: [-40, 0] }, towns7: { pin: '35', d: [0, -60] }, towns8: { pin: '16', d: [0, 40] }
   };
+  T.STALL = { marta: 2 }; // (a keeper's stall on the street, squares wide: T.lay -- Marta's cook-stall, 10-28)
   T.KIND = { guard: 'guard', merchant: 'crewman', noble: 'crewman', clerk: 'crewman', worker: 'brawler', worker2: 'brawler', oldhand: 'brawler', papa: 'thug' }; // (the rest: 'bandit')
   T.FACE = { up: [0, -1], down: [0, 1], left: [-1, 0], right: [1, 0] };
 
@@ -298,6 +310,7 @@
       used[sq[0] + ',' + sq[1]] = 1;
       var s = to(sq); people.push({ id: n.id, at: s, kind: T.KIND[n.look] || 'bandit', face: T.FACE[n.dir] || [0, 1], look: n.look, hire: n.hire || null });
       trig.push({ id: 'talk:' + n.id, on: 'use', rect: s.concat([1, 1]), town: 'talk', npc: n.id });
+      var st0 = M.stall && M.stall[n.id]; if (st0 && inW(st0)) trig.push({ id: 'talk:' + n.id, on: 'use', rect: to(st0).concat([T.STALL[n.id], 1]), town: 'talk', npc: n.id, stall: true }); // (her stall: E at it, or a click on it, a word with her across it)
     });
     // the keepers with no room who now have a figure of their own stand beside their door on the street, facing south (js/counter.js C.AT_DOOR -- 10-21, Griz:
     // "Got south idles for several existing shopkeeps in Fresh"): Marin Voss, Venn the barber
