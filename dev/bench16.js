@@ -5160,32 +5160,146 @@
     document.body.appendChild(preT);
     return;
   }
-  // the rust monster's Rust Metal (mode=rust1022; the monster cutter seat's third run, 10-22): `corrosive: 'rust'` goes the gray ooze's metal way --
-  // a nonmagical metal weapon that hits it eaten, -1 a hit, and its bite eating metal armour (a stand-in for its Antennae) -- in rust's words
-  if (get('mode', '') === 'rust1022') {
-    var repR = { checks: [], errors: [] }, d0R = D.d, MR = D.magic, RR = D.rules;
-    function okR(what, v) { repR.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
-    function runR(g) { var v, k = 0, st; while (g && k++ < 4000) { st = g.next(v); v = undefined; if (st.done) return st.value; if (st.value && st.value.prompt) v = st.value.prompt.opts[0].value; } }
-    function mkR(q) { var Bx = D.npcFight(q, {}); D.battle = Bx; Bx.enter(); while (!Bx.order.length) Bx.co.next(); Bx.dark = false; return Bx; }
-    function pinR(d20, f) { D.d = function (n) { return n === 20 ? d20 : d0R(n); }; try { return f(); } finally { D.d = d0R; } }
+  // the monsters' grid rules (mode=monsters1028; the grid's rules seat, 10-28, started by the lanes desk on Griz's "Start the seat": js/monsterrules.js) --
+  // the rust monster's Antennae, Rust Metal and Iron Scent (its bite's armour rust, mode=rust1022's stand-in, retired), the aboleth's Enslave and its
+  // Psychic Drain, the harpy's Luring Song, the ankheg's held bite and its AC prone. Each by its SRD 5.1 block; each failed on the code before it
+  if (get('mode', '') === 'monsters1028') {
+    var repM = { checks: [], errors: [] }, d0M = D.d, MM = D.magic, RM = D.rules, GM = D.grid, MRr = D.monsterRules || {}, RRr = window.DS.R;
+    function okM(what, v) { repM.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function runM(g) { var v, k = 0, st; while (g && k++ < 4000) { st = g.next(v); v = undefined; if (st.done) return st.value; if (st.value && st.value.prompt) v = st.value.prompt.opts[0].value; } }
+    function mkM(q) { var Bx = D.npcFight(q, {}); D.battle = Bx; Bx.enter(); while (!Bx.order.length) Bx.co.next(); Bx.dark = false; return Bx; }
+    function pinM(d20, f) { D.d = function (n) { return n === 20 ? d20 : d0M(n); }; try { return f(); } finally { D.d = d0M; } }
+    function sideM(Bx, s) { return Bx.units.filter(function (u) { return u.side === s && !u.familiar && !u.summon; }); }
+    function logM(Bx, n) { return (Bx.log || []).slice(n).join(' | ').replace(/\{\/?[a-z]*\}/g, ''); }
+    function aiM(Bx, u) { Bx.active = u; RM.startTurn(u); runM(D.ai.turn(Bx, u)); MM.endTurn(Bx, u); Bx.active = null; }
+    function onlyM(Bx, keep) { Bx.units.forEach(function (w) { if (keep.indexOf(w) < 0) { w.x = 0; w.y = 0; w.hp = 0; w.dead = true; } }); Bx.cache = null; }
+    function stripM(w) { var m = GM.map; for (var y = 2; y + 1 < m.h; y++) for (var x = 1; x + w < m.w; x++) { var z = m.gz(x, y), good = true; for (var j = -1; j <= 1 && good; j++) for (var i = 0; i < w && good; i++) { var s = m.at(x + i, y + j); if (!s || !s.walk || m.gz(x + i, y + j) !== z) good = false; } if (good) return [x, y]; } return null; }
+    function at(u, x, y) { u.x = x; u.y = y; u.fz = null; }
     try {
-      var B1 = mkR('?npc=rustmonster&vs=fighter&lvl=3'), rm = B1.units.filter(function (u) { return u.side === 'foe'; })[0], ft = B1.units.filter(function (u) { return u.cls === 'fighter'; })[0];
-      ft.x = 3; ft.y = 3; rm.x = 4; rm.y = 3; B1.cache = null; rm.maxhp = rm.hp = 200; ft.maxhp = ft.hp = 200;
-      okR('the sheet: corrosive ' + rm.corrosive + ' (want rust); the fighter carries ' + (ft.weapon && ft.weapon.name) + ', metal ' + MR.metalWeapon(ft) + ', in metal armour ' + MR.metalArmor(ft), rm.corrosive === 'rust' && MR.metalWeapon(ft) && MR.metalArmor(ft));
-      var mod0 = ft.weapon.mod || 0, n1 = (B1.log || []).length, cardsR = [], cardR0 = B1.card;
-      B1.card = function (lines) { cardsR.push([].concat(lines).join(' ').replace(/\{\/?[a-z]*\}/g, '')); return cardR0.apply(this, arguments); };
-      RR.startTurn(ft); B1.active = ft; pinR(15, function () { runR(B1.attack(ft, rm, ft.weapon)); }); B1.active = null;
-      var c1 = cardsR.join(' | ');
-      okR('1 the fighter hits it with the ' + ft.weapon.name.toLowerCase() + ': its damage ' + mod0 + ' -> ' + (ft.weapon.mod || 0) + ', corroded ' + (ft.weapon.corroded || 0) + '; the card ' + (/rusts at the touch/.test(c1) ? 'says it rusts' : /acid/.test(c1) ? 'says acid' : 'says nothing') + ' (want ' + (mod0 - 1) + ', 1, rusts)',
-        (ft.weapon.mod || 0) === mod0 - 1 && ft.weapon.corroded === 1 && /rusts at the touch/.test(c1) && !/acid/.test(c1));
-      var ac0 = ft.baseAC; cardsR.length = 0;
-      RR.startTurn(rm); B1.active = rm; pinR(19, function () { runR(B1.attack(rm, ft, rm.attacks.bite)); }); B1.active = null;
-      okR('2 its bite lands on the fighter in chain mail: AC ' + ac0 + ' -> ' + ft.baseAC + ', corroded ' + (ft.corrodedAC || 0) + ' (want ' + (ac0 - 1) + ', 1: the armour rust, its Antennae stand-in)', ft.baseAC === ac0 - 1 && ft.corrodedAC === 1);
-      B1.card = cardR0;
-    } catch (eR) { repR.errors.push(String(eR && eR.stack || eR).slice(0, 900)); D.d = d0R; }
-    if (errs.length) repR.errors = repR.errors.concat(errs);
-    var preR = document.createElement('pre'); preR.id = 'out'; preR.textContent = 'BENCH16 ' + JSON.stringify(repR);
-    document.body.appendChild(preR);
+      // ---- the rust monster (srd/monsters/r.md)
+      var B1 = mkM('?npc=rustmonster&vs=fighter,cleric,wizard&lvl=3'), rm = sideM(B1, 'foe')[0], ps = sideM(B1, 'party'), ft = ps.filter(function (u) { return u.cls === 'fighter'; })[0], cl = ps.filter(function (u) { return u.cls === 'cleric'; })[0], wz = ps.filter(function (u) { return u.cls === 'wizard'; })[0];
+      var s1 = stripM(8); if (!s1) throw new Error('no flat 8 x 3 strip on the rust monster\'s map');
+      onlyM(B1, [rm, ft, cl, wz]); [rm, ft, cl, wz].forEach(function (w) { w.maxhp = w.hp = 300; w.conds = {}; });
+      at(rm, s1[0], s1[1]); at(ft, s1[0] + 1, s1[1]); at(cl, s1[0] + 6, s1[1] - 1); at(wz, s1[0] + 6, s1[1] + 1); B1.cache = null;
+      okM('R1 the sheet: rustMetal ' + rm.rustMetal + ', antennae DC ' + (rm.antennae && rm.antennae.dc) + ' within ' + (rm.antennae && rm.antennae.reach) + ' ft, Iron Scent ' + rm.ironScent + ' ft, corrosive ' + rm.corrosive + ' (want true, 11, 5, 30, undefined: the ooze stand-in retired)',
+        rm.rustMetal === true && rm.antennae && rm.antennae.dc === 11 && rm.antennae.reach === 5 && rm.ironScent === 30 && !rm.corrosive);
+      var wid = ft.src.equip.weapon, aid = ft.src.equip.armor, mod0 = ft.weapon.mod || 0, ac0 = ft.baseAC, sheetAC0 = RRr.ac(ft.src), n1 = (B1.log || []).length;
+      // R2 Rust Metal: the fighter's blade hits it -- -1 to its damage after, kept on the sheet
+      RM.startTurn(ft); B1.active = ft; pinM(15, function () { runM(B1.attack(ft, rm, ft.weapon)); }); B1.active = null;
+      var l2 = logM(B1, n1);
+      okM('R2 Rust Metal: the fighter\'s ' + wid + ' hits it: damage ' + mod0 + ' -> ' + (ft.weapon.mod || 0) + ', the sheet\'s rust ' + JSON.stringify(ft.src.rust || null) + '; the card ' + (/for good/.test(l2) ? 'says for good' : 'says ' + l2.slice(-120)) + ' (want ' + (mod0 - 1) + ', {' + wid + ':1}, for good)',
+        (ft.weapon.mod || 0) === mod0 - 1 && ft.src.rust && ft.src.rust[wid] === 1 && /for good/.test(l2));
+      var w2 = D.save.weaponOf(ft.src);
+      okM('R3 permanent: the same sheet\'s ' + wid + ' as the next fight reads it (D.save.weaponOf): damage ' + w2.mod + ' (want ' + (mod0 - 1) + ')', w2.mod === mod0 - 1);
+      for (var k3 = 0; k3 < 3; k3++) { RM.startTurn(ft); B1.active = ft; pinM(15, function () { runM(B1.attack(ft, rm, ft.weapon)); }); B1.active = null; }
+      var at4 = ft.src.equip.weapon === wid && ft.src.rust && ft.src.rust[wid] === 4;
+      RM.startTurn(ft); B1.active = ft; pinM(15, function () { runM(B1.attack(ft, rm, ft.weapon)); }); B1.active = null;
+      okM('R4 four hits in, the ' + wid + ' still in hand at -4 (' + at4 + '); the fifth destroys it: the sheet\'s weapon ' + ft.src.equip.weapon + ', in hand ' + ft.weapon.name + ', its rust ' + (ft.src.rust ? ft.src.rust[wid] : null) + ' (want true, null, not the ' + wid + ', gone -- the SRD\'s -5, not the ooze\'s third)', at4 && ft.src.equip.weapon == null && ft.weapon.id !== wid && !(ft.src.rust && ft.src.rust[wid]));
+      // R5 the bite rusts nothing now
+      RM.startTurn(rm); B1.active = rm; pinM(19, function () { runM(B1.attack(rm, ft, rm.attacks.bite)); }); B1.active = null;
+      okM('R5 its bite on the fighter in ' + aid + ': AC ' + ac0 + ' -> ' + ft.baseAC + ', the armour\'s rust ' + (ft.src.rust ? ft.src.rust[aid] || 0 : 0) + ' (want ' + ac0 + ', 0: the stand-in retired)', ft.baseAC === ac0 && !(ft.src.rust && ft.src.rust[aid]));
+      // R6, R7 the Antennae: a failed DEX save rusts the armour for good; a made one, nothing
+      var n6 = (B1.log || []).length; RM.startTurn(rm); B1.active = rm; pinM(1, function () { runM(MRr.antennae ? MRr.antennae(B1, rm, ft) : null); }); B1.active = null;
+      okM('R6 Antennae, DEX failed: the fighter\'s ' + aid + ' AC ' + ac0 + ' -> ' + ft.baseAC + ', the sheet\'s AC ' + sheetAC0 + ' -> ' + RRr.ac(ft.src) + ', rust ' + (ft.src.rust ? ft.src.rust[aid] : 0) + '; the card ' + (/DEX/.test(logM(B1, n6)) ? 'names the save' : 'no save') + ' (want ' + (ac0 - 1) + ', ' + (sheetAC0 - 1) + ', 1, names it)',
+        ft.baseAC === ac0 - 1 && RRr.ac(ft.src) === sheetAC0 - 1 && ft.src.rust && ft.src.rust[aid] === 1 && /DEX/.test(logM(B1, n6)));
+      RM.startTurn(rm); B1.active = rm; pinM(20, function () { runM(MRr.antennae ? MRr.antennae(B1, rm, ft) : null); }); B1.active = null;
+      okM('R7 Antennae, DEX made: AC ' + ft.baseAC + ', rust ' + (ft.src.rust ? ft.src.rust[aid] : 0) + ' (want ' + (ac0 - 1) + ', 1)', ft.baseAC === ac0 - 1 && ft.src.rust && ft.src.rust[aid] === 1);
+      // R8 a shield: +2, gone at the second touch
+      var sid = cl.src.equip.shield, cac0 = cl.baseAC, osh = sid && { slot: 'shield', id: sid, it: RRr.item(sid) };
+      at(rm, s1[0] + 5, s1[1] - 1); B1.cache = null;
+      if (osh && MRr.antennae) { pinM(1, function () { RM.startTurn(rm); runM(MRr.antennae(B1, rm, cl, osh)); RM.startTurn(rm); runM(MRr.antennae(B1, rm, cl, osh)); }); }
+      okM('R8 the cleric\'s ' + sid + ' touched twice: AC ' + cac0 + ' -> ' + cl.baseAC + ', the sheet\'s shield ' + cl.src.equip.shield + ' (want ' + (cac0 - 2) + ', null: a shield at +0 is destroyed)', !!osh && cl.baseAC === cac0 - 2 && cl.src.equip.shield == null);
+      // R9 its AI: the antennae at metal in reach; the bite where there is none
+      at(rm, s1[0], s1[1]); at(ft, s1[0] + 1, s1[1]); at(cl, s1[0] + 7, s1[1] - 1); at(wz, s1[0] + 7, s1[1] + 1); B1.cache = null;
+      var n9 = (B1.log || []).length; pinM(10, function () { aiM(B1, rm); }); var l9 = logM(B1, n9);
+      at(ft, 0, 0); ft.hp = 0; ft.dead = true; cl.hp = 0; cl.dead = true; wz.weapon = D.save.weaponOf(Object.assign({}, wz.src, { equip: Object.assign({}, wz.src.equip, { weapon: null }) })); at(wz, s1[0] + 1, s1[1]); B1.cache = null;
+      var mWz = MRr.ferrous ? MRr.ferrous(wz).length : -1, n9b = (B1.log || []).length; pinM(10, function () { aiM(B1, rm); }); var l9b = logM(B1, n9b);
+      okM('R9 its AI: beside the fighter in mail it ' + (/antennae/i.test(l9) ? 'reaches its antennae' : 'does not (' + l9.slice(0, 100) + ')') + '; beside the wizard with no metal (' + mWz + ' pieces) it ' + (/antennae/i.test(l9b) ? 'reaches its antennae' : /Bite/.test(l9b) ? 'bites' : 'does neither (' + l9b.slice(0, 100) + ')') + ' (want antennae, bites)',
+        /antennae/i.test(l9) && mWz === 0 && !/antennae/i.test(l9b) && /Bite/.test(l9b));
+      // R10 Iron Scent: the hidden fighter in mail 25 ft off is known to it; the hidden wizard with none is not
+      ft.hp = 300; ft.dead = false; at(rm, s1[0], s1[1]); at(ft, s1[0] + 5, s1[1] - 1); at(wz, s1[0] + 5, s1[1] + 1); at(cl, 0, 0); cl.hp = 0; cl.dead = true; ft.conds.hidden = { dc: 25 }; wz.conds.hidden = { dc: 25 }; B1.cache = null;
+      var known = D.ai.heroes(B1, rm).map(function (w) { return w.cls; });
+      okM('R10 Iron Scent: both hidden 25 ft off, its AI knows of ' + JSON.stringify(known) + ' (want the fighter in metal, not the wizard)', known.indexOf('fighter') >= 0 && known.indexOf('wizard') < 0);
+      // R11 the rust past the fight: a Pocket DM seat's word carries it into the build (js/classes.js NPC.carry)
+      var plain = D.npc.build('fighter:3', 3, 'party'), rusted = D.npc.build({ word: 'fighter:3', rust: (function () { var r = {}; r[plain.src.equip.armor] = 2; r[plain.src.equip.weapon] = 5; return r; })() }, 3, 'party');
+      okM('R11 a Pocket DM seat\'s rust in the next build: AC ' + plain.baseAC + ' -> ' + (rusted && rusted.baseAC) + ', weapon ' + plain.weapon.name + ' -> ' + (rusted && rusted.weapon.name) + ' (want ' + (plain.baseAC - 2) + ', the weapon rusted through gone)', !!rusted && rusted.baseAC === plain.baseAC - 2 && rusted.weapon.id !== plain.weapon.id);
+
+      // ---- the aboleth (srd/monsters/a.md)
+      var B2 = mkM('?npc=aboleth&vs=fighter,cleric&lvl=7'), ab = sideM(B2, 'foe')[0], p2 = sideM(B2, 'party'), f2 = p2.filter(function (u) { return u.cls === 'fighter'; })[0], c2 = p2.filter(function (u) { return u.cls === 'cleric'; })[0];
+      var s2 = stripM(8); if (!s2) throw new Error('no flat strip on the aboleth\'s map');
+      onlyM(B2, [ab, f2, c2]); [ab, f2, c2].forEach(function (w) { w.maxhp = w.hp = 300; w.conds = {}; });
+      at(ab, s2[0], s2[1]); at(f2, s2[0] + 4, s2[1]); at(c2, s2[0] + 7, s2[1]); B2.cache = null;
+      okM('A1 the sheet: Enslave ' + JSON.stringify(ab.enslave || null) + ' (want DC 14, 30 ft, 3 a day)', !!ab.enslave && ab.enslave.dc === 14 && ab.enslave.range === 30 && ab.enslave.uses === 3);
+      RM.startTurn(ab); B2.active = ab; pinM(1, function () { runM(MRr.enslave ? MRr.enslave(B2, ab, f2) : null); }); B2.active = null;
+      okM('A2 Enslave, WIS failed: the fighter on the ' + f2.side + '\'s side, charmed by the aboleth ' + !!(f2.conds.charmed && f2.conds.charmed.by === ab.id) + ', run by the AI ' + !!f2.guest + ', reaction ' + f2.reaction + ', ' + ab.enslaveLeft + ' left today (want foe, true, true, 0, 2)',
+        f2.side === 'foe' && f2.conds.charmed && f2.conds.charmed.by === ab.id && f2.guest === true && f2.reaction === 0 && ab.enslaveLeft === 2);
+      RM.startTurn(f2);
+      okM('A3 no reactions: at the start of its own turn its reaction is ' + f2.reaction + ' (want 0)', f2.reaction === 0);
+      // A4 Psychic Drain finds it: two legendary actions, no foe of the aboleth's in its reach (the cleric 35 ft off), the fighter charmed
+      ab.acted = true; ab.legLeft = 2; ab.hp = 200; var f2hp = f2.hp, n4 = (B2.log || []).length;
+      pinM(1, function () { runM(D.traits.legendary(B2, c2)); }); // (its hurt gives the fighter its save -- failed, the d20 pinned low)
+      var l4 = logM(B2, n4);
+      okM('A4 Psychic Drain: ' + (/Psychic Drain/.test(l4) ? 'taken' : 'not taken') + '; the fighter ' + f2hp + ' -> ' + f2.hp + ', the aboleth 200 -> ' + ab.hp + '; the hurt ' + (/fights the domination/.test(l4) ? 'gives it its save' : 'gives no save') + ' (want taken, the fighter down 3d6, the aboleth up as much, the save)', /Psychic Drain/.test(l4) && f2.hp < f2hp && ab.hp - 200 === f2hp - f2.hp && /fights the domination/.test(l4));
+      // A5 a hurt and a made save free it
+      var was5 = !!f2.dominated; if (f2.dominated) { B2.active = c2; pinM(20, function () { B2.hurt(f2, 4, 'slashing'); }); B2.active = null; }
+      okM('A5 enslaved (' + was5 + '), hurt, WIS made: the fighter on the ' + f2.side + '\'s side, dominated ' + !!f2.dominated + ', charmed ' + !!f2.conds.charmed + ', noReact ' + !!f2.conds.noReact + ' (want true, party, false, false, false)', was5 && f2.side === 'party' && !f2.dominated && !f2.conds.charmed && !f2.conds.noReact);
+      // A6 the aboleth dies: the enslaved is free
+      pinM(1, function () { runM(MRr.enslave ? MRr.enslave(B2, ab, f2) : null); }); var was6 = f2.side;
+      ab.hp = 0; ab.dead = true; B2.over();
+      okM('A6 enslaved again (' + was6 + '), then the aboleth dies: the fighter on the ' + f2.side + '\'s side, dominated ' + !!f2.dominated + ' (want foe, then party, false)', was6 === 'foe' && f2.side === 'party' && !f2.dominated);
+      // A7 its AI: Enslave on its turn while no one is under its control; with one held, it does not spend another
+      ab.dead = false; ab.hp = 300; ab.enslaveLeft = 3; f2.conds = {}; c2.conds = {}; f2.songSafe = null; B2.cache = null;
+      var n7 = (B2.log || []).length; pinM(1, function () { aiM(B2, ab); }); var l7 = logM(B2, n7), held7 = !!f2.dominated || !!c2.dominated;
+      var n7b = (B2.log || []).length; pinM(1, function () { aiM(B2, ab); }); var l7b = logM(B2, n7b);
+      okM('A7 its AI: its turn ' + (/ENSLAVE/.test(l7) ? 'enslaves' : 'does not enslave') + ' (one held ' + held7 + '); its next ' + (/ENSLAVE/.test(l7b) ? 'enslaves again' : 'does not') + ', ' + ab.enslaveLeft + ' left (want enslaves, true, does not, 2)',
+        /ENSLAVE/.test(l7) && held7 && !/ENSLAVE/.test(l7b) && ab.enslaveLeft === 2);
+
+      // ---- the harpy (srd/monsters/h.md)
+      var B3 = mkM('?npc=harpy,harpy&vs=fighter,wizard,cleric&lvl=3'), hs = sideM(B3, 'foe'), hp1 = hs[0], hp2 = hs[1], p3 = sideM(B3, 'party'), f3 = p3.filter(function (u) { return u.cls === 'fighter'; })[0], w3 = p3.filter(function (u) { return u.cls === 'wizard'; })[0], c3 = p3.filter(function (u) { return u.cls === 'cleric'; })[0];
+      var s3 = stripM(10); if (!s3) throw new Error('no flat 10 x 3 strip on the harpy\'s map');
+      onlyM(B3, [hp1, hp2, f3, w3, c3]); [hp1, hp2, f3, w3, c3].forEach(function (w) { w.maxhp = w.hp = 300; w.conds = {}; w.flies = false; });
+      at(hp1, s3[0], s3[1]); at(hp2, s3[0], s3[1] - 1); at(f3, s3[0] + 6, s3[1]); at(w3, s3[0] + 9, s3[1]); at(c3, s3[0] + 9, s3[1] + 1); B3.cache = null;
+      okM('H1 the sheet: Luring Song ' + JSON.stringify(hp1.luringSong || null) + ' (want DC 11)', !!hp1.luringSong && hp1.luringSong.dc === 11);
+      RM.startTurn(hp1); B3.active = hp1; pinM(1, function () { runM(MRr.sing ? MRr.sing(B3, hp1) : null); }); B3.active = null; B3.over();
+      var ch3 = [f3, w3, c3].map(function (w) { return !!(w.conds.charmed && w.conds.charmed.song && w.conds.incapacitated); });
+      okM('H2 the song, every save failed: the fighter, wizard, cleric charmed and incapacitated ' + JSON.stringify(ch3) + ', the other harpy ' + !!hp2.conds.charmed + ', still singing after the count ' + !!hp1.singing + ' (want all true, false, true)',
+        ch3.every(Boolean) && !hp2.conds.charmed && !!hp1.singing);
+      var d0 = GM.dist(w3, hp1), n3 = (B3.log || []).length; pinM(1, function () { aiM(B3, w3); }); var l3 = logM(B3, n3), d1 = GM.dist(w3, hp1);
+      okM('H3 the wizard\'s turn (the AI), charmed: from ' + d0 + ' ft to ' + d1 + ' ft of the harpy; ' + (/casts|Fire Bolt|Magic Missile|Scorching/.test(l3) ? 'it cast' : 'no spell, no blow') + '; still charmed ' + !!w3.conds.charmed + ' (want closer, no spell, true: the end save failed)',
+        d1 < d0 && !/casts|Fire Bolt|Magic Missile|Scorching/.test(l3) && !!w3.conds.charmed);
+      var e0 = GM.dist(f3, hp1); B3.active = f3; RM.startTurn(f3); pinM(1, function () { runM(B3.heroTurn(f3)); }); B3.active = null; var e1 = GM.dist(f3, hp1);
+      okM('H4 the fighter\'s turn as the player\'s, charmed: from ' + e0 + ' ft to ' + e1 + ' ft (within 5: ' + (e1 <= 5) + '), still charmed ' + !!f3.conds.charmed + ' (want within 5 ft, true)', e1 <= 5 && !!f3.conds.charmed);
+      at(c3, s3[0] + 1, s3[1] + 1); B3.cache = null; B3.active = c3; RM.startTurn(c3); pinM(20, function () { runM(B3.heroTurn(c3)); }); B3.active = null;
+      okM('H5 the cleric beside her, the save at the end of its turn made: charmed ' + !!c3.conds.charmed + ', incapacitated ' + !!c3.conds.incapacitated + ', proof against her ' + !!(c3.songSafe && c3.songSafe[hp1.id]) + ' (want false, false, true)', !c3.conds.charmed && !c3.conds.incapacitated && !!(c3.songSafe && c3.songSafe[hp1.id]));
+      B3.active = hp1; pinM(19, function () { B3.hurt(f3, 3, 'slashing'); }); B3.active = null; var byHer = !!f3.conds.charmed;
+      B3.active = c3; pinM(20, function () { B3.hurt(f3, 3, 'radiant'); }); B3.active = null;
+      okM('H6 the fighter hurt by the harpy: still charmed ' + byHer + '; hurt by another, the save made: charmed ' + !!f3.conds.charmed + ' (want true, false)', byHer && !f3.conds.charmed);
+      RM.startTurn(hp1); var n7h = (B3.log || []).length; B3.active = hp1; runM(D.traits.turn(B3, hp1)); B3.active = null;
+      okM('H7 her next turn, the wizard still held: keeps singing ' + !!hp1.singing + ', the bonus action ' + hp1.turn.bonus + ' (want true, 0)', !!hp1.singing && hp1.turn.bonus === 0);
+      var was8 = !!(w3.conds.charmed && w3.conds.charmed.song); hp1.hp = 0; hp1.dead = true; B3.over();
+      okM('H8 the wizard charmed (' + was8 + '), the harpy dies: charmed ' + !!w3.conds.charmed + ', incapacitated ' + !!w3.conds.incapacitated + ' (want true, false, false)', was8 && !w3.conds.charmed && !w3.conds.incapacitated);
+      hp1.hp = 300; hp1.dead = false; hp1.singing = null; f3.songSafe = null; w3.songSafe = null; [f3, w3, c3].forEach(function (w) { w.conds = {}; }); B3.cache = null;
+      var n9h = (B3.log || []).length; pinM(1, function () { aiM(B3, hp1); }); var l9h = logM(B3, n9h);
+      okM('H9 her AI: the song on her turn ' + (/Luring Song/.test(l9h) ? 'sung' : 'not sung') + '; the cleric, proof against her, charmed ' + !!c3.conds.charmed + ' (want sung, false)', /Luring Song/.test(l9h) && !c3.conds.charmed);
+
+      // ---- the ankheg (srd/monsters/a.md)
+      var B4 = mkM('?npc=ankheg&vs=fighter,wizard&lvl=3'), an = sideM(B4, 'foe')[0], p4 = sideM(B4, 'party'), f4 = p4.filter(function (u) { return u.cls === 'fighter'; })[0], w4 = p4.filter(function (u) { return u.cls === 'wizard'; })[0];
+      var s4 = stripM(6); if (!s4) throw new Error('no flat strip on the ankheg\'s map');
+      onlyM(B4, [an, f4, w4]); [an, f4, w4].forEach(function (w) { w.maxhp = w.hp = 300; w.conds = {}; }); an.holding = []; an.under = false;
+      at(an, s4[0], s4[1]); at(f4, s4[0] + 2, s4[1]); at(w4, s4[0] + 2, s4[1] + 1); B4.cache = null;
+      var acS = RM.ac(an); an.conds.prone = true; var acP = RM.ac(an); delete an.conds.prone;
+      okM('K1 its AC standing ' + acS + ', prone ' + acP + ' (want 14, 11)', acS === 14 && acP === 11);
+      RM.startTurn(an); B4.active = an; pinM(19, function () { runM(B4.attack(an, f4, an.attacks.bite)); }); B4.active = null;
+      var held4 = !!(f4.conds.restrained && f4.conds.restrained.by === an.id), eH = RM.edges(an, f4, an.attacks.bite), eW = RM.edges(an, w4, an.attacks.bite);
+      okM('K2 its bite holds the fighter (' + held4 + '): advantage on the held one ' + (eH.net === 1) + ', on the wizard ' + (eW.net === 1) + ' (want true, true, false)', held4 && eH.net === 1 && eW.net !== 1);
+      var w4hp = w4.hp, n4k = (B4.log || []).length; RM.startTurn(an); B4.active = an; pinM(19, function () { runM(B4.attack(an, w4, an.attacks.bite)); }); B4.active = null;
+      okM('K3 its bite at the wizard while it holds the fighter: the wizard ' + w4hp + ' -> ' + w4.hp + '; ' + (/only the one it holds/.test(logM(B4, n4k)) ? 'it can bite only the held' : 'no word') + ' (want ' + w4hp + ', the word)', w4.hp === w4hp && /only the one it holds/.test(logM(B4, n4k)));
+      var f4hp = f4.hp; w4.hp = 300; pinM(19, function () { aiM(B4, an); });
+      okM('K4 its AI holding the fighter: the fighter ' + f4hp + ' -> ' + f4.hp + ', the wizard 300 -> ' + w4.hp + ', its reaction ' + an.reaction + ' (want the fighter bitten, the wizard not, 0)', f4.hp < f4hp && w4.hp === 300 && an.reaction === 0);
+    } catch (eM) { repM.errors.push(String(eM && eM.stack || eM).slice(0, 900)); D.d = d0M; }
+    if (errs.length) repM.errors = repM.errors.concat(errs);
+    var preM = document.createElement('pre'); preM.id = 'out'; preM.textContent = 'BENCH16 ' + JSON.stringify(repM);
+    document.body.appendChild(preM);
     return;
   }
   // the ankheg's Acid Spray (mode=spray1022; the monster cutter seat's third run, 10-22, the lane's §36 and the desk's answer (1): a data line on the grid's breath rule,

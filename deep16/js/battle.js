@@ -1031,6 +1031,8 @@
     this.focus(u);
     if (u.conds.surprised && D.features && D.features.feral && (yield* D.features.feral(this, u))) delete u.conds.surprised; // (Feral Instinct: he rages, and acts)
     if (u.conds.surprised) { delete u.conds.surprised; this.card(['{g}' + u.name + ' is caught unaware: no turn this round.{/}']); yield 40; return; }
+    // charmed by a harpy's Luring Song (js/monsterrules.js, 10-28): incapacitated, the turn is the song's -- the walk to her, the save at its end
+    if (D.monsterRules && D.monsterRules.lured(this, u) && (yield* D.monsterRules.luredTurn(this, u))) { yield 20; D.magic.endTurn(this, u); return; }
     if (RU.canAct(u)) D.sfx('popup'); // your turn
     if (!RU.canAct(u)) {
       this.card(['{g}' + u.name + (u.hp <= 0 ? ' is down.' : u.conds.paralyzed ? ' is held fast.' : u.conds.stunned ? ' is stunned.' : ' cannot act.') + '{/}']);

@@ -18,7 +18,7 @@
     // foesOf, or a fight stalls on one nobody will strike, 10-01 bench)
     // (blindsight perceives without sight -- SRD 5.1 -- so a hidden one inside its reach is known to it: the bulette's tremorsense under the road found no hidden Vivian 10 ft
     // off and the Breach never ended, 10-02)
-    var seen = B.units.filter(function (w) { return w.side !== u.side && G.standing(w) && !(w.riding && !w.attached) && w.id !== charmer && (((!w.conds.hidden || D.magic.inMirror(B, u, w) || (u.blindsight && G.dist(u, w) <= u.blindsight && !(u.tremor && G.aloft(w)))) && D.magic.sees(B, u, w)) || G.dist(u, w) <= 5); }); // (the Mirror's eye: no hiding before it)
+    var seen = B.units.filter(function (w) { return w.side !== u.side && G.standing(w) && !(w.riding && !w.attached) && w.id !== charmer && (((!w.conds.hidden || D.magic.inMirror(B, u, w) || (u.blindsight && G.dist(u, w) <= u.blindsight && !(u.tremor && G.aloft(w)))) && D.magic.sees(B, u, w)) || G.dist(u, w) <= 5 || (u.ironScent && G.dist(u, w) <= u.ironScent && D.monsterRules && D.monsterRules.carriesFerrous(w))); }); // (the Mirror's eye: no hiding before it) (the rust monster's Iron Scent, SRD 5.1: "can pinpoint, by scent, the location of ferrous metal within 30 feet" -- one hidden or invisible carrying it is known to it, js/monsterrules.js, 10-28)
     if (seen.length) return seen;
     // nothing seen (inside a Darkness, blinded, the dark with no darkvision): it goes by ear -- toward the nearest it knows is there,
     // and swings or shoots at the unseen (the -4, the disadvantage). Nobody stands still all fight (the raid's stall, 09-28)
@@ -84,6 +84,8 @@
       RU.rise(B, u);
       if (u.knit && D.looks) { yield D.looks.knitRise(u); delete u.knit; } // (a knitted troll up off the ground before it walks: its death row played back -- js/looks.js, 10-08)
     }
+    // charmed by a harpy's Luring Song (js/monsterrules.js, 10-28): incapacitated, the turn is the walk to her and the save at its end
+    if (D.monsterRules && D.monsterRules.lured(B, u) && (yield* D.monsterRules.luredTurn(B, u))) { D.magic.endTurn(B, u); u.anim = 'idle'; return; }
     if (!RU.canAct(u) && !u.ethereal) { B.card(['{g}' + (u.side === 'foe' ? the(B, u) : u.name) + (u.conds.asleep ? ' sleeps.' : u.conds.paralyzed ? ' is held fast.' : u.conds.stunned ? ' is stunned.' : ' cannot act.') + '{/}']); yield 30; D.magic.endTurn(B, u); return; }
     if (!u.ethereal || u.under) B.focus(u); // (a burrower under the ground: the camera on its mound)
     // clinging to a face part way up (a slow climb speed: battle.js moveAlong, 10-04 night): the climb goes on before anything else; still on the face after, the turn is spent

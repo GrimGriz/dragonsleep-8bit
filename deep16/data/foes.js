@@ -528,16 +528,17 @@
   },
   // the ankheg (10-22, the monster cutter seat's second run, on Griz's "spin up an one-at-a-time art cutter that goes until we're out"; asked
   // 10-08 as "a creature a biome", the plains -- deep16-srd-not-yet.md): the SRD 5.1 Ankheg from the mechanics the grid has; its sheet
-  // tools/ankheg-sheet.py (the art desk's ART-10 SE and NE, ART-53 S, E and N). Its bite only at the one it holds and its AC 11 while prone
-  // are not on the grid yet (src); its Acid Spray is, on the breath rule (10-22, the third run).
+  // tools/ankheg-sheet.py (the art desk's ART-10 SE and NE, ART-53 S, E and N). Its Acid Spray on the breath rule (10-22, the third run); its bite
+  // only at the one it holds, with advantage, and its AC 11 while prone since 10-28 (js/monsterrules.js, the grid's rules seat on Griz's "Start the seat").
   ankheg: {
     name: 'Ankheg', type: 'monstrosity', sheet: 'ankheg_p1', cr: '2', ac: 14, hp: 39, speed: 30, size: 2, reach: 5, darkvision: 60, blindsight: 60, tremor: true, // (tremor: its 60 ft is the SRD's tremorsense, the bulette's way)
     abil: { str: 17, dex: 11, con: 13, int: 1, wis: 13, cha: 6 }, init: 0, perception: 11,
     saves: { str: 3, dex: 0, con: 1, int: -5, wis: 1, cha: -2 },
-    attacks: { bite: { name: 'Bite', atk: 5, dice: '2d6', mod: 3, type: 'slashing', extra: '1d6', extraType: 'acid', reach: 5, grapple: { dc: 13, max: 1, size: 'L', only: true } } },
+    attacks: { bite: { name: 'Bite', atk: 5, dice: '2d6', mod: 3, type: 'slashing', extra: '1d6', extraType: 'acid', reach: 5, grapple: { dc: 13, max: 1, size: 'L', only: true, bitesHeld: true } } }, // (bitesHeld: "Until this grapple ends, the ankheg can bite only the grappled creature and has advantage on attack rolls to do so" -- js/monsterrules.js, 10-28)
     breath: { name: 'Acid Spray', shape: 'line', ft: 30, ab: 'dex', dc: 13, dice: '3d6', type: 'acid', recharge: 6, notHolding: true }, // (SRD 5.1 Acid Spray, Recharge 6: a line 30 ft long and 5 ft wide, DC 13 DEX, 3d6 acid, half on a save, only with no creature grappled -- js/traits.js M.breathe, M.breathHeld; 10-22, the lane's §36)
+    proneAC: 11, // ("Armor Class 14 (natural armor), 11 while prone" -- js/monsterrules.js RU.ac, 10-28)
     multi: 1, burrow: 10, walkWithin: 30, // (its dig is 10 ft a turn against a 30-ft walk: it walks to one it can reach this turn, else goes under and comes up beside them -- js/ai.js burrower; the xorn's walkWithin)
-    src: 'SRD 5.1 Ankheg (CR 2, Large; AC 14, 39 HP, speed 30, burrow 10 ft; darkvision and tremorsense 60 ft): its Bite +5, 2d6+3 slashing plus 1d6 acid, a Large or smaller target grappled (escape DC 13; grappled, not restrained -- the chuul pincer `only`); burrow 10 ft (js/ai.js burrower: it walks to one within 30 ft, else digs). Its Acid Spray (recharge 6: a line 30 ft long and 5 ft wide, DC 13 DEX, 3d6 acid, half on a save, only with no creature grappled) on the grid breath rule since 10-22 (js/traits.js M.breathe, notHolding). Not on the grid yet, plain stand-ins: the bite only at the one it holds, with advantage -- it bites as any grappler; AC 11 while prone -- 14 always'
+    src: 'SRD 5.1 Ankheg (CR 2, Large; AC 14, 39 HP, speed 30, burrow 10 ft; darkvision and tremorsense 60 ft): its Bite +5, 2d6+3 slashing plus 1d6 acid, a Large or smaller target grappled (escape DC 13; grappled, not restrained -- the chuul pincer `only`); burrow 10 ft (js/ai.js burrower: it walks to one within 30 ft, else digs). Its Acid Spray (recharge 6: a line 30 ft long and 5 ft wide, DC 13 DEX, 3d6 acid, half on a save, only with no creature grappled) on the grid breath rule since 10-22 (js/traits.js M.breathe, notHolding). Since 10-28 by the block (js/monsterrules.js): while it holds one it bites only that one, with advantage, and takes no opportunity bite at another; AC 11 while prone'
   },
   // the winter wolf (10-22, the monster cutter seat's third run, on Griz's "close the desk but have the cutter run us out of usage for the
   // week. See y'all tueday"; asked 10-08 among "a creature a biome": deep16-srd-not-yet.md): the SRD 5.1 Winter Wolf from the mechanics the
@@ -568,14 +569,18 @@
   },
   // the rust monster (10-22, the monster cutter seat's third run, on Griz's "close the desk but have the cutter run us out of usage for the
   // week. See y'all tueday"): the SRD 5.1 Rust Monster from the mechanics the grid has; its sheet tools/rustmonster-sheet.py (the art desk's
-  // ART-16 SE and NE, ART-57 S, E and N). Rust Metal is the gray ooze's Corrode Metal (js/traits.js `corrosive: 'rust'`, the metal way in rust's words).
+  // ART-16 SE and NE, ART-57 S, E and N). Since 10-28 by the block (js/monsterrules.js, the grid's rules seat on Griz's "Start the seat", after his "is that what
+  // the SRD has?"): Antennae its own action, Rust Metal a trait, Iron Scent -- the stand-in retired (its bite rusted armour, the gray ooze's `corrosive` way).
   rustmonster: {
     name: 'Rust Monster', type: 'monstrosity', sheet: 'rustmonster_p1', cr: '1/2', ac: 14, hp: 27, speed: 40, size: 1, reach: 5, darkvision: 60,
     abil: { str: 13, dex: 12, con: 13, int: 2, wis: 13, cha: 6 }, init: 1, perception: 11,
     saves: { str: 1, dex: 1, con: 1, int: -4, wis: 1, cha: -2 },
     attacks: { bite: { name: 'Bite', atk: 3, dice: '1d8', mod: 1, type: 'piercing', reach: 5 } },
-    multi: 1, corrosive: 'rust', // (Rust Metal, the metal way in rust's words: a nonmagical metal weapon that hits it is eaten, -1 a hit, gone at the grid's third -- and, a plain stand-in for its Antennae, its bite eats metal armour the same way: js/traits.js)
-    src: 'SRD 5.1 Rust Monster (CR 1/2, Medium; AC 14, 27 HP, speed 40; darkvision 60): its Bite +3, 1d8+1 piercing; Rust Metal as the gray ooze Corrode Metal (corrosive: rust, the metal way in its own words -- a nonmagical metal weapon that hits it, -1 damage a hit, eaten through at the third: his 10-13 ruling for the oozes). Not on the grid, plain stand-ins: the Antennae (an action, DC 11 DEX, metal armour -1 AC a touch) -- its bite eats metal armour instead, the ooze way; Iron Scent (ferrous metal within 30 ft by smell) -- none; Gobble (a dropped weapon to eat) -- none. Its Antennae and Gobble rows are drawn and not cut'
+    multi: 1,
+    rustMetal: true, // (Rust Metal: a nonmagical metal weapon that hits it, a permanent and cumulative -1 to its damage after dealing it, destroyed at -5; nonmagical metal ammunition that hits it destroyed -- js/monsterrules.js)
+    antennae: { dc: 11, reach: 5 }, // (Antennae, an action: a nonmagical ferrous metal object it can see within 5 ft, worn or carried -- DC 11 DEX to avoid; metal armour or a shield -1 to the AC it offers, for good, destroyed at AC 10 / +0; a held metal weapon rusts as Rust Metal)
+    ironScent: 30, // (Iron Scent: it pinpoints ferrous metal within 30 ft -- a hidden or invisible one carrying it is known to its AI, js/ai.js heroes; it does not see them)
+    src: 'SRD 5.1 Rust Monster (CR 1/2, Medium; AC 14, 27 HP, speed 40; darkvision 60): its Bite +3, 1d8+1 piercing; by the block since 10-28 (js/monsterrules.js): Antennae, an action (a nonmagical ferrous metal object it can see within 5 ft, DC 11 DEX to avoid; metal armour or a metal shield -1 to the AC it offers, permanent and cumulative, armour at AC 10 or a shield at +0 destroyed; a held metal weapon rusts as Rust Metal) -- its AI reaches for armour, then a shield, then a weapon, and bites only where no metal is near; Rust Metal (a nonmagical metal weapon that hits it -1 to damage after dealing it, permanent and cumulative, destroyed at -5; metal ammunition destroyed); Iron Scent (ferrous metal within 30 ft pinpointed: its AI knows a hidden or invisible metal-bearer is there). A hero\'s rust is kept on the sheet past the fight (the house; the Pocket DM\'s seat). Not the SRD, not on the grid: Gobble -- the art desk\'s drawn row, left uncut. Its Antennae row is drawn and not cut yet (the antennae play its attack row)'
   },
   // the basilisk (10-22, the monster cutter seat's third run, on Griz's "close the desk but have the cutter run us out of usage for the
   // week. See y'all tueday"): the SRD 5.1 Basilisk from the mechanics the grid has -- its Petrifying Gaze the grid's gaze rule (js/traits.js,
@@ -615,8 +620,9 @@
       tail: { name: 'Tail', atk: 9, dice: '3d6', mod: 5, type: 'bludgeoning', reach: 10 }
     },
     multi: ['tentacle', 'tentacle', 'tentacle'], bound: '~', swims: true, // (Multiattack, three tentacles; swim 40 in the water it keeps to, the otyugh's way -- its 10 ft on land not on the grid)
-    legendary: { n: 3, acts: [{ name: 'Detect', cost: 1, detect: true }, { name: 'Tail Swipe', cost: 1, atk: 'tail' }, { name: 'Psychic Drain', cost: 2, drain: { dice: '3d6', type: 'psychic' } }] }, // (SRD 5.1 legendary actions -- Psychic Drain on one it has charmed: with no Enslave, none)
-    src: 'SRD 5.1 Aboleth (CR 10, Large; AC 17, 135 HP, speed 10, swim 40; darkvision 120): Multiattack, three Tentacles +9 reach 10, 2d6+5 bludgeoning; Tail +9 reach 10, 3d6+5; legendary actions (three): Detect, Tail Swipe, Psychic Drain (2, on one it has charmed). Bound to the water (swim 40; on land 10 ft, not on the grid). Not on the grid, plain stand-ins: the tentacle disease (DC 14 CON) -- none; Enslave (3/day, DC 14 WIS charm) -- none, so its Psychic Drain finds no one; Mucous Cloud (underwater) and Probing Telepathy -- none. Its Enslave row is drawn and not cut'
+    legendary: { n: 3, acts: [{ name: 'Detect', cost: 1, detect: true }, { name: 'Tail Swipe', cost: 1, atk: 'tail' }, { name: 'Psychic Drain', cost: 2, drain: { dice: '3d6', type: 'psychic' } }] }, // (SRD 5.1 legendary actions -- Psychic Drain on one it has charmed: its Enslave's, since 10-28)
+    enslave: { dc: 14, range: 30, uses: 3 }, // (Enslave (3/Day): one creature it can see within 30 ft, DC 14 WIS or charmed under its control, no reactions, till the aboleth dies or leaves the plane; a save each time the charmed one takes damage -- js/monsterrules.js, Dominate Person's machinery, 10-28)
+    src: 'SRD 5.1 Aboleth (CR 10, Large; AC 17, 135 HP, speed 10, swim 40; darkvision 120): Multiattack, three Tentacles +9 reach 10, 2d6+5 bludgeoning; Tail +9 reach 10, 3d6+5; legendary actions (three): Detect, Tail Swipe, Psychic Drain (2, on one it has charmed). Bound to the water (swim 40; on land 10 ft, not on the grid). Enslave (3/day) since 10-28 (js/monsterrules.js): one it sees within 30 ft, DC 14 WIS or charmed under its control -- it fights for the aboleth by its own class\'s tactics, a hero too, and takes no reactions -- till the aboleth dies or is banished; it saves again each time it takes damage; its Psychic Drain drains that one (3d6 psychic, the aboleth heals as much). Not on the grid, plain stand-ins: the tentacle disease (DC 14 CON) -- none; Mucous Cloud (underwater) and Probing Telepathy -- none; the telepathy over any distance and the mile-away save -- not a fight\'s. Its Enslave row is drawn and not cut yet (it casts on its idle)'
   },
   // the lamia (10-27, the monster cutter seat on Griz's "spin up a cutter for the leftovers in fresh, everything in the outbox has been sent";
   // asked 10-08 among "a creature a biome", the Blue's desert: deep16-srd-not-yet.md): the SRD 5.1 Lamia from the mechanics the grid has; its
@@ -648,7 +654,8 @@
       club: { name: 'Club', atk: 3, dice: '1d4', mod: 1, type: 'bludgeoning', reach: 5 }
     },
     multi: ['claws', 'club'],
-    src: 'SRD 5.1 Harpy (CR 1, Medium; AC 11, 38 HP, speed 20, fly 40 -- wings in every fight, js/flight-ai.js): Multiattack, its Claws +3 2d4+1 slashing and its Club +3 1d4+1 bludgeoning. Not on the grid, a plain stand-in: the Luring Song (every humanoid and giant within 300 ft, DC 11 WIS or charmed while it sings -- incapacitated, and walking to it) -- none; its Song and Fly rows are drawn and not cut'
+    luringSong: { dc: 11 }, // (Luring Song: every humanoid and giant that hears it, DC 11 WIS or charmed while it sings -- incapacitated, walking to it by the most direct route; saves before damaging terrain, on harm from another, at each turn's end; a save makes one proof against this harpy -- js/monsterrules.js, 10-28)
+    src: 'SRD 5.1 Harpy (CR 1, Medium; AC 11, 38 HP, speed 20, fly 40 -- wings in every fight, js/flight-ai.js): Multiattack, its Claws +3 2d4+1 slashing and its Club +3 1d4+1 bludgeoning. The Luring Song since 10-28 (js/monsterrules.js): an action, every humanoid and giant that hears it (300 ft: the whole field, its own side\'s too) DC 11 WIS or charmed till the song ends -- incapacitated, walking to it by the most direct route each turn, the opportunity attacks taken; a save before stepping into burning ground, on harm from another, and at the end of each of its turns; a save makes one proof against this harpy for the fight; a bonus action each turn after keeps it, and it ends if the harpy is incapacitated. Its Song and Fly rows are drawn and not cut yet (it sings on its idle)'
   },
   cloaker: {
     name: 'Cloaker', type: 'aberration', sheet: 'cloaker_p2', cr: '8', ac: 14, hp: 78, speed: 40, fly: 40, size: 2, reach: 5, darkvision: 60,
