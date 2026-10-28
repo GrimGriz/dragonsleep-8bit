@@ -1,0 +1,47 @@
+{
+ "_readme": {
+  "what": "Playtest feedback from situations.html: one verdict and note a row -- an eyes row (js/eyes.js: built, not yet seen) or a story situation (?at=<id>, js/situations.js).",
+  "fold_back": "Fold every eyes row noted here that is still live in js/eyes.js (a folded row is already cut, so nothing folds twice; previous_save and new_since_last_save only hint at what is new -- RULED 10-15); a story situation note folds when its `at` is after the save of the last ear file folded. An eyes row noted at all is SEEN: a `seen` line in PATCHLOG.md with the note verbatim, and the row cut from js/eyes.js whatever the verdict (a fix that wants another look writes a fresh row). Broken and unclear become the fix list (in the lane its pt names); too hard / too easy are tuning; notes are the tester's words, verbatim.",
+  "saved_from": "the one gallery (deep16/?gallery), its SAVE"
+ },
+ "saved_at": "2026-10-28T01:56:34.026Z",
+ "previous_save": "2026-10-28T01:53:54.450Z",
+ "items": [
+  {
+   "id": "eyes-gallerynote-1028",
+   "eyes": true,
+   "pri": 1,
+   "title": "A note with a verdict in the gallery: V onto broken or unclear, or T (10-28)",
+   "pt": "the one gallery (deep16/js/onegallery.js noteField) · eyes",
+   "url": "deep16/?gallery&shelf=creatures&rows=lamia&fresh=28",
+   "verdict": "broken",
+   "note": "needs human form idle, perhaps others - add art request - magic spark on spell cast appears behind her, have code draw it when she casts",
+   "at": "2026-10-28T01:56:31.674Z",
+   "new_since_last_save": true
+  },
+  {
+   "id": "eyes-townsfolk-eight-1027",
+   "eyes": true,
+   "pri": 2,
+   "title": "The townsfolk on the grid: a man, a woman and a child in all eight facings, the street that runs from the trolls (10-27)",
+   "pt": "the bestiary §37 (tools/townsfolk-sheet.py, tools/artdesk.py; deep16/art/folkman_p1, folkwoman_p1, folkchild_p1; deep16/data/foes.js commoner; deep16/js/battle.js townsfolk) · eyes",
+   "url": "deep16/?gallery&shelf=creatures&rows=commoner,commonerwoman,commonerchild&fresh=1",
+   "verdict": "works",
+   "note": "",
+   "at": "2026-10-28T01:54:20.526Z",
+   "new_since_last_save": true
+  },
+  {
+   "id": "eyes-harpy-eight-1028",
+   "eyes": true,
+   "pri": 2,
+   "title": "The harpy on the grid, new: its own sheet in all eight facings and a foe by the SRD, claws and club (10-28)",
+   "pt": "the bestiary §37 (tools/harpy-sheet.py, tools/artdesk.py; deep16/art/harpy_p1; deep16/data/foes.js harpy) · eyes",
+   "url": "deep16/?gallery&shelf=creatures&rows=harpy&fresh=1",
+   "verdict": "works",
+   "note": "does harpy need fly animation request?",
+   "at": "2026-10-28T01:55:03.564Z",
+   "new_since_last_save": true
+  }
+ ]
+}
