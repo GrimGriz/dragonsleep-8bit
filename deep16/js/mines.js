@@ -105,7 +105,7 @@
         trig.push({ id: t.id, on: 'use', rect: [th[0], th[1], 1, 1], town: 'door', door: { id: t.id, name: who } }); marks.doors[t.id] = th.slice(); return;
       }
       if (t.script === 'roostDoor') return; // (Ottilie at the mouth: the warp asks it -- M.warp)
-      trig.push(Object.assign({}, t, { rect: r, town: 'mine' }));
+      trig.push(Object.assign({}, t, { rect: r, town: 'mine', walkOn: t.script === 'badAir' })); // (walkOn: the bad air coughs and the walk goes on through it -- js/roam.js R.landed; 10-28, his "lets you collect from 6 away")
     });
     // the people where the first game stands them, by its conditions on the floor's flags
     var people = [];

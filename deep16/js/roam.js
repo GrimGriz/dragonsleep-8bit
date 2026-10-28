@@ -385,7 +385,7 @@
           if (!use && R.def.room && R.def.across && sq.x === R.def.across[0] && sq.y === R.def.across[1]) use = R.useAt(B, sq.x, sq.y - 1); // (the spot across the counter clicked: the word with the keeper)
           if (use && use.town === 'talk' && R.def.room && R.def.across) { yield* R.fire(B, use, [sq.x, sq.y]); continue; } // (the keeper or the counter clicked: the word across the counter -- js/town.js T.fire walks there)
           if (use && use.town === 'door') { yield* R.walkInto(B, use, [sq.x, sq.y]); continue; } // (a door's threshold clicked: onto it, then in)
-          if (use) { var pu = R.besidePath(B, [sq.x, sq.y]); if (pu && pu.length * 5 <= R.clickFt()) { yield* R.walkBeside(B, [sq.x, sq.y]); yield* R.fire(B, use, [sq.x, sq.y]); } else R.tooFar(B); continue; }
+          if (use) { var pu = R.besidePath(B, [sq.x, sq.y]); if (pu && pu.length * 5 <= R.clickFt()) { if (yield* R.walkBeside(B, [sq.x, sq.y])) yield* R.fire(B, use, [sq.x, sq.y]); } else R.tooFar(B); continue; } // (only from beside it: R.walkBeside)
           var pth = R.walkRoute(t, [sq.x, sq.y]);
           if (!pth) { D.sfx('miss'); B.card(['{g}No way there from here.{/}'], 120); }
           else if (pth.length * 5 > R.clickFt()) R.tooFar(B);
@@ -466,7 +466,7 @@
     var trig = R.triggerAt(B, p8[0], p8[1], 'step');
     if (R.wadeAsk(B, [t.x, t.y])) { yield* R.stairScene(B, { id: 'stair' }, [t.x, t.y]); return 'trigger'; } // (come onto the row some other way: it asks there)
     if (trig && trig.town === 'door' && R0.path && R0.path.length) return null; // (a town's door on the way is walked over: it opens where a walk ends, or an arrow's step onto it -- 10-20)
-    if (trig) { yield* R.fire(B, trig, [t.x, t.y]); return 'trigger'; }
+    if (trig) { yield* R.fire(B, trig, [t.x, t.y]); return trig.walkOn ? null : 'trigger'; } // (walkOn: a square that does its thing and lets the walk go on -- the dens' bad air, js/mines.js)
     return null;
   };
 
@@ -524,15 +524,18 @@
   // a threshold someone stands on, or no way onto it, from beside it as before
   R.walkInto = function* (B, trig, sq) {
     var t = B.roam.token, p = t.x === sq[0] && t.y === sq[1] ? [] : R.walkRoute(t, sq);
-    if (!p) { var pb = R.besidePath(B, sq); if (pb && pb.length * 5 <= R.clickFt()) { yield* R.walkBeside(B, sq); yield* R.fire(B, trig, sq); } else R.tooFar(B); return; }
+    if (!p) { var pb = R.besidePath(B, sq); if (pb && pb.length * 5 <= R.clickFt()) { if (yield* R.walkBeside(B, sq)) yield* R.fire(B, trig, sq); } else R.tooFar(B); return; }
     if (p.length * 5 > R.clickFt()) { R.tooFar(B); return; }
     if (!(yield* R.walkTo(B, sq))) return;
     yield* R.fire(B, trig, sq);
   };
+  // true if the token stands beside `at` at the end: a walk stopped on the way -- a trigger, a fight, the dens' bad air -- leaves it short, and what was clicked is not
+  // reached (10-28, his eye on the dens: "clicking on the chest in the poison gas area lets you collect from 6 away")
   R.walkBeside = function* (B, at) {
     var t = B.roam.token, best = R.besidePath(B, at);
-    while (best && best.length) { yield* R.step(B, t, best.shift()); var ev = yield* R.arrive(B); if (ev) return; }
+    while (best && best.length) { yield* R.step(B, t, best.shift()); var ev = yield* R.arrive(B); if (ev) break; }
     t.anim = 'idle'; t.animT = B.t;
+    return Math.max(Math.abs(t.x - at[0]), Math.abs(t.y - at[1])) <= 1;
   };
   // the token's walk round the people standing in the street (a town: js/town.js), not through them -- a route by default ghosts through every figure, and on the Wet
   // nobody stood on the floor but the token (10-20)

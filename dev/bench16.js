@@ -2387,6 +2387,14 @@
       var dW = door8(true), dT = door8(false);
       okG('Cassia\'s door clicked, in her wall: ' + dW.n + ' steps, the last onto ' + dW.last + ', then in (' + dW.room + '); on its threshold: the last step onto ' + dT.last + ', in (' + dT.room + ')',
         dW.room === 'inn:cassia' && dW.last === '16,13' && dT.room === 'inn:cassia' && dT.last === '16,13');
+      // 9. A CHEST FROM BESIDE IT (his "clicking on the chest in the poison gas area lets you collect from 6 away"): the dens' chest (50,17) clicked from the bad air's edge -- the
+      // walk goes on through the bad air (it coughs as it bites) to beside the chest, and it is opened from there, never from where a walk stopped
+      var B9 = testG('?roam=galleries_g3&flags=cullHired&at=43,16'), R9 = B9.roam, t9 = R9.token, k9 = 'chest:galleries_g3:50,17', at9 = null, step9 = RG.step, path9 = [];
+      RG.step = function* (B, u, to) { if (B.roam && u === B.roam.token) path9.push(to.join(',')); if (B.roam && B.roam.flags[k9] && at9 == null) at9 = 'opened before ' + to.join(','); yield* step9.apply(this, arguments); };
+      try { var c9 = D.iso.center(50, 17, B9.map.gz(50, 17)), s9 = D.iso.toScreen(c9.x, c9.y); R9.encIn = 1e9; R9.clicks.push({ x: s9.x, y: s9.y }); driveG(B9.co, function () { return !!R9.flags[k9]; }, 4000); } finally { RG.step = step9; }
+      var air9 = (B9.cards || []).some(function (c) { return /Bad air/.test(c.lines.join(' ')); }), d9 = Math.max(Math.abs(t9.x - 50), Math.abs(t9.y - 17));
+      okG('the dens\' chest clicked from 43,16: walked ' + path9.join(' > ') + ' (the bad air bit: ' + air9 + '), opened ' + (R9.flags[k9] ? 'from ' + d9 + ' away (' + t9.x + ',' + t9.y + ')' : 'not at all'),
+        !!R9.flags[k9] && d9 <= 1 && air9 && path9.length >= 5);
     } catch (eG) { repG.errors.push(String(eG && eG.stack || eG).slice(0, 900)); }
     D.store.get = stGG; D.store.set = stSG; D.music = muG; try { if (skG != null) window.localStorage.setItem(SG.KEY, skG); } catch (eK2) { }
     var preG = document.createElement('pre'); preG.id = 'out'; preG.textContent = 'BENCH16 ' + JSON.stringify(repG);
