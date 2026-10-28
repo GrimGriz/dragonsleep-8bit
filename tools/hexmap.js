@@ -164,6 +164,7 @@
     if (!(S.seeded && S.seeded.gulch1020)) GULCHED = seedGulch();
     if (!(S.seeded && S.seeded.fork1022)) FORKED = seedFork();
     if (!(S.seeded && S.seeded.silverton1028)) SILVERED = seedSilverton();
+    if (!(S.seeded && S.seeded.silverton1028b)) RESUNK = seedSinksOut();
   }
   // SILVERTON AND THE WARRENS FIT TO THE REALM (10-28, the maps window; his words: "I'd like a window to use the map-making to adjust the elevations around
   // silverton and the warrens to fit the wiki re altitudes", then on the seat's read of his paint, "1 - show me what's there now, they're probably just me being
@@ -171,7 +172,7 @@
   // (TarlynsPit/wiki/silverton.md 21-22, the-warrens.md 16 and 28, city v6, environs v3): the town falls away south from the Edifice to the Hex in the valley,
   // the road rising near the mountain and slopes down in front of the Edifice; the river east, falls and ponds; the Warrens' six mouths in the chain's face on
   // the north bank 4 mi east, the camp and the bridge at the water, the feed track on the south bank. His two sinks beside the town (-900 and -500, 4 mi wide)
-  // had taken it to -530 ft: they go 3 mi west, so his trough along the range's foot stays and the road climbs out of it to a shoulder and down into town. The
+  // had taken it to -530 ft: they go 3 mi south-west (SINKS_OUT; 3 mi west had sunk the black range behind the town, 10-28b), into his trough's floor. The
   // Warrens' bank, the fill's gray mountain at 1,300-1,430 ft a step above his town paint, is brought to a bench (a level, 430 to 390 ft west to east) and its
   // unpainted mile hexes painted foothills; the camp is a place (environs v3's), the feed track a track from the town to it over the bridge
   var SILVERED = false;
@@ -180,7 +181,7 @@
     var n = 0, was = { kmvhnmit9: [116.42059550242948, 28.660712080832063], kmvhnmkp4: [116.58860928427885, 28.85794565082916] };
     (S.peaks || []).forEach(function (p) {
       var w = was[p.id]; if (!w || Math.hypot(p.x - w[0], p.y - w[1]) > 0.05) return; // (only where his EXPORT of 10-21 had them: a sink he has moved since stays his)
-      p.x -= 3; p.note = (p.note ? p.note + '; ' : '') + 'moved 3 mi west 10-28 from beside Silverton (it had taken the town to -530 ft; his “good to move and reshape things”)'; n++;
+      p.x += SINKS_OUT[0]; p.y += SINKS_OUT[1]; p.note = (p.note ? p.note + '; ' : '') + SINKS_NOTE; n++;
     });
     var BENCH = [[120.6, 28.3], [121.6, 28.33], [122.6, 28.42], [123.6, 28.55], [124.3, 28.62]];
     if (!S.peaks.some(function (p) { return p.id === 'v-warrens'; })) { S.peaks.push({ id: 'v-warrens', name: 'the Warrens’ bench', pts: BENCH, h: 0, level: [340, 300], r: 0.6, note: 'the mouths’ camp on the north bank over the river (the-warrens.md 28; environs v3), 10-28' }); n++; }
@@ -192,6 +193,22 @@
     if (!SB.warrens) { S.sites.push({ id: 'warrens', name: 'the Crawler Warrens (the mouth camp)', kind: 'cave', x: 122.34, y: 28.43, note: 'placed 10-28 at environs v3’s mouth camp: six mouths in the chain’s face on the north bank, the bridge below (the-warrens.md 28); its door the Warrens’ top floor (deep16/js/mines.js); his “9 yes”' }); n++; }
     if (!pathBy('feedtrack') && SB.silverton) { S.paths.push({ id: 'feedtrack', name: 'the feed track (Silverton to the Warrens)', kind: 'track', pts: ['silverton', [118.4, 27.95], [119.4, 28.18], [120.6, 28.5], [121.7, 28.8], [122.45, 28.98], [122.48, 28.66]] }); n++; } // (over the bridge to the camp's foot: the camp a quarter mile up the bench)
     reindex(); return n > 0;
+  }
+  // THE SINKS OUT OF THE RANGE (10-28b, the maps window; his words on the first seed in his browser: "hex map link makes it look like all the mountains
+  // behind silverton have been flattened"): 3 mi west had set his two sinks (4 mi across) under the black range north-west of the town, sinking it by as
+  // much as 2,400 ft. Once, on load: where the first seed left them, they go on to 3 mi south-west of his own spots instead, into his trough's floor beside
+  // his deeper sink (-1,950), where the land already lies at the floor. The range is back as he painted it, the town keeps its 765 ft, and the road
+  // from the west climbs out of his trough to a 1,130 ft shoulder a mile out and down into the town (dev/bench16.js maps1028 reads the range)
+  var SINKS_OUT = [-2.12, 2.12], SINKS_NOTE = 'moved 3 mi south-west 10-28 from beside Silverton (it had taken the town to -530 ft; his “good to move and reshape things”)', RESUNK = false;
+  function seedSinksOut() {
+    S.seeded = S.seeded || {}; S.seeded.silverton1028b = true;
+    var n = 0, was = { kmvhnmit9: [116.42059550242948, 28.660712080832063], kmvhnmkp4: [116.58860928427885, 28.85794565082916] };
+    (S.peaks || []).forEach(function (p) {
+      var w = was[p.id]; if (!w || Math.hypot(p.x - (w[0] - 3), p.y - w[1]) > 0.05) return; // (only where the first seed set them: a sink he has moved since stays his)
+      p.x = w[0] + SINKS_OUT[0]; p.y = w[1] + SINKS_OUT[1];
+      p.note = (p.note || '').replace('moved 3 mi west 10-28 from beside Silverton (it had taken the town to -530 ft; his “good to move and reshape things”)', SINKS_NOTE.replace(/\)$/, '; 3 mi west had sunk the range behind it)')); n++;
+    });
+    return n > 0;
   }
   // THE FORK DRAGGED SOUTH (10-22, the world map seat; RULED, Griz: "3 - about 8-9 hours from the half-way inn is ideal, the fork can be on either side, but there
   // should be a thin row of plains between the gnoll hills and the bog that the road runs along, and the bog would all be north of it - it can be adjacent to the
@@ -1699,6 +1716,6 @@
   resize(); panels();
   $('origin').textContent = 'this browser keeps its copy for ' + location.host + ' (another port is another copy)';
   if (GREW) { saveNow(); msg('Your version 1 map has grown ×' + GROW + ' to the four-wagon-day road (Silverton to the Pit 68 mi). Version 1 is still kept in this browser, untouched. EXPORT is the save.'); }
-  else if (SHAPED || SEEDED || LAKED || WENT || GULCHED || FORKED || SILVERED) { saveNow(); msg((SILVERED ? 'Silverton is fit to the realm: your two sinks beside it are moved 3 mi west (the town had sat at -530 ft), the Warrens’ bank is a bench over the river, the camp is a place, and the feed track runs to it (L shows the lifts). ' : '') + (FORKED ? 'The fork is dragged 5.6 mi down the Pit road (your “drag the fork south a bit”): the west road leaves it along a thin row of plains, the bog north of it, the gnoll hills south, the Glowseep beside it. ' : '') + (LAKED ? 'Halfway Lake is painted back at the inn, from corridor v3’s outline. ' : '') + (WENT ? 'The Coldridge Route goes at its own going now: three wagon-days. ' : '') + (GULCHED ? 'Web Gulch is a place on the Pit road, its mile hexes painted gulch. ' : '') + (SHAPED ?'The Coldridge Route is a difficult road now, its climb to the Doors in switchbacks: three wagon-days (its panel puts back your drawing). ' : '') + (SEEDED ? 'The Doors’ schools are placed (the five in their valley, the rest solo), and the mountain-foot water runs from the bogs to the Glowseep (L shows the lifts). ' : '') + 'EXPORT is the save.'); }
+  else if (SHAPED || SEEDED || LAKED || WENT || GULCHED || FORKED || SILVERED || RESUNK) { saveNow(); msg((RESUNK && !SILVERED ? 'The mountains behind Silverton are back: your two sinks, moved 3 mi west, had sunk the black range, so they lie 3 mi south-west of your spots now, in your trough’s floor. ' : '') + (SILVERED ? 'Silverton is fit to the realm: your two sinks beside it are moved 3 mi south-west (the town had sat at -530 ft), the Warrens’ bank is a bench over the river, the camp is a place, and the feed track runs to it (L shows the lifts). ' : '') + (FORKED ? 'The fork is dragged 5.6 mi down the Pit road (your “drag the fork south a bit”): the west road leaves it along a thin row of plains, the bog north of it, the gnoll hills south, the Glowseep beside it. ' : '') + (LAKED ? 'Halfway Lake is painted back at the inn, from corridor v3’s outline. ' : '') + (WENT ? 'The Coldridge Route goes at its own going now: three wagon-days. ' : '') + (GULCHED ? 'Web Gulch is a place on the Pit road, its mile hexes painted gulch. ' : '') + (SHAPED ?'The Coldridge Route is a difficult road now, its climb to the Doors in switchbacks: three wagon-days (its panel puts back your drawing). ' : '') + (SEEDED ? 'The Doors’ schools are placed (the five in their valley, the rest solo), and the mountain-foot water runs from the bogs to the Glowseep (L shows the lifts). ' : '') + 'EXPORT is the save.'); }
   else msg('Kept in this browser as you go; EXPORT is the save.');
 })();

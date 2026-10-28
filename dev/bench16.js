@@ -3083,6 +3083,10 @@
       WP.index(); WP.use('near'); var MP = WP.map('near'), siteP = function (id) { return MP.sites.filter(function (s) { return s.id === id; })[0]; }, svP = siteP('silverton'), wrP = siteP('warrens');
       var hS = svP && MP.hex[WP.K(svP.hex[0], svP.hex[1])];
       okP('the area: Silverton\'s hex the town (' + (hS && hS.t) + ', ' + (hS && hS.h) + ' ft; was gray at 1,422, the mountain\'s front), the river flat beside it', !!hS && hS.t === 'town' && hS.h > 400 && hS.h < 1100);
+      // the range behind the town stands (10-28b, his "hex map link makes it look like all the mountains behind silverton have been flattened": his two sinks,
+      // moved 3 mi west, had sunk the black range 3 to 6 mi west of the town to 3,100 ft; 3 mi south-west instead, in his trough's floor)
+      var rgP = []; [-4, -3, -2].forEach(function (dq) { [-1, 0].forEach(function (dr) { var e = MP.hex[WP.K(svP.hex[0] + dq, svP.hex[1] + dr)]; if (e && e.t === 'black') rgP.push(e.h); }); });
+      okP('the black range 3 to 6 mi west of Silverton stands: ' + rgP.join(', ') + ' ft (sunk to 3,125 by his sinks moved 3 mi west)', rgP.length >= 4 && rgP.every(function (h) { return h > 4000; }));
       var rW = wrP && WP.route(svP.hex, wrP.hex), dW = wrP ? Math.max(Math.abs(wrP.hex[0] - svP.hex[0]), Math.abs(wrP.hex[1] - svP.hex[1]), Math.abs(wrP.hex[0] + wrP.hex[1] - svP.hex[0] - svP.hex[1])) : 0;
       okP('the Warrens a door on the area (' + (wrP ? wrP.name + ' at ' + wrP.hex + ', ' + dW + ' hexes from Silverton\'s' : 'no place') + '), the feed track there: ' + (rW ? rW.hexes.length + ' hexes, ' + rW.hours.toFixed(1) + ' h' : 'no way'),
         !!wrP && !!WP.DOORS.warrens && dW >= 3 && dW <= 5 && !!rW && rW.hexes.length <= 6 && MP.paths.some(function (P) { return P.id === 'feedtrack' && P.hexes.length >= 3; }));
