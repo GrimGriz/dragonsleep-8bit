@@ -8,7 +8,7 @@
      the ground '.'; the mountain '#' above the cliff's foot (v6 y 352); the river 'D'; the Gate Plaza, Fountain Street and Gate Avenue dressed stone '='
      (the dwarves' ordered city); the other streets, the Arena Plaza and the roads packed dirt ','; the houses, the Shaft Rows' shacks, the Hexagon and the
      Edifice built stone 'b'; the fountains' water '~' in a stone rim '='; the stockade a rail 'f', open at its three gates between two posts 'b'; a
-     headframe's mouth a well 'w' on its spoil 'r'; the stalls 'k'; the tower 'b'; Bloodsnout's compound 'b', walled, its gate the fighters' stables' door since 10-28 (in by it, T.room's yard).
+     headframe's mouth a well 'w' on its spoil 'r'; the stalls 'k'; the tower 'b'; Bloodsnout's compound 'b', walled, its gate shut (a room laid for it waits unwired: T.TRADE compound:bloodsnout).
    And the marks a later caller reads (T.lay's `marks`, each a square): the three gates, the vault door, every pin of v6's key by its number, and the
    shops' doors by the 8-bit's names -- marked, not built (the buy/sell screens are a later seat's: ART-78 to ART-82 wait in deep16/_src/Fresh). */
 'use strict';
@@ -34,7 +34,7 @@
   // arena's own surgery (the-hex.md's fighter trade), a small house round the room of cots the game builds behind its door (T.TRADE), the pin a square inside its south
   // wall. Any other pin with no house gets Mama's booth. invented.json vilar-forge-booth, davos-leech-house
   T.PINHOUSE = { 'shop:vilar': { booth: true, ch: 'n' }, 'leech:davos': { room: true, ch: 'b' } };
-  T.ROOMSIZE = { s: [10, 8], m: [12, 10], l: [16, 12], yard: [Math.round(T.COMPOUND.w / T.FT), Math.round(T.COMPOUND.h / T.FT)] }; // (yard: Bloodsnout's compound at true scale, the stables' room -- T.TRADE keeper:venhale) // (a room's size by its trade, in squares at T.FT: T.room)
+  T.ROOMSIZE = { s: [10, 8], m: [12, 10], l: [16, 12], yard: [Math.round(T.COMPOUND.w / T.FT), Math.round(T.COMPOUND.h / T.FT)] }; // (yard: Bloodsnout's compound at true scale, its room laid and unwired -- T.TRADE keeper:venhale) // (a room's size by its trade, in squares at T.FT: T.room)
   T.pinHouse = function (id) {
     var o = T.PINHOUSE[id] || { booth: true, ch: 'n' }, t = o.room && T.TRADE[id], S = t && T.ROOMSIZE[t.size];
     if (!S) return { w: T.BOOTH, h: T.BOOTH, dy: 0, ch: o.ch }; // (a booth, centred on its pin as Mama's is)
@@ -135,8 +135,9 @@
     // the tower: its foot, a round of built stone (v6 draws it standing, 22 ft across)
     ellipse(V.tower[0], V.tower[1] - 8, Math.max(14, F * 0.55), Math.max(14, F * 0.55), 'B');
     // (v6's stockade is not laid: 10-21, Griz, of the rail that fenced the floor's edges: "I think they're the stockade fences" -- "seem superfluous". The gates stay as marks)
-    // Bloodsnout's compound: a stone wall round a yard, the barracks along the back (east), the gate on the plaza side -- drawn here; since 10-28 later its gate is the fighters'
-    // stables' door, walked into as their room (RULED, Griz: "compound as room" -- the door moved to the compound: the doors below, T.room's yard)
+    // Bloodsnout's compound: a stone wall round a yard, the barracks along the back (east), the gate on the plaza side shut -- drawn, never entered (his 10-20 "drawn but not
+    // enterable"). For a round on 10-28 its gate was the fighters' stables' door; restored on his word (Griz: "re pin 19 - the case is most likely that i confused Venn Hale ... restore
+    // 19 to before my confusion"), the gate shut again by the desk's call standing for his overrule. The room laid for it waits unwired: T.TRADE compound:bloodsnout, the doors' `gate`
     var C = T.COMPOUND, cg0 = gxOf(C.x), cg1 = gxOf(C.x + C.w), ch0 = gyOf(C.y), ch1 = gyOf(C.y + C.h), bk = Math.max(1, Math.round(25 / F));
     for (var yy = ch0; yy <= ch1; yy++) for (var xx = cg0; xx <= cg1; xx++) set(xx, yy, xx > cg1 - bk ? 'b' : (yy === ch0 || yy === ch1 || xx === cg0) ? 'q' : '.'); // (q: its wall, 10 ft; b: the barracks, 25 ft deep along the back)
     if (F <= 10) for (yy = gyOf(C.y + 20); yy <= gyOf(C.y + 40); yy++) for (xx = gxOf(C.x + 20); xx <= gxOf(C.x + 50); xx++) set(xx, yy, 'b'); // (the master's house in the yard's north-west corner: too small to show at a town's scale)
@@ -207,9 +208,8 @@
       if (!q) { q = nearestOpen(p[0], p[1], 150, taken); doorMiss.push(d.id); }
       if (q) place(d, q);
     });
-    // the fighters' stables' door at Bloodsnout's compound's own gate (10-28 later, Griz: "'Bloodsnout's compound is the room behind Venn Hale's door.' this sounds like the compound
-    // was moved instead of moving the door to the compound", and the desk on his "compound as room": the door moves to the compound's gate, where the town map draws the compound,
-    // ruled 10-20): its threshold on the plaza side of the gate in the west wall, at the wall's middle -- the door at pin 19 gone. In through it, the compound (T.room's yard)
+    // a door at Bloodsnout's compound's own gate (`gate: 'compound'` on a T.DOORS entry -- none since 10-28 later, the gate shut: above): its threshold on the plaza side of the gate in
+    // the west wall, at the wall's middle; in through it, its room (T.room's `doorSide` west). Built for a round as the stables' door, kept for when he opens the compound
     T.DOORS.filter(function (d) { return d.gate === 'compound'; }).forEach(function (d) {
       var gq = [cg0 - 1, gyOf(C.y + C.h / 2)]; if (!ground(gq[0], gq[1])) gq = marks.compound; if (gq) { place(d, gq); marks.compoundGate = [cg0, gq[1]]; } else doorMiss.push(d.id);
     });
@@ -255,7 +255,7 @@
     { id: 'keeper:casper', pin: '4', art: 'ART-79' }, { id: 'keeper:androit', pin: '5', art: 'ART-80' }, { id: 'keeper:hessle', pin: '6', art: 'ART-81' },
     { id: 'keeper:falstaff', pin: '7' }, { id: 'keeper:aldric', pin: '7', art: 'ART-82', name: 'Aldric Vest', what: 'the Newland wool-and-grain factor' }, // (7b: the factor houses' second door -- not in the 8-bit)
     { id: 'shop:kessler', pin: '8' }, { id: 'shop:calla', pin: '9' }, { id: 'keeper:barber', pin: '10' }, { id: 'inn:cassia', pin: '11' }, { id: 'keeper:mela', pin: '12' },
-    { id: 'keeper:marin', pin: '13' }, { id: 'keeper:brennan', pin: '14' }, { id: 'shop:marko', pin: '15' }, { id: 'shop:kasten', pin: '16' }, { id: 'keeper:venhale', pin: '19', gate: 'compound' }, // (gate: at Bloodsnout's compound's own gate since 10-28 later, T.lay)
+    { id: 'keeper:marin', pin: '13' }, { id: 'keeper:brennan', pin: '14' }, { id: 'shop:marko', pin: '15' }, { id: 'shop:kasten', pin: '16' }, { id: 'keeper:venhale', pin: '19' },
     { id: 'shop:vilar', pin: '20' }, { id: 'leech:davos', pin: '21' }, { id: 'keeper:kess', pin: '29' }, { id: 'chapel:aldwin', pin: '30' }, { id: 'keeper:mical', pin: '32' },
     { id: 'shop:lisbet', pin: '33' }, { id: 'keeper:merrick', pin: '34' }, { id: 'warp:winters', pin: '35', art: 'ART-78' }, { id: 'warp:percy', pin: '38' },
     { id: 'keeper:tam', pin: '40' }, { id: 'shop:lucia', pin: '42', at: [T_MAMA[0], T_MAMA[1]] },
@@ -264,7 +264,7 @@
   // the doors with rooms behind them (10-20, Griz: "just vendors and interactions (sylvia will get one)"): the 8-bit's shops, the five of the new buy/sell screens, the inn, the
   // leech, the chapel, the lantern house's window, and Sylvia. The rest are doors whose keeper speaks at the door (T.fire)
   T.ROOMS = ['shop:kessler', 'shop:calla', 'shop:marko', 'shop:kasten', 'shop:vilar', 'shop:lisbet', 'shop:lucia', 'warp:winters', 'warp:percy', 'keeper:casper', 'keeper:androit',
-    'keeper:hessle', 'keeper:aldric', 'inn:cassia', 'leech:davos', 'chapel:aldwin', 'keeper:merrick', 'keeper:sylvia', 'keeper:venhale']; // (Venn Hale's since 10-28 later: the compound, T.TRADE)
+    'keeper:hessle', 'keeper:aldric', 'inn:cassia', 'leech:davos', 'chapel:aldwin', 'keeper:merrick', 'keeper:sylvia'];
   T.hasRoom = function (id) { return T.ROOMS.indexOf(id) >= 0; };
   // the people: the 8-bit's Silverton NPCs (their list and conditions read from its own data, DS.DATA.maps.silverton.npcs), each where v6 and the wiki put them -- by
   // their slot's pin, a few feet off it (d: feet east, south), or a mark (at). Standing, facing as the 8-bit has them; their stand-in figures the plain sheets the
@@ -483,11 +483,11 @@
     'keeper:brennan': { size: 'l', floor: '.', goods: 'silver', counter: 'none', dress: ['forge', 'crates'] }, // the smithy's forge
     'shop:marko': { size: 'm', floor: 'o', goods: 'leather', dress: ['crates', 'sacks'] },                  // the provisioner: the road's stores
     'shop:kasten': { size: 's', floor: 'o', goods: 'gold' },                                                // the chandler: tallow and wicks
-    // the fighters' stables (10-28 later, his "Wouldn't the fighters stables be the compound we added (venn hale)", RULED "compound as room"): Bloodsnout's compound at true scale, in
-    // by its own gate on the plaza (`doorSide` west, as on the street) -- its stone wall, the barracks along the back with their cots, the master's house in the corner, the training
-    // rails in the yard, her table across the yard's head
-    // (the realm's the-hex.md: "barracks and training yards, part gymnasium, part debtors' prison"; invented.json stables-compound-room)
-    'keeper:venhale': { size: 'yard', floor: '.', goods: 'leather', counter: 'short', c0: 9, bare: true, doorSide: 'w', dress: ['compound'], name: 'The Fighters\' Stables', sub: 'Bloodsnout\'s compound: the yard and the barracks' },
+    'keeper:venhale': { size: 'l', floor: '.', goods: 'leather', counter: 'short', dress: ['stalls'] },     // the fighters' stables (pin 19 again since 10-28 later, his "restore 19 to before my confusion": no room yet)
+    // Bloodsnout's compound at true scale, its room laid and unwired (no door opens on it: its gate shut, his 10-20 "drawn but not enterable"; built 10-28 as the stables' room on his
+    // "compound as room", then restored): in by its own gate on the plaza (`doorSide` west, as on the street) -- its stone wall, the barracks along the back with their cots, the
+    // master's house in the corner, the training rails in the yard, a table across the yard's head (invented.json stables-compound-room)
+    'compound:bloodsnout': { size: 'yard', floor: '.', goods: 'leather', counter: 'short', c0: 9, bare: true, doorSide: 'w', dress: ['compound'], name: 'Bloodsnout\'s Compound', sub: 'the yard and the barracks' },
     'shop:vilar': { size: 'm', floor: '.', goods: 'silver', side: true, dress: ['crates'] },               // the show-armorer's racks
     'leech:davos': { size: 'm', floor: 'o', goods: 'red', counter: 'short', dress: ['cots'] },              // the leech-house's beds
     'keeper:kess': { size: 'm', floor: '.', goods: 'stone', counter: 'none', dress: ['cots'] },            // the flop-cellar's doss beds

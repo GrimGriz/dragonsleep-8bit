@@ -3411,11 +3411,11 @@
         phV.w === THs.MAMA[2] && phV.h === THs.MAMA[2] && vB.n >= 16 && vB.n <= 25 && vB.ch === 'n' && dH.ch === 'b' && dH.n === dW * dHt && !!dRoom.cots);
       [THs.SCALE, 10, 5].forEach(function (F) {
         var Lo = THs.lay(null, F), wrong = [], ownLo = Lo.own || [], cutLo = Lo.cut || [], missLo = Lo.doorMiss || [];
-        // (the stables' door at the compound's own gate since 10-28 later is no house's wall: mode=housefix1028b)
+        // (a door at the compound's own gate, `gate` -- none since 10-28 later, pin 19 restored: mode=housefix1028b -- is no house's wall)
         THs.DOORS.forEach(function (d) { if (d.gate) return; var q = Lo.marks.doors[d.id], wo = q && ownLo[(q[1] - 1) * Lo.w + q[0]], tg = ownerHs[d.id], bx = boxOfHs(d, tg), off = q ? ftHs(bx, THs.X0 + (q[0] + 0.5) * F, THs.Y0 + (q[1] - 0.5) * F) : 1e9; if (!q || off > F * 0.75 || (Lo.own && wo !== tg)) wrong.push(d.id + ' ' + Math.round(off) + ' ft off ' + tg + (Lo.own ? ' (on ' + wo + ')' : '')); }); // (its wall's square on the house, as v6 draws it -- and the lay's own record of whose it is)
-        okHs('at ' + F + ' ft a square: every door in its own building\'s wall (' + (THs.DOORS.filter(function (d) { return !d.gate; }).length - wrong.length) + ' of ' + THs.DOORS.filter(function (d) { return !d.gate; }).length + ', the stables\' at the compound\'s gate' + (cutLo.length ? '; a lane cut through ' + cutLo.length + ' squares of the next houses to reach five keepers\' south walls' : '') + ')' + (wrong.length ? ' -- not: ' + wrong.join('; ') : '') + (missLo.length ? ' -- no way: ' + missLo.join(', ') : ''), !wrong.length && !missLo.length);
+        okHs('at ' + F + ' ft a square: every door in its own building\'s wall (' + (THs.DOORS.filter(function (d) { return !d.gate; }).length - wrong.length) + ' of ' + THs.DOORS.filter(function (d) { return !d.gate; }).length + '' + (cutLo.length ? '; a lane cut through ' + cutLo.length + ' squares of the next houses to reach five keepers\' south walls' : '') + ')' + (wrong.length ? ' -- not: ' + wrong.join('; ') : '') + (missLo.length ? ' -- no way: ' + missLo.join(', ') : ''), !wrong.length && !missLo.length);
       });
-      // (the stables' door at the compound's gate since 10-28 later: a gate in a west wall, the compound's wall 'q' east of it and the way in from the west)
+      // (a door at the compound's gate, `gate` -- none since 10-28 later: a gate in a west wall, the compound's wall 'q' east of it and the way in from the west)
       [THs.SCALE, 10, 5].forEach(function (F) {
         var Lt = THs.lay(null, F), bad = [], n = 0, noWay = [];
         THs.DOORS.forEach(function (d) { var q = Lt.marks.doors[d.id]; if (!q) { bad.push(d.id + ' none'); return; } n++; var nc = d.gate ? Lt.rows[q[1]].charAt(q[0] + 1) : Lt.rows[q[1] - 1].charAt(q[0]), sc0 = d.gate ? Lt.rows[q[1]].charAt(q[0] - 1) : (Lt.rows[q[1] + 1] || '').charAt(q[0]); if ((d.gate ? nc !== 'q' : WALLHs.indexOf(nc) < 0) || Lt.rows[q[1]].charAt(q[0]) !== 'd' || !Lt.reach[q[1] * Lt.w + q[0]]) bad.push(d.id + ' at ' + q + ' under ' + nc); if (!sc0 || '.,='.indexOf(sc0) < 0) noWay.push(d.id + ' (' + sc0 + ')'); });
@@ -3440,7 +3440,7 @@
       okHs('the click takes them in (' + inC + '), and out by the same door onto her threshold (' + R0.token.x + ',' + R0.token.y + ')', inC === 'inn:cassia' && !D.roam.def.room && R0.token.x === dC[0] && R0.token.y === dC[1]);
       // every room's door, on the floor: in by it, out by it -- the stores, the services, the keepers' rooms
       var roomsBad = [];
-      // (the stables' at the compound's gate since 10-28 later: its wall east of the threshold, the compound's 'q' -- mode=housefix1028b)
+      // (a door at the compound's gate, `gate` -- none since 10-28 later: its wall east of the threshold, the compound's 'q' -- mode=housefix1028b)
       THs.ROOMS.forEach(function (id) { var t = trigHs(id), q = D.roam.def.marks.doors[id], gt = (THs.DOORS.filter(function (d) { return d.id === id; })[0] || {}).gate, b = q && (gt ? B.map.at(q[0] + 1, q[1]) : B.map.at(q[0], q[1] - 1)); if (!t || !b || (gt ? b.ch !== 'q' : WALLHs.indexOf(b.ch) < 0)) { roomsBad.push(id + ' no door in a wall'); return; } R0.token.x = q[0]; R0.token.y = q[1]; if (!inHs(B, id)) roomsBad.push(id + ' not in'); driveHs(THs.goOut(B), null, 200); if (D.roam.def.room || R0.token.x !== q[0] || R0.token.y !== q[1]) roomsBad.push(id + ' not out at its door'); });
       okHs('every room behind a door (' + THs.ROOMS.length + ') entered by its door in a wall and left by it' + (roomsBad.length ? ' -- not: ' + roomsBad.join('; ') : ''), !roomsBad.length);
       // THE FIRST CARD SAYS WHERE THEY STAND (the services seat's Found, the desk's relay: "At a door, the card should say where the party stands"): a NEW GAME staged at a
@@ -3524,24 +3524,27 @@
       wearP(BG, 2); HP.fromFloor(BG); while (D.scenes.length > 1) D.pop(); var WS2 = topP(); WP.camp(); var mW = mornP(); if (mW) mW.finish();
       var badC = HP.cur.party.filter(function (h) { return !h.dead && exhP(h) !== 1; }).map(function (h) { return h.name + ' ' + exhP(h); });
       okP('THE WORLD\'s camp (its morning ' + !!mW + '): each a level off in the save (' + HP.cur.party.map(function (h) { return h.name + ' ' + exhP(h); }).join(', ') + ')', !!mW && !badC.length);
-      // 3. THE COMPOUND'S GATE (his "this sounds like the compound was moved instead of moving the door to the compound"; the desk: the stables' door moves to the compound's own
-      // gate, where the town map draws it): at every scale the stables' door on the plaza side of the compound's west wall; in by it into the compound, out by it again
-      var CMP = TP.COMPOUND, badG2 = [];
+      // 3. PIN 19 RESTORED (his "re pin 19 - the case is most likely that i confused Venn Hale and forgot he's the human fighter slaver and have had him moved into bloodsnouts
+      // camp / if 19 on the fullsize map is enough to house his slaves and just looks small on the 30ft shrinkage, restore 19 to before my confusion"; pin 19's house at v6's true
+      // scale 68.7 x 57.2 ft, two floors): at every scale Venn Hale's door at the foot of her own house's south wall by pin 19, none at Bloodsnout's compound -- its gate shut again
+      // (his 10-20 "drawn but not enterable", the desk's call standing for his overrule); her door her word on her portrait, no room behind it, as before; the compound's room laid,
+      // unwired (T.TRADE compound:bloodsnout), for when he opens it
+      var CMP = TP.COMPOUND, p19 = D.TOWN_V6.PINS.filter(function (p) { return String(p[2]) === '19'; })[0], badG2 = [];
       [TP.SCALE, 10, 5].forEach(function (F) {
-        var L = TP.lay(null, F), q = L.marks.doors['keeper:venhale'], gx = Math.floor((CMP.x - TP.X0) / F), y0 = Math.floor((CMP.y - TP.Y0) / F), y1 = Math.floor((CMP.y + CMP.h - TP.Y0) / F);
-        if (!q || L.rows[q[1]].charAt(q[0]) !== 'd' || L.rows[q[1]].charAt(q[0] + 1) !== 'q' || q[0] + 1 !== gx || q[1] <= y0 || q[1] >= y1) badG2.push(F + ' ft: ' + q + (q ? ' ' + L.rows[q[1]].slice(q[0] - 1, q[0] + 3) : ''));
+        var L = TP.lay(null, F), q = L.marks.doors['keeper:venhale'], gx = Math.floor((CMP.x - TP.X0) / F), y0 = Math.floor((CMP.y - TP.Y0) / F), y1 = Math.floor((CMP.y + CMP.h - TP.Y0) / F), gate = [];
+        for (var yy = y0 + 1; yy < y1; yy++) if ((L.rows[yy] || '').charAt(gx - 1) === 'd') gate.push(gx - 1 + ',' + yy);
+        var wall = q ? L.rows[q[1] - 1].charAt(q[0]) : '', off = q ? Math.round(Math.hypot(TP.X0 + (q[0] + 0.5) * F - p19[0], TP.Y0 + (q[1] - 0.5) * F - p19[1])) : 1e9;
+        if (!q || TP.HOUSES.indexOf(wall) < 0 || off > 80 || gate.length || L.marks.compoundGate) badG2.push(F + ' ft: ' + q + ' under "' + wall + '", ' + off + ' ft from pin 19' + (gate.length ? ', a door at the compound ' + gate.join(' ') : ''));
       });
-      okP('at 30, 10 and 5 ft a square, Venn Hale\'s door at the compound\'s gate, on the plaza side of its west wall' + (badG2.length ? ' -- NOT: ' + badG2.join('; ') : ''), !badG2.length);
-      HP.playing = false; HP.cur = null; var BC = (function () { HP.begin(HP.fresh(), 0); return floorP(); })(), dC = RP.def, gC = dC.marks.doors['keeper:venhale'], nC = dC.rows[gC[1] - 1].charAt(gC[0]);
-      // (walked to and clicked: the party three squares out on the plaza side, a click on the threshold -- R.useAt's door, R.walkInto)
-      var tC = BC.roam.token, fromC = null; for (var dxC = 3; dxC <= 6 && !fromC; dxC++) if (D.grid.canStand(tC, gC[0] - dxC, gC[1])) fromC = [gC[0] - dxC, gC[1]];
-      if (fromC) { tC.x = fromC[0]; tC.y = fromC[1]; tC.tween = null; BC.roam.path = null; D.grid.setup(BC.map, BC.units); BC.focus(tC); for (var kC = 0; kC < 30; kC++) BC.update(); while (D.top() !== BC && D.scenes.length > 1) D.pop(); }
-      var cC = D.iso.center(gC[0], gC[1], D.grid.map.gz(gC[0], gC[1])), sC = D.iso.toScreen(cC.x, cC.y); BC.roam.clicks.push({ x: Math.round(sC.x), y: Math.round(sC.y) });
-      driveP(BC.co, function () { return RP.def.room === 'keeper:venhale'; }, 6000); var dR = RP.def, inR = [tC.x, tC.y], fwR = BC.roam.fw.slice();
-      okP('on the town floor the door\'s threshold ' + gC + ' (above it "' + nC + '", no door drawn there); from ' + fromC + ' a click on it walks there and in: ' + dR.name + ', the gate in the yard\'s west wall (' + dR.doors[0] + ' "' + dR.rows[dR.doors[0][1]].charAt(dR.doors[0][0]) + '"), the party just inside at ' + inR + ' facing ' + fwR,
-        !!fromC && dR.room === 'keeper:venhale' && dR.doors[0][0] === 0 && dR.rows[dR.doors[0][1]].charAt(0) === 'd' && inR.join() === [1, dR.doors[0][1]].join() && fwR.join() === '1,0' && !TP.ROOFS[nC]);
-      driveP(TP.goOut(BC), null, 400);
-      okP('out by the gate: on its threshold again (' + [BC.roam.token.x, BC.roam.token.y] + '), facing the plaza (' + BC.roam.fw + ')', RP.def.key === 'silverton' && BC.roam.token.x === gC[0] && BC.roam.token.y === gC[1] && BC.roam.fw.join() === '-1,0');
+      okP('at 30, 10 and 5 ft a square, Venn Hale\'s door at the foot of her own house by pin 19 (v6: ' + p19 + '), none at the compound\'s shut gate' + (badG2.length ? ' -- NOT: ' + badG2.join('; ') : ''), !badG2.length && !TP.DOORS.some(function (d) { return d.gate; }));
+      HP.playing = false; HP.cur = null; var BC = (function () { HP.begin(HP.fresh(), 0); return floorP(); })(), trC = trigP('keeper:venhale'), gC2 = trC ? TP.fire(BC, trC) : null, upC = gC2 ? driveP(gC2, upP, 1200) : false, scC = D.top(), roomC = RP.def.room || null;
+      var wC = upC ? (function () { var out = [], k = 0; while (scC.wait && scC.wait.say && k++ < 20) { out = out.concat(scC.wait.say); clickP(scC, scC.buttons().filter(function (q) { return q.go === 'next'; })[0]); } return out; })() : [];
+      while (D.top() !== BC && D.scenes.length > 1) D.pop(); if (gC2) driveP(gC2, null, 400);
+      okP('her door on the town floor: no room behind it (' + roomC + '), her word on her portrait (' + (scC && scC.sheet) + '): "' + String(wC[0]).slice(0, 50) + '", nobody of hers on the street (' + !BC.units.some(function (u) { return u.npc === 'venhale'; }) + ')',
+        !!trC && upC && !roomC && scC.sheet === 'pt_venhale' && /fighters' stables/.test(wC.join(' ')) && !BC.units.some(function (u) { return u.npc === 'venhale'; }) && !TP.hasRoom('keeper:venhale'));
+      var cR = TP.room('compound:bloodsnout'), cotsR = cR.rows.join('').split('y').length - 1;
+      okP('the compound\'s room kept, unwired: ' + cR.name + ' (' + cR.sub + '), ' + cR.rows[0].length + ' x ' + cR.rows.length + ' squares (the compound ' + CMP.w + ' x ' + CMP.h + ' ft), its gate in its west wall (' + cR.doors[0] + '), ' + cotsR + ' cots; no door opens on it (' + !TP.hasRoom('compound:bloodsnout') + ')',
+        cR.rows[0].length === Math.round(CMP.w / 5) && cR.rows.length === Math.round(CMP.h / 5) && cR.doors[0][0] === 0 && cR.rows[cR.doors[0][1]].charAt(0) === 'd' && cotsR >= 10 && !TP.hasRoom('compound:bloodsnout'));
       // 4. THE WARRENS LINE FROM WARRENS PETE (his "Talking to a 'nearby start' NPC to add the things to the journal, not just in there without trigger. i.e. warrens pete"): not in
       // a NEW GAME's JOURNAL; a word with Warrens Pete on the street puts it there, and with the one in the Hex the same
       var jP = function (B) { return CP.journal(B).quests.map(function (q) { return q.id; }); };
@@ -3713,15 +3716,11 @@
       var BG = floorQ('?roam=glowseep&watch'), RG = BG.roam, vG = RG.members[1], unitOfG = function (id) { return RG.members.filter(function (u) { return u.id === id; })[0] || null; }; (BG.inv = BG.inv || []).push({ id: 'potion', n: 1 }); var potG = function () { return BG.inv.filter(function (s) { return s.id === 'potion'; }).reduce(function (a, s) { return a + s.n; }, 0); }, n0G = potG();
       vG.hp = 0; vG.ko = true; BG.cards = []; var okG = BG.menuAct('item', { id: 'potion', h: vG.id }, unitOfG), cardG = (BG.cards || []).map(function (c) { return (c.lines || []).join(' '); }).join(' '), leftG = potG();
       okQ('on the Glowseep\'s floor, a potion to ' + vG.name + ', down: up at ' + vG.hp + '/' + vG.maxhp + ', come round (' + !vG.ko + '), "' + cardG.replace(/\{.\}|\{\/\}/g, '') + '", one potion gone (' + n0G + ' -> ' + leftG + ')', okG && vG.hp > 0 && !vG.ko && /comes round/.test(cardG) && !/a kit first/.test(cardG) && leftG === n0G - 1);
-      // 15. THE COMPOUND, THE STABLES' ROOM (RULED, his "compound as room"): Venn Hale's door the way into Bloodsnout's compound at true scale -- the yard, the barracks along
-      // its back with their cots, the master's house, the training rails -- and her word at her table across the yard's head
-      var BC = houseQ(HQ.fresh()), RC = BC.roam, trC = (RQ.def.src8.triggers || []).filter(function (t) { return t.id === 'keeper:venhale'; })[0];
-      if (trC) driveQ(TQ.fire(BC, trC), null, 2000); var dC = RQ.def, rowsC = dC.rows || [], cotsC = rowsC.join('').split('y').length - 1, cmpC = TQ.COMPOUND;
-      okQ('in at Venn Hale\'s door: ' + dC.name + ' (' + dC.sub + '), ' + (rowsC[0] || '').length + ' x ' + rowsC.length + ' squares (the compound ' + cmpC.w + ' x ' + cmpC.h + ' ft), ' + cotsC + ' cots in the barracks, her at ' + (dC.keeper && dC.keeper.at) + ' across from ' + dC.across,
-        dC.room === 'keeper:venhale' && /Stables/.test(dC.name) && (rowsC[0] || '').length === Math.round(cmpC.w / 5) && rowsC.length === Math.round(cmpC.h / 5) && cotsC >= 10 && !!dC.across && !!folkQ(BC, 'venhale'));
-      var trVC = (dC.src8.triggers || []).filter(function (t) { return t.id === 'talk:venhale'; })[0], gVC = TQ.fire(BC, trVC), upVC = driveQ(gVC, upQ, 2000), scVC = D.top(), wVC = upVC ? readQ(scVC) : [];
-      okQ('her word there, on her portrait (' + (scVC && scVC.sheet) + ', ' + (scVC && scVC.o && scVC.o.place) + '): "' + String(wVC[0]).slice(0, 50) + '"', upVC && scVC.sheet === 'pt_venhale' && /fighters' stables/.test(wVC.join(' ')));
-      offQ(BC); driveQ(gVC, null, 200);
+      // 15. VENN HALE'S DOOR (his "compound as room" built 10-28 as her room, then restored on his "restore 19 to before my confusion" -- mode=housefix1028b): her word on her
+      // portrait at her door by pin 19, no room behind it
+      var BC = houseQ(HQ.fresh()), trC = (RQ.def.src8.triggers || []).filter(function (t) { return t.id === 'keeper:venhale'; })[0], gVC = trC ? TQ.fire(BC, trC) : null, upVC = gVC ? driveQ(gVC, upQ, 2000) : false, scVC = D.top(), wVC = upVC ? readQ(scVC) : [];
+      okQ('Venn Hale\'s door: her word on her portrait (' + (scVC && scVC.sheet) + '), no room behind it (' + (RQ.def.room || 'none') + '): "' + String(wVC[0]).slice(0, 50) + '"', upVC && scVC.sheet === 'pt_venhale' && !RQ.def.room && /fighters' stables/.test(wVC.join(' ')));
+      offQ(BC); if (gVC) driveQ(gVC, null, 200);
     } catch (eQ) { repQ.errors.push(String(eQ && eQ.stack || eQ).slice(0, 900)); }
     D.store.get = stGQ; D.store.set = stSQ; window.DS.autoPicks = apQ; if (D.house) { D.house.playing = false; D.house.cur = null; }
     try { if (sk0Q != null) window.localStorage.setItem(SQ.KEY, sk0Q); } catch (eK2) { }
@@ -4221,7 +4220,7 @@
       HT.begin(HT.fresh(), 0); var B = topT(), R0 = B.roam, E = D.spr.facingFor(1, 0);
       [['aldwin', 'chapel:aldwin'], ['davos', 'leech:davos'], ['lucia', 'shop:lucia'], ['vilar', 'shop:vilar'], ['ned', 'warp:percy'], ['percy', 'warp:percy'], ['marko', 'shop:marko'], ['sylvia', 'keeper:sylvia'], ['winters', 'warp:winters'],
         ['casper', 'keeper:casper'], ['androit', 'keeper:androit'], ['hessle', 'keeper:hessle'], ['aldric', 'keeper:aldric'], ['kessler', 'shop:kessler'], ['calla', 'shop:calla'],
-        ['lisbet', 'shop:lisbet'], ['merrick', 'keeper:merrick'], ['venhale', 'keeper:venhale'], ['kasten', 'shop:kasten']] /* (Venn Hale in the stables' yard since 10-28, mode=housefix1028) */.forEach(function (p) {
+        ['lisbet', 'shop:lisbet'], ['merrick', 'keeper:merrick'], ['kasten', 'shop:kasten']] /* (Venn Hale out of this list again since 10-28 later: no room behind her door, his "restore 19 to before my confusion" -- mode=housefix1028b; her sheet above, no figure in town) */.forEach(function (p) {
         driveT(TT.goOut(B), 200); driveT(TT.fire(B, trigT(p[1])), 600);
         var ku = B.units.filter(function (u) { return u.npc === p[0]; })[0], tk = R0.token, k0 = [tk.x, tk.y], w = WHOLE.indexOf(p[0]) >= 0;
         if (!ku || D.roam.def.room !== p[1]) { okT(p[0] + ' in at ' + p[1] + ': ' + (ku ? 'the room ' + D.roam.def.room : 'MISSING'), false); return; }
@@ -4486,10 +4485,11 @@
       var gBr2 = TW.fire(B, trigW('keeper:brennan')); driveW(gBr2, upW, 200); var scBr2 = upW() ? D.top() : null, wBr2 = scBr2 ? readW(scBr2) : []; driveW(gBr2, null, 200);
       okW('Brennan again, the purse paid: his own first-game word ("' + String(wBr2[0]).slice(0, 40) + '..."), on his portrait, and "' + String(wBr2[wBr2.length - 1]).replace(/\{.\}|\{\/\}/g, '') + '"',
         scBr2 && scBr2.sheet === 'pt_brennan' && wBr2.slice(0, 2).join('|') === window.DS.DATA.npcs.brennan.talk[2].say.join('|') && /buying and selling -- is to come/.test(wBr2.join(' ')) && !upW());
-      // (in at her door since 10-28 later: the compound is the stables' room, RULED "compound as room" -- mode=housefix1028)
-      var inVh = inW(B, 'keeper:venhale'), dVh = D.roam.def, gVh = fireW(B, 'talk:venhale'), scVh = upW() ? D.top() : null, wVh = scVh ? readW(scVh) : []; if (gVh) driveW(gVh, null, 200); outW(B);
-      okW('Venn Hale at the fighters\' stables, in her room, the compound (' + (dVh && dVh.name + ', ' + dVh.rows[0].length + ' x ' + dVh.rows.length) + '): on her portrait (' + (scVh && scVh.sheet) + ', named ' + (scVh && scVh.o.name) + '), "' + String(wVh[0]).slice(0, 40) + '...", the Hex card\'s rumour heard, no counter line',
-        inVh && dVh.room === 'keeper:venhale' && scVh && scVh.sheet === 'pt_venhale' && scVh.o.name === 'Venn Hale' && wVh.join('|') === window.DS.DATA.npcs.venhale.talk[0].say.join('|') && R0.flags['heard:r-hexcard'] === 1 && !/is to come/.test(wVh.join(' ')) && !upW());
+      // (her door her word on her portrait, no room behind it: from 10-22 she stood beside it, inside since 10-28 later -- his "Off the street unless it makes NPC sense"; for a round
+      // on 10-28 the compound was her room, restored on his "restore 19 to before my confusion": mode=housefix1028b)
+      var gVh = TW.fire(B, trigW('keeper:venhale')); driveW(gVh, upW, 200); var scVh = upW() ? D.top() : null, wVh = scVh ? readW(scVh) : [], roomVh = D.roam.def.room || null; driveW(gVh, null, 200);
+      okW('Venn Hale at the fighters\' stables\' door, no room behind it (' + roomVh + '): on her portrait (' + (scVh && scVh.sheet) + ', named ' + (scVh && scVh.o.name) + '), "' + String(wVh[0]).slice(0, 40) + '...", the Hex card\'s rumour heard, no counter line',
+        !roomVh && scVh && scVh.sheet === 'pt_venhale' && scVh.o.name === 'Venn Hale' && wVh.join('|') === window.DS.DATA.npcs.venhale.talk[0].say.join('|') && R0.flags['heard:r-hexcard'] === 1 && !/is to come/.test(wVh.join(' ')) && !upW());
       // Marta Venn and Madame Ondine Vess (10-22, the desk's relay of Griz's "more NPC in fresh"): Marta at her stalls on the street in her own figure, on her portrait,
       // her first-game word with Vivian hired and not the lead (her pies since 10-22, mode=house1022: no wings, no asking); Madame Ondine Vess by name in the portraits' show, standing nowhere yet; Tam Vere held
       var kuMt = B.units.filter(function (u) { return u.npc === 'marta'; })[0], gMt = fireW(B, 'talk:marta'), scMt = upW() ? D.top() : null, wMt = scMt ? readW(scMt) : []; if (scMt && scMt.wait && scMt.wait.ask) goW(scMt, 'opt', 'LEAVE'); driveW(gMt, null, 200); // (her word, then her hot meal's offer since 10-28: LEAVE -- mode=housenotes1028)
