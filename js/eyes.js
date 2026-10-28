@@ -17,6 +17,9 @@
   var DS = window.DS = window.DS || {};
   var G1 = 'Eyes: first', G2 = 'Eyes: built this week', G3 = 'Eyes: built before, never seen';
   DS.EYES = {
+    'eyes-gallerynote-1028': { pri: 1, group: G2, title: 'A note with a verdict in the gallery: V onto broken or unclear, or T (10-28)', pt: 'the one gallery (deep16/js/onegallery.js noteField) · eyes',
+      url: 'deep16/?gallery&shelf=creatures&rows=lamia&fresh=28',
+      look: 'Your “i didn’t see an option to type a note when marking it broken”. Press V until it says broken (or unclear): a line opens over the column -- type what you saw, Enter keeps it (a click away keeps it too), Esc leaves the note as it was. T opens the line on any verdict. The note shows under the verdict in the column (scroll down past the look), and SAVE puts it in your ear file with the verdict.' },
     'eyes-offhand-words-1028': { pri: 1, group: G2, title: 'EQUIP’s OFFHAND: a swing or “held, no swing”, and why in the box below (10-28)', pt: 'the menus (js/menu.js offhandCands, CandPage.draw, List.draw) · eyes',
       url: 'deep16/?pocket&fresh=28',
       look: 'Your “whatever we’re doing with offhand equip explain text is overlapping”. On a card with a rapier (Talmok), GEAR -> EQUIP -> OFFHAND: the Combat Knife and the Rapier say “held, no swing” at the right, clear of their names; move onto one and the box under the list says “No off-hand swing: the rapier is not light.” A dagger beside a dagger would say “off-hand swing”. Any menu row whose right text is too long is cut with a dot beside its name now, never drawn over it (both games).' },
