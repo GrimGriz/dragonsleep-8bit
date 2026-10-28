@@ -3702,6 +3702,11 @@
       var due3 = HWw.due(BT), n3 = BT.saidHw.length; if (due3) driveHw(HWw.beat(BT), null, 600); var t3 = BT.saidHw.length > n3 ? lastHw(BT) : '', ids5 = ids(BT);
       okHw('a night at Cassia\'s (the morning ' + !!mC3 + '): out of her door the turn "' + t3.slice(0, 60) + '...", the bread line back (' + ids5.filter(function (x) { return /^breadline/.test(x); }).length + '), no night over it (' + !HWw.nightOn(BT) + ')',
         !!mC3 && /bells go for dawn/.test(t3) && RHw.def.phase === 'early' && ids5.filter(function (x) { return /^breadline/.test(x); }).length === 4 && !HWw.nightOn(BT));
+      // 18. THE WORDS PASS (his "Dialogue review for vaguery reduction for new and younger players"): Old Hob says what dosed means and still opens the cradles; Venn Hale says where
+      // to put your name down; Lymen's "make a name first" says where a name comes from
+      var BW = newHw('barley'); beatHw(BW); var hob = talkHw(BW, 'oldhob'), crW = qHw(BW, 'cradles'), lyW = window.DS.R ? CHw.L('hire.lymenWait') : '';
+      okHw('the words pass: Old Hob "' + String(hob[0]).slice(0, 80) + '..." (The Cradles open: ' + !!crW + '); Lymen\'s wait "' + String(lyW).slice(0, 90) + '"',
+        /that's what dosed means/.test(hob.join(' ')) && !!crW && /Finding Work, in the JOURNAL/.test(lyW) && !/Secondhand at a fifth/.test(JSON.stringify(CHw.TALK16.vera)));
     } catch (eHw) { repHw.errors.push(String(eHw && eHw.stack || eHw).slice(0, 900)); }
     D.store.get = stGHw; D.store.set = stSHw; window.DS.autoPicks = apHw; if (D.house) { D.house.playing = false; D.house.cur = null; }
     var preHw = document.createElement('pre'); preHw.id = 'out'; preHw.textContent = 'BENCH16 ' + JSON.stringify(repHw);

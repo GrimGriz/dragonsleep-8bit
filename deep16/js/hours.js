@@ -465,6 +465,20 @@
   T.people = function (B) { people0.apply(this, arguments); (B.units || []).forEach(function (u) { if (/^breadline\d/.test(u.npc || '')) u.name = 'In the bread line'; }); H16.light(B); };
   [['Bread at six. Don\'t push.'], ['He gives it to everyone. Even the proud, at quarter past.'], ['Shift\'s at seven. Bread first.'], ['Mind the line. It moves.']].forEach(function (s, k) { C.TALK16['breadline' + k] = [{ say: s }]; });
 
+  // ---------------------------------------------------------------- THE WORDS PASS, FOR NEW AND YOUNGER PLAYERS (the lane's 4.9; his note: "Dialogue review for vaguery reduction
+  // for new and younger players"). Two layers: a person speaks in their own voice, and the card that opens a mission says plainly what to do and where (H16.missionCard). Here,
+  // the lines that sent a player nowhere they could go, or priced what the second game doesn't sell, said plainly on the second game's side (C.TALK16 over content/npcs.json's;
+  // H16.TEXT over content/text.json's, on this page only -- the first game keeps its own words). The window's drafts, invented.json words-pass-plain
+  Object.assign(C.TALK16, {
+    oldhob: [{ say: ['Hob Rennick. I milk the crawlers at the cradles, across the water. Years of it. The venom\'s in me now: that\'s what dosed means.', 'Work a shift at the cradles beside me and I\'ll talk.'], rumor: 'r-doserate' }],
+    kael: [{ say: ['Ladders and poles, for the shafts. Half my props walk off by night.', 'Crews I know by sight. I don\'t name them.'] }],
+    vera: [{ say: ['Everything stolen in this town turns up here or at Kessler\'s, the pawnbroker on Fountain Street. Sell to him, not me.', 'Books don\'t come to me. Androit the notary pays for those: a real one, written by one hand from the first page to the last. Nobody in Silverton has brought him one.'] }],
+    merrick: [{ say: ['I send word by the lantern network. A dusk sending is cheaper; a noon sending tells everyone it\'s urgent.', 'Thirty silver at the window frees a slave. No questions asked, either way.'], rumor: 'r-lantern' }],
+    venhale: [{ say: ['The fighters\' stables. Part gymnasium, part debtors\' prison.', 'You want to fight? Korvin\'s slate, inside the Hex. That\'s where you put your name down.'], rumor: 'r-hexcard' }]
+  });
+  H16.TEXT = { 'hire.lymenWait': 'He\'s watching who stands up in this town. Make a name first. (Renown 1: work for it -- Finding Work, in the JOURNAL.)' };
+  if (DS.DATA && DS.DATA.text) Object.keys(H16.TEXT).forEach(function (k) { var r = DS.DATA.text[k]; DS.DATA.text[k] = r && typeof r === 'object' ? Object.assign({}, r, { t: H16.TEXT[k] }) : { t: H16.TEXT[k] }; });
+
   // ---------------------------------------------------------------- the floor's beats, one hook (js/roam.js R.script): each `due` asked in turn, the first that is plays
   H16.BEATS = [{ due: H16.turnDue, play: H16.turnPlay }, { due: H16.waitDue, play: H16.waitPlay }, { due: H16.papaDue, play: H16.papaScene }, { due: H16.lookDue, play: H16.lookPlay }, { due: H16.missionDue, play: H16.missionCard }];
   H16.due = function (B) { H16.light(B); for (var i = 0; i < H16.BEATS.length; i++) if (H16.BEATS[i].due(B)) { H16.next = H16.BEATS[i]; return true; } return false; };
