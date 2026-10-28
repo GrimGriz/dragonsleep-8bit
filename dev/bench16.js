@@ -3225,7 +3225,7 @@
       okN('the first game\'s menu as it was: twelve rows, no NOTES (' + rowsN(m8).length + ')', rowsN(m8).length === 12 && rowsN(m8).indexOf('notes') < 0);
       HN.begin(HN.fresh(), 2); var BN = enterTopN();
       D.ui.openMenu(BN); var mN = BN.menu.m, rN = rowsN(mN);
-      okN('the town\'s M menu: NOTES after SAVE (' + rN.join(' ') + ')', rN.indexOf('notes') === rN.indexOf('save') + 1 && rN.length === 13);
+      okN('the town\'s M menu: NOTES after SAVE, and since 10-28 WAIT after it on the street (' + rN.join(' ') + ')', rN.indexOf('notes') === rN.indexOf('save') + 1 && rN.indexOf('wait') === rN.indexOf('notes') + 1 && rN.length === 14); // (WAIT: mode=hours1028)
       mN.root.go('notes');
       var nN = D.top(), st0 = HN.stamp();
       okN('NOTES opens the box over the town (' + (nN && nN.kind) + '), the stamp its first line: ' + st0, nN instanceof HN.Notes && nN.text.indexOf(st0) === 0 && /^-- day 1 · \d\d:\d\d \w+ · Silverton \d+,\d+ --$/.test(st0));
@@ -3670,6 +3670,38 @@
       RHw.def.hexIn = 3; var dX3 = HWw.due(BX), gX = dX3 ? HWw.beat(BX) : null; if (gX) driveHw(gX, function () { return D.top() instanceof CHw.Counter; }, 400); var sX = D.top() instanceof CHw.Counter ? sitHw(D.top()) : []; if (gX) driveHw(gX, null, 400); RHw.def.hexIn = hx1;
       okHw('C2 at renown 2: in the Hex (' + hx1 + ') the call "' + String(cX).slice(0, 50) + '..."; on the third floor the sitting, ' + sX.length + ' pages, Androit first ("' + (sX[1] || '').slice(0, 60) + '"), Papa last; once (' + !HWw.due(BX) + ')',
         hx1 === 1 && /Papa wants you on the third floor/.test(cX) && sX.length === 7 && /^Aldwyn Androit\|pt_androit\|"Aldwyn Androit\. My seal/.test(sX[1]) && /^Papa Urtusk\|-\|"They've seen you/.test(sX[6]) && !!BX.roam.flags.councilSeen && !HWw.due(BX));
+      // 17. SILVERTON'S HOURS (his "1 - I'm onboard", "2 - ...", "3", "4 - yes", "12", "13", "14"): a NEW GAME opens at seven, the early turn -- the bread line at Aldwin's, the
+      // street as it was; WAIT goes bell to bell, the street laid again at each turn
+      var ids = function (B) { return B.units.filter(function (u) { return u.npc; }).map(function (u) { return u.npc; }); };
+      var waitHw = function (B) { HWw.wait(B); var n = B.saidHw.length; if (HWw.due(B)) driveHw(HWw.beat(B), null, 600); return B.saidHw.length > n ? lastHw(B) : ''; };
+      var BT = newHw('barley'); beatHw(BT); var d0T = RHw.def, ph0 = d0T.phase, ids0 = ids(BT), bl0 = ids0.filter(function (x) { return /^breadline/.test(x); }).length;
+      okHw('a NEW GAME at seven (' + HWw.band(HWw.hourNow(RHw.q, BT)) + '): the street\'s turn ' + ph0 + ', the bread line ' + bl0 + ' at Aldwin\'s, Pete on the street (' + (ids0.indexOf('pete') >= 0) + '), no dark (' + !BT.dark + '); WAIT on the street (' + HWw.canWait(BT) + ')',
+        d0T.hours && ph0 === 'early' && bl0 === 4 && ids0.indexOf('pete') >= 0 && !BT.dark && HWw.canWait(BT));
+      var trAl = trigHw('chapel:aldwin'); driveHw(THw.fire(BT, trAl), null, 2000); var br1 = RHw.def.room === 'chapel:aldwin' ? talkHw(BT, 'aldwin') : [], loaf1 = CHw.count(CHw.state(BT), 'missionbread'), br2 = talkHw(BT, 'aldwin'), loaf2 = CHw.count(CHw.state(BT), 'missionbread');
+      var inRoomWait = HWw.canWait(BT); driveHw(THw.goOut(BT), null, 400);
+      okHw('the bread line: Aldwin in the early hours ("' + String(br1[0] || '').slice(0, 60) + '..."), ' + loaf1 + ' loaf for the one hero, once a morning (' + loaf2 + ' after a second word); no WAIT in a room (' + !inRoomWait + ')',
+        /a loaf each: 1 Mission Bread/.test(br1.join(' ')) && loaf1 === 1 && loaf2 === 1 && !inRoomWait);
+      var w1 = waitHw(BT), ids1 = ids(BT), w2 = waitHw(BT);
+      okHw('WAIT: "' + w1.slice(0, 40) + '" (' + RHw.def.phase + ', the bread line gone: ' + !ids1.some(function (x) { return /^breadline/.test(x); }) + '); WAIT again "' + w2.slice(0, 40) + '" (no turn: ' + RHw.def.phase + ')',
+        /bells go for midday/.test(w1) && !ids1.some(function (x) { return /^breadline/.test(x); }) && /bells go for afternoon/.test(w2) && RHw.def.phase === 'day');
+      var w3 = waitHw(BT), ids3 = ids(BT), ev = Object.keys(HWw.EVENING).filter(function (k) { return ids3.indexOf(k) >= 0; }), trMa = trigHw('keeper:marin'), nC = BT.saidHw.length; if (trMa) { driveHw(THw.fire(BT, trMa), null, 400); offHw(BT); }
+      var shutMa = BT.saidHw.length > nC ? lastHw(BT) : '', sgMa = THw.signName('keeper:marin');
+      okHw('dusk: "' + w3.slice(0, 50) + '..." -- the evening keepers out (' + ev.join(', ') + '), Pete gone to the Hex (' + (ids3.indexOf('pete') < 0) + '); Marin\'s door "' + shutMa + '", her sign "' + sgMa.name + '"',
+        /bells go for dusk/.test(w3) && RHw.def.phase === 'dusk' && ev.length >= 5 && ids3.indexOf('pete') < 0 && /Closed\./.test(shutMa) && / -- closed$/.test(sgMa.name) && !BT.dark);
+      var w4 = waitHw(BT), ids4 = ids(BT), tl = RHw.def.townLights || [];
+      okHw('night: "' + w4.slice(0, 40) + '..." -- the night over the street (' + HWw.nightOn(BT) + ', the floor dark off: ' + !BT.dark + '), ' + tl.length + ' lit places (' + tl.map(function (l) { return l.id.replace('town:', ''); }).join(', ') + '); the evening keepers in again (' + !Object.keys(HWw.EVENING).some(function (k) { return ids4.indexOf(k) >= 0; }) + '), the boy and the girl home (' + (ids4.indexOf('towns4') < 0 && ids4.indexOf('towns8') < 0) + '); the hires at every hour (Aurdin ' + (ids4.indexOf('aurdinChapel') >= 0) + ', Vivian ' + (ids4.indexOf('vivian') >= 0) + ')',
+        /^Night\./.test(w4) && RHw.def.phase === 'night' && HWw.nightOn(BT) && !BT.dark && tl.length >= 8 && !Object.keys(HWw.EVENING).some(function (k) { return ids4.indexOf(k) >= 0; }) && ids4.indexOf('towns4') < 0 && ids4.indexOf('aurdinChapel') >= 0 && ids4.indexOf('vivian') >= 0);
+      var trKs = trigHw('shop:kessler'); driveHw(THw.fire(BT, trKs), null, 2000); var inK = RHw.def.room === 'shop:kessler'; HWw.due(BT); var darkIn = HWw.nightOn(BT) || BT.dark; driveHw(THw.goOut(BT), null, 400); HWw.due(BT);
+      okHw('by night what players use is open: Kessler\'s (in ' + inK + '), lit inside (' + !darkIn + '), and the night over the street again out of the door (' + HWw.nightOn(BT) + ')', inK && !darkIn && HWw.nightOn(BT));
+      // the clock walked: an hour each H16.FT_HOUR feet (at the town's 30 ft a square, 500 squares)
+      var S0 = WHw.state().t; BT.roam.hourFt = HWw.FT_HOUR - RHw.def.ft; driveHw(RHw.arrive(BT), null, 200); var S1 = WHw.state().t;
+      okHw('the walk: ' + (HWw.FT_HOUR / RHw.def.ft) + ' squares an hour at ' + RHw.def.ft + ' ft -- one more square and THE WORLD\'s clock ' + S0 + ' -> ' + S1, S1 === S0 + 1);
+      // a night at Cassia's: the morning out of her door, the street's turn the early one again, the bread line back, and its card
+      driveHw(THw.fire(BT, trigHw('inn:cassia')), null, 2000); BT.roam.silver = 100; var gC3 = THw.fire(BT, trigHw('talk:cassia')); driveHw(gC3, function () { return D.top() instanceof CHw.Counter; }, 800); var sC3 = D.top(); if (sC3 instanceof CHw.Counter) clickHw(sC3, sC3.buttons().filter(function (q) { return /STAY/.test(q.label); })[0]);
+      driveHw(gC3, function () { return D.top() instanceof HHw.Morning; }, 4000); var mC3 = D.top() instanceof HHw.Morning ? D.top() : null; if (mC3) mC3.finish(); driveHw(gC3, null, 4000); offHw(BT); driveHw(THw.goOut(BT), null, 400);
+      var due3 = HWw.due(BT), n3 = BT.saidHw.length; if (due3) driveHw(HWw.beat(BT), null, 600); var t3 = BT.saidHw.length > n3 ? lastHw(BT) : '', ids5 = ids(BT);
+      okHw('a night at Cassia\'s (the morning ' + !!mC3 + '): out of her door the turn "' + t3.slice(0, 60) + '...", the bread line back (' + ids5.filter(function (x) { return /^breadline/.test(x); }).length + '), no night over it (' + !HWw.nightOn(BT) + ')',
+        !!mC3 && /bells go for dawn/.test(t3) && RHw.def.phase === 'early' && ids5.filter(function (x) { return /^breadline/.test(x); }).length === 4 && !HWw.nightOn(BT));
     } catch (eHw) { repHw.errors.push(String(eHw && eHw.stack || eHw).slice(0, 900)); }
     D.store.get = stGHw; D.store.set = stSHw; window.DS.autoPicks = apHw; if (D.house) { D.house.playing = false; D.house.cur = null; }
     var preHw = document.createElement('pre'); preHw.id = 'out'; preHw.textContent = 'BENCH16 ' + JSON.stringify(repHw);

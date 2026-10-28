@@ -309,8 +309,164 @@
     var sc = H16.sitting(B, ['looks'], [f, D.house && D.house.cur && D.house.cur.flags]); while (!sc.done) yield 1;
   };
 
+  // ---------------------------------------------------------------- SILVERTON'S HOURS (the lane's 3; RULED 10-28: his "1 - I'm onboard", the town's clock and WAIT; "2 - basically
+  // the stuff the players actually use almost always open, with the shops the players are unlikely to use (or haven't been built yet ...) where those shop keeps roam around town
+  // during the evening - breadline in the morning in the slums stuff, prep for what we'll do when the festival is in town - mouseover just 'closed' if closed"; "3 - easier to
+  // make the party collection a time independent exception to hours of operation"; "4 - yes", night; "12 agree to script walkings later"; "13 yes, he'd give 4 to the party
+  // token"; "14 yes"). THE WORLD's clock (S.t) runs on the town floor: walking moves it lightly (H16.FT_HOUR feet an hour, about the SRD's three miles -- his 10-21 "step-clock
+  // will be lenient in towns"), a Hex bout a quarter hour (W.FIGHT_HOURS), a bed to the morning (js/house.js), WAIT to the next bell. Only the band's word is ever shown (his
+  // 10-13 "make the players figure it out"). The day has four turns on the floor -- early (dawn, morning), day (midday, afternoon), dusk, night -- and at each the street is
+  // laid again for it (H16.relay): the people where the hour puts them (H16.STREET), the keepers whose counters do nothing yet out at an evening spot at dusk with their doors
+  // shut till morning (H16.EVENING, H16.SHUT), the bread line at Aldwin's in the early hours, and by night the dark with the lit places lit (H16.LIGHTS). The four hires stand
+  // at their spots at every hour; what players use is open at every hour. One table for all of it, with room for a festival's set over it (H16.SETS, empty till the clock
+  // lane fills it). The spots and lines the window's drafts, invented.json silverton-hours, silverton-night
+  H16.FT_HOUR = 15000;
+  H16.band = function (h) { return D.world && D.world.todAt ? D.world.todAt(((h % 24) + 24) % 24) : (h < 5 || h >= 20 ? 'night' : 'day'); };
+  H16.phaseOf = function (h) { var b = H16.band(h); return b === 'dawn' || b === 'morning' ? 'early' : b === 'midday' || b === 'afternoon' ? 'day' : b; };
+  H16.hourNow = function (q, B) { return D.mines && D.mines.hourNow ? D.mines.hourNow(q, B) : 12; }; // (THE WORLD's under the house; a test door's &hour=, else noon)
+  H16.STREET = { // (who moves with the turn: `away` the turns they are off the street; a turn's own spot, a v6 pin and feet east, south)
+    pete: { away: ['dusk', 'night'] }, // (to the Hex's bar: the Hex's own Pete, js/hex.js)
+    idony: { away: ['night'] }, signy: { away: ['night'] }, towns4: { away: ['night'] }, towns6: { away: ['night'] }, towns7: { away: ['night'] }, towns8: { away: ['night'] },
+    brennock: { dusk: { pin: '22', d: [-25, 20] }, away: ['night'] },
+    gull: { dusk: { pin: '25', d: [45, 20] }, night: { pin: '25', d: [45, 20] } }, // (the Rows' end, the night crews gathering)
+    kael: { dusk: { pin: '26', d: [-20, 25] }, night: { pin: '26', d: [-20, 25] } }, // (his yard's side gate: "After dark, at the side gate")
+    oldhob: { dusk: { pin: '29', d: [20, 10] }, night: { pin: '29', d: [20, 10] } } // (by Kess's cellars, where he sleeps)
+  };
+  H16.EVENING = { marin: { pin: '22', d: [18, 22] }, barber: { mark: 'hexFront', d: [16, 12] }, mela: { pin: '4', d: [0, 40] }, venhale: { pin: '19', d: [0, 40] },
+    aldric: { pin: '7', d: [12, 35] }, merrick: { pin: '34', d: [0, 22] }, tam: { pin: '40', d: [0, 22] } };
+  H16.SHUT = { 'keeper:marin': 1, 'keeper:barber': 1, 'keeper:mela': 1, 'keeper:venhale': 1, 'keeper:aldric': 1, 'keeper:falstaff': 1, 'keeper:merrick': 1, 'keeper:tam': 1 }; // (shut at dusk and by night)
+  H16.BREAD = { pin: '30', d: [[-15, 18], [-5, 22], [5, 24], [15, 22]] }; // (the line at the chapel's door in the early hours: the Rows' people, the townsfolk's own figures)
+  H16.LIGHTS = { doors: ['keeper:sylvia', 'warp:percy', 'keeper:tam', 'keeper:merrick', 'inn:cassia', 'chapel:aldwin', 'leech:davos'], hex: true, gate: 'west', scales: 'keeper:hessle' };
+  H16.SETS = {}; // (a set laid over the table on its days -- the festival's, when the clock lane fills it: { festival: { when: fn(day, flags), STREET: {...}, EVENING: {...}, SHUT: {...} } })
+  H16.shutNow = function (id) { var R = D.roam, ph = R && R.def && R.def.hours ? R.def.phase : (R && R.def && R.def.room && R.def.townPhase) || 'day'; return !!H16.SHUT[id] && (ph === 'dusk' || ph === 'night'); };
+  H16.TURN = { early: 'The bells go for dawn. Silverton wakes: the stalls open, and the bread line forms at Aldwin\'s.', day: 'The bells go for midday.',
+    dusk: 'The bells go for dusk. The town comes out: the shops\' keepers on the street, the Hex lit.', night: 'Night. The streets empty; the Hex and vice row stay lit.' };
+  H16.WAIT = { bell: 'The bells go for {band}.', ask: 'WAIT' };
+
+  // the town floor laid for its hour: T.floor as it was, then the street by the turn (the def's own people and talk squares), the dark and the lit places
+  var floor0 = T.floor;
+  T.floor = function (q, flags) {
+    var def = floor0.apply(this, arguments); if (!def || !def.town || def.room) return def;
+    var h = H16.hourNow(q, H16.relayB || null); // (a relay's floor: its own hour on a test door, kept on the floor as WAIT passes it)
+    def.hours = true; def.hour = h; def.phase = H16.phaseOf(h); H16.lay(def, def.phase, flags || {});
+    return def;
+  };
+  H16.lay = function (def, ph, flags) {
+    var L = T.laidF && T.laidF[def.ft], ox = def.cut ? def.cut[0] : 0, oy = def.cut ? def.cut[1] : 0, M = def.marks || {}, trig = def.src8.triggers, used = {};
+    if (!L) return;
+    var key = function (x, y) { return (x + ox) + ',' + (y + oy); };
+    def.people.forEach(function (p) { used[key(p.at[0], p.at[1])] = 1; });
+    Object.keys(M.doors || {}).forEach(function (k) { var q = M.doors[k]; if (q) { used[key(q[0], q[1])] = 1; used[key(q[0], q[1] + 1)] = 1; } });
+    var spot = function (s, dd) {
+      var d0 = dd || s.d || [0, 0], m = s.mark && M[s.mark] && (Array.isArray(M[s.mark][0]) ? M[s.mark][0] : M[s.mark]), p0 = m ? [T.X0 + (m[0] + ox + 0.5) * L.F, T.Y0 + (m[1] + oy + 0.5) * L.F] : L.v6pins && L.v6pins[s.pin];
+      if (!p0) return null; var sq = T.openNear(L, p0[0] + d0[0], p0[1] + d0[1], used); if (!sq) return null; used[sq[0] + ',' + sq[1]] = 1;
+      var w = [sq[0] - ox, sq[1] - oy]; return w[0] >= 0 && w[1] >= 0 && w[0] < def.w && w[1] < def.h ? w : null;
+    };
+    var talkOf = function (id) { return trig.filter(function (t) { return t.town === 'talk' && t.npc === id && !t.stall; })[0]; };
+    def.people = def.people.filter(function (p) {
+      var s = H16.STREET[p.id]; if (!s) return true;
+      if ((s.away || []).indexOf(ph) >= 0) { def.src8.triggers = trig = trig.filter(function (t) { return !(t.town === 'talk' && t.npc === p.id); }); return false; }
+      if (s[ph]) { var w = spot(s[ph]); if (w) { p.at = w; var tt = talkOf(p.id); if (tt) tt.rect = w.concat([1, 1]); } }
+      return true;
+    });
+    var add = function (id, w, kind) { def.people.push({ id: id, at: w, kind: kind || 'crewman', face: [0, 1], look: null, hire: null }); trig.push({ id: 'talk:' + id, on: 'use', rect: w.concat([1, 1]), town: 'talk', npc: id }); };
+    if (ph === 'dusk') Object.keys(H16.EVENING).forEach(function (id) { var w = spot(H16.EVENING[id]); if (w) add(id, w); });
+    if (ph === 'early') H16.BREAD.d.forEach(function (dd, k) { var w = spot(H16.BREAD, dd); if (w) add('breadline' + k, w, 'bandit'); });
+    def.night = ph === 'night'; def.dusk = ph === 'dusk'; // (the street's own picture of the hour: H16.paintNight -- not the floor's dark, which the town's top view draws as black)
+    var lights = [], lit = function (q, id, r) { if (q) lights.push({ id: 'town:' + id, kind: 'map', x: q[0], y: q[1], bright: r || 10, dim: r || 10, color: 'fire', flame: true, town: true }); };
+    if (def.night) {
+      H16.LIGHTS.doors.forEach(function (k) { var q = M.doors && M.doors[k]; if (q) lit([q[0], q[1] + 1], k); });
+      if (H16.LIGHTS.hex) [].concat(M.hexFront || [], M.hexBack || []).forEach(function (q, i) { lit(q, 'hex' + i, 15); });
+      lit(M.gates && M.gates[H16.LIGHTS.gate], 'gate');
+      if (H16.councilsDue(flags).length) { var qh = M.doors && M.doors[H16.LIGHTS.scales]; if (qh) lit([qh[0], qh[1] + 1], 'scales', 15); } // (the Weigh-House lamp: the scales lit, the council sitting)
+    }
+    def.townLights = lights;
+  };
+  // the street laid again at a turn of the hour (or back out of a door the hour turned behind): its people, its talk squares, its dark and lights
+  H16.relay = function (B, h) {
+    var R = D.roam, def = R.def, keep = D.MAPS.silverton, nd; H16.relayB = B; try { nd = T.floor(R.q, B.roam.flags); } finally { H16.relayB = null; D.MAPS.silverton = keep; }
+    def.people = nd.people; def.townLights = nd.townLights; def.night = nd.night; def.dusk = nd.dusk; def.phase = nd.phase; def.hour = h;
+    def.src8.triggers = def.src8.triggers.filter(function (t) { return t.town !== 'talk'; }).concat(nd.src8.triggers.filter(function (t) { return t.town === 'talk'; }));
+    B.units = B.units.filter(function (u) { return !u.npc; }); T.people(B); D.grid.setup(B.map, B.units); B.cache = null; B.lightMap = null;
+  };
+  // the street by night is the overlay's (H16.paintNight), not the floor's dark: the town's top view has no light map and draws a dark floor black (seen 10-28 in the pane) --
+  // so the floor's dark stays off on the street, and a room or the Hex inside is lit as ever
+  H16.light = function (B) { var def = D.roam && D.roam.def; if (B && def && def.hours && !def.room && !def.hexIn && B.dark) { B.dark = false; if (B.fight) B.fight.dark = false; B.lightMap = null; } };
+  H16.nightOn = function (B) { var def = D.roam && D.roam.def; return !!(B && def && def.hours && !def.room && !def.hexIn && (def.night || def.dusk)); };
+  // the hour's picture over the street, under the HUD: dusk a warm wash; night a dark one, cut away in pools at the lit places and round the party (and warm at the lamps)
+  H16.NIGHT = { wash: 'rgba(6,8,30,0.72)', dusk: 'rgba(80,34,40,0.2)', glow: '255,170,90', party: 2.5 };
+  H16.paintNight = function (ctx, B) {
+    if (!H16.nightOn(B)) return; var def = D.roam.def, N = H16.NIGHT, iso = D.iso, c = H16.nc || (H16.nc = document.createElement('canvas'));
+    if (c.width !== D.W || c.height !== D.H) { c.width = D.W; c.height = D.H; }
+    var x = c.getContext('2d'); x.globalCompositeOperation = 'source-over'; x.clearRect(0, 0, D.W, D.H); x.fillStyle = def.night ? N.wash : N.dusk; x.fillRect(0, 0, D.W, D.H);
+    if (def.night) {
+      var sq = function (gx, gy) { var cc = iso.center(gx, gy, 0); return iso.toScreen(cc.x, cc.y); }, a = sq(0, 0), b = sq(1, 0), px = Math.max(2, Math.hypot(b.x - a.x, b.y - a.y));
+      var pool = function (gx, gy, rq, k, col) { var p = sq(gx, gy), r = rq * px, g = x.createRadialGradient(p.x, p.y, 0, p.x, p.y, r); g.addColorStop(0, 'rgba(' + (col || '0,0,0') + ',' + k + ')'); g.addColorStop(0.55, 'rgba(' + (col || '0,0,0') + ',' + (k * 0.55) + ')'); g.addColorStop(1, 'rgba(' + (col || '0,0,0') + ',0)'); x.fillStyle = g; x.beginPath(); x.arc(p.x, p.y, r, 0, Math.PI * 2); x.fill(); };
+      var ls = def.townLights || [], t = B.roam && B.roam.token;
+      x.globalCompositeOperation = 'destination-out'; ls.forEach(function (l) { pool(l.x, l.y, l.bright >= 15 ? 4 : 3, 0.95); }); if (t) pool(t.x, t.y, N.party, 0.8);
+      x.globalCompositeOperation = 'source-over'; ls.forEach(function (l) { pool(l.x, l.y, 2, 0.3, N.glow); });
+    }
+    ctx.drawImage(c, 0, 0);
+  };
+  var over0 = D.roam.paintOver;
+  D.roam.paintOver = function (ctx, B) { try { H16.paintNight(ctx, B); } catch (e) { } return over0.apply(this, arguments); };
+  // the clock on the street: an hour each H16.FT_HOUR feet walked
+  H16.pass = function (B, hrs) {
+    var W = D.world, S = W && W.state && D.house && D.house.playing ? W.state() : null;
+    if (S && S.t != null) { S.t += hrs; if (W.save) W.save(); } else if (B && B.roam) { var R0 = B.roam; R0.hour = (((R0.hour != null ? R0.hour : (D.roam.def.hour || 12)) + hrs) % 24 + 24) % 24; }
+  };
+  var arrive0 = D.roam.arrive;
+  D.roam.arrive = function* (B) {
+    var ev = yield* arrive0.apply(this, arguments), def = D.roam.def;
+    if (!ev && def && def.hours && !def.room && B.roam && D.battle === B) { var R0 = B.roam; R0.hourFt = (R0.hourFt || 0) + (def.ft || 5); if (R0.hourFt >= H16.FT_HOUR) { R0.hourFt -= H16.FT_HOUR; H16.pass(B, 1); } }
+    return ev;
+  };
+  // the turn: the hour's turn now not the street's -- laid again, and said
+  H16.turnDue = function (B) { var R = D.roam, def = R.def, R0 = B && B.roam; return !!(def && def.hours && !def.room && R0 && R0.mode === 'walk' && !R0.path && H16.phaseOf(H16.hourNow(R.q, B)) !== def.phase); };
+  H16.turnPlay = function* (B) {
+    var h = H16.hourNow(D.roam.q, B), was = D.roam.def.phase; H16.relay(B, h); H16.light(B);
+    if (D.roam.def.phase !== was) { D.sfx('popup'); B.card(D.roam.wrap([H16.TURN[D.roam.def.phase]]), 320); yield 20; }
+  };
+  // WAIT (the field menu, on the street: js/menu.js host.wait): to the next bell -- its band's word, and the street laid again if the turn turned
+  H16.canWait = function (B) { var def = D.roam && D.roam.def; return !!(def && def.hours && !def.room && B && B.roam && B.roam.mode === 'walk'); };
+  H16.wait = function (B) { if (H16.canWait(B)) B.roam.waitAsk = 1; };
+  H16.waitDue = function (B) { return !!(B && B.roam && B.roam.waitAsk && H16.canWait(B)); };
+  H16.STARTS = [5, 7, 11, 14, 17, 20];
+  H16.waitPlay = function* (B) {
+    B.roam.waitAsk = 0; var h = H16.hourNow(D.roam.q, B), hh = ((h % 24) + 24) % 24, nx = H16.STARTS.filter(function (s) { return s > hh + 0.001; })[0], hrs = (nx != null ? nx : 24 + H16.STARTS[0]) - hh;
+    H16.pass(B, hrs); var h2 = H16.hourNow(D.roam.q, B), was = D.roam.def.phase;
+    if (H16.phaseOf(h2) !== was) { yield* H16.turnPlay(B); return; }
+    D.roam.def.hour = h2; D.sfx('popup'); B.card(D.roam.wrap([H16.WAIT.bell.replace('{band}', H16.band(h2))]), 240); yield 20;
+  };
+  // a shut door: "Closed." -- on a click, and on its sign's mouseover (his "mouseover just 'closed' if closed")
+  var fire0 = T.fire;
+  T.fire = function* (B, trig) {
+    if (trig && trig.town === 'door' && H16.shutNow(trig.id)) { B.card(D.roam.wrap(['{y}' + T.doorName(trig.id) + '{/}', 'Closed.']), 200); D.sfx('popup'); yield 10; return; }
+    yield* fire0.apply(this, arguments);
+  };
+  var sign0 = T.signName;
+  T.signName = function (id) { var o = sign0.apply(this, arguments); if (o && H16.shutNow(id)) { o = Object.assign({}, o); o.name = o.name + ' -- closed'; o.who = null; } return o; };
+  // the bread line's loaf (his "13 yes, he'd give 4 to the party token"): a second game's own thing (content/items.json is the first game's), the SRD's day of rations as bread --
+  // out of a fight it is eaten for a little; at Aldwin's in the early hours, a loaf a hero into the party's pack, once a morning
+  if (DS.DATA && DS.DATA.items && !DS.DATA.items.missionbread) DS.DATA.items.missionbread = { name: 'Mission Bread', kind: 'use', price: 0, use: { effect: 'heal', dice: '1d2', target: 'ally', battle: false, field: true },
+    desc: 'A loaf off Aldwin\'s bread line. Eaten on the road: 1d2 hit points and a full stomach.', src: 'the second game\'s (deep16/js/hours.js): his 10-28 "breadline in the morning in the slums"' };
+  H16.BREADLINE = { give: '{g}Aldwin breaks the morning\'s bread for the line, and hands the party a loaf each: {n} Mission Bread.{/}', gone: '{g}The bread line\'s done for the morning.{/}' };
+  var chapel0 = C.SCRIPTS.chapel;
+  C.SCRIPTS.chapel = C.chapel = function* (sc, B) {
+    var st = sc.st, f = st.flags, h = H16.hourNow(D.roam && D.roam.q, B), dk = 'bread:' + H16.day();
+    if (H16.phaseOf(h) === 'early' && !f[dk]) { var n = st.party.filter(function (x) { return !x.dead; }).length; if (n) { f[dk] = 1; C.give(st, 'missionbread', n); D.sfx('chest'); yield sc.say([H16.BREADLINE.give.replace('{n}', n)], 'work'); } }
+    yield* chapel0.apply(this, arguments);
+  };
+  C.VENDORS.aldwin.script = 'chapel';
+  // a Hex bout a quarter of an hour on the clock (his 10-28 "fights should burn 15 minutes instead of an hour of worldtime": js/world.js W.FIGHT_HOURS)
+  if (D.hex && D.hex.bout) { var bout0 = D.hex.bout; D.hex.bout = function* (B) { var r = yield* bout0.apply(this, arguments); H16.pass(B, (D.world && D.world.FIGHT_HOURS) || 0.25); return r; }; }
+  // the town's lights laid with its people (the floor's first laying, and a relay's)
+  var people0 = T.people;
+  T.people = function (B) { people0.apply(this, arguments); (B.units || []).forEach(function (u) { if (/^breadline\d/.test(u.npc || '')) u.name = 'In the bread line'; }); H16.light(B); };
+  [['Bread at six. Don\'t push.'], ['He gives it to everyone. Even the proud, at quarter past.'], ['Shift\'s at seven. Bread first.'], ['Mind the line. It moves.']].forEach(function (s, k) { C.TALK16['breadline' + k] = [{ say: s }]; });
+
   // ---------------------------------------------------------------- the floor's beats, one hook (js/roam.js R.script): each `due` asked in turn, the first that is plays
-  H16.BEATS = [{ due: H16.papaDue, play: H16.papaScene }, { due: H16.lookDue, play: H16.lookPlay }, { due: H16.missionDue, play: H16.missionCard }];
-  H16.due = function (B) { for (var i = 0; i < H16.BEATS.length; i++) if (H16.BEATS[i].due(B)) { H16.next = H16.BEATS[i]; return true; } return false; };
+  H16.BEATS = [{ due: H16.turnDue, play: H16.turnPlay }, { due: H16.waitDue, play: H16.waitPlay }, { due: H16.papaDue, play: H16.papaScene }, { due: H16.lookDue, play: H16.lookPlay }, { due: H16.missionDue, play: H16.missionCard }];
+  H16.due = function (B) { H16.light(B); for (var i = 0; i < H16.BEATS.length; i++) if (H16.BEATS[i].due(B)) { H16.next = H16.BEATS[i]; return true; } return false; };
   H16.beat = function* (B) { var b = H16.next; H16.next = null; if (b) yield* b.play(B); };
 })();
