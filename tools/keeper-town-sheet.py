@@ -13,6 +13,11 @@ each page is scaled by its drawings' median height, sole to crown, to TALL px --
 The sheet: the idle row in the S facing only (`drawn: [0]`); every other facing falls back on `under`, the stand-in the keeper wore before (the
 desk's word: "their other facings keep the stand-in until more art comes"), and js/counter.js C.dress keeps the keeper facing south. The four drawings
 are laid as a held loop (SEQ: the relaxed and the breath three times, then the blink and the return) at FPS.
+
+ART-121 (10-28, Griz to the art desk: "we're going to need SE, E, NE and N for all the vendor portraits we made the south-standings for"): where a keeper's
+folder holds HEAD 2 PAGE 2 to 5 (SE, E, NE, N, Idle 4 each) beside the south page, all five pages are cut the same way, each by its own drawings' median
+to TALL, SW, W and NW the mirrors of SE, E and NE (RULED 10-14), and the sheet is all eight facings in one cell with no `drawn` or `under`: js/counter.js
+C.dress then lets the keeper turn to whoever speaks to them. A keeper with only some of the four stays south only till the rest come.
 """
 import os, sys, json
 import importlib.util
@@ -33,6 +38,8 @@ TALL = 50                         # sole to crown as drawn, the outline's rows i
 SEQ = [0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 2, 3]   # (the drawn four: 1 relaxed, 2 a breath, 3 the blink, 4 the return -- the art desk's notes)
 FPS = 4
 UNDER = 'crewman_p1'              # the stand-in the keepers wore (js/town.js T.KIND: a keeper's look, else the crewman)
+VIEWS = {2: 7, 3: 6, 4: 5, 5: 4}  # ART-121's pages -> the sheet's facings (S SW W NW N NE E SE): HEAD 2 PAGE 2 SE, 3 E, 4 NE, 5 N
+MIRROR = {1: 7, 2: 6, 3: 5}       # SW, W, NW: SE, E, NE mirrored (RULED 10-14; an asymmetry flips there -- Winters' white temple)
 # name: (pages' folder, ART id, the keeper's door in deep16/js/town.js)
 KEEPERS = {
     'winters': ('winters/ART-78', 'ART-78', 'warp:winters'),
@@ -78,9 +85,8 @@ KEEPERS = {
 }
 
 
-def cut(name):
-    folder, art, door = KEEPERS[name][:3]; ov = KEEPERS[name][3] if len(KEEPERS[name]) > 3 else {}   # (ov: `avoid`, ramps the snap leaves out -- tools/pixelate.py snap; `recolour`, a cloth dyed -- tools/portrait-sheet.py)
-    path = os.path.join(SRC, folder, '%s_HEAD-2_PAGE-1.png' % art)
+def page(name, path, ov):
+    """one page's four drawings, each scaled by the page's median to TALL and snapped: [(pixels, the feet's middle x, height)]"""
     a = np.asarray(Image.open(path).convert('RGB')).astype(np.int32)
     found = PS.drawings(a, [4])
     if len(found) != 4:
@@ -105,26 +111,54 @@ def cut(name):
         im = im.resize((w2, h2), Image.BOX).convert('RGBA')
         px = pix.pixelate(im, 1, do_lift=False, avoid=ov.get('avoid'))  # (the outline adds a pixel all round)
         small.append((px, fx * k + 1, px.shape[0]))
-    L = max(f[1] for f in small) + 2; R = max(f[0].shape[1] - f[1] for f in small) + 2; T = max(f[2] for f in small) + 2
+    return small
+
+
+def cut(name):
+    folder, art, door = KEEPERS[name][:3]; ov = KEEPERS[name][3] if len(KEEPERS[name]) > 3 else {}   # (ov: `avoid`, ramps the snap leaves out -- tools/pixelate.py snap; `recolour`, a cloth dyed -- tools/portrait-sheet.py)
+    path = os.path.join(SRC, folder, '%s_HEAD-2_PAGE-1.png' % art)
+    faces = {0: page(name, path, ov)}
+    more = {f: os.path.join(SRC, folder, '%s_HEAD-2_PAGE-%d.png' % (art, p)) for p, f in VIEWS.items()}
+    have = [f for f, q in more.items() if os.path.exists(q)]
+    if len(have) == len(VIEWS):                                       # (ART-121 in hand: all eight)
+        for f in have:
+            faces[f] = page(name, more[f], ov)
+        for f, g in MIRROR.items():
+            faces[f] = [(px[:, ::-1].copy(), px.shape[1] - fx, h) for px, fx, h in faces[g]]
+    elif have:
+        print('  %s: %d of ART-121\'s four other facings in hand -- south only till the rest come' % (name, len(have)))
+    allf = [x for fs in faces.values() for x in fs]
+    L = max(f[1] for f in allf) + 2; R = max(f[0].shape[1] - f[1] for f in allf) + 2; T = max(f[2] for f in allf) + 2
     fw, fh, ax, ay = int(np.ceil(L + R)), int(np.ceil(T)) + 1, int(round(L)), int(np.ceil(T)) - 1
-    frames = []
-    for px, fx, h in small:
-        cell = np.zeros((fh, fw, 4), np.uint8)
-        ox, oy = int(round(ax - fx)), ay + 1 - px.shape[0]
-        cell[oy:oy + px.shape[0], ox:ox + px.shape[1]] = px
-        frames.append(cell)
-    sheet = np.concatenate([frames[i] for i in SEQ], axis=1)
+    rows = {}
+    for f, small in faces.items():
+        rows[f] = []
+        for px, fx, h in small:
+            cell = np.zeros((fh, fw, 4), np.uint8)
+            ox, oy = int(round(ax - fx)), ay + 1 - px.shape[0]
+            cell[oy:oy + px.shape[0], ox:ox + px.shape[1]] = px
+            rows[f].append(cell)
+    frames = rows[0]
+    sheet = np.concatenate([np.concatenate([rows[f][i] for i in SEQ], axis=1) for f in sorted(rows)], axis=0)
     os.makedirs(ART, exist_ok=True)
     Image.fromarray(sheet, 'RGBA').save(os.path.join(ART, name + '_p1.png'), optimize=True)
     tops = [np.where(f[..., 3].any(axis=1))[0][0] for f in frames]
+    idle = {'y': 0, 'fw': fw, 'fh': fh, 'ax': ax, 'ay': ay, 'frames': len(SEQ), 'fps': FPS}
+    if len(rows) == 1:
+        idle.update(drawn=[0], under=UNDER)
     meta = {'image': 'art/%s_p1.png' % name, 'fw': fw, 'fh': fh, 'ax': ax, 'ay': ay, 'top': int(ay - min(tops)),
-            'anims': {'idle': {'y': 0, 'fw': fw, 'fh': fh, 'ax': ax, 'ay': ay, 'frames': len(SEQ), 'fps': FPS, 'drawn': [0], 'under': UNDER}},
-            'source': 'deep16/_src/%s/%s_HEAD-2_PAGE-1.png (the art desk\'s south idle, 10-21), cut by tools/keeper-town-sheet.py' % (folder, art), 'door': door}
+            'anims': {'idle': idle},
+            'source': 'deep16/_src/%s/%s_HEAD-2_PAGE-1.png (the art desk\'s south idle, 10-21)%s, cut by tools/keeper-town-sheet.py' % (folder, art,
+                ' and PAGE-2 to PAGE-5 (SE, E, NE, N: ART-121, 10-28)' if len(rows) > 1 else ''), 'door': door}
     if ov.get('recolour'):
         meta['recolour'] = ov['recolour']                       # (the dye put on at the cut, for the record: Korvin's)
     json.dump(meta, open(os.path.join(ART, name + '_p1.json'), 'w'), indent=1)
     wide = max(int(np.ptp(np.where(f[..., 3].any(axis=0))[0])) + 1 for f in frames)
-    print('  %s_p1: %dx%d a frame, stands %d above the foot (%d tall with the outline), %d wide; idle %d frames from 4 drawn, S only, under %s' % (name, fw, fh, meta['top'], meta['top'] + 1, wide, len(SEQ), UNDER))
+    if len(rows) == 1:
+        print('  %s_p1: %dx%d a frame, stands %d above the foot (%d tall with the outline), %d wide; idle %d frames from 4 drawn, S only, under %s' % (name, fw, fh, meta['top'], meta['top'] + 1, wide, len(SEQ), UNDER))
+    else:
+        print('  %s_p1: %dx%d a frame, all eight facings (S SE E NE N drawn, SW W NW mirrored); idle %d frames from 4 drawn; tall S %d, SE %d, E %d, NE %d, N %d' % (name, fw, fh, len(SEQ),
+              *[ay + 1 - np.where(rows[f][0][..., 3].any(axis=1))[0][0] for f in (0, 7, 6, 5, 4)]))
     return frames, meta
 
 

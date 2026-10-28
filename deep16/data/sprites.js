@@ -16808,8 +16808,8 @@ true
 }
 },
 "winters_p1": {
-"image": "art/winters_p1.png?v=ce7567e293",
-"fw": 26,
+"image": "art/winters_p1.png?v=fd9767be36",
+"fw": 27,
 "fh": 53,
 "ax": 13,
 "ay": 51,
@@ -16817,19 +16817,15 @@ true
 "anims": {
 "idle": {
 "y": 0,
-"fw": 26,
+"fw": 27,
 "fh": 53,
 "ax": 13,
 "ay": 51,
 "frames": 14,
-"fps": 4,
-"drawn": [
-0
-],
-"under": "crewman_p1"
+"fps": 4
 }
 },
-"source": "deep16/_src/winters/ART-78/ART-78_HEAD-2_PAGE-1.png (the art desk's south idle, 10-21), cut by tools/keeper-town-sheet.py",
+"source": "deep16/_src/winters/ART-78/ART-78_HEAD-2_PAGE-1.png (the art desk's south idle, 10-21) and PAGE-2 to PAGE-5 (SE, E, NE, N: ART-121, 10-28), cut by tools/keeper-town-sheet.py",
 "door": "warp:winters"
 },
 "winterwolf_p1": {
