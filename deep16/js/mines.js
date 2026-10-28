@@ -123,18 +123,8 @@
       if (!ways.some(function (q2) { return q2[0] === wp.x && q2[1] === wp.y; })) ways.push([wp.x, wp.y]);
       wayName[wp.x + ',' + wp.y] = 'the way to ' + (((DS.DATA.maps[wp.to] || {}).name) || wp.to).replace(/^The /, 'the ');
     });
-    // the ways marked (10-22, his eye on the Galleries' mouth: "couldn't find the east passage the the combat area"): each run of a way's squares one mark at its middle,
-    // named by where it goes -- drawn on the floor while the party is near (M.paintWays), green on the floor map (L), said in the hello
-    var short = function (x2, y2) { var wp = (m8.warps || []).filter(function (z) { return z.x === x2 && z.y === y2; })[0]; if (!wp) return F.out === 'silverton' ? 'the feed track' : 'the road'; var k8 = M.KEY8[wp.to], f8 = k8 && (M.FLOORS[k8] || M.ROAMS[k8]); return f8 ? f8.sub : String(((DS.DATA.maps[wp.to] || {}).name) || wp.to).split(' — ').pop() + ' (held)'; };
-    var isWay = {}, gone = {}, wayMarks = []; ways.forEach(function (q2) { isWay[q2[0] + ',' + q2[1]] = short(q2[0], q2[1]); });
-    ways.forEach(function (q2) {
-      var k0 = q2[0] + ',' + q2[1]; if (gone[k0]) return; gone[k0] = 1;
-      var run = [q2], i0 = 0, sd0 = side(q2[0], q2[1]); while (i0 < run.length) { var c0 = run[i0++]; [[1, 0], [-1, 0], [0, 1], [0, -1]].forEach(function (o) { var x1 = c0[0] + o[0], y1 = c0[1] + o[1], k1 = x1 + ',' + y1; if (!gone[k1] && isWay[k1] === isWay[k0] && side(x1, y1) === sd0) { gone[k1] = 1; run.push([x1, y1]); } }); } // (one mark a side: the road off the west edge and off the south edge two ways)
-      run.sort(function (a, b) { return a[0] - b[0] || a[1] - b[1]; });
-      var mid = run[run.length >> 1], sd2 = side(mid[0], mid[1]);
-      wayMarks.push({ at: mid.slice(), name: isWay[k0], side: sd2, n: run.length });
-    });
-    if (F.edges) wayMarks = wayMarks.filter(function (k) { return !k.side; }); // (the rim's ways not labelled: 10-27, his "don't label the road")
+    // (the ways' marks -- a pin and a name over each way within 20 squares, the hello's "Ways:" line, the ways green on the floor map -- came off 10-28, his eye on them: "excessive and
+    // reveals the deep gallery - the tile edits are sufficient, I can see it's a path out of the first layer now"; the art desk's tiles show the ways: js/topview.js THE ART)
     // where the party stands
     var gq = (/[?&]gate=([a-z]+)/.exec(q) || [])[1], aq = /[?&]at=(\d+),(\d+)/.exec(q), fq = /[?&]face=(-?\d),(-?\d)/.exec(q), at = null, face = [0, -1];
     if (aq) at = [+aq[1], +aq[2]];
@@ -148,13 +138,13 @@
       clock: !!F.clock, hour: hour, ownLights: m8.lights || null, // (the Glowseep: THE WORLD's clock moves as the party walks and fights there -- M.SEEP; its poles and moss lit by night)
       view: 'top', ft: 30, roofs: T.roofsAt(30), slope: slope.map(function (r) { return r.join(''); }), look: lk.map(function (r) { return r.join(''); }), signs: {}, faceDoors: {},
       rows: rows, w: w, h: h, entry: [at], face: face, gate: gq || null, stairUp: [], doors: ways, marks: marks, people: people, foes: [], warps: warps, out: F.out || null, save: !!F.save,
-      deepWater: 'D', music: m8.music || 'field', wayName: wayName, wayMarks: wayMarks, roost: !!m8.roost, edges: !!F.edges, // (roost: the first game's roosted ceiling -- the working gallery, the dens: M.fieldDef)
+      deepWater: 'D', music: m8.music || 'field', wayName: wayName, roost: !!m8.roost, edges: !!F.edges, // (roost: the first game's roosted ceiling -- the working gallery, the dens: M.fieldDef)
       names8: { rows: r8.slice(), legend: leg }, // (the first game's name of each square -- bones, webbing, a fence or a lamp, a tent or a stump: the art's piece for it, js/topview.js TV.ART)
       src8: { id: F.src, rows: [], legend: {}, triggers: trig, warps: [], chests: (m8.chests || []).slice(), zones: (m8.zones || []).slice(), save: !!F.save }, from8: id, to8: id, sig: '', // (zones: the first game's random fights where it has them -- the dens, the workings: each on a field of its own, M.fieldFight, its tables content/encounters.json)
       zone8: (m8.zones && m8.zones[0] && m8.zones[0].zone) || null,
       hud: F.place.replace(/^The /, 'the ') + ': ' + F.sub,
       hello: ['{y}' + F.place.toUpperCase() + '{/} -- ' + F.sub + ': ' + (F.own ? 'the second game\'s own floor' : 'the first game\'s floor') + ', north up as Silverton is (' + w + ' x ' + h + ' squares)' + (F.clock ? ', ' + W8tod(hour) : '') + '.',
-        F.edges ? 'Any edge of it: back to the world map.' : 'Ways: ' + wayMarks.map(function (k) { return (k.side || 'at ' + k.at.join(',')) + ', ' + k.name; }).filter(function (s, i, a) { return a.indexOf(s) === i; }).join('; ') + '.', '{g}Click to walk, or the arrows. E: a word, a door. O: the formation. L: the floor map.{/}'], // (the ways each once: the Glowseep's road and grass edges are runs of their own)
+        ].concat(F.edges ? ['Any edge of it: back to the world map.'] : [], ['{g}Click to walk, or the arrows. E: a word, a door. O: the formation. L: the floor map.{/}']), // (no "Ways:" line since 10-28: the tiles show them)
       where: function () { return F.sub; }
     };
     return def;
@@ -731,30 +721,6 @@
     ws.enter = function () { en.apply(this, arguments); var s2 = (W.M().sites || []).filter(function (s) { return s.id === def.door; })[0] || site; W.inDoor = { site: s2, gate: sd }; W.leaveTown(sd); }; // (out past that side once THE WORLD is in)
     M.off(B); D.push(ws);
   };
-  // the ways marked on the floor (M.floor's wayMarks): within M.WAYNEAR squares of the token, a pale pin on the way's middle square and its name over it
-  M.WAYNEAR = 20;
-  M.paintWays = function (ctx, B) {
-    var def = D.roam.def, R0 = B.roam, t = R0 && R0.token; if (!def || !def.mine || !t || R0.mode !== 'walk' || B.menu) return;
-    var iso = D.iso, shown = [];
-    (def.wayMarks || []).forEach(function (k) {
-      if (Math.max(Math.abs(k.at[0] - t.x), Math.abs(k.at[1] - t.y)) > M.WAYNEAR) return;
-      var c = iso.center(k.at[0], k.at[1], (B.map && B.map.gz ? B.map.gz(k.at[0], k.at[1]) : 0) + 20), s = iso.toScreen(c.x, c.y), x = Math.round(s.x), y = Math.round(s.y + Math.sin(B.t / 12) * 1.5);
-      if (x < -40 || x > D.W + 40 || y < -20 || y > D.H + 20) return;
-      var label = k.name.toUpperCase(), w = D.textWidth(label) + 8;
-      ctx.save();
-      ctx.fillStyle = '#0c1a10'; ctx.beginPath(); ctx.moveTo(x - 6, y - 7); ctx.lineTo(x + 6, y - 7); ctx.lineTo(x, y + 3); ctx.closePath(); ctx.fill();
-      ctx.fillStyle = '#8ee89a'; ctx.beginPath(); ctx.moveTo(x - 4, y - 6); ctx.lineTo(x + 4, y - 6); ctx.lineTo(x, y + 1); ctx.closePath(); ctx.fill();
-      ctx.globalAlpha = 0.8; ctx.fillStyle = '#05080a'; ctx.fillRect(x - w / 2, y - 19, w, 10); ctx.globalAlpha = 1;
-      D.text(ctx, label, x, y - 18, '#8ee89a', 'center');
-      ctx.restore(); shown.push(k.name);
-    });
-    M.waysShown = shown; // (the bench reads what was drawn)
-  };
-  var over0 = D.roam.paintOver;
-  D.roam.paintOver = function (ctx, B) { over0.apply(this, arguments); if (!D.roam.showMap) M.paintWays(ctx, B); };
-  // and on the floor map (L): the ways green, as the Wet's map greens its ways out
-  var map0 = D.roam.paintMap;
-  D.roam.paintMap = function (ctx, B, x0, y0, s) { map0.apply(this, arguments); var def = D.roam.def; if (!def || !def.mine || def.edges) return; ctx.save(); ctx.fillStyle = '#60e070'; (def.doors || []).forEach(function (q) { ctx.fillRect(x0 + q[0] * s, y0 + q[1] * s, s, s); }); ctx.restore(); }; // (def.edges: a floor whose whole rim is a way -- nothing to green)
   // the tally-house's counter: Edric's shop, the antitoxin draught (content/shops.json `tally`: it buys nothing) -- one line in the counter's vendor table
   if (D.counter && D.counter.VENDORS) D.counter.VENDORS.tally = D.counter.VENDORS.tally || { shop: 'tally', name: 'Edric Pellam' };
 })();

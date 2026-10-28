@@ -2166,23 +2166,12 @@
       for (var iF = 0; iF < opq.length; iF += 4) if (Math.abs(opq[iF] - thru[iF]) + Math.abs(opq[iF + 1] - thru[iF + 1]) + Math.abs(opq[iF + 2] - thru[iF + 2]) > 24) dF++;
       okF2('on the dens\' top view, the party at 6,10 under the rock of 6,11: that rock drawn through round them (' + (TVF.seen || 0) + ' drawn so, ' + dF + ' px of the party\'s box changed from the rock drawn whole)', (TVF.seen || 0) > 0 && dF > 40);
       D.ctx = ctxF0;
-      // 4. THE WAYS (his "couldn't find the east passage the the combat area"): named on the floor near them, in the hello, and green on the floor map
-      var BCw = testF2('?roam=warrens_c'), wdC = (RF.def.wayMarks || []).filter(function (k) { return k.at[0] === 24 && k.at[1] === 1; })[0];
-      okF2('the workings\' stair (24,1) named the Wet, the house lane\'s way down since 10-22 (' + (wdC && wdC.name) + ')', !!wdC && wdC.name === 'the Wet');
-      var B2 = testF2('?roam=galleries_g2&at=26,16'), d2 = RF.def, mk2 = d2.wayMarks || [], dens2 = mk2.filter(function (k) { return k.name === 'the dens'; })[0];
-      okF2('the working gallery\'s ways (' + mk2.map(function (k) { return k.name + ' ' + (k.side || k.at.join(',')); }).join('; ') + '): the east passage to the dens one mark at its middle (' + (dens2 && dens2.at) + ')',
-        !!dens2 && dens2.side === 'east' && dens2.n === 3 && dens2.at[0] === 35 && dens2.at[1] === 17 && mk2.some(function (k) { return k.name === 'the mouth' && k.side === 'south'; }) && mk2.some(function (k) { return /deep gallery/.test(k.name) && /held/.test(k.name); }));
-      okF2('the hello names them ("' + (d2.hello || []).filter(function (l) { return /^Ways/.test(l); })[0] + '")', (d2.hello || []).some(function (l) { return /^Ways: .*east, the dens/.test(l); }));
-      var cvW = document.createElement('canvas'); cvW.width = D.W; cvW.height = D.H; var ctxW0 = D.ctx; D.ctx = cvW.getContext('2d'); D.R = D.R || 1;
-      MF.waysShown = null; for (var kW = 0; kW < 40; kW++) B2.update(); D.draw();
-      okF2('standing at 26,16 the way east is named on the floor (' + (MF.waysShown || []).join(', ') + ')', (MF.waysShown || []).indexOf('the dens') >= 0);
-      D.ctx = ctxW0;
-      var cvM = document.createElement('canvas'); cvM.width = d2.w * 3; cvM.height = d2.h * 3; var cM = cvM.getContext('2d'); RF.paintMap(cM, B2, 0, 0, 3); var pxM = cM.getImageData(35 * 3 + 1, 17 * 3 + 1, 1, 1).data;
-      okF2('on the floor map (L) the ways green (the passage\'s square ' + [pxM[0], pxM[1], pxM[2]].join(',') + ')', pxM[1] > 200 && pxM[0] < 120 && pxM[2] < 140);
+      // 4. THE WAYS (his "couldn't find the east passage the the combat area", 10-22): their marks -- the pins and names, the hello's "Ways:", the greens on L -- came off 10-28 on his
+      // "excessive and reveals the deep gallery - the tile edits are sufficient, I can see it's a path out of the first layer now" (mode=glowseep1028); the ways themselves stand
+      var BCw = testF2('?roam=warrens_c'), wnC = (RF.def.wayName || {})['24,1'];
+      okF2('the workings\' stair (24,1) a way still (' + wnC + ')', /^the way to/.test(wnC || '') && (RF.def.doors || []).some(function (q) { return q[0] === 24 && q[1] === 1; }));
       var BSw = testF2('?roam=glowseep'), wsS = (RF.def.hello || []).filter(function (l) { return /^Ways|edge/.test(l); });
       okF2('the Glowseep\'s hello: any edge a way out, the road not named (' + wsS.join(' / ') + '; since 10-28, his "don\'t label the road")', wsS.length === 1 && /^Any edge of it: back to the world map/.test(wsS[0]) && !(RF.def.wayMarks || []).length);
-      var BG = testF2('?roam=galleries&gate=east'), mkG = RF.def.wayMarks || [];
-      okF2('the Galleries\' mouth, in by the east gate: the way into the mine named (' + mkG.map(function (k) { return k.name + ' ' + (k.side || k.at.join(',')); }).join('; ') + ')', mkG.some(function (k) { return k.name === 'the working gallery' && k.at[0] === 17 && k.at[1] === 3; }) && mkG.filter(function (k) { return k.name === 'the road'; }).length >= 2);
       // 5. THE ROOST ON THE FIELDS (the lanes desk's follow-up, the lane's 2c open 2; the grid's roost RULED 09-28, the one law canon): a roosted floor's field roosted --
       // fire and thunder greyed, the first game's line as it opens -- and bright light there brings the roof down: back on the floor, the first game's roostBroken and its words
       var rq = {}; ['galleries_g2', 'galleries_g3', 'galleries', 'glowseep', 'warrens_c'].forEach(function (k) { testF2('?roam=' + k); rq[k] = !!RF.def.roost; });
@@ -2376,6 +2365,16 @@
       okG('the Light cantrip on a hero under the roost let go (' + (ls6e ? ls6e.slice(1).join(' / ') : 'no roost rule') + ')', !!ls6e && !u6e.conds.light && ls6e.some(function (l) { return /lets the Light go/.test(l); }));
       var B6f = testG('?roam=warrens_c'), l6f = lit6(B6f);
       okG('a dark floor with no roost (the workings) keeps its torch (' + (l6f.join(', ') || 'none') + ')', l6f.length === 1 && !/roost/.test(hello6(B6f)));
+      // 7. THE WAYS' MARKS OFF (his "excessive and reveals the deep gallery - the tile edits are sufficient, I can see it's a path out of the first layer now"): no "Ways:" in a
+      // floor's hello, no pin or name drawn by a way, nothing green on the floor map (L) -- the ways themselves stand
+      var hl7 = []; ['galleries', 'galleries_g2', 'galleries_g3', 'warrens', 'warrens_b', 'warrens_c'].forEach(function (k) { testG('?roam=' + k + (k === 'galleries_g3' ? '&flags=cullHired' : '')); if ((RG.def.hello || []).some(function (l) { return /^Ways/.test(l); })) hl7.push(k); });
+      var B7 = testG('?roam=galleries_g2&at=26,16'), d7 = RG.def, said7 = [], tx7 = D.text, cv7 = document.createElement('canvas'), ctx70 = D.ctx; cv7.width = D.W; cv7.height = D.H; D.ctx = cv7.getContext('2d'); D.R = D.R || 1;
+      D.text = function (ctx, s) { said7.push(String(s)); return tx7.apply(this, arguments); };
+      try { for (var k7 = 0; k7 < 40; k7++) B7.update(); B7.cards = []; said7.length = 0; D.draw(); } finally { D.text = tx7; D.ctx = ctx70; }
+      var named7 = said7.filter(function (s) { return /^THE (DENS|MOUTH|DEEP GALLERY)|\(HELD\)/.test(s); });
+      var cvM7 = document.createElement('canvas'); cvM7.width = d7.w * 3; cvM7.height = d7.h * 3; var cM7 = cvM7.getContext('2d'); RG.paintMap(cM7, B7, 0, 0, 3); var px7 = cM7.getImageData(35 * 3 + 1, 17 * 3 + 1, 1, 1).data;
+      okG('the ways\' marks off the floors: no "Ways:" in a hello (' + (hl7.join(', ') || 'none') + '), no way named on the working gallery at 26,16 (' + (named7.join(', ') || 'none') + '), the east passage on L not green (' + [px7[0], px7[1], px7[2]].join(',') + '); the passage a way still (' + (d7.doors || []).some(function (q) { return q[0] === 35 && q[1] === 17; }) + ')',
+        !hl7.length && !named7.length && !(px7[1] > 200 && px7[0] < 120 && px7[2] < 140) && (d7.doors || []).some(function (q) { return q[0] === 35 && q[1] === 17; }));
     } catch (eG) { repG.errors.push(String(eG && eG.stack || eG).slice(0, 900)); }
     D.store.get = stGG; D.store.set = stSG; D.music = muG; try { if (skG != null) window.localStorage.setItem(SG.KEY, skG); } catch (eK2) { }
     var preG = document.createElement('pre'); preG.id = 'out'; preG.textContent = 'BENCH16 ' + JSON.stringify(repG);
