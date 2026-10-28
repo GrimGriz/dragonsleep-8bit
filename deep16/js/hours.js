@@ -570,6 +570,66 @@
   H16.TEXT = { 'hire.lymenWait': 'He\'s watching who stands up in this town. Make a name first. (Renown 1: work for it -- Finding Work, in the JOURNAL.)' };
   if (DS.DATA && DS.DATA.text) Object.keys(H16.TEXT).forEach(function (k) { var r = DS.DATA.text[k]; DS.DATA.text[k] = r && typeof r === 'object' ? Object.assign({}, r, { t: H16.TEXT[k] }) : { t: H16.TEXT[k] }; });
 
+  // ---------------------------------------------------------------- TELL ME ABOUT IT (RULED 10-28, his "TELL ME ABOUT IT", on the window's lean, after his "check with the story lane
+  // regarding younger players and expository text, i.e. wagon provisioner talks about what wagons are used for around here"): on every keeper's counter and door, a button of its
+  // own -- on a question beside its answers, on words beside their OK -- that says, in one or two plain sentences, what their trade is for here and why the party would want it;
+  // asked again it says the same, and the screen goes back to where it was (no answer of the keeper's script moves: the button is the screen's, js/counter.js Counter). Mouse
+  // first, as every button. Each line the window's draft against the register (the first game's records, the realm's pages), invented.json about-<id>
+  H16.ABOUT_BTN = 'TELL ME ABOUT IT';
+  H16.ABOUT = {
+    marko: ['Wagons carry everything in and out of Silverton. There\'s no harbour this side of the mountains, so it all goes south: four days by wagon to Tarlyn\'s Pit, the only road out.', 'The harvest houses send guards with theirs now, with gnolls about on the road. My father took a wagon up the Coldridge road to the Doors once. It never came back.'],
+    kasten: ['Candles and lamp-oil. Down a mine, or out on the road after dark, light is the difference between walking and falling. The crews buy before every shift.'],
+    calla: ['Antitoxin is for poison -- the crawlers\' venom at the Warrens\' cradles, mostly. A healer\'s kit gets a fallen friend breathing again without any magic.'],
+    kessler: ['Bring me what you don\'t need and I\'ll buy it: a third of what it\'s worth, no questions that matter. Whatever you carry back off the road, I\'ll look at.'],
+    lisbet: ['Warding chalk: the night crews buy it by the stick to mark the old shafts. Charms are for luck. I make no promises about either.'],
+    vilar: ['Weapons and armour. Better armour makes you harder to hit, and a better blade hits harder. The Hex\'s fighters buy here: show-steel that bites as well as it shines.'],
+    percy: ['Road harvest: what you cut off the things you kill -- a gland, a tongue, a wing. I render it into jars the wizards and the alchemists pay for, and I pay you a fifth.'],
+    ned: ['Wizards need odd things for their spells, and somebody has to jar and label them. I copy spell pages too, for a price.'],
+    lucia: ['A potion mends you in a swallow; antitoxin takes the poison out. The calling herbs are for a wizard calling a familiar, and nobody else in Silverton mixes them.'],
+    concession: ['Cold pies for the crowd. Nothing cooks in here: the hot food\'s Marta\'s, out on the street.'],
+    winters: ['When somebody dies with nobody to take their things, I buy the estate and settle it. Magic things come through here, and I buy those too -- nothing else.'],
+    cassia: ['A bed for the night. Sleep and you wake rested: wounds closed, spells back. A company takes the long room for one price.'],
+    davos: ['The Hex\'s own surgeon. When someone falls and won\'t get up, bring them here: five silver, and I stand them up again.'],
+    aldwin: ['A mission chapel: bread for anyone who comes in the morning, and the floor to sleep on for nothing. It\'s the poorest bed in town, and the only free one.'],
+    hessle: ['The Weigh-House weighs what\'s sold in Silverton, honestly. The board on its wall is the town\'s bounties: bring proof the job\'s done and I pay it out of the drawer.'],
+    marta: ['Hot food off the fire. A tired body mends faster fed: a hot meal takes the worst of the weariness off.', 'Bring me bat wings and I\'ll bake them into pies to eat in a fight.'],
+    sylvia: ['I read what comes next for people. Five silver, and the cup tells you where your road goes from here.'],
+    merrick: ['The lantern house sends word to the other lanterns, far off, faster than any rider. And thirty silver at this window frees a slave: that\'s the law here.'],
+    casper: ['Coin comes into Silverton from everywhere -- Newland\'s mint, the dwarves\' old silver, wizard coin, the Hex\'s chits. I change one for another, and take a little for the trouble.'],
+    androit: ['A notary writes things down so they\'re true: contracts, wills, freedom papers. My seal on a paper means the town has to believe it.'],
+    aldric: ['A factor buys for a house far away. I buy Silverton\'s wool and grain for Newland and send it down the road.'],
+    mical: ['Whatever comes in on a wagon waits in my warehouses till it\'s sold or sent on. I keep the manifests: the lists of what each load ought to hold.'],
+    brennan: ['Horseshoes, wheels, barrels, harness: whatever keeps the wagons and the mines moving. Dwarven tools under rune-warranty cost three times as much.'],
+    venhale: ['Fighters for the Hex train and sleep here, and some of them are owned. When you fight on the card, the one across the sand is often mine.'],
+    kael: ['Timber props hold the shafts up so the mines don\'t come down on the crews. Ladders and poles for getting down them.'],
+    vera: ['Rag-and-bone: I buy what people throw out, or can\'t explain having, and sell it on secondhand.'],
+    brennock: ['When an animal dies, it comes to me. Tallow for the candles, glue for the joiners: nothing goes to waste.'],
+    gull: ['Anyone who wants a day\'s work stands at my corner at dawn, and anyone who needs hands comes to pick them. The guano mine\'s taking cull hands now.'],
+    kess: ['The cheapest beds in town, a penny a place, for the shift crews between work. You\'d rest better at Cassia\'s, or on Aldwin\'s floor for nothing.'],
+    tam: ['People come here to forget things for a while. You\'ve no business forgetting anything yet.'],
+    marin: ['Cloth and clothes, dyed in the back. The fine cuts go to the factors\' houses.'],
+    barber: ['A barber-surgeon: shaves, teeth pulled, cuts stitched. On fight nights I sit in the Hex\'s chair and patch up whoever comes off the sand.'],
+    mela: ['A hot bath, and a quiet room to have it in. People talk in the steam, and I hear all of it.'],
+    korvin: ['The slate is the card: who fights whom, and the odds. Put five silver down to fight; win, and you walk away with ten.'],
+    edric: ['The tally-house books the hands for the cradles. Your name in my book, and you can milk the crawlers for their venom: a silver a clean thimble.'],
+    sabeth: ['I hire cull hands for the guano mine. Kill the giant bats in the dens and I pay by the head -- quietly, mind, under the roost.']
+  };
+  (function () {
+    var P = C.Counter.prototype, buttons0 = P.buttons, press0 = P.press, Lw = C.LAYOUT.words;
+    P.aboutable = function () { var w = this.wait || {}; return !!H16.ABOUT[this.id] && !this.aboutBack && !this.sub && !w.shelves && !(this.bubbling && this.bubbling()) && !!(w.ask || (w.say && this.page >= (this.pages || []).length - 1)); };
+    P.buttons = function () {
+      var bs = buttons0.apply(this, arguments); if (!this.aboutable()) return bs;
+      var b = { x: Lw[0] + 8, y: Lw[1] + Lw[3] - 20, w: 124, h: 15, label: H16.ABOUT_BTN, go: 'about' };
+      if ((this.wait || {}).ask) bs.splice(Math.max(0, bs.length - 1), 0, b); else bs.push(b); // (on a question before its last answer: back is still LEAVE)
+      return bs;
+    };
+    P.press = function (q) {
+      if (q && q.go === 'about') { D.sfx('confirm'); this.aboutBack = { wait: this.wait, pages: this.pages, page: this.page, hov: this.hov }; this.wait = { say: H16.ABOUT[this.id].slice(), face: 'welcoming', about: true }; this.pages = this.paginate(this.wait.say); this.page = 0; this.hov = -1; if (this.setFace) this.setFace('welcoming'); return; }
+      if (q && q.go === 'next' && this.aboutBack && this.page >= this.pages.length - 1) { var a = this.aboutBack; this.aboutBack = null; this.wait = a.wait; this.pages = a.pages; this.page = a.page; this.hov = a.hov; D.sfx('cursor'); return; }
+      return press0.apply(this, arguments);
+    };
+  })();
+
   // ---------------------------------------------------------------- THE SHOW (deep16/?hoursshow -- the eyes rows' door, the house's rule: a show first for what is to be seen): a NEW
   // GAME staged for each beat on the counter's show (js/counter.js ServicesShow, C.serviceStage), with this lane's own on top -- the lead alone, flags, renown, THE WORLD's hour
   // (the street turns to it on its first step), and a council's sitting played over it
@@ -584,6 +644,7 @@
     { hours: 1, id: 'night', door: 'inn:cassia', t: 21, label: 'SILVERTON BY NIGHT: the lit places', note: 'One step: night. The dark wash, the pools at the Hex\'s doors, vice row, the lantern house, Cassia\'s, the chapel, Davos\'s, the west gate, round the party.' },
     { hours: 1, id: 'council1', door: 'inn:cassia', t: 55, sit: ['notice'], label: 'THE COUNCIL, C1: the Pit\'s word (at the rest)', note: 'The sitting as it plays over a morning: the card, then each line on its speaker\'s portrait.' },
     { hours: 1, id: 'council2', door: 'inn:cassia', sit: ['looks'], renown: 2, label: 'THE COUNCIL, C2: a name made (renown 2)', note: 'The who\'s-who, a line each (live it comes when the party climbs to the Hex\'s third floor at renown 2).' },
+    { hours: 1, id: 'about', door: 'shop:marko', label: 'TELL ME ABOUT IT: Marko the provisioner, and Fountain Street', note: 'In at Marko\'s door, E at the counter: TELL ME ABOUT IT beside THE SHELVES / LEAVE -- what wagons are for here; then back to his question. Next door Kasten, Calla, Kessler, Lisbet; the same at every keeper\'s counter and door.' },
     { hours: 1, id: 'table', near: 'papa', hex3: true, renown: 2, flags: { papaLymen: 1, councilCalled: 1 }, label: 'THE COUNCIL AT THE LONG TABLE: C2, the party called up', note: 'In at the Hex and up to the third floor: the council in their seats at the long table under the Big Window, the camera along it and the card; then the who\'s-who on their portraits, and they break up.' },
     { hours: 1, id: 'tablenight', near: 'papa', hex3: true, t: 42, flags: { papaLymen: 1 }, label: 'THE COUNCIL AT THE LONG TABLE: the night the Pit\'s word comes', note: 'Day 1 at dusk, up to the third floor: the scales are lit, the council at the table, Merrick among them; Warda: stand at the back. Their sitting plays at the party\'s next rest.' },
     { hours: 1, id: 'council3', door: 'inn:cassia', sit: ['herd'], flags: {herdWarned: 1 }, label: 'THE COUNCIL, C3: the herd thinned', note: 'The east side\'s man, Casper, Hessle, Papa ("A warning\'s gone down. Once. Next.").' }
