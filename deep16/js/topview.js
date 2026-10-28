@@ -15,6 +15,7 @@
   TV.ROOMWALL = 40;  // a room's wall (js/town.js T.room): its back wall's face over the floor; the front wall a stub, so the floor and the door show (10-20, Griz: "1 north up", the rooms too)
   TV.BLOCK = { k: 10, f: 12, w: 8, K: 16, S: 40, y: 6 }; // (a block's px: a crate or a stall, a rail, a well, a shop's counter and its shelves, a cot's frame)
   TV.SEE = 0.38;     // a standing thing in front of the party on the mines' floors, drawn this faint (iso.draw; TV.seen counts them drawn so -- the bench's)
+  TV.HALL = 2;       // a hallway's entrance on the mines' floors: the rock over its first squares from where it leaves a crossing, drawn faint always (TV.hallways)
   var on = function () { return !!(iso.map && iso.map.top); };
 
   // ------------------------------------------------------------------ the view's geometry, while a top map is loaded
@@ -534,6 +535,21 @@
     }
     return null;
   }
+  // THE HALLWAYS' ENTRANCES (10-28, his eye on the Warrens' stalls: "transluce the hallway entrance tiles by default to make it easier to tell the hallways in the part of the
+  // galleries with the gate"): a hallway a square tall running east-west lies under the raised top of the rock south of it, so it read as rock from anywhere but beside it. On
+  // the mines' floors the rock over its first TV.HALL squares from where it leaves a crossing -- a square of it with open ground north or south: the shaft, a wider gallery --
+  // is drawn faint always (TV.SEE), its mouth seen from across the floor; the rest of it as before (the window round the party)
+  TV.hallways = function (m) {
+    var out = {}, open = function (x, y) { var q = m.at(x, y); return !!(q && q.open); };
+    for (var y = 2; y < m.h; y++) for (var x = 0; x < m.w; x++) {
+      var s = m.at(x, y); if (!s || s.open || s.ch !== '#' || !open(x, y - 1) || open(x, y - 2)) continue; // (a rock whose raised top lies over a hallway's square: open, rock north of it)
+      for (var d = -1; d <= 1; d += 2) for (var k = 1; k <= TV.HALL; k++) { // (a crossing within TV.HALL squares along the hallway, the run between open)
+        var x2 = x + d * k; if (!open(x2, y - 1)) break;
+        if (open(x2, y - 2) || open(x2, y)) { out[x + ',' + y] = 1; break; }
+      }
+    }
+    return out;
+  };
   TV.FIRE = 140; // (the campfire's frame, ms)
   function artProp(m, s, P) {
     var T = TV.TS, o = propOf(m, s, P); if (!o) return null;
@@ -578,6 +594,7 @@
       var u = ob.unit, c = iso.center(u.x, u.y, m.at(u.x, u.y) ? m.at(u.x, u.y).gz : 0), p = iso.toScreen(c.x, c.y);
       return { d: u.y + 0.6, x0: p.x - T * 0.4 * z, x1: p.x + T * 0.4 * z, y0: p.y - T * 1.5 * z, y1: p.y + T * 0.4 * z };
     }) : [];
+    var hall = m.def.mine ? (top.hall || (top.hall = TV.hallways(m))) : null;
     list.forEach(function (it) {
       if (it.obj) { it.obj.draw(ctx); return; }
       if (it.hex) { var hx = m.def.hexagon, hp = hexCanvas(m), gq = m.at(Math.floor(hx.x), Math.floor(hx.y)), hg = gq ? gq.gz : 0, ha = iso.toScreen(hx.x * T - hp.ox, hx.y * T - hg - hp.wall - hp.oy); ctx.drawImage(hp.canvas, ha.x, ha.y, hp.canvas.width * z, hp.canvas.height * z); return; }
@@ -586,6 +603,7 @@
       var wpx = pic.canvas.width * z, hpx = pic.canvas.height * z; if (a.x >= vw || a.y >= vh || a.x + wpx <= 0 || a.y + hpx <= 0) return;
       var over = see.filter(function (b) { return it.d > b.d && a.x < b.x1 && a.x + wpx > b.x0 && a.y < b.y1 && a.y + hpx > b.y0; });
       var put = function () { if (z === 1) ctx.drawImage(pic.canvas, a.x, a.y); else ctx.drawImage(pic.canvas, a.x, a.y, wpx, hpx); };
+      if (hall && hall[s.x + ',' + s.y]) { TV.hallSeen = (TV.hallSeen || 0) + 1; ctx.save(); ctx.globalAlpha = TV.SEE; put(); ctx.restore(); return; } // (a hallway's entrance: faint always -- TV.hallways)
       if (!over.length) { put(); return; }
       // (a window round each of them: the picture whole outside it, faint inside)
       TV.seen = (TV.seen || 0) + 1;

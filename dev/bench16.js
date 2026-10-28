@@ -2419,6 +2419,13 @@
       okG('in the house (so before too): out at hour ' + (SH10.t % 24) + ' (t ' + SH10.t + '), the march ' + SH10.today + ' h / ' + SH10.todayHex + ' hexes, the save\'s the same (' + (HG.cur && HG.cur.world && HG.cur.world.todayHex) + ')',
         D.top() === WG.scene && SH10.t === 6 * 24 + 23 && SH10.today === 0 && SH10.todayHex === 0 && !!HG.cur && HG.cur.world.todayHex === 0);
       HG.playing = false; HG.cur = null;
+      // 11. THE HALLWAYS' ENTRANCES (his "transluce the hallway entrance tiles by default to make it easier to tell the hallways in the part of the galleries with the gate"): on
+      // the Warrens' stalls the rock over each hallway's first squares from the shaft, the gate, the pens' corridors drawn faint with the party nowhere near; the rest whole
+      var B11 = testG('?roam=warrens_b&at=17,20'), h11 = D.topview.hallways ? D.topview.hallways(B11.map) : {}, want11 = ['15,16', '16,16', '19,16', '20,16', '15,11', '16,11', '19,11', '20,11', '15,21', '16,21', '19,21', '20,21'], not11 = ['25,16', '10,16', '25,11', '24,21'];
+      var cv11 = document.createElement('canvas'), ctx110 = D.ctx; cv11.width = D.W; cv11.height = D.H; D.ctx = cv11.getContext('2d'); D.R = D.R || 1; D.topview.hallSeen = 0; D.topview.seen = 0;
+      try { for (var k11 = 0; k11 < 20; k11++) B11.update(); B11.cards = []; D.draw(); } finally { D.ctx = ctx110; }
+      okG('the stalls\' hallway mouths (rock over ' + want11.filter(function (k) { return h11[k]; }).length + ' of ' + want11.length + ' named: by the shaft at rows 11 and 16, by the gate at 21), the hallways\' middles whole (' + not11.filter(function (k) { return !h11[k]; }).length + ' of ' + not11.length + '); drawn faint with the party at 17,20: ' + (D.topview.hallSeen || 0),
+        want11.every(function (k) { return h11[k]; }) && not11.every(function (k) { return !h11[k]; }) && (D.topview.hallSeen || 0) > 0);
     } catch (eG) { repG.errors.push(String(eG && eG.stack || eG).slice(0, 900)); }
     D.store.get = stGG; D.store.set = stSG; D.music = muG; try { if (skG != null) window.localStorage.setItem(SG.KEY, skG); } catch (eK2) { }
     var preG = document.createElement('pre'); preG.id = 'out'; preG.textContent = 'BENCH16 ' + JSON.stringify(repG);
