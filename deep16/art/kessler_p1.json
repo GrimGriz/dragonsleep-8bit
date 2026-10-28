@@ -1,6 +1,6 @@
 {
  "image": "art/kessler_p1.png",
- "fw": 32,
+ "fw": 35,
  "fh": 54,
  "ax": 17,
  "ay": 52,
@@ -8,18 +8,14 @@
  "anims": {
   "idle": {
    "y": 0,
-   "fw": 32,
+   "fw": 35,
    "fh": 54,
    "ax": 17,
    "ay": 52,
    "frames": 14,
-   "fps": 4,
-   "drawn": [
-    0
-   ],
-   "under": "crewman_p1"
+   "fps": 4
   }
  },
- "source": "deep16/_src/kessler/ART-83/ART-83_HEAD-2_PAGE-1.png (the art desk's south idle, 10-21), cut by tools/keeper-town-sheet.py",
+ "source": "deep16/_src/kessler/ART-83/ART-83_HEAD-2_PAGE-1.png (the art desk's south idle, 10-21) and PAGE-2 to PAGE-5 (SE, E, NE, N: ART-121, 10-28), cut by tools/keeper-town-sheet.py",
  "door": "shop:kessler"
 }

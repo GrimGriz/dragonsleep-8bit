@@ -4102,7 +4102,8 @@
       D.seed = +get('seed', 1028);
       var WHOLE = ['winters', 'aldwin', 'davos', 'lucia', 'ned', 'vilar', 'korvin', // (Winters `833ca06`; Aldwin, Davos Kren, Lucia, Ned Halloway, Vilar and Korvin `6fb9da8`, the loose pages)
         'marta', 'gull', 'tam', 'ondine', 'percy', 'brennock', 'vera', 'kess', // (the art desk's packages ART-121d and -121e, the same seat)
-        'kael', 'sylvia']; // (a grey streak on the other side in some drawn views: cut, RULED 10-28, his "defining features showing on mirror facings is acceptable")
+        'kael', 'sylvia', // (a grey streak on the other side in some drawn views: cut, RULED 10-28, his "defining features showing on mirror facings is acceptable")
+        'casper', 'androit', 'hessle', 'aldric', 'kessler', 'calla', 'mical', 'lisbet', 'merrick', 'marko', 'venhale']; // (ART-121a and -121c, the same seat; 121b's six to come)
       var figT = Object.keys(CT.FIG), whole = figT.filter(function (k) { var s = D.SHEETS[CT.FIG[k]]; return s && !s.anims.idle.drawn; });
       okT('drawn all round (no S-only list on the idle): ' + whole.join(', ') + ' -- wanted ' + WHOLE.join(', '), whole.slice().sort().join() === WHOLE.slice().sort().join());
       var shT = function (k) { var s = D.SHEETS[CT.FIG[k]], a = s.anims.idle; return k + ' ' + a.fw + 'x' + a.fh + ' top ' + s.top; };
@@ -4113,7 +4114,9 @@
       var drT = figT.map(function (k) { var u = { x: 0, y: 0, facing: 5 }; CT.dress(u, k); return [k, u]; });
       okT('dressed (C.dress): all facing south, the drawn-all-round free to turn and the rest held', drT.every(function (d) { return d[1].sheet === CT.FIG[d[0]] && d[1].facing === 0 && d[1].holdFacing === (WHOLE.indexOf(d[0]) < 0); }));
       HT.begin(HT.fresh(), 0); var B = topT(), R0 = B.roam, E = D.spr.facingFor(1, 0);
-      [['aldwin', 'chapel:aldwin'], ['davos', 'leech:davos'], ['lucia', 'shop:lucia'], ['vilar', 'shop:vilar'], ['ned', 'warp:percy'], ['percy', 'warp:percy'], ['marko', 'shop:marko'], ['sylvia', 'keeper:sylvia'], ['winters', 'warp:winters']].forEach(function (p) {
+      [['aldwin', 'chapel:aldwin'], ['davos', 'leech:davos'], ['lucia', 'shop:lucia'], ['vilar', 'shop:vilar'], ['ned', 'warp:percy'], ['percy', 'warp:percy'], ['marko', 'shop:marko'], ['sylvia', 'keeper:sylvia'], ['winters', 'warp:winters'],
+        ['casper', 'keeper:casper'], ['androit', 'keeper:androit'], ['hessle', 'keeper:hessle'], ['aldric', 'keeper:aldric'], ['kessler', 'shop:kessler'], ['calla', 'shop:calla'],
+        ['lisbet', 'shop:lisbet'], ['merrick', 'keeper:merrick'], ['venhale', 'keeper:venhale'], ['kasten', 'shop:kasten']] /* (Venn Hale in the stables' yard since 10-28, mode=housefix1028) */.forEach(function (p) {
         driveT(TT.goOut(B), 200); driveT(TT.fire(B, trigT(p[1])), 600);
         var ku = B.units.filter(function (u) { return u.npc === p[0]; })[0], tk = R0.token, k0 = [tk.x, tk.y], w = WHOLE.indexOf(p[0]) >= 0;
         if (!ku || D.roam.def.room !== p[1]) { okT(p[0] + ' in at ' + p[1] + ': ' + (ku ? 'the room ' + D.roam.def.room : 'MISSING'), false); return; }
@@ -4411,7 +4414,7 @@
       // Merrick (10-21 night, the same word: ART-93): behind the message-lantern house's grille, on his portrait, his first-game word and its rumour heard
       inW(B, 'keeper:merrick'); var kuMr = B.units.filter(function (u) { return u.npc === 'merrick'; })[0], gMr = fireW(B, 'talk:merrick'), scMr = D.top(), wMr = upW() ? readW(scMr) : []; driveW(gMr, null, 200);
       okW('Merrick behind the message-lantern house\'s grille (door ' + (D.roam.def.room === 'keeper:merrick' ? 'in' : 'NOT in') + ') in his own figure (' + (kuMr && kuMr.sheet) + ', his south idle 10-21 night), on his portrait (' + (scMr && scMr.sheet) + '): "' + String(wMr[0]).slice(0, 40) + '...", the lantern rumour heard, and "' + String(wMr[wMr.length - 1]).replace(/\{.\}|\{\/\}/g, '') + '"',
-        D.roam.def.room === 'keeper:merrick' && kuMr && kuMr.sheet === 'merrick_p1' && kuMr.facing === 0 && kuMr.holdFacing && scMr && scMr.sheet === 'pt_merrick' && wMr.slice(0, 2).join('|') === window.DS.DATA.npcs.merrick.talk[0].say.join('|') && R0.flags['heard:r-lantern'] === 1 && /sendings -- is to come/.test(wMr.join(' ')) && !upW());
+        D.roam.def.room === 'keeper:merrick' && kuMr && kuMr.sheet === 'merrick_p1' && facedW(kuMr, R0) && kuMr.holdFacing === !!D.SHEETS[kuMr.sheet].anims.idle.drawn && scMr && scMr.sheet === 'pt_merrick' && wMr.slice(0, 2).join('|') === window.DS.DATA.npcs.merrick.talk[0].say.join('|') && R0.flags['heard:r-lantern'] === 1 && /sendings -- is to come/.test(wMr.join(' ')) && !upW());
       outW(B); inW(B, 'keeper:sylvia'); var gS = fireW(B, 'talk:sylvia'), scS = D.top(), wS = readW(scS); driveW(gS, null, 200);
       var kuSy = B.units.filter(function (u) { return u.npc === 'sylvia'; })[0];
       okW('Sylvia Swann at her booth in her own figure (' + (kuSy && kuSy.sheet) + ', facing ' + (kuSy && kuSy.facing) + ', her owl on her shoulder: 10-21 night) and on her portrait (' + scS.sheet + '): his own -- "' + wS.join(' ') + '"', kuSy && kuSy.sheet === 'sylvia_p1' && facedW(kuSy, R0) && kuSy.holdFacing === !!D.SHEETS[kuSy.sheet].anims.idle.drawn && scS.sheet === 'pt_sylvia' && /his word/.test(wS.join(' ')));
