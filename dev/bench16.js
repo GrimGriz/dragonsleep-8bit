@@ -3724,6 +3724,54 @@
     document.body.appendChild(preHw);
     return;
   }
+  // THE ROOST'S LAW IN THE SECOND GAME'S FIGHTS, 10-28 night (mode=roost1028; the grid seat, on his "first time round (8-bit) we roost law greyed out the combat spells and left
+  // light there to blunder into fail"): the first game's list -- js/battle.js spellRows, a spell whose element is fire or thunder (RULED 09-24) -- is the one the grid's MAGIC and
+  // the simple fight's grey under a roost, and nothing else; Light, Daylight, Continual Flame and Dancing Lights stay castable, and a bright one cast is the roost's fail; the AI
+  // casts nothing on the list there
+  if (get('mode', '') === 'roost1028') {
+    var repRL = { checks: [], errors: [] };
+    function okRL(what, v) { repRL.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function runRL(g, cap) { var v, k = 0, st; while (k++ < (cap || 4000)) { st = g.next(v); v = undefined; if (st.done) return; if (typeof st.value === 'number' && D.battle) D.battle.t += Math.max(1, st.value); if (st.value && st.value.prompt) v = st.value.prompt.opts[0].value; } }
+    var SPL = window.DS.DATA.spells, LAW = Object.keys(SPL).filter(function (id) { var sp = SPL[id]; return sp && (sp.el === 'fire' || sp.el === 'thunder'); }).sort(); // (the first game's own test, js/battle.js spellRows)
+    var BRIGHT = ['light', 'daylight', 'continualflame'], WHY = 'the roost overhead: no fire, no thunder';
+    function mkRL(fid, simple, party) { var Bx = new D.Battle({ ladder: true, fight: fid, bench: true, simple: !!simple, level: 9, npc: party ? { party: party, foes: [] } : undefined }); D.battle = Bx; Bx.enter(); var k = 0; while (!Bx.order.length && k++ < 400) Bx.co.next(); if (!party) Bx.units.forEach(function (u) { if (u.side === 'party') u.guest = false; }); return Bx; } // (a band given: the class AI plays it, as the bench's class floor does)
+    // a caster who knows every spell the game has, every slot full, a fresh turn: what MAGIC lists for that one, and why each is greyed
+    function allRL(Bx) {
+      var u = Bx.units.filter(function (x) { return x.side === 'party' && !x.summon && !x.familiar; })[0];
+      u.known = Object.keys(SPL); u.slots = [9, 9, 9, 9, 9, 9, 9, 9, 9]; u.slotsMax = u.slots.slice(); u.conds = u.conds || {}; D.rules.startTurn(u); Bx.active = u;
+      var ls = Bx.o.simple && D.simple && D.simple.spells ? D.simple.spells(Bx, u) : D.magic.list(Bx, u);
+      return { u: u, ls: ls, banned: ls.filter(function (e) { return e.why === WHY; }).map(function (e) { return e.id || e.e.id; }).sort(), listed: ls.map(function (e) { return e.id || e.e.id; }), okOf: function (id) { var e = ls.filter(function (x) { return (x.id || x.e.id) === id; })[0]; return e ? (e.ok ? 'castable' : 'greyed: ' + e.why) : 'not listed'; } };
+    }
+    try {
+      D.seed = +get('seed', 1028);
+      // 1. THE GRID'S MAGIC UNDER THE RESCUE'S ROOST (the dens, deep16/data/fights.js rescue): greyed for the roost, exactly the first game's list
+      var BG = mkRL('rescue', false), aG = allRL(BG), lawIn = LAW.filter(function (id) { return aG.listed.indexOf(id) >= 0; });
+      okRL('the first game\'s roost list (its own test: a spell of fire or thunder) -- ' + LAW.length + ': ' + LAW.join(', ') + '; the grid\'s MAGIC under the rescue\'s roost (' + !!(BG.fight && BG.fight.roost) + ') greys for the roost ' + aG.banned.length + ' -- the same ' + (aG.banned.join() === lawIn.join()) + ' (' + lawIn.length + ' of them on its ring)',
+        !!(BG.fight && BG.fight.roost) && LAW.length >= 18 && lawIn.length === LAW.length && aG.banned.join() === lawIn.join());
+      okRL('the bright ones stay castable there (Light ' + aG.okOf('light') + ', Daylight ' + aG.okOf('daylight') + ', Continual Flame ' + aG.okOf('continualflame') + '; Dancing Lights, dim, ' + aG.okOf('dancinglights') + ')', BRIGHT.concat(['dancinglights']).every(function (id) { return aG.okOf(id) === 'castable'; }));
+      var BN = mkRL('rats', false), aN = allRL(BN);
+      okRL('a fight with no roost (' + (BN.fight && BN.fight.id) + ', roost ' + !!(BN.fight && BN.fight.roost) + '): nothing greyed for it (' + aN.banned.length + '), Fireball ' + aN.okOf('fireball'), !(BN.fight && BN.fight.roost) && aN.banned.length === 0 && aN.okOf('fireball') === 'castable');
+      // 2. THE SIMPLE FIGHT UNDER THE ROOST (the dens' random fights take it by default, OPTIONS): the same list greyed, the same bright ones castable
+      var BS = mkRL('rescue', true), aS = allRL(BS), lawS = LAW.filter(function (id) { return aS.listed.indexOf(id) >= 0; });
+      okRL('the simple fight under the roost (' + !!BS.o.simple + ', roost ' + !!(BS.fight && BS.fight.roost) + '): greys ' + aS.banned.length + ' -- the first game\'s list ' + (aS.banned.join() === lawS.join()) + ' (' + lawS.length + ' on its MAGIC); Light ' + aS.okOf('light') + ', Daylight ' + aS.okOf('daylight'),
+        !!BS.o.simple && !!(BS.fight && BS.fight.roost) && lawS.length === LAW.length && aS.banned.join() === lawS.join() && aS.okOf('light') === 'castable' && aS.okOf('daylight') === 'castable');
+      // 3. LIGHT, CAST THERE, IS THE FAIL: the grid's and the simple fight's roof comes down ('roost', the first game's RoostFail after it)
+      [['the grid', false], ['the simple fight', true]].forEach(function (w) {
+        var Bx = mkRL('rescue', w[1]), ax = allRL(Bx), t = ax.u; runRL(D.magic.cast(Bx, t, 'light', 0, t), 600); var over = Bx.over();
+        okRL(w[0] + ' under the roost: Light cast -- the roost broken (' + Bx.roostBroken + '), the fight over as ' + over, Bx.roostBroken === 'light' && over === 'roost');
+      });
+      // 4. THE AI UNDER THE ROOST CASTS NOTHING ON THE LIST: a wizard and a sorcerer of 9, fire on their books, played by the class AI through the rescue (three seeds)
+      var castRL0 = D.magic.cast, castRL = [], lawCast = [], endRL = []; // (not `cast0`: the head's own wrapper keeps that name, and a var is the whole function's)
+      D.magic.cast = function (Bx, u, id) { castRL.push(id); if (LAW.indexOf(id) >= 0) lawCast.push(u.name + ' ' + id); return castRL0.apply(this, arguments); };
+      try {
+        [1, 2, 3].forEach(function (sd) { D.seed = sd; var Bx = mkRL('rescue', false, ['wizard:9', 'sorcerer:9']); runRL(Bx.co, 60000); endRL.push(Bx.over() || '?'); });
+      } finally { D.magic.cast = castRL0; }
+      okRL('the class AI under the roost, three fights (' + endRL.join(', ') + '): spells cast ' + castRL.length + ' (' + castRL.filter(function (x, i, a) { return a.indexOf(x) === i; }).join(', ') + '), of the first game\'s list ' + (lawCast.join(', ') || 'none'), castRL.length > 0 && !lawCast.length && endRL.indexOf('roost') < 0);
+    } catch (eRL) { repRL.errors.push(String(eRL && eRL.stack || eRL).slice(0, 900)); }
+    var preRL = document.createElement('pre'); preRL.id = 'out'; preRL.textContent = 'BENCH16 ' + JSON.stringify(repRL);
+    document.body.appendChild(preRL);
+    return;
+  }
   // THE LIGHT FROM THE MENU, 10-28 (mode=gridlight1028; the grid seat, on the lanes desk's order from his "i need a grid seat to check how we're doing the out-of-combat casting
   // of light via the menu on the world map and on roams. it doesn't seem to choose a target or impact entering the guano mines"): the M menu driven by the mouse as he plays it, on
   // THE WORLD and on a floor -- whom the Light touches, where it lands, how long it lasts (SRD 5.1: an hour; "The spell ends if you cast it again") -- and the Guano Mines'
