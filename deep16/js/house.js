@@ -15,6 +15,16 @@
   H.read = function (n) { var d = D.store.get(H.key(n)); return d && d.v && Array.isArray(d.party) && d.party.length ? d : null; };
   function add(inv, id, n) { var s = inv.filter(function (x) { return x.id === id; })[0]; if (s) s.n += n; else if (n > 0) inv.push({ id: id, n: n }); for (var i = inv.length - 1; i >= 0; i--) if (inv[i].n <= 0) inv.splice(i, 1); }
   H.add = add;
+  // THE TRAIL (10-28, the lanes desk; Griz: "build the notes button in"): the last H.TRAIL things that happened -- a fight and how it ended, a town gone into, a talk,
+  // a rest, a save -- kept in the save (rec.trail) so his NOTES come with what led to them. RULED 10-28, Griz: "when we're prepping to port it into downloadable form
+  // we change what we're keeping in the debug saves" -- so what the debug keeps is decided here (H.TRAIL) and in H.notesFile, one place each
+  H.TRAIL = 40;
+  H.clock = function (rec) { var W = D.world, S = W && W.state ? W.state() : null; return S && S.t != null ? S.t : (rec && rec.world && rec.world.t != null ? rec.world.t : null); }; // (THE WORLD's hours, live)
+  H.trail = function (k, s) {
+    var rec = H.cur; if (!rec || !H.TRAIL) return;
+    (rec.trail = rec.trail || []).push({ k: k, s: String(s || ''), t: H.clock(rec), at: new Date().toISOString() });
+    if (rec.trail.length > H.TRAIL) rec.trail.splice(0, rec.trail.length - H.TRAIL);
+  };
 
   // NEW GAME: the heroes as the first game starts them (content/heroes.json: each at its own level and kit), the first game's purse and pack (content/config.json).
   // The save keeps what the first game's does (js/scenes.js's save: RULED 10-21, Griz: "not sure why the second game isn't tracking everything the first one was"):
@@ -61,6 +71,7 @@
   // into a town by a gate (or onto the square it was saved on): the floor takes the save's party, pack and flags as the 8-bit's party walked in (js/roam.js R.make's emb)
   H.toTown = function (id, gate, sq, dir) {
     var W = D.world, dr = W.DOORS[id]; if (!dr) return;
+    H.trail('town', id + (gate ? ' by the ' + gate + ' gate' : ''));
     W.inDoor = { site: H.siteOf(id), gate: gate };
     H.cur.at = { town: id, gate: gate, sq: null, dir: null };
     D.push(D.roam.make('?roam=' + dr.roam + '&gate=' + gate, { save: H.living(H.cur), opts: sq ? { at8: sq.slice(), dir: dir || null } : {}, house: true }));
@@ -107,6 +118,7 @@
   // after a road fight (js/world.js World.fight): the party back, the fallen's XP banked, the spoils into the pack and the purse. A loss is the first game's game over:
   // the title, and the last save stands. Returns the lines to say, or null for a loss
   H.afterFight = function (B, res) {
+    H.trail('fight', (res || 'ended') + ' in ' + (B.round || '?') + ' rounds: ' + B.units.filter(function (u) { return u.side === 'foe' && !u.summon; }).map(function (u) { return u.name || u.kind; }).join(', '));
     H.takeBack(B);
     if (res !== 'won' && res !== 'escaped' && res != null) { H.lost(); return null; }
     if (res !== 'won') return [];
@@ -289,6 +301,7 @@
   };
   H.longRest = function (scene) {
     if (!H.playing) return [];
+    H.trail('rest', 'long rest');
     var R = DS.R;
     DS.G = { flags: H.cur.flags };
     var lines = H.restSheets(H.cur.party);
@@ -532,7 +545,7 @@
   // SAVE: the game into a slot, from where they stand (the town's square, or the world's hex)
   H.saveTo = function (n) {
     if (!H.playing) return false;
-    H.slot = n; H.cur.saved = Date.now(); H.cur.v = H.V;
+    H.trail('save', 'slot ' + n); H.slot = n; H.cur.saved = Date.now(); H.cur.v = H.V;
     return D.store.set(H.key(n), H.cur);
   };
   H.where = function (rec) {
@@ -644,6 +657,7 @@
   // -- till whole or out; the short rest's own uses back (js/rules.js R.refresh). A long rest gives back half the dice (H.longRest). h.hdLeft: the dice not yet spent
   H.shortRest = function (party) {
     var R = DS.R, lines = [];
+    H.trail('rest', 'short rest');
     party.forEach(function (h) {
       if (h.dead) return;
       var hd = (R.CLASSES[h.cls] || {}).hd || 8, left = h.hdLeft != null ? h.hdLeft : h.lvl, got = 0, n = 0;
@@ -693,6 +707,7 @@
       info: function () { var jn = D.counter && D.counter.journal(null), pq = jn && jn.quests.filter(function (q) { return q.id === jn.pin && !q.done; })[0]; return { silver: rec.silver, renown: rec.renown || 0, place: H.where(rec), time: D.world.timeOfDay(), pin: pq ? pq.name : null }; },
       journal: D.counter ? function () { return D.counter.journal(null); } : null, // (the house's JOURNAL: Winters' Errands -- js/counter.js, 10-21)
       canSave: function () { return true; },
+      notes: function () { scene.pm = null; H.notes(); },
       run: function (kind, a, done) {
         var env = worldEnv(scene), lines = null;
         if (kind === 'save') { scene.pm = null; D.push(new Slots('save')); }
@@ -705,6 +720,98 @@
       close: function () { scene.pm = null; }
     });
   };
+
+  // ---------------------------------------------------------------- NOTES (10-28, Griz: "build the notes button in"): the M menu's NOTES -- the Pocket DM's SITUATIONS box
+  // inside the second game, so a note is written where it happened. The draft keeps across slots and loads (H.NKEY); each opening stamps a line with the day, the hour
+  // and the place; SAVE writes hero_situations_feedback-<UTC>.json with the game as it stands -- a summary on top, the whole save under it (the trail in it)
+  H.NKEY = 'deep16.game.notes';
+  H.day = function (rec) { var t = H.clock(rec); return t != null ? Math.floor(t / 24) + 1 : 1; };
+  H.atNow = function (rec) { var B = D.scenes.filter(function (s) { return s.roam && s.roam.token; })[0]; try { return B && D.roam.def ? H.atOf(B) : rec.at || {}; } catch (e) { return rec.at || {}; } }; // (where they stand now: the floor's token, else the save's)
+  H.stamp = function () {
+    var rec = H.cur, W = D.world, at = H.atNow(rec), sq = at.town && at.sq ? ' ' + at.sq.join(',') : '', hx = !at.town && rec.world && rec.world.at ? ' hex ' + rec.world.at.join(',') : '';
+    var hr = W && W.hour ? W.hour() : null;
+    return '-- day ' + H.day(rec) + (hr != null ? ' · ' + ('0' + Math.floor(hr)).slice(-2) + ':' + ('0' + Math.round((hr % 1) * 60)).slice(-2) : '') + (W && W.timeOfDay ? ' ' + W.timeOfDay() : '') + ' · ' + H.where(rec) + sq + hx + ' --';
+  };
+  H.summary = function (rec) {
+    var W = D.world, w = rec.world || {}, jn = D.counter && D.counter.journal ? D.counter.journal(null) : null;
+    return {
+      slot: H.slot || null, where: H.where(rec), at: H.atNow(rec), world: { map: w.map || null, hex: w.at || null, t: H.clock(rec) },
+      day: H.day(rec), hour: W && W.hour ? W.hour() : null, time: W && W.timeOfDay ? W.timeOfDay() : null, lead: rec.lead, hired: rec.hired, silver: rec.silver, renown: rec.renown || 0, steps: rec.steps || 0,
+      party: rec.party.map(function (h) { return { name: h.name, cls: h.cls, lvl: h.lvl, hp: h.hp + '/' + h.maxhp, ko: !!h.ko, dead: !!h.dead, exhaustion: typeof exh === 'function' ? exh(h) : null, conds: Object.keys(h.conds || {}), slots: (h.slots || []).join('/') + ((h.slotsMax || []).length ? ' of ' + h.slotsMax.join('/') : '') }; }),
+      quests: jn && jn.quests ? jn.quests.map(function (q) { return q.name + (q.done ? ' (done)' : q.id === jn.pin ? ' (pinned)' : ''); }) : null,
+      screens: D.scenes.map(function (s) { return s.kind || (s.constructor && s.constructor.name) || '?'; })
+    };
+  };
+  H.notesName = function (d) { d = d || new Date(); var p = function (n) { return (n < 10 ? '0' : '') + n; }; return 'hero_situations_feedback-' + d.getUTCFullYear() + '-' + p(d.getUTCMonth() + 1) + '-' + p(d.getUTCDate()) + '-' + p(d.getUTCHours()) + p(d.getUTCMinutes()) + 'Z.json'; };
+  H.notesFile = function (text) {
+    var rec = H.cur;
+    return { game: 'DRAGONSLEEP', kind: 'hero-situations-feedback', v: 2, from: 'the second game', at: new Date().toISOString(), notes: String(text || ''), page: location.origin + location.pathname + location.search,
+      game2: rec ? H.summary(rec) : null, trail: rec ? (rec.trail || []) : [], save: rec ? JSON.parse(JSON.stringify(rec)) : null };
+  };
+  H.notes = function () { if (H.cur) D.push(new Notes()); };
+  function Notes() {
+    this.kind = 'housenotes'; this.opaque = false; this.t = 0; this.msg = null; this.el = null;
+    var d = D.store.get(H.NKEY), text = d && typeof d.draft === 'string' ? d.draft : '', st = H.stamp();
+    if (text.indexOf(st) < 0) text = (text.replace(/\s+$/, '') + (text.trim() ? '\n\n' : '') + st + '\n'); // (each opening its own stamp; the same place and minute, once)
+    this.text = text; this.keep();
+  }
+  Notes.prototype.keep = function () { D.store.set(H.NKEY, { draft: this.text }); };
+  Notes.prototype.box = function () { return { x: 12, y: 10, w: D.W - 24, h: D.H - 20 }; };
+  Notes.prototype.btns = function () { var b = this.box(), y = b.y + b.h - 20; return [{ id: 'back', l: 'BACK', x: b.x + 8, y: y, w: 56, h: 14 }, { id: 'save', l: 'SAVE', x: b.x + b.w - 72, y: y, w: 64, h: 14 }]; };
+  Notes.prototype.field = function () {
+    var self = this;
+    if (!this.el) {
+      var el = this.el = document.createElement('textarea'), s = el.style;
+      s.position = 'fixed'; s.zIndex = 30; s.font = '14px system-ui, sans-serif'; s.background = '#10123a'; s.color = '#f8f8f8'; s.border = '1px solid #6e6e98'; s.padding = '2px 4px'; s.resize = 'none'; s.boxSizing = 'border-box'; s.outline = 'none';
+      el.value = this.text;
+      el.addEventListener('focus', function () { D.typing = true; });
+      el.addEventListener('blur', function () { D.typing = false; });
+      el.addEventListener('input', function () { self.text = el.value; self.keep(); });
+      el.addEventListener('keydown', function (e) { if (e.key === 'Escape') el.blur(); e.stopPropagation(); });
+      document.body.appendChild(el);
+      setTimeout(function () { try { el.focus(); el.selectionStart = el.selectionEnd = el.value.length; el.scrollTop = el.scrollHeight; } catch (e) { /* (nothing) */ } }, 0);
+    }
+    var cv = D.canvas || document.querySelector('canvas'); if (!cv) return;
+    var b = this.box(), r = cv.getBoundingClientRect(), k = r.width / D.W, x = b.x + 6, y = b.y + 22, w = b.w - 12, h = b.h - 48;
+    this.el.style.left = Math.round(r.left + x * k) + 'px'; this.el.style.top = Math.round(r.top + y * k) + 'px'; this.el.style.width = Math.round(w * k) + 'px'; this.el.style.height = Math.round(h * k) + 'px';
+  };
+  Notes.prototype.drop = function () { if (this.el) { try { this.el.remove(); } catch (e) { /* (gone) */ } this.el = null; D.typing = false; } };
+  Notes.prototype.exit = function () { this.drop(); };
+  Notes.prototype.close = function () { this.drop(); D.sfx('cancel'); D.pop(); };
+  Notes.prototype.save = function () {
+    if (!this.text.replace(/^--.*--$/gm, '').trim()) { D.sfx('error'); this.msg = 'Nothing written yet: type what you noticed, then SAVE.'; return null; }
+    var name = H.notesName();
+    try {
+      var a = document.createElement('a'), url = URL.createObjectURL(new Blob([JSON.stringify(H.notesFile(this.text), null, 1)], { type: 'application/json' }));
+      a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(function () { URL.revokeObjectURL(url); }, 4000);
+    } catch (e) { D.sfx('error'); this.msg = 'Could not write the file: ' + e; return null; }
+    D.sfx('confirm'); this.msg = 'Saved ' + name + ' where your browser puts downloads.';
+    return name;
+  };
+  Notes.prototype.update = function () {
+    this.t++;
+    var m = I.mouse, self = this, hit = null;
+    if (m.inside) this.btns().forEach(function (b) { if (m.x >= b.x && m.x < b.x + b.w && m.y >= b.y && m.y < b.y + b.h) hit = b; });
+    this.hot = hit ? hit.id : null;
+    if (m.click && hit) { if (hit.id === 'save') self.save(); else { self.close(); } return; }
+    if (D.typing) return;
+    if (I.pressed('b') || m.rclick) this.close();
+  };
+  Notes.prototype.draw = function (ctx) {
+    var b = this.box(), self = this;
+    ctx.fillStyle = 'rgba(4,3,10,.7)'; ctx.fillRect(0, 0, D.W, D.H);
+    D.win8(ctx, b.x, b.y, b.w, b.h);
+    D.text(ctx, '{y}NOTES{/}  what did you notice? the day, the hour and the place go with it', b.x + 8, b.y + 8, D.WIN8.text);
+    this.btns().forEach(function (k) {
+      if (self.hot === k.id) { ctx.fillStyle = D.WIN8.sel; ctx.fillRect(k.x, k.y, k.w, k.h); }
+      ctx.strokeStyle = '#6e6e98'; ctx.strokeRect(k.x + 0.5, k.y + 0.5, k.w - 1, k.h - 1);
+      D.text(ctx, (k.id === 'save' ? '{y}' : '') + k.l + (k.id === 'save' ? '{/}' : ''), k.x + k.w / 2, k.y + 4, D.WIN8.text, 'center');
+    });
+    if (this.msg) D.text(ctx, this.msg, D.W / 2, b.y + b.h - 34, '#c8d0e8', 'center');
+    this.field();
+  };
+  H.Notes = Notes;
 
   // ---------------------------------------------------------------- SLOTS: three, to save into or load from
   function Slots(mode, done) { this.kind = 'houseslots'; this.mode = mode; this.done = done || null; this.i = Math.max(0, (H.slot || 1) - 1); this.msg = null; this.t = 0; this.opaque = false; }

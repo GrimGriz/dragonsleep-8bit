@@ -6,7 +6,7 @@
    A host: { fight: null | { hero, acted }, party(), guests(), pack() [{id, n}], give(id, n), take(id, n), info() { silver, renown, place,
    time, steps, pin }, canSave(), walker(h), portrait(h), whyNot(id, h), light(h) -> { id, hooded } | null, journal() | null, exits(),
    run(kind, args, done) for 'item' { id, h }, 'cast' { h, sp, t }, 'skill' { h, s, t }, 'save', 'light-off' { h }, 'exit' { to },
-   'kofi'; close() } */
+   'kofi'; close(); notes() -- a host that keeps notes, NOTES after SAVE (the second game's) } */
 'use strict';
 (function () {
   var DS = window.DS = window.DS || {}, MN = DS.MENU = {};
@@ -196,9 +196,11 @@
 
   // ------------------------------------------------------------------ the party panel, and the root
   var ENTRIES = [['ITEMS', 'items'], ['GEAR', 'gear'], ['MAGIC', 'magic'], ['SKILLS', 'skills'], ['EQUIP', 'equip'], ['STATUS', 'status'], ['ORDER', 'order'], ['JOURNAL', 'journal'], ['SAVE', 'save'], ['OPTIONS', 'options'], ['CREDITS', 'credits'], ['EXIT', 'exit']];
+  // NOTES after SAVE for a host that keeps notes (the second game's: deep16/js/house.js H.notes, 10-28, Griz: "build the notes button in"); the first game has none
+  function entriesOf(host) { return host.notes ? ENTRIES.slice(0, 9).concat([['NOTES', 'notes']], ENTRIES.slice(9)) : ENTRIES; }
   function Root(m) {
-    this.m = m; this.mode = 'cmd'; this.pick = null; this.pi = 0; this.ps = 0;
-    this.cmds = new List({ visible: ENTRIES.length, index: m.host.fight ? 4 : 0 }); // (in a fight the cursor starts on EQUIP)
+    this.m = m; this.mode = 'cmd'; this.pick = null; this.pi = 0; this.ps = 0; this.entries = entriesOf(m.host);
+    this.cmds = new List({ visible: this.entries.length, index: m.host.fight ? 4 : 0 }); // (in a fight the cursor starts on EQUIP)
     this.refresh();
   }
   // the ring's own list in a fight whose host has one (the grid's: deep16/js/ui.js gridHost fight.ring -- items, spells, skills for the hero whose turn it is), or null
@@ -211,7 +213,7 @@
   function ringPick(m, kind, e) { m.host.fight.pick(kind, e); m.close(); } // (the pick to the ring's own flow -- the aim, the tool, the command -- and back to the turn)
   Root.prototype.refresh = function () {
     var host = this.m.host, fight = !!host.fight, party = host.party(), ring = fight && !!host.fight.ring;
-    this.cmds.set(ENTRIES.map(function (e) {
+    this.cmds.set(this.entries.map(function (e) {
       var off = (e[1] === 'order' && (fight || party.length < 2)) || (e[1] === 'save' && (fight || !host.canSave())) || (e[1] === 'journal' && !host.journal) || ((e[1] === 'equip' || (ring && (e[1] === 'magic' || e[1] === 'skills'))) && fight && !host.fight.hero);
       return { label: e[0], value: e[1], disabled: off };
     }));
@@ -264,6 +266,7 @@
     if (v === 'order') { if (host.order) { m.close(); host.order(); } else m.push(new OrderPage(m)); } // (a host that sets the order on its own floor -- the grid's party token, deep16/js/roam.js: they pop out round the leader)
     if (v === 'journal') m.push(new JournalPage(m));
     if (v === 'save') m.act('save');
+    if (v === 'notes') { m.close(); host.notes(); }
     if (v === 'options') m.push(new OptionsPage(m));
     if (v === 'credits') m.push(new CreditsPage(m));
     if (v === 'exit') m.push(new ExitPage(m));
@@ -305,7 +308,7 @@
     var m = this.m, host = m.host;
     this.drawPanel(ctx);
     win(ctx, 184, 4, 70, 160);
-    this.cmds.draw(ctx, 190, 11, 58, this.mode === 'cmd' && !m.pages.length, m.t, 12);
+    this.cmds.draw(ctx, 190, 11, 58, this.mode === 'cmd' && !m.pages.length, m.t, this.entries.length > 12 ? 11 : 12); // (thirteen rows fit the window at 11)
     if (this.mode === 'pick' && !m.pages.length) {
       var ls = wrap(this.pick.title || 'WHO?', 56); win(ctx, 184, 166, 70, 14 + ls.length * 10);
       ls.forEach(function (l, i) { text(ctx, l, 191, 173 + i * 10, C.gold); });

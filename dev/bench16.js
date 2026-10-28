@@ -3137,6 +3137,50 @@
     document.body.appendChild(preX);
     return;
   }
+  // NOTES in the second game, 10-28 (mode=notes1028; js/house.js H.notes, H.trail; js/menu.js NOTES after SAVE for a host that keeps notes; Griz: "build the notes
+  // button in"): the town's M menu has NOTES, the first game's and the Pocket DM's fights none; the box stamps the day, the hour and the place; SAVE writes
+  // hero_situations_feedback-<UTC>.json with the game in it (a summary, the trail, the whole save); the trail keeps forty; the Pocket DM's file carries the slots
+  if (get('mode', '') === 'notes1028') {
+    var repN = { checks: [], errors: [] }, memN = {}, stGN = D.store.get, stSN = D.store.set, HN = D.house, aClkN = HTMLAnchorElement.prototype.click, dlN = [];
+    function okN(what, v) { repN.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function enterTopN() { var s = D.top(); if (s && s.baking) { s.baking = false; s.enter(); } return s; }
+    D.store.get = function (k) { return memN[k] ? JSON.parse(memN[k]) : null; }; D.store.set = function (k, v) { memN[k] = JSON.stringify(v); return true; };
+    HTMLAnchorElement.prototype.click = function () { dlN.push({ name: this.download, href: this.href }); };
+    window.DS.autoPicks = true;
+    try {
+      D.seed = 1028;
+      var rowsN = function (m) { return m.root.cmds.items.map(function (x) { return x.value; }); };
+      var m8 = window.DS.MENU.open({ fight: null, party: function () { return []; }, guests: function () { return []; }, pack: function () { return []; }, canSave: function () { return true; }, journal: null, run: function () {}, close: function () {} });
+      okN('the first game\'s menu as it was: twelve rows, no NOTES (' + rowsN(m8).length + ')', rowsN(m8).length === 12 && rowsN(m8).indexOf('notes') < 0);
+      HN.begin(HN.fresh(), 2); var BN = enterTopN();
+      D.ui.openMenu(BN); var mN = BN.menu.m, rN = rowsN(mN);
+      okN('the town\'s M menu: NOTES after SAVE (' + rN.join(' ') + ')', rN.indexOf('notes') === rN.indexOf('save') + 1 && rN.length === 13);
+      mN.root.go('notes');
+      var nN = D.top(), st0 = HN.stamp();
+      okN('NOTES opens the box over the town (' + (nN && nN.kind) + '), the stamp its first line: ' + st0, nN instanceof HN.Notes && nN.text.indexOf(st0) === 0 && /^-- day 1 · \d\d:\d\d \w+ · Silverton \d+,\d+ --$/.test(st0));
+      nN.draw(D.ctx || document.createElement('canvas').getContext('2d'));
+      okN('the box is a field over the canvas to type in, the game deaf while it has the focus', !!nN.el && nN.el.tagName === 'TEXTAREA' && nN.el.parentNode === document.body);
+      okN('SAVE with only the stamp writes nothing', nN.save() === null && dlN.length === 0);
+      nN.text += 'Barley stays standing in the Hex'; nN.keep();
+      HN.trail('talk', 'winters'); HN.saveTo(2);
+      var nmN = nN.save(), fN = null;
+      try { var xN = new XMLHttpRequest(); xN.open('GET', dlN[0].href, false); xN.send(); fN = JSON.parse(xN.responseText); } catch (eN) { fN = null; }
+      okN('SAVE writes ' + nmN + ': the words, the game (' + (fN && fN.game2 && fN.game2.where) + ', day ' + (fN && fN.game2 && fN.game2.day) + ', ' + (fN && fN.game2 && fN.game2.party.map(function (h) { return h.name + ' ' + h.hp; }).join(', ')) + '), the trail (' + (fN && fN.trail.map(function (e) { return e.k + ' ' + e.s; }).join('; ')) + ') and the whole save',
+        /^hero_situations_feedback-\d{4}-\d\d-\d\d-\d{4}Z\.json$/.test(nmN || '') && fN && fN.kind === 'hero-situations-feedback' && fN.v === 2 && /Barley stays standing/.test(fN.notes) && fN.game2.slot === 2 && fN.game2.party.length === 4 && fN.save && fN.save.party.length === 4 &&
+        fN.trail.some(function (e) { return e.k === 'talk' && e.s === 'winters'; }) && fN.trail.some(function (e) { return e.k === 'save' && e.s === 'slot 2'; }));
+      nN.close(); var nN2 = (HN.notes(), D.top());
+      okN('BACK takes the field away; the draft keeps, and the same place and minute is stamped once', !nN.el && nN2 instanceof HN.Notes && nN2.text.split(st0).length === 2 && /Barley stays standing/.test(nN2.text));
+      nN2.close();
+      for (var iN = 0; iN < 50; iN++) HN.trail('talk', 'n' + iN);
+      okN('the trail keeps the last ' + HN.TRAIL + ' (' + HN.cur.trail.length + ', the first now ' + HN.cur.trail[0].s + ')', HN.cur.trail.length === HN.TRAIL && HN.cur.trail[HN.TRAIL - 1].s === 'n49');
+      HN.saveTo(2); var sl = HN.read(2);
+      okN('the Pocket DM\'s notes file finds the second game\'s slot 2 (' + (sl ? HN.line(2, sl).l : 'none') + ')', !!sl && sl.trail.length === HN.TRAIL);
+    } catch (eN) { repN.errors.push(String(eN && eN.stack || eN).slice(0, 900)); }
+    D.store.get = stGN; D.store.set = stSN; HTMLAnchorElement.prototype.click = aClkN; window.DS.autoPicks = false; if (D.house) { D.house.playing = false; D.house.cur = null; }
+    var preN = document.createElement('pre'); preN.id = 'out'; preN.textContent = 'BENCH16 ' + JSON.stringify(repN);
+    document.body.appendChild(preN);
+    return;
+  }
   // THE SECOND GAME's house, 10-21 (mode=house1021; js/house.js, ..\handoff-2026-10-21-the-second-games-house.md -- RULED 10-21, Griz: "2 sounds problematic - the rest
   // sound good"): one save of its own in three slots, nothing of the Pocket DM's touched; NEW GAME walks the four in at Silverton's west gate; SAVE in town keeps the
   // square and the wounds; out by a road to THE WORLD with the same party; a road fight takes it and gives it back, XP banked and no level till the long rest; camp is

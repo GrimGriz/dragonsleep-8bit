@@ -783,7 +783,9 @@
         ladder: run ? { rung: run.trial ? 'trial' : run.rung, won: run.won || 0, map: run.map, foes: run.foes, built: !!run.plan } : null,
         dm: cp ? { purse: PD.fmt(cp.purse), units: (cp.units || []).map(function (u) { return PD.unitName(u) + ' (CR ' + PK.fmt8(PD.unitCR8(u)) + ')'; }), receipts: (cp.bought || []).map(function (r) { return r.kind; }), strike: cp.strike || [], maps: (cp.maps || []).map(function (x) { return x.id; }), modules: (cp.modules || []).map(function (m) { return m.name + ': ' + (m.slots || []).map(function (s) { return s.map + ' CR ' + PK.fmt8(PK.sum8(s.foes || [])); }).join(', '); }), marks: cp.marks || {} } : null
       },
-      fights: fights.map(function (f) { return { at: new Date(f.t).toISOString(), result: f.result, rounds: f.rounds, foes: f.foes, cr: f.cr, diff: f.diff, map: f.mapName, party: f.party, rung: f.rung, notes: f.notes || '' }; })
+      fights: fights.map(function (f) { return { at: new Date(f.t).toISOString(), result: f.result, rounds: f.rounds, foes: f.foes, cr: f.cr, diff: f.diff, map: f.mapName, party: f.party, rung: f.rung, notes: f.notes || '' }; }),
+      // the second game's three slots as last saved (10-28: his notes from playing it came through this box with none of it), each its slot line and its trail's last ten
+      secondGame: window.D16 && window.D16.house && window.D16.house.read ? [1, 2, 3].map(function (n) { var H2 = window.D16.house, r = H2.read(n); return r ? { slot: n, line: H2.line(n, r).l + '  ' + H2.line(n, r).r, at: r.at, saved: r.saved ? new Date(r.saved).toISOString() : null, trail: (r.trail || []).slice(-10) } : null; }) : null
     };
   };
   PD.feedbackName = function (d) { d = d || new Date(); var p = function (n) { return (n < 10 ? '0' : '') + n; }; return 'hero_situations_feedback-' + d.getUTCFullYear() + '-' + p(d.getUTCMonth() + 1) + '-' + p(d.getUTCDate()) + '-' + p(d.getUTCHours()) + p(d.getUTCMinutes()) + 'Z.json'; };

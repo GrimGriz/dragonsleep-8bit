@@ -470,6 +470,7 @@
   // ---------------------------------------------------------------- at a counter or a door: the screen up, the floor waiting under it (js/town.js T.fire)
   C.talk = function* (B, id, door) {
     C.shop16();
+    if (D.house && D.house.trail) D.house.trail('talk', id); // (the trail his NOTES carry: deep16/js/house.js H.trail)
     var N = ((DS.DATA || {}).npcs || {})[id] || {}, T = D.town, kp = B.roam && D.roam.def && D.roam.def.keeper && D.roam.def.keeper.id === id ? D.roam.def : null;
     var v = C.VENDORS[id] || {}, shop = (DS.DATA.shops || {})[v.shop];
     var nm = v.name || (door && door.name) || T.KEEPER['shop:' + id] || T.KEEPER['warp:' + id] || T.KEEPER['keeper:' + id] || T.KEEPER['inn:' + id] || N.name || id; // (inn: Cassia's)
