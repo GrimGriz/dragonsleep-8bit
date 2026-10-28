@@ -21,7 +21,8 @@
 
   // ================================================================== THE RUST MONSTER (SRD 5.1, srd/monsters/r.md)
   // Its rust is the fight's (RULED 10-28, Griz, on the seat's lean that the SRD's "permanent" be kept on the sheet: "yeah, we're leaving out wear, but
-  // should probably also let rust destroy stuff during the fight the way we did the ooze?"): the -1s hold for the rest of the fight -- kept on the
+  // should probably also let rust destroy stuff during the fight the way we did the ooze?", then "negative. It's not 'then' is 'else' - if the rustmonster
+  // kills it during the fight it stays dead, if it doesn't successfully finish destroying during the fight, there's no permanent damage"): the -1s hold for the rest of the fight -- kept on the
   // battle, B.rusts, by the sheet they are on and the item, so every reading in the fight takes them off (D.save.weaponOf, R.offhandDamage, R.ac: a
   // weapon swapped away and taken up again is as rusted as it was) and the next fight never sees them; a thing rusted through at the SRD's numbers --
   // a weapon at -5, armour at AC 10, a shield at +0 -- is gone off the sheet, as the gray ooze's eaten-through is (js/traits.js: `src.equip` emptied).
@@ -87,7 +88,7 @@
     if (h && id && (off || h.equip.weapon === id)) {
       var n = addRust(h, id), wn = (R().item(id) || {}).name || 'weapon';
       if (n >= MR.WEAPON_GONE) {
-        dropRust(h, id);
+        dropRust(h, id); (w.rustGone = w.rustGone || []).push(id); // (gone for good: the Pocket DM's seat too, MR.seatGone below)
         if (off) { h.equip.offhand = null; w.offhand = null; } else { h.equip.weapon = null; w.weapon = D.save.weaponOf(h); }
         B.card(['{o}' + nm(w, true) + '\'s ' + wn.toLowerCase() + ' rusts through and crumbles.{/}  {g}(gone' + (off ? '' : ': ' + w.weapon.name.toLowerCase() + ' now') + '){/}'], 300);
       } else {
@@ -132,7 +133,7 @@
     if (h && o.id) {
       var n = addRust(h, o.id), lim = MR.rustLimit(o.it), name = (o.it.name || o.slot).toLowerCase();
       if (n >= lim) {
-        dropRust(h, o.id); h.equip[o.slot] = null;
+        dropRust(h, o.id); h.equip[o.slot] = null; (w.rustGone = w.rustGone || []).push(o.id);
         w.baseAC = R().ac(h); if (o.slot === 'armor') { w.armored = R().armored(h); if (w.conds.mageArmor) w.baseAC = Math.max(w.baseAC, 13 + D.mod(w.abil.dex)); }
         B.card(['{o}' + nm(w, true) + '\'s ' + name + ' rusts away and falls from ' + (w.side === 'foe' ? 'it' : 'them') + ' in flakes: AC ' + RU.ac(w) + '.{/}  {g}(gone){/}'], 300);
       } else {
@@ -390,6 +391,59 @@
     yield* B.attack(u, held[0], u.attacks[k]);
     return true;
   }
+
+  // ================================================================== a thing rusted through stays gone: the Pocket DM's seat
+  // ("if the rustmonster kills it during the fight it stays dead", RULED 10-28): the house keeps the sheet it is gone from (js/house.js H.takeBack), the
+  // Hex hands it back gone (js/hex.js); a Pocket DM seat is built from its word every fight, so the seat remembers -- a thing from the pack worn by its
+  // GEAR comes off it (not back to the pack), a winning comes off its record, and its own kit is left off every build after (`rustGone`, handed to the
+  // build as the word's spec, js/classes.js NPC.carry) -- till the pack gives that seat another of it
+  MR.seatGone = function (st, B) {
+    ((B && B.units) || []).forEach(function (u) {
+      var m = /^p(\d+)-/.exec(u.id || ''), slot = m && st.party && st.party[+m[1]];
+      if (!slot || !u.rustGone || !u.rustGone.length) return;
+      var rec = slot.custom != null ? st.roster && st.roster[slot.custom] : slot; if (!rec) return;
+      u.rustGone.forEach(function (id) {
+        var g = slot.gear || {}, place = Object.keys(g).filter(function (k) { return String(g[k]).replace(/^off:/, '') === id; })[0];
+        if (place) { delete g[place]; return; }
+        var loot = slot.custom != null ? rec.loot || [] : slot.loot || [], li = loot.map(function (x) { return typeof x === 'string' ? x : x && x.id; }).indexOf(id);
+        if (li >= 0) { loot.splice(li, 1); return; }
+        if ((rec.rustGone || []).indexOf(id) < 0) rec.rustGone = (rec.rustGone || []).concat([id]);
+      });
+    });
+  };
+  var carry0 = D.npc.carry;
+  D.npc.carry = function (h, spec) {
+    var r = carry0.apply(this, arguments);
+    if (spec && spec.rustGone && h && h.equip) ['weapon', 'offhand', 'armor', 'shield'].forEach(function (k) { if (h.equip[k] && spec.rustGone.indexOf(h.equip[k]) >= 0) h.equip[k] = null; });
+    return r;
+  };
+  if (D.Pocket && D.pocket) {
+    var PK = D.pocket, PP = D.Pocket.prototype, done0 = PP.done, fw0 = PP.fightWords;
+    PP.done = function (res, B) { MR.seatGone(this.st, B); return done0.apply(this, arguments); };
+    PP.fightWords = function () {
+      var st = this.st, out = fw0.apply(this, arguments);
+      return out.map(function (w, i) {
+        var slot = st.party && st.party[i], rec = slot && (slot.custom != null ? st.roster && st.roster[slot.custom] : slot), gone = (rec && rec.rustGone) || [];
+        if (!gone.length) return w;
+        var keep = PK.gearIds(slot).map(function (x) { return String(x).replace(/^off:/, ''); }).concat(PK.winsOf ? PK.winsOf(st, slot) : []); // (one the pack or a win gave it since)
+        gone = gone.filter(function (id) { return keep.indexOf(id) < 0; });
+        if (!gone.length) return w;
+        var o = typeof w === 'string' ? { word: w, id: 'p' + i + '-' + String(w).split('+')[0].split(':')[0].split('.')[0].replace(/^~/, '') } : w;
+        o.rustGone = gone.slice(); return o;
+      });
+    };
+  }
+
+  // ================================================================== the enslaved knows its old party
+  // ("very yes, bench a routine for competent party betrayal behavior" and "and knowing party comp enough to hit them where it hurts the most", RULED
+  // 10-28): an enslaved hero turns its class's own tactics on its friends (Dominate's machinery), and weighs them as one who knows them -- a blow or a
+  // spell at one concentrating (its spell broken with it) or at the party's healer is worth that much more to it (js/tactics.js TX.worth, read while its
+  // turn is the class AI's). Its friends' AC and hit points the tactics read already (the odds of the hit, the kill)
+  function healer(w) { return (w.known || []).some(function (id) { return /^(curewounds|healingword|masscurewounds|masshealingword|prayerofhealing|heal)$/.test(id); }) && (w.slots || []).some(function (n) { return n > 0; }); }
+  MR.knowsWeak = function (a, w) { if (!a || !enslaved(a) || !w || w === a || w.side !== a.dominated.side0) return 1; return 1 + (w.conc ? 0.6 : 0) + (healer(w) ? 0.4 : 0); };
+  var TXr = D.tactics, worth0 = TXr.worth, tturn0 = TXr.turn;
+  TXr.worth = function (dmg, w) { var v = worth0.apply(this, arguments); return v > 0 ? v * MR.knowsWeak(MR.actor, w) : v; };
+  TXr.turn = function* (B, u) { var a0 = MR.actor; MR.actor = u; try { return yield* tturn0.apply(this, arguments); } finally { MR.actor = a0; } };
 
   // ================================================================== the turns, and the sweep
   var trTurn = D.traits.turn;

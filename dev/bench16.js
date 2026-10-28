@@ -5503,6 +5503,21 @@
       var plain = D.npc.build('fighter:3', 3, 'party'), rusted = D.npc.build({ word: 'fighter:3', rust: (function () { var r = {}; r[plain.src.equip.armor] = 2; r[plain.src.equip.weapon] = 5; return r; })() }, 3, 'party');
       okM('R11 nothing past the fight: a Pocket DM word handed a rust record builds AC ' + (rusted && rusted.baseAC) + ' with the ' + (rusted && rusted.weapon.name) + ' (want ' + plain.baseAC + ', the ' + plain.weapon.name + ': whole)', !!rusted && rusted.baseAC === plain.baseAC && rusted.weapon.id === plain.weapon.id);
 
+      // R13 a thing rusted through stays gone on a Pocket DM seat (RULED 10-28, "if the rustmonster kills it during the fight it stays dead, if it doesn't
+      // successfully finish destroying during the fight, there's no permanent damage"): a weapon from the pack, worn by the seat's GEAR, comes off the seat; its
+      // own kit's armour is left off its next build; the weapon of its kit is back (only the pack's was destroyed)
+      var st13 = { party: [{ w: 'fighter', lvl: 3, loot: [], gear: { weapon: 'longsword' } }], roster: [], pack: [] }, fw13 = null, b13 = null;
+      if (MRr.seatGone) MRr.seatGone(st13, { units: [{ id: 'p0-fighter', rustGone: ['longsword', plain.src.equip.armor] }] });
+      try { fw13 = D.Pocket.prototype.fightWords.call({ st: st13, words: function () { return ['fighter:3']; } })[0]; b13 = D.npc.build(fw13, 3, 'party'); } catch (e13) { fw13 = String(e13); }
+      okM('R13 rusted through on a Pocket DM seat: the pack\'s longsword off its GEAR ' + !(st13.party[0].gear || {}).weapon + ', its kit\'s ' + plain.src.equip.armor + ' left off ' + JSON.stringify(st13.party[0].rustGone || null) + '; the next build AC ' + (b13 && b13.baseAC) + ' with the ' + (b13 && b13.weapon.name) + ' (want true, [' + plain.src.equip.armor + '], under ' + plain.baseAC + ', the ' + plain.weapon.name + ')',
+        !(st13.party[0].gear || {}).weapon && JSON.stringify(st13.party[0].rustGone) === JSON.stringify([plain.src.equip.armor]) && !!b13 && b13.baseAC < plain.baseAC && !b13.src.equip.armor && b13.weapon.id === plain.weapon.id);
+      // R14 the antennae see by its darkvision ("and having darkvision, as SRD says"): in the dark the fighter beside it is touched; one invisible is not, nor any
+      // while it is blinded
+      at(rm, s1[0], s1[1]); at(ft, s1[0] + 1, s1[1]); ft.conds = {}; rm.conds = {}; ft.hp = 300; ft.dead = false; B1.dark = true; B1.cache = null;
+      var dk14 = (MRr.antennaeTargets ? MRr.antennaeTargets(B1, rm) : []).indexOf(ft) >= 0;
+      ft.conds.invisible = { by: ft.id }; var inv14 = (MRr.antennaeTargets ? MRr.antennaeTargets(B1, rm) : []).indexOf(ft) >= 0; delete ft.conds.invisible;
+      rm.conds.blinded = { by: 'bench' }; var bl14 = (MRr.antennaeTargets ? MRr.antennaeTargets(B1, rm) : []).indexOf(ft) >= 0; delete rm.conds.blinded; B1.dark = false; B1.cache = null;
+      okM('R14 the antennae\'s sight, darkvision ' + rm.darkvision + ' ft: in the dark the fighter beside it a target ' + dk14 + '; invisible ' + inv14 + '; the rust monster blinded ' + bl14 + ' (want 60, true, false, false)', rm.darkvision === 60 && dk14 && !inv14 && !bl14);
       // R12 "Weapon first" (RULED 10-28): its antennae at the weapon of the one that last hit it, in reach, before the nearer one's armour; with no one
       // having hit it, at the nearest one's weapon first, then the armour
       var B5 = mkM('?npc=rustmonster&vs=fighter,cleric&lvl=3'), rm5 = sideM(B5, 'foe')[0], p5 = sideM(B5, 'party'), ft5 = p5.filter(function (u) { return u.cls === 'fighter'; })[0], cl5 = p5.filter(function (u) { return u.cls === 'cleric'; })[0];
@@ -5560,6 +5575,24 @@
       var f2hp8 = f2.hp, n8b = (B2.log || []).length; pinM(15, function () { aiM(B2, c2); }); var l8b = logM(B2, n8b);
       okM('A8b the enslaved cleric\'s turn: the fighter (hurt, 150 of 300) ' + f2hp8 + ' -> ' + f2.hp + '; it ' + (/Cleric \d+[^|]*(> Fighter|on (the )?Fighter)/.test(l8b) ? 'turns on the fighter' : 'does something else (' + l8b.slice(0, 120) + ')') + ' (want no healing of the fighter)',
         c2.side === 'foe' && f2.hp <= f2hp8);
+      // A9 the traitor knows its old party ("and knowing party comp enough to hit them where it hurts the most", RULED 10-28): two clerics alike in every way
+      // beside it, one concentrating (Bless) -- the enslaved fighter, barbarian and wizard each turn on that one (or catch both in one area); the other stands first in line, where the tactics'
+      // tie would have gone
+      var B7 = mkM('?npc=aboleth&vs=fighter,barbarian,wizard,cleric,cleric&lvl=5'), ab7 = sideM(B7, 'foe')[0], p7 = sideM(B7, 'party'), cs7 = p7.filter(function (u) { return u.cls === 'cleric'; }), s7 = stripM(10), res7 = [];
+      if (!s7) throw new Error('no flat strip for A9');
+      var cA = cs7[0], cB = cs7[1], trs = ['fighter', 'barbarian', 'wizard'].map(function (c) { return p7.filter(function (u) { return u.cls === c; })[0]; });
+      onlyM(B7, [ab7, cA, cB].concat(trs)); B7.units.splice(B7.units.indexOf(cA), 1); B7.units.push(cA); // (the concentrating one last in the order)
+      trs.forEach(function (tr) {
+        [ab7, cA, cB].concat(trs).forEach(function (w) { if (MRr.freeEnslaved) MRr.freeEnslaved(B7, w); w.conds = {}; w.maxhp = w.hp = 300; w.dead = false; delete w.conc; w._dpr = null; });
+        trs.forEach(function (o) { if (o !== tr) { o.hp = 0; o.dead = true; at(o, 0, 0); } });
+        at(ab7, s7[0] + 9, s7[1]); at(tr, s7[0] + 2, s7[1]); at(cB, s7[0] + 3, s7[1]); at(cA, s7[0] + 2, s7[1] + 1); B7.cache = null;
+        MM.concentrate(B7, cA, 'bless', 'Bless', function () {}, []);
+        pinM(1, function () { runM(MRr.enslave ? MRr.enslave(B7, ab7, tr) : null); });
+        var was9 = tr.side === 'foe', nA = (B7.log || []).length; pinM(11, function () { aiM(B7, tr); }); // (an 11: its blows land on AC 18, a save against DC 14 fails -- so no hurt frees it mid-turn)
+        res7.push(tr.cls + ': the concentrating cleric 300 -> ' + cA.hp + ', the other 300 -> ' + cB.hp + (was9 ? '' : ' (not enslaved)') );
+        tr._a9 = was9 && cA.hp < 300 && (cB.hp === 300 || cB.hp < 300 && /Fireball|Burning Hands|Thunderwave|Shatter|Lightning/.test(logM(B7, nA)));
+      });
+      okM('A9 the traitor turns on the one concentrating: ' + res7.join('; ') + ' (want the concentrating cleric hurt each time, the other not -- or both caught by one area)', trs.every(function (tr) { return tr._a9; }));
       // ---- the harpy (srd/monsters/h.md)
       var B3 = mkM('?npc=harpy,harpy&vs=fighter,wizard,cleric&lvl=3'), hs = sideM(B3, 'foe'), hp1 = hs[0], hp2 = hs[1], p3 = sideM(B3, 'party'), f3 = p3.filter(function (u) { return u.cls === 'fighter'; })[0], w3 = p3.filter(function (u) { return u.cls === 'wizard'; })[0], c3 = p3.filter(function (u) { return u.cls === 'cleric'; })[0];
       var s3 = stripM(10); if (!s3) throw new Error('no flat 10 x 3 strip on the harpy\'s map');
@@ -5597,6 +5630,17 @@
       var n10 = (B6.log || []).length; pinM(1, function () { aiM(B6, hp6); }); var l10 = logM(B6, n10);
       okM('H10 a harpy with two bandits of her own and a lone cleric against her: the song ' + (/Luring Song/.test(l10) ? 'sung' : 'not sung') + '; the cleric charmed ' + !!c6.conds.charmed + ', the bandits ' + bd6.map(function (w) { return !!w.conds.charmed; }).join(' and ') + ' (want sung, true, true and true: her own side hears it too)',
         /Luring Song/.test(l10) && !!c6.conds.charmed && bd6.every(function (w) { return !!w.conds.charmed; }));
+      // H11 the song holds only humanoids and giants -- no harpy, no beast of her side -- and one a harpy holds ignores the others' songs (his "give harpies save
+      // bonus against other harpies": the SRD's "every humanoid and giant" and the block's own line cover it)
+      var B8 = mkM('?npc=harpy,harpy,wolf&vs=fighter,cleric&lvl=3'), f8 = sideM(B8, 'foe'), ha8 = f8.filter(function (u) { return u.kind === 'harpy'; }), wf8 = f8.filter(function (u) { return u.kind === 'wolf'; })[0], p8 = sideM(B8, 'party'), ft8 = p8.filter(function (u) { return u.cls === 'fighter'; })[0], cl8 = p8.filter(function (u) { return u.cls === 'cleric'; })[0], s8 = stripM(8);
+      if (!s8) throw new Error('no flat strip for H11');
+      onlyM(B8, ha8.concat([wf8, ft8, cl8])); ha8.concat([wf8, ft8, cl8]).forEach(function (w) { w.maxhp = w.hp = 300; w.conds = {}; w.flies = false; });
+      at(ha8[0], s8[0], s8[1]); at(ha8[1], s8[0], s8[1] - 1); at(wf8, s8[0], s8[1] + 1); at(ft8, s8[0] + 6, s8[1]); at(cl8, s8[0] + 7, s8[1]); B8.cache = null;
+      B8.active = ha8[0]; RM.startTurn(ha8[0]); pinM(1, function () { runM(MRr.sing ? MRr.sing(B8, ha8[0]) : null); }); B8.active = null;
+      var by1 = !!(ft8.conds.charmed && ft8.conds.charmed.by === ha8[0].id); if (MRr.freeLured) MRr.freeLured(B8, cl8);
+      var n11 = (B8.log || []).length; B8.active = ha8[1]; RM.startTurn(ha8[1]); pinM(1, function () { runM(MRr.sing ? MRr.sing(B8, ha8[1]) : null); }); B8.active = null; var l11 = logM(B8, n11);
+      okM('H11 two harpies and a wolf of theirs: after both songs the other harpy charmed ' + !!ha8[1].conds.charmed + ' / ' + !!ha8[0].conds.charmed + ', the wolf ' + !!wf8.conds.charmed + '; the fighter held by the first (' + by1 + ') still hers after the second song ' + !!(ft8.conds.charmed && ft8.conds.charmed.by === ha8[0].id) + ', no save of his in it ' + !/Fighter \d+: WIS/.test(l11) + '; the cleric, freed, the second\'s ' + !!(cl8.conds.charmed && cl8.conds.charmed.by === ha8[1].id) + ' (want false / false, false; true, true, true; true)',
+        !ha8[0].conds.charmed && !ha8[1].conds.charmed && !wf8.conds.charmed && by1 && ft8.conds.charmed && ft8.conds.charmed.by === ha8[0].id && !/Fighter \d+: WIS/.test(l11) && cl8.conds.charmed && cl8.conds.charmed.by === ha8[1].id);
       // ---- the ankheg (srd/monsters/a.md)
       var B4 = mkM('?npc=ankheg&vs=fighter,wizard&lvl=3'), an = sideM(B4, 'foe')[0], p4 = sideM(B4, 'party'), f4 = p4.filter(function (u) { return u.cls === 'fighter'; })[0], w4 = p4.filter(function (u) { return u.cls === 'wizard'; })[0];
       var s4 = stripM(6); if (!s4) throw new Error('no flat strip on the ankheg\'s map');
