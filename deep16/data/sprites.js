@@ -2729,7 +2729,7 @@
 "frames": 8,
 "fps": 8
 },
-"fly": {
+"swoop": {
 "y": 4096,
 "fw": 128,
 "fh": 128,
@@ -4239,7 +4239,7 @@
 "source": "drawn by the art desk (ART-09 FINAL SE and NE, 10-10; ART-52 REVIEW S, E and N, 10-18; ART-52 RUN REVIEW S and N walks, 10-27), cut by tools/townsfolk-sheet.py through tools/artdesk.py (10-27)"
 },
 "gargoyle_p1": {
-"image": "art/gargoyle_p1.png?v=c6f71dd3c4",
+"image": "art/gargoyle_p1.png?v=439307fcde",
 "fw": 96,
 "fh": 72,
 "ax": 48,
@@ -4282,8 +4282,17 @@
 "frames": 6,
 "fps": 8
 },
-"reveal": {
+"fly": {
 "y": 2304,
+"fw": 96,
+"fh": 72,
+"ax": 48,
+"ay": 67,
+"frames": 8,
+"fps": 10
+},
+"reveal": {
+"y": 2880,
 "fw": 96,
 "fh": 72,
 "ax": 48,
@@ -4292,7 +4301,7 @@
 "fps": 8
 },
 "flinch": {
-"y": 2880,
+"y": 3456,
 "fw": 96,
 "fh": 72,
 "ax": 48,
@@ -4301,7 +4310,7 @@
 "fps": 10
 },
 "claw": {
-"y": 3456,
+"y": 4032,
 "fw": 96,
 "fh": 72,
 "ax": 48,
@@ -4310,7 +4319,7 @@
 "fps": 10
 },
 "still": {
-"y": 4032,
+"y": 4608,
 "fw": 96,
 "fh": 72,
 "ax": 48,
@@ -4319,7 +4328,7 @@
 "fps": 4
 },
 "prone": {
-"y": 4608,
+"y": 5184,
 "fw": 96,
 "fh": 72,
 "ax": 48,
@@ -7375,7 +7384,7 @@
 }
 },
 "manticore_p1": {
-"image": "art/manticore_p1.png?v=b0866adc39",
+"image": "art/manticore_p1.png?v=d54cb3a66d",
 "fw": 160,
 "fh": 102,
 "ax": 80,
@@ -7418,8 +7427,17 @@
 "frames": 6,
 "fps": 8
 },
-"flinch": {
+"fly": {
 "y": 3264,
+"fw": 160,
+"fh": 102,
+"ax": 80,
+"ay": 90,
+"frames": 8,
+"fps": 10
+},
+"flinch": {
+"y": 4080,
 "fw": 160,
 "fh": 102,
 "ax": 80,
@@ -7428,7 +7446,7 @@
 "fps": 10
 },
 "claw": {
-"y": 4080,
+"y": 4896,
 "fw": 160,
 "fh": 102,
 "ax": 80,
@@ -7437,7 +7455,7 @@
 "fps": 10
 },
 "prone": {
-"y": 4896,
+"y": 5712,
 "fw": 160,
 "fh": 102,
 "ax": 80,
@@ -7446,7 +7464,7 @@
 "fps": 6
 },
 "tailspike": {
-"y": 5712,
+"y": 6528,
 "fw": 160,
 "fh": 102,
 "ax": 80,

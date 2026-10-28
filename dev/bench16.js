@@ -5129,6 +5129,38 @@
     document.body.appendChild(pre21);
     return;
   }
+  // a sheet's fly row played aloft (mode=fly1028; the monster cutter seat, 10-28, RULED, Griz: "1 yes"): js/ui.js UI.aloftRow -- one in the air
+  // (u.fz over its ground, G.aloft) plays `fly` in place of idle and walk, a blow stays its own row, one on the ground plays as it did; the
+  // manticore's and the gargoyle's fly rows cut, in every facing; the cloaker's flight in is its egg's `swoop`, so it does not fly aloft on it
+  if (get('mode', '') === 'fly1028') {
+    var repF = { checks: [], errors: [] };
+    function okF(what, v) { repF.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    try {
+      var Bf = D.npcFight('?npc=manticore,gargoyle,cloaker&vs=fighter&lvl=5', {}); D.battle = Bf; Bf.enter(); while (!Bf.order.length) Bf.co.next();
+      var Gf = D.grid, UIf = D.ui;
+      okF('UI.aloftRow is there', typeof UIf.aloftRow === 'function');
+      ['manticore', 'gargoyle'].forEach(function (k) {
+        var u = Bf.units.filter(function (w) { return w.kind === k; })[0], A = D.spr.anim(u.sheet, 'fly');
+        var counts = [], sh = D.SHEETS[u.sheet];
+        okF(k + ': its sheet has a fly row (' + (A ? A.frames + ' frames' : 'none') + ')', !!A && A.frames >= 4);
+        var g0 = Gf.groundAt(u, u.x, u.y), fz0 = u.fz;
+        u.fz = null;
+        okF(k + ' on the ground: idle ' + UIf.aloftRow(u, 'idle') + ', walk ' + UIf.aloftRow(u, 'walk'), UIf.aloftRow(u, 'idle') === 'idle' && UIf.aloftRow(u, 'walk') === 'walk');
+        u.fz = g0 + 4;
+        okF(k + ' aloft (' + Gf.aloft(u) + '): idle ' + UIf.aloftRow(u, 'idle') + ', walk ' + UIf.aloftRow(u, 'walk') + ', its blow ' + UIf.aloftRow(u, 'attack') + ', a flinch ' + UIf.aloftRow(u, 'flinch'),
+          Gf.aloft(u) && UIf.aloftRow(u, 'idle') === 'fly' && UIf.aloftRow(u, 'walk') === 'fly' && UIf.aloftRow(u, 'attack') === 'attack' && UIf.aloftRow(u, 'flinch') === 'flinch');
+        u.fz = fz0;
+      });
+      var cl = Bf.units.filter(function (w) { return w.kind === 'cloaker'; })[0];
+      cl.fz = Gf.groundAt(cl, cl.x, cl.y) + 4;
+      okF('the cloaker aloft keeps its idle (' + UIf.aloftRow(cl, 'idle') + '), its flight in a swoop row of its own (' + !!D.spr.anim('cloaker_p2', 'swoop') + ', fly ' + !!D.spr.anim('cloaker_p2', 'fly') + ')',
+        UIf.aloftRow(cl, 'idle') === 'idle' && !!D.spr.anim('cloaker_p2', 'swoop') && !D.spr.anim('cloaker_p2', 'fly'));
+    } catch (eF) { repF.errors.push(String(eF && eF.stack || eF).slice(0, 900)); }
+    if (errs.length) repF.errors = repF.errors.concat(errs);
+    var preF = document.createElement('pre'); preF.id = 'out'; preF.textContent = 'BENCH16 ' + JSON.stringify(repF);
+    document.body.appendChild(preF);
+    return;
+  }
   // the lamia's Intoxicating Touch (mode=touch1027; the monster cutter seat, 10-27): a melee spell attack that curses -- disadvantage on WIS saves (traits.js RU.saveDis)
   // and on every ability check (rules.js RU.checkEdges) -- and its routine's "dagger or Intoxicating Touch" (ai.js, data/foes.js `or`): the touch at one not cursed yet,
   // else the dagger. Each check failed on the code before it (no curse: the touch did nothing)

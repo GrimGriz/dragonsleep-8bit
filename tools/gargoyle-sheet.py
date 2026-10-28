@@ -9,7 +9,9 @@ HEAD 4 E, HEAD 5 N; Statue 4, Wake 6, Idle 6, Walk 8, Fly 8, Bite 6, Claws 6, Fl
 (ART-18_HEAD-2_PAGE-06_Bite.png): copied out of the received folder by the seat, each sha256 checked against the manifest.
 What each became: still <- Statue (its False Appearance: it stands so till its first turn or a wound, js/ui.js; the roper's way), reveal <-
 Wake (played as it wakes, js/ai.js), idle, walk, attack <- Bite, claw <- Claws (both blows of its Multiattack play their own row), flinch,
-hurt <- Fall (played once), prone <- Prone played backwards. Fly is NOT cut: no rule plays a fly row in a fight (it flies on its idle and
+hurt <- Fall (played once), prone <- Prone played backwards, fly <- Fly (cut 10-28, his "1 yes": a sheet's fly row plays while its unit is
+aloft, js/ui.js -- each Fly page by its numbers, beige ones the white-digit probe misses, and by its first frame against its view's Idle 1).
+Before 10-28 Fly was not cut: no rule played a fly row in a fight (it flew on its idle and
 walk), as the manticore's. Facings: the five views as drawn, SW, W and NW the mirrors of SE, E and NE.
 The boxes by the seat's draft (each page's bodies clustered into the manifest's printed bands, each frame's x its body's middle, each strip
 from 30 px over the highest foot), NE's Bite by hand (its wings touch).
@@ -31,7 +33,7 @@ def _load(name):
 pix, AD = _load('pixelate'), _load('artdesk')
 
 NAME = 'gargoyle_p1'
-FW, FH, AX, AY = 96, 72, 48, 67             # (the wings and claws 47 px each side, a raised wing 65 up)
+FW, FH, AX, AY = 96, 72, 48, 67             # (the wings and claws 47 px each side, a raised wing 65 up; its Fly within, 10-28)
 STAND = {'side': 52, 'S': 52, 'N': 52}
 
 def R(*rows):
@@ -132,22 +134,31 @@ SPEC = {
 }
 PAGES = {L: dict(p, rows=rows, xs=xs) for L, (p, (rows, xs)) in SPEC.items()}
 # four pages print a title (and a rule) across the top, its letters 75 px tall: boxed out whole (every body starts below the box)
+# the Fly pages (10-28): two lines of four, each frame by its number (beige: read by shape, not the white-digit probe); H4's title and its rule between the lines boxed out
+FLYP = {'H1P6': ('ART-18_HEAD-1_PAGE-06_Fly.png', 1536, [(5, 300, 110, 380)], [((0, 0, 1536, 477), (445, 477), [241, 591, 972, 1341]), ((0, 478, 1536, 936), (904, 936), [243, 591, 974, 1339])]),
+        'H2P5': ('ART-18_HEAD-2_PAGE-05_Fly.png', 1774, [], [((0, 0, 1774, 434), (397, 434), [219, 665, 1101, 1555]), ((0, 435, 1774, 860), (820, 860), [221, 666, 1101, 1555])]),
+        'H3P5': ('ART-18_HEAD-3_PAGE-05_Fly.png', 1536, [], [((0, 0, 1536, 473), (439, 473), [200, 576, 954, 1336]), ((0, 474, 1536, 954), (918, 954), [201, 573, 953, 1335])]),
+        'H4P5': ('ART-18_HEAD-4_PAGE-05_Fly.png', 1536, [(10, 10, 120, 90), (10, 495, 1525, 507)], [((0, 0, 1536, 493), (451, 493), [229, 597, 965, 1336]), ((0, 508, 1536, 977), (935, 977), [211, 596, 964, 1336])]),
+        'H5P5': ('ART-18_HEAD-5_PAGE-05_Fly.png', 1536, [], [((0, 0, 1536, 461), (430, 461), [202, 572, 955, 1337]), ((0, 462, 1536, 904), (869, 904), [202, 578, 956, 1346])])}
+for _L, (_f, _w, _t, ((_b1, _s1, _x1), (_b2, _s2, _x2))) in FLYP.items():
+    PAGES[_L] = dict(file=_f, W=_w, text=_t, rows=[('fly', _b1, _s1, 4), ('fly_b', _b2, _s2, 4)], xs={'fly': _x1, 'fly_b': _x2})
 HEADERS = {'H4P7': (0, 0, 4000, 120), 'H4P8': (0, 0, 4000, 240), 'H4P10': (0, 0, 4000, 250), 'H5P3': (0, 0, 4000, 80)}
 for _L, _b in HEADERS.items():
     PAGES[_L]['text'] = PAGES[_L]['text'] + [_b]
-FIX, CUTS = {}, {}
-# each view's pages, its Idle's first; Fly's left out (H1 P6, the others' P5)
-VIEWS = {'SE': ('H1P4', 'H1P2', 'H1P3', 'H1P5', 'H1P7', 'H1P8', 'H1P9', 'H1P10', 'H1P11')}
-VIEWS.update({v: tuple('H%dP%d' % (h, p) for p in (3, 1, 2, 4, 6, 7, 8, 9, 10)) for v, h in (('NE', 2), ('S', 3), ('E', 4), ('N', 5))})
+FIX = {}
+CUTS = {'H3P5': {'fly': [((752, 186), (752, 230)), ((1143, 172), (1143, 229))], 'fly_b': [((772, 625), (772, 659))]}}     # (S's Fly 2, 3 and 4 one blob, wing to wing: cut where they meet, 10-28)
+# each view's pages, its Idle's first; Fly last (H1 P6, the others' P5: cut since 10-28)
+VIEWS = {'SE': ('H1P4', 'H1P2', 'H1P3', 'H1P5', 'H1P7', 'H1P8', 'H1P9', 'H1P10', 'H1P11', 'H1P6')}
+VIEWS.update({v: tuple('H%dP%d' % (h, p) for p in (3, 1, 2, 4, 6, 7, 8, 9, 10, 5)) for v, h in (('NE', 2), ('S', 3), ('E', 4), ('N', 5))})
 WAKE = {'SE': ('H1P3', 'H1P2'), 'NE': ('H2P2', 'H2P1'), 'S': ('H3P2', 'H3P1'), 'E': ('H4P2', 'H4P1'), 'N': ('H5P2', 'H5P1')}    # (Wake page, Statue page)
 FALL = {'SE': ('H1P10', 'H1P11'), 'NE': ('H2P9', 'H2P10'), 'S': ('H3P9', 'H3P10'), 'E': ('H4P9', 'H4P10'), 'N': ('H5P9', 'H5P10')}   # (Fall page, Prone page)
 def _last(L, r):                                         # (a row's last frame: on its second band where it has one)
     rows = {x[0]: x[3] for x in PAGES[L]['rows']}
     return (r + '_b', rows[r + '_b'] - 1) if r + '_b' in rows else (r, rows[r] - 1)
 STAND_OF = {w: _last(w, 'reveal') for w, _ in WAKE.values()}
-JOINS = {r + '_b': r for r in ('still', 'reveal', 'idle', 'walk', 'attack', 'claw', 'flinch', 'hurt', 'prone')}
-ROWS = ['idle', 'walk', 'attack', 'hurt', 'flinch', 'reveal', 'claw', 'still', 'prone']
-FPS = {'idle': 6, 'walk': 10, 'attack': 10, 'hurt': 8, 'flinch': 10, 'reveal': 8, 'claw': 10, 'still': 4, 'prone': 6}
+JOINS = {r + '_b': r for r in ('still', 'reveal', 'idle', 'walk', 'attack', 'claw', 'flinch', 'hurt', 'prone', 'fly')}
+ROWS = ['idle', 'walk', 'attack', 'hurt', 'flinch', 'reveal', 'claw', 'still', 'prone', 'fly']
+FPS = {'idle': 6, 'walk': 10, 'attack': 10, 'hurt': 8, 'flinch': 10, 'reveal': 8, 'claw': 10, 'still': 4, 'prone': 6, 'fly': 10}
 
 
 def targets():
@@ -167,6 +178,20 @@ def targets():
     print('  targets: ' + ', '.join('%s %d' % (L, t[2]) for L, t in sorted(out.items())))
     return out
 
+
+# a Fly page at its view's median scale (10-28): its first frame spreads the wings flat and stands short, so the cutter's rule (that frame
+# against Idle 1) blew it up; the art desk draws a view's pages at much the same scale, so the median of the view's other pages
+FLY_PAGES = ('H1P6', 'H2P5', 'H3P5', 'H4P5', 'H5P5')
+_scales0 = AD.scales
+def _scales(cuts, views, *a, **k):
+    K = _scales0(cuts, views, *a, **k)
+    for v, ls in views.items():
+        rest = sorted(K[L] for L in ls if L not in FLY_PAGES)
+        for L in ls:
+            if L in FLY_PAGES:
+                K[L] = float(np.median(rest))
+    return K
+AD.scales = _scales
 
 def fit(img, k):
     """a page's cut at game size: premultiplied box down, a 1-px margin for the outline, snapped to the palette"""

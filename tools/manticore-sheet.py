@@ -11,8 +11,8 @@ art desk's OPEN page (ART-55-manticore-E-WALK-OPEN.zip, its last attempt: "Near 
 E walk there is -- the seat's call, his to overrule (the lane's §36).
 What each became: idle, walk, attack <- Bite (the bite plays `attack`: no row by its name), claw <- Claws (both claws of the Multiattack),
 tailspike <- Tail Volley (its three spikes leave at frame 4, as drawn), flinch, hurt <- Fall (played once), prone <- Prone played backwards.
-Fly is NOT cut: no rule on the grid plays a fly row in a fight (a flier aloft plays its idle and walk; the cloaker's fly row is its cutscene's)
--- its pages' boxes are kept in FLY below for the day one does. Facings: the five views as drawn, SW, W and NW the mirrors of SE, E and NE.
+fly <- Fly (cut 10-28, his "1 yes": a sheet's fly row plays while its unit is aloft, js/ui.js; its boxes kept in FLY below since 10-22),
+SE and NE from ART-12's walk page, S, E and N each a page of their own scaled by its first frame against the view's Idle 1. Facings: the five views as drawn, SW, W and NW the mirrors of SE, E and NE.
 Cut, scaled and placed by tools/artdesk.py. Its size (the seat's call): 58 px side-on and from the front, 62 from behind, by the art desk's
 turnaround (front 209 and three-quarter 211 px, back 228, one page) -- a Large lion with its wings, a head over the winter wolf's 52. A later page
 by its first frame against its view's Idle 1, a Fall page by its Fall 1, a Prone page by its Prone 1 against its own view's Fall 6. Two
@@ -119,7 +119,8 @@ SPEC = {
   'H5P9': (dict(file='ART-55_HEAD-5_PAGE-9.png', W=1774, text=[]), R(('prone', (0, 0, 1774, 667), (630, 664), 2, [521, 1251]))),
 }
 PAGES = {L: dict(p, rows=rows, xs=xs) for L, (p, (rows, xs)) in SPEC.items()}
-# the Fly pages, read and not cut (no rule plays a fly row in a fight yet): ART-12 each P2's first band, 8; ART-55 each P3, four lines of two
+# the Fly pages: ART-12 each P2's first band, 8; ART-55 each P3, four lines of two -- read and kept 10-22, cut 10-28 (Griz: "1 yes" to a sheet's
+# fly row played while its unit is in the air, js/ui.js)
 FLY = {'H1P2': ((0, 0, 1774, 299), (269, 296), [188, 414, 634, 853, 1070, 1276, 1478, 1668]),
        'H2P2': ((0, 0, 1774, 294), (267, 291), [166, 389, 596, 792, 999, 1216, 1433, 1642]),
        'H3P3': [((0, 0, 1536, 280), (252, 277), [460, 1046]), ((0, 281, 1536, 518), (488, 515), [461, 1062]), ((0, 519, 1536, 755), (726, 752), [460, 1069]), ((0, 756, 1536, 992), (964, 989), [458, 1071])],
@@ -127,16 +128,38 @@ FLY = {'H1P2': ((0, 0, 1774, 299), (269, 296), [188, 414, 634, 853, 1070, 1276, 
        'H5P3': [((0, 0, 1536, 282), (255, 279), [440, 1082]), ((0, 283, 1536, 506), (479, 503), [440, 1081]), ((0, 507, 1536, 738), (711, 735), [441, 1082]), ((0, 739, 1536, 985), (958, 982), [441, 1081])]}
 # each volley's three spikes to frame 4, where the art desk lets them go (a spike is a core of its own, seeded by its x: the next number was
 # nearer); E's claw streaks to the swipe they trail
+for _L, _f in FLY.items():
+    if isinstance(_f, tuple):                                    # (a band of a page cut already: its row added)
+        PAGES[_L]['rows'] = PAGES[_L]['rows'] + [('fly', _f[0], _f[1], 8)]; PAGES[_L]['xs'] = dict(PAGES[_L]['xs'], fly=_f[2])
+    else:                                                        # (a page of its own, four lines of two)
+        _n = ['fly', 'fly_b', 'fly_c', 'fly_d']
+        PAGES[_L] = dict(file='ART-55_HEAD-%s_PAGE-3.png' % _L[1], W=1536, text=[], rows=[(_n[i], bd, st, 2) for i, (bd, st, _) in enumerate(_f)],
+                         xs={_n[i]: x for i, (_, _, x) in enumerate(_f)})
 FIX = {'H1P3': {'tailspike': [((1100, 100, 1240, 210), '4')]}, 'H2P3': {'tailspike': [((1050, 25, 1110, 68), '4')]},
        'H4P5': {'claw_b': [((550, 555, 625, 692), '1')]}}
 CUTS = {}
 VIEWS = {'SE': ('H1P1', 'H1P2', 'H1P3'), 'NE': ('H2P1', 'H2P2', 'H2P3'),
-         'S': tuple('H3P%d' % i for i in (1, 2, 4, 5, 6, 7, 8, 9)), 'E': tuple('H4P%d' % i for i in (1, 2, 4, 5, 6, 7, 8, 9)),
-         'N': tuple('H5P%d' % i for i in (1, 2, 4, 5, 6, 7, 8, 9))}
+         'S': tuple('H3P%d' % i for i in (1, 2, 3, 4, 5, 6, 7, 8, 9)), 'E': tuple('H4P%d' % i for i in (1, 2, 3, 4, 5, 6, 7, 8, 9)),
+         'N': tuple('H5P%d' % i for i in (1, 2, 3, 4, 5, 6, 7, 8, 9))}
 JOINS = {r + '_b': r for r in ('idle', 'walk', 'attack', 'claw', 'tailspike', 'hurt')}
-ROWS = ['idle', 'walk', 'attack', 'hurt', 'flinch', 'claw', 'prone', 'tailspike']
-FPS = {'idle': 6, 'walk': 10, 'attack': 10, 'hurt': 8, 'flinch': 10, 'claw': 10, 'prone': 6, 'tailspike': 10}
+JOINS.update({'fly_b': 'fly', 'fly_c': 'fly', 'fly_d': 'fly'})   # (ART-55's Fly in four lines of two, one after another)
+ROWS = ['idle', 'walk', 'attack', 'hurt', 'flinch', 'claw', 'prone', 'tailspike', 'fly']
+FPS = {'idle': 6, 'walk': 10, 'attack': 10, 'hurt': 8, 'flinch': 10, 'claw': 10, 'prone': 6, 'tailspike': 10, 'fly': 10}
 
+
+# a Fly page at its view's median scale (10-28): its first frame spreads the wings flat and stands short, so the cutter's rule (that frame
+# against Idle 1) blew it up; the art desk draws a view's pages at much the same scale, so the median of the view's other pages
+FLY_PAGES = ('H3P3', 'H4P3', 'H5P3')
+_scales0 = AD.scales
+def _scales(cuts, views, *a, **k):
+    K = _scales0(cuts, views, *a, **k)
+    for v, ls in views.items():
+        rest = sorted(K[L] for L in ls if L not in FLY_PAGES)
+        for L in ls:
+            if L in FLY_PAGES:
+                K[L] = float(np.median(rest))
+    return K
+AD.scales = _scales
 
 def fit(img, k):
     """a page's cut at game size: premultiplied box down, a 1-px margin for the outline, snapped to the palette"""

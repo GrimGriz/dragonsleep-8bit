@@ -36,6 +36,8 @@
   UI.ASKS = ['idle', 'always', 'never'];
   UI.STYLES = ['ring', 'ring2', 'window'];
   try { var o0 = JSON.parse(window.localStorage.getItem('deep16.opts') || 'null'); if (o0) { if (o0.style === 'window' || o0.style === 'ring2') UI.opts.style = o0.style; if (UI.STYLES.indexOf(o0.mpStyle) >= 0) UI.opts.mpStyle = o0.mpStyle; if (o0.autoEnd === false) UI.opts.autoEnd = false; if (UI.PACES.indexOf(o0.pace) >= 0) UI.opts.pace = o0.pace; if (UI.ASKS.indexOf(o0.confirmEnd) >= 0) UI.opts.confirmEnd = o0.confirmEnd; if (UI.STYLES.indexOf(o0.menu) >= 0) UI.opts.menu = o0.menu; if (o0.scale >= 1 && o0.scale <= 9) UI.opts.scale = o0.scale | 0; } } catch (e) { }
+  // a unit in the air plays its sheet's `fly` row in place of its idle and walk (10-28, RULED, Griz: "1 yes"; the draw, unitObj; dev/bench16.js mode=fly1028)
+  UI.aloftRow = function (u, anim) { return (anim === 'idle' || anim === 'walk') && D.spr.anim(u.sheet, 'fly') && G.aloft(u) ? 'fly' : anim; };
   UI.saveOpts = function () { try { window.localStorage.setItem('deep16.opts', JSON.stringify(UI.opts)); } catch (e) { } };
   // MENU TYPE (10-09, Griz: "a default 'menu type' select that is originally 'let the map decide' and overrides the mascots using Ring2 by default if it is set to ring 1"):
   // the 8-bit title's OPTIONS (js/menu.js) sets UI.opts.menu -- unset, LET THE MAP DECIDE (the classes their style, a Mascot game its own, RING2 by default); RING, RING2
@@ -1384,8 +1386,8 @@
     var foot = zf ? Math.round((D.H / 2 + top * zf / 2 - 8) + (footNow - (D.H / 2 + top * zf / 2 - 8)) * ez) : footNow;
     if (zf) k = zf + (k - zf) * ez;
     var o = {}; if (sc.hit && t < 44 && ((t >> 2) & 1)) { o.tint = R('bone', 2); o.tintAlpha = 0.85; }
-    var anim = sc.anim && D.spr.anim(u.sheet, sc.anim) ? sc.anim : 'idle';
-    if (anim === 'attack' || anim === 'reveal' || (sc.swoop && anim === 'fly')) { o.once = true; }
+    var anim = sc.anim === 'fly' && D.spr.anim(u.sheet, 'swoop') ? 'swoop' : sc.anim && D.spr.anim(u.sheet, sc.anim) ? sc.anim : 'idle'; // (the cloaker's flight in is its `swoop` row since 10-28: `fly` is the row a flier plays aloft)
+    if (anim === 'attack' || anim === 'reveal' || (sc.swoop && (anim === 'fly' || anim === 'swoop'))) { o.once = true; }
     var tA = Math.max(0, t - (sc.animAt || 0)); // (`animAt`: the tick its animation starts from -- the reveal plays from its own first frame)
     // `swoop` (Griz, 09-29: the sheet "looks like a sequence to play at the end of the easter egg"): the figure flies in from the right,
     // growing as it comes, through its flight's eight poses, the last held -- toward whoever it is coming for, at the left
@@ -1507,6 +1509,9 @@
         // the roper stands as a stalagmite the same way till its first turn or a wound (its Still row; js/ai.js plays its Reveal then -- 10-01e)
         if (!down && !u.woken && !u.acted && anim === 'idle' && has('still')) anim = 'still';
         if (!down && anim === 'walk' && u.charge && u.turn && (u.turn.moved || 0) >= 20 && has('run')) anim = 'run';
+        // aloft (10-28, RULED, Griz: "1 yes" to a sheet's fly row played while its unit is in the air): one off the ground (u.fz, G.aloft) plays its `fly` row in
+        // place of its idle and its walk, a loop -- the manticore's and the gargoyle's; the cloaker's flight in is its egg's `swoop` row, never this
+        if (!down) anim = UI.aloftRow(u, anim);
         // climbing (10-04, Griz: "climbing poses - might use them as stand in for the edifice fight"): up a face, along a rope, or hanging on one part way,
         // a sheet with a climb row plays it (battle.js moveAlong's tween modes); one hanging still holds its first frame
         var climbing = !down && has('climb') && ((u.tween && (u.tween.mode === 'climb' || u.tween.mode === 'ropedown')) || (u.hang && G.hanging(u)));
@@ -1536,7 +1541,7 @@
         if (!down && u.conds.hidden && anim === 'idle' && has('hide')) { anim = 'hide'; o.frame = D.spr.anim(u.sheet, 'hide').frames - 1; o.once = false; }
         // the water elemental holding what it whelmed (SRD 5.1 Whelm, js/ai.js whelm): swollen round them, its Whelm row's last frame held, the hide's way (10-14)
         if (!down && anim === 'idle' && u.whelm && (u.holding || []).some(function (w) { return G.standing(w); }) && has('whelm')) { anim = 'whelm'; o.frame = D.spr.anim(u.sheet, 'whelm').frames - 1; o.once = false; }
-        if (anim === 'idle' || anim === 'walk' || anim === 'slither' || anim === 'roost' || anim === 'braid' || anim === 'run' || anim === 'still' || anim === 'climb') t =u.conds.paralyzed || u.conds.asleep ? 0 : B.t + (u.id ? u.id.length * 7 : 0);
+        if (anim === 'idle' || anim === 'walk' || anim === 'slither' || anim === 'roost' || anim === 'braid' || anim === 'run' || anim === 'still' || anim === 'climb' || anim === 'fly') t =u.conds.paralyzed || u.conds.asleep ? 0 : B.t + (u.id ? u.id.length * 7 : 0);
         // (the Harbinger risen, 10-08: once he has stood to his full height -- js/traits.js, his `ascend` row -- he stands upright between blows, on his `uprightidle` row)
         if (!down && u.upright && anim === 'idle' && has('uprightidle')) anim = 'uprightidle';
         // (held by the Harbinger's Kneel, 10-08 -- Griz: "since they're paralyzed anyway": drawn kneeling, the look only (the hold is Hold Person's paralysis). A sheet's

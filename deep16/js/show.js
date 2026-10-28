@@ -60,10 +60,11 @@
     B.units.forEach(function (u) {
       if (!u.show) return;
       var s = u.showState = u.showState || { seq: 0, anim: u.anim, down: false, prone: false }, down = u.hp <= 0 || !!u.dead;
-      if (!down && u.showSeq !== s.seq) {
+      var shownA = !down && D.ui && D.ui.aloftRow ? D.ui.aloftRow(u, u.anim) : u.anim; // (the row the draw shows: aloft, its fly row in place of idle and walk -- js/ui.js, 10-28)
+      if (!down && (u.showSeq !== s.seq || shownA !== s.anim)) {
         s.seq = u.showSeq;
-        if (u.anim && D.spr.anim(u.sheet, u.anim) && (!LOOPS[u.anim] || u.anim !== s.anim)) see(B, u, u.anim);
-        s.anim = u.anim;
+        if (shownA && D.spr.anim(u.sheet, shownA) && (!LOOPS[shownA] || shownA !== s.anim)) see(B, u, shownA);
+        s.anim = shownA;
       }
       if (down && !s.down && D.spr.anim(u.sheet, 'hurt')) see(B, u, 'hurt');
       s.down = down;
@@ -176,9 +177,12 @@
     }
     // one that has not walked by the end of its turn (a roper holds its ground and reels): a few squares toward the watchers, to see its walk --
     // a step or two for its `walk`, three squares or more for its `slither` where it has one (js/battle.js moveAlong picks the gait by the length)
-    var gaits = [['walk', 1, 2], ['slither', 3, 6]].filter(function (g) { return !seen[g[0]] && D.spr.anim(u.sheet, g[0]) && (g[0] === 'walk' || D.spr.anim(u.sheet, 'walk')); });
+    // (a flier aloft walks on its fly row since 10-28, js/ui.js: one whose walk has shown fewer than twice lands for the step -- the show's, never a rule)
+    var landFly = D.ui && D.ui.aloftRow && D.ui.aloftRow(u, 'walk') === 'fly' && (seen.walk || 0) < 2;
+    var gaits = [['walk', 1, 2], ['slither', 3, 6]].filter(function (g) { return (!seen[g[0]] || (landFly && g[0] === 'walk')) && D.spr.anim(u.sheet, g[0]) && (g[0] === 'walk' || D.spr.anim(u.sheet, 'walk')); });
     if (gaits.length && u.speed > 0 && RU.canAct(u) && !u.conds.restrained && !u.conds.prone) { // (holding someone too: a roper's tendrils reach 50 ft)
       var g = gaits[0], them = B.units.filter(function (w) { return w.side === 'party' && D.grid.standing(w) && !w.familiar; });
+      if (landFly && g[0] === 'walk') u.fz = null;
       var rm = D.grid.reach(u, Math.min(g[2] * 5 + 10, u.speed)), best = null, bd = Infinity;
       Object.keys(rm).forEach(function (k) {
         var c = rm[k]; if (!c.stand || !c.prev) return;
