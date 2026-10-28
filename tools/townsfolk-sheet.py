@@ -9,7 +9,9 @@ _src/townsfolk/ itself) HEAD 1 SE and HEAD 2 NE; ART-52 REVIEW (10-18, in _src/t
 two pages: PAGE 1 the man and the woman (Idle 4, Run 8 each), PAGE 2 the child (Idle 4, Run 8). Idle -> idle, Run -> walk; each one a look
 of its own (the art desk's note: "Each character is a separate look"). Facings: the five views as drawn, SW, W and NW the mirrors.
 The run cycles' gait is the art desk's own OPEN (ART-09 and ART-52: "Opposite-half-stride exchange is not convincingly established"): cut as
-drawn, his eye on them.
+drawn, his eye on them. ART-52 RUN REVIEW (10-27, in _src/townsfolk/ART-52/, on his "spin up a cutter for the leftovers in fresh"): a
+repair of the S, E and N Run 8, one look a strip (PAGE 3 the man, 4 the woman, 5 the child); "cutter/Griz must choose before replacing", so
+NEWRUN says which views take it (S and N), each strip scaled so its frames' median height is the old run's (`run_targets`).
 The boxes by the seat's probe (each page's bodies clustered into its rows, each frame's x its body's middle, each row's strip its white
 numbers under it; the row names boxed as text); the mask by channel (`chan` 16: the blue skirt and trousers on the navy).
 Cut, scaled and placed by tools/artdesk.py. Their size (the seat's call): the man 50 from every side (the heroes stand 49 to 54, the
@@ -58,20 +60,73 @@ SPEC = {
            R(('childidle', (0, 0, 1536, 473), (443, 473), 4, [287, 448, 612, 782]), ('childwalk', (0, 474, 1536, 746), (717, 746), 8, [289, 449, 611, 767, 937, 1099, 1262, 1431]))),
   'H5P2': (dict(file='ART-52_HEAD-5_PAGE-2.png', W=1536, text=[(31, 607, 56, 640), (32, 323, 79, 356), (50, 607, 89, 640), (73, 330, 91, 356), (73, 607, 124, 639), (86, 323, 124, 356), (129, 607, 157, 640), (131, 323, 173, 358), (150, 615, 177, 640), (167, 323, 204, 356), (172, 614, 197, 640)]),
            R(('childidle', (0, 0, 1536, 475), (446, 475), 4, [293, 448, 608, 774]), ('childwalk', (0, 476, 1536, 762), (734, 762), 8, [292, 455, 614, 776, 937, 1096, 1264, 1434]))),
+  # the art desk's run strips of 10-27 (ART-52 RUN REVIEW): one look's Run 8 a page, PAGE 3 the man, 4 the woman, 5 the child
+  'H3P3': (dict(file='ART-52_HEAD-3_PAGE-3_Man-Run8_REVIEW.png', W=2172, text=[(23, 320, 219, 362)]),
+           R(('manrun', (0, 0, 2172, 560), (523, 560), 8, [350, 575, 812, 1048, 1275, 1514, 1753, 1990]))),
+  'H3P4': (dict(file='ART-52_HEAD-3_PAGE-4_Woman-Run8_REVIEW.png', W=1881, text=[]),
+           R(('womanrun', (0, 0, 1881, 723), (615, 723), 8, [143, 378, 606, 836, 1063, 1291, 1516, 1746]))),
+  'H3P5': (dict(file='ART-52_HEAD-3_PAGE-5_Child-Run8_REVIEW.png', W=2172, text=[(22, 355, 253, 396)]),
+           R(('childrun', (0, 0, 2172, 562), (525, 562), 8, [369, 602, 830, 1065, 1304, 1538, 1777, 2020]))),
+  'H4P3': (dict(file='ART-52_HEAD-4_PAGE-3_Man-Run8_REVIEW.png', W=2172, text=[(26, 331, 216, 371)]),
+           R(('manrun', (0, 0, 2172, 548), (510, 548), 8, [348, 571, 798, 1055, 1306, 1546, 1782, 2038]))),
+  'H4P4': (dict(file='ART-52_HEAD-4_PAGE-4_Woman-Run8_REVIEW.png', W=2172, text=[(15, 357, 248, 396)]),
+           R(('womanrun', (0, 0, 2172, 584), (549, 584), 8, [362, 602, 828, 1073, 1320, 1557, 1787, 2033]))),
+  'H4P5': (dict(file='ART-52_HEAD-4_PAGE-5_Child-Run8_REVIEW.png', W=2172, text=[(15, 345, 240, 385)]),
+           R(('childrun', (0, 0, 2172, 564), (527, 564), 8, [350, 586, 814, 1061, 1317, 1552, 1781, 2028]))),
+  'H5P3': (dict(file='ART-52_HEAD-5_PAGE-3_Man-Run8_REVIEW.png', W=2172, text=[(30, 321, 238, 363)]),
+           R(('manrun', (0, 0, 2172, 563), (526, 563), 8, [366, 595, 825, 1059, 1315, 1546, 1775, 2009]))),
+  'H5P4': (dict(file='ART-52_HEAD-5_PAGE-4_Woman-Run8_REVIEW.png', W=1774, text=[(40, 230, 290, 290)]),     # (its label printed over the first figure: boxed by hand)
+           R(('womanrun', (0, 0, 1774, 694), (660, 694), 8, [145, 368, 584, 800, 1022, 1236, 1443, 1646]))),
+  'H5P5': (dict(file='ART-52_HEAD-5_PAGE-5_Child-Run8_REVIEW.png', W=1536, text=[(22, 480, 187, 512)]),
+           R(('childrun', (0, 0, 1536, 650), (622, 650), 8, [276, 442, 601, 763, 931, 1094, 1261, 1426]))),
 }
 VIEW_HEAD = {'SE': 1, 'NE': 2, 'S': 3, 'E': 4, 'N': 5}
 ROWS = ['idle', 'walk']
 FPS = {'idle': 5, 'walk': 12}
 
 
-def pages(who, page):
-    """one look's pages: each view's page with that look's two rows, renamed idle and walk"""
+RUNS = {'man': 3, 'woman': 4, 'child': 5}      # (each look's run strip, its page on HEADs 3 to 5)
+NEWRUN = {(w, v) for w in RUNS for v in ('S', 'N')}   # the views whose walk is the new strip's (never the old and the new in one look): S and N
+# for all three (they lean into the run, the old shadow blobs gone); E keeps the 10-18 profile run for all three -- the new E strips turn
+# toward SE (the art desk's own note on the man and the child, "a slight SE component" on the woman), the seat's call, his eye on it
+
+
+def pages(who, page, new=True):
+    """one look's pages: each view's page with that look's two rows, renamed idle and walk; where the view takes the 10-27 strip, its walk
+    from that page instead (the old page's walk row left out)"""
     out = {}
     for v, h in VIEW_HEAD.items():
         L = 'H%dP%d' % (h, page)
         p, (rows, xs) = SPEC[L]
         rows = [(r[len(who):], b, s, n) for r, b, s, n in rows if r.startswith(who)]
         out[L] = dict(p, rows=rows, xs={r[len(who):]: x for r, x in xs.items() if r.startswith(who)}, dir='' if h < 3 else 'ART-52')
+        if new and (who, v) in NEWRUN:
+            R_ = 'H%dP%d' % (h, RUNS[who])
+            q, (rr, xx) = SPEC[R_]
+            out[R_] = dict(q, rows=[('walk', b, s, n) for r, b, s, n in rr], xs={'walk': xx[who + 'run']}, dir='ART-52')
+            out[L]['rows'] = [r for r in out[L]['rows'] if r[0] != 'walk']
+    return out
+
+
+def run_targets(who, page, stand):
+    """a run strip scaled so its frames' median height is the old run's (the page's own run row at that page's scale): the size stays
+    as it was, only the gait changes -> artdesk's targets {L: ('walk', 0, its first frame's height)}"""
+    old = pages(who, page, new=False)
+    cuts = AD.cut(ROOT, 'townsfolk', 'ART-52', old, chan=CHAN)
+    K = AD.scales(cuts, {v: ('H%dP%d' % (h, page),) for v, h in VIEW_HEAD.items()}, stand, fit)
+    new = {L: p for L, p in pages(who, page).items() if L not in old}
+    rc = AD.cut(ROOT, 'townsfolk', 'ART-52', new, chan=CHAN)
+    out = {}
+    for L in new:
+        Lo = 'H%sP%d' % (L[1], page)
+        want = float(np.median([AD.tall(fit(im, K[Lo])) for im, _, _ in cuts[Lo]['walk']]))
+        ims = [im for im, _, _ in rc[L]['walk']]
+        lo, hi = 1.0, 20.0
+        for _ in range(26):
+            k = (lo + hi) / 2
+            lo, hi = (k, hi) if float(np.median([AD.tall(fit(im, k)) for im in ims])) > want else (lo, k)
+        out[L] = ('walk', 0, AD.tall(fit(ims[0], (lo + hi) / 2)))
+        print('  %s %s: the new run at %.2f page px a game px, its median %.0f tall as the old' % (who, L, (lo + hi) / 2, want))
     return out
 
 
@@ -100,12 +155,13 @@ def mirror(seq):
 
 def build(who, page, height):
     P = pages(who, page)
-    views = {v: ('H%dP%d' % (h, page),) for v, h in VIEW_HEAD.items()}
+    views = {v: ('H%dP%d' % (h, page),) + ((('H%dP%d' % (h, RUNS[who])),) if (who, v) in NEWRUN else ()) for v, h in VIEW_HEAD.items()}
     stand = {'side': height, 'S': height, 'N': height}
     cell = (FW, FH, AX, AY)
-    first = AD.views(ROOT, 'townsfolk', 'ART-52', P, views, stand, fit, torso_x, cell, chan=CHAN)
+    tg = run_targets(who, page, stand)
+    first = AD.views(ROOT, 'townsfolk', 'ART-52', P, views, stand, fit, torso_x, cell, chan=CHAN, targets=tg)
     ref = {'side': first['E']['idle'][0], 'S': first['S']['idle'][0], 'N': first['N']['idle'][0]}
-    d = AD.views(ROOT, 'townsfolk', 'ART-52', P, views, stand, fit, torso_x, cell, chan=CHAN, tone_ref=ref)
+    d = AD.views(ROOT, 'townsfolk', 'ART-52', P, views, stand, fit, torso_x, cell, chan=CHAN, tone_ref=ref, targets=tg)
     frames = {}
     for an in ROWS:
         frames[an] = [d['S'][an], mirror(d['SE'][an]), mirror(d['E'][an]), mirror(d['NE'][an]), d['N'][an], d['NE'][an], d['E'][an], d['SE'][an]]
@@ -122,6 +178,6 @@ if __name__ == '__main__':
         meta = json.load(open(mp))
         for an, fps in FPS.items():
             meta['anims'][an]['fps'] = fps
-        meta['source'] = 'drawn by the art desk (ART-09 FINAL SE and NE, 10-10; ART-52 REVIEW S, E and N, 10-18), cut by tools/townsfolk-sheet.py through tools/artdesk.py (10-27)'
+        meta['source'] = 'drawn by the art desk (ART-09 FINAL SE and NE, 10-10; ART-52 REVIEW S, E and N, 10-18; ART-52 RUN REVIEW S and N walks, 10-27), cut by tools/townsfolk-sheet.py through tools/artdesk.py (10-27)'
         json.dump(meta, open(mp, 'w'), indent=1)
         print('  %s: %s' % (name, ', '.join('%s %d' % (an, len(frames[an][0])) for an in ROWS)))
