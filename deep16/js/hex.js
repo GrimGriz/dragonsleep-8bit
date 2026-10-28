@@ -142,11 +142,13 @@
     1: [{ id: 'korvinSlate', at: [12, 21], face: [0, 1], fig: 'korvin' }, { id: 'talmok', at: [12, 7], face: [0, 1], kind: 'talmok' },
       { id: 'barleyBench', at: [15, 20], face: [0, 1], sheet: 'barley_p1', hire: 'barley' }, { id: 'lymenHex', at: [17, 14], face: [-1, 0], sheet: 'lymen_p1', hire: 'lymen' },
       { id: 'bartenderS', at: [6, 22], face: [1, -1] }, { id: 'bartenderE', at: [21, 8], face: [0, 1] }, { id: 'warrenspete', at: [5, 18], face: [1, 0] },
-      { id: 'hexpatron1', at: [5, 12], face: [1, 0] }, { id: 'hexpatron2', at: [17, 9], face: [-1, 1] },
+      { id: 'hexpatron1', at: [5, 12], face: [1, 0] }, { id: 'hexpatron2', at: [19, 10], face: [-1, 1] }, // (the drinker a square off Mama's hatch since 10-28: not stood in front of Higertha)
       // (10-28, Griz: "we need Higertha in the window on mama's side and consider a concessions vendor"): Higertha at Mama's hatch onto the concourse (the realm's the-hex.md:
       // "Higertha works the arena-side window -- a serving hatch in the front wall onto the concourse"), and a hired town youth at the cold-food concession's (its counter-hand
       // unnamed, the faces change: CANON 09-16b) -- each `inside` their walled room, seen through the hatch, a word had at the hatch (`hatch`) or by a click on them
-      { id: 'higertha', name: 'Higertha', at: [18, 8], hatch: [18, 9], face: [-1, 1], inside: true, sheet: 'npcdruid_p0' },
+      // (10-28 later, Griz: "higertha has the pocket DM version": her figure the Pocket DM's own -- `named`, D.npc.lookOf of her NPC.NAMED spec, js/classes.js -- and she stands
+      // behind the hatch's middle, the hatch west of the roof's log at its end, so no post stands in front of her; the wall itself her hatch, a word had across it)
+      { id: 'higertha', name: 'Higertha', at: [17, 8], face: [0, 1], inside: true, named: 'higertha' },
       { id: 'concession', name: 'the concession\'s hand', at: [6, 7], hatch: [6, 8], face: [1, 1], inside: true, kind: 'crewman' }],
     2: [{ id: 'gambler1', at: [5, 7], face: [-1, 0] }, { id: 'gambler2', at: [19, 13], face: [1, 0] }],
     // the third floor open to the party (10-28, Griz: "there's no reason the player can't go up to the town meeting and urtusk office 3rd floor"; "consider if we should have
@@ -173,7 +175,8 @@
       var n = n8[p.id] || {}; if (n.cond && !T.cond(n.cond, f, holds)) return;
       if (p.hire && party.indexOf(p.hire) >= 0) return;
       var q = p.inside ? p.at.slice() : HX.near(rows, p.at, used); if (!q) return; used[q[0] + ',' + q[1]] = 1; // (inside: on their own square behind a wall, as placed)
-      people.push({ id: p.id, at: q, face: p.face, kind: p.kind || T.KIND[n.look] || 'bandit', sheet: p.sheet || null, fig: p.fig || null, look: n.look, name: p.name || null });
+      var shN = p.named && D.npc && D.npc.NAMED && D.npc.NAMED[p.named] ? D.npc.lookOf(D.npc.NAMED[p.named]) : null; // (a named one of the Pocket DM's: the figure it gives them)
+      people.push({ id: p.id, at: q, face: p.face, kind: p.kind || T.KIND[n.look] || 'bandit', sheet: shN || p.sheet || null, fig: p.fig || null, look: n.look, name: p.name || null });
       trig.push({ id: 'talk:' + p.id, on: 'use', rect: [q[0], q[1], 1, 1], town: 'talk', npc: p.id });
       if (p.hatch) trig.push({ id: 'talk:' + p.id, on: 'use', rect: [p.hatch[0], p.hatch[1], 1, 1], town: 'talk', npc: p.id, hatch: true }); // (the hatch in the wall: E at it from the concourse)
     });
@@ -417,8 +420,8 @@
       var wallTop = function (x, z, X, Y) { return pick(L, 0.16 + NZ.vnoise(X * 0.2, Y * 0.2, 949) * 0.08, X, Y); };
       // (a hatch: open since 10-28 -- Higertha in Mama's, the concession's hand in its own -- the one behind it seen through the gap over a board sill, its shutters folded back
       // either side; his "we need Higertha in the window on mama's side and consider a concessions vendor")
-      var plaster = function (hatch) { return function (j, h, X, Y, x) { var up = 1 - j / h; if (hatch && hatch(x) && up > 0.3 && up < 0.66) { var sill = up < 0.36, frame = up > 0.62 || !hatch(x - 0.9) || !hatch(x + 0.9); return sill ? pick(L, 0.62, X, Y) : frame ? L[0] : null; } return logFace(j, h, X, Y); }; };
-      [[HX.MAMA, function (x) { return x > 29.5 && x < 34.7; }], [HX.CONC, function (x) { return x < -22.8 && x > -28.0; }]].forEach(function (pr) {
+      var plaster = function (hatch) { return function (j, h, X, Y, x) { var up = 1 - j / h; if (hatch && hatch(x) && up > 0.3 && up < 0.94) { var sill = up < 0.36, frame = up > 0.88 || !hatch(x - 0.9) || !hatch(x + 0.9); /* (a serving window up to the lintel: the one behind it seen face and all -- 10-28 later) */ return sill ? pick(L, 0.62, X, Y) : frame ? L[0] : null; } return logFace(j, h, X, Y); }; };
+      [[HX.MAMA, function (x) { return x > 25.0 && x < 30.2; }], [HX.CONC, function (x) { return x < -22.8 && x > -28.0; }]].forEach(function (pr) { // (Mama's hatch west of the log at 34.6 since 10-28: Higertha behind it, the post clear)
         var P = pr[0]; [0, 1, 2].forEach(function (i) { out.push(block(seg(P[i], P[i + 1], 0.8), HX.INWALL, wallTop, plaster(i === 1 ? pr[1] : null))); });
       });
       out.push(block(seg([-45.0, -38.0], [-35.0, -20.7], 0.6), HX.INWALL, wallTop, plaster(null)));
