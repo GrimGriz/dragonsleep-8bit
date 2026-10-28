@@ -49,14 +49,16 @@
   TV.prepare = function (m) {
     var T = TV.TS, maxZ = 0; m.sq.forEach(function (s) { maxZ = Math.max(maxZ, s.gz || 0); });
     var top = Math.max(TV.CLIFF, Math.max.apply(null, Object.keys(m.def.roofs || { x: 1 }).map(function (k) { return iso.roofPx ? iso.roofPx(m, k) : 0; }))) + maxZ + 8;
+    if (m.def.edifice) top = Math.max(top, Math.max(TV.edH(m), TV.FACEPX.tall * TV.EDFT / 20) - m.def.edifice.y0 * T + maxZ + 8); // (the Edifice's facade over the map's top rows, at either face setting)
     var W = m.w * T, H = m.h * T + top, cols = Math.ceil(W / TV.PAGE), rows = Math.ceil(H / TV.PAGE), pages = [];
     for (var i = 0; i < cols * rows; i++) pages.push({ c: i % cols, r: Math.floor(i / cols), cv: null, used: 0 });
     m.top = { y0: -top, cols: cols, rows: rows, pages: pages, tiles: {}, props: [], baked: 0, frame: 0, art: TV.artOn() };
     TV.artLoad(); // (the atlases fetched now, if they are not here yet: the floor drawn by the code till they land)
     m.bake = { canvas: { width: W, height: H }, x: 0, y: -top, top: true }; // (the camera's bounds and the zoom steps read its size: js/ui.js)
     // the standing things: every rock and roofed square, every block (crates, the stockade's posts, wells), one prop a square, sorted by row
-    m.sq.forEach(function (s) { if ((!s.open || s.block) && !(s.ch === 'y' && m.def.cots) && !TV.isHexSq(m, s)) m.top.props.push({ sq: s, depth: s.y + 0.5 + s.x * 1e-4 }); });
+    m.sq.forEach(function (s) { if ((!s.open || s.block) && !(s.ch === 'y' && m.def.cots) && !TV.isHexSq(m, s) && !TV.isEdSq(m, s)) m.top.props.push({ sq: s, depth: s.y + 0.5 + s.x * 1e-4 }); });
     if (m.def.hexagon) m.top.props.push({ hex: true, depth: m.def.hexagon.y + 0.5 }); // (the Hex, one picture: hexCanvas)
+    if (m.def.edifice) m.top.props.push({ ed: true, depth: m.def.edifice.y1 + 0.5 }); // (the Edifice, one picture in strips: TV.edStrip)
     m.top.props.sort(function (a, b) { return a.depth - b.depth; });
   };
 
@@ -302,6 +304,73 @@
     return (m.top.hex = { canvas: cv, ox: ox, oy: oy, wall: wall });
   }
 
+  // ------------------------------------------------------------------ the Edifice, drawn whole (10-28, Griz, of Silverton from above: "edifice looks like a mountain flattened
+  // at 10 ft tall"): the dwarves' building as the realm has it (deepholm-and-the-edifice.md, "The face, as the game builds it": three dwarven floors of 15 ft, the facade some
+  // 45 ft; arches every four columns along its foot, their tops at 15 ft; the fountains along the wall; the two vault doors at its foot -- planked wood, a dark X of braces
+  // corner to corner, a gold ring on a dark boss; the roof skylight glass with a stone rim and merlons, the third-floor orchard seen through it, the falls run down its middle
+  // in a channel), in place of the cliff it was drawn as. Its squares stay rock to the rules (js/town.js def.edifice). Its height is the houses' by the foot -- 45 ft where a
+  // two-floor house's face is 20 (TV.faceOf), on any face setting -- and it is painted in strips as the camera comes to them (at 5 ft a square it is 12,000 px wide)
+  TV.EDFT = 45; TV.EDSTRIP = 512;
+  TV.isEdSq = function (m, s) { var e = m.def.edifice; return !!e && s.ch === '#' && s.x >= e.x0 && s.x <= e.x1 && s.y >= e.y0 && s.y <= e.y1; };
+  TV.edH = function (m) { return Math.round(TV.faceOf(m, { ch: 'b' }) * TV.EDFT / ((D.town && D.town.ROOFS && D.town.ROOFS.b.h) || 20)); };
+  TV.edStrip = function (m, i) {
+    var top = m.top, ed = top.ed = top.ed || {}; if (ed[i]) return ed[i];
+    var e = m.def.edifice, T = TV.TS, F = m.def.ft || 30, Hf = TV.edH(m), Wt = (e.x1 - e.x0 + 1) * T, sx0 = i * TV.EDSTRIP, w = Math.max(1, Math.min(TV.EDSTRIP, Wt - sx0)), rowsH = (e.y1 - e.y0 + 1) * T, H = rowsH + Hf;
+    var cv = document.createElement('canvas'); cv.width = w; cv.height = H;
+    var cx = cv.getContext('2d'), img = cx.createImageData(w, H), px = img.data, kx = T / F, kv = Hf / TV.EDFT, L = e.fx0, Rr = e.fx0 + Wt / kx;
+    var stone = R('stone'), silver = R('silver'), moss = R('moss'), blue = R('blue'), leather = R('leather'), gold = R('gold');
+    var put = function (x, y, c) { var o = (y * w + x) * 4; px[o] = c[0]; px[o + 1] = c[1]; px[o + 2] = c[2]; px[o + 3] = 255; };
+    var mix = function (a, b, t) { return [a[0] + (b[0] - a[0]) * t | 0, a[1] + (b[1] - a[1]) * t | 0, a[2] + (b[2] - a[2]) * t | 0]; };
+    var sun = [e.ax - 260, rowsH / kx / 2], vaultR = 64; // (the Sunshaft's round west of the falls, half way back; the vault's arch v6's 128 ft)
+    for (var Y = 0; Y < H; Y++) for (var X = 0; X < w; X++) {
+      var gx = sx0 + X, u = L + gx / kx, c, n = NZ.h2(gx >> 1, Y >> 1, 1301);
+      if (Y < rowsH) { // the roof from above: the rim and its merlons, the glass over the orchard, the falls' channel down the middle, the Sunshaft's round
+        var d = (rowsH - Y) / kx, de = Math.min(u - L, Rr - u);
+        if (d < 6 || de < 6) { var mer = d < 6 && Math.floor(u / 6) % 2 === 0; c = NZ.rampPick(silver, (mer ? 0.62 : 0.32) + n * 0.1 - (d < 6 && d > 4.8 ? 0.2 : 0) - (de < 6 && de > 4.8 ? 0.2 : 0), gx, Y); } // (the stone rim, the merlons along its front)
+        else if (Math.abs(u - e.ax) < 5) c = NZ.h2(gx, Y, 1302) > 0.97 ? silver[5] : NZ.rampPick(blue, 0.3 + NZ.vnoise(u * 0.3, d * 0.6, 1303) * 0.3, gx, Y); // (the falls, run down the orchard)
+        else if (Math.abs(u - e.ax) < 6.5) c = NZ.rampPick(stone, 0.45, gx, Y); // (the channel's banks)
+        else {
+          var sd = Math.hypot(u - sun[0], d - sun[1]), cu = Math.floor(u / 20), cd = Math.floor(d / 20), jt = NZ.h2(cu, cd, 1304), tu = cu * 20 + 10 + (jt - 0.5) * 4, td = cd * 20 + 10 + (NZ.h2(cd, cu, 1305) - 0.5) * 4;
+          var du = u - tu, dd = d - td, tr = 6 + jt * 1.5, td2 = Math.hypot(du, dd), under; // (the orchard: a tree to each 20 ft, in rows, its crown lit from the north-west)
+          under = sd < 12 ? stone[0] : sd < 14 ? stone[3] : td2 < tr ? (td2 > tr - 1 / kx ? moss[0] : du - dd < -tr * 0.35 ? mix(moss[2], gold[3], 0.25) : du - dd > tr * 0.45 ? moss[0] : moss[1]) : td2 < tr + 1.5 && du - dd > 0 ? moss[0] : mix(NZ.rampPick(moss, 0.55 + NZ.vnoise(u * 0.04, d * 0.04, 1306) * 0.4, gx, Y), gold[2], 0.12); // (the Sunshaft's hole and its rim; a crown, its shade on the grass; the grass)
+          c = mix(under, silver[3], 0.2); // (the glass over it, a pale tint)
+          var pane = Math.max(4, Math.round(12 * kx)); if (gx % pane === 0 || Y % pane === 0) c = mix(c, silver[4], 0.5); // (each pane's edge, thin silver)
+          if (((gx + Y) % 160) < 3) c = mix(c, silver[5], 0.3); // (a gloss across the panes)
+        }
+      } else { // the facade: ashlar, pilasters, two string courses, the arcade at its foot, the windows, the merlons, the vault's doors, the fountains' spouts
+        var j = Y - rowsH, h = (Hf - j) / kv, b = Math.floor((u - L) / 24), bu = (u - L) - b * 24, mid = L + b * 24 + 12, dv = u - e.ax;
+        var course = (h % 3) < 1 / kv, joint = ((bu + (Math.floor(h / 3) % 2) * 3) % 6) < 1 / kx; // (the ashlar's courses every 3 ft, its joints staggered: a pixel's line)
+        c = NZ.rampPick(silver, 0.5 + n * 0.08 - (course || joint ? 0.14 : 0) - (1 - h / TV.EDFT) * 0.12, gx, Y);
+        if (bu < 2.5) c = NZ.rampPick(silver, bu > 2 ? 0.3 : 0.66, gx, Y); // (a pilaster, its shadowed edge east)
+        if (Math.abs(h - 15) < 0.7 || Math.abs(h - 30) < 0.7) c = h > 15 && h < 15.3 || h > 30 && h < 30.3 ? silver[5] : NZ.rampPick(silver, 0.25, gx, Y); // (the string courses)
+        if (h > 41) { var mr = Math.floor(u / 6) % 2 === 0; c = mr ? NZ.rampPick(silver, h > 44 ? 0.7 : 0.55, gx, Y) : NZ.rampPick(stone, 0.3, gx, Y); } // (the merlons along the top)
+        var wy = h > 19 && h < 26 ? [19, 26] : h > 33 && h < 39 ? [33, 39] : null; // (a window on the second floor and the third, its frame)
+        if (wy && bu > 10 && bu < 14) c = bu < 10 + 1 / kx || bu > 14 - 1 / kx || h < wy[0] + 1 / kv || h > wy[1] - 1 / kv ? silver[2] : NZ.rampPick(blue, 0.12 + ((gx + Y) % 7 === 0 ? 0.2 : 0), gx, Y);
+        if (b % 4 === 2 && bu > 2.5 && Math.abs(dv) > vaultR + 4) { var rr = Math.abs(u - mid) / 9.5; if (h < 15 - 4 * rr * rr) c = h > 14.2 - 4 * rr * rr ? silver[5] : NZ.rampPick(stone, 0.05 + (h / 15) * 0.1, gx, Y); } // (an arch of the arcade at the foot, every fourth bay)
+        if (Math.abs(dv) < vaultR) { // the vault's great arch and its two doors
+          var vr = Math.abs(dv) / vaultR, archTop = 30 - 8 * vr * vr;
+          if (h < archTop) {
+            c = h > archTop - 1 ? silver[5] : NZ.rampPick(stone, 0.06, gx, Y);
+            var lf = Math.abs(dv) > 3 && Math.abs(dv) < 52 && h < 24; if (lf) {
+              var la = dv < 0 ? -52 : 3, lb = dv < 0 ? -3 : 52, fu = (dv - la) / (lb - la), fh = h / 24, brace = Math.abs(fu - fh) < 0.035 || Math.abs(fu - (1 - fh)) < 0.035, cu = (la + lb) / 2, ring = Math.hypot(dv - cu, h - 12);
+              c = brace ? leather[0] : NZ.rampPick(leather, 0.32 + ((Math.abs(dv) % 3) < 0.35 ? -0.18 : 0) + n * 0.06, gx, Y); // (planks, the X of braces)
+              if (ring < 1.3) c = stone[0]; else if (ring < 2.6 && ring > 1.9) c = gold[4]; // (a gold ring on a dark boss)
+            }
+          }
+        }
+        e.fount.forEach(function (fx) { // a fountain: a spout in a carved boss at 12 ft, its water poured down the wall into the basin at the foot
+          var df = Math.abs(u - fx); if (df > 8) return;
+          if (Math.hypot(u - fx, h - 12) < 3.2) c = Math.hypot(u - fx, h - 12) < 1.1 ? stone[0] : silver[5];
+          else if (df < 1.4 && h < 11) c = NZ.h2(gx, Y >> 1, 1306) > 0.9 ? silver[5] : NZ.rampPick(blue, 0.45 + (df < 0.5 ? 0.25 : 0), gx, Y);
+          if (h < 2.2 && df < 7) c = h > 1.7 ? silver[5] : NZ.rampPick(stone, 0.4, gx, Y);
+        });
+      }
+      put(X, Y, c);
+    }
+    cx.putImageData(img, 0, 0);
+    return (ed[i] = cv);
+  };
+
   // ------------------------------------------------------------------ THE ART (10-22, the top tiles seat, on Griz's "art 111-113 are in to see if we can give the top down
   // something to work with"): the art desk's tiles and props for Silverton, the Guano Mine's top levels and the Glowseep (deep16-art-wanted.md section 21), cut by
   // tools/toptiles-sheet.py, minetiles-sheet.py and seeptiles-sheet.py into three atlases (data/sprites.js: each piece's box by its name, `tiles`). A square takes the
@@ -318,7 +387,7 @@
   }
   TV.artOn = function () { return TV.ART.on && !!atlases(); };
   TV.artLoad = function () { if (!TV.ART.on || !D.spr || !D.spr.load) return; TV.ART.sheets.forEach(function (n) { var sh = D.SHEETS && D.SHEETS[n]; if (sh) D.spr.load(sh.image); }); };
-  TV.repaint = function (m) { var t = m.top; t.pages.forEach(function (p) { p.cv = null; }); t.baked = 0; t.tiles = {}; t.stand = {}; t.hex = null; t.kinds = null; if (m.def.onArt) m.def.onArt(m); }; // (onArt: a floor's own things made again -- the Hex's, js/hex.js)
+  TV.repaint = function (m) { var t = m.top; t.pages.forEach(function (p) { p.cv = null; }); t.baked = 0; t.tiles = {}; t.stand = {}; t.hex = null; t.ed = null; t.kinds = null; if (m.def.onArt) m.def.onArt(m); }; // (onArt: a floor's own things made again -- the Hex's, js/hex.js)
   // the place's own atlas first (Silverton's cliff and the mines' share a name)
   TV.place = function (m) { var d = m.def; return d.room ? 'room' : d.key === 'glowseep' ? 'seep' : d.mine ? 'mine' : 'town'; };
   var FIRST = { town: 'toptiles_p1', room: 'toptiles_p1', mine: 'minetiles_p1', seep: 'seeptiles_p1' }, PC = {};
@@ -605,7 +674,7 @@
     // the standing things in the rows the view shows (a tall one below the view may reach up into it), the map's own props and the frame's figures among them by row
     var g0 = iso.toScreen(0, 0), gyLo = Math.floor((-g0.y / z) / T) - 1, gyHi = Math.ceil(((vh - g0.y) / z + TV.CLIFF + 80) / T) + 1;
     var list = [];
-    top.props.forEach(function (pp) { if (pp.hex) list.push({ d: pp.depth, hex: true }); else if (pp.sq.y >= gyLo && pp.sq.y <= gyHi) list.push({ d: pp.depth, stand: pp.sq }); });
+    top.props.forEach(function (pp) { if (pp.hex) list.push({ d: pp.depth, hex: true }); else if (pp.ed) list.push({ d: pp.depth, ed: true }); else if (pp.sq.y >= gyLo && pp.sq.y <= gyHi) list.push({ d: pp.depth, stand: pp.sq }); });
     (m.props || []).forEach(function (pp) { if (pp.draw || (pp.img && pp.kind !== 'rock' && pp.kind !== 'block' && pp.kind !== 'stone' && pp.kind !== 'tile')) list.push({ d: pp.sq ? pp.sq.y + 0.55 + pp.sq.x * 1e-4 : pp.depth, prop: pp }); });
     (objs || []).forEach(function (ob) { var u = ob.unit; list.push({ d: u ? u.y + 0.6 + u.x * 1e-4 + (ob.depth % 1) * 1e-3 : ob.depth != null && ob.depth < 0 ? -1 : 1e6 + (ob.depth || 0), obj: ob }); });
     list.sort(function (a, b) { return a.d - b.d; });
@@ -618,6 +687,14 @@
     var hall = m.def.mine ? (top.hall || (top.hall = TV.hallways(m))) : null;
     list.forEach(function (it) {
       if (it.obj) { it.obj.draw(ctx); return; }
+      if (it.ed) { // (the Edifice: its strips in view, the picture's foot on its last row's south edge)
+        var e = m.def.edifice, Hf = TV.edH(m), eW = (e.x1 - e.x0 + 1) * T, gq0 = m.at(Math.max(0, Math.min(m.w - 1, Math.round((e.x0 + e.x1) / 2))), Math.max(0, e.y1)), eg = gq0 ? gq0.gz : 0;
+        for (var si = 0; si * TV.EDSTRIP < eW; si++) {
+          var ea = iso.toScreen(e.x0 * T + si * TV.EDSTRIP, e.y0 * T - eg - Hf), esw = Math.min(TV.EDSTRIP, eW - si * TV.EDSTRIP) * z; if (ea.x >= vw || ea.x + esw <= 0 || ea.y >= vh) continue;
+          var stp = TV.edStrip(m, si); ctx.drawImage(stp, ea.x, ea.y, stp.width * z, stp.height * z);
+        }
+        return;
+      }
       if (it.hex) { var hx = m.def.hexagon, hp = hexCanvas(m), gq = m.at(Math.floor(hx.x), Math.floor(hx.y)), hg = gq ? gq.gz : 0, ha = iso.toScreen(hx.x * T - hp.ox, hx.y * T - hg - hp.wall - hp.oy); ctx.drawImage(hp.canvas, ha.x, ha.y, hp.canvas.width * z, hp.canvas.height * z); return; }
       if (it.prop) { var pp = it.prop; if (pp.draw) { pp.draw(ctx); return; } var c0 = iso.center(pp.sq.x, pp.sq.y, pp.gz || 0), s0 = iso.toScreen(c0.x, c0.y); ctx.drawImage(pp.img.canvas, s0.x - pp.img.ax * z, s0.y - pp.img.ay * z, pp.img.canvas.width * z, pp.img.canvas.height * z); return; }
       var s = it.stand, pic = standCanvas(m, s); if (pic.skip) return; var a = iso.toScreen(s.x * T - (pic.ox || 0), s.y * T - s.gz - pic.h); // (ox: a prop wider than its square, the art's)

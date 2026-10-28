@@ -114,7 +114,7 @@
       var o = BOX.filter(function (z) { return z.tag === tg; })[0], ph = o ? null : T.pinHouse(d.id), m = o ? o.b : [pinOf(d)[0], pinOf(d)[1] + ph.dy], gx = gxOf(m[0]), gy = gyOf(m[1]); // (a box's middle; a pin's own building's)
       if ('.,='.indexOf(at(gx, gy) || '#') >= 0) { tag = tg; set(gx, gy, o ? o.ch : ph.ch); tag = null; sl[gy * w + gx] = 3; } // (one square: all ridge)
     });
-    fill(V.EDW[0], T.Y0, V.EDW[1], V.EDBOT, function () { return true; }, '#'); // (the Edifice: the dwarves' facade in the mountain's face, drawn as the cliff it stands in)
+    fill(V.EDW[0], T.Y0, V.EDW[1], V.EDBOT, function () { return true; }, '#'); // (the Edifice: the dwarves' building in the mountain's face, its squares closed as rock -- drawn whole as the building since 10-28, def.edifice: js/topview.js TV.edStrip)
     // the fountains at the Edifice's foot: a pool in a dressed rim (v6: the basin 30 ft across the rim, 22 the water)
     V.FOUNT.forEach(function (x) { ellipse(x, V.EDBOT + 26, Math.max(30, F * 0.75), Math.max(30, F * 0.75), '='); ellipse(x, V.EDBOT + 26, Math.max(22, F * 0.55), Math.max(22, F * 0.55), '~'); });
     // the headframes: the spoil heap, the mouth on it
@@ -348,6 +348,7 @@
       heights: L.heights.slice(oy, oy + h).map(function (r) { return r.slice(ox, ox + w); }),
       signDoor: (function () { var o = {}, ic = {}; ((npc8 && npc8.triggers) || []).forEach(function (t) { if (t.icon) ic[t.id] = 1; }); Object.keys(M.doors).forEach(function (id) { var q = M.doors[id]; if (!q || !ic[id]) return; var x = q[0] - ox, y = q[1] - 1 - oy; if (x >= 0 && y >= 0 && x < w && y < h) o[x + ',' + y] = id; }); return o; })(), // (whose door each sign hangs over: its store named on a mouseover, T.signName)
       signs: (function () { var o = {}, ic = {}; ((npc8 && npc8.triggers) || []).forEach(function (t) { if (t.icon) ic[t.id] = t.icon; }); Object.keys(M.doors).forEach(function (id) { var q = M.doors[id]; if (!q || !ic[id]) return; var x = q[0] - ox, y = q[1] - 1 - oy; if (x >= 0 && y >= 0 && x < w && y < h) o[x + ',' + y] = ic[id]; }); return o; })(), // (the 8-bit's sign over each door that had one, on the wall above the threshold: js/topview.js)
+      edifice: (function () { var V6 = D.TOWN_V6, F6 = L.F, e = { x0: Math.floor((V6.EDW[0] - T.X0) / F6) - ox, y0: -oy, x1: Math.floor((V6.EDW[1] - T.X0) / F6) - ox, y1: Math.floor((V6.EDBOT - T.Y0) / F6) - oy }; if (e.x1 < 0 || e.x0 >= w || e.y1 < 0) return null; e.fx0 = T.X0 + (e.x0 + ox) * F6; e.ax = V6.AX; e.fount = V6.FOUNT.slice(); return e; })(), // (the Edifice's squares, drawn whole as the building: js/topview.js TV.edStrip -- 10-28)
       hexagon: (function () { var hx6 = D.TOWN_V6.hexagon; return { x: (hx6[0] - T.X0) / L.F - ox, y: (hx6[1] - T.Y0) / L.F - oy, r: hx6[2] / L.F }; })(), // (the Hex drawn whole: js/topview.js hexCanvas)
       faceDoors: (function () { var o = {}; Object.keys(L.faceDoors || {}).forEach(function (k) { var a = k.split(','), x = +a[0] - ox, y = +a[1] - oy; if (x >= 0 && y >= 0 && x < w && y < h) o[x + ',' + y] = 1; }); return o; })(), // (every building's south door, drawn: js/topview.js)
       ft: L.F, roofs: T.roofsAt(L.F), slope: L.slope.slice(oy, oy + h).map(function (r) { return r.slice(ox, ox + w); }), // (its buildings stand whole under their roofs, two sides and a ridge: js/iso.js roofCanvas)

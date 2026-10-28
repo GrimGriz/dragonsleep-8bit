@@ -3491,6 +3491,22 @@
       D.text = text0;
       okHn('the mouse on a store\'s sign, or its door under it, names it over the screen: ' + signOk.length + ' of 13 (' + signOk.join(', ') + ')' + (signBad.length ? ' -- not: ' + signBad.join('; ') : '') + '; on the street at the token, nothing (' + JSON.stringify(tipBare) + ')',
         Object.keys(sdN).length === 13 && signOk.length === 13 && !tipBare);
+      // THE EDIFICE AS THE BUILDING IT IS (his "edifice looks like a mountain flattened at 10 ft tall"): its squares no longer stand as rock; one picture -- the glass over the
+      // orchard, a stone rim, the facade 45 ft where a two-floor house's face is 20, on either face setting; the vault's doors at the vault's threshold; and at 5 ft a square
+      // its strips each a canvas the browser can hold
+      var eN = mN.def.edifice, edRock = mN.top.props.filter(function (p) { return p.sq && eN && TVn.isEdSq && TVn.isEdSq(mN, p.sq); }).length, edPic = mN.top.props.filter(function (p) { return p.ed; }).length, rockIn = 0;
+      if (eN) for (var ey = eN.y0; ey <= eN.y1; ey++) for (var ex = eN.x0; ex <= eN.x1; ex++) { var es = mN.at(ex, ey); if (es && es.ch === '#') rockIn++; }
+      okHn('the Edifice\'s squares (' + (eN ? eN.x0 + '..' + eN.x1 + ' by ' + eN.y0 + '..' + eN.y1 : 'none') + ', ' + rockIn + ' closed to the rules) drawn as one picture (' + edPic + '), none of them as the mountain\'s rock (' + edRock + ')', !!eN && rockIn > 100 && edPic === 1 && edRock === 0);
+      var art0 = TVn.ART.tall, on0 = TVn.artOn, hHouse = TVn.faceOf(mN, { ch: 'b' }), hEd = TVn.edH(mN); TVn.artOn = function () { return true; }; TVn.ART.tall = true; var hHouse2 = TVn.faceOf(mN, { ch: 'b' }), hEd2 = TVn.edH(mN); TVn.ART.tall = art0; TVn.artOn = on0; // (the code's faces here; the art's tall faces the other)
+      okHn('its facade 45 ft by the houses\' measure: ' + hEd + ' px where a two-floor house\'s face is ' + hHouse + ' (the other face setting: ' + hEd2 + ' to ' + hHouse2 + ')', Math.abs(hEd - hHouse * 45 / 20) <= 1 && Math.abs(hEd2 - hHouse2 * 45 / 20) <= 1);
+      var pxOf = function (cv, x, y, r) { var d0 = cv.getContext('2d').getImageData(Math.max(0, x - r), Math.max(0, y - r), 2 * r + 1, 2 * r + 1).data, s0 = [0, 0, 0], k0 = 0; for (var q = 0; q < d0.length; q += 4) { s0[0] += d0[q]; s0[1] += d0[q + 1]; s0[2] += d0[q + 2]; k0++; } return s0.map(function (v) { return Math.round(v / k0); }); }, kxN = TSn / (mN.def.ft || 30), rowsHN = (eN.y1 - eN.y0 + 1) * TSn;
+      var atFt = function (u, yPx, r) { var gx0 = Math.round((u - eN.fx0) * kxN), si0 = Math.floor(gx0 / TVn.EDSTRIP); return pxOf(TVn.edStrip(mN, si0), gx0 - si0 * TVn.EDSTRIP, yPx, r || 0); }, hAt = function (ft) { return rowsHN + Math.round(hEd * (1 - ft / 45)); }; // (a facade's row by its feet above the foot)
+      var glassN = atFt(eN.ax - 130, Math.round(rowsHN * 0.4), 4), rimN = atFt(eN.ax - 130, rowsHN - 2), doorN = atFt(eN.ax - 35, hAt(6)), wallN = atFt(eN.ax - 190, hAt(6));
+      okHn('the roof: the orchard green under the glass (' + glassN + '), the stone rim at its front (' + rimN + '); the facade: a vault door\'s planks at the vault (' + doorN + ') against the dressed stone (' + wallN + ')',
+        glassN[1] > glassN[0] && glassN[1] > glassN[2] && Math.abs(rimN[0] - rimN[2]) < 60 && rimN[1] < rimN[0] + 40 && doorN[0] > doorN[2] + 15 && Math.abs(wallN[0] - wallN[2]) < 50);
+      var def5 = THn.floor('?ft=5', {}), m5 = isoN.load(def5), e5 = m5.def.edifice, w5 = (e5.x1 - e5.x0 + 1) * TSn, n5 = Math.ceil(w5 / TVn.EDSTRIP), s5 = TVn.edStrip(m5, n5 - 1), s5a = TVn.edStrip(m5, Math.floor(n5 / 2));
+      okHn('at 5 ft a square: ' + w5 + ' px wide in ' + n5 + ' strips, each ' + s5a.width + ' x ' + s5a.height + ' (the last ' + s5.width + '): canvases a browser holds', n5 > 20 && s5a.width === TVn.EDSTRIP && s5a.height < 4096 && s5.width === w5 - (n5 - 1) * TVn.EDSTRIP);
+      isoN.load(D.roam.def);
     } catch (eHn) { repHn.errors.push(String(eHn && eHn.stack || eHn).slice(0, 900)); }
     D.store.get = stGHn; D.store.set = stSHn; if (D.house) { D.house.playing = false; D.house.cur = null; }
     var preHn = document.createElement('pre'); preHn.id = 'out'; preHn.textContent = 'BENCH16 ' + JSON.stringify(repHn);
