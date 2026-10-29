@@ -76,11 +76,11 @@
   };
   // the move at a layer z: the squares it may end on, as G.reach's map -- flown level at the higher of where it is and z (it rises first, or sinks last), the rise or the sink
   // in each cost; an end square only where its ground is not above z. Its own square too, for a rise or a sink in place
-  G.flyReach = function (u, z, budget) {
+  G.flyReach = function (u, z, budget, o) { // (o: G.reach's -- `fearless`, the squares a frightened flier's fear refuses: js/ui.js fearSquares)
     var cur = G.gzAt(u, u.x, u.y), tr = Math.max(cur, z), v = G.feetUp(z - cur), f0 = u.fz, out = {};
     if (v > budget) return out;
     u.fz = tr;
-    try { var rm = G.reach(u, budget - v); } finally { u.fz = f0; }
+    try { var rm = G.reach(u, budget - v, o); } finally { u.fz = f0; }
     Object.keys(rm).forEach(function (k) {
       var e = rm[k], st = e.stand && G.groundAt(u, e.x, e.y) <= z;
       // (sinking last, its body must be free where it ends -- at z, not only at the height it flew over at: 10-08, the flight bench, a giant bat flying in high sank onto
@@ -159,6 +159,11 @@
   G.stepCost = function (u, x0, y0, x1, y1, o) {
     if (!G.canPass(u, x1, y1, o)) return Infinity;
     if (G.shellBars && !(o && o.ghost) && G.shellBars(u, x0, y0, x1, y1)) return Infinity; // (an Antilife Shell: js/walls.js)
+    // frightened (SRD): not one step nearer the one it fears, while that one stands (o.fearless: reckoned without it -- the squares it refuses, js/ui.js fearSquares). Before
+    // the fliers' returns and the ghost's walk below, so a winged or an ethereal mover is held too (10-29 later: it stood after them, and a frightened flier closed on what it
+    // feared -- the grid-UI seat's find, his "go with Grid's leans"; dev/bench16.js gridclicks1029 1b)
+    var fr = u.conds && u.conds.frightened;
+    if (fr && fr.by && !(o && o.fearless)) { var src = G.units.filter(function (w) { return w.id === fr.by; })[0]; if (src && G.standing(src) && G.dist(u, src, x1, y1) < G.dist(u, src, x0, y0)) return Infinity; }
     if (u.fz != null && G.winged(u)) return G.groundAt(u, x1, y1) > u.fz || (!u.floats && u.fz > G.ceilAt(u, x1, y1)) ? Infinity : 5; // (and not up into a lower ceiling: a map's `skies`, 10-13) // (holding a layer: level over anything lower, not into anything higher -- flight at a height, 10-08)
     if (u.floats && G.winged(u)) return G.groundAt(u, x1, y1) - G.groundAt(u, x0, y0) > G.LAYER() ? Infinity : 5; // (a floater: up one layer at most, down any -- it hovers, RULED 10-06)
     if (G.winged(u)) return 5; // (a flier -- a familiar owl or bat: no ledge too high, no ground slows it; a held one is restrained -- a grapple is one here, battle.js -- no `grappled` key to read)
@@ -171,9 +176,6 @@
     var dx = x1 - x0, dy = y1 - y0;
     if (dx && dy && !footWalkable(u, x0 + dx, y0, true) && !footWalkable(u, x0, y0 + dy, true)) return Infinity; // no squeezing between two rocks at a corner
     if (o && o.ghost) return 5;
-    // frightened (SRD): not one step nearer the one it fears, while that one stands (o.fearless: reckoned without it -- the squares it refuses, js/ui.js fearSquares)
-    var fr = u.conds && u.conds.frightened;
-    if (fr && fr.by && !(o && o.fearless)) { var src = G.units.filter(function (w) { return w.id === fr.by; })[0]; if (src && G.standing(src) && G.dist(u, src, x1, y1) < G.dist(u, src, x0, y0)) return Infinity; }
     var f = G.foot(u, x1, y1);
     // a creature bound to its ground (the otyugh will not leave its pool: bound '~') moves only there, and not slowed by it
     if (u.bound) { for (var j = 0; j < f.length; j++) if (u.bound.indexOf(G.map.at(f[j][0], f[j][1]).ch) < 0) return Infinity; }

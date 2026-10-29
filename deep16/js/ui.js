@@ -167,15 +167,16 @@
   }
   // FRIGHTENED (SRD 5.1: "can't willingly move closer to the source of its fear" -- grid.js G.stepCost): the squares this turn's move, or its dash, would reach but for the
   // fear -- exactly the ones the rule refuses -- drawn in the fear's own colour, the {p} its tag shows in (10-29, his "when can't go to square because frightened, highlight in
-  // frightened color"). { 'x,y': step } -- none while the one it fears is down or gone, for a flier at a height (the fear is a walker's there), or held fast
+  // frightened color"). { 'x,y': step } -- none while the one it fears is down or gone, or held fast; a flier's at its layer, by its flight (G.flyReach -- the fear holds a
+  // flier too since 10-29 later, grid.js G.stepCost)
   var FEAR_COL = '#f878f8';
   function fearOf(B, u) { var fr = u.conds && u.conds.frightened, src = fr && fr.by ? B.units.filter(function (w) { return w.id === fr.by; })[0] : null; return src && G.standing(src) ? src : null; }
   function fearSquares(B, u) {
     var rc = reachCache(B, u);
     if (rc.fear) return rc.fear;
     rc.fear = {};
-    if (!fearOf(B, u) || rc.layer != null || u.conds.restrained) return rc.fear;
-    var all = G.reach(u, u.turn.move + (rc.dash ? u.speed * D.Battle.dashes(u).length : 0), { fearless: true });
+    if (!fearOf(B, u) || u.conds.restrained) return rc.fear;
+    var bud = u.turn.move + (rc.dash ? u.speed * D.Battle.dashes(u).length : 0), all = rc.layer != null ? G.flyReach(u, rc.layer, bud, { fearless: true }) : G.reach(u, bud, { fearless: true });
     Object.keys(all).forEach(function (k) { var e = all[k]; if (e.stand && e.cost > 0 && !(rc.move[k] && rc.move[k].stand) && !(rc.dash && rc.dash[k] && rc.dash[k].stand)) rc.fear[k] = e; });
     return rc.fear;
   }
@@ -491,17 +492,21 @@
   // A PROMPT'S NO (10-29, his "right-click as 'no' in stuff like 'use divine smite' with lymen and 'use bonus or action dashes' with rogue"): the mouse's own right button
   // answers with the option that declines -- NO SMITE, NOT THAT FAR, LET IT GO, TAKE IT, HOLD -- and never with one that does something. The declining words the prompts
   // use (battle.js, features.js, grimoire.js, magic.js, mpmon.js, traits.js, wet.js, roam.js, keeperplay.js), or an option marked `no: true`; the first one there is the NO (A
-  // LEGENDARY ACTION?'s NOT NOW before NONE THIS ROUND). A prompt with none -- the summons, DISPEL WHICH?, LAY ON HANDS' two, the gaze's, NEXT -- takes no right-click. X, as
-  // ever, takes the last option. The pad's INFO is rclick alone: unchanged
-  var NO_WORDS = { 'NO': 1, 'NO SMITE': 1, 'NOT NOW': 1, 'NOT THAT': 1, 'NOT THAT FAR': 1, 'NOT THAT WAY': 1, 'NOT THIS TIME': 1, 'LET IT GO': 1, 'LET IT LAND': 1, 'TAKE IT': 1, 'TAKE THEM': 1, 'HOLD': 1, 'LEAVE IT': 1, 'LOSE IT': 1 };
+  // LEGENDARY ACTION?'s NOT NOW before NONE THIS ROUND). A prompt with none -- the summons, DISPEL WHICH?, LAY ON HANDS' two, the gaze's, NEXT -- takes no right-click. X the
+  // same since 10-29 later (his "go with Grid's leans": it took the last option, a doing on some -- LAY ON HANDS' X cured, ENCOUNTER's picked SIMPLE), but a card of one
+  // option (NEXT) X still takes: there is no choice in it. The floors' own declines: an edge's STAY, the gulch's BACK AWAY and LEAVE IT, the flooded stair's LEAVE (`no`,
+  // js/roam.js). The pad's INFO is rclick alone: unchanged
+  var NO_WORDS = { 'NO': 1, 'NO SMITE': 1, 'NOT NOW': 1, 'NOT THAT': 1, 'NOT THAT FAR': 1, 'NOT THAT WAY': 1, 'NOT THIS TIME': 1, 'LET IT GO': 1, 'LET IT LAND': 1, 'TAKE IT': 1, 'TAKE THEM': 1, 'HOLD': 1, 'LEAVE IT': 1, 'LOSE IT': 1, 'STAY': 1, 'BACK AWAY': 1 };
   function noOf(p) { for (var i = 0; i < p.opts.length; i++) { var o = p.opts[i]; if (o.no || NO_WORDS[o.label]) return i; } return -1; }
   UI.noOf = noOf; // (dev/bench16.js gridclicks1029)
-  function rightNo(B, p) { var i = I.mouse.rbtn ? noOf(p) : -1; if (i < 0) return false; D.sfx('cancel'); B.answer(p.opts[i].value); return true; }
+  function rightNo(B, p) {
+    if (I.pressed('b') && p.opts.length === 1) { D.sfx('cancel'); B.answer(p.opts[0].value); return true; } // (a card of one, NEXT: X takes it)
+    var i = I.mouse.rbtn || I.pressed('b') ? noOf(p) : -1; if (i < 0) return false; D.sfx('cancel'); B.answer(p.opts[i].value); return true;
+  }
   function pickAt(B, p) { return p.pick.filter(function (w) { return G.foot(w).some(function (q) { return q[0] === B.cursor.x && q[1] === B.cursor.y; }); })[0] || null; }
   function pickInput(B, p) {
     var n = p.opts.length, take = function (w) { var i = w ? p.pick.indexOf(w) : -1; if (i < 0) { D.sfx('error'); return; } D.sfx('confirm'); B.answer(p.opts[i].value); };
-    if (I.pressed('b')) { D.sfx('cancel'); return B.answer(p.opts[n - 1].value); }
-    if (rightNo(B, p)) return; // (the right button: NOT NOW -- noOf)
+    if (rightNo(B, p)) return; // (X or the right button: NOT NOW -- noOf)
     for (var k = 1; k <= Math.min(9, p.pick.length); k++) if (I.pressed('n' + k)) return take(p.pick[k - 1]);
     var pickable = function (w) { return p.pick.indexOf(w) >= 0; }; // (one of the gold squares' creatures comes before a figure in front of it: UI.pickUnit's want)
     if (I.mouse.inside && !overUI(B) && I.mouse.moved) { var pu = UI.pickUnit(B, I.mouse.x, I.mouse.y, pickable), s = pu ? { x: pu.x, y: pu.y } : D.iso.pick(I.mouse.x, I.mouse.y, G.map.gz(B.cursor.x, B.cursor.y)); if (s) { B.cursor.x = s.x; B.cursor.y = s.y; } }
@@ -518,8 +523,7 @@
     if (B.sel !== s0) D.sfx('cursor');
     for (var k = 1; k <= n; k++) if (I.pressed('n' + k)) return go(p.opts[k - 1].value);
     if (I.pressed('a')) return go(p.opts[B.sel].value);
-    if (I.pressed('b')) { D.sfx('cancel'); return B.answer(p.opts[n - 1].value); }
-    if (rightNo(B, p)) return; // (the right button: the prompt's NO, where it has one -- noOf)
+    if (rightNo(B, p)) return; // (X or the right button: the prompt's NO, where it has one -- noOf; nothing where it has none)
     if (I.mouse.click && B.promptRects) for (var i = 0; i < B.promptRects.length; i++) if (hit(B.promptRects[i])) return go(p.opts[i].value);
   }
   function hit(r) { var m = I.mouse; return r && m.x >= r.x && m.y >= r.y && m.x < r.x + r.w && m.y < r.y + r.h; }
@@ -631,7 +635,7 @@
     var hb = B.buttons && B.buttons[B.hoverBtn], hk = !hb ? null : hb.list != null && B.list ? 'l' + hb.list : hb.idx != null ? 'c' + hb.idx : 'x';
     if (hb && I.mouse.moved && hk !== B.hoverKey) { B.ringStill = true; if (hb.list != null && B.list) { if (B.list.sel !== hb.list) D.sfx('cursor'); B.list.sel = hb.list; } else if (hb.idx != null && B.tool === 'menu') { if (B.cmdSel !== hb.idx) D.sfx('cursor'); B.cmdSel = hb.idx; } }
     B.hoverKey = hk;
-    if (I.mouse.click && B.hoverBtn >= 0) { var bt = B.buttons[B.hoverBtn]; return bt.end ? UI.command(B, u, { do: 'end' }) : bt.cast ? castPicks(B, u) : bt.list != null ? pickListItem(B, u, B.list.items[bt.list], bt.list) : pickCommand(B, u, bt.cmd, bt.idx); }
+    if (I.mouse.click && B.hoverBtn >= 0) { var bt = B.buttons[B.hoverBtn]; return bt.end ? endTurn(B, u, 'bar') : bt.cast ? castPicks(B, u) : bt.list != null ? pickListItem(B, u, B.list.items[bt.list], bt.list) : pickCommand(B, u, bt.cmd, bt.idx); }
     // the mouse's right button (10-01b, Griz: "Rightclick on the wheel when it's not on a button close wheel, and right-click while
     // targeting spell cancels cast (like x) - which means inspect should popup on mouseover during cast targeting so that if you're casting
     // hold person you can check the icon while looking for a target"): on the open wheel, off its buttons, it puts the wheel down; while a
@@ -697,15 +701,19 @@
   }
   // END TURN, asked first by the M menu's END TURN ASKS (UI.opts.confirmEnd): IF IDLE -- not a step, the action and the bonus both unspent -- ALWAYS, or NEVER.
   // Asked, the same END again (Y, Space, the ring's END) ends it, X keeps it; the ask lasts while the turn stands where it was (B.req: a step or a blow is a new one)
-  // The mouse's own right button (rbtn) off anything to inspect ends the turn the same way, and always asks first unless END TURN ASKS is NEVER (10-29, his "right-click to end
-  // turn (with warning) when not over inspectible right click": a stray right-click is easy) -- the right button again ends it. The simple fight's root column asks by it too
-  // (js/simple.js; how: 'simple', where SPACE ends nothing). True when it asked: the caller ends the turn on false
+  // The mouse's ends -- its own right button (rbtn) off anything to inspect, the bar's END TURN, the simple fight's root column (js/simple.js) -- ask only while the turn's
+  // Action is untaken, and else end it at once; END TURN ASKS at NEVER ends at once, at ALWAYS asks (10-29, his "right-click to end turn (with warning) when not over
+  // inspectible right click", then on the seat's lean to ask every time: "have warn on 'no action taken'"; and the bar's END TURN by the same rule, his "go with Grid's
+  // leans"). Asked, the same end again ends it. how: 'mouse' (the right button), 'bar', 'simple' (where SPACE ends nothing). True when it asked: the caller ends on false
   function idleTurn(u) { var T = u.turn || {}; return T.action > 0 && T.bonus > 0 && !(T.moved > 0) && !T.attackAction && !T.spellAction; }
+  function noAction(u) { var T = u.turn || {}; return T.action > 0 && !T.attackAction && !T.spellAction; } // (the Action unspent: no Attack, no spell, no Dash or Dodge or the rest -- each sets it to 0)
+  UI.noAction = noAction; // (dev/bench16.js gridclicks1029)
   UI.askEnd = function (B, u, how) {
-    var c = UI.opts.confirmEnd, ask = c === 'always' || (c !== 'never' && (!!how || idleTurn(u)));
+    var c = UI.opts.confirmEnd, ask = c === 'always' || (c !== 'never' && (how ? noAction(u) : idleTurn(u)));
     if (!ask || (B.endAsk && B.endAsk === B.req)) { B.endAsk = null; return false; }
     B.endAsk = B.req; D.sfx('popup'); B.clearCards();
-    B.card([D.keys('{y}End ' + u.name + '\'s turn?{/}' + (idleTurn(u) ? '  {g}nothing done yet{/}' : '')), D.keys('{g}' + (how === 'simple' ? 'A right-click' : how ? 'A right-click or SPACE' : 'SPACE') + ' again ends it.  X keeps it{/}')], 600);
+    var again = how === 'simple' ? 'A right-click' : how === 'bar' ? 'END TURN or SPACE' : how ? 'A right-click or SPACE' : 'SPACE';
+    B.card([D.keys('{y}End ' + u.name + '\'s turn?{/}' + (idleTurn(u) ? '  {g}nothing done yet{/}' : noAction(u) ? '  {g}no action taken yet{/}' : '')), D.keys('{g}' + again + ' again ends it.  X keeps it{/}')], 600);
     return true;
   };
   function endTurn(B, u, how) {

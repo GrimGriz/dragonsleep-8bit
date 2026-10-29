@@ -821,7 +821,7 @@
     if (f.keeperWater) { B.card(R.wrap([R.say8('deep.stairFlooded')]), 300); yield 20; return; } // (held three nights, the water back: the keeper is home -- the first game's js/deep.js S.stair)
     if (f.fiveRecovered) { B.card([R.say8('w.stairDone')], 260); yield 20; return; }
     var awake = R.awake(f); // (the 8-bit's S.stair, 10-14: woken and not yet beaten, the stair says so and WADE IN meets it waiting)
-    var a = yield { prompt: { who: R0.token, title: 'THE FLOODED STAIR', lines: R.wrap([R.say8(awake ? 'w.stairAwake' : 'w.stairSee'), R.say8('w.stairAsk')]), opts: [{ label: 'ROPE THEM OUT', value: 0 }, { label: 'WADE IN', value: 1 }, { label: 'LEAVE', value: 2 }] } };
+    var a = yield { prompt: { who: R0.token, title: 'THE FLOODED STAIR', lines: R.wrap([R.say8(awake ? 'w.stairAwake' : 'w.stairSee'), R.say8('w.stairAsk')]), opts: [{ label: 'ROPE THEM OUT', value: 0 }, { label: 'WADE IN', value: 1 }, { label: 'LEAVE', value: 2, no: true }] } }; // (no: X and the right button take LEAVE -- js/ui.js noOf)
     if (a === 0) { yield* R.ropeHaul(B, trig, at); return; }
     if (a === 1) { B.card(R.wrap([R.say8(awake ? 'w.wadeAwake' : 'w.wade')]), 260); yield 30; yield* R.pullIn(B, 'keeper', trig, at, 'ledge'); }
   };

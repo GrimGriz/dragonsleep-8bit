@@ -4837,7 +4837,7 @@
     function sideGC(Bx, s) { return Bx.units.filter(function (u) { return u.side === s; }); }
     function clsGC(Bx, c) { return sideGC(Bx, 'party').filter(function (w) { return w.cls === c; })[0]; }
     // one frame of the mouse and the keys: UI.input with them down, then all let go (core.js I.clear). rbtn: the mouse's own right button; rclick alone: the pad's INFO
-    function frameGC(Bx, o) { Object.assign(moG, { inside: true, moved: false, click: false, rclick: !!(o.rbtn || o.rclick), rbtn: !!o.rbtn, x: o.x || 100, y: o.y || 100 }); (o.keys || []).forEach(function (k) { IG.edge[k] = true; }); try { UIg.input(Bx, Bx.req); } finally { IG.clear(); } }
+    function frameGC(Bx, o) { Object.assign(moG, { inside: true, moved: false, click: !!o.click, rclick: !!(o.rbtn || o.rclick), rbtn: !!o.rbtn, x: o.x || 100, y: o.y || 100 }); (o.keys || []).forEach(function (k) { IG.edge[k] = true; }); try { UIg.input(Bx, Bx.req); } finally { IG.clear(); } }
     function turnGC(Bx, u) { Bx.active = u; Bx.req = { turn: u }; Bx.tool = 'move'; Bx.list = null; Bx.inspect = null; Bx.spell = null; Bx.picks = []; Bx.hoverUnit = null; Bx.endAsk = null; Bx.cards = []; Bx.cache = null; }
     function lastCardGC(Bx) { var c = (Bx.cards || [])[(Bx.cards || []).length - 1]; return c ? c.lines.join(' / ') : ''; }
     try {
@@ -4877,9 +4877,24 @@
       D.rules.startTurn(vv1); turnGC(B1d, vv1); var nd1 = Object.keys(fsqGC(B1d, vv1)).length;
       okGC('1 and the door ?npc=goblin,goblin,goblin&vs=lymen:5,vivian:5&afraid=2: ' + vv1.name + ' frightened of the first goblin ' + !!(vv1.conds.frightened && vv1.conds.frightened.by === gd1.id) + ', ' + ly1.name + ' not ' + !ly1.conds.frightened + '; on ' + vv1.name + '\'s turn ' + nd1 + ' squares marked',
         !!(vv1.conds.frightened && vv1.conds.frightened.by === gd1.id) && !ly1.conds.frightened && nd1 > 0 && ly1.cls === 'paladin' && vv1.cls === 'rogue');
-      // 2. THE RIGHT BUTTON ENDS THE TURN, ASKED (his "right-click to end turn (with warning) when not over inspectible right click"): on the bare ground the pad's INFO does
-      // nothing, the right button asks, again ends it; X keeps it; over the goblin or the fighter it inspects; END TURN ASKS at NEVER ends at once; SPACE still asks only idle;
-      // the ring up, the right button puts it down as before
+      // 1b. THE FEAR HOLDS A FLIER AND A GHOST'S WALK TOO (the seat's find, RULED 10-29 later, his "go with Grid's leans": G.stepCost's fear check stood after a winged mover's
+      // returns and the ghost's, so a frightened flier closed on what it feared): the fighter on wings (&fly), frightened of the goblin -- no square nearer it in the move on
+      // the ground, 10 ft up, or by a ghost's walk; and on its turn the squares marked are exactly the ones the fear refuses, as a walker's are
+      var B6 = mkGC('?npc=goblin&vs=fighter:5&lvl=5&fly&afraid=1'), f6 = clsGC(B6, 'fighter'), g6 = sideGC(B6, 'foe')[0], GG = D.grid;
+      f6.x = 3; f6.y = 4; g6.x = 8; g6.y = 4; D.rules.startTurn(f6); turnGC(B6, f6);
+      var near6 = function (rm) { var d0 = GG.dist(f6, g6, f6.x, f6.y); return Object.keys(rm).filter(function (k) { var e = rm[k]; return e.stand && GG.dist(f6, g6, e.x, e.y) < d0; }).length; };
+      var z6 = GG.gzAt(f6, f6.x, f6.y) + GG.LAYER() * 2, walk6 = near6(GG.reach(f6, 30)), fly6 = near6(GG.flyReach(f6, z6, 30)), ghost6 = near6(GG.reach(f6, 30, { ghost: true }));
+      delete f6.conds.frightened; var walk6b = near6(GG.reach(f6, 30)), fly6b = near6(GG.flyReach(f6, z6, 30)); f6.conds.frightened = { by: g6.id };
+      okGC('1b the fighter on wings (' + GG.winged(f6) + '), frightened of the goblin: squares nearer it in the move -- on the ground ' + walk6 + ', 10 ft up ' + fly6 + ', a ghost\'s walk ' + ghost6 + ' (want 0, 0, 0); unafraid ' + walk6b + ', ' + fly6b + ' (want more than 0)',
+        GG.winged(f6) && walk6 === 0 && fly6 === 0 && ghost6 === 0 && walk6b > 0 && fly6b > 0);
+      var valid6 = function () { var s = {}; for (var y = 0; y < GG.map.h; y++) for (var x = 0; x < GG.map.w; x++) { if (GG.occupant(x, y)) continue; var v = UIg.valid(B6, f6, x, y); if (v === 'ok' || v === 'far') s[x + ',' + y] = 1; } return s; };
+      B6.cache = null; var fk6 = Object.keys(fsqGC(B6, f6)).sort(), af6 = valid6(); delete f6.conds.frightened; B6.cache = null; var fr6 = Object.keys(valid6()).filter(function (k) { return !af6[k]; }).sort(); f6.conds.frightened = { by: g6.id }; B6.cache = null;
+      okGC('1b and on its turn, the move out as a flier\'s (UI.flyer ' + (UIg.flyer(B6) === f6) + '): ' + fk6.length + ' squares marked, ' + fr6.length + ' freed when the fear goes, the same (' + (fk6.join(' ') === fr6.join(' ')) + ')',
+        UIg.flyer(B6) === f6 && fr6.length > 0 && fk6.join(' ') === fr6.join(' '));
+      // 2. THE RIGHT BUTTON ENDS THE TURN (his "right-click to end turn (with warning) when not over inspectible right click"; then, on the seat's lean to ask every time, "have
+      // warn on 'no action taken'"): on the bare ground the pad's INFO does nothing; with the Action untaken the right button asks, again ends it, X keeps it; the Action
+      // taken, it ends at once (ALWAYS asks still, NEVER never does); over the goblin or the fighter it inspects; SPACE still asks only idle; the ring up, the right button
+      // puts it down as before; the bar's END TURN by the same rule (his "go with Grid's leans")
       var B2 = mkGC('?npc=goblin&vs=fighter:5&lvl=5'), f2 = clsGC(B2, 'fighter'), g2 = sideGC(B2, 'foe')[0], ans2 = [];
       f2.x = 3; f2.y = 4; g2.x = 8; g2.y = 4; B2.answer = function (c) { ans2.push(c); };
       D.rules.startTurn(f2); f2.turn.moved = 5; turnGC(B2, f2); B2.cursor = { x: 2, y: 6 };
@@ -4890,6 +4905,16 @@
         pad2 === '0,false,false' && ask2 && /End .*turn\?/.test(card2) && /right-click/.test(card2) && n2 === 0 && end2);
       ans2 = []; turnGC(B2, f2); B2.cursor = { x: 2, y: 6 }; frameGC(B2, { rbtn: true }); frameGC(B2, { keys: ['b'] }); var kept2 = !B2.endAsk; frameGC(B2, { rbtn: true }); var again2 = B2.endAsk === B2.req;
       okGC('2 and asked, X keeps it (' + kept2 + '); the right button then asks again ' + again2 + ', ' + ans2.length + ' commands (want true, true, 0)', kept2 && again2 && ans2.length === 0);
+      var acted2f = function () { f2.turn.action = 0; f2.turn.attackAction = true; }; // (as an Attack leaves it: battle.js)
+      ans2 = []; turnGC(B2, f2); acted2f(); B2.cursor = { x: 2, y: 6 }; frameGC(B2, { rbtn: true }); var acted2 = ans2.length === 1 && ans2[0].do === 'end' && !B2.endAsk;
+      UIg.opts.confirmEnd = 'always'; ans2 = []; turnGC(B2, f2); frameGC(B2, { rbtn: true }); var alw2 = B2.endAsk === B2.req && ans2.length === 0; UIg.opts.confirmEnd = 'idle';
+      D.rules.startTurn(f2); f2.turn.moved = 5;
+      okGC('2 and the Action taken (an Attack): the right button ends the turn at once ' + acted2 + ' (his "have warn on \'no action taken\'"); END TURN ASKS at ALWAYS still asks ' + alw2, acted2 && alw2);
+      var bar2 = function () { B2.buttons = [{ x: 400, y: 256, w: 40, h: 11, end: true }]; frameGC(B2, { click: true, x: 410, y: 260 }); }; // (the bar's END TURN, as js/ui.js bar() lays it)
+      ans2 = []; turnGC(B2, f2); bar2(); var barAsk2 = B2.endAsk === B2.req && ans2.length === 0, barCard2 = lastCardGC(B2); bar2(); var barEnd2 = ans2.length === 1 && ans2[0].do === 'end';
+      ans2 = []; turnGC(B2, f2); acted2f(); bar2(); var barActed2 = ans2.length === 1 && ans2[0].do === 'end' && !B2.endAsk; D.rules.startTurn(f2); f2.turn.moved = 5;
+      okGC('2 and the bar\'s END TURN by the same rule: no action taken, it asks ' + barAsk2 + ' ("' + barCard2 + '"), clicked again ends it ' + barEnd2 + '; the Action taken, it ends at once ' + barActed2,
+        barAsk2 && /no action taken yet/.test(barCard2) && /END TURN or SPACE again/.test(barCard2) && barEnd2 && barActed2);
       ans2 = []; turnGC(B2, f2); B2.cursor = { x: g2.x, y: g2.y }; frameGC(B2, { rbtn: true }); var insG2 = B2.inspect === g2, askG2 = !!B2.endAsk; frameGC(B2, { rbtn: true }); var shut2 = !B2.inspect;
       turnGC(B2, f2); B2.cursor = { x: f2.x, y: f2.y }; frameGC(B2, { rbtn: true }); var insF2 = B2.inspect === f2, askF2 = !!B2.endAsk;
       okGC('2 and over the goblin the right button inspects it ' + insG2 + ' (asked ' + askG2 + '), again shuts it ' + shut2 + '; over the fighter, the fighter ' + insF2 + ' (asked ' + askF2 + '); ' + ans2.length + ' commands',
@@ -4909,6 +4934,8 @@
         pad3 === '0,false' && ask3 && /End .*turn\?/.test(ban3) && /right-click again/i.test(ban3) && n3 === 0 && kept3 && end3);
       ans3 = []; UIg.opts.confirmEnd = 'never'; B3.req = { turn: h3 }; m3 = SG.menu(B3, h3); m3.wait = false; m3.mode = 'cmd'; frameGC(B3, { rbtn: true, x: 2, y: 2 }); UIg.opts.confirmEnd = 'idle';
       okGC('2b and END TURN ASKS at NEVER: ends at once ' + JSON.stringify(ans3[0] || null), ans3.length === 1 && ans3[0].do === 'end');
+      ans3 = []; B3.req = { turn: h3 }; B3.endAsk = null; h3.turn.action = 0; h3.turn.attackAction = true; h3.turn.bonus = 1; m3 = SG.menu(B3, h3); m3.wait = false; m3.mode = 'cmd'; m3.after = true; frameGC(B3, { rbtn: true, x: 2, y: 2 });
+      okGC('2b and the Action taken: the right button ends the turn at once ' + JSON.stringify(ans3[0] || null) + ', asked ' + !!B3.endAsk + ' (want end, false)', ans3.length === 1 && ans3[0].do === 'end' && !B3.endAsk);
       var a8 = []; B3.req = { prompt: { title: 'DIVINE SMITE?', opts: [{ label: 'L1 2d8', value: 1 }, { label: 'NO SMITE', value: 0 }] } }; B3.answer = function (c) { a8.push(c); }; frameGC(B3, { rbtn: true });
       okGC('3 (the simple fight shares the grid\'s prompts) a smite\'s two there, the right button: ' + JSON.stringify(a8) + ' (want [0], NO SMITE)', a8.length === 1 && a8[0] === 0);
       // 3. THE RIGHT BUTTON AS NO (his "right-click as 'no' in stuff like 'use divine smite' with lymen and 'use bonus or action dashes' with rogue"): the real prompts, raised by
@@ -4924,13 +4951,13 @@
           seen4.push(p4.title);
           if (/DIVINE SMITE/.test(p4.title)) {
             var a4 = []; B4.req = { prompt: p4 }; B4.answer = function (c) { a4.push(c); };
-            frameGC(B4, { rclick: true }); var pad4 = a4.length; frameGC(B4, { rbtn: true });
-            got4 = { pad: pad4, ans: a4.slice(), labels: p4.opts.map(function (o) { return o.label; }) }; v4 = a4.length ? a4[0] : 0;
+            frameGC(B4, { rclick: true }); var pad4 = a4.length; frameGC(B4, { keys: ['b'] }); var x4 = a4.splice(0); frameGC(B4, { rbtn: true });
+            got4 = { pad: pad4, x: x4, ans: a4.slice(), labels: p4.opts.map(function (o) { return o.label; }) }; v4 = a4.length ? a4[0] : 0;
           } else v4 = p4.opts[p4.opts.length - 1].value;
         }
       } finally { D.d = d0GC; }
-      okGC('3 the paladin\'s blow lands, ' + (got4 ? 'DIVINE SMITE? [' + got4.labels.join(' | ') + ']' : 'no smite asked (' + seen4.join(', ') + ')') + ': the pad\'s INFO ' + (got4 ? got4.pad : '-') + ' answers, the right button ' + (got4 ? JSON.stringify(got4.ans) : '-') + ' (want 0; [0], NO SMITE); the slots ' + pl4.slots.slice(0, 2).join(',') + ' (want 4,2: none spent)',
-        !!got4 && got4.pad === 0 && got4.ans.length === 1 && got4.ans[0] === 0 && got4.labels[got4.labels.length - 1] === 'NO SMITE' && pl4.slots[0] === 4 && pl4.slots[1] === 2);
+      okGC('3 the paladin\'s blow lands, ' + (got4 ? 'DIVINE SMITE? [' + got4.labels.join(' | ') + ']' : 'no smite asked (' + seen4.join(', ') + ')') + ': the pad\'s INFO ' + (got4 ? got4.pad : '-') + ' answers, X ' + (got4 ? JSON.stringify(got4.x) : '-') + ', the right button ' + (got4 ? JSON.stringify(got4.ans) : '-') + ' (want 0; [0]; [0], NO SMITE); the slots ' + pl4.slots.slice(0, 2).join(',') + ' (want 4,2: none spent)',
+        !!got4 && got4.pad === 0 && got4.x.length === 1 && got4.x[0] === 0 && got4.ans.length === 1 && got4.ans[0] === 0 && got4.labels[got4.labels.length - 1] === 'NO SMITE' && pl4.slots[0] === 4 && pl4.slots[1] === 2);
       var B5 = mkGC('?npc=goblin&vs=rogue:5&lvl=5'), rg5 = clsGC(B5, 'rogue'), gb5 = sideGC(B5, 'foe')[0], p5 = null, a5 = [], far5 = null;
       rg5.x = 2; rg5.y = 2; gb5.x = D.grid.map.w - 2; gb5.y = D.grid.map.h - 2; D.rules.startTurn(rg5); B5.cache = null;
       var rm5 = D.grid.reach(rg5, rg5.turn.move + rg5.speed); Object.keys(rm5).some(function (k) { var e = rm5[k]; if (e.stand && e.cost > rg5.turn.move && !D.grid.occupant(e.x, e.y)) { far5 = e; return true; } return false; });
@@ -4942,10 +4969,19 @@
         !!p5 && /DASH THERE/.test(p5.title) && pad5 === 0 && a5.length === 1 && a5[0] === 0 && rg5.turn.bonus > 0 && rg5.turn.action > 0 && rg5.x === 2 && rg5.y === 2);
       // the words: the NO is found, the first of them, and a prompt with no NO takes no right-click (a choice between two doings, a NEXT) -- never a yes
       var noL = function (ls) { var i = noGC({ opts: ls.map(function (l, k) { return { label: l, value: k + 1 }; }) }); return i < 0 ? '-' : ls[i]; };
-      var yesNo3 = [['STRIKE', 'LET IT GO'], ['CAST SHIELD', 'TAKE IT'], ['CAST', 'HOLD'], ['TAKE IT UP', 'STEP THERE', 'NOT NOW'], ['YES', 'NO'], ['GOBLIN: WARD (5 FT)', 'NOT NOW', 'NONE THIS ROUND'], ['GOBLIN (5 FT)', 'LOSE IT']].map(noL);
-      var none3 = [['HEAL', 'CURE POISON (5)'], ['FIGHT', 'SIMPLE'], ['LOOK AWAY', 'MEET IT'], ['NEXT'], ['DOWN', 'UP', 'STAY'], ['TAKE IT UP', 'STEP THERE']].map(noL);
-      okGC('3 and the NO among the words: ' + yesNo3.join(', ') + ' (want LET IT GO, TAKE IT, HOLD, NOT NOW, NO, NOT NOW, LOSE IT); none in LAY ON HANDS, ENCOUNTER, the gaze, NEXT, the spiral, the rope\'s two: ' + none3.join(','),
-        yesNo3.join() === 'LET IT GO,TAKE IT,HOLD,NOT NOW,NO,NOT NOW,LOSE IT' && none3.every(function (x) { return x === '-'; }));
+      var yesNo3 = [['STRIKE', 'LET IT GO'], ['CAST SHIELD', 'TAKE IT'], ['CAST', 'HOLD'], ['TAKE IT UP', 'STEP THERE', 'NOT NOW'], ['YES', 'NO'], ['GOBLIN: WARD (5 FT)', 'NOT NOW', 'NONE THIS ROUND'], ['GOBLIN (5 FT)', 'LOSE IT'], ['DOWN', 'UP', 'STAY'], ['FIGHT', 'BACK AWAY']].map(noL);
+      var none3 = [['HEAL', 'CURE POISON (5)'], ['FIGHT', 'SIMPLE'], ['LOOK AWAY', 'MEET IT'], ['NEXT'], ['TAKE IT UP', 'STEP THERE']].map(noL);
+      okGC('3 and the NO among the words: ' + yesNo3.join(', ') + ' (want LET IT GO, TAKE IT, HOLD, NOT NOW, NO, NOT NOW, LOSE IT, STAY, BACK AWAY); none in LAY ON HANDS, ENCOUNTER, the gaze, NEXT, the rope\'s two: ' + none3.join(','),
+        yesNo3.join() === 'LET IT GO,TAKE IT,HOLD,NOT NOW,NO,NOT NOW,LOSE IT,STAY,BACK AWAY' && none3.every(function (x) { return x === '-'; }));
+      // X ON A PROMPT (the seat's lean, RULED 10-29 later, his "go with Grid's leans"): the NO as the right button, and nothing where there is none -- it took the last option, a
+      // doing on some (LAY ON HANDS' X cured, ENCOUNTER's picked SIMPLE, the gaze's met it); a card of one (NEXT) X still takes; the flooded stair's LEAVE marked `no` (js/roam.js)
+      var xOn = function (p) { var got = []; B5.req = { prompt: p }; B5.answer = function (c) { got.push(c); }; frameGC(B5, { keys: ['b'] }); return got.length ? JSON.stringify(got[0]) : '-'; };
+      var mkP = function (title, ls) { return { title: title, opts: ls.map(function (l, k) { return typeof l === 'string' ? { label: l, value: k } : Object.assign({ value: k }, l); }) }; };
+      var xs3 = [xOn(mkP('LAY ON HANDS', ['HEAL', 'CURE POISON (5)'])), xOn(mkP('ENCOUNTER', ['FIGHT', 'SIMPLE'])), xOn(mkP('THE GAZE', ['LOOK AWAY', 'MEET IT'])), xOn(mkP('THE SPIRAL', ['DOWN', 'UP', 'STAY'])),
+        xOn(mkP('THE FLOODED STAIR', ['ROPE THEM OUT', 'WADE IN', { label: 'LEAVE', no: true }])), xOn(mkP('A LINE', ['NEXT'])), xOn(mkP('DASH THERE?', ['CUNNING DASH (bonus)', 'DASH (your action)', 'NOT THAT FAR']))];
+      var stair3 = Object.keys(D.roam).some(function (k) { var s = typeof D.roam[k] === 'function' ? String(D.roam[k]) : ''; return /THE FLOODED STAIR/.test(s) && /label: 'LEAVE', value: 2, no: true/.test(s); });
+      okGC('3 and X: LAY ON HANDS ' + xs3[0] + ', ENCOUNTER ' + xs3[1] + ', the gaze ' + xs3[2] + ' (want -, -, -: nothing); the spiral ' + xs3[3] + ', the flooded stair ' + xs3[4] + ' (its LEAVE marked in js/roam.js ' + stair3 + '), NEXT ' + xs3[5] + ', DASH THERE? ' + xs3[6] + ' (want 2, 2, 0, 2)',
+        xs3.join() === '-,-,-,2,2,0,2' && stair3);
       var a6 = [], p6 = { title: 'LAY ON HANDS', opts: [{ label: 'HEAL', value: false }, { label: 'CURE POISON (5)', value: true }] }; B5.req = { prompt: p6 }; B5.answer = function (c) { a6.push(c); }; frameGC(B5, { rbtn: true });
       var a7 = [], gk7 = sideGC(B5, 'foe')[0], p7 = { title: 'PICK', opts: [{ label: 'GOBLIN (5 FT)', value: 1 }, { label: 'NOT NOW', value: 0 }], pick: [gk7] }; B5.req = { prompt: p7 }; B5.answer = function (c) { a7.push(c); }; frameGC(B5, { rbtn: true });
       okGC('3 and the right button on LAY ON HANDS\' two answers ' + JSON.stringify(a6) + ' (want nothing); on a pick on the grid ' + JSON.stringify(a7) + ' (want [0], NOT NOW)',
