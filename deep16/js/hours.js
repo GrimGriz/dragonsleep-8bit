@@ -57,7 +57,14 @@
         { site: 'mouth', where: 'Walk the deep gallery with him: he wants to see where it lived.' }] }, // (invented.json deepgallery-dace-words)
     { id: 'hex', show: 'flag:heardHex', done: 'flag:talmokBeaten',
       text: 'The Hex, in the plaza at the heart of town: five silver to fight on the card, and the winner keeps ten. Korvin keeps the slate. Talmok is the champion.',
-      steps: [{ map: 'hex', npc: 'korvinSlate', where: 'Korvin at the slate, on the Hex\'s ground floor.' }] }
+      steps: [{ map: 'hex', npc: 'korvinSlate', where: 'Korvin at the slate, on the Hex\'s ground floor.' }] },
+    // THE COUNCIL SENDS FOR YOU (10-29 night, Griz on Papa's runner: "should put a quest in your journal to guide you to the third floor"): opened by the runner and pinned
+    // (H16.runner), done when the party is up the spiral and the council sits for them (C2, councilSeen); the marker on the Hex's front doors, inside on the spiral up (hex3:
+    // H16.pinSq). The words the story seat's draft, invented.json council-summons-1029
+    { id: 'council', name: 'The Council Sends for You', show: 'flag:councilCalled', done: 'flag:councilSeen',
+      text: 'Papa Urtusk sent a Hex boy running: Silverton\'s council wants you on the Hex\'s third floor, where it sits.',
+      doneText: 'You went up. The council had work for you.',
+      steps: [{ map: 'hex', hex3: true, where: 'The Hex, in the plaza at the heart of town: in at its front doors, then up the spiral stair to the third floor.' }] }
   ];
   // FINDING WORK (RULED 10-28, his "sounds like an AND when we should make it an OR. Finding work as a quest fills up with options as you talk to various NPC, getting a quest
   // from where it points (winters, the board) completes the finding work quest"): an option a place, each added by the first word that names it (`work:<k>`, js/counter.js
@@ -75,7 +82,7 @@
     doneText: 'Work found. Its own line is in the JOURNAL.',
     steps: function (st) { return H16.workHeard(st).map(function (w) { return w.step; }); } });
   H16.MISSIONS.forEach(function (q) { C.OWN_QUESTS = C.OWN_QUESTS.filter(function (o) { return o.id !== q.id; }).concat([q]); });
-  C.QUESTS = ['company', 'work', 'warrens', 'cradles', 'cull', 'tail', 'ettercap', 'dace', 'hex', 'errands', 'nedpage'];
+  C.QUESTS = ['company', 'council', 'work', 'warrens', 'cradles', 'cull', 'tail', 'ettercap', 'dace', 'hex', 'errands', 'nedpage'];
   // The Missing Five's words by who told it (js/mines.js fiveBy; Pete's when the town's word or the rumour opened it). The window's drafts, invented.json warrens-five-words-1029
   H16.FIVE_BY = {
     pete: 'Warrens Pete says six went down past the wet in the Crawler Warrens, and six came up. He says six too fast. The tally-house book has five names with no return line.',
@@ -102,12 +109,18 @@
     if (!st.flags.qSeen) { st.flags.qSeen = 1; H16.fresh(st).forEach(function (q) { st.flags['q:' + q.id] = 1; }); return false; }
     return H16.fresh(st).length > 0;
   };
-  H16.DING = 'quest';
+  H16.DING = 'quest'; // (not played since 10-29 night: the card comes silent and the fly-in's chime says it went in -- H16.missionCard)
   // the pinned step's gold marker where the town's door marker has none (10-28 2258Z, his "cradle mission pinned not pointing to the guy who unlocks working cradles"): the one it
   // wants standing on this floor (Edric at the mouth camp), its own square on this floor (a pen's), or the way there -- off Silverton's street to the Warrens by the feed track, off
   // the mouth camp back to town by it. Drawn as js/company.js draws the Company's
   H16.pinSq = function (B, s) {
     var def = D.roam.def, id8 = def.src8 && def.src8.id, u = s.npc && B.units.filter(function (x) { return x.npc === s.npc; })[0]; if (u) return [u.x, u.y];
+    if (s.hex3) { // (the third floor wanted -- the council's summons: on the street the Hex's front doors, inside the nearest spiral up, up there nothing)
+      var HX = D.hex, tk = B.roam.token, best = null;
+      if (!def.hexIn) return def.key === 'silverton' && !def.room && def.marks && def.marks.hexFront && def.marks.hexFront[0] ? def.marks.hexFront[0].slice() : null;
+      if (def.hexIn >= 3 || !HX) return null;
+      HX.spiralSq().forEach(function (q) { var dd = Math.abs(q[0] - tk.x) + Math.abs(q[1] - tk.y); if (!best || dd < best.d) best = { d: dd, q: q }; }); return best ? best.q.slice() : null;
+    }
     var tr = s.trig && (!s.map || s.map === id8) && (def.src8 && def.src8.triggers || []).filter(function (t) { return t.id === s.trig; })[0];
     if (tr) { var r = tr.rect, my = r[1] + Math.floor(((r[3] || 1) - 1) / 2); return def.from8 ? def.from8(r[0], my) : [r[0], my]; } // (the Wet's stair by its middle, turned onto the grid)
     var toW = /^warrens/.test(s.map || '') || s.npc === 'edric' || s.npc === 'skarn' || !!s.trig && /^pen/.test(s.trig);
@@ -164,7 +177,7 @@
     var R = D.roam, R0 = B && B.roam, def = R && R.def; if (!R0 || !def || !(def.town || (def.src8 && def.src8.id === 'warrens_d')) || B.menu || R0.mode !== 'walk') return; // (the Wet too: the stair it wants)
     var st = C.state(B), q = st && st.flags.pin && C.quests(st).filter(function (x) { return x.id === st.flags.pin && !x.done; })[0], s = q && q.step; if (!s) return;
     if (def.key === 'silverton' && !def.room && C.pinned(st)) return; // (the town's door marker has it)
-    if (def.room || def.hexIn) return; // (in a room or the Hex: the counter's and the Company's own markers)
+    if (s.hex3 ? def.room && !def.hexIn : def.room || def.hexIn) return; // (in a room or the Hex: the counter's and the Company's own markers -- but the council's summons, up the Hex's spirals: H16.pinSq)
     if (q.id === 'company' && D.company && D.company.HIRES && D.company.HIRES[s.npc]) return;
     var sq = H16.pinSq(B, s); H16.marked = sq ? sq.slice() : null; if (!sq) return;
     var iso = D.iso, c = iso.center(sq[0], sq[1], (B.map && B.map.gz ? B.map.gz(sq[0], sq[1]) : 0) + 30), p = iso.toScreen(c.x, c.y);
@@ -183,7 +196,8 @@
     lines.push(H16.LINES.opened.replace('{name}', open[0].name), open[0].text);
     if (open.length > 1) lines.push(H16.LINES.more.replace('{names}', open.slice(1).map(function (q) { return q.name; }).join(', ')));
     if (pinned) lines.push(D.keys ? D.keys(H16.LINES.pinned) : H16.LINES.pinned);
-    D.sfx(H16.DING); B.card(R.wrap(lines), 480); // (its ding, his "add some kind of *ding* or pop-up when a quest is added to journal": js/audio.js SFX.quest)
+    B.card(R.wrap(lines), 480); // (no sound as it appears since 10-29 night, his "remove first sound on appearance and keep the tucked away in journal sound": the 10-28 ding,
+    // H16.DING, is no longer played; the chime as the words go into the JOURNAL is the fly-in's, below)
     // ... and into the JOURNAL (10-29, below): the card kept in the log, its words on the fly-in instead of the floor's card
     B.cards.pop(); yield* H16.fly(B, R.wrap(lines));
   };
@@ -192,7 +206,7 @@
   // words in the middle; then the M menu's command column slides in where the M menu stands it (js/ui.js UI.MENU_X/Y, js/menu.js Root's window), the card shrinks and flies into
   // its JOURNAL row, which lights gold; the column slides away to a soft chime (js/audio.js SFX.journal). On the floor's own clock and drawn over it (C.paintPin, below), so
   // the floor's script waits on it as on a card; a click or E moves it on from the words, and again skips to its end
-  H16.FLY = { read: 360, slide: 12, fly: 26, glow: 30, out: 14 };
+  H16.FLY = { read: 270, slide: 12, fly: 26, glow: 30, out: 14 }; // (read: 360 till 10-29 night, his "little less time to read it before it goes in the journal please" -- 4.5 s, the story seat's call)
   H16.flyRows = function () { var r = ['ITEMS', 'GEAR', 'MAGIC', 'SKILLS', 'EQUIP', 'STATUS', 'ORDER', 'JOURNAL', 'SAVE', 'NOTES']; if (D.roam && D.roam.def && D.roam.def.hours) r.push('WAIT'); return r.concat(['OPTIONS', 'CREDITS', 'EXIT']); }; // (the second game's root, js/menu.js entriesOf)
   H16.fly = function* (B, lines) {
     var R0 = B.roam, F = H16.FLY, jf = B.jfly = { lines: lines, t0: B.t, n: 0, go: null, end: null, chimed: false };
@@ -362,7 +376,8 @@
       errands: 'Paper, a seal, a number. An old man who keeps the dead in order.', warrens: 'Water, and a stair under it, and five who didn\'t come up. Take rope.',
       cradles: 'A pen, a pole, a thimble. Steady hands.', cull: 'Wings in the dark. Keep your voice down and your light hooded.', tail: 'Something that looks like a cloak and isn\'t. It hates the light.',
       hex: 'Sand, and a crowd, and a big man who opens reckless.', nedpage: 'A snake\'s tongue, fresh. A page for it.',
-      ettercap: 'Silk across a road, and something braiding it. Go at noon, when the spiders sulk.' }, // (ettercap: 10-29, the story window -- the silk-cutters' noon, wiki/web-gulch.md)
+      ettercap: 'Silk across a road, and something braiding it. Go at noon, when the spiders sulk.', // (ettercap: 10-29, the story window -- the silk-cutters' noon, wiki/web-gulch.md)
+      council: 'A stair that turns and turns, and a long table at the top of it. Don\'t keep them waiting.' }, // (council: 10-29 night, the story seat -- the runner's summons)
     // with nothing open to read, the work she opens first, in this order (each its JOURNAL's door: js/counter.js C.flagOn)
     opens: [['work', 'work:winters'], ['warrens', 'heardPete'], ['cradles', 'heardCradles'], ['cull', 'heardGalleries'], ['hex', 'heardHex'], ['tail', 'heardCloaker']] };
   // what she reads: the pinned mission; none pinned, she pins the first open one; none open, she opens the first work not yet heard and pins it (null: nothing left)
@@ -383,9 +398,12 @@
       st.silver(-S.price); D.sfx('coin');
       var lines = [S.q[m.id] || m.text, S.next.replace('{where}', m.where || m.text)];
       if (H16.day() >= 1 && !f.swannWalks) { f.swannWalks = 1; lines.push(S.walks); }
-      yield sc.say(lines, 'work'); q = S.again;
+      var cards = H16.byBox(lines); for (var i = 0; i < cards.length; i++) yield sc.say(cards[i], 'work'); q = S.again;
     }
   };
+  // a speech in cards that never cut a line across two (10-29 night, Griz on Swann: "Swann's second part should all be together on her second card" -- her NEXT line had run
+  // from the foot of her first card onto a second): the lines that fit one box together, a line that doesn't start the next box
+  H16.byBox = function (lines) { var out = [], cur = []; lines.forEach(function (l) { if (cur.length && !C.oneBox(cur.concat([l]))) { out.push(cur); cur = []; } cur.push(l); }); if (cur.length) out.push(cur); return out; };
 
   // ---------------------------------------------------------------- THE COUNCIL ON THE HEX'S THIRD FLOOR (the lane's 4.8; RULED 10-28: his "Consider C1 a cutscene that plays for
   // the player at the parties nearest (chronological) rest cycle", "C3 is that any crawler kill trigger or the thinning the herd too much amount", "18 - yes, lantern warning same
@@ -411,13 +429,16 @@
     // C2: a name made (renown 2), the party called up and looked over -- since 10-29 for a reason (the story window, RULED on Griz's "Leans stand", his note: "Council looking
     // you over dialogue seems same text as store-walk - why is the council taking a look at them, if not disappoint why not quest (true word gnolls?)"): the who's-who cut (each
     // said what their counter says); Papa vouched, the town's one road out wants keeping open, and Androit swears the party to the ettercap in Web Gulch -- The Braiding
-    // Ettercap opened and pinned (opens, pin) -- with the gnolls named as the job after it, its mission waiting with the road north. invented.json council-looks-1029
+    // Ettercap opened and pinned (opens, pin) -- with the gnolls named as the job after it, its mission waiting with the road south, which they are coming north up. invented.json council-looks-1029
+    // (10-29 night, Griz on Papa's runner: "if warda has a portrait - warda shows you should be portrait version 'this is the group you asked about papa'" -- her word on pt_warda
+    // first, and Papa's after it no longer says it again; "gnolls are coming up north along the south of silverton road (north road would point to the doors)" -- Merrick's line)
     looks: { flag: 'councilSeen', card: 'The council sits at the long table under the Big Window. Warda shows the party in, and nobody tells them to sit.', opens: 'heardEttercap', pin: 'ettercap', lines: [
-      ['papa', 'These are the ones I told you about. They take work, and they come back from it.'],
+      ['warda', 'This is the group you asked about, Papa.'],
+      ['papa', 'That\'s them. They take work, and they come back from it.'],
       ['harrow', 'Then here\'s work. Every wagon out of Silverton goes south through Web Gulch, and there\'s an ettercap strung across the far end of it.'],
       ['hessle', 'Forty gold on my board for it, and ten more since it snared a lad. Nobody has collected.'],
       ['androit', 'Then it\'s sworn before me: the gulch cleared, and its fangs brought to Hessle\'s scales. It\'s yours, if you\'ll take it.'],
-      ['merrick', 'After the gulch, the road north, where the gnolls are. When it\'s time, we\'ll send for you again.'],
+      ['merrick', 'After the gulch, the gnolls. They\'re coming north up that same road, out of the south. When it\'s time, we\'ll send for you again.'],
       ['papa', 'That\'s what this was. Go on.']] },
     place: 'The Hex, the third floor', what: 'the council'
   };
@@ -662,8 +683,10 @@
     });
     return best;
   };
+  // (10-29 night, Griz: "the boy runs up and away a little too fast" -- 6 frames a square till then, now the party's own walk, the floor's step; "should put a quest in your
+  // journal to guide you to the third floor" -- the summons is a mission, pinned, done when the party is up the spiral: H16.MISSIONS council)
   H16.runner = function* (B) {
-    var R0 = B.roam, G = D.grid, f = R0.flags, w = H16.RUNNER, at = H16.runnerSq(B), boy = null, STEP = 6; f.councilCalled = 1; D.sfx('popup');
+    var R0 = B.roam, G = D.grid, f = R0.flags, w = H16.RUNNER, at = H16.runnerSq(B), boy = null, STEP = (D.roam.def && D.roam.def.step) || 10; f.councilCalled = 1; f.pinWant = 'council'; D.sfx('popup');
     if (at) {
       boy = B.makeFoe({ id: 'hexboy', kind: D.FOES.commonerchild ? 'commonerchild' : 'crewman', at: at.from.slice(), side: 'party', ally: true });
       boy.name = w.name; boy.look = true; boy.npc = 'hexboy'; boy.attacks = {}; boy.multi = 1; boy.hp = boy.maxhp = 4; boy.lvl = 1; boy.anim = 'walk'; boy.animT = B.t;
@@ -758,6 +781,20 @@
   };
   H16.EVENING = { marin: { pin: '22', d: [18, 22] }, barber: { mark: 'hexFront', d: [16, 12] }, mela: { pin: '4', d: [0, 40] }, venhale: { pin: '19', d: [0, 40] },
     aldric: { pin: '7', d: [12, 35] }, merrick: { pin: '34', d: [0, 22] }, tam: { pin: '40', d: [0, 22] } };
+  // their word out on the street at dusk (10-29 night, Griz: "Out at dusk merchants - same inside text"): not their counter's, which priced what's behind a shut door -- where
+  // they are and why, and that the shop is shut till morning, plainly. The story seat's drafts, invented.json dusk-keepers-words-1029
+  H16.OUT = {
+    marin: ['Shop\'s shut. The dye sits in the vats till morning.', 'Come by in the day for cloth. At dusk I eat Marta\'s pie like everyone else.'],
+    barber: ['Fight night\'s coming in. I sit here at the Hex\'s door for whoever the house won\'t pay to stitch.', 'My shop\'s shut till morning. If one of yours is down, Davos Kren\'s door is by the Hex.'],
+    mela: ['The baths are banked for the night. I sit by the fountains at dusk and let the town talk.', 'Shut till morning.'],
+    venhale: ['The stables lock at dusk, and the fighters with them. I come out to see who walks in at the gate.', 'Want a fight tonight? Korvin\'s slate, inside the Hex. It never closes.'],
+    aldric: ['The factor house is shut. At dusk I walk Fountain Street and count the wagons in.', 'Business is by day, at the house.'],
+    merrick: ['The window\'s shut to callers. Dusk is when the lanterns talk, and I listen.', 'Come back by day.'],
+    tam: ['The smoke room fills after dark, and it\'s no place for you.', 'Go and find a bed.']
+  };
+  H16.outWords = function (id) { var def = D.roam && D.roam.def; return def && def.hours && !def.room && !def.hexIn && def.phase === 'dusk' && H16.EVENING[id] && H16.OUT[id] ? H16.OUT[id].slice() : null; };
+  var keeper0 = C.keeper;
+  C.keeper = function* (sc, B, id) { var out = H16.outWords(id); if (out) { yield sc.say(out, 'welcoming'); return; } yield* keeper0.apply(this, arguments); };
   H16.SHUT = { 'keeper:marin': 1, 'keeper:barber': 1, 'keeper:mela': 1, 'keeper:venhale': 1, 'keeper:aldric': 1, 'keeper:falstaff': 1, 'keeper:merrick': 1, 'keeper:tam': 1 }; // (shut at dusk and by night)
   H16.BREAD = { pin: '30', d: [[-15, 18], [-5, 22], [5, 24], [15, 22]] }; // (the line at the chapel's door in the early hours: the Rows' people, the townsfolk's own figures)
   H16.LIGHTS = { doors: ['keeper:sylvia', 'warp:percy', 'keeper:tam', 'keeper:merrick', 'inn:cassia', 'chapel:aldwin', 'leech:davos'], hex: true, gate: 'west', scales: 'keeper:hessle' };
@@ -897,6 +934,41 @@
   var people0 = T.people;
   T.people = function (B) { people0.apply(this, arguments); (B.units || []).forEach(function (u) { if (/^breadline\d/.test(u.npc || '')) u.name = 'In the bread line'; }); H16.light(B); };
   [['Bread at six. Don\'t push.'], ['He gives it to everyone. Even the proud, at quarter past.'], ['Shift\'s at seven. Bread first.'], ['Mind the line. It moves.']].forEach(function (s, k) { C.TALK16['breadline' + k] = [{ say: s }]; });
+  // THE LINE MOVES (10-29 night, Griz: "Breadline is good except it says that it moves and doesn't yet" -- the story seat's lean, built, a call standing: the line moves, the
+  // word kept): in the early hours, every H16.BREAD.every frames on the street, the one at the front steps up to the chapel door and goes in, the rest each step up a place, and
+  // a newcomer comes up behind (the one who went in, round the back: the line's four are one look). Their talk squares go with them. Asked each frame the floor's script asks
+  // its beats (H16.due), the party never waiting on it
+  H16.BREAD.every = 420; H16.BREAD.step = 14;
+  H16.breadTick = function (B) {
+    var R = D.roam, def = R && R.def, R0 = B && B.roam; if (!def || !def.hours || def.room || def.hexIn || !R0 || !B.units || !B.map) return;
+    var line = B.units.filter(function (u) { return /^breadline\d/.test(u.npc || '') && !u.dead; }), dq = def.marks && def.marks.doors && def.marks.doors['chapel:aldwin'], P = H16.BREAD;
+    line.forEach(function (u) { if (u.walkTill != null && B.t >= u.walkTill) { u.anim = 'idle'; u.animT = B.t; u.walkTill = null; } });
+    if (def.phase !== 'early' || R0.mode !== 'walk' || D.top() !== B || line.length < 2 || !dq) return;
+    var st = R0.bread; if (!st || (st.leg && line.indexOf(st.u) < 0)) st = R0.bread = { t: B.t + P.every, leg: 0 }; // (a street laid again: the line's own new four)
+    if (B.t < st.t) return;
+    var tk = R0.token, dist = function (q) { return Math.abs(q[0] - dq[0]) + Math.abs(q[1] - dq[1]); };
+    var free = function (x, y) { var s = B.map.at(x, y); return !!(s && s.walk) && !(tk && tk.x === x && tk.y === y) && !B.units.some(function (u) { return !u.dead && u.x === x && u.y === y; }); };
+    var move = function (u, q) {
+      var dx = q[0] - u.x, dy = q[1] - u.y, n = Math.max(Math.abs(dx), Math.abs(dy)) || 1, tr = def.src8.triggers.filter(function (t) { return t.town === 'talk' && t.npc === u.npc; })[0];
+      u.tween = { fx: u.x, fy: u.y, fz: 0, t: 0, dur: P.step * n, mode: null }; u.facing = D.spr.facingFor(dx, dy); u.x = q[0]; u.y = q[1]; u.anim = 'walk'; u.animT = B.t; u.walkTill = B.t + P.step * n;
+      if (tr) tr.rect = [q[0], q[1], 1, 1]; return P.step * n;
+    };
+    var long = 0;
+    if (!st.leg) { // (the front one to the door, the rest up a place)
+      if (!free(dq[0], dq[1])) { st.t = B.t + 60; return; } // (someone in the doorway -- the party: wait a moment)
+      line.sort(function (a, b) { return dist([a.x, a.y]) - dist([b.x, b.y]); });
+      var spots = line.map(function (u) { return [u.x, u.y]; });
+      long = move(line[0], dq); for (var k = 1; k < line.length; k++) long = Math.max(long, move(line[k], spots[k - 1]));
+      st.leg = 1; st.u = line[0]; st.back = spots[spots.length - 1]; st.t = B.t + long + 30;
+    } else { // (in at the door; a newcomer up behind, from the square past the back of the line)
+      var u = st.u, bk = st.back, best = null;
+      if (!free(bk[0], bk[1])) { st.t = B.t + 60; return; }
+      [[-1, -1], [0, -1], [1, -1], [-1, 0], [1, 0], [-1, 1], [0, 1], [1, 1]].forEach(function (d) { var x = bk[0] + d[0], y = bk[1] + d[1]; if (free(x, y) && dist([x, y]) > dist(bk) && (!best || dist([x, y]) > dist(best))) best = [x, y]; });
+      if (best) { u.x = best[0]; u.y = best[1]; u.tween = null; }
+      move(u, bk); st.leg = 0; st.u = null; st.t = B.t + P.every;
+    }
+    D.grid.setup(B.map, B.units);
+  };
 
   // ---------------------------------------------------------------- HESSLE'S BOARD, ON THE WEIGH-HOUSE WALL (10-29, the story window, on the lanes desk's relay of Griz: "we actually
   // also need a visible board, either inside or outside of hessles - the way hessle reads the board should instead be clickable missions below it (as if they're taking the mission
@@ -996,7 +1068,8 @@
   Object.assign(C.TALK16, {
     oldhob: [{ say: ['Hob Rennick. I milk the crawlers at the cradles, across the water. Years of it. The venom\'s in me now: that\'s what dosed means.', 'Work a shift at the cradles beside me and I\'ll talk.'], rumor: 'r-doserate' }],
     kael: [{ say: ['Ladders and poles, for the shafts. Half my props walk off by night.', 'Crews I know by sight. I don\'t name them.'] }],
-    vera: [{ say: ['Everything stolen in this town turns up here or at Kessler\'s, the pawnbroker on Fountain Street. Sell to him, not me.', 'Books don\'t come to me. Androit the notary pays for those: a real one, written by one hand from the first page to the last. Nobody in Silverton has brought him one.'] }],
+    // (Vera since 10-29 night, Griz: "vera doesn't actually sell and claims to": she has no counter in the second game, so she says so -- nothing for strangers either way)
+    vera: [{ say: ['Nothing on my table is for strangers, and I don\'t buy from them. Kessler, the pawnbroker on Fountain Street, buys: sell to him, not me.', 'Books don\'t come to me. Androit the notary pays for those: a real one, written by one hand from the first page to the last. Nobody in Silverton has brought him one.'] }],
     merrick: [{ say: ['I send word by the lantern network. A dusk sending is cheaper; a noon sending tells everyone it\'s urgent.', 'Thirty silver at the window frees a slave. No questions asked, either way.'], rumor: 'r-lantern' }],
     venhale: [{ say: ['The fighters\' stables. Part gymnasium, part debtors\' prison.', 'You want to fight? Korvin\'s slate, inside the Hex. That\'s where you put your name down.'], rumor: 'r-hexcard' }]
   });
@@ -1055,7 +1128,7 @@
     brennan: ['Horseshoes, wheels, barrels, harness: whatever keeps the wagons and the mines moving. Dwarven tools under rune-warranty cost three times as much.'],
     venhale: ['Fighters for the Hex train and sleep here, and some of them are owned. When you fight on the card, the one across the sand is often mine.'],
     kael: ['Timber props hold the shafts up so the mines don\'t come down on the crews. Ladders and poles for getting down them.'],
-    vera: ['Rag-and-bone: I buy what people throw out, or can\'t explain having, and sell it on secondhand.'],
+    vera: ['Rag-and-bone: what people throw out, or can\'t explain having, goes round the Rows through me. I trade with the Rows, not with strangers.'], // (10-29 night: no claim to sell to the party -- his "vera doesn't actually sell and claims to")
     brennock: ['When an animal dies, it comes to me. Tallow for the candles, glue for the joiners: nothing goes to waste.'],
     gull: ['Anyone who wants a day\'s work stands at my corner at dawn, and anyone who needs hands comes to pick them. The guano mine\'s taking cull hands now.'],
     kess: ['The cheapest beds in town, a penny a place, for the shift crews between work. You\'d rest better at Cassia\'s, or on Aldwin\'s floor for nothing.'],
@@ -1119,7 +1192,9 @@
   var play0 = C.servicePlay;
   C.servicePlay = function (bt) {
     if (!bt || !bt.hours) return play0.apply(this, arguments);
-    var Hs = D.house, rec = C.serviceStage(bt);
+    // (a beat at the Warrens' camp has no door of Silverton's to stand at: staged at Cassia's, then moved to the camp below -- 10-29 night, his "the first item in the situations
+    // page opened to a menu of situations": C.serviceStage read the door of a beat with none, threw, and the show stayed on its menu -- the Five's two beats, every time)
+    var Hs = D.house, rec = C.serviceStage(bt.camp && !bt.door && !bt.near && !bt.world ? Object.assign({}, bt, { door: 'inn:cassia' }) : bt);
     if (bt.lead) { var one = Hs.fresh(bt.lead); rec.party = one.party; rec.lead = one.lead; rec.hired = one.hired; }
     Object.assign(rec.flags, bt.flags || {}); if (bt.renown) rec.renown = bt.renown;
     if (bt.camp) rec.at = { town: 'warrens', gate: 'feed', sq: bt.camp.slice(), dir: D.roam.DIR8['-1,0'] }; // (at the Warrens' mouth camp, facing west: Edric at 7,8)
@@ -1138,6 +1213,6 @@
     var sp = HX.spiralSq()[0], rows = HX.rows(3), at = HX.near(rows, [sp[0], sp[1] + 1]) || HX.near(rows, sp); HX.lay(B, 3, at, [0, 1]); B.card(D.roam.wrap(D.roam.def.hello), 300); yield 10;
   };
   H16.BEATS = [{ due: H16.turnDue, play: H16.turnPlay }, { due: H16.waitDue, play: H16.waitPlay }, { due: H16.toHex3Due, play: H16.toHex3Play }, { due: H16.papaDue, play: H16.papaScene }, { due: H16.nightDue, play: H16.nightPlay }, { due: H16.lookDue, play: H16.lookPlay }, { due: H16.missionDue, play: H16.missionCard }];
-  H16.due = function (B) { H16.light(B); for (var i = 0; i < H16.BEATS.length; i++) if (H16.BEATS[i].due(B)) { H16.next = H16.BEATS[i]; return true; } return false; };
+  H16.due = function (B) { H16.light(B); H16.breadTick(B); for (var i = 0; i < H16.BEATS.length; i++) if (H16.BEATS[i].due(B)) { H16.next = H16.BEATS[i]; return true; } return false; };
   H16.beat = function* (B) { var b = H16.next; H16.next = null; if (b) yield* b.play(B); };
 })();
