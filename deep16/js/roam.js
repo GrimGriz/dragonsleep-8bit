@@ -916,6 +916,8 @@
     var fd = which === 'field' ? trig.field : null, zoom0 = fd ? D.iso.zoom : null; // (zoom0: the floor's zoom, put back after -- 10-27, his "Going to the Grid Fight changes the zoom on the roam": a town floor's zoom is held, js/ui.js UI.setZoom)
     var o = Object.assign({}, R.party0, { fightDef: fd ? fd.F : null, fight: fd ? undefined : which === 'keeper' ? 'keeper' : 'wet', simple: !!(fd && fd.simple), onDone: function (res) { done = res || 'out'; } });
     if (fd && fd.record) o.record = fd.record; // (a field's play record in the house: js/record.js, finished below as the fight comes back)
+    // (paid on the fight's last card: R.pullPay -- a floor's field and the Keeper's room; the Settling keeps no end card, RULED 09-30c, "no press e, just go", so it pays on the floor it is)
+    if (which === 'field' || which === 'keeper') o.payNow = function (bb, res) { var pp = R.pullPay(B, bb, res, which, fd); bb.pulledPay = pp || { lines: [], give: [], silver: 0 }; return pp ? pp.lines : []; };
     delete o.embed; // (the floor's 8-bit options are the floor's: a pulled-in fight is the grid's own, its party and pack handed in and back below)
     // the floor's own state goes in with them, as the 8-bit's seam sends it (js/embed.js): the flags it has set (the landlord fed, who holds the bucket, the dead) and the
     // pack as it stands (the bucket in it) -- and comes back out below (10-13, his play: "they did the bucket then left the zone, and the bucket refreshed and was triggered again")
@@ -1012,10 +1014,11 @@
     // (what that fight changed of all the party owns, in the ledger as that fight's own: the pack's check at the stairs reads it -- R.handback)
     var own1 = R.owned(B); Object.keys(own1).concat(Object.keys(own0)).forEach(function (id, i, a) { if (a.indexOf(id) !== i) return; var d = (own1[id] || 0) - (own0[id] || 0); if (d) R0.ledger.push({ id: id, n: d, why: which === 'keeper' ? 'the Keeper\'s fight' : 'the Settling' }); });
     // what fell in there (the Settling's own count, js/wet.js W.killed -- the three by name, each crawler; the Keeper's fight by kind): XP banked and the tally kept; won, the spoils
-    // (the Settling counts a walk-out with something dead behind it a win, as the 8-bit's does)
-    var ids8 = which === 'wet' ? (b.enemies8 || (done === 'fed' && D.wet && D.wet.killed && b.wet ? D.wet.killed(b) : []))
-      : (b.units || []).filter(function (u) { return u.side === 'foe' && !u.summon && !u.fled && !u.left && (u.dead || u.hp <= 0); }).map(function (u) { return (D.id8 ? D.id8(u.kind) : u.kind) || u.kind; });
-    var fell8 = done === 'lost' ? [] : R.fallen8(B, ids8, fd && fd.zone), loot8 = done === 'won' || (done === 'fed' && ids8.length) ? R.spoils(B, fell8) : []; // (a field's tally by its floor's zone: the dens' bats for Sabeth's pay)
+    // (the Settling counts a walk-out with something dead behind it a win, as the 8-bit's does) -- paid on the fight's last card already, or here (R.pullPay); the spoils into
+    // the pack here either way, and a level's figure brought up now the fight's hit points are written
+    var pp = b.pulledPay || R.pullPay(B, b, done, which, fd);
+    if (pp) { pp.give.forEach(function (g) { R.give(B, g[0], g[1], 'the spoils'); }); R0.silver += pp.silver || 0; }
+    (R0.relevelDue || []).forEach(function (r) { R.relevel(B, r.u, r.feats); }); R0.relevelDue = [];
     if (done === 'won' && !fd) R0.spent[trig.id] = 1;
     if (done === 'won' && fd) { if (fd.flag) R0.flags[fd.flag] = 1; [].concat(fd.trig || []).forEach(function (id) { R0.spent[id] = 1; }); } // (a set fight's flag: the rescue's -- js/mines.js M.rescue)
     if (which === 'wet' && done === 'won') ['jelly', 'jellyNorth', 'poolOoze', 'landlordStep'].forEach(function (id) { R0.spent[id] = 1; });
@@ -1038,10 +1041,11 @@
     if (done === 'fed') B.card(['{y}The landlord settles under the water.{/}', '{g}The party gathers into ' + R0.token.name + '.{/}'], 260); else if (fd) B.card(R.wrap((fd.back ? fd.back(done) : ['{y}Back on the floor{/} (' + done + ').']).concat(roostL)), 260); else if (which !== 'wet') B.card(['{y}Back on the Wet{/} (' + done + ').'], 260);
     if (done === 'fed' || fd) { FX.ring(R0.token, 'glow', 22); D.sfx('popup'); }
     if (!R.standing(R0).length) { R0.mode = 'over'; if (R.emb) { yield* R.leaveFloor(B, 'lose', null); return; } B.card(['{r}The party has fallen.{/}  R to walk ' + (fd ? 'the floor' : 'the Wet') + ' again.'], 100000); return; }
-    // the gather pays (R.pay): what fell in there, and the landlord fed from the bucket -- a quarter again its XP, once (js/rules.js R.fedPool, the 8-bit's EV.fedXp)
-    var xpL = R.pay(B), fedL = [];
+    // the gather pays (R.pullPay above): what fell in there -- said here only when the fight had no last card to say it on (the Settling, a fight left by the menu) -- and the
+    // landlord fed from the bucket, a quarter again its XP, once (js/rules.js R.fedPool, the 8-bit's EV.fedXp)
+    var fedL = [];
     if (R0.flags.otyughFed && !R0.flags.otyughFedXp) { R0.flags.otyughFedXp = 1; fedL = R.pay(B, window.DS.R.fedPool(), R.say8('w.fedXp')); }
-    if (xpL.length || loot8.length) { B.card(R.wrap([done === 'won' ? '{y}Victory!{/}' : '{y}What fell{/}'].concat(xpL, loot8)), 420); yield 40; }
+    if (pp && !b.pulledPay && pp.lines.length) { B.card(R.wrap(pp.lines), 420); yield 40; }
     if (fedL.length) { B.card(R.wrap(fedL), 360); yield 40; }
     if (done === 'won') R.tune(); // (the fanfare heard, the floor's tune)
     yield* R.picks(B);
@@ -1326,17 +1330,39 @@
     R0.silver += sp.silver;
     return sp.lines;
   };
+  // VICTORY ON THE FIGHT'S LAST CARD (RULED 10-29, Griz: "Leans stand", on the Galleries seat's lean -- his NOTES from the dens, "can we do victory (xp rewards, etc) on the
+  // fight screen instead of the roam screen after return from the fight?"; it moves where the 10-14 ruling put it, his "Roam should do the xp rewards when it goes back to
+  // party token?"): a fight pulled in from a floor pays as its last card goes up -- what fell banked and paid to those standing in it, the spoils rolled -- and the card says
+  // so (js/battle.js finish, o.payNow); the floor after says only that it is back. The spoils go into the pack where they always did, after the fight's own pack is handed
+  // back (R.pullIn0), so the pack's check at the stairs reads them as before; a level's figure brought up after the hand-back (R.pay's defer). Returns { lines, give, silver }
+  // or null for a fight that pays nothing (lost, or an ending that ends the run)
+  R.pullPay = function (B, b, done, which, fd) {
+    var R0 = B.roam; if (done === 'lost' || (fd && fd.ends && fd.ends(done))) return null;
+    var ids8 = which === 'wet' ? (b.enemies8 || (done === 'fed' && D.wet && D.wet.killed && b.wet ? D.wet.killed(b) : []))
+      : (b.units || []).filter(function (u) { return u.side === 'foe' && !u.summon && !u.fled && !u.left && (u.dead || u.hp <= 0); }).map(function (u) { return (D.id8 ? D.id8(u.kind) : u.kind) || u.kind; });
+    // (those standing as the fight left them: the floor's figures by the fight's own -- the hand-back has not written them yet)
+    var up = R0.members.filter(function (w) { var u = (b.units || []).filter(function (x) { return x.id === w.id && x.side === 'party'; })[0]; return u ? u.hp > 0 && !u.dead : w.hp > 0 && !w.dead; });
+    var fell8 = R.fallen8(B, ids8, fd && fd.zone), give = [], silver = 0, loot8 = []; // (a field's tally by its floor's zone: the dens' bats for Sabeth's pay)
+    if (fell8.length && (done === 'won' || (done === 'fed' && ids8.length))) {
+      var sp = window.DS.R.spoils(fell8, up.map(function (u) { return u.src; }).filter(Boolean), R.dice(), function (id, n) { give.push([id, n]); });
+      silver = sp.silver; loot8 = sp.lines;
+    }
+    var xpL = up.length ? R.pay(B, null, null, { up: up, defer: true }) : [];
+    return { lines: xpL.length || loot8.length ? [done === 'won' ? '{y}Victory!{/}' : '{y}What fell{/}'].concat(xpL, loot8) : [], give: give, silver: silver };
+  };
   // the gather: the bank paid to those standing and the guests fielded, each sheet's level-ups carried onto its figure. Returns the lines
-  R.pay = function (B, pool, line) {
+  // (opt: { up: those standing, read off the fight not yet handed back; defer: a level's figure brought up after the hand-back, which writes the fight's hit points and
+  // slots over the floor's -- R.pullPay, paid on the fight's last card)
+  R.pay = function (B, pool, line, opt) {
     var R0 = B.roam, xp = pool != null ? pool : R0.xpBank; if (pool == null) R0.xpBank = 0;
     if (!(xp > 0)) return [];
-    var up = R.standing(R0), heroes = up.filter(function (u) { return u.src && !u.src.guest; });
+    var up = (opt && opt.up) || R.standing(R0), heroes = up.filter(function (u) { return u.src && !u.src.guest; });
     var guests = B.units.filter(function (u) { return u.side === 'party' && u.guest && !u.familiar && !u.summon && !u.object && u.hp > 0 && R0.members.indexOf(u) < 0; }).length
       + up.filter(function (u) { return u.src && u.src.guest; }).length; // (a guest in the token takes a share and keeps none, the 8-bit's rule: Corwen Dace, 10-28)
     if (R.house()) { var bk = D.house.bank(xp, heroes.map(function (u) { return u.src; }), guests); R0.xpPaid = (R0.xpPaid || 0) + bk.each; return bk.line ? [line ? line.replace('{n}', bk.each) : bk.line] : []; } // (the house: banked, the level at the long rest)
     var before = heroes.map(function (u) { return { u: u, lvl: u.src.lvl, feats: JSON.parse(JSON.stringify(u.src.feats || {})) }; });
     var sx = window.DS.R.shareXP(xp, heroes.map(function (u) { return u.src; }), guests);
-    before.forEach(function (b) { if (b.u.src.lvl !== b.lvl) { R.relevel(B, b.u, b.feats); R0.picksDue = (R0.picksDue || []).concat([b.u]); } });
+    before.forEach(function (b) { if (b.u.src.lvl !== b.lvl) { if (opt && opt.defer) R0.relevelDue = (R0.relevelDue || []).concat([b]); else R.relevel(B, b.u, b.feats); R0.picksDue = (R0.picksDue || []).concat([b.u]); } });
     var out = [];
     if (sx.each) out.push(line ? line.replace('{n}', sx.each) : sx.line);
     if (sx.ups.length) { D.sfx('levelup'); out = out.concat(sx.ups); }

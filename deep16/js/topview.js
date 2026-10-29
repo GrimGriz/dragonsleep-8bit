@@ -667,7 +667,8 @@
     var top = TV.piece(P === 'town' ? 'mountain_rock' : 'rock_top', v, P); if (!top) return null;
     var fn = !face ? '' : door ? (P === 'town' ? 'cliff_vault_door' : 'outside_mouth') : ({ timber: 'shored_face', runeWall: 'rune_wall', chimney: 'chimney', sealDoor: 'mine_door' })[n8] || (!faceAt(s.x - 1) && !faceAt(s.x + 1) ? 'cliff_middle' : !faceAt(s.x - 1) ? 'cliff_left' : !faceAt(s.x + 1) ? 'cliff_right' : 'cliff_middle');
     var fp = fn && TV.piece(fn, 0, P), lamp = face && n8 === 'lantern' ? TV.piece('wall_lantern_lit', 0, 'mine') : null; if (face && !fp) return null;
-    return stash(m, 'K' + P + v + fn + (lamp ? 'L' : ''), function () {
+    var lad = face && m.def.faceLadders && m.def.faceLadders[s.x + ',' + s.y] ? TV.piece('ladder_up', 0, 'mine') : null; // (a scraper's ladder up the face to the ledge: js/mines.js M.LEDGES, 10-29)
+    return stash(m, 'K' + P + v + fn + (lamp ? 'L' : '') + (lad ? 'U' : ''), function () {
       var c = canvasOf(T, T + (face ? H : 0), P !== 'town'), cx = c.cx;
       cx.drawImage(top.im, top.x, top.y, top.w, top.h, 0, 0, T, T);
       if (P !== 'town') { // (in the mines the rock's top two shades down its ramps: the art desk drew it like the cave floor, and the tunnels went into their walls)
@@ -675,6 +676,7 @@
       }
       if (face) cx.drawImage(fp.im, fp.x, fp.y, fp.w, fp.h, 0, T, T, H);
       if (lamp) cx.drawImage(lamp.im, lamp.x, lamp.y, lamp.w, lamp.h, (T - lamp.w) / 2 | 0, T + H - 12 - lamp.h, lamp.w, lamp.h); // (a lantern hung on the face, where the first game's map has one in the wall)
+      if (lad) cx.drawImage(lad.im, lad.x, lad.y, lad.w, lad.h, (T - lad.w) / 2 | 0, T + H - lad.h, lad.w, lad.h); // (its foot on the floor, its top at the ledge)
       return { canvas: c.cv, h: H, face: face };
     });
   }

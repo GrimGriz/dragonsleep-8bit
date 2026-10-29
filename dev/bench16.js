@@ -2358,6 +2358,65 @@
     document.body.appendChild(preU);
     return;
   }
+  // VICTORY ON THE FIGHT'S LAST CARD AND THE LEDGES, 10-29 (mode=victory1029; js/battle.js finish's o.payNow, js/roam.js R.pullPay, js/house.js H.payFight, js/world.js, js/simple.js
+  // S.banner; js/mines.js M.LEDGES, js/topview.js artRock -- the Galleries seat, on Griz's "Leans stand" relayed by the lanes desk): a floor's fight and a road fight pay as their
+  // last card goes up, the card says so, and the floor or the road after says nothing more and pays nothing more; the working gallery's ladders up the rock, the floor plain
+  if (get('mode', '') === 'victory1029') {
+    var repVc = { checks: [], errors: [] }, memVc = {}, stGVc = D.store.get, stSVc = D.store.set, MVc = D.mines, RVc = D.roam, HVc = D.house, WVc = D.world, SVc = D.simple, muVc = D.music, skVc = null;
+    function okVc(what, v) { repVc.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function driveVc(g, until, cap) { var v, k = 0, st; while (k++ < (cap || 4000)) { if (until && until()) return true; st = g.next(v); v = undefined; if (st.done) return !!(until && until()); if (typeof st.value === 'number' && D.battle) D.battle.t += Math.max(1, st.value); if (st.value && st.value.prompt) v = st.value.prompt.opts[0].value; } return !!(until && until()); }
+    function topVc() { var s = D.top(); if (s && s.baking) { s.baking = false; s.enter(); } if (s && s.roam) driveVc(s.co, null, 2); return s; }
+    function testVc(q) { var B = RVc.make(q); D.scenes.length = 0; D.push(B); return topVc(); }
+    function runVc(B, gen) { var co0 = B.co; B.co = (function* () { yield* gen; yield* co0; })(); }
+    // (a fight run to its end with the foes struck down at the first turn of ours: what it says last)
+    function winVc(b) { if (b.baking) { b.baking = false; b.enter(); } var k = 0, v, r; while (b.co && k++ < 200000) { r = b.co.next(v); v = undefined; if (r.done) break; var y = r.value; if (typeof y === 'number' || !y || y.fx || y.entry || y.scene) continue; if (y.prompt) { v = y.prompt.opts[0].value; continue; } if (y.turn) { b.units.forEach(function (u) { if (u.side === 'foe') { u.hp = 0; u.dead = true; } }); v = { do: 'end' }; } } var c = (b.cards || [])[b.cards.length - 1]; return c ? c.lines.map(function (l) { return window.DS.stripCodes ? window.DS.stripCodes(l) : l; }) : []; }
+    D.store.get = function (k) { return memVc[k] ? JSON.parse(memVc[k]) : null; }; D.store.set = function (k, v) { memVc[k] = JSON.stringify(v); return true; };
+    window.DS.autoPicks = true; D.music = function () { };
+    try { skVc = window.localStorage.getItem(SVc.KEY); window.localStorage.removeItem(SVc.KEY); } catch (eK) { }
+    try {
+      D.seed = +get('seed', 1029);
+      // 1. A FLOOR'S FIGHT (his "can we do victory (xp rewards, etc) on the fight screen instead of the roam screen after return from the fight?"): the dens, a giant bat on its field, simple;
+      // the last card says Victory! and the XP with the way back; E back: the floor says the way is clear and no Victory!, the XP paid once, the bank empty
+      var B1 = testVc('?roam=galleries_g3&flags=cullHired&at=20,10'), R1 = B1.roam, xp1 = R1.members.map(function (u) { return (u.src && u.src.xp) || 0; });
+      runVc(B1, MVc.fieldFight(B1, 'asked', { list: ['giantbat'], line: 'A bat.' })); driveVc(B1.co, function () { var s = D.top(); return s !== B1 && s instanceof D.Battle; }, 4000);
+      var b1 = D.top(), last1 = b1 !== B1 ? winVc(b1) : [], ban1 = b1.simple && SVc.banner ? SVc.banner(b1).map(function (l) { return window.DS.stripCodes ? window.DS.stripCodes(l) : l; }) : [];
+      var paid1 = R1.xpPaid || 0; if (D.top() === b1) D.pop(); b1.o.onDone(b1.result); B1.cards = []; driveVc(B1.co, function () { return !R1.pulling && D.top() === B1; }, 4000); driveVc(B1.co, null, 60);
+      var floor1 = (B1.cards || []).map(function (c) { return c.lines.join(' '); }).join(' / '), gain1 = R1.members.map(function (u, i) { return ((u.src && u.src.xp) || 0) - xp1[i]; });
+      okVc('the dens\' fight (' + b1.result + ', simple ' + !!b1.simple + '): its last card "' + last1.join(' | ').slice(0, 150) + '"; the simple screen\'s words ' + ban1.length + ' lines ("' + (ban1[ban1.length - 1] || '').slice(0, 40) + '")',
+        b1.result === 'won' && last1.some(function (l) { return /^Victory!/.test(l); }) && last1.some(function (l) { return /\d+ XP/.test(l); }) && /E back to/.test(last1[last1.length - 1]) && !!b1.simple && ban1.some(function (l) { return /^Victory!/.test(l); }) && /E back to/.test(ban1.join(' ')));
+      okVc('back on the floor: "' + floor1.slice(0, 120) + '"; paid on the card ' + paid1 + ' and after it ' + (R1.xpPaid || 0) + ', each one\'s XP up ' + gain1.join(',') + ', the bank ' + R1.xpBank,
+        !/Victory!/.test(floor1) && /The way is clear/.test(floor1) && paid1 > 0 && (R1.xpPaid || 0) === paid1 && gain1.every(function (g) { return g === paid1; }) && R1.xpBank === 0);
+      // 2. A ROAD FIGHT IN THE HOUSE (the same way everywhere): a NEW GAME on THE WORLD, a wolf on the road; the last card says Victory! and the XP; THE WORLD after says the road is
+      // clear and no XP, each one's banked once
+      HVc.worldDoor('?world&noenc'); var ws2 = D.top(); if (ws2 && ws2.baking) { ws2.baking = false; ws2.enter(); }
+      var st2 = WVc.state(), e2 = WVc.M().hex[WVc.K(st2.at[0], st2.at[1])], xp2 = HVc.cur.party.map(function (h) { return h.xp || 0; });
+      ws2.fight({ list: ['wolf'], zone: 'north' }, e2); var b2 = D.top(), last2 = b2 !== ws2 ? winVc(b2) : [], said2 = [], say2 = ws2.say;
+      ws2.say = function (s) { said2.push(String(s)); return say2.apply(this, arguments); };
+      if (D.top() === b2) D.pop(); b2.o.onDone(b2.result); ws2.say = say2;
+      var gain2 = HVc.cur.party.map(function (h, i) { return (h.xp || 0) - xp2[i]; });
+      // (the spoils into the pack once each way: the floor's ledger by its gives, the save's pack by the road's)
+      var give1 = (b1.pulledPay && b1.pulledPay.give) || [], led1 = (R1.ledger || []).filter(function (l) { return l.why === 'the spoils'; }), give2 = (b2.housePay && b2.housePay.give) || [];
+      var inv2 = give2.map(function (g) { var s = HVc.cur.inv.filter(function (x) { return x.id === g[0]; })[0]; return g[0] + ' ' + (s ? s.n : 0); });
+      okVc('the spoils once: the floor\'s ' + give1.map(function (g) { return g.join(' x'); }).join(', ') + ' in its ledger ' + led1.length + ' times; the road\'s in the save\'s pack ' + inv2.join(', '),
+        give1.length > 0 && led1.length === give1.length && give2.length > 0 && give2.every(function (g) { var s = HVc.cur.inv.filter(function (x) { return x.id === g[0]; })[0]; return s && s.n === g[1]; }));
+      okVc('a road fight (' + b2.result + ', the house ' + !!HVc.playing + '): its last card "' + last2.join(' | ').slice(0, 130) + '"; THE WORLD after "' + said2.join(' ').slice(0, 90) + '"; each one\'s XP up ' + gain2.join(','),
+        b2.result === 'won' && last2.some(function (l) { return /^Victory!/.test(l); }) && last2.some(function (l) { return /gains \d+ XP/.test(l); }) && /The road is clear/.test(said2.join(' ')) && !/XP/.test(said2.join(' ')) && gain2.every(function (g) { return g > 0 && g === gain2[0]; }));
+      HVc.playing = false; HVc.cur = null;
+      // 3. THE LEDGES (his "the ladders are supposed to be going up to ledges? All ground is walkable and they look more like ladders down than up as placed"): the working gallery's seven
+      // ladders off the floor -- the guano there, no ladder's look -- each up a rock face over open ground, one a face, none at the slide's lip; the art desk's ladder_up in hand
+      var B3 = testVc('?roam=galleries_g2'), d3 = RVc.def, fl3 = d3.faceLadders || {}, keys3 = Object.keys(fl3);
+      var faces3 = keys3.filter(function (k) { var p = k.split(',').map(Number); return d3.rows[p[1]].charAt(p[0]) === '#' && '.,gr~do='.indexOf(d3.rows[p[1] + 1].charAt(p[0])) >= 0 && !(p[0] === 28 && p[1] === 2); });
+      var z3 = d3.look.join('').split('Z').length - 1, n3 = d3.names8.rows.join('').split('').filter(function (c) { return d3.names8.legend[c] === 'ladder'; }).length, from3 = keys3.map(function (k) { return fl3[k].join(','); });
+      okVc('the working gallery\'s ladders up the rock: faces ' + keys3.join(' ') + ' (from ' + from3.join(' ') + '), rock over open ground ' + faces3.length + ', a ladder\'s look left on the floor ' + z3 + ', a ladder\'s name ' + n3 + ', the art desk\'s ladder_up on the mine sheet ' + !!(D.SHEETS && D.SHEETS.minetiles_p1 && (D.SHEETS.minetiles_p1.tiles || {}).ladder_up && D.topview && D.topview.ART.sheets.indexOf('minetiles_p1') >= 0),
+        keys3.length === 7 && faces3.length === 7 && z3 === 0 && n3 === 0 && !!(D.SHEETS && D.SHEETS.minetiles_p1 && (D.SHEETS.minetiles_p1.tiles || {}).ladder_up && D.topview && D.topview.ART.sheets.indexOf('minetiles_p1') >= 0) && from3.indexOf('15,4') >= 0 && fl3['15,2'] && fl3['15,2'].join(',') === '15,4');
+      var up3 = ['galleries_g3', 'galleries_g4', 'galleries', 'warrens_b'].map(function (k) { testVc('?roam=' + k); return k + ' ' + Object.keys(RVc.def.faceLadders || {}).length; });
+      okVc('the other floors\' ladders as they were (' + up3.join(', ') + ')', up3.every(function (s) { return / 0$/.test(s); }));
+    } catch (eVc) { repVc.errors.push(String(eVc && eVc.stack || eVc).slice(0, 900)); }
+    HVc.playing = false; HVc.cur = null; D.store.get = stGVc; D.store.set = stSVc; D.music = muVc; try { if (skVc != null) window.localStorage.setItem(SVc.KEY, skVc); } catch (eK2) { }
+    var preVc = document.createElement('pre'); preVc.id = 'out'; preVc.textContent = 'BENCH16 ' + JSON.stringify(repVc);
+    document.body.appendChild(preVc);
+    return;
+  }
   // THE GALLERIES FROM HIS NOTES, 10-29 (mode=galleries1029; js/mines.js THE SLIDE, THE WORKING GALLERY'S LIGHT, M.go's fall, M.fieldDef's simple field; js/simple.js S.roostOf;
   // js/light.js L.pass -- the Galleries seat, started by the lanes desk on Griz's "additional notes and fights in play-records", his NOTES of 10-29 18:46Z): the working gallery
   // dark, lit from the mouth by day and by hooded lamps; the slide's lip the guano till it is gone down, then the hole; no ladder up out of the slide's foot; the slide and a pit

@@ -601,7 +601,7 @@
     var m = B.simple.m, act = B.simple.act, now = (B.cards || []).filter(function (c) { return B.t - c.t0 < c.life && (!m || c.t0 >= m.t0); }), c = now[now.length - 1];
     if (m && m.msg) return [m.msg];
     if (m && !m.wait && m.mode === 'pick') return ['{y}' + m.pick.title + '{/}: click the one -- or the arrows and E; right-click or X, back'];
-    if (c) return c.lines.slice(0, 4);
+    if (c) return B.result && D.roam && D.roam.wrap ? D.roam.wrap(c.lines, D.W - 16).slice(0, 12) : c.lines.slice(0, 4); // (the fight's last card whole, wrapped: its victory, the XP and the spoils -- 10-29, js/battle.js finish's o.payNow)
     if (m && !m.wait) return [!S.acts(m.u) ? '{y}' + m.u.name + '{/}: the action is spent -- a bonus action, or END TURN' : m.u.name];
     return act ? [act.side === 'party' ? act.name : '{r}' + (B.shortName ? B.shortName(act) : act.name) + '{/}'] : [''];
   };

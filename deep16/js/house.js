@@ -128,12 +128,23 @@
     H.takeBack(B);
     if (res !== 'won' && res !== 'escaped' && res != null) { H.lost(); return null; }
     if (res !== 'won') return [];
+    var pf = B.housePay || H.payFight(B, res, true);
+    pf.give.forEach(function (g) { add(H.cur.inv, g[0], g[1]); }); // (the spoils into the pack the fight handed back: H.takeBack writes the fight's own pack over the save's)
+    return B.housePay ? [] : pf.lines; // (said on the fight's last card already: H.payFight)
+  };
+  // a won road fight's pay (RULED 10-29, Griz: "Leans stand" -- victory on the fight's last card, as a floor's fights, js/roam.js R.pullPay): the fallen's XP banked by those
+  // standing, the tally, the purse; the spoils rolled, into the pack after the hand-back (H.afterFight). As the last card goes up (js/battle.js o.payNow) those standing are the
+  // fight's own sheets, which H.takeBack writes into the save after; from H.afterFight (`back`, no card to say it on) the save's. Returns { lines, give }
+  H.payFight = function (B, res, back) {
+    var pf = { lines: [], give: [] }; if (res !== 'won') return pf;
     var R = DS.R, xp = 0, fell = [];
     B.units.forEach(function (u) { if (u.side !== 'foe' || u.summon || u.fled || u.left || !(u.dead || u.hp <= 0)) return; var x = H.xpOf(u.kind); xp += x.xp; if (x.m) { fell.push({ m: x.m, surrendered: !!(u.surrendered || u.yielded) }); R.tally(H.cur.kills, [D.id8 ? D.id8(u.kind) : u.kind]); } });
-    var standing = H.cur.party.filter(function (h) { return h.hp > 0; }), lines = [], bk = H.bank(xp, standing);
+    var standing = back ? H.cur.party.filter(function (h) { return h.hp > 0; }) : B.units.filter(function (u) { return u.side === 'party' && u.src && !u.src.guest && !u.summon && !u.familiar && !u.object && u.hp > 0 && !u.dead; }).map(function (u) { return u.src; });
+    var lines = [], bk = H.bank(xp, standing);
     if (bk.line) lines.push(bk.line);
-    if (fell.length) { var sp = R.spoils(fell, standing, { roll: function (e) { return D.roll(e).total; }, rng: D.rand }, function (id, n) { add(H.cur.inv, id, n); }); H.cur.silver += sp.silver; lines = lines.concat(sp.lines); }
-    return lines;
+    if (fell.length) { var sp = R.spoils(fell, standing, { roll: function (e) { return D.roll(e).total; }, rng: D.rand }, function (id, n) { pf.give.push([id, n]); }); H.cur.silver += sp.silver; lines = lines.concat(sp.lines); }
+    pf.lines = back || !lines.length ? lines : ['{y}Victory!{/}'].concat(lines);
+    return pf;
   };
   // no level cap (RULED 10-21, Griz: "we won't have a level cap, these guys will be going against a clock"): in the house the cap is the XP table's top (js/rules.js
   // R.XP_LEVEL); the first game's own cap stands wherever the house is not being played (this file loads only in deep16/)

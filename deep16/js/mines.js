@@ -31,8 +31,8 @@
       gates: { east: [34, 21, [-1, 0]], south: [17, 22, [0, -1]], west: [1, 21, [1, 0]] }, // (THE WORLD's site: the road in from the junction east, a step inside each edge)
       doors2: [{ id: 'keeper:galbunk', x: 3, y: 12 }] }, // (the second game's own door in the first game's wall: the hands' bunkhouse, M.INNS -- M.floor lays it, the first game's map unwritten)
     // (over: the second game's own squares over the first game's, by the flags -- M.over8; dark and lamps: the working gallery lit only from the mouth -- M.MOUTHLIGHT)
-    galleries_g2: { src: 'galleries_g2', place: 'The Guano Galleries', sub: 'the working gallery', save: false, dark: true, lamps: true,
-      over: function (f) { return f.slideFound ? [] : [[28, 3, 'guanoDeep']]; } }, // (the slide's lip the guano round it till the party has gone down it: M.SLIDE)
+    galleries_g2: { src: 'galleries_g2', place: 'The Guano Galleries', sub: 'the working gallery', save: false, dark: true, lamps: true, ledges: true,
+      over: function (f, m8) { return (f.slideFound ? [] : [[28, 3, 'guanoDeep']]).concat(M.ladders8(m8).map(function (q) { return [q[0], q[1], 'guano']; })); } }, // (the slide's lip the guano round it till the party has gone down it: M.SLIDE; the scrapers' ladders off the floor and up the rock: M.LEDGES)
     galleries_g3: { src: 'galleries_g3', place: 'The Guano Galleries', sub: 'the dens', save: false },
     // the hole floor (10-28, the deep gallery seat, started by the lanes desk on Griz's "have we connected the 3rd level fight and the Dace plotline to the guano mine on
     // main yet?"; his five, "all 5 leans, but put the guests in the party token (not follow behind)"): bare rock under the dens, no roost -- a light is lawful -- and the cloaker
@@ -72,7 +72,7 @@
   // lip hidden as the guano round it till the party has gone down it, the slide's foot rock where the first game stood a ladder up out of it (M.SLIDE). A way on a square made
   // rock is shut with it (M.floor's warps)
   M.over8 = function (F, m8, flags) {
-    var r8 = m8.rows, ov = F.over ? F.over(flags || {}) : []; if (!ov.length) return r8;
+    var r8 = m8.rows, ov = F.over ? F.over(flags || {}, m8) : []; if (!ov.length) return r8;
     var leg = m8.legend, chOf = function (nm) { return Object.keys(leg).filter(function (k) { return leg[k] === nm; })[0]; };
     r8 = r8.slice(); ov.forEach(function (o) { var ch = chOf(o[2]), r = r8[o[1]]; if (ch && r) r8[o[1]] = r.slice(0, o[0]) + ch + r.slice(o[0] + 1); });
     return r8;
@@ -82,6 +82,22 @@
   // careless step goes down" (TarlynsPit/GalleriesModule/guano-galleries-DM.md). Its lip is the guano round it till the party has gone down it once (flag slideFound), then the
   // hole it is; the way down said on a pop-up on the floor below (M.go's `fall`, as a pit's); and its foot in the deep gallery a fan of guano under rock, no ladder up
   M.SLIDE = { title: 'THE GUANO-SLIDE' };
+  // THE LEDGES (RULED 10-29, Griz: "Leans stand", on the Galleries seat's lean -- his NOTES from the working gallery, "the ladders are supposed to be going up to ledges? All ground
+  // is walkable and they look more like ladders down than up as placed"): the module's G2, "Rope ladders are bolted to the walls up to ledges fifteen to twenty-five feet up, where
+  // scarved hands scrape" (TarlynsPit/GalleriesModule/guano-galleries-DM.md). The first game stood its seven ladders out on the guano floor; here each square is the guano round it,
+  // and its ladder stands up the nearest rock face -- the art desk's ladder_up on the face (js/topview.js artRock, def.faceLadders), the faces the top view shows being the rock's
+  // south faces -- one ladder a face, none at a way off the floor (the slide's lip) nor on a lantern's face. The ledges above are the scrape's ground, not walked
+  M.ladders8 = function (m8) { var out = [], leg = m8.legend; m8.rows.forEach(function (r, y) { for (var x = 0; x < r.length; x++) if (leg[r.charAt(x)] === 'ladder') out.push([x, y]); }); return out; };
+  M.ledgeFaces = function (g, names, lads, warps) {
+    var out = {}, used = {}, feet = [], nm = function (x, y) { var r = names.rows[y]; return r ? names.legend[r.charAt(x)] : null; }, isWay = function (x, y) { return (warps || []).some(function (w) { return w.x === x && w.y === y; }); };
+    for (var y = 1; y < g.length; y++) for (var x = 0; x < g[y].length; x++) if (OPENCH.indexOf(g[y][x]) >= 0 && g[y - 1][x] === '#' && nm(x, y - 1) !== 'lantern' && !isWay(x, y)) feet.push([x, y]);
+    lads.forEach(function (l) {
+      var best = null, bd = Infinity;
+      feet.forEach(function (f) { if (used[f[0] + ',' + (f[1] - 1)]) return; var d = Math.hypot(f[0] - l[0], f[1] - l[1]) + f[1] * 1e-4 + f[0] * 1e-6; if (d < bd) { bd = d; best = f; } });
+      if (best) { used[best[0] + ',' + (best[1] - 1)] = 1; out[best[0] + ',' + (best[1] - 1)] = [l[0], l[1]]; }
+    });
+    return out;
+  };
   // THE WORKING GALLERY'S LIGHT (10-29, his NOTES there: "lanterns and brightness seem weird here (only from cave mouth)"): the first game drew the working gallery lit through
   // and its lamp posts lit with nothing to light. The module's G2: "One big cavern under a roosted ceiling ... There are no lamps on the scrape floor itself; hooded lamps only,
   // carried", and "the hooded lamp-line running into" the passage east. So the floor is dark (a floor's `dark`), lit from the mouth by day -- the daylight down its passage
@@ -181,13 +197,14 @@
     if (fq) face = [+fq[1], +fq[2]];
     Object.keys(F.gates || {}).forEach(function (k) { marks.gates[k] = F.gates[k].slice(0, 2); });
     var rows = g.map(function (r) { return r.join(''); }), id = function (a, b) { return [a, b]; };
+    var faceLad = F.ledges ? M.ledgeFaces(rows, { rows: r8, legend: leg }, M.ladders8(m8), m8.warps) : null; // (the scrapers' ladders up the rock faces: M.LEDGES)
     var def = D.MAPS[key] = {
       name: F.place, sub: F.sub, key: key, door: F.door || null, mine: true, town: true, wet: false, dark: !!(m8.dark || F.dark), ground: iso && M.groundOf({ key: key }) === 'cave' ? null : 'earth', step: 10, // (dark: the dens and the workings, the party's own light -- js/light.js; the Glowseep by night) (ground: on the diamonds a cave's floor is the Wet's stone -- ON THE DIAMONDS)
       clock: !!F.clock, hour: hour, ownLights: m8.lights || M.lampLights(key, F, { rows: r8, legend: leg }, people, hour), // (the working gallery's mouth and hooded lamps: M.MOUTHLIGHT) (the Glowseep: THE WORLD's clock moves as the party walks and fights there -- M.SEEP; its poles and moss lit by night)
       view: iso ? null : 'top', iso: iso, page: iso && w * h > M.ISOPAGE ? true : undefined, ft: 30, roofs: T.roofsAt(30), slope: slope.map(function (r) { return r.join(''); }), look: lk.map(function (r) { return r.join(''); }), signs: signs, signDoor: signDoor, faceDoors: {},
       rows: rows, w: w, h: h, entry: [at], face: face, gate: gq || null, stairUp: [], doors: ways, marks: marks, people: people, foes: [], warps: warps, out: F.out || null, save: !!F.save,
       deepWater: 'D', music: m8.music || 'field', wayName: wayName, roost: !!m8.roost, edges: !!F.edges, // (roost: the first game's roosted ceiling -- the working gallery, the dens: M.fieldDef)
-      names8: { rows: r8.slice(), legend: leg }, // (the first game's name of each square -- bones, webbing, a fence or a lamp, a tent or a stump: the art's piece for it, js/topview.js TV.ART)
+      names8: { rows: r8.slice(), legend: leg }, faceLadders: faceLad, // (faceLadders: a rock square's face with a ladder up it -> the first game's square it stood on, M.LEDGES) // (the first game's name of each square -- bones, webbing, a fence or a lamp, a tent or a stump: the art's piece for it, js/topview.js TV.ART)
       src8: { id: F.src, rows: [], legend: {}, triggers: trig, warps: [], chests: (m8.chests || []).slice(), zones: (m8.zones || []).slice(), save: !!F.save }, from8: id, to8: id, sig: '', // (zones: the first game's random fights where it has them -- the dens, the workings: each on a field of its own, M.fieldFight, its tables content/encounters.json)
       zone8: (m8.zones && m8.zones[0] && m8.zones[0].zone) || null,
       hud: F.place.replace(/^The /, 'the ') + ': ' + F.sub,
