@@ -17,6 +17,9 @@
   var DS = window.DS = window.DS || {};
   var G1 = 'Eyes: first', G2 = 'Eyes: built this week', G3 = 'Eyes: built before, never seen';
   DS.EYES = {
+    'eyes-chuul-frog-1028': { pri: 2, group: G2, title: 'The Thing in the Lake with a giant frog out of the shallows (10-28)', pt: 'the difficulty lane §2.3 (deep16/data/fights.js chuul; the overseer\'s answer 3 on your 10-03 “CR your call”)',
+      url: 'deep16/?fight=chuul&fresh=28k',
+      look: 'The point at night, level 4, Barley in the Ring of Binding: the chuul comes up out of the deep, and a giant frog with it out of the shallows to the west, the lake\'s own. The ring\'s rounds (1, 4, 7, 10) as before. The bench reads it 20 won of 20 with nobody down even so (three frogs: 19 of 20, a quarter of a down) -- under your sentence\'s 75% with a down or two, so how it plays in your hands is the measure. The ladder\'s rung 4 keeps the chuul alone (chuul-ladder).' },
     'eyes-crew-skell-1028': { pri: 2, group: G2, title: 'The Night Crew with its fourth: Skell, Hask\'s lieutenant, in a crewman\'s place (10-28)', pt: 'the difficulty lane §2.2, your “Take the leans” (deep16/data/foes.js skell, deep16/data/fights.js crew)',
       url: 'deep16/?fight=crew&fresh=28k',
       look: 'The Burial at level 4: Hask with the pry-bar, the wheelwright by the lamp, one crewman -- and Skell coming round the far side, a Bandit Captain in Hask\'s pattern (two pry-bar blows and a knife, Parry), in the bandit\'s green hood as his stand-in so the one to watch is not dressed as the crew. Four of them, as the scene says. The bench reads it 16 won of 20 with 1.5 downs (it was 20 of 20, nobody down). The ladder\'s rung 4 keeps the old crew (crew-ladder), as rung 3 keeps the old Snoot and the old gulch. Say if his look should be a sheet of his own.' },

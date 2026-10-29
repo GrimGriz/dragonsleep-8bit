@@ -33,7 +33,7 @@
              { id: 'ws1', kind: 'wolfspider', at: [4, 5] }, { id: 'ws2', kind: 'wolfspider', at: [13, 6] }], wave: null },
     // THE LADDER'S RUNGS 3 AND 4 KEEP THEIR OLD FIGHTS (10-28, Griz: "Take the leans" -- the difficulty lane §2.4/§3.3: the half again is the story's, "the ladders are not for this, as with
     // the Keeper"): each `<id>-ladder` record is its story fight as the ladder had it before 10-03 (the record of 9b849b2^ / 45c1dc5^ word for word, or the crew's as it stood before its
-    // fourth), right after the story's own in this list -- its place on the rung (a rung is built from D.fightsAt, in this list's order) -- and the story's own carries `ladder: false`.
+    // fourth, the chuul's before its frog), right after the story's own in this list -- its place on the rung (a rung is built from D.fightsAt, in this list's order) -- and the story's own carries `ladder: false`.
     { id: 'ettercap-ladder', level: 3, map: 'gulch', name: 'The Braiding Ettercap', sub: 'Web Gulch, the strung end', music: 'boss',
       intro: 'On a thick strand at the far end something sits braiding a cord. It stops when it sees you.',
       from: 'the 8-bit game: the Weigh-House bounty (events.js S.ettercap; ettercap + giant spider)', won: 'THE GULCH GOES QUIET.',
@@ -235,11 +235,20 @@
       intro: 'A dwarven stair runs down into black water. At the bottom five men lie drowned. The water is a thing, and it closes. (It keeps to its water, and you cannot see it there until it moves.)',
       from: 'the 8-bit game: events.js S.stair (the Keeper; the water hand-waved: it keeps to it)', won: 'IT SINKS BACK INTO ITS STAIR.',
       foes: [{ id: 'keeper', kind: 'keeperold', at: [8, 4], hidden: true }], wave: null },
-    { id: 'chuul', story: true, level: 4, map: 'point', name: 'The Thing in the Lake', sub: 'the point, at night', music: 'boss',
+    { id: 'chuul', story: true, level: 4, ladder: false, map: 'point', name: 'The Thing in the Lake', sub: 'the point, at night', music: 'boss',
       ring: { hero: 'barley', rounds: [1, 4, 7, 10], con: 3 },
       intro: 'The water off the point heaves. It comes up out of the deep: the size of a wagon, the colour of wet stone. It turns toward the ring before it turns toward anything else. (Barley wears the Ring of Binding.)',
       // inside the 8-bit game (js/embed.js): the ring on whoever wears it, or on nobody (the 8-bit S.lakeFight's lake.rises / risesNoRing)
       introRing: 'It turns toward the ring before it turns toward anything else. ({ring} wears the Ring of Binding: +3 CON saves, and on rounds 1, 4, 7 and 10 it must turn on them.)', // (the 8-bit box has said the water heaves)
+      introNoRing: 'Nobody wears the Ring of Binding. It turns toward whoever is nearest the water.',
+      from: 'the 8-bit game: events.js S.lakeFight, the base game\'s capstone (the chuul; the Ring of Binding: +3 CON saves, and on rounds 1, 4, 7 and 10 it must turn on the wearer). The water hand-waved: it swims, nobody else does', won: 'THE DEEP IS ONLY WATER NOW.',
+      // the chuul's frog (half again: the overseer's answer 3 on Griz's 10-03 "CR your call", the difficulty lane §2.3): one giant frog out of the shallows, the lake's own (SRD 5.1
+      // Giant Frog, CR 1/4, it swims), on the point's water, row 4; the ring's rounds untouched. For four at 4 (PK.diff): 1100 MEDIUM before, 1725 HARD after (x1.57). invented.json#early-fights-half-again
+      foes: [{ id: 'chuul', kind: 'chuul', at: [8, 2] }, { id: 'frog', kind: 'giantfrog', at: [5, 4] }], wave: null },
+    { id: 'chuul-ladder', level: 4, map: 'point', name: 'The Thing in the Lake', sub: 'the point, at night', music: 'boss', // (the ladder's own, 10-28: above, at ettercap-ladder)
+      ring: { hero: 'barley', rounds: [1, 4, 7, 10], con: 3 },
+      intro: 'The water off the point heaves. It comes up out of the deep: the size of a wagon, the colour of wet stone. It turns toward the ring before it turns toward anything else. (Barley wears the Ring of Binding.)',
+      introRing: 'It turns toward the ring before it turns toward anything else. ({ring} wears the Ring of Binding: +3 CON saves, and on rounds 1, 4, 7 and 10 it must turn on them.)',
       introNoRing: 'Nobody wears the Ring of Binding. It turns toward whoever is nearest the water.',
       from: 'the 8-bit game: events.js S.lakeFight, the base game\'s capstone (the chuul; the Ring of Binding: +3 CON saves, and on rounds 1, 4, 7 and 10 it must turn on the wearer). The water hand-waved: it swims, nobody else does', won: 'THE DEEP IS ONLY WATER NOW.',
       foes: [{ id: 'chuul', kind: 'chuul', at: [8, 2] }], wave: null },
