@@ -1949,7 +1949,7 @@
       besideM(BW, [7, 8]); var eW = useM(BW, [7, 8]);
       okM('Edric Pellam on the counter screen (the first game\'s S.edric: "' + eW.seen.slice(0, 70) + '..."): his book has the party (tallyMet ' + BW.roam.flags.tallyMet + ')', !!eW.sc && eW.sc.o.name === 'Edric Pellam' && BW.roam.flags.tallyMet === 1 && eW.seen.indexOf(textM('w.edricFirst')) >= 0);
       besideM(BW, [15, 8]); var sW = useM(BW, [15, 8], [0]);
-      okM('Skarn (S.skarn): his question, the party come as free hands (' + sW.seen.split(' / ').filter(function (l) { return /^> /.test(l); }).join('') + '): skarnOk ' + BW.roam.flags.skarnOk, !!sW.sc && BW.roam.flags.skarnOk === 1 && BW.roam.flags.heardPete === 1);
+      okM('Skarn (S.skarn): his question, the party come as free hands (' + sW.seen.split(' / ').filter(function (l) { return /^> /.test(l); }).join('') + '): skarnOk ' + BW.roam.flags.skarnOk, !!sW.sc && BW.roam.flags.skarnOk === 1 && (BW.roam.flags.heardFive === 1 || BW.roam.flags.heardPete === 1)); // (heardFive since 10-29: Edric's word, or Skarn's work past the pens, opens the five -- mode=story1029b)
       walkM(BW, [6, 8]); var tyW = useM(BW, [6, 7]);
       okM('the tally-house\'s door: Edric\'s shop on the counter screen (' + (tyW.sc && tyW.sc.o.place) + ': "' + tyW.seen.slice(0, 60) + '"), the draught on its shelves', !!tyW.sc && tyW.sc.o.place === window.DS.DATA.shops.tally.name && tyW.seen.indexOf(window.DS.DATA.shops.tally.greeting) >= 0);
       walkM(BW, [29, 8]); var bkW = useM(BW, [29, 7]);
@@ -4132,16 +4132,17 @@
       var fH = { herdWarned: 1, councilNotice: 1 }, dH = HWw.councilsDue(fH), sH = sitHw(HWw.sitting(BC2, dH, [fH])), dH2 = HWw.councilsDue(fH); fH.stockDead = 1; var dS = HWw.councilsDue(fH), sS = sitHw(HWw.sitting(BC2, dS, [fH]));
       okHw('C3: the herd thinned, due ' + dH.join(',') + ' -- "' + (sH[1] || '').slice(0, 80) + '" -- then none (' + dH2.length + '); the stock dead, due ' + dS.join(',') + ' -- "' + (sS[1] || '').slice(0, 70) + '"',
         dH.join() === 'herd' && /^The east side's man\|-\|"Three of the House's stock dead/.test(sH[1]) && !!fH.councilHerd && !dH2.length && dS.join() === 'stock' && /Captain's line/.test(sS[1]) && !!fH.councilStock);
-      // 16. C2, A NAME MADE (his "17 - yeah, that's good"): renown 2 -- in the Hex the call, once; on the third floor the sitting, a who's-who, once
-      var BX = newHw('barley'); beatHw(BX); HHw.cur.renown = 2; driveHw(THw.fire(BX, trigHw('hex:front')), null, 2000); var hx1 = RHw.def.hexIn, dX1 = HWw.due(BX), cX = dX1 ? beatHw(BX) : '';
+      // 16. C2, A NAME MADE (his "17 - yeah, that's good"): renown 2 -- in the Hex the call, once; on the third floor the sitting, once. Since 10-29 (the story window, RULED on
+      // his "Leans stand"): the call Papa's runner on his own screen, and the sitting the council's ask -- the ettercap, sworn and pinned -- not a who's-who (mode=story1029b)
+      var shotHw = function (B, g) { var v, k = 0, st, pr = null; while (k++ < 4000) { st = g.next(v); v = undefined; if (st.done) break; if (st.value && st.value.prompt) { pr = pr || st.value.prompt; v = 0; } else if (typeof st.value === 'number') B.t += st.value; if (D.top() instanceof CHw.Counter) break; } return { g: g, pr: pr }; };
+      var BX = newHw('barley'); beatHw(BX); HHw.cur.renown = 2; driveHw(THw.fire(BX, trigHw('hex:front')), null, 2000); var hx1 = RHw.def.hexIn, dX1 = HWw.due(BX), rX = dX1 ? shotHw(BX, HWw.beat(BX)) : { g: null }, cXs = D.top() instanceof CHw.Counter ? sitHw(D.top()) : [], cX = cXs[0] || ''; if (rX.g) driveHw(rX.g, null, 400); offHw(BX);
       // (up to the third floor, as the spirals lay it: the council in their seats at the long table, his "yes but a scene at start or between that shows them on the 3rd floor")
       var up3 = function (B) { var HX = D.hex, sp = HX.spiralSq()[0], rows = HX.rows(3), at = HX.near(rows, [sp[0], sp[1] + 1]) || HX.near(rows, sp); HX.lay(B, 3, at, [0, 1]); };
       var seatsHw = function (B) { return B.units.filter(function (u) { return /^council/.test(u.npc || ''); }); };
-      var shotHw = function (B, g) { var v, k = 0, st, pr = null; while (k++ < 4000) { st = g.next(v); v = undefined; if (st.done) break; if (st.value && st.value.prompt) { pr = pr || st.value.prompt; v = 0; } else if (typeof st.value === 'number') B.t += st.value; if (D.top() instanceof CHw.Counter) break; } return { g: g, pr: pr }; };
       up3(BX); var seat3 = seatsHw(BX), dX3 = HWw.due(BX), shX = dX3 ? shotHw(BX, HWw.beat(BX)) : { pr: null }, sX = D.top() instanceof CHw.Counter ? sitHw(D.top()) : []; if (shX.g) driveHw(shX.g, null, 400);
-      okHw('C2 at renown 2: in the Hex (' + hx1 + ') the call "' + String(cX).slice(0, 50) + '..."; up on the third floor the council at the long table (' + seat3.map(function (u) { return u.npc.replace('council', '') + ':' + (u.sheet || '-'); }).join(', ') + '), the shot "' + (shX.pr ? shX.pr.title + ': ' + window.DS.stripCodes(shX.pr.lines.join(' ')).slice(0, 50) : 'none') + '...", then the sitting, ' + sX.length + ' pages, Androit first ("' + (sX[0] || '').slice(0, 50) + '"), Papa last; risen after (' + !seatsHw(BX).length + '), once (' + !HWw.due(BX) + ')',
-        hx1 === 1 && /Papa wants you on the third floor/.test(cX) && seat3.length === 6 && seat3.some(function (u) { return u.npc === 'councilandroit' && u.sheet === 'androit_p1'; }) && !!shX.pr && shX.pr.title === 'THE HEX, THE THIRD FLOOR' && /long table under the Big Window/.test(shX.pr.lines.join(' '))
-          && sX.length === 6 && /^Aldwyn Androit\|pt_androit\|"Aldwyn Androit\. My seal/.test(sX[0]) && /^Papa Urtusk\|pt_papa\|"They've seen you/.test(sX[5]) && !seatsHw(BX).length && !!BX.roam.flags.councilSeen && !HWw.due(BX));
+      okHw('C2 at renown 2: in the Hex (' + hx1 + ') the call "' + String(cX).slice(0, 50) + '..."; up on the third floor the council at the long table (' + seat3.map(function (u) { return u.npc.replace('council', '') + ':' + (u.sheet || '-'); }).join(', ') + '), the shot "' + (shX.pr ? shX.pr.title + ': ' + window.DS.stripCodes(shX.pr.lines.join(' ')).slice(0, 50) : 'none') + '...", then the sitting, ' + sX.length + ' pages, Papa first ("' + (sX[0] || '').slice(0, 50) + '"), Androit\'s oath ("' + (sX[3] || '').slice(0, 40) + '"), Papa last; the ettercap opened (' + BX.roam.flags.heardEttercap + '); risen after (' + !seatsHw(BX).length + '), once (' + !HWw.lookDue(BX) + ')',
+        hx1 === 1 && /^A Hex boy\|pt_hexboy\|Papa Urtusk wants you on the Hex's third floor/.test(cX) && seat3.length === 6 && seat3.some(function (u) { return u.npc === 'councilandroit' && u.sheet === 'androit_p1'; }) && !!shX.pr && shX.pr.title === 'THE HEX, THE THIRD FLOOR' && /long table under the Big Window/.test(shX.pr.lines.join(' '))
+          && sX.length === 6 && /^Papa Urtusk\|pt_papa\|"These are the ones/.test(sX[0]) && /^Aldwyn Androit\|pt_androit\|"Then it's sworn before me/.test(sX[3]) && /^Papa Urtusk\|pt_papa\|"That's what this was/.test(sX[5]) && BX.roam.flags.heardEttercap === 1 && !seatsHw(BX).length && !!BX.roam.flags.councilSeen && !HWw.lookDue(BX)); // (once: C2 not due again -- the ettercap's card is, since 10-29)
       // 19. A COUNCIL'S NIGHT ON THE THIRD FLOOR (the same ruling): Day 1 from dusk, the Pit's word not yet sat on -- up the spirals the council at the table, Merrick among them, the shot
       // once that night (Warda: stand at the back); the night's sitting still waits for the rest
       var BN = newHw('vivian'); beatHw(BN); BN.roam.flags.papaLymen = 1; WHw.state().t = 42; driveHw(THw.fire(BN, trigHw('hex:front')), null, 2000); up3(BN);
@@ -4898,6 +4899,104 @@
     document.body.appendChild(preGC);
     return;
   }
+  // HIS STORY NOTES OF 10-29 1808Z (mode=story1029b; the story window, started by the lanes desk, RULED on his "Leans stand"): The Missing Five by words (js/hours.js
+  // H16.MISSIONS warrens, H16.FIVE_BY; js/mines.js Edric, Skarn), Edric and Pete after the five, the pens' picture and Old Hob's face (js/cradle.js CR.pic, M.penShift),
+  // Papa's runner (H16.runner), C2 the council's ask and the ettercap's mission (H16.COUNCIL.looks, H16.MISSIONS ettercap), the barber and Davos (C.TALK16 barber), the
+  // night's cutscene without its explainer card, one background, a room not a shop (H16.sitting cut, H16.backdrop, js/counter.js o.room), the east side's man standing
+  if (get('mode', '') === 'story1029b') {
+    var repSb = { checks: [], errors: [] }, memSb = {}, stGSb = D.store.get, stSSb = D.store.set, MSb = D.mines, HSb = D.house, CSb = D.counter, TSb = D.town, RSb = D.roam, H6Sb = D.hours;
+    function okSb(what, v) { repSb.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function driveSb(g, until, cap) { var v, k = 0, st; while (k++ < (cap || 20000)) { if (until && until()) return true; st = g.next(v); v = undefined; if (st.done) return !!(until && until()); if (typeof st.value === 'number' && D.battle) D.battle.t += Math.max(1, st.value); if (st.value && st.value.prompt) v = st.value.prompt.opts[0].value; } return !!(until && until()); }
+    function floorSb(q) { var B = RSb.make(q + '&watch'); D.scenes.length = 0; D.push(B); var s = D.top(); if (s && s.baking) { s.baking = false; s.enter(); } D.battle = B; if (B.co) driveSb(B.co, null, 2); B.cards = []; return B; }
+    // a counter screen read through: each page's lines (its name and face), each question its options and the answer given (by index, else the last)
+    function readSb(sc, ans) { var out = [], k = 0, w0 = null; ans = (ans || []).slice(); while (!sc.done && k++ < 60) { var w = sc.wait || {}, bs = sc.buttons(); if (w.say) { if (w !== w0) out.push(sc.o.name + '|' + (sc.sheet || '-') + '|' + (sc.o.pic ? 'pic' : '-') + '|' + window.DS.stripCodes(w.say.join(' '))); w0 = w; sc.press(bs.filter(function (q) { return q.go === 'next'; })[0]); } else if (w.ask) { var os = bs.filter(function (q) { return q.go === 'opt'; }), a = ans.length ? ans.shift() : os.length - 1; out.push('? ' + window.DS.stripCodes(w.ask.join(' ')) + ' [' + w.opts.join('|') + '] > ' + w.opts[a]); sc.press(os[a]); } else break; } return out; }
+    function sceneSb(B, id, ans) { var g = MSb.talk(B, id), seen = []; driveSb(g, function () { return D.top() instanceof CSb.Counter; }, 400); if (D.top() instanceof CSb.Counter) seen = readSb(D.top(), ans); driveSb(g, null, 400); return seen; }
+    function fiveSb(B) { return CSb.quests(CSb.state(B)).filter(function (q) { return q.id === 'warrens'; })[0] || null; }
+    function qSb(B, id) { return CSb.quests(CSb.state(B)).filter(function (q) { return q.id === id; })[0] || null; }
+    D.store.get = function (k) { return memSb[k] ? JSON.parse(memSb[k]) : null; }; D.store.set = function (k, v) { memSb[k] = JSON.stringify(v); return true; };
+    window.DS.autoPicks = true;
+    try {
+      D.seed = +get('seed', 1029);
+      // 1. THE MISSING FIVE BY WORDS (his "there's no real taking of the missing 5 quest - you talk to him about milking crawlers and it mysteriously shows up in your journal"):
+      // the book signed alone opens nothing; Edric's own telling opens it in his words, pointing at Skarn
+      var B0 = floorSb('?roam=warrens&flags=tallyMet');
+      okSb('the book signed and nothing said of the five: no Missing Five in the JOURNAL (' + !fiveSb(B0) + ')', !fiveSb(B0));
+      var B1 = floorSb('?roam=warrens'), e1 = sceneSb(B1, 'edric'), m1 = fiveSb(B1), f1 = B1.roam.flags;
+      okSb('Edric\'s first word: the book, then the five in his own words ("' + (e1.join(' / ').match(/Five names in this book[^/]*/) || [''])[0].slice(0, 70) + '..."), Skarn named; the Five open by Edric (' + f1.fiveBy + '), its words "' + String(m1 && m1.text).slice(0, 50) + '...", NEXT "' + String(m1 && m1.where).slice(0, 60) + '"',
+        !!m1 && f1.fiveBy === 'edric' && f1.tallyMet === 1 && f1.fiveKnown === 1 && !f1.heardPete && /^Edric Pellam's book/.test(m1.text) && !/Pete says/.test(m1.text) && /^Skarn, the Warrener/.test(m1.where) && /You're in the book now/.test(e1.join(' ')) && /Five names in this book have no return line/.test(e1.join(' ')) && /Ask him, not me/.test(e1.join(' ')));
+      // Pete's: Edric first (his 10-28 ruling), then Skarn
+      var B2 = floorSb('?roam=warrens&flags=heardPete'), m2a = fiveSb(B2), e2 = sceneSb(B2, 'edric'), m2b = fiveSb(B2);
+      okSb('Pete\'s word: his words ("' + String(m2a && m2a.text).slice(0, 40) + '..."), NEXT Edric ("' + String(m2a && m2a.where).slice(0, 40) + '"); after Edric, NEXT Skarn ("' + String(m2b && m2b.where).slice(0, 40) + '"), the words still Pete\'s (' + (B2.roam.flags.fiveBy || 'pete') + ')',
+        !!m2a && /^Warrens Pete says/.test(m2a.text) && /^Edric Pellam at the tally-house/.test(m2a.where) && /^Skarn, the Warrener/.test(m2b.where) && /^Warrens Pete says/.test(m2b.text) && !B2.roam.flags.fiveBy);
+      // 2. SKARN: lines the player picks (his "should be lines the player chooses (rather than conversational stance presented) or absent, asking about the mission if you carry it,
+      // asking about work other than milking if you don't as how to get to the gates being unlocked"), the slave stance one rude line
+      var s2 = sceneSb(B2, 'skarn', [0]), f2 = B2.roam.flags;
+      okSb('Skarn, the five carried: "' + (s2.filter(function (l) { return /^\?/.test(l); })[0] || '') + '"; the gate (' + f2.skarnOk + '), "' + (s2.join(' / ').match(/Edric can close his book/) || ['none'])[0] + '"; NEXT "' + String(fiveSb(B2).where).slice(0, 40) + '"',
+        f2.skarnOk === 1 && s2.some(function (l) { return /\[PETE'S FIVE\. WHERE DID THEY GO DOWN\?\|OPEN UP, COLLAR\.\] > PETE'S FIVE/.test(l); }) && !s2.some(function (l) { return /AS A MAN|AS A SLAVE/.test(l); }) && /Edric can close his book/.test(s2.join(' ')) && /^The flooded stair/.test(fiveSb(B2).where));
+      var B3 = floorSb('?roam=warrens&flags=tallyMet'), s3a = sceneSb(B3, 'skarn', [1]), f3 = B3.roam.flags, gate3 = f3.skarnOk, s3b = sceneSb(B3, 'skarn', [0]), m3 = fiveSb(B3);
+      okSb('Skarn, nothing carried: the rude line ("' + (s3a.filter(function (l) { return /^\?/.test(l); })[0] || '').slice(-60) + '") meets the Champion, the gate shut (' + !gate3 + '); asked again, work past the pens: the gate (' + f3.skarnOk + '), the Five open by Skarn (' + f3.fiveBy + ', "' + String(m3 && m3.text).slice(0, 40) + '..."), NEXT past Edric to the stair ("' + String(m3 && m3.where).slice(0, 30) + '")',
+        !gate3 && /met the Champion/.test(s3a.join(' ')) && s3a.some(function (l) { return /\[ANY WORK BESIDES THE CRADLES\?\|OPEN UP, COLLAR\.\] > OPEN UP, COLLAR/.test(l); }) && f3.skarnOk === 1 && f3.fiveBy === 'skarn' && f3.heardFive === 1 && !!m3 && /^Skarn, the Warrener, has one job/.test(m3.text) && /^The flooded stair/.test(m3.where) && /nobody takes it/.test(s3b.join(' ')));
+      // 3. AFTER THE FIVE (his "post quest edric text"): the book balances; Skarn's office box named while it hasn't paid; Pete stops saying six
+      var B4 = floorSb('?roam=warrens&flags=fiveDone,fiveKnown,tallyMet,skarnOk,heardPete'), e4 = sceneSb(B4, 'edric').join(' / '); B4.roam.flags.skarnPaid = 1; var e4b = sceneSb(B4, 'edric').join(' / ');
+      okSb('Edric after the five: "' + e4.replace(/^[^|]*\|[^|]*\|[^|]*\|/, '').slice(0, 110) + '"; Skarn paid: "' + e4b.replace(/^[^|]*\|[^|]*\|[^|]*\|/, '').slice(0, 60) + '"; never "no return line" (' + !/no return line/.test(e4 + e4b) + ')',
+        /The book balances, for once/.test(e4) && /office box/.test(e4) && /The book balances/.test(e4b) && !/office box/.test(e4b) && !/no return line/.test(e4 + e4b));
+      var pAfter = CSb.words(B4, 'pete').join(' '), pHex = CSb.words(B4, 'warrenspete').join(' '), B5 = floorSb('?roam=warrens'), pBefore = CSb.words(B5, 'pete').join(' ');
+      okSb('Pete after the five: "' + pAfter.slice(0, 60) + '..." (and in the Hex: "' + pHex.slice(0, 30) + '..."); before them: "' + pBefore.slice(0, 40) + '..."', /Five came up/.test(pAfter) && /doesn't say six/.test(pAfter) && /Five came up/.test(pHex) && /Six of us went down/.test(pBefore));
+      // 4. THE PENS (his "there should be an image of a cradled crawler in the portrait slot - old hob when his line is presented"; "paid at the board"): the cradle in the
+      // portrait's place for the shift's ask and pay, Old Hob's face for his line, "paid at the pen"; the picture rolls no dice
+      D.cradle.STRAIGHT = true; D.seed = 1029; var B6 = floorSb('?roam=warrens&flags=tallyMet&at=9,5'), g6 = MSb.penShift(B6, 2), pics6 = [], seen6 = [];
+      for (var k6 = 0; k6 < 6; k6++) { driveSb(g6, function () { return D.top() instanceof CSb.Counter; }, 400); if (!(D.top() instanceof CSb.Counter)) break; var sc6 = D.top(); pics6.push(sc6.o.pic === D.cradle.pic); seen6 = seen6.concat(readSb(sc6, [0, 0])); }
+      driveSb(g6, null, 400); D.cradle.STRAIGHT = false;
+      var hob6 = seen6.filter(function (l) { return /^Old Hob\|/.test(l); })[0] || '', pay6 = seen6.filter(function (l) { return /Shift done/.test(l); })[0] || '';
+      okSb('a shift at pen two: the cradle in the portrait\'s place on both screens (' + pics6.join(',') + '), the pay "' + pay6.replace(/^[^|]*\|[^|]*\|[^|]*\|/, '').slice(0, 50) + '" (' + pay6.split('|')[2] + '), Old Hob "' + hob6.slice(0, 60) + '"',
+        pics6.length === 2 && pics6.every(Boolean) && /paid at the pen/.test(pay6) && pay6.split('|')[2] === 'pic' && /^Old Hob\|pt_oldhob\|-\|An old hand talks you through the settle/.test(hob6) && B6.roam.flags.hobMet === 1);
+      var cvSb = document.createElement('canvas'); cvSb.width = 140; cvSb.height = 180; D.cradle.stillC = null; D.seed = 77; var r0Sb = D.rand(); D.seed = 77; D.cradle.pic(cvSb.getContext('2d'), 0, 0, 140, 180); var r1Sb = D.rand();
+      var pxSb = cvSb.getContext('2d').getImageData(0, 0, 140, 180).data, litSb = 0; for (var iSb = 0; iSb < pxSb.length; iSb += 4) if (pxSb[iSb + 3] > 0 && pxSb[iSb] + pxSb[iSb + 1] + pxSb[iSb + 2] > 120) litSb++;
+      okSb('the cradle\'s picture: ' + litSb + ' lit pixels of ' + (140 * 180) + ' in a portrait\'s box, and the dice where they were (' + (r0Sb === r1Sb) + ')', litSb > 4000 && r0Sb === r1Sb);
+      if (get('shot', '')) repSb.pen = cvSb.toDataURL('image/png');
+      // 5. THE BARBER AND DAVOS (his "How does canon play out between Krenn and the barber surgeon and his npc text?"; RULED: the house's fighters Davos's, what the house won't pay for Venn's)
+      var Bt = floorSb('?roam=silverton'), vb = CSb.words(Bt, 'barber').join(' '), ab = (H6Sb.ABOUT.barber || []).join(' ');
+      okSb('Venn the barber: "' + vb.slice(0, 90) + '..."; TELL ME ABOUT IT "' + ab.slice(56, 130) + '..."', /The house's fighters are Davos Kren's/.test(vb) && /what the house won't pay for/.test(vb) && !/arena's chair/.test(vb) && /Davos Kren, on the house/.test(ab) && !/Hex's chair/.test(ab));
+      // 6. THE BRAIDING ETTERCAP (his 10-28 "16 yes", its ground built 10-28): the rumour opens it, Web Gulch its step, the fangs to Hessle, done when paid
+      var stE = CSb.state(Bt); CSb.heard(stE, 'r-ettercap'); var qE = qSb(Bt, 'ettercap'); CSb.give(stE, 'ettercapfangs', 1); var qE2 = qSb(Bt, 'ettercap'); CSb.take(stE, 'ettercapfangs', 1); stE.flags.ettercapDone = 1; var qE3 = qSb(Bt, 'ettercap');
+      okSb('the ettercap\'s rumour: ' + (qE ? qE.name : 'nothing') + ', NEXT "' + String(qE && qE.where).slice(0, 40) + '..."; the fangs carried, NEXT "' + String(qE2 && qE2.where).slice(0, 30) + '..."; paid, done (' + !!(qE3 && qE3.done) + ')',
+        !!qE && qE.name === 'The Braiding Ettercap' && /^Web Gulch, on the road south/.test(qE.where) && /^Take the fangs to Hessle/.test(qE2.where) && !!qE3 && qE3.done);
+      // 7. PAPA'S RUNNER (his "papa's runner should appear in game, probably as a popup portrait dialogue"): renown 2 on Silverton's street -- a Hex boy runs up, says it on his own
+      // screen, and runs back off the floor; once
+      HSb.playing = false; HSb.cur = null; var recR = HSb.fresh('barley'); recR.flags.papaLymen = 1; recR.flags.qSeen = 1; HSb.begin(recR, 0); var BR = D.top(); if (BR && BR.baking) { BR.baking = false; BR.enter(); } D.battle = BR; driveSb(BR.co, null, 2); HSb.cur.renown = 2;
+      var dueR = H6Sb.lookDue(BR), tkR = BR.roam.token, gR = H6Sb.lookPlay(BR), boyR = null, nearR = -1;
+      driveSb(gR, function () { boyR = boyR || BR.units.filter(function (u) { return u.npc === 'hexboy'; })[0] || null; return D.top() instanceof CSb.Counter; }, 2000);
+      if (boyR) nearR = Math.max(Math.abs(boyR.x - tkR.x), Math.abs(boyR.y - tkR.y));
+      var scR = D.top() instanceof CSb.Counter ? D.top() : null, sR = scR ? readSb(scR) : []; driveSb(gR, null, 2000);
+      okSb('Papa\'s runner on the street at renown 2 (due ' + dueR + ', ' + RSb.def.key + '): a Hex boy (' + (boyR && boyR.kind) + ') ran up to ' + nearR + ' square(s) off, his screen "' + (sR[0] || '').slice(0, 70) + '"; gone after (' + !BR.units.some(function (u) { return u.npc === 'hexboy'; }) + '), called (' + BR.roam.flags.councilCalled + '), once (' + !H6Sb.lookDue(BR) + ')',
+        dueR && RSb.def.key === 'silverton' && !!boyR && boyR.kind === 'commonerchild' && nearR === 1 && /^A Hex boy\|pt_hexboy\|-\|Papa Urtusk wants you on the Hex's third floor/.test(sR[0] || '') && /The council's sitting for you/.test(sR[0] || '') && !BR.units.some(function (u) { return u.npc === 'hexboy'; }) && BR.roam.flags.councilCalled === 1 && !H6Sb.lookDue(BR));
+      // 8. C2'S ASK (his "why is the council taking a look at them, if not disappoint why not quest (true word gnolls?)"): the sitting opens the ettercap and pins it over the pin before
+      var fR = BR.roam.flags; fR.heardPete = 1; fR['q:warrens'] = 1; fR.pin = 'warrens'; var scL = H6Sb.sitting(BR, ['looks'], [fR, HSb.cur.flags]), sL = readSb(scL), cL = '';
+      var nCard = BR.cards ? BR.cards.length : 0, c0L = BR.card; BR.card = function (ls) { cL = window.DS.stripCodes([].concat(ls).join(' ')); return c0L.apply(this, arguments); }; if (H6Sb.missionDue(BR)) driveSb(H6Sb.missionCard(BR), null, 200); BR.card = c0L;
+      okSb('C2: ' + sL.length + ' pages, its card then Papa ("' + (sL[1] || '').split('|')[3].slice(0, 30) + '..."), the gnolls named ("' + ((sL.filter(function (l) { return /gnolls/.test(l); })[0] || '').split('|')[3] || '').slice(0, 40) + '..."), no counter or purse (room ' + !!scL.o.room + '); then the card "' + cL.slice(0, 60) + '...", pinned ' + fR.pin,
+        sL.length === 7 && /^The council\|-\|-\|The council sits at the long table/.test(sL[0]) && /These are the ones/.test(sL[1]) && /Web Gulch/.test(sL[2]) && sL.some(function (l) { return /road north, where the gnolls are/.test(l); }) && !sL.some(function (l) { return /My seal makes paper true/.test(l); }) && !!scL.o.room && /In your JOURNAL: The Braiding Ettercap/.test(cL) && /Pinned/.test(cL) && fR.pin === 'ettercap');
+      // 9. THE NIGHT'S CUTSCENE (his "the first cutscene has redundancy - explainer line replaced by shots. The background of the scene vs background in the portrait window"):
+      // every shot gone past by hand, the sitting opens on its first speaker; X (no shots seen), its card; the arrival's caption its title; one background; the stock dead, the
+      // east side's man standing at the table's end
+      var cvN2 = document.createElement('canvas'); cvN2.width = D.W; cvN2.height = D.H; var ctxN0 = D.ctx; D.ctx = cvN2.getContext('2d'); D.R = D.R || 1;
+      var BN = floorSb('?roam=galleries&gate=east'); D.scenes.length = 0; D.scenes.push(BN); D.battle = BN;
+      var nH = H6Sb.night(BN, ['notice'], [{}]); for (var sh = 0; sh < 2; sh++) { var frH = 0; while (nH.busy() && frH++ < 3000) { nH.t++; nH.step(); } nH.next(true); } var scH = D.top(), pH = scH instanceof CSb.Counter ? readSb(scH) : [];
+      D.scenes.length = 0; D.scenes.push(BN); var nX2 = H6Sb.night(BN, ['notice'], [{}]); nX2.finish(); var scX2 = D.top(), pX2 = scX2 instanceof CSb.Counter ? readSb(scX2) : [];
+      okSb('the shots played by hand: the sitting\'s first page "' + (pH[0] || '').slice(0, 60) + '"; X at the first shot: "' + (pX2[0] || '').slice(0, 60) + '"; the arrival\'s caption "' + H6Sb.CUT.arrive.line + '" (title ' + H6Sb.CUT.arrive.title + ')',
+        /^Hessle\|pt_hessle\|-\|"The Pit's word/.test(pH[0] || '') && !pH.some(function (l) { return /past the fourth bell/.test(l); }) && /^The council\|-\|-\|That night, in Silverton/.test(pX2[0] || '') && H6Sb.CUT.arrive.line === '' && !!H6Sb.CUT.arrive.title);
+      var bgN = scX2.o && scX2.o.bg, behN = bgN ? bgN(D.ctx, 0, 0, 40, 40, true) : null, fullN = bgN ? bgN(D.ctx, 0, 0, D.W, D.H, false) : null;
+      okSb('one background: the third floor behind the whole screen (' + fullN + '), nothing behind the one speaking (' + behN + '), a room not a shop (' + !!(scX2.o && scX2.o.room) + ')', fullN === true && behN === false && !!scX2.o.room);
+      D.scenes.length = 0; D.scenes.push(BN); var nS = H6Sb.night(BN, ['stock'], [{}]), arS = nS.shots[1].st, thS = (arS.walkers || []).filter(function (w) { return w.u.npc === 'councilthrane'; })[0], tblS = D.hex.sqAt(H6Sb.TABLE.mid[0], H6Sb.TABLE.mid[1]), endS = D.hex.sqAt(7.5, -49);
+      var fr3 = 0; while (nS.busy() && fr3++ < 400) { nS.t++; nS.step(); } nS.next(true); var fr4 = 0; while (nS.busy() && fr4++ < 3000) { nS.t++; nS.step(); }
+      okSb('the stock dead: the east side\'s man up the spiral to ' + (thS && thS.seat) + ', past the chairs\' end (' + endS + ') at the table\'s row, facing it; the others at their seats (' + (arS.walkers || []).filter(function (w) { return w.sat; }).length + ' of ' + (arS.walkers || []).length + ')',
+        !!thS && thS.seat[0] > endS[0] && Math.abs(thS.seat[1] - tblS[1]) <= 1 && thS.sat && (arS.walkers || []).every(function (w) { return w.sat; }));
+      nS.finish(); D.scenes.length = 0; D.ctx = ctxN0;
+    } catch (eSb) { repSb.errors.push(String(eSb && eSb.stack || eSb).slice(0, 900)); }
+    D.store.get = stGSb; D.store.set = stSSb; if (HSb) { HSb.playing = false; HSb.cur = null; } if (D.cradle) D.cradle.STRAIGHT = false;
+    var preSb = document.createElement('pre'); preSb.id = 'out'; preSb.textContent = 'BENCH16 ' + JSON.stringify(repSb);
+    document.body.appendChild(preSb);
+    return;
+  }
   // HIS THREE NOTES OF 10-29 (mode=notes1029; the notes seat, started by the lanes desk): the Guano Mine's bunkhouse door (js/mines.js M.FLOORS galleries doors2, M.INNS
   // keeper:galbunk), the council's night sitting over the Hex's third floor (js/hours.js H16.backdrop, js/counter.js o.bg), the made road solid stone at the Seam and the Breach
   // (data/maps.js noBurrow '=')
@@ -4947,7 +5046,8 @@
       var plainC = new CN.Counter(BC, Object.assign({}, scC.o, { bg: null, script: function () { return (function* () { yield { say: ['x'] }; })(); } })); plainC.wait = scC.wait; plainC.pages = scC.pages; plainC.page = scC.page; plainC.sheet = scC.sheet;
       var cv2N = document.createElement('canvas'); cv2N.width = D.W; cv2N.height = D.H; plainC.draw(cv2N.getContext('2d')); var im2 = cv2N.getContext('2d').getImageData(0, 0, D.W, D.H).data, diff = 0, inP = 0, Lc = CN.LAYOUT.portrait;
       for (var yN = 0; yN < D.H; yN++) for (var xN = 0; xN < D.W; xN++) { var iN = (yN * D.W + xN) * 4; if (Math.abs(imC[iN] - im2[iN]) + Math.abs(imC[iN + 1] - im2[iN + 1]) + Math.abs(imC[iN + 2] - im2[iN + 2]) > 24) { diff++; if (xN > Lc[0] + 3 && xN < Lc[0] + Lc[2] - 3 && yN > Lc[1] + 3 && yN < Lc[1] + Lc[3] - 30) inP++; } }
-      okN('drawn: ' + diff + ' of ' + (D.W * D.H) + ' pixels unlike the counter\'s plain screen, ' + inP + ' of them behind the one speaking', diff > D.W * D.H * 0.1 && inP > 2000);
+      var behindN = bgC(cv2N.getContext('2d'), 0, 0, 40, 40, true); // (since 10-29 nothing behind the one speaking: one background, the scene's -- mode=story1029b)
+      okN('drawn: ' + diff + ' of ' + (D.W * D.H) + ' pixels unlike the counter\'s plain screen; behind the one speaking the portrait\'s own plain window (' + (behindN === false) + '), a room not a shop (' + !!scC.o.room + ')', diff > D.W * D.H * 0.1 && behindN === false && !!scC.o.room);
       var hrN = H6N.sitting(BC, ['herd'], [{}]); hrN.draw(D.ctx); var shH = hrN.o.bg && hrN.o.bg.shot(), whoH = shH && shH.b ? shH.b.units.map(function (u) { return u.npc; }) : [];
       okN('C3, the herd thinned: the east side\'s man at the table, no Merrick (' + whoH.filter(function (n) { return /^council/.test(n); }).join(', ') + ')', whoH.indexOf('councilthrane') >= 0 && whoH.indexOf('councilmerrick') < 0);
       var lkN = H6N.sitting(BC, ['looks'], [{}]);

@@ -436,10 +436,11 @@
     else if (!(this.bare && this.o.bg)) { // (a page with no one speaking over a place's picture: the place alone -- js/hours.js H16.sitting)
       ctx.fillStyle = '#1c2348'; ctx.beginPath(); ctx.arc(PX + PW / 2, CY - 92, 26, 0, Math.PI * 2); ctx.fill(); ctx.fillRect(PX + PW / 2 - 48, CY - 60, 96, 60); // (no sheet yet, or a keeper with none: a shape)
     }
-    ctx.fillStyle = '#4a2e1a'; ctx.fillRect(PX + 3, CY, PW - 6, PY + PH - 3 - CY); ctx.fillStyle = '#8a5e3a'; ctx.fillRect(PX + 3, CY, PW - 6, 2); ctx.fillStyle = '#2a1a10'; ctx.fillRect(PX + 3, CY + 2, PW - 6, 1);
+    if (this.o.room) { ctx.fillStyle = '#0b1430'; ctx.fillRect(PX + 3, CY, PW - 6, PY + PH - 3 - CY); } // (a room, not a shop: no counter under the one speaking -- the council's sittings, js/hours.js H16.sitting, 10-29)
+    else { ctx.fillStyle = '#4a2e1a'; ctx.fillRect(PX + 3, CY, PW - 6, PY + PH - 3 - CY); ctx.fillStyle = '#8a5e3a'; ctx.fillRect(PX + 3, CY, PW - 6, 2); ctx.fillStyle = '#2a1a10'; ctx.fillRect(PX + 3, CY + 2, PW - 6, 1); }
     ctx.restore();
     D.text(ctx, '{y}' + this.o.name + '{/}', PX + PW / 2, CY + 9, W8.text, 'center');
-    D.win8(ctx, PX, PY + PH + 4, PW, 22); D.text(ctx, '◆ ' + (st ? st.silver() : 0) + ' silver', PX + 10, PY + PH + 10, W8.text);
+    if (!this.o.room) { D.win8(ctx, PX, PY + PH + 4, PW, 22); D.text(ctx, '◆ ' + (st ? st.silver() : 0) + ' silver', PX + 10, PY + PH + 10, W8.text); } // (and no purse)
     // the words
     D.text(ctx, '{y}' + (this.o.place || this.o.name) + '{/}', RX, 10, W8.text);
     if (this.o.what) D.text(ctx, this.o.what, RX, 21, '#9c9cb4');

@@ -19,12 +19,16 @@
   H16.MISSIONS = [
     // THE MISSING FIVE (RULED 10-28, his "talking to pete makes 'the missing 5' a journal that points to the booking guy on the surface at the cradles as first waypoint"): Pete's
     // Five, renamed as he wrote it, taking in the way to the Warrens that `bc6f31e` opened on Pete's word -- its id kept ('warrens'), Edric Pellam first
-    { id: 'warrens', name: 'The Missing Five', show: 'flag:heardWarrens|flag:heardPete|flag:tallyMet', done: 'flag:fiveDone',
-      text: 'Warrens Pete says six went down past the wet in the Crawler Warrens, and six came up. He says six too fast. The tally-house book has five names with no return line.',
+    // (10-29, the story window, RULED on Griz's "Leans stand", his note "there's no real taking of the missing 5 quest - you talk to him about milking crawlers and it
+    // mysteriously shows up in your journal ... Mission text says from warren's pete - should get from warrens pete, or with dialogue from Edric. Both should point to ask Skarn
+    // step": it opens on words only -- Pete's, Edric's own telling as he books you, or Skarn's work past the pens (js/mines.js; fiveBy: who told it) -- never on the booking
+    // alone; its words say who told it; Pete's goes to Edric, then Skarn, Edric's and Skarn's on from there)
+    { id: 'warrens', name: 'The Missing Five', show: 'flag:heardWarrens|flag:heardPete|flag:heardFive', done: 'flag:fiveDone',
+      text: function (st) { return H16.FIVE_BY[st.flags.fiveBy] || H16.FIVE_BY.pete; },
       doneText: 'The five came back up. Edric wrote their return lines.',
       steps: [{ 'if': 'has:fivetokens', map: 'warrens_a', npc: 'edric', where: 'Bring the five\'s tokens to Edric Pellam at the tally-house, the Warrens\' mouth camp.' },
-        { 'if': '!flag:tallyMet', map: 'warrens_a', npc: 'edric', where: 'Edric Pellam at the tally-house, the Warrens\' mouth camp: ' + EAST },
-        { 'if': '!flag:skarnOk', map: 'warrens_a', npc: 'skarn', where: 'Skarn, at the mouth camp: speak to him as a man, and his gate opens.' },
+        { 'if': '!flag:fiveKnown & !flag:skarnOk', map: 'warrens_a', npc: 'edric', where: 'Edric Pellam at the tally-house, the Warrens\' mouth camp: ' + EAST },
+        { 'if': '!flag:skarnOk', map: 'warrens_a', npc: 'skarn', where: 'Skarn, the Warrener, at the mouth camp: ask him about the five, and he opens his gate.' },
         { 'if': '!flag:fiveRecovered', map: 'warrens_d', trig: 'stair', where: 'The flooded stair past the wet: through Skarn\'s gate, up the drift, the daytime way down. Bring rope.' },
         { map: 'warrens_a', npc: 'edric', where: 'Back to Edric Pellam at the tally-house.' }] }, // (each step's floor the first game's, content/quests.json five: the way there is H16.wayTo)
     { id: 'cradles', name: 'The Cradles', show: 'flag:heardCradles|flag:tallyMet', done: 'flag:shifts',
@@ -39,6 +43,12 @@
       text: 'Forty gold on Hessle\'s board for the cloaker in the guano mine\'s deep gallery. Nobody has ever collected. Bright light is its weakness.',
       steps: [{ 'if': 'has:cloakertail', door: 'hessle', where: 'Take the tail to Hessle at the Weigh-House, on Fountain Street.' },
         { site: 'mouth', where: 'The deep gallery, below the guano mine\'s dens: past the mark, down the last ladder. Bring light.' }] },
+    // THE BRAIDING ETTERCAP (10-29, the story window, RULED on Griz's "Leans stand": a paper on Hessle's board is a mission once its ground is built -- his 10-28 "16 yes" -- and
+    // Web Gulch's was, 10-28, js/gulch.js): the board read, the rumour, or the council's ask at a name made (H16.COUNCIL.looks) opens it; done when its fangs are paid at the scales
+    { id: 'ettercap', name: 'The Braiding Ettercap', show: 'flag:heardEttercap', done: 'flag:ettercapDone',
+      text: 'Forty gold on Hessle\'s board, and ten more since it snared a lad: an ettercap strung across Web Gulch, on the road south out of Silverton. Bring its fangs to the Weigh-House.',
+      steps: [{ 'if': 'has:ettercapfangs', door: 'hessle', where: 'Take the fangs to Hessle at the Weigh-House, on Fountain Street.' },
+        { site: 'webgulch', where: 'Web Gulch, on the road south: out of Silverton by the east gate, then down the road on THE WORLD past the fork. The ettercap braids at the strung end, up a side gully off the west bank.' }] },
     // CORWEN DACE (10-28, the deep gallery seat: his escort, js/mines.js THE DEEP GALLERY) -- open while he walks with the party, done when he is home with his thanks given
     { id: 'dace', name: 'Corwen Dace', show: 'flag:daceWith|flag:daceDone', done: 'flag:daceDone',
       text: 'Corwen Dace walks with you in the guano mine: he has wanted the deep gallery all his life. Bring him back up. If he falls, it is over.',
@@ -65,13 +75,19 @@
     doneText: 'Work found. Its own line is in the JOURNAL.',
     steps: function (st) { return H16.workHeard(st).map(function (w) { return w.step; }); } });
   H16.MISSIONS.forEach(function (q) { C.OWN_QUESTS = C.OWN_QUESTS.filter(function (o) { return o.id !== q.id; }).concat([q]); });
-  C.QUESTS = ['company', 'work', 'warrens', 'cradles', 'cull', 'tail', 'dace', 'hex', 'errands', 'nedpage'];
+  C.QUESTS = ['company', 'work', 'warrens', 'cradles', 'cull', 'tail', 'ettercap', 'dace', 'hex', 'errands', 'nedpage'];
+  // The Missing Five's words by who told it (js/mines.js fiveBy; Pete's when the town's word or the rumour opened it). The window's drafts, invented.json warrens-five-words-1029
+  H16.FIVE_BY = {
+    pete: 'Warrens Pete says six went down past the wet in the Crawler Warrens, and six came up. He says six too fast. The tally-house book has five names with no return line.',
+    edric: 'Edric Pellam\'s book at the Warrens\' tally-house has five names with no return line: Warrens Pete\'s crew, gone down past the wet after leavings. Pete came up alone.',
+    skarn: 'Skarn, the Warrener, has one job past the pens that nobody takes: five of Warrens Pete\'s crew went down past the wet and never came up. Edric Pellam\'s book has their names.'
+  };
 
   // the rumours that point at work open their mission (the lane's 4.2; the rest stay lines in THE TALK); the Snoot's news is not in town till the morning after the moot
   // (the realm's campaign-start.md: the Pit's word, Day 1, Lucia first) -- before it, the gnolls ranging north is the whole of it
   Object.assign(C.RUMOR_OPENS, { 'r-pete': 'heardPete', 'r-doserate': 'heardCradles', 'r-mouths': 'heardCradles', 'r-guanowages': 'heardGalleries', 'r-roost': 'heardGalleries',
     'r-cloaker': 'heardCloaker', 'r-cloakerNumber': 'heardCloaker', 'r-nobodyCollected': 'heardCloaker', 'r-hexcard': 'heardHex', 'r-talmok': 'heardHex', 'r-fronted': 'heardHex',
-    'r-winters': 'work:winters' });
+    'r-winters': 'work:winters', 'r-ettercap': 'heardEttercap' });
   H16.NEWS = { 'r-snoot': 1 };
   C.rumorHeld = function (rid) { return !!H16.NEWS[rid] && H16.day() < 1; };
 
@@ -162,6 +178,7 @@
     var R = D.roam, st = C.state(B), f = st.flags, nu = H16.fresh(st), live = C.quests(st).filter(function (q) { return q.id === f.pin && !q.done; })[0], lines = [], pinned = false;
     nu.forEach(function (q) { f['q:' + q.id] = 1; });
     var open = nu.filter(function (q) { return !q.done; }); if (!open.length) return;
+    if (f.pinWant) { var pw = f.pinWant; delete f.pinWant; open.sort(function (a, b) { return (b.id === pw) - (a.id === pw); }); if (open[0].id === pw) live = null; } // (a mission given to be pinned -- the council's ask, H16.COUNCIL.looks -- pinned over what was)
     if (!live) { f.pin = open[0].id; pinned = true; }
     lines.push(H16.LINES.opened.replace('{name}', open[0].name), open[0].text);
     if (open.length > 1) lines.push(H16.LINES.more.replace('{names}', open.slice(1).map(function (q) { return q.name; }).join(', ')));
@@ -344,7 +361,8 @@
     q: { company: 'You\'re short of hands. They\'re nearer than you think.', work: 'Coin\'s on Fountain Street, and on a wall, and over the river, and on the sand. Pick one.',
       errands: 'Paper, a seal, a number. An old man who keeps the dead in order.', warrens: 'Water, and a stair under it, and five who didn\'t come up. Take rope.',
       cradles: 'A pen, a pole, a thimble. Steady hands.', cull: 'Wings in the dark. Keep your voice down and your light hooded.', tail: 'Something that looks like a cloak and isn\'t. It hates the light.',
-      hex: 'Sand, and a crowd, and a big man who opens reckless.', nedpage: 'A snake\'s tongue, fresh. A page for it.' },
+      hex: 'Sand, and a crowd, and a big man who opens reckless.', nedpage: 'A snake\'s tongue, fresh. A page for it.',
+      ettercap: 'Silk across a road, and something braiding it. Go at noon, when the spiders sulk.' }, // (ettercap: 10-29, the story window -- the silk-cutters' noon, wiki/web-gulch.md)
     // with nothing open to read, the work she opens first, in this order (each its JOURNAL's door: js/counter.js C.flagOn)
     opens: [['work', 'work:winters'], ['warrens', 'heardPete'], ['cradles', 'heardCradles'], ['cull', 'heardGalleries'], ['hex', 'heardHex'], ['tail', 'heardCloaker']] };
   // what she reads: the pinned mission; none pinned, she pins the first open one; none open, she opens the first work not yet heard and pins it (null: nothing left)
@@ -390,12 +408,18 @@
     stock: { flag: 'councilStock', card: 'The scales are lit. The east side\'s man doesn\'t sit down.', lines: [
       ['thrane', 'The stock\'s dead. All of it. The House is hiring the Captain\'s line to hold the mouth camp and the bridge.'], ['androit', 'Then it\'s sworn: the House\'s business, the House\'s guards.'],
       ['papa', 'Then they\'ll hold a bridge over an empty pen. Next.']] },
-    // C2: a name made (renown 2), the party called up and looked over -- a who's-who, a line each
-    looks: { flag: 'councilSeen', card: 'The council sits at the long table under the Big Window. Warda shows the party in, and nobody tells them to sit.', lines: [
-      ['androit', 'Aldwyn Androit. My seal makes paper true. If it isn\'t sealed, it isn\'t so.'], ['hessle', 'Hessle. The Weigh-House: I weigh what you bring in, and I pay what the board says.'],
-      ['casper', 'Casper Venn. I change any coin you\'ve got into any coin you need.'], ['harrow', 'Harrow. I farm south of the river. When the road goes bad, I hear it first.'],
-      ['merrick', 'Merrick. The lantern house. Messages go out through my window.'], ['papa', 'They\'ve seen you. That\'s all this was. Go on.']] },
-    call: 'A Hex boy runs up: "Papa wants you on the third floor. The spiral, all the way up."', place: 'The Hex, the third floor', what: 'the council'
+    // C2: a name made (renown 2), the party called up and looked over -- since 10-29 for a reason (the story window, RULED on Griz's "Leans stand", his note: "Council looking
+    // you over dialogue seems same text as store-walk - why is the council taking a look at them, if not disappoint why not quest (true word gnolls?)"): the who's-who cut (each
+    // said what their counter says); Papa vouched, the town's one road out wants keeping open, and Androit swears the party to the ettercap in Web Gulch -- The Braiding
+    // Ettercap opened and pinned (opens, pin) -- with the gnolls named as the job after it, its mission waiting with the road north. invented.json council-looks-1029
+    looks: { flag: 'councilSeen', card: 'The council sits at the long table under the Big Window. Warda shows the party in, and nobody tells them to sit.', opens: 'heardEttercap', pin: 'ettercap', lines: [
+      ['papa', 'These are the ones I told you about. They take work, and they come back from it.'],
+      ['harrow', 'Then here\'s work. Every wagon out of Silverton goes south through Web Gulch, and there\'s an ettercap strung across the far end of it.'],
+      ['hessle', 'Forty gold on my board for it, and ten more since it snared a lad. Nobody has collected.'],
+      ['androit', 'Then it\'s sworn before me: the gulch cleared, and its fangs brought to Hessle\'s scales. It\'s yours, if you\'ll take it.'],
+      ['merrick', 'After the gulch, the road north, where the gnolls are. When it\'s time, we\'ll send for you again.'],
+      ['papa', 'That\'s what this was. Go on.']] },
+    place: 'The Hex, the third floor', what: 'the council'
   };
   H16.HESSLE = { before: 'The board. Read it. The scales pay what\'s posted, sworn before notary.', five: 'Five names off the book\'s dead side. The town noticed.' }; // (his word at the Weigh-House before the notice; after the five with no herd thinned)
   H16.NOTICE_AT = 24 + 17; // (the council's night: Day 1, from dusk -- THE WORLD's S.t in hours)
@@ -407,12 +431,15 @@
     return out;
   };
   // the sitting on the counter's screen: the card, then a line a page on the speaker's portrait; the flag on the save and the floor (the floor hands its own back later)
-  H16.sitting = function (B, ids, flagsets, seen) { // (seen: its card already shown, at the table on the map -- H16.tableShot)
+  // (cut: the night's cutscene played to its end, so its shots have said what the cards would -- 10-29, the story window, RULED on Griz's "Leans stand", his note "the first
+  // cutscene has redundancy - explainer line replaced by shots. The background of the scene vs background in the portrait window": no card, the first speaker first; and the
+  // screen a room, not a shop -- no counter under the one speaking, no purse, js/counter.js o.room)
+  H16.sitting = function (B, ids, flagsets, seen, cut) { // (seen: its card already shown, at the table on the map -- H16.tableShot)
     var night = ids.some(function (id) { return id !== 'looks'; }); // (a council's night, played at the party's rest: over the third floor's picture -- H16.backdrop)
-    var sc = new C.Counter(B || null, { id: 'council', name: 'The council', place: H16.COUNCIL.place, what: H16.COUNCIL.what, bg: night ? H16.backdrop(ids) : null, script: function (s) { return (function* () {
+    var sc = new C.Counter(B || null, { id: 'council', name: 'The council', place: H16.COUNCIL.place, what: H16.COUNCIL.what, room: true, bg: night ? H16.backdrop(ids) : null, script: function (s) { return (function* () {
       for (var i = 0; i < ids.length; i++) {
-        var cs = H16.COUNCIL[ids[i]]; flagsets.forEach(function (f) { if (f) f[cs.flag] = 1; });
-        if (!(seen && i === 0)) { s.sheet = null; s.bare = true; s.o.name = 'The council'; yield s.say([cs.card], 'attentive'); } // (bare: no one speaking -- over the third floor, the room alone)
+        var cs = H16.COUNCIL[ids[i]]; flagsets.forEach(function (f) { if (f) { f[cs.flag] = 1; if (cs.opens) f[cs.opens] = 1; if (cs.pin) f.pinWant = cs.pin; } });
+        if (!(seen && i === 0) && !cut) { s.sheet = null; s.bare = true; s.o.name = 'The council'; yield s.say([cs.card], 'attentive'); } // (bare: no one speaking -- over the third floor, the room alone)
         for (var k = 0; k < cs.lines.length; k++) { var who = cs.lines[k][0]; s.sheet = C.PT[who] || null; s.bare = false; s.o.name = H16.WHO[who] || who; yield s.say(['"' + cs.lines[k][1] + '"'], 'attentive'); }
         if (cs.end) { s.sheet = null; s.bare = true; s.o.name = 'The council'; yield s.say(['{g}' + cs.end + '{/}']); }
       }
@@ -425,7 +452,8 @@
   // lounge, the lamps low -- behind the whole screen and behind each one speaking (js/counter.js o.bg). The picture: the third floor laid as HX.lay lays it, on a Battle of its own that
   // never runs, one frame painted off the screen, and every shared thing put back as a pulled-in fight leaves the floor (js/roam.js R.pullIn0: the grid, the map, the camera and its
   // zoom; and the floor's def); painted again while a figure's sheet is still loading. C2 plays on the third floor itself, so it keeps the counter's own screen
-  H16.SHOT = { wash: 'rgba(6,8,30,0.42)', glow: '255,170,90', dim: 'rgba(8,10,28,0.36)', tries: 8, every: 15 };
+  H16.SHOT = { wash: 'rgba(6,8,30,0.42)', glow: '255,170,90', dim: 'rgba(8,10,28,0.2)', tries: 8, every: 15 }; // (dim 0.36 till 10-29: the one background now, lit a little more)
+  H16.seatFor = function (ids) { return { why: 'night', who: H16.whoFor(ids), stand: ids.indexOf('stock') >= 0 ? ['thrane'] : [] }; }; // (the stock dead: the east side's man won't sit -- H16.TABLE.stand, 10-29)
   H16.whoFor = function (ids) { var who = ['papa', 'androit', 'hessle', 'casper', 'harrow']; if (ids.indexOf('notice') >= 0) who.push('merrick'); if (ids.indexOf('herd') >= 0 || ids.indexOf('stock') >= 0) who.push('thrane'); return who; };
   // a stage: a floor laid on a Battle of its own that never runs (lay(st, b), on its first run), swapped in for fn and put back -- every shared thing as a pulled-in fight leaves
   // the floor (js/roam.js R.pullIn0: the grid, the map, the camera and its zoom), and the floor's def, the D.MAPS entries named, the mouse kept off it (no tooltip in a picture)
@@ -457,7 +485,7 @@
   H16.lowLamps = function (x, p) { var N = H16.SHOT; x.fillStyle = N.wash; x.fillRect(0, 0, D.W, D.H); var g = x.createRadialGradient(p.x, p.y, 0, p.x, p.y, 90); g.addColorStop(0, 'rgba(' + N.glow + ',0.22)'); g.addColorStop(1, 'rgba(' + N.glow + ',0)'); x.fillStyle = g; x.fillRect(0, 0, D.W, D.H); };
   H16.thirdShot = function (ids) {
     if (!D.ctx || !D.hex || !D.hex.lay || !D.ui || !D.ui.drawBattle) return null;
-    var st = H16.stage(['hex3'], function (s, b) { b.roam.seat = { why: 'night', who: H16.whoFor(ids) }; H16.layThird(b); }); // (the council in their seats: H16.atTable's night)
+    var st = H16.stage(['hex3'], function (s, b) { b.roam.seat = H16.seatFor(ids); H16.layThird(b); }); // (the council in their seats: H16.atTable's night)
     var shot = { ids: ids, b: null, c: null, at: null, n: 0, ready: false, err: null };
     shot.paint = function () {
       var c = shot.c || document.createElement('canvas'), dr = D.R || 1; c.width = Math.round(D.W * dr); c.height = Math.round(D.H * dr);
@@ -471,16 +499,17 @@
     };
     return shot;
   };
-  // the counter's picture (js/counter.js o.bg): the whole screen, dimmed under the boxes, or behind the one speaking -- the long table where the portrait stands
+  // the counter's picture (js/counter.js o.bg): the whole screen, dimmed under the boxes; behind the one speaking, nothing -- the portrait's own plain window (10-29, RULED on
+  // Griz's "Leans stand", his note "The background of the scene vs background in the portrait window": one background, the scene's -- the table had been cropped in behind
+  // the portrait as well, the same room twice)
   H16.backdrop = function (ids) {
     var shot = null, t = 0;
     var bg = function (ctx, x, y, w, h, behind) {
+      if (behind) return false;
       if (!shot) { shot = H16.thirdShot(ids) || {}; if (shot.paint) shot.paint(); }
-      else if (!behind && shot.paint && !shot.ready && shot.n < H16.SHOT.tries && ++t % H16.SHOT.every === 0) shot.paint(); // (a sheet still loading: painted again)
-      var c = shot.c; if (!c) return false; var k = c.width / D.W;
-      if (!behind) { ctx.drawImage(c, 0, 0, c.width, c.height, 0, 0, D.W, D.H); ctx.fillStyle = H16.SHOT.dim; ctx.fillRect(0, 0, D.W, D.H); return true; }
-      var sx = Math.max(0, Math.min(D.W - w, (shot.at ? shot.at[0] : D.W / 2) - w / 2)), sy = Math.max(0, Math.min(D.H - h, (shot.at ? shot.at[1] : D.H / 2) - h * 0.62));
-      ctx.drawImage(c, sx * k, sy * k, w * k, h * k, x, y, w, h); return true;
+      else if (shot.paint && !shot.ready && shot.n < H16.SHOT.tries && ++t % H16.SHOT.every === 0) shot.paint(); // (a sheet still loading: painted again)
+      var c = shot.c; if (!c) return false;
+      ctx.drawImage(c, 0, 0, c.width, c.height, 0, 0, D.W, D.H); ctx.fillStyle = H16.SHOT.dim; ctx.fillRect(0, 0, D.W, D.H); return true;
     };
     bg.shot = function () { return shot; }; // (the bench's look at it)
     return bg;
@@ -495,7 +524,7 @@
   // council-night-cutscene)
   H16.CUT = {
     lamp: { title: 'SILVERTON, AT DUSK', line: 'Dusk. Hessle comes out of the Weigh-House and lights the lamp by its door: the scales are lit, and the council sits tonight.' },
-    arrive: { title: 'THE HEX, THE THIRD FLOOR', line: 'Up the Hex\'s spiral, one by one, the council comes to the long table under the Big Window and takes their seats. Warda keeps the lounge door.' },
+    arrive: { title: 'THE HEX, THE THIRD FLOOR', line: '' }, // (its line till 10-29 said what the shot shows -- "Up the Hex's spiral, one by one, the council comes to the long table ..." -- cut on Griz's "Leans stand": the title alone)
     step: 8, gap: 26, out: 16, lit: 44, held: 80, win: [30, 20] // (frames a square; frames between arrivals; Hessle out, the lamp lit, the shot held; the town's window round the Weigh-House)
   };
   H16.duskHour = function () { for (var h = 15; h <= 21; h++) if (H16.phaseOf(h) === 'dusk') return h; return 18; };
@@ -516,7 +545,7 @@
   };
   // the arrival's stage: the third floor with the council in their seats (as the night's picture), each then put at the spiral's head to walk to their seat in turn
   H16.layArrive = function (st, b, ids) {
-    b.roam.seat = { why: 'night', who: H16.whoFor(ids) }; H16.layThird(b);
+    b.roam.seat = H16.seatFor(ids); H16.layThird(b);
     var HX = D.hex, rows = HX.rows(3), sp = HX.spiralSq()[0], start = HX.near(rows, [sp[0], sp[1] + 1]) || HX.near(rows, sp), m = b.map;
     st.walkers = b.units.filter(function (u) { return /^council/.test(u.npc || ''); }).map(function (u, i) {
       var seat = [u.x, u.y], w = { u: u, seat: seat, face: u.facing, path: H16.route(m, start, seat), at0: 6 + i * H16.CUT.gap, i: 0 };
@@ -560,7 +589,7 @@
     ctx.fillStyle = 'rgba(255,214,120,' + f + ')'; ctx.fillRect(Math.round(p.x - 2 * z), Math.round(y - 3 * z), Math.round(4 * z), Math.round(5 * z)); // (its flame)
   };
   function Night(B, ids, flagsets) {
-    this.kind = 'cutaway'; this.opaque = true; this.t = 0; this.B = B; this.ids = ids; this.flagsets = flagsets; this.k = 0; this.done = false; var self = this;
+    this.kind = 'cutaway'; this.opaque = true; this.t = 0; this.seen = 0; this.B = B; this.ids = ids; this.flagsets = flagsets; this.k = 0; this.done = false; var self = this;
     var flags = (flagsets || []).filter(Boolean)[0] || {};
     this.shots = [
       { id: 'lamp', st: H16.stage(['silverton'], function (st, b) { H16.layLamp(st, b, flags); }) },
@@ -575,8 +604,8 @@
     return (sh.st.walkers || []).some(function (w) { return !w.sat; }) || (sh.id === 'lamp' && (!sh.st.lit || this.t < H16.CUT.held));
   };
   Night.prototype.ff = function () { var sh = this.shot(); if (!sh) return; (sh.st.walkers || []).forEach(H16.walkDone); if (sh.id === 'lamp' && !sh.st.lit) { sh.st.lit = true; D.sfx('fire'); } this.t = Math.max(this.t, H16.CUT.held); };
-  Night.prototype.next = function () { this.k++; this.t = 0; if (this.k >= this.shots.length) this.finish(); else D.sfx(this.shot().id === 'arrive' ? 'stairs' : 'popup'); };
-  Night.prototype.finish = function () { if (this.done) return; this.done = true; if (D.top() === this) D.pop(); H16.sitting(this.B, this.ids, this.flagsets); };
+  Night.prototype.next = function (hand) { if (hand) this.seen++; this.k++; this.t = 0; if (this.k >= this.shots.length) this.finish(); else D.sfx(this.shot().id === 'arrive' ? 'stairs' : 'popup'); };
+  Night.prototype.finish = function () { if (this.done) return; this.done = true; if (D.top() === this) D.pop(); H16.sitting(this.B, this.ids, this.flagsets, false, this.seen >= this.shots.length); }; // (every shot gone past by hand: the sitting's cards said already -- H16.sitting `cut`)
   Night.prototype.step = function () {
     var sh = this.shot(), st = sh && sh.st, t = this.t; if (!st) return;
     if (st.err || !st.b) { this.next(); return; } // (a floor that would not lay: on to the next, and at the last the sitting as before)
@@ -586,7 +615,7 @@
   Night.prototype.update = function () {
     var I = D.input, m = I.mouse; this.t++;
     if (I.pressed('b') || m.rclick) { this.finish(); return; }
-    if (I.pressed('a') || (m.click && m.inside)) { if (this.busy()) this.ff(); else this.next(); return; }
+    if (I.pressed('a') || (m.click && m.inside)) { if (this.busy()) this.ff(); else this.next(true); return; }
     this.step();
   };
   Night.prototype.draw = function (ctx) {
@@ -597,7 +626,7 @@
       if (sh.id === 'lamp') { H16.paintNight(ctx, b); if (s.lit) H16.lampGlow(ctx, s.door, self.t); }
       else { var cc = D.iso.center(at[0], at[1], 0); H16.lowLamps(ctx, D.iso.toScreen(cc.x, cc.y)); }
     });
-    var cd = H16.CUT[sh.id], W8 = D.WIN8, ls = D.wrap(cd.line, D.W - 40), bh = 22 + ls.length * 10, by = D.H - 18 - bh;
+    var cd = H16.CUT[sh.id], W8 = D.WIN8, ls = cd.line ? D.wrap(cd.line, D.W - 40) : [], bh = 22 + ls.length * 10, by = D.H - 18 - bh;
     D.win8(ctx, 8, by, D.W - 16, bh); D.text(ctx, '{y}' + cd.title + '{/}', 18, by + 6, W8.text);
     ls.forEach(function (l, i) { D.text(ctx, l, 18, by + 17 + i * 10, W8.text); });
     ctx.fillStyle = 'rgba(4,3,10,.95)'; ctx.fillRect(0, D.H - 14, D.W, 14);
@@ -615,15 +644,45 @@
     if (ids.length) { if (DS.autoPicks || !D.ctx) ids.forEach(function (id) { ff.forEach(function (f) { if (f) f[H16.COUNCIL[id].flag] = 1; }); }); else H16.night(o && o.floor, ids, ff); } // (the night's cutscene, then the sitting: H16.night)
     return m;
   };
-  // C2: renown 2 -- in the Hex, a Hex boy's call once; on the third floor, the sitting
+  // C2: renown 2 -- Papa's runner once, a Hex boy who finds the party on Silverton's street or in the Hex; on the third floor, the sitting
   H16.lookDue = function (B) {
-    var R = D.roam, R0 = B && B.roam, def = R.def; if (!R0 || !def || !def.hexIn || !R.house() || R0.mode !== 'walk' || R0.path) return false;
+    var R = D.roam, R0 = B && B.roam, def = R.def; if (!R0 || !def || !R.house() || R0.mode !== 'walk' || R0.path) return false;
+    var street = def.key === 'silverton' && def.town && !def.room && !def.hexIn && !def.cut; if (!def.hexIn && !street) return false;
     var f = R0.flags; if (f.councilSeen || C.renownOf() < 2) return false;
-    return def.hexIn === 3 || (def.hexIn === 1 && !f.councilCalled);
+    return def.hexIn === 3 || ((street || def.hexIn === 1) && !f.councilCalled);
+  };
+  // PAPA'S RUNNER (10-29, the story window, RULED on Griz's "Leans stand", his note "papa's runner should appear in game, probably as a popup portrait dialogue"): a Hex boy
+  // -- the townsfolk's child -- runs up to the party from a few squares off, says it on the counter screen on his own face (pt_hexboy, the art desk's block; the plain shape till
+  // it comes), and runs back the way he came. His words the window's draft, invented.json hexboy-runner-1029
+  H16.RUNNER = { name: 'A Hex boy', sheet: 'pt_hexboy', from: [6, 5], lines: ['Papa Urtusk wants you on the Hex\'s third floor. Up the spiral stair, all the way to the top.', 'The council\'s sitting for you. Don\'t make them wait.'] };
+  H16.runnerSq = function (B) { // (where he comes from: a free square a few off the party with a way to it; where he stops: beside them, on his side)
+    var t = B.roam.token, m = B.map, free = function (x, y) { var s = m.at(x, y); return !!(s && s.walk) && !B.units.some(function (u) { return !u.dead && u.x === x && u.y === y; }); }, best = null;
+    [[1, 1], [-1, 1], [1, -1], [-1, -1], [1, 0], [-1, 0], [0, 1], [0, -1]].forEach(function (d) {
+      if (best) return; for (var r = H16.RUNNER.from[1]; r <= H16.RUNNER.from[0] + 2; r++) { var x = t.x + d[0] * r, y = t.y + d[1] * r; if (!free(x, y)) continue; var p = H16.route(m, [x, y], [t.x, t.y]); if (p.length > 1 && p.length <= r + 4) { best = { from: [x, y], path: p.slice(0, -1) }; return; } }
+    });
+    return best;
+  };
+  H16.runner = function* (B) {
+    var R0 = B.roam, G = D.grid, f = R0.flags, w = H16.RUNNER, at = H16.runnerSq(B), boy = null, STEP = 6; f.councilCalled = 1; D.sfx('popup');
+    if (at) {
+      boy = B.makeFoe({ id: 'hexboy', kind: D.FOES.commonerchild ? 'commonerchild' : 'crewman', at: at.from.slice(), side: 'party', ally: true });
+      boy.name = w.name; boy.look = true; boy.npc = 'hexboy'; boy.attacks = {}; boy.multi = 1; boy.hp = boy.maxhp = 4; boy.lvl = 1; boy.anim = 'walk'; boy.animT = B.t;
+      B.units.push(boy); G.setup(G.map, B.units); B.focus({ x: Math.round((at.from[0] + R0.token.x) / 2), y: Math.round((at.from[1] + R0.token.y) / 2), size: 1 });
+      for (var i = 0; i < at.path.length; i++) { var n = at.path[i]; boy.tween = { fx: boy.x, fy: boy.y, fz: 0, t: 0, dur: STEP, mode: null }; boy.facing = D.spr.facingFor(n[0] - boy.x, n[1] - boy.y); boy.x = n[0]; boy.y = n[1]; yield STEP; }
+      boy.anim = 'idle'; boy.animT = B.t; boy.facing = D.spr.facingFor(R0.token.x - boy.x, R0.token.y - boy.y); G.setup(G.map, B.units);
+    }
+    var sc = new C.Counter(B, { id: 'hexboy', name: w.name, place: D.roam.def.name || 'Silverton', what: 'Papa\'s runner', script: function (s) { return (function* () { s.sheet = w.sheet; yield s.say(w.lines, 'attentive'); })(); } });
+    D.push(sc); while (!sc.done) yield 1;
+    if (boy) {
+      var back = at.path.slice(0, -1).reverse().concat([at.from]); boy.anim = 'walk'; boy.animT = B.t;
+      for (var j = 0; j < back.length; j++) { var b2 = back[j]; boy.tween = { fx: boy.x, fy: boy.y, fz: 0, t: 0, dur: STEP, mode: null }; boy.facing = D.spr.facingFor(b2[0] - boy.x, b2[1] - boy.y); boy.x = b2[0]; boy.y = b2[1]; yield STEP; }
+      B.units = B.units.filter(function (u) { return u !== boy; }); G.setup(G.map, B.units);
+    }
+    B.focus(R0.token); yield 1;
   };
   H16.lookPlay = function* (B) {
     var R0 = B.roam, f = R0.flags;
-    if (D.roam.def.hexIn !== 3) { f.councilCalled = 1; D.sfx('popup'); B.card(D.roam.wrap([H16.COUNCIL.call]), 360); yield 20; return; }
+    if (D.roam.def.hexIn !== 3) { yield* H16.runner(B); return; }
     yield* H16.tableShot(B, H16.COUNCIL.looks.card); // (the council at the long table first, on the map's camera: his "a scene at start or between that shows them on the 3rd floor")
     var sc = H16.sitting(B, ['looks'], [f, D.house && D.house.cur && D.house.cur.flags], true); while (!sc.done) yield 1;
     H16.rise(B);
@@ -635,7 +694,7 @@
   // have them; the party that climbs up sees them there on the map's camera, the camera along the table and a card: C2 opens with it before its portraits, a council's night
   // shows it once (Warda: stand at the back), and the night's sitting plays at the party's rest as ruled. The seats: the chairs' own places (js/hex.js HX.THIRD: the table at
   // 0,-49 ft, its chairs at x -7.5..7.5, z -52 and -46); who sits where the window's draft (invented.json council-at-the-table)
-  H16.TABLE = { mid: [0, -49], seats: [['papa', 0, -52], ['androit', -3.75, -52], ['hessle', 3.75, -52], ['casper', -7.5, -52], ['harrow', 7.5, -52], ['merrick', -3.75, -46], ['thrane', 3.75, -46]],
+  H16.TABLE = { mid: [0, -49], stand: [11.25, -49], seats: [['papa', 0, -52], ['androit', -3.75, -52], ['hessle', 3.75, -52], ['casper', -7.5, -52], ['harrow', 7.5, -52], ['merrick', -3.75, -46], ['thrane', 3.75, -46]],
     night: 'The scales are lit. The council sits at the long table under the Big Window, the lamps low. Warda at the lounge door: "Stand at the back. Say nothing."',
     rise: '{g}The council breaks up. Papa goes back down to his door.{/}', word: 'doesn\'t look up from the table. The council is sitting.' };
   // who sits tonight: 'looks' (C2 due), or the night's sittings due (the window's councilsDue) from dusk -- Merrick when word from outside matters (C1, C2), the east side's man for the herd
@@ -650,8 +709,9 @@
     var def = hexDef0.apply(this, arguments), at = lv === 3 && R0 && R0.flags ? R0.seat || H16.atTable(R0.flags) : null; if (!at) return def; // (R0.seat: the night's picture seats its own -- H16.thirdShot)
     var HX = D.hex, used = {}; def.people.forEach(function (p) { used[p.at[0] + ',' + p.at[1]] = 1; });
     H16.TABLE.seats.forEach(function (s) {
-      if (at.who.indexOf(s[0]) < 0) return; var q = HX.near(def.rows, HX.sqAt(s[1], s[2]), used); if (!q) return; used[q[0] + ',' + q[1]] = 1;
-      def.people.push({ id: 'council' + s[0], at: q, face: s[2] < H16.TABLE.mid[1] ? [0, 1] : [0, -1], kind: s[0] === 'papa' ? 'thug' : 'crewman', fig: C.FIG[s[0]] ? s[0] : null, name: H16.WHO[s[0]], look: null, hire: null });
+      if (at.who.indexOf(s[0]) < 0) return; var up = (at.stand || []).indexOf(s[0]) >= 0, sp = up ? H16.TABLE.stand : [s[1], s[2]]; // (one who won't sit: at the table's end, facing it)
+      var q = HX.near(def.rows, HX.sqAt(sp[0], sp[1]), used); if (!q) return; used[q[0] + ',' + q[1]] = 1;
+      def.people.push({ id: 'council' + s[0], at: q, face: up ? [-1, 0] : s[2] < H16.TABLE.mid[1] ? [0, 1] : [0, -1], kind: s[0] === 'papa' ? 'thug' : 'crewman', fig: C.FIG[s[0]] ? s[0] : null, name: H16.WHO[s[0]], look: null, hire: null });
       def.src8.triggers.push({ id: 'talk:council' + s[0], on: 'use', rect: [q[0], q[1], 1, 1], town: 'talk', npc: 'council' + s[0] });
       C.TALK16['council' + s[0]] = [{ say: [H16.WHO[s[0]] + ' ' + H16.TABLE.word] }];
     });
@@ -849,7 +909,26 @@
     merrick: [{ say: ['I send word by the lantern network. A dusk sending is cheaper; a noon sending tells everyone it\'s urgent.', 'Thirty silver at the window frees a slave. No questions asked, either way.'], rumor: 'r-lantern' }],
     venhale: [{ say: ['The fighters\' stables. Part gymnasium, part debtors\' prison.', 'You want to fight? Korvin\'s slate, inside the Hex. That\'s where you put your name down.'], rumor: 'r-hexcard' }]
   });
-  H16.TEXT = { 'hire.lymenWait': 'He\'s watching who stands up in this town. Make a name first. (Renown 1: work for it -- Finding Work, in the JOURNAL.)' };
+  // THE WARRENS' WORDS, AND THE BARBER'S (10-29, the story window, RULED on Griz's "Leans stand", on his notes of 10-29 1808Z): Pete once the five are home stops saying six
+  // ("post quest edric text" -- Edric's after-line below, Pete's beside it); Venn the barber-surgeon and Davos Kren by the realm's "shares arena surgery work on a territorial
+  // understanding" (TarlynsPit/silverton-personae.md slot 10; the leech-house the arena's own surgery, the mother pays its bills -- the-hex.md), the territory the window's lean,
+  // RULED: the house's fighters Davos's, what the house won't pay for Venn's, from the Hex's door on fight nights (his dusk spot, H16.EVENING). invented.json
+  // warrens-five-words-1029, barber-davos-territory
+  var PETE_AFTER = [{ 'if': 'flag:fiveDone', say: ['Five came up. Edric wrote them in, every one.', 'He doesn\'t say six any more. He doesn\'t say much.'] }];
+  Object.assign(C.TALK16, {
+    pete: PETE_AFTER, warrenspete: PETE_AFTER,
+    barber: [{ say: ['Shave, tooth, stitch. The house\'s fighters are Davos Kren\'s. I taught him the needle.', 'Fight nights I sit at the Hex\'s door for what the house won\'t pay for. Three coppers, and I don\'t write it down.'] }]
+  });
+  H16.TEXT = { 'hire.lymenWait': 'He\'s watching who stands up in this town. Make a name first. (Renown 1: work for it -- Finding Work, in the JOURNAL.)',
+    // the Warrens' (js/mines.js Skarn, Edric, the pens): "paid at the pen", the first game's "at the board" read as Hessle's
+    'w.shiftPaid': 'Shift done. {n} sealed thimble(s), paid at the pen: {n} silver.', 'w.cradle.paid': '{n} sealed, paid at the pen - {n} silver',
+    'w16.skarnSay': 'He looks at you and waits. What do you say?',
+    'w16.skarnAskFive': 'PETE\'S FIVE. WHERE DID THEY GO DOWN?', 'w16.skarnAskWork': 'ANY WORK BESIDES THE CRADLES?', 'w16.skarnRude': 'OPEN UP, COLLAR.',
+    'w16.skarnFive': ['"Past the wet, after leavings. Six went down, and one came up: Pete."', 'He tells you what he wants to know: why the deep rate is three. It was two. Then the deep-margin scare.', 'He unlocks the gate between the pens and the honeycomb for you. "Bring them up. Edric can close his book."'],
+    'w16.skarnWork': ['"Past the pens there\'s one job, and nobody takes it."', 'Five names in Edric\'s book have no return line: Warrens Pete\'s crew, gone down past the wet after leavings. Pete came up alone.', 'He tells you what he wants to know: why the deep rate is three. It was two. Then the deep-margin scare.', 'He unlocks the gate between the pens and the honeycomb for you. "Bring them up."'],
+    'w16.edricFive': ['He turns back a page. "Five names in this book have no return line. Warrens Pete\'s crew, gone down past the wet after leavings, and Pete came up alone."'],
+    'w16.edricSkarn': ['"Skarn holds the gate to where they went. Ask him, not me."'],
+    'w16.edricAfter': ['"Five return lines. The book balances, for once."'], 'w16.edricOffice': ['"Skarn pays for it out of the office box. Tell him yourself."'] };
   if (DS.DATA && DS.DATA.text) Object.keys(H16.TEXT).forEach(function (k) { var r = DS.DATA.text[k]; DS.DATA.text[k] = r && typeof r === 'object' ? Object.assign({}, r, { t: H16.TEXT[k] }) : { t: H16.TEXT[k] }; });
 
   // ---------------------------------------------------------------- TELL ME ABOUT IT (RULED 10-28, his "TELL ME ABOUT IT", on the window's lean, after his "check with the story lane
@@ -890,7 +969,7 @@
     kess: ['The cheapest beds in town, a penny a place, for the shift crews between work. You\'d rest better at Cassia\'s, or on Aldwin\'s floor for nothing.'],
     tam: ['People come here to forget things for a while. You\'ve no business forgetting anything yet.'],
     marin: ['Cloth and clothes, dyed in the back. The fine cuts go to the factors\' houses.'],
-    barber: ['A barber-surgeon: shaves, teeth pulled, cuts stitched. On fight nights I sit in the Hex\'s chair and patch up whoever comes off the sand.'],
+    barber: ['A barber-surgeon: shaves, teeth pulled, cuts stitched. The Hex\'s own fighters go to Davos Kren, on the house; on fight nights I sit at the Hex\'s door for whoever the house won\'t pay for.'], // (10-29: the territory RULED -- the barber's TALK16 above)
     mela: ['A hot bath, and a quiet room to have it in. People talk in the steam, and I hear all of it.'],
     korvin: ['The slate is the card: who fights whom, and the odds. Put five silver down to fight; win, and you walk away with ten.'],
     edric: ['The tally-house books the hands for the cradles. Your name in my book, and you can milk the crawlers for their venom: a silver a clean thimble.'],
@@ -931,12 +1010,18 @@
     { hours: 1, id: 'bread', door: 'chapel:aldwin', label: 'THE BREAD LINE: seven in the morning, Aldwin\'s', note: 'Four in line at the chapel door. In, E at Aldwin: a loaf a hero (Mission Bread). M > WAIT on the street: the bells, bell to bell.' },
     { hours: 1, id: 'dusk', door: 'inn:cassia', t: 17.5, label: 'SILVERTON AT DUSK: the town comes out', note: 'One step: the bells go for dusk. Marin, the barber, Mela, Venn Hale, Aldric, Merrick and Tam out at their evening spots; their doors "Closed."' },
     { hours: 1, id: 'night', door: 'inn:cassia', t: 21, label: 'SILVERTON BY NIGHT: the lit places', note: 'One step: night. The dark wash, the pools at the Hex\'s doors, vice row, the lantern house, Cassia\'s, the chapel, Davos\'s, the west gate, round the party.' },
-    { hours: 1, id: 'council1', door: 'inn:cassia', t: 55, sit: ['notice'], label: 'THE COUNCIL, C1: the Pit\'s word (at the rest)', note: 'The sitting as it plays over a morning: the card, then each line on its speaker\'s portrait.' },
-    { hours: 1, id: 'council2', door: 'inn:cassia', sit: ['looks'], renown: 2, label: 'THE COUNCIL, C2: a name made (renown 2)', note: 'The who\'s-who, a line each (live it comes when the party climbs to the Hex\'s third floor at renown 2).' },
+    { hours: 1, id: 'council1', door: 'inn:cassia', t: 55, sit: ['notice'], label: 'THE COUNCIL, C1: the Pit\'s word (at the rest)', note: 'The cutscene (the lamp at dusk; the council up the spiral, its caption the title alone), then the sitting with no card: Hessle first, the third floor behind the screen, each portrait on its own plain window, no counter, no purse. X at the first shot keeps the card.' },
+    { hours: 1, id: 'council2', door: 'inn:cassia', sit: ['looks'], renown: 2, label: 'THE COUNCIL, C2: a name made (renown 2)', note: 'The council\'s ask (10-29): Papa vouches, Harrow names the ettercap across Web Gulch, Hessle its forty and ten, Androit swears it to you, Merrick names the gnolls next; then The Braiding Ettercap in the JOURNAL, pinned.' },
     { hours: 1, id: 'about', door: 'shop:marko', label: 'TELL ME ABOUT IT: Marko the provisioner, and Fountain Street', note: 'In at Marko\'s door, E at the counter: TELL ME ABOUT IT beside THE SHELVES / LEAVE -- what wagons are for here; then back to his question. Next door Kasten, Calla, Kessler, Lisbet; the same at every keeper\'s counter and door.' },
     { hours: 1, id: 'table', near: 'papa', hex3: true, renown: 2, flags: { papaLymen: 1, councilCalled: 1 }, label: 'THE COUNCIL AT THE LONG TABLE: C2, the party called up', note: 'In at the Hex and up to the third floor: the council in their seats at the long table under the Big Window, the camera along it and the card; then the who\'s-who on their portraits, and they break up.' },
     { hours: 1, id: 'tablenight', near: 'papa', hex3: true, t: 42, flags: { papaLymen: 1 }, label: 'THE COUNCIL AT THE LONG TABLE: the night the Pit\'s word comes', note: 'Day 1 at dusk, up to the third floor: the scales are lit, the council at the table, Merrick among them; Warda: stand at the back. Their sitting plays at the party\'s next rest.' },
-    { hours: 1, id: 'council3', door: 'inn:cassia', sit: ['herd'], flags: {herdWarned: 1 }, label: 'THE COUNCIL, C3: the herd thinned', note: 'The east side\'s man, Casper, Hessle, Papa ("A warning\'s gone down. Once. Next.").' }
+    { hours: 1, id: 'council3', door: 'inn:cassia', sit: ['herd'], flags: {herdWarned: 1 }, label: 'THE COUNCIL, C3: the herd thinned', note: 'The east side\'s man, Casper, Hessle, Papa ("A warning\'s gone down. Once. Next.").' },
+    // (10-29, the story window, RULED on Griz's "Leans stand": his story notes of 10-29 1808Z, each a beat -- invented.json warrens-five-words-1029, hexboy-runner-1029)
+    { hours: 1, id: 'council4', door: 'inn:cassia', sit: ['stock'], flags: { herdWarned: 1, councilHerd: 1, stockDead: 1 }, label: 'THE COUNCIL, C3: the stock dead', note: 'The cutscene: the east side\'s man comes up the spiral and stands at the table\'s end, the others at their places; the sitting with no card.' },
+    { hours: 1, id: 'runner', door: 'inn:cassia', renown: 2, flags: { papaLymen: 1 }, label: 'PAPA\'S RUNNER: renown 2, on the street', note: 'At Cassia\'s door at renown 2: a Hex boy runs up from a few squares off, his word on his own screen (the plain shape till his face comes), and runs back. Then the Hex\'s third floor: C2.' },
+    { hours: 1, id: 'five', camp: [8, 8], label: 'THE MISSING FIVE BY WORDS: Edric at the mouth camp', note: 'Beside Edric, nothing heard of the five: E on him -- the book, then the five in his own words, Skarn named; the card. East along the camp, Skarn: ANY WORK BESIDES THE CRADLES? or OPEN UP, COLLAR. A pen: the cradle in the portrait\'s place.' },
+    { hours: 1, id: 'fiveafter', camp: [8, 8], flags: { heardPete: 1, tallyMet: 1, fiveKnown: 1, skarnOk: 1, fiveDone: 1, 'q:warrens': 1 }, label: 'AFTER THE FIVE: Edric, Skarn, Pete', note: 'E on Edric: the book balances, and Skarn\'s office box; Skarn pays from it. In town and in the Hex, Pete stops saying six.' },
+    { hours: 1, id: 'barber', door: 'keeper:barber', label: 'VENN THE BARBER AND DAVOS KREN', note: 'At the barber-surgeon\'s door: the house\'s fighters are Davos Kren\'s, what the house won\'t pay for is his, at the Hex\'s door on fight nights; TELL ME ABOUT IT the same.' }
   ];
   var play0 = C.servicePlay;
   C.servicePlay = function (bt) {
@@ -944,6 +1029,7 @@
     var Hs = D.house, rec = C.serviceStage(bt);
     if (bt.lead) { var one = Hs.fresh(bt.lead); rec.party = one.party; rec.lead = one.lead; rec.hired = one.hired; }
     Object.assign(rec.flags, bt.flags || {}); if (bt.renown) rec.renown = bt.renown;
+    if (bt.camp) rec.at = { town: 'warrens', gate: 'feed', sq: bt.camp.slice(), dir: D.roam.DIR8['-1,0'] }; // (at the Warrens' mouth camp, facing west: Edric at 7,8)
     Hs.begin(rec, 0);
     var S = D.world && D.world.state ? D.world.state() : null; if (bt.t != null && S) S.t = bt.t;
     if (bt.sit) H16.night(null, bt.sit, [rec.flags]); // (a night's sitting with its cutscene first, as at a rest)

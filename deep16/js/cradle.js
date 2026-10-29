@@ -378,6 +378,27 @@
     return sc.result;
   };
   CR.make = function (job) { return new Cradle(job); };
+  // the cradle in the counter screen's portrait place (10-29, the story window, RULED on Griz's "Leans stand", his note "'paid at the board' meaning where you do the milking,
+  // there should be an image of a cradled crawler in the portrait slot"): the animal settled behind its slats, its feelers pinned under the bar, the lamp -- the scene's own
+  // picture without its work, drawn once off the screen (the dice untouched: its feelers' ripeness from no roll), and the cradle's middle cropped into the portrait's box
+  CR.STILL = [118, 34, 246, 204]; // (the crop: the slats, the body and the hanging feelers, the bar's middle)
+  CR.still = function () {
+    if (CR.stillC) return CR.stillC;
+    var c = document.createElement('canvas'); c.width = D.W; c.height = D.H; var x = c.getContext('2d'), r0 = D.rand, sc;
+    D.rand = function () { return 0.5; }; try { sc = new Cradle({ mouth: 2 }); } finally { D.rand = r0; }
+    x.drawImage(rock(), 0, 0);
+    var g = x.createRadialGradient(46, 64, 4, 46, 64, 150); g.addColorStop(0, 'rgba(248,192,72,0.3)'); g.addColorStop(1, 'rgba(248,192,72,0)'); x.fillStyle = g; x.fillRect(0, 0, 260, 240);
+    timber(x, 104, 30, 10, 202); timber(x, 366, 30, 10, 202); timber(x, 104, 30, 272, 9);
+    sc.drawBody(x); sc.tents.forEach(function (Q) { sc.drawFeeler(x, Q, 'root'); });
+    for (var sx = 124; sx < 366; sx += 30) timber(x, sx, 39, 5, BAR_Y - 39);
+    timber(x, 104, BAR_Y - 6, 272, 8);
+    sc.tents.forEach(function (Q) { x.fillStyle = P('silver', 3); x.fillRect(Math.round(Q.pin.x) - 2, BAR_Y + 1, 4, 2); sc.drawFeeler(x, Q, 'hang'); });
+    CR.stillC = c; return c;
+  };
+  CR.pic = function (ctx, x, y, w, h) { // (js/counter.js o.pic: the portrait's box)
+    var c = CR.still(), s = CR.STILL, k = Math.max(w / s[2], h / s[3]), sw = w / k, sh = h / k;
+    ctx.drawImage(c, s[0] + (s[2] - sw) / 2, s[1] + (s[3] - sh) / 2, sw, sh, x, y, w, h);
+  };
 
   // ---------------------------------------------------------------- THE CRADLE, shown (deep16/?cradle -- the eyes row's door, 10-22: the desk's "land it with an eyes row whose SHOW
   // door opens the shift with the dice pinned"): a beat opens the shift at once, the second game's four (js/house.js H.fresh) and the milker the first game would pick, the

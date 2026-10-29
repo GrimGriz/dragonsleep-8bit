@@ -405,20 +405,30 @@
   // a talk entry of theirs (the first game's EV.dialog: the first whose condition holds, with its doing), as lines
   M.words = function (B, id) { return D.counter.words(B, id); };
   var kills = function (B, k) { return ((B.roam && B.roam.kills) || {})[k] || 0; };
+  M.fiveOpen = function (f) { return !!(f.heardWarrens || f.heardPete || f.heardFive) && !f.fiveDone; }; // (The Missing Five in the JOURNAL: js/hours.js its `show`)
   M.SCENES = {
-    // Skarn, the Warrener (js/events.js S.skarn): the first word and how the party comes -- as free hands or as someone's; paid out after Pete's five
+    // Skarn, the Warrener (js/events.js S.skarn): the first word and what the party says to him; paid out after Pete's five. The second game's (10-29, the story window, RULED
+    // on Griz's "Leans stand", his note: "the speak to him as a man or a slave should be lines the player chooses (rather than conversational stance presented) or absent, asking
+    // about the mission if you carry it, asking about work other than milking if you don't as how to get to the gates being unlocked"): a line the player picks -- the five if
+    // the JOURNAL has them, work past the pens if not, either one his gate -- and the module's slave stance kept as one rude line (WarrensModule/crawler-warrens-DM.md §4: as a
+    // slave, and you meet the Champion). Work past the pens is the five, so it opens them (fiveBy: who told it -- js/hours.js the Missing Five's words). The words js/hours.js H16.TEXT
     skarn: function* (sc, B) {
       var st = sc.st, f = st.flags;
       if (f.fiveDone && !f.skarnPaid) { f.skarnPaid = 1; yield sc.say(L(f.stockDead ? 'w.skarnAfterDead' : 'w.skarnAfter')); if (!f.stockDead) { st.silver(60); D.sfx('coin'); yield sc.say(L('g.foundSilver', { n: 60 })); } return; }
       if (!f.skarnOk) {
+        var carry = M.fiveOpen(f);
         yield sc.say(L('w.skarnFirst'));
-        var a = yield sc.ask(L('w.skarnHow'), [L('w.skarnAsMan'), L('w.skarnAsSlave')]);
+        var a = yield sc.ask(L('w16.skarnSay'), [L(carry ? 'w16.skarnAskFive' : 'w16.skarnAskWork'), L('w16.skarnRude')]);
         if (a === 1) { yield sc.say(L('w.skarnChampion')); return; }
-        f.skarnOk = 1; f.heardPete = 1; yield sc.say(L('w.skarnQuestion')); return;
+        f.skarnOk = 1; if (!carry) { f.heardFive = 1; f.fiveBy = 'skarn'; }
+        yield sc.say(L(carry ? 'w16.skarnFive' : 'w16.skarnWork')); return;
       }
       yield sc.say(L('w.skarnAgain'));
     },
-    // Edric Pellam at the tally-house (S.edric): the book that counts the party in -- and Pete's five, brought home
+    // Edric Pellam at the tally-house (S.edric): the book that counts the party in -- and Pete's five, brought home. The second game's (10-29, RULED on Griz's "Leans stand", his
+    // notes "there's no real taking of the missing 5 quest - you talk to him about milking crawlers and it mysteriously shows up in your journal ... should get from warrens pete,
+    // or with dialogue from Edric. Both should point to ask Skarn step" and "post quest edric text"): the first booking tells the five in his own words and opens them if Pete
+    // hasn't (fiveBy), pointing at Skarn; after the five are home, the book balances -- and Skarn's office box, while it hasn't paid
     edric: function* (sc, B) {
       var st = sc.st, f = st.flags, C = D.counter; f.tallyMet = 1;
       if (C.count(st, 'fivetokens') > 0) {
@@ -427,7 +437,12 @@
         yield sc.say(L('w.edricPage')); C.give(st, 'sheet_grease', 1); D.sfx('chest'); yield sc.say(L('g.got', { item: DS.DATA.items.sheet_grease.name }));
         yield sc.say(C.renown(st, 1, 'renown.five')); return;
       }
-      yield sc.say(L(f.fiveKnown ? 'w.edricAgain' : 'w.edricFirst')); f.fiveKnown = 1; f.heardPete = 1;
+      if (f.fiveDone) { yield sc.say([].concat(L('w16.edricAfter'), !f.skarnPaid && !f.stockDead ? L('w16.edricOffice') : [])); return; }
+      if (!f.fiveKnown) {
+        if (!M.fiveOpen(f)) { f.heardFive = 1; f.fiveBy = 'edric'; }
+        f.fiveKnown = 1; yield sc.say([].concat(L('w.edricFirst'), L('w16.edricFive'), f.skarnOk ? [] : L('w16.edricSkarn'))); return;
+      }
+      yield sc.say([].concat(L('w.edricAgain'), f.skarnOk ? [] : L('w16.edricSkarn')));
     },
     // Old Hob by the kitchen (js/deep.js S.hobHeir): Asmund's heir asked after, his hint; else his own words
     hobCamp: function* (sc, B) { var f = sc.st.flags; if (f.heirAsked && !f.heirHint) { f.heirHint = 1; yield sc.say(L('deep.heirHob')); return; } yield sc.say(M.words(B, 'hobCamp')); },
@@ -530,11 +545,14 @@
   // the grid's own scene with the first game's rules -- the lanes desk's ruling 10-22 on his "Crawler game needs rebuilt for this engine"; js/roam.js R.shiftPlay); then the pay at
   // the board on the counter, and Old Hob after the first shift (M.penPay). With no scene (a bench's D.cradle.STRAIGHT), the first game's own table rule, rolled straight
   // (M.shiftRoll): six draws, each a d20 and the milker's Animal Handling or Nature against 12, a 6 or less a CON save at 13 (the draught: the better of two) or the shift ends touched
+  // (the pens' screen: the cradle in the portrait's place -- js/cradle.js CR.pic; Old Hob on his own face for his line, the plain shape till the art desk's ART-123 brings
+  // pt_oldhob. 10-29, RULED on Griz's "Leans stand", his note: "there should be an image of a cradled crawler in the portrait slot - old hob when his line is presented")
+  M.HOB_SHEET = 'pt_oldhob';
   M.penShift = function* (B, n) {
-    var nm = 'The pens, mouth ' + n, job = yield* M.talk(B, 'pen' + n, function (sc) { return M.penAsk(sc, B, n); }, nm);
+    var nm = 'The pens, mouth ' + n, pic = D.cradle && D.cradle.pic, job = yield* M.talk(B, 'pen' + n, function (sc) { return M.penAsk(sc, B, n); }, nm, pic);
     if (!job) return;
     var r = D.cradle && !D.cradle.STRAIGHT ? yield* D.roam.shiftPlay(B, job) : M.shiftRoll(job);
-    yield* M.talk(B, 'pen' + n, function (sc) { return M.penPay(sc, B, job, r); }, nm);
+    yield* M.talk(B, 'pen' + n, function (sc) { return M.penPay(sc, B, job, r); }, nm, pic);
   };
   M.penAsk = function* (sc, B, n) {
     var st = sc.st, f = st.flags, C = D.counter, Rr = DS.R;
@@ -562,7 +580,7 @@
     if (got) { st.silver(got); D.sfx('coin'); }
     f.shifts = (f.shifts || 0) + 1; lines.push(L('w.shiftPaid', { n: got }));
     yield sc.say(lines);
-    if (f.shifts === 1) { f.hobMet = 1; f['heard:r-promised'] = 1; yield sc.say(['{y}Old Hob{/}'].concat(L('w.hobAtCradle'))); }
+    if (f.shifts === 1) { f.hobMet = 1; f['heard:r-promised'] = 1; sc.o.pic = null; sc.sheet = M.HOB_SHEET; sc.o.name = 'Old Hob'; yield sc.say(L('w.hobAtCradle')); }
   };
   M.d20 = function () { return D.d(20); }; // (the shift's die: the bench pins it)
   // Skarn's gate in the stalls (S.skarnGate): shut till Skarn has taken the party on; then it swings back and stays open -- the floor laid again with it open
