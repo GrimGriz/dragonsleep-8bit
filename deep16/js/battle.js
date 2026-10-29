@@ -112,6 +112,7 @@
     var lent = (F.allies || []).map(function (f) { return self.makeFoe(Object.assign({ side: 'party', ally: true }, f)); }); // (ours for the fight, the brute's to run: the Skylights' stable fighters up the south road, the garrison behind the hatch -- 10-05)
     this.units = party.concat(foes, lent);
     if (this.o.flyTest) party.forEach(function (u) { if (!u.familiar) u.flies = true; }); // (&fly: the testing room's wings for the party -- flight at a height, 10-08)
+    if (this.o.fearTest && foes[0]) { var hfT = party.filter(function (u) { return !u.familiar; })[(+this.o.fearTest || 1) - 1]; if (hfT) hfT.conds.frightened = { by: foes[0].id }; } // (&afraid=<n>: the nth hero frightened of the first foe -- the testing room's, 10-29: the squares the fear refuses, js/ui.js fearSquares)
     if (this.o.spellsTest) party.forEach(function (u) { if (!u.known || !u.slots) return; String(this.o.spellsTest).split(',').forEach(function (id) { if (D.SPELLS && D.SPELLS[id] && u.known.indexOf(id) < 0) u.known.push(id); }); }, this); // (&spells=fly,...: the testing room's casters given those spells to try -- 10-08)
     // (&legend and &breath=cold|fire|lightning|stone: the testing room's first foe made legendary -- three actions, a blow and Detect, three Legendary Resistances -- or given a breath,
     // the winter wolf's, a red's, a blue's, the gorgon's numbers; the rules before the monsters that use them, js/traits.js, 10-08)

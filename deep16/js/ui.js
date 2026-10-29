@@ -165,6 +165,21 @@
     B.cache = { key: key + (held ? ',held' : ''), move: G.reach(u, held ? 0 : T.move), dash: dash ? G.reach(u, T.move + dash) : null, hide: null };
     return B.cache;
   }
+  // FRIGHTENED (SRD 5.1: "can't willingly move closer to the source of its fear" -- grid.js G.stepCost): the squares this turn's move, or its dash, would reach but for the
+  // fear -- exactly the ones the rule refuses -- drawn in the fear's own colour, the {p} its tag shows in (10-29, his "when can't go to square because frightened, highlight in
+  // frightened color"). { 'x,y': step } -- none while the one it fears is down or gone, for a flier at a height (the fear is a walker's there), or held fast
+  var FEAR_COL = '#f878f8';
+  function fearOf(B, u) { var fr = u.conds && u.conds.frightened, src = fr && fr.by ? B.units.filter(function (w) { return w.id === fr.by; })[0] : null; return src && G.standing(src) ? src : null; }
+  function fearSquares(B, u) {
+    var rc = reachCache(B, u);
+    if (rc.fear) return rc.fear;
+    rc.fear = {};
+    if (!fearOf(B, u) || rc.layer != null || u.conds.restrained) return rc.fear;
+    var all = G.reach(u, u.turn.move + (rc.dash ? u.speed * D.Battle.dashes(u).length : 0), { fearless: true });
+    Object.keys(all).forEach(function (k) { var e = all[k]; if (e.stand && e.cost > 0 && !(rc.move[k] && rc.move[k].stand) && !(rc.dash && rc.dash[k] && rc.dash[k].stand)) rc.fear[k] = e; });
+    return rc.fear;
+  }
+  UI.fearSquares = fearSquares; // (dev/bench16.js gridclicks1029)
   // a rogue's places to try hiding: squares she can reach where no foe sees her clearly -- cover, the dark, its eyes (battle.js seenBy, the
   // same question the HIDE roll asks: 10-01b, Griz: "I think I'm getting conflicting rogue-hiding hints")
   function hideSpots(B, u) {
@@ -473,10 +488,20 @@
   }
   // a prompt that picks one of its creatures (js/features.js pickOne): on the grid, not a row of numbered buttons -- the cursor (the arrows,
   // the stick, the mouse) on one of the gold squares, E or a click takes it; X is not now; 1-9 still take them in the prompt's order
+  // A PROMPT'S NO (10-29, his "right-click as 'no' in stuff like 'use divine smite' with lymen and 'use bonus or action dashes' with rogue"): the mouse's own right button
+  // answers with the option that declines -- NO SMITE, NOT THAT FAR, LET IT GO, TAKE IT, HOLD -- and never with one that does something. The declining words the prompts
+  // use (battle.js, features.js, grimoire.js, magic.js, mpmon.js, traits.js, wet.js, roam.js, keeperplay.js), or an option marked `no: true`; the first one there is the NO (A
+  // LEGENDARY ACTION?'s NOT NOW before NONE THIS ROUND). A prompt with none -- the summons, DISPEL WHICH?, LAY ON HANDS' two, the gaze's, NEXT -- takes no right-click. X, as
+  // ever, takes the last option. The pad's INFO is rclick alone: unchanged
+  var NO_WORDS = { 'NO': 1, 'NO SMITE': 1, 'NOT NOW': 1, 'NOT THAT': 1, 'NOT THAT FAR': 1, 'NOT THAT WAY': 1, 'NOT THIS TIME': 1, 'LET IT GO': 1, 'LET IT LAND': 1, 'TAKE IT': 1, 'TAKE THEM': 1, 'HOLD': 1, 'LEAVE IT': 1, 'LOSE IT': 1 };
+  function noOf(p) { for (var i = 0; i < p.opts.length; i++) { var o = p.opts[i]; if (o.no || NO_WORDS[o.label]) return i; } return -1; }
+  UI.noOf = noOf; // (dev/bench16.js gridclicks1029)
+  function rightNo(B, p) { var i = I.mouse.rbtn ? noOf(p) : -1; if (i < 0) return false; D.sfx('cancel'); B.answer(p.opts[i].value); return true; }
   function pickAt(B, p) { return p.pick.filter(function (w) { return G.foot(w).some(function (q) { return q[0] === B.cursor.x && q[1] === B.cursor.y; }); })[0] || null; }
   function pickInput(B, p) {
     var n = p.opts.length, take = function (w) { var i = w ? p.pick.indexOf(w) : -1; if (i < 0) { D.sfx('error'); return; } D.sfx('confirm'); B.answer(p.opts[i].value); };
     if (I.pressed('b')) { D.sfx('cancel'); return B.answer(p.opts[n - 1].value); }
+    if (rightNo(B, p)) return; // (the right button: NOT NOW -- noOf)
     for (var k = 1; k <= Math.min(9, p.pick.length); k++) if (I.pressed('n' + k)) return take(p.pick[k - 1]);
     var pickable = function (w) { return p.pick.indexOf(w) >= 0; }; // (one of the gold squares' creatures comes before a figure in front of it: UI.pickUnit's want)
     if (I.mouse.inside && !overUI(B) && I.mouse.moved) { var pu = UI.pickUnit(B, I.mouse.x, I.mouse.y, pickable), s = pu ? { x: pu.x, y: pu.y } : D.iso.pick(I.mouse.x, I.mouse.y, G.map.gz(B.cursor.x, B.cursor.y)); if (s) { B.cursor.x = s.x; B.cursor.y = s.y; } }
@@ -494,6 +519,7 @@
     for (var k = 1; k <= n; k++) if (I.pressed('n' + k)) return go(p.opts[k - 1].value);
     if (I.pressed('a')) return go(p.opts[B.sel].value);
     if (I.pressed('b')) { D.sfx('cancel'); return B.answer(p.opts[n - 1].value); }
+    if (rightNo(B, p)) return; // (the right button: the prompt's NO, where it has one -- noOf)
     if (I.mouse.click && B.promptRects) for (var i = 0; i < B.promptRects.length; i++) if (hit(B.promptRects[i])) return go(p.opts[i].value);
   }
   function hit(r) { var m = I.mouse; return r && m.x >= r.x && m.y >= r.y && m.x < r.x + r.w && m.y < r.y + r.h; }
@@ -628,7 +654,8 @@
     // (an item or a feature aimed -- the Rope & Grapple, a torch to throw, a potion to give, Help, Lay on Hands, PULL IT OFF, BREAK THE TENDRIL: the right button puts it away, as X does --
     // 10-05, Griz: "Right-click cancel rope item use")
     if (I.mouse.rbtn && AIMS[B.tool]) { D.sfx('cancel'); B.tool = rest(); B.spell = null; B.clearCards(); return; }
-    if (I.mouse.rclick && !overUI(B)) { var w0 = underCursor(B) || etherealAt(B, B.cursor.x, B.cursor.y); if (w0 && !w0.tendril) B.inspect = w0; return; } // (a tendril has no sheet to inspect: the tooltip says what it is)
+    // (off anyone -- the bare ground -- the mouse's own right button ends the turn, asked first: endTurn. The pad's INFO and a long press, rclick alone, only inspect)
+    if (I.mouse.rclick && !overUI(B)) { var w0 = underCursor(B) || etherealAt(B, B.cursor.x, B.cursor.y); if (w0 && !w0.tendril) B.inspect = w0; else if (!w0 && I.mouse.rbtn) return endTurn(B, u, 'mouse'); return; } // (a tendril has no sheet to inspect: the tooltip says what it is)
     // the pad (Griz 09-28): the left stick pressed in, before anything on the wheel is chosen, drops the wheel (and a list on
     // it) and the cursor is free on the grid; with no wheel up it recentres, as C does. The right stick's left/right (or a
     // bumper) calls the wheel up, and once it's up turns it (turnWheel)
@@ -670,15 +697,20 @@
   }
   // END TURN, asked first by the M menu's END TURN ASKS (UI.opts.confirmEnd): IF IDLE -- not a step, the action and the bonus both unspent -- ALWAYS, or NEVER.
   // Asked, the same END again (Y, Space, the ring's END) ends it, X keeps it; the ask lasts while the turn stands where it was (B.req: a step or a blow is a new one)
+  // The mouse's own right button (rbtn) off anything to inspect ends the turn the same way, and always asks first unless END TURN ASKS is NEVER (10-29, his "right-click to end
+  // turn (with warning) when not over inspectible right click": a stray right-click is easy) -- the right button again ends it. The simple fight's root column asks by it too
+  // (js/simple.js; how: 'simple', where SPACE ends nothing). True when it asked: the caller ends the turn on false
   function idleTurn(u) { var T = u.turn || {}; return T.action > 0 && T.bonus > 0 && !(T.moved > 0) && !T.attackAction && !T.spellAction; }
-  function endTurn(B, u) {
-    var c = UI.opts.confirmEnd, ask = c === 'always' || (c !== 'never' && idleTurn(u));
-    if (ask && B.endAsk !== B.req) {
-      B.endAsk = B.req; D.sfx('popup'); B.clearCards();
-      B.card([D.keys('{y}End ' + u.name + '\'s turn?{/}' + (idleTurn(u) ? '  {g}nothing done yet{/}' : '')), D.keys('{g}SPACE again ends it.  X keeps it{/}')], 600);
-      return;
-    }
-    B.endAsk = null; B.clearCards();
+  UI.askEnd = function (B, u, how) {
+    var c = UI.opts.confirmEnd, ask = c === 'always' || (c !== 'never' && (!!how || idleTurn(u)));
+    if (!ask || (B.endAsk && B.endAsk === B.req)) { B.endAsk = null; return false; }
+    B.endAsk = B.req; D.sfx('popup'); B.clearCards();
+    B.card([D.keys('{y}End ' + u.name + '\'s turn?{/}' + (idleTurn(u) ? '  {g}nothing done yet{/}' : '')), D.keys('{g}' + (how === 'simple' ? 'A right-click' : how ? 'A right-click or SPACE' : 'SPACE') + ' again ends it.  X keeps it{/}')], 600);
+    return true;
+  };
+  function endTurn(B, u, how) {
+    if (UI.askEnd(B, u, how)) return;
+    B.clearCards();
     return UI.command(B, u, { do: 'end' });
   }
   function gridDone(B, u) {
@@ -1048,6 +1080,7 @@
         return B.card(['{o}The ' + B.shortName(foe) + ' is out of ' + (u.weapon && u.weapon.ranged ? 'range' : 'reach') + ' (' + (u.weapon && u.weapon.ranged ? G.range : G.dist)(u, foe) + ' ft).{/}'], 120);
       }
       if (v === 'no' && (u.size || 1) > 1 && D.keeperPlay && D.keeperPlay.human(B, u)) { D.sfx('error'); return B.card(['{o}MOVE: ' + (D.keeperPlay.moveWhy(B, u, x, y) || 'not there') + '.{/}'], 160); } // (a big creature's refused pick says why)
+      if (v === 'no' && fearSquares(B, u)[x + ',' + y]) { var fsA = fearOf(B, u); D.sfx('error'); return B.card(['{p}' + u.name + ' is frightened of ' + (fsA.side === u.side ? fsA.name : 'the ' + B.shortName(fsA)) + ': not one step nearer it.{/}'], 140); } // (a square the fear refuses says so: fearSquares)
       if (v === 'ok') { var fzC = UI.flyer(B) === u ? UI.layerZ(B, u) : null; if (fzC != null) { B.flyZ = null; return UI.command(B, u, { do: 'move', x: x, y: y, fz: fzC }); } var czC = UI.climber(B) === u ? UI.climbPick(B, u, x, y) : null; if (czC != null) { B.climbZ = null; return UI.command(B, u, { do: 'move', x: x, y: y, cz: czC }); } return UI.command(B, u, { do: 'move', x: x, y: y }); } // (cz: a climber's height on the face, §2.18) // (fz: the layer, flight at a height)
       if (v === 'far') { var fzD = UI.flyer(B) === u ? UI.layerZ(B, u) : null; if (fzD != null) { B.flyZ = null; return UI.command(B, u, { do: 'dashmove', x: x, y: y, fz: fzD }); } return UI.command(B, u, { do: 'dashmove', x: x, y: y }); } // (a dash at a layer: flight at a height, 10-08)
       if (v === 'rope') return UI.command(B, u, { do: 'ropeclimb', x: x, y: y });
@@ -2094,6 +2127,7 @@
       }
       LAYERZ = rc.layer != null ? rc.layer : null; // (flight at a height: the squares at the layer)
       Object.keys(rc.move).forEach(function (k) { var e = rc.move[k]; if (e.stand && e.cost > 0) fillSq(ctx, e.x, e.y, R('glow', 1), 0.17); });
+      var fq = fearSquares(B, u); Object.keys(fq).forEach(function (k) { var e = fq[k]; fillSq(ctx, e.x, e.y, FEAR_COL, 0.2); }); // (frightened: where the fear won't let them go)
       if (LAYERZ != null) airColumn(cx, cy, LAYERZ, rc.move[cx + ',' + cy] || (rc.dash && rc.dash[cx + ',' + cy]), T.move, UI.valid(B, u, cx, cy)); // (the cursor itself is drawn at the layer below, red where it cannot go -- Griz, 10-08) // (the square in the air: a pale column down to the ground under it, as the rope's rung shows its height -- Griz, 10-08)
       LAYERZ = null;
       // a rogue's places to try hiding (no foe she knows of sees her there plainly): always, as she moves (Griz, 09-27)
@@ -2175,7 +2209,7 @@
     var s0 = G.map.at(cx, cy);
     var czP = tool === 'move' && UI.climber(B) === u ? UI.climbPick(B, u, cx, cy) : null; if (czP != null) { var cfP = UI.climbFace(B, u, cx, cy); if (cfP) airColumn(cfP.foot[0], cfP.foot[1], czP, null, 0, 'ok'); } // (a climber's height picked: the column at the face's foot to it, 'N ft up' -- §2.18, 10-15)
     var lzC = tool === 'move' && UI.flyer(B) === u ? UI.layerZ(B, u) : null; if (lzC != null) LAYERZ = lzC; // (a flier's move at a layer: the cursor at the layer, red where it cannot go -- Griz, 10-08, "when out of autodash move square becomes red to explain why clicking fails to move you")
-    if (s0 && s0.open) { var v = UI.valid(B, u, cx, cy); lineSq(ctx, cx, cy, v === 'no' ? R('red', 4) : v === 'cut' ? R('fire', 2) : v === 'far' || v === 'rope' || v === 'rung' || v === 'take' || v === 'takelight' ? R('gold', 2) : v === 'self' ? R('gold', 4) : R('bone', 2), 1, 1); }
+    if (s0 && s0.open) { var v = UI.valid(B, u, cx, cy); lineSq(ctx, cx, cy, v === 'no' ? ((tool === 'move' || tool === 'menu' || tool === 'attack') && fearSquares(B, u)[cx + ',' + cy] ? FEAR_COL : R('red', 4)) : v === 'cut' ? R('fire', 2) : v === 'far' || v === 'rope' || v === 'rung' || v === 'take' || v === 'takelight' ? R('gold', 2) : v === 'self' ? R('gold', 4) : R('bone', 2), 1, 1); }
     LAYERZ = null;
   }
 
@@ -2577,7 +2611,7 @@
       D.text(ctx, p.title, px + 8, py + 6, D.WIN8.gold);
       pl.forEach(function (l, k) { D.text(ctx, l, px + 8, py + 18 + k * 9, D.WIN8.text); });
       var lab = on ? p.opts[p.pick.indexOf(on)].label : null;
-      D.text(ctx, D.keys(lab ? 'E: ' + lab + '   X: not now' : 'a gold square: E or a click   X: not now'), px + 8, py + ph - 11, lab ? R('gold', 3) : R('accent', 2));
+      D.text(ctx, D.keys(lab ? 'E: ' + lab + '   X/right-click: not now' : 'a gold square: E or a click   X/right-click: not now'), px + 8, py + ph - 11, lab ? R('gold', 3) : R('accent', 2));
       B.promptRects = [];
       return;
     }

@@ -519,8 +519,10 @@
     if (I.pressed('a')) return choose(B, u, rows[m.sel]);
     if ((I.pressed('b') || mo.rclick) && m.mode === 'list') return S.back(B, u);
     // the mouse's own right button on the root column ends the turn (10-28 later, his "Right-click as 'end turn' in simple fight mode": rbtn, not rclick, which the pad's INFO sets
-    // too -- js/core.js); in a list it backs out, as above
-    if (mo.rbtn && m.mode === 'cmd') { B.simple.last[u.id] = m.sel; D.sfx('confirm'); return S.send(B, u, { do: 'end' }); }
+    // too -- js/core.js); in a list it backs out, as above. Asked first, the grid's END TURN card, and the right button again ends it, X keeps it (10-29, his "right-click to end
+    // turn (with warning)": js/ui.js UI.askEnd -- END TURN ASKS at NEVER ends it at once)
+    if (B.endAsk && B.endAsk === B.req && I.pressed('b') && m.mode === 'cmd') { D.sfx('cancel'); B.endAsk = null; B.clearCards(); return; }
+    if (mo.rbtn && m.mode === 'cmd') { if (UI.askEnd(B, u, 'simple')) { m.msg = null; return; } B.simple.last[u.id] = m.sel; D.sfx('confirm'); return S.send(B, u, { do: 'end' }); }
   };
   var in0 = UI.input;
   UI.input = function (B, req) {

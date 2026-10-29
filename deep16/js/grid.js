@@ -171,9 +171,9 @@
     var dx = x1 - x0, dy = y1 - y0;
     if (dx && dy && !footWalkable(u, x0 + dx, y0, true) && !footWalkable(u, x0, y0 + dy, true)) return Infinity; // no squeezing between two rocks at a corner
     if (o && o.ghost) return 5;
-    // frightened (SRD): not one step nearer the one it fears, while that one stands
+    // frightened (SRD): not one step nearer the one it fears, while that one stands (o.fearless: reckoned without it -- the squares it refuses, js/ui.js fearSquares)
     var fr = u.conds && u.conds.frightened;
-    if (fr && fr.by) { var src = G.units.filter(function (w) { return w.id === fr.by; })[0]; if (src && G.standing(src) && G.dist(u, src, x1, y1) < G.dist(u, src, x0, y0)) return Infinity; }
+    if (fr && fr.by && !(o && o.fearless)) { var src = G.units.filter(function (w) { return w.id === fr.by; })[0]; if (src && G.standing(src) && G.dist(u, src, x1, y1) < G.dist(u, src, x0, y0)) return Infinity; }
     var f = G.foot(u, x1, y1);
     // a creature bound to its ground (the otyugh will not leave its pool: bound '~') moves only there, and not slowed by it
     if (u.bound) { for (var j = 0; j < f.length; j++) if (u.bound.indexOf(G.map.at(f[j][0], f[j][1]).ch) < 0) return Infinity; }
