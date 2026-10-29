@@ -2244,3 +2244,47 @@ HEAD 6 -- WORK (6, two bands of three): wraps a strip of cloth round his fist an
 HEADs 1-6: 16-bit pixel-art cut-scene portrait animation, comparable to the art desk's ART-78 (Ambrose Winters) and Sylvia Swann. Waist-up behind a plain dark wooden counter ledge, a stable eye-level three-quarter front camera, looking screen left at someone just beside the camera; the head and body the same size on every page as on the Idle page. Crisp pixel clusters and restrained shading. Flat dark navy background (a deep blue, not grey and not black). Each image 1440 x 810, ONE action an image, six-frame actions in two bands of three with clear gutters; the counter ledge under the hands on every frame, its top edge at the same height. A title and frame numbers as on ART-78's pages, kept well clear of the drawings. No scenery, no UI or border.
 ```
 Cut as: `pt_talmok` (`tools/portrait-sheet.py`); the Hex, by the sand (`talmok`).
+
+### Old Wynn Pollard (asked 10-28 in art-wanted section 26; drawn 10-29 by the art desk, ART-123-WYNN, every HEAD; CUT 10-29, `d10a3a38`)
+
+Moved here 2026-10-29 by the Edric and Dace cutter seat (the lanes desk's next job: "Cut him the way Edric and Dace were cut"). Half-blind as the block says, not half-deaf: the art desk's choice, his left eye clouded pale, the near right one good; a weathered tan face, wispy white hair, a short white beard, a brown vest over an oatmeal shirt. His cheeks' reds left out of the figure's snap. The return: `deep16/_src/outbox/ENGINE-RETURN-2026-10-29m-art123-wynn.md`. The block as it was asked:
+
+### Old Wynn Pollard
+ATTACH `deep16/_src/winters/ART-78/ART-78_HEAD-1_PAGE-1.png` and `ART-78_HEAD-1_PAGE-6.png` (the portrait pages' shape, for the format only, not the face) and `deep16/_src/art-desk/sent/REF-2026-10-21-town-figure-size.png` (the town figure's size).
+```text
+OLD WYNN POLLARD -- seventy-one, human, the last of the original gatherers, half-blind, who calls the drives with a rattle; leathery, cheerful [seat: the look].
+
+HEAD 1 -- IDLE (6, two bands of three): a breathing and blink loop at the counter, hands resting on it; loops cleanly.
+HEAD 2 -- ATTENTIVE (1): neutral listening.
+HEAD 3 -- WELCOMING (1): restrained warmth.
+HEAD 4 -- SKEPTICAL (1): weighing the face in front of them.
+HEAD 5 -- CONCERNED (1): a guarded refusal.
+HEAD 6 -- WORK (6, two bands of three): shakes a wooden rattle once, then listens; the last frame the hands back at rest.
+
+HEAD 7 -- THE TOWN FIGURE from the front, facing the viewer (south): Idle (4: standing at ease, a slow breath; the same pose on every frame but the breath).
+HEAD 8 -- THE TOWN FIGURE from the bottom-right, every frame facing toward the bottom-right corner of the image: Idle (4: standing at ease, a slow breath; the same pose on every frame but the breath).
+HEAD 9 -- THE TOWN FIGURE from the right side in profile, facing right: Idle (4: standing at ease, a slow breath; the same pose on every frame but the breath).
+HEAD 10 -- THE TOWN FIGURE from the top-right, seen from behind, every frame facing toward the top-right corner of the image: Idle (4: standing at ease, a slow breath; the same pose on every frame but the breath).
+HEAD 11 -- THE TOWN FIGURE straight from behind, facing away from the viewer: Idle (4: standing at ease, a slow breath; the same pose on every frame but the breath).
+
+HEADs 1-6 (the talking portrait): 16-bit pixel-art cut-scene portrait animation, comparable to the art desk's ART-78 (Ambrose Winters) and Sylvia Swann. Waist-up behind a plain dark wooden counter ledge, a stable eye-level three-quarter front camera, looking screen left at someone just beside the camera; the head and body the same size on every page as on the Idle page. Crisp pixel clusters and restrained shading. Flat dark navy background (a deep blue, not grey and not black). Each image 1440 x 810, ONE action an image, six-frame actions in two bands of three with clear gutters; the counter ledge under the hands on every frame, its top edge at the same height. A title and frame numbers as on ART-78's pages, kept well clear of the drawings. No scenery, no UI or border.
+
+HEADs 7-11 (the town figure): 16-bit pixel art animation sheet, SNES-era action RPG style, crisp dark outline, readable at small size. Isometric three-quarter view from above, the camera looking down at about thirty degrees, as in a tactics game -- the grid's own figures. The whole figure head to foot, the same size and proportions as the attached figures (a grown man stands about 50 pixels from sole to crown at game size; draw it large, the cutter brings it down). Flat dark navy background (a deep blue, not grey and not black). ONE sheet filling the whole image: no portrait, no other panels, no title. One labelled row of frames, its name at its left, numbered 1 to N under each frame -- every number used once, none skipped. Every frame stands apart with clear space around it. Feet on one baseline. No scenery, no counter.
+```
+Where: the Galleries' mouth (`wynn`). Cut as: `tools/portrait-sheet.py` (a `PEOPLE` line) into `pt_wynn`; `tools/keeper-town-sheet.py` into `wynn_p1` in all five views (HEAD 7 S, 8 SE, 9 E, 10 NE, 11 N; SW, W, NW their mirrors); js/counter.js C.VENDORS and C.FIG.
+
+### Falstaff -- his NE from behind (asked again 10-29 in art-wanted section 26; drawn 10-29 by the art desk, FALSTAFF-NE.png; CUT 10-29, `d10a3a38`)
+
+Moved here 2026-10-29 by the Edric and Dace cutter seat. Four drawings from behind, three-quarters to the top right, no labels: filed as `ART-123-FALSTAFF_HEAD-2_PAGE-4.png` (`_src/art-desk/falstaff-ne-sort-2026-10-29.py`), so `falstaff_p1` is all eight; its cuffs' reds left out on that page alone. The return: `deep16/_src/outbox/ENGINE-RETURN-2026-10-29n-falstaff-ne.md`. The block as it was asked:
+
+### Falstaff -- his NE again, from behind (added 10-29, the cutter seat of 10-29)
+The art desk's ART-123-FALSTAFF came 10-28/29 (its HEAD 2 PAGE 5, the N, as "Falstaff Idle Backview Sprite Sheet.png"): every page cut but HEAD 2 PAGE 4, sold as NE, which draws him from the front -- his face, his scarf, his waistcoat's buttons -- a second SE (kept in `deep16/_src/falstaff/ART-123-FALSTAFF/not-NE/`). Till an NE from behind comes he stands south only; with it, `python tools/keeper-town-sheet.py falstaff` cuts all eight.
+ATTACH `deep16/_src/falstaff/ART-123-FALSTAFF/ART-123-FALSTAFF_HEAD-2_PAGE-5.png` (his N, from behind: the coat, the hair, the size), `ART-123-FALSTAFF_HEAD-2_PAGE-1.png` (his S) and `deep16/_src/aldwin/ART-114/ART-114_HEAD-2_PAGE-4.png` (an NE as the town's other keepers have it).
+```text
+FALSTAFF -- the same man as the attached pages: the factor's clerk, middle years, a long dark clerk's coat over a brown waistcoat, an off-white scarf high round his throat, brown swept hair grey at the temples.
+
+HEAD 2 PAGE 4 -- THE TOWN FIGURE from the top-right, SEEN FROM BEHIND, every frame facing toward the top-right corner of the image: Idle (4: standing at ease, a slow breath; the same pose on every frame but the breath). We see his back and the back of his head turned a quarter toward the right, as the third attached page (Aldwin) is drawn: NOT his face, NOT his waistcoat's front -- the page sent before drew him from the front and could not be used.
+
+16-bit pixel art animation sheet, SNES-era action RPG style, crisp dark outline, readable at small size. Isometric three-quarter view from above, the camera looking down at about thirty degrees, as in a tactics game -- the grid's own figures. The whole figure head to foot, the same size and proportions as the attached Falstaff pages. Flat dark navy background (a deep blue, not grey and not black). ONE sheet filling the whole image: no portrait, no other panels, no title. One labelled row of frames, its name at its left, numbered 1 to 4 under each frame -- every number used once, none skipped. Every frame stands apart with clear space around it. Feet on one baseline. No scenery, no counter.
+```
+Cut as: saved as `deep16/_src/falstaff/ART-123-FALSTAFF/ART-123-FALSTAFF_HEAD-2_PAGE-4.png`, then `python tools/keeper-town-sheet.py falstaff`: `falstaff_p1` in all eight (S, SE, E, NE, N drawn; SW, W, NW their mirrors), and `turn1028`'s WHOLE list takes him.
