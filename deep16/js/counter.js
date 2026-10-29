@@ -27,6 +27,7 @@
     casper: { sheet: 'pt_casper' }, androit: { sheet: 'pt_androit' }, aldric: { sheet: 'pt_aldric' },
     warda: { sheet: 'pt_warda', wait: '' }, // (Warda of the Hex's third floor: the art desk's ART-123-WARDA, 10-29 -- her face for the portraits' show; her word on the floor stays the first game's card, js/hex.js HX.SCENES)
     harrow: { sheet: 'pt_harrow', wait: '' }, // (Ottak Harrow of the council: the art desk's ART-123-HARROW, 10-29, on Griz's "harrows in, might as well spin up another cutter for skarn" -- the council's sittings speak on his face by C.PT)
+    skarn: { sheet: 'pt_skarn', wait: '' }, // (Skarn the Warrener at the Crawler Warrens' mouth camp: the art desk's ART-123-SKARN, 10-29, on Griz's "harrows in, might as well spin up another cutter for skarn" -- the camp's scenes speak on his face, js/mines.js M.talk by C.PT; he keeps no shop)
     papa: { sheet: 'pt_papa', wait: '' }, // (Papa Urtusk in the Hex's front door: the art desk's ART-123-URTUSK, 10-29, on Griz's "Urtusk just landed in fresh, give the cutscene its own cutter" -- the council's sittings speak on his face (js/hours.js H16.sitting: C.PT), and his word at the door; no counter line, he keeps no shop)
     falstaff: { sheet: 'pt_falstaff' }, // (the factor house's other door, pin 7a, beside Aldric's: the art desk's ART-123-FALSTAFF, 10-29, on Griz's "pinged the art dept for his north facings, got some tiles in to cut" -- his first-game words at his door on his face, no shop in either game)
     hessle: { sheet: 'pt_hessle', script: 'hessle' }, // (the Weigh-House board's bounties, the first game's S.hessle: C.hessle, 10-22)
@@ -108,6 +109,7 @@
     gull: 'gull_p1', kael: 'kael_p1', brennock: 'brennock_p1', vera: 'vera_p1', kess: 'kess_p1', // (10-28: the night crews' five, four on the shaft rows' street, Kess at her door)
     warda: 'warda_p1', // (10-29: Warda all round, in the lounge behind the council's table, on the night's picture and in the cutscene: js/hex.js HX.PEOPLE)
     harrow: 'harrow_p1', // (10-29: Ottak Harrow all round, at the council's long table, on the night's picture and up the spiral in the cutscene: js/hours.js)
+    skarn: 'skarn_p1', // (10-29, the Skarn cutter seat: Skarn all round, his spear planted beside him, 54 to his crown -- at the Warrens' mouth camp where the first game stands him: js/mines.js M.floor, js/town.js T.people)
     papa: 'papa_p1', // (10-29, the cutscene cutter seat: Papa Urtusk all round, 58 px -- the largest thing in any room -- in the Hex's front door, at the council's long table and on the night's picture of it: js/hours.js, js/hex.js)
     falstaff: 'falstaff_p1' }; // (10-29: Falstaff's, south only -- the art desk's NE was drawn from the front: tools/keeper-town-sheet.py. His door has no room behind it (js/town.js T.ROOMS), so no figure in town: his word at the door on his portrait, as Brennan's)
   // who stands on the street beside a door with no room behind it (js/town.js T.floor). Nobody since 10-28 later (RULED, Griz: "Off the street unless it makes NPC sense, the

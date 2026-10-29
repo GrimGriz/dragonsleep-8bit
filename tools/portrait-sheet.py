@@ -44,6 +44,7 @@ LAYOUT = [(1, [3, 3], ['idle'] * 6), (2, [1], ['attentive']), (3, [1], ['welcomi
 # the generic man's and woman's fourteen (ART-122): their own clothes' idle, then a costume a page, each a still where the named have their moods
 COSTUMES = ['drinker', 'gambler', 'barkeep', 'hired', 'shaft', 'scraper', 'crewboss', 'drivespear', 'crawler', 'guard', 'clerk', 'agent', 'lightcrew']
 GENERIC = [(1, [3, 3], ['idle'] * 6)] + [(p, [1], [c]) for p, c in enumerate(COSTUMES, 2)]
+SKARN_GOLD = [(0, 34, 0.58), (0, 360, 0.75)]   # (Skarn's gate-key, lantern-token and copper left as drawn by his reskin: `reskin` keep -- here and in tools/keeper-town-sheet.py)
 # name: (pages' folder, ART id, the keeper's door in deep16/js/town.js, overrides). The art desk's numbers: bare ART-78 to ART-81 are these shopkeepers --
 # its four heroes' 8-bit makeovers are ART-77-8BIT-<HERO> since its numbering resolution of 10-21 (Griz authorized; the collision is struck)
 PEOPLE = {
@@ -117,6 +118,10 @@ PEOPLE = {
     # Ottak Harrow, the council's farmer (10-29, the cutscene cutter seat, on Griz's "harrows in, might as well spin up another cutter for skarn"): the art desk's
     # ART-123-HARROW -- his face for the council's sittings (C1's "Post it twice.", C2's who's-who)
     'harrow': ('harrow/ART-123-HARROW', 'ART-123-HARROW', 'council:harrow', {'edge': True, 'reskin': {'hue': 78, 'sat': 0.36, 'hues': (33, 60), 'vmax': 0.75, 'smin': 0.3}, 'avoid': ['red']}),   # (his skin as Papa's, turned to the orc green -- its band narrower, his cream shirt sits just under it)
+    # Skarn the Warrener, the Crawler Warrens' overseer at the mouth camp (10-29, the Skarn cutter seat, on Griz's "harrows in, might as well spin up another cutter for
+    # skarn"): the art desk's ART-123-SKARN -- the half-orc with the iron collar still on, the gate-key on its cord and the lantern-token, his spear standing beside him
+    # (`propfree`: the bust from his own head). His khaki-olive skin turned to the orc ramp as Papa's; the key's and the token's richer gold left gold (`keep`)
+    'skarn': ('skarn/ART-123-SKARN', 'ART-123-SKARN', 'npc:skarn', {'edge': True, 'propfree': True, 'blank': {pg: [(550, 415, 572, 465), (1102, 415, 1124, 465), (550, 870, 572, 920), (1102, 870, 1124, 920)] for pg in (1, 6)}, 'reskin': {'hue': 78, 'sat': 0.36, 'keep': SKARN_GOLD}, 'avoid': ['skin', 'red', 'fire']}),   # (his work's warmer coat and his cheeks' shadows flecked orange: fire left out)
     # the generic man and the generic woman (10-28 evening, the fourth cutter seat: the art desk's ART-122, on Griz's "as a specific person with each function as a
     # costume/look they have"): one person each, the townsfolk's man and woman (folkman_p1, folkwoman_p1), their own clothes' idle and a still for each costume in
     # place of the named's moods -- js/counter.js C.GENERIC gives each unnamed id its person and costume. A spear, a pole or a scraper held up beside the head
@@ -266,12 +271,16 @@ def recolour(rgb, mask, hue, sat):
     return np.clip(np.round(out), 0, 255).astype(np.uint8)
 
 
-def reskin(rgb, fig, hue=80, k=1.0, sat=None, hues=(28, 52), smin=0.18, vmin=0.15, vmax=0.82):
+def reskin(rgb, fig, hue=80, k=1.0, sat=None, hues=(28, 52), smin=0.18, vmin=0.15, vmax=0.82, keep=()):
     """an orc's skin drawn khaki (Papa Urtusk's, ART-123-URTUSK: "green-grey" in the ask, painted at a hue of 35 to 40 that snaps to the stone ramp, an old
     human's face): the figure's pixels of `hues` (the wool's browns sit below, the white hair and the bone tusks are pale or brighter than vmax) turned to `hue`
-    at k times their own saturation (or at `sat`, one for all: the idle's paler skin snapped half to stone at k), each keeping its value -- so the snap finds the palette's orc ramp, as the art desk's notes ask ("preserve orc skin as orc ramp")"""
+    at k times their own saturation (or at `sat`, one for all: the idle's paler skin snapped half to stone at k), each keeping its value -- so the snap finds the palette's orc ramp, as the art desk's notes ask ("preserve orc skin as orc ramp").
+    `keep`: [(hue from, hue to, saturation over)] left as drawn -- a gold richer than the skin (Skarn's gate-key and lantern-token, ART-123-SKARN: hue 28 to 35
+    at 0.55 to 0.8, the boots' and the spear's copper 28 to 34 at 0.6 to 0.7; his skin 33 to 45, at 0.45 to 0.57 on the south and the portraits, 0.6 to 0.68 on the SE)"""
     h, s, v = hsv(rgb)
     m = fig & (h >= hues[0]) & (h <= hues[1]) & (s >= smin) & (v >= vmin) & (v <= vmax)
+    for h0, h1, s0 in keep:
+        m &= ~((h >= h0) & (h < h1) & (s > s0))
     out = rgb.astype(float).copy()
     vv = v[m]; ss = np.full(vv.shape, float(sat)) if sat is not None else np.clip(s[m] * k, 0, 1)
     hh = (hue / 60.0) % 6; i = int(np.floor(hh)); f = hh - i
@@ -313,7 +322,7 @@ def cut_person(name):
     for pg, bands, acts in ov.get('layout', LAYOUT):
         a = np.asarray(Image.open(page_path(folder, art, pg, ov.get('pat', '%s_HEAD-1_PAGE-%d.png'))).convert('RGB')).astype(np.int32)
         for bx0, by0, bx1, by1 in ov.get('blank', {}).get(pg, []):
-            a[by0:by1, bx0:bx1] = np.median(a.reshape(-1, 3)[::97], axis=0)   # (a printed title touching a head: Winters' ACQUISITION)
+            a[by0:by1, bx0:bx1] = np.median(a.reshape(-1, 3)[::97], axis=0) if not ov.get('edge') else np.median(np.concatenate([a[:6].reshape(-1, 3), a[:, :6].reshape(-1, 3)]), axis=0)   # (a printed title touching a head: Winters' ACQUISITION; with `edge`, the navy by the page's edges -- Skarn's counters run cell to cell)
         found = [(piece, box, ledge_top(piece, box)) for piece, box in drawings(a, bands, ov.get('mask_d', MASK_D), ov.get('gap', {}).get(pg, 12), pg in ov.get('pxjoin', ()), ov.get('edge', False))]
         if len(found) != len(acts):
             raise SystemExit('%s page %d: %d drawings found, %d wanted' % (name, pg, len(found), len(acts)))

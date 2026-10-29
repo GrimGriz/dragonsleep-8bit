@@ -14559,6 +14559,102 @@ true
 "door": "warp:percy",
 "source": "deep16/_src/percy/ART-102 (the art desk's ART-102, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
 },
+"pt_skarn": {
+"image": "art/pt_skarn.png?v=03c543d878",
+"fw": 189,
+"fh": 155,
+"ax": 96,
+"ay": 152,
+"top": 152,
+"portrait": true,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 189,
+"fh": 155,
+"ax": 96,
+"ay": 152,
+"frames": 6,
+"fps": 3,
+"ledge": [
+true,
+true,
+true,
+true,
+true,
+true
+]
+},
+"attentive": {
+"y": 155,
+"fw": 189,
+"fh": 155,
+"ax": 96,
+"ay": 152,
+"frames": 1,
+"fps": 1,
+"ledge": [
+true
+]
+},
+"welcoming": {
+"y": 310,
+"fw": 189,
+"fh": 155,
+"ax": 96,
+"ay": 152,
+"frames": 1,
+"fps": 1,
+"ledge": [
+true
+]
+},
+"skeptical": {
+"y": 465,
+"fw": 189,
+"fh": 155,
+"ax": 96,
+"ay": 152,
+"frames": 1,
+"fps": 1,
+"ledge": [
+true
+]
+},
+"concerned": {
+"y": 620,
+"fw": 189,
+"fh": 155,
+"ax": 96,
+"ay": 152,
+"frames": 1,
+"fps": 1,
+"ledge": [
+true
+]
+},
+"work": {
+"y": 775,
+"fw": 189,
+"fh": 155,
+"ax": 96,
+"ay": 152,
+"frames": 6,
+"fps": 4,
+"ledge": [
+true,
+true,
+true,
+true,
+true,
+true
+]
+}
+},
+"art": "ART-123-SKARN",
+"door": "npc:skarn",
+"source": "deep16/_src/skarn/ART-123-SKARN (the art desk's ART-123-SKARN, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
+},
 "pt_sylvia": {
 "image": "art/pt_sylvia.png?v=6d3dd1db4d",
 "fw": 178,
@@ -16042,6 +16138,27 @@ true
 }
 },
 "door": "roam:glowseep"
+},
+"skarn_p1": {
+"image": "art/skarn_p1.png?v=4e8d9f51c1",
+"fw": 48,
+"fh": 61,
+"ax": 24,
+"ay": 59,
+"top": 54,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 48,
+"fh": 61,
+"ax": 24,
+"ay": 59,
+"frames": 14,
+"fps": 4
+}
+},
+"source": "deep16/_src/skarn/ART-123-SKARN/ART-123-SKARN_HEAD-2_PAGE-1.png (the art desk's south idle, 10-21) and PAGE-2 to PAGE-5 (SE, E, NE, N: ART-123-SKARN, 10-29), cut by tools/keeper-town-sheet.py",
+"door": "npc:skarn"
 },
 "skeleton_p1": {
 "image": "art/skeleton_p1.png?v=34ba1eeb45",

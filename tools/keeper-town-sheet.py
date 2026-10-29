@@ -104,6 +104,10 @@ KEEPERS = {
     'warda': ('warda/ART-123-WARDA', 'ART-123-WARDA', 'hex:warda', {'views': 'ART-123-WARDA, 10-29', 'avoid': ['gold', 'fire']}),   # (her olive face snapped to the gold ramp, yellow at 50 px: left out, it keeps to skin and stone)
     # Ottak Harrow (10-29, the cutscene cutter seat: the art desk's ART-123-HARROW, all five views drawn): at the council's long table (js/hours.js H16.TABLE)
     'harrow': ('harrow/ART-123-HARROW', 'ART-123-HARROW', 'council:harrow', {'views': 'ART-123-HARROW, 10-29', 'reskin': {'hue': 78, 'sat': 0.36, 'hues': (33, 60), 'vmax': 0.75, 'smin': 0.3}, 'avoid': ['red']}),
+    # Skarn the Warrener (10-29, the Skarn cutter seat: the art desk's ART-123-SKARN, all five views drawn): at the Crawler Warrens' mouth camp, his spear planted
+    # beside him. A big half-orc, a bought gladiator: `tall` 54, the top of the keepers' band and under Papa's 58; measured to his own crown and stood on his own feet
+    # (`prop`: the shaft opened out 34 px wide -- it is about 20 on the pages, the boots 80); his skin to the orc ramp as on his portrait, the key's gold left gold
+    'skarn': ('skarn/ART-123-SKARN', 'ART-123-SKARN', 'npc:skarn', {'views': 'ART-123-SKARN, 10-29', 'tall': 54, 'prop': 34, 'reskin': {'hue': 78, 'sat': 0.36, 'keep': PS.SKARN_GOLD}, 'avoid': ['skin', 'red']}),
 }
 
 
@@ -139,6 +143,17 @@ def page(name, path, ov, pg=1):
         low = piece[foot - max(3, (foot - top) // 12):foot]
         fx = np.where(low)[1].mean()                                  # (the feet's middle: the figure stands there)
         x0, x1 = xs.min(), xs.max() + 1
+        tall = foot - top
+        if ov.get('prop'):                                            # (a prop planted beside the figure, its tip over the head -- Skarn's spear, ART-123-SKARN: the shaft
+            body = ndimage.binary_opening(piece[top:foot, x0:x1], structure=np.ones((1, ov['prop'])))   # opened out `prop` px wide, the body the biggest piece left;
+            lb, nb = ndimage.label(body); body = lb == 1 + int(np.argmax(ndimage.sum(body, lb, range(1, nb + 1))))   # the crown over the head's own columns and the
+            by = np.where(body.any(axis=1))[0]                        # feet's middle by the body alone, so the spear neither sets his height nor moves his stand)
+            if by[-1] + 1 < tall - 2:
+                raise SystemExit('%s: the prop stands below the feet' % name)
+            hc = np.where(body[by[0]:by[0] + max(4, (by[-1] - by[0]) // 25)].any(axis=0))[0]
+            ctop = np.where(piece[top:foot, x0 + hc.min():x0 + hc.max() + 1].any(axis=1))[0][0]
+            fx = x0 + np.where(body[by[-1] + 1 - max(3, (by[-1] + 1 - ctop) // 12):by[-1] + 1])[1].mean()
+            tall = foot - top - ctop
         rgba = np.zeros((foot - top, x1 - x0, 4), np.uint8)
         rgba[..., :3] = a[top:foot, x0:x1]; rgba[..., 3] = piece[top:foot, x0:x1] * 255
         dye = ov.get('dye', {}).get(pg, 'brown' if 'dye' not in ov else None)
@@ -150,16 +165,19 @@ def page(name, path, ov, pg=1):
             rgba[..., :3] = PS.reskin(rgba[..., :3], piece[top:foot, x0:x1], **ov['reskin'])
         if ov.get('sat', {}).get(pg):                                 # (a page's own: {page: (top, bottom, k)} -- Mela's SE skirt)
             t0, t1, k0 = ov['sat'][pg]; rgba[..., :3] = sat_band(rgba[..., :3], piece[top:foot, x0:x1], (t0, t1), k0)
-        raw.append((rgba, fx - x0, foot - top))
+        raw.append((rgba, fx - x0, tall, (hc.min(), hc.max() + 1) if ov.get('prop') else None))
     k = ov.get('tall', TALL) / float(np.median([r[2] for r in raw]))   # (a keeper's own `tall`: Papa Urtusk's 58)
     small = []
-    for rgba, fx, h in raw:
+    for rgba, fx, h, hcol in raw:
         im = Image.fromarray(rgba, 'RGBA').convert('RGBa')
         w2, h2 = max(1, round(rgba.shape[1] * k)), max(1, round(rgba.shape[0] * k))
         im = im.resize((w2, h2), Image.BOX).convert('RGBA')
         av = ov.get('avoid'); av = av.get(pg) if isinstance(av, dict) else av   # (a keeper's `avoid` can be a page's own: {page: ramps})
         px = pix.pixelate(im, 1, do_lift=False, avoid=av)  # (the outline adds a pixel all round)
-        small.append((px, fx * k + 1, px.shape[0]))
+        hh = px.shape[0]
+        if hcol:                                                      # (with a prop: his height to his own crown's outline, over his head's columns)
+            hh -= np.where(px[:, int(hcol[0] * k) + 1:int(np.ceil(hcol[1] * k)) + 1, 3].any(axis=1))[0][0]
+        small.append((px, fx * k + 1, hh))
     return small
 
 
@@ -177,7 +195,7 @@ def cut(name):
     elif have:
         print('  %s: %d of ART-121\'s four other facings in hand -- south only till the rest come' % (name, len(have)))
     allf = [x for fs in faces.values() for x in fs]
-    L = max(f[1] for f in allf) + 2; R = max(f[0].shape[1] - f[1] for f in allf) + 2; T = max(f[2] for f in allf) + 2
+    L = max(f[1] for f in allf) + 2; R = max(f[0].shape[1] - f[1] for f in allf) + 2; T = max(f[0].shape[0] for f in allf) + 2   # (the drawing's own height: with a prop, its tip)
     fw, fh, ax, ay = int(np.ceil(L + R)), int(np.ceil(T)) + 1, int(round(L)), int(np.ceil(T)) - 1
     rows = {}
     for f, small in faces.items():
@@ -192,7 +210,9 @@ def cut(name):
     os.makedirs(ART, exist_ok=True)
     Image.fromarray(sheet, 'RGBA').save(os.path.join(ART, name + '_p1.png'), optimize=True)
     tops = [np.where(f[..., 3].any(axis=1))[0][0] for f in frames]
-    idle = {'y': 0, 'fw': fw, 'fh': fh, 'ax': ax, 'ay': ay, 'frames': len(SEQ), 'fps': FPS}
+    if ov.get('prop'):
+        tops = [ay + 1 - h for px, fx, h in faces[0]]                 # (his crown, not the spear's tip: the town's marks over his head, the bench's height bound)
+    idle ={'y': 0, 'fw': fw, 'fh': fh, 'ax': ax, 'ay': ay, 'frames': len(SEQ), 'fps': FPS}
     if len(rows) == 1:
         idle.update(drawn=[0], under=UNDER)
     meta = {'image': 'art/%s_p1.png' % name, 'fw': fw, 'fh': fh, 'ax': ax, 'ay': ay, 'top': int(ay - min(tops)),
@@ -207,7 +227,7 @@ def cut(name):
         print('  %s_p1: %dx%d a frame, stands %d above the foot (%d tall with the outline), %d wide; idle %d frames from 4 drawn, S only, under %s' % (name, fw, fh, meta['top'], meta['top'] + 1, wide, len(SEQ), UNDER))
     else:
         print('  %s_p1: %dx%d a frame, all eight facings (S SE E NE N drawn, SW W NW mirrored); idle %d frames from 4 drawn; tall S %d, SE %d, E %d, NE %d, N %d' % (name, fw, fh, len(SEQ),
-              *[ay + 1 - np.where(rows[f][0][..., 3].any(axis=1))[0][0] for f in (0, 7, 6, 5, 4)]))
+              *[ay + 1 - np.where(rows[f][0][..., 3].any(axis=1))[0][0] if not ov.get('prop') else faces[f][0][2] for f in (0, 7, 6, 5, 4)]))
     return frames, meta
 
 
