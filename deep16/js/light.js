@@ -21,6 +21,10 @@
   // dim 30 more; hood down, dim light 5 ft only -- no bright light, so nothing that hates light is dazzled and a roost sleeps.
   // It takes a hand like a torch, is not spent (put out, it goes back in the pack), and is never thrown
   L.LANTERN = { bright: 30, dim: 30, hood: { bright: 0, dim: 5 } };
+  // Vivian's candle (10-29, Griz: "if candle is going to stay under tools, use as similar to hooded lantern?"): a light in a hand as the hooded lantern is -- taken up from TOOLS or
+  // the fight's ITEM, put away back into the pack, never spent; the SRD's candle (bright 5 ft, dim 5 more), and cupped, dim 5 ft only, as the lantern's hood is (so under a roost it
+  // is lit cupped). The second game's alone: the first game's record (content/items.json) is left as it is
+  (function () { var DD = window.DS && window.DS.DATA, c = DD && DD.items && DD.items.candle; if (c && !c.use) DD.items.candle = Object.assign({}, c, { kind: 'use', use: { effect: 'light', target: 'self', battle: true, field: true }, light: { bright: 5, dim: 5, when: 'lit', hood: { bright: 0, dim: 5 } }, desc: c.desc + ' Lit: bright 5 ft and dim 5 more; cupped, dim 5 ft.' }); })();
   // the light in a hand: u.torch = { lit, kind ('torch' | 'lantern'), item, hood }; kind unset is a torch (the fights before 09-29).
   // `item` is the pack's id when the lantern is not the plain hooded lantern: the Ledger-Lamp (RULED 09-30, Griz: "now should function
   // like a lantern but better" -- '3 perfect'), a lantern-kind light that reads its own `light` record (bright 40, dim 40, hood 0/5),

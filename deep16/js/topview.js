@@ -775,6 +775,9 @@
       var u = ob.unit, c = iso.center(u.x, u.y, m.at(u.x, u.y) ? m.at(u.x, u.y).gz : 0), p = iso.toScreen(c.x, c.y);
       return { d: u.y + 0.6, x0: p.x - T * 0.4 * z, x1: p.x + T * 0.4 * z, y0: p.y - T * 1.5 * z, y1: p.y + T * 0.4 * z };
     }) : [];
+    // and a chest the same (10-29, Griz, at the Warrens' workings' rope chest: "no way a player could see this chest other than color change on mouseover" -- at the foot of a
+    // one-square slot the rock south of it rose over it whole)
+    if (m.def.mine) (m.props || []).forEach(function (pp) { if (pp.kind !== 'chest' || !pp.sq) return; var c = iso.center(pp.sq.x, pp.sq.y, pp.sq.gz || 0), p = iso.toScreen(c.x, c.y); see.push({ d: pp.sq.y + 0.55, x0: p.x - T * 0.45 * z, x1: p.x + T * 0.45 * z, y0: p.y - T * 0.55 * z, y1: p.y + T * 0.5 * z }); });
     var hall = m.def.mine ? (top.hall || (top.hall = TV.hallways(m))) : null;
     list.forEach(function (it) {
       if (it.obj) { it.obj.draw(ctx); return; }

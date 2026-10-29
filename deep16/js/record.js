@@ -53,6 +53,7 @@
   function flush(B) {
     var r = B.rec, ls = B.logEntries || [];
     if (r.last && ls.length > r.logAt) r.last.then = (r.last.then || []).concat(ls.slice(r.logAt).map(logText));
+    else if (!r.last && ls.length > r.logAt) r.opening = (r.opening || []).concat(ls.slice(r.logAt).map(logText)); // (before the first answer -- the foes' first turns: kept for the transcript's head, 10-29)
     r.logAt = ls.length;
   }
   // what the answer came from, so a slip (a click that was meant for the wheel, the space bar early) can be told from a choice:
@@ -70,8 +71,8 @@
     return c.do + (c.id ? ' ' + c.id : '') + (c.slot ? ' L' + c.slot : '') + (t ? ' -> ' + t : '') + (c.x != null ? ' to ' + c.x + ',' + c.y : '');
   };
   // the fight as plain reading, for comparing tactics: each turn's start, each answer with how it was made, and what the log said after
-  function transcript(steps) {
-    var out = [];
+  function transcript(steps, opening) {
+    var out = (opening || []).length ? ['== before the first answer'].concat(opening.map(function (l) { return '      ' + l; })) : []; // (10-29, the notes seat in his record: the wolf spider's opening bite that dropped Aurdin was in the log alone)
     steps.forEach(function (s) {
       if (s.turnStart) out.push('', '== R' + s.round + ' ' + s.who + '  hp ' + s.hp + '  at ' + s.at.join(',') + '  AI would: ' + (s.turnStart.ai || []).map(function (a) { return a.why + ' ' + a.score; }).join(' | '));
       out.push('  ' + (s.cmd ? short(s.cmd) : (s.prompt ? '[' + s.prompt.title + '] ' + s.answer : '?')) + '   (' + s.via + ')' + (s.left ? '  left: move ' + s.left.move + ', action ' + s.left.action + ', bonus ' + s.left.bonus : ''));
@@ -127,7 +128,7 @@
     r.result = result; r.rounds = B.round; r.ended = new Date().toISOString();
     r.partyEnd = B.units.filter(function (w) { return w.side === 'party'; }).map(function (w) { return { id: w.id, hp: Math.max(0, w.hp), maxhp: w.maxhp, down: !!(w.ko || w.hp <= 0 || w.dead) }; });
     r.log = (B.logEntries || []).map(logText);
-    try { r.transcript = transcript(r.steps); } catch (e) { (r.errors = r.errors || []).push(String(e)); }
+    try { r.transcript = transcript(r.steps, r.opening); } catch (e) { (r.errors = r.errors || []).push(String(e)); }
     var out = {}; Object.keys(r).forEach(function (k) { if (k !== 'last' && k !== 'turnKey' && k !== 'logAt' && k !== 'done') out[k] = r[k]; });
     out = JSON.parse(JSON.stringify(out)); // (a copy: the live record goes on growing, and the shrink below must not cut its log)
     var all = D.store.get(KEY) || [], at = -1;

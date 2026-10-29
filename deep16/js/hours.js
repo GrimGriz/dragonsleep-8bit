@@ -22,29 +22,29 @@
     { id: 'warrens', name: 'The Missing Five', show: 'flag:heardWarrens|flag:heardPete|flag:tallyMet', done: 'flag:fiveDone',
       text: 'Warrens Pete says six went down past the wet in the Crawler Warrens, and six came up. He says six too fast. The tally-house book has five names with no return line.',
       doneText: 'The five came back up. Edric wrote their return lines.',
-      steps: [{ 'if': 'has:fivetokens', npc: 'edric', where: 'Bring the five\'s tokens to Edric Pellam at the tally-house, the Warrens\' mouth camp.' },
-        { 'if': '!flag:tallyMet', npc: 'edric', where: 'Edric Pellam at the tally-house, the Warrens\' mouth camp: ' + EAST },
-        { 'if': '!flag:skarnOk', npc: 'skarn', where: 'Skarn, at the mouth camp: speak to him as a man, and his gate opens.' },
-        { 'if': '!flag:fiveRecovered', where: 'The flooded stair past the wet: through Skarn\'s gate, up the drift, the daytime way down. Bring rope.' },
-        { npc: 'edric', where: 'Back to Edric Pellam at the tally-house.' }] },
+      steps: [{ 'if': 'has:fivetokens', map: 'warrens_a', npc: 'edric', where: 'Bring the five\'s tokens to Edric Pellam at the tally-house, the Warrens\' mouth camp.' },
+        { 'if': '!flag:tallyMet', map: 'warrens_a', npc: 'edric', where: 'Edric Pellam at the tally-house, the Warrens\' mouth camp: ' + EAST },
+        { 'if': '!flag:skarnOk', map: 'warrens_a', npc: 'skarn', where: 'Skarn, at the mouth camp: speak to him as a man, and his gate opens.' },
+        { 'if': '!flag:fiveRecovered', map: 'warrens_d', trig: 'stair', where: 'The flooded stair past the wet: through Skarn\'s gate, up the drift, the daytime way down. Bring rope.' },
+        { map: 'warrens_a', npc: 'edric', where: 'Back to Edric Pellam at the tally-house.' }] }, // (each step's floor the first game's, content/quests.json five: the way there is H16.wayTo)
     { id: 'cradles', name: 'The Cradles', show: 'flag:heardCradles|flag:tallyMet', done: 'flag:shifts',
       text: 'The Warrens\' cradles take hands by the shift: you milk a crawler for its venom, a silver for each clean thimble. Edric Pellam writes you into his book first.',
-      steps: [{ 'if': '!flag:tallyMet', npc: 'edric', where: 'Edric Pellam at the tally-house, the Warrens\' mouth camp: ' + EAST },
-        { trig: 'pen2', where: 'Pen Two, Four or Five: the gated mouths along the mountain wall at the mouth camp. WORK A SHIFT.' }] }, // (pen2: its square the marker's -- the first game's step)
+      steps: [{ 'if': '!flag:tallyMet', map: 'warrens_a', npc: 'edric', where: 'Edric Pellam at the tally-house, the Warrens\' mouth camp: ' + EAST },
+        { map: 'warrens_a', trig: 'pen2', where: 'Pen Two, Four or Five: the gated mouths along the mountain wall at the mouth camp. WORK A SHIFT.' }] }, // (pen2: its square the marker's -- the first game's step)
     { id: 'cull', name: 'The Cull', show: 'flag:heardGalleries|flag:cullHired', done: 'flag:rescued',
       text: 'The guano mine, in the mountain west of town, hires cull hands: three silver a giant bat\'s head, a gold piece a darkmantle. Its one law: no fire and no noise under a roost.',
       steps: [{ 'if': '!flag:cullHired', npc: 'sabeth', where: 'Sabeth Pollard at the weigh-shed, the guano mine\'s mouth: out of Silverton by the west gate, then west on THE WORLD.' },
-        { where: 'The dens, down past the working gallery. Listen for Old Wynn\'s rattle.' }] },
+        { site: 'mouth', where: 'The dens, down past the working gallery. Listen for Old Wynn\'s rattle.' }] },
     { id: 'tail', show: 'flag:heardCloaker', done: 'flag:cloakerDone',
       text: 'Forty gold on Hessle\'s board for the cloaker in the guano mine\'s deep gallery. Nobody has ever collected. Bright light is its weakness.',
       steps: [{ 'if': 'has:cloakertail', door: 'hessle', where: 'Take the tail to Hessle at the Weigh-House, on Fountain Street.' },
-        { where: 'The deep gallery, below the guano mine\'s dens: past the mark, down the last ladder. Bring light.' }] },
+        { site: 'mouth', where: 'The deep gallery, below the guano mine\'s dens: past the mark, down the last ladder. Bring light.' }] },
     // CORWEN DACE (10-28, the deep gallery seat: his escort, js/mines.js THE DEEP GALLERY) -- open while he walks with the party, done when he is home with his thanks given
     { id: 'dace', name: 'Corwen Dace', show: 'flag:daceWith|flag:daceDone', done: 'flag:daceDone',
       text: 'Corwen Dace walks with you in the guano mine: he has wanted the deep gallery all his life. Bring him back up. If he falls, it is over.',
       doneText: 'Dace climbed back up to the house to tell it everything.',
-      steps: [{ 'if': '!flag:cloakerKilled', where: 'The deep gallery, below the dens: past the mark, down the last ladder. His staff lights below the roost. Old Wynn, at the mouth, sends him home if you ask.' },
-        { where: 'Walk the deep gallery with him: he wants to see where it lived.' }] }, // (invented.json deepgallery-dace-words)
+      steps: [{ 'if': '!flag:cloakerKilled', site: 'mouth', where: 'The deep gallery, below the dens: past the mark, down the last ladder. His staff lights below the roost. Old Wynn, at the mouth, sends him home if you ask.' },
+        { site: 'mouth', where: 'Walk the deep gallery with him: he wants to see where it lived.' }] }, // (invented.json deepgallery-dace-words)
     { id: 'hex', show: 'flag:heardHex', done: 'flag:talmokBeaten',
       text: 'The Hex, in the plaza at the heart of town: five silver to fight on the card, and the winner keeps ten. Korvin keeps the slate. Talmok is the champion.',
       steps: [{ map: 'hex', npc: 'korvinSlate', where: 'Korvin at the slate, on the Hex\'s ground floor.' }] }
@@ -91,17 +91,61 @@
   // wants standing on this floor (Edric at the mouth camp), its own square on this floor (a pen's), or the way there -- off Silverton's street to the Warrens by the feed track, off
   // the mouth camp back to town by it. Drawn as js/company.js draws the Company's
   H16.pinSq = function (B, s) {
-    var def = D.roam.def, u = s.npc && B.units.filter(function (x) { return x.npc === s.npc; })[0]; if (u) return [u.x, u.y];
-    var tr = s.trig && (def.src8 && def.src8.triggers || []).filter(function (t) { return t.id === s.trig; })[0]; if (tr) return [tr.rect[0], tr.rect[1]];
+    var def = D.roam.def, id8 = def.src8 && def.src8.id, u = s.npc && B.units.filter(function (x) { return x.npc === s.npc; })[0]; if (u) return [u.x, u.y];
+    var tr = s.trig && (!s.map || s.map === id8) && (def.src8 && def.src8.triggers || []).filter(function (t) { return t.id === s.trig; })[0];
+    if (tr) { var r = tr.rect, my = r[1] + Math.floor(((r[3] || 1) - 1) / 2); return def.from8 ? def.from8(r[0], my) : [r[0], my]; } // (the Wet's stair by its middle, turned onto the grid)
     var toW = /^warrens/.test(s.map || '') || s.npc === 'edric' || s.npc === 'skarn' || !!s.trig && /^pen/.test(s.trig);
     if (def.key === 'silverton' && !def.room && toW && D.mines && D.mines.FEED && !def.cut) return D.mines.FEED.slice();
     if (def.key === 'warrens' && !toW && (s.door || s.npc)) { var g = D.mines && D.mines.FLOORS && D.mines.FLOORS.warrens.gates.feed; if (g) return def.from8 ? def.from8(g[0], g[1]) : [g[0], g[1]]; }
+    if (s.map && id8 && s.map !== id8) return H16.wayTo(B, s.map); // (another floor below: the way there)
     return null;
+  };
+  // the way off this floor toward another of the first game's maps (10-29, his "not getting any mission arrows (unpinned and repinned) after talking to skarn": The Missing Five's
+  // next step, the flooded stair, is two floors down, and the step had lost the first game's `map: 'warrens_d'`): the first game's rule (js/world.js route), the fewest maps by
+  // their open warps, at the same count the way nearest the party -- and where the walk to it is shut by a gate that would open for a use (Skarn's, once he has taken them on), the gate
+  H16.hops = function (from, to, flags) {
+    var MP = (DS.DATA && DS.DATA.maps) || {}, seen = {}, q = [[from, 0]]; seen[from] = 1;
+    for (var i = 0; i < q.length; i++) {
+      if (q[i][0] === to) return q[i][1];
+      ((MP[q[i][0]] || {}).warps || []).forEach(function (w) { if (MP[w.to] && !seen[w.to] && D.roam.cond(w.cond, flags)) { seen[w.to] = 1; q.push([w.to, q[i][1] + 1]); } });
+    }
+    return null;
+  };
+  H16.wayTo = function (B, map) {
+    var R = D.roam, def = R.def, t = B.roam.token, flags = B.roam.flags || {}, best = null;
+    var ways = (def.warps || []).map(function (w) { return { to: w.to, sq: w.at.slice(), cond: w.cond }; });
+    if (!ways.length && def.src8 && def.src8.warps) ways = def.src8.warps.map(function (w) { return { to: w.to, sq: def.from8(w.x, w.y), cond: w.cond }; }); // (the Wet: the first game's own warps)
+    ways.forEach(function (w) {
+      if (!R.cond(w.cond, flags)) return;
+      var h = w.to === map ? 0 : H16.hops(w.to, map, flags); if (h == null) return;
+      var d = Math.abs(w.sq[0] - t.x) + Math.abs(w.sq[1] - t.y);
+      if (!best || h < best.h || (h === best.h && d < best.d)) best = { h: h, d: d, sq: w.sq };
+    });
+    if (!best) return null;
+    if (R.walkRoute && !R.walkRoute(t, best.sq)) {
+      var gate = (def.src8.triggers || []).filter(function (g) { return g.opens && g.on === 'use' && R.cond(g.cond, flags) && R.cond(g.opens, flags); })[0];
+      if (gate) return def.from8 ? def.from8(gate.rect[0], gate.rect[1]) : gate.rect.slice(0, 2);
+    }
+    return best.sq;
+  };
+  // the place on THE WORLD the pinned step wants (10-29, his "pinning quest doesn't give the yellow marker on the world map (Ned's Page)"): its `site`, else the place its map,
+  // its person or its door is in -- the Warrens' floors and Edric, Skarn and the pens the mouth camp's; the guano mine's its mouth; anyone behind a town door Silverton. Drawn
+  // over that place on the hex view by js/world.js (the gold marker the floors draw: C.paintPin), held at the screen's edge, pointing, when it is off it
+  H16.SITE_OF = { edric: 'warrens', skarn: 'warrens', hob: 'warrens', sabeth: 'mouth', wynn: 'mouth', ottilie: 'mouth' };
+  H16.pinSite = function (st) {
+    var q = st && st.flags.pin && C.quests(st).filter(function (x) { return x.id === st.flags.pin && !x.done; })[0], s = q && q.step; if (!s) return null;
+    if (s.site) return s.site;
+    var m = s.map || '';
+    if (/^warrens/.test(m) || (s.trig && /^pen/.test(s.trig))) return 'warrens';
+    if (/^galleries/.test(m)) return 'mouth';
+    if (/^(glowseep|webgulch)$/.test(m)) return m;
+    if (s.npc && H16.SITE_OF[s.npc]) return H16.SITE_OF[s.npc];
+    return s.door || s.npc || m === 'hex' ? 'silverton' : null;
   };
   var pinPaint0 = C.paintPin;
   C.paintPin = function (ctx, B) {
     pinPaint0.apply(this, arguments);
-    var R = D.roam, R0 = B && B.roam, def = R && R.def; if (!R0 || !def || !def.town || B.menu || R0.mode !== 'walk') return;
+    var R = D.roam, R0 = B && B.roam, def = R && R.def; if (!R0 || !def || !(def.town || (def.src8 && def.src8.id === 'warrens_d')) || B.menu || R0.mode !== 'walk') return; // (the Wet too: the stair it wants)
     var st = C.state(B), q = st && st.flags.pin && C.quests(st).filter(function (x) { return x.id === st.flags.pin && !x.done; })[0], s = q && q.step; if (!s) return;
     if (def.key === 'silverton' && !def.room && C.pinned(st)) return; // (the town's door marker has it)
     if (def.room || def.hexIn) return; // (in a room or the Hex: the counter's and the Company's own markers)
@@ -802,11 +846,18 @@
     mela: ['A hot bath, and a quiet room to have it in. People talk in the steam, and I hear all of it.'],
     korvin: ['The slate is the card: who fights whom, and the odds. Put five silver down to fight; win, and you walk away with ten.'],
     edric: ['The tally-house books the hands for the cradles. Your name in my book, and you can milk the crawlers for their venom: a silver a clean thimble.'],
-    sabeth: ['I hire cull hands for the guano mine. Kill the giant bats in the dens and I pay by the head -- quietly, mind, under the roost.']
+    sabeth: ['I hire cull hands for the guano mine. Kill the giant bats in the dens and I pay by the head -- quietly, mind, under the roost.'],
+    // (10-29, the notes seat, his "tell me more was absent from Skarn": invented.json about-skarn)
+    skarn: ['I keep the Warrens\' gate: the stalls, the lit galleries, and the drift up to the daytime way down to the wet. Nobody goes past it that I haven\'t spoken with.']
   };
   (function () {
-    var P = C.Counter.prototype, buttons0 = P.buttons, press0 = P.press, Lw = C.LAYOUT.words;
-    P.aboutable = function () { var w = this.wait || {}; return !!H16.ABOUT[this.id] && !this.aboutBack && !this.sub && !w.shelves && !(this.bubbling && this.bubbling()) && !!(w.ask || (w.say && this.page >= (this.pages || []).length - 1)); };
+    var P = C.Counter.prototype, buttons0 = P.buttons, press0 = P.press, step0 = P.step, Lw = C.LAYOUT.words;
+    // on the keeper's first screen alone, and that screen again when the talk comes back to it -- a shop's own words after THE SHELVES (10-29, Griz: "tell me more ... appears
+    // when it shouldn't - still appears rather. It's associated with their first page, carrying into the ned conversation (for example) makes it seem like the 'tell me more'
+    // function will include 'more' about current dialogue"): never on a later page of what they are saying, a quest's word or an answer's
+    var waitKey = function (w) { return w ? JSON.stringify([w.say || null, w.ask || null, (w.opts || []).map(function (o) { return typeof o === 'object' ? o.label : o; })]) : ''; };
+    P.step = function () { var r = step0.apply(this, arguments); var fk = this.firstKeys = this.firstKeys || {}; if (this.wait && fk[this.id] == null) fk[this.id] = waitKey(this.wait); return r; };
+    P.aboutable = function () { var w = this.wait || {}; return !!H16.ABOUT[this.id] && !this.aboutBack && !this.sub && !w.shelves && !(this.bubbling && this.bubbling()) && !!(w.ask || (w.say && this.page >= (this.pages || []).length - 1)) && !!this.firstKeys && this.firstKeys[this.id] === waitKey(w); };
     P.buttons = function () {
       var bs = buttons0.apply(this, arguments); if (!this.aboutable()) return bs;
       var b = { x: Lw[0] + 8, y: Lw[1] + Lw[3] - 20, w: 124, h: 15, label: H16.ABOUT_BTN, go: 'about' };

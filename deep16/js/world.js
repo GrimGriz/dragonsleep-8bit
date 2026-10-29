@@ -515,6 +515,23 @@
     g.strokeStyle = '#efe0b8'; g.moveTo(x - 2.5, y - 2.5); g.lineTo(x + 2.5, y + 2.5); g.moveTo(x + 2.5, y - 2.5); g.lineTo(x - 2.5, y + 2.5); g.stroke(); // (a mark)
   }
   var RANK = { city: 0, castle: 1, town: 2, inn: 2, seat: 3, school: 3, cave: 4, hamlet: 4, junction: 5, mark: 5 };
+  // the pinned quest's place, a gold marker over it (10-29, Griz: "pinning quest doesn't give the yellow marker on the world map (Ned's Page)"): the floors' marker
+  // (js/counter.js C.paintPin) on the place the step wants (js/hours.js H16.pinSite), bobbing; off the screen, held at its edge and pointing there
+  W.pinAt = function () {
+    var H6 = D.hours, st = W.house() && D.counter ? D.counter.state(null) : null, id = H6 && H6.pinSite && st ? H6.pinSite(st) : null;
+    return id ? M.sites.filter(function (s) { return s.id === id; })[0] || null : null;
+  };
+  W.drawPin = function (g, cam, t) {
+    var s = W.pinAt(); if (!s) return;
+    var p = groundAt(cam, s.x, s.y), sx = p[0], sy = p[1] - 14, m = 14;
+    var x = Math.max(m, Math.min(D.W - m, sx)), y = Math.max(m + 14, Math.min(D.H - 54, sy)), off = x !== sx || y !== sy, bob = Math.sin((t || 0) / 10) * 2;
+    W.pinShown = { id: s.id, x: Math.round(x), y: Math.round(y), off: off };
+    g.save(); g.translate(Math.round(x), Math.round(y + (off ? 0 : bob)));
+    if (off) g.rotate(Math.atan2(sy - y, sx - x) - Math.PI / 2);
+    g.fillStyle = '#1a1206'; g.beginPath(); g.moveTo(-7, -9); g.lineTo(7, -9); g.lineTo(0, 3); g.closePath(); g.fill();
+    g.fillStyle = D.WIN8.gold; g.beginPath(); g.moveTo(-5, -8); g.lineTo(5, -8); g.lineTo(0, 1); g.closePath(); g.fill();
+    g.restore();
+  };
   W.drawPlaces = function (g, cam, names) {
     var boxes = [], order = M.sites.slice().sort(function (a, b) { return (RANK[a.kind] || 5) - (RANK[b.kind] || 5); });
     order.forEach(function (s) { var p = groundAt(cam, s.x, s.y); if (p[0] < -40 || p[0] > cam.W + 40 || p[1] < -20 || p[1] > cam.H + 20) return; if (VIS && !VIS(p, s.y)) return; icon(g, s.kind, Math.round(p[0]), Math.round(p[1])); });
@@ -594,7 +611,7 @@
     if (this.hov) hi[K(this.hov[0], this.hov[1])] = this.plan ? '#ffd23c' : 'rgba(255,90,80,.8)';
     var fine = this.fineDoor && W.FINE.live(); // (THE FINE LAND, a trial: js/worldfine.js; the hex view as it was without its door)
     if (fine) { W.FINE.draw(ctx, cam, hi, S.at); GH = W.FINE.groundH; VIS = W.FINE.vis; } else W.drawWorld(ctx, cam, hi);
-    W.drawWays(ctx, cam); W.drawPlaces(ctx, cam, true); GH = VIS = null;
+    W.drawWays(ctx, cam); W.drawPlaces(ctx, cam, true); W.drawPin(ctx, cam, this.t); GH = VIS = null;
     // the party: a banner on the hex's top, bobbing as it walks
     var pa = hc(S.at[0], S.at[1]), ph = hexTopH(S.at[0], S.at[1]);
     if (this.walk && this.walk.path.length) { var nx = this.walk.path[0], pb = hc(nx[0], nx[1]), u = this.walk.f / STEPF; pa = [pa[0] + (pb[0] - pa[0]) * u, pa[1] + (pb[1] - pa[1]) * u]; ph = ph + (hexTopH(nx[0], nx[1]) - ph) * u; }

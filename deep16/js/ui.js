@@ -1301,6 +1301,7 @@
       drawPathDots(wx);
       drawPathMarks(wx);
       drawLabels(wx);
+      UI.xrayHover = (B.simple && B.simple.m && B.simple.m.hoverFoe) || (hero && B.cursor ? underCursor(B) : null); UI.xrayShown = null; // (the one the mouse means -- the simple fight's FIGHT arrow's, js/simple.js -- for the x-ray's see-through: 10-29)
       xray(wx, B, objs, hero || B.active); // a figure hidden behind another shows through as its outline
       // a rider the cursor means (a darkmantle on a head: underCursor) outlined, so the mouse shows it is on it (10-01, Griz: "I can't get any indication I'm mousing over the one on his head")
       var hr = hero && underCursor(B), ho = hr && hr.riding && objs.filter(function (o) { return o.unit === hr && o.shown; })[0];
@@ -1656,8 +1657,17 @@
   function xray(ctx, B, objs, hero) {
     var iso = D.iso, HW = iso.TW / 2, HH = iso.TH / 2, shown = objs.filter(function (o) { return o.shown; }), cover = [];
     shown.forEach(function (o) { var b = o.shown.box; cover.push({ o: o, box: b, hit: function (x, y) { return x >= b[0] && x <= b[2] && y >= b[1] && y <= b[3]; } }); });
+    var rocks = iso.map.rockImgs || {}, roofs = (iso.map.def && iso.map.def.roofs) || null;
     (iso.map.props || []).forEach(function (p) {
       if (!p.sq || (p.alpha != null && p.alpha < 0.6)) return;
+      // a wall (10-29, Griz: "simple fight enemies hard to target behind walls - transparency on targeting mouseover?"): its column, the ground's rhombus up its height, as
+      // iso.draw lays it (a cut stub's few pixels hide nobody; a town's roofs are the town's own)
+      if (p.kind === 'rock') {
+        var ri = rocks[p.sq.x + ',' + p.sq.y], top = ri && ri.canvas ? ri.ay - HH : 0; if (top < 12 || (roofs && roofs[p.sq.ch])) return;
+        var cR = iso.center(p.sq.x, p.sq.y, 0), sR = iso.toScreen(cR.x, cR.y);
+        cover.push({ o: p, box: [sR.x - HW, sR.y - HH - top, sR.x + HW, sR.y + HH], hit: function (x, y) { var k = 1 - Math.abs(x - sR.x) / HW; return k >= 0 && y >= sR.y - HH * k - top && y <= sR.y + HH * k; } });
+        return;
+      }
       if (p.kind === 'tile') { // a raised square: its top and the face below it, down to the floor
         var c = iso.center(p.sq.x, p.sq.y, p.gz), s = iso.toScreen(c.x, c.y);
         cover.push({ o: p, box: [s.x - HW, s.y - HH, s.x + HW, s.y + HH + p.gz], hit: function (x, y) { var k = 1 - Math.abs(x - s.x) / HW; return k >= 0 && y >= s.y - HH * k && y <= s.y + HH * k + p.gz; } });
@@ -1677,8 +1687,10 @@
         if (over.some(function (c) { return c.hit(x, y); })) hid++;
       }
       if (hid / 40 < XRAY) return;
-      var col = u === hero ? R('gold', 4) : u.side === 'foe' ? R('red', 4) : R('glow', 2);
-      D.spr.outline(ctx, u.sheet, o.shown.anim === 'hurt' && !D.spr.anim(u.sheet, 'hurt') ? 'idle' : o.shown.anim, u.facing || 0, o.shown.t, o.shown.x, o.shown.y, col, { alpha: 0.9, once: o.shown.once, frame: o.shown.frame, scale: o.shown.k });
+      var col = u === hero ? R('gold', 4) : u.side === 'foe' ? R('red', 4) : R('glow', 2), an = o.shown.anim === 'hurt' && !D.spr.anim(u.sheet, 'hurt') ? 'idle' : o.shown.anim;
+      // the one under the mouse, hidden so: drawn whole through what hides it, see-through (his "transparency on targeting mouseover"), then its outline over that
+      if (u === UI.xrayHover && u !== hero) { D.spr.draw(ctx, u.sheet, an, u.facing || 0, o.shown.t, o.shown.x, o.shown.y, { alpha: 0.6, once: o.shown.once, frame: o.shown.frame, scale: o.shown.k }); UI.xrayShown = u; }
+      D.spr.outline(ctx, u.sheet, an, u.facing || 0, o.shown.t, o.shown.x, o.shown.y, col, { alpha: 0.9, once: o.shown.once, frame: o.shown.frame, scale: o.shown.k });
     });
   }
   UI.xray = xray;

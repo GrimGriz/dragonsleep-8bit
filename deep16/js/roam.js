@@ -390,6 +390,8 @@
           if (fk.trig.town === 'talk' && R.def.room && R.def.across) { yield* R.fire(B, fk.trig, fk.sq); continue; } // (a keeper behind a counter: T.fire walks across from them)
           var pf = R.besidePath(B, fk.sq); if (pf && pf.length * 5 <= R.clickFt()) { if (yield* R.walkBeside(B, fk.sq)) yield* R.fire(B, fk.trig, fk.sq); } else R.tooFar(B); continue;
         }
+        var su = !sq || !R.useAt(B, sq.x, sq.y) ? R.solidUse(B, ck.x, ck.y) : null; // (a spiral, a sign on a wall: walked beside, and used -- R.solidUse)
+        if (su) { var ps = R.besidePath(B, su.sq); if (ps && ps.length * 5 <= R.clickFt()) { if (yield* R.walkBeside(B, su.sq)) yield* R.fire(B, su.trig, su.sq); } else R.tooFar(B); continue; }
         if (sq) {
           var use = R.useAt(B, sq.x, sq.y);
           if (!use && R.def.room && R.def.across && sq.x === R.def.across[0] && sq.y === R.def.across[1]) use = R.useAt(B, sq.x, sq.y - 1); // (the spot across the counter clicked: the word with the keeper)
@@ -497,6 +499,19 @@
     var tr = R.useAt(B, u.x, u.y);
     return tr && tr.town === 'talk' ? { trig: tr, sq: [u.x, u.y], u: u } : null;
   };
+  // a USE on a square the pointer can't pick (10-29, Griz: "seems to require keyboard to use the stairs up in the hex"): iso.pick takes open squares only, and the Hex's spirals
+  // are solid (js/hex.js HX.cell), as its Wall of Boxes and its rail are. On a top view, the solid square drawn under the pointer -- its top raised by its height, its face down to
+  // its own ground, the front-most first -- that holds a USE: { trig, sq }, or null (a door drawn in its wall is T.doorClick's, a person by their figure R.folkAt's)
+  R.solidUse = function (B, sx, sy) {
+    var m = D.iso.map; if (!m || !m.top || !D.topview) return null;
+    var TS = D.topview.TS, z = D.iso.inWorld ? 1 : D.iso.zoom, hw = D.iso.inWorld ? D.W / D.iso.zoom / 2 : D.W / 2, hh = D.iso.inWorld ? D.H / D.iso.zoom / 2 : D.H / 2;
+    var wx = (sx + 0.5 - hw) / z + D.iso.cam.x, wy = (sy + 0.5 - hh) / z + D.iso.cam.y, gx = Math.floor(wx / TS), g0 = Math.floor(wy / TS);
+    for (var gy = g0 + 8; gy >= g0; gy--) {
+      var s = m.at(gx, gy); if (!s || s.open || wy < gy * TS - (s.gz || 0) || wy >= (gy + 1) * TS) continue;
+      var tr = R.useAt(B, gx, gy); if (tr && tr.town !== 'door') return { trig: tr, sq: [gx, gy] };
+    }
+    return null;
+  };
   // the 8-bit map's chests on the floor (the Wet's one: a greater potion at (38, 21)): a box on its square, opened by E or a click as the 8-bit's EV.chest -- its flag
   // ('chest:<map>:x,y') set, so the 8-bit has it opened too when the party is back (the seam, 10-14)
   R.chestAt = function (x8, y8) { return (R.def.src8.chests || []).filter(function (c) { return c.x === x8 && c.y === y8; })[0] || null; };
@@ -515,7 +530,20 @@
       var q = R.def.from8(c.x, c.y), s = B.map.at(q[0], q[1]); if (!s) return;
       s.walk = false;
       B.map.props.push({ kind: 'chest', sq: s, depth: q[0] + q[1] + 0.4, gz: 0, draw: function (ctx) {
-        var iso = D.iso, z = iso.zoom || 1, cc = iso.center(q[0], q[1], B.map.gz(q[0], q[1])), sc = iso.toScreen(cc.x, cc.y), x = Math.round(sc.x), y = Math.round(sc.y), open = !!(B.roam && B.roam.flags[R.chestKey(c)]);
+        // (10-29, Griz: "different or bigger sprites for chests (i.e. this layer)" and "no way a player could see this chest other than color change on mouseover": in the world's
+        // picture a pixel is the world's, so a size by the zoom drew it at the zoom twice -- half a square's box was 9 px wide on the mines' floors at 0.5. Now the art desk's
+        // iron-banded chest, ART-112's top-down piece (js/topview.js TV.piece), a square's size, its lid up and the dark inside once opened; the box by code where the art is off)
+        var iso = D.iso, z = iso.inWorld ? 1 : iso.zoom || 1, cc = iso.center(q[0], q[1], B.map.gz(q[0], q[1])), sc = iso.toScreen(cc.x, cc.y), x = Math.round(sc.x), y = Math.round(sc.y), open = !!(B.roam && B.roam.flags[R.chestKey(c)]);
+        var TVc = D.topview, pc = TVc && TVc.artOn && TVc.artOn() ? TVc.piece('iron_banded_chest', 0, 'mine') : null;
+        if (pc) {
+          var LID = 14, w = pc.w * z, h = pc.h * z, x0 = x - pc.ax * z, y0 = y + (iso.map && iso.map.top ? 14 : 8) * z - pc.ay * z;
+          if (!open) { ctx.drawImage(pc.im, pc.x, pc.y, pc.w, pc.h, x0, y0, w, h); return; }
+          ctx.drawImage(pc.im, pc.x, pc.y + LID, pc.w, pc.h - LID, x0, y0 + LID * z, w, h - LID * z); // (the body)
+          ctx.fillStyle = '#0c0806'; ctx.fillRect(x0 + 4 * z, y0 + (LID - 3) * z, w - 8 * z, 7 * z); // (the dark inside)
+          ctx.drawImage(pc.im, pc.x, pc.y, pc.w, LID, x0, y0 - 8 * z, w, LID * z); // (the lid up)
+          return;
+        }
+        z *= 1.6; // (the box by code: a square's size, as the art's)
         ctx.fillStyle = '#1e1208'; ctx.fillRect(x - 9 * z, y - 9 * z, 18 * z, 10 * z);
         ctx.fillStyle = '#7a4e22'; ctx.fillRect(x - 8 * z, y - 8 * z, 16 * z, 8 * z);
         ctx.fillStyle = '#c8a040'; ctx.fillRect(x - 8 * z, y - 5 * z, 16 * z, 1 * z); ctx.fillRect(x - 1 * z, y - 6 * z, 2 * z, 3 * z); // (the band and the hasp)
@@ -564,12 +592,16 @@
   // a walk's way on the floor: in town, round the people and down the slope a step at a time (each square within a step of the one before -- a fight's route keeps to
   // the level it starts on, and the slope off Fountain Street is a stair of single steps: 10-20); elsewhere the fight's own route
   R.walkRoute = function (u, to) {
-    if (!(R.def && R.def.town)) return D.Battle.route(u, to);
+    if (!R.def || !G.map) return D.Battle.route(u, to);
+    // (an iso roam's walk -- the Wet -- the same search, a diagonal a step as the grid has it, so still the fewest squares, and a turn a hair: of the walks that long, the
+    // straightest -- 10-29, Griz: "any way to have the mouseover pathing in iso-roam prefer straight lines over zig-zag? or just not prefer?"; the fight's breadth-first
+    // route, D.Battle.route, took the first diagonal it found at every square)
+    var town = !!R.def.town;
     // the town's walk (10-20, Griz, on the north-up town: "i think it's using grid movement plotting (diagonal technically more efficient) and we should convince it
     // north-south is more convenient mouse-click movement"): straight runs north-south and east-west, the fewest turns, the first leg north or south -- a diagonal
     // costs DIAG (taken only where no straight way serves), a turn TURN, an east-west first step a hair more than a north-south one. Each square within a step of
     // the height of the one before (a fight's route keeps to its own level; the slope off Fountain Street is a stair of single steps). Bounded at R.WALK_MAX
-    var W = G.map.w, st = G.map.def.step, DIAG = R.WALK_DIAG, TURN = R.WALK_TURN, MAX = R.WALK_MAX;
+    var W = G.map.w, st = G.map.def.step, DIAG = town ? R.WALK_DIAG : 1, TURN = town ? R.WALK_TURN : R.WALK_TURN_ISO, MAX = R.WALK_MAX;
     var DIRS = [[0, -1], [0, 1], [-1, 0], [1, 0], [-1, -1], [1, -1], [-1, 1], [1, 1]];
     var ok = function (x, y, fx, fy) { return G.canStand(u, x, y) && Math.abs(G.map.gz(x, y) - G.map.gz(fx, fy)) <= st; };
     var best = {}, prev = {}, heap = [], push = function (n) { heap.push(n); var i = heap.length - 1; while (i > 0) { var p2 = (i - 1) >> 1; if (heap[p2].c <= n.c) break; heap[i] = heap[p2]; i = p2; } heap[i] = n; };
@@ -582,7 +614,7 @@
       for (var i = 0; i < 8; i++) {
         var dx = DIRS[i][0], dy = DIRS[i][1], nx = c.x + dx, ny = c.y + dy;
         if (!ok(nx, ny, c.x, c.y) || (dx && dy && (!ok(c.x + dx, c.y, c.x, c.y) || !ok(c.x, c.y + dy, c.x, c.y)))) continue;
-        var cost = c.c + (dx && dy ? DIAG : 1) + (c.d !== 8 && c.d !== i ? TURN : 0) + (c.d === 8 && dx && !dy ? 0.01 : 0), nk = key(nx, ny, i);
+        var cost = c.c + (dx && dy ? DIAG : 1) + (c.d !== 8 && c.d !== i ? TURN : 0) + (town && c.d === 8 && dx && !dy ? 0.01 : 0), nk = key(nx, ny, i);
         if (best[nk] != null && best[nk] <= cost) continue;
         best[nk] = cost; prev[nk] = c.k; push({ x: nx, y: ny, d: i, c: cost, k: nk });
       }
@@ -591,7 +623,7 @@
     var out = [], kk = goal.k; while (kk !== k0) { var sq = Math.floor(kk / 9); out.unshift([sq % W, Math.floor(sq / W)]); kk = prev[kk]; }
     return out;
   };
-  R.WALK_DIAG = 2.5; R.WALK_TURN = 0.4; R.WALK_MAX = 900; // (a diagonal's cost against a straight step's 1, a turn's, the search's bound)
+  R.WALK_DIAG = 2.5; R.WALK_TURN = 0.4; R.WALK_TURN_ISO = 0.001; R.WALK_MAX = 900; // (a diagonal's cost against a straight step's 1, a turn's, the search's bound)
   R.CLICK_FT = 50; // (a click's walk, by the path: Griz's 30-50, the seat's pick the top of it)
   R.clickFt = function () { return R.def && R.def.town ? R.CLICK_FT * 2 : R.CLICK_FT; }; // (in town, twice: 10-20, Griz, on 50 ft in a town 2,300 ft across: "double for now")
   R.tooFar = function (B) { D.sfx('miss'); B.card(['{g}Too far for a click (' + R.clickFt() + ' ft): click nearer, or walk with the arrows.{/}'], 160); };
@@ -963,7 +995,7 @@
     (b.units || []).forEach(function (u) {
       var w = R0.members.filter(function (m) { return m.id === u.id; })[0]; if (!w) return;
       if (u.drained) { w.maxhp = Math.max(1, w.maxhp - u.drained); if (w.src) w.src.maxhp = Math.max(1, w.src.maxhp - u.drained); w.drained = (w.drained || 0) + u.drained; }
-      w.hp = Math.max(0, Math.min(w.maxhp, u.hp)); w.ko = w.hp <= 0; w.conds = R.lasting(u.conds); if (w.src && w.src.conds) ['light', 'daylight'].forEach(function (k) { if (!w.conds[k]) delete w.src.conds[k]; }); if (w.src) R.flameBack(w.src, u); // (a Light that ended in there ends on the floor's sheet too: 10-28) w.slots = (u.slots || []).slice(); w.feats = JSON.parse(JSON.stringify(u.feats || {}));
+      w.hp = Math.max(0, Math.min(w.maxhp, u.hp)); w.ko = w.hp <= 0; w.conds = R.lasting(u.conds); if (w.src && w.src.conds) ['light', 'daylight'].forEach(function (k) { if (!w.conds[k]) delete w.src.conds[k]; }); if (w.src) R.flameBack(w.src, u); w.slots = (u.slots || []).slice(); w.feats = JSON.parse(JSON.stringify(u.feats || {})); // (a Light that ended in there ends on the floor's sheet too: 10-28; the slots and uses back again since 10-29 -- 18137db5's comment had swallowed them, and every field fight gave back its short-rest uses: his "short-rest stuff is recharging without the party taking a short rest (barley)")
       R.exhaustBack(w, u); // (a level of exhaustion the fight laid on, onto the sheet: R.exhaustBack)
       if (w.src && u.src && u.src.equip) ['weapon', 'shield', 'armor'].forEach(function (k) { if (k in u.src.equip) w.src.equip[k] = u.src.equip[k]; });
       if (u.torch && u.torch.lit !== false && u.hp > 0) w.torch = JSON.parse(JSON.stringify(u.torch)); else delete w.torch;
@@ -1928,6 +1960,7 @@
       c.strokeStyle = okm ? 'rgba(232,208,112,0.95)' : 'rgba(160,160,170,0.85)'; c.lineWidth = 1.5; c.beginPath(); c.ellipse(s.x, s.y, 12 * (iso.zoom || 1), 12 * (iso.zoom || 1), 0, 0, 7); c.stroke(); c.lineWidth = 1;
       return;
     }
+    var su = !hv || !R.useAt(B, hv.x, hv.y) ? R.solidUse(B, xy[0], xy[1]) : null; if (su) hv = { x: su.sq[0], y: su.sq[1] }; // (a spiral under the mouse: its way beside it, gold, as a click takes it)
     if (!hv || (hv.x === t.x && hv.y === t.y)) return;
     var key = hv.x + ',' + hv.y + ':' + t.x + ',' + t.y + ':' + G.map.sq.length;
     if (R0.hk !== key) { R0.hk = key; var use = R.useAt(B, hv.x, hv.y); R0.huse = !!use; R0.hpath = use ? R.besidePath(B, [hv.x, hv.y]) : R.walkRoute(t, [hv.x, hv.y]); }

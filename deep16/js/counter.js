@@ -947,7 +947,7 @@
   C.OWN_QUESTS = [{ id: 'nedpage', name: 'Ned\'s Page', show: 'flag:nedQuest', done: 'flag:nedDone',
     text: 'Ned Halloway, behind Percy\'s counter, will trade the page with Find Familiar on it for a snake\'s tongue from the Glowseep -- a fresh one, off the snake. Someone with Survival or Nature has to take it.',
     doneText: 'Ned has his tongue, and Aurdin the page: Sheet: Find Familiar, to copy into his book from the pack.',
-    steps: [{ 'if': '!has:snaketongue', where: 'A fresh snake\'s tongue, off one of the Glowseep\'s snakes: the bog, out on THE WORLD.' },
+    steps: [{ 'if': '!has:snaketongue', site: 'glowseep', where:'A fresh snake\'s tongue, off one of the Glowseep\'s snakes: the bog, out on THE WORLD.' },
       { 'if': 'has:snaketongue', door: 'percy', npc: 'ned', where: 'Ned Halloway, behind the counter at Percy\'s Particulars: the tongue for the page.' }] },
     // the way to the Warrens (10-28 later, Griz: "having a difficult time figuring out how to get to the warrens"): once Warrens Pete has talked of them -- in the Hex or on the
     // street, his first-game talk's heardWarrens (his "Talking to a 'nearby start' NPC to add the things to the journal, not just in there without trigger. i.e. warrens pete"),

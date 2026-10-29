@@ -982,8 +982,11 @@
     // clock (the test door's own), not on to the morning -- each sleep the long rest again, and three round to the hour it began, the night's fights with it
     var R0 = B.roam, house = !!(D.roam.house() && D.house && D.house.playing), h1 = (M.hourNow(D.roam.q, B) + M.SEEP.restHours) % 24, wk = M.wakeAt(h1);
     if (!house) R0.hour = h1;
-    yield* D.house.sleepOnFloor(B, { line: wk.line, title: wk.title, music: 'inn', hours: M.SEEP.restHours });
-    yield* M.light(B);
+    // the floor's day or night laid as the clock lands, before the morning's picks (10-29, Griz: "time change post rest happens visually after selecting the days spells and such,
+    // feels like that visual change should land beforehand"): the morning is drawn over the floor, which stood at night behind it till its last pick; its card after
+    var ln = null;
+    yield* D.house.sleepOnFloor(B, { line: wk.line, title: wk.title, music: 'inn', hours: M.SEEP.restHours, before: function () { ln = M.lightNow(B); } });
+    if (ln) { D.sfx('popup'); B.card(D.roam.wrap([ln]), 300); yield 20; }
   };
   // THE WORLD's clock on the floor: an hour each M.SEEP.squaresPerHour squares walked and each fight; the floor laid again when day turns to night or back
   // (a floor's own `rate` where it has one: Web Gulch's 300 squares an hour, js/gulch.js)
@@ -1003,10 +1006,11 @@
   // (a floor's own phases and their words where it has them: Web Gulch's noon besides its night, js/gulch.js)
   M.seepPhase = function (h) { return M.night(h) ? 'night' : 'day'; };
   M.seepLine = function (h) { return M.night(h) ? M.LINES.seep.night : M.LINES.seep.day; };
-  M.light = function* (B) {
-    var def = D.roam.def, h = M.hourNow(D.roam.q, B), F = M.FLOORS[def.key] || {}, ph = F.phase || M.seepPhase; if (!def.clock || ph(h) === ph(def.hour)) { def.hour = h; return; }
+  M.light = function* (B) { var ln = M.lightNow(B); if (!ln) return; D.sfx('popup'); B.card(D.roam.wrap([ln]), 300); yield 20; };
+  M.lightNow = function (B) { // (the laying alone, and its line to say -- null when the phase holds)
+    var def = D.roam.def, h = M.hourNow(D.roam.q, B), F = M.FLOORS[def.key] || {}, ph = F.phase || M.seepPhase; if (!def.clock || ph(h) === ph(def.hour)) { def.hour = h; return null; }
     M.relay(B, h, true);
-    D.sfx('popup'); B.card(D.roam.wrap([(F.phaseLine || M.seepLine)(h)]), 300); yield 20;
+    return (F.phaseLine || M.seepLine)(h);
   };
   var arrive0 = D.roam.arrive;
   D.roam.arrive = function* (B) { var ev = yield* arrive0(B); if (!ev && D.roam.def && D.roam.def.clock && B.roam && D.battle === B) yield* M.tick(B); return ev; };

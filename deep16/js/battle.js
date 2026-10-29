@@ -2947,13 +2947,17 @@
     if (u.split && !u.dead && /slashing|lightning/.test(type || '') && u.hp >= 10 && (u.sizeClass || (u.size > 1 ? 'L' : 'M')) !== 'S' && this.alive('foe').length < 8) this.splitOff(u);
     // resistance halves a blow once, however many say so (SRD 5.1: "Multiple instances of resistance or vulnerability that affect the same
     // damage type count as only one instance" -- 10-03, the review seat's find: a raging barbarian under Warding Bond took a quarter)
-    var resisted = false;
+    var resisted = false, n0 = n, whyN = '', self = this;
+    // (what the halving made of the blow, in the log as well as the float -- 10-29, the notes seat reading his play record: "1d10+3 [4]+3 = 7 bludgeoning = 7" took the rat swarm
+    // 22 to 19, and nothing on the page said why). Log only: the card on the screen stands as it is
+    var noteN = function () { if (whyN && n !== n0 && self.logEntries) { self.logEntries.push({ id: null, text: 'R' + self.round + ' ' + (u.name || u.id) + ' ' + whyN + ': ' + n0 + ' > ' + Math.max(0, n) }); self.log = self.logEntries.map(function (e) { return e.text; }); } };
     if (u.immune || u.resist || u.vulnerable) {
       var ty = this.typed(u, n, type);
       if (ty.why) FX.float(ty.why === 'immune' ? 'immune: ' + type : ty.why, u, ty.why === 'vulnerable' ? D.PAL.ramps.gold[4] : D.PAL.ramps.silver[5]); // (says to what: the jelly and a blade)
       if (ty.why === 'resists') resisted = true;
+      if (ty.why) whyN = ty.why === 'immune' ? 'is immune to ' + type : ty.why + ' ' + type;
       n = ty.n;
-      if (n <= 0) return;
+      if (n <= 0) { noteN(); return; }
     }
     // Damage Transfer (the cloaker): while it has someone engulfed -- or rides one, attached (the SRD's cloaker, 10-06) -- half of what it takes goes to them
     if (u.transfer && ((u.holding && u.holding.length) || (u.attached && u.riding && u.master)) && n > 1) {
@@ -2961,15 +2965,15 @@
       if (vic && !vic.dead && vic.hp > 0) { n -= half; FX.float('transfer', vic, D.PAL.ramps.violet[4]); this.hurt(vic, half, type); }
     }
     // a statue (petrified, SRD 5.1: "resistance to all damage", "immune to poison" -- js/grimoire.js M.petrify, 10-08)
-    if (u.conds.petrified) { if (type === 'poison') { FX.float('immune: poison', u, D.PAL.ramps.silver[5]); return; } if (!resisted) { n = Math.floor(n / 2); resisted = true; FX.float('stone', u, D.PAL.ramps.silver[5]); } if (n <= 0) return; }
+    if (u.conds.petrified) { if (type === 'poison') { FX.float('immune: poison', u, D.PAL.ramps.silver[5]); return; } if (!resisted) { n = Math.floor(n / 2); resisted = true; whyN = 'resists, stone'; FX.float('stone', u, D.PAL.ramps.silver[5]); } if (n <= 0) { noteN(); return; } }
     // Stoneskin (SRD 5.1: "resistance to nonmagical bludgeoning, piercing, and slashing damage" -- 10-03: a magic blade or a spell's hail lands whole)
-    if (!resisted && u.conds.stoneskin && /bludgeoning|piercing|slashing/.test(type || '') && !(src && src.magic)) { n = Math.floor(n / 2); resisted = true; FX.float('stoneskin', u, D.PAL.ramps.silver[5]); }
+    if (!resisted && u.conds.stoneskin && /bludgeoning|piercing|slashing/.test(type || '') && !(src && src.magic)) { n = Math.floor(n / 2); resisted = true; whyN = 'resists, Stoneskin'; FX.float('stoneskin', u, D.PAL.ramps.silver[5]); }
     // the class NPCs' wards (09-28, js/grimoire.js): Protection from Energy (one element halved), Protection from Poison, Rage (blades and
     // blows halved), Warding Bond (all of it halved -- and the one who bound it takes as much)
     var ward = u.conds;
-    if (!resisted && ((ward.energyWard && ward.energyWard.type === type) || (ward.poisonWard && type === 'poison') || (ward.raging && /bludgeoning|piercing|slashing/.test(type || '')))) { n = Math.floor(n / 2); resisted = true; FX.float('resists', u, D.PAL.ramps.silver[5]); }
+    if (!resisted && ((ward.energyWard && ward.energyWard.type === type) || (ward.poisonWard && type === 'poison') || (ward.raging && /bludgeoning|piercing|slashing/.test(type || '')))) { n = Math.floor(n / 2); resisted = true; whyN = 'resists ' + type; FX.float('resists', u, D.PAL.ramps.silver[5]); }
     if (ward.wardingBond && n > 0) {
-      if (!resisted) { n = Math.floor(n / 2); resisted = true; } // (the bond's resistance counts once too; the one who bound it still takes what the ward-bearer takes)
+      if (!resisted) { n = Math.floor(n / 2); resisted = true; whyN = 'resists, Warding Bond'; } // (the bond's resistance counts once too; the one who bound it still takes what the ward-bearer takes)
       var bondBy = this.units.filter(function (w) { return w.id === ward.wardingBond.by && !w.dead && w.hp > 0; })[0];
       if (bondBy && bondBy !== u && n > 0) { FX.float('bond', bondBy, D.PAL.ramps.gold[4]); this.hurt(bondBy, n, 'bond'); if (bondBy.hp <= 0) delete ward.wardingBond; }
     }
@@ -2978,6 +2982,7 @@
     // comes back `carried` and rolls none (10-03, the review: a temp-HP soak and Wild Shape both returned before the save)
     // (a blow of two kinds -- Ice Storm's hail and cold, Flame Strike's fire and radiant, a blade and its fire or a bite and its poison -- is one source, one save on the sum:
     // its parts carry one `blow` record and bank what they took, and the caller asks once at the end, Battle.blowEnd -- the grid's rules §2.1, SRD 5.1 "half the damage you take")
+    noteN();
     var took = n, conc = function (B) { if (took > 0 && !(src && src.carried)) { if (src && src.blow) src.blow.took += took; else D.magic.concCheck(B, u, took); } };
     if (u.temp > 0) { var soak = Math.min(u.temp, n); u.temp -= soak; n -= soak; }
     // Wild Shape (js/features.js): the beast's hit points take it first; at 0 the druid comes back with the rest

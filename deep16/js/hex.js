@@ -629,11 +629,21 @@
   HX.LINES.davos = '{y}Davos Kren\'s door{/}: out of the Hex with {name}, stitched and standing ({hp}/{max}).';
   HX.toDavos = function* (B, u) {
     if (u) { u.ko = false; u.dead = false; u.hp = Math.max(u.hp, Math.max(1, Math.floor(u.maxhp / 2))); if (u.src) { u.src.ko = false; u.src.hp = u.hp; } }
-    var o = B.townAway, dq = o && o.def && o.def.marks && o.def.marks.doors && o.def.marks.doors['leech:davos']; if (!o || !dq) return; // (the test door, no town under the Hex: stitched where they stand)
-    o.at = dq.slice(); o.fw = [0, 1]; // (T.goOut faces the party back the way it came in, the reverse of o.fw: north, at his door)
-    D.music(o.def.music || 'town');
-    yield* goOutT(B);
-    B.card(D.roam.wrap([HX.LINES.davos.replace('{name}', u ? u.name : 'the one who fell').replace('{hp}', u ? u.hp : '').replace('{max}', u ? u.maxhp : '')]), 300);
+    var o = B.townAway, dq = o && o.def && o.def.marks && o.def.marks.doors && o.def.marks.doors['leech:davos'];
+    if (o && dq) { // (the test door, no town under the Hex: stitched where they stand)
+      o.at = dq.slice(); o.fw = [0, 1]; // (T.goOut faces the party back the way it came in, the reverse of o.fw: north, at his door)
+      D.music(o.def.music || 'town');
+      yield* goOutT(B);
+    }
+    yield* HX.davosSays(B, u, !!(o && dq));
+    if (o && dq) B.card(D.roam.wrap([HX.LINES.davos.replace('{name}', u ? u.name : 'the one who fell').replace('{hp}', u ? u.hp : '').replace('{max}', u ? u.maxhp : '')]), 300);
+  };
+  // the stitching said on Davos Kren's own face (10-29, Griz: "Davos Krenn stitches is said while the first guy's image is still up - seems it should show Krenn when it
+  // delivers the stitching line"): no longer the last of Korvin's words (HX.settle) or after Barley's (js/company.js CO.bout), but its own screen, on pt_davos (js/counter.js C.PT)
+  HX.davosSays = function* (B, u, atDoor) {
+    var C = D.counter, sc = new C.Counter(B, { id: 'davos', name: 'Davos Kren', place: atDoor ? 'Davos Kren\'s leech-house' : 'The Hex', what: 'the fight-night chair',
+      script: function (s) { return (function* () { yield s.say(C.L('hex.stitched', { name: u ? u.name : 'the one who fell' })); })(); } });
+    D.push(sc); while (!sc.done) yield 1;
   };
 
   // ---------------------------------------------------------------- the bout: one hero on the Hex's own sand, the rest at the rail (js/roam.js R.pullIn0's shape: the floor's sheets in, back out)
@@ -664,6 +674,8 @@
     var zoom0 = D.iso.zoom; // (the floor's zoom, put back after, as the floor's fights do: js/roam.js R.pullIn0)
     D.push(b);
     while (!done) yield 1; // (the floor waits under it)
+    // the bout's play record closed with its result (10-29, the lanes desk's find in his play record: every bout read 'unfinished' -- a fight with an onDone closes its own, js/record.js P.finish)
+    if (b.rec && D.rec && D.rec.finish) { try { D.rec.finish(b, done); } catch (eR) { /* (the record must never stop the way back) */ } }
     D.battle = B; D.grid.setup(B.map, B.units); D.iso.map = B.map; D.iso.zoom = zoom0;
     B.focus(R0.token); // (the camera back on the party -- 10-28, Griz: "when the fight ends the focus is up by the stairs for some reason": it stayed where the sand's camera left it)
     B.logEntries = (B.logEntries || []).concat((b.logEntries || []).map(function (e) { return { id: null, text: String(e.text || e).replace(/^(R\d+ )/, '$1[the Hex] ') }; }));
@@ -697,8 +709,7 @@
       if (c.id === 'talmok' && first) { f.talmokBeaten = 1; out.push(L('hex.talmokDown')); out = out.concat(C.renown(st, 1, 'renown.talmok')); }
       else if (c.id === 'card' && first) out = out.concat(C.renown(st, 1, 'renown.card'));
     } else {
-      out.push(L(r.fronted ? (HX.lead(B) === 'lymen' ? 'hex.lostFrontedLymen' : 'hex.lostFronted') : 'hex.lost', { name: u.name }));
-      out.push(L('hex.stitched', { name: u.name }));
+      out.push(L(r.fronted ? (HX.lead(B) === 'lymen' ? 'hex.lostFrontedLymen' : 'hex.lostFronted') : 'hex.lost', { name: u.name })); // (the stitching is Davos's to say: HX.toDavos)
     }
     return out;
   };

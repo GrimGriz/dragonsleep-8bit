@@ -3011,8 +3011,8 @@
       var BL = testX('?roam=hex&flags=hex:brawl,hex:freeman,hex:card'), RL = BL.roam, hL = RL.members[0]; RL.silver = 0; hL.hp = 1;
       var kL = sqX('korvinSlate'); besideX(BL, kL); var slL = useX(BL, kL, [3, 0, 0]);
       var btL = boutX(BL, function () { return { do: 'end' }; });
-      okX('Talmok on the slate (' + slL.seen.split(' / ').filter(function (l) { return /^> /.test(l); }).join(' ') + '), no five in the purse: "' + LX('hex.fronted').slice(0, 30) + '..."; lost (' + (btL && btL.res) + '): "' + (btL ? btL.word : '').slice(0, 90) + '"; ' + hL.name + ' stitched to ' + hL.hp + '/' + hL.maxhp + ', no flag, the purse ' + RL.silver,
-        /TALMOK, THE CHAMPION/.test(slL.seen) && slL.seen.indexOf(LX('hex.fronted')) >= 0 && !!btL && btL.res === 'lost' && /DOWN ON THE SAND/.test(btL.card) && btL.word.indexOf(LX('hex.lostFronted', { name: hL.name })) >= 0 && btL.word.indexOf(LX('hex.stitched', { name: hL.name })) >= 0 && hL.hp === Math.max(1, Math.floor(hL.maxhp / 2)) && !RL.flags['hex:talmok'] && RL.silver === 0);
+      okX('Talmok on the slate (' + slL.seen.split(' / ').filter(function (l) { return /^> /.test(l); }).join(' ') + '), no five in the purse: "' + LX('hex.fronted').slice(0, 30) + '..."; lost (' + (btL && btL.res) + '): "' + (btL ? btL.word : '').slice(0, 90) + '" -- the stitching on Davos\'s face after (since 10-29, mode=notes1029c: ' + (D.top() && D.top().o && D.top().o.id) + '); ' + hL.name + ' stitched to ' + hL.hp + '/' + hL.maxhp + ', no flag, the purse ' + RL.silver,
+        /TALMOK, THE CHAMPION/.test(slL.seen) && slL.seen.indexOf(LX('hex.fronted')) >= 0 && !!btL && btL.res === 'lost' && /DOWN ON THE SAND/.test(btL.card) && btL.word.indexOf(LX('hex.lostFronted', { name: hL.name })) >= 0 && btL.word.indexOf(LX('hex.stitched', { name: hL.name })) < 0 && D.top() instanceof CXX.Counter && D.top().o.id === 'davos' && answerX(BL, D.top(), []).indexOf(LX('hex.stitched', { name: hL.name })) >= 0 && hL.hp === Math.max(1, Math.floor(hL.maxhp / 2)) && !RL.flags['hex:talmok'] && RL.silver === 0);
       // ON THE GRID: the brawl again, the grid's own fight on the same sand
       var BG = testX('?roam=hex&watch'), kG = sqX('korvinSlate'); besideX(BG, kG); useX(BG, kG, [0, 0, 1]); var btG = boutX(BG);
       okX('ON THE GRID: the full grid on the Hex\'s sand (' + (btG && (btG.b.simple ? 'simple!' : 'the grid')) + ', ' + (btG && btG.res) + ')', !!btG && !btG.b.simple && !btG.b.o.simple && btG.b.map.def === D.MAPS['hex-sand'] && !!btG.res);
@@ -4436,6 +4436,167 @@
     document.body.appendChild(preB);
     return;
   }
+  // HIS NOTES OF 10-29 (13:53Z-18:08Z, played on live; mode=notes1029c -- the notes seat of 10-29, on the lanes desk's split of his NOTES file
+  // play-records/hero_situations_feedback-2026-10-29-1808Z.json and his play record of the day): one check or more a note, each proved RED on main's scripts
+  if (get('mode', '') === 'notes1029c') {
+    var repV = { checks: [], errors: [] }, memV = {}, stGV = D.store.get, stSV = D.store.set, MV = D.mines, HV = D.house, CV = D.counter, RV = D.roam, GV = D.grid, H6V = D.hours, XV = D.hex, WV = D.world, LV = D.light, UV = D.ui;
+    function okV(what, v) { repV.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function driveV(g, until, cap) { var v, k = 0, st; while (k++ < (cap || 4000)) { if (until && until()) return true; st = g.next(v); v = undefined; if (st.done) return !!(until && until()); if (typeof st.value === 'number' && D.battle) D.battle.t += Math.max(1, st.value); if (st.value && st.value.prompt) v = st.value.prompt.opts[0].value; } return !!(until && until()); }
+    function topV() { var s = D.top(); if (s && s.baking) { s.baking = false; s.enter(); } if (s && s.roam) driveV(s.co, null, 2); return s; }
+    function testV(q) { var B = RV.make(q + '&watch'); D.scenes.length = 0; D.push(B); D.battle = B; return topV(); }
+    function aboutV(sc) { return sc.buttons().some(function (b) { return b.go === 'about'; }); }
+    function scrV(sq, gz) { var c = D.iso.center(sq[0], sq[1], gz || 0), s = D.iso.toScreen(c.x, c.y); return [Math.round(s.x), Math.round(s.y)]; }
+    function turnsV(p, from) { var n = 0, d0 = null, a = from; (p || []).forEach(function (q) { var d = (q[0] - a[0]) + ',' + (q[1] - a[1]); if (d0 != null && d !== d0) n++; d0 = d; a = q; }); return n; }
+    D.store.get = function (k) { return memV[k] ? JSON.parse(memV[k]) : null; }; D.store.set = function (k, v) { memV[k] = JSON.stringify(v); return true; };
+    window.DS.autoPicks = true;
+    var cvV = document.createElement('canvas'); cvV.width = D.W; cvV.height = D.H; var cxV = cvV.getContext('2d');
+    try {
+      D.seed = +get('seed', 1029);
+      // 1. THE HEX'S SPIRAL BY THE MOUSE (his "seems to require keyboard to use the stairs up in the hex"): the spiral is a solid square, and a click picks open squares only --
+      // so a click on it walked to the nearest open one and nothing; now the USE under the pointer (R.solidUse): walked beside, and up
+      var B1 = testV('?roam=hex'), R1 = B1.roam, t1 = R1.token, sp1 = XV.spiralSq()[0], st1 = XV.near(RV.def.rows, [sp1[0], sp1[1] + 2]);
+      t1.x = st1[0]; t1.y = st1[1]; t1.tween = null; R1.path = null; GV.setup(B1.map, B1.units); B1.focus(t1); for (var k1 = 0; k1 < 30; k1++) B1.update(); while (D.top() !== B1 && D.scenes.length) D.pop(); B1.cards = [];
+      var s1 = B1.map.at(sp1[0], sp1[1]), p1 = scrV(sp1, (s1 && s1.gz) || 0), pk1 = D.iso.pick(p1[0], p1[1], 0), su1 = RV.solidUse ? RV.solidUse(B1, p1[0], p1[1]) : null;
+      R1.clicks.push({ x: p1[0], y: p1[1] }); var up1 = driveV(B1.co, function () { return RV.def.hexIn === 2; }, 6000);
+      okV('THE HEX\'S SPIRAL BY THE MOUSE: the spiral at ' + sp1 + ' a solid square (' + !!(s1 && !s1.open) + '), the pointer\'s pick ' + (pk1 ? pk1.x + ',' + pk1.y + (RV.useAt(B1, pk1.x, pk1.y) ? ' (a USE)' : ' (no USE)') : 'nothing') + ', under the pointer the spiral\'s USE (' + (su1 && su1.trig.id) + '); a click from ' + st1 + ': up to the gambling floor (' + RV.def.hexIn + ')',
+        !!s1 && !s1.open && !!su1 && su1.trig.id === 'hex:spiral' && up1);
+      // 2. A BOUT LOST, THE STITCHING ON DAVOS KREN'S FACE (his "Davos Krenn stitches is said while the first guy's image is still up - seems it should show Krenn when it delivers
+      // the stitching line"): Korvin's words after a loss without it; Davos's own screen says it (HX.toDavos -- Barley's hire bout the same, js/company.js CO.bout)
+      var B2 = testV('?roam=hex&flags=hex:brawl'), u2 = B2.roam.members[0], ls2 = XV.settle(B2, { c: XV.CARD[1], u: u2, fronted: false }, 'lost'), stitch2 = CV.L('hex.stitched', { name: u2.name });
+      u2.hp = 0; u2.ko = true; var g2 = XV.toDavos(B2, u2); driveV(g2, function () { return D.top() instanceof CV.Counter; }, 400);
+      var sc2 = D.top(), id2 = sc2 instanceof CV.Counter ? sc2.o.id : null, sh2 = sc2 instanceof CV.Counter ? sc2.sheet : null, said2 = sc2 instanceof CV.Counter ? [].concat((sc2.wait && sc2.wait.say) || []).join(' ') : '';
+      if (sc2 instanceof CV.Counter) { var kk2 = 0; while (!sc2.done && kk2++ < 20) sc2.press(sc2.buttons().filter(function (b) { return b.go === 'next'; })[0]); } driveV(g2, null, 400);
+      okV('A BOUT LOST: Korvin\'s words after it ("' + ls2.join(' ').slice(0, 60) + '") without the stitching; then Davos\'s own screen (' + id2 + ', ' + sh2 + '): "' + said2.slice(0, 70) + '"; ' + u2.name + ' ' + u2.hp + '/' + u2.maxhp + ', back on the floor (' + (D.top() === B2) + ')',
+        ls2.join(' ').indexOf(stitch2) < 0 && id2 === 'davos' && sh2 === 'pt_davos' && said2.indexOf(stitch2) >= 0 && u2.hp === Math.max(1, Math.floor(u2.maxhp / 2)) && D.top() === B2);
+      // 2b. THE BOUT'S PLAY RECORD CLOSED (the lanes desk's find in his play record of 10-29: every Hex bout read 'unfinished' -- the BRAWL IN THE SMALL SAND at 17:21:11Z "ended" two
+      // seconds in with no steps, the round-one checkpoint being the last write: HX.bout's onDone only set its own `done`, and js/record.js leaves a fight with an onDone to close its own)
+      var B2b = testV('?roam=hex'), u2b = B2b.roam.members[0]; memV['deep16.plays'] = JSON.stringify([]);
+      var g2b = XV.bout(B2b, { c: XV.CARD[0], u: u2b, fronted: false, simple: true }); driveV(g2b, function () { var s = D.top(); return !!s && s !== B2b && !!s.fight; }, 400); var b2b = D.top();
+      if (b2b && b2b !== B2b) { if (b2b.baking) { b2b.baking = false; b2b.enter(); } b2b.result = 'won'; if (D.top() === b2b) D.pop(); b2b.o.onDone('won'); } var res2b = null; for (var k2b = 0; k2b < 400; k2b++) { var n2b = g2b.next(); if (n2b.done) { res2b = n2b.value; break; } }
+      var pl2b = (D.store.get('deep16.plays') || []).filter(function (f) { return f.fight === 'hexbout'; }).pop();
+      okV('THE BOUT\'S PLAY RECORD CLOSED: the brawl ' + res2b + ', its record "' + (pl2b && pl2b.name) + '" ' + (pl2b ? pl2b.result : 'not written'), res2b === 'won' && !!pl2b && pl2b.result === 'won');
+      // 3. THE PINNED QUEST ON THE WORLD MAP (his "pinning quest doesn't give the yellow marker on the world map (Ned's Page)"): the gold marker over the place the step wants --
+      // Ned's tongue at the Glowseep; the tongue in the pack, Ned at Silverton; the Missing Five at the Warrens; nothing pinned, none
+      var rec3 = HV.fresh(); rec3.at = { town: null }; rec3.flags = Object.assign({}, rec3.flags || {}, { nedQuest: 1, pin: 'nedpage' }); HV.begin(rec3, 0); var W3 = D.top();
+      var draw3 = function () { WV.pinShown = null; try { if (W3.update) W3.update(); } catch (e3) { } W3.draw(cxV); return WV.pinShown ? WV.pinShown.id : null; };
+      var a3 = draw3(); HV.cur.inv.push({ id: 'snaketongue', n: 1 }); var b3 = draw3(); HV.cur.flags.heardPete = 1; HV.cur.flags.pin = 'warrens'; var c3 = draw3(); delete HV.cur.flags.pin; var d3 = draw3();
+      okV('THE PINNED QUEST ON THE WORLD MAP (' + (W3 && W3.kind) + '): Ned\'s Page pinned, the marker over ' + a3 + '; the tongue in the pack, over ' + b3 + '; the Missing Five pinned, over ' + c3 + '; nothing pinned, ' + d3,
+        W3 && W3.kind === 'world' && a3 === 'glowseep' && b3 === 'silverton' && c3 === 'warrens' && d3 === null);
+      HV.playing = false; HV.cur = null; D.scenes.length = 0;
+      // 4. THE MISSING FIVE AFTER SKARN (his "not getting any mission arrows (unpinned and repinned) after talking to skarn"): the next step, the flooded stair, is two floors
+      // down; the gold marker on the way there from each floor -- the mouth camp's way down, Skarn's gate while it is shut, the drift's way down, then the stair on the Wet
+      var f4 = 'tallyMet,skarnOk,heardPete,heardWarrens', mark4 = function (q) {
+        var B = testV(q), st = CV.state(B); B.roam.flags.pin = 'warrens'; B.roam.mode = 'walk';
+        var qq = CV.quests(st).filter(function (x) { return x.id === 'warrens'; })[0], s = qq && qq.step; H6V.marked = null; CV.paintPin(cxV, B);
+        var m = H6V.marked, wp = m ? (RV.def.warps || []).filter(function (w) { return w.at[0] === m[0] && w.at[1] === m[1]; })[0] : null;
+        if (!wp && m && RV.def.src8 && RV.def.src8.warps && RV.def.from8) wp = RV.def.src8.warps.filter(function (w) { var p = RV.def.from8(w.x, w.y); return p[0] === m[0] && p[1] === m[1]; })[0];
+        return { s: s, m: m, to: wp ? wp.to : null, def: RV.def, B: B };
+      };
+      var a4 = mark4('?roam=warrens&flags=' + f4), b4 = mark4('?roam=warrens_b&flags=' + f4), c4 = mark4('?roam=warrens_b&flags=' + f4 + ',skarnGateOpen'), e4 = mark4('?roam=warrens_c&flags=' + f4), w4 = mark4('?roam=wet&flags=' + f4);
+      var gate4 = (b4.def.src8.triggers || []).filter(function (t) { return t.script === 'skarnGate'; })[0], stair4 = w4.def.from8(19, 21);
+      okV('THE MISSING FIVE AFTER SKARN: the step "' + ((a4.s && a4.s.where) || '').slice(0, 30) + '..." (' + (a4.s && a4.s.map) + '); the gold marker at the mouth camp on ' + a4.m + ' (the way down to ' + a4.to + '); the stalls with Skarn\'s gate shut, on ' + b4.m + ' (the gate ' + (gate4 && gate4.rect.slice(0, 2)) + '), open, on ' + c4.m + ' (to ' + c4.to + '); the workings, on ' + e4.m + ' (to ' + e4.to + '); the Wet, on ' + w4.m + ' (the stair ' + stair4 + ')',
+        !!a4.s && a4.s.map === 'warrens_d' && /^warrens_[bc]$/.test(a4.to || '') && !!gate4 && !!b4.m && b4.m[0] === gate4.rect[0] && b4.m[1] === gate4.rect[1] && c4.to === 'warrens_d' && e4.to === 'warrens_d' && !!w4.m && w4.m[0] === stair4[0] && w4.m[1] === stair4[1]);
+      var r4 = mark4('?roam=wet&flags=' + f4 + ',fiveRecovered');
+      okV('and the five recovered: back to Edric, the marker on the Wet\'s way up (' + r4.m + ', to ' + r4.to + ')', !!r4.s && r4.s.npc === 'edric' && /^warrens_[bc]$/.test(r4.to || ''));
+      // 5. THE REST'S DAY BEFORE THE MORNING'S PICKS (his "time change post rest happens visually after selecting the days spells and such, feels like that visual change should land
+      // beforehand"): at the crews' fire at night, LONG REST -- with the morning up the floor is already at its waking hour, day, and its line said after
+      var B5 = testV('?roam=glowseep&hour=23'), d5 = RV.def.hour, g5 = MV.seepFire(B5);
+      driveV(g5, function () { return D.top() instanceof CV.Counter; }, 400); var sc5 = D.top();
+      if (sc5 instanceof CV.Counter) sc5.press(sc5.buttons().filter(function (b) { return b.go === 'opt' && b.k === 0; })[0]);
+      driveV(g5, function () { return D.top() instanceof HV.Morning; }, 2000); var m5 = D.top(), h5 = RV.def.hour, dark5 = B5.dark;
+      for (var k5 = 0; k5 < 24 && m5 instanceof HV.Morning && !m5.over; k5++) { if (m5.phase === 'night' || m5.phase === 'dawn') m5.next(); else if (m5.phase === 'picks') { (m5.due || []).forEach(window.DS.R.autoPicks); if (m5.pm) m5.pm.close(); m5.update(); } else m5.cancel(); }
+      B5.cards = []; driveV(g5, null, 400); var card5 = (B5.cards || []).map(function (c) { return (c.lines || []).join(' '); }).join(' / ');
+      okV('THE REST\'S DAY BEFORE THE MORNING\'S PICKS: the crews\' fire at ' + d5 + ':00 (' + MV.seepPhase(d5) + '), LONG REST; with the morning up (' + (m5 instanceof HV.Morning) + ') the floor at ' + h5 + ':00, ' + MV.seepPhase(h5) + ' (dark ' + dark5 + '); after it the card "' + card5.replace(/\{.\}|\{\/\}/g, '').slice(0, 60) + '"',
+        m5 instanceof HV.Morning && MV.seepPhase(d5) === 'night' && h5 === 7 && MV.seepPhase(h5) === 'day' && !dark5 && card5.indexOf(MV.seepLine(7)) >= 0);
+      // 6. TELL ME ABOUT IT ON THE FIRST SCREEN (his "tell me more was absent from Skarn, and appears when it shouldn't - still appears rather. It's associated with their first page,
+      // carrying into the ned conversation (for example) makes it seem like the 'tell me more' function will include 'more' about current dialogue"): Skarn has it; it stands on a
+      // keeper's first screen and that screen again, never on a later page of what they say
+      var B6 = testV('?roam=warrens&flags=tallyMet'), g6 = MV.talk(B6, 'skarn'); driveV(g6, function () { return D.top() instanceof CV.Counter; }, 200); var sc6 = D.top(), sk6 = [];
+      for (var k6 = 0; k6 < 12 && sc6 instanceof CV.Counter && !sc6.done; k6++) { var w6 = sc6.wait || {}; sk6.push((w6.ask ? 'ask' : 'say') + (aboutV(sc6) ? '+ABOUT' : '')); var bs6 = sc6.buttons(); sc6.press(w6.ask ? bs6.filter(function (b) { return b.go === 'opt' && b.k === 0; })[0] : bs6.filter(function (b) { return b.go === 'next'; })[0]); }
+      HV.begin(HV.fresh(), 0); var BN = topV(); D.battle = BN; var gN = CV.talk(BN, 'ned'); /* (a NEW GAME's four: Ned talks with Aurdin) */ driveV(gN, function () { return D.top() instanceof CV.Counter; }, 400); var scN = D.top(), seenN = [], laterN = 0, firstN = null;
+      for (var kN = 0; kN < 14 && scN instanceof CV.Counter && !scN.done; kN++) {
+        var wN = scN.wait || {}, keyN = JSON.stringify([wN.say || null, wN.ask || null]), abN = aboutV(scN); if (firstN == null) firstN = keyN;
+        seenN.push((keyN === firstN ? 'first' : 'later') + (abN ? '+ABOUT' : '')); if (keyN !== firstN && abN) laterN++;
+        var bsN = scN.buttons(), opN = bsN.filter(function (b) { return b.go === 'opt'; }), nxN = bsN.filter(function (b) { return b.go === 'next'; })[0]; scN.press(opN.length ? opN[opN.length - 1] : nxN || bsN[0]); // (the last answer each time: NO, then LEAVE)
+      }
+      okV('TELL ME ABOUT IT: Skarn\'s screens ' + sk6.join(', ') + ' (on his first, and no later); Ned\'s ' + seenN.join(', ') + ' (later screens with it: ' + laterN + ')',
+        sk6.length > 1 && /\+ABOUT$/.test(sk6[0]) && sk6.slice(1).every(function (s) { return !/ABOUT/.test(s); }) && /^first\+ABOUT/.test(seenN[0] || '') && seenN.some(function (s) { return /^later/.test(s); }) && laterN === 0 && !!H6V.ABOUT.skarn);
+      HV.playing = false; HV.cur = null; D.scenes.length = 0;
+      // 7. THE ONE BEHIND A WALL (his "simple fight enemies hard to target behind walls - transparency on targeting mouseover?"): a wall counts as cover in the x-ray, so a foe mostly
+      // behind one shows through as its red outline; the one the mouse means is drawn whole through it, see-through
+      var B7 = testV('?roam=wet'); D.iso.draw(cxV, []); var rk7 = null, iso7 = D.iso, HH7 = iso7.TH / 2;
+      (iso7.map.props || []).forEach(function (p) { if (rk7 || p.kind !== 'rock' || !p.sq) return; var ri = iso7.map.rockImgs[p.sq.x + ',' + p.sq.y]; if (!ri || ri.ay - HH7 < 40) return; var s = scrV([p.sq.x, p.sq.y], 0); if (s[0] < 40 || s[0] > D.W - 40 || s[1] < 80 || s[1] > D.H - 20) return; rk7 = { p: p, s: s, top: ri.ay - HH7 }; });
+      var o7 = 0, d7 = null, out0 = D.spr.outline, dr0 = D.spr.draw, sheet7 = (B7.roam.members[0] || {}).sheet || 'lymen_p1';
+      D.spr.outline = function (ctx, sh) { if (sh === 'x7-' + sheet7 || sh === sheet7) o7++; }; D.spr.draw = function (ctx, sh, an, f, t, x, y, o) { if (sh === sheet7 && o && o.alpha != null) d7 = o.alpha; };
+      try {
+        if (rk7) {
+          var u7 = { id: 'x7', side: 'foe', sheet: sheet7, facing: 0, x: rk7.p.sq.x - 1, y: rk7.p.sq.y - 1 }, fy7 = rk7.s[1] - 10, ob7 = { unit: u7, depth: rk7.p.depth - 1.5, gz: 0, shown: { anim: 'idle', t: 0, x: rk7.s[0], y: fy7, k: 1, box: [rk7.s[0] - 8, fy7 - 28, rk7.s[0] + 8, fy7] } };
+          UV.xrayHover = null; UV.xray(cxV, B7, [ob7], null); var o7a = o7; UV.xrayHover = u7; UV.xray(cxV, B7, [ob7], null); UV.xrayHover = null;
+        }
+      } finally { D.spr.outline = out0; D.spr.draw = dr0; }
+      okV('THE ONE BEHIND A WALL: a wall ' + (rk7 ? rk7.top + ' px tall at ' + rk7.p.sq.x + ',' + rk7.p.sq.y : '(none found)') + ', a foe drawn behind it: its outline through the wall (' + (rk7 ? o7a : '-') + '), and under the mouse drawn whole through it at ' + d7,
+        !!rk7 && o7a === 1 && d7 === 0.6);
+      // 11. HIS PLAY RECORD READ (the desk's ask: what the benches miss in his sixteen fights): a halving said in the log, not the float alone (the rat swarm's 7 that took 3);
+      // the foes' turns before the first answer kept at the transcript's head (the wolf spider's bite that dropped Aurdin was in the log alone)
+      var u11 = B7.units.filter(function (u) { return u.side === 'party'; })[0], rs11 = u11.resist, hp11 = u11.hp; u11.resist = ['bludgeoning']; u11.hp = 999; B7.hurt(u11, 7, 'bludgeoning'); var lg11 = (B7.log || []).slice(-1)[0] || ''; u11.resist = rs11; u11.hp = hp11;
+      memV['deep16.plays'] = JSON.stringify([]); var rec0 = B7.rec; D.rec.start(B7, { fight: 'bench11', name: 'the opening', level: 1 }); B7.card(['{r}A bite{/} from the dark.']); D.rec.finish(B7, 'won'); B7.rec = rec0;
+      var pl11 = (D.store.get('deep16.plays') || []).filter(function (f) { return f.fight === 'bench11'; })[0], tr11 = pl11 ? pl11.transcript || [] : [];
+      okV('HIS RECORD READ: a resisted blow in the log ("' + lg11 + '"); a foe\'s line before any answer at the transcript\'s head (' + JSON.stringify([tr11[0], tr11[tr11.length - 1]]) + ')',
+        /resists bludgeoning: 7 > 3$/.test(lg11) && tr11[0] === '== before the first answer' && tr11.some(function (l) { return /A bite from the dark/.test(l); }));
+      // 7b. THE CANDLE AS THE LANTERN (his "if candle is going to stay under tools, use as similar to hooded lantern?"): taken up in a hand, its own light (bright 5, dim 5), put
+      // away back into the pack; cupped under a roost
+      var it7 = window.DS.DATA.items.candle, B7b = testV('?roam=glowseep'), u7b = B7b.roam.members[0]; B7b.inv = [{ id: 'candle', n: 1 }]; delete u7b.torch;
+      RV.menuAct(B7b, 'item', { id: 'candle', h: u7b.src }, function () { return u7b; }); var tc7 = u7b.torch ? JSON.parse(JSON.stringify(u7b.torch)) : null, rr7 = tc7 ? LV.radii(tc7) : {}, n7a = B7b.inv[0].n;
+      RV.menuAct(B7b, 'light-off', { h: u7b.src }, function () { return u7b; }); var n7b = (B7b.inv.filter(function (s) { return s.id === 'candle'; })[0] || {}).n;
+      okV('THE CANDLE: a ' + it7.kind + ' of ' + (it7.use && it7.use.effect) + ' (TOOLS); taken up by ' + u7b.name + ': ' + JSON.stringify(tc7) + ', bright ' + rr7.bright + ' ft, dim ' + rr7.dim + ' (the pack ' + n7a + '); put away, the pack ' + n7b + '; a hooded light (' + LV.isLantern('candle') + ')',
+        it7.use && it7.use.effect === 'light' && !!tc7 && tc7.kind === 'lantern' && tc7.item === 'candle' && rr7.bright === 5 && rr7.dim === 5 && n7a === 0 && n7b === 1 && LV.isLantern('candle'));
+      // 8. THE CHESTS SEEN (his "different or bigger sprites for chests (i.e. this layer)" at the Warrens' workings, and "no way a player could see this chest other than color change
+      // on mouseover" at its rope chest, 13,14): a square's size in the world's own pixels (the art's iron-banded chest live; the box by code here, the benches fetch no atlas), and
+      // the rock rising over the rope chest's slot drawn see-through where it covers it
+      var B8 = testV('?roam=warrens_c'), ch8 = B8.map.props.filter(function (p) { return p.kind === 'chest' && p.sq.x === 13 && p.sq.y === 14; })[0], wd8 = 0, z08 = D.iso.zoom, iw8 = D.iso.inWorld;
+      if (ch8) { var fr0 = cxV.fillRect; cxV.fillRect = function (x, y, w, h) { wd8 = Math.max(wd8, w); return fr0.apply(this, arguments); }; D.iso.zoom = 0.5; D.iso.inWorld = true; try { ch8.draw(cxV); } finally { cxV.fillRect = fr0; D.iso.zoom = z08; D.iso.inWorld = iw8; } }
+      var t8 = B8.roam.token; t8.x = 20; t8.y = 10; t8.tween = null; GV.setup(B8.map, B8.units); B8.focus({ x: 13, y: 14 }); D.topview.seen = 0; D.iso.draw(cxV, []); var seen8 = D.topview.seen || 0;
+      okV('THE CHESTS SEEN: the rope chest at 13,14 drawn ' + wd8 + ' px wide at the floor\'s zoom 0.5 in the world\'s pixels (a square is ' + D.topview.TS + '); the party away, the rock over its slot see-through over it (' + seen8 + ' window(s))',
+        !!ch8 && wd8 >= 24 && seen8 >= 1);
+      // 9. THE STRAIGHTER WALK ON AN ISO ROAM (his "any way to have the mouseover pathing in iso-roam prefer straight lines over zig-zag? or just not prefer?"): on the Wet, of the
+      // walks the fewest squares long, the one with the fewest turns -- the fight's breadth-first route zig-zagged
+      var B9 = testV('?roam=wet'), t9 = B9.roam.token, best9 = null;
+      for (var dy9 = -8; dy9 <= 8 && !best9; dy9++) for (var dx9 = -10; dx9 <= 10 && !best9; dx9++) {
+        if (Math.abs(dx9) < 5 || Math.abs(dy9) < 2 || Math.abs(dx9) === Math.abs(dy9)) continue;
+        var to9 = [t9.x + dx9, t9.y + dy9], br9 = D.Battle.route(t9, to9); if (!br9 || turnsV(br9, [t9.x, t9.y]) < 3) continue;
+        var wr9 = RV.walkRoute(t9, to9); best9 = { to: to9, b: br9, w: wr9 };
+      }
+      okV('THE STRAIGHTER WALK ON THE WET: from ' + [t9.x, t9.y] + ' to ' + (best9 && best9.to) + ', the fight\'s route ' + (best9 ? best9.b.length + ' squares, ' + turnsV(best9.b, [t9.x, t9.y]) + ' turns' : '(no zig-zag found)') + '; the walk ' + (best9 && best9.w ? best9.w.length + ' squares, ' + turnsV(best9.w, [t9.x, t9.y]) + ' turns' : 'none'),
+        !!best9 && !!best9.w && best9.w.length === best9.b.length && turnsV(best9.w, [t9.x, t9.y]) <= 2);
+      // 9b. A FIGHT ON A FLOOR GIVES BACK NO USES (his "i think short-rest stuff is recharging without the party taking a short rest (barley)"; his play record: Barley's Second Wind
+      // and Action Surge in the Snared Lad and again ten seconds after in the cut's fight): what a pulled-in fight spent -- slots and uses -- comes back onto the floor's sheets
+      var B9b = testV('?roam=glowseep&hour=23'), R9 = B9b.roam, g9 = MV.fieldFight(B9b, 'test', { list: ['stirge'], line: 'A stirge.' });
+      driveV(g9, function () { var s = D.top(); return !!s && s !== B9b && !!s.fight; }, 3000); var b9 = D.top(); if (b9 && b9.baking) { b9.baking = false; b9.enter(); }
+      var pu9 = b9 && b9 !== B9b ? b9.units.filter(function (u) { return u.side === 'party' && !u.familiar; }) : [];
+      pu9.forEach(function (u) { u.feats = Object.assign({}, u.feats, { spent1029: 1 }); if (u.feats.secondWind != null) u.feats.secondWind = 0; if (u.slots && u.slots.length) u.slots = u.slots.map(function () { return 0; }); });
+      if (b9 && b9 !== B9b) { if (D.top() === b9) D.pop(); b9.o.onDone('won'); } driveV(g9, null, 3000);
+      var back9 = R9.members.filter(function (w) { return w.feats && w.feats.spent1029 === 1; }).length, cast9 = R9.members.filter(function (w) { return w.slots && w.slots.length; }), sw9 = R9.members.filter(function (w) { return w.feats && 'secondWind' in w.feats; })[0];
+      okV('A FIGHT ON A FLOOR GIVES BACK NO USES: ' + pu9.length + ' in a pulled-in fight spend their uses and slots; back on the floor ' + back9 + ' carry what they spent, the casters\' slots ' + cast9.map(function (w) { return w.name + ' ' + JSON.stringify(w.slots); }).join(', ') + (sw9 ? ', ' + sw9.name + '\'s Second Wind ' + sw9.feats.secondWind : ''),
+        pu9.length >= 2 && back9 === pu9.length && cast9.every(function (w) { return w.slots.every(function (n) { return n === 0; }); }) && (!sw9 || sw9.feats.secondWind === 0));
+      // 9c. THE LANDLORD'S SETTLING SEATS THE PARTY BY ITS FORMATION (his "double check landlord party-token breakout follows formation"): each of the rest on its slot round the
+      // lead the way the token faced, or the nearest open square to it
+      var BW = testV('?roam=wet'), RW = BW.roam, defW = RV.def; RW.fw = [1, 0]; var formW = {}; RW.members.slice(1).forEach(function (u, i) { formW[u.id] = [[-1, 0], [-1, 1], [-2, 0]][i] || [-3, 0]; RW.form[u.id] = formW[u.id]; });
+      var gW = RV.pullIn(BW, 'wet', { id: 'landlordStep' }, defW.from8(8, 8)), kW; for (kW = 0; kW < 400 && D.top() === BW; kW++) gW.next();
+      var bW = D.top(), seatW = [];
+      if (bW !== BW) {
+        if (bW.baking) { bW.baking = false; bW.enter(); }
+        var oursW = bW.units.filter(function (u) { return u.side === 'party' && !u.familiar && !u.riding; }), leadW = oursW.filter(function (u) { return u.id === RW.members[0].id; })[0], A = RV.axes(RW.fw);
+        oursW.forEach(function (u) { if (u === leadW) return; var f = formW[u.id] || [0, 0], want = [leadW.x + f[0] * A.f[0] + f[1] * A.r[0], leadW.y + f[0] * A.f[1] + f[1] * A.r[1]], ok = bW.map.at(want[0], want[1]), d = Math.max(Math.abs(u.x - want[0]), Math.abs(u.y - want[1])); seatW.push({ id: u.id, want: want, at: [u.x, u.y], d: d, free: !!(ok && ok.walk) }); });
+        if (D.top() === bW) D.pop(); bW.o.onDone('escaped'); for (kW = 0; kW < 400; kW++) { if (gW.next().done) break; }
+      }
+      okV('THE LANDLORD\'S SETTLING BY THE FORMATION: the lead ' + (RW.members[0] && RW.members[0].name) + ' facing east, the rest ' + seatW.map(function (s) { return s.id + ' at ' + s.at + ' (its slot ' + s.want + (s.free ? '' : ', taken') + ')'; }).join('; '),
+        bW !== BW && seatW.length === 3 && seatW.every(function (s) { return s.free ? s.d === 0 : s.d <= 2; }));
+    } catch (eV) { repV.errors.push(String(eV && eV.stack || eV).slice(0, 900)); }
+    D.store.get = stGV; D.store.set = stSV; if (HV) { HV.playing = false; HV.cur = null; }
+    var preV = document.createElement('pre'); preV.id = 'out'; preV.textContent = 'BENCH16 ' + JSON.stringify(repV);
+    document.body.appendChild(preV);
+    return;
+  }
   // HIS THREE NOTES OF 10-29 (mode=notes1029; the notes seat, started by the lanes desk): the Guano Mine's bunkhouse door (js/mines.js M.FLOORS galleries doors2, M.INNS
   // keeper:galbunk), the council's night sitting over the Hex's third floor (js/hours.js H16.backdrop, js/counter.js o.bg), the made road solid stone at the Seam and the Breach
   // (data/maps.js noBurrow '=')
@@ -4803,7 +4964,7 @@
       // 9. A BOUT LOST: OUT AT DAVOS KREN'S DOOR, STITCHED (his "kick the party to krenn if a fighter falls (out of the hex and at his shop door - but already serviced)"): the one
       // who fell at half, the party on his threshold on the street facing his door (the card's loss runs it: mode=hex1022's Talmok, stitched to half)
       var BL = houseQ(HQ.fresh()), RL = BL.roam, trL = (RQ.def.src8.triggers || []).filter(function (t) { return t.id === 'hex:front'; })[0]; driveQ(TQ.fire(BL, trL), null, 2000);
-      var inL = !!RQ.def.hexIn, uL = RL.members[0]; uL.hp = 1; var gL = XQ.toDavos ? XQ.toDavos(BL, uL) : null; if (gL) driveQ(gL, null, 400);
+      var inL = !!RQ.def.hexIn, uL = RL.members[0]; uL.hp = 1; var gL = XQ.toDavos ? XQ.toDavos(BL, uL) : null; if (gL) { driveQ(gL, upQ, 400); if (upQ()) readQ(D.top()); driveQ(gL, null, 400); } // (Davos's own screen first since 10-29: mode=notes1029c)
       var dvL = RQ.def.marks && RQ.def.marks.doors && RQ.def.marks.doors['leech:davos'];
       okQ('in the Hex (' + inL + '), a bout lost: out on the street (' + RQ.def.key + ') at Davos Kren\'s door (' + [RL.token.x, RL.token.y] + ' = ' + dvL + '), facing it (' + RL.fw + '); ' + uL.name + ' stitched to ' + uL.hp + '/' + uL.maxhp + ' (the sheet ' + (uL.src && uL.src.hp) + '), the card "' + ((BL.cards || []).map(function (c) { return (c.lines || []).join(' '); }).join(' ') || '').replace(/\{.\}|\{\/\}/g, '').slice(0, 90) + '"',
         inL && RQ.def.key === 'silverton' && !!dvL && RL.token.x === dvL[0] && RL.token.y === dvL[1] && RL.fw.join() === '0,-1' && uL.hp === Math.max(1, Math.floor(uL.maxhp / 2)) && uL.src.hp === uL.hp && (BL.cards || []).some(function (c) { return /Davos Kren's door/.test((c.lines || []).join(' ')); }));
