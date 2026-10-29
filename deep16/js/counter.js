@@ -32,7 +32,7 @@
     dace: { sheet: 'pt_dace', wait: '' }, // (Corwen Dace of the Guano Galleries: the art desk's ART-123-DACE, 10-29, the same word -- his scenes at the mouth and in the deep gallery speak on his face, js/mines.js M.talk by C.PT; the shaft head's card (dacedown) stays a card)
     sabeth: { sheet: 'pt_sabeth', wait: '' }, // (Sabeth Pollard at the Galleries' mouth: the art desk's ART-123-SABETH, 10-29, the lanes desk's standing rule -- the cull's word, TAKE THE WORK and the one law, on her face, js/mines.js M.talk by C.PT; she keeps no shop)
     wynn: { sheet: 'pt_wynn', wait: '' }, // (Old Wynn Pollard at the Galleries' mouth: the art desk's ART-123-WYNN, 10-29, on the lanes desk's relay -- his scene, SEND HIM HOME, on his face, js/mines.js M.talk by C.PT; half-blind, his left eye clouded)
-    dacedisp: { sheet: 'pt_dacedisp', wait: '', name: 'Corwen Dace, in the cloak of displacement' }, // (the art desk's ART-123-DACE-DISPLACEMENT, 10-29, on Griz's "Dace in Displacement Cloak sprites to follow": a second look, its cloak worn as the magic item -- for the shows only; no floor stands `dacedisp`, and Dace's scenes keep the plain one, C.VENDORS.dace, till his word on when he wears it)
+    dacedisp: { sheet: 'pt_dacedisp', wait: '', name: 'Corwen Dace, in the cloak of displacement' }, // (the art desk's ART-123-DACE-DISPLACEMENT, 10-29, on Griz's "Dace in Displacement Cloak sprites to follow": a second look, its cloak worn as the magic item -- no floor stands `dacedisp`; since his word, 10-29 later, Dace's own scenes wear this face till he gives the party the cloak, C.SHEETOF.dace)
     talmok: { sheet: 'pt_talmok', wait: '' }, // (Talmok, the Hex's champion by the sand: the art desk's ART-123-TALMOK, 10-29, on the lanes desk's "Take Talmok after Dace" -- his word in the Hex on his face, js/town.js T.fire by C.takes; he keeps no shop, and fights in his own talmok_p1)
     papa: { sheet: 'pt_papa', wait: '' }, // (Papa Urtusk in the Hex's front door: the art desk's ART-123-URTUSK, 10-29, on Griz's "Urtusk just landed in fresh, give the cutscene its own cutter" -- the council's sittings speak on his face (js/hours.js H16.sitting: C.PT), and his word at the door; no counter line, he keeps no shop)
     falstaff: { sheet: 'pt_falstaff' }, // (the factor house's other door, pin 7a, beside Aldric's: the art desk's ART-123-FALSTAFF, 10-29, on Griz's "pinged the art dept for his north facings, got some tiles in to cut" -- his first-game words at his door on his face, no shop in either game)
@@ -136,6 +136,10 @@
     if (D.spr.prefetch) D.spr.prefetch([f]);
     return true;
   };
+  // a face by the story (10-29 later, Griz's answer 1: "in portrait unless he gives the party the cloak, when walking with the party"): Corwen Dace wears his grandfather's cloak of
+  // displacement on his face (pt_dacedisp, ART-123-DACE-DISPLACEMENT) till the party takes it off his back after the cloaker (js/mines.js M.daceDeep, THE CLOAK: flags.daceCloak),
+  // the plain look after -- THE PAGE leaves it on him. C.PT keeps the plain one, for the portraits' show
+  C.SHEETOF = { dace: function (st) { return st && st.flags && st.flags.daceCloak ? 'pt_dace' : 'pt_dacedisp'; } };
   C.PT = {}; C.OWN = {}; C.SHOPS = {};
   Object.keys(C.VENDORS).forEach(function (id) { var v = C.VENDORS[id]; if (v.sheet) C.PT[id] = v.sheet; if (v.own) C.OWN[id] = 1; if (v.shop) C.SHOPS[id] = v.shop; });
   C.takes = function (id) { var v = C.VENDORS[id]; return !!v && (!!v.script || !!v.shop || !!(v.sheet && D.SHEETS && D.SHEETS[v.sheet])); };
@@ -254,7 +258,7 @@
   var HB = { x: 8, y: 146, w: 86, h: 104 }, BB = { x: 104, y: 142, w: RX + RW - 104, h: 108 };
   function Counter(B, o) {
     this.kind = 'counter'; this.opaque = true; this.t = 0; this.B = B; this.o = o; this.st = C.state(B);
-    this.id = o.id; this.sheet = C.PT[o.id] || (C.VENDORS[o.id] || {}).sheet || null; this.face = null; this.wait = null; this.msg = ''; this.hov = -1; this.i = 0; this.done = false; this.regear = false; // (sheet: a counter added after this file, with a keeper's face -- js/mines.js VENDORS.tally, Edric's)
+    this.id = o.id; this.sheet = (C.SHEETOF[o.id] && C.SHEETOF[o.id](this.st)) || C.PT[o.id] || (C.VENDORS[o.id] || {}).sheet || null; this.face = null; this.wait = null; this.msg = ''; this.hov = -1; this.i = 0; this.done = false; this.regear = false; // (sheet: a counter added after this file, with a keeper's face -- js/mines.js VENDORS.tally, Edric's)
     this.look = (C.VENDORS[o.id] || {}).look || null; // (an unnamed one's costume, held the whole talk: C.GENERIC)
     this.co = o.script(this);
     this.step();

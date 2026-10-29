@@ -755,7 +755,7 @@
     yield* M.talk(B, 'dace', function (sc) { return (function* () {
       yield sc.say(L('dace.deep'));
       var a = yield sc.ask(L('dace.choose'), ['THE CLOAK', 'THE PAGE']), id = a === 0 ? 'cloakdisplacement' : 'sheet_mirrorimage';
-      D.counter.give(sc.st, id, 1); D.sfx('chest'); yield sc.say(L('g.got', { item: DS.DATA.items[id].name }));
+      D.counter.give(sc.st, id, 1); D.sfx('chest'); if (a === 0) f.daceCloak = 1; yield sc.say(L('g.got', { item: DS.DATA.items[id].name })); // (daceCloak: the cloak off his back -- his face plain from here, js/counter.js C.SHEETOF)
       yield sc.say(L('dace.home'));
     })(); });
     M.daceHome(B);

@@ -2693,6 +2693,12 @@
       var B7 = testQ('?roam=galleries_g4&guest=dace&flags=cloakerKilled&at=10,9'), tr7 = trigQ(B7, 10, 9); runQ(B7, RQ.fire(B7, tr7, [10, 9])); var t7 = talkQ(B7, 0), fl7 = B7.roam.flags;
       okQ('taken after the kill: the square is his thanks (' + (tr7 && tr7.id) + '), "' + (t7.asked[0] || '').slice(0, 50) + '...", THE CLOAK (' + has(B7, 'cloakdisplacement') + '), home (' + !dace(B7) + ', daceDone ' + !!fl7.daceDone + '), no cloaker (' + !(D.top() instanceof D.Battle && D.top() !== B7) + ')',
         !!tr7 && tr7.id === 'daceDeep' && /the page/.test(t7.asked[0] || '') && /THE CLOAK\|THE PAGE/.test(t7.asked[0] || '') && has(B7, 'cloakdisplacement') && !dace(B7) && fl7.daceDone && fl7.daceAfter === undefined && D.top() === B7 && t7.said.some(function (s) { return /every day of my life/.test(s); }));
+      // 7b. HIS FACE BY THE CLOAK (10-29 later, Griz's answer 1: "in portrait unless he gives the party the cloak, when walking with the party"): the cloak of displacement's look
+      // (pt_dacedisp) on his face till THE CLOAK is taken off his back, the plain one after (flags.daceCloak, js/counter.js C.SHEETOF); THE PAGE leaves it on him
+      var pfQ = function (B) { return new CQ.Counter(B, { id: 'dace', name: 'Dace', script: function (s) { return (function* () { yield s.say(['-']); })(); } }).sheet; };
+      var B7p = testQ('?roam=galleries_g4&guest=dace&flags=cloakerKilled&at=10,9'), pre7 = pfQ(B7p); runQ(B7p, RQ.fire(B7p, trigQ(B7p, 10, 9), [10, 9])); var t7p = talkQ(B7p, 1);
+      okQ('his face by the cloak: on him before the pick (' + pre7 + '), off him after THE CLOAK (' + pfQ(B7) + ', daceCloak ' + fl7.daceCloak + '), still on him after THE PAGE (' + pfQ(B7p) + ', the page ' + has(B7p, 'sheet_mirrorimage') + ', daceCloak ' + B7p.roam.flags.daceCloak + '); in the show the plain (C.PT.dace ' + CQ.PT.dace + ')',
+        pre7 === 'pt_dacedisp' && fl7.daceCloak === 1 && pfQ(B7) === 'pt_dace' && has(B7p, 'sheet_mirrorimage') && !B7p.roam.flags.daceCloak && pfQ(B7p) === 'pt_dacedisp' && CQ.PT.dace === 'pt_dace');
       // 8. A GETAWAY: up the ladder to the dens, the first game's "The way out is UP", Dace with them
       var B8 = testQ('?roam=galleries_g4&guest=dace&at=10,9'), b8 = pullQ(B8, RQ.fire(B8, trigQ(B8, 10, 9), [10, 9])), said8 = '';
       if (b8) { if (D.top() === b8) D.pop(); b8.o.onDone('escaped'); driveQ(B8.co, function () { said8 = cardsQ(B8) || said8; return D.top() !== B8; }, 4000); }
@@ -6178,7 +6184,7 @@
         var pW = D.SHEETS['pt_' + w[0]], fW = D.SHEETS[CK.FIG[w[0]]], BW = floorK(w[2]), uW = BW && BW.units ? BW.units.filter(function (u) { return u.npc === w[0]; })[0] : null, sW = BW && faceK(BW, w[0]), vW = CK.VENDORS[w[0]];
         okK(w[0] + ' from ' + w[1] + ': the face (' + (pW ? pW.fw + 'x' + pW.fh + ', idle ' + pW.anims.idle.frames + ', work ' + pW.anims.work.frames : 'NONE') + ', C.PT ' + CK.PT[w[0]] + ', no shop ' + !(vW && vW.shop) + '), the figure all round (' + (fW ? 'top ' + fW.top + ', drawn ' + JSON.stringify(fW.anims.idle.drawn) : 'NONE') + '), worn at ' + w[3] + ' (' + (uW ? uW.sheet + ' at ' + uW.x + ',' + uW.y + ', held ' + uW.holdFacing : 'NOT STOOD') + '), the scene on the face (' + sW + ')',
           !!pW && pW.anims.idle.frames === 6 && pW.anims.work.frames === 6 && ['attentive', 'welcoming', 'skeptical', 'concerned'].every(function (k) { return pW.anims[k] && pW.anims[k].frames === 1; }) && CK.PT[w[0]] === 'pt_' + w[0] && !!vW && !vW.shop &&
-          !!fW && !fW.anims.idle.drawn && fW.anims.idle.frames === 14 && fW.top >= 45 && fW.top <= 54 && new RegExp(w[1]).test(fW.source) && !!uW && uW.sheet === w[0] + '_p1' && !uW.holdFacing && sW === 'pt_' + w[0]);
+          !!fW && !fW.anims.idle.drawn && fW.anims.idle.frames === 14 && fW.top >= 45 && fW.top <= 54 && new RegExp(w[1]).test(fW.source) && !!uW && uW.sheet === w[0] + '_p1' && !uW.holdFacing && sW === (w[0] === 'dace' ? 'pt_dacedisp' : 'pt_' + w[0])); // (Dace's scene on the cloak of displacement's face till he gives it: Griz's answer 1, 10-29 -- mode=deepgallery1028 7b)
       });
       var BTK = floorK('?roam=warrens'), tlK = faceK(BTK, 'tally');
       okK('the tally-house\'s counter, Edric\'s shop, on his face (' + tlK + '); a counter with no face of its own still bare (Hob\'s kitchen: ' + faceK(BTK, 'hobCamp') + ')', tlK === 'pt_edric' && faceK(BTK, 'hobCamp') === null);

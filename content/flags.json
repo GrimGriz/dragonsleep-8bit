@@ -51,6 +51,7 @@
     "cutRests": "set: js/deep.js; read: js/deep.js",
     "cutTried": "set: js/deep.js; read: js/deep.js",
     "daceAfter": "set: js/events.js; read: js/events.js, maps/galleries_g4.json",
+    "daceCloak": "set: deep16/js/mines.js M.daceDeep (THE CLOAK taken off his back); read: deep16/js/counter.js C.SHEETOF (his face plain after -- 10-29, Griz's answer 1)",
     "daceDone": "set: js/events.js; read: js/events.js, maps/galleries_g4.json",
     "daceLight": "set: js/events.js",
     "daceSheet": "set: js/events.js",
