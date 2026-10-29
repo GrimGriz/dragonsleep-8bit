@@ -96,6 +96,10 @@ KEEPERS = {
     # P5 N, its "Falstaff Idle Backview" download). Its P4, sold as NE, is drawn from the front, a second SE: sorted to not-NE/, so he is south only till an NE
     # from behind comes -- then this line cuts all eight as it is. His door has no room (js/town.js T.ROOMS): his sheet for the shows, no square in town yet
     'falstaff': ('falstaff/ART-123-FALSTAFF', 'ART-123-FALSTAFF', 'keeper:falstaff'),
+    # Papa Urtusk (10-29, the cutscene cutter seat: the art desk's ART-123-URTUSK, all five views drawn, H2P4 NE from behind). "Still the largest thing in any room"
+    # (art-wanted section 26) and the art desk's own "do not equal-height-normalize him with ordinary adults": he stands `tall` 58, the height of the grid's bugbear
+    # and of Talmok, where the town's grown men stand 50. In the Hex's front door, at the council's long table, and on the night's picture of it (js/hours.js)
+    'papa': ('papa/ART-123-URTUSK', 'ART-123-URTUSK', 'npc:papa', {'tall': 58, 'gap': 6, 'reskin': {'hue': 78, 'sat': 0.36}, 'avoid': ['skin', 'red', 'gold']}),
 }
 
 
@@ -121,7 +125,7 @@ def page(name, path, ov, pg=1):
     """one page's four drawings, each scaled by the page's median to TALL and snapped: [(pixels, the feet's middle x, height)]; `pg` the page (1 the south),
     for a keeper whose dye is a page's own (`dye`: {page: 'brown' for the brown cloth's mask, or (top, hem) for the grey cloth's}; without it every page dyed)"""
     a = np.asarray(Image.open(path).convert('RGB')).astype(np.int32)
-    found = PS.drawings(a, [4])
+    found = PS.drawings(a, [4], gap=ov.get('gap', 12))              # (a keeper's own `gap`: Papa Urtusk's frames stand 12 px apart on his S page)
     if len(found) != 4:
         raise SystemExit('%s: %d drawings found, 4 wanted' % (name, len(found)))
     raw = []
@@ -138,10 +142,12 @@ def page(name, path, ov, pg=1):
             rgba[..., :3] = PS.recolour(rgba[..., :3], grey_cloth(rgba[..., :3], piece[top:foot, x0:x1], dye), **ov['recolour'])
         elif ov.get('recolour') and dye:
             rgba[..., :3] = PS.recolour(rgba[..., :3], PS.hem_cut(rgba[..., :3], PS.cloth_mask(rgba[..., :3], piece[top:foot, x0:x1])), **ov['recolour'])  # (the trousers below the hem keep their brown)
+        if ov.get('reskin'):                                          # (an orc's khaki skin turned green: Papa Urtusk's -- tools/portrait-sheet.py reskin)
+            rgba[..., :3] = PS.reskin(rgba[..., :3], piece[top:foot, x0:x1], **ov['reskin'])
         if ov.get('sat', {}).get(pg):                                 # (a page's own: {page: (top, bottom, k)} -- Mela's SE skirt)
             t0, t1, k0 = ov['sat'][pg]; rgba[..., :3] = sat_band(rgba[..., :3], piece[top:foot, x0:x1], (t0, t1), k0)
         raw.append((rgba, fx - x0, foot - top))
-    k = TALL / float(np.median([r[2] for r in raw]))
+    k = ov.get('tall', TALL) / float(np.median([r[2] for r in raw]))   # (a keeper's own `tall`: Papa Urtusk's 58)
     small = []
     for rgba, fx, h in raw:
         im = Image.fromarray(rgba, 'RGBA').convert('RGBa')

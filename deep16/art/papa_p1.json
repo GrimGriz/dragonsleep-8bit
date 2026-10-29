@@ -1,0 +1,21 @@
+{
+ "image": "art/papa_p1.png",
+ "fw": 45,
+ "fh": 61,
+ "ax": 22,
+ "ay": 59,
+ "top": 57,
+ "anims": {
+  "idle": {
+   "y": 0,
+   "fw": 45,
+   "fh": 61,
+   "ax": 22,
+   "ay": 59,
+   "frames": 14,
+   "fps": 4
+  }
+ },
+ "source": "deep16/_src/papa/ART-123-URTUSK/ART-123-URTUSK_HEAD-2_PAGE-1.png (the art desk's south idle, 10-21) and PAGE-2 to PAGE-5 (SE, E, NE, N: ART-121, 10-28), cut by tools/keeper-town-sheet.py",
+ "door": "npc:papa"
+}

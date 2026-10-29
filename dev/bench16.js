@@ -5321,6 +5321,51 @@
     document.body.appendChild(preV);
     return;
   }
+  // THE COUNCIL'S NIGHT'S PEOPLE, 10-29 (mode=cutscene1029; the cutscene cutter seat, on Griz's "Urtusk just landed in fresh, give the cutscene its own cutter"): the
+  // art desk's ART-123-URTUSK cut into pt_papa (tools/portrait-sheet.py) and papa_p1 (tools/keeper-town-sheet.py, all eight, 58 px); Papa in his own figure in the Hex's
+  // front door on a NEW GAME, at the council's long table, in the night's picture of it and up the spiral in the cutscene; the night's sitting speaking his lines on his face
+  if (get('mode', '') === 'cutscene1029') {
+    var repK = { checks: [], errors: [] }, memK = {}, stGK = D.store.get, stSK = D.store.set, CK = D.counter, HK = D.house, RK = D.roam, H6K = D.hours;
+    function okK(what, v) { repK.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function topK() { var s = D.top(); if (s && s.baking) { s.baking = false; s.enter(); } return s; }
+    D.store.get = function (k) { return memK[k] ? JSON.parse(memK[k]) : null; }; D.store.set = function (k, v) { memK[k] = JSON.stringify(v); return true; };
+    var ctx0K = D.ctx;
+    try {
+      D.seed = +get('seed', 1029);
+      var pK = D.SHEETS.pt_papa, aK = pK && pK.anims, nK = function (k) { return aK && aK[k] ? aK[k].frames : 0; };
+      okK('pt_papa cut from ART-123-URTUSK (' + (pK ? pK.fw + 'x' + pK.fh + ', ' + Object.keys(aK).map(function (k) { return k + ' ' + aK[k].frames; }).join(', ') : 'NONE') + ')',
+        !!pK && nK('idle') === 6 && nK('work') === 6 && ['attentive', 'welcoming', 'skeptical', 'concerned'].every(function (k) { return nK(k) === 1; }));
+      var vK = CK.VENDORS.papa;
+      okK('Papa a vendor on his face, speaking only, no counter line: ' + JSON.stringify(vK) + '; C.PT.papa ' + CK.PT.papa, !!vK && vK.sheet === 'pt_papa' && !vK.shop && vK.wait === '' && CK.PT.papa === 'pt_papa' && CK.takes('papa'));
+      var fK = D.SHEETS[CK.FIG.papa], iK = fK && fK.anims.idle;
+      okK('papa_p1 his town figure in all eight facings, the largest in the room (' + (fK ? iK.fw + 'x' + iK.fh + ' top ' + fK.top + ', drawn ' + JSON.stringify(iK.drawn) : 'NONE') + '; Hessle top ' + D.SHEETS.hessle_p1.top + ')',
+        CK.FIG.papa === 'papa_p1' && !!fK && !iK.drawn && !iK.under && fK.top >= 56 && fK.top > D.SHEETS.hessle_p1.top + 5);
+      var uK = { x: 0, y: 0, facing: 5 }; CK.dress(uK, 'papa');
+      okK('dressed (C.dress): his own figure, free to turn to whoever speaks (' + uK.sheet + ', held ' + uK.holdFacing + ')', uK.sheet === 'papa_p1' && uK.holdFacing === false);
+      HK.begin(HK.fresh(), 0); var BK = topK(), stK = BK && BK.units ? BK.units.filter(function (u) { return u.npc === 'papa'; })[0] : null;
+      okK('NEW GAME, Silverton\'s street: Papa in the Hex\'s front door in his own figure (' + (stK ? stK.sheet + ' at ' + stK.x + ',' + stK.y : 'NOT THERE') + ')', !!stK && stK.sheet === 'papa_p1');
+      var cvK = document.createElement('canvas'); cvK.width = D.W; cvK.height = D.H; D.ctx = cvK.getContext('2d'); D.R = D.R || 1;
+      var BC = RK.make('?roam=galleries&gate=east&watch'); D.scenes.length = 0; D.push(BC); topK();
+      var scK = H6K.sitting(BC, ['notice'], [{}]); scK.draw(D.ctx); var shK = scK.o.bg && scK.o.bg.shot ? scK.o.bg.shot() : null;
+      var tbK = shK && shK.b ? shK.b.units.filter(function (u) { return u.npc === 'councilpapa'; })[0] : null, hwK = shK && shK.b ? shK.b.units.filter(function (u) { return u.npc === 'councilharrow'; })[0] : null;
+      okK('the night\'s picture of the third floor: Papa at the head of the long table in his own figure (' + (tbK ? tbK.sheet : 'NOT THERE') + '), Harrow beside him still the plain shape (' + (hwK ? hwK.sheet || hwK.kind : 'NOT THERE') + ')',
+        !!tbK && tbK.sheet === 'papa_p1' && !!hwK);
+      var heardK = [], kK = 0;
+      while (!scK.done && kK++ < 30) { heardK.push({ name: scK.o.name, sheet: scK.sheet, say: String(((scK.wait || {}).say || [])[0] || '') }); scK.step(); }
+      var paK = heardK.filter(function (h) { return h.name === 'Papa Urtusk'; }), anK = heardK.filter(function (h) { return h.name === 'Aldwyn Androit'; });
+      okK('C1, the sitting: Papa\'s line on his own face (' + paK.map(function (h) { return h.sheet + ' ' + h.say.slice(0, 30); }).join('; ') + '), Androit\'s on his (' + (anK[0] && anK[0].sheet) + ')',
+        paK.length === 1 && paK[0].sheet === 'pt_papa' && /Strike it/.test(paK[0].say) && anK.length === 1 && anK[0].sheet === 'pt_androit');
+      D.scenes.length = 0; D.scenes.push(BC); D.battle = BC;
+      var nK2 = H6K.night(BC, ['notice'], [{}]), arK = nK2.shots && nK2.shots[1].st, wK = arK && arK.walkers ? arK.walkers.filter(function (w) { return w.u.npc === 'councilpapa'; })[0] : null;
+      okK('the cutscene\'s arrival: Papa up the spiral first, in his own figure (' + (wK ? wK.u.sheet + ', ' + wK.path.length + ' squares; the order ' + arK.walkers.map(function (w) { return w.u.npc.replace('council', ''); }).join(', ') : 'NOT THERE') + ')',
+        !!wK && wK.u.sheet === 'papa_p1' && arK.walkers[0] === wK);
+      nK2.finish();
+    } catch (eK) { repK.errors.push(String(eK && eK.stack || eK).slice(0, 900)); }
+    D.ctx = ctx0K; D.store.get = stGK; D.store.set = stSK; if (D.house) { D.house.playing = false; D.house.cur = null; }
+    var preK = document.createElement('pre'); preK.id = 'out'; preK.textContent = 'BENCH16 ' + JSON.stringify(repK);
+    document.body.appendChild(preK);
+    return;
+  }
   // FALSTAFF AND THE FOUNTAINS, 10-29 (mode=cut1029; the cutter seat of 10-29, on Griz's "pinged the art dept for his north facings, got some tiles in to cut"): the art
   // desk's ART-123-FALSTAFF cut into pt_falstaff (tools/portrait-sheet.py) and falstaff_p1 (tools/keeper-town-sheet.py, south only -- its NE was drawn from the front),
   // his word at his door on his face (his door has no room); ART-124 HEAD 3 cut into fountains_p1 (tools/toptiles-sheet.py fountains), the eight fountains' basins laid

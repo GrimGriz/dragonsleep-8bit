@@ -108,6 +108,9 @@ PEOPLE = {
     # Falstaff, the factor's clerk of the factor house on Fountain Street, pin 7a (10-29, the cutter seat of 10-29, on Griz's "pinged the art dept for his north
     # facings, got some tiles in to cut"): the art desk's ART-123-FALSTAFF, its generated sources -- not the coded placeholder in _src/falstaff/rejected/
     'falstaff': ('falstaff/ART-123-FALSTAFF', 'ART-123-FALSTAFF', 'keeper:falstaff', {'bevel': (2, 3, 4, 5)}),   # (his stills' counter tops bevelled, as Aldwin's: a sliver of it stood under the hands)
+    # Papa Urtusk of the Hex's front door (10-29, the cutscene cutter seat, on Griz's "Urtusk just landed in fresh, give the cutscene its own cutter"): the art desk's
+    # ART-123-URTUSK, drawn from the realm's portrait sheet (art-wanted section 26 as re-cut at bd2b7be0) -- his face for the council's sittings and his word at the door
+    'papa': ('papa/ART-123-URTUSK', 'ART-123-URTUSK', 'npc:papa', {'edge': True, 'gap': {6: 3}, 'reskin': {'hue': 78, 'sat': 0.36}, 'avoid': ['skin', 'red'], 'bevel': (4,)}),   # (his work's ledges stand 6 px apart)
     # the generic man and the generic woman (10-28 evening, the fourth cutter seat: the art desk's ART-122, on Griz's "as a specific person with each function as a
     # costume/look they have"): one person each, the townsfolk's man and woman (folkman_p1, folkwoman_p1), their own clothes' idle and a still for each costume in
     # place of the named's moods -- js/counter.js C.GENERIC gives each unnamed id its person and costume. A spear, a pole or a scraper held up beside the head
@@ -128,12 +131,14 @@ def page_path(folder, art, n, pat='%s_HEAD-1_PAGE-%d.png'):
     return fs[0]
 
 
-def drawings(a, bands, mask_d=MASK_D, gap=12, pxjoin=False):
+def drawings(a, bands, mask_d=MASK_D, gap=12, pxjoin=False, edge=False):
     """the page's drawings, `bands` of them a band, each (mask of it over the page, its box), read in order: top band first, left to right. A pixel is figure
     when a channel is mask_d from the navy, or half that and touching one that is (a dark coat's shadows against the navy: Winters'); a drawing
     is its biggest piece and the pieces within `gap` px of it (a sleeve the mask parted from the body: Casper's) -- by their boxes, or with `pxjoin` by their
     own pixels (a hand reaching into the next frame's box: Madame Ondine Vess's work); a printed word or number is small and short"""
     navy = np.median(a.reshape(-1, 3)[::97], axis=0)
+    if edge:                                                    # (a page the figure fills -- Papa Urtusk's idle and work, near half the page: the median is figure and
+        navy = np.median(np.concatenate([a[:6].reshape(-1, 3), a[-6:].reshape(-1, 3), a[:, :6].reshape(-1, 3), a[:, -6:].reshape(-1, 3)]), axis=0)   # navy, so the navy by the page's edges)
     d = np.abs(a - navy).max(-1)
     strong = ndimage.binary_opening(d > mask_d, structure=np.ones((3, 3)))
     weak = ndimage.binary_opening(d > mask_d / 2.0, structure=np.ones((3, 3)))
@@ -255,6 +260,20 @@ def recolour(rgb, mask, hue, sat):
     return np.clip(np.round(out), 0, 255).astype(np.uint8)
 
 
+def reskin(rgb, fig, hue=80, k=1.0, sat=None, hues=(28, 52), smin=0.18, vmin=0.15, vmax=0.82):
+    """an orc's skin drawn khaki (Papa Urtusk's, ART-123-URTUSK: "green-grey" in the ask, painted at a hue of 35 to 40 that snaps to the stone ramp, an old
+    human's face): the figure's pixels of `hues` (the wool's browns sit below, the white hair and the bone tusks are pale or brighter than vmax) turned to `hue`
+    at k times their own saturation (or at `sat`, one for all: the idle's paler skin snapped half to stone at k), each keeping its value -- so the snap finds the palette's orc ramp, as the art desk's notes ask ("preserve orc skin as orc ramp")"""
+    h, s, v = hsv(rgb)
+    m = fig & (h >= hues[0]) & (h <= hues[1]) & (s >= smin) & (v >= vmin) & (v <= vmax)
+    out = rgb.astype(float).copy()
+    vv = v[m]; ss = np.full(vv.shape, float(sat)) if sat is not None else np.clip(s[m] * k, 0, 1)
+    hh = (hue / 60.0) % 6; i = int(np.floor(hh)); f = hh - i
+    pp, q, t = vv * (1 - ss), vv * (1 - ss * f), vv * (1 - ss * (1 - f))
+    out[m] = np.stack([(vv, t, pp), (q, vv, pp), (pp, vv, t), (pp, q, vv), (t, pp, vv), (vv, pp, q)][i], -1) * 255
+    return np.clip(np.round(out), 0, 255).astype(np.uint8)
+
+
 def ledge_top(piece, box):
     """the top row of a counter drawn under the hands -- a run of rows at the piece's foot whose ends stand within 3 px of its widest foot row,
     wider than the figure above it -- or the piece's foot if there is none (a coat's hem is as wide as the coat)"""
@@ -289,7 +308,7 @@ def cut_person(name):
         a = np.asarray(Image.open(page_path(folder, art, pg, ov.get('pat', '%s_HEAD-1_PAGE-%d.png'))).convert('RGB')).astype(np.int32)
         for bx0, by0, bx1, by1 in ov.get('blank', {}).get(pg, []):
             a[by0:by1, bx0:bx1] = np.median(a.reshape(-1, 3)[::97], axis=0)   # (a printed title touching a head: Winters' ACQUISITION)
-        found = [(piece, box, ledge_top(piece, box)) for piece, box in drawings(a, bands, ov.get('mask_d', MASK_D), ov.get('gap', {}).get(pg, 12), pg in ov.get('pxjoin', ()))]
+        found = [(piece, box, ledge_top(piece, box)) for piece, box in drawings(a, bands, ov.get('mask_d', MASK_D), ov.get('gap', {}).get(pg, 12), pg in ov.get('pxjoin', ()), ov.get('edge', False))]
         if len(found) != len(acts):
             raise SystemExit('%s page %d: %d drawings found, %d wanted' % (name, pg, len(found), len(acts)))
         pages.append((pg, a, found, acts))
@@ -396,6 +415,8 @@ def cut_person(name):
             rgba[..., 3] = keep[top:foot, cx0:cx1] * 255
             if ov.get('recolour'):                               # (a cloth dyed at the cut: Korvin's waistcoat off Percy's brown)
                 rgba[..., :3] = recolour(rgba[..., :3], cloth_mask(rgba[..., :3], keep[top:foot, cx0:cx1]), **ov['recolour'])
+            if ov.get('reskin'):                                 # (an orc's khaki skin turned green at the cut: Papa Urtusk's)
+                rgba[..., :3] = reskin(rgba[..., :3], keep[top:foot, cx0:cx1], **ov['reskin'])
             if act not in raw:
                 raw[act] = []; order.append(act)
             raw[act].append((rgba, hx - cx0, foot - top, bust, foot < y1))
