@@ -114,6 +114,9 @@ PEOPLE = {
     # Warda, Papa and Lucia's daughter, who keeps the Hex's third floor and its keys (10-29, the cutscene cutter seat: the art desk's ART-123-WARDA, as it landed in Fresh
     # behind Papa's) -- her face for the third floor's word and the council's night
     'warda': ('warda/ART-123-WARDA', 'ART-123-WARDA', 'hex:warda', {'edge': True, 'bevel': (2, 3, 4, 5)}),   # (her stills' counter tops bevelled, as Falstaff's)
+    # Ottak Harrow, the council's farmer (10-29, the cutscene cutter seat, on Griz's "harrows in, might as well spin up another cutter for skarn"): the art desk's
+    # ART-123-HARROW -- his face for the council's sittings (C1's "Post it twice.", C2's who's-who)
+    'harrow': ('harrow/ART-123-HARROW', 'ART-123-HARROW', 'council:harrow', {'edge': True, 'reskin': {'hue': 78, 'sat': 0.36, 'hues': (33, 60), 'vmax': 0.75, 'smin': 0.3}, 'avoid': ['red']}),   # (his skin as Papa's, turned to the orc green -- its band narrower, his cream shirt sits just under it)
     # the generic man and the generic woman (10-28 evening, the fourth cutter seat: the art desk's ART-122, on Griz's "as a specific person with each function as a
     # costume/look they have"): one person each, the townsfolk's man and woman (folkman_p1, folkwoman_p1), their own clothes' idle and a still for each costume in
     # place of the named's moods -- js/counter.js C.GENERIC gives each unnamed id its person and costume. A spear, a pole or a scraper held up beside the head

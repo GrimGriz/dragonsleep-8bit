@@ -650,5 +650,11 @@
     'eyes-warda-face-1029': { pri: 2, group: G2, title: 'Warda\'s talking portrait from the art desk\'s ART-123: her idle, the four moods and the ring of keys (10-29)', pt: 'the bestiary, the cutscene cutter seat (tools/portrait-sheet.py pt_warda; deep16/js/counter.js C.VENDORS) · eyes',
       url: 'deep16/?portraits&who=warda&fresh=1029w',
       look: 'Her idle, attentive, welcoming, skeptical, concerned, and her work: the ring of keys lifted, sorted, one picked out. Her word on the third floor stays the first game\'s card for now (she has no line in the council\'s sittings); the face waits for the scene that gives her one.' },
+    'eyes-harrow-night-1029': { pri: 1, group: G2, title: 'Ottak Harrow at the council\'s night: up the spiral, at the long table, and his "Post it twice." on his own face (10-29)', pt: 'Silverton\'s hours and words lane 4.8, the cutscene cutter seat (tools/portrait-sheet.py pt_harrow, tools/keeper-town-sheet.py harrow_p1; deep16/js/counter.js C.VENDORS, C.FIG) · eyes',
+      url: 'deep16/?hoursshow&beat=council1&fresh=1029h',
+      look: 'Your "harrows in, might as well spin up another cutter for skarn": the art desk\'s ART-123-HARROW, cut whole. In the cutscene he comes up the spiral and takes his place at the long table in his own figure (a farmer\'s brown coat over a cream work shirt, iron-grey hair), in place of the plain shape; behind the speaking parts the third floor\'s picture has him there; and "My farms are the first thing a gnoll sees. Post it twice." is on his own face. His skin was painted a khaki olive, as Papa\'s was: the cut turns it to the same orc green, his cream shirt left as drawn. Only the east side\'s man is still the plain shape (C3).' },
+    'eyes-harrow-face-1029': { pri: 2, group: G2, title: 'Ottak Harrow\'s talking portrait from the art desk\'s ART-123: his idle, the four moods and the grain rubbed between his fingers (10-29)', pt: 'the bestiary, the cutscene cutter seat (tools/portrait-sheet.py pt_harrow; deep16/js/counter.js C.VENDORS) · eyes',
+      url: 'deep16/?portraits&who=harrow&fresh=1029h',
+      look: 'His idle, attentive, welcoming, skeptical, concerned, and his work: a pinch of wheat rubbed between thumb and fingers, looked at, let fall. C2\'s who\'s-who ("Harrow. I farm south of the river.") speaks on this face too.' },
   };
 })();

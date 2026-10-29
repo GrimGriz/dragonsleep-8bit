@@ -5984,6 +5984,27 @@
 },
 "source": "drawn by the art desk (ART-14 SE and NE with its two Claws corrections, 10-10; ART-56 S, E and N, 10-20), cut by tools/harpy-sheet.py through tools/artdesk.py (10-28)"
 },
+"harrow_p1": {
+"image": "art/harrow_p1.png?v=df033f0fa0",
+"fw": 37,
+"fh": 53,
+"ax": 18,
+"ay": 51,
+"top": 49,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 37,
+"fh": 53,
+"ax": 18,
+"ay": 51,
+"frames": 14,
+"fps": 4
+}
+},
+"source": "deep16/_src/harrow/ART-123-HARROW/ART-123-HARROW_HEAD-2_PAGE-1.png (the art desk's south idle, 10-21) and PAGE-2 to PAGE-5 (SE, E, NE, N: ART-123-HARROW, 10-29), cut by tools/keeper-town-sheet.py",
+"door": "council:harrow"
+},
 "hask_p1": {
 "image": "art/hask_p1.png?v=2cf6539d7c",
 "fw": 96,
@@ -12709,6 +12730,102 @@ true
 "art": "ART-104",
 "door": "talk:gull",
 "source": "deep16/_src/gull/ART-104 (the art desk's ART-104, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
+},
+"pt_harrow": {
+"image": "art/pt_harrow.png?v=dbcadc90d0",
+"fw": 198,
+"fh": 155,
+"ax": 103,
+"ay": 153,
+"top": 153,
+"portrait": true,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 198,
+"fh": 155,
+"ax": 103,
+"ay": 153,
+"frames": 6,
+"fps": 3,
+"ledge": [
+true,
+true,
+true,
+true,
+true,
+true
+]
+},
+"attentive": {
+"y": 155,
+"fw": 198,
+"fh": 155,
+"ax": 103,
+"ay": 153,
+"frames": 1,
+"fps": 1,
+"ledge": [
+true
+]
+},
+"welcoming": {
+"y": 310,
+"fw": 198,
+"fh": 155,
+"ax": 103,
+"ay": 153,
+"frames": 1,
+"fps": 1,
+"ledge": [
+true
+]
+},
+"skeptical": {
+"y": 465,
+"fw": 198,
+"fh": 155,
+"ax": 103,
+"ay": 153,
+"frames": 1,
+"fps": 1,
+"ledge": [
+true
+]
+},
+"concerned": {
+"y": 620,
+"fw": 198,
+"fh": 155,
+"ax": 103,
+"ay": 153,
+"frames": 1,
+"fps": 1,
+"ledge": [
+true
+]
+},
+"work": {
+"y": 775,
+"fw": 198,
+"fh": 155,
+"ax": 103,
+"ay": 153,
+"frames": 6,
+"fps": 4,
+"ledge": [
+true,
+true,
+true,
+true,
+true,
+true
+]
+}
+},
+"art": "ART-123-HARROW",
+"door": "council:harrow",
+"source": "deep16/_src/harrow/ART-123-HARROW (the art desk's ART-123-HARROW, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
 },
 "pt_hessle": {
 "image": "art/pt_hessle.png?v=540878fd2e",

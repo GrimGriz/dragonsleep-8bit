@@ -102,6 +102,8 @@ KEEPERS = {
     'papa': ('papa/ART-123-URTUSK', 'ART-123-URTUSK', 'npc:papa', {'views': 'ART-123-URTUSK, 10-29', 'tall': 58, 'gap': 6, 'reskin': {'hue': 78, 'sat': 0.36}, 'avoid': ['skin', 'red', 'gold']}),
     # Warda (10-29, the cutscene cutter seat: the art desk's ART-123-WARDA, all five views drawn): in the lounge at the Hex's third floor, behind the council's table
     'warda': ('warda/ART-123-WARDA', 'ART-123-WARDA', 'hex:warda', {'views': 'ART-123-WARDA, 10-29', 'avoid': ['gold', 'fire']}),   # (her olive face snapped to the gold ramp, yellow at 50 px: left out, it keeps to skin and stone)
+    # Ottak Harrow (10-29, the cutscene cutter seat: the art desk's ART-123-HARROW, all five views drawn): at the council's long table (js/hours.js H16.TABLE)
+    'harrow': ('harrow/ART-123-HARROW', 'ART-123-HARROW', 'council:harrow', {'views': 'ART-123-HARROW, 10-29', 'reskin': {'hue': 78, 'sat': 0.36, 'hues': (33, 60), 'vmax': 0.75, 'smin': 0.3}, 'avoid': ['red']}),
 }
 
 
