@@ -3,7 +3,7 @@
    - ABOVE the water (its own squares in the pool) its action is a Slam at anyone in its 10 ft (data/foes.js keeper: DC 15 STR or prone) and its bonus action,
      every round, the WAVE: up the stair's lane toward the party, STR DC 13 or prone; it bounces off the front wall (the Ice Wall's row, else the exit) and the
      backwash sweeps every prone creature 10 ft toward the deep, where "pushed by the wave, you stand up free" -- no movement spent to rise.
-   - WASHED INTO THE DEEP (a map's `deeps`): restrained, and the Keeper pours itself into the water around that one -- AC 10, its bonus action ACTIVE SUFFOCATION.
+   - WASHED INTO THE DEEP (a map's `deeps`): restrained, and the Keeper pours itself into the water around that one -- AC 13 (his own; 10 until 10-28), its bonus action ACTIVE SUFFOCATION.
      Drowning is ours: at the start of the victim's turn 1d6 less its CON bonus (at least 1) while its head is under (not on a `deeps` square); rolled twice after
      an Active Suffocation. A blow to the Keeper in the water is a concentration check (CON, DC 10 or half the damage): lost, the victim is free of the hold but
      still drowning till its head is over water.
@@ -25,8 +25,8 @@
     return K.POSE;
   };
   K.isFight = function (F) { return !!(F && F.id === 'keeper'); }; // (the ladder's `keeper-ladder` is the old fight, unchanged -- its own foe `keeperold` and map `floodstair-old`, data/fights.js: none of this file's rules)
-  K.PROFILE_OLD = { aiScript: '', opener: false, openerDeep: false, partyRetreat: false, wallRounds: 0, stalemateBreak: false, swirlHit: false, drown: '1d6', suffocateDice: null, heldStruggle: false, deepDepth: 1, visible: false, partyOpening: false, openingDrift: false, glow: false, hp: 100, slamAtk: 5, sweepUpFree: true, slamDice: '2d6', slams: 1, waveDC: 13 }; // (the Keeper of before the desk's notes: &old=1. Not the ladder's: `keeper-ladder` is main's own old fight, Constrict and Drag Under -- data/fights.js)
-  K.CFG = { opener: true, openerDeep: true, visible: true, glow: true, glowFt: 10, partyOpening: true, openingDrift: true, openingRounds: 3, hp: 160, wallRounds: 3, aiScript: 'lure', partyRetreat: true, retreatRounds: 3, stalemateBreak: true, swirlHit: true, deepDepth: 2, slamAtk: 6, sweepUpFree: false, slamDice: '3d4', slams: 2, weaponResist: false, swirlAny: false, waveDC: 15, sweep: 2, deepAC: 10, drown: '1d8+1', suffocateDice: '1d6', suffocateBonus: 3, heldStruggle: true, concMin: 10, wallUses: 3, wallHP: 30, wallAC: 12, oaSweep: 1, initBonus: 0, aiCast: true, washNoWall: false, wallStrikeAC: 10, hideAfter: true, iceDC: 7, oaWave: false, freezeNeeds: 'all' }; // (hideAfter: back into the water, unseen, when its turn ends -- Griz 10-03 "he is invisible in water"; iceDC: the save to break out of ice, a bonus action then an action; oaWave: its opportunity attack a wave that pushes the provoker toward the deep -- not ruled, off; freezeNeeds: all four of its squares frozen to hold it (or 'any')) // (sweep: squares of backwash per wave, 2 = 10 ft; Griz 10-03)
+  K.PROFILE_OLD = { aiScript: '', opener: false, openerDeep: false, partyRetreat: false, wallRounds: 0, stalemateBreak: false, swirlHit: false, drown: '1d6', suffocateDice: null, heldStruggle: false, deepDepth: 1, visible: false, partyOpening: false, openingDrift: false, glow: false, hp: 100, slamAtk: 5, sweepUpFree: true, slamDice: '2d6', slams: 1, waveDC: 13, deepAC: 10, lureSafe: false }; // (the Keeper of before the desk's notes: &old=1. Not the ladder's: `keeper-ladder` is main's own old fight, Constrict and Drag Under -- data/fights.js)
+  K.CFG = { opener: true, openerDeep: true, visible: true, glow: true, glowFt: 10, partyOpening: true, openingDrift: true, openingRounds: 3, hp: 160, wallRounds: 3, aiScript: 'lure', partyRetreat: true, retreatRounds: 3, stalemateBreak: true, swirlHit: true, deepDepth: 2, slamAtk: 6, sweepUpFree: false, slamDice: '3d4', slams: 2, weaponResist: false, swirlAny: false, waveDC: 15, sweep: 2, deepAC: 13, lureSafe: true, drown: '1d8+1', suffocateDice: '1d6', suffocateBonus: 3, heldStruggle: true, concMin: 10, wallUses: 3, wallHP: 30, wallAC: 12, oaSweep: 1, initBonus: 0, aiCast: true, washNoWall: false, wallStrikeAC: 10, hideAfter: true, iceDC: 7, oaWave: false, freezeNeeds: 'all' }; // (deepAC 13, his own, and lureSafe, the lure's walk kept out of reach: 10-28, Griz "Take the leans" -- the difficulty lane §3.6, after his "too easy" at level 3: "whirlpool AC 10 may be his fatal flaw, missed his slams - took an aoo coz my stupid 'try to get him to lure them deep' scripting of the AI"; &deepac=10 &luresafe=0 the Keeper of before) // (hideAfter: back into the water, unseen, when its turn ends -- Griz 10-03 "he is invisible in water"; iceDC: the save to break out of ice, a bonus action then an action; oaWave: its opportunity attack a wave that pushes the provoker toward the deep -- not ruled, off; freezeNeeds: all four of its squares frozen to hold it (or 'any')) // (sweep: squares of backwash per wave, 2 = 10 ft; Griz 10-03)
 
   function def() { return (G.map && G.map.def) || {}; }
   function Nm(B, u) { return u.side === 'foe' ? (u.named ? B.shortName(u) : 'The ' + B.shortName(u)) : u.name; }
@@ -377,12 +377,28 @@
   }
   // THE LURE (CFG.aiScript 'lure', bench only -- on the swirler): no one in his reach, it does not come up the stair to them: it draws back toward the sealed door, to the deepest water it can stand in, so the ones who come for it
   // (the melee in their AI, wading after what they can see) come in over the deep, where the swirl needs no reach. Reach: it stays within its water; it never leaves it for the dry steps.
+  // OUT OF REACH (K.CFG.lureSafe; 10-28, Griz "Take the leans", the difficulty lane §3.6): the walk deeper -- the lure's and the opener's end -- takes only a way that leaves no hero's reach,
+  // so the party gets no opportunity attack on it; the deepest such square, or it stays. (Off, the walk of before: the deepest square, the opportunity attacks taken -- his 10-03 "even if
+  // he'll take an AOO", until his 10-06 "took an aoo coz my stupid 'try to get him to lure them deep' scripting of the AI")
+  function walkProvokes(B, u, path) {
+    var cx = u.x, cy = u.y;
+    for (var i = 0; i < path.length; i++) {
+      var nx = path[i][0], ny = path[i][1];
+      if (B.units.some(function (w) { return G.hostile(u, w) && G.standing(w) && RU.canAct(w) && w.reaction > 0 && !(w.weapon && w.weapon.ranged) && G.dist(w, u, null, null, cx, cy) <= G.reachOf(w) && G.dist(w, u, null, null, nx, ny) > G.reachOf(w); })) return true;
+      cx = nx; cy = ny;
+    }
+    return false;
+  }
+  K.walkProvokes = walkProvokes;
   function* lureDeeper(B, u, hs) {
-    var T = u.turn, rm = G.reach(u, T.move), best = null, bs = Infinity, here = K.A(u);
-    Object.keys(rm).forEach(function (k) { var e = rm[k]; if (!e.stand) return; var s = K.A(e) * 10 + e.cost; if (s < bs) { bs = s; best = e; } });
-    if (!best || K.A(best) >= here) return;
-    var path = G.path(rm, best.x, best.y);
-    if (path && path.length) yield* B.moveAlong(u, path, { spend: true });
+    var T = u.turn, rm = G.reach(u, T.move), here = K.A(u);
+    var es = Object.keys(rm).map(function (k) { return rm[k]; }).filter(function (e) { return e.stand && K.A(e) < here; })
+      .sort(function (a, b) { return (K.A(a) * 10 + a.cost) - (K.A(b) * 10 + b.cost); });
+    for (var i = 0; i < es.length; i++) {
+      var path = G.path(rm, es[i].x, es[i].y);
+      if (!path || !path.length || (K.CFG.lureSafe && walkProvokes(B, u, path))) continue;
+      yield* B.moveAlong(u, path, { spend: true }); return;
+    }
   }
   function* above(B, u) {
     var T = u.turn, S = st(B), hs = foesOf(B, u).filter(function (w) { return !w.conds.hidden || G.dist(u, w) <= (u.blindsight || 0); }), reach = G.reachOf(u, u.reach);
@@ -391,7 +407,7 @@
     // only with no one there -- so no wall, no backwash, no deep, no swirl, nine rounds of Slams). Its first turn's action is the wall, cast, whoever is in reach; with no one
     // in reach the opening below stands as it was (READY if it won the initiative, CAST once the party has moved). K.CFG.opener false: the Keeper before it (&old=1)
     // and it ENDS by going as deep as it can (10-03, Griz after playing it from the ledge -- it stood and was flanked to death in five rounds: "add 'moves as deep as he can' to the end of
-    // his opener (even if he'll take an AOO)"): after the wall and the Wave, the deepest water its move reaches, the opportunity attacks taken (K.CFG.openerDeep; &opendeep=0 without it)
+    // his opener (even if he'll take an AOO)"): after the wall and the Wave, the deepest water its move reaches, the opportunity attacks taken (K.CFG.openerDeep; &opendeep=0 without it) -- since 10-28 the deepest it reaches out of every hero's reach (K.CFG.lureSafe, at lureDeeper)
     var opened = false;
     if (!S.opener) { S.opener = true; if (K.CFG.opener && near.length && K.CFG.aiCast && T.action > 0 && !u.flooding && S.uses === K.CFG.wallUses && !S.ready && K.canCastWall(B, u)) { yield* K.castWall(B, u); opened = true; } }
     // THE SWIRLER (CFG.aiScript 'swirl', bench only -- Griz's play: the human Keeper wins when he swirls and Slams, the party when he spends turns on the Wave): a hero on the deep is swirled with the action (no adjacency wanted) and
@@ -696,7 +712,7 @@
   K.SCENES = [
     { id: 'slam', name: 'THE SLAM', words: 'It launches itself as an arcing wave and smashes down on one in its reach (DC 15 STR or prone), then returns into the pool.' },
     { id: 'wave', name: 'THE WAVE', words: 'A bonus action each round: a wave up the stair (STR DC 15 or prone), off the front wall, and the backwash sweeps the prone 10 ft toward the deep: they stay prone, half the move to stand.' },
-    { id: 'pour', name: 'THE POUR', words: 'Swept onto the deep, a hero is restrained and the Keeper pours into the water around it (AC 10); Active Suffocation doubles the drowning.' },
+    { id: 'pour', name: 'THE POUR', words: 'Swept onto the deep, a hero is restrained and the Keeper pours into the water around it (AC ' + K.CFG.deepAC + '); Active Suffocation doubles the drowning.' },
     { id: 'wall', name: 'THE ICE WALL', words: 'Readied, and sprung when one of you moves toward the exit: the water on the stair freezes across, behind you.' },
     { id: 'fire', name: 'FIRE ON THE WALL', words: 'A fire spell whose area takes in a section destroys it at once (not the SRD: the Keeper\'s own).' },
     { id: 'strike', name: 'STRIKING THE WALL', words: 'A weapon or a single-target spell can aim at a section (AC 10). A blow does it no harm; fire, or thunder, destroys the section.' },
@@ -950,6 +966,7 @@
     if (get('hidden') != null) K.CFG.visible = get('hidden') !== '1'; if (get('opening') != null) K.CFG.partyOpening = get('opening') !== '0'; if (get('glow') != null) K.CFG.glow = get('glow') !== '0'; // (hidden=1 the old hidden Keeper, opening=0 the old passive-then-react party, glow=0 no light of his own)
     if (get('hp')) K.CFG.hp = +get('hp'); if (get('wallrounds') != null) K.CFG.wallRounds = +get('wallrounds'); if (get('stale') != null) K.CFG.stalemateBreak = get('stale') !== '0'; if (get('deep')) K.CFG.deepDepth = +get('deep'); if (get('ai') != null) K.CFG.aiScript = get('ai') === 'current' ? '' : get('ai'); if (get('retreat') != null) K.CFG.partyRetreat = get('retreat') !== '0'; // (wallrounds=N the Ice Wall's rounds, 0 never; stale=0 no stalemate breaker; deep=1 the old: only the last step is the deep; ai=swirl the scripted AI Keeper, K.CFG.aiScript)
     if (get('opendeep') != null) K.CFG.openerDeep = get('opendeep') === '1'; // (opendeep=0: its opener ends where it cast the wall, as before 10-03's walk to the deep)
+    if (get('deepac')) K.CFG.deepAC = +get('deepac'); if (get('luresafe') != null) K.CFG.lureSafe = get('luresafe') !== '0'; // (deepac=10 luresafe=0: the Keeper of before 10-28, the deep at AC 10 and its walk deeper taking the opportunity attacks)
     if (get('atk')) K.CFG.slamAtk = +get('atk'); if (get('upfree') != null) K.CFG.sweepUpFree = get('upfree') === '1'; // (atk=6 the Slam's attack bonus; upfree=1 the old backwash that stands the swept up free)
     if (get('drown')) K.CFG.drown = get('drown'); if (get('suff') != null) K.CFG.suffocateDice = get('suff') === '0' ? null : '1d6'; if (get('struggle') != null) K.CFG.heldStruggle = get('struggle') !== '0'; // (drown=1d6 the old dice, suff=0 no immediate Active Suffocation damage, struggle=0 the held hero attacks as before)
     if (get('swirlhit') != null) K.CFG.swirlHit = get('swirlhit') !== '0'; // (swirlhit=0: no 1d6+3 and drowning roll on the swirl itself)
