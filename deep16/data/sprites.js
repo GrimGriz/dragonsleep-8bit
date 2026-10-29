@@ -3008,6 +3008,27 @@
 "source": "deep16/_src/dace/ART-123-DACE/ART-123-DACE_HEAD-2_PAGE-1.png (the art desk's south idle, 10-21) and PAGE-2 to PAGE-5 (SE, E, NE, N: ART-123-DACE, 10-29), cut by tools/keeper-town-sheet.py",
 "door": "npc:dace"
 },
+"dacedisp_p1": {
+"image": "art/dacedisp_p1.png?v=32911d627d",
+"fw": 49,
+"fh": 54,
+"ax": 24,
+"ay": 52,
+"top": 50,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 49,
+"fh": 54,
+"ax": 24,
+"ay": 52,
+"frames": 14,
+"fps": 4
+}
+},
+"source": "deep16/_src/dace/ART-123-DACE-DISPLACEMENT/ART-123-DACE-DISPLACEMENT_HEAD-2_PAGE-1.png (the art desk's south idle, 10-21) and PAGE-2 to PAGE-5 (SE, E, NE, N: ART-123-DACE-DISPLACEMENT, 10-29), cut by tools/keeper-town-sheet.py",
+"door": "npc:dace (the cloak worn as the magic item)"
+},
 "darkmantle_p1": {
 "image": "art/darkmantle_p1.png?v=923c518246",
 "fw": 96,
@@ -12206,6 +12227,102 @@ true
 "art": "ART-123-DACE",
 "door": "npc:dace",
 "source": "deep16/_src/dace/ART-123-DACE (the art desk's ART-123-DACE, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
+},
+"pt_dacedisp": {
+"image": "art/pt_dacedisp.png?v=648e52a1ff",
+"fw": 220,
+"fh": 155,
+"ax": 105,
+"ay": 153,
+"top": 153,
+"portrait": true,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 220,
+"fh": 155,
+"ax": 105,
+"ay": 153,
+"frames": 6,
+"fps": 3,
+"ledge": [
+true,
+true,
+true,
+true,
+true,
+true
+]
+},
+"attentive": {
+"y": 155,
+"fw": 220,
+"fh": 155,
+"ax": 105,
+"ay": 153,
+"frames": 1,
+"fps": 1,
+"ledge": [
+true
+]
+},
+"welcoming": {
+"y": 310,
+"fw": 220,
+"fh": 155,
+"ax": 105,
+"ay": 153,
+"frames": 1,
+"fps": 1,
+"ledge": [
+true
+]
+},
+"skeptical": {
+"y": 465,
+"fw": 220,
+"fh": 155,
+"ax": 105,
+"ay": 153,
+"frames": 1,
+"fps": 1,
+"ledge": [
+true
+]
+},
+"concerned": {
+"y": 620,
+"fw": 220,
+"fh": 155,
+"ax": 105,
+"ay": 153,
+"frames": 1,
+"fps": 1,
+"ledge": [
+true
+]
+},
+"work": {
+"y": 775,
+"fw": 220,
+"fh": 155,
+"ax": 105,
+"ay": 153,
+"frames": 6,
+"fps": 4,
+"ledge": [
+true,
+true,
+true,
+true,
+true,
+true
+]
+}
+},
+"art": "ART-123-DACE-DISPLACEMENT",
+"door": "npc:dace (the cloak worn as the magic item)",
+"source": "deep16/_src/dace/ART-123-DACE-DISPLACEMENT (the art desk's ART-123-DACE-DISPLACEMENT, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
 },
 "pt_davos": {
 "image": "art/pt_davos.png?v=81a214a658",

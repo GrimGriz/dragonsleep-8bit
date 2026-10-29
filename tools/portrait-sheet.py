@@ -131,6 +131,10 @@ PEOPLE = {
     # Corwen Dace, the Guano Galleries' modernizer (10-29, the same seat): the art desk's ART-123-DACE, his grandfather's old cloak plain on his shoulders -- his face for
     # the Galleries' scenes and the deep gallery's (js/mines.js M.talk by C.PT); his work the notebook opened and sketched in, talking all the while
     'dace': ('dace/ART-123-DACE', 'ART-123-DACE', 'npc:dace', {'edge': True, 'bevel': (2, 3, 4, 5)}),
+    # Dace in the cloak of displacement (10-29, the same seat, on Griz's "Dace in Displacement Cloak sprites to follow"; his ask to the art desk, "I also need variants where
+    # his cloak is a cloak of displacement (obviously magical)"): the art desk's ART-123-DACE-DISPLACEMENT, a second look beside the plain one -- the cloak violet with a
+    # blue afterimage of him offset screen-right. Its glow joins the idle's and the work's frames: `ghost` splits them at the real bodies and measures him without it
+    'dacedisp': ('dace/ART-123-DACE-DISPLACEMENT', 'ART-123-DACE-DISPLACEMENT', 'npc:dace (the cloak worn as the magic item)', {'edge': True, 'bevel': (2, 3, 4, 5), 'ghost': {'hues': (205, 285), 'smin': 0.3}, 'untext': {4: [(0, 0, 820, 50)]}}),   # (his skeptical's title, "... DISPLACEMENT SKEPTICAL", ends on his hair)
     # the generic man and the generic woman (10-28 evening, the fourth cutter seat: the art desk's ART-122, on Griz's "as a specific person with each function as a
     # costume/look they have"): one person each, the townsfolk's man and woman (folkman_p1, folkwoman_p1), their own clothes' idle and a still for each costume in
     # place of the named's moods -- js/counter.js C.GENERIC gives each unnamed id its person and costume. A spear, a pole or a scraper held up beside the head
@@ -196,6 +200,41 @@ def drawings(a, bands, mask_d=MASK_D, gap=12, pxjoin=False, edge=False):
     for labs, b in groups:
         piece = ndimage.binary_fill_holes(np.isin(lab, labs))
         out.append((piece, b))
+    out.sort(key=lambda p: (p[1][1] + p[1][3]) / 2.0)
+    rows, k = [], 0
+    for n in bands:
+        rows += sorted(out[k:k + n], key=lambda p: p[1][0]); k += n
+    return rows
+
+
+def ghost_mask(a, g):
+    """a displacement's ghost (Corwen Dace's cloak, ART-123-DACE-DISPLACEMENT: a blue afterimage offset screen-right, its edges a bright blue-violet): the page's
+    pixels of hue g['hues'] at saturation over g['smin'] -- the real cloak is a darker violet past them, the skin, hair and leather warm"""
+    h, s, v = hsv(a)
+    return (h >= g['hues'][0]) & (h <= g['hues'][1]) & (s >= g.get('smin', 0.3))
+
+
+def split_ghosts(a, found, bands, gm, upper=1.0, gap=8):
+    """drawings whose glow joined them (the ghost fills the gutter between frames): each piece split at the gaps between its real bodies -- the figure less the
+    ghost (gm), counted by columns over its top `upper` share (a counter under the hands runs on cell to cell) -- each cut just before the next body begins, so a
+    ghost, which trails screen-right, stays with the body it belongs to"""
+    out = []
+    for piece, box in found:
+        x0, y0, x1, y1 = box
+        real = piece[y0:y0 + int((y1 - y0) * upper), x0:x1] & ~gm[y0:y0 + int((y1 - y0) * upper), x0:x1]
+        body = np.where(real.sum(0) > 3)[0]
+        runs = []
+        for c in body:
+            if runs and c - runs[-1][1] <= gap:
+                runs[-1][1] = c
+            else:
+                runs.append([c, c])
+        runs = [r for r in runs if r[1] - r[0] > 40]                # (a body is wide; a stray thread of the counter or a fleck is not)
+        cuts = [x0] + [x0 + r[0] - 2 for r in runs[1:]] + [x1]
+        for c0, c1 in zip(cuts[:-1], cuts[1:]):
+            sub = piece.copy(); sub[:, :c0] = False; sub[:, c1:] = False
+            ys, xs = np.where(sub)
+            out.append((sub, (xs.min(), ys.min(), xs.max() + 1, ys.max() + 1)))
     out.sort(key=lambda p: (p[1][1] + p[1][3]) / 2.0)
     rows, k = [], 0
     for n in bands:
@@ -332,7 +371,12 @@ def cut_person(name):
         a = np.asarray(Image.open(page_path(folder, art, pg, ov.get('pat', '%s_HEAD-1_PAGE-%d.png'))).convert('RGB')).astype(np.int32)
         for bx0, by0, bx1, by1 in ov.get('blank', {}).get(pg, []):
             a[by0:by1, bx0:bx1] = np.median(a.reshape(-1, 3)[::97], axis=0) if not ov.get('edge') else np.median(np.concatenate([a[:6].reshape(-1, 3), a[:, :6].reshape(-1, 3)]), axis=0)   # (a printed title touching a head: Winters' ACQUISITION; with `edge`, the navy by the page's edges -- Skarn's counters run cell to cell)
-        found = [(piece, box, ledge_top(piece, box)) for piece, box in drawings(a, bands, ov.get('mask_d', MASK_D), ov.get('gap', {}).get(pg, 12), pg in ov.get('pxjoin', ()), ov.get('edge', False))]
+        for bx0, by0, bx1, by1 in ov.get('untext', {}).get(pg, []):   # (a printed title's white letters on a strand of hair, where a box would cut the hair: Dace's skeptical, ART-123-DACE-DISPLACEMENT)
+            box = a[by0:by1, bx0:bx1]; box[box.min(-1) > 170] = np.median(np.concatenate([a[:6].reshape(-1, 3), a[:, :6].reshape(-1, 3)]), axis=0)
+        dr = drawings(a, bands, ov.get('mask_d', MASK_D), ov.get('gap', {}).get(pg, 12), pg in ov.get('pxjoin', ()), ov.get('edge', False))
+        if ov.get('ghost'):                                      # (a ghost's glow joining the frames: split at the real bodies -- Dace's cloak of displacement)
+            dr = split_ghosts(a, dr, bands, ghost_mask(a, ov['ghost']), upper=0.95)   # (0.95: the satchel hangs low on the next frame's left, the counter is under that)
+        found = [(piece, box, ledge_top(piece, box)) for piece, box in dr]
         if len(found) != len(acts):
             raise SystemExit('%s page %d: %d drawings found, %d wanted' % (name, pg, len(found), len(acts)))
         pages.append((pg, a, found, acts))
@@ -408,6 +452,7 @@ def cut_person(name):
         k = dst.std(0) / np.maximum(src.std(0), 1e-6)
         a[...] = np.clip(np.round((a - src.mean(0)) * k + dst.mean(0)), 0, 255).astype(a.dtype)
     for pg, a, found, acts in pages:
+        gm = ghost_mask(a, ov['ghost']) if ov.get('ghost') else None
         for (piece, box, foot), act in zip(found, acts):
             x0, y0, x1, y1 = box
             keep = piece.copy(); keep[foot:, :] = False
@@ -423,12 +468,14 @@ def cut_person(name):
                     if len(big): keep &= ~np.isin(lb, big)
             ys, xs = np.where(keep)
             top = ys.min()
-            bust = foot - top
-            head = keep[top:top + int(bust * 0.22)]
+            meas = keep & ~gm if gm is not None else keep           # (the real body's measure, its ghost left out: the bust, the head, the anchor -- the cut keeps both)
+            mtop = np.where(meas.any(axis=1))[0].min()
+            bust = foot - mtop
+            head = meas[mtop:mtop + int(bust * 0.22)]
             if ov.get('propfree'):                               # (the head's own top: the figure over the torso's middle, a raised prop beside it left out of the measure)
-                lo = np.where(keep[(top + foot) // 2:foot])[1]
+                lo = np.where(meas[(top + foot) // 2:foot])[1]
                 mid, half = np.median(lo), 0.16 * (lo.max() - lo.min())
-                win = keep.copy(); win[:, :max(0, int(mid - half))] = False; win[:, int(mid + half):] = False
+                win = meas.copy(); win[:, :max(0, int(mid - half))] = False; win[:, int(mid + half):] = False
                 htop = np.where(win.any(axis=1))[0].min()
                 bust = foot - htop
                 head = win[htop:htop + int(bust * 0.22)]

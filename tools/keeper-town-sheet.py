@@ -115,7 +115,10 @@ KEEPERS = {
     # bald crown's highlight snapped gold, a yellow cap: left out there alone)
     # Corwen Dace (10-29, the same seat: the art desk's ART-123-DACE, all five views drawn, NE and N from behind): in the Galleries' mouth where the first game stands
     # him (content/maps/galleries_g1.json `dace`); in a fight, as the party's guest, he keeps the class floor's wizard (js/save.js SV.LOOK) -- these are an idle's only
-    'dace': ('dace/ART-123-DACE', 'ART-123-DACE', 'npc:dace', {'views': 'ART-123-DACE, 10-29', 'avoid': ['red', 'fire']}),   # (his satchel's red-brown leather flecked the reds, blood spots at 50 px: left out, it keeps to leather)
+    'dace': ('dace/ART-123-DACE', 'ART-123-DACE', 'npc:dace', {'views': 'ART-123-DACE, 10-29', 'avoid': ['red', 'fire']}),   # (his satchel's red-brown leather flecked the reds, blood spots at 50 px: left out, it keeps to leather)
+    # Dace in the cloak of displacement (10-29, the same seat: the art desk's ART-123-DACE-DISPLACEMENT, a second look beside the plain one, all five views): the ghost's
+    # glow joins the S and SE frames -- `ghost` splits them at the real bodies, and his height, his feet and his crown are the real body's, the afterimage beside him kept
+    'dacedisp': ('dace/ART-123-DACE-DISPLACEMENT', 'ART-123-DACE-DISPLACEMENT', 'npc:dace (the cloak worn as the magic item)', {'views': 'ART-123-DACE-DISPLACEMENT, 10-29', 'avoid': ['red', 'fire'], 'ghost': {'hues': (205, 285), 'smin': 0.3}}),
 }
 
 
@@ -142,16 +145,23 @@ def page(name, path, ov, pg=1):
     for a keeper whose dye is a page's own (`dye`: {page: 'brown' for the brown cloth's mask, or (top, hem) for the grey cloth's}; without it every page dyed)"""
     a = np.asarray(Image.open(path).convert('RGB')).astype(np.int32)
     found = PS.drawings(a, [4], gap=ov.get('gap', 12))              # (a keeper's own `gap`: Papa Urtusk's frames stand 12 px apart on his S page)
+    gm = PS.ghost_mask(a, ov['ghost']) if ov.get('ghost') else None
+    if gm is not None:                                                # (a ghost's glow joining the frames: split at the real bodies -- Dace's cloak of displacement)
+        found = PS.split_ghosts(a, found, [4], gm)
     if len(found) != 4:
         raise SystemExit('%s: %d drawings found, 4 wanted' % (name, len(found)))
     raw = []
     for piece, box in found:
+        if gm is not None:                                            # (the real body's feet are the frame's foot: a ghost's below them cut off, so he stands on his own)
+            rf = np.where((piece & ~gm).any(axis=1))[0].max() + 1; piece = piece.copy(); piece[rf:] = False
         ys, xs = np.where(piece)
         top, foot = ys.min(), ys.max() + 1
-        low = piece[foot - max(3, (foot - top) // 12):foot]
+        meas = piece & ~gm if gm is not None else piece               # (his height and his feet's middle by the real body, the ghost left out of the measure)
+        mtop = np.where(meas.any(axis=1))[0].min()
+        low = meas[foot - max(3, (foot - mtop) // 12):foot]
         fx = np.where(low)[1].mean()                                  # (the feet's middle: the figure stands there)
         x0, x1 = xs.min(), xs.max() + 1
-        tall = foot - top
+        tall = foot - mtop
         if ov.get('prop'):                                            # (a prop planted beside the figure, its tip over the head -- Skarn's spear, ART-123-SKARN: the shaft
             body = ndimage.binary_opening(piece[top:foot, x0:x1], structure=np.ones((1, ov['prop'])))   # opened out `prop` px wide, the body the biggest piece left;
             lb, nb = ndimage.label(body); body = lb == 1 + int(np.argmax(ndimage.sum(body, lb, range(1, nb + 1))))   # the crown over the head's own columns and the
@@ -173,16 +183,16 @@ def page(name, path, ov, pg=1):
             rgba[..., :3] = PS.reskin(rgba[..., :3], piece[top:foot, x0:x1], **ov['reskin'])
         if ov.get('sat', {}).get(pg):                                 # (a page's own: {page: (top, bottom, k)} -- Mela's SE skirt)
             t0, t1, k0 = ov['sat'][pg]; rgba[..., :3] = sat_band(rgba[..., :3], piece[top:foot, x0:x1], (t0, t1), k0)
-        raw.append((rgba, fx - x0, tall, (hc.min(), hc.max() + 1) if ov.get('prop') else None))
+        raw.append((rgba, fx - x0, tall, (hc.min(), hc.max() + 1) if ov.get('prop') else None, mtop - top))
     k = ov.get('tall', TALL) / float(np.median([r[2] for r in raw]))   # (a keeper's own `tall`: Papa Urtusk's 58)
     small = []
-    for rgba, fx, h, hcol in raw:
+    for rgba, fx, h, hcol, gtop in raw:
         im = Image.fromarray(rgba, 'RGBA').convert('RGBa')
         w2, h2 = max(1, round(rgba.shape[1] * k)), max(1, round(rgba.shape[0] * k))
         im = im.resize((w2, h2), Image.BOX).convert('RGBA')
         av = ov.get('avoid'); av = av.get(pg) if isinstance(av, dict) else av   # (a keeper's `avoid` can be a page's own: {page: ramps})
         px = pix.pixelate(im, 1, do_lift=False, avoid=av)  # (the outline adds a pixel all round)
-        hh = px.shape[0]
+        hh = px.shape[0] - int(round(gtop * k))                       # (gtop: a ghost standing over his crown -- his height to his own)
         if hcol:                                                      # (with a prop: his height to his own crown's outline, over his head's columns)
             hh -= np.where(px[:, int(hcol[0] * k) + 1:int(np.ceil(hcol[1] * k)) + 1, 3].any(axis=1))[0][0]
         small.append((px, fx * k + 1, hh))
@@ -218,7 +228,7 @@ def cut(name):
     os.makedirs(ART, exist_ok=True)
     Image.fromarray(sheet, 'RGBA').save(os.path.join(ART, name + '_p1.png'), optimize=True)
     tops = [np.where(f[..., 3].any(axis=1))[0][0] for f in frames]
-    if ov.get('prop'):
+    if ov.get('prop') or ov.get('ghost'):
         tops = [ay + 1 - h for px, fx, h in faces[0]]                 # (his crown, not the spear's tip: the town's marks over his head, the bench's height bound)
     idle ={'y': 0, 'fw': fw, 'fh': fh, 'ax': ax, 'ay': ay, 'frames': len(SEQ), 'fps': FPS}
     if len(rows) == 1:
@@ -235,7 +245,7 @@ def cut(name):
         print('  %s_p1: %dx%d a frame, stands %d above the foot (%d tall with the outline), %d wide; idle %d frames from 4 drawn, S only, under %s' % (name, fw, fh, meta['top'], meta['top'] + 1, wide, len(SEQ), UNDER))
     else:
         print('  %s_p1: %dx%d a frame, all eight facings (S SE E NE N drawn, SW W NW mirrored); idle %d frames from 4 drawn; tall S %d, SE %d, E %d, NE %d, N %d' % (name, fw, fh, len(SEQ),
-              *[ay + 1 - np.where(rows[f][0][..., 3].any(axis=1))[0][0] if not ov.get('prop') else faces[f][0][2] for f in (0, 7, 6, 5, 4)]))
+              *[ay + 1 - np.where(rows[f][0][..., 3].any(axis=1))[0][0] if not (ov.get('prop') or ov.get('ghost')) else faces[f][0][2] for f in (0, 7, 6, 5, 4)]))
     return frames, meta
 
 
