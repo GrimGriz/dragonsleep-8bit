@@ -510,10 +510,12 @@
         var cl = c.sheet === 'cloaker_p2';
         yield { scene: { who: c, anim: cl ? 'reveal' : null, animAt: 70, morph: cl ? { from: 'roost', at: 58, dur: 12 } : null, scale: 1.3, frames: cl ? 200 : 130, hit: true, caption: 'THE DARTS FIND IT.' } };
         yield { scene: { who: c, face: true, faceAt: 0.37, zoomFrom: 1.3, morph: cl ? { from: 'reveal', hold: true, at: 6, dur: 36 } : null, scale: 3, frames: 210, tone: 'red', clip: 'audio/the_darkness_attacks_back.mp3', caption: 'AND THE DARKNESS ATTACKS BACK.' } };
-        // and not a dive: it moans (the phantasm heads, #8 of the cloak sheet) -- the real Moan, WIS or frightened, spent here so it doesn't repeat
-        var MO = c.moan;
-        yield { scene: { who: c, over: { anim: 'moan', alpha: 0.7 }, facing: 0, scale: 2.2, frames: 120, tone: 'red', caption: 'IT MOANS.' } };
-        if (MO && !c.dead && c.hp > 0) {
+        // and not a dive: it moans (the phantasm heads, #8 of the cloak sheet) -- the real Moan, WIS or frightened, spent here so it doesn't repeat; and only while it is unspent
+        // (10-29, his play record: the cloaker moaned on its own turn at the top of the round, then again as the darts found it, all four saving twice -- the SRD's Moan is
+        // its action, once, no recharge)
+        var MO = c.moan, unspent = !!(MO && MO.ready);
+        if (unspent || !MO) yield { scene: { who: c, over: { anim: 'moan', alpha: 0.7 }, facing: 0, scale: 2.2, frames: 120, tone: 'red', caption: 'IT MOANS.' } };
+        if (MO && unspent && !c.dead && c.hp > 0) {
           MO.ready = false; D.sfx('encounter');
           var ml = ['{r}' + c.name + '{/} ' + (MO.text || 'moans. The sound gets inside you.') + '  WIS DC ' + MO.dc];
           B.units.filter(function (w) { return G.hostile(c, w) && G.standing(w) && G.range(c, w) <= (MO.range || 60); }).forEach(function (w) {

@@ -30,11 +30,14 @@
     galleries: { src: 'galleries_g1', door: 'mouth', place: 'The Guano Galleries', sub: 'the mouth', save: true, out: 'world',
       gates: { east: [34, 21, [-1, 0]], south: [17, 22, [0, -1]], west: [1, 21, [1, 0]] }, // (THE WORLD's site: the road in from the junction east, a step inside each edge)
       doors2: [{ id: 'keeper:galbunk', x: 3, y: 12 }] }, // (the second game's own door in the first game's wall: the hands' bunkhouse, M.INNS -- M.floor lays it, the first game's map unwritten)
-    galleries_g2: { src: 'galleries_g2', place: 'The Guano Galleries', sub: 'the working gallery', save: false },
+    // (over: the second game's own squares over the first game's, by the flags -- M.over8; dark and lamps: the working gallery lit only from the mouth -- M.MOUTHLIGHT)
+    galleries_g2: { src: 'galleries_g2', place: 'The Guano Galleries', sub: 'the working gallery', save: false, dark: true, lamps: true,
+      over: function (f) { return f.slideFound ? [] : [[28, 3, 'guanoDeep']]; } }, // (the slide's lip the guano round it till the party has gone down it: M.SLIDE)
     galleries_g3: { src: 'galleries_g3', place: 'The Guano Galleries', sub: 'the dens', save: false },
     // the hole floor (10-28, the deep gallery seat, started by the lanes desk on Griz's "have we connected the 3rd level fight and the Dace plotline to the guano mine on
     // main yet?"; his five, "all 5 leans, but put the guests in the party token (not follow behind)"): bare rock under the dens, no roost -- a light is lawful -- and the cloaker
-    galleries_g4: { src: 'galleries_g4', place: 'The Guano Galleries', sub: 'the deep gallery', save: false, iso: true }, // (iso: on the grid's diamonds as the Wet, 10-29 -- ON THE DIAMONDS)
+    galleries_g4: { src: 'galleries_g4', place: 'The Guano Galleries', sub: 'the deep gallery', save: false, iso: true, // (iso: on the grid's diamonds as the Wet, 10-29 -- ON THE DIAMONDS)
+      over: function () { return [[3, 2, 'caveWall']]; } }, // (no ladder up out of the slide's foot: M.SLIDE)
     // the Glowseep (10-21 night, Griz to the desk: "Go on the Glowseep - run with its leans for all, including the time-slowing but that might be adjusted. Thematically
     // correct"): no first game's map -- the seat's own (M.SEEP), for his paint later; THE WORLD's site 'glowseep', in from the mile
     glowseep: { src: 'glowseep', own: true, door: 'glowseep', place: 'The Glowseep', sub: 'the light-crews\' ground by the mile', save: true, out: 'world', clock: true, edges: true,
@@ -65,13 +68,43 @@
   var OPENCH = '.,gr~do=';
   M.FACE = { up: [0, -1], down: [0, 1], left: [-1, 0], right: [1, 0] };
 
+  // the second game's own squares over the first game's map, by name, the map itself unwritten (a copy of its rows): a floor's `over(flags)` gives [x, y, name] -- the slide's
+  // lip hidden as the guano round it till the party has gone down it, the slide's foot rock where the first game stood a ladder up out of it (M.SLIDE). A way on a square made
+  // rock is shut with it (M.floor's warps)
+  M.over8 = function (F, m8, flags) {
+    var r8 = m8.rows, ov = F.over ? F.over(flags || {}) : []; if (!ov.length) return r8;
+    var leg = m8.legend, chOf = function (nm) { return Object.keys(leg).filter(function (k) { return leg[k] === nm; })[0]; };
+    r8 = r8.slice(); ov.forEach(function (o) { var ch = chOf(o[2]), r = r8[o[1]]; if (ch && r) r8[o[1]] = r.slice(0, o[0]) + ch + r.slice(o[0] + 1); });
+    return r8;
+  };
+  // THE SLIDE (10-29, Griz's NOTES from the working gallery: "tile that leads to guano slide shouldn't look like a hole in the ground (is surprise shortcut) until after triggered,
+  // shouldn't be a ladder up out of it (on the guano slide side of cloaker level roam)"): the module's G2, "the floor dips into the guano-slide: a chute of loose guano that a
+  // careless step goes down" (TarlynsPit/GalleriesModule/guano-galleries-DM.md). Its lip is the guano round it till the party has gone down it once (flag slideFound), then the
+  // hole it is; the way down said on a pop-up on the floor below (M.go's `fall`, as a pit's); and its foot in the deep gallery a fan of guano under rock, no ladder up
+  M.SLIDE = { title: 'THE GUANO-SLIDE' };
+  // THE WORKING GALLERY'S LIGHT (10-29, his NOTES there: "lanterns and brightness seem weird here (only from cave mouth)"): the first game drew the working gallery lit through
+  // and its lamp posts lit with nothing to light. The module's G2: "One big cavern under a roosted ceiling ... There are no lamps on the scrape floor itself; hooded lamps only,
+  // carried", and "the hooded lamp-line running into" the passage east. So the floor is dark (a floor's `dark`), lit from the mouth by day -- the daylight down its passage
+  // from the south, dim at dawn and dusk, none by night (the dusk river) -- and by hooded lamps (a floor's `lamps`): each lamp-line post and each hand on the floor a hooded
+  // lantern, the SRD's hood down, "dim light in a 5-foot radius"
+  M.MOUTHLIGHT = { galleries_g2: { at: [17, 27], day: [20, 20], dusk: [0, 20] } }; // (the mouth's end of the passage in: [bright, dim] ft by day and at dawn and dusk)
+  M.HOODED = { bright: 0, dim: 5 };
+  M.lampLights = function (key, F, names, people, hour) {
+    if (!F.lamps) return null;
+    var out = [], ML = M.MOUTHLIGHT[key], tod = W8tod(hour), lamp = function (id, x, y) { out.push({ id: id, kind: 'map', x: x, y: y, bright: M.HOODED.bright, dim: M.HOODED.dim, color: 'fire', flame: true, seep: true }); };
+    if (ML && tod !== 'night') { var bd = tod === 'dawn' || tod === 'dusk' ? ML.dusk : ML.day; out.push({ id: 'mouthlight', kind: 'map', x: ML.at[0], y: ML.at[1], bright: bd[0], dim: bd[1], color: 'bone', flame: false, seep: true }); }
+    names.rows.forEach(function (r, y) { for (var x = 0; x < r.length; x++) if (names.legend[r.charAt(x)] === 'lantern') lamp('lampline' + x + '_' + y, x, y); });
+    people.forEach(function (p) { lamp('handlamp_' + p.id, p.at[0], p.at[1]); });
+    return out;
+  };
+
   // ---------------------------------------------------------------- a floor from the first game's map: deep16/?roam=<key> (js/roam.js R.make)
   // &gate=<one of the floor's gates> or &at=x,y (&face=dx,dy): where the party stands
   M.floor = function (key, q, flags, hour) {
     q = q || ''; flags = flags || {};
     if (flags === D.roam.flags0 && /[?&]guest=[a-z,]*\bdace\b/.test(q) && !flags.daceDone) flags.daceWith = 1; // (the test door's Dace in the token: not stood by the beam too, as the door first lays it -- M.guestIn)
     var F = M.FLOORS[key], iso = M.isoView(F, q); if (hour == null) hour = M.hourNow(q);
-    var m8 = F.own ? (F.map || M.seepMap)(hour, flags) : DS.DATA.maps[F.src], leg = m8.legend, r8 = m8.rows, w = r8[0].length, h = r8.length;
+    var m8 = F.own ? (F.map || M.seepMap)(hour, flags) : DS.DATA.maps[F.src], leg = m8.legend, r8 = M.over8(F, m8, flags), w = r8[0].length, h = r8.length;
     var add2 = {}; (F.doors2 || []).forEach(function (d) { add2[d.x + ',' + d.y] = 'door'; }); // (a door of the second game's in a wall of the first's: M.FLOORS doors2)
     var nm = function (x, y) { return x < 0 || y < 0 || x >= w || y >= h ? 'void' : add2[x + ',' + y] || leg[r8[y].charAt(x)] || 'void'; };
     var g = [], lk = [], y, x;
@@ -133,7 +166,8 @@
     var walkable = function (c) { return OPENCH.indexOf(c) >= 0 && c !== 'D' && c !== '~'; };
     for (y = 0; y < h; y++) for (x = 0; x < w; x++) { var sd = side(x, y); if (sd && (ex[sd] || F.edges) && (F.edges ? OPENCH.indexOf(g[y][x]) >= 0 && g[y][x] !== 'D' : walkable(g[y][x]))) { ways.push([x, y]); wayName[x + ',' + y] = F.edges ? 'the ' + sd + ' edge' : F.out === 'silverton' ? 'the feed track: back over the bridge to Silverton' : 'out to the ' + sd + ', onto the road'; } } // (the rim of an `edges` floor: every square the party can stand on, its shallow pools too)
     (m8.warps || []).forEach(function (wp) {
-      warps.push({ at: [wp.x, wp.y], to: wp.to, tx: wp.tx, ty: wp.ty, dir: wp.dir, cond: wp.cond || null });
+      if (g[wp.y] && g[wp.y][wp.x] === '#') return; // (a way the second game shut, its square rock again: M.over8)
+      warps.push({ at: [wp.x, wp.y], to: wp.to, tx: wp.tx, ty: wp.ty, dir: wp.dir, cond: wp.cond || null, slide: !!wp.slide });
       if (!ways.some(function (q2) { return q2[0] === wp.x && q2[1] === wp.y; })) ways.push([wp.x, wp.y]);
       wayName[wp.x + ',' + wp.y] = 'the way to ' + (((DS.DATA.maps[wp.to] || {}).name) || wp.to).replace(/^The /, 'the ');
     });
@@ -148,8 +182,8 @@
     Object.keys(F.gates || {}).forEach(function (k) { marks.gates[k] = F.gates[k].slice(0, 2); });
     var rows = g.map(function (r) { return r.join(''); }), id = function (a, b) { return [a, b]; };
     var def = D.MAPS[key] = {
-      name: F.place, sub: F.sub, key: key, door: F.door || null, mine: true, town: true, wet: false, dark: !!m8.dark, ground: iso && M.groundOf({ key: key }) === 'cave' ? null : 'earth', step: 10, // (dark: the dens and the workings, the party's own light -- js/light.js; the Glowseep by night) (ground: on the diamonds a cave's floor is the Wet's stone -- ON THE DIAMONDS)
-      clock: !!F.clock, hour: hour, ownLights: m8.lights || null, // (the Glowseep: THE WORLD's clock moves as the party walks and fights there -- M.SEEP; its poles and moss lit by night)
+      name: F.place, sub: F.sub, key: key, door: F.door || null, mine: true, town: true, wet: false, dark: !!(m8.dark || F.dark), ground: iso && M.groundOf({ key: key }) === 'cave' ? null : 'earth', step: 10, // (dark: the dens and the workings, the party's own light -- js/light.js; the Glowseep by night) (ground: on the diamonds a cave's floor is the Wet's stone -- ON THE DIAMONDS)
+      clock: !!F.clock, hour: hour, ownLights: m8.lights || M.lampLights(key, F, { rows: r8, legend: leg }, people, hour), // (the working gallery's mouth and hooded lamps: M.MOUTHLIGHT) (the Glowseep: THE WORLD's clock moves as the party walks and fights there -- M.SEEP; its poles and moss lit by night)
       view: iso ? null : 'top', iso: iso, page: iso && w * h > M.ISOPAGE ? true : undefined, ft: 30, roofs: T.roofsAt(30), slope: slope.map(function (r) { return r.join(''); }), look: lk.map(function (r) { return r.join(''); }), signs: signs, signDoor: signDoor, faceDoors: {},
       rows: rows, w: w, h: h, entry: [at], face: face, gate: gq || null, stairUp: [], doors: ways, marks: marks, people: people, foes: [], warps: warps, out: F.out || null, save: !!F.save,
       deepWater: 'D', music: m8.music || 'field', wayName: wayName, roost: !!m8.roost, edges: !!F.edges, // (roost: the first game's roosted ceiling -- the working gallery, the dens: M.fieldDef)
@@ -277,14 +311,17 @@
       var st = D.counter.state(B), lit = M.alight(st), burn = M.burning(B);
       if (lit.length || burn.length) { var ok = yield* M.talk(B, 'ottilie', function (sc) { return M.roostDoor(sc, B, lit, burn); }); if (!ok) { M.stepBack(B); return; } }
     }
+    if (wp.slide) { B.roam.flags.slideFound = 1; yield* M.go(B, key, [wp.tx, wp.ty], M.FACE[wp.dir] || null, null, { title: M.SLIDE.title, lines: [].concat(L('g.slide')) }); return; } // (the slide found, and said on the floor it lands on: M.SLIDE)
     yield* M.go(B, key, [wp.tx, wp.ty], M.FACE[wp.dir] || null);
   };
   // the token a step back off a way it did not take
   M.stepBack = function (B) { var R0 = B.roam, t = R0.token, f = R0.fw; if (D.grid.canStand(t, t.x - f[0], t.y - f[1])) { t.x -= f[0]; t.y -= f[1]; t.tween = null; R0.path = null; D.grid.setup(B.map, B.units); B.focus(t); } };
   // to another of these floors: the house's party handed into the save and walked on (js/house.js H.fromFloor, as a town's door is); the test door's four carry the floor's flags
-  M.go = function* (B, key, at, face, lines) {
+  // (fall: { title, lines } -- a way down not walked, a pit's or the slide's: no stair's card on the floor left, and on the floor below a pop-up says it, OK'd to finish it, before
+  // the floor's own hello -- 10-29, Griz's NOTES from the deep gallery: "pop-up on level where you fall through with fall through text, ok'd to finish fall through")
+  M.go = function* (B, key, at, face, lines, fall) {
     var R = D.roam, H = D.house, q = '?roam=' + key + '&at=' + at[0] + ',' + at[1] + (face ? '&face=' + face[0] + ',' + face[1] : ''), F = M.FLOORS[key] || M.ROAMS[key];
-    B.card(['{y}' + F.place + '{/} -- ' + F.sub + '.'], 60); D.sfx('stairs'); yield 20;
+    if (fall) { D.sfx('miss'); yield 20; } else { B.card(['{y}' + F.place + '{/} -- ' + F.sub + '.'], 60); D.sfx('stairs'); yield 20; }
     var back = M.giveBack(B, key), nb;
     // (into the Wet: the first game's way it faces, by name -- the Wet's grid is turned, and js/roam.js R.setup reads the 8-bit's compass off it)
     var dir8 = M.ROAMS[key] && face ? Object.keys(M.FACE).filter(function (k) { return M.FACE[k][0] === face[0] && M.FACE[k][1] === face[1]; })[0] || null : null;
@@ -306,9 +343,15 @@
       });
       if (hands.length && R.def.roost) roostL = R.roostLights(this).slice(1); // (under the roost, a hood still up goes down: R.roostLights)
       if (say.length || roostL.length) this.card(R.wrap(say.concat(roostL)), 300); // (said as the floor comes up -- it may bake first: core.js D.push)
+      if (fall) { var self2 = this, co0 = this.co; this.co = (function* () { yield* M.fallPop(self2, fall); yield* co0; })(); } // (the fall's pop-up first, then the floor's own: M.go)
     };
     D.push(nb);
     return nb;
+  };
+  M.fallPop = function* (B, fall) {
+    var R0 = B.roam; yield 30; // (the floor in sight under it first)
+    D.sfx('popup');
+    yield { prompt: { who: R0.token, title: fall.title, lines: D.roam.wrap(fall.lines), opts: [{ label: 'OK', value: 0 }] } };
   };
   M.off = function (B) { while (D.scenes.length && D.top() !== B) D.pop(); if (D.top() === B) D.pop(); }; // (the floor and anything over it)
   // the test door's next floor (no house): a fresh four, the floor's flags carried over whole (js/roam.js R.flags0) and the floor laid again by them, its pack and purse with it
@@ -626,11 +669,13 @@
     B.card(D.roam.wrap(['{y}Corwen Dace{/}'].concat(M.words(B, 'dacedown'), [M.LINES.daceShaft])), 420); D.sfx('popup'); yield 20;
   };
   // the dens' pits (S.pit): the floor goes, 1d6 each and never below 1 (a guest too), and the party lands in the deep gallery
+  // (said on the deep gallery's pop-up, each one's hurt with it: M.go's fall)
   M.pit = function* (B) {
-    D.sfx('miss');
-    B.roam.members.forEach(function (u) { if (u.hp > 0) u.hp = Math.max(1, u.hp - D.roll('1d6').total); });
-    yield* M.go(B, 'galleries_g4', M.PIT_AT, M.FACE.down, [].concat(L('g3.pit')));
+    var hurt = [];
+    B.roam.members.forEach(function (u) { if (u.hp <= 0) return; var r = D.roll('1d6').total, h0 = u.hp; u.hp = Math.max(1, u.hp - r); hurt.push(u.name + ' ' + (h0 - u.hp)); });
+    yield* M.go(B, 'galleries_g4', M.PIT_AT, M.FACE.down, null, { title: M.PIT_TITLE, lines: [].concat(L('g3.pit'), hurt.length ? ['{r}The fall (1d6 each, none below 1 hit point){/}: ' + hurt.join(', ') + '.'] : []) });
   };
+  M.PIT_TITLE = 'THE FLOOR GIVES WAY';
   // a guest the party swore to bring back, down in a fight just ended (js/battle.js's `vital`: the fight ends 'lost' on it)
   M.vitalDown = function (b) { return !!(b && (b.units || []).some(function (u) { return u.vital && u.side === 'party' && (u.dead || u.hp <= 0); })); };
   // THE CLOAKER (the first game's S.cloaker; RULED 10-28, Griz: "all 5 leans" -- the story's own cloaker, its grip and its egg, as ruled 10-06: "Story Cloaker is riding as is for
@@ -742,7 +787,16 @@
     var foes = simple ? D.simple.seat(list) : D.world.seat(list).map(function (f) { return Object.assign({}, f, { at: [f.at[0] + Gd.dx, f.at[1] + Gd.dy] }); });
     var foot = function (f) { var s = Math.max(1, Math.min(3, (D.FOES[f.kind] && D.FOES[f.kind].size) || 1)), out = []; for (var j = 0; j < s; j++) for (var i = 0; i < s; i++) out.push([f.at[0] + i, f.at[1] + j]); return out; };
     var stand = entry.concat([].concat.apply([], foes.map(foot))), need = [];
-    if (simple) stand.forEach(function (q) { need.push(q, [q[0] + (q[0] > D.simple.C[0] ? -1 : 1), q[1]]); }); // (each one's square and the one before it toward the other side: a blow is struck from beside)
+    if (simple) {
+      stand.forEach(function (q) { need.push(q, [q[0] + (q[0] > D.simple.C[0] ? -1 : 1), q[1]]); }); // (each one's square and the one before it toward the other side: a blow is struck from beside)
+      // and the ground between the two lines, across every row they stand in (10-29, Griz's NOTES from the dens: "look at making the chambers on the second level larger (for
+      // when encounters happen in them)" -- a fight in a den's chamber or the dens' way stood the two lines in pockets of floor in the rock, and his giant bats "paced: it cannot
+      // get at anyone" three rounds running, the AI finding no walk to a square beside anyone): the chamber cut wide enough for the fight, as the grid's fight's is (below)
+      if (D.simple.layout === 'iso') {
+        var C0 = D.simple.C[0], ys0 = stand.map(function (q) { return q[1]; }), fx0 = Math.max.apply(null, stand.filter(function (q) { return q[0] < C0; }).map(function (q) { return q[0]; }).concat([C0 - 2])), px0 = Math.min.apply(null, entry.slice(0, 4).map(function (q) { return q[0]; }));
+        for (var yb = Math.min.apply(null, ys0); yb <= Math.max.apply(null, ys0); yb++) for (var xb = fx0; xb <= px0; xb++) need.push([xb, yb]);
+      }
+    }
     else { var xs = stand.map(function (q) { return q[0]; }), ys = stand.map(function (q) { return q[1]; }); for (var y = Math.min.apply(null, ys); y <= Math.max.apply(null, ys); y++) for (var x = Math.min.apply(null, xs); x <= Math.max.apply(null, xs); x++) need.push([x, y]); } // (the ground between the two sides, walked)
     need = need.filter(function (q) { return q[0] >= 0 && q[1] >= 0 && q[0] < w && q[1] < h; });
     var anchor = simple ? [D.simple.PARTY[0][0], D.simple.C[1]] : entry[0], cut = M.cut(def, w, h, at || anchor, anchor, need, kind);

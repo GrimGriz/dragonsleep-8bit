@@ -2358,6 +2358,118 @@
     document.body.appendChild(preU);
     return;
   }
+  // THE GALLERIES FROM HIS NOTES, 10-29 (mode=galleries1029; js/mines.js THE SLIDE, THE WORKING GALLERY'S LIGHT, M.go's fall, M.fieldDef's simple field; js/simple.js S.roostOf;
+  // js/light.js L.pass -- the Galleries seat, started by the lanes desk on Griz's "additional notes and fights in play-records", his NOTES of 10-29 18:46Z): the working gallery
+  // dark, lit from the mouth by day and by hooded lamps; the slide's lip the guano till it is gone down, then the hole; no ladder up out of the slide's foot; the slide and a pit
+  // said on a pop-up on the floor below, OK'd; a simple fight in a den's chamber with the ground between the lines open and the bats at the party; ROOST on a bright light's row
+  // in the simple fight's lists under the roost; a dim square within darkvision lifted as the dark round it is
+  if (get('mode', '') === 'galleries1029') {
+    var repGl = { checks: [], errors: [] }, memGl = {}, stGGl = D.store.get, stSGl = D.store.set, MGl = D.mines, RGl = D.roam, SGl = D.simple, LGl = D.light, muGl = D.music, skGl = null;
+    function okGl(what, v) { repGl.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function driveGl(g, until, cap) { var v, k = 0, st; while (k++ < (cap || 4000)) { if (until && until()) return true; st = g.next(v); v = undefined; if (st.done) return !!(until && until()); if (typeof st.value === 'number' && D.battle) D.battle.t += Math.max(1, st.value); if (st.value && st.value.prompt) { driveGl.asked.push(st.value.prompt); v = st.value.prompt.opts[0].value; } } return !!(until && until()); }
+    driveGl.asked = [];
+    function topGl() { var s = D.top(); if (s && s.baking) { s.baking = false; s.enter(); } if (s && s.roam) driveGl(s.co, null, 2); return s; }
+    function testGl(q) { var B = RGl.make(q); D.scenes.length = 0; D.push(B); return topGl(); }
+    function runGl(B, gen) { var co0 = B.co; B.co = (function* () { yield* gen; yield* co0; })(); }
+    function lightsGl(B) { return (B.lights || []).filter(function (l) { return l.seep; }); }
+    D.store.get = function (k) { return memGl[k] ? JSON.parse(memGl[k]) : null; }; D.store.set = function (k, v) { memGl[k] = JSON.stringify(v); return true; };
+    window.DS.autoPicks = true; D.music = function () { };
+    try { skGl = window.localStorage.getItem(SGl.KEY); window.localStorage.removeItem(SGl.KEY); } catch (eK) { }
+    try {
+      D.seed = +get('seed', 1029);
+      // 1. THE WORKING GALLERY'S LIGHT ("lanterns and brightness seem weird here (only from cave mouth)"): dark; by day the mouth's daylight down the passage in, bright at its foot and
+      // dim to the cavern's door; the lamp-line's posts and each hand on the floor a hooded lamp, dim 5 ft; the cavern's middle dark; by night no daylight; at dusk dim only
+      var B1 = testGl('?roam=galleries_g2&hour=14'), d1 = RGl.def, l1 = lightsGl(B1), ml1 = l1.filter(function (l) { return l.id === 'mouthlight'; })[0], posts1 = l1.filter(function (l) { return /^lampline/.test(l.id); }), hands1 = l1.filter(function (l) { return /^handlamp_/.test(l.id); });
+      var lv1 = function (x, y) { return LGl.levelAt(B1, x, y); };
+      okGl('the working gallery by day: dark ' + d1.dark + ' (the fight\'s dark too ' + B1.dark + '); the mouth\'s light at ' + (ml1 && [ml1.x, ml1.y]) + ' ' + (ml1 && ml1.bright + '/' + ml1.dim) + ' ft -- the passage 17,25 ' + lv1(17, 25) + ', the door 17,20 ' + lv1(17, 20) + ', the cavern\'s middle 20,12 ' + lv1(20, 12) + '; posts ' + posts1.map(function (l) { return l.x + ',' + l.y; }).join(' ') + ', hands ' + hands1.length + ' (all ' + l1.filter(function (l) { return l !== ml1; }).map(function (l) { return l.bright + '/' + l.dim; }).filter(function (s, i, a) { return a.indexOf(s) === i; }).join(' ') + ')',
+        d1.dark && B1.dark && !!ml1 && ml1.bright === 20 && ml1.dim === 20 && lv1(17, 25) === 2 && lv1(17, 20) === 1 && lv1(20, 12) === 0 && posts1.length === 3 && hands1.length === 4 && B1.units.filter(function (u) { return u.npc; }).length === 4 &&
+        l1.every(function (l) { return l === ml1 || (l.bright === 0 && l.dim === 5); }));
+      var B1n = testGl('?roam=galleries_g2&hour=22'), l1n = lightsGl(B1n), B1d = testGl('?roam=galleries_g2&hour=18'), m1d = lightsGl(B1d).filter(function (l) { return l.id === 'mouthlight'; })[0];
+      okGl('by night no daylight in (' + l1n.filter(function (l) { return l.id === 'mouthlight'; }).length + ', the passage ' + LGl.levelAt(B1n, 17, 25) + ', the lamps still ' + l1n.length + '); at dusk dim only (' + (m1d && m1d.bright + '/' + m1d.dim) + ')',
+        !l1n.some(function (l) { return l.id === 'mouthlight'; }) && LGl.levelAt(B1n, 17, 25) === 0 && l1n.length === 7 && !!m1d && m1d.bright === 0 && m1d.dim === 20);
+      var up1 = ['galleries_g3', 'galleries_g4', 'galleries', 'warrens_b'].map(function (k) { testGl('?roam=' + k + '&hour=14'); return k + ' ' + lightsGl(D.top()).length; });
+      okGl('the other floors keep their own light (no lamps laid: ' + up1.join(', ') + ')', up1.every(function (s) { return / 0$/.test(s); }));
+      // 2. THE SLIDE ("tile that leads to guano slide shouldn't look like a hole in the ground (is surprise shortcut) until after triggered"): the guano round it, its first game's name
+      // too (the iso's pieces read it), still the way down; with slideFound the hole
+      var B2 = testGl('?roam=galleries_g2&at=28,4'), d2 = RGl.def, w2 = d2.warps.filter(function (w) { return w.at[0] === 28 && w.at[1] === 3; })[0], n8 = function (d) { return d.names8.legend[d.names8.rows[3].charAt(28)]; };
+      var sq2 = d2.rows[3].charAt(28) + d2.look[3].charAt(28) + ' ' + n8(d2), B2f = testGl('?roam=galleries_g2&at=28,4&flags=slideFound'), d2f = RGl.def, sq2f = d2f.rows[3].charAt(28) + d2f.look[3].charAt(28) + ' ' + n8(d2f);
+      okGl('the slide\'s lip before it is gone down: "' + sq2 + '" as the deep guano beside it ("' + d2.rows[4].charAt(28) + d2.look[4].charAt(28) + '"), the way down still (' + (w2 && w2.to + (w2.slide ? ', a slide' : '')) + '); after: "' + sq2f + '" the hole',
+        sq2 === d2.rows[4].charAt(28) + d2.look[4].charAt(28) + ' guanoDeep' && !!w2 && w2.to === 'galleries_g4' && w2.slide && sq2f === 'dX holeDown');
+      // 3. DOWN IT: slideFound set, the deep gallery at the slide's foot, the pop-up said there before its hello -- the first game's g.slide words, OK only -- and the floor's hello after
+      B2 = testGl('?roam=galleries_g2&at=28,4'); w2 = RGl.def.warps.filter(function (w) { return w.at[0] === 28 && w.at[1] === 3; })[0]; // (the floor before it is gone down again: the check above laid the one after)
+      driveGl.asked = []; runGl(B2, MGl.warp(B2, w2)); driveGl(B2.co, function () { return D.top() !== B2; }, 400); var B3 = D.top(); if (B3 && B3.baking) { B3.baking = false; B3.enter(); }
+      var hello3 = function () { return (B3.cards || []).some(function (c) { return c.lines.some(function (l) { return /THE GUANO GALLERIES/.test(l); }); }); }, before3 = null;
+      driveGl(B3.co, function () { if (before3 == null && driveGl.asked.length) before3 = hello3(); return driveGl.asked.length && hello3(); }, 200);
+      var a3 = driveGl.asked[0] || {}, f3 = B3.roam && B3.roam.flags;
+      okGl('down the slide: ' + RGl.def.key + ' at ' + (B3.roam && [B3.roam.token.x, B3.roam.token.y]) + ', slideFound ' + (f3 && f3.slideFound) + '; the pop-up "' + a3.title + '": "' + (a3.lines || []).join(' ').slice(0, 70) + '" [' + (a3.opts || []).map(function (o) { return o.label; }) + '], the hello before it ' + before3 + ', after it ' + hello3(),
+        RGl.def.key === 'galleries_g4' && B3.roam.token.x === 3 && B3.roam.token.y === 3 && f3.slideFound === 1 && a3.title === MGl.SLIDE.title && /The guano gives under you/.test((a3.lines || []).join(' ')) && (a3.opts || []).length === 1 && a3.opts[0].label === 'OK' && before3 === false && hello3());
+      // 4. ITS FOOT ("shouldn't be a ladder up out of it (on the guano slide side of cloaker level roam)"): rock where the first game stood the ladder, no way up there, its name rock for the
+      // iso's pieces; the dens' ladder the one way up
+      var d4 = RGl.def;
+      okGl('the slide\'s foot: 3,2 "' + d4.rows[2].charAt(3) + '" (' + d4.names8.legend[d4.names8.rows[2].charAt(3)] + '), the ways up ' + d4.warps.map(function (w) { return w.at + '>' + w.to; }).join(' / ') + ', ladders drawn ' + (B3.map.props || []).filter(function (p) { return p.kind === 'ladder'; }).map(function (p) { return p.sq.x + ',' + p.sq.y; }).join(' '),
+        d4.rows[2].charAt(3) === '#' && d4.names8.legend[d4.names8.rows[2].charAt(3)] === 'caveWall' && d4.warps.length === 1 && d4.warps[0].to === 'galleries_g3' && (B3.map.props || []).filter(function (p) { return p.kind === 'ladder'; }).length === 1);
+      // 5. A PIT ("pop-up on level where you fall through with fall through text, ok'd to finish fall through"): the deep gallery at the pit's landing, the pop-up with the first game's
+      // g3.pit words and each one's fall, OK only, then the hello
+      var B5 = testGl('?roam=galleries_g3&flags=cullHired&at=29,12'), hp5 = B5.roam.members.map(function (u) { return u.hp; });
+      driveGl.asked = []; runGl(B5, MGl.trigger(B5, { script: 'pit' }, [30, 13])); driveGl(B5.co, function () { return D.top() !== B5; }, 400); var B5b = D.top(); if (B5b && B5b.baking) { B5b.baking = false; B5b.enter(); }
+      driveGl(B5b.co, function () { return driveGl.asked.length && (B5b.cards || []).some(function (c) { return c.lines.some(function (l) { return /THE GUANO GALLERIES/.test(l); }); }); }, 200);
+      var a5 = driveGl.asked[0] || {}, lost5 = B5.roam.members.map(function (u, i) { return hp5[i] - u.hp; }), tx5 = (a5.lines || []).join(' ');
+      okGl('a pit: ' + RGl.def.key + ' at ' + (B5b.roam && [B5b.roam.token.x, B5b.roam.token.y]) + '; the pop-up "' + a5.title + '": "' + tx5.slice(0, 50) + '..." with the fall "' + ((tx5.match(/The fall[^.]*\./) || [''])[0]) + '" [' + (a5.opts || []).map(function (o) { return o.label; }) + '], each lost ' + lost5.join(','),
+        RGl.def.key === 'galleries_g4' && B5b.roam.token.x === 18 && B5b.roam.token.y === 12 && a5.title === MGl.PIT_TITLE && /The floor goes out from under you/.test(tx5) && B5.roam.members.every(function (u, i) { return tx5.indexOf(u.name + ' ' + lost5[i]) >= 0 && lost5[i] >= 1 && lost5[i] <= 6; }) && (a5.opts || []).length === 1);
+      // 6. A FIGHT IN A DEN'S CHAMBER ("look at making the chambers on the second level larger (for when encounters happen in them)"; his play record's giant bats "paced: it cannot get
+      // at anyone" three rounds): the simple fight's field at 16,4 open between the two lines, every foe a walk from a square beside the party's front; fought with the four ending their
+      // turns, the bats at them
+      var B6 = testGl('?roam=galleries_g3&flags=cullHired&at=16,4'), F6 = MGl.fieldDef(RGl.def, ['giantbat', 'giantbat', 'giantbat'], true, null, [16, 4]), mf6 = D.MAPS['mine-field'], rows6 = mf6.rows;
+      var open6 = function (x, y) { var r = rows6[y]; return !!r && x >= 0 && x < r.length && '.,gr~'.indexOf(r.charAt(x)) >= 0; }, front6 = mf6.entry.slice(0, 4), seen6 = {}, q6 = [];
+      F6.foes.forEach(function (f) { q6.push(f.at.slice()); seen6[f.at[0] + ',' + f.at[1]] = 1; });
+      while (q6.length) { var c6 = q6.shift(); for (var dy6 = -1; dy6 <= 1; dy6++) for (var dx6 = -1; dx6 <= 1; dx6++) { var nx6 = c6[0] + dx6, ny6 = c6[1] + dy6, k6 = nx6 + ',' + ny6; if (seen6[k6] || !open6(nx6, ny6)) continue; seen6[k6] = 1; q6.push([nx6, ny6]); } }
+      var reach6 = front6.filter(function (p) { return seen6[(p[0] - 1) + ',' + p[1]]; }).length, gap6 = [];
+      for (var y6 = 1; y6 <= 7; y6++) for (var x6 = 7; x6 <= 9; x6++) if (!open6(x6, y6)) gap6.push(x6 + ',' + y6);
+      okGl('the dens\' simple field at 16,4 (' + rows6.length + ' rows): the ground between the lines shut at ' + (gap6.join(' ') || 'none') + '; the party\'s front reached from the bats\' squares at ' + reach6 + ' of 4',
+        !gap6.length && reach6 === 4);
+      var R6 = B6.roam; driveGl.asked = []; runGl(B6, MGl.fieldFight(B6, 'asked', { list: ['giantbat', 'giantbat', 'giantbat'], line: 'Bats.' })); driveGl(B6.co, function () { return D.top() !== B6; }, 4000);
+      var b6 = D.top(), paced6 = 0, struck6 = 0, k6r = 0, v6, r6;
+      if (b6 !== B6 && b6 instanceof D.Battle) {
+        if (b6.baking) { b6.baking = false; b6.enter(); }
+        while (b6.co && k6r++ < 200000 && (b6.round || 0) <= 3) { r6 = b6.co.next(v6); v6 = undefined; if (r6.done) break; var y6v = r6.value; if (typeof y6v === 'number' || !y6v || y6v.fx || y6v.entry || y6v.scene) continue; if (y6v.prompt) { v6 = y6v.prompt.opts[0].value; continue; } if (y6v.turn) v6 = { do: 'end' }; }
+        (b6.logEntries || []).forEach(function (e) { if (/paces: it cannot get at anyone/.test(e.text)) paced6++; if (/Giant Bat > /.test(e.text)) struck6++; });
+        (b6.cards || []).forEach(function (c) { if (c.lines.some(function (l) { return /paces: it cannot get at anyone/.test(l); })) paced6++; });
+      }
+      okGl('fought there, simple (' + !!(b6 && b6.simple) + '), the four ending their turns to round ' + (b6 && b6.round) + ': the bats struck ' + struck6 + ' times, paced ' + paced6, !!(b6 && b6.simple) && struck6 >= 2 && !paced6);
+      // 7. ROOST ON A BRIGHT LIGHT'S ROW (his play record: SACRED WEAPON under the dens' roost, the run ended at one click): in that roosted simple fight, Sacred Weapon and the Light marked
+      // ROOST; on a field with no roost, not
+      var u7 = b6 && b6.units.filter(function (u) { return u.side === 'party' && u.cls === 'paladin'; })[0], w7 = b6 && b6.units.filter(function (u) { return u.side === 'party' && (u.known || []).indexOf('light') >= 0; })[0];
+      if (u7) { D.rules.startTurn(u7); b6.active = u7; } var sk7 = u7 ? SGl.skills(b6, u7).filter(function (r) { return /SACRED WEAPON/.test(r.label); })[0] : null;
+      if (w7) { D.rules.startTurn(w7); b6.active = w7; } var sp7 = w7 ? SGl.spells(b6, w7).filter(function (r) { return r.label === 'LIGHT'; })[0] : null;
+      var rf7 = b6 && b6.fight.roost; if (b6) b6.fight.roost = false; var sk7n = u7 ? SGl.skills(b6, u7).filter(function (r) { return /SACRED WEAPON/.test(r.label); })[0] : null; if (b6) b6.fight.roost = rf7;
+      okGl('under the roost in the simple fight: ' + (sk7 ? sk7.label + ' [' + sk7.right + ', roost ' + sk7.roost + ']' : 'no Sacred Weapon row') + ', ' + (sp7 ? sp7.label + ' [' + sp7.right + ']' : 'no Light row') + '; no roost: ' + (sk7n ? sk7n.label + ' [' + sk7n.right + ']' : 'none'),
+        !!sk7 && sk7.right === 'ROOST' && sk7.roost && !!sp7 && sp7.right === 'ROOST' && sp7.roost && !!sk7n && sk7n.right !== 'ROOST' && !sk7n.roost);
+      if (b6 && D.top() === b6) D.pop();
+      // 8. A DIM SQUARE WITHIN DARKVISION LIFTED (SRD 5.1 Darkvision, "in dim light as if it were bright light"): by a hand's hooded lamp in the working gallery, with the party's
+      // darkvision in reach, the square beside the lamp dim and marked for darkvision's lift (it drew darker than the dark round it)
+      var B8 = testGl('?roam=galleries_g2&hour=14&at=18,8'), sc8 = B8.units.filter(function (u) { return u.npc === 'scraper1'; })[0], pm8 = LGl.partyMap(B8), lm8 = LGl.map(B8), i8 = sc8 ? (sc8.y + 1) * B8.map.w + sc8.x : -1, dvU8 = B8.roam.members.concat(B8.units).filter(function (u) { return u.side === 'party' && u.darkvision; }).length;
+      okGl('the square under a hand\'s lamp (' + (sc8 && [sc8.x, sc8.y + 1]) + '): light ' + (lm8 && lm8.lv[i8]) + ', seen ' + (pm8 && pm8.v[i8]) + ', within darkvision ' + !!(pm8 && pm8.dvs && pm8.dvs[i8]) + ' (darkvision in the party ' + dvU8 + ')',
+        !!sc8 && lm8.lv[i8] === 1 && pm8.v[i8] === 2 && !!(pm8.dvs && pm8.dvs[i8]));
+      // 9. ONE MOAN (his play record's cloaker: it moaned on its own turn, then again as Aurdin's darts found it at the darkness, the four saving twice in round 1): the darts' cutscene
+      // moans only while the Moan is unspent -- spent, the darts find it and no second Moan; unspent, the one
+      var moan9 = function (spent) {
+        var B9 = testGl('?roam=galleries_g4&at=12,6'); runGl(B9, MGl.cloaker(B9, null, [12, 8])); driveGl(B9.co, function () { var s = D.top(); return s !== B9 && s instanceof D.Battle; }, 2000);
+        var b9 = D.top(); if (b9 === B9 || !(b9 instanceof D.Battle)) return null; if (b9.baking) { b9.baking = false; b9.enter(); }
+        var c9 = b9.units.filter(function (u) { return u.kind === 'cloaker'; })[0], a9 = b9.units.filter(function (u) { return u.side === 'party' && (u.known || []).indexOf('magicmissile') >= 0; })[0]; if (!c9 || !a9) return null;
+        c9.moan.ready = !spent; D.rules.startTurn(a9); b9.active = a9; a9.slots = [4, 2]; var n0 = (b9.logEntries || []).length;
+        driveGl(b9.exec(a9, { do: 'cast', id: 'magicmissile', slot: 1, target: { units: [0, 1, 2].map(function () { return { x: c9.x, y: c9.y, dark: true }; }) } }), null, 3000);
+        var said = (b9.logEntries || []).slice(n0).map(function (e) { return e.text; }), r = { moans: said.filter(function (t) { return /moans\. The sound gets inside you/.test(t); }).length, found: said.some(function (t) { return /AT THE DARKNESS/.test(t); }), egg: !!b9.gimmickDone };
+        if (D.top() === b9) D.pop(); return r;
+      };
+      var m9s = moan9(true), m9u = moan9(false);
+      okGl('the darts at the darkness with the Moan spent: found ' + (m9s && m9s.found) + ', the cutscene ' + (m9s && m9s.egg) + ', moans ' + (m9s && m9s.moans) + '; with it unspent: moans ' + (m9u && m9u.moans),
+        !!m9s && m9s.found && m9s.egg && m9s.moans === 0 && !!m9u && m9u.moans === 1);
+    } catch (eGl) { repGl.errors.push(String(eGl && eGl.stack || eGl).slice(0, 900)); }
+    D.store.get = stGGl; D.store.set = stSGl; D.music = muGl; try { if (skGl != null) window.localStorage.setItem(SGl.KEY, skGl); } catch (eK2) { }
+    var preGl = document.createElement('pre'); preGl.id = 'out'; preGl.textContent = 'BENCH16 ' + JSON.stringify(repGl);
+    document.body.appendChild(preGl);
+    return;
+  }
   // ON THE DIAMONDS, 10-29 (mode=isoroams1029; js/mines.js ON THE DIAMONDS, js/roam.js R.occlude and WetShow, js/ui.js UI.setZoom, js/main.js ?isoshow -- the iso-roams seat, started
   // by the lanes desk on Griz's "NEW:  Conversion of topdown roam of cloaker fight level and(?) new gulch as iso-roams like the Wet"; his seven leans, "those 1-7 look good"): the
   // deep gallery drawn on the grid's diamonds, its squares, ways and rules the floor's as before; &view=top north up again; the floors above it still north up; the cave's stone; the
@@ -2388,8 +2500,9 @@
       // 2. THE PIECES: a ladder up the rock at each way up, against the face the diamonds show; the bones on the floor; no woodpile drawn where none was
       B1 = testI('?roam=galleries_g4&at=9,3'); m1 = B1.map; k1 = kindsI(m1);
       var lad1 = m1.props.filter(function (p) { return p.kind === 'ladder'; }).map(function (p) { return p.sq.x + ',' + p.sq.y + ' ' + MI.ladderFace(m1, p.sq); });
+      // (one ladder since 10-29, his NOTES: "shouldn't be a ladder up out of it (on the guano slide side of cloaker level roam)" -- mode=galleries1029)
       okI('the pieces: ladders ' + lad1.join(' / ') + ' (the ways up ' + RI.def.warps.map(function (w) { return w.at; }).join(' / ') + '), the bones ' + (k1.decal || 0) + ', blocks ' + (k1.block || 0),
-        lad1.length === 2 && RI.def.warps.every(function (w) { return lad1.some(function (s) { return s.indexOf(w.at[0] + ',' + w.at[1] + ' ') === 0 && / [nw]$/.test(s); }); }) && k1.decal === 5 && !k1.block);
+        lad1.length === 1 && RI.def.warps.every(function (w) { return lad1.some(function (s) { return s.indexOf(w.at[0] + ',' + w.at[1] + ' ') === 0 && / [nw]$/.test(s); }); }) && k1.decal === 5 && !k1.block);
       // 3. A LADDER NEAR THE PARTY KEPT IN SIGHT: no far wall face stands in front of the ladder up to the dens (9,1) with the party two squares off (js/roam.js R.occlude)
       RI.occlude(B1); var dep1 = Math.ceil((Math.max(D.iso.WALL || 84, 0) + 40) / (D.iso.TH / 2)), cov1 = [];
       for (var dx1 = -1; dx1 <= dep1 + 1; dx1++) for (var dy1 = -1; dy1 <= dep1 + 1; dy1++) { var s1 = dx1 + dy1; if (s1 < 1 || s1 > dep1 || Math.abs(dx1 - dy1) > 1) continue; var q1 = m1.at(9 + dx1, 1 + dy1); if (q1 && !q1.open && q1.rock === 'far') cov1.push(q1.x + ',' + q1.y); }
@@ -2477,10 +2590,11 @@
     try {
       D.seed = +get('seed', 1028);
       var L8 = function (k) { return [].concat(CQ.L(k)).join(' '); };
-      // 1. THE HOLE FLOOR ON THE GRID: the first game's galleries_g4 (36 x 26, dark, no roost), its two ladders up, its chest, the cloaker's and Dace's thanks read by flags alone
+      // 1. THE HOLE FLOOR ON THE GRID: the first game's galleries_g4 (36 x 26, dark, no roost), its ladder up to the dens (the slide's foot has none since 10-29, his NOTES:
+      // "shouldn't be a ladder up out of it" -- mode=galleries1029), its chest, the cloaker's and Dace's thanks read by flags alone
       var B1 = testQ('?roam=galleries_g4'), d1 = RQ.def, tr1 = d1.src8.triggers || [], ck1 = tr1.filter(function (t) { return t.id === 'cloaker'; })[0], dd1 = tr1.filter(function (t) { return t.id === 'daceDeep'; })[0];
       okQ('the deep gallery a floor (' + d1.key + ', ' + d1.w + ' x ' + d1.h + ', dark ' + d1.dark + ', roost ' + d1.roost + '; ways up ' + d1.warps.map(function (w) { return w.to + '@' + w.at; }).join(' ') + '; the cloaker\'s square "' + (ck1 && ck1.cond) + '", Dace\'s thanks "' + (dd1 && dd1.cond) + '"; chest ' + (d1.src8.chests || []).map(function (c) { return c.item; }) + ')',
-        d1.key === 'galleries_g4' && d1.w === 36 && d1.h === 26 && d1.dark && !d1.roost && d1.warps.length === 2 && d1.warps.every(function (w) { return /galleries_g[23]/.test(w.to); }) && !!ck1 && !/has:/.test(ck1.cond) && !!dd1 && tr1.indexOf(dd1) < tr1.indexOf(ck1) && (d1.src8.chests || []).length === 1 && MQ.KEY8.galleries_g4 === 'galleries_g4' && trigQ(B1, 10, 9) === ck1);
+        d1.key === 'galleries_g4' && d1.w === 36 && d1.h === 26 && d1.dark && !d1.roost && d1.warps.length === 1 && d1.warps[0].to === 'galleries_g3' && !!ck1 && !/has:/.test(ck1.cond) && !!dd1 && tr1.indexOf(dd1) < tr1.indexOf(ck1) && (d1.src8.chests || []).length === 1 && MQ.KEY8.galleries_g4 === 'galleries_g4' && trigQ(B1, 10, 9) === ck1);
       // 2. THE WAYS DOWN: the working gallery's slide, the dens' last ladder, a pit (1d6 each, never below 1)
       var B2 = testQ('?roam=galleries_g2'), wp2 = RQ.def.warps.filter(function (w) { return w.to === 'galleries_g4'; })[0];
       runQ(B2, MQ.warp(B2, wp2)); driveQ(B2.co, function () { return D.top() !== B2; }, 400); var B2b = topQ();
@@ -2502,10 +2616,10 @@
       okQ('the JOURNAL: CORWEN DACE open while he walks with the party (' + CQ.quests(CQ.state(B4)).map(function (q) { return q.id + (q.done ? '(done)' : ''); }).join(', ') + ')', CQ.quests(CQ.state(B4)).some(function (q) { return q.id === 'dace' && !q.done && /Bring him back up/.test(q.text); }));
       okQ('Ottilie at the mouth has nothing of his to stop (' + MQ.burning(B4).map(function (b) { return b.u.name; }) + ')', !MQ.burning(B4).some(function (b) { return b.u === u4; }));
       // 5. HIS LIGHT (RULED 10-28: dark through the roost, lit below it): into the working gallery with him, no light; down the slide, the Light on his staff, the hello says so and the
-      // token's square lit; back up the ladder under the roost, let go
+      // token's square lit; back up the ladder to the dens under the roost, let go (the slide's foot's ladder to the working gallery gone since 10-29: mode=galleries1029)
       var wp5 = RQ.def.warps.filter(function (w) { return w.to === 'galleries_g2'; })[0]; runQ(B4, MQ.warp(B4, wp5)); driveQ(B4.co, function () { return D.top() !== B4; }, 400); var B5 = topQ(), u5 = dace(B5);
       var wp5b = RQ.def.warps.filter(function (w) { return w.to === 'galleries_g4'; })[0]; runQ(B5, MQ.warp(B5, wp5b)); driveQ(B5.co, function () { return D.top() !== B5; }, 400); var B5b = topQ(), u5b = dace(B5b), lvl5 = D.light.levelAt(B5b, B5b.roam.token.x, B5b.roam.token.y), lt5 = D.light.all(B5b).some(function (l) { return l.kind === 'light' && l.unit === u5b; }), hello5 = (RQ.def.hello || []).concat(B5b.roam.roostLines || []).join(' ');
-      var wp5c = RQ.def.warps.filter(function (w) { return w.to === 'galleries_g2'; })[0]; runQ(B5b, MQ.warp(B5b, wp5c)); driveQ(B5b.co, function () { return D.top() !== B5b; }, 400); var B5c = topQ(), u5c = dace(B5c);
+      var wp5c = RQ.def.warps.filter(function (w) { return w.to === 'galleries_g3'; })[0]; runQ(B5b, MQ.warp(B5b, wp5c)); driveQ(B5b.co, function () { return D.top() !== B5b; }, 400); var B5c = topQ(), u5c = dace(B5c);
       okQ('his light: under the roost dark (' + !!(u5 && u5.conds.light) + '); in the deep gallery lit on his staff (' + !!(u5b && u5b.conds.light) + ', the token\'s square ' + lvl5 + ', shining from the token ' + lt5 + ', "' + (/lifts his staff/.test(hello5)) + '"); back under the roost let go (' + !!(u5c && u5c.conds.light) + ', "' + (B5c.roam.roostLines || []).slice(1).join(' / ') + '")',
         !!u5 && !u5.conds.light && !!u5b && !!u5b.conds.light && lt5 && lvl5 === 2 && /lifts his staff/.test(hello5) && !!u5c && !u5c.conds.light && (B5c.roam.roostLines || []).some(function (l) { return /Dace lets the Light go/.test(l); }));
       // 6. THE CLOAKER (RULED 10-28: the story's grip and egg, on the grid whatever RANDOM FIGHTS says, on a field cut from the deep gallery): Dace in it, hunted, lit; won with him

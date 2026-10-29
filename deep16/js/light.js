@@ -197,18 +197,18 @@
     var eyes = all.filter(function (u) { return u.darkvision || u.blindsight || u.truesight; });
     var k = lm.k + '|' + all.map(function (u) { return u.id + u.x + ',' + u.y + (u.darkvision || 0) + (u.blindsight || 0) + (u.truesight || 0); }).join(';');
     if (B.partyMap && B.partyMap.k === k) return B.partyMap;
-    var out = new Array(m.w * m.h);
+    var out = new Array(m.w * m.h), dvs = new Array(m.w * m.h);
     for (var y = 0; y < m.h; y++) for (var x = 0; x < m.w; x++) {
       var i = y * m.w + x, s = m.sq[i];
       if (!s.open) { out[i] = 0; continue; }
-      var v = lm.lv[i] && all.some(function (u) { return G.losPoint(u.x, u.y, x, y); }) ? 2 : 0;
-      if (!v) for (var e = 0; e < eyes.length; e++) {
+      var v = lm.lv[i] && all.some(function (u) { return G.losPoint(u.x, u.y, x, y); }) ? 2 : 0, dvx = 0;
+      if (!v || lm.lv[i] === 1) for (var e = 0; e < eyes.length; e++) { // (a dim square too: within darkvision it is seen as bright -- dvs, L.pass)
         var u = eyes[e], r = Math.max(u.darkvision || 0, u.blindsight || 0, u.truesight || 0);
-        if (G.dist(u, { x: x, y: y, size: 1 }) <= r && G.losPoint(u.x, u.y, x, y)) { v = 1; break; }
+        if (G.dist(u, { x: x, y: y, size: 1 }) <= r && G.losPoint(u.x, u.y, x, y)) { if (!v) v = 1; dvx = 1; break; }
       }
-      out[i] = v;
+      out[i] = v; dvs[i] = dvx;
     }
-    B.partyMap = { k: k, v: out, w: m.w };
+    B.partyMap = { k: k, v: out, w: m.w, dvs: dvs };
     return B.partyMap;
   };
   // what ONE of ours sees, square by square, light and all (10-01, Griz: "How about regardless of turn if you mouseover a party
@@ -219,14 +219,15 @@
     var lm = L.map(B), m = B.map, bs = Math.max(u.blindsight || 0, u.truesight || 0), blind = !!(u.conds && u.conds.blinded), dv = blind ? 0 : u.darkvision || 0;
     var k = lm.k + '|' + u.id + ':' + u.x + ',' + u.y + '|' + bs + '|' + dv + (blind ? 'b' : '');
     if (B.viewMap && B.viewMap.k === k) return B.viewMap;
-    var out = new Array(m.w * m.h);
+    var out = new Array(m.w * m.h), dvs = new Array(m.w * m.h);
     for (var y = 0; y < m.h; y++) for (var x = 0; x < m.w; x++) {
       var i = y * m.w + x, s = m.sq[i], d = G.dist(u, { x: x, y: y, size: 1 });
       if (!s.open) { out[i] = 0; continue; }
       if (d <= bs) { out[i] = 2; continue; }
-      out[i] = blind || !G.losPoint(u.x, u.y, x, y) ? 0 : lm.lv[i] ? 2 : d <= dv ? 1 : 0;
+      var los = !blind && G.losPoint(u.x, u.y, x, y);
+      out[i] = !los ? 0 : lm.lv[i] ? 2 : d <= dv ? 1 : 0; dvs[i] = los && d <= dv ? 1 : 0;
     }
-    B.viewMap = { k: k, u: u, v: out, w: m.w, bs: bs, dv: dv, blind: blind };
+    B.viewMap = { k: k, u: u, v: out, w: m.w, bs: bs, dv: dv, blind: blind, dvs: dvs };
     return B.viewMap;
   };
   L.partySeesSq = function (B, x, y) { var pm = L.partyMap(B); return pm ? (pm.v[y * pm.w + x] || 0) : 2; };
@@ -416,8 +417,11 @@
     // what darkvision sees in the dark it sees as in dim light, in shades of grey (SRD 5.1 Darkvision: "in darkness as if it were dim light ... only shades of
     // gray"): its squares lifted to a dim light's level here, and greyed with the rest below -- they were greyed at the night's dark (10-21, Griz: "darkvision -
     // brighter and more grayed out?")
+    // (and a square in dim light within darkvision, no darker than the dark beside it: SRD 5.1, "in dim light as if it were bright light" -- 10-29, the Galleries seat: a hooded
+    // lamp's dim squares drew darker than the darkvision round them, a dark cross under every lamp in the working gallery and round a hood-down lantern in the dens)
+    var lmD = L.map(B), dvSq = pm.dvs;
     l.fillStyle = 'rgb(72,70,66)';
-    for (var yd = 0; yd < m.h; yd++) for (var xd = 0; xd < m.w; xd++) { var sd = m.sq[yd * m.w + xd]; if (!sd.open || pm.v[yd * m.w + xd] !== 1 || !inView(iso, xd, yd, sd.gz, W, H)) continue; iso.rhombus(l, xd, yd, sd.gz, 0); l.fill(); }
+    for (var yd = 0; yd < m.h; yd++) for (var xd = 0; xd < m.w; xd++) { var id = yd * m.w + xd, sd = m.sq[id]; if (!sd.open || !(pm.v[id] === 1 || (dvSq && dvSq[id] && lmD && lmD.lv[id] === 1)) || !inView(iso, xd, yd, sd.gz, W, H)) continue; iso.rhombus(l, xd, yd, sd.gz, 0); l.fill(); }
     var lights = L.all(B);
     lights.forEach(function (lg) {
       var gx = Math.round(lg.x), gy = Math.round(lg.y), c = iso.center(lg.x, lg.y, m.gz(gx, gy)), s = iso.toScreen(c.x, c.y);

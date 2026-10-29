@@ -393,7 +393,8 @@
       var g = e.g, kind = AIMS[g.shape], why = e.why, ok = e.ok;
       if (!kind) { ok = false; why = why || 'aimed on the full grid'; }
       else if (ok && kind !== 'none' && kind !== 'friends' && !S.targets(B, u, g, e.sp).length) { ok = false; why = 'no one here it takes'; }
-      return { label: e.name.toUpperCase(), right: (g.time === 'B' ? 'bonus ' : '') + (e.level ? 'L' + e.level : ''), ok: ok, why: why, e: e,
+      var rst = S.roostOf(B, function () { return D.magic.summary(e, u); });
+      return { label: e.name.toUpperCase(), right: rst ? 'ROOST' : (g.time === 'B' ? 'bonus ' : '') + (e.level ? 'L' + e.level : ''), roost: rst, ok: ok, why: why, e: e,
         go: function () { if (e.levels.length > 1) S.openSlots(B, u, e); else S.aimSpell(B, u, e, e.slot); } };
     });
   };
@@ -433,6 +434,11 @@
     var list = fx === 'damage' || fx === 'mirror' ? S.foes(B, u) : fx === 'revive' ? S.friends(B, u, true).filter(function (w) { return w.hp <= 0; }) : fx === 'heal' ? S.friends(B, u, true) : S.friends(B, u);
     S.pickFrom(B, u, e.name.toUpperCase(), list, function (t) { return S.itemCmd(B, u, e, t); });
   };
+  // a row that brings the roost down (10-29, Griz's play record: SACRED WEAPON taken under the dens' roost ended the run at one click -- the grid's ring says "BRIGHT LIGHT, UNDER
+  // THE ROOST" on it, and this list said nothing): marked ROOST on its right in red, as the first game offers a fire under the roost (RULED 10-03, Griz: "offered; it is fire, and
+  // the roost's law is the player's choice with the consequence") -- by the grid's own words for the row, its note or a spell's summary
+  S.ROOSTCOL = '#f87858';
+  S.roostOf = function (B, txt) { if (!(B.fight && B.fight.roost)) return false; var t = ''; try { t = txt() || ''; } catch (e) { } return /UNDER THE ROOST/.test(t); };
   // ---- SKILL: the grid's commands with no walk in them (battle.js commands) -- a feature aimed at one creature picks it
   var NOT = { attack: 1, skipattack: 1, spells: 1, items: 1, offhand: 1, end: 1, leave: 1, dash: 1, cdash: 1, disengage: 1, cdisengage: 1, ready: 1, stand: 1, land: 1, passage: 1, rope: 1, takerope: 1, ropeclimb: 1, cutrope: 1, bucketrope: 1, barreltorch: 1, throwtorch: 1, droptorch: 1, pickuptorch: 1, dashmove: 1, move: 1, drawoffhand: 1, putaway: 1 };
   var TOOLS = { shove: 'foe', grapple: 'foe', throw: 'foe', help: 'any', detach: 'friend', breaktendril: 'friend', pullout: 'friend', lay: 'friend' };
@@ -443,7 +449,8 @@
       var aim = c.tool ? TOOLS[c.tool] : c.aim ? AIMS[c.aim.shape] : null, ok = c.ok, why = c.why;
       if ((c.tool && !aim) || (c.aim && !aim)) { ok = false; why = 'aimed on the full grid'; }
       else if (!ok && aim && /reach|beside (you|it)|in range|within \d+ ft/.test(why || '')) { ok = true; why = ''; } // (no one near: anyone strikes anyone, from beside them)
-      return { label: c.label, right: c.cost === 'B' ? 'bonus' : c.cost === 'F' ? 'free' : '', ok: ok, why: why, c: c, go: function () { S.aimSkill(B, u, c, aim); } };
+      var rst = S.roostOf(B, function () { return c.note; });
+      return { label: c.label, right: rst ? 'ROOST' : c.cost === 'B' ? 'bonus' : c.cost === 'F' ? 'free' : '', roost: rst, ok: ok, why: why, c: c, go: function () { S.aimSkill(B, u, c, aim); } };
     });
   };
   S.skillCmd = function (B, u, c, t) {
@@ -657,7 +664,7 @@
     rows.forEach(function (r, i) {
       var ry = y + i * rh, on = i === sel;
       D.text(ctx, r.label, x + 12, ry + 2, r.ok ? W8.text : GREY);
-      if (r.right) D.text(ctx, r.right, x + w, ry + 2, r.ok ? '#b8b8f8' : GREY, 'right');
+      if (r.right) D.text(ctx, r.right, x + w, ry + 2, r.ok ? (r.roost ? S.ROOSTCOL : '#b8b8f8') : GREY, 'right');
       if (on) D.text(ctx, '▶', x, ry + 2, W8.text);
       rects.push({ kind: 'row', i: i, x: x - 4, y: ry, w: w + 8, h: rh });
     });
@@ -673,7 +680,7 @@
       var r = items[i], ry = y + 18 + (i - top) * rh, on = i === m.sel;
       if (on) { ctx.fillStyle = W8.sel; ctx.fillRect(x + 4, ry - 1, w - 8, rh); }
       D.text(ctx, fit(r.label, w - 90), x + 18, ry, r.ok ? W8.text : GREY);
-      if (r.right) D.text(ctx, r.right, x + w - 10, ry, r.ok ? '#b8b8f8' : GREY, 'right');
+      if (r.right) D.text(ctx, r.right, x + w - 10, ry, r.ok ? (r.roost ? S.ROOSTCOL : '#b8b8f8') : GREY, 'right');
       if (on) D.text(ctx, '▶', x + 7, ry, W8.text);
       rects.push({ kind: kind || 'row', i: i, x: x + 4, y: ry - 1, w: w - 8, h: rh });
     }

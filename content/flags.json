@@ -196,6 +196,7 @@
     "skarnGateOpen": "set: js/events.js, js/scenes.js, js/situations.js; read: maps/warrens_b.json",
     "skarnOk": "set: js/events.js, js/scenes.js, js/situations.js; read: content/quests.json, js/events.js, maps/warrens_c.json",
     "skarnPaid": "set: js/events.js, js/scenes.js; read: js/events.js",
+    "slideFound": "set and read: deep16/js/mines.js (the working gallery's guano-slide gone down once: its lip drawn as the hole after, the guano before -- 10-29)",
     "skylightsWon": "cleared: js/deep.js DS.startFrom (a save from the Skylights' weeks, 10-05 to 10-20: the Skylights left the first game -- the second game's)",
     "smokeDreamt": "set: js/deep.js, js/situations.js; read: js/deep.js",
     "snootDone": "set: js/events.js, js/scenes.js; read: content/quests.json, js/events.js, maps/world.json",
