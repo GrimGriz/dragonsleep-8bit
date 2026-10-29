@@ -2,6 +2,14 @@
 
 What landed, newest first, one line each: **date · commit · lane · one sentence · his word** when there is one. **A line is a line** (RULED 10-06, on a consult and its fork: 20 of the first 55 ran past 400 characters): the hash, one sentence of what, his words verbatim; the files, the numbers and the why are the bolt's and the commit's. The lines before this rule stand as written. A lane is a live handoff at `..\handoff-*.md`, named by its title (the table at the head of the todo is the list); "the house" is the gate, the build and the repo. When an item lands it is cut from its lane and from `..\dragonsleep-todo-2026-10-03.md` and written here (RULED 2026-10-06, Griz: *"I'm on board"*). The story of each line is in the bolt (`..\weaving-room\dragonsleep-8bit.md`); before 2026-10-03, `git log` and the bolt are the record. A line is never edited once written. A ruling that something stays as it is gets a line too, marked `ruled`.
 
+## 2026-10-29
+- 2026-10-29 · seen · the menus · The one menu in an 8-bit fight (`?at=menu8`, marked works) · his ear file of 10-29 (0135Z)
+- 2026-10-29 · seen · the first game · Searing Scourge and Deathhand's in an 8-bit fight (`?at=scourge8`, marked works) · his ear file of 10-29 (0135Z)
+- 2026-10-29 · seen · the leveling · The level-up pick, the four to level 4 (`?at=levelup4`, marked works; his note to the new leveling lane, with the menus lane's 10-20 #2) · his ear file of 10-29 (0135Z) · *"lymen probably shouldn't be allowed fighter feats"*; *"there should be a lane for a sufficiently distinct leveling session, lymen's feat can wait for that"*
+- 2026-10-29 · seen · the leveling · The level-up pick, Vivian's archetype at 3 (`?at=levelup3`, marked works) · his ear file of 10-29 (0135Z)
+- 2026-10-29 · seen · the maps · The xorns at the Seam (`deep16/?npc=xorn,xorn&lvl=8&map=seamwall`, marked works; his note to the lane) · his ear file of 10-29 (0135Z) · *"dwarven road should be solid stone"*
+- 2026-10-29 · seen · the maps · The bulette at the Breach (`deep16/?npc=bulette&lvl=5&map=breach`, marked works; his note to the lane) · his ear file of 10-29 (0135Z) · *"the road tiles should be solid stone"*
+
 ## 2026-10-28
 - 2026-10-28 · `c75a31d` · the gate and the house · Shipped to live at the after-reset desk's close: all main (`9738c9a..c75a31d`, 61 commits -- the house's fixes, Silverton's hours and words with TELL ME ABOUT IT, all thirty-four keepers turning, the generic man and woman, the gulch roam, the deep gallery and Dace, the menu's Light and the roost's law), full gate GREEN 188 · *"push main to live when active seats finish"*
 - 2026-10-28 · `9738c9a` · the gate and the house · Shipped to live: NOTES in the second game (`e749c5b`) by exact hash, full gate GREEN 177 · *"1-2 yes"*

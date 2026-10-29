@@ -1,0 +1,154 @@
+{
+ "_readme": {
+  "what": "Playtest feedback from situations.html: one verdict and note a row -- an eyes row (js/eyes.js: built, not yet seen) or a story situation (?at=<id>, js/situations.js).",
+  "fold_back": "Fold every eyes row noted here that is still live in js/eyes.js (a folded row is already cut, so nothing folds twice; previous_save and new_since_last_save only hint at what is new -- RULED 10-15); a story situation note folds when its `at` is after the save of the last ear file folded. An eyes row noted at all is SEEN: a `seen` line in PATCHLOG.md with the note verbatim, and the row cut from js/eyes.js whatever the verdict (a fix that wants another look writes a fresh row). Broken and unclear become the fix list (in the lane its pt names); too hard / too easy are tuning; notes are the tester's words, verbatim."
+ },
+ "saved_at": "2026-10-29T01:35:46.938Z",
+ "previous_save": "2026-10-28T00:45:14.162Z",
+ "items": [
+  {
+   "id": "menu8",
+   "eyes": false,
+   "pri": 4,
+   "title": "The one menu in an 8-bit fight (10-07)",
+   "pt": "the menus (spent 10-07) · the 8-bit battle",
+   "url": "?at=menu8",
+   "verdict": "works",
+   "note": "",
+   "at": "2026-10-29T01:35:38.759Z",
+   "new_since_last_save": true
+  },
+  {
+   "id": "scourge8",
+   "eyes": false,
+   "pri": 4,
+   "title": "Searing Scourge and Deathhand's, in the 8-bit (10-14)",
+   "pt": "the spells (ours) · the 8-bit battle",
+   "url": "?at=scourge8",
+   "verdict": "works",
+   "note": "",
+   "at": "2026-10-29T01:32:29.474Z",
+   "new_since_last_save": true
+  },
+  {
+   "id": "levelup4",
+   "eyes": false,
+   "pri": 4,
+   "title": "The level-up pick: the four to level 4 (10-14)",
+   "pt": "the level-up pick",
+   "url": "?at=levelup4",
+   "verdict": "works",
+   "note": "lymen probably shouldn't be allowed fighter feats ",
+   "at": "2026-10-29T01:31:22.794Z",
+   "new_since_last_save": true
+  },
+  {
+   "id": "levelup3",
+   "eyes": false,
+   "pri": 4,
+   "title": "The level-up pick: Vivian's archetype at 3 (10-14)",
+   "pt": "the level-up pick",
+   "url": "?at=levelup3",
+   "verdict": "works",
+   "note": "",
+   "at": "2026-10-29T01:21:40.362Z",
+   "new_since_last_save": true
+  },
+  {
+   "id": "xorns",
+   "eyes": false,
+   "pri": 4,
+   "title": "The xorns at the Seam",
+   "pt": "Earth Glide · the first Blender monster (new 10-01)",
+   "url": "deep16/?npc=xorn,xorn&lvl=8&map=seamwall",
+   "verdict": "works",
+   "note": "dwarven road should be solid stone",
+   "at": "2026-10-29T01:20:15.510Z",
+   "new_since_last_save": true
+  },
+  {
+   "id": "bulette",
+   "eyes": false,
+   "pri": 4,
+   "title": "The bulette at the Breach",
+   "pt": "burrow 40 ft · the mound (new 10-01)",
+   "url": "deep16/?npc=bulette&lvl=5&map=breach",
+   "verdict": "works",
+   "note": "the road tiles should be solid stone",
+   "at": "2026-10-29T01:15:38.167Z",
+   "new_since_last_save": true
+  },
+  {
+   "id": "wet",
+   "eyes": false,
+   "pri": 4,
+   "title": "The Wet: the bucket and the landlord",
+   "pt": "§5 the wet · the landlord's pictures (new 10-01)",
+   "url": "?at=wet",
+   "verdict": "works",
+   "note": "This works. I think we made it such that no one can to this spot in the 8-bit without already being pulled on to the grid (check to make sure). We should put a light nearby the bucket and double check the sprite we're using to make it more a visible draw on the grid. The tiles around the Landlords pool should be switched to solid stone. ",
+   "at": "2026-10-04T05:23:43.178Z",
+   "new_since_last_save": false
+  },
+  {
+   "id": "wet3",
+   "eyes": false,
+   "pri": 4,
+   "title": "The gates down to the wet, at level 3",
+   "pt": "§5 the wet · §3 battle feel (new 10-03)",
+   "url": "?at=wet3",
+   "verdict": "unclear",
+   "note": "No encounters between town and warrens. Running back and forth on the road and got 2 giant rats. \nNo encounters in the mine until down in the wet itself. There either are not exit squares in the fight with the landlord, or party members are not allowed to use the flee under action (not on wheel). ",
+   "at": "2026-10-04T05:24:47.498Z",
+   "new_since_last_save": false
+  },
+  {
+   "id": "gulch",
+   "eyes": false,
+   "pri": 4,
+   "title": "Web Gulch: the strung end",
+   "pt": "§7 the braiding ettercap · §11 the snared traveler",
+   "url": "?at=gulch",
+   "verdict": "works",
+   "note": "",
+   "at": "2026-10-04T05:30:38.432Z",
+   "new_since_last_save": false
+  },
+  {
+   "id": "cloaker",
+   "eyes": false,
+   "pri": 4,
+   "title": "The guano slide and the cloaker",
+   "pt": "§6 the cloaker · §11 guano slide",
+   "url": "?at=cloaker",
+   "verdict": "works",
+   "note": "",
+   "at": "2026-10-04T05:30:46.273Z",
+   "new_since_last_save": false
+  },
+  {
+   "id": "roost",
+   "eyes": false,
+   "pri": 4,
+   "title": "Under the roost",
+   "pt": "§6 the one law · §11/§12 NOT THIS KIND OF NAME",
+   "url": "?at=roost",
+   "verdict": "works",
+   "note": "",
+   "at": "2026-10-04T05:34:59.719Z",
+   "new_since_last_save": false
+  },
+  {
+   "id": "cradle",
+   "eyes": false,
+   "pri": 4,
+   "title": "A shift at the cradle",
+   "pt": "§13 the cradle, rebuilt",
+   "url": "?at=cradle",
+   "verdict": "works",
+   "note": "",
+   "at": "2026-10-04T05:35:12.626Z",
+   "new_since_last_save": false
+  }
+ ]
+}
