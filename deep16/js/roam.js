@@ -1068,9 +1068,11 @@
   R.LASTING = ['mageArmor', 'darkvision', 'continualFlame', 'aid', 'light', 'daylight']; // (daylight: the SRD's hour as the Light's, 10-28 night) // (light: the cantrip carried off a fight till the long rest -- RULED 10-20, his "that seems aligned with SRD"; the house lane's 10-19 note 5)
   R.lasting = function (c) {
     var o = {}; R.LASTING.forEach(function (k) { if (c && c[k]) o[k] = JSON.parse(JSON.stringify(c[k])); });
+    if (c && c.poisoned && c.poisoned.hour) { o.poisoned = JSON.parse(JSON.stringify(c.poisoned)); if (c.paralyzed && c.paralyzed.hour) o.paralyzed = JSON.parse(JSON.stringify(c.paralyzed)); } // (a spider's poison that dropped one: its hour, 10-29 -- battle.js atk.save.zero)
     // (a Light cast in a fight, carried off it in the house: its hour from now on THE WORLD's clock -- js/house.js H.lightsOut; SRD 5.1 "Duration: 1 hour", 10-28)
     var H = D.house, now = H && H.playing && H.cur ? H.clock(H.cur) : null;
     if (now != null) ['light', 'daylight'].forEach(function (k) { if (o[k] && o[k].until == null) o[k].until = now + H.LIGHT_HOURS; });
+    if (now != null && o.poisoned && o.poisoned.until == null) { o.poisoned.until = now + 1; if (o.paralyzed) o.paralyzed.until = now + 1; } // (SRD 5.1: "poisoned for 1 hour")
     return o;
   };
   // a Continual Flame back off a grid fight onto a sheet as the weapon it burns on (10-28 night, his "did the continual light on a weapon from the 8-bit make it over?"): the grid

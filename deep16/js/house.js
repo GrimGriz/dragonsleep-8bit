@@ -693,9 +693,11 @@
   H.lightsOut = function (B) {
     var now = H.playing && H.cur ? H.clock(H.cur) : null, gone = []; if (now == null) return [];
     function out(x, name) { ['light', 'daylight'].forEach(function (k) { var l = x && x.conds && x.conds[k]; if (!l || l.until == null || now < l.until - 1e-9) return; delete x.conds[k]; var s = name + '\'s ' + (k === 'light' ? 'Light' : 'Daylight'); if (name && gone.indexOf(s) < 0) gone.push(s); }); } // (and a Daylight's: 10-28 night)
-    H.cur.party.forEach(function (h) { out(h, h.name); });
-    if (B && B.roam) B.roam.members.forEach(function (u) { out(u.src, u.name); out(u, u.name); });
-    return gone.map(function (n) { return n + ' goes out: its hour is up.'; });
+    // a spider's poison that dropped one (battle.js atk.save.zero, 10-29): its hour up, the poison and the paralysis with it; and a paralysis whose poison is gone, gone
+    var freed = []; function shake(x, name) { var c = x && x.conds; if (!c) return; var p = c.poisoned; if (p && p.hour && p.until != null && now >= p.until - 1e-9) { delete c.poisoned; if (name && freed.indexOf(name) < 0) freed.push(name); } if (c.paralyzed && c.paralyzed.poison && !c.poisoned) delete c.paralyzed; }
+    H.cur.party.forEach(function (h) { out(h, h.name); shake(h, h.name); });
+    if (B && B.roam) B.roam.members.forEach(function (u) { out(u.src, u.name); out(u, u.name); shake(u.src, u.name); shake(u, u.name); });
+    return gone.map(function (n) { return n + ' goes out: its hour is up.'; }).concat(freed.map(function (n) { return n + ' can move again: the poison\'s hour is up.'; }));
   };
   function worldEnv(scene) {
     var rec = H.cur, W = D.world;

@@ -1550,7 +1550,21 @@
   }
   AI.escapeGrip = escapeGrip;
   AI.shoveOff = shoveOff; // (the SRD's Shove, for the bench: mode=rules1013, a shove over an edge)
-  AI.heroes = heroes; AI.approach = approach; AI.walkTo = walkTo; AI.visibleFrom = visibleFrom; AI.eyesAt = eyesAt; AI.reachOf = reachOf; AI.the = the;
+  AI.heroes = heroes; AI.approach = approach; AI.walkTo = walkTo; AI.visibleFrom = visibleFrom; AI.eyesAt = eyesAt;
+  // a foe's turn that leaves nothing on the page -- no blow, no step, no word -- says so in the log, and whom it saw (10-29, RULED "probe it": the rat swarm in his workings' fight
+  // of 17:43 took two turns and his play record said nothing of them; a probe of forty fights on that floor, the party unlit, passing or fighting, never did it again -- so the next
+  // record shows why). Not for the asleep, the held, the hidden or a rider; twice a foe a fight at most
+  var turnQuiet = AI.turnBody = AI.turn; // (the turn itself, for a bench that reads its rules: mode=rulings0930)
+  AI.turn = function* (B, u) {
+    var n0 = (B.logEntries || []).length, x0 = u.x, y0 = u.y;
+    yield* turnQuiet.apply(this, arguments);
+    var c = u.conds || {};
+    if (u.side !== 'foe' || u.dead || u.hp <= 0 || u.left || u.fled || u.object || u.riding || B.result || !B.logEntries || B.logEntries.length !== n0 || u.x !== x0 || u.y !== y0) return;
+    if (c.asleep || c.paralyzed || c.stunned || c.incapacitated || c.restrained || c.hidden || c.petrified || c.banished || u.still || (u.quietLogged || 0) >= 2) return;
+    u.quietLogged = (u.quietLogged || 0) + 1;
+    var hs = heroes(B, u), why = !hs.length ? 'sees no one' : 'sees ' + hs.map(function (w) { return (w.name || w.id) + ' at ' + G.dist(u, w) + ' ft'; }).join(', ') + ', and goes for none';
+    B.logEntries.push({ id: null, text: 'R' + B.round + ' ' + (u.name || u.id) + ' holds: ' + why }); B.log = B.logEntries.map(function (e) { return e.text; });
+  }; AI.reachOf = reachOf; AI.the = the;
   function* guest(B, u) {
     var T = u.turn, fs = heroes(B, u), h = u.src || {}, f = u.feats || {};
     if (!fs.length) { // no one it knows of: a foe under the ground or out of the world gets its weapon readied (SRD 5.1 Ready; battle.js exec 'ready', 10-02), else it waits

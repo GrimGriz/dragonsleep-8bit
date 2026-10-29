@@ -21,7 +21,7 @@
     abil: { str: 15, dex: 15, con: 12, int: 6, wis: 10, cha: 6 }, init: 2, perception: 10,
     saves: { str: 2, dex: 2, con: 1, int: -2, wis: 0, cha: -2 },
     attacks: {
-      bite: { name: 'Bite', atk: 4, dice: '1d10', mod: 2, type: 'piercing', reach: 5, save: { ab: 'con', dc: 11, dice: '4d8', type: 'poison', half: true } }
+      bite: { name: 'Bite', atk: 4, dice: '1d10', mod: 2, type: 'piercing', reach: 5, save: { ab: 'con', dc: 11, dice: '4d8', type: 'poison', half: true, zero: true } }
     },
     multi: 1, jaunt: true,
     src: 'SRD 5.1 Phase Spider (Ethereal Jaunt as a bonus action; bite with a DC 11 CON poison save)'
@@ -61,7 +61,7 @@
     abil: { str: 14, dex: 16, con: 12, int: 2, wis: 11, cha: 4 }, init: 3, perception: 10,
     saves: { str: 2, dex: 3, con: 1, int: -4, wis: 0, cha: -3 },
     attacks: {
-      bite: { name: 'Bite', atk: 5, dice: '1d8', mod: 3, type: 'piercing', reach: 5, save: { ab: 'con', dc: 11, dice: '2d8', type: 'poison', half: true } }
+      bite: { name: 'Bite', atk: 5, dice: '1d8', mod: 3, type: 'piercing', reach: 5, save: { ab: 'con', dc: 11, dice: '2d8', type: 'poison', half: true, zero: true } }
     },
     multi: 1, web: { atk: 5, range: [30, 60], dc: 12, recharge: 5 }, webWalker: true, spiderClimb: true,
     src: 'SRD 5.1 Giant Spider (CR 1); content/monsters.json giantspider. Web is read (09-27, ai.js webShot): a ranged attack, restrained, escape DC 12, recharge 5-6. Spider Climb (10-05 night): the climb speed up or down any face with no check, and (ours) no blow shakes it off the face -- battle.js hurt; a push still does. Web Walker: grid.js stepCost, a web never slows it. The SRD gives it no faster climb on a web: Griz\'s "spider spiderclimb faster on web per SRD" read as these two traits, the seat\'s read'
@@ -467,7 +467,7 @@
     name: 'Giant Centipede', type: 'beast', sheet: 'centipede_p1', cr: '1/4', ac: 13, hp: 4, speed: 30, climbs: 30, size: 1, reach: 5, blindsight: 30,
     abil: { str: 5, dex: 14, con: 12, int: 1, wis: 7, cha: 3 }, init: 2, perception: 8,
     saves: { str: -3, dex: 2, con: 1, int: -5, wis: -2, cha: -4 },
-    attacks: { bite: { name: 'Bite', atk: 4, dice: '1d4', mod: 2, type: 'piercing', reach: 5, save: { ab: 'con', dc: 11, dice: '3d6', type: 'poison', half: false } } },
+    attacks: { bite: { name: 'Bite', atk: 4, dice: '1d4', mod: 2, type: 'piercing', reach: 5, save: { ab: 'con', dc: 11, dice: '3d6', type: 'poison', half: false, zero: true } } },
     multi: 1, src: 'SRD 5.1 Giant Centipede (CR 1/4); content/monsters.json centipede', todo: 'the SRD poison rule that drops a target to 0 HP leaves it stable, poisoned and paralysed for an hour: not read'
   },
   stablefighter: {
@@ -516,7 +516,7 @@
     name: 'Wolf Spider', type: 'beast', sheet: 'wolfspider_p1', cr: '1/4', ac: 13, hp: 11, speed: 40, climbs: 40, size: 1, reach: 5, darkvision: 60, blindsight: 10,
     abil: { str: 12, dex: 16, con: 13, int: 3, wis: 12, cha: 4 }, init: 3, perception: 13,
     saves: { str: 1, dex: 3, con: 1, int: -4, wis: 1, cha: -3 },
-    attacks: { bite: { name: 'Bite', atk: 3, dice: '1d6', mod: 1, type: 'piercing', reach: 5, save: { ab: 'con', dc: 11, dice: '2d6', type: 'poison', half: true } } },
+    attacks: { bite: { name: 'Bite', atk: 3, dice: '1d6', mod: 1, type: 'piercing', reach: 5, save: { ab: 'con', dc: 11, dice: '2d6', type: 'poison', half: true, zero: true } } },
     multi: 1, webWalker: true, src: 'SRD 5.1 Giant Wolf Spider (CR 1/4); content/monsters.json wolfspider'
   },
   grick: {

@@ -400,7 +400,7 @@
       if (r && r.by === u.id && r.grapple && (!only || only === w)) delete w.conds.restrained;
       if (w.conds.stunned && w.conds.stunned.by === u.id && (w.conds.stunned.fresh !== undefined || w.conds.stunned.till) && !only) delete w.conds.stunned; // (a foe's slam or moan -- laid with `fresh` -- or a blow's, on its laying one's turns' clock; a spell's stun holds without its caster: Power Word Stun, Divine Word, Symbol)
       if (w.conds.blinded && w.conds.blinded.by === u.id && w.conds.blinded.held && (!only || only === w)) delete w.conds.blinded; // (the darkmantle off the head, the cloaker's fold)
-      if (w.conds.attached && w.conds.attached.by === u.id && (!only || only === w)) delete w.conds.attached; // (a darkmantle that was attached: SRD 5.1)
+      if (w.conds.attached && Battle.attOf(w, u) && (!only || only === w)) Battle.unattach(w, u); // (a darkmantle that was attached: SRD 5.1; one of several stirges on one, its own record -- Battle.attOf)
     });
     u.holding = (u.holding || []).filter(function (w) { return only && w !== only && w.conds.restrained && w.conds.restrained.by === u.id; });
   };
@@ -408,6 +408,16 @@
   // the square straight in front him... so when a mouse fella is trying to target it they have to find the square it's actually in"): it rides the one
   // it holds -- on that one's square, holding none of its own (grid.js occupant), drawn over the head (ui.js perch 'over') or at the shoulder when it
   // did not get the head. Struck at through that square (ui.js valid: the attack tool on a friend's square); a natural 1 lands on the friend (attack)
+  // the riders' records on one they ride (10-29, several on one -- the stirges): the first's is conds.attached as it always was, the rest in its `more`; each one's own by its id
+  Battle.attOf = function (host, u) { var a = host && host.conds && host.conds.attached, id = u && typeof u === 'object' ? u.id : u; if (!a || id == null) return null; if (a.by === id) return a; return (a.more || []).filter(function (m) { return m.by === id; })[0] || null; };
+  Battle.attach = function (host, rec) { var a = host.conds.attached; if (!a) { host.conds.attached = rec; return; } (a.more = a.more || []).push(rec); };
+  Battle.unattach = function (host, u) {
+    var a = host.conds.attached, id = u && typeof u === 'object' ? u.id : u; if (!a) return;
+    if (a.by !== id) { a.more = (a.more || []).filter(function (m) { return m.by !== id; }); if (!a.more.length) delete a.more; return; }
+    var rest = a.more || []; if (!rest.length) { delete host.conds.attached; return; }
+    var nx = rest[0]; nx.more = rest.slice(1); if (!nx.more.length) delete nx.more; host.conds.attached = nx; // (the next rider's record the first)
+  };
+  Battle.headTaken = function (host) { var a = host && host.conds && host.conds.attached; return !!a && (a.head || (a.more || []).some(function (m) { return m.head; })); };
   Battle.prototype.mount = function (u, host) {
     if (!u.rideXY) { // (its square follows the one it rides, as a familiar's does: js/familiar.js)
       var mx = u.x, my = u.y; u.rideXY = true;
@@ -415,7 +425,7 @@
       Object.defineProperty(u, 'y', { get: function () { return u.riding && u.master ? u.master.y : my; }, set: function (v) { my = v; }, enumerable: true, configurable: true });
     }
     u.tween = { fx: u.x, fy: u.y, fz: 0, t: 0, dur: this.pace(10, true) };
-    var at = host.conds.attached; u.riding = true; u.attached = true; u.master = host; u.perch = at && at.by === u.id && at.head ? 'over' : 'shoulder';
+    var at = Battle.attOf(host, u); u.riding = true; u.attached = true; u.master = host; u.perch = at && at.head ? 'over' : 'shoulder';
     u.facing = host.facing;
   };
   // off the one it rode, however the grip ended -- broken, pulled off, let go, either of them down (10-01, Griz: "we might be best moving it off his square
@@ -462,8 +472,8 @@
   Battle.prototype.rideSync = function () {
     for (var i = 0; i < this.units.length; i++) {
       var u = this.units[i]; if (!u.attached || !u.riding) continue;
-      var h = u.master, at = h && h.conds.attached;
-      if (!h || u.dead || u.hp <= 0 || h.dead || h.hp <= 0 || !at || at.by !== u.id || h.ethereal || u.ethereal || h.conds.banished || u.conds.banished || u.conds.prone || !G.hostile(u, h)) { this.dismount(u); continue; }
+      var h = u.master, at = h && Battle.attOf(h, u);
+      if (!h || u.dead || u.hp <= 0 || h.dead || h.hp <= 0 || !at || h.ethereal || u.ethereal || h.conds.banished || u.conds.banished || u.conds.prone || !G.hostile(u, h)) { this.dismount(u); continue; }
       if (!at.big && Battle.overMedium(h)) { this.card(['{g}' + nameOf(h) + ' swells past it: the ' + shortName(u) + ' is thrown off.{/}'], 240); this.dismount(u); }
     }
   };
@@ -970,6 +980,7 @@
     this.units.forEach(function (s) {
       // a summoned creature at 0 HP is gone (SRD: "it disappears when it drops to 0 hit points")
       if (s.summon && s.hp <= 0 && !s.dead) { s.dead = true; s.left = true; s.deadT = self.t; FX.sparkle(s, 'moss', 8); }
+      if (s.conds.paralyzed && s.conds.paralyzed.poison && !s.conds.poisoned) delete s.conds.paralyzed; // (paralyzed while poisoned: the poison ended -- Protection from Poison, a cure -- and the hold with it, 10-29)
       if (s.familiar && s.hp <= 0 && !s.dead && D.familiar && D.familiar.vanish) D.familiar.vanish(self, s); // (and a familiar: SRD 5.1, "it disappears")
       var gone = s.dead || s.fled || s.left || s.hp <= 0, incap = gone || s.conds.paralyzed || s.conds.stunned || s.conds.asleep || s.conds.incapacitated; // (incapacitated itself: Hideous Laughter's, Hypnotic Pattern's -- a concentrating foe kept its spell under them till 10-03, the review)
       if (gone) self.units.forEach(function (w) { ['stunned', 'frightened'].forEach(function (c) { if (w.conds[c] && w.conds[c].by === s.id && !(c === 'frightened' && w.conds.turned) && !(c === 'stunned' && w.conds[c].fresh === undefined && !w.conds[c].till)) delete w.conds[c]; }); }); // (a prayer's turning runs its minute out, whoever fell; nor does a spell's stun -- only the slam's and the moan's, laid with `fresh`, and a blow's, on a clock of its laying one's turns, go with the one who laid them)
@@ -988,7 +999,7 @@
       if (rH && rH.grapple && !rH.pin && !rH.water && !rH.whelm && !gone && !s.conds.grappled) { var hH = self.units.filter(function (x) { return x.id === rH.by; })[0]; if (hH && !hH.dead && hH.hp > 0 && G.dist(hH, s) > Battle.gripReach(hH)) { self.release(hH, s); self.card(['{g}' + Battle.nm(s, true) + ' is out of ' + Battle.nm(hH) + "'s reach: the grip lets go.{/}"], 200); } }
       // a blinding hold (the darkmantle over the head, the cloaker's fold) ends with the grip, however the grip ended
       var bl = s.conds.blinded;
-      if (bl && bl.held && !(s.conds.restrained && s.conds.restrained.by === bl.by && s.conds.restrained.grapple) && !(s.conds.attached && s.conds.attached.by === bl.by)) { delete s.conds.blinded; self.card(['{g}' + (s.side === 'foe' ? Battle.nm(s, true) : s.name) + ' can see again.{/}'], 200); }
+      if (bl && bl.held && !(s.conds.restrained && s.conds.restrained.by === bl.by && s.conds.restrained.grapple) && !Battle.attOf(s, bl.by)) { delete s.conds.blinded; self.card(['{g}' + (s.side === 'foe' ? Battle.nm(s, true) : s.name) + ' can see again.{/}'], 200); }
     });
   };
 
@@ -1787,7 +1798,8 @@
       }
       case 'detach': { // PULL IT OFF: a darkmantle off a friend (SRD 5.1: "a successful DC 13 Strength check as an action"; Athletics, as breakFree reads it)
         var rd = c.target, host = rd && rd.riding && rd.master; if (!host) return;
-        var hr = host.conds.attached, dc = (hr && hr.dc) || 13, en1 = u.conds.enlarged, ce1 = RU.checkEdges(u, 'str');
+        var hr = Battle.attOf(host, rd), dc = (hr && hr.dc) || 13, en1 = u.conds.enlarged, ce1 = RU.checkEdges(u, 'str');
+        if (dc <= 1) { T.action = 0; RU.spendHelp(u); D.sfx('run'); this.card(['{y}' + u.name + '{/} pulls the ' + shortName(rd) + (host === u ? '' : ' off ' + host.name) + ' {n}OFF{/}  {g}(no check: SRD 5.1, an action){/}']); this.release(rd, host); this.dismount(rd, u); yield 30; return; } // (the stirge: "a creature, including the target, can use its action to detach the stirge")
         var adv1 = !!(en1 && !en1.down) || ce1.adv.length > 0, dis1 = !!(u.conds.poisoned || u.conds.frightened || (en1 && en1.down)) || ce1.dis.length > 0;
         var a1 = D.d(20), a2 = D.d(20), d20 = adv1 && !dis1 ? Math.max(a1, a2) : dis1 && !adv1 ? Math.min(a1, a2) : a1;
         var pb = D.mod(u.abil.str) + (u.cls === 'fighter' ? u.prof : 0) - RU.shaken(u), ptot = d20 + pb, blind0 = !!(host.conds.blinded && host.conds.blinded.held && host.conds.blinded.by === rd.id);
@@ -2563,18 +2575,20 @@
     // (and unable to breathe) while it is on. Off with a DC 13 STR check as an action, by the one it is on or anyone beside (exec 'detach': PULL IT OFF)
     // (on already, at the shoulder, and the one it rides Medium or smaller again -- an Enlarge ended -- a hit with advantage takes the head: the SRD's "attaches by
     // engulfing the target's head", read on every hit)
-    var atNow = tgt.conds.attached;
+    var atNow = Battle.attOf(tgt, att);
     var headOK = atk.attach && (atk.attach.large ? (tgt.size || 1) <= 2 : !Battle.overMedium(tgt)); // (attach.large: the cloaker takes a Large one's head too, SRD 5.1 -- 10-06)
-    if (atk.attach && atNow && atNow.by === att.id && !atNow.head && !tgt.dead && tgt.hp > 0 && e.net > 0 && headOK) {
+    if (atk.attach && atNow && !atNow.head && !Battle.headTaken(tgt) && !tgt.dead && tgt.hp > 0 && e.net > 0 && headOK) {
       atNow.head = true; att.perch = 'over'; if (!tgt.conds.blinded) tgt.conds.blinded = { by: att.id, held: true };
       this.card(['{r}' + nameOf(att) + '{/} gets ' + nameOf(tgt) + '\'s head: {o}BLINDED{/}, no breath to draw.']); yield 24;
     }
-    if (atk.attach && !tgt.dead && tgt.hp > 0 && !att.riding && !tgt.conds.attached && !(atk.attach.large && (tgt.size || 1) > 2)) { // (the cloaker: Large or smaller, SRD 5.1)
-      var onHead = !atk.stinger && headOK && e.net > 0; // (Medium or smaller: SRD 5.1 -- an Enlarged one is a size up, Large -- RULED 10-01, Griz: "only when he's Medium or smaller")
-      tgt.conds.attached = { by: att.id, dc: atk.attach.dc, head: onHead, big: Battle.overMedium(tgt) }; // (big: Large already when it got on -- an Enlarge after throws it off, rideSync)
+    // (several on one: each that hits attaches -- SRD 5.1's stirge, RULED 10-29, Griz: "notes has leans - approved" on the notes seat's "several stirges on one target, as the SRD has it":
+    // fight 1 of his 10-29 play, the second stirge's hit (23 vs AC 12) never took hold. The head one's alone: a second rider takes the shoulder)
+    if (atk.attach && !tgt.dead && tgt.hp > 0 && !att.riding && !atNow && !(atk.attach.large && (tgt.size || 1) > 2)) { // (the cloaker: Large or smaller, SRD 5.1)
+      var onHead = !atk.stinger && headOK && e.net > 0 && !Battle.headTaken(tgt); // (Medium or smaller: SRD 5.1 -- an Enlarged one is a size up, Large -- RULED 10-01, Griz: "only when he's Medium or smaller")
+      Battle.attach(tgt, { by: att.id, dc: atk.attach.dc, head: onHead, big: Battle.overMedium(tgt) }); // (big: Large already when it got on -- an Enlarge after throws it off, rideSync)
       if (onHead && !tgt.conds.blinded) tgt.conds.blinded = { by: att.id, held: true };
       D.sfx('poison'); FX.ring(tgt, 'bone', 26);
-      this.card(['{r}' + nameOf(att) + '{/} attaches to ' + nameOf(tgt) + (onHead ? ': over ' + nameOf(tgt) + '\'s head -- {o}BLINDED{/}, no breath to draw' : '') + '.  {g}(DC ' + atk.attach.dc + ' STR to pull it off, an action: ' + nameOf(tgt) + ', or anyone beside){/}']);
+      this.card(['{r}' + nameOf(att) + '{/} attaches to ' + nameOf(tgt) + (onHead ? ': over ' + nameOf(tgt) + '\'s head -- {o}BLINDED{/}, no breath to draw' : '') + '.  {g}(' + (atk.attach.dc > 1 ? 'DC ' + atk.attach.dc + ' STR to pull it off' : 'no check to pull it off') + ', an action: ' + nameOf(tgt) + ', or anyone beside){/}']);
       this.mount(att, tgt); if (atk.stinger) att.drained = 5; // (the stirge: the hit's average counts toward the 10 it drinks)
       yield 30;
     }
@@ -2608,6 +2622,15 @@
       var pd = ev2 ? (s2.ok ? 0 : Math.floor(pr.total / 2)) : s2.ok && atk.save.half ? Math.floor(pr.total / 2) : s2.ok ? 0 : pr.total;
       this.card(['{r}' + nameOf(tgt) + '{/}: ' + atk.save.ab.toUpperCase() + ' save  ' + RU.saveText(s2) + ' vs DC ' + s2.dc + '  ' + (s2.ok ? '{n}SAVED{/} (half)' : '{o}FAILED{/}'), atk.save.dice + ' ' + RU.fmtRolls(pr.rolls) + ' = ' + pr.total + ' ' + atk.save.type + '  = {r}' + pd + '{/}']);
       if (pd) this.hurt(tgt, pd, atk.save.type, { blow: bl });
+      // the poison that drops one (atk.save.zero: SRD 5.1's giant centipede, giant spider, giant wolf spider, phase spider -- "If the poison damage reduces the target to 0 hit
+      // points, the target is stable but poisoned for 1 hour, even after regaining hit points, and is paralyzed while poisoned in this way"; RULED 10-29, Griz: "notes has leans -
+      // approved"): poisoned and paralyzed, no save; healed, still held; the hour on THE WORLD's clock off the fight (js/roam.js R.lasting, js/house.js H.lightsOut). One
+      // ailment for Lesser Restoration (magic.js ailments), and the paralysis ends with the poison (sweep)
+      if (pd && atk.save.zero && tgt.hp <= 0 && !tgt.dead && !tgt.summon && !RU.immuneTo(tgt, 'poisoned')) {
+        tgt.conds.poisoned = { paralysis: true, hour: true, by: att.id }; tgt.conds.paralyzed = { poison: true, hour: true, by: att.id };
+        D.sfx('poison'); FX.sparkle(tgt, 'moss', 12);
+        this.card(['{p}' + nameOf(tgt) + ': the poison takes hold{/} -- POISONED for an hour, and PARALYZED while it lasts, {g}even healed (Lesser Restoration ends it){/}']);
+      }
       yield 30;
     }
     this.blowEnd(tgt, bl);

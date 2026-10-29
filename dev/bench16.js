@@ -4551,6 +4551,64 @@
     document.body.appendChild(preB);
     return;
   }
+  // HIS ANSWERS OF 10-29 TO THE NOTES SEAT'S FOUR (mode=rules1029; the notes seat on the lanes desk's relay of his "notes has leans - approved, but for healer's kit
+  // stabilization"): several stirges on one, the spiders' poison at 0 HP by the SRD, a foe's quiet turn said in the log; each proved RED on main's scripts
+  if (get('mode', '') === 'rules1029') {
+    var repR9 = { checks: [], errors: [] }, memR9 = {}, stGR9 = D.store.get, stSR9 = D.store.set, d0R9 = D.d, BTR9 = D.Battle, HR9 = D.house;
+    function okR9(what, v) { repR9.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function runR9(g) { var k = 0, st; while (k++ < 4000) { st = g.next(); if (st.done) return st.value; } return null; }
+    function mkR9(q) { var Bx = D.npcFight(q, {}); D.battle = Bx; Bx.enter(); while (!Bx.order.length) Bx.co.next(); return Bx; }
+    function logR9(B) { return (B.log || []).join(' / '); }
+    D.store.get = function (k) { return memR9[k] ? JSON.parse(memR9[k]) : null; }; D.store.set = function (k, v) { memR9[k] = JSON.stringify(v); return true; };
+    try {
+      D.seed = +get('seed', 1029);
+      // 1. SEVERAL STIRGES ON ONE (RULED: "notes has leans - approved"; SRD 5.1's stirge, each that hits attaches -- fight 1 of his 10-29 play, the second's hit never took hold):
+      // two stirges hit the one fighter -- both on, each its own record; the card says no check; PULL IT OFF the first, no roll, and the second stays on through the sync
+      var B1 = mkR9('?npc=stirge,stirge&lvl=3&vs=fighter'), h1 = B1.units.filter(function (u) { return u.side === 'party'; })[0], ss = B1.units.filter(function (u) { return u.side === 'foe'; });
+      h1.x = 8; h1.y = 8; ss[0].x = 7; ss[0].y = 8; ss[1].x = 9; ss[1].y = 8; h1.hp = h1.maxhp = 60; D.grid.setup(B1.map, B1.units);
+      D.d = function (s) { return s === 20 ? 15 : d0R9(s); };
+      runR9(B1.attack(ss[0], h1, ss[0].attacks.drain)); runR9(B1.attack(ss[1], h1, ss[1].attacks.drain)); D.d = d0R9;
+      var on1 = ss.filter(function (u) { return u.riding && u.attached && u.master === h1; }).length, rec1 = ss.map(function (u) { return BTR9.attOf ? !!BTR9.attOf(h1, u) : false; }), lg1 = logR9(B1);
+      okR9('SEVERAL STIRGES ON ONE: two stirges hit ' + h1.name + ': ' + on1 + ' on (records ' + rec1.join(',') + '); the card "' + ((lg1.match(/\(([^)]*pull it off[^)]*)\)/) || [])[1] || '') + '"',
+        on1 === 2 && rec1[0] && rec1[1] && /no check to pull it off/.test(lg1) && !/DC 1 STR/.test(lg1));
+      h1.turn = { move: 30, action: 1, bonus: 1, attacksLeft: 0, reaction: 1 }; var n1 = (B1.log || []).length;
+      runR9(B1.exec(h1, { do: 'detach', target: ss[0] })); B1.rideSync(); var lg1b = (B1.log || []).slice(n1).join(' / ');
+      okR9('PULL IT OFF the first: off with no roll ("' + lg1b.replace(/\{.\}|\{\/\}/g, '').slice(0, 70) + '"), the second still on after the sync (' + (ss[1].riding && ss[1].master === h1) + ', its record ' + !!(BTR9.attOf && BTR9.attOf(h1, ss[1])) + ')',
+        !ss[0].riding && ss[1].riding && ss[1].master === h1 && !!BTR9.attOf(h1, ss[1]) && /no check/.test(lg1b) && !/d20/.test(lg1b));
+      // 2. THE SPIDER'S POISON AT 0 HP (RULED, SRD 5.1's giant wolf spider and its kin: "the target is stable but poisoned for 1 hour, even after regaining hit points, and is
+      // paralyzed while poisoned in this way"): a bite and its failed poison drop the wizard -- poisoned and paralyzed, no save; healed, still held; Lesser Restoration ends both;
+      // off the fight it carries its hour, and THE WORLD's clock past it frees them
+      var B2 = mkR9('?npc=wolfspider&lvl=3&vs=wizard'), h2 = B2.units.filter(function (u) { return u.side === 'party'; })[0], sp2 = B2.units.filter(function (u) { return u.side === 'foe'; })[0];
+      h2.x = 8; h2.y = 8; sp2.x = 7; sp2.y = 8; D.grid.setup(B2.map, B2.units); h2.hp = 8; var n20 = 0;
+      D.d = function (s) { if (s === 20) return n20++ === 0 ? 15 : 2; if (s === 6) return 6; return d0R9(s); };
+      runR9(B2.attack(sp2, h2, sp2.attacks.bite)); D.d = d0R9;
+      var c2 = h2.conds, at0 = h2.hp, po = !!(c2.poisoned && c2.poisoned.hour), pa = !!(c2.paralyzed && c2.paralyzed.poison && !c2.paralyzed.save);
+      h2.hp = 5; h2.ko = false; B2.sweep(); var held2 = !!(h2.conds.paralyzed && h2.conds.poisoned), ail2 = D.magic.ailments(h2), lab2 = ail2.length ? ail2[0].label : '';
+      var car2 = D.roam.lasting(h2.conds); if (ail2.length) ail2[0].end(); B2.sweep(); var cured2 = !h2.conds.paralyzed && !h2.conds.poisoned;
+      okR9('THE SPIDER\'S POISON AT 0: the bite and the failed poison take ' + h2.name + ' to ' + at0 + ': poisoned for the hour (' + po + '), paralyzed by it with no save (' + pa + '); healed to 5, still held (' + held2 + '); Lesser Restoration\'s "' + lab2 + '" ends both (' + cured2 + '); off the fight it carries (' + Object.keys(car2).join(',') + ')',
+        at0 === 0 && po && pa && held2 && lab2 === 'the paralysing poison' && cured2 && !!car2.poisoned && !!car2.paralyzed);
+      // its hour on THE WORLD's clock: in a house game the sheet carries `until`; an hour and a bit on, H.lightsOut frees them with a word
+      HR9.begin(HR9.fresh(), 0); var W2 = D.world, S2 = W2.state(), sh2 = HR9.cur.party[0], now2 = HR9.clock(HR9.cur);
+      sh2.conds = D.roam.lasting({ poisoned: { paralysis: true, hour: true }, paralyzed: { poison: true, hour: true } }); var until2 = sh2.conds.poisoned && sh2.conds.poisoned.until;
+      var early2 = HR9.lightsOut(null).length; S2.t += 1.2; var late2 = HR9.lightsOut(null), free2 = !sh2.conds.poisoned && !sh2.conds.paralyzed;
+      okR9('ITS HOUR: carried with until ' + until2 + ' (now ' + now2 + '); before it, nothing (' + early2 + '); after it, "' + late2.join(' ') + '", free (' + free2 + ')', until2 === now2 + 1 && early2 === 0 && free2 && late2.some(function (l) { return /can move again/.test(l); }));
+      HR9.playing = false; HR9.cur = null; D.scenes.length = 0;
+      // and the chuul's poison, unchanged: ended by its save each turn, and the paralysis with the poison (the sweep: a poison ended any way ends its hold)
+      var B3 = mkR9('?npc=wolfspider&lvl=1&vs=wizard'), h3 = B3.units.filter(function (u) { return u.side === 'party'; })[0]; h3.conds.poisoned = { paralysis: true }; h3.conds.paralyzed = { save: 'con', dc: 30, poison: true }; delete h3.conds.poisoned; B3.sweep();
+      okR9('a paralysis whose poison is gone is gone (the sweep): ' + !h3.conds.paralyzed, !h3.conds.paralyzed);
+      // 4. A FOE'S QUIET TURN SAID (RULED "probe it": his fight 11, the rat swarm silent two turns; not reproduced in forty probe fights): a swarm that sees no one holds -- the log
+      // says so, once a turn, twice a fight at most
+      var B4 = mkR9('?npc=ratswarm&lvl=3&vs=fighter'), h4 = B4.units.filter(function (u) { return u.side === 'party'; })[0], rs4 = B4.units.filter(function (u) { return u.side === 'foe'; })[0];
+      h4.conds.hidden = { by: 'bench' }; rs4.turn = { move: 30, action: 1, bonus: 1, attacksLeft: 0, reaction: 1 }; var n4 = (B4.log || []).length;
+      runR9(D.ai.turn(B4, rs4)); rs4.turn = { move: 30, action: 1, bonus: 1, attacksLeft: 0, reaction: 1 }; runR9(D.ai.turn(B4, rs4)); rs4.turn = { move: 30, action: 1, bonus: 1, attacksLeft: 0, reaction: 1 }; runR9(D.ai.turn(B4, rs4));
+      var lg4 = (B4.log || []).slice(n4), hold4 = lg4.filter(function (l) { return /Rat Swarm holds: sees no one/.test(l); }).length;
+      okR9('A FOE\'S QUIET TURN SAID: the swarm, its one foe hidden, three turns -- the log "' + lg4.join(' / ').slice(0, 90) + '" (' + hold4 + ' of them)', hold4 === 2);
+    } catch (eR9) { repR9.errors.push(String(eR9 && eR9.stack || eR9).slice(0, 900)); }
+    D.d = d0R9; D.store.get = stGR9; D.store.set = stSR9; if (HR9) { HR9.playing = false; HR9.cur = null; }
+    var preR9 = document.createElement('pre'); preR9.id = 'out'; preR9.textContent = 'BENCH16 ' + JSON.stringify(repR9);
+    document.body.appendChild(preR9);
+    return;
+  }
   // HIS NOTES OF 10-29, MORE (mode=notes1029d -- the notes seat of 10-29 evening, on the lanes desk's relays of his 12th note and his NOTES of 1846Z): an empty stamp not kept, the
   // stamp's place the floor's, the bunkhouses' picture, the JOURNAL's fly-in; each proved RED on main's scripts
   if (get('mode', '') === 'notes1029d') {
@@ -11984,7 +12042,7 @@
       var hit1 = ps.filter(function (w) { return w.conds.feared && w.conds.frightened; }).length;
       // the end of the wizard's turn: the sweep in ai.js turn (run a whole AI turn with nothing else worth doing)
       var sweep = B1.units.forEach; B1.units.forEach(function (w) { ['stunned', 'frightened'].forEach(function (c) { var s = w.conds[c]; if (s && s.by === wz.id && !(c === 'frightened' && (w.conds.turned || (w.conds.feared && w.conds.feared.by === wz.id) || (w.conds.killer && w.conds.killer.by === wz.id)))) { if (s.fresh) s.fresh = false; else delete w.conds[c]; } }); });
-      var src = String(D.ai.turn); // (the rule as the AI's turn has it)
+      var src = String(D.ai.turnBody || D.ai.turn); // (the rule as the AI's turn has it -- its body under the quiet turn's word since 10-29, js/ai.js)
       okU('Fear: ' + hit1 + ' of 2 frightened; the AI turn keeps a spell\'s fright (' + /feared && w.conds.feared.by === u.id/.test(src) + '); after the sweep still frightened ' + ps.filter(function (w) { return w.conds.frightened; }).length + ', must flee ' + D.magic.mustFlee(ps[0]), hit1 === 2 && /feared && w.conds.feared.by === u.id/.test(src) && ps.every(function (w) { return w.conds.frightened; }) && D.magic.mustFlee(ps[0]));
       // 2. charmed by the foe: the player's hero cannot swing at it, nor aim a harmful spell at it; others yes
       var B2 = mkU('?npc=fighter,fighter&lvl=5&vs=wizard:5'), me = B2.units.filter(function (u) { return u.side === 'party'; })[0], f2 = B2.units.filter(function (u) { return u.side === 'foe'; });
