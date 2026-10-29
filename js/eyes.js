@@ -692,5 +692,8 @@
     'eyes-dacedisp-figure-1029': { pri: 2, group: G2, title: 'Corwen Dace in the cloak of displacement on the town floor, beside the plain Dace (10-29)', pt: 'the bestiary, the Edric and Dace cutter seat (tools/keeper-town-sheet.py dacedisp_p1 `ghost`; deep16/js/counter.js C.FIG.dacedisp) · eyes',
       url: 'deep16/?keepers&who=dace,dacedisp&fresh=1029x',
       look: 'The two figures facing south at twice the game\'s size, Barley and Aurdin among them for scale: the cloaked Dace as tall as the plain one, standing on the same feet, his afterimage trailing to the right of him and a little wider. In the facings drawn as mirrors (SW, W, NW) the afterimage trails the other way, by the house\'s mirror rule.' },
+    'eyes-talmok-face-1029': { pri: 2, group: G2, title: 'Talmok\'s talking portrait from the art desk\'s ART-123: his idle, the four moods, and the cloth wrapped round his fist (10-29)', pt: 'the bestiary, the Edric and Dace cutter seat (tools/portrait-sheet.py pt_talmok; deep16/js/counter.js C.VENDORS.talmok) · eyes',
+      url: 'deep16/?portraits&who=talmok&fresh=1029k',
+      look: 'The Hex\'s champion as his own figure shows him: pale-gold cropped hair, a full brown beard, the blue sleeveless tunic with its pale edging, the leather strap across him and the wrist guards. His idle, attentive, welcoming, skeptical (looking you over as he looks over a horse), concerned, and his work: a strip of cloth wound round his right fist, tucked, the fist tested, the hands at rest with it still wrapped. In the Hex by the sand his word is on this face now, where it was a card.' },
   };
 })();

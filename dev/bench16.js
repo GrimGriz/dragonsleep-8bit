@@ -2964,7 +2964,7 @@
       var wa = sqX('warda');
       okX('Warda not on the ground floor: she keeps the third, open since 10-28 (mode=housenotes1028)', !wa);
       var ta = sqX('talmok'); besideX(B1, ta); var wT = useX(B1, ta);
-      okX('Talmok\'s words ("' + wT.seen.slice(0, 60) + '")', /The champion, plains barbarian/.test(wT.seen));
+      okX('Talmok\'s words ("' + wT.seen.slice(0, 60) + '"), on his own face since 10-29 (' + (wT.sc ? wT.sc.sheet : 'a card') + ': the art desk\'s ART-123-TALMOK, pt_talmok)', /The champion, plains barbarian/.test(wT.seen) && !!wT.sc && wT.sc.sheet === 'pt_talmok');
       var be = sqX('bartenderE'); var bsq = besideX(B1, be); var wB = bsq ? useX(B1, be) : { seen: '(no way to him)' };
       okX('the east bar\'s bartender, behind his bar: a rumour of his ("' + wB.seen.slice(0, 60) + '")', wB.seen.length > 10 && !/Their scene is the 8-bit/.test(wB.seen));
       var boxSq = null; d1.src8.triggers.forEach(function (t) { if (!boxSq && t.id === 'sign:boxes' && besideX.call(null, B1, t.rect.slice(0, 2))) boxSq = t.rect.slice(0, 2); });
@@ -5746,6 +5746,9 @@
       okK('Dace in the cloak of displacement: the face (' + (pDD ? pDD.fw + 'x' + pDD.fh + ', idle ' + pDD.anims.idle.frames + ', work ' + pDD.anims.work.frames : 'NONE') + '), the figure all round (' + (fDD ? 'top ' + fDD.top + ' against the plain ' + fD0.top + ', ' + fDD.fw + ' wide against ' + fD0.fw : 'NONE') + '); in play the plain look still (C.PT.dace ' + CK.PT.dace + ', C.FIG.dace ' + CK.FIG.dace + ')',
         !!pDD && pDD.anims.idle.frames === 6 && pDD.anims.work.frames === 6 && ['attentive', 'welcoming', 'skeptical', 'concerned'].every(function (k) { return pDD.anims[k] && pDD.anims[k].frames === 1; }) && Math.abs(pDD.ay - D.SHEETS.pt_dace.ay) <= 2 &&
         !!fDD && !fDD.anims.idle.drawn && fDD.anims.idle.frames === 14 && Math.abs(fDD.top - fD0.top) <= 1 && fDD.fw > fD0.fw && /ART-123-DACE-DISPLACEMENT/.test(fDD.source) && CK.PT.dace === 'pt_dace' && CK.FIG.dace === 'dace_p1');
+      var pTK = D.SHEETS.pt_talmok; /* (Talmok, ART-123-TALMOK: the Edric and Dace cutter seat, 10-29 -- his word on his face in the Hex is mode=hex1022's) */
+      okK('Talmok from ART-123-TALMOK: his face (' + (pTK ? pTK.fw + 'x' + pTK.fh + ', idle ' + pTK.anims.idle.frames + ', work ' + pTK.anims.work.frames : 'NONE') + ', C.PT ' + CK.PT.talmok + '), no shop; his figure still his fighting sheet (' + (D.SHEETS.talmok_p1 && Object.keys(D.SHEETS.talmok_p1.anims).join(',')) + ')',
+        !!pTK && pTK.anims.idle.frames === 6 && pTK.anims.work.frames === 6 && ['attentive', 'welcoming', 'skeptical', 'concerned'].every(function (k) { return pTK.anims[k] && pTK.anims[k].frames === 1; }) && CK.PT.talmok === 'pt_talmok' && !CK.VENDORS.talmok.shop && CK.takes('talmok') && !CK.FIG.talmok && !!D.SHEETS.talmok_p1.anims.walk);
       okK('Dace taken into the token keeps the class floor\'s wizard to fight in (js/save.js SV.LOOK.dace ' + D.save.LOOK.dace.sheet + '): his figure is an idle\'s only', D.save.LOOK.dace.sheet === 'npcwizard_p0' && !D.SHEETS.dace_p1.anims.walk);
     } catch (eK) { repK.errors.push(String(eK && eK.stack || eK).slice(0, 900)); }
     D.ctx = ctx0K; D.store.get = stGK; D.store.set = stSK; if (D.house) { D.house.playing = false; D.house.cur = null; }

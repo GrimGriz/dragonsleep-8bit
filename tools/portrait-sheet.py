@@ -135,6 +135,10 @@ PEOPLE = {
     # his cloak is a cloak of displacement (obviously magical)"): the art desk's ART-123-DACE-DISPLACEMENT, a second look beside the plain one -- the cloak violet with a
     # blue afterimage of him offset screen-right. Its glow joins the idle's and the work's frames: `ghost` splits them at the real bodies and measures him without it
     'dacedisp': ('dace/ART-123-DACE-DISPLACEMENT', 'ART-123-DACE-DISPLACEMENT', 'npc:dace (the cloak worn as the magic item)', {'edge': True, 'bevel': (2, 3, 4, 5), 'ghost': {'hues': (205, 285), 'smin': 0.3}, 'untext': {4: [(0, 0, 820, 50)]}}),   # (his skeptical's title, "... DISPLACEMENT SKEPTICAL", ends on his hair)
+    # Talmok, the Hex's champion by the sand (10-29, the Edric and Dace cutter seat, on the lanes desk's "Take Talmok after Dace"; art-wanted section 26's last block, a
+    # portrait only): the art desk's ART-123-TALMOK, drawn from his own figure (talmok_p1) -- his word in the Hex on his face (js/town.js T.fire, C.takes)
+    'talmok': ('talmok/ART-123-TALMOK', 'ART-123-TALMOK', 'the Hex, by the sand (talmok)', {'edge': True, 'bevel': (2, 3, 4, 5), 'match': {6: 1}}),   # (his stills'
+    # counter tops bevelled; his work drawn warmer than the rest, its tan skin flecked orange, then gold, at this size: its colours matched to the idle's, as Marta's)
     # the generic man and the generic woman (10-28 evening, the fourth cutter seat: the art desk's ART-122, on Griz's "as a specific person with each function as a
     # costume/look they have"): one person each, the townsfolk's man and woman (folkman_p1, folkwoman_p1), their own clothes' idle and a still for each costume in
     # place of the named's moods -- js/counter.js C.GENERIC gives each unnamed id its person and costume. A spear, a pole or a scraper held up beside the head

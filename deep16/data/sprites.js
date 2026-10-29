@@ -15116,6 +15116,102 @@ false
 "door": "keeper:sylvia",
 "source": "deep16/_src/sylvia/ART-SYLVIA (the art desk's ART-SPECIAL-SYLVIA, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
 },
+"pt_talmok": {
+"image": "art/pt_talmok.png?v=36f80d19b2",
+"fw": 194,
+"fh": 155,
+"ax": 97,
+"ay": 153,
+"top": 153,
+"portrait": true,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 194,
+"fh": 155,
+"ax": 97,
+"ay": 153,
+"frames": 6,
+"fps": 3,
+"ledge": [
+true,
+true,
+true,
+true,
+true,
+true
+]
+},
+"attentive": {
+"y": 155,
+"fw": 194,
+"fh": 155,
+"ax": 97,
+"ay": 153,
+"frames": 1,
+"fps": 1,
+"ledge": [
+true
+]
+},
+"welcoming": {
+"y": 310,
+"fw": 194,
+"fh": 155,
+"ax": 97,
+"ay": 153,
+"frames": 1,
+"fps": 1,
+"ledge": [
+true
+]
+},
+"skeptical": {
+"y": 465,
+"fw": 194,
+"fh": 155,
+"ax": 97,
+"ay": 153,
+"frames": 1,
+"fps": 1,
+"ledge": [
+true
+]
+},
+"concerned": {
+"y": 620,
+"fw": 194,
+"fh": 155,
+"ax": 97,
+"ay": 153,
+"frames": 1,
+"fps": 1,
+"ledge": [
+true
+]
+},
+"work": {
+"y": 775,
+"fw": 194,
+"fh": 155,
+"ax": 97,
+"ay": 153,
+"frames": 6,
+"fps": 4,
+"ledge": [
+true,
+true,
+true,
+true,
+true,
+true
+]
+}
+},
+"art": "ART-123-TALMOK",
+"door": "the Hex, by the sand (talmok)",
+"source": "deep16/_src/talmok/ART-123-TALMOK (the art desk's ART-123-TALMOK, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
+},
 "pt_tam": {
 "image": "art/pt_tam.png?v=79c5de03fc",
 "fw": 172,
