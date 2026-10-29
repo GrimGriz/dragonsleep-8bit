@@ -2288,3 +2288,31 @@ HEAD 2 PAGE 4 -- THE TOWN FIGURE from the top-right, SEEN FROM BEHIND, every fra
 16-bit pixel art animation sheet, SNES-era action RPG style, crisp dark outline, readable at small size. Isometric three-quarter view from above, the camera looking down at about thirty degrees, as in a tactics game -- the grid's own figures. The whole figure head to foot, the same size and proportions as the attached Falstaff pages. Flat dark navy background (a deep blue, not grey and not black). ONE sheet filling the whole image: no portrait, no other panels, no title. One labelled row of frames, its name at its left, numbered 1 to 4 under each frame -- every number used once, none skipped. Every frame stands apart with clear space around it. Feet on one baseline. No scenery, no counter.
 ```
 Cut as: saved as `deep16/_src/falstaff/ART-123-FALSTAFF/ART-123-FALSTAFF_HEAD-2_PAGE-4.png`, then `python tools/keeper-town-sheet.py falstaff`: `falstaff_p1` in all eight (S, SE, E, NE, N drawn; SW, W, NW their mirrors), and `turn1028`'s WHOLE list takes him.
+
+### Sabeth Pollard (asked 10-28 in art-wanted section 26; drawn 10-29 by the art desk, ART-123-SABETH, every HEAD; CUT 10-29, `4637fc07`)
+
+Moved here 2026-10-29 by the Edric and Dace cutter seat (the lanes desk's standing rule, a cutter takes what's in Fresh). The art desk's own choices: a square practical face, brown hair in a low bun, an oatmeal shirt under a brown waistcoat, a brown calf-length skirt; its note, her small town face reads younger than forty. Her figure's reds left out of its snap. The return: `deep16/_src/outbox/ENGINE-RETURN-2026-10-29o-art123-sabeth.md`. The block as it was asked:
+
+### Sabeth Pollard
+ATTACH `deep16/_src/winters/ART-78/ART-78_HEAD-1_PAGE-1.png` and `ART-78_HEAD-1_PAGE-6.png` (the portrait pages' shape, for the format only, not the face) and `deep16/_src/art-desk/sent/REF-2026-10-21-town-figure-size.png` (the town figure's size).
+```text
+SABETH POLLARD -- forty, human, the Galleries' employer: runs the weigh-beam and the hiring; brisk, sure, sleeves rolled [seat: the look].
+
+HEAD 1 -- IDLE (6, two bands of three): a breathing and blink loop at the counter, hands resting on it; loops cleanly.
+HEAD 2 -- ATTENTIVE (1): neutral listening.
+HEAD 3 -- WELCOMING (1): restrained warmth.
+HEAD 4 -- SKEPTICAL (1): weighing the face in front of them.
+HEAD 5 -- CONCERNED (1): a guarded refusal.
+HEAD 6 -- WORK (6, two bands of three): sets a weight on a small beam scale and reads it; the last frame the hands back at rest.
+
+HEAD 7 -- THE TOWN FIGURE from the front, facing the viewer (south): Idle (4: standing at ease, a slow breath; the same pose on every frame but the breath).
+HEAD 8 -- THE TOWN FIGURE from the bottom-right, every frame facing toward the bottom-right corner of the image: Idle (4: standing at ease, a slow breath; the same pose on every frame but the breath).
+HEAD 9 -- THE TOWN FIGURE from the right side in profile, facing right: Idle (4: standing at ease, a slow breath; the same pose on every frame but the breath).
+HEAD 10 -- THE TOWN FIGURE from the top-right, seen from behind, every frame facing toward the top-right corner of the image: Idle (4: standing at ease, a slow breath; the same pose on every frame but the breath).
+HEAD 11 -- THE TOWN FIGURE straight from behind, facing away from the viewer: Idle (4: standing at ease, a slow breath; the same pose on every frame but the breath).
+
+HEADs 1-6 (the talking portrait): 16-bit pixel-art cut-scene portrait animation, comparable to the art desk's ART-78 (Ambrose Winters) and Sylvia Swann. Waist-up behind a plain dark wooden counter ledge, a stable eye-level three-quarter front camera, looking screen left at someone just beside the camera; the head and body the same size on every page as on the Idle page. Crisp pixel clusters and restrained shading. Flat dark navy background (a deep blue, not grey and not black). Each image 1440 x 810, ONE action an image, six-frame actions in two bands of three with clear gutters; the counter ledge under the hands on every frame, its top edge at the same height. A title and frame numbers as on ART-78's pages, kept well clear of the drawings. No scenery, no UI or border.
+
+HEADs 7-11 (the town figure): 16-bit pixel art animation sheet, SNES-era action RPG style, crisp dark outline, readable at small size. Isometric three-quarter view from above, the camera looking down at about thirty degrees, as in a tactics game -- the grid's own figures. The whole figure head to foot, the same size and proportions as the attached figures (a grown man stands about 50 pixels from sole to crown at game size; draw it large, the cutter brings it down). Flat dark navy background (a deep blue, not grey and not black). ONE sheet filling the whole image: no portrait, no other panels, no title. One labelled row of frames, its name at its left, numbered 1 to N under each frame -- every number used once, none skipped. Every frame stands apart with clear space around it. Feet on one baseline. No scenery, no counter.
+```
+Where: the Galleries' mouth (`sabeth`). Cut as: `tools/portrait-sheet.py` (a `PEOPLE` line) into `pt_sabeth`; `tools/keeper-town-sheet.py` into `sabeth_p1` in all five views (HEAD 7 S, 8 SE, 9 E, 10 NE, 11 N; SW, W, NW their mirrors); js/counter.js C.VENDORS and C.FIG.
