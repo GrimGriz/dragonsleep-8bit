@@ -458,7 +458,7 @@ def restretch(t, ax_breaks):
     return t[ys][:, xs]
 
 
-WHOLE = {'fountain_small': 96, 'fountain_large': 288}   # HEAD 1's size and HEAD 2's (art-wanted section 28): the rim's width at the town's 30-ft squares and at 10 ft
+WHOLE = {'fountain_small': 96, 'fountain_large': 288, 'fountain_true': 576}   # HEAD 1's size and HEAD 2's (art-wanted section 28): the rim's width at the town's 30-ft squares and at 10 ft; and at true scale, 5 ft (10-29 later: the page draws it 616 across, so cut, not doubled)
 
 
 def fountain_whole(A):
@@ -489,10 +489,16 @@ def fountain_whole(A):
     err, dx, dy = best
     frames = [a[y0 + dy:y1 + dy, x0 + dx:x1 + dx], a[y0:y1, x0:x1]]
     print('  the whole fountain: %d x %d on the page; frame 1 at %+d,%+d from frame 2 (the rims %.1f apart on average)' % (x1 - x0, y1 - y0, dx, dy, err))
+    # (10-29 later: the second frame is its water alone -- the art desk's two frames draw the stone a little differently, and laid one over the other each beat (js/topview.js
+    # TV.fountFx) the rims would shimmer; the water is either frame's pool blue, inside the rim)
+    blue = lambda c: (c[..., 2] > c[..., 0] + 60) & (c[..., 2] > 120)
+    water = ndimage.binary_opening((blue(frames[0].astype(np.int32)) | blue(frames[1].astype(np.int32))) & rim, iterations=1)
+    lw, nw = ndimage.label(ndimage.binary_closing(water, iterations=3))
+    water &= lw == 1 + int(np.argmax(ndimage.sum(water, lw, range(1, nw + 1))))   # (the pool alone: the rims' bluish specks are not water)
     for name, wpx in WHOLE.items():
         k2 = wpx / float(x1 - x0); h2 = int(round((y1 - y0) * k2))
-        for f in frames:
-            rgb, al = box_down(f, wpx, h2, rim.astype(np.float64))
+        for i, f in enumerate(frames):
+            rgb, al = box_down(f, wpx, h2, (rim if i == 0 else water).astype(np.float64))
             out = np.zeros((h2, wpx, 4), np.uint8); solid = al >= 0.5
             out[solid, :3] = snap(rgb)[solid]; out[solid, 3] = 255
             A.add(name, out, wpx // 2, h2 // 2)
@@ -556,7 +562,7 @@ def fountains(check=False):
     dark_c = fillpx[lum(fillpx) < mid - WATER_K[0]].mean(0); light_c = fillpx[lum(fillpx) > mid + WATER_K[1]].mean(0)
     ripple, glint = nearest(dark_c, lambda L: L < lum(base) - 4), nearest(light_c, lambda L: L > lum(base) + 4)
     print('  basin water: base %s, ripple %s, glint %s (of the 64)' % (tuple(int(v) for v in base), tuple(int(v) for v in ripple), tuple(int(v) for v in glint)))
-    A = Atlas(48 * 8)
+    A = Atlas(48 * 24)                                                  # (two of the true-scale fountain a row)
     fountain_whole(A)
     for n in ['basin_water'] + [v for pg, lab in BASINS[1:] for v in lab.values()]:
         for x, s in tiles[n]:

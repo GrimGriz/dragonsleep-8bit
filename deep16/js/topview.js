@@ -389,7 +389,7 @@
   }
   TV.artOn = function () { return TV.ART.on && !!atlases(); };
   TV.artLoad = function () { if (!TV.ART.on || !D.spr || !D.spr.load) return; TV.ART.sheets.forEach(function (n) { var sh = D.SHEETS && D.SHEETS[n]; if (sh) D.spr.load(sh.image); }); };
-  TV.repaint = function (m) { var t = m.top; t.pages.forEach(function (p) { p.cv = null; }); t.baked = 0; t.tiles = {}; t.stand = {}; t.hex = null; t.ed = null; t.kinds = null; if (m.def.onArt) m.def.onArt(m); }; // (onArt: a floor's own things made again -- the Hex's, js/hex.js)
+  TV.repaint = function (m) { var t = m.top; t.pages.forEach(function (p) { p.cv = null; }); t.baked = 0; t.tiles = {}; t.stand = {}; t.hex = null; t.ed = null; t.kinds = null; t.fount = undefined; if (m.def.onArt) m.def.onArt(m); }; // (onArt: a floor's own things made again -- the Hex's, js/hex.js)
   // the place's own atlas first (Silverton's cliff and the mines' share a name)
   TV.place = function (m) { var d = m.def; return d.room ? 'room' : d.key === 'glowseep' ? 'seep' : d.mine ? 'mine' : 'town'; };
   var FIRST = { town: 'toptiles_p1', room: 'toptiles_p1', mine: 'minetiles_p1', seep: 'seeptiles_p1' }, PC = {};
@@ -429,8 +429,8 @@
   // custom fountain tiles, this looks like spilled waterfall water"): each basin laid whole on the floor's pages at its fountain, under the Edifice's spout -- its middle and
   // its rim where js/town.js lays them (T.FOUNT), so the Edifice's drawn front stands over its north part -- built from the art's pieces by quarters: its squares those of a
   // circle n across (two at the town's 30-ft squares, six at 10, twelve at true scale), each quarter of a square the fill, an edge, an outer corner or an inner corner by the
-  // two squares beside that quarter and the one between them. HEADs 1 and 2, the whole fountains with a pedestal and a spout of their own, never came; the spout is the
-  // Edifice's (TV.edStrip). The town's water squares under it take the art's calm fill (TV.GROUND), and the code's drawing stays with &tiles=code
+  // two squares beside that quarter and the one between them -- the fallback since the art desk's whole fountain came (TV.fountains, below). The town's water squares under it
+  // take the street's stone (artTile), and the code's drawing stays with &tiles=code
   var BASIN = {};
   TV.basin = function (n) {
     if (BASIN[n] !== undefined) return BASIN[n];
@@ -448,17 +448,35 @@
     }
     return (BASIN[n] = c.cv);
   };
-  TV.basins = function (m, cx, x0, y0) { // (on a floor's page: x0, y0 its corner in world px)
-    var e = m.def.edifice, Tn = D.town, V6 = D.TOWN_V6; if (!e || !e.fount || !Tn || !Tn.FOUNT || !V6) return;
-    var T = TV.TS, F = m.def.ft || Tn.SCALE || 30, FB = Tn.FOUNT(F), R = FB.rim / F * T, n = Math.max(2, Math.round(2 * R / T)), im = TV.basin(n);
-    var wh = TV.piece(2 * R <= 144 ? 'fountain_small' : 'fountain_large', 0, 'town'); // (the art desk's whole fountain, HEAD 2 -- its still frame, the small at the town's 30-ft squares: laid in place of the built basin where it is in)
-    if (!im && !wh) return;
-    var wy = ((V6.EDBOT + FB.dy - Tn.Y0) / F + e.y0) * T; // (the fountains' middle: v6's feet to the floor's px -- e.y0 the floor's cut, js/town.js def.edifice)
-    e.fount.forEach(function (fx) {
+  // (10-29 later, the same seat, on Griz's "tell the fountain to work with what we have and code draw or something if necessary, the fountain may be beyond the art dept"): the
+  // art desk's whole fountain, its HEAD 2, laid at every fountain in place of the built basin -- cut at the size nearest the scale's rim (96, 288 and 576 px across: HEAD 1 never
+  // came, so the small is HEAD 2's drawing), its middle 26 ft out from the Edifice's foot as the grid draws it (T.FOUNT), so the whole fountain stands in front of the wall with
+  // its pedestal under the spout; its still frame baked into the floor, and its second -- the rings moved on, the water alone -- drawn over it every other beat (TV.fountFx)
+  TV.WHOLE = [['fountain_small', 96], ['fountain_large', 288], ['fountain_true', 576]]; TV.FOUNTBEAT = 900; // (ms a frame)
+  TV.fountains = function (m) { // the fountains' places on a floor, world px: [{ wx, wy, R, piece's name, k its scale }], or the built basin's size n
+    var top = m.top; if (top.fount !== undefined) return top.fount;
+    var e = m.def.edifice, Tn = D.town; if (!e || !e.fount || !Tn || !Tn.FOUNT) return (top.fount = null);
+    var T = TV.TS, F = m.def.ft || Tn.SCALE || 30, FB = Tn.FOUNT(F), R = FB.rim / F * T, wy = ((FB.y - Tn.Y0) / F + e.y0) * T; // (e.y0: the floor's cut, js/town.js def.edifice)
+    var pick = TV.WHOLE.filter(function (w) { return TV.piece(w[0], 0, 'town'); }), wh = pick.filter(function (w) { return w[1] >= 2 * R - 1; })[0] || pick[pick.length - 1];
+    return (top.fount = e.fount.map(function (fx) {
       var wx = e.x0 * T + (fx - e.fx0) * T / F, s = m.at(Math.floor(wx / T), e.y1 + 1), z = s ? s.gz || 0 : 0; // (the ground's height at the Edifice's foot: Fountain Street is on its level)
-      if (wx + R < x0 || wx - R > x0 + TV.PAGE || wy - z + R < y0 || wy - z - R > y0 + TV.PAGE) return;
-      if (wh) { var k = 2 * R / wh.w; cx.drawImage(wh.im, wh.x, wh.y, wh.w, wh.h, Math.round(wx - wh.ax * k - x0), Math.round(wy - z - wh.ay * k - y0), Math.round(wh.w * k), Math.round(wh.h * k)); return; }
-      cx.drawImage(im, Math.round(wx - R - x0), Math.round(wy - z - R - y0), Math.round(2 * R), Math.round(2 * R));
+      return { wx: wx, wy: wy - z, R: R, name: wh ? wh[0] : null, k: wh ? 2 * R / wh[1] : 1, n: Math.max(2, Math.round(2 * R / T)) };
+    }));
+  };
+  TV.basins = function (m, cx, x0, y0) { // (on a floor's page: x0, y0 its corner in world px)
+    (TV.fountains(m) || []).forEach(function (f) {
+      if (f.wx + f.R < x0 || f.wx - f.R > x0 + TV.PAGE || f.wy + f.R < y0 || f.wy - f.R > y0 + TV.PAGE) return;
+      var p = f.name && TV.piece(f.name, 0, 'town'), im = !p && TV.basin(f.n);
+      if (p) cx.drawImage(p.im, p.x, p.y, p.w, p.h, Math.round(f.wx - p.ax * f.k - x0), Math.round(f.wy - p.ay * f.k - y0), Math.round(p.w * f.k), Math.round(p.h * f.k));
+      else if (im) cx.drawImage(im, Math.round(f.wx - f.R - x0), Math.round(f.wy - f.R - y0), Math.round(2 * f.R), Math.round(2 * f.R));
+    });
+  };
+  TV.fountFx = function (ctx, m, z) { // (each frame, over the floor and under everything standing: the second frame's water, every other beat)
+    if ((Date.now() / TV.FOUNTBEAT | 0) % 2 === 0) return;
+    (TV.fountains(m) || []).forEach(function (f) {
+      var p = f.name && TV.piece(f.name, 1, 'town'); if (!p || p.n < 2) return;
+      var a = iso.toScreen(f.wx - p.ax * f.k, f.wy - p.ay * f.k), w = p.w * f.k * z, h = p.h * f.k * z;
+      ctx.drawImage(p.im, p.x, p.y, p.w, p.h, Math.round(a.x), Math.round(a.y), Math.round(w), Math.round(h));
     });
   };
   function name8(m, x, y) { var n8 = m.def.names8, r = n8 && n8.rows[y]; return r ? n8.legend[r.charAt(x)] || '' : ''; } // (the first game's name of the square: js/mines.js)
@@ -709,6 +727,7 @@
     }
     if (near) { paintPage(m, near); near.used = f; }
     if (top.baked > 40) { var held = top.pages.filter(function (q) { return q.cv && q.used < f; }).sort(function (a, b) { return a.used - b.used; }); for (var k = 0; k < held.length && top.baked > 40; k++) { held[k].cv = null; top.baked--; } }
+    if (artNow && m.def.edifice && TV.place(m) === 'town') TV.fountFx(ctx, m, z); // (the fountains' water moving: TV.fountFx)
     if (overlay) overlay(ctx);
     // the standing things in the rows the view shows (a tall one below the view may reach up into it), the map's own props and the frame's figures among them by row
     var g0 = iso.toScreen(0, 0), gyLo = Math.floor((-g0.y / z) / T) - 1, gyHi = Math.ceil(((vh - g0.y) / z + TV.CLIFF + 80) / T) + 1;

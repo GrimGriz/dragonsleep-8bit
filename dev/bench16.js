@@ -5305,24 +5305,25 @@
       var tF = D.SHEETS.fountains_p1, nmF = tF ? Object.keys(tF.tiles) : [], cntF = nmF.reduce(function (a, k) { return a + String(tF.tiles[k]).split(' ').length; }, 0);
       var wantF = ['basin_water'].concat(['n', 'e', 's', 'w'].map(function (s) { return 'basin_edge_' + s; }), ['nw', 'ne', 'sw', 'se'].map(function (s) { return 'basin_outer_' + s; }), ['nw', 'ne', 'sw', 'se'].map(function (s) { return 'basin_inner_' + s; }));
       okF('fountains_p1 cut from ART-124 HEAD 3 and HEAD 2: ' + cntF + ' pieces in ' + nmF.length + ' names, the four fills, the four edges, the outer and inner corners (its rim a side ' + JSON.stringify(tF && tF.rim) + '), and the whole fountain',
-        !!tF && cntF === 20 && wantF.every(function (k) { return nmF.indexOf(k) >= 0; }) && String(tF.tiles.basin_water).split(' ').length === 4);
-      // (the whole fountain, 10-29 the second job: the art desk's H2P1, its two frames at HEAD 1's size and at HEAD 2's -- the rim's width at 30 ft and at 10 ft)
-      var wbF = function (n) { return tF ? String(tF.tiles[n] || '').split(' ').filter(Boolean).map(function (b) { return b.split(',').map(Number); }) : []; }, smF = wbF('fountain_small'), lgF = wbF('fountain_large');
-      okF('the whole fountain (HEAD 2, the calmest of three takes): two frames at 96 px across (' + smF.map(function (b) { return b[2] + 'x' + b[3]; }).join(', ') + ') and two at 288 (' + lgF.map(function (b) { return b[2] + 'x' + b[3]; }).join(', ') + '), each anchored at its middle',
-        smF.length === 2 && lgF.length === 2 && smF.every(function (b) { return b[2] === 96 && b[4] === 48 && Math.abs(b[5] - b[3] / 2) <= 1; }) && lgF.every(function (b) { return b[2] === 288 && b[4] === 144 && Math.abs(b[5] - b[3] / 2) <= 1; }));
-      okF('the top view loads it with the town\'s atlases, the town\'s water squares on its calm fill, and lays the basins (TV.basins, TV.basin)',
-        TVF.ART.sheets.indexOf('fountains_p1') >= 0 && TVF.GROUND.town['~'] === 'basin_water' && typeof TVF.basins === 'function' && typeof TVF.basin === 'function');
-      [30, 10].forEach(function (F) {
-        var L = TF.lay(null, F), FB = TF.FOUNT(F), V6 = D.TOWN_V6, out = [], n = 0;
+        !!tF && cntF === 22 && wantF.every(function (k) { return nmF.indexOf(k) >= 0; }) && String(tF.tiles.basin_water).split(' ').length === 4);
+      // (the whole fountain, 10-29 the second job: the art desk's H2P1, its two frames at HEAD 1's size and at HEAD 2's -- the rim's width at 30 ft and at 10 ft; the third
+      // job, on his "tell the fountain to work with what we have and code draw or something if necessary": at true scale too, and the second frame its water alone)
+      var wbF = function (n) { return tF ? String(tF.tiles[n] || '').split(' ').filter(Boolean).map(function (b) { return b.split(',').map(Number); }) : []; }, szF = { fountain_small: 96, fountain_large: 288, fountain_true: 576 };
+      okF('the whole fountain (HEAD 2, the calmest of three takes), two frames at each of 96, 288 and 576 px across, each anchored at its middle: ' + Object.keys(szF).map(function (n) { return n + ' ' + wbF(n).map(function (b) { return b[2] + 'x' + b[3]; }).join(', '); }).join('; '),
+        Object.keys(szF).every(function (n) { var bs = wbF(n); return bs.length === 2 && bs.every(function (b) { return b[2] === szF[n] && b[4] === szF[n] / 2 && Math.abs(b[5] - b[3] / 2) <= 1; }); }));
+      okF('the top view loads it with the town\'s atlases, the town\'s water squares on its calm fill, and lays the fountains, their second frame over the floor every other beat (TV.fountains, TV.basins, TV.fountFx)',
+        TVF.ART.sheets.indexOf('fountains_p1') >= 0 && TVF.GROUND.town['~'] === 'basin_water' && typeof TVF.fountains === 'function' && typeof TVF.basins === 'function' && typeof TVF.fountFx === 'function' && TVF.WHOLE.length === 3);
+      [30, 10, 5].forEach(function (F) {
+        var L = TF.lay(null, F), FB = TF.FOUNT(F), V6 = D.TOWN_V6, out = [], n = 0, foot = TF.Y0 + (Math.floor((V6.EDBOT - TF.Y0) / F) + 1) * F, inWall = 0;
         V6.FOUNT.forEach(function (fx) {
-          var cy = V6.EDBOT + FB.dy;
           for (var y = 0; y < L.h; y++) for (var x = 0; x < L.w; x++) {
             if (L.rows[y].charAt(x) !== '~') continue;
-            var X = TF.X0 + (x + 0.5) * F, Y = TF.Y0 + (y + 0.5) * F; if (Math.hypot(X - fx, Y - cy) > FB.rim + F) continue;
-            n++; if (Math.hypot(X - fx, Y - cy) > FB.rim) out.push(x + ',' + y);
+            var X = TF.X0 + (x + 0.5) * F, Y = TF.Y0 + (y + 0.5) * F; if (Math.hypot(X - fx, Y - FB.y) > FB.rim + F) continue;
+            n++; if (Math.hypot(X - fx, Y - FB.y) > FB.rim) out.push(x + ',' + y); if (Y < foot) inWall++;
           }
         });
-        okF('at ' + F + ' ft a square: the fountains\' ' + n + ' water squares each inside its basin\'s drawn rim (' + FB.rim + ' ft round the fountain, ' + Math.max(2, Math.round(2 * FB.rim / F)) + ' squares across)' + (out.length ? ' -- outside: ' + out.join(' ') : ''), n >= 8 && !out.length);
+        okF('at ' + F + ' ft a square: each fountain\'s middle 26 ft out from the Edifice\'s foot as the grid lays it (' + FB.y + ' ft, the foot ' + foot + '), its ' + n + ' water squares inside the drawn rim (' + FB.rim + ' ft round), none in the Edifice\'s own rows' + (out.length ? ' -- outside: ' + out.join(' ') : '') + (inWall ? ' -- in the wall: ' + inWall : ''),
+          n >= 8 && !out.length && !inWall && FB.y === foot + 26);
       });
     } catch (eF) { repF.errors.push(String(eF && eF.stack || eF).slice(0, 900)); }
     D.store.get = stGF; D.store.set = stSF; if (D.house) { D.house.playing = false; D.house.cur = null; }
