@@ -691,14 +691,20 @@
     var st = sc.st, f = st.flags, paid = false;
     var major = function* (why) { yield sc.say(C.renown(st, 1, why), 'welcoming'); };
     yield sc.say(C.noticeUp(f) ? L('hessle.greet') : D.hours.HESSLE.before, 'attentive');
-    f.heardEttercap = 1; f.heardCloaker = 1; f['heard:r-ettercap'] = 1; f['heard:r-cloaker'] = 1;
+    // (since 10-29 the board is on the wall outside, its papers taken one by one -- js/hours.js H16.BOARD, Griz: "the way hessle reads the board should instead be clickable missions
+    // below it (as if they're taking the mission off the board)": Hessle no longer opens every paper and reads them out; he keeps the scales)
+    var hb = D.hours && D.hours.papers;
+    if (!hb) { f.heardEttercap = 1; f.heardCloaker = 1; f['heard:r-ettercap'] = 1; f['heard:r-cloaker'] = 1; }
     if (count(st, 'ettercapfangs') > 0) { take(st, 'ettercapfangs', 1); st.silver(500); f.ettercapDone = 1; D.sfx('coin'); paid = true; yield sc.say(L('hessle.ettercapPaid'), 'work'); yield* major('renown.ettercap'); }
     if (count(st, 'cloakertail') > 0) { take(st, 'cloakertail', 1); f.cloakerDone = 1; paid = true; yield sc.say(L('hessle.cloakerDrawer'), 'work'); st.silver(400); D.sfx('coin'); yield sc.say(L('g.foundSilver', { n: 400 }), 'welcoming'); yield* major('renown.cloaker'); }
     if (count(st, 'anchorpin') > 0) { take(st, 'anchorpin', 1); f.snootWord = 1; paid = true; yield sc.say(L('hessle.snootWord'), 'work'); st.silver(500); D.sfx('coin'); yield sc.say(L('g.foundSilver', { n: 500 }), 'welcoming'); }
     if (count(st, 'wagonorder') > 0) { take(st, 'wagonorder', 1); f.orderWord = 1; paid = true; yield sc.say(L('hessle.orderWord'), 'skeptical'); st.silver(500); D.sfx('coin'); yield sc.say(L('g.foundSilver', { n: 500 }), 'welcoming'); }
-    var open = C.bounties(f); f.boardRead = 1; // (the board read: work found, and each paper whose ground is built a mission -- js/hours.js, his "Board adds each entry as pinnable area pointer mission")
-    if (open.length) yield sc.say([L('hessle.boardRead')].concat(open), 'attentive');
-    else if (!paid) yield sc.say(L('hessle.boardClear'), 'attentive');
+    if (hb) { if (!paid && !D.hours.papers(f).length) yield sc.say(L('hessle.boardClear'), 'attentive'); } // (nothing brought and nothing left on the board outside)
+    else {
+      var open = C.bounties(f); f.boardRead = 1; // (the board read: work found, and each paper whose ground is built a mission -- js/hours.js, his "Board adds each entry as pinnable area pointer mission")
+      if (open.length) yield sc.say([L('hessle.boardRead')].concat(open), 'attentive');
+      else if (!paid) yield sc.say(L('hessle.boardClear'), 'attentive');
+    }
     if (f.fiveDone && !f.fiveNotice) { f.fiveNotice = 1; yield sc.say(f.stockDead ? L('hessle.fiveDead') : !D.hours || f.councilHerd ? L('hessle.fiveAlive') : D.hours.HESSLE.five, 'concerned'); } // (the council's word on the herd only if it sat: js/hours.js C3)
   };
   // NO WEAPONS IN KIND (RULED 10-29, Griz to the lanes desk, for the difficulty seat: "I noted that 'pays in kind' magical item rewards carried over from the 8bit and that's making

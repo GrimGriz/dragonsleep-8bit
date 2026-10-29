@@ -3,6 +3,7 @@
   "families": {
     "chest:": "a chest opened (chest:<map>:<x>,<y>; js/events.js)",
     "cocoon:": "a cocoon in the nest cut down (cocoon:<x>,<y>; js/deep.js S.cocoon)",
+    "paper:": "a paper taken down off Hessle's board (paper:<id>, ettercap or cloaker; deep16/js/hours.js H16.BOARD, 10-29)",
     "heard:": "a rumour heard (content/rumors.json ids; js/events.js EV.dialog, the rumour table)",
     "hex:": "a Hex card or fight done (hex:<id>; js/events.js)",
     "q:": "a mission seen in the JOURNAL, its card shown (q:<quest id>; deep16/js/hours.js H16.missionCard, 10-28)",

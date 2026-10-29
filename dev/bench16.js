@@ -4051,9 +4051,15 @@
       okHw('the factor\'s man ("' + String(w7[0]).slice(0, 40) + '..."): Finding Work open, "' + String(fw && fw.text).slice(0, 110) + '", NEXT "' + String(fw && fw.where).slice(0, 50) + '..."',
         !!fw && !fw.done && /Winters' papers/.test(fw.text) && !/Hessle/.test(fw.text) && /Ambrose Winters/.test(fw.where) && /In your JOURNAL: Finding Work/.test(cfw));
       var CB = RHw.def; driveHw(THw.fire(B1, trigHw('keeper:hessle')), null, 2000); var inH = RHw.def.room === 'keeper:hessle', hs = inH ? talkHw(B1, 'hessle') : [];
-      var tl = qHw(B1, 'tail'), fw2 = qHw(B1, 'work'); driveHw(THw.goOut(B1), null, 400); var ctl = beatHw(B1);
-      okHw('Hessle\'s board read (in ' + inH + '): The Forty-Gold Tail a mission (' + !!tl + ', NEXT "' + String(tl && tl.where).slice(0, 50) + '..."), Finding Work done (' + !!(fw2 && fw2.done) + '); the card "' + String(ctl).slice(0, 70) + '"',
-        inH && !!tl && !tl.done && /deep gallery/.test(tl.where) && !!fw2 && fw2.done && /The Forty-Gold Tail/.test(ctl));
+      var tl0 = qHw(B1, 'tail'); driveHw(THw.goOut(B1), null, 400);
+      // (since 10-29 Hessle's word opens nothing: the board on the Weigh-House wall outside, a paper taken down off it -- his "the way hessle reads the board should instead be
+      // clickable missions below it (as if they're taking the mission off the board)", mode=board1029)
+      var trB = trigHw('board:hessle'), gB = trB ? THw.fire(B1, trB) : null, kB = 0, tookB = false; if (gB) driveHw(gB, function () { return D.top() instanceof CHw.Counter; }, 800);
+      while (D.top() instanceof CHw.Counter && kB++ < 30) { var scB = D.top(), wB = scB.wait || {}; if (wB.say) clickHw(scB, scB.buttons().filter(function (q) { return q.go === 'next'; })[0]); else if (wB.ask) { var bsB = scB.buttons().filter(function (q) { return q.go === 'opt'; }); clickHw(scB, (!tookB && bsB.filter(function (q) { return /CLOAKER/.test(q.label); })[0]) || bsB[bsB.length - 1]); tookB = true; } else break; }
+      if (gB) driveHw(gB, null, 800); offHw(B1);
+      var tl = qHw(B1, 'tail'), fw2 = qHw(B1, 'work'), ctl = beatHw(B1);
+      okHw('Hessle\'s word inside opens nothing (in ' + inH + ', the tail ' + !tl0 + '); the board outside (' + !!trB + '), the cloaker\'s paper taken: The Forty-Gold Tail a mission (' + !!tl + ', NEXT "' + String(tl && tl.where).slice(0, 50) + '..."), Finding Work done (' + !!(fw2 && fw2.done) + '); the card "' + String(ctl).slice(0, 70) + '"',
+        inH && !tl0 && !!trB && !!tl && !tl.done && /deep gallery/.test(tl.where) && !!fw2 && fw2.done && /The Forty-Gold Tail/.test(ctl));
       // 7. A SAVE FROM BEFORE: what its JOURNAL shows at the first look is taken as seen -- no card for any of it
       var B2 = newHw('vivian', { heardPete: 1, heardHex: 1, heardGalleries: 1, wintersMet: 1, wErrA: 1 }), j2 = jHw(B2), c2 = beatHw(B2), c2b = beatHw(B2);
       okHw('a save from before (heardPete, heardHex, heardGalleries, Winters\' first errand): its JOURNAL ' + j2.join(', ') + ', and no card at its first look or after (' + JSON.stringify(c2) + ', ' + JSON.stringify(c2b) + ')',
@@ -4117,13 +4123,13 @@
       // 14. THE COUNCIL, C1 (his "Consider C1 a cutscene that plays for the player at the parties nearest (chronological) rest cycle"): Day 0 no sitting due, and Hessle's board
       // without the Snoot's paper; a night at Cassia's from Day 1's dusk -- the morning brings the sitting (a bench takes its flag: no one to watch), and the paper is up after
       var sitHw = function (sc) { var out = [], k = 0, w0 = null; while (!sc.done && k++ < 60) { var w = sc.wait || {}; if (w !== w0 && w.say) out.push((sc.o.name || '') + '|' + (sc.sheet || '-') + '|' + window.DS.stripCodes(w.say.join(' '))); w0 = w; if (w.say) clickHw(sc, sc.buttons().filter(function (q) { return q.go === 'next'; })[0]); else break; } return out; };
-      var BC = newHw('aurdin'); beatHw(BC); BC.roam.silver = 100; var due0 = HWw.councilsDue(Object.assign({}, BC.roam.flags)), hb0 = roomHw(BC, 'keeper:hessle', 'hessle', []);
+      var BC = newHw('aurdin'); beatHw(BC); BC.roam.silver = 100; var due0 = HWw.councilsDue(Object.assign({}, BC.roam.flags)), hb0 = roomHw(BC, 'keeper:hessle', 'hessle', []), snoot0 = HWw.papers(BC.roam.flags).some(function (p) { return p.id === 'snoot'; }); // (the board's papers since 10-29 on the wall outside: H16.papers)
       WHw.state().t = 24 + 18; var hz = []; driveHw(THw.fire(BC, trigHw('inn:cassia')), null, 2000); var trCa = trigHw('talk:cassia'), gCa = THw.fire(BC, trCa); driveHw(gCa, function () { return D.top() instanceof CHw.Counter; }, 800);
       var scCa = D.top(); if (scCa instanceof CHw.Counter) clickHw(scCa, scCa.buttons().filter(function (q) { return /STAY/.test(q.label); })[0]);
       driveHw(gCa, function () { return D.top() instanceof HHw.Morning; }, 4000); var mC = D.top() instanceof HHw.Morning ? D.top() : null; if (mC) mC.finish(); driveHw(gCa, null, 4000); offHw(BC); driveHw(THw.goOut(BC), null, 400);
       var hb1 = roomHw(BC, 'keeper:hessle', 'hessle', []);
       okHw('C1: at Day 0 none due (' + due0.join(',') + '), Hessle\'s board "' + String(hb0 && hb0[0]).slice(0, 30) + '..." with no Snoot paper; a night at Cassia\'s from Day 1\'s dusk (the morning ' + !!mC + ', Day ' + HWw.day() + '): the sitting taken (' + !!BC.roam.flags.councilNotice + '), the board "' + String(hb1 && hb1[0]).slice(0, 34) + '..." with the Snoot\'s paper',
-        !due0.length && !!hb0 && /^The board\. Read it/.test(hb0[0]) && !/true word on the Snoot/.test(hb0.join(' ')) && !!mC && !!BC.roam.flags.councilNotice && !!HHw.cur.flags.councilNotice && !!hb1 && /Fifty gold for true word/.test(hb1[0]) && /true word on the Snoot/.test(hb1.join(' ')));
+        !due0.length && !!hb0 && /^The board's on the wall outside my door/.test(hb0[0]) && !snoot0 && !!mC && !!BC.roam.flags.councilNotice && !!HHw.cur.flags.councilNotice && !!hb1 && /Fifty gold for true word/.test(hb1[0]) && HWw.papers(BC.roam.flags).some(function (p) { return p.id === 'snoot'; }));
       // the sitting itself, as a player sees it: the card, then each line on its speaker's portrait
       var BC2 = newHw('barley'), fC2 = {}, scN = HWw.sitting(BC2, ['notice'], [fC2]), sN = sitHw(scN);
       okHw('C1 seen: ' + sN.length + ' pages -- "' + (sN[1] || '').slice(0, 70) + '", Papa "' + (sN.filter(function (s) { return /^Papa Urtusk/.test(s); })[0] || '').slice(0, 50) + '"; its flag (' + !!fC2.councilNotice + ')',
@@ -4991,6 +4997,67 @@
     if (errs.length) repGC.errors = repGC.errors.concat(errs);
     var preGC = document.createElement('pre'); preGC.id = 'out'; preGC.textContent = 'BENCH16 ' + JSON.stringify(repGC);
     document.body.appendChild(preGC);
+    return;
+  }
+  // HESSLE'S BOARD ON THE WEIGH-HOUSE WALL (mode=board1029; the story window, on the lanes desk's relay of his "we actually also need a visible board, either inside or outside of
+  // hessles - the way hessle reads the board should instead be clickable missions below it (as if they're taking the mission off the board)"): js/hours.js H16.BOARD
+  if (get('mode', '') === 'board1029') {
+    var repBd = { checks: [], errors: [] }, memBd = {}, stGBd = D.store.get, stSBd = D.store.set, CBd = D.counter, TBd = D.town, HBd = D.house, RBd = D.roam, H6Bd = D.hours, IBd = D.input;
+    function okBd(what, v) { repBd.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function driveBd(g, until, cap) { var v, k = 0, st; while (k++ < (cap || 20000)) { if (until && until()) return true; st = g.next(v); v = undefined; if (st.done) return !!(until && until()); if (typeof st.value === 'number' && D.battle) D.battle.t += Math.max(1, st.value); if (st.value && st.value.prompt) v = st.value.prompt.opts[0].value; } return !!(until && until()); }
+    function newBd(flags) { HBd.playing = false; HBd.cur = null; var rec = HBd.fresh('barley'); Object.assign(rec.flags, { papaLymen: 1, qSeen: 1 }, flags || {}); HBd.begin(rec, 0); var B = D.top(); if (B && B.baking) { B.baking = false; B.enter(); } D.battle = B; driveBd(B.co, null, 2); return B; }
+    function trigBd(id) { return (RBd.def.src8.triggers || []).filter(function (t) { return t.id === id; })[0] || null; }
+    // a screen read through: its pages, its questions (the option whose label matches the next of `picks`, else the last)
+    function readBd(sc, picks) { var out = [], k = 0, w0 = null; picks = (picks || []).slice(); while (!sc.done && k++ < 60) { var w = sc.wait || {}, bs = sc.buttons(); if (w.say) { if (w !== w0) out.push(window.DS.stripCodes(w.say.join(' '))); w0 = w; sc.press(bs.filter(function (q) { return q.go === 'next'; })[0]); } else if (w.ask) { var os = bs.filter(function (q) { return q.go === 'opt'; }), re = picks.shift(), b = (re && os.filter(function (q) { return re.test(q.label); })[0]) || os[os.length - 1]; out.push('? ' + window.DS.stripCodes(w.ask.join(' ')) + ' [' + w.opts.join('|') + '] > ' + b.label); sc.press(b); } else break; } return out; }
+    function boardBd(B, picks) { var tr = trigBd('board:hessle'), g = tr ? TBd.fire(B, tr) : null, out = { sc: null, seen: [] }; if (!g) return out; driveBd(g, function () { return D.top() instanceof CBd.Counter; }, 800); if (D.top() instanceof CBd.Counter) { out.sc = D.top(); out.seen = readBd(out.sc, picks); } driveBd(g, null, 800); while (D.top() !== B && D.scenes.length > 1) D.pop(); return out; }
+    function qBd(B, id) { return CBd.quests(CBd.state(B)).filter(function (q) { return q.id === id; })[0] || null; }
+    D.store.get = function (k) { return memBd[k] ? JSON.parse(memBd[k]) : null; }; D.store.set = function (k, v) { memBd[k] = JSON.stringify(v); return true; };
+    window.DS.autoPicks = true;
+    try {
+      D.seed = +get('seed', 1029);
+      // 1. THE BOARD ON THE STREET: on the wall beside the Weigh-House's door, solid, the street open in front; a USE there, drawn among the floor's props
+      var B1 = newBd(), def1 = RBd.def, q1 = def1.board, dr1 = def1.marks.doors['keeper:hessle'], s1 = q1 && B1.map.at(q1[0], q1[1]), f1 = q1 && B1.map.at(q1[0], q1[1] + 1), tr1 = trigBd('board:hessle'), pr1 = (B1.map.props || []).filter(function (p) { return p.board; });
+      okBd('Silverton\'s street: the board at ' + q1 + ' beside the Weigh-House\'s door (' + dr1 + '), on its wall (solid ' + !!(s1 && !s1.open) + '), the street in front (' + !!(f1 && f1.open) + '); its USE (' + !!tr1 + '), drawn among the floor\'s props (' + pr1.length + ')',
+        !!q1 && Math.abs(q1[0] - dr1[0]) === 1 && q1[1] === dr1[1] - 1 && !!s1 && !s1.open && !!f1 && f1.open && !!tr1 && tr1.town === 'board' && pr1.length === 1 && pr1[0].sq === s1);
+      // E from the street in front, facing it; and a click on its face (js/roam.js R.solidUse) -- the board's USE
+      var tk1 = B1.roam.token; tk1.x = q1[0]; tk1.y = q1[1] + 1; B1.roam.fw = [0, -1]; var un1 = RBd.useNear(B1);
+      B1.focus({ x: q1[0], y: q1[1], size: 1 }); var rc1 = H6Bd.boardRect(B1.map, s1), su1 = RBd.solidUse(B1, rc1.x + rc1.w / 2, rc1.y + rc1.h / 2);
+      okBd('E in front of it: ' + (un1 && un1.trig.id) + '; a click on its face (' + Math.round(rc1.x) + ',' + Math.round(rc1.y) + ' ' + Math.round(rc1.w) + 'x' + Math.round(rc1.h) + '): ' + (su1 && su1.trig.id), !!un1 && un1.trig.id === 'board:hessle' && !!su1 && su1.trig.id === 'board:hessle' && rc1.w > 10 && rc1.h > 6);
+      // 2. HESSLE INSIDE OPENS NOTHING: his word points at the board outside; no paper's mission in the JOURNAL from it
+      driveBd(TBd.fire(B1, trigBd('keeper:hessle')), null, 2000); var trH = trigBd('talk:hessle'), gH = TBd.fire(B1, trH), sH = []; driveBd(gH, function () { return D.top() instanceof CBd.Counter; }, 800); if (D.top() instanceof CBd.Counter) sH = readBd(D.top()); driveBd(gH, null, 800); driveBd(TBd.goOut(B1), null, 400);
+      okBd('Hessle inside: "' + (sH[0] || '').slice(0, 70) + '..."; the ettercap and the tail not in the JOURNAL from his word (' + !qBd(B1, 'ettercap') + ', ' + !qBd(B1, 'tail') + '), the board not read (' + !B1.roam.flags.boardRead + ')',
+        /board's on the wall outside my door/.test(sH[0] || '') && !qBd(B1, 'ettercap') && !qBd(B1, 'tail') && !B1.roam.flags.boardRead && !B1.roam.flags.heardEttercap);
+      // 3. THE BOARD'S SCREEN: the board in the portrait's place, a TAKE for each paper; the ettercap's taken down -- its mission, the board read (Finding Work), pinned at its card
+      var b3 = boardBd(B1, [/ETTERCAP/]), f3 = B1.roam.flags, q3 = qBd(B1, 'ettercap'), ask3 = b3.seen.filter(function (l) { return /^\?/.test(l); })[0] || '';
+      okBd('the board\'s screen (' + (b3.sc && b3.sc.o.name) + ', its picture ' + !!(b3.sc && b3.sc.o.pic) + ', a room ' + !!(b3.sc && b3.sc.o.room) + '): "' + (b3.seen[0] || '').slice(0, 50) + '...", ' + ask3.slice(ask3.indexOf('['), ask3.indexOf(']') + 1) + '; the ettercap taken: ' + (q3 && q3.name) + ', paper down (' + f3['paper:ettercap'] + '), the board read (' + f3.boardRead + ')',
+        !!b3.sc && b3.sc.o.name === 'Hessle\'s board' && !!b3.sc.o.pic && !!b3.sc.o.room && /town's bounties/.test(b3.seen[0] || '') && /\[TAKE: FORTY GOLD: THE WEB GULCH ETTERCAP\|TAKE: FORTY GOLD: THE CLOAKER IN THE GUANO MINE\|LEAVE\]/.test(ask3) && !!q3 && f3['paper:ettercap'] === 1 && f3.boardRead === 1 && f3.heardEttercap === 1 && !qBd(B1, 'tail'));
+      var c3 = '', c03 = B1.card; B1.card = function (ls) { c3 = window.DS.stripCodes([].concat(ls).join(' ')); return c03.apply(this, arguments); }; if (H6Bd.missionDue(B1)) driveBd(H6Bd.missionCard(B1), null, 200); B1.card = c03;
+      okBd('back on the street, its card: "' + c3.slice(0, 70) + '...", pinned ' + f3.pin, /In your JOURNAL: The Braiding Ettercap/.test(c3) && /Pinned/.test(c3) && f3.pin === 'ettercap');
+      var b3b = boardBd(B1, []), ask3b = b3b.seen.filter(function (l) { return /^\?/.test(l); })[0] || '';
+      okBd('the board again: the ettercap\'s paper gone, the cloaker\'s left ("' + ask3b.slice(ask3b.indexOf('[')) + '"), ' + H6Bd.papers(f3).length + ' nailed up', /\[TAKE: FORTY GOLD: THE CLOAKER IN THE GUANO MINE\|LEAVE\]/.test(ask3b) && H6Bd.papers(f3).length === 1);
+      // 4. THE SNOOT'S PAPER, once the council has posted it: said, and left up -- not a TAKE; with the rest taken, the nail holes
+      var B4 = newBd({ councilNotice: 1, 'paper:ettercap': 1, 'paper:cloaker': 1 }), b4 = boardBd(B4, []), B4b = newBd({ councilNotice: 1, 'paper:ettercap': 1 }), b4b = boardBd(B4b, []), ask4 = b4b.seen.filter(function (l) { return /^\?/.test(l); })[0] || '';
+      okBd('the Snoot\'s paper up: with the others taken "' + (b4.seen[1] || '').slice(0, 90) + '..."; with the cloaker\'s still there, the ask "' + ask4.slice(0, 80) + '..." (no TAKE for it)',
+        /true word on the Snoot/.test(b4.seen.join(' ')) && /stays up/.test(b4.seen.join(' ')) && /nail holes/.test(b4.seen.join(' ')) && /true word on the Snoot/.test(ask4) && !/TAKE: [^|]*SNOOT/i.test(ask4) && /TAKE: FORTY GOLD: THE CLOAKER/.test(ask4));
+      // 5. HESSLE STILL PAYS AT THE SCALES: the fangs weighed, the ettercap done, its paper off the board for good
+      var B5 = newBd({ 'paper:ettercap': 1, heardEttercap: 1 }), st5 = CBd.state(B5); CBd.give(st5, 'ettercapfangs', 1); var s50 = B5.roam.silver; driveBd(TBd.fire(B5, trigBd('keeper:hessle')), null, 2000); var g5 = TBd.fire(B5, trigBd('talk:hessle')), w5 = []; driveBd(g5, function () { return D.top() instanceof CBd.Counter; }, 800); if (D.top() instanceof CBd.Counter) w5 = readBd(D.top()); driveBd(g5, null, 800);
+      okBd('Hessle with the fangs: paid ' + (B5.roam.silver - s50) + ' sp ("' + (w5.filter(function (l) { return /fangs/.test(l); })[0] || '').slice(0, 40) + '..."), the ettercap done (' + !!(qBd(B5, 'ettercap') || {}).done + '), its paper off the board (' + !H6Bd.papers(B5.roam.flags).some(function (p) { return p.id === 'ettercap'; }) + ')',
+        B5.roam.silver - s50 === 500 && !!B5.roam.flags.ettercapDone && !!(qBd(B5, 'ettercap') || {}).done && !H6Bd.papers(B5.roam.flags).some(function (p) { return p.id === 'ettercap'; }));
+      // 6. ITS LOOK: a paper for each nailed up on the planks (the cloaker's gone brown, the Snoot's under its seal), drawn on the street and on its screen
+      var cvBd = document.createElement('canvas'); cvBd.width = 120; cvBd.height = 80; var xBd = cvBd.getContext('2d');
+      var countBd = function (ps) { xBd.clearRect(0, 0, 120, 80); H6Bd.boardPaint(xBd, 4, 4, 108, 66, ps, 3); var d = xBd.getImageData(0, 0, 120, 80).data, n = 0; for (var i = 0; i < d.length; i += 4) if (d[i] > 190 && d[i + 1] > 170 && d[i + 2] > 120) n++; return n; };
+      var pAll = H6Bd.BOARD.papers, n0 = countBd([]), n2 = countBd(pAll.slice(0, 2)), n3 = countBd(pAll);
+      okBd('drawn: no paper ' + n0 + ' light pixels, two papers ' + n2 + ', three ' + n3, n0 === 0 && n2 > 200 && n3 > n2);
+      if (get('shot', '')) { // (&shot=1: the street at the board, and the board's screen, as PNGs)
+        var cvS = document.createElement('canvas'); cvS.width = D.W; cvS.height = D.H; var ctx0Bd = D.ctx; D.ctx = cvS.getContext('2d'); D.R = D.R || 1;
+        var B6 = newBd(); var q6 = RBd.def.board; B6.roam.token.x = q6[0]; B6.roam.token.y = q6[1] + 2; B6.focus({ x: q6[0], y: q6[1], size: 1 }); D.ui.drawBattle(D.ctx, B6); repBd.png1 = cvS.toDataURL('image/png');
+        var scS = new CBd.Counter(B6, { id: 'board', name: H6Bd.BOARD.name, place: H6Bd.BOARD.name, what: H6Bd.BOARD.what, room: true, pic: H6Bd.boardPic(CBd.state(B6)), script: function (s) { return (function* () { yield s.ask(H6Bd.BOARD.ask, ['TAKE: ' + pAll[0].label, 'TAKE: ' + pAll[1].label, 'LEAVE']); })(); } });
+        D.ctx.clearRect(0, 0, D.W, D.H); scS.draw(D.ctx); repBd.png2 = cvS.toDataURL('image/png'); D.ctx = ctx0Bd;
+      }
+    } catch (eBd) { repBd.errors.push(String(eBd && eBd.stack || eBd).slice(0, 900)); }
+    D.store.get = stGBd; D.store.set = stSBd; if (HBd) { HBd.playing = false; HBd.cur = null; }
+    var preBd = document.createElement('pre'); preBd.id = 'out'; preBd.textContent = 'BENCH16 ' + JSON.stringify(repBd);
+    document.body.appendChild(preBd);
     return;
   }
   // HIS STORY NOTES OF 10-29 1808Z (mode=story1029b; the story window, started by the lanes desk, RULED on his "Leans stand"): The Missing Five by words (js/hours.js
@@ -5952,7 +6019,7 @@
       outV(B); okV('in at the Weigh-House', inV(B, 'keeper:hessle') && D.roam.def.keeper.id === 'hessle');
       R0.flags.councilNotice = 1; // (the Snoot's paper goes up the morning after the council funds it, C1 -- his "Consider C1 a cutscene that plays for the player at the parties nearest (chronological) rest cycle": mode=hours1028; here the board after it)
       var gH = fireV(B, 'talk:hessle'), scH = D.top(), wH = readV(scH); driveV(gH, null, 200);
-      okV('Hessle on his portrait (' + scH.sheet + '), nothing brought: his word and the board -- ' + wH.length + ' lines, "' + wH.join(' / ').slice(0, 140) + '..."; the bounties heard', scH.sheet === 'pt_hessle' && /That's the board/.test(wH.join(' ')) && /Standing bounties/.test(wH.join(' ')) && /ettercap/.test(wH.join(' ')) && /cloaker/.test(wH.join(' ')) && /Snoot/.test(wH.join(' ')) && R0.flags.heardEttercap === 1 && R0.flags['heard:r-cloaker'] === 1);
+      okV('Hessle on his portrait (' + scH.sheet + '), nothing brought: his word, the board on the wall outside (since 10-29, his "the way hessle reads the board should instead be clickable missions below it": mode=board1029) -- ' + wH.length + ' lines, "' + wH.join(' / ').slice(0, 140) + '..."; nailed up there ' + D.hours.papers(R0.flags).map(function (p) { return p.id; }).join(', '), scH.sheet === 'pt_hessle' && /on the board outside my door/.test(wH.join(' ')) && !/Standing bounties/.test(wH.join(' ')) && !R0.flags.heardEttercap && D.hours.papers(R0.flags).map(function (p) { return p.id; }).join() === 'ettercap,cloaker,snoot');
       ['ettercapfangs', 'cloakertail', 'anchorpin', 'wagonorder'].forEach(function (id) { CV.give(CV.state(B), id, 1); });
       var silH = R0.silver, renH = HV.cur.renown || 0, bW0 = unitV(B, 'barley').src.equip.weapon, bWU0 = JSON.stringify(unitV(B, 'barley').weapon), bRw = window.DS.DATA.heroes.barley.rewardWeapons[0];
       gH = fireV(B, 'talk:hessle'); scH = D.top(); wH = readV(scH); driveV(gH, null, 200); var bU = unitV(B, 'barley'), cs = CV.state(B);

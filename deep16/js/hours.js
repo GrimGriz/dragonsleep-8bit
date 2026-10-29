@@ -64,7 +64,7 @@
   // C.flagOn, in the order heard); done the moment the party takes up any one -- WORK from Winters, the board read, Edric's book, a bout on the slate
   H16.WORK = [
     { k: 'winters', short: 'Winters\' papers (Fountain Street)', step: { npc: 'winters', where: 'Ambrose Winters, Acquisitions & Estates, on Fountain Street: ask him for WORK.' } },
-    { k: 'board', short: 'Hessle\'s board (the Weigh-House)', step: { door: 'hessle', where: 'Hessle\'s board, at the Weigh-House on Fountain Street: every paper on it is a bounty.' } },
+    { k: 'board', short: 'Hessle\'s board (the Weigh-House)', step: { door: 'hessle', where: 'Hessle\'s board, on the Weigh-House wall beside its door on Fountain Street: every paper on it is a bounty. Take one down.' } },
     { k: 'cradles', short: 'the Warrens\' cradles (over the bridge)', step: { npc: 'edric', where: 'The Warrens: ' + EAST.replace('. The town map', ': Edric Pellam at the tally-house books hands for the cradles. The town map') } },
     { k: 'slate', short: 'Korvin\'s slate (the Hex)', step: { map: 'hex', npc: 'korvinSlate', where: 'The Hex: Korvin at the slate. Five silver to fight, ten if you win.' } }
   ];
@@ -898,6 +898,97 @@
   T.people = function (B) { people0.apply(this, arguments); (B.units || []).forEach(function (u) { if (/^breadline\d/.test(u.npc || '')) u.name = 'In the bread line'; }); H16.light(B); };
   [['Bread at six. Don\'t push.'], ['He gives it to everyone. Even the proud, at quarter past.'], ['Shift\'s at seven. Bread first.'], ['Mind the line. It moves.']].forEach(function (s, k) { C.TALK16['breadline' + k] = [{ say: s }]; });
 
+  // ---------------------------------------------------------------- HESSLE'S BOARD, ON THE WEIGH-HOUSE WALL (10-29, the story window, on the lanes desk's relay of Griz: "we actually
+  // also need a visible board, either inside or outside of hessles - the way hessle reads the board should instead be clickable missions below it (as if they're taking the mission
+  // off the board) - I think at present it's a multipart mission or something"). Outside, the window's call: on the Weigh-House's front wall beside its door on Fountain Street (the
+  // story window's 10-28 words, "on the Weigh-House wall"), where the street sees it -- drawn in code on the wall's face (a plank board, a paper nailed up for each bounty standing,
+  // the cloaker's gone brown, the Snoot's under its seal); E at it or a click: its own screen, the board in the portrait's place and each paper a TAKE of its own -- taken down, its
+  // mission in the JOURNAL and pinned (pinWant), Finding Work done (boardRead); the Snoot's paper stays up (true word is brought, not fetched). Hessle keeps the scales and pays
+  // there (js/counter.js C.hessle); he no longer reads the board aloud. The words the window's drafts, invented.json hessle-board-1029
+  H16.BOARD = {
+    name: 'Hessle\'s board', what: 'the Weigh-House wall, Fountain Street', size: [0.78, 0.5], tip: ['Hessle\'s board', 'The town\'s bounties: take a paper down'],
+    head: ['Hessle\'s board, on the Weigh-House wall: the town\'s bounties, each one nailed up and sworn before notary.', 'Take a paper down and the job is yours. Bring proof to Hessle inside, and the scales pay it.'],
+    ask: 'Which paper do you take down?', took: 'You take the paper down off its nail. It goes in your JOURNAL.',
+    snoot: 'That one stays up: true word is brought to Hessle, whoever brings it.',
+    papers: [ // (the order nailed up; `mission` its JOURNAL line, `flag` the word that opens it; `done` paid at the scales)
+      { id: 'ettercap', label: 'FORTY GOLD: THE WEB GULCH ETTERCAP', text: 'hessle.boardEttercap', flag: 'heardEttercap', mission: 'ettercap', done: 'ettercapDone', ink: '#e8e0c8' },
+      { id: 'cloaker', label: 'FORTY GOLD: THE CLOAKER IN THE GUANO MINE', text: 'hessle.boardCloaker', flag: 'heardCloaker', mission: 'tail', done: 'cloakerDone', ink: '#c8b088' },
+      { id: 'snoot', text: 'hessle.boardSnoot', done: 'snootWord', stays: true, ink: '#e8e0c8', seal: true, up: function (f) { return C.noticeUp(f); } }
+    ] };
+  H16.papers = function (f) { f = f || {}; return H16.BOARD.papers.filter(function (p) { return !f[p.done] && !f['paper:' + p.id] && (!p.up || p.up(f)); }); }; // (what is nailed up now)
+  H16.boardSq = function (def, m) { // (the wall square west of the Weigh-House's door, else east of it: solid, the street open in front of it)
+    var d = def && def.marks && def.marks.doors && def.marks.doors['keeper:hessle']; if (!d || !m) return null;
+    var ok = function (x) { var s = m.at(x, d[1] - 1), f = m.at(x, d[1]); return s && !s.open && f && f.open ? [x, d[1] - 1] : null; };
+    return ok(d[0] - 1) || ok(d[0] + 1);
+  };
+  // the board on the wall's face, in a box (x, y, w, h: screen px; k the px a board px) -- planks framed dark, a paper for each nailed up
+  H16.boardPaint = function (ctx, x, y, w, h, ps, k) {
+    var r = function (c, a, b, ww, hh) { ctx.fillStyle = c; ctx.fillRect(Math.round(a), Math.round(b), Math.max(1, Math.round(ww)), Math.max(1, Math.round(hh))); };
+    r('#2a1a0e', x, y, w, h); r('#7a5a34', x + 2 * k, y + 2 * k, w - 4 * k, h - 4 * k);
+    for (var py = y + 2 * k + 5 * k; py < y + h - 3 * k; py += 5 * k) r('#684a2a', x + 2 * k, py, w - 4 * k, k); // (the planks)
+    r('#9a7444', x + 2 * k, y + 2 * k, w - 4 * k, k); // (its top edge catching the light)
+    var n = ps.length, pw = Math.min(9 * k, (w - 6 * k) / Math.max(1, n) - 2 * k), ph = Math.min(h - 7 * k, pw * 1.3);
+    ps.forEach(function (p, i) {
+      var cx = x + 3 * k + (i + 0.5) * (w - 6 * k) / n, px = cx - pw / 2, py = y + 3.5 * k + (i % 2) * k;
+      r('rgba(20,12,6,0.45)', px + k, py + k, pw, ph); r(p.ink, px, py, pw, ph); // (its shadow, the paper)
+      for (var l = 0; l < 3; l++) r('#5a5048', px + 1.5 * k, py + (3 + l * 2) * k, pw - 3 * k - (l === 2 ? pw * 0.3 : 0), Math.max(1, k * 0.6)); // (the ink)
+      r('#9a9aa6', cx - 0.5 * k, py - 0.5 * k, k, k); // (its nail)
+      if (p.seal) r('#b02828', cx - k, py + ph - 3 * k, 2 * k, 2 * k); // (sworn: the seal)
+    });
+  };
+  H16.boardRect = function (m, s) { // (its box on the screen: standing at the wall's foot and up it, a store sign's size -- the top view's faces are low, js/topview.js TV.signAt)
+    var TV = D.topview, T = TV.TS, z = D.iso.inWorld ? 1 : D.iso.zoom || 1, bot = (s.y + 1) * T - (s.gz || 0);
+    var bw = T * H16.BOARD.size[0], bh = T * H16.BOARD.size[1], p = D.iso.toScreen(s.x * T + (T - bw) / 2, bot - 3 - bh);
+    return { x: p.x, y: p.y, w: bw * z, h: bh * z, k: z * bw / 36 };
+  };
+  H16.boardLay = function (B) {
+    var R = D.roam, def = R && R.def, m = B && B.map; if (!def || def.key !== 'silverton' || def.room || def.hexIn || !m || !m.top) return;
+    var q = H16.boardSq(def, m); def.board = q; if (!q) return;
+    var tr = def.src8 && def.src8.triggers; if (tr && !tr.some(function (t) { return t.id === 'board:hessle'; })) tr.push({ id: 'board:hessle', on: 'use', rect: [q[0], q[1], 1, 1], town: 'board' });
+    m.props = (m.props || []).filter(function (p) { return !p.board; });
+    var s = m.at(q[0], q[1]);
+    m.props.push({ board: true, sq: s, draw: function (ctx) { var st = C.state(B), b = H16.boardRect(m, s); H16.boardPaint(ctx, b.x, b.y, b.w, b.h, H16.papers(st && st.flags), b.k); } });
+  };
+  var peopleB = T.people;
+  T.people = function (B) { peopleB.apply(this, arguments); H16.boardLay(B); };
+  // its name under the mouse, as a store's sign names the store (js/topview.js TV.signTip)
+  if (D.topview && D.topview.signTip) {
+    var tip0 = D.topview.signTip;
+    D.topview.signTip = function (ctx, m, sx, sy) {
+      var o = tip0.apply(this, arguments); if (o) return o;
+      var def = m && m.def, q = def && def.board, s = q && m.at(q[0], q[1]); if (!s) return null;
+      var b = H16.boardRect(m, s); if (sx < b.x || sx >= b.x + b.w || sy < b.y - 4 || sy >= b.y + b.h + 4) return null;
+      var ls = H16.BOARD.tip, w = Math.max.apply(null, ls.map(function (l) { return D.textWidth(l); })) + 10, h = ls.length * 10 + 5, x = Math.max(2, Math.min(D.W - w - 2, Math.round(b.x + b.w / 2 - w / 2))), y = Math.max(2, Math.round(b.y - h - 2));
+      ctx.fillStyle = 'rgba(10,12,34,0.9)'; ctx.fillRect(x, y, w, h); ctx.strokeStyle = 'rgba(232,208,112,0.85)'; ctx.lineWidth = 1; ctx.strokeRect(x + 0.5, y + 0.5, w - 1, h - 1);
+      D.text(ctx, ls[0], x + 5, y + 3, '#e8d070'); D.text(ctx, ls[1], x + 5, y + 13, '#b4b4c8');
+      return { door: null, lines: ls };
+    };
+  }
+  // the board's screen: the board in the portrait's place, a TAKE for each paper that can be taken, the Snoot's said and left up
+  H16.boardPic = function (st) { return function (ctx, x, y, w, h) {
+    ctx.fillStyle = '#4a4652'; ctx.fillRect(x, y, w, h); ctx.fillStyle = '#3a3742'; for (var yy = y + 10; yy < y + h; yy += 14) ctx.fillRect(x, yy, w, 1); // (the Weigh-House's stone, its courses)
+    var bw = w * 0.86, bh = Math.min(h * 0.56, bw * 0.8); H16.boardPaint(ctx, x + (w - bw) / 2, y + h * 0.16, bw, bh, H16.papers(st && st.flags), bw / 36);
+  }; };
+  H16.boardPlay = function* (B) {
+    var st = C.state(B), W = H16.BOARD; if (!st) return;
+    var sc = new C.Counter(B, { id: 'board', name: W.name, place: W.name, what: W.what, room: true, pic: H16.boardPic(st), script: function (s) { return (function* () {
+      var f = st.flags; yield s.say(W.head.slice(), 'attentive');
+      while (true) {
+        var ps = H16.papers(f), take = ps.filter(function (p) { return !p.stays; }), stay = ps.filter(function (p) { return p.stays; });
+        var pre = stay.length ? [].concat(C.L(stay[0].text), [W.snoot]) : [];
+        if (!take.length) { yield s.say(pre.concat(C.L('hessle.boardClear'))); return; }
+        var a = yield s.ask(pre.concat([W.ask]), take.map(function (p) { return 'TAKE: ' + p.label; }).concat(['LEAVE']));
+        if (a == null || a >= take.length) return;
+        var p = take[a]; f['paper:' + p.id] = 1; f.boardRead = 1; C.flagOn(st, p.flag); f.pinWant = p.mission; D.sfx('confirm');
+        yield s.say([].concat(C.L(p.text), [W.took]), 'work');
+      }
+    })(); } });
+    D.push(sc); while (!sc.done) yield 1;
+  };
+  var fireB = T.fire;
+  T.fire = function* (B, trig) { if (trig && trig.town === 'board') { yield* H16.boardPlay(B); return; } yield* fireB.apply(this, arguments); };
+  H16.HESSLE.before = 'The board\'s on the wall outside my door. Take a paper down; the scales pay what\'s posted, sworn before notary.'; // (10-29: the board outside -- was "The board. Read it.")
+
   // ---------------------------------------------------------------- THE WORDS PASS, FOR NEW AND YOUNGER PLAYERS (the lane's 4.9; his note: "Dialogue review for vaguery reduction
   // for new and younger players"). Two layers: a person speaks in their own voice, and the card that opens a mission says plainly what to do and where (H16.missionCard). Here,
   // the lines that sent a player nowhere they could go, or priced what the second game doesn't sell, said plainly on the second game's side (C.TALK16 over content/npcs.json's;
@@ -920,6 +1011,7 @@
     barber: [{ say: ['Shave, tooth, stitch. The house\'s fighters are Davos Kren\'s. I taught him the needle.', 'Fight nights I sit at the Hex\'s door for what the house won\'t pay for. Three coppers, and I don\'t write it down.'] }]
   });
   H16.TEXT = { 'hire.lymenWait': 'He\'s watching who stands up in this town. Make a name first. (Renown 1: work for it -- Finding Work, in the JOURNAL.)',
+    'hessle.greet': 'Fifty gold for true word; ten a fortnight for watch kept; sworn before notary. It\'s on the board outside my door: take a paper down.', // (10-29: the board on the wall outside -- H16.BOARD)
     // the Warrens' (js/mines.js Skarn, Edric, the pens): "paid at the pen", the first game's "at the board" read as Hessle's
     'w.shiftPaid': 'Shift done. {n} sealed thimble(s), paid at the pen: {n} silver.', 'w.cradle.paid': '{n} sealed, paid at the pen - {n} silver',
     'w16.skarnSay': 'He looks at you and waits. What do you say?',
@@ -1021,6 +1113,7 @@
     { hours: 1, id: 'runner', door: 'inn:cassia', renown: 2, flags: { papaLymen: 1 }, label: 'PAPA\'S RUNNER: renown 2, on the street', note: 'At Cassia\'s door at renown 2: a Hex boy runs up from a few squares off, his word on his own screen (the plain shape till his face comes), and runs back. Then the Hex\'s third floor: C2.' },
     { hours: 1, id: 'five', camp: [8, 8], label: 'THE MISSING FIVE BY WORDS: Edric at the mouth camp', note: 'Beside Edric, nothing heard of the five: E on him -- the book, then the five in his own words, Skarn named; the card. East along the camp, Skarn: ANY WORK BESIDES THE CRADLES? or OPEN UP, COLLAR. A pen: the cradle in the portrait\'s place.' },
     { hours: 1, id: 'fiveafter', camp: [8, 8], flags: { heardPete: 1, tallyMet: 1, fiveKnown: 1, skarnOk: 1, fiveDone: 1, 'q:warrens': 1 }, label: 'AFTER THE FIVE: Edric, Skarn, Pete', note: 'E on Edric: the book balances, and Skarn\'s office box; Skarn pays from it. In town and in the Hex, Pete stops saying six.' },
+    { hours: 1, id: 'board', door: 'keeper:hessle', label: 'HESSLE\'S BOARD on the Weigh-House wall', note: 'At the Weigh-House door: the board on the wall beside it, a paper nailed up for each bounty. E at it or a click: the board\'s screen, TAKE a paper down -- its mission in the JOURNAL, pinned. Hessle inside points you out to it, and pays at the scales.' },
     { hours: 1, id: 'barber', door: 'keeper:barber', label: 'VENN THE BARBER AND DAVOS KREN', note: 'At the barber-surgeon\'s door: the house\'s fighters are Davos Kren\'s, what the house won\'t pay for is his, at the Hex\'s door on fight nights; TELL ME ABOUT IT the same.' }
   ];
   var play0 = C.servicePlay;
