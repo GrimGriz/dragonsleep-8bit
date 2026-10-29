@@ -4990,6 +4990,14 @@
       var fr3 = 0; while (nS.busy() && fr3++ < 400) { nS.t++; nS.step(); } nS.next(true); var fr4 = 0; while (nS.busy() && fr4++ < 3000) { nS.t++; nS.step(); }
       okSb('the stock dead: the east side\'s man up the spiral to ' + (thS && thS.seat) + ', past the chairs\' end (' + endS + ') at the table\'s row, facing it; the others at their seats (' + (arS.walkers || []).filter(function (w) { return w.sat; }).length + ' of ' + (arS.walkers || []).length + ')',
         !!thS && thS.seat[0] > endS[0] && Math.abs(thS.seat[1] - tblS[1]) <= 1 && thS.sat && (arS.walkers || []).every(function (w) { return w.sat; }));
+      if (get('shot', '')) { // (&shot=1: the screens as PNGs, for a seat's own eyes -- the pens', the night's sitting, the runner's, the arrival's title)
+        var shotSb = function (sc) { var c = D.ctx; c.clearRect(0, 0, D.W, D.H); sc.draw(c); return cvN2.toDataURL('image/png'); };
+        var say1 = function (lines) { return function (s) { return (function* () { yield s.say(lines); })(); }; };
+        repSb.png1 = shotSb(new CSb.Counter(BN, { id: 'pen2', name: 'The pens, mouth 2', place: 'The Crawler Warrens', what: 'the mouth camp', pic: D.cradle.pic, script: say1([CSb.L('w.penAsk')]) }));
+        var sitS = H6Sb.sitting(BN, ['notice'], [{}], false, true); for (var kS = 0; kS < 30; kS++) sitS.draw(D.ctx); repSb.png2 = shotSb(sitS);
+        var runS = new CSb.Counter(BN, { id: 'hexboy', name: H6Sb.RUNNER.name, place: 'Silverton', what: 'Papa\'s runner', room: true, script: function (s) { return (function* () { s.sheet = H6Sb.RUNNER.sheet; yield s.say(H6Sb.RUNNER.lines); })(); } }); repSb.png3 = shotSb(runS);
+        var nP = H6Sb.night(BN, ['notice'], [{}]); nP.next(true); for (var fP = 0; fP < 200; fP++) { nP.t++; nP.step(); } D.ctx.clearRect(0, 0, D.W, D.H); nP.draw(D.ctx); repSb.png4 = cvN2.toDataURL('image/png'); nP.finish();
+      }
       nS.finish(); D.scenes.length = 0; D.ctx = ctxN0;
     } catch (eSb) { repSb.errors.push(String(eSb && eSb.stack || eSb).slice(0, 900)); }
     D.store.get = stGSb; D.store.set = stSSb; if (HSb) { HSb.playing = false; HSb.cur = null; } if (D.cradle) D.cradle.STRAIGHT = false;

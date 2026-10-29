@@ -22,12 +22,12 @@
     // (10-29, the story window, RULED on Griz's "Leans stand", his note "there's no real taking of the missing 5 quest - you talk to him about milking crawlers and it
     // mysteriously shows up in your journal ... Mission text says from warren's pete - should get from warrens pete, or with dialogue from Edric. Both should point to ask Skarn
     // step": it opens on words only -- Pete's, Edric's own telling as he books you, or Skarn's work past the pens (js/mines.js; fiveBy: who told it) -- never on the booking
-    // alone; its words say who told it; Pete's goes to Edric, then Skarn, Edric's and Skarn's on from there)
+    // alone; its words say who told it; Pete's goes to Edric, then Skarn, Edric's and Skarn's on from there -- the Edric step till the book is signed, which since 10-29 always tells the five)
     { id: 'warrens', name: 'The Missing Five', show: 'flag:heardWarrens|flag:heardPete|flag:heardFive', done: 'flag:fiveDone',
       text: function (st) { return H16.FIVE_BY[st.flags.fiveBy] || H16.FIVE_BY.pete; },
       doneText: 'The five came back up. Edric wrote their return lines.',
       steps: [{ 'if': 'has:fivetokens', map: 'warrens_a', npc: 'edric', where: 'Bring the five\'s tokens to Edric Pellam at the tally-house, the Warrens\' mouth camp.' },
-        { 'if': '!flag:fiveKnown & !flag:skarnOk', map: 'warrens_a', npc: 'edric', where: 'Edric Pellam at the tally-house, the Warrens\' mouth camp: ' + EAST },
+        { 'if': '!flag:tallyMet & !flag:skarnOk', map: 'warrens_a', npc: 'edric', where: 'Edric Pellam at the tally-house, the Warrens\' mouth camp: ' + EAST },
         { 'if': '!flag:skarnOk', map: 'warrens_a', npc: 'skarn', where: 'Skarn, the Warrener, at the mouth camp: ask him about the five, and he opens his gate.' },
         { 'if': '!flag:fiveRecovered', map: 'warrens_d', trig: 'stair', where: 'The flooded stair past the wet: through Skarn\'s gate, up the drift, the daytime way down. Bring rope.' },
         { map: 'warrens_a', npc: 'edric', where: 'Back to Edric Pellam at the tally-house.' }] }, // (each step's floor the first game's, content/quests.json five: the way there is H16.wayTo)
@@ -671,7 +671,7 @@
       for (var i = 0; i < at.path.length; i++) { var n = at.path[i]; boy.tween = { fx: boy.x, fy: boy.y, fz: 0, t: 0, dur: STEP, mode: null }; boy.facing = D.spr.facingFor(n[0] - boy.x, n[1] - boy.y); boy.x = n[0]; boy.y = n[1]; yield STEP; }
       boy.anim = 'idle'; boy.animT = B.t; boy.facing = D.spr.facingFor(R0.token.x - boy.x, R0.token.y - boy.y); G.setup(G.map, B.units);
     }
-    var sc = new C.Counter(B, { id: 'hexboy', name: w.name, place: D.roam.def.name || 'Silverton', what: 'Papa\'s runner', script: function (s) { return (function* () { s.sheet = w.sheet; yield s.say(w.lines, 'attentive'); })(); } });
+    var sc = new C.Counter(B, { id: 'hexboy', name: w.name, place: D.roam.def.name || 'Silverton', what: 'Papa\'s runner', room: true, script: function (s) { return (function* () { s.sheet = w.sheet; yield s.say(w.lines, 'attentive'); })(); } });
     D.push(sc); while (!sc.done) yield 1;
     if (boy) {
       var back = at.path.slice(0, -1).reverse().concat([at.from]); boy.anim = 'walk'; boy.animT = B.t;
