@@ -100,6 +100,8 @@ KEEPERS = {
     # (art-wanted section 26) and the art desk's own "do not equal-height-normalize him with ordinary adults": he stands `tall` 58, the height of the grid's bugbear
     # and of Talmok, where the town's grown men stand 50. In the Hex's front door, at the council's long table, and on the night's picture of it (js/hours.js)
     'papa': ('papa/ART-123-URTUSK', 'ART-123-URTUSK', 'npc:papa', {'views': 'ART-123-URTUSK, 10-29', 'tall': 58, 'gap': 6, 'reskin': {'hue': 78, 'sat': 0.36}, 'avoid': ['skin', 'red', 'gold']}),
+    # Warda (10-29, the cutscene cutter seat: the art desk's ART-123-WARDA, all five views drawn): in the lounge at the Hex's third floor, behind the council's table
+    'warda': ('warda/ART-123-WARDA', 'ART-123-WARDA', 'hex:warda', {'views': 'ART-123-WARDA, 10-29', 'avoid': ['gold', 'fire']}),   # (her olive face snapped to the gold ramp, yellow at 50 px: left out, it keeps to skin and stone)
 }
 
 

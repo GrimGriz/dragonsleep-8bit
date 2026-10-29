@@ -644,5 +644,11 @@
     'eyes-papa-face-1029': { pri: 2, group: G2, title: 'Papa Urtusk\'s talking portrait from the art desk\'s ART-123: his idle, the four moods and the mug set down (10-29)', pt: 'the bestiary, the cutscene cutter seat (tools/portrait-sheet.py pt_papa; deep16/js/counter.js C.VENDORS) · eyes',
       url: 'deep16/?portraits&who=papa&fresh=1029p',
       look: 'His idle (a breath and a blink), attentive, welcoming, skeptical, concerned, and his work: a heavy mug set down on the ledge and his hands folded over it. The art desk drew sparse white hair on his scalp beside the white jaw fringe (its own choice; the ask said nothing of hair) and the mug in pewter.' },
+    'eyes-warda-floor-1029': { pri: 2, group: G2, title: 'Warda in her own figure on the Hex\'s third floor, behind the council\'s table: "Stand at the back." (10-29)', pt: 'Silverton\'s hours and words lane 4.8, the cutscene cutter seat (tools/keeper-town-sheet.py warda_p1; deep16/js/counter.js C.FIG) · eyes',
+      url: 'deep16/?hoursshow&beat=tablenight&fresh=1029w',
+      look: 'The art desk\'s ART-123-WARDA, cut whole: Warda in the lounge on the third floor in her own figure (all eight facings: she turns to the party), hair pinned up, a dark good dress, the ring of keys at her belt, in place of the stand-in. The same figure stands in the lounge on the night\'s cutscene and its picture. Her south face is drawn in shadow and reads dark at 50 px.' },
+    'eyes-warda-face-1029': { pri: 2, group: G2, title: 'Warda\'s talking portrait from the art desk\'s ART-123: her idle, the four moods and the ring of keys (10-29)', pt: 'the bestiary, the cutscene cutter seat (tools/portrait-sheet.py pt_warda; deep16/js/counter.js C.VENDORS) · eyes',
+      url: 'deep16/?portraits&who=warda&fresh=1029w',
+      look: 'Her idle, attentive, welcoming, skeptical, concerned, and her work: the ring of keys lifted, sorted, one picked out. Her word on the third floor stays the first game\'s card for now (she has no line in the council\'s sittings); the face waits for the scene that gives her one.' },
   };
 })();

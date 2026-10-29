@@ -5357,6 +5357,9 @@
         paK.length === 1 && paK[0].sheet === 'pt_papa' && /Strike it/.test(paK[0].say) && anK.length === 1 && anK[0].sheet === 'pt_androit');
       D.scenes.length = 0; D.scenes.push(BC); D.battle = BC;
       var nK2 = H6K.night(BC, ['notice'], [{}]), arK = nK2.shots && nK2.shots[1].st, wK = arK && arK.walkers ? arK.walkers.filter(function (w) { return w.u.npc === 'councilpapa'; })[0] : null;
+      var pWK = D.SHEETS.pt_warda, fWK = D.SHEETS[CK.FIG.warda], wdK = shK && shK.b ? shK.b.units.filter(function (u) { return u.npc === 'warda'; })[0] : null;
+      okK('Warda from ART-123-WARDA: her face (' + (pWK ? pWK.fw + 'x' + pWK.fh + ', idle ' + pWK.anims.idle.frames + ', work ' + pWK.anims.work.frames : 'NONE') + ', C.PT ' + CK.PT.warda + '), her figure all round (' + (fWK ? 'top ' + fWK.top + ', drawn ' + JSON.stringify(fWK.anims.idle.drawn) : 'NONE') + '), in the lounge on the night\'s picture (' + (wdK ? wdK.sheet : 'NOT THERE') + ')',
+        !!pWK && pWK.anims.idle.frames === 6 && pWK.anims.work.frames === 6 && CK.PT.warda === 'pt_warda' && !!fWK && !fWK.anims.idle.drawn && fWK.top >= 45 && fWK.top <= 54 && !!wdK && wdK.sheet === 'warda_p1');
       okK('the cutscene\'s arrival: Papa up the spiral first, in his own figure (' + (wK ? wK.u.sheet + ', ' + wK.path.length + ' squares; the order ' + arK.walkers.map(function (w) { return w.u.npc.replace('council', ''); }).join(', ') : 'NOT THERE') + ')',
         !!wK && wK.u.sheet === 'papa_p1' && arK.walkers[0] === wK);
       nK2.finish();
@@ -5486,12 +5489,12 @@
         'kael', 'sylvia', // (a grey streak on the other side in some drawn views: cut, RULED 10-28, his "defining features showing on mirror facings is acceptable")
         'casper', 'androit', 'hessle', 'aldric', 'kessler', 'calla', 'mical', 'lisbet', 'merrick', 'marko', 'venhale', // (ART-121a and -121c, the same seat)
         'barber', 'marin', 'brennan', 'kasten', 'cassia', 'mela', // (ART-121b, the fourth cutter seat: the last six -- all thirty-four drawn round)
-        'papa']; // (10-29, the cutscene cutter seat: Papa Urtusk, ART-123-URTUSK, drawn round from the first and 58 px -- the largest in any room)
+        'papa', 'warda']; // (10-29, the cutscene cutter seat: Papa Urtusk, ART-123-URTUSK, drawn round from the first and 58 px -- the largest in any room; Warda, ART-123-WARDA)
       var figT = Object.keys(CT.FIG), whole = figT.filter(function (k) { var s = D.SHEETS[CT.FIG[k]]; return s && !s.anims.idle.drawn; });
       okT('drawn all round (no S-only list on the idle): ' + whole.join(', ') + ' -- wanted ' + WHOLE.join(', '), whole.slice().sort().join() === WHOLE.slice().sort().join());
       var shT = function (k) { var s = D.SHEETS[CT.FIG[k]], a = s.anims.idle; return k + ' ' + a.fw + 'x' + a.fh + ' top ' + s.top; };
       okT('each cut from the four pages beside the south, the idle\'s fourteen frames, no stand-in under it, as tall as the heroes (45 to 54 above the foot; Barley ' + D.SHEETS.barley_p2.top + '): ' + WHOLE.map(shT).join(', '),
-        WHOLE.every(function (k) { var s = D.SHEETS[CT.FIG[k]], a = s && s.anims.idle; return a && !a.under && a.frames === 14 && (k === 'papa' ? /PAGE-2 to PAGE-5 \(SE, E, NE, N: ART-123-URTUSK/.test(s.source) && s.top >= 55 && s.top <= 60 : /PAGE-2 to PAGE-5 \(SE, E, NE, N: ART-121/.test(s.source) && s.top >= 45 && s.top <= 54); }));
+        WHOLE.every(function (k) { var s = D.SHEETS[CT.FIG[k]], a = s && s.anims.idle; return a && !a.under && a.frames === 14 && (k === 'papa' || k === 'warda' ? /PAGE-2 to PAGE-5 \(SE, E, NE, N: ART-123-(URTUSK|WARDA)/.test(s.source) && s.top >= (k === 'papa' ? 55 : 45) && s.top <= (k === 'papa' ? 60 : 54) : /PAGE-2 to PAGE-5 \(SE, E, NE, N: ART-121/.test(s.source) && s.top >= 45 && s.top <= 54); }));
       var held = figT.filter(function (k) { return WHOLE.indexOf(k) < 0; });
       okT('the other ' + held.length + ' still south only over the stand-in (' + held.join(', ') + ')', held.every(function (k) { var s = D.SHEETS[CT.FIG[k]], a = s && s.anims.idle; return a && a.drawn.join() === '0' && a.under === 'crewman_p1'; }));
       var drT = figT.map(function (k) { var u = { x: 0, y: 0, facing: 5 }; CT.dress(u, k); return [k, u]; });

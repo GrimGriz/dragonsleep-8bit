@@ -111,6 +111,9 @@ PEOPLE = {
     # Papa Urtusk of the Hex's front door (10-29, the cutscene cutter seat, on Griz's "Urtusk just landed in fresh, give the cutscene its own cutter"): the art desk's
     # ART-123-URTUSK, drawn from the realm's portrait sheet (art-wanted section 26 as re-cut at bd2b7be0) -- his face for the council's sittings and his word at the door
     'papa': ('papa/ART-123-URTUSK', 'ART-123-URTUSK', 'npc:papa', {'edge': True, 'gap': {6: 3}, 'reskin': {'hue': 78, 'sat': 0.36}, 'avoid': ['skin', 'red'], 'bevel': (4,)}),   # (his work's ledges stand 6 px apart)
+    # Warda, Papa and Lucia's daughter, who keeps the Hex's third floor and its keys (10-29, the cutscene cutter seat: the art desk's ART-123-WARDA, as it landed in Fresh
+    # behind Papa's) -- her face for the third floor's word and the council's night
+    'warda': ('warda/ART-123-WARDA', 'ART-123-WARDA', 'hex:warda', {'edge': True, 'bevel': (2, 3, 4, 5)}),   # (her stills' counter tops bevelled, as Falstaff's)
     # the generic man and the generic woman (10-28 evening, the fourth cutter seat: the art desk's ART-122, on Griz's "as a specific person with each function as a
     # costume/look they have"): one person each, the townsfolk's man and woman (folkman_p1, folkwoman_p1), their own clothes' idle and a still for each costume in
     # place of the named's moods -- js/counter.js C.GENERIC gives each unnamed id its person and costume. A spear, a pole or a scraper held up beside the head

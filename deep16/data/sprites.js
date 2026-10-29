@@ -14936,6 +14936,102 @@ true
 "door": "shop:vilar",
 "source": "deep16/_src/vilar/ART-97 (the art desk's ART-97, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
 },
+"pt_warda": {
+"image": "art/pt_warda.png?v=572f198d62",
+"fw": 226,
+"fh": 157,
+"ax": 118,
+"ay": 154,
+"top": 154,
+"portrait": true,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 226,
+"fh": 157,
+"ax": 118,
+"ay": 154,
+"frames": 6,
+"fps": 3,
+"ledge": [
+true,
+true,
+true,
+true,
+true,
+true
+]
+},
+"attentive": {
+"y": 157,
+"fw": 226,
+"fh": 157,
+"ax": 118,
+"ay": 154,
+"frames": 1,
+"fps": 1,
+"ledge": [
+true
+]
+},
+"welcoming": {
+"y": 314,
+"fw": 226,
+"fh": 157,
+"ax": 118,
+"ay": 154,
+"frames": 1,
+"fps": 1,
+"ledge": [
+true
+]
+},
+"skeptical": {
+"y": 471,
+"fw": 226,
+"fh": 157,
+"ax": 118,
+"ay": 154,
+"frames": 1,
+"fps": 1,
+"ledge": [
+true
+]
+},
+"concerned": {
+"y": 628,
+"fw": 226,
+"fh": 157,
+"ax": 118,
+"ay": 154,
+"frames": 1,
+"fps": 1,
+"ledge": [
+true
+]
+},
+"work": {
+"y": 785,
+"fw": 226,
+"fh": 157,
+"ax": 118,
+"ay": 154,
+"frames": 6,
+"fps": 4,
+"ledge": [
+true,
+true,
+true,
+true,
+true,
+true
+]
+}
+},
+"art": "ART-123-WARDA",
+"door": "hex:warda",
+"source": "deep16/_src/warda/ART-123-WARDA (the art desk's ART-123-WARDA, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
+},
 "pt_winters": {
 "image": "art/pt_winters.png?v=d266107e53",
 "fw": 176,
@@ -17014,6 +17110,27 @@ true
 }
 },
 "source": "drawn by the art desk (2026-10-17, ART-71: every row in all five views), cut and snapped by tools/snoothorse-sheet.py"
+},
+"warda_p1": {
+"image": "art/warda_p1.png?v=b86ecc7ef9",
+"fw": 33,
+"fh": 53,
+"ax": 16,
+"ay": 51,
+"top": 49,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 33,
+"fh": 53,
+"ax": 16,
+"ay": 51,
+"frames": 14,
+"fps": 4
+}
+},
+"source": "deep16/_src/warda/ART-123-WARDA/ART-123-WARDA_HEAD-2_PAGE-1.png (the art desk's south idle, 10-21) and PAGE-2 to PAGE-5 (SE, E, NE, N: ART-123-WARDA, 10-29), cut by tools/keeper-town-sheet.py",
+"door": "hex:warda"
 },
 "waterelemental_p2": {
 "image": "art/waterelemental_p2.png?v=f72238e75f",
