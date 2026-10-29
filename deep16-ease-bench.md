@@ -1,6 +1,7 @@
 ---
 layer: the ease bench (dev/ease_runs.py). Why the fights on the grid come out easy: the same fight with one thing changed at a time. For the tuning seat (handoff-2026-09-28-class-npcs-built.md §5), beside deep16-class-bench.md.
 written: 2026-09-28 22:2xZ by the Code tab (config claude-opus-5-5). Rerun from PowerShell (headless Edge answers nothing from the Bash tool's sandbox): python dev/ease_runs.py (N=40 by default; seed 3; level 5).
+rerun: 2026-10-29 by the difficulty seat (config claude-opus-5-5): the section at the foot, beside the 09-28 table.
 question: Griz 09-28g, after watching the four beat Talmok, Willem, Kat and Torvald on the Pocket DM: "is the ease a gear issue, AI issue, or 5v4 issue?"
 ---
 
@@ -30,3 +31,24 @@ Both sides always run the one class AI (`deep16/js/tactics.js`). "The four" are 
 - **The heroes' own edge is gear and HP, about equally.** In the mirror they win 29 of 40; plain weapons take that to 22, average HP to 19, both to 11. The max-die HP rule and the quest weapons are each worth about a quarter of the fights.
 - **Numbers matter as much as either.** One more fighter across the table takes the mirror from 29 wins to 19.
 - **The ladder is a separate case** (handoff-2026-09-28-class-npcs-built.md §3): its fights were sized against the old spell-less bench bot, and the real AI's Fireball clears a clustered rung in a round. Tune the ladder by its foes' numbers and spacing, against these heroes as they are, not by weakening the heroes.
+
+## The rerun, 2026-10-29 (the difficulty lane §2.7: not rerun since the SRD's prone went engine-wide)
+
+`python dev/ease_runs.py`, N=40, seed 3, level 5, by the difficulty seat (config claude-opus-5-5), on main at `2bf5011`. The same rows, 09-28 -> 10-29. A month of the engine moved between them (the SRD's prone, the class AI's turns, the features), so a change here is the sum of it, not the prone alone.
+
+| the fight (40 each) | the four won | rounds | the four's HP left | the four down, a fight |
+|---|---|---|---|---|
+| **the watched one**: the four vs Talmok, Willem, Kat, Torvald | 40 -> 40 | 4.3 -> 3.8 | 83% -> 88% | 0.15 -> 0 |
+| ... plain weapons, no splint | 39 -> 40 | 4.3 -> 4.4 | 82% -> 83% | 0.17 -> 0.05 |
+| ... average HP | 36 -> 40 | 4.5 -> 3.9 | 74% -> 88% | 0.53 -> 0.03 |
+| ... both | 38 -> 38 | 4.4 -> 4.4 | 72% -> 81% | 0.42 -> 0.25 |
+| ... the same four classes as generic level-5 NPCs | 16 -> **21** | 5.3 -> 6.0 | 17% -> 29% | 2.75 -> 2.27 |
+| **the mirror**: the four vs their own classes as generic level-5 NPCs | 29 -> **35** | 4.5 -> 6.1 | 34% -> 57% | 1.50 -> 0.65 |
+| ... plain weapons, no splint | 22 -> 33 | 4.5 -> 7.6 | 25% -> 46% | 2.25 -> 1.05 |
+| ... average HP | 19 -> 25 | 3.7 -> 5.5 | 23% -> 37% | 2.40 -> 1.77 |
+| ... both | 11 -> **20** | 3.9 -> 6.0 | 11% -> 25% | 3.13 -> 2.35 |
+| the NPC mirror: generic hero classes on both sides | 20 -> 17 of 40 | 3.9 -> 4.7 | 25% -> 22% | 2.42 -> 2.52 |
+| **numbers**: the four vs five (the mirror and a fighter) | 19 -> 25 | 4.2 -> 6.3 | 16% -> 32% | 2.73 -> 1.88 |
+| ... plain and average HP | 5 -> 4 | 3.4 -> 4.3 | 2% -> 8% | 3.75 -> 3.63 |
+
+**Reading the rerun.** The AI is still even-handed (generic against generic, 17 to 23). What moved is the four's own sheets: every row where Barley, Aurdin, Vivian and Lymen play as themselves wins more and longer than on 09-28 -- the mirror 29 to 35, the mirror stripped of gear and HP 11 to 20 -- while the fights where both sides are generic stand still. The heroes' sheets have gained on the NPC builds since 09-28; the fights read against the difficulty sentence (RULED 10-28: about 75% won with a down or two, against the player's hand) should be tuned by their foes, not by the AI.
