@@ -42,15 +42,21 @@
     if (h.cls === 'paladin') { h.feats.lay = 5; h.feats.channel = 0; }
     return h;
   };
+  // WHAT THEY BUY AS THEY LEVEL (RULED 10-29, Griz to the lanes desk: "we should probably assume they buy some stuff as they level, guess for the bench"; the first game's quest
+  // weapons -- a +1 from 5, a +2 at 9 -- gone from the grid on his "those 'in kind' magic items were meant to be discontinued in game 2"). The guess is the difficulty seat's, a call
+  // standing (invented.json #fixture-kit-1029): a piece a level from 4, each of the hero's own kind where a Silverton counter sells it (content/shops.json) and the bounties' silver
+  // can pay -- Vivian's studded leather at 4 (Kessler, 450 sp); Lymen's Longsword +1 at 5 (Kessler, 2500); Vivian's Dagger +1 at 7 and Aurdin's Staff +1 at 8 (Winters, 2500 each);
+  // a Ring of Protection for Barley at 9 (Winters, 3500: no counter sells a +1 threshing flail). [level, hero, slot, item]
+  SV.KIT = [[4, 'vivian', 'armor', 'studded'], [5, 'lymen', 'weapon', 'longsword1'], [7, 'vivian', 'weapon', 'dagger1'], [8, 'aurdin', 'weapon', 'staff1'], [9, 'barley', 'ring', 'ringofprotection']];
   // o.bare: nothing cast that morning (the camp casts, js/camp.js)
   SV.fixture = function (level, o) {
     var L = level || 9, bare = !!(o && o.bare);
     var party = ['barley', 'aurdin', 'vivian', 'lymen'].map(function (id) {
-      var h = L < DS.DATA.heroes[id].level ? SV.levelOne(R.makeHero(id)) : R.makeHero(id, L), d = DS.DATA.heroes[id], tier = L >= 9 ? 1 : L >= 5 ? 0 : -1;
+      var h = L < DS.DATA.heroes[id].level ? SV.levelOne(R.makeHero(id)) : R.makeHero(id, L);
       // no one to ask at the fixture: the build's picks and the first archetype (js/rules.js R.autoPicks, what the benches always gave her) -- Vivian dealt from 3rd
       // stood with none, waiting on a page no fight opens (10-21, the Pocket DM lane 2h; the Snoot's frozen party had her so). A card's own pick lays over it (R.repick)
       R.autoPicks(h);
-      if (tier >= 0 && d.rewardWeapons && d.rewardWeapons[tier] && DS.DATA.items[d.rewardWeapons[tier]]) h.equip.weapon = d.rewardWeapons[tier];
+      SV.KIT.forEach(function (k) { if (L >= k[0] && k[1] === id && DS.DATA.items[k[3]]) h.equip[k[2]] = k[3]; }); // (what they bought by this level: SV.KIT, below the fixture)
       // the 8-bit sheet gives Barley no armour (a thresher: AC 11); the ladder dresses him (Griz, 09-27: "let's go with splint-mail")
       if (id === 'barley' && !h.equip.armor) h.equip.armor = 'splint';
       // Mage Armor cast that morning, and paid for: a 1st-level slot (Griz, 09-27: "cost for mage armor"; it was free)

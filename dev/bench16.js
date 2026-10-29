@@ -64,7 +64,7 @@
   }
   // the reward weapons (10-29, the difficulty seat, on Griz's "those 'in kind' magic items were meant to be discontinued in game 2"): quest=0 the four in their own weapons at
   // any level (Barley's splint kept, unlike plain=1); quest=1 as the second game left them after one of Hessle's majors (the ettercap's fangs or the cloaker's tail, counter.js
-  // C.questWeapons until 10-29: the lead, Barley, and one other, Aurdin, a +1); quest=2 after both (all four a +1). Unset, the fixture's own: a +1 from 5, a +2 at 9
+  // C.questWeapons until 10-29: the lead, Barley, and one other, Aurdin, a +1); quest=2 after both (all four a +1). Unset, the fixture's own: since 10-29 the kit they buy as they level (deep16/js/save.js SV.KIT)
   var qk = get('quest', '');
   if (qk !== '') {
     var fxq = D.save.fixture;

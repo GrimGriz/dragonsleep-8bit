@@ -65,10 +65,8 @@
     if (ch.expertise) out.push('Expertise: ' + ch.expertise.join(', ') + '.');
     var learnt = (ch.spells || []).concat(ch.cantrip || []);
     if (learnt.length) out.push('Learns ' + learnt.map(function (id) { return SV.spell(id).name; }).join(', ') + '.');
-    // the quests' reward weapons, as the 8-bit game gives them: a +1 at 5, a +2 at 9 (in place of the hero's own)
-    var d = DS.DATA.heroes[h.id], rw = d.rewardWeapons || [], it = DS.DATA.items;
-    if (h.lvl === 5 && rw[0] && it[rw[0]] && h.equip.weapon === d.equip.weapon) { h.equip.weapon = rw[0]; out.push('The quests reward: ' + it[rw[0]].name + '.'); }
-    if (h.lvl === 9 && rw[1] && it[rw[1]] && (h.equip.weapon === d.equip.weapon || h.equip.weapon === rw[0])) { h.equip.weapon = rw[1]; out.push('The quests reward: ' + it[rw[1]].name + '.'); }
+    // (the quests' reward weapons -- a +1 at 5, a +2 at 9, as the 8-bit game gives them -- gone from the climb 10-29: RULED, Griz, "those 'in kind' magic items were meant to be
+    // discontinued in game 2"; the first game keeps its own)
     return ['{y}' + h.name + '{/} is a ' + h.cls + ' of level ' + h.lvl + '  {n}HP ' + lu.hp0 + ' -> ' + h.maxhp + '{/}'].concat(out, lu.keep);
   };
   // the grid's word on a spell for the pick: one not on the grid yet is offered greyed (the climb's fights are the grid's)
