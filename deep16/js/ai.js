@@ -805,18 +805,35 @@
     }
     var up = (leapNow && pick(true)) || pick(false);
     if (!up) {
-      // no one it can reach this turn: closer, under the ground
+      // no one it can come up beside this turn
       var near = hs.slice().sort(function (a, b) { return G.dist(u, a) - G.dist(u, b); })[0], e0 = approach(u, near, rm);
-      // ... unless there is no square beside anyone its body fits in at all (a target boxed in by the walls and the fallen: the Breach's road with three down round Vivian,
-      // 10-02) -- then up at the nearest it can stand in within a stride (15 ft) of its mark, to walk and bite on its feet; it stayed under for good before
       var e1 = Object.keys(rm).map(function (k) { return rm[k]; }).filter(function (e) { return e.stand && G.canStand(u, e.x, e.y); }).sort(function (a, b) { return G.dist(u, near, a.x, a.y) - G.dist(u, near, b.x, b.y) || a.cost - b.cost; })[0];
-      if (e1 && G.dist(u, near, e1.x, e1.y) <= 15 && (!e0 || G.dist(u, near, e0.x, e0.y) >= G.dist(u, near, e1.x, e1.y) - 5)) {
-        T.move = cap; yield* walkTo(B, u, e1, { ghost: true }); T.move = Math.max(0, m0 - (cap - T.move));
+      // ... up where it can still walk to one and strike this turn (10-29, Griz: "tell notes to re-evaluate bullette et. all AI to see if it accounts for targets being on a solid
+      // road" -- a xorn under the ground beside the Seam's road dug to the road's edge with all its move, came up into the readied blows and "paces: it cannot get at anyone"):
+      // the dig and the walk are one move (SRD 5.1, more than one speed: what is moved comes off the next), so the square to come up on is one whose dig and walk to striking
+      // range together fit the move -- a target on the made road it cannot come up beside (worked stone, data/maps.js noBurrow), or one boxed in by the walls and the fallen
+      // (the Breach's road with three down round Vivian, 10-02, where it stayed under for good before)
+      var stA = null, sA = Infinity;
+      hs.forEach(function (t) {
+        Object.keys(rm).forEach(function (k) {
+          var e = rm[k]; if (!e.stand || !G.canStand(u, e.x, e.y)) return;
+          var need = Math.max(0, G.dist(u, t, e.x, e.y) - reachOf(u)); if (need > m0 - e.cost) return;
+          var s = (t.hp / t.maxhp) * 100 + e.cost / 5 + need / 5; if (s < sA) { sA = s; stA = { e: e, t: t }; }
+        });
+      });
+      if (stA) {
+        T.move = cap; yield* walkTo(B, u, stA.e, { ghost: true }); T.move = Math.max(0, m0 - (cap - T.move));
         if (u.dead || u.hp <= 0) return;
-        yield* rise(B, u, near);
+        yield* rise(B, u, stA.t);
         if (u.dead || u.hp <= 0) return;
         yield* brute(B, u);
         yield* diveAfter(B, u);
+        return;
+      }
+      // ... none: nearer under the ground while that gets it nearer, and stays under (out of every reach) till it can come up and strike
+      if (e0 && G.dist(u, near, e0.x, e0.y) < G.dist(u, near)) {
+        T.move = cap; yield* walkTo(B, u, e0, { ghost: true }); T.move = Math.max(0, m0 - (cap - T.move));
+        B.card([u.earthGlide ? '{g}Nothing shows where it went.{/}' : '{g}The ground heaves: something moves under it' + (near ? ', toward ' + near.name : '') + '.{/}'], 200); yield 16;
         return;
       }
       // ... and when going under gets it no nearer at all (worked stone between it and them: a made road it cannot pass under, data/maps.js noBurrow -- 10-29, the Seam's xorns

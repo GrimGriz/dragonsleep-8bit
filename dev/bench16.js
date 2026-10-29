@@ -4373,6 +4373,57 @@
     document.body.appendChild(preGL);
     return;
   }
+  // THE BURROWERS AND THE SOLID ROAD (mode=roads1029; the notes seat, reopened by the lanes desk on Griz's "tell notes to re-evaluate bullette et. all AI to see if it accounts for
+  // targets being on a solid road"): every burrower of the bestiary (the bulette, the ankheg, the earth elemental, the xorn) on the class floor on the two roads made worked stone
+  // (data/maps.js breach and seamwall, noBurrow '='), n fights a case by the four's class AI, each burrower's turns counted -- a blow given, a dive for nothing (up at the turn's
+  // start, under, and no blow that turn), a turn ended under with no blow, every target standing on the road -- and a fight that never ends; beside each, the same fights with the
+  // road given back (its noBurrow off). &n= fights a case
+  if (get('mode', '') === 'roads1029') {
+    var repB = { checks: [], errors: [], table: [] }, turn0B = D.ai.turn, nB = +get('fights', 4), stB = null, GB = D.grid; // (&fights=: its own count -- dev/check.py runs every mode at n=1)
+    function okB(what, v) { repB.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function partyB(B) { return B.units.filter(function (w) { return w.side === 'party' && !w.dead && w.hp > 0 && !w.left && !w.familiar; }); }
+    function onRoadB(w) { return GB.foot(w).every(function (q) { return GB.solidFloor(q[0], q[1]); }); }
+    D.ai.turn = function* (B, u) {
+      if (!stB || !u.burrow || u.side !== 'foe') { yield* turn0B.apply(this, arguments); return; }
+      var up0 = !u.under, n0 = (B.log || []).length, ps = partyB(B), allRoad = ps.length > 0 && ps.every(onRoadB);
+      yield* turn0B.apply(this, arguments);
+      var lg = (B.log || []).slice(n0).join(' | '), dove = /dives into the ground|sinks into the floor/.test(lg), hit = !!(u.turn && u.turn.attacked > 0);
+      stB.turns++; if (hit) stB.hits++; if (allRoad) { stB.allRoad++; if (hit) stB.hitsRoad++; } if (u.under && !hit) stB.under++;
+      if (up0 && dove && !hit) { stB.wasted++; if (allRoad) stB.wastedRoad++; }
+      if (/rises out of the floor|bursts up out of the ground/.test(lg) && !hit && !u.dead && u.hp > 0) { stB.roseIdle++; /* (one the readied blows killed as it came up is not counted: that was no plan of its) */ if (allRoad) { stB.roseIdleRoad++; if (!stB.idleLog) stB.idleLog = lg.replace(/\{\/?[a-z]*\}/g, '').slice(0, 700); } } // (came up and struck no one: up into the readied blows for nothing)
+      if (u.under && GB.foot(u).some(function (q) { return GB.solidFloor(q[0], q[1]); })) stB.underStone++; // (under the worked stone: the rules say it never is)
+      u.benchStreak = u.under && !hit ? (u.benchStreak || 0) + 1 : 0; stB.streak = Math.max(stB.streak, u.benchStreak); // (turns in a row ended under with no blow)
+    };
+    function fightB(q) {
+      var B = D.npcFight(q, { bench: true }); D.battle = B; B.enter(); B.units.forEach(function (w) { if (w.side === 'party') { w.guest = true; w.classAI = true; } });
+      var v, g = 0, r; while (B.co && g++ < 200000 && (B.round || 0) <= 30) { r = B.co.next(v); v = undefined; if (r.done) break; var y = r.value; if (typeof y === 'number' || !y) continue; if (y.fx || y.entry || y.scene) continue; if (y.prompt) { v = y.prompt.opts[0].value; continue; } if (y.turn) { v = { do: 'end' }; continue; } }
+      return B;
+    }
+    var CASES = [['bulette', 5, 'breach'], ['xorn,xorn', 8, 'seamwall'], ['ankheg', 3, 'breach'], ['earthelemental', 6, 'seamwall'], ['bulette', 5, 'seamwall'], ['xorn,xorn', 8, 'breach'], ['ankheg', 3, 'seamwall'], ['earthelemental', 6, 'breach']];
+    try {
+      CASES.forEach(function (c) {
+        ['road', 'open'].forEach(function (how) {
+          var mp = D.MAPS[c[2]], nb0 = mp.noBurrow; if (how === 'open') delete mp.noBurrow;
+          var s = stB = { case: c[0] + ' L' + c[1] + ' ' + c[2] + ' (' + how + ')', won: 0, lost: 0, other: 0, rounds: 0, turns: 0, hits: 0, hitsRoad: 0, wasted: 0, wastedRoad: 0, under: 0, allRoad: 0, underStone: 0, streak: 0, roseIdle: 0, roseIdleRoad: 0, errs: 0 };
+          try {
+            for (var i = 0; i < nB; i++) {
+              D.seed = 1029 * 7919 + i * 104729; D.lastError = null;
+              var B = fightB('?npc=' + c[0] + '&lvl=' + c[1] + '&map=' + c[2]);
+              if (how === 'road' && i === 0 && get('sample', '') === c[0] + '@' + c[2]) repB.sample = (B.log || []).map(function (l) { return String(l).replace(/\{\/?[a-z]*\}/g, '').slice(0, 200); }); // (&sample=xorn,xorn@seamwall: the first fight's log)
+              if (B.result === 'won') s.won++; else if (B.result === 'lost') s.lost++; else s.other++; s.rounds += B.round || 0; if (D.lastError) s.errs++;
+            }
+          } finally { if (how === 'open') mp.noBurrow = nb0; stB = null; }
+          s.rounds = +(s.rounds / nB).toFixed(1); repB.table.push(s);
+          if (how === 'road') okB(s.case + ': won ' + s.won + ' lost ' + s.lost + ' unended ' + s.other + ', ' + s.rounds + ' rounds; burrower turns ' + s.turns + ', blows ' + s.hits + '; every target on the road ' + s.allRoad + ' turns, blows in them ' + s.hitsRoad + '; dives that came to no blow ' + s.wasted + ', ended under with no blow ' + s.under + ', at most ' + s.streak + ' such in a row; came up and struck no one ' + s.roseIdle + ' (' + s.roseIdleRoad + ' with every target on the road); under the worked stone ' + s.underStone + (s.errs ? ', ERRORS ' + s.errs : ''),
+            s.other === 0 && !s.errs && s.underStone === 0 && s.streak <= 3 && (s.allRoad < 5 || s.hitsRoad > 0) && s.roseIdleRoad === 0); // (every fight ends; never under the road; never more than three turns in a row under for nothing; with every target on the road, blows still land, and it never comes up into their blows to strike no one)
+        });
+      });
+    } catch (eB) { repB.errors.push(String(eB && eB.stack || eB).slice(0, 900)); }
+    D.ai.turn = turn0B;
+    var preB = document.createElement('pre'); preB.id = 'out'; preB.textContent = 'BENCH16 ' + JSON.stringify(repB);
+    document.body.appendChild(preB);
+    return;
+  }
   // HIS THREE NOTES OF 10-29 (mode=notes1029; the notes seat, started by the lanes desk): the Guano Mine's bunkhouse door (js/mines.js M.FLOORS galleries doors2, M.INNS
   // keeper:galbunk), the council's night sitting over the Hex's third floor (js/hours.js H16.backdrop, js/counter.js o.bg), the made road solid stone at the Seam and the Breach
   // (data/maps.js noBurrow '=')
