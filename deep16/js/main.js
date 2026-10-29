@@ -57,6 +57,7 @@
   else if (/[?&]services\b/.test(q) && D.counter) D.push(D.counter.servicesShow(q)); // Silverton's services: a NEW GAME staged at the inn's, the chapel's, the leech-house's or the Weigh-House's door, or at camp (js/counter.js, 10-22)
   else if (/[?&]cradle\b/.test(q) && D.cradle) D.push(D.cradle.show(q)); // THE CRADLE, 10-22: the crawler game on the grid, its beats opening the shift with the dice pinned (js/cradle.js)
   else if (/[?&]wetshow\b/.test(q) && D.roam && D.roam.wetShow) D.push(D.roam.wetShow(q)); // the Wet on the house, 10-22: a NEW GAME staged by its stair, a cradle, the drained stair (js/roam.js R.WET_BEATS)
+  else if (/[?&]isoshow\b/.test(q) && D.mines && D.mines.isoShow) D.push(D.mines.isoShow(q)); // the floors on the diamonds, 10-29: the deep gallery and the cloaker's field as the Wet is drawn, a NEW GAME staged (js/mines.js ON THE DIAMONDS)
   else if (/[?&]company\b/.test(q) && D.company) D.push(D.company.show(q)); // the Company, 10-28: the first game's opening -- NEW GAME's lead pick, and a NEW GAME staged at each hire (js/company.js)
   else if (/[?&]hoursshow\b/.test(q) && D.hours) D.push(D.hours.show(q)); // the story window's 10-28: Silverton's hours and words -- Papa and Lymen, the JOURNAL by words, Lucia, Swann, the bread line, dusk, night, the council (js/hours.js)
   else if (/[?&]houseshow\b/.test(q) && D.counter) D.push(D.counter.houseShow(q)); // the house seat's 10-22: Marta's bat-wing pies, Kasten's shelves, the doors in the walls -- a NEW GAME staged beside her, or at a door (js/counter.js)

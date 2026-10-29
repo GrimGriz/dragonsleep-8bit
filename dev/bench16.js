@@ -2346,6 +2346,64 @@
     document.body.appendChild(preU);
     return;
   }
+  // ON THE DIAMONDS, 10-29 (mode=isoroams1029; js/mines.js ON THE DIAMONDS, js/roam.js R.occlude and WetShow, js/ui.js UI.setZoom, js/main.js ?isoshow -- the iso-roams seat, started
+  // by the lanes desk on Griz's "NEW:  Conversion of topdown roam of cloaker fight level and(?) new gulch as iso-roams like the Wet"; his seven leans, "those 1-7 look good"): the
+  // deep gallery drawn on the grid's diamonds, its squares, ways and rules the floor's as before; &view=top north up again; the floors above it still north up; the cave's stone; the
+  // pieces (the ladders up the rock, the bones); a ladder near the party kept in sight; the Wet's zoom and the wheel; the cloaker's field of the floor's stone; the show
+  if (get('mode', '') === 'isoroams1029') {
+    var repI = { checks: [], errors: [] }, memI = {}, stGI = D.store.get, stSI = D.store.set, MI = D.mines, RI = D.roam, HI = D.house, SI = D.simple, muI = D.music, skI = null;
+    function okI(what, v) { repI.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function driveI(g, until, cap) { var v, k = 0, st; while (k++ < (cap || 4000)) { if (until && until()) return true; st = g.next(v); v = undefined; if (st.done) return !!(until && until()); if (typeof st.value === 'number' && D.battle) D.battle.t += Math.max(1, st.value); if (st.value && st.value.prompt) v = st.value.prompt.opts[0].value; } return !!(until && until()); }
+    function topI() { var s = D.top(); if (s && s.baking) { s.baking = false; s.enter(); } if (s && s.roam) driveI(s.co, null, 2); return s; }
+    function testI(q) { var B = RI.make(q); D.scenes.length = 0; D.push(B); return topI(); }
+    function runI(B, gen) { var co0 = B.co; B.co = (function* () { yield* gen; yield* co0; })(); }
+    function pullI(B, gen) { runI(B, gen); driveI(B.co, function () { var s = D.top(); return s !== B && s instanceof D.Battle; }, 2000); var b = D.top(); if (b === B || !(b instanceof D.Battle)) return null; if (b.baking) { b.baking = false; b.enter(); } return b; }
+    function kindsI(m) { var o = {}; m.props.forEach(function (p) { o[p.kind] = (o[p.kind] || 0) + 1; }); return o; }
+    D.store.get = function (k) { return memI[k] ? JSON.parse(memI[k]) : null; }; D.store.set = function (k, v) { memI[k] = JSON.stringify(v); return true; };
+    window.DS.autoPicks = true; D.music = function () { };
+    try { skI = window.localStorage.getItem(SI.KEY); window.localStorage.removeItem(SI.KEY); } catch (eK) { }
+    try {
+      D.seed = +get('seed', 1029);
+      // 1. THE DEEP GALLERY ON THE DIAMONDS: no north-up view, the Wet's stone, the hello says so; &view=top north up as it was; the floors above it north up still
+      var B1 = testI('?roam=galleries_g4&at=9,3'), d1 = RI.def, m1 = B1.map, rows1 = d1.rows.join('|'), trig1 = JSON.stringify(d1.src8.triggers), warp1 = JSON.stringify(d1.warps), k1 = kindsI(m1);
+      okI('the deep gallery on the diamonds (iso ' + d1.iso + ', view ' + d1.view + ', drawn north up ' + !!m1.top + ', ground ' + d1.ground + '): "' + d1.hello[0].slice(0, 110) + '"',
+        d1.iso === true && !d1.view && !m1.top && d1.ground == null && /diamonds as the Wet/.test(d1.hello[0]));
+      var B1t = testI('?roam=galleries_g4&at=9,3&view=top'), d1t = RI.def;
+      okI('&view=top: north up as it was (view ' + d1t.view + ', drawn north up ' + !!B1t.map.top + ', ground ' + d1t.ground + '); the same squares (' + (d1t.rows.join('|') === rows1) + '), triggers (' + (JSON.stringify(d1t.src8.triggers) === trig1) + ') and ways (' + (JSON.stringify(d1t.warps) === warp1) + ')',
+        d1t.view === 'top' && !!B1t.map.top && d1t.ground === 'earth' && !d1t.iso && d1t.rows.join('|') === rows1 && JSON.stringify(d1t.src8.triggers) === trig1 && JSON.stringify(d1t.warps) === warp1);
+      var up1 = ['galleries', 'galleries_g2', 'galleries_g3', 'warrens', 'warrens_b', 'warrens_c', 'glowseep'].map(function (k) { testI('?roam=' + k); return k + ' ' + (RI.def.view || 'iso'); });
+      okI('the floors above it north up still (' + up1.join(', ') + ')', up1.every(function (s) { return / top$/.test(s); }));
+      // 2. THE PIECES: a ladder up the rock at each way up, against the face the diamonds show; the bones on the floor; no woodpile drawn where none was
+      B1 = testI('?roam=galleries_g4&at=9,3'); m1 = B1.map; k1 = kindsI(m1);
+      var lad1 = m1.props.filter(function (p) { return p.kind === 'ladder'; }).map(function (p) { return p.sq.x + ',' + p.sq.y + ' ' + MI.ladderFace(m1, p.sq); });
+      okI('the pieces: ladders ' + lad1.join(' / ') + ' (the ways up ' + RI.def.warps.map(function (w) { return w.at; }).join(' / ') + '), the bones ' + (k1.decal || 0) + ', blocks ' + (k1.block || 0),
+        lad1.length === 2 && RI.def.warps.every(function (w) { return lad1.some(function (s) { return s.indexOf(w.at[0] + ',' + w.at[1] + ' ') === 0 && / [nw]$/.test(s); }); }) && k1.decal === 5 && !k1.block);
+      // 3. A LADDER NEAR THE PARTY KEPT IN SIGHT: no far wall face stands in front of the ladder up to the dens (9,1) with the party two squares off (js/roam.js R.occlude)
+      RI.occlude(B1); var dep1 = Math.ceil((Math.max(D.iso.WALL || 84, 0) + 40) / (D.iso.TH / 2)), cov1 = [];
+      for (var dx1 = -1; dx1 <= dep1 + 1; dx1++) for (var dy1 = -1; dy1 <= dep1 + 1; dy1++) { var s1 = dx1 + dy1; if (s1 < 1 || s1 > dep1 || Math.abs(dx1 - dy1) > 1) continue; var q1 = m1.at(9 + dx1, 1 + dy1); if (q1 && !q1.open && q1.rock === 'far') cov1.push(q1.x + ',' + q1.y); }
+      okI('the ladder at 9,1 in sight with the party at 9,3: faces cut in front of it ' + (m1.occCut || []).length + ', far faces left standing over it ' + (cov1.join(' ') || 'none'), !cov1.length && (m1.occCut || []).length > 0);
+      // 4. THE WET'S ZOOM: the closest step as it opens, the wheel free (the town's floors hold theirs)
+      var z1 = D.iso.zoom; D.ui.setZoom(1); var z1b = D.iso.zoom; D.ui.setZoom(-1);
+      var B4 = testI('?roam=galleries_g3'), z4 = D.iso.zoom; D.ui.setZoom(-1); var z4b = D.iso.zoom;
+      okI('the zoom: the deep gallery opens at ' + z1 + ' and the wheel takes it to ' + z1b + '; the dens north up hold ' + z4 + ' (' + z4b + ')', z1 === MI.ISOZOOM && z1b !== z1 && z4 === z4b && z4 !== MI.ISOZOOM);
+      // 5. THE CLOAKER'S FIELD of the floor's own stone, its cave ceiling 20 ft as before; the dens' field still the packed earth
+      B1 = testI('?roam=galleries_g4&at=12,8'); MI.fieldDef(RI.def, ['cloaker'], false, null, [12, 8]); var f5 = D.MAPS['mine-field'];
+      testI('?roam=galleries_g3&flags=cullHired&at=20,10'); MI.fieldDef(RI.def, ['giantbat'], false, null, [20, 10]); var f5b = D.MAPS['mine-field'];
+      okI('the cloaker\'s field: ground ' + f5.ground + ' (the stone), ceiling ' + f5.sky + ' ft; the dens\' ground ' + f5b.ground + ', ceiling ' + f5b.sky + ' ft', f5.ground == null && f5.sky === 20 && f5b.ground === 'earth' && f5b.sky === 20);
+      // 6. THE SHOW: deep16/?isoshow&beat=cloaker -- a NEW GAME on the deep gallery's diamonds two steps from the cavern, Dace in the token and lit; the cloaker pulled in on its field
+      var sh6 = MI.isoShow('?isoshow&beat=cloaker'); D.scenes.length = 0; D.push(sh6); sh6.update(); var B6 = topI(), R6 = B6 && B6.roam, u6 = R6 && MI.guestUnit(B6, 'dace');
+      okI('the show\'s cloaker beat: the house ' + !!HI.playing + ', ' + (R6 && RI.def.key) + ' on the diamonds ' + !!(R6 && RI.def.iso) + ' at ' + (R6 && [R6.token.x, R6.token.y]) + ', Dace in the token ' + !!u6 + ' (vital ' + !!(u6 && u6.vital) + ', lit ' + !!(u6 && u6.conds.light) + ')',
+        !!HI.playing && !!R6 && RI.def.key === 'galleries_g4' && RI.def.iso && R6.token.x === 12 && R6.token.y === 6 && !!u6 && u6.vital && !!u6.conds.light);
+      var b6 = B6 && pullI(B6, MI.cloaker(B6, null, [12, 8]));
+      okI('stepping into the cavern: ' + (b6 && b6.fight && b6.fight.name) + ' on ' + (b6 && b6.map.w) + ' x ' + (b6 && b6.map.h) + ' of the floor\'s stone (' + (b6 && b6.map.def.ground) + '), Dace in it ' + !!(b6 && b6.units.some(function (u) { return u.vital && u.side === 'party'; })),
+        !!b6 && b6.fight.name === 'The Cloaker' && b6.map.w === 16 && b6.map.def.ground == null && b6.units.some(function (u) { return u.vital && u.side === 'party'; }) && b6.units.some(function (u) { return u.kind === 'cloaker'; }));
+      HI.playing = false; HI.cur = null;
+    } catch (eI) { repI.errors.push(String(eI && eI.stack || eI).slice(0, 900)); }
+    D.store.get = stGI; D.store.set = stSI; D.music = muI; try { if (skI != null) window.localStorage.setItem(SI.KEY, skI); } catch (eK2) { }
+    var preI = document.createElement('pre'); preI.id = 'out'; preI.textContent = 'BENCH16 ' + JSON.stringify(repI);
+    document.body.appendChild(preI);
+    return;
+  }
   // THE DEEP GALLERY, THE CLOAKER AND CORWEN DACE, 10-28 (mode=deepgallery1028; js/mines.js THE DEEP GALLERY, js/roam.js, js/house.js, js/hours.js -- the deep gallery seat,
   // started by the lanes desk on Griz's "have we connected the 3rd level fight and the Dace plotline to the guano mine on main yet?"; his answer to its five, "all 5 leans, but
   // put the guests in the party token (not follow behind)"): the hole floor from the first game's map and its ways; one Dace; TAKE HIM into the token; his light dark through

@@ -123,6 +123,7 @@
   R.occlude = function (B) {
     var m = B.map, R0 = B.roam; if (!m || !m.sq || !R0 || !R0.token) return;
     var who = R0.mode === 'fight' ? R0.members.filter(function (u) { return u.hp > 0 && B.units.indexOf(u) >= 0; }) : [R0.token];
+    if (m.seeAlso) who = who.concat(m.seeAlso(R0)); // (a floor's own squares kept in sight near the party too: a mine floor's ladders up on the diamonds, js/mines.js ON THE DIAMONDS)
     var key = who.map(function (u) { return u.x + ',' + u.y; }).join(';') + '|' + !!(m.works && m.works.on) + '|' + (D.iso.WALL || 84);
     if (m.occKey === key) return; m.occKey = key;
     var RF = m.def.roofs, depth = Math.ceil((Math.max(D.iso.WALL || 84, m.roofTop || 0) + 40) / (D.iso.TH / 2)), cut = {}, dirty = {}; // (a town's roofs, as tall as they stand: js/iso.js roofCanvas)
@@ -2121,23 +2122,23 @@
     };
     D.push(nb);
   };
-  function WetShow(q) {
-    this.kind = 'wetshow'; this.opaque = true; this.t = 0; this.hov = 0; this.beats = R.WET_BEATS;
+  function WetShow(q, o) { // (o: another floor's show on this one's page -- its beats, its title, its staging: js/mines.js's ?isoshow, 10-29)
+    o = o || {}; this.kind = o.kind || 'wetshow'; this.opaque = true; this.t = 0; this.hov = 0; this.beats = o.beats || R.WET_BEATS; this.title = o.title || null; this.play = o.play || R.wetPlay;
     var b = /[?&]beat=([a-z0-9]+)/.exec(String(q || '')); if (b) this.pending = this.beats.filter(function (x) { return x.id === b[1]; })[0] || null;
   }
   WetShow.prototype.buttons = function () { return this.beats.map(function (bt, k) { return { x: 12, y: 26 + k * 34, w: D.W - 24, h: 31, bt: bt }; }); };
   WetShow.prototype.update = function () {
     this.t++; var m = I.mouse;
-    if (this.pending) { var p0 = this.pending; this.pending = null; R.wetPlay(p0); return; }
+    if (this.pending) { var p0 = this.pending; this.pending = null; this.play(p0); return; }
     var bs = this.buttons(), hit = m.inside ? bs.filter(function (q) { return m.x >= q.x && m.x < q.x + q.w && m.y >= q.y && m.y < q.y + q.h; })[0] : null;
     if (m.moved || m.click) this.hov = hit ? bs.indexOf(hit) : this.hov;
     if (I.repeat('down')) this.hov = (this.hov + 1) % bs.length; if (I.repeat('up')) this.hov = (this.hov - 1 + bs.length) % bs.length;
-    if ((m.click && hit) || I.pressed('a')) { D.sfx('confirm'); R.wetPlay((hit || bs[this.hov]).bt); return; }
+    if ((m.click && hit) || I.pressed('a')) { D.sfx('confirm'); this.play((hit || bs[this.hov]).bt); return; }
     if (I.pressed('b') || m.rclick) { D.scenes.length = 0; if (D.house && D.house.Title) D.push(new D.house.Title()); }
   };
   WetShow.prototype.draw = function (ctx) {
     var self = this, W8 = D.WIN8; ctx.fillStyle = '#0a0c22'; ctx.fillRect(0, 0, D.W, D.H);
-    D.text(ctx, '{y}THE WET ON THE HOUSE, 10-22{/} -- a NEW GAME staged on the floor; the rest is yours (a show)', 10, 10, W8.text);
+    D.text(ctx, this.title || '{y}THE WET ON THE HOUSE, 10-22{/} -- a NEW GAME staged on the floor; the rest is yours (a show)', 10, 10, W8.text);
     this.buttons().forEach(function (q, k) {
       var on = k === self.hov; D.win8(ctx, q.x, q.y, q.w, q.h, on ? W8.sel : null);
       D.text(ctx, q.bt.label, q.x + 8, q.y + 3, on ? W8.gold : W8.text);

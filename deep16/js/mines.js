@@ -33,7 +33,7 @@
     galleries_g3: { src: 'galleries_g3', place: 'The Guano Galleries', sub: 'the dens', save: false },
     // the hole floor (10-28, the deep gallery seat, started by the lanes desk on Griz's "have we connected the 3rd level fight and the Dace plotline to the guano mine on
     // main yet?"; his five, "all 5 leans, but put the guests in the party token (not follow behind)"): bare rock under the dens, no roost -- a light is lawful -- and the cloaker
-    galleries_g4: { src: 'galleries_g4', place: 'The Guano Galleries', sub: 'the deep gallery', save: false },
+    galleries_g4: { src: 'galleries_g4', place: 'The Guano Galleries', sub: 'the deep gallery', save: false, iso: true }, // (iso: on the grid's diamonds as the Wet, 10-29 -- ON THE DIAMONDS)
     // the Glowseep (10-21 night, Griz to the desk: "Go on the Glowseep - run with its leans for all, including the time-slowing but that might be adjusted. Thematically
     // correct"): no first game's map -- the seat's own (M.SEEP), for his paint later; THE WORLD's site 'glowseep', in from the mile
     glowseep: { src: 'glowseep', own: true, door: 'glowseep', place: 'The Glowseep', sub: 'the light-crews\' ground by the mile', save: true, out: 'world', clock: true, edges: true,
@@ -69,7 +69,7 @@
   M.floor = function (key, q, flags, hour) {
     q = q || ''; flags = flags || {};
     if (flags === D.roam.flags0 && /[?&]guest=[a-z,]*\bdace\b/.test(q) && !flags.daceDone) flags.daceWith = 1; // (the test door's Dace in the token: not stood by the beam too, as the door first lays it -- M.guestIn)
-    var F = M.FLOORS[key]; if (hour == null) hour = M.hourNow(q);
+    var F = M.FLOORS[key], iso = M.isoView(F, q); if (hour == null) hour = M.hourNow(q);
     var m8 = F.own ? (F.map || M.seepMap)(hour, flags) : DS.DATA.maps[F.src], leg = m8.legend, r8 = m8.rows, w = r8[0].length, h = r8.length;
     var nm = function (x, y) { return x < 0 || y < 0 || x >= w || y >= h ? 'void' : leg[r8[y].charAt(x)] || 'void'; };
     var g = [], lk = [], y, x;
@@ -146,21 +146,117 @@
     Object.keys(F.gates || {}).forEach(function (k) { marks.gates[k] = F.gates[k].slice(0, 2); });
     var rows = g.map(function (r) { return r.join(''); }), id = function (a, b) { return [a, b]; };
     var def = D.MAPS[key] = {
-      name: F.place, sub: F.sub, key: key, door: F.door || null, mine: true, town: true, wet: false, dark: !!m8.dark, ground: 'earth', step: 10, // (dark: the dens and the workings, the party's own light -- js/light.js; the Glowseep by night)
+      name: F.place, sub: F.sub, key: key, door: F.door || null, mine: true, town: true, wet: false, dark: !!m8.dark, ground: iso && M.groundOf({ key: key }) === 'cave' ? null : 'earth', step: 10, // (dark: the dens and the workings, the party's own light -- js/light.js; the Glowseep by night) (ground: on the diamonds a cave's floor is the Wet's stone -- ON THE DIAMONDS)
       clock: !!F.clock, hour: hour, ownLights: m8.lights || null, // (the Glowseep: THE WORLD's clock moves as the party walks and fights there -- M.SEEP; its poles and moss lit by night)
-      view: 'top', ft: 30, roofs: T.roofsAt(30), slope: slope.map(function (r) { return r.join(''); }), look: lk.map(function (r) { return r.join(''); }), signs: signs, signDoor: signDoor, faceDoors: {},
+      view: iso ? null : 'top', iso: iso, page: iso && w * h > M.ISOPAGE ? true : undefined, ft: 30, roofs: T.roofsAt(30), slope: slope.map(function (r) { return r.join(''); }), look: lk.map(function (r) { return r.join(''); }), signs: signs, signDoor: signDoor, faceDoors: {},
       rows: rows, w: w, h: h, entry: [at], face: face, gate: gq || null, stairUp: [], doors: ways, marks: marks, people: people, foes: [], warps: warps, out: F.out || null, save: !!F.save,
       deepWater: 'D', music: m8.music || 'field', wayName: wayName, roost: !!m8.roost, edges: !!F.edges, // (roost: the first game's roosted ceiling -- the working gallery, the dens: M.fieldDef)
       names8: { rows: r8.slice(), legend: leg }, // (the first game's name of each square -- bones, webbing, a fence or a lamp, a tent or a stump: the art's piece for it, js/topview.js TV.ART)
       src8: { id: F.src, rows: [], legend: {}, triggers: trig, warps: [], chests: (m8.chests || []).slice(), zones: (m8.zones || []).slice(), save: !!F.save }, from8: id, to8: id, sig: '', // (zones: the first game's random fights where it has them -- the dens, the workings: each on a field of its own, M.fieldFight, its tables content/encounters.json)
       zone8: (m8.zones && m8.zones[0] && m8.zones[0].zone) || null,
       hud: F.place.replace(/^The /, 'the ') + ': ' + F.sub,
-      hello: ['{y}' + F.place.toUpperCase() + '{/} -- ' + F.sub + ': ' + (F.own ? 'the second game\'s own floor' : 'the first game\'s floor') + ', north up as Silverton is (' + w + ' x ' + h + ' squares)' + (F.clock ? ', ' + W8tod(hour) : '') + '.',
+      hello: ['{y}' + F.place.toUpperCase() + '{/} -- ' + F.sub + ': ' + (F.own ? 'the second game\'s own floor' : 'the first game\'s floor') + (iso ? ', on the grid\'s diamonds as the Wet is (' : ', north up as Silverton is (') + w + ' x ' + h + ' squares)' + (F.clock ? ', ' + W8tod(hour) : '') + '.',
         ].concat(F.edges ? ['Any edge of it: back to the world map.'] : [], M.bunkLine(marks.doors, flags), ['{g}Click to walk, or the arrows. E: a word, a door. O: the formation. L: the floor map.{/}']), // (no "Ways:" line since 10-28: the tiles show them)
       where: function () { return F.sub; }
     };
     return def;
   };
+
+  // ---------------------------------------------------------------- ON THE DIAMONDS (10-29, the iso-roams seat, started by the lanes desk on Griz's "NEW:  Conversion of topdown roam of
+  // cloaker fight level and(?) new gulch as iso-roams like the Wet"; on the seat's seven leans, "those 1-7 look good"; and for later, "Basically the boss-fight layers (ettercap,
+  // cloaker, stuff in the wet) and then probably top down for solskaft with iso for the road"). A floor whose M.FLOORS entry says `iso` is drawn on the grid's diamonds as the Wet
+  // is (js/iso.js), not north up -- the drawing alone: its squares stay the first game's (no turn: north is up the screen's right), and its rules, clock, fights, guests and ways are
+  // the floor's as before. &view=top draws it north up again, as Silverton's &view=iso puts the town on the diamonds; &view=iso puts any of these floors there. The look is the grid's
+  // own code drawing, as the Wet's (the art desk's tiles stay on the north-up floors): the cave's stone or the open ground, and a piece for each first-game thing (M.ISOPIECE)
+  M.ISOZOOM = 1;      // (the Wet's as it opens, the closest step, and the wheel free -- not the town's one held step out: js/town.js T.people, js/ui.js UI.setZoom)
+  M.ISOPAGE = 2400;   // (a floor of more squares than this painted in pages as the camera comes to them, as Silverton's is: Web Gulch's 40 x 112 waited three seconds blank)
+  M.isoView = function (F, q) { return F.iso ? !/[?&]view=top\b/.test(q || '') : /[?&]view=iso\b/.test(q || ''); };
+  // the first game's things by name: the grid's own piece (js/art.js: a tree, a stalagmite, the cocoon), or the seat's (a tent, a ladder up the rock, bones and old webbing on the
+  // floor, the camp's fire -- js/campfire.js's flames). A thing that stood in the way stands in the way still, its square unchanged; only the cover's reason names it (js/grid.js)
+  M.ISOPIECE = { tree: 'tree', stalag: 'stalagmite', cocoon: 'cocoon', tent: 'tent', bones: 'bones', webFloor: 'web', ladder: 'ladder', firepit: 'fire' };
+  M.ISOSTANDS = { tree: 'a tree', stalag: 'a stalagmite', cocoon: 'the cocoon', tent: 'the tent', firepit: 'the fire' };
+  var isoLoad0 = D.iso.load;
+  D.iso.load = function (def) { var m = isoLoad0.apply(this, arguments); if (def && def.mine && def.iso) M.isoDress(m); return m; };
+  M.isoDress = function (m) {
+    var def = m.def, n8 = def.names8, lad = []; m.isoFire = []; if (!n8) return;
+    var A = D.art, lazy = !!def.page, add = function (p, f) { if (lazy) p.make = f; else p.img = f(); m.props.push(p); };
+    var nm = function (x, y) { var r = n8.rows[y]; return r && x >= 0 && x < r.length ? n8.legend[r.charAt(x)] : null; };
+    m.sq.forEach(function (s) {
+      var n = nm(s.x, s.y), pc = M.ISOPIECE[n], h = D.hash(n + ':' + s.x + ',' + s.y); if (!pc) return;
+      if (M.ISOSTANDS[n] && s.stands) { s.stands = M.ISOSTANDS[n]; m.props = m.props.filter(function (p) { return p.sq !== s || p.kind !== 'block'; }); } // (the woodpile's or the well's picture off it)
+      if (pc === 'tree' || pc === 'stalagmite' || pc === 'cocoon') add({ kind: pc, sq: s, depth: s.x + s.y + 0.5, gz: s.gz }, function () { return A[pc](h); });
+      else if (pc === 'tent') add({ kind: 'tent', sq: s, depth: s.x + s.y + 0.5, gz: s.gz }, function () { return M.tentPic(h); });
+      else if (pc === 'bones' || pc === 'web') add({ kind: 'decal', sq: s, depth: s.x + s.y, gz: s.gz, layer: -1 }, function () { return M.decalPic(pc, h); });
+      else if (pc === 'ladder') { var f = M.ladderFace(m, s); if (f) { add({ kind: 'ladder', sq: s, depth: s.x + s.y - 0.4, gz: s.gz }, function () { return M.ladderPic(f); }); lad.push(s); } }
+      else if (pc === 'fire') m.isoFire.push([s.x, s.y]);
+    });
+    // a ladder near the party kept in sight: the faces in front of it cut as they are for the party (js/roam.js R.occlude) -- a far wall rises 168 px at the heights'
+    // default (js/iso.js WALL by D.hscale), and one a few squares down the screen stood over the deep gallery's ladder's foot
+    if (lad.length) m.seeAlso = function (R0) { var t = R0 && R0.token; return t ? lad.filter(function (s) { return Math.abs(s.x - t.x) + Math.abs(s.y - t.y) <= M.LADDER.see; }) : []; };
+    m.sorted = null;
+  };
+  // the pictures, each a canvas anchored on its square's middle (js/iso.js iso.draw: img.ax, img.ay); a point (u, v) squares off the middle, z px up
+  var isoPt = function (ox, oy, u, v, z) { return [ox + (u - v) * D.iso.TW / 2, oy + (u + v) * D.iso.TH / 2 - (z || 0)]; };
+  var isoCanvas = function (W, H) { var cv = document.createElement('canvas'); cv.width = W; cv.height = H; var cx = cv.getContext('2d'); return { cv: cv, cx: cx, img: cx.createImageData(W, H) }; };
+  var isoPut = function (c, x, y, col, a) { x = Math.round(x); y = Math.round(y); if (!col || x < 0 || y < 0 || x >= c.cv.width || y >= c.cv.height) return; var o = (y * c.cv.width + x) * 4, p = c.img.data; p[o] = col[0]; p[o + 1] = col[1]; p[o + 2] = col[2]; p[o + 3] = a == null ? 255 : a; };
+  var isoLine = function (c, a, b, col, al) { var n = Math.max(1, Math.ceil(Math.max(Math.abs(b[0] - a[0]), Math.abs(b[1] - a[1])))); for (var i = 0; i <= n; i++) isoPut(c, a[0] + (b[0] - a[0]) * i / n, a[1] + (b[1] - a[1]) * i / n, col, al); };
+  var isoFill = function (c, pts, colOf) { // (a polygon, filled pixel by pixel: the pixels' own look, no smoothing)
+    var xs = pts.map(function (p) { return p[0]; }), ys = pts.map(function (p) { return p[1]; });
+    for (var y = Math.floor(Math.min.apply(null, ys)); y <= Math.ceil(Math.max.apply(null, ys)); y++) for (var x = Math.floor(Math.min.apply(null, xs)); x <= Math.ceil(Math.max.apply(null, xs)); x++) {
+      var px = x + 0.5, py = y + 0.5, inside = false;
+      for (var i = 0, j = pts.length - 1; i < pts.length; j = i++) { var pi = pts[i], pj = pts[j]; if ((pi[1] > py) !== (pj[1] > py) && px < (pj[0] - pi[0]) * (py - pi[1]) / (pj[1] - pi[1]) + pi[0]) inside = !inside; }
+      if (inside) isoPut(c, x, y, colOf(x, y));
+    }
+  };
+  // a silk-cutters' tent: an A-frame of pale canvas, its ridge along the grid's x, the flap open toward +x
+  M.TENT = { h: 26, w: 0.42, ridge: 0.36 }; // (px up to the ridge; half its width and its ridge's half length, in squares)
+  M.tentPic = function (h) {
+    var W = 64, H = 64, ox = 32, oy = 46, c = isoCanvas(W, H), T0 = M.TENT, cl = D.iso.ramp('bone'), dk = D.iso.ramp('outline')[0], pick = D.iso.noise.rampPick, nz = D.iso.noise.vnoise;
+    var P = function (u, v, z) { return isoPt(ox, oy, u, v, z); }, w = T0.w, r = T0.ridge, top = T0.h;
+    var shade = function (v0) { return function (x, y) { return pick(cl, Math.max(0.02, Math.min(0.98, v0 + (nz(x * 0.3, y * 0.2, h) - 0.5) * 0.12)), x, y); }; };
+    isoFill(c, [P(-w, -w, 0), P(w, -w, 0), P(r, 0, top), P(-r, 0, top)], shade(0.62)); // (the slope away, catching the light from the upper left)
+    isoFill(c, [P(w, -w, 0), P(w, w, 0), P(r, 0, top)], shade(0.3));                  // (the end toward +x, in its own shade)
+    isoFill(c, [P(w, -0.14, 0), P(w, 0.14, 0), P(w - 0.01, 0, top * 0.55)], function () { return dk; }); // (its flap open, the dark inside)
+    isoFill(c, [P(-w, w, 0), P(w, w, 0), P(r, 0, top), P(-r, 0, top)], shade(0.46));    // (the slope toward the eye)
+    isoLine(c, P(-r, 0, top), P(r, 0, top), D.iso.ramp('leather')[1]);                 // (the ridge pole)
+    isoLine(c, P(r, 0, top), P(r + 0.1, 0, top + 4), D.iso.ramp('leather')[1]); isoLine(c, P(-r, 0, top), P(-r - 0.1, 0, top + 4), D.iso.ramp('leather')[1]);
+    c.cx.putImageData(c.img, 0, 0); return { canvas: c.cv, ax: ox, ay: oy };
+  };
+  // bones, or the old webbing on the floor: a few strokes lying on the square, faint enough to walk over
+  M.decalPic = function (kind, h) {
+    var W = D.iso.TW, H = D.iso.TH + 2, ox = W / 2, oy = H / 2, c = isoCanvas(W, H), bone = D.iso.ramp('bone'), rnd = function (k) { return D.iso.noise.h2(h, k, 7); };
+    var P = function (u, v) { return isoPt(ox, oy, u, v, 0); }, R = function (k) { return (rnd(k) - 0.5) * 0.8; };
+    if (kind === 'web') {
+      var hub = [R(1) * 0.5, R(2) * 0.5], n = 5 + Math.floor(rnd(3) * 3);
+      for (var i = 0; i < n; i++) { var a = i / n * Math.PI * 2 + rnd(10 + i) * 0.6, e = [hub[0] + Math.cos(a) * 0.5, hub[1] + Math.sin(a) * 0.5]; isoLine(c, P(hub[0], hub[1]), P(e[0], e[1]), bone[2], 120); }
+      [0.18, 0.34].forEach(function (f, j) { for (var i2 = 0; i2 < n; i2++) { var a0 = i2 / n * Math.PI * 2 + rnd(10 + i2) * 0.6, a1 = ((i2 + 1) % n) / n * Math.PI * 2 + rnd(10 + (i2 + 1) % n) * 0.6; isoLine(c, P(hub[0] + Math.cos(a0) * f, hub[1] + Math.sin(a0) * f), P(hub[0] + Math.cos(a1) * f, hub[1] + Math.sin(a1) * f), bone[1], 95 - j * 20); } });
+    } else {
+      for (var b = 0; b < 2 + Math.floor(rnd(4) * 2); b++) { var c0 = [R(20 + b), R(30 + b)], an = rnd(40 + b) * Math.PI, L2 = 0.12 + rnd(50 + b) * 0.08, b0 = P(c0[0] - Math.cos(an) * L2, c0[1] - Math.sin(an) * L2), b1 = P(c0[0] + Math.cos(an) * L2, c0[1] + Math.sin(an) * L2);
+        isoLine(c, b0, b1, bone[1]); [b0, b1].forEach(function (q) { isoPut(c, q[0] - 1, q[1], bone[2]); isoPut(c, q[0] + 1, q[1], bone[2]); isoPut(c, q[0], q[1] - 1, bone[1]); }); }
+      if (rnd(60) < 0.5) { var sk = P(R(61), R(62)), hole = D.iso.ramp('stone')[1]; [[0, 0], [1, 0], [-1, 0], [0, -1], [1, -1], [-1, -1]].forEach(function (d) { isoPut(c, sk[0] + d[0], sk[1] + d[1], bone[2]); }); isoPut(c, sk[0] - 1, sk[1] - 1, hole); isoPut(c, sk[0] + 1, sk[1] - 1, hole); }
+    }
+    c.cx.putImageData(c.img, 0, 0); return { canvas: c.cv, ax: ox, ay: oy };
+  };
+  // a ladder up the rock behind its square (the deep gallery's two ways up): against the face whose foot is the square's back edge -- the rock to its north (n) or its west (w),
+  // the faces the diamonds show -- its foot a little out on the floor, up into the dark to the hole above
+  M.LADDER = { up: 78, rung: 8, lean: 0.35, see: 8 }; // (px up the face; between its rungs; how far its foot stands out from the face, of the way to the square's middle; within this many squares of the party, nothing in front of it stands whole)
+  M.ladderFace = function (m, s) { var n = m.at(s.x, s.y - 1), w = m.at(s.x - 1, s.y); return n && !n.open ? 'n' : w && !w.open ? 'w' : null; };
+  M.ladderPic = function (face) {
+    var W = D.iso.TW, H = 128, ox = W / 2, oy = 108, c = isoCanvas(W, H), wood = D.iso.ramp('leather'), dk = D.iso.ramp('outline')[0], Lq = M.LADDER;
+    var at = function (t, out, up) { var u = face === 'n' ? t - 0.5 : -0.5, v = face === 'n' ? -0.5 : t - 0.5; return isoPt(ox, oy, u * (1 - out), v * (1 - out), up); }; // (t along the face's foot, out toward the middle, up)
+    var rails = [0.3, 0.7].map(function (t) { return [at(t, Lq.lean, 0), at(t, 0, Lq.up)]; }), mix = function (a, b, f) { return [a[0] + (b[0] - a[0]) * f, a[1] + (b[1] - a[1]) * f]; };
+    var rungs = []; for (var k = Lq.rung; k < Lq.up - 2; k += Lq.rung) rungs.push(k / Lq.up);
+    [[dk, 1], [wood[2], 0]].forEach(function (pass) { // (the outline first, a pixel round; then the wood)
+      var col = pass[0], o = pass[1], sh = function (p, dx, dy) { return [p[0] + dx, p[1] + dy]; }, offs = o ? [[-1, 0], [1, 0], [0, -1], [0, 1]] : [[0, 0]];
+      offs.forEach(function (d) {
+        rungs.forEach(function (f) { isoLine(c, sh(mix(rails[0][0], rails[0][1], f), d[0], d[1]), sh(mix(rails[1][0], rails[1][1], f), d[0], d[1]), o ? col : wood[3]); });
+        rails.forEach(function (r) { isoLine(c, sh(r[0], d[0], d[1]), sh(r[1], d[0], d[1]), col); });
+      });
+    });
+    c.cx.putImageData(c.img, 0, 0); return { canvas: c.cv, ax: ox, ay: oy };
+  };
+  // the camp's fire on the diamonds: js/campfire.js's ring, logs and flames, in the sort with the figures, as a camp's fight draws it (CF.fieldFire)
+  if (D.looks && D.looks.props) { var looksProps0 = D.looks.props; D.looks.props = function (B) { var r = looksProps0.apply(this, arguments), m = B && B.map; return m && m.isoFire && m.isoFire.length && B.roam && D.campfire && D.campfire.fieldFire ? (r || []).concat(m.isoFire.map(function (q) { return D.campfire.fieldFire(B, q); })) : r; }; }
 
   // ---------------------------------------------------------------- the ways: down and up between a place's floors, the dark floors waiting, out to THE WORLD or Silverton
   M.held = function (to) { var n8 = ((DS.DATA.maps[to] || {}).name || to); return ['{y}' + n8 + '{/}.', '{g}The dark floors below come onto the grid with its roam. The party keeps to the floors it has for now.{/}']; };
@@ -648,7 +744,7 @@
     else { var xs = stand.map(function (q) { return q[0]; }), ys = stand.map(function (q) { return q[1]; }); for (var y = Math.min.apply(null, ys); y <= Math.max.apply(null, ys); y++) for (var x = Math.min.apply(null, xs); x <= Math.max.apply(null, xs); x++) need.push([x, y]); } // (the ground between the two sides, walked)
     need = need.filter(function (q) { return q[0] >= 0 && q[1] >= 0 && q[0] < w && q[1] < h; });
     var anchor = simple ? [D.simple.PARTY[0][0], D.simple.C[1]] : entry[0], cut = M.cut(def, w, h, at || anchor, anchor, need, kind);
-    D.MAPS['mine-field'] = { name: def.name, sub: def.sub, step: 10, ground: 'earth', rows: cut.rows, sky: kind === 'cave' ? 20 : null, // (a cave's ceiling 20 ft up, the Wet's: a darkmantle hangs from it)
+    D.MAPS['mine-field'] = { name: def.name, sub: def.sub, step: 10, ground: def.iso && kind === 'cave' ? null : 'earth', /* (cut from a cave floor on the diamonds, the floor's own stone: ON THE DIAMONDS) */ rows: cut.rows, sky: kind === 'cave' ? 20 : null, // (a cave's ceiling 20 ft up, the Wet's: a darkmantle hangs from it)
       entry: entry, foes: [], wave: null, cut: cut };
     var lights = (def.ownLights || []).map(function (l) { if (!l || typeof l.x !== 'number') return null; var p = cut.to(l.x, l.y); return p[0] >= 0 && p[1] >= 0 && p[0] < w && p[1] < h ? [p[0], p[1], l.dim || l.bright || 5, l.color, l.bright ? 0 : 1] : null; }).filter(Boolean); // (js/battle.js's map light: [x, y, ft, colour, dim only])
     return { id: 'minefield', map: 'mine-field', level: (D.roam.party0 && D.roam.party0.level) || 5, name: def.name, sub: def.sub, dark: !!def.dark, lights: lights.length ? lights : null,
@@ -907,8 +1003,9 @@
   // the floor's people named where the first game's npcs have no line of theirs (the Glowseep's crew), and a floor's own lights laid (its poles, its moss, the fire)
   var people0 = T.people;
   T.people = function (B) {
-    people0.apply(this, arguments);
+    var z0 = D.iso.zoom; people0.apply(this, arguments);
     var def = D.roam && D.roam.def; if (!def || !def.mine) return;
+    if (def.iso) { D.iso.zoom = B.isoZoomed ? z0 : M.ISOZOOM; B.isoZoomed = true; } // (on the diamonds the Wet's zoom as it opens, then the party's own by the wheel: not the town's held step -- ON THE DIAMONDS)
     B.units.forEach(function (u) { if (u.npc && M.NAMES[u.npc]) u.name = M.NAMES[u.npc]; });
     if (def.key === 'warrens') M.penCrawlers(B, def);
     B.lights = (B.lights || []).filter(function (l) { return !l.seep; }).concat(def.ownLights || []); // (ownLights: not a map def's `lights`, which battle.js reads as [x, y, r, colour])
@@ -978,6 +1075,28 @@
     ws.enter = function () { en.apply(this, arguments); M.carryClock(R0, hr); var s2 = (W.M().sites || []).filter(function (s) { return s.id === def.door; })[0] || site; W.inDoor = { site: s2, gate: sd }; W.leaveTown(sd); }; // (out past that side once THE WORLD is in, the floor's clock on it)
     M.off(B); D.push(ws);
   };
+  // ---------------------------------------------------------------- ON THE DIAMONDS, shown (deep16/?isoshow -- the eyes rows' door, 10-29, the iso-roams seat): a NEW GAME's four (js/house.js
+  // H.fresh) staged on the floor by the beat, as the Wet's show stages its own on the same page (js/roam.js WetShow); &beat=<id> opens one; X back to the title
+  M.ISO_BEATS = [
+    { id: 'gallery', label: 'THE DEEP GALLERY on the diamonds, Dace in the token', note: 'Below the dens\' last ladder, Dace\'s light up: the cave\'s stone, the ladders up the rock, the bones. Walk on down into the cavern and the cloaker comes.', key: 'galleries_g4', at: [9, 3], guest: 'dace' },
+    { id: 'cloaker', label: 'THE CLOAKER, on its field cut from the floor', note: 'Two steps from the cavern, Dace lit: step down into it -- the first game\'s words, then the grid\'s story fight on a field of the deep gallery\'s own stone.', key: 'galleries_g4', at: [12, 6], guest: 'dace' },
+    { id: 'gallerytop', label: 'THE DEEP GALLERY north up, as it was (&view=top)', note: 'The same floor and the same spot drawn north up on the art desk\'s tiles, to set beside the first.', key: 'galleries_g4', at: [9, 3], guest: 'dace', view: 'top' }
+  ];
+  M.isoPlay = function (bt) {
+    var H = D.house, R = D.roam, rec = H.fresh(); rec.at = { town: null }; rec.flags = Object.assign({}, bt.flags || {});
+    (bt.inv || []).concat([['torch', 2]]).forEach(function (s) { H.add(rec.inv, s[0], s[1]); }); // (two torches, as the Wet's show gives: a dark floor)
+    H.begin(rec, 0);
+    var nb = R.make('?roam=' + bt.key + (bt.view ? '&view=' + bt.view : ''), { save: H.living(H.cur), opts: { at8: bt.at.slice() }, house: true }), en = nb.enter;
+    nb.enter = function () {
+      en.apply(this, arguments);
+      if (bt.guest && !M.hasGuest(this, bt.guest)) { M.guestIn(this, bt.guest); if (bt.guest === 'dace') { this.roam.flags.daceWith = 1; if (bt.key === 'galleries_g4') M.daceLight(this); } } // (taken up at the beam on the way down, as the house would have him)
+      var t = this.roam.token, s = (this.inv || []).filter(function (x) { return x.id === 'torch' && x.n > 0; })[0], L = D.light;
+      if (this.dark && s && !t.torch && L.handForLight(t)) { s.n--; t.torch = { lit: true, kind: 'torch' }; L.regrip(t); }
+    };
+    D.push(nb);
+  };
+  M.isoShow = function (q) { return new D.roam.WetShow(q, { kind: 'isoshow', beats: M.ISO_BEATS, play: M.isoPlay, title: '{y}ON THE DIAMONDS, 10-29{/} -- the floors as the Wet is drawn; a NEW GAME staged (a show)' }); };
+
   // the tally-house's counter: Edric's shop, the antitoxin draught (content/shops.json `tally`: it buys nothing) -- one line in the counter's vendor table
   if (D.counter && D.counter.VENDORS) D.counter.VENDORS.tally = D.counter.VENDORS.tally || { shop: 'tally', name: 'Edric Pellam' };
 })();
