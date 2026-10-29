@@ -12137,6 +12137,380 @@ true
 "door": "leech:davos",
 "source": "deep16/_src/davos/ART-98 (the art desk's ART-98, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
 },
+"pt_genman": {
+"image": "art/pt_genman.png?v=b220b445a8",
+"fw": 285,
+"fh": 193,
+"ax": 138,
+"ay": 190,
+"top": 190,
+"portrait": true,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 285,
+"fh": 193,
+"ax": 138,
+"ay": 190,
+"frames": 6,
+"fps": 3,
+"ledge": [
+true,
+true,
+true,
+true,
+true,
+true
+]
+},
+"drinker": {
+"y": 193,
+"fw": 285,
+"fh": 193,
+"ax": 138,
+"ay": 190,
+"frames": 1,
+"fps": 1,
+"ledge": [
+true
+]
+},
+"gambler": {
+"y": 386,
+"fw": 285,
+"fh": 193,
+"ax": 138,
+"ay": 190,
+"frames": 1,
+"fps": 1,
+"ledge": [
+true
+]
+},
+"barkeep": {
+"y": 579,
+"fw": 285,
+"fh": 193,
+"ax": 138,
+"ay": 190,
+"frames": 1,
+"fps": 1,
+"ledge": [
+true
+]
+},
+"hired": {
+"y": 772,
+"fw": 285,
+"fh": 193,
+"ax": 138,
+"ay": 190,
+"frames": 1,
+"fps": 1,
+"ledge": [
+true
+]
+},
+"shaft": {
+"y": 965,
+"fw": 285,
+"fh": 193,
+"ax": 138,
+"ay": 190,
+"frames": 1,
+"fps": 1,
+"ledge": [
+true
+]
+},
+"scraper": {
+"y": 1158,
+"fw": 285,
+"fh": 193,
+"ax": 138,
+"ay": 190,
+"frames": 1,
+"fps": 1,
+"ledge": [
+true
+]
+},
+"crewboss": {
+"y": 1351,
+"fw": 285,
+"fh": 193,
+"ax": 138,
+"ay": 190,
+"frames": 1,
+"fps": 1,
+"ledge": [
+true
+]
+},
+"drivespear": {
+"y": 1544,
+"fw": 285,
+"fh": 193,
+"ax": 138,
+"ay": 190,
+"frames": 1,
+"fps": 1,
+"ledge": [
+true
+]
+},
+"crawler": {
+"y": 1737,
+"fw": 285,
+"fh": 193,
+"ax": 138,
+"ay": 190,
+"frames": 1,
+"fps": 1,
+"ledge": [
+true
+]
+},
+"guard": {
+"y": 1930,
+"fw": 285,
+"fh": 193,
+"ax": 138,
+"ay": 190,
+"frames": 1,
+"fps": 1,
+"ledge": [
+true
+]
+},
+"clerk": {
+"y": 2123,
+"fw": 285,
+"fh": 193,
+"ax": 138,
+"ay": 190,
+"frames": 1,
+"fps": 1,
+"ledge": [
+true
+]
+},
+"agent": {
+"y": 2316,
+"fw": 285,
+"fh": 193,
+"ax": 138,
+"ay": 190,
+"frames": 1,
+"fps": 1,
+"ledge": [
+true
+]
+},
+"lightcrew": {
+"y": 2509,
+"fw": 285,
+"fh": 193,
+"ax": 138,
+"ay": 190,
+"frames": 1,
+"fps": 1,
+"ledge": [
+true
+]
+}
+},
+"art": "ART-122-MAN",
+"door": "the unnamed (js/counter.js C.GENERIC)",
+"source": "deep16/_src/genman/ART-122 (the art desk's ART-122-MAN, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
+},
+"pt_genwoman": {
+"image": "art/pt_genwoman.png?v=d51056f94c",
+"fw": 257,
+"fh": 184,
+"ax": 130,
+"ay": 182,
+"top": 182,
+"portrait": true,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 257,
+"fh": 184,
+"ax": 130,
+"ay": 182,
+"frames": 6,
+"fps": 3,
+"ledge": [
+true,
+true,
+true,
+true,
+true,
+true
+]
+},
+"drinker": {
+"y": 184,
+"fw": 257,
+"fh": 184,
+"ax": 130,
+"ay": 182,
+"frames": 1,
+"fps": 1,
+"ledge": [
+true
+]
+},
+"gambler": {
+"y": 368,
+"fw": 257,
+"fh": 184,
+"ax": 130,
+"ay": 182,
+"frames": 1,
+"fps": 1,
+"ledge": [
+true
+]
+},
+"barkeep": {
+"y": 552,
+"fw": 257,
+"fh": 184,
+"ax": 130,
+"ay": 182,
+"frames": 1,
+"fps": 1,
+"ledge": [
+true
+]
+},
+"hired": {
+"y": 736,
+"fw": 257,
+"fh": 184,
+"ax": 130,
+"ay": 182,
+"frames": 1,
+"fps": 1,
+"ledge": [
+true
+]
+},
+"shaft": {
+"y": 920,
+"fw": 257,
+"fh": 184,
+"ax": 130,
+"ay": 182,
+"frames": 1,
+"fps": 1,
+"ledge": [
+true
+]
+},
+"scraper": {
+"y": 1104,
+"fw": 257,
+"fh": 184,
+"ax": 130,
+"ay": 182,
+"frames": 1,
+"fps": 1,
+"ledge": [
+true
+]
+},
+"crewboss": {
+"y": 1288,
+"fw": 257,
+"fh": 184,
+"ax": 130,
+"ay": 182,
+"frames": 1,
+"fps": 1,
+"ledge": [
+true
+]
+},
+"drivespear": {
+"y": 1472,
+"fw": 257,
+"fh": 184,
+"ax": 130,
+"ay": 182,
+"frames": 1,
+"fps": 1,
+"ledge": [
+true
+]
+},
+"crawler": {
+"y": 1656,
+"fw": 257,
+"fh": 184,
+"ax": 130,
+"ay": 182,
+"frames": 1,
+"fps": 1,
+"ledge": [
+true
+]
+},
+"guard": {
+"y": 1840,
+"fw": 257,
+"fh": 184,
+"ax": 130,
+"ay": 182,
+"frames": 1,
+"fps": 1,
+"ledge": [
+true
+]
+},
+"clerk": {
+"y": 2024,
+"fw": 257,
+"fh": 184,
+"ax": 130,
+"ay": 182,
+"frames": 1,
+"fps": 1,
+"ledge": [
+true
+]
+},
+"agent": {
+"y": 2208,
+"fw": 257,
+"fh": 184,
+"ax": 130,
+"ay": 182,
+"frames": 1,
+"fps": 1,
+"ledge": [
+true
+]
+},
+"lightcrew": {
+"y": 2392,
+"fw": 257,
+"fh": 184,
+"ax": 130,
+"ay": 182,
+"frames": 1,
+"fps": 1,
+"ledge": [
+true
+]
+}
+},
+"art": "ART-122-WOMAN",
+"door": "the unnamed (js/counter.js C.GENERIC)",
+"source": "deep16/_src/genwoman/ART-122 (the art desk's ART-122-WOMAN, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
+},
 "pt_gull": {
 "image": "art/pt_gull.png?v=7071820dad",
 "fw": 221,

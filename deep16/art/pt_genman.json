@@ -1,0 +1,187 @@
+{
+ "image": "art/pt_genman.png",
+ "fw": 285,
+ "fh": 193,
+ "ax": 138,
+ "ay": 190,
+ "top": 190,
+ "portrait": true,
+ "anims": {
+  "idle": {
+   "y": 0,
+   "fw": 285,
+   "fh": 193,
+   "ax": 138,
+   "ay": 190,
+   "frames": 6,
+   "fps": 3,
+   "ledge": [
+    true,
+    true,
+    true,
+    true,
+    true,
+    true
+   ]
+  },
+  "drinker": {
+   "y": 193,
+   "fw": 285,
+   "fh": 193,
+   "ax": 138,
+   "ay": 190,
+   "frames": 1,
+   "fps": 1,
+   "ledge": [
+    true
+   ]
+  },
+  "gambler": {
+   "y": 386,
+   "fw": 285,
+   "fh": 193,
+   "ax": 138,
+   "ay": 190,
+   "frames": 1,
+   "fps": 1,
+   "ledge": [
+    true
+   ]
+  },
+  "barkeep": {
+   "y": 579,
+   "fw": 285,
+   "fh": 193,
+   "ax": 138,
+   "ay": 190,
+   "frames": 1,
+   "fps": 1,
+   "ledge": [
+    true
+   ]
+  },
+  "hired": {
+   "y": 772,
+   "fw": 285,
+   "fh": 193,
+   "ax": 138,
+   "ay": 190,
+   "frames": 1,
+   "fps": 1,
+   "ledge": [
+    true
+   ]
+  },
+  "shaft": {
+   "y": 965,
+   "fw": 285,
+   "fh": 193,
+   "ax": 138,
+   "ay": 190,
+   "frames": 1,
+   "fps": 1,
+   "ledge": [
+    true
+   ]
+  },
+  "scraper": {
+   "y": 1158,
+   "fw": 285,
+   "fh": 193,
+   "ax": 138,
+   "ay": 190,
+   "frames": 1,
+   "fps": 1,
+   "ledge": [
+    true
+   ]
+  },
+  "crewboss": {
+   "y": 1351,
+   "fw": 285,
+   "fh": 193,
+   "ax": 138,
+   "ay": 190,
+   "frames": 1,
+   "fps": 1,
+   "ledge": [
+    true
+   ]
+  },
+  "drivespear": {
+   "y": 1544,
+   "fw": 285,
+   "fh": 193,
+   "ax": 138,
+   "ay": 190,
+   "frames": 1,
+   "fps": 1,
+   "ledge": [
+    true
+   ]
+  },
+  "crawler": {
+   "y": 1737,
+   "fw": 285,
+   "fh": 193,
+   "ax": 138,
+   "ay": 190,
+   "frames": 1,
+   "fps": 1,
+   "ledge": [
+    true
+   ]
+  },
+  "guard": {
+   "y": 1930,
+   "fw": 285,
+   "fh": 193,
+   "ax": 138,
+   "ay": 190,
+   "frames": 1,
+   "fps": 1,
+   "ledge": [
+    true
+   ]
+  },
+  "clerk": {
+   "y": 2123,
+   "fw": 285,
+   "fh": 193,
+   "ax": 138,
+   "ay": 190,
+   "frames": 1,
+   "fps": 1,
+   "ledge": [
+    true
+   ]
+  },
+  "agent": {
+   "y": 2316,
+   "fw": 285,
+   "fh": 193,
+   "ax": 138,
+   "ay": 190,
+   "frames": 1,
+   "fps": 1,
+   "ledge": [
+    true
+   ]
+  },
+  "lightcrew": {
+   "y": 2509,
+   "fw": 285,
+   "fh": 193,
+   "ax": 138,
+   "ay": 190,
+   "frames": 1,
+   "fps": 1,
+   "ledge": [
+    true
+   ]
+  }
+ },
+ "art": "ART-122-MAN",
+ "door": "the unnamed (js/counter.js C.GENERIC)",
+ "source": "deep16/_src/genman/ART-122 (the art desk's ART-122-MAN, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
+}

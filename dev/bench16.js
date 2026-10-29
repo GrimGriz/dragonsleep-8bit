@@ -2979,8 +2979,11 @@
       // a word with the gate hand, from beside him: his line, no north gate (RULED 10-17)
       var ghT = folkT.filter(function (u) { return u.npc === 'guard1'; })[0], besT = null;
       for (var dyT = -1; dyT <= 1 && !besT; dyT++) for (var dxT = -1; dxT <= 1 && !besT; dxT++) if ((dxT || dyT) && GT.canStand(tkT, ghT.x + dxT, ghT.y + dyT)) besT = [ghT.x + dxT, ghT.y + dyT];
-      tkT.x = besT[0]; tkT.y = besT[1]; RT.fw = [Math.sign(ghT.x - tkT.x), Math.sign(ghT.y - tkT.y)]; BT.cards = []; RT.keys.push('use'); driveT(BT.co, function () { return cardT(/Gate hand/); }, 400);
-      okT('E beside the gate hand: his word (' + ((BT.cards[BT.cards.length - 1] || {}).lines || []).join(' / ').slice(0, 110) + '...), no north gate in it', cardT(/West gate/) && !cardT(/north gate/i));
+      tkT.x = besT[0]; tkT.y = besT[1]; RT.fw = [Math.sign(ghT.x - tkT.x), Math.sign(ghT.y - tkT.y)]; BT.cards = []; RT.keys.push('use'); driveT(BT.co, function () { return D.top() instanceof D.counter.Counter; }, 400);
+      // (on the counter's screen since 10-28 evening, the generic man in his guard's costume -- js/counter.js C.GENERIC, ART-122 -- his word the floor's own, C.TALK16)
+      var scGT = D.top(), saidGT = scGT instanceof D.counter.Counter && scGT.wait && scGT.wait.say ? scGT.wait.say.join(' / ') : '';
+      if (scGT instanceof D.counter.Counter) { scGT.close(); driveT(BT.co, function () { return D.top() === BT; }, 60); }
+      okT('E beside the gate hand: his word on the counter\'s screen (' + (scGT && scGT.sheet) + ', ' + (scGT && scGT.look) + ': ' + saidGT.slice(0, 110) + '...), no north gate in it', /West gate/.test(saidGT) && !/north gate/i.test(saidGT) && scGT.sheet === 'pt_genman' && scGT.look === 'guard');
       tkT.x = gWT[0]; tkT.y = gWT[1]; GT.setup(GT.map, BT.units); driveT(BT.co, null, 30);
       var hfT = defT.marks.hexFront[0], nT = walkT(BT, RT, hfT, 60000);
       okT('walked from the west gate to the Hexagon\'s front doors (' + nT + ' steps; the token at ' + tkT.x + ',' + tkT.y + ', ' + (defT.where ? defT.where(tkT.x, tkT.y) : '') + ')', nT > 100 && tkT.x === hfT[0] && tkT.y === hfT[1]);
@@ -5082,6 +5085,47 @@
     document.body.appendChild(preV);
     return;
   }
+  // THE UNNAMED IN COSTUME, 10-28 evening (mode=generic1028; tools/portrait-sheet.py pt_genman and pt_genwoman, js/counter.js C.GENERIC -- the fourth cutter seat, the art
+  // desk's ART-122, on Griz's "as a specific person with each function as a costume/look they have"): the generic man and woman cut whole, their own clothes' idle and a
+  // still a costume; every unnamed id on its person's sheet in its costume, taken to the counter's screen; the townsman spoken to on the street, his idle; a drinker's
+  // counter drawing his costume's still; the portraits' show taking the unnamed by name only
+  if (get('mode', '') === 'generic1028') {
+    var repG = { checks: [], errors: [] }, memG = {}, stGG = D.store.get, stSG = D.store.set, CG = D.counter, HG = D.house, TG = D.town;
+    function okG(what, v) { repG.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function driveG(g, until, cap) { var v, k = 0, st; while (g && k++ < (cap || 600)) { if (until && until()) return; st = g.next(v); v = undefined; if (st.done) return; } }
+    function topG() { var s = D.top(); if (s && s.baking) { s.baking = false; s.enter(); } return s; }
+    D.store.get = function (k) { return memG[k] ? JSON.parse(memG[k]) : null; }; D.store.set = function (k, v) { memG[k] = JSON.stringify(v); return true; };
+    try {
+      D.seed = +get('seed', 1028);
+      var COSTG = ['drinker', 'gambler', 'barkeep', 'hired', 'shaft', 'scraper', 'crewboss', 'drivespear', 'crawler', 'guard', 'clerk', 'agent', 'lightcrew'];
+      ['pt_genman', 'pt_genwoman'].forEach(function (n) {
+        var s = D.SHEETS[n];
+        okG(n + ' cut (' + (s ? s.fw + 'x' + s.fh + ', ' + Object.keys(s.anims).join(' ') : 'NONE') + '): the idle of six and the thirteen costumes a still each',
+          !!s && s.portrait && s.anims.idle.frames === 6 && COSTG.every(function (c) { return s.anims[c] && s.anims[c].frames === 1; }));
+      });
+      var idsG = Object.keys(CG.GENERIC), badG = idsG.filter(function (id) { var v = CG.VENDORS[id], g = CG.GENERIC[id]; return !v || v.sheet !== 'pt_gen' + g[0] || (g[1] === 'idle' ? !!v.look : v.look !== g[1] || !D.SHEETS[v.sheet].anims[g[1]]) || !CG.takes(id) || v.wait !== ''; });
+      okG(idsG.length + ' unnamed on their person in costume, each to the counter\'s screen with no counter line (' + idsG.map(function (id) { return id + ' ' + CG.GENERIC[id].join('/'); }).join(', ') + ')' + (badG.length ? ' -- off: ' + badG.join(', ') : ''), idsG.length === 24 && !badG.length);
+      okG('the street\'s boy and girl keep their card (towns4, towns8 not taken)', !CG.takes('towns4') && !CG.takes('towns8'));
+      HG.begin(HG.fresh(), 0); var BG = topG(), RG = BG.roam;
+      var trG = (D.roam.def.src8.triggers || []).filter(function (t) { return t.id === 'talk:towns1'; })[0], uG = BG.units.filter(function (u) { return u.npc === 'towns1'; })[0];
+      if (trG && uG) { RG.token.x = uG.x + 1; RG.token.y = uG.y; driveG(TG.fire(BG, trG), function () { return D.top() instanceof CG.Counter; }, 400); }
+      var scG = D.top(), wG = scG instanceof CG.Counter && scG.wait && scG.wait.say ? scG.wait.say : [];
+      okG('NEW GAME, the street\'s townsman (towns1) spoken to from beside him: the counter\'s screen on the generic man in his own clothes (' + (scG && scG.sheet) + ', look ' + (scG && scG.look) + '), his word "' + String(wG[0] || '').slice(0, 50) + '..."',
+        !!trG && !!uG && scG instanceof CG.Counter && scG.sheet === 'pt_genman' && !scG.look && wG.length > 0 && !wG.some(function (l) { return /counter -- buying/.test(l); })); // (his word C.words' -- a rumour moves on each asking, so not asked twice)
+      if (scG instanceof CG.Counter) scG.close();
+      var drawnG = [], dp0 = CG.drawPortrait; CG.drawPortrait = function (ctx, name, anim, frame) { drawnG.push(name + ':' + anim + ':' + frame); return true; };
+      var scD = new CG.Counter(null, { id: 'hexpatron1', name: 'A drinker', place: 'the Hex', what: '', script: function* (sc) { yield sc.say(['...'], 'skeptical'); } });
+      var cvG = document.createElement('canvas'); cvG.width = D.W; cvG.height = D.H;
+      scD.t = 400; scD.draw(cvG.getContext('2d')); CG.drawPortrait = dp0;
+      okG('a drinker\'s counter (hexpatron1) draws the generic man\'s drinker still whatever the face asked (' + drawnG.join(', ') + ')', drawnG.length === 1 && drawnG[0] === 'pt_genman:drinker:0');
+      var psG = CG.portraitShow('?portraits'), ps2G = CG.portraitShow('?portraits&who=towns1,hexpatron2,scrapeboss');
+      okG('the portraits\' show: the named by default (' + psG.ids.length + ', none unnamed), the unnamed by name (' + ps2G.ids.join(', ') + ')', psG.ids.length > 20 && !psG.ids.some(function (id) { return CG.GENERIC[id]; }) && ps2G.ids.join() === 'towns1,hexpatron2,scrapeboss');
+    } catch (eG) { repG.errors.push(String(eG && eG.stack || eG).slice(0, 900)); }
+    D.store.get = stGG; D.store.set = stSG; if (D.house) { D.house.playing = false; D.house.cur = null; }
+    var preG = document.createElement('pre'); preG.id = 'out'; preG.textContent = 'BENCH16 ' + JSON.stringify(repG);
+    document.body.appendChild(preG);
+    return;
+  }
   // THE KEEPERS DRAWN ALL ROUND, 10-28 (mode=turn1028; tools/keeper-town-sheet.py, js/counter.js C.dress, js/town.js T.fire -- the cutter seat after Winters, the art
   // desk's ART-121, on Griz's "you could have at least started up a cutter after 3:40 a.m. my dude"): the keepers whose SE, E, NE and N the art desk drew are cut in all
   // eight facings (no `drawn`, no stand-in under them, the heroes' height), every other keeper still south only over the stand-in; dressed, the first are free to turn and
@@ -5182,7 +5226,7 @@
     D.store.get = function (k) { return memW[k] ? JSON.parse(memW[k]) : null; }; D.store.set = function (k, v) { memW[k] = JSON.stringify(v); return true; };
     try {
       D.seed = +get('seed', 1021);
-      var names = Object.keys(CW.PT), sheets = names.filter(function (n) { var s = D.SHEETS[CW.PT[n]]; return s && s.portrait && s.anims.idle && s.anims.idle.frames === 6 && s.anims.work && s.anims.work.frames === 6; });
+      var names = Object.keys(CW.PT).filter(function (n) { return !CW.GENERIC[n]; }), sheets = names.filter(function (n) { var s = D.SHEETS[CW.PT[n]]; return s && s.portrait && s.anims.idle && s.anims.idle.frames === 6 && s.anims.work && s.anims.work.frames === 6; }); // (the named: the unnamed in costume are mode=generic1028's)
       okW('every keeper\'s portrait cut (tools/portrait-sheet.py): ' + sheets.length + ' of ' + names.length + ' with a six-frame idle and work (' + names.map(function (n) { var s = D.SHEETS[CW.PT[n]]; return n + (s ? ' ' + Object.keys(s.anims).length : ' NONE'); }).join(', ') + ')', sheets.length === names.length && ['attentive', 'welcoming', 'skeptical', 'concerned'].every(function (a) { return !!D.SHEETS.pt_winters.anims[a]; }));
       HW.begin(HW.fresh(), 0); var B = topW(), R0 = B.roam, st = CW.state(B);
       okW('NEW GAME in Silverton: the floor\'s flags, pack and purse are what the counter reads (' + R0.silver + ' sp)', !!st && st.flags === R0.flags && st.inv === B.inv && st.silver() === R0.silver && st.party.length === 4);

@@ -64,6 +64,17 @@
     // (her own shelf since 10-28 later, C.SHOP16.higertha: his "Lucia is mama and is saying Higertha's line" -- the first game's "Mama mixes, I sell" is the hatch's, not Mama's)
     higertha: { name: 'Higertha', shop: 'higertha', script: 'hatch' }, concession: { name: 'The concession\'s hand', shop: 'concession', script: 'hatch' }
   };
+  // the unnamed in costume (10-28 evening, the fourth cutter seat: the art desk's ART-122, on Griz's "as a specific person with each function as a costume/look they have"):
+  // two people, the generic man and woman (pt_genman, pt_genwoman -- tools/portrait-sheet.py; the townsfolk's man and woman, folkman_p1 and folkwoman_p1), each unnamed id
+  // one of them in the costume of the job they stand at, its still for the whole talk where the named have their moods (Counter `look`); the street's townsman and townswoman
+  // in their own clothes, the idle breathing. Their word as their card said it (C.words), no counter line. The man or the woman by the ask's lean
+  // (deep16/_src/art-desk/sent/ASK-2026-10-28-generic-man-and-woman.md); the crawler hand's costume waits for an id; the street's boy and girl (towns4, towns8) keep their card
+  C.GENERIC = { towns1: ['man', 'idle'], towns2: ['woman', 'idle'], hexpatron1: ['man', 'drinker'], hexpatron2: ['woman', 'drinker'], gambler1: ['man', 'gambler'],
+    gambler2: ['woman', 'gambler'], bartenderS: ['man', 'barkeep'], bartenderE: ['woman', 'barkeep'], towns3: ['man', 'hired'], ropewar: ['woman', 'hired'], towns5: ['man', 'shaft'],
+    crew1: ['man', 'shaft'], crew2: ['woman', 'shaft'], scraper1: ['man', 'scraper'], scraper2: ['woman', 'scraper'], scrapeboss: ['woman', 'crewboss'], drivecrew: ['man', 'drivespear'],
+    guard1: ['man', 'guard'], dunmoreLine: ['woman', 'guard'], towns6: ['woman', 'clerk'], towns7: ['man', 'agent'], seepcrew1: ['woman', 'lightcrew'], seepcrew2: ['man', 'lightcrew'],
+    seepcrew3: ['man', 'lightcrew'] };
+  Object.keys(C.GENERIC).forEach(function (id) { var g = C.GENERIC[id]; if (!C.VENDORS[id]) C.VENDORS[id] = { sheet: 'pt_gen' + g[0], look: g[1] === 'idle' ? null : g[1], wait: '' }; });
   // a shop of the second game's own (not the first game's content/shops.json): the cold-food concession's -- the house's not-hot side, no oven (the realm's the-hex.md, CANON
   // 09-13), so the pies cold, a silver apiece; it buys nothing (invented.json hex-concession). Into DS.DATA.shops where the counter's shelves read them
   // and Higertha's hatch (10-28 later, Griz: "Lucia is mama and is saying Higertha's line"): Mama's own jars at Mama's prices (`from`: the first game's lucia shelf), with the
@@ -176,6 +187,7 @@
   // branches first (C.TALK16, js/hours.js: content/npcs.json is the first game's, and it takes bug fixes only), then the first game's; a branch with `once` is passed over
   // once said. A person with rumours and no branch for now says the next of theirs not yet said (the first game's EV.dialog), heard into the JOURNAL's THE TALK
   C.TALK16 = {};
+  C.TALK16.guard1 = [{ say: [D.town.LINE.guard1] }]; // (the west gate's hand: the floor's own word, as on his card before he came to the counter in costume -- C.GENERIC)
   C.words = function (B, id) {
     var st = C.state(B), N = ((DS.DATA || {}).npcs || {})[id] || {}, own = C.TALK16[id] || [];
     var pick = function (list, tag) { for (var i = 0; i < list.length; i++) { var e = list[i]; if (e.once && st.flags['said:' + tag + i]) continue; if (C.cond(e['if'], st)) return { e: e, k: tag + i }; } return null; };
@@ -222,6 +234,7 @@
   function Counter(B, o) {
     this.kind = 'counter'; this.opaque = true; this.t = 0; this.B = B; this.o = o; this.st = C.state(B);
     this.id = o.id; this.sheet = C.PT[o.id] || null; this.face = null; this.wait = null; this.msg = ''; this.hov = -1; this.i = 0; this.done = false; this.regear = false;
+    this.look = (C.VENDORS[o.id] || {}).look || null; // (an unnamed one's costume, held the whole talk: C.GENERIC)
     this.co = o.script(this);
     this.step();
   }
@@ -398,7 +411,7 @@
     // the portrait over its counter
     D.win8(ctx, PX, PY, PW, PH, '#0b1430');
     ctx.save(); ctx.beginPath(); ctx.rect(PX + 3, PY + 3, PW - 6, PH - 6); ctx.clip();
-    var sh = this.sheet && D.SHEETS[this.sheet], fr = C.frameAt(sh, this.face, this.t);
+    var sh = this.sheet && D.SHEETS[this.sheet], fr = this.look && sh && sh.anims[this.look] ? { anim: this.look, frame: 0 } : C.frameAt(sh, this.face, this.t);
     if (this.o.pic) this.o.pic(ctx, PX + 3, PY + 3, PW - 6, PH - 6, this.t, CY); // (a place's own picture where a keeper's portrait stands: the Glowseep's crews' fire, js/mines.js M.firePic)
     else if (sh && C.drawPortrait(ctx, this.sheet, fr.anim, fr.frame, PX + PW / 2, CY + 1)) { if (this.id === 'ned') C.drawNedRat(ctx, PX + PW / 2, CY + 1, this.t); }
     else {
@@ -1038,7 +1051,7 @@
   C.FACES = ['idle', 'attentive', 'welcoming', 'skeptical', 'concerned', 'work'];
   function PortraitShow(q) {
     this.kind = 'portraitshow'; this.opaque = true; this.t = 0; this.k = -1; this.cur = null;
-    var who = /[?&]who=([a-z0-9_,]+)/.exec(String(q || '')); this.ids = who ? who[1].split(',').filter(function (k) { return !!C.PT[k]; }) : Object.keys(C.PT); // (in the order asked)
+    var who = /[?&]who=([a-z0-9_,]+)/.exec(String(q || '')); this.ids = who ? who[1].split(',').filter(function (k) { return !!C.PT[k]; }) : Object.keys(C.PT).filter(function (k) { return !C.GENERIC[k]; }); // (in the order asked; the unnamed by name only)
   }
   C.wordsOf = function (id) { var N = ((DS.DATA || {}).npcs || {})[id] || {}, plain = (N.talk || []).filter(function (e) { return !e['if']; })[0], sh = C.greeting((C.VENDORS[id] || {}).shop || id), wd = (C.VENDORS[id] || {}).words; return plain ? plain.say.slice() : wd ? [].concat(L(wd)) : sh ? [sh] : ['(no first-game word)']; };
   PortraitShow.prototype.update = function () {
@@ -1046,8 +1059,9 @@
     if (this.cur && !this.cur.done) return;
     if (++this.k >= this.ids.length) { D.scenes.length = 0; if (D.house && D.house.Title) D.push(new D.house.Title()); return; }
     var id = this.ids[this.k], n = this.ids.length, k = this.k, nm = (C.VENDORS[id] || {}).name || D.town.KEEPER['shop:' + id] || D.town.KEEPER['warp:' + id] || D.town.KEEPER['keeper:' + id] || D.town.KEEPER['inn:' + id] || (((DS.DATA || {}).npcs || {})[id] || {}).name || id, words = C.wordsOf(id);
+    var g = C.GENERIC[id], faces = g ? [g[1]] : C.FACES; // (an unnamed one: their costume, the one page)
     this.cur = new Counter(null, { id: id, name: nm, place: 'THE PORTRAITS (a show)', what: nm + ', ' + (k + 1) + ' of ' + n, script: function* (sc) {
-      for (var i = 0; i < C.FACES.length; i++) yield sc.say(['{y}' + C.FACES[i].toUpperCase() + '{/}'].concat(words), C.FACES[i]);
+      for (var i = 0; i < faces.length; i++) yield sc.say(['{y}' + (g ? 'THE ' + g[0].toUpperCase() + ' -- ' : '') + faces[i].toUpperCase() + '{/}'].concat(words), faces[i]);
     } });
     D.push(this.cur);
   };

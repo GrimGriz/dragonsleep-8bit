@@ -41,6 +41,9 @@ ACTIONS = ['idle', 'attentive', 'welcoming', 'skeptical', 'concerned', 'work']  
 FPS = {'idle': 3, 'work': 4, 'stretch': 4}   # (the idle a slow breath and blink; the work a deliberate unwrap)
 # a person's pages: (page, its bands' counts top to bottom, each drawing's action in reading order) -- the art desk's six-page plan by default
 LAYOUT = [(1, [3, 3], ['idle'] * 6), (2, [1], ['attentive']), (3, [1], ['welcoming']), (4, [1], ['skeptical']), (5, [1], ['concerned']), (6, [3, 3], ['work'] * 6)]
+# the generic man's and woman's fourteen (ART-122): their own clothes' idle, then a costume a page, each a still where the named have their moods
+COSTUMES = ['drinker', 'gambler', 'barkeep', 'hired', 'shaft', 'scraper', 'crewboss', 'drivespear', 'crawler', 'guard', 'clerk', 'agent', 'lightcrew']
+GENERIC = [(1, [3, 3], ['idle'] * 6)] + [(p, [1], [c]) for p, c in enumerate(COSTUMES, 2)]
 # name: (pages' folder, ART id, the keeper's door in deep16/js/town.js, overrides). The art desk's numbers: bare ART-78 to ART-81 are these shopkeepers --
 # its four heroes' 8-bit makeovers are ART-77-8BIT-<HERO> since its numbering resolution of 10-21 (Griz authorized; the collision is struck)
 PEOPLE = {
@@ -102,6 +105,16 @@ PEOPLE = {
     'brennock': ('brennock/ART-106', 'ART-106', 'talk:brennock', {'bevel': (6,)}),
     'vera': ('vera/ART-107', 'ART-107', 'talk:vera', {'bevel': (6,)}),
     'kess': ('kess/ART-108', 'ART-108', 'keeper:kess', {'bevel': (6,)}),
+    # the generic man and the generic woman (10-28 evening, the fourth cutter seat: the art desk's ART-122, on Griz's "as a specific person with each function as a
+    # costume/look they have"): one person each, the townsfolk's man and woman (folkman_p1, folkwoman_p1), their own clothes' idle and a still for each costume in
+    # place of the named's moods -- js/counter.js C.GENERIC gives each unnamed id its person and costume. A spear, a pole or a scraper held up beside the head
+    # (`propfree`): the bust from the head's own top, over the torso's middle, the prop kept in the cut. Their warm skin snapped to the lightest red, and left out
+    # of that to the fire ramp -- red arms, an orange blush -- so both are left out (Marta's way); the flushed costumes (the drinkers, the man's drive spear) snapped
+    # their flush to the next red, slashes across the face and neck at 3x: there the reds go too, save the woman's maroon shawl (`avoid` by action, '*' the rest)
+    'genman': ('genman/ART-122', 'ART-122-MAN', 'the unnamed (js/counter.js C.GENERIC)', {'propfree': True, 'layout': GENERIC,
+               'avoid': {'*': ['fire', '#e8624a'], 'drinker': ['fire', 'red'], 'drivespear': ['fire', 'red']}}),
+    'genwoman': ('genwoman/ART-122', 'ART-122-WOMAN', 'the unnamed (js/counter.js C.GENERIC)', {'propfree': True, 'layout': GENERIC,
+                 'avoid': {'*': ['fire', '#e8624a'], 'drinker': ['fire', '#e8624a', '#b83428']}}),
 }
 
 
@@ -366,6 +379,13 @@ def cut_person(name):
             top = ys.min()
             bust = foot - top
             head = keep[top:top + int(bust * 0.22)]
+            if ov.get('propfree'):                               # (the head's own top: the figure over the torso's middle, a raised prop beside it left out of the measure)
+                lo = np.where(keep[(top + foot) // 2:foot])[1]
+                mid, half = np.median(lo), 0.16 * (lo.max() - lo.min())
+                win = keep.copy(); win[:, :max(0, int(mid - half))] = False; win[:, int(mid + half):] = False
+                htop = np.where(win.any(axis=1))[0].min()
+                bust = foot - htop
+                head = win[htop:htop + int(bust * 0.22)]
             hx = np.where(head)[1].mean()
             cx0, cx1 = xs.min(), xs.max() + 1
             rgba = np.zeros((foot - top, cx1 - cx0, 4), np.uint8)
@@ -385,7 +405,8 @@ def cut_person(name):
             im = Image.fromarray(rgba, 'RGBA').convert('RGBa')
             w, h = max(1, round(rgba.shape[1] * k)), max(1, round(rgba.shape[0] * k))
             im = im.resize((w, h), Image.BOX).convert('RGBA')
-            px = pix.pixelate(im, 1, do_lift=False, avoid=ov.get('avoid'))   # (`avoid`: ramps or colours the snap leaves out -- tools/pixelate.py)
+            av = ov.get('avoid'); av = av.get(act, av.get('*')) if isinstance(av, dict) else av   # (an action's own, or every action's)
+            px = pix.pixelate(im, 1, do_lift=False, avoid=av)   # (`avoid`: ramps or colours the snap leaves out -- tools/pixelate.py)
             out.append((px, ax * k, ay * k, ledge))
         small[act] = out
     # one box for every frame, round the anchor

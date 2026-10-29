@@ -1,0 +1,187 @@
+{
+ "image": "art/pt_genwoman.png",
+ "fw": 257,
+ "fh": 184,
+ "ax": 130,
+ "ay": 182,
+ "top": 182,
+ "portrait": true,
+ "anims": {
+  "idle": {
+   "y": 0,
+   "fw": 257,
+   "fh": 184,
+   "ax": 130,
+   "ay": 182,
+   "frames": 6,
+   "fps": 3,
+   "ledge": [
+    true,
+    true,
+    true,
+    true,
+    true,
+    true
+   ]
+  },
+  "drinker": {
+   "y": 184,
+   "fw": 257,
+   "fh": 184,
+   "ax": 130,
+   "ay": 182,
+   "frames": 1,
+   "fps": 1,
+   "ledge": [
+    true
+   ]
+  },
+  "gambler": {
+   "y": 368,
+   "fw": 257,
+   "fh": 184,
+   "ax": 130,
+   "ay": 182,
+   "frames": 1,
+   "fps": 1,
+   "ledge": [
+    true
+   ]
+  },
+  "barkeep": {
+   "y": 552,
+   "fw": 257,
+   "fh": 184,
+   "ax": 130,
+   "ay": 182,
+   "frames": 1,
+   "fps": 1,
+   "ledge": [
+    true
+   ]
+  },
+  "hired": {
+   "y": 736,
+   "fw": 257,
+   "fh": 184,
+   "ax": 130,
+   "ay": 182,
+   "frames": 1,
+   "fps": 1,
+   "ledge": [
+    true
+   ]
+  },
+  "shaft": {
+   "y": 920,
+   "fw": 257,
+   "fh": 184,
+   "ax": 130,
+   "ay": 182,
+   "frames": 1,
+   "fps": 1,
+   "ledge": [
+    true
+   ]
+  },
+  "scraper": {
+   "y": 1104,
+   "fw": 257,
+   "fh": 184,
+   "ax": 130,
+   "ay": 182,
+   "frames": 1,
+   "fps": 1,
+   "ledge": [
+    true
+   ]
+  },
+  "crewboss": {
+   "y": 1288,
+   "fw": 257,
+   "fh": 184,
+   "ax": 130,
+   "ay": 182,
+   "frames": 1,
+   "fps": 1,
+   "ledge": [
+    true
+   ]
+  },
+  "drivespear": {
+   "y": 1472,
+   "fw": 257,
+   "fh": 184,
+   "ax": 130,
+   "ay": 182,
+   "frames": 1,
+   "fps": 1,
+   "ledge": [
+    true
+   ]
+  },
+  "crawler": {
+   "y": 1656,
+   "fw": 257,
+   "fh": 184,
+   "ax": 130,
+   "ay": 182,
+   "frames": 1,
+   "fps": 1,
+   "ledge": [
+    true
+   ]
+  },
+  "guard": {
+   "y": 1840,
+   "fw": 257,
+   "fh": 184,
+   "ax": 130,
+   "ay": 182,
+   "frames": 1,
+   "fps": 1,
+   "ledge": [
+    true
+   ]
+  },
+  "clerk": {
+   "y": 2024,
+   "fw": 257,
+   "fh": 184,
+   "ax": 130,
+   "ay": 182,
+   "frames": 1,
+   "fps": 1,
+   "ledge": [
+    true
+   ]
+  },
+  "agent": {
+   "y": 2208,
+   "fw": 257,
+   "fh": 184,
+   "ax": 130,
+   "ay": 182,
+   "frames": 1,
+   "fps": 1,
+   "ledge": [
+    true
+   ]
+  },
+  "lightcrew": {
+   "y": 2392,
+   "fw": 257,
+   "fh": 184,
+   "ax": 130,
+   "ay": 182,
+   "frames": 1,
+   "fps": 1,
+   "ledge": [
+    true
+   ]
+  }
+ },
+ "art": "ART-122-WOMAN",
+ "door": "the unnamed (js/counter.js C.GENERIC)",
+ "source": "deep16/_src/genwoman/ART-122 (the art desk's ART-122-WOMAN, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
+}
