@@ -396,5 +396,141 @@ PROPS_ROOM = [('room_counter', 94), ('room_shelves', 94), ('room_grille', 94), (
 PROPFOOT = {}
 
 
+# ------------------------------------------------------------------ SILVERTON'S FOUNTAINS (ART-124, 10-29: the cutter seat of 10-29)
+# Asked in deep16-art-wanted.md section 28 on Griz's "we'll probably need custom fountain tiles, this looks like spilled waterfall water" (10-28): basins seen straight
+# down. In hand: HEAD 3 alone (ART-124_HEAD-3_PAGE-1 to 4, fountains/ART-124/ and its manifest.json): four calm water fills; the water's edge against the stone rim,
+# N, E, S, W; its outer corners and its inner corners, NW, NE, SW, SE each -- the art desk's labels, not its manifest's order. HEADs 1 and 2 (the whole fountains, small
+# and large) were never delivered. js/topview.js builds a basin of any size from these by quarters (TV.basin).
+# The pages are not one scale, and each piece draws its rim another width (the art desk's notes: the inner corners' stone about a third of the tile where the edges'
+# is about a quarter, the rims varying by side): each piece is laid out again to one rim a side, RIM below -- the median of every piece's own on that side -- by a
+# piecewise stretch along x and along y at the page's size (the stone band to the rim, the water to the rest), then boxed down; its water toned to the four fills'
+# by rank (the edges' water came out another shade, a patch at every join), then snapped.
+BASINS = [('H3P1', {'1': 'basin_water', '2': 'basin_water', '3': 'basin_water', '4': 'basin_water'}),
+          ('H3P2', {'N': 'basin_edge_n', 'E': 'basin_edge_e', 'S': 'basin_edge_s', 'W': 'basin_edge_w'}),
+          ('H3P3', {'NW': 'basin_outer_nw', 'NE': 'basin_outer_ne', 'SW': 'basin_outer_sw', 'SE': 'basin_outer_se'}),
+          ('H3P4', {'NW': 'basin_inner_nw', 'NE': 'basin_inner_ne', 'SW': 'basin_inner_sw', 'SE': 'basin_inner_se'})]
+
+
+WATER_K = (4.5, 9)  # a water pixel this far darker than the fills' middle lightness is a ripple, this far lighter a glint (the base 61, the ripples 55, the glints 80)
+
+
+def stone_of(t):
+    """the rim's pale stone, not the water's blue"""
+    return t[..., 0] > t[..., 2] + 20
+
+
+def basin_window(path, box):
+    a, bg = page(path)
+    x0, y0, x1, y1 = box
+    win = a[y0:y1, x0:x1]
+    r0, r1, c0, c1 = ground_box(win, bg)
+    return win[r0 + SHAVE:r1 - SHAVE, c0 + SHAVE:c1 - SHAVE]
+
+
+def bands(t, name):
+    """the piece's stone in source px: {side: depth} for an edge or an outer corner's sides, or the inner corner's block (its width and height)"""
+    st = stone_of(t); H, W = st.shape; out = {}
+    def lead(v):                                                        # (the band's end: the last row or column mostly stone in the near 45% -- the tile's dark outline
+        hit = np.where(v[:int(len(v) * 0.45)] >= 0.5)[0]                # at its outer border is not stone, and would stop a count from the edge)
+        return int(hit.max()) + 1 if len(hit) else 0
+    if '_inner_' in name:
+        k = name[-2:]; ys = slice(0, H // 2) if k[0] == 'n' else slice(H // 2, H); xs = slice(0, W // 2) if k[1] == 'w' else slice(W // 2, W)
+        q = st[ys, xs]; rows, cols = q.mean(1), q.mean(0)                # (the block in its own quarter: its rows and columns mostly stone)
+        out['y'] = lead(rows) if k[0] == 'n' else lead(rows[::-1])
+        out['x'] = lead(cols) if k[1] == 'w' else lead(cols[::-1])
+        return out
+    sides = name.split('_')[-1]
+    for s in sides:
+        if s == 'n': out['n'] = lead(st.mean(1))
+        if s == 's': out['s'] = lead(st.mean(1)[::-1])
+        if s == 'w': out['w'] = lead(st.mean(0))
+        if s == 'e': out['e'] = lead(st.mean(0)[::-1])
+    return out
+
+
+def restretch(t, ax_breaks):
+    """t laid out again by a piecewise stretch: ax_breaks = (y breaks, x breaks), each [(source edge, target fraction)] from 0 to the far side"""
+    S = 480                                                             # (the target at ten times the tile, sampled nearest, then boxed down)
+    def mapping(n_src, br):
+        src = np.array([b[0] for b in br], float); dst = np.array([b[1] for b in br], float) * S
+        return np.clip(np.interp(np.arange(S) + 0.5, dst, src).astype(int), 0, n_src - 1)
+    ys, xs = mapping(t.shape[0], ax_breaks[0]), mapping(t.shape[1], ax_breaks[1])
+    return t[ys][:, xs]
+
+
+def fountains(check=False):
+    d = os.path.join(PX.SRC, 'fountains', 'ART-124')
+    man = json.load(open(os.path.join(d, 'manifest.json'), encoding='utf-8'))
+    raw = {}                                                            # name -> [source window, ...]
+    for pg, labels in BASINS:
+        e = [x for x in man if x['page'] == pg][0]
+        for it in e['entries']:
+            raw.setdefault(labels[it['label']], []).append(basin_window(os.path.join(d, os.path.basename(e['file'])), it['source_window_xyxy']))
+    # the rim a side: the median of the pieces' own, as a fraction of the tile
+    meas = {n: [bands(t, n) for t in ts] for n, ts in raw.items() if n != 'basin_water'}
+    frac = {}
+    for side, ax in (('n', 0), ('s', 0), ('w', 1), ('e', 1)):
+        fs = [b[side] / float(t.shape[ax]) for n, ts in raw.items() if n != 'basin_water' and '_inner_' not in n for t, b in zip(ts, meas[n]) if side in b]
+        frac[side] = round(T * float(np.median(fs))) / float(T)
+    print('  basin rims (px of %d): N %d, E %d, S %d, W %d' % (T, *[round(frac[s] * T) for s in 'nesw']))
+    tiles = {}
+    for n, ts in raw.items():
+        for t, b in zip(ts, meas.get(n, [{}] * len(ts))):
+            H, W = t.shape[:2]
+            yb, xb = [(0, 0)], [(0, 0)]
+            if '_inner_' in n:                                          # (the block: as wide as the rim beside it, as tall as the rim above or below)
+                k = n[-2:]
+                if k[0] == 'n': yb.append((b['y'], frac['n']))
+                else: yb.append((H - b['y'], 1 - frac['s']))
+                if k[1] == 'w': xb.append((b['x'], frac['w']))
+                else: xb.append((W - b['x'], 1 - frac['e']))
+            else:
+                if 'n' in b: yb.append((b['n'], frac['n']))
+                if 's' in b: yb.append((H - b['s'], 1 - frac['s']))
+                if 'w' in b: xb.append((b['w'], frac['w']))
+                if 'e' in b: xb.append((W - b['e'], 1 - frac['e']))
+            yb.append((H, 1)); xb.append((W, 1))
+            big = restretch(t, (yb, xb))
+            box, _ = box_down(big, T, T)
+            near = big[5::10, 5::10].astype(np.float64)                 # (each target pixel's middle source pixel: the water's ripples are a source pixel or two wide)
+            stone = stone_of(box)
+            tiles.setdefault(n, []).append((np.where(stone[..., None], box, near), stone))
+    # the water toned to the fills': each piece's water moved by the difference of its middle colour from the four fills' (not by rank: the rim's shadow on the
+    # water along a corner's two sides would take all of the darkest ranks, and the ripples in it none)
+    fillpx = np.concatenate([x[~s] for x, s in tiles['basin_water']])
+    for n, xs in tiles.items():
+        if n == 'basin_water': continue
+        for x, s in xs:
+            x[~s] = np.clip(x[~s] + (np.median(fillpx, 0) - np.median(x[~s], 0)), 0, 255)
+    # the water in three of the 64: the art desk's calm teal, its darker ripples and its few light glints are a few steps apart (base 12,76,116, the ripples
+    # 12,68,100, the glints 20,104,116) and all snap to one colour, a flat sheet. Each water pixel is the ripple, the base or the glint by its lightness
+    # against the fills' (WATER_K), the base the snap of the fills' middle, the ripple and the glint the palette's nearest colours darker and lighter than it
+    lum = lambda c: np.asarray(c, np.float64) @ LUM
+    mid = np.median(lum(fillpx))
+    pal = np.array([[int(h[i:i + 2], 16) for i in (1, 3, 5)] for r in json.load(open(os.path.join(ROOT, 'deep16', 'palette.json')))['ramps'].values() for h in r], np.float64)
+    base = snap(np.median(fillpx, 0).reshape(1, 1, 3)).reshape(3).astype(np.float64)
+    def nearest(c, keep):
+        ok = pal[keep(lum(pal))]
+        return ok[np.argmin(((ok - c) ** 2).sum(-1))]
+    dark_c = fillpx[lum(fillpx) < mid - WATER_K[0]].mean(0); light_c = fillpx[lum(fillpx) > mid + WATER_K[1]].mean(0)
+    ripple, glint = nearest(dark_c, lambda L: L < lum(base) - 4), nearest(light_c, lambda L: L > lum(base) + 4)
+    print('  basin water: base %s, ripple %s, glint %s (of the 64)' % (tuple(int(v) for v in base), tuple(int(v) for v in ripple), tuple(int(v) for v in glint)))
+    A = Atlas(48 * 8)
+    for n in ['basin_water'] + [v for pg, lab in BASINS[1:] for v in lab.values()]:
+        for x, s in tiles[n]:
+            out = np.zeros((T, T, 4), dtype=np.uint8); out[..., :3] = snap(x); out[..., 3] = 255
+            L = lum(x)
+            out[~s & (L < mid - WATER_K[0]), :3] = ripple; out[~s & (L > mid + WATER_K[1]), :3] = glint
+            out[~s & (L >= mid - WATER_K[0]) & (L <= mid + WATER_K[1]), :3] = base
+            out[ndimage.binary_dilation(s) & ~s & (L > mid + WATER_K[1]), :3] = ripple   # (the water's pixel against the stone: the rim's shadow, not a glint -- the stone's blend lit it)
+            A.add(n, out, T // 2, T)
+        if n in ('basin_water', 'basin_edge_w', 'basin_outer_se'): A.newrow()
+    A.write('fountains_p1', 'deep16/_src/fountains/ART-124/ (the art desk\'s ART-124 HEAD 3, 10-28: the fountains\' basin water, its edges and corners against the rim), cut by tools/toptiles-sheet.py fountains',
+            {'door': 'roam:silverton', 'rim': {s: round(frac[s] * T) for s in 'nesw'}}, check)
+
+
 if __name__ == '__main__':
-    silverton('check' in sys.argv[1:])
+    if 'fountains' in sys.argv[1:]:
+        fountains('check' in sys.argv[1:])
+    else:
+        silverton('check' in sys.argv[1:])

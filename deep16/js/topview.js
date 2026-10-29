@@ -136,6 +136,7 @@
       if (drop > 0 && TV.artOn() && TV.place(m) === 'town') { artBank(m, cx, gx, gy, x, y + T, drop); continue; } // (the art desk's bank: its stone lip and its timbered face)
       if (drop > 0) { var bank = R('leather'); for (var j = 0; j < drop; j++) { cx.fillStyle = 'rgb(' + (j === 0 ? stone[5] : bank[j < drop / 3 ? 3 : j < drop * 2 / 3 ? 2 : 1]).join(',') + ')'; cx.fillRect(x, y + T + j, T, 1); } } // (a bank of the worn dirt, lit at its lip, darker down to the lower ground -- it read as a black band)
     }
+    if (TV.artOn() && m.def.edifice && TV.place(m) === 'town') TV.basins(m, cx, x0, y0); // (the fountains' basins at the Edifice's foot, whole: THE ART, TV.basins)
     if (m.def.underlay) m.def.underlay(cx, x0, y0); // (a floor's own picture over its tiles, drawn on its true lines: the Hex's inside, js/hex.js)
     p.cv = cv; m.top.baked++;
   }
@@ -379,7 +380,7 @@
   // heights (a low house 32 px, a tall one 48) -- the default since 10-28 (RULED, Griz: "1 yes to both", tall faces and the see-through on the streets); &faces=low the
   // town's own, 7 to 23 px at its 30-ft squares (js/town.js T.SCALE), as before
   var QS = typeof location !== 'undefined' ? location.search || '' : '';
-  TV.ART = { on: !/[?&]tiles=code\b/.test(QS), tall: !/[?&]faces=low\b/.test(QS), sheets: ['toptiles_p1', 'minetiles_p1', 'seeptiles_p1', 'hextiles_p1'] }; // (hextiles_p1: the Hex's, ART-115 -- js/hex.js)
+  TV.ART = { on: !/[?&]tiles=code\b/.test(QS), tall: !/[?&]faces=low\b/.test(QS), sheets: ['toptiles_p1', 'minetiles_p1', 'seeptiles_p1', 'hextiles_p1', 'fountains_p1'] }; // (hextiles_p1: the Hex's, ART-115 -- js/hex.js; fountains_p1: the fountains' basins, ART-124 -- TV.basins)
   TV.FACEPX = { low: 32, tall: 48 };
   function atlases() { // the three atlases, loaded; null while any is still on its way (or never fetched: the benches)
     var out = [];
@@ -424,12 +425,45 @@
     for (var i = 0; i < p0.n; i++) { var p = TV.piece(name, i, place), cv = document.createElement('canvas'); cv.width = p.w; cv.height = p.h; var cx = cv.getContext('2d', { willReadFrequently: true }); cx.drawImage(p.im, p.x, p.y, p.w, p.h, 0, 0, p.w, p.h); out.push(cx.getImageData(0, 0, p.w, p.h).data); }
     return (PX[pk] = out);
   };
+  // the fountains of Fountain Street (10-29, the cutter seat of 10-29: the art desk's ART-124 HEAD 3, deep16-art-wanted.md section 28, on Griz's 10-28 "we'll probably need
+  // custom fountain tiles, this looks like spilled waterfall water"): each basin laid whole on the floor's pages at its fountain, under the Edifice's spout -- its middle and
+  // its rim where js/town.js lays them (T.FOUNT), so the Edifice's drawn front stands over its north part -- built from the art's pieces by quarters: its squares those of a
+  // circle n across (two at the town's 30-ft squares, six at 10, twelve at true scale), each quarter of a square the fill, an edge, an outer corner or an inner corner by the
+  // two squares beside that quarter and the one between them. HEADs 1 and 2, the whole fountains with a pedestal and a spout of their own, never came; the spout is the
+  // Edifice's (TV.edStrip). The town's water squares under it take the art's calm fill (TV.GROUND), and the code's drawing stays with &tiles=code
+  var BASIN = {};
+  TV.basin = function (n) {
+    if (BASIN[n] !== undefined) return BASIN[n];
+    var T = TV.TS, H = T / 2, r = n / 2, inn = function (i, j) { var u = i + 0.5 - r, v = j + 0.5 - r; return i >= 0 && j >= 0 && i < n && j < n && u * u + v * v <= r * r; };
+    if (!TV.piece('basin_water', 0, 'town') || !TV.piece('basin_inner_se', 0, 'town')) return null;
+    var c = canvasOf(n * T, n * T), cx = c.cx;
+    for (var j = 0; j < n; j++) for (var i = 0; i < n; i++) {
+      if (!inn(i, j)) continue;
+      for (var q = 0; q < 4; q++) {
+        var dx = q & 1 ? 1 : -1, dy = q >> 1 ? 1 : -1, ns = dy < 0 ? 'n' : 's', we = dx < 0 ? 'w' : 'e', ve = inn(i, j + dy), ho = inn(i + dx, j), di = inn(i + dx, j + dy);
+        var nm = !ve && !ho ? 'basin_outer_' + ns + we : !ve ? 'basin_edge_' + ns : !ho ? 'basin_edge_' + we : !di ? 'basin_inner_' + ns + we : 'basin_water';
+        var p = TV.piece(nm, nm === 'basin_water' ? NZ.h2(i, j, 89) * 4 | 0 : 0, 'town'); if (!p) continue;
+        cx.drawImage(p.im, p.x + (q & 1) * H, p.y + (q >> 1) * H, H, H, i * T + (q & 1) * H, j * T + (q >> 1) * H, H, H);
+      }
+    }
+    return (BASIN[n] = c.cv);
+  };
+  TV.basins = function (m, cx, x0, y0) { // (on a floor's page: x0, y0 its corner in world px)
+    var e = m.def.edifice, Tn = D.town, V6 = D.TOWN_V6; if (!e || !e.fount || !Tn || !Tn.FOUNT || !V6) return;
+    var T = TV.TS, F = m.def.ft || Tn.SCALE || 30, FB = Tn.FOUNT(F), R = FB.rim / F * T, n = Math.max(2, Math.round(2 * R / T)), im = TV.basin(n); if (!im) return;
+    var wy = ((V6.EDBOT + FB.dy - Tn.Y0) / F + e.y0) * T; // (the fountains' middle: v6's feet to the floor's px -- e.y0 the floor's cut, js/town.js def.edifice)
+    e.fount.forEach(function (fx) {
+      var wx = e.x0 * T + (fx - e.fx0) * T / F, s = m.at(Math.floor(wx / T), e.y1 + 1), z = s ? s.gz || 0 : 0; // (the ground's height at the Edifice's foot: Fountain Street is on its level)
+      if (wx + R < x0 || wx - R > x0 + TV.PAGE || wy - z + R < y0 || wy - z - R > y0 + TV.PAGE) return;
+      cx.drawImage(im, Math.round(wx - R - x0), Math.round(wy - z - R - y0), Math.round(2 * R), Math.round(2 * R));
+    });
+  };
   function name8(m, x, y) { var n8 = m.def.names8, r = n8 && n8.rows[y]; return r ? n8.legend[r.charAt(x)] || '' : ''; } // (the first game's name of the square: js/mines.js)
   function canvasOf(w, h, read) { var cv = document.createElement('canvas'); cv.width = w; cv.height = h; var cx = cv.getContext('2d', read ? { willReadFrequently: true } : undefined); cx.imageSmoothingEnabled = false; return { cv: cv, cx: cx }; } // (read: its pixels read back -- kept on the CPU, or each read waits on the GPU: 4 s for the Glowseep's first view, 10-22)
 
   // the grounds: each ground kind's tile, by the place (a kind is a square's own letter or its floor's look, as tileKind reads it)
   TV.GROUND = {
-    town: { '.': 'earth', g: 'grass', ',': 'road', '=': 'dressed_stone', d: 'threshold', '~': 'fountain_water', D: 'river_water', r: 'spoil' },
+    town: { '.': 'earth', g: 'grass', ',': 'road', '=': 'dressed_stone', d: 'threshold', '~': 'basin_water', D: 'river_water', r: 'spoil' }, // ('~' the fountains' water: the art desk's calm basin fill since 10-29, ART-124 -- ART-111's bright fountain_water read as spilled falls)
     room: { o: 'room_floor_plank', '=': 'room_floor_flagstone', '.': 'room_floor_earth', d: 'threshold', '~': 'fountain_water' },
     mine: { C: 'cave_floor', U: 'guano', Q: 'deep_guano', Y: 'gravel', M: 'fungus_bed', Z: 'ladder_slope', X: 'stair_down', '.': 'earth', g: 'grass', ',': 'road', '=': 'dressed_stone', d: 'threshold', D: 'river_frame', '~': 'river_frame', r: 'spoil' },
     seep: { A: 'mud', E: 'reeds', N: 'moss_day', g: 'tussock', '~': 'still_pool_fill', D: 'drain_fill', ',': 'road', '.': 'mud', d: 'threshold', r: 'reeds' }
@@ -464,6 +498,7 @@
       else if (kind === 'o') { var up = (m.at(s.x, s.y - 1) || {}).ch === 'o', dn = (m.at(s.x, s.y + 1) || {}).ch === 'o'; nm = !up ? 'bridge_w_end' : !dn ? 'bridge_e_end' : 'bridge_middle'; rot = 1; } // (the first game's bridge runs north-south: the art's, turned)
     }
     if (P === 'seep' && kind === 'N' && m.def.dark) nm = 'moss_night'; // (the moss by night, its own tile: js/mines.js lays the floor for the hour)
+    if (P === 'town' && kind === '~' && m.def.edifice && TV.basin(2)) nm = 'dressed_stone'; // (a fountain's water squares: its basin is drawn whole over them, TV.basins -- the street's stone round it, where a square's corner shows past the rim)
     if (!nm || !TV.piece(nm, 0, P)) return null;
     var v = NZ.h2(s.x * 3 + 1, s.y * 5 + 2, 71) * 4 | 0;
     if (kind === ',') { // a road's ruts along it where it is a road through other ground: turned where it runs east-west, one variant down its length so the ruts run on

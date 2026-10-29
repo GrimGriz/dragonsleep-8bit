@@ -4078,6 +4078,31 @@
 "face": 60,
 "source": "the big face off mirrorgnoll\\Battered Mirror-Eyed Gnoll Close-Up-2.png (Griz, 10-08), cut by tools/faces-sheet.py"
 },
+"falstaff_p1": {
+"image": "art/falstaff_p1.png?v=0fb8da13d2",
+"fw": 32,
+"fh": 53,
+"ax": 17,
+"ay": 51,
+"top": 49,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 32,
+"fh": 53,
+"ax": 17,
+"ay": 51,
+"frames": 14,
+"fps": 4,
+"drawn": [
+0
+],
+"under": "crewman_p1"
+}
+},
+"source": "deep16/_src/falstaff/ART-123-FALSTAFF/ART-123-FALSTAFF_HEAD-2_PAGE-1.png (the art desk's south idle, 10-21), cut by tools/keeper-town-sheet.py",
+"door": "keeper:falstaff"
+},
 "firebeetle_p1": {
 "image": "art/firebeetle_p1.png?v=d22701c6f1",
 "fw": 96,
@@ -4220,6 +4245,38 @@
 }
 },
 "source": "drawn by the art desk (ART-09 FINAL SE and NE, 10-10; ART-52 REVIEW S, E and N, 10-18; ART-52 RUN REVIEW S and N walks, 10-27), cut by tools/townsfolk-sheet.py through tools/artdesk.py (10-27)"
+},
+"fountains_p1": {
+"image": "art/fountains_p1.png?v=8e5a1ab1ac",
+"fw": 48,
+"fh": 48,
+"ax": 24,
+"ay": 48,
+"top": 0,
+"anims": {},
+"tiles": {
+"basin_water": "0,0,48,48,24,48 48,0,48,48,24,48 96,0,48,48,24,48 144,0,48,48,24,48",
+"basin_edge_n": "0,48,48,48,24,48",
+"basin_edge_e": "48,48,48,48,24,48",
+"basin_edge_s": "96,48,48,48,24,48",
+"basin_edge_w": "144,48,48,48,24,48",
+"basin_outer_nw": "0,96,48,48,24,48",
+"basin_outer_ne": "48,96,48,48,24,48",
+"basin_outer_sw": "96,96,48,48,24,48",
+"basin_outer_se": "144,96,48,48,24,48",
+"basin_inner_nw": "0,144,48,48,24,48",
+"basin_inner_ne": "48,144,48,48,24,48",
+"basin_inner_sw": "96,144,48,48,24,48",
+"basin_inner_se": "144,144,48,48,24,48"
+},
+"source": "deep16/_src/fountains/ART-124/ (the art desk's ART-124 HEAD 3, 10-28: the fountains' basin water, its edges and corners against the rim), cut by tools/toptiles-sheet.py fountains",
+"door": "roam:silverton",
+"rim": {
+"n": 9,
+"e": 12,
+"s": 14,
+"w": 11
+}
 },
 "gargoyle_p1": {
 "image": "art/gargoyle_p1.png?v=42b5a4b095",
@@ -12062,6 +12119,102 @@ true
 "art": "ART-98",
 "door": "leech:davos",
 "source": "deep16/_src/davos/ART-98 (the art desk's ART-98, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
+},
+"pt_falstaff": {
+"image": "art/pt_falstaff.png?v=fab7cae67a",
+"fw": 181,
+"fh": 155,
+"ax": 94,
+"ay": 153,
+"top": 153,
+"portrait": true,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 181,
+"fh": 155,
+"ax": 94,
+"ay": 153,
+"frames": 6,
+"fps": 3,
+"ledge": [
+true,
+true,
+true,
+true,
+true,
+true
+]
+},
+"attentive": {
+"y": 155,
+"fw": 181,
+"fh": 155,
+"ax": 94,
+"ay": 153,
+"frames": 1,
+"fps": 1,
+"ledge": [
+true
+]
+},
+"welcoming": {
+"y": 310,
+"fw": 181,
+"fh": 155,
+"ax": 94,
+"ay": 153,
+"frames": 1,
+"fps": 1,
+"ledge": [
+true
+]
+},
+"skeptical": {
+"y": 465,
+"fw": 181,
+"fh": 155,
+"ax": 94,
+"ay": 153,
+"frames": 1,
+"fps": 1,
+"ledge": [
+true
+]
+},
+"concerned": {
+"y": 620,
+"fw": 181,
+"fh": 155,
+"ax": 94,
+"ay": 153,
+"frames": 1,
+"fps": 1,
+"ledge": [
+true
+]
+},
+"work": {
+"y": 775,
+"fw": 181,
+"fh": 155,
+"ax": 94,
+"ay": 153,
+"frames": 6,
+"fps": 4,
+"ledge": [
+true,
+true,
+true,
+true,
+true,
+true
+]
+}
+},
+"art": "ART-123-FALSTAFF",
+"door": "keeper:falstaff",
+"source": "deep16/_src/falstaff/ART-123-FALSTAFF (the art desk's ART-123-FALSTAFF, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
 },
 "pt_genman": {
 "image": "art/pt_genman.png?v=b220b445a8",

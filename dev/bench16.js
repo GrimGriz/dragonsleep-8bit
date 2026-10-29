@@ -5085,6 +5085,61 @@
     document.body.appendChild(preV);
     return;
   }
+  // FALSTAFF AND THE FOUNTAINS, 10-29 (mode=cut1029; the cutter seat of 10-29, on Griz's "pinged the art dept for his north facings, got some tiles in to cut"): the art
+  // desk's ART-123-FALSTAFF cut into pt_falstaff (tools/portrait-sheet.py) and falstaff_p1 (tools/keeper-town-sheet.py, south only -- its NE was drawn from the front),
+  // his word at his door on his face (his door has no room); ART-124 HEAD 3 cut into fountains_p1 (tools/toptiles-sheet.py fountains), the eight fountains' basins laid
+  // whole by js/topview.js TV.basins round the squares js/town.js lays (T.FOUNT)
+  if (get('mode', '') === 'cut1029') {
+    var repF = { checks: [], errors: [] }, memF = {}, stGF = D.store.get, stSF = D.store.set, CF = D.counter, HF = D.house, TF = D.town, TVF = D.topview;
+    function okF(what, v) { repF.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function driveF(g, cap) { var v, k = 0, st; while (g && k++ < (cap || 600)) { st = g.next(v); v = undefined; if (st.done) return; } }
+    function topF() { var s = D.top(); if (s && s.baking) { s.baking = false; s.enter(); } return s; }
+    function trigF(id) { return (D.roam.def.src8 && D.roam.def.src8.triggers || D.roam.def.triggers || []).filter(function (t) { return t.id === id; })[0]; }
+    D.store.get = function (k) { return memF[k] ? JSON.parse(memF[k]) : null; }; D.store.set = function (k, v) { memF[k] = JSON.stringify(v); return true; };
+    try {
+      D.seed = +get('seed', 1029);
+      var pF = D.SHEETS.pt_falstaff, aF = pF && pF.anims;
+      okF('pt_falstaff cut from ART-123-FALSTAFF (' + (pF ? pF.fw + 'x' + pF.fh + ', ' + Object.keys(aF).map(function (k) { return k + ' ' + aF[k].frames; }).join(', ') : 'NONE') + '): the idle and the work of six, the four stills',
+        !!pF && pF.portrait && /ART-123-FALSTAFF/.test(pF.source) && aF.idle.frames === 6 && aF.work.frames === 6 && ['attentive', 'welcoming', 'skeptical', 'concerned'].every(function (k) { return aF[k] && aF[k].frames === 1; }));
+      var vF = CF.VENDORS.falstaff;
+      okF('Falstaff a vendor on his face, speaking only (no shop in either game): ' + JSON.stringify(vF), !!vF && vF.sheet === 'pt_falstaff' && !vF.shop && CF.takes('falstaff'));
+      var fF = D.SHEETS[CF.FIG.falstaff], iF = fF && fF.anims.idle;
+      okF('falstaff_p1 his town figure, south only over the stand-in till an NE from behind comes (' + (fF ? iF.fw + 'x' + iF.fh + ' top ' + fF.top + ', drawn ' + JSON.stringify(iF.drawn) + ', under ' + iF.under : 'NONE') + ')',
+        !!fF && iF.drawn && iF.drawn.join() === '0' && iF.under === 'crewman_p1' && iF.frames === 14 && fF.top >= 45 && fF.top <= 54);
+      var uF = { x: 0, y: 0, facing: 5 }; CF.dress(uF, 'falstaff');
+      okF('dressed (C.dress): his own figure, facing south and held there (' + uF.sheet + ', facing ' + uF.facing + ', held ' + uF.holdFacing + ')', uF.sheet === 'falstaff_p1' && uF.facing === 0 && uF.holdFacing === true);
+      HF.begin(HF.fresh(), 0); var BF = topF();
+      okF('his door has no room behind it (js/town.js T.ROOMS: he speaks at the door), and no figure of his on the street', !TF.hasRoom('keeper:falstaff') && !BF.units.some(function (u) { return u.npc === 'falstaff'; }));
+      driveF(TF.fire(BF, trigF('keeper:falstaff')), 600);
+      var scF = D.top(), wF = scF instanceof CF.Counter && scF.wait && scF.wait.say ? scF.wait.say : [];
+      okF('NEW GAME, at the factor house\'s door (keeper:falstaff, ' + D.roam.def.phase + '): his word on his face (' + (scF && scF.sheet) + '), "' + String(wF[0] || '').slice(0, 60) + '..."',
+        scF instanceof CF.Counter && scF.sheet === 'pt_falstaff' && wF.some(function (l) { return /voice/i.test(l); }));
+      if (scF instanceof CF.Counter) scF.close();
+      // the fountains
+      var tF = D.SHEETS.fountains_p1, nmF = tF ? Object.keys(tF.tiles) : [], cntF = nmF.reduce(function (a, k) { return a + String(tF.tiles[k]).split(' ').length; }, 0);
+      var wantF = ['basin_water'].concat(['n', 'e', 's', 'w'].map(function (s) { return 'basin_edge_' + s; }), ['nw', 'ne', 'sw', 'se'].map(function (s) { return 'basin_outer_' + s; }), ['nw', 'ne', 'sw', 'se'].map(function (s) { return 'basin_inner_' + s; }));
+      okF('fountains_p1 cut from ART-124 HEAD 3: ' + cntF + ' pieces in ' + nmF.length + ' names, the four fills, the four edges, the outer and inner corners; its rim a side ' + JSON.stringify(tF && tF.rim),
+        !!tF && cntF === 16 && wantF.every(function (k) { return nmF.indexOf(k) >= 0; }) && String(tF.tiles.basin_water).split(' ').length === 4);
+      okF('the top view loads it with the town\'s atlases, the town\'s water squares on its calm fill, and lays the basins (TV.basins, TV.basin)',
+        TVF.ART.sheets.indexOf('fountains_p1') >= 0 && TVF.GROUND.town['~'] === 'basin_water' && typeof TVF.basins === 'function' && typeof TVF.basin === 'function');
+      [30, 10].forEach(function (F) {
+        var L = TF.lay(null, F), FB = TF.FOUNT(F), V6 = D.TOWN_V6, out = [], n = 0;
+        V6.FOUNT.forEach(function (fx) {
+          var cy = V6.EDBOT + FB.dy;
+          for (var y = 0; y < L.h; y++) for (var x = 0; x < L.w; x++) {
+            if (L.rows[y].charAt(x) !== '~') continue;
+            var X = TF.X0 + (x + 0.5) * F, Y = TF.Y0 + (y + 0.5) * F; if (Math.hypot(X - fx, Y - cy) > FB.rim + F) continue;
+            n++; if (Math.hypot(X - fx, Y - cy) > FB.rim) out.push(x + ',' + y);
+          }
+        });
+        okF('at ' + F + ' ft a square: the fountains\' ' + n + ' water squares each inside its basin\'s drawn rim (' + FB.rim + ' ft round the fountain, ' + Math.max(2, Math.round(2 * FB.rim / F)) + ' squares across)' + (out.length ? ' -- outside: ' + out.join(' ') : ''), n >= 8 && !out.length);
+      });
+    } catch (eF) { repF.errors.push(String(eF && eF.stack || eF).slice(0, 900)); }
+    D.store.get = stGF; D.store.set = stSF; if (D.house) { D.house.playing = false; D.house.cur = null; }
+    var preF = document.createElement('pre'); preF.id = 'out'; preF.textContent = 'BENCH16 ' + JSON.stringify(repF);
+    document.body.appendChild(preF);
+    return;
+  }
   // THE UNNAMED IN COSTUME, 10-28 evening (mode=generic1028; tools/portrait-sheet.py pt_genman and pt_genwoman, js/counter.js C.GENERIC -- the fourth cutter seat, the art
   // desk's ART-122, on Griz's "as a specific person with each function as a costume/look they have"): the generic man and woman cut whole, their own clothes' idle and a
   // still a costume; every unnamed id on its person's sheet in its costume, taken to the counter's screen; the townsman spoken to on the street, his idle; a drinker's

@@ -105,6 +105,9 @@ PEOPLE = {
     'brennock': ('brennock/ART-106', 'ART-106', 'talk:brennock', {'bevel': (6,)}),
     'vera': ('vera/ART-107', 'ART-107', 'talk:vera', {'bevel': (6,)}),
     'kess': ('kess/ART-108', 'ART-108', 'keeper:kess', {'bevel': (6,)}),
+    # Falstaff, the factor's clerk of the factor house on Fountain Street, pin 7a (10-29, the cutter seat of 10-29, on Griz's "pinged the art dept for his north
+    # facings, got some tiles in to cut"): the art desk's ART-123-FALSTAFF, its generated sources -- not the coded placeholder in _src/falstaff/rejected/
+    'falstaff': ('falstaff/ART-123-FALSTAFF', 'ART-123-FALSTAFF', 'keeper:falstaff', {'bevel': (2, 3, 4, 5)}),   # (his stills' counter tops bevelled, as Aldwin's: a sliver of it stood under the hands)
     # the generic man and the generic woman (10-28 evening, the fourth cutter seat: the art desk's ART-122, on Griz's "as a specific person with each function as a
     # costume/look they have"): one person each, the townsfolk's man and woman (folkman_p1, folkwoman_p1), their own clothes' idle and a still for each costume in
     # place of the named's moods -- js/counter.js C.GENERIC gives each unnamed id its person and costume. A spear, a pole or a scraper held up beside the head

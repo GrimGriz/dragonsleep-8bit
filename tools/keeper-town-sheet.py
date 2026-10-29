@@ -92,6 +92,10 @@ KEEPERS = {
     'brennock': ('brennock/ART-106', 'ART-106', 'talk:brennock'),
     'vera': ('vera/ART-107', 'ART-107', 'talk:vera'),
     'kess': ('kess/ART-108', 'ART-108', 'keeper:kess'),       # (10-28, the second cutter seat: Aldwin of the mission chapel, not Androit the notary -- tools/portrait-sheet.py)
+    # Falstaff of the factor house, pin 7a (10-29, the cutter seat of 10-29: the art desk's ART-123-FALSTAFF, his figure H2P1 S, P2 SE, P3 E and the eleventh page
+    # P5 N, its "Falstaff Idle Backview" download). Its P4, sold as NE, is drawn from the front, a second SE: sorted to not-NE/, so he is south only till an NE
+    # from behind comes -- then this line cuts all eight as it is. His door has no room (js/town.js T.ROOMS): his sheet for the shows, no square in town yet
+    'falstaff': ('falstaff/ART-123-FALSTAFF', 'ART-123-FALSTAFF', 'keeper:falstaff'),
 }
 
 

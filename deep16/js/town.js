@@ -22,6 +22,7 @@
   T.SCALE = 30;
   T.X0 = 100; T.Y0 = 330; T.X1 = 2470; T.Y1 = 1880; // the floor's window on v6, in feet: the tower and THE road's way west to the river's bend east, the cliff's foot to past the south gate
   T.CLIFF = 352;                          // v6's cliff base: the mountain north of it
+  T.FOUNT = function (F) { return { dy: 26, rim: Math.max(30, F * 0.75), water: Math.max(22, F * 0.55) }; }; // a fountain's basin at a scale, in feet: its middle south of the Edifice's foot, the rim's radius and the water's (v6: 30 ft across the rim, 22 the water; never under a square and a half) -- T.lay, and the basin js/topview.js draws there (TV.basins)
   // Bloodsnout's compound (10-20, his words above): the seat's draft -- behind the fighters' stables (19) and the arena family's house (24), on the open
   // ground east of the Arena Plaza against the stockade, its gate to the plaza; walled stone, a barracks along its back, the yard between, shut (invented.json bloodsnout-compound)
   T.COMPOUND = { x: 1560, y: 1582, w: 115, h: 90, gate: 'w' };
@@ -117,7 +118,7 @@
     });
     fill(V.EDW[0], T.Y0, V.EDW[1], V.EDBOT, function () { return true; }, '#'); // (the Edifice: the dwarves' building in the mountain's face, its squares closed as rock -- drawn whole as the building since 10-28, def.edifice: js/topview.js TV.edStrip)
     // the fountains at the Edifice's foot: a pool in a dressed rim (v6: the basin 30 ft across the rim, 22 the water)
-    V.FOUNT.forEach(function (x) { ellipse(x, V.EDBOT + 26, Math.max(30, F * 0.75), Math.max(30, F * 0.75), '='); ellipse(x, V.EDBOT + 26, Math.max(22, F * 0.55), Math.max(22, F * 0.55), '~'); });
+    var FB = T.FOUNT(F); V.FOUNT.forEach(function (x) { ellipse(x, V.EDBOT + FB.dy, FB.rim, FB.rim, '='); ellipse(x, V.EDBOT + FB.dy, FB.water, FB.water, '~'); });
     // the headframes: the spoil heap, the mouth on it
     V.headframe.forEach(function (f) { var s = f[2]; ellipse(f[0] + 26 * s, f[1] + 16 * s, 44 * s, 24 * s, 'r', OPEN); ellipse(f[0], f[1] + 16 * s, Math.max(7, 15 * s, F * 0.55), Math.max(5, 8 * s, F * 0.55), 'w', OPEN); });
     // the stalls in the open ground (v6 turns each about its corner)

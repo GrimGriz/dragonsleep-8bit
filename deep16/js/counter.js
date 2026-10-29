@@ -25,6 +25,7 @@
   C.VENDORS = {
     winters: { sheet: 'pt_winters', shop: 'winters', buys: 'magic', script: 'winters' }, // (his errands, then his shelves; he buys magic items only -- his word above)
     casper: { sheet: 'pt_casper' }, androit: { sheet: 'pt_androit' }, aldric: { sheet: 'pt_aldric' },
+    falstaff: { sheet: 'pt_falstaff' }, // (the factor house's other door, pin 7a, beside Aldric's: the art desk's ART-123-FALSTAFF, 10-29, on Griz's "pinged the art dept for his north facings, got some tiles in to cut" -- his first-game words at his door on his face, no shop in either game)
     hessle: { sheet: 'pt_hessle', script: 'hessle' }, // (the Weigh-House board's bounties, the first game's S.hessle: C.hessle, 10-22)
     kessler: { sheet: 'pt_kessler', shop: 'kessler' }, calla: { sheet: 'pt_calla', shop: 'calla' }, // (the pawnbroker and the apothecary sell and buy by their first-game shops -- 10-21, Griz: "Yes, open Kessler's and Calla Voss's counters with their first-game shops")
     barber: { sheet: 'pt_barber' },
@@ -101,7 +102,8 @@
     davos: 'davos_p1', // (10-22: Davos Kren behind the leech-house's counter)
     marta: 'marta_p1', ondine: 'ondine_p1', // (10-22: Marta Venn at her stalls on the street -- js/town.js T.PLACE; Madame Ondine Vess's for a door to come)
     aldwin: 'aldwin_p1', tam: 'tam_p1', // (10-28: Aldwin behind the mission chapel's counter; Tam Vere beside her den's door)
-    gull: 'gull_p1', kael: 'kael_p1', brennock: 'brennock_p1', vera: 'vera_p1', kess: 'kess_p1' }; // (10-28: the night crews' five, four on the shaft rows' street, Kess at her door)
+    gull: 'gull_p1', kael: 'kael_p1', brennock: 'brennock_p1', vera: 'vera_p1', kess: 'kess_p1', // (10-28: the night crews' five, four on the shaft rows' street, Kess at her door)
+    falstaff: 'falstaff_p1' }; // (10-29: Falstaff's, south only -- the art desk's NE was drawn from the front: tools/keeper-town-sheet.py. His door has no room behind it (js/town.js T.ROOMS), so no figure in town: his word at the door on his portrait, as Brennan's)
   // who stands on the street beside a door with no room behind it (js/town.js T.floor). Nobody since 10-28 later (RULED, Griz: "Off the street unless it makes NPC sense, the
   // counterless portraits versions when people lean in the door is good"; his "Smoke lady doesn't need to be outside just because we have a facing portrait popup on door"):
   // Marin Voss, Venn the barber, Mela Sorris, Mical, Brennan, Venn Hale, Tam Vere and Kess each keep a house of their own -- the dyer's, the barber-surgeon's chair, the Stew,
