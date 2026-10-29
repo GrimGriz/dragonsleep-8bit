@@ -173,6 +173,7 @@
     var num = function (k, d) { var m = new RegExp('[?&]' + k + '=(\\d+)').exec(q); return m ? +m[1] : d; };
     // the floor as its flags lay it: inside the 8-bit, the game's own; the test's from its address -- &flags=a,b (set), &drained (the stair pumped dry: stairHook)
     var fq = /[?&]flags=([A-Za-z0-9_,:]+)/.exec(q); R.flags0 = {}; if (fq) fq[1].split(',').forEach(function (k) { if (k) R.flags0[k] = 1; }); if (/[?&]drained\b/.test(q)) R.flags0.stairHook = 1;
+    var pq = /[?&]pin=(\w+)/.exec(q); if (pq) R.flags0.pin = pq[1]; // (&pin=<quest>: that quest pinned, its gold marker on the floor -- the eyes rows' doors, 10-29)
     // the floor by the door's name: the Wet (deep16/?roam=wet, the first) or Silverton (deep16/?roam=silverton: the town from the city map v6, js/town.js -- 10-20)
     var fl0 = emb && emb.save ? emb.save.flags || {} : R.flags0;
     // a floor this build has not got is said, not walked as the Wet (10-22, his "threw me straight in the wet": the situations page's LIVE base opened ?roam=warrens_c on a

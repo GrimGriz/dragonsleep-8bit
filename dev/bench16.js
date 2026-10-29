@@ -4496,8 +4496,8 @@
       var gate4 = (b4.def.src8.triggers || []).filter(function (t) { return t.script === 'skarnGate'; })[0], stair4 = w4.def.from8(19, 21);
       okV('THE MISSING FIVE AFTER SKARN: the step "' + ((a4.s && a4.s.where) || '').slice(0, 30) + '..." (' + (a4.s && a4.s.map) + '); the gold marker at the mouth camp on ' + a4.m + ' (the way down to ' + a4.to + '); the stalls with Skarn\'s gate shut, on ' + b4.m + ' (the gate ' + (gate4 && gate4.rect.slice(0, 2)) + '), open, on ' + c4.m + ' (to ' + c4.to + '); the workings, on ' + e4.m + ' (to ' + e4.to + '); the Wet, on ' + w4.m + ' (the stair ' + stair4 + ')',
         !!a4.s && a4.s.map === 'warrens_d' && /^warrens_[bc]$/.test(a4.to || '') && !!gate4 && !!b4.m && b4.m[0] === gate4.rect[0] && b4.m[1] === gate4.rect[1] && c4.to === 'warrens_d' && e4.to === 'warrens_d' && !!w4.m && w4.m[0] === stair4[0] && w4.m[1] === stair4[1]);
-      var r4 = mark4('?roam=wet&flags=' + f4 + ',fiveRecovered');
-      okV('and the five recovered: back to Edric, the marker on the Wet\'s way up (' + r4.m + ', to ' + r4.to + ')', !!r4.s && r4.s.npc === 'edric' && /^warrens_[bc]$/.test(r4.to || ''));
+      var r4 = mark4('?roam=wet&flags=' + f4 + ',fiveRecovered'), p4 = testV('?roam=warrens&flags=' + f4 + '&pin=warrens').roam.flags.pin;
+      okV('and the five recovered: back to Edric, the marker on the Wet\'s way up (' + r4.m + ', to ' + r4.to + '); the eyes row\'s door pins it by &pin= (' + p4 + ')', !!r4.s && r4.s.npc === 'edric' && /^warrens_[bc]$/.test(r4.to || '') && p4 === 'warrens');
       // 5. THE REST'S DAY BEFORE THE MORNING'S PICKS (his "time change post rest happens visually after selecting the days spells and such, feels like that visual change should land
       // beforehand"): at the crews' fire at night, LONG REST -- with the morning up the floor is already at its waking hour, day, and its line said after
       var B5 = testV('?roam=glowseep&hour=23'), d5 = RV.def.hour, g5 = MV.seepFire(B5);
