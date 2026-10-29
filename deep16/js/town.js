@@ -34,8 +34,9 @@
   // T.TROUGH squares wide and deep at any scale, flush against the Edifice's foot as the Skylights' pools stand (deep16/data/maps.js `edifice`), its water squares laid
   // by T.lay and its stone drawn from the art desk's squared basin tiles (ART-124 HEAD 3: js/topview.js TV.trough) -- the three squares round the one nearest the
   // spout, a tie taken west (at 30 ft the first spout falls on a square's edge, and east its trough touched the next one's), the spout drawn over the middle one.
-  // &fount=round on the page's address lays and draws the round fountains as they were, set out from the wall (TV.fountains), to compare
-  T.TROUGH = [3, 1];
+  // &fount=round on the page's address lays and draws the round fountains as they were, set out from the wall (TV.fountains), to compare. One square by one since 10-29 night
+  // (the house seat of 10-29 night, on Griz's "one-square long and 1 square deep is probably more accurate", in place of the 1 x 3 ruled that day): the square nearest the spout
+  T.TROUGH = [1, 1];
   T.ROUND = typeof location !== 'undefined' && /[?&]fount=round\b/.test(location.search || '');
   T.troughAt = function (fx, F) { // a spout's trough at a scale: its first square from the town's west edge, and its middle in feet (where the spout is drawn)
     var mid = Math.round((fx - T.X0) / F - 0.5 - 1e-6), gx0 = mid - (T.TROUGH[0] - 1) / 2;
@@ -477,6 +478,31 @@
     });
     if (D.spr.prefetch) D.spr.prefetch(kinds);
     D.grid.setup(D.grid.map, B.units);
+  };
+  // THE KEEPERS' WATCH (10-29 night, the house seat, on Griz's note on Skarn, "never see the turn, switches to portrait and he's facing south again after talking", and his
+  // "doesn't hurt to not see skarn's side, we can rotate NPCs if the PCs are in a 'monitored' location"): a keeper drawn all round (js/counter.js C.FIG, no holdFacing) turns
+  // to the party while it stands where they watch -- within T.WATCH squares of them (in a shop's room, the whole room) and in their sight: a wall, a house or the rock between hides it,
+  // a counter, a crate or a stall does not -- and back to the way they faced when it goes. So the turn is seen as the party walks up, before the talk's portrait; on the mine
+  // floors the talk is M.talk's (js/mines.js), which turned no one. Run each frame the floor is walked (js/roam.js B.update); a facing set by anything else stands till a watch
+  T.WATCH = 3;
+  T.sees = function (a, b) { // (square to square, the ends left out: what stands taller than a counter blocks it)
+    var G = D.grid, BL = (D.topview && D.topview.BLOCK) || {}, L = G.line(a.x, a.y, b.x, b.y);
+    for (var i = 0; i < L.length; i++) {
+      var x = L[i][0], y = L[i][1]; if ((x === a.x && y === a.y) || (x === b.x && y === b.y)) continue;
+      var s = G.map.at(x, y); if (!s) return false;
+      if (!s.open && !(s.block && (BL[s.block] || 99) <= BL.K)) return false;
+    }
+    return true;
+  };
+  T.watch = function (B) {
+    var R0 = B.roam, t = R0 && R0.token, C = D.counter, def = D.roam && D.roam.def; if (!t || !C || !C.FIG || !D.grid.map || !def || !def.town) return;
+    var reach = def.room && !def.hexIn ? 99 : T.WATCH; // (a shop's room whole; the Hex's floors as the street)
+    B.units.forEach(function (u) {
+      if (typeof u.npc !== 'string' || u.holdFacing || !u.sheet || C.FIG[u.npc] !== u.sheet) return;
+      var dx = t.x - u.x, dy = t.y - u.y, sees = (dx || dy) && Math.max(Math.abs(dx), Math.abs(dy)) <= reach && T.sees(u, t);
+      if (sees) { if (!u.watchHome) u.watchHome = [u.facing]; u.facing = D.spr.facingFor(dx, dy); }
+      else if (u.watchHome) { u.facing = u.watchHome[0]; u.watchHome = null; }
+    });
   };
   T.say = function (B, id) { // a person's word: the 8-bit's first talk whose condition holds (content/npcs.json), else a rumour of theirs, else their name
     var N = ((window.DS.DATA || {}).npcs || {})[id] || {}, R0 = B.roam, f = (R0 && R0.flags) || {};

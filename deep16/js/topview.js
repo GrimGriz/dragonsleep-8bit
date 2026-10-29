@@ -349,11 +349,11 @@
         if (h > 41) { var mr = Math.floor(u / 6) % 2 === 0; c = mr ? NZ.rampPick(silver, h > 44 ? 0.7 : 0.55, gx, Y) : NZ.rampPick(stone, 0.3, gx, Y); } // (the merlons along the top)
         var wy = h > 19 && h < 26 ? [19, 26] : h > 33 && h < 39 ? [33, 39] : null; // (a window on the second floor and the third, its frame)
         if (wy && bu > 10 && bu < 14) c = bu < 10 + 1 / kx || bu > 14 - 1 / kx || h < wy[0] + 1 / kv || h > wy[1] - 1 / kv ? silver[2] : NZ.rampPick(blue, 0.12 + ((gx + Y) % 7 === 0 ? 0.2 : 0), gx, Y);
-        if (b % 4 === 2 && bu > 2.5 && Math.abs(dv) > vaultR + 4 && archOK(mid)) { var rr = Math.abs(u - mid) / 9.5; if (h < 15 - 4 * rr * rr) c = h > 14.2 - 4 * rr * rr ? silver[5] : NZ.rampPick(stone, 0.05 + (h / 15) * 0.1, gx, Y); } // (an arch of the arcade at the foot, every fourth bay)
+        if (b % 4 === 2 && bu > 2.5 && Math.abs(dv) > vaultR + 4 && archOK(mid)) { var rr = Math.abs(u - mid) / 9.5, ak = 15 - 4 * rr * rr; if (h < ak) c = h > ak - 0.8 ? silver[5] : h > ak - 1.6 ? NZ.rampPick(silver, 0.18, gx, Y) : NZ.rampPick(silver, 0.36 + n * 0.08 - (course || joint ? 0.14 : 0), gx, Y); } // (an arch of the arcade at the foot, every fourth bay -- blind since 10-29 night, on Griz's "the black arches are still present": its field the wall's ashlar a step back in the shade, the ring's shadow under it, no black opening)
         if (Math.abs(dv) < vaultR) { // the vault's great arch and its two doors
           var vr = Math.abs(dv) / vaultR, archTop = 30 - 8 * vr * vr;
           if (h < archTop) {
-            c = h > archTop - 1 ? silver[5] : NZ.rampPick(stone, 0.06, gx, Y);
+            c = h > archTop - 1 ? silver[5] : h > archTop - 2 ? NZ.rampPick(silver, 0.18, gx, Y) : NZ.rampPick(silver, 0.32 + n * 0.08 - (course || joint ? 0.14 : 0), gx, Y); // (round the doors the arch's stone in the shade, not black: since 10-29 night, as the arcade's)
             var lf = Math.abs(dv) > 3 && Math.abs(dv) < 52 && h < 24; if (lf) {
               var la = dv < 0 ? -52 : 3, lb = dv < 0 ? -3 : 52, fu = (dv - la) / (lb - la), fh = h / 24, brace = Math.abs(fu - fh) < 0.035 || Math.abs(fu - (1 - fh)) < 0.035, cu = (la + lb) / 2, ring = Math.hypot(dv - cu, h - 12);
               c = brace ? leather[0] : NZ.rampPick(leather, 0.32 + ((Math.abs(dv) % 3) < 0.35 ? -0.18 : 0) + n * 0.06, gx, Y); // (planks, the X of braces)
@@ -450,7 +450,7 @@
     }
     return (BASIN[n] = c.cv);
   };
-  // a trough (since 10-29, the Edric and Dace cutter seat, on Griz's "1 x 3 at each pour spigot should give the look of the skylights battlemap": js/town.js T.TROUGH),
+  // a trough (since 10-29, the Edric and Dace cutter seat, on Griz's "1 x 3 at each pour spigot should give the look of the skylights battlemap": js/town.js T.TROUGH, one by one since that night),
   // w squares by h, built from the same pieces by quarters as TV.basin's circle; `v` its water's variants (each beat's frame its own: TV.fountFx). The spout's pour over
   // its north rim into the water, and its splash, are drawn on it too -- the facade's pour (TV.edStrip) ends at the wall's foot, where the trough's rim begins
   var TROUGH = {};

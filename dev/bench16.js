@@ -6241,6 +6241,71 @@
   // his word at his door on his face (his door has no room); ART-124 HEAD 3 cut into fountains_p1 (tools/toptiles-sheet.py fountains), the eight fountains' basins laid
   // whole by js/topview.js TV.basins round the squares js/town.js lays (T.FOUNT); its HEAD 2, the whole fountain, the same night on his "let's bundle wystan for when we
   // get the rest of the game to post snoot and cut the fountains", laid there in place of the built basin
+  // THE HOUSE SEAT OF 10-29 NIGHT (mode=house1029n), on Griz's ear file of 2212Z and his answers to the lanes desk: his route at night -- Silverton's street at 23:00, out by
+  // the feed track, the Warrens' mouth camp at the same hour and drawn by it (js/mines.js THE SKY OVER THE MOUTHS), a bunk's night bringing the morning onto it; the Galleries'
+  // mouth by the hour; and the keepers drawn all round turning to the party where they watch (js/town.js T.watch), Skarn at his camp and a keeper on Silverton's street.
+  // (The troughs one by one and the Edifice's foot without black: mode=cut1029)
+  if (get('mode', '') === 'house1029n') {
+    var repN = { checks: [], errors: [] }, memN = {}, stGN = D.store.get, stSN = D.store.set, HN = D.house, TN = D.town, MN = D.mines, WN = D.world, CN = D.counter;
+    function okN(what, v) { repN.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function driveN(g, until, cap) { var v, k = 0, st; while (g && k++ < (cap || 600)) { if (until && until()) return; st = g.next(v); v = undefined; if (st.done) return; } }
+    function topN() { var s = D.top(); if (s && s.baking) { s.baking = false; s.enter(); } return s; }
+    function darkAt(B, gx, gy) { var cv = document.createElement('canvas'); cv.width = D.W; cv.height = D.H; var cx = cv.getContext('2d'); cx.fillStyle = '#ffffff'; cx.fillRect(0, 0, D.W, D.H); MN.paintSky(cx, B); var cc = D.iso.center(gx, gy, 0), p = D.iso.toScreen(cc.x, cc.y), x = Math.max(0, Math.min(D.W - 1, Math.round(p.x))), y = Math.max(0, Math.min(D.H - 1, Math.round(p.y))), d = cx.getImageData(x, y, 1, 1).data; return d[0] + d[1] + d[2]; } // (white under the sky's wash: what it leaves there, 765 for none)
+    D.store.get = function (k) { return memN[k] ? JSON.parse(memN[k]) : null; }; D.store.set = function (k, v) { memN[k] = JSON.stringify(v); return true; };
+    try {
+      D.seed = +get('seed', 1029);
+      // 1. HIS ROUTE AT NIGHT: a NEW GAME on Silverton's street, the clock to 23:00 and the street laid for it, then out by the feed track (js/mines.js M.FEED, T.wayOut)
+      HN.begin(HN.fresh(), 0); var BS = topN(), SN = WN.state(); SN.t = Math.floor(SN.t / 24) * 24 + 23; if (D.hours && D.hours.relay) D.hours.relay(BS, WN.hour());
+      var t0N = SN.t, nightS = !!D.roam.def.night;
+      driveN(TN.wayOut(BS, MN.FEED.slice()), function () { return D.roam.def && D.roam.def.key === 'warrens'; }, 400); var BW = topN(), dW = D.roam.def;
+      okN('his route: Silverton\'s street at night (' + nightS + ', ' + D.roam.def.hello[0].slice(0, 0) + 'THE WORLD at ' + (t0N % 24) + ':00), out by the feed track -- the Warrens\' mouth camp at the same hour (' + (dW && dW.key) + ', its hour ' + (dW && dW.hour) + ', THE WORLD\'s ' + WN.hour() + ', ' + (SN.t - t0N) + ' h spent on the way)',
+        nightS && !!dW && dW.key === 'warrens' && dW.hour === 23 && WN.hour() === 23 && SN.t === t0N && BW && BW.roam);
+      var tkW = BW && BW.roam && BW.roam.token, farW = tkW ? darkAt(BW, Math.max(0, tkW.x - 9), Math.max(0, tkW.y - 6)) : -1, nearW = tkW ? darkAt(BW, tkW.x, tkW.y) : -1, lampW = (dW.skyLights || []).filter(function (l) { return l.door; });
+      okN('the mouth camp drawn by the hour: night (' + dW.night + '), its hello and HUD say so ("' + String(dW.hello[0]).replace(/\{[a-z/]+\}/g, '').slice(-30) + '"), the dark wash away from the party (white left at ' + farW + ' of 765) and a pool round it (' + nearW + '); its doors lit, the bunkhouses\' among them (' + lampW.map(function (l) { return l.door; }).join(', ') + ')',
+        dW.night === true && !dW.dusk && /night\.$/.test(dW.hello[0]) && farW >= 0 && farW < 300 && nearW > 500 && lampW.some(function (l) { return l.door === 'keeper:bunkhouse'; }));
+      // a bunk's night: the morning on the floor
+      var innK = Object.keys(MN.INNS).filter(function (k) { return (dW.src8.triggers || []).some(function (t) { return t.id === k; }); })[0];
+      if (innK) driveN(MN.sleep(BW, MN.INNS[innK]), null, 300); var dW2 = D.roam.def;
+      okN('a bunk\'s night there (' + innK + '): the morning on the floor (' + dW2.key + ', its hour ' + dW2.hour + ', THE WORLD day ' + WN.day() + ' ' + WN.hour() + ':00), no night drawn (' + dW2.night + ', ' + (BW ? darkAt(BW, 1, 1) : -1) + ' of 765)',
+        !!innK && dW2.key === 'warrens' && dW2.hour === WN.MORNING && WN.hour() === WN.MORNING && dW2.night === false && BW && darkAt(BW, 1, 1) === 765);
+      while (D.top() !== BW && D.scenes.length > 1) D.pop();
+      // the Galleries' mouth by the hour, and a floor under the rock left to its own dark
+      var gN = MN.floor('galleries', '', {}, 23), gD = MN.floor('galleries', '', {}, 18), gM = MN.floor('galleries', '', {}, 12), wB = MN.floor('warrens_b', '', {}, 23);
+      okN('the Galleries\' mouth by the hour: night at 23 (' + gN.night + '), dusk at 18 (' + gD.dusk + '), neither at noon (' + gM.night + ', ' + gM.dusk + '); the stalls under the rock not the sky\'s (' + !!wB.sky + ', its dark ' + wB.dark + ')',
+        gN.night === true && gD.dusk === true && !gD.night && gM.night === false && gM.dusk === false && !wB.sky && !wB.night);
+      MN.floor('warrens', '', {}, WN.hour()); D.roam.def = dW2; // (M.floor writes D.MAPS: the floor's own put back)
+      // 2. THE KEEPERS' WATCH (js/town.js T.watch): Skarn drawn all round at his camp turns to the party within T.WATCH squares and in his sight, and back as it goes
+      var sk = BW.units.filter(function (u) { return u.npc === 'skarn'; })[0], tk = BW.roam.token, open = function (x, y) { var s = D.grid.map.at(x, y); return !!s && s.open && !D.grid.occupant(x, y); };
+      var home = sk && sk.facing, spot = null, hid = null;
+      if (sk) for (var r = 1; r <= TN.WATCH && !spot; r++) [[r, 0], [-r, 0], [r, r], [-r, r], [0, -r]].forEach(function (o) { if (!spot && open(sk.x + o[0], sk.y + o[1]) && TN.sees(sk, { x: sk.x + o[0], y: sk.y + o[1] }) && D.spr.facingFor(o[0], o[1]) !== home) spot = o; });
+      if (sk) for (var hy = -TN.WATCH; hy <= TN.WATCH && !hid; hy++) for (var hx = -TN.WATCH; hx <= TN.WATCH && !hid; hx++) if ((hx || hy) && open(sk.x + hx, sk.y + hy) && !TN.sees(sk, { x: sk.x + hx, y: sk.y + hy })) hid = [hx, hy];
+      var ox0 = tk.x, oy0 = tk.y, f1 = null, f2 = null, f3 = null, f4 = null;
+      if (sk && spot) { tk.x = sk.x + spot[0]; tk.y = sk.y + spot[1]; BW.roam.mode = 'walk'; BW.update(); f1 = sk.facing; tk.x = sk.x + 9; tk.y = Math.min(D.grid.map.h - 1, sk.y + 9); TN.watch(BW); f2 = sk.facing; }
+      if (sk && hid) { tk.x = sk.x + hid[0]; tk.y = sk.y + hid[1]; TN.watch(BW); f3 = sk.facing; }
+      if (sk && spot) { sk.holdFacing = true; tk.x = sk.x + spot[0]; tk.y = sk.y + spot[1]; TN.watch(BW); f4 = sk.facing; sk.holdFacing = false; TN.watch(BW); }
+      tk.x = ox0; tk.y = oy0; TN.watch(BW);
+      okN('Skarn at his camp (' + (sk && [sk.x, sk.y, sk.sheet]) + ', facing ' + home + '): the party ' + JSON.stringify(spot) + ' from him -- he turns to it on the floor\'s own frame (' + f1 + ', want ' + (spot && D.spr.facingFor(spot[0], spot[1])) + '), and back as it walks off (' + f2 + ')',
+        !!sk && !!spot && sk.sheet === CN.FIG.skarn && f1 === D.spr.facingFor(spot[0], spot[1]) && f2 === home);
+      okN('out of his sight (' + JSON.stringify(hid) + ': ' + (hid ? 'he keeps his facing, ' + f3 : 'no square within ' + TN.WATCH + ' hidden from him here') + '); a keeper held facing south (holdFacing) never turns (' + f4 + ')', (!hid || f3 === home) && f4 === home);
+      // a keeper on Silverton's street, drawn all round: the same
+      HN.begin(HN.fresh(), 0); var BS2 = topN(), tk2 = BS2.roam.token, kp = null, ksp = null;
+      BS2.units.forEach(function (u) {
+        if (kp || typeof u.npc !== 'string' || u.holdFacing || CN.FIG[u.npc] !== u.sheet) return;
+        [[1, 0], [-1, 0], [0, 1], [1, 1], [-1, 1], [2, 0], [0, 2]].forEach(function (o) { var s = D.grid.map.at(u.x + o[0], u.y + o[1]); if (!ksp && s && s.open && !D.grid.occupant(u.x + o[0], u.y + o[1]) && TN.sees(u, { x: u.x + o[0], y: u.y + o[1] }) && D.spr.facingFor(o[0], o[1]) !== u.facing) { ksp = o; kp = u; } });
+      });
+      var kh = kp && kp.facing, kf1 = null, kf2 = null;
+      if (kp) { tk2.x = kp.x + ksp[0]; tk2.y = kp.y + ksp[1]; TN.watch(BS2); kf1 = kp.facing; tk2.x = kp.x + 12; TN.watch(BS2); kf2 = kp.facing; }
+      okN('a keeper drawn all round on Silverton\'s street (' + (kp && kp.npc + ' at ' + [kp.x, kp.y]) + '): turns to the party ' + JSON.stringify(ksp) + ' from them (' + kf1 + ') and back (' + kf2 + ', ' + kh + ')', !!kp && kf1 === D.spr.facingFor(ksp[0], ksp[1]) && kf2 === kh);
+      // 3. the same walk on the test door with no game under it (his eyes row's door): Silverton at &hour=23, out by the feed track, the camp at 23 (M.cross carries &hour)
+      HN.playing = false; HN.cur = null; while (D.scenes.length) D.pop(); D.push(D.roam.make('?roam=silverton&hour=23')); var BT = topN();
+      driveN(TN.wayOut(BT, MN.FEED.slice()), function () { return D.roam.def && D.roam.def.key === 'warrens'; }, 400); topN(); var dT = D.roam.def;
+      okN('the test door\'s walk too (?roam=silverton&hour=23, no game): the camp at ' + dT.hour + ', night ' + dT.night, dT.key === 'warrens' && dT.hour === 23 && dT.night === true);
+    } catch (eN) { repN.errors.push(String(eN && eN.stack || eN).slice(0, 900)); }
+    D.store.get = stGN; D.store.set = stSN; if (D.house) { D.house.playing = false; D.house.cur = null; }
+    var preN = document.createElement('pre'); preN.id = 'out'; preN.textContent = 'BENCH16 ' + JSON.stringify(repN);
+    document.body.appendChild(preN);
+    return;
+  }
   if (get('mode', '') === 'cut1029') {
     var repF = { checks: [], errors: [] }, memF = {}, stGF = D.store.get, stSF = D.store.set, CF = D.counter, HF = D.house, TF = D.town, TVF = D.topview;
     function okF(what, v) { repF.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
@@ -6307,11 +6372,31 @@
         });
         var near = Object.keys(nearS).length, gaps = spans.slice(1).map(function (s, k) { return s[0] - spans[k][1] - 1; }).filter(function (g, k) { return k !== 3; }); // (the west four and the east four: the vault between)
         okF('at ' + F + ' ft a square: a trough ' + TR[0] + ' x ' + TR[1] + ' at each of the eight spouts, flush against the Edifice\'s foot (row ' + gyF + '), the spout over its middle -- squares ' + spans.map(function (s) { return s[0] + '-' + s[1]; }).join(' ') + '; ' + near + ' water squares near them' + (bad.length ? ' -- wrong: ' + bad.join(' ') : '') + '; the gaps ' + gaps.join(','),
-          !bad.length && near === 8 * TR[0] * TR[1] && gyF === Math.round(gyF) && (F !== 30 || gaps.every(function (g) { return g >= 1; })) && TR[0] === 3 && TR[1] === 1);
+          !bad.length && near === 8 * TR[0] * TR[1] && gyF === Math.round(gyF) && (F !== 30 || gaps.every(function (g) { return g >= 1; })) && TR[0] === 1 && TR[1] === 1); // (one by one since 10-29 night, the house seat, on Griz's "one-square long and 1 square deep is probably more accurate")
       });
       var mtF = BF && BF.map, ftF = mtF && mtF.top ? TVF.fountains(mtF) : null;
       okF('the top view lays the troughs on those squares (TV.fountains: ' + (ftF ? ftF.length + ', the first ' + JSON.stringify(ftF[0]) : 'no top view on this floor') + '), and draws them from the squared tiles (TV.trough)',
-        typeof TVF.trough === 'function' && (!ftF || (ftF.length === 8 && ftF.every(function (f) { return f.trough && f.w === 3 * TVF.TS && f.h === TVF.TS && f.x === Math.round(f.x / TVF.TS) * TVF.TS; }))));
+        typeof TVF.trough === 'function' && (!ftF || (ftF.length === 8 && ftF.every(function (f) { return f.trough && f.w === TVF.TS && f.h === TVF.TS && f.x === Math.round(f.x / TVF.TS) * TVF.TS; }))));
+      // NO BLACK ON THE EDIFICE'S FOOT (10-29 night, the house seat, on Griz's "the black arches are still present" and "edifice still has black arch tiles though"): the facade
+      // drawn whole (TV.edStrip) at 30, 10 and 5 ft, and below its second string course not a pixel of the two darkest stones or silvers -- the arcade's arches blind, the vault's
+      // doors in the arch's stone -- but the spouts' mouths and the doors' bosses, which are meant dark
+      var blackF = [];
+      [30, 10, 5].forEach(function (F) {
+        if (!mtF || !mtF.def.edifice) { blackF.push(F + ': no Edifice'); return; }
+        var V6E = D.TOWN_V6, eF = { x0: Math.floor((V6E.EDW[0] - TF.X0) / F), y0: 0, x1: Math.floor((V6E.EDW[1] - TF.X0) / F), y1: Math.floor((V6E.EDBOT - TF.Y0) / F), ax: V6E.AX, fount: V6E.FOUNT.slice() }; eF.fx0 = TF.X0 + eF.x0 * F; // (def.edifice at that scale, js/town.js T.floor's)
+        var mE = { def: Object.assign({}, mtF.def, { ft: F, edifice: eF }), top: {} }, Tq = TVF.TS, Hf = TVF.edH(mE), kx = Tq / F, kv = Hf / TVF.EDFT, rowsH = (eF.y1 - eF.y0 + 1) * Tq;
+        var Wt = (eF.x1 - eF.x0 + 1) * Tq, spF = eF.fount.map(function (fx) { return TF.troughAt(fx, F).x; }), stn = D.iso.ramp('stone'), slv = D.iso.ramp('silver'), darks = [stn[0], stn[1], slv[0]].map(function (c) { return c.join(); }), n = 0, seen = 0;
+        for (var i = 0; i * TVF.EDSTRIP < Wt; i++) {
+          var cv = TVF.edStrip(mE, i), px = cv.getContext('2d').getImageData(0, 0, cv.width, cv.height).data;
+          for (var Y = rowsH; Y < cv.height; Y++) for (var X = 0; X < cv.width; X++) {
+            var u = eF.fx0 + (i * TVF.EDSTRIP + X) / kx, h = (Hf - (Y - rowsH)) / kv, dv = u - eF.ax; if (h >= 29.3) continue;
+            if (spF.some(function (sx) { return Math.hypot(u - sx, h - 12) < 1.3; }) || Math.hypot(Math.abs(dv) - 27.5, h - 12) < 1.5) continue; seen++;
+            var o = (Y * cv.width + X) * 4; if (darks.indexOf([px[o], px[o + 1], px[o + 2]].join()) >= 0) n++;
+          }
+        }
+        if (n) blackF.push(F + ' ft: ' + n + ' of ' + seen);
+      });
+      okF('the Edifice\'s foot drawn whole at 30, 10 and 5 ft (TV.edStrip): no black openings below its second string course -- the arcade\'s arches blind, the vault\'s doors in the arch\'s stone' + (blackF.length ? ' -- black: ' + blackF.join('; ') : ''), !blackF.length);
     } catch (eF) { repF.errors.push(String(eF && eF.stack || eF).slice(0, 900)); }
     D.store.get = stGF; D.store.set = stSF; if (D.house) { D.house.playing = false; D.house.cur = null; }
     var preF = document.createElement('pre'); preF.id = 'out'; preF.textContent = 'BENCH16 ' + JSON.stringify(repF);
