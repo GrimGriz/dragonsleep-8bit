@@ -2197,6 +2197,8 @@ Where: the Warrens' camp (`edric`). Cut as: `tools/portrait-sheet.py` (a `PEOPLE
 
 ### Corwen Dace (asked 10-28 in art-wanted section 26; drawn 10-29 by the art desk, ART-123-DACE, every HEAD; CUT 10-29, `f5e16cac`)
 
+**And the cloak of displacement** (10-29, his ask to the art desk, in its README: *"I also need variants where his cloak is a cloak of displacement (obviously magical)"*; to the lanes desk, *"Dace in Displacement Cloak sprites to follow"*): the art desk's ART-123-DACE-DISPLACEMENT, the same eleven pages as a second look -- the cloak violet, a blue afterimage of him offset screen-right -- CUT `f6a20453` into `pt_dacedisp` and `dacedisp_p1`, for the shows only (where he wears it is his word); filed in `_src/dace/ART-123-DACE-DISPLACEMENT/`, the return `ENGINE-RETURN-2026-10-29k-art123-dace-displacement.md`.
+
 Moved here 2026-10-29 by the Edric and Dace cutter seat (the same word). The art desk's own choices: chestnut hair greying at the temples, clean-shaven, a brown tunic, the cloak plain brown-grey with a simple clasp, no glow; its note, his face reads younger than forty-four. His satchel's leather kept out of the reds on the town figure. In a fight, as the party's guest, he still wears the class floor's wizard (his sheet is an idle's only). The return: `deep16/_src/outbox/ENGINE-RETURN-2026-10-29j-art123-dace.md`. The block as it was asked:
 
 ### Corwen Dace
@@ -2222,3 +2224,23 @@ HEADs 1-6 (the talking portrait): 16-bit pixel-art cut-scene portrait animation,
 HEADs 7-11 (the town figure): 16-bit pixel art animation sheet, SNES-era action RPG style, crisp dark outline, readable at small size. Isometric three-quarter view from above, the camera looking down at about thirty degrees, as in a tactics game -- the grid's own figures. The whole figure head to foot, the same size and proportions as the attached figures (a grown man stands about 50 pixels from sole to crown at game size; draw it large, the cutter brings it down). Flat dark navy background (a deep blue, not grey and not black). ONE sheet filling the whole image: no portrait, no other panels, no title. One labelled row of frames, its name at its left, numbered 1 to N under each frame -- every number used once, none skipped. Every frame stands apart with clear space around it. Feet on one baseline. No scenery, no counter.
 ```
 Where: the Galleries (`dace`, `dacedown`). Cut as: `tools/portrait-sheet.py` (a `PEOPLE` line) into `pt_dace`; `tools/keeper-town-sheet.py` into `dace_p1` in all five views (HEAD 7 S, 8 SE, 9 E, 10 NE, 11 N; SW, W, NW their mirrors); js/counter.js C.VENDORS and C.FIG.
+
+### Talmok (asked 10-28 in art-wanted section 26, a portrait only; drawn 10-29 by the art desk, ART-123-TALMOK, with five town facings added on Griz's word; CUT 10-29, the portrait, `59993fcc`)
+
+Moved here 2026-10-29 by the Edric and Dace cutter seat (the lanes desk's "Take Talmok after Dace"). Two zips: the six portrait pages (18:46Z), then the same six byte for byte with his five town facings, HEAD 2 S to N (18:56Z, its README: "User added full-body facings ... Runtime target talmok_p1 Idle rows, preserve all old runtime action rows"). The portrait cut and his word in the Hex on it; the facings filed in `_src/talmok/ART-123-TALMOK/`, not cut -- how they are worn against his fight sheet `talmok_p1` is a question with the lanes desk. The return: `deep16/_src/outbox/ENGINE-RETURN-2026-10-29l-art123-talmok.md`. The block as it was asked:
+
+### Talmok (a portrait only)
+ATTACH `deep16/_src/winters/ART-78/ART-78_HEAD-1_PAGE-1.png` and `ART-78_HEAD-1_PAGE-6.png` (the format only) and his own figure as the grid draws it (`deep16/art/talmok_p1.png`, for the face and look).
+```text
+TALMOK -- the Hex's champion, a human plains barbarian who talks to horses, sitting easy on the edge of the sand: as the attached figure shows him.
+
+HEAD 1 -- IDLE (6, two bands of three): a breathing and blink loop at the counter, hands resting on it; loops cleanly.
+HEAD 2 -- ATTENTIVE (1): neutral listening.
+HEAD 3 -- WELCOMING (1): restrained warmth.
+HEAD 4 -- SKEPTICAL (1): looking the speaker over the way he looks over a horse.
+HEAD 5 -- CONCERNED (1): a guarded refusal.
+HEAD 6 -- WORK (6, two bands of three): wraps a strip of cloth round his fist and knuckles, tests it, rests; the last frame the hands back at rest.
+
+HEADs 1-6: 16-bit pixel-art cut-scene portrait animation, comparable to the art desk's ART-78 (Ambrose Winters) and Sylvia Swann. Waist-up behind a plain dark wooden counter ledge, a stable eye-level three-quarter front camera, looking screen left at someone just beside the camera; the head and body the same size on every page as on the Idle page. Crisp pixel clusters and restrained shading. Flat dark navy background (a deep blue, not grey and not black). Each image 1440 x 810, ONE action an image, six-frame actions in two bands of three with clear gutters; the counter ledge under the hands on every frame, its top edge at the same height. A title and frame numbers as on ART-78's pages, kept well clear of the drawings. No scenery, no UI or border.
+```
+Cut as: `pt_talmok` (`tools/portrait-sheet.py`); the Hex, by the sand (`talmok`).
