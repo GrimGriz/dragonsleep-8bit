@@ -2,9 +2,9 @@
 'use strict';
 (window.D16 = window.D16 || {}).SHEETS = {
 "aboleth_p1": {
-"image": "art/aboleth_p1.png?v=adc978077d",
+"image": "art/aboleth_p1.png?v=c4a39934de",
 "fw": 152,
-"fh": 84,
+"fh": 88,
 "ax": 76,
 "ay": 76,
 "top": 59,
@@ -12,77 +12,77 @@
 "idle": {
 "y": 0,
 "fw": 152,
-"fh": 84,
+"fh": 88,
 "ax": 76,
 "ay": 76,
 "frames": 6,
 "fps": 6
 },
 "walk": {
-"y": 672,
+"y": 704,
 "fw": 152,
-"fh": 84,
+"fh": 88,
 "ax": 76,
 "ay": 76,
 "frames": 8,
 "fps": 8
 },
 "hurt": {
-"y": 1344,
+"y": 1408,
 "fw": 152,
-"fh": 84,
+"fh": 88,
 "ax": 76,
 "ay": 76,
 "frames": 6,
 "fps": 8
 },
 "flinch": {
-"y": 2016,
+"y": 2112,
 "fw": 152,
-"fh": 84,
+"fh": 88,
 "ax": 76,
 "ay": 76,
 "frames": 4,
 "fps": 10
 },
 "tentacles": {
-"y": 2688,
+"y": 2816,
 "fw": 152,
-"fh": 84,
+"fh": 88,
 "ax": 76,
 "ay": 76,
 "frames": 6,
 "fps": 10
 },
 "prone": {
-"y": 3360,
+"y": 3520,
 "fw": 152,
-"fh": 84,
+"fh": 88,
 "ax": 76,
 "ay": 76,
 "frames": 2,
 "fps": 6
 },
 "tail": {
-"y": 4032,
+"y": 4224,
 "fw": 152,
-"fh": 84,
+"fh": 88,
 "ax": 76,
 "ay": 76,
 "frames": 6,
 "fps": 10
 },
 "enslave": {
-"y": 4704,
+"y": 4928,
 "fw": 152,
-"fh": 84,
+"fh": 88,
 "ax": 76,
 "ay": 76,
 "frames": 6,
 "fps": 8
 }
 },
-"source": "drawn by the art desk (ART-19, all five views, 10-21), cut by tools/aboleth-sheet.py through tools/artdesk.py (10-22)"
+"source": "drawn by the art desk (ART-19, all five views, 10-21; its ART-118 best-of for E hurt, E prone, NE hurt, NE prone, S prone, SE hurt, SE prone, 10-28), cut by tools/aboleth-sheet.py through tools/artdesk.py (10-22)"
 },
 "aldric_p1": {
 "image": "art/aldric_p1.png?v=87fd896283",

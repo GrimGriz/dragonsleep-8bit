@@ -18,6 +18,8 @@ Cut, scaled and placed by tools/artdesk.py. Its size (the seat's call): 56 px fr
 462, sides 481 and 487, back 479 px, one page); a Large swimmer, near the manticore's 58. A later page by its first frame against its view's
 Idle 1 (every Idle frame counted), a Fall page by its Fall 1, a Prone page by its Prone 1 at its own view's Fall 6. Two passes: the second tones
 every page per channel to its own view's first-pass idle, the others to the E's.
+ART-118 (10-28, the art desk's best-of for the Fall and Prone pages, PARTIAL): seven rows taken (ADOPT below), built in a second pass with its
+own colour rule and laid over the first, every other row the first pass's byte for byte.
 """
 import os, sys, json
 import importlib.util
@@ -32,7 +34,7 @@ def _load(name):
 pix, AD = _load('pixelate'), _load('artdesk')
 
 NAME = 'aboleth_p1'
-FW, FH, AX, AY = 152, 84, 76, 76             # (its tentacles and tail 74 px each side, a raised tentacle 74 up)
+FW, FH, AX, AY = 152, 88, 76, 76             # (its tentacles and tail 74 px each side, a raised tentacle 74 up; 88 tall since ART-118's E Fall, whose third frame hangs its tentacles 11 below the anchor, the anchor where it was)
 STAND = {'side': 56, 'S': 56, 'N': 56}
 
 def R(*rows):
@@ -124,6 +126,46 @@ for _L, (_f, _a, _b, _t) in ENSLAVEP.items():
 # band set high by a raised tentacle): boxed by hand
 for _L, _b in {'H2P1': (40, 50, 112, 82), 'H3P7': (25, 520, 112, 578), 'H5P3': (30, 36, 194, 70)}.items():
     PAGES[_L]['text'] = PAGES[_L]['text'] + [_b]
+# ART-118 (10-28, the fourth cutter seat, on Griz's "fresh in fresh for the cutter"): the art desk's best-of for the Fall and Prone pages, in
+# _src/aboleth/ART-118/ (PARTIAL by its own word, his "wrap up the best off - this is a rare encounter and not worth too much burn"), each keyed
+# by the ART-19 page it would replace; a row taken only where it mends what the grid shows (ADOPT). Each page prints its row's name at a band's
+# left (beside its numbers, or at its top) and the numbers under the drawings, all in one blue-white: every word and digit boxed on its own
+# (`own_strip`). Its Prone pages draw 1 down and 2 risen, as ART-19's did, so the row is still played backwards: the engine lies on a prone row's
+# last frame (js/sprites.js proneFrame). Its belly and tentacles are drawn a hotter coral than ART-19's brown-orange -- the same hue, about 10
+# degrees, but saturation 0.72 against 0.56 and value 0.79 against 0.66 (the warm pixels' medians, page to page) -- and snapped to the reds, a
+# fifth of a Fall row where the idle's are the skin ramp's oranges: each ART-118 cut's warm pixels toned to ART-19's before the snap (WARM118)
+def _n118(file, W, H, names, *bands):
+    """a page of ART-118 (W x H): names, the boxes of its row names; bands (row, (top, bottom) of the band, (top, bottom) of its digits,
+    [(x0, x1) a digit])"""
+    text, rows, xs = [(x0 - 5, y0 - 5, x1 + 5, y1 + 5) for x0, y0, x1, y1 in names], [], {}
+    for r, (b0, b1), (d0, d1), ds in bands:
+        text += [(x0 - 5, d0 - 5, x1 + 5, d1 + 5) for x0, x1 in ds]
+        rows.append((r, (0, b0, W, b1), (d0, b1), len(ds))); xs[r] = [(x0 + x1) // 2 for x0, x1 in ds]
+    return dict(dir='ART-118', file=file, W=W, text=text, rows=rows, xs=xs, own_strip=[b[0] for b in bands])
+NEW118 = {
+  'H1P8': _n118('ART-118_HEAD-1_PAGE-2.png', 1536, 1024, [(31, 453, 100, 485), (31, 904, 100, 943)],
+                ('hurt', (0, 490), (453, 485), [(267, 288), (760, 783), (1261, 1285)]), ('hurt_b', (491, 1024), (904, 943), [(266, 290), (758, 781), (1262, 1286)])),
+  'H1P9': _n118('ART-118_HEAD-1_PAGE-3.png', 1956, 804, [(51, 697, 186, 735)], ('prone', (0, 804), (697, 735), [(496, 523), (1486, 1515)])),
+  'H2P7': _n118('ART-118_HEAD-2_PAGE-1.png', 1536, 1024, [(40, 56, 110, 87), (42, 540, 110, 571)],
+                ('hurt', (0, 471), (436, 467), [(263, 284), (761, 785), (1267, 1290)]), ('hurt_b', (472, 1024), (899, 930), [(261, 286), (761, 785), (1267, 1290)])),
+  'H2P8': _n118('ART-118_HEAD-2_PAGE-2.png', 1774, 887, [(100, 148, 253, 190)], ('prone', (0, 887), (693, 732), [(470, 498), (1312, 1343)])),
+  'H3P7': _n118('ART-118_HEAD-3_PAGE-1.png', 1536, 1024, [(37, 57, 113, 94)],
+                ('hurt', (0, 495), (458, 491), [(273, 293), (755, 779), (1272, 1295)]), ('hurt_b', (496, 1024), (936, 969), [(260, 287), (755, 779), (1267, 1291)])),
+  'H3P8': _n118('ART-118_HEAD-3_PAGE-2.png', 1774, 887, [(67, 108, 209, 149)], ('prone', (0, 887), (770, 812), [(432, 462), (1307, 1340)])),
+  'H4P7': _n118('ART-118_HEAD-4_PAGE-1.png', 1536, 1024, [(30, 467, 93, 500), (26, 882, 89, 928)],
+                ('hurt', (0, 504), (467, 500), [(252, 271), (757, 780), (1260, 1282)]), ('hurt_b', (505, 1024), (882, 928), [(252, 276), (759, 781), (1259, 1282)])),
+  'H4P8': _n118('ART-118_HEAD-4_PAGE-2.png', 2172, 724, [(39, 613, 170, 662)], ('prone', (0, 724), (613, 662), [(531, 557), (1614, 1642)])),
+  'H5P7': _n118('ART-118_HEAD-5_PAGE-1.png', 1536, 1024, [(37, 472, 109, 506), (37, 885, 109, 916)],
+                ('hurt', (0, 510), (472, 506), [(279, 296), (758, 781), (1265, 1287)]), ('hurt_b', (511, 1024), (885, 916), [(271, 294), (757, 780), (1265, 1287)])),
+  'H5P8': _n118('ART-118_HEAD-5_PAGE-2.png', 1774, 887, [(69, 756, 205, 802)], ('prone', (0, 887), (756, 802), [(534, 560), (1345, 1375)])),
+}
+WARM118 = (0.56 / 0.72, 0.66 / 0.79)          # (saturation, value) of the warm pixels, ART-19's over ART-118's
+# (view, row) -> the ART-19 page whose ART-118 page plays there now; SW, W and NW follow as their mirrors. Taken: SE and NE Fall (the belly
+# rolls up, the size held near the idle's, where ART-19's shrank), E Fall, and the Prone of SE, NE, S and E (ART-19's small and grey beside
+# their idles, a printed digit beside every frame). Passed over: S Fall (it stays upright to its last frame: no death reads), N Fall (it turns
+# to profile as ART-19's does, no better) and N Prone (a third of its idle's size)
+ADOPT = {('SE', 'hurt'): 'H1P8', ('SE', 'prone'): 'H1P9', ('NE', 'hurt'): 'H2P7', ('NE', 'prone'): 'H2P8', ('S', 'prone'): 'H3P8',
+         ('E', 'hurt'): 'H4P7', ('E', 'prone'): 'H4P8'}
 FIX, CUTS = {}, {}
 # an Enslave frame's psychic rings out: violet and lavender light (blue over green, red over green) and the rings' dark edges, outside the
 # body's own filled silhouette (across it they stay, glow on it); then the body alone -- its biggest piece and any piece a quarter of it
@@ -139,13 +181,27 @@ def _no_rings(im):
         sz = _nd.sum(a[..., 3] > 0, lab, range(1, n + 1))
         a[~np.isin(lab, 1 + np.where(sz >= 0.25 * sz.max())[0]), 3] = 0
     return Image.fromarray(a.astype(np.uint8), 'RGBA')
+def _warm(im, ks, kv):
+    """an ART-118 cut's warm pixels (hue within 40 degrees of red, saturation over 0.35, value over 0.3) toned: saturation times ks (each
+    channel drawn toward the brightest), then value times kv; the hue stays"""
+    a = np.asarray(im).astype(float); c = a[..., :3] / 255.0
+    mx, mn = c.max(-1), c.min(-1); d = mx - mn; s = np.where(mx > 0, d / np.maximum(mx, 1e-6), 0)
+    r, g, b = c[..., 0], c[..., 1], c[..., 2]
+    h = np.where(d > 1e-6, np.where(mx == r, ((g - b) / np.maximum(d, 1e-6)) % 6, 9), 9) * 60     # (red the brightest: its hue; else out)
+    w = ((h < 40) | (h > 320)) & (s > 0.35) & (mx > 0.3)
+    c2 = (mx[..., None] - (mx[..., None] - c) * ks) * kv
+    a[..., :3] = np.where(w[..., None], np.clip(c2, 0, 1) * 255.0, a[..., :3])
+    return Image.fromarray(np.round(a).astype(np.uint8), 'RGBA')
 _cut0 = AD.cut
 def _cut(*a, **k):
     out = _cut0(*a, **k)
+    pages = a[3] if len(a) > 3 else k.get('pages', {})
     for L, rows in out.items():
         for r in rows:
             if r.startswith('enslave'):
                 rows[r] = [(None if im is None else _no_rings(im), box, x) for im, box, x in rows[r]]
+            if pages.get(L, {}).get('dir') == 'ART-118':
+                rows[r] = [(None if im is None else _warm(im, *WARM118), box, x) for im, box, x in rows[r]]
     return out
 AD.cut = _cut
 CHAN = 28                                      # (its dark teal falls out of the grey test: each channel against the navy, the ettercap's way)
@@ -159,9 +215,9 @@ ROWS = ['idle', 'walk', 'hurt', 'flinch', 'tentacles', 'prone', 'tail', 'enslave
 FPS = {'idle': 6, 'walk': 8, 'hurt': 8, 'flinch': 10, 'tentacles': 10, 'prone': 6, 'tail': 10, 'enslave': 8}
 
 
-def targets():
+def targets(pages=PAGES):
     """the Prone page by its Prone 1 at its own view's Fall 6 (game size)"""
-    cuts = AD.cut(ROOT, 'aboleth', 'ART-19', PAGES, chan=CHAN, fix=FIX, cuts=CUTS)
+    cuts = AD.cut(ROOT, 'aboleth', 'ART-19', pages, chan=CHAN, fix=FIX, cuts=CUTS)
     K = AD.scales(cuts, VIEWS, STAND, fit, stand_of=STAND_OF, idle_joined=True)
     def last(L, r):
         return (cuts[L].get(r + '_b') or cuts[L][r])[-1][0]
@@ -195,14 +251,25 @@ def mirror(seq):
     return [np.roll(fr[:, ::-1], 1, axis=1).copy() for fr in seq]
 
 
-def build():
-    tg = targets()
+def views(pages):
+    tg = targets(pages)
     cell = (FW, FH, AX, AY)
     kw = dict(chan=CHAN, fix=FIX, cuts=CUTS, stand_of=STAND_OF, joins=JOINS, targets=tg, idle_joined=True)   # (every Idle frame to its median: N's first line raises its wings in two of three)
-    first = AD.views(ROOT, 'aboleth', 'ART-19', PAGES, VIEWS, STAND, fit, torso_x, cell, **kw)
+    first = AD.views(ROOT, 'aboleth', 'ART-19', pages, VIEWS, STAND, fit, torso_x, cell, **kw)
     ref = {'side': first['E']['idle'][0], 'S': first['S']['idle'][0], 'N': first['N']['idle'][0]}
-    d = AD.views(ROOT, 'aboleth', 'ART-19', PAGES, VIEWS, STAND, fit, torso_x, cell, tone_ref=ref, **kw)
-    d = {v: dict(rows, prone=rows['prone'][::-1]) for v, rows in d.items()}
+    d = AD.views(ROOT, 'aboleth', 'ART-19', pages, VIEWS, STAND, fit, torso_x, cell, tone_ref=ref, **kw)
+    return {v: dict(rows, prone=rows['prone'][::-1]) for v, rows in d.items()}
+
+
+def build(adopt=None):
+    """built on ART-19 alone, then again with every ART-118 page in place of its own (each new Prone sized by its own new Fall's Fall 6, taken
+    or not), and only ADOPT's rows taken from the second: every row not adopted is the first build's, byte for byte"""
+    adopt = ADOPT if adopt is None else adopt
+    d = views(PAGES)
+    if adopt:
+        d2 = views(dict(PAGES, **NEW118))
+        for (v, an) in adopt:
+            d[v][an] = d2[v][an]
     frames = {}
     for an in ROWS:
         frames[an] = [d['S'][an], mirror(d['SE'][an]), mirror(d['E'][an]), mirror(d['NE'][an]), d['N'][an], d['NE'][an], d['E'][an], d['SE'][an]]
@@ -218,6 +285,6 @@ if __name__ == '__main__':
     meta = json.load(open(mp))
     for an, fps in FPS.items():
         meta['anims'][an]['fps'] = fps
-    meta['source'] = 'drawn by the art desk (ART-19, all five views, 10-21), cut by tools/aboleth-sheet.py through tools/artdesk.py (10-22)'
+    meta['source'] = 'drawn by the art desk (ART-19, all five views, 10-21; its ART-118 best-of for %s, 10-28), cut by tools/aboleth-sheet.py through tools/artdesk.py (10-22)' % ', '.join('%s %s' % va for va in sorted(ADOPT))
     json.dump(meta, open(mp, 'w'), indent=1)
     print('  %s: %s' % (NAME, ', '.join('%s %d' % (an, len(frames[an][0])) for an in ROWS)))
