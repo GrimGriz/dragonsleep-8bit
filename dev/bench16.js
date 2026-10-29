@@ -970,7 +970,7 @@
       runY(B1.moveAlong(gb, [[9, 5], [9, 6], [9, 7], [9, 8]], { spend: true })); D.d = d0Y;
       var l1 = logY(B1, n1);
       okY('the goblin walks up: the readied strike ' + /readied/.test(l1) + ', the reaction spent ' + (f1.reaction === 0) + ', the ready gone ' + !f1.ready + ' -- ' + l1.slice(0, 160), /readied/.test(l1) && f1.reaction === 0 && !f1.ready);
-      // 2 the Breach itself (data/fights.js bulette: under the road at [9,1]), the four at their places: the class AI readies (Barley his flail, Aurdin his Fire Bolt)
+      // 2 the Breach itself (data/fights.js bulette: under the road's torn slabs at [12,1] since 10-29, at [9,1] before), the four at their places: the class AI readies (Barley his flail, Aurdin his Fire Bolt)
       var B2 = new D.Battle({ ladder: true, fight: 'bulette', bench: true }); D.battle = B2; B2.enter(); while (!B2.order.length) B2.co.next();
       var bl = B2.units.filter(function (u) { return u.side === 'foe'; })[0], p2 = B2.units.filter(function (u) { return u.side === 'party'; }), f2 = p2.filter(function (u) { return u.cls === 'fighter'; })[0], w2 = p2.filter(function (u) { return u.cls === 'wizard'; })[0];
       bl.leap.ready = false; bl.leap.recharge = 7; bl.speed = 80; // (no Leap; the move to dig in and still dive after)
@@ -989,7 +989,7 @@
         p2.forEach(function (h) { D.rules.startTurn(h); runY(D.tactics.turn(B2, h)); });
       }
       sprung = p2.filter(function (h) { return !h.ready && h.reaction === 0; }).length; nRead = (l3.match(/readied/g) || []).length;
-      okY('its turn ' + turns3 + ': up ' + /bursts up/.test(l3) + ', readied strikes sprung ' + sprung + ' of ' + rx3 + ' (' + nRead + ' in the log), ' + w2.name + '\'s concentration gone ' + !w2.conc + ', the bite ' + /Bite/.test(l3) + ', under again ' + (bl.under === true) + ' (dives ' + /dives into the ground/.test(l3) + ') -- ' + l3.slice(0, 300), /bursts up/.test(l3) && sprung >= 1 && nRead >= 1 && (bl.dead || bl.hp <= 0 || (bl.under === true && /dives into the ground/.test(l3))));
+      okY('its turn ' + turns3 + ': up ' + /bursts up/.test(l3) + ', readied strikes sprung ' + sprung + ' of ' + rx3 + ' (' + nRead + ' in the log), ' + w2.name + '\'s concentration gone ' + !w2.conc + ', the bite ' + /Bite/.test(l3) + ', under again ' + (bl.under === true) + ' (dives ' + /dives into the ground/.test(l3) + '; on the made road ' + D.grid.foot(bl).some(function (q) { return D.grid.solidFloor(q[0], q[1]); }) + ') -- ' + l3.slice(0, 300), /bursts up/.test(l3) && sprung >= 1 && nRead >= 1 && (bl.dead || bl.hp <= 0 || (bl.under === true && /dives into the ground/.test(l3)) || (/Bite/.test(l3) && !bl.under && D.grid.foot(bl).some(function (q) { return D.grid.solidFloor(q[0], q[1]); })))); // (since 10-29 the Breach's road is worked stone, his "the road tiles should be solid stone": bitten from the road, it stays up -- mode=notes1029)
       // 4 the dive provokes: beside a fighter with its reaction, the opportunity attack comes first
       var B4 = mkY('?npc=bulette&lvl=5&vs=fighter'), b4 = B4.units.filter(function (u) { return u.side === 'foe'; })[0], f4 = B4.units.filter(function (u) { return u.side === 'party'; })[0];
       b4.x = 9; b4.y = 5; f4.x = 9; f4.y = 7; f4.reaction = 1; D.rules.startTurn(b4);
@@ -1980,7 +1980,7 @@
       // the Galleries' mouth
       var BG = testM('?roam=galleries&gate=east'), dG = D.roam.def, tG = BG.roam.token, fG = BG.units.filter(function (u) { return u.npc; });
       okM('the Galleries\' mouth from galleries_g1: ' + dG.w + ' x ' + dG.h + ' north up, in by the east gate on the road (' + tG.x + ',' + tG.y + ' facing west), its people (' + fG.map(function (u) { return u.npc; }).join(', ') + '), its doors (' + Object.keys(dG.marks.doors).join(', ') + ')',
-        dG.w === 36 && dG.h === 24 && !!BG.map.top && tG.x === 34 && tG.y === 21 && BG.roam.fw[0] === -1 && ['sabeth', 'ottilie', 'wynn', 'dace'].every(function (id) { return fG.some(function (u) { return u.npc === id; }); }) && Object.keys(dG.marks.doors).length === 2);
+        dG.w === 36 && dG.h === 24 && !!BG.map.top && tG.x === 34 && tG.y === 21 && BG.roam.fw[0] === -1 && ['sabeth', 'ottilie', 'wynn', 'dace'].every(function (id) { return fG.some(function (u) { return u.npc === id; }); }) && Object.keys(dG.marks.doors).length === 3); // (three since 10-29: the hands' bunkhouse, the second game's door -- mode=notes1029)
       okM('its ground: the guano apron below the mouth (' + dG.look[6].substr(13, 10) + '), the gravel (' + dG.look[11].substr(24, 6) + ')', /U{4}/.test(dG.look[6]) && /Y{6}/.test(dG.look[11]));
       besideM(BG, [13, 9]); var sbG = useM(BG, [13, 9], [0]);
       okM('Sabeth Pollard (S.sabeth): the cull, TAKE THE WORK, the one law (cullHired ' + BG.roam.flags.cullHired + ')', !!sbG.sc && BG.roam.flags.cullHired === 1 && sbG.seen.indexOf(textM('g1.sabethLaw')) >= 0);
@@ -4371,6 +4371,92 @@
     D.store.get = stGGL; D.store.set = stSGL; window.DS.autoPicks = apGL; if (D.house) { D.house.playing = false; D.house.cur = null; }
     var preGL = document.createElement('pre'); preGL.id = 'out'; preGL.textContent = 'BENCH16 ' + JSON.stringify(repGL);
     document.body.appendChild(preGL);
+    return;
+  }
+  // HIS THREE NOTES OF 10-29 (mode=notes1029; the notes seat, started by the lanes desk): the Guano Mine's bunkhouse door (js/mines.js M.FLOORS galleries doors2, M.INNS
+  // keeper:galbunk), the council's night sitting over the Hex's third floor (js/hours.js H16.backdrop, js/counter.js o.bg), the made road solid stone at the Seam and the Breach
+  // (data/maps.js noBurrow '=')
+  if (get('mode', '') === 'notes1029') {
+    var repN = { checks: [], errors: [] }, memN = {}, stGN = D.store.get, stSN = D.store.set, MN = D.mines, HN = D.house, CN = D.counter, TN = D.town, RN = D.roam, GN = D.grid, H6N = D.hours;
+    function okN(what, v) { repN.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function driveN(g, until, cap) { var v, k = 0, st; while (k++ < (cap || 4000)) { if (until && until()) return true; st = g.next(v); v = undefined; if (st.done) return !!(until && until()); if (typeof st.value === 'number' && D.battle) D.battle.t += Math.max(1, st.value); if (st.value && st.value.prompt) v = st.value.prompt.opts[0].value; } return !!(until && until()); }
+    function topN() { var s = D.top(); if (s && s.baking) { s.baking = false; s.enter(); } if (s && s.roam) driveN(s.co, null, 2); return s; }
+    function wakeN(B) { var m = D.top(); if (!(m instanceof HN.Morning)) return ''; var ls = []; for (var k = 0; k < 24 && !m.over; k++) { if (m.phase === 'night') m.next(); else if (m.phase === 'dawn') { ls = m.dawnLines(); m.next(); } else if (m.phase === 'picks') { (m.due || []).forEach(window.DS.R.autoPicks); if (m.pm) m.pm.close(); m.update(); } else m.cancel(); } driveN(B.co, null, 40); return 'MORNING: ' + ls.filter(function (l) { return l; }).join(' '); }
+    function answerN(B, sc, ans) { var seen = []; ans = (ans || []).slice(); for (var k = 0; k < 40 && !sc.done; k++) { var w = sc.wait || {}, bs = sc.buttons(); seen = seen.concat(w.say || w.ask || []); if (w.ask) { var a = ans.length ? ans.shift() : w.opts.length - 1; seen.push('> ' + w.opts[a]); sc.press(bs.filter(function (b) { return b.go === 'opt' && b.k === a; })[0]); } else sc.press(bs[0]); } driveN(B.co, function () { return D.top() !== sc; }, 60); driveN(B.co, null, 30); var mw = wakeN(B); if (mw) seen.push(mw); return seen.join(' / '); }
+    function walkN(B, to) { var R0 = B.roam, p = RN.walkRoute(R0.token, to); if (!p) return null; B.cards = []; R0.encIn = 1e9; R0.path = p.slice(); driveN(B.co, function () { return D.top() !== B || (R0.token.x === to[0] && R0.token.y === to[1] && !(R0.path && R0.path.length)); }, 20000); return p.length; }
+    function useN(B, at, ans) { var R0 = B.roam, t = R0.token; R0.fw = [Math.sign(at[0] - t.x), Math.sign(at[1] - t.y)]; B.cards = []; R0.keys.push('use'); driveN(B.co, function () { return D.top() instanceof CN.Counter || (B.cards || []).length > 0 || D.top() !== B; }, 400); var sc = D.top(); return sc instanceof CN.Counter ? { sc: sc, seen: answerN(B, sc, ans) } : { sc: null, seen: '' }; }
+    function testN(q) { var B = RN.make(q + '&watch'); D.scenes.length = 0; D.push(B); return topN(); }
+    D.store.get = function (k) { return memN[k] ? JSON.parse(memN[k]) : null; }; D.store.set = function (k, v) { memN[k] = JSON.stringify(v); return true; };
+    window.DS.autoPicks = true;
+    try {
+      D.seed = +get('seed', 1029);
+      // 1. THE BUNK DOOR AT THE GUANO MINE (his "in the game 2 guano mine surface, I'm still not seeing the door to where you can sleep as crew after taking a job"): the module's
+      // "bunkhouse where the hands sleep", a door the second game opens in the first game's wall; a bed's sign, its price on the mouseover, the first card; free once Sabeth's
+      // work is taken (cullHired), a silver otherwise and after the roost is broken; slept, the house's long rest to the whole morning
+      var BG = testN('?roam=galleries&gate=east'), dG = RN.def, thG = dG.marks.doors['keeper:galbunk'], kG = thG ? thG[0] + ',' + (thG[1] - 1) : '', r8G = DS.DATA.maps.galleries_g1.rows;
+      var pG = thG ? RN.walkRoute(BG.roam.token, thG) : null, helloG = (dG.hello || []).join(' ');
+      okN('the Guano Mine\'s mouth: the bunkhouse\'s door at ' + kG + ' (the first game\'s wall "' + r8G[12].charAt(3) + '", unwritten; the floor\'s square "' + (thG ? dG.rows[thG[1] - 1].charAt(thG[0]) : '') + '", its threshold "' + (thG ? dG.rows[thG[1]].charAt(thG[0]) : '') + '"), walked to from the east gate in ' + (pG ? pG.length : 'NO') + ' steps',
+        !!thG && thG[0] === 3 && thG[1] === 13 && r8G[12].charAt(3) === 'W' && dG.rows[12].charAt(3) !== '.' && dG.rows[13].charAt(3) === 'd' && !!pG && pG.length > 0);
+      var nm0 = TN.signName('keeper:galbunk');
+      okN('a bed\'s sign over it (' + dG.signs[kG] + ', ' + dG.signDoor[kG] + '), its mouseover "' + nm0.name + '" / "' + nm0.who + '"; the first card: "' + ((dG.hello || []).filter(function (l) { return /Bunkhouse/.test(l); })[0] || '').replace(/\{.\}|\{\/\}/g, '') + '"',
+        dG.signs[kG] === 'bed' && dG.signDoor[kG] === 'keeper:galbunk' && /hands sleep/.test(nm0.name) && /1 sp/.test(nm0.who) && /stranger/.test(nm0.who) && /Bunkhouse.*1 sp/.test(helloG));
+      BG.roam.flags.cullHired = 1; var nm1 = TN.signName('keeper:galbunk'); BG.roam.flags.roostBroken = 1; var nm2 = TN.signName('keeper:galbunk'); delete BG.roam.flags.roostBroken; delete BG.roam.flags.cullHired;
+      okN('Sabeth\'s work taken: "' + nm1.who + '"; the roost broken after: "' + nm2.who + '"', /free/.test(nm1.who) && /hands sleep free/.test(nm1.who) && /1 sp/.test(nm2.who));
+      var BS = testN('?roam=galleries&flags=cullHired'), RS = BS.roam, hurtS = RS.members[1], p0S = RS.silver; hurtS.hp = 3;
+      walkN(BS, [3, 13]); var bkS = useN(BS, [3, 12], [0]); driveN(BS.co, null, 200); var inn = MN.INNS['keeper:galbunk'];
+      okN('as crew (cullHired): A BUNK free ("' + (bkS.seen.split(' / ').filter(function (l) { return /bunk/i.test(l); })[0] || '') + '"), its own night and morning, ' + hurtS.name + ' ' + hurtS.hp + '/' + hurtS.maxhp + ', the purse ' + p0S + ' to ' + RS.silver + ', back on the mouth',
+        !!bkS.sc && hurtS.hp === hurtS.maxhp && RS.silver === p0S && bkS.seen.indexOf(inn.say[0]) >= 0 && bkS.seen.indexOf(inn.sleep) >= 0 && bkS.seen.indexOf('MORNING: ') >= 0 && bkS.seen.indexOf(inn.morning) >= 0 && RN.def.key === 'galleries');
+      var BX = testN('?roam=galleries'), RX = BX.roam; RX.silver = 3; walkN(BX, [3, 13]); var bkX = useN(BX, [3, 12], [0]); driveN(BX.co, null, 200);
+      okN('as a stranger: A BUNK, 1 SP -- the purse 3 to ' + RX.silver, !!bkX.sc && RX.silver === 2 && bkX.seen.indexOf('A BUNK, 1 SP') >= 0);
+      // 2. THE NIGHT'S SITTING OVER THE THIRD FLOOR (his "In the cutscene at night - perhaps try the third floor as background for the speaking parts"): C1's sitting at a rest
+      // paints the Hex's third floor once, the council in their seats at the long table, behind the screen and the one speaking; the party's floor's shared things all put back
+      var cvN = document.createElement('canvas'); cvN.width = D.W; cvN.height = D.H; var ctx0N = D.ctx; D.ctx = cvN.getContext('2d'); D.R = D.R || 1;
+      var BC = testN('?roam=galleries&gate=east'), was = { def: RN.def, map: D.iso.map, gm: GN.map, gu: GN.units, cx: D.iso.cam.x, cy: D.iso.cam.y, z: D.iso.zoom, h3: D.MAPS.hex3 };
+      var scC = H6N.sitting(BC, ['notice'], [{}]), bgC = scC.o.bg; scC.draw(D.ctx); var shC = bgC && bgC.shot ? bgC.shot() : null, imC = D.ctx.getImageData(0, 0, D.W, D.H).data;
+      if (get('shot', '')) { repN.png = cvN.toDataURL('image/png'); repN.png2 = shC && shC.c ? shC.c.toDataURL('image/png') : null; } // (&shot=1: the frame and the picture as PNGs, for a seat's own eyes)
+      var whoC = shC && shC.b ? shC.b.units.map(function (u) { return u.npc; }) : [], wantC = ['councilpapa', 'councilandroit', 'councilhessle', 'councilcasper', 'councilharrow', 'councilmerrick'];
+      okN('C1 at a rest: the counter\'s picture behind it (' + (bgC ? 'o.bg' : 'NONE') + '), the third floor painted ' + (shC ? shC.n : 0) + ' time(s)' + (shC && shC.err ? ' -- THREW ' + shC.err : '') + ', on it ' + whoC.join(', '),
+        !!bgC && !!shC && !!shC.c && !shC.err && shC.n >= 1 && wantC.every(function (id) { return whoC.indexOf(id) >= 0; }) && whoC.indexOf('councilthrane') < 0 && !!(shC.b.map && shC.b.map.def && shC.b.map.def.hexIn === 3));
+      var putBack = RN.def === was.def && D.iso.map === was.map && GN.map === was.gm && GN.units === was.gu && D.iso.cam.x === was.cx && D.iso.cam.y === was.cy && D.iso.zoom === was.z && D.MAPS.hex3 === was.h3;
+      okN('the party\'s floor as it was after the picture: its def (' + RN.def.key + '), the iso map, the grid and its units, the camera, the zoom, no third floor left in the maps', putBack);
+      var plainC = new CN.Counter(BC, Object.assign({}, scC.o, { bg: null, script: function () { return (function* () { yield { say: ['x'] }; })(); } })); plainC.wait = scC.wait; plainC.pages = scC.pages; plainC.page = scC.page; plainC.sheet = scC.sheet;
+      var cv2N = document.createElement('canvas'); cv2N.width = D.W; cv2N.height = D.H; plainC.draw(cv2N.getContext('2d')); var im2 = cv2N.getContext('2d').getImageData(0, 0, D.W, D.H).data, diff = 0, inP = 0, Lc = CN.LAYOUT.portrait;
+      for (var yN = 0; yN < D.H; yN++) for (var xN = 0; xN < D.W; xN++) { var iN = (yN * D.W + xN) * 4; if (Math.abs(imC[iN] - im2[iN]) + Math.abs(imC[iN + 1] - im2[iN + 1]) + Math.abs(imC[iN + 2] - im2[iN + 2]) > 24) { diff++; if (xN > Lc[0] + 3 && xN < Lc[0] + Lc[2] - 3 && yN > Lc[1] + 3 && yN < Lc[1] + Lc[3] - 30) inP++; } }
+      okN('drawn: ' + diff + ' of ' + (D.W * D.H) + ' pixels unlike the counter\'s plain screen, ' + inP + ' of them behind the one speaking', diff > D.W * D.H * 0.1 && inP > 2000);
+      var hrN = H6N.sitting(BC, ['herd'], [{}]); hrN.draw(D.ctx); var shH = hrN.o.bg && hrN.o.bg.shot(), whoH = shH && shH.b ? shH.b.units.map(function (u) { return u.npc; }) : [];
+      okN('C3, the herd thinned: the east side\'s man at the table, no Merrick (' + whoH.filter(function (n) { return /^council/.test(n); }).join(', ') + ')', whoH.indexOf('councilthrane') >= 0 && whoH.indexOf('councilmerrick') < 0);
+      var lkN = H6N.sitting(BC, ['looks'], [{}]);
+      okN('C2 (played on the third floor itself): the counter\'s own screen, no picture (' + (lkN.o.bg ? 'o.bg' : 'none') + ')', !lkN.o.bg);
+      D.scenes.length = 0; D.ctx = ctx0N;
+      // 3. THE MADE ROAD SOLID STONE (his "dwarven road should be solid stone" at the Seam, "the road tiles should be solid stone" at the Breach): the road's squares worked stone
+      // -- nothing burrows under them or comes up through them -- the rest of the floor as it was; the Wet's rim (his 10-04 "The tiles around the Landlords pool should be switched
+      // to solid stone", 6c5f3ca) still so
+      var gm0 = GN.map, gu0 = GN.units, im0 = D.iso.map;
+      ['breach', 'seamwall'].forEach(function (k) {
+        var def = D.MAPS[k], m = D.iso.load(def); GN.setup(m, []);
+        var road = 0, solid = 0, other = 0, otherSolid = 0, dig = { size: 1, under: true, burrow: 40, conds: {} }, stuck = 0;
+        for (var y = 0; y < m.h; y++) for (var x = 0; x < m.w; x++) { var ch = def.rows[y].charAt(x); if (ch === '=') { road++; if (GN.solidFloor(x, y)) solid++; if (!GN.canStand(dig, x, y)) stuck++; } else if (ch !== '#') { other++; if (GN.solidFloor(x, y)) otherSolid++; } }
+        var F = (D.FIGHTS || []).filter(function (f) { return f.map === k && f.story; })[0], starts = F ? F.foes.map(function (f) { var sz = (D.FOES[f.kind] || {}).size || 1, ft = GN.foot({ size: sz }, f.at[0], f.at[1]); return f.at[0] + ',' + f.at[1] + ' (' + sz + 'x' + sz + ') ' + (ft.some(function (q) { return GN.solidFloor(q[0], q[1]); }) ? 'SOLID' : 'gives'); }) : []; // (its whole foot: a Large bulette half under the road could neither move nor rise)
+        okN(def.name + ': the road\'s ' + road + ' squares solid (' + solid + '), a burrower under the ground stopped on ' + stuck + '; the floor\'s other ' + other + ' open squares give (' + otherSolid + ' solid); the story\'s foes come up at ' + starts.join('; '),
+          road > 20 && solid === road && stuck === road && otherSolid === 0 && starts.length > 0 && starts.every(function (s) { return /gives/.test(s); }));
+      });
+      var wetN = Object.keys(D.MAPS).filter(function (k) { return D.MAPS[k] && D.MAPS[k].noBurrowAt && D.MAPS[k].noBurrowAt.length; });
+      okN('the Wet\'s pool and its rim still solid stone (noBurrowAt on ' + wetN.join(', ') + ')', wetN.length > 0);
+      // the story fights on the two roads end (a burrower waited under for good: the bulette half under the road at its old start, an xorn across the road from the four --
+      // js/ai.js burrower, u.walkOn): fight=xorns at mode=trace's seeds 29 and 37, fight=bulette at 1, the four by the class AI as the trace runs them
+      [['xorns', 29], ['xorns', 37], ['bulette', 1]].forEach(function (fs) {
+        D.seed = fs[1] * 7919 + 104729; D.lastError = null;
+        var Bf = new D.Battle({ ladder: true, fight: fs[0], bench: true }); D.battle = Bf; Bf.enter();
+        Bf.units.forEach(function (u) { if (u.side === 'party') { u.guest = true; u.classAI = true; } });
+        var vf, gf = 0, rf;
+        while (Bf.co && gf++ < 60000 && (Bf.round || 0) <= 30) { rf = Bf.co.next(vf); vf = undefined; if (rf.done) break; var yf = rf.value; if (typeof yf === 'number' || !yf) continue; if (yf.fx || yf.entry || yf.scene) continue; if (yf.prompt) { vf = yf.prompt.opts[0].value; continue; } if (yf.turn) { vf = { do: 'end' }; continue; } }
+        okN('fight=' + fs[0] + ' (the trace\'s seed ' + fs[1] + '): ' + (Bf.result ? 'ends ' + Bf.result + ' in round ' + Bf.round : 'does NOT end: still going in round ' + Bf.round) +(D.lastError ? ', lastError ' + String(D.lastError).slice(0, 120) : ''), !!Bf.result && !D.lastError);
+      });
+      GN.setup(gm0, gu0); D.iso.map = im0;
+    } catch (eN) { repN.errors.push(String(eN && eN.stack || eN).slice(0, 900)); }
+    D.store.get = stGN; D.store.set = stSN; if (HN) { HN.playing = false; HN.cur = null; }
+    var preN = document.createElement('pre'); preN.id = 'out'; preN.textContent = 'BENCH16 ' + JSON.stringify(repN);
+    document.body.appendChild(preN);
     return;
   }
   // HIS NOTES OF 10-28 22:58Z (mode=housefix1028c; the house-notes seat, on the lanes desk's relay of his NOTES file): the camera kept in the floor's bounds on the frame a step

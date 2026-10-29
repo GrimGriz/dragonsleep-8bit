@@ -28,7 +28,8 @@
     warrens_b: { src: 'warrens_b', place: 'The Crawler Warrens', sub: 'the stalls and the lit galleries', save: false },
     warrens_c: { src: 'warrens_c', place: 'The Crawler Warrens', sub: 'the abandoned workings', save: false },
     galleries: { src: 'galleries_g1', door: 'mouth', place: 'The Guano Galleries', sub: 'the mouth', save: true, out: 'world',
-      gates: { east: [34, 21, [-1, 0]], south: [17, 22, [0, -1]], west: [1, 21, [1, 0]] } }, // (THE WORLD's site: the road in from the junction east, a step inside each edge)
+      gates: { east: [34, 21, [-1, 0]], south: [17, 22, [0, -1]], west: [1, 21, [1, 0]] }, // (THE WORLD's site: the road in from the junction east, a step inside each edge)
+      doors2: [{ id: 'keeper:galbunk', x: 3, y: 12 }] }, // (the second game's own door in the first game's wall: the hands' bunkhouse, M.INNS -- M.floor lays it, the first game's map unwritten)
     galleries_g2: { src: 'galleries_g2', place: 'The Guano Galleries', sub: 'the working gallery', save: false },
     galleries_g3: { src: 'galleries_g3', place: 'The Guano Galleries', sub: 'the dens', save: false },
     // the hole floor (10-28, the deep gallery seat, started by the lanes desk on Griz's "have we connected the 3rd level fight and the Dace plotline to the guano mine on
@@ -71,7 +72,8 @@
     if (flags === D.roam.flags0 && /[?&]guest=[a-z,]*\bdace\b/.test(q) && !flags.daceDone) flags.daceWith = 1; // (the test door's Dace in the token: not stood by the beam too, as the door first lays it -- M.guestIn)
     var F = M.FLOORS[key], iso = M.isoView(F, q); if (hour == null) hour = M.hourNow(q);
     var m8 = F.own ? (F.map || M.seepMap)(hour, flags) : DS.DATA.maps[F.src], leg = m8.legend, r8 = m8.rows, w = r8[0].length, h = r8.length;
-    var nm = function (x, y) { return x < 0 || y < 0 || x >= w || y >= h ? 'void' : leg[r8[y].charAt(x)] || 'void'; };
+    var add2 = {}; (F.doors2 || []).forEach(function (d) { add2[d.x + ',' + d.y] = 'door'; }); // (a door of the second game's in a wall of the first's: M.FLOORS doors2)
+    var nm = function (x, y) { return x < 0 || y < 0 || x >= w || y >= h ? 'void' : add2[x + ',' + y] || leg[r8[y].charAt(x)] || 'void'; };
     var g = [], lk = [], y, x;
     for (y = 0; y < h; y++) { g.push([]); lk.push([]); for (x = 0; x < w; x++) { var n = nm(x, y), L = M.LAY[n] || (M.ROOF[n] || M.WALL[n] ? ['B'] : n === 'lantern' ? ['l'] : ['#']); g[y].push(L[0]); lk[y].push(L[1] || ' '); } }
     // the buildings: a roof its own look, a wall the roof above it in its column (two roofs side by side over one wall row read as two buildings)
@@ -102,7 +104,7 @@
     }
     // the triggers: a keeper's or a shop's door a USE at its threshold; the floor's own (the pens, Skarn's gate) its scenes (M.trigger); the mouth's light rule the warp's
     var trig = [], marks = { doors: {}, gates: {} }, N = DS.DATA.npcs || {}, SH = DS.DATA.shops || {}, signs = {}, signDoor = {};
-    (m8.triggers || []).forEach(function (t) {
+    (m8.triggers || []).concat((F.doors2 || []).map(function (d) { return { id: d.id, x: d.x, y: d.y, on: 'step', script: 'keeper', arg: d.id.split(':')[1], back: 'down' }; })).forEach(function (t) {
       var r = t.rect ? t.rect.slice() : [t.x, t.y, 1, 1], th = doors8[r[0] + ',' + r[1]];
       if (/^(keeper|shop|inn):/.test(t.id) && th) {
         var arg = t.id.split(':')[1], inn = M.INNS[t.id], who = (inn && inn.name) || (SH[arg] && SH[arg].name) || (N[arg] && N[arg].name) || arg;
@@ -854,6 +856,14 @@
   // a flop findable (10-28 later, Griz: "I didn't finish a shift but the available doors didn't look or talk about flophouse so I went back outside and camped"): the door named for
   // what it is, a bed's sign over it whose mouseover says the price (T.signName), and the floor's first card saying where to sleep (M.bunkLine)
   M.INNS['keeper:bunkhouse'].name = 'The Bunkhouse: a flop for the night'; M.INNS['keeper:pellambarn'].name = 'The Pellam Barns: bunks for the day-crews';
+  // the Guano Galleries' bunkhouse (10-29, Griz to the lanes desk: "in the game 2 guano mine surface, I'm still not seeing the door to where you can sleep as crew after taking a job"):
+  // the module's mouth camp has "the bunkhouse where the hands sleep" (TarlynsPit/GalleriesModule/guano-galleries-DM.md, G1), which the first game drew with no door -- the
+  // second game's door in its wall (M.FLOORS galleries doors2); free to the house's hands once Sabeth's work is taken (cullHired), a silver otherwise and after the roost is broken
+  // (a hand who breaks it "is put on the sledge track and never asked back"). Its words the seat's drafts (invented.json galleries-bunkhouse)
+  var galHand = function (f) { return !!(f.cullHired && !f.roostBroken); };
+  M.INNS['keeper:galbunk'] = { id: 'galbunk', name: 'The Bunkhouse: where the house\'s hands sleep', price: function (f) { return galHand(f) ? 0 : 1; }, why: function (f) { return galHand(f) ? 'the house\'s hands sleep free' : 'a silver for a stranger'; },
+    say: ['The house\'s hands sleep here, in off the dens before the dusk river goes out. Bunks two high, scarves hung to dry on the posts, a hooded lamp by the door.'],
+    sleep: 'The hands come in ahead of the wings; nobody talks over the roar of them leaving. Nobody stands a watch -- the house keeps its own door.', morning: 'Morning, and the river of wings coming home over the mouth.' };
   M.priceLine = function (inn, f) { var p = inn.price(f || {}); return 'A bunk for the night, ' + (p ? p + ' sp (' : 'free (') + inn.why(f || {}) + '). No watch: the staff keep the door.'; };
   M.bunkLine = function (doors, f) { var ids = Object.keys(M.INNS).filter(function (k) { return doors[k]; }); return ids.map(function (k) { return '{y}' + M.INNS[k].name.split(':')[0] + '{/} (the bed sign): ' + M.priceLine(M.INNS[k], f).replace(/^A bunk/, 'a bunk'); }); };
   var signName0 = T.signName;
@@ -865,18 +875,18 @@
   M.LINES.bunk = { ask: 'A bunk for the night? ', sleep: 'The bunks fill with the shift coming off; somebody snores through the lot. Nobody stands a watch -- the staff keep the door.', morning: 'Morning, and the camp\'s bell.', poor: 'Not without the silver.' }; // (invented.json toplevels-bunkhouses)
   M.inn = function* (sc, B, inn) {
     var st = sc.st, f = st.flags, p = inn.price(f);
-    yield sc.say(M.words(B, inn.id));
+    yield sc.say(inn.say || M.words(B, inn.id));
     var a = yield sc.ask(M.LINES.bunk.ask + '(' + (p ? p + ' sp, ' : 'free, ') + inn.why(f) + ')', [p ? 'A BUNK, ' + p + ' SP' : 'A BUNK', 'LEAVE']);
     if (a !== 0) return false;
     if (p && st.silver() < p) { D.sfx('error'); yield sc.say(M.LINES.bunk.poor); return false; }
     if (p) { st.silver(-p); D.sfx('coin'); }
-    yield sc.say(M.LINES.bunk.sleep);
+    yield sc.say(inn.sleep || M.LINES.bunk.sleep);
     return true;
   };
   // the night slept, on the house's one sleep for a floor (js/house.js H.sleepOnFloor -- 10-22, Griz: "3 move to whole mornings"): in the house the floor's party into the
   // save, THE WORLD's clock to the morning and the long rest on the save; on the test door the four rested in place; then the first game's whole morning -- the picks, the
   // night's bonds, the day's spells, the save where the floor keeps one -- with this place's own morning on its card
-  M.sleep = function* (B) { yield* D.house.sleepOnFloor(B, { line: M.LINES.bunk.morning, music: 'inn' }); };
+  M.sleep = function* (B, inn) { yield* D.house.sleepOnFloor(B, { line: (inn && inn.morning) || M.LINES.bunk.morning, music: 'inn' }); };
 
   // ---------------------------------------------------------------- THE GLOWSEEP (10-21 night, Griz to the desk, on the top levels seat's five leans: "Go on the Glowseep - run with
   // its leans for all, including the time-slowing but that might be adjusted. Thematically correct"; his first word on it, "he hung out with them where they worked and they walked
@@ -1030,7 +1040,7 @@
   T.fire = function* (B, trig, at) {
     var def = D.roam.def;
     if (def && def.mine && trig.town === 'mine') { yield* M.trigger(B, trig, at); return; }
-    if (def && def.mine && trig.town === 'door' && M.INNS[trig.id]) { var inn = M.INNS[trig.id]; if (yield* M.talk(B, inn.id, function (sc) { return M.inn(sc, B, inn); }, inn.name)) yield* M.sleep(B); return; }
+    if (def && def.mine && trig.town === 'door' && M.INNS[trig.id]) { var inn = M.INNS[trig.id]; if (yield* M.talk(B, inn.id, function (sc) { return M.inn(sc, B, inn); }, inn.name)) yield* M.sleep(B, inn); return; }
     if (def && def.mine && trig.town === 'talk' && M.SCENES[trig.npc]) { yield* M.talk(B, trig.npc); return; }
     yield* fire0(B, trig, at);
   };

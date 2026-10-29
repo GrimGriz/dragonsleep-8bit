@@ -729,7 +729,7 @@ window.D16.MAPS.breach = {
   sub: 'the king\'s road, leg two',
   dark: true, // torchdark (09-28): dark ground (the 8-bit map's `dark`), no light of its own
   rubble: true, heaps: [[16, 6, 'b']], // the road's props (10-14, the art desk's ART-59): the made road's slabs thrown about, one big block leaning in a heap
-  step: 10,
+  step: 10, noBurrow: '=', // (10-29, Griz on the bulette at the Breach: "the road tiles should be solid stone" -- the made road worked stone, nothing burrows under it or comes up through it; its torn slabs, the rubble, still give)
   rows: [
     '########====########',
     '#####...rrrrr...####',
@@ -1116,7 +1116,7 @@ window.D16.MAPS.seamwall = {
   name: 'The Seam',
   sub: 'the king\'s road, leg three',
   dark: true, // torchdark (09-28): dark ground (the 8-bit map's `dark`), no light of its own
-  step: 10,
+  step: 10, noBurrow: '=', // (10-29, Griz on the xorns at the Seam: "dwarven road should be solid stone" -- the made road worked stone, nothing glides under it or comes up through it; the wall and its seam still give)
   rows: [
     '####################',
     '#####..rrrrr..######',

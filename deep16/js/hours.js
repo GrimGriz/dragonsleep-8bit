@@ -316,15 +316,66 @@
   };
   // the sitting on the counter's screen: the card, then a line a page on the speaker's portrait; the flag on the save and the floor (the floor hands its own back later)
   H16.sitting = function (B, ids, flagsets, seen) { // (seen: its card already shown, at the table on the map -- H16.tableShot)
-    var sc = new C.Counter(B || null, { id: 'council', name: 'The council', place: H16.COUNCIL.place, what: H16.COUNCIL.what, script: function (s) { return (function* () {
+    var night = ids.some(function (id) { return id !== 'looks'; }); // (a council's night, played at the party's rest: over the third floor's picture -- H16.backdrop)
+    var sc = new C.Counter(B || null, { id: 'council', name: 'The council', place: H16.COUNCIL.place, what: H16.COUNCIL.what, bg: night ? H16.backdrop(ids) : null, script: function (s) { return (function* () {
       for (var i = 0; i < ids.length; i++) {
         var cs = H16.COUNCIL[ids[i]]; flagsets.forEach(function (f) { if (f) f[cs.flag] = 1; });
-        if (!(seen && i === 0)) { s.sheet = null; s.o.name = 'The council'; yield s.say([cs.card], 'attentive'); }
-        for (var k = 0; k < cs.lines.length; k++) { var who = cs.lines[k][0]; s.sheet = C.PT[who] || null; s.o.name = H16.WHO[who] || who; yield s.say(['"' + cs.lines[k][1] + '"'], 'attentive'); }
-        if (cs.end) { s.sheet = null; s.o.name = 'The council'; yield s.say(['{g}' + cs.end + '{/}']); }
+        if (!(seen && i === 0)) { s.sheet = null; s.bare = true; s.o.name = 'The council'; yield s.say([cs.card], 'attentive'); } // (bare: no one speaking -- over the third floor, the room alone)
+        for (var k = 0; k < cs.lines.length; k++) { var who = cs.lines[k][0]; s.sheet = C.PT[who] || null; s.bare = false; s.o.name = H16.WHO[who] || who; yield s.say(['"' + cs.lines[k][1] + '"'], 'attentive'); }
+        if (cs.end) { s.sheet = null; s.bare = true; s.o.name = 'The council'; yield s.say(['{g}' + cs.end + '{/}']); }
       }
     })(); } });
     D.push(sc); return sc;
+  };
+  // ---------------------------------------------------------------- THE THIRD FLOOR BEHIND THE NIGHT'S SITTING (10-29, Griz to the lanes desk: "In the cutscene at night - perhaps try
+  // the third floor as background for the speaking parts" -- a try, his eye the ruling): a council's night sitting at the party's rest (C1, C3) plays its card and its portraits over
+  // a picture of the Hex's third floor -- the council in their seats at the long table under the Big Window (H16.TABLE; who sits as H16.atTable has them on a night), Warda in the
+  // lounge, the lamps low -- behind the whole screen and behind each one speaking (js/counter.js o.bg). The picture: the third floor laid as HX.lay lays it, on a Battle of its own that
+  // never runs, one frame painted off the screen, and every shared thing put back as a pulled-in fight leaves the floor (js/roam.js R.pullIn0: the grid, the map, the camera and its
+  // zoom; and the floor's def); painted again while a figure's sheet is still loading. C2 plays on the third floor itself, so it keeps the counter's own screen
+  H16.SHOT = { wash: 'rgba(6,8,30,0.42)', glow: '255,170,90', dim: 'rgba(8,10,28,0.36)', tries: 8, every: 15 };
+  H16.whoFor = function (ids) { var who = ['papa', 'androit', 'hessle', 'casper', 'harrow']; if (ids.indexOf('notice') >= 0) who.push('merrick'); if (ids.indexOf('herd') >= 0 || ids.indexOf('stock') >= 0) who.push('thrane'); return who; };
+  H16.thirdShot = function (ids) {
+    var HX = D.hex; if (!D.ctx || !HX || !HX.lay || !D.ui || !D.ui.drawBattle) return null;
+    var shot = { ids: ids, b: null, c: null, at: null, n: 0, ready: false, err: null };
+    shot.paint = function () {
+      var R = D.roam, iso = D.iso, G = D.grid, mo = D.input.mouse, k3 = 'hex3', b = shot.b;
+      var keep = { gm: G.map, gu: G.units, im: iso.map, cx: iso.cam.x, cy: iso.cam.y, zoom: iso.zoom, inW: iso.inWorld, def: R.def, m3: D.MAPS[k3], mo: mo.inside };
+      try {
+        mo.inside = false; // (no tooltip of the mouse's in the picture)
+        if (!b) { // (the floor laid once, on a Battle that never runs: HX.lay's figures, the party not in it)
+          b = shot.b = new D.Battle({}); b.units = []; b.t = 0; b.cine = true; b.cards = []; b.dark = false; b.cursor = { x: -99, y: -99 }; // (the cursor off the floor: no tooltip)
+          b.roam = { token: { x: 0, y: 0, size: 1 }, flags: {}, fw: [0, 1], members: [], seat: { why: 'night', who: H16.whoFor(ids) } };
+          var rows = HX.rows(3), sp = HX.spiralSq()[0]; HX.lay(b, 3, HX.near(rows, [sp[0], sp[1] + 1]) || HX.near(rows, sp), [0, 1]); shot.def = R.def;
+          b.units.forEach(function (u) { u.onCounter = true; }); // (no bar over a figure in a picture, as Ned's rat on his counter has none: js/ui.js)
+        } else { R.def = shot.def; iso.map = b.map; G.setup(b.map, b.units); }
+        var m = HX.sqAt(H16.TABLE.mid[0], H16.TABLE.mid[1]); b.focus({ x: m[0], y: m[1], size: 1 });
+        var c = shot.c || (shot.c = document.createElement('canvas')), dr = D.R || 1; c.width = Math.round(D.W * dr); c.height = Math.round(D.H * dr);
+        var x = c.getContext('2d'); x.setTransform(dr, 0, 0, dr, 0, 0); x.imageSmoothingEnabled = false;
+        D.ui.drawBattle(x, b);
+        var cc = iso.center(m[0], m[1], 0), p = iso.toScreen(cc.x, cc.y), N = H16.SHOT; shot.at = [p.x, p.y];
+        x.fillStyle = N.wash; x.fillRect(0, 0, D.W, D.H); // (the lamps low: a wash, and a warm pool at the table)
+        var g = x.createRadialGradient(p.x, p.y, 0, p.x, p.y, 90); g.addColorStop(0, 'rgba(' + N.glow + ',0.22)'); g.addColorStop(1, 'rgba(' + N.glow + ',0)'); x.fillStyle = g; x.fillRect(0, 0, D.W, D.H);
+        shot.ready = b.units.every(function (u) { return !u.sheet || !D.spr.has || D.spr.has(u.sheet); });
+      } catch (e) { shot.err = String(e && e.message || e); shot.c = null; }
+      finally { R.def = keep.def; iso.map = keep.im; G.setup(keep.gm, keep.gu); iso.cam.x = keep.cx; iso.cam.y = keep.cy; iso.zoom = keep.zoom; iso.inWorld = keep.inW; if (keep.m3) D.MAPS[k3] = keep.m3; else delete D.MAPS[k3]; mo.inside = keep.mo; }
+      shot.n++; return !!shot.c;
+    };
+    return shot;
+  };
+  // the counter's picture (js/counter.js o.bg): the whole screen, dimmed under the boxes, or behind the one speaking -- the long table where the portrait stands
+  H16.backdrop = function (ids) {
+    var shot = null, t = 0;
+    var bg = function (ctx, x, y, w, h, behind) {
+      if (!shot) { shot = H16.thirdShot(ids) || {}; if (shot.paint) shot.paint(); }
+      else if (!behind && shot.paint && !shot.ready && shot.n < H16.SHOT.tries && ++t % H16.SHOT.every === 0) shot.paint(); // (a sheet still loading: painted again)
+      var c = shot.c; if (!c) return false; var k = c.width / D.W;
+      if (!behind) { ctx.drawImage(c, 0, 0, c.width, c.height, 0, 0, D.W, D.H); ctx.fillStyle = H16.SHOT.dim; ctx.fillRect(0, 0, D.W, D.H); return true; }
+      var sx = Math.max(0, Math.min(D.W - w, (shot.at ? shot.at[0] : D.W / 2) - w / 2)), sy = Math.max(0, Math.min(D.H - h, (shot.at ? shot.at[1] : D.H / 2) - h * 0.62));
+      ctx.drawImage(c, sx * k, sy * k, w * k, h * k, x, y, w, h); return true;
+    };
+    bg.shot = function () { return shot; }; // (the bench's look at it)
+    return bg;
   };
   // C1 and C3 at the morning: the sitting over the morning screen, played first (a bench, no one watching, takes the flags without the screen -- as the morning's picks, js/house.js Morning)
   var morning0 = D.house.morning;
@@ -365,7 +416,7 @@
   };
   var hexDef0 = D.hex.def;
   D.hex.def = function (lv, R0) {
-    var def = hexDef0.apply(this, arguments), at = lv === 3 && R0 && R0.flags ? H16.atTable(R0.flags) : null; if (!at) return def;
+    var def = hexDef0.apply(this, arguments), at = lv === 3 && R0 && R0.flags ? R0.seat || H16.atTable(R0.flags) : null; if (!at) return def; // (R0.seat: the night's picture seats its own -- H16.thirdShot)
     var HX = D.hex, used = {}; def.people.forEach(function (p) { used[p.at[0] + ',' + p.at[1]] = 1; });
     H16.TABLE.seats.forEach(function (s) {
       if (at.who.indexOf(s[0]) < 0) return; var q = HX.near(def.rows, HX.sqAt(s[1], s[2]), used); if (!q) return; used[q[0] + ',' + q[1]] = 1;

@@ -410,13 +410,15 @@
   Counter.prototype.draw = function (ctx) {
     var self = this, W8 = D.WIN8, st = this.st, w = this.wait || {};
     var g = ctx.createLinearGradient(0, 0, 0, D.H); g.addColorStop(0, '#0a0c22'); g.addColorStop(1, '#1a1426'); ctx.fillStyle = g; ctx.fillRect(0, 0, D.W, D.H);
+    if (this.o.bg) this.o.bg(ctx, 0, 0, D.W, D.H, false); // (a place's picture behind the screen: the council's night sitting over the Hex's third floor, js/hours.js H16.backdrop)
     // the portrait over its counter
     D.win8(ctx, PX, PY, PW, PH, '#0b1430');
     ctx.save(); ctx.beginPath(); ctx.rect(PX + 3, PY + 3, PW - 6, PH - 6); ctx.clip();
+    if (this.o.bg) this.o.bg(ctx, PX + 3, PY + 3, PW - 6, PH - 6, true); // (and behind the one speaking)
     var sh = this.sheet && D.SHEETS[this.sheet], fr = this.look && sh && sh.anims[this.look] ? { anim: this.look, frame: 0 } : C.frameAt(sh, this.face, this.t);
     if (this.o.pic) this.o.pic(ctx, PX + 3, PY + 3, PW - 6, PH - 6, this.t, CY); // (a place's own picture where a keeper's portrait stands: the Glowseep's crews' fire, js/mines.js M.firePic)
     else if (sh && C.drawPortrait(ctx, this.sheet, fr.anim, fr.frame, PX + PW / 2, CY + 1)) { if (this.id === 'ned') C.drawNedRat(ctx, PX + PW / 2, CY + 1, this.t); }
-    else {
+    else if (!(this.bare && this.o.bg)) { // (a page with no one speaking over a place's picture: the place alone -- js/hours.js H16.sitting)
       ctx.fillStyle = '#1c2348'; ctx.beginPath(); ctx.arc(PX + PW / 2, CY - 92, 26, 0, Math.PI * 2); ctx.fill(); ctx.fillRect(PX + PW / 2 - 48, CY - 60, 96, 60); // (no sheet yet, or a keeper with none: a shape)
     }
     ctx.fillStyle = '#4a2e1a'; ctx.fillRect(PX + 3, CY, PW - 6, PY + PH - 3 - CY); ctx.fillStyle = '#8a5e3a'; ctx.fillRect(PX + 3, CY, PW - 6, 2); ctx.fillStyle = '#2a1a10'; ctx.fillRect(PX + 3, CY + 2, PW - 6, 1);

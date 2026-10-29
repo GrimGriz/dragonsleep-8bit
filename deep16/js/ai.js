@@ -776,7 +776,8 @@
       pressed = u.hp <= u.maxhp / 2 && inReach.length >= 2;
       // (a burrower with `walkWithin` walks to one that close, on its feet -- the xorn, 15 ft: Griz, 10-01d, "have them walk within 15")
       var walks = !inReach.length && u.walkWithin && hs.some(function (w) { return G.dist(u, w) <= u.walkWithin; });
-      if (!hs.length || !canDig(B, u) || (inReach.length && !pressed) || walks) { yield* brute(B, u); yield* diveAfter(B, u); return; }
+      if (inReach.length) u.walkOn = false; // (up and walking since the ground got it no nearer, below: on its feet till one is in reach)
+      if (!hs.length || !canDig(B, u) || (inReach.length && !pressed) || walks || u.walkOn) { yield* brute(B, u); yield* diveAfter(B, u); return; }
       yield* sink(B, u);
     }
     var all = hs;
@@ -817,6 +818,14 @@
         yield* brute(B, u);
         yield* diveAfter(B, u);
         return;
+      }
+      // ... and when going under gets it no nearer at all (worked stone between it and them: a made road it cannot pass under, data/maps.js noBurrow -- 10-29, the Seam's xorns
+      // waited under for good across the road from the four), up at the nearest it can stand in, and on its feet till one is in reach (u.walkOn): over the road, not under it
+      if (e1 && (!e0 || G.dist(u, near, e0.x, e0.y) >= G.dist(u, near))) {
+        T.move = cap; yield* walkTo(B, u, e1, { ghost: true }); T.move = Math.max(0, m0 - (cap - T.move));
+        if (u.dead || u.hp <= 0) return;
+        yield* rise(B, u, near); if (u.dead || u.hp <= 0) return;
+        u.walkOn = true; yield* brute(B, u); yield* diveAfter(B, u); return;
       }
       if (e0 && (e0.x !== u.x || e0.y !== u.y)) { T.move = cap; yield* walkTo(B, u, e0, { ghost: true }); T.move = Math.max(0, m0 - (cap - T.move)); }
       B.card([u.earthGlide ? '{g}Nothing shows where it went.{/}' : '{g}The ground heaves: something moves under it' + (near ? ', toward ' + near.name : '') + '.{/}'], 200); yield 16;
