@@ -759,7 +759,28 @@
   H.stamp = function () {
     var rec = H.cur, W = D.world, at = H.atNow(rec), sq = at.town && at.sq ? ' ' + at.sq.join(',') : '', hx = !at.town && rec.world && rec.world.at ? ' hex ' + rec.world.at.join(',') : '';
     var hr = W && W.hour ? W.hour() : null;
-    return '-- day ' + H.day(rec) + (hr != null ? ' · ' + ('0' + Math.floor(hr)).slice(-2) + ':' + ('0' + Math.round((hr % 1) * 60)).slice(-2) : '') + (W && W.timeOfDay ? ' ' + W.timeOfDay() : '') + ' · ' + H.where(rec) + sq + hx + ' --';
+    return '-- day ' + H.day(rec) + (hr != null ? ' · ' + ('0' + Math.floor(hr)).slice(-2) + ':' + ('0' + Math.round((hr % 1) * 60)).slice(-2) : '') + (W && W.timeOfDay ? ' ' + W.timeOfDay() : '') + ' · ' + H.stampWhere(rec) + sq + hx + ' --';
+  };
+  // the floor the party stands on (10-29, the lanes desk reading his NOTES of 1846Z: six notes on the Galleries' floors all said "the Guano Galleries' mouth", one of them on the
+  // cloaker's level -- and his 1808Z ones "the Crawler Warrens (the mouth camp)" in the workings): a mine floor, the Wet, the Hex by their own names; else the save's place
+  // (the town and its rooms, THE WORLD) as before. (The hour is THE WORLD's: in the mines, but for the Glowseep and the Gulch, it does not move -- js/mines.js M.tick)
+  H.stampWhere = function (rec) {
+    var B = D.scenes.filter(function (s) { return s.roam && s.roam.token; })[0], def = B && D.roam && D.roam.def;
+    if (def && def.mine) return def.name + (def.sub ? ' (' + def.sub + ')' : '');
+    if (def && (def.wet || def.src8 === (((window.DS || {}).DATA || {}).maps || {}).warrens_d)) return 'the Wet (the Crawler Warrens)';
+    if (def && def.hexIn) return 'the Hex (' + (D.hex && D.hex.SUB ? D.hex.SUB[def.hexIn] : 'floor ' + def.hexIn) + ')';
+    return H.where(rec);
+  };
+  // a stamp with nothing written under it before the next stamp or the end is not kept (10-29, Griz: "notes stamps whenever i open it, even if I close it after without typing
+  // - that's the empty"): dropped as the box opens, as it closes, and from what SAVE writes
+  H.STAMP_RE = /^-- day .* --$/;
+  H.unstamp = function (text) {
+    var ls = String(text || '').replace(/\r\n/g, '\n').split('\n'), out = [];
+    for (var i = 0; i < ls.length; i++) {
+      if (H.STAMP_RE.test(ls[i])) { var j = i + 1, said = false; while (j < ls.length && !H.STAMP_RE.test(ls[j])) { if (ls[j].trim()) { said = true; break; } j++; } if (!said) continue; }
+      out.push(ls[i]);
+    }
+    return out.join('\n').replace(/\n{3,}/g, '\n\n').replace(/^\s+/, '').replace(/\s+$/, '');
   };
   H.summary = function (rec) {
     var W = D.world, w = rec.world || {}, jn = D.counter && D.counter.journal ? D.counter.journal(null) : null;
@@ -780,11 +801,12 @@
   H.notes = function () { if (H.cur) D.push(new Notes()); };
   function Notes() {
     this.kind = 'housenotes'; this.opaque = false; this.t = 0; this.msg = null; this.el = null;
-    var d = D.store.get(H.NKEY), text = d && typeof d.draft === 'string' ? d.draft : '', st = H.stamp();
+    var d = D.store.get(H.NKEY), text = H.unstamp(d && typeof d.draft === 'string' ? d.draft : ''), st = H.stamp(); // (an earlier opening's empty stamp gone first)
     if (text.indexOf(st) < 0) text = (text.replace(/\s+$/, '') + (text.trim() ? '\n\n' : '') + st + '\n'); // (each opening its own stamp; the same place and minute, once)
     this.text = text; this.keep();
   }
   Notes.prototype.keep = function () { D.store.set(H.NKEY, { draft: this.text }); };
+  Notes.prototype.keepClosed = function () { D.store.set(H.NKEY, { draft: H.unstamp(this.text) }); }; // (shut with nothing typed under this opening's stamp: the stamp not kept)
   Notes.prototype.box = function () { return { x: 12, y: 10, w: D.W - 24, h: D.H - 20 }; };
   Notes.prototype.btns = function () { var b = this.box(), y = b.y + b.h - 20; return [{ id: 'back', l: 'BACK', x: b.x + 8, y: y, w: 56, h: 14 }, { id: 'save', l: 'SAVE', x: b.x + b.w - 72, y: y, w: 64, h: 14 }]; };
   Notes.prototype.field = function () {
@@ -805,13 +827,13 @@
     this.el.style.left = Math.round(r.left + x * k) + 'px'; this.el.style.top = Math.round(r.top + y * k) + 'px'; this.el.style.width = Math.round(w * k) + 'px'; this.el.style.height = Math.round(h * k) + 'px';
   };
   Notes.prototype.drop = function () { if (this.el) { try { this.el.remove(); } catch (e) { /* (gone) */ } this.el = null; D.typing = false; } };
-  Notes.prototype.exit = function () { this.drop(); };
-  Notes.prototype.close = function () { this.drop(); D.sfx('cancel'); D.pop(); };
+  Notes.prototype.exit = function () { this.drop(); this.keepClosed(); };
+  Notes.prototype.close = function () { this.drop(); this.keepClosed(); D.sfx('cancel'); D.pop(); };
   Notes.prototype.save = function () {
     if (!this.text.replace(/^--.*--$/gm, '').trim()) { D.sfx('error'); this.msg = 'Nothing written yet: type what you noticed, then SAVE.'; return null; }
     var name = H.notesName();
     try {
-      var a = document.createElement('a'), url = URL.createObjectURL(new Blob([JSON.stringify(H.notesFile(this.text), null, 1)], { type: 'application/json' }));
+      var a = document.createElement('a'), url = URL.createObjectURL(new Blob([JSON.stringify(H.notesFile(H.unstamp(this.text)), null, 1)], { type: 'application/json' }));
       a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove();
       setTimeout(function () { URL.revokeObjectURL(url); }, 4000);
     } catch (e) { D.sfx('error'); this.msg = 'Could not write the file: ' + e; return null; }

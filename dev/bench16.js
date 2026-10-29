@@ -4436,6 +4436,59 @@
     document.body.appendChild(preB);
     return;
   }
+  // HIS NOTES OF 10-29, MORE (mode=notes1029d -- the notes seat of 10-29 evening, on the lanes desk's relays of his 12th note and his NOTES of 1846Z): an empty stamp not kept, the
+  // stamp's place the floor's, the bunkhouses' picture, the JOURNAL's fly-in; each proved RED on main's scripts
+  if (get('mode', '') === 'notes1029d') {
+    var repUz9 = { checks: [], errors: [] }, memUz9 = {}, stGUz9 = D.store.get, stSUz9 = D.store.set, MUz9 = D.mines, HUz9 = D.house, CUz9 = D.counter, RU2z9 = D.roam, H6Uz9 = D.hours, sfx0Uz9 = D.sfx, txt0Uz9 = D.text, win0Uz9 = D.win8;
+    function okUz9(what, v) { repUz9.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function driveUz9(g, until, cap) { var v, k = 0, st; while (k++ < (cap || 4000)) { if (until && until()) return true; st = g.next(v); v = undefined; if (st.done) return !!(until && until()); if (typeof st.value === 'number' && D.battle) D.battle.t += Math.max(1, st.value); if (st.value && st.value.prompt) v = st.value.prompt.opts[0].value; } return !!(until && until()); }
+    function topUz9() { var s = D.top(); if (s && s.baking) { s.baking = false; s.enter(); } if (s && s.roam) driveUz9(s.co, null, 2); return s; }
+    function testUz9(q) { var B = RU2z9.make(q + '&watch'); D.scenes.length = 0; D.push(B); D.battle = B; return topUz9(); }
+    D.store.get = function (k) { return memUz9[k] ? JSON.parse(memUz9[k]) : null; }; D.store.set = function (k, v) { memUz9[k] = JSON.stringify(v); return true; };
+    window.DS.autoPicks = true;
+    var cvUz9 = document.createElement('canvas'); cvUz9.width = D.W; cvUz9.height = D.H; var cxUz9 = cvUz9.getContext('2d');
+    try {
+      D.seed = +get('seed', 1029);
+      // 12. AN EMPTY STAMP NOT KEPT (his "notes stamps whenever i open it, even if I close it after without typing - that's the empty"): a note under an older stamp, an empty stamp
+      // after it from an opening with nothing typed; NOTES opened and shut with nothing typed -- the draft keeps the note and its stamp, no empty stamp
+      HUz9.begin(HUz9.fresh(), 0); topUz9();
+      var st0 = '-- day 1 · 07:00 morning · Silverton 38,42 --', st1 = '-- day 3 · 05:30 dawn · Silverton 40,7 --';
+      memUz9[HUz9.NKEY] = JSON.stringify({ draft: st0 + '\nthe spiral wants a key\n\n' + st1 + '\n' });
+      HUz9.notes(); var nb = D.top(), opened = nb && nb.text, stN = HUz9.stamp(); if (nb && nb.close) nb.close(); var kept = (D.store.get(HUz9.NKEY) || {}).draft || '';
+      okUz9('AN EMPTY STAMP NOT KEPT: opened over a draft with an empty stamp ("' + st1 + '"): the box reads "' + String(opened).replace(/\n/g, ' / ') + '"; shut with nothing typed, the draft "' + kept.replace(/\n/g, ' / ') + '"',
+        !!nb && String(opened).indexOf(st1) < 0 && String(opened).indexOf(stN) >= 0 && kept === st0 + '\nthe spiral wants a key' && memUz9[HUz9.NKEY].indexOf(stN) < 0);
+      // ... and the stamp's place the floor the party stands on (the lanes desk's find in his 1846Z file: six Galleries notes all "the Guano Galleries' mouth")
+      testUz9('?roam=galleries_g2'); var stG = HUz9.stamp(); testUz9('?roam=warrens_c'); var stW = HUz9.stamp();
+      okUz9('THE STAMP\'S PLACE THE FLOOR\'S: in the working gallery "' + stG + '"; in the workings "' + stW + '"', /The Guano Galleries \(the working gallery\)/.test(stG) && /The Crawler Warrens \(the abandoned workings\)/.test(stW));
+      HUz9.playing = false; HUz9.cur = null; D.scenes.length = 0;
+      // 13. THE BUNKHOUSE'S PICTURE (his "Empty Portraits - i.e. bunkhouse - show a bed as we did campfire for glowseep"): the bunkhouse's screen with the room's own picture where a
+      // keeper's portrait stands, as the Glowseep's fire has
+      var BB = testUz9('?roam=galleries&flags=cullHired'), RB = BB.roam, tB = RB.token, pB = RU2z9.walkRoute(tB, [3, 13]); RB.encIn = 1e9; RB.path = pB ? pB.slice() : null; driveUz9(BB.co, function () { return tB.x === 3 && tB.y === 13 && !(RB.path && RB.path.length); }, 20000);
+      RB.fw = [0, -1]; RB.keys.push('use'); driveUz9(BB.co, function () { return D.top() instanceof CUz9.Counter; }, 400); var scB = D.top(), picB = scB instanceof CUz9.Counter ? scB.o.pic : null, drewB = false;
+      if (picB) { try { drewB = picB(cxUz9, 10, 10, 184, 208, 0, 196) === true; } catch (eB) { drewB = 'threw ' + eB; } scB.draw(cxUz9); }
+      okUz9('THE BUNKHOUSE\'S PICTURE: the Galleries\' bunkhouse (' + (scB && scB.o && scB.o.name) + '): ' + (picB === MUz9.bunkPic ? 'the bunk where the portrait stands' : 'no picture') + ', drawn (' + drewB + ')', picB === MUz9.bunkPic && drewB === true);
+      if (scB instanceof CUz9.Counter) { scB.done = true; } D.scenes.length = 0;
+      // 14. THE JOURNAL'S FLY-IN (his "Added to Journal - can we show the text, the popup the part of the menu that has journal, and the text collapsing and moving into 'journal'
+      // which highlights, then have that part of the menu disappear with a more pleasant sound"): a mission opened on the street -- its ding, its words, the menu's column in, the
+      // words into JOURNAL lit gold, the column out to the chime; its card in the log, not left on the floor
+      HUz9.begin(HUz9.fresh(), 0); var BJ = topUz9(); D.battle = BJ; BJ.roam.mode = 'walk'; var fJ = BJ.roam.flags; fJ.qSeen = 1; H6Uz9.fresh(CUz9.state(BJ)).forEach(function (q) { fJ['q:' + q.id] = 1; }); fJ.heardPete = 1;
+      var sndJ = [], seenJ = { col: false, journal: false, lit: false }, frJ = 0;
+      D.sfx = function (id) { sndJ.push(id); };
+      var dueJ = H6Uz9.missionDue(BJ), gJ = dueJ ? H6Uz9.missionCard(BJ) : null, k0 = 0;
+      if (gJ) { var stJ; while (k0++ < 400) { stJ = gJ.next(); if (stJ.done) break; if (typeof stJ.value === 'number') BJ.t += stJ.value; if (BJ.jfly) {
+        D.text = function (ctx, s, x) { if (/^JOURNAL$/.test(String(s)) && x > 250) seenJ.journal = true; return txt0Uz9.apply(this, arguments); }; D.win8 = function (ctx, x, y, w, h) { if (x >= 290 && x <= 300 && w === 70 && h === 160) seenJ.col = true; return win0Uz9.apply(this, arguments); };
+        var fr0 = cxUz9.fillRect; cxUz9.fillRect = function (x, y, w, h) { if (cxUz9.fillStyle === String(D.WIN8.gold).toLowerCase() && w === 62) seenJ.lit = true; return fr0.apply(this, arguments); };
+        try { H6Uz9.drawFly(cxUz9, BJ); frJ++; } finally { D.text = txt0Uz9; D.win8 = win0Uz9; cxUz9.fillRect = fr0; } } } }
+      D.sfx = sfx0Uz9;
+      var logJ = (BJ.log || []).filter(function (l) { return /In your JOURNAL: The Missing Five/.test(l); }).length, cardJ = (BJ.cards || []).some(function (c) { return /In your JOURNAL/.test((c.lines || []).join(' ')); });
+      okUz9('THE JOURNAL\'S FLY-IN: a mission due (' + dueJ + '); sounds ' + sndJ.join(' > ') + '; ' + frJ + ' steps drawn: the menu\'s column at its place (' + seenJ.col + '), its JOURNAL row (' + seenJ.journal + '), lit gold (' + seenJ.lit + '); over (' + !BJ.jfly + ' in ' + k0 + ' steps); the card in the log (' + logJ + '), none left on the floor (' + !cardJ + ')',
+        dueJ && sndJ[0] === H6Uz9.DING && sndJ.indexOf('journal') > 0 && sndJ.filter(function (s) { return s === 'journal'; }).length === 1 && seenJ.col && seenJ.journal && seenJ.lit && !BJ.jfly && k0 < 200 && logJ === 1 && !cardJ);
+    } catch (eUz9) { repUz9.errors.push(String(eUz9 && eUz9.stack || eUz9).slice(0, 900)); }
+    D.store.get = stGUz9; D.store.set = stSUz9; D.sfx = sfx0Uz9; D.text = txt0Uz9; D.win8 = win0Uz9; if (HUz9) { HUz9.playing = false; HUz9.cur = null; }
+    var preUz9 = document.createElement('pre'); preUz9.id = 'out'; preUz9.textContent = 'BENCH16 ' + JSON.stringify(repUz9);
+    document.body.appendChild(preUz9);
+    return;
+  }
   // HIS NOTES OF 10-29 (13:53Z-18:08Z, played on live; mode=notes1029c -- the notes seat of 10-29, on the lanes desk's split of his NOTES file
   // play-records/hero_situations_feedback-2026-10-29-1808Z.json and his play record of the day): one check or more a note, each proved RED on main's scripts
   if (get('mode', '') === 'notes1029c') {

@@ -325,6 +325,9 @@
     confirm: function (t) { tone(sfxBus, 'pulse', 79, t, 0.04, 0.13, 0.5); tone(sfxBus, 'pulse', 86, t + 0.04, 0.06, 0.13, 0.5); },
     // a mission into the JOURNAL: a bright two-bell ding (the second game's, deep16/js/hours.js H16.DING -- 10-28, Griz: "add some kind of *ding* or pop-up when a quest is added to journal")
     quest: function (t) { tone(sfxBus, 'pulse', 88, t, 0.07, 0.13, 0.25); tone(sfxBus, 'pulse', 95, t + 0.09, 0.28, 0.14, 0.25); tone(sfxBus, 'triangle', 83, t + 0.09, 0.32, 0.18); },
+    // the words into the JOURNAL and its column away: a soft rising chime, bells and no buzz (the second game's, deep16/js/hours.js H16.fly -- 10-29, Griz: "then have that part
+    // of the menu disappear with a more pleasant sound")
+    journal: function (t) { tone(sfxBus, 'soft', 84, t, 0.18, 0.16); tone(sfxBus, 'soft', 88, t + 0.09, 0.2, 0.15); tone(sfxBus, 'soft', 91, t + 0.18, 0.24, 0.14); tone(sfxBus, 'soft', 96, t + 0.28, 0.6, 0.12); tone(sfxBus, 'triangle', 72, t + 0.28, 0.5, 0.06); },
     cancel: function (t) { tone(sfxBus, 'pulse', 79, t, 0.04, 0.12, 0.5); tone(sfxBus, 'pulse', 72, t + 0.04, 0.06, 0.12, 0.5); },
     bump: function (t) { tone(sfxBus, 'triangle', 40, t, 0.06, 0.25); },
     door: function (t) { noise(sfxBus, t, 0.18, 0.25, 900, 1); tone(sfxBus, 'triangle', 45, t, 0.1, 0.2, null, -5); },

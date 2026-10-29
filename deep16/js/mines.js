@@ -971,6 +971,23 @@
     [['#c83a12', 26, 50], ['#f08a1c', 18, 38], ['#ffe070', 9, 22]].forEach(function (f, i) { var hh = f[2] * fl + 4 * Math.sin(t / 3 + i); ctx.fillStyle = f[0]; ctx.beginPath(); ctx.moveTo(mx - f[1], fy); ctx.quadraticCurveTo(mx - f[1] * 0.4, fy - hh * 0.6, mx + Math.sin(t / 4 + i) * 3, fy - hh); ctx.quadraticCurveTo(mx + f[1] * 0.4, fy - hh * 0.6, mx + f[1], fy); ctx.closePath(); ctx.fill(); });
     return true;
   };
+  // a bunkhouse where a keeper's portrait stands (10-29, Griz, NOTES 1846Z at the Guano Galleries' mouth: "Empty Portraits - i.e. bunkhouse - show a bed as we did campfire for
+  // glowseep"): the room by its hooded lamp -- plank floor, the dark wall, the lamp's glow -- and the art desk's bunk (ART-112's `crew_bunk`, the mines' top-down tiles) three times
+  // up; a bunk by the code where the atlas is not in (a bench). Every bunkhouse's screen (M.INNS: the Warrens' flop and barns, the Galleries' hands' bunkhouse)
+  M.BUNKPIC = { k: 3 };
+  M.bunkPic = function (ctx, x, y, w, h, t, cy) {
+    var mx = x + w / 2, fy = cy - 10, fl = 0.9 + 0.1 * Math.sin(t / 7) * Math.sin(t / 17), P = M.BUNKPIC;
+    var g = ctx.createLinearGradient(0, y, 0, cy); g.addColorStop(0, '#07060a'); g.addColorStop(1, '#151018'); ctx.fillStyle = g; ctx.fillRect(x, y, w, h);
+    ctx.fillStyle = '#2a1c12'; ctx.fillRect(x, cy - 70, w, 70); // (the plank floor)
+    ctx.fillStyle = '#20150d'; for (var py = cy - 70; py < cy; py += 10) ctx.fillRect(x, py, w, 1);
+    var lx = x + w - 26, ly = y + 30, rg = ctx.createRadialGradient(lx, ly, 3, lx, ly, 120); rg.addColorStop(0, 'rgba(255,196,110,' + (0.42 * fl).toFixed(3) + ')'); rg.addColorStop(1, 'rgba(255,150,60,0)'); ctx.fillStyle = rg; ctx.fillRect(x, y, w, h);
+    ctx.fillStyle = '#3a2e22'; ctx.fillRect(lx - 1, y, 2, ly - y - 6); ctx.fillStyle = '#1a1410'; ctx.fillRect(lx - 5, ly - 6, 10, 9); ctx.fillStyle = 'rgba(255,214,140,' + (0.85 * fl).toFixed(2) + ')'; ctx.fillRect(lx - 3, ly - 2, 6, 3); // (the hooded lamp on its chain)
+    var p = D.topview && D.topview.piece ? D.topview.piece('crew_bunk', 0, 'mine') : null;
+    if (p) { var sm = ctx.imageSmoothingEnabled; ctx.imageSmoothingEnabled = false; ctx.drawImage(p.im, p.x, p.y, p.w, p.h, Math.round(mx - p.ax * P.k), Math.round(fy - p.ay * P.k), p.w * P.k, p.h * P.k); ctx.imageSmoothingEnabled = sm; return true; }
+    ctx.fillStyle = '#4a3220'; ctx.fillRect(mx - 52, fy - 120, 8, 120); ctx.fillRect(mx + 44, fy - 120, 8, 120); // (the posts)
+    [fy - 112, fy - 46].forEach(function (by) { ctx.fillStyle = '#5c4028'; ctx.fillRect(mx - 52, by, 104, 10); ctx.fillStyle = '#8a7a62'; ctx.fillRect(mx - 44, by - 8, 88, 9); ctx.fillStyle = '#b8a888'; ctx.fillRect(mx - 42, by - 8, 20, 6); }); // (two bunks, a blanket and a pillow each)
+    return true;
+  };
   // the crews' fire (his "watch-less camp location"): a long rest with no watch, free -- the house's night (M.sleep), and the light the morning brings. One box (10-27, his eye
   // on it: "Use a campfire where you're waiting for an NPC portrait and "the Veterans keep Watch" is cleaner version on the sleep text box. Call sleep long rest. 'ok' box is
   // superlative"): the fire in the portrait's place (M.firePic), his words over LONG REST and LEAVE, and no box before them to OK
@@ -1044,7 +1061,7 @@
   T.fire = function* (B, trig, at) {
     var def = D.roam.def;
     if (def && def.mine && trig.town === 'mine') { yield* M.trigger(B, trig, at); return; }
-    if (def && def.mine && trig.town === 'door' && M.INNS[trig.id]) { var inn = M.INNS[trig.id]; if (yield* M.talk(B, inn.id, function (sc) { return M.inn(sc, B, inn); }, inn.name)) yield* M.sleep(B, inn); return; }
+    if (def && def.mine && trig.town === 'door' && M.INNS[trig.id]) { var inn = M.INNS[trig.id]; if (yield* M.talk(B, inn.id, function (sc) { return M.inn(sc, B, inn); }, inn.name, M.bunkPic)) yield* M.sleep(B, inn); return; } // (the room's own picture where a keeper's portrait stands: M.bunkPic)
     if (def && def.mine && trig.town === 'talk' && M.SCENES[trig.npc]) { yield* M.talk(B, trig.npc); return; }
     yield* fire0(B, trig, at);
   };

@@ -166,8 +166,56 @@
     lines.push(H16.LINES.opened.replace('{name}', open[0].name), open[0].text);
     if (open.length > 1) lines.push(H16.LINES.more.replace('{names}', open.slice(1).map(function (q) { return q.name; }).join(', ')));
     if (pinned) lines.push(D.keys ? D.keys(H16.LINES.pinned) : H16.LINES.pinned);
-    D.sfx(H16.DING); B.card(R.wrap(lines), 480); yield 1; // (its ding, his "add some kind of *ding* or pop-up when a quest is added to journal": js/audio.js SFX.quest)
+    D.sfx(H16.DING); B.card(R.wrap(lines), 480); // (its ding, his "add some kind of *ding* or pop-up when a quest is added to journal": js/audio.js SFX.quest)
+    // ... and into the JOURNAL (10-29, below): the card kept in the log, its words on the fly-in instead of the floor's card
+    B.cards.pop(); yield* H16.fly(B, R.wrap(lines));
   };
+  // THE JOURNAL'S FLY-IN (10-29, Griz, NOTES 1846Z at the Guano Galleries' mouth: "Added to Journal - can we show the text, the popup the part of the menu that has journal, and
+  // the text collapsing and moving into 'journal' which highlights, then have that part of the menu disappear with a more pleasant sound" -- on the 10-28 ding above): the card's
+  // words in the middle; then the M menu's command column slides in where the M menu stands it (js/ui.js UI.MENU_X/Y, js/menu.js Root's window), the card shrinks and flies into
+  // its JOURNAL row, which lights gold; the column slides away to a soft chime (js/audio.js SFX.journal). On the floor's own clock and drawn over it (C.paintPin, below), so
+  // the floor's script waits on it as on a card; a click or E moves it on from the words, and again skips to its end
+  H16.FLY = { read: 360, slide: 12, fly: 26, glow: 30, out: 14 };
+  H16.flyRows = function () { var r = ['ITEMS', 'GEAR', 'MAGIC', 'SKILLS', 'EQUIP', 'STATUS', 'ORDER', 'JOURNAL', 'SAVE', 'NOTES']; if (D.roam && D.roam.def && D.roam.def.hours) r.push('WAIT'); return r.concat(['OPTIONS', 'CREDITS', 'EXIT']); }; // (the second game's root, js/menu.js entriesOf)
+  H16.fly = function* (B, lines) {
+    var R0 = B.roam, F = H16.FLY, jf = B.jfly = { lines: lines, t0: B.t, n: 0, go: null, end: null, chimed: false };
+    var at = function () { return Math.max(B.t - jf.t0, jf.n); }, after = F.slide + F.fly + F.glow + F.out;
+    while (true) {
+      var e = at(), poke = R0 && ((R0.clicks && R0.clicks.length) || (R0.keys && R0.keys.length)); if (R0) { R0.clicks.length = 0; R0.keys.length = 0; }
+      if (jf.go == null && (poke || e >= F.read)) jf.go = e; else if (jf.go != null && poke) jf.n = jf.t0 = -1e6; // (a second poke: to the end)
+      var s = jf.go == null ? -1 : at() - jf.go;
+      if (s >= F.slide + F.fly + F.glow && !jf.chimed) { jf.chimed = true; D.sfx('journal'); }
+      if (s >= after) break;
+      jf.n += 6; yield 6;
+    }
+    if (!jf.chimed) D.sfx('journal');
+    B.jfly = null; if (R0) { R0.clicks.length = 0; R0.keys.length = 0; }
+  };
+  H16.drawFly = function (ctx, B) {
+    var jf = B.jfly; if (!jf) return; var F = H16.FLY, e = Math.max(B.t - jf.t0, jf.n), s = jf.go == null ? -1 : e - jf.go;
+    var ease = function (k) { k = Math.max(0, Math.min(1, k)); return 1 - (1 - k) * (1 - k); };
+    var tw = 0; jf.lines.forEach(function (l) { tw = Math.max(tw, D.textWidth(l)); });
+    var cw = Math.min(D.W - 24, tw + 20), ch = jf.lines.length * 10 + 12, cx = Math.round((D.W - cw) / 2), cy = Math.round((D.H - ch) / 2) - 20;
+    var rows = H16.flyRows(), n = rows.length, rh = n > 13 ? 10 : n > 12 ? 11 : 12, MX = (D.ui && D.ui.MENU_X) || 112, MY = (D.ui && D.ui.MENU_Y) || 15, wx = MX + 184, wy = MY + 4, ji = rows.indexOf('JOURNAL');
+    var jr = { x: MX + 188, y: MY + 11 + ji * rh - 2, w: 62, h: rh };
+    var mIn = s < 0 ? 0 : s < F.slide ? ease(s / F.slide) : s < F.slide + F.fly + F.glow ? 1 : 1 - ease((s - F.slide - F.fly - F.glow) / F.out), colX = Math.round(D.W + (wx - D.W) * mIn);
+    if (mIn > 0) { // (the menu's command column, as js/menu.js Root draws it, JOURNAL lit once the words are in it)
+      D.win8(ctx, colX, wy, 70, 160);
+      var lit = s >= F.slide + F.fly && s < F.slide + F.fly + F.glow + F.out, pulse = 0.55 + 0.45 * Math.sin((s - F.slide - F.fly) / 3);
+      rows.forEach(function (lb, i) {
+        var ry = MY + 11 + i * rh;
+        if (i === ji && lit) { ctx.save(); ctx.globalAlpha = Math.max(0.25, pulse); ctx.fillStyle = D.WIN8.gold; ctx.fillRect(colX + 4, ry - 2, 62, rh); ctx.restore(); }
+        D.text(ctx, lb, colX + 6, ry, i === ji ? (lit ? '#1a1206' : D.WIN8.gold) : D.WIN8.text);
+      });
+    }
+    var k = s < F.slide ? 0 : ease((s - F.slide) / F.fly); if (s >= F.slide + F.fly) return; // (the words in the JOURNAL now)
+    var bx = Math.round(cx + (jr.x + (colX - wx) - cx) * k), by = Math.round(cy + (jr.y - cy) * k), bw = Math.max(8, Math.round(cw + (jr.w - cw) * k)), bh = Math.max(4, Math.round(ch + (jr.h - ch) * k));
+    D.win8(ctx, bx, by, bw, bh);
+    if (k < 0.45) { ctx.save(); ctx.globalAlpha = 1 - k / 0.45; ctx.beginPath(); ctx.rect(bx, by, bw, bh); ctx.clip(); jf.lines.forEach(function (l, i) { D.text(ctx, l, bx + 10, by + 6 + i * 10, D.WIN8.text); }); ctx.restore(); }
+    if (s < 0) D.hint(ctx, 'click or E', D.W / 2, cy + ch + 4, '#9a96a8', 'center');
+  };
+  var pinPaint1 = C.paintPin;
+  C.paintPin = function (ctx, B) { pinPaint1.apply(this, arguments); if (B && B.jfly) H16.drawFly(ctx, B); }; // (over the floor and its markers: the fly-in)
 
   // ---------------------------------------------------------------- PAPA AND LYMEN AT THE HEX'S DOOR (the lane's 4.3; RULED 10-28, his "6 - yes" on his own note: "Have
   // Urtusk and Lymen being Lymen telling Urtusk about finding friends to investigate the rumblings about gnolls on the road and activate company as active quest"). The first
