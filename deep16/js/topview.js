@@ -323,6 +323,8 @@
     var put = function (x, y, c) { var o = (y * w + x) * 4; px[o] = c[0]; px[o + 1] = c[1]; px[o + 2] = c[2]; px[o + 3] = 255; };
     var mix = function (a, b, t) { return [a[0] + (b[0] - a[0]) * t | 0, a[1] + (b[1] - a[1]) * t | 0, a[2] + (b[2] - a[2]) * t | 0]; };
     var sun = [e.ax - 260, rowsH / kx / 2], vaultR = 64; // (the Sunshaft's round west of the falls, half way back; the vault's arch v6's 128 ft)
+    var Tn = D.town, trough = !!(Tn && Tn.TROUGH && !Tn.ROUND), spouts = trough ? e.fount.map(function (fx) { return Tn.troughAt(fx, F).x; }) : e.fount; // (since 10-29 each spout over its trough's middle square, js/town.js T.troughAt)
+    var archOK = function (mid) { return !trough || spouts.every(function (sx) { return Math.abs(sx - mid) >= 16; }); }; // (no arch in a bay a spout stands in: a spout on a solid wall, as the Skylights' -- the arch's 9.5 ft, the boss's 3.2 and a margin)
     for (var Y = 0; Y < H; Y++) for (var X = 0; X < w; X++) {
       var gx = sx0 + X, u = L + gx / kx, c, n = NZ.h2(gx >> 1, Y >> 1, 1301);
       if (Y < rowsH) { // the roof from above: the rim and its merlons, the glass over the orchard, the falls' channel down the middle, the Sunshaft's round
@@ -347,7 +349,7 @@
         if (h > 41) { var mr = Math.floor(u / 6) % 2 === 0; c = mr ? NZ.rampPick(silver, h > 44 ? 0.7 : 0.55, gx, Y) : NZ.rampPick(stone, 0.3, gx, Y); } // (the merlons along the top)
         var wy = h > 19 && h < 26 ? [19, 26] : h > 33 && h < 39 ? [33, 39] : null; // (a window on the second floor and the third, its frame)
         if (wy && bu > 10 && bu < 14) c = bu < 10 + 1 / kx || bu > 14 - 1 / kx || h < wy[0] + 1 / kv || h > wy[1] - 1 / kv ? silver[2] : NZ.rampPick(blue, 0.12 + ((gx + Y) % 7 === 0 ? 0.2 : 0), gx, Y);
-        if (b % 4 === 2 && bu > 2.5 && Math.abs(dv) > vaultR + 4) { var rr = Math.abs(u - mid) / 9.5; if (h < 15 - 4 * rr * rr) c = h > 14.2 - 4 * rr * rr ? silver[5] : NZ.rampPick(stone, 0.05 + (h / 15) * 0.1, gx, Y); } // (an arch of the arcade at the foot, every fourth bay)
+        if (b % 4 === 2 && bu > 2.5 && Math.abs(dv) > vaultR + 4 && archOK(mid)) { var rr = Math.abs(u - mid) / 9.5; if (h < 15 - 4 * rr * rr) c = h > 14.2 - 4 * rr * rr ? silver[5] : NZ.rampPick(stone, 0.05 + (h / 15) * 0.1, gx, Y); } // (an arch of the arcade at the foot, every fourth bay)
         if (Math.abs(dv) < vaultR) { // the vault's great arch and its two doors
           var vr = Math.abs(dv) / vaultR, archTop = 30 - 8 * vr * vr;
           if (h < archTop) {
@@ -359,11 +361,11 @@
             }
           }
         }
-        e.fount.forEach(function (fx) { // a fountain: a spout in a carved boss at 12 ft, its water poured down the wall into the basin at the foot
+        spouts.forEach(function (fx) { // a fountain: a spout in a carved boss at 12 ft, its water poured down the wall into the basin at the foot -- into the trough since 10-29 (TV.trough)
           var df = Math.abs(u - fx); if (df > 8) return;
           if (Math.hypot(u - fx, h - 12) < 3.2) c = Math.hypot(u - fx, h - 12) < 1.1 ? stone[0] : silver[5];
           else if (df < 1.4 && h < 11) c = NZ.h2(gx, Y >> 1, 1306) > 0.9 ? silver[5] : NZ.rampPick(blue, 0.45 + (df < 0.5 ? 0.25 : 0), gx, Y);
-          if (h < 2.2 && df < 7) c = h > 1.7 ? silver[5] : NZ.rampPick(stone, 0.4, gx, Y);
+          if (!trough && h < 2.2 && df < 7) c = h > 1.7 ? silver[5] : NZ.rampPick(stone, 0.4, gx, Y); // (the round fountains' lip at the foot: &fount=round)
         });
       }
       put(X, Y, c);
@@ -448,6 +450,29 @@
     }
     return (BASIN[n] = c.cv);
   };
+  // a trough (since 10-29, the Edric and Dace cutter seat, on Griz's "1 x 3 at each pour spigot should give the look of the skylights battlemap": js/town.js T.TROUGH),
+  // w squares by h, built from the same pieces by quarters as TV.basin's circle; `v` its water's variants (each beat's frame its own: TV.fountFx). The spout's pour over
+  // its north rim into the water, and its splash, are drawn on it too -- the facade's pour (TV.edStrip) ends at the wall's foot, where the trough's rim begins
+  var TROUGH = {};
+  TV.trough = function (w, h, v, pourW) {
+    var key = [w, h, v, pourW].join(); if (TROUGH[key] !== undefined) return TROUGH[key];
+    var T = TV.TS, H = T / 2, inn = function (i, j) { return i >= 0 && j >= 0 && i < w && j < h; };
+    if (!TV.piece('basin_water', 0, 'town') || !TV.piece('basin_edge_n', 0, 'town')) return null;
+    var c = canvasOf(w * T, h * T, true), cx = c.cx;
+    for (var j = 0; j < h; j++) for (var i = 0; i < w; i++) for (var q = 0; q < 4; q++) {
+      var dx = q & 1 ? 1 : -1, dy = q >> 1 ? 1 : -1, ns = dy < 0 ? 'n' : 's', we = dx < 0 ? 'w' : 'e', ve = inn(i, j + dy), ho = inn(i + dx, j), di = inn(i + dx, j + dy);
+      var nm = !ve && !ho ? 'basin_outer_' + ns + we : !ve ? 'basin_edge_' + ns : !ho ? 'basin_edge_' + we : !di ? 'basin_inner_' + ns + we : 'basin_water';
+      var p = TV.piece(nm, nm === 'basin_water' ? NZ.h2(i, j, 89 + v) * 4 | 0 : 0, 'town'); if (!p) continue;
+      cx.drawImage(p.im, p.x + (q & 1) * H, p.y + (q >> 1) * H, H, H, i * T + (q & 1) * H, j * T + (q >> 1) * H, H, H);
+    }
+    // the edge pieces' basin_edge_n water starts below its rim (fountains_p1's `rim`, n): the pour from the wall's foot over the rim, and a splash where it meets the water
+    var sh = D.SHEETS && D.SHEETS.fountains_p1, rn = (sh && sh.rim && sh.rim.n) || 9, blue = R('blue'), silver = R('silver'), mx = Math.round(w * T / 2), pw = Math.max(2, pourW | 0);
+    var img = cx.getImageData(0, 0, w * T, h * T), px = img.data, put = function (x, y, col) { if (x < 0 || y < 0 || x >= w * T || y >= h * T) return; var o = (y * w * T + x) * 4; px[o] = col[0]; px[o + 1] = col[1]; px[o + 2] = col[2]; px[o + 3] = 255; };
+    for (var y = 0; y < rn + 2; y++) for (var x = mx - (pw >> 1); x < mx - (pw >> 1) + pw; x++) put(x, y, NZ.h2(x, (y >> 1) + v * 7, 1306) > 0.85 ? silver[5] : NZ.rampPick(blue, 0.45 + (Math.abs(x - mx + 0.5) < pw / 4 ? 0.25 : 0), x, y));
+    for (var s = 0; s < 14; s++) { var a = NZ.h2(s, v, 1307) * Math.PI, r = 2 + NZ.h2(v, s, 1308) * (pw + 3); put(Math.round(mx + Math.cos(a) * r * (s % 2 ? 1 : -1)), Math.round(rn + 2 + Math.sin(a) * r * 0.45), silver[s % 3 ? 5 : 4]); } // (the splash: white flecks round the pour's foot, each beat's own)
+    cx.putImageData(img, 0, 0);
+    return (TROUGH[key] = c.cv);
+  };
   // (10-29 later, the same seat, on Griz's "tell the fountain to work with what we have and code draw or something if necessary, the fountain may be beyond the art dept"): the
   // art desk's whole fountain, its HEAD 2, laid at every fountain in place of the built basin -- cut at the size nearest the scale's rim (96, 288 and 576 px across: HEAD 1 never
   // came, so the small is HEAD 2's drawing), its middle 26 ft out from the Edifice's foot as the grid draws it (T.FOUNT), so the whole fountain stands in front of the wall with
@@ -458,7 +483,12 @@
     var e = m.def.edifice, Tn = D.town; if (!e || !e.fount || !Tn || !Tn.FOUNT) return (top.fount = null);
     var T = TV.TS, F = m.def.ft || Tn.SCALE || 30, FB = Tn.FOUNT(F), R = FB.rim / F * T, wy = ((FB.y - Tn.Y0) / F + e.y0) * T; // (e.y0: the floor's cut, js/town.js def.edifice)
     var pick = TV.WHOLE.filter(function (w) { return TV.piece(w[0], 0, 'town'); }), wh = pick.filter(function (w) { return w[1] >= 2 * R - 1; })[0] || pick[pick.length - 1];
+    var TR = Tn.TROUGH, ty = ((FB.foot - Tn.Y0) / F + e.y0) * T;
     return (top.fount = e.fount.map(function (fx) {
+      if (!Tn.ROUND && TR) { // (the troughs since 10-29: js/town.js T.TROUGH -- the drawing on the squares T.lay gives its water, the spout over its middle)
+        var tq = Tn.troughAt(fx, F), tx = e.x0 * T + (Tn.X0 + tq.gx0 * F - e.fx0) * T / F, st = m.at(Math.floor(tx / T) + 1, e.y1 + 1), zt = st ? st.gz || 0 : 0;
+        return { trough: TR, x: tx, y: ty - zt, w: TR[0] * T, h: TR[1] * T, wx: tx + TR[0] * T / 2, wy: ty - zt + TR[1] * T / 2, R: TR[0] * T / 2, pourW: Math.round(2.8 * T / F) };
+      }
       var wx = e.x0 * T + (fx - e.fx0) * T / F, s = m.at(Math.floor(wx / T), e.y1 + 1), z = s ? s.gz || 0 : 0; // (the ground's height at the Edifice's foot: Fountain Street is on its level)
       return { wx: wx, wy: wy - z, R: R, name: wh ? wh[0] : null, k: wh ? 2 * R / wh[1] : 1, n: Math.max(2, Math.round(2 * R / T)) };
     }));
@@ -466,14 +496,16 @@
   TV.basins = function (m, cx, x0, y0) { // (on a floor's page: x0, y0 its corner in world px)
     (TV.fountains(m) || []).forEach(function (f) {
       if (f.wx + f.R < x0 || f.wx - f.R > x0 + TV.PAGE || f.wy + f.R < y0 || f.wy - f.R > y0 + TV.PAGE) return;
+      if (f.trough) { var tc = TV.trough(f.trough[0], f.trough[1], 0, f.pourW); if (tc) cx.drawImage(tc, Math.round(f.x - x0), Math.round(f.y - y0)); return; }
       var p = f.name && TV.piece(f.name, 0, 'town'), im = !p && TV.basin(f.n);
       if (p) cx.drawImage(p.im, p.x, p.y, p.w, p.h, Math.round(f.wx - p.ax * f.k - x0), Math.round(f.wy - p.ay * f.k - y0), Math.round(p.w * f.k), Math.round(p.h * f.k));
       else if (im) cx.drawImage(im, Math.round(f.wx - f.R - x0), Math.round(f.wy - f.R - y0), Math.round(2 * f.R), Math.round(2 * f.R));
     });
   };
-  TV.fountFx = function (ctx, m, z) { // (each frame, over the floor and under everything standing: the second frame's water, every other beat)
+  TV.fountFx = function (ctx, m, z) { // (each frame, over the floor and under everything standing: the second frame's water, every other beat -- a trough's, its water's other variants and splash)
     if ((Date.now() / TV.FOUNTBEAT | 0) % 2 === 0) return;
     (TV.fountains(m) || []).forEach(function (f) {
+      if (f.trough) { var tc = TV.trough(f.trough[0], f.trough[1], 1, f.pourW), ta = tc && iso.toScreen(f.x, f.y); if (tc) ctx.drawImage(tc, Math.round(ta.x), Math.round(ta.y), Math.round(f.w * z), Math.round(f.h * z)); return; }
       var p = f.name && TV.piece(f.name, 1, 'town'); if (!p || p.n < 2) return;
       var a = iso.toScreen(f.wx - p.ax * f.k, f.wy - p.ay * f.k), w = p.w * f.k * z, h = p.h * f.k * z;
       ctx.drawImage(p.im, p.x, p.y, p.w, p.h, Math.round(a.x), Math.round(a.y), Math.round(w), Math.round(h));

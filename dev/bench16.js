@@ -5441,6 +5441,9 @@
         Object.keys(szF).every(function (n) { var bs = wbF(n); return bs.length === 2 && bs.every(function (b) { return b[2] === szF[n] && b[4] === szF[n] / 2 && Math.abs(b[5] - b[3] / 2) <= 1; }); }));
       okF('the top view loads it with the town\'s atlases, the town\'s water squares on its calm fill, and lays the fountains, their second frame over the floor every other beat (TV.fountains, TV.basins, TV.fountFx)',
         TVF.ART.sheets.indexOf('fountains_p1') >= 0 && TVF.GROUND.town['~'] === 'basin_water' && typeof TVF.fountains === 'function' && typeof TVF.basins === 'function' && typeof TVF.fountFx === 'function' && TVF.WHOLE.length === 3);
+      // (10-29 later, the Edric and Dace cutter seat, on Griz's "1 x 3 at each pour spigot should give the look of the skylights battlemap": the troughs are the default since,
+      // js/town.js T.TROUGH; the round fountains' check below is run as &fount=round lays them, T.ROUND set for its lays and put back)
+      var round0F = TF.ROUND; TF.ROUND = true;
       [30, 10, 5].forEach(function (F) {
         var L = TF.lay(null, F), FB = TF.FOUNT(F), V6 = D.TOWN_V6, out = [], n = 0, foot = TF.Y0 + (Math.floor((V6.EDBOT - TF.Y0) / F) + 1) * F, inWall = 0;
         V6.FOUNT.forEach(function (fx) {
@@ -5453,6 +5456,24 @@
         okF('at ' + F + ' ft a square: each fountain\'s middle 26 ft out from the Edifice\'s foot as the grid lays it (' + FB.y + ' ft, the foot ' + foot + '), its ' + n + ' water squares inside the drawn rim (' + FB.rim + ' ft round), none in the Edifice\'s own rows' + (out.length ? ' -- outside: ' + out.join(' ') : '') + (inWall ? ' -- in the wall: ' + inWall : ''),
           n >= 8 && !out.length && !inWall && FB.y === foot + 26);
       });
+      TF.ROUND = round0F;
+      // THE TROUGHS: at each scale, each spout's T.TROUGH squares of water in the row against the Edifice's foot, round the square nearest the spout (T.troughAt), no other
+      // water near it, none in the Edifice's rows, and at 30 ft a square between each trough and the next (the first spout falls on a square's edge: the tie taken west)
+      [30, 10, 5].forEach(function (F) {
+        var L = TF.lay(null, F), FB = TF.FOUNT(F), V6 = D.TOWN_V6, TR = TF.TROUGH, gyF = (FB.foot - TF.Y0) / F, bad = [], spans = [], nearS = {};
+        V6.FOUNT.forEach(function (fx) {
+          var tq = TF.troughAt(fx, F); spans.push([tq.gx0, tq.gx0 + TR[0] - 1]);
+          for (var ty = 0; ty < TR[1]; ty++) for (var tx = 0; tx < TR[0]; tx++) if (L.rows[gyF + ty].charAt(tq.gx0 + tx) !== '~') bad.push((tq.gx0 + tx) + ',' + (gyF + ty) + ' ' + L.rows[gyF + ty].charAt(tq.gx0 + tx));
+          if (Math.abs(tq.x - fx) > F / 2 + 0.01) bad.push('spout ' + fx + ' moved to ' + tq.x);
+          for (var y = gyF - 2; y <= gyF + 4; y++) for (var x = tq.gx0 - 3; x <= tq.gx0 + TR[0] + 2; x++) if (L.rows[y] && L.rows[y].charAt(x) === '~') nearS[x + ',' + y] = 1;
+        });
+        var near = Object.keys(nearS).length, gaps = spans.slice(1).map(function (s, k) { return s[0] - spans[k][1] - 1; }).filter(function (g, k) { return k !== 3; }); // (the west four and the east four: the vault between)
+        okF('at ' + F + ' ft a square: a trough ' + TR[0] + ' x ' + TR[1] + ' at each of the eight spouts, flush against the Edifice\'s foot (row ' + gyF + '), the spout over its middle -- squares ' + spans.map(function (s) { return s[0] + '-' + s[1]; }).join(' ') + '; ' + near + ' water squares near them' + (bad.length ? ' -- wrong: ' + bad.join(' ') : '') + '; the gaps ' + gaps.join(','),
+          !bad.length && near === 8 * TR[0] * TR[1] && gyF === Math.round(gyF) && (F !== 30 || gaps.every(function (g) { return g >= 1; })) && TR[0] === 3 && TR[1] === 1);
+      });
+      var mtF = BF && BF.map, ftF = mtF && mtF.top ? TVF.fountains(mtF) : null;
+      okF('the top view lays the troughs on those squares (TV.fountains: ' + (ftF ? ftF.length + ', the first ' + JSON.stringify(ftF[0]) : 'no top view on this floor') + '), and draws them from the squared tiles (TV.trough)',
+        typeof TVF.trough === 'function' && (!ftF || (ftF.length === 8 && ftF.every(function (f) { return f.trough && f.w === 3 * TVF.TS && f.h === TVF.TS && f.x === Math.round(f.x / TVF.TS) * TVF.TS; }))));
     } catch (eF) { repF.errors.push(String(eF && eF.stack || eF).slice(0, 900)); }
     D.store.get = stGF; D.store.set = stSF; if (D.house) { D.house.playing = false; D.house.cur = null; }
     var preF = document.createElement('pre'); preF.id = 'out'; preF.textContent = 'BENCH16 ' + JSON.stringify(repF);

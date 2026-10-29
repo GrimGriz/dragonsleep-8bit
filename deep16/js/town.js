@@ -27,7 +27,19 @@
     // of 10-29, on Griz's "tell the fountain to work with what we have and code draw or something if necessary": at 30-ft squares the Edifice's last row runs 28 ft past v6's
     // foot, and its drawn front stood over each fountain's middle -- its pedestal under the wall, its water squares in the Edifice's own row)
     V = V || D.TOWN_V6; var foot = T.Y0 + (Math.floor((V.EDBOT - T.Y0) / F) + 1) * F;
-    return { dy: 26, y: foot + 26, rim: Math.max(30, F * 0.75), water: Math.max(22, F * 0.55) };
+    return { dy: 26, y: foot + 26, rim: Math.max(30, F * 0.75), water: Math.max(22, F * 0.55), foot: foot };
+  };
+  // THE TROUGHS (10-29, the Edric and Dace cutter seat, on Griz's note from Silverton 40,7: "There's 3 things going on with the fountains, black openings, pour spigots and big
+  // round fountains. If the squared edge tiles can be made to work, 1 x 3 at each pour spigot should give the look of the skylights battlemap"): at each spout a trough
+  // T.TROUGH squares wide and deep at any scale, flush against the Edifice's foot as the Skylights' pools stand (deep16/data/maps.js `edifice`), its water squares laid
+  // by T.lay and its stone drawn from the art desk's squared basin tiles (ART-124 HEAD 3: js/topview.js TV.trough) -- the three squares round the one nearest the
+  // spout, a tie taken west (at 30 ft the first spout falls on a square's edge, and east its trough touched the next one's), the spout drawn over the middle one.
+  // &fount=round on the page's address lays and draws the round fountains as they were, set out from the wall (TV.fountains), to compare
+  T.TROUGH = [3, 1];
+  T.ROUND = typeof location !== 'undefined' && /[?&]fount=round\b/.test(location.search || '');
+  T.troughAt = function (fx, F) { // a spout's trough at a scale: its first square from the town's west edge, and its middle in feet (where the spout is drawn)
+    var mid = Math.round((fx - T.X0) / F - 0.5 - 1e-6), gx0 = mid - (T.TROUGH[0] - 1) / 2;
+    return { gx0: gx0, x: T.X0 + (gx0 + T.TROUGH[0] / 2) * F };
   };
   // Bloodsnout's compound (10-20, his words above): the seat's draft -- behind the fighters' stables (19) and the arena family's house (24), on the open
   // ground east of the Arena Plaza against the stockade, its gate to the plaza; walled stone, a barracks along its back, the yard between, shut (invented.json bloodsnout-compound)
@@ -124,7 +136,11 @@
     });
     fill(V.EDW[0], T.Y0, V.EDW[1], V.EDBOT, function () { return true; }, '#'); // (the Edifice: the dwarves' building in the mountain's face, its squares closed as rock -- drawn whole as the building since 10-28, def.edifice: js/topview.js TV.edStrip)
     // the fountains at the Edifice's foot: a pool in a dressed rim (v6: the basin 30 ft across the rim, 22 the water)
-    var FB = T.FOUNT(F, V); V.FOUNT.forEach(function (x) { ellipse(x, FB.y, FB.rim, FB.rim, '='); ellipse(x, FB.y, FB.water, FB.water, '~'); });
+    var FB = T.FOUNT(F, V); V.FOUNT.forEach(function (x) {
+      if (T.ROUND) { ellipse(x, FB.y, FB.rim, FB.rim, '='); ellipse(x, FB.y, FB.water, FB.water, '~'); return; }
+      var tq = T.troughAt(x, F), gy0 = gyOf(FB.foot); // (since 10-29, the troughs: a row of water squares against the foot, under each spout -- T.TROUGH)
+      for (var ty = 0; ty < T.TROUGH[1]; ty++) for (var tx = 0; tx < T.TROUGH[0]; tx++) set(tq.gx0 + tx, gy0 + ty, '~', '.,=');
+    });
     // the headframes: the spoil heap, the mouth on it
     V.headframe.forEach(function (f) { var s = f[2]; ellipse(f[0] + 26 * s, f[1] + 16 * s, 44 * s, 24 * s, 'r', OPEN); ellipse(f[0], f[1] + 16 * s, Math.max(7, 15 * s, F * 0.55), Math.max(5, 8 * s, F * 0.55), 'w', OPEN); });
     // the stalls in the open ground (v6 turns each about its corner)
