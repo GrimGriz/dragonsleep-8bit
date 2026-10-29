@@ -23,7 +23,7 @@
     // ------------------------------------------------------------------ the 8-bit game's set pieces (09-27, the ladder seat, on Griz's word:
     // "start with boss fights from the 8-bit that don't involve water ... The otyugh fight should probably slot in there").
     // A rung may hold more than one fight: the set piece first, the bestiary's fights beside it (left/right on the ladder).
-    { id: 'ettercap', story: true, level: 3, map: 'gulch', name: 'The Braiding Ettercap', sub: 'Web Gulch, the strung end', music: 'boss',
+    { id: 'ettercap', story: true, level: 3, ladder: false, map: 'gulch', name: 'The Braiding Ettercap', sub: 'Web Gulch, the strung end', music: 'boss',
       intro: 'On a thick strand at the far end something sits braiding a cord. It stops when it sees you.',
       from: 'the 8-bit game: the Weigh-House bounty (events.js S.ettercap; ettercap + giant spider + two wolf spiders)', won: 'THE GULCH GOES QUIET.',
       // half again (10-03, Griz: "I think we should up the CR by a 1/2 for the early fights"; the overseer's call, x1.5 the adjusted XP): two
@@ -31,6 +31,13 @@
       // lad's squares. For four at 3: 975 HARD before, 1500 HARD after (x1.54). invented.json#early-fights-half-again
       foes: [{ id: 'ettercap', kind: 'ettercap', at: [7, 1] }, { id: 'gs1', kind: 'giantspider', at: [10, 3] },
              { id: 'ws1', kind: 'wolfspider', at: [4, 5] }, { id: 'ws2', kind: 'wolfspider', at: [13, 6] }], wave: null },
+    // THE LADDER'S RUNGS 3 AND 4 KEEP THEIR OLD FIGHTS (10-28, Griz: "Take the leans" -- the difficulty lane §2.4/§3.3: the half again is the story's, "the ladders are not for this, as with
+    // the Keeper"): each `<id>-ladder` record is its story fight as the ladder had it before 10-03 (the record of 9b849b2^ / 45c1dc5^ word for word, or the crew's as it stood before its
+    // fourth), right after the story's own in this list -- its place on the rung (a rung is built from D.fightsAt, in this list's order) -- and the story's own carries `ladder: false`.
+    { id: 'ettercap-ladder', level: 3, map: 'gulch', name: 'The Braiding Ettercap', sub: 'Web Gulch, the strung end', music: 'boss',
+      intro: 'On a thick strand at the far end something sits braiding a cord. It stops when it sees you.',
+      from: 'the 8-bit game: the Weigh-House bounty (events.js S.ettercap; ettercap + giant spider)', won: 'THE GULCH GOES QUIET.',
+      foes: [{ id: 'ettercap', kind: 'ettercap', at: [7, 1] }, { id: 'gs1', kind: 'giantspider', at: [10, 3] }], wave: null },
     { id: 'landlord', level: 4, map: 'pool', name: 'The Landlord', sub: 'the Warrens, the deepest pool', music: 'boss',
       intro: 'It rises from its pool, all eye-stalk and tentacle. It will not leave the water.',
       from: 'the 8-bit game: the Warrens, FIGHT IT instead of the bucket (events.js; the otyugh)', won: 'THE POOL GOES STILL.',
@@ -106,7 +113,7 @@
       from: 'the 8-bit game: deep.js S.holdStair (a crew boss, two thugs, two of the night crew; the 8-bit game\'s easy fight at 6, hard for four at 2)', won: 'THE STAIR HOLDS.',
       foes: [{ id: 'boss', kind: 'crewboss', at: [9, 2] }, { id: 'th1', kind: 'thug', at: [6, 3] }, { id: 'th2', kind: 'thug', at: [13, 3] },
              { id: 'nc1', kind: 'robber', at: [4, 5] }, { id: 'nc2', kind: 'robber', at: [15, 5] }], wave: null },
-    { id: 'snoot', story: true, level: 3, map: 'snootroad', name: 'The Glory-Seekers', sub: 'the road south, by day', music: 'boss',
+    { id: 'snoot', story: true, level: 3, ladder: false, map: 'snootroad', name: 'The Glory-Seekers', sub: 'the road south, by day', music: 'boss',
       intro: 'Gnolls on the road: glory-seekers of the Snoot, young blood come north to prove themselves where somebody can see it. The challenge, by day.',
       from: 'the 8-bit game: events.js S.snoot (a glory-seeker, three gnolls, three hyenas)', won: 'THE LAST OF THEM RUNS SOUTH.',
       // half again (10-03, Griz: "I think we should up the CR by a 1/2 for the early fights"; the overseer's call, x1.5 the adjusted XP): a third
@@ -114,12 +121,23 @@
       // 840 MEDIUM before, 1325 HARD after (x1.58). invented.json#early-fights-half-again
       foes: [{ id: 'gs', kind: 'gloryseeker', at: [9, 2] }, { id: 'gn1', kind: 'gnoll', at: [6, 3] }, { id: 'gn2', kind: 'gnoll', at: [13, 4] }, { id: 'gn3', kind: 'gnoll', at: [11, 3] },
              { id: 'hy1', kind: 'hyena', at: [4, 5] }, { id: 'hy2', kind: 'hyena', at: [15, 5] }, { id: 'hy3', kind: 'hyena', at: [7, 6] }], wave: null },
+    { id: 'snoot-ladder', level: 3, map: 'snootroad', name: 'The Glory-Seekers', sub: 'the road south, by day', music: 'boss', // (the ladder's own, 10-28: above, at ettercap-ladder)
+      intro: 'Gnolls on the road: glory-seekers of the Snoot, young blood come north to prove themselves where somebody can see it. The challenge, by day.',
+      from: 'the 8-bit game: events.js S.snoot (a glory-seeker, two gnolls, two hyenas)', won: 'THE LAST OF THEM RUNS SOUTH.',
+      foes: [{ id: 'gs', kind: 'gloryseeker', at: [9, 2] }, { id: 'gn1', kind: 'gnoll', at: [6, 3] }, { id: 'gn2', kind: 'gnoll', at: [13, 4] },
+             { id: 'hy1', kind: 'hyena', at: [4, 5] }, { id: 'hy2', kind: 'hyena', at: [15, 5] }], wave: null },
     { id: 'line', story: true, level: 4, map: 'bridge', name: 'The Line', sub: 'the bridge into the camp',
       intro: 'Six men in a line across the bridge: the Captain\'s stable, hired by the House to hold the camp. One gold a man a day. They are here for you.',
       from: 'the 8-bit game: events.js enter:warrens_a (five guards and their sergeant; hard for four at 4)', won: 'THE LINE BREAKS.',
       foes: [{ id: 'g1', kind: 'guard', at: [8, 5] }, { id: 'g2', kind: 'guard', at: [9, 5] }, { id: 'g3', kind: 'guard', at: [10, 5] }, { id: 'g4', kind: 'guard', at: [11, 5] },
              { id: 'g5', kind: 'guard', at: [9, 4] }, { id: 'sgt', kind: 'veteran', at: [10, 3] }], wave: null },
-    { id: 'crew', story: true, level: 4, map: 'burial', name: 'The Night Crew', sub: 'the Burial, The One Law', music: 'boss',
+    { id: 'crew', story: true, level: 4, ladder: false, map: 'burial', name: 'The Night Crew', sub: 'the Burial, The One Law', music: 'boss',
+      intro: 'Hask hefts the pry-bar, and Skell, his lieutenant, comes round the far side with his own. The wheelwright hangs back by the lamp. (The wheelwright runs for the stair when Hask falls.)',
+      from: 'the 8-bit game: deep.js, The One Law\'s FIGHT (Hask, the wheelwright, two crewmen; the 8-bit game fights it at 5-6, hard for four at 4); the second game\'s fourth is Skell, Hask\'s lieutenant, in a crewman\'s place', won: 'THE CREW IS DOWN.',
+      // the crew's fourth (10-28, Griz: "Take the leans" -- the difficulty lane §2.2/§3.2): Skell (data/foes.js skell, a Bandit Captain in Hask's pattern) for the second crewman, "Four of
+      // them" kept. For four at 4 (PK.diff): 1700 HARD before, 2400 DEADLY after (x1.41). invented.json#skell
+      foes: [{ id: 'hask', kind: 'hask', at: [9, 5] }, { id: 'ww', kind: 'wheelwright', at: [10, 2] }, { id: 'cm1', kind: 'crewman', at: [6, 6] }, { id: 'skell', kind: 'skell', at: [13, 6] }], wave: null },
+    { id: 'crew-ladder', level: 4, map: 'burial', name: 'The Night Crew', sub: 'the Burial, The One Law', music: 'boss', // (the ladder's own, 10-28: above, at ettercap-ladder)
       intro: 'Hask hefts the pry-bar. The wheelwright hangs back by the lamp. (He runs for the stair when Hask falls.)',
       from: 'the 8-bit game: deep.js, The One Law\'s FIGHT (Hask, the wheelwright, two crewmen; the 8-bit game fights it at 5-6, hard for four at 4)', won: 'THE CREW IS DOWN.',
       foes: [{ id: 'hask', kind: 'hask', at: [9, 5] }, { id: 'ww', kind: 'wheelwright', at: [10, 2] }, { id: 'cm1', kind: 'crewman', at: [6, 6] }, { id: 'cm2', kind: 'crewman', at: [13, 6] }], wave: null },

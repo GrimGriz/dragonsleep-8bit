@@ -376,6 +376,16 @@
     attacks: { bar: { name: 'Pry-bar', atk: 5, dice: '1d6', mod: 3, type: 'bludgeoning', reach: 5 }, knife: { name: 'Knife', atk: 5, dice: '1d4', mod: 3, type: 'piercing', reach: 5 } },
     multi: ['bar', 'bar', 'knife'], parry: 2, src: 'content/monsters.json hask (the SRD 5.1 Bandit Captain as the night crew\'s boss)'
   },
+  // HASK'S LIEUTENANT (10-28, Griz: "Take the leans" -- the difficulty lane §2.2/§3.2: the crew's fourth "a bandit captain in Hask's pattern, named for the crew (his lieutenant), the
+  // scene's 'Four of them' kept"): Skell, the seat's name (invented.json #skell), Hask's own block -- the SRD 5.1 Bandit Captain with the crew's pry-bar and knife -- in the bandit's hood
+  // (bandit_p1, a stand-in: the crew's tunic is Hask's and the crewmen's, the hood marks the one to watch)
+  skell: {
+    named: true, name: 'Skell', type: 'humanoid', sheet: 'bandit_p1', cr: '2', ac: 15, hp: 65, speed: 30, size: 1, reach: 5,
+    abil: { str: 15, dex: 16, con: 14, int: 14, wis: 11, cha: 14 }, init: 3, perception: 10,
+    saves: { str: 4, dex: 5, con: 2, int: 2, wis: 2, cha: 2 }, // (SRD 5.1 Bandit Captain: Str +4, Dex +5, Wis +2)
+    attacks: { bar: { name: 'Pry-bar', atk: 5, dice: '1d6', mod: 3, type: 'bludgeoning', reach: 5 }, knife: { name: 'Knife', atk: 5, dice: '1d4', mod: 3, type: 'piercing', reach: 5 } },
+    multi: ['bar', 'bar', 'knife'], parry: 2, src: 'the SRD 5.1 Bandit Captain (CR 2) in Hask\'s pattern (foes.js hask): Hask\'s lieutenant in the night crew, the crew\'s fourth (10-28)'
+  },
   wheelwright: {
     name: 'Wheelwright', type: 'humanoid', sheet: 'wheelwright_p1', cr: '1', ac: 12, hp: 27, speed: 30, size: 1, reach: 5,
     abil: { str: 10, dex: 15, con: 10, int: 12, wis: 14, cha: 16 }, init: 2, perception: 16,
