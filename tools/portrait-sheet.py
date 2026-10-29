@@ -130,11 +130,13 @@ PEOPLE = {
     # warning, "rather than accidental ... bright red nose": left out, they go to his skin)
     # Corwen Dace, the Guano Galleries' modernizer (10-29, the same seat): the art desk's ART-123-DACE, his grandfather's old cloak plain on his shoulders -- his face for
     # the Galleries' scenes and the deep gallery's (js/mines.js M.talk by C.PT); his work the notebook opened and sketched in, talking all the while
-    'dace': ('dace/ART-123-DACE', 'ART-123-DACE', 'npc:dace', {'edge': True, 'bevel': (2, 3, 4, 5)}),
+    'dace': ('dace/ART-123-DACE', 'ART-123-DACE', 'npc:dace', {'edge': True, 'bevel': (2, 3, 4, 5), 'avoid': ['red', 'fire']}),   # (his hair's shadows, his face's lines and
+    # the strap's and satchel's oxblood snapped to the reds, the stills twice the idle's -- Griz, 10-29 night, "lot of red-shifting going on in various frames": left out,
+    # as his figure's; the cloak's look too, whose violet light sent his cheeks and knuckles to the lightest red)
     # Dace in the cloak of displacement (10-29, the same seat, on Griz's "Dace in Displacement Cloak sprites to follow"; his ask to the art desk, "I also need variants where
     # his cloak is a cloak of displacement (obviously magical)"): the art desk's ART-123-DACE-DISPLACEMENT, a second look beside the plain one -- the cloak violet with a
     # blue afterimage of him offset screen-right. Its glow joins the idle's and the work's frames: `ghost` splits them at the real bodies and measures him without it
-    'dacedisp': ('dace/ART-123-DACE-DISPLACEMENT', 'ART-123-DACE-DISPLACEMENT', 'npc:dace (the cloak worn as the magic item)', {'edge': True, 'bevel': (2, 3, 4, 5), 'ghost': {'hues': (205, 285), 'smin': 0.3}, 'untext': {4: [(0, 0, 820, 50)]}}),   # (his skeptical's title, "... DISPLACEMENT SKEPTICAL", ends on his hair)
+    'dacedisp': ('dace/ART-123-DACE-DISPLACEMENT', 'ART-123-DACE-DISPLACEMENT', 'npc:dace (the cloak worn as the magic item)', {'edge': True, 'bevel': (2, 3, 4, 5), 'ghost': {'hues': (205, 285), 'smin': 0.3}, 'untext': {4: [(0, 0, 820, 50)]}, 'avoid': ['red', 'fire']}),   # (his skeptical's title, "... DISPLACEMENT SKEPTICAL", ends on his hair)
     # Talmok, the Hex's champion by the sand (10-29, the Edric and Dace cutter seat, on the lanes desk's "Take Talmok after Dace"; art-wanted section 26's last block, a
     # portrait only): the art desk's ART-123-TALMOK, drawn from his own figure (talmok_p1) -- his word in the Hex on his face (js/town.js T.fire, C.takes)
     'talmok': ('talmok/ART-123-TALMOK', 'ART-123-TALMOK', 'the Hex, by the sand (talmok)', {'edge': True, 'bevel': (2, 3, 4, 5), 'match': {6: 1}}),   # (his stills'

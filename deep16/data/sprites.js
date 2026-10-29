@@ -12129,7 +12129,7 @@ true
 "source": "deep16/_src/cassia/ART-89 (the art desk's ART-89, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
 },
 "pt_dace": {
-"image": "art/pt_dace.png?v=0ea99195a3",
+"image": "art/pt_dace.png?v=0d81860026",
 "fw": 202,
 "fh": 155,
 "ax": 104,
@@ -12225,7 +12225,7 @@ true
 "source": "deep16/_src/dace/ART-123-DACE (the art desk's ART-123-DACE, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
 },
 "pt_dacedisp": {
-"image": "art/pt_dacedisp.png?v=648e52a1ff",
+"image": "art/pt_dacedisp.png?v=7902d9af8f",
 "fw": 220,
 "fh": 155,
 "ax": 105,
