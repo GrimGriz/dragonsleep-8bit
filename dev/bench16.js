@@ -2398,6 +2398,23 @@
       okI('stepping into the cavern: ' + (b6 && b6.fight && b6.fight.name) + ' on ' + (b6 && b6.map.w) + ' x ' + (b6 && b6.map.h) + ' of the floor\'s stone (' + (b6 && b6.map.def.ground) + '), Dace in it ' + !!(b6 && b6.units.some(function (u) { return u.vital && u.side === 'party'; })),
         !!b6 && b6.fight.name === 'The Cloaker' && b6.map.w === 16 && b6.map.def.ground == null && b6.units.some(function (u) { return u.vital && u.side === 'party'; }) && b6.units.some(function (u) { return u.kind === 'cloaker'; }));
       HI.playing = false; HI.cur = null;
+      // 7. WEB GULCH ON THE DIAMONDS: painted in pages (40 x 112), the open ground, the Wet's zoom; &view=top north up on the same squares
+      var GI = D.gulch, B7 = testI('?roam=webgulch&hour=9&at=16,24'), d7 = RI.def, m7 = B7.map, rows7 = d7.rows.join('|'), z7 = D.iso.zoom;
+      var B7t = testI('?roam=webgulch&hour=9&at=16,24&view=top'), d7t = RI.def;
+      okI('Web Gulch on the diamonds (iso ' + d7.iso + ', drawn north up ' + !!m7.top + ', paged ' + !!(m7.bake && m7.bake.paged) + ', ground ' + d7.ground + ', zoom ' + z7 + '): "' + d7.hello[0].slice(0, 90) + '"; &view=top north up (' + !!B7t.map.top + ') on the same squares (' + (d7t.rows.join('|') === rows7) + ')',
+        d7.iso === true && !m7.top && !!(m7.bake && m7.bake.paged) && d7.ground === 'earth' && z7 === MI.ISOZOOM && /diamonds/.test(d7.hello[0]) && !!B7t.map.top && d7t.view === 'top' && d7t.rows.join('|') === rows7);
+      // 8. ITS PIECES: the grid's trees and the cocoon, the seat's tents (no woodpile drawn under them), the webs and bones on the floor, the crates as they were; the camp's fire in the sort
+      B7 = testI('?roam=webgulch&hour=9&at=16,24'); m7 = B7.map; var k8 = kindsI(m7), tr8 = m7.sq.filter(function (s) { return s.stands === 'a tree'; }).length, te8 = m7.sq.filter(function (s) { return s.stands === 'the tent'; });
+      var fi8 = (D.looks.props(B7) || []).filter(function (o) { return o.depth === GI.FIRE[0] + GI.FIRE[1] + 0.5 && o.draw; }).length, bl8 = m7.props.filter(function (p) { return p.kind === 'block' && te8.indexOf(p.sq) >= 0; }).length;
+      okI('the gulch\'s pieces: trees ' + (k8.tree || 0) + ' (cover "a tree" ' + tr8 + '), tents ' + (k8.tent || 0) + ' (a woodpile under them ' + bl8 + '), the cocoon ' + (k8.cocoon || 0) + ', webs and bones ' + (k8.decal || 0) + ', crates ' + (k8.block || 0) + '; the fire at ' + GI.FIRE + ' in the sort ' + fi8,
+        k8.tree === 11 && tr8 === 11 && k8.tent === 2 && te8.length === 2 && !bl8 && k8.cocoon === 1 && k8.decal === 177 && k8.block === 2 && fi8 === 1);
+      // 9. THE SHOW'S GULCH: noon by the near webs (the cutter out at them), the camp by night (dark, the boy beside the fire, not in front of it on the screen)
+      var sh9 = MI.isoShow('?isoshow&beat=gulchnoon'); D.scenes.length = 0; D.push(sh9); sh9.update(); var B9 = topI(), cu9 = B9 && B9.units.filter(function (u) { return u.npc === 'silkcutter'; })[0], h9 = RI.def.hour;
+      HI.playing = false; HI.cur = null;
+      var sh9b = MI.isoShow('?isoshow&beat=gulchnight'); D.scenes.length = 0; D.push(sh9b); sh9b.update(); var B9b = topI(), dr9 = B9b && B9b.units.filter(function (u) { return u.npc === 'drummer'; })[0], h9b = RI.def.hour;
+      okI('the show\'s gulch: noon at hour ' + h9 + ', the cutter at ' + (cu9 && [cu9.x, cu9.y]) + '; by night hour ' + h9b + ', dark ' + RI.def.dark + ', the boy at ' + (dr9 && [dr9.x, dr9.y]) + ' by the fire at ' + GI.FIRE + ', a torch lit ' + !!(B9b && B9b.roam.token.torch),
+        h9 === 12 && !!cu9 && cu9.x === 13 && cu9.y === 27 && h9b === 22 && RI.def.dark && !!dr9 && Math.abs(dr9.x - GI.FIRE[0]) + Math.abs(dr9.y - GI.FIRE[1]) === 1 && !!B9b.roam.token.torch);
+      HI.playing = false; HI.cur = null;
     } catch (eI) { repI.errors.push(String(eI && eI.stack || eI).slice(0, 900)); }
     D.store.get = stGI; D.store.set = stSI; D.music = muI; try { if (skI != null) window.localStorage.setItem(SI.KEY, skI); } catch (eK2) { }
     var preI = document.createElement('pre'); preI.id = 'out'; preI.textContent = 'BENCH16 ' + JSON.stringify(repI);

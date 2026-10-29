@@ -1080,12 +1080,17 @@
   M.ISO_BEATS = [
     { id: 'gallery', label: 'THE DEEP GALLERY on the diamonds, Dace in the token', note: 'Below the dens\' last ladder, Dace\'s light up: the cave\'s stone, the ladders up the rock, the bones. Walk on down into the cavern and the cloaker comes.', key: 'galleries_g4', at: [9, 3], guest: 'dace' },
     { id: 'cloaker', label: 'THE CLOAKER, on its field cut from the floor', note: 'Two steps from the cavern, Dace lit: step down into it -- the first game\'s words, then the grid\'s story fight on a field of the deep gallery\'s own stone.', key: 'galleries_g4', at: [12, 6], guest: 'dace' },
-    { id: 'gallerytop', label: 'THE DEEP GALLERY north up, as it was (&view=top)', note: 'The same floor and the same spot drawn north up on the art desk\'s tiles, to set beside the first.', key: 'galleries_g4', at: [9, 3], guest: 'dace', view: 'top' }
+    { id: 'gallerytop', label: 'THE DEEP GALLERY north up, as it was (&view=top)', note: 'The same floor and the same spot drawn north up on the art desk\'s tiles, to set beside the first.', key: 'galleries_g4', at: [9, 3], guest: 'dace', view: 'top' },
+    { id: 'gulchnoon', label: 'WEB GULCH AT NOON, by the near webs', note: 'Noon on the road down the cut: the silk-cutter out at the near webs, the boy drumming; the old webbing on the bed, the banks up either side. North is up the screen\'s right.', key: 'webgulch', at: [16, 24], hour: 12 },
+    { id: 'gulchnight', label: 'THE SILK-CUTTERS\' CAMP BY NIGHT', note: 'Inside the north mouth after dark: the two tents, the cutters by their fire, its light the only light; a torch lit in the lead\'s hand. The spiders come twice as often.', key: 'webgulch', at: [15, 11], hour: 22 },
+    { id: 'snared', label: 'THE SNARED LAD between the two trees', note: 'Midway down, by day: the silk-wrapped lad between two stunted trees, just north. E on him (or a click): FIGHT or LEAVE IT.', key: 'webgulch', at: [23, 55], hour: 10 },
+    { id: 'ettercap', label: 'THE STRUNG END: the braiding ettercap', note: 'Near the south mouth, by day: the side gully off the west bank, its shelf at the back. A step west into it and it sees you: FIGHT or BACK AWAY.', key: 'webgulch', at: [14, 87], hour: 9 }
   ];
   M.isoPlay = function (bt) {
     var H = D.house, R = D.roam, rec = H.fresh(); rec.at = { town: null }; rec.flags = Object.assign({}, bt.flags || {});
     (bt.inv || []).concat([['torch', 2]]).forEach(function (s) { H.add(rec.inv, s[0], s[1]); }); // (two torches, as the Wet's show gives: a dark floor)
     H.begin(rec, 0);
+    var S = D.world.state && D.world.state(); if (bt.hour != null && S) S.t = Math.floor((S.t || 0) / 24) * 24 + bt.hour; // (THE WORLD's clock at the beat's hour: a clocked floor's hour is the house's -- M.hourNow)
     var nb = R.make('?roam=' + bt.key + (bt.view ? '&view=' + bt.view : ''), { save: H.living(H.cur), opts: { at8: bt.at.slice() }, house: true }), en = nb.enter;
     nb.enter = function () {
       en.apply(this, arguments);
@@ -1095,7 +1100,7 @@
     };
     D.push(nb);
   };
-  M.isoShow = function (q) { return new D.roam.WetShow(q, { kind: 'isoshow', beats: M.ISO_BEATS, play: M.isoPlay, title: '{y}ON THE DIAMONDS, 10-29{/} -- the floors as the Wet is drawn; a NEW GAME staged (a show)' }); };
+  M.isoShow = function (q) { return new D.roam.WetShow(q, { kind: 'isoshow', beats: M.ISO_BEATS, play: M.isoPlay, title: '{y}ON THE DIAMONDS, 10-29{/} -- the cloaker\'s level and Web Gulch as the Wet is drawn (a show)' }); };
 
   // the tally-house's counter: Edric's shop, the antitoxin draught (content/shops.json `tally`: it buys nothing) -- one line in the counter's vendor table
   if (D.counter && D.counter.VENDORS) D.counter.VENDORS.tally = D.counter.VENDORS.tally || { shop: 'tally', name: 'Edric Pellam' };

@@ -2126,7 +2126,7 @@
     o = o || {}; this.kind = o.kind || 'wetshow'; this.opaque = true; this.t = 0; this.hov = 0; this.beats = o.beats || R.WET_BEATS; this.title = o.title || null; this.play = o.play || R.wetPlay;
     var b = /[?&]beat=([a-z0-9]+)/.exec(String(q || '')); if (b) this.pending = this.beats.filter(function (x) { return x.id === b[1]; })[0] || null;
   }
-  WetShow.prototype.buttons = function () { return this.beats.map(function (bt, k) { return { x: 12, y: 26 + k * 34, w: D.W - 24, h: 31, bt: bt }; }); };
+  WetShow.prototype.buttons = function () { var st = Math.min(34, Math.floor((D.H - 40) / Math.max(1, this.beats.length))); return this.beats.map(function (bt, k) { return { x: 12, y: 26 + k * st, w: D.W - 24, h: st - 3, bt: bt }; }); }; // (rows tighter past six: ?isoshow's seven)
   WetShow.prototype.update = function () {
     this.t++; var m = I.mouse;
     if (this.pending) { var p0 = this.pending; this.pending = null; this.play(p0); return; }
@@ -2142,7 +2142,7 @@
     this.buttons().forEach(function (q, k) {
       var on = k === self.hov; D.win8(ctx, q.x, q.y, q.w, q.h, on ? W8.sel : null);
       D.text(ctx, q.bt.label, q.x + 8, q.y + 3, on ? W8.gold : W8.text);
-      D.wrap(q.bt.note, q.w - 16).slice(0, 2).forEach(function (l, i) { D.text(ctx, l, q.x + 8, q.y + 12 + i * 9, '#9c9cb4'); });
+      var tight = q.h < 31; D.wrap(q.bt.note, q.w - 16).slice(0, 2).forEach(function (l, i) { D.text(ctx, l, q.x + 8, q.y + (tight ? 11 : 12) + i * (tight ? 8 : 9), '#9c9cb4'); });
     });
     D.hint(ctx, 'click a beat · on the floor: click to walk, E beside a thing · X: the title', D.W / 2, D.H - 12, '#9a96a8', 'center');
   };

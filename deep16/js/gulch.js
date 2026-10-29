@@ -71,7 +71,7 @@
   Gu.CHESTS = [{ x: 9, y: 83, item: 'potion', n: 1 }, { x: 28, y: 74, item: 'kit', n: 2 }]; // (the first game's two: a potion by the ettercap, two kits off the bed)
   // the cutter and the boy where the hour puts them: at the camp, out at the near webs at noon, by the fire at night
   Gu.PEOPLE = [{ id: 'silkcutter', look: 'worker', day: [11, 9], noon: [13, 27], night: [11, 11], dir: { day: 'right', noon: 'left', night: 'right' } },
-    { id: 'drummer', look: 'boy', day: [11, 12], noon: [14, 28], night: [13, 11], dir: { day: 'left', noon: 'left', night: 'left' } }];
+    { id: 'drummer', look: 'boy', day: [11, 12], noon: [14, 28], night: [13, 10], dir: { day: 'left', noon: 'left', night: 'left' } }]; // (by night beside the fire to its east: on the diamonds 13,11 stood straight in front of it, the flames on his head -- 10-29)
   Gu.KINDS = { drummer: 'commonerchild', ettercap8: 'ettercap' }; // (the boy a child's figure; the ettercap its own, braiding till it is woken -- js/ui.js)
   Gu.phase = function (h) { return M.night(h) ? 'night' : h >= Gu.NOON[0] && h < Gu.NOON[1] ? 'noon' : 'day'; };
   Gu.LINES = { // (the seat's: invented.json web-gulch-floor)
@@ -103,14 +103,16 @@
     E.gulch_noon = Object.assign({}, Z, { rate: Z.rate.map(function (r) { return Math.round(r * Gu.RATE.noonRate); }) });
     E.gulch_night = Object.assign({}, Z, { rate: Z.rate.map(function (r) { return Math.max(4, Math.round(r * Gu.RATE.nightRate)); }) });
   })();
-  M.FLOORS[Gu.KEY] = { src: 'gulch', own: true, map: Gu.map, door: Gu.KEY, place: 'Web Gulch', sub: 'the road down the cut', save: false, out: 'world', clock: true, edges: true,
+  // on the grid's diamonds as the Wet is drawn since 10-29 (iso: js/mines.js ON THE DIAMONDS -- the iso-roams seat, Griz: "NEW:  Conversion of topdown roam of cloaker fight level
+  // and(?) new gulch as iso-roams like the Wet", "those 1-7 look good"): the same squares, clock and beats; &view=top draws it north up again
+  M.FLOORS[Gu.KEY] = { src: 'gulch', own: true, map: Gu.map, door: Gu.KEY, place: 'Web Gulch', sub: 'the road down the cut', save: false, out: 'world', clock: true, edges: true, iso: true,
     rate: Gu.RATE, phase: Gu.phase, phaseLine: Gu.line, // (save: false, as the first game's gulch -- no bed here, his lean 5)
     gates: { north: [17, 1, [0, 1]], south: [22, 110, [0, -1]], west: [1, 10, [1, 0]], east: [38, 59, [-1, 0]] } }; // (the road's two mouths; the silk-cutters' descent west, a way up the east bank)
   var floor0 = M.floor;
   M.floor = function (key) {
     var def = floor0.apply(this, arguments); if (key !== Gu.KEY) return def;
     def.people.forEach(function (p) { if (Gu.KINDS[p.id]) p.kind = Gu.KINDS[p.id]; });
-    def.hello = ['{y}WEB GULCH{/} -- the road down the cut, north up (' + def.w + ' x ' + def.h + ' squares), ' + (W.todAt ? W.todAt(def.hour) : '') + '.', Gu.LINES.hello,
+    def.hello = ['{y}WEB GULCH{/} -- the road down the cut, ' + (def.iso ? 'on the grid\'s diamonds, north up the screen\'s right' : 'north up') + ' (' + def.w + ' x ' + def.h + ' squares), ' + (W.todAt ? W.todAt(def.hour) : '') + '.', Gu.LINES.hello,
       '{g}Click to walk, or the arrows. E: a word, a door. O: the formation. L: the floor map.{/}'];
     return def;
   };
