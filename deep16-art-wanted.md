@@ -744,7 +744,7 @@ Cut as: `pt_talmok` (`tools/portrait-sheet.py`); the Hex, by the sand (`talmok`)
 
 ## 27. The four other facings for every NPC who stands facing south only (added 10-28, the second cutter seat) -- NOT WANTED HERE 2026-10-28, ruled: the art desk's own ART-121 asks the same thirty-four (SE, E, NE and N Idle 4, its handoff of 10-28b; his *"art department is already on it, latest handoff in fresh"*); the blocks are on `deep16-art-in-hand.md`
 
-## 28. Silverton's fountains: a basin, not spilled falls (added 10-28, the second cutter seat) -- proposed ART-124 -- IN HAND 2026-10-29, PARTIAL (the art desk's ART-124 HEAD 3: the basin water, its edges, outer and inner corners, cut into `fountains_p1` and laid as each fountain's basin, `c36050db`; HEADs 1 and 2, the whole fountains, reported by the art desk as candidates but never delivered -- the return 2026-10-29b asks for the files); the block is on `deep16-art-in-hand.md`
+## 28. Silverton's fountains: a basin, not spilled falls (added 10-28, the second cutter seat) -- proposed ART-124 -- IN HAND 2026-10-29 (the art desk's ART-124 HEAD 3, the basin water, its edges and corners, cut into `fountains_p1`, `c36050db`; its HEAD 2, the whole fountain, three takes the same night, the calmest laid at each fountain, `2cf329f6`; HEAD 1 never came -- the small is HEAD 2's drawing at its size); the block is on `deep16-art-in-hand.md`
 
 ## 29. The lamia at the Halfway Inn: Nerisse's talking faces and the Blue's, Wystan Fallow's portrait and fight figure, the woman's wound (added 10-28, the Cowork seat)
 
