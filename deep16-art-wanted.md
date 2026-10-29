@@ -675,3 +675,24 @@ HEAD 5 -- straight from behind, facing away from the viewer: Flinch (4).
 Draw each HEAD above as its own separate image, in the order given: one sheet an image. Every sheet: 16-bit pixel art animation sheet, SNES-era action RPG style, crisp dark outline, readable at small size. Isometric three-quarter view from above, the camera looking down at about thirty degrees. Flat dark navy background (a deep blue, not grey and not black). ONE sheet filling the whole image: no portrait, no other panels, no title; rows only, drawn exactly as the attached frame 6 shows her, the same look, colours and size. One labelled row, its name at its left, numbered 1 to 4 under each frame. Every frame stands apart with clear space around it. Feet on one baseline. No scenery.
 ```
 Cut as: a row `stillflinch` onto `lamia_p1` (tools/lamia-sheet.py), scaled by the Disguise row's frame 6 of the same view as §24's rows are; it plays on the wound that ends the disguise, before `reveal`.
+
+## 30. Papa's runner: a Hex boy's talking portrait (added 10-29, the story window)
+
+His words, in his NOTES of 10-29 1808Z: *"papa's runner should appear in game, probably as a popup portrait dialogue"*; on the window's lean (a Hex boy runs up, says it on his own face, an art block for the face), his *"Leans stand"* (the lanes desk's relay, 10-29). In the game since `0ba65d41` (deep16/js/hours.js H16.runner): at renown 2 a Hex boy -- the townsfolk's child, `folkchild_p1` -- runs up to the party on Silverton's street or in the Hex, says *"Papa Urtusk wants you on the Hex's third floor. Up the spiral stair, all the way to the top."* / *"The council's sitting for you. Don't make them wait."* on the counter screen with `pt_hexboy` (the plain shape till it comes), and runs back. His figure is the townsfolk child's, so only the face is wanted, and it should be the same boy.
+
+### A Hex boy, Papa Urtusk's runner
+ATTACH `deep16/_src/winters/ART-78/ART-78_HEAD-1_PAGE-1.png` and `ART-78_HEAD-1_PAGE-6.png` (the portrait pages' shape, for the format only, not the face) and `deep16/art/folkchild_p1.png` (the game's own townsfolk child, the figure he runs up as: draw the same boy's face).
+```text
+Attached: two portrait pages from the same game, for the format only; and the sheet of the child who stands in the same game's town, the figure this boy runs up as -- draw this same boy's face.
+
+A HEX BOY -- Papa Urtusk's runner at the Hex, Silverton's fighting arena: a human boy of about ten, thin and quick, out of breath from running; short untidy hair, a smudge of dust on one cheek, a too-big tunic belted with cord, the sleeves rolled. Eager and a little proud to be carrying a message for Papa; looks straight at whoever he is talking to [seat: the look, from the child's figure].
+
+HEAD 1 -- IDLE (6, two bands of three): a breathing and blink loop at the counter ledge, both hands on it, catching his breath after a run; loops cleanly.
+HEAD 2 -- ATTENTIVE (1): neutral listening, eyes up at a grown-up.
+HEAD 3 -- WELCOMING (1): a quick grin.
+HEAD 4 -- SKEPTICAL (1): a boy's doubtful squint.
+HEAD 5 -- CONCERNED (1): worried he has said it wrong.
+
+HEADs 1-5 (the talking portrait): 16-bit pixel-art cut-scene portrait animation, comparable to the art desk's ART-78 (Ambrose Winters) and Sylvia Swann. Waist-up behind a plain dark wooden counter ledge, a stable eye-level three-quarter front camera, looking screen left at someone just beside the camera; the head and body the same size on every page as on the Idle page -- a child, so smaller in the frame than a grown keeper, his chin a little above the ledge. Crisp pixel clusters and restrained shading. Flat dark navy background (a deep blue, not grey and not black). Each image 1440 x 810, ONE action an image, six-frame actions in two bands of three with clear gutters; the counter ledge under the hands on every frame, its top edge at the same height. A title and frame numbers as on ART-78's pages, kept well clear of the drawings. No scenery, no UI or border.
+```
+Where: Silverton's street and the Hex's ground floor, at renown 2 (deep16/js/hours.js H16.RUNNER `sheet`). Cut as: `tools/portrait-sheet.py` (a `PEOPLE` line) into `pt_hexboy`; no figure (the townsfolk child's is his), no C.VENDORS line needed -- the runner's screen names the sheet itself.
