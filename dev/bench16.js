@@ -4622,6 +4622,38 @@
     document.body.appendChild(preB);
     return;
   }
+  // A CLASS'S PICK SHOWS ITS OWN CHOICES (mode=levelcls1029; the leveling lane §2.1, 10-29 -- Griz, 10-28: "we still have fighter feats showing greyed out on rogue
+  // leveling"): the SCORES tab offers a feat on its own classes' page (js/rules.js R.FEATS `cls`), greyed there till its prerequisite is met, and one any class may take by
+  // the SRD (`any`: Grappler) on another class's page only when it can be taken -- Vivian and Aurdin at 4 shown no feat, on the page too; a rogue at STR 13 or 17 shown
+  // Grappler alone; Barley's two greyed as 10-15 had them; Lymen's two as built (his word, §2.2); the Pocket DM's made rogue the same
+  if (get('mode', '') === 'levelcls1029') {
+    var repLc = { checks: [], errors: [] }, RLc = window.DS.R;
+    function okLc(what, v) { repLc.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function featsLc(h, took) { var rec = { lvl: h.lvl, asks: [{ kind: 'asi', need: 2, took: took }] }; return RLc.pickRows(h, rec, rec.asks[0], { pages: true }).filter(function (r) { return r.feat; }).map(function (r) { return r.feat + (r.off ? '(' + r.off + ')' : ''); }).join(','); }
+    function heroLc(id, str) { var h = RLc.makeHero(id, 4); RLc.settlePicks(h, null); h.abil.str = str; return h; }
+    try {
+      var hV = heroLc('vivian', 10), fV = featsLc(hV, { dex: 2 }), hA = heroLc('aurdin', 11), fA = featsLc(hA, { int: 2 });
+      okLc('Vivian (' + hV.cls + ', STR 10) at 4: feats on her SCORES tab "' + fV + '"; Aurdin (' + hA.cls + ', STR 11) "' + fA + '" -- none on either', hV.cls === 'rogue' && hA.cls === 'wizard' && fV === '' && fA === '');
+      hV.abil.str = 13; var fV13 = featsLc(hV, { dex: 2 }); hV.abil.str = 17; var fV17 = featsLc(hV, { dex: 2 }); hV.abil.str = 14; var fV14s = featsLc(hV, { str: 2 });
+      okLc('a rogue at STR 13 "' + fV13 + '", at 17 "' + fV17 + '" -- Grappler (the SRD\'s, any class) alone; at 14 with STR +2 marked (12 before it) "' + fV14s + '" -- none', fV13 === 'grappler' && fV17 === 'grappler' && fV14s === '');
+      var hB = heroLc('barley', 16), fB = featsLc(hB, { con: 2 }); hB.abil.str = 12; var fB12 = featsLc(hB, { con: 2 });
+      okLc('Barley (' + hB.cls + ') at STR 16 "' + fB + '", at 12 "' + fB12 + '" -- his class\'s two, greyed till met (10-15)', fB === 'symmetric(wants STR 17),grappler' && fB12 === 'symmetric(wants STR 17),grappler(wants STR 13)');
+      var hL = heroLc('lymen', 17), fL = featsLc(hL, { con: 2 });
+      okLc('Lymen (' + hL.cls + ', STR 17) "' + fL + '" -- both, as built till his word (the leveling lane §2.2)', hL.cls === 'paladin' && fL === 'symmetric,grappler');
+      var hP = D.npc.sheet(D.npc.spec('rogue:4')); hP.abil.str = 12; var fP12 = featsLc(hP, {}); hP.abil.str = 14; var fP14 = featsLc(hP, {});
+      okLc('the Pocket DM\'s rogue at 4: STR 12 "' + fP12 + '", STR 14 "' + fP14 + '"', hP.cls === 'rogue' && fP12 === '' && fP14 === 'grappler');
+      // the page itself: Vivian's SCORES tab as the 8-bit's pick draws it
+      var hV2 = heroLc('vivian', 10), recV2 = { lvl: 4, asks: [{ kind: 'asi', need: 2, took: { dex: 2 } }] }; hV2.picks = [recV2]; RLc.pendSync(hV2);
+      var pmV = window.DS.MENU.openPicks({ party: function () { return [hV2]; }, close: function () { } }, [hV2], {}, function () { }), pgV = pmV && pmV.top(), gV = pgV && pgV.groups[0];
+      var rowsV = gV ? gV.rows.map(function (r) { return r.name; }) : null;
+      okLc('Vivian\'s page, its SCORES rows: ' + JSON.stringify(rowsV) + ' -- the six scores, no feat', rowsV && rowsV.length === 6 && !rowsV.some(function (n) { return /FEAT/.test(n); }));
+      // a feat already on a sheet stays (nothing built is cut): R.hasFeat reads it whatever the class
+      hV2.featIds = ['symmetric']; okLc('a feat a sheet holds still reads (R.hasFeat ' + (RLc.hasFeat ? RLc.hasFeat(hV2, 'symmetric') : 'n/a') + ')', !RLc.hasFeat || RLc.hasFeat(hV2, 'symmetric'));
+    } catch (e) { repLc.errors.push(String(e && e.stack || e)); }
+    var preLc = document.createElement('pre'); preLc.id = 'out'; preLc.textContent = 'BENCH16 ' + JSON.stringify(repLc);
+    document.body.appendChild(preLc);
+    return;
+  }
   // HIS ANSWERS OF 10-29 TO THE NOTES SEAT'S FOUR (mode=rules1029; the notes seat on the lanes desk's relay of his "notes has leans - approved, but for healer's kit
   // stabilization"): several stirges on one, the spiders' poison at 0 HP by the SRD, a foe's quiet turn said in the log; each proved RED on main's scripts
   if (get('mode', '') === 'rules1029') {

@@ -324,12 +324,21 @@
   // You can take each feat only once ... If you ever lose a feat's prerequisite, you can't use that feat until you regain the prerequisite"; RULED 10-15 on the desk's lean (a), his
   // own feat on the level-up pick, both games -- the 10-14 "ASI as the SRD has it with no feat row" lifted for these). The pick's SCORES tab offers them, each worth the
   // whole increase; taken, the sheet's `featIds` holds it (R.hasFeat). The class NPCs' builds and the Pocket DM's keep their increases (lean (d))
+  // (a feat's classes, 10-29, the leveling lane §2.1 -- Griz, 10-28: "we still have fighter feats showing greyed out on rogue leveling": `cls`, the classes whose pick
+  // offers it, greyed there till its prerequisite is met; `any`, a feat any class may take by the SRD, offered on another class's pick only when it can be taken (R.featOn).
+  // The paladin keeps both as built till his word, the leveling lane §2.2: "lymen probably shouldn't be allowed fighter feats")
   R.FEATS = {
-    symmetric: { name: 'Symmetric Fighting', str: 17, desc: 'Weapon in the OFFHAND can be used with TWO WEAPON FIGHTING if it is the same weapon type as the main hand and char STR is 17 or higher. (A pair by the base weapon, magic or not; never a two-handed one.)' }, // (his words, 10-15)
+    symmetric: { name: 'Symmetric Fighting', str: 17, cls: ['fighter', 'paladin'], desc: 'Weapon in the OFFHAND can be used with TWO WEAPON FIGHTING if it is the same weapon type as the main hand and char STR is 17 or higher. (A pair by the base weapon, magic or not; never a two-handed one.)' }, // (his words, 10-15)
     // Grappler (SRD 5.1, srd/05-feats.md; RULED 10-15, Griz: "1 - lets add grappler."): advantage against the one it grapples, and PIN -- deep16/js/battle.js; the grid's fights, where a hero grapples
-    grappler: { name: 'Grappler', str: 13, desc: 'Advantage on attack rolls against a creature you are grappling. PIN: your action, another grapple check -- won, you and it are both restrained till the grapple ends. (STR 13.)', grid: 'It acts in the grid\'s fights, where a hero grapples.' }
+    grappler: { name: 'Grappler', str: 13, cls: ['fighter', 'paladin'], any: true, desc: 'Advantage on attack rolls against a creature you are grappling. PIN: your action, another grapple check -- won, you and it are both restrained till the grapple ends. (STR 13.)', grid: 'It acts in the grid\'s fights, where a hero grapples.' }
   };
   R.featIds = function () { return Object.keys(R.FEATS); };
+  // a feat on a hero's pick: its own class's, or one any class may take whose prerequisite the hero meets on the scores before this increase (`took`)
+  R.featOn = function (h, id, took) {
+    var f = R.FEATS[id]; if (!f) return false;
+    if (!f.cls || f.cls.indexOf(h.cls) >= 0) return true;
+    return !!f.any && !(f.str && h.abil.str - ((took && took.str) || 0) < f.str);
+  };
   R.asiLevels = function (cls) { return R.ASI_AT[cls] || R.ASI_AT._; };
   // the picks in a word (the Pocket DM's cards carry a hero's picks into the fight's URL, 10-14): '+^' + level + a letter for the kind + ':' + the values --
   // '^6a:con2', '^4s:shatter-blur', '^4c:light', '^6e:Insight-Sleight_of_Hand', '^3r:Cutthroat' (a space as _)
@@ -413,7 +422,7 @@
     if (ask.kind === 'asi') return R.ABIL.map(function (k) {
       var base = h.abil[k] - ((took && took[k]) || 0);
       return { id: k, name: k.toUpperCase(), score: base, max: Math.max(0, Math.min(2, 20 - base)), off: base >= 20 ? 'already 20' : '' };
-    }).concat(R.featIds().map(function (id) { // (a feat in place of the increase: worth both marks; its prerequisite read on the scores before this increase -- 10-15)
+    }).concat(R.featIds().filter(function (id) { return R.featOn(h, id, took); }).map(function (id) { // (a feat in place of the increase: worth both marks; its prerequisite read on the scores before this increase -- 10-15; its class's own only, 10-29)
       var f = R.FEATS[id], had = (h.featIds || []).indexOf(id) >= 0 && !(took && took.feat === id), str = h.abil.str - ((took && took.str) || 0);
       return { id: 'feat:' + id, feat: id, name: f.name.toUpperCase() + ' (FEAT)', desc: f.desc + (f.grid && o.pages ? ' ' + f.grid : ''), max: 1, worth: 2, off: had ? 'taken already' : f.str && str < f.str ? 'wants STR ' + f.str : '' }; // (o.pages: the 8-bit's pick says where Grappler acts)
     }));
