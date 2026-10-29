@@ -2280,20 +2280,21 @@
       for (var x2 = 0; x2 < d1.w; x2++) { if (d1.rows[0].charAt(x2) === ',') roadN.push(x2); if (d1.rows[d1.h - 1].charAt(x2) === ',') roadS.push(x2); }
       okU('the floor north up, ' + d1.w + ' x ' + d1.h + ' (the run N-S, the 8-bit\'s ran E-W at 40 x 30); the road in at the north rim (x ' + roadN + ') and out at the south (x ' + roadS + '), bending east going south as his road does; the rim rock but the mouths and the descents (' + Object.keys(rimO).map(function (k) { return k + ' ' + rimO[k].length; }).join(', ') + ')',
         d1.w === 40 && d1.h === 112 && roadN.length === 2 && roadS.length === 2 && roadS[0] > roadN[0] && rimO.north.length <= 6 && rimO.south.length <= 6 && rimO.west.length === 2 && rimO.east.length === 2);
-      // 2. THE RATE (his lean 2): 300 squares an hour here, the Glowseep's 150 as it was; a fight fifteen minutes; the straight crossing's squares and hours
+      // 2. THE RATE (his lean 2): 300 squares an hour here, the Glowseep's 150 as it was; a fight fifteen minutes; the straight crossing's squares and hours. Since 10-29 night
+      // (RULED, Griz: "Lenient time per square walked on top down roams, clock by event on iso roams") the gulch is on the diamonds, so its walk spends nothing: 300 squares, still 9
       var h2 = B1.roam.hour; B1.roam.hour = 9; for (var k2 = 0; k2 < 299; k2++) driveU(MU.tick(B1), null, 20); var h299 = B1.roam.hour; driveU(MU.tick(B1), null, 20); var h300 = B1.roam.hour;
       B1.roam.fights = (B1.roam.fights || 0) + 1; driveU(MU.tick(B1), null, 20); var hF = B1.roam.hour;
       var Bs = testU('?roam=glowseep&hour=9'); for (var k3 = 0; k3 < 150; k3++) driveU(MU.tick(Bs), null, 20); var hS = Bs.roam.hour;
       var B2 = testU('?roam=webgulch&hour=9'), fl2 = RU.flood(B2.roam.token, [17, 1], 400), dX = fl2 && fl2['22,111'];
-      okU('the clock: 299 squares walked, still ' + h299 + '; the 300th, ' + h300 + ' (an hour); a fight, ' + hF + ' (fifteen minutes); the Glowseep\'s 150 squares an hour as it was (' + hS + '); straight down the road from the north mouth to the south ' + dX + ' squares, ' + (dX / GU.RATE.squaresPerHour * 60).toFixed(0) + ' minutes (the march through its ' + (spN ? spN.hexes.length : '?') + ' hexes ' + (spN ? spN.hexes.length * 0.5 : '?') + ' h)',
-        h299 === 9 && h300 === 10 && hF === 10.25 && hS === 10 && GU.RATE.squaresPerHour === 300 && dX > 100 && dX < 125);
+      okU('the clock: 299 squares walked, still ' + h299 + '; the 300th, ' + h300 + ' (on the diamonds the walk spends nothing since 10-29 night); a fight, ' + hF + ' (fifteen minutes); the Glowseep\'s 150 squares an hour as it was (' + hS + '); straight down the road from the north mouth to the south ' + dX + ' squares, ' + (dX / GU.RATE.squaresPerHour * 60).toFixed(0) + ' minutes (the march through its ' + (spN ? spN.hexes.length : '?') + ' hexes ' + (spN ? spN.hexes.length * 0.5 : '?') + ' h)',
+        h299 === 9 && h300 === 9 && hF === 9.25 && hS === 10 && GU.RATE.squaresPerHour === 300 && dX > 100 && dX < 125);
       // 3. THE NOON AND THE NIGHT (his lean 4): the cutters out at the webs 11 to 14, the fights half as often then and twice by night, the dark by night; the turn said
       var E = window.DS.DATA.encounters, ph = {};
       [[9, 'day'], [12, 'noon'], [22, 'night']].forEach(function (p) { var B = testU('?roam=webgulch&hour=' + p[0]), cu = folk(B, 'silkcutter'), dr = folk(B, 'drummer'); ph[p[1]] = { zone: RU.def.zone8, dark: !!RU.def.dark, cut: cu ? cu.x + ',' + cu.y : null, boy: dr ? dr.x + ',' + dr.y + ' ' + dr.kind : null }; });
       okU('by the hour: ' + Object.keys(ph).map(function (k) { var p = ph[k]; return k + ' ' + p.zone + (p.dark ? ' dark' : '') + ', the cutter ' + p.cut + ', the boy ' + p.boy; }).join('; ') + '; the table\'s count ' + E.gulch.rate + ', at noon ' + E.gulch_noon.rate + ', by night ' + E.gulch_night.rate,
         ph.day.zone === 'gulch' && ph.noon.zone === 'gulch_noon' && ph.night.zone === 'gulch_night' && ph.night.dark && !ph.day.dark && !ph.noon.dark && ph.noon.cut === '13,27' && ph.day.cut === '11,9' && ph.night.cut === '11,11' && /commonerchild/.test(ph.day.boy) &&
         E.gulch_noon.rate[0] === E.gulch.rate[0] * 2 && E.gulch_night.rate[1] === Math.round(E.gulch.rate[1] / 2));
-      var B3 = testU('?roam=webgulch&hour=10'); B3.roam.hour = 10.9; B3.roam.clockSq = 299; B3.cards = []; driveU(MU.tick(B3), null, 40); var cu3 = folk(B3, 'silkcutter');
+      var B3 = testU('?roam=webgulch&hour=10'); B3.roam.hour = 10.9; B3.roam.fights = (B3.roam.fights || 0) + 1; B3.cards = []; driveU(MU.tick(B3), null, 40); var cu3 = folk(B3, 'silkcutter'); // (the noon brought by a fight's fifteen minutes since 10-29 night: on the diamonds the walk spends nothing)
       okU('the noon comes on the floor: the hour ' + B3.roam.hour.toFixed(2) + ', the card "' + cards(B3) + '", the cutter now at ' + (cu3 ? cu3.x + ',' + cu3.y : 'none') + ', the fights ' + RU.def.zone8,
         RU.def.zone8 === 'gulch_noon' && /the silk-cutters go out to the webs/.test(cards(B3)) && !!cu3 && cu3.x === 13 && cu3.y === 27);
       // 4. THE FIRST GAME'S BEATS (his lean 3): the camp and the boy; the chests; the snared lad's fight and the coins; the ettercap's fight and its fangs; the silk-cutter's word
@@ -2332,8 +2333,8 @@
       var t0H = SH.t; for (var kq = 0; kq < 300; kq++) driveU(MU.tick(BH), null, 20); var t1H = WU.state().t;
       at(BH, 22, 111, [0, 1]); runU(BH, RU.landed(BH)); driveU(BH.co, function () { return D.top() !== BH; }, 400);
       var SH2 = WU.state(), onSet = spN.set[SH2.at.join()];
-      okU('the floor\'s 300 squares on THE WORLD\'s clock (' + t0H + ' > ' + t1H + '); out by the south mouth: ' + (D.top() === WU.scene ? 'THE WORLD' : D.top() && D.top().kind) + ', the party on ' + SH2.at + ' (' + (SH2.map || 'world') + '; beyond the cut ' + spN.south + ', in it ' + !!onSet + '), the save ' + JSON.stringify(HU.cur && HU.cur.at) + ', "' + (wH.msg ? wH.msg.s : '') + '"',
-        t1H === t0H + 1 && D.top() === WU.scene && SH2.at.join() === spN.south.join() && !onSet && !HU.cur.at.town && /south mouth/.test(wH.msg ? wH.msg.s : ''));
+      okU('the floor\'s 300 squares and THE WORLD\'s clock, on the diamonds nothing since 10-29 night (' + t0H + ' > ' + t1H + '); out by the south mouth: ' + (D.top() === WU.scene ? 'THE WORLD' : D.top() && D.top().kind) + ', the party on ' + SH2.at + ' (' + (SH2.map || 'world') + '; beyond the cut ' + spN.south + ', in it ' + !!onSet + '), the save ' + JSON.stringify(HU.cur && HU.cur.at) + ', "' + (wH.msg ? wH.msg.s : '') + '"',
+        t1H === t0H && D.top() === WU.scene && SH2.at.join() === spN.south.join() && !onSet && !HU.cur.at.town && /south mouth/.test(wH.msg ? wH.msg.s : ''));
       // up the road from the inn's end, then out a bank: it asks, and RETURN is the bank top beside the cut
       SH2.from = null; wH.walk = { path: [spN.hexes[0].slice()], f: 0 }; kH = 0; while (wH.walk && D.top() === wH && kH++ < 400) { if (wH.cards && wH.cards.length) { var cH2 = wH.cards[0]; wH.cards.shift(); if (cH2.keys) cH2.keys[0][1](); continue; } wH.update(); }
       var BH2 = topU(), gH2 = RU.def && RU.def.gate; at(BH2, 0, 10, [-1, 0]); driveU.asked = null; runU(BH2, RU.landed(BH2)); driveU(BH2.co, function () { return D.top() !== BH2; }, 400);
@@ -6320,6 +6321,55 @@
   // his word at his door on his face (his door has no room); ART-124 HEAD 3 cut into fountains_p1 (tools/toptiles-sheet.py fountains), the eight fountains' basins laid
   // whole by js/topview.js TV.basins round the squares js/town.js lays (T.FOUNT); its HEAD 2, the whole fountain, the same night on his "let's bundle wystan for when we
   // get the rest of the game to post snoot and cut the fountains", laid there in place of the built basin
+  // THE ROAM CLOCK BY THE VIEW (mode=house1029o; the house seat of 10-29 night again, on Griz's "Lenient time per square walked on top down roams, clock by event on iso roams (to
+  // include the new dwarven road)", relayed by the lanes desk): his route walked in a game -- Silverton's street square by square, out by the feed track (nothing spent), the
+  // Warrens' mouth camp square by square at the street's rate, a fight there fifteen minutes, the night walked into the dawn; and an iso floor walked with nothing spent till a fight,
+  // the rule keyed on the view (the same floor drawn from above spends, a top floor drawn on the diamonds does not) -- js/mines.js M.tick
+  if (get('mode', '') === 'house1029o') {
+    var repO = { checks: [], errors: [] }, memO = {}, stGO = D.store.get, stSO = D.store.set, HO = D.house, TO = D.town, MO = D.mines, WO = D.world;
+    function okO(what, v) { repO.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function driveO(g, until, cap) { var v, k = 0, st; while (g && k++ < (cap || 600)) { if (until && until()) return; st = g.next(v); v = undefined; if (st.done) return; } }
+    function topO() { var s = D.top(); if (s && s.baking) { s.baking = false; s.enter(); } return s; }
+    function walkO(B, to) { var R0 = B.roam, p = D.roam.walkRoute(R0.token, to); if (!p) return null; B.cards = []; R0.encIn = 1e9; R0.path = p.slice(); driveO(B.co, function () { return D.top() !== B || (R0.token.x === to[0] && R0.token.y === to[1] && !(R0.path && R0.path.length)); }, 20000); if (D.top() === B) driveO(B.co, function () { return D.top() !== B; }, 80); return p.length; } // (no random fight breaks in; the last square's arrival run out)
+    function openO(B, n) { var t = B.roam.token, best = null; for (var dy = -n; dy <= n && !best; dy++) for (var dx = n; dx >= -n && !best; dx--) { if (Math.max(Math.abs(dx), Math.abs(dy)) !== n) continue; var s = D.grid.map.at(t.x + dx, t.y + dy); if (s && s.open && !D.grid.occupant(t.x + dx, t.y + dy) && !(D.roam.def.doors || []).some(function (w) { return Math.abs(w[0] - t.x - dx) <= 1 && Math.abs(w[1] - t.y - dy) <= 1; }) && !(D.roam.def.src8.triggers || []).some(function (r) { return r.rect && t.x + dx >= r.rect[0] && t.y + dy >= r.rect[1] && t.x + dx < r.rect[0] + r.rect[2] && t.y + dy < r.rect[1] + r.rect[3]; })) { var p = D.roam.walkRoute(t, [t.x + dx, t.y + dy]); if (p && p.length === n) best = [t.x + dx, t.y + dy]; } } return best; } // (a square n steps off by an n-step walk, not a way off the floor)
+    D.store.get = function (k) { return memO[k] ? JSON.parse(memO[k]) : null; }; D.store.set = function (k, v) { memO[k] = JSON.stringify(v); return true; };
+    try {
+      D.seed = +get('seed', 1029);
+      // 1. SILVERTON'S STREET, square by square (js/hours.js: H16.FT_HOUR feet an hour, the floor's feet a square)
+      HO.begin(HO.fresh(), 0); var BS = topO(), SO = WO.state(), ftH = MO.walkFt ? MO.walkFt() : D.hours.FT_HOUR; SO.t = Math.floor(SO.t / 24) * 24 + 21; if (D.hours && D.hours.relay) D.hours.relay(BS, WO.hour());
+      var RS = BS.roam, f0 = RS.hourFt || 0, t0 = SO.t, toS = openO(BS, 3), nS = toS ? walkO(BS, toS) : null, f1 = RS.hourFt || 0;
+      RS.hourFt = ftH - D.roam.def.ft; var toS2 = openO(BS, 1), t1 = SO.t; if (toS2) walkO(BS, toS2); var t2 = SO.t;
+      okO('Silverton\'s street (' + D.roam.def.ft + ' ft a square, ' + (ftH / D.roam.def.ft) + ' squares an hour): ' + nS + ' squares walked, ' + (f1 - f0) + ' ft on its clock (THE WORLD still ' + (t0 % 24) + ':00); the square that makes the hour, ' + (t1 % 24) + ' -> ' + (t2 % 24),
+        nS === 3 && f1 - f0 === 3 * D.roam.def.ft && t1 === t0 && t2 === t1 + 1);
+      // 2. out by the feed track: nothing spent; the Warrens' mouth camp, from above, square by square at the street's rate
+      var t3 = SO.t; driveO(TO.wayOut(BS, MO.FEED.slice()), function () { return D.roam.def && D.roam.def.key === 'warrens'; }, 400); var BW = topO(), dW = D.roam.def, RW = BW.roam;
+      var hf0 = RW.hourFt || 0, toW = openO(BW, 4), nW = toW ? walkO(BW, toW) : null, hf1 = RW.hourFt || 0, t4 = SO.t;
+      okO('the feed track spends nothing (' + (t3 % 24) + ':00 -> the camp at ' + dW.hour + ':00, ' + (SO.t - t3) + ' h); the camp drawn from above (iso ' + !!dW.iso + ') walked: ' + nW + ' squares, ' + (hf1 - hf0) + ' ft on its clock, ' + (ftH / dW.ft) + ' squares an hour as the street\'s',
+        dW.key === 'warrens' && dW.hour === t3 % 24 && !dW.iso && nW === 4 && hf1 - hf0 === 4 * dW.ft && ftH / dW.ft === 500 && t4 === t3);
+      RW.hourFt = ftH - dW.ft; var toW2 = openO(BW, 1), t5 = SO.t; if (toW2) walkO(BW, toW2); var t6 = SO.t;
+      RW.fights = (RW.fights || 0) + 1; var toW3 = openO(BW, 1); if (toW3) walkO(BW, toW3); var t7 = SO.t;
+      okO('the square that makes the hour there, ' + (t5 % 24) + ' -> ' + (t6 % 24) + ' (THE WORLD\'s clock, the save\'s); a fight on the floor, fifteen minutes at the next step (' + (t6 % 24) + ' -> ' + (t7 % 24) + ')', t6 === t5 + 1 && t7 === t6 + 0.25);
+      SO.t = Math.floor(SO.t / 24) * 24 + 24 + 4.5; RW.clockFights = RW.fights; MO.lightNow(BW); var nightO = D.roam.def.night;
+      RW.hourFt = ftH - dW.ft; for (var s9 = 0; s9 < 20 && WO.hour() < 5; s9++) { var toW4 = openO(BW, 1); if (!toW4) break; walkO(BW, toW4); if (WO.hour() < 5) RW.hourFt = ftH - dW.ft; }
+      okO('the night walked into the dawn on the camp: ' + (nightO ? 'night' : 'not night') + ' at 04:30, then ' + Math.floor(WO.hour()) + ':' + String(Math.round(WO.hour() % 1 * 60)).padStart(2, '0') + ' ' + WO.todAt(WO.hour()) + ', the floor\'s night off (' + D.roam.def.night + ')', nightO === true && WO.hour() >= 5 && D.roam.def.night === false);
+      // 3. AN ISO FLOOR (the dwarven road to come is one): the deep gallery on the diamonds, walked -- nothing spent; a fight, fifteen minutes; keyed on the view
+      HO.playing = false; HO.cur = null; while (D.scenes.length) D.pop();
+      D.push(D.roam.make('?roam=galleries_g4&hour=9')); var BI = topO(), dI = D.roam.def, RI = BI.roam, ti = [];
+      var nI = 0; for (var s8 = 0; s8 < 3; s8++) { var toI = openO(BI, 2); if (toI) nI += walkO(BI, toI) || 0; } ti.push(MO.hourNow(D.roam.q, BI));
+      for (var k8 = 0; k8 < 600; k8++) driveO(MO.tick(BI), null, 20); ti.push(MO.hourNow(D.roam.q, BI));
+      RI.fights = (RI.fights || 0) + 1; driveO(MO.tick(BI), null, 20); ti.push(MO.hourNow(D.roam.q, BI));
+      okO('the deep gallery on the diamonds (iso ' + !!dI.iso + '): ' + nI + ' squares walked and 600 more counted, the hour ' + ti[0] + ', ' + ti[1] + '; a fight, ' + ti[2], dI.iso === true && nI >= 4 && ti[0] === 9 && ti[1] === 9 && ti[2] === 9.25);
+      while (D.scenes.length) D.pop(); D.push(D.roam.make('?roam=galleries_g4&hour=9&view=top')); var BT2 = topO(), hT = []; for (var k7 = 0; k7 < 500; k7++) driveO(MO.tick(BT2), null, 20); hT.push(MO.hourNow(D.roam.q, BT2), !!D.roam.def.iso);
+      while (D.scenes.length) D.pop(); D.push(D.roam.make('?roam=warrens&hour=9&view=iso')); var BT3 = topO(); for (var k6 = 0; k6 < 500; k6++) driveO(MO.tick(BT3), null, 20); hT.push(MO.hourNow(D.roam.q, BT3), !!D.roam.def.iso);
+      while (D.scenes.length) D.pop(); D.push(D.roam.make('?roam=webgulch&hour=9')); var BT4 = topO(); for (var k5 = 0; k5 < 300; k5++) driveO(MO.tick(BT4), null, 20); hT.push(MO.hourNow(D.roam.q, BT4), !!D.roam.def.iso);
+      okO('keyed on the view: the deep gallery drawn from above (&view=top), 500 squares an hour (' + hT[0] + ', iso ' + hT[1] + '); the mouth camp on the diamonds (&view=iso), none (' + hT[2] + ', iso ' + hT[3] + '); Web Gulch on the diamonds, 300 squares nothing (' + hT[4] + ', iso ' + hT[5] + ')',
+        hT[0] === 10 && hT[1] === false && hT[2] === 9 && hT[3] === true && hT[4] === 9 && hT[5] === true);
+    } catch (eO) { repO.errors.push(String(eO && eO.stack || eO).slice(0, 900)); }
+    D.store.get = stGO; D.store.set = stSO; if (D.house) { D.house.playing = false; D.house.cur = null; }
+    var preO = document.createElement('pre'); preO.id = 'out'; preO.textContent = 'BENCH16 ' + JSON.stringify(repO);
+    document.body.appendChild(preO);
+    return;
+  }
   // THE HOUSE SEAT OF 10-29 NIGHT (mode=house1029n), on Griz's ear file of 2212Z and his answers to the lanes desk: his route at night -- Silverton's street at 23:00, out by
   // the feed track, the Warrens' mouth camp at the same hour and drawn by it (js/mines.js THE SKY OVER THE MOUTHS), a bunk's night bringing the morning onto it; the Galleries'
   // mouth by the hour; and the keepers drawn all round turning to the party where they watch (js/town.js T.watch), Skarn at his camp and a keeper on Silverton's street.

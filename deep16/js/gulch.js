@@ -22,7 +22,7 @@
   Gu.KEY = 'webgulch'; // (the floor's key and THE WORLD's site: D.MAPS.gulch is the strung end's fight map, js/data/maps.js)
   // the clock (his lean 2) and the hours' fights (lean 4)
   Gu.RATE = {
-    squaresPerHour: 300, // (walked on the floor: an hour of THE WORLD's clock -- straight down the road, about 112 squares, is 22 minutes)
+    squaresPerHour: 300, // (walked on the floor: an hour of THE WORLD's clock -- straight down the road, about 112 squares, is 22 minutes. Spent only with &view=top since 10-29 night: on the diamonds the walk spends nothing, RULED, js/mines.js M.tick)
     fightHours: 0.25,    // (each fight: fifteen minutes, as js/world.js W.FIGHT_HOURS)
     noonRate: 2,         // (11 to 14 the spiders sulk: the table's count between fights doubled)
     nightRate: 0.5       // (by night the count halved: twice as often)

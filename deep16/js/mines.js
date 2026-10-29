@@ -1097,10 +1097,17 @@
   };
   // THE WORLD's clock on the floor: an hour each M.SEEP.squaresPerHour squares walked and each fight; the floor laid again when day turns to night or back
   // (a floor's own `rate` where it has one: Web Gulch's 300 squares an hour, js/gulch.js)
+  // THE ROAM CLOCK BY THE VIEW (RULED 10-29 night, Griz to the lanes desk: "Lenient time per square walked on top down roams, clock by event on iso roams (to include the new
+  // dwarven road)"): every mine floor runs it now, not the clocked ones only. A floor drawn from above spends the hour as the party walks it -- Silverton's street's rate (js/hours.js
+  // H16.FT_HOUR, by the floor's feet a square: 500 squares an hour at 30 ft), or the floor's own where it has one (the Glowseep's M.SEEP); a floor on the grid's diamonds (def.iso:
+  // the deep gallery, Web Gulch, and any iso roam to come -- the dwarven road) spends nothing by the walk, only by its events. A fight is fifteen minutes on every floor
+  // (js/world.js W.FIGHT_HOURS), counted at the next step; a rest is the bed's own (M.sleep, M.seepFire)
+  M.walkFt = function () { return (D.hours && D.hours.FT_HOUR) || 15000; };
   M.tick = function* (B) {
-    var R0 = B.roam, C = (M.FLOORS[D.roam.def.key] || {}).rate || M.SEEP, hrs = 0;
-    R0.clockSq = (R0.clockSq || 0) + 1; if (R0.clockSq >= C.squaresPerHour) { R0.clockSq = 0; hrs++; }
-    if ((R0.fights || 0) > (R0.clockFights || 0)) { hrs += ((R0.fights || 0) - (R0.clockFights || 0)) * C.fightHours; R0.clockFights = R0.fights; }
+    var R0 = B.roam, def = D.roam.def, C = (M.FLOORS[def.key] || {}).rate || (def.clock ? M.SEEP : null), hrs = 0;
+    if (!def.iso && C) { R0.clockSq = (R0.clockSq || 0) + 1; if (R0.clockSq >= C.squaresPerHour) { R0.clockSq = 0; hrs++; } }
+    else if (!def.iso) { R0.hourFt = (R0.hourFt || 0) + (def.ft || 30); if (R0.hourFt >= M.walkFt()) { R0.hourFt -= M.walkFt(); hrs++; } }
+    if ((R0.fights || 0) > (R0.clockFights || 0)) { hrs += ((R0.fights || 0) - (R0.clockFights || 0)) * ((C && C.fightHours) || (D.world && D.world.FIGHT_HOURS) || 0.25); R0.clockFights = R0.fights; }
     if (hrs) yield* M.pass(B, hrs);
   };
   M.pass = function* (B, hrs) {
@@ -1148,7 +1155,7 @@
   var overSky0 = D.roam.paintOver;
   D.roam.paintOver = function (ctx, B) { try { M.paintSky(ctx, B); } catch (e) { } return overSky0.apply(this, arguments); };
   var arrive0 = D.roam.arrive;
-  D.roam.arrive = function* (B) { var ev = yield* arrive0(B); if (!ev && D.roam.def && D.roam.def.clock && B.roam && D.battle === B) yield* M.tick(B); return ev; };
+  D.roam.arrive = function* (B) { var ev = yield* arrive0(B); if (!ev && D.roam.def && D.roam.def.mine && B.roam && D.battle === B) yield* M.tick(B); return ev; }; // (every mine floor since 10-29 night: THE ROAM CLOCK BY THE VIEW)
   // the floor's people named where the first game's npcs have no line of theirs (the Glowseep's crew), and a floor's own lights laid (its poles, its moss, the fire)
   var people0 = T.people;
   T.people = function (B) {
@@ -1216,7 +1223,7 @@
     D.sfx('popup'); t.anim = 'idle'; t.animT = B.t;
     var a = yield { prompt: { who: t, title: def.name.toUpperCase(), lines: R.wrap([M.LINES.edge]), opts: [{ label: 'RETURN', value: 0 }, { label: 'STAY', value: 1 }] } };
     if (a !== 0) { M.stepBack(B); return; }
-    var R0 = B.roam, hr = def.clock ? M.hourNow(R.q, B) : null;
+    var R0 = B.roam, hr = def.clock || R0.hour != null ? M.hourNow(R.q, B) : null; // (a test door's hour walked on any floor carried out, as a clocked floor's)
     if (W && W.active && W.inDoor && W.scene && D.scenes.indexOf(W.scene) >= 0) { if (R.house() && H && H.playing) H.fromFloor(B); M.carryClock(R0, hr); W.leaveTown(sd); return; } // (the floor's party, pack and purse back into the save first)
     var wm = W && W.index && W.index() && W.map('world'), site = wm && (wm.sites || []).filter(function (s) { return s.id === def.door; })[0]; // (W.index: THE WORLD's map read in, as its scene does on entering)
     if (!site || !W.make) { B.card(R.wrap(['{g}No world map on this page.{/}']), 160); M.stepBack(B); return; }
