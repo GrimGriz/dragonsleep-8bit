@@ -1,0 +1,154 @@
+{
+ "_readme": {
+  "what": "Playtest feedback from situations.html: one verdict and note a row -- an eyes row (js/eyes.js: built, not yet seen) or a story situation (?at=<id>, js/situations.js).",
+  "fold_back": "Fold every eyes row noted here that is still live in js/eyes.js (a folded row is already cut, so nothing folds twice; previous_save and new_since_last_save only hint at what is new -- RULED 10-15); a story situation note folds when its `at` is after the save of the last ear file folded. An eyes row noted at all is SEEN: a `seen` line in PATCHLOG.md with the note verbatim, and the row cut from js/eyes.js whatever the verdict (a fix that wants another look writes a fresh row). Broken and unclear become the fix list (in the lane its pt names); too hard / too easy are tuning; notes are the tester's words, verbatim."
+ },
+ "saved_at": "2026-10-29T22:12:12.754Z",
+ "previous_save": null,
+ "items": [
+  {
+   "id": "eyes-council-night-1029b",
+   "eyes": true,
+   "pri": 1,
+   "title": "The council's night without its explainer card: the shots say it, one background, the stock night's man standing (10-29)",
+   "pt": "Silverton's hours and words lane, the 10-29 day section (the story window), his story notes of 10-29 1808Z, RULED \"Leans stand\", and his note to the desk (deep16/js/hours.js H16.sitting cut, H16.CUT, H16.backdrop; deep16/js/counter.js o.room) · eyes",
+   "url": "deep16/?hoursshow&beat=council1&fresh=29s",
+   "verdict": "works",
+   "note": "confirmed fountains as well as hessle's board after. Fountains are good, edifice still has black arch tiles though.",
+   "at": "2026-10-29T21:25:31.749Z",
+   "new_since_last_save": true
+  },
+  {
+   "id": "eyes-runner-1029b",
+   "eyes": true,
+   "pri": 1,
+   "title": "Papa's runner and the council's ask: a Hex boy finds you at renown 2, and the council swears you to the ettercap (10-29)",
+   "pt": "Silverton's hours and words lane, the 10-29 day section (the story window), his story notes of 10-29 1808Z, RULED \"Leans stand\" (deep16/js/hours.js H16.runner, H16.COUNCIL.looks, the ettercap's mission) · eyes",
+   "url": "deep16/?hoursshow&beat=runner&fresh=29s",
+   "verdict": "works",
+   "note": "the boy runs up and away a little too fast - should put a quest in your journal to guide you to the third floor - gnolls are coming up north along the south of silverton road (north road would point to the doors)\nif warda has a portrait - warda shows you should be portrait version 'this is the group you asked about papa'\n\nJournal mission storage looks good, little less time to read it before it goes in the journal please\nremove first sound on appearance and keep the tucked away in journal sound",
+   "at": "2026-10-29T21:39:55.097Z",
+   "new_since_last_save": true
+  },
+  {
+   "id": "eyes-five-words-1029b",
+   "eyes": true,
+   "pri": 1,
+   "title": "The Missing Five by words: Edric tells it as he books you, Skarn's lines you pick, the pens' cradle and Old Hob (10-29)",
+   "pt": "Silverton's hours and words lane, the 10-29 day section (the story window), his story notes of 10-29 1808Z, RULED \"Leans stand\" (deep16/js/mines.js Skarn, Edric, M.penShift; deep16/js/hours.js H16.FIVE_BY; deep16/js/cradle.js CR.pic) · eyes",
+   "url": "deep16/?hoursshow&beat=five&fresh=29s",
+   "verdict": "works",
+   "note": "all this is good. Link goes to a page with a bunch of stuff. \nHow is the urtusk/lymen talk triggered in game?\nSwann's second part should all be together on her second card\nBreadline is good except it says that it moves and doesn't yet\nOut at dusk merchants - same inside text, vera doesn't actually sell and claims to\nSilverton at night = morning in warrens by the time you get there?\ntell me about it is good now\n\n\n\n\n",
+   "at": "2026-10-29T22:02:14.117Z",
+   "new_since_last_save": true
+  },
+  {
+   "id": "eyes-sabeth-face-1029",
+   "eyes": true,
+   "pri": 1,
+   "title": "Sabeth Pollard's talking portrait from the art desk's ART-123: her idle, the four moods, and a weight set on the beam scale (10-29)",
+   "pt": "the bestiary, the Edric and Dace cutter seat (tools/portrait-sheet.py pt_sabeth; deep16/js/counter.js C.VENDORS.sabeth) · eyes",
+   "url": "deep16/?portraits&who=sabeth&fresh=1029b",
+   "verdict": "works",
+   "note": "",
+   "at": "2026-10-29T22:02:59.629Z",
+   "new_since_last_save": true
+  },
+  {
+   "id": "eyes-wynn-face-1029",
+   "eyes": true,
+   "pri": 1,
+   "title": "Old Wynn Pollard's talking portrait from the art desk's ART-123: his idle, the four moods, and the rattle shaken once (10-29)",
+   "pt": "the bestiary, the Edric and Dace cutter seat (tools/portrait-sheet.py pt_wynn; deep16/js/counter.js C.VENDORS.wynn) · eyes",
+   "url": "deep16/?portraits&who=wynn&fresh=1029w",
+   "verdict": "works",
+   "note": "",
+   "at": "2026-10-29T22:03:13.413Z",
+   "new_since_last_save": true
+  },
+  {
+   "id": "eyes-dace-cloak-1029",
+   "eyes": true,
+   "pri": 1,
+   "title": "Corwen Dace's face in his grandfather's cloak of displacement till he gives it to the party, plain after (10-29 later)",
+   "pt": "the bestiary, the Edric and Dace cutter seat (deep16/js/counter.js C.SHEETOF, pt_dacedisp; deep16/js/mines.js M.daceDeep, flags.daceCloak) · eyes",
+   "url": "deep16/?roam=galleries&flags=cullHired&at=25,12&face=0,-1&fresh=1029c",
+   "verdict": "works",
+   "note": "",
+   "at": "2026-10-29T22:03:55.083Z",
+   "new_since_last_save": true
+  },
+  {
+   "id": "eyes-dace-face-1029",
+   "eyes": true,
+   "pri": 1,
+   "title": "Corwen Dace's talking portrait from the art desk's ART-123: his idle, the four moods, and the notebook sketched in while he talks (10-29)",
+   "pt": "the bestiary, the Edric and Dace cutter seat (tools/portrait-sheet.py pt_dace; deep16/js/counter.js C.VENDORS) · eyes",
+   "url": "deep16/?portraits&who=dace&fresh=1029d",
+   "verdict": "broken",
+   "note": "lot of red-shifting going on in various frames",
+   "at": "2026-10-29T22:06:06.867Z",
+   "new_since_last_save": true
+  },
+  {
+   "id": "eyes-edric-face-1029",
+   "eyes": true,
+   "pri": 1,
+   "title": "Edric Pellam's talking portrait from the art desk's ART-123: his idle, the four moods, and the tally book written in and blotted (10-29)",
+   "pt": "the bestiary, the Edric and Dace cutter seat (tools/portrait-sheet.py pt_edric; deep16/js/counter.js C.VENDORS; deep16/js/mines.js VENDORS.tally) · eyes",
+   "url": "deep16/?portraits&who=edric&fresh=1029e",
+   "verdict": "works",
+   "note": "",
+   "at": "2026-10-29T22:06:23.893Z",
+   "new_since_last_save": true
+  },
+  {
+   "id": "eyes-skarn-camp-1029",
+   "eyes": true,
+   "pri": 1,
+   "title": "Skarn the Warrener at the Crawler Warrens' mouth camp, in his own figure and on his own face (10-29)",
+   "pt": "the bestiary, the Skarn cutter seat (tools/keeper-town-sheet.py skarn_p1, tools/portrait-sheet.py pt_skarn; deep16/js/counter.js C.FIG, C.VENDORS) · eyes",
+   "url": "deep16/?roam=warrens&at=15,10&face=0,-1&fresh=1029s",
+   "verdict": "works",
+   "note": "never see the turn, switches to portrait and he's facing south again after talking",
+   "at": "2026-10-29T22:09:07.587Z",
+   "new_since_last_save": true
+  },
+  {
+   "id": "eyes-harrow-night-1029",
+   "eyes": true,
+   "pri": 1,
+   "title": "Ottak Harrow at the council's night: up the spiral, at the long table, and his \"Post it twice.\" on his own face (10-29)",
+   "pt": "Silverton's hours and words lane 4.8, the cutscene cutter seat (tools/portrait-sheet.py pt_harrow, tools/keeper-town-sheet.py harrow_p1; deep16/js/counter.js C.VENDORS, C.FIG) · eyes",
+   "url": "deep16/?hoursshow&beat=council1&fresh=1029h",
+   "verdict": "works",
+   "note": "",
+   "at": "2026-10-29T22:09:24.593Z",
+   "new_since_last_save": true
+  },
+  {
+   "id": "eyes-papa-night-1029",
+   "eyes": true,
+   "pri": 1,
+   "title": "Papa Urtusk at the council's night: up the spiral first, at the head of the long table, and his \"Strike it.\" on his own face (10-29)",
+   "pt": "Silverton's hours and words lane 4.8, the cutscene cutter seat (tools/portrait-sheet.py pt_papa, tools/keeper-town-sheet.py papa_p1; deep16/js/counter.js C.VENDORS, C.FIG) · eyes",
+   "url": "deep16/?hoursshow&beat=council1&fresh=1029p",
+   "verdict": "works",
+   "note": "the whole lupine head thing doesn't make much sense - unless ole boy thinks gnolls are lupine, the head is significant to the gnolls not others",
+   "at": "2026-10-29T22:10:25.331Z",
+   "new_since_last_save": true
+  },
+  {
+   "id": "eyes-fountain-troughs-1029",
+   "eyes": true,
+   "pri": 1,
+   "title": "Silverton's fountains as troughs: one square by three under each spout, against the Edifice's foot, as the Skylights' pools stand (10-29)",
+   "pt": "the house, the Edric and Dace cutter seat (js/town.js T.TROUGH, T.troughAt; js/topview.js TV.trough, TV.fountains, TV.edStrip) · eyes",
+   "url": "deep16/?roam=silverton&at=30,7&fresh=1029t",
+   "verdict": "broken",
+   "note": "these are better and will work if they have to, but one-square long and 1 square deep is probably more accurate and the black arches are still present",
+   "at": "2026-10-29T22:12:08.282Z",
+   "new_since_last_save": true
+  }
+ ]
+}
