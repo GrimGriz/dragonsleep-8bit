@@ -5249,7 +5249,8 @@
   // FALSTAFF AND THE FOUNTAINS, 10-29 (mode=cut1029; the cutter seat of 10-29, on Griz's "pinged the art dept for his north facings, got some tiles in to cut"): the art
   // desk's ART-123-FALSTAFF cut into pt_falstaff (tools/portrait-sheet.py) and falstaff_p1 (tools/keeper-town-sheet.py, south only -- its NE was drawn from the front),
   // his word at his door on his face (his door has no room); ART-124 HEAD 3 cut into fountains_p1 (tools/toptiles-sheet.py fountains), the eight fountains' basins laid
-  // whole by js/topview.js TV.basins round the squares js/town.js lays (T.FOUNT)
+  // whole by js/topview.js TV.basins round the squares js/town.js lays (T.FOUNT); its HEAD 2, the whole fountain, the same night on his "let's bundle wystan for when we
+  // get the rest of the game to post snoot and cut the fountains", laid there in place of the built basin
   if (get('mode', '') === 'cut1029') {
     var repF = { checks: [], errors: [] }, memF = {}, stGF = D.store.get, stSF = D.store.set, CF = D.counter, HF = D.house, TF = D.town, TVF = D.topview;
     function okF(what, v) { repF.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
@@ -5279,8 +5280,12 @@
       // the fountains
       var tF = D.SHEETS.fountains_p1, nmF = tF ? Object.keys(tF.tiles) : [], cntF = nmF.reduce(function (a, k) { return a + String(tF.tiles[k]).split(' ').length; }, 0);
       var wantF = ['basin_water'].concat(['n', 'e', 's', 'w'].map(function (s) { return 'basin_edge_' + s; }), ['nw', 'ne', 'sw', 'se'].map(function (s) { return 'basin_outer_' + s; }), ['nw', 'ne', 'sw', 'se'].map(function (s) { return 'basin_inner_' + s; }));
-      okF('fountains_p1 cut from ART-124 HEAD 3: ' + cntF + ' pieces in ' + nmF.length + ' names, the four fills, the four edges, the outer and inner corners; its rim a side ' + JSON.stringify(tF && tF.rim),
-        !!tF && cntF === 16 && wantF.every(function (k) { return nmF.indexOf(k) >= 0; }) && String(tF.tiles.basin_water).split(' ').length === 4);
+      okF('fountains_p1 cut from ART-124 HEAD 3 and HEAD 2: ' + cntF + ' pieces in ' + nmF.length + ' names, the four fills, the four edges, the outer and inner corners (its rim a side ' + JSON.stringify(tF && tF.rim) + '), and the whole fountain',
+        !!tF && cntF === 20 && wantF.every(function (k) { return nmF.indexOf(k) >= 0; }) && String(tF.tiles.basin_water).split(' ').length === 4);
+      // (the whole fountain, 10-29 the second job: the art desk's H2P1, its two frames at HEAD 1's size and at HEAD 2's -- the rim's width at 30 ft and at 10 ft)
+      var wbF = function (n) { return tF ? String(tF.tiles[n] || '').split(' ').filter(Boolean).map(function (b) { return b.split(',').map(Number); }) : []; }, smF = wbF('fountain_small'), lgF = wbF('fountain_large');
+      okF('the whole fountain (HEAD 2, the calmest of three takes): two frames at 96 px across (' + smF.map(function (b) { return b[2] + 'x' + b[3]; }).join(', ') + ') and two at 288 (' + lgF.map(function (b) { return b[2] + 'x' + b[3]; }).join(', ') + '), each anchored at its middle',
+        smF.length === 2 && lgF.length === 2 && smF.every(function (b) { return b[2] === 96 && b[4] === 48 && Math.abs(b[5] - b[3] / 2) <= 1; }) && lgF.every(function (b) { return b[2] === 288 && b[4] === 144 && Math.abs(b[5] - b[3] / 2) <= 1; }));
       okF('the top view loads it with the town\'s atlases, the town\'s water squares on its calm fill, and lays the basins (TV.basins, TV.basin)',
         TVF.ART.sheets.indexOf('fountains_p1') >= 0 && TVF.GROUND.town['~'] === 'basin_water' && typeof TVF.basins === 'function' && typeof TVF.basin === 'function');
       [30, 10].forEach(function (F) {

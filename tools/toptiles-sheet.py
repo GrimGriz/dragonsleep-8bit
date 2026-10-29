@@ -458,6 +458,47 @@ def restretch(t, ax_breaks):
     return t[ys][:, xs]
 
 
+WHOLE = {'fountain_small': 96, 'fountain_large': 288}   # HEAD 1's size and HEAD 2's (art-wanted section 28): the rim's width at the town's 30-ft squares and at 10 ft
+
+
+def fountain_whole(A):
+    """the whole fountain, HEAD 2 PAGE 1 (10-29, the second job: the art desk's H2P1, three takes titled "H2P1 - IDLE VARIATION"; this one the calmest water, the
+    fewest bright pixels): a round basin, its rim in two rings, a pedestal and spout in the middle, two frames -- the water still, then its rings moved on. Frame 2
+    stands clear on the page; frame 1 touches the page's title box, so it takes frame 2's own outline moved to where the two rims match (only the water differs).
+    Each frame boxed down to the rim's width at two sizes -- HEAD 1 never came, so the small is the same drawing -- the alpha cut at a half and snapped; the anchor
+    (ax, ay) the drawing's middle (the rim drawn a little wider than tall, seen from just south of overhead)"""
+    path = os.path.join(PX.SRC, 'fountains', 'ART-124', 'ART-124_HEAD-2_PAGE-1.png')
+    a, bg = page(path)
+    H, W = a.shape[:2]
+    m = drawn(a, bg)
+    m[:, :W // 2] = False                                               # (frame 2, the right half)
+    m = ndimage.binary_closing(m, iterations=2)
+    lab, n = ndimage.label(m)
+    k = 1 + int(np.argmax(ndimage.sum(m, lab, range(1, n + 1))))
+    m2 = ndimage.binary_fill_holes(lab == k)
+    ys, xs = np.nonzero(m2); y0, y1, x0, x1 = ys.min(), ys.max() + 1, xs.min(), xs.max() + 1
+    rim = m2[y0:y1, x0:x1]; c2 = a[y0:y1, x0:x1].astype(np.float64)
+    stone = rim & ~((c2[..., 2] > c2[..., 0] + 60) & (c2[..., 2] > 120))   # (the rings and the pedestal, not the water: where the two frames must agree)
+    best = None
+    for dx in range(-830, -790):                                        # (the frames' numbers stand 811 px apart)
+        for dy in range(-6, 7):
+            if x0 + dx < 0 or y0 + dy < 0: continue
+            c1 = a[y0 + dy:y1 + dy, x0 + dx:x1 + dx].astype(np.float64)
+            err = np.abs(c1 - c2)[stone].mean()
+            if best is None or err < best[0]: best = (err, dx, dy)
+    err, dx, dy = best
+    frames = [a[y0 + dy:y1 + dy, x0 + dx:x1 + dx], a[y0:y1, x0:x1]]
+    print('  the whole fountain: %d x %d on the page; frame 1 at %+d,%+d from frame 2 (the rims %.1f apart on average)' % (x1 - x0, y1 - y0, dx, dy, err))
+    for name, wpx in WHOLE.items():
+        k2 = wpx / float(x1 - x0); h2 = int(round((y1 - y0) * k2))
+        for f in frames:
+            rgb, al = box_down(f, wpx, h2, rim.astype(np.float64))
+            out = np.zeros((h2, wpx, 4), np.uint8); solid = al >= 0.5
+            out[solid, :3] = snap(rgb)[solid]; out[solid, 3] = 255
+            A.add(name, out, wpx // 2, h2 // 2)
+        A.newrow()
+
+
 def fountains(check=False):
     d = os.path.join(PX.SRC, 'fountains', 'ART-124')
     man = json.load(open(os.path.join(d, 'manifest.json'), encoding='utf-8'))
@@ -516,6 +557,7 @@ def fountains(check=False):
     ripple, glint = nearest(dark_c, lambda L: L < lum(base) - 4), nearest(light_c, lambda L: L > lum(base) + 4)
     print('  basin water: base %s, ripple %s, glint %s (of the 64)' % (tuple(int(v) for v in base), tuple(int(v) for v in ripple), tuple(int(v) for v in glint)))
     A = Atlas(48 * 8)
+    fountain_whole(A)
     for n in ['basin_water'] + [v for pg, lab in BASINS[1:] for v in lab.values()]:
         for x, s in tiles[n]:
             out = np.zeros((T, T, 4), dtype=np.uint8); out[..., :3] = snap(x); out[..., 3] = 255

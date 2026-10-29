@@ -450,11 +450,14 @@
   };
   TV.basins = function (m, cx, x0, y0) { // (on a floor's page: x0, y0 its corner in world px)
     var e = m.def.edifice, Tn = D.town, V6 = D.TOWN_V6; if (!e || !e.fount || !Tn || !Tn.FOUNT || !V6) return;
-    var T = TV.TS, F = m.def.ft || Tn.SCALE || 30, FB = Tn.FOUNT(F), R = FB.rim / F * T, n = Math.max(2, Math.round(2 * R / T)), im = TV.basin(n); if (!im) return;
+    var T = TV.TS, F = m.def.ft || Tn.SCALE || 30, FB = Tn.FOUNT(F), R = FB.rim / F * T, n = Math.max(2, Math.round(2 * R / T)), im = TV.basin(n);
+    var wh = TV.piece(2 * R <= 144 ? 'fountain_small' : 'fountain_large', 0, 'town'); // (the art desk's whole fountain, HEAD 2 -- its still frame, the small at the town's 30-ft squares: laid in place of the built basin where it is in)
+    if (!im && !wh) return;
     var wy = ((V6.EDBOT + FB.dy - Tn.Y0) / F + e.y0) * T; // (the fountains' middle: v6's feet to the floor's px -- e.y0 the floor's cut, js/town.js def.edifice)
     e.fount.forEach(function (fx) {
       var wx = e.x0 * T + (fx - e.fx0) * T / F, s = m.at(Math.floor(wx / T), e.y1 + 1), z = s ? s.gz || 0 : 0; // (the ground's height at the Edifice's foot: Fountain Street is on its level)
       if (wx + R < x0 || wx - R > x0 + TV.PAGE || wy - z + R < y0 || wy - z - R > y0 + TV.PAGE) return;
+      if (wh) { var k = 2 * R / wh.w; cx.drawImage(wh.im, wh.x, wh.y, wh.w, wh.h, Math.round(wx - wh.ax * k - x0), Math.round(wy - z - wh.ay * k - y0), Math.round(wh.w * k), Math.round(wh.h * k)); return; }
       cx.drawImage(im, Math.round(wx - R - x0), Math.round(wy - z - R - y0), Math.round(2 * R), Math.round(2 * R));
     });
   };
