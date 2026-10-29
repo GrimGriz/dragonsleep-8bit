@@ -119,6 +119,8 @@ KEEPERS = {
     'dace': ('dace/ART-123-DACE', 'ART-123-DACE', 'npc:dace', {'views': 'ART-123-DACE, 10-29', 'avoid': ['red', 'fire']}),   # (his satchel's red-brown leather flecked the reds, blood spots at 50 px: left out, it keeps to leather)
     # Old Wynn Pollard (10-29, the same seat: the art desk's ART-123-WYNN, all five views drawn, NE and N from behind): at the Galleries' mouth where the first game stands him
     'wynn': ('wynn/ART-123-WYNN', 'ART-123-WYNN', 'npc:wynn', {'views': 'ART-123-WYNN, 10-29', 'avoid': ['red', 'fire']}),   # (his weathered cheeks flecked the reds at 50 px, as Edric's: left out, they go to skin)
+    # Sabeth Pollard (10-29, the same seat: the art desk's ART-123-SABETH, all five views drawn, NE and N from behind): at the Galleries' mouth where the first game stands her
+    'sabeth': ('sabeth/ART-123-SABETH', 'ART-123-SABETH', 'npc:sabeth', {'views': 'ART-123-SABETH, 10-29', 'avoid': ['red', 'fire']}),   # (her neck's and hands' warmth flecked the reds at 50 px: left out, as Edric's and Wynn's)
     # Dace in the cloak of displacement (10-29, the same seat: the art desk's ART-123-DACE-DISPLACEMENT, a second look beside the plain one, all five views): the ghost's
     # glow joins the S and SE frames -- `ghost` splits them at the real bodies, and his height, his feet and his crown are the real body's, the afterimage beside him kept
     'dacedisp': ('dace/ART-123-DACE-DISPLACEMENT', 'ART-123-DACE-DISPLACEMENT', 'npc:dace (the cloak worn as the magic item)', {'views': 'ART-123-DACE-DISPLACEMENT, 10-29', 'avoid': ['red', 'fire'], 'ghost': {'hues': (205, 285), 'smin': 0.3}}),

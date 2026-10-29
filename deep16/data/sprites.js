@@ -14906,6 +14906,102 @@ true
 "door": "warp:percy",
 "source": "deep16/_src/percy/ART-102 (the art desk's ART-102, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
 },
+"pt_sabeth": {
+"image": "art/pt_sabeth.png?v=f729b20776",
+"fw": 236,
+"fh": 156,
+"ax": 112,
+"ay": 153,
+"top": 153,
+"portrait": true,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 236,
+"fh": 156,
+"ax": 112,
+"ay": 153,
+"frames": 6,
+"fps": 3,
+"ledge": [
+true,
+true,
+true,
+true,
+true,
+true
+]
+},
+"attentive": {
+"y": 156,
+"fw": 236,
+"fh": 156,
+"ax": 112,
+"ay": 153,
+"frames": 1,
+"fps": 1,
+"ledge": [
+true
+]
+},
+"welcoming": {
+"y": 312,
+"fw": 236,
+"fh": 156,
+"ax": 112,
+"ay": 153,
+"frames": 1,
+"fps": 1,
+"ledge": [
+true
+]
+},
+"skeptical": {
+"y": 468,
+"fw": 236,
+"fh": 156,
+"ax": 112,
+"ay": 153,
+"frames": 1,
+"fps": 1,
+"ledge": [
+true
+]
+},
+"concerned": {
+"y": 624,
+"fw": 236,
+"fh": 156,
+"ax": 112,
+"ay": 153,
+"frames": 1,
+"fps": 1,
+"ledge": [
+true
+]
+},
+"work": {
+"y": 780,
+"fw": 236,
+"fh": 156,
+"ax": 112,
+"ay": 153,
+"frames": 6,
+"fps": 4,
+"ledge": [
+true,
+true,
+true,
+true,
+true,
+true
+]
+}
+},
+"art": "ART-123-SABETH",
+"door": "npc:sabeth",
+"source": "deep16/_src/sabeth/ART-123-SABETH (the art desk's ART-123-SABETH, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
+},
 "pt_skarn": {
 "image": "art/pt_skarn.png?v=03c543d878",
 "fw": 189,
@@ -16584,6 +16680,27 @@ true
 }
 },
 "source": "drawn by the art desk (ART-16 SE and NE, 10-10, SE page 1 the revised \"Rustmonster front-facing animation sheet\"; ART-57 S, E and N, 10-20), cut by tools/rustmonster-sheet.py through tools/artdesk.py (10-22)"
+},
+"sabeth_p1": {
+"image": "art/sabeth_p1.png?v=f2d1663b00",
+"fw": 29,
+"fh": 53,
+"ax": 14,
+"ay": 51,
+"top": 49,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 29,
+"fh": 53,
+"ax": 14,
+"ay": 51,
+"frames": 14,
+"fps": 4
+}
+},
+"source": "deep16/_src/sabeth/ART-123-SABETH/ART-123-SABETH_HEAD-2_PAGE-1.png (the art desk's south idle, 10-21) and PAGE-2 to PAGE-5 (SE, E, NE, N: ART-123-SABETH, 10-29), cut by tools/keeper-town-sheet.py",
+"door": "npc:sabeth"
 },
 "seeptiles_p1": {
 "image": "art/seeptiles_p1.png?v=f682db98f6",

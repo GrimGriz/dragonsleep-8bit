@@ -725,5 +725,11 @@
     'eyes-wynn-mouth-1029': { pri: 2, group: G2, title: 'Old Wynn Pollard at the Guano Galleries\' mouth, in his own figure all round (10-29)', pt: 'the bestiary, the Edric and Dace cutter seat (tools/keeper-town-sheet.py wynn_p1; deep16/js/counter.js C.FIG.wynn) · eyes',
       url: 'deep16/?roam=galleries&flags=cullHired&at=4,10&face=0,-1&fresh=1029w',
       look: 'You stand just below him at the Galleries\' mouth: Old Wynn in his vest, empty-handed, 50 px, in place of the old hand\'s stand-in. Walk round him: he turns to whoever speaks (SW, W and NW are the mirrors, so his clouded eye changes sides there). Speak to him with Dace in the party: SEND HIM HOME / HE COMES, on his face.' },
+    'eyes-sabeth-face-1029': { pri: 1, group: G2, title: 'Sabeth Pollard\'s talking portrait from the art desk\'s ART-123: her idle, the four moods, and a weight set on the beam scale (10-29)', pt: 'the bestiary, the Edric and Dace cutter seat (tools/portrait-sheet.py pt_sabeth; deep16/js/counter.js C.VENDORS.sabeth) · eyes',
+      url: 'deep16/?portraits&who=sabeth&fresh=1029b',
+      look: 'Forty, brisk and sure, sleeves rolled: a square practical face, brown hair in a low bun, an oatmeal shirt under a brown waistcoat. Her idle, attentive, welcoming, skeptical, concerned, and her work: a small weight lifted and set on the pan of a beam scale beside her, read, her hands back at rest (the scale stays on the counter). The cull\'s word -- TAKE THE WORK, the one law -- is on this face at the Galleries\' mouth.' },
+    'eyes-sabeth-mouth-1029': { pri: 2, group: G2, title: 'Sabeth Pollard at the Guano Galleries\' mouth, in her own figure all round (10-29)', pt: 'the bestiary, the Edric and Dace cutter seat (tools/keeper-town-sheet.py sabeth_p1; deep16/js/counter.js C.FIG.sabeth) · eyes',
+      url: 'deep16/?roam=galleries&flags=cullHired&at=13,11&face=0,-1&fresh=1029b',
+      look: 'You stand two squares below her at the mouth: Sabeth in her waistcoat and a long brown skirt, 50 px, in place of the innkeeper stand-in. Walk round her: she turns to whoever speaks (SW, W and NW are the mirrors). Speak to her: the cull and the one law on her face.' },
   };
 })();
