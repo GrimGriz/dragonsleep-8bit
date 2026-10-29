@@ -352,7 +352,7 @@ Cut as: `tools/portrait-sheet.py`, one line for his supplement in `PEOPLE` (its 
 
 ## 26. The named still without a face or a body: a talking portrait and a town figure in all five views (added 10-28, the second cutter seat) -- proposed ART-123, a subjob a person as ART-121's are (ART-123-FALSTAFF to ART-123-TALMOK)
 
-His words, his ear files of 10-28 (relayed by the lanes desk): *"art request for a generic NPC face portrait with 'drinker, gambler, and any other variants we need (guano scraper, etc.) where we do variants instead of 'skeptical' and similar we have for the good NPCs, as well a a request for the portrait page and embodied sprites for other named NPCs encountered (we should probably get SE-E-NE-N facings for all the NPCs we already have south facings for"*. The named people the second game stands on its floors with no portrait page and no figure of their own (checked 10-28 against `deep16/art/pt_*` and the `_p1` sheets): Silverton's Falstaff (the only door keeper still without), the street's named, the Hex's Warda, the Warrens' and the Galleries' people. Each block the keepers' shape (art-wanted §20), with the town figure in all five views (RULED 10-14: S, SE, E, NE, N; the cutter mirrors the rest). Talmok, the Hex's champion, has a figure (`talmok_p1`) and wants a portrait only: his block is the last. Words marked [seat] are the seat's, where the register gives no look.
+His words, his ear files of 10-28 (relayed by the lanes desk): *"art request for a generic NPC face portrait with 'drinker, gambler, and any other variants we need (guano scraper, etc.) where we do variants instead of 'skeptical' and similar we have for the good NPCs, as well a a request for the portrait page and embodied sprites for other named NPCs encountered (we should probably get SE-E-NE-N facings for all the NPCs we already have south facings for"*. The named people the second game stands on its floors with no portrait page and no figure of their own (checked 10-28 against `deep16/art/pt_*` and the `_p1` sheets): Silverton's Falstaff (the only door keeper still without), the street's named, the Hex's Warda, the Warrens' and the Galleries' people. Each block the keepers' shape (art-wanted §20), with the town figure in all five views (RULED 10-14: S, SE, E, NE, N; the cutter mirrors the rest). Talmok, the Hex's champion, has a figure (`talmok_p1`) and wants a portrait only: his block is the last. Words marked [seat] are the seat's, where the register gives no look. **RULED 10-29 (Griz, the story window), verbatim:** *"don't send the grok faces, just make sure the new art dept is working with the old portrait sheets md descriptions along with what we've given it (defer to original if our newer contradicts)"* and *"the ones without portrait sheets description makes sure art dept is getting enough info (hex family probably means half-orc) to work with"* -- the realm's `TarlynsPit/silverton-portrait-sheets.md` (08-02, 47 faces) has Falstaff, Papa and Warda and none of the other fourteen; its words govern those three below (Falstaff's return of 10-29, `c36050db`, reads as its paragraph and stands), and the fourteen carry their ancestry, age and the register's gear (Skarn a half-orc with the collar still on and no ledger -- Edric holds the book; Wynn half-blind, not half-deaf; Dace in his grandfather's cloak). Carried to the art desk as `deep16/_src/outbox/ENGINE-NOTE-2026-10-29-a-art-123-descriptions.md`; the sheets' painted plates are not sent.
 
 ### Falstaff
 ATTACH `deep16/_src/winters/ART-78/ART-78_HEAD-1_PAGE-1.png` and `ART-78_HEAD-1_PAGE-6.png` (the portrait pages' shape, for the format only, not the face) and `deep16/_src/art-desk/sent/REF-2026-10-21-town-figure-size.png` (the town figure's size).
@@ -381,7 +381,7 @@ Where: his door, pin 7a (`keeper:falstaff`). Cut as: `tools/portrait-sheet.py` (
 ### Papa Urtusk
 ATTACH `deep16/_src/winters/ART-78/ART-78_HEAD-1_PAGE-1.png` and `ART-78_HEAD-1_PAGE-6.png` (the portrait pages' shape, for the format only, not the face) and `deep16/_src/art-desk/sent/REF-2026-10-21-town-figure-size.png` (the town figure's size).
 ```text
-PAPA URTUSK -- a full orc in his eighties, the Hex's patriarch: huge and slow, grey-green skin, white hair and a white beard, heavy tusks, once the warlord's muscle and the town's shield; a plain old coat over a broad chest [seat].
+PAPA URTUSK -- a full orc, extraordinarily old for his kind: eighties, which for an orc is a marvel. Green-grey skin gone slack and papery over an enormous frame, lower tusks worn down and yellowed, a white beard-fringe along the jaw. Deep-set eyes, still clear. Old scarring everywhere. He is still the largest thing in any room and has begun, visibly, to be slow. Plain heavy wool, no ornament, no armour. The Hex's patriarch: once the warlord's muscle and the town's shield.
 
 HEAD 1 -- IDLE (6, two bands of three): a breathing and blink loop at the counter, hands resting on it; loops cleanly.
 HEAD 2 -- ATTENTIVE (1): neutral listening.
@@ -405,7 +405,7 @@ Where: Silverton's street before the Hex (`papa`). Cut as: `tools/portrait-sheet
 ### Idony Fell
 ATTACH `deep16/_src/winters/ART-78/ART-78_HEAD-1_PAGE-1.png` and `ART-78_HEAD-1_PAGE-6.png` (the portrait pages' shape, for the format only, not the face) and `deep16/_src/art-desk/sent/REF-2026-10-21-town-figure-size.png` (the town figure's size).
 ```text
-IDONY FELL -- the notary's senior clerk, a woman: plain, grey-eyed, dressed like a clerk and mistaken for one on purpose; reads every ledger and forgets nothing.
+IDONY FELL -- the notary's senior clerk, a human woman of about forty from the Newland coast, fifteen years in Silverton: plain, grey-eyed, dressed like a clerk and mistaken for one on purpose; reads every ledger and forgets nothing [seat: the look].
 
 HEAD 1 -- IDLE (6, two bands of three): a breathing and blink loop at the counter, hands resting on it; loops cleanly.
 HEAD 2 -- ATTENTIVE (1): neutral listening.
@@ -429,7 +429,7 @@ Where: Silverton's street by the notary's (`idony`). Cut as: `tools/portrait-she
 ### Signy the rope-maker
 ATTACH `deep16/_src/winters/ART-78/ART-78_HEAD-1_PAGE-1.png` and `ART-78_HEAD-1_PAGE-6.png` (the portrait pages' shape, for the format only, not the face) and `deep16/_src/art-desk/sent/REF-2026-10-21-town-figure-size.png` (the town figure's size).
 ```text
-SIGNY THE ROPE-MAKER -- a dwarf woman grown old-looking among humans: she looks sixty and has not aged in anyone's memory; strong hands, a braid gone grey, a rope-maker's leather apron.
+SIGNY THE ROPE-MAKER -- a dwarf woman grown old-looking among humans: she looks sixty and has not aged in anyone's memory; short and broad as her kind, strong hands, a braid gone grey, a rope-maker's leather apron over the Shaft Rows' plain wool [seat: the look].
 
 HEAD 1 -- IDLE (6, two bands of three): a breathing and blink loop at the counter, hands resting on it; loops cleanly.
 HEAD 2 -- ATTENTIVE (1): neutral listening.
@@ -453,7 +453,7 @@ Where: the shaft rows (`signy`). Cut as: `tools/portrait-sheet.py` (a `PEOPLE` l
 ### Elsbeth the candle girl
 ATTACH `deep16/_src/winters/ART-78/ART-78_HEAD-1_PAGE-1.png` and `ART-78_HEAD-1_PAGE-6.png` (the portrait pages' shape, for the format only, not the face) and `deep16/_src/art-desk/sent/REF-2026-10-21-town-figure-size.png` (the town figure's size).
 ```text
-ELSBETH THE CANDLE GIRL -- a girl of about sixteen on vice row with a tray of candles hung from her neck and a lamp on a pole; guarded, nearly smiling.
+ELSBETH THE CANDLE GIRL -- a human girl of sixteen on vice row with a tray of candles hung from her neck and a lamp on a pole; guarded, nearly smiling [seat: the look]. She is the Halfway Inn's daughter, come to town: one face serves her at the inn later.
 
 HEAD 1 -- IDLE (6, two bands of three): a breathing and blink loop at the counter, hands resting on it; loops cleanly.
 HEAD 2 -- ATTENTIVE (1): neutral listening.
@@ -477,7 +477,7 @@ Where: vice row (`elsbethCandles`). Cut as: `tools/portrait-sheet.py` (a `PEOPLE
 ### Old Hob Rennick
 ATTACH `deep16/_src/winters/ART-78/ART-78_HEAD-1_PAGE-1.png` and `ART-78_HEAD-1_PAGE-6.png` (the portrait pages' shape, for the format only, not the face) and `deep16/_src/art-desk/sent/REF-2026-10-21-town-figure-size.png` (the town figure's size).
 ```text
-OLD HOB RENNICK -- the Crawler Warrens' old hand, in his sixties: a dosed veteran, past the lamp-line more times than the book says; thin, sly, a battered hat and a crew coat.
+OLD HOB RENNICK -- the Crawler Warrens' old hand, a human in his sixties: a dosed veteran, past the lamp-line more times than the book says; thin, sly, a battered hat and a crew coat [seat: the look].
 
 HEAD 1 -- IDLE (6, two bands of three): a breathing and blink loop at the counter, hands resting on it; loops cleanly.
 HEAD 2 -- ATTENTIVE (1): neutral listening.
@@ -501,7 +501,7 @@ Where: Silverton and the Warrens (`oldhob`, `hobCamp`, `hobB`, `hobC`). Cut as: 
 ### Warrens Pete
 ATTACH `deep16/_src/winters/ART-78/ART-78_HEAD-1_PAGE-1.png` and `ART-78_HEAD-1_PAGE-6.png` (the portrait pages' shape, for the format only, not the face) and `deep16/_src/art-desk/sent/REF-2026-10-21-town-figure-size.png` (the town figure's size).
 ```text
-WARRENS PETE -- a shaft hand who went down past the wet with five and came up alone; tells it bigger every night and says "six" too fast; red-eyed, unshaven, a drinker.
+WARRENS PETE -- a human shaft hand in his forties [seat: the age] who went down past the wet with five and came up alone; tells it bigger every night and says "six" too fast; red-eyed, unshaven, a drinker [seat: the look].
 
 HEAD 1 -- IDLE (6, two bands of three): a breathing and blink loop at the counter, hands resting on it; loops cleanly.
 HEAD 2 -- ATTENTIVE (1): neutral listening.
@@ -525,7 +525,7 @@ Where: Silverton and the Hex (`pete`, `warrenspete`). Cut as: `tools/portrait-sh
 ### Warda
 ATTACH `deep16/_src/winters/ART-78/ART-78_HEAD-1_PAGE-1.png` and `ART-78_HEAD-1_PAGE-6.png` (the portrait pages' shape, for the format only, not the face) and `deep16/_src/art-desk/sent/REF-2026-10-21-town-figure-size.png` (the town figure's size).
 ```text
-WARDA -- a woman of fifty of the Hex's family, a rogue; keeps the third floor and the ring of keys; quick eyes, a dark plain dress, a heavy key ring at her belt.
+WARDA -- a half-orc woman of fifty, Papa and Lucia's daughter: handsome, hard-eyed, hair dressed up and pinned with more care than anyone else in the house. Good cloth, worn as a working uniform rather than a display. A ring of keys at her belt. Her expression is welcoming and it stops precisely at the eyes. A rogue; she keeps the Hex's third floor and the keys.
 
 HEAD 1 -- IDLE (6, two bands of three): a breathing and blink loop at the counter, hands resting on it; loops cleanly.
 HEAD 2 -- ATTENTIVE (1): neutral listening.
@@ -549,14 +549,14 @@ Where: the Hex, at the spiral stair (`warda`). Cut as: `tools/portrait-sheet.py`
 ### Skarn the Warrener
 ATTACH `deep16/_src/winters/ART-78/ART-78_HEAD-1_PAGE-1.png` and `ART-78_HEAD-1_PAGE-6.png` (the portrait pages' shape, for the format only, not the face) and `deep16/_src/art-desk/sent/REF-2026-10-21-town-figure-size.png` (the town figure's size).
 ```text
-SKARN THE WARRENER -- the Crawler Warrens' overseer for its owner: a hard man in a long coat, a lantern-token on a chain, a ledger slate under his arm [seat: his age and look].
+SKARN THE WARRENER -- the Crawler Warrens' overseer for its owner: a half-orc, big, a bought gladiator who fought at the Hex once and holds the Warrens' gate now; a chain shirt under a long coat [seat: the coat], the iron collar still on his neck because nobody has told him to take it off, the gate-key on a cord and a lantern-token on a chain, a spear within reach; his age the seat's, forties [seat].
 
 HEAD 1 -- IDLE (6, two bands of three): a breathing and blink loop at the counter, hands resting on it; loops cleanly.
 HEAD 2 -- ATTENTIVE (1): neutral listening.
 HEAD 3 -- WELCOMING (1): restrained warmth.
 HEAD 4 -- SKEPTICAL (1): weighing the face in front of them.
 HEAD 5 -- CONCERNED (1): a guarded refusal.
-HEAD 6 -- WORK (6, two bands of three): checks a mark on a slate and taps it with a stub of chalk; the last frame the hands back at rest.
+HEAD 6 -- WORK (6, two bands of three): turns the gate-key over on its cord and lets it drop against his chest; the last frame the hands back at rest.
 
 HEAD 7 -- THE TOWN FIGURE from the front, facing the viewer (south): Idle (4: standing at ease, a slow breath; the same pose on every frame but the breath).
 HEAD 8 -- THE TOWN FIGURE from the bottom-right, every frame facing toward the bottom-right corner of the image: Idle (4: standing at ease, a slow breath; the same pose on every frame but the breath).
@@ -573,7 +573,7 @@ Where: the Warrens' camp (`skarn`). Cut as: `tools/portrait-sheet.py` (a `PEOPLE
 ### Jory Slade
 ATTACH `deep16/_src/winters/ART-78/ART-78_HEAD-1_PAGE-1.png` and `ART-78_HEAD-1_PAGE-6.png` (the portrait pages' shape, for the format only, not the face) and `deep16/_src/art-desk/sent/REF-2026-10-21-town-figure-size.png` (the town figure's size).
 ```text
-JORY SLADE -- the Warrens' crew boss, in his thirties: an ex-collar who milked his way out on the deep rate and bosses the crew he came up from; neither cruel nor kind, quota-squeezed; the old collar's scar on his neck [seat].
+JORY SLADE -- the Warrens' crew boss, a human in his thirties: an ex-collar who milked his way out on the deep rate and bosses the crew he came up from; neither cruel nor kind, quota-squeezed; the old collar's scar on his neck, a cradle pole within reach [seat: the look].
 
 HEAD 1 -- IDLE (6, two bands of three): a breathing and blink loop at the counter, hands resting on it; loops cleanly.
 HEAD 2 -- ATTENTIVE (1): neutral listening.
@@ -597,7 +597,7 @@ Where: the Warrens' camp and pens (`jory`, `jorypens`). Cut as: `tools/portrait-
 ### Edric Pellam
 ATTACH `deep16/_src/winters/ART-78/ART-78_HEAD-1_PAGE-1.png` and `ART-78_HEAD-1_PAGE-6.png` (the portrait pages' shape, for the format only, not the face) and `deep16/_src/art-desk/sent/REF-2026-10-21-town-figure-size.png` (the town figure's size).
 ```text
-EDRIC PELLAM -- the Warrens' tally-man, in his fifties: a Pellam who can still write, so he keeps the owner's book; a clerk's hand, ink on his fingers, a frayed good coat.
+EDRIC PELLAM -- the Warrens' tally-man, a human in his fifties: a Pellam who can still write, so he keeps the owner's book; a clerk's hand, ink on his fingers, a frayed good coat [seat: the look].
 
 HEAD 1 -- IDLE (6, two bands of three): a breathing and blink loop at the counter, hands resting on it; loops cleanly.
 HEAD 2 -- ATTENTIVE (1): neutral listening.
@@ -621,7 +621,7 @@ Where: the Warrens' camp (`edric`). Cut as: `tools/portrait-sheet.py` (a `PEOPLE
 ### Linnet Pellam
 ATTACH `deep16/_src/winters/ART-78/ART-78_HEAD-1_PAGE-1.png` and `ART-78_HEAD-1_PAGE-6.png` (the portrait pages' shape, for the format only, not the face) and `deep16/_src/art-desk/sent/REF-2026-10-21-town-figure-size.png` (the town figure's size).
 ```text
-LINNET PELLAM -- seventeen, Edric's niece, her first morning in the Warrens: thin, nervous, determined, her hair tied up under a kerchief.
+LINNET PELLAM -- seventeen, human, Edric's niece, her first morning in the Warrens: thin, nervous, determined, her hair tied up under a kerchief [seat: the look].
 
 HEAD 1 -- IDLE (6, two bands of three): a breathing and blink loop at the counter, hands resting on it; loops cleanly.
 HEAD 2 -- ATTENTIVE (1): neutral listening.
@@ -645,7 +645,7 @@ Where: the Warrens' camp (`linnet`). Cut as: `tools/portrait-sheet.py` (a `PEOPL
 ### Corwen Dace
 ATTACH `deep16/_src/winters/ART-78/ART-78_HEAD-1_PAGE-1.png` and `ART-78_HEAD-1_PAGE-6.png` (the portrait pages' shape, for the format only, not the face) and `deep16/_src/art-desk/sent/REF-2026-10-21-town-figure-size.png` (the town figure's size).
 ```text
-CORWEN DACE -- forty-four, the Guano Galleries' modernizer, the house's ambitious grandson; a budding wizard who is always talking; an eager, clever face, a satchel of notes [seat].
+CORWEN DACE -- forty-four, human, the Guano Galleries' modernizer, the house's ambitious grandson; a budding wizard who is always talking; an eager, clever face, a satchel of notes [seat], and over his shoulders his grandfather's old travelling cloak, worn and plain, older than he is (draw no glow or magic on it).
 
 HEAD 1 -- IDLE (6, two bands of three): a breathing and blink loop at the counter, hands resting on it; loops cleanly.
 HEAD 2 -- ATTENTIVE (1): neutral listening.
@@ -669,7 +669,7 @@ Where: the Galleries (`dace`, `dacedown`). Cut as: `tools/portrait-sheet.py` (a 
 ### Ottilie Skerrow
 ATTACH `deep16/_src/winters/ART-78/ART-78_HEAD-1_PAGE-1.png` and `ART-78_HEAD-1_PAGE-6.png` (the portrait pages' shape, for the format only, not the face) and `deep16/_src/art-desk/sent/REF-2026-10-21-town-figure-size.png` (the town figure's size).
 ```text
-OTTILIE SKERROW -- fifty-eight, the Galleries' final word, the roost law's keeper: was ten the winter the gatherers stayed; stern, upright, iron-grey hair.
+OTTILIE SKERROW -- fifty-eight, human, the Galleries' final word, the roost law's keeper: was ten the winter the gatherers stayed, and has run the house thirty years from a stool at the mouth; stern, upright, iron-grey hair [seat: the look].
 
 HEAD 1 -- IDLE (6, two bands of three): a breathing and blink loop at the counter, hands resting on it; loops cleanly.
 HEAD 2 -- ATTENTIVE (1): neutral listening.
@@ -693,7 +693,7 @@ Where: the Galleries' mouth (`ottilie`). Cut as: `tools/portrait-sheet.py` (a `P
 ### Sabeth Pollard
 ATTACH `deep16/_src/winters/ART-78/ART-78_HEAD-1_PAGE-1.png` and `ART-78_HEAD-1_PAGE-6.png` (the portrait pages' shape, for the format only, not the face) and `deep16/_src/art-desk/sent/REF-2026-10-21-town-figure-size.png` (the town figure's size).
 ```text
-SABETH POLLARD -- forty, the Galleries' employer: runs the weigh-beam and the hiring; brisk, sure, sleeves rolled.
+SABETH POLLARD -- forty, human, the Galleries' employer: runs the weigh-beam and the hiring; brisk, sure, sleeves rolled [seat: the look].
 
 HEAD 1 -- IDLE (6, two bands of three): a breathing and blink loop at the counter, hands resting on it; loops cleanly.
 HEAD 2 -- ATTENTIVE (1): neutral listening.
@@ -717,7 +717,7 @@ Where: the Galleries' mouth (`sabeth`). Cut as: `tools/portrait-sheet.py` (a `PE
 ### Old Wynn Pollard
 ATTACH `deep16/_src/winters/ART-78/ART-78_HEAD-1_PAGE-1.png` and `ART-78_HEAD-1_PAGE-6.png` (the portrait pages' shape, for the format only, not the face) and `deep16/_src/art-desk/sent/REF-2026-10-21-town-figure-size.png` (the town figure's size).
 ```text
-OLD WYNN POLLARD -- seventy-one, the last of the original gatherers, who calls the drives with a rattle; leathery, half-deaf, cheerful.
+OLD WYNN POLLARD -- seventy-one, human, the last of the original gatherers, half-blind, who calls the drives with a rattle; leathery, cheerful [seat: the look].
 
 HEAD 1 -- IDLE (6, two bands of three): a breathing and blink loop at the counter, hands resting on it; loops cleanly.
 HEAD 2 -- ATTENTIVE (1): neutral listening.
@@ -741,7 +741,7 @@ Where: the Galleries' mouth (`wynn`). Cut as: `tools/portrait-sheet.py` (a `PEOP
 ### Talmok (a portrait only)
 ATTACH `deep16/_src/winters/ART-78/ART-78_HEAD-1_PAGE-1.png` and `ART-78_HEAD-1_PAGE-6.png` (the format only) and his own figure as the grid draws it (`deep16/art/talmok_p1.png`, for the face and look).
 ```text
-TALMOK -- the Hex's champion, a plains barbarian who talks to horses, sitting easy on the edge of the sand: as the attached figure shows him.
+TALMOK -- the Hex's champion, a human plains barbarian who talks to horses, sitting easy on the edge of the sand: as the attached figure shows him.
 
 HEAD 1 -- IDLE (6, two bands of three): a breathing and blink loop at the counter, hands resting on it; loops cleanly.
 HEAD 2 -- ATTENTIVE (1): neutral listening.
