@@ -4411,7 +4411,7 @@
       // 2. THE NIGHT'S SITTING OVER THE THIRD FLOOR (his "In the cutscene at night - perhaps try the third floor as background for the speaking parts"): C1's sitting at a rest
       // paints the Hex's third floor once, the council in their seats at the long table, behind the screen and the one speaking; the party's floor's shared things all put back
       var cvN = document.createElement('canvas'); cvN.width = D.W; cvN.height = D.H; var ctx0N = D.ctx; D.ctx = cvN.getContext('2d'); D.R = D.R || 1;
-      var BC = testN('?roam=galleries&gate=east'), was = { def: RN.def, map: D.iso.map, gm: GN.map, gu: GN.units, cx: D.iso.cam.x, cy: D.iso.cam.y, z: D.iso.zoom, h3: D.MAPS.hex3 };
+      var BC = testN('?roam=galleries&gate=east'), was = { def: RN.def, map: D.iso.map, gm: GN.map, gu: GN.units, cx: D.iso.cam.x, cy: D.iso.cam.y, z: D.iso.zoom, h3: D.MAPS.hex3, ts: D.MAPS.silverton };
       var scC = H6N.sitting(BC, ['notice'], [{}]), bgC = scC.o.bg; scC.draw(D.ctx); var shC = bgC && bgC.shot ? bgC.shot() : null, imC = D.ctx.getImageData(0, 0, D.W, D.H).data;
       if (get('shot', '')) { repN.png = cvN.toDataURL('image/png'); repN.png2 = shC && shC.c ? shC.c.toDataURL('image/png') : null; } // (&shot=1: the frame and the picture as PNGs, for a seat's own eyes)
       var whoC = shC && shC.b ? shC.b.units.map(function (u) { return u.npc; }) : [], wantC = ['councilpapa', 'councilandroit', 'councilhessle', 'councilcasper', 'councilharrow', 'councilmerrick'];
@@ -4427,6 +4427,30 @@
       okN('C3, the herd thinned: the east side\'s man at the table, no Merrick (' + whoH.filter(function (n) { return /^council/.test(n); }).join(', ') + ')', whoH.indexOf('councilthrane') >= 0 && whoH.indexOf('councilmerrick') < 0);
       var lkN = H6N.sitting(BC, ['looks'], [{}]);
       okN('C2 (played on the third floor itself): the counter\'s own screen, no picture (' + (lkN.o.bg ? 'o.bg' : 'none') + ')', !lkN.o.bg);
+      // THE RULED SHAPE (his "I think we should do a shot of the lamp being lit a dusk and maybe them arriving and being seated on the third floor, expository cut scene"): a night's
+      // sitting opens on its cutscene -- Silverton at dusk round the Weigh-House, Hessle out and the lamp lit; the third floor, the council up the spiral to their seats -- then the
+      // sitting over the third floor; every frame puts the party's floor back; X goes straight to the sitting; C2 has none
+      D.scenes.length = 0; D.scenes.push(BC); D.battle = BC;
+      var nN = H6N.night(BC, ['notice'], [{}]), lampN = nN.shots && nN.shots[0].st, arrN = nN.shots && nN.shots[1].st, ldef = lampN && lampN.def;
+      okN('a night\'s sitting opens on the cutscene (' + (D.top() && D.top().kind) + '), both floors laid at once: the lamp\'s ' + (ldef && ldef.key) + ' window ' + (ldef && ldef.w + 'x' + ldef.h) + ' at ' + (ldef && ldef.phase) + ', Hessle at his door; the third floor (hexIn ' + (arrN && arrN.b && arrN.b.map.def.hexIn) + '), ' + (arrN && arrN.walkers ? arrN.walkers.length : 0) + ' of the council at the spiral\'s head, each hidden till they come up' + (lampN && (lampN.err || arrN.err) ? ' -- THREW ' + (lampN.err || arrN.err) : ''),
+        D.top() === nN && !lampN.err && !arrN.err && ldef.key === 'silverton' && ldef.phase === 'dusk' && !!lampN.hessle && arrN.b.map.def.hexIn === 3 && arrN.walkers.length === 6 && arrN.walkers.every(function (w) { return w.u.left && w.path.length > 0; }));
+      var frN = 0; while (nN.busy() && frN++ < 400) { nN.t++; nN.step(); nN.draw(D.ctx); }
+      var hxN = lampN.hessle;
+      okN('the lamp: Hessle out of his door and a step along the street (' + hxN.x + ',' + hxN.y + ', the door\'s threshold ' + lampN.door + ', the wall north of it "' + ldef.rows[lampN.door[1] - 1].charAt(lampN.door[0]) + '"), the lamp lit (' + !!lampN.lit + '), in ' + frN + ' frames, each drawn',
+        !hxN.left && !!lampN.lit && frN < 400 && hxN.x === lampN.door[0] + 1 && hxN.y === lampN.door[1] && ldef.rows[lampN.door[1]].charAt(lampN.door[0]) === 'd' && ldef.src8.triggers.some(function (t) { return t.id === 'keeper:hessle' && t.rect[0] === lampN.door[0] && t.rect[1] === lampN.door[1]; }));
+      nN.next(); var fr2N = 0; while (nN.busy() && fr2N++ < 3000) { nN.t++; nN.step(); nN.draw(D.ctx); }
+      var seatN = arrN.walkers.filter(function (w) { return w.sat && !w.u.left && w.u.x === w.seat[0] && w.u.y === w.seat[1]; }).length;
+      okN('the arrival: ' + seatN + ' of ' + arrN.walkers.length + ' up the spiral and in their seats in ' + fr2N + ' frames (' + arrN.walkers.map(function (w) { return w.u.npc.replace('council', '') + ' ' + w.path.length; }).join(', ') + ' squares), each frame drawn',
+        seatN === arrN.walkers.length && fr2N < 3000);
+      var back2 = RN.def === was.def && D.iso.map === was.map && GN.map === was.gm && GN.units === was.gu && D.iso.cam.x === was.cx && D.iso.cam.y === was.cy && D.iso.zoom === was.z && D.MAPS.hex3 === was.h3 && D.MAPS.silverton === was.ts;
+      okN('after the cutscene\'s frames the party\'s floor as it was: its def, the iso map, the grid, the camera, the zoom, no third floor or Silverton window left in the maps', back2);
+      nN.next(); var scNN = D.top();
+      okN('then the sitting over the third floor: the counter (' + (scNN && scNN.kind) + '), its picture (' + (scNN && scNN.o && scNN.o.bg ? 'o.bg' : 'none') + '), the cutscene off the scenes (' + (D.scenes.indexOf(nN) < 0) + ')', scNN instanceof CN.Counter && !!scNN.o.bg && D.scenes.indexOf(nN) < 0);
+      D.scenes.length = 0; D.scenes.push(BC); var nX = H6N.night(BC, ['herd'], [{}]); nX.finish(); var scX = D.top();
+      okN('X at the cutscene: straight to the herd\'s sitting (' + (scX && scX.kind) + ', its picture ' + !!(scX && scX.o && scX.o.bg) + ')', scX instanceof CN.Counter && !!scX.o.bg && D.scenes.indexOf(nX) < 0);
+      var lk2N = H6N.night(BC, ['looks'], [{}]);
+      okN('C2 by the same door: the sitting alone, no cutscene, no picture (' + (lk2N && lk2N.kind) + ')', lk2N instanceof CN.Counter && !lk2N.o.bg);
+      if (get('shot', '')) { nN = H6N.night(BC, ['notice'], [{}]); for (var fS = 0; fS < 60; fS++) { nN.t++; nN.step(); } nN.draw(D.ctx); repN.png3 = cvN.toDataURL('image/png'); nN.next(); for (var fS2 = 0; fS2 < 140; fS2++) { nN.t++; nN.step(); } nN.draw(D.ctx); repN.png4 = cvN.toDataURL('image/png'); } // (&shot=1: the lamp and the arrival as PNGs)
       D.scenes.length = 0; D.ctx = ctx0N;
       // 3. THE MADE ROAD SOLID STONE (his "dwarven road should be solid stone" at the Seam, "the road tiles should be solid stone" at the Breach): the road's squares worked stone
       // -- nothing burrows under them or comes up through them -- the rest of the floor as it was; the Wet's rim (his 10-04 "The tiles around the Landlords pool should be switched

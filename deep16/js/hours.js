@@ -335,31 +335,47 @@
   // zoom; and the floor's def); painted again while a figure's sheet is still loading. C2 plays on the third floor itself, so it keeps the counter's own screen
   H16.SHOT = { wash: 'rgba(6,8,30,0.42)', glow: '255,170,90', dim: 'rgba(8,10,28,0.36)', tries: 8, every: 15 };
   H16.whoFor = function (ids) { var who = ['papa', 'androit', 'hessle', 'casper', 'harrow']; if (ids.indexOf('notice') >= 0) who.push('merrick'); if (ids.indexOf('herd') >= 0 || ids.indexOf('stock') >= 0) who.push('thrane'); return who; };
+  // a stage: a floor laid on a Battle of its own that never runs (lay(st, b), on its first run), swapped in for fn and put back -- every shared thing as a pulled-in fight leaves
+  // the floor (js/roam.js R.pullIn0: the grid, the map, the camera and its zoom), and the floor's def, the D.MAPS entries named, the mouse kept off it (no tooltip in a picture)
+  H16.stage = function (keys, lay) {
+    var st = { b: null, def: null, zoom: null, err: null, n: 0 };
+    st.run = function (fn) {
+      var R = D.roam, iso = D.iso, G = D.grid, mo = D.input.mouse, maps = {}, ok = false;
+      var keep = { gm: G.map, gu: G.units, im: iso.map, cx: iso.cam.x, cy: iso.cam.y, zoom: iso.zoom, inW: iso.inWorld, def: R.def, mo: mo.inside };
+      keys.forEach(function (k) { maps[k] = D.MAPS[k]; });
+      try {
+        mo.inside = false;
+        if (!st.b) {
+          var b = st.b = new D.Battle({}); b.units = []; b.t = 0; b.cine = true; b.cards = []; b.dark = false; b.cursor = { x: -99, y: -99 }; // (the cursor off the floor: no tooltip)
+          b.roam = { token: { x: 0, y: 0, size: 1 }, flags: {}, fw: [0, 1], members: [] };
+          lay(st, b); st.def = R.def; st.zoom = iso.zoom;
+          b.units.forEach(function (u) { u.onCounter = true; }); // (no bar over a figure in a picture, as Ned's rat on his counter has none: js/ui.js)
+        } else { R.def = st.def; iso.map = st.b.map; G.setup(st.b.map, st.b.units); iso.zoom = st.zoom; }
+        if (fn) fn(st, st.b); ok = true;
+      } catch (e) { st.err = String(e && e.message || e); }
+      finally { R.def = keep.def; iso.map = keep.im; G.setup(keep.gm, keep.gu); iso.cam.x = keep.cx; iso.cam.y = keep.cy; iso.zoom = keep.zoom; iso.inWorld = keep.inW; keys.forEach(function (k) { if (maps[k]) D.MAPS[k] = maps[k]; else delete D.MAPS[k]; }); mo.inside = keep.mo; }
+      st.n++; return ok;
+    };
+    return st;
+  };
+  // the third floor as HX.lay lays it, the party not on it (the token off the floor's units), and the long table's middle square
+  H16.layThird = function (b) { var HX = D.hex, rows = HX.rows(3), sp = HX.spiralSq()[0]; HX.lay(b, 3, HX.near(rows, [sp[0], sp[1] + 1]) || HX.near(rows, sp), [0, 1]); };
+  H16.tableSq = function () { return D.hex.sqAt(H16.TABLE.mid[0], H16.TABLE.mid[1]); };
+  // the lamps low: a wash, and a warm pool at the table (p: its screen point)
+  H16.lowLamps = function (x, p) { var N = H16.SHOT; x.fillStyle = N.wash; x.fillRect(0, 0, D.W, D.H); var g = x.createRadialGradient(p.x, p.y, 0, p.x, p.y, 90); g.addColorStop(0, 'rgba(' + N.glow + ',0.22)'); g.addColorStop(1, 'rgba(' + N.glow + ',0)'); x.fillStyle = g; x.fillRect(0, 0, D.W, D.H); };
   H16.thirdShot = function (ids) {
-    var HX = D.hex; if (!D.ctx || !HX || !HX.lay || !D.ui || !D.ui.drawBattle) return null;
+    if (!D.ctx || !D.hex || !D.hex.lay || !D.ui || !D.ui.drawBattle) return null;
+    var st = H16.stage(['hex3'], function (s, b) { b.roam.seat = { why: 'night', who: H16.whoFor(ids) }; H16.layThird(b); }); // (the council in their seats: H16.atTable's night)
     var shot = { ids: ids, b: null, c: null, at: null, n: 0, ready: false, err: null };
     shot.paint = function () {
-      var R = D.roam, iso = D.iso, G = D.grid, mo = D.input.mouse, k3 = 'hex3', b = shot.b;
-      var keep = { gm: G.map, gu: G.units, im: iso.map, cx: iso.cam.x, cy: iso.cam.y, zoom: iso.zoom, inW: iso.inWorld, def: R.def, m3: D.MAPS[k3], mo: mo.inside };
-      try {
-        mo.inside = false; // (no tooltip of the mouse's in the picture)
-        if (!b) { // (the floor laid once, on a Battle that never runs: HX.lay's figures, the party not in it)
-          b = shot.b = new D.Battle({}); b.units = []; b.t = 0; b.cine = true; b.cards = []; b.dark = false; b.cursor = { x: -99, y: -99 }; // (the cursor off the floor: no tooltip)
-          b.roam = { token: { x: 0, y: 0, size: 1 }, flags: {}, fw: [0, 1], members: [], seat: { why: 'night', who: H16.whoFor(ids) } };
-          var rows = HX.rows(3), sp = HX.spiralSq()[0]; HX.lay(b, 3, HX.near(rows, [sp[0], sp[1] + 1]) || HX.near(rows, sp), [0, 1]); shot.def = R.def;
-          b.units.forEach(function (u) { u.onCounter = true; }); // (no bar over a figure in a picture, as Ned's rat on his counter has none: js/ui.js)
-        } else { R.def = shot.def; iso.map = b.map; G.setup(b.map, b.units); }
-        var m = HX.sqAt(H16.TABLE.mid[0], H16.TABLE.mid[1]); b.focus({ x: m[0], y: m[1], size: 1 });
-        var c = shot.c || (shot.c = document.createElement('canvas')), dr = D.R || 1; c.width = Math.round(D.W * dr); c.height = Math.round(D.H * dr);
-        var x = c.getContext('2d'); x.setTransform(dr, 0, 0, dr, 0, 0); x.imageSmoothingEnabled = false;
-        D.ui.drawBattle(x, b);
-        var cc = iso.center(m[0], m[1], 0), p = iso.toScreen(cc.x, cc.y), N = H16.SHOT; shot.at = [p.x, p.y];
-        x.fillStyle = N.wash; x.fillRect(0, 0, D.W, D.H); // (the lamps low: a wash, and a warm pool at the table)
-        var g = x.createRadialGradient(p.x, p.y, 0, p.x, p.y, 90); g.addColorStop(0, 'rgba(' + N.glow + ',0.22)'); g.addColorStop(1, 'rgba(' + N.glow + ',0)'); x.fillStyle = g; x.fillRect(0, 0, D.W, D.H);
+      var c = shot.c || document.createElement('canvas'), dr = D.R || 1; c.width = Math.round(D.W * dr); c.height = Math.round(D.H * dr);
+      var x = c.getContext('2d'); x.setTransform(dr, 0, 0, dr, 0, 0); x.imageSmoothingEnabled = false;
+      var ok = st.run(function (s, b) {
+        var m = H16.tableSq(); b.focus({ x: m[0], y: m[1], size: 1 }); D.ui.drawBattle(x, b);
+        var cc = D.iso.center(m[0], m[1], 0), p = D.iso.toScreen(cc.x, cc.y); shot.at = [p.x, p.y]; H16.lowLamps(x, p);
         shot.ready = b.units.every(function (u) { return !u.sheet || !D.spr.has || D.spr.has(u.sheet); });
-      } catch (e) { shot.err = String(e && e.message || e); shot.c = null; }
-      finally { R.def = keep.def; iso.map = keep.im; G.setup(keep.gm, keep.gu); iso.cam.x = keep.cx; iso.cam.y = keep.cy; iso.zoom = keep.zoom; iso.inWorld = keep.inW; if (keep.m3) D.MAPS[k3] = keep.m3; else delete D.MAPS[k3]; mo.inside = keep.mo; }
-      shot.n++; return !!shot.c;
+      });
+      shot.c = ok ? c : null; shot.b = st.b; shot.err = st.err; shot.n = st.n; return ok;
     };
     return shot;
   };
@@ -377,11 +393,134 @@
     bg.shot = function () { return shot; }; // (the bench's look at it)
     return bg;
   };
+
+  // ---------------------------------------------------------------- THE COUNCIL'S NIGHT, AN EXPOSITORY CUTSCENE (RULED 10-29, Griz to the story window: "I think we should do a shot of
+  // the lamp being lit a dusk and maybe them arriving and being seated on the third floor, expository cut scene" -- PATCHLOG 18ee529a, built by the notes seat). Before a council's
+  // night sitting at the party's rest (C1, C3), cut away from wherever the party sleeps: Silverton at dusk, the camera on the Weigh-House, Hessle out to the lamp by its door and the
+  // lamp lit (the scales are lit: H16.LIGHTS.scales); then the Hex's third floor, the council up the spiral one by one to their seats at the long table (H16.TABLE, who comes as
+  // H16.whoFor has it), Warda in the lounge; then the sitting's speaking parts over the third floor (H16.sitting, H16.backdrop). A card a shot on the map's camera; a click or E goes
+  // on (or finishes the walk), X goes straight to the sitting. Each shot's floor a stage (H16.stage), swapped in a frame at a time. The cards the seat's drafts (invented.json
+  // council-night-cutscene)
+  H16.CUT = {
+    lamp: { title: 'SILVERTON, AT DUSK', line: 'Dusk. Hessle comes out of the Weigh-House and lights the lamp by its door: the scales are lit, and the council sits tonight.' },
+    arrive: { title: 'THE HEX, THE THIRD FLOOR', line: 'Up the Hex\'s spiral, one by one, the council comes to the long table under the Big Window and takes their seats. Warda keeps the lounge door.' },
+    step: 8, gap: 26, out: 16, lit: 44, held: 80, win: [30, 20] // (frames a square; frames between arrivals; Hessle out, the lamp lit, the shot held; the town's window round the Weigh-House)
+  };
+  H16.duskHour = function () { for (var h = 15; h <= 21; h++) if (H16.phaseOf(h) === 'dusk') return h; return 18; };
+  // the lamp's stage: a window of Silverton round the Weigh-House laid at dusk (js/town.js T.floor's &cut=; the hour held at dusk while it is laid), its people at their evening spots,
+  // and Hessle at his door to come out of it
+  H16.layLamp = function (st, b, flags) {
+    var T = D.town, F = T.SCALE, L = (T.laidF = T.laidF || {})[F] || (T.laidF[F] = T.lay(null, F)), d = L.marks.doors[H16.LIGHTS.scales], w = H16.CUT.win, def, hn = H16.hourNow;
+    var ox = Math.max(0, Math.min(L.w - w[0], d[0] - (w[0] >> 1))), oy = Math.max(0, Math.min(L.h - w[1], d[1] - (w[1] >> 1)));
+    H16.hourNow = function () { return H16.duskHour(); };
+    try { def = T.floor('?roam=silverton&cut=' + ox + ',' + oy + ',' + w[0] + ',' + w[1], flags || {}); } finally { H16.hourNow = hn; }
+    D.roam.def = def; D.MAPS[def.key] = def; b.map = D.iso.load(def); D.grid.setup(b.map, b.units); T.people(b);
+    var door = st.door = [d[0] - ox, d[1] - oy], to = [door[0] + 1, door[1]]; // (a town door's mark is its threshold, the wall with the door the square north of it)
+    var h = st.hessle = b.makeFoe({ id: 'cuthessle', kind: 'crewman', at: door.slice(), side: 'party', ally: true });
+    h.name = H16.WHO.hessle; h.look = true; h.npc = 'hessle'; h.attacks = {}; h.hp = h.maxhp = 4; h.left = true; h.facing = D.spr.facingFor(0, 1); h.anim = 'idle'; h.animT = 0;
+    if (D.counter) D.counter.dress(h, 'hessle'); b.units.push(h); if (h.sheet && D.spr.prefetch) D.spr.prefetch([h.sheet]);
+    st.walkers = [{ u: h, path: [to], face: D.spr.facingFor(-1, -1), at0: H16.CUT.out, i: 0 }]; // (out of his door, a step along the street, and turned back to the lamp beside it)
+    b.focus({ x: door[0], y: door[1], size: 1 });
+  };
+  // the arrival's stage: the third floor with the council in their seats (as the night's picture), each then put at the spiral's head to walk to their seat in turn
+  H16.layArrive = function (st, b, ids) {
+    b.roam.seat = { why: 'night', who: H16.whoFor(ids) }; H16.layThird(b);
+    var HX = D.hex, rows = HX.rows(3), sp = HX.spiralSq()[0], start = HX.near(rows, [sp[0], sp[1] + 1]) || HX.near(rows, sp), m = b.map;
+    st.walkers = b.units.filter(function (u) { return /^council/.test(u.npc || ''); }).map(function (u, i) {
+      var seat = [u.x, u.y], w = { u: u, seat: seat, face: u.facing, path: H16.route(m, start, seat), at0: 6 + i * H16.CUT.gap, i: 0 };
+      u.x = start[0]; u.y = start[1]; u.left = true; return w;
+    });
+    var tm = H16.tableSq(); b.focus({ x: tm[0], y: tm[1], size: 1 });
+  };
+  // a way across a stage's floor, square to square (its walkable squares; a corner cut only between two open ones): the squares after `a` up to `z`
+  H16.route = function (m, a, z) {
+    var key = function (x, y) { return x + ',' + y; }, ok = function (x, y) { var s = m.at(x, y); return !!(s && s.walk); }, prev = {}, seen = {}, q = [a]; seen[key(a[0], a[1])] = 1;
+    while (q.length) {
+      var p = q.shift(); if (p[0] === z[0] && p[1] === z[1]) break;
+      for (var dy = -1; dy <= 1; dy++) for (var dx = -1; dx <= 1; dx++) {
+        var x = p[0] + dx, y = p[1] + dy, k = key(x, y); if ((!dx && !dy) || seen[k] || !(ok(x, y) || (x === z[0] && y === z[1]))) continue;
+        if (dx && dy && !(ok(p[0] + dx, p[1]) && ok(p[0], p[1] + dy))) continue;
+        seen[k] = 1; prev[k] = p; q.push([x, y]);
+      }
+    }
+    if (!seen[key(z[0], z[1])]) return [z.slice()]; // (no way: there in one step)
+    var out = [], c = z; while (c && !(c[0] === a[0] && c[1] === a[1])) { out.unshift(c.slice()); c = prev[key(c[0], c[1])]; } return out;
+  };
+  // a walker's frame: out at its time, a square every H16.CUT.step frames (the figure's tween between them), and turned as it stands at the end; true while it walks
+  H16.walk = function (st, w, t) {
+    var u = w.u; if (t < w.at0) return true;
+    if (u.left) { u.left = false; u.anim = 'walk'; u.animT = t; }
+    if (u.tween) { u.tween.t++; if (u.tween.t < u.tween.dur) return true; u.tween = null; }
+    if (w.i < w.path.length) {
+      var n = w.path[w.i++], dx = n[0] - u.x, dy = n[1] - u.y;
+      u.tween = { t: 0, dur: H16.CUT.step, fx: u.x, fy: u.y, fz: st.b.map.gz(u.x, u.y) }; u.x = n[0]; u.y = n[1]; u.facing = D.spr.facingFor(Math.sign(dx), Math.sign(dy)); u.anim = 'walk'; return true;
+    }
+    if (!w.sat) { w.sat = true; u.facing = w.face; u.anim = 'idle'; u.animT = t; }
+    return false;
+  };
+  H16.walkDone = function (w) { var u = w.u, z = w.path[w.path.length - 1]; if (z) { u.x = z[0]; u.y = z[1]; } u.tween = null; u.left = false; w.i = w.path.length; w.sat = true; u.facing = w.face; u.anim = 'idle'; };
+  // the lamp lit by the Weigh-House door: a warm pool and a small flame on the wall east of the door, over its threshold (on the stage's camera)
+  H16.lampGlow = function (ctx, door, t) {
+    var cc = D.iso.center(door[0], door[1], 0), q = D.iso.toScreen(cc.x, cc.y), z = D.iso.zoom || 1, S = ((D.topview && D.topview.TS) || 48) * z, N = H16.SHOT, f = 0.85 + 0.15 * Math.sin(t / 3);
+    var p = { x: q.x + 0.45 * S, y: q.y - 1.75 * S }, y = p.y; // (the top view draws the door's face up the wall square and over it -- 10-29, measured in the pane; the lamp at its east jamb)
+    var g = ctx.createRadialGradient(p.x, y, 0, p.x, y, 70 * z); g.addColorStop(0, 'rgba(' + N.glow + ',' + (0.5 * f) + ')'); g.addColorStop(1, 'rgba(' + N.glow + ',0)'); ctx.fillStyle = g; ctx.fillRect(0, 0, D.W, D.H);
+    ctx.fillStyle = '#3a2a1a'; ctx.fillRect(Math.round(p.x - 3 * z), Math.round(y - 4 * z), Math.round(6 * z), Math.round(8 * z)); // (the lamp's iron)
+    ctx.fillStyle = 'rgba(255,214,120,' + f + ')'; ctx.fillRect(Math.round(p.x - 2 * z), Math.round(y - 3 * z), Math.round(4 * z), Math.round(5 * z)); // (its flame)
+  };
+  function Night(B, ids, flagsets) {
+    this.kind = 'cutaway'; this.opaque = true; this.t = 0; this.B = B; this.ids = ids; this.flagsets = flagsets; this.k = 0; this.done = false; var self = this;
+    var flags = (flagsets || []).filter(Boolean)[0] || {};
+    this.shots = [
+      { id: 'lamp', st: H16.stage(['silverton'], function (st, b) { H16.layLamp(st, b, flags); }) },
+      { id: 'arrive', st: H16.stage(['hex3'], function (st, b) { H16.layArrive(st, b, self.ids); }) }
+    ];
+  }
+  H16.Night = Night;
+  Night.prototype.enter = function () { this.shots.forEach(function (sh) { sh.st.run(null); }); }; // (both floors laid at once, so the cut is not a pause)
+  Night.prototype.shot = function () { return this.shots[this.k] || null; };
+  Night.prototype.busy = function () {
+    var sh = this.shot(), self = this; if (!sh || !sh.st.b) return false;
+    return (sh.st.walkers || []).some(function (w) { return !w.sat; }) || (sh.id === 'lamp' && (!sh.st.lit || this.t < H16.CUT.held));
+  };
+  Night.prototype.ff = function () { var sh = this.shot(); if (!sh) return; (sh.st.walkers || []).forEach(H16.walkDone); if (sh.id === 'lamp' && !sh.st.lit) { sh.st.lit = true; D.sfx('fire'); } this.t = Math.max(this.t, H16.CUT.held); };
+  Night.prototype.next = function () { this.k++; this.t = 0; if (this.k >= this.shots.length) this.finish(); else D.sfx(this.shot().id === 'arrive' ? 'stairs' : 'popup'); };
+  Night.prototype.finish = function () { if (this.done) return; this.done = true; if (D.top() === this) D.pop(); H16.sitting(this.B, this.ids, this.flagsets); };
+  Night.prototype.step = function () {
+    var sh = this.shot(), st = sh && sh.st, t = this.t; if (!st) return;
+    if (st.err || !st.b) { this.next(); return; } // (a floor that would not lay: on to the next, and at the last the sitting as before)
+    (st.walkers || []).forEach(function (w) { H16.walk(st, w, t); });
+    if (sh.id === 'lamp' && !st.lit && t >= H16.CUT.lit) { st.lit = true; D.sfx('fire'); }
+  };
+  Night.prototype.update = function () {
+    var I = D.input, m = I.mouse; this.t++;
+    if (I.pressed('b') || m.rclick) { this.finish(); return; }
+    if (I.pressed('a') || (m.click && m.inside)) { if (this.busy()) this.ff(); else this.next(); return; }
+    this.step();
+  };
+  Night.prototype.draw = function (ctx) {
+    var sh = this.shot(), self = this; ctx.fillStyle = '#05040a'; ctx.fillRect(0, 0, D.W, D.H); if (!sh) return;
+    sh.st.run(function (s, b) {
+      b.t = self.t; var at = sh.id === 'lamp' ? s.door : H16.tableSq();
+      b.focus({ x: at[0], y: at[1], size: 1 }); D.ui.drawBattle(ctx, b);
+      if (sh.id === 'lamp') { H16.paintNight(ctx, b); if (s.lit) H16.lampGlow(ctx, s.door, self.t); }
+      else { var cc = D.iso.center(at[0], at[1], 0); H16.lowLamps(ctx, D.iso.toScreen(cc.x, cc.y)); }
+    });
+    var cd = H16.CUT[sh.id], W8 = D.WIN8, ls = D.wrap(cd.line, D.W - 40), bh = 22 + ls.length * 10, by = D.H - 18 - bh;
+    D.win8(ctx, 8, by, D.W - 16, bh); D.text(ctx, '{y}' + cd.title + '{/}', 18, by + 6, W8.text);
+    ls.forEach(function (l, i) { D.text(ctx, l, 18, by + 17 + i * 10, W8.text); });
+    ctx.fillStyle = 'rgba(4,3,10,.95)'; ctx.fillRect(0, D.H - 14, D.W, 14);
+    D.hint(ctx, 'click or E: on · X: to the sitting', D.W / 2, D.H - 11, '#9a96a8', 'center');
+  };
+  // a council's night: the cutscene, then the sitting (a sitting that is not a night's -- C2 -- or no screen to play it on: the sitting alone, as before)
+  H16.night = function (B, ids, flagsets) {
+    if (!D.ctx || !ids.some(function (id) { return id !== 'looks'; })) return H16.sitting(B, ids, flagsets);
+    var n = new Night(B, ids, flagsets); D.push(n); return n;
+  };
   // C1 and C3 at the morning: the sitting over the morning screen, played first (a bench, no one watching, takes the flags without the screen -- as the morning's picks, js/house.js Morning)
   var morning0 = D.house.morning;
   D.house.morning = function (o) {
     var m = morning0.apply(this, arguments), Hs = D.house, ff = [Hs.cur && Hs.cur.flags, o && o.floor && o.floor.roam && o.floor.roam.flags], ids = ff[0] ? H16.councilsDue(Object.assign({}, ff[1] || {}, ff[0])) : [];
-    if (ids.length) { if (DS.autoPicks || !D.ctx) ids.forEach(function (id) { ff.forEach(function (f) { if (f) f[H16.COUNCIL[id].flag] = 1; }); }); else H16.sitting(o && o.floor, ids, ff); }
+    if (ids.length) { if (DS.autoPicks || !D.ctx) ids.forEach(function (id) { ff.forEach(function (f) { if (f) f[H16.COUNCIL[id].flag] = 1; }); }); else H16.night(o && o.floor, ids, ff); } // (the night's cutscene, then the sitting: H16.night)
     return m;
   };
   // C2: renown 2 -- in the Hex, a Hex boy's call once; on the third floor, the sitting
@@ -708,7 +847,7 @@
     Object.assign(rec.flags, bt.flags || {}); if (bt.renown) rec.renown = bt.renown;
     Hs.begin(rec, 0);
     var S = D.world && D.world.state ? D.world.state() : null; if (bt.t != null && S) S.t = bt.t;
-    if (bt.sit) H16.sitting(null, bt.sit, [rec.flags]);
+    if (bt.sit) H16.night(null, bt.sit, [rec.flags]); // (a night's sitting with its cutscene first, as at a rest)
     if (bt.hex3) H16.toHex3 = true;
   };
   H16.show = function (q) { return new C.ServicesShow(q, H16.SHOW_BEATS, '{y}SILVERTON\'S HOURS AND WORDS, 10-28{/} -- a NEW GAME staged; the rest is yours (a show)'); };
