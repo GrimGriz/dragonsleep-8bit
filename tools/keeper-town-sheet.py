@@ -99,7 +99,7 @@ KEEPERS = {
     # Papa Urtusk (10-29, the cutscene cutter seat: the art desk's ART-123-URTUSK, all five views drawn, H2P4 NE from behind). "Still the largest thing in any room"
     # (art-wanted section 26) and the art desk's own "do not equal-height-normalize him with ordinary adults": he stands `tall` 58, the height of the grid's bugbear
     # and of Talmok, where the town's grown men stand 50. In the Hex's front door, at the council's long table, and on the night's picture of it (js/hours.js)
-    'papa': ('papa/ART-123-URTUSK', 'ART-123-URTUSK', 'npc:papa', {'tall': 58, 'gap': 6, 'reskin': {'hue': 78, 'sat': 0.36}, 'avoid': ['skin', 'red', 'gold']}),
+    'papa': ('papa/ART-123-URTUSK', 'ART-123-URTUSK', 'npc:papa', {'views': 'ART-123-URTUSK, 10-29', 'tall': 58, 'gap': 6, 'reskin': {'hue': 78, 'sat': 0.36}, 'avoid': ['skin', 'red', 'gold']}),
 }
 
 
@@ -194,7 +194,7 @@ def cut(name):
     meta = {'image': 'art/%s_p1.png' % name, 'fw': fw, 'fh': fh, 'ax': ax, 'ay': ay, 'top': int(ay - min(tops)),
             'anims': {'idle': idle},
             'source': 'deep16/_src/%s/%s_HEAD-2_PAGE-1.png (the art desk\'s south idle, 10-21)%s, cut by tools/keeper-town-sheet.py' % (folder, art,
-                ' and PAGE-2 to PAGE-5 (SE, E, NE, N: ART-121, 10-28)' if len(rows) > 1 else ''), 'door': door}
+                ' and PAGE-2 to PAGE-5 (SE, E, NE, N: %s)' % ov.get('views', 'ART-121, 10-28') if len(rows) > 1 else ''), 'door': door}
     if ov.get('recolour'):
         meta['recolour'] = ov['recolour']                       # (the dye put on at the cut, for the record: Korvin's)
     json.dump(meta, open(os.path.join(ART, name + '_p1.json'), 'w'), indent=1)

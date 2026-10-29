@@ -4001,7 +4001,7 @@
       // the sitting itself, as a player sees it: the card, then each line on its speaker's portrait
       var BC2 = newHw('barley'), fC2 = {}, scN = HWw.sitting(BC2, ['notice'], [fC2]), sN = sitHw(scN);
       okHw('C1 seen: ' + sN.length + ' pages -- "' + (sN[1] || '').slice(0, 70) + '", Papa "' + (sN.filter(function (s) { return /^Papa Urtusk/.test(s); })[0] || '').slice(0, 50) + '"; its flag (' + !!fC2.councilNotice + ')',
-        sN.length >= 8 && /^The council\|-\|That night, in Silverton/.test(sN[0]) && /^Hessle\|pt_hessle\|"The Pit's word/.test(sN[1]) && /^Merrick\|pt_merrick\|/.test(sN[2]) && /^Aldwyn Androit\|pt_androit\|"Then we post it/.test(sN[3]) && sN.some(function (s) { return /^Papa Urtusk\|-\|"Strike it\. We pay for word\."/.test(s); }) && !!fC2.councilNotice && scN.done);
+        sN.length >= 8 && /^The council\|-\|That night, in Silverton/.test(sN[0]) && /^Hessle\|pt_hessle\|"The Pit's word/.test(sN[1]) && /^Merrick\|pt_merrick\|/.test(sN[2]) && /^Aldwyn Androit\|pt_androit\|"Then we post it/.test(sN[3]) && sN.some(function (s) { return /^Papa Urtusk\|pt_papa\|"Strike it\. We pay for word\."/.test(s); }) && !!fC2.councilNotice && scN.done);
       // 15. C3, THE HERD'S COUNCIL (his "18 - yes, lantern warning same trigger as council meeting"): the lantern man's flag due at the next morning; and the stock dead, again
       var fH = { herdWarned: 1, councilNotice: 1 }, dH = HWw.councilsDue(fH), sH = sitHw(HWw.sitting(BC2, dH, [fH])), dH2 = HWw.councilsDue(fH); fH.stockDead = 1; var dS = HWw.councilsDue(fH), sS = sitHw(HWw.sitting(BC2, dS, [fH]));
       okHw('C3: the herd thinned, due ' + dH.join(',') + ' -- "' + (sH[1] || '').slice(0, 80) + '" -- then none (' + dH2.length + '); the stock dead, due ' + dS.join(',') + ' -- "' + (sS[1] || '').slice(0, 70) + '"',
@@ -4015,7 +4015,7 @@
       up3(BX); var seat3 = seatsHw(BX), dX3 = HWw.due(BX), shX = dX3 ? shotHw(BX, HWw.beat(BX)) : { pr: null }, sX = D.top() instanceof CHw.Counter ? sitHw(D.top()) : []; if (shX.g) driveHw(shX.g, null, 400);
       okHw('C2 at renown 2: in the Hex (' + hx1 + ') the call "' + String(cX).slice(0, 50) + '..."; up on the third floor the council at the long table (' + seat3.map(function (u) { return u.npc.replace('council', '') + ':' + (u.sheet || '-'); }).join(', ') + '), the shot "' + (shX.pr ? shX.pr.title + ': ' + window.DS.stripCodes(shX.pr.lines.join(' ')).slice(0, 50) : 'none') + '...", then the sitting, ' + sX.length + ' pages, Androit first ("' + (sX[0] || '').slice(0, 50) + '"), Papa last; risen after (' + !seatsHw(BX).length + '), once (' + !HWw.due(BX) + ')',
         hx1 === 1 && /Papa wants you on the third floor/.test(cX) && seat3.length === 6 && seat3.some(function (u) { return u.npc === 'councilandroit' && u.sheet === 'androit_p1'; }) && !!shX.pr && shX.pr.title === 'THE HEX, THE THIRD FLOOR' && /long table under the Big Window/.test(shX.pr.lines.join(' '))
-          && sX.length === 6 && /^Aldwyn Androit\|pt_androit\|"Aldwyn Androit\. My seal/.test(sX[0]) && /^Papa Urtusk\|-\|"They've seen you/.test(sX[5]) && !seatsHw(BX).length && !!BX.roam.flags.councilSeen && !HWw.due(BX));
+          && sX.length === 6 && /^Aldwyn Androit\|pt_androit\|"Aldwyn Androit\. My seal/.test(sX[0]) && /^Papa Urtusk\|pt_papa\|"They've seen you/.test(sX[5]) && !seatsHw(BX).length && !!BX.roam.flags.councilSeen && !HWw.due(BX));
       // 19. A COUNCIL'S NIGHT ON THE THIRD FLOOR (the same ruling): Day 1 from dusk, the Pit's word not yet sat on -- up the spirals the council at the table, Merrick among them, the shot
       // once that night (Warda: stand at the back); the night's sitting still waits for the rest
       var BN = newHw('vivian'); beatHw(BN); BN.roam.flags.papaLymen = 1; WHw.state().t = 42; driveHw(THw.fire(BN, trigHw('hex:front')), null, 2000); up3(BN);
@@ -5485,12 +5485,13 @@
         'marta', 'gull', 'tam', 'ondine', 'percy', 'brennock', 'vera', 'kess', // (the art desk's packages ART-121d and -121e, the same seat)
         'kael', 'sylvia', // (a grey streak on the other side in some drawn views: cut, RULED 10-28, his "defining features showing on mirror facings is acceptable")
         'casper', 'androit', 'hessle', 'aldric', 'kessler', 'calla', 'mical', 'lisbet', 'merrick', 'marko', 'venhale', // (ART-121a and -121c, the same seat)
-        'barber', 'marin', 'brennan', 'kasten', 'cassia', 'mela']; // (ART-121b, the fourth cutter seat: the last six -- all thirty-four drawn round)
+        'barber', 'marin', 'brennan', 'kasten', 'cassia', 'mela', // (ART-121b, the fourth cutter seat: the last six -- all thirty-four drawn round)
+        'papa']; // (10-29, the cutscene cutter seat: Papa Urtusk, ART-123-URTUSK, drawn round from the first and 58 px -- the largest in any room)
       var figT = Object.keys(CT.FIG), whole = figT.filter(function (k) { var s = D.SHEETS[CT.FIG[k]]; return s && !s.anims.idle.drawn; });
       okT('drawn all round (no S-only list on the idle): ' + whole.join(', ') + ' -- wanted ' + WHOLE.join(', '), whole.slice().sort().join() === WHOLE.slice().sort().join());
       var shT = function (k) { var s = D.SHEETS[CT.FIG[k]], a = s.anims.idle; return k + ' ' + a.fw + 'x' + a.fh + ' top ' + s.top; };
       okT('each cut from the four pages beside the south, the idle\'s fourteen frames, no stand-in under it, as tall as the heroes (45 to 54 above the foot; Barley ' + D.SHEETS.barley_p2.top + '): ' + WHOLE.map(shT).join(', '),
-        WHOLE.every(function (k) { var s = D.SHEETS[CT.FIG[k]], a = s && s.anims.idle; return a && !a.under && a.frames === 14 && /PAGE-2 to PAGE-5 \(SE, E, NE, N: ART-121/.test(s.source) && s.top >= 45 && s.top <= 54; }));
+        WHOLE.every(function (k) { var s = D.SHEETS[CT.FIG[k]], a = s && s.anims.idle; return a && !a.under && a.frames === 14 && (k === 'papa' ? /PAGE-2 to PAGE-5 \(SE, E, NE, N: ART-123-URTUSK/.test(s.source) && s.top >= 55 && s.top <= 60 : /PAGE-2 to PAGE-5 \(SE, E, NE, N: ART-121/.test(s.source) && s.top >= 45 && s.top <= 54); }));
       var held = figT.filter(function (k) { return WHOLE.indexOf(k) < 0; });
       okT('the other ' + held.length + ' still south only over the stand-in (' + held.join(', ') + ')', held.every(function (k) { var s = D.SHEETS[CT.FIG[k]], a = s && s.anims.idle; return a && a.drawn.join() === '0' && a.under === 'crewman_p1'; }));
       var drT = figT.map(function (k) { var u = { x: 0, y: 0, facing: 5 }; CT.dress(u, k); return [k, u]; });
