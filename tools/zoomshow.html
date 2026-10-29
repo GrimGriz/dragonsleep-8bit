@@ -37,7 +37,7 @@
   'use strict';
   var W0 = 200, H0 = 112; // the scene, in art pixels
   var SHEETS = [ // (each idle's first frame; facing rows 2 = west for the party, 6 = east for the foes -- js/topview.js TOPSTEP)
-    { n: 'worg_p1', x: 40, y: 100, row: 6 }, { n: 'goblin_p1', x: 78, y: 102, row: 6 }, { n: 'barley_p2', x: 150, y: 101, row: 2 }
+    { n: 'worg_p1', x: 40, y: 100, row: 6 }, { n: 'goblin_p2', x: 78, y: 102, row: 6 }, { n: 'barley_p2', x: 150, y: 101, row: 2 }
   ];
   var R = Math.max(1, Math.floor(Math.min(window.innerWidth / 480, (window.innerHeight - 24) / 270))) || 1, MAG = 2, drift = false, t = 0, imgs = {}, metas = {};
   document.getElementById('rnow').textContent = R + 'x';
