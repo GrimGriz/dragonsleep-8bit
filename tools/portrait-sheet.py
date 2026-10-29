@@ -122,6 +122,15 @@ PEOPLE = {
     # skarn"): the art desk's ART-123-SKARN -- the half-orc with the iron collar still on, the gate-key on its cord and the lantern-token, his spear standing beside him
     # (`propfree`: the bust from his own head). His khaki-olive skin turned to the orc ramp as Papa's; the key's and the token's richer gold left gold (`keep`)
     'skarn': ('skarn/ART-123-SKARN', 'ART-123-SKARN', 'npc:skarn', {'edge': True, 'propfree': True, 'blank': {pg: [(550, 415, 572, 465), (1102, 415, 1124, 465), (550, 870, 572, 920), (1102, 870, 1124, 920)] for pg in (1, 6)}, 'reskin': {'hue': 78, 'sat': 0.36, 'keep': SKARN_GOLD}, 'avoid': ['skin', 'red', 'fire']}),   # (his work's warmer coat and his cheeks' shadows flecked orange: fire left out)
+    # Edric Pellam, the Warrens' tally-man at the mouth camp's tally-house (10-29, the Edric and Dace cutter seat, on Griz's "New in Play Records and Dace will be in Fresh
+    # soon"): the art desk's ART-123-EDRIC, drawn on his word to it, "make him uglier - farmhand that works carrion crawler milking station (advanced to bookkeep)" -- his
+    # face for the camp's scenes (js/mines.js M.talk by C.PT); his work the tally book written in and blotted
+    'edric': ('edric/ART-123-EDRIC', 'ART-123-EDRIC', 'npc:edric', {'edge': True, 'gap': {6: 3}, 'bevel': (2, 3, 4, 5), 'avoid': ['red', 'fire']}),   # (his work's lower band stands 11 px apart; his stills'
+    # counter tops bevelled, as Falstaff's; his ruddy nose and cheeks snapped to the lightest red, a clown's nose and blotches at this size -- the art desk's own
+    # warning, "rather than accidental ... bright red nose": left out, they go to his skin)
+    # Corwen Dace, the Guano Galleries' modernizer (10-29, the same seat): the art desk's ART-123-DACE, his grandfather's old cloak plain on his shoulders -- his face for
+    # the Galleries' scenes and the deep gallery's (js/mines.js M.talk by C.PT); his work the notebook opened and sketched in, talking all the while
+    'dace': ('dace/ART-123-DACE', 'ART-123-DACE', 'npc:dace', {'edge': True, 'bevel': (2, 3, 4, 5)}),
     # the generic man and the generic woman (10-28 evening, the fourth cutter seat: the art desk's ART-122, on Griz's "as a specific person with each function as a
     # costume/look they have"): one person each, the townsfolk's man and woman (folkman_p1, folkwoman_p1), their own clothes' idle and a still for each costume in
     # place of the named's moods -- js/counter.js C.GENERIC gives each unnamed id its person and costume. A spear, a pole or a scraper held up beside the head

@@ -5379,6 +5379,19 @@
       okK('the cutscene\'s arrival: Papa up the spiral first, in his own figure (' + (wK ? wK.u.sheet + ', ' + wK.path.length + ' squares; the order ' + arK.walkers.map(function (w) { return w.u.npc.replace('council', ''); }).join(', ') : 'NOT THERE') + ')',
         !!wK && wK.u.sheet === 'papa_p1' && arK.walkers[0] === wK);
       nK2.finish();
+      // Edric Pellam and Corwen Dace (ART-123-EDRIC, ART-123-DACE: the Edric and Dace cutter seat, 10-29): their faces and their figures all round, worn where the first game
+      // stands them (the Warrens' mouth camp by the tally-house, the Galleries' mouth by the beam); a scene of theirs, and the tally-house's counter, on their own faces
+      var floorK = function (q) { var B = RK.make(q); D.scenes.length = 0; D.push(B); var s = topK(); for (var i = 0; i < 2 && s && s.co; i++) s.co.next(); return s; };
+      var faceK = function (B, id) { return new CK.Counter(B, { id: id, name: id, script: function (s) { return (function* () { yield s.say(['-']); })(); } }).sheet; };
+      [['edric', 'ART-123-EDRIC', '?roam=warrens', 'the Warrens\' mouth camp'], ['dace', 'ART-123-DACE', '?roam=galleries&flags=cullHired', 'the Galleries\' mouth']].forEach(function (w) {
+        var pW = D.SHEETS['pt_' + w[0]], fW = D.SHEETS[CK.FIG[w[0]]], BW = floorK(w[2]), uW = BW && BW.units ? BW.units.filter(function (u) { return u.npc === w[0]; })[0] : null, sW = BW && faceK(BW, w[0]), vW = CK.VENDORS[w[0]];
+        okK(w[0] + ' from ' + w[1] + ': the face (' + (pW ? pW.fw + 'x' + pW.fh + ', idle ' + pW.anims.idle.frames + ', work ' + pW.anims.work.frames : 'NONE') + ', C.PT ' + CK.PT[w[0]] + ', no shop ' + !(vW && vW.shop) + '), the figure all round (' + (fW ? 'top ' + fW.top + ', drawn ' + JSON.stringify(fW.anims.idle.drawn) : 'NONE') + '), worn at ' + w[3] + ' (' + (uW ? uW.sheet + ' at ' + uW.x + ',' + uW.y + ', held ' + uW.holdFacing : 'NOT STOOD') + '), the scene on the face (' + sW + ')',
+          !!pW && pW.anims.idle.frames === 6 && pW.anims.work.frames === 6 && ['attentive', 'welcoming', 'skeptical', 'concerned'].every(function (k) { return pW.anims[k] && pW.anims[k].frames === 1; }) && CK.PT[w[0]] === 'pt_' + w[0] && !!vW && !vW.shop &&
+          !!fW && !fW.anims.idle.drawn && fW.anims.idle.frames === 14 && fW.top >= 45 && fW.top <= 54 && new RegExp(w[1]).test(fW.source) && !!uW && uW.sheet === w[0] + '_p1' && !uW.holdFacing && sW === 'pt_' + w[0]);
+      });
+      var BTK = floorK('?roam=warrens'), tlK = faceK(BTK, 'tally');
+      okK('the tally-house\'s counter, Edric\'s shop, on his face (' + tlK + '); a counter with no face of its own still bare (Hob\'s kitchen: ' + faceK(BTK, 'hobCamp') + ')', tlK === 'pt_edric' && faceK(BTK, 'hobCamp') === null);
+      okK('Dace taken into the token keeps the class floor\'s wizard to fight in (js/save.js SV.LOOK.dace ' + D.save.LOOK.dace.sheet + '): his figure is an idle\'s only', D.save.LOOK.dace.sheet === 'npcwizard_p0' && !D.SHEETS.dace_p1.anims.walk);
     } catch (eK) { repK.errors.push(String(eK && eK.stack || eK).slice(0, 900)); }
     D.ctx = ctx0K; D.store.get = stGK; D.store.set = stSK; if (D.house) { D.house.playing = false; D.house.cur = null; }
     var preK = document.createElement('pre'); preK.id = 'out'; preK.textContent = 'BENCH16 ' + JSON.stringify(repK);
@@ -5505,12 +5518,12 @@
         'kael', 'sylvia', // (a grey streak on the other side in some drawn views: cut, RULED 10-28, his "defining features showing on mirror facings is acceptable")
         'casper', 'androit', 'hessle', 'aldric', 'kessler', 'calla', 'mical', 'lisbet', 'merrick', 'marko', 'venhale', // (ART-121a and -121c, the same seat)
         'barber', 'marin', 'brennan', 'kasten', 'cassia', 'mela', // (ART-121b, the fourth cutter seat: the last six -- all thirty-four drawn round)
-        'papa', 'warda', 'harrow', 'skarn']; /* (Skarn, ART-123-SKARN: the Skarn cutter seat, 10-29 -- 54 to his crown, the spear's tip above it) */ // (10-29, the cutscene cutter seat (Ottak Harrow, ART-123-HARROW, the third): Papa Urtusk, ART-123-URTUSK, drawn round from the first and 58 px -- the largest in any room; Warda, ART-123-WARDA)
+        'papa', 'warda', 'harrow', 'skarn', 'edric', 'dace']; /* (Edric Pellam and Corwen Dace, ART-123-EDRIC and -DACE: the Edric and Dace cutter seat, 10-29) (Skarn, ART-123-SKARN: the Skarn cutter seat, 10-29 -- 54 to his crown, the spear's tip above it) */ // (10-29, the cutscene cutter seat (Ottak Harrow, ART-123-HARROW, the third): Papa Urtusk, ART-123-URTUSK, drawn round from the first and 58 px -- the largest in any room; Warda, ART-123-WARDA)
       var figT = Object.keys(CT.FIG), whole = figT.filter(function (k) { var s = D.SHEETS[CT.FIG[k]]; return s && !s.anims.idle.drawn; });
       okT('drawn all round (no S-only list on the idle): ' + whole.join(', ') + ' -- wanted ' + WHOLE.join(', '), whole.slice().sort().join() === WHOLE.slice().sort().join());
       var shT = function (k) { var s = D.SHEETS[CT.FIG[k]], a = s.anims.idle; return k + ' ' + a.fw + 'x' + a.fh + ' top ' + s.top; };
       okT('each cut from the four pages beside the south, the idle\'s fourteen frames, no stand-in under it, as tall as the heroes (45 to 54 above the foot; Barley ' + D.SHEETS.barley_p2.top + '): ' + WHOLE.map(shT).join(', '),
-        WHOLE.every(function (k) { var s = D.SHEETS[CT.FIG[k]], a = s && s.anims.idle; return a && !a.under && a.frames === 14 && (k === 'papa' || k === 'warda' || k === 'harrow' || k === 'skarn' ? /PAGE-2 to PAGE-5 \(SE, E, NE, N: ART-123-(URTUSK|WARDA|HARROW|SKARN)/.test(s.source) && s.top >= (k === 'papa' ? 55 : 45) && s.top <= (k === 'papa' ? 60 : 54) : /PAGE-2 to PAGE-5 \(SE, E, NE, N: ART-121/.test(s.source) && s.top >= 45 && s.top <= 54); }));
+        WHOLE.every(function (k) { var s = D.SHEETS[CT.FIG[k]], a = s && s.anims.idle; return a && !a.under && a.frames === 14 && (k === 'papa' || k === 'warda' || k === 'harrow' || k === 'skarn' || k === 'edric' || k === 'dace' ? /PAGE-2 to PAGE-5 \(SE, E, NE, N: ART-123-(URTUSK|WARDA|HARROW|SKARN|EDRIC|DACE)/.test(s.source) && s.top >= (k === 'papa' ? 55 : 45) && s.top <= (k === 'papa' ? 60 : 54) : /PAGE-2 to PAGE-5 \(SE, E, NE, N: ART-121/.test(s.source) && s.top >= 45 && s.top <= 54); }));
       var held = figT.filter(function (k) { return WHOLE.indexOf(k) < 0; });
       okT('the other ' + held.length + ' still south only over the stand-in (' + held.join(', ') + ')', held.every(function (k) { var s = D.SHEETS[CT.FIG[k]], a = s && s.anims.idle; return a && a.drawn.join() === '0' && a.under === 'crewman_p1'; }));
       var drT = figT.map(function (k) { var u = { x: 0, y: 0, facing: 5 }; CT.dress(u, k); return [k, u]; });

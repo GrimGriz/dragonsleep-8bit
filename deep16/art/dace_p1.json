@@ -1,0 +1,21 @@
+{
+ "image": "art/dace_p1.png",
+ "fw": 43,
+ "fh": 53,
+ "ax": 21,
+ "ay": 51,
+ "top": 49,
+ "anims": {
+  "idle": {
+   "y": 0,
+   "fw": 43,
+   "fh": 53,
+   "ax": 21,
+   "ay": 51,
+   "frames": 14,
+   "fps": 4
+  }
+ },
+ "source": "deep16/_src/dace/ART-123-DACE/ART-123-DACE_HEAD-2_PAGE-1.png (the art desk's south idle, 10-21) and PAGE-2 to PAGE-5 (SE, E, NE, N: ART-123-DACE, 10-29), cut by tools/keeper-town-sheet.py",
+ "door": "npc:dace"
+}

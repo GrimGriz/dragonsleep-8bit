@@ -1113,5 +1113,5 @@
   M.isoShow = function (q) { return new D.roam.WetShow(q, { kind: 'isoshow', beats: M.ISO_BEATS, play: M.isoPlay, title: '{y}ON THE DIAMONDS, 10-29{/} -- the cloaker\'s level and Web Gulch as the Wet is drawn (a show)' }); };
 
   // the tally-house's counter: Edric's shop, the antitoxin draught (content/shops.json `tally`: it buys nothing) -- one line in the counter's vendor table
-  if (D.counter && D.counter.VENDORS) D.counter.VENDORS.tally = D.counter.VENDORS.tally || { shop: 'tally', name: 'Edric Pellam' };
+  if (D.counter && D.counter.VENDORS) D.counter.VENDORS.tally = D.counter.VENDORS.tally || { shop: 'tally', name: 'Edric Pellam', sheet: 'pt_edric' }; // (his face at his own counter: ART-123-EDRIC, 10-29)
 })();

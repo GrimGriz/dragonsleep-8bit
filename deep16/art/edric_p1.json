@@ -1,0 +1,21 @@
+{
+ "image": "art/edric_p1.png",
+ "fw": 38,
+ "fh": 53,
+ "ax": 20,
+ "ay": 51,
+ "top": 49,
+ "anims": {
+  "idle": {
+   "y": 0,
+   "fw": 38,
+   "fh": 53,
+   "ax": 20,
+   "ay": 51,
+   "frames": 14,
+   "fps": 4
+  }
+ },
+ "source": "deep16/_src/edric/ART-123-EDRIC/ART-123-EDRIC_HEAD-2_PAGE-1.png (the art desk's south idle, 10-21) and PAGE-2 to PAGE-5 (SE, E, NE, N: ART-123-EDRIC, 10-29), cut by tools/keeper-town-sheet.py",
+ "door": "npc:edric"
+}

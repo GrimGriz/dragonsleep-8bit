@@ -108,6 +108,14 @@ KEEPERS = {
     # beside him. A big half-orc, a bought gladiator: `tall` 54, the top of the keepers' band and under Papa's 58; measured to his own crown and stood on his own feet
     # (`prop`: the shaft opened out 34 px wide -- it is about 20 on the pages, the boots 80); his skin to the orc ramp as on his portrait, the key's gold left gold
     'skarn': ('skarn/ART-123-SKARN', 'ART-123-SKARN', 'npc:skarn', {'views': 'ART-123-SKARN, 10-29', 'tall': 54, 'prop': 34, 'reskin': {'hue': 78, 'sat': 0.36, 'keep': PS.SKARN_GOLD}, 'avoid': ['skin', 'red']}),
+    # Edric Pellam (10-29, the Edric and Dace cutter seat: the art desk's ART-123-EDRIC, all five views drawn, NE and N from behind): at the Warrens' mouth camp, the
+    # tally-house, where the first game stands him (content/maps/warrens_a.json)
+    'edric': ('edric/ART-123-EDRIC', 'ART-123-EDRIC', 'npc:edric', {'views': 'ART-123-EDRIC, 10-29', 'avoid': {p: ['red', 'fire'] + (['gold'] if p == 3 else []) for p in (1, 2, 3, 4, 5)}}),
+    # (his ruddy nose and cheeks a red blob, his profile's face an orange patch at 50 px: left out, as on his portrait, they go to skin -- and on the profile (E) the
+    # bald crown's highlight snapped gold, a yellow cap: left out there alone)
+    # Corwen Dace (10-29, the same seat: the art desk's ART-123-DACE, all five views drawn, NE and N from behind): in the Galleries' mouth where the first game stands
+    # him (content/maps/galleries_g1.json `dace`); in a fight, as the party's guest, he keeps the class floor's wizard (js/save.js SV.LOOK) -- these are an idle's only
+    'dace': ('dace/ART-123-DACE', 'ART-123-DACE', 'npc:dace', {'views': 'ART-123-DACE, 10-29', 'avoid': ['red', 'fire']}),   # (his satchel's red-brown leather flecked the reds, blood spots at 50 px: left out, it keeps to leather)
 }
 
 
