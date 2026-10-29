@@ -1,0 +1,21 @@
+{
+ "image": "art/wynn_p1.png",
+ "fw": 31,
+ "fh": 53,
+ "ax": 16,
+ "ay": 51,
+ "top": 49,
+ "anims": {
+  "idle": {
+   "y": 0,
+   "fw": 31,
+   "fh": 53,
+   "ax": 16,
+   "ay": 51,
+   "frames": 14,
+   "fps": 4
+  }
+ },
+ "source": "deep16/_src/wynn/ART-123-WYNN/ART-123-WYNN_HEAD-2_PAGE-1.png (the art desk's south idle, 10-21) and PAGE-2 to PAGE-5 (SE, E, NE, N: ART-123-WYNN, 10-29), cut by tools/keeper-town-sheet.py",
+ "door": "npc:wynn"
+}

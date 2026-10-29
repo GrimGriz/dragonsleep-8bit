@@ -95,7 +95,8 @@ KEEPERS = {
     # Falstaff of the factor house, pin 7a (10-29, the cutter seat of 10-29: the art desk's ART-123-FALSTAFF, his figure H2P1 S, P2 SE, P3 E and the eleventh page
     # P5 N, its "Falstaff Idle Backview" download). Its P4, sold as NE, is drawn from the front, a second SE: sorted to not-NE/, so he is south only till an NE
     # from behind comes -- then this line cuts all eight as it is. His door has no room (js/town.js T.ROOMS): his sheet for the shows, no square in town yet
-    'falstaff': ('falstaff/ART-123-FALSTAFF', 'ART-123-FALSTAFF', 'keeper:falstaff'),
+    'falstaff': ('falstaff/ART-123-FALSTAFF', 'ART-123-FALSTAFF', 'keeper:falstaff', {'views': 'ART-123-FALSTAFF, 10-29; its NE, FALSTAFF-NE.png, 10-29 later', 'avoid': {4: ['red', 'fire']}}),   # (the NE from behind came
+    # 10-29 later as FALSTAFF-NE.png, filed as HEAD 2 PAGE 4 (_src/art-desk/falstaff-ne-sort-2026-10-29.py): all eight now; its cuffs' pink snapped to red dots, left out on that page alone)
     # Papa Urtusk (10-29, the cutscene cutter seat: the art desk's ART-123-URTUSK, all five views drawn, H2P4 NE from behind). "Still the largest thing in any room"
     # (art-wanted section 26) and the art desk's own "do not equal-height-normalize him with ordinary adults": he stands `tall` 58, the height of the grid's bugbear
     # and of Talmok, where the town's grown men stand 50. In the Hex's front door, at the council's long table, and on the night's picture of it (js/hours.js)
@@ -116,6 +117,8 @@ KEEPERS = {
     # Corwen Dace (10-29, the same seat: the art desk's ART-123-DACE, all five views drawn, NE and N from behind): in the Galleries' mouth where the first game stands
     # him (content/maps/galleries_g1.json `dace`); in a fight, as the party's guest, he keeps the class floor's wizard (js/save.js SV.LOOK) -- these are an idle's only
     'dace': ('dace/ART-123-DACE', 'ART-123-DACE', 'npc:dace', {'views': 'ART-123-DACE, 10-29', 'avoid': ['red', 'fire']}),   # (his satchel's red-brown leather flecked the reds, blood spots at 50 px: left out, it keeps to leather)
+    # Old Wynn Pollard (10-29, the same seat: the art desk's ART-123-WYNN, all five views drawn, NE and N from behind): at the Galleries' mouth where the first game stands him
+    'wynn': ('wynn/ART-123-WYNN', 'ART-123-WYNN', 'npc:wynn', {'views': 'ART-123-WYNN, 10-29', 'avoid': ['red', 'fire']}),   # (his weathered cheeks flecked the reds at 50 px, as Edric's: left out, they go to skin)
     # Dace in the cloak of displacement (10-29, the same seat: the art desk's ART-123-DACE-DISPLACEMENT, a second look beside the plain one, all five views): the ghost's
     # glow joins the S and SE frames -- `ghost` splits them at the real bodies, and his height, his feet and his crown are the real body's, the afterimage beside him kept
     'dacedisp': ('dace/ART-123-DACE-DISPLACEMENT', 'ART-123-DACE-DISPLACEMENT', 'npc:dace (the cloak worn as the magic item)', {'views': 'ART-123-DACE-DISPLACEMENT, 10-29', 'avoid': ['red', 'fire'], 'ghost': {'hues': (205, 285), 'smin': 0.3}}),

@@ -4142,8 +4142,8 @@
 "source": "the big face off mirrorgnoll\\Battered Mirror-Eyed Gnoll Close-Up-2.png (Griz, 10-08), cut by tools/faces-sheet.py"
 },
 "falstaff_p1": {
-"image": "art/falstaff_p1.png?v=0fb8da13d2",
-"fw": 32,
+"image": "art/falstaff_p1.png?v=f907a18058",
+"fw": 34,
 "fh": 53,
 "ax": 17,
 "ay": 51,
@@ -4151,19 +4151,15 @@
 "anims": {
 "idle": {
 "y": 0,
-"fw": 32,
+"fw": 34,
 "fh": 53,
 "ax": 17,
 "ay": 51,
 "frames": 14,
-"fps": 4,
-"drawn": [
-0
-],
-"under": "crewman_p1"
+"fps": 4
 }
 },
-"source": "deep16/_src/falstaff/ART-123-FALSTAFF/ART-123-FALSTAFF_HEAD-2_PAGE-1.png (the art desk's south idle, 10-21), cut by tools/keeper-town-sheet.py",
+"source": "deep16/_src/falstaff/ART-123-FALSTAFF/ART-123-FALSTAFF_HEAD-2_PAGE-1.png (the art desk's south idle, 10-21) and PAGE-2 to PAGE-5 (SE, E, NE, N: ART-123-FALSTAFF, 10-29; its NE, FALSTAFF-NE.png, 10-29 later), cut by tools/keeper-town-sheet.py",
 "door": "keeper:falstaff"
 },
 "firebeetle_p1": {
@@ -15788,6 +15784,102 @@ true
 "door": "warp:winters",
 "source": "deep16/_src/winters/ART-78 (the art desk's ART-78, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
 },
+"pt_wynn": {
+"image": "art/pt_wynn.png?v=da100048f2",
+"fw": 181,
+"fh": 157,
+"ax": 99,
+"ay": 155,
+"top": 155,
+"portrait": true,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 181,
+"fh": 157,
+"ax": 99,
+"ay": 155,
+"frames": 6,
+"fps": 3,
+"ledge": [
+true,
+true,
+true,
+true,
+true,
+true
+]
+},
+"attentive": {
+"y": 157,
+"fw": 181,
+"fh": 157,
+"ax": 99,
+"ay": 155,
+"frames": 1,
+"fps": 1,
+"ledge": [
+true
+]
+},
+"welcoming": {
+"y": 314,
+"fw": 181,
+"fh": 157,
+"ax": 99,
+"ay": 155,
+"frames": 1,
+"fps": 1,
+"ledge": [
+true
+]
+},
+"skeptical": {
+"y": 471,
+"fw": 181,
+"fh": 157,
+"ax": 99,
+"ay": 155,
+"frames": 1,
+"fps": 1,
+"ledge": [
+true
+]
+},
+"concerned": {
+"y": 628,
+"fw": 181,
+"fh": 157,
+"ax": 99,
+"ay": 155,
+"frames": 1,
+"fps": 1,
+"ledge": [
+true
+]
+},
+"work": {
+"y": 785,
+"fw": 181,
+"fh": 157,
+"ax": 99,
+"ay": 155,
+"frames": 6,
+"fps": 4,
+"ledge": [
+true,
+true,
+true,
+true,
+true,
+true
+]
+}
+},
+"art": "ART-123-WYNN",
+"door": "npc:wynn",
+"source": "deep16/_src/wynn/ART-123-WYNN (the art desk's ART-123-WYNN, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
+},
 "pudding_p1": {
 "image": "art/pudding_p1.png?v=fcd8d60dfc",
 "fw": 120,
@@ -18307,6 +18399,27 @@ true
 "fps": 12
 }
 }
+},
+"wynn_p1": {
+"image": "art/wynn_p1.png?v=da3ccd8618",
+"fw": 31,
+"fh": 53,
+"ax": 16,
+"ay": 51,
+"top": 49,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 31,
+"fh": 53,
+"ax": 16,
+"ay": 51,
+"frames": 14,
+"fps": 4
+}
+},
+"source": "deep16/_src/wynn/ART-123-WYNN/ART-123-WYNN_HEAD-2_PAGE-1.png (the art desk's south idle, 10-21) and PAGE-2 to PAGE-5 (SE, E, NE, N: ART-123-WYNN, 10-29), cut by tools/keeper-town-sheet.py",
+"door": "npc:wynn"
 },
 "xorn_p1": {
 "image": "art/xorn_p1.png?v=3f62ccf9fd",

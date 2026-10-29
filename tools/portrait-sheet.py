@@ -139,6 +139,9 @@ PEOPLE = {
     # portrait only): the art desk's ART-123-TALMOK, drawn from his own figure (talmok_p1) -- his word in the Hex on his face (js/town.js T.fire, C.takes)
     'talmok': ('talmok/ART-123-TALMOK', 'ART-123-TALMOK', 'the Hex, by the sand (talmok)', {'edge': True, 'bevel': (2, 3, 4, 5), 'match': {6: 1}}),   # (his stills'
     # counter tops bevelled; his work drawn warmer than the rest, its tan skin flecked orange, then gold, at this size: its colours matched to the idle's, as Marta's)
+    # Old Wynn Pollard at the Galleries' mouth (10-29, the Edric and Dace cutter seat, on the lanes desk's relay: "Cut him the way Edric and Dace were cut"): the art desk's
+    # ART-123-WYNN -- half-blind (his left eye clouded; the near right one good), calls the drives with a rattle -- his face for the Galleries' scenes (js/mines.js M.talk by C.PT)
+    'wynn': ('wynn/ART-123-WYNN', 'ART-123-WYNN', 'npc:wynn', {'edge': True, 'bevel': (2, 3, 4, 5)}),
     # the generic man and the generic woman (10-28 evening, the fourth cutter seat: the art desk's ART-122, on Griz's "as a specific person with each function as a
     # costume/look they have"): one person each, the townsfolk's man and woman (folkman_p1, folkwoman_p1), their own clothes' idle and a still for each costume in
     # place of the named's moods -- js/counter.js C.GENERIC gives each unnamed id its person and costume. A spear, a pole or a scraper held up beside the head
