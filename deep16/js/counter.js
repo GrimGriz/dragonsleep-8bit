@@ -665,7 +665,7 @@
     yield sc.say(L('leech.done'));
   };
   // the Weigh-House (S.hessle): his word and the board heard; what is brought paid at the scales -- the ettercap's fangs (500 sp), the cloaker's tail (the drawer's 400), true
-  // word on the Snoot (the anchor-pin, 500), Amara's order (500, "not for any board") -- renown and a weapon in kind for the two beasts (EV.renown's MAJOR); then what still
+  // word on the Snoot (the anchor-pin, 500), Amara's order (500, "not for any board") -- renown for the two beasts (EV.renown's MAJOR; no weapon in kind since 10-29, below); then what still
   // stands on the board, and the council's word on the five, once
   // (the Snoot's paper goes up the morning after the council funds it -- the second game's council, js/hours.js C1; before it the board holds the old papers only, and
   // Hessle's word is the board's without the notice)
@@ -673,7 +673,7 @@
   C.bounties = function (f) { var out = []; if (!f.ettercapDone) out.push(L('hessle.boardEttercap')); if (!f.cloakerDone) out.push(L('hessle.boardCloaker')); if (!f.snootWord && C.noticeUp(f)) out.push(L('hessle.boardSnoot')); return out; };
   C.SCRIPTS.hessle = C.hessle = function* (sc) {
     var st = sc.st, f = st.flags, paid = false;
-    var major = function* (why) { yield sc.say(C.renown(st, 1, why), 'welcoming'); var qw = C.questWeapons(st); if (qw.length) { sc.regear = true; yield sc.say(qw, 'welcoming'); } };
+    var major = function* (why) { yield sc.say(C.renown(st, 1, why), 'welcoming'); };
     yield sc.say(C.noticeUp(f) ? L('hessle.greet') : D.hours.HESSLE.before, 'attentive');
     f.heardEttercap = 1; f.heardCloaker = 1; f['heard:r-ettercap'] = 1; f['heard:r-cloaker'] = 1;
     if (count(st, 'ettercapfangs') > 0) { take(st, 'ettercapfangs', 1); st.silver(500); f.ettercapDone = 1; D.sfx('coin'); paid = true; yield sc.say(L('hessle.ettercapPaid'), 'work'); yield* major('renown.ettercap'); }
@@ -685,29 +685,9 @@
     else if (!paid) yield sc.say(L('hessle.boardClear'), 'attentive');
     if (f.fiveDone && !f.fiveNotice) { f.fiveNotice = 1; yield sc.say(f.stockDead ? L('hessle.fiveDead') : !D.hours || f.councilHerd ? L('hessle.fiveAlive') : D.hours.HESSLE.five, 'concerned'); } // (the council's word on the herd only if it sat: js/hours.js C3)
   };
-  // major quests pay in kind (the first game's EV.questWeapons): a magic weapon for the lead (the save's, js/house.js H.fresh), and one for another of the four -- the
-  // first two majors the +1 (content/heroes.json rewardWeapons), the rest the +2; what was in hand to the pack, a shield off for a two-hander. Returns the lines
-  C.questWeapons = function (st) {
-    var R = DS.R, f = st.flags, HD = DS.DATA.heroes || {}, lines = []; f.majors = (f.majors || 0) + 1;
-    var tier = f.majors <= 2 ? 1 : 2;
-    var bonus = function (h) { var w = R.item(h.equip.weapon); return (w && w.weapon && w.weapon.bonus) || 0; };
-    var owns = function (h, b) { var ids = (HD[h.id] || {}).rewardWeapons || []; return ids.slice(b - 1).some(function (id) { return count(st, id) > 0 || h.equip.weapon === id; }); };
-    var giveW = function (h) {
-      var id = ((HD[h.id] || {}).rewardWeapons || [])[tier - 1]; if (!id || bonus(h) >= tier || owns(h, tier)) return false;
-      var it = DS.DATA.items[id];
-      if (h.equip.weapon && h.equip.weapon !== 'unarmed') give(st, h.equip.weapon, 1);
-      if ((it.weapon.props || []).indexOf('two-handed') >= 0 && h.equip.shield) { give(st, h.equip.shield, 1); h.equip.shield = null; }
-      h.equip.weapon = id; lines.push(L('g.rewardWeapon', { name: h.name, item: it.name }));
-      return true;
-    };
-    var party = st.party.filter(function (h) { return !h.dead && h.equip; }), rec = D.house && D.house.playing && D.house.cur, lead = (rec && rec.lead) || (party[0] && (party[0].key || party[0].id));
-    var main = party.filter(function (h) { return (h.key || h.id) === lead; })[0] || party[0]; if (!main) return [];
-    var gotMain = giveW(main), hires = party.filter(function (h) { return h !== main; }).sort(function (a, b) { return bonus(a) - bonus(b); });
-    for (var i = 0; i < hires.length; i++) if (giveW(hires[i])) break;
-    if (!gotMain) for (var j = 0; j < hires.length; j++) if (lines.length < 2 && giveW(hires[j])) break;
-    if (lines.length) { D.sfx('chest'); return [L('g.rewardKind')].concat(lines); }
-    return [];
-  };
+  // NO WEAPONS IN KIND (RULED 10-29, Griz to the lanes desk, for the difficulty seat: "I noted that 'pays in kind' magical item rewards carried over from the 8bit and that's making
+  // things more easy than intended, as those 'in kind' magic items were meant to be discontinued in game 2"): C.questWeapons, the first game's EV.questWeapons on the grid (a
+  // +1 of the hero's own kind to the lead and one other for each of the two beasts, Hessle's majors), is gone; the bounties pay their silver and renown. The first game keeps its own (js/events.js EV.questWeapons)
   // MARTA VENN's bat-wing pies (10-22, the house seat, started by the lanes desk on Griz's "looks like its opens that weren't art is the bat wing cooking in silverton"): the
   // first game's js/events.js S.marta on her counter screen, in its words (content/text.json marta.*). Wings in the pack: COOK THEM or NOT NOW -- a silver a wing, free with
   // Vivian in the party (her daughter, RULED 09-24) -- and the pies into the pack (the floor's, which the house saves: C.state; the grid's fights eat them, js/battle.js
@@ -763,7 +743,7 @@
     { id: 'cassia', door: 'inn:cassia', label: 'CASSIA\'S ROOMS: a night at the inn, and the morning', note: 'The four hurt, the slots spent, Aurdin a level due, Vivian in a ring not yet bonded; 40 silver. STAY: the night, MORNING, the picks, the bonds, the spells, the save.', hurt: true, spent: true, level: true, ring: true, silver: 40 },
     { id: 'aldwin', door: 'chapel:aldwin', label: 'ALDWIN\'S FLOOR: the chapel\'s free sleep', note: 'The four hurt, no silver: Aldwin\'s word, SLEEP, the morning.', hurt: true, spent: true, silver: 0 },
     { id: 'davos', door: 'leech:davos', label: 'DAVOS KREN: the fallen stitched', note: 'Vivian and Lymen down, 20 silver: five silver a body, PAY, both up at half their hit points.', down: ['vivian', 'lymen'], silver: 20 },
-    { id: 'hessle', door: 'keeper:hessle', label: 'HESSLE: the bounties paid at the scales', note: 'The ettercap\'s fangs, the cloaker\'s tail, the anchor-pin and Amara\'s order in the pack: paid, renown twice, weapons in kind, the board clear.', inv: [['ettercapfangs', 1], ['cloakertail', 1], ['anchorpin', 1], ['wagonorder', 1]] },
+    { id: 'hessle', door: 'keeper:hessle', label: 'HESSLE: the bounties paid at the scales', note: 'The ettercap\'s fangs, the cloaker\'s tail, the anchor-pin and Amara\'s order in the pack: paid, renown twice, no weapon in kind (10-29), the board clear.', inv: [['ettercapfangs', 1], ['cloakertail', 1], ['anchorpin', 1], ['wagonorder', 1]] },
     { id: 'board', door: 'keeper:hessle', label: 'HESSLE: nothing brought', note: 'His word, and the board read through the glass: the three bounties standing.' },
     { id: 'camp', label: 'THE CAMP\'S MORNING, on THE WORLD', note: 'The four hurt at Silverton\'s hex, a quiet night: CAMP, THE NIGHT, BEGIN THE NIGHT -- the same morning as the inn\'s.', world: true, hurt: true, spent: true, level: true, ring: true }
   ];

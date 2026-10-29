@@ -62,6 +62,18 @@
       return d3;
     };
   }
+  // the reward weapons (10-29, the difficulty seat, on Griz's "those 'in kind' magic items were meant to be discontinued in game 2"): quest=0 the four in their own weapons at
+  // any level (Barley's splint kept, unlike plain=1); quest=1 as the second game left them after one of Hessle's majors (the ettercap's fangs or the cloaker's tail, counter.js
+  // C.questWeapons until 10-29: the lead, Barley, and one other, Aurdin, a +1); quest=2 after both (all four a +1). Unset, the fixture's own: a +1 from 5, a +2 at 9
+  var qk = get('quest', '');
+  if (qk !== '') {
+    var fxq = D.save.fixture;
+    D.save.fixture = function (Lq, oq) {
+      var dq = fxq(Lq, oq), HQ = window.DS.DATA.heroes, armed = +qk === 1 ? ['barley', 'aurdin'] : +qk >= 2 ? ['barley', 'aurdin', 'vivian', 'lymen'] : [];
+      dq.party.forEach(function (h) { var d = HQ[h.id] || {}, rw = d.rewardWeapons || []; h.equip.weapon = armed.indexOf(h.id) >= 0 && rw[0] ? rw[0] : (d.equip && d.equip.weapon) || h.equip.weapon; });
+      return dq;
+    };
+  }
   // guests as the 8-bit game makes them (js/deep.js EV.addGuest): guests=ingrith,pyro
   var gl = get('guests', '');
   if (gl) { var fx0 = D.save.fixture; D.save.fixture = function (L2, o2) { var d0 = fx0(L2, o2); d0.guests = gl.split(',').map(function (id) { var R = window.DS.R, dd = window.DS.DATA.heroes[id], h = R.makeHero(id, dd.level); h.attacks = dd.attacks; h.resist = dd.resist; h.guest = true; h.surgeAI = !!dd.surgeAI; if (dd.healer) { h.healer = dd.healer; h.feats.heals = dd.healer; } h.key = id; return h; }); return d0; }; }
@@ -5281,8 +5293,9 @@
       gH = fireV(B, 'talk:hessle'); scH = D.top(); wH = readV(scH); driveV(gH, null, 200); var bU = unitV(B, 'barley'), cs = CV.state(B);
       okV('the four brought: paid at the scales (+' + (R0.silver - silH) + ' sp), renown ' + renH + ' to ' + HV.cur.renown + ', the flags (' + ['ettercapDone', 'cloakerDone', 'snootWord', 'orderWord'].filter(function (k) { return R0.flags[k]; }).join(', ') + '), the proofs gone, no bounty left on the board',
         R0.silver - silH === 1900 && HV.cur.renown === renH + 2 && R0.flags.ettercapDone && R0.flags.cloakerDone && R0.flags.snootWord && R0.flags.orderWord && ['ettercapfangs', 'cloakertail', 'anchorpin', 'wagonorder'].every(function (id) { return !CV.count(cs, id); }) && !/Standing bounties/.test(wH.join(' ')) && /gulch is quieter/.test(wH.join(' ')) && /FOR WHOEVER COMES BACK UP/.test(wH.join(' ')));
-      okV('the job pays in kind (EV.questWeapons): "' + wH.filter(function (l) { return /takes up|pays in kind/.test(l); }).join(' / ') + '" -- Barley in hand with ' + bU.src.equip.weapon + ' (was ' + bW0 + ', now in the pack), his figure regeared',
-        wH.some(function (l) { return /pays in kind/.test(l); }) && bU.src.equip.weapon === bRw && JSON.stringify(bU.weapon) !== bWU0 && CV.count(cs, bW0) === 1);
+      // (no weapon in kind since 10-29 -- RULED, Griz: "those 'in kind' magic items were meant to be discontinued in game 2"; the first game's EV.questWeapons keeps its own: bench8)
+      okV('no weapon in kind (10-29): ' + (wH.filter(function (l) { return /takes up|pays in kind/.test(l); }).join(' / ') || 'no such line') + ' -- Barley still in hand with ' + bU.src.equip.weapon + ' (was ' + bW0 + '; the +1 ' + bRw + ' nowhere), his figure as it was',
+        !wH.some(function (l) { return /takes up|pays in kind/.test(l); }) && bU.src.equip.weapon === bW0 && JSON.stringify(bU.weapon) === bWU0 && !CV.count(cs, bRw) && !CV.count(cs, bW0));
       R0.flags.fiveDone = 1; gH = fireV(B, 'talk:hessle'); scH = D.top(); wH = readV(scH); driveV(gH, null, 200); var fiveW = wH.join(' ');
       gH = fireV(B, 'talk:hessle'); scH = D.top(); wH = readV(scH); driveV(gH, null, 200);
       // (the council's word on the five only if the herd's council sat -- since 10-28, his "18 - yes, lantern warning same trigger as council meeting": mode=hours1028 -- here no herd thinned, so Hessle's plain word)
