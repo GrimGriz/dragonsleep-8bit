@@ -726,6 +726,31 @@ HEADs 7-11 (the town figure): 16-bit pixel art animation sheet, SNES-era action 
 ```
 Where: the Galleries' mouth (`wynn`). Cut as: `tools/portrait-sheet.py` (a `PEOPLE` line) into `pt_wynn`; `tools/keeper-town-sheet.py` into `wynn_p1` in all five views (HEAD 7 S, 8 SE, 9 E, 10 NE, 11 N; SW, W, NW their mirrors); js/counter.js C.VENDORS and C.FIG.
 
+### Ottak Harrow (added 10-29, the lanes desk: the council's farmer, a speaking part in cutscene 1)
+His word, 10-29, to the lanes desk's find that cutscene 1 (the council's night, "the scales are lit") seats him and gives him a line ("My farms are the first thing a gnoll sees. Post it twice.") with no portrait and no figure: *"Write his block"*. The register: `TarlynsPit/wiki/the-council.md` ("the river belt's most successful orc farmer"), `the-slave-economy.md` (persona CANON 09-10; the conveyance CANON 09-13c; his age, H-1, CANON 09-16). No portrait sheet has him, so the look is the seat's.
+ATTACH `deep16/_src/winters/ART-78/ART-78_HEAD-1_PAGE-1.png` and `ART-78_HEAD-1_PAGE-6.png` (the portrait pages' shape, for the format only, not the face) and `deep16/_src/art-desk/sent/REF-2026-10-21-town-figure-size.png` (the town figure's size).
+```text
+OTTAK HARROW -- an orc of seventy-seven, old for his kind but still hale: the river belt's most successful farmer and a seat on the town's council, owner of more slaves than anyone in the valley, who was himself once inherited property and was freed into his first field by a blood oath a priest vouched for. Broad and heavy-shouldered, a farmer's thick work-worn hands, grey-green skin weathered dark by the fields, short tusks, iron-grey hair cropped close, a lined, patient, calculating face [seat: the look]. Dressed as a landowner who still walks his own fields: a good wool coat, plain and well kept, a work shirt under it, no ornament [seat].
+
+HEAD 1 -- IDLE (6, two bands of three): a breathing and blink loop at the counter, hands resting on it; loops cleanly.
+HEAD 2 -- ATTENTIVE (1): neutral listening.
+HEAD 3 -- WELCOMING (1): restrained warmth.
+HEAD 4 -- SKEPTICAL (1): weighing the face in front of them.
+HEAD 5 -- CONCERNED (1): a guarded refusal.
+HEAD 6 -- WORK (6, two bands of three): rubs a pinch of wheat grain between thumb and fingers, looks at it, lets it fall; the last frame the hands back at rest.
+
+HEAD 7 -- THE TOWN FIGURE from the front, facing the viewer (south): Idle (4: standing at ease, a slow breath; the same pose on every frame but the breath).
+HEAD 8 -- THE TOWN FIGURE from the bottom-right, every frame facing toward the bottom-right corner of the image: Idle (4: standing at ease, a slow breath; the same pose on every frame but the breath).
+HEAD 9 -- THE TOWN FIGURE from the right side in profile, facing right: Idle (4: standing at ease, a slow breath; the same pose on every frame but the breath).
+HEAD 10 -- THE TOWN FIGURE from the top-right, seen from behind, every frame facing toward the top-right corner of the image: Idle (4: standing at ease, a slow breath; the same pose on every frame but the breath).
+HEAD 11 -- THE TOWN FIGURE straight from behind, facing away from the viewer: Idle (4: standing at ease, a slow breath; the same pose on every frame but the breath).
+
+HEADs 1-6 (the talking portrait): 16-bit pixel-art cut-scene portrait animation, comparable to the art desk's ART-78 (Ambrose Winters) and Sylvia Swann. Waist-up behind a plain dark wooden counter ledge, a stable eye-level three-quarter front camera, looking screen left at someone just beside the camera; the head and body the same size on every page as on the Idle page. Crisp pixel clusters and restrained shading. Flat dark navy background (a deep blue, not grey and not black). Each image 1440 x 810, ONE action an image, six-frame actions in two bands of three with clear gutters; the counter ledge under the hands on every frame, its top edge at the same height. A title and frame numbers as on ART-78's pages, kept well clear of the drawings. No scenery, no UI or border.
+
+HEADs 7-11 (the town figure): 16-bit pixel art animation sheet, SNES-era action RPG style, crisp dark outline, readable at small size. Isometric three-quarter view from above, the camera looking down at about thirty degrees, as in a tactics game -- the grid's own figures. The whole figure head to foot, the same size and proportions as the attached figures (a grown man stands about 50 pixels from sole to crown at game size; draw it large, the cutter brings it down). Flat dark navy background (a deep blue, not grey and not black). ONE sheet filling the whole image: no portrait, no other panels, no title. One labelled row of frames, its name at its left, numbered 1 to N under each frame -- every number used once, none skipped. Every frame stands apart with clear space around it. Feet on one baseline. No scenery, no counter.
+```
+Where: the council's long table on the Hex's third floor (`harrow`: `deep16/js/hours.js` H16.WHO and H16.TABLE); he speaks in the council's sittings, cutscene 1 first. Cut as: `tools/portrait-sheet.py` (a `PEOPLE` line) into `pt_harrow`; `tools/keeper-town-sheet.py` into `harrow_p1` in all five views (HEAD 7 S, 8 SE, 9 E, 10 NE, 11 N; SW, W, NW their mirrors); the council's sittings speak on `pt_harrow`.
+
 ### Talmok (a portrait only)
 ATTACH `deep16/_src/winters/ART-78/ART-78_HEAD-1_PAGE-1.png` and `ART-78_HEAD-1_PAGE-6.png` (the format only) and his own figure as the grid draws it (`deep16/art/talmok_p1.png`, for the face and look).
 ```text
