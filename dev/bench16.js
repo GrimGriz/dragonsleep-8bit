@@ -3589,6 +3589,7 @@
       var fkN = site('fork').hex, dF = Math.max(Math.abs(SN2.at[0] - fkN[0]), Math.abs(SN2.at[1] - fkN[1]), Math.abs(SN2.at[0] + SN2.at[1] - fkN[0] - fkN[1]));
       okN('and back to the fork\'s 5-mile hex from there: on the area (' + WN.M().key + ') at ' + SN2.at + ', ' + dF + ' of its hexes from the fork', WN.M().near && dF <= 2); HN2.DAYHEX = dayN;
       // the save keeps the map; a save from before stands on the area
+      HN2.cur.staged = false; // (as a NEW GAME's walk would save: ?world itself is a staged door since 10-30, its SAVE refused -- mode=staged1030)
       HN2.saveTo(1); var s1 = memN['deep16.game.1'] ? JSON.parse(memN['deep16.game.1']) : null;
       okN('SAVE on the area keeps its map (' + (s1 && s1.world.map) + ', at ' + (s1 && s1.world.at) + '), the slot\'s line says where (' + HN2.line(1, s1).l + ')', !!s1 && s1.world.map === 'near' && s1.world.at.join() === SN2.at.join());
       HN2.begin(HN2.read(1), 1); var SC = WN.state();
@@ -3810,7 +3811,7 @@
       var f0 = HH.fresh(), d8 = window.DS.DATA.heroes;
       okH('NEW GAME\'s four as the first game starts them: ' + f0.party.map(function (h) { return h.name + ' L' + h.lvl; }).join(', ') + '; ' + f0.silver + ' sp; the pack ' + f0.inv.map(function (s) { return s.id + ' x' + s.n; }).join(', '),
         f0.party.length === 4 && f0.party.every(function (h) { return h.lvl === d8[h.id].level; }) && f0.silver === (window.DS.DATA.config.startSilver || 10) && !f0.inv.some(function (s) { return s.id === 'lightcrossbow'; }));
-      HH.begin(f0, 0); var BH = enterTop(), RH0 = BH.roam, defH = D.roam.def, tkH = RH0.token;
+      f0.newGame = 1; HH.begin(f0, 0); var BH = enterTop(), RH0 = BH.roam, defH = D.roam.def, tkH = RH0.token;
       okH('in at Silverton\'s west gate (' + defH.name + ', the token at ' + tkH.x + ',' + tkH.y + '), THE WORLD under it (' + D.scenes.map(function (s) { return s.kind || s.constructor.name; }).join(' > ') + ')',
         defH.key === 'silverton' && tkH.x === defH.marks.gates.west[0] && tkH.y === defH.marks.gates.west[1] && D.scenes[0].kind === 'world' && D.roam.house());
       okH('the floor\'s four are the save\'s (' + RH0.members.map(function (u) { return u.id + ' ' + u.hp + '/' + u.maxhp; }).join(', ') + '), its pack the save\'s with no loan (' + (BH.inv || []).map(function (s) { return s.id; }).join(', ') + ')',
@@ -7228,6 +7229,46 @@
   // his word at his door on his face (his door has no room); ART-124 HEAD 3 cut into fountains_p1 (tools/toptiles-sheet.py fountains), the eight fountains' basins laid
   // whole by js/topview.js TV.basins round the squares js/town.js lays (T.FOUNT); its HEAD 2, the whole fountain, the same night on his "let's bundle wystan for when we
   // get the rest of the game to post snoot and cut the fountains", laid there in place of the built basin
+  // THE STAGED SHOWS REFUSE SAVE, 10-30 (mode=staged1030; js/house.js H.begin's staged, H.saveTo, Slots -- the house seat, RULED on Griz's "1 yes", relayed by the lanes desk):
+  // every game begun in no slot but NEW GAME's -- the Company's beats, the services, the house, the hours, the Wet, the floors, the cradle, ?world, a situation -- is staged and
+  // its SAVE refuses with the slot page's words; NEW GAME (CHOOSE WHO YOU ARE's opening) saves, and CONTINUE from what it saved saves again; his slots otherwise byte for byte
+  if (get('mode', '') === 'staged1030') {
+    var repSg = { checks: [], errors: [] }, memSg = {}, stGSg = D.store.get, stSSg = D.store.set, HSg = D.house, muSg = D.music;
+    function okSg(what, v) { repSg.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function topSg() { var s = D.top(); if (s && s.baking) { s.baking = false; s.enter(); } return s; }
+    function hisSg() { return JSON.stringify(Object.keys(memSg).filter(function (k) { return /^deep16\.game\.\d$/.test(k); }).sort().map(function (k) { return [k, memSg[k]]; })); }
+    D.store.get = function (k) { return memSg[k] ? JSON.parse(memSg[k]) : null; }; D.store.set = function (k, v) { memSg[k] = JSON.stringify(v); return true; };
+    window.DS.autoPicks = true; D.music = function () { };
+    try {
+      D.seed = +get('seed', 1030);
+      [1, 2, 3].forEach(function (n) { var r = HSg.fresh('aurdin'); r.saved = n; r.silver = 200 + n; memSg['deep16.game.' + n] = JSON.stringify(r); });
+      var his0Sg = hisSg(), CSg = D.counter, RSg = D.roam, MSg = D.mines;
+      var DOORS = [['?company (Vivian\'s beat)', function () { D.company.play(D.company.BEATS.filter(function (b) { return b.id === 'vivian'; })[0]); }],
+        ['?services', function () { CSg.servicePlay(CSg.SERVICE_BEATS[0]); }], ['?houseshow', function () { CSg.servicePlay(CSg.HOUSE_BEATS[0]); }],
+        ['?hoursshow', function () { CSg.servicePlay(D.hours.SHOW_BEATS[0]); }], ['?wetshow', function () { RSg.wetPlay(RSg.WET_BEATS[0]); }],
+        ['?isoshow', function () { MSg.isoPlay(MSg.ISO_BEATS[0]); }], ['?cradle', function () { D.cradle.play(D.cradle.BEATS[0], '', true); }],
+        ['?world', function () { HSg.worldDoor('?world&fresh&noenc'); }], ['?at=five16', function () { D.sit16.open('five16'); }]];
+      DOORS.forEach(function (d) {
+        HSg.playing = false; HSg.cur = null; while (D.scenes.length) D.pop();
+        try { d[1](); topSg(); } catch (e) { okSg(d[0] + ': the door threw ' + String(e).slice(0, 120), false); return; }
+        var sv = HSg.playing ? HSg.saveTo(1) : 'not begun', sl = new HSg.Slots('save'); if (HSg.playing) sl.pick(0);
+        okSg(d[0] + ': a staged game (' + (HSg.cur && HSg.cur.staged) + ', slot ' + HSg.slot + '): SAVE ' + sv + ', the slot page says "' + sl.msg + '"', HSg.playing && sv === false && /keeps no save/.test(sl.msg || '') && hisSg() === his0Sg);
+      });
+      okSg('his three slots byte for byte after the nine doors', hisSg() === his0Sg);
+      // NEW GAME's own (CHOOSE WHO YOU ARE's opening, js/company.js Opening.go) saves; CONTINUE from it saves again
+      HSg.playing = false; HSg.cur = null; while (D.scenes.length) D.pop();
+      D.company.Opening.prototype.go.call({ lead: 'barley' }); topSg();
+      var svN = HSg.saveTo(1), rN = HSg.read(1);
+      okSg('NEW GAME (Barley alone at the west gate): not staged (' + HSg.cur.staged + '), SAVE to slot 1 ' + svN + ' (' + (rN && rN.lead) + ')', svN === true && !!rN && rN.lead === 'barley' && !rN.staged && !rN.newGame);
+      HSg.playing = false; HSg.cur = null; while (D.scenes.length) D.pop();
+      new HSg.Slots('load').pick(0); topSg(); var svC = HSg.saveTo(1);
+      okSg('CONTINUE slot 1, then SAVE again: slot ' + HSg.slot + ', staged ' + HSg.cur.staged + ', SAVE ' + svC, HSg.slot === 1 && !HSg.cur.staged && svC === true);
+    } catch (eSg) { repSg.errors.push(String(eSg && eSg.stack || eSg).slice(0, 900)); }
+    HSg.playing = false; HSg.cur = null; D.store.get = stGSg; D.store.set = stSSg; D.music = muSg;
+    var preSg = document.createElement('pre'); preSg.id = 'out'; preSg.textContent = 'BENCH16 ' + JSON.stringify(repSg);
+    document.body.appendChild(preSg);
+    return;
+  }
   // THE SECOND GAME'S SITUATIONS FROM A LINK, 10-30 (mode=sit1030; deep16/js/situations16.js, js/house.js H.saveTo -- the house seat, started by the lanes desk on Griz's "yes to
   // both"): each situation's save built from its words -- the party, the level as the level-up makes it, the gear, the pack, the JOURNAL open and done, the pin and its step,
   // the place, THE WORLD's hour -- then opened as CONTINUE opens a slot: the floor, the house, the clock; SAVE refuses; and his slots, seeded, come out byte for byte

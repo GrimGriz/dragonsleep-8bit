@@ -60,6 +60,9 @@
   // a game begun or loaded: THE WORLD under it (its clock and hex the save's), and the town on top if that is where they stood
   H.begin = function (rec, slot, q) { // (q: the door's own words for THE WORLD -- &at=, &tiles, &noenc, &tops: H.worldDoor)
     H.cur = H.fill(rec); H.slot = slot || 0; H.playing = true;
+    // (a game begun in no slot by anything but NEW GAME -- a show staged by hand, a door such as ?world, a situation from a link -- is staged: SAVE refuses, and only NEW GAME
+    // and CONTINUE ever write his slots. RULED 10-30, Griz: "1 yes", to the house seat's "Should the staged shows' games ... refuse SAVE the same way?". rec.newGame: NEW GAME's own)
+    H.cur.staged = !slot && !rec.newGame; delete H.cur.newGame;
     DS.G = { flags: rec.flags }; // (the rules read the save's flags: js/rules.js R.cap)
     D.scenes.length = 0;
     D.push(D.world.make('?house' + (q ? '&' + String(q).replace(/^\?/, '') : '')));
@@ -562,7 +565,7 @@
   };
   // SAVE: the game into a slot, from where they stand (the town's square, or the world's hex)
   H.saveTo = function (n) {
-    if (!H.playing || H.cur.situation) return false; // (a situation from a link keeps no save: his slots are his -- js/situations16.js, 10-30)
+    if (!H.playing || H.cur.situation || H.cur.staged) return false; // (a situation from a link keeps no save: his slots are his -- js/situations16.js, 10-30)
     H.trail('save', 'slot ' + n); H.slot = n; H.cur.saved = Date.now(); H.cur.v = H.V;
     return D.store.set(H.key(n), H.cur);
   };
@@ -884,6 +887,7 @@
   Slots.prototype.pick = function (i) {
     var n = i + 1, rec = H.read(n);
     if (this.mode === 'save' && H.cur && H.cur.situation) { D.sfx('error'); this.msg = 'A situation keeps no save: its link starts it again.'; return; }
+    if (this.mode === 'save' && H.cur && H.cur.staged) { D.sfx('error'); this.msg = 'A staged game keeps no save: only NEW GAME and CONTINUE write your slots.'; return; }
     if (this.mode === 'save') { var ok = H.saveTo(n); D.sfx(ok ? 'confirm' : 'error'); this.msg = ok ? 'Saved to slot ' + n + '.' : 'The save would not keep (the browser is full?).'; this.closeIn = ok ? 50 : 0; return; }
     if (!rec) { D.sfx('error'); this.msg = 'Slot ' + n + ' is empty.'; return; }
     D.sfx('confirm'); H.begin(rec, n);
@@ -921,7 +925,7 @@
   Title.prototype.enter = function () { try { D.music('title'); } catch (e) { } H.playing = false; this.any = [1, 2, 3].some(function (n) { return !!H.read(n); }); if (!this.any && this.i === 1) this.i = 0; };
   Title.prototype.go = function (v) {
     var self = this;
-    if (v === 'new') { D.sfx('confirm'); if (D.company) { D.scenes.length = 0; D.push(D.company.pick()); } else H.begin(H.fresh(), 0); } // (CHOOSE WHO YOU ARE, the first game's lead pick: js/company.js)
+    if (v === 'new') { D.sfx('confirm'); if (D.company) { D.scenes.length = 0; D.push(D.company.pick()); } else { var nr = H.fresh(); nr.newGame = 1; H.begin(nr, 0); } } // (CHOOSE WHO YOU ARE, the first game's lead pick: js/company.js)
     else if (v === 'load') { if (!this.any) { D.sfx('error'); return; } D.sfx('confirm'); D.push(new Slots('load')); }
     else if (v === 'options') { if (!DS.MENU || !DS.MENU.openOptions) return; D.sfx('confirm'); this.pm = DS.MENU.openOptions({ close: function () { self.pm = null; } }); }
     else if (v === 'pocket') location.href = '?pocket';

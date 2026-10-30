@@ -274,7 +274,7 @@
   }
   Opening.prototype.box = function () { var w = 340, x = (D.W - w) / 2; return { x: x, y: 56, w: w, h: 150 }; }; // (narrow enough that the lead stands whole in the margin on its own page)
   Opening.prototype.btn = function () { var b = this.box(); return { x: b.x + b.w - 78, y: b.y + b.h - 22, w: 70, h: 15 }; };
-  Opening.prototype.go = function () { D.sfx('confirm'); H.begin(CO.startAt(H.fresh(this.lead)), 0); };
+  Opening.prototype.go = function () { D.sfx('confirm'); var nr = CO.startAt(H.fresh(this.lead)); nr.newGame = 1; H.begin(nr, 0); }; // (NEW GAME's own: its SAVE writes his slots -- js/house.js H.begin's staged)
   // where the lead starts: where their page puts them, not the west gate (10-28, Griz: "Aurdin should start near where the story says he slept. Vivian should start near her
   // mom's stall. Lymen in front of Urtusk and Barley near kess."): Aurdin where he stands outside Aldwin's chapel ("Aldwin's chapel floor was free"), Vivian before Marta's
   // stall, Lymen before Papa Urtusk at the Hex's front, Barley at the door of Kess's flop-cellars on the Shaft Rows -- each facing them (CO.stage's way: rec.at.sq)
