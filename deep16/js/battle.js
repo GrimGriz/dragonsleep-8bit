@@ -2261,6 +2261,7 @@
     else if (!o.oa) yield atk.spell && !melee ? Math.max(4, Math.round((D.spr.duration(att.sheet, att.anim) || 18) * 0.55) - (this.t - att.animT)) : relT ? this.unpace(Math.max(4, relT - (this.t - att.animT))) : 10;
     if (!melee) { FX.projectile(att, tgt, atk.fx || 'bolt'); yield { fx: 1 }; }
     var los = G.los(att, tgt), cover = melee && G.dist(att, tgt) <= 5 ? 0 : los.cover;
+    if (!melee && !atk.spell && cover === 2 && D.features && D.features.breathOn && D.features.breathOn(att)) cover = 0; // (Held Breath, a feat of ours: half cover ignored -- 10-30)
     if (att.conc && att.conc.id === 'calledtoaccount' && D.magic.accountedBy && G.hostile(att, tgt)) { var acT0 = D.magic.accountedBy(this, att); if (acT0 && acT0 !== tgt) D.magic.endConc(this, att, 'an attack at another'); } // (Called to Account ends: 10-30)
     var ac = RU.ac(tgt) + cover, e = RU.edges(att, tgt, atk);
     if (att.conds.upAdv && !atk.spell) delete att.conds.upAdv; // (the Threshing Floor's rise: its advantage on this, the first blow -- RU.startTurn, 10-30)
@@ -2437,6 +2438,7 @@
         parts.push('{p}sneak ' + RU.sneakDice(att) + ' ' + RU.fmtRolls(sn.rolls) + ' = ' + sn.total + '{/}');
       }
     }
+    if (!melee && !atk.spell && att.turn && !att.turn.breathHit && /d/.test(dice) && D.features && D.features.breathOn && D.features.breathOn(att)) { att.turn.breathHit = true; var hbD = D.roll('1' + String(dice).replace(/^\d*/, ''), { crit: crit }); dmg += hbD.total; parts.push('{c}held breath +' + hbD.total + '{/}'); } // (Held Breath's first hit: one more weapon die, 10-30)
     if (wide) { var wsB = 2 * (att.prof || 2); dmg += wsB; parts.push('{o}wide swing +' + wsB + '{/}'); } // (Follow-Through's: twice the proficiency bonus, 10-30)
     // the Drillyard's CALL THE MARK (ours, 10-30; js/features.js F.callMark): each friend's first hit on the marked one, 2 more damage, till the caller's next turn
     var cmk = tgt.conds.calledMark;

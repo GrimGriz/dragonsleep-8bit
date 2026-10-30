@@ -4623,6 +4623,43 @@
     document.body.appendChild(preB);
     return;
   }
+  // HELD BREATH (mode=breath1030; the leveling lane, 10-30 -- RULED, Griz: "take leveling's leans and it can start building"; leveling-srd-by-class.md 6.3): the feat
+  // of ours at DEX 13 (R.featWant: a prerequisite past STR, the pick says "wants DEX 13" nowhere it can't be taken); standing still, no disadvantage at long range, the
+  // first hit one more weapon die, the second none; after a step, long range counts again; Grappler still wants STR 13
+  if (get('mode', '') === 'breath1030') {
+    var repHb = { checks: [], errors: [] }, d0Hb = D.d, RHb = window.DS.R;
+    function okHb(what, v) { repHb.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function runHb(g) { var v, k = 0, st; while (g && k++ < 4000) { st = g.next(v); v = undefined; if (st.done) return; if (st.value && st.value.prompt) { var os = st.value.prompt.opts; v = os[os.length - 1].value; } } }
+    function plainHb(s) { return String(s).replace(/\{\/?[a-z]*\}/g, ''); }
+    var BOW = { name: 'Test Bow', atk: 7, dice: '1d8', mod: 3, type: 'piercing', ranged: true, range: [30, 120], props: ['ranged'] };
+    function mkHb(feat) {
+      var B = D.npcFight('?npc=goblin,goblin&lvl=5&vs=rogue:5', {}); D.battle = B; B.enter(); while (!B.order.length) B.co.next(); B.dark = false;
+      var u = B.units.filter(function (w) { return w.side === 'party'; })[0], gs = B.units.filter(function (w) { return w.side === 'foe'; }), g = gs[0], ok = false;
+      if (feat) u.src.featIds = ['heldbreath']; u.abil.dex = Math.max(u.abil.dex, 14); g.maxhp = g.hp = 999; g.conds = {}; gs[1].x = 1; gs[1].y = 1;
+      for (var y = 2; y < D.grid.map.h - 2 && !ok; y++) for (var x = 2; x < D.grid.map.w - 14 && !ok; x++) { var clear = true; for (var k = 0; k <= 12; k++) if (!D.grid.canStand(g, x + k, y)) clear = false; if (clear) { u.x = x; u.y = y; g.x = x + 12; g.y = y; ok = true; } }
+      D.grid.setup(B.map, B.units); D.rules.startTurn(u); B.active = u; return { B: B, u: u, g: g, ok: ok };
+    }
+    function shootHb(h) { D.d = function (n) { return n === 20 ? 19 : d0Hb(n); }; var n0 = (h.B.log || []).length; runHb(h.B.attack(h.u, h.g, BOW)); D.d = d0Hb; return (h.B.log || []).slice(n0).map(plainHb).join(' / '); }
+    try {
+      D.seed = 1030;
+      function offHb(h, id) { var rec = { lvl: h.lvl, asks: [{ kind: 'asi', need: 2, took: {} }] }; return RHb.pickRows(h, rec, rec.asks[0], { pages: true }).filter(function (r) { return r.feat === id; }).map(function (r) { return r.off || 'offered'; }).join(','); }
+      var hv = RHb.makeHero('vivian', 4); RHb.settlePicks(hv, null); hv.abil.dex = 16; var o16 = offHb(hv, 'heldbreath'); hv.abil.dex = 12; var o12 = offHb(hv, 'heldbreath');
+      var hb = RHb.makeHero('barley', 4); RHb.settlePicks(hb, null); hb.abil.str = 12; var gr12 = offHb(hb, 'grappler');
+      okHb('the pick: a rogue at DEX 16 "' + o16 + '", at DEX 12 "' + o12 + '"; Grappler at STR 12 "' + gr12 + '"; R.featWant says "' + RHb.featWant({ abil: { str: 10, dex: 12, con: 10, int: 10, wis: 10, cha: 10 } }, RHb.FEATS.heldbreath, {}) + '"',
+        o16 === 'offered' && o12 === '' && gr12 === 'wants STR 13' && RHb.featWant({ abil: { str: 10, dex: 12, con: 10, int: 10, wis: 10, cha: 10 } }, RHb.FEATS.heldbreath, {}) === 'wants DEX 13');
+      var h1 = mkHb(true), e1 = D.rules.edges(h1.u, h1.g, BOW), h0 = mkHb(false), e0 = D.rules.edges(h0.u, h0.g, BOW);
+      h1.u.turn.moved = 5; var e1m = D.rules.edges(h1.u, h1.g, BOW); h1.u.turn.moved = 0;
+      okHb('long range at 60 ft (placed ' + h1.ok + '): with the feat, standing, dis ' + JSON.stringify(e1.dis) + '; without it ' + JSON.stringify(e0.dis) + '; with it after a step ' + JSON.stringify(e1m.dis),
+        h1.ok && e1.dis.indexOf('long range') < 0 && e0.dis.indexOf('long range') >= 0 && e1m.dis.indexOf('long range') >= 0);
+      var s1 = shootHb(h1), s2 = shootHb(h1), s0 = shootHb(h0);
+      okHb('the first hit "' + (s1.match(/[^/]*held breath \+\d+[^/]*/) || [''])[0].trim().slice(0, 80) + '"; the second ' + (/held breath/.test(s2) ? 'again' : 'none') + '; without the feat ' + (/held breath/.test(s0) ? 'one' : 'none'),
+        /held breath \+\d/.test(s1) && !/held breath/.test(s2) && !/held breath/.test(s0));
+    } catch (e) { repHb.errors.push(String(e && e.stack || e)); }
+    D.d = d0Hb;
+    var preHb = document.createElement('pre'); preHb.id = 'out'; preHb.textContent = 'BENCH16 ' + JSON.stringify(repHb);
+    document.body.appendChild(preHb);
+    return;
+  }
   // CALLED TO ACCOUNT (mode=account1030; the leveling lane, 10-30 -- RULED, Griz: "take leveling's leans and it can start building"; leveling-srd-by-class.md 6.5): the
   // paladin's hold of ours -- on the paladin's list (last); a failed WIS save, the mark and the concentration; the goblin's hit on the fighter costs it radiant, its hit on
   // the paladin nothing; 2d8 from a 2nd-level slot; a save made, no mark; the paladin's blow at another ends it; a turn ended more than 30 ft away ends it
@@ -4974,7 +5011,7 @@
       var hV2 = heroLc('vivian', 10), recV2 = { lvl: 4, asks: [{ kind: 'asi', need: 2, took: { dex: 2 } }] }; hV2.picks = [recV2]; RLc.pendSync(hV2);
       var pmV = window.DS.MENU.openPicks({ party: function () { return [hV2]; }, close: function () { } }, [hV2], {}, function () { }), pgV = pmV && pmV.top(), gV = pgV && pgV.groups[0];
       var rowsV = gV ? gV.rows.map(function (r) { return r.name; }) : null;
-      okLc('Vivian\'s page, its SCORES rows: ' + JSON.stringify(rowsV) + ' -- the six scores, no feat', rowsV && rowsV.length === 6 && !rowsV.some(function (n) { return /FEAT/.test(n); }));
+      okLc('Vivian\'s page, its SCORES rows: ' + JSON.stringify(rowsV) + ' -- the six scores, no fighter\'s feat (ours by her scores may show: Held Breath at DEX 13, 10-30)', rowsV && rowsV.slice(0, 6).join() === 'STR,DEX,CON,INT,WIS,CHA' && !rowsV.some(function (n) { return /SYMMETRIC|GRAPPLER/.test(n); }));
       // a feat already on a sheet stays (nothing built is cut): R.hasFeat reads it whatever the class
       hV2.featIds = ['symmetric']; okLc('a feat a sheet holds still reads (R.hasFeat ' + (RLc.hasFeat ? RLc.hasFeat(hV2, 'symmetric') : 'n/a') + ')', !RLc.hasFeat || RLc.hasFeat(hV2, 'symmetric'));
     } catch (e) { repLc.errors.push(String(e && e.stack || e)); }

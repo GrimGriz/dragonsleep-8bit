@@ -17,6 +17,9 @@
   var DS = window.DS = window.DS || {};
   var G1 = 'Eyes: first', G2 = 'Eyes: built this week', G3 = 'Eyes: built before, never seen';
   DS.EYES = {
+    'eyes-heldbreath-1030': { pri: 1, group: G2, title: 'Held Breath, a feat of ours: a shot from where you stand, long range no trouble, one more die (10-30)', pt: 'the leveling lane, his "take leveling\'s leans and it can start building" (js/rules.js R.FEATS.heldbreath, R.featWant; deep16/js/battle.js, rules.js) · eyes',
+      look: 'The FEATURES shelf: a rogue with the feat and a bow shoots without a step -- the first hit reads "held breath +" one more die. In the Pocket DM, MAKE a rogue of DEX 13 or more to level 4: THE LEVEL\'s scores offer HELD BREATH (FEAT); below DEX 13 it is not there. In a fight, a shot at long range from where you stood reads no "long range" -- take a step first and it does.',
+      url: 'deep16/?gallery&shelf=features&feature=heldbreath&only=heldbreath&fresh=1030i' },
     'eyes-calledtoaccount-1030': { pri: 1, group: G2, title: 'Called to Account, the paladin\'s hold of ours: radiant for harming anyone but the paladin (10-30)', pt: 'the leveling lane, his "draft for the two mentioned" (deep16/js/grimoire.js E.calledtoaccount; deep16/js/battle.js) · eyes',
       look: 'The SPELLS shelf: CALLED TO ACCOUNT at a foe -- its WIS save, "ANSWERABLE" on a failure. In the Pocket DM, MAKE a paladin: its 1st-level spells offer Called to Account; in a fight, the called foe that strikes a friend reads "CALLED TO ACCOUNT: ... answers for it N radiant", one that strikes the paladin reads nothing, and the paladin swinging at another ends it.',
       url: 'deep16/?gallery&shelf=spells&spell=calledtoaccount&fresh=1030h' },

@@ -340,6 +340,9 @@
     // Follow-Through (ours, 10-30 -- the leveling lane, leveling-srd-by-class.md 6.3; RULED, Griz: "take leveling's leans and it can start building"): the role of the PHB's
     // Great Weapon Master, ours -- the heavy blow's carry and the WIDE SWING (deep16/js/battle.js, features.js). `second`: the second game's alone, never on the first game's pick
     followthrough: { name: 'Follow-Through', str: 13, cls: [], any: true, second: true, desc: 'With a heavy melee weapon: a blow that drops a creature carries the damage past its last hit point to another foe within reach. Once a turn, before a swing, WIDE SWING: a hit deals twice your proficiency bonus more; a miss puts your next attack this turn at disadvantage. (STR 13.)' },
+    // Held Breath (ours, 10-30 -- leveling-srd-by-class.md 6.3; the role of the PHB's Sharpshooter): not having moved yet this turn, ranged weapon attacks ignore half cover
+    // and long range, and the first to hit deals one more weapon die (deep16/js/battle.js, rules.js RU.edges). DEX 13: a prerequisite past STR (R.featWant)
+    heldbreath: { name: 'Held Breath', dex: 13, cls: [], any: true, second: true, desc: 'Not having moved yet this turn: your ranged weapon attacks this turn ignore half cover and take no disadvantage at long range, and the first that hits deals one more weapon die. (DEX 13.)' },
     grappler: { name: 'Grappler', str: 13, cls: ['fighter'], any: true, desc: 'Advantage on attack rolls against a creature you are grappling. PIN: your action, another grapple check -- won, you and it are both restrained till the grapple ends. (STR 13.)', grid: 'It acts in the grid\'s fights, where a hero grapples.' }
   };
   R.featIds = function () { return Object.keys(R.FEATS); };
@@ -348,7 +351,13 @@
     var f = R.FEATS[id]; if (!f) return false;
     if (f.second && !window.D16) return false; // (a feat of the second game: the first game's pages load no grid, and its pick never shows one -- 10-30)
     if (!f.cls || f.cls.indexOf(h.cls) >= 0) return true;
-    return !!f.any && !(f.str && h.abil.str - ((took && took.str) || 0) < f.str);
+    return !!f.any && !R.featWant(h, f, took);
+  };
+  // a feat's prerequisites, read on the scores before this increase (`took`): '' when met, else what it wants -- 'wants DEX 13'. Any score a feat names (10-30: past STR,
+  // for the feats of ours -- the leveling lane's shared step)
+  R.featWant = function (h, f, took) {
+    var miss = R.ABIL.filter(function (k) { return f[k] && h.abil[k] - ((took && took[k]) || 0) < f[k]; })[0];
+    return miss ? 'wants ' + miss.toUpperCase() + ' ' + f[miss] : '';
   };
   R.asiLevels = function (cls) { return R.ASI_AT[cls] || R.ASI_AT._; };
   // the picks in a word (the Pocket DM's cards carry a hero's picks into the fight's URL, 10-14): '+^' + level + a letter for the kind + ':' + the values --
@@ -434,8 +443,8 @@
       var base = h.abil[k] - ((took && took[k]) || 0);
       return { id: k, name: k.toUpperCase(), score: base, max: Math.max(0, Math.min(2, 20 - base)), off: base >= 20 ? 'already 20' : '' };
     }).concat(R.featIds().filter(function (id) { return R.featOn(h, id, took); }).map(function (id) { // (a feat in place of the increase: worth both marks; its prerequisite read on the scores before this increase -- 10-15; its class's own only, 10-29)
-      var f = R.FEATS[id], had = (h.featIds || []).indexOf(id) >= 0 && !(took && took.feat === id), str = h.abil.str - ((took && took.str) || 0);
-      return { id: 'feat:' + id, feat: id, name: f.name.toUpperCase() + ' (FEAT)', desc: f.desc + (f.grid && o.pages ? ' ' + f.grid : ''), max: 1, worth: 2, off: had ? 'taken already' : f.str && str < f.str ? 'wants STR ' + f.str : '' }; // (o.pages: the 8-bit's pick says where Grappler acts)
+      var f = R.FEATS[id], had = (h.featIds || []).indexOf(id) >= 0 && !(took && took.feat === id);
+      return { id: 'feat:' + id, feat: id, name: f.name.toUpperCase() + ' (FEAT)', desc: f.desc + (f.grid && o.pages ? ' ' + f.grid : ''), max: 1, worth: 2, off: had ? 'taken already' : R.featWant(h, f, took) }; // (o.pages: the 8-bit's pick says where Grappler acts)
     }));
     if (ask.kind === 'expertise') {
       var have = (d.expertise || []).concat((h.expertise || []).filter(function (x) { return (took || []).indexOf(x) < 0; }));

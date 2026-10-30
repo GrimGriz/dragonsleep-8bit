@@ -975,6 +975,9 @@
   // ------------------------------------------------------------------ the feat Follow-Through (ours, 10-30 -- js/rules.js R.FEATS.followthrough; the role of the PHB's
   // Great Weapon Master): with a heavy melee weapon, the blow that drops a foe carries its excess on (battle.js), and WIDE SWING, once a turn before a swing, free -- a hit
   // twice the proficiency bonus more, a miss the next attack that turn at disadvantage. The class AI swings wide when the blow is near sure (TX.FIRST)
+  // the feat Held Breath (ours, 10-30 -- js/rules.js R.FEATS.heldbreath): on while the hero has not moved this turn (turn.moved); battle.js and rules.js read it
+  F.heldBreath = function (u) { var h = u && u.src; return !!(h && window.DS.R.hasFeat(h, 'heldbreath') && (u.abil || h.abil).dex >= 13); };
+  F.breathOn = function (u) { return F.heldBreath(u) && !!u.turn && !(u.turn.moved > 0); };
   F.followThrough = function (u) { var h = u && u.src; return !!(h && window.DS.R.hasFeat(h, 'followthrough') && (u.abil || h.abil).str >= 13); };
   F.heavyInHand = function (u) { return !!(u && u.weapon && !u.weapon.ranged && (u.weapon.props || []).indexOf('heavy') >= 0); };
   F.wideSwing = function (B, u) { u.conds.wideSwing = true; u.turn.wideDone = true; D.sfx('crit'); B.card(['{o}' + u.name + ' winds up a wide swing.{/}  {g}(a hit: ' + 2 * (u.prof || 2) + ' more; a miss: the next attack this turn at disadvantage){/}'], 200); };
