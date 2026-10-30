@@ -1716,7 +1716,7 @@
       if (m.tab === 'style' && !stl) m.tab = 'weapon';
       // the class's options beside the style, each from its level (10-14, the level-up pick: "Pocket has leveling choices" -- js/classes.js NPC.OPTIONS): the
       // sorcerer's metamagic, the warlock's invocations and pact, the druid's land; the one the sheet stands with lit (the class's own until one is picked)
-      var opts = (NPC.OPTIONS[m.cls] || []).filter(function (o) { return m.lvl >= o.at && (!o.sub || o.sub === m.sub); }), od = opts.filter(function (o) { return o.key === m.tab; })[0];
+      var opts = (NPC.OPTIONS[m.cls] || []).filter(function (o) { return m.lvl >= o.at && (!o.sub || o.sub === (m.sub || ((NPC.CLASSES[m.cls] || {}).sub || [])[1])); } /* (an archetype's own: none picked yet is the class's own, the SRD's -- 10-30) */), od = opts.filter(function (o) { return o.key === m.tab; })[0];
       if (!od && ['weapon', 'armor', 'shield', 'alt', 'style'].indexOf(m.tab) < 0) m.tab = 'weapon';
       var tabs = [['weapon', 'WEAPON'], ['armor', 'ARMOUR'], ['shield', 'SHIELD'], ['alt', 'SECOND WEAPON']].concat(stl ? [['style', 'STYLE']] : []).concat(opts.map(function (o) { return [o.key, o.word]; })), tw = tabs.length > 4 ? Math.floor(450 / tabs.length) : 110;
       tabs.forEach(function (tb, i) { self.btn(ctx, tb[1], 20 + i * tw, y, tw - 6, 13, function () { m.tab = tb[0]; self.scroll = 0; }, { on: m.tab === tb[0], small: true }); });
