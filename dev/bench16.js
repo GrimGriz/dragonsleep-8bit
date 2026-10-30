@@ -6405,6 +6405,12 @@
       D.push(D.roam.make('?roam=wet&hour=9')); var BT = topQ(); BT.roam.fights = (BT.roam.fights || 0) + 1; driveQ(MQ.tick(BT), null, 40); var hT = MQ.hourNow(D.roam.q, BT);
       okQ('the Wet\'s test door (&hour=9): a fight, ' + hT, hT === 9.25);
       while (D.scenes.length) D.pop();
+      // 0b. THE WALK INTO THE DAWN (his eyes row's door, eyes-walk-dawn-1030): the mouth camp at 04:00 with 480 of the hour's 500 squares walked (&walked=), night; twenty squares on, dawn
+      D.push(D.roam.make('?roam=warrens&hour=4&walked=480&at=15,10')); var BD = topQ(), n0D = !!D.roam.def.night, stD = 0;
+      for (var sD = 0; sD < 40 && MQ.hourNow(D.roam.q, BD) < 5; sD++) { var toD = openQ(BD, 1); if (!toD) break; walkQ(BD, toD); stD++; }
+      var hD = MQ.hourNow(D.roam.q, BD);
+      okQ('the walk into the dawn (?roam=warrens&hour=4&walked=480): night at 04:00 (' + n0D + '), ' + stD + ' squares on ' + hD + ':00 ' + WQ.todAt(hD) + ', the night\'s wash off (' + D.roam.def.night + ')', n0D && stD === 20 && hD === 5 && WQ.todAt(hD) === 'dawn' && D.roam.def.night === false);
+      while (D.scenes.length) D.pop();
       // 1. IN A GAME: Silverton at 21:00, then the stalls' stair down (M.go, as the stalls' warp takes it), the Wet on THE WORLD's clock
       HQ.begin(HQ.fresh(), 0); var BS = topQ(), SQ = WQ.state(); SQ.t = Math.floor(SQ.t / 24) * 24 + 21;
       driveQ(MQ.go(BS, 'wet', [2, 12], MQ.FACE.right), function () { return D.roam.def && D.roam.def.wet === true && D.top() && D.top().roam; }, 400); var BW = topQ(), dW = D.roam.def, RW = BW && BW.roam;

@@ -1010,7 +1010,7 @@
   var W8tod = function (h) { return D.world && D.world.todAt ? D.world.todAt(h) : (h < 5 || h >= 20 ? 'night' : 'day'); };
   M.night = function (h) { return W8tod(h) === 'night'; };
   // the hour now: THE WORLD's clock under the house (or a door from THE WORLD), else the test door's own (&hour=, kept on the floor as it passes)
-  M.hourNow = function (q, B) { var W = D.world, S = W && W.state && W.state(); if (S && S.t != null && D.house && D.house.playing) return W.hour(); var R0 = B && B.roam, m = /[?&]hour=(\d+)/.exec(q || ''); return R0 && R0.hour != null ? R0.hour : m ? (+m[1]) % 24 : M.SEEP.dayHour; };
+  M.hourNow = function (q, B) { var W = D.world, S = W && W.state && W.state(); if (S && S.t != null && D.house && D.house.playing) return W.hour(); var R0 = B && B.roam, m = /[?&]hour=(\d+(?:\.\d+)?)/.exec(q || ''); return R0 && R0.hour != null ? R0.hour : m ? (+m[1]) % 24 : M.SEEP.dayHour; }; // (&hour=21.25: a test door's hour to the minute, as a crossing carries a fight's quarter -- M.cross, 10-30)
   // the first game's shape of a map (M.floor reads it as it reads theirs) for the hour: the crew where the hour puts them, the bog's fights by day or by night, by night the dark and its lights
   M.seepMap = function (hour) {
     var nt = M.night(hour), lights = [{ id: 'seepfire', kind: 'map', x: M.SEEP_FIRE[0], y: M.SEEP_FIRE[1], bright: 10, dim: 10, color: 'fire', flame: true, seep: true }];
@@ -1109,7 +1109,9 @@
   M.tick = function* (B) {
     var R0 = B.roam, def = D.roam.def, iso = M.isoFloor(def), C = (M.FLOORS[def.key] || {}).rate || (def.clock ? M.SEEP : null), hrs = 0;
     if (!iso && C) { R0.clockSq = (R0.clockSq || 0) + 1; if (R0.clockSq >= C.squaresPerHour) { R0.clockSq = 0; hrs++; } }
-    else if (!iso) { R0.hourFt = (R0.hourFt || 0) + (def.ft || 30); if (R0.hourFt >= M.walkFt()) { R0.hourFt -= M.walkFt(); hrs++; } }
+    else if (!iso) {
+      if (R0.hourFt == null) { var wk = /[?&]walked=(\d+)/.exec(D.roam.q || ''); R0.hourFt = wk ? (+wk[1]) * (def.ft || 30) : 0; } // (&walked=N on a test door: N squares of the hour walked already -- the walk into the next hour shown, 10-30)
+      R0.hourFt = (R0.hourFt || 0) + (def.ft || 30); if (R0.hourFt >= M.walkFt()) { R0.hourFt -= M.walkFt(); hrs++; } }
     if ((R0.fights || 0) > (R0.clockFights || 0)) { hrs += ((R0.fights || 0) - (R0.clockFights || 0)) * ((C && C.fightHours) || (D.world && D.world.FIGHT_HOURS) || 0.25); R0.clockFights = R0.fights; }
     if (hrs) yield* M.pass(B, hrs);
   };
