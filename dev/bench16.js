@@ -4163,7 +4163,7 @@
       var B8 = newHw('barley'); beatHw(B8); var nr8 = near(B8, 'papa'), due8 = HWw.due(B8), sc8 = due8 ? scene(B8) : { lines: [] }, j8 = jHw(B8), c8 = beatHw(B8), fw8 = qHw(B8, 'work');
       okHw('Barley\'s party at the Hex\'s door (' + nr8 + ', due ' + due8 + '): ' + sc8.lines.length + ' lines, Lymen beside Papa ' + sc8.lymen + ' and gone in after (' + !B8.units.some(function (u) { return u.npc === 'lymenDoor'; }) + ') -- "' + (sc8.lines[1] || '').slice(0, 60) + '..."; the JOURNAL ' + j8.join(', ') + ', pinned ' + CHw.journal(B8).pin + '; the card "' + String(c8).slice(0, 80) + '"',
         due8 && sc8.lymen && !B8.units.some(function (u) { return u.npc === 'lymenDoor'; }) && /^LYMEN: Gnolls on the road/.test(sc8.lines[1]) && sc8.lines.some(function (l) { return /Barley/.test(l); }) === false && sc8.lines.some(function (l) { return /Marta's girl/.test(l) && /farm boy/.test(l); })
-          && j8.join(',') === 'company,work' && CHw.journal(B8).pin === 'company' && /In your JOURNAL: Company/.test(c8) && /And: Finding Work/.test(c8) && /Winters' papers.*Hessle's board.*cradles.*Korvin's slate/.test(fw8 && fw8.text));
+          && j8.join(',') === 'company,work' && CHw.journal(B8).pin === 'work' && /In your JOURNAL: Finding Work/.test(c8) && /Pinned/.test(c8) && B8.saidHw.some(function (s) { return /In your JOURNAL: Company/.test(s) && !/Pinned/.test(s); }) /* (10-30, his "gives two missions? the one to winters to appear second and be left active": a card each, Finding Work second and pinned) */ && /Winters' papers.*Hessle's board.*cradles.*Korvin's slate/.test(fw8 && fw8.text));
       okHw('and the Company\'s NEXT one of the three (' + String(qHw(B8, 'company').where).slice(0, 50) + '...); the scene once (due again ' + HWw.due(B8) + ')', !!qHw(B8, 'company').where && !HWw.due(B8));
       // 9. Lymen leading: Lymen himself at the door -- no second Lymen; Papa's "Then go and find some." and the three named
       var B9 = newHw('lymen'); beatHw(B9); near(B9, 'papa'); var sc9 = HWw.due(B9) ? scene(B9) : { lines: [] };
@@ -4194,7 +4194,7 @@
       var B9d = newHw('lymen'); delete CHw.state(B9d).flags.qSeen; near(B9d, 'papa'); /* (as the show's door stands it: no first look yet -- the live tab had papaLymen and no qSeen) */ var due9d = HWw.due(B9d), nx9d = HWw.next && HWw.next.play === HWw.papaScene, sc9d = due9d ? scene(B9d) : { lines: [] };
       var flew9d = 0, fly9d = HWw.fly; HWw.fly = function* () { flew9d++; yield* fly9d.apply(this, arguments); }; var c9d = beatHw(B9d); HWw.fly = fly9d;
       okHw('a scene on the floor\'s first beat (Lymen beside Papa, no beat before it: Papa\'s next ' + nx9d + ', ' + sc9d.lines.length + ' lines): then the card "' + String(c9d || '').slice(0, 60) + '", the fly-in ' + flew9d + ' time(s)',
-        due9d && nx9d && sc9d.lines.length >= 5 && /In your JOURNAL: Company/.test(c9d || '') && flew9d === 1);
+        due9d && nx9d && sc9d.lines.length >= 5 && /In your JOURNAL: Finding Work/.test(c9d || '') && B9d.saidHw.some(function (s) { return /In your JOURNAL: Company/.test(s); }) && flew9d === 2); /* (the two cards, each its fly-in) */
       // 10. THE PEOPLE BESIDE EACH LEAD'S START: Aldwin (Aurdin's), Marta (Vivian's), Kess (Barley's) -- each opens Finding Work with their own place first
       var B10 = newHw('aurdin'); beatHw(B10); driveHw(THw.fire(B10, trigHw('chapel:aldwin')), null, 2000); var al = RHw.def.room === 'chapel:aldwin' ? talkHw(B10, 'aldwin') : []; driveHw(THw.goOut(B10), null, 400);
       var fw10 = qHw(B10, 'work'), c10 = beatHw(B10);

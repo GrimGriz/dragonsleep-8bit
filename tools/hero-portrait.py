@@ -29,18 +29,21 @@ ART = os.path.join(ROOT, 'deep16', 'art')
 W = 80                            # px wide at game size: the counter screen's hero box, inside its frame (js/counter.js HB)
 MASK_D = 22
 CORNER = (0, 0, 460, 300)         # where the bust is drawn on the 1536 x 1024 page
-# look: (pages' folder, ART id, the figure sheet it goes with, mirror)
+# look: (pages' folder, ART id, the figure sheet it goes with, mirror[, the page, where it is not the first grid page[, the box the bust is found in, where not CORNER]])
 LOOKS = {
     'aurdin_red': ('aurdin/ART-73', 'ART-73', 'aurdin_p3', True),      # the Red Mantle (out of robes: his start)
     'aurdin_ochre': ('aurdin/ART-72', 'ART-72', 'aurdin_p2', True),    # the Ochre Mantle (in robes)
+    # Barley in his coat: the bust on ART-75's identity page, not its first grid page (10-30, Griz with the page in the lanes desk's chat: "we should have this for barley
+    # somewhere, or this could be cut" -- for the company scene, js/hours.js H16.papaScene, Lymen's line to him); his mail (ART-109) has no bust page
+    'barley_coat': ('barley/ART-75', 'ART-75', 'barley_p2', True, 'ART-75_IDENTITY_PAGE-1.png', (0, 0, 525, 610)), # (the 1774 x 887 page: the bust to its collar, clear of the turnaround)
 }
 
 
-def bust(a):
+def bust(a, corner=None):
     """the bust's mask over the page: the biggest piece in CORNER and the pieces touching its box"""
     navy = np.median(a.reshape(-1, 3)[::97], axis=0)
     m = ndimage.binary_opening(np.abs(a - navy).max(-1) > MASK_D, structure=np.ones((3, 3)))
-    x0, y0, x1, y1 = CORNER
+    x0, y0, x1, y1 = corner or CORNER
     c = np.zeros_like(m); c[y0:y1, x0:x1] = m[y0:y1, x0:x1]
     lab, n = ndimage.label(c, structure=np.ones((3, 3)))
     if not n:
@@ -74,12 +77,12 @@ def blush(px, rgb):
 
 
 def cut(look):
-    folder, art, fig, mirror = LOOKS[look]
-    fs = glob.glob(os.path.join(SRC, folder, '%s_16BIT_HEAD-1_PAGE-1.png' % art))
+    folder, art, fig, mirror = LOOKS[look][:4]; page = LOOKS[look][4] if len(LOOKS[look]) > 4 else '%s_16BIT_HEAD-1_PAGE-1.png' % art
+    fs = glob.glob(os.path.join(SRC, folder, page))
     if not fs:
         raise SystemExit('no first page in %s' % os.path.join(SRC, folder))
     a = np.asarray(Image.open(fs[0]).convert('RGB')).astype(np.int32)
-    m = bust(a)
+    m = bust(a, LOOKS[look][5] if len(LOOKS[look]) > 5 else None)
     ys, xs = np.where(m); y0, y1, x0, x1 = ys.min(), ys.max() + 1, xs.min(), xs.max() + 1
     rgba = np.zeros((y1 - y0, x1 - x0, 4), np.uint8); rgba[..., :3] = a[y0:y1, x0:x1]; rgba[..., 3] = m[y0:y1, x0:x1] * 255
     if mirror:
@@ -93,7 +96,7 @@ def cut(look):
     Image.fromarray(px, 'RGBA').save(os.path.join(ART, 'pt_%s.png' % look), optimize=True)
     meta = {'image': 'art/pt_%s.png' % look, 'fw': fw, 'fh': fh, 'ax': fw // 2, 'ay': fh, 'top': fh, 'portrait': True, 'still': True, 'figure': fig, 'art': art,
             'anims': {'idle': {'y': 0, 'fw': fw, 'fh': fh, 'ax': fw // 2, 'ay': fh, 'frames': 1, 'fps': 1}},
-            'source': 'deep16/_src/%s/%s_16BIT_HEAD-1_PAGE-1.png (the art desk\'s %s, its portrait), cut by tools/hero-portrait.py%s' % (folder, art, art, ', mirrored' if mirror else '')}
+            'source': 'deep16/_src/%s/%s (the art desk\'s %s, its portrait), cut by tools/hero-portrait.py%s' % (folder, page, art, ', mirrored' if mirror else '')}
     json.dump(meta, open(os.path.join(ART, 'pt_%s.json' % look), 'w'), indent=1)
     print('  pt_%s: %dx%d, from %dx%d page px (%.2f a game px)%s' % (look, fw, fh, x1 - x0, y1 - y0, 1 / k, ', mirrored' if mirror else ''))
     return px

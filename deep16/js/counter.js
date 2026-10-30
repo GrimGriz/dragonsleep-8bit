@@ -545,7 +545,7 @@
     ctx.lineTo(bx + 12, by); ctx.lineTo(Math.round(tx - 6), py); ctx.lineTo(bx, by); ctx.lineTo(x + 4, by); ctx.lineTo(x + 0.5, y + h - 4); ctx.lineTo(x + 0.5, y + 4); ctx.closePath();
     ctx.fill(); ctx.stroke();
   }
-  C.blush = function (ctx, cx, cy, a) { if (!(a > 0)) return; ctx.save(); ctx.fillStyle = 'rgba(255,96,120,' + (0.42 * a).toFixed(3) + ')'; [-1, 1].forEach(function (s) { ctx.beginPath(); ctx.ellipse(Math.round(cx + s * 10), Math.round(cy), 6, 3, 0, 0, Math.PI * 2); ctx.fill(); }); ctx.restore(); };
+  C.blush = function (ctx, cx, cy, a, k, spread) { if (!(a > 0)) return; k = k || 1; spread = spread || 10; ctx.save(); ctx.fillStyle = 'rgba(255,96,120,' + (0.42 * a).toFixed(3) + ')'; [-1, 1].forEach(function (s) { ctx.beginPath(); ctx.ellipse(Math.round(cx + s * spread * k), Math.round(cy), 6 * k, 3 * k, 0, 0, Math.PI * 2); ctx.fill(); }); ctx.restore(); };
   // ---------------------------------------------------------------- THE OPEN SCREEN (o.open: the company scene's alone, js/hours.js H16.papaScene -- 10-30, Griz on the pane:
   // "can we lose the boxes around the characters and jam the edge of their textbox so their portrait overlaps it?", "this one is special for being wordy and outside, council
   // is good until further notice", "extend the top textbox wider and allow fewer lines. Move urtusk more top right, make him smaller a little bit if necessary. run lymens text
@@ -563,6 +563,7 @@
   C.OPEN = { under: 24, cps: 1.6, papa: { s: 0.8, right: 478, top: 2 }, words: { x: 8, y: 34, h: 56 }, hero: { left: 2, drop: 40 }, narr: { w: 300, h: 66 }, pause: 30, blush: 20, faceZoom: 3 };
   C.OPEN.heroS = function () { var R = Math.max(1, Math.round(D.R || 1)); return Math.max(1, (2 * R - 1) / R); };
   C.MOUTH = { pt_lymen: [42, 25] }; // (where a hero portrait's mouth is on its frame: the bubble's pointer aims there)
+  C.CHEEKS = { pt_barley_coat: [41, 54, 10] }; // (a portrait's cheeks on its frame as cut -- the middle, the height, half the spread: where C.blush goes)
   Counter.prototype.narr = function (lines) { return { say: [].concat(lines), narr: true }; };
   C.drawPortraitAt = function (ctx, name, anim, frame, x, y, s) {
     if (!s || s === 1) return C.drawPortrait(ctx, name, anim, frame, x, y);
@@ -641,12 +642,18 @@
       // the party's lead bottom right, the hero's size, facing in (his portrait mirrored, or his figure's face zoomed and turned): Lymen's line to him, and Papa's after
       var ld = w.leadHero, showLd = ld && (w.lead === true || (w.lead === 'after' && since >= O.pause));
       if (showLd) {
-        var lpt = C.heroPortrait(ld), lsh = lpt && D.SHEETS[lpt], LW = Math.round((hsh ? hsh.fw : 77) * hs), LH = Math.round((hsh ? hsh.fh : 71) * hs), lx = D.W - 2 - LW, ly = Math.round(hfoot - (hsh ? hsh.ay : 68) * hs);
+        var lpt = C.heroPortrait(ld), lsh = lpt && D.SHEETS[lpt] && D.spr.has(lpt) ? D.SHEETS[lpt] : null, ref = lsh || hsh; // (his own size where he has a portrait, else the hero's)
+        // (the largest crisp zoom, no more than the hero's, at which he fits between the keeper's name and the strip, his cut edge on the strip)
+        var R1 = Math.max(1, Math.round(D.R || 1)), lfoot = D.H - 14, lfit = (lfoot - (C.openGeo(this).foot + 19)) / (ref ? ref.fh : 71), ls = Math.max(1, Math.min(hs, Math.floor(lfit * R1) / R1));
+        if (R1 > 1) ls = Math.min(hs, Math.max(1 / R1, Math.floor(lfit * R1) / R1));
+        var LW = Math.round((ref ? ref.fw : 77) * ls), LH = Math.round((ref ? ref.fh : 71) * ls), lx = D.W - 2 - LW, ly = Math.round(lfoot - (ref ? ref.ay : 68) * ls);
+        if (lpt && !lsh && D.SHEETS[lpt] && !D.spr.offline) D.spr.load(D.SHEETS[lpt].image);
         ctx.save(); ctx.translate(lx + LW, 0); ctx.scale(-1, 1); // (mirrored: looking left, at Lymen and Papa)
-        if (lsh) C.drawPortraitAt(ctx, lpt, 'idle', 0, lsh.ax * hs, hfoot, hs);
+        if (lsh) C.drawPortraitAt(ctx, lpt, 'idle', 0, lsh.ax * ls, lfoot, ls);
         else { ctx.beginPath(); ctx.rect(0, ly, LW, Math.max(0, D.H - 14 - ly)); ctx.clip(); var F0 = C.HERO_FACE, z0 = F0.zoom; F0.zoom = O.faceZoom; C.drawHeroFace(ctx, ld, 0, ly, LW, LH, this.t); F0.zoom = z0; }
         ctx.restore();
-        if (w.blush || (w.lead === 'after' && since >= O.pause + O.blush)) C.blush(ctx, lx + LW / 2, ly + LH * 0.42, Math.min(1, w.blush ? 1 : (since - O.pause - O.blush) / 20)); // (code-drawn: his "maybe a code-drawn blush on barley")
+        var ck = lsh && C.CHEEKS[lpt], bx0 = ck ? lx + LW - ck[0] * ls : lx + LW / 2, by0 = ck ? ly + ck[1] * ls : ly + LH * 0.42; // (mirrored: his cheeks counted from the right)
+        if (w.blush || (w.lead === 'after' && since >= O.pause + O.blush)) C.blush(ctx, bx0, by0, Math.min(1, w.blush ? 1 : (since - O.pause - O.blush) / 20), ls, ck ? ck[2] : 10); // (code-drawn: his "maybe a code-drawn blush on barley")
         C.nameTag(ctx, ld.name, lx + LW / 2, D.H - 28);
       }
     }
@@ -662,7 +669,7 @@
   // a hero's portrait by the figure the hero wears (js/save.js SV.look): the big bust on the first page of the art desk's package, a still (tools/hero-portrait.py;
   // 10-22, Griz: "The first page of the characters stuff was supposed to have a big one, if you can find that use the one based on the outfit he's in") --
   // Aurdin's Red Mantle out of robes, his Ochre in them
-  C.HERO_PT = { aurdin_p3: 'pt_aurdin_red', aurdin_p2: 'pt_aurdin_ochre', lymen_p0: 'pt_lymen', lymen_p1: 'pt_lymen' }; // (Lymen's talking portrait, art-wanted §33, cut mirrored to sit bottom left: the company scene, js/hours.js H16.papaScene, 10-30)
+  C.HERO_PT = { aurdin_p3: 'pt_aurdin_red', aurdin_p2: 'pt_aurdin_ochre', lymen_p0: 'pt_lymen', lymen_p1: 'pt_lymen', barley_p2: 'pt_barley_coat' }; // (Lymen's talking portrait, art-wanted §33, cut mirrored to sit bottom left: the company scene, js/hours.js H16.papaScene, 10-30)
   C.heroPortrait = function (h) { var pt = C.HERO_PT[C.heroSheet(h)]; return pt && D.SHEETS && D.SHEETS[pt] ? pt : null; };
   // a hero with no portrait: the figure the hero wears on the floor, turned to the keeper (south-east), head and shoulders at HERO_FACE.zoom, breathing in its idle
   C.HERO_FACE = { facing: 7, zoom: 3, anim: 'idle', above: 4 }; // (at 2 the whole figure shows small; at 3 the head and the mantle: the seat's eye, 10-22)

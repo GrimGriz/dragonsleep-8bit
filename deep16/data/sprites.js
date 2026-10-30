@@ -11900,6 +11900,30 @@ true
 "door": "keeper:barber",
 "source": "deep16/_src/barber/ART-85 (the art desk's ART-85, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
 },
+"pt_barley_coat": {
+"image": "art/pt_barley_coat.png?v=ad5f4f94a2",
+"fw": 80,
+"fh": 83,
+"ax": 40,
+"ay": 83,
+"top": 83,
+"portrait": true,
+"still": true,
+"figure": "barley_p2",
+"art": "ART-75",
+"anims": {
+"idle": {
+"y": 0,
+"fw": 80,
+"fh": 83,
+"ax": 40,
+"ay": 83,
+"frames": 1,
+"fps": 1
+}
+},
+"source": "deep16/_src/barley/ART-75/ART-75_IDENTITY_PAGE-1.png (the art desk's ART-75, its portrait), cut by tools/hero-portrait.py, mirrored"
+},
 "pt_brennan": {
 "image": "art/pt_brennan.png?v=32a1aed5d3",
 "fw": 167,

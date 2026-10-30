@@ -191,6 +191,18 @@
     var R = D.roam, st = C.state(B), f = st.flags, nu = H16.fresh(st), live = C.quests(st).filter(function (q) { return q.id === f.pin && !q.done; })[0], lines = [], pinned = false;
     nu.forEach(function (q) { f['q:' + q.id] = 1; });
     var open = nu.filter(function (q) { return !q.done; }); if (!open.length) return;
+    // one card a mission, in the order a scene gave them, the one it wants left active pinned (10-30, his "gives two missions? the one to winters to appear second and be left
+    // active", on Papa's at the Hex's door: the Company, then Finding Work -- Winters' papers its first -- pinned; f.cardEach, H16.papaScene)
+    if (f.cardEach) {
+      var ord = f.cardEach, pinId = f.pinWant; delete f.cardEach; delete f.pinWant; var at = function (q) { var i = ord.indexOf(q.id); return i < 0 ? 99 : i; };
+      open.sort(function (a, b) { return at(a) - at(b); }); if (!pinId || !open.some(function (q) { return q.id === pinId; })) pinId = open[open.length - 1].id;
+      for (var k = 0; k < open.length; k++) {
+        var q1 = open[k], ls = [H16.LINES.opened.replace('{name}', q1.name), q1.text];
+        if (q1.id === pinId) { f.pin = q1.id; ls.push(D.keys ? D.keys(H16.LINES.pinned) : H16.LINES.pinned); }
+        B.card(R.wrap(ls), 480); B.cards.pop(); yield* H16.fly(B, R.wrap(ls));
+      }
+      return;
+    }
     if (f.pinWant) { var pw = f.pinWant; delete f.pinWant; open.sort(function (a, b) { return (b.id === pw) - (a.id === pw); }); if (open[0].id === pw) live = null; } // (a mission given to be pinned -- the council's ask, H16.COUNCIL.looks -- pinned over what was)
     if (!live) { f.pin = open[0].id; pinned = true; }
     lines.push(H16.LINES.opened.replace('{name}', open[0].name), open[0].text);
@@ -328,6 +340,7 @@
     } });
     D.push(sc); while (!sc.done) yield 1;
     ['work:winters', 'work:board', 'work:cradles', 'work:slate'].forEach(function (k) { C.flagOn(st, k); });
+    f.cardEach = ['company', 'work']; f.pinWant = 'work'; // (the two cards in turn, Finding Work left active: H16.missionCard)
     if (ly && ly !== t) { B.units = B.units.filter(function (u) { return u !== ly; }); G.setup(G.map, B.units); B.card(R.wrap([P.inside]), 200); }
     B.focus(t); yield 10;
   };
