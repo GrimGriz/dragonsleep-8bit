@@ -1104,7 +1104,7 @@
     FX.float('pushed ' + moved * 5 + ' ft', w, D.PAL.ramps.silver[5]);
     if (fell) {
       var ftF = Math.floor(fell / st) * 2.5, tlF = G.map.at(w.x, w.y), wet = !!(tlF && tlF.ch === '~'), fdF = D.roll(Math.max(1, Math.floor(ftF / (wet ? 20 : 10))) + 'd6'); // (into water, as the shove's: the dice for every 20 ft)
-      if (!w.noProne && !RU.immuneTo(w, 'prone')) w.conds.prone = true;
+      if (!w.noProne && !RU.immuneTo(w, 'prone') && !(D.features && D.features.holdGround && D.features.holdGround(B, w, 'prone'))) w.conds.prone = true;
       B.card(['{o}' + (w.side === 'foe' ? 'The ' + B.shortName(w) : w.name) + ' goes over the edge: ' + ftF + ' ft, ' + fdF.total + ' bludgeoning' + (wet ? ' -- the water took the rest' : '') + ', and lands prone.{/}'], 240);
       B.hurt(w, fdF.total, 'bludgeoning', {});
     }

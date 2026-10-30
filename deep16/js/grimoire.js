@@ -215,14 +215,14 @@
     if (M.zoneShut(B, g, u, how)) return false; // (inside a globe the grease was cast from outside of: nothing to slip on)
     var sv = RU.save(u, 'dex', g.dc);
     B.card([Nm(B, u) + ' ' + how + ': DEX ' + RU.saveText(sv) + ' vs DC ' + g.dc + '  ' + (sv.ok ? '{n}keeps their feet{/}' : '{o}down{/}')], 240);
-    if (!sv.ok) u.conds.prone = true;
+    if (!sv.ok && !(D.features && D.features.holdGround && D.features.holdGround(B, u, 'prone'))) u.conds.prone = true; // (HOLD GROUND, the Aura of Deep Roots: js/features.js F.holdGround, 10-30)
     return !sv.ok;
   }
   // Command's word, at the start of the commanded one's turn (SRD 5.1)
   function commandTurn(B, u, word) {
     var T = u.turn, src = null;
     if (word === 'halt') { T.move = 0; T.action = 0; T.bonus = 0; T.attacksLeft = 0; T.lost = 'halts'; B.card(['{p}' + Nm(B, u) + ' HALTS: no move, no action.{/}'], 300); }
-    else if (word === 'grovel') { u.conds.prone = true; T.move = 0; T.action = 0; T.bonus = 0; T.lost = 'grovels'; B.card(['{p}' + Nm(B, u) + ' GROVELS: face down, the turn gone.{/}'], 300); }
+    else if (word === 'grovel') { if (!(D.features && D.features.holdGround && D.features.holdGround(B, u, 'prone'))) u.conds.prone = true; T.move = 0; T.action = 0; T.bonus = 0; T.lost = 'grovels'; B.card(['{p}' + Nm(B, u) + ' GROVELS: face down, the turn gone.{/}'], 300); }
     else if (word === 'drop') { // (SRD 5.1: "drops whatever it is holding and then ends its turn" -- 10-06: the turn went on; one it gripped goes free, as the 8-bit's DROP)
       u.conds.disarmed = { till: { who: u.id, at: 'end', n: 1 } }; T.move = 0; T.action = 0; T.bonus = 0; T.attacksLeft = 0; T.lost = 'drops';
       B.units.forEach(function (w) { var r = w.conds.restrained; if (r && r.by === u.id && r.grapple) B.release(u, w); });
@@ -853,6 +853,14 @@
     return r;
   };
   M.accountedBy = accountedBy;
+  // a called foe's spell that harms anyone but its caller: the radiant once a cast, however many it harms (battle.js hurt; an attack's own is battle.js attack's -- 10-30, the
+  // leveling lane's F, the seat's call: one cast, one answer)
+  M.accountAnswer = function (B, u, n) {
+    var cs = B.units.filter(function (w) { return w.id === B.castBy; })[0], acc = cs && cs.conds.accounted;
+    if (!acc || cs === u || u.id === acc.by || cs.dead || cs.hp <= 0 || n <= 0 || acc.cast === B.castN) return;
+    acc.cast = B.castN; var r = D.roll(acc.dice);
+    B.card(['  {y}CALLED TO ACCOUNT{/}: ' + nm(B, cs) + ' answers for the spell  {y}' + r.total + ' radiant{/}'], 220); FX.ring(cs, 'gold', 20); B.hurt(cs, r.total, 'radiant', { magic: true });
+  };
   E.inflictwounds = {
     summary: function (e, u) { return 'touch: melee spell attack · ' + dice(e.sp, u, e.slot) + ' necrotic'; },
     cast: function* (B, u, t, slot, head, x) { yield* spellAttack(B, u, t, x.sp, x.g, dice(x.sp, u, slot)); },
@@ -2461,6 +2469,7 @@
     // a spell used again (its geometry says `free`: the next bolt, the next swing) is cast, as far as the globe is concerned, from where it was FIRST cast -- not from where
     // the caster has walked to since; any other cast from the square he stands on
     var ex0 = M.EFFECT && M.EFFECT[id], g1 = ex0 && ex0.geo ? ex0.geo(B, u, M.geo(id)) : null, org = g1 && g1.free ? M.castOrigin(B, u, g1) : u;
+    B.castN = (B.castN || 0) + 1; // (each cast its own count: Called to Account answers once a cast, M.accountAnswer -- 10-30)
     B.castLevel = sp && sp.level != null ? sp.level : null; B.castFrom = { x: org.x, y: org.y, gin: org.gin || M.ginOf(B, org) }; B.castBy = u.id; // (gin: the globes it is cast inside of -- 10-01c)
     ZONE_KEEPS.forEach(function (k) { before[k] = (B[k] || []).slice(); });
     (B.units || []).forEach(function (w) { Object.keys(w.conds || {}).forEach(function (k) { var c = w.conds[k]; if (c && typeof c === 'object') condsBefore.push(c); }); var sh = w.gshelf; if (sh) Object.keys(sh.recs).forEach(function (k) { var c = sh.recs[k].r; if (c && typeof c === 'object') condsBefore.push(c); }); }); // (and what a globe holds off it: not this cast's)

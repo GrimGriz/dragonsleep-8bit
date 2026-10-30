@@ -4848,6 +4848,42 @@
     document.body.appendChild(preRc);
     return;
   }
+  // THE SMALL ONES (mode=smallones1030; the leveling lane §8 F, 10-30): item 17 -- a card's feat word reads the prerequisite (a fighter's Hold the Thread refused, a wizard's
+  // kept); HOLD GROUND and the Aura of Deep Roots against a fall's prone (a flier brought down beside a Green Return paladin of the 7th: no prone; at the 6th, prone); Called to
+  // Account's radiant on a called foe's spell that harms another -- once a cast (a Burning Hands and a Fire Bolt each answered once)
+  if (get('mode', '') === 'smallones1030') {
+    var repSo = { checks: [], errors: [] }, d0So = D.d;
+    function okSo(what, v) { repSo.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function runSo(g) { var v, k = 0, st; while (g && k++ < 40000) { st = g.next(v); v = undefined; if (st.done) break; if (st.value && st.value.prompt) v = st.value.prompt.opts[0].value; } }
+    function fightSo(q) { var B = D.npcFight(q, {}); D.battle = B; B.enter(); while (!B.order.length) B.co.next(); B.dark = false; return B; }
+    try {
+      D.seed = 1030;
+      var spF = D.npc.spec('fighter:4'); spF.picks = { 4: { asi: { feat: 'holdthethread' } } }; var hF = D.npc.sheet(spF);
+      var spW = D.npc.spec('wizard:4'); spW.picks = { 4: { asi: { feat: 'holdthethread' } } }; var hW = D.npc.sheet(spW);
+      okSo('item 17: a card\'s word for Hold the Thread -- a fighter\'s feats ' + JSON.stringify(hF.featIds || []) + ', a wizard\'s ' + JSON.stringify(hW.featIds || []), (hF.featIds || []).indexOf('holdthethread') < 0 && (hW.featIds || []).indexOf('holdthethread') >= 0);
+      // a flier brought down beside a Green Return paladin of the 7th, and of the 6th
+      var fall = function (lvl) {
+        var B = fightSo('?npc=goblin&lvl=' + lvl + '&vs=paladin:' + lvl + ',fighter:' + lvl), ps = B.units.filter(function (w) { return w.side === 'party'; }), p = ps.filter(function (w) { return w.cls === 'paladin'; })[0], f = ps.filter(function (w) { return w !== p; })[0];
+        p.subclass = 'the Oath of the Green Return'; f.x = p.x + 1; f.y = p.y; if (!D.grid.canStand(f, f.x, f.y)) f.x = p.x - 1; D.grid.setup(B.map, B.units);
+        f.fz = D.grid.groundAt(f, f.x, f.y) + 4 * D.grid.map.def.step; f.conds = {}; B.flyFall(f, 'brought down'); return !!f.conds.prone;
+      };
+      var pr7 = fall(7), pr6 = fall(6);
+      okSo('a flier brought down beside the Aura of Deep Roots: prone at the 7th ' + pr7 + ', at the 6th ' + pr6 + ' (want false, true)', !pr7 && pr6);
+      // Called to Account on a called wizard's spells at the fighter
+      var acct = function (id, slot, tgt) {
+        var B = fightSo('?npc=wizard:5&lvl=5&vs=paladin:5,fighter:5'), w = B.units.filter(function (x) { return x.side === 'foe'; })[0], ps = B.units.filter(function (x) { return x.side === 'party'; }), p = ps.filter(function (x) { return x.cls === 'paladin'; })[0], f = ps.filter(function (x) { return x !== p; })[0];
+        f.maxhp = f.hp = 999; w.maxhp = w.hp = 999; w.conds = { accounted: { by: p.id, dice: '1d8' } }; w.x = f.x + 2; w.y = f.y; if (!D.grid.canStand(w, w.x, w.y)) w.x = f.x - 2; D.grid.setup(B.map, B.units); D.rules.startTurn(w); B.active = w;
+        var n0 = (B.log || []).length; D.d = function (k) { return k === 20 ? 17 : d0So(k); }; runSo(D.magic.cast(B, w, id, slot, tgt === 'sq' ? { x: f.x, y: f.y } : f)); D.d = d0So;
+        var l = (B.log || []).slice(n0).join(' / '); return { n: (l.match(/CALLED TO ACCOUNT/g) || []).length, hurt: f.hp < 999 };
+      };
+      var a1 = acct('firebolt', 0), a2 = acct('burninghands', 1, 'sq');
+      okSo('a called wizard\'s Fire Bolt at the fighter: answered ' + a1.n + ' (the fighter hurt ' + a1.hurt + '); its Burning Hands: answered ' + a2.n + ' (hurt ' + a2.hurt + ') (want 1 each)', a1.n === 1 && a1.hurt && a2.n === 1 && a2.hurt);
+    } catch (e) { repSo.errors.push(String(e && e.stack || e)); }
+    D.d = d0So;
+    var preSo = document.createElement('pre'); preSo.id = 'out'; preSo.textContent = 'BENCH16 ' + JSON.stringify(repSo);
+    document.body.appendChild(preSo);
+    return;
+  }
   // THE FIRST BATCH'S FOUR FEATS (mode=firstfeats1030; the leveling lane §8 E, 10-30, his "approve all in the side by side"; leveling-srd-by-class.md 2.3): their prerequisites
   // past one score (INT, WIS or CHA; spellcasting; Lay on Hands); HOLD THE THREAD keeps a failed concentration for the lowest slot no higher than the spell's, and not without a
   // slot or the feat; UNTEMPLED's half pool at the Pocket DM's short rest and the sheet's; SUDDEN DARK puts out a floor torch and a goblin's torch, the bonus action spent;

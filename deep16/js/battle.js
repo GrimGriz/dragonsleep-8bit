@@ -2541,7 +2541,7 @@
     if (!tgt.dead) this.hurt(tgt, dmg, atk.type, blowSrc);
     // Called to Account (ours, 10-30 -- grimoire.js): the one called, harming anyone but its caller, takes the radiant
     var acc = att.conds && att.conds.accounted, dealtAC = dmg + fire + rad + ext + xtra.reduce(function (a, x) { return a + x[0]; }, 0);
-    if (acc && tgt.id !== acc.by && dealtAC > 0 && !att.dead) { var acR = D.roll(acc.dice); this.card(['  {y}CALLED TO ACCOUNT{/}: ' + nameOf(att) + ' answers for it  {y}' + acR.total + ' radiant{/}'], 220); FX.ring(att, 'gold', 20); this.hurt(att, acR.total, 'radiant', { magic: true }); }
+    if (acc && tgt.id !== acc.by && dealtAC > 0 && !att.dead && !(this.castLevel != null && this.castBy === att.id)) { /* (a spell's attack: answered once a cast by M.accountAnswer, below in hurt) */ var acR = D.roll(acc.dice); this.card(['  {y}CALLED TO ACCOUNT{/}: ' + nameOf(att) + ' answers for it  {y}' + acR.total + ' radiant{/}'], 220); FX.ring(att, 'gold', 20); this.hurt(att, acR.total, 'radiant', { magic: true }); }
     if ((tgt.dead || tgt.hp <= 0) && tgt.conds.gnawed) { var gwC = this.units.filter(function (w) { return w.id === tgt.conds.gnawed.by; })[0]; delete tgt.conds.gnawed; if (gwC && gwC.conc && gwC.conc.id === 'gnawingword') D.magic.endConc(this, gwC, 'the gnawed one fell'); } // (Gnawing Word ends when it drops)
     // Follow-Through's carry (a feat of ours, 10-30 -- js/features.js F.followThrough): a heavy melee blow that drops it carries what went past its last hit point on to
     // another foe within reach, the weakest -- no roll, once
@@ -3022,6 +3022,7 @@
   // damage lands: a flash, a number, and at 0 a hero goes down (and can be brought back), a foe dies
   Battle.prototype.hurt = function (u, n, type, src) { // (src: { magic: true } when the blow is magical -- a spell, a magic weapon, a monster's magical attacks)
     if (n <= 0) return;
+    if (this.castBy != null && this.castLevel != null && D.magic.accountAnswer) D.magic.accountAnswer(this, u, n); // (Called to Account: a called foe's spell that harms another -- js/grimoire.js, 10-30)
     u.woken = true; // (the cloaker hangs as a cloak till it takes damage: ui.js unitObj)
     // Freeze (the water elemental, SRD 5.1: "If the elemental takes cold damage, it partially freezes; its speed is reduced by 20 feet until the end of its next turn" -- grimoire.js onStart)
     if (u.freeze && type === 'cold' && !u.dead) { var fz = !u.conds.frozen; u.conds.frozen = { till: { who: u.id, at: 'end', n: this.active === u ? 2 : 1 } }; if (fz) this.card(['{c}The ' + shortName(u) + ' partially freezes:{/} {g}its speed 20 ft less till the end of its next turn{/}'], 200); }
@@ -3200,7 +3201,7 @@
     var onC = this.under(u), fd = ft >= 10 ? D.roll(Math.floor(ft / 10) + 'd6') : null;
     this.card(['{o}' + nameOf(u) + ' falls ' + ft + ' ft from the air (' + why + ')' + (onC.length ? ' onto ' + onC.map(nameOf).join(' and ') + (fd ? ': ' + fd.total + ' bludgeoning,' : ',') + ' and lands prone.' : (fd ? ': ' + fd.total + ' bludgeoning, and lands prone.' : ', and lands prone.')) + '{/}'], 260);
     if (onC.length) this.landOn(u, ft, null, { srd: true }); // (those under: shoved out, unhurt -- landOn's `srd`; the faller's whole fall below)
-    if (!u.noProne && !RU.immuneTo(u, 'prone')) u.conds.prone = true;
+    if (!u.noProne && !RU.immuneTo(u, 'prone') && !(D.features && D.features.holdGround && D.features.holdGround(this, u, 'prone'))) u.conds.prone = true; // (HOLD GROUND, the Aura of Deep Roots, 10-30)
     if (fd) this.hurt(u, fd.total, 'bludgeoning', { fall: true });
   };
   // a clinging climber hit (10-04 night, Griz: "SRD say anything about clinging climbers, cause I think dex saving throws on damage..." -- the SRD 5.1 has nothing for a climber; a flier
@@ -3240,11 +3241,11 @@
       var w = under[i], to = Battle.shoveSq(w, u);
       this.card(['{o}' + nameOf(u) + ' comes down on ' + nameOf(w) + (fd ? ': ' + half + ' of the ' + fd.total + ' bludgeoning' : '') + ' -- ' + nameOf(w) + ' is shoved out from under' + (srd ? '' : ', flat') + (to ? ', to the nearest open square.' : ', with nowhere to go.') + '{/}'], 260); D.sfx('hit');
       if (half) this.hurt(w, half, 'bludgeoning', { fall: true });
-      if (!srd && !w.noProne && !RU.immuneTo(w, 'prone')) w.conds.prone = true;
+      if (!srd && !w.noProne && !RU.immuneTo(w, 'prone') && !(D.features && D.features.holdGround && D.features.holdGround(this, w, 'prone'))) w.conds.prone = true;
       if (to) { w.tween = { fx: w.x, fy: w.y, fz: G.gzAt(w, w.x, w.y), t: 0, dur: this.pace(STEP_FRAMES + 4, true) }; w.x = to[0]; w.y = to[1]; w.anim = 'idle'; this.forced(w); }
     }
     if (under.length && rest > 0) this.hurt(u, rest, 'bludgeoning', { fall: true }); // (the faller's half)
-    if (under.length && !u.noProne && !RU.immuneTo(u, 'prone')) u.conds.prone = true; // (and the faller lands prone too, by the SRD's Falling -- Griz, 10-05 evening: "the giant should still prone")
+    if (under.length && !u.noProne && !RU.immuneTo(u, 'prone') && !(D.features && D.features.holdGround && D.features.holdGround(this, u, 'prone'))) u.conds.prone = true; // (and the faller lands prone too, by the SRD's Falling -- Griz, 10-05 evening: "the giant should still prone")
     return under;
   };
   // the nearest open square to w along the ground (a ring at a time), the far side of u first
