@@ -1,0 +1,46 @@
+{
+ "_readme": {
+  "what": "Playtest feedback from situations.html: one verdict and note a row -- an eyes row (js/eyes.js: built, not yet seen) or a story situation (?at=<id>, js/situations.js).",
+  "fold_back": "Fold every eyes row noted here that is still live in js/eyes.js (a folded row is already cut, so nothing folds twice; previous_save and new_since_last_save only hint at what is new -- RULED 10-15); a story situation note folds when its `at` is after the save of the last ear file folded. An eyes row noted at all is SEEN: a `seen` line in PATCHLOG.md with the note verbatim, and the row cut from js/eyes.js whatever the verdict (a fix that wants another look writes a fresh row). Broken and unclear become the fix list (in the lane its pt names); too hard / too easy are tuning; notes are the tester's words, verbatim."
+ },
+ "saved_at": "2026-10-30T00:02:30.307Z",
+ "previous_save": null,
+ "items": [
+  {
+   "id": "eyes-mouth-night-1029n",
+   "eyes": true,
+   "pri": 1,
+   "title": "Silverton at night, out by the feed track: the Warrens' mouth camp at night too (10-29 night)",
+   "pt": "the clock lane, 10-29 night, his \"Silverton at night = morning in warrens by the time you get there?\" (deep16/js/mines.js THE SKY OVER THE MOUTHS, M.skyAt, M.paintSky, M.cross) · eyes",
+   "url": "deep16/?roam=silverton&hour=23&at=77,10&fresh=1029n",
+   "verdict": "works",
+   "note": "",
+   "at": "2026-10-29T23:55:21.846Z",
+   "new_since_last_save": true
+  },
+  {
+   "id": "eyes-troughs-arches-1029n",
+   "eyes": true,
+   "pri": 1,
+   "title": "The fountains' troughs one square by one, and the Edifice's foot with no black arches (10-29 night)",
+   "pt": "the second game's house lane, 10-29 night items 1 and 2, his ear file of 2212Z (js/town.js T.TROUGH; js/topview.js TV.edStrip) · eyes",
+   "url": "deep16/?roam=silverton&at=30,7&fresh=1029n",
+   "verdict": "works",
+   "note": "dunno why those arches are even there, but they are successfully not black entrance-looking things now\nif there's ever another revision, see 'skylights' battlemap. the hole under the glass is centered with the doors and the waterfall ends at the back of the edifice and wouldn't be visible from that view (leave it unless we edit something else's tiles in towns)",
+   "at": "2026-10-29T23:58:33.613Z",
+   "new_since_last_save": true
+  },
+  {
+   "id": "eyes-keeper-lever-1028",
+   "eyes": true,
+   "pri": 1,
+   "title": "The Keeper at level 3 from the ledge, played again: AC 13 in the deep, no free swing on his walk deeper (10-28)",
+   "pt": "the difficulty lane §2.8 / §2b.11, your “Take the leans” (deep16/js/keeper.js K.CFG.deepAC 13, K.CFG.lureSafe)",
+   "url": "deep16/?keeperfight&lvl=3&start=ledge&log&fresh=28k",
+   "verdict": "unclear",
+   "note": "Didn't finish the difficulty check, but his water level got lowered - the top 4 stairs don't seem to be flooded. His idle is terrible bouncy, art department mentioned a request I'll prioritize",
+   "at": "2026-10-30T00:02:09.915Z",
+   "new_since_last_save": true
+  }
+ ]
+}
