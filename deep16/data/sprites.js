@@ -14365,6 +14365,98 @@ true
 "door": "shop:lucia",
 "source": "deep16/_src/lucia/ART-110 (the art desk's ART-110, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
 },
+"pt_lymen": {
+"image": "art/pt_lymen.png?v=360bb59827",
+"fw": 77,
+"fh": 71,
+"ax": 36,
+"ay": 68,
+"top": 68,
+"portrait": true,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 77,
+"fh": 71,
+"ax": 36,
+"ay": 68,
+"frames": 6,
+"fps": 3,
+"ledge": [
+false,
+false,
+false,
+false,
+false,
+false
+]
+},
+"attentive": {
+"y": 71,
+"fw": 77,
+"fh": 71,
+"ax": 36,
+"ay": 68,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"welcoming": {
+"y": 142,
+"fw": 77,
+"fh": 71,
+"ax": 36,
+"ay": 68,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"skeptical": {
+"y": 213,
+"fw": 77,
+"fh": 71,
+"ax": 36,
+"ay": 68,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"concerned": {
+"y": 284,
+"fw": 77,
+"fh": 71,
+"ax": 36,
+"ay": 68,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+},
+"earnest": {
+"y": 355,
+"fw": 77,
+"fh": 71,
+"ax": 36,
+"ay": 68,
+"frames": 1,
+"fps": 1,
+"ledge": [
+false
+]
+}
+},
+"art": "ART-MC-LYMEN-PORTRAIT",
+"door": "the company scene (js/hours.js H16.papaScene)",
+"source": "deep16/_src/lymen/ART-MC-LYMEN-PORTRAIT (the art desk's ART-MC-LYMEN-PORTRAIT, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py",
+"flip": true
+},
 "pt_marin": {
 "image": "art/pt_marin.png?v=6cdba37aa1",
 "fw": 178,

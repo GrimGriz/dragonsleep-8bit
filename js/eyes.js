@@ -788,5 +788,8 @@
     'eyes-ottilie-mouth-1030': { pri: 2, group: G2, title: 'Ottilie Skerrow in her own figure all round at the Galleries\' mouth (10-30)', pt: 'the bestiary, the Keeper cutter (tools/keeper-town-sheet.py ottilie_p1; deep16/js/counter.js C.FIG ottilie) · eyes',
       url: 'deep16/?roam=galleries&flags=cullHired&fresh=1030n',
       look: 'The Galleries\' mouth: Ottilie where the first game stands her, in the scrapers\' workwear, 50 px. She stands: the art desk drew no stool, though she sits at the mouth in the story. Walk round her, then carry a light toward the roost: her word on her face.' },
+    'eyes-lymen-face-1030': { pri: 1, group: G2, title: 'Lymen\'s drawn portrait in the company scene at the Hex\'s door, mirrored to sit bottom left looking right (10-30)', pt: 'the bestiary, the Keeper cutter (tools/portrait-sheet.py pt_lymen, flip and bust; js/counter.js C.HERO_PT; mode=hours1028) · eyes',
+      url: 'deep16/?hoursshow&beat=papa&fresh=1030y',
+      look: 'Your "we need them lymen portraits fren, we\'re doing a cutscene": the art desk\'s Lymen (ART-MC-LYMEN-PORTRAIT), cut mirrored as you asked, at Aurdin\'s hero size so his whole bust fits the box bottom left. Barley comes to the Hex\'s door: Papa\'s portrait speaks on the right, the street dimmed behind, and Lymen at the bottom left looks right and up at him, in place of his figure\'s face. His idle breathes and blinks; his moods and his Earnest (a hand open at his chest) are cut too, for when a scene asks for them.' },
   };
 })();

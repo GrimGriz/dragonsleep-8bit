@@ -162,6 +162,12 @@ PEOPLE = {
     # mouth, in the guano scrapers' workwear on his correction; her work a ruling, the hand flat on the ledge -- it lifts twice, the art desk's own caveat)
     'linnet': ('linnet/ART-123-LINNET', 'ART-123-LINNET', 'npc:linnet', {'edge': True, 'bevel': (2, 3, 4, 5), 'avoid': ['red', 'fire'], 'reskin': {'hue': 66, 'k': 1.0, 'hues': (50, 95), 'smin': 0.15, 'vmin': 0.1, 'vmax': 0.95}}),   # (her olive kerchief is drawn at hue 60 on the idle, attentive and work pages and 64-65 on the others: at 60 it snapped tan, at 64 green, so it flickered tan to green from idle to mood -- the band turned to 66 on every page, its saturation and value kept)
     'ottilie': ('ottilie/ART-123-OTTILIE', 'ART-123-OTTILIE', 'npc:ottilie', {'edge': True, 'bevel': (2, 3, 4, 5), 'avoid': ['red', 'fire']}),
+    # Lymen "Ly" Urtusk, the party's paladin (10-30, the Keeper cutter, on Griz's "we need them lymen portraits fren, we're doing a cutscene"): the art desk's
+    # ART-MC-LYMEN-PORTRAIT, art-wanted section 33, for the company scene at the Hex's door (js/hours.js H16.papaScene) -- the screen's hero in the counter's hero
+    # box, bottom left (js/counter.js C.HERO_PT, Counter.drawHero), so cut at Aurdin's hero size (`bust`) and mirrored to look right (`flip`). One action a HEAD
+    # (HEAD 1 to 6, PAGE 1), no ledge: he stands in the open, cut at the waist; his sixth an Earnest still in place of a work row
+    'lymen': ('lymen/ART-MC-LYMEN-PORTRAIT', 'ART-MC-LYMEN-PORTRAIT', 'the company scene (js/hours.js H16.papaScene)', {'edge': True, 'pat': '%s_HEAD-%d_PAGE-1.png', 'flip': True, 'bust': 66,
+              'layout': [(1, [3, 3], ['idle'] * 6), (2, [1], ['attentive']), (3, [1], ['welcoming']), (4, [1], ['skeptical']), (5, [1], ['concerned']), (6, [1], ['earnest'])]}),
     # the generic man and the generic woman (10-28 evening, the fourth cutter seat: the art desk's ART-122, on Griz's "as a specific person with each function as a
     # costume/look they have"): one person each, the townsfolk's man and woman (folkman_p1, folkwoman_p1), their own clothes' idle and a still for each costume in
     # place of the named's moods -- js/counter.js C.GENERIC gives each unnamed id its person and costume. A spear, a pole or a scraper held up beside the head
@@ -521,7 +527,7 @@ def cut_person(name):
     # each page by its own bust (the stills are drawn bigger): the page's median to BUST
     small = {}
     for act, fr in raw.items():
-        k = BUST / float(np.median([f[3] for f in fr]))
+        k = ov.get('bust', BUST) / float(np.median([f[3] for f in fr]))   # (`bust`: a person's own -- a hero's bust in the counter's hero box, js/counter.js HB, Aurdin's size: Lymen's, 10-30)
         out = []
         for rgba, ax, ay, bust, ledge in fr:
             im = Image.fromarray(rgba, 'RGBA').convert('RGBa')
@@ -529,7 +535,10 @@ def cut_person(name):
             im = im.resize((w, h), Image.BOX).convert('RGBA')
             av = ov.get('avoid'); av = av.get(act, av.get('*')) if isinstance(av, dict) else av   # (an action's own, or every action's)
             px = pix.pixelate(im, 1, do_lift=False, avoid=av)   # (`avoid`: ramps or colours the snap leaves out -- tools/pixelate.py)
-            out.append((px, ax * k, ay * k, ledge))
+            axk = ax * k
+            if ov.get('flip'):                                   # (`flip`: mirrored after the cut, the anchor with it -- the art desk drew him looking screen left, and he sits bottom left looking right: Lymen's, 10-30, Griz "will need to be mirrored to be bottom left screen")
+                px = np.ascontiguousarray(px[:, ::-1]); axk = px.shape[1] - axk
+            out.append((px, axk, ay * k, ledge))
         small[act] = out
     # one box for every frame, round the anchor
     L = max(f[1] for fr in small.values() for f in fr) + 2; R = max(f[0].shape[1] - f[1] for fr in small.values() for f in fr) + 2
@@ -541,6 +550,8 @@ def cut_person(name):
             'source': 'deep16/_src/%s (the art desk\'s %s, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py' % (folder, art)}
     if ov.get('recolour'):
         meta['recolour'] = ov['recolour']                       # (the dye put on at the cut, for the record: Korvin's)
+    if ov.get('flip'):
+        meta['flip'] = True                                     # (mirrored at the cut, for the record: Lymen's)
     for r, act in enumerate(order):
         for i, (px, ax, ay, ledge) in enumerate(small[act]):
             ox, oy = int(round(axx - ax)), int(round(ayy - ay))
