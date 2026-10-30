@@ -449,27 +449,20 @@
     var self = this, W8 = D.WIN8, st = this.st, w = this.wait || {};
     var g = ctx.createLinearGradient(0, 0, 0, D.H); g.addColorStop(0, '#0a0c22'); g.addColorStop(1, '#1a1426'); ctx.fillStyle = g; ctx.fillRect(0, 0, D.W, D.H);
     if (this.o.bg) this.o.bg(ctx, 0, 0, D.W, D.H, false); // (a place's picture behind the screen: the council's night sitting over the Hex's third floor, js/hours.js H16.backdrop)
-    // o.open: no frames -- the one speaking stands free over the place, the words' box run in under the portrait's edge, drawn after it so the portrait overlaps it (10-30,
-    // Griz: "can we lose the boxes around the characters and jam the edge of their textbox so their portrait overlaps it?" -- the company scene, js/hours.js H16.papaScene)
-    var open = !!this.o.open;
     // the portrait over its counter
-    var drawP = function () {
-      if (!open) D.win8(ctx, PX, PY, PW, PH, '#0b1430');
-      ctx.save(); if (!open) { ctx.beginPath(); ctx.rect(PX + 3, PY + 3, PW - 6, PH - 6); ctx.clip(); }
-      if (self.o.bg && !open) self.o.bg(ctx, PX + 3, PY + 3, PW - 6, PH - 6, true); // (and behind the one speaking)
-      var sh = self.sheet && D.SHEETS[self.sheet], fr = self.look && sh && sh.anims[self.look] ? { anim: self.look, frame: 0 } : C.frameAt(sh, self.face, self.t);
-      if (self.o.pic) self.o.pic(ctx, PX + 3, PY + 3, PW - 6, PH - 6, self.t, CY); // (a place's own picture where a keeper's portrait stands: the Glowseep's crews' fire, js/mines.js M.firePic)
-      else if (sh && C.drawPortrait(ctx, self.sheet, fr.anim, fr.frame, PX + PW / 2, CY + 1)) { if (self.id === 'ned') C.drawNedRat(ctx, PX + PW / 2, CY + 1, self.t); }
-      else if (!(self.bare && self.o.bg)) { // (a page with no one speaking over a place's picture: the place alone -- js/hours.js H16.sitting)
-        ctx.fillStyle = '#1c2348'; ctx.beginPath(); ctx.arc(PX + PW / 2, CY - 92, 26, 0, Math.PI * 2); ctx.fill(); ctx.fillRect(PX + PW / 2 - 48, CY - 60, 96, 60); // (no sheet yet, or a keeper with none: a shape)
-      }
-      if (open) { /* (nothing under the one speaking: the place shows through) */ }
-      else if (self.o.room) { ctx.fillStyle = '#0b1430'; ctx.fillRect(PX + 3, CY, PW - 6, PY + PH - 3 - CY); } // (a room, not a shop: no counter under the one speaking -- the council's sittings, js/hours.js H16.sitting, 10-29)
-      else { ctx.fillStyle = '#4a2e1a'; ctx.fillRect(PX + 3, CY, PW - 6, PY + PH - 3 - CY); ctx.fillStyle = '#8a5e3a'; ctx.fillRect(PX + 3, CY, PW - 6, 2); ctx.fillStyle = '#2a1a10'; ctx.fillRect(PX + 3, CY + 2, PW - 6, 1); }
-      ctx.restore();
-      if (open) C.nameTag(ctx, self.o.name, PX + PW / 2, CY + 9); else D.text(ctx, '{y}' + self.o.name + '{/}', PX + PW / 2, CY + 9, W8.text, 'center');
-    };
-    if (!open) drawP();
+    D.win8(ctx, PX, PY, PW, PH, '#0b1430');
+    ctx.save(); ctx.beginPath(); ctx.rect(PX + 3, PY + 3, PW - 6, PH - 6); ctx.clip();
+    if (this.o.bg) this.o.bg(ctx, PX + 3, PY + 3, PW - 6, PH - 6, true); // (and behind the one speaking)
+    var sh = this.sheet && D.SHEETS[this.sheet], fr = this.look && sh && sh.anims[this.look] ? { anim: this.look, frame: 0 } : C.frameAt(sh, this.face, this.t);
+    if (this.o.pic) this.o.pic(ctx, PX + 3, PY + 3, PW - 6, PH - 6, this.t, CY); // (a place's own picture where a keeper's portrait stands: the Glowseep's crews' fire, js/mines.js M.firePic)
+    else if (sh && C.drawPortrait(ctx, this.sheet, fr.anim, fr.frame, PX + PW / 2, CY + 1)) { if (this.id === 'ned') C.drawNedRat(ctx, PX + PW / 2, CY + 1, this.t); }
+    else if (!(this.bare && this.o.bg)) { // (a page with no one speaking over a place's picture: the place alone -- js/hours.js H16.sitting)
+      ctx.fillStyle = '#1c2348'; ctx.beginPath(); ctx.arc(PX + PW / 2, CY - 92, 26, 0, Math.PI * 2); ctx.fill(); ctx.fillRect(PX + PW / 2 - 48, CY - 60, 96, 60); // (no sheet yet, or a keeper with none: a shape)
+    }
+    if (this.o.room) { ctx.fillStyle = '#0b1430'; ctx.fillRect(PX + 3, CY, PW - 6, PY + PH - 3 - CY); } // (a room, not a shop: no counter under the one speaking -- the council's sittings, js/hours.js H16.sitting, 10-29)
+    else { ctx.fillStyle = '#4a2e1a'; ctx.fillRect(PX + 3, CY, PW - 6, PY + PH - 3 - CY); ctx.fillStyle = '#8a5e3a'; ctx.fillRect(PX + 3, CY, PW - 6, 2); ctx.fillStyle = '#2a1a10'; ctx.fillRect(PX + 3, CY + 2, PW - 6, 1); }
+    ctx.restore();
+    D.text(ctx, '{y}' + this.o.name + '{/}', PX + PW / 2, CY + 9, W8.text, 'center');
     if (!this.o.room) { D.win8(ctx, PX, PY + PH + 4, PW, 22); D.text(ctx, '◆ ' + (st ? st.silver() : 0) + ' silver', PX + 10, PY + PH + 10, W8.text); } // (and no purse)
     // the words
     D.text(ctx, '{y}' + (this.o.place || this.o.name) + '{/}', RX, 10, W8.text);
@@ -478,12 +471,11 @@
       D.win8(ctx, RX, WY, RW, 48);
       D.wrap(this.msg, RW - 18).slice(0, 4).forEach(function (l, i) { D.text(ctx, l, RX + 9, WY + 6 + i * 10, W8.text); });
     } else {
-      D.win8(ctx, RX, WY, open ? RW + C.OPEN.under : RW, WH); // (open: the box's right edge run in under the portrait; the words keep their own width)
+      D.win8(ctx, RX, WY, RW, WH);
       var rows = w.say || (this.hero && w.ask) ? this.pages[this.page] || [] : w.ask ? this.paginate(w.ask)[0] : [];
       rows.forEach(function (l, i) { D.text(ctx, l, RX + 9, WY + 6 + i * 10, W8.text); });
       if ((w.say || (this.hero && w.ask)) && this.pages.length > 1) D.text(ctx, (this.page + 1) + '/' + this.pages.length, RX + 10, WY + WH - 16, '#9c9cb4');
     }
-    if (open) drawP(); // (over its words' box)
     if (this.hero) this.drawHero(ctx);
     var bs = this.buttons();
     if (this.sub) {
@@ -528,29 +520,115 @@
   // the hero bottom left, and the bubble beside: the answers while the hero chooses, the line chosen while the keeper answers it
   Counter.prototype.drawHero = function (ctx) {
     var W8 = D.WIN8, h = this.hero, w = this.wait || {}, bs = this.bubbling() ? this.bubbleButtons() : null;
-    var pt = C.heroPortrait(h), open = !!this.o.open && !!pt; // (open, the company scene's: no frame, the bubble run in under the portrait's edge -- his figure's face keeps its box)
-    var echo = !bs && w.say && this.echo, bh = bs ? bs[bs.length - 1].y + bs[bs.length - 1].h + 5 - BB.y : echo ? 8 + echo.length * 10 : 0;
-    var talk = function () {
-      if (!bh) return; var u = open ? C.OPEN.under : 0;
-      bubble(ctx, BB.x - u, BB.y, BB.w + u, Math.max(30, bh));
-      if (echo) echo.forEach(function (l, i) { D.text(ctx, l, BB.x + 10, BB.y + 6 + i * 10, '#9c9cb4'); });
-    };
-    if (open) talk(); // (under the portrait)
-    else { D.win8(ctx, HB.x, HB.y, HB.w, HB.h, '#0b1430'); ctx.save(); ctx.beginPath(); ctx.rect(HB.x + 3, HB.y + 3, HB.w - 6, HB.h - 20); ctx.clip(); }
-    if (pt) C.drawPortrait(ctx, pt, 'idle', 0, HB.x + HB.w / 2, open ? HB.y + HB.h : HB.y + HB.h - 17); // (his portrait, its cut edge on the name strip; nothing the frame it loads)
+    D.win8(ctx, HB.x, HB.y, HB.w, HB.h, '#0b1430');
+    ctx.save(); ctx.beginPath(); ctx.rect(HB.x + 3, HB.y + 3, HB.w - 6, HB.h - 20); ctx.clip();
+    var pt = C.heroPortrait(h);
+    if (pt) C.drawPortrait(ctx, pt, 'idle', 0, HB.x + HB.w / 2, HB.y + HB.h - 17); // (his portrait, its cut edge on the name strip; nothing the frame it loads)
     else C.drawHeroFace(ctx, h, HB.x + 3, HB.y + 3, HB.w - 6, HB.h - 20, this.t);
-    if (open) C.nameTag(ctx, h.name, HB.x + HB.w / 2, HB.y + HB.h - 12);
-    else { ctx.restore(); D.text(ctx, '{y}' + h.name + '{/}', HB.x + HB.w / 2, HB.y + HB.h - 14, W8.text, 'center'); talk(); }
+    ctx.restore();
+    D.text(ctx, '{y}' + h.name + '{/}', HB.x + HB.w / 2, HB.y + HB.h - 14, W8.text, 'center');
+    var echo = !bs && w.say && this.echo, bh = bs ? bs[bs.length - 1].y + bs[bs.length - 1].h + 5 - BB.y : echo ? 8 + echo.length * 10 : 0;
+    if (!bh) return;
+    bubble(ctx, BB.x, BB.y, BB.w, Math.max(30, bh));
+    if (echo) echo.forEach(function (l, i) { D.text(ctx, l, BB.x + 10, BB.y + 6 + i * 10, '#9c9cb4'); });
   };
-  // a name with no box under it, over a place's picture (o.open): a dark strip just wide enough to read it by
-  C.OPEN = { under: 24 }; // (px the words' box and the hero's bubble run in under the portrait)
-  C.nameTag = function (ctx, name, x, y) { var w = D.textWidth(name) + 10; ctx.fillStyle = 'rgba(11,20,48,.85)'; ctx.fillRect(Math.round(x - w / 2), y - 2, w, 12); D.text(ctx, '{y}' + name + '{/}', x, y, D.WIN8.text, 'center'); };
   function bubble(ctx, x, y, w, h) { // (a speech bubble, its tail at the portrait)
     ctx.fillStyle = 'rgba(14,16,46,.96)'; ctx.strokeStyle = '#c8d0e8'; ctx.lineWidth = 1;
     ctx.beginPath(); ctx.moveTo(x + 4, y + 0.5); ctx.lineTo(x + w - 4, y + 0.5); ctx.lineTo(x + w - 0.5, y + 4); ctx.lineTo(x + w - 0.5, y + h - 4); ctx.lineTo(x + w - 4, y + h - 0.5);
     ctx.lineTo(x + 4, y + h - 0.5); ctx.lineTo(x + 0.5, y + h - 4); ctx.lineTo(x + 0.5, y + 22); ctx.lineTo(x - 9, y + 15); ctx.lineTo(x + 0.5, y + 9); ctx.lineTo(x + 0.5, y + 4); ctx.closePath();
     ctx.fill(); ctx.stroke();
   }
+  // ---------------------------------------------------------------- THE OPEN SCREEN (o.open: the company scene's alone, js/hours.js H16.papaScene -- 10-30, Griz on the pane:
+  // "can we lose the boxes around the characters and jam the edge of their textbox so their portrait overlaps it?", "this one is special for being wordy and outside, council
+  // is good until further notice", "extend the top textbox wider and allow fewer lines. Move urtusk more top right, make him smaller a little bit if necessary. run lymens text
+  // box underneath, as long as the lengthened top. Try render him about 200% that size (as close as looks good)", "do a rapid 'typing out' of each in order instead of all text
+  // instant", "papa's first card should be centered to start the conversation - its narration not dialog"). No frames: the one speaking top right, a little smaller, over the
+  // edge of a wide, short words' box; the hero bottom left at twice his size over the bubble, which runs under the top box as long as it; each line typed out in turn, his then
+  // the hero's, a click or a key finishing the typing before it goes on; a narration (s.narr) in a box in the middle, no one standing. Every other counter screen is as it was
+  C.OPEN = { under: 24, cps: 1.6, papa: { s: 0.8, right: 478, top: 2 }, words: { x: 8, y: 34, h: 56 }, bubbleY: 96, hero: { s: 2, left: 2, foot: 262 }, narr: { w: 300, h: 66 } };
+  Counter.prototype.narr = function (lines) { return { say: [].concat(lines), narr: true }; };
+  C.drawPortraitAt = function (ctx, name, anim, frame, x, y, s) {
+    if (!s || s === 1) return C.drawPortrait(ctx, name, anim, frame, x, y);
+    var sh = D.SHEETS && D.SHEETS[name]; if (!sh) return false;
+    if (!D.spr.has(name)) { if (!D.spr.offline) D.spr.load(sh.image); return false; }
+    var a = sh.anims[anim] || sh.anims.idle, im = D.images[sh.image];
+    ctx.drawImage(im, (frame % a.frames) * sh.fw, a.y, sh.fw, sh.fh, Math.round(x - sh.ax * s), Math.round(y - sh.ay * s), Math.round(sh.fw * s), Math.round(sh.fh * s));
+    return true;
+  };
+  C.nameTag = function (ctx, name, x, y) { var w = D.textWidth(name) + 10; ctx.fillStyle = 'rgba(11,20,48,.85)'; ctx.fillRect(Math.round(x - w / 2), y - 2, w, 12); D.text(ctx, '{y}' + name + '{/}', x, y, D.WIN8.text, 'center'); };
+  C.typeLen = function (l) { return String(l).replace(/\{[^}]*\}/g, '').length; };
+  C.typeCut = function (l, n) { var out = '', k = 0, i = 0; l = String(l); while (i < l.length && k < n) { if (l[i] === '{') { var j = l.indexOf('}', i); if (j < 0) j = l.length - 1; out += l.slice(i, j + 1); i = j + 1; continue; } out += l[i]; k++; i++; } return out; };
+  C.openGeo = function (sc) { var O = C.OPEN, sh = sc.sheet && D.SHEETS[sc.sheet], fw = sh ? sh.fw : 217, ax = sh ? sh.ax : 114, ay = sh ? sh.ay : 153, s = O.papa.s, left = Math.round(O.papa.right - fw * s); return { left: left, x: left + ax * s, cx: left + fw * s / 2, foot: Math.round(O.papa.top + ay * s), s: s }; };
+  // the screen's places, swapped in for an open screen's calls and back (one call at a time: nothing else runs between)
+  var SAVED = null;
+  function openOn(sc) {
+    SAVED = { RX: RX, RW: RW, WY: WY, WH: WH, BB: BB }; var O = C.OPEN, w = sc.wait || {};
+    if (w.narr) { RW = O.narr.w; WH = O.narr.h; RX = Math.round((D.W - RW) / 2); WY = Math.round((D.H - 14 - WH) / 2); }
+    else { var g = C.openGeo(sc); RX = O.words.x; WY = O.words.y; WH = O.words.h; RW = g.left - RX; BB = { x: RX + O.under, y: O.bubbleY, w: RW, h: SAVED.BB.h }; }
+  }
+  function openOff() { if (!SAVED) return; RX = SAVED.RX; RW = SAVED.RW; WY = SAVED.WY; WH = SAVED.WH; BB = SAVED.BB; SAVED = null; }
+  function inOpen(sc, f, args) { if (!sc.o || !sc.o.open || SAVED) return f.apply(sc, args); openOn(sc); try { return f.apply(sc, args); } finally { openOff(); } }
+  ['paginate', 'buttons', 'bubbleButtons'].forEach(function (k) { var f = Counter.prototype[k]; Counter.prototype[k] = function () { return inOpen(this, f, arguments); }; });
+  // the typing: from a page's first frame, C.OPEN.cps characters a frame, the keeper's words then the hero's answers
+  Counter.prototype.openRows = function () { var w = this.wait || {}; return w.say || (this.hero && w.ask) ? this.pages[this.page] || [] : []; };
+  Counter.prototype.typeSync = function () { var ta = this.typeAt; if (!ta || ta.w !== this.wait || ta.page !== this.page) this.typeAt = { w: this.wait, page: this.page, t0: this.t }; return this.typeAt; };
+  Counter.prototype.typeN = function () { return Math.floor((this.t - this.typeSync().t0) * C.OPEN.cps); };
+  Counter.prototype.typeTotal = function () {
+    var self = this; return inOpen(this, function () {
+      var n = self.openRows().reduce(function (a, l) { return a + C.typeLen(l); }, 0);
+      if (self.bubbling()) self.bubbleButtons().forEach(function (q) { q.lines.forEach(function (l) { n += C.typeLen(l); }); });
+      return n;
+    }, []);
+  };
+  Counter.prototype.typed = function () { return !this.o.open || this.typeN() >= this.typeTotal(); };
+  var update0 = Counter.prototype.update;
+  Counter.prototype.update = function () {
+    if (!this.o || !this.o.open) return update0.apply(this, arguments);
+    if (!this.typed()) { // (typing: a click or a key finishes it, and goes no further)
+      this.t++; var m = I.mouse;
+      if ((m.click && m.inside) || I.pressed('a') || I.pressed('b') || m.rclick) this.typeAt.t0 = -1e9;
+      return;
+    }
+    return inOpen(this, update0, arguments);
+  };
+  var draw0 = Counter.prototype.draw;
+  Counter.prototype.draw = function (ctx) { if (!this.o || !this.o.open) return draw0.apply(this, arguments); return inOpen(this, this.drawOpen, [ctx]); };
+  Counter.prototype.drawOpen = function (ctx) {
+    var self = this, W8 = D.WIN8, w = this.wait || {}, O = C.OPEN, left = this.typeN(), done = this.typed();
+    ctx.fillStyle = '#0a0c22'; ctx.fillRect(0, 0, D.W, D.H);
+    if (this.o.bg) this.o.bg(ctx, 0, 0, D.W, D.H, false);
+    var typed = function (lines, x, y, col) { lines.forEach(function (l, i) { if (left <= 0) return; var L = C.typeLen(l); D.text(ctx, left >= L ? l : C.typeCut(l, left), x, y + i * 10, col); left -= L; }); };
+    var rows = this.openRows(), bs = this.buttons();
+    if (w.narr) { D.win8(ctx, RX, WY, RW, WH); typed(rows, RX + 9, WY + 6, W8.text); } // (a narration: the middle, no one standing)
+    else {
+      D.text(ctx, '{y}' + (this.o.place || this.o.name) + '{/}', O.words.x, 10, W8.text); if (this.o.what) D.text(ctx, this.o.what, O.words.x, 21, '#9c9cb4');
+      if (rows.length) { D.win8(ctx, RX, WY, RW + O.under, WH); typed(rows, RX + 9, WY + 6, W8.text); }
+      var g = C.openGeo(this), sh = this.sheet && D.SHEETS[this.sheet], fr = C.frameAt(sh, this.face, this.t); // (the one speaking, top right, over his box's edge)
+      if (sh) C.drawPortraitAt(ctx, this.sheet, fr.anim, fr.frame, g.x, g.foot, g.s);
+      C.nameTag(ctx, this.o.name, g.cx, g.foot + 3);
+      var h = this.hero, pt = h && C.heroPortrait(h);
+      if (h) {
+        var bb = this.bubbling() ? bs.filter(function (q) { return q.bubble; }) : null, echo = !bb && w.say && this.echo;
+        var bh = bb && bb.length ? bb[bb.length - 1].y + bb[bb.length - 1].h + 5 - BB.y : echo ? 8 + echo.length * 10 : 0;
+        if (bh && (echo || left > 0)) {
+          bubble(ctx, BB.x - O.under, BB.y, BB.w + O.under, Math.max(30, bh));
+          if (echo) echo.forEach(function (l, i) { D.text(ctx, l, BB.x + 10, BB.y + 6 + i * 10, '#9c9cb4'); });
+          else bb.forEach(function (q) { var hov = done && bs.indexOf(q) === self.hov; if (hov) { ctx.fillStyle = W8.sel; ctx.fillRect(q.x, q.y, q.w, q.h); } typed(q.lines, q.x + 6, q.y + 2, hov ? W8.gold : q.color || W8.text); });
+        }
+        var hsh = pt && D.SHEETS[pt];
+        if (hsh) { var hs = O.hero.s; C.drawPortraitAt(ctx, pt, 'idle', 0, O.hero.left + hsh.ax * hs, O.hero.foot, hs); C.nameTag(ctx, h.name, O.hero.left + hsh.fw * hs / 2, D.H - 28); }
+        else { D.win8(ctx, HB.x, HB.y, HB.w, HB.h, '#0b1430'); ctx.save(); ctx.beginPath(); ctx.rect(HB.x + 3, HB.y + 3, HB.w - 6, HB.h - 20); ctx.clip(); C.drawHeroFace(ctx, h, HB.x + 3, HB.y + 3, HB.w - 6, HB.h - 20, this.t); ctx.restore(); D.text(ctx, '{y}' + h.name + '{/}', HB.x + HB.w / 2, HB.y + HB.h - 14, W8.text, 'center'); }
+      }
+    }
+    if (done) bs.forEach(function (q, k) { // (NEXT, once the words are out)
+      if (q.bubble) return; var hov = k === self.hov;
+      ctx.fillStyle = hov ? W8.sel : 'rgba(16,18,58,.92)'; ctx.fillRect(q.x, q.y, q.w, q.h);
+      ctx.strokeStyle = hov ? W8.gold : W8.mid; ctx.strokeRect(q.x + 0.5, q.y + 0.5, q.w - 1, q.h - 1);
+      D.text(ctx, q.label, q.x + q.w / 2, q.y + 3, hov ? W8.gold : W8.text, 'center');
+    });
+    ctx.fillStyle = 'rgba(4,3,10,.95)'; ctx.fillRect(0, D.H - 14, D.W, 14);
+    D.hint(ctx, done ? 'click a choice · arrows choose · E pick · X back' : 'click or E: all the words', D.W / 2, D.H - 11, '#9a96a8', 'center');
+  };
   // a hero's portrait by the figure the hero wears (js/save.js SV.look): the big bust on the first page of the art desk's package, a still (tools/hero-portrait.py;
   // 10-22, Griz: "The first page of the characters stuff was supposed to have a big one, if you can find that use the one based on the outfit he's in") --
   // Aurdin's Red Mantle out of robes, his Ochre in them

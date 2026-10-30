@@ -307,7 +307,8 @@
     var sc = new C.Counter(B, { id: 'papa', name: 'Papa Urtusk', place: 'The Hex', what: 'at the front door', room: true, open: true, bg: H16.streetShot(B), script: function (s) {
       s.hero = { id: 'lymen', key: 'lymen', name: 'Lymen' };
       return (function* () {
-        yield s.ask([lyLead ? P.doorLy : P.door], [P.gnolls], 'attentive');
+        yield s.narr([lyLead ? P.doorLy : P.door]); // (the door in the middle first, no one standing: his "papa's first card should be centered to start the conversation - its narration not dialog")
+        yield s.ask([], [P.gnolls], 'attentive'); // (Lymen speaks first)
         yield s.ask([P.alone], [P.friends], 'skeptical');
         if (!lyLead) { papa.facing = hd(papa); if (ly) ly.facing = hd(ly); yield s.ask([P.few], [P.find], 'idle'); }
         papa.facing = hd(papa) || papa.facing;
