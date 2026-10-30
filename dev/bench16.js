@@ -4140,7 +4140,7 @@
       var near = function (B, who) { var p = B.units.filter(function (u) { return u.npc === who; })[0], t = B.roam.token, G = D.grid; if (!p) return false; for (var r = 2; r <= 3; r++) for (var dy = -r; dy <= r; dy++) for (var dx = -r; dx <= r; dx++) { var x = p.x + dx, y = p.y + dy; if (Math.max(Math.abs(dx), Math.abs(dy)) === r && G.canStand(t, x, y)) { t.x = x; t.y = y; B.roam.path = null; return true; } } return false; };
       // (since 10-30, his "do the scene that gives 'company' mission by overlaying ... portraits over the city background": the talk on the counter screen -- Papa's words in
       // his box, Lymen's in the hero's bubble, clicked through; `sc` the screen as it stood, `bgOK` the street drawn behind it)
-      var scene = function (B) { var g = HWw.beat(B), v, k = 0, st, out = [], ly = false, scr = null, lastW = null, bgOK = null, wins = null, narrW = null, typedOnce = false, SC = window.DS.stripCodes;
+      var scene = function (B) { var g = HWw.beat(B), v, k = 0, st, out = [], ly = false, scr = null, lastW = null, bgOK = null, wins = null, narrW = null, typedOnce = false, seq = [], drawErr = [], SC = window.DS.stripCodes;
         while (k++ < 4000) {
           var top = D.top();
           if (top instanceof CHw.Counter) {
@@ -4150,7 +4150,8 @@
             if (w.ask && w.ask.length && !wins) { wins = probe(); wins.typing = !top.typed(); }
             if (top.typed && !top.typed()) { typedOnce = true; top.typeAt.t0 = -1e9; }
             if (false) { wins = []; var w80 = D.win8; D.win8 = function (c, x, y, ww, hh) { wins.push([x, y, ww, hh]); return w80.apply(this, arguments); }; try { var cD = document.createElement('canvas'); cD.width = D.W; cD.height = D.H; top.draw(cD.getContext('2d')); } catch (eD) { wins.err = String(eD).slice(0, 80); } D.win8 = w80; } // (the boxes the screen draws: 10-30, his "lose the boxes around the characters")
-            if (w !== lastW) { lastW = w; var tx0 = SC([].concat(w.say || w.ask || []).join(' ')); if (tx0) out.push((w.narr ? 'NARRATION: ' : 'PAPA URTUSK: ') + tx0); if (bgOK === null && top.o.bg) { try { var cBg = document.createElement('canvas'); cBg.width = D.W; cBg.height = D.H; bgOK = top.o.bg(cBg.getContext('2d'), 0, 0, D.W, D.H, false) === true; } catch (eBg) { bgOK = String(eBg).slice(0, 80); } } }
+            if (w !== lastW) { seq.push((w.narr ? 'n' : w.ask ? 'a' : 's') + (w.lead === 'after' ? 'L~' : w.lead ? 'L' : '') + (w.blush ? 'B' : '') + (w.noHero ? 'X' : '')); try { var cE = document.createElement('canvas'); cE.width = D.W; cE.height = D.H; var t9 = top.t; top.t += 200; top.draw(cE.getContext('2d')); top.t = t9; } catch (eE) { drawErr.push(String(eE).slice(0, 90)); }
+              lastW = w; var tx0 = SC([].concat(w.say || w.ask || []).join(' ')); if (tx0) out.push((w.narr ? 'NARRATION: ' : 'PAPA URTUSK: ') + tx0); if (bgOK === null && top.o.bg) { try { var cBg = document.createElement('canvas'); cBg.width = D.W; cBg.height = D.H; bgOK = top.o.bg(cBg.getContext('2d'), 0, 0, D.W, D.H, false) === true; } catch (eBg) { bgOK = String(eBg).slice(0, 80); } } }
             var nx = top.buttons().filter(function (q) { return q.go === 'next'; })[0], op = top.buttons().filter(function (q) { return q.go === 'opt'; })[0];
             if (nx) clickHw(top, nx); else if (op) { out.push('LYMEN: ' + SC(op.label)); clickHw(top, op); } else break;
             continue;
@@ -4158,7 +4159,7 @@
           st = g.next(v); v = undefined; if (st.done) break;
           if (st.value && st.value.prompt) { out.push(st.value.prompt.title + ': ' + SC(st.value.prompt.lines.join(' '))); v = 0; } else if (typeof st.value === 'number') B.t += st.value;
         }
-        return { lines: out, lymen: ly, sc: scr, bg: bgOK, wins: wins, narr: narrW, typing: typedOnce }; };
+        return { lines: out, lymen: ly, sc: scr, bg: bgOK, wins: wins, narr: narrW, typing: typedOnce, seq: seq, drawErr: drawErr }; };
       var B8 = newHw('barley'); beatHw(B8); var nr8 = near(B8, 'papa'), due8 = HWw.due(B8), sc8 = due8 ? scene(B8) : { lines: [] }, j8 = jHw(B8), c8 = beatHw(B8), fw8 = qHw(B8, 'work');
       okHw('Barley\'s party at the Hex\'s door (' + nr8 + ', due ' + due8 + '): ' + sc8.lines.length + ' lines, Lymen beside Papa ' + sc8.lymen + ' and gone in after (' + !B8.units.some(function (u) { return u.npc === 'lymenDoor'; }) + ') -- "' + (sc8.lines[1] || '').slice(0, 60) + '..."; the JOURNAL ' + j8.join(', ') + ', pinned ' + CHw.journal(B8).pin + '; the card "' + String(c8).slice(0, 80) + '"',
         due8 && sc8.lymen && !B8.units.some(function (u) { return u.npc === 'lymenDoor'; }) && /^LYMEN: Gnolls on the road/.test(sc8.lines[1]) && sc8.lines.some(function (l) { return /Barley/.test(l); }) === false && sc8.lines.some(function (l) { return /Marta's girl/.test(l) && /farm boy/.test(l); })
@@ -4181,6 +4182,12 @@
       var mid8 = nr8[0], cen8 = !!mid8 && Math.abs(mid8[0] + mid8[2] / 2 - D.W / 2) <= 1;
       okHw('the company scene\'s own screen: the door a narration in the middle (' + JSON.stringify(mid8 || null) + ', centred ' + cen8 + ', "' + String(sc8.lines[0] || '').slice(0, 30) + '..."); no frame where Papa stands ' + !frP8 + '; his box ' + JSON.stringify(top8 || null) + ' (wider than the counter\'s ' + LO.words[2] + ', ' + OP.words.h + ' high, not ' + LO.words[3] + '); typed out ' + sc8.typing + (wn8.err || nr8.err ? ' ERROR ' + (wn8.err || nr8.err) : ''),
         !!(sc8.sc && sc8.sc.o.open) && cen8 && /^NARRATION: Papa Urtusk fills/.test(sc8.lines[0]) && !frP8 && !!top8 && top8[2] > LO.words[2] + OP.under && top8[3] === OP.words.h && sc8.typing === true && !!wn8.typing && !wn8.err && !nr8.err);
+      // 9e. THE LEAD IN (10-30, his "one of lymen's lines is to barley, try throwing his portrait on the bottom right, lymen size, when papa says finishes saying 'there are some
+      // standing around', then remove lymen while papa finishes", "little pause and maybe a code-drawn blush on barley ... then cut urtusks text box while he says his line to
+      // barley"): Papa's few, the lead after a pause; Lymen's line to him with no words of Papa's, the blush; then Lymen gone for Papa's last two; every step drawn without an error
+      var sq8 = (sc8.seq || []).join(' '), sq9 = (sc9.seq || []).join(' ');
+      okHw('the lead in at the Hex\'s door, Barley leading: the steps ' + sq8 + ' (want n a a sL~ aLB sLX sLX); Lymen leading, no lead in: ' + sq9 + '; drawn without error ' + JSON.stringify((sc8.drawErr || []).concat(sc9.drawErr || []).slice(0, 2)) + '; the hero one crisp zoom down, ' + CHw.OPEN.heroS().toFixed(3) + ' at D.R ' + (D.R || 1),
+        sq8 === 'n a a sL~ aLB sLX sLX' && !/L/.test(sq9) && !(sc8.drawErr || []).length && !(sc9.drawErr || []).length && CHw.OPEN.heroS() < 2);
       // 9d. A SCENE ON THE FLOOR'S FIRST BEAT (10-30, his "we didn't get the fancy 'missions in your journal now' animation on my pane clickthrough of the dialogue"): Lymen
       // leading, beside Papa before any beat has run (the show's door, and a NEW GAME that starts him there) -- the first look is taken before the scene, so the Company it gives
       // still comes with its card and the fly-in (it had been swallowed as a save's own JOURNAL)

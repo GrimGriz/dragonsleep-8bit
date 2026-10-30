@@ -538,6 +538,14 @@
     ctx.lineTo(x + 4, y + h - 0.5); ctx.lineTo(x + 0.5, y + h - 4); ctx.lineTo(x + 0.5, y + 22); ctx.lineTo(x - 9, y + 15); ctx.lineTo(x + 0.5, y + 9); ctx.lineTo(x + 0.5, y + 4); ctx.closePath();
     ctx.fill(); ctx.stroke();
   }
+  function bubbleDown(ctx, x, y, w, h, tx, ty) { // (a speech bubble whose pointer drops from its foot toward the one speaking, below it)
+    var bx = Math.max(x + 8, Math.min(x + w - 22, tx - 4)), by = y + h - 0.5, py = Math.max(by + 4, ty);
+    ctx.fillStyle = 'rgba(14,16,46,.96)'; ctx.strokeStyle = '#c8d0e8'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(x + 4, y + 0.5); ctx.lineTo(x + w - 4, y + 0.5); ctx.lineTo(x + w - 0.5, y + 4); ctx.lineTo(x + w - 0.5, y + h - 4); ctx.lineTo(x + w - 4, by);
+    ctx.lineTo(bx + 12, by); ctx.lineTo(Math.round(tx - 6), py); ctx.lineTo(bx, by); ctx.lineTo(x + 4, by); ctx.lineTo(x + 0.5, y + h - 4); ctx.lineTo(x + 0.5, y + 4); ctx.closePath();
+    ctx.fill(); ctx.stroke();
+  }
+  C.blush = function (ctx, cx, cy, a) { if (!(a > 0)) return; ctx.save(); ctx.fillStyle = 'rgba(255,96,120,' + (0.42 * a).toFixed(3) + ')'; [-1, 1].forEach(function (s) { ctx.beginPath(); ctx.ellipse(Math.round(cx + s * 10), Math.round(cy), 6, 3, 0, 0, Math.PI * 2); ctx.fill(); }); ctx.restore(); };
   // ---------------------------------------------------------------- THE OPEN SCREEN (o.open: the company scene's alone, js/hours.js H16.papaScene -- 10-30, Griz on the pane:
   // "can we lose the boxes around the characters and jam the edge of their textbox so their portrait overlaps it?", "this one is special for being wordy and outside, council
   // is good until further notice", "extend the top textbox wider and allow fewer lines. Move urtusk more top right, make him smaller a little bit if necessary. run lymens text
@@ -545,7 +553,16 @@
   // instant", "papa's first card should be centered to start the conversation - its narration not dialog"). No frames: the one speaking top right, a little smaller, over the
   // edge of a wide, short words' box; the hero bottom left at twice his size over the bubble, which runs under the top box as long as it; each line typed out in turn, his then
   // the hero's, a click or a key finishing the typing before it goes on; a narration (s.narr) in a box in the middle, no one standing. Every other counter screen is as it was
-  C.OPEN = { under: 24, cps: 1.6, papa: { s: 0.8, right: 478, top: 2 }, words: { x: 8, y: 34, h: 56 }, bubbleY: 96, hero: { s: 2, left: 2, foot: 262 }, narr: { w: 300, h: 66 } };
+  // (and after his next notes on the pane: "one of lymen's lines is to barley, try throwing his portrait on the bottom right, lymen size, when papa says finishes saying 'there are
+  // some standing around', then remove lymen while papa finishes what he says to barley", "little pause and maybe a code-drawn blush on barley after 'standing around' then cut
+  // urtusks text box while he says his line to barley", "maps told me there are certain pixel zooms that work better than others - try find the next size down one for lymen",
+  // "Lymen's text bubble top should be just under 'papa urtusk' text (shifted closer to where the text bubble mouth pointer is near lymen's mouth)": the hero one crisp zoom down
+  // from 2 -- (2R-1)/R, whole device pixels at the screen's scale D.R, core.js -- the bubble just under the keeper's name, its pointer dropping from its foot to the hero's
+  // mouth, the hero standing so his hair just overlaps its foot; a wait's `lead` puts the party's lead bottom right at the hero's size, facing in ('after': once the words are
+  // out and a pause), its `blush` a blush on the lead's face, its `noHero` the hero gone)
+  C.OPEN = { under: 24, cps: 1.6, papa: { s: 0.8, right: 478, top: 2 }, words: { x: 8, y: 34, h: 56 }, hero: { left: 2, drop: 40 }, narr: { w: 300, h: 66 }, pause: 30, blush: 20, faceZoom: 3 };
+  C.OPEN.heroS = function () { var R = Math.max(1, Math.round(D.R || 1)); return Math.max(1, (2 * R - 1) / R); };
+  C.MOUTH = { pt_lymen: [42, 25] }; // (where a hero portrait's mouth is on its frame: the bubble's pointer aims there)
   Counter.prototype.narr = function (lines) { return { say: [].concat(lines), narr: true }; };
   C.drawPortraitAt = function (ctx, name, anim, frame, x, y, s) {
     if (!s || s === 1) return C.drawPortrait(ctx, name, anim, frame, x, y);
@@ -564,14 +581,15 @@
   function openOn(sc) {
     SAVED = { RX: RX, RW: RW, WY: WY, WH: WH, BB: BB }; var O = C.OPEN, w = sc.wait || {};
     if (w.narr) { RW = O.narr.w; WH = O.narr.h; RX = Math.round((D.W - RW) / 2); WY = Math.round((D.H - 14 - WH) / 2); }
-    else { var g = C.openGeo(sc); RX = O.words.x; WY = O.words.y; WH = O.words.h; RW = g.left - RX; BB = { x: RX + O.under, y: O.bubbleY, w: RW, h: SAVED.BB.h }; }
+    else { var g = C.openGeo(sc); RX = O.words.x; WY = O.words.y; WH = O.words.h; RW = g.left - RX; BB = { x: RX + O.under, y: g.foot + 17, w: RW, h: SAVED.BB.h }; } // (the bubble's top just under the keeper's name)
   }
   function openOff() { if (!SAVED) return; RX = SAVED.RX; RW = SAVED.RW; WY = SAVED.WY; WH = SAVED.WH; BB = SAVED.BB; SAVED = null; }
   function inOpen(sc, f, args) { if (!sc.o || !sc.o.open || SAVED) return f.apply(sc, args); openOn(sc); try { return f.apply(sc, args); } finally { openOff(); } }
   ['paginate', 'buttons', 'bubbleButtons'].forEach(function (k) { var f = Counter.prototype[k]; Counter.prototype[k] = function () { return inOpen(this, f, arguments); }; });
   // the typing: from a page's first frame, C.OPEN.cps characters a frame, the keeper's words then the hero's answers
   Counter.prototype.openRows = function () { var w = this.wait || {}; return w.say || (this.hero && w.ask) ? this.pages[this.page] || [] : []; };
-  Counter.prototype.typeSync = function () { var ta = this.typeAt; if (!ta || ta.w !== this.wait || ta.page !== this.page) this.typeAt = { w: this.wait, page: this.page, t0: this.t }; return this.typeAt; };
+  Counter.prototype.typeSync = function () { var ta = this.typeAt; if (!ta || ta.w !== this.wait || ta.page !== this.page) this.typeAt = { w: this.wait, page: this.page, t0: this.t, doneT: null }; return this.typeAt; };
+  Counter.prototype.sinceTyped = function () { var ta = this.typeSync(); if (ta.doneT == null && this.typed()) ta.doneT = this.t; return ta.doneT == null ? -1 : this.t - ta.doneT; };
   Counter.prototype.typeN = function () { return Math.floor((this.t - this.typeSync().t0) * C.OPEN.cps); };
   Counter.prototype.typeTotal = function () {
     var self = this; return inOpen(this, function () {
@@ -606,18 +624,30 @@
       var g = C.openGeo(this), sh = this.sheet && D.SHEETS[this.sheet], fr = C.frameAt(sh, this.face, this.t); // (the one speaking, top right, over his box's edge)
       if (sh) C.drawPortraitAt(ctx, this.sheet, fr.anim, fr.frame, g.x, g.foot, g.s);
       C.nameTag(ctx, this.o.name, g.cx, g.foot + 3);
-      var h = this.hero, pt = h && C.heroPortrait(h);
-      if (h) {
+      var h = this.hero, pt = h && C.heroPortrait(h), hs = C.OPEN.heroS(), since = this.sinceTyped();
+      var hsh = pt && D.SHEETS[pt], hfoot = BB.y + O.hero.drop + (hsh ? hsh.ay : 68) * hs; // (his hair just over the bubble's foot)
+      if (h && !w.noHero) {
         var bb = this.bubbling() ? bs.filter(function (q) { return q.bubble; }) : null, echo = !bb && w.say && this.echo;
         var bh = bb && bb.length ? bb[bb.length - 1].y + bb[bb.length - 1].h + 5 - BB.y : echo ? 8 + echo.length * 10 : 0;
         if (bh && (echo || left > 0)) {
-          bubble(ctx, BB.x - O.under, BB.y, BB.w + O.under, Math.max(30, bh));
+          var mo = C.MOUTH[pt] || [42, 25], mx = O.hero.left + mo[0] * hs, my = hfoot - ((hsh ? hsh.ay : 68) - mo[1]) * hs;
+          bubbleDown(ctx, BB.x - O.under, BB.y, BB.w + O.under, Math.max(30, bh), mx + 14, my);
           if (echo) echo.forEach(function (l, i) { D.text(ctx, l, BB.x + 10, BB.y + 6 + i * 10, '#9c9cb4'); });
           else bb.forEach(function (q) { var hov = done && bs.indexOf(q) === self.hov; if (hov) { ctx.fillStyle = W8.sel; ctx.fillRect(q.x, q.y, q.w, q.h); } typed(q.lines, q.x + 6, q.y + 2, hov ? W8.gold : q.color || W8.text); });
         }
-        var hsh = pt && D.SHEETS[pt];
-        if (hsh) { var hs = O.hero.s; C.drawPortraitAt(ctx, pt, 'idle', 0, O.hero.left + hsh.ax * hs, O.hero.foot, hs); C.nameTag(ctx, h.name, O.hero.left + hsh.fw * hs / 2, D.H - 28); }
+        if (hsh) { C.drawPortraitAt(ctx, pt, 'idle', 0, O.hero.left + hsh.ax * hs, hfoot, hs); C.nameTag(ctx, h.name, O.hero.left + hsh.fw * hs / 2, D.H - 28); }
         else { D.win8(ctx, HB.x, HB.y, HB.w, HB.h, '#0b1430'); ctx.save(); ctx.beginPath(); ctx.rect(HB.x + 3, HB.y + 3, HB.w - 6, HB.h - 20); ctx.clip(); C.drawHeroFace(ctx, h, HB.x + 3, HB.y + 3, HB.w - 6, HB.h - 20, this.t); ctx.restore(); D.text(ctx, '{y}' + h.name + '{/}', HB.x + HB.w / 2, HB.y + HB.h - 14, W8.text, 'center'); }
+      }
+      // the party's lead bottom right, the hero's size, facing in (his portrait mirrored, or his figure's face zoomed and turned): Lymen's line to him, and Papa's after
+      var ld = w.leadHero, showLd = ld && (w.lead === true || (w.lead === 'after' && since >= O.pause));
+      if (showLd) {
+        var lpt = C.heroPortrait(ld), lsh = lpt && D.SHEETS[lpt], LW = Math.round((hsh ? hsh.fw : 77) * hs), LH = Math.round((hsh ? hsh.fh : 71) * hs), lx = D.W - 2 - LW, ly = Math.round(hfoot - (hsh ? hsh.ay : 68) * hs);
+        ctx.save(); ctx.translate(lx + LW, 0); ctx.scale(-1, 1); // (mirrored: looking left, at Lymen and Papa)
+        if (lsh) C.drawPortraitAt(ctx, lpt, 'idle', 0, lsh.ax * hs, hfoot, hs);
+        else { ctx.beginPath(); ctx.rect(0, ly, LW, Math.max(0, D.H - 14 - ly)); ctx.clip(); var F0 = C.HERO_FACE, z0 = F0.zoom; F0.zoom = O.faceZoom; C.drawHeroFace(ctx, ld, 0, ly, LW, LH, this.t); F0.zoom = z0; }
+        ctx.restore();
+        if (w.blush || (w.lead === 'after' && since >= O.pause + O.blush)) C.blush(ctx, lx + LW / 2, ly + LH * 0.42, Math.min(1, w.blush ? 1 : (since - O.pause - O.blush) / 20)); // (code-drawn: his "maybe a code-drawn blush on barley")
+        C.nameTag(ctx, ld.name, lx + LW / 2, D.H - 28);
       }
     }
     if (done) bs.forEach(function (q, k) { // (NEXT, once the words are out)

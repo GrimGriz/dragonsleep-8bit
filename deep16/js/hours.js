@@ -271,6 +271,7 @@
     var p = B.units.filter(function (u) { return u.npc === 'papa'; })[0], t = R0.token; if (!p) return false;
     return Math.hypot(t.x - p.x, t.y - p.y) * (def.ft || 5) <= H16.DOOR_FT;
   };
+  H16.HERO_NAME = { barley: 'Barley', vivian: 'Vivian', aurdin: 'Aurdin', lymen: 'Lymen' };
   H16.line = function (u, who, text) { return { prompt: { who: u, title: who, lines: D.roam.wrap([text]), opts: [{ label: 'NEXT', value: 0 }] } }; };
   // a place behind a counter screen played outside (js/counter.js o.bg, as H16.backdrop is the council's): the floor as its camera stands now, drawn under the boxes and dimmed --
   // live, so a figure turned mid-talk turns there too; behind the one speaking, nothing (the portrait's own window)
@@ -310,10 +311,19 @@
         yield s.narr([lyLead ? P.doorLy : P.door]); // (the door in the middle first, no one standing: his "papa's first card should be centered to start the conversation - its narration not dialog")
         yield s.ask([], [P.gnolls], 'attentive'); // (Lymen speaks first)
         yield s.ask([P.alone], [P.friends], 'skeptical');
-        if (!lyLead) { papa.facing = hd(papa); if (ly) ly.facing = hd(ly); yield s.ask([P.few], [P.find], 'idle'); }
+        // the lead in (10-30, his "one of lymen's lines is to barley, try throwing his portrait on the bottom right, lymen size, when papa says finishes saying 'there are some
+        // standing around', then remove lymen while papa finishes what he says to barley", "little pause and maybe a code-drawn blush on barley after 'standing around' then cut
+        // urtusks text box while he says his line to barley"): Papa's "There's a few standing about.", a pause, the lead bottom right and a blush; Lymen to the lead, Papa's box
+        // gone; then Lymen gone, and Papa to the lead (js/counter.js drawOpen: a wait's lead, blush, noHero)
+        var lead = { id: rec.lead, key: rec.lead, name: H16.HERO_NAME[rec.lead] || rec.lead }, toLead = function (wt, o) { if (!lyLead) { wt.leadHero = lead; Object.assign(wt, o); } return wt; };
+        if (!lyLead) {
+          papa.facing = hd(papa); if (ly) ly.facing = hd(ly);
+          yield toLead(s.say([P.few], 'idle'), { lead: 'after' });
+          yield toLead(s.ask([], [P.find]), { lead: true, blush: true });
+        }
         papa.facing = hd(papa) || papa.facing;
-        if (lyLead || others.length) yield s.say([(lyLead ? P.go + ' ' : '') + others.join(' ')], 'attentive');
-        yield s.say([P.work], 'welcoming');
+        if (lyLead || others.length) yield toLead(s.say([(lyLead ? P.go + ' ' : '') + others.join(' ')], 'attentive'), { lead: true, noHero: true });
+        yield toLead(s.say([P.work], 'welcoming'), { lead: true, noHero: true });
       })();
     } });
     D.push(sc); while (!sc.done) yield 1;
