@@ -1,0 +1,154 @@
+{
+ "_readme": {
+  "what": "Playtest feedback from situations.html: one verdict and note a row -- an eyes row (js/eyes.js: built, not yet seen) or a story situation (?at=<id>, js/situations.js).",
+  "fold_back": "Fold every eyes row noted here that is still live in js/eyes.js (a folded row is already cut, so nothing folds twice; previous_save and new_since_last_save only hint at what is new -- RULED 10-15); a story situation note folds when its `at` is after the save of the last ear file folded. An eyes row noted at all is SEEN: a `seen` line in PATCHLOG.md with the note verbatim, and the row cut from js/eyes.js whatever the verdict (a fix that wants another look writes a fresh row). Broken and unclear become the fix list (in the lane its pt names); too hard / too easy are tuning; notes are the tester's words, verbatim."
+ },
+ "saved_at": "2026-10-30T07:47:50.049Z",
+ "previous_save": "2026-10-30T06:35:08.317Z",
+ "items": [
+  {
+   "id": "eyes-warrens-1029",
+   "eyes": true,
+   "pri": 1,
+   "title": "The Crawler Warrens: the Missing Five's arrows past Skarn, the chests seen, Skarn's TELL ME ABOUT IT, a foe behind a wall shown (10-29)",
+   "pt": "the second game's house lane 10-29, his NOTES of 1808Z (deep16/js/hours.js H16.wayTo; deep16/js/roam.js R.layChests; deep16/js/topview.js; deep16/js/ui.js xray) · eyes",
+   "url": "deep16/?roam=warrens&flags=tallyMet,skarnOk,heardPete,heardWarrens&pin=warrens&fresh=29e",
+   "verdict": "works",
+   "note": "",
+   "at": "2026-10-30T07:23:44.155Z",
+   "new_since_last_save": true
+  },
+  {
+   "id": "eyes-worldpin-1029",
+   "eyes": true,
+   "pri": 1,
+   "title": "THE WORLD: the pinned quest's gold marker over its place (10-29)",
+   "pt": "the second game's house lane 10-29, his NOTES of 1808Z (deep16/js/world.js W.drawPin, deep16/js/hours.js H16.pinSite) · eyes",
+   "url": "deep16/?fresh=29e",
+   "verdict": "works",
+   "note": "ned's page doesn't do the fancy 'added to journal' animation\nthe 8bit made me games that when i started load a specific situation (level, quest completed or not, in the journal or not) etc - is that something we can't do in the 16bit for these situations.html links?",
+   "at": "2026-10-30T07:28:08.189Z",
+   "new_since_last_save": true
+  },
+  {
+   "id": "eyes-hexspiral-1029",
+   "eyes": true,
+   "pri": 1,
+   "title": "The Hex: the spiral by the mouse, and a bout lost stitched on Davos Kren's own face (10-29)",
+   "pt": "the second game's house lane 10-29, his NOTES of 1808Z (deep16/js/roam.js R.solidUse; deep16/js/hex.js HX.davosSays) · eyes",
+   "url": "deep16/?roam=hex&flags=hex:brawl,hex:freeman,hex:card&fresh=29e",
+   "verdict": "works",
+   "note": "when applicable, 'tell me about it' should cover the text being presented or absent (i.e. you catch hell then they buy you rounds) has tell me about it, could explain the crowd gives you a hard time and then welcomes you back - or continue to remove tell me more other than when the main text describes their job/position/reason d'etre\n\n",
+   "at": "2026-10-30T07:31:36.391Z",
+   "new_since_last_save": true
+  },
+  {
+   "id": "eyes-gridclicks-1029",
+   "eyes": true,
+   "pri": 1,
+   "title": "The grid's clicks: the frightened's refused squares in the fear's colour, right-click ends the turn (warned only with no action taken), right-click and X are a prompt's NO (10-29)",
+   "pt": "the menus lane 10-29, his NOTES day 4 14:15 at the Guano Galleries' mouth and his ruling of the seat's leans (deep16/js/ui.js fearSquares, UI.askEnd, noOf; deep16/js/grid.js G.stepCost) · eyes",
+   "url": "deep16/?npc=goblin,goblin,goblin&vs=lymen:5,vivian:5&lvl=5&afraid=2&fresh=29h",
+   "verdict": "works",
+   "note": "the purple (frightened) when you mouse over is good, the tiles all colored is too much\nwhen mousing over move tiles stuff appears on the bottom right, add 'scared to go there' or a briefer equivalent",
+   "at": "2026-10-30T07:35:21.491Z",
+   "new_since_last_save": true
+  },
+  {
+   "id": "eyes-journal-fly-1029",
+   "eyes": true,
+   "pri": 1,
+   "title": "A mission into the JOURNAL: the words fly into the menu's JOURNAL, a softer chime; NOTES keeps no empty stamp (10-29 later)",
+   "pt": "the second game's house lane 10-29, his NOTES of 1846Z and his twelfth note to the desk (deep16/js/hours.js H16.fly; js/audio.js SFX.journal; deep16/js/house.js H.unstamp, H.stampWhere) · eyes",
+   "url": "deep16/?hoursshow&beat=journal&fresh=29f",
+   "verdict": "works",
+   "note": "Makes me want to make 'find work' a 'collect them all' (that are collected in this way) - turn in to Gull who gives reward based on starting char - barley armor, aurdin non-magical wizard robes, viv a rapier, Lymen he thanks Kalindel for Lymen's help (his starter gear is plenty)\n\nportrait request for Lymen and do the scene that gives 'company' mission by overlaying (cropped as needed) portraits over the city background (talking outside) with lymen bottom right (similar to ned and aurdin but for background) for their discussion\n\n",
+   "at": "2026-10-30T07:44:49.954Z",
+   "new_since_last_save": true
+  },
+  {
+   "id": "eyes-levelfeats-1029",
+   "eyes": true,
+   "pri": 1,
+   "title": "The level-up pick: a class's own feats, none greyed on Vivian's or Aurdin's page (10-29)",
+   "pt": "the leveling lane §2.1, his \"we still have fighter feats showing greyed out on rogue leveling\" (js/rules.js R.FEATS cls, R.featOn, R.pickRows) · eyes",
+   "url": "?at=levelup4",
+   "verdict": "works",
+   "note": "",
+   "at": "2026-10-30T07:47:36.798Z",
+   "new_since_last_save": true
+  },
+  {
+   "id": "eyes-calledtoaccount-1030",
+   "eyes": true,
+   "pri": 1,
+   "title": "Called to Account, the paladin's hold of ours: radiant for harming anyone but the paladin (10-30)",
+   "pt": "the leveling lane, his \"draft for the two mentioned\" (deep16/js/grimoire.js E.calledtoaccount; deep16/js/battle.js) · eyes",
+   "url": "deep16/?gallery&shelf=spells&spell=calledtoaccount&fresh=1030h",
+   "verdict": "works",
+   "note": "",
+   "at": "2026-10-30T05:43:58.377Z",
+   "new_since_last_save": false
+  },
+  {
+   "id": "eyes-heldbreath-1030",
+   "eyes": true,
+   "pri": 1,
+   "title": "Held Breath, a feat of ours: a shot from where you stand, long range no trouble, one more die (10-30)",
+   "pt": "the leveling lane, his \"take leveling's leans and it can start building\" (js/rules.js R.FEATS.heldbreath, R.featWant; deep16/js/battle.js, rules.js) · eyes",
+   "url": "deep16/?gallery&shelf=features&feature=heldbreath&only=heldbreath&fresh=1030i",
+   "verdict": "works",
+   "note": "assume it works, long range on a short bow on our maps is pretty rare",
+   "at": "2026-10-30T05:50:40.625Z",
+   "new_since_last_save": false
+  },
+  {
+   "id": "eyes-pelt-1030",
+   "eyes": true,
+   "pri": 1,
+   "title": "The Circle of the Pelt, the druid's circle of ours: a beast's parts on the druid's own body (10-30)",
+   "pt": "the leveling lane, his \"take leveling's leans and it can start building\" (deep16/js/features.js F.pelt; deep16/js/rules.js RU.ac, RU.speedNow) · eyes",
+   "url": "deep16/?gallery&shelf=features&feature=wearthebeast&only=wearthebeast,thickpelt,twoparts&fresh=1030j",
+   "verdict": "works",
+   "note": "we'll need claw attack animations for this",
+   "at": "2026-10-30T06:00:08.183Z",
+   "new_since_last_save": false
+  },
+  {
+   "id": "eyes-five-door-1029n",
+   "eyes": true,
+   "pri": 1,
+   "title": "The Missing Five by words, its door open now: Edric tells it as he books you, Skarn's lines you pick (10-29 night)",
+   "pt": "Silverton's hours and words lane, section 12 item 9 (the story seat of 10-29 night), his note on eyes-five-words-1029b (deep16/js/hours.js C.servicePlay; mode=story1029n) · eyes",
+   "url": "deep16/?hoursshow&beat=five&fresh=29n",
+   "verdict": "works",
+   "note": "'talks you through a settle' - hobs (is that what he's doing in the text)\n'tells you about what he wants to know?' - skarn (shouldn't he just say the things?)\nSkarn with 'the herd stands' without having killed a single crawler, I don't know what he's talking about - might add intro text or 'tell me about it' text earlier\n\n'the other five' came up with Warrens Pete instead of 'the five'\nSame NPC on multiple screens is weird (he's both outside and in the hex) Hob outside and in the back way to the wet",
+   "at": "2026-10-30T06:16:52.017Z",
+   "new_since_last_save": false
+  },
+  {
+   "id": "eyes-galbunk-1029",
+   "eyes": true,
+   "pri": 1,
+   "title": "The Guano Mine's mouth: the hands' bunkhouse door, free once you take Sabeth's work (10-29)",
+   "pt": "the Warrens and Galleries lane, his 10-29 note (deep16/js/mines.js M.FLOORS galleries doors2, M.INNS keeper:galbunk) · eyes",
+   "url": "deep16/?roam=galleries&gate=east&fresh=29a",
+   "verdict": "broken",
+   "note": "found and equipped ring of prot on barley, disappeared on cloaker roam (ladder down and up)\nalso not showing bat-wings from along the way\nis aurdin able to attack all darkness (against SRD) when we really only need to let him do it to the cloaker for the easter egg?\nfight award pop-ups as popups in the middle (like when they landed on roam) (rather than additional lines at the top)\n\nthe stuff in the actual ask is not broken, losing gear between iso and regular roams is broken\n",
+   "at": "2026-10-30T06:33:20.480Z",
+   "new_since_last_save": false
+  },
+  {
+   "id": "eyes-burrow-road-1029",
+   "eyes": true,
+   "pri": 1,
+   "title": "The burrowers and the solid road: a xorn under the ground comes up only where it can still walk to you and strike (10-29)",
+   "pt": "the grid's rules lane and the maps lane 10-29, his \"tell notes to re-evaluate bullette et. all AI to see if it accounts for targets being on a solid road\" (deep16/js/ai.js burrower) · eyes",
+   "url": "deep16/?npc=xorn,xorn&lvl=8&map=seamwall&watch&seed=8148651&fresh=29c",
+   "verdict": "works",
+   "note": "but aurdin fireballs himself twice?",
+   "at": "2026-10-30T06:35:05.551Z",
+   "new_since_last_save": false
+  }
+ ]
+}
