@@ -741,6 +741,26 @@
   }
   E.huntersmark = markSpell('huntersmark', 'Hunter\'s Mark', {});
   E.mirrorsgaze = markSpell('mirrorsgaze', 'Mirror\'s Gaze', { type: 'psychic', any: true, gaze: true });
+  // Gnawing Word (ours, 10-30 -- the leveling lane; RULED, Griz: "take leveling's leans and it can start building"; the role of the PHB's Hex, leveling-srd-by-class.md 6.4):
+  // a foe within 60 ft, held by concentration a minute; each hit its caster lands on it, psychic one more than the last -- 1, 2, 3, to 5, +2 a slot above 1st (battle.js);
+  // it ends when the foe drops. No curse on its checks, no moving to another
+  E.gnawingword = {
+    summary: function (e, u) { return 'bonus action · a foe within 60 ft · each of your hits on it: psychic 1, then 2, then 3 ... to ' + (5 + 2 * Math.max(0, (e.slot || 1) - 1)); },
+    cast: function* (B, u, t, slot, head, x) {
+      B.units.forEach(function (w) { if (w.conds.gnawed && w.conds.gnawed.by === u.id) delete w.conds.gnawed; });
+      t.conds.gnawed = { by: u.id, n: 0, cap: 5 + 2 * Math.max(0, (slot || 1) - 1) };
+      FX.ring(t, 'violet', 30);
+      if (!(u.conc && u.conc.id === 'gnawingword')) M.concentrate(B, u, 'gnawingword', 'Gnawing Word', function () { B.units.forEach(function (w) { if (w.conds.gnawed && w.conds.gnawed.by === u.id) delete w.conds.gnawed; }); });
+      B.card([head + ': a word that gnaws, spoken at ' + nm(B, t) + '  {g}(each hit on it: psychic, one more each time, to ' + t.conds.gnawed.cap + '){/}'], 220);
+      yield 16;
+    },
+    ai: function (B, u, e, slot, fs) {
+      var target = fs.filter(function (t) { return M.targetOK(B, u, e.g, t) && !t.conds.gnawed; }).sort(function (a, b) { return b.hp - a.hp; })[0];
+      if (!target || (u.conc && u.conc.id === 'gnawingword')) return null;
+      var n = u.attacksBase || (u.lvl >= 17 ? 4 : u.lvl >= 11 ? 3 : u.lvl >= 5 ? 2 : 1), sc = n * 2.5 * 0.65 * Math.min(4, target.hp / 10);
+      return { score: sc, t: target, keep: sc * 0.7 };
+    }
+  };
   E.inflictwounds = {
     summary: function (e, u) { return 'touch: melee spell attack · ' + dice(e.sp, u, e.slot) + ' necrotic'; },
     cast: function* (B, u, t, slot, head, x) { yield* spellAttack(B, u, t, x.sp, x.g, dice(x.sp, u, slot)); },

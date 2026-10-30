@@ -2456,6 +2456,8 @@
     // Curse's +1d8 necrotic, Branding Smite's +2d6 radiant on the next weapon hit (and the struck one glows, seen)
     // (the Globe of Invulnerability, SRD 5.1: a mark or a curse is an effect on the creature of a spell cast from where it was cast -- if that was outside a globe the creature
     // now stands in, "the spell has no effect on them": no extra die, and the card says so; D.magic.zoneGlobed reads where from and the spell's level off the record)
+    // Gnawing Word (ours, 10-30 -- grimoire.js E.gnawingword): each hit its caster lands, psychic one more than the last, to its cap
+    var gnw = tgt.conds.gnawed; if (gnw && gnw.by === att.id) { gnw.n = Math.min(gnw.cap, gnw.n + 1); xtra.push([gnw.n, 'psychic']); parts.push('{p}gnawing word ' + gnw.n + ' psychic{/}'); }
     var mk = tgt.conds.marked, mkGl = mk && mk.by === att.id && (mk.any || !atk.spell) && D.magic.zoneGlobed && D.magic.zoneGlobed(this, mk, tgt);
     if (mk && mk.by === att.id && (mk.any || !atk.spell) && !mkGl) { var hm = D.roll('1d6', { crit: crit }); if (mk.type) xtra.push([hm.total, mk.type]); else dmg += hm.total; parts.push('{p}' + (mk.name || 'mark') + ' 1d6 [' + hm.rolls.join(',') + ']' + (mk.type ? ' ' + mk.type : '') + '{/}'); }
     else if (mkGl) parts.push('{c}' + (mk.name || 'mark') + ': inside the globe, untouched{/}');
@@ -2517,6 +2519,7 @@
     if (ext && !tgt.dead) this.hurt(tgt, ext, atk.extraType || atk.type, blowSrc);
     for (var xi = 0; xi < xtra.length; xi++) if (!tgt.dead) this.hurt(tgt, xtra[xi][0], xtra[xi][1], { magic: true, blow: bl }); // (a mark's, a curse's: a spell's)
     if (!tgt.dead) this.hurt(tgt, dmg, atk.type, blowSrc);
+    if ((tgt.dead || tgt.hp <= 0) && tgt.conds.gnawed) { var gwC = this.units.filter(function (w) { return w.id === tgt.conds.gnawed.by; })[0]; delete tgt.conds.gnawed; if (gwC && gwC.conc && gwC.conc.id === 'gnawingword') D.magic.endConc(this, gwC, 'the gnawed one fell'); } // (Gnawing Word ends when it drops)
     // Follow-Through's carry (a feat of ours, 10-30 -- js/features.js F.followThrough): a heavy melee blow that drops it carries what went past its last hit point on to
     // another foe within reach, the weakest -- no roll, once
     if (melee && !atk.spell && hp0FT > 0 && (tgt.dead || tgt.hp <= 0) && (atk.props || []).indexOf('heavy') >= 0 && D.features && D.features.followThrough && D.features.followThrough(att)) {

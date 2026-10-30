@@ -17,6 +17,9 @@
   var DS = window.DS = window.DS || {};
   var G1 = 'Eyes: first', G2 = 'Eyes: built this week', G3 = 'Eyes: built before, never seen';
   DS.EYES = {
+    'eyes-gnawingword-1030': { pri: 1, group: G2, title: 'Gnawing Word, the warlock\'s curse of ours: psychic that grows with each hit (10-30)', pt: 'the leveling lane, his "take leveling\'s leans and it can start building" (deep16/js/grimoire.js E.gnawingword; deep16/js/battle.js) · eyes',
+      look: 'The SPELLS shelf: GNAWING WORD cast at a foe, "a word that gnaws ... to 5". Then in the Pocket DM, MAKE a warlock: its 1st-level spells offer Gnawing Word; in a fight its blasts on the cursed foe read "gnawing word 1 psychic", then 2, then 3, up to 5, and the spell ends when that foe drops.',
+      url: 'deep16/?gallery&shelf=spells&spell=gnawingword&fresh=1030f' },
     'eyes-followthrough-1030': { pri: 1, group: G2, title: 'Follow-Through, a feat of ours: the wide swing, and a felled foe\'s excess carried on (10-30)', pt: 'the leveling lane, his "take leveling\'s leans and it can start building" (js/rules.js R.FEATS.followthrough; deep16/js/battle.js, features.js) · eyes',
       look: 'The FEATURES shelf: a fighter with the feat presses WIDE SWING and hits a foe at 2 HP -- "wide swing +" twice the proficiency bonus, and "FOLLOW-THROUGH: N carries on into" the foe beside it. In the Pocket DM, MAKE a fighter of STR 13 or more to level 4: THE LEVEL\'s scores offer FOLLOW-THROUGH (FEAT). Not on the first game\'s pick (Barley at 4 shows only Symmetric Fighting and Grappler).',
       url: 'deep16/?gallery&shelf=features&feature=followthrough&only=followthrough&fresh=1030e' },

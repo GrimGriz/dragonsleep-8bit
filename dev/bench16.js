@@ -4623,6 +4623,40 @@
     document.body.appendChild(preB);
     return;
   }
+  // GNAWING WORD (mode=gnaw1030; the leveling lane, 10-30 -- RULED, Griz: "take leveling's leans and it can start building"; leveling-srd-by-class.md 6.4): the warlock's
+  // curse of ours -- on the warlock's list (last: the generic warlock's spells unchanged); cast, the mark and the concentration; each of the caster's hits on it psychic 1, 2,
+  // 3 ... to 5 (7 from a 2nd-level slot), another's hits nothing; when it drops, the spell ends
+  if (get('mode', '') === 'gnaw1030') {
+    var repGw = { checks: [], errors: [] }, d0Gw = D.d;
+    function okGw(what, v) { repGw.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function runGw(g) { var v, k = 0, st; while (g && k++ < 4000) { st = g.next(v); v = undefined; if (st.done) return; if (st.value && st.value.prompt) { var os = st.value.prompt.opts; v = os[os.length - 1].value; } } }
+    function plainGw(s) { return String(s).replace(/\{\/?[a-z]*\}/g, ''); }
+    function mkGw(lvl) {
+      var B = D.npcFight('?npc=goblin,goblin&lvl=' + lvl + '&vs=warlock:' + lvl + ',fighter:' + lvl, {}); D.battle = B; B.enter(); while (!B.order.length) B.co.next(); B.dark = false;
+      var ps = B.units.filter(function (w) { return w.side === 'party'; }), u = ps.filter(function (w) { return w.cls === 'warlock'; })[0], f = ps.filter(function (w) { return w !== u; })[0], g = B.units.filter(function (w) { return w.side === 'foe'; })[0];
+      g.maxhp = g.hp = 999; g.conds = {}; D.rules.startTurn(u); B.active = u; return { B: B, u: u, f: f, g: g };
+    }
+    function hitGw(h, who) { D.d = function (n) { return n === 20 ? 19 : d0Gw(n); }; var n0 = (h.B.log || []).length; runGw(h.B.attack(who, h.g, who.weapon)); D.d = d0Gw; var l = (h.B.log || []).slice(n0).map(plainGw).join(' / '), m = /gnawing word (\d+) psychic/.exec(l); return m ? +m[1] : 0; }
+    try {
+      D.seed = 1030;
+      var sp = window.DS.DATA.spells.gnawingword, gd = D.SPELLS.gnawingword, wl = D.npc.CLASSES.warlock.spells[1];
+      var w9 = D.npc.sheet(D.npc.spec('warlock:9')), w2 = D.npc.sheet(D.npc.spec('warlock:2'));
+      okGw('the spell: level ' + (sp && sp.level) + ', grid ' + !!gd + ', bonus action ' + (gd && gd.time) + '; the warlock\'s 1st: ' + JSON.stringify(wl) + '; the generic warlock 2 and 9 know it: ' + (w2.known.indexOf('gnawingword') >= 0) + '/' + (w9.known.indexOf('gnawingword') >= 0),
+        sp && sp.level === 1 && gd && gd.time === 'B' && wl[wl.length - 1] === 'gnawingword' && w2.known.indexOf('gnawingword') < 0 && w9.known.indexOf('gnawingword') < 0);
+      var h1 = mkGw(5); runGw(D.magic.cast(h1.B, h1.u, 'gnawingword', 1, h1.g));
+      okGw('cast: the mark ' + JSON.stringify(h1.g.conds.gnawed) + ', concentration ' + (h1.u.conc && h1.u.conc.id), h1.g.conds.gnawed && h1.g.conds.gnawed.cap === 5 && h1.u.conc && h1.u.conc.id === 'gnawingword');
+      var s1 = [hitGw(h1, h1.u), hitGw(h1, h1.u), hitGw(h1, h1.u), hitGw(h1, h1.f), hitGw(h1, h1.u), hitGw(h1, h1.u), hitGw(h1, h1.u)];
+      okGw('the hits: the warlock\'s 1, 2, 3, the fighter\'s ' + s1[3] + ', then ' + s1.slice(4).join(', ') + ' (to 5): ' + JSON.stringify(s1), JSON.stringify(s1) === '[1,2,3,0,4,5,5]');
+      var h2 = mkGw(5); runGw(D.magic.cast(h2.B, h2.u, 'gnawingword', 2, h2.g));
+      okGw('from a 2nd-level slot: the most ' + (h2.g.conds.gnawed && h2.g.conds.gnawed.cap), h2.g.conds.gnawed && h2.g.conds.gnawed.cap === 7);
+      var h3 = mkGw(5); runGw(D.magic.cast(h3.B, h3.u, 'gnawingword', 1, h3.g)); h3.g.hp = 1; hitGw(h3, h3.u);
+      okGw('it drops: the mark ' + !!h3.g.conds.gnawed + ', the concentration ' + (h3.u.conc ? h3.u.conc.id : 'ended'), !h3.g.conds.gnawed && !(h3.u.conc && h3.u.conc.id === 'gnawingword'));
+    } catch (e) { repGw.errors.push(String(e && e.stack || e)); }
+    D.d = d0Gw;
+    var preGw = document.createElement('pre'); preGw.id = 'out'; preGw.textContent = 'BENCH16 ' + JSON.stringify(repGw);
+    document.body.appendChild(preGw);
+    return;
+  }
   // FOLLOW-THROUGH (mode=follow1030; the leveling lane, 10-30 -- RULED, Griz: "take leveling's leans and it can start building"; leveling-srd-by-class.md 6.3): the feat
   // on the second game's pick at STR 13 and never on the first game's (a page with no grid); WIDE SWING, its button, a hit's +2x proficiency and a miss's disadvantage on the
   // next swing; the carry -- a heavy blow that drops a goblin carries its excess into the next one in reach; none without the feat
