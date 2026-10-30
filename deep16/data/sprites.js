@@ -3008,6 +3008,128 @@
 "source": "deep16/_src/dace/ART-123-DACE/ART-123-DACE_HEAD-2_PAGE-1.png (the art desk's south idle, 10-21) and PAGE-2 to PAGE-5 (SE, E, NE, N: ART-123-DACE, 10-29), cut by tools/keeper-town-sheet.py",
 "door": "npc:dace"
 },
+"dace_p2": {
+"image": "art/dace_p2.png?v=1dfb2b944e",
+"anims": {
+"idle": {
+"y": 0,
+"fw": 50,
+"fh": 57,
+"ax": 25,
+"ay": 54,
+"frames": 6,
+"fps": 6
+},
+"walk": {
+"y": 456,
+"fw": 52,
+"fh": 57,
+"ax": 26,
+"ay": 54,
+"frames": 8,
+"fps": 10
+},
+"attack": {
+"y": 912,
+"fw": 78,
+"fh": 57,
+"ax": 39,
+"ay": 54,
+"frames": 6,
+"fps": 12,
+"release": 3
+},
+"cast": {
+"y": 1368,
+"fw": 60,
+"fh": 57,
+"ax": 30,
+"ay": 54,
+"frames": 6,
+"fps": 10,
+"release": 2
+},
+"useitem": {
+"y": 1824,
+"fw": 52,
+"fh": 57,
+"ax": 26,
+"ay": 54,
+"frames": 4,
+"fps": 8
+},
+"flinch": {
+"y": 2280,
+"fw": 62,
+"fh": 57,
+"ax": 31,
+"ay": 54,
+"frames": 4,
+"fps": 12
+},
+"hurt": {
+"y": 2736,
+"fw": 82,
+"fh": 57,
+"ax": 41,
+"ay": 54,
+"frames": 6,
+"fps": 10
+},
+"prone": {
+"y": 3192,
+"fw": 88,
+"fh": 57,
+"ax": 44,
+"ay": 54,
+"frames": 6,
+"fps": 10
+},
+"sit": {
+"y": 3648,
+"fw": 66,
+"fh": 57,
+"ax": 33,
+"ay": 54,
+"frames": 2,
+"fps": 2
+}
+},
+"fw": 50,
+"fh": 57,
+"ax": 25,
+"ay": 54,
+"top": 50,
+"hold": {
+"Walk": [
+0,
+1,
+2,
+3,
+4,
+5,
+6,
+7
+],
+"Dagger": [
+1,
+7
+],
+"Use Item": [
+1,
+2,
+6,
+7
+],
+"Fall": [
+4
+],
+"Prone": [
+4
+]
+},
+"source": "drawn by the art desk (ART-123-DACE-COMBAT, his fight poses in five views in the cloak of displacement, 10-29 night -- its own word \"SOURCE COVERAGE COMPLETE / REPAIRS OPEN\"), cut and snapped by tools/dace-sheet.py"
+},
 "dacedisp_p1": {
 "image": "art/dacedisp_p1.png?v=32911d627d",
 "fw": 49,
