@@ -109,7 +109,7 @@
     if (u.ready) { var rd0 = u.ready; delete u.ready; if (rd0.what === 'spell') { if (u.conc && u.conc.id === 'ready') delete u.conc; if (D.battle) D.battle.card(['{g}' + u.name + '\'s readied ' + rd0.name + ' dissipates: the moment passed.{/}'], 200); } } // (a weapon lowered says nothing: the ring offers READY again, and a hero waiting on a burrower readies every turn)
     delete u.conds.dodge;
     if (D.battle && D.battle.doorWardOn === u) D.battle.doorWardOn = null; // (the Door-Shield's +3 lasts till its bearer's turn)
-    u.acted = true; // it has had a turn (the Cutthroat's Opening Cut reads it)
+    u.acted = true; // it has had a turn (the Cutthroat's Stab Debut reads it: battle.js stabDebut)
     delete u.conds.displaceOff; // a Cloak of Displacement works again from the wearer's own turn
     // up off the floor: half its speed (09-27, prone) -- not while it laughs (SRD 5.1 Hideous Laughter: "unable to stand up for the duration"),
     // nor with no speed to pay it with (SRD 5.1: you can't stand up if your speed is 0; Griz, 09-30: "getting up from prone is supposed to
@@ -276,8 +276,7 @@
     if (att.conds.disAt && (att.conds.disAt.id === tgt.id || att.conds.disAt.id === '*')) dis.push(att.conds.disAt.why || 'cursed');
     if (tgt.conds.pfeg && /aberration|celestial|elemental|fey|fiend|undead/.test(att.type || '')) dis.push('protection from evil');
     if (tgt.conds.dodge && !att.conds.hidden) dis.push('dodging');
-    // Opening Cut (the game's Cutthroat): in the first round, advantage on a foe that hasn't acted yet
-    if (att.subclass === 'Cutthroat' && D.battle && D.battle.round === 1 && !tgt.acted && tgt.side !== att.side) adv.push('opening cut');
+    // (the Cutthroat's Opening Cut -- advantage in the first round on one that hadn't acted -- gave way 10-29 to Stab Debut, which gives no advantage: battle.js stabDebut)
     // a Cloak of Displacement (SRD 5.1): at disadvantage, until a blow lands on the wearer (back at their turn); nothing while
     // they can't act or can't move (held, stunned, asleep, restrained, down)
     if (tgt.displacement && !tgt.conds.displaceOff && tgt.hp > 0 && !tgt.conds.paralyzed && !tgt.conds.stunned && !tgt.conds.asleep && !tgt.conds.restrained) dis.push('displacement');

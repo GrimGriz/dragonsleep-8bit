@@ -1608,8 +1608,10 @@
         if (!Battle.openAttack(u)) return; // (the action's attacks -- Slow's one -- else Haste's one: js/grimoire.js)
         T.attacksLeft--;
         if (u.weapon.ammo) this.spendAmmo(u);
+        var debutT = u.subclass === 'Cutthroat' && !c.target.tendril && !c.target.acted && G.hostile(u, c.target) ? c.target : null; // (Stab Debut: one that has not had its first turn)
         if (c.target.tendril) yield* this.strikeTendril(u, c.target, u.weapon); // (the roper's tendril on a friend, or on you: tendrilOn, 10-02)
         else yield* this.attack(u, c.target, u.weapon);
+        if (debutT && !T.debutDone) yield* this.stabDebut(u, debutT);
         if (u.conds.hidden) delete u.conds.hidden;
         return;
       }
@@ -2327,8 +2329,7 @@
       glass = '  {p}the glass takes it: again, d20 ' + nat + ' = ' + total + '{/}';
     }
     var crit = hit && (nat >= critAt || (((tgt.hp <= 0 && !tgt.dead) || tgt.conds.paralyzed || tgt.conds.asleep) && G.dist(att, tgt) <= 5) // (SRD 5.1, paralyzed and unconscious: ANY attack that hits from within 5 ft -- a spell's, a bow's -- not the melee alone, 10-05: Aurdin's Scorching Ray beside a troll lying at 0)
-      || (att.assassinate && tgt.conds.surprised) // Assassinate: any hit on one caught unaware is a critical
-      || (att.subclass === 'Cutthroat' && this.round === 1 && !tgt.acted)); // Opening Cut (the game's Cutthroat): the same, in the first round
+      || (att.assassinate && tgt.conds.surprised)); // Assassinate: any hit on one caught unaware is a critical (the SRD's Assassin, a foe; the Cutthroat's Opening Cut that did the same gave way to Stab Debut, 10-29)
     var rivets = crit && tgt.critProof; if (rivets) crit = false; // (SRD 5.1, Adamantine Armor: "any critical hit against you becomes a normal hit" -- the Game Show's Rivet Job, deep16/js/supplies.js, 10-07)
     var head ='{y}' + nameOf(att) + '{/} > {r}' + nameOf(tgt) + '{/}  ' + atk.name + (o.ready ? ' {c}(readied){/}' : ''); // (readied: the Ready action's strike, sprung -- readyHook, 10-02)
     var line = 'd20 ' + (r.rolls.length > 1 ? RU.fmtRolls(r.rolls) + '>' : '') + nat + ' ' + RU.sign(atk.atk) + (bless ? ' {y}+' + bless + ' bless{/}' : '') + (sacred ? ' {y}+' + sacred + ' sacred{/}' : '') + (pen ? ' {o}' + pen + ' ' + e.penWhy + '{/}' : '') + ' = ' + total + '  vs AC ' + RU.ac(tgt) + (cover ? ' {c}+' + cover + ' cover{/}' : '') + (madAC ? ' {c}+4 multiattack defense{/}' : '') + glass + (rivets ? '  {c}RIVETS: not a critical{/}' : '');
@@ -2407,15 +2408,18 @@
     var dice = att.swarm && atk.halfHP && att.hp <= att.maxhp / 2 ? atk.halfHP : atk.dice; // a swarm at half its hit points bites for less
     var dr = RU.damage(dice, atk.mod, { crit: crit, gwf: atk.gwf }), dmg = dr.total, parts = [dice + RU.sign(atk.mod) + ' ' + RU.fmtRolls(dr.rolls) + RU.sign(atk.mod) + ' = ' + dr.total + ' ' + atk.type];
     // Savage Attacks (the half-orc, SRD 5.1): a melee critical rolls one of the weapon's dice once more
-    if (crit && melee && att.savage && /d/.test(dice)) { var sv0 = D.roll('1' + String(dice).replace(/^\d*/, '')); dmg += sv0.total; parts.push('{o}savage +' + sv0.total + '{/}'); }
+    if (crit && melee && att.savage && /d/.test(dice) && !atk.plain) { var sv0 = D.roll('1' + String(dice).replace(/^\d*/, '')); dmg += sv0.total; parts.push('{o}savage +' + sv0.total + '{/}'); }
     // Brutal Critical (the barbarian, 9; SRD 5.1): the same, once more (two at 13, three at 17). Fists have no die: nothing to add
-    if (crit && melee && att.cls === 'barbarian' && att.lvl >= 9 && /d/.test(dice)) { var bc9 = D.roll((att.lvl >= 17 ? 3 : att.lvl >= 13 ? 2 : 1) + String(dice).replace(/^\d*/, '')); dmg += bc9.total; parts.push('{o}brutal +' + bc9.total + '{/}'); }
+    if (crit && melee && att.cls === 'barbarian' && att.lvl >= 9 && /d/.test(dice) && !atk.plain) { var bc9 = D.roll((att.lvl >= 17 ? 3 : att.lvl >= 13 ? 2 : 1) + String(dice).replace(/^\d*/, '')); dmg += bc9.total; parts.push('{o}brutal +' + bc9.total + '{/}'); }
     // the class NPCs' riders (09-28): Rage's +2 on a STR blow; Enlarge's +1d4 (Reduce's -1d4); Ray of Enfeeblement halves a STR weapon's
     var strBlow = melee && !atk.finesse || (atk.finesse && att.abil && att.abil.str >= att.abil.dex && melee);
-    if (att.conds.raging && strBlow) { dmg += att.conds.raging.dmg || 2; parts.push('{o}rage +' + (att.conds.raging.dmg || 2) + '{/}'); }
-    if (att.conds.enlarged && !atk.spell) { var en = D.roll('1d4', { crit: crit }); dmg += att.conds.enlarged.down ? -en.total : en.total; parts.push((att.conds.enlarged.down ? '{g}reduced -' : '{o}enlarged +') + en.total + '{/}'); dmg = Math.max(1, dmg); }
+    if (att.conds.raging && strBlow && !atk.plain) { dmg += att.conds.raging.dmg || 2; parts.push('{o}rage +' + (att.conds.raging.dmg || 2) + '{/}'); }
+    if (att.conds.enlarged && !atk.spell && !(atk.plain && !att.conds.enlarged.down)) { var en = D.roll('1d4', { crit: crit }); dmg += att.conds.enlarged.down ? -en.total : en.total; parts.push((att.conds.enlarged.down ? '{g}reduced -' : '{o}enlarged +') + en.total + '{/}'); dmg = Math.max(1, dmg); }
     if (att.conds.enfeebled && strBlow && !atk.spell) { var cut0 = Math.ceil(dmg / 2); dmg -= cut0; parts.push('{g}enfeebled -' + cut0 + '{/}'); }
     if (att.dmgFrac && !atk.spell) { var cutM = dmg - Math.max(1, Math.floor(dmg * att.dmgFrac)); dmg -= cutM; parts.push('{g}the mirror share ' + D.traits.fracName(att.dmgFrac) + ' -' + cutM + '{/}'); } // (the Harbinger's mirror double: js/traits.js mirrorDouble, 10-08)
+    // (atk.plain -- Stab Debut's stab: the weapon's dice alone, so none of the riders below, to the Divine Smite, and no rage or Enlarge above; a penalty still holds)
+    var sneaked = false, fire = 0, rad = 0, ext = 0, xtra = [], dis = null;
+    if (!atk.plain) {
     // Sneak Attack: once a turn, a finesse or ranged weapon, with advantage or an ally at the target's side
     var sneaked = false;
     if (att.cls === 'rogue' && att.turn && !att.turn.sneakUsed && (atk.finesse || atk.ranged) && e.net >= 0) {
@@ -2473,6 +2477,7 @@
         FX.ring(tgt, 'gold', 30); FX.sparkle(tgt, 'gold', 16);
       }
     }
+    } // (atk.plain: the riders skipped)
     // Uncanny Dodge: Vivian's reaction halves a hit from an attacker she can see
     if (tgt.cls === 'rogue' && tgt.lvl >= 5 && tgt.reaction > 0 && RU.canAct(tgt) && (!tgt.guest || tgt.classAI) && M16().sees(this, tgt, att)) {
       this.card([head, line + '  ' + (crit ? '{y}CRITICAL{/}' : '{n}HIT{/}') + why, parts.join('  ')], 300, cid);
@@ -2870,6 +2875,16 @@
     if (throws0 > 0 && throws0 !== Infinity && !this.thrownLeft(att, atk)) this.card(['{g}(' + Battle.nm(att) + ' has thrown ' + (att.side === 'foe' && !att.named ? 'its' : 'the') + ' last ' + atk.name.toLowerCase().replace(/^thrown /, '') + '){/}'], 160); // (spendThrow)
     yield* this.readyForced();
     if (tgt && this.readyArmed()) yield* this.readyAfter({ kind: 'ally', foe: att, ally: tgt });
+  };
+  // Stab Debut (the game's Cutthroat, 10-29 -- Griz: "replace 'opening cut' with 'Stab Debut' where she gets a straight weapon damage attack (no bonuses) on targets that
+  // haven't first-turned"): with the Attack action at one that has not had its first turn, one more attack at it, its damage the weapon's dice alone -- no ability modifier,
+  // no Sneak Attack, no rider (atk.plain). The seat's reading: free, once a turn, the same one, while it stands; a bow spends its arrow
+  Battle.prototype.stabDebut = function* (u, tgt) {
+    var T = u.turn; if (!T || T.debutDone || !tgt || tgt.dead || tgt.hp <= 0 || !RU.canAct(u) || u.dead || u.hp <= 0) return;
+    if (u.weapon.ammo) { if (!this.ammoLeft(u)) return; this.spendAmmo(u); }
+    T.debutDone = true;
+    this.card(['{y}' + nameOf(u) + '{/}: {o}STAB DEBUT{/}  {g}(' + Battle.nm(tgt) + ' has not had its first turn: one more, the weapon\'s dice alone){/}'], 160);
+    yield* this.attack(u, tgt, Object.assign({}, u.weapon, { mod: 0, plain: true, name: u.weapon.name + ' (stab debut)' }));
   };
   // forced moves (10-06, the grid's rules §2.5; SRD 5.1 Ready: "right after the trigger finishes"): a body set down by something not its own walk -- pushed (Thunderwave, Gust of
   // Wind, Repelling Blast, a shove: magic.js M.push), a rider pulled off or thrown off and dropped beside (dismount), a cushion shoved out from under a fall (landOn), one knocked over

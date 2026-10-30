@@ -4623,6 +4623,51 @@
     document.body.appendChild(preB);
     return;
   }
+  // STAB DEBUT (mode=stabdebut1029; the leveling lane, 10-29 -- Griz: "replace 'opening cut' with 'Stab Debut' where she gets a straight weapon damage attack (no bonuses) on
+  // targets that haven't first-turned"; "yeah to stab debut bench check"): the grid's Cutthroat attacking a goblin that has not had its first turn swings twice, the second
+  // the weapon's dice alone (+0, no Sneak Attack even when the first missed with a friend beside it), and neither with advantage or a critical from it; at one that has
+  // had its turn, one swing; a Thief, one swing
+  if (get('mode', '') === 'stabdebut1029') {
+    var repSd = { checks: [], errors: [] }, d0Sd = D.d;
+    function okSd(what, v) { repSd.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function runSd(g) { var v, k = 0, st; while (g && k++ < 4000) { st = g.next(v); v = undefined; if (st.done) return; if (st.value && st.value.prompt) v = st.value.prompt.opts[st.value.prompt.opts.length - 1].value; } }
+    function pinSd(seq) { var i = 0; D.d = function (n) { return n === 20 && i < seq.length ? seq[i++] : n === 20 ? 15 : d0Sd(n); }; }
+    function plainSd(s) { return String(s).replace(/\{\/?[a-z]*\}/g, ''); }
+    function mkSd(sub, friend) {
+      var B = D.npcFight('?npc=goblin,goblin&lvl=3&vs=rogue:3' + (friend ? ',fighter:3' : ''), {}); D.battle = B; B.enter(); while (!B.order.length) B.co.next(); B.dark = false;
+      var ps = B.units.filter(function (w) { return w.side === 'party'; }), r = ps.filter(function (w) { return w.cls === 'rogue'; })[0], f = ps.filter(function (w) { return w !== r; })[0];
+      var g = B.units.filter(function (w) { return w.side === 'foe'; })[0], ok = false;
+      r.subclass = sub; g.maxhp = g.hp = 999; g.conds = {}; g.acted = false;
+      B.units.forEach(function (w) { if (w !== r && w !== g && w !== f) { w.x = 1; w.y = 1; } });
+      for (var dy = -1; dy <= 1 && !ok; dy++) for (var dx = -1; dx <= 1 && !ok; dx++) { var x = g.x + dx, y = g.y + dy; if ((dx || dy) && D.grid.canStand(r, x, y)) { r.x = x; r.y = y; ok = B.canHit(r, g); } }
+      if (f) { var okF2 = false; for (var ey = -1; ey <= 1 && !okF2; ey++) for (var ex = -1; ex <= 1 && !okF2; ex++) { var x2 = g.x + ex, y2 = g.y + ey; if ((ex || ey) && !(x2 === r.x && y2 === r.y) && D.grid.canStand(f, x2, y2)) { f.x = x2; f.y = y2; okF2 = true; } } }
+      D.grid.setup(B.map, B.units); D.rules.startTurn(r); B.active = r; return { B: B, r: r, g: g, ok: ok };
+    }
+    function swingSd(h) { var n = (h.B.log || []).length; runSd(h.B.exec(h.r, { do: 'attack', target: h.g })); return (h.B.log || []).slice(n).map(plainSd); }
+    try {
+      D.seed = 1029;
+      // 1. a Cutthroat at a goblin that has not had its first turn: two swings, the second the stab debut
+      var h1 = mkSd('Cutthroat'); pinSd([15, 15]); var l1 = swingSd(h1), i1 = -1; l1.forEach(function (s, i) { if (i1 < 0 && /\(stab debut\)/.test(s)) i1 = i; });
+      var main1 = l1.slice(0, i1 < 0 ? l1.length : i1).join(' / '), deb1 = i1 < 0 ? '' : l1.slice(i1).join(' / ');
+      okSd('a Cutthroat at one that has not had its turn (placed ' + h1.ok + '): her swing "' + main1.slice(0, 160) + '" then the stab debut "' + deb1.slice(0, 200) + '"',
+        h1.ok && i1 > 0 && /STAB DEBUT/.test(main1) && /\dd\d+\+0 /.test(deb1) && !/sneak/.test(deb1) && !/opening cut/.test(main1 + deb1) && !/CRITICAL/.test(main1 + deb1));
+      // 2. her swing misses with a friend beside the goblin: the stab hits, and no Sneak Attack rides it (the weapon's dice alone)
+      var h2 = mkSd('Cutthroat', true); pinSd([2, 15]); var l2 = swingSd(h2), i2 = -1; l2.forEach(function (s, i) { if (i2 < 0 && /\(stab debut\)/.test(s)) i2 = i; });
+      var deb2 = i2 < 0 ? '' : l2.slice(i2).join(' / ');
+      okSd('her swing missed, a friend beside it: the stab debut "' + deb2.slice(0, 200) + '" -- no sneak', i2 > 0 && /HIT/.test(deb2) && !/sneak/.test(deb2) && /\+0 /.test(deb2));
+      // 3. at one that has had its turn: one swing; 4. a Thief: one swing
+      var h3 = mkSd('Cutthroat'); h3.g.acted = true; pinSd([15]); var l3 = swingSd(h3).join(' / ');
+      var h4 = mkSd('Thief'); pinSd([15]); var l4 = swingSd(h4).join(' / ');
+      okSd('at one that has had its turn: no stab debut (' + !/stab debut/i.test(l3) + '); a Thief: none (' + !/stab debut/i.test(l4) + ')', !/stab debut/i.test(l3) && !/stab debut/i.test(l4) && />/.test(l3) && />/.test(l4));
+      // the words: the class's option and Vivian's own sheet say it
+      var cutO = window.DS.R.subOpt('rogue', 'cutthroat'), vArc = ((window.DS.DATA.heroes.vivian || {}).archetypes || []).filter(function (a) { return a.name === 'Cutthroat'; })[0];
+      okSd('the words: "' + (cutO && cutO.desc) + '" / Vivian\'s "' + (vArc && vArc.desc) + '"', cutO && /Stab Debut/.test(cutO.desc) && !/Opening Cut/.test(cutO.desc) && vArc && /Stab Debut/.test(vArc.desc) && !/Opening Cut/.test(vArc.desc));
+    } catch (e) { repSd.errors.push(String(e && e.stack || e)); }
+    D.d = d0Sd;
+    var preSd = document.createElement('pre'); preSd.id = 'out'; preSd.textContent = 'BENCH16 ' + JSON.stringify(repSd);
+    document.body.appendChild(preSd);
+    return;
+  }
   // A CLASS'S PICK SHOWS ITS OWN CHOICES (mode=levelcls1029; the leveling lane §2.1, 10-29 -- Griz, 10-28: "we still have fighter feats showing greyed out on rogue
   // leveling"): the SCORES tab offers a feat on its own classes' page (js/rules.js R.FEATS `cls`), greyed there till its prerequisite is met, and one any class may take by
   // the SRD (`any`: Grappler) on another class's page only when it can be taken -- Vivian and Aurdin at 4 shown no feat, on the page too; a rogue at STR 13 or 17 shown

@@ -1146,6 +1146,7 @@
   Battle.prototype.heroAttack = function* (u, t, st, smite) {
     // (st.w, st.n: a script's own swings -- Pyro's, js/pyro.js; a Loading weapon fires one shot an action, however many attacks -- SRD 5.1, 10-06)
     var h = u.h, w = st.w || R.weaponOf(h), n = st.n || (((w.weapon || {}).props || []).indexOf('loading') >= 0 ? 1 : R.attacksPerTurn(h)), self = this;
+    var debutT = h.subclass === 'Cutthroat' && !st.plain && !st.offhand && !st.debutUsed && !isHero(t) && !t.acted ? t : null; // (Stab Debut: one that has not had its first turn -- below)
     u.pose = 'act'; u.poseT = 999;
     for (var a = 0; a < n && !this.over; a++) {
       if (down(t) || t.conds.ethereal) { var alt = this.liveFoes(); if (!alt.length) break; t = DS.pick(alt); }
@@ -1153,9 +1154,6 @@
       if (this.famWill && this.famWill(u)) yield* this.famFly(u, t); // (the familiar's help lands on this swing: it flies to the target first, js/familiar.js)
       var adv = this.advantage(u, t, melee);
       if (h.wounded) adv--; // Halldor, a third of himself, swinging anyway
-      // Cutthroat's Opening Cut: first round, a foe that hasn't moved yet
-      var opening = h.subclass === 'Cutthroat' && this.round === 1 && !isHero(t) && !t.acted;
-      if (opening) adv = adv < 0 ? 0 : 1;
       var nat = this.d20(adv), pen = this.blindPen(u), blindTxt = this.blindTxt(u);
       var mw = u.conds.magicWeapon ? u.conds.magicWeapon.b : 0; // Magic Weapon (09-28g): +1 (or more) to hit and damage, and magical
       var bonus = R.attackBonus(h, w) + mw + (u.conds.sacred ? u.conds.sacred.atk : 0) + (u.conds.blessed ? DS.d(4) : 0); // (Sacred Weapon and Bless: conditions since 10-03, the buff slot retired)
@@ -1175,14 +1173,14 @@
         yield* this.say(nameOf(u) + ' attacks ' + nameOf(t) + '... and misses.' + blindTxt, 34);
         continue;
       }
-      var crit = nat >= R.critRange(h) || (melee && critClose(t)) || opening;
+      var crit = nat >= R.critRange(h) || (melee && critClose(t));
       var dx = st.offhand ? R.offhandDamage(h, w) : R.damageExpr(h, w); // (st.offhand: two-weapon fighting's swing -- no ability modifier unless negative, or the style; 10-15)
       var gwf = melee && R.gwf(h, w); // Great Weapon Fighting by the style and the weapon, as the grid's (10-06: it was Barley's by name; Brann's battleaxe too now)
-      var dmg = (dx.dice === '0' ? 0 : DS.roll(dx.dice, { crit: crit, reroll12: gwf })) + dx.mod + mw;
-      if (crit && melee && R.savage(h) && dx.dice !== '0') dmg += DS.roll('1' + dx.dice.replace(/^\d+/, ''), {}); // Savage Attacks (by blood, R.savage: Lymen's)
-      var extra = opening ? ' Opening cut!' : '', rad = 0;
+      var dmg = st.plain ? (dx.dice === '0' ? 0 : DS.roll(dx.dice, { crit: crit })) : (dx.dice === '0' ? 0 : DS.roll(dx.dice, { crit: crit, reroll12: gwf })) + dx.mod + mw; // (st.plain: Stab Debut's stab, the weapon's dice alone)
+      if (crit && melee && R.savage(h) && dx.dice !== '0' && !st.plain) dmg += DS.roll('1' + dx.dice.replace(/^\d+/, ''), {}); // Savage Attacks (by blood, R.savage: Lymen's)
+      var extra = st.plain ? ' Stab debut!' : '', rad = 0;
       var sneaked = false;
-      if (h.cls === 'rogue' && !st.sneakUsed && (w.weapon.props || []).join().match(/finesse|ranged/) && adv >= 0 && (adv > 0 || wasHidden || this.liveHeroes().length > 1)) {
+      if (h.cls === 'rogue' && !st.plain && !st.sneakUsed && (w.weapon.props || []).join().match(/finesse|ranged/) && adv >= 0 && (adv > 0 || wasHidden || this.liveHeroes().length > 1)) {
         var sn = DS.roll(R.sneakDice(h.lvl), { crit: crit }); dmg += sn; st.sneakUsed = true; extra += ' Sneak Attack!'; sneaked = true;
       }
       if (smite) {
@@ -1191,13 +1189,13 @@
         h.slots[smite - 1]--; smite = 0; extra += ' Divine Smite!';
         this.elemBurst(t, 'radiant');
       }
-      if (u.conds.divineFavor) rad += DS.d(4); // (Divine Favor: a condition since 10-03)
+      if (u.conds.divineFavor && !st.plain) rad += DS.d(4); // (Divine Favor: a condition since 10-03)
       // the Mace of Disruption (SRD 5.1; Pyro's, 09-30): a fiend or undead takes 2d6 radiant more, and after the blow the save below
       // (its magic works only for one bonded with it -- js/rules.js R.bonded, as the grid's deep16/js/save.js; 10-06)
-      var bondW = R.bonded(h, w.id), dis = bondW && w.weapon.disrupt && w.weapon.disrupt.vs.some(function (k) { return tags(t).indexOf(k) >= 0; }) ? w.weapon.disrupt : null;
+      var bondW = R.bonded(h, w.id), dis = bondW && !st.plain && w.weapon.disrupt && w.weapon.disrupt.vs.some(function (k) { return tags(t).indexOf(k) >= 0; }) ? w.weapon.disrupt : null;
       if (dis) { rad += DS.roll(dis.dice, { crit: crit }); extra += ' Disruption!'; this.elemBurst(t, 'radiant'); }
       // Branding Smite (09-28g): the waiting light goes into this blow, and the one struck glows (no invisibility on it)
-      if (u.conds.branding) { rad += DS.roll(u.conds.branding.dice, { crit: crit }); delete u.conds.branding; t.conds.revealed = true; delete t.conds.invisible; extra += ' Branded!'; this.elemBurst(t, 'radiant'); }
+      if (u.conds.branding && !st.plain) { rad += DS.roll(u.conds.branding.dice, { crit: crit }); delete u.conds.branding; t.conds.revealed = true; delete t.conds.invisible; extra += ' Branded!'; this.elemBurst(t, 'radiant'); }
       var dealt = this.hurt(t, Math.max(1, dmg), dx.type, { magicWeapon: (w.weapon.bonus || 0) > 0 || mw > 0 || (!!w.weapon.magic && bondW) }); // (a magic weapon with no bonus counts as magic: the Mace of Disruption, bonded; 10-06)
       if (rad) dealt += this.hurt(t, rad, 'radiant', {});
       var tImm = function (c) { return !isHero(t) && (t.m.condImmune || []).indexOf(c) >= 0; };
@@ -1217,6 +1215,14 @@
       yield* this.say((crit ? 'Critical! ' : '') + nameOf(u) + ' hits ' + nameOf(t) + ' for ' + dealt + '.' + extra + imm + blindTxt, crit ? 48 : 38);
       yield* this.flushMsg();
       if (down(t)) yield* this.say(nameOf(t) + ' is defeated!', 30);
+    }
+    // Stab Debut (the game's Cutthroat, 10-29 -- Griz: "replace 'opening cut' with 'Stab Debut' where she gets a straight weapon damage attack (no bonuses) on targets that haven't
+    // first-turned"): after her attacks, one more at the one that had not had its first turn, the weapon's dice alone (st.plain); the seat's reading, as the grid's: free, once a
+    // turn, while it stands
+    if (debutT && !this.over && !down(u) && !down(debutT) && !debutT.acted) {
+      st.debutUsed = true; var w1 = st.w, n1 = st.n; st.w = w; st.n = 1; st.plain = true;
+      yield* this.say(nameOf(u) + ': a stab debut. ' + nameOf(debutT) + ' has not had a turn yet.', 24);
+      try { yield* this.heroAttack(u, debutT, st, null); } finally { st.w = w1; st.n = n1; delete st.plain; }
     }
     u.pose = null; u.poseT = 0;
   };

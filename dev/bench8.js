@@ -2362,6 +2362,30 @@
           !!ph && pP.length === 1 && pP[0].n === 1 + strP && pW.length >= 1 && pW[0].n === 1 + strP && pW[0].magic && !DS.R.twoWeapon(ph).ok);
       } catch (eT) { check('threw: ' + String(eT && eT.stack || eT).slice(0, 500), false); }
       DS.roll = rollO; var btT2 = DS.find('battle'); if (btT2 && d20o) btT2.d20 = d20o; if (btT2 && hurtO) btT2.hurt = hurtO;
+    } else if (test === 'stabdebut1029') {
+      // STAB DEBUT in the 8-bit (the leveling lane, 10-29 -- Griz: "replace 'opening cut' with 'Stab Debut' where she gets a straight weapon damage attack (no bonuses) on targets
+      // that haven't first-turned"; "yeah to stab debut bench check"): Vivian, a Cutthroat, at a gnoll that has not had a turn -- her blow (1 + DEX + the Sneak Attack's 1), then
+      // the stab (1: the dice alone), no critical and no advantage from it; at a gnoll that has had its turn, one blow; a Thief, one blow; the archetype's line on her page
+      var d20s = null, rollS = DS.roll, hurtS = null, dealtS = [], advS = [];
+      try {
+        T.startFight(['gnoll', 'gnoll']); for (var wS = 0; wS < 400 && !DS.find('battle'); wS++) T.step(1);
+        var btS = DS.find('battle'), viS = btS.heroes.filter(function (u) { return u.h.id === 'vivian'; })[0], gnS = btS.foes[0];
+        btS.foes.forEach(function (f) { f.hp = f.maxhp = 900; f.acted = false; });
+        d20s = btS.d20; btS.d20 = function (a) { advS.push(a); return 15; }; DS.roll = function () { return 1; }; hurtS = btS.hurt; btS.hurt = function (t, n) { dealtS.push(n); return n; };
+        var saidS = [], sayS = btS.say; btS.say = function* (t) { saidS.push(t); };
+        var driveS = function (g) { var k = 0, st; while (g && k++ < 2000) { st = g.next(); if (st.done) return; } };
+        var dexS = DS.mod(viS.h.abil.dex), sub0 = viS.h.subclass;
+        viS.h.subclass = 'Cutthroat'; driveS(btS.heroAttack(viS, gnS, { actions: 1, bonus: 0, surged: false, sneakUsed: false }, null)); var cutD = dealtS.slice(), cutA = advS.slice(), cutSaid = saidS.join(' | '); dealtS = []; advS = []; saidS = [];
+        check('A CUTTHROAT AT ONE THAT HAS NOT HAD A TURN: blows for ' + cutD.join(' + ') + ' (want ' + (1 + dexS + 1) + ' + 1), advantage ' + JSON.stringify(cutA) + '; said "' + cutSaid.slice(0, 220) + '"',
+          cutD.length === 2 && cutD[0] === 1 + dexS + 1 && cutD[1] === 1 && cutA.every(function (a) { return !(a > 0); }) && /stab debut/i.test(cutSaid) && !/Critical!|Opening cut/.test(cutSaid));
+        gnS.acted = true; driveS(btS.heroAttack(viS, gnS, { actions: 1, bonus: 0, surged: false, sneakUsed: false }, null)); var actD = dealtS.slice(); dealtS = []; gnS.acted = false;
+        viS.h.subclass = 'Thief'; driveS(btS.heroAttack(viS, gnS, { actions: 1, bonus: 0, surged: false, sneakUsed: false }, null)); var thD = dealtS.slice(); dealtS = []; viS.h.subclass = sub0;
+        check('at one that has had its turn: ' + actD.length + ' blow; a Thief: ' + thD.length + ' blow', actD.length === 1 && thD.length === 1);
+        var arcS = (DS.DATA.heroes.vivian.archetypes || []).filter(function (a) { return a.name === 'Cutthroat'; })[0];
+        check('her page\'s line: "' + (arcS && arcS.desc) + '"', !!arcS && /Stab Debut/.test(arcS.desc) && !/Opening Cut/.test(arcS.desc));
+        btS.say = sayS;
+      } catch (eS) { check('threw: ' + String(eS && eS.stack || eS).slice(0, 500), false); }
+      DS.roll = rollS; var btS2 = DS.find('battle'); if (btS2 && d20s) btS2.d20 = d20s; if (btS2 && hurtS) btS2.hurt = hurtS;
     } else if (test === 'offhand1015') {
       // the OFFHAND (RULED 10-15, Griz: "OFFHAND is shield hand, just change text and function for where that slot is among slots"; "6 - yeah, in the offhand instead of its own
       // slot"): EQUIP's third place is OFFHAND (no LIGHT row); it holds one thing -- a shield, a weapon, the light -- its list the pack's shields, one-handed melee weapons
