@@ -145,6 +145,53 @@ def core33(a):
     d = ndi.distance_transform_edt(a[..., 3] >= 128)
     return float(np.where(d >= 0.7 * d.max())[1].mean())
 
+def body33(a):
+    """a frame's body height: its biggest piece (a droplet over the crest is not the body)"""
+    m = a[..., 3] >= 128
+    lab, n = ndi.label(m, structure=np.ones((3, 3)))
+    if not n:
+        return 0
+    m = lab == 1 + int(np.argmax(ndi.sum(m, lab, range(1, n + 1))))
+    ys = np.where(m.any(axis=1))[0]
+    return int(ys[-1] - ys[0] + 1)
+
+def k33(im, target, measure=tall33):
+    """the page frame's 1/k that brings it to `target` px by `measure` at game size"""
+    lo, hi = 1.0, 30.0
+    for _ in range(28):
+        k = (lo + hi) / 2
+        lo, hi = (k, hi) if measure(fit33(im, k)) > target else (lo, k)
+    return (lo + hi) / 2
+
+def lay33(frs, Ks, f, CW, CH, FEET, anchor=None, still=False):
+    """a row's page frames -> CW x CH cells, as the page drew them: the first frame's body on the anchor (or a first line's `anchor`, for a
+    row wrapped onto a second line), the rest by their numbers, each foot on the row's ground. Ks: each frame's 1/k (one a row, but an
+    idle's). still: an idle -- each frame's body on the anchor, not by its number (a stand does not walk). -> (cells, lost, anchor)"""
+    AX, AY = CW // 2, CH - FEET
+    fits = [fit33(toned33(im, f), k) for (im, _, _), k in zip(frs, Ks)]
+    floor = max(b[3] for _, b, _ in frs)
+    tx, rx0 = anchor or (core33(fits[0]), (frs[0][1][0] - frs[0][2]) / Ks[0])
+    row, lost = [], []
+    for a, (_, box, x), k in zip(fits, frs, Ks):
+        ox = int(round(AX - core33(a))) if still else int(round(AX - tx + (box[0] - x) / k - rx0))
+        al = np.where(a[..., 3].any(axis=1))[0]
+        oy = AY - int(round((floor - box[3]) / k)) - int(al[-1])
+        cell = np.zeros((CH, CW, 4), np.uint8)
+        h, w = a.shape[:2]
+        y0, x0, y1, x1 = max(0, oy), max(0, ox), min(CH, oy + h), min(CW, ox + w)
+        cell[y0:y1, x0:x1] = a[y0 - oy:y1 - oy, x0 - ox:x1 - ox]
+        if (cell[..., 3] >= 128).sum() < (a[..., 3] >= 128).sum():
+            lost.append('%d (%d x %d at %d,%d)' % (len(row) + 1, w, h, ox, oy))
+        row.append(cell)
+    return row, lost, (tx, rx0)
+
+def idle_ks(frs, k0):
+    """THE IDLE'S BOUNCE (10-30, Griz on the fight: "His idle is terrible bouncy"): the art desk drew ART-33's Idle 2 about 8% smaller than
+    Idle 1 on both its pages (273 px to 253 on H1P1), and one scale for the row dropped the head about 10 px three times a second. Idle 1 keeps
+    the row's scale; each later frame is fitted to Idle 1's body height at game size"""
+    want = body33(fit33(frs[0][0], k0))
+    return [k0] + [k33(im, want, body33) for im, _, _ in frs[1:]]
+
 
 def art33(eref, CW, CH, FEET):
     """eref: {page row: the E row's frame its scale and tone are met against (the sheet's own, before packing)} -> {sheet row: {view: [CW x CH
@@ -154,18 +201,11 @@ def art33(eref, CW, CH, FEET):
     sp = importlib.util.spec_from_file_location('artdesk', os.path.join(root, 'tools', 'artdesk.py'))
     AD = importlib.util.module_from_spec(sp); sp.loader.exec_module(AD)
     cuts = AD.cut(root, 'keeper', 'ART-33', PAGES33, fix=FIX33)
-    def k_for(im, target):
-        lo, hi = 1.0, 30.0
-        for _ in range(28):
-            k = (lo + hi) / 2
-            lo, hi = (k, hi) if tall33(fit33(im, k)) > target else (lo, k)
-        return (lo + hi) / 2
-    AX, AY = CW // 2, CH - FEET
     out, lost, log = {}, [], []
     for v, ls in VIEWS33.items():
         for L in ls:
             c = cuts[L]
-            K = {r: k_for(c[r][STAND33[r]][0], tall33(_arr(eref[r]))) for r in c if r in STAND33}
+            K = {r: k33(c[r][STAND33[r]][0], tall33(_arr(eref[r]))) for r in c if r in STAND33}
             for r in c:
                 K.setdefault(r, K.get('wave'))
             tr = 'wall' if 'wall' in c else 'wave'                     # the page's tone, by its first row the E sheet has a standing frame for
@@ -175,26 +215,90 @@ def art33(eref, CW, CH, FEET):
                 f = np.array([f[0] + ((want[0] - got[0] + 128) % 256 - 128), f[1] * want[1] / max(got[1], 1), f[2] * want[2] / max(got[2], 1)])
             log.append('%s K %s, tone %s' % (L, ' '.join('%s %.2f' % (r, K[r]) for r in c), ' '.join('%.2f' % x for x in f)))
             for r, frs in c.items():
-                fits = [fit33(toned33(im, f), K[r]) for im, _, _ in frs]
-                floor = max(b[3] for _, b, _ in frs)
-                tx, rx0 = core33(fits[0]), (frs[0][1][0] - frs[0][2]) / K[r]
-                row = []
-                for a, (_, box, x) in zip(fits, frs):
-                    ox = int(round(AX - tx + (box[0] - x) / K[r] - rx0))
-                    al = np.where(a[..., 3].any(axis=1))[0]
-                    oy = AY - int(round((floor - box[3]) / K[r])) - int(al[-1])
-                    cell = np.zeros((CH, CW, 4), np.uint8)
-                    h, w = a.shape[:2]
-                    y0, x0, y1, x1 = max(0, oy), max(0, ox), min(CH, oy + h), min(CW, ox + w)
-                    cell[y0:y1, x0:x1] = a[y0 - oy:y1 - oy, x0 - ox:x1 - ox]
-                    if (cell[..., 3] >= 128).sum() < (a[..., 3] >= 128).sum():
-                        lost.append('%s %s %d (%d x %d at %d,%d)' % (L, r, len(row) + 1, w, h, ox, oy))
-                    row.append(cell)
+                Ks = idle_ks(frs, K[r]) if r == 'idle' else [K[r]] * len(frs)
+                row, lo, _ = lay33(frs, Ks, f, CW, CH, FEET, still=r == 'idle')
+                lost += ['%s %s %s' % (L, r, s) for s in lo]
                 sheet_row = [s for s, pr in ROWS33.items() if pr == r][0]
                 out.setdefault(sheet_row, {})[v] = row
     print('  ART-33: ' + '; '.join(log))
     if lost:
-        raise SystemExit('ART-33 cut off at the cell edge (%d x %d, anchor %d,%d): %s' % (CW, CH, AX, AY, '; '.join(lost)))
+        raise SystemExit('ART-33 cut off at the cell edge (%d x %d, anchor %d,%d): %s' % (CW, CH, CW // 2, CH - FEET, '; '.join(lost)))
+    return out
+
+
+# ---- ART-119 (10-30, the Keeper cutter, started by the lanes desk on Griz's "with exception of a cutter seat for the keeper stuff that came in. His
+# idle was bouncy AF"): the art desk's HEAD 4, the E view in ART-33's look, for the six rows the fight plays -- one page a row, Idle 2, Ice Wall
+# Raise 6, Dive Attack 7, Wave Cast 6, Hurt 2, Die 2 -- in place of the Grok side view on E, and W its mirror about the anchor. Sorted out of
+# Fresh into deep16/_src/keeper/ART-119/ by _src/art-desk/sort-delivery.py. The Ice Wall, the Dive and the Wave wrap onto a second line of their
+# page (frames 4-6, 5-7): `<row>2` here, laid on the first line's anchor and its own ground. Scaled as ART-33's rows are, each row's standing
+# frame as tall as the Grok E frame it replaces (so E and SE stay one size an action; a Dive 1 to 6 met by height, not by eye -- the SE's 3/4
+# crouch is wider, not taller); the Hurt by its first frame's body against the SE cell's (MATCH119), the Die at the Hurt's. Toned by hue,
+# saturation and value to the SE cell of the same row, frame 1 (ART-33's cut), its neighbour on screen.
+SPEC119 = {
+  'H4P1': (dict(file='ART-119_HEAD-4_PAGE-1.png', W=1774, text=[(40, 80, 180, 136)]),
+           R(('idle', (0, 0, 1774, 792), (738, 792), 2, [612, 1162]))),
+  # (the Ice Wall's first line: its numbers boxed one by one, `own_strip` -- Ice 6's tips reach up to y 468, beside the numbers' strip)
+  'H4P2': (dict(file='ART-119_HEAD-4_PAGE-2.png', W=1774, text=[(40, 50, 440, 100), (488, 430, 523, 475), (843, 430, 881, 475), (1220, 430, 1257, 475)],
+                own_strip=['wall']),
+           R(('wall', (0, 0, 1774, 460), (432, 472), 3, [505, 862, 1238]), ('wall2', (0, 461, 1774, 868), (828, 868), 3, [491, 872, 1294]))),
+  'H4P3': (dict(file='ART-119_HEAD-4_PAGE-3.png', W=1536, text=[(30, 76, 285, 121)]),
+           R(('dive', (0, 0, 1536, 477), (432, 477), 4, [155, 521, 906, 1320]), ('dive2', (0, 478, 1536, 957), (910, 957), 3, [398, 765, 1140]))),
+  'H4P4': (dict(file='ART-119_HEAD-4_PAGE-4.png', W=1774, text=[]),
+           R(('wave', (0, 0, 1774, 446), (406, 446), 3, [371, 836, 1304]), ('wave2', (0, 447, 1774, 863), (822, 863), 3, [277, 836, 1405]))),
+  'H4P5': (dict(file='ART-119_HEAD-4_PAGE-5.png', W=1774, text=[(45, 80, 190, 136)]),
+           R(('hurt', (0, 0, 1774, 785), (728, 785), 2, [574, 1197]))),
+  'H4P6': (dict(file='ART-119_HEAD-4_PAGE-6.png', W=1774, text=[(48, 80, 152, 136)]),
+           R(('die', (0, 0, 1774, 793), (737, 793), 2, [585, 1204]))),
+}
+PAGES119 = {L: dict(p, rows=rows, xs=xs) for L, (p, (rows, xs)) in SPEC119.items()}
+JOIN119 = {'wall2': 'wall', 'dive2': 'dive', 'wave2': 'wave'}
+STAND119 = {'idle': ('idle', 0), 'wall': ('wall', 0), 'dive': ('dive2', 2), 'wave': ('wave', 0)}   # each row's standing frame (STAND33's) on its page, met against the Grok E frame's height: Dive 7 is the second line's third
+MATCH119 = {'hurt': 0}              # met instead by this frame's body against the SE cell's: Hurt has no standing frame (the art desk's factor for its page, against the Wave's, drew it 13% taller than SE's)
+SAME119 = {'die': 'hurt'}           # (Die on Hurt's scale: the art desk drew both pages at one factor, and Die 2 is spray only)
+
+
+def art119(eref, A33, CW, CH, FEET):
+    """eref: as art33's (the Grok E frames the scale meets); A33: art33's cut ({sheet row: {view: cells}}) -> {sheet row: [CW x CH RGBA arrays]},
+    the E view"""
+    import importlib.util
+    root = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', '..'))
+    sp = importlib.util.spec_from_file_location('artdesk', os.path.join(root, 'tools', 'artdesk.py'))
+    AD = importlib.util.module_from_spec(sp); sp.loader.exec_module(AD)
+    cuts = AD.cut(root, 'keeper', 'ART-119', PAGES119)
+    out, lost, log, K = {}, [], [], {}
+    for L in SPEC119:
+        for r, (rr, i) in STAND119.items():
+            if rr in cuts[L]:
+                K[r] = k33(cuts[L][rr][i][0], tall33(_arr(eref[r])))
+        for r, i in MATCH119.items():
+            if r in cuts[L]:
+                sheet_row = [s for s, pr in ROWS33.items() if pr == r][0]
+                K[r] = k33(cuts[L][r][i][0], body33(A33[sheet_row]['SE'][i]), body33)
+    for r, r0 in SAME119.items():
+        K[r] = K[r0]
+    for L in SPEC119:
+        c = cuts[L]
+        for r, frs in c.items():
+            if r in JOIN119:
+                continue
+            sheet_row = [s for s, pr in ROWS33.items() if pr == r][0]
+            ref = A33[sheet_row]['SE'][0]
+            f = np.array([0.0, 1.0, 1.0])
+            for _ in range(3):
+                want, got = mean33(ref), mean33(fit33(toned33(frs[0][0], f), K[r]))
+                f = np.array([f[0] + ((want[0] - got[0] + 128) % 256 - 128), f[1] * want[1] / max(got[1], 1), f[2] * want[2] / max(got[2], 1)])
+            Ks = idle_ks(frs, K[r]) if r == 'idle' else [K[r]] * len(frs)
+            row, lo, anchor = lay33(frs, Ks, f, CW, CH, FEET, still=r == 'idle')
+            lost += ['%s %s %s' % (L, r, s) for s in lo]
+            for r2, r1 in JOIN119.items():
+                if r1 == r and r2 in c:
+                    row2, lo2, _ = lay33(c[r2], [K[r]] * len(c[r2]), f, CW, CH, FEET, anchor=anchor)
+                    row += row2; lost += ['%s %s %s' % (L, r2, s) for s in lo2]
+            out[sheet_row] = row
+            log.append('%s %s K %.2f tone %s' % (L, r, K[r], ' '.join('%.2f' % x for x in f)))
+    print('  ART-119: ' + '; '.join(log))
+    if lost:
+        raise SystemExit('ART-119 cut off at the cell edge (%d x %d, anchor %d,%d): %s' % (CW, CH, CW // 2, CH - FEET, '; '.join(lost)))
     return out
 
 
@@ -207,7 +311,7 @@ if __name__ == '__main__':
             for c, im in enumerate(fr): im.save(f'frames/{"abc"[n-1]}_{nm}_{c+1}.png')
     # ---- keeper_p2: the sheet the engine reads (js/sprites.js: rows are anim x facing, 8 facings S SW W NW N NE E SE, the columns the frames).
     # Grok drew one side view (facing right), so the east-ish facings (S, NE, E, SE) are as drawn and the west-ish (SW, W, NW, N) mirrored.
-    CW, CH, FEET = 200, 124, 4                    # (200 wide since 10-22, ART-33: the SE Wave 5's reach and Die 2's spray; 168 before, every frame centred)
+    CW, CH, FEET = 216, 124, 4                    # (216 wide since 10-30, ART-119: the E Wave 4's and 5's spray, 103 px ahead of the anchor; 200 since 10-22, ART-33: the SE Wave 5's reach and Die 2's spray; 168 before, every frame centred)
     src = {f'{"ab"[n-1]}_{nm}': allf[n][nm] for n in (1, 2) for nm in ('idle', 'wall', 'dive', 'wave')}
     # composed rows: the Slam's dive from both sheets (a = the first sheet's, b = the second's), and the sinking
     rows = dict(src)
@@ -223,10 +327,12 @@ if __name__ == '__main__':
     P3 = [scaled(im) for im in allf[3]['turn']]       # as drawn: front, right-facing profile, left-facing profile, back (the sheet's own labels are shuffled)
     STAND = {0: 0, 1: 2, 2: 2, 3: 3, 4: 3, 5: 3, 6: 1, 7: 1}   # engine facing (S SW W NW N NE E SE) -> pose
     rows['stand'] = None
-    A33 = art33({'idle': P3[STAND[6]], 'wall': src['a_wall'][0], 'dive': rows['slam_b3a'][6], 'wave': src['b_wave'][0]}, CW, CH, FEET)
-    def paste33(nm, f, c, y0):                 # an ART-33 cell, SW and NW flipped about the anchor (x -> CW - x, the anchor where it was)
-        a = A33[nm][FACE33[f]][c]
-        if f in (1, 3):
+    EREF = {'idle': P3[STAND[6]], 'wall': src['a_wall'][0], 'dive': rows['slam_b3a'][6], 'wave': src['b_wave'][0]}
+    A33 = art33(EREF, CW, CH, FEET)
+    A119 = art119(EREF, A33, CW, CH, FEET)     # (10-30: the E view of the rows the fight plays; W its mirror)
+    def paste33(nm, f, c, y0):                 # an ART-33 cell (ART-119's on E and W), SW, NW and W flipped about the anchor (x -> CW - x, the anchor where it was)
+        a = A119[nm][c] if f in (2, 6) else A33[nm][FACE33[f]][c]
+        if f in (1, 2, 3):
             m = np.zeros_like(a); m[:, 1:] = a[:, ::-1][:, :-1]; a = m
         sheet.alpha_composite(Image.fromarray(a, 'RGBA'), (c * CW, y0 + f * CH))
     order = ['a_idle', 'a_wall', 'a_dive', 'a_wave', 'b_idle', 'b_wall', 'b_dive', 'b_wave', 'slam_ab', 'slam_ba', 'slam_b3a', 'hurt_b', 'die_b', 'stand']
@@ -239,7 +345,7 @@ if __name__ == '__main__':
             meta[nm] = {'y': y0, 'frames': 2}
             for f in range(8):
                 for c in range(2):
-                    if FACE33.get(f) in A33['stand']:
+                    if FACE33.get(f) in A33['stand'] or f in (2, 6):
                         paste33(nm, f, c, y0); continue
                     im = P3[STAND[f]]; w, h = im.size
                     sheet.paste(im, (c * CW + (CW - w) // 2, y0 + f * CH + CH - FEET - h - c), im)
@@ -247,7 +353,7 @@ if __name__ == '__main__':
         fr = rows[nm]; meta[nm] = {'y': y0, 'frames': len(fr)}
         for f, mir in enumerate(FACES):
             for c, im in enumerate(fr):
-                if FACE33.get(f) in A33.get(nm, {}):
+                if FACE33.get(f) in A33.get(nm, {}) or (f in (2, 6) and nm in A119):
                     paste33(nm, f, c, y0); continue
                 w, h = im.size
                 if mir: im = im.transpose(Image.FLIP_LEFT_RIGHT)

@@ -838,6 +838,14 @@
     if (q.deepac) K.CFG.deepAC = +q.deepac; if (q.luresafe != null) K.CFG.lureSafe = q.luresafe !== '0'; // (deepac=10 luresafe=0: the Keeper of before 10-28)
     if (q.hide != null) K.CFG.hideAfter = q.hide !== '0'; if (q.oa != null) K.CFG.oaWave = q.oa === '1'; if (q.need) K.CFG.freezeNeeds = q.need; if (q.wallrounds != null) K.CFG.wallRounds = +q.wallrounds; if (q.ai != null) K.CFG.aiScript = q.ai === 'current' ? '' : q.ai; if (q.retreat != null) K.CFG.partyRetreat = q.retreat !== '0'; if (q.deep) K.CFG.deepDepth = +q.deep; if (q.drown) K.CFG.drown = q.drown; // (the settings the bench can flip: hide=0, oa=1, need=any)
     var N = +(q.runs || 2), lv = (q.lvls || '3,4,5').split(',').map(Number), rows = [];
+    // (10-30, the Keeper cutter: which of its eight facings the fight draws, by frames -- an idle Keeper is turned to the nearest of us each frame as it is
+    // drawn, js/ui.js -> K.face; read here without turning it, so the fights' rolls are not moved. The swirl and the hidden are not its figure)
+    var face = [0, 0, 0, 0, 0, 0, 0, 0];
+    function shown(B, k) {
+      if (k.anim && k.anim !== 'idle') return k.facing % 8;
+      var t = null, best = 1e9; B.units.forEach(function (w) { if (w.side !== k.side && G.standing(w) && !(w.riding && !w.attached) && !w.isWall) { var d = G.dist(k, w); if (d < best) { best = d; t = w; } } });
+      return (t ? B.faceTo(k, t) : k.facing) % 8;
+    }
     lv.forEach(function (L) {
       var agg = { won: 0, lost: 0, rounds: 0, downs: 0, waves: 0, swept: 0, floods: 0, drown: 0, twice: 0, breaks: 0, kept: 0, walls: 0, fire: 0, froze: 0, slams: 0, prone: 0, none: 0, thaws: 0, stale: 0, suff: 0, swirlA: 0, outside: 0, oaK: 0 }; // (oaK: opportunity attacks the party took on the Keeper -- none while K.CFG.lureSafe keeps its walk out of reach, 10-28)
       var rw0 = K.raiseWall; K.raiseWall = function* (B, k, trig) { var wa = B.kp && B.kp.rowOverride != null ? B.kp.rowOverride : G.map.def.geo.wall; agg.outside += ours(B).filter(function (u) { return G.standing(u) && K.A(u) > wa; }).length; return yield* rw0.apply(this, arguments); };
@@ -846,7 +854,7 @@
         if (q.wall) F.kp = { uses: 3, ready: null, wall: null, ice: {}, waves: 0, rowOverride: +q.wall };
         F.units.forEach(function (u) { if (u.side === 'party' && !u.familiar) { u.guest = true; u.classAI = true; } });
         F.heroTurn = function* (u) { yield* D.ai.turn(this, u); };
-        var v, g = 0; while (F.co && g++ < 400000) { var r; try { r = F.co.next(v); } catch (e) { errs.push(String(e && e.stack || e).slice(0, 500)); break; } v = undefined; if (r.done) break; var y = r.value; if (y && y.prompt) v = y.prompt.opts[0].value; }
+        var v, g = 0; while (F.co && g++ < 400000) { var r; try { r = F.co.next(v); } catch (e) { errs.push(String(e && e.stack || e).slice(0, 500)); break; } v = undefined; if (r.done) break; var y = r.value; if (y && y.prompt) v = y.prompt.opts[0].value; var kf = keeper(F); if (kf && !kf.flooding && !kf.conds.hidden) face[shown(F, kf)] += typeof y === 'number' ? y : 1; }
         var txt = cs.join('\n'), cnt = function (re) { return (txt.match(re) || []).length; };
         if (F.result === 'won') agg.won++; else if (F.result === 'lost') agg.lost++; else agg.none++;
         agg.rounds += F.round; agg.downs += cnt(/ goes down\./g); agg.waves += cnt(/sends a wave/g); agg.swept += cnt(/is swept/g); agg.floods += cnt(/is washed into the deep/g);
@@ -857,6 +865,8 @@
       rows.push('L' + L + ' x' + N + ' start=' + (q.start || 'ledge') + ' wr=' + K.CFG.wallRounds + ' ai=' + (K.CFG.aiScript || 'current') + ' ac=' + K.CFG.deepAC + (K.CFG.lureSafe ? '' : ' lure-oa') + (q.wall ? ' wall ' + q.wall : '') + ': ' + JSON.stringify(agg).replace(/"/g, ''));
     });
     ok('whole fights, no error (' + errs.length + ')', !errs.length && rows.every(function (r) { return !/none:[1-9]/.test(r); }));
+    var fsum = face.reduce(function (a, b) { return a + b; }, 0), pc = function (i) { return Math.round(100 * face[i] / Math.max(1, fsum)); };
+    ok('the facings its figure is drawn in, by frames, over ' + N * lv.length + ' whole fights: ' + 'S SW W NW N NE E SE'.split(' ').map(function (n, i) { return n + ' ' + pc(i) + '%'; }).join(', ') + ' (E and W, ART-119\'s since 10-30: ' + (pc(2) + pc(6)) + '%)', fsum > 0);
     if (K.CFG.lureSafe && K.CFG.aiScript === 'lure') ok('the walk deeper kept out of reach (10-28): no opportunity attack on the Keeper in ' + N * lv.length + ' whole fights', rows.every(function (r) { return /oaK:0\b/.test(r); }));
     rows.forEach(function (r) { ok(r, true); });
     // ---- the way out (10-04, Griz: "Keeper Fight lacks fight escape", then "pull the rest of the party" as the Wet does): LEAVE THE FIGHT live on the corridor's east end, greyed off it; one out, all out

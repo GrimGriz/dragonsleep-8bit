@@ -719,7 +719,8 @@
     { id: 'ice', name: 'FROZEN WHERE IT STANDS', words: 'The water under all four of its squares freezes: it is restrained. DC 7 STR as a bonus action, then its action for a second try; breaking out destroys the ice and 1-2 squares about it.' },
     { id: 'swirlfreeze', name: 'COLD ON THE SWIRL', words: 'Icing the water while it swirls someone: it saves against the spell to resist; failed, it changes back, lets go, and the freeze takes.' },
     { id: 'oa', name: 'ITS OPPORTUNITY ATTACK, AS A WAVE', words: 'Not ruled (D16.keeper.CFG.oaWave): as one leaves its reach it raises a wave that sweeps them toward the deep.' },
-    { id: 'freeze', name: 'FREEZING THE WATER', words: 'A cold area spell freezes the water it covers: 1d4 cold to its caster\'s friends in it, ice underfoot against the backwash, no deep where the ice is.' }
+    { id: 'freeze', name: 'FREEZING THE WATER', words: 'A cold area spell freezes the water it covers: 1d4 cold to its caster\'s friends in it, ice underfoot against the backwash, no deep where the ice is.' },
+    { id: 'facings', name: 'EVERY FACING', words: 'One of you walks round it, and it turns to face them, standing: its idle in all eight facings (the diagonals\' bounce gone, 10-30). Then each row it plays, from the east and the west (the art desk\'s ART-119).' }
   ];
   D.fxKeeper = function (q) {
     var get = function (k) { var m = new RegExp('[?&]' + k + '=([^&]*)').exec(q); return m ? decodeURIComponent(m[1]) : null; };
@@ -797,6 +798,23 @@
       freeze: function* () {
         var k = S.k, c = S.P[1]; S.P.forEach(function (h, i) { put(h, 7 + i, 9); }); put(S.P[2], 8, 7); look(8, 7); put(c, 8, 9); c.spellDC = 13; yield 20;
         yield* K.spellOn(B, c, 'coneofcold', 5, pt(8, 6)); yield 40;
+      },
+      // (10-30, the Keeper cutter, on Griz's "His idle is terrible bouncy": the art desk's ART-119 drew the E view, W its mirror, in place of the Grok side
+      // view; and the diagonals' Idle 2, drawn smaller than Idle 1, is fitted to it -- art-src/keeper/slice.py). The idle turns to the nearest of us each
+      // frame (js/ui.js), so one hero walks round it -- (across, along) squares about its 2x2 at (8-9, 4-5) -- and the others wait on the landing
+      facings: function* () {
+        var k = S.k, h = S.P[0], ring = [[8, 7, 'SE'], [10, 6, 'E'], [10, 5, 'NE'], [10, 3, 'N'], [8, 2, 'NW'], [7, 3, 'W'], [7, 5, 'SW'], [7, 6, 'S']];
+        S.P.slice(1).forEach(function (x, i) { put(x, 8 + i, 12); }); look(8, 2); yield 20; // (the camera up the stair from it: the header card stands over the screen's top, and so over its head at look(8, 5))
+        for (var i = 0; i < ring.length; i++) { put(h, ring[i][0], ring[i][1]); D.grid.setup(D.grid.map, B.units); k.anim = 'idle'; k.animT = B.t; yield 100; }
+        put(h, 10, 6); D.grid.setup(D.grid.map, B.units); var an = D.SHEETS.keeper_p2.anims;
+        for (var j = 0; j < 2; j++) {
+          var fc = [6, 2][j];
+          for (var r = 0; r < 5; r++) {
+            var row = ['wall', 'attack', 'wave', 'hurt', 'die'][r], a = an[row];
+            k.facing = fc; k.anim = row; k.animT = B.t; yield Math.round(a.frames * 60 / a.fps) + 24; // (the Ice Wall, the Slam, the Wave, hurt, destroyed)
+          }
+        }
+        k.anim = 'idle'; k.animT = B.t; yield 30;
       }
     };
     function* loop() {

@@ -69,6 +69,42 @@ def main_records(ref):
     return out
 
 
+def sheet_checks():
+    """the Keeper's figure sheet itself (10-30, the Keeper cutter: deep16/art-src/keeper/slice.py): the idle stands still in every facing -- Griz, of the
+    fight, "His idle is terrible bouncy": the diagonals' Idle 2, drawn smaller by the art desk, dropped the head about 10 px three times a second --
+    and E and W play the art desk's ART-119, W the mirror of E about the anchor, not the Grok side view's one still a pixel apart"""
+    from PIL import Image
+    import numpy as np
+    from scipy import ndimage as ndi
+    sh = json.load(open(os.path.join(ROOT, 'deep16', 'art', 'keeper_p2.json')))
+    im = np.asarray(Image.open(os.path.join(ROOT, 'deep16', 'art', 'keeper_p2.png')).convert('RGBA'))
+    FW, FH, names = sh['fw'], sh['fh'], 'S SW W NW N NE E SE'.split()
+    def cell(row, f, c):
+        a = sh['anims'][row]
+        return im[a['y'] + f * FH:a['y'] + (f + 1) * FH, c * FW:(c + 1) * FW]
+    def body(a):                                    # (the biggest piece: a droplet over the crest is not the head; the middle is the torso's, its thick part -- the hair's mass moves between two drawings)
+        m = a[..., 3] >= 128
+        lab, n = ndi.label(m, structure=np.ones((3, 3)))
+        m = lab == 1 + int(np.argmax(ndi.sum(m, lab, range(1, n + 1))))
+        ys, xs = np.where(m)
+        d = ndi.distance_transform_edt(a[..., 3] >= 128)
+        return ys.min(), ys.max(), float(np.where(d >= 0.7 * d.max())[1].mean())
+    out, moves = [], []
+    for f in range(8):
+        b = [body(cell('stand', f, c)) for c in range(sh['anims']['stand']['frames'])]
+        moves.append((names[f], *(max(x[i] for x in b) - min(x[i] for x in b) for i in range(3))))
+    out.append(['the idle stands still in every facing (10-30, "His idle is terrible bouncy"): head, feet and middle move ' +
+                ', '.join('%s %d/%d/%.0f' % m for m in moves) + ' px between its frames (1/1/2 at most)', all(t <= 1 and ft <= 1 and cx <= 2 for _, t, ft, cx in moves)])
+    played = ['stand', 'a_wall', 'slam_b3a', 'b_wave', 'hurt_b', 'die_b']
+    e0, e1 = cell('stand', 6, 0), cell('stand', 6, 1)
+    mirror = [r for r in played for c in range(sh['anims'][r]['frames'])
+              if not (np.array_equal(cell(r, 2, c)[:, 1:], cell(r, 6, c)[:, ::-1][:, :-1]) and not cell(r, 2, c)[:, 0, 3].any())]
+    out.append(['E and W draw ART-119: the idle two drawings (not one still a pixel apart: %s), W the mirror of E about the anchor on the six rows the fight plays (off: %s), the cell %d wide, anchor %d' %
+                (not np.array_equal(e0[1:], e1[:-1]), sorted(set(mirror)) or 'none', FW, sh['ax']),
+                not np.array_equal(e0[1:], e1[:-1]) and not mirror and FW == 216 and sh['ax'] == 108])
+    return out
+
+
 def edge(page, params, tag, prof):
     url = 'file:///' + page.replace('\\', '/') + ('?' + urllib.parse.urlencode(params) if params else '')
     p = subprocess.run([bench16.EDGE] + bench16.EXTRA + ['--headless=new', '--disable-gpu', '--no-first-run', '--allow-file-access-from-files', '--user-data-dir=' + prof, '--dump-dom', url], capture_output=True, timeout=600)
@@ -100,6 +136,7 @@ def main():
         print('no result', err)
         return
     checks, errors = r['checks'], r['errors']
+    checks += sheet_checks()
     # the 8-bit half: the stair's quest and the mark, through the seam (js/events.js, js/embed.js) -- dev/keeper8-probe.js on the 8-bit bench's page
     if args.get('eight') != '0':
         import bench8
