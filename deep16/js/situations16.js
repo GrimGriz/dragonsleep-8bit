@@ -36,7 +36,13 @@
       lead: 'lymen', lvl: 4, kit: true, silver: 40, renown: 1, give: [['potion', 2], ['antitoxin', 1]], flags: { papaLymen: 1, 'work:winters': 1, 'hex:brawl': 1, heardGalleries: 1, cullHired: 1, paidBats: 0, paidMantles: 0 }, // (Sabeth's yes: js/mines.js, its kills at the hire)
       open: ['cull'], done: ['company', 'work'], pin: 'cull',
       at: { town: 'mouth', gate: 'east' }, day: 1, hour: 13,
-      look: 'Day 2, early afternoon, level 4 (Vivian in the studded leather she buys at 4): the four at the guano mine\'s mouth, in by the east gate. The JOURNAL: the Cull taken and pinned -- the dens, Old Wynn\'s rattle -- Sabeth paying three silver a giant bat\'s head from here on. Her law: no fire and no noise under a roost.' }
+      look: 'Day 2, early afternoon, level 4 (Vivian in the studded leather she buys at 4): the four at the guano mine\'s mouth, in by the east gate. The JOURNAL: the Cull taken and pinned -- the dens, Old Wynn\'s rattle -- Sabeth paying three silver a giant bat\'s head from here on. Her law: no fire and no noise under a roost.' },
+    // (the deep gallery's door, 10-30 -- eyes-deepgallery-1028's, a test floor at level 6 till then: the desk's "review situations.html and urls better than they knew to make", his word)
+    dace16: { group: G, title: 'The Guano Galleries\' mouth at level 6: the cloaker\'s tail on the board, Dace by the beam (10-30)', pt: 'the warrens and galleries on the tiles · the deep gallery · situations from a link',
+      lead: 'lymen', lvl: 6, kit: true, silver: 60, renown: 2, give: [['potion', 3], ['torch', 2]], flags: { papaLymen: 1, 'work:winters': 1, 'hex:brawl': 1, heardGalleries: 1, cullHired: 1, paidBats: 0, paidMantles: 0, heardCloaker: 1 },
+      open: ['cull', 'tail'], done: ['company', 'work'], pin: 'tail',
+      at: { town: 'mouth', gate: 'east' }, day: 2, hour: 10,
+      look: 'Day 3, mid-morning, level 6 (the kit they buy by 6: Vivian\'s studded leather, Lymen\'s Longsword +1): the four at the guano mine\'s mouth. The JOURNAL: the cloaker\'s tail pinned (forty gold, the deep gallery) and the Cull taken. Dace by the beam: TAKE HIM and his mission opens; Old Wynn sends him home if asked. Down the working gallery to the slide, then the deep gallery: his staff lights, the cloaker hunts him.' }
   };
 
   var D = window.D16; if (!D || !D.house) return; // (situations.html reads the table alone)

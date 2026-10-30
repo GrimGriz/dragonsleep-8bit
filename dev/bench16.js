@@ -7290,8 +7290,9 @@
       var EXP = {
         company16: { party: 'lymen,aurdin', lvl: 2, open: ['company', 'work'], done: [], pin: 'company', town: 'silverton', gate: 'west', roam: 'silverton', sq: 1, t: 11, site: 'silverton', give: [], silver: 5 },
         taken16: { party: four, lvl: 2, open: ['work'], done: ['company'], pin: 'work', town: 'silverton', gate: 'west', roam: 'silverton', sq: 1, t: 15, site: 'silverton', give: [], silver: 12 },
-        five16: { party: four, lvl: 3, open: ['warrens'], done: ['company', 'work'], pin: 'warrens', step: 'edric', town: 'warrens', gate: 'feed', roam: 'warrens', t: 33, site: 'silverton', give: ['potion', 'torch'], silver: 30 },
-        cull16: { party: four, lvl: 4, gear: { vivian: { armor: 'studded' } }, open: ['cull'], done: ['company', 'work'], pin: 'cull', step: 'mouth', town: 'mouth', gate: 'east', roam: 'galleries', t: 37, site: 'mouth', give: ['potion', 'antitoxin'], silver: 40 }
+        five16: { party: four, lvl: 3, open: ['warrens'], done: ['company', 'work'], pin: 'warrens', step: 'edric', npc: 'edric', town: 'warrens', gate: 'feed', roam: 'warrens', t: 33, site: 'silverton', give: ['potion', 'torch'], silver: 30 },
+        cull16: { party: four, lvl: 4, gear: { vivian: { armor: 'studded' } }, open: ['cull'], done: ['company', 'work'], pin: 'cull', step: 'mouth', npc: 'sabeth', town: 'mouth', gate: 'east', roam: 'galleries', t: 37, site: 'mouth', give: ['potion', 'antitoxin'], silver: 40 },
+        dace16: { party: four, lvl: 6, gear: { vivian: { armor: 'studded' }, lymen: { weapon: 'longsword1' } }, open: ['cull', 'tail'], done: ['company', 'work'], pin: 'tail', step: 'mouth', npc: 'dace', town: 'mouth', gate: 'east', roam: 'galleries', t: 58, site: 'mouth', give: ['potion', 'torch'], silver: 60 }
       };
       var idsSt = Object.keys(EXP), haveSt = D.sit16 ? Object.keys(window.DS.SIT16).sort().join(',') : '(no deep16/js/situations16.js)';
       okSt('the table, DS.SIT16: ' + haveSt, haveSt === idsSt.slice().sort().join(','));
@@ -7325,6 +7326,7 @@
         D.sit16.open(id); var B = topSt(), R0 = B && B.roam, jn = CSt.journal(B), tk = R0 && R0.token;
         okSt(id + ': opened -- ' + (D.roam.def && D.roam.def.key) + ' in the house ' + D.roam.house() + ', slot ' + HSt.slot + ', the token on ' + (tk && tk.x + ',' + tk.y) + ', pinned ' + (jn && jn.pin) + ', ' + (jn && jn.quests.length) + ' in the JOURNAL, THE WORLD at ' + (WSt.state() && WSt.state().t),
           HSt.playing && HSt.cur && HSt.cur.situation === id && HSt.slot === 0 && !!R0 && D.roam.house() && D.roam.def.key === e.roam && !!jn && jn.pin === e.pin && jn.quests.length === e.open.length + e.done.length && WSt.state().t === e.t && (!rec.at.sq || (tk.x === rec.at.sq[0] && tk.y === rec.at.sq[1])));
+        if (e.npc) { var who = B.units.filter(function (u) { return u.npc === e.npc; })[0]; okSt(id + ': ' + e.npc + ' stands on the floor (' + (who ? who.x + ',' + who.y : 'not there: ' + B.units.filter(function (u) { return u.npc; }).map(function (u) { return u.npc; }).join(' ')) + ')', !!who); }
         var sv = HSt.saveTo(1), sl = new HSt.Slots('save'); sl.pick(0);
         okSt(id + ': SAVE refuses (H.saveTo ' + sv + '; the slot page says "' + sl.msg + '")', sv === false && /situation keeps no save/.test(sl.msg || ''));
       });
