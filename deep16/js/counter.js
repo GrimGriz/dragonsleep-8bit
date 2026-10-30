@@ -33,6 +33,7 @@
     sabeth: { sheet: 'pt_sabeth', wait: '' }, // (Sabeth Pollard at the Galleries' mouth: the art desk's ART-123-SABETH, 10-29, the lanes desk's standing rule -- the cull's word, TAKE THE WORK and the one law, on her face, js/mines.js M.talk by C.PT; she keeps no shop)
     jory: { sheet: 'pt_jory', wait: '' }, // (Jory Slade, the Warrens' crew boss: the art desk's ART-123-JORY, 10-30, the lanes desk's standing rule -- the camp's scenes and his word down the stalls' stair speak on his face; at the pens he is `jorypens`, C.SHEETOF below)
     oldhob: { sheet: 'pt_oldhob', wait: '' }, // (Old Hob Rennick: the art desk's ART-123-OLDHOB, 10-30, the lanes desk's standing rule -- his word in Silverton, at his kitchen and down the Warrens on his face; at the pens' WORK A SHIFT his line too, js/mines.js M.HOB_SHEET; his other places' ids by C.SHEETOF below)
+    pete: { sheet: 'pt_pete', wait: '' }, // (Warrens Pete: the art desk's ART-123-PETE, 10-30, on Griz's "have the cutter start pete" -- his word in Silverton on his face, and in the Hex as `warrenspete`, C.SHEETOF below)
     wynn: { sheet: 'pt_wynn', wait: '' }, // (Old Wynn Pollard at the Galleries' mouth: the art desk's ART-123-WYNN, 10-29, on the lanes desk's relay -- his scene, SEND HIM HOME, on his face, js/mines.js M.talk by C.PT; half-blind, his left eye clouded)
     dacedisp: { sheet: 'pt_dacedisp', wait: '', name: 'Corwen Dace, in the cloak of displacement' }, // (the art desk's ART-123-DACE-DISPLACEMENT, 10-29, on Griz's "Dace in Displacement Cloak sprites to follow": a second look, its cloak worn as the magic item -- no floor stands `dacedisp`; since his word, 10-29 later, Dace's own scenes wear this face till he gives the party the cloak, C.SHEETOF.dace)
     talmok: { sheet: 'pt_talmok', wait: '' }, // (Talmok, the Hex's champion by the sand: the art desk's ART-123-TALMOK, 10-29, on the lanes desk's "Take Talmok after Dace" -- his word in the Hex on his face, js/town.js T.fire by C.takes; he keeps no shop, and fights in his own talmok_p1)
@@ -123,6 +124,7 @@
     sabeth: 'sabeth_p1', // (10-29, the Edric and Dace cutter seat: Sabeth Pollard all round at the Galleries' mouth by the weigh-beam, where the first game stands her: js/town.js T.people)
     jory: 'jory_p1', jorypens: 'jory_p1', // (10-30, the cutter of 10-29 night: Jory Slade all round, at the Warrens' camp and at the pens, where the first game stands him -- content/maps/warrens_a.json `jory`, warrens_b.json `jorypens`; and down the stalls' stair, js/roam.js R.JORY)
     oldhob: 'oldhob_p1', hobCamp: 'oldhob_p1', hobB: 'oldhob_p1', hobC: 'oldhob_p1', // (10-30, the cutter of 10-29 night: Old Hob all round -- in Silverton till he is met, then at the camp's kitchen, the pens and the deep stalls: content/maps silverton `oldhob`, warrens_a `hobCamp`, _b `hobB`, _c `hobC`)
+    pete: 'pete_p1', warrenspete: 'pete_p1', // (10-30, the cutter of 10-29 night: Warrens Pete all round, in Silverton by pin 18 and in the Hex by the west bar, where the first game stands him -- content/maps silverton `pete`, hex `warrenspete`)
     wynn: 'wynn_p1', // (10-29, the Edric and Dace cutter seat: Old Wynn all round at the Galleries' mouth, where the first game stands him: js/town.js T.people)
     dacedisp: 'dacedisp_p1', // (10-29, the Edric and Dace cutter seat: Dace in the cloak of displacement all round, its afterimage trailing him -- for the shows only, as C.VENDORS.dacedisp)
     papa: 'papa_p1', // (10-29, the cutscene cutter seat: Papa Urtusk all round, 58 px -- the largest thing in any room -- in the Hex's front door, at the council's long table and on the night's picture of it: js/hours.js, js/hex.js)
@@ -145,7 +147,8 @@
   // the plain look after -- THE PAGE leaves it on him. C.PT keeps the plain one, for the portraits' show
   C.SHEETOF = { dace: function (st) { return st && st.flags && st.flags.daceCloak ? 'pt_dace' : 'pt_dacedisp'; },
     jorypens: function () { return 'pt_jory'; }, // (Jory Slade at the pens: his one face, not a second line in C.PT -- the portraits' show lists him once, 10-30)
-    hobCamp: function () { return 'pt_oldhob'; }, hobB: function () { return 'pt_oldhob'; }, hobC: function () { return 'pt_oldhob'; } }; // (Old Hob at his kitchen, the pens and the deep stalls: his one face, 10-30)
+    hobCamp: function () { return 'pt_oldhob'; }, hobB: function () { return 'pt_oldhob'; }, hobC: function () { return 'pt_oldhob'; }, // (Old Hob at his kitchen, the pens and the deep stalls: his one face, 10-30)
+    warrenspete: function () { return 'pt_pete'; } }; // (Warrens Pete in the Hex: his one face, 10-30)
   C.PT = {}; C.OWN = {}; C.SHOPS = {};
   Object.keys(C.VENDORS).forEach(function (id) { var v = C.VENDORS[id]; if (v.sheet) C.PT[id] = v.sheet; if (v.own) C.OWN[id] = 1; if (v.shop) C.SHOPS[id] = v.shop; });
   C.takes = function (id) { var v = C.VENDORS[id]; return !!v && (!!v.script || !!v.shop || !!(v.sheet && D.SHEETS && D.SHEETS[v.sheet])); };

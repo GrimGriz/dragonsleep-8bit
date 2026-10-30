@@ -127,6 +127,9 @@ KEEPERS = {
     # Old Hob Rennick (10-30, the cutter of 10-29 night: the art desk's ART-123-OLDHOB, all five views drawn, NE and N from behind): in Silverton till he is met, then at
     # the camp's kitchen, the pens and the deep stalls, where the first game stands him (content/maps silverton `oldhob`, warrens_a `hobCamp`, _b `hobB`, _c `hobC`)
     'oldhob': ('oldhob/ART-123-OLDHOB', 'ART-123-OLDHOB', 'npc:oldhob', {'views': 'ART-123-OLDHOB, 10-30', 'avoid': ['red', 'fire', 'gold']}),   # (his olive coat's back snapped to the gold ramp, a yellow coat from behind: left out, it keeps to the browns)
+    # Warrens Pete (10-30, the cutter of 10-29 night: the art desk's ART-123-PETE, all five views drawn, NE and N from behind): in Silverton by pin 18 and in the Hex,
+    # where the first game stands him (content/maps silverton `pete`, hex `warrenspete`)
+    'pete': ('pete/ART-123-PETE', 'ART-123-PETE', 'npc:pete', {'views': 'ART-123-PETE, 10-30', 'avoid': ['red', 'fire']}),   # (his bloodshot eyes snapped to the lightest red, glowing eyes at 50 px, his gloves' and boots' shadows flecked the reds: left out, as the other keepers' -- his red nose is his portrait's)
     # Dace in the cloak of displacement (10-29, the same seat: the art desk's ART-123-DACE-DISPLACEMENT, a second look beside the plain one, all five views): the ghost's
     # glow joins the S and SE frames -- `ghost` splits them at the real bodies, and his height, his feet and his crown are the real body's, the afterimage beside him kept
     'dacedisp': ('dace/ART-123-DACE-DISPLACEMENT', 'ART-123-DACE-DISPLACEMENT', 'npc:dace (the cloak worn as the magic item)', {'views': 'ART-123-DACE-DISPLACEMENT, 10-29', 'avoid': ['red', 'fire'], 'ghost': {'hues': (205, 285), 'smin': 0.3}}),

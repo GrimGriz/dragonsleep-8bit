@@ -11231,6 +11231,27 @@
 "source": "deep16/_src/percy/ART-102/ART-102_HEAD-2_PAGE-1.png (the art desk's south idle, 10-21) and PAGE-2 to PAGE-5 (SE, E, NE, N: ART-121, 10-28), cut by tools/keeper-town-sheet.py",
 "door": "warp:percy"
 },
+"pete_p1": {
+"image": "art/pete_p1.png?v=df450275fb",
+"fw": 35,
+"fh": 53,
+"ax": 18,
+"ay": 51,
+"top": 49,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 35,
+"fh": 53,
+"ax": 18,
+"ay": 51,
+"frames": 14,
+"fps": 4
+}
+},
+"source": "deep16/_src/pete/ART-123-PETE/ART-123-PETE_HEAD-2_PAGE-1.png (the art desk's south idle, 10-21) and PAGE-2 to PAGE-5 (SE, E, NE, N: ART-123-PETE, 10-30), cut by tools/keeper-town-sheet.py",
+"door": "npc:pete"
+},
 "phasespider_p0": {
 "image": "art/phasespider_p0.png?v=5268291d91",
 "fw": 64,
@@ -15261,6 +15282,102 @@ true
 "art": "ART-102",
 "door": "warp:percy",
 "source": "deep16/_src/percy/ART-102 (the art desk's ART-102, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
+},
+"pt_pete": {
+"image": "art/pt_pete.png?v=7f3aef8c3d",
+"fw": 192,
+"fh": 156,
+"ax": 102,
+"ay": 153,
+"top": 153,
+"portrait": true,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 192,
+"fh": 156,
+"ax": 102,
+"ay": 153,
+"frames": 6,
+"fps": 3,
+"ledge": [
+true,
+true,
+true,
+true,
+true,
+true
+]
+},
+"attentive": {
+"y": 156,
+"fw": 192,
+"fh": 156,
+"ax": 102,
+"ay": 153,
+"frames": 1,
+"fps": 1,
+"ledge": [
+true
+]
+},
+"welcoming": {
+"y": 312,
+"fw": 192,
+"fh": 156,
+"ax": 102,
+"ay": 153,
+"frames": 1,
+"fps": 1,
+"ledge": [
+true
+]
+},
+"skeptical": {
+"y": 468,
+"fw": 192,
+"fh": 156,
+"ax": 102,
+"ay": 153,
+"frames": 1,
+"fps": 1,
+"ledge": [
+true
+]
+},
+"concerned": {
+"y": 624,
+"fw": 192,
+"fh": 156,
+"ax": 102,
+"ay": 153,
+"frames": 1,
+"fps": 1,
+"ledge": [
+true
+]
+},
+"work": {
+"y": 780,
+"fw": 192,
+"fh": 156,
+"ax": 102,
+"ay": 153,
+"frames": 6,
+"fps": 4,
+"ledge": [
+true,
+true,
+true,
+true,
+true,
+true
+]
+}
+},
+"art": "ART-123-PETE",
+"door": "npc:pete",
+"source": "deep16/_src/pete/ART-123-PETE (the art desk's ART-123-PETE, sorted out of Fresh 10-21), cut by tools/portrait-sheet.py"
 },
 "pt_sabeth": {
 "image": "art/pt_sabeth.png?v=f729b20776",

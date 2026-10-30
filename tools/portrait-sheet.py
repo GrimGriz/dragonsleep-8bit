@@ -153,6 +153,10 @@ PEOPLE = {
     # Old Hob Rennick (10-30, the cutter of 10-29 night, on the lanes desk's relay): the art desk's ART-123-OLDHOB, a thin sly dosed veteran of the Warrens in his sixties,
     # his battered hat, the crew coat, the milker's elbow gloves and the thimble on a thong -- his face at the pens' WORK A SHIFT (js/mines.js M.HOB_SHEET) and at his kitchen
     'oldhob': ('oldhob/ART-123-OLDHOB', 'ART-123-OLDHOB', 'npc:oldhob', {'edge': True, 'bevel': (2, 3, 4, 5), 'avoid': ['red', 'fire']}),
+    # Warrens Pete (10-30, the cutter of 10-29 night, on Griz's "have the cutter start pete"): the art desk's ART-123-PETE, re-drawn on his correction -- a crawler milker,
+    # drunk, whose crew got lost where they should not have gone: puffy eyes, a bulbous reddened nose, a scraggly beard, the crew coat and the milker's gloves -- his word in
+    # Silverton and the Hex on his face; his work a mug lifted, drunk from and set down
+    'pete': ('pete/ART-123-PETE', 'ART-123-PETE', 'npc:pete', {'edge': True, 'bevel': (2, 3, 4, 5), 'gap': {6: 3}, 'match': {2: 1, 3: 1, 4: 1, 5: 1, 6: 1}}),   # (his reds kept: the drunk's red nose and eyes are his look; the moods and the work drawn redder, the whole face red-orange, matched to the idle's colours)
     # the generic man and the generic woman (10-28 evening, the fourth cutter seat: the art desk's ART-122, on Griz's "as a specific person with each function as a
     # costume/look they have"): one person each, the townsfolk's man and woman (folkman_p1, folkwoman_p1), their own clothes' idle and a still for each costume in
     # place of the named's moods -- js/counter.js C.GENERIC gives each unnamed id its person and costume. A spear, a pole or a scraper held up beside the head
