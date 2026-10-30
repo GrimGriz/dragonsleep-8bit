@@ -2083,6 +2083,7 @@
         var ce0 = RU.checkEdges(u, 'str'), cr = ce0.dis.length && !ce0.adv.length ? Math.min(D.d(20), D.d(20)) : ce0.adv.length && !ce0.dis.length ? Math.max(D.d(20), D.d(20)) : D.d(20), cb = G.athletics(u) - RU.shaken(u), ct = cr + cb;
         this.card(['{y}' + nameOf(u) + '{/} climbs: Athletics d20 ' + cr + ' ' + RU.sign(cb) + ' = ' + ct + ' against DC ' + cDC + ' (' + csN * 2.5 + ' ft' + (kindN ? ', a ' + kindN + ' face' : '') + ')  ' + (ct >= cDC ? '{n}UP{/}' : '{o}SLIPS{/}')], 160);
         if (ct < cDC) {
+          if (D.features && D.features.dueGain) D.features.dueGain(u); // (Fortune's Due: a failed check, a Due -- 10-30)
           if (o && o.spend) { T.move -= cost; T.moved = (T.moved || 0) + cost; }
           // the slip, seen: up the face a way and back down to the foot of it, prone (10-04, Griz: "can we move them vertical and drop to prone on failed climb?"); over 10 ft it
           // is a fall (Griz: "climbs > 10 = str check or fall"; SRD 5.1 Falling: 1d6 bludgeoning for every 10 feet)
@@ -2100,7 +2101,7 @@
       if (cDCd) {
         var ce1 = RU.checkEdges(u, 'str'), cr1 = ce1.dis.length && !ce1.adv.length ? Math.min(D.d(20), D.d(20)) : ce1.adv.length && !ce1.dis.length ? Math.max(D.d(20), D.d(20)) : D.d(20), cb1 = G.athletics(u) - RU.shaken(u), ct1 = cr1 + cb1;
         this.card(['{y}' + nameOf(u) + '{/} climbs down: Athletics d20 ' + cr1 + ' ' + RU.sign(cb1) + ' = ' + ct1 + ' against DC ' + cDCd + ' (' + csD * 2.5 + ' ft)  ' + (ct1 >= cDCd ? '{n}DOWN{/}' : '{o}LOSES ITS HOLD{/}')], 160);
-        csDmiss = ct1 < cDCd;
+        csDmiss = ct1 < cDCd; if (csDmiss) if (D.features && D.features.dueGain) D.features.dueGain(u); // (Fortune's Due, 10-30)
       }
       u.tween = { fx: u.x, fy: u.y, fz: z0, t: 0, dur: this.pace(stF, true), mode: cliffM }; // (an AI-run unit's step is paced with its wait, below, so the walk keeps to its beat)
       u.x = nx; u.y = ny;
@@ -2328,6 +2329,8 @@
       || !!(this.show && (att.show || tgt.show)); // the show (js/show.js, the test ground): every blow at or from the creature on show lands, so every row plays
     // a bard's dice (js/features.js): Bardic Inspiration turns a miss, Cutting Words a hit
     if (!hit && nat !== 1 && att.conds.inspired && D.features) { var bi = D.features.inspire(att, ac - total); if (bi) { total += bi; pen += bi; hit = total >= ac; } }
+    // Fortune's Due (a feat of ours, 10-30 -- js/features.js F.fortuneAtk): a miss the Dues could turn, asked of the player after the d20 (an AI-run hero's by the save's rule)
+    var dueA = 0; if (!hit && nat !== 1 && D.features && D.features.fortuneAtk) { dueA = yield* D.features.fortuneAtk(this, att, ac - total, total, ac); if (dueA) { total += dueA; hit = total >= ac; } }
     if (hit && nat !== 20 && D.features) { var cw = D.features.cutting(this, att, tgt, total - ac); if (cw) { total -= cw; pen -= cw; hit = total >= ac; } }
     // the Hand on the Neck (the Window, Kat's domain: js/features.js): the glass takes the first blow that would land -- rolled again,
     // and the second roll stands
@@ -2342,7 +2345,7 @@
       || (att.assassinate && tgt.conds.surprised)); // Assassinate: any hit on one caught unaware is a critical (the SRD's Assassin, a foe; the Cutthroat's Opening Cut that did the same gave way to Stab Debut, 10-29)
     var rivets = crit && tgt.critProof; if (rivets) crit = false; // (SRD 5.1, Adamantine Armor: "any critical hit against you becomes a normal hit" -- the Game Show's Rivet Job, deep16/js/supplies.js, 10-07)
     var head ='{y}' + nameOf(att) + '{/} > {r}' + nameOf(tgt) + '{/}  ' + atk.name + (o.ready ? ' {c}(readied){/}' : ''); // (readied: the Ready action's strike, sprung -- readyHook, 10-02)
-    var line = 'd20 ' + (r.rolls.length > 1 ? RU.fmtRolls(r.rolls) + '>' : '') + nat + ' ' + RU.sign(atk.atk) + (bless ? ' {y}+' + bless + ' bless{/}' : '') + (sacred ? ' {y}+' + sacred + ' sacred{/}' : '') + (pen ? ' {o}' + pen + ' ' + e.penWhy + '{/}' : '') + ' = ' + total + '  vs AC ' + RU.ac(tgt) + (cover ? ' {c}+' + cover + ' cover{/}' : '') + (madAC ? ' {c}+4 multiattack defense{/}' : '') + glass + (rivets ? '  {c}RIVETS: not a critical{/}' : '');
+    var line = 'd20 ' + (r.rolls.length > 1 ? RU.fmtRolls(r.rolls) + '>' : '') + nat + ' ' + RU.sign(atk.atk) + (bless ? ' {y}+' + bless + ' bless{/}' : '') + (sacred ? ' {y}+' + sacred + ' sacred{/}' : '') + (pen ? ' {o}' + pen + ' ' + e.penWhy + '{/}' : '') + (dueA ? ' {y}+' + dueA + ' fortune\'s due{/}' : '') + ' = ' + total + '  vs AC ' + RU.ac(tgt) + (cover ? ' {c}+' + cover + ' cover{/}' : '') + (madAC ? ' {c}+4 multiattack defense{/}' : '') + glass + (rivets ? '  {c}RIVETS: not a critical{/}' : '');
     var why = (e.adv.length ? '  {n}adv: ' + e.adv.join(', ') + '{/}' : '') + (e.dis.length ? '  {o}dis: ' + e.dis.join(', ') + '{/}' : '');
     // Shield: Aurdin's reaction, +5 AC against this and every attack till his turn (a class NPC's too, 09-28: it takes it whenever
     // the +5 turns the blow; one run by the AI never asks)
@@ -2379,6 +2382,7 @@
     this.card([head, line + '  ' + (crit ? '{y}CRITICAL{/}' : hit ? '{n}HIT{/}' : '{g}MISS{/}') + why], 300, cid);
     if (hit && tgt.conds.hidden && tgt.hp > 0) { delete tgt.conds.hidden; delete tgt.hidTotal; this.card(['{o}' + nameOf(tgt) + ' is found by the blow: no longer hidden.{/}  {g}(a hit tells where you are; hiding is not invisibility -- RULED 10-04){/}'], 200); } // (10-04 night, Griz: "lose stealth on successful hit")
     if (!hit) {
+      if (D.features && D.features.dueGain) D.features.dueGain(att); // (Fortune's Due: a miss, a Due -- js/features.js, 10-30)
       if (wide) att.conds.wideMiss = true; // (the WIDE SWING missed: the next attack this turn at disadvantage)
       // a natural 1 at a darkmantle riding one of ours (10-01, RULED, Griz: "if SRD says nothing about hurting ally, only hurt ally on natural 1 (ignoring
       // bonuses)" -- the SRD says nothing): the blow lands on the one it rides instead -- the weapon's damage, no critical, no riders (invented.json)

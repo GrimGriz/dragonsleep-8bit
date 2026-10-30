@@ -1025,6 +1025,28 @@
       else if (sa && sa.by === w.id && d1 > G.armOf(w)) delete mover.conds.setAgainst;
     });
   };
+  // ------------------------------------------------------------------ the feat Fortune's Due (ours, 10-30 -- js/rules.js R.FEATS.fortunesdue; the leveling lane §8 C, the role of the
+  // PHB's Lucky, leveling-srd-by-class.md 6.3; RULED 10-30 by the desk's relay, his "go with the leans"): each attack the hero misses, save it fails or check it fails gives a Due
+  // (three at most; all gone at a short or long rest -- js/rules.js R.refresh, deep16/js/pocket.js PK.shortRest; kept in u.feats.dues, so they ride wherever a feature's uses do).
+  // Spent all at once, 1d4 apiece, after the d20: on the hero's own attack roll a prompt, asked only where the Dues could turn the miss (battle.js attack; an AI-run hero by the
+  // save's rule); on a save by the rule, when their average (2.5 a Due) reaches the DC (deep16/js/rules.js RU.save). Checks give Dues; they are not spent on them
+  F.fortune = function (u) { var h = u && u.src; return !!(h && window.DS.R.hasFeat(h, 'fortunesdue')); };
+  F.dues = function (u) { return F.fortune(u) && u.feats ? u.feats.dues || 0 : 0; };
+  F.dueGain = function (u) {
+    if (!u || u.dead || !F.fortune(u)) return;
+    u.feats = u.feats || {}; var n = u.feats.dues || 0;
+    if (n < 3) { u.feats.dues = n + 1; if (FX && FX.float) FX.float('a due (' + (n + 1) + ')', u, D.PAL.ramps.gold ? D.PAL.ramps.gold[4] : '#fc0'); }
+  };
+  F.dueSpend = function (u) { var n = F.dues(u); if (!n) return 0; u.feats.dues = 0; D.sfx('crit'); return D.roll(n + 'd4').total; };
+  F.fortuneSave = function (u, need) { var n = F.dues(u); return n && need > 0 && 2.5 * n >= need ? F.dueSpend(u) : 0; };
+  F.fortuneAtk = function* (B, u, need, total, ac) {
+    var n = F.dues(u); if (!n || need <= 0 || 4 * n < need) return 0; // (only where the Dues could turn it)
+    if (mine(u)) {
+      var go = yield { prompt: { who: u, title: u.name + ': FORTUNE\'S DUE?', lines: ['The ' + total + ' misses AC ' + ac + ' by ' + need + '.', 'Spend ' + (n === 1 ? 'the Due' : 'all ' + n + ' Dues') + ': +' + n + 'd4 (' + n + ' to ' + 4 * n + ').'], opts: [{ label: n === 1 ? 'SPEND IT' : 'SPEND THEM', value: 1 }, { label: 'NOT NOW', value: 0 }] } };
+      if (!go) return 0;
+    } else if (2.5 * n < need) return 0;
+    return F.dueSpend(u);
+  };
   // ------------------------------------------------------------------ the druid: the Circle of the Pelt (ours, 10-30 -- the leveling lane; RULED, Griz: "take leveling's
   // leans and it can start building"; leveling-srd-by-class.md 6.2): WEAR THE BEAST, a bonus action and a use of Wild Shape -- one beast part on the druid's own body for
   // the fight (two at 6), its HP, gear, spells and concentration its own: CLAWS (unarmed strikes 1d8 slashing, WIS for the hit and the damage; magical at 6), HIDE (AC at

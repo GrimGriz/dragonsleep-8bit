@@ -98,6 +98,7 @@
   // restore per-rest resources; long = long rest
   R.refresh = function (h, long) {
     var f = h.feats;
+    if (f) delete f.dues; // (Fortune's Due, the second game's feat: its Dues all gone at a rest -- deep16/js/features.js, 10-30)
     if (h.cls === 'fighter') { f.secondWind = 1; f.actionSurge = 1; if (long) f.indomitable = h.lvl >= 9 ? 1 : 0; }
     if (h.cls === 'paladin') { f.channel = h.lvl >= 3 ? 1 : 0; if (long) { f.lay = 5 * h.lvl; f.relentless = 1; } }
     if (h.cls === 'wizard' && long) f.arcaneRecovery = 1;
@@ -351,6 +352,9 @@
     // Long Guard (ours, 10-30 -- the leveling lane §8 B, leveling-srd-by-class.md 6.3; RULED, Griz: "go with the leans"): the role of the PHB's Polearm Master, ours -- KEEP BACK
     // and SET AGAINST THE CHARGE with a reach weapon (deep16/js/features.js F.keepBack, F.chargeStep; battle.js). `second`: the second game's alone
     longguard: { name: 'Long Guard', str: 13, cls: [], any: true, second: true, reachW: true, desc: 'With a reach weapon in hand: KEEP BACK -- your reaction when a creature you can see moves into your reach: a STR save (DC 8 + your proficiency bonus + your STR modifier) or it is pushed 5 ft back, out of your reach, and its move ends. SET AGAINST THE CHARGE -- one that came 20 ft or more straight at you this turn and stands within your reach: your next hit on it before the end of your next turn deals one more weapon die. (STR 13, and a reach weapon to use it -- a glaive, a halberd, a pike, a whip.)' },
+    // Fortune's Due (ours, 10-30 -- the leveling lane §8 C, leveling-srd-by-class.md 6.3; RULED, Griz: "go with the leans"): the role of the PHB's Lucky, ours -- Dues from the
+    // hero's own misses and failures, spent after the d20 (deep16/js/features.js F.fortuneAtk, F.fortuneSave; battle.js; deep16/js/rules.js RU.save). No prerequisite; `second`
+    fortunesdue: { name: 'Fortune\'s Due', cls: [], any: true, second: true, desc: 'Each attack you miss, save you fail or check you fail gives you a Due (three at most; all gone at a short or long rest). After a d20 you rolled, spend every Due to add 1d4 apiece: on your attack rolls you are asked when they could turn a miss; on a save they are spent when their average would make it.' },
     grappler: { name: 'Grappler', str: 13, cls: ['fighter'], any: true, desc: 'Advantage on attack rolls against a creature you are grappling. PIN: your action, another grapple check -- won, you and it are both restrained till the grapple ends. (STR 13.)', grid: 'It acts in the grid\'s fights, where a hero grapples.' }
   };
   R.featIds = function () { return Object.keys(R.FEATS); };

@@ -190,6 +190,7 @@
     if (c.hp <= 0) { c.hp = 1; rez = true; }
     while (c.hp < c.maxhp && hd > 0) { var g = Math.max(0, 1 + Math.floor(rnd() * RC.hd) + (c.con || 0)); c.hp = Math.min(c.maxhp, c.hp + g); healed += g; hd--; spent++; }
     var f = c.feats = c.feats || {}, back = [];
+    delete f.dues; // (Fortune's Due: all gone at a rest -- js/features.js, 10-30)
     if (c.cls === 'fighter') { if (!(f.secondWind > 0) || !(f.actionSurge > 0)) back.push('Second Wind, Action Surge'); f.secondWind = 1; f.actionSurge = 1; }
     if (c.cls === 'paladin' && c.lvl >= 3) { if (!(f.channel > 0)) back.push('Channel Divinity'); f.channel = 1; }
     if (c.cls === 'cleric' && c.lvl >= 2) { var ch = c.lvl >= 18 ? 3 : c.lvl >= 6 ? 2 : 1; if (!(f.channel >= ch)) back.push('Channel Divinity'); f.channel = ch; }

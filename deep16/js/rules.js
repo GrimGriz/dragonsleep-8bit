@@ -192,6 +192,8 @@
     if (shk) res.shaken = shk;
     // Bardic Inspiration (js/features.js): the die on a save it would turn
     if (!res.ok && c.inspired && D.features) { var ins = D.features.inspire(u, dc - res.total); if (ins) { res.bonus += ins; res.total += ins; res.ok = res.total >= dc; res.bless = (res.bless || 0) + ins; } }
+    // Fortune's Due (a feat of ours, 10-30 -- js/features.js F.fortuneSave): spent on a failed save by the rule, when the Dues' average (2.5 each) reaches the DC
+    if (!res.ok && D.features && D.features.fortuneSave) { var fdS = D.features.fortuneSave(u, dc - res.total); if (fdS) { res.due = fdS; res.bonus += fdS; res.total += fdS; res.ok = res.total >= dc; } }
     // Indomitable (fighter 9): a failed save is rolled again, once a day -- taken at once, and said so
     if (!res.ok && u.cls === 'fighter' && u.feats && u.feats.indomitable) {
       u.feats.indomitable = 0;
@@ -206,6 +208,7 @@
       if (lk) { res.luck = lk; res.bonus += lk; res.total += lk; res.ok = res.total >= dc; }
     }
     if (!res.ok && against && /^(frightened|feared)$/.test(against) && window.DS.R.fearWard(u.src)) res.ok = true; // (js/rules.js R.fearWard: hidden by ruling -- nothing says why)
+    if (!res.ok && D.features && D.features.dueGain) D.features.dueGain(u); // (Fortune's Due: a failed save, a Due -- 10-30)
     return res;
   };
   // The save a creature takes among `abs` when the effect lets it choose ("a Strength or Dexterity saving throw (target's choice)" -- the bulette's Deadly Leap, SRD 5.1; 10-02 runner):
@@ -328,7 +331,7 @@
   RU.saveText = function (sv) {
     if (sv.auto) return '{o}auto-fail{/} (held, asleep or down)';
     if (sv.careful) return '{c}spared{/} (Careful Spell)';
-    var bits = []; if (sv.aura) bits.push('aura +' + sv.aura); if (sv.bless) bits.push('bless +' + sv.bless); if (sv.bane) bits.push('bane -' + sv.bane); if (sv.shaken) bits.push('fear -' + sv.shaken); if (sv.resist) bits.push('resistance +' + sv.resist);
+    var bits = []; if (sv.aura) bits.push('aura +' + sv.aura); if (sv.bless) bits.push('bless +' + sv.bless); if (sv.bane) bits.push('bane -' + sv.bane); if (sv.shaken) bits.push('fear -' + sv.shaken); if (sv.resist) bits.push('resistance +' + sv.resist); if (sv.due) bits.push('fortune\'s due +' + sv.due);
     if (sv.legendary != null) bits.push('LEGENDARY RESISTANCE: it succeeds instead, ' + sv.legendary + ' left'); // (js/traits.js, 10-08)
     if (sv.counter) bits.push(sv.counter === 2 ? 'advantage: steel will' : 'advantage: countercharm'); if (sv.heightened) bits.push('disadvantage: heightened'); if (sv.pfp) bits.push(sv.atx ? 'advantage: antitoxin' : 'advantage: protection from poison'); if (sv.resil) bits.push('advantage: duergar resilience'); if (sv.heads) bits.push('advantage: two heads'); if (sv.luck) bits.push('dark one\'s own luck +' + sv.luck);
     // (both dice when it rolled two, as an attack's line shows them: the cast's own advantage -- Dominate's "it is being fought" -- had read as one die in the gallery; the grid's rules §2c, 10-08)

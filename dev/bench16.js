@@ -4848,6 +4848,60 @@
     document.body.appendChild(preRc);
     return;
   }
+  // FORTUNE'S DUE (mode=fortune1030; the leveling lane §8 C, 10-30, RULED by the desk's relay, his "go with the leans"; leveling-srd-by-class.md 6.3): the feat (no prerequisite,
+  // any class's, the second game's); a miss a Due, three at most; a player's miss by 3 with three Dues asked FORTUNE'S DUE? and SPEND THEM turns it ("fortune's due +"), the Dues
+  // gone; NOT NOW keeps the miss; no ask past what 4 a Due could reach, nor on a natural 1; an AI-run hero by the save's rule; a save short by 5 spends three (2.5 each), short by
+  // 8 does not and gains; a failed check (breaking free) a Due; the rests clear them; the shelf
+  if (get('mode', '') === 'fortune1030') {
+    var repFd = { checks: [], errors: [] }, d0Fd = D.d;
+    function okFd(what, v) { repFd.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function plainFd(s) { return String(s).replace(/\{\/?[a-z]*\}/g, ''); }
+    function runFd(g, ans) { var v, k = 0, st, asked = []; while (g && k++ < 40000) { st = g.next(v); v = undefined; if (st.done) break; if (st.value && st.value.prompt) { var p = st.value.prompt; asked.push(p.title); var o = ans ? p.opts.filter(function (x) { return x.label === ans; })[0] : null; v = (o || p.opts[0]).value; } } return asked.join(' | '); }
+    function mkFd(o) {
+      o = o || {}; var B = D.npcFight('?npc=goblin&lvl=5&vs=fighter:5', {}); D.battle = B; B.enter(); while (!B.order.length) B.co.next(); B.dark = false;
+      var f = B.units.filter(function (w) { return w.side === 'party'; })[0], g = B.units.filter(function (w) { return w.side === 'foe'; })[0];
+      g.maxhp = g.hp = 999; g.conds = {}; f.src.featIds = o.nofeat ? [] : ['fortunesdue']; f.feats.dues = o.dues || 0; if (o.ai) f.guest = true;
+      g.x = f.x + 1; g.y = f.y; if (!D.grid.canStand(g, g.x, g.y)) { g.x = f.x - 1; } D.grid.setup(B.map, B.units); D.rules.startTurn(f); B.active = f; return { B: B, f: f, g: g };
+    }
+    // one swing, the d20 pinned to `nat`, the goblin's AC set `by` past the total
+    function swingFd(h, nat, by, ans) { D.rules.startTurn(h.f); h.B.active = h.f; h.g.baseAC = nat + (h.f.weapon.atk || 0) + by; h.g.conds = {}; var hp0 = h.g.hp, n0 = (h.B.log || []).length; D.d = function (k) { return k === 20 ? nat : d0Fd(k); }; var asked = runFd(h.B.attack(h.f, h.g, h.f.weapon), ans); D.d = d0Fd; return { asked: asked, hit: h.g.hp < hp0, log: (h.B.log || []).slice(n0).map(plainFd).join(' / ') }; }
+    try {
+      D.seed = 1030;
+      var R0 = window.DS.R, ff = R0.FEATS.fortunesdue, wz = D.npc.sheet(D.npc.spec('wizard:4'));
+      var onWiz = R0.pickRows(wz, { lvl: 4 }, { kind: 'asi' }, {}).some(function (r) { return r.feat === 'fortunesdue' && !r.off; });
+      okFd('the feat: ' + (ff && ff.name) + ', the second game\'s ' + !!(ff && ff.second) + ', no prerequisite: on a wizard\'s pick at 4 (' + onWiz + ')', ff && ff.second && onWiz);
+      var h1 = mkFd(), m = []; for (var i = 0; i < 4; i++) { swingFd(h1, 2, 1, 'NOT NOW'); m.push(h1.f.feats.dues); }
+      okFd('four misses: the Dues ' + m.join(', ') + ' (want 1, 2, 3, 3)', m.join() === '1,2,3,3');
+      var h2 = mkFd({ dues: 3 }), s2 = swingFd(h2, 10, 3);
+      okFd('three Dues, a miss by 3: asked "' + s2.asked + '", "' + ((s2.log.match(/\+\d+ fortune's due/) || ['-'])[0]) + '", a hit ' + s2.hit + ', the Dues ' + h2.f.feats.dues, /FORTUNE'S DUE\?/.test(s2.asked) && /\+\d+ fortune's due/.test(s2.log) && s2.hit && h2.f.feats.dues === 0);
+      var h3 = mkFd({ dues: 3 }), s3 = swingFd(h3, 10, 3, 'NOT NOW'), h4 = mkFd({ dues: 3 }), s4 = swingFd(h4, 10, 13), h5 = mkFd({ dues: 3 }), s5 = swingFd(h5, 1, -5);
+      okFd('NOT NOW: a hit ' + s3.hit + ', the Dues ' + h3.f.feats.dues + '; a miss by 13 asked "' + s4.asked + '"; a natural 1 asked "' + s5.asked + '" (want false 3, none, none)', !s3.hit && h3.f.feats.dues === 3 && !s4.asked && !s5.asked);
+      var h6 = mkFd({ dues: 3, ai: true }), s6 = swingFd(h6, 10, 6), h7 = mkFd({ dues: 3, ai: true }), s7 = swingFd(h7, 10, 9);
+      okFd('an AI-run hero, three Dues: short by 6 spent (' + /fortune's due/.test(s6.log) + ', asked "' + s6.asked + '"), short by 9 not (' + !/fortune's due/.test(s7.log) + ')', /fortune's due/.test(s6.log) && !s6.asked && !/fortune's due/.test(s7.log));
+      // saves: short by 5 with three Dues spent; short by 8 not, and a Due gained (still 3); without the feat nothing
+      var h8 = mkFd({ dues: 3 }), sb = D.rules.save(h8.f, 'wis', 99), dc8 = 1; D.d = function (k) { return k === 20 ? 10 : d0Fd(k); }; var bw = D.rules.save(h8.f, 'wis', 1).total - 10; D.d = d0Fd;
+      var h9 = mkFd({ dues: 3 }); D.d = function (k) { return k === 20 ? 10 : d0Fd(k); }; var sv9 = D.rules.save(h9.f, 'wis', 10 + bw + 5); D.d = d0Fd;
+      var h10 = mkFd({ dues: 2 }); D.d = function (k) { return k === 20 ? 10 : d0Fd(k); }; var sv10 = D.rules.save(h10.f, 'wis', 10 + bw + 8); D.d = d0Fd;
+      okFd('a save short by 5, three Dues: "' + plainFd(D.rules.saveText(sv9)).slice(0, 60) + '", the Dues ' + h9.f.feats.dues + '; short by 8, two Dues: spent ' + !!sv10.due + ', the Dues ' + h10.f.feats.dues + ' (want 0 or 1, false, 3)',
+        sv9.due > 0 && /fortune's due \+/.test(plainFd(D.rules.saveText(sv9))) && h9.f.feats.dues === (sv9.ok ? 0 : 1) && !sv10.due && h10.f.feats.dues === 3);
+      // a failed check: breaking free of a grip (DC 99)
+      var h11 = mkFd(); h11.f.conds.restrained = { dc: 99, grapple: true, by: h11.g.id }; h11.f.conds.grappled = { by: h11.g.id }; runFd(D.magic.breakFree(h11.B, h11.f));
+      okFd('a failed check (breaking free, DC 99): the Dues ' + h11.f.feats.dues + ' (want 1)', h11.f.feats.dues === 1);
+      // the rests: the Pocket DM's short rest, the sheet's refresh
+      var c12 = { hp: 10, maxhp: 10, cls: 'fighter', lvl: 5, con: 2, feats: { dues: 3 } }; D.pocket && D.pocket.shortRest ? D.pocket.shortRest(c12, 0, false) : (window.PK && PK.shortRest(c12, 0, false));
+      var h13 = { cls: 'fighter', lvl: 5, feats: { dues: 2 } }; R0.refresh(h13, false);
+      okFd('the rests: the Pocket DM\'s short rest leaves ' + (c12.feats.dues || 0) + ', the sheet\'s refresh ' + (h13.feats.dues || 0) + ' (want 0, 0)', !c12.feats.dues && !h13.feats.dues);
+      // the shelf
+      var Bs = D.fxGallery('?fxgallery&features&only=fortunesdue'); D.battle = Bs; Bs.one = Bs.one || { shelf: 'features' }; Bs.enter(); // (the one gallery's pinned dice: B.one)
+      var Ss = Bs.gallery, gs = 0, vs, rp = null;
+      while (Bs.co && gs++ < 300000) { var st = Bs.co.next(vs); vs = undefined; if (st.done) break; var y = st.value; if (!y || typeof y === 'number' || y.fx || y.entry || y.scene) continue; if (y.prompt) { vs = y.prompt.opts[0].value; continue; } if (y.gallery) { rp = (Ss.report.fortunesdue && Ss.report.fortunesdue.tail || []).join(' / ').replace(/\{\/?[a-z]*\}/g, ''); break; } }
+      okFd('the FEATURES shelf' + (/fortune's due/.test(rp || '') ? '' : ' [' + String(rp).slice(-220) + ']') + ': "' + ((rp || '').match(/\+\d+ fortune's due[^/]*/) || ['-'])[0].slice(0, 50) + '"', /\+\d+ fortune's due/.test(rp || '') && /HIT|CRITICAL/.test(rp || ''));
+    } catch (e) { repFd.errors.push(String(e && e.stack || e)); }
+    D.d = d0Fd;
+    var preFd = document.createElement('pre'); preFd.id = 'out'; preFd.textContent = 'BENCH16 ' + JSON.stringify(repFd);
+    document.body.appendChild(preFd);
+    return;
+  }
   // LONG GUARD (mode=longguard1030; the leveling lane §8 B, 10-30, RULED by the desk's relay, his "go with the leans"; leveling-srd-by-class.md 6.3): the feat (STR 13, a
   // reach weapon; the pick says when the hero's own has none); KEEP BACK -- a goblin walking in from 20 ft is asked of the player as it enters the glaive's 10 ft, a failed
   // STR save holds it off 5 ft back and its walk ends there, a save made and it presses in, LET IT COME and it comes; none without the feat or with a longsword; the AI's own,
@@ -4899,7 +4953,7 @@
       var h9 = mkLg({ far: 5, noReact: true }), w9 = walkLg(h9, 3);
       okLg('not after a dog-leg (to ' + w8.d + ' ft, marked ' + !!h8.g.conds.setAgainst + '), nor after 15 ft (to ' + w9.d + ' ft, marked ' + !!h9.g.conds.setAgainst + ')', w8.d === 10 && !h8.g.conds.setAgainst && w9.d === 10 && !h9.g.conds.setAgainst);
       // the shelf: both entries, their cards
-      var Bs = D.fxGallery('?fxgallery&features&only=keepback,setagainst'); D.battle = Bs; Bs.enter();
+      var Bs = D.fxGallery('?fxgallery&features&only=keepback,setagainst'); D.battle = Bs; Bs.one = Bs.one || { shelf: 'features' }; Bs.enter(); // (the one gallery's pinned dice: B.one)
       var Ss = Bs.gallery, gs = 0, vs, done = 0, rep = {};
       while (Bs.co && gs++ < 400000 && done < 2) { var st = Bs.co.next(vs); vs = undefined; if (st.done) break; var y = st.value; if (!y || typeof y === 'number' || y.fx || y.entry || y.scene) continue; if (y.prompt) { vs = y.prompt.opts[0].value; continue; } if (y.gallery) { var id = Ss.ids[Ss.i]; rep[id] = (Ss.report[id] && Ss.report[id].tail || []).join(' / ').replace(/\{\/?[a-z]*\}/g, ''); done++; vs = 1; } }
       okLg('the FEATURES shelf: KEEP BACK "' + ((rep.keepback || '').match(/HELD OFF/) || ['-'])[0] + '"; SET AGAINST THE CHARGE "' + ((rep.setagainst || '').match(/set against the charge \+\d+/) || ['-'])[0] + '"',

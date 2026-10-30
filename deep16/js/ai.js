@@ -994,7 +994,7 @@
     T.shoves = (T.shoves || 0) + 1; u.facing = B.faceTo(u, w); u.anim = 'attack'; u.animT = B.t;
     var rA = d20e(RU.checkEdges(u, 'str')), bA = G.athletics(u) - RU.shaken(u), tA = rA + bA, bS = G.athletics(w) - RU.shaken(w), bD = acrobatics(w) - RU.shaken(w), dex = bD > bS, rW = d20e(RU.checkEdges(w, dex ? 'dex' : 'str')), tW = rW + (dex ? bD : bS), won = tA > tW, x0 = w.x, y0 = w.y;
     B.card([(u.side === 'foe' ? '{r}' + the(B, u) : '{y}' + u.name) + '{/} > ' + (w.side === 'foe' ? '{r}' + the(B, w) : '{y}' + w.name) + '{/}  SHOVE', 'Athletics d20 ' + rA + ' ' + RU.sign(bA) + ' = ' + tA + '  vs ' + (dex ? 'Acrobatics' : 'Athletics') + ' d20 ' + rW + ' ' + RU.sign(dex ? bD : bS) + ' = ' + tW + '  ' + (won ? '{n}SHOVED{/}' : '{g}HOLDS{/}')], 300);
-    D.sfx(won ? 'hit' : 'miss'); yield 20;
+    D.sfx(won ? 'hit' : 'miss'); if (D.features && D.features.dueGain) D.features.dueGain(won ? w : u); yield 20; // (Fortune's Due: the contest's loser failed its check -- 10-30)
     // (pushed 5 ft away over an edge of 10 ft or more, it goes over and falls: the SRD's shove and the SRD's fall, 1d6 a 10 ft and prone, no save past the contest -- 10-13, Griz:
     // "any shove off a ledge sounds closest to SRD"; "be sure acrobatics is added to the dex save and yes" -- Battle.knockSq and knockOff, as the male giant's rocks have it)
     var offS = won && o.how !== 'prone' ? D.Battle.knockSq(u, w) : null;
@@ -1537,7 +1537,7 @@
     u.facing = B.faceTo(u, w); u.anim = 'attack'; u.animT = B.t;
     var rA = d20e(RU.checkEdges(u, 'str')), bA = G.athletics(u) - RU.shaken(u), tA = rA + bA, bS = G.athletics(w) - RU.shaken(w), bD = acrobatics(w) - RU.shaken(w), dex = bD > bS, rW = d20e(RU.checkEdges(w, dex ? 'dex' : 'str')), tW = rW + (dex ? bD : bS), won = tA > tW;
     B.card([(u.side === 'foe' ? '{r}' + the(B, u) : '{y}' + u.name) + '{/} > ' + (w.side === 'foe' ? '{r}' + the(B, w) : '{y}' + w.name) + '{/}  ' + (label || 'GRAPPLE'), 'Athletics d20 ' + rA + ' ' + RU.sign(bA) + ' = ' + tA + '  vs ' + (dex ? 'Acrobatics' : 'Athletics') + ' d20 ' + rW + ' ' + RU.sign(dex ? bD : bS) + ' = ' + tW + '  ' + (won ? '{y}held{/}' : '{o}it twists free{/}')], 260);
-    D.sfx(won ? 'hit' : 'miss'); yield 20; u.anim = 'idle';
+    D.sfx(won ? 'hit' : 'miss'); if (D.features && D.features.dueGain) D.features.dueGain(won ? w : u); yield 20; // (Fortune's Due: the contest's loser failed its check -- 10-30) u.anim = 'idle';
     return won;
   };
   function* escapeGrip(B, w) {
@@ -1545,7 +1545,7 @@
     w.turn.action = 0; w.anim = 'attack'; w.animT = B.t;
     var bS = G.athletics(w) - RU.shaken(w), bD = acrobatics(w) - RU.shaken(w), dex = bD > bS, rW = d20e(RU.checkEdges(w, dex ? 'dex' : 'str')), tW = rW + (dex ? bD : bS), rG = d20e(RU.checkEdges(g, 'str')), bG = G.athletics(g) - RU.shaken(g), tG = rG + bG, out = tW > tG;
     B.card(['{r}' + the(B, w) + '{/} struggles against ' + (g.side === 'foe' ? the(B, g) : g.name) + '\'s hold', (dex ? 'Acrobatics' : 'Athletics') + ' d20 ' + rW + ' ' + RU.sign(dex ? bD : bS) + ' = ' + tW + '  vs Athletics d20 ' + rG + ' ' + RU.sign(bG) + ' = ' + tG + '  ' + (out ? '{o}free{/}' : '{y}still held{/}')], 260);
-    D.sfx(out ? 'confirm' : 'miss'); yield 20; w.anim = 'idle';
+    D.sfx(out ? 'confirm' : 'miss'); if (D.features && D.features.dueGain) D.features.dueGain(out ? g : w); yield 20; w.anim = 'idle'; // (Fortune's Due, 10-30)
     if (out) { B.letGo(g, w, 'escape'); w.turn.move = RU.speedNow(w); }
   }
   AI.escapeGrip = escapeGrip;

@@ -275,6 +275,7 @@
     deflectmissiles: { foe: 4, mate: null }, uncannydodge: { mate: null }, firstblood: { mate: null }, answerback: { mate: null }, rimedoubles: { mate: null },
     hardground: { mate: null }, upoffthefloor: { mate: null }, threshing: { mate: null }, // (the Threshing Floor, ours, 10-30)
     followthrough: { mate: null, nfoe: 2 }, // (the feat Follow-Through, ours, 10-30)
+    fortunesdue: { mate: null, nfoe: 1 }, // (the feat Fortune's Due, ours, 10-30)
     keepback: { foe: 4, nfoe: 1, mate: null }, setagainst: { foe: 6, nfoe: 1, mate: null }, // (the feat Long Guard, ours, 10-30: the foe 20 ft and 30 ft off)
     heldbreath: { foe: 3, mate: null }, // (the feat Held Breath, ours, 10-30: a shot from where it stands)
     wearthebeast: { mate: null }, thickpelt: { mate: null }, twoparts: { mate: null }, // (the Circle of the Pelt, ours, 10-30)
@@ -300,6 +301,7 @@
     fightingstyle_archery: { equip: { weapon: 'shortbow' } }, colossusslayer: { equip: { weapon: 'shortbow' } }, extraattack_ranger: { equip: { weapon: 'shortbow' } },
     escapethehorde: { hunterDefense: 'horde', equip: { weapon: 'shortbow' } }, multiattackdefense: { hunterDefense: 'multiattack', equip: { weapon: 'shortbow' } }, steelwill: { hunterDefense: 'steelwill', equip: { weapon: 'shortbow' } },
     followthrough: { picks: { 4: { asi: { feat: 'followthrough' } } } }, // (the feat taken at 4, 10-30)
+    fortunesdue: { picks: { 4: { asi: { feat: 'fortunesdue' } } } }, // (Fortune's Due at 4, 10-30)
     keepback: { picks: { 4: { asi: { feat: 'longguard' } } }, equip: { weapon: 'glaive' } }, setagainst: { picks: { 4: { asi: { feat: 'longguard' } } }, equip: { weapon: 'glaive' } }, // (Long Guard at 4, a glaive in hand)
     heldbreath: { picks: { 4: { asi: { feat: 'heldbreath' } } }, equip: { weapon: 'shortbow' } }, // (the feat at 4, a bow in hand)
     callthemark: { plays: ['callmark', 'bind', 'breakstride'] }, holdground: { plays: ['holdground', 'bind', 'breakstride'] }, // (the Drillyard's plays to show, 10-30)
@@ -555,6 +557,8 @@
       heldbreath: swings(4), // (a shot without a step: "held breath +" one more die on the first hit)
       // Long Guard (ours, 10-30; js/features.js F.keepBack, F.chargeStep): the foe walks at the fighter -- into the glaive's 10 ft, KEEP BACK (its save pinned to fail) and it is
       // held off 5 ft back; then from 30 ft, the reaction spent, it comes 20 ft straight in and stands at 10 ft -- SET AGAINST THE CHARGE, and the glaive's hit one more die
+      // Fortune's Due (ours, 10-30; js/features.js): three misses, three Dues (FPIN pins the d20s low); the fourth swing misses by 3 and spends them -- "fortune's due +" and a hit
+      fortunesdue: function* (c) { var t = c.foes[0]; c.hero.feats.dues = 0; t.baseAC = 12 + (c.hero.weapon.atk || 0) + 3; yield* swing(c, t, 4, true); },
       keepback: function* (c) { yield* foeWalk(c, c.foes[0], 3); },
       setagainst: function* (c) { c.hero.reaction = 0; yield* foeWalk(c, c.foes[0], 4); yield 20; yield* swing(c, c.foes[0], 3, true); },
       thickpelt: function* (c) { D.features.wearBeast(B, c.hero, ['claws']); yield 30; yield* swing(c, null, 3, true); }, // (the claws on, the temporary HP, a blow with them)
@@ -595,6 +599,7 @@
     // the dice the one gallery pins for a feature (the default: our blows and checks a 19, our saves a 19, a foe's save a 2, a foe's blow a 19), and a
     // feature's own where its point is the die: Brutal Critical's 20, the Champion's 19 a crit, Indomitable's first save failed and its reroll made, an AC's two
     var FPIN = {
+      fortunesdue: function (r, c) { if (r.save || !r.who || r.who.side !== 'party') return undefined; c.fdK = (c.fdK || 0) + 1; return c.fdK <= 3 ? 2 : 12; }, // (three misses, then 12: 3 short)
       brutalcritical: function (r) { return !r.save && r.who && r.who.side === 'party' ? 20 : undefined; },
       improvedcritical: function (r) { return !r.save && r.who && r.who.side === 'party' ? 19 : undefined; },
       indomitable: function (r) { return r.save && r.who && r.who.side === 'party' ? (r.k === 0 ? 2 : 19) : undefined; },
