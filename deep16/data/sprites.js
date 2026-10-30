@@ -17334,7 +17334,7 @@ true
 }
 },
 "talmok_p2": {
-"image": "art/talmok_p2.png?v=718e6a7612",
+"image": "art/talmok_p2.png?v=7921379211",
 "anims": {
 "idle": {
 "y": 0,
@@ -17347,9 +17347,9 @@ true
 },
 "walk": {
 "y": 504,
-"fw": 54,
+"fw": 58,
 "fh": 63,
-"ax": 27,
+"ax": 29,
 "ay": 60,
 "frames": 8,
 "fps": 10
