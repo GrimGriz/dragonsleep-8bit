@@ -6182,9 +6182,9 @@
       BS.answer = function (c) { ansS.push(c); };
       var mS = SQ.menu(BS, hS); mS.wait = false; mS.mode = 'cmd'; mo.inside = true; mo.x = 2; mo.y = 2; mo.moved = false; mo.click = false; BS.req = { turn: hS };
       mo.rclick = true; mo.rbtn = false; SQ.turnInput(BS, hS); var padS = ansS.length; mS.wait = false; mS.mode = 'cmd';
-      // (asked first since 10-29, his "right-click to end turn (with warning)": the right button twice -- the ask itself is mode=gridclicks1029)
-      mo.rclick = true; mo.rbtn = true; SQ.turnInput(BS, hS); var askS = ansS.length; mo.rclick = true; mo.rbtn = true; SQ.turnInput(BS, hS); Object.assign(mo, mo0); BS.answer = an0S;
-      okQ('the root column: the pad\'s right press alone (rclick) ends nothing (' + padS + ' answers); the mouse\'s own right button (rbtn) asks (' + askS + ' answers), again ends the turn (' + JSON.stringify(ansS[0] || null) + ')', padS === 0 && askS === 0 && ansS.length === 1 && ansS[0].do === 'end');
+      // (asked first since 10-29, his "right-click to end turn (with warning)"; since 10-30, his "don't let right-click on the warning = yes", SPACE answers it -- the ask itself is mode=gridclicks1029)
+      mo.rclick = true; mo.rbtn = true; SQ.turnInput(BS, hS); var askS = ansS.length; mo.rclick = false; mo.rbtn = false; IQ.edge.end = true; SQ.turnInput(BS, hS); IQ.edge.end = false; Object.assign(mo, mo0); BS.answer = an0S;
+      okQ('the root column: the pad\'s right press alone (rclick) ends nothing (' + padS + ' answers); the mouse\'s own right button (rbtn) asks (' + askS + ' answers), SPACE then ends the turn (' + JSON.stringify(ansS[0] || null) + ')', padS === 0 && askS === 0 && ansS.length === 1 && ansS[0].do === 'end');
       // 14. A HEALING POTION ON ONE WHO IS DOWN (his "it seems we've inherited the non-SRD 'must have a healer's kit to rez' in the glowseep?"; SRD-clean, RULED 10-17): in the
       // simple fight a target, and on the Glowseep's floor from the menu it heals and they come round
       var dnS = pS[1]; dnS.hp = 0; dnS.ko = true; var mS2 = SQ.menu(BS, hS); mS2.wait = false; mS2.mode = 'cmd'; mS2.stack = [];
