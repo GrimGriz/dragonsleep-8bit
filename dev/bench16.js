@@ -8143,7 +8143,7 @@
       goN(sc6, 'opt', AS.whatFor); var a6c = askN(sc6), o6c = optsN(sc6); goN(sc6, 'opt', AS.leave); readN(sc6); endN(T6);
       var jN = CN.journal(B), qN = jN.quests.filter(function (q) { return q.id === 'nedpage'; })[0];
       okN('Deal.: the quest, pinned (' + f.pin + '), in the JOURNAL ("' + (qN && qN.name) + '": ' + (qN && String(qN.where).slice(0, 44)) + '...); the insight choice gone (' + o6b.join(' / ') + ')',
-        f.nedQuest === 1 && f.pin === 'nedpage' && /JOURNAL/.test(w6.join(' ')) && !!qN && !qN.done && /Glowseep/.test(qN.where) && o6b.indexOf(INS) < 0);
+        f.nedQuest === 1 && f.pin === 'nedpage' && !/JOURNAL/.test(w6.join(' ')) /* (10-30: his own JOURNAL line gone, the fly-in says it) */ && !!qN && !qN.done && /Glowseep/.test(qN.where) && o6b.indexOf(INS) < 0);
       okN('10-22, his "with quest taken Aurdin "what did you want for that find familiar spell?" instead of \'can i copy it" again": ' + o6b.join(' / ') + ' -- "' + String(a6c[0]).slice(0, 50) + '...", the quest named, no price asked', o6b.indexOf(AS.whatFor) >= 0 && o6b.indexOf(AS.copy) < 0 && a6c.join('|') === NL.copyQuest.join('|') && o6c.indexOf(AS.pay) < 0);
       var dN = window.DS.DATA, spN = dN.monsters.snake, giveN = [], barN = st.party.filter(function (h) { return h.id === 'barley'; })[0];
       var spoils = window.DS.R.spoils([{ m: spN }], st.party.filter(function (h) { return !h.dead; }), { roll: function () { return 0; }, rng: function () { return 1; } }, function (id, n) { giveN.push(id + ' x' + n); CN.give(st, id, n); });

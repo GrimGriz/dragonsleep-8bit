@@ -1085,7 +1085,7 @@
         if ((yield sc.ask(NL.owned.concat(C.canHarvest(st) ? [] : NL.noHands, NL.quest), [AS.deal, AS.notNow], 'welcoming')) !== 0) { said = NL.notNow; continue; } // (9: turned down, the choice stays)
         f.nedQuest = 1; var live = C.quests(st).filter(function (q) { return q.id === f.pin && !q.done; })[0];
         if (!live) f.pin = 'nedpage'; // (his word says the JOURNAL; and since 10-30 -- Griz: the same fancy 'in your journal now' as the board's -- the page is not marked seen here: the screen closed, the floor's beat gives the card and the fly-in, js/hours.js H16.missionDue)
-        said = NL.taken.concat(f.pin === 'nedpage' ? [NL.journal] : []); continue;
+        said = NL.taken; continue; // (no "in your JOURNAL" of his own since 10-30: the card and its fly-in as his screen closes say it -- Griz, "that's solid (all 5)" on the desk's lean, the d20 a 20 against DC 14)
       }
       if (a === 'tongue') { // (9: the tongue handed in: the page torn out and given)
         C.take(st, C.NED.part, 1); if (f.pin === 'nedpage') delete f.pin;
