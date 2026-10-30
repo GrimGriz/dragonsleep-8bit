@@ -5412,9 +5412,10 @@
       D.rules.startTurn(f2); f2.turn.moved = 5; turnGC(B2, f2); B2.cursor = { x: 2, y: 6 };
       frameGC(B2, { rclick: true }); var pad2 = [ans2.length, !!B2.endAsk, !!B2.inspect].join();
       frameGC(B2, { rbtn: true }); var ask2 = B2.endAsk === B2.req, card2 = lastCardGC(B2), n2 = ans2.length;
-      frameGC(B2, { rbtn: true }); var end2 = ans2.length === 1 && ans2[0].do === 'end';
-      okGC('2 the bare ground at 2,6, the fighter moved: the pad\'s INFO ' + pad2 + ' (want 0,false,false); the right button asks ' + ask2 + ' ("' + card2 + '"), ' + n2 + ' commands; again: ' + JSON.stringify(ans2[0] || null),
-        pad2 === '0,false,false' && ask2 && /End .*turn\?/.test(card2) && /right-click/.test(card2) && n2 === 0 && end2);
+      // (10-30, his "don't let right-click on the warning = yes to end turn warning (other popup it means no)": asked, the right button keeps the turn, as X; SPACE ends it)
+      frameGC(B2, { rbtn: true }); var no2 = ans2.length === 0 && !B2.endAsk; frameGC(B2, { rbtn: true }); frameGC(B2, { keys: ['end'] }); var end2 = ans2.length === 1 && ans2[0].do === 'end';
+      okGC('2 the bare ground at 2,6, the fighter moved: the pad\'s INFO ' + pad2 + ' (want 0,false,false); the right button asks ' + ask2 + ' ("' + card2 + '"), ' + n2 + ' commands; again keeps it ' + no2 + '; asked, SPACE: ' + JSON.stringify(ans2[0] || null),
+        pad2 === '0,false,false' && ask2 && /End .*turn\?/.test(card2) && /right-click or X keeps/.test(card2) && n2 === 0 && no2 && end2);
       ans2 = []; turnGC(B2, f2); B2.cursor = { x: 2, y: 6 }; frameGC(B2, { rbtn: true }); frameGC(B2, { keys: ['b'] }); var kept2 = !B2.endAsk; frameGC(B2, { rbtn: true }); var again2 = B2.endAsk === B2.req;
       okGC('2 and asked, X keeps it (' + kept2 + '); the right button then asks again ' + again2 + ', ' + ans2.length + ' commands (want true, true, 0)', kept2 && again2 && ans2.length === 0);
       var acted2f = function () { f2.turn.action = 0; f2.turn.attackAction = true; }; // (as an Attack leaves it: battle.js)
@@ -5441,9 +5442,10 @@
       var m3 = SG.menu(B3, h3); m3.wait = false; m3.mode = 'cmd';
       frameGC(B3, { rclick: true, x: 2, y: 2 }); var pad3 = ans3.length + ',' + !!B3.endAsk;
       frameGC(B3, { rbtn: true, x: 2, y: 2 }); var ask3 = B3.endAsk === B3.req, ban3 = SG.banner(B3).join(' / '), n3 = ans3.length; m3.wait = false;
-      frameGC(B3, { keys: ['b'] }); var kept3 = !B3.endAsk; frameGC(B3, { rbtn: true, x: 2, y: 2 }); frameGC(B3, { rbtn: true, x: 2, y: 2 }); var end3 = ans3.length === 1 && ans3[0].do === 'end';
-      okGC('2b the simple fight\'s root column: the pad\'s INFO ' + pad3 + ' (want 0,false); the right button asks ' + ask3 + ' ("' + ban3 + '"), ' + n3 + ' commands; X keeps it ' + kept3 + '; asked again and again: ' + JSON.stringify(ans3[0] || null),
-        pad3 === '0,false' && ask3 && /End .*turn\?/.test(ban3) && /right-click again/i.test(ban3) && n3 === 0 && kept3 && end3);
+      frameGC(B3, { keys: ['b'] }); var kept3 = !B3.endAsk; frameGC(B3, { rbtn: true, x: 2, y: 2 }); frameGC(B3, { rbtn: true, x: 2, y: 2 }); var no3 = ans3.length === 0 && !B3.endAsk;
+      frameGC(B3, { rbtn: true, x: 2, y: 2 }); frameGC(B3, { keys: ['end'] }); var end3 = ans3.length === 1 && ans3[0].do === 'end'; // (10-30: asked, the right button keeps it; SPACE or the pad's Y ends it)
+      okGC('2b the simple fight\'s root column: the pad\'s INFO ' + pad3 + ' (want 0,false); the right button asks ' + ask3 + ' ("' + ban3 + '"), ' + n3 + ' commands; X keeps it ' + kept3 + '; asked, the right button keeps it ' + no3 + '; asked, SPACE: ' + JSON.stringify(ans3[0] || null),
+        pad3 === '0,false' && ask3 && /End .*turn\?/.test(ban3) && /SPACE ends it/.test(ban3) && /right-click or X keeps/i.test(ban3) && n3 === 0 && kept3 && no3 && end3);
       ans3 = []; UIg.opts.confirmEnd = 'never'; B3.req = { turn: h3 }; m3 = SG.menu(B3, h3); m3.wait = false; m3.mode = 'cmd'; frameGC(B3, { rbtn: true, x: 2, y: 2 }); UIg.opts.confirmEnd = 'idle';
       okGC('2b and END TURN ASKS at NEVER: ends at once ' + JSON.stringify(ans3[0] || null), ans3.length === 1 && ans3[0].do === 'end');
       ans3 = []; B3.req = { turn: h3 }; B3.endAsk = null; h3.turn.action = 0; h3.turn.attackAction = true; h3.turn.bonus = 1; m3 = SG.menu(B3, h3); m3.wait = false; m3.mode = 'cmd'; m3.after = true; frameGC(B3, { rbtn: true, x: 2, y: 2 });

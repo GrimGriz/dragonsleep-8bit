@@ -73,6 +73,8 @@
     // `step` is its own number in data/maps.js (kept as `step0`) times D.hscale, done here so a map made at runtime takes it too. The rules read feet through
     // `step` (js/grid.js G.dist, G.LAYER, the falls), so only the picture changes. A map made from another's def copies its `step0`, never its scaled `step`
     if (def.step) { if (def.step0 == null) def.step0 = def.step; def.step = Math.max(1, Math.round(def.step0 * (D.hscale || 1))); }
+    // and a flooded map's water sheet with it (10-30, his "the top 4 stairs don't seem to be flooded": the Keeper's stair kept its 39 px while the steps doubled), kept as `waterLevel0`
+    if (def.waterLevel != null) { if (def.waterLevel0 == null) def.waterLevel0 = def.waterLevel; def.waterLevel = Math.round(def.waterLevel0 * (D.hscale || 1)); }
     var m = { def: def, w: def.rows[0].length, h: def.rows.length, sq: [] };
     for (var y = 0; y < m.h; y++) for (var x = 0; x < m.w; x++) {
       var ch = def.rows[y][x];

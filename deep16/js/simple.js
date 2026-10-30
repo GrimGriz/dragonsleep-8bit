@@ -528,7 +528,10 @@
     // the mouse's own right button on the root column ends the turn (10-28 later, his "Right-click as 'end turn' in simple fight mode": rbtn, not rclick, which the pad's INFO sets
     // too -- js/core.js); in a list it backs out, as above. With the Action untaken it asks first, the grid's END TURN card, and the right button again ends it, X keeps
     // it; the Action taken, it ends at once (10-29, his "right-click to end turn (with warning)", then "have warn on 'no action taken'": js/ui.js UI.askEnd)
-    if (B.endAsk && B.endAsk === B.req && I.pressed('b') && m.mode === 'cmd') { D.sfx('cancel'); B.endAsk = null; B.clearCards(); return; }
+    // asked, the right button keeps the turn as X does, and SPACE or the pad's Y ends it (10-30, his "don't let right-click on the warning = yes to end turn warning (other
+    // popup it means no)" -- with the Action left the column has no END TURN, so SPACE answers this card alone)
+    if (B.endAsk && B.endAsk === B.req && (I.pressed('b') || mo.rclick) && m.mode === 'cmd') { D.sfx('cancel'); B.endAsk = null; B.clearCards(); return; }
+    if (B.endAsk && B.endAsk === B.req && I.pressed('end') && m.mode === 'cmd') { B.endAsk = null; B.clearCards(); B.simple.last[u.id] = m.sel; D.sfx('confirm'); return S.send(B, u, { do: 'end' }); }
     if (mo.rbtn && m.mode === 'cmd') { if (UI.askEnd(B, u, 'simple')) { m.msg = null; return; } B.simple.last[u.id] = m.sel; D.sfx('confirm'); return S.send(B, u, { do: 'end' }); }
   };
   var in0 = UI.input;

@@ -593,6 +593,20 @@
       ok('the play modes and the gallery are the new one (' + keeper(BG).hp + ' HP, fight ' + BG.fight.id + ')', keeper(BG).hp === 160 && BG.fight.id === 'keeper');
       Object.assign(K.CFG, JSON.parse(cfg0)); D.battle = B3;
     })();
+    // ---- THE WATER'S LINE AT THE GAME'S HEIGHT (10-30, his "the top 4 stairs don't seem to be flooded"): the game draws heights at D.hscale 2 (js/main.js; the probe's page
+    // runs at 1), and since 10-14 iso.load scaled the steps but not the sheet, so the top four steps stood above it. Every '~' square under the sheet, the dry landing above it
+    (function () {
+      var h0 = D.hscale, out = [];
+      [1, 2].forEach(function (hs) {
+        D.hscale = hs; var dW = JSON.parse(JSON.stringify(D.MAPS.floodstair)); delete dW.step0; delete dW.waterLevel0;
+        var mW = D.iso.load(dW), wet = [], dry = [];
+        for (var yW = 0; yW < mW.h; yW++) for (var xW = 0; xW < mW.w; xW++) { var chW = dW.rows[yW][xW], dpW = dW.waterLevel - mW.gz(xW, yW); if (chW === '~') wet.push(dpW); else if (mW.at(xW, yW).open) dry.push(dpW); }
+        out.push({ hs: hs, under: wet.every(function (d) { return d > 0; }), wet: wet.length, shallow: Math.min.apply(null, wet), landing: dry.filter(function (d) { return d > 0; }).length });
+      });
+      D.hscale = h0;
+      ok('the water\'s line at both heights (10-30): every flooded step under the sheet, none of the landing -- ' + out.map(function (o) { return 'hscale ' + o.hs + ': ' + o.wet + ' wet, shallowest ' + o.shallow + ' px, ' + o.landing + ' dry squares under'; }).join('; '),
+        out.every(function (o) { return o.under && o.landing === 0; }));
+    })();
     // ---- THE TWO WAYS IN (10-03, Griz): WADE IN starts the fight with the party ON THE LEDGE (geo.entry, the water's edge); a hand on the mark starts it BY THE RUNE (geo.entryRune,
     // the landing squares beside it) -- the 8-bit scene names it (embed start), ?keeperfight&start=, the bench's o.start; the party's opening holds either
     (function () {

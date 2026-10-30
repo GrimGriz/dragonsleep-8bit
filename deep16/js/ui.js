@@ -618,7 +618,7 @@
     if (B.readying && !B.list) { B.readying = null; B.clearCards(); } // (backed out of READY's wheel: nothing readied, nothing spent)
     var st = UI.style(B), any = I.pressed('a') || I.pressed('b') || I.pressed('end') || I.mouse.click;
     if (B.inspect && (any || I.mouse.rclick)) { B.inspect = null; return; }
-    if (B.endAsk && B.endAsk === B.req && I.pressed('b')) { D.sfx('cancel'); B.endAsk = null; B.clearCards(); return; } // (X keeps the turn)
+    if (B.endAsk && B.endAsk === B.req && (I.pressed('b') || I.mouse.rclick)) { D.sfx('cancel'); B.endAsk = null; B.clearCards(); return; } // (X keeps the turn, and a right-click: 10-30, his "don't let right-click on the warning = yes to end turn warning (other popup it means no)")
     if (I.pressed('end')) return endTurn(B, u);
     // AUTO END: every command grey and no step left to take -- a beat to see it, then the turn passes (X holds it)
     if (UI.opts.autoEnd && !B.list && B.tool !== 'spell' && B.autoHold !== B.req && spent(B, u)) {
@@ -704,7 +704,9 @@
   // The mouse's ends -- its own right button (rbtn) off anything to inspect, the bar's END TURN, the simple fight's root column (js/simple.js) -- ask only while the turn's
   // Action is untaken, and else end it at once; END TURN ASKS at NEVER ends at once, at ALWAYS asks (10-29, his "right-click to end turn (with warning) when not over
   // inspectible right click", then on the seat's lean to ask every time: "have warn on 'no action taken'"; and the bar's END TURN by the same rule, his "go with Grid's
-  // leans"). Asked, the same end again ends it. how: 'mouse' (the right button), 'bar', 'simple' (where SPACE ends nothing). True when it asked: the caller ends on false
+  // leans"). Asked, the same end again ends it -- but not the right button, which keeps the turn as on every other card (10-30, his "don't let right-click on the warning
+  // = yes to end turn warning (other popup it means no)"): SPACE ends it, or the bar's END TURN. how: 'mouse' (the right button), 'bar', 'simple' (where SPACE ends nothing
+  // but this card: js/simple.js). True when it asked: the caller ends on false
   function idleTurn(u) { var T = u.turn || {}; return T.action > 0 && T.bonus > 0 && !(T.moved > 0) && !T.attackAction && !T.spellAction; }
   function noAction(u) { var T = u.turn || {}; return T.action > 0 && !T.attackAction && !T.spellAction; } // (the Action unspent: no Attack, no spell, no Dash or Dodge or the rest -- each sets it to 0)
   UI.noAction = noAction; // (dev/bench16.js gridclicks1029)
@@ -712,8 +714,8 @@
     var c = UI.opts.confirmEnd, ask = c === 'always' || (c !== 'never' && (how ? noAction(u) : idleTurn(u)));
     if (!ask || (B.endAsk && B.endAsk === B.req)) { B.endAsk = null; return false; }
     B.endAsk = B.req; D.sfx('popup'); B.clearCards();
-    var again = how === 'simple' ? 'A right-click' : how === 'bar' ? 'END TURN or SPACE' : how ? 'A right-click or SPACE' : 'SPACE';
-    B.card([D.keys('{y}End ' + u.name + '\'s turn?{/}' + (idleTurn(u) ? '  {g}nothing done yet{/}' : noAction(u) ? '  {g}no action taken yet{/}' : '')), D.keys('{g}' + again + ' again ends it.  X keeps it{/}')], 600);
+    var again = how === 'bar' ? 'END TURN or SPACE again ends it' : how ? 'SPACE ends it' : 'SPACE again ends it';
+    B.card([D.keys('{y}End ' + u.name + '\'s turn?{/}' + (idleTurn(u) ? '  {g}nothing done yet{/}' : noAction(u) ? '  {g}no action taken yet{/}' : '')), D.keys('{g}' + again + '.  A right-click or X keeps it{/}')], 600);
     return true;
   };
   function endTurn(B, u, how) {
