@@ -4715,7 +4715,7 @@
       var opF = (RTh.SUBCLASSES.fighter || { opts: [] }).opts.map(function (o) { return o.name + (o.srd ? ' (SRD)' : ''); }), soT = RTh.subOpt('fighter', 'threshing');
       var asks3 = D.npc.levelAsks(D.npc.spec('fighter:3'), 3, { classDefaults: true }), arc3 = (asks3.asks || []).filter(function (a) { return a.kind === 'archetype'; })[0];
       okTh('the fighter\'s archetype: ' + JSON.stringify(opF) + ' at ' + (RTh.SUBCLASSES.fighter || {}).at + '; the maker at 3 asks it: ' + (arc3 ? arc3.rows.map(function (r) { return r.name; }).join(' / ') + ', marked ' + arc3.took : 'no ask'),
-        opF.join('|') === 'Champion (SRD)|the Threshing Floor' && soT && soT.name === 'the Threshing Floor' && arc3 && arc3.rows.length === 2 && arc3.took === 'Champion');
+        opF[0] === 'Champion (SRD)' && opF.indexOf('the Threshing Floor') >= 0 && soT && soT.name === 'the Threshing Floor' && arc3 && arc3.rows.length === opF.length && arc3.took === 'Champion'); // (the Drillyard beside it since 10-30)
       // 2. the sheet: ours is no Champion; the use a long rest gives
       var shT = D.npc.sheet(Object.assign(D.npc.spec('fighter:7'), { subclass: 'the Threshing Floor' })), shC = D.npc.sheet(D.npc.spec('fighter:7'));
       okTh('a fighter 7 of the Threshing Floor: ' + shT.subclass + ', crit at ' + RTh.critRange(shT) + ', initiative +' + RTh.initBonus(shT) + ', up off the floor ' + (shT.feats || {}).upOff + '; a Champion 7: ' + shC.subclass + ', crit at ' + RTh.critRange(shC) + ', initiative +' + RTh.initBonus(shC),
