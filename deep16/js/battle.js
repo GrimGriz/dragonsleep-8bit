@@ -2262,6 +2262,7 @@
     if (!melee) { FX.projectile(att, tgt, atk.fx || 'bolt'); yield { fx: 1 }; }
     var los = G.los(att, tgt), cover = melee && G.dist(att, tgt) <= 5 ? 0 : los.cover;
     var ac = RU.ac(tgt) + cover, e = RU.edges(att, tgt, atk);
+    if (att.conds.upAdv && !atk.spell) delete att.conds.upAdv; // (the Threshing Floor's rise: its advantage on this, the first blow -- RU.startTurn, 10-30)
     // the Hunter's Defensive Tactics (ranger 7; js/classes.js u.hunterDef): Escape the Horde -- an opportunity attack against it is at
     // disadvantage; Multiattack Defense -- once a creature has hit it, that one's later attacks this turn meet AC +4
     if (o.oa && !o.answer && tgt.hunterDef === 'horde') { e.dis.push('escape the horde'); e.net = e.adv.length && !e.dis.length ? 1 : e.dis.length && !e.adv.length ? -1 : 0; }
@@ -2430,6 +2431,10 @@
         var sn = D.roll(RU.sneakDice(att), { crit: crit }); dmg += sn.total;
         parts.push('{p}sneak ' + RU.sneakDice(att) + ' ' + RU.fmtRolls(sn.rolls) + ' = ' + sn.total + '{/}');
       }
+    }
+    // the Threshing Floor's Threshing (a fighter of ours at 7, 10-30 -- js/rules.js R.SUBCLASSES.fighter): once a turn, a melee weapon hit on a prone one deals one more weapon die
+    if (melee && !atk.spell && RU.hardGround(att) && att.lvl >= 7 && tgt.conds.prone && att.turn && !att.turn.threshUsed && /d/.test(dice)) {
+      att.turn.threshUsed = true; var thr = D.roll('1' + String(dice).replace(/^\d*/, ''), { crit: crit }); dmg += thr.total; parts.push('{o}threshing +' + thr.total + '{/}');
     }
     // Flame Tongue (SRD 5.1): while it burns, +2d6 fire on a hit, dealt as fire (a troll's knitting reads it; fire resistance halves it)
     // the riders land as their own kind of damage (09-28: the ochre jelly is immune to slashing, not to a smite): fire, radiant, a foe's extra

@@ -36,7 +36,7 @@ Each decision gets one verdict:
 | Bard | 3 | College | 2: Lore, Valor | Lore | -- | SHORT 1 |
 | Cleric | 1 | Divine Domain | 8: Life, Knowledge, Light, Nature, Tempest, Trickery, War, Death (DMG) | Life | the Window (Kat's), the Vigil (Torvald's); the Keeping is NPC only (`NPC.SUBS`) | SHORT 5 (4 if the Keeping is made playable) |
 | Druid | 2 | Circle | 2: the Land, the Moon | the Land | -- | SHORT 1 |
-| Fighter | 3 | Martial Archetype | 3: Champion, Battle Master, Eldritch Knight | Champion | -- (the Threshing Floor drafted, §2.1) | SHORT 2; **not asked on either pick** |
+| Fighter | 3 | Martial Archetype | 3: Champion, Battle Master, Eldritch Knight | Champion | the Threshing Floor (BUILT 10-30 on the grid, §2.1) | SHORT 1; asked on the Pocket DM's maker since 10-30, not on Barley's own pick |
 | Monk | 3 | Monastic Tradition | 3: the Open Hand, Shadow, the Four Elements | the Open Hand | -- | SHORT 2 |
 | Paladin | 3 | Sacred Oath | 4: Devotion, the Ancients, Vengeance, the Oathbreaker (DMG) | Devotion | -- (the Oath of the Green Return drafted, §2.2) | SHORT 3; **not asked on either pick** |
 | Ranger | 3 | Ranger Archetype | 2: Hunter, Beast Master | Hunter | the Grey Road (GreyFang's) | met |
@@ -61,7 +61,7 @@ Each decision gets one verdict:
 
 ## 2. The first batch: what the four meet first
 
-### 2.1 The fighter at 3: the Threshing Floor (DRAFT)
+### 2.1 The fighter at 3: the Threshing Floor (BUILT 10-30, the grid)
 
 Barley's road: *"He went down once against Cutter on fight night and got back up"* (`content/heroes.json`), a Dominion farm wanderer with a threshing flail. A fighter who fights from the ground, gets up off it, and beats down what is on it.
 
@@ -70,7 +70,7 @@ Barley's road: *"He went down once against Cutter on fight night and got back up
 - **7, Threshing.** Once on each of its turns, when the fighter hits a prone creature with a melee weapon attack, the hit deals one more weapon die.
 - **10, 15, 18:** waiting, past the cap.
 
-**NOT** the Battle Master (no superiority dice, no maneuvers -- it knocks nothing down, it fights what is down), nor the Eldritch Knight (no spells). Not the SRD's own Relentless Endurance (the half-orc's) or Relentless Rage (the barbarian's): those keep a creature from falling, and this one falls, loses its time, then gets back up. **The engines:** prone is on the grid (its prone rows, the bulette's knockdown, the Sand's, Grappler's PIN); a hero at 0 is down (KO) with no death saves in either battle, so the rise is at the start of its next turn.
+**NOT** the Battle Master (no superiority dice, no maneuvers -- it knocks nothing down, it fights what is down), nor the Eldritch Knight (no spells). Not the SRD's own Relentless Endurance (the half-orc's) or Relentless Rage (the barbarian's): those keep a creature from falling, and this one falls, loses its time, then gets back up. **The engines:** prone is on the grid (its prone rows, the bulette's knockdown, the Sand's, Grappler's PIN); a hero at 0 is down (KO) with no death saves in either battle, so the rise is at the start of its next turn. **Built 10-30** on his *"i'd say yes"*: `js/rules.js` R.SUBCLASSES.fighter (the Pocket DM's maker asks it at 3) and R.champion (the Champion's Improved Critical and Remarkable Athlete, every fighter's but ours); `deep16/js/rules.js` RU.hardGround, RU.riseCost, RU.startTurn (the rise, and up for 5 ft at the turn's start -- the Grey Road's Pit-Wise too, which had paid half there), RU.edges; `deep16/js/battle.js` (the rise's advantage spent, Threshing); `deep16/js/classes.js` (the use a long rest); the FEATURES shelf (`deep16/data/features.js`, `deep16/js/gallery.js`); `mode=threshing1030`. Not in the first game: Barley's sheet keeps the Champion.
 
 ### 2.2 The paladin at 3: the Oath of the Green Return (DRAFT)
 

@@ -17,6 +17,9 @@
   var DS = window.DS = window.DS || {};
   var G1 = 'Eyes: first', G2 = 'Eyes: built this week', G3 = 'Eyes: built before, never seen';
   DS.EYES = {
+    'eyes-threshing-1030': { pri: 1, group: G2, title: 'The Threshing Floor, the fighter\'s archetype of ours: Hard Ground, Up Off the Floor, Threshing (10-30)', pt: 'the leveling lane, his "i\'d say yes" (js/rules.js R.SUBCLASSES.fighter; deep16/js/rules.js RU.hardGround, RU.startTurn; deep16/js/battle.js) · eyes',
+      look: 'The FEATURES shelf, the three in turn (RIGHT for the next). HARD GROUND: the fighter swings from the ground with no "dis: prone", the foe swings at it lying there with no "adv: prone target", and it gets up for 5 ft of the move. UP OFF THE FLOOR: down at 0, it gets up at its turn with its level + CON in HP, and its blow says "adv: up off the floor". THRESHING (7th): a blow at a foe on the floor reads "threshing +" one more die. Then in the Pocket DM, MAKE a fighter: at 3, THE LEVEL asks Champion or the Threshing Floor.',
+      url: 'deep16/?gallery&shelf=features&feature=hardground&only=hardground,upoffthefloor,threshing&fresh=1030' },
     'eyes-stabdebut-1029': { pri: 1, group: G2, title: 'Stab Debut: Vivian\'s Cutthroat stabs once more at a foe that hasn\'t had its turn, the dice alone (10-29)', pt: 'the leveling lane, his "replace \'opening cut\' with \'Stab Debut\'" (js/battle.js heroAttack; deep16/js/battle.js stabDebut) · eyes',
       look: 'Two gnolls, Vivian a Cutthroat. On her first turn, while a gnoll still hasn\'t moved, FIGHT it: her blow as ever (Sneak Attack with a friend up), then "a stab debut" and one more blow at it for the knife\'s die alone ("Stab debut!"), no advantage from it -- a 20 on the stab is a Critical as ever, its die doubled. A gnoll that has had its turn gets one blow. Her archetype\'s line on the pick and her sheet says Stab Debut.',
       url: '?at=levelup4&rogue=cutthroat' },

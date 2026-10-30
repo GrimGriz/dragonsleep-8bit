@@ -89,7 +89,10 @@
   // on 20 ft lying down): standing "costs an amount of movement equal to half your speed" (SRD 5.1), paid from the walk if the walk has it; else it crawls (grid.js)
   // what standing costs it: half its speed (SRD 5.1), or 5 ft for a ranger of the Grey Road (PIT-WISE, 3; ours, 10-08 -- js/features.js, the
   // Grey Road). grid.js G.reach, ai.js and battle.js ask it too
-  RU.riseCost = function (u) { return u.subclass === 'the Grey Road' && u.lvl >= 3 ? Math.min(5, Math.floor(RU.speedNow(u) / 2)) : Math.floor(RU.speedNow(u) / 2); };
+  RU.riseCost = function (u) { return (u.subclass === 'the Grey Road' && u.lvl >= 3) || RU.hardGround(u) ? Math.min(5, Math.floor(RU.speedNow(u) / 2)) : Math.floor(RU.speedNow(u) / 2); };
+  // the Threshing Floor's Hard Ground (a fighter of ours at 3, 10-30 -- js/rules.js R.SUBCLASSES.fighter; Barley's road, "He went down once against Cutter on fight night and got
+  // back up"): prone is no trouble -- its own melee blows from the ground at no disadvantage, no advantage for one beside it, and up for 5 ft (RU.riseCost)
+  RU.hardGround = function (u) { return !!u && u.subclass === 'the Threshing Floor' && u.cls === 'fighter' && u.lvl >= 3; };
   RU.rise = function (B, u) {
     var half = RU.riseCost(u);
     if (!u.conds.prone || u.hp <= 0 || !RU.canRise(u) || !u.turn || u.turn.move < half) return false;
@@ -110,12 +113,19 @@
     delete u.conds.dodge;
     if (D.battle && D.battle.doorWardOn === u) D.battle.doorWardOn = null; // (the Door-Shield's +3 lasts till its bearer's turn)
     u.acted = true; // it has had a turn (the Cutthroat's Stab Debut reads it: battle.js stabDebut)
+    // the Threshing Floor's Up Off the Floor (ours, 10-30): once a long rest (feats.upOff, classes.js NPC.sheet), one dropped to 0 and not killed rises at the start of its
+    // turn -- its fighter level + CON in HP, on its feet at no cost, its first attack this turn at advantage (conds.upAdv: battle.js spends it on the attack, the next turn ends it)
+    delete u.conds.upAdv;
+    if (u.hp <= 0 && !u.dead && !u.slain && RU.hardGround(u) && u.feats && u.feats.upOff > 0 && !u.conds.petrified) {
+      u.feats.upOff--; u.hp = Math.min(u.maxhp, Math.max(1, u.lvl + D.mod(u.abil.con))); u.ko = false; u.anim = 'idle'; delete u.conds.prone; u.conds.upAdv = true;
+      if (D.battle) D.battle.card(['{y}' + u.name + '{/} gets up off the floor: {n}' + u.hp + ' HP{/}  {g}(the Threshing Floor: once a long rest; the first blow at advantage){/}'], 260);
+    }
     delete u.conds.displaceOff; // a Cloak of Displacement works again from the wearer's own turn
     // up off the floor: half its speed (09-27, prone) -- not while it laughs (SRD 5.1 Hideous Laughter: "unable to stand up for the duration"),
     // nor with no speed to pay it with (SRD 5.1: you can't stand up if your speed is 0; Griz, 09-30: "getting up from prone is supposed to
     // cost movement"): paralyzed, stunned, asleep, restrained (a grapple is one here), or incapacitated (magic.js startTurn: no move)
     var noMove = !RU.canRise(u); /* (dancing: "must use all its movement to dance" -- none to stand with; a runner found it standing free, 10-01b) */
-    if (u.conds.prone && u.hp > 0 && !noMove) { delete u.conds.prone; u.turn.move = Math.floor(RU.speedNow(u) / 2); if (D.battle) D.battle.card(['{g}' + u.name + ' gets up (half the move).{/}'], 200); }
+    if (u.conds.prone && u.hp > 0 && !noMove) { var rcU = RU.riseCost(u), hfU = Math.floor(RU.speedNow(u) / 2); delete u.conds.prone; u.turn.move = rcU < hfU ? RU.speedNow(u) - rcU : hfU; if (D.battle) D.battle.card(['{g}' + u.name + ' gets up (' + (rcU < hfU ? rcU + ' ft of the move' : 'half the move') + ').{/}'], 200); } // (RU.riseCost: 5 ft for the Grey Road and the Threshing Floor, here as on a walk -- 10-30)
     delete u.conds.shield;
     D.grid.units.forEach(function (w) { if (w.conds.helped && w.conds.helped.by === u.id) delete w.conds.helped; if (w.conds.helpedCheck && w.conds.helpedCheck.by === u.id) delete w.conds.helpedCheck; }); // (a Help on a friend's check, unspent, lapses at the helper's turn: SRD 5.1)
     // Sacred Weapon lasts a minute: ten of his turns (and goes out if he fell)
@@ -231,8 +241,9 @@
     // creature. Otherwise, the attack roll has disadvantage", a reach weapon's blow from 10 ft as much as a bow's (10-03, Griz: "If SRD disadvantages
     // for prone at reach, all the normal fights definitely should. It's a tough fight, giving him some disadvantage would do well, SRD please." --
     // the Keeper's Slam from 10 ft on the ones its Wave put down had rolled straight)
-    if (att.conds.prone) dis.push('prone');
-    if (tgt.conds.prone) { if (G.dist(att, tgt, ax, ay) <= 5) adv.push('prone target'); else dis.push('prone target'); }
+    if (att.conds.prone && !(melee && RU.hardGround(att))) dis.push('prone'); // (the Threshing Floor's Hard Ground: its own melee blows from the ground, 10-30)
+    if (tgt.conds.prone) { if (G.dist(att, tgt, ax, ay) <= 5) { if (!RU.hardGround(tgt)) adv.push('prone target'); } else dis.push('prone target'); }
+    if (att.conds.upAdv && !atk.spell) adv.push('up off the floor'); // (the Threshing Floor's rise: the first blow of that turn -- RU.startTurn)
     // Reckless (Talmok, the berserker): it swings with advantage, and everyone swings at it with advantage
     if ((att.reckless || att.conds.reckless) && melee) adv.push('reckless');
     if ((tgt.reckless || tgt.conds.reckless) && melee) adv.push('reckless target'); // (a class barbarian's Reckless Attack: js/tactics.js)

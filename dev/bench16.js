@@ -4623,6 +4623,62 @@
     document.body.appendChild(preB);
     return;
   }
+  // THE THRESHING FLOOR (mode=threshing1030; the leveling lane, 10-30 -- Griz: "i'd say yes", on the fighter's and the paladin's choice at 3, the Threshing Floor first): the
+  // fighter's archetype at 3 on the Pocket DM's maker (js/rules.js R.SUBCLASSES.fighter: the Champion, the SRD's, and ours); one of ours is no Champion (a 20 to crit, no
+  // Remarkable Athlete); Hard Ground -- its melee blows from the ground at no disadvantage, no advantage for one beside it, up for 5 ft at the turn's start; Up Off the Floor --
+  // dropped to 0, it rises at its turn (fighter level + CON), its first blow at advantage, once a long rest; Threshing at 7 -- one more weapon die on a prone one, once a turn
+  if (get('mode', '') === 'threshing1030') {
+    var repTh = { checks: [], errors: [] }, d0Th = D.d, RTh = window.DS.R, RUTh = D.rules;
+    function okTh(what, v) { repTh.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function runTh(g) { var v, k = 0, st; while (g && k++ < 4000) { st = g.next(v); v = undefined; if (st.done) return; if (st.value && st.value.prompt) v = st.value.prompt.opts[st.value.prompt.opts.length - 1].value; } }
+    function plainTh(s) { return String(s).replace(/\{\/?[a-z]*\}/g, ''); }
+    function mkTh(lvl) {
+      var B = D.npcFight('?npc=goblin,goblin&lvl=' + lvl + '&vs=fighter:' + lvl, {}); D.battle = B; B.enter(); while (!B.order.length) B.co.next(); B.dark = false;
+      var f = B.units.filter(function (w) { return w.side === 'party'; })[0], g = B.units.filter(function (w) { return w.side === 'foe'; })[0], ok = false;
+      g.maxhp = g.hp = 999; g.conds = {}; B.units.forEach(function (w) { if (w !== f && w !== g) { w.x = 1; w.y = 1; } });
+      for (var dy = -1; dy <= 1 && !ok; dy++) for (var dx = -1; dx <= 1 && !ok; dx++) { var x = g.x + dx, y = g.y + dy; if ((dx || dy) && D.grid.canStand(f, x, y)) { f.x = x; f.y = y; ok = B.canHit(f, g); } }
+      D.grid.setup(B.map, B.units); return { B: B, f: f, g: g, ok: ok };
+    }
+    try {
+      D.seed = 1030;
+      // 1. the register and the maker's ask at 3
+      var opF = (RTh.SUBCLASSES.fighter || { opts: [] }).opts.map(function (o) { return o.name + (o.srd ? ' (SRD)' : ''); }), soT = RTh.subOpt('fighter', 'threshing');
+      var asks3 = D.npc.levelAsks(D.npc.spec('fighter:3'), 3, { classDefaults: true }), arc3 = (asks3.asks || []).filter(function (a) { return a.kind === 'archetype'; })[0];
+      okTh('the fighter\'s archetype: ' + JSON.stringify(opF) + ' at ' + (RTh.SUBCLASSES.fighter || {}).at + '; the maker at 3 asks it: ' + (arc3 ? arc3.rows.map(function (r) { return r.name; }).join(' / ') + ', marked ' + arc3.took : 'no ask'),
+        opF.join('|') === 'Champion (SRD)|the Threshing Floor' && soT && soT.name === 'the Threshing Floor' && arc3 && arc3.rows.length === 2 && arc3.took === 'Champion');
+      // 2. the sheet: ours is no Champion; the use a long rest gives
+      var shT = D.npc.sheet(Object.assign(D.npc.spec('fighter:7'), { subclass: 'the Threshing Floor' })), shC = D.npc.sheet(D.npc.spec('fighter:7'));
+      okTh('a fighter 7 of the Threshing Floor: ' + shT.subclass + ', crit at ' + RTh.critRange(shT) + ', initiative +' + RTh.initBonus(shT) + ', up off the floor ' + (shT.feats || {}).upOff + '; a Champion 7: ' + shC.subclass + ', crit at ' + RTh.critRange(shC) + ', initiative +' + RTh.initBonus(shC),
+        shT.subclass === 'the Threshing Floor' && RTh.critRange(shT) === 20 && RTh.initBonus(shT) === D.mod(shT.abil.dex) && shT.feats.upOff === 1 && shC.subclass === 'Champion' && RTh.critRange(shC) === 19 && RTh.initBonus(shC) > D.mod(shC.abil.dex) && !shC.feats.upOff);
+      // 3. Hard Ground: the edges, prone on both sides, ours against a Champion
+      var h3 = mkTh(3), f3 = h3.f, g3 = h3.g; f3.subclass = 'the Threshing Floor'; f3.conds.prone = true;
+      var eOut = RUTh.edges(f3, g3, f3.weapon), eIn = RUTh.edges(g3, f3, { name: 'scimitar' }); f3.subclass = 'Champion'; var cOut = RUTh.edges(f3, g3, f3.weapon), cIn = RUTh.edges(g3, f3, { name: 'scimitar' }); f3.subclass = 'the Threshing Floor';
+      okTh('HARD GROUND (placed ' + h3.ok + '): prone, its blow dis ' + JSON.stringify(eOut.dis) + ', the goblin\'s at it adv ' + JSON.stringify(eIn.adv) + '; a Champion prone: dis ' + JSON.stringify(cOut.dis) + ', adv against ' + JSON.stringify(cIn.adv),
+        h3.ok && eOut.dis.indexOf('prone') < 0 && eIn.adv.indexOf('prone target') < 0 && cOut.dis.indexOf('prone') >= 0 && cIn.adv.indexOf('prone target') >= 0);
+      var sp3 = RUTh.speedNow(f3); RUTh.startTurn(f3); var mv3 = f3.turn.move, up3 = !f3.conds.prone;
+      okTh('up at the turn\'s start for ' + RUTh.riseCost(f3) + ' ft: up ' + up3 + ', the move ' + mv3 + ' of ' + sp3, up3 && RUTh.riseCost(f3) === 5 && mv3 === sp3 - 5);
+      // 4. Up Off the Floor: down at 0, it rises at its turn; its first blow at advantage, spent; once a long rest
+      f3.hp = 0; f3.ko = true; f3.conds.prone = true; f3.feats.upOff = 1; var nU = (h3.B.log || []).length; RUTh.startTurn(f3); h3.B.active = f3;
+      var hpU = f3.hp, wantU = Math.max(1, f3.lvl + D.mod(f3.abil.con)), advU = RUTh.edges(f3, g3, f3.weapon).adv.slice(), saidU = (h3.B.log || []).slice(nU).map(plainTh).join(' / ');
+      D.d = function (n) { return n === 20 ? 15 : d0Th(n); }; runTh(h3.B.exec(f3, { do: 'attack', target: g3 })); D.d = d0Th; var advU2 = RUTh.edges(f3, g3, f3.weapon).adv;
+      okTh('UP OFF THE FLOOR: ' + hpU + ' HP (want ' + wantU + '), down ' + f3.ko + ', on its feet ' + !f3.conds.prone + ', its blow adv ' + JSON.stringify(advU) + ', after it ' + JSON.stringify(advU2) + '; said "' + saidU.slice(0, 120) + '"',
+        hpU === wantU && !f3.ko && !f3.conds.prone && advU.indexOf('up off the floor') >= 0 && advU2.indexOf('up off the floor') < 0 && /gets up off the floor/.test(saidU));
+      f3.hp = 0; f3.ko = true; RUTh.startTurn(f3);
+      okTh('dropped again the same day: stays down (' + f3.hp + ' HP, the use ' + f3.feats.upOff + ')', f3.hp <= 0 && f3.feats.upOff === 0);
+      // 5. Threshing at 7: one more weapon die on a prone one, once a turn (two swings, Extra Attack); none at 5
+      var h7 = mkTh(7), f7 = h7.f, g7 = h7.g; f7.subclass = 'the Threshing Floor'; g7.conds.prone = true; D.rules.startTurn(f7); h7.B.active = f7;
+      D.d = function (n) { return n === 20 ? 15 : d0Th(n); }; var n7 = (h7.B.log || []).length; runTh(h7.B.exec(f7, { do: 'attack', target: g7 })); runTh(h7.B.exec(f7, { do: 'attack', target: g7 })); D.d = d0Th;
+      var l7 = (h7.B.log || []).slice(n7).map(plainTh).join(' / '), th7 = (l7.match(/threshing \+/g) || []).length, sw7 = (l7.match(/> Goblin/g) || []).length;
+      var h5 = mkTh(5), f5 = h5.f, g5 = h5.g; f5.subclass = 'the Threshing Floor'; g5.conds.prone = true; D.rules.startTurn(f5); h5.B.active = f5;
+      D.d = function (n) { return n === 20 ? 15 : d0Th(n); }; var n5 = (h5.B.log || []).length; runTh(h5.B.exec(f5, { do: 'attack', target: g5 })); D.d = d0Th; var l5 = (h5.B.log || []).slice(n5).map(plainTh).join(' / ');
+      okTh('THRESHING at 7 (placed ' + h7.ok + '): ' + sw7 + ' swings at the goblin down, threshing on ' + th7 + ' ("' + (l7.match(/[^/]*threshing \+[^/]*/) || [''])[0].trim().slice(0, 90) + '"); at 5, threshing ' + /threshing/.test(l5),
+        h7.ok && sw7 === 2 && th7 === 1 && !/threshing/.test(l5));
+    } catch (e) { repTh.errors.push(String(e && e.stack || e)); }
+    D.d = d0Th;
+    var preTh = document.createElement('pre'); preTh.id = 'out'; preTh.textContent = 'BENCH16 ' + JSON.stringify(repTh);
+    document.body.appendChild(preTh);
+    return;
+  }
   // STAB DEBUT (mode=stabdebut1029; the leveling lane, 10-29 -- Griz: "replace 'opening cut' with 'Stab Debut' where she gets a straight weapon damage attack (no bonuses) on
   // targets that haven't first-turned"; "yeah to stab debut bench check"): the grid's Cutthroat attacking a goblin that has not had its first turn swings twice, the second
   // the weapon's dice alone (+0, no Sneak Attack even when the first missed with a friend beside it), and neither with advantage or a critical from it; at one that has

@@ -273,6 +273,7 @@
     colossusslayer: { foe: 3, foeHurt: 1 }, fightingstyle_archery: { foe: 3 }, extraattack_ranger: { foe: 3 },
     turnundead: { skel: 2 }, turntheunholy: { skel: 2 }, destroyundead: { skel: 2 },
     deflectmissiles: { foe: 4, mate: null }, uncannydodge: { mate: null }, firstblood: { mate: null }, answerback: { mate: null }, rimedoubles: { mate: null },
+    hardground: { mate: null }, upoffthefloor: { mate: null }, threshing: { mate: null }, // (the Threshing Floor, ours, 10-30)
     evasion_monk: { foe: 0, mate: null, wiz: 1 }, evasion_rogue: { foe: 0, mate: null, wiz: 1 },
     sculptspells: { foe: 3, mate: 'flank', lvl: 5 }, potentcantrip: { foe: 3, mate: null }, elementalaffinity: { foe: 2 }, rimestep: { foe: 3 },
     quickenedspell: { foe: 3 }, twinnedspell: { foe: 3 }, carefulspell: { foe: 2, mate: 'flank' }, heightenedspell: { foe: 2 },
@@ -515,6 +516,18 @@
       downinthesand: function* (c) { yield* fire(B.exec(c.hero, { do: 'rage' })); yield* swing(c, null, 4, true); },
       firstblood: function* (c) { yield* foeStrike(c, 4, { until: function (k) { return !!k.hero.conds.raging; } }); },
       answerback: function* (c) { yield* fire(B.exec(c.hero, { do: 'rage' })); yield* foeStrike(c, 4, { atk: -20, until: function (k) { return k.hero.reaction === 0; } }); },
+      // the Threshing Floor (ours, 10-30; deep16/js/rules.js RU.hardGround, RU.startTurn): a blow from the ground with no disadvantage, the foe's at it with no advantage, up for
+      // 5 ft; down at 0, up at its turn with its first blow at advantage; a prone foe threshed for one more weapon die
+      hardground: function* (c) {
+        var u = c.hero; u.conds.prone = true; yield 20; yield* swing(c, null, 1, true);
+        u.conds.prone = true; yield* foeStrike(c, 1, { until: function () { return true; } });
+        u.conds.prone = true; D.rules.startTurn(u); B.active = u; yield 40;
+      },
+      upoffthefloor: function* (c) {
+        var u = c.hero; u.hp = 0; u.ko = true; u.conds.prone = true; if (u.feats) u.feats.upOff = 1; yield 40;
+        D.rules.startTurn(u); B.active = u; yield 50; yield* swing(c, null, 1, true);
+      },
+      threshing: function* (c) { c.foes[0].conds.prone = true; yield 20; yield* swing(c, null, 3, true); },
       uncannydodge: function* (c) { yield* foeStrike(c, 5, { until: struck }); },
       deflectmissiles: function* (c) { yield* foeStrike(c, 5, { ranged: true, until: struck }); },
       rimedoubles: function* (c) { c.hero.images = 3; yield* foeStrike(c, 6, { atk: 40, until: function (k) { return !!(k.foes[0].conds.frosted); } }); },

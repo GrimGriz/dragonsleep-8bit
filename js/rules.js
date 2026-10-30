@@ -290,6 +290,12 @@
     barbarian: { at: 3, word: 'PRIMAL PATH', opts: [
       { id: 'berserker', name: 'Path of the Berserker', srd: true, desc: 'Frenzy: raging, a bonus-action attack each turn. At 6, Mindless Rage: no charm or fear while raging.' },
       { id: 'sand', name: 'Path of the Sand', desc: "Talmok's, the pit's own. First Blood: hurt and not raging, the reaction starts a rage. Down in the Sand: raging, once a turn a melee hit puts one Large or smaller down on a failed STR save. At 6, Answer Back: one who misses in melee gets a blow back." }] },
+    // the fighter's (10-30, the leveling lane: leveling-srd-by-class.md §2.1 -- Griz: "I want the players to be making the same decisions at level up as they would be playing in a
+    // version using the PHB and DMG", and of the choice at 3, "SRD compliance failures in this area have been a large oversight and are of increased priority re: usage"): the
+    // Champion is the SRD's (R.champion: its Improved Critical and Remarkable Athlete), the Threshing Floor ours -- deep16/js/rules.js RU.hardGround, RU.startTurn, battle.js
+    fighter: { at: 3, word: 'MARTIAL ARCHETYPE', opts: [
+      { id: 'champion', name: 'Champion', srd: true, desc: 'Improved Critical: a critical on a 19 or 20. At 7, Remarkable Athlete: half proficiency to STR, DEX and CON checks and to initiative.' },
+      { id: 'threshing', name: 'the Threshing Floor', desc: "Barley's road, ours. Hard Ground: prone is no trouble -- no disadvantage on its own blows from the ground, no advantage for one beside it, up for 5 ft. Up Off the Floor: once a long rest, dropped to 0, it rises at its next turn with its fighter level + CON in HP, its first blow at advantage. At 7, Threshing: once a turn, one more weapon die on a prone foe." }] },
     cleric: { at: 1, word: 'DIVINE DOMAIN', opts: [
       { id: 'life', name: 'Life Domain', srd: true, desc: 'Disciple of Life: a healing spell heals 2 + its level more. At 2, Preserve Life (Channel Divinity); at 6, healing others heals the cleric too; at 8, Divine Strike.' },
       { id: 'window', name: 'the Window', desc: "Kat's: the menders of Tronupholen. The Hand on the Neck: a bonus-action touch, and the first blow to land on that one is rolled again. At 2, The Doubling; at 6, The Showing (Channel Divinity). Illusions always prepared." },
@@ -761,15 +767,17 @@
   // expertise later (the rogue at 6) adds proficiency once more
   R.skill = function (h, name, ab) {
     var s = h.skills && h.skills[name], d = h.id && DS.DATA.heroes[h.id], p = R.prof(h.lvl);
-    if (s == null) return DS.mod(h.abil[ab]) + (h.cls === 'fighter' && h.lvl >= 7 && /^(str|dex|con)$/.test(ab) ? Math.ceil(R.prof(h.lvl) / 2) : 0); // (Remarkable Athlete, SRD 5.1, the Champion's 7: half its proficiency, rounded up, to a STR, DEX or CON check it is not proficient in -- R.initBonus has the initiative; the grid's rules §2d, 10-08)
+    if (s == null) return DS.mod(h.abil[ab]) + (R.champion(h) && h.lvl >= 7 && /^(str|dex|con)$/.test(ab) ? Math.ceil(R.prof(h.lvl) / 2) : 0); // (Remarkable Athlete, SRD 5.1, the Champion's 7: half its proficiency, rounded up, to a STR, DEX or CON check it is not proficient in -- R.initBonus has the initiative; the grid's rules §2d, 10-08)
     var base = (d && d.expertise) || [], later = (h.expertise || []).filter(function (x) { return base.indexOf(x) < 0; });
     var grown = d && d.abil && d.abil[ab] != null ? DS.mod(h.abil[ab]) - DS.mod(d.abil[ab]) : 0; // an ability raised since level 2 raises its skills
     return s + (p - 2) * (base.indexOf(name) >= 0 ? 2 : 1) + (later.indexOf(name) >= 0 ? p : 0) + grown;
   };
   R.spellDC = function (h) { var c = R.CLASSES[h.cls], w = R.item(h.equip.weapon); return 8 + R.prof(h.lvl) + DS.mod(h.abil[c.cast || 'int']) + ((w && w.weapon && w.weapon.dcBonus) || 0); };
   R.spellAtk = function (h) { var c = R.CLASSES[h.cls]; return R.prof(h.lvl) + DS.mod(h.abil[c.cast || 'int']); };
-  R.initBonus = function (h) { return DS.mod(h.abil.dex) + (h.cls === 'fighter' && h.lvl >= 7 ? Math.ceil(R.prof(h.lvl) / 2) : 0); }; // Remarkable Athlete
-  R.critRange = function (h) { return (h.cls === 'fighter' && h.lvl >= 3) ? 19 : 20; };
+  R.initBonus = function (h) { return DS.mod(h.abil.dex) + (R.champion(h) && h.lvl >= 7 ? Math.ceil(R.prof(h.lvl) / 2) : 0); }; // Remarkable Athlete
+  R.critRange = function (h) { return (R.champion(h) && h.lvl >= 3) ? 19 : 20; };
+  // a fighter of the Champion: every fighter but one of ours (10-30, R.SUBCLASSES.fighter) -- a sheet that names no archetype is the SRD's, as ever
+  R.champion = function (h) { return h.cls === 'fighter' && h.subclass !== 'the Threshing Floor'; };
   R.attacksPerTurn = function (h) { if (h.attacks) return h.attacks; if (h.cls === 'fighter' && h.lvl >= 11) return 3; return (/^(fighter|paladin|barbarian|ranger|monk)$/.test(h.cls) && h.lvl >= 5) ? 2 : 1; }; // Extra Attack at 5; the fighter's second at 11 (SRD 5.1; the named past 9, 09-30)
   R.maxSlotLevel = function (h) { var m = 0; (h.slotsMax || []).forEach(function (n, i) { if (n > 0) m = i + 1; }); return m; };
   R.lowestSlot = function (h, min) { for (var i = (min || 1) - 1; i < (h.slots || []).length; i++) if (h.slots[i] > 0) return i + 1; return 0; };

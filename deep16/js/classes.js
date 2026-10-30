@@ -343,6 +343,7 @@
     // sorcerer's metamagic (3: two options, a third at 10, a fourth at 17), the Hunter's Defensive Tactics (7: Escape the Horde unless the spec
     // says 'multiattack' or 'steelwill'), the warlock's Pact Boon (3: below)
     if (sub === 'The Fiend' && lvl >= 6) h.feats.darkLuck = 1;
+    if (sub === 'the Threshing Floor' && cls === 'fighter' && lvl >= 3) h.feats.upOff = 1; // (Up Off the Floor, once a long rest: rules.js RU.startTurn -- ours, 10-30)
     if (cls === 'sorcerer' && lvl >= 3) h.metamagic = (spec.metamagic || c.metamagic || []).slice(0, lvl >= 17 ? 4 : lvl >= 10 ? 3 : 2);
     if (cls === 'ranger' && sub === 'Hunter' && lvl >= 7) h.hunterDef = spec.hunterDefense || 'horde';
     if (cls === 'warlock' && lvl >= 3 && spec.pact === 'blade') { // the pact weapon in hand; what it carried takes the second place
