@@ -1138,7 +1138,7 @@
     var bw = w * 0.86, bh = Math.min(h * 0.56, bw * 0.8); H16.boardPaint(ctx, x + (w - bw) / 2, y + h * 0.16, bw, bh, H16.papers(st && st.flags), bw / 36);
   }; };
   H16.boardPlay = function* (B) {
-    var st = C.state(B), W = H16.BOARD; if (!st) return;
+    var st = C.state(B), W = H16.BOARD, took = false; if (!st) return;
     var sc = new C.Counter(B, { id: 'board', name: W.name, place: W.name, what: W.what, room: true, pic: H16.boardPic(st), script: function (s) { return (function* () {
       var f = st.flags; yield s.say(W.head.slice(), 'attentive');
       while (true) {
@@ -1147,11 +1147,16 @@
         if (!take.length) { yield s.say(pre.concat(C.L('hessle.boardClear'))); return; }
         var a = yield s.ask(pre.concat([W.ask]), take.map(function (p) { return 'TAKE: ' + p.label; }).concat(['LEAVE']));
         if (a == null || a >= take.length) return;
-        var p = take[a]; f['paper:' + p.id] = 1; f.boardRead = 1; C.flagOn(st, p.flag); f.pinWant = p.mission; D.sfx('confirm');
+        var p = take[a]; f['paper:' + p.id] = 1; f.boardRead = 1; C.flagOn(st, p.flag); f.pinWant = p.mission; took = true; D.sfx('confirm');
+        // (10-30, his "hessle's board to give fancy 'in your journal now' after you close the board interface would be good": a paper whose mission the party already holds -- a
+        // rumour's, Marta's word, the council's ask -- had its card long since, its `q:` taken as seen, so taking the paper down gave no card, no fly-in and no pin; it is
+        // fresh again, the paper being the new thing that goes in the JOURNAL)
+        delete f['q:' + p.mission];
         yield s.say([].concat(C.L(p.text), [W.took]), 'work');
       }
     })(); } });
     D.push(sc); while (!sc.done) yield 1;
+    if (took && H16.missionDue(B)) yield* H16.missionCard(B); // (the screen down: the card and the JOURNAL's fly-in right here, not on whatever beat the floor's script asks next -- one card, the beat finds nothing fresh)
   };
   var fireB = T.fire;
   T.fire = function* (B, trig) { if (trig && trig.town === 'board') { yield* H16.boardPlay(B); return; } yield* fireB.apply(this, arguments); };

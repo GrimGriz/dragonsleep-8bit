@@ -4089,6 +4089,41 @@
     function qHw(B, id) { return CHw.journal(B).quests.filter(function (q) { return q.id === id; })[0] || null; }
     function beatHw(B) { if (!HWw.due(B)) return null; var n = B.saidHw.length; driveHw(HWw.beat(B), null, 600); return B.saidHw.length > n ? lastHw(B) : ''; }
     function talkHeardHw(B) { return CHw.journal(B).rumors.length; }
+    // a screen as the game plays it (10-30, his "hessle's board to give fancy 'in your journal now' after you close the board interface would be good"): E at it through the floor's
+    // own script (B.co: the use key, R.useNear, R.fire, T.fire), the screen clicked through by `pick` (it says whether it clicked, and notes o.took), then the script run on as the roam
+    // runs it, asking its beats by itself (D.hours.due) with no beatHw of the bench's to ask for the card. What came after the screen closed: the cards, the fly-in's starts, whether
+    // one was up and its words
+    function screenRunHw(B, setup, pick) {
+      var o = { un: null, screen: false, took: false, saw: false, flying: false, flyText: '', flew: 0, cards: [] }, fly0 = HWw.fly, n0 = B.saidHw.length, k = 0;
+      var inJ = function (s) { return /In your JOURNAL/.test(s); };
+      HWw.fly = function* () { o.flew++; yield* fly0.apply(this, arguments); };
+      try {
+        o.un = setup(B.roam); driveHw(B.co, function () { return D.top() instanceof CHw.Counter; }, 800); o.screen = D.top() instanceof CHw.Counter;
+        while (D.top() instanceof CHw.Counter && k++ < 40) {
+          var sc = D.top(); if (!pick(sc, sc.wait || {}, o)) break;
+          if (D.top() !== sc) break; // (the screen is closed)
+          driveHw(B.co, null, 30);
+        }
+        o.saw = driveHw(B.co, function () { return !!B.jfly || B.saidHw.slice(n0).some(inJ); }, 400); o.flying = !!B.jfly; o.flyText = B.jfly ? B.jfly.lines.join(' ') : '';
+        driveHw(B.co, function () { return !B.jfly && o.flew > 0; }, 3000); driveHw(B.co, null, 400); // (the fly-in played out, the floor on a while: a second card would show)
+      } finally { HWw.fly = fly0; offHw(B); }
+      o.cards = B.saidHw.slice(n0).filter(inJ); return o;
+    }
+    function nextHw(sc) { return clickHw(sc, sc.buttons().filter(function (b) { return b.go === 'next'; })[0]); }
+    function boardRunHw(B) { // (the cloaker's paper taken off the board, the stood-before square the wall's foot)
+      return screenRunHw(B, function (R0) { var q = RHw.def.board; if (!q) return null; R0.token.x = q[0]; R0.token.y = q[1] + 1; R0.path = null; R0.fw = [0, -1]; R0.keys.push('use'); return RHw.useNear(B); }, function (sc, w, o) {
+        if (w.say) return nextHw(sc);
+        if (!w.ask) return false; var bs = sc.buttons().filter(function (b) { return b.go === 'opt'; });
+        clickHw(sc, (!o.took && bs.filter(function (b) { return /CLOAKER/.test(b.label); })[0]) || bs[bs.length - 1]); o.took = true; return true;
+      });
+    }
+    function nedRunHw(B) { // (Ned's counter in Percy's, from across it: the Insight's choice, "Deal.", then "We should get going." -- o.took once the deal is struck)
+      return screenRunHw(B, function (R0) { var a = RHw.def.beside && RHw.def.beside.ned && RHw.def.beside.ned.across; if (!a) return null; R0.token.x = a[0]; R0.token.y = a[1]; R0.path = null; R0.fw = [0, -1]; R0.keys.push('use'); return RHw.useNear(B); }, function (sc, w, o) {
+        if (w.say || (sc.paging && sc.paging())) return nextHw(sc);
+        if (!w.ask) return false; var bs = sc.buttons().filter(function (b) { return b.go === 'opt'; }), pk = bs.filter(function (b) { return /\(insight\)|^Deal\./.test(b.label); })[0];
+        if (pk && /^Deal\./.test(pk.label)) o.took = true; return clickHw(sc, pk || bs[bs.length - 1]);
+      });
+    }
     D.store.get = function (k) { return memHw[k] ? JSON.parse(memHw[k]) : null; }; D.store.set = function (k, v) { memHw[k] = JSON.stringify(v); return true; };
     window.DS.autoPicks = true;
     try {
@@ -4129,9 +4164,27 @@
       var trB = trigHw('board:hessle'), gB = trB ? THw.fire(B1, trB) : null, kB = 0, tookB = false; if (gB) driveHw(gB, function () { return D.top() instanceof CHw.Counter; }, 800);
       while (D.top() instanceof CHw.Counter && kB++ < 30) { var scB = D.top(), wB = scB.wait || {}; if (wB.say) clickHw(scB, scB.buttons().filter(function (q) { return q.go === 'next'; })[0]); else if (wB.ask) { var bsB = scB.buttons().filter(function (q) { return q.go === 'opt'; }); clickHw(scB, (!tookB && bsB.filter(function (q) { return /CLOAKER/.test(q.label); })[0]) || bsB[bsB.length - 1]); tookB = true; } else break; }
       if (gB) driveHw(gB, null, 800); offHw(B1);
-      var tl = qHw(B1, 'tail'), fw2 = qHw(B1, 'work'), ctl = beatHw(B1);
+      var tl = qHw(B1, 'tail'), fw2 = qHw(B1, 'work'), ctl = beatHw(B1) || lastHw(B1); /* (since 10-30 the card plays as the screen closes, in boardPlay: nothing left for the beat -- the last card said) */
       okHw('Hessle\'s word inside opens nothing (in ' + inH + ', the tail ' + !tl0 + '); the board outside (' + !!trB + '), the cloaker\'s paper taken: The Forty-Gold Tail a mission (' + !!tl + ', NEXT "' + String(tl && tl.where).slice(0, 50) + '..."), Finding Work done (' + !!(fw2 && fw2.done) + '); the card "' + String(ctl).slice(0, 70) + '"',
         inH && !tl0 && !!trB && !!tl && !tl.done && /deep gallery/.test(tl.where) && !!fw2 && fw2.done && /The Forty-Gold Tail/.test(ctl));
+      // 6b. THE BOARD AS THE GAME PLAYS IT (10-30, his "hessle's board to give fancy 'in your journal now' after you close the board interface would be good"): E at the board
+      // through the floor's own script, the cloaker's paper taken, the screen closed, the script run on asking its beats by itself (boardRunHw) -- the card and the JOURNAL's fly-in
+      // come right there, once, the Tail pinned. Barley's NEW GAME: the Tail is not in the JOURNAL before the paper
+      var BD = newHw('barley'), tail0D = !!qHw(BD, 'tail'), rD = boardRunHw(BD), flyD = rD.cards.length ? rD.cards[0] : '';
+      okHw('the board as the floor plays it (E at ' + (rD.un ? rD.un.trig.id : 'nothing') + ', the screen ' + rD.screen + ', the cloaker\'s paper taken ' + rD.took + ', the Tail in the JOURNAL before it ' + tail0D + '): once the screen is closed the floor gives the card by itself (' + rD.saw + ', the fly-in up ' + rD.flying + ' with "' + String(rD.flyText).replace(/\{.\}|\{\/\}/g, '').slice(0, 40) + '"), ' + rD.cards.length + ' card and ' + rD.flew + ' fly-in in all ("' + flyD.slice(0, 44) + '"), the Tail pinned (' + CHw.journal(BD).pin + ')',
+        !tail0D && !!rD.un && rD.un.trig.id === 'board:hessle' && rD.screen && rD.took && rD.saw && rD.flying && /The Forty-Gold Tail/.test(rD.flyText) && rD.cards.length === 1 && rD.flew === 1 && /The Forty-Gold Tail/.test(flyD) && CHw.journal(BD).pin === 'tail');
+      // 6c. ... AND A MISSION THE PARTY ALREADY HOLDS (the same word of his; the cause the clean check above could not see): Vivian's mother's word at the stall has opened the Tail with
+      // its card long since (taken as seen, Finding Work pinned), so the paper taken down off the board gave no card, no fly-in and no pin -- the paper is the new thing in the JOURNAL
+      var BE = newHw('vivian'); beatHw(BE); talkHw(BE, 'marta'); var cardE0 = beatHw(BE), tailE = qHw(BE, 'tail'), pinE0 = CHw.journal(BE).pin, seenE = !!BE.roam.flags['q:tail'], fresh0E = HWw.fresh(CHw.state(BE)).length;
+      var rE = boardRunHw(BE), flyE = rE.cards.length ? rE.cards[0] : '';
+      okHw('the board with the Tail already in the JOURNAL (Marta\'s word opened it, its card played, seen ' + seenE + ', nothing fresh ' + (fresh0E === 0) + ', pinned ' + pinE0 + '): the paper taken, the screen closed -- the card by itself (' + rE.saw + '), "' + flyE.slice(0, 44) + '", ' + rE.cards.length + ' card and ' + rE.flew + ' fly-in, pinned ' + CHw.journal(BE).pin + ' (the paper\'s mission, as the board says)',
+        /In your JOURNAL/.test(cardE0 || '') && !!tailE && seenE && fresh0E === 0 && pinE0 !== 'tail' && !!rE.un && rE.screen && rE.took && rE.saw && rE.flying && rE.cards.length === 1 && rE.flew === 1 && /The Forty-Gold Tail/.test(flyE) && CHw.journal(BE).pin === 'tail');
+      // 6d. NED'S PAGE, THE SAME (10-30, the same report of him): Ned's own word said the JOURNAL and marked the page as seen, so no card and no fly-in came when his counter closed.
+      // Aurdin at Percy's, Ned's story told and the Insight made on an earlier visit: the Insight's choice, "Deal.", out -- the card and the fly-in as the screen closes, once
+      var BN = newHw('aurdin'); beatHw(BN); driveHw(THw.fire(BN, trigHw('warp:percy')), null, 2000); var inNP = RHw.def.room === 'warp:percy'; Object.assign(BN.roam.flags, { nedStory: 1, nedSaw: 1 });
+      var nedQ0 = !!qHw(BN, 'nedpage'), rN = nedRunHw(BN), flyN = rN.cards.length ? rN.cards[0] : '', nedQ1 = qHw(BN, 'nedpage');
+      okHw('Ned\'s page, the same: Aurdin in Percy\'s (' + inNP + '), the page not in the JOURNAL before (' + !nedQ0 + '), the deal struck at his counter (' + rN.took + ', ' + (nedQ1 ? nedQ1.name : 'no quest') + ' in it now); once the screen is closed the floor gives the card by itself (' + rN.saw + ', the fly-in up ' + rN.flying + '), ' + rN.cards.length + ' card and ' + rN.flew + ' fly-in ("' + flyN.slice(0, 44) + '"), pinned ' + CHw.journal(BN).pin,
+        inNP && !nedQ0 && !!rN.un && rN.screen && rN.took && !!nedQ1 && rN.saw && rN.flying && rN.cards.length === 1 && rN.flew === 1 && /In your JOURNAL: Ned's Page/.test(flyN) && CHw.journal(BN).pin === 'nedpage');
       // 7. A SAVE FROM BEFORE: what its JOURNAL shows at the first look is taken as seen -- no card for any of it
       var B2 = newHw('vivian', { heardPete: 1, heardHex: 1, heardGalleries: 1, wintersMet: 1, wErrA: 1 }), j2 = jHw(B2), c2 = beatHw(B2), c2b = beatHw(B2);
       okHw('a save from before (heardPete, heardHex, heardGalleries, Winters\' first errand): its JOURNAL ' + j2.join(', ') + ', and no card at its first look or after (' + JSON.stringify(c2) + ', ' + JSON.stringify(c2b) + ')',
@@ -6014,11 +6067,12 @@
       okBd('Hessle inside: "' + (sH[0] || '').slice(0, 70) + '..."; the ettercap and the tail not in the JOURNAL from his word (' + !qBd(B1, 'ettercap') + ', ' + !qBd(B1, 'tail') + '), the board not read (' + !B1.roam.flags.boardRead + ')',
         /board's on the wall outside my door/.test(sH[0] || '') && !qBd(B1, 'ettercap') && !qBd(B1, 'tail') && !B1.roam.flags.boardRead && !B1.roam.flags.heardEttercap);
       // 3. THE BOARD'S SCREEN: the board in the portrait's place, a TAKE for each paper; the ettercap's taken down -- its mission, the board read (Finding Work), pinned at its card
+      var c3 = '', c03 = B1.card; B1.card = function (ls) { c3 = window.DS.stripCodes([].concat(ls).join(' ')); return c03.apply(this, arguments); }; /* (the card plays as the screen closes, in boardPlay, since 10-30) */
       var b3 = boardBd(B1, [/ETTERCAP/]), f3 = B1.roam.flags, q3 = qBd(B1, 'ettercap'), ask3 = b3.seen.filter(function (l) { return /^\?/.test(l); })[0] || '';
       okBd('the board\'s screen (' + (b3.sc && b3.sc.o.name) + ', its picture ' + !!(b3.sc && b3.sc.o.pic) + ', a room ' + !!(b3.sc && b3.sc.o.room) + '): "' + (b3.seen[0] || '').slice(0, 50) + '...", ' + ask3.slice(ask3.indexOf('['), ask3.indexOf(']') + 1) + '; the ettercap taken: ' + (q3 && q3.name) + ', paper down (' + f3['paper:ettercap'] + '), the board read (' + f3.boardRead + ')',
         !!b3.sc && b3.sc.o.name === 'Hessle\'s board' && !!b3.sc.o.pic && !!b3.sc.o.room && /town's bounties/.test(b3.seen[0] || '') && /\[TAKE: FORTY GOLD: THE WEB GULCH ETTERCAP\|TAKE: FORTY GOLD: THE CLOAKER IN THE GUANO MINE\|LEAVE\]/.test(ask3) && !!q3 && f3['paper:ettercap'] === 1 && f3.boardRead === 1 && f3.heardEttercap === 1 && !qBd(B1, 'tail'));
-      var c3 = '', c03 = B1.card; B1.card = function (ls) { c3 = window.DS.stripCodes([].concat(ls).join(' ')); return c03.apply(this, arguments); }; if (H6Bd.missionDue(B1)) driveBd(H6Bd.missionCard(B1), null, 200); B1.card = c03;
-      okBd('back on the street, its card: "' + c3.slice(0, 70) + '...", pinned ' + f3.pin, /In your JOURNAL: The Braiding Ettercap/.test(c3) && /Pinned/.test(c3) && f3.pin === 'ettercap');
+      B1.card = c03; var due3 = H6Bd.missionDue(B1); /* (nothing left for the beat: the card came with the screen's closing) */
+      okBd('back on the street, its card: "' + c3.slice(0, 70) + '...", pinned ' + f3.pin + ', nothing left for the floor\'s beat (' + !due3 + ')', /In your JOURNAL: The Braiding Ettercap/.test(c3) && /Pinned/.test(c3) && f3.pin === 'ettercap' && !due3);
       var b3b = boardBd(B1, []), ask3b = b3b.seen.filter(function (l) { return /^\?/.test(l); })[0] || '';
       okBd('the board again: the ettercap\'s paper gone, the cloaker\'s left ("' + ask3b.slice(ask3b.indexOf('[')) + '"), ' + H6Bd.papers(f3).length + ' nailed up', /\[TAKE: FORTY GOLD: THE CLOAKER IN THE GUANO MINE\|LEAVE\]/.test(ask3b) && H6Bd.papers(f3).length === 1);
       // 4. THE SNOOT'S PAPER, once the council has posted it: said, and left up -- not a TAKE; with the rest taken, the nail holes

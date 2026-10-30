@@ -1084,7 +1084,7 @@
       if (a === 'insight') { // (6, 7: he owns it, and offers the tongue -- with no one to take it he says so, and offers it all the same)
         if ((yield sc.ask(NL.owned.concat(C.canHarvest(st) ? [] : NL.noHands, NL.quest), [AS.deal, AS.notNow], 'welcoming')) !== 0) { said = NL.notNow; continue; } // (9: turned down, the choice stays)
         f.nedQuest = 1; var live = C.quests(st).filter(function (q) { return q.id === f.pin && !q.done; })[0];
-        if (!live) f.pin = 'nedpage'; f['q:nedpage'] = 1; // (his word says the JOURNAL: no card besides -- js/hours.js)
+        if (!live) f.pin = 'nedpage'; // (his word says the JOURNAL; and since 10-30 -- Griz: the same fancy 'in your journal now' as the board's -- the page is not marked seen here: the screen closed, the floor's beat gives the card and the fly-in, js/hours.js H16.missionDue)
         said = NL.taken.concat(f.pin === 'nedpage' ? [NL.journal] : []); continue;
       }
       if (a === 'tongue') { // (9: the tongue handed in: the page torn out and given)
