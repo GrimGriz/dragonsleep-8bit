@@ -824,7 +824,7 @@
   // from it (M.endTurn, below). No disadvantage, no leash
   function accountedBy(B, u) { return B.units.filter(function (w) { return w.conds.accounted && w.conds.accounted.by === u.id && !w.dead; })[0] || null; }
   E.calledtoaccount = {
-    summary: function (e, u) { return 'bonus action · a foe within 30 ft · WIS save, or ' + (1 + Math.max(0, (e.slot || 1) - 1)) + 'd8 radiant each time it harms anyone but you'; },
+    summary: function (e, u) { return 'bonus action · a foe you can see within 30 ft · WIS save, or ' + (1 + Math.max(0, (e.slot || 1) - 1)) + 'd8 radiant each time it harms anyone but you'; }, // ("you can see": the SRD's Compelled Duel's, which the grid has always asked -- 10-30, his play record: an invisible duergar refused)
     cast: function* (B, u, t, slot, head, x) {
       B.units.forEach(function (w) { if (w.conds.accounted && w.conds.accounted.by === u.id) delete w.conds.accounted; });
       var sv = RU.save(t, 'wis', u.spellDC);

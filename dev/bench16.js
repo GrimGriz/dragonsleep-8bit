@@ -4848,6 +4848,25 @@
     document.body.appendChild(preRc);
     return;
   }
+  // CALLED TO ACCOUNT'S WORDS (mode=accountwords1030; the leveling lane §9 0c, 10-30, his play record: an invisible duergar refused, "the spell asks for one you can see"):
+  // the record and the card say what the grid asks -- a foe you can see within 30 ft (the SRD's Compelled Duel's "a creature within range that you can see") -- and the
+  // refusal still says why
+  if (get('mode', '') === 'accountwords1030') {
+    var repAw = { checks: [], errors: [] };
+    function okAw(what, v) { repAw.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    try {
+      var B = D.npcFight('?npc=goblin&lvl=5&vs=paladin:5', {}); D.battle = B; B.enter(); while (!B.order.length) B.co.next(); B.dark = false;
+      var pa = B.units.filter(function (w) { return w.side === 'party'; })[0], gb = B.units.filter(function (w) { return w.side === 'foe'; })[0];
+      var rec = window.DS.DATA.spells.calledtoaccount, sm = D.magic.EFFECT.calledtoaccount.summary({ slot: 1 }, pa);
+      okAw('the record: "' + rec.desc.slice(0, 60) + '"; the card: "' + sm.slice(0, 50) + '"', /a foe you can see within 30 ft/.test(rec.desc) && /a foe you can see within 30 ft/.test(sm));
+      gb.x = pa.x + 2; gb.y = pa.y; gb.conds = { invisible: true }; D.grid.setup(B.map, B.units);
+      var why = D.magic.whyNot(B, pa, D.magic.geo('calledtoaccount'), gb);
+      okAw('an invisible goblin 10 ft off: "' + why + '"', /asks for one you can see/.test(why));
+    } catch (e) { repAw.errors.push(String(e && e.stack || e)); }
+    var preAw = document.createElement('pre'); preAw.id = 'out'; preAw.textContent = 'BENCH16 ' + JSON.stringify(repAw);
+    document.body.appendChild(preAw);
+    return;
+  }
   // FOLLOW-THROUGH ON ITS SHELF (mode=followshelf1030; the leveling lane §9 0b, 10-30, his eye on the shelf, broken: "no visible action"): the FEATURES shelf's entry
   // winds up the WIDE SWING and then swings it -- "wide swing +4" on the hit, and the excess "FOLLOW-THROUGH ... carries on into" the other foe; and the pick says the
   // feat wants a heavy weapon, and says so of a hero's own that is not (Barley's Threshing Flail, two-handed, not heavy)
